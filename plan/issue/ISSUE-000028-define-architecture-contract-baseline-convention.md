@@ -1,8 +1,8 @@
 # ISSUE-000028: current Architecture / Contracts基線の正本・責務・版管理規約を定める
 
-Status: **In Progress**  
+Status: **Resolved**  
 Priority: **1**  
-Related ADRs: **ADR-0018, ADR-0020**  
+Related ADRs: **ADR-0018, ADR-0020, ADR-0021**  
 Updated: 2026-08-31
 
 ## Goal
@@ -11,95 +11,79 @@ current `requirements/`の次段として、`architecture/`と`contracts/`をact
 
 historical candidateのArchitecture / Contractを無検査で復元せず、current REQ-0001〜REQ-0022、SCN-0001〜SCN-0017、ADR-0001〜ADR-0020から再導出できる規約を作る。
 
-## Historical inputs
+## Resolution
 
-Library上のhistorical candidateには、たとえば次が存在する。
+ADR-0021で、Architecture / Contractの権威関係と版管理境界をAcceptedとした。
 
 ### Architecture
 
-- `CORE_BOUNDARY_REVIEW_v1.md`
-- `SEMANTIC_PERSISTENCE_CONTRACT_v1.md`
-- `REVISION_SUPERSESSION_SEMANTICS_v1.md`
-- `CLAIM_INTERPRETATION_BOUNDARY_v1.md`
-- `PROGRESSIVE_SEMANTIC_EXPLICITNESS_v1.md`
-- `BOUNDED_SUBJECT_RESPONSIBILITY_v1.md`
-- `BOUNDED_FEDERATION_PROFILE_v1.md`
-- `M49_DECISION_MEMORY_BOUNDARY_v1.md`
-- `M50_CAPABILITY_CHOICE_BOUNDARY_v1.md`
-- その他M48〜M50 planning / implementation review
-
-### Contracts
-
-- `INQUIRY_EPISTEMIC_ARTIFACTS_v1.md`
-- `M47_M48_COMPATIBILITY_PORT_v1.md`
-- `SEMANTIC_PORTABLE_BUNDLE_v1.md`
-- `PORTABLE_EXACT_BINDING_REPRESENTATION_v1alpha1.md`
-- representation profile候補
-- semantic interchange schema候補
-
-これらにはcurrent Product Valueと整合する意味核が多くある一方、Milestone名、当時の型候補、JCS / Go等の実装選択、old evidence stateも混在する。
-
-## Questions
-
-1. Architecture文書は何を正本とし、ADRとどう分けるか。
-2. Architectureにstable IDを付けるか、名前付きcurrent viewとして扱うか。
-3. Contractはどの条件で新設するか。
-4. Contractのlogical identityとversionをどう管理するか。
-5. Markdown contractとmachine-readable schemaのどちらを意味上の正本とするか。
-6. representation-only changeとsemantic breaking changeをどう分けるか。
-7. M48 / M49 / M50等のhistorical milestone文書をcurrent architectureへどう移すか。
-8. Core / Profile / Provider / Adapter / Projectionの配置をどこまでArchitectureで固定するか。
-9. Product Value V1〜V8 → REQ → ADR → Architecture / Contractの追跡をどう残すか。
-10. Design EvidenceとExecutable Contract conformanceをどう分けるか。
-
-## Constraints
-
-- ArchitectureをADRの代替Decision logにしない。
-- Contractを設計思想の説明文書に肥大化させない。
+- ArchitectureはAccepted Requirement / ADRを現在の構造・境界・関係として説明するcurrent design viewとする。
+- 新しい重要DecisionをArchitecture本文だけで確定しない。必要ならIssue / ADRへ戻る。
+- Architecture concernとruntime componentを同一視しない。
 - current canonical filenameへM48 / M49 / M50等のMilestone identityを埋め込まない。
-- historical schema / package / field名をcurrent正本へ自動継承しない。
-- JCS、SHA-256、Go、JSON等の現実装候補を、Product Value上不可欠という理由なしにUniversal meaningへ昇格させない。
-- Architecture documentの存在をExecutable Evidenceとしない。
-- Contract schemaの存在をruntime conformance PASSとしない。
-- current Design baseline作成後、必ず自然な日本語全文再ドラフトと最終意味監査を行う。
+- Architecture文書に別の恒久連番体系を重ねず、重要Decisionのstable identityはADRが担う。
 
-## Required deliverables
+### Contract
 
-- Architecture / Contract responsibility boundary
-- current canonical directory layout
-- Architecture current viewの更新規則
-- Contract logical identity / versioning rule
-- Markdown normative semantics / machine-readable schemaの権威関係
-- historical candidate adoption rule
-- Product Value / REQ / ADR traceability rule
-- Design / Executable Evidence separation
-- ADR
+- Contractは、複数implementation、Provider、Storage、version等をまたいで相互運用・検証が必要な境界だけを規範化する。
+- Contractは`contract_id`とexplicit versionを持つ。
+- semantic ContractとRepresentation Profileを分ける。
+- human-readable Markdown Contract Definitionをsemantic normative sourceとし、machine-readable schemaは検証可能なrepresentationとして扱う。
+- schemaにしか存在しないsemantic requirementを作らない。
+- Markdownとschemaが矛盾した場合はContract inconsistencyとして扱い、黙って一方を正としない。
+
+### Version / Evidence
+
+- Contract versionとGit revision / Storage revisionを同一視しない。
+- pre-stable versionでもhistorical basisとなった版を特定できるようにする。
+- Contract file / schemaの存在をimplementation conformanceへ昇格させない。
+- Design / Executable / Release / Operational Evidenceを分ける。
+
+### Historical candidate
+
+- 意味核、反例、設計系譜は再利用する。
+- old Milestone、field set、package、algorithm、Evidence stateを自動継承しない。
+
+## Questionsへの回答
+
+1. Architectureはcurrent structural view、ADRはDecision logとする。
+2. Architecture current viewには別のstable numeric IDを要求しない。
+3. Contractはportable / verifiable agreementが必要な境界でのみ新設する。
+4. Contractはlogical `contract_id`と明示versionを持つ。
+5. human-readable Contract Definitionをsemantic normative sourceとし、schemaをmachine-verifiable representationとする。
+6. semantic ContractとRepresentation Profileを分け、breaking semantic changeとrepresentation changeを区別する。
+7. historical Milestone文書は`architecture/history/`等でprovenanceを残し、current filenameへMilestoneを継承しない。
+8. Core / Profile / Provider / Adapter / ProjectionはArchitecture concernとして整理するがruntime topologyへ固定しない。
+9. V1〜V8 → REQ → ADR → Architecture / Contractの追跡をcurrent baselineで持つ。
+10. Design document / schemaの存在とExecutable conformanceを分ける。
 
 ## Acceptance
 
 ### Semantic / Design Acceptance
 
-- [ ] ArchitectureとADRの責務境界が決まっている。
-- [ ] ArchitectureとContractの責務境界が決まっている。
-- [ ] Contract identity / version ruleが決まっている。
-- [ ] machine-readable schemaの権威関係が決まっている。
-- [ ] historical candidateの再利用規則が決まっている。
-- [ ] milestone identityをcurrent正本へ持ち込まない規則が決まっている。
-- [ ] V1〜V8からArchitecture / Contractまで追跡できる規則が決まっている。
-- [ ] Evidence階層を混同しない規則が決まっている。
-- [ ] 自然な日本語全文再ドラフトと最終意味監査が完了している。
+- [x] ArchitectureとADRの責務境界が決まっている。
+- [x] ArchitectureとContractの責務境界が決まっている。
+- [x] Contract identity / version ruleが決まっている。
+- [x] machine-readable schemaの権威関係が決まっている。
+- [x] historical candidateの再利用規則が決まっている。
+- [x] milestone identityをcurrent正本へ持ち込まない規則が決まっている。
+- [x] V1〜V8からArchitecture / Contractまで追跡できる規則が決まっている。
+- [x] Evidence階層を混同しない規則が決まっている。
+- [x] 自然な日本語全文再ドラフトと最終意味監査が完了している。
 
 ### Executable Acceptance
 
-本Issueでは要求しない。current Architecture / Contractsの実体化とconformance toolは後続Issueへ分離する。
+本Issueでは要求しない。
 
-## Dependencies
+- Architecture実体化: ISSUE-000029
+- Contract実体化: ISSUE-000030
 
-- ADR-0018
-- ADR-0020
-- ISSUE-000022
-- ISSUE-000026
+## Dependencies / Follow-up
+
+- ADR-0021
+- ISSUE-000029
+- ISSUE-000030
 
 ## Natural Japanese review
 
-historical candidateとcurrent Product / Requirements / ADRの境界を整理した後、未決事項を勝手に確定せず、自然な日本語となることを最重要視して全文を再ドラフトした。ADR確定時に再度、最終意味監査を行う。
+ADR-0021のDecisionへ戻って全QuestionsとAcceptanceを照合した後、規範強度、例外、Evidence境界を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済み。
