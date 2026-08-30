@@ -1,6 +1,6 @@
 # ISSUE-000026: current Product Requirements / Acceptance Scenariosをactual repositoryへ実体化する
 
-Status: **In Progress**  
+Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0018, ADR-0020**  
 Updated: 2026-08-31
@@ -24,102 +24,114 @@ historical candidateの意味核は再利用するが、旧ID、Milestone構造�
 
 ### Historical candidate inputs
 
-Libraryで次を回収済み。
+Libraryから次を回収し、current baselineへ照合した。
 
 - `requirements/PRODUCT_REQUIREMENTS_v1.md`
 - `requirements/ACCEPTANCE_SCENARIOS_v1.md`
 - `requirements/PRODUCT_REQUIREMENT_CANDIDATE_EVIDENCE_v1.yaml`
-- `requirements/PRODUCT_REQUIREMENT_EVIDENCE_BRIDGE_v1.md`
+- bundle manifest
 - M49 / M50 acceptance candidate群
 
-historical Product Requirementsには`SOZA-PR-001`〜`SOZA-PR-018`とNFR 10件が存在する。
+historical Product Requirementsには`SOZA-PR-001`〜`SOZA-PR-018`とNFR 10件、Acceptance Scenario 8件が存在した。
 
-## Migration principle
+## Resolution
 
-### 1. 件数を保存しない
+### 1. current canonical filesを実体化した
 
-18件＋10件という旧構成を維持すること自体を目的にしない。
+actual repositoryへ次を追加した。
 
-重複するNFRはcurrent Requirementへ統合し、現在のValue Modelで新たに明示された境界は必要に応じて追加する。
+```text
+requirements/
+  README.md
+  PRODUCT_REQUIREMENTS.md
+  ACCEPTANCE_SCENARIOS.md
+  history/
+    HISTORICAL_REQUIREMENT_MAPPING.md
+```
 
-### 2. 旧IDをcurrent IDとして再利用しない
+### 2. Product RequirementをREQ-0001〜REQ-0022へ再構成した
 
-current baselineは`REQ-0001`形式を使用する。
+旧18 Product Requirements＋10 NFRという件数を保存せず、重複を統合し、後発のProduct Value / ADRで明確になった意味境界を追加した。
 
-旧`SOZA-PR-*` / `SOZA-NFR-*`はhistorical provenanceとしてmapping文書へ残す。
+current Requirementは22件となったが、**22という件数自体を将来の制約にはしない。**
 
-### 3. Evidenceを継承しない
+主な追加・独立化:
 
-historical candidateの`direct`、`partial`、`design_only`、`VERIFIED`、local PASS等をcurrent actual repositoryのEvidenceへ自動変換しない。
+- REQ-0019 Human / AI Readability
+- REQ-0020 Evidence claim integrity
+- REQ-0022 Provider-neutral Capability Observation
 
-current baselineでは、Product / ADR文書により確認できるDesign Acceptanceだけを評価し、Executable / Release / Operational Acceptanceはactual evidenceがない限り`Not Yet Verified`とする。
+Moving Future Horizonは利用者世界のRequirementではなく設計評価規則と判断し、current REQへ残さずADR-0001 / Product Principlesへ置いた。
 
-### 4. MilestoneをRequirementへ持ち込まない
+### 3. Acceptance ScenarioをSCN-0001〜SCN-0017へ再構成した
 
-M48 / M49 / M50はhistorical implementation planningとしてprovenanceへ残せるが、current REQのidentityや意味にはしない。
+historical `SOZA-AS-001`〜`008`の意味核をSCN-0001〜0008へ移し、後発ADRを検証するScenarioを追加した。
 
-## Planned current requirement bundles
+追加した主なScenario:
 
-少なくとも次の意味核をcurrent REQへ再構成する。
+- Recommendation → Decision → Authority → Execution
+- exact historical binding
+- Provider partial degradation / observation gap
+- Provider Selective Disclosure
+- simple UI / canonical meaning
+- Execution Provider replacement
+- Pattern / Cognitive Method separation
+- Decision後のresidual / reopen
+- Evidence claim height audit
 
-1. durable semantic continuity
-2. epistemic state / uncertainty preservation
-3. provenance / discovery / derivation separation
-4. Cognitive Method independence
-5. Decision historical reconstruction
-6. Recommendation / Decision / Authority / Execution separation
-7. Capability / Provider neutrality
-8. route / responsibility provenance
-9. revision / supersession integrity
-10. progressive semantic explicitness
-11. Projection non-authority
-12. bounded collaboration / selective disclosure
-13. actor kindからauthority等を推定しない
-14. unresolved residual / reopen condition preservation
-15. private chain-of-thought independence
-16. Observation / Interpretation boundary
-17. contextual Responsibility
-18. storage independence
-19. human / AI readability
-20. Evidence claim integrity
-21. replaceable realization / execution independence
-22. provider-neutral Capability Observation
+### 4. historical mappingを独立保存した
 
-これは作業開始時の束であり、自然なKJ的統合・重複監査により必要なら増減できる。件数を固定しない。
+`requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md`で、旧PR / NFR / ASからcurrent REQ / SCNへの統合・分離・上位移管を記録した。
 
-## Required outputs
+旧IDをcurrent identityとして再利用していない。
 
-- `requirements/README.md`
-- `requirements/PRODUCT_REQUIREMENTS.md`
-- `requirements/ACCEPTANCE_SCENARIOS.md`
-- `requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md`
+### 5. historical Evidenceをcurrentへ継承していない
+
+historical candidateの`direct`、`partial`、`design_only`、local PASS等はcurrent actual repositoryのEvidenceへ自動変換していない。
+
+current baselineでは、Product / ADR / Requirement文書で確認できるDesign Acceptanceのみを記録した。
+
+Executable / Release / Operational Acceptanceはactual evidenceがない限り`Not Yet Verified`としている。
 
 ## Acceptance
 
 ### Semantic / Design Acceptance
 
-- [ ] current REQがProduct Value V1〜V8またはProduct Principleへ追跡できる。
-- [ ] historical requirementの意味核とcurrent REQの対応を追える。
-- [ ] old Evidence stateをcurrentへ自動継承していない。
-- [ ] RequirementとADRの責務が混ざっていない。
-- [ ] Milestone名がREQ identityへ入っていない。
-- [ ] SCNがREQと独立IDになっている。
-- [ ] current ADR-0019までの新しい境界をScenarioへ反映している。
-- [ ] 全文を自然な日本語で再ドラフトし、最終意味監査を行っている。
+- [x] current REQがProduct Value V1〜V8またはProduct Principleへ追跡できる。
+- [x] historical requirementの意味核とcurrent REQの対応を追える。
+- [x] old Evidence stateをcurrentへ自動継承していない。
+- [x] RequirementとADRの責務が混ざっていない。
+- [x] Milestone名がREQ identityへ入っていない。
+- [x] SCNがREQと独立IDになっている。
+- [x] ADR-0019を含む後発境界をScenarioへ反映している。
+- [x] 全current Requirements文書を自然な日本語で再ドラフトし、最終意味監査を行った。
 
 ### Executable Acceptance
 
-- [ ] current Requirement / Scenario registryを検査するactual toolがrepositoryに存在する。
-- [ ] REQ / SCN ID重複、参照切れ、Value Axis参照を検査できる。
+Design baselineの完了条件から分離し、`ISSUE-000027`へ移した。
 
-Executable Acceptanceは、まずDesign baselineを実体化した後に別sliceとして進めてもよい。Design文書の完成だけでExecutable AcceptanceをSatisfiedにしない。
+- current Requirement / Scenario registry checker
+- REQ / SCN ID重複検査
+- 相互参照切れ検査
+- Value Axis検査
+- negative fixture
 
-## Dependencies
+したがって本Issueを`Resolved`としても、RequirementsのExecutable AcceptanceがSatisfiedになったことを意味しない。
+
+## Evidence state at closure
+
+- Requirements Design Baseline: **Satisfied**
+- Requirements Registry Executable Check: **Not Yet Verified** — ISSUE-000027
+- Release Acceptance: **Not Yet Verified**
+- Operational Acceptance: **Not Yet Verified**
+
+## Dependencies / Follow-up
 
 - ADR-0020
-- ISSUE-000022
-- ISSUE-000015
+- ISSUE-000022 — repository baseline全体
+- ISSUE-000027 — requirements registry checker
+- ISSUE-000015 — 全開発文書の自然な日本語監査
 
 ## Natural Japanese review
 
-current / historical / evidenceの三層を混同しないよう構造を整理した後、条件や意味を変えず、自然な日本語となることを最重要視して全文を再ドラフトした。作業完了時に最終意味監査を再実施する。
+実体化したREQ / SCN / historical mappingへ戻ってAcceptanceを一件ずつ照合し、Design baselineとExecutable checkerの責務を分離した。その後、意味、Evidence状態、未完了範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済み。
