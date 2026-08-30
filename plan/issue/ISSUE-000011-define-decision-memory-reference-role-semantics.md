@@ -1,6 +1,6 @@
 # ISSUE-000011: Decision Memoryの参照役割を定義する
 
-Status: **Resolved — semantic roles accepted; representation deferred**  
+Status: **Resolved**  
 Priority: **3**  
 Related ADRs: **ADR-0010, ADR-0011**  
 Updated: 2026-08-31
@@ -22,10 +22,23 @@ Decision周辺の参照を単一`refs[]`へ潰さず、後から「何が文脈�
 
 歴史再構成を主張する場合、当時参照した可変Artifactの内容をExactArtifactBinding等で特定できなければならない。
 
-専用DecisionReference型、field配置、wire enum等のrepresentation shapeはactual implementationまでDeferredとする。
+意味役割はADR-0011へ確定したため、本IssueはResolvedとする。
 
-判断はADR-0011へ確定したため、本IssueはResolvedとする。
+## Deferred implementation choices
+
+次は意味境界ではなくrepresentationの選択であるため、actual implementationまで固定しない。
+
+- 専用DecisionReference型を設けるか。
+- Decision内fieldとrelation recordをどう組み合わせるか。
+- wire enumをどのように表すか。
+- query / projectionで複数役割をどう提示するか。
+
+```text
+Semantic roles accepted != representation fixed
+```
+
+ResolvedというStatusは、参照役割の意味境界が確定したことだけを表す。
 
 ## Natural Japanese review
 
-M49 Reference Roles architectureとADR-0011へ戻して内容を照合した後、自然な日本語となることを最重要視して全文を再ドラフトし、意味監査を実施済み。
+M49 Reference Roles architecture、ADR-0011、representationの未決範囲へ戻して内容を照合し、Statusと実装選択を分離した後、自然な日本語となることを最重要視して全文を再ドラフトし、意味監査を実施済み。
