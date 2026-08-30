@@ -36,16 +36,25 @@ SOZAの既存開発文書を、技術的意味・仕様・留保を変えず、*
 
 完了:
 
-- Product Value / Vision / Principles
+- `product/value/SOZA_PRODUCT_VALUE.md`
+- `product/value/SOZA_VALUE_MODEL.md`
+- Product Vision / Principlesの既存baseline
 - `plan/README.md`
-- ADR-0001〜ADR-0016
-- ISSUE-000001〜ISSUE-000018
-- ISSUE-000019〜ISSUE-000022の新規文書
+- ADR-0001〜ADR-0018
+- ISSUE-000001〜ISSUE-000023
 - `plan/registry.yaml`
 - 2件のラウンドKJ統合文書
 
+今回の追加監査:
+
+- Product Valueを、価値階層、価値衝突時の優先規則、Core昇格基準、検証軸、失敗条件まで精緻化した。
+- ADR-0017が`registry.yaml`から欠落していたため、ADR-0018とISSUE-000023の追加時に台帳を正規化した。
+- Product Value本文からValue ModelとADR-0018へ追跡できるようにした。
+
 進行中:
 
+- Product Vision / PrinciplesをValue Modelとの関係まで含めて再監査する。
+- `plan/adr` / `plan/issue`の旧文書について、最新Product Valueとの意味整合を再確認する。
 - Requirements / Acceptance Scenarios
 - Architecture / Contracts
 - rebaseline reports / repository README
@@ -57,6 +66,7 @@ SOZAの既存開発文書を、技術的意味・仕様・留保を変えず、*
 - TEIをSOZA内部Runtimeと誤読させる記述を残さない。
 - planning、design、local executable、actual repository、operational evidenceを区別する。
 - 重要な`!=`境界は、式だけでなく自然な日本語でも説明する。
+- Product Valueとの関係を必要な文書から追跡できる。
 - 再ドラフト後に技術的意味差分を監査する。
 
 ## Non-goals
