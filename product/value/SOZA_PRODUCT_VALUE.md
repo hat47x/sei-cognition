@@ -9,7 +9,7 @@
 
 SOZAの価値は、処理を大量に自動化すること自体にはありません。AIや実行基盤が高度化し、現在のワークフローやエージェント実装が置き換わっても残る、判断の意味・根拠・不確実性・責任・来歴を保つことにあります。
 
-この文書は「SOZAがなぜ存在するか」と「何を価値として守るか」を定めます。価値同士が衝突したときの優先関係、Universal Coreへ含める基準、Product Valueを満たしたと判断するための検証観点は、`SOZA_VALUE_MODEL.md`で具体化します。
+この文書は「SOZAがなぜ存在するか」と「何を価値として守るか」を定めます。価値同士が衝突したときの優先関係、Universal Coreへ含める基準、Product Valueを満たしたと判断するための検証観点は`SOZA_VALUE_MODEL.md`で、実際にどのEvidenceをもって満たしたと判断するかは`SOZA_VALUE_ACCEPTANCE.md`で具体化します。
 
 ## 2. 解こうとする問題
 
@@ -82,7 +82,9 @@ SOZAの価値を、単純な自動化率や実行件数だけで評価しませ�
 5. 過去のDecisionを現在の知識で上書きせず、変更の来歴を辿れるか。
 6. 実行ランタイムが変わっても、SOZAの中核価値が残るか。
 
-これらを実際の設計評価へ使うときは、`SOZA_VALUE_MODEL.md`の検証軸へ展開します。単一の総合点へ還元せず、どの価値を満たし、どこに未充足やtrade-offが残るかを個別に確認します。
+これらを実際の設計評価へ使うときは、`SOZA_VALUE_MODEL.md`のV1〜V8へ展開します。単一の総合点へ還元せず、どの価値を満たし、どこに未充足やtrade-offが残るかを個別に確認します。
+
+さらに、「満たしている」という主張の高さを正確にするため、`SOZA_VALUE_ACCEPTANCE.md`ではDesign、Executable、Release、Operational Evidenceを分けます。設計文書が整っているだけでactual repositoryやproductionで実証済みとは扱いません。
 
 ## 5. SOZAが価値としないもの
 
@@ -104,11 +106,12 @@ SOZAが守るべき中心は、それらの仕組みではなく、**認識、�
 
 ## 7. 関連文書
 
-- `product/value/SOZA_VALUE_MODEL.md` — 価値の優先関係、Core境界、検証軸、失敗条件
-- `product/vision/SOZA_PRODUCT_VISION.md` — 長期的に目指す状態
+- `product/value/SOZA_VALUE_MODEL.md` — 価値の優先関係、Core境界、V1〜V8、失敗条件
+- `product/value/SOZA_VALUE_ACCEPTANCE.md` — V1〜V8を満たしたと判断するためのEvidence境界
+- `product/vision/SOZA_PRODUCT_VISION.md` — 長期的に目指す利用状態
 - `product/principles/SOZA_PRODUCT_PRINCIPLES.md` — 下位設計で反復して適用する原則
 - `plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md` — Product Valueの権威関係と変更・評価境界
 
 ## 8. 自然な日本語ドラフト
 
-内容と構造を確定した後、意味、強度、留保、技術的境界を変えず、自然な日本語となることを最重要視して全文を再ドラフトしました。その後、最終意味監査を実施しています。
+Value ModelとValue Acceptanceの役割分担を確認した後、意味、強度、留保、技術的境界を変えず、自然な日本語となることを最重要視して全文を再ドラフトしました。その後、最終意味監査を実施しています。
