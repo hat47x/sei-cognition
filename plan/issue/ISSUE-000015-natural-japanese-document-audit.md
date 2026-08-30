@@ -38,6 +38,7 @@ SOZAの既存開発文書を、技術的意味・仕様・留保を変えず、*
 
 今回の優先監査で次を完了した。
 
+- `product/README.md`
 - `product/value/SOZA_PRODUCT_VALUE.md`
 - `product/value/SOZA_VALUE_MODEL.md`
 - `product/value/SOZA_VALUE_SCENARIOS.md`
@@ -46,6 +47,8 @@ SOZAの既存開発文書を、技術的意味・仕様・留保を変えず、*
 - `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
 
 Product Valueについて、価値階層、価値衝突時の優先規則、Core昇格基準、V1〜V9のvalidation axis、Evidence level、Value Scenario、価値定義と価値実証の非同一性まで再整理した。
+
+`product/README.md`では、Product Value / Value Model / Vision / Principles / Value Scenario / Traceabilityの役割、権威関係、変更規則を一つの索引へ整理した。
 
 ### ADR
 
@@ -58,7 +61,7 @@ ADR-0001〜ADR-0019を全文で最新Product Valueへ戻して監査した。
 
 ### Issue
 
-ISSUE-000001〜ISSUE-000025をplanning台帳上で再整理した。
+ISSUE-000001〜ISSUE-000025を本文まで再監査した。
 
 今回の主な変更:
 
@@ -67,12 +70,32 @@ ISSUE-000001〜ISSUE-000025をplanning台帳上で再整理した。
 - ISSUE-000024: Value ScenarioからRequirement / NFR / Acceptanceへ追跡する最優先Issueを追加。
 - ISSUE-000025: Provider-neutral Capability Observationのactual contract / fixture実体化Issueを追加。ISSUE-000022完了までBlocked。
 - ISSUE-000009: 独自の長いStatus表記を`Blocked`へ正規化し、historical / local candidate Evidenceとactual repository Evidenceを分離。
+- ISSUE-000008 / 000010 / 000011 / 000013: `Resolved — 補足`形式の独自Statusを`Resolved`へ正規化し、補足をResolution / Evidence stateへ移した。
+- ISSUE-000023: Value Scenario、V1〜V9、Value Traceability、Evidence levelを含む現在のProduct Value governanceへ追随させた。
+- ISSUE-000022: actual repository materializationが進行中である実態に合わせて`In Progress`へ更新した。
 
-### Planning convention / registry
+### Planning convention / registry / management scripts
 
-- `plan/README.md`: 文書階層と自然な日本語ドラフト工程を基線化済み。
-- `plan/registry.yaml`: ADR-0019、ISSUE-000024 / 000025、ISSUE-000019 / 000020のResolved状態を含めて正規化。
-- ADR / Issue template: 自然な日本語レビューを必須工程として維持。
+- `plan/README.md`: 文書階層、Evidence level、Product Value trace、自然な日本語ドラフト工程を基線化済み。
+- `plan/registry.yaml`: ADR-0019、ISSUE-000024 / 000025、ISSUE-000019 / 000020のResolved状態、ISSUE-000022のIn Progress状態を含めて正規化。
+- registry上で見つかったADR-0010↔ISSUE-000011、ADR-0013↔ISSUE-000013の関連非対称を補正した。
+- ADR / Issue template: Product Value trace、Evidence強度、自然な日本語レビューを含む現在の規約へ更新した。
+- `plan/scripts/check_plan_registry.py`: ID桁数、本文ID、Status、registry全件収載、参照先、ADR↔Issue関連対称性を検査する管理スクリプトを追加した。
+- `plan/scripts/next_plan_id.py`: actual treeから次のADR / Issue IDを算出する補助を追加した。
+- `plan/scripts/README.md`: 管理スクリプトの責務・非責務を文書化した。
+- `.github/workflows/plan-integrity.yml`: pull request / develop / mainでplanning metadataの整合を検査する最小CIを追加した。
+
+管理スクリプトのPASSはplanning metadataの整合だけを示し、Product Valueの実証や実装完成を意味しない。
+
+### Repository README
+
+旧Phase 1 candidate bundleをactual treeのように列挙していたルートREADMEを、現在のProduct / Planning baselineへ再基線化した。
+
+- actual treeに存在しない`requirements/`、`architecture/`、`contracts/`、`runtime/`、`tools/`を実体化済みとして扱わない。
+- historical / local candidateとactual repository Evidenceを分離する。
+- Product Value文書を最初に読む導線へ変更する。
+- ADR / Issueの現在状態を最新registryへ合わせる。
+- releaseを主張しない。
 
 ### KJ source
 
@@ -90,8 +113,8 @@ KJ法は最終文書の主題にせず、判断を立ち上げる思考・統合
 
 1. ISSUE-000024に基づくRequirements / Acceptance Scenariosの再基線化。
 2. ISSUE-000022に基づくactual repository materializationとEvidence claim再整合。
-3. Architecture / Contractsの最新Product Value / ADR監査。
-4. rebaseline reports / repository READMEのactual treeへの整合。
+3. actual treeへ移すArchitecture / Contractsについて、最新Product Value / ADRへ戻した自然な日本語監査。
+4. historical / local candidateのreportや補助資料について、actual treeへ残すものとhistorical onlyにするものを整理する。
 5. historical資料のうち原文保存が必要なものは改変せず、案内文・現行評価を別途整備する。
 
 ## Acceptance criteria
@@ -117,4 +140,4 @@ KJ法は最終文書の主題にせず、判断を立ち上げる思考・統合
 
 ## Natural Japanese review
 
-今回のProduct Value / ADR / Issue監査結果を反映した後、進捗・残件・Evidence境界の意味を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済み。
+今回のProduct Value / ADR / Issue / README / planning management audit結果を反映した後、進捗・残件・Evidence境界の意味を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済み。
