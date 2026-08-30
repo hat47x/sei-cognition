@@ -73,11 +73,15 @@ adr:
   - id: ADR-0018
     file: plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000023]
+    related_issues: [ISSUE-000023, ISSUE-000025, ISSUE-000026]
   - id: ADR-0019
     file: plan/adr/ADR-0019-provider-neutral-capability-observation-boundary.md
     status: Accepted
     related_issues: [ISSUE-000020, ISSUE-000024]
+  - id: ADR-0020
+    file: plan/adr/ADR-0020-requirements-traceability-and-evidence-boundary.md
+    status: Accepted
+    related_issues: [ISSUE-000025, ISSUE-000026]
 
 issue:
   - {id: ISSUE-000001, file: plan/issue/ISSUE-000001-operationalize-moving-future-horizon.md, status: Resolved, priority: 4, related_adrs: [ADR-0001]}
@@ -101,6 +105,8 @@ issue:
   - {id: ISSUE-000019, file: plan/issue/ISSUE-000019-clarify-reference-model-and-cognitive-method-boundary.md, status: Resolved, priority: 4, related_adrs: [ADR-0014, ADR-0017]}
   - {id: ISSUE-000020, file: plan/issue/ISSUE-000020-define-tei-capability-observation-surface.md, status: Resolved, priority: 5, related_adrs: [ADR-0012, ADR-0013, ADR-0014, ADR-0019]}
   - {id: ISSUE-000021, file: plan/issue/ISSUE-000021-audit-design-history-provenance.md, status: Deferred, priority: 6, related_adrs: [ADR-0014]}
-  - {id: ISSUE-000022, file: plan/issue/ISSUE-000022-materialize-repository-baseline.md, status: Open, priority: 2, related_adrs: [ADR-0007, ADR-0008, ADR-0009, ADR-0014]}
+  - {id: ISSUE-000022, file: plan/issue/ISSUE-000022-materialize-repository-baseline.md, status: In Progress, priority: 2, related_adrs: [ADR-0007, ADR-0008, ADR-0009, ADR-0014, ADR-0018]}
   - {id: ISSUE-000023, file: plan/issue/ISSUE-000023-formalize-product-value-governance.md, status: Resolved, priority: 1, related_adrs: [ADR-0018]}
   - {id: ISSUE-000024, file: plan/issue/ISSUE-000024-materialize-capability-observation-fixtures.md, status: Open, priority: 2, related_adrs: [ADR-0006, ADR-0008, ADR-0012, ADR-0013, ADR-0014, ADR-0019]}
+  - {id: ISSUE-000025, file: plan/issue/ISSUE-000025-define-requirements-baseline-convention.md, status: Resolved, priority: 1, related_adrs: [ADR-0018, ADR-0020]}
+  - {id: ISSUE-000026, file: plan/issue/ISSUE-000026-materialize-current-requirements-baseline.md, status: In Progress, priority: 1, related_adrs: [ADR-0018, ADR-0020]}
