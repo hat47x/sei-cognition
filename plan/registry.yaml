@@ -41,7 +41,7 @@ adr:
   - id: ADR-0010
     file: plan/adr/ADR-0010-decision-memory-minimal-semantic-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000010, ISSUE-000012, ISSUE-000017, ISSUE-000018]
+    related_issues: [ISSUE-000010, ISSUE-000011, ISSUE-000012, ISSUE-000017, ISSUE-000018]
   - id: ADR-0011
     file: plan/adr/ADR-0011-decision-memory-reference-role-separation.md
     status: Accepted
@@ -53,7 +53,7 @@ adr:
   - id: ADR-0013
     file: plan/adr/ADR-0013-capability-realization-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000014, ISSUE-000020, ISSUE-000024]
+    related_issues: [ISSUE-000013, ISSUE-000014, ISSUE-000020, ISSUE-000024]
   - id: ADR-0014
     file: plan/adr/ADR-0014-soza-tei-product-boundary.md
     status: Accepted
@@ -73,7 +73,7 @@ adr:
   - id: ADR-0018
     file: plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000023, ISSUE-000025, ISSUE-000026]
+    related_issues: [ISSUE-000022, ISSUE-000023, ISSUE-000025, ISSUE-000026]
   - id: ADR-0019
     file: plan/adr/ADR-0019-provider-neutral-capability-observation-boundary.md
     status: Accepted
