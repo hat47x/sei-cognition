@@ -2,7 +2,7 @@
 
 Status: **In Progress**  
 Priority: **2**  
-Related ADRs: **ADR-0007, ADR-0008, ADR-0009, ADR-0014, ADR-0018**  
+Related ADRs: **ADR-0007, ADR-0008, ADR-0009, ADR-0014, ADR-0018, ADR-0020**  
 Updated: 2026-08-31
 
 ## Goal
@@ -13,46 +13,58 @@ GitHub上の`hat47x/soza`に、Product Valueから追跡可能なRequirements、
 
 ## 2026-08-31 actual tree audit
 
-`develop/v0.1.0`について、GitHub actual treeを直接確認した。
+`develop/v0.1.0`のactual treeを直接確認し、その後Requirements baselineを実体化した。
 
-現時点で確認できる基線:
+現在、actual repositoryで確認できる主なDesign baseline:
 
-- `product/` — Product Value / Value Model / Value Acceptance / Vision / Principlesを整備中
-- `plan/` — ADR / Issue / registry / planning conventionを整備中
-
-現時点でactual directoryが存在しないことを確認したもの:
-
+- `product/`
+  - Product Value
+  - Value Model
+  - Value Acceptance
+  - Product Vision
+  - Product Principles
+- `plan/`
+  - ADR / Issue
+  - registry
+  - planning / document authoring conventions
 - `requirements/`
+  - `README.md`
+  - `PRODUCT_REQUIREMENTS.md`
+  - `ACCEPTANCE_SCENARIOS.md`
+  - `history/HISTORICAL_REQUIREMENT_MAPPING.md`
+
+一方、current baselineとしてまだ実体化されていない主要領域:
+
 - `architecture/`
 - `contracts/`
 - `runtime/`
 - `tools/`
 
-したがって、repository READMEに列挙されているこれらのファイルや検査コマンドを、**actual repositoryに存在するEvidenceとして扱ってはならない。**
-
-READMEはhistorical candidateの目録を含むが、現行actual treeの案内としてはstaleである。
+過去candidate bundleには同名のArchitecture、Contracts、Runtime、Tools等が存在するが、current actual repositoryのEvidenceとしては扱わない。
 
 ## Current evidence state
 
-現時点では、次を明確に分ける。
+### A. Actual repository Design Evidence
 
-### A. Actual repository design evidence
+Product、Plan、Requirements文書がactual treeに存在する。
 
-GitHub actual treeに存在するProduct / Plan文書。
+Product Valueからcurrent Requirement、ADRまで追跡できるDesign baselineは成立し始めている。
 
-これはDesign Evidenceであり、Executable Evidenceではない。
+ただし、Architecture / Contractsがまだcurrent treeにないため、設計全体のclosureは未完了である。
 
 ### B. Historical / Library candidate evidence
 
-過去candidate bundle、runtime、fixtures、generated summaries、local PASS等。
+過去candidate bundle、runtime、fixtures、generated summaries、local PASS等をLibraryから参照できる。
 
-これらは再利用候補・historical evidenceとして価値があるが、actual repositoryへ取り込む前に最新Product Value / ADRへ再照合する。
+これらはhistorical evidenceおよび再利用候補であり、current Product Value / Requirements / ADRへ再照合してからactual treeへ取り込む。
 
-### C. Actual repository executable evidence
+### C. Actual repository Executable Evidence
 
-現時点では、READMEが列挙するGo module、runtime、fixtures、tools、conformance gateについてactual tree上の存在を確認できないため、成立を主張しない。
+現時点では、READMEがhistorical candidateとして列挙するGo module、runtime、fixtures、tools、conformance gateのcurrent actual tree上での成立を主張しない。
 
-### D. Release / Operational evidence
+Requirements registry checkerについても、Design baselineから分離して`ISSUE-000027`で追跡する。
+
+### D. Release / Operational Evidence
 
 現時点では主張しない。
 
@@ -62,25 +74,40 @@ GitHub actual treeに存在するProduct / Plan文書。
 
 1. Product Value / Value Model / Value Acceptance / Vision / Principlesを整備する。
 2. ADR / Issue / registryを最新Product Valueへ再照合する。
-3. 自然な日本語ドラフト工程を全active文書へ適用する。
+3. 自然な日本語ドラフト工程をactive文書へ適用する。
 
-状態: **進行中。Product Value層とADR-0019までを大きく前進。**
+状態: **主要なProduct Value基線とADR-0020までを整備済み。全既存文書監査はISSUE-000015で継続。**
 
 ### Phase 2 — Requirements baseline
 
 1. Product Value V1〜V8からProduct Requirementsを再導出する。
-2. 過去candidateのRequirementをそのまま正本にせず、current valueとの対応を再評価する。
+2. historical candidate Requirementをcurrent valueへ再評価する。
 3. Design AcceptanceとExecutable Acceptanceを分ける。
 4. Acceptance Scenarioをactual repositoryへ実体化する。
+5. historical IDとのmappingを保存する。
 
-この作業は`ISSUE-000025`で独立追跡する。
+状態: **Design baseline完了。ISSUE-000025 / ISSUE-000026はResolved。**
+
+current baseline:
+
+- REQ-0001〜REQ-0022
+- SCN-0001〜SCN-0017
+- historical requirement mapping
+
+Executable registry checkは`ISSUE-000027`へ分離した。
 
 ### Phase 3 — Architecture / Contracts baseline
 
-1. current RequirementsとADRからArchitectureを再構成する。
-2. old candidate architectureを差分材料として監査する。
-3. Universal Core / Profile / Provider / Adapter境界を再確認する。
-4. schema / contractを現在の意味境界へ合わせて実体化する。
+次の優先作業とする。
+
+1. current RequirementsとAccepted ADRからArchitectureを再構成する。
+2. historical candidate architectureを差分材料として監査する。
+3. Universal Core / Profile / Provider / Adapter / Projection境界を再確認する。
+4. current Contract / schemaを意味境界から再導出する。
+5. Architecture / Contract文書を自然な日本語で全文再ドラフトする。
+6. Product Value V1〜V8 → REQ → ADR → Architecture / Contractの追跡を作る。
+
+historical candidateを一括コピーせず、現時点で必要な最小Design baselineから再構成する。
 
 ### Phase 4 — Runtime / Fixtures / Tools
 
@@ -88,13 +115,16 @@ GitHub actual treeに存在するProduct / Plan文書。
 2. Go module、package、schema、fixtures、test toolsをactual treeへ追加する。
 3. 存在するgateだけをREADMEへ列挙する。
 4. actual repository上で再現可能なExecutable Evidenceを初めて記録する。
+5. ISSUE-000009、ISSUE-000024、ISSUE-000027のExecutable Acceptanceをactual treeで検証する。
 
 ### Phase 5 — README / Evidence claim closure
 
 1. READMEの「現在地」をactual treeへ一致させる。
-2. historical candidateの目録はhistoryとして分離する。
-3. 実在しないファイルやgateを「読む順序」「実行可能な検査」として列挙しない。
-4. Design / Executable / Release / Operational Evidenceを分離して表示する。
+2. historical candidateの目録はhistory / referenceとして分離する。
+3. 実在しないファイルやgateを「現在の読む順序」「実行可能な検査」として列挙しない。
+4. Design / Executable / Release / Operational Evidenceを分けて表示する。
+
+Requirements baselineが実体化したため、READMEの大幅なcurrent-state更新を行える段階に入った。
 
 ## Constraints
 
@@ -103,16 +133,16 @@ GitHub actual treeに存在するProduct / Plan文書。
 - READMEの記述を実装存在のEvidenceとしない。
 - 旧bundleを無検査で一括コピーしない。
 - TEI実装をSOZA実装の代替Evidenceにしない。
-- 文書・コードとも、最新Product Value、Value Acceptance、ADR、SOZA↔TEI Product Boundaryを優先する。
+- 文書・コードとも、最新Product Value、Value Acceptance、Requirements、ADR、SOZA↔TEI Product Boundaryを優先する。
 - Design Evidenceしかない段階でExecutable Evidence以上を主張しない。
 
 ## Completion criteria
 
 ### Design baseline
 
-- [ ] Product ValueからRequirements / ADRまで追跡できる。
-- [ ] `requirements/`がactual treeに存在する。
-- [ ] current Product RequirementsとAcceptance Scenariosが自然な日本語監査済みである。
+- [x] Product ValueからRequirements / ADRまで追跡できる。
+- [x] `requirements/`がactual treeに存在する。
+- [x] current Product RequirementsとAcceptance Scenariosが自然な日本語監査済みである。
 - [ ] current RequirementsからArchitecture / Contractsへ追跡できる。
 
 ### Executable baseline
@@ -122,20 +152,22 @@ GitHub actual treeに存在するProduct / Plan文書。
 - [ ] actual repo evidenceとhistorical/local candidate evidenceが明確に分離される。
 - [ ] ISSUE-000009の残件をactual treeで検証できる入口がある。
 - [ ] ISSUE-000024のCapability Observation fixtureをactual treeで検証できる。
+- [ ] ISSUE-000027のRequirements registry checkerをactual treeで検証できる。
 
 ### Evidence closure
 
 - [ ] READMEがactual treeと一致する。
-- [ ] M49 / M50以降のproduction implementationを開始できるか、現在Evidenceから再判断できる。
+- [ ] Decision Memory / Capability Choice等のproduction implementationを開始できるか、current Evidenceから再判断できる。
 - [ ] release / operational evidenceを未確認のまま引き上げていない。
 
 ## Immediate next work
 
-1. `ISSUE-000025`でRequirements baselineの構造と導出規則を確定する。
-2. Product Value V1〜V8からcurrent Product Requirementを再構成する。
-3. その後にArchitecture / Contractsをactual treeへ入れる。
-4. READMEの大幅更新は、少なくともRequirements baselineの実体化後に行う。ただし、それ以前でも誤解を招く重大なclaimは必要に応じて縮小する。
+1. Architecture / Contracts baselineの構造・正本・追跡規約をADR / Issueで先に定める。
+2. current REQ / ADRから最小Architecture baselineを再構成する。
+3. historical Architecture / Contract candidateを一件ずつcurrent baselineへ照合する。
+4. Requirements registry checkerはISSUE-000027で並行して扱う。
+5. READMEをactual Design baselineへ合わせ、historical executable claimをcurrent claimから分離する。
 
 ## Natural Japanese review
 
-actual treeを直接確認し、過去candidateの記述と現在の実在状態を分けたうえで構造を作り直した。その後、Evidenceの高さと作業順序を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済み。
+Requirements baseline実体化後のactual stateへ戻り、完了済みPhaseと未実体化領域を再分類した。その後、Evidenceの高さ、作業順序、完了条件を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済み。
