@@ -1,195 +1,178 @@
-# SOZA Phase 1 — M48 Product Rebaseline Integration Candidate v6
+# 綜座 / SOZA
 
 更新日: 2026-08-31  
-状態: **initial repository baseline candidate / release not claimed**
+状態: **Product / Requirements / Planning Baseline — development in progress**
 
-このbundleは、Phase 0で確定したProduct Value、Product Requirements、Acceptance Scenarios、ADRを、M47のCognitive Method境界を壊さない形でM48の実装候補へ降ろしたものです。
+SOZAは、人間・AI・組織・既存システム・外部サービスが入れ替わっても、**何を見て、何を問い、何を根拠とし、何を決め、何を未解決として残したか**を失わないための、可搬な認知・意思決定基盤です。
 
-このtreeは`hat47x/soza`を新規repositoryとして開始するための初期基線です。**M48 release、旧M47実装との回帰互換、Product Vision coverage上昇、operational evidenceを主張するものではありません。**
+SOZAの中心は、workflowやAI agent runtimeを自前で増やすことではありません。実行手段が変わっても残る、意味、不確実性、判断、責任、Capability、Provenance、Semantic Lineageを扱います。
 
-## 1. 現在地
+## 1. 現在の開発branch
 
-- ADR-0001〜ADR-0012: Accepted
-- ISSUE-000001〜ISSUE-000008: Resolved
-- ISSUE-000009: Blocked — Representation Contractのlocal stabilization完了、historical M47 digest mapping / stable JCS verifier待ち
-- ISSUE-000010: Resolved — M49 Decision Memory core acceptance boundary
-- ISSUE-000011: Resolved — M49 Decision reference role semantics
-- ISSUE-000012: Resolved — M49 progressive decision explicitness planning
-- ISSUE-000013: Resolved — M50 Capability Choice acceptance boundary
-- ISSUE-000014: Open — Capability Realization / Offering boundary investigation
-- M47: verified historical/reference baselineとして尊重
-- M48: repository initial baseline candidateとしてGo実装・contract・conformanceを用意
+通常の開発は、次の形式のbranchで進めます。
 
-`hat47x/soza`は新規・空repositoryとして利用可能になったため、このtreeを初期基線とします。`tei-platform`への代替統合は行いません。
+```text
+develop/vX.Y.Z
+```
 
-## 2. 最初に読む順序
+現在の開発branchは`develop/v0.1.0`です。
+
+`main`は安定した基線のために保持し、開発中の変更を直接積み上げないことを原則とします。branch運用の詳細は`plan/DEVELOPMENT_WORKFLOW.md`を参照してください。
+
+## 2. 現在の正本
+
+2026-08-31時点で、`develop/v0.1.0`には次の上位層が実体化されています。
+
+```text
+product/
+requirements/
+plan/
+```
+
+一方、current baselineとしての`architecture/`、`contracts/`、`runtime/`、`tools/`は、まだこのbranchへ実体化を終えていません。
+
+過去のM48〜M50 candidateや旧Semantic Platformの実装資産は参照資料として利用できますが、current actual repositoryに存在するEvidenceと同一視しません。
+
+## 3. 最初に読む文書
+
+### Product Value
 
 1. `product/value/SOZA_PRODUCT_VALUE.md`
-2. `product/vision/SOZA_PRODUCT_VISION.md`
-3. `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
-4. `requirements/PRODUCT_REQUIREMENTS_v1.md`
-5. `requirements/ACCEPTANCE_SCENARIOS_v1.md`
-6. `architecture/CORE_BOUNDARY_REVIEW_v1.md`
-7. `architecture/M47_M48_PRESSURE_TEST_v2.md`
-8. `architecture/M48_FEASIBILITY_TO_REBASELINE_DELTA_v1.md`
-9. `contracts/INQUIRY_EPISTEMIC_ARTIFACTS_v1.md`
-10. `contracts/M47_M48_COMPATIBILITY_PORT_v1.md`
-11. `contracts/schemas/v1alpha1/SOZA_SEMANTIC_INTERCHANGE_v1alpha1.json`
-12. `plan/rebaseline/PHASE1_IMPLEMENTATION_CANDIDATE_REPORT.md`
-13. `architecture/BINDING_VERIFICATION_OUTCOME_v1.md`
-14. `contracts/JCS_SHA256_REPRESENTATION_PROFILE_candidate.md`
-15. `contracts/RAW_BYTES_SHA256_REPRESENTATION_PROFILE_candidate.md`
-16. `plan/rebaseline/PHASE1_REPRESENTATION_CONTRACT_STABILIZATION_REPORT.md`
-17. `requirements/M49_DECISION_MEMORY_ACCEPTANCE_v1.md`
-18. `architecture/M49_DECISION_MEMORY_BOUNDARY_v1.md`
-19. `architecture/M49_DECISION_REFERENCE_ROLES_v1.md`
-20. `architecture/M49_PROGRESSIVE_DECISION_EXPLICITNESS_v1.md`
-21. `plan/rebaseline/M49_ACCEPTANCE_PLANNING_CLOSURE_REPORT.md`
-22. `plan/rebaseline/M49_NEXT_SLICE_ACCEPTANCE_REPORT.md`
-23. `requirements/M50_CAPABILITY_CHOICE_ACCEPTANCE_v1.md`
-24. `architecture/M50_CAPABILITY_CHOICE_BOUNDARY_v1.md`
-25. `architecture/M50_HISTORICAL_CAPABILITY_EVIDENCE_REVIEW_v1.md`
-26. `architecture/M50_CAPABILITY_REALIZATION_OPTIONS_v1.md`
-27. `plan/rebaseline/M50_CAPABILITY_CHOICE_PLANNING_CLOSURE_REPORT.md`
-28. `plan/registry.yaml`
+2. `product/value/SOZA_VALUE_MODEL.md`
+3. `product/value/SOZA_VALUE_ACCEPTANCE.md`
+4. `product/vision/SOZA_PRODUCT_VISION.md`
+5. `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
 
-## 3. Phase 1で実装候補へ降ろした境界
+### Requirements
 
-### Artifact reference
+6. `requirements/README.md`
+7. `requirements/PRODUCT_REQUIREMENTS.md`
+8. `requirements/ACCEPTANCE_SCENARIOS.md`
+9. `requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md`
+
+### Planning / Decisions
+
+10. `plan/README.md`
+11. `plan/DEVELOPMENT_WORKFLOW.md`
+12. `plan/DOCUMENT_AUTHORING_STANDARD.md`
+13. `plan/registry.yaml`
+
+個別の設計判断は`plan/adr/`、未完了作業や調査は`plan/issue/`を参照してください。
+
+## 4. Product Valueの中心
+
+SOZAでは、少なくとも次を重要な意味差として扱います。
 
 ```text
-LogicalArtifactRef
-        +
-必要な境界だけ ExactArtifactBinding
-        +
-SemanticLineageRecord
+Observation
+  != Interpretation / Hypothesis
+  != Recommendation
+  != Decision
+  != Authority
+  != Action Intent
+  != Execution
 ```
 
-logical identity、exact content binding、semantic lineage、storage revisionを一つの`version`へ押し込みません。
+この式は、処理を細かく分割すること自体を目的としたものではありません。後から「何が観測で、何が解釈で、誰または何が何を判断し、どの権限で何が実行されたのか」を再構成できるようにするための境界です。
 
-### Epistemics
+また、次の原則も重視します。
 
-- Question
-- Observation
-- Hypothesis
-- Unknown
-- Conflict
-- EvidenceUse
-- AssuranceRecord
-- EpistemicSeam
-- Derivation
-- Provenance
+- `Unknown != No`
+- `Conflict != latest-wins`
+- CapabilityとProviderを同一視しない。
+- actorの種類だけからAuthorityやTrustを推定しない。
+- ProviderやStorageが変わっても、Decisionの意味を変えない。
+- private chain-of-thoughtの保存を耐久的意味の前提にしない。
+- Design EvidenceをExecutable / Release / Operational Evidenceへ自動昇格させない。
 
-`Unknown != No`、`Conflict != latest-wins`、`Observation != EvidenceUse != Assurance != Truth`を維持します。
+## 5. Product Valueの評価
 
-### Subject / Responsibility
+`SOZA_VALUE_MODEL.md`では、Product Valueを単一スコアへ還元せず、次の8軸で確認します。
 
-Global Principal ontologyを作らず、`BoundedSubjectRef { scope_ref, subject_id }`を基本参照とします。さらに`ResponsibilityStatement`で「その主体が何を担ったか」を任意Artifact文脈へ結びます。ResponsibilityからAuthorization / Credential / Trust / actor hierarchyを推定しません。
+- V1 — Historical Reconstruction
+- V2 — Semantic Separation
+- V3 — Revision Integrity
+- V4 — Provider Independence
+- V5 — Uncertainty Preservation
+- V6 — Human / AI Readability
+- V7 — Progressive Explicitness
+- V8 — Execution Independence
 
-### Progressive Semantic Explicitness
-
-Universal risk scoreや固定LevelをCoreへ追加しません。どの意味境界を必須にするかはProfile / Policy側で扱います。
-
-### Federation / Persistence
-
-Federationはoptional Profile、Persistenceはstorage-neutral contractとし、workflow engineやDB方式をSOZA Coreへ固定しません。
-
-## 4. M47との接続
-
-M47のMethod Definition / Realization / Method Application RecordをM48側で再定義しません。
-
-M48 Derivationは、必要な場合にM47 Method Applicationを`ExactArtifactBinding`で参照します。さらに`runtime/go/integration/m47bridge`にCompatibility Portを置き、actual M47のGo structを推測して複製しません。今後、検証済みの歴史的M47実装sourceが回収できた場合は、既存M47型を包む薄いadapterで接続し、M47境界を再定義しないことを基本とします。
-
-## 5. 旧138 Requirement
-
-旧Requirement Registryの138件は履歴証拠として保持します。
-
-- `requirements/PRODUCT_REQUIREMENT_EVIDENCE_BRIDGE_v1.md`
-- `requirements/LEGACY_MIXED_EXTRACT_KERNELS_v1.md`
-
-旧VERIFIED状態を新Product Requirementへ自動継承しません。
-
-## 6. ローカル検査
-
-全検査は次の一入口で再実行できます。
-
-```bash
-python3 tools/run_phase1_local_gate.py
-```
-
-内訳:
-
-```bash
-python3 plan/scripts/check_plan_ids.py
-go test ./...
-python3 tools/run_semantic_schema_conformance.py
-python3 tools/run_exact_binding_conformance.py
-node tools/run_jcs_profile_probe.mjs
-python3 tools/run_representation_contract_conformance.py
-python3 tools/test_preflight_actual_repo.py
-python3 tools/check_product_candidate_evidence.py
-python3 tools/check_m49_acceptance_design.py
-python3 tools/check_m50_capability_choice_planning.py
-python3 tools/run_m48_rebaseline_conformance.py
-python3 tools/check_phase1_candidate.py
-```
-
-これらのPASSは、このrepository baseline内部の実装候補と構造が整合していることだけを示します。SOZA release evidenceではありません。
-
-## 7. Repository bootstrap後の扱い
-
-`hat47x/soza`は新規repositoryとしてこの基線から開始します。旧Semantic Platform時代のM47実装sourceはこのrepositoryにpre-existing codeとして存在しないため、**存在しない回帰試験をPASS扱いしません**。
-
-今後の統合作業では次を区別します。
-
-1. このrepository内で再現できるM48 local conformance
-2. Library等に残るM47 historical contract / report
-3. 将来回収できた場合のM47 actual source compatibility
-4. release / governance / Self Build evidence
-5. operational evidence
-
-`ISSUE-000009`はrepository不在ではなく、historical M47 digest mappingとstable JCS Go verifier選定・実証が未完了であるためBlockedを維持します。
-
-M49 Decision MemoryとM50 Capability ChoiceはAcceptance Planningまで完了していますが、production実装は別Issueで明示的に開始します。
-
-## 8. Representation Contract hardening
-
-ADR-0008 / ADR-0009により、Exact Bindingとその検証手段・検証結果を分離しています。
+`SOZA_VALUE_ACCEPTANCE.md`では、これらについてDesign、Executable、Release、Operational Evidenceを分けます。
 
 ```text
-ExactArtifactBinding
-  != Representation Contract implementation
-  != Verification Outcome
+Design Evidence
+  != Executable Evidence
+  != Release Evidence
+  != Operational Evidence
 ```
 
-通常JSONのstable候補はRFC 8785 JCS + SHA-256、non-JSON / large binaryの候補はraw bytes + SHA-256です。custom canonical JSON v1alpha1はcross-language実験証拠としてのみ保持します。
+## 6. Current Requirements baseline
 
-`verified / failed / not_verified`を区別し、Verifier不在やpayload不在をdigest mismatchと同一視しません。
+current Product Requirementsは`REQ-0001`〜`REQ-0022`、Acceptance Scenarioは`SCN-0001`〜`SCN-0017`まで実体化されています。
 
-## 9. Product Requirement evidence closure
+旧candidateの`SOZA-PR-*`、`SOZA-NFR-*`、`SOZA-AS-*`はhistorical provenanceとして保持し、新しいIDへ機械的にrenameしていません。対応は`requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md`で確認できます。
 
-M48 local candidateのevidence所在は次で固定します。
+RequirementがAcceptedであることと、actual implementationで実証済みであることは別です。
 
 ```text
-Product Requirements 18
-  direct       8
-  partial      8
-  design-only  2
-
-NFR 10
-  direct       3
-  partial      5
-  design-only  2
-
-operational evidence claims: 0
+Requirement Accepted != Executable Evidence Satisfied
 ```
 
-この分類は完成率ではありません。
+Requirements Design baselineは実体化済みですが、registryの機械検査はISSUE-000027で後続整備します。
 
-## 10. 次段planning
+## 7. SOZAとTEI
 
-- M49 Decision Memory: Acceptance Planning 12 fixture / production implementation未開始
-- M50 Capability Choice: Acceptance Planning 12 fixture / production implementation未開始
-- ISSUE-000014: Capability Realization / OfferingをUniversal Coreへ追加せずOpenで調査継続
+鼎（TEI）はSOZAそのものではありません。SOZAから利用し得るCapability Providerの一つです。
 
-実装順序をProduct ontologyにはしません。
+```text
+SOZA = 何を見るか、何を問うか、何を残すか、何を判断するか
+TEI  = 実行可能な業務Capabilityを実現する一つの手段
+```
+
+SOZAは、関連製品であるという理由だけでTEIを優先しません。TEI固有のApplication、Database、Release、Deployment等のschemaをSOZA Universal Coreへ複製せず、必要な情報をCapability Observation等の明示的な境界から扱う方針です。
+
+詳細はADR-0014、ADR-0019を参照してください。
+
+## 8. 現在のPlan
+
+`plan/registry.yaml`では、2026-08-31時点でADR-0020、ISSUE-000027まで管理しています。
+
+主な未完了項目は次のとおりです。
+
+- ISSUE-000009 — portable Exact Binding verificationの安定化
+- ISSUE-000015 — 既存開発文書の自然な日本語による全面監査
+- ISSUE-000021 — design history provenance監査（Deferred）
+- ISSUE-000022 — repository baseline全体の実体化
+- ISSUE-000024 — Capability Observation fixtureの実体化
+- ISSUE-000027 — Requirements / Scenario registry checkerの実装
+
+Statusの詳細は、READMEではなく`plan/registry.yaml`と各Issue本文を正とします。
+
+## 9. 文書品質
+
+SOZAでは、開発文書の自然な日本語を設計品質の一部として扱います。
+
+文書の内容・構造・技術的一貫性を整えた後に、**意味・仕様・留保・Evidenceの強さを変えず、自然な日本語となることを最重要視して全文をドラフトし直す工程**を必ず設けます。その後、意味が変わっていないことを再監査します。
+
+詳細は`plan/DOCUMENT_AUTHORING_STANDARD.md`を参照してください。既存文書の再監査はISSUE-000015で継続しています。
+
+## 10. 次の実体化
+
+当面の優先順位は次のとおりです。
+
+1. Product Value / Vision / Principlesの精緻化と整合維持
+2. ADR / Issue / Requirementsの精緻化
+3. Requirements registry checkerの実体化
+4. current Architecture / Contractsの再構成
+5. current runtime / fixtures / toolsの実体化
+6. actual repository上でのExecutable Evidence構築
+7. release / operational evidence
+
+過去candidateを一括コピーして現在の正本にするのではなく、Product Valueと現在のADRへ再照合しながら段階的に実体化します。
+
+## 11. Releaseについて
+
+現在の`develop/v0.1.0`は開発中のbaselineです。**releaseやoperational evidenceを主張する状態ではありません。**
+
+`main`へ統合する際は、上位文書、Requirements、Architecture / Contracts、Executable Evidenceの整合を確認し、実際に得られたEvidenceを超えない範囲で状態を更新します。
