@@ -1,58 +1,81 @@
-# 開発文書の自然な日本語レビュー報告 — 2026-08-31
+# 開発文書の自然な日本語レビュー中間報告 — 2026-08-31
 
-状態: **Completed**  
+状態: **In Progress / Interim Report**  
 対象Issue: **ISSUE-000015**
 
-## 1. 実施内容
+## 1. この報告の位置づけ
 
-SOZAの既存開発文書を`plan/DOCUMENT_AUTHORING_STANDARD.md`に基づいて監査しました。
+この文書は、既存開発文書を自然な日本語へ整える作業の**中間報告**です。
 
-内容・構造・技術的一貫性を確認した後、英語断片の過剰な混在、名詞の連結、作業メモ調の表現、現在のrepository状態と食い違う記述を重点的に確認し、必要な文書を自然な日本語へ改稿しました。
+初回の監査では、M48〜M50のローカル候補から引き継いだ文書群を中心にレビューしました。その後、`develop/v0.1.0`にはProduct Valueの精緻化、SOZA / TEI境界、Requirements追跡、Capability Observation等のADR / Issueが追加され、監査対象が広がっています。
 
-## 2. 監査対象
+したがって、初回監査時の文書数をもってrepository全体のレビュー完了とはみなしません。完了状態は正本の`ISSUE-000015`で管理します。
 
-レビュー台帳には93文書を登録しました。
+## 2. これまでに整備した品質基盤
 
-- `revised`: 87
-- `reviewed-no-change`: 1
-- `excluded-historical`: 5
-- `pending`: 0
+次を開発branchへ追加・整備しました。
 
-`excluded-historical`は、原文そのものが比較・回帰・履歴Evidenceとなるsynthetic fixtureとlegacy decision資料に限定しています。
+- `plan/DEVELOPMENT_WORKFLOW.md`
+- `plan/DOCUMENT_AUTHORING_STANDARD.md`
+- `plan/README.md`の文書作成工程
+- `product/principles/SOZA_PRODUCT_PRINCIPLES.md`の文書品質原則
 
-## 3. 優先監査
+新規・更新文書では、内容と構造を整えた後に、**自然な日本語となることを最重要視して全文をドラフトし直し、その後に意味が変わっていないかを再監査する工程**を必須とします。
 
-特に次を優先して確認しました。
+## 3. 初回監査で確認した範囲
 
-1. Product Value / Vision / Principles
-2. ADR-0001〜ADR-0012
-3. ISSUE-000001〜ISSUE-000015
-4. Product Requirements / Acceptance関連文書
-5. Architecture / Contracts
-6. rebaseline report / README
+初回のローカル監査では、当時のM48〜M50候補に含まれていたProduct、Plan、Requirements、Architecture、Contracts、rebaseline report等を確認しました。
 
-## 4. 内容上の補正
+この作業では、特に次を重点的に見直しました。
 
-日本語品質の確認と併せて、現在状態との整合も確認しました。
+- 英語の識別子や作業メモ語を過度に連結した文章
+- 主語・述語の関係が分かりにくい文章
+- `actual`、`local`、`candidate`、`planning`等を説明なしに混在させた文章
+- 状態やEvidenceの強さを読み手が誤解しやすい表現
+- `!=`式だけがあり、自然な日本語の説明が不足している箇所
 
-特に`hat47x/soza` repositoryが利用可能になったため、`ISSUE-000008`を「repository不在によるBlocked」のままにせず、repository統合作業中の`In Progress`へ更新しました。
+この初回監査は現在branchの全件監査ではなく、後続作業の入力として扱います。
 
-過去のclosure reportにある「当時repositoryが利用できなかった」という記録は、履歴事実として保持しています。現在状態を示すIssueやEvidenceと、過去時点の報告を混同しない方針です。
+## 4. 現在の正本branchで確認できた進捗
 
-## 5. 検査
+`develop/v0.1.0`では、Product層が次まで精緻化されています。
 
-次の検査を追加しました。
+- `product/value/SOZA_PRODUCT_VALUE.md`
+- `product/value/SOZA_VALUE_MODEL.md`
+- `product/value/SOZA_VALUE_ACCEPTANCE.md`
+- `product/vision/SOZA_PRODUCT_VISION.md`
+- `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
 
-```text
-python3 tools/check_document_review_registry.py
-```
+Plan層では、ADR-0020およびISSUE-000026まで登録されています。
 
-この検査は、対象文書にレビュー台帳の記録がない場合、`pending`等の未完了状態が残る場合、またはhistorical除外が許可された範囲外へ広がった場合にFAILします。
+正本`ISSUE-000015`の監査は継続中です。Product Valueとの整合、Requirements / Acceptance Scenarios、Architecture / Contracts、rebaseline reports、repository READMEまで確認してから完了判定します。
 
-既存のPhase 1 local gateにもこの検査を組み込みました。
+## 5. 原文保存する資料
 
-## 6. 結論
+自然な日本語への改稿を理由に、原文そのものがEvidenceとなる資料を変更しません。
 
-既存開発文書の移行監査は完了しました。
+対象には、たとえば次が含まれます。
 
-今後は、新規・更新文書を作業単位ごとに自然な日本語へドラフトし直し、意味が変わっていないことを確認してから完了扱いとします。したがって、今回の全件監査を一度きりの清掃作業にはしません。
+- historical implementation reportの参照コピー
+- legacy contractの比較用原文
+- synthetic repository等の固定fixture
+- 外部由来の原資料
+
+これらは本文を改変する代わりに、現行文書側から位置づけと読み方を説明します。
+
+## 6. 完了条件
+
+本監査を完了するには、少なくとも次を満たす必要があります。
+
+1. 現在のProduct文書をValue Model / Value Acceptanceまで含めて再監査する。
+2. 現在登録されているADR / Issueと`registry.yaml`の整合を確認する。
+3. Requirements / Acceptance Scenariosを現行Product Valueから追跡できる状態へする。
+4. Architecture / Contractsを現行ADRとの整合まで含めて監査する。
+5. rebaseline reports / READMEの現在状態表現を確認する。
+6. 自然な日本語への再ドラフト後、技術的意味・条件・留保・Evidence強度が変わっていないことを確認する。
+
+## 7. 現在の結論
+
+自然な日本語を必須工程とする開発規約は整いましたが、**現在のrepository全体に対する既存文書監査はまだ完了していません**。
+
+以後も`ISSUE-000015`をIn Progressとして維持し、Product文書とPlan文書を最優先に、正本branchの実ファイルを基準として監査を継続します。
