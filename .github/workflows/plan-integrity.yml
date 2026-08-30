@@ -1,0 +1,37 @@
+name: Plan integrity
+
+on:
+  pull_request:
+    paths:
+      - "plan/**"
+      - ".github/workflows/plan-integrity.yml"
+  push:
+    branches:
+      - "develop/**"
+      - "main"
+    paths:
+      - "plan/**"
+      - ".github/workflows/plan-integrity.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  plan-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check ADR / Issue registry integrity
+        run: python3 plan/scripts/check_plan_registry.py
+
+      - name: Show next IDs
+        run: |
+          echo "next ADR: $(python3 plan/scripts/next_plan_id.py adr)"
+          echo "next Issue: $(python3 plan/scripts/next_plan_id.py issue)"
