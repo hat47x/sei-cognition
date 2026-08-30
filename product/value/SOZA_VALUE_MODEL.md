@@ -9,6 +9,8 @@
 
 個々の機能や実装方式を決める文書ではありません。Requirements、ADR、Architecture、ImplementationがProduct Valueと整合しているかを判断するために、価値の優先関係、境界、成立条件、失敗条件を定めます。
 
+V1〜V8を具体的にどのEvidenceで確認するかは、`SOZA_VALUE_ACCEPTANCE.md`で定めます。
+
 ## 2. SOZAが守る価値の階層
 
 SOZAでは、価値を次の三層に分けます。
@@ -68,6 +70,8 @@ SOZAにとって、履歴を残すことは保存そのものが目的ではあ�
 
 重大な性能・運用上の制約によって上位価値を完全には満たせない場合は、暗黙に省略せず、制約・失われる意味・代替策・再検討条件をADRに残します。
 
+また、一つの価値軸で高い成果が得られても、別の重大な価値欠損を相殺したことにはしません。Product Valueの受入れは、V1〜V8を必要な範囲で個別に確認します。
+
 ## 4. SOZAへ含めるための価値境界
 
 ある概念・機能・データをSOZAの中核へ含めるかは、次の問いで判断します。
@@ -124,6 +128,8 @@ Unknown、Conflict、Hypothesisを、便宜上の確定値へ黙って変換し�
 
 外部のworkflow、agent runtime、TEI等が置き換わっても、SOZAの判断記憶と意味構造が存続するか。
 
+これらの軸に対するDesign / Executable / Release / Operational Evidenceの受入れ条件は、`SOZA_VALUE_ACCEPTANCE.md`を正とします。
+
 ## 6. 価値上の失敗パターン
 
 次の状態は、機能が動作していてもProduct Value上の失敗とみなします。
@@ -137,6 +143,7 @@ Unknown、Conflict、Hypothesisを、便宜上の確定値へ黙って変換し�
 - Cognitive Methodを適用した事実を、結論の正しさの保証として扱う。
 - UIの簡略化のためにcanonicalな意味を失う。
 - 特定製品との密接な関係だけを理由に、その製品をSOZAの一部として特別扱いする。
+- Design Evidenceしかない状態を、actual repositoryやproductionで実証済みと表現する。
 
 ## 7. 実装規模と価値の関係
 
@@ -161,6 +168,7 @@ SOZAの価値は、Coreの型やコードが増えるほど高まるわけでは
 ```text
 SOZA Product Value
   → SOZA Value Model
+  → SOZA Value Acceptance
   → Product Vision / Principles
   → Requirements
   → Issue
@@ -169,8 +177,18 @@ SOZA Product Value
   → Implementation / Test / Evidence
 ```
 
+Vision / Principlesは価値の方向と反復原則を示し、Value Acceptanceは価値を満たしたと主張するためのEvidence境界を示します。これらは上下関係というより、Value Modelを異なる方向から具体化する補完文書です。
+
 下位の都合からこの価値境界を変更する必要が生じた場合は、実装を正当化するために直接書き換えず、Product Value変更として明示的に再審査します。
 
-## 10. 自然な日本語ドラフト
+## 10. 関連文書
 
-内容と構造を確定した後、意味、強度、留保、技術的境界を変えず、自然な日本語となることを最優先に全文を再ドラフトしました。その後、最終意味監査を実施しています。
+- `product/value/SOZA_PRODUCT_VALUE.md`
+- `product/value/SOZA_VALUE_ACCEPTANCE.md`
+- `product/vision/SOZA_PRODUCT_VISION.md`
+- `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
+- `plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md`
+
+## 11. 自然な日本語ドラフト
+
+Value Acceptance追加後に文書間の役割と依存関係を再確認し、意味、強度、留保、技術的境界を変えず、自然な日本語となることを最優先に全文を再ドラフトしました。その後、最終意味監査を実施しています。
