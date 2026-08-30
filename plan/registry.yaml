@@ -66,6 +66,14 @@ adr:
     file: plan/adr/ADR-0016-authorization-evidence-provider-boundary.md
     status: Accepted
     related_issues: [ISSUE-000018]
+  - id: ADR-0017
+    file: plan/adr/ADR-0017-reference-model-cognitive-method-boundary.md
+    status: Accepted
+    related_issues: [ISSUE-000019]
+  - id: ADR-0018
+    file: plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md
+    status: Accepted
+    related_issues: [ISSUE-000023]
 
 issue:
   - {id: ISSUE-000001, file: plan/issue/ISSUE-000001-operationalize-moving-future-horizon.md, status: Resolved, priority: 4, related_adrs: [ADR-0001]}
@@ -86,7 +94,8 @@ issue:
   - {id: ISSUE-000016, file: plan/issue/ISSUE-000016-formalize-soza-tei-product-boundary.md, status: Resolved, priority: 1, related_adrs: [ADR-0014]}
   - {id: ISSUE-000017, file: plan/issue/ISSUE-000017-define-requirement-inquiry-memory-boundary.md, status: Resolved, priority: 2, related_adrs: [ADR-0005, ADR-0010, ADR-0011, ADR-0014, ADR-0015]}
   - {id: ISSUE-000018, file: plan/issue/ISSUE-000018-connect-authorization-evidence-with-decision-memory.md, status: Resolved, priority: 3, related_adrs: [ADR-0004, ADR-0010, ADR-0011, ADR-0014, ADR-0016]}
-  - {id: ISSUE-000019, file: plan/issue/ISSUE-000019-clarify-reference-model-and-cognitive-method-boundary.md, status: Open, priority: 4, related_adrs: [ADR-0014]}
+  - {id: ISSUE-000019, file: plan/issue/ISSUE-000019-clarify-reference-model-and-cognitive-method-boundary.md, status: Open, priority: 4, related_adrs: [ADR-0014, ADR-0017]}
   - {id: ISSUE-000020, file: plan/issue/ISSUE-000020-define-tei-capability-observation-surface.md, status: Open, priority: 5, related_adrs: [ADR-0012, ADR-0013, ADR-0014]}
   - {id: ISSUE-000021, file: plan/issue/ISSUE-000021-audit-design-history-provenance.md, status: Deferred, priority: 6, related_adrs: [ADR-0014]}
   - {id: ISSUE-000022, file: plan/issue/ISSUE-000022-materialize-repository-baseline.md, status: Open, priority: 2, related_adrs: [ADR-0007, ADR-0008, ADR-0009, ADR-0014]}
+  - {id: ISSUE-000023, file: plan/issue/ISSUE-000023-formalize-product-value-governance.md, status: Resolved, priority: 1, related_adrs: [ADR-0018]}
