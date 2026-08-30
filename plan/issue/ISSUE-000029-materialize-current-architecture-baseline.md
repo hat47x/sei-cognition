@@ -1,6 +1,6 @@
 # ISSUE-000029: current SOZA Reference Architectureをactual repositoryへ実体化する
 
-Status: **In Progress**  
+Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0018, ADR-0019, ADR-0020, ADR-0021**  
 Updated: 2026-08-31
@@ -11,9 +11,11 @@ ADR-0021に従い、current Product Value、REQ-0001〜REQ-0022、SCN-0001〜SCN
 
 historical M48 / M49 / M50 Architectureの意味核を再評価するが、Milestone identity、field set、package layout、algorithm、Evidence stateをcurrent正本へ自動継承しない。
 
-## Required outputs
+## Resolution
 
-初期Design baseline:
+### 1. current Architecture canonical filesを実体化した
+
+actual repositoryへ次を追加した。
 
 ```text
 architecture/
@@ -24,15 +26,15 @@ architecture/
     HISTORICAL_ARCHITECTURE_MAPPING.md
 ```
 
-## Required architecture concerns
+### 2. Milestoneから意味構造へ再編した
 
-少なくとも次をcurrent viewで整理する。
+historical M48 / M49 / M50で分かれていた設計を、current Architectureでは次のarchitecture concernとして統合した。
 
 1. Durable Semantic Core
 2. Inquiry / Epistemic State
 3. Cognitive Method
 4. Decision Memory
-5. Capability Definition / Observation / Choice
+5. Capability Understanding / Choice
 6. Responsibility / Authority boundary
 7. Semantic Reference / Revision / Exact Binding
 8. Profile / Policy
@@ -42,69 +44,90 @@ architecture/
 12. Persistence
 13. Evidence / Assurance boundary
 
-これらを一対一のruntime componentとして固定しない。
+これらを固定runtime componentとして扱っていない。
 
-## Historical inputs
+### 3. historical意味核を再利用した
 
-優先的に再評価する旧文書:
+主に次をcurrent Architectureへ統合した。
 
-- `CORE_BOUNDARY_REVIEW_v1.md`
-- `REVISION_SUPERSESSION_SEMANTICS_v1.md`
-- `SEMANTIC_PERSISTENCE_CONTRACT_v1.md`
-- `EXACT_BINDING_VERIFICATION_BOUNDARY_v1.md`
-- `BINDING_VERIFICATION_OUTCOME_v1.md`
-- `CLAIM_INTERPRETATION_BOUNDARY_v1.md`
-- `PROGRESSIVE_SEMANTIC_EXPLICITNESS_v1.md`
-- `BOUNDED_SUBJECT_RESPONSIBILITY_v1.md`
-- `BOUNDED_FEDERATION_PROFILE_v1.md`
-- `M49_DECISION_MEMORY_BOUNDARY_v1.md`
-- `M49_DECISION_REFERENCE_ROLES_v1.md`
-- `M50_CAPABILITY_CHOICE_BOUNDARY_v1.md`
-- `M50_CAPABILITY_REALIZATION_OPTIONS_v1.md`
-
-## Required decisions already fixed by ADR
-
-Architectureは次を再決定しない。
-
-- Universal Claimを便宜で追加しない。
-- Global Principal ontologyを追加しない。
-- ResponsibilityからAuthorityを推定しない。
-- Capability != Provider。
-- Matching != Decision != Authority != Execution。
-- Recommendation != Decision != Authority != Action Intent != Execution。
-- Provider-specific realizationをUniversal CapabilityRealizationへ統合しない。
-- TEI内部SchemaをSOZA Coreへコピーしない。
+- Coreは実現手段が変わっても残すべき意味差へ限定する。
+- Unknown != No、Conflict != latest-wins。
+- Recommendation != Decision != Authority != Execution。
+- Decision creation != uncertainty resolution。
 - Pattern != Cognitive Method。
 - Method Application != Assurance。
-- logical refとexact historical bindingを分ける。
-- binding verificationの`not_verified`と`failed`を分ける。
-- Progressive Semantic ExplicitnessをProfile / Policy駆動とする。
+- Capability Definition != Observation != Matching != Decision != Provider != Authority != Execution。
+- logical identity != exact historical binding != semantic revision != storage revision。
+- Progressive ExplicitnessはProfile / Policyで扱う。
+- Federationはoptional Profileであり、全world model統合を要求しない。
+- Storage / transport / crypto / queue / retry等のmechanicsをUniversal Coreへ持ち込まない。
 
-新しい判断が必要ならIssue / ADRへ戻す。
+### 4. 後発ADRを反映した
+
+historical candidate以降に確定した次をcurrent Architectureへ追加・強化した。
+
+- SOZA / TEI Product Boundary。
+- Provider-neutral Capability Observation。
+- Provider state != Capability interpretation != Decision。
+- adapter / mapping provenance。
+- Product Value V1〜V8からArchitectureまでのtraceability。
+- human-readable Contract DefinitionとRepresentation Profileの分離。
+- Design / Executable / Release / Operational Evidenceの分離。
+
+### 5. REQ-0001〜REQ-0022のArchitecture追跡を確認した
+
+`architecture/TRACEABILITY.md`で、全current Requirementが少なくとも一つのarchitecture concernへ追跡できることを確認した。
+
+これはimplementation可能性の証明ではなく、Design baseline上でRequirementが脱落していないことの確認である。
+
+### 6. historical mappingを保存した
+
+`architecture/history/HISTORICAL_ARCHITECTURE_MAPPING.md`で、主要historical Architectureについて、
+
+- Integrated
+- Split
+- Partially integrated
+- Historical evidence only
+- Contract / Representation candidate
+
+を区別した。
+
+old Milestone、field set、package、algorithm、local PASSはcurrentへ自動継承していない。
 
 ## Acceptance
 
 ### Semantic / Design Acceptance
 
-- [ ] current architecture canonical filesがactual treeに存在する。
-- [ ] REQ-0001〜0022が少なくとも一つのarchitecture concernへ追跡できる。
-- [ ] ADR-0001〜0021の主要境界と矛盾しない。
-- [ ] Milestone identityをcurrent architectureへ埋め込んでいない。
-- [ ] architecture concernとruntime componentを同一視していない。
-- [ ] historical candidateの採用・統合・非採用をmappingから追える。
-- [ ] Contractへ落とす必要がある境界とArchitecture説明に留める境界を区別できる。
-- [ ] 全文を自然な日本語で再ドラフトし、最終意味監査を行っている。
+- [x] current architecture canonical filesがactual treeに存在する。
+- [x] REQ-0001〜0022が少なくとも一つのarchitecture concernへ追跡できる。
+- [x] ADR-0001〜0021の主要境界と矛盾しない。
+- [x] Milestone identityをcurrent architectureへ埋め込んでいない。
+- [x] architecture concernとruntime componentを同一視していない。
+- [x] historical candidateの採用・統合・非採用をmappingから追える。
+- [x] Contractへ落とす必要がある境界とArchitecture説明に留める境界を区別できる。
+- [x] 全文を自然な日本語で再ドラフトし、最終意味監査を行った。
 
 ### Executable Acceptance
 
-本Issueでは要求しない。Architecture文書が存在することをruntime implementationのEvidenceとしない。
+本Issueでは要求しない。
 
-## Dependencies
+Architecture文書が存在することをruntime implementation、schema conformance、release、operational evidenceへ昇格させていない。
 
-- ADR-0021
-- ISSUE-000022
-- ISSUE-000026
+## Evidence state at closure
+
+- Architecture Design Baseline: **Satisfied**
+- Architecture → Contract: **Partially Satisfied** — ISSUE-000030
+- Executable Architecture / Runtime Evidence: **Not Yet Verified**
+- Release / Operational: **Not Yet Verified**
+
+## Follow-up
+
+- ISSUE-000030 — current Contract baseline
+- ISSUE-000027 — Requirements registry checker
+- ISSUE-000024 — Capability Observation fixture
+- ISSUE-000009 — portable exact binding verification
+- ISSUE-000022 — repository baseline全体
 
 ## Natural Japanese review
 
-current / historical / architecture / runtimeの境界を混同しないよう作業条件を整理した後、意味とEvidence境界を変えず、自然な日本語となることを最重要視して全文を再ドラフトした。完了時に再度、最終意味監査を行う。
+actual Architecture 4文書とREQ / ADR traceabilityを一件ずつ戻り照合し、Design baselineとContract / Executable未完了範囲を分離した。その後、意味、規範強度、Evidence状態を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済み。
