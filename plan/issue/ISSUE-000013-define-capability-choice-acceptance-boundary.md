@@ -1,6 +1,6 @@
 # ISSUE-000013: Capability Choiceの受入境界を定義する
 
-Status: **Resolved — planning boundary complete; production implementation not started**  
+Status: **Resolved**  
 Priority: **3**  
 Related ADRs: **ADR-0012, ADR-0013**  
 Updated: 2026-08-31
@@ -27,12 +27,26 @@ MatchingだけでDecisionを作らない状態、複数Capabilityを組み合わ
 
 過去Choiceは当時のObservation / Definition等へ必要に応じてexact-bindし、後日の変更で書き換えない。
 
+意味境界はADR-0012へ、Capability Realization / Offeringを現時点でUniversal Coreへ追加しない判断はADR-0013へ確定したため、本IssueはResolvedとする。
+
 ## Evidence state
 
-planning fixture 12件で境界を検査したが、SOZA-PR-007は`design_only`を維持する。local executable evidence、operational evidenceともに0として扱う。
+planning fixture 12件で境界を検査したが、これはhistorical / local planning evidenceである。
 
-Capability Realization / OfferingのUniversal型要否は後続ISSUE-000014で検討し、ADR-0013で「現時点では追加しない」と確定した。
+旧SOZA-PR-007の`design_only`状態やlocal fixture結果を、current REQ-0007 / REQ-0022のExecutable Evidenceへ自動継承しない。
+
+```text
+Planning fixture PASS != actual executable conformance
+```
+
+## Follow-up
+
+Provider-neutral Capability Observationの意味境界はADR-0019でさらに具体化した。
+
+actual schema / fixtureはISSUE-000024で扱う。
+
+ResolvedというStatusは、Capability Choiceのplanning boundaryが確定したことだけを表す。
 
 ## Natural Japanese review
 
-M50 planning closure、ADR-0012/0013へ戻して内容を照合した後、自然な日本語となることを最重要視して全文を再ドラフトし、意味監査を実施済み。
+M50 planning closure、current REQ-0007 / REQ-0022、ADR-0012 / ADR-0013 / ADR-0019、現在のEvidence levelへ戻して内容を照合し、Statusと実装状態を分離した後、自然な日本語となることを最重要視して全文を再ドラフトし、意味監査を実施済み。
