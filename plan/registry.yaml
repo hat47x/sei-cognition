@@ -58,115 +58,35 @@ adr:
     file: plan/adr/ADR-0014-soza-tei-product-boundary.md
     status: Accepted
     related_issues: [ISSUE-000016, ISSUE-000017, ISSUE-000018, ISSUE-000019, ISSUE-000020, ISSUE-000021, ISSUE-000022]
+  - id: ADR-0015
+    file: plan/adr/ADR-0015-requirement-inquiry-decision-memory.md
+    status: Accepted
+    related_issues: [ISSUE-000017]
+  - id: ADR-0016
+    file: plan/adr/ADR-0016-authorization-evidence-provider-boundary.md
+    status: Accepted
+    related_issues: [ISSUE-000018]
 
 issue:
-  - id: ISSUE-000001
-    file: plan/issue/ISSUE-000001-operationalize-moving-future-horizon.md
-    status: Resolved
-    priority: 4
-    related_adrs: [ADR-0001]
-  - id: ISSUE-000002
-    file: plan/issue/ISSUE-000002-investigate-claim-interpretation-boundary.md
-    status: Resolved
-    priority: 3
-    related_adrs: [ADR-0002]
-  - id: ISSUE-000003
-    file: plan/issue/ISSUE-000003-design-cross-artifact-revision-semantics.md
-    status: Resolved
-    priority: 1
-    related_adrs: [ADR-0003]
-  - id: ISSUE-000004
-    file: plan/issue/ISSUE-000004-model-responsibility-with-bounded-subjects.md
-    status: Resolved
-    priority: 5
-    related_adrs: [ADR-0004]
-  - id: ISSUE-000005
-    file: plan/issue/ISSUE-000005-design-progressive-semantic-explicitness.md
-    status: Resolved
-    priority: 2
-    related_adrs: [ADR-0005]
-  - id: ISSUE-000006
-    file: plan/issue/ISSUE-000006-research-minimal-federation-contract.md
-    status: Resolved
-    priority: 6
-    related_adrs: [ADR-0006]
-  - id: ISSUE-000007
-    file: plan/issue/ISSUE-000007-define-semantic-persistence-contract.md
-    status: Resolved
-    priority: 7
-    related_adrs: [ADR-0007]
-  - id: ISSUE-000008
-    file: plan/issue/ISSUE-000008-reconcile-m48-with-product-rebaseline.md
-    status: Resolved
-    priority: 1
-    related_adrs: [ADR-0002, ADR-0003, ADR-0004, ADR-0005, ADR-0007, ADR-0008, ADR-0009]
-  - id: ISSUE-000009
-    file: plan/issue/ISSUE-000009-stabilize-portable-exact-binding-verification.md
-    status: Blocked
-    priority: 1
-    related_adrs: [ADR-0007, ADR-0008, ADR-0009]
-  - id: ISSUE-000010
-    file: plan/issue/ISSUE-000010-define-m49-decision-memory-acceptance-boundary.md
-    status: Resolved
-    priority: 2
-    related_adrs: [ADR-0010]
-  - id: ISSUE-000011
-    file: plan/issue/ISSUE-000011-define-decision-memory-reference-role-semantics.md
-    status: Resolved
-    priority: 3
-    related_adrs: [ADR-0010, ADR-0011]
-  - id: ISSUE-000012
-    file: plan/issue/ISSUE-000012-define-m49-progressive-decision-explicitness.md
-    status: Resolved
-    priority: 4
-    related_adrs: [ADR-0005, ADR-0010, ADR-0011]
-  - id: ISSUE-000013
-    file: plan/issue/ISSUE-000013-define-capability-choice-acceptance-boundary.md
-    status: Resolved
-    priority: 3
-    related_adrs: [ADR-0012, ADR-0013]
-  - id: ISSUE-000014
-    file: plan/issue/ISSUE-000014-investigate-capability-realization-offering-boundary.md
-    status: Resolved
-    priority: 5
-    related_adrs: [ADR-0012, ADR-0013]
-  - id: ISSUE-000015
-    file: plan/issue/ISSUE-000015-natural-japanese-document-audit.md
-    status: In Progress
-    priority: 1
-    related_adrs: []
-  - id: ISSUE-000016
-    file: plan/issue/ISSUE-000016-formalize-soza-tei-product-boundary.md
-    status: Resolved
-    priority: 1
-    related_adrs: [ADR-0014]
-  - id: ISSUE-000017
-    file: plan/issue/ISSUE-000017-define-requirement-inquiry-memory-boundary.md
-    status: Open
-    priority: 2
-    related_adrs: [ADR-0005, ADR-0010, ADR-0011, ADR-0014]
-  - id: ISSUE-000018
-    file: plan/issue/ISSUE-000018-connect-authorization-evidence-with-decision-memory.md
-    status: Open
-    priority: 3
-    related_adrs: [ADR-0004, ADR-0010, ADR-0011, ADR-0014]
-  - id: ISSUE-000019
-    file: plan/issue/ISSUE-000019-clarify-reference-model-and-cognitive-method-boundary.md
-    status: Open
-    priority: 4
-    related_adrs: [ADR-0014]
-  - id: ISSUE-000020
-    file: plan/issue/ISSUE-000020-define-tei-capability-observation-surface.md
-    status: Open
-    priority: 5
-    related_adrs: [ADR-0012, ADR-0013, ADR-0014]
-  - id: ISSUE-000021
-    file: plan/issue/ISSUE-000021-audit-design-history-provenance.md
-    status: Deferred
-    priority: 6
-    related_adrs: [ADR-0014]
-  - id: ISSUE-000022
-    file: plan/issue/ISSUE-000022-materialize-repository-baseline.md
-    status: Open
-    priority: 2
-    related_adrs: [ADR-0007, ADR-0008, ADR-0009, ADR-0014]
+  - {id: ISSUE-000001, file: plan/issue/ISSUE-000001-operationalize-moving-future-horizon.md, status: Resolved, priority: 4, related_adrs: [ADR-0001]}
+  - {id: ISSUE-000002, file: plan/issue/ISSUE-000002-investigate-claim-interpretation-boundary.md, status: Resolved, priority: 3, related_adrs: [ADR-0002]}
+  - {id: ISSUE-000003, file: plan/issue/ISSUE-000003-design-cross-artifact-revision-semantics.md, status: Resolved, priority: 1, related_adrs: [ADR-0003]}
+  - {id: ISSUE-000004, file: plan/issue/ISSUE-000004-model-responsibility-with-bounded-subjects.md, status: Resolved, priority: 5, related_adrs: [ADR-0004]}
+  - {id: ISSUE-000005, file: plan/issue/ISSUE-000005-design-progressive-semantic-explicitness.md, status: Resolved, priority: 2, related_adrs: [ADR-0005]}
+  - {id: ISSUE-000006, file: plan/issue/ISSUE-000006-research-minimal-federation-contract.md, status: Resolved, priority: 6, related_adrs: [ADR-0006]}
+  - {id: ISSUE-000007, file: plan/issue/ISSUE-000007-define-semantic-persistence-contract.md, status: Resolved, priority: 7, related_adrs: [ADR-0007]}
+  - {id: ISSUE-000008, file: plan/issue/ISSUE-000008-reconcile-m48-with-product-rebaseline.md, status: Resolved, priority: 1, related_adrs: [ADR-0002, ADR-0003, ADR-0004, ADR-0005, ADR-0007, ADR-0008, ADR-0009]}
+  - {id: ISSUE-000009, file: plan/issue/ISSUE-000009-stabilize-portable-exact-binding-verification.md, status: Blocked, priority: 1, related_adrs: [ADR-0007, ADR-0008, ADR-0009]}
+  - {id: ISSUE-000010, file: plan/issue/ISSUE-000010-define-m49-decision-memory-acceptance-boundary.md, status: Resolved, priority: 2, related_adrs: [ADR-0010]}
+  - {id: ISSUE-000011, file: plan/issue/ISSUE-000011-define-decision-memory-reference-role-semantics.md, status: Resolved, priority: 3, related_adrs: [ADR-0010, ADR-0011]}
+  - {id: ISSUE-000012, file: plan/issue/ISSUE-000012-define-m49-progressive-decision-explicitness.md, status: Resolved, priority: 4, related_adrs: [ADR-0005, ADR-0010, ADR-0011]}
+  - {id: ISSUE-000013, file: plan/issue/ISSUE-000013-define-capability-choice-acceptance-boundary.md, status: Resolved, priority: 3, related_adrs: [ADR-0012, ADR-0013]}
+  - {id: ISSUE-000014, file: plan/issue/ISSUE-000014-investigate-capability-realization-offering-boundary.md, status: Resolved, priority: 5, related_adrs: [ADR-0012, ADR-0013]}
+  - {id: ISSUE-000015, file: plan/issue/ISSUE-000015-natural-japanese-document-audit.md, status: In Progress, priority: 1, related_adrs: []}
+  - {id: ISSUE-000016, file: plan/issue/ISSUE-000016-formalize-soza-tei-product-boundary.md, status: Resolved, priority: 1, related_adrs: [ADR-0014]}
+  - {id: ISSUE-000017, file: plan/issue/ISSUE-000017-define-requirement-inquiry-memory-boundary.md, status: Resolved, priority: 2, related_adrs: [ADR-0005, ADR-0010, ADR-0011, ADR-0014, ADR-0015]}
+  - {id: ISSUE-000018, file: plan/issue/ISSUE-000018-connect-authorization-evidence-with-decision-memory.md, status: Resolved, priority: 3, related_adrs: [ADR-0004, ADR-0010, ADR-0011, ADR-0014, ADR-0016]}
+  - {id: ISSUE-000019, file: plan/issue/ISSUE-000019-clarify-reference-model-and-cognitive-method-boundary.md, status: Open, priority: 4, related_adrs: [ADR-0014]}
+  - {id: ISSUE-000020, file: plan/issue/ISSUE-000020-define-tei-capability-observation-surface.md, status: Open, priority: 5, related_adrs: [ADR-0012, ADR-0013, ADR-0014]}
+  - {id: ISSUE-000021, file: plan/issue/ISSUE-000021-audit-design-history-provenance.md, status: Deferred, priority: 6, related_adrs: [ADR-0014]}
+  - {id: ISSUE-000022, file: plan/issue/ISSUE-000022-materialize-repository-baseline.md, status: Open, priority: 2, related_adrs: [ADR-0007, ADR-0008, ADR-0009, ADR-0014]}
