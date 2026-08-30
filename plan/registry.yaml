@@ -25,7 +25,7 @@ adr:
   - id: ADR-0006
     file: plan/adr/ADR-0006-bounded-federation-selective-disclosure.md
     status: Accepted
-    related_issues: [ISSUE-000006]
+    related_issues: [ISSUE-000006, ISSUE-000024]
   - id: ADR-0007
     file: plan/adr/ADR-0007-canonical-persistence-boundary.md
     status: Accepted
@@ -33,7 +33,7 @@ adr:
   - id: ADR-0008
     file: plan/adr/ADR-0008-exact-binding-verification-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000008, ISSUE-000009, ISSUE-000022]
+    related_issues: [ISSUE-000008, ISSUE-000009, ISSUE-000022, ISSUE-000024]
   - id: ADR-0009
     file: plan/adr/ADR-0009-binding-verification-outcome-separation.md
     status: Accepted
@@ -49,15 +49,15 @@ adr:
   - id: ADR-0012
     file: plan/adr/ADR-0012-capability-choice-semantic-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000013, ISSUE-000014, ISSUE-000020]
+    related_issues: [ISSUE-000013, ISSUE-000014, ISSUE-000020, ISSUE-000024]
   - id: ADR-0013
     file: plan/adr/ADR-0013-capability-realization-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000014, ISSUE-000020]
+    related_issues: [ISSUE-000014, ISSUE-000020, ISSUE-000024]
   - id: ADR-0014
     file: plan/adr/ADR-0014-soza-tei-product-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000016, ISSUE-000017, ISSUE-000018, ISSUE-000019, ISSUE-000020, ISSUE-000021, ISSUE-000022]
+    related_issues: [ISSUE-000016, ISSUE-000017, ISSUE-000018, ISSUE-000019, ISSUE-000020, ISSUE-000021, ISSUE-000022, ISSUE-000024]
   - id: ADR-0015
     file: plan/adr/ADR-0015-requirement-inquiry-decision-memory.md
     status: Accepted
@@ -74,6 +74,10 @@ adr:
     file: plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md
     status: Accepted
     related_issues: [ISSUE-000023]
+  - id: ADR-0019
+    file: plan/adr/ADR-0019-provider-neutral-capability-observation-boundary.md
+    status: Accepted
+    related_issues: [ISSUE-000020, ISSUE-000024]
 
 issue:
   - {id: ISSUE-000001, file: plan/issue/ISSUE-000001-operationalize-moving-future-horizon.md, status: Resolved, priority: 4, related_adrs: [ADR-0001]}
@@ -94,8 +98,9 @@ issue:
   - {id: ISSUE-000016, file: plan/issue/ISSUE-000016-formalize-soza-tei-product-boundary.md, status: Resolved, priority: 1, related_adrs: [ADR-0014]}
   - {id: ISSUE-000017, file: plan/issue/ISSUE-000017-define-requirement-inquiry-memory-boundary.md, status: Resolved, priority: 2, related_adrs: [ADR-0005, ADR-0010, ADR-0011, ADR-0014, ADR-0015]}
   - {id: ISSUE-000018, file: plan/issue/ISSUE-000018-connect-authorization-evidence-with-decision-memory.md, status: Resolved, priority: 3, related_adrs: [ADR-0004, ADR-0010, ADR-0011, ADR-0014, ADR-0016]}
-  - {id: ISSUE-000019, file: plan/issue/ISSUE-000019-clarify-reference-model-and-cognitive-method-boundary.md, status: Open, priority: 4, related_adrs: [ADR-0014, ADR-0017]}
-  - {id: ISSUE-000020, file: plan/issue/ISSUE-000020-define-tei-capability-observation-surface.md, status: Open, priority: 5, related_adrs: [ADR-0012, ADR-0013, ADR-0014]}
+  - {id: ISSUE-000019, file: plan/issue/ISSUE-000019-clarify-reference-model-and-cognitive-method-boundary.md, status: Resolved, priority: 4, related_adrs: [ADR-0014, ADR-0017]}
+  - {id: ISSUE-000020, file: plan/issue/ISSUE-000020-define-tei-capability-observation-surface.md, status: Resolved, priority: 5, related_adrs: [ADR-0012, ADR-0013, ADR-0014, ADR-0019]}
   - {id: ISSUE-000021, file: plan/issue/ISSUE-000021-audit-design-history-provenance.md, status: Deferred, priority: 6, related_adrs: [ADR-0014]}
   - {id: ISSUE-000022, file: plan/issue/ISSUE-000022-materialize-repository-baseline.md, status: Open, priority: 2, related_adrs: [ADR-0007, ADR-0008, ADR-0009, ADR-0014]}
   - {id: ISSUE-000023, file: plan/issue/ISSUE-000023-formalize-product-value-governance.md, status: Resolved, priority: 1, related_adrs: [ADR-0018]}
+  - {id: ISSUE-000024, file: plan/issue/ISSUE-000024-materialize-capability-observation-fixtures.md, status: Open, priority: 2, related_adrs: [ADR-0006, ADR-0008, ADR-0012, ADR-0013, ADR-0014, ADR-0019]}
