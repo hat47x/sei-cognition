@@ -1,6 +1,6 @@
 # ISSUE-000009: Portable Exact Bindingの検証を安定化する
 
-Status: **Blocked — local stabilization complete; historical M47 mapping / stable verifier integration pending**  
+Status: **Blocked**  
 Priority: **1**  
 Related ADRs: **ADR-0007, ADR-0008, ADR-0009**  
 Updated: 2026-08-31
@@ -21,7 +21,9 @@ Portable Exact Bindingを、Go固有の実装やSOZA独自canonicalizationだけ
 - non-JSON / large binary向けraw-bytes profile候補を整理した。
 - Verification Outcomeを`verified / failed / not_verified`へ分離した。
 
-## Remaining blockers
+## Blocked reason
+
+local stabilizationは完了しているが、次の条件が未解決であるため`Blocked`を維持する。
 
 1. historical M47で用いられたdigest計算規則を、推測ではなく確認したうえでRepresentation Contractへmapする。
 2. stable JCS Go verifier dependencyをlicense、maintenance、RFC test vector適合まで含めて選定・実証する。
@@ -34,6 +36,13 @@ M47 historical digestをJCSへ遡及変換しない。判定不能なbindingを�
 
 actual repository上でstable verifier adapterが成立し、historical M47 digestを正しいRepresentation Contractへ対応付けられること。
 
+## Evidence state
+
+- local stabilization: **完了**
+- historical M47 mapping: **未完了**
+- stable verifier integration: **未完了**
+- actual repository / release / operational evidence: **完了を主張しない**
+
 ## Natural Japanese review
 
-local hardening、ADR-0008/0009、現在のrepo状態を照合した後、自然な日本語となることを最重要視して全文を再ドラフトし、意味監査を実施済み。
+StatusとBlocked reasonを分離し、local hardening、ADR-0008 / ADR-0009、現在のrepository状態を照合した後、意味、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトした。最終意味監査も実施済み。
