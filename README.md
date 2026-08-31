@@ -49,9 +49,9 @@ Schema / Validator / Fixture
 Runtime / Provider Adapter / Provider Integration
 ```
 
-current repositoryでは、上位Design baselineに加え、限定された範囲でExecutable Evidenceまで実体化しています。
+current repositoryでは、上位Design baselineに加え、Contract / Profile / first runtime / synthetic Provider Adapter等の限定された範囲でExecutable Evidenceまで実体化しています。
 
-一方、Provider Adapterの次slice、release、production operation、利用者・組織におけるOutcomeは未検証です。
+一方、production Provider integration、release、production operation、利用者・組織におけるOutcomeは未検証です。
 
 ## 3. Evidenceの読み方
 
@@ -65,7 +65,7 @@ Design Evidence
   != Adoption / Outcome Evidence
 ```
 
-また、historical candidateのPASSはcurrent PASSではありません。
+historical candidateのPASSはcurrent PASSではありません。
 
 ```text
 historical PASS != current PASS
@@ -188,27 +188,11 @@ Requirements Registry Conformance:
 - checker self-tests: **PASS**
 - `22 requirements / 17 scenarios`: **PASS**
 
-これはstable ID、相互参照、Value Axis、status等のregistry構造整合に対するExecutable Evidenceです。Requirementの意味内容やproduction implementationを証明するものではありません。
+これはregistry構造整合に対するExecutable Evidenceです。Requirementの意味内容やproduction implementationを証明するものではありません。
 
 ## 8. Reference Architecture baseline
 
 current ArchitectureはMilestone順や実装package順ではなく、意味上のarchitecture concernへ再構成しています。
-
-主なconcern:
-
-- Durable Semantic Core
-- Inquiry / Epistemic State
-- Cognitive Method
-- Decision Memory
-- Capability Definition / Observation / Choice
-- Responsibility / Authority boundary
-- Semantic Reference / Revision / Exact Binding
-- Profile / Policy
-- Federation / Selective Disclosure
-- Provider / Adapter
-- Projection
-- Persistence
-- Evidence / Assurance boundary
 
 `architecture/TRACEABILITY.md`ではREQ-0001〜REQ-0022をcurrent concernへ追跡しています。
 
@@ -222,8 +206,6 @@ current Contractは、独立versioningと相互運用境界が必要な4 family�
 - `soza.decision-memory/v1alpha1`
 - `soza.capability-observation/v1alpha1`
 - `soza.semantic-interchange/v1alpha1`
-
-Markdown Contract Definitionをsemantic normative sourceとし、JSON Schemaはcurrent v1alpha1のmachine-readable representationとして扱います。
 
 Contract Conformance:
 
@@ -262,48 +244,50 @@ ADR-0022に従い、最初のruntime sliceはread / validate / reconstructへ限
 runtime/go/semanticruntime/
 ```
 
-Semantic Runtime Conformance:
+Semantic Runtime Conformance #3:
 
 - Run ID: `33348972805`
-- Head SHA: `834c3f2a8bd911829743c1582ef09f098c776a54`
 - current Contract fixture checker: **PASS**
 - Go runtime tests: **PASS**
-- conclusion: **success**
 
 このPASSはfirst runtime sliceのExecutable Evidenceであり、SOZA全runtimeやproduction Provider統合の完成を意味しません。
 
-## 12. Provider Adapter observation mapping boundary
+## 12. synthetic Provider Adapter slice
 
-ADR-0024では、Provider AdapterをProvider固有stateの共通schemaではなく、Capability Observationへ変換する観測・解釈境界として定めます。
+ADR-0024では、Provider AdapterをProvider固有stateの共通schemaではなく、Capability Observationへ変換する観測・解釈境界として定めています。
 
-```text
-Provider-owned state
-  + observation context
-        ↓
-Adapter / Mapping
-        ↓
-Capability Observation
-```
-
-Adapterによるfield mapping、unit conversion、status interpretation、aggregation等は意味上の解釈を含み得るため、mapping provenanceを保持します。
-
-次を維持します。
+actual tree:
 
 ```text
-missing != false
-not observed != unavailable
-Adapter mapping != Matching != Decision != Authority != Execution
+runtime/go/provideradapter/
+fixtures/providers/synthetic/
 ```
 
-最初のExecutable sliceはISSUE-000036でsynthetic heterogeneous Providersを使って検証します。
+異なるProvider A / B inputを各Adapterが解釈し、出力だけをcurrent Capability Observationへ収束させます。
 
-現在のStatus:
+検査している主な境界:
 
-- ADR-0024: **Accepted**
-- ISSUE-000035: **Resolved**
-- ISSUE-000036: **Open**
+- status interpretation / unit conversion
+- mapping provenance / source state reference
+- missing値を`false`や`0`へ変換しない
+- Provider-specific referenceの保持
+- Provider-specific fieldをUniversal Capability Observationへ漏らさない
+- AdapterがRecommendation / Decision / Authority / Executionを生成しない
+- Adapter outputをcurrent Capability Observation validationへ接続する
 
-したがってProvider Adapterについて現在主張できるのはDesign Evidenceまでです。
+Semantic Runtime Conformance:
+
+- Run #4 / `33349604842`: **success**
+- Run #5 / `33349801993`: **success** — Provider-specific field非漏洩の追加hardeningを含む
+
+ISSUE-000036はResolvedです。
+
+```text
+synthetic Adapter CI PASS
+  != TEI production adapter
+  != SaaS production interoperability
+  != Provider operational evidence
+```
 
 ## 13. SOZAとTEI
 
@@ -316,7 +300,7 @@ TEI  = 実行可能な業務Capabilityを実現する一つの手段
 
 関連製品であるという理由だけでTEIを優先しません。TEI固有のApplication、Database、Release、Deployment等をSOZA Universal Coreへ複製せず、必要な情報をProvider-neutralなCapability ObservationやProvider-specific referenceから扱います。
 
-TEI production Adapterを最初のProvider Adapter検証対象にはしません。まずsyntheticな異質Providerで境界を検証します。
+production TEI Adapterを作る場合も、synthetic sliceと同じContract / provenance / Evidence境界を適用します。
 
 ## 14. 現在のPlan
 
@@ -326,11 +310,9 @@ TEI production Adapterを最初のProvider Adapter検証対象にはしません
 
 - ISSUE-000015 — 既存開発文書の自然な日本語による全面監査: **In Progress**
 - ISSUE-000021 — design history provenance監査: **Deferred**
-- ISSUE-000022 — repository baseline全体のclosure監査: **In Progress**
 - ISSUE-000034 — historical M47 digest Profileの回収: **Blocked**
-- ISSUE-000036 — synthetic Provider Adapter vertical slice: **Open**
 
-Requirements registry、Capability Observation fixture、Contract schema / conformance、current Representation Profile、first semantic runtime sliceは、それぞれ定めた限定範囲でResolvedしています。
+ISSUE-000022 repository baseline、ISSUE-000036 synthetic Provider Adapter sliceはResolvedしています。
 
 Statusの正本は`plan/registry.yaml`と各Issue本文です。
 
@@ -339,13 +321,12 @@ Statusの正本は`plan/registry.yaml`と各Issue本文です。
 現在の上位優先順位は、概ね次です。
 
 1. Product Value → REQ → ADR → Architecture → Contract / Profile / runtime / Adapterの追跡整合を維持する。
-2. synthetic Provider Adapter sliceでADR-0024をExecutable Evidenceへ落とす。
-3. 既存active開発文書を自然な日本語で再監査する。
-4. repository baseline全体のclosure条件を監査する。
-5. historical M47 digestについて、推測せずEvidenceを回収する。
-6. Product Valueから必要性を確認したうえで、production Provider integrationや次のruntime sliceを設計する。
-7. Release Evidenceを得る条件を整える。
-8. Operational / Adoption・Outcome Evidenceを、実利用が始まった時点で別の高さとして収集する。
+2. 既存active開発文書を自然な日本語で再監査する。
+3. RequirementsのEvidence表示を5段階Evidenceへ整合させる。
+4. historical M47 digestについて、推測せずEvidenceを回収する。
+5. Product Valueから必要性を確認したうえで、production Provider integrationや次のruntime sliceを設計する。
+6. Release Evidenceを得る条件を整える。
+7. Operational / Adoption・Outcome Evidenceを、実利用が始まった時点で別の高さとして収集する。
 
 実装量やCI本数をProduct ValueのKPIにはしません。
 
@@ -365,4 +346,4 @@ SOZAでは、開発文書の自然な日本語を設計品質の一部として�
 
 ## 18. 自然な日本語レビュー
 
-actual Product、Requirements、ADR-0001〜0024、Architecture、4 Contract family、Representation Profile、first semantic runtime slice、Provider Adapter observation mapping boundary、actual CI結果、plan registryへ戻って現在地を再確認しました。そのうえで、Design / Executable / Release / Operational / Adoption・OutcomeのEvidence強度を混同しないよう全体を再構成しました。最後に、意味・仕様・留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+actual Product、Requirements、ADR-0001〜0024、Architecture、4 Contract family、Representation Profile、first semantic runtime slice、synthetic Provider Adapter slice、actual CI結果、plan registryへ戻って現在地を再確認しました。そのうえで、Design / Executable / Release / Operational / Adoption・OutcomeのEvidence強度を混同しないよう全体を再構成しました。最後に、意味・仕様・留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
