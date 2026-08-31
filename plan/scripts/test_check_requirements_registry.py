@@ -4,12 +4,14 @@
 from __future__ import annotations
 
 import importlib.util
+import sys
 from pathlib import Path
 
 MODULE_PATH = Path(__file__).with_name("check_requirements_registry.py")
 spec = importlib.util.spec_from_file_location("check_requirements_registry", MODULE_PATH)
 assert spec and spec.loader
 checker = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = checker
 spec.loader.exec_module(checker)
 
 VALID_REQUIREMENTS = """# Product Requirements
