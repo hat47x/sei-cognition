@@ -15,57 +15,33 @@ historical Contract候補を一括復元せず、current REQ / ADR / Architectur
 
 ### 1. current Contract baselineを実体化した
 
-actual repositoryへ次を追加した。
-
-```text
-contracts/
-  README.md
-  CONTRACT_CATALOG.md
-  TRACEABILITY.md
-  semantic-reference/
-    SOZA_SEMANTIC_REFERENCE_v1alpha1.md
-  decision-memory/
-    SOZA_DECISION_MEMORY_v1alpha1.md
-  capability/
-    SOZA_CAPABILITY_OBSERVATION_v1alpha1.md
-  interchange/
-    SOZA_SEMANTIC_INTERCHANGE_v1alpha1.md
-  profiles/
-    README.md
-  history/
-    HISTORICAL_CONTRACT_MAPPING.md
-```
-
-### 2. Contract familyを必要最小限へ絞った
-
-Architecture上の関心領域を一つずつContractへ変換せず、独立versioningと相互運用境界が必要な4 familyへ集約した。
+current Contract familyは次の4つである。
 
 - `soza.semantic-reference/v1alpha1`
 - `soza.decision-memory/v1alpha1`
 - `soza.capability-observation/v1alpha1`
 - `soza.semantic-interchange/v1alpha1`
 
-Inquiry / EpistemicsはSemantic Interchange上のsemantic artifact vocabularyとして扱い、現時点では独立Contract familyへ分けていない。
+Architecture上の関心領域を一つずつContractへ変換せず、独立versioningと相互運用境界が必要な範囲へ絞った。
 
-Cognitive Methodは重要な意味境界だが、historical M47/M48 Contractを無検査でcurrentへ戻さず、必要なinteroperability Scenarioが明確になった時点で別途再設計する。
+### 2. Semantic ContractとRepresentation Profileを分離した
 
-Federation / Selective Disclosureはoptional Profileとして、具体的な外部交換要件が生じた時点でContract化を再評価する。
-
-### 3. Semantic ContractとRepresentation Profileを分離した
-
-Exact Artifact Bindingの意味は`soza.semantic-reference`が所有するが、JSON canonicalization、JCS、SHA-256、raw bytes等の検証方式はRepresentation Profileへ分離した。
+Exact Bindingの意味は`soza.semantic-reference`が所有し、canonicalization、digest algorithm、対象bytes等のmechanicsはRepresentation Profileへ分離した。
 
 ```text
 Semantic Contract != Representation Profile
 ```
 
-stable Representation Profileは現時点でAcceptedしていない。
+本Issueの作成時点ではstable Profileを未確定としていたが、その後ADR-0023 / ISSUE-000009で次をcurrent / future基線としてAcceptedし、fixture-scoped Executable Evidenceまで得た。
 
-historical custom canonical JSON、JCS candidate、raw-bytes candidateは`contracts/profiles/README.md`で候補として整理し、ISSUE-000009へ戻した。
+```text
+soza.jcs+sha256/v1alpha1
+soza.raw-bytes+sha256/v1alpha1
+```
 
-### 4. Decision Memoryの意味境界をContract化した
+historical M47 digest mappingはISSUE-000034へ分離している。
 
-`soza.decision-memory`で次をinvariantとして固定した。
+### 3. Decision Memoryの意味境界をContract化した
 
 ```text
 Recommendation != Decision != Authority != Action Intent != Execution
@@ -76,9 +52,7 @@ Responsibility != Authorization
 
 過去Decisionのbasisを現在版へ黙って差し替えず、後続DecisionではSemantic Lineageを利用する。
 
-### 5. Provider-neutral Capability ObservationをContract化した
-
-`soza.capability-observation`で次を分離した。
+### 4. Provider-neutral Capability ObservationをContract化した
 
 ```text
 Capability Definition
@@ -90,38 +64,19 @@ Capability Definition
   != Execution
 ```
 
-Provider internal stateをSOZAのUniversal field setへ直接コピーせず、Provider-specific target referenceとmapping / adapter provenanceを保持できる境界を定めた。
+Provider internal stateをUniversal field setへ直接コピーせず、Provider-specific target referenceとmapping / adapter provenanceを保持できる境界を定めた。
 
-```text
-Provider state != Capability interpretation != Decision
-```
+### 5. portable Semantic Interchangeを薄いEnvelopeとして定めた
 
-### 6. portable Semantic Interchangeを薄いEnvelopeとして定めた
+各recordのContract identity / versionを保持し、複数Semantic Contractを組み合わせるportable envelopeとした。
 
-`soza.semantic-interchange`は巨大なUniversal Domain Modelではなく、各recordのcontract identity / versionを保持し、複数Semantic Contractを組み合わせるportable envelopeとした。
+unknown Contract version、partial knowledge、broken referenceを一つのinvalid状態へ潰さず、Projection stateをcanonical semantic authorityへしない。
 
-unknown contract version、partial knowledge、broken referenceを一つのinvalid状態へ潰さない。
+### 6. historical Contractとの対応とTraceabilityを保存した
 
-Projection stateをcanonical semantic authorityへしない。
-
-### 7. historical Contractとの対応を保存した
-
-`contracts/history/HISTORICAL_CONTRACT_MAPPING.md`で、旧Contract / schemaについて次を区別した。
-
-- Integrated
-- Partially integrated
-- Split
-- Historical bridge only
-- Candidate only
-- Historical schema only
+`contracts/history/HISTORICAL_CONTRACT_MAPPING.md`で旧Contract / Schemaの統合状態を記録し、`contracts/TRACEABILITY.md`でcurrent ContractからREQ / ADR / Architecture concern / Scenarioへ戻れる線を整理した。
 
 旧field名、enum、schema version、Go struct、algorithm、local PASSはcurrentへ自動継承していない。
-
-### 8. Contract traceabilityを作成した
-
-`contracts/TRACEABILITY.md`で、current ContractからREQ / ADR / Architecture concern / Acceptance Scenarioへ戻れる線を整理した。
-
-REQ-0004、0010、0011、0012、0016等については、重要であっても独立Contractを現時点で増やさず、Architecture / Profile / Interchange invariant側に留める理由を明示した。
 
 ## Acceptance
 
@@ -129,41 +84,47 @@ REQ-0004、0010、0011、0012、0016等については、重要であっても�
 
 - [x] current Contractの必要性がREQ / ADR / Architectureから説明できる。
 - [x] contract_id / versionが明示されている。
-- [x] semantic ContractとRepresentation Profileを分けている。
-- [x] Markdown Contract Definitionとschemaの権威関係がADR-0021と一致する。
+- [x] Semantic ContractとRepresentation Profileを分けている。
+- [x] Markdown Contract DefinitionとSchemaの権威関係がADR-0021と一致する。
 - [x] historical Contractとの対応を追跡できる。
 - [x] Design / Executable Evidenceを混同していない。
 - [x] 自然な日本語全文再ドラフトと最終意味監査を完了した。
 
-### Executable Acceptance
+### Downstream Executable Acceptance
 
-本Issueでは未達のまま別Issueへ分離した。
+本Issue自身はDesign baselineを閉じた。その後、別Issueで次を実体化した。
 
-- machine-readable schema
-- positive / negative fixture
-- unknown-version / partial-knowledge fixture
-- semantic invariant validator
-- actual conformance runner
+- machine-readable Schema / positive / negative / boundary fixture / semantic validator: **Satisfied — ISSUE-000031**
+- Capability Observation F1〜F7: **Satisfied — ISSUE-000024**
+- Representation Profile fixture conformance: **Satisfied — ISSUE-000009**
+- first semantic runtime: **Satisfied — ISSUE-000033**
+- synthetic Provider Adapter: **Satisfied — ISSUE-000036**
 
-これらはISSUE-000031で追跡する。
+```text
+Downstream Executable Evidence exists
+  != this Design Issue was an implementation Issue
+```
 
-## Evidence state at closure
+## Current evidence state
 
 - Contract Design Baseline: **Satisfied**
 - Contract Traceability: **Satisfied**
-- Representation Profile Stable Acceptance: **Not Yet Verified** — ISSUE-000009
-- Contract Executable Evidence: **Not Yet Verified** — ISSUE-000031
-- Capability Observation Executable Fixture: **Not Yet Verified** — ISSUE-000024 / ISSUE-000031
+- Representation Profile current baseline: **Satisfied**
+- Contract Fixture-scoped Executable Evidence: **Satisfied**
+- Capability Observation Fixture Evidence: **Satisfied**
+- first Runtime consumption of current Contract: **Satisfied within scoped runtime**
+- historical M47 digest mapping: **Not Yet Verified — ISSUE-000034**
 - Release / Operational: **Not Yet Verified**
 
 ## Follow-up
 
-- ISSUE-000031 — current Contract schema / fixture / conformance
-- ISSUE-000024 — Capability Observation fixture
-- ISSUE-000009 — stable Representation Profile / historical M47 mapping
-- ISSUE-000027 — Requirements registry checker
-- ISSUE-000022 — repository baseline全体
+- ISSUE-000031 — Contract conformance（Resolved）
+- ISSUE-000024 — Capability Observation fixture（Resolved）
+- ISSUE-000009 — current Representation Profile（Resolved）
+- ISSUE-000033 — first semantic runtime（Resolved）
+- ISSUE-000036 — synthetic Provider Adapter（Resolved）
+- ISSUE-000034 — historical M47 digest mapping（Blocked）
 
 ## Natural Japanese review
 
-current Contract 4 family、Catalog、Traceability、historical mapping、Representation Profile境界を戻り照合した後、Design baselineとExecutable未完了範囲を分離した。そのうえで、意味、規範強度、Evidence状態を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+current Contract 4 family、Catalog、Traceability、historical mapping、Representation Profile、Schema / Fixture conformance、first runtime Evidenceへ戻って再照合した。そのうえで、本Issue自身のDesign closureと後続IssueのExecutable Evidenceを分離し、意味、規範強度、Evidence状態を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

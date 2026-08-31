@@ -11,19 +11,6 @@ first semantic runtime sliceの次段として、Provider固有stateをcurrent C
 
 TEI固有Schemaや一つのSaaS API形状を先に採用せず、Provider Independence、historical reconstruction、Unknown preservationを満たす最小vertical sliceを設計する。
 
-## Questions
-
-1. Provider Adapterは何を所有し、何を所有しないか。
-2. Provider-specific inputをUniversal schemaへ正規化すべきか。
-3. Adapter outputはどのContractで検証するか。
-4. field mapping、unit conversion、status interpretation等のprovenanceをどう残すか。
-5. mapping version変更後に過去Decision basisをどう再構成するか。
-6. Provider stateが欠落・取得不能・非開示のとき、negative factへの誤変換をどう防ぐか。
-7. common comparison facetとProvider-specific informationをどう分けるか。
-8. AdapterがMatching / Decision / Authority / Executionへ越境することをどう防ぐか。
-9. 最初のExecutable fixtureに実TEIを使うべきか、synthetic Providerで境界を先に検証すべきか。
-10. Adapter implementationとsemantic authorityをどう分けるか。
-
 ## Resolution
 
 ADR-0024で次をAcceptedした。
@@ -54,17 +41,28 @@ ADR-0024で次をAcceptedした。
 
 ## Evidence boundary
 
-本IssueのclosureはDesign Evidenceである。
+本Issue自身のclosureはDesign Evidenceである。
 
 ```text
 ADR Accepted
   != Provider Adapter Executable Evidence
-  != TEI integration
-  != Provider production interoperability
 ```
 
-Executable EvidenceはISSUE-000036でactual runtime / fixture / CIから取得する。
+その後、ISSUE-000036でsynthetic Provider A / Bを実装し、mapping provenance、source state reference、Unknown preservation、Provider固有field leakage防止、Capability Observation runtime validationをactual CIで確認した。
+
+したがってcurrent repositoryにはProvider Adapterのscoped Executable Evidenceも存在するが、それはISSUE-000036のEvidenceであり、本IssueのDesign closureを遡ってImplementation Issueへ変えるものではない。
+
+```text
+synthetic Adapter PASS
+  != TEI production integration
+  != production Provider interoperability
+```
+
+## Follow-up
+
+- ISSUE-000036 — synthetic Provider Adapter（Resolved）
+- production Provider adapterは対象Provider / Acceptanceが具体化した時点で独立Issueとして扱う。
 
 ## Natural Japanese review
 
-current Capability Observation、runtime、Provider Independenceの境界を照合して設計論点を確定した後、実装を先取りせず、意味、規範強度、Evidence境界を変えない範囲で自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+current Capability Observation、ADR-0024、runtime、ISSUE-000036のsynthetic Adapter Evidenceへ戻って設計境界を照合した。その後、本Issue自身のDesign Evidenceと後続Executable Evidenceを区別し、意味、規範強度、Evidence境界を変えない範囲で自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

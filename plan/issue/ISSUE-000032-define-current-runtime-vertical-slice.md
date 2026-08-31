@@ -49,31 +49,18 @@ read
 - automatic best-candidate selection
 - Production Runtime用Representation Profile verifier registryの完成
 
-current JCS / raw-bytes Profile基線そのものはADR-0023とISSUE-000009で確定済みである。first sliceではProfile identity / versionとverification outcomeを保持できることを優先し、Production Runtimeへのverifier統合は独立したExecutable Evidenceとして扱う。
+current JCS / raw-bytes Profile基線そのものはADR-0023 / ISSUE-000009で確定済みである。first sliceではProfile identity / versionとverification outcomeを保持できることを優先し、Production Runtimeへのverifier統合は独立したEvidenceとして扱う。
 
 ### Runtime / Contract authority
 
-runtime structやpackage layoutをsemantic authorityにしない。
-
 ```text
 Runtime type != Contract semantic authority
-```
-
-実装とContractが矛盾した場合は、実装都合で意味を変更せず、Product Value、REQ、ADR、Contractへ戻る。
-
-### Go implementation boundary
-
-current implementation laneはGoを基本とするが、Go自体をSOZA semantic identityへ含めない。
-
-```text
 Go implementation != SOZA semantic identity
 ```
 
-別言語実装が同じContract conformanceを満たすことを妨げない。
+runtime structやpackage layoutをsemantic authorityにせず、実装とContractが矛盾した場合はProduct Value、REQ、ADR、Contractへ戻る。
 
 ### Provider boundary
-
-Provider固有stateはadapter / mappingを通してCapability Observationへ変換する。
 
 ```text
 Provider state
@@ -82,34 +69,11 @@ Provider state
   → Matching / Decision may consume
 ```
 
-production TEI adapterをfirst sliceの必須条件にはしない。synthetic Provider inputでruntime境界を検証してから実Provider統合へ進む。
-
-### Exact Binding boundary
-
-runtimeはExact Binding metadataとbinding同値性を扱う。
-
-ADR-0023によりcurrent Representation Profile基線は次へ確定した。
-
-```text
-soza.jcs+sha256/v1alpha1
-soza.raw-bytes+sha256/v1alpha1
-```
-
-ただし、これらをUniversal defaultとしてhard-codeしてはならない。
-
-verifier不在や未知Profileは`not_verified`、実際の不一致は`failed`として分ける。
-
-Profile verifierをRuntimeへ接続する場合は、Profile DefinitionとProfile Conformance fixtureを正本とし、Runtime独自のcanonicalization規則を作らない。
+production TEI adapterをfirst sliceの必須条件にはせず、synthetic Providerで境界を先に検証する方針とした。
 
 ### historical Go candidate
 
-historical codeはcurrent Contractへ照合して必要部分だけ再利用する。
-
-```text
-historical code exists != current runtime adopted
-```
-
-Milestone名、old package identity、old field、old Evidence stateを自動継承しない。
+historical codeはcurrent Contractへ照合して必要部分だけ再利用し、Milestone名、old package identity、old field、old Evidence stateを自動継承しない。
 
 ## Acceptance
 
@@ -118,26 +82,35 @@ Milestone名、old package identity、old field、old Evidence stateを自動継
 - [x] runtimeが所有する責務と所有しない責務を明示した。
 - [x] first vertical sliceをcurrent Contractから追跡できる。
 - [x] Executionを先行実装しない理由を明示した。
-- [x] Provider adapterがUniversal CoreへProvider schemaを漏らさない境界を定めた。
+- [x] Provider AdapterがUniversal CoreへProvider Schemaを漏らさない境界を定めた。
 - [x] current Representation Profile基線とRuntime統合Evidenceを分離した。
 - [x] unknown Profile / verifierを`not_verified`として保持する境界を維持した。
 - [x] Go implementationとSOZA semantic identityを分離した。
 - [x] historical candidate再利用規則を定めた。
 - [x] 自然な日本語全文再ドラフトと最終意味監査を完了した。
 
-### Executable Acceptance
+## Downstream evidence
 
-本Issueでは要求しない。actual runtime implementationとend-to-end conformanceはISSUE-000033で追跡する。
+本Issue自身はDesign sliceを閉じた。その後、次を実体化した。
+
+- ISSUE-000033 — read / validate / reconstruct runtime: **Resolved / CI success**
+- ISSUE-000035 — Provider Adapter boundary: **Resolved**
+- ISSUE-000036 — synthetic Provider Adapter: **Resolved / CI success**
+
+したがって、first sliceとsynthetic Adapterについてはcurrent Executable Evidenceが存在する。
+
+ただし、Authorization / Action execution、Production Runtime verifier registry、production Provider interoperabilityは未検証である。
 
 ## Evidence / Follow-up
 
 - ADR-0022 — first runtime slice
 - ADR-0023 — current Representation Profile baseline
 - ISSUE-000009 — current/future Profile stabilization（Resolved）
-- ISSUE-000033 — runtime implementation（In Progress）
+- ISSUE-000033 — runtime implementation（Resolved）
+- ISSUE-000035 / 000036 — Provider Adapter design / synthetic implementation（Resolved）
 - ISSUE-000034 — historical M47 digest recovery（Blocked）
-- ISSUE-000022 — repository baseline全体
+- ISSUE-000022 — repository baseline（Resolved）
 
 ## Natural Japanese review
 
-ADR-0022、ADR-0023、Profile Conformance、runtime実体化開始状態へ戻ってruntime責務、Provider境界、Exact Binding境界を再確認した。その後、Profile未確定を前提としていた古い記述だけを現在状態へ改め、実装詳細を先取りせず、意味、制約、Evidence強度を変えない範囲で自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+ADR-0022 / ADR-0023、first runtime CI、Provider Adapter設計・実装へ戻ってruntime責務、Provider境界、Exact Binding境界を再確認した。その後、本IssueのDesign closureと後続Executable Evidenceを分け、意味、制約、Evidence強度を変えない範囲で自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

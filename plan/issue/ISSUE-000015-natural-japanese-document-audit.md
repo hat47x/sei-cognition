@@ -36,165 +36,81 @@ SOZAの既存開発文書を、技術的な意味・仕様・留保・Evidence�
 
 ## 現在の進捗
 
-### 1. 文書品質基盤
+### 1. 文書品質基盤 / Product層
 
-次を整備済み。
+`plan/DEVELOPMENT_WORKFLOW.md`、`plan/DOCUMENT_AUTHORING_STANDARD.md`、`plan/README.md`へ、内容・構造を確定した後に自然な日本語で全文再ドラフトし、さらに意味監査を行う工程を組み込んだ。
 
-- `plan/DEVELOPMENT_WORKFLOW.md`
-- `plan/DOCUMENT_AUTHORING_STANDARD.md`
-- `plan/README.md`
-- `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
+Product Value / Value Model / Value Acceptance / Vision / Principlesも主要baselineを一巡し、Value hierarchy、V1〜V8、Evidence階層、Core昇格基準等をcurrent正本として整備済みである。
 
-内容と構造を確定した後に全文を自然な日本語で再ドラフトし、さらに意味監査を行う工程を通常開発へ組み込んだ。
+### 2. ADR全件逆向き監査
 
-### 2. Product層
+ADR-0001〜ADR-0024について、current Product Value / Requirements / Architecture / Contract / Runtime Evidenceから逆向きに再監査した。
 
-次のcurrent Product文書は主要baselineを一巡した。
+主な是正:
 
-- `product/value/SOZA_PRODUCT_VALUE.md`
-- `product/value/SOZA_VALUE_MODEL.md`
-- `product/value/SOZA_VALUE_ACCEPTANCE.md`
-- `product/vision/SOZA_PRODUCT_VISION.md`
-- `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
+- historical M48 / M49 / M50をcurrent Architectureの正本として読める参照をcurrent Contract / Architectureへ置換した。
+- Representation Profile確定前の記述をADR-0023 / ISSUE-000009のcurrent基線へ同期した。
+- Decision Memory / Capability Observation / Runtime実体化前のEvidence記述をcurrent到達点へ同期した。
+- TEIやProvider Adapterの後続実装によっても、SOZA / TEI Product BoundaryやProvider-neutralityが変わっていないことを確認した。
 
-Value Modelでは価値の三層、価値衝突時の優先規則、Core昇格基準、V1〜V8、失敗条件を明示した。
+ADRのDecision自体を後続実装都合で変更した箇所はない。
 
-Value AcceptanceではDesign / Executable / Release / Operational Evidenceを分離した。
+**ADR-0001〜ADR-0024の既存本文を含む全件逆向き監査は完了した。**
 
-Vision / PrinciplesもValue Modelへ戻って再監査済みである。
+### 3. ISSUE全件逆向き監査
 
-### 3. Plan層
+ISSUE-000001〜ISSUE-000036についてcurrent Evidenceへ戻って再監査した。
 
-current registryはADR-0001〜ADR-0024、ISSUE-000001〜ISSUE-000036を管理する。
+ISSUE-000001〜000007、000016〜000019、000021〜000023、000027〜000028、000034、000036は、主要な意味・Evidence境界がcurrent状態と整合していることを確認した。
 
-この期間に新規・大幅更新した主なDecision / Issue:
+古い時系列前提が残っていたIssueでは次を更新した。
 
-- ADR-0018 — Product Value authority / evaluation boundary
-- ADR-0019 — Provider-neutral Capability Observation
-- ADR-0020 — Requirements traceability / Evidence boundary
-- ADR-0021 — Architecture / Contract authority / versioning
-- ADR-0022 — first runtime read / validate / reconstruct slice
-- ADR-0023 — current Representation Profile baseline
-- ADR-0024 — Provider Adapter observation mapping boundary
-- ISSUE-000022 — current repository baseline closure
-- ISSUE-000024〜000033 — Requirements / Architecture / Contract / Runtime実体化
-- ISSUE-000034 — historical M47 digest recovery
-- ISSUE-000035 / 000036 — Provider Adapter設計・synthetic実装
+- ISSUE-000005 — historical M49表現をcurrent Decision Memoryへ接続。
+- ISSUE-000008 — repository baseline未実体化前提を削除し、ISSUE-000022 closureへ同期。
+- ISSUE-000009 — first runtime存在とRuntime verifier未統合を分離。
+- ISSUE-000010〜000012 — historical M49 labelとcurrent Decision Memory Contract / Runtime Evidenceを分離。
+- ISSUE-000013〜000014 — historical M50 planningとcurrent Capability Observation / synthetic Adapter Evidenceを分離。
+- ISSUE-000020 — ISSUE-000024 / 000036のcurrent Evidenceへ同期。
+- ISSUE-000024 — Representation Profile / Runtime / Adapterの後続Evidenceへ同期。
+- ISSUE-000026 — Requirements Registry checker完了へ同期。
+- ISSUE-000029〜000031 — Contract / Profile / Runtimeが未実体化だったEvidence欄をcurrent状態へ更新。
+- ISSUE-000032〜000033 — runtime implementationとProvider Adapter後続完了へ同期。
+- ISSUE-000035 — Design closureとISSUE-000036のExecutable Evidenceを分離。
 
-新規・大幅更新文書は、自然な日本語全文再ドラフトと最終意味監査を通している。
+**ISSUE-000001〜ISSUE-000036の既存本文を含む全件逆向き監査は完了した。**
 
-ただし、ADR-0001〜ADR-0024、ISSUE-000001〜ISSUE-000036の**既存部分を含む全件逆向き監査が完了したとはまだ扱わない。**
+### 4. Requirements / Architecture / Contracts / Runtime
 
-### 4. Requirements層
+RequirementsはREQ-0001〜REQ-0022、SCN-0001〜SCN-0017をcurrent baselineとし、Registry checker / negative self-test / GitHub Actionsまで成立している。
 
-current Requirements:
+ArchitectureはMilestone順ではなくarchitecture concernへ再構成済みで、Contract 4 family、Representation Profile、Schema / Fixture conformance、first semantic runtime、synthetic Provider Adapterへ追跡できる。
 
-- REQ-0001〜REQ-0022
-- SCN-0001〜SCN-0017
-- historical mapping
-
-Requirements Design baselineに加え、Registry checker / negative self-test / GitHub Actionsもcurrent actual repositoryで成立している。
-
-`requirements/PRODUCT_REQUIREMENTS.md`は2026-08-31に再基線化し、Architecture / Contract / Runtimeが未実体化だった時期の古いEvidence記述を削除した。
-
-現在は、各Requirementについてfixture / first runtime sliceで直接確認した範囲だけを`Partially Satisfied`等として記述し、Release / Operational Evidenceへ広げていない。
-
-### 5. Architecture層
-
-current Architecture baseline:
-
-```text
-architecture/
-  README.md
-  SOZA_REFERENCE_ARCHITECTURE.md
-  TRACEABILITY.md
-  history/
-    HISTORICAL_ARCHITECTURE_MAPPING.md
-```
-
-M48 / M49 / M50等のMilestone順をcurrent ontologyへ持ち込まず、意味上のarchitecture concernへ再構成した。
-
-REQ-0001〜REQ-0022を少なくとも一つのarchitecture concernへ追跡できる。
-
-Architecture文書は内容確定後に自然な日本語へ全文再ドラフトし、意味境界とEvidence強度を再監査済みである。
-
-### 6. Contracts / Representation Profiles
-
-current Contract family:
-
-- `soza.semantic-reference/v1alpha1`
-- `soza.decision-memory/v1alpha1`
-- `soza.capability-observation/v1alpha1`
-- `soza.semantic-interchange/v1alpha1`
-
-Contract Definition、Catalog、Traceability、historical mapping、Schema、fixture、conformance checkerをactual treeへ実体化した。
-
-Representation ProfileはADR-0023で、
-
-- `soza.jcs+sha256/v1alpha1`
-- `soza.raw-bytes+sha256/v1alpha1`
-
-をcurrent/future基線としてAcceptedした。
-
-historical M47 digest規則だけはcurrent Profileと分離し、ISSUE-000034でBlockedとしている。
-
-旧文書にあった「Representation Profile全体が未確定」という記述はcurrent正本から除去・更新する。
-
-### 7. Runtime / Provider Adapter
-
-first semantic runtime sliceをGoで実体化し、current Contract fixtureと同じ意味境界からread / validate / reconstructを検証した。
-
-`Semantic Runtime Conformance` run #3でContract checkerとGo testsがsuccessした。
-
-さらにADR-0024に従い、異なるinput shapeを持つsynthetic Provider A / BからCapability Observationを生成するAdapter sliceを追加した。
-
-Provider Adapterは、
-
-- mapping provenance
-- source state ref
-- Unknown preservation
-- Provider-specific target
-- no Decision / Authority / Execution escalation
-
-を検査する。
-
-`Semantic Runtime Conformance` run #4でもsuccessを確認済みである。
-
-fixture説明文書も、Provider固有fieldをUniversal schemaと誤読しないよう自然な日本語へ再ドラフト済みである。
-
-### 8. root README
-
-root READMEは、Requirements / Architecture / Contract / Representation Profile / Runtimeが未実体化だった古い状態からcurrent actual treeへ同期した。
-
-current Evidenceの範囲と、Provider production integration / Release / Operational Evidenceの未完了を分けて記載している。
+root READMEと`requirements/PRODUCT_REQUIREMENTS.md`もcurrent actual Evidenceへ再基線化済みである。
 
 ## CIと文書更新
 
-開発中にCI failureを検出した場合は、その時点で原因を解消し、successを確認してから次の作業へ進む。
+CI failureを検出した場合は、その時点で原因を解消し、successを確認してから次の作業へ進む。
 
-2026-08-31には、
+Plan文書とregistryを同時に変更する場合は可能な範囲でatomic commitを用い、中間不整合を避ける。
 
-- runtime workflowのdependency導入漏れ
-- F5/F6 Semantic Interchangeをstandalone recordとして扱ったtest誤り
-- Issue本文とregistryを別commitで更新した際の一時的status不整合
+文書だけの更新でもPlan integrityを確認し、自然な日本語への再ドラフトによってID、Status、関連参照等が壊れていないことを検査する。
 
-を検出し、いずれも原因を確認して修正した。
+## 次の監査対象
 
-以後、Plan文書とregistryを同時に変更する場合は、可能な範囲でatomic commitを用いて中間不整合を避ける。
+ADR / Issue全件監査が完了したため、次はcurrent branchに残る**その他の開発説明文書**を対象一覧化し、優先順に監査する。
 
-## 進行中の作業
+主な対象:
 
-現時点の中心は、**既存文書全件の逆向き監査**である。
+1. `plan/rebaseline`等のhistorical / reporting文書
+2. `plan/kj`等の設計統合・思考記録
+3. `runtime/`配下のREADME / Evidence文書 / code comment
+4. `fixtures/`配下のREADME / fixture説明
+5. `tools/`配下のREADME / checker説明
+6. root以外の補助README / traceability補助文書
 
-優先順:
+historical一次資料や固定fixtureの内容そのものは、自然な日本語化を理由に改変しない。current説明文とhistorical evidenceを区別する。
 
-1. ADR-0001〜ADR-0017の既存本文をcurrent Product Value / REQ / Architecture / Contractから逆向きに再監査する。
-2. ISSUE-000001〜ISSUE-000021の既存本文に、古いMilestone前提やEvidence状態が残っていないか再監査する。
-3. `plan/rebaseline`等のhistorical / active境界を確認する。
-4. runtime code comment / fixture README / tool README等の説明文書を同じ品質工程へ通す。
-5. README / Requirements / Architecture / Contractを、後続実装でEvidenceが変わるたびに再同期する。
-
-ISSUE-000034はhistorical一次sourceの回収待ちであり、自然な日本語監査とは独立したBlocked事項として扱う。
+ISSUE-000034はhistorical一次sourceの回収待ちであり、本Issueとは独立したBlocked事項として扱う。
 
 ## Acceptance criteria
 
@@ -207,8 +123,8 @@ ISSUE-000034はhistorical一次sourceの回収待ちであり、自然な日本�
 - [x] Semantic ContractとRepresentation Profileを分離した。
 - [x] Contract DefinitionとSchema / implementationの権威関係を分離した。
 - [x] runtime / Provider Adapterの新規説明文書へ自然な日本語再ドラフト工程を適用した。
-- [ ] ADR-0001〜ADR-0024の既存本文をcurrent baselineから全件再監査する。
-- [ ] ISSUE-000001〜ISSUE-000036の既存本文をcurrent baselineから全件再監査する。
+- [x] ADR-0001〜ADR-0024の既存本文をcurrent baselineから全件再監査した。
+- [x] ISSUE-000001〜ISSUE-000036の既存本文をcurrent baselineから全件再監査した。
 - [ ] その他current branchに残る開発説明文書の対象一覧を確定し、監査漏れがないことを確認する。
 
 current branchに存在する対象開発文書を確認し終えるまで、本IssueをResolvedにしない。
@@ -217,10 +133,10 @@ current branchに存在する対象開発文書を確認し終えるまで、本
 
 技術用語をすべて日本語へ翻訳することは目的としない。
 
-また、読みやすくするために未決事項を勝手に確定したり、Evidenceより強い状態へ書き換えたりしない。
+読みやすくするために未決事項を勝手に確定したり、Evidenceより強い状態へ書き換えたりしない。
 
 自然な日本語と技術的精度を両立する。
 
 ## Natural Japanese review
 
-Product / Requirements / Architecture / Contract / Representation Profile / Runtime / Provider Adapterのcurrent到達点とCI実績へ戻って進捗を再構成した。完了済みの基線整備と、既存文書全件の逆向き監査という未完了作業を分けた後、監査範囲、Evidence強度、未完了条件を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+ADR-0001〜0024、ISSUE-000001〜000036、Product / Requirements / Architecture / Contract / Representation Profile / Runtime / Provider Adapterのcurrent到達点へ戻って全件逆向き監査を行った。歴史的Milestone、各Issue自身のclosure、後続Issueで増えたExecutable Evidence、未検証のProduction / Release / Operational領域を分離した後、監査範囲とEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

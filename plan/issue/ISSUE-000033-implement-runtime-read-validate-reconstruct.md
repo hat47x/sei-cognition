@@ -15,8 +15,6 @@ ADR-0022で確定したfirst runtime sliceをGoでactual repositoryへ実装し�
 
 ### 1. Go semantic runtimeをactual treeへ実体化した
 
-主な実装は次に置いた。
-
 ```text
 runtime/go/
   go.mod
@@ -26,129 +24,50 @@ runtime/go/
     loader_test.go
 ```
 
-runtime packageはArchitecture concernの恒久identityではない。現在の実装配置としてのみ扱う。
+runtime packageはArchitecture concernの恒久identityではなく、current implementation配置として扱う。
 
 ### 2. current Contract identity / versionを読み分ける
 
-runtimeは少なくとも次のcurrent Contractを明示的に扱う。
+Semantic Reference、Decision Memory、Capability Observation、Semantic Interchangeのcurrent v1alpha1を明示的に扱い、未知のnested Contractは既知Contractとして解釈せず`not_verified`相当としてopaque payloadを保持する。
 
-- `soza.semantic-reference/v1alpha1`
-- `soza.decision-memory/v1alpha1`
-- `soza.capability-observation/v1alpha1`
-- `soza.semantic-interchange/v1alpha1`
+### 3. Semantic Reference / Decision Memory / Capability Observation境界をruntimeで検査する
 
-未知のnested Contractを既知Contractとして解釈せず、`not_verified`相当としてopaque payloadを保持する。
-
-```text
-unknown Contract != invalid known Contract
-unknown Contract != fully validated
-```
-
-### 3. Semantic Reference境界をruntimeで検査する
-
-次を実装した。
-
-- Logical Reference
-- Exact Binding metadata
-- Representation Profile identity / version
-- Verification Outcome vocabulary
-- Semantic Lineage
-- same-logical-id lineageのexact endpoint要求
-
-`verified / failed / not_verified`を別状態として扱い、未知Verifierや未検証状態を`failed`へ潰さない。
-
-### 4. Decision Memory境界をruntimeで検査する
-
-DecisionとRecommendationを分け、次を保持する。
-
-- context refs
-- basis refs
-- recommendation refs
-- unresolved refs
-- responsibility refs
-- rationale
-- lineage
-
-Decision recordへ`authority`を直接持ち込むfixtureは拒否する。
+Logical Reference、Exact Binding metadata、Verification Outcome vocabulary、Semantic Lineage、Decision / Recommendation、context / basis / unresolved / responsibility、Capability Observation等をcurrent Contractに沿って読み込む。
 
 ```text
 Recommendation != Decision
 Decision != Authority
 Decision creation != uncertainty resolution
+unknown Contract != fully validated
 ```
 
-### 5. Capability Observation境界をruntimeで検査する
+### 4. F1〜F7とnegative / boundary fixtureをruntimeへ接続した
 
-F1〜F7 fixtureをcurrent runtimeへ接続した。
+F1〜F7を同じContract fixture sourceから読み込み、Recommendation without Decision、Decision with unresolved、same-logical-id lineage violation、mismatched exact binding、unknown Contract、partial knowledge等も検査する。
 
-- F1 TEI partial degradation
-- F2 proposed state != actual state
-- F3 release without environment binding
-- F4 observation gap
-- F5 cross-provider comparison
-- F6 historical reconstruction
-- F7 selective disclosure
+F5 / F6は複数recordを持つSemantic Interchangeとして読み込む。
 
-F5/F6は複数recordを持つSemantic Interchangeであるため、単一Capability Observationとしてではなくbundleとして読み込む。
+### 5. original interchange bytesをlosslessに再exportできる
 
-Provider-specific contextをCapability meaningそのものへ昇格させず、`observed_at`、condition、provenance、mapping provenance等を保持する。
+read / validate成功を理由に受信Interchangeを自動normalize / rewriteせず、`Bundle.ExportOriginal()`で元bytesの独立copyを返す。
 
-### 6. bundle内のhistorical exact reference整合を検査する
+これはsemantic migration機構の完成ではなく、first sliceにおけるlossless handling Evidenceである。
 
-Decision basisがbundle内のexact-bound Artifactを参照する場合、同じlogical identityで異なるexact contentへ黙って向け直されないことを検査する。
+### 6. Contract checkerとruntime testを同じfixture sourceへ接続した
 
-mismatched exact binding fixtureは期待どおり拒否される。
+`.github/workflows/runtime-conformance.yml`でContract checkerと`go test ./...`を同じCI jobから実行する。
 
-### 7. partial knowledgeを保持する
+初回にはchecker dependency導入漏れ、次のrunではF5/F6のfixture種別誤認をCIで検出し、原因を修正してからsuccessを確認した。
 
-`unknown`と`withheld`を保持したCapability Observationと、未解決参照を残したDecisionを同じInterchangeから読み込める。
+### 7. actual branch CIでPASSした
 
-```text
-unknown != false
-withheld != unknown
-Decision != uncertainty resolved
-```
-
-### 8. original interchange bytesをlosslessに再exportできる
-
-read / validateの成功を理由に、受信したSemantic Interchangeを自動normalize / rewriteしない。
-
-`Bundle.ExportOriginal()`は元bytesの独立copyを返し、runtime read model化によって元交換representationを失わない。
-
-これはsemantic migration機構の完成を意味しない。最初のread / validate / reconstruct sliceにおけるlossless handling Evidenceである。
-
-### 9. Contract checkerとruntime testを同じfixture sourceへ接続した
-
-`.github/workflows/runtime-conformance.yml`を追加し、次を一つのCI jobで実行する。
-
-1. Contract checker dependencyを導入する。
-2. `tools/check_contract_conformance.py`でcurrent fixtureを再検査する。
-3. `runtime/go`で`go test ./...`を実行する。
-
-初回CIではchecker dependency導入漏れを検出し修正した。
-
-2回目CIではF5/F6がSemantic Interchangeであるにもかかわらず、runtime testが全F1〜F7を`LoadStandalone`で読んでいた問題を検出した。fixtureのtop-level Contractを確認し、Capability ObservationとSemantic Interchangeでloaderを分けるよう修正した。
-
-### 10. actual branch CIでPASSした
-
-最終確認:
-
-- branch: `develop/v0.1.0`
-- commit: `834c3f2a8bd911829743c1582ef09f098c776a54`
 - workflow: `Semantic Runtime Conformance`
-- run: `#3` / `33348972805`
+- Run ID: `33348972805`
 - conclusion: **success**
 
-CI上で次の両方が成功した。
-
-- current Contract fixture checker: **PASS**
-- Go semantic runtime tests: **PASS**
-
-Contract checkerでは17 fixtureすべてが期待結果と一致した。F1〜F7のpositive fixture、Schema fail、semantic fail、unknown Contractの`not_verified`、Verification Outcome境界を含む。
+Contract checkerでは17 fixtureすべてが期待結果と一致し、Go semantic runtime testsもPASSした。
 
 ## Acceptance
-
-### Executable Acceptance
 
 - [x] `runtime/go`がactual treeに存在する。
 - [x] Go moduleがcompile / testできる。
@@ -160,13 +79,11 @@ Contract checkerでは17 fixtureすべてが期待結果と一致した。F1〜F
 - [x] same-logical-id lineage without exact endpointを拒否できる。
 - [x] mismatched exact bindingを拒否できる。
 - [x] unknown nested Contractを`not_verified`相当として扱える。
-- [x] original semantic interchange bytesを意味を変えず再exportできる。
+- [x] original Semantic Interchange bytesを再exportできる。
 - [x] Runtime CIをactual branchで再現できる。
 - [x] Contract checkerとruntime testを同じfixture sourceへ接続できる。
 
-## Evidence boundary at closure
-
-本Issueで得られたEvidenceは、**current Contract fixtureを入力とするfirst semantic runtime sliceのExecutable Evidence**である。
+## Current evidence boundary
 
 ```text
 runtime CI PASS
@@ -174,24 +91,27 @@ runtime CI PASS
   != Provider production integration
   != Authorization / Action execution complete
   != release readiness
-  != operational evidence
+  != Operational Evidence
 ```
 
-Representation Profileのfixture-scoped Executable EvidenceはADR-0023 / ISSUE-000009で別途成立している。current runtimeへProduction-grade Verifier Registry / Adapterを完全統合したことまでは本Issueから主張しない。
+Representation Profile fixture-scoped EvidenceはADR-0023 / ISSUE-000009で別途成立している。current runtimeへProduction-grade Verifier Registry / Adapterを完全統合したことまでは本Issueから主張しない。
+
+その後ISSUE-000036でsynthetic Provider Adapterを同じruntime conformanceへ追加し、Provider-specific state → Capability Observationの最小mapping sliceまでcurrent CIで確認した。この後続Evidenceもproduction Provider integrationとは区別する。
 
 ## Follow-up
 
-- ISSUE-000022 — repository baseline全体のclosure監査
-- ISSUE-000034 — historical M47 digest profile recovery
-- Production Runtime verifier integrationは、必要性をcurrent Scenario / Requirementから確認したうえで独立Issueへ切り出す。
-- Provider / TEI integrationはCapability Observation Contractとruntime境界を壊さず、後続vertical sliceで扱う。
+- ISSUE-000022 — repository baseline（Resolved）
+- ISSUE-000036 — synthetic Provider Adapter（Resolved）
+- ISSUE-000034 — historical M47 digest Profile recovery（Blocked）
+- Production Runtime verifier integrationは必要性をcurrent Scenario / Requirementから確認したうえで独立Issueへ切り出す。
+- production Provider integrationも対象ProviderとAcceptanceを定めて独立Issueで扱う。
 
 ## CI handling rule applied
 
-開発中にCI failureを検出した場合、その時点で原因を特定し、意味設計を安易に弱めずに修正し、成功を確認してから次の作業へ進む。
+CI failureを検出した場合、その時点で原因を特定し、意味設計を安易に弱めずに修正し、successを確認してから次の作業へ進む。
 
-今回もdependency導入漏れとfixture loader種別誤りを順に解消し、run #3のsuccessを確認してから本Issueを閉じた。
+本Issueでもdependency導入漏れとfixture loader種別誤りを順に解消し、run `33348972805`のsuccessを確認してから閉じた。
 
 ## Natural Japanese review
 
-実装、fixture、CIログ、Acceptanceを実際の到達状態へ戻して照合した後、過大な達成主張を避けつつ、意味、規範強度、Evidence境界を変えないように全文を再構成した。そのうえで、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+実装、fixture、CIログ、後続Provider Adapter Evidenceへ戻ってAcceptanceを照合した。その後、first runtimeのExecutable Evidenceと未検証のProduction / Release / Operational領域を分離し、意味、規範強度、Evidence境界を変えないよう自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
