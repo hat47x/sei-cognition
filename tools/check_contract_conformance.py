@@ -68,9 +68,13 @@ FIXTURES = [
     FixtureExpectation("negative/decision-authority-field.json", "decision-memory", "schema_fail"),
     FixtureExpectation("negative/capability-missing-observed-at.json", "capability-observation", "schema_fail"),
     FixtureExpectation("negative/same-logical-lineage-without-exact.json", "semantic-reference", "semantic_fail"),
+    FixtureExpectation("negative/interchange-mismatched-exact-binding.json", "semantic-interchange", "semantic_fail"),
     FixtureExpectation("boundary/unknown-contract-version.json", "semantic-interchange", "not_verified"),
     FixtureExpectation("boundary/verification-not-verified.json", "semantic-reference", "pass"),
     FixtureExpectation("boundary/verification-failed.json", "semantic-reference", "pass"),
+    FixtureExpectation("boundary/recommendation-without-decision.json", "decision-memory", "pass"),
+    FixtureExpectation("boundary/decision-with-unresolved.json", "decision-memory", "pass"),
+    FixtureExpectation("boundary/partial-knowledge-interchange.json", "semantic-interchange", "pass"),
 ]
 
 
@@ -124,6 +128,20 @@ def logical_identity(endpoint: Any) -> tuple[str | None, str | None, str | None]
     return (candidate.get("scope"), candidate.get("kind"), candidate.get("id"))
 
 
+def binding_signature(binding: Any) -> tuple[Any, ...] | None:
+    if not is_exact_endpoint(binding):
+        return None
+    profile = binding.get("representation_profile")
+    if not isinstance(profile, dict):
+        return None
+    return (
+        logical_identity(binding),
+        binding.get("content_digest"),
+        profile.get("profile_id"),
+        profile.get("version"),
+    )
+
+
 def semantic_reference_errors(document: Any) -> list[str]:
     errors: list[str] = []
     if not isinstance(document, dict):
@@ -148,6 +166,24 @@ def semantic_reference_errors(document: Any) -> list[str]:
     return errors
 
 
+def decision_basis_exact_bindings(payload: Any) -> list[Any]:
+    if not isinstance(payload, dict):
+        return []
+    record_type = payload.get("record_type")
+    if record_type == "decision":
+        body = payload.get("decision")
+    elif record_type == "recommendation":
+        body = payload.get("recommendation")
+    else:
+        return []
+    if not isinstance(body, dict):
+        return []
+    refs = body.get("basis_refs")
+    if not isinstance(refs, list):
+        return []
+    return [ref for ref in refs if is_exact_endpoint(ref)]
+
+
 def nested_interchange_status(
     document: Any,
     schemas: dict[str, dict[str, Any]],
@@ -163,6 +199,21 @@ def nested_interchange_status(
     records = document.get("records")
     if not isinstance(records, list):
         return errors, not_verified
+
+    local_exact: dict[tuple[str | None, str | None, str | None], tuple[Any, ...]] = {}
+    for index, record in enumerate(records):
+        if not isinstance(record, dict):
+            continue
+        record_ref = record.get("logical_ref")
+        exact = record.get("exact_binding")
+        if record_ref is not None and exact is not None:
+            if logical_identity(record_ref) != logical_identity(exact):
+                errors.append(
+                    f"records/{index}: exact_binding logical_ref does not match record logical_ref"
+                )
+        signature = binding_signature(exact)
+        if signature is not None:
+            local_exact[logical_identity(exact)] = signature
 
     for index, record in enumerate(records):
         if not isinstance(record, dict):
@@ -185,6 +236,18 @@ def nested_interchange_status(
                 f"records/{index}/payload: {message}"
                 for message in semantic_reference_errors(payload)
             )
+
+        if schema_name == "decision-memory" and not nested_schema_errors:
+            for basis in decision_basis_exact_bindings(payload):
+                basis_identity = logical_identity(basis)
+                local_signature = local_exact.get(basis_identity)
+                if local_signature is None:
+                    continue
+                if binding_signature(basis) != local_signature:
+                    errors.append(
+                        f"records/{index}/payload: exact basis for {basis_identity} does not "
+                        "match the exact record included in this interchange bundle"
+                    )
 
         declared = payload.get("contract") if isinstance(payload, dict) else None
         expected_contract = f"{key[0]}/{key[1]}"
