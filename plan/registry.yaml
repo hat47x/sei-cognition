@@ -21,7 +21,7 @@ adr:
   - id: ADR-0005
     file: plan/adr/ADR-0005-progressive-semantic-explicitness.md
     status: Accepted
-    related_issues: [ISSUE-000005, ISSUE-000008, ISSUE-000012, ISSUE-000017]
+    related_issues: [ISSUE-000005, ISSUE-000008, ISSUE-000012, ISSUE-000017, ISSUE-000039]
   - id: ADR-0006
     file: plan/adr/ADR-0006-bounded-federation-selective-disclosure.md
     status: Accepted
@@ -73,7 +73,7 @@ adr:
   - id: ADR-0018
     file: plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000023, ISSUE-000025, ISSUE-000026, ISSUE-000028, ISSUE-000029, ISSUE-000037]
+    related_issues: [ISSUE-000023, ISSUE-000025, ISSUE-000026, ISSUE-000028, ISSUE-000029, ISSUE-000037, ISSUE-000039]
   - id: ADR-0019
     file: plan/adr/ADR-0019-provider-neutral-capability-observation-boundary.md
     status: Accepted
@@ -81,11 +81,11 @@ adr:
   - id: ADR-0020
     file: plan/adr/ADR-0020-requirements-traceability-and-evidence-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000025, ISSUE-000026, ISSUE-000027, ISSUE-000028, ISSUE-000029, ISSUE-000031, ISSUE-000037]
+    related_issues: [ISSUE-000025, ISSUE-000026, ISSUE-000027, ISSUE-000028, ISSUE-000029, ISSUE-000031, ISSUE-000037, ISSUE-000039]
   - id: ADR-0021
     file: plan/adr/ADR-0021-architecture-contract-authority-and-versioning.md
     status: Accepted
-    related_issues: [ISSUE-000022, ISSUE-000028, ISSUE-000029, ISSUE-000030, ISSUE-000031, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000038]
+    related_issues: [ISSUE-000022, ISSUE-000028, ISSUE-000029, ISSUE-000030, ISSUE-000031, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000038, ISSUE-000039]
   - id: ADR-0022
     file: plan/adr/ADR-0022-runtime-first-slice-read-validate-reconstruct.md
     status: Accepted
@@ -138,3 +138,4 @@ issue:
   - {id: ISSUE-000036, file: plan/issue/ISSUE-000036-implement-synthetic-provider-adapter-slice.md, status: Resolved, priority: 1, related_adrs: [ADR-0019, ADR-0022, ADR-0024]}
   - {id: ISSUE-000037, file: plan/issue/ISSUE-000037-align-requirements-evidence-layers.md, status: Resolved, priority: 1, related_adrs: [ADR-0018, ADR-0020]}
   - {id: ISSUE-000038, file: plan/issue/ISSUE-000038-implement-runtime-representation-verifier-registry.md, status: Resolved, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0021, ADR-0022, ADR-0023]}
+  - {id: ISSUE-000039, file: plan/issue/ISSUE-000039-validate-human-ai-readability-progressive-explicitness.md, status: Open, priority: 1, related_adrs: [ADR-0005, ADR-0018, ADR-0020, ADR-0021]}
