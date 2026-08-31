@@ -1,0 +1,45 @@
+{
+  "profile_id": "soza.jcs+sha256/v1alpha1",
+  "digest_algorithm": "sha256",
+  "cases": [
+    {
+      "id": "JCS-001-key-order-whitespace",
+      "expect": "verified",
+      "input": " { \"z\": 1, \"a\": [ true, null, \"x\" ] } ",
+      "expected_canonical": "{\"a\":[true,null,\"x\"],\"z\":1}",
+      "expected_digest": "sha256:cc31fc728ab32ccfd6543dd8cce686b9633b3c47fbec82c88a466688f3a8cb81"
+    },
+    {
+      "id": "JCS-002-rfc-representative-sample",
+      "expect": "verified",
+      "input": "{\n  \"numbers\": [333333333.33333329, 1E30, 4.50, 2e-3, 0.000000000000000000000000001],\n  \"string\": \"\\u20ac$\\u000F\\u000aA'\\u0042\\u0022\\u005c\\\\\\\"\\/\",\n  \"literals\": [null, true, false]\n}",
+      "expected_canonical": "{\"literals\":[null,true,false],\"numbers\":[333333333.3333333,1e+30,4.5,0.002,1e-27],\"string\":\"€$\\u000f\\nA'B\\\"\\\\\\\\\\\"/\"}",
+      "expected_digest": "sha256:2d5e01a318d0f0879ab568c4be289c8b1f64ef8921a53c6277d5e069978baacb"
+    },
+    {
+      "id": "JCS-003-duplicate-key",
+      "expect": "invalid_representation",
+      "input": "{\"a\":1,\"a\":2}"
+    },
+    {
+      "id": "JCS-004-unsafe-large-integer",
+      "expect": "invalid_semantic_number",
+      "input": "{\"n\":9007199254740993}",
+      "reason": "integer magnitude exceeds IEEE-754 safe integer range; producer must use a lossless representation"
+    },
+    {
+      "id": "JCS-005-unicode-nfc",
+      "expect": "verified",
+      "input": "{\"s\":\"é\"}",
+      "expected_canonical": "{\"s\":\"é\"}",
+      "expected_digest": "sha256:86028b41ba792eaf82aa26a45b218f6734f7f1096a86f1746c8296e088a0ccb4"
+    },
+    {
+      "id": "JCS-006-unicode-nfd",
+      "expect": "verified",
+      "input": "{\"s\":\"é\"}",
+      "expected_canonical": "{\"s\":\"é\"}",
+      "expected_digest": "sha256:1fc0bd7cc93fca8092a2041d7d01842876422aa7e2838acf42c14578e9f2be05"
+    }
+  ]
+}
