@@ -100,17 +100,50 @@ historical mappingでは、過去のJCS / SHA-256 / Go等の選択をcurrentへ�
 
 **Architecture層のcurrent Markdown文書監査は完了しました。**
 
+### Contracts / Representation Profiles層
+
+次のcurrent Contract / Profile文書を監査しました。
+
+- `contracts/README.md`
+- `contracts/CONTRACT_CATALOG.md`
+- `contracts/CONFORMANCE_EVIDENCE_2026-08-31.md`
+- `contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md`
+- `contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md`
+- `contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md`
+- `contracts/interchange/SOZA_SEMANTIC_INTERCHANGE_v1alpha1.md`
+- `contracts/TRACEABILITY.md`
+- `contracts/profiles/README.md`
+- `contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md`
+- `contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md`
+- `contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md`
+- `contracts/history/HISTORICAL_CONTRACT_MAPPING.md`
+
+4 Contract Definitionでは規範意味を変更せず、実体化前のEvidence記述をcurrent JSON Schema / 17 fixture / first semantic runtime / synthetic Provider Adapterへ再基線化しました。
+
+Representation Profileでは、ADR-0023で`soza.jcs+sha256/v1alpha1`と`soza.raw-bytes+sha256/v1alpha1`がAccepted済みであることをcurrent正本へ揃え、Profile Definitionとverifier implementationを引き続き分離しています。RFC 8785、SHA-256、数値精度、Unicode非正規化、raw-bytesの入力規則等の技術条件は維持しました。
+
+Profile Evidence文書に残っていたhistorical M47 digest recoveryの追跡先`ISSUE-000032`という誤記は、current正本に合わせて`ISSUE-000034`へ訂正しました。
+
+監査後の回帰確認:
+
+- Contract Conformance — Run `33389973776`: **success**
+- Representation Profile Conformance — Run `33389973772`: **success**
+- Semantic Runtime Conformance — Run `33389973787`: **success**
+
+これらはそれぞれのtested scopeに限定したExecutable Evidenceです。Release / Operational / Adoption / Outcomeへは昇格させていません。
+
+**Contracts / Representation Profiles層のcurrent Markdown文書監査は完了しました。**
+
 ## 未完了範囲
 
 `plan/document_review_registry.yaml`で`pending`となっているcurrent文書を上位から順に監査します。
 
 次の優先順:
 
-1. Contracts / Representation Profiles / Evidence
-2. Runtime Evidence
-3. fixture README
-4. KJ統合文書
-5. ADR / Issue Template
+1. Runtime Evidence
+2. fixture README
+3. KJ統合文書
+4. ADR / Issue Template
 
 historical M47 digest Profile recoveryはISSUE-000034の独立Blocked事項であり、この文書監査の完了条件へ混ぜません。
 
@@ -132,6 +165,7 @@ Requirements文書を変更した場合はRequirements Registry Conformanceを�
 - [x] current文書の監査対象一覧を`plan/document_review_registry.yaml`へ実体化した。
 - [x] Requirements層のcurrent Markdown文書を全件再監査した。
 - [x] Architecture層のcurrent Markdown文書を全件再監査した。
+- [x] Contracts / Representation Profiles層のcurrent Markdown文書を全件再監査した。
 - [ ] `document_review_registry.yaml`のcurrent対象から`pending`をなくす。
 
 `pending`が残る間は本IssueをResolvedにしません。
@@ -146,4 +180,4 @@ Requirements文書を変更した場合はRequirements Registry Conformanceを�
 
 ## Natural Japanese review
 
-Product、Planning、Requirementsに続いて、Architecture README、Reference Architecture、Traceability、historical mappingをcurrent Product Value、REQ-0001〜0022、SCN-0001〜0017、ADR-0001〜0024、4 Contract family、2 Representation Profile、first semantic runtime、synthetic Provider Adapterへ戻って再監査しました。historical候補とcurrentでAccepted・実体化・限定検証済みの境界を分け、確認済みのExecutable Evidenceだけを反映し、未検証のRelease / Operational / Adoption / Outcomeを維持しています。その後、意味、監査条件、Evidence強度を変えない範囲で自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product、Planning、Requirements、Architectureに続いて、4 Contract family、2 Representation Profile、Contract / Profile Evidence、historical mappingをcurrent Product Value、REQ-0001〜0022、SCN-0001〜0017、ADR-0001〜0024、actual Schema / fixture / first runtime / synthetic Provider Adapterへ戻って再監査しました。規範意味や技術条件を変えず、historical候補とcurrentでAccepted・実体化・限定検証済みの境界を分け、Evidenceを5段階へ統一しています。その後、意味、監査条件、Evidence強度を変えない範囲で自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
