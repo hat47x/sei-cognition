@@ -1,23 +1,23 @@
 # 綜座 / SOZA
 
 更新日: 2026-08-31  
-状態: **Product / Requirements / Architecture / Contract baseline + fixture-scoped Executable Evidence — development in progress**
+状態: **Product / Requirements / Architecture / Contract / Profile baseline + scoped Executable Evidence — development in progress**
 
 SOZAは、人間・AI・組織・既存システム・外部サービスが入れ替わっても、**何を見て、何を問い、何を根拠とし、何を決め、何を未解決として残したか**を失わないための、可搬な認知・意思決定基盤です。
 
-SOZAの中心は、workflowやAI agent runtimeを自前で増やすことではありません。実行手段が変わっても残る、意味、不確実性、判断、責任、Capability、Provenance、Semantic Lineageを扱います。
+SOZAの中心は、workflowやAI agent runtimeを自前で囲い込むことではありません。実行手段が変わっても残る、意味、不確実性、判断、責任、Capability、Provenance、Semantic Lineageを扱います。
 
-## 1. 現在の開発branch
+## 1. 開発branch
 
 通常の開発は`develop/vX.Y.Z`形式のbranchで進めます。
 
 現在の開発branchは`develop/v0.1.0`です。
 
-`main`は安定した基線のために保持し、開発中の変更を直接積み上げないことを原則とします。詳細は`plan/DEVELOPMENT_WORKFLOW.md`を参照してください。
+`main`は安定した基線として保持し、開発中の変更を直接積み上げないことを原則とします。詳細は`plan/DEVELOPMENT_WORKFLOW.md`を参照してください。
 
 ## 2. actual repositoryの現在地
 
-2026-08-31時点で、`develop/v0.1.0`のrootには次が実体化されています。
+2026-08-31時点では、少なくとも次がactual treeにあります。
 
 ```text
 .github/
@@ -27,12 +27,11 @@ architecture/
 contracts/
 fixtures/
 plan/
+runtime/
 tools/
 ```
 
-current `runtime/` baselineはまだ実体化していません。
-
-正本関係は次のとおりです。
+正本関係は概ね次のとおりです。
 
 ```text
 Product Value / Value Model / Value Acceptance
@@ -43,26 +42,27 @@ ADR
   ↓
 Reference Architecture
   ↓
-Contract Definition
+Contract Definition / Representation Profile
   ↓
 Schema / Validator / Fixture
   ↓
 Runtime / Provider Integration
 ```
 
-現在は、上位Design baselineに加えて、Requirements registryとContract / Capability fixtureについて**限定されたExecutable Evidence**までactual repository上で再現できます。
+current repositoryでは、上位Design baselineに加え、限定された範囲でExecutable Evidenceまで実体化しています。
 
-一方、current runtime、stable Representation Profile、release、operational evidenceは未完成です。
+一方、release、production operation、利用者・組織におけるOutcomeは未検証です。
 
 ## 3. Evidenceの読み方
 
-SOZAでは、次を同一視しません。
+SOZAでは、少なくとも次を分けます。
 
 ```text
 Design Evidence
   != Executable Evidence
   != Release Evidence
   != Operational Evidence
+  != Adoption / Outcome Evidence
 ```
 
 また、historical candidateのPASSはcurrent PASSではありません。
@@ -71,52 +71,61 @@ Design Evidence
 historical PASS != current PASS
 ```
 
-M48〜M50等の旧candidateは意味核・反例・実装候補として参照できますが、current Product Value / REQ / ADR / Contractへ再照合し、actual repositoryで検証するまでcurrent Executable Evidenceへ昇格しません。
+M48〜M50等の旧candidateは、意味核、反例、実装候補として参照できます。ただし、current Product Value / REQ / ADR / Architecture / Contractへ再照合し、actual repositoryで検証するまでcurrent Evidenceへ自動継承しません。
+
+本番で動くことと、利用者に価値が届くことも分けます。
+
+```text
+Operational success != user-value realization
+```
 
 ## 4. 最初に読む文書
 
-### Product Value
+### Product
 
-1. `product/value/SOZA_PRODUCT_VALUE.md`
-2. `product/value/SOZA_VALUE_MODEL.md`
-3. `product/value/SOZA_VALUE_ACCEPTANCE.md`
-4. `product/vision/SOZA_PRODUCT_VISION.md`
-5. `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
+1. `product/README.md`
+2. `product/value/SOZA_PRODUCT_VALUE.md`
+3. `product/value/SOZA_VALUE_MODEL.md`
+4. `product/value/SOZA_VALUE_ACCEPTANCE.md`
+5. `product/value/SOZA_VALUE_TRACEABILITY.md`
+6. `product/vision/SOZA_PRODUCT_VISION.md`
+7. `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
 
 ### Requirements
 
-6. `requirements/README.md`
-7. `requirements/PRODUCT_REQUIREMENTS.md`
-8. `requirements/ACCEPTANCE_SCENARIOS.md`
-9. `requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md`
+8. `requirements/README.md`
+9. `requirements/PRODUCT_REQUIREMENTS.md`
+10. `requirements/ACCEPTANCE_SCENARIOS.md`
+11. `requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md`
 
 ### Architecture
 
-10. `architecture/README.md`
-11. `architecture/SOZA_REFERENCE_ARCHITECTURE.md`
-12. `architecture/TRACEABILITY.md`
-13. `architecture/history/HISTORICAL_ARCHITECTURE_MAPPING.md`
+12. `architecture/README.md`
+13. `architecture/SOZA_REFERENCE_ARCHITECTURE.md`
+14. `architecture/TRACEABILITY.md`
+15. `architecture/history/HISTORICAL_ARCHITECTURE_MAPPING.md`
 
-### Contracts
+### Contracts / Representation Profiles
 
-14. `contracts/README.md`
-15. `contracts/CONTRACT_CATALOG.md`
-16. `contracts/TRACEABILITY.md`
-17. `contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md`
-18. `contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md`
-19. `contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md`
-20. `contracts/interchange/SOZA_SEMANTIC_INTERCHANGE_v1alpha1.md`
-21. `contracts/CONFORMANCE_EVIDENCE_2026-08-31.md`
-22. `contracts/history/HISTORICAL_CONTRACT_MAPPING.md`
+16. `contracts/README.md`
+17. `contracts/CONTRACT_CATALOG.md`
+18. `contracts/TRACEABILITY.md`
+19. `contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md`
+20. `contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md`
+21. `contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md`
+22. `contracts/interchange/SOZA_SEMANTIC_INTERCHANGE_v1alpha1.md`
+23. `contracts/profiles/README.md`
+24. `contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md`
+25. `contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md`
 
 ### Planning / Decisions
 
-23. `plan/README.md`
-24. `plan/DEVELOPMENT_WORKFLOW.md`
-25. `plan/DOCUMENT_AUTHORING_STANDARD.md`
-26. `plan/registry.yaml`
+26. `plan/README.md`
+27. `plan/DEVELOPMENT_WORKFLOW.md`
+28. `plan/DOCUMENT_AUTHORING_STANDARD.md`
+29. `plan/registry.yaml`
 
-個別の設計判断は`plan/adr/`、未完了作業や調査は`plan/issue/`を参照してください。
+個別の設計判断は`plan/adr/`、未完了作業・検証・調査は`plan/issue/`を参照してください。
 
 ## 5. Product Valueの中心
 
@@ -145,11 +154,11 @@ Observation
 - actor / Providerの種類だけからAuthorityやTrustを推定しない。
 - ProviderやStorageが変わっても過去Decisionの意味を変えない。
 - private chain-of-thoughtの保存を耐久的意味の前提にしない。
-- Design EvidenceをExecutable / Release / Operational Evidenceへ自動昇格させない。
+- Design EvidenceをExecutable / Release / Operational / Outcomeへ自動昇格させない。
 
 ## 6. Product Valueの評価軸
 
-Product Valueは単一スコアへ還元せず、`SOZA_VALUE_MODEL.md`の8軸で確認します。
+Product Valueは単一スコアへ還元せず、8軸で確認します。
 
 - V1 — Historical Reconstruction
 - V2 — Semantic Separation
@@ -160,38 +169,31 @@ Product Valueは単一スコアへ還元せず、`SOZA_VALUE_MODEL.md`の8軸で
 - V7 — Progressive Explicitness
 - V8 — Execution Independence
 
-これらの軸自体を一つの総合点へ圧縮しません。
+各軸の受入れ境界は`SOZA_VALUE_ACCEPTANCE.md`、現在の追跡は`SOZA_VALUE_TRACEABILITY.md`を参照してください。
 
 ## 7. Requirements baseline
 
 current Product Requirementsは`REQ-0001`〜`REQ-0022`、Acceptance Scenarioは`SCN-0001`〜`SCN-0017`です。
 
-旧`SOZA-PR-*`、`SOZA-NFR-*`、`SOZA-AS-*`はhistorical provenanceとしてmappingに残し、current IDへ機械的にrenameしていません。
-
-RequirementがAcceptedであることと実装済みであることは別です。
+RequirementがAcceptedであることと、実装済みであることは別です。
 
 ```text
 Requirement Accepted != Executable Evidence Satisfied
 ```
 
-### Requirements Registry Executable Evidence
+Requirements Registry Conformance:
 
-current registryについて、GitHub Actions `Requirements Registry Conformance`で次を再現しています。
+- Run ID: `33346697016`
+- checker self-tests: **PASS**
+- `22 requirements / 17 scenarios`: **PASS**
 
-```text
-PASS: requirements registry checker self-tests
-PASS: 22 requirements / 17 scenarios
-```
-
-Run ID: `33346697016`
-
-このPASSが示すのは、stable ID、相互参照、Value Axis、status / Evidence vocabulary等のregistry構造整合です。Requirementの意味内容やimplementation coverageそのものを証明するものではありません。
+これはstable ID、相互参照、Value Axis、status等のregistry構造整合に対するExecutable Evidenceです。Requirementの意味内容やproduction implementationを証明するものではありません。
 
 ## 8. Reference Architecture baseline
 
-current ArchitectureはM48 / M49 / M50等のMilestone順ではなく、意味上のarchitecture concernへ再構成しています。
+current ArchitectureはMilestone順や実装package順ではなく、意味上のarchitecture concernへ再構成しています。
 
-主な関心領域:
+主なconcern:
 
 - Durable Semantic Core
 - Inquiry / Epistemic State
@@ -207,9 +209,9 @@ current ArchitectureはM48 / M49 / M50等のMilestone順ではなく、意味上
 - Persistence
 - Evidence / Assurance boundary
 
-これらを一対一のservice、Go package、databaseへ固定しません。
+`architecture/TRACEABILITY.md`ではREQ-0001〜REQ-0022をcurrent concernへ追跡しています。
 
-`architecture/TRACEABILITY.md`ではREQ-0001〜REQ-0022をArchitecture concernへ追跡できます。
+Architecture concernをGo package、service、database等へ一対一に固定しません。
 
 ## 9. Contract baseline
 
@@ -220,37 +222,64 @@ current Contractは、独立versioningと相互運用境界が必要な4 family�
 - `soza.capability-observation/v1alpha1`
 - `soza.semantic-interchange/v1alpha1`
 
+Markdown Contract Definitionをsemantic normative sourceとし、JSON Schemaはcurrent v1alpha1のmachine-readable representationとして扱います。
+
+Contract Conformance:
+
+- Run ID: `33346472419`
+- fixture count: `17`
+- conclusion: **success**
+
+確認対象にはCapability Observation F1〜F7、Recommendation-only、unresolved Decision、Schema / semantic negative case、unknown Contractの`not_verified`、partial knowledge等を含みます。
+
+これはfixture-scoped Executable Evidenceです。
+
+## 10. Exact Binding / Representation Profile
+
 Semantic ContractとRepresentation Profileは分離します。
 
 ```text
-Semantic Contract != Representation Profile
+Semantic Contract != Representation Profile != verifier implementation
 ```
 
-Markdown Contract Definitionをsemantic normative sourceとし、JSON Schemaはv1alpha1のmachine-readable representationとして扱います。
+ADR-0023 / ISSUE-000009により、current/future Exact Binding向けProfileとして次を定義しています。
 
-### Contract Executable Evidence
+- `soza.jcs+sha256/v1alpha1`
+- `soza.raw-bytes+sha256/v1alpha1`
 
-current Contractについて、GitHub Actions `Contract Conformance`で17 fixtureを検証しています。
+Representation Profile Conformance:
 
-Run ID: `33346472419`
+- Run ID: `33347989530`
+- Profile fixture: **success**
+- JCS Go probe: **success**
 
-確認した主な境界:
+key order / whitespace、duplicate key、unsafe integer、Unicode normalization、raw bytes、`verified / failed / not_verified`等の境界をfixtureで検査しています。
 
-- Capability Observation F1〜F7
-- Recommendation without Decision
-- Decision with unresolved Unknown / Conflict
-- Decision recordへのAuthority埋め込み拒否
-- same-logical-id lineage without exact endpointsのsemantic rejection
-- bundle exact recordとDecision basisのdigest不一致検出
-- unknown Contract versionを`not_verified`として扱う
-- `failed`と`not_verified`の分離
-- partial knowledgeをmalformed interchangeと同一視しない
+historical M47 digest mappingはcurrent Profileとは分離し、ISSUE-000034でBlockedとして追跡します。
 
-詳細は`contracts/CONFORMANCE_EVIDENCE_2026-08-31.md`を参照してください。
+## 11. first semantic runtime slice
 
-このPASSはfixture-scoped Executable Evidenceです。release readinessやoperational interoperabilityを意味しません。
+ADR-0022に従い、最初のruntime sliceはread / validate / reconstructへ限定しています。
 
-## 10. SOZAとTEI
+```text
+runtime/go/semanticruntime/
+```
+
+Action execution、workflow、Provider production integrationを先にSOZA Coreへ持ち込みません。
+
+Semantic Runtime Conformance:
+
+- Run ID: `33348972805`
+- Head SHA: `834c3f2a8bd911829743c1582ef09f098c776a54`
+- current Contract fixture checker: **PASS**
+- Go runtime tests: **PASS**
+- conclusion: **success**
+
+runtimeはF1〜F7、Recommendation / Decision、Unknown / Withheld、Exact Binding整合、unknown Contract、lossless re-export等を同じfixture sourceから検査します。
+
+このPASSはfirst runtime sliceのExecutable Evidenceであり、SOZA全runtimeやproduction Provider統合の完成を意味しません。
+
+## 12. SOZAとTEI
 
 鼎（TEI）はSOZAそのものではなく、SOZAから利用し得るCapability Providerの一つです。
 
@@ -259,69 +288,51 @@ SOZA = 何を見るか、何を問うか、何を残すか、何を判断する�
 TEI  = 実行可能な業務Capabilityを実現する一つの手段
 ```
 
-SOZA関連製品であるという理由だけでTEIを優先しません。
+関連製品であるという理由だけでTEIを優先しません。TEI固有のApplication、Database、Release、Deployment等をSOZA Universal Coreへ複製せず、必要な情報をProvider-neutralなCapability ObservationやProvider-specific referenceから扱います。
 
-TEI固有のApplication、Database、Release、Deployment等をSOZA Universal Coreへ複製せず、必要な情報はProvider-neutralなCapability ObservationやProvider-specific referenceから扱います。
+## 13. 現在のPlan
 
-## 11. Exact Binding / Representation Profile
+2026-08-31時点で、planning registryはADR-0023、ISSUE-000034まで管理しています。
 
-Exact Artifact Bindingの意味境界はcurrent Contractにありますが、stableなcanonicalization / digest ProfileはまだAcceptedしていません。
+主な未完了項目:
 
-ISSUE-000009は**Blocked**を維持しています。
+- ISSUE-000015 — 既存開発文書の自然な日本語による全面監査: **In Progress**
+- ISSUE-000021 — design history provenance監査: **Deferred**
+- ISSUE-000022 — repository baseline全体のclosure監査: **In Progress**
+- ISSUE-000034 — historical M47 digest Profileの回収: **Blocked**
 
-未完了の中心:
-
-- historical M47 digest規則の正確な確認とmapping
-- stable JCS verifierの選定とRFC test vector適合
-- high-precision semantic valueをbinary64へ暗黙丸めしない境界
-- verifier / payloadが失われたhistorical bindingのactual運用
-
-fixtureで使う`fixture.raw-json/v0`は検査用のopaque Profile identityであり、stable Representation Profileではありません。
-
-## 12. 現在のPlan
-
-`plan/registry.yaml`ではADR-0021、ISSUE-000031まで管理しています。
-
-現在の主要な未完了項目:
-
-- ISSUE-000009 — stable Exact Binding Representation Profile / historical M47 mapping
-- ISSUE-000015 — 既存開発文書の自然な日本語による全面監査
-- ISSUE-000021 — design history provenance監査（Deferred）
-- ISSUE-000022 — repository baseline全体の実体化
-
-Requirements registry、Capability Observation F1〜F7、Contract schema / fixture / conformanceはcurrent actual repositoryで完了済みです。
+Requirements registry、Capability Observation fixture、Contract schema / conformance、current Representation Profile、first semantic runtime sliceは、それぞれ定めた限定範囲でResolvedしています。
 
 Statusの正本は`plan/registry.yaml`と各Issue本文です。
 
-## 13. 次の実体化
+## 14. 次に深める領域
 
-当面の優先順位は次のとおりです。
+現在の上位優先順位は、概ね次です。
 
-1. Product Value / REQ / ADR / Architecture / Contractの整合維持
-2. current `runtime/`境界の設計と最小vertical slice
-3. historical Go candidateのcurrent Contractへの差分評価
-4. Provider adapterの最小実装
-5. stable Exact Binding Representation Profileの安定化
-6. Contract fixtureとruntimeを横断するend-to-end conformance
-7. 既存文書を含む自然な日本語監査
-8. release / operational Evidence
+1. Product Value → REQ → ADR → Architecture → Contract / Profile / runtimeの追跡整合を維持する。
+2. 既存active開発文書を自然な日本語で再監査する。
+3. repository baseline全体のclosure条件を監査する。
+4. historical M47 digestについて、推測せずEvidenceを回収する。
+5. Product Valueから必要性を確認したうえで、Provider integrationや次のruntime sliceを設計する。
+6. Release Evidenceを得る条件を整える。
+7. Operational / Adoption・Outcome Evidenceを、実利用が始まった時点で別の高さとして収集する。
 
-runtimeのためにArchitecture concernを一対一のpackage構成へ固定しません。また、旧candidateを一括コピーせず、current Contractから必要性を再導出します。
+実装量やCI本数をProduct ValueのKPIにはしません。
 
-## 14. Releaseについて
+## 15. Releaseについて
 
-`develop/v0.1.0`は開発中のbaselineです。**releaseやOperational Evidenceを主張する状態ではありません。**
+`develop/v0.1.0`は開発中のbaselineです。**Release Evidence、Operational Evidence、Adoption / Outcome Evidenceを主張する状態ではありません。**
 
-`main`へ統合する際は、Product Value、Requirements、ADR、Architecture、Contracts、actual Executable Evidenceを戻り照合し、実際に得られたEvidenceを超えない範囲で状態を更新します。
+`main`へ統合する際は、Product Value、Requirements、ADR、Architecture、Contract / Profile、actual Executable Evidenceを戻り照合し、実際に得られたEvidenceを超えない範囲で状態を更新します。
 
-## 15. 文書品質
+## 16. 文書品質
 
 SOZAでは、開発文書の自然な日本語を設計品質の一部として扱います。
 
 内容・構造・技術的一貫性を整えた後、**意味・仕様・留保・Evidenceの強さを変えず、自然な日本語となることを最重要視して全文をドラフトし直す工程**を必ず設け、その後に意味監査を行います。
 
-詳細は`plan/DOCUMENT_AUTHORING_STANDARD.md`を参照してください。既存文書の再監査はISSUE-000015で継続しています。
+詳細は`plan/DOCUMENT_AUTHORING_STANDARD.md`を参照してください。既存文書の再監査はISSUE-000015で継続します。
 
-## 16. 自然な日本語レビュー
+## 17. 自然な日本語レビュー
 
-actual root tree、Requirements Registry CI、Contract Conformance CI、Capability Observation F1〜F7、plan registryへ戻って現在地を再確認しました。そのうえで、Design、fixture-scoped Executable、未検証のruntime / Representation / Release / Operational領域を分離し、意味とEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+actual Product、Requirements、ADR-0001〜0023、Architecture、4 Contract family、Representation Profile、first semantic runtime slice、actual CI結果、plan registryへ戻って現在地を再確認しました。そのうえで、Design / Executable / Release / Operational / Adoption・OutcomeのEvidence強度を混同しないよう全体を再構成しました。最後に、意味・仕様・留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
