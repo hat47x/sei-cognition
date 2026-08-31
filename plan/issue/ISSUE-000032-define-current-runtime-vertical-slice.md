@@ -1,8 +1,8 @@
 # ISSUE-000032: current Contractから最小runtime vertical sliceを定義する
 
-Status: **In Progress**  
+Status: **Resolved**  
 Priority: **1**  
-Related ADRs: **ADR-0014, ADR-0019, ADR-0021**  
+Related ADRs: **ADR-0014, ADR-0019, ADR-0021, ADR-0022**  
 Updated: 2026-08-31
 
 ## Goal
@@ -11,151 +11,119 @@ current `runtime/`をactual repositoryへ実体化する前に、Product Value�
 
 historical M48〜M50 Go candidateのpackage構成をそのまま復元せず、current Contractで必要性を確認できる機能だけを再導出する。
 
-## Background
+## Resolution
 
-2026-08-31時点で、actual repositoryには次が存在する。
-
-```text
-Product Value
-  → REQ / SCN
-  → ADR
-  → Reference Architecture
-  → Contract Definition
-  → JSON Schema / semantic validator / fixture
-```
-
-Requirements RegistryとContract ConformanceはGitHub Actionsでfixture-scoped Executable Evidenceを得ている。
-
-一方、rootにはcurrent `runtime/`が存在しない。
-
-この段階で旧Go candidateを一括コピーすると、historical package layoutやMilestone分割がcurrent Architecture concernと一対一に固定される危険がある。
-
-## Questions
-
-1. current runtimeが所有すべき最小責務は何か。
-2. Contract DTO / wire representationとruntime domain APIをどう分けるか。
-3. Semantic Reference、Decision Memory、Capability Observation、Semantic Interchangeをどの粒度でruntimeへ実装するか。
-4. Representation Profile未安定の状態でExact Bindingをどこまで実装するか。
-5. Provider adapterをruntime Coreからどう分離するか。
-6. 最初のvertical sliceでExecutionを扱う必要があるか。
-7. historical Go candidateから何を再利用できるか。
-8. runtime implementationが新しいsemantic authorityにならないため、どのconformanceを必須にするか。
-
-## Constraints
-
-- runtime struct / package layoutをProduct ontologyにしない。
-- JSON Schemaだけをsemantic authorityにしない。
-- GoをUniversal semantic requirementにしない。
-- current runtimeへworkflow engine、queue、retry、agent-turn routingを便宜で追加しない。
-- Recommendation / Decision / Authority / Action Intent / Executionを統合しない。
-- Capability ObservationをMatching / Choice / Executionへ自動昇格しない。
-- Provider-specific schemaをUniversal runtime structへ無条件にコピーしない。
-- stable Representation Profile未確定のままJCS / SHA-256をhard-codeしない。
-- historical local PASSをcurrent runtime PASSへ継承しない。
-
-## Proposed first vertical slice
-
-最初のruntime sliceは**read / validate / reconstruct**を中心とし、外部Action実行を含めない。
-
-候補:
-
-1. Semantic Interchange v1alpha1を読み込む。
-2. recordのContract identity / versionを解決する。
-3. Logical Reference / Exact Binding metadataを保持する。
-4. Capability ObservationをProvider-neutralなruntime viewへ読み込む。
-5. Decision Memoryをbasis / unresolved / Recommendation relationとともに読み込む。
-6. bundle内exact recordとDecision basisの整合を検証する。
-7. unknown nested Contractを`not_verified`として保持する。
-8. historical Decision reconstruction用のread modelを返す。
-9. original semantic recordsをlossなく再exportできることを確認する。
+ADR-0022で、最初のruntime sliceを**read / validate / reconstruct**へ限定した。
 
 ```text
-read / validate / reconstruct
-  != authorize
-  != execute
+read
+  → validate
+  → reconstruct
+
+!= authorize
+!= execute
 ```
 
-## Runtime language
+### Runtimeが最初に扱う意味
 
-current implementation laneではGoを第一候補とする。ただし、これは実装上の選択でありProduct ValueやContractの意味には含めない。
+- Semantic Interchange v1alpha1
+- Contract identity / version
+- Logical Reference
+- Exact Binding metadata
+- Decision / Recommendation
+- unresolved state
+- Capability Observation
+- bundle内exact reference整合
+- unknown Contract / Profileの`not_verified`
+- historical reconstruction
+- semantic recordのlosslessな再export
+
+### first sliceへ含めないもの
+
+- Authorization enforcement
+- Action Intent dispatch
+- workflow / queue / retry
+- autonomous planning
+- Provider execution session
+- deployment lifecycle
+- automatic best-candidate selection
+- stable JCS verifier
+
+### Runtime / Contract authority
+
+runtime structやpackage layoutをsemantic authorityにしない。
 
 ```text
-Go runtime implementation != SOZA semantic identity
+Runtime type != Contract semantic authority
 ```
 
-将来別言語実装が同じContract conformanceを満たすことを妨げない。
+実装とContractが矛盾した場合は、実装都合で意味を変更せず、Product Value、REQ、ADR、Contractへ戻る。
 
-## Provider boundary candidate
+### Go implementation boundary
 
-Provider adapterは、Provider固有stateを直接SOZA Core structへコピーする層ではない。
+current implementation laneはGoを基本とするが、Go自体をSOZA semantic identityへ含めない。
+
+```text
+Go implementation != SOZA semantic identity
+```
+
+別言語実装が同じContract conformanceを満たすことを妨げない。
+
+### Provider boundary
+
+Provider固有stateはadapter / mappingを通してCapability Observationへ変換する。
 
 ```text
 Provider state
-  → adapter / mapping
+  → Adapter / Mapping
   → Capability Observation
   → Matching / Decision may consume
 ```
 
-最初のvertical sliceでは、production TEI adapterを必須にせず、synthetic Provider fixtureからCapability Observationへ変換するadapter interface / test doubleを候補とする。
+production TEI adapterをfirst sliceの必須条件にはしない。synthetic Provider inputでruntime境界を検証してから実Provider統合へ進む。
 
-実Provider統合は、runtime Contract boundaryが安定してから別Issueで進める。
+### Exact Binding boundary
 
-## Exact Binding boundary
+runtimeはExact Binding metadataとbinding同値性を扱うが、stable verifierを先取りしない。
 
-current runtimeはExact Bindingのmetadataを保持・比較できる必要がある。
+ISSUE-000009が未解決であるため、JCS / SHA-256等をUniversal defaultへhard-codeしない。
 
-一方、stable Representation Profile verifierはISSUE-000009がBlockedであるため、最初のsliceで特定canonicalization / digest algorithmをUniversal defaultにしない。
+verifier不在や未知Profileは`not_verified`、実際の不一致は`failed`として分ける。
 
-候補:
+### historical Go candidate
+
+historical codeはcurrent Contractへ照合して必要部分だけ再利用する。
 
 ```text
-RepresentationVerifier interface
-  verify(profile identity, payload, digest)
+historical code exists != current runtime adopted
 ```
 
-unknown / unavailable verifierは`not_verified`を返し、digest mismatchの`failed`と区別する。
-
-具体interface shapeはADR確定後のimplementationで決める。
-
-## Required deliverables
-
-- current runtime責務境界
-- first vertical slice scope
-- runtime / Contract authority boundary
-- Provider adapter boundary
-- Exact Binding verifier boundary
-- historical Go candidate reuse rule
-- runtime acceptance scenarios
-- ADR
+Milestone名、old package identity、old field、old Evidence stateを自動継承しない。
 
 ## Acceptance
 
 ### Semantic / Design Acceptance
 
-- [ ] runtimeが所有する責務と所有しない責務を明示できる。
-- [ ] first vertical sliceがcurrent Contractから追跡できる。
-- [ ] Executionを先行実装しない理由が明確である。
-- [ ] Provider adapterがSOZA Universal CoreへProvider schemaを漏らさない。
-- [ ] stable Representation Profile未確定状態を尊重している。
-- [ ] Go implementationとSOZA semantic identityを分離している。
-- [ ] historical candidate再利用規則を定めている。
-- [ ] 自然な日本語全文再ドラフトと最終意味監査を行っている。
+- [x] runtimeが所有する責務と所有しない責務を明示した。
+- [x] first vertical sliceをcurrent Contractから追跡できる。
+- [x] Executionを先行実装しない理由を明示した。
+- [x] Provider adapterがUniversal CoreへProvider schemaを漏らさない境界を定めた。
+- [x] stable Representation Profile未確定状態を尊重した。
+- [x] Go implementationとSOZA semantic identityを分離した。
+- [x] historical candidate再利用規則を定めた。
+- [x] 自然な日本語全文再ドラフトと最終意味監査を完了した。
 
 ### Executable Acceptance
 
-本Issueでは要求しない。runtime implementationとend-to-end conformanceは後続Issueへ分離する。
+本Issueでは要求しない。actual runtime implementationとend-to-end conformanceはISSUE-000033で追跡する。
 
-## Dependencies
+## Evidence / Follow-up
 
-- `architecture/SOZA_REFERENCE_ARCHITECTURE.md`
-- `contracts/CONTRACT_CATALOG.md`
-- `contracts/CONFORMANCE_EVIDENCE_2026-08-31.md`
-- ADR-0014
-- ADR-0019
-- ADR-0021
-- ISSUE-000009
-- ISSUE-000022
+- ADR-0022
+- ISSUE-000033 — runtime implementation
+- ISSUE-000009 — stable Representation Profile
+- ISSUE-000022 — repository baseline全体
 
 ## Natural Japanese review
 
-current actual tree、Contract v1alpha1、fixture-scoped Executable Evidence、runtime未実体化状態を戻り照合し、最初のruntime sliceを「read / validate / reconstruct」へ限定する候補を整理した。その後、未決点を勝手に実装仕様へ固定せず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+ADR-0022へ戻ってruntime責務、Provider境界、Exact Binding未確定範囲、historical code再利用規則を再確認した。その後、実装詳細を先取りせず、意味と制約を変えない範囲で自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
