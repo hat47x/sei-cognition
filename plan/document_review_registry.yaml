@@ -61,9 +61,21 @@ reviewed:
     status: revised
     note: historical candidateとcurrent 5段階Evidenceを分離して再監査済み。
 
+  - scope: architecture/README.md
+    status: revised
+    note: 5段階Evidence、current Contract / Representation Profile、first runtime、synthetic Provider Adapterの現在地へ同期済み。
+
+  - scope: architecture/SOZA_REFERENCE_ARCHITECTURE.md
+    status: revised
+    note: ADR-0021〜0024とcurrent executable materialへ再基線化し、旧Contract候補表現と4段階Evidenceを解消済み。
+
   - scope: architecture/TRACEABILITY.md
     status: revised
     note: Product Value V1〜V8からcurrent Architecture / Contract / Runtimeへの追跡を再整理済み。
+
+  - scope: architecture/history/HISTORICAL_ARCHITECTURE_MAPPING.md
+    status: revised
+    note: historical candidate / local Evidenceと、currentでAccepted・実体化・限定検証済みのContract / Profile / Runtime / Adapterを分離して再監査済み。
 
   - scope: contracts/TRACEABILITY.md
     status: revised
@@ -90,13 +102,6 @@ reviewed:
     note: planning checkerの保証範囲を5段階Evidenceへ同期。
 
 pending:
-  - scope: architecture/README.md
-    status: pending
-  - scope: architecture/SOZA_REFERENCE_ARCHITECTURE.md
-    status: pending
-  - scope: architecture/history/HISTORICAL_ARCHITECTURE_MAPPING.md
-    status: pending
-
   - scope: contracts/README.md
     status: pending
   - scope: contracts/CONTRACT_CATALOG.md
