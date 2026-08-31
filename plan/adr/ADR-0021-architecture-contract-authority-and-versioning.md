@@ -1,20 +1,16 @@
 # ADR-0021: Architecture / Contractの権威関係と版管理境界を定める
 
 Status: **Accepted**  
-Related Issue: **ISSUE-000028**  
+Related Issues: **ISSUE-000028, ISSUE-000029, ISSUE-000030, ISSUE-000031**  
 Updated: 2026-08-31
 
 ## Context
 
-current SOZA repositoryでは、Product Value、Requirements、ADRまでのDesign baselineが実体化された。
+SOZAでは、Product Value、Requirements、ADR、Architecture、Contract、Implementation / Evidenceの間で、何がどの判断を所有するかを明確にする必要がある。
 
-次にArchitecture / Contractsをactual treeへ戻す必要があるが、historical candidateには、Architectureの説明文書、Contractの意味定義、machine-readable schema、実装review、Milestone planningが同じ階層へ混在していた。
+historical candidateでは、Architectureの説明、Contractの意味定義、machine-readable schema、実装review、Milestone planning等が近い階層へ混在していた。その意味核には再利用価値がある一方、当時のMilestone順、field候補、package構成、algorithm、Evidence状態をそのままcurrent正本へ戻すと、Product Valueから下位設計へ流れる権威関係を逆転させる危険がある。
 
-たとえば旧candidateには、`CORE_BOUNDARY_REVIEW_v1.md`、`M49_DECISION_MEMORY_BOUNDARY_v1.md`、`M50_CAPABILITY_CHOICE_BOUNDARY_v1.md`、`SEMANTIC_PERSISTENCE_CONTRACT_v1.md`、`INQUIRY_EPISTEMIC_ARTIFACTS_v1.md`、JCS / SHA-256 representation profile等が存在する。
-
-これらの意味核には再利用価値がある一方、M48 / M49 / M50という実装順序、当時のfield候補、Go / JSON / JCS等の実装選択をcurrent architectureへそのまま戻すと、ADR-0018のProduct Value authorityやADR-0020のRequirement境界を逆転させる危険がある。
-
-そこで、Architecture、Contract、ADR、Implementationの責務と権威関係を明示する。
+そこで、Architecture、Contract、ADR、Implementationの責務と版管理境界を明示する。
 
 ## Decision
 
@@ -37,21 +33,21 @@ Architecture内で新しい重要な設計判断が必要になった場合は�
 Architecture description != Architecture Decision Record
 ```
 
-ADRとArchitectureが矛盾する場合、単にArchitectureを最新だから正しいとはみなさない。まず矛盾を設計不整合として扱い、必要ならADRのSupersessionを行う。
+ADRとArchitectureが矛盾する場合、Architectureの更新日時だけを理由に正しいものとして扱わない。まず設計不整合として確認し、必要ならADRのSupersessionを行う。
 
 ### 2. Architecture current viewへMilestone identityを埋め込まない
 
-current canonical Architecture文書の名前や意味境界へ、M48 / M49 / M50等の実装順序を埋め込まない。
+current canonical Architecture文書の名前や意味境界へ、historical Milestoneの実装順序を埋め込まない。
 
-Decision Memory、Capability Choice、Persistence等は、現在の意味上の関心領域として表現する。
+Decision Memory、Capability、Persistence等は、現在の意味上のarchitecture concernとして表現する。
 
-historical Milestone文書は`architecture/history/`のprovenanceとして保持・対応付けできる。
+historical Milestone文書は`architecture/history/`のProvenanceとして保持・対応付けできる。
 
 ### 3. Architecture文書自体には恒久的な数値IDを要求しない
 
 RequirementやADRと異なり、Architecture文書はcurrent viewとして更新される。
 
-初期current baselineでは、次をcanonical entry pointとする。
+current canonical entry pointは次とする。
 
 ```text
 architecture/
@@ -62,13 +58,13 @@ architecture/
     HISTORICAL_ARCHITECTURE_MAPPING.md
 ```
 
-設計関心領域が大きくなった場合は個別Architecture文書へ分割できる。
+関心領域が大きくなった場合は個別Architecture文書へ分割できる。
 
 重要なsemantic Decisionの恒久identityはADRが担うため、Architecture filenameへ別の連番体系を重ねない。
 
-### 4. Architectureの関心領域はruntime componentと同一視しない
+### 4. Architecture concernをruntime componentと同一視しない
 
-current Reference Architectureでは、たとえば次の関心領域を区別できる。
+current Reference Architectureでは、たとえば次の関心領域を区別する。
 
 - Durable Semantic Core
 - Inquiry / Epistemic State
@@ -93,20 +89,11 @@ Architecture concern != runtime component
 
 Contractは、複数component、Provider、Storage、version、implementation等をまたいで、同じ意味を交換・検証する必要がある場合に作る。
 
-Contractを新設する理由の例:
-
-- portable semantic interchange
-- exact historical binding
-- Decision Memory interchange
-- Capability Observation interchange
-- Profile / Federation exchange
-- representation verification
-
 単にArchitectureを詳しく説明するためだけにContractを作らない。
 
 ### 6. Contractはlogical identityとexplicit versionを持つ
 
-Contractには、filenameとは別にlogical identityとversionを明示する。
+Contractにはfilenameとは別にlogical identityとversionを明示する。
 
 例:
 
@@ -119,13 +106,13 @@ pre-stable Contractは`v1alpha1`、`v1alpha2`等として更新できる。
 
 stable `v1`以降で意味上の後方互換性を壊す変更を行う場合は、新しいmajor versionへ進める。
 
-pre-stable段階でも、過去DecisionやArtifactが特定versionをbasisとしている場合は、当時versionをhistoricalに特定できるようにする。
+pre-stable段階でも、過去DecisionやArtifactが特定versionをbasisとしている場合は、当時のversionをhistoricalに特定できるようにする。
 
 Contract versionはGit commitやStorage revisionと同一ではない。
 
-### 7. semantic ContractとRepresentation Profileを分ける
+### 7. Semantic ContractとRepresentation Profileを分ける
 
-たとえば「どのArtifactをどう参照し、どの意味を交換するか」というsemantic Contractと、「JSONをどうcanonicalizeし、どのdigest algorithmで検証するか」というRepresentation Profileを同一視しない。
+「どのArtifactをどう参照し、どの意味を交換するか」というSemantic Contractと、「どのbytesをどうcanonicalizeし、どのdigest algorithmで検証するか」というRepresentation Profileを同一視しない。
 
 ```text
 Semantic Contract != Representation Profile
@@ -133,13 +120,11 @@ Semantic Contract != Representation Profile
 
 JSON、CBOR、JCS、SHA-256等を採用しても、その実装方式をUniversal semantic meaningへ昇格させない。
 
-Representation Profileは交換可能であり、必要なContractがどのProfileを使用したかを参照できる形を優先する。
-
 ### 8. human-readable Contract Definitionをsemantic normative sourceとする
 
-初期baselineでは、Contractごとに自然言語で意味、invariant、field / relationの役割、Unknownやversioningの規則を説明するMarkdown Contract Definitionを置く。
+Contractごとに、意味、invariant、field / relationの役割、Unknownやversioning等の規則を自然言語で説明するContract Definitionを置く。
 
-machine-readable schemaは、そのsemantic Contractの**検証可能なrepresentation**として扱う。
+machine-readable schemaは、そのSemantic Contractの**検証可能なrepresentation**として扱う。
 
 ```text
 Contract Definition
@@ -151,18 +136,18 @@ schemaにしか存在しない新しいsemantic requirementを作らない。
 
 Markdownとschemaが矛盾した場合、どちらかを黙って正しいものとして処理せず、Contract inconsistencyとして修正する。意味判断はProduct Value、Requirement、ADR、Contract Definitionへ戻る。
 
-schemaで表現できないinvariantがある場合は、自然言語だけに隠さず、可能な範囲で別のvalidator / fixtureへ落とす。
+schemaだけでは表現しにくいinvariantがある場合も、自然言語だけへ隠さず、可能な範囲でvalidator / fixtureへ落とす。
 
 ### 9. Contract fileの存在をExecutable Evidenceとしない
 
-Contract DefinitionやJSON Schemaがactual treeに存在しても、それだけではimplementation conformanceを意味しない。
+Contract DefinitionやJSON Schemaがactual treeに存在することだけでは、implementation conformanceを意味しない。
 
 ```text
 Contract exists != Implementation conforms
 Schema validates example != Operational interoperability
 ```
 
-Value Acceptanceに従い、少なくともDesign / Executable / Release / Operational Evidenceを分離する。
+Value Acceptanceに従い、Design / Executable / Release / Operational Evidenceを分離する。
 
 ### 10. historical candidateは意味核・反例・設計系譜として再評価する
 
@@ -171,14 +156,14 @@ historical Architecture / Contractをcurrent baselineへ利用するときは、
 1. current REQ / SCNへ対応付ける。
 2. current ADRと矛盾しないか確認する。
 3. 再利用する意味核を特定する。
-4. Milestone、package、field、algorithm、evidence stateを自動継承しない。
+4. Milestone、package、field、algorithm、Evidence stateを自動継承しない。
 5. current Architecture / Contractへ統合したか、historyへのみ残したかをmappingに記録する。
 
-旧文書の数をcurrent文書数として保存することを目的にしない。
+旧文書の数をcurrent文書数として保存すること自体を目的にしない。
 
-### 11. traceabilityをcurrent Architectureの必須品質とする
+### 11. traceabilityをcurrent Architecture / Contractの必須品質とする
 
-current Architecture / Contractは、重要な境界について次を遡れるようにする。
+重要な境界について、次を遡れるようにする。
 
 ```text
 Product Value V1〜V8
@@ -186,63 +171,62 @@ Product Value V1〜V8
   → ADR
   → Architecture concern
   → Contract（必要な場合）
-  → Fixture / Test / Evidence（将来）
+  → Fixture / Test / Evidence
 ```
 
 すべてのparagraphへ機械的なtrace tagを付けることは求めない。
 
-ただし、Universal Coreへ概念を置く、Provider境界を固定する、historical reconstructionに関わる等の重要箇所では追跡を省略しない。
+ただし、Universal Coreへの概念配置、Provider境界、historical reconstruction等の重要箇所では追跡を省略しない。
 
 ### 12. 自然な日本語をArchitecture / Contract品質の一部とする
 
 Architecture / Contract文書は、内容と構造を確定した後、意味、規範強度、例外、未決事項を変えず、自然な日本語となることを最重要視して全文を再ドラフトする。
 
-その後、文章を滑らかにしたことでMUST / SHOULD相当の強度や、Core / Profile / Provider等の境界が変わっていないか最終意味監査を行う。
+その後、文章を滑らかにしたことでMUST / SHOULD相当の強度やCore / Profile / Provider等の境界が変わっていないか最終意味監査を行う。
+
+## Current realization
+
+current repositoryでは、このADRに従って次がactual treeへ実体化されている。
+
+- Reference Architecture / Architecture Traceability / historical mapping
+- 4つのcurrent Contract family
+- Contract Catalog / Traceability / historical mapping
+- machine-readable schema
+- 17件のContract fixture
+- Contract conformance checker / GitHub Actions
+- Representation Profile Definition / fixture / conformance
+- first semantic runtime / Provider AdapterのExecutable Evidence
+
+したがって、Architecture / Contractを「これから戻す」段階ではない。
+
+一方、Contract fixture PASSやRuntime test PASSをRelease / Operational Evidenceへ昇格させないという本ADRのEvidence境界は、引き続き有効である。
 
 ## Consequences
 
 ### Positive
 
-- historical M48 / M49 / M50の意味核を再利用しつつ、実装順序をcurrent ontologyへ固定しないで済む。
+- historical candidateの意味核を再利用しつつ、実装順序をcurrent ontologyへ固定せずに済む。
 - ADRとArchitectureの二重Decision log化を避けられる。
 - ContractとArchitectureの責務が明確になる。
 - human-readable semanticsとmachine-readable validationを両立しやすい。
-- JCS / SHA-256 / JSON等を交換可能なRepresentation Profileとして扱える。
+- Representation ProfileをSemantic Contractから交換可能に保てる。
 - Product ValueからExecutable Evidenceまでの追跡線を作りやすい。
 
 ### Costs
 
-- historical candidateを一件ずつcurrent REQ / ADRへ再照合する必要がある。
-- Markdown Contract Definitionとschemaの同期監査が必要になる。
+- historical candidateをcurrent REQ / ADRへ再照合する作業が必要になる。
+- Contract Definitionとschemaの同期監査が必要になる。
 - Contract versionとGit revisionを別に管理する必要がある。
-- current Architectureを作る際、old milestone文書を単純コピーできない。
 
 ## Revisit conditions
 
 次の場合に再検討する。
 
-- Architecture current viewにstable document identityが必要な外部利用が反復する。
+- Architecture current viewにstable document identityが必要な外部利用が繰り返し現れる。
 - Contract Definitionとmachine-readable schemaの二層管理が重大な同期不良を繰り返す。
-- 自動生成によって別のauthority modelの方が意味保存性・可読性とも明確に優れることが実証される。
+- 別のauthority modelの方が意味保存性・可読性とも明確に優れることがactual Evidenceで示される。
 - federation等でContract versioningにより強い互換性規則が必要になる。
-
-## Evidence
-
-- `product/value/SOZA_VALUE_MODEL.md`
-- `product/value/SOZA_VALUE_ACCEPTANCE.md`
-- `requirements/PRODUCT_REQUIREMENTS.md`
-- `requirements/ACCEPTANCE_SCENARIOS.md`
-- ADR-0017〜ADR-0020
-- historical `CORE_BOUNDARY_REVIEW_v1.md`
-- historical `SEMANTIC_PERSISTENCE_CONTRACT_v1.md`
-- historical `M49_DECISION_MEMORY_BOUNDARY_v1.md`
-- historical `M50_CAPABILITY_CHOICE_BOUNDARY_v1.md`
-- historical Contract / schema candidate群
-
-## Follow-up
-
-current Architecture baselineの実体化はISSUE-000029、current Contract baselineの実体化はISSUE-000030で追跡する。
 
 ## Natural Japanese review
 
-historical candidateの意味核とcurrent Product / Requirement / ADRの権威関係を照合してDecisionを確定した後、条件、規範強度、例外、Evidence境界を変えず、自然な日本語となることを最重要視して全文を再ドラフトした。その後、最終意味監査を実施済み。
+current Architecture、Contract、Schema、fixture、Runtime Evidenceへ戻ってDecisionを照合した。その後、「次にArchitecture / Contractsを戻す」というDecision時点の未実体化状態をCurrent realizationへ更新し、ADR / Architecture / Contract / Implementationの権威関係とEvidence境界を変えず、自然な日本語となることを最重要視して全文を再ドラフトした。最後に規範強度を含めて意味監査を実施済みである。
