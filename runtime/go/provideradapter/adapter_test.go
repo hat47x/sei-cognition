@@ -165,3 +165,47 @@ func TestProviderSpecificInputIsStrictAndDoesNotBecomeUniversalSchema(t *testing
 		t.Fatalf("Provider A accepted Provider B field unexpectedly: %v", err)
 	}
 }
+
+func TestProviderSpecificFieldNamesDoNotLeakIntoObservationSchema(t *testing.T) {
+	tests := []struct {
+		name      string
+		adapter   Adapter
+		fixture   string
+		source    string
+		forbidden []string
+	}{
+		{
+			name:      "provider-a",
+			adapter:   ProviderAAdapter{},
+			fixture:   "provider-a-green.json",
+			source:    "synthetic-a://snapshot/no-schema-leak",
+			forbidden: []string{"\"health\"", "\"delay_ms\"", "\"service_ref\""},
+		},
+		{
+			name:      "provider-b",
+			adapter:   ProviderBAdapter{},
+			fixture:   "provider-b-ready.json",
+			source:    "synthetic-b://snapshot/no-schema-leak",
+			forbidden: []string{"\"ready\"", "\"response_seconds\"", "\"endpoint\""},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			document, err := tc.adapter.Observe(testContext(tc.name+"-no-schema-leak", tc.source), readProviderFixture(t, tc.fixture))
+			if err != nil {
+				t.Fatal(err)
+			}
+			data, err := json.Marshal(document)
+			if err != nil {
+				t.Fatal(err)
+			}
+			text := string(data)
+			for _, field := range tc.forbidden {
+				if strings.Contains(text, field) {
+					t.Fatalf("Provider-specific input field leaked into Capability Observation schema: %s in %s", field, text)
+				}
+			}
+		})
+	}
+}
