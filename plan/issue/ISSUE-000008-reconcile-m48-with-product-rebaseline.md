@@ -1,4 +1,4 @@
-# ISSUE-000008: M48をProduct Rebaselineと整合させる
+# ISSUE-000008: historical M48をProduct Rebaselineと整合させる
 
 Status: **Resolved**  
 Priority: **1**  
@@ -7,38 +7,49 @@ Updated: 2026-08-31
 
 ## Goal
 
-旧M48 feasibility設計をProduct Value / Requirements / Accepted ADRへ戻して再評価し、現在依存の実装都合をCoreへ残さず、保持すべき意味境界を再基線化する。
+historical M48 feasibility設計をProduct Value / Requirements / Accepted ADRへ戻して再評価し、当時の実装都合をcurrent Coreへ固定せず、保持すべき意味境界を再基線化する。
+
+ここでいうM48は設計史上のMilestone labelであり、current Architectureや実装フェーズの正本ではない。
 
 ## Work completed
 
-Planning / architecture段階では、少なくとも次を再整理した。
+少なくとも次をcurrent設計へ再統合した。
 
 - Universal ClaimをCoreへ追加しない。
 - Logical identity、Exact Binding、Semantic Lineage、storage revisionを分離する。
-- BoundedSubjectRefとcontextual Responsibilityを採用する。
+- Bounded Subjectとcontextual Responsibilityを採用する。
 - Progressive Semantic ExplicitnessをProfile / Policyへ分ける。
 - Semantic Persistenceをstorage-neutralにする。
-- Exact BindingのRepresentation ContractとVerification Outcomeを分離する。
-- private chain-of-thought、workflow state、provider executionをM48 Coreへ持ち込まない。
+- Exact BindingのSemantic Contract、Representation Profile、Verification Outcomeを分離する。
+- private chain-of-thought、workflow state、Provider executionをDurable Semantic Coreへ持ち込まない。
 
-M47 Cognitive MethodのDefinition / Realization / Application境界も、歴史的な参照基線として維持する。
+historical M47 Cognitive MethodのDefinition / Realization / Application境界も、設計系譜として参照しつつcurrent Cognitive Method境界へ統合した。
 
 ## Resolution
 
-M48をProduct Rebaselineへ**意味上整合させる作業**は、Accepted ADRとreference architectureへ分解できたためResolvedとする。
+historical M48をProduct Rebaselineへ**意味上整合させる作業**は、current Product Value、Requirements、Accepted ADR、Reference Architecture、Contractへ分解・再統合できたためResolvedとする。
 
-当初のblockerだった「actual `soza` repositoryが存在しない」は、2026-08-31時点では解消している。
+当初のblockerだったactual `soza` repository不在は解消済みである。さらにISSUE-000022でcurrent repository baselineを実体化し、Product / Requirements / Architecture / Contracts / Fixtures / Representation Profiles / first Runtime / Toolsまでactual treeへ配置した。
 
-ただし、現在のGitHub repositoryには旧candidate bundleが参照していたruntime、contracts、fixtures、tools等の全ファイルがまだ揃っていない。この不足を本Issueの再open理由にはせず、**ISSUE-000022**でrepository baseline materializationとして独立追跡する。
+したがって、旧文書にあった「runtime、contracts、fixtures、tools等がまだ揃っていない」という前提はcurrent状態では採用しない。
 
-このResolutionはM48 production implementation、M47 regression、release、operational evidenceの完了を意味しない。
+## Current evidence state
 
-## Evidence state
+- Historical M48 semantic reconciliation: **Satisfied**
+- Current repository baseline materialization: **Satisfied — ISSUE-000022**
+- Contract / fixture-scoped Executable Evidence: **Satisfied within current scope**
+- first semantic runtime Executable Evidence: **Satisfied within read / validate / reconstruct scope**
+- historical M47 digest Profile mapping: **Not Yet Verified — ISSUE-000034**
+- Release / Operational Evidence: **Not Yet Verified**
 
-- Semantic reconciliation / Design boundary: **Resolved**
-- Repository materialization: **ISSUE-000022で継続**
-- Executable / release / operational evidence: **本Issueでは完了を主張しない**
+```text
+historical M48 design reconciled
+  != historical M48 implementation promoted as current
+  != Release readiness
+```
+
+旧candidateのpackage、field、algorithm、local PASSはcurrentへ自動継承しない。current Evidenceはcurrent Contract / fixture / runtime / CIから取り直したものだけを用いる。
 
 ## Natural Japanese review
 
-StatusとEvidence状態を分離したうえで、旧blockerと現在のrepository状態を区別し、意味、留保、Evidence強度を変えずに自然な日本語となることを最重要視して全文を再確認した。最終意味監査も実施済み。
+historical M48の意味核、current Product Value、Requirements、Architecture、Contract、ISSUE-000022のrepository baseline、current CI Evidenceへ戻って再照合した。その後、歴史的Milestoneとcurrent正本の境界、Evidence強度、未検証範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

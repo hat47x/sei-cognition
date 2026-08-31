@@ -13,14 +13,23 @@ Updated: 2026-08-31
 
 下書き整形、read-only research、外部送信、SaaS設定変更、金銭支出、法的・安全上高影響な操作、Conflictを残したDecision等を比較した。
 
-固定levelや単一risk scoreでは異質な意味を潰しやすく、AI自身のconfidenceに省略判断を任せるのも不適切と判断した。
+固定levelや単一risk scoreでは異質な意味を潰しやすく、AI自身のconfidenceだけに省略判断を委ねるのも不適切と判断した。
 
 ## Resolution
 
-Universal Coreは意味境界を定義し、案件ごとの必須Artifact / relationはProfile + Policy + Profile Resolutionで決める。ProfileはCore意味を緩和せず、DecisionやAuthorityを自動昇格させない。
+Universal Coreは意味境界を定義し、案件ごとの必須Artifact / relationはProfile + Policy + Profile Resolutionで決める。ProfileはCoreの意味を緩和せず、DecisionやAuthorityを自動昇格させない。
 
-M49 Decision Memoryでも同じ機構を再利用する。判断はADR-0005へ確定したため、本IssueはResolvedとする。
+この判断は、historical M49で検討していたDecision Memoryにも適用され、current `soza.decision-memory/v1alpha1`の意味境界へ引き継がれている。current Contractではcontext / basis / recommendation / unresolved / rationale / responsibility等を必要に応じて保持できるが、すべての案件へ最大量の記録を強制しない。
+
+本IssueがResolvedであることは、このProgressive Semantic Explicitnessの設計原則が確定したことを意味する。Profile / Policy obligation resolutionをproduction runtimeで全面実装済みであることは意味しない。
+
+## Current evidence
+
+- Design boundary: **Satisfied**
+- Decision Memory Contractでのoptional representation: **Satisfied**
+- Profile / Policy obligation resolutionのProduction Executable Evidence: **Not Yet Verified**
+- Release / Operational Evidence: **Not Yet Verified**
 
 ## Natural Japanese review
 
-Progressive Explicitness architectureと後続M49設計へ戻して内容を照合した後、自然な日本語となることを最重要視して全文を再ドラフトし、意味監査を実施済み。
+ADR-0005、current Decision Memory Contract、Requirements、first runtime baselineへ戻って内容を照合した。その後、Progressive Semantic Explicitnessの意味、未実装範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

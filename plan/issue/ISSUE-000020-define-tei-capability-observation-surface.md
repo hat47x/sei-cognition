@@ -38,7 +38,7 @@ TEIのApplication、Database、Environment、Release、Plugin Lock、Migration�
 
 SOZAは、Capability判断に必要な範囲で、Capability Definition、Provider、Provider-specific context、観測時点、condition、Evidence、provenance、Unknown / Conflict / Withheld等を参照できるObservation境界を持つ。
 
-### 2. TEI状態からCapability解釈への写像はadapter / profile境界へ置く
+### 2. TEI状態からCapability解釈への写像はadapter / mapping境界へ置く
 
 ```text
 TEI internal state
@@ -60,7 +60,7 @@ TEI内部状態とSOZA上のCapability解釈を同一視しない。
 
 ### 5. 重要なDecision basisはhistoricalに再構成可能にする
 
-特定release、binding、Plugin Lock、mapping version等がDecisionのbasisになった場合は、必要に応じてExactArtifactBinding等で当時の入力を固定する。
+特定release、binding、Plugin Lock、mapping version等がDecisionのbasisになった場合は、必要に応じてExact Binding等で当時の入力を固定する。
 
 ### 6. Selective Disclosureを許容する
 
@@ -100,6 +100,16 @@ SOZAがTEIの状態を読めても、TEIを操作するAuthorityを自動取得�
 8. **内部topologyをSelective DisclosureしながらEvidenceだけ共有する**  
    raw内部構造を開示せず、必要なObservation / EvidenceとWithheld contextを共有できる。
 
+## Current executable evidence
+
+ISSUE-000024でCapability Observation Contract / SchemaとF1〜F7をactual repositoryへ実体化した。
+
+F1〜F7には、partial degradation、proposed / actual separation、Environment binding、observation gap、TEI / SaaS cross-provider comparison、historical reconstruction、selective disclosureが含まれる。
+
+さらにISSUE-000036で、Provider A / Bという異なるsynthetic input shapeをProvider Adapterから同じCapability Observation Contractへ変換し、mapping provenance、source state reference、Unknown preservation、Provider固有field leakage防止をGo runtime / CIで確認した。
+
+このEvidenceはProvider-neutral境界の実装可能性を支持するが、TEI production APIとの接続を実証するものではない。
+
 ## Acceptance
 
 - [x] TEI→SOZA Capability Observation adapter boundaryを定義した。
@@ -107,19 +117,28 @@ SOZAがTEIの状態を読めても、TEIを操作するAuthorityを自動取得�
 - [x] exact historical binding ruleを定義した。
 - [x] selective disclosure ruleを定義した。
 - [x] Observation / interpretation / Decision / Authorizationを分離した。
+- [x] Capability Observation Contract / Schema / F1〜F7を実体化した。
+- [x] synthetic Provider Adapterで異なるProvider shapeからObservationを生成できることを確認した。
 - [x] Product ValueのV1、V2、V3、V4、V5、V7、V8と整合することを確認した。
 - [x] 自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
 
-## Follow-up
+## Remaining boundary
 
-actual schema、provider-neutral fixture、TEI adapter fixture、cross-provider fixtureは`ISSUE-000024`で実体化する。
+- TEI production adapter: **Not Yet Verified**
+- actual SaaS production interoperability: **Not Yet Verified**
+- Matching / Choice production implementation: **Not Yet Verified**
+- Release / Operational Evidence: **Not Yet Verified**
+
+production TEI adapterを実装する場合も、TEI固有SchemaをUniversal Coreへ昇格させず、ADR-0019 / ADR-0024のadapter boundaryを維持する。
 
 ## Source
 
 - `plan/adr/ADR-0019-provider-neutral-capability-observation-boundary.md`
-- `plan/kj/2026-08-31_TEI設計系列_ラウンドKJ統合.md`
+- `plan/adr/ADR-0024-provider-adapter-observation-mapping-boundary.md`
+- `plan/issue/ISSUE-000024-materialize-capability-observation-fixtures.md`
+- `plan/issue/ISSUE-000036-implement-synthetic-provider-adapter-slice.md`
 - `product/value/SOZA_VALUE_MODEL.md`
 
 ## Natural Japanese review
 
-ADR-0019とValue Modelへ戻って結論を照合した後、意味、条件、留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトした。最終意味監査も実施済み。
+ADR-0019 / ADR-0024、Capability Observation Contract / Schema、F1〜F7、synthetic Provider Adapter CIへ戻って結論を照合した。その後、設計上のTEI境界、synthetic Executable Evidence、未検証のproduction integrationを分離し、意味、条件、留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
