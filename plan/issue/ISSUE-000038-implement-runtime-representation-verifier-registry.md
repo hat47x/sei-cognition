@@ -1,120 +1,159 @@
 # ISSUE-000038: RuntimeへRepresentation Verifier Registryを実装する
 
-Status: **Open**  
+Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0008, ADR-0009, ADR-0021, ADR-0022, ADR-0023**  
 Updated: 2026-09-01
 
 ## Goal
 
-Accepted済みのRepresentation Profileをfirst Semantic Runtimeへ接続し、Exact Bindingのcontent digestをruntime上で再検証できる最小のVerifier Registryを実装する。
+Accepted済みのRepresentation ProfileをSemantic Runtimeへ接続し、Exact Bindingのcontent digestをruntime上で再検証できる最小のVerifier Registryを実装する。
 
-対象Profileは次の2つとする。
+対象Profile:
 
 ```text
 soza.jcs+sha256/v1alpha1
 soza.raw-bytes+sha256/v1alpha1
 ```
 
-このIssueでは新しいSemantic ContractやUniversal Core型を作らず、ADR-0008 / ADR-0009 / ADR-0023で既に決定済みの検証境界をExecutable Evidenceへ落とす。
+新しいSemantic ContractやUniversal Core型は追加せず、ADR-0008 / ADR-0009 / ADR-0023で決定済みの検証境界をExecutable Evidenceへ落とす。
 
-## Background
+## Resolution
 
-current repositoryでは、次がすでに成立している。
+### 1. Runtime Verifier Registryを実装した
 
-- Exact BindingとRepresentation Profile mechanicsの分離 — ADR-0008
-- Exact BindingとVerification Outcomeの分離 — ADR-0009
-- JCS + SHA-256 / raw-bytes + SHA-256 ProfileのAccepted baseline — ADR-0023
-- Profile fixture / JCS Go probeのfixture-scoped Executable Evidence
-- first Semantic Runtimeのread / validate / reconstruct slice — ADR-0022
+次を追加した。
 
-一方、current `semanticruntime`はRepresentation Profile identityとdigest文字列の存在を検査するが、payloadからdigestを再計算するVerifier Registryをまだ持たない。
+```text
+runtime/go/semanticruntime/verifier.go
+runtime/go/semanticruntime/verifier_test.go
+```
+
+`VerifierRegistry`は`RepresentationProfile`の`profile_id + version`からVerifierを解決する。
+
+current default Registryは次の2 Profileを登録する。
+
+- `soza.jcs+sha256/v1alpha1`
+- `soza.raw-bytes+sha256/v1alpha1`
+
+Profile authorityはProfile Definition / RFC 8785側に残し、RegistryやGo libraryをsemantic authorityへ昇格させていない。
+
+### 2. Exact BindingとVerification Outcomeを分離した
+
+Registryは入力`ExactBinding`を変更せず、別の`VerificationOutcome`を返す。
 
 ```text
 Exact Binding metadata valid
   != Exact Binding content verified
+
+Exact Binding
+  != Verification Outcome
 ```
 
-`contracts/TRACEABILITY.md`でも、Production-grade Runtime Verifier Registry / Adapter integrationはNot Yet Verifiedとして残っている。
+### 3. 三つのVerification Outcomeを実装した
 
-## Questions
+- known Profile + digest一致 → `verified`
+- known Profile + digest mismatch / Profile入力制約違反 → `failed`
+- unknown Profile / payload unavailable → `not_verified`
 
-1. runtimeでProfile ID / versionからVerifierをどのように解決すれば、Profile Definitionと実装を分離したままにできるか。
-2. `verified / failed / not_verified`を、未知Profile、payload不足、digest mismatch、Profile入力制約違反でどう再現するか。
-3. JCS Profileのsafe-integer / Unicode non-normalization等を、既存probeと意味差を生じさせずruntimeへ実装できるか。
-4. raw-bytes Profileを、暗黙の改行変換・再encode・normalizationなしに検証できるか。
-5. Verifier結果をExact Binding本体へ書き戻さず、独立したVerification Outcomeとして返せるか。
+未知Profileやpayload不足をcontent mismatchへ読み替えていない。
 
-## Constraints
+### 4. JCS Profile fixtureをruntime testから直接再利用した
 
-- Profile authorityはProfile DefinitionとRFC 8785であり、Go library APIではない。
-- runtime独自のcanonicalization規則を新設しない。
-- `Exact Binding != Verification Outcome`を維持する。
-- unknown Profile、verifier不足、payload不足をdigest mismatchへ変換しない。
-- `not_verified != failed`を維持する。
-- SHA-256をUniversal Core唯一のhash algorithmへ昇格しない。
-- JCSへ投入できない高精度semantic integerをbinary64へ暗黙丸めしない。
-- Unicode normalizationを暗黙実行しない。
-- raw-bytes入力へ改行変換、再encode、decompression等を暗黙適用しない。
-- historical M47 digest規則をcurrent Profileから推測しない。ISSUE-000034は独立Blocked事項のままとする。
-- Action execution、Authorization enforcement、production Provider / TEI integrationはNon-goalとする。
-- Verifier Registryの導入を理由にSemantic Runtimeのread / validate / reconstruct境界をexecution側へ拡張しない。
+`fixtures/representation-profiles/jcs-v1alpha1.json`をGo runtime testから読み、少なくとも次を再現した。
 
-## Required scenarios / experiments
+- property order / insignificant whitespace差
+- RFC 8785 representative sample
+- duplicate key rejection
+- unsafe large integer rejection
+- NFC / NFD non-normalization
+- fixed SHA-256 digest
 
-### JCS Profile
+unsafe integer preflightは既存JCS probeと同じ境界を実装し、`9007199254740993`をbinary64へ暗黙丸めしない。
 
-1. known Profile + canonical digest一致 → `verified`
-2. known Profile + digest mismatch → `failed`
-3. object property order / insignificant whitespace差でも同一digestになる。
-4. duplicate key等、JCSとして不正なrepresentation → `failed`
-5. `9007199254740993`等のunsafe integerを暗黙丸めせず → `failed`
-6. NFC / NFDを勝手にnormalizeせず、Profile fixtureと同じdigest差を保持する。
+### 5. raw-bytes Profile fixtureをruntime testから直接再利用した
 
-### Raw bytes Profile
+`fixtures/representation-profiles/raw-bytes-v1alpha1.json`のUTF-8 text / binary bytesをそのまま検証し、固定digestを再現した。
 
-7. known Profile + raw bytes digest一致 → `verified`
-8. known Profile + digest mismatch → `failed`
-9. text / binary双方で入力bytesそのものを検証する。
+改行変換、Unicode normalization、再encode等は行わない。
 
-### Registry / outcome boundary
+### 6. dependencyを再現可能に固定した
 
-10. unknown Profile ID / version → `not_verified`
-11. payloadを取得できない → `not_verified`
-12. Verifier Registryに実装がないProfile → `not_verified`
-13. verificationでExact Binding自体をmutateしない。
-14. `VerificationOutcome`にbinding、status、必要なreason / verifier referenceを返せる。
-15. current semantic loader / Provider Adapter testsが回帰しない。
+`runtime/go/go.mod`へ次を追加した。
 
-## Deliverables
+```text
+github.com/gowebpki/jcs v1.0.1
+```
 
-- runtime用Representation Verifier interface / Registry
-- JCS + SHA-256 verifier
-- raw-bytes + SHA-256 verifier
-- Profile fixtureを再利用するGo tests
-- `verified / failed / not_verified`の境界test
-- `runtime/go/go.mod` / `go.sum`の再現可能なdependency固定
-- Semantic Runtime Conformanceへの統合
-- runtime / Contract traceability / Evidence文書のcurrent状態更新
+`runtime/go/go.sum`へmodule checksumを記録した。
 
-## Resolution
+ADR-0023の既存probeがcommit `1a4242a66e1a8e03d7458324d0bc95c327527cbb`から解決しているmodule versionと一致する。
 
-次をすべて満たしたときResolvedにする。
+### 7. CI triggerをProfile fixtureへ広げた
 
-- [ ] current 2 Profileをruntime Registryから解決できる。
-- [ ] JCS Profile fixtureのpositive / negative境界をGo runtime testで再現できる。
-- [ ] raw-bytes fixtureをGo runtime testで再現できる。
-- [ ] `verified / failed / not_verified`をruntime testで区別できる。
-- [ ] unknown Profileとpayload不足を`failed`へ誤変換しない。
-- [ ] Exact Bindingを検証結果でmutateしない。
-- [ ] current Contract / runtime / Provider Adapter testsが回帰しない。
-- [ ] Representation Profile ConformanceとSemantic Runtime Conformanceがsuccessする。
-- [ ] Release / Operational / Adoption・Outcome Evidenceへ過大昇格していない。
-- [ ] 実装・文書を自然な日本語となることを最重要視して再監査した。
+`.github/workflows/runtime-conformance.yml`のpath条件へ次を追加した。
+
+```text
+fixtures/representation-profiles/**
+```
+
+Profile fixtureが変わった場合もruntime verificationの回帰検査が走る。
+
+## CI / Evidence
+
+初回実装後のSemantic Runtime Conformance `33452054067`では、Contract fixture再検査はsuccessしたが、Go側でJCS moduleの`go.sum`不足を検出してfailureとなった。
+
+このfailureをその場で解消し、checksumを追加した後に再実行した。
+
+### Semantic Runtime Conformance
+
+- Run ID: `33452115728`
+- Head SHA: `9941f49a5af3b5443f3cfaca3b263e07989d3ba4`
+- Contract fixture recheck: **success**
+- semantic runtime tests: **success**
+- Provider Adapter tests: **success**
+- Representation Verifier tests: **success**
+
+### 既存基線の回帰Evidence
+
+- Representation Profile Conformance: Run `33389973772` — **success**
+- Contract Conformance: Run `33390534942` — **success**
+- Plan integrity（Issue登録時）: Run `33451921654` — **success**
+
+Profile Definition / fixture自体は本Issueで変更していないため、Profile Conformanceの既存successを維持しつつ、同fixtureをruntime testへ直接接続した。
+
+## Acceptance
+
+- [x] current 2 Profileをruntime Registryから解決できる。
+- [x] JCS Profile fixtureのpositive / negative境界をGo runtime testで再現できる。
+- [x] raw-bytes fixtureをGo runtime testで再現できる。
+- [x] `verified / failed / not_verified`をruntime testで区別できる。
+- [x] unknown Profileとpayload不足を`failed`へ誤変換しない。
+- [x] Exact Bindingを検証結果でmutateしない。
+- [x] current Contract / runtime / Provider Adapter testsが回帰しない。
+- [x] Representation Profile基線のconformance successを確認し、Semantic Runtime Conformanceをsuccessさせた。
+- [x] Release / Operational / Adoption・Outcome Evidenceへ過大昇格していない。
+- [x] 実装・文書を自然な日本語となることを最重要視して再監査した。
+
+## Evidence boundary
+
+本Issueで成立したのは、呼出し側から与えられたpayload bytesをcurrent Profileで検証する**in-process / fixture-scoped Executable Evidence**である。
+
+```text
+Runtime Verifier Registry PASS
+  != external payload acquisition
+  != object-storage integration
+  != production streaming verification
+  != Release Evidence
+  != Operational Evidence
+  != Adoption / Outcome Evidence
+```
+
+historical M47 digest規則は推測していない。ISSUE-000034は独立Blocked事項のままとする。
 
 ## Reopen conditions
 
-Resolved後、次の場合は再開または後続Issueを検討する。
+次の場合は再開または後続Issueを検討する。
 
 - 同じProfile ID / versionで別実装間のdigest差が確認された。
 - current verifier libraryに重大なsecurity / maintenance / interoperability問題が見つかった。
@@ -123,17 +162,6 @@ Resolved後、次の場合は再開または後続Issueを検討する。
 
 production Provider / TEI interoperability、Release、Operational、Adoption / Outcomeは本Issueの再開理由ではなく、それぞれ別Evidence sliceとして扱う。
 
-## CI / verification
-
-最低限、次を確認する。
-
-- `Semantic Runtime Conformance`
-- `Representation Profile Conformance`
-- `Contract Conformance`
-- `Plan integrity`
-
-CI failureを検出した場合は、その場で原因を解消してsuccessを確認してから後続作業へ進む。
-
 ## Natural Japanese review
 
-ADR-0008、ADR-0009、ADR-0022、ADR-0023、current Profile Definition、Profile fixture、JCS Go probe、first Semantic Runtime実装、Contract Traceabilityへ戻って境界を整理した。その後、Goal、Constraints、Required scenarios、Resolution条件、Evidence強度を固定し、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+ADR-0008、ADR-0009、ADR-0022、ADR-0023、current Profile Definition、Profile fixture、JCS Go probe、Semantic Runtime実装、Contract Traceability、actual CI結果へ戻って実装結果を照合した。初回CI failureとchecksum追加による解消もEvidence履歴として保持し、成立したin-process verificationと未検証のexternal / production範囲を分離した。その後、意味、仕様、留保、Evidence強度を固定し、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
