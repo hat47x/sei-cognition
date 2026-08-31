@@ -18,11 +18,11 @@ Product Value
   → Requirements / Acceptance Scenarios
   → Issue / ADR
   → Architecture
-  → Contract
-  → Implementation / Test / Evidence
+  → Contract / Representation Profile
+  → Runtime / Test / Evidence
 ```
 
-下位の実装・検証から上位仮説への反証が得られた場合は、この向きに逆らってはいけないという意味ではありません。必要ならProduct Valueまで戻って再検討します。ただし、既存実装を温存するためだけに上位価値を書き換えません。
+下位の実装・検証から上位仮説への反証が得られた場合は、必要に応じてProduct Valueまで戻って再検討します。ただし、既存実装を温存するためだけに上位価値を書き換えません。
 
 ## 2. Product文書の正本関係
 
@@ -67,9 +67,9 @@ Design Evidence
 
 ### `value/SOZA_VALUE_TRACEABILITY.md`
 
-Product Valueからcurrent Requirements、Acceptance Scenarios、ADR、Architecture、Contract、Evidence gapへ戻るための索引です。
+Product Valueからcurrent Requirements、Acceptance Scenarios、ADR、Architecture、Contract、Representation Profile、runtime、Evidence gapへ戻るための索引です。
 
-この文書は新しい意味上の正本を作るものではありません。詳細なRequirementは`requirements/`、Architectureは`architecture/`、Contractは`contracts/`を正とします。
+この文書は新しい意味上の正本を作るものではありません。詳細なRequirementは`requirements/`、Architectureは`architecture/`、Contract / Profileは`contracts/`、runtime実装は`runtime/`を正とします。
 
 ### `vision/SOZA_PRODUCT_VISION.md`
 
@@ -102,28 +102,45 @@ Product Value側では、どのScenarioがどの価値軸を具体化してい�
 
 2026-08-31時点では、少なくとも次がactual repositoryにあります。
 
+### Design baseline
+
 - Product Value / Value Model / Value Acceptance
 - REQ-0001〜REQ-0022
 - SCN-0001〜SCN-0017
-- ADR-0001〜ADR-0021
+- ADR-0001〜ADR-0023
 - current Reference Architecture
-- current Contract Definition
-- Requirements registry checker
-- Planning registry checker
-- Contract v1alpha1のschema、fixture、semantic validator、conformance workflow
+- current 4 Contract Definition
+- current Representation Profile Definition
+- first semantic runtime sliceのDesign boundary
 
-このため、Design Evidenceはかなり具体化し、一部の境界にはfixture-scoped Executable Evidenceもあります。
+### scoped Executable Evidence
 
-ただし、次を自動的には主張しません。
+- Planning registry integrity checker
+- Requirements registry checkerとnegative self-test
+- Contract v1alpha1 schema / 17 fixture / semantic validator / conformance workflow
+- JCS / raw-bytes Representation Profile fixtureとGo verifier probe
+- Contract fixtureを読むGo first semantic runtime slice
 
-- SOZA全体のExecutable Acceptance完了
-- stable Representation Profileの確立
-- release readiness
+代表的なactual CI:
+
+- Requirements Registry Conformance — Run `33346697016`: **success**
+- Contract Conformance — Run `33346472419`: **success**
+- Representation Profile Conformance — Run `33347989530`: **success**
+- Semantic Runtime Conformance — Run `33348972805`: **success**
+
+これらは、それぞれ定めた対象範囲のExecutable Evidenceです。SOZA全体のExecutable Acceptance完了を意味しません。
+
+### currentでまだ主張しないもの
+
+- historical M47 digest mapping
+- production Provider / TEI integration
 - Release Evidence
 - Operational Evidence
 - Adoption / Outcome Evidence
 
-現在のContract fixtureがPASSしたことを、Product Value全体の実証や利用者価値の実現へ拡張しません。
+```text
+CI PASS != release ready != operational success != user-value realization
+```
 
 ## 5. Product Valueを変更するとき
 
@@ -169,6 +186,7 @@ Product層から読み始める場合は、次の順序を推奨します。
 8. `../requirements/ACCEPTANCE_SCENARIOS.md`
 9. `../architecture/TRACEABILITY.md`
 10. `../contracts/TRACEABILITY.md`
+11. `../contracts/profiles/README.md`
 
 ## 8. 文書品質
 
@@ -180,4 +198,4 @@ Product文書は、内容と構造を確定した後に、意味、規範強度�
 
 ## 9. Natural Japanese review
 
-current Product / Requirements / Architecture / Contractの正本関係とEvidence状態を確認し、重複した正本や第二のScenario体系を作らないよう役割を整理しました。その後、意味、権威関係、留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+current Product / Requirements / ADR / Architecture / Contract / Representation Profile / runtimeの正本関係とactual Evidenceを確認し、重複した正本や第二のScenario体系を作らないよう役割を整理しました。その後、意味、権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
