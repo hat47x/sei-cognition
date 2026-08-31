@@ -344,7 +344,7 @@ TEI Applicationは存在するが依存Databaseの一つがread-onlyである。
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Satisfied within current fixture / synthetic Adapter scope** — F1 / F4、F1〜F7 runtime、synthetic Adapterのmissing→unknownをactual CIで確認。TEI production adapterは未検証。
+- Executable: **Partially Satisfied** — F1 / F4、F1〜F7 runtime、synthetic Adapterのmissing→unknownをactual CIで確認。current fixture / synthetic Adapterの範囲では主要境界を検証済みだが、TEI production adapterは未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -369,7 +369,7 @@ Providerは、内部topologyや契約情報を全量開示できないが、Capa
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Satisfied within current fixture scope** — F7でWithheldとProvider-specific contextを保持し、内部topology全量をUniversal fieldへ要求しないことを確認。production selective disclosure運用は未検証。
+- Executable: **Partially Satisfied** — F7でWithheldとProvider-specific contextを保持し、内部topology全量をUniversal fieldへ要求しないことを確認。current fixtureの範囲では主要境界を検証済みだが、production selective disclosure運用は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
