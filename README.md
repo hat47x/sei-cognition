@@ -46,12 +46,12 @@ Contract Definition / Representation Profile
   ↓
 Schema / Validator / Fixture
   ↓
-Runtime / Provider Integration
+Runtime / Provider Adapter / Provider Integration
 ```
 
 current repositoryでは、上位Design baselineに加え、限定された範囲でExecutable Evidenceまで実体化しています。
 
-一方、release、production operation、利用者・組織におけるOutcomeは未検証です。
+一方、Provider Adapterの次slice、release、production operation、利用者・組織におけるOutcomeは未検証です。
 
 ## 3. Evidenceの読み方
 
@@ -124,6 +124,7 @@ Operational success != user-value realization
 27. `plan/DEVELOPMENT_WORKFLOW.md`
 28. `plan/DOCUMENT_AUTHORING_STANDARD.md`
 29. `plan/registry.yaml`
+30. `plan/adr/ADR-0024-provider-adapter-observation-mapping-boundary.md`
 
 個別の設計判断は`plan/adr/`、未完了作業・検証・調査は`plan/issue/`を参照してください。
 
@@ -230,8 +231,6 @@ Contract Conformance:
 - fixture count: `17`
 - conclusion: **success**
 
-確認対象にはCapability Observation F1〜F7、Recommendation-only、unresolved Decision、Schema / semantic negative case、unknown Contractの`not_verified`、partial knowledge等を含みます。
-
 これはfixture-scoped Executable Evidenceです。
 
 ## 10. Exact Binding / Representation Profile
@@ -253,8 +252,6 @@ Representation Profile Conformance:
 - Profile fixture: **success**
 - JCS Go probe: **success**
 
-key order / whitespace、duplicate key、unsafe integer、Unicode normalization、raw bytes、`verified / failed / not_verified`等の境界をfixtureで検査しています。
-
 historical M47 digest mappingはcurrent Profileとは分離し、ISSUE-000034でBlockedとして追跡します。
 
 ## 11. first semantic runtime slice
@@ -265,8 +262,6 @@ ADR-0022に従い、最初のruntime sliceはread / validate / reconstructへ限
 runtime/go/semanticruntime/
 ```
 
-Action execution、workflow、Provider production integrationを先にSOZA Coreへ持ち込みません。
-
 Semantic Runtime Conformance:
 
 - Run ID: `33348972805`
@@ -275,11 +270,42 @@ Semantic Runtime Conformance:
 - Go runtime tests: **PASS**
 - conclusion: **success**
 
-runtimeはF1〜F7、Recommendation / Decision、Unknown / Withheld、Exact Binding整合、unknown Contract、lossless re-export等を同じfixture sourceから検査します。
-
 このPASSはfirst runtime sliceのExecutable Evidenceであり、SOZA全runtimeやproduction Provider統合の完成を意味しません。
 
-## 12. SOZAとTEI
+## 12. Provider Adapter observation mapping boundary
+
+ADR-0024では、Provider AdapterをProvider固有stateの共通schemaではなく、Capability Observationへ変換する観測・解釈境界として定めます。
+
+```text
+Provider-owned state
+  + observation context
+        ↓
+Adapter / Mapping
+        ↓
+Capability Observation
+```
+
+Adapterによるfield mapping、unit conversion、status interpretation、aggregation等は意味上の解釈を含み得るため、mapping provenanceを保持します。
+
+次を維持します。
+
+```text
+missing != false
+not observed != unavailable
+Adapter mapping != Matching != Decision != Authority != Execution
+```
+
+最初のExecutable sliceはISSUE-000036でsynthetic heterogeneous Providersを使って検証します。
+
+現在のStatus:
+
+- ADR-0024: **Accepted**
+- ISSUE-000035: **Resolved**
+- ISSUE-000036: **Open**
+
+したがってProvider Adapterについて現在主張できるのはDesign Evidenceまでです。
+
+## 13. SOZAとTEI
 
 鼎（TEI）はSOZAそのものではなく、SOZAから利用し得るCapability Providerの一つです。
 
@@ -290,9 +316,11 @@ TEI  = 実行可能な業務Capabilityを実現する一つの手段
 
 関連製品であるという理由だけでTEIを優先しません。TEI固有のApplication、Database、Release、Deployment等をSOZA Universal Coreへ複製せず、必要な情報をProvider-neutralなCapability ObservationやProvider-specific referenceから扱います。
 
-## 13. 現在のPlan
+TEI production Adapterを最初のProvider Adapter検証対象にはしません。まずsyntheticな異質Providerで境界を検証します。
 
-2026-08-31時点で、planning registryはADR-0023、ISSUE-000034まで管理しています。
+## 14. 現在のPlan
+
+2026-08-31時点で、planning registryはADR-0024、ISSUE-000036まで管理しています。
 
 主な未完了項目:
 
@@ -300,32 +328,34 @@ TEI  = 実行可能な業務Capabilityを実現する一つの手段
 - ISSUE-000021 — design history provenance監査: **Deferred**
 - ISSUE-000022 — repository baseline全体のclosure監査: **In Progress**
 - ISSUE-000034 — historical M47 digest Profileの回収: **Blocked**
+- ISSUE-000036 — synthetic Provider Adapter vertical slice: **Open**
 
 Requirements registry、Capability Observation fixture、Contract schema / conformance、current Representation Profile、first semantic runtime sliceは、それぞれ定めた限定範囲でResolvedしています。
 
 Statusの正本は`plan/registry.yaml`と各Issue本文です。
 
-## 14. 次に深める領域
+## 15. 次に深める領域
 
 現在の上位優先順位は、概ね次です。
 
-1. Product Value → REQ → ADR → Architecture → Contract / Profile / runtimeの追跡整合を維持する。
-2. 既存active開発文書を自然な日本語で再監査する。
-3. repository baseline全体のclosure条件を監査する。
-4. historical M47 digestについて、推測せずEvidenceを回収する。
-5. Product Valueから必要性を確認したうえで、Provider integrationや次のruntime sliceを設計する。
-6. Release Evidenceを得る条件を整える。
-7. Operational / Adoption・Outcome Evidenceを、実利用が始まった時点で別の高さとして収集する。
+1. Product Value → REQ → ADR → Architecture → Contract / Profile / runtime / Adapterの追跡整合を維持する。
+2. synthetic Provider Adapter sliceでADR-0024をExecutable Evidenceへ落とす。
+3. 既存active開発文書を自然な日本語で再監査する。
+4. repository baseline全体のclosure条件を監査する。
+5. historical M47 digestについて、推測せずEvidenceを回収する。
+6. Product Valueから必要性を確認したうえで、production Provider integrationや次のruntime sliceを設計する。
+7. Release Evidenceを得る条件を整える。
+8. Operational / Adoption・Outcome Evidenceを、実利用が始まった時点で別の高さとして収集する。
 
 実装量やCI本数をProduct ValueのKPIにはしません。
 
-## 15. Releaseについて
+## 16. Releaseについて
 
 `develop/v0.1.0`は開発中のbaselineです。**Release Evidence、Operational Evidence、Adoption / Outcome Evidenceを主張する状態ではありません。**
 
 `main`へ統合する際は、Product Value、Requirements、ADR、Architecture、Contract / Profile、actual Executable Evidenceを戻り照合し、実際に得られたEvidenceを超えない範囲で状態を更新します。
 
-## 16. 文書品質
+## 17. 文書品質
 
 SOZAでは、開発文書の自然な日本語を設計品質の一部として扱います。
 
@@ -333,6 +363,6 @@ SOZAでは、開発文書の自然な日本語を設計品質の一部として�
 
 詳細は`plan/DOCUMENT_AUTHORING_STANDARD.md`を参照してください。既存文書の再監査はISSUE-000015で継続します。
 
-## 17. 自然な日本語レビュー
+## 18. 自然な日本語レビュー
 
-actual Product、Requirements、ADR-0001〜0023、Architecture、4 Contract family、Representation Profile、first semantic runtime slice、actual CI結果、plan registryへ戻って現在地を再確認しました。そのうえで、Design / Executable / Release / Operational / Adoption・OutcomeのEvidence強度を混同しないよう全体を再構成しました。最後に、意味・仕様・留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+actual Product、Requirements、ADR-0001〜0024、Architecture、4 Contract family、Representation Profile、first semantic runtime slice、Provider Adapter observation mapping boundary、actual CI結果、plan registryへ戻って現在地を再確認しました。そのうえで、Design / Executable / Release / Operational / Adoption・OutcomeのEvidence強度を混同しないよう全体を再構成しました。最後に、意味・仕様・留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
