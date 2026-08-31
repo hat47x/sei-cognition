@@ -83,18 +83,34 @@ historical mappingも、旧local PASSとcurrent Executable Evidenceを分離し�
 
 **Requirements層のcurrent Markdown文書監査は完了しました。**
 
+### Architecture層
+
+次のcurrent Architecture文書をすべて監査しました。
+
+- `architecture/README.md`
+- `architecture/SOZA_REFERENCE_ARCHITECTURE.md`
+- `architecture/TRACEABILITY.md`
+- `architecture/history/HISTORICAL_ARCHITECTURE_MAPPING.md`
+
+Reference Architectureでは、historical時点の「Contract候補」「Representation未固定」という表現と、currentで既にAccepted・実体化されている4 Contract family、2 Representation Profile、first semantic runtime、synthetic Provider Adapterの現在地を分離しました。
+
+Evidenceは5段階へ統一し、Contract / Profile / runtime / AdapterのCI成功を限定されたExecutable Evidenceとして反映しています。一方、Architecture全体の実装完了、production Provider / TEI integration、Release、Operational、Adoption / Outcomeへは昇格させていません。
+
+historical mappingでは、過去のJCS / SHA-256 / Go等の選択をcurrentへ自動継承せず、current ADRで改めて採用したProfile・実装と区別しています。historical M47 digest mappingは引き続きISSUE-000034の独立Blocked事項です。
+
+**Architecture層のcurrent Markdown文書監査は完了しました。**
+
 ## 未完了範囲
 
 `plan/document_review_registry.yaml`で`pending`となっているcurrent文書を上位から順に監査します。
 
 次の優先順:
 
-1. Architecture
-2. Contracts / Representation Profiles / Evidence
-3. Runtime Evidence
-4. fixture README
-5. KJ統合文書
-6. ADR / Issue Template
+1. Contracts / Representation Profiles / Evidence
+2. Runtime Evidence
+3. fixture README
+4. KJ統合文書
+5. ADR / Issue Template
 
 historical M47 digest Profile recoveryはISSUE-000034の独立Blocked事項であり、この文書監査の完了条件へ混ぜません。
 
@@ -102,7 +118,7 @@ historical M47 digest Profile recoveryはISSUE-000034の独立Blocked事項で�
 
 CI failureを検出した場合は、その時点で原因を特定・修正し、successを確認してから次の作業へ進みます。
 
-Requirements文書を変更した場合はRequirements Registry Conformanceを確認し、Plan文書変更後はPlan integrityも確認します。
+Requirements文書を変更した場合はRequirements Registry Conformanceを確認し、Plan文書変更後はPlan integrityも確認します。Contract / Representation Profile文書を変更した場合は、変更内容に応じてContract Conformance、Representation Profile Conformance、Semantic Runtime Conformanceへの影響も確認します。
 
 ## Acceptance criteria
 
@@ -115,6 +131,7 @@ Requirements文書を変更した場合はRequirements Registry Conformanceを�
 - [x] ISSUE-000001〜ISSUE-000037をcurrent baselineから全件再監査した。
 - [x] current文書の監査対象一覧を`plan/document_review_registry.yaml`へ実体化した。
 - [x] Requirements層のcurrent Markdown文書を全件再監査した。
+- [x] Architecture層のcurrent Markdown文書を全件再監査した。
 - [ ] `document_review_registry.yaml`のcurrent対象から`pending`をなくす。
 
 `pending`が残る間は本IssueをResolvedにしません。
@@ -129,4 +146,4 @@ Requirements文書を変更した場合はRequirements Registry Conformanceを�
 
 ## Natural Japanese review
 
-Requirements README、REQ-0001〜0022、SCN-0001〜0017、historical mappingをcurrent Product Value traceability、5段階Evidence、actual Contract / Runtime / Adapter Evidenceへ戻って再監査しました。その後、確認済みのExecutable範囲だけを反映し、未検証のRelease / Operational / Adoption / Outcomeを維持しました。最後に、意味、監査条件、Evidence強度を変えない範囲で自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product、Planning、Requirementsに続いて、Architecture README、Reference Architecture、Traceability、historical mappingをcurrent Product Value、REQ-0001〜0022、SCN-0001〜0017、ADR-0001〜0024、4 Contract family、2 Representation Profile、first semantic runtime、synthetic Provider Adapterへ戻って再監査しました。historical候補とcurrentでAccepted・実体化・限定検証済みの境界を分け、確認済みのExecutable Evidenceだけを反映し、未検証のRelease / Operational / Adoption / Outcomeを維持しています。その後、意味、監査条件、Evidence強度を変えない範囲で自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
