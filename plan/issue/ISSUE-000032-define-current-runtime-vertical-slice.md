@@ -2,7 +2,7 @@
 
 Status: **Resolved**  
 Priority: **1**  
-Related ADRs: **ADR-0014, ADR-0019, ADR-0021, ADR-0022**  
+Related ADRs: **ADR-0014, ADR-0019, ADR-0021, ADR-0022, ADR-0023**  
 Updated: 2026-08-31
 
 ## Goal
@@ -34,7 +34,7 @@ read
 - unresolved state
 - Capability Observation
 - bundle内exact reference整合
-- unknown Contract / Profileの`not_verified`
+- unknown Contract / Profile / verifierの`not_verified`
 - historical reconstruction
 - semantic recordのlosslessな再export
 
@@ -47,7 +47,9 @@ read
 - Provider execution session
 - deployment lifecycle
 - automatic best-candidate selection
-- stable JCS verifier
+- Production Runtime用Representation Profile verifier registryの完成
+
+current JCS / raw-bytes Profile基線そのものはADR-0023とISSUE-000009で確定済みである。first sliceではProfile identity / versionとverification outcomeを保持できることを優先し、Production Runtimeへのverifier統合は独立したExecutable Evidenceとして扱う。
 
 ### Runtime / Contract authority
 
@@ -84,11 +86,20 @@ production TEI adapterをfirst sliceの必須条件にはしない。synthetic P
 
 ### Exact Binding boundary
 
-runtimeはExact Binding metadataとbinding同値性を扱うが、stable verifierを先取りしない。
+runtimeはExact Binding metadataとbinding同値性を扱う。
 
-ISSUE-000009が未解決であるため、JCS / SHA-256等をUniversal defaultへhard-codeしない。
+ADR-0023によりcurrent Representation Profile基線は次へ確定した。
+
+```text
+soza.jcs+sha256/v1alpha1
+soza.raw-bytes+sha256/v1alpha1
+```
+
+ただし、これらをUniversal defaultとしてhard-codeしてはならない。
 
 verifier不在や未知Profileは`not_verified`、実際の不一致は`failed`として分ける。
+
+Profile verifierをRuntimeへ接続する場合は、Profile DefinitionとProfile Conformance fixtureを正本とし、Runtime独自のcanonicalization規則を作らない。
 
 ### historical Go candidate
 
@@ -108,7 +119,8 @@ Milestone名、old package identity、old field、old Evidence stateを自動継
 - [x] first vertical sliceをcurrent Contractから追跡できる。
 - [x] Executionを先行実装しない理由を明示した。
 - [x] Provider adapterがUniversal CoreへProvider schemaを漏らさない境界を定めた。
-- [x] stable Representation Profile未確定状態を尊重した。
+- [x] current Representation Profile基線とRuntime統合Evidenceを分離した。
+- [x] unknown Profile / verifierを`not_verified`として保持する境界を維持した。
 - [x] Go implementationとSOZA semantic identityを分離した。
 - [x] historical candidate再利用規則を定めた。
 - [x] 自然な日本語全文再ドラフトと最終意味監査を完了した。
@@ -119,11 +131,13 @@ Milestone名、old package identity、old field、old Evidence stateを自動継
 
 ## Evidence / Follow-up
 
-- ADR-0022
-- ISSUE-000033 — runtime implementation
-- ISSUE-000009 — stable Representation Profile
+- ADR-0022 — first runtime slice
+- ADR-0023 — current Representation Profile baseline
+- ISSUE-000009 — current/future Profile stabilization（Resolved）
+- ISSUE-000033 — runtime implementation（In Progress）
+- ISSUE-000034 — historical M47 digest recovery（Blocked）
 - ISSUE-000022 — repository baseline全体
 
 ## Natural Japanese review
 
-ADR-0022へ戻ってruntime責務、Provider境界、Exact Binding未確定範囲、historical code再利用規則を再確認した。その後、実装詳細を先取りせず、意味と制約を変えない範囲で自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+ADR-0022、ADR-0023、Profile Conformance、runtime実体化開始状態へ戻ってruntime責務、Provider境界、Exact Binding境界を再確認した。その後、Profile未確定を前提としていた古い記述だけを現在状態へ改め、実装詳細を先取りせず、意味、制約、Evidence強度を変えない範囲で自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
