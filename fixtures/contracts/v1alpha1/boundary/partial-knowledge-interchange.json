@@ -1,0 +1,44 @@
+{
+  "contract": "soza.semantic-interchange/v1alpha1",
+  "bundle_id": "partial-knowledge-interchange",
+  "created_at": "2026-08-31T00:45:00Z",
+  "records": [
+    {
+      "record_id": "capability-gap",
+      "contract": {"contract_id": "soza.capability-observation", "version": "v1alpha1"},
+      "kind": "capability-observation",
+      "payload": {
+        "contract": "soza.capability-observation/v1alpha1",
+        "observation": {
+          "ref": {"kind": "capability-observation", "id": "partial-gap"},
+          "target": {
+            "capability_ref": {"kind": "capability", "id": "external-summarization"},
+            "provider_ref": {"kind": "provider", "id": "external-provider"},
+            "provider_target_ref": "external://summarization"
+          },
+          "observed_at": "2026-08-31T00:45:00Z",
+          "conditions": [
+            {"key": "availability", "state": "unknown", "note": "Current capacity was not observed."},
+            {"key": "internal_topology", "state": "withheld", "note": "Topology exists but is not disclosed."}
+          ]
+        }
+      }
+    },
+    {
+      "record_id": "decision-with-gap",
+      "contract": {"contract_id": "soza.decision-memory", "version": "v1alpha1"},
+      "kind": "decision",
+      "payload": {
+        "contract": "soza.decision-memory/v1alpha1",
+        "record_type": "decision",
+        "decision": {
+          "ref": {"kind": "decision", "id": "D-partial-knowledge"},
+          "statement": "Defer provider selection until availability is observed.",
+          "unresolved_refs": [
+            {"kind": "capability-observation", "id": "partial-gap"}
+          ]
+        }
+      }
+    }
+  ]
+}
