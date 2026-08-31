@@ -1,0 +1,19 @@
+{
+  "contract": "soza.capability-observation/v1alpha1",
+  "observation": {
+    "ref": {"kind": "capability-observation", "id": "F4-observation-gap"},
+    "target": {
+      "capability_ref": {"kind": "capability", "id": "plugin-resolution"},
+      "provider_ref": {"kind": "provider", "id": "tei"},
+      "provider_target_ref": "tei://plugin/resolver"
+    },
+    "observed_at": "2026-08-31T00:15:00Z",
+    "conditions": [
+      {"key": "plugin.resolution", "state": "observed", "value": "success"},
+      {"key": "runtime.availability", "state": "unknown", "note": "Observation Provider was unavailable; availability was not observed."}
+    ],
+    "provenance_refs": [
+      {"kind": "provider-observation", "id": "tei-plugin-resolution-result"}
+    ]
+  }
+}
