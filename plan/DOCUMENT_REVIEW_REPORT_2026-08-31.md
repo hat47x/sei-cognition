@@ -1,31 +1,33 @@
-# 開発文書の自然な日本語レビュー中間報告 — 2026-08-31
+# 開発文書の自然な日本語レビュー最終報告 — 2026-08-31〜2026-09-01
 
-状態: **In Progress / Interim Report**  
+状態: **Completed**  
 対象Issue: **ISSUE-000015**
 
 ## 1. この報告の位置づけ
 
-この文書は、current `develop/v0.1.0`に存在する開発文書を、意味・仕様・留保・Evidence強度を保ったまま自然な日本語へ整える全件監査の中間報告です。
+この文書は、current `develop/v0.1.0`に存在する開発文書を、意味・仕様・留保・Evidence強度を保ったまま自然な日本語へ整える全件監査の完了報告です。
 
-初回監査はhistorical M48〜M50候補から引き継いだ文書群を中心としていました。その後、Product Value traceability、Requirements、Architecture、Contract、Representation Profile、first Runtime、Provider Adapterまでactual repositoryが拡張されたため、初回件数をrepository全体の完了判定には使いません。
+初回監査後にrepositoryは、Product Value traceability、Requirements、Architecture、Contract、Representation Profile、first Semantic Runtime、synthetic Provider Adapterまで拡張されました。このため、初期の文書件数をそのまま完了判定には使わず、`plan/document_review_registry.yaml`でcurrent対象を追跡しました。
 
-完了状態は`ISSUE-000015`と`plan/document_review_registry.yaml`を正として管理します。
+2026-09-01時点で、current監査対象の`pending`は0件です。
 
-## 2. 品質基盤
+## 2. 適用した品質工程
 
-次をcurrent branchへ整備しました。
+新規・更新文書では、次の工程を標準としました。
 
-- `plan/DEVELOPMENT_WORKFLOW.md`
-- `plan/DOCUMENT_AUTHORING_STANDARD.md`
-- `plan/README.md`
-- `plan/document_review_registry.yaml`
-- Product Principlesの文書品質原則
+1. 文書の目的と決定範囲を確認する。
+2. Product Value、Requirement、ADR、Architecture、Contract、actual Evidenceとの整合を確認する。
+3. 古い前提・破棄済み判断・古いEvidence記述を除く。
+4. 技術的な矛盾、重複、不足を修正する。
+5. 意味、仕様、留保、Evidence強度を固定する。
+6. **自然な日本語となることを最重要視して全文をドラフトし直す。**
+7. 再ドラフトによる意味・強度の変化がないか最終監査する。
 
-新規・更新文書では、内容と構造を確定した後、**自然な日本語となることを最重要視して全文をドラフトし直し、その後に意味・留保・Evidence強度が変わっていないか再監査する工程**を必須としています。
+正本は`plan/DOCUMENT_AUTHORING_STANDARD.md`とする。
 
-## 3. current Evidence階層への同期
+## 3. Evidence階層
 
-Product Value Acceptanceは、現在次の5段階を区別します。
+文書全体で次の5段階へ統一しました。
 
 ```text
 Design Evidence
@@ -35,100 +37,141 @@ Design Evidence
   != Adoption / Outcome Evidence
 ```
 
-今回の文書監査では、旧文書に残っていた4段階表現や「CI PASS = 実装完了」に読める記述もcurrent上位文書へ同期します。
+CI PASSやfixtureの存在を、release、production運用、利用者価値へ自動昇格させていません。
 
-## 4. Product層
+historical / local candidateとactual repositoryのEvidenceも分離しています。
 
-Product Value / Value Model / Value Acceptance / Value Traceability / Vision / Principles / Product READMEはcurrent Product Value traceability baselineへ整合済みです。
+## 4. 完了した範囲
 
-V1〜V8を単一スコアへ潰さず、current Requirements、ADR、Architecture、Contract、Representation Profile、Runtime、Provider Adapter、残るEvidence gapへ戻れる状態を整備しました。
+### Product
 
-## 5. ADR / Issue全件監査
+Product Value、Value Model、Value Acceptance、Value Traceability、Vision、Principles、Product README、root READMEをcurrent上位baselineへ整合しました。
 
-ADR-0001〜ADR-0024、ISSUE-000001〜ISSUE-000037について、current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査しました。
+V1〜V8を維持し、Value → REQ / SCN → ADR → Architecture → Contract → scoped Executable Evidence → 未検証Evidenceへ追跡できるようにしています。
 
-主な是正は次です。
+### ADR / Issue / Planning
 
-- historical M48 / M49 / M50をcurrent Architectureの正本として読める参照を整理した。
-- Representation Profile確定前の記述をADR-0023のcurrent基線へ同期した。
-- Decision Memory / Capability Observation / Runtime実体化前のEvidence記述をcurrent状態へ同期した。
-- Issue自身が何を閉じたかと、後続Issueで増えたExecutable Evidenceを分けた。
-- ISSUE-000037でREQ-0001〜REQ-0022のEvidence表示を5段階へ全文再整合した。
+ADR-0001〜ADR-0024、ISSUE-000001〜ISSUE-000037を、current Product / Requirements / Architecture / Contract / Runtimeから逆向きに全件監査しました。
 
-ADRのDecision自体を後続実装の都合で変更した箇所はありません。
+historical Milestone、Issue自身のclosure、後続Executable Evidenceを分離し、StatusとEvidenceの高さを混同しない形へ整理しています。
 
-**ADR-0001〜ADR-0024、ISSUE-000001〜ISSUE-000037の全件監査は完了しています。**
+ADR / Issue Templateも、5段階Evidence、Product Value trace、historical / local / actualの分離、Decision boundaryとimplementation statusの分離へ更新しました。
 
-## 6. Requirements層
+### Requirements
 
-Requirementsのcurrent Markdown文書をすべて監査しました。
+次を全件監査しました。
 
 - `requirements/README.md`
 - `requirements/PRODUCT_REQUIREMENTS.md`
 - `requirements/ACCEPTANCE_SCENARIOS.md`
 - `requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md`
 
-`PRODUCT_REQUIREMENTS.md`はISSUE-000037で5段階Evidenceへ再整合しました。
+REQ-0001〜REQ-0022はISSUE-000037で5段階Evidenceへ再整合しました。SCN-0001〜SCN-0017もcurrent Contract / Runtime / synthetic Provider Adapterへ個別照合しています。
 
-Acceptance ScenariosはSCN-0001〜0017をcurrent Contract / Runtime / Provider Adapterへ個別照合し、actual Evidenceが存在するScenarioだけを限定的に更新しています。
+### Architecture
 
-特にSCN-0011 / SCN-0012ではcurrent fixture / synthetic Adapterの範囲でExecutable Evidenceが成立していますが、production TEI adapterや実運用を満たしたとは扱っていません。
+次を全件監査しました。
 
-historical mappingでは、旧candidateのlocal PASSとcurrent actual CI Evidenceを明確に分離しました。
+- `architecture/README.md`
+- `architecture/SOZA_REFERENCE_ARCHITECTURE.md`
+- `architecture/TRACEABILITY.md`
+- `architecture/history/HISTORICAL_ARCHITECTURE_MAPPING.md`
 
-## 7. 監査台帳
+current 4 Contract family、2 Representation Profile、first runtime、synthetic Provider Adapterを反映し、Architecture全体の完成やproduction integrationへはEvidenceを広げていません。
 
-`plan/document_review_registry.yaml`では、current Markdown開発文書を次の状態で管理します。
+### Contracts / Representation Profiles
+
+4 Contract Definition、Contract Catalog / README / Traceability / Evidence、2 Representation Profile、Profile Evidence、historical mappingを全件監査しました。
+
+規範意味や技術条件を変えず、actual Schema、17 fixture、Profile checker、first runtime、synthetic Adapterとの関係をcurrent Evidenceへ再基線化しました。
+
+### Runtime / Fixtures
+
+次を全文監査し、既に自然な日本語再ドラフトと最終意味監査まで完了していることを再確認しました。
+
+- `runtime/CONFORMANCE_EVIDENCE_2026-08-31.md`
+- `fixtures/contracts/v1alpha1/README.md`
+- `fixtures/providers/synthetic/README.md`
+
+### KJ統合文書
+
+次の3文書を全文監査しました。
+
+- `plan/kj/2026-08-31_ReferenceModel_CapabilityObservation_ラウンドKJ.md`
+- `plan/kj/2026-08-31_RequirementInquiry_AuthorizationEvidence_ラウンドKJ.md`
+- `plan/kj/2026-08-31_TEI設計系列_ラウンドKJ統合.md`
+
+これらには生カード、束ね、核融合、当時のDecision preparationが含まれます。現在のADRへ合わせて語を書き換えると、設計史や思考過程を改変します。そのため全文を監査したうえで`reviewed-no-change`としました。
+
+current Decisionの正本はProduct Value、Requirement、ADR、Architecture / Contractであり、KJ文書はsource snapshotとして扱います。
+
+## 5. 改稿対象外
+
+次は自然言語文書の全件改稿対象から分離しました。
+
+- JSON fixture
+- JSON Schema
+- Go source
+- checker / tool source
+- GitHub Actions workflow
+- 原文自体がEvidenceとなるhistorical資料
+
+除外理由は`plan/document_review_registry.yaml`に残しています。
+
+## 6. 監査台帳の最終状態
+
+`plan/document_review_registry.yaml`では、current対象を次のいずれかへ分類しています。
 
 - `revised`
 - `reviewed-no-change`
 - `excluded-historical`
-- `pending`
 
-Product、ADR / Issue、Requirements、planning品質文書は現在`revised`として管理しています。
+```text
+pending = 0
+```
 
-残るArchitecture、Contracts、Runtime Evidence、fixture README、KJ統合文書、Templateを`pending`として明示しています。
+台帳の完了は文書品質工程の終了を意味しません。今後の新規・更新文書は、通常の作成フローの中で同じ工程を通します。
 
-source code、JSON Schema、workflow、固定JSON fixture等は自然言語本文の全件監査対象から分離し、理由を台帳へ残しています。
+## 7. CIとExecutable Evidenceの扱い
 
-## 8. 原文保存する資料
+文書監査中にContract / Profile / Runtime / Requirements / PlanのCIを継続的に利用しました。
 
-自然な日本語への改稿を理由に、原文自体がEvidenceとなる資料を変更しません。
+代表的なactual Evidenceには次があります。
 
-たとえば次を含みます。
+- Contract Conformance
+- Representation Profile Conformance
+- Semantic Runtime Conformance
+- Requirements Registry Conformance
+- Plan integrity
 
-- historical implementation reportの参照コピー
-- legacy Contractの比較用原文
-- 固定fixture
-- 外部由来の原資料
+これらのsuccessは、各tested scopeのExecutable Evidenceまたは文書・台帳回帰確認です。
 
-これらは現行説明文から読み方を補い、原文は保持します。
+```text
+CI success
+  != Release Evidence
+  != Operational Evidence
+  != Adoption / Outcome Evidence
+```
 
-## 9. 現在の未完了範囲
+## 8. 独立して残す課題
 
-次を優先して監査します。
+historical M47 digestのRepresentation Profile recoveryはISSUE-000034でBlockedのままです。
 
-1. ArchitectureのREADME / Reference Architecture / historical mapping
-2. Contract Definition / Catalog / Profile / Evidence / historical mapping
-3. Runtime conformance Evidence
-4. fixture README
-5. KJ統合文書
-6. ADR / Issue Template
+これは原資料回収に依存する独立したhistorical provenance課題であり、current文書の自然な日本語監査を未完了にする理由にはしません。
 
-historical M47 digest Profileの一次source回収はISSUE-000034で独立してBlockedのまま扱います。
+## 9. 結論
 
-## 10. 完了条件
+current開発文書の全件監査は完了しました。
 
-`plan/document_review_registry.yaml`のcurrent文書に`pending`が残らず、各文書が`revised`、`reviewed-no-change`、または理由付き`excluded-historical`になった時点で、ISSUE-000015のclosureを判断します。
+`ISSUE-000015`はResolvedとし、今後は新規・更新文書の通常品質工程として自然な日本語再ドラフトと最終意味監査を継続します。
 
-台帳を埋めること自体を目的にはしません。各文書について、current Product Value / Requirements / ADR / Architecture / Contract / actual Evidenceへ戻り、必要な修正後に自然な日本語全文再ドラフトと最終意味監査を行います。
+```text
+全件監査完了
+  != 文書品質レビュー終了
+```
 
-## 11. 現在の結論
+品質工程を一度の移行作業から、通常の開発規律へ移したことを今回の完了点とします。
 
-Product層、ADR / Issue、Requirements層は一巡しました。残り作業はArchitecture以降のcurrent説明文書を上位から順に閉じる段階です。
+## 10. Natural Japanese review
 
-repository全体の監査はまだ完了していないため、ISSUE-000015は`In Progress`を維持します。
-
-## 12. Natural Japanese review
-
-current Product Value traceability、ADR-0001〜0024、ISSUE-000001〜000037、Requirements全current文書、5段階Evidence、document review registryへ戻って中間報告を再構成しました。その後、完了済み範囲とpending範囲を混同せず、意味、監査条件、Evidence強度を変えないよう自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product、ADR / Issue、Requirements、Architecture、Contracts / Profiles、Runtime Evidence、fixture README、KJ source snapshot、Template、監査台帳をcurrent actual repositoryへ戻して最終照合しました。その後、意味、仕様、留保、Evidence強度、完了条件を変えず、自然な日本語となることを最重要視して本報告を全文再ドラフトし、最終意味監査を実施済みです。
