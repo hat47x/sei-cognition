@@ -121,7 +121,7 @@ issue:
   - {id: ISSUE-000019, file: plan/issue/ISSUE-000019-clarify-reference-model-and-cognitive-method-boundary.md, status: Resolved, priority: 4, related_adrs: [ADR-0014, ADR-0017]}
   - {id: ISSUE-000020, file: plan/issue/ISSUE-000020-define-tei-capability-observation-surface.md, status: Resolved, priority: 5, related_adrs: [ADR-0012, ADR-0013, ADR-0014, ADR-0019]}
   - {id: ISSUE-000021, file: plan/issue/ISSUE-000021-audit-design-history-provenance.md, status: Deferred, priority: 6, related_adrs: [ADR-0014]}
-  - {id: ISSUE-000022, file: plan/issue/ISSUE-000022-materialize-repository-baseline.md, status: In Progress, priority: 2, related_adrs: [ADR-0007, ADR-0008, ADR-0009, ADR-0014, ADR-0018, ADR-0020, ADR-0021]}
+  - {id: ISSUE-000022, file: plan/issue/ISSUE-000022-materialize-repository-baseline.md, status: Resolved, priority: 2, related_adrs: [ADR-0007, ADR-0008, ADR-0009, ADR-0014, ADR-0018, ADR-0020, ADR-0021]}
   - {id: ISSUE-000023, file: plan/issue/ISSUE-000023-formalize-product-value-governance.md, status: Resolved, priority: 1, related_adrs: [ADR-0018]}
   - {id: ISSUE-000024, file: plan/issue/ISSUE-000024-materialize-capability-observation-fixtures.md, status: Resolved, priority: 2, related_adrs: [ADR-0006, ADR-0008, ADR-0012, ADR-0013, ADR-0014, ADR-0019]}
   - {id: ISSUE-000025, file: plan/issue/ISSUE-000025-define-requirements-baseline-convention.md, status: Resolved, priority: 1, related_adrs: [ADR-0018, ADR-0020]}
@@ -135,4 +135,4 @@ issue:
   - {id: ISSUE-000033, file: plan/issue/ISSUE-000033-implement-runtime-read-validate-reconstruct.md, status: Resolved, priority: 1, related_adrs: [ADR-0021, ADR-0022]}
   - {id: ISSUE-000034, file: plan/issue/ISSUE-000034-recover-historical-m47-digest-profile.md, status: Blocked, priority: 2, related_adrs: [ADR-0008, ADR-0009, ADR-0017, ADR-0023]}
   - {id: ISSUE-000035, file: plan/issue/ISSUE-000035-define-provider-adapter-observation-boundary.md, status: Resolved, priority: 1, related_adrs: [ADR-0014, ADR-0019, ADR-0021, ADR-0022, ADR-0024]}
-  - {id: ISSUE-000036, file: plan/issue/ISSUE-000036-implement-synthetic-provider-adapter-slice.md, status: Open, priority: 1, related_adrs: [ADR-0019, ADR-0022, ADR-0024]}
+  - {id: ISSUE-000036, file: plan/issue/ISSUE-000036-implement-synthetic-provider-adapter-slice.md, status: Resolved, priority: 1, related_adrs: [ADR-0019, ADR-0022, ADR-0024]}

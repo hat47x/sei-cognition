@@ -7,23 +7,23 @@ Updated: 2026-08-31
 
 ## 目的
 
-SOZAの既存開発文書を、技術的な意味・仕様・留保を変えず、**自然な日本語となることを最重要視して全文をドラフトし直す工程**へ通します。
+SOZAの既存開発文書を、技術的な意味・仕様・留保・Evidence強度を変えず、**自然な日本語となることを最重要視して全文をドラフトし直す工程**へ通す。
 
-この作業は一度限りの文章校正ではありません。新規作成・更新する文書でも同じ工程を必須とし、SOZAの継続的な品質ゲートとして定着させます。
+この作業は一度限りの文章校正ではない。新規作成・更新する文書でも同じ工程を必須とし、SOZAの継続的な品質ゲートとして扱う。
 
 ## 必須工程
 
-開発文書は、原則として次の順序で確認します。
+開発文書は原則として次の順序で確認する。
 
 1. 文書の目的と決定範囲を確認する。
-2. 最新のProduct Value、Requirement、ADR、Architectureとの整合を確認する。
+2. 最新のProduct Value、Requirement、ADR、Architecture、Contractとの整合を確認する。
 3. 古い議論や破棄済みの前提が残っていないか確認する。
-4. 技術的な矛盾、重複、不足を修正する。
-5. 技術的な意味、仕様、留保をいったん固定する。
+4. 技術的な矛盾、重複、不足、古いEvidence記述を修正する。
+5. 技術的な意味、仕様、留保、Evidence強度をいったん固定する。
 6. **自然な日本語となることを最重要視して全文をドラフトし直す。**
-7. 再ドラフトによって意味の強度、条件、例外、Evidenceの強さが変わっていないか最終監査する。
+7. 再ドラフトによって要求強度、条件、例外、Evidenceの高さが変わっていないか最終監査する。
 
-第6工程は省略しません。詳細な基準は`plan/DOCUMENT_AUTHORING_STANDARD.md`を正とします。
+第6工程は省略しない。詳細な基準は`plan/DOCUMENT_AUTHORING_STANDARD.md`を正とする。
 
 ## 監査の優先順位
 
@@ -31,29 +31,25 @@ SOZAの既存開発文書を、技術的な意味・仕様・留保を変えず�
 2. `plan/adr`、`plan/issue`、`plan/registry.yaml`
 3. `requirements`
 4. `architecture`、`contracts`
-5. `plan/rebaseline`等の報告・計画文書
-6. repository README、補助文書
-7. runtime / fixture / tool実体化後の説明文書・コメント
+5. root README、runtime / fixture / toolの説明文書
+6. `plan/rebaseline`等のhistorical / reporting文書
 
-## 現在の進捗 — 2026-08-31
+## 現在の進捗
 
-### 1. 品質基盤
+### 1. 文書品質基盤
 
-次を整備しました。
+次を整備済み。
 
 - `plan/DEVELOPMENT_WORKFLOW.md`
 - `plan/DOCUMENT_AUTHORING_STANDARD.md`
-- `plan/README.md`の文書作成工程
-- `product/principles/SOZA_PRODUCT_PRINCIPLES.md`の文書品質原則
-- `plan/DOCUMENT_REVIEW_REPORT_2026-08-31.md`の中間報告
+- `plan/README.md`
+- `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
 
-内容・構造を確定した後に全文を自然な日本語で再ドラフトし、その後に最終意味監査を行う工程を通常開発へ組み込みました。
-
-今後の通常開発は`develop/vX.Y.Z`形式のbranchで行い、Product文書とADR / Issueを実装より先に整備します。
+内容と構造を確定した後に全文を自然な日本語で再ドラフトし、さらに意味監査を行う工程を通常開発へ組み込んだ。
 
 ### 2. Product層
 
-current Product文書:
+次のcurrent Product文書は主要baselineを一巡した。
 
 - `product/value/SOZA_PRODUCT_VALUE.md`
 - `product/value/SOZA_VALUE_MODEL.md`
@@ -61,66 +57,51 @@ current Product文書:
 - `product/vision/SOZA_PRODUCT_VISION.md`
 - `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
 
-ここまでに次を実施しました。
+Value Modelでは価値の三層、価値衝突時の優先規則、Core昇格基準、V1〜V8、失敗条件を明示した。
 
-- Product Valueの存在理由と中核価値を再整理。
-- Value Modelで価値の三層、価値衝突時の優先規則、Core昇格基準、V1〜V8、失敗条件を明示。
-- Value AcceptanceでDesign / Executable / Release / Operational Evidenceを分離。
-- Product Visionを具体的な型一覧から長期的な利用状態へ戻して再構成。
-- Product Principlesへsimple view / canonical meaning、単一スコア化禁止、Product Value再基線化等を追加。
-- 各文書について自然な日本語全文再ドラフトと最終意味監査を実施。
+Value AcceptanceではDesign / Executable / Release / Operational Evidenceを分離した。
 
-Product層の主要baselineは一巡しました。Architecture / Contract / Executable Evidenceから反証が得られた場合は必要箇所を再監査します。
+Vision / PrinciplesもValue Modelへ戻って再監査済みである。
 
 ### 3. Plan層
 
-`plan/registry.yaml`には、ADR-0001〜ADR-0021、ISSUE-000001〜ISSUE-000031を登録しています。
+current registryはADR-0001〜ADR-0024、ISSUE-000001〜ISSUE-000036を管理する。
 
-特に次を進めました。
+この期間に新規・大幅更新した主なDecision / Issue:
 
-- ADR-0018でProduct Valueの権威関係と評価境界を固定。
-- ADR-0019でProvider-neutralなCapability Observation境界を固定。
-- ADR-0020でRequirementsのstable ID、Value traceability、Requirement / Scenario / Test、status / Evidence境界を固定。
-- ADR-0021でArchitecture / Contract / schema / implementationの権威関係とContract versioningを固定。
-- ISSUE-000025 / 000026でRequirements Design baselineを整備。
-- ISSUE-000028 / 000029でArchitecture規約とReference Architectureを整備。
-- ISSUE-000030でContract Design baselineを整備。
-- Requirements checkerをISSUE-000027、Contract conformanceをISSUE-000031へ分離。
-- ISSUE-000022をactual repositoryの現在地に合わせて更新。
+- ADR-0018 — Product Value authority / evaluation boundary
+- ADR-0019 — Provider-neutral Capability Observation
+- ADR-0020 — Requirements traceability / Evidence boundary
+- ADR-0021 — Architecture / Contract authority / versioning
+- ADR-0022 — first runtime read / validate / reconstruct slice
+- ADR-0023 — current Representation Profile baseline
+- ADR-0024 — Provider Adapter observation mapping boundary
+- ISSUE-000022 — current repository baseline closure
+- ISSUE-000024〜000033 — Requirements / Architecture / Contract / Runtime実体化
+- ISSUE-000034 — historical M47 digest recovery
+- ISSUE-000035 / 000036 — Provider Adapter設計・synthetic実装
 
-新規・大幅更新した文書は、自然な日本語全文再ドラフト工程と最終意味監査を通しています。
+新規・大幅更新文書は、自然な日本語全文再ドラフトと最終意味監査を通している。
 
-ただし、ADR-0001〜ADR-0021およびISSUE-000001〜ISSUE-000031の**既存部分を含む全件監査が完了したとはまだ扱いません。** current Product Value / Requirements / Architecture / Contractsからの逆向き照合を継続します。
+ただし、ADR-0001〜ADR-0024、ISSUE-000001〜ISSUE-000036の**既存部分を含む全件逆向き監査が完了したとはまだ扱わない。**
 
 ### 4. Requirements層
 
-current Requirements Design baseline:
-
-```text
-requirements/
-  README.md
-  PRODUCT_REQUIREMENTS.md
-  ACCEPTANCE_SCENARIOS.md
-  history/
-    HISTORICAL_REQUIREMENT_MAPPING.md
-```
-
-現在の正本:
+current Requirements:
 
 - REQ-0001〜REQ-0022
 - SCN-0001〜SCN-0017
+- historical mapping
 
-historical candidateのProduct Requirements、NFR、Acceptance Scenarioは、件数や旧IDを保存することを目的とせず、意味核をcurrent Product Valueへ戻して統合・分離しました。
+Requirements Design baselineに加え、Registry checker / negative self-test / GitHub Actionsもcurrent actual repositoryで成立している。
 
-旧Evidence状態はcurrent baselineへ自動継承していません。
+`requirements/PRODUCT_REQUIREMENTS.md`は2026-08-31に再基線化し、Architecture / Contract / Runtimeが未実体化だった時期の古いEvidence記述を削除した。
 
-Requirements文書については、current / historical / evidenceの三層を整理した後、全文を自然な日本語で再ドラフトし、意味、要求強度、例外、Evidence状態が変わっていないことを確認しています。
-
-Requirements Design baselineは完了しました。Executable registry checkはISSUE-000027で追跡します。
+現在は、各Requirementについてfixture / first runtime sliceで直接確認した範囲だけを`Partially Satisfied`等として記述し、Release / Operational Evidenceへ広げていない。
 
 ### 5. Architecture層
 
-current Architecture Design baselineをactual repositoryへ実体化しました。
+current Architecture baseline:
 
 ```text
 architecture/
@@ -131,30 +112,13 @@ architecture/
     HISTORICAL_ARCHITECTURE_MAPPING.md
 ```
 
-M48 / M49 / M50等のMilestone順をcurrent ontologyへ持ち込まず、次のようなarchitecture concernへ再構成しています。
+M48 / M49 / M50等のMilestone順をcurrent ontologyへ持ち込まず、意味上のarchitecture concernへ再構成した。
 
-- Inquiry / Epistemic State
-- Cognitive Method
-- Decision Memory
-- Capability Definition / Observation / Choice
-- Responsibility / Authority
-- Semantic Reference / Revision / Exact Binding
-- Profile / Policy
-- Federation / Selective Disclosure
-- Provider / Adapter
-- Projection
-- Persistence
-- Evidence / Assurance
+REQ-0001〜REQ-0022を少なくとも一つのarchitecture concernへ追跡できる。
 
-REQ-0001〜REQ-0022が少なくとも一つのarchitecture concernへ追跡できることを確認しました。
+Architecture文書は内容確定後に自然な日本語へ全文再ドラフトし、意味境界とEvidence強度を再監査済みである。
 
-historical ArchitectureはIntegrated / Split / Historical evidence only等へ分類し、old field set、package、algorithm、local PASSをcurrent正本へ自動継承していません。
-
-Architecture 4文書は内容確定後に全文を自然な日本語で再ドラフトし、意味境界とEvidence強度が変わっていないことを確認しています。
-
-### 6. Contracts層
-
-current Contract Design baselineをactual repositoryへ実体化しました。
+### 6. Contracts / Representation Profiles
 
 current Contract family:
 
@@ -163,68 +127,100 @@ current Contract family:
 - `soza.capability-observation/v1alpha1`
 - `soza.semantic-interchange/v1alpha1`
 
-主な正本:
+Contract Definition、Catalog、Traceability、historical mapping、Schema、fixture、conformance checkerをactual treeへ実体化した。
 
-- `contracts/README.md`
-- `contracts/CONTRACT_CATALOG.md`
-- `contracts/TRACEABILITY.md`
-- 各Contract Definition
-- `contracts/history/HISTORICAL_CONTRACT_MAPPING.md`
+Representation ProfileはADR-0023で、
 
-Semantic ContractとRepresentation Profileを分離し、JCS、SHA-256、raw bytes等をSemantic Coreへ固定していません。
+- `soza.jcs+sha256/v1alpha1`
+- `soza.raw-bytes+sha256/v1alpha1`
 
-Contract Definitionをhuman-readable semantic normative sourceとし、machine-readable schemaは検証可能なrepresentationとして後続実装します。
+をcurrent/future基線としてAcceptedした。
 
-各Contract文書は、意味・規範強度・留保を確定後、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しています。
+historical M47 digest規則だけはcurrent Profileと分離し、ISSUE-000034でBlockedとしている。
 
-Executable conformanceは未検証であり、ISSUE-000031で追跡します。
+旧文書にあった「Representation Profile全体が未確定」という記述はcurrent正本から除去・更新する。
 
-### 7. repository README
+### 7. Runtime / Provider Adapter
 
-root READMEをactual Design baselineへ同期しました。
+first semantic runtime sliceをGoで実体化し、current Contract fixtureと同じ意味境界からread / validate / reconstructを検証した。
 
-現在はProduct / Requirements / Architecture / Contracts / Planが実体化済みであること、runtime / executable conformance / release / operational evidenceは未完了であることを分けて記載しています。
+`Semantic Runtime Conformance` run #3でContract checkerとGo testsがsuccessした。
 
-### 8. 過去の初回監査について
+さらにADR-0024に従い、異なるinput shapeを持つsynthetic Provider A / BからCapability Observationを生成するAdapter sliceを追加した。
 
-M48〜M50のローカル候補を対象に実施した初回監査は、現在branchより古い文書集合を対象としていました。このため、その時点の文書数をrepository全体の完了判定には使用しません。
+Provider Adapterは、
 
-中間結果は`plan/DOCUMENT_REVIEW_REPORT_2026-08-31.md`へ残し、current branchを基準として監査を継続します。
+- mapping provenance
+- source state ref
+- Unknown preservation
+- Provider-specific target
+- no Decision / Authority / Execution escalation
+
+を検査する。
+
+`Semantic Runtime Conformance` run #4でもsuccessを確認済みである。
+
+fixture説明文書も、Provider固有fieldをUniversal schemaと誤読しないよう自然な日本語へ再ドラフト済みである。
+
+### 8. root README
+
+root READMEは、Requirements / Architecture / Contract / Representation Profile / Runtimeが未実体化だった古い状態からcurrent actual treeへ同期した。
+
+current Evidenceの範囲と、Provider production integration / Release / Operational Evidenceの未完了を分けて記載している。
+
+## CIと文書更新
+
+開発中にCI failureを検出した場合は、その時点で原因を解消し、successを確認してから次の作業へ進む。
+
+2026-08-31には、
+
+- runtime workflowのdependency導入漏れ
+- F5/F6 Semantic Interchangeをstandalone recordとして扱ったtest誤り
+- Issue本文とregistryを別commitで更新した際の一時的status不整合
+
+を検出し、いずれも原因を確認して修正した。
+
+以後、Plan文書とregistryを同時に変更する場合は、可能な範囲でatomic commitを用いて中間不整合を避ける。
 
 ## 進行中の作業
 
-優先順は次のとおりです。
+現時点の中心は、**既存文書全件の逆向き監査**である。
 
-1. ADR / Issue既存文書をcurrent Product Value / REQ / Architecture / Contractから逆向きに監査する。
-2. Requirements registry checkerを実装する（ISSUE-000027）。
-3. Contract schema / fixture / conformanceを実装する（ISSUE-000031）。
-4. Capability Observation fixtureを実装する（ISSUE-000024）。
-5. Representation Profile / Exact Binding verificationを安定化する（ISSUE-000009）。
-6. rebaseline reports等のhistorical / active境界を再監査する。
-7. runtime / fixture / tool実体化後の説明文書・コメントを同じ日本語工程へ通す。
+優先順:
+
+1. ADR-0001〜ADR-0017の既存本文をcurrent Product Value / REQ / Architecture / Contractから逆向きに再監査する。
+2. ISSUE-000001〜ISSUE-000021の既存本文に、古いMilestone前提やEvidence状態が残っていないか再監査する。
+3. `plan/rebaseline`等のhistorical / active境界を確認する。
+4. runtime code comment / fixture README / tool README等の説明文書を同じ品質工程へ通す。
+5. README / Requirements / Architecture / Contractを、後続実装でEvidenceが変わるたびに再同期する。
+
+ISSUE-000034はhistorical一次sourceの回収待ちであり、自然な日本語監査とは独立したBlocked事項として扱う。
 
 ## Acceptance criteria
 
-- 固定100倍基準が現行の正本文書に残らない。
-- X-TEAを現行Product名として扱わない。
-- TEIをSOZA内部Runtimeと誤読させる記述を残さない。
-- planning、design、historical/local executable、actual repository executable、release、operational evidenceを区別する。
-- 重要な`!=`境界は、式だけでなく自然な日本語でも説明する。
-- Product Valueとの関係を必要な文書から追跡できる。
-- REQ / SCNのcurrent正本とhistorical mappingを区別する。
-- Architecture concernとruntime componentを同一視しない。
-- Semantic ContractとRepresentation Profileを同一視しない。
-- Contract Definitionとschema / implementationの権威関係を混同しない。
-- 原文自体がEvidenceとなるhistorical資料や固定fixtureは、理由なく改変しない。
-- 再ドラフト後に、技術的意味・条件・例外・Evidence強度が変わっていないことを確認する。
-- current branchに存在する対象開発文書を確認し終えるまで、本IssueをResolvedにしない。
+- [x] 固定100倍基準をcurrent Product正本から除去し、10〜50×のmoving horizonへ統一した。
+- [x] X-TEAをcurrent Product名として扱わない。
+- [x] TEIをSOZA内部Runtimeと誤読させないProduct / Architecture境界を整備した。
+- [x] Design / Executable / Release / Operational Evidenceの区別をcurrent上位文書へ反映した。
+- [x] REQ / SCNのcurrent正本とhistorical mappingを分離した。
+- [x] Architecture concernとruntime componentを分離した。
+- [x] Semantic ContractとRepresentation Profileを分離した。
+- [x] Contract DefinitionとSchema / implementationの権威関係を分離した。
+- [x] runtime / Provider Adapterの新規説明文書へ自然な日本語再ドラフト工程を適用した。
+- [ ] ADR-0001〜ADR-0024の既存本文をcurrent baselineから全件再監査する。
+- [ ] ISSUE-000001〜ISSUE-000036の既存本文をcurrent baselineから全件再監査する。
+- [ ] その他current branchに残る開発説明文書の対象一覧を確定し、監査漏れがないことを確認する。
+
+current branchに存在する対象開発文書を確認し終えるまで、本IssueをResolvedにしない。
 
 ## 対象外
 
-技術用語をすべて日本語へ翻訳することは目的としません。また、読みやすくするために未決事項を勝手に確定したり、Evidenceより強い状態へ書き換えたりしません。
+技術用語をすべて日本語へ翻訳することは目的としない。
 
-自然な日本語と技術的精度を両立させます。
+また、読みやすくするために未決事項を勝手に確定したり、Evidenceより強い状態へ書き換えたりしない。
+
+自然な日本語と技術的精度を両立する。
 
 ## Natural Japanese review
 
-Product / Plan / Requirements / Architecture / Contractsのcurrent到達点をactual branchへ戻って確認し、完了済みDesign baselineと未完了Executable作業を分けて進捗を再構成しました。その後、監査範囲、Evidence強度、未完了条件を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しています。
+Product / Requirements / Architecture / Contract / Representation Profile / Runtime / Provider Adapterのcurrent到達点とCI実績へ戻って進捗を再構成した。完了済みの基線整備と、既存文書全件の逆向き監査という未完了作業を分けた後、監査範囲、Evidence強度、未完了条件を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
