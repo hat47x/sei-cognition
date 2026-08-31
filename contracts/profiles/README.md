@@ -160,9 +160,9 @@ historical bindingがどのdigest規則で作られたか不明な場合、現�
 
 Profileを特定できない、payloadがない、verifierがない等の場合は`not_verified`として扱います。
 
-historical M47 digestの回収・Profile対応付けはISSUE-000032で独立して追跡します。
+historical M47 digestの回収・Profile対応付けはISSUE-000034で独立して追跡します。
 
-ADR-0022により、historical M47 mappingが未完了でもcurrent/future Profile基線を利用できることを明示しています。
+ADR-0023により、historical M47 mappingが未完了でもcurrent/future Profile基線を利用できることを明示しています。
 
 ## 9. versioning
 
@@ -191,9 +191,9 @@ Production RuntimeのVerifier Registry / Adapterは、runtime baselineを実体�
 
 - ADR-0008 — Exact Binding verification boundary
 - ADR-0009 — Verification Outcome separation
-- ADR-0022 — current Representation Profile baseline
-- ISSUE-000009 — current/future Profile stabilization
-- ISSUE-000032 — historical M47 digest recovery
+- ADR-0023 — current Representation Profile baseline
+- ISSUE-000009 — current/future Profile stabilization（Resolved）
+- ISSUE-000034 — historical M47 digest recovery（Blocked）
 
 ## 12. Natural Japanese review
 
