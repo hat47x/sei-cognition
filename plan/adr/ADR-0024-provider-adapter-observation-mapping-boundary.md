@@ -1,0 +1,221 @@
+# ADR-0024: Provider Adapterを観測変換境界として扱う
+
+Status: **Accepted**  
+Related Issues: **ISSUE-000035, ISSUE-000036**  
+Updated: 2026-08-31
+
+## Context
+
+SOZAのcurrent baselineでは、ProviderとCapabilityを分離し、Provider内部状態をそのままCapabilityの意味へ昇格させない方針を採用している。
+
+ADR-0019と`soza.capability-observation/v1alpha1`では、Provider固有の状態からProvider-neutralなCapability Observationへ変換するとき、field mapping、unit conversion、status interpretation、aggregation等が単なるformat変換ではなく、意味上の解釈を含み得ることを明示した。
+
+```text
+Provider state != Capability interpretation != Decision
+```
+
+ADR-0022のfirst runtime sliceでは、current Capability Observationを読み、検査し、Decision basisとしてhistoricalに再構成するところまでExecutable Evidenceを得た。一方、actual Provider stateからCapability Observationを生成するruntime境界はまだ存在しない。
+
+ここでTEI固有Schemaを先に接続すると、SOZAと関係の近いProviderの内部構造がUniversal Coreへ逆流する危険がある。また、すべてのProviderを一つの共通state schemaへ押し込めると、Provider IndependenceのためのAdapterが、逆に新しいglobal Provider ontologyになる。
+
+そこで、Provider Adapterをどの意味境界として扱うかを先に固定する。
+
+## Decision
+
+### 1. Provider AdapterはProvider固有stateからCapability Observationへの一方向の解釈境界とする
+
+概念上の基本関係を次とする。
+
+```text
+Provider-owned state
+  + observation context
+        ↓
+Adapter / Mapping
+        ↓
+Capability Observation
+        ↓
+Matching / Decision may consume
+```
+
+AdapterはProvider内部SchemaをSOZA Coreへ移植する場所ではない。
+
+Provider固有stateを読み取り、current Capability Observation Contractで必要な意味だけを外在化する。
+
+### 2. Provider固有stateの共通Universal schemaを新設しない
+
+人間、SaaS、AI service、TEI、custom code、外部組織等は、内部状態の表現が大きく異なり得る。
+
+SOZAは、それらを一つのUniversal `ProviderState` field setへ正規化することを要求しない。
+
+```text
+Provider-specific input schema != SOZA Universal ontology
+```
+
+Adapter runtime APIがraw bytes、typed object、API response等のいずれを受け取るかは実装上の選択であり、semantic authorityではない。
+
+### 3. Adapterの出力はCapability Observation Contractで検証する
+
+Adapterが生成した結果は、少なくともcurrent `soza.capability-observation/v1alpha1`の意味境界を満たさなければならない。
+
+```text
+Adapter produced output
+  != validated Capability Observation
+```
+
+実装では、Adapter出力を既存Contract validatorまたは同等のruntime validationへ通したうえで、validated observationとして扱う。
+
+Adapter都合でContractを弱めない。
+
+### 4. mapping provenanceを解釈の一部として保持する
+
+Adapterが次の処理を行う場合、単なる透明なformat変換とは扱わない。
+
+- field mapping
+- unit conversion
+- enum / category normalization
+- status interpretation
+- aggregation
+- derived condition
+- missing-value interpretation
+
+生成したCapability Observationには、必要な範囲で`mapping_provenance`を残す。
+
+最低限、どのmapping definition / versionを用いたかを後から識別できるようにする。
+
+### 5. Decision basisとして重要なmappingはhistoricalに固定できるようにする
+
+Adapter mappingが変更されると、同じProvider stateから異なるCapability Observationが生成される可能性がある。
+
+重要なDecisionがそのObservationをbasisとして利用した場合、Profile / Policyはmapping versionのlogical referenceだけでなく、必要に応じてExact Bindingを要求できる。
+
+```text
+same Provider state
+  + different mapping
+  → may produce different interpretation
+```
+
+したがって、現在のmappingへ追随して過去Observationを再計算することをhistorical reconstructionの既定動作にはしない。
+
+### 6. source stateへの戻り道を失わない
+
+SOZA Universal CoreへProvider state全量を複製することは要求しない。
+
+一方、Capability ObservationがどのProvider stateを材料にしたかを、必要な範囲で追跡できなければならない。
+
+初期境界では、少なくとも次のいずれかを残せる設計とする。
+
+- Provider-specific source state reference
+- provenance reference
+- exact source binding（必要な場合）
+
+sourceを保持できない場合は、その事実をraw factの不存在と混同しない。
+
+### 7. missing / unknownをnegative factへ変換しない
+
+Provider stateにfieldがない、APIが応答しない、権限上取得できない等の場合、Adapterは便宜的なdefault値から`available=false`等を作ってはならない。
+
+```text
+missing != false
+not observed != unavailable
+withheld != unknown
+```
+
+Provider固有の欠落理由をすべてUniversal taxonomyへする必要はないが、意味を失わず`unknown`、`withheld`、provenance等へ外在化できる余地を維持する。
+
+### 8. 共通facetは比較のために使えてもUniversal closed taxonomyにはしない
+
+複数Providerを比較するため、`availability`、latency、cost等の共通condition keyへmappingすることは許す。
+
+ただし、それらを全Capabilityへ適用される閉じたUniversal field setへ固定しない。
+
+Provider固有情報はextensionまたはProvider-specific referenceとして残せる。
+
+### 9. AdapterはMatching / Recommendation / Decision / Authority / Executionを所有しない
+
+Adapterは観測変換境界である。
+
+```text
+Adapter mapping
+  != Matching
+  != Recommendation
+  != Decision
+  != Authority
+  != Execution
+```
+
+Adapterが`available=true`を生成しても、それは候補採用や実行許可を意味しない。
+
+Provider adapterにbest-candidate selectionやTrust rankingを持ち込まない。
+
+### 10. Adapter実装自体をsemantic authorityにしない
+
+Go interface、package名、function signature等は交換可能なruntime implementationである。
+
+```text
+Adapter interface != Adapter semantic contract
+```
+
+同じmapping meaningを別言語・別libraryで実装できることを妨げない。
+
+### 11. 最初のExecutable sliceはsynthetic heterogeneous Providersで検証する
+
+最初からTEI production adapterを作らない。
+
+異なるProvider-specific input schemaを持つ少なくとも2つのsynthetic Providerを用い、同じCapabilityに対するObservationへmappingできることを確認する。
+
+これにより、TEI固有概念をUniversal Coreへ持ち込まずに、次を検証する。
+
+- input schemaが異なってもcurrent Capability Observationへ変換できる。
+- unit / status mappingをprovenance付きで扱える。
+- missing stateをnegative factへ変換しない。
+- Provider-specific contextをopaque referenceとして保持できる。
+- Provider kindからranking / Authorityを推定しない。
+
+TEI adapterはこの境界が成立した後の一Provider実装として扱う。
+
+### 12. CIではAdapter outputとcurrent Contract fixture sourceを再照合する
+
+Provider Adapter testは単なるunit testだけにしない。
+
+生成結果をcurrent Capability Observationのruntime validationへ通し、既存Contractの意味境界を満たすことを確認する。
+
+可能な限り、既存F1〜F7やboundary fixtureと同じ意味条件へ戻して検査する。
+
+## Consequences
+
+### Positive
+
+- Provider固有SchemaがSOZA Universal Coreへ漏れにくい。
+- Adapterによる解釈をraw Provider factと区別できる。
+- mapping変更後も過去Decision basisを再構成しやすい。
+- TEI、SaaS、人間等を同じCapability候補として扱いつつ、内部Schemaを無理に統一しなくて済む。
+- Provider integrationを進めてもSOZAの中心をExecution engineへ移さずに済む。
+
+### Costs
+
+- ProviderごとにAdapter / Mappingの設計と保守が必要になる。
+- mapping provenanceを保持するため、単純なAPI response変換より記録が増える。
+- 共通facetとProvider-specific extensionの境界をuse caseごとに確認する必要がある。
+- mapping versionをhistoricalに固定すべき範囲をProfile / Policyで判断する必要がある。
+
+## Revisit conditions
+
+次の場合に再検討する。
+
+- 多数Providerで同一のinput semanticsが反復し、明示的なProvider Profile Contractを共有する方が自然になる。
+- mapping provenanceだけではDecision historical reconstructionが不十分な事例が反復する。
+- Provider AdapterとCapability Matchingの境界が実ユースケースで継続的に不自然になる。
+- human/manual Provider等、API stateを持たないProviderで別のObservation acquisition境界が必要になる。
+
+## Evidence / Follow-up
+
+- REQ-0007, REQ-0016, REQ-0021, REQ-0022
+- ADR-0019 — Provider-neutral Capability Observation
+- ADR-0022 — first runtime slice
+- `contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md`
+- ISSUE-000035 — 本境界の設計整理（Resolved）
+- ISSUE-000036 — synthetic Provider Adapter vertical sliceの実装
+
+## Natural Japanese review
+
+current Product Value、Capability Observation Contract、first runtime slice、F1〜F7のExecutable Evidenceを照合し、Provider AdapterをProvider schemaの共通化ではなく観測解釈の境界として整理した。その後、mapping provenance、Unknown、Decision、Authority、Executionの意味差を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
