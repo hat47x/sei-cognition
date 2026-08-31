@@ -1,0 +1,8 @@
+{
+  "contract": "soza.decision-memory/v1alpha1",
+  "decision": {
+    "ref": {"kind": "decision", "id": "invalid-authority-field"},
+    "statement": "Proceed with deployment.",
+    "authority": {"granted": true}
+  }
+}
