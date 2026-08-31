@@ -1,0 +1,41 @@
+name: Requirements Registry Conformance
+
+on:
+  push:
+    branches:
+      - "develop/**"
+    paths:
+      - "requirements/**"
+      - "plan/scripts/check_requirements_registry.py"
+      - "plan/scripts/test_check_requirements_registry.py"
+      - ".github/workflows/requirements-registry.yml"
+  pull_request:
+    paths:
+      - "requirements/**"
+      - "plan/scripts/check_requirements_registry.py"
+      - "plan/scripts/test_check_requirements_registry.py"
+      - ".github/workflows/requirements-registry.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  requirements-registry:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile checker
+        run: python3 -m py_compile plan/scripts/check_requirements_registry.py plan/scripts/test_check_requirements_registry.py
+
+      - name: Run checker self-tests
+        run: python3 plan/scripts/test_check_requirements_registry.py
+
+      - name: Check current Requirements / Scenario registry
+        run: python3 plan/scripts/check_requirements_registry.py
