@@ -1,7 +1,7 @@
 # SOZA JCS + SHA-256 Representation Profile v1alpha1
 
 Profile ID: `soza.jcs+sha256/v1alpha1`  
-Status: **Candidate — Executable Conformance Required**  
+Status: **Current v1alpha1 — Fixture-scoped Executable Conformance PASS**  
 Updated: 2026-08-31
 
 ## 1. Purpose
@@ -111,7 +111,9 @@ unknown Profile ID / versionを`verified`として扱ってはなりません。
 
 ## 8. Verifier implementation boundary
 
-current Go probeでは`github.com/gowebpki/jcs`を候補として使用できますが、Profile identityはこのpackageに依存しません。
+current Go probeでは`github.com/gowebpki/jcs`を使用していますが、Profile identityはこのpackageに依存しません。
+
+current probeはcommit SHA `1a4242a66e1a8e03d7458324d0bc95c327527cbb`へ固定しており、Go module resolver上では`v1.0.1`へ解決されます。
 
 採用条件:
 
@@ -128,6 +130,7 @@ current fixture:
 
 ```text
 fixtures/representation-profiles/jcs-v1alpha1.json
+fixtures/representation-profiles/verification-outcomes-v1alpha1.json
 ```
 
 最低限、次を含みます。
@@ -137,6 +140,15 @@ fixtures/representation-profiles/jcs-v1alpha1.json
 - duplicate key rejection
 - unsafe large integer rejection
 - NFC / NFDを勝手に同一化しないこと
+- `verified / failed / not_verified`の分離
+
+actual GitHub Actionsのfixture-scoped Executable Evidenceは次に記録します。
+
+```text
+contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md
+```
+
+このPASSはProduction Runtime integration、Release Evidence、Operational Evidenceを意味しません。
 
 ## 10. Explicit non-goals
 
@@ -154,4 +166,4 @@ semantic Contract versionとRepresentation Profile versionは独立です。
 
 ## 12. Natural Japanese review
 
-RFC 8785とSOZAのExact Binding / Verification Outcome境界を照合し、Profileが所有する規則、上位semantic precision責務、実装差替え境界を確定した。その後、技術条件と留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+RFC 8785、actual GitHub Actionsのconformance結果、SOZAのExact Binding / Verification Outcome境界を照合し、Profileが所有する規則、上位semantic precision責務、実装差替え境界を確定した。その後、技術条件、Evidence強度、留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
