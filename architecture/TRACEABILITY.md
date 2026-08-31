@@ -5,9 +5,9 @@
 
 ## 1. 目的
 
-この文書は、Product Value V1〜V8、current Product Requirement、Accepted ADR、`SOZA_REFERENCE_ARCHITECTURE.md`のarchitecture concernがどのようにつながっているかを示します。
+この文書は、Product Value V1〜V8、current Product Requirement、Accepted ADR、`SOZA_REFERENCE_ARCHITECTURE.md`のArchitecture concernがどのようにつながり、どの境界がcurrent Contractへ落ちているかを示します。
 
-追跡表は設計理由を見失わないための索引です。本文やADRより強い意味上の正本ではありません。
+追跡表は設計理由を見失わないための索引です。Product Value、Requirement本文、ADR、Architecture本文、Contract Definitionより強い意味上の正本ではありません。
 
 ## 2. Value AxisからArchitectureへの追跡
 
@@ -39,15 +39,15 @@
 | REQ-0011 Projection非権威 | ADR-0007 | Projection; Durable Core; Persistence | Covered — concrete Projection contract deferred |
 | REQ-0012 Bounded Collaboration / Selective Disclosure | ADR-0006, 0019 | Federation; Capability Observation; Provider boundary | Covered |
 | REQ-0013 actor kindからAuthorityを推定しない | ADR-0004, 0012, 0016 | Responsibility / Authority; Capability / Provider | Covered |
-| REQ-0014 未解決残差と再開条件 | ADR-0010 | Inquiry / Epistemics; Decision Memory | Covered — concrete residual representation deferred |
+| REQ-0014 未解決残差と再開条件 | ADR-0010 | Inquiry / Epistemics; Decision Memory | Covered — concrete residual representation partially covered by Decision Memory contract |
 | REQ-0015 private CoT非依存 | ADR-0017 | Cognitive Method; Decision rationale | Covered |
 | REQ-0016 Observation / Interpretation分離 | ADR-0002, 0017, 0019 | Inquiry / Epistemics; Cognitive Method; Adapter interpretation | Covered |
 | REQ-0017 contextual Responsibility | ADR-0004, 0010, 0016 | Responsibility / Authority | Covered |
 | REQ-0018 Storage independence | ADR-0007, 0008, 0009 | Persistence; Reference / Binding / Revision | Covered |
-| REQ-0019 Human / AI Readability | ADR-0018, 0020, 0021 | Projection; Contract Definition; traceability | Covered — concrete projection representation deferred |
+| REQ-0019 Human / AI Readability | ADR-0018, 0020, 0021 | Projection; Contract Definition; traceability | Covered — concrete Projection representation deferred |
 | REQ-0020 Evidence claim integrity | ADR-0009, 0018, 0020, 0021 | Evidence / Assurance boundary | Covered |
 | REQ-0021 Replaceable Realization / Execution | ADR-0013, 0014, 0017 | Provider / Adapter; Method Realization; Persistence / Projection | Covered |
-| REQ-0022 Provider-neutral Capability Observation | ADR-0006, 0008, 0012, 0013, 0014, 0019 | Capability Observation; Provider / Adapter; Exact Binding; Federation | Covered — executable fixture deferred |
+| REQ-0022 Provider-neutral Capability Observation | ADR-0006, 0008, 0012, 0013, 0014, 0019 | Capability Observation; Provider / Adapter; Exact Binding; Federation | Covered — current Contract fixture-scoped executable evidenceあり |
 
 ## 4. ADRからArchitectureへの追跡
 
@@ -70,60 +70,73 @@
 | ADR-0015 Requirement Inquiry / Decision Memory | Requirement inquiryとDecision Memoryの接続 |
 | ADR-0016 Authorization Evidence / Provider boundary | AuthorityとResponsibility / Evidence / Providerを分離 |
 | ADR-0017 Pattern / Cognitive Method boundary | domain PatternとMethodを分離、Method Application != Assurance |
-| ADR-0018 Product Value authority | ArchitectureをProduct Value / Requirements / ADRの下位current viewとして扱う |
+| ADR-0018 Product Value authority | ArchitectureをProduct Value / Requirements / ADRの下位current viewとして扱い、Evidenceの高さを分離する |
 | ADR-0019 Provider-neutral Capability Observation | Provider内部state→Adapter→Capability Observation境界 |
 | ADR-0020 Requirements traceability | REQ / SCNからArchitectureへのcurrent追跡を作る |
 | ADR-0021 Architecture / Contract authority | Architecture concern != runtime component、Contractとの責務・版管理を分離 |
 
-## 5. Architecture concernとContract候補
+## 5. Architecture concernとcurrent Contract
 
-| Architecture concern | Contractが必要になる理由 | current follow-up |
+| Architecture concern | current Contract | current state |
 |---|---|---|
-| Inquiry / Epistemics | portable interchangeが必要な場合 | ISSUE-000030で評価 |
-| Decision Memory | 異なるimplementation間でDecision / basis / unresolvedを交換する場合 | ISSUE-000030 |
-| Capability Observation | Provider adapterをまたいで同じObservation意味を扱う場合 | ISSUE-000024 / 000030 |
-| Reference / Exact Binding | historical contentをportableに特定・検証する場合 | ISSUE-000009 / 000030 |
-| Semantic Revision | revision / supersession relationをportableに交換する場合 | ISSUE-000030 |
-| Federation | bounded subject間の交換Artifactを相互運用する場合 | ISSUE-000030 |
-| Persistence | portable export / import契約が必要な場合 | ISSUE-000030 |
-| Projection | current baselineではcanonical contractを必須としない | 将来Scenarioから再評価 |
+| Decision Memory | `soza.decision-memory/v1alpha1` | Design Contract + fixture-scoped executable conformance |
+| Capability Observation | `soza.capability-observation/v1alpha1` | Design Contract + F1〜F7を含むfixture-scoped executable conformance |
+| Reference / Exact Binding / Revision | `soza.semantic-reference/v1alpha1` | Design Contract + schema / semantic invariant fixture。stable Representation Profileは未確定 |
+| Durable Semantic Core / portable exchange | `soza.semantic-interchange/v1alpha1` | Design Contract + partial-knowledge / cross-record fixture-scoped executable conformance |
+| Federation / Selective Disclosure | Capability Observation / Interchangeの一部で境界を支える | 独立Federation Contractはcurrent baselineでは未採用 |
+| Persistence | Semantic Reference / Interchangeがportable意味境界を支える | actual storage migration / operational evidenceは未検証 |
+| Projection | current独立Contractなし | Architecture concernとして維持。具体的interchange需要から再評価 |
+| Cognitive Method | current独立Contractなし | Method-specific interoperability需要が反復した場合に再評価 |
 
-Contract候補が表にあることはContract採用を意味しません。actual interoperability / verification上の必要性をIssue-000030で再評価します。
+Contractの存在やfixture PASSを、Architecture concern全体のimplementation完了へ拡張しません。
 
-## 6. 未実体化のDesign detail
+## 6. 未実体化または未安定のDesign / Implementation detail
 
-current Reference Architectureで意味境界は説明できていますが、次はまだ固定していません。
+current Reference ArchitectureとContractで多くの意味境界を説明できますが、次はまだ固定・実証していません。
 
-- production artifact field set
-- Decision basis relationのwire shape
-- unresolved / reopen conditionのportable representation
-- Capability Definitionの最小schema
-- Capability Observation property vocabulary
+- production artifact field set全体
+- Capability Definitionのcurrent portable schema
 - Matchingのfirst-class Artifact shape
-- Provider-specific context reference shape
+- Provider-specific context referenceの最終shape
 - Projection interchange representation
-- Federation exchange schema
-- Contract versionごとのmachine-readable schema
-- Representation Profile
+- 独立Federation exchange Contract
+- stable Representation Profile
+- historical M47 digest mapping
+- current runtime package / service構成
+- production persistence / migration integration
+- actual Provider Adapter implementation
 
-これらをArchitectureの不足として無条件に埋めず、ContractまたはImplementationとして必要性を確認します。
+これらをArchitectureの穴として機械的に埋めず、Requirement / Scenario / Contract / Implementation上の必要性を確認します。
 
 ## 7. Evidence状態
 
-このTraceabilityはDesign Evidenceです。
+current ArchitectureのEvidenceは、次のように分けて読みます。
 
 - Product → REQ → ADR → Architecture: **Design trace established**
-- Architecture → current Contract: **Not Yet Completed**
-- Contract → executable conformance: **Not Yet Verified**
-- Runtime implementation: **Not Yet Verified**
-- Release / Operational: **Not Yet Verified**
+- Architecture → current Contract: **Design trace established for the current four contract families**
+- Contract v1alpha1 fixture-scoped conformance: **Executable Evidence exists for the tested boundaries**
+- Architecture全体のruntime implementation: **Not Yet Verified**
+- Stable Representation Profile: **Not Yet Verified**
+- Release Evidence: **Not Yet Verified**
+- Operational Evidence: **Not Yet Verified**
+- Adoption / Outcome Evidence: **Not Yet Verified**
+
+```text
+Design trace established
+  != Architecture implementation complete
+  != operational value realized
+```
 
 ## 8. 監査結果
 
-REQ-0001〜REQ-0022について、current Reference Architecture上で少なくとも一つの主要concernへ追跡できることを確認しました。
+REQ-0001〜REQ-0022について、current Reference Architecture上で少なくとも一つの主要concernへ追跡できることを確認しています。
 
-この確認は「すべてのRequirementがimplementation可能と証明された」という意味ではありません。current Design baseline上で、RequirementがArchitectureから脱落していないことを確認したものです。
+さらに、current Architectureから必要性が収束した4 Contract familyはDesign Definitionとfixture-scoped conformanceまで進んでいます。
+
+この確認は「すべてのRequirementがproduction implementation可能と証明された」という意味ではありません。current Design baselineからRequirementが脱落していないことと、限定されたContract境界にExecutable Evidenceがあることを示すものです。
+
+Product Value側の横断索引は`../product/value/SOZA_VALUE_TRACEABILITY.md`、Contract詳細は`../contracts/TRACEABILITY.md`を参照します。
 
 ## 9. Natural Japanese review
 
-V1〜V8、REQ-0001〜0022、ADR-0001〜0021をcurrent Reference Architectureへ一件ずつ対応付けた後、追跡の意味とEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトしました。その後、最終意味監査を実施しています。
+V1〜V8、REQ-0001〜0022、ADR-0001〜0021、current Contract Definitionとactual conformance Evidenceを再照合しました。そのうえで、Architecture Design coverageとContract fixture-scoped Executable Evidenceを混同せず、Release / Operational / Adoption・Outcomeへ過大に昇格させないよう全体を再構成しました。最後に、追跡の意味とEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
