@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soza.example/contracts/v1alpha1/decision-memory.schema.json",
+  "title": "SOZA Decision Memory v1alpha1",
+  "description": "Machine-readable representation of soza.decision-memory/v1alpha1. It does not encode authorization or execution state.",
+  "type": "object",
+  "required": ["contract", "decision"],
+  "properties": {
+    "contract": {
+      "const": "soza.decision-memory/v1alpha1"
+    },
+    "decision": {
+      "$ref": "#/$defs/decision"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "logicalReference": {
+      "$ref": "semantic-reference.schema.json#/$defs/logicalReference"
+    },
+    "exactBinding": {
+      "$ref": "semantic-reference.schema.json#/$defs/exactBinding"
+    },
+    "reference": {
+      "oneOf": [
+        {"$ref": "#/$defs/logicalReference"},
+        {"$ref": "#/$defs/exactBinding"}
+      ]
+    },
+    "decision": {
+      "type": "object",
+      "required": ["ref", "statement"],
+      "properties": {
+        "ref": {"$ref": "#/$defs/logicalReference"},
+        "statement": {"type": "string", "minLength": 1},
+        "context_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/reference"},
+          "uniqueItems": true
+        },
+        "basis_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/reference"},
+          "uniqueItems": true
+        },
+        "recommendation_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/reference"},
+          "uniqueItems": true
+        },
+        "unresolved_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/reference"},
+          "uniqueItems": true
+        },
+        "responsibility_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/reference"},
+          "uniqueItems": true
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lineage": {
+          "$ref": "semantic-reference.schema.json#/$defs/semanticLineage"
+        },
+        "extensions": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
