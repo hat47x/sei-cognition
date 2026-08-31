@@ -1,0 +1,16 @@
+{
+  "contract": "soza.decision-memory/v1alpha1",
+  "record_type": "decision",
+  "decision": {
+    "ref": {"kind": "decision", "id": "D-with-unresolved"},
+    "statement": "Proceed with the reversible pilot while unresolved evidence remains.",
+    "basis_refs": [
+      {"kind": "observation", "id": "pilot-readiness-observation"}
+    ],
+    "unresolved_refs": [
+      {"kind": "unknown", "id": "future-load-behavior"},
+      {"kind": "conflict", "id": "latency-source-conflict"}
+    ],
+    "rationale": "The pilot is reversible and time-bounded; unresolved items remain explicit for review."
+  }
+}
