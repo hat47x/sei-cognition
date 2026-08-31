@@ -2,14 +2,14 @@
 
 contract_id: `soza.capability-observation`  
 version: `v1alpha1`  
-状態: **Design baseline / pre-stable**  
+状態: **Current pre-stable Design Baseline / Scoped Executable Evidence**  
 更新日: 2026-08-31
 
 ## 1. 目的
 
 このContractは、Capabilityやその実現候補について現在観測されている情報を、特定Providerの内部Schemaへ依存せず、DecisionやMatchingから独立して交換するための意味契約を定めます。
 
-主な対象はREQ-0002、REQ-0007、REQ-0013、REQ-0021、REQ-0022です。
+主な対象はREQ-0002、REQ-0007、REQ-0013、REQ-0016、REQ-0021、REQ-0022です。
 
 ## 2. 基本境界
 
@@ -53,14 +53,14 @@ Observationは、必要に応じて次を保持できます。
 - observed time / validity context
 - observed condition
 - source / evidence / provenance
-- Unknown / Conflict / withheld context
+- Unknown / Conflict / Withheld context
 - mapping / adapter provenance
 
 すべてのfieldを常時必須にはしません。Profile / Policyが案件文脈に応じて必要性を決められます。
 
 ## 5. observed condition
 
-observed conditionには、たとえば次のような情報が含まれ得ます。
+observed conditionには、たとえば次の情報が含まれ得ます。
 
 - availability
 - observed cost
@@ -83,7 +83,7 @@ domain-specific propertyはextensionまたはProfileで表現できます。
 not observed != unavailable
 Unknown != incompatible
 Conflict != latest-wins
-withheld != false
+Withheld != false
 ```
 
 複数Sourceが異なる状態を報告する場合、必要に応じてConflictを保持し、最新値だけで自動上書きしません。
@@ -94,7 +94,7 @@ withheld != false
 
 Provider kindやSOZAとの関係の近さから、Observationの信頼度、優先順位、Authority、採用可否を推定してはなりません。
 
-例として、human、AI service、SaaS、外部組織、TEI、custom codeは異質なProvider候補になり得ます。
+human、AI service、SaaS、外部組織、TEI、custom codeは、異質なProvider候補になり得ます。
 
 TEIのApplication / Database / Release / Deployment等の内部概念を、そのままSOZA Universal Coreのfieldへ昇格させません。
 
@@ -116,6 +116,8 @@ mappingが次を含む場合、その解釈境界を後から追跡できるよ�
 - derived condition
 
 重要なDecision basisとして利用されたObservationについては、必要な範囲で当時のmapping / adapter versionまたはexact referenceを特定できることを推奨します。
+
+Provider-specific input schemaはAdapter側に留め、本ContractのUniversal field setへ無条件にコピーしません。
 
 ## 9. Matchingとの境界
 
@@ -153,7 +155,7 @@ Choice DecisionがObservationをbasisとして利用する場合、historical re
 - 観測内容
 - 観測時点または時間文脈
 - provenanceが存在する場合のReference
-- Unknown / Conflict / withheld等が存在する場合の意味
+- Unknown / Conflict / Withheld等が存在する場合の意味
 - mapping provenanceが存在する場合のReference
 - 使用Contract version
 
@@ -163,17 +165,41 @@ unknown extensionを理解できない場合、それを無視した結果、既
 
 本Contract DefinitionはDesign Evidenceです。
 
-machine-readable schema、Provider-neutral fixture、TEI / SaaS / human等を跨ぐmapping test、Decision basis再構成がactual repositoryで再現できるまではExecutable Evidenceを主張しません。
+current repositoryでは、JSON Schema、Capability Observation F1〜F7、first semantic runtime、および異なるinput shapeを持つsynthetic Provider A / B Adapterについて、対象を限定したExecutable Evidenceがあります。
 
-ISSUE-000024でCapability Observation fixtureを追跡します。
+synthetic Adapterでは、少なくとも次を確認しています。
+
+- status interpretation / unit conversion
+- missing readiness / latencyを`false`や`0`へ捏造しない
+- mapping provenance / source state referenceの保持
+- Provider-specific target referenceの保持
+- Provider固有fieldをCapability Observation schemaへ漏らさない
+- Adapter outputからRecommendation / Decision / Authority / Executionを生成しない
+
+一方、次は未検証です。
+
+- production TEI / SaaS / human Provider adapter
+- Provider廃止・交換を伴う長期運用
+- actual external interoperability
+- Release Evidence
+- Operational Evidence
+- Adoption / Outcome Evidence
+
+```text
+synthetic Adapter PASS
+  != production Provider interoperability
+  != Capability Choice decided
+```
+
+ISSUE-000024とISSUE-000036はcurrent fixture / synthetic Adapter sliceの設計・実体化を完了しており、production Provider integrationを意味しません。
 
 ## 14. 関連
 
-- REQ-0002, REQ-0007, REQ-0013, REQ-0021, REQ-0022
-- ADR-0012, ADR-0013, ADR-0014, ADR-0019, ADR-0021
+- REQ-0002, REQ-0007, REQ-0013, REQ-0016, REQ-0021, REQ-0022
+- ADR-0012, ADR-0013, ADR-0014, ADR-0019, ADR-0021, ADR-0024
 - `contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md`
 - `contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md`
 
-## 15. 自然な日本語レビュー
+## 15. Natural Japanese review
 
-Capability、Provider、Observation、Matching、Decision、mapping provenanceの境界を確定した後、意味・規範強度・留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Capability、Provider、Observation、Matching、Decision、mapping provenanceの規範境界を維持したまま、F1〜F7、first semantic runtime、ADR-0024 / synthetic Provider AdapterへEvidence節を再照合しました。その後、意味、規範強度、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。

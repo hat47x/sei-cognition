@@ -2,7 +2,7 @@
 
 contract_id: `soza.semantic-reference`  
 version: `v1alpha1`  
-状態: **Design baseline / pre-stable**  
+状態: **Current pre-stable Design Baseline / Scoped Executable Evidence**  
 更新日: 2026-08-31
 
 ## 1. 目的
@@ -32,7 +32,7 @@ Logical Referenceは「どの意味上のArtifactを指すか」を表します�
 - Storage row ID、file path、object key、Git commit等をsemantic identityそのものにしない。
 - Storage migration後も同じlogical Artifactを指せる。
 - Artifact kindまたは同等の解釈文脈を識別できる。
-- scopeが必要なidentityでは、scopeを失わない。
+- scopeが必要なidentityではscopeを失わない。
 
 具体的なwire field名は本Contractだけでは固定しません。
 
@@ -44,7 +44,7 @@ Exact Artifact Bindingは、logical Artifactのうち**特定時点で参照し�
 
 - logical reference
 - content digestまたは同等のcontent identity
-- そのdigestを再検証するためのRepresentation Contract / Profile identity
+- digestを再検証するためのRepresentation Profile identity
 
 Exact Bindingは、mutableなverification stateそのものを保持しません。
 
@@ -70,21 +70,21 @@ Storage revisionやdigest差だけから、これらを自動生成してはな�
 
 旧内容と新内容を区別できるExact Artifact Bindingまたは同等のexact endpointが必要です。
 
-これにより、次のような曖昧な自己参照を避けます。
-
 ```text
 artifact:A revises artifact:A   # 内容の識別がないため不十分
 ```
 
-## 4. Representation Contractとの分離
+## 4. Representation Profileとの分離
 
-Semantic Reference Contractは、JSON、CBOR、JCS、SHA-256等のcanonicalization / digest方式を固定しません。
+Semantic Reference Contractは、JSON、CBOR、JCS、SHA-256等のcanonicalization / digest方式をUniversalに固定しません。
 
 ```text
-Semantic Reference Contract != Representation Profile
+Semantic Reference Contract != Representation Profile != verifier implementation
 ```
 
 Exact Bindingが利用するRepresentation Profileは明示的に識別します。
+
+current/future baselineではADR-0023により、`soza.jcs+sha256/v1alpha1`と`soza.raw-bytes+sha256/v1alpha1`を利用できます。ただし、この2 Profileを唯一の永久的representationにはしません。
 
 unknownなProfile、失われたverifier、取得不能なpayloadがある場合、検証済みとして扱ってはなりません。
 
@@ -100,7 +100,7 @@ verification outcomeは、少なくとも次を区別できなければなりま
 not_verified != failed
 ```
 
-過去bindingのverifierが失われたことを、content mismatchへ読み替えてはなりません。
+過去bindingのverifierが失われたことをcontent mismatchへ読み替えてはなりません。
 
 ## 6. Semantic changeとrepresentation change
 
@@ -153,18 +153,34 @@ representation-only changeをsemantic revisionへ自動変換してはなりま�
 
 ## 10. Evidence境界
 
-本Contract文書の存在はDesign Evidenceです。
+本Contract DefinitionはDesign Evidenceです。
 
-schema、validator、fixture、cross-storage migration、historical binding verificationが成立するまではExecutable Evidenceを主張しません。
+current repositoryでは、JSON Schema、positive / negative fixture、same-logical-id lineage invariant、exact binding整合、Verification Outcome、およびfirst semantic runtimeによるread / validate / reconstructについて、対象を限定したExecutable Evidenceがあります。
 
-ISSUE-000009のstable Representation Profileとhistorical M47 mappingは未完了です。
+Representation Profileについてもcurrent `v1alpha1` fixture / verifier probeのExecutable Evidenceがあります。ただし、historical M47 digest規則の特定はISSUE-000034で未完了です。
+
+未検証:
+
+- actual Storage migrationをまたぐlogical identity / lineage保持
+- productionでの長期historical reconstruction
+- Release Evidence
+- Operational Evidence
+- Adoption / Outcome Evidence
+
+```text
+fixture / runtime PASS
+  != Storage migration verified
+  != release readiness
+  != operational history proven
+```
 
 ## 11. 関連
 
 - REQ-0001, REQ-0003, REQ-0005, REQ-0008, REQ-0009, REQ-0018
-- ADR-0003, ADR-0007, ADR-0008, ADR-0009, ADR-0021
+- ADR-0003, ADR-0007, ADR-0008, ADR-0009, ADR-0021, ADR-0022, ADR-0023
 - `architecture/SOZA_REFERENCE_ARCHITECTURE.md`
+- `contracts/profiles/README.md`
 
-## 12. 自然な日本語レビュー
+## 12. Natural Japanese review
 
-logical identity、exact content、semantic lineage、verification outcomeの境界を確定した後、意味と規範強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+logical identity、exact content、semantic lineage、Verification Outcomeの規範境界を維持したまま、current Schema / fixture、Representation Profile、first semantic runtime、historical M47分離へ戻ってEvidence節を再基線化しました。その後、意味と規範強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。

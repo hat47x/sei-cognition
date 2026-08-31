@@ -1,16 +1,18 @@
 # SOZA Contract Conformance Evidence — 2026-08-31
 
 更新日: 2026-08-31  
-状態: **Fixture-scoped Executable Evidence**
+状態: **Fixture-scoped Executable Evidence — PASS**
 
 ## 1. 対象
 
-current `develop/v0.1.0` branchで、次のContract v1alpha1についてmachine-readable schema、fixture、semantic validatorを検証した。
+current `develop/v0.1.0` branchで、次のContract `v1alpha1`についてmachine-readable schema、fixture、semantic validatorを検証した結果を記録します。
 
 - `soza.semantic-reference/v1alpha1`
 - `soza.decision-memory/v1alpha1`
 - `soza.capability-observation/v1alpha1`
 - `soza.semantic-interchange/v1alpha1`
+
+本書はRun `33346472419`のEvidenceを保存しつつ、その後current repositoryへ追加されたProfile / Runtime / Adapter Evidenceとの位置関係も明示します。
 
 ## 2. 実行Evidence
 
@@ -54,14 +56,14 @@ GitHub Actions:
 15. `same-logical-lineage-without-exact.json`
    - 同一logical identity内のrevisionにexact endpointがないため拒否した。
 16. `interchange-mismatched-exact-binding.json`
-   - bundle内に含まれるexact recordとDecision basisのdigest / profileが一致しないため拒否した。
+   - bundle内のexact recordとDecision basisのdigest / profileが一致しないため拒否した。
 
 ### Expected `not_verified`
 
 17. `unknown-contract-version.json`
    - unknown nested Contract versionを既知Contractとして解釈せず、failureとも混同せず`not_verified`として分類した。
 
-## 4. このEvidenceで確認できたこと
+## 4. このEvidenceで直接確認できたこと
 
 ### Capability Observation
 
@@ -90,45 +92,70 @@ GitHub Actions:
 
 ## 5. Evidenceの高さ
 
-この結果から主張するのは、**current repository上の17 fixtureに限定したExecutable Evidence**である。
+本Runから直接主張するのは、**current repository上の17 fixtureに限定したExecutable Evidence**です。
 
 ```text
-Design Contract Baseline: Satisfied
-Fixture-scoped Executable Conformance: Satisfied
-Stable Representation Profile: Not Yet Verified
-Historical M47 digest mapping: Not Yet Verified
+Current Contract Design Baseline: Satisfied
+17-fixture Contract Conformance: Satisfied within fixture scope
 Release Evidence: Not Yet Verified
 Operational Evidence: Not Yet Verified
+Adoption / Outcome Evidence: Not Yet Verified
 ```
 
-CI PASSをSOZA全体のrelease readinessや実運用相互運用へ拡張して解釈しない。
+Design、Executable、Release、Operational、Adoption / Outcomeを一つの`verified`へまとめません。
 
-## 6. 未完了事項
+CI PASSをSOZA全体のrelease readiness、production interoperability、利用者価値へ拡張して解釈しません。
 
-### ISSUE-000009
+## 6. 後続Evidenceとの関係
 
-次は本Evidenceでは解決していない。
+本Run以後、同じ意味境界の一部について別のExecutable Evidenceが追加されています。
 
-- stable JCS verifier選定・実証
-- RFC test vectorへの適合
-- high-precision semantic value境界
-- historical M47 digest規則の正確なRepresentation Profile mapping
+### Representation Profile
 
-fixture内の`fixture.raw-json/v0`は検査用のopaque Profile identityであり、stable Representation Profileではない。
+- Run `33347989530`: `profile-fixtures` / `jcs-go-probe` **success**
+- current Profile: `soza.jcs+sha256/v1alpha1`, `soza.raw-bytes+sha256/v1alpha1`
 
-### Release / Operational
+これはcurrent/future Exact BindingのRepresentation Profileに対する別のscoped Executable Evidenceです。本17-fixture RunがProfile verifierを実証したことにはしません。
 
-実際の複数Provider adapter、Storage migration、external interoperability、production Decision Memory等のEvidenceはまだない。
+### first semantic runtime
 
-## 7. 再現方法
+- Semantic Runtime Conformance #3 / Run `33348972805`: **success**
+
+Contract fixtureをGo runtimeがread / validate / reconstructできる範囲を追加で確認しています。
+
+### synthetic Provider Adapter
+
+- Semantic Runtime Conformance #4 / Run `33349604842`: **success**
+- Semantic Runtime Conformance #5 / Run `33349801993`: **success**
+
+異なるProvider-specific inputからCapability Observationへ収束し、Provider固有fieldをUniversal schemaへ漏らさず、missing値を`unknown`として扱う境界を追加で確認しています。
+
+```text
+later runtime / adapter PASS
+  != this Contract Run covered those implementations
+```
+
+## 7. currentで未検証の事項
+
+- historical M47 digest規則のRepresentation Profile特定 — ISSUE-000034
+- actual Storage migration
+- production Provider / TEI interoperability
+- production Decision / Authority / Executionをまたぐend-to-end運用
+- Release Evidence
+- Operational Evidence
+- Adoption / Outcome Evidence
+
+current `v1alpha1` Representation Profile自体はADR-0023でAcceptedされ、fixture / verifier probeのscoped Executable Evidenceがあります。historical M47 mappingが未完了であることと混同しません。
+
+## 8. 再現方法
 
 ```bash
 python -m pip install -r tools/contract-check-requirements.txt
 python tools/check_contract_conformance.py
 ```
 
-GitHub Actionsでは`.github/workflows/contract-conformance.yml`から同じcheckerを実行する。
+GitHub Actionsでは`.github/workflows/contract-conformance.yml`から同じcheckerを実行します。
 
-## 8. 自然な日本語レビュー
+## 9. Natural Japanese review
 
-CIログと17 fixtureの期待結果を一件ずつ照合し、Executable Evidenceの対象範囲と未検証範囲を分離した。その後、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Run `33346472419`のCIログと17 fixtureの期待結果を保存したまま、current Contract / Representation Profile / first runtime / synthetic Provider Adapterの後続Evidenceへ戻って位置づけを再監査しました。その後、数値、run ID、fixture期待結果、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。

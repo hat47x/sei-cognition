@@ -2,7 +2,7 @@
 
 contract_id: `soza.decision-memory`  
 version: `v1alpha1`  
-状態: **Design baseline / pre-stable**  
+状態: **Current pre-stable Design Baseline / Scoped Executable Evidence**  
 更新日: 2026-08-31
 
 ## 1. 目的
@@ -118,7 +118,7 @@ Semantic Lineageを利用し、少なくとも次を辿れる必要がありま�
 - D1が何をbasisにしていたか
 - 新しいObservation等がいつ得られたか
 - D2が何をbasisにしたか
-- D2がD1をrevises / supersedes等した関係
+- D2がD1を`revises` / `supersedes`等した関係
 
 Decision固有のUniversal workflow status machineを要求しません。
 
@@ -161,20 +161,37 @@ Profile / Policyは、案件条件に応じて次を要求できます。
 - semantic lineage
 - 使用Contract version
 
-optional情報が欠けていることを、否定事実へ変換してはなりません。
+optional情報が欠けていることを否定事実へ変換してはなりません。
 
 ## 13. Evidence境界
 
 本Contract DefinitionはDesign Evidenceです。
 
-machine-readable schema、positive / negative fixture、historical Decision reconstruction testがactual repositoryで再現できるまではExecutable Evidenceを主張しません。
+current repositoryでは、machine-readable schema、Recommendation without Decision、Decision with unresolved state、Decision recordへのAuthority埋め込み拒否、exact-bound basis整合、およびfirst semantic runtimeによるread / validate / reconstructについて、対象を限定したExecutable Evidenceがあります。
+
+一方、次は未検証です。
+
+- production組織での実Decision lifecycle
+- Authority Provider / Authorizationとのend-to-end連携
+- Decision→Action Intent→Execution→Outcomeの運用責任線
+- 長期間のDecision revision / reopen運用
+- Release Evidence
+- Operational Evidence
+- Adoption / Outcome Evidence
+
+```text
+Decision fixture PASS
+  != decision valid
+  != authorization granted
+  != production governance verified
+```
 
 ## 14. 関連
 
 - REQ-0005, REQ-0006, REQ-0008, REQ-0014, REQ-0015, REQ-0017
-- ADR-0010, ADR-0011, ADR-0015, ADR-0016, ADR-0021
+- ADR-0010, ADR-0011, ADR-0015, ADR-0016, ADR-0021, ADR-0022
 - `contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md`
 
-## 15. 自然な日本語レビュー
+## 15. Natural Japanese review
 
-Decision、basis、Rationale、未解決状態、Responsibility、Authority、revisionの境界を確定した後、意味と留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Decision、basis、Rationale、未解決状態、Responsibility、Authority、revisionの規範境界を維持したまま、current schema / fixtureとfirst semantic runtimeへEvidence節を再照合しました。その後、意味、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
