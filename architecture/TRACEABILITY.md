@@ -32,7 +32,7 @@
 | REQ-0004 | ADR-0017 | Cognitive Method; Provider / Realization boundary | Covered |
 | REQ-0005 | ADR-0008, 0010, 0011 | Decision Memory; Exact Binding; Semantic Revision | Covered |
 | REQ-0006 | ADR-0010, 0014, 0016 | Decision Memory; Responsibility / Authority; Provider crossing | Covered |
-| REQ-0007 | ADR-0012, 0013, 0014, 0019 | Capability; Provider / Adapter | Covered |
+| REQ-0007 | ADR-0012, 0013, 0014, 0019, 0024 | Capability; Provider / Adapter | Covered |
 | REQ-0008 | ADR-0004, 0010, 0011 | Decision Memory; Responsibility; Provenance | Covered |
 | REQ-0009 | ADR-0003, 0008, 0009 | Semantic Revision; Exact Binding; Persistence | Covered |
 | REQ-0010 | ADR-0005 | Profile / Policy; Projection; Decision Memory | Covered |
@@ -41,19 +41,17 @@
 | REQ-0013 | ADR-0004, 0012, 0016 | Responsibility / Authority; Capability / Provider | Covered |
 | REQ-0014 | ADR-0010 | Inquiry / Epistemics; Decision Memory | Covered |
 | REQ-0015 | ADR-0017 | Cognitive Method; Decision rationale | Covered |
-| REQ-0016 | ADR-0002, 0017, 0019 | Inquiry / Epistemics; Cognitive Method; Adapter interpretation | Covered |
+| REQ-0016 | ADR-0002, 0017, 0019, 0024 | Inquiry / Epistemics; Cognitive Method; Adapter interpretation | Covered |
 | REQ-0017 | ADR-0004, 0010, 0016 | Responsibility / Authority | Covered |
 | REQ-0018 | ADR-0007, 0008, 0009, 0023 | Persistence; Reference / Binding / Revision; Representation Profile boundary | Covered |
 | REQ-0019 | ADR-0018, 0020, 0021 | Projection; Contract Definition; traceability | Covered |
 | REQ-0020 | ADR-0009, 0018, 0020, 0021 | Evidence / Assurance boundary | Covered |
-| REQ-0021 | ADR-0013, 0014, 0017, 0022 | Provider / Adapter; Method Realization; runtime boundary | Covered |
-| REQ-0022 | ADR-0006, 0008, 0012, 0013, 0014, 0019 | Capability Observation; Provider / Adapter; Exact Binding; Federation | Covered |
+| REQ-0021 | ADR-0013, 0014, 0017, 0022, 0024 | Provider / Adapter; Method Realization; runtime boundary | Covered |
+| REQ-0022 | ADR-0006, 0008, 0012, 0013, 0014, 0019, 0024 | Capability Observation; Provider / Adapter; Exact Binding; Federation | Covered |
 
-## 4. ADRからArchitectureへの主な反映
+## 4. ADRからArchitectureへの追加境界
 
-ADR-0001〜ADR-0021は、current Reference Architectureの意味境界と権威関係を形成します。
-
-その後のADRも、Architectureを下位実装へ固定せず、次の境界を追加しています。
+ADR-0001〜ADR-0021は、current Reference Architectureの基礎となる意味境界と権威関係を形成します。
 
 ### ADR-0022 — runtime first slice
 
@@ -75,6 +73,25 @@ Semantic Contract != Representation Profile != verifier implementation
 
 current ProfileとしてJCS+SHA-256とraw-bytes+SHA-256を定義していますが、これらをUniversal Core唯一のrepresentationへ昇格させません。
 
+### ADR-0024 — Provider Adapter observation mapping boundary
+
+Provider Adapterを、Provider固有stateからProvider-neutralなCapability Observationへの観測・解釈境界として扱います。
+
+```text
+Provider-owned state
+  + observation context
+        ↓
+Adapter / Mapping
+        ↓
+Capability Observation
+```
+
+Provider-specific input schemaをSOZA Universal ontologyへ統合しません。field mapping、unit conversion、status interpretation等の解釈をmapping provenanceとして追跡可能にし、missing / unknownをnegative factへ変換しない境界を維持します。
+
+また、AdapterはMatching / Recommendation / Decision / Authority / Executionを所有しません。
+
+この境界はDesignとしてAccepted済みですが、synthetic Provider AdapterのExecutable EvidenceはISSUE-000036で未実装です。
+
 ## 5. ArchitectureからContract / Profileへの追跡
 
 current Architectureから、独立versioningと相互運用境界が必要な部分を4 Contract familyへ落としています。
@@ -91,9 +108,11 @@ Exact BindingのrepresentationはContract本体ではなく、次のProfileへ�
 - `soza.jcs+sha256/v1alpha1`
 - `soza.raw-bytes+sha256/v1alpha1`
 
-Projection、Federation、Cognitive Method等について、current baselineでは必要性のないUniversal Contractを先回りして追加しません。
+Provider Adapterの出力はcurrent Capability Observation Contractで検証する設計ですが、Provider固有入力自体のUniversal Contractを新設しません。
 
-## 6. first runtime sliceとの関係
+Projection、Federation、Cognitive Method等についても、current baselineでは必要性のないUniversal Contractを先回りして追加しません。
+
+## 6. first runtime sliceと次のAdapter slice
 
 actual repositoryにはGoのsemantic runtime sliceがあります。
 
@@ -103,7 +122,7 @@ runtime/go/semanticruntime/
 
 これはcurrent Architectureの全concernを実装したものではありません。ADR-0022に従い、current Contract fixtureのread / validate / reconstructに限定します。
 
-検査対象には、Capability Observation F1〜F7、Decision / Recommendation、partial knowledge、Exact Binding整合、unknown Contract、lossless re-export等が含まれます。
+次のvertical sliceとして、ISSUE-000036でsynthetic Provider A / BからCapability Observationを生成するAdapter実装を予定しています。現時点ではOpenであり、Adapter executable evidenceはまだありません。
 
 ## 7. Evidence状態
 
@@ -115,6 +134,7 @@ current ArchitectureのEvidenceは、次のように分けます。
 - Architecture → current four Contract family: **Design trace established**
 - Architecture → Representation Profile boundary: **Design trace established**
 - Architecture → first runtime slice boundary: **Design trace established**
+- Architecture → Provider Adapter observation mapping boundary: **Design trace established**
 
 ### Executable Evidence
 
@@ -124,15 +144,17 @@ current ArchitectureのEvidenceは、次のように分けます。
 - Representation Profile fixture / Go probe — Run `33347989530`: **success**
 - first semantic runtime slice — Run `33348972805`: **success**
 
-これはArchitecture全体が実装済みであることを意味しません。
+Provider AdapterはまだDesignのみです。
 
 ```text
 fixture-scoped runtime PASS
   != Architecture implementation complete
+  != Provider Adapter implementation complete
 ```
 
 ### 未検証
 
+- synthetic Provider Adapter slice: **Not Yet Verified — ISSUE-000036**
 - historical M47 digest mapping: **Not Yet Verified — ISSUE-000034**
 - production Provider / TEI integration: **Not Yet Verified**
 - Release Evidence: **Not Yet Verified**
@@ -143,7 +165,7 @@ fixture-scoped runtime PASS
 
 REQ-0001〜REQ-0022について、current Reference Architecture上で少なくとも一つの主要concernへ追跡できることを確認しています。
 
-さらに、current Architectureから必要性が収束したContract、Representation Profile、first runtime sliceには、限定されたExecutable Evidenceがあります。
+さらに、current Architectureから必要性が収束したContract、Representation Profile、first runtime sliceには限定されたExecutable Evidenceがあり、Provider Adapterについては次の実装へ進むための意味境界がAcceptedされています。
 
 この確認は「すべてのRequirementがproduction implementation済み」という意味ではありません。Design coverageとExecutable Evidenceの対象範囲を分けて読みます。
 
@@ -151,4 +173,4 @@ Product Value側の横断索引は`../product/value/SOZA_VALUE_TRACEABILITY.md`�
 
 ## 9. Natural Japanese review
 
-V1〜V8、REQ-0001〜0022、ADR-0001〜0023、current Contract、Representation Profile、first semantic runtime slice、actual CI結果へ戻って追跡を再確認しました。そのうえで、Design coverageと限定されたExecutable Evidenceを混同せず、Release / Operational / Adoption・Outcomeへ過大に昇格させないよう整理しました。最後に、意味とEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+V1〜V8、REQ-0001〜0022、ADR-0001〜0024、current Contract、Representation Profile、first semantic runtime slice、Provider Adapter observation mapping boundary、actual CI結果へ戻って追跡を再確認しました。そのうえで、Design coverageと限定されたExecutable Evidenceを混同せず、Release / Operational / Adoption・Outcomeへ過大に昇格させないよう整理しました。最後に、意味とEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
