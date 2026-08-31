@@ -1,11 +1,11 @@
-# Semantic Runtime / Provider Adapter Conformance Evidence — 2026-08-31
+# Semantic Runtime / Provider Adapter Conformance Evidence — current through 2026-09-01
 
 状態: **Fixture-scoped Executable Evidence — PASS**  
 対象branch: `develop/v0.1.0`
 
 ## 1. Scope
 
-本書は、current Contractから再導出した最初のSemantic Runtime sliceと、synthetic Provider Adapter sliceについて、actual repository上で再現したExecutable Evidenceを記録します。
+本書は、current Contractから再導出したSemantic Runtime slice、synthetic Provider Adapter slice、current Representation Profileを解決するin-process Verifier Registryについて、actual repository上で再現したExecutable Evidenceを記録します。
 
 対象:
 
@@ -13,8 +13,6 @@
 runtime/go/semanticruntime/
 runtime/go/provideradapter/
 ```
-
-本書が直接扱うのは、current Contract fixtureを読み、意味境界を検査・再構成するruntimeと、Provider固有stateをCapability Observationへ写像するsynthetic Adapterの範囲です。
 
 ```text
 Design Evidence
@@ -24,11 +22,11 @@ Design Evidence
   != Adoption / Outcome Evidence
 ```
 
-Production Provider integration、Authorization / Action execution、Release、Operational、Adoption / Outcomeは本Evidenceから主張しません。
+Production Provider integration、external payload acquisition、Authorization / Action execution、Release、Operational、Adoption / Outcomeは本Evidenceから主張しません。
 
 ## 2. Semantic Runtime boundary
 
-最初のruntime sliceは次を中心とします。
+runtimeの基本sliceは次を中心とします。
 
 ```text
 read
@@ -43,9 +41,56 @@ current runtimeはSemantic Interchange、Semantic Reference、Decision Memory、
 
 unknown nested Contractは既知として扱わず、完全検証できない状態として保持します。また、RecommendationとDecision、DecisionとAuthority、Unknownとfalse、`not_verified`と`failed`を同一視しません。
 
-このsliceの存在から、SOZA全体のworkflow、Authorization、Action execution、Outcome評価まで実装済みとは読みません。
+## 3. Representation Verifier boundary
 
-## 3. Provider Adapter boundary
+ISSUE-000038では、Exact Binding metadataの構造検査とは別に、payloadからcontent digestを再計算するVerifier Registryを追加しました。
+
+```text
+Exact Binding metadata valid
+  != Exact Binding content verified
+
+Exact Binding
+  != Verification Outcome
+```
+
+current Registryが解決するProfile:
+
+```text
+soza.jcs+sha256/v1alpha1
+soza.raw-bytes+sha256/v1alpha1
+```
+
+Profile authorityは各Profile DefinitionとRFC 8785です。runtimeのGo実装やJCS library APIをProfile authorityにはしません。
+
+### JCS + SHA-256
+
+runtime testでは既存`fixtures/representation-profiles/jcs-v1alpha1.json`を直接利用し、次を確認しています。
+
+- property order / insignificant whitespace差をcanonicalizeできる。
+- representative RFC 8785 sampleで固定digestを再現できる。
+- duplicate key等の不正representationを`failed`にできる。
+- `9007199254740993`等のunsafe integerをbinary64へ暗黙丸めせず`failed`にできる。
+- NFC / NFDを勝手にnormalizeせず、fixtureで定めた異なるdigestを再現できる。
+
+### Raw bytes + SHA-256
+
+`fixtures/representation-profiles/raw-bytes-v1alpha1.json`を直接利用し、UTF-8 textとbinary bytesの固定digestを再現しています。
+
+raw bytes verifierは改行変換、Unicode normalization、再encode等を行いません。
+
+### Verification Outcome
+
+runtime Registryは次を区別します。
+
+- known Profile + digest一致 → `verified`
+- known Profile + digest mismatch → `failed`
+- Profile入力制約違反 → `failed`
+- unknown Profile → `not_verified`
+- payload unavailable (`nil`) → `not_verified`
+
+検証結果は新しい`VerificationOutcome`として返し、入力Exact Bindingをmutateしません。
+
+## 4. Provider Adapter boundary
 
 Provider Adapterは、Provider固有stateからCapability Observationへの観測・解釈境界として扱います。
 
@@ -58,7 +103,7 @@ Adapter / Mapping
 Capability Observation
 ```
 
-synthetic Provider A / Bは、意図的に異なる入力Schemaを持ちます。
+synthetic Provider A / Bは意図的に異なる入力Schemaを持ちます。
 
 Provider A:
 
@@ -78,25 +123,29 @@ endpoint
 
 これらのProvider固有field setをSOZA Universal ontologyにはしません。
 
-Adapterは必要なObservationへ収束させますが、Provider固有stateそのものをCapability DefinitionやDecisionへ昇格させません。
+## 5. Executable paths
 
-## 4. Executable paths
-
-current runtime / Adapter実装:
+current runtime / Adapter / Verifier実装:
 
 ```text
 runtime/go/semanticruntime/model.go
 runtime/go/semanticruntime/loader.go
 runtime/go/semanticruntime/loader_test.go
+runtime/go/semanticruntime/verifier.go
+runtime/go/semanticruntime/verifier_test.go
 runtime/go/provideradapter/adapter.go
 runtime/go/provideradapter/synthetic.go
 runtime/go/provideradapter/adapter_test.go
+runtime/go/go.mod
+runtime/go/go.sum
 ```
 
-Provider fixture:
+fixture:
 
 ```text
+fixtures/contracts/v1alpha1/
 fixtures/providers/synthetic/
+fixtures/representation-profiles/
 ```
 
 CI:
@@ -111,33 +160,20 @@ CIは同じcheckoutで、概ね次を順に実行します。
 2. `tools/check_contract_conformance.py`でcurrent Contract fixtureを再検査する。
 3. `runtime/go`で`go test ./...`を実行する。
 
-これにより、runtime testだけが単独でgreenでも、前提となるContract fixtureが壊れている状態を見逃しにくくします。
+Representation Profile fixtureもruntime testの入力になったため、同fixture変更時にSemantic Runtime Conformanceが起動するようpath triggerを追加しています。
 
-## 5. Current Contract fixture result
+## 6. Current Contract fixture result
 
 current baselineでは17 fixtureについて、期待結果とactual checkerの結果が一致することを確認しています。
-
-含まれる主な境界:
-
-- F1〜F7 Capability Observation scenarios
-- DecisionへAuthority fieldを混入したSchema violation
-- `observed_at`欠落
-- same-logical-id lineage without exact endpoints
-- Semantic Interchange内のExact Binding mismatch
-- unknown nested Contract version → `not_verified`
-- Verification Outcome `not_verified / failed`
-- Recommendation without Decision
-- Decision with unresolved state
-- partial knowledge interchange
 
 ```text
 fixture_count = 17
 passed = true
 ```
 
-この結果はContract fixtureに限定したExecutable Evidenceであり、production interoperabilityではありません。
+主な境界にはCapability Observation F1〜F7、Decision / Authority分離、same-logical-id lineage、Exact Binding mismatch、unknown nested Contract、partial knowledge等を含みます。
 
-## 6. Semantic Runtime evidence
+## 7. Semantic Runtime evidence
 
 runtime testではcurrent Contract fixtureを直接利用し、少なくとも次を確認しています。
 
@@ -151,112 +187,83 @@ runtime testではcurrent Contract fixtureを直接利用し、少なくとも�
 - unknown nested Contractを完全検証済みとして扱わない。
 - original Semantic Interchange bytesを読込み時に勝手にnormalizeせず再exportできる。
 
-この範囲はread / validate / reconstructの最初のvertical sliceであり、Storage migration、Authorization、Action execution、Projection等を横断するruntime coverageではありません。
-
-## 7. Synthetic Provider Adapter evidence
+## 8. Synthetic Provider Adapter evidence
 
 synthetic Provider A / Bについて、少なくとも次を確認しています。
 
-- 異なるProvider-specific input shapeを別々の型として扱う。
-- 同じCapabilityに対するObservationへmappingできる。
-- Provider identityを別々に保持する。
-- availabilityをProvider固有statusからObservationへmappingできる。
-- `delay_ms`と`response_seconds`を比較可能な`latency` / `ms`へmappingできる。
-- mapping definitionを`mapping_provenance`から追跡できる。
-- source snapshotを`source_state_ref`から追跡できる。
+- Providerごとに異なるinput shapeを保持できる。
+- 同じCapabilityへのObservationへmappingできる。
+- Provider identityを分離する。
+- status interpretation / unit conversionをmappingとして扱う。
+- `mapping_provenance`と`source_state_ref`を追跡できる。
 - missing readiness / latencyを`false`や`0`へ捏造せず`unknown`として保持する。
-- Provider-specific target referenceを`provider_target_ref`として保持する。
-- Adapter出力をcurrent Capability Observation runtime validationへ通せる。
-- Adapter出力からRecommendation / Decision / Authority / Execution / universal suitability scoreを生成しない。
-- Provider A / B固有の入力field名をCapability Observationの出力field setへ直接漏らさない。
+- Provider-specific target referenceを保持する。
+- Adapter出力をCapability Observation runtime validationへ通せる。
+- Recommendation / Decision / Authority / Executionへ自動昇格しない。
+- Provider固有fieldをCapability ObservationのUniversal field setへ直接漏らさない。
 
-Provider-specific contextをopaque referenceやextensionとして保持すること自体は禁止しません。禁止しているのは、Provider固有SchemaをUniversal field setへ無条件に昇格させることです。
-
-## 8. GitHub Actions evidence
+## 9. GitHub Actions evidence
 
 ### First semantic runtime closure
 
 - Run ID: `33348972805`
 - Head SHA: `834c3f2a8bd911829743c1582ef09f098c776a54`
-- workflow: `Semantic Runtime Conformance`
 - conclusion: **success**
-
-このRunでfirst semantic runtime sliceのContract checker / Go testが連続PASSしました。
 
 ### Synthetic Provider Adapter slice
 
 - Run ID: `33349604842`
 - Head SHA: `4450ea1acf41615a3679a65e266c008a460c5c33`
-- workflow: `Semantic Runtime Conformance`
 - conclusion: **success**
-
-Go test:
-
-```text
-ok  github.com/hat47x/soza/runtime/go/provideradapter
-ok  github.com/hat47x/soza/runtime/go/semanticruntime
-```
 
 ### Provider schema leakage hardening
 
 - Run ID: `33349801993`
 - Head SHA: `bff2522e9be004d48274d4743e7756130648169a`
-- workflow: `Semantic Runtime Conformance`
 - conclusion: **success**
 
-このRunでは、Provider A / B固有field名がCapability Observationの出力Schemaへ直接現れないことを確認する追加testを含めた状態で、Contract checkerと全Go testが連続PASSしました。
+### Representation Verifier Registry
 
-### Documentation rebaseline後の回帰確認
+初回実装後のRun `33452054067`では、Contract fixture再検査はsuccessしたものの、Go側でJCS moduleの`go.sum` entry不足を検出してfailureとなりました。
 
-Contracts / Representation Profile文書をcurrent baselineへ再監査した後にも、runtime semanticsが壊れていないことを確認しています。
+このCI failureを解消するため、JCS `v1.0.1`のmodule checksumを`runtime/go/go.sum`へ固定しました。
 
-- Run ID: `33389771449`: **success** — Contract family再基線化後
-- Run ID: `33389973787`: **success** — Representation Profile再基線化後
+修正後:
 
-これらは新しいruntime capabilityのEvidenceではなく、文書・規範整理後も既存のExecutable boundaryが回帰していないことの確認です。
+- Run ID: `33452115728`
+- Head SHA: `9941f49a5af3b5443f3cfaca3b263e07989d3ba4`
+- Contract fixture recheck: **success**
+- semantic runtime tests: **success**
+- Provider Adapter tests: **success**
+- Representation Verifier tests: **success**
 
-## 9. Representation Profileとの関係
-
-current Representation Profileについては、別Workflowでfixture / Go probeのscoped Executable Evidenceが成立しています。
-
-- `soza.jcs+sha256/v1alpha1`
-- `soza.raw-bytes+sha256/v1alpha1`
-
-first semantic runtimeはExact Binding metadataやProfile identityを扱えますが、Production-grade Verifier Registryをruntimeへ完全統合したことまでは確認していません。
-
-```text
-runtime reads Profile identity
-  != production verifier registry established
-```
-
-historical M47 digestのRepresentation Profileも未確認であり、ISSUE-000034で独立して扱います。
+JCS moduleは`v1.0.1`へ固定しており、ADR-0023の既存probeで使用しているcommit `1a4242a66e1a8e03d7458324d0bc95c327527cbb`に対応します。
 
 ## 10. Evidence boundary
 
-今回直接確認したのは、current Contract fixtureを基準にしたfirst semantic runtimeとsynthetic Provider AdapterのExecutable Evidenceです。
+今回追加で直接確認できたのは、**repository内または呼出し側から与えられたpayload bytesを使うin-process Representation verification**です。
 
 ```text
-Runtime / Adapter CI PASS
-  != all SOZA runtime requirements complete
-  != TEI production adapter
-  != SaaS production interoperability
-  != Authorization enforcement
-  != Action execution
+in-process Verifier Registry PASS
+  != external payload acquisition
+  != object-storage integration
+  != production streaming verification
+  != production Provider interoperability
   != Release Evidence
   != Operational Evidence
   != Adoption / Outcome Evidence
 ```
 
+historical M47 digestのRepresentation Profileも未確認であり、ISSUE-000034で独立して扱います。
+
 current Evidence state:
 
-- Design: **Satisfied** — ADR-0022 / ADR-0024、Architecture、Contract、runtime boundaryを定義済み。
-- Executable: **Partially Satisfied** — first runtime / synthetic Adapterのtested scopeで再現可能。
+- Design: **Satisfied** — ADR-0008 / ADR-0009 / ADR-0022 / ADR-0023とContract / Profileで境界を定義済み。
+- Executable: **Partially Satisfied** — Contract fixture、first runtime、synthetic Adapter、current 2 Profileのin-process verificationを再現可能。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
 
-Executable Evidenceがあることを、runtime全体の完了や利用者価値へ読み替えません。
-
 ## 11. Natural Japanese review
 
-actual GitHub Actions、current Contract fixture、Semantic Runtime実装、synthetic Provider Adapter実装とtest、Representation Profileのcurrent境界を相互照合しました。first closureのrun ID・実装範囲を保持したまま、後続の回帰CIと5段階Evidenceを追加し、直接確認できた範囲と未検証範囲を分離しています。その後、意味、数値、Evidence強度、Provider / Capability / Decision / Authority / Executionの境界を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+actual GitHub Actions、current Contract fixture、Representation Profile fixture、Semantic Runtime、synthetic Provider Adapter、Verifier Registry実装とtestを相互照合しました。CI failureとその解消もEvidence履歴として残し、直接確認できたin-process verificationと、external payload acquisition / production operation以降の未検証範囲を分離しています。その後、意味、数値、Evidence強度、Exact Binding / Verification Outcome / Profile authorityの境界を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
