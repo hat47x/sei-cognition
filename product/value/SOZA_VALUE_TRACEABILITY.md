@@ -5,11 +5,9 @@
 
 ## 1. この文書の役割
 
-この文書は、SOZAのProduct Valueを、current Requirements、Acceptance Scenarios、ADR、Reference Architecture、Contract、現在のEvidence状態まで上位から追跡するための索引です。
+この文書は、SOZAのProduct Valueを、current Requirements、Acceptance Scenarios、ADR、Reference Architecture、Contract、Representation Profile、runtime、現在のEvidence状態まで上位から追跡するための索引です。
 
-新しい意味上の正本を作る文書ではありません。
-
-詳細は、それぞれ次を正とします。
+新しい意味上の正本を作る文書ではありません。詳細は、それぞれ次を正とします。
 
 - Product Value / V1〜V8: `SOZA_PRODUCT_VALUE.md`, `SOZA_VALUE_MODEL.md`
 - Evidence受入れ境界: `SOZA_VALUE_ACCEPTANCE.md`
@@ -17,6 +15,8 @@
 - Acceptance Scenario: `../../requirements/ACCEPTANCE_SCENARIOS.md`
 - Architecture: `../../architecture/SOZA_REFERENCE_ARCHITECTURE.md`, `../../architecture/TRACEABILITY.md`
 - Contract: `../../contracts/TRACEABILITY.md`および各Contract Definition
+- Representation Profile: `../../contracts/profiles/`
+- runtime: `../../runtime/go/`
 - 設計判断: `../../plan/adr/`
 - 作業・Evidence状態: `../../plan/issue/`
 
@@ -33,59 +33,52 @@ Product Value
   → SCN-*
   → ADR
   → Architecture concern
-  → Contract / Implementation / Fixture
+  → Contract / Representation Profile / Runtime
+  → Fixture / Test / CI
   → Evidence state
 ```
 
 関係は多対多です。一つのRequirementが複数の価値軸を支えてよく、一つのScenarioが複数Requirementを同時に検証しても構いません。
 
-一対一対応を増やすことや、リンク数を多くすることを品質指標にはしません。
+リンク数やcoverage率をProduct ValueのKPIにはしません。
 
 ## 3. V1〜V8のcurrent trace
 
-| Value Axis | 主なREQ | 主なSCN | 主なADR | 主なArchitecture concern | current Contract / executable material |
-|---|---|---|---|---|---|
-| **V1 Historical Reconstruction** | REQ-0001, 0003, 0005, 0008, 0009, 0014, 0017, 0018, 0020, 0022 | SCN-0001, 0003, 0005, 0008, 0009, 0010, 0014, 0016 | ADR-0003, 0007, 0008, 0010, 0011, 0019, 0020, 0021 | Decision Memory; Reference / Revision / Exact Binding; Provenance; Persistence; Evidence boundary | Semantic Reference; Decision Memory; Semantic Interchange; historical reconstruction fixtureの一部 |
-| **V2 Semantic Separation** | REQ-0002, 0003, 0006, 0008, 0013, 0015, 0016, 0017, 0022 | SCN-0001, 0002, 0004, 0009, 0011, 0015, 0016 | ADR-0002, 0004, 0010, 0011, 0012, 0016, 0017, 0019 | Inquiry / Epistemics; Decision Memory; Responsibility / Authority; Capability Observation; Cognitive Method | Decision Memory; Capability Observation; Semantic Interchange; Recommendation-only / unresolved Decision / negative fixture |
-| **V3 Revision Integrity** | REQ-0001, 0003, 0004, 0005, 0008, 0009, 0014, 0018 | SCN-0003, 0005, 0008, 0010, 0015, 0016 | ADR-0003, 0007, 0008, 0009, 0010, 0011, 0017, 0021 | Semantic Revision; Exact Binding; Decision Memory; Cognitive Method provenance; Persistence | Semantic Reference; Decision Memory; lineage / exact reference invariantの一部 |
-| **V4 Provider Independence** | REQ-0001, 0007, 0012, 0013, 0021, 0022 | SCN-0002, 0007, 0010, 0011, 0012, 0014 | ADR-0006, 0012, 0013, 0014, 0019, 0021 | Capability; Provider / Adapter; Federation; Persistence; Execution boundary | Capability Observation; Semantic Interchange; cross-provider / TEI degradation fixtureの一部 |
-| **V5 Uncertainty Preservation** | REQ-0002, 0005, 0012, 0014, 0016, 0022 | SCN-0001, 0003, 0007, 0011, 0012, 0016 | ADR-0002, 0005, 0006, 0010, 0011, 0019 | Inquiry / Epistemics; Decision unresolved state; Capability Observation; Withheld context | Decision Memory; Capability Observation; Semantic Interchange; Unknown / Conflict / Withheld / partial-knowledge fixture |
-| **V6 Human / AI Readability** | REQ-0010, 0011, 0019, 0020 | SCN-0004, 0006, 0013, 0017 | ADR-0005, 0017, 0018, 0020, 0021 | Projection; Profile / Policy; Evidence boundary; human-readable Contract Definition | human-readable Contract Definitionとmachine-readable schemaの二層。Projectionの実利用検証は未完了 |
-| **V7 Progressive Explicitness** | REQ-0010 | SCN-0004, 0013 | ADR-0005, 0019 | Profile / Policy; Projection; context-sensitive Decision requirements | 専用Universal Contractは置かない。current Design baseline中心で、軽量／高影響の実利用検証は未完了 |
-| **V8 Execution Independence** | REQ-0001, 0004, 0007, 0011, 0012, 0015, 0018, 0021, 0022 | SCN-0002, 0005, 0006, 0007, 0008, 0012, 0014, 0015 | ADR-0006, 0007, 0012, 0013, 0014, 0017, 0019, 0021 | Provider / Adapter; Cognitive Method Realization; Projection; Persistence; Capability; Federation | Capability Observation / Semantic Interchange等は一部境界を支えるが、実Execution Provider交換のoperational evidenceは未取得 |
+| Value Axis | 主なREQ | 主なSCN | 主なADR | current executable material |
+|---|---|---|---|---|
+| **V1 Historical Reconstruction** | REQ-0001, 0003, 0005, 0008, 0009, 0014, 0017, 0018, 0020, 0022 | SCN-0001, 0003, 0005, 0008, 0009, 0010, 0014, 0016 | ADR-0003, 0007, 0008, 0009, 0010, 0011, 0019, 0021, 0022, 0023 | Semantic Reference / Decision Memory / Interchange fixture、F6 historical reconstruction、Go runtime slice |
+| **V2 Semantic Separation** | REQ-0002, 0003, 0006, 0008, 0013, 0015, 0016, 0017, 0022 | SCN-0001, 0002, 0004, 0009, 0011, 0015, 0016 | ADR-0002, 0004, 0010, 0011, 0012, 0016, 0017, 0019, 0022 | Recommendation-only、Decision with unresolved、Authority field rejection、Go read model |
+| **V3 Revision Integrity** | REQ-0001, 0003, 0004, 0005, 0008, 0009, 0014, 0018 | SCN-0003, 0005, 0008, 0010, 0015, 0016 | ADR-0003, 0007, 0008, 0009, 0010, 0011, 0017, 0021, 0023 | lineage / exact binding invariant、Representation Profile fixture、runtime validation |
+| **V4 Provider Independence** | REQ-0001, 0007, 0012, 0013, 0021, 0022 | SCN-0002, 0007, 0010, 0011, 0012, 0014 | ADR-0006, 0012, 0013, 0014, 0019, 0021, 0022 | Capability Observation F1〜F7、cross-provider comparison、runtime loader |
+| **V5 Uncertainty Preservation** | REQ-0002, 0005, 0012, 0014, 0016, 0022 | SCN-0001, 0003, 0007, 0011, 0012, 0016 | ADR-0002, 0005, 0006, 0010, 0011, 0019, 0022 | Unknown / Conflict / Withheld / partial-knowledge fixture、runtime read model |
+| **V6 Human / AI Readability** | REQ-0010, 0011, 0019, 0020 | SCN-0004, 0006, 0013, 0017 | ADR-0005, 0017, 0018, 0020, 0021 | human-readable Contract Definitionとmachine-readable schema。Projection実利用は未検証 |
+| **V7 Progressive Explicitness** | REQ-0010 | SCN-0004, 0013 | ADR-0005, 0019 | Design境界は存在。軽量／高影響の実運用比較は未検証 |
+| **V8 Execution Independence** | REQ-0001, 0004, 0007, 0011, 0012, 0015, 0018, 0021, 0022 | SCN-0002, 0005, 0006, 0007, 0008, 0012, 0014, 0015 | ADR-0006, 0007, 0012, 0013, 0014, 0017, 0019, 0022 | Provider-neutral Contractとfirst runtime slice。異なるproduction Execution Provider間の実証は未完了 |
 
-この表の「current Contract / executable material」は、その価値軸全体のExecutable AcceptanceがSatisfiedであることを意味しません。現在どこまで機械的検査へ降りているかを示す索引です。
+表中の実装・fixtureが存在しても、そのValue Axis全体のExecutable AcceptanceがSatisfiedになったとは読みません。
 
-## 4. current Requirement / Scenario baseline
+## 4. Requirement / Scenario baseline
 
 current Product Requirementsは`REQ-0001`〜`REQ-0022`、Acceptance Scenariosは`SCN-0001`〜`SCN-0017`です。
-
-RequirementとScenarioは別の役割を持ちます。
 
 ```text
 Requirement != Acceptance Scenario != Test Case
 ```
 
-Product Value側に第二のScenario体系を作りません。具体的な場面は`SCN-*`を正本とし、この文書ではV1〜V8との関係だけを索引化します。
+具体的な場面の正本は`SCN-*`です。Product Value側に第二のScenario体系を作りません。
 
-### V1〜V8とSCNの主な関係
+Requirements registryについては、actual checkerとnegative self-testが存在し、GitHub Actionsで次を確認しています。
 
-- **V1** — 根拠が割れている判断、判断の見直し、Method Realization交換、Storage交換、責任線、historical reconstruction、Execution Provider交換、残差からの再開
-- **V2** — 根拠が割れている判断、異なるCapability Provider、軽量／高影響判断、責任線、Provider未観測、Pattern / Method分離、未解決Decision
-- **V3** — 判断の見直し、Method Realization交換、Storage交換、historical reconstruction、Pattern / Method分離、残差からの再開
-- **V4** — Provider比較、bounded collaboration、historical Provider state、degraded Provider、Selective Disclosure、Execution Provider交換
-- **V5** — Conflictを含む判断、判断見直し、bounded collaboration、Provider未観測、Selective Disclosure、残差からの再開
-- **V6** — 軽量／高影響判断、Projection作り直し、簡略UI、Design Evidence claim監査
-- **V7** — 軽量／高影響判断、簡略UIとcanonical meaning
-- **V8** — Provider比較、Method Realization交換、Projection交換、bounded collaboration、Storage交換、Selective Disclosure、Execution Provider交換、Pattern / Method分離
+- Run ID: `33346697016`
+- `22 requirements / 17 scenarios`: **PASS**
 
-具体的な期待・失敗例は`requirements/ACCEPTANCE_SCENARIOS.md`を正とします。
+このPASSはregistry構造のExecutable Evidenceであり、Requirement内容の真実性やimplementation coverageの証明ではありません。
 
-## 5. Architectureへの追跡
+## 5. Architecture baseline
 
-`architecture/TRACEABILITY.md`では、REQ-0001〜REQ-0022が少なくとも一つのcurrent Architecture concernへ追跡できることを確認しています。
+current Reference Architectureは、Milestoneやpackage構成ではなく、意味上のarchitecture concernで構成します。
 
-主なArchitecture concernは次のとおりです。
+主なconcernは次のとおりです。
 
 - Durable Semantic Core
 - Inquiry / Epistemic State
@@ -101,160 +94,205 @@ Product Value側に第二のScenario体系を作りません。具体的な場�
 - Persistence
 - Evidence / Assurance boundary
 
-このcoverageはDesign Evidenceです。
+`architecture/TRACEABILITY.md`ではREQ-0001〜REQ-0022をcurrent Architecture concernへ追跡しています。
+
+これはDesign Evidenceです。Go packageやserviceをArchitecture concernの恒久identityにはしません。
+
+## 6. Contract baseline
+
+current Contractは次の4 familyです。
+
+- `soza.semantic-reference/v1alpha1`
+- `soza.decision-memory/v1alpha1`
+- `soza.capability-observation/v1alpha1`
+- `soza.semantic-interchange/v1alpha1`
+
+actual repositoryには、JSON Schema、positive / negative / boundary fixture、semantic validator、Contract Conformance workflowがあります。
+
+Contract Conformanceの実績:
+
+- Run ID: `33346472419`
+- fixture count: `17`
+- conclusion: **success**
+
+これは4 Contractのtested boundaryに対するfixture-scoped Executable Evidenceです。
 
 ```text
-Architecture trace exists != implementation is complete
+Contract fixture PASS != all SOZA behavior implemented
 ```
 
-Architecture concernをそのままGo package、service、database、processへ一対一対応させません。
+## 7. Representation Profile baseline
 
-## 6. Contractへの追跡
+ADR-0023 / ISSUE-000009により、current/future Exact Binding向けのRepresentation Profileを次へ分離しました。
 
-current Contract Design baselineでは、少なくとも次の4 familyが実体化されています。
+- `soza.jcs+sha256/v1alpha1`
+- `soza.raw-bytes+sha256/v1alpha1`
 
-| Contract | Product Value上の主な役割 |
-|---|---|
-| `soza.semantic-reference/v1alpha1` | V1 / V3を中心に、logical reference、exact historical binding、revision / lineageの意味を支える |
-| `soza.decision-memory/v1alpha1` | V1 / V2 / V3 / V5を中心に、Recommendation / Decision / basis / unresolved / responsibilityの分離を支える |
-| `soza.capability-observation/v1alpha1` | V2 / V4 / V5を中心に、Provider-neutral Observation、Unknown / Conflict / Withheld、Provider境界を支える |
-| `soza.semantic-interchange/v1alpha1` | V1 / V2 / V4 / V5 / V6 / V8にまたがるportable interchange境界を支える |
+Profile authorityはRFC 8785とSOZA Profile Definitionであり、特定Go libraryではありません。
 
-Contractが存在すること自体をExecutable Evidenceとはしません。
+actual fixtureでは、少なくとも次を確認しています。
 
-一方、2026-08-31時点では、これら4 ContractについてJSON Schema、positive / negative / boundary fixture、semantic validator、GitHub Actionsがactual repositoryにあり、**17 fixtureを対象とするfixture-scoped Executable Conformance**が成功しています。
+- JCS verified vectors: 4
+- raw-bytes vectors: 2
+- verification outcome vectors: 3
+- duplicate key rejection
+- unsafe integerの暗黙丸め拒否
+- Unicode normalizationを勝手に行わない境界
+- `verified / failed / not_verified`の分離
 
-これは重要なExecutable Evidenceですが、対象範囲をContract v1alpha1 fixtureへ限定して読みます。
+GitHub Actions:
 
-## 7. 現在のEvidence状態
+- Run ID: `33347989530`
+- `profile-fixtures`: **success**
+- `jcs-go-probe`: **success**
 
-### 7.1 Design Evidence
-
-current repositoryでは、次のDesign baselineが実体化されています。
-
-- Product Value / Value Model / Value Acceptance
-- REQ-0001〜REQ-0022
-- SCN-0001〜SCN-0017
-- ADR-0001〜ADR-0021
-- Reference Architecture / Architecture Traceability
-- current Contract Definition / Contract Traceability
-
-Product → REQ → ADR → Architecture → Contractの主要な追跡線は、Design levelではかなり具体化しています。
-
-### 7.2 Executable Evidence
-
-actual repositoryでは、少なくとも次があります。
-
-- Planning registry integrity checker
-- Requirements / Scenario registry checkerとnegative self-test
-- Contract v1alpha1 schema
-- Contract positive / negative / boundary fixture
-- Contract semantic validator
-- Contract conformance GitHub Actions
-
-Requirements registryについては22 Requirement / 17 Scenarioの構造整合をactual checkerで確認しています。
-
-Contractについては17 fixtureのfixture-scoped conformanceをactual GitHub Actionsで確認しています。
-
-ただし、これらは**構造・Contract境界のExecutable Evidence**です。REQ-0001〜REQ-0022すべてのproduction implementationや、V1〜V8全体のExecutable Acceptanceを意味しません。
-
-### 7.3 現在まだ上げないEvidence
-
-次はcurrent baselineから自動的にSatisfiedへ上げません。
-
-- stable Representation Profile
-- historical M47 digest mapping
-- SOZA全体のruntime implementation coverage
-- release artifactに対するValue Acceptance
-- production operationに対するOperational Acceptance
-- 実利用によるAdoption / Outcome Acceptance
+historical M47 digest mappingは別問題であり、ISSUE-000034でBlockedとして追跡しています。
 
 ```text
-fixture PASS
+current Profile verified != historical digest identified
+```
+
+## 8. first semantic runtime slice
+
+ADR-0022 / ISSUE-000033に基づき、Goのfirst runtime sliceがactual repositoryにあります。
+
+```text
+runtime/go/
+  go.mod
+  semanticruntime/
+    model.go
+    loader.go
+    loader_test.go
+```
+
+対象はread / validate / reconstructです。外部Action実行やproduction Provider integrationを先行していません。
+
+runtimeは同じContract fixture sourceを読み、少なくとも次を検査します。
+
+- Semantic Interchange v1alpha1
+- Capability Observation F1〜F7
+- Recommendation without Decision
+- Decision with unresolved state
+- partial knowledge
+- same-logical-id lineageのexact endpoint要求
+- mismatched exact binding
+- unknown nested Contractの`not_verified`扱い
+- original interchange bytesのlossless re-export
+
+GitHub Actions `Semantic Runtime Conformance`:
+
+- Run ID: `33348972805`
+- Head SHA: `834c3f2a8bd911829743c1582ef09f098c776a54`
+- Contract fixture checker: **PASS**
+- Go runtime tests: **PASS**
+- conclusion: **success**
+
+これはfirst runtime sliceのfixture-scoped Executable Evidenceです。
+
+```text
+runtime CI PASS
+  != all runtime requirements complete
+  != Provider production integration
   != release ready
-  != operational success
-  != user-value realization
 ```
 
-## 8. Value Axisごとの主要な未検証点
+## 9. Evidenceの現在地
+
+Product Valueの受入れでは、次の高さを分けます。
+
+```text
+Design Evidence
+  != Executable Evidence
+  != Release Evidence
+  != Operational Evidence
+  != Adoption / Outcome Evidence
+```
+
+### Design Evidence
+
+current repositoryには、Product、Requirements、Accepted ADR、Reference Architecture、Contract Definition、Representation Profile Definition、runtime first-slice boundaryのDesign baselineがあります。
+
+### Executable Evidence
+
+限定された範囲で、次が再現可能です。
+
+- Plan registry integrity
+- Requirements registry structural conformance
+- Contract v1alpha1 17-fixture conformance
+- Representation Profile fixture / Go probe conformance
+- first semantic runtime slice conformance
+
+### Release Evidence
+
+**Not Yet Verified**
+
+### Operational Evidence
+
+**Not Yet Verified**
+
+### Adoption / Outcome Evidence
+
+**Not Yet Verified**
+
+本番で動くことと、利用者・組織の判断が改善することも分けます。
+
+```text
+Operational success != user-value realization
+```
+
+## 10. Value Axisごとの主要な未検証点
 
 ### V1 Historical Reconstruction
 
-Contract / fixtureで一部のexact referenceやhistorical reconstruction境界を検証している。一方、stable Representation Profile、historical M47 digest mapping、長期間の実運用履歴での再構成は未検証である。
+current Contract / Profile / runtime fixtureで一部境界を検査済みです。一方、historical M47 digest mapping、長期間の実運用履歴、実利用での再判断への寄与は未検証です。
 
 ### V2 Semantic Separation
 
-Recommendation-only、unresolved Decision、Authority field rejection等のfixtureがある。一方、実際のProvider executionや業務責任線をまたぐ運用検証は未完了である。
+Recommendation / Decision / Authority等の分離はfixtureとruntimeで一部検査済みです。productionの責任線・権限線をまたぐOperational Evidenceはありません。
 
 ### V3 Revision Integrity
 
-lineage / exact referenceの一部invariantを検証している。一方、長期間のsemantic revisionとstorage migrationをまたぐ実運用Evidenceはない。
+lineage / exact binding invariantは一部検査済みです。長期semantic revision、storage migrationをまたぐOperational Evidenceはありません。
 
 ### V4 Provider Independence
 
-Capability Observationのcross-provider / TEI scenarioをfixtureで検証している。一方、実Provider交換・廃止を伴うoperational evidenceはない。
+cross-provider fixtureは検査済みです。実Providerの交換・廃止・移行を伴うOperational / Outcome Evidenceはありません。
 
 ### V5 Uncertainty Preservation
 
-Unknown / Conflict / Withheld / partial knowledgeをContract fixtureで扱える。一方、実利用で不確実性を保持したことが誤判断回避へ寄与したOutcome Evidenceはない。
+Unknown / Conflict / Withheld / partial knowledgeを保持する境界はfixtureとruntimeで検査済みです。それが実際の誤判断回避へ寄与したOutcome Evidenceはありません。
 
 ### V6 Human / AI Readability
 
-human-readable Contract Definitionとmachine-readable schemaを分離している。一方、representative Projectionを用いた人間・AI双方の実用上の可読性は未検証である。
+human-readable Definitionとmachine-readable representationはありますが、実務負荷を含む人間・AI双方の可読性評価は未完了です。
 
 ### V7 Progressive Explicitness
 
-Design boundaryは存在するが、軽量案件と高影響案件の双方で記録負担と意味保持を比較するoperational / outcome evidenceはない。
+Design boundaryはありますが、軽量案件と高影響案件を実運用で比較したEvidenceはありません。
 
 ### V8 Execution Independence
 
-Provider / Adapter / Persistenceの意味境界はDesignとして定義されている。一方、異なるExecution Provider間で実際に同じDecision semanticsを維持できることは、production相当では未検証である。
+SOZA semantic runtimeをexecution dispatchから分離したfirst sliceは成立していますが、異なるproduction Execution Provider間で意味を維持したEvidenceはありません。
 
-## 9. CoverageをKPIにしない
+## 11. CoverageをKPIにしない
 
-この文書の表は、coverage率や成熟度スコアを計算するためのものではありません。
+この文書は成熟度スコア表ではありません。
 
-次のような読み方をしません。
+次の読み方をしません。
 
-- REQリンクが多いValue Axisほど価値が高い。
-- ContractがあるValue Axisほど完成している。
-- fixture数が多いほどProduct Valueを満たしている。
-- V1〜V8の平均点が高ければ重大な欠損を許容できる。
+- REQリンクが多いValue Axisほど重要である。
+- Contractやfixtureが多いほどProduct Valueが高い。
+- CIが多く通るほど利用者価値が高い。
+- Executable Evidenceが増えればOperational / Outcomeも自動的に増える。
 
-追跡の目的は、**価値の欠落、未検証箇所、過大な達成主張を見つけやすくすること**です。
+追跡の目的は、**どこまで確認したかと、どこから先をまだ主張してはいけないかを見失わないこと**です。
 
-## 10. Product Value変更時の使い方
+## 12. 更新規則
 
-Product Value、Value Model、Value Acceptanceを変更する場合は、この文書から影響するREQ / SCN / ADR / Architecture / Contractを抽出して再監査します。
+Product Value、REQ、SCN、ADR、Architecture、Contract、Profile、runtimeのいずれかが変わった場合、この文書を必要に応じて更新します。
 
-ただし、Traceabilityの都合だけで上位価値を書き換えません。
+ただし、下位実装の都合に合わせてProduct Valueを後付けで変更しません。上位仮説を変える必要がある場合はADR-0018のProduct Value再基線化規則に従います。
 
-下位文書がProduct Valueと矛盾する場合は、まず次を確認します。
+## 13. 自然な日本語ドラフト
 
-1. 下位文書が古いのか。
-2. Product Valueの仮説に反証が出たのか。
-3. Provider固有要件をUniversal要件へ誤昇格させていないか。
-4. Design EvidenceとOperational / Outcome Evidenceを混同していないか。
-
-意味変更が必要な場合はADR-0018の変更規則に従います。
-
-## 11. 関連文書
-
-- `SOZA_PRODUCT_VALUE.md`
-- `SOZA_VALUE_MODEL.md`
-- `SOZA_VALUE_ACCEPTANCE.md`
-- `../vision/SOZA_PRODUCT_VISION.md`
-- `../principles/SOZA_PRODUCT_PRINCIPLES.md`
-- `../../requirements/PRODUCT_REQUIREMENTS.md`
-- `../../requirements/ACCEPTANCE_SCENARIOS.md`
-- `../../architecture/TRACEABILITY.md`
-- `../../contracts/TRACEABILITY.md`
-- `../../plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md`
-- `../../plan/adr/ADR-0020-requirements-traceability-and-evidence-boundary.md`
-- `../../plan/adr/ADR-0021-architecture-contract-authority-and-versioning.md`
-- `../../plan/issue/ISSUE-000027-implement-requirements-registry-checker.md`
-- `../../plan/issue/ISSUE-000031-implement-contract-schemas-and-conformance.md`
-
-## 12. Natural Japanese review
-
-current Product Value、REQ-0001〜0022、SCN-0001〜0017、ADR、Architecture Traceability、Contract Traceability、actual checker / conformance Evidenceを横断して対応付けた後、Design coverageとExecutable / Release / Operational / Adoption・Outcomeを混同しないよう全体を再構成しました。その後、意味、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+V1〜V8、REQ-0001〜0022、SCN-0001〜0017、ADR-0001〜0023、current Architecture、4 Contract family、Representation Profile、first semantic runtime slice、actual CI結果へ戻って追跡を再確認しました。その後、Design / Executable / Release / Operational / Adoption・OutcomeのEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
