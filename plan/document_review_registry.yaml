@@ -37,8 +37,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに全件監査済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000038
-    note: ISSUE-000038を含め、各Issueをcurrent Evidenceへ同期し、自然な日本語の最終意味監査まで実施済み。
+    coverage: ISSUE-000001..ISSUE-000039
+    note: ISSUE-000038 / 000039を含む新規Issueは、ISSUE-000015で確立した標準工程を作成時に適用し、自然な日本語全文再ドラフトと最終意味監査まで同じ作業単位で完了している。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -80,7 +80,6 @@ reviewed:
     status: revised
   - scope: contracts/TRACEABILITY.md
     status: revised
-    note: ISSUE-000038のin-process Representation Verifier Registry Evidenceまでcurrent traceabilityへ反映済み。
   - scope: contracts/profiles/*.md
     status: revised
     coverage:
@@ -93,7 +92,7 @@ reviewed:
 
   - scope: runtime/CONFORMANCE_EVIDENCE_2026-08-31.md
     status: revised
-    note: first semantic runtime、synthetic Provider Adapter、current 2 Profileのin-process Verifier Registryを5段階Evidenceへ再整理済み。
+    note: first semantic runtime / synthetic Provider Adapterの限定Executable Evidenceを5段階Evidenceへ再整理済み。
 
   - scope: fixtures/contracts/v1alpha1/README.md
     status: revised
