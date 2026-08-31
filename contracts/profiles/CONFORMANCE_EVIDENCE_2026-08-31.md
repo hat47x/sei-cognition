@@ -28,6 +28,7 @@ Semantic ContractとRepresentation Profileは別のauthorityです。
 ```text
 fixtures/representation-profiles/jcs-v1alpha1.json
 fixtures/representation-profiles/raw-bytes-v1alpha1.json
+fixtures/representation-profiles/verification-outcomes-v1alpha1.json
 tools/check_representation_profiles.py
 tools/jcs_probe.go
 .github/workflows/representation-profile-conformance.yml
@@ -49,17 +50,38 @@ tools/jcs_probe.go
 - `profile-fixtures`: **success**
 - `jcs-go-probe`: **success**
 
-Profile Definition説明を更新した後も同じ検査がgreenであることを確認しています。
+### Verification Outcome追加後の再実行
 
-## 5. Static / raw-bytes fixture result
+- Run ID: `33347989530`
+- Head SHA: `30678df18f3382407d3e0562f6ba358afb3120b3`
+- `profile-fixtures`: **success**
+- `jcs-go-probe`: **success**
+
+`verified / failed / not_verified`の三状態fixtureを追加した後も、Profile DefinitionとGo probeの両jobがgreenであることを確認しています。
+
+## 5. Static / raw-bytes / outcome fixture result
 
 Python 3.12 actual Action output:
 
 ```text
-representation profile fixture check: PASS (JCS verified vectors=4, raw vectors=2)
+representation profile fixture check: PASS
+(JCS verified vectors=4, raw vectors=2, outcome vectors=3)
 ```
 
-このcheckerは、Profile ID、固定canonical digest、NFC/NFD差、unsafe integer negative fixture、raw bytes SHA-256を検査します。
+このcheckerは次を検査します。
+
+- Profile IDとDefinitionの対応
+- 固定canonical bytesとSHA-256
+- NFC / NFDを勝手にnormalizeしないこと
+- unsafe integer negative fixture
+- raw bytes SHA-256
+- known Profile + digest一致 → `verified`
+- known Profile + digest mismatch → `failed`
+- unknown Profile → `not_verified`
+
+```text
+not_verified != failed
+```
 
 ## 6. Commit-pinned Go JCS probe
 
@@ -122,7 +144,19 @@ sha256:be45cb2605bf36bebde684841a28f0fd43c69850a3dce5fedba69928ee3a8991
 
 base64 fixtureをdecodeしたbytesへ直接SHA-256を適用し、固定digestと一致することをactual Actionで確認しています。
 
-## 9. Verified boundaries
+## 9. Verification Outcome result
+
+三状態を次のfixtureで直接確認しています。
+
+```text
+OUTCOME-001-known-profile-match       → verified
+OUTCOME-002-known-profile-mismatch    → failed
+OUTCOME-003-unknown-profile           → not_verified
+```
+
+unknown Profileをdigest mismatchとして扱わず、verification capability不足として`not_verified`へ残します。
+
+## 10. Verified boundaries
 
 今回のEvidenceが直接確認した範囲:
 
@@ -132,9 +166,10 @@ base64 fixtureをdecodeしたbytesへ直接SHA-256を適用し、固定digestと
 - `9007199254740993`を暗黙にbinary64へ丸めず、JCS前のSOZA境界で拒否できる。
 - Unicode NFC / NFDを勝手にnormalizeしない。
 - raw bytes ProfileでbytesそのもののSHA-256を再現できる。
+- `verified / failed / not_verified`をProfile availabilityとdigest結果に応じて区別できる。
 - Go JCS implementationはcommit固定で交換可能なprobeとして利用できる。
 
-## 10. Not verified here
+## 11. Not verified here
 
 本Evidenceから次を主張しません。
 
@@ -147,6 +182,6 @@ base64 fixtureをdecodeしたbytesへ直接SHA-256を適用し、固定digestと
 
 historical M47はISSUE-000032で追跡します。
 
-## 11. Natural Japanese review
+## 12. Natural Japanese review
 
-GitHub Actionsの実ログ、Profile Definition、fixtureを相互照合し、どの結果が直接確認され、どこから先が未検証かを分離した。その後、Evidence強度と数値を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+GitHub Actionsの実ログ、Profile Definition、fixtureを相互照合し、どの結果が直接確認され、どこから先が未検証かを分離した。その後、Evidence強度、run ID、digest、outcome分類を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
