@@ -1,0 +1,20 @@
+{
+  "contract": "soza.capability-observation/v1alpha1",
+  "observation": {
+    "ref": {"kind": "capability-observation", "id": "F2-proposed-state-vs-actual"},
+    "target": {
+      "capability_ref": {"kind": "capability", "id": "customer-database-access"},
+      "provider_ref": {"kind": "provider", "id": "tei"},
+      "provider_target_ref": "tei://database/customer-db"
+    },
+    "observed_at": "2026-08-31T00:05:00Z",
+    "conditions": [
+      {"key": "database.current_schema", "state": "observed", "value": "v12"},
+      {"key": "database.migration_proposal", "state": "observed", "value": "v13_proposed_not_adopted"}
+    ],
+    "provenance_refs": [
+      {"kind": "provider-observation", "id": "tei-customer-db-current-state"},
+      {"kind": "proposal", "id": "customer-db-migration-v13"}
+    ]
+  }
+}
