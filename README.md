@@ -1,7 +1,7 @@
 # 綜座 / SOZA
 
 更新日: 2026-08-31  
-状態: **Product / Requirements / Architecture / Contract / first Runtime baseline + scoped Executable Evidence — development in progress**
+状態: **Current repository baseline + scoped Executable Evidence — development in progress**
 
 SOZAは、人間・AI・組織・既存システム・外部サービスが入れ替わっても、**何を見て、何を問い、何を根拠とし、何を決め、何を未解決として残したか**を失わないための、可搬な認知・意思決定基盤です。
 
@@ -46,12 +46,12 @@ Contract Definition
   ↓
 Schema / Validator / Fixture
   ↓
-Runtime / Provider Integration
+Runtime / Provider Adapter
 ```
 
-現在は、上位Design baselineに加えて、Requirements registry、Contract / Capability fixture、Representation Profile、first semantic runtime sliceについて、範囲を限定したExecutable Evidenceをactual repository上で再現できます。
+current repository baselineとして、上位Design文書に加え、Requirements Registry、Contract / Capability fixture、Representation Profile、first semantic runtime slice、synthetic Provider Adapterについて、範囲を限定したExecutable Evidenceをactual repository上で再現できます。
 
-一方、Provider production integration、release、operational evidenceは未完成です。historical M47 digest Profileの対応付けも、ISSUE-000034で別途Blockedとして扱っています。
+一方、production Provider integration、release、operational evidenceは未完成です。historical M47 digest Profileの対応付けも、ISSUE-000034で別途Blockedとして扱っています。
 
 ## 3. Evidenceの読み方
 
@@ -111,18 +111,21 @@ M48〜M50等の旧candidateは意味核・反例・実装候補として参照�
 24. `contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md`
 25. `contracts/history/HISTORICAL_CONTRACT_MAPPING.md`
 
-### Runtime
+### Runtime / Provider Adapter
 
 26. `runtime/go/semanticruntime/model.go`
 27. `runtime/go/semanticruntime/loader.go`
 28. `runtime/go/semanticruntime/loader_test.go`
+29. `runtime/go/provideradapter/adapter.go`
+30. `runtime/go/provideradapter/synthetic.go`
+31. `fixtures/providers/synthetic/README.md`
 
 ### Planning / Decisions
 
-29. `plan/README.md`
-30. `plan/DEVELOPMENT_WORKFLOW.md`
-31. `plan/DOCUMENT_AUTHORING_STANDARD.md`
-32. `plan/registry.yaml`
+32. `plan/README.md`
+33. `plan/DEVELOPMENT_WORKFLOW.md`
+34. `plan/DOCUMENT_AUTHORING_STANDARD.md`
+35. `plan/registry.yaml`
 
 個別の設計判断は`plan/adr/`、未完了作業や調査は`plan/issue/`を参照してください。
 
@@ -184,16 +187,11 @@ Requirement Accepted != Executable Evidence Satisfied
 
 ### Requirements Registry Executable Evidence
 
-current registryについて、GitHub Actions `Requirements Registry Conformance`で次を再現しています。
+current registryについて、GitHub Actions `Requirements Registry Conformance`で、stable ID、相互参照、Value Axis、status / Evidence vocabulary等の構造整合を検査しています。
 
-```text
-PASS: requirements registry checker self-tests
-PASS: 22 requirements / 17 scenarios
-```
+直近のRequirement Evidence再基線化後もRun ID `33349256675`でsuccessを確認しています。
 
-Run ID: `33346697016`
-
-このPASSが示すのは、stable ID、相互参照、Value Axis、status / Evidence vocabulary等のregistry構造整合です。Requirementの意味内容やimplementation coverageそのものを証明するものではありません。
+このPASSはRequirementの意味内容やimplementation coverageそのものを証明するものではありません。
 
 ## 8. Reference Architecture baseline
 
@@ -296,7 +294,9 @@ historical M47 digest規則については、current Profileへ推測で遡及�
 historical digest exists != historical Profile known
 ```
 
-## 12. First semantic runtime baseline
+## 12. Runtime / Provider Adapter baseline
+
+### First semantic runtime
 
 ADR-0022に基づき、外部Action実行より先に、current semantic Contractを読み、検査し、historical contextを再構成する最小Runtime sliceをGoで実体化しました。
 
@@ -314,20 +314,31 @@ ADR-0022に基づき、外部Action実行より先に、current semantic Contrac
 - bundle内exact binding整合
 - original interchange bytesのlossless re-export
 
-Capability Observation F1〜F7を同じfixture sourceからruntimeへ読み込み、Recommendation without Decision、Decision with unresolved state、same-logical-id lineage、mismatched exact binding、unknown Contract等のboundary / negative caseも検査しています。
+GitHub Actions `Semantic Runtime Conformance` run #3（Run ID `33348972805`）で、current Contract fixture checkerと`go test ./...`の両方が成功しました。
 
-GitHub Actions `Semantic Runtime Conformance` run #3（Run ID `33348972805`）で、次の両方が成功しました。
+### Synthetic Provider Adapter
+
+ADR-0024に基づき、Provider固有stateを一つのUniversal `ProviderState`へ統合せず、Provider Adapterからcurrent Capability Observationへ変換する最小sliceを実体化しました。
+
+synthetic Provider A / Bは異なるfield名・単位を持ちますが、同じCapabilityに対するObservationへ変換できます。
+
+検査している主な境界:
+
+- status interpretation / unit conversionはmappingである。
+- mapping provenanceとsource state referenceを保持する。
+- missing値を`false`や`0`へ変換しない。
+- Provider-specific targetをopaque referenceとして保持する。
+- Adapter outputをcurrent Capability Observation validationへ通す。
+- AdapterからRecommendation、Decision、Authority、Executionを生成しない。
+
+GitHub Actions `Semantic Runtime Conformance` run #4（Run ID `33349604842`）で、Contract fixture checkerとProvider Adapterを含むGo testsがsuccessしました。
+
+これらはcurrent repositoryのExecutable baselineですが、production Provider integrationを意味しません。
 
 ```text
-PASS: current Contract fixture checker
-PASS: go test ./...
-```
-
-これはfirst semantic runtime sliceのExecutable Evidenceです。
-
-```text
-Runtime CI PASS
-  != Provider production integration
+Runtime / synthetic Adapter CI PASS
+  != TEI production integration
+  != SaaS production interoperability
   != Authorization / Action execution complete
   != release readiness
   != Operational Evidence
@@ -335,34 +346,34 @@ Runtime CI PASS
 
 ## 13. 現在のPlan
 
-`plan/registry.yaml`ではADR-0023、ISSUE-000034まで管理しています。
+`plan/registry.yaml`ではADR-0024、ISSUE-000036まで管理しています。
+
+current repository baseline、Requirements registry、Capability Observation F1〜F7、Contract schema / fixture / conformance、Representation Profile、first semantic runtime、synthetic Provider Adapterは実体化済みです。
 
 現在の主要な未完了項目:
 
 - ISSUE-000015 — 既存開発文書の自然な日本語による全面監査
 - ISSUE-000021 — design history provenance監査（Deferred）
-- ISSUE-000022 — repository baseline全体のclosure監査
 - ISSUE-000034 — historical M47 digest Profile回収（Blocked）
 
-Requirements registry、Capability Observation F1〜F7、Contract schema / fixture / conformance、Representation Profile fixture、first semantic runtime sliceはcurrent actual repositoryで実体化済みです。
+ISSUE-000022のcurrent repository baselineとISSUE-000036のsynthetic Provider AdapterはResolvedです。
 
 Statusの正本は`plan/registry.yaml`と各Issue本文です。
 
-## 14. 次の実体化
+## 14. 次の作業
 
-当面の優先順位は次のとおりです。
+当面は、新しい実装を無条件に増やすより、current baselineの意味整合と既存文書監査を優先します。
 
-1. Product Value / REQ / ADR / Architecture / Contract / Runtimeの整合維持
-2. Provider adapterの最小vertical sliceをProvider-neutralな境界から設計する
-3. current Capability ObservationへProvider stateを変換するmapping provenanceを実装・検証する
-4. RuntimeへRepresentation Profile verifierを必要な範囲で接続する
-5. historical M47 digest Profileを一次sourceから回収する
-6. 既存文書を含む自然な日本語監査を継続する
-7. release / operational Evidenceを別段階で整備する
+1. ADR-0001〜ADR-0017の既存本文をcurrent Product Value / REQ / Architecture / Contractから逆向きに監査する。
+2. ISSUE-000001〜ISSUE-000021の既存本文に古いMilestone前提やEvidence状態が残っていないか監査する。
+3. production Provider integrationが具体的に必要になった場合、対象ProviderとAcceptanceを独立Issueで定義する。
+4. RuntimeへRepresentation Profile verifierを接続する必要性をScenarioから確認し、必要なら独立Issueで実装する。
+5. historical M47 digest Profileは一次sourceを回収できた場合にISSUE-000034を進める。
+6. release / operational Evidenceは別段階で整備する。
 
 Provider integrationのためにTEI固有SchemaをUniversal Coreへ引き上げたり、Architecture concernを一対一のpackage構成へ固定したりしません。
 
-CI failureを検出した場合は、その時点で原因を解消し、成功を確認してから次の作業へ進みます。
+CI failureを検出した場合は、その時点で原因を解消し、successを確認してから次の作業へ進みます。
 
 ## 15. Releaseについて
 
@@ -380,4 +391,4 @@ SOZAでは、開発文書の自然な日本語を設計品質の一部として�
 
 ## 17. 自然な日本語レビュー
 
-actual root tree、Requirements Registry、Contract Conformance、Representation Profile、Semantic Runtime Conformance、plan registryへ戻って現在地を再確認しました。そのうえで、Design、fixture-scoped Executable、first runtime Executable、未検証のProvider / Release / Operational領域を分離し、意味とEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+actual root tree、Requirements Registry、Contract Conformance、Representation Profile、first semantic runtime、synthetic Provider Adapter、plan registryへ戻って現在地を再確認しました。current repository baselineの完了と、未検証のproduction Provider / Release / Operational領域を分離したうえで、意味とEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
