@@ -1,0 +1,12 @@
+{
+  "contract": "soza.decision-memory/v1alpha1",
+  "record_type": "recommendation",
+  "recommendation": {
+    "ref": {"kind": "recommendation", "id": "R-without-decision"},
+    "statement": "Consider the SaaS summarization capability for the pilot.",
+    "basis_refs": [
+      {"kind": "capability-observation", "id": "F5-saas"}
+    ],
+    "rationale": "The observed SaaS option satisfies the pilot latency constraint."
+  }
+}
