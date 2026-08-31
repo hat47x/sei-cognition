@@ -9,7 +9,7 @@ Updated: 2026-08-31
 
 ADR-0024に従い、異なるProvider-specific input schemaを持つsynthetic ProviderをProvider Adapter経由でcurrent Capability Observationへ変換し、actual runtime / fixture / CIでExecutable Evidenceを得る。
 
-最初からTEI production APIへ接続せず、Provider-specific schemaをUniversal Coreへ漏らさないこと、mapping provenanceを失わないこと、Unknownをnegative factへ変換しないことを先に検証する。
+最初からTEI production APIへ接続せず、Provider固有SchemaをUniversal Coreへ漏らさないこと、mapping provenanceを失わないこと、Unknownをnegative factへ変換しないことを先に検証する。
 
 ## Resolution
 
@@ -69,11 +69,27 @@ missing != false
 not observed != unavailable
 ```
 
-### 5. Provider-specific referenceを保持した
+### 5. Provider-specific referenceを保持し、固有field setは外へ漏らさない
 
-Provider Aの`service_ref`、Provider Bの`endpoint`は、SOZA Universal fieldへ展開せず`provider_target_ref`として保持する。
+Provider Aの`service_ref`、Provider Bの`endpoint`が指す対象は、SOZA Universal fieldへ展開せず`provider_target_ref`として保持する。
 
 Provider A / Bのinput schema identityは`extensions.provider_context`へ置き、Universal Capability Observation field setへ昇格させていない。
+
+さらにhardening testとして、生成したCapability ObservationのJSONに次のProvider固有**field名**が直接現れないことを確認した。
+
+```text
+Provider A:
+  health
+  delay_ms
+  service_ref
+
+Provider B:
+  ready
+  response_seconds
+  endpoint
+```
+
+Provider固有情報をopaque referenceやextensionとして保持すること自体は禁止しない。禁止しているのは、Provider固有SchemaをSOZAのUniversal field setへ昇格させることである。
 
 ### 6. mapping provenanceとsource state referenceを保持した
 
@@ -134,15 +150,32 @@ current Contract fixture checker
   + Provider Adapter tests
 ```
 
-actual GitHub Actions:
+synthetic Provider Adapter実装時の確認:
 
 - workflow: `Semantic Runtime Conformance`
-- run: **#4**
-- Run ID: **33349604842**
+- Run ID: `33349604842`
 - commit: `4450ea1acf41615a3679a65e266c008a460c5c33`
 - conclusion: **success**
 
-Contract fixture checkerと、semantic runtime / Provider Adapterを含む`go test ./...`の両方が成功した。
+Provider固有field leakage hardening追加後の確認:
+
+- workflow: `Semantic Runtime Conformance`
+- Run ID: `33349801993`
+- commit: `bff2522e9be004d48274d4743e7756130648169a`
+- conclusion: **success**
+
+後者では、Contract checker 17 fixtureと次のGo packageが連続してPASSした。
+
+```text
+ok  github.com/hat47x/soza/runtime/go/provideradapter
+ok  github.com/hat47x/soza/runtime/go/semanticruntime
+```
+
+詳細なExecutable Evidenceは次に記録した。
+
+```text
+runtime/CONFORMANCE_EVIDENCE_2026-08-31.md
+```
 
 ## Acceptance
 
@@ -182,10 +215,10 @@ TEIを最初のproduction Providerとして採用する場合も、SOZA関連製
 
 ## CI handling
 
-本Issueの実装commitではCI failureは発生せず、run #4で直接successを確認した。
+synthetic Provider Adapter実装時のrun #4は直接successした。その後、Provider固有field名がObservation Schemaへ漏れないことを明示するhardening testを追加し、Run `33349801993`でもContract checkerと全Go testのsuccessを確認した。
 
 今後もCI failureを検出した時点で原因を解消し、successを確認してから次の作業へ進む。
 
 ## Natural Japanese review
 
-実装コード、synthetic fixture、runtime test、CI結果へ戻ってAcceptanceを一項目ずつ照合した後、production Provider integrationを先取りせず、意味、規範強度、Evidence境界を変えない範囲で自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+実装コード、synthetic fixture、runtime test、CI実ログ、追加hardening testへ戻ってAcceptanceを一項目ずつ照合した。その後、production Provider integrationを先取りせず、意味、規範強度、Evidence境界を変えない範囲で自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
