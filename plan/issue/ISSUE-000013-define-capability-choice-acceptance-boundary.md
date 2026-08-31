@@ -1,6 +1,6 @@
 # ISSUE-000013: Capability Choiceの受入境界を定義する
 
-Status: **Resolved — planning boundary complete; production implementation not started**  
+Status: **Resolved**  
 Priority: **3**  
 Related ADRs: **ADR-0012, ADR-0013**  
 Updated: 2026-08-31
@@ -33,6 +33,8 @@ planning fixture 12件で境界を検査したが、SOZA-PR-007は`design_only`�
 
 Capability Realization / OfferingのUniversal型要否は後続ISSUE-000014で検討し、ADR-0013で「現時点では追加しない」と確定した。
 
+したがって、本Issueの`Resolved`は**Capability Choiceのplanning / semantic boundaryが確定したこと**を示し、production implementationの完了を示さない。
+
 ## Natural Japanese review
 
-M50 planning closure、ADR-0012/0013へ戻して内容を照合した後、自然な日本語となることを最重要視して全文を再ドラフトし、意味監査を実施済み。
+StatusとEvidence状態を分離したうえで、M50 planning closure、ADR-0012 / ADR-0013へ戻して内容を照合し、意味、留保、未実装範囲を変えず、自然な日本語となることを最重要視して全文を再確認した。最終意味監査も実施済み。
