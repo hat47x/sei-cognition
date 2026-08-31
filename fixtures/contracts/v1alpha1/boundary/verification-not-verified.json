@@ -1,0 +1,13 @@
+{
+  "contract": "soza.semantic-reference/v1alpha1",
+  "record_type": "verification_outcome",
+  "verification_outcome": {
+    "binding": {
+      "logical_ref": {"kind": "source", "id": "historical-source-A"},
+      "content_digest": "sha256:historical-fixture",
+      "representation_profile": {"profile_id": "historical.unknown", "version": "unknown"}
+    },
+    "status": "not_verified",
+    "reason": "The historical representation verifier is not available."
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "contract": "soza.semantic-interchange/v1alpha1",
+  "bundle_id": "F6-historical-reconstruction",
+  "created_at": "2026-08-31T00:25:00Z",
+  "records": [
+    {
+      "record_id": "past-capability-observation",
+      "contract": {"contract_id": "soza.capability-observation", "version": "v1alpha1"},
+      "kind": "capability-observation",
+      "logical_ref": {"kind": "capability-observation", "id": "document-generation-at-decision-D1"},
+      "exact_binding": {
+        "logical_ref": {"kind": "capability-observation", "id": "document-generation-at-decision-D1"},
+        "content_digest": "sha256:fixture-capability-observation-d1",
+        "representation_profile": {"profile_id": "fixture.raw-json", "version": "v0"}
+      },
+      "payload": {
+        "contract": "soza.capability-observation/v1alpha1",
+        "observation": {
+          "ref": {"kind": "capability-observation", "id": "document-generation-at-decision-D1"},
+          "target": {
+            "capability_ref": {"kind": "capability", "id": "document-generation"},
+            "provider_ref": {"kind": "provider", "id": "tei"},
+            "provider_target_ref": "tei://release/document-generation/17"
+          },
+          "observed_at": "2026-07-01T03:00:00Z",
+          "conditions": [
+            {"key": "availability", "state": "observed", "value": true},
+            {"key": "release", "state": "observed", "value": "17"}
+          ],
+          "mapping_provenance": {
+            "mapping_ref": {
+              "logical_ref": {"kind": "adapter-mapping", "id": "tei-capability-mapping"},
+              "content_digest": "sha256:fixture-mapping-v3",
+              "representation_profile": {"profile_id": "fixture.raw-json", "version": "v0"}
+            },
+            "source_state_ref": "tei://release/document-generation/17"
+          }
+        }
+      }
+    },
+    {
+      "record_id": "decision-D1",
+      "contract": {"contract_id": "soza.decision-memory", "version": "v1alpha1"},
+      "kind": "decision",
+      "payload": {
+        "contract": "soza.decision-memory/v1alpha1",
+        "decision": {
+          "ref": {"kind": "decision", "id": "D1"},
+          "statement": "Use the TEI document-generation capability for the July workflow.",
+          "basis_refs": [
+            {
+              "logical_ref": {"kind": "capability-observation", "id": "document-generation-at-decision-D1"},
+              "content_digest": "sha256:fixture-capability-observation-d1",
+              "representation_profile": {"profile_id": "fixture.raw-json", "version": "v0"}
+            }
+          ],
+          "rationale": "The capability was observed as available under release 17 at the time of the decision."
+        }
+      }
+    }
+  ]
+}

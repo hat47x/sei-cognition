@@ -1,0 +1,14 @@
+{
+  "contract": "soza.capability-observation/v1alpha1",
+  "observation": {
+    "ref": {"kind": "capability-observation", "id": "invalid-missing-observed-at"},
+    "target": {
+      "capability_ref": {"kind": "capability", "id": "document-summarization"},
+      "provider_ref": {"kind": "provider", "id": "saas-a"},
+      "provider_target_ref": "saas-a://summarization-api"
+    },
+    "conditions": [
+      {"key": "availability", "state": "observed", "value": true}
+    ]
+  }
+}

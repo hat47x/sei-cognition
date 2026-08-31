@@ -1,0 +1,9 @@
+{
+  "contract": "soza.semantic-reference/v1alpha1",
+  "record_type": "semantic_lineage",
+  "semantic_lineage": {
+    "relation": "revises",
+    "from": {"kind": "decision", "id": "D1"},
+    "to": {"kind": "decision", "id": "D1"}
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "contract": "soza.semantic-interchange/v1alpha1",
+  "bundle_id": "unknown-contract-version",
+  "created_at": "2026-08-31T00:40:00Z",
+  "records": [
+    {
+      "record_id": "future-record",
+      "contract": {"contract_id": "soza.future-semantic", "version": "v9"},
+      "kind": "future-kind",
+      "payload": {
+        "future_field": "opaque-to-v1alpha1-validator"
+      }
+    }
+  ]
+}

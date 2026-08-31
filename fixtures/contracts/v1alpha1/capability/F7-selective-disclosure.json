@@ -1,0 +1,20 @@
+{
+  "contract": "soza.capability-observation/v1alpha1",
+  "observation": {
+    "ref": {"kind": "capability-observation", "id": "F7-selective-disclosure"},
+    "target": {
+      "capability_ref": {"kind": "capability", "id": "document-summarization"},
+      "provider_ref": {"kind": "provider", "id": "external-organization-b"},
+      "provider_target_ref": "external-b://offering/summarization"
+    },
+    "observed_at": "2026-08-31T00:30:00Z",
+    "conditions": [
+      {"key": "availability", "state": "unknown", "note": "Current capacity is not disclosed."},
+      {"key": "internal_topology", "state": "withheld", "note": "Provider confirms relevant internal context exists but does not disclose it."},
+      {"key": "evidence_summary", "state": "observed", "value": "provider-attested-capability-evidence"}
+    ],
+    "provenance_refs": [
+      {"kind": "provider-attestation", "id": "external-b-summarization-attestation-20260831"}
+    ]
+  }
+}
