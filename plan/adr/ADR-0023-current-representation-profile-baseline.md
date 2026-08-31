@@ -13,7 +13,7 @@ Exact Binding semantic obligation
   != Representation Profile mechanics
 ```
 
-ADR-0009では、bindingそのものとverification outcomeも分離した。
+ADR-0009では、bindingそのものとVerification Outcomeも分離した。
 
 ```text
 verified
@@ -21,15 +21,11 @@ failed
 not_verified
 ```
 
-その後、historical candidateではSOZA独自canonical JSON + SHA-256をpressure testへ用いたが、current stable方向としてはRFC 8785 JSON Canonicalization Schemeを第一候補としていた。
-
-actual `develop/v0.1.0`ではSemantic Contract、schema、fixture-scoped Contract Conformanceまで実体化され、current/future Exact Binding向けRepresentation Profileを具体化できる段階になった。
+historical candidateではSOZA独自canonical JSON + SHA-256をpressure testへ用いたが、current baselineでは、外部標準に基づくJSON Profileとraw bytes Profileを明示的に分ける。
 
 一方、historical M47ではcontent digestを用いていたことは確認できるものの、そのdigestをどのbytes / canonicalization / hash規則から生成したかは一次source未回収のため確認できていない。
 
-この2つを同じ未完了条件として扱うと、historical mappingが不明なためにcurrent/future bindingのProfile安定化まで停止する。
-
-そこで、current/future Profileとhistorical mappingを分離したうえで、current Profile基線を決定する。
+historical mappingの不明点によってcurrent / future bindingのProfile利用まで停止しないよう、両者を分離して扱う。
 
 ## Decision
 
@@ -71,7 +67,7 @@ contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md
 raw bytes identity != semantic JSON identity
 ```
 
-JCS Profileとraw-bytes Profileを一つの曖昧な「SHA-256 binding」へ統合しない。
+JCS Profileとraw-bytes Profileを、一つの曖昧な「SHA-256 binding」へ統合しない。
 
 ### 3. SHA-256はUniversal CoreではなくProfile versionが所有する
 
@@ -146,7 +142,7 @@ current fixtureは少なくとも次を検査する。
 
 ### 8. historical M47 digest mappingをcurrent Profile acceptance条件から分離する
 
-historical M47で使われたdigest規則が不明であっても、current/future Profileのverificationを停止しない。
+historical M47で使われたdigest規則が不明であっても、current / future Profileのverificationを停止しない。
 
 historical mappingはISSUE-000034で独立して扱う。
 
@@ -196,7 +192,7 @@ raw bytesを固定したい用途には別Profileとして採用する。
 
 不採用。
 
-library更新・置換がsemantic interoperabilityへ影響するため、RFC / Profile Definitionをauthorityとし、libraryはadapter背後へ置く。
+library更新・置換がsemantic interoperabilityへ影響するため、RFC / Profile Definitionをauthorityとし、libraryは交換可能な実装として扱う。
 
 ## Consequences
 
@@ -206,7 +202,7 @@ library更新・置換がsemantic interoperabilityへ影響するため、RFC / 
 - JSONとraw binaryのExact Binding対象を明確に分けられる。
 - high-precision valueの暗黙損失をProfile境界で防ぎやすい。
 - verifier libraryを交換可能に保てる。
-- historical M47の未回収がcurrent Profile開発を停止しない。
+- historical M47の未回収がcurrent Profile利用を停止しない。
 - `not_verified != failed`を実運用へつなげやすい。
 
 ### Costs
@@ -216,13 +212,9 @@ library更新・置換がsemantic interoperabilityへ影響するため、RFC / 
 - JSON fileのraw bytesを固定したい場合とsemantic JSONを固定したい場合でProfileを選ぶ必要がある。
 - historical M47 mappingは別途回収作業が必要である。
 
-## Evidence
+## Current Evidence
 
-actual GitHub Actions `Representation Profile Conformance`:
-
-- Run `33347799863`: `profile-fixtures` / `jcs-go-probe` **success**
-- Run `33347825731`: README追随後も両job **success**
-- Run `33347989530`: Verification Outcome追加後も両job **success**
+actual GitHub Actions `Representation Profile Conformance`では、Verification Outcome追加後を含め、Profile fixtureとGo JCS probeの双方がsuccessしている。
 
 Go JCS probe:
 
@@ -239,11 +231,13 @@ raw vectors=2
 outcome vectors=3
 ```
 
-詳細:
+詳細は次を正本とする。
 
 ```text
 contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md
 ```
+
+first semantic runtimeも現在は実体化されているが、current ProfileのProduction-grade Verifier Registryをruntimeへ完全統合したとはまだ主張しない。Runtimeの読込み・検査・再構成Evidenceとは別に扱う。
 
 ## Revisit conditions
 
@@ -252,15 +246,15 @@ contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md
 - RFC 8785では扱いにくいportable representationが主要use caseになる。
 - CBOR等の別canonical representationが継続的に必要になる。
 - SHA-256以外のdigest algorithmを必要とする相互運用要件が生じる。
-- binary64を超えるnumeric semanticsをJSON中心で扱う必要が反復し、型付き文字列表現だけでは不十分になる。
+- binary64を超えるnumeric semanticsをJSON中心で扱う必要が繰り返し現れ、型付き文字列表現だけでは不十分になる。
 - current Go verifier candidateに重大な非互換・security・maintenance問題が見つかる。
 
 ## Follow-up
 
 - ISSUE-000009 — current Profile stabilization（Resolved）
-- ISSUE-000034 — historical M47 digest Profileを回収・closureする。
-- Runtime baseline実体化時に、Profile Definitionへ従うVerifier Registry / Adapterを実装する。
+- ISSUE-000034 — historical M47 digest Profile recovery（Blocked）
+- Production-grade Runtime verifier integrationが必要になった場合は、Profile Definitionと既存fixtureを正本とし、Runtime独自のcanonicalization規則を作らずに別Issueで扱う。
 
 ## Natural Japanese review
 
-RFC 8785、ADR-0008 / ADR-0009、actual Profile conformance実ログ、historical M47の未回収範囲を照合してDecisionを確定した。その後、Profile authority、実装依存、高精度値、Unicode、Evidence強度の境界を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+RFC 8785、ADR-0008 / ADR-0009、actual Profile conformance Evidence、first semantic runtime、historical M47の未回収範囲を照合した。その後、Runtime未実体化を前提としたFollow-upを現在状態へ更新し、Profile authority、実装依存、高精度値、Unicode、Evidence強度の境界を変えず、自然な日本語となることを最重要視して全文を再ドラフトした。最後に意味監査を実施済みである。
