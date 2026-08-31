@@ -125,6 +125,24 @@ def main() -> int:
         req=VALID_REQUIREMENTS.replace("- Design: **Satisfied**", "- Design: **Verified**", 1),
     )
 
+    assert_fails(
+        "historical-id-in-current-requirement-table",
+        req=VALID_REQUIREMENTS.replace(
+            "| REQ-0001 | A | V1, V3 | Accepted | Satisfied |",
+            "| REQ-0001 / SOZA-PR-001 | A | V1, V3 | Accepted | Satisfied |",
+        ),
+    )
+
+    # A Milestone prefix is not part of the canonical REQ identity. Replacing a
+    # canonical table ID with one must make the table/body registry inconsistent.
+    assert_fails(
+        "requirement-table-missing",
+        req=VALID_REQUIREMENTS.replace(
+            "| REQ-0001 | A | V1, V3 | Accepted | Satisfied |",
+            "| M49-REQ-0001 | A | V1, V3 | Accepted | Satisfied |",
+        ),
+    )
+
     print("PASS: requirements registry checker self-tests")
     return 0
 
