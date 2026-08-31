@@ -111,11 +111,11 @@ issue:
   - {id: ISSUE-000021, file: plan/issue/ISSUE-000021-audit-design-history-provenance.md, status: Deferred, priority: 6, related_adrs: [ADR-0014]}
   - {id: ISSUE-000022, file: plan/issue/ISSUE-000022-materialize-repository-baseline.md, status: In Progress, priority: 2, related_adrs: [ADR-0007, ADR-0008, ADR-0009, ADR-0014, ADR-0018, ADR-0020, ADR-0021]}
   - {id: ISSUE-000023, file: plan/issue/ISSUE-000023-formalize-product-value-governance.md, status: Resolved, priority: 1, related_adrs: [ADR-0018]}
-  - {id: ISSUE-000024, file: plan/issue/ISSUE-000024-materialize-capability-observation-fixtures.md, status: Open, priority: 2, related_adrs: [ADR-0006, ADR-0008, ADR-0012, ADR-0013, ADR-0014, ADR-0019]}
+  - {id: ISSUE-000024, file: plan/issue/ISSUE-000024-materialize-capability-observation-fixtures.md, status: Resolved, priority: 2, related_adrs: [ADR-0006, ADR-0008, ADR-0012, ADR-0013, ADR-0014, ADR-0019]}
   - {id: ISSUE-000025, file: plan/issue/ISSUE-000025-define-requirements-baseline-convention.md, status: Resolved, priority: 1, related_adrs: [ADR-0018, ADR-0020]}
   - {id: ISSUE-000026, file: plan/issue/ISSUE-000026-materialize-current-requirements-baseline.md, status: Resolved, priority: 1, related_adrs: [ADR-0018, ADR-0020]}
   - {id: ISSUE-000027, file: plan/issue/ISSUE-000027-implement-requirements-registry-checker.md, status: Open, priority: 2, related_adrs: [ADR-0020]}
   - {id: ISSUE-000028, file: plan/issue/ISSUE-000028-define-architecture-contract-baseline-convention.md, status: Resolved, priority: 1, related_adrs: [ADR-0018, ADR-0020, ADR-0021]}
   - {id: ISSUE-000029, file: plan/issue/ISSUE-000029-materialize-current-architecture-baseline.md, status: Resolved, priority: 1, related_adrs: [ADR-0018, ADR-0019, ADR-0020, ADR-0021]}
   - {id: ISSUE-000030, file: plan/issue/ISSUE-000030-materialize-current-contract-baseline.md, status: Resolved, priority: 2, related_adrs: [ADR-0008, ADR-0009, ADR-0019, ADR-0021]}
-  - {id: ISSUE-000031, file: plan/issue/ISSUE-000031-implement-contract-schemas-and-conformance.md, status: Open, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0019, ADR-0020, ADR-0021]}
+  - {id: ISSUE-000031, file: plan/issue/ISSUE-000031-implement-contract-schemas-and-conformance.md, status: Resolved, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0019, ADR-0020, ADR-0021]}
