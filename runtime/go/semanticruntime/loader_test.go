@@ -2,6 +2,7 @@ package semanticruntime
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -49,18 +50,54 @@ func TestCapabilityFixturesLoadFromContractSource(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			record, err := LoadStandalone(data)
-			if err != nil {
-				t.Fatalf("LoadStandalone: %v", err)
+
+			var header struct {
+				Contract string `json:"contract"`
 			}
-			if record.Status != RecordValidated {
-				t.Fatalf("status = %q, want %q", record.Status, RecordValidated)
+			if err := json.Unmarshal(data, &header); err != nil {
+				t.Fatalf("read fixture contract identity: %v", err)
 			}
-			if record.Capability == nil {
-				t.Fatal("capability read model is nil")
-			}
-			if record.Capability.Observation.ObservedAt == "" {
-				t.Fatal("observed_at was not preserved")
+
+			switch header.Contract {
+			case ContractCapabilityObservation:
+				record, err := LoadStandalone(data)
+				if err != nil {
+					t.Fatalf("LoadStandalone: %v", err)
+				}
+				if record.Status != RecordValidated {
+					t.Fatalf("status = %q, want %q", record.Status, RecordValidated)
+				}
+				if record.Capability == nil {
+					t.Fatal("capability read model is nil")
+				}
+				if record.Capability.Observation.ObservedAt == "" {
+					t.Fatal("observed_at was not preserved")
+				}
+
+			case ContractSemanticInterchange:
+				bundle, err := LoadInterchange(data)
+				if err != nil {
+					t.Fatalf("LoadInterchange: %v", err)
+				}
+				capabilityCount := 0
+				for _, record := range bundle.Records {
+					if record.Capability == nil {
+						continue
+					}
+					capabilityCount++
+					if record.Status != RecordValidated {
+						t.Fatalf("capability record status = %q, want %q", record.Status, RecordValidated)
+					}
+					if record.Capability.Observation.ObservedAt == "" {
+						t.Fatal("observed_at was not preserved in interchange capability record")
+					}
+				}
+				if capabilityCount == 0 {
+					t.Fatal("capability fixture interchange contains no capability observation")
+				}
+
+			default:
+				t.Fatalf("unexpected top-level contract %q", header.Contract)
 			}
 		})
 	}
