@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soza.example/contracts/v1alpha1/semantic-interchange.schema.json",
+  "title": "SOZA Semantic Interchange v1alpha1",
+  "description": "Portable envelope for typed SOZA semantic records. Record payload validation is delegated to the declared record contract and semantic validator.",
+  "type": "object",
+  "required": ["contract", "bundle_id", "records"],
+  "properties": {
+    "contract": {
+      "const": "soza.semantic-interchange/v1alpha1"
+    },
+    "bundle_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "records": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/record"}
+    },
+    "extensions": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "logicalReference": {
+      "$ref": "semantic-reference.schema.json#/$defs/logicalReference"
+    },
+    "exactBinding": {
+      "$ref": "semantic-reference.schema.json#/$defs/exactBinding"
+    },
+    "contractIdentity": {
+      "type": "object",
+      "required": ["contract_id", "version"],
+      "properties": {
+        "contract_id": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "record": {
+      "type": "object",
+      "required": ["record_id", "contract", "kind", "payload"],
+      "properties": {
+        "record_id": {"type": "string", "minLength": 1},
+        "contract": {"$ref": "#/$defs/contractIdentity"},
+        "kind": {"type": "string", "minLength": 1},
+        "logical_ref": {"$ref": "#/$defs/logicalReference"},
+        "exact_binding": {"$ref": "#/$defs/exactBinding"},
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "provenance_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/logicalReference"},
+          "uniqueItems": true
+        },
+        "extension_contracts": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/contractIdentity"},
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
