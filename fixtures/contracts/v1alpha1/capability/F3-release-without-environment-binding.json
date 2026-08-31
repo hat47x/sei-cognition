@@ -1,0 +1,20 @@
+{
+  "contract": "soza.capability-observation/v1alpha1",
+  "observation": {
+    "ref": {"kind": "capability-observation", "id": "F3-release-without-environment-binding"},
+    "target": {
+      "capability_ref": {"kind": "capability", "id": "order-entry"},
+      "provider_ref": {"kind": "provider", "id": "tei"},
+      "provider_target_ref": "tei://release/order-entry/2026.08.31"
+    },
+    "observed_at": "2026-08-31T00:10:00Z",
+    "conditions": [
+      {"key": "release.exists", "state": "observed", "value": true},
+      {"key": "environment.binding", "state": "observed", "value": false},
+      {"key": "runtime.availability", "state": "unknown", "note": "Release exists, but no Environment binding was observed."}
+    ],
+    "provenance_refs": [
+      {"kind": "provider-observation", "id": "tei-order-entry-release-state"}
+    ]
+  }
+}
