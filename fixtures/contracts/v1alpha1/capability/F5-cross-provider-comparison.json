@@ -1,0 +1,55 @@
+{
+  "contract": "soza.semantic-interchange/v1alpha1",
+  "bundle_id": "F5-cross-provider-comparison",
+  "created_at": "2026-08-31T00:20:00Z",
+  "records": [
+    {
+      "record_id": "tei-observation",
+      "contract": {"contract_id": "soza.capability-observation", "version": "v1alpha1"},
+      "kind": "capability-observation",
+      "payload": {
+        "contract": "soza.capability-observation/v1alpha1",
+        "observation": {
+          "ref": {"kind": "capability-observation", "id": "F5-tei"},
+          "target": {
+            "capability_ref": {"kind": "capability", "id": "document-summarization"},
+            "provider_ref": {"kind": "provider", "id": "tei"},
+            "provider_target_ref": "tei://application/summarizer"
+          },
+          "observed_at": "2026-08-31T00:20:00Z",
+          "conditions": [
+            {"key": "availability", "state": "observed", "value": true},
+            {"key": "auditability", "state": "observed", "value": "local-change-history"}
+          ],
+          "extensions": {
+            "provider_context": {"release_ref": "tei://release/summarizer/42"}
+          }
+        }
+      }
+    },
+    {
+      "record_id": "saas-observation",
+      "contract": {"contract_id": "soza.capability-observation", "version": "v1alpha1"},
+      "kind": "capability-observation",
+      "payload": {
+        "contract": "soza.capability-observation/v1alpha1",
+        "observation": {
+          "ref": {"kind": "capability-observation", "id": "F5-saas"},
+          "target": {
+            "capability_ref": {"kind": "capability", "id": "document-summarization"},
+            "provider_ref": {"kind": "provider", "id": "saas-a"},
+            "provider_target_ref": "saas-a://summarization-api"
+          },
+          "observed_at": "2026-08-31T00:20:00Z",
+          "conditions": [
+            {"key": "availability", "state": "observed", "value": true},
+            {"key": "contractual_latency_sla_ms", "state": "observed", "value": 1200, "unit": "ms"}
+          ],
+          "extensions": {
+            "provider_context": {"service_plan": "enterprise"}
+          }
+        }
+      }
+    }
+  ]
+}
