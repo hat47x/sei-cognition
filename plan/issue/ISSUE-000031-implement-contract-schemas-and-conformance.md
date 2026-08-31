@@ -1,30 +1,21 @@
 # ISSUE-000031: current Contractのschema・fixture・conformanceを実装する
 
-Status: **Open**  
+Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0008, ADR-0009, ADR-0019, ADR-0020, ADR-0021**  
 Updated: 2026-08-31
 
 ## Goal
 
-current Contract Design baselineをmachine-readable schema、positive / negative fixture、validatorへ落とし、actual repository上でExecutable Evidenceを再現できる状態にする。
+current Contract Design baselineをmachine-readable schema、positive / negative / boundary fixture、semantic validatorへ落とし、actual repository上でfixture-scoped Executable Evidenceを再現できる状態にする。
 
 Contract Definitionの意味をschema都合で変更せず、schemaにしか存在しないsemantic requirementを作らない。
 
-## Inputs
+## Resolution
 
-- `contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md`
-- `contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md`
-- `contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md`
-- `contracts/interchange/SOZA_SEMANTIC_INTERCHANGE_v1alpha1.md`
-- `contracts/TRACEABILITY.md`
-- ADR-0021
+### 1. 4 ContractのJSON Schemaを実体化した
 
-## Initial executable scope
-
-### 1. machine-readable schema
-
-少なくとも次を検討する。
+actual repositoryへ次を追加した。
 
 ```text
 contracts/schemas/v1alpha1/
@@ -34,84 +25,132 @@ contracts/schemas/v1alpha1/
   semantic-interchange.schema.json
 ```
 
-JSON Schemaは初期portable representation候補であり、JSONをUniversal semantic representationへ昇格させない。
+JSON Schemaはcurrent v1alpha1のportable representation候補であり、JSONをUniversal semantic representationへ昇格させていない。
 
-### 2. fixtures
+### 2. Schemaとsemantic validatorの責務を分けた
 
-少なくとも次を用意する。
+Schemaで自然に検査できるものと、意味上の関係を見なければ判断できないものを分離した。
 
-- valid logical reference
-- valid exact binding
-- invalid same-logical-id lineage without exact endpoints
-- `not_verified`と`failed`の分離
-- Decision with unresolved Unknown / Conflict
-- Recommendation without Decision
-- Decision without Recommendation
-- Decision does not imply Authority
-- Provider-neutral Capability Observation
-- Observation with missing / conflicting data
-- adapter / mapping provenance
-- unknown contract version
-- partial-knowledge interchange
-- invalid flattening of Decision / Authority / Execution
+Schemaで検査する例:
 
-### 3. conformance runner
+- contract id / version representation
+- 必須field
+- observed time
+- Decision recordへの未定義`authority`埋め込み
+- Recommendation / Decision recordの排他
+- Capability condition state
 
-少なくとも次を検査する。
+semantic validatorで検査する例:
 
-- schema validation
-- cross-reference consistency
-- contract_id / version
-- semantic invariantのうちschemaだけで検査できないもの
-- expected PASS / expected FAIL
+- 同一logical identity内のSemantic Lineageには両端のexact endpointが必要
+- interchange recordのlogical refとexact bindingのlogical ref整合
+- bundle内にexact recordが存在するとき、Decision / Recommendation basisのexact bindingが同じdigest / Profileを指すこと
+- unknown nested Contractをknownとして扱わず`not_verified`とすること
 
-## Relationship with other Issues
+```text
+Schema valid != Semantic conformance complete
+```
 
-### ISSUE-000024
+を実行系でも維持した。
 
-Capability Observation fixtureは本Issueのfixture infrastructureと共通化できる。
+### 3. Decision MemoryをRecommendation / Decisionの別recordとして表現した
 
-ISSUE-000024の意味要件を吸収せず、Capability-specific Acceptanceを同Issueから追跡する。
+`decision-memory.schema.json`では、
 
-### ISSUE-000009
+- `record_type: recommendation`
+- `record_type: decision`
 
-Representation Profile verifierはISSUE-000009のstable profile判断を待つ部分がある。
+を別recordとして表現し、双方を相互排他にした。
 
-Semantic schema / fixtureは先行できるが、stable JCS verifierが未確定のままExact Binding全体をExecutable Satisfiedにはしない。
+これにより、Recommendationだけが存在してDecisionがない状態を正常に表現できる。
 
-### ISSUE-000027
+Decisionは`unresolved_refs`を保持でき、Decision作成がUnknown / Conflictの解消を意味しない。
 
-Requirements registry checkerと本Contract checkerは目的が異なる。
+### 4. Capability Observation F1〜F7を検証可能にした
 
-共通の軽量validation utilityを使うことはできるが、REQ / SCN台帳検査とsemantic Contract conformanceを一つの巨大checkerへ統合しない。
+ISSUE-000024のF1〜F7をcurrent schemaへ落とし、TEI partial degradation、proposed / actual、Environment binding、observation gap、cross-provider comparison、historical reconstruction、selective disclosureをactual fixtureとして検査した。
 
-## Constraints
+ISSUE-000024は本Issueとは別にResolvedしている。
 
-- historical schemaを一括コピーしない。
-- old local PASSをcurrent PASSへ継承しない。
-- schema validationだけでsemantic conformance完了としない。
-- Representation Profile未確定部分を推測でstable化しない。
-- JSON Schemaで表現しにくいinvariantはvalidator / fixtureへ分離する。
-- generated codeをsemantic authorityにしない。
+### 5. negative / boundary fixtureを追加した
+
+current checkerでは17 fixtureを扱う。
+
+主な境界:
+
+- DecisionへAuthorityを直接埋め込む → expected Schema FAIL
+- Capability Observationの`observed_at`欠落 → expected Schema FAIL
+- same-logical-id lineage without exact endpoints → expected Semantic FAIL
+- bundle exact recordとDecision basisのdigest不一致 → expected Semantic FAIL
+- unknown nested Contract version → expected `not_verified`
+- `verification-not-verified` / `verification-failed` → 別状態としてvalid
+- Recommendation without Decision → valid
+- Decision with unresolved Unknown / Conflict → valid
+- partial-knowledge interchange → valid
+
+### 6. actual conformance runnerを実装した
+
+- `tools/check_contract_conformance.py`
+- `tools/contract-check-requirements.txt`
+- `.github/workflows/contract-conformance.yml`
+
+checkerはJSON Schema、semantic invariant、unknown-version boundaryを分離して分類する。
+
+外部Schema参照はdeprecated `RefResolver`ではなく`referencing.Registry`を利用するよう修正した。
+
+### 7. GitHub Actionsでcurrent Executable Evidenceを取得した
+
+GitHub Actions `Contract Conformance`:
+
+- Run ID: `33346472419`
+- Head SHA: `9921c66f0803ddfe7810ea46c86b995f52895472`
+- Conclusion: **success**
+- Fixture count: **17**
+- `passed`: **true**
+
+F1〜F7、Recommendation-only、unresolved Decision、partial knowledgeはexpected PASSとなった。
+
+Schema違反2件とsemantic違反2件はexpected FAILとして正しく検出され、unknown Contract versionはexpected `not_verified`となった。
+
+Evidenceの詳細は`contracts/CONFORMANCE_EVIDENCE_2026-08-31.md`へ記録した。
 
 ## Acceptance
 
 ### Executable Acceptance
 
-- [ ] current Contractごとに必要なschemaがactual treeに存在する。
-- [ ] positive / negative fixtureが存在する。
-- [ ] unknown-version / partial-knowledge fixtureが存在する。
-- [ ] cross-contract referenceの検査ができる。
-- [ ] Decision / Authority / Executionの非同一性をfixtureで確認できる。
-- [ ] Capability ObservationのProvider-neutralityをfixtureで確認できる。
-- [ ] `not_verified`と`failed`を区別できる。
-- [ ] actual conformance runnerの結果を再現できる。
-- [ ] schema / validator / fixtureを自然な命名・説明へ整え、文書との意味監査を行っている。
+- [x] current Contractごとに必要なschemaがactual treeに存在する。
+- [x] positive / negative fixtureが存在する。
+- [x] unknown-version / partial-knowledge fixtureが存在する。
+- [x] cross-contract / cross-record exact referenceの整合を検査できる。
+- [x] Decision / Authority / Executionの非同一性をfixtureで確認できる。
+- [x] Capability ObservationのProvider-neutralityをfixtureで確認できる。
+- [x] `not_verified`と`failed`を区別できる。
+- [x] actual conformance runnerの結果をGitHub Actionsで再現できる。
+- [x] schema / validator / fixtureを文書へ戻して意味監査した。
 
 ### Release / Operational Acceptance
 
 本Issueでは要求しない。
 
+## Evidence state at closure
+
+- Contract Design Baseline: **Satisfied**
+- Contract v1alpha1 Fixture-scoped Executable Conformance: **Satisfied**
+- Stable Representation Profile: **Not Yet Verified** — ISSUE-000009
+- Historical M47 digest mapping: **Not Yet Verified** — ISSUE-000009
+- Release Evidence: **Not Yet Verified**
+- Operational Evidence: **Not Yet Verified**
+
+`fixture.raw-json/v0`はfixture内部でexact reference整合を試すためのopaque Profile identityであり、stable Representation Profileではない。
+
+本IssueのResolvedを、Exact Binding verification全体の安定化やSOZA release readinessへ拡張して解釈しない。
+
+## Follow-up
+
+- ISSUE-000009 — stable Representation Profile / historical M47 digest mapping
+- ISSUE-000027 — Requirements registry checker
+- ISSUE-000022 — repository baseline全体
+
 ## Natural Japanese review
 
-Contract DesignとExecutable Evidenceを混同しないよう作業範囲を整理した後、未確定Profileを勝手に確定せず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+4 Schema、17 fixture、semantic checker、GitHub Actionsの実行結果をContract Definitionへ戻して照合し、fixture-scoped Executable Evidenceと未検証のRepresentation / Release / Operational領域を分離した。その後、意味、条件、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
