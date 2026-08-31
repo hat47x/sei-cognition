@@ -15,7 +15,7 @@ Contractが存在すること、schemaが存在すること、fixtureがPASSす�
 |---|---|---|---|
 | `soza.semantic-reference/v1alpha1` | REQ-0001, 0003, 0005, 0008, 0009, 0018 | ADR-0003, 0007, 0008, 0009, 0021, 0023 | Semantic Reference / Revision / Exact Binding; Persistence |
 | `soza.decision-memory/v1alpha1` | REQ-0005, 0006, 0008, 0014, 0015, 0017 | ADR-0010, 0011, 0015, 0016, 0021 | Decision Memory; Responsibility / Authority |
-| `soza.capability-observation/v1alpha1` | REQ-0002, 0007, 0013, 0021, 0022 | ADR-0012, 0013, 0014, 0019, 0021 | Capability Understanding / Choice; Provider / Adapter |
+| `soza.capability-observation/v1alpha1` | REQ-0002, 0007, 0013, 0016, 0021, 0022 | ADR-0012, 0013, 0014, 0019, 0021, 0024 | Capability Understanding / Choice; Provider / Adapter |
 | `soza.semantic-interchange/v1alpha1` | REQ-0001, 0002, 0003, 0018, 0019, 0020 | ADR-0007, 0008, 0009, 0014, 0021 | Durable Semantic Core; Persistence; portable interchange |
 
 current baselineでは、Architecture concernをすべて独立Contractへ変換しません。
@@ -46,6 +46,14 @@ current baselineでは、Architecture concernをすべて独立Contractへ変換
 - Unknown / Withheld等のcondition state
 - mapping provenance
 - provider-specific contextの隔離
+
+ADR-0024では、Provider Adapterが生成するObservationもこのContractで検証する方針をAcceptedしています。
+
+```text
+Adapter produced output != validated Capability Observation
+```
+
+Provider-specific input schemaそのものを新しいUniversal Contractにはしません。
 
 ### Semantic Interchange
 
@@ -86,6 +94,8 @@ historical M47 digest mappingは別途ISSUE-000034で追跡します。
 | SCN-0011 Capability情報が不足・競合する | Capability ObservationがUnknown / Conflictを保持する |
 | SCN-0014 Providerを交換する | Capability / ProviderとSemantic Interchangeを分離する |
 | SCN-0016 未解決のまま判断する | Decision作成でUnknown / Conflictを解消しない |
+
+Provider Adapter sliceでは、とくにSCN-0002 / 0011 / 0014に関わるDesign boundaryを、synthetic heterogeneous ProviderでExecutable Evidenceへ落とす予定です。
 
 ## 6. machine-readable representation
 
@@ -167,7 +177,17 @@ GitHub Actions `Semantic Runtime Conformance`:
 
 runtimeはread / validate / reconstructに限定し、Action execution、Provider production integration、Authorization enforcement等を本Evidenceへ含めません。
 
-## 10. Requirement coverageの読み方
+## 10. Provider Adapterとの接続
+
+ADR-0024ではProvider Adapterを、Provider固有stateからCapability Observationへの観測変換境界として定義しています。
+
+Adapterによるfield mapping、unit conversion、status interpretation、missing-value interpretation等は意味上の解釈を含み得るため、mapping provenanceを保持します。
+
+Adapterの出力はcurrent Capability Observation validationへ接続しますが、Adapter自体がMatching / Decision / Authority / Executionを所有することは認めません。
+
+ISSUE-000036は**Open**です。したがって、現在のEvidenceはDesignまでであり、synthetic Adapter CI PASSはまだ主張しません。
+
+## 11. Requirement coverageの読み方
 
 current Contractが直接扱うRequirementが多くても、Contract数やfixture数をProduct ValueのKPIにはしません。
 
@@ -179,11 +199,10 @@ Architecture / Profile / Provider側に留める方が自然なRequirementもあ
 - REQ-0010 Progressive Explicitness
 - REQ-0011 Projection非権威
 - REQ-0012 Bounded Collaboration / Selective Disclosure
-- REQ-0016 Observation / Interpretation
 
-具体的interoperability Scenarioが反復した場合に再評価します。
+Provider Adapterについても、Provider-specific inputのUniversal schemaを新設しません。
 
-## 11. Evidence状態
+## 12. Evidence状態
 
 ```text
 Design Evidence
@@ -201,9 +220,11 @@ Design Evidence
 - current Representation Profile Design baseline
 - Profile fixture / Go probe conformance
 - Contract fixtureを読むfirst semantic runtime slice
+- Provider Adapter observation mapping Design boundary
 
 ### Not Yet Verified
 
+- synthetic Provider Adapter Executable Evidence — ISSUE-000036
 - historical M47 digest mapping — ISSUE-000034
 - production-grade Runtime Verifier Registry / Adapter integration
 - production Provider / TEI interoperability
@@ -211,6 +232,6 @@ Design Evidence
 - Operational Evidence
 - Adoption / Outcome Evidence
 
-## 12. 自然な日本語レビュー
+## 13. 自然な日本語レビュー
 
-REQ、SCN、ADR、Architecture、4 Contract Definition、Representation Profile、17 fixture、Contract Conformance、first semantic runtime sliceのactual CIへ戻って追跡を再確認しました。その後、Design / Executableの成立範囲と、Release / Operational / Adoption・Outcomeの未検証範囲を分離し、意味とEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+REQ、SCN、ADR-0001〜0024、Architecture、4 Contract Definition、Representation Profile、17 fixture、Contract Conformance、first semantic runtime slice、Provider Adapter observation mapping boundaryへ戻って追跡を再確認しました。その後、Design / Executableの成立範囲と、Release / Operational / Adoption・Outcomeの未検証範囲を分離し、意味とEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
