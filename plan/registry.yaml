@@ -1,5 +1,5 @@
 schema: soza.plan-registry/v1
-updated: 2026-08-31
+updated: 2026-09-01
 
 adr:
   - id: ADR-0001
@@ -114,7 +114,7 @@ issue:
   - {id: ISSUE-000012, file: plan/issue/ISSUE-000012-define-m49-progressive-decision-explicitness.md, status: Resolved, priority: 4, related_adrs: [ADR-0005, ADR-0010, ADR-0011]}
   - {id: ISSUE-000013, file: plan/issue/ISSUE-000013-define-capability-choice-acceptance-boundary.md, status: Resolved, priority: 3, related_adrs: [ADR-0012, ADR-0013]}
   - {id: ISSUE-000014, file: plan/issue/ISSUE-000014-investigate-capability-realization-offering-boundary.md, status: Resolved, priority: 5, related_adrs: [ADR-0012, ADR-0013]}
-  - {id: ISSUE-000015, file: plan/issue/ISSUE-000015-natural-japanese-document-audit.md, status: In Progress, priority: 1, related_adrs: []}
+  - {id: ISSUE-000015, file: plan/issue/ISSUE-000015-natural-japanese-document-audit.md, status: Resolved, priority: 1, related_adrs: []}
   - {id: ISSUE-000016, file: plan/issue/ISSUE-000016-formalize-soza-tei-product-boundary.md, status: Resolved, priority: 1, related_adrs: [ADR-0014]}
   - {id: ISSUE-000017, file: plan/issue/ISSUE-000017-define-requirement-inquiry-memory-boundary.md, status: Resolved, priority: 2, related_adrs: [ADR-0005, ADR-0010, ADR-0011, ADR-0014, ADR-0015]}
   - {id: ISSUE-000018, file: plan/issue/ISSUE-000018-connect-authorization-evidence-with-decision-memory.md, status: Resolved, priority: 3, related_adrs: [ADR-0004, ADR-0010, ADR-0011, ADR-0014, ADR-0016]}
