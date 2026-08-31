@@ -1,27 +1,27 @@
 # ISSUE-000015: 既存の開発文書を自然な日本語で再監査する
 
-Status: **In Progress**  
+Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **—**  
-Updated: 2026-08-31
+Updated: 2026-09-01
 
 ## 目的
 
-SOZAの既存開発文書を、技術的な意味・仕様・留保・Evidence強度を変えず、**自然な日本語となることを最重要視して全文をドラフトし直す工程**へ通す。
+SOZAの既存開発文書を、技術的な意味、仕様、留保、Evidence強度を変えず、**自然な日本語となることを最重要視して全文をドラフトし直す工程**へ通す。
 
-この作業は一度限りの文章校正ではありません。新規・更新文書でも同じ工程を必須とし、継続的な品質ゲートとして扱います。
+このIssueは一度限りの校正作業ではなく、今後の新規・更新文書にも同じ工程を組み込むための品質基線を確立することを目的とした。
 
-## 必須工程
+## 確立した標準工程
 
 1. 文書の目的と決定範囲を確認する。
 2. 最新のProduct Value、Requirement、ADR、Architecture、Contract、actual Evidenceとの整合を確認する。
 3. 古い議論、破棄済み前提、古いEvidence記述が残っていないか確認する。
 4. 技術的な矛盾、重複、不足を修正する。
-5. 意味、仕様、留保、Evidence強度をいったん固定する。
+5. 意味、仕様、留保、Evidence強度を固定する。
 6. **自然な日本語となることを最重要視して全文をドラフトし直す。**
 7. 再ドラフトで要求強度、条件、例外、Evidenceの高さが変わっていないか最終監査する。
 
-詳細は`plan/DOCUMENT_AUTHORING_STANDARD.md`を正とします。
+詳細な通常運用は`plan/DOCUMENT_AUTHORING_STANDARD.md`、`plan/DEVELOPMENT_WORKFLOW.md`、ADR / Issue Templateへ反映済みである。
 
 ## Evidenceの現在基準
 
@@ -33,127 +33,80 @@ Design Evidence
   != Adoption / Outcome Evidence
 ```
 
-旧文書が4段階を前提としている場合はcurrent 5段階へ同期します。ただし、上位Evidenceが未確認であることを理由に、確認済みの下位Evidenceまで弱めたり、逆に自動昇格させたりしません。
+確認済みの下位Evidenceを、上位Evidenceの未確認を理由に弱めない。同時に、CI PASSやfixture PASSをRelease / Operational / Adoption / Outcomeへ自動昇格しない。
 
-## 監査管理
+## 完了した監査範囲
 
-`plan/document_review_registry.yaml`をcurrent Markdown開発文書の監査台帳とします。
+`plan/document_review_registry.yaml`をcurrent Markdown開発文書の監査台帳として使用し、2026-09-01時点で`pending: []`へ到達した。
 
-状態:
+監査済みの主な層は次のとおりである。
 
-- `revised`
-- `reviewed-no-change`
-- `excluded-historical`
-- `pending`
+- Product Value / Value Model / Value Acceptance / Value Traceability / Vision / Principles
+- ADR-0001〜ADR-0024
+- ISSUE-000001〜ISSUE-000037
+- Requirements / Acceptance Scenarios / historical mapping
+- Reference Architecture / Traceability / historical mapping
+- 4 Contract family / Contract Catalog / Contract Evidence
+- JCS / raw-bytes Representation Profile / Profile Evidence
+- first Semantic Runtime / synthetic Provider Adapter Evidence
+- Contract fixture / synthetic Provider fixture README
+- Planning品質文書
+- ADR / Issue Template
+- KJ working documents
 
-新規文書は作業単位の中で本標準を完了できる場合、直接`revised`または`reviewed-no-change`へ登録します。
+## 主な是正
 
-## 完了済み範囲
+### currentとhistoricalの分離
 
-### Product層
+historical Milestone、旧X-TEA / TEI設計候補、過去のlocal PASSをcurrentの成立事実として読める箇所を整理した。
 
-Product Value、Value Model、Value Acceptance、Value Traceability、Vision、Principles、Product READMEをcurrent上位baselineへ整合済みです。
+historical M47 digest Profile recoveryは`ISSUE-000034`の独立Blocked事項として残し、本Issueの完了条件へ混ぜていない。
 
-### ADR / Issue
+### Product Valueからの逆向き監査
 
-ADR-0001〜ADR-0024、ISSUE-000001〜ISSUE-000037をcurrent Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに全件監査済みです。
+Product Valueを上位authorityとし、Requirements、ADR、Architecture、Contract、Runtimeへ逆向きに照合した。
 
-historical Milestone、Issue自身のclosure、後続Executable Evidence、未検証のProduction / Release / Operational / Adoption / Outcomeを分け直しました。
+Recommendation / Decision / Authority / Execution、Capability / Provider、Unknown / negative fact、Design / Executable等の非同一性が文書間で崩れていないことを確認した。
 
-ISSUE-000037では、REQ-0001〜REQ-0022のEvidence表示をcurrent 5段階へ全文再整合しています。
+### Evidenceの5段階化
 
-### Planning品質文書
+旧4段階表現や、CI PASSを実装完了・Release readinessへ広げて読める記述をcurrent 5段階Evidenceへ同期した。
 
-`plan/README.md`、Development Workflow、Document Authoring Standard、Review Report、planning scripts READMEをcurrent 5段階Evidenceと文書監査台帳へ同期済みです。
+### Representation Profile
 
-### Requirements層
+`soza.jcs+sha256/v1alpha1`と`soza.raw-bytes+sha256/v1alpha1`がADR-0023でAccepted済みであることへ文書を揃えた。
 
-次のcurrent Requirements文書をすべて監査しました。
+Profile Evidenceに残っていたhistorical M47追跡先`ISSUE-000032`の誤記を、正しい`ISSUE-000034`へ訂正した。
 
-- `requirements/README.md`
-- `requirements/PRODUCT_REQUIREMENTS.md`
-- `requirements/ACCEPTANCE_SCENARIOS.md`
-- `requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md`
+### KJ working documents
 
-`PRODUCT_REQUIREMENTS.md`はISSUE-000037でREQ-0001〜REQ-0022を5段階Evidenceへ再整合しました。
+KJの生カード、束ね、核融合法、残差、当時のDecision preparationは、現在の結論へ合わせて後知恵で書き換えない。
 
-SCN-0001〜0017はcurrent Contract / Runtime / Provider Adapterへ一件ずつ照合し、実際に確認できたScenarioだけExecutable Evidenceを限定的に更新しました。Release / Operational / Adoption / Outcomeへは引き上げていません。
+`plan/kj/README.md`を新設し、原記録とcurrent authorityの関係を別層で明示した。
 
-historical mappingも、旧local PASSとcurrent Executable Evidenceを分離したまま5段階Evidenceへ同期しています。
+- Requirement Inquiry → ADR-0015
+- Authorization Evidence → ADR-0016
+- Reference Model / Cognitive Method → ADR-0017
+- Provider-neutral Capability Observation → ADR-0019
+- Provider Adapter observation mapping → ADR-0024
 
-**Requirements層のcurrent Markdown文書監査は完了しました。**
+## CI / verification
 
-### Architecture層
+監査中にCI failureを検出した場合は、原因を解消してsuccessを確認してから後続作業へ進めた。
 
-次のcurrent Architecture文書をすべて監査しました。
+主要な回帰確認には次を含む。
 
-- `architecture/README.md`
-- `architecture/SOZA_REFERENCE_ARCHITECTURE.md`
-- `architecture/TRACEABILITY.md`
-- `architecture/history/HISTORICAL_ARCHITECTURE_MAPPING.md`
+- Requirements Registry Conformance: success
+- Plan integrity: success
+- Contract Conformance: success
+- Representation Profile Conformance: success
+- Semantic Runtime Conformance: success
 
-Reference Architectureでは、historical時点の「Contract候補」「Representation未固定」という表現と、currentで既にAccepted・実体化されている4 Contract family、2 Representation Profile、first semantic runtime、synthetic Provider Adapterの現在地を分離しました。
+これらは各workflowが検査する範囲のExecutable Evidenceであり、Release / Operational / Adoption / Outcomeを意味しない。
 
-Evidenceは5段階へ統一し、Contract / Profile / runtime / AdapterのCI成功を限定されたExecutable Evidenceとして反映しています。一方、Architecture全体の実装完了、production Provider / TEI integration、Release、Operational、Adoption / Outcomeへは昇格させていません。
+## Resolution
 
-historical mappingでは、過去のJCS / SHA-256 / Go等の選択をcurrentへ自動継承せず、current ADRで改めて採用したProfile・実装と区別しています。historical M47 digest mappingは引き続きISSUE-000034の独立Blocked事項です。
-
-**Architecture層のcurrent Markdown文書監査は完了しました。**
-
-### Contracts / Representation Profiles層
-
-次のcurrent Contract / Profile文書を監査しました。
-
-- `contracts/README.md`
-- `contracts/CONTRACT_CATALOG.md`
-- `contracts/CONFORMANCE_EVIDENCE_2026-08-31.md`
-- `contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md`
-- `contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md`
-- `contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md`
-- `contracts/interchange/SOZA_SEMANTIC_INTERCHANGE_v1alpha1.md`
-- `contracts/TRACEABILITY.md`
-- `contracts/profiles/README.md`
-- `contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md`
-- `contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md`
-- `contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md`
-- `contracts/history/HISTORICAL_CONTRACT_MAPPING.md`
-
-4 Contract Definitionでは規範意味を変更せず、実体化前のEvidence記述をcurrent JSON Schema / 17 fixture / first semantic runtime / synthetic Provider Adapterへ再基線化しました。
-
-Representation Profileでは、ADR-0023で`soza.jcs+sha256/v1alpha1`と`soza.raw-bytes+sha256/v1alpha1`がAccepted済みであることをcurrent正本へ揃え、Profile Definitionとverifier implementationを引き続き分離しています。RFC 8785、SHA-256、数値精度、Unicode非正規化、raw-bytesの入力規則等の技術条件は維持しました。
-
-Profile Evidence文書に残っていたhistorical M47 digest recoveryの追跡先`ISSUE-000032`という誤記は、current正本に合わせて`ISSUE-000034`へ訂正しました。
-
-監査後の回帰確認:
-
-- Contract Conformance — Run `33389973776`: **success**
-- Representation Profile Conformance — Run `33389973772`: **success**
-- Semantic Runtime Conformance — Run `33389973787`: **success**
-
-これらはそれぞれのtested scopeに限定したExecutable Evidenceです。Release / Operational / Adoption / Outcomeへは昇格させていません。
-
-**Contracts / Representation Profiles層のcurrent Markdown文書監査は完了しました。**
-
-## 未完了範囲
-
-`plan/document_review_registry.yaml`で`pending`となっているcurrent文書を上位から順に監査します。
-
-次の優先順:
-
-1. Runtime Evidence
-2. fixture README
-3. KJ統合文書
-4. ADR / Issue Template
-
-historical M47 digest Profile recoveryはISSUE-000034の独立Blocked事項であり、この文書監査の完了条件へ混ぜません。
-
-## CI運用
-
-CI failureを検出した場合は、その時点で原因を特定・修正し、successを確認してから次の作業へ進みます。
-
-Requirements文書を変更した場合はRequirements Registry Conformanceを確認し、Plan文書変更後はPlan integrityも確認します。Contract / Representation Profile文書を変更した場合は、変更内容に応じてContract Conformance、Representation Profile Conformance、Semantic Runtime Conformanceへの影響も確認します。
-
-## Acceptance criteria
+次の条件を満たしたため、本IssueをResolvedとする。
 
 - [x] 固定100倍基準をcurrent Product正本から除去し、10〜50×のmoving horizonへ統一した。
 - [x] X-TEAをcurrent Product名として扱わない。
@@ -162,22 +115,25 @@ Requirements文書を変更した場合はRequirements Registry Conformanceを�
 - [x] REQ / SCNのcurrent正本とhistorical mappingを分離した。
 - [x] ADR-0001〜ADR-0024をcurrent baselineから全件再監査した。
 - [x] ISSUE-000001〜ISSUE-000037をcurrent baselineから全件再監査した。
-- [x] current文書の監査対象一覧を`plan/document_review_registry.yaml`へ実体化した。
-- [x] Requirements層のcurrent Markdown文書を全件再監査した。
-- [x] Architecture層のcurrent Markdown文書を全件再監査した。
-- [x] Contracts / Representation Profiles層のcurrent Markdown文書を全件再監査した。
-- [ ] `document_review_registry.yaml`のcurrent対象から`pending`をなくす。
+- [x] current Markdown開発文書の監査台帳を実体化した。
+- [x] Product、Requirements、Architecture、Contracts / Profiles、Runtime Evidence、fixture README、KJ文書、Templateを監査した。
+- [x] `plan/document_review_registry.yaml`から`pending`をなくした。
+- [x] 自然な日本語全文再ドラフトを通常の文書作成・更新工程へ組み込んだ。
 
-`pending`が残る間は本IssueをResolvedにしません。
+## 今後の運用
 
-## 対象外
+本Issueを閉じても文書品質監査は終了しない。
 
-技術用語をすべて日本語へ翻訳することは目的としません。
+新規・更新文書では、今回確立した工程を通常のDefinition of Doneとして適用する。将来、文書監査標準自体に構造的な欠陥が見つかった場合は、本Issueを形式的に再開するより、影響範囲を明示した新しいIssueを作ることを基本とする。
 
-原文自体がEvidenceとなる資料、machine-readable Schema、固定fixture、source code等を、日本語化のためだけに改変しません。
+## Reopen conditions
 
-読みやすくするために未決事項を勝手に確定したり、Evidenceより強い状態へ書き換えたりしません。
+本Issueそのものを再開するのは、次のように「今回の全件監査が未完了だった」と判断すべき事実が見つかった場合に限る。
+
+- 2026-09-01時点で存在していたcurrent Markdown開発文書が監査台帳から漏れていた。
+- `reviewed-no-change`または`excluded-historical`の判断が、原文保全という目的では説明できない誤分類だった。
+- 監査によって仕様・Evidence強度を意図せず変更していたことが判明した。
 
 ## Natural Japanese review
 
-Product、Planning、Requirements、Architectureに続いて、4 Contract family、2 Representation Profile、Contract / Profile Evidence、historical mappingをcurrent Product Value、REQ-0001〜0022、SCN-0001〜0017、ADR-0001〜0024、actual Schema / fixture / first runtime / synthetic Provider Adapterへ戻って再監査しました。規範意味や技術条件を変えず、historical候補とcurrentでAccepted・実体化・限定検証済みの境界を分け、Evidenceを5段階へ統一しています。その後、意味、監査条件、Evidence強度を変えない範囲で自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+全対象文書、監査台帳、current Product Value、REQ-0001〜0022、SCN-0001〜0017、ADR-0001〜0024、4 Contract family、2 Representation Profile、first Semantic Runtime、synthetic Provider Adapter、actual CI結果へ戻って最終監査した。その後、完了条件、未検証範囲、KJ原記録の扱いを固定し、意味・仕様・留保・Evidence強度を変えない範囲で自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
