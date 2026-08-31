@@ -1,6 +1,6 @@
 # SOZA Contract Traceability
 
-更新日: 2026-08-31  
+更新日: 2026-09-01  
 状態: **Current Contract Traceability Baseline**
 
 ## 1. 目的
@@ -153,6 +153,49 @@ GitHub Actions `Semantic Runtime Conformance` #3:
 
 runtimeはread / validate / reconstructに限定し、Action execution、Provider production integration、Authorization enforcement等を本Evidenceへ含めません。
 
+### Representation Verifier Registry
+
+ISSUE-000038では、ADR-0008 / ADR-0009 / ADR-0023で既に決定済みのRepresentation Profile検証境界を、first semantic runtimeへ最小実装として接続しました。
+
+actual implementation:
+
+```text
+runtime/go/semanticruntime/verifier.go
+runtime/go/semanticruntime/verifier_test.go
+```
+
+runtime Registryは次のcurrent Profileを解決します。
+
+- `soza.jcs+sha256/v1alpha1`
+- `soza.raw-bytes+sha256/v1alpha1`
+
+Go testでは`fixtures/representation-profiles/`の既存Profile fixtureを直接再利用し、少なくとも次を確認しています。
+
+- JCS canonicalization後のdigest一致 → `verified`
+- digest mismatch → `failed`
+- duplicate key等の不正representation → `failed`
+- unsafe large integerを暗黙丸めしない → `failed`
+- NFC / NFDを勝手にnormalizeしない
+- raw UTF-8 / binary bytesのdigest一致 → `verified`
+- unknown Profile → `not_verified`
+- payload unavailable → `not_verified`
+- verificationによってExact Bindingをmutateしない
+
+Semantic Runtime Conformance:
+
+- Run ID: `33452115728`
+- Head SHA: `9941f49a5af3b5443f3cfaca3b263e07989d3ba4`
+- Contract fixture recheck: **success**
+- Go runtime / Provider Adapter / Representation Verifier tests: **success**
+
+```text
+in-process Profile verification PASS
+  != external payload acquisition verified
+  != production verifier operation
+```
+
+Verifier implementationはProfile authorityではありません。JCS側はADR-0023で採用したProfile Definition / RFC 8785に従い、Go dependencyは再現可能なversionとchecksumで固定しています。
+
 ## 10. Provider Adapterとの接続
 
 ADR-0024ではProvider Adapterを、Provider固有stateからCapability Observationへの観測変換境界として定義しています。
@@ -214,13 +257,15 @@ Design Evidence
 - current Representation Profile Design baseline
 - Profile fixture / Go probe conformance
 - Contract fixtureを読むfirst semantic runtime slice
+- current JCS / raw-bytes Profileを解決するin-process Runtime Verifier Registry
 - Provider Adapter observation mapping Design boundary
 - synthetic Provider Adapter slice conformance
 
 ### Not Yet Verified
 
 - historical M47 digest mapping — ISSUE-000034
-- production-grade Runtime Verifier Registry / Adapter integration
+- external source / object storage等からのpayload acquisition
+- large objectのproduction streaming verification
 - production Provider / TEI interoperability
 - Release Evidence
 - Operational Evidence
@@ -228,4 +273,4 @@ Design Evidence
 
 ## 13. 自然な日本語レビュー
 
-REQ、SCN、ADR-0001〜0024、Architecture、4 Contract Definition、Representation Profile、17 fixture、Contract Conformance、first semantic runtime slice、synthetic Provider Adapter slice、actual CI結果へ戻って追跡を再確認しました。その後、Design / Executableの成立範囲と、Release / Operational / Adoption・Outcomeの未検証範囲を分離し、意味とEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+REQ、SCN、ADR-0001〜0024、Architecture、4 Contract Definition、Representation Profile、17 Contract fixture、Profile fixture、first semantic runtime、synthetic Provider Adapter、ISSUE-000038のRuntime Verifier Registry、actual CI結果へ戻って追跡を再確認しました。その後、in-processで成立したExecutable Evidenceと、external payload acquisition / production operation以降の未検証範囲を分離し、意味とEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
