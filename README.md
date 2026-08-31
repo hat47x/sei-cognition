@@ -1,7 +1,7 @@
 # 綜座 / SOZA
 
 更新日: 2026-08-31  
-状態: **Product / Requirements / Architecture / Contract baseline + fixture-scoped Executable Evidence — development in progress**
+状態: **Product / Requirements / Architecture / Contract / first Runtime baseline + scoped Executable Evidence — development in progress**
 
 SOZAは、人間・AI・組織・既存システム・外部サービスが入れ替わっても、**何を見て、何を問い、何を根拠とし、何を決め、何を未解決として残したか**を失わないための、可搬な認知・意思決定基盤です。
 
@@ -27,10 +27,9 @@ architecture/
 contracts/
 fixtures/
 plan/
+runtime/
 tools/
 ```
-
-current `runtime/` baselineはまだ実体化していません。
 
 正本関係は次のとおりです。
 
@@ -50,9 +49,9 @@ Schema / Validator / Fixture
 Runtime / Provider Integration
 ```
 
-現在は、上位Design baselineに加えて、Requirements registryとContract / Capability fixtureについて**限定されたExecutable Evidence**までactual repository上で再現できます。
+現在は、上位Design baselineに加えて、Requirements registry、Contract / Capability fixture、Representation Profile、first semantic runtime sliceについて、範囲を限定したExecutable Evidenceをactual repository上で再現できます。
 
-一方、current runtime、stable Representation Profile、release、operational evidenceは未完成です。
+一方、Provider production integration、release、operational evidenceは未完成です。historical M47 digest Profileの対応付けも、ISSUE-000034で別途Blockedとして扱っています。
 
 ## 3. Evidenceの読み方
 
@@ -97,7 +96,7 @@ M48〜M50等の旧candidateは意味核・反例・実装候補として参照�
 12. `architecture/TRACEABILITY.md`
 13. `architecture/history/HISTORICAL_ARCHITECTURE_MAPPING.md`
 
-### Contracts
+### Contracts / Representation Profiles
 
 14. `contracts/README.md`
 15. `contracts/CONTRACT_CATALOG.md`
@@ -106,15 +105,24 @@ M48〜M50等の旧candidateは意味核・反例・実装候補として参照�
 18. `contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md`
 19. `contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md`
 20. `contracts/interchange/SOZA_SEMANTIC_INTERCHANGE_v1alpha1.md`
-21. `contracts/CONFORMANCE_EVIDENCE_2026-08-31.md`
-22. `contracts/history/HISTORICAL_CONTRACT_MAPPING.md`
+21. `contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md`
+22. `contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md`
+23. `contracts/CONFORMANCE_EVIDENCE_2026-08-31.md`
+24. `contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md`
+25. `contracts/history/HISTORICAL_CONTRACT_MAPPING.md`
+
+### Runtime
+
+26. `runtime/go/semanticruntime/model.go`
+27. `runtime/go/semanticruntime/loader.go`
+28. `runtime/go/semanticruntime/loader_test.go`
 
 ### Planning / Decisions
 
-23. `plan/README.md`
-24. `plan/DEVELOPMENT_WORKFLOW.md`
-25. `plan/DOCUMENT_AUTHORING_STANDARD.md`
-26. `plan/registry.yaml`
+29. `plan/README.md`
+30. `plan/DEVELOPMENT_WORKFLOW.md`
+31. `plan/DOCUMENT_AUTHORING_STANDARD.md`
+32. `plan/registry.yaml`
 
 個別の設計判断は`plan/adr/`、未完了作業や調査は`plan/issue/`を参照してください。
 
@@ -265,56 +273,104 @@ TEI固有のApplication、Database、Release、Deployment等をSOZA Universal Co
 
 ## 11. Exact Binding / Representation Profile
 
-Exact Artifact Bindingの意味境界はcurrent Contractにありますが、stableなcanonicalization / digest ProfileはまだAcceptedしていません。
+Exact Artifact Bindingの意味境界はSemantic Reference Contractに置き、canonicalization / digest mechanicsはRepresentation Profileとして分離しています。
 
-ISSUE-000009は**Blocked**を維持しています。
+ADR-0023で、current/future向けのv1alpha1基線として次をAcceptedにしました。
 
-未完了の中心:
+```text
+soza.jcs+sha256/v1alpha1
+soza.raw-bytes+sha256/v1alpha1
+```
 
-- historical M47 digest規則の正確な確認とmapping
-- stable JCS verifierの選定とRFC test vector適合
-- high-precision semantic valueをbinary64へ暗黙丸めしない境界
-- verifier / payloadが失われたhistorical bindingのactual運用
+JSON semantic representationにはRFC 8785 JCSを用い、raw bytesを固定したい用途とは別Profileにしています。
 
-fixtureで使う`fixture.raw-json/v0`は検査用のopaque Profile identityであり、stable Representation Profileではありません。
+SHA-256をUniversal Coreの唯一のalgorithmにはしません。Profile versionがmechanicsを所有します。
 
-## 12. 現在のPlan
+高精度値をbinary64へ暗黙丸めしないこと、JCS Profile内部でUnicode normalizationを行わないこと、Verifier implementationをProfile authorityとしないことも境界として固定しています。
 
-`plan/registry.yaml`ではADR-0021、ISSUE-000031まで管理しています。
+GitHub Actions `Representation Profile Conformance`でProfile fixtureとGo probeが成功しています。詳細は`contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md`を参照してください。
+
+historical M47 digest規則については、current Profileへ推測で遡及対応させません。一次sourceから規則を回収する作業をISSUE-000034で独立して扱い、確認不能なhistorical bindingは`not_verified`を許します。
+
+```text
+historical digest exists != historical Profile known
+```
+
+## 12. First semantic runtime baseline
+
+ADR-0022に基づき、外部Action実行より先に、current semantic Contractを読み、検査し、historical contextを再構成する最小Runtime sliceをGoで実体化しました。
+
+現在の範囲:
+
+- Semantic Reference
+- Exact Binding metadata
+- Verification Outcome vocabulary
+- Semantic Lineage
+- Decision / Recommendation
+- Capability Observation
+- Semantic Interchange envelope
+- unknown nested Contract handling
+- partial knowledge preservation
+- bundle内exact binding整合
+- original interchange bytesのlossless re-export
+
+Capability Observation F1〜F7を同じfixture sourceからruntimeへ読み込み、Recommendation without Decision、Decision with unresolved state、same-logical-id lineage、mismatched exact binding、unknown Contract等のboundary / negative caseも検査しています。
+
+GitHub Actions `Semantic Runtime Conformance` run #3（Run ID `33348972805`）で、次の両方が成功しました。
+
+```text
+PASS: current Contract fixture checker
+PASS: go test ./...
+```
+
+これはfirst semantic runtime sliceのExecutable Evidenceです。
+
+```text
+Runtime CI PASS
+  != Provider production integration
+  != Authorization / Action execution complete
+  != release readiness
+  != Operational Evidence
+```
+
+## 13. 現在のPlan
+
+`plan/registry.yaml`ではADR-0023、ISSUE-000034まで管理しています。
 
 現在の主要な未完了項目:
 
-- ISSUE-000009 — stable Exact Binding Representation Profile / historical M47 mapping
 - ISSUE-000015 — 既存開発文書の自然な日本語による全面監査
 - ISSUE-000021 — design history provenance監査（Deferred）
-- ISSUE-000022 — repository baseline全体の実体化
+- ISSUE-000022 — repository baseline全体のclosure監査
+- ISSUE-000034 — historical M47 digest Profile回収（Blocked）
 
-Requirements registry、Capability Observation F1〜F7、Contract schema / fixture / conformanceはcurrent actual repositoryで完了済みです。
+Requirements registry、Capability Observation F1〜F7、Contract schema / fixture / conformance、Representation Profile fixture、first semantic runtime sliceはcurrent actual repositoryで実体化済みです。
 
 Statusの正本は`plan/registry.yaml`と各Issue本文です。
 
-## 13. 次の実体化
+## 14. 次の実体化
 
 当面の優先順位は次のとおりです。
 
-1. Product Value / REQ / ADR / Architecture / Contractの整合維持
-2. current `runtime/`境界の設計と最小vertical slice
-3. historical Go candidateのcurrent Contractへの差分評価
-4. Provider adapterの最小実装
-5. stable Exact Binding Representation Profileの安定化
-6. Contract fixtureとruntimeを横断するend-to-end conformance
-7. 既存文書を含む自然な日本語監査
-8. release / operational Evidence
+1. Product Value / REQ / ADR / Architecture / Contract / Runtimeの整合維持
+2. Provider adapterの最小vertical sliceをProvider-neutralな境界から設計する
+3. current Capability ObservationへProvider stateを変換するmapping provenanceを実装・検証する
+4. RuntimeへRepresentation Profile verifierを必要な範囲で接続する
+5. historical M47 digest Profileを一次sourceから回収する
+6. 既存文書を含む自然な日本語監査を継続する
+7. release / operational Evidenceを別段階で整備する
 
-runtimeのためにArchitecture concernを一対一のpackage構成へ固定しません。また、旧candidateを一括コピーせず、current Contractから必要性を再導出します。
+Provider integrationのためにTEI固有SchemaをUniversal Coreへ引き上げたり、Architecture concernを一対一のpackage構成へ固定したりしません。
 
-## 14. Releaseについて
+CI failureを検出した場合は、その時点で原因を解消し、成功を確認してから次の作業へ進みます。
+
+## 15. Releaseについて
 
 `develop/v0.1.0`は開発中のbaselineです。**releaseやOperational Evidenceを主張する状態ではありません。**
 
-`main`へ統合する際は、Product Value、Requirements、ADR、Architecture、Contracts、actual Executable Evidenceを戻り照合し、実際に得られたEvidenceを超えない範囲で状態を更新します。
+`main`へ統合する際は、Product Value、Requirements、ADR、Architecture、Contracts、Runtime、actual Executable Evidenceを戻り照合し、実際に得られたEvidenceを超えない範囲で状態を更新します。
 
-## 15. 文書品質
+## 16. 文書品質
 
 SOZAでは、開発文書の自然な日本語を設計品質の一部として扱います。
 
@@ -322,6 +378,6 @@ SOZAでは、開発文書の自然な日本語を設計品質の一部として�
 
 詳細は`plan/DOCUMENT_AUTHORING_STANDARD.md`を参照してください。既存文書の再監査はISSUE-000015で継続しています。
 
-## 16. 自然な日本語レビュー
+## 17. 自然な日本語レビュー
 
-actual root tree、Requirements Registry CI、Contract Conformance CI、Capability Observation F1〜F7、plan registryへ戻って現在地を再確認しました。そのうえで、Design、fixture-scoped Executable、未検証のruntime / Representation / Release / Operational領域を分離し、意味とEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+actual root tree、Requirements Registry、Contract Conformance、Representation Profile、Semantic Runtime Conformance、plan registryへ戻って現在地を再確認しました。そのうえで、Design、fixture-scoped Executable、first runtime Executable、未検証のProvider / Release / Operational領域を分離し、意味とEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
