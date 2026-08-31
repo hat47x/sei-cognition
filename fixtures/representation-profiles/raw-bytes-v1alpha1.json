@@ -1,0 +1,16 @@
+{
+  "profile_id": "soza.raw-bytes+sha256/v1alpha1",
+  "digest_algorithm": "sha256",
+  "cases": [
+    {
+      "id": "RAW-001-utf8-text",
+      "bytes_base64": "U09aQSByYXcgYnl0ZXMgZml4dHVyZQo=",
+      "expected_digest": "sha256:0215ad0b9b94223776bccbb76ef08a80ca09b4b078861dc12ea461687b8fdc06"
+    },
+    {
+      "id": "RAW-002-binary-prefix",
+      "bytes_base64": "AAECAwQFBgcICQoLDA0ODw==",
+      "expected_digest": "sha256:be45cb2605bf36bebde684841a28f0fd43c69850a3dce5fedba69928ee3a8991"
+    }
+  ]
+}
