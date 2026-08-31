@@ -1,0 +1,20 @@
+{
+  "contract": "soza.capability-observation/v1alpha1",
+  "observation": {
+    "ref": {"kind": "capability-observation", "id": "F1-tei-partial-degradation"},
+    "target": {
+      "capability_ref": {"kind": "capability", "id": "document-generation"},
+      "provider_ref": {"kind": "provider", "id": "tei"},
+      "provider_target_ref": "tei://application/app-document-generation"
+    },
+    "observed_at": "2026-08-31T00:00:00Z",
+    "conditions": [
+      {"key": "application.availability", "state": "observed", "value": true},
+      {"key": "dependency.database.primary.mode", "state": "observed", "value": "read_only"},
+      {"key": "operation.write_document.constraint", "state": "observed", "value": "blocked_by_read_only_dependency"}
+    ],
+    "provenance_refs": [
+      {"kind": "provider-observation", "id": "tei-app-document-generation-20260831"}
+    ]
+  }
+}
