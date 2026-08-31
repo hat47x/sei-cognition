@@ -1,0 +1,13 @@
+{
+  "contract": "soza.semantic-reference/v1alpha1",
+  "record_type": "verification_outcome",
+  "verification_outcome": {
+    "binding": {
+      "logical_ref": {"kind": "source", "id": "tampered-source-B"},
+      "content_digest": "sha256:expected-fixture",
+      "representation_profile": {"profile_id": "fixture.raw-json", "version": "v0"}
+    },
+    "status": "failed",
+    "reason": "A verifier ran and the computed digest did not match the binding."
+  }
+}
