@@ -8,6 +8,7 @@ on:
       - "runtime/**"
       - "contracts/**"
       - "fixtures/contracts/**"
+      - "fixtures/providers/**"
       - "tools/check_contract_conformance.py"
       - "tools/contract-check-requirements.txt"
       - ".github/workflows/runtime-conformance.yml"
@@ -16,6 +17,7 @@ on:
       - "runtime/**"
       - "contracts/**"
       - "fixtures/contracts/**"
+      - "fixtures/providers/**"
       - "tools/check_contract_conformance.py"
       - "tools/contract-check-requirements.txt"
       - ".github/workflows/runtime-conformance.yml"
@@ -47,6 +49,6 @@ jobs:
       - name: Recheck current Contract fixtures
         run: python tools/check_contract_conformance.py
 
-      - name: Test semantic runtime against the same fixture source
+      - name: Test semantic runtime and Provider adapters against current semantics
         working-directory: runtime/go
         run: go test ./...

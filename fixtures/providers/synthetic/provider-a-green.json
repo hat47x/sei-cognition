@@ -1,0 +1,5 @@
+{
+  "health": "green",
+  "delay_ms": 240,
+  "service_ref": "synthetic-a://service/document-summarization"
+}

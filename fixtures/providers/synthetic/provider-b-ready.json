@@ -1,0 +1,5 @@
+{
+  "ready": true,
+  "response_seconds": 0.24,
+  "endpoint": "synthetic-b://endpoint/document-summarization"
+}
