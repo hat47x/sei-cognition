@@ -1,6 +1,6 @@
 # ISSUE-000010: M49 Decision Memoryの受入境界を定義する
 
-Status: **Resolved — planning boundary complete; production implementation not started**  
+Status: **Resolved**  
 Priority: **2**  
 Related ADRs: **ADR-0010**  
 Updated: 2026-08-31
@@ -27,6 +27,8 @@ RecommendationなしのDecision、Decisionへ至らないRecommendationも許す
 
 M49 Go type、wire schema、persistence、Authority crossingを実装したことにはならない。
 
+したがって、本Issueの`Resolved`は**planning / semantic boundaryが確定したこと**を示し、production implementationの完了を示さない。
+
 ## Follow-up
 
 参照役割はISSUE-000011 / ADR-0011、明示量はISSUE-000012 / ADR-0005へ分離した。
@@ -35,4 +37,4 @@ actual production implementationはrepository baseline materializationとM48 int
 
 ## Natural Japanese review
 
-M49 planning closureとADR-0010へ戻して内容を照合した後、自然な日本語となることを最重要視して全文を再ドラフトし、意味監査を実施済み。
+StatusとEvidence状態を分離したうえで、M49 planning closureとADR-0010へ戻して内容を照合し、意味、条件、未実装範囲を変えず、自然な日本語となることを最重要視して全文を再確認した。最終意味監査も実施済み。
