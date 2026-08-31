@@ -2,18 +2,34 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://soza.example/contracts/v1alpha1/decision-memory.schema.json",
   "title": "SOZA Decision Memory v1alpha1",
-  "description": "Machine-readable representation of soza.decision-memory/v1alpha1. It does not encode authorization or execution state.",
+  "description": "Machine-readable representation of soza.decision-memory/v1alpha1. Decision and Recommendation remain distinct records; neither encodes authorization or execution state.",
   "type": "object",
-  "required": ["contract", "decision"],
+  "required": ["contract", "record_type"],
   "properties": {
     "contract": {
       "const": "soza.decision-memory/v1alpha1"
     },
+    "record_type": {
+      "enum": ["decision", "recommendation"]
+    },
     "decision": {
       "$ref": "#/$defs/decision"
+    },
+    "recommendation": {
+      "$ref": "#/$defs/recommendation"
     }
   },
-  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {"properties": {"record_type": {"const": "decision"}}},
+      "then": {"required": ["decision"], "not": {"required": ["recommendation"]}}
+    },
+    {
+      "if": {"properties": {"record_type": {"const": "recommendation"}}},
+      "then": {"required": ["recommendation"], "not": {"required": ["decision"]}}
+    }
+  ],
+  "unevaluatedProperties": false,
   "$defs": {
     "logicalReference": {
       "$ref": "semantic-reference.schema.json#/$defs/logicalReference"
@@ -26,6 +42,35 @@
         {"$ref": "#/$defs/logicalReference"},
         {"$ref": "#/$defs/exactBinding"}
       ]
+    },
+    "recommendation": {
+      "type": "object",
+      "required": ["ref", "statement"],
+      "properties": {
+        "ref": {"$ref": "#/$defs/logicalReference"},
+        "statement": {"type": "string", "minLength": 1},
+        "context_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/reference"},
+          "uniqueItems": true
+        },
+        "basis_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/reference"},
+          "uniqueItems": true
+        },
+        "rationale": {"type": "string", "minLength": 1},
+        "responsibility_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/reference"},
+          "uniqueItems": true
+        },
+        "extensions": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
     },
     "decision": {
       "type": "object",
