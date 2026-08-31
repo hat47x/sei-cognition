@@ -1,17 +1,17 @@
 # SOZA Representation Profiles
 
 更新日: 2026-08-31  
-状態: **Current v1alpha1 Profile baseline / Fixture-scoped Executable Conformance PASS**
+状態: **Current v1alpha1 Profile Baseline / Fixture-scoped Executable Conformance PASS**
 
 ## 1. 役割
 
 Representation Profileは、Semantic Contractで定めた意味を、特定のbytes / serialization / canonicalization / digest方式で検証可能にするための実現契約です。
 
 ```text
-Semantic Contract != Representation Profile
+Semantic Contract != Representation Profile != verifier implementation
 ```
 
-Representation ProfileはUniversal Coreの意味そのものではありません。
+Representation ProfileはUniversal Coreの意味そのものではありません。Semantic Contractと独立したversioning・実装交換境界を持ちます。
 
 ## 2. Profileが所有するもの
 
@@ -29,7 +29,7 @@ Representation ProfileはUniversal Coreの意味そのものではありませ�
 
 ## 3. current Profile baseline
 
-2026-08-31時点で、current `v1alpha1`基線として次の2つをactual repositoryへ実体化しています。
+ADR-0023により、2026-08-31時点のcurrent/future `v1alpha1`基線として次の2 ProfileをAcceptedしています。
 
 ### JSON semantic representation
 
@@ -90,13 +90,13 @@ GitHub Actions:
 
 JCS Go probeでは`github.com/gowebpki/jcs`をcommit SHA `1a4242a66e1a8e03d7458324d0bc95c327527cbb`へ固定して実行しています。Go module resolver上では`v1.0.1`へ解決されます。
 
-ただし、このdependencyはProfile Definitionの正本ではありません。
+このdependencyはProfile Definitionの正本ではありません。
 
 ## 5. Executable Evidence
 
-actual GitHub Actionsで、current Profile基線のfixture-scoped Executable ConformanceがPASSしています。
+actual GitHub Actionsで、current `v1alpha1` Profile基線のfixture-scoped Executable ConformanceがPASSしています。
 
-最新の三状態fixture追加後run:
+Verification Outcome追加後の代表run:
 
 - Run ID: `33347989530`
 - Head SHA: `30678df18f3382407d3e0562f6ba358afb3120b3`
@@ -116,11 +116,7 @@ Go JCS probe:
 JCS probe PASS: verified=4 negative=2
 ```
 
-詳細は次を正本とします。
-
-```text
-contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md
-```
+詳細は`contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md`を参照します。
 
 ## 6. Verification Outcome
 
@@ -142,19 +138,34 @@ current fixtureでは、少なくとも次をactual Actionで再現していま�
 not_verified != failed
 ```
 
-Profileやverifierが利用できないことを、content mismatchと同一視しません。
+Profileやverifierが利用できないことをcontent mismatchと同一視しません。
 
-## 7. historical candidateとの関係
+## 7. first semantic runtimeとの関係
 
-historical candidateには、SOZA独自のcustom canonical JSON + SHA-256 `v1alpha1`がありました。
+current Go first semantic runtimeはContract ArtifactのExact Binding metadataやProfile identityを読み、historical basisを再構成できる範囲を持ちます。
 
-これはcross-language pressure testとして価値がありますが、current stable defaultへ自動昇格しません。
+一方、Profileごとのcanonicalization / digest verifierをproduction Runtime Registryとして統合したことまでは、current first sliceのEvidenceに含めません。
 
-current JSON Profileは、外部標準RFC 8785へ責務を寄せる形で再構成しています。
+```text
+runtime can read binding metadata
+  != production verifier registry established
+```
 
-historical candidateのPASSもcurrent Executable Evidenceへ自動継承しません。
+Profile Definitionとverifier implementationの交換可能性を維持します。
 
-## 8. historical binding
+## 8. historical candidateとの関係
+
+historical candidateには、SOZA独自のcustom canonical JSON + SHA-256や、JCS / raw-bytesの検討資産がありました。
+
+それらはcross-language pressure testや設計入力として価値がありますが、current Profileへ自動昇格したものではありません。
+
+current 2 ProfileはADR-0023でcurrent Product Value / Requirement / Contractへ戻って改めてAcceptedし、actual fixture / probeでExecutable Evidenceを取り直しています。
+
+```text
+historical PASS != current Profile conformance
+```
+
+## 9. historical binding
 
 historical bindingがどのdigest規則で作られたか不明な場合、現在のProfileで推測して再hashしてはなりません。
 
@@ -164,7 +175,7 @@ historical M47 digestの回収・Profile対応付けはISSUE-000034で独立し�
 
 ADR-0023により、historical M47 mappingが未完了でもcurrent/future Profile基線を利用できることを明示しています。
 
-## 9. versioning
+## 10. versioning
 
 Representation ProfileはSemantic Contractとは独立してversionを持ちます。
 
@@ -172,22 +183,32 @@ representation-only changeがSemantic Contractのmajor version変更を必ず伴
 
 一方、同じProfile ID / versionでcanonicalization、digest algorithm、input bytes規則を後から別物へ変更してはなりません。
 
-## 10. Evidence boundary
+## 11. Evidence boundary
 
-今回成立したのは、current `v1alpha1` Profileについての**fixture-scoped Executable Evidence**です。
+Product Valueに従い、次を分けます。
 
 ```text
-Profile fixture conformance PASS
-  != Production Runtime integration
+Design Evidence
+  != Executable Evidence
   != Release Evidence
   != Operational Evidence
+  != Adoption / Outcome Evidence
 ```
 
-また、すべてのRFC 8785 vectorを網羅したcertificationを主張するものでもありません。
+current `v1alpha1` Profile DefinitionはDesign Evidenceであり、fixture / Go probeのPASSはscoped Executable Evidenceです。
 
-Production RuntimeのVerifier Registry / Adapterは、runtime baselineを実体化する後続sliceでProfile Definitionへ従って実装します。
+未検証:
 
-## 11. Decision / planning
+- production-grade verifier registry integration
+- network / object storageからのlarge binary streaming運用
+- historical M47 digest mapping
+- Release Evidence
+- Operational Evidence
+- Adoption / Outcome Evidence
+
+すべてのRFC 8785 vectorを網羅したcertificationも主張しません。
+
+## 12. Decision / planning
 
 - ADR-0008 — Exact Binding verification boundary
 - ADR-0009 — Verification Outcome separation
@@ -195,6 +216,6 @@ Production RuntimeのVerifier Registry / Adapterは、runtime baselineを実体�
 - ISSUE-000009 — current/future Profile stabilization（Resolved）
 - ISSUE-000034 — historical M47 digest recovery（Blocked）
 
-## 12. Natural Japanese review
+## 13. Natural Japanese review
 
-current JCS / raw-bytes Profile Definition、actual GitHub Actionsのconformance結果、Verification Outcome、historical M47分離、Evidence境界をactual repositoryの状態へ照合した。その後、Profileの役割、数値、未完了範囲、規範強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+current JCS / raw-bytes Profile Definition、actual Profile Conformance、first semantic runtimeの境界、Verification Outcome、historical M47分離、5段階Evidenceへ戻って全文を再監査しました。その後、Profileの役割、数値、未完了範囲、規範強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。

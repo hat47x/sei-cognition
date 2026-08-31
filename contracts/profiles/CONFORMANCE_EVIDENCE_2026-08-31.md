@@ -5,14 +5,22 @@
 
 ## 1. Scope
 
-本書は、current Representation Profile候補について、actual repository上で再現したfixture-scoped Executable Evidenceを記録します。
+本書は、ADR-0023でAcceptedしたcurrent Representation Profileについて、actual repository上で再現したfixture-scoped Executable Evidenceを記録します。
 
 対象:
 
 - `soza.jcs+sha256/v1alpha1`
 - `soza.raw-bytes+sha256/v1alpha1`
 
-このEvidenceはRuntime integration、Release Evidence、Operational Evidenceを意味しません。
+```text
+Design Evidence
+  != Executable Evidence
+  != Release Evidence
+  != Operational Evidence
+  != Adoption / Outcome Evidence
+```
+
+このEvidenceはproduction verifier registry integration、Release、Operational、Adoption / Outcomeを意味しません。
 
 ## 2. Profile Definitions
 
@@ -21,7 +29,7 @@ contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md
 contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md
 ```
 
-Semantic ContractとRepresentation Profileは別のauthorityです。
+Semantic Contract、Representation Profile、verifier implementationは別のauthorityです。
 
 ## 3. Fixtures / tools
 
@@ -169,19 +177,33 @@ unknown Profileをdigest mismatchとして扱わず、verification capability不
 - `verified / failed / not_verified`をProfile availabilityとdigest結果に応じて区別できる。
 - Go JCS implementationはcommit固定で交換可能なprobeとして利用できる。
 
-## 11. Not verified here
+## 11. currentで未検証の事項
 
 本Evidenceから次を主張しません。
 
-- historical M47 digestのRepresentation Profile特定
-- current Production Runtimeへのverifier registry統合
+- historical M47 digestのRepresentation Profile特定 — ISSUE-000034
+- production runtimeへのverifier registry統合
 - network / object storageからのlarge binary streaming運用
 - Release Evidence
 - Operational Evidence
+- Adoption / Outcome Evidence
 - すべてのRFC 8785 test vectorを網羅した完全なcertification
 
-historical M47はISSUE-000032で追跡します。
+current first semantic runtimeはExact Binding metadata / Profile identityを扱いますが、このProfile verifierのproduction統合を証明するものではありません。
 
-## 12. Natural Japanese review
+## 12. Evidenceの読み方
 
-GitHub Actionsの実ログ、Profile Definition、fixtureを相互照合し、どの結果が直接確認され、どこから先が未検証かを分離した。その後、Evidence強度、run ID、digest、outcome分類を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+```text
+Profile Definition exists
+  != fixture / probe PASS
+  != production verification path established
+  != Release Evidence
+  != Operational Evidence
+  != Adoption / Outcome Evidence
+```
+
+historical candidateのPASSをcurrent Profile Evidenceへ継承していません。current Evidenceはactual repositoryで取り直したものです。
+
+## 13. Natural Japanese review
+
+GitHub Actionsの実ログ、Profile Definition、fixture、ADR-0023、first semantic runtime、ISSUE-000034を相互照合し、どの結果が直接確認され、どこから先が未検証かを再整理しました。run ID、digest、outcome分類、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。

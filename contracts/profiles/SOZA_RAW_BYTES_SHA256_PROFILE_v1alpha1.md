@@ -19,7 +19,7 @@ raw bytes identity
 
 入力は有限長のbyte sequenceです。
 
-Verifierは、入力bytesへ次のような暗黙変換を行いません。
+Verifierは入力bytesへ次のような暗黙変換を行いません。
 
 - 改行変換
 - Unicode normalization
@@ -51,7 +51,7 @@ SHA-256はstreamingで計算できるため、Provider / Adapterはchunked read�
 
 ## 5. External source boundary
 
-外部sourceを参照しているだけでbytesを取得できない場合、digestを推測してはなりません。
+外部Sourceを参照しているだけでbytesを取得できない場合、digestを推測してはなりません。
 
 - bytesを取得でき、digest一致: `verified`
 - bytesを取得でき、digest不一致: `failed`
@@ -84,15 +84,24 @@ fixtures/representation-profiles/verification-outcomes-v1alpha1.json
 
 actual GitHub Actionsで、text bytesとbinary bytesの代表例をSHA-256で再現し、known Profileの一致=`verified`、digest mismatch=`failed`、unknown Profile=`not_verified`の三状態を確認しています。
 
-Evidence:
+Evidenceは`contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md`に記録します。
+
+## 9. Evidence boundary
+
+本Profile DefinitionはDesign Evidenceであり、Run `33347989530`のfixture成功はscoped Executable Evidenceです。
 
 ```text
-contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md
+raw-bytes fixture conformance PASS
+  != network / object storage streaming verified
+  != production verifier registry integration
+  != Release Evidence
+  != Operational Evidence
+  != Adoption / Outcome Evidence
 ```
 
-このPASSはnetwork / object storageからのstreaming運用、Production Runtime integration、Release Evidence、Operational Evidenceを意味しません。
+first semantic runtimeがExact Binding metadataを扱えることと、本Profileによる実payload verificationのproduction統合は分けます。
 
-## 9. Explicit non-goals
+## 10. Explicit non-goals
 
 - binary formatのsemantic canonicalization
 - content-type inference
@@ -100,10 +109,10 @@ contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md
 - historical M47 digest規則の推定
 - SHA-256をUniversal Coreの唯一のhashへ固定すること
 
-## 10. Versioning
+## 11. Versioning
 
 hash algorithmまたは「どのbytesを対象にするか」の規則を変更する場合、同じProfile ID / versionを再利用しません。
 
-## 11. Natural Japanese review
+## 12. Natural Japanese review
 
-JCS Profileとの使い分け、bytes取得不能時の`not_verified`、streaming可能性、storage identityとの分離、actual fixture conformanceを確認した。その後、意味、Evidence強度、検証条件を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+JCS Profileとの使い分け、bytes取得不能時の`not_verified`、streaming可能性、Storage identityとの分離、actual fixture conformance、first runtimeとの境界を再確認しました。その後、意味、Evidence強度、検証条件を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。

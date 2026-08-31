@@ -73,7 +73,7 @@ high-precision semantic value
 
 必要な場合は、型付き文字列等、値を失わないrepresentationへ明示的に投影します。
 
-このProfile verifierは、Application固有のdecimal精度要件を推測しません。semantic precision requirementは上位Contract / Policy / Producerが明示する責務です。
+このProfile verifierはApplication固有のdecimal精度要件を推測しません。semantic precision requirementは上位Contract / Policy / Producerが明示する責務です。
 
 ## 6. Digest
 
@@ -142,15 +142,25 @@ fixtures/representation-profiles/verification-outcomes-v1alpha1.json
 - NFC / NFDを勝手に同一化しないこと
 - `verified / failed / not_verified`の分離
 
-actual GitHub Actionsのfixture-scoped Executable Evidenceは次に記録します。
+actual GitHub Actionsのfixture-scoped Executable Evidenceは`contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md`に記録します。
+
+## 10. Evidence boundary
+
+本Profile DefinitionはDesign Evidenceであり、Run `33347989530`のfixture / Go probe成功はscoped Executable Evidenceです。
 
 ```text
-contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md
+Profile fixture conformance PASS
+  != production verifier registry integration
+  != Release Evidence
+  != Operational Evidence
+  != Adoption / Outcome Evidence
 ```
 
-このPASSはProduction Runtime integration、Release Evidence、Operational Evidenceを意味しません。
+current first semantic runtimeがExact Binding metadataを読めることから、本Profileのcanonicalization / digest verifierがproduction runtimeへ統合済みだとは推定しません。
 
-## 10. Explicit non-goals
+historical M47 digest規則も本Profileへ遡及適用せず、ISSUE-000034で別に扱います。
+
+## 11. Explicit non-goals
 
 - historical M47 digestを本Profileへ遡及変換しない。
 - JSON以外のbytesをJCSへ押し込まない。
@@ -158,12 +168,12 @@ contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md
 - ProfileだけからTruth / Authority / Assuranceを推定しない。
 - storage keyやGit object IDをsemantic identityへ昇格しない。
 
-## 11. Versioning
+## 12. Versioning
 
 `soza.jcs+sha256/v1alpha1`のcanonicalization、digest algorithm、input制約を互換性なく変更する場合、同じProfile ID / versionを再利用しません。
 
-semantic Contract versionとRepresentation Profile versionは独立です。
+Semantic Contract versionとRepresentation Profile versionは独立です。
 
-## 12. Natural Japanese review
+## 13. Natural Japanese review
 
-RFC 8785、actual GitHub Actionsのconformance結果、SOZAのExact Binding / Verification Outcome境界を照合し、Profileが所有する規則、上位semantic precision責務、実装差替え境界を確定した。その後、技術条件、Evidence強度、留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+RFC 8785、actual Profile Conformance、SOZAのExact Binding / Verification Outcome、first runtimeとの境界、historical M47分離を再照合しました。Profileが所有する規則、上位semantic precision責務、実装差替え境界を維持したまま、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
