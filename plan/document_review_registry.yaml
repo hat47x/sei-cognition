@@ -1,0 +1,161 @@
+schema: soza.document-review-registry/v1
+updated: 2026-08-31
+
+purpose: >-
+  ISSUE-000015で行う既存開発文書の自然な日本語監査について、current branch上の
+  対象範囲と監査状態を漏れなく管理するための台帳。意味上の正本は各文書自身であり、
+  この台帳は監査管理のための補助資料とする。
+
+status_vocabulary:
+  revised: 内容・構造を確認した後、自然な日本語を最重要視して全文を再ドラフトし、最終意味監査まで完了した。
+  reviewed-no-change: 全文を確認し、意味・可読性とも現状のままでよいと判断した。
+  excluded-historical: 原文保存または固定Evidenceとしての性質から、改稿対象外とした。
+  pending: current開発文書だが、今回の全件監査がまだ完了していない。
+
+reviewed:
+  - scope: README.md
+    status: revised
+    note: Product Value traceabilityと5段階Evidence境界を反映したcurrent root README。
+
+  - scope: product/README.md
+    status: revised
+    note: current Product文書の正本関係とEvidenceの読み方を整理済み。
+
+  - scope: product/value/*.md
+    status: revised
+    coverage:
+      - SOZA_PRODUCT_VALUE.md
+      - SOZA_VALUE_MODEL.md
+      - SOZA_VALUE_ACCEPTANCE.md
+      - SOZA_VALUE_TRACEABILITY.md
+
+  - scope: product/vision/SOZA_PRODUCT_VISION.md
+    status: revised
+
+  - scope: product/principles/SOZA_PRODUCT_PRINCIPLES.md
+    status: revised
+
+  - scope: plan/adr/ADR-*.md
+    status: revised
+    coverage: ADR-0001..ADR-0024
+    note: current Product Value / Requirements / Architecture / Contract / Runtimeからの逆向き監査を完了。
+
+  - scope: plan/issue/ISSUE-*.md
+    status: revised
+    coverage: ISSUE-000001..ISSUE-000036
+    note: historical Milestone、Issue自身のclosure、後続Executable Evidenceを分離して逆向き監査済み。
+
+  - scope: requirements/PRODUCT_REQUIREMENTS.md
+    status: revised
+    note: current Architecture / Contract / Runtime Evidenceへ再基線化済み。
+
+  - scope: architecture/TRACEABILITY.md
+    status: revised
+    note: Product Value V1〜V8からcurrent Architecture / Contract / Runtimeへの追跡を再整理済み。
+
+  - scope: contracts/TRACEABILITY.md
+    status: revised
+    note: Product Value traceability baselineとの整合を再整理済み。
+
+  - scope: plan/README.md
+    status: revised
+    note: 5段階Evidence、文書監査台帳、CI failure handlingをcurrent規約へ反映。
+
+  - scope: plan/DEVELOPMENT_WORKFLOW.md
+    status: revised
+    note: 5段階EvidenceとCI failure即時解消をcurrent workflowへ反映。
+
+  - scope: plan/DOCUMENT_AUTHORING_STANDARD.md
+    status: revised
+    note: document_review_registryの実体化と5段階Evidenceを反映。
+
+  - scope: plan/DOCUMENT_REVIEW_REPORT_2026-08-31.md
+    status: revised
+    note: ADR / Issue全件監査完了後の中間状態へ更新。
+
+  - scope: plan/scripts/README.md
+    status: revised
+    note: planning checkerの保証範囲を5段階Evidenceへ同期。
+
+pending:
+  - scope: requirements/README.md
+    status: pending
+  - scope: requirements/ACCEPTANCE_SCENARIOS.md
+    status: pending
+  - scope: requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md
+    status: pending
+
+  - scope: architecture/README.md
+    status: pending
+  - scope: architecture/SOZA_REFERENCE_ARCHITECTURE.md
+    status: pending
+  - scope: architecture/history/HISTORICAL_ARCHITECTURE_MAPPING.md
+    status: pending
+
+  - scope: contracts/README.md
+    status: pending
+  - scope: contracts/CONTRACT_CATALOG.md
+    status: pending
+  - scope: contracts/CONFORMANCE_EVIDENCE_2026-08-31.md
+    status: pending
+  - scope: contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md
+    status: pending
+  - scope: contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md
+    status: pending
+  - scope: contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md
+    status: pending
+  - scope: contracts/interchange/SOZA_SEMANTIC_INTERCHANGE_v1alpha1.md
+    status: pending
+  - scope: contracts/profiles/README.md
+    status: pending
+  - scope: contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md
+    status: pending
+  - scope: contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md
+    status: pending
+  - scope: contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md
+    status: pending
+  - scope: contracts/history/HISTORICAL_CONTRACT_MAPPING.md
+    status: pending
+
+  - scope: runtime/CONFORMANCE_EVIDENCE_2026-08-31.md
+    status: pending
+
+  - scope: fixtures/contracts/v1alpha1/README.md
+    status: pending
+  - scope: fixtures/providers/synthetic/README.md
+    status: pending
+
+  - scope: plan/kj/2026-08-31_ReferenceModel_CapabilityObservation_ラウンドKJ.md
+    status: pending
+  - scope: plan/kj/2026-08-31_RequirementInquiry_AuthorizationEvidence_ラウンドKJ.md
+    status: pending
+  - scope: plan/kj/2026-08-31_TEI設計系列_ラウンドKJ統合.md
+    status: pending
+
+  - scope: plan/adr/ADR_TEMPLATE.md
+    status: pending
+  - scope: plan/issue/ISSUE_TEMPLATE.md
+    status: pending
+
+exclusions:
+  - scope: fixtures/**/*.json
+    status: excluded-historical
+    reason: 固定入力・Expected Evidenceであり、自然な日本語への改稿対象ではない。
+  - scope: contracts/schemas/**/*.json
+    status: excluded-historical
+    reason: machine-readable schemaであり、本文日本語監査の対象ではない。
+  - scope: runtime/**/*.go
+    status: excluded-historical
+    reason: source codeであり、本台帳が対象とする開発文書本文ではない。code commentは実装変更時の通常reviewで扱う。
+  - scope: tools/*.{py,go,txt}
+    status: excluded-historical
+    reason: 実行コード・依存定義であり、本台帳が対象とする開発文書本文ではない。
+  - scope: .github/workflows/*.yml
+    status: excluded-historical
+    reason: CI定義であり、本台帳が対象とする自然言語文書ではない。
+
+closure_rule: >-
+  pendingが残る限りISSUE-000015をResolvedにしない。新しいcurrent Markdown開発文書を追加した場合は、
+  作業単位の中でrevisedまたはreviewed-no-changeへ到達できるなら直接reviewedへ登録し、
+  既存文書として後続監査が必要な場合だけpendingへ追加する。原文自体がEvidenceである資料は、
+  改稿せずexcluded-historicalとして理由を残す。

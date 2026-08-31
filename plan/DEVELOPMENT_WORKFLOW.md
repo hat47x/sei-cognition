@@ -7,11 +7,11 @@
 
 この文書は、SOZAの開発をどのbranchで進め、どの順序で設計・文書化・実装・検証するかを定めます。
 
-開発速度だけを優先して実装を先行させるのではなく、Product Valueと設計判断を先に明確にし、後から「なぜこの実装になったのか」を追える状態を維持することを目的とします。
+開発速度だけを優先して実装を先行させるのではなく、Product Valueと設計判断を先に明確にし、後から「なぜこの実装になったのか」を追える状態を維持します。
 
 ## 2. Branch運用
 
-安定した基線は`main`で管理します。通常の開発は、次の形式のbranchで行います。
+安定した基線は`main`で管理します。通常の開発は次の形式のbranchで進めます。
 
 ```text
 develop/vX.Y.Z
@@ -25,22 +25,24 @@ develop/v0.2.0
 develop/v1.0.0
 ```
 
-原則として、開発中の変更を`main`へ直接積み上げません。まとまりのよい単位まで`develop/vX.Y.Z`で整備し、文書・検査・Evidenceが揃った段階で`main`へ統合します。
+原則として開発中の変更を`main`へ直接積み上げません。まとまりのよい単位まで`develop/vX.Y.Z`で整備し、文書・検査・Evidenceが揃った段階で`main`へ統合します。
 
 緊急修正など別のbranch種別が必要になった場合は、その必要性と運用方法を先に`plan/`へ記録します。
 
 ## 3. 優先順位
 
-開発作業は、原則として次の順序を優先します。
+開発作業は原則として次の順序を優先します。
 
 1. `product/value`、`product/vision`、`product/principles`
 2. `plan/adr`、`plan/issue`、`plan/registry.yaml`
 3. `requirements`
 4. `architecture`、`contracts`
-5. 実装、fixture、test、tool
-6. release / operational evidence
+5. runtime、Provider Adapter、fixture、test、tool
+6. Release Evidence
+7. Operational Evidence
+8. Adoption / Outcome Evidence
 
-これは、上位文書を毎回大量に書くという意味ではありません。実装へ進む前に、上位の意味と判断が十分に定まっているかを確認するための優先順位です。
+上位文書を毎回大量に書くという意味ではありません。実装へ進む前に、上位の意味と判断が十分に定まっているかを確認するための優先順位です。
 
 ## 4. 一つの開発単位で行うこと
 
@@ -53,38 +55,62 @@ develop/v1.0.0
 5. Architecture / Contractを整える。
 6. 実装する。
 7. fixture / test / conformanceで確認する。
-8. Evidenceと未完了事項を更新する。
-9. 文書を自然な日本語へドラフトし直す。
-10. 最終的に、意味・仕様・留保が変わっていないか確認する。
+8. 実際に得られた高さまでEvidenceと未完了事項を更新する。
+9. 文書を自然な日本語へ全文再ドラフトする。
+10. 意味・仕様・留保・Evidence強度が変わっていないか最終監査する。
+11. 対象CIがsuccessしていることを確認する。
 
-## 5. 文書品質を実装後の後処理にしない
+CI failureが出た場合は、11だけを最後まで先送りしません。**失敗を検出した時点で原因を解消し、successを確認してから後続作業へ進みます。**
 
-自然な日本語へのドラフト工程は、リリース直前だけにまとめて行う後処理ではありません。
+## 5. 文書品質を後処理にしない
+
+自然な日本語への再ドラフトは、release直前にまとめて行う後処理ではありません。
 
 新しく作成・更新した開発文書は、その作業単位を閉じる前に`plan/DOCUMENT_AUTHORING_STANDARD.md`の工程を通します。
 
-既存文書については`ISSUE-000015`で全件監査を進め、監査状態を`plan/document_review_registry.yaml`へ記録します。
+既存文書はISSUE-000015で全件監査し、`plan/document_review_registry.yaml`へ監査状態を記録します。
 
 ## 6. Evidenceを超える状態更新をしない
 
-次を区別します。
+Product Value Acceptanceでは次の5段階を分けます。
 
 ```text
-設計が完了した
-!=
-ローカル実装が存在する
-!=
-実repositoryで統合された
-!=
-release gateを通過した
-!=
-運用実績がある
+Design Evidence
+  != Executable Evidence
+  != Release Evidence
+  != Operational Evidence
+  != Adoption / Outcome Evidence
 ```
 
-IssueやEvidenceのStatusは、実際に確認できた範囲だけを反映します。
+たとえば、設計が完了したこと、actual repositoryでCIが通ったこと、release Artifactが成立したこと、本番で安定して動作したこと、利用者・組織へ価値が届いたことは、それぞれ別の主張です。
+
+Issue、Requirement、README等の状態は、実際に確認できた高さまでだけ更新します。
 
 ## 7. 実装順序を製品ontologyにしない
 
-`M48`、`M49`、`M50`等は開発上のMilestoneです。
+`M48`、`M49`、`M50`等はhistoricalな開発Milestoneです。
 
-その順序を利用者の業務workflowや、SOZAのUniversal ontologyとして固定しません。Milestoneを跨いで意味上の前提が変わった場合は、実装を守るよりProduct / Requirement / ADRへ戻って再検討します。
+その順序を利用者の業務workflowやSOZAのUniversal ontologyとして固定しません。Milestoneをまたいで意味上の前提が変わった場合は、旧実装を守ることよりProduct Value / Requirement / ADRへ戻って再検討することを優先します。
+
+## 8. Planning変更は可能な範囲でatomicにする
+
+ADR / Issue本文のStatus、`plan/registry.yaml`、関連文書を同時に変更する必要がある場合は、可能な範囲で一つのatomic commitへまとめます。
+
+これは履歴を細かくしないためではなく、途中commitだけを見たCIが「本文はResolvedだがregistryはIn Progress」といった一時的不整合を検出することを避けるためです。
+
+分割commitが必要な場合は、各commit単体でもPlan integrityが成立する順序を選びます。
+
+## 9. CI failureの扱い
+
+CI failureは次の設計入力でもあります。
+
+1. 失敗したworkflow / step / fixtureを確認する。
+2. Contract、fixture、runtime、tool、文書台帳のどの層の問題かを切り分ける。
+3. current Product Value / Contractを安易に弱めず、誤っている層を修正する。
+4. 同じCIを再実行し、successを確認する。
+5. 必要ならIssue / Evidence文書へ原因と修正内容を残す。
+6. その後に次の作業へ進む。
+
+## 10. Natural Japanese review
+
+current Product Value、5段階Evidence、actual CI運用、Plan integrityで発生した一時Status不整合の実例、ISSUE-000015の全件監査へ戻ってworkflowを再構成した。その後、branch方針、開発順序、Evidence境界、CI handlingを変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
