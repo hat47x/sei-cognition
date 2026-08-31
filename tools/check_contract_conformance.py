@@ -22,10 +22,11 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from jsonschema import Draft202012Validator, FormatChecker, RefResolver
+    from jsonschema import Draft202012Validator, FormatChecker
+    from referencing import Registry, Resource
 except ImportError as exc:  # pragma: no cover - environment boundary
     raise SystemExit(
-        "jsonschema is required. Install the dependency declared in "
+        "jsonschema and referencing are required. Install the dependency declared in "
         "tools/contract-check-requirements.txt"
     ) from exc
 
@@ -78,28 +79,28 @@ def load_json(path: Path) -> Any:
         return json.load(handle)
 
 
-def load_schemas() -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
+def load_schemas() -> tuple[dict[str, dict[str, Any]], Registry]:
     schemas = {name: load_json(path) for name, path in SCHEMA_FILES.items()}
-    store: dict[str, Any] = {}
+    resources: list[tuple[str, Resource[Any]]] = []
     for schema in schemas.values():
         schema_id = schema.get("$id")
         if not isinstance(schema_id, str) or not schema_id:
             raise ValueError("every schema must declare a non-empty $id")
-        store[schema_id] = schema
-    return schemas, store
+        resources.append((schema_id, Resource.from_contents(schema)))
+    registry = Registry().with_resources(resources)
+    return schemas, registry
 
 
 def schema_errors(
     schema_name: str,
     document: Any,
     schemas: dict[str, dict[str, Any]],
-    store: dict[str, Any],
+    registry: Registry,
 ) -> list[str]:
     schema = schemas[schema_name]
-    resolver = RefResolver.from_schema(schema, store=store)
     validator = Draft202012Validator(
         schema,
-        resolver=resolver,
+        registry=registry,
         format_checker=FormatChecker(),
     )
     errors = sorted(validator.iter_errors(document), key=lambda error: list(error.path))
@@ -150,7 +151,7 @@ def semantic_reference_errors(document: Any) -> list[str]:
 def nested_interchange_status(
     document: Any,
     schemas: dict[str, dict[str, Any]],
-    store: dict[str, Any],
+    registry: Registry,
 ) -> tuple[list[str], bool]:
     """Return nested errors and whether any record is intentionally not verified."""
     errors: list[str] = []
@@ -176,7 +177,7 @@ def nested_interchange_status(
             continue
 
         payload = record.get("payload")
-        nested_schema_errors = schema_errors(schema_name, payload, schemas, store)
+        nested_schema_errors = schema_errors(schema_name, payload, schemas, registry)
         errors.extend(f"records/{index}/payload: {message}" for message in nested_schema_errors)
 
         if schema_name == "semantic-reference" and not nested_schema_errors:
@@ -200,7 +201,7 @@ def semantic_errors(
     schema_name: str,
     document: Any,
     schemas: dict[str, dict[str, Any]],
-    store: dict[str, Any],
+    registry: Registry,
 ) -> tuple[list[str], bool]:
     errors: list[str] = []
     not_verified = False
@@ -208,7 +209,7 @@ def semantic_errors(
     if schema_name == "semantic-reference":
         errors.extend(semantic_reference_errors(document))
     elif schema_name == "semantic-interchange":
-        nested_errors, nested_not_verified = nested_interchange_status(document, schemas, store)
+        nested_errors, nested_not_verified = nested_interchange_status(document, schemas, registry)
         errors.extend(nested_errors)
         not_verified = nested_not_verified
 
@@ -218,14 +219,14 @@ def semantic_errors(
 def classify_fixture(
     expectation: FixtureExpectation,
     schemas: dict[str, dict[str, Any]],
-    store: dict[str, Any],
+    registry: Registry,
 ) -> tuple[str, list[str]]:
     document = load_json(FIXTURE_DIR / expectation.path)
-    representation_errors = schema_errors(expectation.schema, document, schemas, store)
+    representation_errors = schema_errors(expectation.schema, document, schemas, registry)
     if representation_errors:
         return "schema_fail", representation_errors
 
-    invariant_errors, not_verified = semantic_errors(expectation.schema, document, schemas, store)
+    invariant_errors, not_verified = semantic_errors(expectation.schema, document, schemas, registry)
     if invariant_errors:
         return "semantic_fail", invariant_errors
     if not_verified:
@@ -234,12 +235,12 @@ def classify_fixture(
 
 
 def main() -> int:
-    schemas, store = load_schemas()
+    schemas, registry = load_schemas()
     failures: list[str] = []
     results: list[dict[str, Any]] = []
 
     for expectation in FIXTURES:
-        actual, details = classify_fixture(expectation, schemas, store)
+        actual, details = classify_fixture(expectation, schemas, registry)
         ok = actual == expectation.expected
         results.append(
             {
@@ -268,7 +269,7 @@ def main() -> int:
         "passed": not failures,
         "results": results,
         "claims": {
-            "design": "current Contract definitions and fixtures checked",
+            "design": "current Contract schemas and fixtures checked",
             "executable": "fixture-scoped only when this command completes successfully",
             "release": False,
             "operational": False,
