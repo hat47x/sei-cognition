@@ -2,7 +2,7 @@
 
 Status: **Resolved**  
 Priority: **1**  
-Related ADRs: **ADR-0007, ADR-0008, ADR-0009, ADR-0022**  
+Related ADRs: **ADR-0007, ADR-0008, ADR-0009, ADR-0023**  
 Updated: 2026-08-31
 
 ## Goal
@@ -11,7 +11,7 @@ Portable Exact Bindingを、Go固有の実装やSOZA独自canonicalizationだけ
 
 本Issueでは、**current/future bindingに使用するRepresentation Profile**を対象とする。
 
-historical M47 digestの規則回収はISSUE-000032へ分離した。historical Profileが未確認でも、ADR-0009に従って`not_verified`として保持できるため、current Profile基線の成立条件には含めない。
+historical M47 digestの規則回収はISSUE-000034へ分離した。historical Profileが未確認でも、ADR-0009に従って`not_verified`として保持できるため、current Profile基線の成立条件には含めない。
 
 ## Resolution
 
@@ -188,7 +188,7 @@ contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md
 - [x] high-precision valueの暗黙丸め禁止を明示した。
 - [x] Unicode normalizationを行わないことを明示した。
 - [x] raw-bytes Profileとの意味差を明示した。
-- [x] ADR-0022でcurrent Profile選択理由とhistorical M47分離をAcceptedした。
+- [x] ADR-0023でcurrent Profile選択理由とhistorical M47分離をAcceptedした。
 - [x] Profile文書を自然な日本語で再ドラフトし、最終意味監査を行った。
 
 ### Executable Acceptance
@@ -208,7 +208,7 @@ contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md
 
 - Representation Profile Design Baseline: **Satisfied**
 - Representation Profile fixture-scoped Executable Evidence: **Satisfied**
-- historical M47 digest mapping: **Not Yet Verified — ISSUE-000032**
+- historical M47 digest mapping: **Not Yet Verified — ISSUE-000034**
 - Production Runtime verifier integration: **Not Yet Verified**
 - Release Evidence: **Not Yet Verified**
 - Operational Evidence: **Not Yet Verified**
@@ -224,18 +224,18 @@ contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md
 - Release Evidence
 - Operational Evidence
 
-historical M47はISSUE-000032で追跡する。
+historical M47はISSUE-000034で追跡する。
 
 ## Dependencies / Follow-up
 
 - ADR-0007 — storage-neutral persistence
 - ADR-0008 — Exact Binding verification boundary
 - ADR-0009 — verification outcome separation
-- ADR-0022 — current Representation Profile baseline
+- ADR-0023 — current Representation Profile baseline
 - ISSUE-000031 — Contract fixture-scoped conformance（Resolved）
-- ISSUE-000032 — historical M47 digest recovery（Blocked）
+- ISSUE-000034 — historical M47 digest recovery（Blocked）
 - runtime baseline実体化時にVerifier Registry / Adapterを本Profileへ接続する。
 
 ## Natural Japanese review
 
-Profile Definition、ADR-0022、GitHub Actionsの実ログ、verification outcome fixtureを一件ずつAcceptanceへ照合した。その後、current/future Profileで確認できた範囲とhistorical M47、Runtime、Release、Operationalの未検証範囲を分離し、意味、数値、Evidence強度、規範強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Profile Definition、ADR-0023、GitHub Actionsの実ログ、verification outcome fixtureを一件ずつAcceptanceへ照合した。その後、current/future Profileで確認できた範囲とhistorical M47、Runtime、Release、Operationalの未検証範囲を分離し、意味、数値、Evidence強度、規範強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
