@@ -77,9 +77,57 @@ reviewed:
     status: revised
     note: historical candidate / local Evidenceと、currentでAccepted・実体化・限定検証済みのContract / Profile / Runtime / Adapterを分離して再監査済み。
 
+  - scope: contracts/README.md
+    status: revised
+    note: 4 Contract family、2 Accepted Representation Profile、first runtime、synthetic Provider Adapter、5段階Evidenceへ同期済み。
+
+  - scope: contracts/CONTRACT_CATALOG.md
+    status: revised
+    note: Contract化する境界とArchitecture / Profile / Provider / Adapterに留める境界をcurrent ADR-0021〜0024へ再照合済み。
+
+  - scope: contracts/CONFORMANCE_EVIDENCE_2026-08-31.md
+    status: revised
+    note: 17-fixture Runの数値・期待結果を保持し、後続Profile / Runtime / Adapter Evidenceとの高さを分離して再監査済み。
+
+  - scope: contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md
+    status: revised
+    note: 規範意味を維持し、current Schema / fixture / Profile / first runtimeの限定Executable EvidenceへEvidence節を同期済み。
+
+  - scope: contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md
+    status: revised
+    note: 規範意味を維持し、Recommendation-only、unresolved、Authority rejection、first runtime Evidenceへ同期済み。
+
+  - scope: contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md
+    status: revised
+    note: F1〜F7、first runtime、synthetic Provider Adapterを限定Executable Evidenceとして反映し、production Providerと分離済み。
+
+  - scope: contracts/interchange/SOZA_SEMANTIC_INTERCHANGE_v1alpha1.md
+    status: revised
+    note: unknown version、partial knowledge、exact-binding mismatch、first runtimeのcurrent Evidenceへ同期済み。
+
   - scope: contracts/TRACEABILITY.md
     status: revised
     note: Product Value traceability baselineとの整合を再整理済み。
+
+  - scope: contracts/profiles/README.md
+    status: revised
+    note: ADR-0023でAccepted済みのJCS / raw-bytes Profile、5段階Evidence、first runtimeとの境界へ同期済み。
+
+  - scope: contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md
+    status: revised
+    note: RFC 8785、SHA-256、数値・Unicode境界を維持し、Profile conformanceとproduction verifier未検証を分離済み。
+
+  - scope: contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md
+    status: revised
+    note: raw bytes規則を維持し、fixture conformanceとstreaming / production verifier未検証を分離済み。
+
+  - scope: contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md
+    status: revised
+    note: run ID・digest・outcomeを保持し、5段階Evidenceへ同期。historical M47追跡先の誤記をISSUE-000034へ訂正済み。
+
+  - scope: contracts/history/HISTORICAL_CONTRACT_MAPPING.md
+    status: revised
+    note: historical Contract / Profile候補とcurrentで独立にAccepted・再検証したContract / Profileを分離済み。
 
   - scope: plan/README.md
     status: revised
@@ -102,31 +150,6 @@ reviewed:
     note: planning checkerの保証範囲を5段階Evidenceへ同期。
 
 pending:
-  - scope: contracts/README.md
-    status: pending
-  - scope: contracts/CONTRACT_CATALOG.md
-    status: pending
-  - scope: contracts/CONFORMANCE_EVIDENCE_2026-08-31.md
-    status: pending
-  - scope: contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md
-    status: pending
-  - scope: contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md
-    status: pending
-  - scope: contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md
-    status: pending
-  - scope: contracts/interchange/SOZA_SEMANTIC_INTERCHANGE_v1alpha1.md
-    status: pending
-  - scope: contracts/profiles/README.md
-    status: pending
-  - scope: contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md
-    status: pending
-  - scope: contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md
-    status: pending
-  - scope: contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md
-    status: pending
-  - scope: contracts/history/HISTORICAL_CONTRACT_MAPPING.md
-    status: pending
-
   - scope: runtime/CONFORMANCE_EVIDENCE_2026-08-31.md
     status: pending
 
