@@ -18,6 +18,7 @@ PROFILE_DOCS = {
 }
 JCS_FIXTURE = ROOT / "fixtures/representation-profiles/jcs-v1alpha1.json"
 RAW_FIXTURE = ROOT / "fixtures/representation-profiles/raw-bytes-v1alpha1.json"
+OUTCOME_FIXTURE = ROOT / "fixtures/representation-profiles/verification-outcomes-v1alpha1.json"
 DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 
 
@@ -118,11 +119,50 @@ def check_raw(errors: list[str]) -> int:
     return checked
 
 
+def resolve_raw_outcome(profile_id: str, payload: bytes, content_digest: str) -> str:
+    """Profile availabilityとdigest一致を混同せず三状態へ分類する。"""
+    if profile_id not in PROFILE_DOCS:
+        return "not_verified"
+    if profile_id != "soza.raw-bytes+sha256/v1alpha1":
+        # この軽量checkerはJCS canonicalizationを担当しない。Go probeが別経路で検証する。
+        return "not_verified"
+    return "verified" if digest(payload) == content_digest else "failed"
+
+
+def check_outcomes(errors: list[str]) -> int:
+    data = load(OUTCOME_FIXTURE)
+    cases = data.get("cases") or []
+    ids = [case.get("id") for case in cases]
+    require(len(ids) == len(set(ids)), "verification outcome fixture IDが重複しています。", errors)
+
+    seen: set[str] = set()
+    checked = 0
+    for case in cases:
+        case_id = case.get("id", "<unknown>")
+        try:
+            payload = base64.b64decode(case.get("bytes_base64", ""), validate=True)
+        except Exception as exc:
+            errors.append(f"{case_id}: bytes_base64をdecodeできません: {exc}")
+            continue
+        profile_id = str(case.get("profile_id", ""))
+        content_digest = str(case.get("content_digest", ""))
+        expect = str(case.get("expect_outcome", ""))
+        require(expect in {"verified", "failed", "not_verified"}, f"{case_id}: expect_outcomeが不正です。", errors)
+        actual = resolve_raw_outcome(profile_id, payload, content_digest)
+        require(actual == expect, f"{case_id}: outcome mismatch: expected={expect} actual={actual}", errors)
+        seen.add(actual)
+        checked += 1
+
+    require(seen == {"verified", "failed", "not_verified"}, "verified / failed / not_verifiedの三状態をfixtureで網羅していません。", errors)
+    return checked
+
+
 def main() -> int:
     errors: list[str] = []
     check_profile_docs(errors)
     jcs_verified = check_jcs(errors)
     raw_checked = check_raw(errors)
+    outcomes_checked = check_outcomes(errors)
 
     if errors:
         print("representation profile fixture check: FAILED", file=sys.stderr)
@@ -130,7 +170,10 @@ def main() -> int:
             print(f"- {error}", file=sys.stderr)
         return 1
 
-    print(f"representation profile fixture check: PASS (JCS verified vectors={jcs_verified}, raw vectors={raw_checked})")
+    print(
+        "representation profile fixture check: PASS "
+        f"(JCS verified vectors={jcs_verified}, raw vectors={raw_checked}, outcome vectors={outcomes_checked})"
+    )
     return 0
 
 
