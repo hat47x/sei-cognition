@@ -1,0 +1,64 @@
+name: Representation Profile Conformance
+
+on:
+  push:
+    branches:
+      - "develop/**"
+    paths:
+      - "contracts/profiles/**"
+      - "fixtures/representation-profiles/**"
+      - "tools/check_representation_profiles.py"
+      - "tools/jcs_probe.go"
+      - ".github/workflows/representation-profile-conformance.yml"
+  pull_request:
+    paths:
+      - "contracts/profiles/**"
+      - "fixtures/representation-profiles/**"
+      - "tools/check_representation_profiles.py"
+      - "tools/jcs_probe.go"
+      - ".github/workflows/representation-profile-conformance.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  profile-fixtures:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile profile checker
+        run: python3 -m py_compile tools/check_representation_profiles.py
+
+      - name: Check profile definitions and fixed digests
+        run: python3 tools/check_representation_profiles.py
+
+  jcs-go-probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+
+      - name: Run commit-pinned RFC 8785 JCS probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          probe_dir="$(mktemp -d)"
+          cp tools/jcs_probe.go "$probe_dir/main.go"
+          cd "$probe_dir"
+          go mod init soza.local/jcsprobe
+          go get github.com/gowebpki/jcs@1a4242a66e1a8e03d7458324d0bc95c327527cbb
+          echo "Pinned JCS module:"
+          go list -m github.com/gowebpki/jcs
+          go run . "$GITHUB_WORKSPACE/fixtures/representation-profiles/jcs-v1alpha1.json"
