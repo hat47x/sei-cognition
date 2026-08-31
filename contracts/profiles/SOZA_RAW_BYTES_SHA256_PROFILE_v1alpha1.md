@@ -1,7 +1,7 @@
 # SOZA Raw Bytes + SHA-256 Representation Profile v1alpha1
 
 Profile ID: `soza.raw-bytes+sha256/v1alpha1`  
-Status: **Candidate — Executable Conformance Required**  
+Status: **Current v1alpha1 — Fixture-scoped Executable Conformance PASS**  
 Updated: 2026-08-31
 
 ## 1. Purpose
@@ -79,9 +79,18 @@ current fixture:
 
 ```text
 fixtures/representation-profiles/raw-bytes-v1alpha1.json
+fixtures/representation-profiles/verification-outcomes-v1alpha1.json
 ```
 
-最低限、text bytesとbinary bytesの代表例をSHA-256で再現します。
+actual GitHub Actionsで、text bytesとbinary bytesの代表例をSHA-256で再現し、known Profileの一致=`verified`、digest mismatch=`failed`、unknown Profile=`not_verified`の三状態を確認しています。
+
+Evidence:
+
+```text
+contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md
+```
+
+このPASSはnetwork / object storageからのstreaming運用、Production Runtime integration、Release Evidence、Operational Evidenceを意味しません。
 
 ## 9. Explicit non-goals
 
@@ -97,4 +106,4 @@ hash algorithmまたは「どのbytesを対象にするか」の規則を変更�
 
 ## 11. Natural Japanese review
 
-JCS Profileとの使い分け、bytes取得不能時の`not_verified`、streaming可能性、storage identityとの分離を確認した。その後、意味と検証条件を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+JCS Profileとの使い分け、bytes取得不能時の`not_verified`、streaming可能性、storage identityとの分離、actual fixture conformanceを確認した。その後、意味、Evidence強度、検証条件を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
