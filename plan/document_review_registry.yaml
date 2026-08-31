@@ -81,6 +81,38 @@ reviewed:
     status: revised
     note: Product Value traceability baselineとの整合を再整理済み。
 
+  - scope: contracts/README.md
+    status: revised
+    note: current 4 Contract family、Accepted Representation Profile、first runtime、synthetic Provider Adapter、5段階Evidenceへ再基線化済み。
+
+  - scope: contracts/CONTRACT_CATALOG.md
+    status: revised
+    note: Contract化する境界とArchitecture / Profile / Adapterに留める境界をcurrent ADR-0021〜0024へ再照合済み。
+
+  - scope: contracts/CONFORMANCE_EVIDENCE_2026-08-31.md
+    status: revised
+    note: 17 fixtureの初回成立Evidenceを保持しつつ、後続Profile / Runtime / Adapter Evidenceと未検証領域を分離済み。
+
+  - scope: contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md
+    status: revised
+    note: current Profile / runtime / verification outcomeへ再照合し、Designとscoped Executable Evidenceを分離済み。
+
+  - scope: contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md
+    status: revised
+    note: Recommendation / Decision / Authority境界とfirst runtime Evidenceへ再照合済み。
+
+  - scope: contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md
+    status: revised
+    note: ADR-0024とsynthetic Provider Adapter Evidenceを含め、Provider-neutral Observation境界へ再照合済み。
+
+  - scope: contracts/interchange/SOZA_SEMANTIC_INTERCHANGE_v1alpha1.md
+    status: revised
+    note: current schema / fixture / first runtimeのunknown version・partial knowledge・reference integrityへ再照合済み。
+
+  - scope: contracts/profiles/README.md
+    status: revised
+    note: current 2 Profile、first runtimeとの境界、historical M47分離、5段階Evidenceへ再基線化済み。
+
   - scope: plan/README.md
     status: revised
     note: 5段階Evidence、文書監査台帳、CI failure handlingをcurrent規約へ反映。
@@ -102,22 +134,6 @@ reviewed:
     note: planning checkerの保証範囲を5段階Evidenceへ同期。
 
 pending:
-  - scope: contracts/README.md
-    status: pending
-  - scope: contracts/CONTRACT_CATALOG.md
-    status: pending
-  - scope: contracts/CONFORMANCE_EVIDENCE_2026-08-31.md
-    status: pending
-  - scope: contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md
-    status: pending
-  - scope: contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md
-    status: pending
-  - scope: contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md
-    status: pending
-  - scope: contracts/interchange/SOZA_SEMANTIC_INTERCHANGE_v1alpha1.md
-    status: pending
-  - scope: contracts/profiles/README.md
-    status: pending
   - scope: contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md
     status: pending
   - scope: contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md
