@@ -9,6 +9,7 @@ on:
       - "contracts/**"
       - "fixtures/contracts/**"
       - "tools/check_contract_conformance.py"
+      - "tools/contract-check-requirements.txt"
       - ".github/workflows/runtime-conformance.yml"
   pull_request:
     paths:
@@ -16,6 +17,7 @@ on:
       - "contracts/**"
       - "fixtures/contracts/**"
       - "tools/check_contract_conformance.py"
+      - "tools/contract-check-requirements.txt"
       - ".github/workflows/runtime-conformance.yml"
 
 permissions:
@@ -33,6 +35,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install Contract checker dependencies
+        run: python -m pip install --disable-pip-version-check -r tools/contract-check-requirements.txt
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -40,7 +45,7 @@ jobs:
           cache-dependency-path: runtime/go/go.mod
 
       - name: Recheck current Contract fixtures
-        run: python3 tools/check_contract_conformance.py
+        run: python tools/check_contract_conformance.py
 
       - name: Test semantic runtime against the same fixture source
         working-directory: runtime/go
