@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soza.example/contracts/v1alpha1/capability-observation.schema.json",
+  "title": "SOZA Capability Observation v1alpha1",
+  "description": "Machine-readable representation of soza.capability-observation/v1alpha1. Provider state, matching, decision, authority, and execution remain distinct semantics.",
+  "type": "object",
+  "required": ["contract", "observation"],
+  "properties": {
+    "contract": {
+      "const": "soza.capability-observation/v1alpha1"
+    },
+    "observation": {
+      "$ref": "#/$defs/capabilityObservation"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "logicalReference": {
+      "$ref": "semantic-reference.schema.json#/$defs/logicalReference"
+    },
+    "reference": {
+      "oneOf": [
+        {"$ref": "#/$defs/logicalReference"},
+        {"$ref": "semantic-reference.schema.json#/$defs/exactBinding"}
+      ]
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "capability_ref": {"$ref": "#/$defs/logicalReference"},
+        "provider_ref": {"$ref": "#/$defs/logicalReference"},
+        "provider_target_ref": {"type": "string", "minLength": 1}
+      },
+      "anyOf": [
+        {"required": ["capability_ref"]},
+        {"required": ["provider_ref", "provider_target_ref"]}
+      ],
+      "additionalProperties": false
+    },
+    "observedCondition": {
+      "type": "object",
+      "required": ["key", "state"],
+      "properties": {
+        "key": {"type": "string", "minLength": 1},
+        "state": {"enum": ["observed", "unknown", "conflicting", "withheld"]},
+        "value": {},
+        "unit": {"type": "string", "minLength": 1},
+        "source_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/reference"},
+          "uniqueItems": true
+        },
+        "note": {"type": "string", "minLength": 1}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"state": {"const": "observed"}}},
+          "then": {"required": ["value"]}
+        }
+      ],
+      "additionalProperties": false
+    },
+    "mappingProvenance": {
+      "type": "object",
+      "required": ["mapping_ref"],
+      "properties": {
+        "mapping_ref": {"$ref": "#/$defs/reference"},
+        "source_state_ref": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "capabilityObservation": {
+      "type": "object",
+      "required": ["ref", "target", "observed_at", "conditions"],
+      "properties": {
+        "ref": {"$ref": "#/$defs/logicalReference"},
+        "target": {"$ref": "#/$defs/target"},
+        "observed_at": {"type": "string", "format": "date-time"},
+        "valid_until": {"type": "string", "format": "date-time"},
+        "conditions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/observedCondition"}
+        },
+        "provenance_refs": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/reference"},
+          "uniqueItems": true
+        },
+        "mapping_provenance": {
+          "$ref": "#/$defs/mappingProvenance"
+        },
+        "extensions": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
