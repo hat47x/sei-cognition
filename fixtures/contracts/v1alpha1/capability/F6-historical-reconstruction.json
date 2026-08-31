@@ -44,6 +44,7 @@
       "kind": "decision",
       "payload": {
         "contract": "soza.decision-memory/v1alpha1",
+        "record_type": "decision",
         "decision": {
           "ref": {"kind": "decision", "id": "D1"},
           "statement": "Use the TEI document-generation capability for the July workflow.",
