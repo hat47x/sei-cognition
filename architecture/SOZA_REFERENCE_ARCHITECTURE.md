@@ -272,6 +272,8 @@ Provider state != Capability interpretation != Decision
 
 mappingが重要なDecision basisになった場合、当時利用したmapping versionを特定できるようにします。
 
+current synthetic Provider Adapterは、この境界の限定的なExecutable Evidenceです。Provider A / B固有fieldをUniversal Capability Observationへ漏らさず、missing値を`false`や`0`へ捏造せず、mapping provenanceとsource state referenceを保持することを検査しています。ただし、production Provider / TEI integrationを確認したものではありません。
+
 ### 8.4 Matching
 
 MatchingはIntent / Constraint / contextとCapability候補の関係を説明します。
@@ -320,7 +322,20 @@ Storage row ID、file path、object key等をsemantic identityそのものには
 Logical Reference != Exact Historical Binding
 ```
 
-Representation Profileやverifierが利用不能な場合の`not_verified`と、内容不一致を確認した`failed`を分けます。
+Semantic Contractは「何をexactに結び付けたか」を扱い、bytes、canonicalization、digestの規則はRepresentation Profileへ分離します。
+
+```text
+Semantic Contract
+  != Representation Profile
+  != verifier implementation
+```
+
+current baselineではADR-0023により次のProfileをAcceptedしています。
+
+- `soza.jcs+sha256/v1alpha1`
+- `soza.raw-bytes+sha256/v1alpha1`
+
+これらはUniversal Core唯一のrepresentationではありません。Representation Profileやverifierが利用不能な場合の`not_verified`と、内容不一致を確認した`failed`も分けます。
 
 ### 10.3 Semantic Revision
 
@@ -393,6 +408,8 @@ Adapterは、次を担い得ます。
 
 Adapterが行うInterpretationをObservationそのものとして隠しません。
 
+current synthetic Adapter sliceは、異なるProvider-specific input shapeから同じCapability Observation Contractへ収束させる実装例です。このGo interfaceやsynthetic field setはtest implementationであり、Universal ontologyではありません。
+
 ## 14. Projection
 
 Projectionは、人間やAIがSOZAの意味資産を目的に応じて読むための表示・作業面です。
@@ -437,14 +454,29 @@ large binaryや外部Sourceをすべてinlineすることも要求しません�
 
 Evidenceが存在すること、Evidenceを特定Decisionのbasisとして用いたこと、Assuranceを付与したこと、世界のTruthであることを分けます。
 
-同様に、SOZA自身の開発Evidenceについても次を分けます。
+SOZA自身の開発Evidenceについても、Product Valueに従って次の5段階を分けます。
 
 - Design Evidence
 - Executable Evidence
 - Release Evidence
 - Operational Evidence
+- Adoption / Outcome Evidence
 
-Architecture文書やContract schemaの存在をExecutable Evidenceへ昇格させません。
+```text
+Design Evidence
+  != Executable Evidence
+  != Release Evidence
+  != Operational Evidence
+  != Adoption / Outcome Evidence
+```
+
+Architecture文書やContract Definitionの存在をExecutable Evidenceへ昇格させません。一方、actual fixture、validator、verifier、runtime testが再現可能に通っている範囲はExecutable Evidenceとして扱えます。
+
+本番で安定して動くことと、利用者・組織の判断、再検討、説明可能性、Provider選択等へ価値が届いたことも分けます。
+
+```text
+Operational success != user-value realization
+```
 
 ## 17. 主な横断フロー
 
@@ -502,27 +534,56 @@ Decision D2 ── new basis ── Artifact A@t2 / O2
 
 D2の現在知識をD1の過去basisへ遡及挿入しません。
 
-## 18. Contractへ落とす候補境界
+## 18. current Contract / Representation Profile境界
 
-current Architectureから、相互運用・検証のためにContract化を再評価すべき候補は次です。
+current Architectureから、独立versioningと相互運用上の合意が必要な境界を次へ実体化しています。
 
-| Concern | Contract候補 | 現在状態 |
+| Concern | current Contract / Profile | current Evidence |
 |---|---|---|
-| Semantic Reference / Interchange | portable semantic interchange | ISSUE-000030で評価 |
-| Exact Historical Binding | logical / exact binding contract | ISSUE-000009 / 000030 |
-| Decision Memory | Decision / basis / unresolved interchange | ISSUE-000030で評価 |
-| Capability Observation | provider-neutral observation contract | ISSUE-000024 / 000030 |
-| Federation | selective disclosure exchange profile | ISSUE-000030で評価 |
-| Representation | canonicalization / digest profile | ISSUE-000009 / 000030 |
+| Semantic Reference / Revision / Exact Binding | `soza.semantic-reference/v1alpha1` | Contract fixture / runtimeで一部検証 |
+| Decision Memory | `soza.decision-memory/v1alpha1` | Contract fixture / runtimeで一部検証 |
+| Capability Observation | `soza.capability-observation/v1alpha1` | F1〜F7 / runtime / synthetic Adapterで一部検証 |
+| Portable Semantic Interchange | `soza.semantic-interchange/v1alpha1` | Contract fixture / runtimeで一部検証 |
+| Exact Binding Representation | `soza.jcs+sha256/v1alpha1` | Representation Profile fixture / Go probe |
+| Exact Binding Representation | `soza.raw-bytes+sha256/v1alpha1` | Representation Profile fixture |
 
-Architectureに候補として記載しただけではContract採用を意味しません。
+これらはcurrent baselineでAcceptedされた相互運用境界です。ただし、4 Contract familyや2 ProfileがSOZAの全意味領域を覆うとは主張しません。
 
-## 19. 現時点でArchitectureが固定しないもの
+Projection、Federation、Cognitive Method等について、current Scenarioで独立Contractが必要になっていないものは先回りしてUniversal Contract化しません。
+
+## 19. current Executable Evidenceの範囲
+
+actual repositoryには、Architectureの一部を再現可能に確認するmaterialがあります。
+
+- Contract v1alpha1 schema / 17 fixture / semantic validator
+- JCS / raw-bytes Representation Profile fixtureとGo verifier probe
+- Contract fixtureを読むGo first semantic runtime slice
+- synthetic heterogeneous Provider A / B Adapter slice
+
+代表的なactual CI:
+
+- Contract Conformance — Run `33346472419`: **success**
+- Representation Profile Conformance — Run `33347989530`: **success**
+- Semantic Runtime Conformance #3 — Run `33348972805`: **success**
+- Semantic Runtime Conformance #4 — Run `33349604842`: **success**
+- Semantic Runtime Conformance #5 — Run `33349801993`: **success**
+
+```text
+fixture-scoped CI PASS
+  != Architecture implementation complete
+  != production Provider / TEI integration
+  != Release Evidence
+  != Operational Evidence
+  != Adoption / Outcome Evidence
+```
+
+historical M47 digest mappingはISSUE-000034で別途扱い、current Profile conformanceから過去方式を推定しません。
+
+## 20. 現時点でArchitectureが固定しないもの
 
 次はcurrent Architectureだけでは固定しません。
 
 - production field set
-- JSON Schema shape
 - package structure
 - database schema
 - API transport
@@ -535,11 +596,13 @@ Architectureに候補として記載しただけではContract採用を意味し
 - approval workflow
 - specific UI layout
 - TEI preference
-- JCS / SHA-256等のRepresentation Profile採用
+- 将来追加するRepresentation Profileの種類や唯一性
 
-必要なものはContract、Implementation Issue、Provider Profile等で別途扱います。
+JSON Schema shapeはcurrent Contract v1alpha1のmachine-readable representationとして存在しますが、そのshapeをArchitectureのUniversal ontologyそのものとはみなしません。
 
-## 20. 将来耐性
+JCS+SHA-256 / raw-bytes+SHA-256はcurrent Representation ProfileとしてAccepted済みですが、それらを唯一の永久的representationへ固定しません。
+
+## 21. 将来耐性
 
 Architecture reviewでは、評価時点の現実からおおむね10〜50倍程度先を見渡し、現在の技術制約へ過適合していないかを監査します。
 
@@ -547,15 +610,22 @@ Architecture reviewでは、評価時点の現実からおおむね10〜50倍程
 
 AIや実行基盤が大幅に高度化しても、提案したこと、判断したこと、権限があったこと、実行したこと、何を根拠にしたこと、何が未解決だったことは、引き続き異なる意味を持つと考えます。
 
-## 21. 関連文書
+## 22. 関連文書
 
-- `product/value/SOZA_VALUE_MODEL.md`
-- `product/value/SOZA_VALUE_ACCEPTANCE.md`
-- `requirements/PRODUCT_REQUIREMENTS.md`
-- `requirements/ACCEPTANCE_SCENARIOS.md`
-- `architecture/TRACEABILITY.md`
-- `plan/adr/ADR-0021-architecture-contract-authority-and-versioning.md`
+- `../product/value/SOZA_PRODUCT_VALUE.md`
+- `../product/value/SOZA_VALUE_MODEL.md`
+- `../product/value/SOZA_VALUE_ACCEPTANCE.md`
+- `../product/value/SOZA_VALUE_TRACEABILITY.md`
+- `../requirements/PRODUCT_REQUIREMENTS.md`
+- `../requirements/ACCEPTANCE_SCENARIOS.md`
+- `TRACEABILITY.md`
+- `../contracts/TRACEABILITY.md`
+- `../contracts/profiles/README.md`
+- `../plan/adr/ADR-0021-architecture-contract-authority-and-versioning.md`
+- `../plan/adr/ADR-0022-runtime-first-slice-read-validate-reconstruct.md`
+- `../plan/adr/ADR-0023-current-representation-profile-baseline.md`
+- `../plan/adr/ADR-0024-provider-adapter-observation-mapping-boundary.md`
 
-## 22. Natural Japanese review
+## 23. Natural Japanese review
 
-current Product Value、REQ-0001〜0022、ADR-0001〜0021とhistorical Architectureの意味核を照合し、Milestone / runtime component / contract候補を分離して構造を作成しました。その後、意味、規範強度、未決事項、Evidence境界を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しています。
+current Product Value、REQ-0001〜0022、SCN-0001〜0017、ADR-0001〜0024、4 Contract family、2 Representation Profile、first semantic runtime slice、synthetic Provider Adapter、およびactual CI Evidenceへ戻ってReference Architectureを再監査しました。historical candidateで未決だったContract / Representation候補と、currentで既にAccepted・実体化・限定検証された境界を分離し直しています。その後、意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
