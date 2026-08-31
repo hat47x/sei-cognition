@@ -1,14 +1,14 @@
 schema: soza.document-review-registry/v1
-updated: 2026-08-31
+updated: 2026-09-01
 
 purpose: >-
-  ISSUE-000015で行う既存開発文書の自然な日本語監査について、current branch上の
-  対象範囲と監査状態を漏れなく管理するための台帳。意味上の正本は各文書自身であり、
-  この台帳は監査管理のための補助資料とする。
+  ISSUE-000015で行った既存開発文書の自然な日本語監査について、current branch上の
+  対象範囲と監査状態を管理する台帳。意味上の正本は各文書自身であり、この台帳は
+  監査管理のための補助資料とする。
 
 status_vocabulary:
   revised: 内容・構造を確認した後、自然な日本語を最重要視して全文を再ドラフトし、最終意味監査まで完了した。
-  reviewed-no-change: 全文を確認し、意味・可読性とも現状のままでよいと判断した。
+  reviewed-no-change: 全文を確認し、文書の役割・意味・可読性を踏まえて現状の本文を保つと判断した。
   excluded-historical: 原文保存または固定Evidenceとしての性質から、改稿対象外とした。
   pending: current開発文書だが、今回の全件監査がまだ完了していない。
 
@@ -19,8 +19,6 @@ reviewed:
 
   - scope: product/README.md
     status: revised
-    note: current Product文書の正本関係とEvidenceの読み方を整理済み。
-
   - scope: product/value/*.md
     status: revised
     coverage:
@@ -28,147 +26,107 @@ reviewed:
       - SOZA_VALUE_MODEL.md
       - SOZA_VALUE_ACCEPTANCE.md
       - SOZA_VALUE_TRACEABILITY.md
-
   - scope: product/vision/SOZA_PRODUCT_VISION.md
     status: revised
-
   - scope: product/principles/SOZA_PRODUCT_PRINCIPLES.md
     status: revised
 
   - scope: plan/adr/ADR-*.md
     status: revised
     coverage: ADR-0001..ADR-0024
-    note: current Product Value / Requirements / Architecture / Contract / Runtimeからの逆向き監査を完了。
-
+    note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに全件監査済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
     coverage: ISSUE-000001..ISSUE-000037
-    note: ISSUE-000037を含め、historical Milestone、Issue自身のclosure、後続Executable Evidenceを分離して監査済み。
-
-  - scope: requirements/README.md
+    note: historical Milestone、Issue自身のclosure、後続Executable Evidenceを分離して全件監査済み。
+  - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
-    note: current repositoryの実体化状態、5段階Evidence、CI運用へ同期済み。
-
-  - scope: requirements/PRODUCT_REQUIREMENTS.md
+    note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
+  - scope: plan/issue/ISSUE_TEMPLATE.md
     status: revised
-    note: ISSUE-000037でREQ-0001〜REQ-0022を5段階Evidenceへ全文再整合済み。
+    note: Goal / Resolution / Reopen、5段階Evidence、CI failure handling、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
 
-  - scope: requirements/ACCEPTANCE_SCENARIOS.md
+  - scope: requirements/*.md
     status: revised
-    note: SCN-0001〜SCN-0017をcurrent Contract / Runtime / Provider Adapter Evidenceへ個別照合済み。
-
+    coverage:
+      - requirements/README.md
+      - requirements/PRODUCT_REQUIREMENTS.md
+      - requirements/ACCEPTANCE_SCENARIOS.md
   - scope: requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md
     status: revised
-    note: historical candidateとcurrent 5段階Evidenceを分離して再監査済み。
 
-  - scope: architecture/README.md
+  - scope: architecture/*.md
     status: revised
-    note: 5段階Evidence、current Contract / Representation Profile、first runtime、synthetic Provider Adapterの現在地へ同期済み。
-
-  - scope: architecture/SOZA_REFERENCE_ARCHITECTURE.md
-    status: revised
-    note: ADR-0021〜0024とcurrent executable materialへ再基線化し、旧Contract候補表現と4段階Evidenceを解消済み。
-
-  - scope: architecture/TRACEABILITY.md
-    status: revised
-    note: Product Value V1〜V8からcurrent Architecture / Contract / Runtimeへの追跡を再整理済み。
-
+    coverage:
+      - architecture/README.md
+      - architecture/SOZA_REFERENCE_ARCHITECTURE.md
+      - architecture/TRACEABILITY.md
   - scope: architecture/history/HISTORICAL_ARCHITECTURE_MAPPING.md
     status: revised
-    note: historical candidate / local Evidenceと、currentでAccepted・実体化・限定検証済みのContract / Profile / Runtime / Adapterを分離して再監査済み。
 
   - scope: contracts/README.md
     status: revised
-    note: 4 Contract family、2 Accepted Representation Profile、first runtime、synthetic Provider Adapter、5段階Evidenceへ同期済み。
-
   - scope: contracts/CONTRACT_CATALOG.md
     status: revised
-    note: Contract化する境界とArchitecture / Profile / Provider / Adapterに留める境界をcurrent ADR-0021〜0024へ再照合済み。
-
   - scope: contracts/CONFORMANCE_EVIDENCE_2026-08-31.md
     status: revised
-    note: 17-fixture Runの数値・期待結果を保持し、後続Profile / Runtime / Adapter Evidenceとの高さを分離して再監査済み。
-
   - scope: contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md
     status: revised
-    note: 規範意味を維持し、current Schema / fixture / Profile / first runtimeの限定Executable EvidenceへEvidence節を同期済み。
-
   - scope: contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md
     status: revised
-    note: 規範意味を維持し、Recommendation-only、unresolved、Authority rejection、first runtime Evidenceへ同期済み。
-
   - scope: contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md
     status: revised
-    note: F1〜F7、first runtime、synthetic Provider Adapterを限定Executable Evidenceとして反映し、production Providerと分離済み。
-
   - scope: contracts/interchange/SOZA_SEMANTIC_INTERCHANGE_v1alpha1.md
     status: revised
-    note: unknown version、partial knowledge、exact-binding mismatch、first runtimeのcurrent Evidenceへ同期済み。
-
   - scope: contracts/TRACEABILITY.md
     status: revised
-    note: Product Value traceability baselineとの整合を再整理済み。
-
-  - scope: contracts/profiles/README.md
+  - scope: contracts/profiles/*.md
     status: revised
-    note: ADR-0023でAccepted済みのJCS / raw-bytes Profile、5段階Evidence、first runtimeとの境界へ同期済み。
-
-  - scope: contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md
-    status: revised
-    note: RFC 8785、SHA-256、数値・Unicode境界を維持し、Profile conformanceとproduction verifier未検証を分離済み。
-
-  - scope: contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md
-    status: revised
-    note: raw bytes規則を維持し、fixture conformanceとstreaming / production verifier未検証を分離済み。
-
-  - scope: contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md
-    status: revised
-    note: run ID・digest・outcomeを保持し、5段階Evidenceへ同期。historical M47追跡先の誤記をISSUE-000034へ訂正済み。
-
+    coverage:
+      - contracts/profiles/README.md
+      - contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md
+      - contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md
+      - contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md
   - scope: contracts/history/HISTORICAL_CONTRACT_MAPPING.md
     status: revised
-    note: historical Contract / Profile候補とcurrentで独立にAccepted・再検証したContract / Profileを分離済み。
+
+  - scope: runtime/CONFORMANCE_EVIDENCE_2026-08-31.md
+    status: revised
+    note: first semantic runtime / synthetic Provider Adapterの限定Executable Evidenceを5段階Evidenceへ再整理済み。
+
+  - scope: fixtures/contracts/v1alpha1/README.md
+    status: revised
+    note: 17 fixtureのcurrent Contract Conformance成立をfixture-scoped Executable Evidenceとして明記済み。
+  - scope: fixtures/providers/synthetic/README.md
+    status: revised
+    note: synthetic Provider Adapterの検査境界とproduction未検証範囲を分離済み。
+
+  - scope: plan/kj/README.md
+    status: revised
+    note: KJ working recordとcurrent Accepted ADR / Contract / Runtimeのauthority境界を新設済み。
+  - scope: plan/kj/2026-08-31_ReferenceModel_CapabilityObservation_ラウンドKJ.md
+    status: reviewed-no-change
+    note: 生カードと当時のDecision preparationを思考履歴として保全。current landingはplan/kj/README.mdでADR-0017 / ADR-0019 / ADR-0024へ対応付けた。
+  - scope: plan/kj/2026-08-31_RequirementInquiry_AuthorizationEvidence_ラウンドKJ.md
+    status: reviewed-no-change
+    note: 生カードと当時のDecision preparationを保全。current landingはADR-0015 / ADR-0016としてplan/kj/README.mdに明記した。
+  - scope: plan/kj/2026-08-31_TEI設計系列_ラウンドKJ統合.md
+    status: reviewed-no-change
+    note: 広域統合時点の生カード・束ね・核融合・残差を原記録として保全し、current authorityとの読み分けをplan/kj/README.mdへ分離した。
 
   - scope: plan/README.md
     status: revised
-    note: 5段階Evidence、文書監査台帳、CI failure handlingをcurrent規約へ反映。
-
   - scope: plan/DEVELOPMENT_WORKFLOW.md
     status: revised
-    note: 5段階EvidenceとCI failure即時解消をcurrent workflowへ反映。
-
   - scope: plan/DOCUMENT_AUTHORING_STANDARD.md
     status: revised
-    note: document_review_registryの実体化と5段階Evidenceを反映。
-
   - scope: plan/DOCUMENT_REVIEW_REPORT_2026-08-31.md
     status: revised
-    note: ADR / Issue全件監査とRequirements全件監査後の中間状態へ更新。
-
+    note: 全件監査完了後の最終報告へ更新する。
   - scope: plan/scripts/README.md
     status: revised
-    note: planning checkerの保証範囲を5段階Evidenceへ同期。
 
-pending:
-  - scope: runtime/CONFORMANCE_EVIDENCE_2026-08-31.md
-    status: pending
-
-  - scope: fixtures/contracts/v1alpha1/README.md
-    status: pending
-  - scope: fixtures/providers/synthetic/README.md
-    status: pending
-
-  - scope: plan/kj/2026-08-31_ReferenceModel_CapabilityObservation_ラウンドKJ.md
-    status: pending
-  - scope: plan/kj/2026-08-31_RequirementInquiry_AuthorizationEvidence_ラウンドKJ.md
-    status: pending
-  - scope: plan/kj/2026-08-31_TEI設計系列_ラウンドKJ統合.md
-    status: pending
-
-  - scope: plan/adr/ADR_TEMPLATE.md
-    status: pending
-  - scope: plan/issue/ISSUE_TEMPLATE.md
-    status: pending
+pending: []
 
 exclusions:
   - scope: fixtures/**/*.json
@@ -188,7 +146,6 @@ exclusions:
     reason: CI定義であり、本台帳が対象とする自然言語文書ではない。
 
 closure_rule: >-
-  pendingが残る限りISSUE-000015をResolvedにしない。新しいcurrent Markdown開発文書を追加した場合は、
-  作業単位の中でrevisedまたはreviewed-no-changeへ到達できるなら直接reviewedへ登録し、
-  既存文書として後続監査が必要な場合だけpendingへ追加する。原文自体がEvidenceである資料は、
-  改稿せずexcluded-historicalとして理由を残す。
+  current Markdown開発文書にpendingが発生した場合は、ISSUE-000015で確立した監査手順を通常の文書作成・更新工程として適用する。
+  新規文書は作業単位の中でrevisedまたはreviewed-no-changeへ到達させる。原文自体がEvidenceである資料は、
+  意味を損なう改稿をせずexcluded-historicalまたはreviewed-no-changeとして理由を残す。
