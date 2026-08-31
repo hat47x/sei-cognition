@@ -99,10 +99,8 @@ Product Value / V1〜V8
 - current Reference Architecture
 - current 4 Contract Definition
 - current Representation Profile Definition
-- first semantic runtime sliceのDesign boundary
+- first semantic runtime slice
 - Provider Adapter observation mapping boundary
-
-ADR-0024では、Provider AdapterをProvider固有stateの共通Universal schemaではなく、Capability Observationへ外在化する観測・解釈境界として定めています。
 
 ### scoped Executable Evidence
 
@@ -111,19 +109,21 @@ ADR-0024では、Provider AdapterをProvider固有stateの共通Universal schema
 - Contract v1alpha1 schema / 17 fixture / semantic validator / conformance workflow
 - JCS / raw-bytes Representation Profile fixtureとGo verifier probe
 - Contract fixtureを読むGo first semantic runtime slice
+- synthetic heterogeneous Provider A / B Adapter slice
 
 代表的なactual CI:
 
 - Requirements Registry Conformance — Run `33346697016`: **success**
 - Contract Conformance — Run `33346472419`: **success**
 - Representation Profile Conformance — Run `33347989530`: **success**
-- Semantic Runtime Conformance — Run `33348972805`: **success**
+- Semantic Runtime Conformance #3 — Run `33348972805`: **success**
+- Semantic Runtime Conformance #4 — Run `33349604842`: **success** — synthetic Adapter slice
+- Semantic Runtime Conformance #5 — Run `33349801993`: **success** — Provider-specific field非漏洩の追加hardening
 
-Provider Adapterについては、synthetic sliceを実装するISSUE-000036がOpenであるため、現在はDesign Evidenceまでです。
+これらは、それぞれ定めた対象範囲のExecutable Evidenceです。SOZA全体のExecutable Acceptance完了を意味しません。
 
 ### currentでまだ主張しないもの
 
-- synthetic Provider Adapter Executable Evidence
 - historical M47 digest mapping
 - production Provider / TEI integration
 - Release Evidence
@@ -164,7 +164,7 @@ Coreへ追加する前に、少なくとも次を検討します。
 
 現在の実装で便利であることや、関連製品との距離が近いことだけをCore昇格理由にしません。
 
-ADR-0024のProvider Adapterも、この原則に従ってProvider-specific input schemaをUniversal Coreへ持ち込みません。
+ADR-0024のProvider Adapterも、この原則に従ってProvider-specific input schemaをUniversal Coreへ持ち込みません。synthetic sliceでもProvider A / B固有fieldがCapability Observation schemaへ漏れないことを検査しています。
 
 ## 7. 読む順序
 
@@ -193,4 +193,4 @@ Product文書は、内容と構造を確定した後に、意味、規範強度�
 
 ## 9. Natural Japanese review
 
-current Product / Requirements / ADR-0001〜0024 / Architecture / Contract / Representation Profile / runtime / Provider Adapterの正本関係とactual Evidenceを確認し、重複した正本や第二のScenario体系を作らないよう役割を整理しました。その後、意味、権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+current Product / Requirements / ADR-0001〜0024 / Architecture / Contract / Representation Profile / runtime / synthetic Provider Adapterの正本関係とactual Evidenceを確認し、重複した正本や第二のScenario体系を作らないよう役割を整理しました。その後、意味、権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
