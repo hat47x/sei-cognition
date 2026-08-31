@@ -1,25 +1,16 @@
 # ADR-0014: SOZAとTEIのProduct Boundaryを分離する
 
 Status: **Accepted**  
-Related Issue: **ISSUE-000016**  
+Related Issues: **ISSUE-000016, ISSUE-000020, ISSUE-000035, ISSUE-000036**  
 Updated: 2026-08-31
 
 ## Context
 
-SOZAとTEIは、業務意味、AI、Capability、実行を扱うため強く関連する。
+SOZAとTEIは、業務上の意味、AI、Capability、実行を扱うため、相互に連携し得る。
 
-しかし、両者が近いからといって一つの製品境界へ統合すると、SOZAの認知・意思決定意味と、TEIの実行可能な業務システム実現境界が混ざる。
+しかし、関係が深いことを理由に一つのProduct Boundaryへ統合すると、SOZAが扱う認知・意思決定の意味と、TEIが担う実行可能な業務システムの実現境界が混ざる。
 
-過去の「渡辺幸三の業務システム設計」系列と現行TEI実装では、TEIは次の方向へ整理されている。
-
-- Authoring / Canonical Semantic / Binding & Realization / Implementation & Executionを分ける。
-- ApplicationとDatabaseを独立対象として扱う。
-- 一つのApplicationが複数Databaseを利用できる。
-- native SQL、Go、外部Provider等を、無理に独自DSLへ変換しない。
-- command acceptedとactual state changedを分け、Observation / Evidenceで実状態を確認する。
-- Plugin / Provider / Deployment / Runtimeの安全境界を実装する。
-
-SOZA側では、次を耐久的中心として再基線化している。
+SOZAでは、次のような意味を耐久的な中心として扱う。
 
 - Inquiry / Question
 - Observation / Unknown / Conflict / Hypothesis
@@ -30,11 +21,13 @@ SOZA側では、次を耐久的中心として再基線化している。
 - Capability discovery / choice
 - Semantic Lineage / Decision Memory
 
+TEIは、これらの意味を実行へ接続する際のCapability Providerになり得るが、SOZAそのものではない。
+
 ## Decision
 
-### 1. SOZAとTEIを別Product Boundaryとして維持する
+### 1. SOZAとTEIを別のProduct Boundaryとして維持する
 
-両者は関連するが、一方を他方の内部moduleとはみなさない。
+両者は連携できるが、一方を他方の内部moduleとはみなさない。
 
 ```text
 SOZA
@@ -48,7 +41,7 @@ TEI
 
 ### 2. SOZAはTEI固有の実行lifecycleをUniversal Coreとして所有しない
 
-SOZA Coreへ、TEI固有の次の概念をそのままコピーしない。
+SOZA Coreへ、TEI固有の次のような概念をそのままコピーしない。
 
 - Application Release
 - Database Release
@@ -58,11 +51,11 @@ SOZA Coreへ、TEI固有の次の概念をそのままコピーしない。
 - Plugin packaging
 - Provider-specific execution protocol
 
-SOZAがこれらを参照する必要がある場合は、Capability、Artifact reference、Observation、Evidence等の境界から読む。
+SOZAがこれらを参照する必要がある場合は、Capability、Artifact reference、Observation、Evidence等の境界から扱う。
 
 ### 3. TEIはSOZAのDecision / Authorityを暗黙に代行しない
 
-SOZAでRecommendationやDecisionが存在しても、それだけでTEI実行権限は成立しない。
+SOZAにRecommendationやDecisionが存在しても、それだけでTEIの実行権限は成立しない。
 
 ```text
 SOZA Decision
@@ -74,11 +67,11 @@ SOZA Decision
 
 ### 4. TEIをCapability Choiceで特権化しない
 
-TEIはSOZAから見ればCapability Providerの一つである。
+TEIは、SOZAから見ればCapability Providerの一つである。
 
 人間、SaaS、外部組織、AI、custom code等と同じ判断面で比較できなければならない。
 
-関連製品であること、同じ開発者が関与していること、統合しやすいことだけを理由にTEIへ優先度・信頼・Authorityを付与しない。
+関連する製品であること、開発主体が近いこと、統合しやすいことだけを理由に、TEIへ優先度、信頼、Authorityを付与しない。
 
 ### 5. Observation / EvidenceはTEIからSOZAへ戻せる
 
@@ -94,18 +87,18 @@ TEI runtime state != SOZA epistemic truth
 
 Observationの出所、時点、対象、Assurance等を保持し、必要な認知・判断手続きを経て利用する。
 
-### 6. release / evidence claimを分離する
+### 6. release / Evidence claimを分離する
 
 TEI側のtest、release、operational evidenceによって、SOZA側の未実装Requirementを実装済みとみなさない。
 
 逆も同様である。
 
-各repository / Product Boundaryで、
+各Product Boundaryで、
 
-- design evidence
-- executable evidence
-- release evidence
-- operational evidence
+- Design Evidence
+- Executable Evidence
+- Release Evidence
+- Operational Evidence
 
 を独立して扱う。
 
@@ -115,7 +108,15 @@ TEIはSOZAを必須Runtime dependencyにしない。
 
 SOZAもTEIを必須Providerにしない。
 
-統合したときに価値が高まっても、相互依存を製品の存在条件にはしない。
+統合したときに価値が高まる場合があっても、相互依存をProductの存在条件にはしない。
+
+## Current realization
+
+current SOZA repositoryでは、Capability Observationとsynthetic Provider AdapterをTEI非依存でExecutable Evidence化している。
+
+これは、SOZAのProvider境界がTEI固有Schemaを前提にしなくても成立することを直接確認するためである。
+
+production TEI adapterはまだ本ADRの成立条件には含めていない。将来TEIを接続する場合も、ADR-0024のProvider Adapter / mapping provenance境界を適用する。
 
 ## Consequences
 
@@ -124,31 +125,23 @@ SOZAもTEIを必須Providerにしない。
 - SOZAの耐久的中心がworkflow / deployment実装へ引きずられにくい。
 - TEIは実行基盤として必要な具体性を保てる。
 - TEI以外のCapability Providerを中立に扱える。
-- 各Productのrelease / evidence claimが明確になる。
-- AI・Provider技術が変わってもSOZAのDecision Memoryを保ちやすい。
+- 各Productのrelease / Evidence claimを分離できる。
+- AIやProvider技術が変わってもSOZAのDecision Memoryを保ちやすい。
 
 ### Costs
 
 - 統合時にはArtifact reference、Capability mapping、Observation / Evidence adapter等が必要になる。
 - 同じ概念に見えるものでも、SOZAとTEIで異なる意味境界を維持する必要がある。
-- 開発者は「近い製品だから一つのtypeを共有する」という近道を避ける必要がある。
+- 「近い製品だから一つのtypeを共有する」という実装上の近道を避ける必要がある。
 
 ## Revisit conditions
 
 Product Boundaryそのものは長期原則とする。
 
-具体的な統合Contractは、TEIとSOZA双方のactual implementationが揃った段階で別ADR / Issueとして再検討する。
+具体的な統合Contractは、SOZAとTEI双方で必要性とactual Evidenceが揃った段階で、別のADR / Issueとして検討する。
 
 統合Contractを追加しても、本ADRの独立Product Boundaryを自動的にSupersedeしない。
 
-## Evidence
-
-- `plan/kj/2026-08-31_TEI設計系列_ラウンドKJ統合.md`
-- SOZA Product Value / Vision / Principles
-- ADR-0012 Capability Choice
-- ADR-0013 Capability Realization boundary
-- 現行`hat47x/tei-platform`のArchitecture / Plugin / Deployment実装
-
 ## Natural Japanese review
 
-内容と境界を確定した後、意味を変えず自然な日本語となることを最優先に全文を再ドラフトし、最終意味監査を実施済み。
+current SOZA Product Value、Capability Observation、Provider Adapter、Evidence boundaryへ戻ってDecisionを照合した。その後、過去のTEI実装詳細を本ADRの根拠として列挙する構成を改め、長期に残すべきProduct Boundaryへ焦点を戻した。SOZAとTEIの独立性、非特権化、Decision / Authorization / Execution分離を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
