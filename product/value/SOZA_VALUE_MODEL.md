@@ -7,9 +7,9 @@
 
 この文書は、`SOZA_PRODUCT_VALUE.md`で定めた価値を、設計判断へ落とせる粒度まで精緻化するための基準です。
 
-個々の機能や実装方式を決める文書ではありません。Requirements、ADR、Architecture、ImplementationがProduct Valueと整合しているかを判断するために、価値の優先関係、境界、成立条件、失敗条件を定めます。
+個々の機能や実装方式を決める文書ではありません。Requirements、ADR、Architecture、Contract、ImplementationがProduct Valueと整合しているかを判断するために、価値の優先関係、境界、成立条件、失敗条件を定めます。
 
-V1〜V8を具体的にどのEvidenceで確認するかは、`SOZA_VALUE_ACCEPTANCE.md`で定めます。
+V1〜V8を具体的にどのEvidenceで確認するかは`SOZA_VALUE_ACCEPTANCE.md`、current下位文書への追跡は`SOZA_VALUE_TRACEABILITY.md`で扱います。
 
 ## 2. SOZAが守る価値の階層
 
@@ -56,6 +56,8 @@ SOZAにとって、履歴を残すことは保存そのものが目的ではあ�
 
 ただし、使いやすさのために第一層の意味を黙って捨てることは認めません。意味の省略が必要な場合は、簡略表示とcanonicalな意味保持を分けます。
 
+また、「利用し続けられること」は単にserviceが稼働し続けることではありません。実際の利用者や組織が必要な場面で意味を読み直し、選び直すために使えることまで含みます。
+
 ## 3. 価値が衝突したときの優先規則
 
 設計上の価値が衝突した場合は、原則として次の順に判断します。
@@ -68,7 +70,7 @@ SOZAにとって、履歴を残すことは保存そのものが目的ではあ�
 
 これは、下位の価値を軽視するという意味ではありません。上位価値を破壊しない範囲で、下位価値を最大化します。
 
-重大な性能・運用上の制約によって上位価値を完全には満たせない場合は、暗黙に省略せず、制約・失われる意味・代替策・再検討条件をADRに残します。
+重大な性能・運用上の制約によって上位価値を完全には満たせない場合は、暗黙に省略せず、制約、失われる意味、代替策、再検討条件をADRに残します。
 
 また、一つの価値軸で高い成果が得られても、別の重大な価値欠損を相殺したことにはしません。Product Valueの受入れは、V1〜V8を必要な範囲で個別に確認します。
 
@@ -128,7 +130,17 @@ Unknown、Conflict、Hypothesisを、便宜上の確定値へ黙って変換し�
 
 外部のworkflow、agent runtime、TEI等が置き換わっても、SOZAの判断記憶と意味構造が存続するか。
 
-これらの軸に対するDesign / Executable / Release / Operational Evidenceの受入れ条件は、`SOZA_VALUE_ACCEPTANCE.md`を正とします。
+これらの軸に対するEvidenceは、少なくとも次の高さを分離して扱います。
+
+```text
+Design
+  != Executable
+  != Release
+  != Operational
+  != Adoption / Outcome
+```
+
+具体的な受入れ条件は`SOZA_VALUE_ACCEPTANCE.md`を正とします。
 
 ## 6. 価値上の失敗パターン
 
@@ -144,6 +156,8 @@ Unknown、Conflict、Hypothesisを、便宜上の確定値へ黙って変換し�
 - UIの簡略化のためにcanonicalな意味を失う。
 - 特定製品との密接な関係だけを理由に、その製品をSOZAの一部として特別扱いする。
 - Design Evidenceしかない状態を、actual repositoryやproductionで実証済みと表現する。
+- fixtureがPASSしたことを、SOZA全体のExecutable Acceptanceとして扱う。
+- productionで正常稼働したことを、利用者や組織への価値が実現した証明として扱う。
 
 ## 7. 実装規模と価値の関係
 
@@ -161,6 +175,8 @@ SOZAの価値は、Coreの型やコードが増えるほど高まるわけでは
 
 将来、現在のAI agent、workflow、orchestrator、UI、storage方式が大きく変わっても、この文書の第一層と第二層が依然として意味を持つことを目標とします。
 
+この距離はbenchmark scoreではありません。現在の制約や流行へ過適合していないかを問うための思考上の距離です。
+
 ## 9. 下位文書との関係
 
 この文書の価値境界は、次の順に具体化します。
@@ -170,25 +186,31 @@ SOZA Product Value
   → SOZA Value Model
   → SOZA Value Acceptance
   → Product Vision / Principles
-  → Requirements
-  → Issue
-  → ADR
+  → Requirements / Acceptance Scenarios
+  → Issue / ADR
   → Architecture
+  → Contract
   → Implementation / Test / Evidence
 ```
 
 Vision / Principlesは価値の方向と反復原則を示し、Value Acceptanceは価値を満たしたと主張するためのEvidence境界を示します。これらは上下関係というより、Value Modelを異なる方向から具体化する補完文書です。
 
+current下位文書との対応は`SOZA_VALUE_TRACEABILITY.md`で索引化します。
+
 下位の都合からこの価値境界を変更する必要が生じた場合は、実装を正当化するために直接書き換えず、Product Value変更として明示的に再審査します。
 
 ## 10. 関連文書
 
+- `product/README.md`
 - `product/value/SOZA_PRODUCT_VALUE.md`
 - `product/value/SOZA_VALUE_ACCEPTANCE.md`
+- `product/value/SOZA_VALUE_TRACEABILITY.md`
 - `product/vision/SOZA_PRODUCT_VISION.md`
 - `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
+- `requirements/PRODUCT_REQUIREMENTS.md`
+- `requirements/ACCEPTANCE_SCENARIOS.md`
 - `plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md`
 
 ## 11. 自然な日本語ドラフト
 
-Value Acceptance追加後に文書間の役割と依存関係を再確認し、意味、強度、留保、技術的境界を変えず、自然な日本語となることを最優先に全文を再ドラフトしました。その後、最終意味監査を実施しています。
+Product Value、Value Acceptance、current Requirements / Architecture / Contractの状態を再確認し、V1〜V8の意味を変えずにEvidenceの高さをAdoption / Outcomeまで明示しました。その後、文書間の役割、技術的境界、強度、留保を変えず、自然な日本語となることを最優先に全文を再ドラフトし、最終意味監査を実施しています。
