@@ -19,7 +19,7 @@ Product Value
   → Issue / ADR
   → Architecture
   → Contract / Representation Profile
-  → Runtime / Test / Evidence
+  → Runtime / Provider Adapter / Test / Evidence
 ```
 
 下位の実装・検証から上位仮説への反証が得られた場合は、必要に応じてProduct Valueまで戻って再検討します。ただし、既存実装を温存するためだけに上位価値を書き換えません。
@@ -30,13 +30,9 @@ Product Value
 
 SOZAが存在する理由と、最も上位で守る価値を定めます。
 
-「何を作るか」より先に、「技術やProviderが変わっても何を失ってはいけないか」を扱います。
-
 ### `value/SOZA_VALUE_MODEL.md`
 
-Product Valueを設計判断へ落とせる粒度に精緻化します。
-
-現在はV1〜V8を用います。
+Product Valueを設計判断へ落とせる粒度に精緻化します。現在はV1〜V8を用います。
 
 - V1 Historical Reconstruction
 - V2 Semantic Separation
@@ -53,8 +49,6 @@ V1〜V8は総合点を作るための採点項目ではありません。一つ�
 
 V1〜V8を「満たした」と主張するとき、どの高さのEvidenceが必要かを定めます。
 
-少なくとも次を分離します。
-
 ```text
 Design Evidence
   != Executable Evidence
@@ -67,21 +61,17 @@ Design Evidence
 
 ### `value/SOZA_VALUE_TRACEABILITY.md`
 
-Product Valueからcurrent Requirements、Acceptance Scenarios、ADR、Architecture、Contract、Representation Profile、runtime、Evidence gapへ戻るための索引です。
+Product Valueからcurrent Requirements、Acceptance Scenarios、ADR、Architecture、Contract、Representation Profile、runtime、Provider Adapter、Evidence gapへ戻るための索引です。
 
-この文書は新しい意味上の正本を作るものではありません。詳細なRequirementは`requirements/`、Architectureは`architecture/`、Contract / Profileは`contracts/`、runtime実装は`runtime/`を正とします。
+この文書は新しい意味上の正本を作るものではありません。
 
 ### `vision/SOZA_PRODUCT_VISION.md`
 
-Product Valueを長期的な到達方向として表します。
-
-未来の特定技術を予言する文書ではありません。現在の実装方式が入れ替わっても成立してほしい製品像を扱います。
+Product Valueを長期的な到達方向として表します。未来の特定技術を予言する文書ではありません。
 
 ### `principles/SOZA_PRODUCT_PRINCIPLES.md`
 
-繰り返し現れる設計判断で利用する製品原則を定めます。
-
-PrincipleはProduct Valueより上位ではありません。Product Valueを日々の設計判断へ適用しやすくするための反復可能な指針です。
+繰り返し現れる設計判断で利用する製品原則を定めます。PrincipleはProduct Valueより上位ではありません。
 
 ## 3. 具体的なScenarioの正本
 
@@ -96,8 +86,6 @@ Product Value / V1〜V8
   → ADR / Architecture / Contract / Test
 ```
 
-Product Value側では、どのScenarioがどの価値軸を具体化しているかをTraceabilityとして参照します。
-
 ## 4. 現在のEvidence状態
 
 2026-08-31時点では、少なくとも次がactual repositoryにあります。
@@ -107,11 +95,14 @@ Product Value側では、どのScenarioがどの価値軸を具体化してい�
 - Product Value / Value Model / Value Acceptance
 - REQ-0001〜REQ-0022
 - SCN-0001〜SCN-0017
-- ADR-0001〜ADR-0023
+- ADR-0001〜ADR-0024
 - current Reference Architecture
 - current 4 Contract Definition
 - current Representation Profile Definition
 - first semantic runtime sliceのDesign boundary
+- Provider Adapter observation mapping boundary
+
+ADR-0024では、Provider AdapterをProvider固有stateの共通Universal schemaではなく、Capability Observationへ外在化する観測・解釈境界として定めています。
 
 ### scoped Executable Evidence
 
@@ -128,10 +119,11 @@ Product Value側では、どのScenarioがどの価値軸を具体化してい�
 - Representation Profile Conformance — Run `33347989530`: **success**
 - Semantic Runtime Conformance — Run `33348972805`: **success**
 
-これらは、それぞれ定めた対象範囲のExecutable Evidenceです。SOZA全体のExecutable Acceptance完了を意味しません。
+Provider Adapterについては、synthetic sliceを実装するISSUE-000036がOpenであるため、現在はDesign Evidenceまでです。
 
 ### currentでまだ主張しないもの
 
+- synthetic Provider Adapter Executable Evidence
 - historical M47 digest mapping
 - production Provider / TEI integration
 - Release Evidence
@@ -172,6 +164,8 @@ Coreへ追加する前に、少なくとも次を検討します。
 
 現在の実装で便利であることや、関連製品との距離が近いことだけをCore昇格理由にしません。
 
+ADR-0024のProvider Adapterも、この原則に従ってProvider-specific input schemaをUniversal Coreへ持ち込みません。
+
 ## 7. 読む順序
 
 Product層から読み始める場合は、次の順序を推奨します。
@@ -187,6 +181,7 @@ Product層から読み始める場合は、次の順序を推奨します。
 9. `../architecture/TRACEABILITY.md`
 10. `../contracts/TRACEABILITY.md`
 11. `../contracts/profiles/README.md`
+12. `../plan/adr/ADR-0024-provider-adapter-observation-mapping-boundary.md`
 
 ## 8. 文書品質
 
@@ -198,4 +193,4 @@ Product文書は、内容と構造を確定した後に、意味、規範強度�
 
 ## 9. Natural Japanese review
 
-current Product / Requirements / ADR / Architecture / Contract / Representation Profile / runtimeの正本関係とactual Evidenceを確認し、重複した正本や第二のScenario体系を作らないよう役割を整理しました。その後、意味、権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+current Product / Requirements / ADR-0001〜0024 / Architecture / Contract / Representation Profile / runtime / Provider Adapterの正本関係とactual Evidenceを確認し、重複した正本や第二のScenario体系を作らないよう役割を整理しました。その後、意味、権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
