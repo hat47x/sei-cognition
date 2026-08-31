@@ -1,7 +1,7 @@
 # ADR-0022: 最初のruntime sliceをread / validate / reconstructへ限定する
 
 Status: **Accepted**  
-Related Issue: **ISSUE-000032**  
+Related Issues: **ISSUE-000032, ISSUE-000033**  
 Updated: 2026-08-31
 
 ## Context
@@ -10,7 +10,9 @@ SOZAのcurrent repositoryでは、Product Value、REQ / SCN、ADR、Reference Ar
 
 次はcurrent `runtime/`を実体化する段階だが、historical candidateにはM48〜M50のGo package、runtime helper、Provider bridge等が存在した。これらを一括コピーすると、当時のMilestone順やpackage layoutをcurrent Architectureへ逆流させる危険がある。
 
-また、ISSUE-000009ではstable Representation Profileとhistorical M47 digest mappingが未解決である。現時点でJCS / SHA-256等をruntime defaultへ固定すると、Semantic ContractとRepresentation Profileを分離したADR-0021と矛盾する。
+ADR-0023では、current/future Exact Binding向けにJCS + SHA-256とraw-bytes + SHA-256のRepresentation Profile基線をAcceptedし、ISSUE-000009ではfixture-scoped Executable Conformanceまで確認した。一方、このProfile conformanceをProduction Runtimeへ接続したEvidenceはまだない。
+
+したがって、RuntimeではProfile identity / versionとverification outcomeを正しく保持しつつ、Profile実装をUniversal defaultとして埋め込まない境界が必要である。
 
 そこで、current Contractから最初のruntime vertical sliceを再導出する。
 
@@ -37,7 +39,7 @@ read
 4. Decision Memoryをbasis / unresolved / Recommendation relationとともに読み込む。
 5. Capability ObservationをProvider-neutralな意味として読み込む。
 6. bundle内exact recordとDecision basisの整合を検証する。
-7. unknown Contract / verifier等を`not_verified`として保持できる。
+7. unknown Contract / Profile / verifier等を`not_verified`として保持できる。
 8. historical reconstruction用のread modelを組み立てる。
 9. semantic recordを意味を変えず再exportできる。
 
@@ -111,7 +113,7 @@ adapterが変換、unit換算、status解釈、aggregation等を行う場合、�
 
 first sliceではproduction TEI adapterを必須にしない。synthetic Provider inputからCapability Observationを生成するtest adapterでruntime境界を先に検証できる。
 
-### 7. Exact Bindingはmetadata / equality boundaryを実装し、stable verifierを先取りしない
+### 7. Exact Bindingはmetadata / equality boundaryをfirst sliceで実装する
 
 current runtimeはExact Bindingを、少なくとも次の意味として保持できる必要がある。
 
@@ -121,11 +123,13 @@ current runtimeはExact Bindingを、少なくとも次の意味として保持�
 
 また、bundle内exact recordとDecision basisが同じbindingを指すかを比較できる必要がある。
 
-一方、stable verifierの実装はISSUE-000009を尊重する。
+ADR-0023によりcurrent Representation Profile基線は決まっているが、first sliceの必須Acceptanceは**Profile verifierのProduction Runtime統合ではない**。
 
-runtimeへは交換可能なverifier boundaryを置けるが、JCS / SHA-256等をUniversal defaultとしてhard-codeしない。
+Runtimeへは交換可能なverifier boundaryを置けるが、`soza.jcs+sha256/v1alpha1`や`soza.raw-bytes+sha256/v1alpha1`をUniversal Coreの唯一の方式としてhard-codeしない。
 
 verifier不在や未知Profileは`not_verified`、実際に検証して不一致なら`failed`と区別する。
+
+Profile verifierをRuntimeへ接続する場合は、ADR-0023のProfile Definitionとfixtureを正本とし、Runtime独自のcanonicalization規則を作らない。
 
 ### 8. historical Go candidateは差分材料として再利用する
 
@@ -164,7 +168,7 @@ runtime独自fixtureを増やす場合も、可能な限りContract Scenarioへ�
 - SOZAの中心をExecution engineではなく意味再構成へ保てる。
 - current Contractからruntimeへ一方向に設計を降ろせる。
 - historical Go codeの有用部分を再利用しつつ、旧Milestone構造を継承せずに済む。
-- stable Representation Profile未確定状態を破らずruntime実装を開始できる。
+- Representation Profile基線を尊重しつつ、Profile実装をRuntime semantic authorityへ昇格させずに済む。
 - Provider固有SchemaがUniversal Coreへ漏れにくい。
 - runtime package再編とsemantic compatibilityを分離できる。
 
@@ -174,6 +178,7 @@ runtime独自fixtureを増やす場合も、可能な限りContract Scenarioへ�
 - historical codeを一件ずつcurrent Contractへ照合する必要がある。
 - Contract JSON SchemaとGo型の同期監査が必要になる。
 - unknown Contract / Profileを明示的に扱うため、単純なunmarshal-only実装より境界処理が増える。
+- Profile fixture conformanceとRuntime verifier integrationを別Evidenceとして管理する必要がある。
 
 ## Revisit conditions
 
@@ -189,12 +194,16 @@ runtime独自fixtureを増やす場合も、可能な限りContract Scenarioへ�
 - `architecture/SOZA_REFERENCE_ARCHITECTURE.md`
 - `contracts/CONTRACT_CATALOG.md`
 - `contracts/CONFORMANCE_EVIDENCE_2026-08-31.md`
-- ISSUE-000032
-- ISSUE-000009
-- ISSUE-000022
+- `contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md`
+- ADR-0023 — current Representation Profile baseline
+- ISSUE-000009 — Representation Profile stabilization（Resolved）
+- ISSUE-000032 — runtime Design slice（Resolved）
+- ISSUE-000033 — runtime implementation（In Progress）
+- ISSUE-000034 — historical M47 digest recovery（Blocked）
+- ISSUE-000022 — repository baseline
 
-runtime実装とend-to-end conformanceは後続Issueで追跡する。
+runtime実装とend-to-end conformanceはISSUE-000033で追跡する。
 
 ## Natural Japanese review
 
-current Contract、17 fixture、actual CI Evidence、runtime未実体化状態、ISSUE-000009のBlockerへ戻ってDecisionを確定した。その後、runtime実装の都合をsemantic authorityへ逆流させず、意味、制約、未解決範囲を変えないことを確認しながら、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+current Contract、Contract fixture、Representation Profile conformance、runtime実体化開始状態を照合し、read / validate / reconstructというDecision自体は維持した。そのうえで、ISSUE-000009未解決を前提としていた古い説明だけを現在状態へ改め、Runtime実装の都合をsemantic authorityへ逆流させず、意味、制約、Evidence境界を変えない範囲で自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
