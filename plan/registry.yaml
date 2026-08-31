@@ -2,30 +2,102 @@ schema: soza.plan-registry/v1
 updated: 2026-09-01
 
 adr:
-  - {id: ADR-0001, file: plan/adr/ADR-0001-moving-future-horizon.md, status: Accepted, related_issues: [ISSUE-000001]}
-  - {id: ADR-0002, file: plan/adr/ADR-0002-claim-interpretation-boundary.md, status: Accepted, related_issues: [ISSUE-000002, ISSUE-000008]}
-  - {id: ADR-0003, file: plan/adr/ADR-0003-revision-supersession-model.md, status: Accepted, related_issues: [ISSUE-000003, ISSUE-000008]}
-  - {id: ADR-0004, file: plan/adr/ADR-0004-responsibility-without-global-identity.md, status: Accepted, related_issues: [ISSUE-000004, ISSUE-000008, ISSUE-000018]}
-  - {id: ADR-0005, file: plan/adr/ADR-0005-progressive-semantic-explicitness.md, status: Accepted, related_issues: [ISSUE-000005, ISSUE-000008, ISSUE-000012, ISSUE-000017]}
-  - {id: ADR-0006, file: plan/adr/ADR-0006-bounded-federation-selective-disclosure.md, status: Accepted, related_issues: [ISSUE-000006, ISSUE-000024]}
-  - {id: ADR-0007, file: plan/adr/ADR-0007-canonical-persistence-boundary.md, status: Accepted, related_issues: [ISSUE-000007, ISSUE-000008, ISSUE-000009, ISSUE-000022]}
-  - {id: ADR-0008, file: plan/adr/ADR-0008-exact-binding-verification-boundary.md, status: Accepted, related_issues: [ISSUE-000008, ISSUE-000009, ISSUE-000022, ISSUE-000024, ISSUE-000030, ISSUE-000031, ISSUE-000034]}
-  - {id: ADR-0009, file: plan/adr/ADR-0009-binding-verification-outcome-separation.md, status: Accepted, related_issues: [ISSUE-000008, ISSUE-000009, ISSUE-000022, ISSUE-000030, ISSUE-000031, ISSUE-000034]}
-  - {id: ADR-0010, file: plan/adr/ADR-0010-decision-memory-minimal-semantic-boundary.md, status: Accepted, related_issues: [ISSUE-000010, ISSUE-000012, ISSUE-000017, ISSUE-000018]}
-  - {id: ADR-0011, file: plan/adr/ADR-0011-decision-memory-reference-role-separation.md, status: Accepted, related_issues: [ISSUE-000011, ISSUE-000012, ISSUE-000017, ISSUE-000018]}
-  - {id: ADR-0012, file: plan/adr/ADR-0012-capability-choice-semantic-boundary.md, status: Accepted, related_issues: [ISSUE-000013, ISSUE-000014, ISSUE-000020, ISSUE-000024]}
-  - {id: ADR-0013, file: plan/adr/ADR-0013-capability-realization-boundary.md, status: Accepted, related_issues: [ISSUE-000014, ISSUE-000020, ISSUE-000024]}
-  - {id: ADR-0014, file: plan/adr/ADR-0014-soza-tei-product-boundary.md, status: Accepted, related_issues: [ISSUE-000016, ISSUE-000017, ISSUE-000018, ISSUE-000019, ISSUE-000020, ISSUE-000021, ISSUE-000022, ISSUE-000024, ISSUE-000028, ISSUE-000029, ISSUE-000032, ISSUE-000033, ISSUE-000035]}
-  - {id: ADR-0015, file: plan/adr/ADR-0015-requirement-inquiry-decision-memory.md, status: Accepted, related_issues: [ISSUE-000017]}
-  - {id: ADR-0016, file: plan/adr/ADR-0016-authorization-evidence-provider-boundary.md, status: Accepted, related_issues: [ISSUE-000018]}
-  - {id: ADR-0017, file: plan/adr/ADR-0017-reference-model-cognitive-method-boundary.md, status: Accepted, related_issues: [ISSUE-000019, ISSUE-000034]}
-  - {id: ADR-0018, file: plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md, status: Accepted, related_issues: [ISSUE-000023, ISSUE-000025, ISSUE-000026, ISSUE-000028, ISSUE-000029, ISSUE-000037]}
-  - {id: ADR-0019, file: plan/adr/ADR-0019-provider-neutral-capability-observation-boundary.md, status: Accepted, related_issues: [ISSUE-000020, ISSUE-000024, ISSUE-000029, ISSUE-000030, ISSUE-000031, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000036]}
-  - {id: ADR-0020, file: plan/adr/ADR-0020-requirements-traceability-and-evidence-boundary.md, status: Accepted, related_issues: [ISSUE-000025, ISSUE-000026, ISSUE-000027, ISSUE-000028, ISSUE-000029, ISSUE-000031, ISSUE-000037]}
-  - {id: ADR-0021, file: plan/adr/ADR-0021-architecture-contract-authority-and-versioning.md, status: Accepted, related_issues: [ISSUE-000022, ISSUE-000028, ISSUE-000029, ISSUE-000030, ISSUE-000031, ISSUE-000032, ISSUE-000033, ISSUE-000035]}
-  - {id: ADR-0022, file: plan/adr/ADR-0022-runtime-first-slice-read-validate-reconstruct.md, status: Accepted, related_issues: [ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000036]}
-  - {id: ADR-0023, file: plan/adr/ADR-0023-current-representation-profile-baseline.md, status: Accepted, related_issues: [ISSUE-000009, ISSUE-000034]}
-  - {id: ADR-0024, file: plan/adr/ADR-0024-provider-adapter-observation-mapping-boundary.md, status: Accepted, related_issues: [ISSUE-000035, ISSUE-000036]}
+  - id: ADR-0001
+    file: plan/adr/ADR-0001-moving-future-horizon.md
+    status: Accepted
+    related_issues: [ISSUE-000001]
+  - id: ADR-0002
+    file: plan/adr/ADR-0002-claim-interpretation-boundary.md
+    status: Accepted
+    related_issues: [ISSUE-000002, ISSUE-000008]
+  - id: ADR-0003
+    file: plan/adr/ADR-0003-revision-supersession-model.md
+    status: Accepted
+    related_issues: [ISSUE-000003, ISSUE-000008]
+  - id: ADR-0004
+    file: plan/adr/ADR-0004-responsibility-without-global-identity.md
+    status: Accepted
+    related_issues: [ISSUE-000004, ISSUE-000008, ISSUE-000018]
+  - id: ADR-0005
+    file: plan/adr/ADR-0005-progressive-semantic-explicitness.md
+    status: Accepted
+    related_issues: [ISSUE-000005, ISSUE-000008, ISSUE-000012, ISSUE-000017]
+  - id: ADR-0006
+    file: plan/adr/ADR-0006-bounded-federation-selective-disclosure.md
+    status: Accepted
+    related_issues: [ISSUE-000006, ISSUE-000024]
+  - id: ADR-0007
+    file: plan/adr/ADR-0007-canonical-persistence-boundary.md
+    status: Accepted
+    related_issues: [ISSUE-000007, ISSUE-000008, ISSUE-000009, ISSUE-000022]
+  - id: ADR-0008
+    file: plan/adr/ADR-0008-exact-binding-verification-boundary.md
+    status: Accepted
+    related_issues: [ISSUE-000008, ISSUE-000009, ISSUE-000022, ISSUE-000024, ISSUE-000030, ISSUE-000031, ISSUE-000034]
+  - id: ADR-0009
+    file: plan/adr/ADR-0009-binding-verification-outcome-separation.md
+    status: Accepted
+    related_issues: [ISSUE-000008, ISSUE-000009, ISSUE-000022, ISSUE-000030, ISSUE-000031, ISSUE-000034]
+  - id: ADR-0010
+    file: plan/adr/ADR-0010-decision-memory-minimal-semantic-boundary.md
+    status: Accepted
+    related_issues: [ISSUE-000010, ISSUE-000012, ISSUE-000017, ISSUE-000018]
+  - id: ADR-0011
+    file: plan/adr/ADR-0011-decision-memory-reference-role-separation.md
+    status: Accepted
+    related_issues: [ISSUE-000011, ISSUE-000012, ISSUE-000017, ISSUE-000018]
+  - id: ADR-0012
+    file: plan/adr/ADR-0012-capability-choice-semantic-boundary.md
+    status: Accepted
+    related_issues: [ISSUE-000013, ISSUE-000014, ISSUE-000020, ISSUE-000024]
+  - id: ADR-0013
+    file: plan/adr/ADR-0013-capability-realization-boundary.md
+    status: Accepted
+    related_issues: [ISSUE-000014, ISSUE-000020, ISSUE-000024]
+  - id: ADR-0014
+    file: plan/adr/ADR-0014-soza-tei-product-boundary.md
+    status: Accepted
+    related_issues: [ISSUE-000016, ISSUE-000017, ISSUE-000018, ISSUE-000019, ISSUE-000020, ISSUE-000021, ISSUE-000022, ISSUE-000024, ISSUE-000028, ISSUE-000029, ISSUE-000032, ISSUE-000033, ISSUE-000035]
+  - id: ADR-0015
+    file: plan/adr/ADR-0015-requirement-inquiry-decision-memory.md
+    status: Accepted
+    related_issues: [ISSUE-000017]
+  - id: ADR-0016
+    file: plan/adr/ADR-0016-authorization-evidence-provider-boundary.md
+    status: Accepted
+    related_issues: [ISSUE-000018]
+  - id: ADR-0017
+    file: plan/adr/ADR-0017-reference-model-cognitive-method-boundary.md
+    status: Accepted
+    related_issues: [ISSUE-000019, ISSUE-000034]
+  - id: ADR-0018
+    file: plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md
+    status: Accepted
+    related_issues: [ISSUE-000023, ISSUE-000025, ISSUE-000026, ISSUE-000028, ISSUE-000029, ISSUE-000037]
+  - id: ADR-0019
+    file: plan/adr/ADR-0019-provider-neutral-capability-observation-boundary.md
+    status: Accepted
+    related_issues: [ISSUE-000020, ISSUE-000024, ISSUE-000029, ISSUE-000030, ISSUE-000031, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000036]
+  - id: ADR-0020
+    file: plan/adr/ADR-0020-requirements-traceability-and-evidence-boundary.md
+    status: Accepted
+    related_issues: [ISSUE-000025, ISSUE-000026, ISSUE-000027, ISSUE-000028, ISSUE-000029, ISSUE-000031, ISSUE-000037]
+  - id: ADR-0021
+    file: plan/adr/ADR-0021-architecture-contract-authority-and-versioning.md
+    status: Accepted
+    related_issues: [ISSUE-000022, ISSUE-000028, ISSUE-000029, ISSUE-000030, ISSUE-000031, ISSUE-000032, ISSUE-000033, ISSUE-000035]
+  - id: ADR-0022
+    file: plan/adr/ADR-0022-runtime-first-slice-read-validate-reconstruct.md
+    status: Accepted
+    related_issues: [ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000036]
+  - id: ADR-0023
+    file: plan/adr/ADR-0023-current-representation-profile-baseline.md
+    status: Accepted
+    related_issues: [ISSUE-000009, ISSUE-000034]
+  - id: ADR-0024
+    file: plan/adr/ADR-0024-provider-adapter-observation-mapping-boundary.md
+    status: Accepted
+    related_issues: [ISSUE-000035, ISSUE-000036]
 
 issue:
   - {id: ISSUE-000001, file: plan/issue/ISSUE-000001-operationalize-moving-future-horizon.md, status: Resolved, priority: 4, related_adrs: [ADR-0001]}
