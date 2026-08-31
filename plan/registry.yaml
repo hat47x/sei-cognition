@@ -33,11 +33,11 @@ adr:
   - id: ADR-0008
     file: plan/adr/ADR-0008-exact-binding-verification-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000008, ISSUE-000009, ISSUE-000022, ISSUE-000024, ISSUE-000030]
+    related_issues: [ISSUE-000008, ISSUE-000009, ISSUE-000022, ISSUE-000024, ISSUE-000030, ISSUE-000031]
   - id: ADR-0009
     file: plan/adr/ADR-0009-binding-verification-outcome-separation.md
     status: Accepted
-    related_issues: [ISSUE-000008, ISSUE-000009, ISSUE-000022, ISSUE-000030]
+    related_issues: [ISSUE-000008, ISSUE-000009, ISSUE-000022, ISSUE-000030, ISSUE-000031]
   - id: ADR-0010
     file: plan/adr/ADR-0010-decision-memory-minimal-semantic-boundary.md
     status: Accepted
@@ -77,15 +77,15 @@ adr:
   - id: ADR-0019
     file: plan/adr/ADR-0019-provider-neutral-capability-observation-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000020, ISSUE-000024, ISSUE-000029, ISSUE-000030]
+    related_issues: [ISSUE-000020, ISSUE-000024, ISSUE-000029, ISSUE-000030, ISSUE-000031]
   - id: ADR-0020
     file: plan/adr/ADR-0020-requirements-traceability-and-evidence-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000025, ISSUE-000026, ISSUE-000027, ISSUE-000028, ISSUE-000029]
+    related_issues: [ISSUE-000025, ISSUE-000026, ISSUE-000027, ISSUE-000028, ISSUE-000029, ISSUE-000031]
   - id: ADR-0021
     file: plan/adr/ADR-0021-architecture-contract-authority-and-versioning.md
     status: Accepted
-    related_issues: [ISSUE-000022, ISSUE-000028, ISSUE-000029, ISSUE-000030]
+    related_issues: [ISSUE-000022, ISSUE-000028, ISSUE-000029, ISSUE-000030, ISSUE-000031]
 
 issue:
   - {id: ISSUE-000001, file: plan/issue/ISSUE-000001-operationalize-moving-future-horizon.md, status: Resolved, priority: 4, related_adrs: [ADR-0001]}
@@ -116,5 +116,6 @@ issue:
   - {id: ISSUE-000026, file: plan/issue/ISSUE-000026-materialize-current-requirements-baseline.md, status: Resolved, priority: 1, related_adrs: [ADR-0018, ADR-0020]}
   - {id: ISSUE-000027, file: plan/issue/ISSUE-000027-implement-requirements-registry-checker.md, status: Open, priority: 2, related_adrs: [ADR-0020]}
   - {id: ISSUE-000028, file: plan/issue/ISSUE-000028-define-architecture-contract-baseline-convention.md, status: Resolved, priority: 1, related_adrs: [ADR-0018, ADR-0020, ADR-0021]}
-  - {id: ISSUE-000029, file: plan/issue/ISSUE-000029-materialize-current-architecture-baseline.md, status: In Progress, priority: 1, related_adrs: [ADR-0018, ADR-0019, ADR-0020, ADR-0021]}
-  - {id: ISSUE-000030, file: plan/issue/ISSUE-000030-materialize-current-contract-baseline.md, status: Open, priority: 2, related_adrs: [ADR-0008, ADR-0009, ADR-0019, ADR-0021]}
+  - {id: ISSUE-000029, file: plan/issue/ISSUE-000029-materialize-current-architecture-baseline.md, status: Resolved, priority: 1, related_adrs: [ADR-0018, ADR-0019, ADR-0020, ADR-0021]}
+  - {id: ISSUE-000030, file: plan/issue/ISSUE-000030-materialize-current-contract-baseline.md, status: Resolved, priority: 2, related_adrs: [ADR-0008, ADR-0009, ADR-0019, ADR-0021]}
+  - {id: ISSUE-000031, file: plan/issue/ISSUE-000031-implement-contract-schemas-and-conformance.md, status: Open, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0019, ADR-0020, ADR-0021]}
