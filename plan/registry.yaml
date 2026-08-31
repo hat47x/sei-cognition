@@ -137,4 +137,4 @@ issue:
   - {id: ISSUE-000035, file: plan/issue/ISSUE-000035-define-provider-adapter-observation-boundary.md, status: Resolved, priority: 1, related_adrs: [ADR-0014, ADR-0019, ADR-0021, ADR-0022, ADR-0024]}
   - {id: ISSUE-000036, file: plan/issue/ISSUE-000036-implement-synthetic-provider-adapter-slice.md, status: Resolved, priority: 1, related_adrs: [ADR-0019, ADR-0022, ADR-0024]}
   - {id: ISSUE-000037, file: plan/issue/ISSUE-000037-align-requirements-evidence-layers.md, status: Resolved, priority: 1, related_adrs: [ADR-0018, ADR-0020]}
-  - {id: ISSUE-000038, file: plan/issue/ISSUE-000038-implement-runtime-representation-verifier-registry.md, status: Open, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0021, ADR-0022, ADR-0023]}
+  - {id: ISSUE-000038, file: plan/issue/ISSUE-000038-implement-runtime-representation-verifier-registry.md, status: Resolved, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0021, ADR-0022, ADR-0023]}
