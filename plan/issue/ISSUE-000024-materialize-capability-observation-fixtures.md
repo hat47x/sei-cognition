@@ -1,120 +1,116 @@
 # ISSUE-000024: Capability Observation境界をschemaとfixtureで実体化する
 
-Status: **Open**  
+Status: **Resolved**  
 Priority: **2**  
 Related ADRs: **ADR-0012, ADR-0013, ADR-0014, ADR-0019**  
 Updated: 2026-08-31
 
 ## Goal
 
-ADR-0019で確定したProvider-neutralなCapability Observation境界を、actual repositoryで検証できるschema、fixture、adapter contractへ落とす。
+ADR-0019で確定したProvider-neutralなCapability Observation境界を、actual repositoryで検証できるContract、schema、fixture、semantic validatorへ落とす。
 
 意味境界を先に固定した状態を保ち、TEI固有Schemaや一時的な実装都合からUniversal Coreを逆算しない。
 
-## Required work
+## Resolution
 
-1. Capability Observationのportable最小schema候補を作る。
-2. Provider referenceとProvider-specific context referenceを分離する。
-3. observed condition、Unknown、Conflict、Withheldを表現できることを確認する。
-4. Evidence / provenanceへの参照を持たせる。
-5. 必要に応じてadapter / mapping definitionのlogical referenceとexact bindingを持てるようにする。
-6. normalized comparison facetとraw source Observationを分離する。
-7. TEI固有情報はopaque / typed referenceまたはProvider profile側へ残し、SOZA Core schemaへ展開しない。
-8. Decision basisとして使った場合のhistorical reconstruction fixtureを作る。
-9. Selective Disclosure fixtureを作る。
-10. TEIとSaaS等、異なるProvider種別を同じCapability候補として比較するfixtureを作る。
+### 1. Capability Observation Contractを実体化した
 
-## Required scenarios
+次をcurrent Contractとして追加した。
 
-### F1. TEI partial degradation
+- `contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md`
+- `contracts/schemas/v1alpha1/capability-observation.schema.json`
 
-Applicationは利用可能だが、依存Databaseの一つがread-onlyである。
+Contractでは次を分離している。
 
-期待:
+```text
+Capability Definition
+  != Capability Observation
+  != Matching
+  != Choice Decision
+  != Provider Selection
+  != Authority
+  != Execution
+```
 
-- Capability全体を機械的に`unavailable`へしない。
-- 対象operationに応じたconstraintを保持する。
-- 元のTEI Observationへ戻れる。
+Provider internal stateをSOZA Universal Coreへ直接コピーせず、Provider-specific target referenceとmapping / adapter provenanceを保持できる。
 
-### F2. Proposed state != actual state
+### 2. F1〜F7をactual fixtureとして実体化した
 
-Database migration proposalが存在するが未採用である。
+`fixtures/contracts/v1alpha1/capability/`へ次を追加した。
 
-期待:
+- F1 — TEI partial degradation
+- F2 — proposed state != actual state
+- F3 — Release without Environment binding
+- F4 — Observation gap
+- F5 — TEI / SaaS cross-provider comparison
+- F6 — historical reconstruction
+- F7 — selective disclosure
 
-- proposalをactual stateとして扱わない。
-- Decision前提へ利用した場合、どちらの状態を参照したか判別できる。
+Value Axisとの対応は`fixtures/contracts/v1alpha1/README.md`へ明示した。
 
-### F3. Release without environment binding
+### 3. Provider-neutralityを維持した
 
-Application Releaseは存在するがEnvironmentへ未Bindingである。
+F5では、TEIとSaaSを同じ`document-summarization` Capabilityに対する異質なProviderとして同一Semantic Interchangeへ入れた。
 
-期待:
+一方、TEIのrelease情報やSaaSのservice plan等はProvider固有contextとして保持し、Universal Capability Observation fieldへ無理に平坦化していない。
 
-- Releaseの存在だけでavailabilityを確定しない。
-- Environment contextをProvider-specific referenceとして保持できる。
+Universal suitability scoreやProvider kindによる優先順位も要求していない。
 
-### F4. Observation gap
+### 4. Unknown / Conflict / Withheld境界を保持した
 
-Plugin解決は成功しているがObservation Providerが利用不能である。
+F3 / F4 / F7等で、次をnegative factへ変換しないことを確認した。
 
-期待:
+```text
+not observed != unavailable
+Unknown != incompatible
+withheld != false
+```
 
-- `not observed`を`unavailable`へ変換しない。
-- observation gap自体を後から確認できる。
+F7では、内部topologyの存在は示されているが内容が非開示という状態を`withheld`として保持した。
 
-### F5. Cross-provider comparison
+### 5. mapping provenanceとhistorical reconstructionを実体化した
 
-同じCapabilityをTEIとSaaSが提供する。
+F6では、Decision D1が利用したCapability Observationとadapter mappingをExact Artifact Bindingで特定した。
 
-期待:
+current releaseやcurrent mappingへ黙って追随せず、Decision時点のObservation / mappingを復元する構造になっている。
 
-- 共通facetで比較できる。
-- Provider固有情報を同一schemaへ無理に平坦化しない。
-- Universal scoreを必須にしない。
+さらにContract checkerでは、bundle内にexact recordが存在する場合、Decision basisのdigest / Representation Profileが一致しないfixtureをsemantic violationとして検出する。
 
-### F6. Historical reconstruction
+### 6. actual repository上でExecutable Evidenceを取得した
 
-後日TEI release、binding、adapter mappingが更新された後に、過去Decision時のObservationを再構成する。
+GitHub Actions `Contract Conformance` Run ID `33346472419`、Head SHA `9921c66f0803ddfe7810ea46c86b995f52895472`でCIがsuccessした。
 
-期待:
+17 fixtureのうちCapability F1〜F7はすべてexpected PASSとなり、negative / boundary fixtureも期待どおりに分類された。
 
-- 現在版へ黙って差し替えない。
-- Decision basisとして重要な可変入力をexact bindingから再確認できる。
-
-### F7. Selective disclosure
-
-Provider内部topologyの一部を開示せず、Capability Evidenceだけを共有する。
-
-期待:
-
-- WithheldとUnknownを区別できる。
-- 非開示だけを理由にincompatibleと判定しない。
+詳細は`contracts/CONFORMANCE_EVIDENCE_2026-08-31.md`を正本とする。
 
 ## Acceptance criteria
 
-- [ ] ADR-0019の意味境界をschemaで表現できる。
-- [ ] TEI固有型がSOZA Universal Coreへ漏れていない。
-- [ ] F1〜F7のfixtureが存在する。
-- [ ] fixtureごとにV1〜V8のどの価値を検証するか明示する。
-- [ ] normalized facetからraw provenanceへ戻れる。
-- [ ] historical reconstructionが現在版への追随ではなく当時版の復元になっている。
-- [ ] actual repository上で再現可能なtest evidenceを得る。
-- [ ] 文書・fixture説明を自然な日本語で再ドラフトし、最終意味監査を行う。
+- [x] ADR-0019の意味境界をContract / schemaで表現できる。
+- [x] TEI固有型がSOZA Universal Coreへ漏れていない。
+- [x] F1〜F7のfixtureが存在する。
+- [x] fixtureごとにV1〜V8のどの価値を検証するか明示した。
+- [x] normalized / interpreted conditionからraw provenanceまたはProvider-specific referenceへ戻れる。
+- [x] historical reconstructionが現在版への追随ではなく当時版の復元になっている。
+- [x] actual repository上で再現可能なtest evidenceを得た。
+- [x] 文書・fixture説明を自然な日本語で再ドラフトし、最終意味監査を行った。
 
-## Dependencies
+## Evidence state at closure
 
-- ADR-0006
-- ADR-0008
-- ADR-0012
-- ADR-0013
-- ADR-0014
-- ADR-0019
-- ISSUE-000009
-- ISSUE-000022
+- Capability Observation Design: **Satisfied**
+- Capability Observation Fixture-scoped Executable Evidence: **Satisfied**
+- Stable Representation Profile: **Not Yet Verified** — ISSUE-000009
+- Actual multi-Provider production adapter interoperability: **Not Yet Verified**
+- Release / Operational Evidence: **Not Yet Verified**
 
-`ISSUE-000022`でactual repository baselineが整うまでは、schema / fixtureの設計は進めても、actual-repository PASSを主張しない。
+本IssueのResolvedはCapability Observation境界とF1〜F7のcurrent fixture conformanceを意味する。SOZA全体のExact Binding安定化やproduction Provider接続を意味しない。
+
+## Follow-up
+
+- ISSUE-000009 — stable Representation Profile / historical M47 digest mapping
+- ISSUE-000031 — current Contract conformance全体
+- ISSUE-000022 — repository baseline全体
 
 ## Natural Japanese review
 
-Issueの意味とAcceptance境界を確定した後、条件や技術的強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトした。最終意味監査も実施済み。
+F1〜F7、Capability Observation Contract / schema、CIログを戻り照合し、fixture-scoped Executable Evidenceと未検証のproduction / Representation Profileを分離した。その後、意味、条件、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
