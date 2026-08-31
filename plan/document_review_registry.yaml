@@ -42,12 +42,24 @@ reviewed:
 
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000036
-    note: historical Milestone、Issue自身のclosure、後続Executable Evidenceを分離して逆向き監査済み。
+    coverage: ISSUE-000001..ISSUE-000037
+    note: ISSUE-000037を含め、historical Milestone、Issue自身のclosure、後続Executable Evidenceを分離して監査済み。
+
+  - scope: requirements/README.md
+    status: revised
+    note: current repositoryの実体化状態、5段階Evidence、CI運用へ同期済み。
 
   - scope: requirements/PRODUCT_REQUIREMENTS.md
     status: revised
-    note: current Architecture / Contract / Runtime Evidenceへ再基線化済み。
+    note: ISSUE-000037でREQ-0001〜REQ-0022を5段階Evidenceへ全文再整合済み。
+
+  - scope: requirements/ACCEPTANCE_SCENARIOS.md
+    status: revised
+    note: SCN-0001〜SCN-0017をcurrent Contract / Runtime / Provider Adapter Evidenceへ個別照合済み。
+
+  - scope: requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md
+    status: revised
+    note: historical candidateとcurrent 5段階Evidenceを分離して再監査済み。
 
   - scope: architecture/TRACEABILITY.md
     status: revised
@@ -71,20 +83,13 @@ reviewed:
 
   - scope: plan/DOCUMENT_REVIEW_REPORT_2026-08-31.md
     status: revised
-    note: ADR / Issue全件監査完了後の中間状態へ更新。
+    note: ADR / Issue全件監査とRequirements全件監査後の中間状態へ更新。
 
   - scope: plan/scripts/README.md
     status: revised
     note: planning checkerの保証範囲を5段階Evidenceへ同期。
 
 pending:
-  - scope: requirements/README.md
-    status: pending
-  - scope: requirements/ACCEPTANCE_SCENARIOS.md
-    status: pending
-  - scope: requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md
-    status: pending
-
   - scope: architecture/README.md
     status: pending
   - scope: architecture/SOZA_REFERENCE_ARCHITECTURE.md
