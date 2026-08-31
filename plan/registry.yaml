@@ -128,5 +128,5 @@ issue:
   - {id: ISSUE-000030, file: plan/issue/ISSUE-000030-materialize-current-contract-baseline.md, status: Resolved, priority: 2, related_adrs: [ADR-0008, ADR-0009, ADR-0019, ADR-0021]}
   - {id: ISSUE-000031, file: plan/issue/ISSUE-000031-implement-contract-schemas-and-conformance.md, status: Resolved, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0019, ADR-0020, ADR-0021]}
   - {id: ISSUE-000032, file: plan/issue/ISSUE-000032-define-current-runtime-vertical-slice.md, status: Resolved, priority: 1, related_adrs: [ADR-0014, ADR-0019, ADR-0021, ADR-0022]}
-  - {id: ISSUE-000033, file: plan/issue/ISSUE-000033-implement-runtime-read-validate-reconstruct.md, status: In Progress, priority: 1, related_adrs: [ADR-0021, ADR-0022]}
+  - {id: ISSUE-000033, file: plan/issue/ISSUE-000033-implement-runtime-read-validate-reconstruct.md, status: Resolved, priority: 1, related_adrs: [ADR-0021, ADR-0022]}
   - {id: ISSUE-000034, file: plan/issue/ISSUE-000034-recover-historical-m47-digest-profile.md, status: Blocked, priority: 2, related_adrs: [ADR-0008, ADR-0009, ADR-0017, ADR-0023]}
