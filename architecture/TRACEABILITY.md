@@ -88,9 +88,7 @@ Capability Observation
 
 Provider-specific input schemaをSOZA Universal ontologyへ統合しません。field mapping、unit conversion、status interpretation等の解釈をmapping provenanceとして追跡可能にし、missing / unknownをnegative factへ変換しない境界を維持します。
 
-また、AdapterはMatching / Recommendation / Decision / Authority / Executionを所有しません。
-
-この境界はDesignとしてAccepted済みですが、synthetic Provider AdapterのExecutable EvidenceはISSUE-000036で未実装です。
+AdapterはMatching / Recommendation / Decision / Authority / Executionを所有しません。
 
 ## 5. ArchitectureからContract / Profileへの追跡
 
@@ -108,21 +106,25 @@ Exact BindingのrepresentationはContract本体ではなく、次のProfileへ�
 - `soza.jcs+sha256/v1alpha1`
 - `soza.raw-bytes+sha256/v1alpha1`
 
-Provider Adapterの出力はcurrent Capability Observation Contractで検証する設計ですが、Provider固有入力自体のUniversal Contractを新設しません。
+Provider Adapterの出力はcurrent Capability Observation Contractで検証しますが、Provider固有入力自体のUniversal Contractを新設しません。
 
 Projection、Federation、Cognitive Method等についても、current baselineでは必要性のないUniversal Contractを先回りして追加しません。
 
-## 6. first runtime sliceと次のAdapter slice
+## 6. runtime / Adapter sliceとの関係
 
-actual repositoryにはGoのsemantic runtime sliceがあります。
+actual repositoryには、Goのsemantic runtimeとProvider Adapter sliceがあります。
 
 ```text
-runtime/go/semanticruntime/
+runtime/go/
+  semanticruntime/
+  provideradapter/
 ```
 
-これはcurrent Architectureの全concernを実装したものではありません。ADR-0022に従い、current Contract fixtureのread / validate / reconstructに限定します。
+`semanticruntime`はADR-0022に従い、current Contract fixtureのread / validate / reconstructを担当します。
 
-次のvertical sliceとして、ISSUE-000036でsynthetic Provider A / BからCapability Observationを生成するAdapter実装を予定しています。現時点ではOpenであり、Adapter executable evidenceはまだありません。
+`provideradapter`はADR-0024に従い、異なるProvider-specific inputからCapability Observationを生成し、既存runtime validationへ接続します。
+
+Provider A / Bのfield setやGo interfaceはcurrent test implementationであり、ArchitectureのUniversal ontologyではありません。
 
 ## 7. Evidence状態
 
@@ -143,18 +145,17 @@ current ArchitectureのEvidenceは、次のように分けます。
 - Contract v1alpha1 17-fixture conformance — Run `33346472419`: **success**
 - Representation Profile fixture / Go probe — Run `33347989530`: **success**
 - first semantic runtime slice — Run `33348972805`: **success**
-
-Provider AdapterはまだDesignのみです。
+- synthetic Provider Adapter slice — Run `33349604842`: **success**
+- Provider-specific field非漏洩の追加hardening — Run `33349801993`: **success**
 
 ```text
-fixture-scoped runtime PASS
+fixture-scoped runtime / adapter PASS
   != Architecture implementation complete
-  != Provider Adapter implementation complete
+  != production Provider integration complete
 ```
 
 ### 未検証
 
-- synthetic Provider Adapter slice: **Not Yet Verified — ISSUE-000036**
 - historical M47 digest mapping: **Not Yet Verified — ISSUE-000034**
 - production Provider / TEI integration: **Not Yet Verified**
 - Release Evidence: **Not Yet Verified**
@@ -165,7 +166,7 @@ fixture-scoped runtime PASS
 
 REQ-0001〜REQ-0022について、current Reference Architecture上で少なくとも一つの主要concernへ追跡できることを確認しています。
 
-さらに、current Architectureから必要性が収束したContract、Representation Profile、first runtime sliceには限定されたExecutable Evidenceがあり、Provider Adapterについては次の実装へ進むための意味境界がAcceptedされています。
+current Architectureから必要性が収束したContract、Representation Profile、first runtime slice、synthetic Provider Adapter sliceには、限定されたExecutable Evidenceがあります。
 
 この確認は「すべてのRequirementがproduction implementation済み」という意味ではありません。Design coverageとExecutable Evidenceの対象範囲を分けて読みます。
 
@@ -173,4 +174,4 @@ Product Value側の横断索引は`../product/value/SOZA_VALUE_TRACEABILITY.md`�
 
 ## 9. Natural Japanese review
 
-V1〜V8、REQ-0001〜0022、ADR-0001〜0024、current Contract、Representation Profile、first semantic runtime slice、Provider Adapter observation mapping boundary、actual CI結果へ戻って追跡を再確認しました。そのうえで、Design coverageと限定されたExecutable Evidenceを混同せず、Release / Operational / Adoption・Outcomeへ過大に昇格させないよう整理しました。最後に、意味とEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+V1〜V8、REQ-0001〜0022、ADR-0001〜0024、current Contract、Representation Profile、first semantic runtime slice、synthetic Provider Adapter slice、actual CI結果へ戻って追跡を再確認しました。そのうえで、Design coverageと限定されたExecutable Evidenceを混同せず、Release / Operational / Adoption・Outcomeへ過大に昇格させないよう整理しました。最後に、意味とEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
