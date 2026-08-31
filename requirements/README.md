@@ -14,11 +14,13 @@ Product Valueそのものや長期Visionを定義する場所ではなく、Arch
 ```text
 Product Value / Value Model / Value Acceptance
   ↓
-Requirements
+Requirements / Acceptance Scenarios
   ↓
 Issue / ADR
   ↓
 Architecture
+  ↓
+Contract
   ↓
 Implementation / Test / Evidence
 ```
@@ -76,6 +78,8 @@ Requirement != Acceptance Scenario != Test Case
 
 一つのScenarioが複数Requirementを同時に検証して構いません。
 
+Scenarioにfixtureやtestが対応しても、Scenario全体が満たされたとは限りません。検査できた期待・境界だけをExecutable Evidenceとして扱います。
+
 ## 5. Product Valueとの追跡
 
 current Requirementは、原則として`SOZA_VALUE_MODEL.md`のV1〜V8、または明示的なProduct Principle / external constraintへ追跡します。
@@ -90,6 +94,8 @@ current Requirementは、原則として`SOZA_VALUE_MODEL.md`のV1〜V8、また
 - V8 Execution Independence
 
 8軸すべてを形式的に付けません。実際に関係する軸だけを記載します。
+
+横断的な追跡は`../product/value/SOZA_VALUE_TRACEABILITY.md`を参照します。
 
 ## 6. Requirement statusとEvidenceを分ける
 
@@ -107,6 +113,7 @@ Evidenceは別に管理します。
 - Executable Acceptance
 - Release Acceptance
 - Operational Acceptance
+- Adoption / Outcome Acceptance
 
 各層の状態:
 
@@ -117,12 +124,43 @@ Evidenceは別に管理します。
 - `Not Applicable`
 
 ```text
-Requirement Accepted != Executable Evidence Satisfied
+Requirement Accepted
+  != Executable Evidence Satisfied
+  != Release Evidence Satisfied
+  != Operational Evidence Satisfied
+  != Adoption / Outcome Evidence Satisfied
 ```
 
-現在のactual repositoryには`architecture/`、`contracts/`、`runtime/`、`tools/`がまだ存在しないため、current baseline開始時点ではExecutable / Release / Operational Acceptanceを原則として`Not Yet Verified`とします。
+2026-08-31時点のactual repositoryには、Reference Architecture、Contract Definition、JSON Schema、Fixture、Representation Profile、Go semantic runtime、synthetic Provider Adapter、checker / CIが実体化されています。そのため、対象を限定したExecutable Evidenceは存在します。
 
-## 7. Historical candidateの扱い
+一方、production Provider integration、Release、Operational、Adoption / Outcomeは別Evidenceとして扱い、下位Evidenceから自動的にSatisfiedへ上げません。
+
+## 7. Current Executable Evidenceの読み方
+
+current repositoryでは、少なくとも次をactual CIで再現しています。
+
+- Requirements Registry Conformance
+- Contract Conformance
+- Capability Observation F1〜F7
+- Representation Profile Conformance
+- first Semantic Runtime Conformance
+- synthetic Provider Adapter A / B mapping tests
+
+これらは重要なExecutable Evidenceですが、検査対象へ限定して読みます。
+
+```text
+fixture / runtime CI PASS
+  != whole Requirement satisfied
+  != whole Scenario satisfied
+  != production integration
+  != Release Evidence
+  != Operational Evidence
+  != Adoption / Outcome Evidence
+```
+
+Requirementごとの現在地は`PRODUCT_REQUIREMENTS.md`、Scenarioごとの現在地は`ACCEPTANCE_SCENARIOS.md`を正とします。
+
+## 8. Historical candidateの扱い
 
 2026-08-30時点のcandidateには、`SOZA-PR-001`〜`SOZA-PR-018`とNFR 10件、Acceptance Scenario 8件等が存在しました。
 
@@ -136,30 +174,32 @@ Requirement Accepted != Executable Evidence Satisfied
 
 意味核はcurrent Product Valueへ照合し、必要なものを新しいREQ / SCNへ移しています。
 
-## 8. Requirement作成の必須工程
+## 9. Requirement / Scenario作成の必須工程
 
 1. Product Value / Value Model / Value Acceptanceを確認する。
-2. Requirementとして必要な意味差を定める。
-3. 既存REQとの重複を確認する。
-4. 関連するV1〜V8、Scenario、ADR / Issueを確認する。
-5. Requirementと実装方式を混同していないか確認する。
-6. Evidence状態を実在する証拠へ合わせる。
-7. 内容と構造を確定する。
-8. **意味・強度・例外・留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトする。**
-9. 最終意味監査を行う。
+2. RequirementまたはScenarioとして必要な意味差を定める。
+3. 既存REQ / SCNとの重複を確認する。
+4. 関連するV1〜V8、REQ、SCN、ADR / Issueを確認する。
+5. Requirement / Scenarioと実装方式を混同していないか確認する。
+6. Evidence状態をactual repositoryの証拠へ合わせる。
+7. Evidenceの高さをDesign / Executable / Release / Operational / Adoption・Outcomeで分離する。
+8. 内容と構造を確定する。
+9. **意味・強度・例外・留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトする。**
+10. 最終意味監査を行う。
 
-第8工程は省略しません。
+第9工程は省略しません。
 
-## 9. 関連文書
+## 10. 関連文書
 
-- `product/value/SOZA_PRODUCT_VALUE.md`
-- `product/value/SOZA_VALUE_MODEL.md`
-- `product/value/SOZA_VALUE_ACCEPTANCE.md`
-- `product/vision/SOZA_PRODUCT_VISION.md`
-- `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
-- `plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md`
-- `plan/adr/ADR-0020-requirements-traceability-and-evidence-boundary.md`
+- `../product/value/SOZA_PRODUCT_VALUE.md`
+- `../product/value/SOZA_VALUE_MODEL.md`
+- `../product/value/SOZA_VALUE_ACCEPTANCE.md`
+- `../product/value/SOZA_VALUE_TRACEABILITY.md`
+- `../product/vision/SOZA_PRODUCT_VISION.md`
+- `../product/principles/SOZA_PRODUCT_PRINCIPLES.md`
+- `../plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md`
+- `../plan/adr/ADR-0020-requirements-traceability-and-evidence-boundary.md`
 
-## 10. 自然な日本語ドラフト
+## 11. 自然な日本語ドラフト
 
-current / historical / evidenceの境界を整理した後、意味と運用規則を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しています。
+current Product Value、Product Requirements、Acceptance Scenarios、Architecture / Contract / Representation Profile / Runtime / Provider Adapterのactual Evidenceを照合し、旧baseline時点の記述を現在地へ更新しました。その後、Requirement / Scenario / Testの役割、Status、Evidenceの高さを変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しています。

@@ -17,7 +17,17 @@ Requirement != Acceptance Scenario != Test Case
 - Scenarioは「どのような状況で、その意味差が必要になるか」を示します。
 - Test Case / Fixtureは、actual implementationでScenarioをどう再現・検査するかを定めます。
 
-現在はDesign baselineの段階であり、本書のScenarioが存在することだけを理由にExecutable AcceptanceをSatisfiedとはしません。
+2026-08-31時点ではDesign baselineに加え、一部Scenarioの一部期待についてfixture / runtime / Provider AdapterによるExecutable Evidenceがあります。ただし、部分的なfixture PASSだけを理由にScenario全体をSatisfiedとはしません。
+
+Evidenceは次の高さを分離して扱います。
+
+```text
+Design Evidence
+  != Executable Evidence
+  != Release Evidence
+  != Operational Evidence
+  != Adoption / Outcome Evidence
+```
 
 ## 2. Scenario一覧
 
@@ -39,7 +49,7 @@ Requirement != Acceptance Scenario != Test Case
 | SCN-0014 | Execution Providerを交換する | V1, V4, V8 | REQ-0001, 0007, 0021 |
 | SCN-0015 | PatternとCognitive Methodを分離する | V2, V3, V8 | REQ-0004, 0015, 0016 |
 | SCN-0016 | Decision後も残差を次のInquiryへ渡す | V1, V3, V5 | REQ-0002, 0003, 0005, 0014 |
-| SCN-0017 | Design Evidenceしかない状態で達成主張を監査する | V1, V6 | REQ-0020 |
+| SCN-0017 | Evidenceの高さを越えた達成主張を監査する | V1, V6 | REQ-0020 |
 
 ---
 
@@ -67,7 +77,10 @@ Requirement != Acceptance Scenario != Test Case
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable / Release / Operational: **Not Yet Verified**
+- Executable: **Partially Satisfied** — Decision unresolved fixtureとpartial-knowledge interchangeで、未解決参照や`unknown` / `withheld`を保持したままDecisionを扱える境界を確認している。一方、複数Sourceの明示的Conflict、discovery route、残差からのInquiry再開を通したend-to-end testは未検証。
+- Release: **Not Yet Verified**
+- Operational: **Not Yet Verified**
+- Adoption / Outcome: **Not Yet Verified**
 
 ## SCN-0002 — 同じIntent、異なるCapability Provider
 
@@ -93,7 +106,10 @@ Requirement != Acceptance Scenario != Test Case
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable / Release / Operational: **Not Yet Verified**
+- Executable: **Partially Satisfied** — F5でTEIとSaaSを同じCapabilityに対する別Provider Observationとして保持できる。synthetic Provider A / Bでも異なるinput schemaから同じCapability Observation境界へ変換し、Provider identityとProvider-specific referenceを分けて保持できる。一方、Matching / Choice / production Provider比較は未検証。
+- Release: **Not Yet Verified**
+- Operational: **Not Yet Verified**
+- Adoption / Outcome: **Not Yet Verified**
 
 ## SCN-0003 — 新しいEvidenceでDecisionを見直す
 
@@ -118,7 +134,10 @@ Decision D1の後、新しいObservation O2が得られ、D1のbasisだったHyp
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable / Release / Operational: **Not Yet Verified**
+- Executable: **Partially Satisfied** — current runtimeはDecision basis、Recommendation、unresolved reference、lineageを読み込め、Semantic Referenceではrevision / supersession境界を検査できる。F6では過去ObservationをDecision basisとして保持する境界を確認している。一方、O2追加からD2作成までのreview flow全体は未検証。
+- Release: **Not Yet Verified**
+- Operational: **Not Yet Verified**
+- Adoption / Outcome: **Not Yet Verified**
 
 ## SCN-0004 — 軽量案件と高影響案件
 
@@ -142,7 +161,10 @@ Aは可逆で低影響な内部作業、Bは不可逆性が高く外部影響や
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable / Release / Operational: **Not Yet Verified**
+- Executable: **Not Yet Verified** — Profile / Policyによって軽量案件と高影響案件の明示性を切り替えるcurrent runtimeは未実装。
+- Release: **Not Yet Verified**
+- Operational: **Not Yet Verified**
+- Adoption / Outcome: **Not Yet Verified**
 
 ## SCN-0005 — Cognitive MethodとRealizationを交換する
 
@@ -166,7 +188,10 @@ Aは可逆で低影響な内部作業、Bは不可逆性が高く外部影響や
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable / Release / Operational: **Not Yet Verified**
+- Executable: **Not Yet Verified** — first semantic runtime sliceはCognitive Method Applicationを直接の実装対象としていない。
+- Release: **Not Yet Verified**
+- Operational: **Not Yet Verified**
+- Adoption / Outcome: **Not Yet Verified**
 
 ## SCN-0006 — Projectionを作り直す
 
@@ -188,8 +213,11 @@ Aは可逆で低影響な内部作業、Bは不可逆性が高く外部影響や
 
 ### Current Evidence
 
-- Design: **Partially Satisfied**
-- Executable / Release / Operational: **Not Yet Verified**
+- Design: **Partially Satisfied** — Reference ArchitectureでProjectionをDurable Semantic Coreから分離しているが、representative Projectionの具体化はまだ限定的。
+- Executable: **Not Yet Verified**
+- Release: **Not Yet Verified**
+- Operational: **Not Yet Verified**
+- Adoption / Outcome: **Not Yet Verified**
 
 ## SCN-0007 — Bounded Principal間で協働する
 
@@ -212,7 +240,10 @@ Aは可逆で低影響な内部作業、Bは不可逆性が高く外部影響や
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable / Release / Operational: **Not Yet Verified**
+- Executable: **Partially Satisfied** — F7とpartial-knowledge interchangeで`withheld`と`unknown`を区別し、内部情報を全量持たずに交換representationへ残せる。一方、actual federation transport、Request / Offer / Commitment、cross-organization operationは未検証。
+- Release: **Not Yet Verified**
+- Operational: **Not Yet Verified**
+- Adoption / Outcome: **Not Yet Verified**
 
 ## SCN-0008 — Storageを交換する
 
@@ -234,7 +265,10 @@ prototypeではGit / filesystemを使い、後にDB / object store等へ移行�
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable / Release / Operational: **Not Yet Verified**
+- Executable: **Not Yet Verified** — current runtimeはStorage固有IDをsemantic identityとして要求しないが、実Storage間のmigration scenario自体はまだ実行していない。
+- Release: **Not Yet Verified**
+- Operational: **Not Yet Verified**
+- Adoption / Outcome: **Not Yet Verified**
 
 ## SCN-0009 — RecommendationからExecutionまでの責任線
 
@@ -257,7 +291,10 @@ AIがRecommendation Rを作り、組織の担当者がDecision Dを行う。実�
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable / Release / Operational: **Not Yet Verified**
+- Executable: **Partially Satisfied** — Recommendation without Decisionを正常に扱い、Decision recordへのAuthority埋め込みをSchema / runtimeで拒否できる。synthetic Provider AdapterもDecision / Authority / Executionを生成しないことを検査している。一方、Authorizationとactual Executionまでを結ぶruntimeは未実装。
+- Release: **Not Yet Verified**
+- Operational: **Not Yet Verified**
+- Adoption / Outcome: **Not Yet Verified**
 
 ## SCN-0010 — 可変Artifact更新後に過去Decisionを再構成する
 
@@ -269,8 +306,8 @@ Decision Dは、Provider Observation O、Reference Artifact A、mapping Mをbasi
 
 - D作成時に使ったO / A / Mの版を、必要なexact historical bindingから特定できる。
 - 現在版を参照してDのbasisを再構成したことにしない。
-- Representation Contractやverifierが利用不能なら、`not_verified`と`failed`を区別できる。
-- Design Evidenceしかない場合、historical reconstructionをExecutableで実証済みとは主張しない。
+- Representation Profileやverifierが利用不能なら、`not_verified`と`failed`を区別できる。
+- Design Evidenceしかない境界を、Executableで実証済みとは主張しない。
 
 ### 失敗例
 
@@ -280,7 +317,10 @@ Decision Dは、Provider Observation O、Reference Artifact A、mapping Mをbasi
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable / Release / Operational: **Not Yet Verified**
+- Executable: **Partially Satisfied** — F6でDecision basisに過去Capability Observationのexact referenceを保持し、bundle内のmismatched exact bindingを拒否できる。Representation Profile fixtureでは`verified / failed / not_verified`を区別している。一方、O / A / Mを実際に更新した後の長期再構成やproduction verifier integrationは未検証。
+- Release: **Not Yet Verified**
+- Operational: **Not Yet Verified**
+- Adoption / Outcome: **Not Yet Verified**
 
 ## SCN-0011 — Providerが部分的にdegraded / 未観測である
 
@@ -303,9 +343,11 @@ TEI Applicationは存在するが依存Databaseの一つがread-onlyである。
 
 ### Current Evidence
 
-- Design: **Satisfied** — ADR-0019
-- Executable: **Not Yet Verified** — ISSUE-000024
-- Release / Operational: **Not Yet Verified**
+- Design: **Satisfied** — ADR-0019 / ADR-0024で境界を定義している。
+- Executable: **Partially Satisfied** — F1でTEI partial degradation、F4でobservation gapを扱い、synthetic Provider Adapterではmissing readiness / latencyを`false`や`0`へ変換せず`unknown`として保持できる。production Providerのdegradation observationは未検証。
+- Release: **Not Yet Verified**
+- Operational: **Not Yet Verified**
+- Adoption / Outcome: **Not Yet Verified**
 
 ## SCN-0012 — Provider内部をSelective Disclosureする
 
@@ -327,7 +369,10 @@ Providerは、内部topologyや契約情報を全量開示できないが、Capa
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable / Release / Operational: **Not Yet Verified**
+- Executable: **Partially Satisfied** — F7とpartial-knowledge fixtureで`withheld`と`unknown`を区別して保持し、Provider内部Schema全量をUniversal Coreへ要求しない境界を確認している。actual disclosure policy / federation transportは未検証。
+- Release: **Not Yet Verified**
+- Operational: **Not Yet Verified**
+- Adoption / Outcome: **Not Yet Verified**
 
 ## SCN-0013 — 簡略UIとcanonical meaningを両立する
 
@@ -351,7 +396,10 @@ Providerは、内部topologyや契約情報を全量開示できないが、Capa
 ### Current Evidence
 
 - Design: **Partially Satisfied**
-- Executable / Release / Operational: **Not Yet Verified**
+- Executable: **Not Yet Verified** — representativeな簡略UI / Projectionとcanonical dataの往復はまだcurrent testへ落としていない。
+- Release: **Not Yet Verified**
+- Operational: **Not Yet Verified**
+- Adoption / Outcome: **Not Yet Verified**
 
 ## SCN-0014 — Execution Providerを交換する
 
@@ -374,7 +422,10 @@ Providerは、内部topologyや契約情報を全量開示できないが、Capa
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable / Release / Operational: **Not Yet Verified**
+- Executable: **Not Yet Verified** — synthetic Provider AdapterはCapability Observation Providerの異質性を検証するものであり、Execution Provider交換のEvidenceには昇格させない。
+- Release: **Not Yet Verified**
+- Operational: **Not Yet Verified**
+- Adoption / Outcome: **Not Yet Verified**
 
 ## SCN-0015 — PatternとCognitive Methodを分離する
 
@@ -396,8 +447,11 @@ TEI Design KnowledgeのPattern Cardを、AIがCognitive Methodの探索対象と
 
 ### Current Evidence
 
-- Design: **Satisfied** — ADR-0017
-- Executable / Release / Operational: **Not Yet Verified**
+- Design: **Satisfied** — ADR-0017で境界を定義している。
+- Executable: **Not Yet Verified** — Pattern / Cognitive Methodを扱うcurrent runtime sliceは未実装。
+- Release: **Not Yet Verified**
+- Operational: **Not Yet Verified**
+- Adoption / Outcome: **Not Yet Verified**
 
 ## SCN-0016 — Decision後も残差を次のInquiryへ渡す
 
@@ -418,33 +472,43 @@ TEI Design KnowledgeのPattern Cardを、AIがCognitive Methodの探索対象と
 
 ### Current Evidence
 
-- Design: **Partially Satisfied**
-- Executable / Release / Operational: **Not Yet Verified**
+- Design: **Partially Satisfied** — unresolved referenceの保持は定義しているが、reopen condition自体のcurrent Contractはまだ固定していない。
+- Executable: **Partially Satisfied** — Decision with unresolved fixtureとpartial-knowledge interchangeをruntimeへ読み込み、Decision作成後も未解決参照を保持できる。一方、残差からInquiryを再開するflowは未検証。
+- Release: **Not Yet Verified**
+- Operational: **Not Yet Verified**
+- Adoption / Outcome: **Not Yet Verified**
 
-## SCN-0017 — Design Evidenceしかない状態で達成主張を監査する
+## SCN-0017 — Evidenceの高さを越えた達成主張を監査する
 
 ### 状況
 
-Product Value、ADR、Requirement、Scenarioは整備されたが、current `architecture/`、`runtime/`、`tools/`はまだactual repositoryに存在しない。historical Library candidateにはlocal PASSが残っている。
+current repositoryでは、Product Value、Requirement、Scenario、ADR、Architecture、Contract、Representation Profile、Runtime等のうち、一部にはExecutable Evidenceがあり、別の部分はDesign Evidenceに留まっている。historical candidateにもcurrent branchとは別のPASS記録が残っている。
+
+この混在状態で、確認できたEvidenceより高い達成を主張しないことを監査する。
 
 ### 期待
 
-- current Design Acceptanceとhistorical candidate evidenceを分ける。
-- historical local PASSをactual repositoryのExecutable Acceptanceへ自動継承しない。
-- current RequirementのExecutable / Release / Operational Acceptanceを`Not Yet Verified`として扱う。
-- READMEや報告書がactual treeに存在しないtest commandを「現在実行可能」と主張しない。
-- 将来actual fixtureがPASSしても、それだけでproduction Operational Evidenceへ昇格させない。
+- current Design Evidenceとhistorical candidate evidenceを分ける。
+- historical local PASSをactual repositoryのExecutable Evidenceへ自動継承しない。
+- fixture / runtime CIのPASSを、対象外のRequirementやScenario全体へ拡張しない。
+- Executable EvidenceをRelease / Operational / Adoption・Outcomeへ自動昇格させない。
+- READMEや報告書がactual treeと矛盾する現在地を表示しない。
+- 未検証はFAILと同じではないが、PASSとも扱わない。
 
 ### 失敗例
 
 - 設計文書完成を「実装完了」と表現する。
 - Library candidateのPASSをcurrent branchのPASSとして表示する。
-- releaseされていない状態でrelease coverageを主張する。
+- fixture PASSだけでproduction成立を主張する。
+- production動作だけで利用者価値の実現を主張する。
 
 ### Current Evidence
 
-- Design: **Satisfied** — Value Acceptance / ADR-0018 / ISSUE-000022で境界を定義。
-- Executable / Release / Operational: **Not Yet Verified**
+- Design: **Satisfied** — Value Acceptance、ADR-0018、ADR-0020、Product / Architecture / Contract Traceabilityで5段階Evidence境界を定義している。
+- Executable: **Partially Satisfied** — Requirements Registry、Contract、Representation Profile、Semantic Runtime等のCIで対象範囲を限定したEvidence運用を実施している。一方、repository全体の自然言語claimを自動検査する仕組みまではない。
+- Release: **Not Yet Verified**
+- Operational: **Not Yet Verified**
+- Adoption / Outcome: **Not Yet Verified**
 
 ---
 
@@ -465,18 +529,28 @@ Product Value、ADR、Requirement、Scenarioは整備されたが、current `arc
 
 Scenarioが存在することだけでCore化を決定するものではありません。Product Value、複数domainでの意味安定性、Provider Independence等を合わせてADRで判断します。
 
-## 4. Executable fixtureへの移行
+## 4. Executable fixtureとの関係
 
-current Architecture / Contracts / Runtime / Toolsを実体化するときは、SCN IDをsemantic scenario identityとして保持し、具体的なfixture / test IDを別に付与します。
+SCN IDはsemantic scenario identityとして保持し、具体的なfixture / test IDや実装名は別に扱います。
+
+たとえば、SCN-0011の一部期待は現在のF1 / F4やsynthetic Provider Adapter testで検査されていますが、fixture名をScenario identityにはしません。
 
 ```text
 SCN-0011
-  → fixture: CAPOBS-TEI-001
-  → fixture: CAPOBS-TEI-002
-  → test implementation
+  → F1 TEI partial degradation
+  → F4 observation gap
+  → synthetic Provider Adapter missing-state tests
+  → future production tests
 ```
 
-fixtureのPASS / FAILによってSCNそのものの意味を変更しません。
+同様に、fixtureのPASS / FAILによってSCNそのものの意味を変更しません。
+
+```text
+fixture PASS
+  != Scenario fully satisfied
+```
+
+Scenario全体のExecutable AcceptanceをSatisfiedへ上げる場合は、Scenarioの期待を実際のtest coverageへ戻して確認します。
 
 ## 5. Historical Scenarioとの関係
 
@@ -484,6 +558,10 @@ fixtureのPASS / FAILによってSCNそのものの意味を変更しません�
 
 旧IDはhistorical provenanceとして`history/HISTORICAL_REQUIREMENT_MAPPING.md`に残し、current SCN identityには用いません。
 
+旧candidateのPASS状態も、current ScenarioのExecutable Evidenceへ自動継承しません。
+
 ## 6. 自然な日本語ドラフト
 
-historical 8 Scenarioを現在のProduct Value、ADR-0017〜0020、Capability Observation境界へ照合し、不足Scenarioを追加した後、意味、期待、失敗条件、Evidence状態を変えず、自然な日本語となることを最重要視して全文を再ドラフトしました。その後、最終意味監査を実施しています。
+SCN-0001〜SCN-0017をcurrent Product Value、Product Requirements、ADR-0017〜0024、Contract / Representation Profile / Semantic Runtime、Capability Observation F1〜F7、synthetic Provider Adapterのactual Evidenceへ戻して照合しました。
+
+そのうえで、Scenarioの状況・期待・失敗例の意味を保ちつつ、Design / Executable / Release / Operational / Adoption・Outcomeを分離し、確認済みの境界だけをExecutableへ反映しました。最後に、Evidence強度と留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しています。
