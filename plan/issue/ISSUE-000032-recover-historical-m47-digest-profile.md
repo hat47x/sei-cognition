@@ -2,14 +2,16 @@
 
 Status: **Blocked**  
 Priority: **2**  
-Related ADRs: **ADR-0008, ADR-0009, ADR-0017**  
+Related ADRs: **ADR-0008, ADR-0009, ADR-0017, ADR-0022**  
 Updated: 2026-08-31
 
 ## Goal
 
 historical M47のCognitive Method Definition / Realization / Applicationで使われた`content digest`について、**どのbytes、serialization、canonicalization、hash algorithmから生成されたかを推測せずに確認し**、適切なRepresentation Profileへ対応付ける。
 
-このIssueは、current/future binding用のstable Representation Profile選定とは分離する。新しいbindingをJCS等で検証できるようにする作業はISSUE-000009で進める。
+このIssueは、current/future binding用のRepresentation Profile基線とは分離する。current JCS / raw-bytes ProfileはADR-0022とISSUE-000009でfixture-scoped Executable Evidenceまで成立している。
+
+historical Profileが不明でも、ADR-0009に従い`not_verified`として保持できるため、current Profileの利用を停止しない。
 
 ## Why this is separate
 
@@ -32,7 +34,7 @@ historical digest exists
   != historical Representation Profile is known
 ```
 
-ADR-0009により、Profileやverifierを特定できないbindingは`failed`ではなく`not_verified`として保持できる。このため、本IssueがBlockedでもcurrent Profile安定化を止める必要はない。
+ADR-0009により、Profileやverifierを特定できないbindingは`failed`ではなく`not_verified`として保持できる。ADR-0022では、このhistorical mapping未完了をcurrent/future ProfileのAcceptance条件から分離した。
 
 ## Evidence already recovered
 
@@ -50,6 +52,10 @@ Libraryから次を確認済み。
 - Phase 1 hardening資料
   - historical M47を壊さないため、Representation ContractをUniversal必須へしなかった。
   - unknown historical Profileを推測して再hashしない方針が明示されている。
+- current ADR-0022 / Representation Profile conformance
+  - current/future JSON bindingはRFC 8785 JCS + SHA-256、raw contentはraw bytes + SHA-256へ分離した。
+  - unknown Profileは`not_verified`として扱えることをactual fixtureで確認した。
+  - historical M47 digestをcurrent JCSへ遡及変換しないことをAcceptedした。
 
 ## Blocked reason
 
@@ -104,7 +110,7 @@ historical-onlyまたは再利用可能なRepresentation Profile Definitionを�
 
 ### C. 規則を確認できない
 
-推測でJCSやraw-bytes profileへ割り当てない。
+推測でJCSやraw-bytes Profileへ割り当てない。
 
 historical bindingは「digest値は保存されているがRepresentation Profile不明」として扱い、current/future bindingとは分離する。
 
@@ -130,8 +136,16 @@ historical bindingは「digest値は保存されているがRepresentation Profi
 - ADR-0008 — Exact Binding verification boundary
 - ADR-0009 — verification outcome separation
 - ADR-0017 — Cognitive Method boundary
-- ISSUE-000009 — current/future Representation Profile stabilization
+- ADR-0022 — current Representation Profile baseline
+- ISSUE-000009 — current/future Representation Profile stabilization（Resolved）
+
+## Evidence state
+
+- current/future Profile baseline: **Satisfied — ADR-0022 / ISSUE-000009**
+- historical M47 Profile identification: **Not Yet Verified**
+- historical representative digest reproduction: **Not Yet Verified**
+- Production Runtime integration: **Not Yet Verified**
 
 ## Natural Japanese review
 
-current Profile安定化とhistorical M47 digest回収を分離し、Libraryで確認できた意味契約と確認できていない一次実装を整理した。その後、推測を避ける条件、回収対象、許容するclosureを変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+current Profile安定化の完了、ADR-0022、Libraryで確認できた意味契約と確認できていない一次実装を整理した。その後、推測を避ける条件、回収対象、許容するclosure、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
