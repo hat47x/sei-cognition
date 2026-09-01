@@ -50,6 +50,7 @@ Design
 | SCN-0015 | PatternとCognitive Methodを分離する | V2, V3, V8 | REQ-0004, REQ-0015, REQ-0016 |
 | SCN-0016 | Decision後も残差を次のInquiryへ渡す | V1, V3, V5 | REQ-0002, REQ-0003, REQ-0005, REQ-0014 |
 | SCN-0017 | Evidenceが低い段階で達成主張を監査する | V1, V6 | REQ-0020 |
+| SCN-0018 | Inquiryから実行後の再検討までを一続きに扱う | V1, V2, V3, V4, V5, V8 | REQ-0001, REQ-0002, REQ-0004, REQ-0005, REQ-0007, REQ-0014, REQ-0017, REQ-0021, REQ-0022 |
 
 ---
 
@@ -509,6 +510,57 @@ TEI Design KnowledgeのPattern Cardを、AIがCognitive Methodの探索対象と
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
 
+## SCN-0018 — Inquiryから実行後の再検討までを一続きに扱う
+
+### 状況
+
+利用者が一つのInquiryを開始する。Evidenceの一部は相互にConflictしており、未回答のQuestionも残っている。
+
+人間またはAIがCognitive Methodを適用してRecommendationを作り、必要なResponsibility / Authority境界のもとでDecisionを行う。Decisionに基づく処理は外部のCapability Providerへ委ねられ、実行後に新しいObservationが得られる。
+
+時間が経過した後、利用者または別のAIが、当時のDecision basis、残っていたUnknown / Conflict、適用したMethod、利用したProvider、実行後に得られたObservationを読み直し、必要ならInquiryを再開する。
+
+このScenarioは、すべてのSOZA利用が同じ順序で進むことを要求するものではない。SCN-0001〜SCN-0016で個別に定めた意味境界が、一つの代表的なProduct Journeyの中でも同時に失われないことを検査する統合Scenarioである。
+
+### 期待
+
+- Inquiry開始時に最大詳細の入力を一律に強制しない。
+- Observation、Interpretation、Unknown、ConflictをDecisionへ黙って畳み込まない。
+- Method Definition、Realization、Applicationを必要な範囲で読み分けられる。
+- RecommendationをDecisionへ自動昇格させない。
+- DecisionとResponsibility / Authorityを必要な粒度で追跡できる。
+- Provider固有run IDをDecisionのcanonical identityにしない。
+- Execution successをDecision correctnessやBusiness Outcome successへ自動昇格させない。
+- 実行後に得たObservationを、過去Decisionを作成した時点ですでに存在したEvidenceとして扱わない。
+- Decision時に残したresidual / reopen informationを保持し、新しいObservationからInquiry / Decision reviewを再開できる。
+- ProjectionやProviderを交換しても、canonical meaningとhistorical basisを再読できる。
+- external executionを行わずDecisionまでで終了する場合でも、SOZA上のDecision recordとhistorical valueが成立する。
+
+### 必須variant
+
+- **normal path** — 必要なEvidenceが集まり、Decision後に外部実行まで進む。
+- **uncertain path** — Unknown / Conflictを残したままDecisionし、後日得たEvidenceから再開する。
+- **collaborative path** — AIがMethod Application / Recommendationを担い、人間または明示的に委任された主体がDecisionする。actor種別だけからAuthorityを推定しない。
+- **provider replacement path** — 後続実行でProviderを交換しても、以前のDecision identityとbasisを読み直せる。
+- **no-execution path** — Decisionまでで完結し、外部実行がなくても記録価値が成立する。
+
+### 失敗例
+
+- AI RecommendationをそのままDecisionとして保存する。
+- Decision作成時にUnknown / Conflictを自動的にresolvedへ変える。
+- Provider runが成功しただけでDecisionを`verified`または「正しかった」と扱う。
+- 実行後に得たObservationで、過去Decisionのbasisを黙って上書きする。
+- current ProviderやProjectionが利用不能になると過去Decisionを読めない。
+- external executionがないDecisionを不完全なrecordとして捨てる。
+
+### Current Evidence
+
+- Design: **Satisfied** — `PRODUCT_JOURNEY_COMPOSITION.md`でProduct ShapeとREQ-0001〜REQ-0022、SCN-0001〜SCN-0017を横断し、新しいUniversal Requirementを追加せずに統合Scenarioとして成立することを確認した。
+- Executable: **Not Yet Verified** — Cognitive Method、Decision、Capability / Provider、実行後Observation、historical review / reopenを一続きに検査するcurrent end-to-end harnessはまだない。既存のContract / runtime / Provider / Projection Evidenceは個別境界のscoped Evidenceであり、本Scenario全体のPASSへは昇格させない。
+- Release: **Not Yet Verified**
+- Operational: **Not Yet Verified**
+- Adoption / Outcome: **Not Yet Verified**
+
 ---
 
 ## 3. Core概念を追加するときのScenario規則
@@ -527,6 +579,8 @@ TEI Design KnowledgeのPattern Cardを、AIがCognitive Methodの探索対象と
 - Adapter / Mapping
 
 Scenarioが存在することだけでCore化を決定するものではありません。Product Value、複数domainでの意味安定性、Provider Independence等を合わせてADRで判断します。
+
+SCN-0018のような統合Scenarioも、Journeyの途中に登場する概念を自動的にUniversal Coreへ昇格させる根拠にはしません。Product Interaction上のSession、Workspace、Step等が必要になっても、semantic Coreへ必要かは別途ScenarioとADRで判断します。
 
 ## 4. Executable fixtureとの関係
 
@@ -547,11 +601,17 @@ SCN-0011
 
 SCN-0012
   → Capability Observation F7
+
+SCN-0018
+  → end-to-end semantic Product Journey harness
+  → Not Yet Verified
 ```
 
 SCN IDはsemantic scenario identityとして保ち、fixture / test IDとは分けます。fixtureのPASS / FAILによってSCNそのものの意味を変更しません。
 
 Scenarioの一部だけを検証した場合は`Partially Satisfied`とし、Scenario全体の実装完了へ読み替えません。
+
+SCN-0018では、既存のcomponent-level PASSを合算してend-to-end PASSとみなしません。Cognitive Method、Decision、Provider、実行後Observation、historical review / reopenが一つの検査経路として接続されて初めて、Executable Evidenceを評価します。
 
 ## 5. Historical Scenarioとの関係
 
@@ -559,6 +619,8 @@ Scenarioの一部だけを検証した場合は`Partially Satisfied`とし、Sce
 
 旧IDはhistorical provenanceとして`history/HISTORICAL_REQUIREMENT_MAPPING.md`に残し、current SCN identityには用いません。
 
+SCN-0018は、historical Scenarioの単純な再採番ではなく、current Product ShapeとREQ-0001〜REQ-0022を横断して定義したcurrent統合Scenarioです。
+
 ## 6. Natural Japanese review
 
-SCN-0001〜0017をcurrent Product Value traceability、Contract 17 fixture、Representation Profile、first runtime、synthetic Provider Adapter、V6/V7 Projection evaluation harnessへ一件ずつ照合しました。SCN-0004 / 0006 / 0013 / 0017について、Run `33456710459`で直接確認できた範囲だけExecutable Evidenceへ反映し、Release / Operational / Adoption / Outcomeへは引き上げていません。その後、Scenarioの意味、期待、失敗条件、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+SCN-0001〜0018をcurrent Product Value、Product Shape、`PRODUCT_JOURNEY_COMPOSITION.md`、Contract / Representation Profile、first runtime、synthetic Provider Adapter、V6/V7 Projection evaluation harnessへ照合しました。SCN-0018は既存Scenarioを置き換えるのではなく、個別の意味境界が一つのProduct Journeyでも同時に保たれることを確認する統合Scenarioとして追加しています。とくに、実行後に得たObservationを過去Decisionのbasisへ時間逆行させず、次のInquiry / Decision reviewへ接続する境界を明示しました。component-level Evidenceをend-to-end Evidenceへ昇格させず、Release / Operational / Adoption / Outcomeも`Not Yet Verified`のまま維持しています。その後、Scenarioの意味、期待、失敗条件、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
