@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Validate SOZA v0.1.0 release-candidate policy and emit a bound report.
+"""SOZAのversion別Release Candidate policyを検査し、候補commitへ結び付いたreportを生成する。
 
-This checker does not create or prove Release Evidence. It runs last in the
-integrated candidate workflow after the semantic/executable sub-gates have
-already succeeded, then binds that candidate result to the checked Git commit
-and tree.
+このcheckerが確認するのはrelease candidateの準備条件であり、actual Release Evidenceではない。
+versionごとのsupported scope、required path、required gate、非主張範囲は独立policyとして扱い、
+共通checkerを使うことを理由に異なるversionのrelease境界を混同しない。
 """
 
 from __future__ import annotations
@@ -15,18 +14,33 @@ import os
 import re
 import subprocess
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = ROOT / "release" / "v0.1.0" / "release-candidate.json"
-
 EXPECTED_SCHEMA = "soza.release-candidate/v1"
-EXPECTED_VERSION = "0.1.0"
 EXPECTED_REPOSITORY = "hat47x/soza"
-EXPECTED_SCOPE = "semantic-development-baseline-source-release"
+EXPECTED_PROHIBITED_STATUSES = {"Open", "In Progress", "Blocked"}
 
-REQUIRED_GATE_SET = {
+ISSUE_ROW = re.compile(
+    r"^\s*- \{id: (?P<id>ISSUE-\d{6}), file: (?P<file>[^,]+), "
+    r"status: (?P<status>[^,]+), priority: (?P<priority>\d+), "
+    r"related_adrs: \[(?P<adrs>[^\]]*)\]\}\s*$"
+)
+HEX40 = re.compile(r"^[0-9a-f]{40}$")
+
+
+@dataclass(frozen=True)
+class VersionPolicy:
+    release_scope: str
+    required_gates: frozenset[str]
+    required_path_anchors: frozenset[str]
+    mandatory_false_claims: frozenset[str]
+
+
+COMMON_GATES = frozenset({
     "plan-integrity",
     "requirements-registry",
     "contract-conformance",
@@ -35,42 +49,78 @@ REQUIRED_GATE_SET = {
     "semantic-runtime-conformance",
     "v6-v7-projection-evaluation",
     "release-candidate-policy",
-}
+})
 
-REQUIRED_PATH_ANCHORS = {
-    "README.md",
-    "product/value/SOZA_PRODUCT_VALUE.md",
-    "product/value/SOZA_VALUE_ACCEPTANCE.md",
-    "requirements/PRODUCT_REQUIREMENTS.md",
-    "requirements/ACCEPTANCE_SCENARIOS.md",
-    "architecture/SOZA_REFERENCE_ARCHITECTURE.md",
-    "contracts/CONTRACT_CATALOG.md",
-    "contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md",
-    "contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md",
-    "contracts/schemas/v1alpha1",
-    "fixtures/contracts/v1alpha1",
-    "runtime/go",
-    "evaluation/v6-v7",
-    "plan/registry.yaml",
-    "release/v0.1.0/RELEASE_ACCEPTANCE.md",
-}
-
-EXPECTED_PROHIBITED_STATUSES = {"Open", "In Progress", "Blocked"}
-EXPECTED_FALSE_CLAIMS = {
+COMMON_FALSE_CLAIMS = frozenset({
     "release_evidence",
     "operational_evidence",
     "adoption_outcome_evidence",
     "production_provider_integration",
     "production_storage_integration",
-    "historical_m47_profile_verified",
-}
+})
 
-ISSUE_ROW = re.compile(
-    r"^\s*- \{id: (?P<id>ISSUE-\d{6}), file: (?P<file>[^,]+), "
-    r"status: (?P<status>[^,]+), priority: (?P<priority>\d+), "
-    r"related_adrs: \[(?P<adrs>[^\]]*)\]\}\s*$"
-)
-HEX40 = re.compile(r"^[0-9a-f]{40}$")
+VERSION_POLICIES: dict[str, VersionPolicy] = {
+    "0.1.0": VersionPolicy(
+        release_scope="semantic-development-baseline-source-release",
+        required_gates=COMMON_GATES,
+        required_path_anchors=frozenset({
+            "README.md",
+            "product/value/SOZA_PRODUCT_VALUE.md",
+            "product/value/SOZA_VALUE_ACCEPTANCE.md",
+            "requirements/PRODUCT_REQUIREMENTS.md",
+            "requirements/ACCEPTANCE_SCENARIOS.md",
+            "architecture/SOZA_REFERENCE_ARCHITECTURE.md",
+            "contracts/CONTRACT_CATALOG.md",
+            "contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md",
+            "contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md",
+            "contracts/schemas/v1alpha1",
+            "fixtures/contracts/v1alpha1",
+            "runtime/go",
+            "evaluation/v6-v7",
+            "plan/registry.yaml",
+            "release/v0.1.0/RELEASE_ACCEPTANCE.md",
+        }),
+        mandatory_false_claims=COMMON_FALSE_CLAIMS | {"historical_m47_profile_verified"},
+    ),
+    "0.2.0": VersionPolicy(
+        release_scope="local-reference-product-baseline",
+        required_gates=COMMON_GATES | {"local-reference-package"},
+        required_path_anchors=frozenset({
+            "README.md",
+            "product/value/SOZA_PRODUCT_VALUE.md",
+            "product/value/SOZA_VALUE_ACCEPTANCE.md",
+            "product/value/SOZA_VALUE_TRACEABILITY.md",
+            "product/definition/SOZA_PRODUCT_SHAPE.md",
+            "product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md",
+            "product/interaction/SOZA_PRODUCT_INTERACTION.md",
+            "product/packaging/SOZA_PRODUCT_PACKAGING.md",
+            "product/security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md",
+            "product/roadmap/SOZA_PRODUCT_MILESTONES.md",
+            "requirements/PRODUCT_REQUIREMENTS.md",
+            "requirements/ACCEPTANCE_SCENARIOS.md",
+            "requirements/PRODUCT_JOURNEY_COMPOSITION.md",
+            "architecture/SOZA_REFERENCE_ARCHITECTURE.md",
+            "architecture/SOZA_DEPLOYMENT_ARCHITECTURE.md",
+            "architecture/SOZA_PRODUCT_ACCESS_ARCHITECTURE.md",
+            "contracts/CONTRACT_CATALOG.md",
+            "contracts/cognitive-method/SOZA_COGNITIVE_METHOD_v1alpha1.md",
+            "contracts/schemas/v1alpha1",
+            "fixtures/contracts/v1alpha1",
+            "fixtures/external/e3a",
+            "runtime/go",
+            "runtime/package/reference",
+            "evaluation/v6-v7",
+            "plan/registry.yaml",
+            "release/v0.2.0/RELEASE_ACCEPTANCE.md",
+        }),
+        mandatory_false_claims=COMMON_FALSE_CLAIMS | {
+            "production_identity_security",
+            "e3b_live_external_integration",
+            "e4_operational_portability",
+            "formal_platform_support_matrix",
+        },
+    ),
+}
 
 
 def fail(message: str) -> None:
@@ -89,7 +139,14 @@ def load_json(path: Path) -> dict[str, Any]:
     return value
 
 
-def require_string(config: dict[str, Any], key: str, expected: str) -> None:
+def require_string(config: dict[str, Any], key: str) -> str:
+    value = config.get(key)
+    if not isinstance(value, str) or not value.strip():
+        fail(f"{key} must be a non-empty string")
+    return value
+
+
+def require_exact_string(config: dict[str, Any], key: str, expected: str) -> None:
     value = config.get(key)
     if value != expected:
         fail(f"{key} = {value!r}, want {expected!r}")
@@ -104,9 +161,18 @@ def require_string_list(config: dict[str, Any], key: str) -> list[str]:
     return value
 
 
-def check_required_paths(paths: list[str]) -> None:
+def version_policy(config: dict[str, Any]) -> tuple[str, VersionPolicy]:
+    version = require_string(config, "version")
+    policy = VERSION_POLICIES.get(version)
+    if policy is None:
+        fail(f"unsupported release candidate version: {version!r}")
+    require_exact_string(config, "release_scope", policy.release_scope)
+    return version, policy
+
+
+def check_required_paths(paths: list[str], policy: VersionPolicy) -> None:
     declared = set(paths)
-    missing_anchors = sorted(REQUIRED_PATH_ANCHORS - declared)
+    missing_anchors = sorted(policy.required_path_anchors - declared)
     if missing_anchors:
         fail(f"required_paths dropped mandatory anchors: {missing_anchors}")
 
@@ -166,29 +232,29 @@ def check_plan_policy(config: dict[str, Any]) -> list[str]:
     return sorted(observed_deferred)
 
 
-def check_gates(config: dict[str, Any]) -> list[str]:
+def check_gates(config: dict[str, Any], policy: VersionPolicy) -> list[str]:
     gates = require_string_list(config, "required_gates")
     gate_set = set(gates)
-    if gate_set != REQUIRED_GATE_SET:
-        missing = sorted(REQUIRED_GATE_SET - gate_set)
-        unexpected = sorted(gate_set - REQUIRED_GATE_SET)
+    if gate_set != policy.required_gates:
+        missing = sorted(policy.required_gates - gate_set)
+        unexpected = sorted(gate_set - policy.required_gates)
         fail(f"required_gates mismatch; missing={missing}, unexpected={unexpected}")
     return gates
 
 
-def check_non_claims(config: dict[str, Any]) -> dict[str, bool]:
+def check_non_claims(config: dict[str, Any], policy: VersionPolicy) -> dict[str, bool]:
     claims = config.get("explicit_non_claims")
     if not isinstance(claims, dict):
         fail("explicit_non_claims must be an object")
-    missing = sorted(EXPECTED_FALSE_CLAIMS - set(claims))
+    missing = sorted(policy.mandatory_false_claims - set(claims))
     if missing:
         fail(f"explicit_non_claims missing mandatory keys: {missing}")
-    wrongly_true = sorted(key for key in EXPECTED_FALSE_CLAIMS if claims.get(key) is not False)
+    wrongly_true = sorted(key for key in policy.mandatory_false_claims if claims.get(key) is not False)
     if wrongly_true:
         fail(f"candidate must not claim these Evidence states: {wrongly_true}")
-    if not all(isinstance(v, bool) for v in claims.values()):
+    if not all(isinstance(value, bool) for value in claims.values()):
         fail("explicit_non_claims values must be booleans")
-    return {str(k): bool(v) for k, v in claims.items()}
+    return {str(key): bool(value) for key, value in claims.items()}
 
 
 def git_rev(spec: str) -> str:
@@ -206,19 +272,25 @@ def git_rev(spec: str) -> str:
     return value
 
 
-def build_report(config: dict[str, Any], gates: list[str], deferred: list[str]) -> dict[str, Any]:
-    commit_sha = git_rev("HEAD")
-    tree_sha = git_rev("HEAD^{tree}")
+def build_report(
+    *,
+    version: str,
+    policy: VersionPolicy,
+    gates: list[str],
+    deferred: list[str],
+    non_claims: dict[str, bool],
+) -> dict[str, Any]:
     return {
         "schema": "soza.release-candidate-report/v1",
-        "version": EXPECTED_VERSION,
+        "version": version,
         "repository": EXPECTED_REPOSITORY,
-        "release_scope": EXPECTED_SCOPE,
-        "source_commit_sha": commit_sha,
-        "source_tree_sha": tree_sha,
+        "release_scope": policy.release_scope,
+        "source_commit_sha": git_rev("HEAD"),
+        "source_tree_sha": git_rev("HEAD^{tree}"),
         "executed_gates": gates,
         "observed_allowed_deferred_issues": deferred,
         "candidate_gate_passed": True,
+        "explicit_non_claims": non_claims,
         "release_evidence": False,
         "operational_evidence": False,
         "adoption_outcome_evidence": False,
@@ -234,21 +306,26 @@ def main() -> int:
 
     try:
         config = load_json(args.config)
-        require_string(config, "schema", EXPECTED_SCHEMA)
-        require_string(config, "version", EXPECTED_VERSION)
-        require_string(config, "repository", EXPECTED_REPOSITORY)
-        require_string(config, "release_scope", EXPECTED_SCOPE)
+        require_exact_string(config, "schema", EXPECTED_SCHEMA)
+        require_exact_string(config, "repository", EXPECTED_REPOSITORY)
+        version, policy = version_policy(config)
 
         github_repo = os.environ.get("GITHUB_REPOSITORY")
         if github_repo and github_repo != EXPECTED_REPOSITORY:
             fail(f"GITHUB_REPOSITORY = {github_repo!r}, want {EXPECTED_REPOSITORY!r}")
 
-        required_paths = require_string_list(config, "required_paths")
-        check_required_paths(required_paths)
-        gates = check_gates(config)
-        check_non_claims(config)
+        paths = require_string_list(config, "required_paths")
+        check_required_paths(paths, policy)
+        gates = check_gates(config, policy)
+        non_claims = check_non_claims(config, policy)
         deferred = check_plan_policy(config)
-        report = build_report(config, gates, deferred)
+        report = build_report(
+            version=version,
+            policy=policy,
+            gates=gates,
+            deferred=deferred,
+            non_claims=non_claims,
+        )
 
         if args.report:
             report_path = args.report
@@ -262,7 +339,7 @@ def main() -> int:
             print(f"release candidate report: {report_path}")
 
         print(
-            "PASS: SOZA v0.1.0 release candidate policy; "
+            f"PASS: SOZA v{version} release candidate policy; "
             f"commit={report['source_commit_sha']} tree={report['source_tree_sha']} "
             f"deferred={deferred}"
         )
