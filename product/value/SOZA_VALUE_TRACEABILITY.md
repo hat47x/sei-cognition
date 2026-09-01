@@ -5,7 +5,7 @@
 
 ## 1. この文書の役割
 
-この文書は、SOZAのProduct Valueを、current Requirements、Acceptance Scenarios、ADR、Reference Architecture、Semantic Contract、Representation Profile、runtime、Provider Adapter、Payload Source、Projection Evaluation、現在のEvidence状態まで上位から追跡するための索引です。
+この文書は、SOZAのProduct Valueを、current Requirements、Acceptance Scenarios、ADR、Reference Architecture、Semantic Contract、Representation Profile、runtime、Provider Adapter、Payload Source、Projection Evaluation、Release Candidate Gate、現在のEvidence状態まで上位から追跡するための索引です。
 
 新しい意味上の正本は作りません。詳細は次を正とします。
 
@@ -18,6 +18,7 @@
 - Representation Profile: `../../contracts/profiles/`
 - runtime: `../../runtime/go/`
 - V6 / V7 evaluation: `../../evaluation/v6-v7/`
+- release acceptance: `../../release/v0.1.0/RELEASE_ACCEPTANCE.md`
 - ADR / Issue: `../../plan/`
 
 この追跡表が埋まっていること自体をProduct Valueの達成とはみなしません。
@@ -33,7 +34,7 @@ Product Value
   → Architecture concern
   → Semantic Contract / Representation Profile
   → Runtime / Provider Adapter / Payload Source / Projection Evaluation
-  → Fixture / Test / CI
+  → Fixture / Test / CI / Release Candidate Gate
   → Evidence state
 ```
 
@@ -166,7 +167,7 @@ Design Evidence
 
 ### Design Evidence
 
-Product、Requirements、ADR-0001〜0024、Reference Architecture、4 Semantic Contract family、2 Representation Profile、runtime / Adapter / Payload Source boundary、V6/V7 evaluation protocolがあります。
+Product、Requirements、ADR-0001〜0024、Reference Architecture、4 Semantic Contract family、2 Representation Profile、runtime / Adapter / Payload Source boundary、V6/V7 evaluation protocol、v0.1.0 release acceptanceがあります。
 
 ### Executable Evidence — scoped
 
@@ -179,10 +180,34 @@ Product、Requirements、ADR-0001〜0024、Reference Architecture、4 Semantic C
 - synthetic Payload Source
 - synthetic Provider Adapter
 - V6 / V7 Projection evaluation harness
+- v0.1.0 Release Candidate Gate
+
+### Release Candidate Evidence — Executable Evidence内のrelease準備分類
+
+Release Candidate EvidenceはProduct Valueの第6段階ではありません。特定のsource commitについて主要Executable gateを同一checkoutで再検査したことを表す、Executable Evidence内のrelease準備上の分類です。
+
+最新の検査済み候補:
+
+- source commit: `9313d527068ad587e03212f17e217dcac562109d`
+- source tree: `b12b350a5a2d3fb3a6732accea229af5b9eeb257`
+- Release Candidate Gate Run `33465412382`: **success**
+- Plan integrity Run `33465412473`: **success**
+- candidate report artifact ID: `9784659353`
+- artifact digest: `sha256:cd97af7c03f59967b946e7e94b74b88e4378ace0575c9f78e433f51170e5e566`
+
+統合gate内ではPlan、Requirements、Contract、Representation Profile、commit-pinned JCS probe、semantic runtime、V6/V7 Projection、release candidate policy / reportがsuccessしています。
+
+```text
+Release Candidate Gate success
+  != source release exists
+  != Release Evidence satisfied
+```
 
 ### Release Evidence
 
 **Not Yet Verified**
+
+actual `v0.1.0` tag / release identityと、そのrelease対象source / artifact / gateを結ぶEvidence recordはまだ存在しません。
 
 ### Operational Evidence
 
@@ -228,18 +253,18 @@ semantic runtime、Provider Adapter、Payload Sourceをexecution / provider / st
 
 ## 12. current Planとの関係
 
-current registryはADR-0001〜0024、ISSUE-000001〜000040を管理します。
+current registryはADR-0001〜0024、ISSUE-000001〜000041を管理します。
 
 - ISSUE-000001〜000020: Resolved
 - ISSUE-000021: Deferred — design history provenance逐語監査
-- ISSUE-000022〜000040: Resolved
+- ISSUE-000022〜000041: Resolved
 
-ISSUE-000021はhistorical chat export等が利用できる場合の再監査留保であり、current Product / Runtimeのblockerではありません。
+ISSUE-000021はhistorical chat export等が利用できる場合の再監査留保であり、current Product / Runtime / v0.1.0 candidateのblockerではありません。v0.1.0 candidate policyではこのIssueだけをversion-localなDeferred allow-listとして明示しています。
 
-historical M47 closure後のPlan integrity:
+最新候補commitに対するPlan integrity:
 
-- commit: `7aaa1280da01810c212b83de28b0741f5adccd2b`
-- Run `33461793246`: **success**
+- commit: `9313d527068ad587e03212f17e217dcac562109d`
+- Run `33465412473`: **success**
 
 ## 13. CoverageをKPIにしない
 
@@ -248,17 +273,18 @@ historical M47 closure後のPlan integrity:
 - REQリンクが多いValue Axisほど重要である。
 - Contractやfixtureが多いほどProduct Valueが高い。
 - CIが多く通るほど利用者価値が高い。
-- Executable Evidenceが増えればOperational / Outcomeも自動的に増える。
+- Executable Evidenceが増えればRelease / Operational / Outcomeも自動的に増える。
 - IssueがResolvedなら、その対象がすべてVerifiedである。
+- Release Candidate Gateが通ればactual release済みである。
 
 追跡の目的は、**どこまで確認したかと、どこから先をまだ主張してはいけないかを見失わないこと**です。
 
 ## 14. 更新規則
 
-Product Value、REQ、SCN、ADR、Architecture、Contract、Profile、runtime、Provider Adapter、Payload Source、Projection Evaluation、Evidence stateのいずれかが変わった場合、この文書を必要に応じて更新します。
+Product Value、REQ、SCN、ADR、Architecture、Contract、Profile、runtime、Provider Adapter、Payload Source、Projection Evaluation、release candidate、Evidence stateのいずれかが変わった場合、この文書を必要に応じて更新します。
 
 下位実装の都合に合わせてProduct Valueを後付けで変更しません。上位仮説を変える必要がある場合はADR-0018の再基線化規則に従います。
 
 ## 15. 自然な日本語ドラフト
 
-V1〜V8、REQ-0001〜0022、SCN-0001〜0017、ADR-0001〜0024、current Architecture、4 Semantic Contract family、2 Representation Profile、first semantic runtime、Verifier Registry、synthetic Payload Source、synthetic Provider Adapter、V6/V7 Projection evaluation、ISSUE-000034 recovery closure、actual CIへ戻って追跡を再確認しました。その後、Issue closureとVerification、Design / Executable / Release / Operational / Adoption・OutcomeのEvidence強度を混同せず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+V1〜V8、REQ-0001〜0022、SCN-0001〜0017、ADR-0001〜0024、current Architecture、4 Semantic Contract family、2 Representation Profile、first semantic runtime、Verifier Registry、synthetic Payload Source、synthetic Provider Adapter、V6/V7 Projection evaluation、ISSUE-000034 recovery closure、ISSUE-000041 release candidate boundary、actual Release Candidate Gate / Plan CIへ戻って追跡を再確認しました。その後、Issue closureとVerification、Release Candidate EvidenceとRelease Evidence、Design / Executable / Release / Operational / Adoption・OutcomeのEvidence強度を混同せず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
