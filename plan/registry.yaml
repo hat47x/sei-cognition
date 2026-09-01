@@ -150,7 +150,7 @@ issue:
   - {id: ISSUE-000040, file: plan/issue/ISSUE-000040-implement-runtime-payload-acquisition-boundary.md, status: Resolved, priority: 1, related_adrs: [ADR-0007, ADR-0008, ADR-0009, ADR-0022, ADR-0023]}
   - {id: ISSUE-000041, file: plan/issue/ISSUE-000041-define-v0-1-0-release-evidence-boundary.md, status: Resolved, priority: 1, related_adrs: [ADR-0018, ADR-0020, ADR-0021]}
   - {id: ISSUE-000042, file: plan/issue/ISSUE-000042-enforce-document-review-registry-coverage.md, status: Resolved, priority: 2, related_adrs: []}
-  - {id: ISSUE-000043, file: plan/issue/ISSUE-000043-materialize-cognitive-method-contract-runtime.md, status: In Progress, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0017, ADR-0021, ADR-0022, ADR-0025]}
+  - {id: ISSUE-000043, file: plan/issue/ISSUE-000043-materialize-cognitive-method-contract-runtime.md, status: Resolved, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0017, ADR-0021, ADR-0022, ADR-0025]}
   - {id: ISSUE-000044, file: plan/issue/ISSUE-000044-formalize-product-value-proposition-and-shape.md, status: Resolved, priority: 1, related_adrs: [ADR-0014, ADR-0018, ADR-0020, ADR-0021]}
   - {id: ISSUE-000045, file: plan/issue/ISSUE-000045-define-first-usable-product-interaction-boundary.md, status: Open, priority: 1, related_adrs: [ADR-0005, ADR-0018, ADR-0020, ADR-0021]}
   - {id: ISSUE-000046, file: plan/issue/ISSUE-000046-define-v0-2-0-product-packaging-and-deployment-boundary.md, status: Open, priority: 2, related_adrs: [ADR-0007, ADR-0014, ADR-0021, ADR-0022]}
