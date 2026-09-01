@@ -284,7 +284,7 @@ synthetic fixtureだけでなく、実際のCognitive Method Realization、AI、
 
 ### Current state
 
-**Partial / E2 Scoped Executable Evidence available / E3a Scoped Executable Evidence available / E3b live external integration pending.**
+**Partial / E2 Scoped Executable Evidence available / E3a Scoped Executable Evidence available / E3b-P1 public live Provider Scoped Executable Evidence available / E3b-P2・M1 pending.**
 
 `product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`で、交換してよいRealization / Providerと、交換後にも判断記憶として守る意味を正本化しています。
 
@@ -297,6 +297,16 @@ E1 Contract / in-process synthetic
   → E3b live external process / service integration
   → E4 operational portability
 ```
+
+E3bは現在、作業上さらに次へ分けています。
+
+```text
+E3b-P1 public live Provider service
+  → E3b-P2 live TEI process / service
+  → E3b-M1 live external Cognitive Method execution
+```
+
+このP1 / P2 / M1はEvidenceの範囲を明示するための区分であり、新しいProduct ontologyではありません。
 
 ### E2 — out-of-process reference exchange
 
@@ -333,31 +343,54 @@ source identity不一致時にはcanonical sourceを変更しないnegative case
 
 この結果から、E3aには限定されたExecutable Evidenceがあると判断します。
 
-ただし、E3全体の完了ではありません。
+### E3b-P1 — public live Provider service
+
+ISSUE-000059では、artifact取得だけではなく、SOZAとは独立したpublic serviceをネットワーク越しに実際に呼びました。
+
+最初のreference Providerには、GitHub REST APIの固定commit取得面を使っています。
+
+- repository: `hat47x/cultural-substrate-weaving`
+- expected commit: `aa3651f3460a6db7dc70bd848f93b600f149ffe8`
+
+live responseのcommit SHAが期待値と一致する場合だけ、外部serviceへ到達できたことと期待revisionを確認できたことをcurrent Capability Observationへmappingします。GitHub固有のresponse fieldはUniversal Contractへ転写しません。
+
+ローカル再現可能なtestでは、successに加えてrevision mismatch、HTTP failure、timeout / cancellation、Provider固有fieldの非漏出を検査しました。
+
+初回PR head `94253c845879ad2d8ad67f8e5ebe50249995d18b`では次がsuccessしました。
+
+- External Integration E3b Run `33568867910`
+- Semantic Runtime Conformance Run `33568867872`
+- Plan integrity Run `33568867865`
+- External Integration E3a Run `33568867847`
+- Local Package Artifact Run `33568867882`
+
+この結果から、E3b-P1には限定されたExecutable Evidenceがあると判断します。
+
+ただし、E3b全体の完了ではありません。
 
 ```text
-E3a PASS
+E3a PASS + E3b-P1 PASS
   != external Method execution PASS
   != live private-repository acquisition PASS
   != live TEI process / service integration PASS
   != production credential / network / rate-limit portability
-  != E3b PASS
+  != E3b全体 PASS
   != E4 Operational portability
   != Release / Adoption Evidence
 ```
 
 ### Open questions
 
-- E3bで最初に呼び出す実Cognitive Method runner
-- TEI CLIの既存JSON Surfaceのうち、最初にlive integrationへ使うもの
+- E3b-M1で最初に呼び出す実Cognitive Method runner
+- TEI CLIの既存JSON Surfaceのうち、E3b-P2で最初にlive integrationへ使うもの
 - TEIと非TEI Providerをどの組み合わせで比較するか
-- credential / timeout / rate limit / network failureをどこまでProduct acceptanceへ含めるか
+- private credential / timeout / rate limit / network degradationをどこまでProduct acceptanceへ含めるか
 - production Realization protocolを標準化する必要が本当にあるか
-- artifact sourceをGitHub以外へ交換したときのProvenance境界
+- artifact source / live ProviderをGitHub以外へ交換したときのProvenance境界
 - Realization version交換時のExact Binding / Provenanceの必要水準
 - E4のOperational portabilityを何で測るか
 
-E3aのPASSだけを理由に、新しいStable Requirement、Universal Contract、正式integration protocolへ固定しません。
+E3b-P1のPASSだけを理由に、新しいStable Requirement、Universal Contract、正式integration protocolへ固定しません。
 
 ## 10. PMS-07 — release可能な製品として成立する
 
@@ -373,7 +406,7 @@ Release Evidence。
 
 **Not Yet Verified for the current Product Shape as a whole.**
 
-PMS-04のLocal Reference PackageやPMS-06のE3a artifact integrationは、いずれも対象範囲のExecutable Evidenceです。個別CI PASSをProduct Releaseへ自動昇格させません。
+PMS-04のLocal Reference Package、PMS-06のE3a artifact integrationとE3b-P1 live Provider integrationは、いずれも対象範囲のExecutable Evidenceです。個別CI PASSをProduct Releaseへ自動昇格させません。
 
 ## 11. PMS-08 — 実運用と利用者成果からProduct Valueを検証できる
 
@@ -407,4 +440,4 @@ Open Questionを直接Stable Requirementへ飛ばしません。
 
 ## 14. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、Product Identity / Access / Collaboration、Realization / Provider Exchange、REQ-0001〜0022、SCN-0005 / 0007 / 0008 / 0010 / 0012 / 0013 / 0014 / 0018、ADR-0024 / 0025 / 0028 / 0029 / 0030、ISSUE-000046 / 000047 / 000053〜000058、current Go runtime、Interaction / Packaging / Product Access / Realization exchange / External Integration E3aのactual Evidenceへ戻ってMilestone全体を再監査した。PMS-03はscoped Interaction Executable Evidence、PMS-04はLocal Reference PackageによるMinimum scoped Executable Evidence、PMS-05はProduct Access責務分離のDesignとscoped Executable Evidence、PMS-06はE2のout-of-process reference exchangeとE3aのversion-pinned external artifact integrationまでを明確にしている。一方、production IdP、formal access policy、external Methodのlive実行、live TEI process / service integration、Operational portability、Product Release、Adoption / Outcome Evidenceは未検証のままである。外部source artifactのbytesはEvidenceとして改稿せず、SOZAが作成する本文について、意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、Product Identity / Access / Collaboration、Realization / Provider Exchange、REQ-0001〜0022、SCN-0005 / 0007 / 0008 / 0010 / 0012 / 0013 / 0014 / 0018、ADR-0024 / 0025 / 0028 / 0029 / 0030、ISSUE-000046 / 000047 / 000053〜000059、current Go runtime、Interaction / Packaging / Product Access / Realization exchange / External Integration E3a / E3b-P1のactual Evidenceへ戻ってMilestone全体を再監査した。PMS-03はscoped Interaction Executable Evidence、PMS-04はLocal Reference PackageによるMinimum scoped Executable Evidence、PMS-05はProduct Access責務分離のDesignとscoped Executable Evidence、PMS-06はE2のout-of-process reference exchange、E3aのversion-pinned external artifact integration、E3b-P1のpublic live Provider serviceまでを明確にしている。一方、production IdP、formal access policy、external Methodのlive実行、live TEI process / service integration、private credential / rate-limit portability、Operational portability、Product Release、Adoption / Outcome Evidenceは未検証のままである。外部source artifactのbytesはEvidenceとして改稿せず、SOZAが作成する本文について、意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
