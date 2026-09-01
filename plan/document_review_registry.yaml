@@ -32,7 +32,8 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_SHAPE.md
-    note: Product Shapeに加え、Realization / Provider ExchangeとE3a外部artifact integrationを含むcurrent Product定義を、Universal semanticsとreference Realizationを混同しない形で監査済み。
+      - SOZA_REALIZATION_PROVIDER_EXCHANGE.md
+    note: Product Shapeに加え、Realization / Provider Exchange、E3a外部artifact integration、E3b-P1 public live Provider integrationを含むcurrent Product定義を、Universal semanticsとreference Realizationを混同しない形で監査済み。
   - scope: product/vision/SOZA_PRODUCT_VISION.md
     status: revised
   - scope: product/principles/SOZA_PRODUCT_PRINCIPLES.md
@@ -42,7 +43,7 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_MILESTONES.md
-    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-03〜06のscoped Executable Evidenceと、PMS-07以降を過大評価しない境界を維持している。
+    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06はE3b-P1までをscoped Executable Evidenceとして反映し、PMS-07ではactual v0.2.0 Release Candidate EvidenceとRelease Evidenceを分離している。
   - scope: product/interaction/*.md
     status: revised
     coverage:
@@ -65,8 +66,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、自然な日本語全文再ドラフトと最終意味監査を実施済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000059
-    note: E3a外部artifact integrationとv0.2.0 Release Candidate境界までを含め、各Issueの意味・Evidence高さ・非主張範囲を自然な日本語で監査している。
+    coverage: ISSUE-000001..ISSUE-000060
+    note: E3a外部artifact integration、v0.2.0 Release Candidate境界、E3b-P1 public live Provider integrationまでを含め、各Issueの意味・Evidence高さ・非主張範囲を自然な日本語で監査している。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -142,6 +143,9 @@ reviewed:
   - scope: runtime/ACCESS_COLLABORATION_PROBE_EVIDENCE_2026-09-01.md
     status: revised
     note: Product Access / Responsibility分離、denied / not_evaluated、Selective DisclosureのScoped Executable Evidenceを記録済み。
+  - scope: runtime/LIVE_EXTERNAL_PROVIDER_EVIDENCE_2026-09-02.md
+    status: revised
+    note: E3b-P1としてpublic GitHub REST APIを実際に呼び、固定revisionのidentity確認、current Capability Observationへのmapping、revision mismatch / HTTP failure / timeout / Provider固有field非漏出をScoped Executable Evidenceとして記録した。live TEI、external Cognitive Method、private credential、Operational / Release / Adoptionへ昇格させない境界を自然な日本語で明示済み。
   - scope: runtime/package/reference/*.md
     status: revised
     coverage:
@@ -173,7 +177,7 @@ reviewed:
     status: revised
     coverage:
       - release/v0.2.0/RELEASE_ACCEPTANCE.md
-    note: Local Reference Product Baselineのsupported scope、9段階のcandidate gate、E3b / E4とproduction領域の非主張、actual Release Evidenceへの昇格条件を自然な日本語で正本化した。
+    note: Local Reference Product Baselineのsupported scope、9段階のcandidate gate、E3b / E4とproduction領域の非主張、actual develop Release Candidate Evidence、actual Release Evidenceへの昇格条件を自然な日本語で正本化している。
 
   - scope: fixtures/contracts/v1alpha1/README.md
     status: revised
