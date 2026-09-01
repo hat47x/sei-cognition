@@ -1,6 +1,6 @@
 # SOZA 開発ワークフロー
 
-更新日: 2026-08-31  
+更新日: 2026-09-01  
 状態: **Accepted Development Convention**
 
 ## 1. 目的
@@ -58,9 +58,10 @@ develop/v1.0.0
 8. 実際に得られた高さまでEvidenceと未完了事項を更新する。
 9. 文書を自然な日本語へ全文再ドラフトする。
 10. 意味・仕様・留保・Evidence強度が変わっていないか最終監査する。
-11. 対象CIがsuccessしていることを確認する。
+11. current Markdown文書を追加・更新した場合は、`plan/document_review_registry.yaml`へ監査状態を反映する。
+12. 対象CIがsuccessしていることを確認する。
 
-CI failureが出た場合は、11だけを最後まで先送りしません。**失敗を検出した時点で原因を解消し、successを確認してから後続作業へ進みます。**
+CI failureが出た場合は、12だけを最後まで先送りしません。**失敗を検出した時点で原因を解消し、successを確認してから後続作業へ進みます。**
 
 ## 5. 文書品質を後処理にしない
 
@@ -68,7 +69,11 @@ CI failureが出た場合は、11だけを最後まで先送りしません。**
 
 新しく作成・更新した開発文書は、その作業単位を閉じる前に`plan/DOCUMENT_AUTHORING_STANDARD.md`の工程を通します。
 
-既存文書はISSUE-000015で全件監査し、`plan/document_review_registry.yaml`へ監査状態を記録します。
+既存文書はISSUE-000015で全件監査し、`plan/document_review_registry.yaml`へ監査状態を記録しました。以後、新しいcurrent Markdown文書は通常の作業単位の中で監査状態まで反映します。
+
+`Plan integrity`はMarkdown変更でも起動し、Document Review Registryのcoverageと`pending`の有無を検査します。新規文書を追加したのに監査台帳へ登録していない変更は、原則としてmerge前に検出されます。
+
+ただし、このCIは自然な日本語の品質や文書の意味を自動判定しません。機械的なcoverage検査と、全文再ドラフト・最終意味監査は別の責務です。
 
 ## 6. Evidenceを超える状態更新をしない
 
@@ -96,7 +101,9 @@ Issue、Requirement、README等の状態は、実際に確認できた高さま�
 
 ADR / Issue本文のStatus、`plan/registry.yaml`、関連文書を同時に変更する必要がある場合は、可能な範囲で一つのatomic commitへまとめます。
 
-これは履歴を細かくしないためではなく、途中commitだけを見たCIが「本文はResolvedだがregistryはIn Progress」といった一時的不整合を検出することを避けるためです。
+同様に、新しいcurrent Markdown文書を追加した場合は、可能な範囲で`plan/document_review_registry.yaml`への監査状態反映も同じ変更単位へ含めます。
+
+これは履歴を細かくしないためではなく、途中commitだけを見たCIが「本文はResolvedだがregistryはIn Progress」「新規Markdownがあるが監査台帳にない」といった一時的不整合を検出することを避けるためです。
 
 分割commitが必要な場合は、各commit単体でもPlan integrityが成立する順序を選びます。
 
@@ -111,6 +118,8 @@ CI failureは次の設計入力でもあります。
 5. 必要ならIssue / Evidence文書へ原因と修正内容を残す。
 6. その後に次の作業へ進む。
 
+Document Review Registry coverage failureの場合も、文書をcheckerへ無理に合わせるのではなく、未登録なのか、監査未完了なのか、checkerの責務が誤っているのかを切り分けます。
+
 ## 10. Natural Japanese review
 
-current Product Value、5段階Evidence、actual CI運用、Plan integrityで発生した一時Status不整合の実例、ISSUE-000015の全件監査へ戻ってworkflowを再構成した。その後、branch方針、開発順序、Evidence境界、CI handlingを変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+current Product Value、5段階Evidence、actual CI運用、Document Review Registry coverage gate、ISSUE-000015の全件監査へ戻ってworkflowを再確認した。その後、branch方針、開発順序、Evidence境界を変えず、文書監査状態の反映を通常の開発単位へ組み込む形で、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
