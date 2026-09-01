@@ -1,6 +1,6 @@
 # SOZA 開発文書作成標準
 
-更新日: 2026-08-31  
+更新日: 2026-09-01  
 状態: **Accepted Documentation Standard**
 
 ## 1. 基本方針
@@ -109,16 +109,32 @@ source code、JSON Schema、workflow定義等は本台帳が対象とする「�
 - `excluded-historical` — 原文保存や固定Evidenceとしての性質から改稿対象外とした。
 - `pending` — current文書だが全件移行監査がまだ完了していない。
 
-`pending`は移行中にのみ使用し、ISSUE-000015を完了するときには残しません。
+`pending`は移行中にのみ使用し、通常の作業単位を閉じるときには残しません。
 
 ## 7. 新規文書の扱い
 
-ISSUE-000015の移行監査中であっても、新しく作成する文書をいったん`pending`へ積む必要はありません。
+新しく作成するcurrent Markdown文書を、後からまとめて監査する前提にはしません。
 
-作成した作業単位の中で本標準を最後まで通した文書は、直接`revised`または`reviewed-no-change`として台帳へ登録できます。
+作成した作業単位の中で本標準を最後まで通し、`plan/document_review_registry.yaml`へ`revised`または`reviewed-no-change`として登録します。原文保全が必要な資料は、理由を明示して適切な除外または保全状態へ置きます。
 
 これにより「新規文書が増えるため監査が永遠に終わらない」状態を避けます。
 
-## 8. Natural Japanese review
+## 8. CIによるcoverage確認
 
-5段階Evidence、actual document review registry、current Contract / Runtime / Provider Adapterへ戻って本標準の適用範囲を再確認した。その後、文書品質の要求強度と原文保存例外を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+`Plan integrity`はMarkdown文書の変更でも起動し、`plan/scripts/check_document_review_registry.py`を実行します。
+
+このcheckerは、actual tree上のMarkdown文書がDocument Review Registryから漏れていないことと、`pending`が残っていないことを検査します。したがって、新しいcurrent Markdown文書を追加する変更では、原則として同じ変更単位で監査状態も台帳へ反映します。
+
+ただし、このCIは文章の意味や日本語品質を自動判定するものではありません。
+
+```text
+Document Review Registry coverage PASS
+  != natural Japanese quality automatically proven
+  != document meaning correct
+```
+
+機械的なcoverage確認は、人間または生成AIが本標準に従って行う全文再ドラフトと最終意味監査を置き換えません。
+
+## 9. Natural Japanese review
+
+5段階Evidence、actual Document Review Registry、current Planning integrity運用へ戻って本標準の適用範囲を再確認した。その後、文書品質の要求強度、原文保存例外、監査台帳の意味を変えず、CIが保証するのはcoverageだけであることを明確にしたうえで、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
