@@ -172,7 +172,7 @@ Packaging / DeploymentのDesign Evidenceと、最小packageのExecutable Evidenc
 
 ### Current state
 
-**Design baseline established / packaged resume Executable Evidence pending.**
+**Design baseline established / scoped persistence・resume・Storage migration Executable Evidence available / distributable package pending.**
 
 `product/packaging/SOZA_PRODUCT_PACKAGING.md`とADR-0029で、最初に成立させるPackaging / Deployment ProfileをLocal Single-Node Packageとして正本化しました。
 
@@ -183,18 +183,42 @@ Go runtime executable
   + portable semantic data
 ```
 
-Goの単一バイナリ化は配布上の利点として利用しますが、runtime executableをcanonical semantic dataにはしません。filesystemは最初のPersistence Realizationとして利用できる一方、file pathをLogical Referenceへ昇格させません。
+Goの単一バイナリ化は配布上の利点として利用しますが、runtime executableをcanonical semantic dataにはしません。filesystemは最初のPersistence Realizationとして利用する一方、file pathをLogical Referenceへ昇格させません。
 
 portable export / importにはcurrent Semantic Interchangeを再利用し、package専用Universal Contractは追加していません。
 
 Deployment上のcomponent配置は`architecture/SOZA_DEPLOYMENT_ARCHITECTURE.md`へ分離しました。単一processへInteraction、Semantic Runtime、Persistence、Integrationを同居させても、それらを一つのsemantic concernとはみなしません。
 
-save → process state破棄 → 別runtime instanceでreload、filesystem data rootのrestore、filesystemから別Persistence Realization相当へのportable migrationは、ISSUE-000054でExecutable Evidenceを取得します。
+ISSUE-000054では、`runtime/go/packagingprobe`にfilesystem / memory Persistenceを実装し、次を限定範囲で確認しました。
+
+- portable Semantic Interchangeをfilesystemへ保存できる。
+- 元のin-memory Bundleを破棄し、新しいruntime objectから同じbytesとtyped recordを再構成できる。
+- unknown Contractを`not_verified`のまま保持する。
+- canonical bundle fileを別directoryへcopyし、restore先から再読できる。
+- filesystemからmemory Persistenceへportable bytesを移し、同じbundleを再読できる。
+- invalid canonical file、temporary fileだけの状態、invalid importを正常stateとして扱わない。
+- physical data-root変更をsemantic identityへ持ち込まない。
+- Storage交換をSemantic Revisionへ自動変換しない。
+
+初回probe headのSemantic Runtime Conformance Run `33506712038`で、current Contract fixture再検査と`runtime/go`全体の`go test ./...`がsuccessしました。
+
+ただし、このEvidenceはliteralなOS-process restartや利用者へ配れる実バイナリを確認したものではありません。
+
+```text
+persistence probe PASS
+  != distributable product package proven
+  != literal process restart proven
+  != crash durability proven
+  != production Storage migration proven
+  != Release / Operational / Adoption Evidence
+```
 
 ### Open questions
 
 - productionで最初にsupportedとするhuman-facing Surface
 - productionで最初にsupportedとするAI-facing protocol
+- actual Go binary / packageの配布形態
+- literal process restartとversion upgrade後のresume
 - server-side StorageをいつRDB / object storeへ進めるか
 - team / multi-user deployment topology
 - online migration
@@ -202,7 +226,7 @@ save → process state破棄 → 別runtime instanceでreload、filesystem data 
 - HA / replication
 - container / cloud-managed distribution
 
-これらはLocal Single-Node Packageを採用したことだけを理由にRequirementへ固定しません。
+これらはLocal Single-Node Packageやpersistence probeのPASSだけを理由にRequirementへ固定しません。
 
 ## 8. PMS-05 — identity・authorization・collaborationを製品として安全に扱える
 
@@ -293,4 +317,4 @@ Open Questionを直接Stable Requirementへ飛ばしません。
 
 ## 14. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、REQ-0001〜0022、SCN-0008 / 0010 / 0013 / 0018、ADR-0028 / 0029、ISSUE-000046 / 000053 / 000054、current Go runtimeとSemantic Interchangeへ戻ってMilestoneを再監査しました。PMS-03はscoped Interaction Executable Evidenceまで、PMS-04はPackaging / Deployment Design成立までを明確に分けています。Local Single-Node Packageやfilesystemを唯一のdeployment topologyやsemantic authorityへ昇格させず、packaged resume / Storage migrationのExecutable Evidenceは後続probeへ残しています。未定領域を先にRequirementへ固定しない境界も維持したうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、REQ-0001〜0022、SCN-0008 / 0010 / 0013 / 0018、ADR-0028 / 0029、ISSUE-000046 / 000053 / 000054、current Go runtime、Semantic Interchange、Interaction / Packaging probeとcurrent CI Evidenceへ戻ってMilestoneを再監査しました。PMS-03はscoped Interaction Executable Evidenceまで、PMS-04はPackaging / Deployment Designとscoped Persistence / runtime-state-independent resume / Storage migration Executable Evidenceまでを明確に分けています。一方、PMS-04のOutcome全体に必要なdistributable packageやliteral process restartは未検証のままです。Local Single-Node Package、filesystem、probe-local Persistenceを唯一のdeployment topologyやsemantic authorityへ昇格させず、未定領域を先にRequirementへ固定しない境界も維持したうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
