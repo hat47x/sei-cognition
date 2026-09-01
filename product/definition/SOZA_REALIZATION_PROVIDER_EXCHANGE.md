@@ -1,13 +1,13 @@
 # SOZA Realization / Provider Exchange
 
-更新日: 2026-09-01  
+更新日: 2026-09-02  
 状態: **Current Realization / Provider Exchange Design Baseline**
 
 ## 1. この文書の役割
 
 この文書は、PMS-06「実際のMethod / Providerを交換しても判断記憶が保たれる」を進めるために、**何を交換可能とみなし、交換後にも何をcanonicalな判断記憶として守るか**をProduct levelで定めます。
 
-SOZAにとって重要なのは、特定のAI、Prompt、process、SaaS、TEI、custom codeを長く使い続けることではありません。それらが入れ替わっても、当時のIntent、Observation、Method Application、Recommendation、Decision、Responsibility、Provenance、Unknown / Conflictを読み直せることです。
+SOZAにとって重要なのは、特定のAI、Prompt、process、SaaS、TEI、custom codeを長く使い続けることではありません。それらが入れ替わった後にも、当時のIntent、Observation、Method Application、Recommendation、Decision、Responsibility、Provenance、Unknown / Conflictを、その時点の意味を壊さず読み直せることです。
 
 ## 2. 交換してよいものと、交換で失ってはならないもの
 
@@ -20,6 +20,7 @@ SOZAにとって重要なのは、特定のAI、Prompt、process、SaaS、TEI、
 - external SaaS / TEI / custom code
 - process topology
 - Realization固有のwire protocol
+- artifact repositoryや配布経路
 
 ### 交換で黙って変えてはならないもの
 
@@ -56,9 +57,11 @@ Method Definition
 
 Method Applicationは、必要な場合に`realization_ref`を保持します。
 
-Realization AとBが異なる出力を返しても、それは異なるMethod Application / Recommendationとして記録します。後からRealization Bを使ったことを理由に、Realization Aを用いて作られた過去Decisionを現在版へ書き換えません。
+Realization AとBが異なる出力を返しても、それぞれを異なるMethod Application / Recommendationとして扱います。後からRealization Bを使ったことを理由に、Realization Aを用いて作られた過去Decisionを現在版へ書き換えません。
 
-Method Realizationの交換は、同じ結論を返すことを要求しません。要求するのは、**どのRealizationを使い、何を入力し、何を出力し、何を残差として残したかを区別して保持できること**です。
+Method Realizationの交換に、同じ結論を返すことは要求しません。守るべきなのは、**どのRealizationを使い、何を入力し、何を出力し、何を残差として残したかを区別して保持できること**です。
+
+外部repositoryで配布されるSkillやPrompt pack等をRealizationとして使う場合も、repository名、commit、path等をCognitive MethodのUniversal fieldへ直接持ち込みません。取得元の情報はProvenanceとして保持し、Method Definition / Realizationの意味とartifact取得方式を分離します。
 
 ## 4. Provider exchange
 
@@ -70,33 +73,32 @@ Capability
    └─ Provider B
 ```
 
-Provider固有stateは、そのままSOZA Universal Provider Stateへ統合しません。Provider Adapterを介して、必要な範囲だけをCapability Observationへmappingします。
+Provider固有stateは、そのままSOZA Universal Provider Stateへ統合しません。Provider Adapterを介し、その判断文脈で必要な観測だけをCapability Observationへmappingします。
 
 ProviderをAからBへ変えても、Capability identityを自動的に変更しません。また、新しいProvider Observationが得られても、過去Decisionがbasisとして使ったAのObservationをBへ差し替えません。
 
-## 5. Process boundaryの位置づけ
+TEIもこの原則の例外ではありません。TEI固有の`activeApplications`、`databases`、`dataReadiness`等はTEI側の表現として扱い、SOZAのUniversal Provider schemaへ昇格させません。
 
-ISSUE-000057では、SOZA runtimeとは別のOS processとして動くreference Provider / Method Realizationを使います。
+## 5. Evidence ladder
 
-これは、同一process内のsynthetic実装より一段強い交換Evidenceを得るための**reference execution profile**です。
+PMS-06では、交換可能性のEvidenceを次の段階に分けます。
 
 ```text
-out-of-process reference PASS
-  != production external Provider proven
+E1 Contract / in-process synthetic
+  → E2 out-of-process reference exchange
+  → E3a version-pinned external artifact integration
+  → E3b live external process / service integration
+  → E4 operational portability
 ```
 
-process間のJSON、command-line flag、binary layoutはprobe-localなRealizationです。これらをSemantic Contractや正式なProduct Interaction protocolへ昇格させません。
-
-## 6. Evidence ladder
-
-PMS-06では、交換可能性のEvidenceを少なくとも次の段階に分けます。
+この段階は、技術の価値序列ではありません。何を実際に確認できたかを混同しないためのEvidence上の区分です。
 
 ### E1 — Contract / in-process synthetic
 
 - Cognitive Method Definition / Realization / Applicationを型として分離できる。
 - synthetic Provider A / BをAdapterで交換できる。
 
-current repositoryでは成立済みです。
+**Scoped Executable Evidence available.**
 
 ### E2 — out-of-process reference exchange
 
@@ -105,24 +107,88 @@ current repositoryでは成立済みです。
 - 出力をcurrent Contract / Adapterへ戻す。
 - 交換後もhistorical Decisionを変更しない。
 
-ISSUE-000057で**scoped Executable Evidenceを取得済み**です。
+ISSUE-000057で**Scoped Executable Evidence available**です。
 
-### E3 — real external integration
+最終PR headではSemantic Runtime Conformance Run `33526188215`、Plan integrity Run `33526188237`、Local Package Artifact Run `33526188216`がsuccessしました。
 
-- 実AI / 実SaaS / TEI / external custom service等を接続する。
-- credential、network failure、rate limit、version change等を含む現実の交換条件を扱う。
+### E3a — version固定した実外部artifact integration
+
+E2のprocessはSOZA repository内で作ったreference Realizationでした。E3aでは、SOZAとは別repositoryで独立にversion管理される実artifactを扱います。
+
+確認する中心は次です。
+
+1. 外部repositoryとcommitによりsourceを固定できる。
+2. 取得したbytesが期待するsource artifactと一致することを確認できる。
+3. source repository / commit / path / blob identityをProvenanceとして保持できる。
+4. 外部固有schemaをUniversal Contractへ持ち込まず、既存semantic boundaryへ戻せる。
+5. source identity不一致時にcanonical stateを変更しない。
+
+ISSUE-000058では二つの実外部artifactを使っています。
+
+#### cultural-substrate-weaving
+
+外部Cognitive Method側では、public repository `hat47x/cultural-substrate-weaving`の日本語版`weave` Skillを使います。
+
+- commit: `aa3651f3460a6db7dc70bd848f93b600f149ffe8`
+- source path: `plugins/cultural-substrate-weaving-ja/skills/weave/SKILL.md`
+- Git blob SHA-1: `4d1cd77a3561c4da58bc030936f28ae2386a81ce`
+
+External Integration E3a Run `33528003902`では、GitHub Actionsからcommit固定のartifactを実際に取得し、Git blob identityとpinned snapshotのbyte一致を確認しました。その後、verified artifactを既存`MethodRealization`へ結び付けられることをGo testで確認しています。
+
+ただし、これはSkill artifactを取得・検証してRealizationへ結び付けられたというEvidenceです。SkillをLLM上で実行し、Method Applicationや有用なRecommendationを得たことまでは示しません。
+
+#### TEI
+
+Capability Provider側では、private repository `hat47x/tei-platform`のobserved deployment stateを使います。
+
+- commit: `3a20c59ce14929afa1e091e1418a2eb66f0ff32d`
+- source path: `reference/observed/production.deployment-state.json`
+- Git blob SHA-1: `ff3c60a8d9873f6aeb38549104ef6bb484404d17`
+
+取得時にsource artifactと同じGit blob identityであることを確認したpinned snapshotをSOZA側のE3a fixtureとして保持し、TEI固有schemaをreference Adapterでcurrent Capability Observationへmappingします。
+
+TEI repositoryはprivateです。SOZA CIの標準`GITHUB_TOKEN`へ別private repositoryのread権限を暗黙に要求しないため、E3aの必須CIではlive private fetchを行っていません。したがって、このPASSをlive TEI integrationとは扱いません。
+
+### E3b — live external process / service integration
+
+次の段階では、version固定artifactを読むだけでなく、SOZAとは独立した外部process / serviceを実際に呼びます。
+
+対象候補には次があります。
+
+- TEI CLIの既存JSON出力面
+- external Cognitive Method runner
+- AI / SaaS / custom service
+
+この段階では、credential、network failure、timeout、rate limit、version change等の現実の境界も扱います。
 
 **Not Yet Verified.**
 
 ### E4 — operational portability
 
-- 実運用でRealization / Providerを交換し、利用者が判断記憶を継続利用できる。
+実運用でRealization / Providerを交換し、利用者が判断記憶を継続利用できることを確認します。
 
 **Not Yet Verified.**
 
+## 6. 外部artifact identityとsemantic identityを分ける
+
+E3aでは、取得したartifactが本当に想定したsourceであるかを確認するため、repository、commit、path、Git blob identityを使います。また、検証済みbytesについてSHA-256も記録します。
+
+ただし、これらは取得・Provenanceのための情報です。
+
+```text
+repository / commit / path / blob identity
+  != Method Definition identity
+  != Capability identity
+  != Decision identity
+```
+
+GitHubやGitを使っていること自体をSOZA Universal Coreへ持ち込みません。他のartifact storeへ交換できる余地を残します。
+
+外部sourceのProvenanceは、current E3a probeではopaqueな`external-artifact-provenance` recordとして保持します。これは新しいUniversal Contractを意味しません。SOZAがそのmetadataを理解済みの普遍的意味として宣言するのではなく、source由来を失わず残すためのreference Realizationです。
+
 ## 7. Acceptanceの中心
 
-交換の成功を「どちらでも同じ文字列が返った」とは定義しません。
+交換の成功を「異なるRealization / Providerが同じ文字列を返した」とは定義しません。
 
 次を中心に検査します。
 
@@ -131,36 +197,38 @@ ISSUE-000057で**scoped Executable Evidenceを取得済み**です。
 3. Realization / ProviderごとのProvenanceを保持できる。
 4. 新しいRecommendationを過去Decisionへ自動反映しない。
 5. 新しいProvider Observationを過去basisへ自動差し替えしない。
-6. failed Realization / Providerがcanonical sourceを中途半端に変更しない。
-7. process / binary / vendorのidentityをsemantic identityへ短絡させない。
+6. failed Realization / Provider / artifact verificationがcanonical sourceを中途半端に変更しない。
+7. process / binary / vendor / repositoryのidentityをsemantic identityへ短絡させない。
+8. 外部固有fieldをUniversal Contractへ漏らさない。
 
-## 8. E2で確認したExecutable Evidence
+## 8. 現在確認できているE3a Executable Evidence
 
-`runtime/go/realizationprobe`では、reference Provider A / Bとreference Method Realization A / Bを、SOZA runtimeとは別のOS processとして実際にbuild・起動します。
+External Integration E3a Run `33528003902`では、次がすべてsuccessしました。
 
-Provider A / Bは異なるProvider固有state shapeを返し、それぞれ`ReferenceProviderAAdapter` / `ReferenceProviderBAdapter`を通してcurrent Capability Observationへmappingします。Method A / Bは同じMethod Definitionに対する異なるRealizationとして実行し、各Method Applicationに異なる`realization_ref`を保持します。
+- version固定したpublic Cognitive Method artifactのlive fetch
+- 取得したartifactのGit blob identity検証
+- pinned snapshotとのbyte-for-byte一致
+- TEI pinned snapshotのsource Git blob identity検証
+- external artifact verification boundaryのGo test
+- external Cognitive Method artifactからcurrent `MethodRealization`へのbinding test
+- TEI固有observed stateからcurrent Capability Observationへのmapping test
+- artifact identity mismatch時のcanonical非改変test
 
-Semantic Runtime Conformance Run `33516101445`では、current Contract fixture 31件の再検査と`runtime/go`全体の`go test ./...`が**success**しました。
+同じ初期headでは、Plan integrity Run `33528003813`とLocal Package Artifact Run `33528003781`もsuccessし、Semantic Runtime Conformance Run `33528003760`のruntime-conformance jobもsuccessしました。
 
-actual testでは、次を確認しています。
+このEvidenceから、E3aの限定範囲についてはScoped Executable Evidenceがあると判断します。
 
-- Provider A / Bを別OS processとして起動できる。
-- A / Bの異なるProvider固有stateを別Provider identityとして保持できる。
-- Providerが変わっても同じCapability identityへmappingできる。
-- mapping後のCapability Observationをcurrent validatorへ戻せる。
-- 同じMethod Definitionに対する二つのRealizationを別OS processで実行できる。
-- Method Applicationごとに異なる`realization_ref`を保持できる。
-- Realization A / Bが異なるRecommendationを返しても、それぞれをRecommendationとして保持し、Decisionへ自動昇格しない。
-- Provider / Method交換後にも、交換前Decisionのbasis、Recommendation、Responsibility、unresolvedを変更しない。
-- unsupported profile等で外部processが失敗した場合、canonical sourceを変更しない。
-
-この結果から、E2の交換境界には限定されたExecutable Evidenceがあると判断します。ただし、reference processはSOZA repository内でbuildした評価用Realizationであり、実外部事業者やTEI production instanceではありません。
+一方、E3全体を成立とはしません。
 
 ```text
-E2 PASS
-  != E3 real external integration PASS
-  != production credential / network / SLA portability
-  != E4 operational portability
+E3a PASS
+  != external Method execution PASS
+  != live private-repository acquisition PASS
+  != live TEI process / service integration PASS
+  != production credential / network / rate-limit portability
+  != E3b PASS
+  != E4 Operational portability
+  != Release / Adoption / Outcome Evidence
 ```
 
 ## 9. Requirement / Scenario
@@ -178,7 +246,9 @@ E2 PASS
 - SCN-0014 — Execution Providerを交換する
 - SCN-0018 — Inquiryから実行後の再検討までを一続きに扱う
 
-out-of-process化はEvidenceを厚くするための実証であり、それ自体を新しいProduct Requirementにはしません。
+E2のout-of-process化やE3aの外部artifact取得は、これらのRequirementに対するEvidenceを厚くするための実証です。Git repositoryやartifact取得という現在の実装方式だけを理由に、新しいProduct Requirementを作りません。
+
+E3bで既存Requirementでは表現できない独立したProduct failureが見つかった場合には、Open Question / Candidate Requirementへ戻して再検討します。
 
 ## 10. 現時点で固定しないこと
 
@@ -188,6 +258,8 @@ out-of-process化はEvidenceを厚くするための実証であり、それ自�
 - process isolationを全Realizationへ強制すること
 - Plugin SDKの正式仕様
 - Provider discovery / marketplace
+- GitHubを唯一のartifact sourceとすること
+- private repository credential方式
 - retry / circuit breaker / queue方式
 - secret management
 - billing / rate limit model
@@ -195,10 +267,11 @@ out-of-process化はEvidenceを厚くするための実証であり、それ自�
 
 ## 11. Evidence状態
 
-- Contract / synthetic exchange: **Scoped Executable Evidence available**
-- out-of-process reference exchange: **Scoped Executable Evidence available** — Semantic Runtime Conformance Run `33516101445`
-- real external AI / SaaS / TEI exchange: **Not Yet Verified**
-- Operational portability: **Not Yet Verified**
+- E1 Contract / in-process synthetic: **Scoped Executable Evidence available**
+- E2 out-of-process reference exchange: **Scoped Executable Evidence available**
+- E3a version-pinned external artifact integration: **Scoped Executable Evidence available** — External Integration E3a Run `33528003902`
+- E3b live external process / service integration: **Not Yet Verified**
+- E4 Operational portability: **Not Yet Verified**
 - Release Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
 
@@ -208,6 +281,7 @@ out-of-process化はEvidenceを厚くするための実証であり、それ自�
 - `../../requirements/PRODUCT_REQUIREMENTS.md`
 - `../../requirements/ACCEPTANCE_SCENARIOS.md`
 - `../../plan/issue/ISSUE-000057-materialize-out-of-process-realization-provider-exchange.md`
+- `../../plan/issue/ISSUE-000058-materialize-version-pinned-external-artifact-integration.md`
 - `../../plan/adr/ADR-0013-capability-realization-boundary.md`
 - `../../plan/adr/ADR-0017-reference-model-cognitive-method-boundary.md`
 - `../../plan/adr/ADR-0024-provider-adapter-observation-mapping-boundary.md`
@@ -215,4 +289,4 @@ out-of-process化はEvidenceを厚くするための実証であり、それ自�
 
 ## 13. Natural Japanese review
 
-Product Value、PMS-06、REQ-0001 / 0004 / 0005 / 0007 / 0021、SCN-0005 / 0014 / 0018、Cognitive Method Contract、Provider Adapter、end-to-end journey harness、`runtime/go/realizationprobe`のactual testとSemantic Runtime Conformance Run `33516101445`へ戻り、Realization / Provider交換で何を変えてよく、何を判断記憶として維持する必要があるかを整理した。同じ出力を返すことをportableの条件にはせず、Method DefinitionとRealization、CapabilityとProvider、RecommendationとDecision、現在のObservationとhistorical basisを分離したまま再構成できることを中心に置いている。また、E2のreference process成功を実AI / SaaS / TEI連携やOperational portabilityへ過大評価せず、process-local protocolをUniversal Contractへ昇格させない。そのうえで、意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+Product Value、PMS-06、REQ-0001 / 0004 / 0005 / 0007 / 0021、SCN-0005 / 0014 / 0018、Cognitive Method Contract、Capability Observation Contract、Provider Adapter、ISSUE-000057 / 000058、E2のactual process test、E3aで使用した`cultural-substrate-weaving`とTEIの外部source、External Integration E3a Run `33528003902`へ戻り、Realization / Provider交換で何を変えてよく、何を判断記憶として維持する必要があるかを再監査した。E3をartifact integrationとlive process / service integrationに分けることで、semantic portabilityとrepository認証・network条件を混同していない。また、TEIだけを特別なProvider ontologyとして扱わず、外部Cognitive Methodと同じくProvenanceを持つ交換可能なRealizationとして位置付けた。外部sourceのbytesそのものはEvidenceとして改稿せず、SOZAが作成する説明・設計文書について、意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。

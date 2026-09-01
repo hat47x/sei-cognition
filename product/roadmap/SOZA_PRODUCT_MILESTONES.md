@@ -1,35 +1,36 @@
 # SOZA Product Milestones
 
-更新日: 2026-09-01  
+更新日: 2026-09-02  
 状態: **Current Deadline-free Product Milestone Baseline**
 
 ## 1. この文書の役割
 
 この文書は、SOZAをどの順序で製品として成立させていくかを、日付や期限ではなく**成立条件とEvidenceの高さ**で示します。
 
-Milestoneは開発管理上の目印であり、SOZAのUniversal ontologyや利用者の業務workflowではありません。また、特定versionへ固定されたrelease scheduleでもありません。
+Milestoneは開発管理上の目印です。SOZAのUniversal ontologyでも、利用者の業務workflowでも、特定versionに結び付いたrelease scheduleでもありません。
 
 ```text
 Product Value
   → Product Milestone
+  → Open Question / Experiment
   → Requirement / Acceptance Scenario
   → Issue / ADR
   → Architecture / Contract
   → Implementation / Evidence
 ```
 
-未定の領域をMilestone文書だけでRequirementへ昇格させません。具体的な意味境界がまだ分からない場合は、チャット上の議論、資料検討、prototype、fixture、実証実験等を先に行い、その結果から独立した規範上の必要性が確認できた場合だけRequirementへ反映します。
+未定の領域をMilestone文書だけからRequirementへ昇格させません。意味境界や必要性がまだ明らかでない場合は、議論、資料検討、prototype、fixture、実証実験等を先に行い、独立した規範上の必要性が確認できた場合だけRequirementへ反映します。
 
 ## 2. Milestoneの読み方
 
-各Milestoneは、少なくとも次を分けて扱います。
+各Milestoneでは、少なくとも次を分けます。
 
 - **Outcome** — 製品として何が成立している必要があるか。
-- **Minimum Evidence** — そのMilestoneを成立とみなす最低限のEvidence。
-- **Current state** — 現在確認できている高さ。
-- **Open questions** — まだ先に決めない領域。
+- **Minimum Evidence** — 成立を判断する最低限のEvidence。
+- **Current state** — 現在どこまで確認できているか。
+- **Open questions** — 現時点では固定しない領域。
 
-Milestone間には依存関係がありますが、すべてを直列に完了させる必要はありません。上位価値を壊さない範囲で、実証に必要な作業は並行できます。
+Milestoneには依存関係がありますが、すべてを直列に完了させる必要はありません。上位価値を壊さない範囲で、実証に必要な作業は並行できます。
 
 ## 3. PMS-00 — Product Valueと製品境界が正本化されている
 
@@ -55,7 +56,7 @@ Design Evidence。
 
 **Established at Design level.**
 
-下位実装やCIの存在をもって、このMilestoneより上のOperational / Adoption Evidenceを主張しません。
+下位実装やCIの存在だけを理由に、Operational / Adoption Evidenceへは昇格させません。
 
 ## 4. PMS-01 — 耐久的なsemantic substrateを機械的に扱える
 
@@ -73,7 +74,7 @@ Design Evidence。
 
 **Scoped Executable Evidence available.**
 
-ただし、Contract単体のPASSは製品全体の利用可能性を意味しません。
+Contract単体のPASSは、製品全体が利用可能であることを意味しません。
 
 ## 5. PMS-02 — 一つの判断仕事をend-to-endで再構成できる
 
@@ -122,11 +123,7 @@ Interaction boundaryのDesign Evidenceと、最小prototypeまたはconformance�
 
 `product/interaction/SOZA_PRODUCT_INTERACTION.md`とADR-0028で、first usable Product Interactionをcanonical meaning上の操作境界として正本化しています。
 
-ISSUE-000053では、`runtime/go/interactionprobe`にhuman-oriented Surfaceとmachine-oriented Surfaceを実体化し、同じin-memory canonical sourceへ接続しました。既存`semanticruntime`型を再利用し、Recommendation / Decision / Capability Observation / Cognitive Method Applicationはcurrent validatorを通して保持します。Inquiry / Unknown / Conflictは、未対応意味を理解済みと偽らずopaqueな`not_verified` recordとして扱います。
-
-Semantic Runtime Conformance Run `33504002579`で、current Contract fixture再検査と`runtime/go`全体の`go test ./...`がsuccessしました。
-
-確認できた主な境界は次です。
+ISSUE-000053では、human-oriented Surfaceとmachine-oriented Surfaceを同じcanonical sourceへ接続し、次を限定範囲で確認しました。
 
 - machine側が追加したObservation / Recommendationをhuman側から再読できる。
 - human側Decisionをmachine側がDecisionとして再読できる。
@@ -138,8 +135,10 @@ Semantic Runtime Conformance Run `33504002579`で、current Contract fixture再�
 - post-decision Observationでhistorical Decision basisを書き換えない。
 - machine SurfaceであることからResponsibilityを推定しない。
 
+Semantic Runtime Conformance Run `33504002579`で、current Contract fixture再検査と`runtime/go`全体の`go test ./...`がsuccessしました。
+
 ```text
-reference probe PASS
+reference interaction probe PASS
   != production UX proven
   != supported protocol finalized
   != packaged product proven
@@ -172,7 +171,7 @@ Packaging / DeploymentのDesign Evidenceと、最小packageのExecutable Evidenc
 
 **Design baseline established / Minimum scoped Executable Evidence available.**
 
-`product/packaging/SOZA_PRODUCT_PACKAGING.md`とADR-0029で、最初に成立させるPackaging / Deployment ProfileをLocal Single-Node Packageとして正本化しました。
+`product/packaging/SOZA_PRODUCT_PACKAGING.md`とADR-0029で、Local Single-Node Packageを最初のPackaging Profileとして正本化しました。
 
 ```text
 Go runtime executable
@@ -181,38 +180,9 @@ Go runtime executable
   + portable semantic data
 ```
 
-runtime executableをcanonical semantic dataにはせず、filesystem pathもLogical Referenceにはしません。portable export / importにはcurrent Semantic Interchangeを再利用し、package専用Universal Contractは追加していません。
+ISSUE-000054では、filesystem Persistenceとbuild可能なGo executableを用い、process終了後の再読、copy / restore、Persistence交換、unknown Contractの`not_verified`保持、invalid state拒否等を限定範囲で確認しました。Semantic Runtime Conformance Run `33508376230`とPlan integrity Run `33508376256`はsuccessしています。
 
-ISSUE-000054では、filesystem Persistenceとbuild可能なGo executableを用いて、次を限定範囲で確認しました。
-
-- portable Semantic Interchangeをfilesystemへ保存できる。
-- in-memory runtime stateを破棄した後にも同じbytesとtyped recordを再構成できる。
-- 独立したsave processを終了した後、別processがdurable dataだけからbundleを再読できる。
-- unknown Contractをprocess越しでも`not_verified`のまま保持できる。
-- canonical bundle fileを別directoryへcopyし、restore先から再読できる。
-- filesystemからmemory Persistenceへportable bytesを移し、同じbundleを再読できる。
-- invalid / incomplete stateを正常packageとして扱わない。
-- physical data-root変更やPersistence交換をsemantic identity / Semantic Revisionへ持ち込まない。
-
-literal process probeを含むSemantic Runtime Conformance Run `33508376230`とPlan integrity Run `33508376256`はsuccessしました。
-
-ISSUE-000055では、Linux / amd64向けの**Local Reference Package**をdistribution artifactとして生成しました。
-
-Local Package Artifact Run `33509521544`では、次を一続きに検査しています。
-
-- 同一inputからreference binaryを2回buildし、byte-for-byte一致を確認する。
-- artifact version、source commit、targetをbuild identityとしてbinaryとmetadataへ持たせる。
-- file順、mtime、owner / groupを固定したarchiveを作り、SHA-256 checksumを生成する。
-- archiveを別directoryへ展開する。
-- 展開したartifact自身でSemantic Interchangeを保存してprocessを終了する。
-- 別processで同じdurable data rootから再読し、expected bundleを再構成する。
-- tar.gzとchecksumをGitHub Actions artifactとして保存する。
-
-Run `33509521544`で保存されたworkflow artifactは、artifact ID `9801021136`、workflow artifact digest `sha256:6282a2fe0b58dd023090d363e3323ce963a9f29c097f869ebab79b73aab2ba85`です。
-
-同一headではPlan integrity Run `33509521580`とSemantic Runtime Conformance Run `33509521596`もsuccessしました。
-
-このEvidenceにより、PMS-04が求めるPackaging / Deployment Designと「配布・保存・再開」の最小Executable Evidenceはreference profileの範囲で揃いました。
+ISSUE-000055ではLinux / amd64向けのLocal Reference Packageを生成し、二重buildのbyte一致、build identity、決定的archive、checksum、展開後の独立process save / reloadを検査しました。Local Package Artifact Run `33509521544`ではworkflow artifact ID `9801021136`、digest `sha256:6282a2fe0b58dd023090d363e3323ce963a9f29c097f869ebab79b73aab2ba85`が記録されています。同一headのPlan integrity Run `33509521580`とSemantic Runtime Conformance Run `33509521596`もsuccessしました。
 
 ```text
 PMS-04 Minimum scoped Evidence available
@@ -241,7 +211,7 @@ PMS-04 Minimum scoped Evidence available
 
 ### Outcome
 
-semanticなResponsibility / Authorityと、製品access controlを混同せずに、single-userからteam / external collaborationへ進めます。
+semanticなResponsibility / Authorityと製品access controlを混同せず、single-userからteam / external collaborationへ進めます。
 
 ```text
 authentication identity
@@ -260,37 +230,26 @@ security / collaboration boundaryのDesign Evidenceと、対象範囲のExecutab
 
 **Design baseline established / scoped Product Access separation Executable Evidence available / production IdP・team security pending.**
 
-`product/security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`とADR-0030で、Product Identity / Access / Collaboration boundaryを正本化しました。
+`product/security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`とADR-0030でProduct Identity / Access / Collaboration boundaryを正本化し、ISSUE-000056の`runtime/go/accessprobe`で次を限定範囲で確認しました。
 
-Product Access Scopeはtenant / workspace等に対応し得ますが、Product-localなsecurity / collaboration concernとして扱い、Universal semantic entityへ自動昇格させません。
-
-ISSUE-000056では`runtime/go/accessprobe`を実体化し、既存`interactionprobe.CanonicalStore`と`semanticruntime`を再利用して次を限定範囲で確認しました。
-
-- 旧・新IdP相当のauthentication identityを同じBounded Subjectへbindingできる。
+- 旧・新IdP相当identityを同じBounded Subjectへbindingできる。
 - identity交換後もhistorical DecisionのResponsibility Refを書き換えない。
 - semantic Responsibilityが存在してもProduct permissionがなければreadを拒否する。
 - Product `administer` permissionを与えてもsemantic Responsibilityを生成しない。
 - human / AI / serviceというactor kindだけからpermissionを推定しない。
-- identityを解決できない`not_evaluated`と、Policy上の`denied`を区別する。
-- external collaborator向けSelective Disclosureで非開示recordを`withheld`として扱い、fake Unknownを作らない。
+- `not_evaluated`と`denied`を区別する。
+- Selective Disclosureで非開示recordを`withheld`として扱う。
 - Disclosure Projection生成前後でcanonical sourceを変更しない。
-- Product Scopeのread permissionがなければProjection自体を返さない。
-
-初期probe headのSemantic Runtime Conformance Run `33511885433`はsuccessしました。
 
 このEvidenceは責務分離を支持しますが、production OIDC / IAM、formal RBAC / ABAC、credential / session lifecycle、production Selective Disclosure securityを実証するものではありません。
 
 ### Candidate Requirement
 
-Product accessをsemantic Responsibility / Authorityやactor kindから自動導出しない必要性は、Designとscoped probeの双方で確認できました。
-
-一方、reference probeで使った`read / append / review / share / administer` vocabulary、Product Access Scopeの粒度、Identity Binding lifecycleはまだRealization依存です。
-
-そのため、新しいStable Requirement / Scenario IDは現時点で追加せず、次をCandidate Requirementとして保持します。
+次をCandidate Requirementとして保持します。
 
 > SOZAの製品アクセス権は、semantic Responsibility / Authorityやactor kindから自動導出せず、認証identityとの対応を含むProduct Access Policyで独立に評価できる必要がある。
 
-production IdP、実team deployment、external collaborationの実証から、既存REQ-0012 / 0013 / 0017ではこのProduct failureを十分に表現できないことが確認された場合にStable Requirement化を再検討します。
+reference probeで用いたpermission vocabulary、Product Access Scopeの粒度、Identity Binding lifecycleはRealization依存であるため、新しいStable Requirement / Scenarioにはまだ昇格させません。
 
 ### Open questions
 
@@ -302,8 +261,6 @@ production IdP、実team deployment、external collaborationの実証から、�
 - security audit eventのretention / tamper resistance
 - enterprise IdP / directory integration
 - encryption / key management
-
-これらをreference probeのPASSだけでStable Requirementへ固定しません。
 
 ```text
 Product Access probe PASS
@@ -319,63 +276,88 @@ Product Access probe PASS
 
 synthetic fixtureだけでなく、実際のCognitive Method Realization、AI、外部SaaS、TEI、custom code等を接続し、実現手段を交換してもIntent、Decision、Responsibility、Provenance等が壊れないことを確認します。
 
+交換前後で同じ出力を得ることは要求しません。異なる出力や観測が生じても、それぞれの由来を保ったままhistorical Decisionを当時のbasisで再構成できることを求めます。
+
 ### Minimum Evidence
 
 複数の実Realization / Providerを用いたExecutable Evidence。必要に応じて限定されたOperational Evidenceも収集します。
 
 ### Current state
 
-**Partial / out-of-process reference exchange scoped Executable Evidence available / real external AI・SaaS・TEI pending.**
+**Partial / E2 Scoped Executable Evidence available / E3a Scoped Executable Evidence available / E3b live external integration pending.**
 
-`product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`で、交換してよいRealization / Providerと、交換後も判断記憶として守る意味を正本化しました。
+`product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`で、交換してよいRealization / Providerと、交換後にも判断記憶として守る意味を正本化しています。
 
-PMS-06のEvidenceは、少なくとも次の段階に分けて扱います。
+Evidenceは次の段階に分けます。
 
 ```text
 E1 Contract / in-process synthetic
   → E2 out-of-process reference exchange
-  → E3 real external integration
+  → E3a version-pinned external artifact integration
+  → E3b live external process / service integration
   → E4 operational portability
 ```
 
-current repositoryではE1に加え、ISSUE-000057でE2まで限定的に実証しました。
+### E2 — out-of-process reference exchange
 
-`runtime/go/realizationprobe`では、reference Provider A / Bとreference Method Realization A / BをSOZA runtimeとは別のOS processとしてbuild・起動します。Provider固有stateは既存Provider Adapterを通してcurrent Capability Observationへ戻し、Method Applicationは既存Cognitive Method Contractの`realization_ref`を保持します。
+ISSUE-000057では、SOZA runtimeとは別のOS processとしてreference Provider A / Bとreference Method Realization A / Bを実際にbuild・起動しました。
 
-Semantic Runtime Conformance Run `33516101445`では、current Contract fixture 31件の再検査と`runtime/go`全体の`go test ./...`が**success**しました。
+次を確認しています。
 
-確認した主な境界は次です。
-
-- Provider A / Bを別OS processとして起動し、異なるProvider固有state shapeを取得できる。
-- A / Bを別Provider identityとして保持しつつ、同じCapabilityへmappingできる。
+- 異なるProvider固有stateを別Provider identityとして保持し、同じCapabilityへmappingできる。
 - mapping後のCapability Observationをcurrent validatorへ戻せる。
-- 同じMethod Definitionに対し、二つのMethod Realizationを別OS processで実行できる。
-- 各Method Applicationが異なる`realization_ref`を保持できる。
-- Realizationごとに異なるRecommendationを生成しても、RecommendationをDecisionへ自動昇格しない。
-- Provider / Methodを交換した後も、交換前Decisionのbasis、Recommendation、Responsibility、unresolvedを変更しない。
-- failed Provider / Method processがcanonical sourceを変更しない。
+- 同じMethod Definitionに対し、異なるMethod Realizationを実行できる。
+- Method Applicationごとに異なる`realization_ref`を保持できる。
+- 異なるRecommendationを生成してもDecisionへ自動昇格しない。
+- Provider / Method交換後も交換前Decisionを変更しない。
+- failed external processがcanonical sourceを変更しない。
 
-交換の成功を「異なるRealizationが同じ文字列を返すこと」とは定義しません。重要なのは、どのRealization / Providerを用い、どのObservation / Recommendationが生じたかを区別したまま、historical Decisionを当時のbasisで読み直せることです。
+PR #29の最終headでは、Semantic Runtime Conformance Run `33526188215`、Plan integrity Run `33526188237`、Local Package Artifact Run `33526188216`がsuccessしました。
+
+### E3a — version固定した実外部artifact integration
+
+ISSUE-000058では、SOZA repository内で作ったreference processから一段進み、**SOZAとは別repositoryで独立にversion管理される実artifact**を扱いました。
+
+外部Cognitive Method側には、public repository `hat47x/cultural-substrate-weaving`の日本語版`weave` Skillを使っています。External Integration E3a Run `33528003902`では、commit固定のartifactをGitHub Actionsから実際に取得し、Git blob identityとpinned snapshotのbyte-for-byte一致を確認しました。その後、verified artifactをexisting `MethodRealization`へ結び付け、repository / commit / path等をCognitive Method Contractへ直接漏らさないことをGo testで確認しています。
+
+Capability Provider側には、private repository `hat47x/tei-platform`のversion固定したobserved deployment stateを使っています。取得時にsource Git blob identityを確認したpinned snapshotを用い、TEI固有の`activeApplications`、`databases`、`dataReadiness`等をAdapter内に閉じたまま、current Capability Observationへ必要な観測だけをmappingしました。
+
+source identity不一致時にはcanonical sourceを変更しないnegative caseも検査しています。
+
+初期E3a headでは次がsuccessしました。
+
+- External Integration E3a Run `33528003902`
+- Plan integrity Run `33528003813`
+- Local Package Artifact Run `33528003781`
+- Semantic Runtime Conformance Run `33528003760` のruntime-conformance job
+
+この結果から、E3aには限定されたExecutable Evidenceがあると判断します。
+
+ただし、E3全体の完了ではありません。
 
 ```text
-out-of-process reference exchange PASS
-  != real external AI / SaaS / TEI integration proven
-  != production network / credential / version portability proven
-  != Operational portability
+E3a PASS
+  != external Method execution PASS
+  != live private-repository acquisition PASS
+  != live TEI process / service integration PASS
+  != production credential / network / rate-limit portability
+  != E3b PASS
+  != E4 Operational portability
   != Release / Adoption Evidence
 ```
 
 ### Open questions
 
-- E3で最初に接続する実Cognitive Method Realization
+- E3bで最初に呼び出す実Cognitive Method runner
+- TEI CLIの既存JSON Surfaceのうち、最初にlive integrationへ使うもの
 - TEIと非TEI Providerをどの組み合わせで比較するか
-- 実外部Providerのcredential / rate limit / network failureをどう評価するか
+- credential / timeout / rate limit / network failureをどこまでProduct acceptanceへ含めるか
 - production Realization protocolを標準化する必要が本当にあるか
-- process-local protocolとportable Contractの境界
+- artifact sourceをGitHub以外へ交換したときのProvenance境界
 - Realization version交換時のExact Binding / Provenanceの必要水準
 - E4のOperational portabilityを何で測るか
 
-これらをE2のPASSだけでStable Requirementや正式protocolへ固定しません。
+E3aのPASSだけを理由に、新しいStable Requirement、Universal Contract、正式integration protocolへ固定しません。
 
 ## 10. PMS-07 — release可能な製品として成立する
 
@@ -391,7 +373,7 @@ Release Evidence。
 
 **Not Yet Verified for the current Product Shape as a whole.**
 
-PMS-04のLocal Reference PackageはPackagingのMinimum Executable Evidenceであり、PMS-07のProduct Releaseではありません。reference archive、workflow artifact、個別CI PASSをRelease Evidenceへ自動昇格させません。
+PMS-04のLocal Reference PackageやPMS-06のE3a artifact integrationは、いずれも対象範囲のExecutable Evidenceです。個別CI PASSをProduct Releaseへ自動昇格させません。
 
 ## 11. PMS-08 — 実運用と利用者成果からProduct Valueを検証できる
 
@@ -411,7 +393,7 @@ Operational Evidence、および対象価値に応じたAdoption / Outcome Evide
 
 PMS-00〜08とは別に、主要な技術変化・利用知見・反証Evidenceが得られた場合は、評価時点の現在から10〜50倍程度先を見渡すMoving Future Horizonで上位文書を再監査します。
 
-これは「最後に行う工程」ではありません。どのMilestoneでも、下位Evidenceが上位仮説を反証した時点でProduct Value / Vision / Principlesへ戻ります。
+これは最後に一度だけ行う工程ではありません。どのMilestoneでも、下位Evidenceが上位仮説を反証した時点でProduct Value / Vision / Principlesへ戻ります。
 
 ## 13. 未定領域の扱い
 
@@ -425,4 +407,4 @@ Open Questionを直接Stable Requirementへ飛ばしません。
 
 ## 14. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、Product Identity / Access / Collaboration、Realization / Provider Exchange、REQ-0001〜0022、SCN-0005 / 0007 / 0008 / 0010 / 0012 / 0013 / 0014 / 0018、ADR-0024 / 0025 / 0028 / 0029 / 0030、ISSUE-000046 / 000047 / 000053〜000057、current Go runtime、Interaction / Packaging / Product Access / Realization exchange probeとcurrent CI Evidenceへ戻ってMilestoneを再監査しました。PMS-03はscoped Interaction Executable Evidence、PMS-04はLocal Reference PackageによるMinimum scoped Executable Evidence、PMS-05はProduct Access責務分離のDesignとscoped Executable Evidence、PMS-06はout-of-process reference exchangeのE2 scoped Executable Evidenceまでを明確にしています。一方、production IdP、formal access policy、実AI / SaaS / TEI integration、Operational portability、Product Release、Adoption / Outcome Evidenceは未検証のままです。probe固有のpermission vocabulary、process-local JSON、binary構成、Provider ID等をUniversal Core、Stable Requirement、正式protocolへ先に固定しない境界も維持しました。そのうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、Product Identity / Access / Collaboration、Realization / Provider Exchange、REQ-0001〜0022、SCN-0005 / 0007 / 0008 / 0010 / 0012 / 0013 / 0014 / 0018、ADR-0024 / 0025 / 0028 / 0029 / 0030、ISSUE-000046 / 000047 / 000053〜000058、current Go runtime、Interaction / Packaging / Product Access / Realization exchange / External Integration E3aのactual Evidenceへ戻ってMilestone全体を再監査した。PMS-03はscoped Interaction Executable Evidence、PMS-04はLocal Reference PackageによるMinimum scoped Executable Evidence、PMS-05はProduct Access責務分離のDesignとscoped Executable Evidence、PMS-06はE2のout-of-process reference exchangeとE3aのversion-pinned external artifact integrationまでを明確にしている。一方、production IdP、formal access policy、external Methodのlive実行、live TEI process / service integration、Operational portability、Product Release、Adoption / Outcome Evidenceは未検証のままである。外部source artifactのbytesはEvidenceとして改稿せず、SOZAが作成する本文について、意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
