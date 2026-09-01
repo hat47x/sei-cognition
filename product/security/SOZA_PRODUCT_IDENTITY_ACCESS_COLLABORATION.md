@@ -74,7 +74,7 @@ Product Access Scope
 
 Product Access ScopeのIDをDecision、Responsibility、Logical Referenceのsemantic identityへ流用することも要求しません。
 
-## 4. Identity binding
+## 4. Identity Binding
 
 認証Providerが返すidentityとBounded Subjectの対応は、**Identity Binding**としてProduct security layerに置きます。
 
@@ -110,7 +110,7 @@ password hash、access token、refresh token、session ID、MFA secret、private
 
 Product Access Policyは、現在の認証主体がProduct Access Scope内でどのoperationを行えるかを評価します。
 
-最小operation vocabularyの候補は次です。
+reference probeで用いる最小operation vocabularyは次です。
 
 - `read`
 - `append`
@@ -118,7 +118,7 @@ Product Access Policyは、現在の認証主体がProduct Access Scope内でど
 - `share`
 - `administer`
 
-これはProduct policy vocabularyであり、Universal semantic role hierarchyではありません。
+これは現時点のProduct policy / probe vocabularyであり、Universal semantic role hierarchyでも、将来の正式なProduct permission vocabularyでもありません。
 
 ### 5.1 Responsibility / Authorityからpermissionを推定しない
 
@@ -197,7 +197,7 @@ withheld
 
 別organizationや別identity providerの主体も、Product Access Scopeへ限定的に参加できます。
 
-外部主体へ内部directory全量やcredentialを共有することは要求しません。Bounded Subject aliasとSelective Disclosureによって、必要な範囲だけを共有できます。
+外部主体へ内部directory全量やcredentialを共有することは要求しません。Bounded SubjectとSelective Disclosureによって、必要な範囲だけを共有できる構成を優先します。
 
 ## 8. Authentication / Authorization Providerとの境界
 
@@ -226,13 +226,19 @@ SOZAへrecordを書き込めることは、TEIやSaaSでoperationを実行でき
 
 ただし、現時点ではUniversal `ProductAccessDecision` Contractを追加しません。まずProduct security Evidenceとして扱い、複数deployment / Providerで共通の耐久的意味が必要だと実証された場合に再検討します。
 
-## 10. Requirement / Acceptance
+## 10. Requirement / Acceptanceの扱い
 
-この境界から、既存Requirementだけでは不足するproduct security上の独立した規範として、REQ-0023を追加します。
+Product Access Controlをsemantic Responsibility / Authorityやactor kindから分離することには、独立したProduct security上の必要性があります。
 
-> SOZAの製品アクセス権は、semantic Responsibility / Authorityやactor kindから自動導出してはならず、認証identityとの対応を含むProduct Access Policyで独立に評価できなければならない。
+一方、read / append / review / share / administer等のpermission vocabulary、Identity Bindingの適用範囲、Product Access Scopeのgranularityはまだreference probe段階です。
 
-既存のREQ-0012 / 0013 / 0017と組み合わせて、SCN-0019でIdP交換、product adminとDecision Responsibilityの分離、Selective Disclosureを検査します。
+そのため、現時点では次を**Candidate Requirement**として保持します。
+
+> SOZAの製品アクセス権は、semantic Responsibility / Authorityやactor kindから自動導出せず、認証identityとの対応を含むProduct Access Policyで独立に評価できる必要がある。
+
+ISSUE-000056のprobe結果から、既存REQ-0012 / 0013 / 0017へ統合できるか、新しいStable Requirement / Acceptance Scenarioが必要かを再監査します。
+
+Stable IDはこのDesign baselineだけを理由に先取りしません。
 
 ## 11. first reference probe
 
@@ -245,11 +251,11 @@ ISSUE-000056では、production IdPを導入する前にGoの小さなreference 
 3. Responsibility Refを持つ主体でもProduct permissionがなければaccessを拒否する。
 4. Product administratorでもsemantic Responsibilityを自動生成しない。
 5. actor kindがhuman / AIであることからpermissionを推定しない。
-6. identity解決不能の`not evaluated`とPolicy上の`denied`を区別する。
-7. external collaborator向けProjectionで非開示recordを`withheld`として表し、`unknown` recordを捏造しない。
-8. disclosure Projection生成前後でcanonical sourceを変更しない。
+6. identity解決不能の`not_evaluated`とPolicy上の`denied`を区別する。
+7. external collaborator向けProjectionで非開示recordを`withheld`として表し、fake Unknown recordを作らない。
+8. Disclosure Projection生成前後でcanonical sourceを変更しない。
 
-このprobeのPASSをproduction securityやOIDC integrationの成立へ昇格させません。
+probeのPASSをproduction securityやOIDC integrationの成立へ昇格させません。
 
 ## 12. 現時点で固定しないこと
 
@@ -269,7 +275,7 @@ ISSUE-000056では、production IdPを導入する前にGoの小さなreference 
 ## 13. Evidence状態
 
 - Product Identity / Access / Collaboration Design Evidence: **Established by this baseline**
-- Product access separation Executable Evidence: **Not Yet Verified at document creation time**
+- Product access separation Executable Evidence: **Scoped probe implemented; final CI synchronization pending**
 - external IdP integration: **Not Yet Verified**
 - production Selective Disclosure: **Not Yet Verified**
 - Release Evidence: **Not Yet Verified**
@@ -292,4 +298,4 @@ ISSUE-000056では、production IdPを導入する前にGoの小さなreference 
 
 ## 15. Natural Japanese review
 
-Product Value、PMS-05、ADR-0004 / 0006 / 0016、REQ-0012 / 0013 / 0017、SCN-0007 / 0012、Product InteractionとLocal Single-Node Packagingへ戻り、identity、product access、semantic Responsibility / Authority、external execution authorizationを別責務として整理しました。tenant / workspaceや特定IdPをUniversal Coreへ先に固定せず、外部identity交換後もhistorical subject referenceを保ち、Selective Disclosureでwithheldとunknownを混同しない境界を中心に置いています。そのうえで、要求の強さ、未決事項、Evidenceの高さを変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Value、PMS-05、ADR-0004 / 0006 / 0016、REQ-0012 / 0013 / 0017、SCN-0007 / 0012、Product Interaction、Local Single-Node Packaging、`runtime/go/accessprobe`へ戻り、identity、product access、semantic Responsibility / Authority、external execution authorizationを別責務として整理しました。tenant / workspaceや特定IdP、permission vocabularyをUniversal CoreやStable Requirementへ先に固定せず、外部identity交換後もhistorical subject referenceを保ち、Selective Disclosureでwithheldとunknownを混同しない境界を中心に置いています。そのうえで、要求の強さ、未決事項、Evidenceの高さを変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
