@@ -210,14 +210,15 @@ Interaction probeの実装都合だけでREQ / SCNを追加しない。
 - [x] Product Interaction / PMS-03 / Evidence文書へ結果を同期する。
 - [x] Requirement / SCN追加の要否をprobe結果から再監査する。今回は追加しない。
 - [x] 自然な日本語全文再ドラフトと最終意味監査を行う。
-- [ ] 最終headの対象CIをsuccessさせる。
+- [x] 対象CIをsuccessさせる。
 
-初回実装headではSemantic Runtime Conformance Run `33503251170`がsuccessした。追加negative testと文書同期後の最終headでも対象CIを再確認し、そのRunを本Issueへ追記する。
+追加negative testと上流文書・registry同期を含むhead `5d230c86845c32d1df5bb35192221f2b25105d71`で、Semantic Runtime Conformance Run `33504002579`とPlan integrity Run `33504002562`がともに**success**した。
 
 ## Evidence state
 
 - Design Evidence: **Satisfied**
-- Executable Evidence: **Scoped Evidence available** — `runtime/go/interactionprobe`のtestとSemantic Runtime Conformance Run `33503251170`。
+- Executable Evidence: **Scoped Evidence available** — `runtime/go/interactionprobe`のcurrent testとSemantic Runtime Conformance Run `33504002579`。
+- Planning / document integrity: **Satisfied for this work unit** — Plan integrity Run `33504002562`。
 - Release Evidence: **Not Yet Verified**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
@@ -234,4 +235,4 @@ Interaction probeの実装都合だけでREQ / SCNを追加しない。
 
 ## Natural Japanese review
 
-Product Interaction baseline、ADR-0028、PMS-03、current semanticruntime、journeyharness、V6 / V7 Projection evaluation、`runtime/go/interactionprobe`のactual test、Semantic Runtime Conformance Run `33503251170`を照合した。probeで確認できたSurface交換可能性と、production UX、protocol、Storage、Identity等の未検証範囲を分離している。また、probe固有のin-memory storeやSurface DTOをUniversal Coreへ昇格させず、既存Requirement / Scenarioを先に再利用する境界を維持した。そのうえで、意味、要求強度、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+Product Interaction baseline、ADR-0028、PMS-03、current semanticruntime、journeyharness、V6 / V7 Projection evaluation、`runtime/go/interactionprobe`のactual test、Semantic Runtime Conformance Run `33504002579`、Plan integrity Run `33504002562`を照合した。probeで確認できたSurface交換可能性と、production UX、protocol、Storage、Identity等の未検証範囲を分離している。また、probe固有のin-memory storeやSurface DTOをUniversal Coreへ昇格させず、既存Requirement / Scenarioを先に再利用する境界を維持した。そのうえで、意味、要求強度、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
