@@ -3,24 +3,9 @@ name: Release Candidate Gate
 on:
   push:
     branches:
-      - main
-      - "develop/**"
+      - "develop/v0.1.0"
     tags:
-      - "v*"
-    paths:
-      - "README.md"
-      - "product/**"
-      - "requirements/**"
-      - "architecture/**"
-      - "contracts/**"
-      - "evaluation/**"
-      - "fixtures/**"
-      - "plan/**"
-      - "release/**"
-      - "runtime/**"
-      - "tools/**"
-      - ".github/workflows/release-candidate.yml"
-  pull_request:
+      - "v0.1.0"
     paths:
       - "README.md"
       - "product/**"

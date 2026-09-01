@@ -166,9 +166,27 @@ candidate A tested
   != B tested
 ```
 
-## 11. tag push
+同一commitをfast-forwardで`main`へ統合した場合、branch名が変わっただけでsource commit / treeは変化しません。必要に応じて`workflow_dispatch`から同じrefを再検査できますが、同一commitであること自体を別Artifactの生成と混同しません。
 
-Release Candidate Gate workflowは`develop/**`、`main`に加え`v*` tag pushでも起動できる設計とします。
+## 11. workflowのversion境界
+
+v0.1.0のRelease Candidate Gateは、v0.1.0固有の`release-candidate.json`とPlan allow-listを検査します。そのため、将来の`develop/v0.2.0`等へ同じgateを無条件に適用してはなりません。
+
+自動実行対象は次へ限定します。
+
+```text
+develop/v0.1.0
+v0.1.0 tag
+```
+
+加えて`workflow_dispatch`で必要なrefを明示して再実行できます。
+
+```text
+v0.1.0 candidate policy
+  != v0.2.0 development policy
+```
+
+将来versionは、そのversionのrelease scope / blocker / allow-listを定めたうえで別のcandidate policyを用意します。v0.2.0で正当にOpen / In ProgressとなるIssueを、v0.1.0 release blockerとして誤検出しません。
 
 actual `v0.1.0` tag作成後は、tagが指すcommitで同じ統合gateがsuccessしたことをRelease Evidence記録へ含めます。
 
@@ -231,7 +249,7 @@ candidate gate verified
 現時点の状態は次です。
 
 - Release Candidate design: **Satisfied**
-- Release Candidate executable gate: **Satisfied for source commit `4ee3f757...`**
+- Release Candidate executable gate: **Satisfied for tested source commits recorded in current traceability / CI**
 - Release Evidence: **Not Yet Verified**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
@@ -240,4 +258,4 @@ candidate gate verified
 
 ## 16. 自然な日本語レビュー
 
-SOZA_VALUE_ACCEPTANCE、ADR-0018、DEVELOPMENT_WORKFLOW、current Product / Requirements / Contract / Profile / runtime / evaluation、current Plan、actual Release Candidate Gate Runを照合しました。そのうえで、v0.1.0をsemantic development baselineのsource releaseとするscope、candidate identity、統合gate、actual releaseへの昇格条件、非主張範囲、初回candidate Evidenceを整理しました。最後に、Evidence高さや技術的条件を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+SOZA_VALUE_ACCEPTANCE、ADR-0018、DEVELOPMENT_WORKFLOW、current Product / Requirements / Contract / Profile / runtime / evaluation、current Plan、actual Release Candidate Gate Run、次版branchへの移行条件を照合しました。そのうえで、v0.1.0をsemantic development baselineのsource releaseとするscope、candidate identity、統合gate、actual releaseへの昇格条件、非主張範囲、candidate Evidence、workflowのversion境界を整理しました。最後に、Evidence高さや技術的条件を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
