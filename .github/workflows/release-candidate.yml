@@ -1,0 +1,120 @@
+name: Release Candidate Gate
+
+on:
+  push:
+    branches:
+      - main
+      - "develop/**"
+    tags:
+      - "v*"
+    paths:
+      - "README.md"
+      - "product/**"
+      - "requirements/**"
+      - "architecture/**"
+      - "contracts/**"
+      - "evaluation/**"
+      - "fixtures/**"
+      - "plan/**"
+      - "release/**"
+      - "runtime/**"
+      - "tools/**"
+      - ".github/workflows/release-candidate.yml"
+  pull_request:
+    paths:
+      - "README.md"
+      - "product/**"
+      - "requirements/**"
+      - "architecture/**"
+      - "contracts/**"
+      - "evaluation/**"
+      - "fixtures/**"
+      - "plan/**"
+      - "release/**"
+      - "runtime/**"
+      - "tools/**"
+      - ".github/workflows/release-candidate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-candidate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.x"
+          cache-dependency-path: runtime/go/go.mod
+
+      - name: Install checker dependencies
+        run: python -m pip install --disable-pip-version-check -r tools/contract-check-requirements.txt
+
+      - name: Compile release and registry tools
+        run: |
+          python3 -m py_compile \
+            plan/scripts/check_plan_registry.py \
+            plan/scripts/check_requirements_registry.py \
+            plan/scripts/test_check_requirements_registry.py \
+            tools/check_contract_conformance.py \
+            tools/check_representation_profiles.py \
+            tools/check_release_candidate.py \
+            evaluation/v6-v7/check_projection_evaluation.py
+
+      - name: Gate 1 - Plan integrity
+        run: python3 plan/scripts/check_plan_registry.py
+
+      - name: Gate 2 - Requirements registry
+        run: |
+          python3 plan/scripts/test_check_requirements_registry.py
+          python3 plan/scripts/check_requirements_registry.py
+
+      - name: Gate 3 - Contract conformance
+        run: python3 tools/check_contract_conformance.py
+
+      - name: Gate 4 - Representation Profile fixtures
+        run: python3 tools/check_representation_profiles.py
+
+      - name: Gate 5 - commit-pinned RFC 8785 JCS probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          probe_dir="$(mktemp -d)"
+          cp tools/jcs_probe.go "$probe_dir/main.go"
+          cd "$probe_dir"
+          go mod init soza.local/jcsprobe
+          go get github.com/gowebpki/jcs@1a4242a66e1a8e03d7458324d0bc95c327527cbb
+          go run . "$GITHUB_WORKSPACE/fixtures/representation-profiles/jcs-v1alpha1.json"
+
+      - name: Gate 6 - Semantic Runtime conformance
+        working-directory: runtime/go
+        run: go test ./...
+
+      - name: Gate 7 - V6 V7 Projection evaluation
+        run: python3 evaluation/v6-v7/check_projection_evaluation.py
+
+      - name: Gate 8 - Release candidate policy and bound report
+        run: |
+          mkdir -p generated/release-candidate
+          python3 tools/check_release_candidate.py \
+            --report generated/release-candidate/v0.1.0-report.json
+
+      - name: Upload candidate report
+        uses: actions/upload-artifact@v4
+        with:
+          name: soza-v0.1.0-release-candidate-${{ github.sha }}
+          path: generated/release-candidate/v0.1.0-report.json
+          if-no-files-found: error
+          retention-days: 30
