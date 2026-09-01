@@ -1,6 +1,6 @@
 # ISSUE-000050: end-to-end Semantic Product Journey harnessを実体化する
 
-Status: **In Progress**  
+Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0005, ADR-0008, ADR-0009, ADR-0018, ADR-0020, ADR-0021, ADR-0022, ADR-0025**  
 Updated: 2026-09-01
@@ -68,8 +68,6 @@ Inquiry、Unknown、execution receipt等でcurrent Universal Contractを持た�
 - Projectionがcanonical recordsと併存してもJourney検査結果を変えない。
 - canonical Decisionを除去しProjectionだけを残した場合、Decision欠落としてFAILする。
 - Projectionのsummary text等からDecision meaningを推測復元しない。
-
-主なSemantic Runtime ConformanceはRun `33478127484`で**success**した。Plan integrityも同一headでRun `33478127535`が**success**した。
 
 ## 評価用Journey manifest
 
@@ -161,7 +159,15 @@ actual Go testとして、少なくとも次を実装済みである。
 - Run `33477245347` — first in-memory harness: **success**
 - Run `33477970035` — Semantic Interchange normal journey追加後: **success**
 - Run `33478127484` — Projection非権威追加後: **success**
-- Plan integrity Run `33478127535`: **success**
+- Run `33478838079` — Product Requirements再評価後のSemantic Runtime Conformance: **success**
+- Run `33478838088` — Product Requirements再評価後のRequirements Registry Conformance: **success**
+- Run `33478838032` — Product Requirements再評価後のV6 V7 Projection Evaluation: **success**
+- Run `33478838062` — Product Requirements再評価後のPlan integrity: **success**
+- Merge commit `3295786702b04b2adde5132bd7656ec2500e7b0d` のpush CI:
+  - Run `33496402040` — Semantic Runtime Conformance: **success**
+  - Run `33496402082` — Requirements Registry Conformance: **success**
+  - Run `33496402054` — V6 V7 Projection Evaluation: **success**
+  - Run `33496402010` — Plan integrity: **success**
 
 ## Scope
 
@@ -246,10 +252,10 @@ Decisionまでで終了し、external executionがなくてもDecision recordと
 
 ### Evidence update
 
-- [ ] SCN-0018のCurrent Evidenceを、確認済み範囲だけ`Partially Satisfied`へ更新する。
-- [ ] 関連REQのExecutable Evidenceを過大主張せず再評価する。
-- [ ] Product Value Traceabilityへend-to-end harnessのscopeを反映する。
-- [ ] component-level PASSとProduct Journey PASSの差をEvidence文書へ残す。
+- [x] SCN-0018のCurrent Evidenceを、確認済み範囲だけ`Partially Satisfied`へ更新する。
+- [x] 関連REQのExecutable Evidenceを過大主張せず再評価する。
+- [x] Product Value Traceabilityへend-to-end harnessのscopeを反映する。
+- [x] component-level PASSとProduct Journey PASSの差をEvidence文書へ残す。
 
 ### Higher evidence
 
@@ -259,25 +265,22 @@ Decisionまでで終了し、external executionがなくてもDecision recordと
 
 本IssueをResolvedにしても、これらを自動的にSatisfiedへ上げない。
 
-## 次の実装順序
+## Resolution
 
-1. SCN-0018 / Requirement / Product Value Traceabilityへ、Run `33478127484`で確認できた範囲だけEvidenceを反映する。
-2. component-level PASSとend-to-end Product Journey PASSの差をEvidence文書へ明示する。
-3. Evidence反映後に本IssueをResolvedへ移せるか最終監査する。
-4. 必要なら専用CI名へ分離する。現時点ではSemantic Runtime Conformance内の`go test ./...`で検査する。
-5. 追加・更新文書を自然な日本語へ全文再ドラフトし、最終意味監査する。
-6. 対象CIをsuccessさせる。
+本Issueで必要としていたsynthetic / fixture-scopedなend-to-end Product Journey harnessと、そのEvidence反映は完了した。
 
-CI failureを検出した場合は、原因を解消してsuccessを確認してから後続作業へ進む。
+SCN-0018は、normal / uncertain / collaborative / provider replacement / no-executionの各経路、Semantic Interchange loader、Recommendation / Decision分離、Responsibility分離、execution後Observationの時間境界、historical Decision非改変、unresolved carry / reopen、unsupported recordの`not_verified`保持、Projection非権威までを一続きのExecutable Evidenceとして`Partially Satisfied`にできる状態となった。
+
+一方、production UI、production Provider / execution engine、実Authorization、長期運用上のreopen、Release / Operational / Adoption / Outcome Evidenceは本Issueの完了条件ではなく、未検証のまま明示的に残す。component-level PASSをproduction Product Journey全体の成立へ読み替えない。
 
 ## Evidence state
 
 - Design Evidence: **Satisfied for the current harness structure** — 既存Contractを束ねる評価用Journey manifestと、Interchange loaderを通るnormal pathを定義した。
-- Executable Evidence: **Partially Satisfied for SCN-0018** — Run `33478127484`でnormal / uncertain / collaborative / provider replacement / no-execution、temporal integrity、historical Decision非改変、unsupported record、Projection非権威をfixture-scopedに検査できた。
+- Executable Evidence: **Partially Satisfied for SCN-0018** — normal / uncertain / collaborative / provider replacement / no-execution、temporal integrity、historical Decision非改変、unsupported record、Projection非権威をfixture-scopedに検査できた。マージ後の`develop/v0.2.0`でもRun `33496402040`を含む対象CIがsuccessしている。
 - Release Evidence: **Not Yet Verified**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
 
 ## Natural Japanese review
 
-Product Shape、`PRODUCT_JOURNEY_COMPOSITION.md`、SCN-0018、REQ-0001〜REQ-0022、current Semantic Reference / Decision Memory / Capability Observation / Semantic Interchange / Cognitive Method Contract、first runtime、V6/V7 Projection evaluationへ戻り、三段階のExecutable sliceを再整理した。Journeyを表すためだけにUniversal Contractを追加せず、評価用manifestは検査構成に限定し、耐久的な意味は既存record側へ残している。Run `33478127484`で実際に確認したnormal Interchange path、historical Decision非改変、Projection非権威を含む範囲だけExecutable Evidenceを`Partially Satisfied`として記録し、production UI、Release、Operational、Adoption / Outcomeへは昇格させていない。そのうえで、意味、規範強度、非対象範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+Product Shape、`PRODUCT_JOURNEY_COMPOSITION.md`、SCN-0018、REQ-0001〜REQ-0022、current Semantic Reference / Decision Memory / Capability Observation / Semantic Interchange / Cognitive Method Contract、first runtime、V6/V7 Projection evaluationへ戻り、三段階のExecutable sliceとEvidence反映を再整理した。Journeyを表すためだけにUniversal Contractを追加せず、評価用manifestは検査構成に限定し、耐久的な意味は既存record側へ残している。実際に検査したsynthetic / fixture-scopedな範囲だけExecutable Evidenceを`Partially Satisfied`として記録し、production UI、Release、Operational、Adoption / Outcomeへは昇格させていない。そのうえで、意味、規範強度、非対象範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
