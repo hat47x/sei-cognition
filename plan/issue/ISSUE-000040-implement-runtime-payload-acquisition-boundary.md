@@ -1,6 +1,6 @@
 # ISSUE-000040: Exact Binding検証のpayload取得境界を実装する
 
-Status: **Open**  
+Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0007, ADR-0008, ADR-0009, ADR-0022, ADR-0023**  
 Updated: 2026-09-01
@@ -19,13 +19,11 @@ Payload acquisition
 
 ## Background
 
-current Verifier Registryは`[]byte`のpayloadを受け取れば、JCS / raw-bytes Profileに従って`verified / failed / not_verified`を返せる。
+Verifier Registryはpayload bytesを受け取れば、JCS / raw-bytes Profileに従って`verified / failed / not_verified`を判定できる。一方、実際のExact Binding再検証では、payloadが別Storageや外部Sourceに存在する場合がある。
 
-一方、実際のExact Binding再検証では、payloadが別Storageや外部Sourceに存在する場合がある。
+Storage locator、HTTP status、filesystem path、object key等をExact Bindingへ直接埋め込むとstorage-neutralityが崩れる。また、取得不能や一時的I/O障害をdigest mismatchへ変換すると、`not_verified != failed`というVerification Outcome境界を壊す。
 
-ここでStorage locator、HTTP status、filesystem path、object key等をExact Bindingへ直接埋め込むと、ADR-0007のstorage-neutralityが崩れる。また、取得不能をdigest mismatchへ変換するとADR-0009の`not_verified != failed`を壊す。
-
-そのため、source固有の取得処理を交換可能なruntime boundaryとして分離する。
+そのため、source固有の取得処理を交換可能なruntime boundaryとして分離した。
 
 ## Product / Requirement trace
 
@@ -42,42 +40,71 @@ current Verifier Registryは`[]byte`のpayloadを受け取れば、JCS / raw-byt
 - SCN-0008 — Storageを交換する
 - SCN-0010 — 可変Artifact更新後に過去Decisionを再構成する
 
-## Boundary
+Product Value TraceabilityとRuntime Conformance Evidenceには、今回のPayload Source boundaryを限定Executable Evidenceとして反映済みである。
 
-runtime側では、概念的に次を分ける。
+SCN-0008 / SCN-0010については、actual Storage migrationや長期production更新そのものを検証したわけではないため、Scenario全体の達成状態へは昇格させない。
+
+## Implemented boundary
+
+runtimeでは次を分離した。
 
 ```text
 Exact Binding
   ↓
-Payload request
+PayloadRequest
   ↓
-Payload Source / Adapter
+PayloadSource
   ↓
-Payload acquisition result
+PayloadLoadResult
   ↓
 Verifier Registry
   ↓
-Verification Outcome
+VerificationOutcome
 ```
 
-Payload Sourceは交換可能なruntime implementationであり、Universal Contract familyではない。
+実装:
 
-## Required semantics
+```text
+runtime/go/semanticruntime/payload_source.go
+runtime/go/semanticruntime/payload_source_test.go
+```
 
-### 1. available payload
+### PayloadRequest
 
-sourceがpayloadを取得できた場合、そのbytesを変更せずVerifier Registryへ渡す。
+Exact Bindingとcaller-supplied `MaxBytes`をPayload Sourceへ渡す。`MaxBytes`はlocal runtime policyであり、Universal Coreの固定値ではない。
+
+### PayloadSource
+
+filesystem、object store、remote artifact service等を将来接続できる交換可能なruntime interfaceとした。
+
+Storage path、object key、HTTP details、credential、retry等をUniversal Contractへ持ち込まない。
+
+### PayloadLoadResult
+
+取得結果では次を分ける。
+
+- `Available`
+- payload bytes
+- opaque `SourceRef`
+
+`SourceRef`はruntime metadataであり、Exact Binding identityやRepresentation Profileのcanonical fieldではない。
+
+## Verified semantics
+
+### available payload
+
+sourceが取得したbytesをPayload Source側では変更せずVerifier Registryへ渡す。
 
 ```text
 source payload bytes
   == verifier input bytes
 ```
 
-JCS等のcanonicalizationはPayload SourceではなくRepresentation Verifierが担当する。
+JCS canonicalization等はPayload SourceではなくRepresentation Verifierが担当する。
 
-### 2. unavailable payload
+### unavailable payload
 
-retention、non-disclosure、not found、source未接続等によりpayloadを取得できない場合、Exact Bindingを`failed`へ変換しない。
+payloadを取得できない場合は`not_verified`とする。
 
 ```text
 payload unavailable
@@ -86,82 +113,98 @@ payload unavailable
 != digest mismatch
 ```
 
-### 3. operational acquisition error
+### operational acquisition error
 
-一時的I/O障害等のsource errorもcontent mismatchではない。
+一時的なsource errorはcontent mismatchではない。
 
-semantic outcomeは`not_verified`としつつ、runtime callerが運用上のerrorを別に観測できるようにする。
+- semantic outcome: `not_verified`
+- operational error: 別戻り値
 
 ```text
-semantic Verification Outcome
+Verification Outcome
   != operational acquisition error
 ```
 
-### 4. resource limit
+### resource limit
 
-local runtimeのsize limit等でpayloadを読み込めない場合も、contentが誤っていると推定しない。
+caller指定のlocal size limitを超えた場合もcontent failureとは推定しない。
 
-```text
-local verification limit exceeded
-  → not_verified
-```
+- outcome: `not_verified`
+- error: `ErrPayloadVerificationLimitExceeded`
 
-limit値自体をUniversal Core定数にはしない。caller / runtime policyから与える。
+limit値はUniversal Coreへ固定しない。
 
-### 5. source provenance
+### zero-length payload
 
-source implementationは必要に応じてopaqueな`source_ref`等のmetadataを返してよいが、それをExact Binding identityやRepresentation Profileへ混ぜない。
+`Available=true`で0 byteのpayloadは「取得不能」ではなく、有効な0 byte payloadとして検証できる。
 
-Provider固有locatorのUniversal schemaは作らない。
+### source provenance / metadata
 
-## Non-goals
+`SourceRef`等のsource固有metadataはcallerが運用上観測できるが、入力Exact BindingやVerification Outcomeのsemantic identityへコピーしない。
 
-- S3、MinIO、Git、HTTP、filesystem等のproduction adapterを一括実装すること。
-- credential / Authorization処理をUniversal Contract化すること。
-- streaming verifierを今回の必須条件にすること。
-- payload cache policyを固定すること。
-- source locatorをLogical ReferenceやExact Bindingのcanonical fieldへ追加すること。
-- acquisition成功をhistorical reconstruction全体の成功へ昇格させること。
+## Executed experiments
 
-## Required experiments
+synthetic Payload SourceによるGo testsで、Required experimentsを次のとおり確認した。
 
 1. available raw payload + matching digest → `verified`。
-2. available payload + digest mismatch → `failed`。
-3. sourceが`available=false` → `not_verified`。
-4. source operational error → outcomeは`not_verified`、errorは別に返る。
+2. available payload + digest mismatch → `failed`、acquisition errorなし。
+3. `Available=false` → `not_verified`。
+4. operational source error → `not_verified`とerrorを分離。
 5. source未設定 → `not_verified`。
-6. zero-length payloadは「取得不能」ではなく、availableな0 byteとして扱える。
-7. caller指定limitを超えるpayload → `not_verified`であり`failed`ではない。
-8. source metadata / locatorがExact Bindingへ書き戻されない。
-9. JCS payloadでもPayload Source側はJSON normalizationを行わない。
-10. current verifier / semantic runtime / Provider Adapter testsが回帰しない。
+6. zero-length available payload → 通常のpayloadとして`verified`可能。
+7. caller指定limit超過 → `not_verified` + local limit error。
+8. `SourceRef`を保持しつつExact Bindingを変更しない。
+9. JCS payloadをSource側でnormalizeせず、Verifier側のcanonicalizationで検証する。
+10. `go test ./...`でsemantic runtime、Provider Adapter、Verifier Registry、Payload Sourceを同時に回帰検査する。
 
-## Deliverables
+## Executable Evidence
 
-- runtimeのPayload Source interface / request / result型。
-- Payload SourceからVerifier Registryへ接続するorchestration。
-- `not_verified`とoperational errorの分離。
-- caller-supplied payload size limit。
-- synthetic sourceを使ったGo tests。
-- Runtime Conformanceへの統合。
-- actual Evidenceに基づくruntime / traceability文書更新。
+GitHub Actions `Semantic Runtime Conformance`:
+
+- Run ID: `33457416359`
+- Head SHA: `125bda1693f0712c2b741f149059d361cce7f97a`
+- current Contract fixture recheck: **success**
+- semantic runtime / Provider Adapter / Verifier / Payload Source tests: **success**
+- conclusion: **success**
+
+このRunが直接示すのは、synthetic sourceとcurrent runtimeによるpayload acquisition boundaryのExecutable Evidenceである。
+
+```text
+Payload Source boundary PASS
+  != production filesystem adapter
+  != production object-storage adapter
+  != production remote artifact service
+  != production streaming verification
+  != Storage migration completed
+  != Release Evidence
+  != Operational Evidence
+  != Adoption / Outcome Evidence
+```
 
 ## Completion criteria
 
-- [ ] Payload SourceをVerifier Registryから独立したinterfaceとして交換できる。
-- [ ] available / unavailable / source error / size limitを区別できる。
-- [ ] unavailable / source error / size limitをdigest mismatchへ誤変換しない。
-- [ ] source固有metadataをExact Binding / Profileへ混入させない。
-- [ ] raw bytesとJCSの少なくとも一例をsource経由で検証できる。
-- [ ] zero-length available payloadを検証できる。
-- [ ] current semantic runtime / Provider Adapter / Verifier Registryが回帰しない。
-- [ ] Semantic Runtime Conformanceがsuccessする。
-- [ ] Release / Operational / Adoption・Outcomeへ過大昇格していない。
-- [ ] 文書を自然な日本語となることを最重要視して再ドラフトし、最終意味監査を行った。
+- [x] Payload SourceをVerifier Registryから独立したinterfaceとして交換できる。
+- [x] available / unavailable / source error / size limitを区別できる。
+- [x] unavailable / source error / size limitをdigest mismatchへ誤変換しない。
+- [x] source固有metadataをExact Binding / Profileへ混入させない。
+- [x] raw bytesとJCSをsource経由で検証できる。
+- [x] zero-length available payloadを検証できる。
+- [x] current semantic runtime / Provider Adapter / Verifier Registryが回帰しない。
+- [x] Semantic Runtime Conformanceがsuccessする。
+- [x] Release / Operational / Adoption・Outcomeへ過大昇格していない。
+- [x] 文書を自然な日本語となることを最重要視して再ドラフトし、最終意味監査を行った。
 
-## Reopen / follow-up conditions
+## Resolution
 
-Resolved後、次が具体化した場合は再開せず原則として後続Issueへ分ける。
+Required experimentsとCompletion criteriaをactual repositoryとCIで満たしたため、本IssueをResolvedとする。
+
+今回追加したのはruntimeの取得境界であり、Storageやtransport mechanicsをUniversal Coreへ追加していない。新しいUniversal semantic conceptやADRも必要なかった。
+
+production Storage adapterやstreaming等の未実装は、このIssueの未完了ではなく後続の具体的Evidence sliceとして扱う。
+
+## Follow-up conditions
+
+次が具体的に必要になった場合は、原則として別Issueへ分ける。
 
 - large objectを全量`[]byte`化せず検証するstreaming requirement。
 - production S3 / MinIO / filesystem / HTTP adapter。
@@ -169,19 +212,17 @@ Resolved後、次が具体化した場合は再開せず原則として後続Iss
 - credential / Authorization Provider integration。
 - source provenance自体をportable semantic exchangeへ含める必要性。
 
-それらの必要性からStorageやtransport mechanicsをUniversal Coreへ即座に昇格させない。
+これらの必要性だけを理由にStorageやtransport mechanicsをUniversal Coreへ昇格させない。
 
-## CI / verification
+## Reopen conditions
 
-最低限、次を確認する。
+次の場合は本Issueの境界自体に反例が出たものとして再開を検討する。
 
-- Semantic Runtime Conformance
-- Plan integrity
-
-既存ContractやRepresentation Profileを変更した場合だけ、対応するConformance workflowも追加で確認する。
-
-CI failureを検出した場合は、原因を解消してsuccessを確認してから後続作業へ進む。
+- source errorや取得不能がcontent mismatchへ誤変換される。
+- Payload SourceがbytesをVerifierへ渡す前に意味上のcanonicalizationを行う必要が生じる。
+- source locatorがExact Binding semantic identityへ混入しないと成立しない反例が得られる。
+- local resource policyとUniversal semantic contractを分離できない反例が得られる。
 
 ## Natural Japanese review
 
-ADR-0007 / 0008 / 0009 / 0022 / 0023、current Verifier Registry、SCN-0008 / 0010、REQ-0018 / 0020へ戻って境界を整理した。その後、取得不能とcontent failure、semantic outcomeとoperational error、Storage mechanicsとExact Binding意味を混同しないよう条件を固定し、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+ADR-0007 / 0008 / 0009 / 0022 / 0023、Verifier Registry、REQ-0018 / 0020、SCN-0008 / 0010、actual Payload Source実装、Go tests、Runtime Conformance Run `33457416359`、Product Value Traceability、Runtime Conformance Evidenceへ戻って実装結果を照合した。その後、取得不能とcontent failure、semantic outcomeとoperational error、Storage mechanicsとExact Binding意味、Executable EvidenceとRelease / Operational / Adoption・Outcomeを混同しないよう条件を固定し、自然な日本語となることを最重要視して全文を再ドラフトした。最後に、Resolved化によってEvidence強度を過大評価していないことを再監査済みである。
