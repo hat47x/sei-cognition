@@ -95,6 +95,10 @@ PMS-03に対応するfirst usable Product Interactionについて、人間とAI�
 
 Web UI、desktop UI、CLI、HTTP API、MCP等を先に標準化せず、**利用者向け操作境界とcanonical authorityの関係**を正本化します。画面、chat、session、workspace等を意味上の正本へ昇格させず、人間向け・AI向けの異なるSurfaceから同じcanonical meaningへ戻れることを中心に置きます。
 
+ISSUE-000053では、この境界を`runtime/go/interactionprobe`のreference probeで限定的に実証しました。human-oriented Surfaceとmachine-oriented Surfaceを同じcanonical sourceへ接続し、Recommendation / Decisionの分離、Unknown / Conflictの保持、Projectionの非権威性、historical Decision basisの非改変等をactual testで確認しています。
+
+ただし、reference probeのSurfaceやin-memory storeはproduction標準ではありません。
+
 ## 3. 未定領域の扱い
 
 未定のProduct領域は、最初からstable Requirementとして扱いません。
@@ -110,7 +114,7 @@ Open Question
 
 チャット上の議論は探索・統合の作業空間として使えますが、current正本はrepository上のProduct / Requirement / ADR等へ戻します。
 
-Product Interactionについても、Design boundaryを定めたこととproduction UI / protocolを選定したことは分けます。後続probeから新しい意味上の必要性が確認された場合だけRequirement / Scenario追加を再検討します。
+Product Interactionについても、Design boundaryとreference probeのExecutable Evidenceが成立したことと、production UI / protocol / Storage / usabilityが成立したことは分けます。実利用やPackagingから新しい意味上の必要性が確認された場合だけRequirement / Scenario追加を再検討します。
 
 ## 4. 具体的なScenarioの正本
 
@@ -134,16 +138,16 @@ current repositoryでは、少なくとも次の状態まで確認していま�
 - Product Value / Value Proposition / Vision / Principles / Product Shape: **Design baseline established**
 - current semantic Contract群: **scoped Executable Evidence available**
 - SCN-0018 end-to-end Semantic Product Journey: **fixture-scoped Executable Evidence available**
-- first usable Product Interaction: **Design baseline established / Executable Evidence pending**
+- first usable Product Interaction: **Design baseline established / scoped Executable Evidence available**
 - packaged product: **Not Yet Verified**
 - Product Identity / Authorization / Collaboration: **Not Yet Verified**
 - real Method / Provider portability: **Partial**
 - current Product Shape全体のRelease Evidence: **Not Yet Verified**
 - Operational / Adoption Outcome: **Not Yet Verified**
 
-Product Interactionについては、`interaction/SOZA_PRODUCT_INTERACTION.md`とADR-0028でDesign boundaryを正本化し、ISSUE-000053でhuman-oriented / machine-oriented reference probeを予定しています。
+Product Interactionについては、`interaction/SOZA_PRODUCT_INTERACTION.md`とADR-0028でDesign boundaryを正本化し、ISSUE-000053の`runtime/go/interactionprobe`でhuman-oriented / machine-oriented Surfaceが同じcanonical sourceへ接続できることを限定範囲で確認しました。詳細なEvidenceは`../runtime/INTERACTION_PROBE_EVIDENCE_2026-09-01.md`を参照してください。
 
-個別CIやfixtureのPASSを、上位Milestoneへ自動昇格させません。
+このprobeのPASSから、production UIの使いやすさ、supported protocol、Packaging、Operational / Adoption Evidenceを推定しません。
 
 ## 6. Product Valueを変更するとき
 
@@ -174,7 +178,7 @@ Coreへ追加する前に、少なくとも次を検討します。
 
 現在の実装で便利であることや、関連製品との距離が近いことだけをCore昇格理由にしません。
 
-Product Interaction上の`Case`、`Session`、`Workspace`、`Thread`等についても、UI上便利という理由だけでUniversal Coreへ追加しません。
+Product Interaction上の`Case`、`Session`、`Workspace`、`Thread`等についても、UI上便利という理由だけでUniversal Coreへ追加しません。reference probeの`CanonicalStore`やSurface DTOも同様です。
 
 ## 8. 推奨する読む順序
 
@@ -203,4 +207,4 @@ Product文書は、内容と構造を確定した後に、意味、規範強度�
 
 ## 10. Natural Japanese review
 
-current Product Value、Value Proposition、Product Shape、Product Milestone、Product Journey、Product Interaction baselineとcurrent Evidenceを確認し、Product InteractionをProduct文書の正本関係へ追加しました。Design boundaryが成立したこととExecutable / production UXが成立したことを分け、画面やchatの都合からUniversal概念を増やさない境界も明示しています。そのうえで、Product Value、Milestone、Requirement、Implementationの権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+current Product Value、Value Proposition、Product Shape、Product Milestone、Product Journey、Product Interaction baseline、ISSUE-000053のreference probeとcurrent Evidenceを確認し、Product Interactionの状態をDesign baselineだけでなくscoped Executable Evidenceが得られた段階へ同期しました。一方、reference probeの成功をproduction UX、supported protocol、Storage、Packaging、Operational / Adoptionへ広げていません。画面やchat、probe固有DTO等の都合からUniversal概念を増やさない境界も維持しています。そのうえで、Product Value、Milestone、Requirement、Implementationの権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
