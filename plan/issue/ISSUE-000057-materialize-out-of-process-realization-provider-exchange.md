@@ -1,6 +1,6 @@
 # ISSUE-000057: out-of-process Realization / Provider exchange probeを実体化する
 
-Status: **In Progress**  
+Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0013, ADR-0017, ADR-0019, ADR-0024, ADR-0025**  
 Updated: 2026-09-01
@@ -11,20 +11,9 @@ PMS-06について、同一process内のsynthetic Adapterやtyped Contractの検
 
 production AI、外部SaaS、TEIをCI必須依存にはせず、まずprocess boundaryそのものを実証する。
 
-## 背景
+## Resolution
 
-current repositoryには、次のExecutable Evidenceがある。
-
-- `soza.cognitive-method/v1alpha1`でMethod Definition / Realization / Applicationを分離できる。
-- `provideradapter.Adapter`でProvider固有stateからCapability Observationへmappingできる。
-- synthetic Provider A / Bを交換できる。
-- SCN-0018 harnessでProvider replacementを含む一続きの判断経路を検査できる。
-
-一方、これらの多くは同一process内のfixture / Adapter / harnessである。
-
-PMS-06を進めるには、少なくとも「Realizationを別processへ追い出してもcanonical meaningへ戻せる」ことを確認する必要がある。
-
-## Probe boundary
+`runtime/go/realizationprobe`と二つのreference executableを実体化した。
 
 ```text
 SOZA canonical runtime
@@ -46,22 +35,53 @@ SOZA canonical runtime
 
 process間のJSON入出力はreference probeのRealization-local protocolであり、Universal Semantic Contractではない。
 
-## 必須検査
+## 実装した要素
 
-1. Provider A / Bを別OS processとして起動できる。
-2. A / Bが異なるProvider固有state shapeを返せる。
-3. それぞれを別Provider identityとして、同じCapabilityへmappingできる。
-4. Capability Observationはcurrent Contract validatorを通る。
-5. 同じMethod Definitionに対して、二つのMethod Realizationを別OS processで実行できる。
-6. Method Applicationに各`realization_ref`を保持できる。
-7. Realization A / Bが異なるRecommendationを生成しても、RecommendationとDecisionを同一視しない。
-8. Provider / Methodを交換した後も、交換前Decisionのbasis、Recommendation、Responsibility、unresolvedを変更しない。
-9. failed Provider / Method processからcanonical recordを生成しない。
-10. process-local protocolやbinary identityをUniversal semantic identityへ昇格させない。
+- `runtime/go/cmd/soza-reference-provider`
+  - profile A / Bを別OS processとして実行する。
+  - A / Bは異なるProvider固有state shapeを返す。
+- `runtime/go/cmd/soza-reference-method`
+  - `evidence-first` / `cautious`の二つのMethod Realizationを別OS processとして実行する。
+  - 同じMethod Definitionに対し、異なるRecommendation候補を返す。
+- `runtime/go/realizationprobe`
+  - reference executableを実際にbuild・起動する。
+  - Provider固有stateを既存Provider Adapterへ渡す。
+  - Method outputをRecommendation / Method Applicationへ戻す。
+  - historical Decision非改変とnegative caseを検査する。
+- `runtime/go/interactionprobe`
+  - existing Cognitive Method Contractにすでにある`realization_ref`をMethod Applicationへ渡せるようにした。
+  - 既存Interaction Surface APIとProjection behaviorは維持した。
 
-## Requirement / Scenario監査
+## 必須検査の結果
 
-まず既存の次を利用する。
+1. **Provider A / Bを別OS processとして起動できる** — Satisfied。
+2. **A / Bが異なるProvider固有state shapeを返せる** — Satisfied。
+3. **別Provider identityのまま同じCapabilityへmappingできる** — Satisfied。
+4. **Capability Observationをcurrent validatorへ戻せる** — Satisfied。
+5. **同じMethod Definitionに対する二つのMethod Realizationを別processで実行できる** — Satisfied。
+6. **Method Applicationに各`realization_ref`を保持できる** — Satisfied。
+7. **異なるRecommendationを生成してもDecisionと同一視しない** — Satisfied。
+8. **Provider / Method交換後も交換前Decisionを変更しない** — Satisfied。Decisionのbasis、Recommendation、Responsibility、unresolvedを保持した。
+9. **failed Provider / Method processからcanonical recordを生成しない** — Satisfied。失敗前後のcanonical digestが一致する。
+10. **process-local protocolやbinary identityをUniversal semantic identityへ昇格させない** — Design / implementation boundaryとして維持した。
+
+## CI Evidence
+
+初期実装では、Contract fixture 31件はPASSした一方、Interaction probeの既存表示用型とAPIを全文置換時に落としたcompile regressionが見つかった。これは新しいRealization exchangeの意味設計ではなく、既存Surface APIの回帰であったため、既存`surface.go`を正として復元し、`realization_ref`対応だけを最小差分として残した。
+
+修正後head `91a0ce468a1cbf30cc8ad4deab4392dc0f41250e`では、次がすべて**success**した。
+
+- Semantic Runtime Conformance Run `33516101445`
+- Plan integrity Run `33516101074`
+- Local Package Artifact Run `33516100947`
+
+Semantic Runtime Conformanceには、current Contract fixture 31件の再検査と`runtime/go`全体の`go test ./...`が含まれる。新しい`realizationprobe`に加え、Interaction、Access、Packaging、Provider Adapter、journey harness、semantic runtimeの回帰も同じRunで確認した。
+
+## Requirement / Scenario再監査
+
+新しいStable Requirement / Scenarioは追加しない。
+
+今回確認した失敗は、既存の次で十分に表現できる。
 
 - REQ-0001 — 耐久的な意味の連続性
 - REQ-0004 — Cognitive Methodの独立性
@@ -72,19 +92,35 @@ process間のJSON入出力はreference probeのRealization-local protocolであ�
 - SCN-0014 — Execution Providerを交換する
 - SCN-0018 — Inquiryから実行後の再検討までを一続きに扱う
 
-reference processを導入したことだけを理由に、新しいStable Requirement / Scenarioは追加しない。
+out-of-process化はEvidenceを厚くするreference Realizationであり、それ自体を新しいProduct Requirementにはしない。
 
-既存Requirementでは表現できない独立したProduct failureが確認された場合だけ上流へ戻す。
+## PMS-06への反映
 
-## Non-goals
+PMS-06のEvidence ladderを次のように整理した。
+
+```text
+E1 Contract / in-process synthetic
+  → E2 out-of-process reference exchange
+  → E3 real external integration
+  → E4 operational portability
+```
+
+今回のprobeによりE2にはScoped Executable Evidenceが成立した。
+
+一方、reference executableはSOZA repository内でbuildする評価用Realizationであり、実AI、実SaaS、TEI production instanceではない。したがってE3 / E4は引き続き未検証である。
+
+## Non-goals / 未検証範囲
 
 - production AI API integration
 - external SaaS credential / rate limit / SLA integration
 - TEI production integration
 - production network protocolの標準化
+- gRPC / HTTP / MCP / stdio等の正式Realization protocol選定
 - process-local JSONをUniversal Contractへすること
 - Realization出力を自動Decisionへ昇格させること
-- Release / Operational / Adoption Evidence
+- production credential / secret management
+- Operational portability
+- Release / Adoption / Outcome Evidence
 
 ## 完了条件
 
@@ -94,21 +130,29 @@ reference processを導入したことだけを理由に、新しいStable Requi
 - [x] current Provider Adapter / Capability Observation validatorへ戻す。
 - [x] Provider / Method交換後のhistorical Decision非改変をtestへ落とす。
 - [x] failed processがcanonical sourceを変更しないnegative caseをtestへ落とす。
-- [ ] CIで再現可能なExecutable Evidenceを得る。
-- [ ] PMS-06 / Product / Evidence文書へ結果を同期する。
-- [ ] Stable Requirement / Scenario追加の要否を再監査する。
-- [ ] 自然な日本語全文再ドラフトと最終意味監査を行う。
-- [ ] 対象CIをsuccessさせる。
+- [x] CIで再現可能なExecutable Evidenceを得る。
+- [x] PMS-06 / Product文書へ結果を同期する。
+- [x] Stable Requirement / Scenario追加の要否を再監査する。今回は追加しない。
+- [x] 自然な日本語全文再ドラフトと最終意味監査を行う。
+- [x] 対象CIをsuccessさせる。
 
 ## Evidence state
 
-- Design Evidence: **Satisfied for probe plan**
-- Executable Evidence: **Not Yet Verified for the new out-of-process probe**
-- real external AI / SaaS / TEI Evidence: **Not Yet Verified**
+- Design Evidence: **Satisfied**
+- E1 Contract / synthetic exchange: **Scoped Executable Evidence available**
+- E2 out-of-process reference exchange: **Scoped Executable Evidence available** — Semantic Runtime Conformance Run `33516101445`
+- E3 real external AI / SaaS / TEI: **Not Yet Verified**
+- E4 Operational portability: **Not Yet Verified**
 - Release Evidence: **Not Yet Verified**
-- Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
+
+## Reopen / escalation条件
+
+- real external Providerでprocess-local reference profileでは表現できない独立した意味不足が確認された。
+- Method Realization version交換時にcurrent `realization_ref`だけではhistorical reconstructionを保てない。
+- Provider交換時にCapability identityやmapping provenanceを保持できない。
+- E3で既存REQ / SCNでは表現できないProduct failureが確認された。
 
 ## Natural Japanese review
 
-PMS-06、REQ-0001 / 0004 / 0005 / 0007 / 0021、SCN-0005 / 0014 / 0018、ADR-0013 / 0017 / 0019 / 0024 / 0025、current Cognitive Method runtimeとProvider Adapterを照合し、同一process内のsynthetic交換から別OS processのRealization交換へEvidenceを一段進める課題として整理した。reference processのJSONやbinary構成をUniversal Contractへ先取りせず、RecommendationとDecision、ProviderとCapability、Method DefinitionとRealizationの境界を維持している。そのうえで、目的、検査条件、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+PMS-06、`product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`、REQ-0001 / 0004 / 0005 / 0007 / 0021、SCN-0005 / 0014 / 0018、ADR-0013 / 0017 / 0019 / 0024 / 0025、current Cognitive Method runtime、Provider Adapter、`runtime/go/realizationprobe`のactual test、Semantic Runtime Conformance Run `33516101445`を照合した。同一process内のsynthetic交換から別OS processのreference exchangeへEvidenceを一段進めつつ、reference executableの成功を実AI / SaaS / TEI連携やOperational portabilityへ広げていない。RecommendationとDecision、ProviderとCapability、Method DefinitionとRealization、current Observationとhistorical basisの境界も維持した。そのうえで、目的、検査結果、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
