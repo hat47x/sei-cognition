@@ -116,24 +116,54 @@ ISSUE-000054では、二段階でこの境界を検査しました。
 process Bはprocess Aのin-memory stateを共有しません。これにより、same-versionのbuild済みexecutableによるliteral process restartにはscoped Executable Evidenceがあります。
 
 ```text
-same-version process restart: verified in scoped probe
+same-version process restart: scoped Executable Evidence available
 version-upgrade resume: not yet verified
 ```
 
 未知Contract / versionはprocessを跨いでもopaque `not_verified`のまま保持します。
 
-## 7. package lifecycle controlとProduct Interaction
+## 7. distribution artifact境界
 
-process probe executableには`save` / `inspect`だけを置いています。これはDeployment / Packaging acceptanceを検査するための管理入口です。
+ISSUE-000055では、Linux / amd64向けのLocal Reference PackageをCIでdistribution artifactとして生成しました。
+
+```text
+source checkout
+  -> reproducible reference build probe
+  -> deterministic tar.gz + checksum
+  -> extract to clean directory
+  -> process A save / exit
+  -> process B reload
+```
+
+Local Package Artifact Run `33509521544`では、同一inputからの二重build一致、build identity、決定的archive、SHA-256、展開artifactからのsave / reload、GitHub Actions artifactへのuploadがすべてsuccessしました。
+
+保存されたworkflow artifact:
+
+- name: `soza-local-reference-linux-amd64`
+- artifact ID: `9801021136`
+- workflow artifact digest: `sha256:6282a2fe0b58dd023090d363e3323ce963a9f29c097f869ebab79b73aab2ba85`
+
+artifact version、source commit、targetはdistribution artifactの追跡情報であり、Semantic ContractやLogical Referenceのidentityではありません。
+
+```text
+artifact identity
+  != semantic identity
+```
+
+このreference artifactはPMS-04のMinimum scoped Executable Evidenceです。Product Releaseや恒久的platform supportを意味しません。
+
+## 8. package lifecycle controlとProduct Interaction
+
+reference executableの`version` / `save` / `inspect`はDeployment / Packaging acceptance用の管理入口です。
 
 ```text
 package lifecycle control
   != Product Interaction Surface
 ```
 
-このcommandを正式なSOZA CLI、human-facing UI、AI-facing protocolへ昇格させません。supported artifactの管理入口はISSUE-000055で検討します。
+このcommandを正式なSOZA CLI、human-facing UI、AI-facing protocolへ昇格させません。判断仕事のSurfaceはPMS-03の別境界として扱います。
 
-## 8. export / import
+## 9. export / import
 
 Persistence内部形式が変わっても、portable Semantic InterchangeをStorage交換境界として利用します。
 
@@ -149,7 +179,7 @@ other Persistence adapter
 
 reference probeではfilesystemからmemory Persistenceへoriginal bytesを移し、同じbundleを再読できることを確認しました。これはPersistence交換境界の補助的Evidenceであり、production DB / object store migrationではありません。
 
-## 9. backup / restore
+## 10. backup / restore
 
 最初のfilesystem profileでは、整合したcanonical bundleを別locationへ複製し、そこから新しいruntimeが同じsemantic dataを再読できることを最小restore条件とします。
 
@@ -157,7 +187,7 @@ reference probeではcanonical bundle fileのcopy / restoreを確認していま
 
 external payload等を含む完全なproduction backup、online snapshot、incremental backup、PITRは未検証です。
 
-## 10. failure boundary
+## 11. failure boundary
 
 次を正常なpackage stateとして扱いません。
 
@@ -168,7 +198,7 @@ external payload等を含む完全なproduction backup、online snapshot、incre
 
 一方、runtime未知のnested Contractが含まれることだけでpackage全体を破損扱いにはしません。unknown recordは`not_verified`として保持します。
 
-## 11. 将来のservice分割
+## 12. 将来のservice分割
 
 将来、Interaction、Persistence、Provider Adapter等を別process / serviceへ分割できます。その際も次を守ります。
 
@@ -179,7 +209,7 @@ external payload等を含む完全なproduction backup、online snapshot、incre
 
 Local Single-Node Profileは将来の分割を禁止するものではありません。
 
-## 12. Security / Identityとの境界
+## 13. Security / Identityとの境界
 
 filesystem permission、process user、credential等は重要ですが、本baselineではProduct Identity / Authorizationを確定しません。
 
@@ -191,7 +221,7 @@ OS file permission
 
 PMS-05 / ISSUE-000047で、product access permissionとsemantic Authority / Responsibilityを分離して扱います。
 
-## 13. Evidence状態
+## 14. Evidence状態
 
 ```text
 Deployment Architecture Design: established
@@ -200,26 +230,33 @@ runtime-state-independent reconstruction: scoped Executable Evidence available
 same-version literal process restart: scoped Executable Evidence available
 canonical bundle copy / restore: scoped Executable Evidence available
 filesystem -> memory Persistence exchange: scoped Executable Evidence available
-supported distributable artifact: not yet verified
+Local Reference Package distribution artifact: scoped Executable Evidence available
+Product Release: not yet verified
 version upgrade resume: not yet verified
 crash durability / cross-platform guarantee: not yet verified
 actual production Storage migration: not yet verified
-Release / Operational: not yet verified
+Operational / Adoption: not yet verified
 ```
 
-literal process probeを含むSemantic Runtime Conformance Run `33508376230`、Plan integrity Run `33508376256`はsuccessしています。
+主なCIは次です。
+
+- Semantic Runtime Conformance Run `33508376230` — literal process restart probe success
+- Local Package Artifact Run `33509521544` — reference distribution artifact success
+- Plan integrity Run `33509521580` — success
+- Semantic Runtime Conformance Run `33509521596` — success
 
 ```text
-process probe PASS
-  != supported distribution artifact proven
+reference artifact PASS
+  != Product Release
+  != formal platform support matrix
   != version upgrade proven
   != crash durability proven
-  != Release / Operational Evidence
+  != Operational Evidence
 ```
 
-詳細は`../runtime/PACKAGING_PROBE_EVIDENCE_2026-09-01.md`を参照します。
+詳細は`../runtime/PACKAGING_PROBE_EVIDENCE_2026-09-01.md`と`../runtime/LOCAL_PACKAGE_ARTIFACT_EVIDENCE_2026-09-01.md`を参照します。
 
-## 14. 関連文書
+## 15. 関連文書
 
 - `SOZA_REFERENCE_ARCHITECTURE.md`
 - `IMPLEMENTATION_LANGUAGE_POLICY.md`
@@ -229,7 +266,8 @@ process probe PASS
 - `../plan/issue/ISSUE-000054-materialize-packaged-resume-and-storage-migration-probe.md`
 - `../plan/issue/ISSUE-000055-materialize-first-supported-local-package-artifact.md`
 - `../runtime/PACKAGING_PROBE_EVIDENCE_2026-09-01.md`
+- `../runtime/LOCAL_PACKAGE_ARTIFACT_EVIDENCE_2026-09-01.md`
 
-## 15. Natural Japanese review
+## 16. Natural Japanese review
 
-Reference Architecture、Product Packaging baseline、ADR-0007 / 0029、Semantic Interchange runtime、Product Interaction boundary、`runtime/go/packagingprobe`、build済みGo executableによるliteral process restart、Semantic Runtime Conformance Run `33508376230`、Plan integrity Run `33508376256`を照合しました。Local Single-Node Packageをdeployment componentの配置として整理し、単一process、filesystem layout、probe commandをsemantic concernや正式Product Interactionへ昇格させていません。runtime object再生成とliteral process restart、same-version restartとversion upgrade、Persistence交換probeとactual production Storage migration、file sync / renameとcrash durability guaranteeを分けたうえで、意味、Architecture上の責務、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Reference Architecture、Product Packaging baseline、ADR-0007 / 0029、Semantic Interchange runtime、Product Interaction boundary、`runtime/go/packagingprobe`、literal process restart、Local Reference Package、Local Package Artifact Run `33509521544`とartifact metadataを照合しました。Local Single-Node Packageをdeployment componentの配置として整理し、単一process、filesystem layout、package lifecycle command、Linux / amd64 reference artifactをsemantic concernや正式Product Interactionへ昇格させていません。runtime object再生成とliteral process restart、same-version restartとversion upgrade、Persistence交換probeとactual production Storage migration、reference distribution artifactとProduct Releaseを分けたうえで、意味、Architecture上の責務、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
