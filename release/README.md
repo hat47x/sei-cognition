@@ -41,7 +41,7 @@ shared checker
 
 actual release後にEvidenceを記録する場合はcandidate設定を上書きせず、`RELEASE_EVIDENCE.md`等の別文書へactual tag / commit / artifact / gate resultを記録します。
 
-## 3. candidate report
+## 3. candidate Evidence
 
 Release Candidate Gateはsource treeへ固定値のcommit SHAを書き込まず、実行時のGit commit / tree SHAをmachine-readable reportへ記録します。
 
@@ -54,22 +54,34 @@ CIが生成するreportはderived Evidenceです。Product ValueやSemantic Cont
 - candidate report artifact ID: `9783773779`
 - artifact digest: `sha256:3efef517ffdcc1c5588f9ab5893059ae1c4239354e58c79036b0e4c244697113`
 
-### v0.2.0
+### v0.2.0 — PR上の検査
 
-PR #34のclosure head `ffa3824908d2fa50c8363ffc68611b5b25d56344`に対するRelease Candidate Gate Run `33568653099`で、v0.2.0の9 gateがすべてsuccessしました。PR検査ではGitHubが生成したtest merge commit `cb88cc49d5d38293231b63db9d93e8e5804acd7b`をcheckoutしているため、candidate reportとLocal Reference Packageはそのtest merge commitへ結び付いています。
+PR #34では、closure後のtest mergeについてRelease Candidate Gateを複数回実行し、最終文書同期後のRun `33568925573`でも9 gateがすべてsuccessしました。これはmerge前にbaseとの組み合わせを検査したEvidenceです。
 
-- candidate report artifact ID: `9824110337`
-- candidate report artifact digest: `sha256:2d71979ec4f466bd679178bae88b2ba32584ec121d8618217b9b70d2c79a216a`
-- Local Reference Package artifact ID: `9824109925`
-- Local Reference Package artifact digest: `sha256:6b319c6ac2cd0aeb98a13d6234e6c1d9c06ae09a10927a3b54fa48878fc46fa6`
-- External Integration E3a Run `33568653077`: **success**
-- Plan integrity Run `33568653098`: **success**
+### v0.2.0 — actual `develop/v0.2.0` Evidence point
 
-この結果は、PR #34のtest merge状態に対するRelease Candidate Evidenceです。actual `develop/v0.2.0`へ統合したcommitが同一であるとは仮定しません。merge後は、actual branch headについてRelease Candidate Gateを改めて確認します。
+PR #34をmergeしたactual `develop/v0.2.0` commit `724cba2a744582252c6ccba8322fc34a55b76b1b`について、push-triggered Release Candidate Gate Run `33569004831`がsuccessしました。
+
+同じcommitについて、次もsuccessしています。
+
+- Plan integrity Run `33569004843`
+- External Integration E3a Run `33569004842`
+
+Release Candidate Gateでは9 gateに加え、Local Reference Packageとcandidate reportのartifact uploadも成功しました。
+
+- candidate report artifact ID: `9824232506`
+- candidate report artifact digest: `sha256:f6c9326e6af415654df80446893c5ba5c847fccd4e2d7192806b7056eb6c781d`
+- Local Reference Package artifact ID: `9824232197`
+- Local Reference Package artifact digest: `sha256:13bb5ed0ba8ab39e817a5dadc952e8bfb8934df9965474aa8435718136138ac7`
+
+これを、v0.2.0における最初の**actual develop candidate Evidence point**として扱います。
+
+この文書自身を更新するとbranch HEADは変わるため、「この文書に書かれているSHAが常に最新HEADでなければならない」とはしません。Evidenceは検査したcommitへ固定し、後続commitは後続CIで回帰を確認します。
 
 ```text
-PR test merge PASS
-  != actual branch head tested
+candidate Evidence point established
+  != every later commit automatically verified
+  != actual v0.2.0 release
 ```
 
 ## 4. v0.1.0とv0.2.0のrelease scope
@@ -94,12 +106,12 @@ v0.2.0は、そのsemantic baselineに加えて、Product Interaction、Local Si
 
 candidate gateのfailureは、release条件を弱める理由にはしません。
 
-PR #34のclosure検証では、一度Plan Registryの既存`ISSUE-000013`ファイル名を誤って転記し、Run `33568527280`のGate 1がfailureしました。原因はrelease設計ではなくRegistryの転記ミスであり、実ファイル名へ戻した後、Plan integrity Run `33568653098`とRelease Candidate Gate Run `33568653099`がsuccessしています。
+PR #34のclosure検証では、一度Plan Registryの既存`ISSUE-000013`ファイル名を誤って転記し、Run `33568527280`のGate 1がfailureしました。原因はrelease設計ではなくRegistryの転記ミスであり、実ファイル名へ戻した後、Plan integrityとRelease Candidate Gateを通し直してsuccessを確認しました。
 
-この履歴は、`failed`を`not_verified`やPASSとして扱わず、原因を修正してから同じ検査を通し直す運用例として残します。
+この履歴は、`failed`を`not_verified`やPASSとして扱わず、原因を修正してから同じ検査を再実行する運用例として残します。
 
 ## 6. 自然な日本語レビュー
 
-SOZA_VALUE_ACCEPTANCE、ADR-0018、v0.1.0 / v0.2.0 Release Acceptance、PMS-04〜07、Local Reference Package、E3a external artifact integration、actual GitHub Actions Evidenceへ戻り、release planning、candidate、actual release、Operational / Adoption Outcomeの境界を整理しました。
+SOZA_VALUE_ACCEPTANCE、ADR-0018、v0.1.0 / v0.2.0 Release Acceptance、PMS-04〜07、Local Reference Package、E3a external artifact integration、PR #34、actual `develop/v0.2.0`のGitHub Actions Evidenceへ戻り、release planning、candidate、actual release、Operational / Adoption Outcomeの境界を整理しました。
 
-v0.2.0については、PR上のtest merge commitで得たcandidate Evidenceと、actual branch headのEvidenceを同一視しないことも明示しています。そのうえで、意味やEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+とくに、PR上のtest merge、actual develop candidate Evidence point、後続の文書更新、actual tag / releaseを同一視しないよう整理しています。そのうえで、意味やEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
