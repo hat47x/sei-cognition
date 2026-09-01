@@ -181,3 +181,4 @@ issue:
   - {id: ISSUE-000055, file: plan/issue/ISSUE-000055-materialize-first-supported-local-package-artifact.md, status: Resolved, priority: 1, related_adrs: [ADR-0027, ADR-0029]}
   - {id: ISSUE-000056, file: plan/issue/ISSUE-000056-materialize-product-access-collaboration-probe.md, status: Resolved, priority: 1, related_adrs: [ADR-0004, ADR-0006, ADR-0016, ADR-0030]}
   - {id: ISSUE-000057, file: plan/issue/ISSUE-000057-materialize-out-of-process-realization-provider-exchange.md, status: Resolved, priority: 1, related_adrs: [ADR-0013, ADR-0017, ADR-0019, ADR-0024, ADR-0025]}
+  - {id: ISSUE-000058, file: plan/issue/ISSUE-000058-materialize-version-pinned-external-artifact-integration.md, status: Resolved, priority: 1, related_adrs: [ADR-0013, ADR-0017, ADR-0019, ADR-0021, ADR-0024, ADR-0025]}
