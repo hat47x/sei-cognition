@@ -16,6 +16,7 @@ Product Value / Value Proposition
   → Value Model / Value Acceptance
   → Vision / Principles / Product Shape
   → Deadline-free Product Milestones
+  → Product Interaction / other Product boundaries
   → Open Question / Product Hypothesis
   → Discussion / Research / Experiment
   → Requirements / Acceptance Scenarios
@@ -88,6 +89,12 @@ SOZAをどの順序で製品として成立させるかを、**期限ではな�
 
 historicalなM48 / M49等の実装順序とは役割が異なります。MilestoneはProduct ontologyでも固定workflowでもありません。
 
+### `interaction/SOZA_PRODUCT_INTERACTION.md`
+
+PMS-03に対応するfirst usable Product Interactionについて、人間とAIがどのような仕事を、どのcanonical meaningへ接続して行える必要があるかを定めます。
+
+Web UI、desktop UI、CLI、HTTP API、MCP等を先に標準化せず、**利用者向け操作境界とcanonical authorityの関係**を正本化します。画面、chat、session、workspace等を意味上の正本へ昇格させず、人間向け・AI向けの異なるSurfaceから同じcanonical meaningへ戻れることを中心に置きます。
+
 ## 3. 未定領域の扱い
 
 未定のProduct領域は、最初からstable Requirementとして扱いません。
@@ -103,6 +110,8 @@ Open Question
 
 チャット上の議論は探索・統合の作業空間として使えますが、current正本はrepository上のProduct / Requirement / ADR等へ戻します。
 
+Product Interactionについても、Design boundaryを定めたこととproduction UI / protocolを選定したことは分けます。後続probeから新しい意味上の必要性が確認された場合だけRequirement / Scenario追加を再検討します。
+
 ## 4. 具体的なScenarioの正本
 
 具体的な利用・検証場面は、`requirements/ACCEPTANCE_SCENARIOS.md`の`SCN-*`をcurrent正本とします。
@@ -116,7 +125,7 @@ Product Value / V1〜V8
   → ADR / Architecture / Contract / Test
 ```
 
-Product Milestoneの各項目も、そのままRequirementやScenarioへ変換しません。独立した規範上の必要性が確認できたものだけを下位正本へ反映します。
+Product MilestoneやProduct Interactionの各項目も、そのままRequirementやScenarioへ変換しません。独立した規範上の必要性が確認できたものだけを下位正本へ反映します。
 
 ## 5. 現在のProduct Milestone上の位置
 
@@ -125,12 +134,14 @@ current repositoryでは、少なくとも次の状態まで確認していま�
 - Product Value / Value Proposition / Vision / Principles / Product Shape: **Design baseline established**
 - current semantic Contract群: **scoped Executable Evidence available**
 - SCN-0018 end-to-end Semantic Product Journey: **fixture-scoped Executable Evidence available**
-- first usable Product Interaction: **Not Yet Verified**
+- first usable Product Interaction: **Design baseline established / Executable Evidence pending**
 - packaged product: **Not Yet Verified**
 - Product Identity / Authorization / Collaboration: **Not Yet Verified**
 - real Method / Provider portability: **Partial**
 - current Product Shape全体のRelease Evidence: **Not Yet Verified**
 - Operational / Adoption Outcome: **Not Yet Verified**
+
+Product Interactionについては、`interaction/SOZA_PRODUCT_INTERACTION.md`とADR-0028でDesign boundaryを正本化し、ISSUE-000053でhuman-oriented / machine-oriented reference probeを予定しています。
 
 個別CIやfixtureのPASSを、上位Milestoneへ自動昇格させません。
 
@@ -163,6 +174,8 @@ Coreへ追加する前に、少なくとも次を検討します。
 
 現在の実装で便利であることや、関連製品との距離が近いことだけをCore昇格理由にしません。
 
+Product Interaction上の`Case`、`Session`、`Workspace`、`Thread`等についても、UI上便利という理由だけでUniversal Coreへ追加しません。
+
 ## 8. 推奨する読む順序
 
 1. `value/SOZA_PRODUCT_VALUE.md`
@@ -173,11 +186,12 @@ Coreへ追加する前に、少なくとも次を検討します。
 6. `vision/SOZA_PRODUCT_VISION.md`
 7. `principles/SOZA_PRODUCT_PRINCIPLES.md`
 8. `roadmap/SOZA_PRODUCT_MILESTONES.md`
-9. `../plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`
-10. `../requirements/PRODUCT_REQUIREMENTS.md`
-11. `../requirements/ACCEPTANCE_SCENARIOS.md`
-12. `../architecture/TRACEABILITY.md`
-13. `../contracts/TRACEABILITY.md`
+9. `interaction/SOZA_PRODUCT_INTERACTION.md`
+10. `../plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`
+11. `../requirements/PRODUCT_REQUIREMENTS.md`
+12. `../requirements/ACCEPTANCE_SCENARIOS.md`
+13. `../architecture/TRACEABILITY.md`
+14. `../contracts/TRACEABILITY.md`
 
 ## 9. 文書品質
 
@@ -189,4 +203,4 @@ Product文書は、内容と構造を確定した後に、意味、規範強度�
 
 ## 10. Natural Japanese review
 
-current Product Value、Value Proposition、Product Shape、Product Journeyとcurrent Evidenceを確認し、期限を持たないProduct Milestoneと未定領域の探索手順をProduct文書の入口へ追加した。Product Value、Milestone、Requirement、Implementationの正本関係を分けたうえで、意味、権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+current Product Value、Value Proposition、Product Shape、Product Milestone、Product Journey、Product Interaction baselineとcurrent Evidenceを確認し、Product InteractionをProduct文書の正本関係へ追加しました。Design boundaryが成立したこととExecutable / production UXが成立したことを分け、画面やchatの都合からUniversal概念を増やさない境界も明示しています。そのうえで、Product Value、Milestone、Requirement、Implementationの権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。

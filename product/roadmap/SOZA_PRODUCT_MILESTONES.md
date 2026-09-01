@@ -118,18 +118,23 @@ Interaction boundaryのDesign Evidenceと、最小prototypeまたはconformance�
 
 ### Current state
 
-**Not Yet Verified as a usable interaction.**
+**Design baseline established / Executable Evidence pending.**
 
-ISSUE-000045で検討します。
+`product/interaction/SOZA_PRODUCT_INTERACTION.md`とADR-0028で、first usable Product Interactionをcanonical meaning上の操作境界として正本化しました。
+
+人間向け画面、AI conversation、session、workspace等を意味上の正本にはせず、human-oriented / machine-orientedな異なるSurfaceから同じcanonical artifactへ戻れることを中心に置いています。新しいUniversalなCase / Session等は追加していません。
+
+Executable EvidenceはISSUE-000053のreference probeで検証します。
 
 ### Open questions
 
-- 最初のhuman-facing surface
-- AI向けaccess surface
-- Web / desktop / CLI / API / MCP等の組み合わせ
-- light / audit Projectionの操作上の往復
+- productionで最初にsupportedとするhuman-facing surface
+- productionで最初にsupportedとするAI-facing access surface
+- Web / desktop / CLI / API / MCP等のsupported combination
+- human usabilityを損なわずlight / auditを往復する具体UX
+- Packaging / DeploymentとInteraction Surfaceの組み合わせ
 
-これらは現時点でRequirementとして先取りしません。
+これらは現時点でRequirementとして先取りしません。reference probeではtext / CLI相当とJSON / process相当の二入口を使いますが、probeのSurfaceをproduction標準とはみなしません。
 
 ## 7. PMS-04 — 配布・保存・再開が可能な最小製品単位が成立する
 
@@ -245,4 +250,4 @@ Open Questionを直接Stable Requirementへ飛ばしません。
 
 ## 14. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、REQ-0001〜0022、SCN-0018、ISSUE-000045〜000050とcurrent Evidenceへ戻り、historical M48 / M49等の実装順序ではなく、製品として成立する状態を期限なしのMilestoneとして再構成した。未定領域を先にRequirementへ固定しない境界を明示したうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+Product Value、Value Proposition、Product Shape、Product Interaction baseline、REQ-0001〜0022、SCN-0013 / 0018、ADR-0028、ISSUE-000045 / 000053とcurrent Evidenceへ戻り、historical M48 / M49等の実装順序ではなく、製品として成立する状態を期限なしのMilestoneとして再監査しました。PMS-03はDesign boundaryが成立し、Executable Evidenceはまだpendingであることを明確に分けています。未定領域を先にRequirementへ固定しない境界を保ったうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
