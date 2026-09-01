@@ -174,4 +174,4 @@ issue:
   - {id: ISSUE-000052, file: plan/issue/ISSUE-000052-formalize-production-runtime-language-policy.md, status: Resolved, priority: 1, related_adrs: [ADR-0014, ADR-0021, ADR-0022, ADR-0025, ADR-0027]}
   - {id: ISSUE-000053, file: plan/issue/ISSUE-000053-materialize-first-product-interaction-reference-probe.md, status: Resolved, priority: 1, related_adrs: [ADR-0005, ADR-0018, ADR-0020, ADR-0021, ADR-0028]}
   - {id: ISSUE-000054, file: plan/issue/ISSUE-000054-materialize-packaged-resume-and-storage-migration-probe.md, status: Resolved, priority: 1, related_adrs: [ADR-0007, ADR-0021, ADR-0022, ADR-0029]}
-  - {id: ISSUE-000055, file: plan/issue/ISSUE-000055-materialize-first-supported-local-package-artifact.md, status: Open, priority: 1, related_adrs: [ADR-0027, ADR-0029]}
+  - {id: ISSUE-000055, file: plan/issue/ISSUE-000055-materialize-first-supported-local-package-artifact.md, status: Resolved, priority: 1, related_adrs: [ADR-0027, ADR-0029]}
