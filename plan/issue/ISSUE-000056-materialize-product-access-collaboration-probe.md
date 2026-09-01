@@ -163,16 +163,18 @@ production IdP、実team deployment、またはexternal collaborationの次段�
 - [x] Product / Architecture / Evidence文書へ結果を同期する。
 - [x] Stable Requirement / Scenario追加の要否を再監査する。今回は追加しない。
 - [x] 自然な日本語全文再ドラフトと最終意味監査を行う。
-- [ ] 最終headの対象CIをsuccessさせる。
+- [x] 対象CIをsuccessさせる。
 
 初期probe head `41463a0881d7d9623a1f4fa36350747cce8d8bbd`では、Semantic Runtime Conformance Run `33511885433`が**success**した。
 
-Plan integrityは同headでregistry未同期のため失敗したが、runtime failureではない。最終headでplan registry、Document Review Registry、PMS-05まで同期したうえで再検査する。
+最終同期前head `4b05854ff4e31dd625e73a0fc05afe8e4bbbf0ec`では、Semantic Runtime Conformance Run `33513323477`、Plan integrity Run `33513323475`、Local Package Artifact Run `33513323460`がすべて**success**した。
+
+Evidence文書へ最終Runを同期したhead `85401ec7d28aca84047923619bc54abb77880054`でも、Semantic Runtime Conformance Run `33513470530`、Plan integrity Run `33513470462`、Local Package Artifact Run `33513470467`がすべて**success**した。
 
 ## Evidence state
 
 - Design Evidence: **Satisfied**
-- Executable Evidence: **Scoped Evidence available** — `runtime/go/accessprobe`とSemantic Runtime Conformance Run `33511885433`。
+- Executable Evidence: **Scoped Evidence available** — `runtime/go/accessprobe`と上記Semantic Runtime Conformance Run。
 - Release Evidence: **Not Yet Verified**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
@@ -189,4 +191,4 @@ Plan integrityは同headでregistry未同期のため失敗したが、runtime f
 
 ## Natural Japanese review
 
-PMS-05、Product Identity / Access / Collaboration baseline、ADR-0004 / 0006 / 0016 / 0030、REQ-0012 / 0013 / 0017、SCN-0007 / 0012、`runtime/go/accessprobe`のactual testとSemantic Runtime Conformance Run `33511885433`を照合しました。特定IdPやRBAC製品ではなく、authentication identity、Bounded Subject、Product access permission、semantic Responsibilityの責務分離を検査しています。また、probe-localなpermission vocabularyをStable Requirementへ先取りせず、Selective Disclosureの成功をproduction securityへ広げない境界も維持しています。そのうえで、目的、検査結果、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+PMS-05、Product Identity / Access / Collaboration baseline、ADR-0004 / 0006 / 0016 / 0030、REQ-0012 / 0013 / 0017、SCN-0007 / 0012、`runtime/go/accessprobe`のactual testと最終CI Evidenceを照合した。特定IdPやRBAC製品ではなく、authentication identity、Bounded Subject、Product access permission、semantic Responsibilityの責務分離を検査している。また、probe-localなpermission vocabularyをStable Requirementへ先取りせず、Selective Disclosureの成功をproduction securityへ広げない境界も維持した。そのうえで、目的、検査結果、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
