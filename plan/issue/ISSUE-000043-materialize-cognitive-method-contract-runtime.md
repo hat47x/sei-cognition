@@ -128,7 +128,7 @@ realization omitted
 - [x] exact-bound Method / Realization Referenceを読み直せる。
 - [x] `go test ./...`とContract Conformanceがactual CIでsuccessする。
 
-current PR head `643f3eb00ea836d4ab4b7dc1a916423d8e005912`では、次のCIがすべてsuccessした。
+正本Evidence同期中のhead `643f3eb00ea836d4ab4b7dc1a916423d8e005912`では、次のCIがすべてsuccessした。
 
 - Contract Conformance Run `33497886978`
 - Requirements Registry Conformance Run `33497886995`
@@ -137,6 +137,16 @@ current PR head `643f3eb00ea836d4ab4b7dc1a916423d8e005912`では、次のCIが�
 - Plan integrity Run `33497887115`
 
 Cognitive Method実装そのものの代表的な基線Evidenceとして、Contract Conformance Run `33467838961`とSemantic Runtime Conformance Run `33467838941`もsuccessしている。
+
+### CI transition note
+
+Issue本文を先に`Resolved`へ変更した中間commit `be3ce32951fe2cde039f704f2ac0b53b686f8413`では、`plan/registry.yaml`がまだ`In Progress`だったため、Plan integrity Run `33498098681`が次の不一致を正しく検出してfailureとなった。
+
+```text
+ISSUE-000043: document='Resolved', registry='In Progress'
+```
+
+これはCognitive MethodのContract / runtime Evidenceの退行ではなく、同一closure作業内の一時的な計画状態不整合である。直後のcommit `a752cbab66f0c795346dae5fc7e665a148eb414a`でregistryを`Resolved`へ同期した。最終PR headでは、Issue本文・registry・Product Value Traceabilityが同じcurrent Plan状態を示すことをPlan integrityで再検証してからmergeする。
 
 ### Evidence update
 
@@ -172,4 +182,4 @@ Cognitive Method実装そのものの代表的な基線Evidenceとして、Contr
 
 ## Natural Japanese review
 
-REQ-0003 / 0004 / 0015 / 0016 / 0021、SCN-0005 / 0015、ADR-0017 / 0025、Reference Architecture、Contract Catalog / Traceability、31-fixture Contract Conformance、current semantic runtime、Product Value Traceabilityへ戻り、first sliceの実装内容とEvidenceを再照合した。完了したのはMethod実行そのものではなく、Method Definition / Realization / Applicationのportableな意味と来歴をread / validate / reconstructできる境界である。実際に確認した範囲だけExecutable Evidenceを`Partially Satisfied`として扱い、production Realization交換やRelease以降へは昇格させていない。そのうえで、意味、規範強度、非対象範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+REQ-0003 / 0004 / 0015 / 0016 / 0021、SCN-0005 / 0015、ADR-0017 / 0025、Reference Architecture、Contract Catalog / Traceability、31-fixture Contract Conformance、current semantic runtime、Product Value Traceabilityへ戻り、first sliceの実装内容とEvidenceを再照合した。完了したのはMethod実行そのものではなく、Method Definition / Realization / Applicationのportableな意味と来歴をread / validate / reconstructできる境界である。実際に確認した範囲だけExecutable Evidenceを`Partially Satisfied`として扱い、production Realization交換やRelease以降へは昇格させていない。closure中に検出されたPlan status不整合も、失敗を消さずに原因と是正を記録した。そのうえで、意味、規範強度、非対象範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
