@@ -21,6 +21,7 @@ Product Value
 ```text
 Architecture description != Architecture Decision Record
 Architecture concern != runtime component
+Deployment component != semantic concern
 ```
 
 ## 2. Current canonical files
@@ -29,6 +30,7 @@ Architecture concern != runtime component
 architecture/
   README.md
   SOZA_REFERENCE_ARCHITECTURE.md
+  SOZA_DEPLOYMENT_ARCHITECTURE.md
   IMPLEMENTATION_LANGUAGE_POLICY.md
   TRACEABILITY.md
   history/
@@ -36,6 +38,7 @@ architecture/
 ```
 
 - `SOZA_REFERENCE_ARCHITECTURE.md` — current SOZA全体のReference Architecture
+- `SOZA_DEPLOYMENT_ARCHITECTURE.md` — ADR-0029に基づくLocal Single-Node Packageのcomponent配置、Persistence、save / resume、export / import境界
 - `IMPLEMENTATION_LANGUAGE_POLICY.md` — ADR-0027に基づくproduction runtimeと研究・外部Realizationの実装言語境界
 - `TRACEABILITY.md` — Product Value / REQ / ADR / architecture concern / current executable materialの追跡
 - `history/HISTORICAL_ARCHITECTURE_MAPPING.md` — historical M48 / M49 / M50等からcurrent Architectureへの対応
@@ -49,6 +52,8 @@ SOZAのArchitectureは、固定された処理順序やservice topologyとして
 たとえばDecision Memory、Capability、Cognitive Method、Persistenceは重要な関心領域ですが、それぞれを独立microserviceやGo packageにすることを意味しません。
 
 同様に、図中の矢印は原則として固定workflowを表しません。情報が参照・派生・判断材料・実行境界として関係し得ることを示します。
+
+Local Single-Node Deploymentでは複数の論理componentを一つのGo processへ同居させますが、これは配布・起動を小さく始めるための配置です。一つのprocessに入っていることを理由に、Interaction、Semantic Runtime、Persistence、Provider Integrationを一つのsemantic concernへ統合しません。
 
 ## 4. current Architectureが守る上位境界
 
@@ -72,6 +77,9 @@ Semantic Contract != Representation Profile != verifier implementation
 not observed != unavailable
 binding not_verified != binding failed
 Projection != Canonical Semantic Authority
+runtime executable != canonical semantic data
+filesystem locator != Logical Reference
+Storage migration != Semantic Revision
 ```
 
 これらの境界を変更する必要が生じた場合はArchitectureだけを書き換えず、対応するRequirement / ADRを再審査します。
@@ -85,11 +93,15 @@ Projection != Canonical Semantic Authority
 - Go semantic runtime
 - Go Provider Adapter slice
 - Go end-to-end semantic Product Journey harness
+- Go Product Interaction reference probe
+- Go Packaging / Persistence reference probe
 - PythonによるV6 / V7 Projection Evaluation等の評価・開発補助
 
 これらはArchitectureの一部境界を再現可能に確認するExecutable Evidenceです。Architecture concernをruntime componentへ一対一で固定したことも、Architecture全体を実装済みとしたことも意味しません。
 
 ADR-0027により、SOZA自身が所有するproduction runtimeの標準実装言語はGoとします。一方、これはSemantic Contractや外部Cognitive Method / Capability Providerの言語をGoへ固定する意味ではありません。詳細は`IMPLEMENTATION_LANGUAGE_POLICY.md`を参照します。
+
+ADR-0029では、最初のPackaging / Deployment ProfileをLocal Single-Node Packageとしました。Goの単一バイナリ化とfilesystemは初期Realizationの利点として利用しますが、runtime executableやfile layoutをsemantic authorityにはしません。詳細は`SOZA_DEPLOYMENT_ARCHITECTURE.md`を参照します。
 
 ## 6. Evidenceの扱い
 
@@ -105,15 +117,18 @@ Design Evidence
 
 Architecture本文とtraceabilityはDesign Evidenceです。
 
-一方、current Contract fixture、Representation Profile verifier、semantic runtime、Provider Adapter、Product Journey harnessには、対象を限定したExecutable Evidenceがあります。
+一方、current Contract fixture、Representation Profile verifier、semantic runtime、Provider Adapter、Product Journey harness、Interaction probe、Packaging / Persistence probeには、対象を限定したExecutable Evidenceがあります。
 
 ```text
 Architecture exists
   != Architecture executable coverage complete
+  != distributable package proven
   != Release Evidence
   != Operational Evidence
   != user-value realization
 ```
+
+Packaging probeでfilesystem save / reloadが通ったことも、literalなOS process restart、power loss時のdurability、production DB migrationを証明しません。
 
 Go runtimeにExecutable Evidenceがあることも、Goがあらゆる将来要件で恒久的に最適であることを意味しません。言語方針の妥当性はPackaging / Deployment / Operational Evidenceを通じて継続的に検証します。
 
@@ -142,6 +157,8 @@ JCS / SHA-256 / JSON等のhistorical実装選択も、それ自体を理由にcu
 
 同様に、過去にPythonを用いていたことやcurrent runtimeがGoであることだけからUniversalな言語制約を作りません。実装言語のcurrent DecisionはADR-0027を正本とします。
 
+Local Single-Node Package、filesystem Persistence、`semantic.bundle.json`というlayoutもhistorical固定ではなく、ADR-0029に基づくcurrent初期profileです。将来別のPersistenceやdeployment topologyへ移行する際にsemantic identityを変えないことを優先します。
+
 詳細は`history/HISTORICAL_ARCHITECTURE_MAPPING.md`を参照します。
 
 ## 8. Contract / Representation Profileとの境界
@@ -155,15 +172,16 @@ Architecture explains structure and boundaries
 Contract defines portable / verifiable semantic agreement
 Representation Profile defines bytes / canonicalization / digest agreement
 Implementation language defines one realization choice
+Deployment profile defines one component placement
 ```
 
-ContractやProfileを増やすこと自体は目的ではなく、独立した互換性・検証境界が必要な場合だけ追加します。Goの型定義やpackage構造をContractの意味上の正本にはしません。
+ContractやProfileを増やすこと自体は目的ではなく、独立した互換性・検証境界が必要な場合だけ追加します。Goの型定義やpackage構造、Persistence interface、filesystem layoutをContractの意味上の正本にはしません。
 
 ## 9. 文書品質
 
 Architecture文書は、内容と構造を作成した後、意味、規範強度、例外、未決事項を変えず、**自然な日本語となることを最重要視して全文を再ドラフト**します。
 
-その後、文章調整によってCore / Profile / Provider / Adapter / Projection等の境界やEvidence強度が変わっていないか最終意味監査を行います。
+その後、文章調整によってCore / Profile / Provider / Adapter / Projection / Persistence等の境界やEvidence強度が変わっていないか最終意味監査を行います。
 
 ## 10. 関連文書
 
@@ -171,8 +189,10 @@ Architecture文書は、内容と構造を作成した後、意味、規範強�
 - `../product/value/SOZA_VALUE_MODEL.md`
 - `../product/value/SOZA_VALUE_ACCEPTANCE.md`
 - `../product/value/SOZA_VALUE_TRACEABILITY.md`
+- `../product/packaging/SOZA_PRODUCT_PACKAGING.md`
 - `../requirements/PRODUCT_REQUIREMENTS.md`
 - `../requirements/ACCEPTANCE_SCENARIOS.md`
+- `SOZA_DEPLOYMENT_ARCHITECTURE.md`
 - `TRACEABILITY.md`
 - `IMPLEMENTATION_LANGUAGE_POLICY.md`
 - `../plan/adr/ADR-0021-architecture-contract-authority-and-versioning.md`
@@ -180,7 +200,8 @@ Architecture文書は、内容と構造を作成した後、意味、規範強�
 - `../plan/adr/ADR-0023-current-representation-profile-baseline.md`
 - `../plan/adr/ADR-0024-provider-adapter-observation-mapping-boundary.md`
 - `../plan/adr/ADR-0027-go-as-standard-production-runtime-language.md`
+- `../plan/adr/ADR-0029-local-single-node-packaging-profile.md`
 
 ## 11. Natural Japanese review
 
-current Product Value、Requirements、Accepted ADR、Semantic Contract / Representation Profile、Go semantic runtime、Provider Adapter、Product Journey harness、Python evaluation tooling、およびADR-0027へ戻ってArchitectureの役割と現在地を再監査した。Goをproduction runtimeの標準Realizationとして明示しつつ、Semantic Contractや外部Method / Providerへ言語制約を広げない境界を維持した。その後、意味、権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+current Product Value、Requirements、Accepted ADR、Semantic Contract / Representation Profile、Go semantic runtime、Provider Adapter、Product Journey harness、Product Interaction probe、Packaging / Persistence probe、Python evaluation tooling、ADR-0027 / 0029へ戻ってArchitectureの役割と現在地を再監査しました。Goをproduction runtimeの標準Realizationとして明示し、Local Single-Node Packageをcurrent初期Deployment Profileとして配置する一方、Semantic Contractや外部Method / Providerへ言語制約を広げず、single processやfilesystemをsemantic authorityへ昇格させない境界を維持しています。その後、意味、権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
