@@ -1,6 +1,6 @@
 # ISSUE-000040: Exact Binding検証のpayload取得境界を実装する
 
-Status: **Open**  
+Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0007, ADR-0008, ADR-0009, ADR-0022, ADR-0023**  
 Updated: 2026-09-01
@@ -23,9 +23,9 @@ current Verifier Registryは`[]byte`のpayloadを受け取れば、JCS / raw-byt
 
 一方、実際のExact Binding再検証では、payloadが別Storageや外部Sourceに存在する場合がある。
 
-ここでStorage locator、HTTP status、filesystem path、object key等をExact Bindingへ直接埋め込むと、ADR-0007のstorage-neutralityが崩れる。また、取得不能をdigest mismatchへ変換するとADR-0009の`not_verified != failed`を壊す。
+Storage locator、HTTP status、filesystem path、object key等をExact Bindingへ直接埋め込むとADR-0007のstorage-neutralityが崩れる。また、取得不能をdigest mismatchへ変換するとADR-0009の`not_verified != failed`を壊す。
 
-そのため、source固有の取得処理を交換可能なruntime boundaryとして分離する。
+そのため、本Issueではsource固有の取得処理を交換可能なruntime boundaryとして分離した。
 
 ## Product / Requirement trace
 
@@ -42,55 +42,100 @@ current Verifier Registryは`[]byte`のpayloadを受け取れば、JCS / raw-byt
 - SCN-0008 — Storageを交換する
 - SCN-0010 — 可変Artifact更新後に過去Decisionを再構成する
 
-## Boundary
+## Implemented boundary
 
-runtime側では、概念的に次を分ける。
+runtime側では次を分離した。
 
 ```text
 Exact Binding
   ↓
-Payload request
+PayloadRequest
   ↓
-Payload Source / Adapter
+PayloadSource
   ↓
-Payload acquisition result
+PayloadLoadResult
   ↓
 Verifier Registry
   ↓
 Verification Outcome
 ```
 
-Payload Sourceは交換可能なruntime implementationであり、Universal Contract familyではない。
+実装:
 
-## Required semantics
+```text
+runtime/go/semanticruntime/payload_source.go
+runtime/go/semanticruntime/payload_source_test.go
+```
+
+### PayloadRequest
+
+Exact Bindingとcaller指定`MaxBytes`をPayload Sourceへ渡す。
+
+`MaxBytes <= 0`は、このorchestration layerで固定byte limitを課さないことを意味する。limit値をUniversal Core定数にはしていない。
+
+### PayloadLoadResult
+
+取得結果は次を分ける。
+
+- `Available`
+- payload bytes
+- opaqueな`SourceRef`
+
+`SourceRef`はruntime metadataであり、Exact BindingやRepresentation Profileのcanonical fieldへ書き戻さない。
+
+### PayloadSource
+
+Storage / transport mechanicsを交換可能なinterfaceへ閉じ込める。
+
+```text
+PayloadSource.LoadPayload(ctx, request)
+```
+
+filesystem path、object key、HTTP detail、credential、retry等の共通Universal schemaは新設していない。
+
+### VerifyFromPayloadSource
+
+Payload Sourceから取得した結果をVerifier Registryへ接続する。
+
+```text
+available payload + matching digest
+  → verified
+
+available payload + digest mismatch
+  → failed
+
+unavailable payload
+  → not_verified
+
+operational acquisition error
+  → not_verified + separate runtime error
+
+local verification limit exceeded
+  → not_verified + separate runtime error
+```
+
+## Verified semantics
 
 ### 1. available payload
 
-sourceがpayloadを取得できた場合、そのbytesを変更せずVerifier Registryへ渡す。
-
-```text
-source payload bytes
-  == verifier input bytes
-```
+sourceが取得したbytesをcontent verifierへ渡す。
 
 JCS等のcanonicalizationはPayload SourceではなくRepresentation Verifierが担当する。
 
+JCS testでは、sourceが非canonicalなJSON bytesを返しても、そのbytes自体をsource側で変更せず、JCS verifierがcanonicalizationを行ってdigest一致を確認できた。
+
 ### 2. unavailable payload
 
-retention、non-disclosure、not found、source未接続等によりpayloadを取得できない場合、Exact Bindingを`failed`へ変換しない。
+`Available=false`は`not_verified`になる。
 
 ```text
 payload unavailable
-  → not_verified
-
-!= digest mismatch
+  != digest mismatch
 ```
 
 ### 3. operational acquisition error
 
-一時的I/O障害等のsource errorもcontent mismatchではない。
-
-semantic outcomeは`not_verified`としつつ、runtime callerが運用上のerrorを別に観測できるようにする。
+source error時はsemantic outcomeを`not_verified`とし、operational errorを別戻り値で保持する。
 
 ```text
 semantic Verification Outcome
@@ -99,69 +144,78 @@ semantic Verification Outcome
 
 ### 4. resource limit
 
-local runtimeのsize limit等でpayloadを読み込めない場合も、contentが誤っていると推定しない。
+caller指定limitを超えたpayloadは`ErrPayloadVerificationLimitExceeded`を返し、semantic outcomeは`not_verified`とする。
 
-```text
-local verification limit exceeded
-  → not_verified
-```
+contentが不正であるとは推定しない。
 
-limit値自体をUniversal Core定数にはしない。caller / runtime policyから与える。
+### 5. zero-length payload
 
-### 5. source provenance
+`Available=true`で0 byteのpayloadは、取得不能ではなく有効な0 byte contentとして検証できる。
 
-source implementationは必要に応じてopaqueな`source_ref`等のmetadataを返してよいが、それをExact Binding identityやRepresentation Profileへ混ぜない。
+### 6. source metadata / Exact Binding
 
-Provider固有locatorのUniversal schemaは作らない。
+sourceのopaque metadataは戻り値として観測できる一方、Exact Bindingは検証前後で不変であることをtestした。
 
-## Non-goals
+## Executable Evidence
 
-- S3、MinIO、Git、HTTP、filesystem等のproduction adapterを一括実装すること。
-- credential / Authorization処理をUniversal Contract化すること。
-- streaming verifierを今回の必須条件にすること。
-- payload cache policyを固定すること。
-- source locatorをLogical ReferenceやExact Bindingのcanonical fieldへ追加すること。
-- acquisition成功をhistorical reconstruction全体の成功へ昇格させること。
+GitHub Actions `Semantic Runtime Conformance`:
 
-## Required experiments
+- Run ID: `33457416359`
+- Head SHA: `125bda1693f0712c2b741f149059d361cce7f97a`
+- current Contract fixture recheck: **success**
+- semantic runtime / Provider Adapter / Verifier / Payload Source tests: **success**
+- conclusion: **success**
 
-1. available raw payload + matching digest → `verified`。
-2. available payload + digest mismatch → `failed`。
-3. sourceが`available=false` → `not_verified`。
-4. source operational error → outcomeは`not_verified`、errorは別に返る。
-5. source未設定 → `not_verified`。
-6. zero-length payloadは「取得不能」ではなく、availableな0 byteとして扱える。
-7. caller指定limitを超えるpayload → `not_verified`であり`failed`ではない。
-8. source metadata / locatorがExact Bindingへ書き戻されない。
-9. JCS payloadでもPayload Source側はJSON normalizationを行わない。
-10. current verifier / semantic runtime / Provider Adapter testsが回帰しない。
+synthetic Payload Sourceで少なくとも次を確認した。
 
-## Deliverables
-
-- runtimeのPayload Source interface / request / result型。
-- Payload SourceからVerifier Registryへ接続するorchestration。
-- `not_verified`とoperational errorの分離。
-- caller-supplied payload size limit。
-- synthetic sourceを使ったGo tests。
-- Runtime Conformanceへの統合。
-- actual Evidenceに基づくruntime / traceability文書更新。
+1. raw bytes + matching digest → `verified`
+2. raw bytes + digest mismatch → `failed`
+3. unavailable → `not_verified`
+4. operational error → `not_verified` + error
+5. nil source → `not_verified`
+6. available zero-length payload → `verified`
+7. local size limit超過 → `not_verified` + limit error
+8. Exact Binding非変異
+9. source metadataがExact Bindingへ混入しない
+10. noncanonical JCS bytesをsource側でnormalizeせず、JCS verifier側で検証できる
+11. existing semantic runtime / Provider Adapter / Verifier testsが回帰しない
 
 ## Completion criteria
 
-- [ ] Payload SourceをVerifier Registryから独立したinterfaceとして交換できる。
-- [ ] available / unavailable / source error / size limitを区別できる。
-- [ ] unavailable / source error / size limitをdigest mismatchへ誤変換しない。
-- [ ] source固有metadataをExact Binding / Profileへ混入させない。
-- [ ] raw bytesとJCSの少なくとも一例をsource経由で検証できる。
-- [ ] zero-length available payloadを検証できる。
-- [ ] current semantic runtime / Provider Adapter / Verifier Registryが回帰しない。
-- [ ] Semantic Runtime Conformanceがsuccessする。
-- [ ] Release / Operational / Adoption・Outcomeへ過大昇格していない。
-- [ ] 文書を自然な日本語となることを最重要視して再ドラフトし、最終意味監査を行った。
+- [x] Payload SourceをVerifier Registryから独立したinterfaceとして交換できる。
+- [x] available / unavailable / source error / size limitを区別できる。
+- [x] unavailable / source error / size limitをdigest mismatchへ誤変換しない。
+- [x] source固有metadataをExact Binding / Profileへ混入させない。
+- [x] raw bytesとJCSの少なくとも一例をsource経由で検証できる。
+- [x] zero-length available payloadを検証できる。
+- [x] current semantic runtime / Provider Adapter / Verifier Registryが回帰しない。
+- [x] Semantic Runtime Conformanceがsuccessする。
+- [x] Release / Operational / Adoption・Outcomeへ過大昇格していない。
+- [x] 文書を自然な日本語となることを最重要視して再ドラフトし、最終意味監査を行った。
+
+## Evidence boundary
+
+本Issueで成立したのは、**synthetic Payload Sourceを使ったruntime-boundary scoped Executable Evidence**までである。
+
+```text
+Payload Source boundary PASS
+  != production filesystem adapter
+  != production S3 / MinIO / object-store adapter
+  != production HTTP / remote artifact service
+  != production streaming verification
+  != Storage migration completed
+  != Release Evidence
+  != Operational Evidence
+  != Adoption / Outcome Evidence
+```
+
+実Storageの可用性、retention、credential、retry、network failure、large-object behaviorは未検証のまま残す。
 
 ## Reopen / follow-up conditions
 
-Resolved後、次が具体化した場合は再開せず原則として後続Issueへ分ける。
+本Issueは最小runtime boundaryが成立したためResolvedとする。
+
+次が具体化した場合は、原則として後続Issueへ分ける。
 
 - large objectを全量`[]byte`化せず検証するstreaming requirement。
 - production S3 / MinIO / filesystem / HTTP adapter。
@@ -173,15 +227,12 @@ Resolved後、次が具体化した場合は再開せず原則として後続Iss
 
 ## CI / verification
 
-最低限、次を確認する。
+本Issueのclosureに使用したSemantic Runtime Conformanceはsuccessしている。
 
-- Semantic Runtime Conformance
-- Plan integrity
+Plan registryへResolved状態を同期した後、Plan integrityもsuccessであることを確認する。
 
-既存ContractやRepresentation Profileを変更した場合だけ、対応するConformance workflowも追加で確認する。
-
-CI failureを検出した場合は、原因を解消してsuccessを確認してから後続作業へ進む。
+既存ContractやRepresentation Profileの規範内容は変更していないため、本Issueのclosure条件として新しいContract familyやProfile versionは追加しない。
 
 ## Natural Japanese review
 
-ADR-0007 / 0008 / 0009 / 0022 / 0023、current Verifier Registry、SCN-0008 / 0010、REQ-0018 / 0020へ戻って境界を整理した。その後、取得不能とcontent failure、semantic outcomeとoperational error、Storage mechanicsとExact Binding意味を混同しないよう条件を固定し、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+ADR-0007 / 0008 / 0009 / 0022 / 0023、current Verifier Registry、実装したPayload Source boundary、SCN-0008 / 0010、REQ-0018 / 0020、GitHub Actions Run `33457416359`へ戻ってResolutionを照合した。その後、取得不能とcontent failure、semantic outcomeとoperational error、Storage mechanicsとExact Binding意味、synthetic Evidenceとproduction Evidenceを混同しないよう条件を固定し、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
