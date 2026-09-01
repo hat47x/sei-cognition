@@ -74,23 +74,24 @@ Provider identity
 
 失敗時に返すのはerrorとzero-value documentであり、失敗したProvider responseをcanonicalな観測として確定しません。
 
-## 5. 初回current-baseline CI Evidence
+## 5. Closure CI Evidence
 
-PR #37の初回head `977773dc3071c8a4d6f33bf4f29e3ffc0c1fec23`では、次がsuccessしました。
+PR #37では、Issue本文とregistryをResolvedへ同期した検査点 `12621fe67a6fbc6226da5b37f56fcc39d5066faf` で次の6系統がすべてsuccessしました。
 
-- External Integration E3b Run `33569912285`
+- External Integration E3b Run `33570935966`
   - deterministic live integration boundary test: success
   - public GitHub REST APIへのactual live call: success
   - fixed commit responseのidentity確認: success
   - current Capability Observationへのmapping / validation: success
-- Semantic Runtime Conformance Run `33569912339`: success
-- Plan integrity Run `33569912230`: success
-- External Integration E3a Run `33569912086`: success
-- Local Package Artifact Run `33569912317`: success
+- Semantic Runtime Conformance Run `33570935849`: success
+- Plan integrity Run `33570935878`: success
+- External Integration E3a Run `33570935851`: success
+- Local Package Artifact Run `33570935996`: success
+- Release Candidate Gate Run `33570935867`: success
 
-同じheadのRelease Candidate Gate Run `33569912273`ではGate 1〜8がsuccessし、Gate 9がOpenなISSUE-000060を意図どおりblockしました。これはE3b-P1の失敗ではなく、v0.2.0 candidate policyが未解決Issueを検出した結果です。
+Release Candidate GateもGate 9まで成功し、ISSUE-000060をResolvedへ移した状態とcandidate blockerの整合を確認しました。
 
-IssueをResolvedへ移し、Evidence文書と上流文書を同期した最終headでは、Gate 9を含めてRelease Candidate Gateを再検査します。
+このEvidence点を文書へ記録するcommit自身はSHAを変えるため、Evidence対象を常に文書HEADへ追従させる自己参照は行いません。後続の文書同期commitについては同じCI群で回帰を確認します。
 
 ## 6. Evidenceの読み方
 
@@ -141,4 +142,4 @@ E3b全体には、少なくとも次が残っています。
 
 ## 9. Natural Japanese review
 
-PMS-06、`product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`、v0.2.0 Release Acceptance、ISSUE-000057 / 000058 / 000060、current Capability Observation Contract、Provider Adapter、PR #37初回headのExternal Integration E3b / Semantic Runtime / Plan integrity / E3a / Local Package / Release Candidate Gateを照合した。live network invocationが成立した事実と、TEI・Cognitive Method・production credential・Operational portability・Product Releaseが未検証である事実を分離し、GitHub固有のresponse shapeやprotocolをUniversal semantic modelへ持ち込まない境界を確認した。そのうえで、実証内容、negative case、Evidence強度、未検証範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+PMS-06、`product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`、v0.2.0 Release Acceptance、ISSUE-000057 / 000058 / 000060、current Capability Observation Contract、Provider Adapter、PR #37のclosure Evidence点を照合した。live network invocationが成立した事実と、TEI・Cognitive Method・production credential・Operational portability・Product Releaseが未検証である事実を分離し、GitHub固有のresponse shapeやprotocolをUniversal semantic modelへ持ち込まない境界を確認した。そのうえで、実証内容、negative case、Evidence強度、未検証範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
