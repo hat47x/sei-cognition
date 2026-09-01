@@ -1,6 +1,6 @@
 # ISSUE-000050: end-to-end Semantic Product Journey harnessを実体化する
 
-Status: **Open**  
+Status: **In Progress**  
 Priority: **1**  
 Related ADRs: **ADR-0005, ADR-0008, ADR-0009, ADR-0018, ADR-0020, ADR-0021, ADR-0022, ADR-0025**  
 Updated: 2026-09-01
@@ -9,13 +9,15 @@ Updated: 2026-09-01
 
 SCN-0018「Inquiryから実行後の再検討までを一続きに扱う」について、個別Contract / runtime / Provider AdapterのPASSを足し合わせるのではなく、**一つのsemantic Product Journeyとして実際に接続して検査できるExecutable harness**をactual repositoryへ実体化する。
 
-最初のharnessではproduction UIやproduction execution engineを必須にしない。Canonical Semantic Access Surfaceに相当するfixture / adapter / CLI / test harness等から、耐久的な意味が一続きに再構成できることを検査する。
+最初のharnessではproduction UIやproduction execution engineを必須にしない。既存Contractから読み取ったcanonical meaningを、評価用のJourney manifestで束ねて検査する。
+
+Journey manifest自体はUniversal Contractでもcanonical product stateでもない。耐久的な意味上の正本は、あくまで既存Contract record側に残す。
 
 ## Why now
 
-Product ShapeとREQ-0001〜REQ-0022のcomposition analysisにより、新しいUniversal Requirementを増やすより、既存の意味要求をend-to-endで同時に検査することが不足していると分かった。
+Product ShapeとREQ-0001〜REQ-0022のcomposition analysisから、新しいUniversal Requirementを増やすより、既存の意味要求をend-to-endで同時に検査することが不足していると分かった。
 
-SCN-0018では、とくに次の境界を統合している。
+SCN-0018では、とくに次を一つの経路として扱う。
 
 ```text
 Inquiry
@@ -28,35 +30,101 @@ Inquiry
   → historical review / reopen
 ```
 
-current repositoryには各段階の一部を支えるscoped Executable Evidenceがあるが、この連鎖全体を一つの検査経路として確認したEvidenceはまだない。
+## 2026-09-01 first executable slice
 
-## Dependency
+`runtime/go/journeyharness`を追加し、既存の`semanticruntime.Bundle`を入力とする評価用harnessを実体化した。
 
-ISSUE-000043のCognitive Method Contract / runtime sliceと強く関係する。
+新しいUniversal Contractは追加していない。
 
-ただし、ISSUE-000050をISSUE-000043の全面完了へ機械的にblockしない。SCN-0018のharnessに必要なCognitive Method read / validate / reconstruct能力がactual branchに成立した時点で統合を進められる。
+### 利用する既存record
+
+- Cognitive Method `method_application`
+- Decision Memory `recommendation`
+- Decision Memory `decision`
+- Capability Observation
+- Semantic Interchange上のopaque / `not_verified` record
+- Logical Reference
+
+Inquiry、Unknown、execution receipt等でcurrent Universal Contractを持たない外部Artifactは、harness都合で新しいCore型を作らず、Interchange上のopaque record / stable Logical Referenceとして扱う。
+
+### 評価用Journey manifest
+
+manifestは、次のrecord identityと評価条件を束ねる。
+
+- Inquiry
+- Method Application
+- Recommendation
+- Decision
+- Decision時刻
+- execution receipt
+- resulting Observation
+- reopen Method Application
+- unsupported record
+- Provider交換前後のCapability Observation
+- no-executionを許容するか
+- reopen / unresolved carryを要求するか
+- collaborative pathでResponsibility分離を要求するか
+
+manifestは**評価用の検査構成**であり、SOZAの新しいsemantic authorityにはしない。
+
+## first sliceで検査できる意味境界
+
+### Method → Recommendation → Decision
+
+- Method ApplicationのoutputがRecommendationを参照する。
+- DecisionがRecommendation referenceを保持する。
+- DecisionがMethod Applicationをcontextまたはbasisとして辿れる。
+- Recommendationのlogical identityをDecisionとして流用しない。
+
+### Responsibility
+
+- Decision側に明示的なResponsibility referenceがある。
+- collaborative pathではMethod Application側とDecision側のResponsibilityを区別できる。
+- actor種別だけからAuthorityを推定しない。
+
+### execution後Observationと時間境界
+
+- execution receiptとresult Observationを組として扱う。
+- result Observationがreceiptへのprovenance / source referenceを保持する。
+- result Observationの`observed_at`がDecision時刻より後である。
+- 後から得たObservationを過去Decisionの`basis_refs`へ混入させない。
+
+### reopen / residual
+
+- reopen Method Applicationが新しいresult Observationをinputとして受け取る。
+- uncertain pathではDecisionの`unresolved_refs`をreopen側へ持ち越せる。
+
+### Provider replacement
+
+- 交換前後のCapability Observationが同じCapabilityを対象とする。
+- Provider referenceだけが別Providerへ変わる。
+- Provider固有IDをDecision identityにはしない。
+
+### unsupported record
+
+- unsupported / external recordをknown semanticsへ昇格させず、`not_verified`のまま保持する。
+
+### no-execution
+
+- external executionがなくてもDecisionまでのJourneyを正当な状態として扱える。
+
+## Current executable tests
+
+actual Go testとして、少なくとも次を追加した。
+
+1. end-to-end journeyの基本接続
+2. no-execution journey
+3. execution後Observationの時間逆行拒否
+4. execution後Observationをhistorical Decision basisへ混入させるケースの拒否
+5. Provider replacementでProviderが実際には変わっていないケースの拒否
+6. unsupported recordを`validated`へ昇格させるケースの拒否
+7. RecommendationとDecisionを同じidentityへ潰すケースの拒否
+
+Semantic Runtime Conformance Run `33477245347`で、Contract fixture再検査と`go test ./...`がともにsuccessした。
 
 ## Scope
 
-### 1. canonical journey fixture
-
-少なくとも一つの代表的なjourneyについて、次をstable Referenceで接続する。
-
-- Inquiryまたは等価なQuestion / context Artifact
-- Observation / Evidence
-- Unknown / Conflict / residual
-- Cognitive Method Definition / Realization / Application
-- Recommendation
-- Decision
-- Responsibility / Authorityに必要なcontextual reference
-- Capability / Provider selectionに必要なObservation
-- external executionを表すreference / receipt相当のArtifact
-- execution後に得た新しいObservation
-- historical review / reopenへ必要なReference
-
-既存Contractで表現できない部分を見つけた場合、harness都合だけでUniversal fieldを追加しない。既存Artifact Reference / Extension / external Artifact等で表せるかを先に確認し、本当に意味上の不足がある場合だけIssue / ADRへ戻る。
-
-### 2. required variants
+### required variants
 
 #### normal
 
@@ -78,33 +146,9 @@ AIがCognitive Method Application / Recommendationを担い、人間または明
 
 Decisionまでで終了し、external executionがなくてもDecision recordとhistorical valueが成立する。
 
-### 3. temporal integrity
-
-execution後に得たObservationを、過去Decision作成時のbasisへ混入させない。
-
-```text
-observation acquired after D1
-  != evidence known when D1 was made
-```
-
-D1をhistoricalに再構成したときは当時のbasisを読み、新Observationは後続review / D2等へ接続する。
-
-### 4. provider / projection independence
-
-- Provider固有run IDをDecisionのcanonical identityにしない。
-- Provider交換後もhistorical Decisionを読める。
-- Projectionをcanonical authorityにしない。
-- current UIやProjectionがなくてもcanonical recordから必要な意味を再構成できる。
-
-### 5. unknown version handling
-
-Journey内にunsupported Contract versionが含まれる場合は、known current versionとして誤解釈しない。
-
-Semantic Interchange等のcurrent boundaryに従い、可能な範囲でopaque + `not_verified`として保持する。
-
 ## Minimal executable checks
 
-少なくとも次をactual testで検査する。
+最終的には少なくとも次をactual testで検査する。
 
 1. journey内の各Artifact / recordをstable Referenceで辿れる。
 2. Decisionから当時のbasisへ戻れる。
@@ -118,19 +162,6 @@ Semantic Interchange等のcurrent boundaryに従い、可能な範囲でopaque +
 10. Execution successをDecision correctness / Business Outcome successへ自動昇格しない。
 11. unsupported versionをknown versionとして扱わない。
 12. Projectionだけをcanonical sourceとして利用しない。
-
-## Negative cases
-
-少なくとも次を明示的にFAILさせるか、semantic violationとして検出する。
-
-- AI RecommendationをDecisionとして同一record / roleへ潰す。
-- Decision作成と同時にUnknown / Conflictを自動resolvedへ変える。
-- Provider run IDをDecision identityとしてのみ保存する。
-- execution successからDecisionを`verified`へ昇格する。
-- 後から得たObservationでD1のhistorical basisを上書きする。
-- Provider交換時に以前のDecision referenceが解決不能になる。
-- no-execution pathを不正な未完了Decisionとして拒否する。
-- unsupported Contract versionをcurrent versionへ黙ってcoerceする。
 
 ## Non-goals
 
@@ -151,25 +182,25 @@ Semantic Interchange等のcurrent boundaryに従い、可能な範囲でopaque +
 
 - [x] SCN-0018がcurrent Acceptance Scenarioとして定義されている。
 - [x] Requirement composition上、新しいUniversal Requirementが現時点では不要と整理されている。
-- [ ] harnessのArtifact graph / fixture structureを定義する。
-- [ ] current Contractで表現できない箇所を洗い出し、Extension / Reference等で扱えるか監査する。
+- [x] harnessのArtifact graph / fixture structureを評価用Journey manifestとして定義する。
+- [x] current Contractで表現できないInquiry / execution receipt等を、Universal field追加ではなくopaque external Artifact / Logical Referenceとして扱えることをfirst sliceで確認する。
 
 ### Executable
 
-- [ ] normal variantがactual testでPASSする。
-- [ ] uncertain variantがactual testでPASSする。
-- [ ] collaborative variantがactual testでPASSする。
-- [ ] provider replacement variantがactual testでPASSする。
-- [ ] no-execution variantがactual testでPASSする。
-- [ ] temporal integrity negative caseがFAILする。
-- [ ] Recommendation / Decisionの自動昇格negative caseがFAILする。
-- [ ] Provider identity依存negative caseがFAILする。
-- [ ] unsupported version boundaryを検査できる。
-- [ ] `go test ./...`および関連Contract / Requirements / Plan CIがsuccessする。
+- [ ] normal variant専用fixtureがactual testでPASSする。
+- [x] uncertain pathに必要なunresolved carry / reopen境界をactual testでPASSする。
+- [x] collaborative pathに必要なResponsibility分離をactual testでPASSする。
+- [x] provider replacement pathのCapability / Provider分離をactual testでPASSする。
+- [x] no-execution variantがactual testでPASSする。
+- [x] temporal integrity negative caseがFAILする。
+- [x] Recommendation / Decisionの同一視negative caseがFAILする。
+- [x] Provider replacement不成立negative caseがFAILする。
+- [x] unsupported recordを`not_verified`として扱う境界を検査できる。
+- [x] `go test ./...`とcurrent Contract fixture再検査がSemantic Runtime Conformance Run `33477245347`でsuccessする。
 
 ### Evidence update
 
-- [ ] SCN-0018のExecutable Evidenceをactual harnessで確認できた範囲だけ更新する。
+- [ ] SCN-0018のCurrent Evidenceを、first sliceで確認した範囲だけ`Partially Satisfied`へ更新する。
 - [ ] 関連REQのExecutable Evidenceを過大主張せず再評価する。
 - [ ] Product Value Traceabilityへend-to-end harnessのscopeを反映する。
 - [ ] component-level PASSとProduct Journey PASSの差をEvidence文書へ残す。
@@ -182,28 +213,27 @@ Semantic Interchange等のcurrent boundaryに従い、可能な範囲でopaque +
 
 本IssueをResolvedにしても、これらを自動的にSatisfiedへ上げない。
 
-## Implementation order
+## 次の実装順序
 
-1. current Contract / runtime / Cognitive Method sliceのactual状態を再確認する。
-2. Product JourneyのArtifact graphとfixture identityを定める。
-3. normal / uncertain / no-executionを先に作る。
-4. collaborative / provider replacementを追加する。
-5. temporal integrityとsemantic promotionのnegative caseを追加する。
-6. harnessをCIへ接続する。
-7. Requirement / Scenario / Value TraceabilityのEvidenceを更新する。
-8. 追加・更新文書を自然な日本語へ全文再ドラフトし、最終意味監査する。
-9. 対象CIがすべてsuccessすることを確認する。
+1. normal variant専用fixtureを追加し、uncertain pathとの違いを明示する。
+2. `semanticruntime.LoadInterchange`からactual bundleを構成するfixtureを追加し、in-memory構成だけに依存しない経路を確認する。
+3. Execution successとDecision correctness / Business Outcomeの自動昇格を明示的なnegative caseとして追加する。
+4. Projection非権威をend-to-end harness側でも明示的に検査する。
+5. SCN-0018 / Requirement / Product Value TraceabilityのEvidenceを更新する。
+6. 必要なら専用CI名へ分離する。現時点ではSemantic Runtime Conformance内の`go test ./...`で検査する。
+7. 追加・更新文書を自然な日本語へ全文再ドラフトし、最終意味監査する。
+8. 対象CIをsuccessさせる。
 
-CI failureを検出した場合は、その原因を解消してsuccessを確認してから後続作業へ進む。
+CI failureを検出した場合は、原因を解消してsuccessを確認してから後続作業へ進む。
 
 ## Evidence state
 
-- Design Evidence: **Partially Satisfied** — SCN-0018と最小検査条件は定義済み。harness構造は未確定。
-- Executable Evidence: **Not Yet Verified for SCN-0018 end-to-end**
+- Design Evidence: **Satisfied for the first harness structure** — 既存Contractを束ねる評価用Journey manifestと検査境界を定義した。
+- Executable Evidence: **Partially Satisfied for SCN-0018** — Run `33477245347`でfirst sliceのGo testsがsuccess。actual Interchange fixture、normal専用fixture、Projection境界等は未完了。
 - Release Evidence: **Not Yet Verified**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
 
 ## Natural Japanese review
 
-Product Shape、`PRODUCT_JOURNEY_COMPOSITION.md`、SCN-0018、REQ-0001〜REQ-0022、current Semantic Reference / Decision Memory / Capability Observation / Semantic Interchange / Cognitive Method Contract、first runtime、synthetic Provider Adapterへ戻り、component-level Evidenceとend-to-end Evidenceを混同しない実装課題として整理した。Product JourneyのためだけにUniversal fieldを増やさず、まず既存Reference / Extension / external Artifactで表現できるかを確認する境界を置いた。その後、実装順序、negative case、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+Product Shape、`PRODUCT_JOURNEY_COMPOSITION.md`、SCN-0018、REQ-0001〜REQ-0022、current Semantic Reference / Decision Memory / Capability Observation / Semantic Interchange / Cognitive Method Contract、first runtimeへ戻り、first executable sliceを再整理した。Journeyを表すためだけにUniversal Contractを追加せず、評価用manifestは検査構成に限定し、耐久的な意味は既存record側へ残している。Run `33477245347`で実際に確認した範囲だけExecutable Evidenceを`Partially Satisfied`へ上げ、production UI、Release、Operational、Adoption / Outcomeへは昇格させていない。そのうえで、意味、規範強度、非対象範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

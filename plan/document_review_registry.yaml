@@ -39,12 +39,12 @@ reviewed:
 
   - scope: plan/adr/ADR-*.md
     status: revised
-    coverage: ADR-0001..ADR-0025
+    coverage: ADR-0001..ADR-0026
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、新規ADRも通常作業単位で自然な日本語全文再ドラフトと最終意味監査まで実施する。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000048
-    note: ISSUE-000042の文書監査coverage、ISSUE-000043のCognitive Method実体化、ISSUE-000044〜000048のProduct Shape関連課題を含め、新規Issueは同じ作業単位で自然な日本語全文再ドラフトと最終意味監査まで実施する。
+    coverage: ISSUE-000001..ISSUE-000050
+    note: ISSUE-000042の文書監査coverage、ISSUE-000043のCognitive Method実体化、ISSUE-000044〜000050のProduct Shape / end-to-end Product Journey関連課題を含め、新規Issueは同じ作業単位で自然な日本語全文再ドラフトと最終意味監査まで実施する。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -58,6 +58,8 @@ reviewed:
       - requirements/README.md
       - requirements/PRODUCT_REQUIREMENTS.md
       - requirements/ACCEPTANCE_SCENARIOS.md
+      - requirements/PRODUCT_JOURNEY_COMPOSITION.md
+    note: SCN-0018の正本化とProduct Journey composition analysisを含め、Requirement / Scenario / Testの境界を維持したまま監査済み。
   - scope: requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md
     status: revised
 
