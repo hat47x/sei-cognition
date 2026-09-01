@@ -124,21 +124,19 @@ Interaction boundaryのDesign Evidenceと、最小prototypeまたはconformance�
 
 ISSUE-000053では、`runtime/go/interactionprobe`にhuman-oriented Surfaceとmachine-oriented Surfaceを実体化し、同じin-memory canonical sourceへ接続しました。既存`semanticruntime`型を再利用し、Recommendation / Decision / Capability Observation / Cognitive Method Applicationはcurrent validatorを通して保持します。Inquiry / Unknown / Conflictは、未対応意味を理解済みと偽らずopaqueな`not_verified` recordとして扱います。
 
-追加negative testを含むSemantic Runtime Conformance Run `33504002579`で、current Contract fixture再検査と`runtime/go`全体の`go test ./...`がsuccessしました。
+Semantic Runtime Conformance Run `33504002579`で、current Contract fixture再検査と`runtime/go`全体の`go test ./...`がsuccessしました。
 
-このExecutable Evidenceで確認できたのは、主として次の境界です。
+確認できた主な境界は次です。
 
 - machine側が追加したObservation / Recommendationをhuman側から再読できる。
 - human側Decisionをmachine側がDecisionとして再読できる。
 - RecommendationとDecisionを同一recordへ平坦化しない。
 - Unknown / Conflictを失わない。
-- light / audit / structured Projection生成でcanonical sourceを変更しない。
+- Projection生成でcanonical sourceを変更しない。
 - Surface-local stateを破棄してもcanonical recordを失わない。
-- chat / UIにしか存在しないRecommendation / Decision相当情報をcanonical recordへ昇格させない。
-- post-decision Observation追加でhistorical Decision basisを書き換えない。
-- machine SurfaceであることからResponsibilityを自動推定しない。
-
-ただし、これはproduction UIの使いやすさやsupported protocolの確定を意味しません。
+- chat / UIだけの情報をcanonical Recommendation / Decisionへ昇格させない。
+- post-decision Observationでhistorical Decision basisを書き換えない。
+- machine SurfaceであることからResponsibilityを推定しない。
 
 ```text
 reference probe PASS
@@ -150,13 +148,13 @@ reference probe PASS
 
 ### Open questions
 
-- productionで最初にsupportedとするhuman-facing surface
-- productionで最初にsupportedとするAI-facing access surface
+- productionで最初にsupportedとするhuman-facing Surface
+- productionで最初にsupportedとするAI-facing access Surface
 - Web / desktop / CLI / API / MCP等のsupported combination
 - human usabilityを損なわずlight / auditを往復する具体UX
 - Packaging / DeploymentとInteraction Surfaceの組み合わせ
 
-これらは現時点でRequirementとして先取りしません。reference probeのSurfaceや単一Inquiry向けin-memory storeをproduction標準へ昇格させません。
+これらは現時点でRequirementとして先取りしません。
 
 ## 7. PMS-04 — 配布・保存・再開が可能な最小製品単位が成立する
 
@@ -172,7 +170,7 @@ Packaging / DeploymentのDesign Evidenceと、最小packageのExecutable Evidenc
 
 ### Current state
 
-**Design baseline established / scoped persistence・resume・Storage migration Executable Evidence available / distributable package pending.**
+**Design baseline established / scoped persistence・literal process restart Executable Evidence available / supported distributable artifact pending.**
 
 `product/packaging/SOZA_PRODUCT_PACKAGING.md`とADR-0029で、最初に成立させるPackaging / Deployment ProfileをLocal Single-Node Packageとして正本化しました。
 
@@ -183,50 +181,46 @@ Go runtime executable
   + portable semantic data
 ```
 
-Goの単一バイナリ化は配布上の利点として利用しますが、runtime executableをcanonical semantic dataにはしません。filesystemは最初のPersistence Realizationとして利用する一方、file pathをLogical Referenceへ昇格させません。
+runtime executableはcanonical semantic dataではなく、filesystem pathもLogical Referenceではありません。portable export / importにはcurrent Semantic Interchangeを再利用し、package専用Universal Contractは追加していません。
 
-portable export / importにはcurrent Semantic Interchangeを再利用し、package専用Universal Contractは追加していません。
-
-Deployment上のcomponent配置は`architecture/SOZA_DEPLOYMENT_ARCHITECTURE.md`へ分離しました。単一processへInteraction、Semantic Runtime、Persistence、Integrationを同居させても、それらを一つのsemantic concernとはみなしません。
-
-ISSUE-000054では、`runtime/go/packagingprobe`にfilesystem / memory Persistenceを実装し、次を限定範囲で確認しました。
+ISSUE-000054では、`runtime/go/packagingprobe`とbuild可能な`soza-package-probe` executableを用いて、次を限定範囲で確認しました。
 
 - portable Semantic Interchangeをfilesystemへ保存できる。
-- 元のin-memory Bundleを破棄し、新しいruntime objectから同じbytesとtyped recordを再構成できる。
-- unknown Contractを`not_verified`のまま保持する。
+- in-memory runtime stateを破棄した後にも同じbytesとtyped recordを再構成できる。
+- 実際にGo executableをbuildできる。
+- 独立したsave processを終了した後、別のinspect processがdurable dataだけからbundleを再読できる。
+- unknown Contractをprocess越しでも`not_verified`のまま保持できる。
 - canonical bundle fileを別directoryへcopyし、restore先から再読できる。
 - filesystemからmemory Persistenceへportable bytesを移し、同じbundleを再読できる。
-- invalid canonical file、temporary fileだけの状態、invalid importを正常stateとして扱わない。
-- physical data-root変更をsemantic identityへ持ち込まない。
-- Storage交換をSemantic Revisionへ自動変換しない。
+- invalid / incomplete stateを正常packageとして扱わない。
+- physical data-root変更やPersistence交換をsemantic identity / Semantic Revisionへ持ち込まない。
 
-初回probe headのSemantic Runtime Conformance Run `33506712038`で、current Contract fixture再検査と`runtime/go`全体の`go test ./...`がsuccessしました。
-
-ただし、このEvidenceはliteralなOS-process restartや利用者へ配れる実バイナリを確認したものではありません。
+literal process probeを含むSemantic Runtime Conformance Run `33508376230`とPlan integrity Run `33508376256`はともにsuccessしました。
 
 ```text
-persistence probe PASS
-  != distributable product package proven
-  != literal process restart proven
+same-version process restart PASS
+  != supported distributable artifact proven
+  != executable version upgrade proven
   != crash durability proven
-  != production Storage migration proven
+  != actual production Storage migration proven
   != Release / Operational / Adoption Evidence
 ```
 
+PMS-04の残差は、test内でbuildできることとsupportedな配布artifactとして成立することの差です。ISSUE-000055で、package lifecycle controlとProduct Interactionを分けたまま、reproducible build、artifact identity、version表示、配布artifactからのsave / reloadを検証します。
+
 ### Open questions
 
-- productionで最初にsupportedとするhuman-facing Surface
-- productionで最初にsupportedとするAI-facing protocol
-- actual Go binary / packageの配布形態
-- literal process restartとversion upgrade後のresume
+- first supported artifactのOS / architecture scope
+- archive形式とartifact integrity metadata
+- package lifecycle用管理入口の最小範囲
+- executable version upgrade後のresume
+- productionで最初にsupportedとするhuman / AI Product Interaction Surface
 - server-side StorageをいつRDB / object storeへ進めるか
 - team / multi-user deployment topology
-- online migration
-- production backup SLA
-- HA / replication
+- online migration、production backup SLA、HA / replication
 - container / cloud-managed distribution
 
-これらはLocal Single-Node Packageやpersistence probeのPASSだけを理由にRequirementへ固定しません。
+これらはprocess probeのPASSだけを理由にRequirementへ固定しません。
 
 ## 8. PMS-05 — identity・authorization・collaborationを製品として安全に扱える
 
@@ -317,4 +311,4 @@ Open Questionを直接Stable Requirementへ飛ばしません。
 
 ## 14. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、REQ-0001〜0022、SCN-0008 / 0010 / 0013 / 0018、ADR-0028 / 0029、ISSUE-000046 / 000053 / 000054、current Go runtime、Semantic Interchange、Interaction / Packaging probeとcurrent CI Evidenceへ戻ってMilestoneを再監査しました。PMS-03はscoped Interaction Executable Evidenceまで、PMS-04はPackaging / Deployment Designとscoped Persistence / runtime-state-independent resume / Storage migration Executable Evidenceまでを明確に分けています。一方、PMS-04のOutcome全体に必要なdistributable packageやliteral process restartは未検証のままです。Local Single-Node Package、filesystem、probe-local Persistenceを唯一のdeployment topologyやsemantic authorityへ昇格させず、未定領域を先にRequirementへ固定しない境界も維持したうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、REQ-0001〜0022、SCN-0008 / 0010 / 0013 / 0018、ADR-0028 / 0029、ISSUE-000046 / 000053 / 000054 / 000055、current Go runtime、Semantic Interchange、Interaction / Packaging probeとcurrent CI Evidenceへ戻ってMilestoneを再監査しました。PMS-03はscoped Interaction Executable Evidenceまで、PMS-04はPackaging / Deployment Design、filesystem persistence、runtime-state-independent reconstruction、same-versionのliteral process restartまでを明確にEvidence化しています。一方、supported distributable artifact、version upgrade、actual production Storage migration、Release / Operational Evidenceは未検証のままです。Local Single-Node Package、filesystem、probe executableを唯一のdeployment topology、正式Product Interaction、semantic authorityへ昇格させず、未定領域を先にRequirementへ固定しない境界を維持したうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
