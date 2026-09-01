@@ -5,145 +5,81 @@
 
 ## 1. この文書の役割
 
-この文書は、PMS-04、`product/packaging/SOZA_PRODUCT_PACKAGING.md`、ADR-0029で定めたLocal Single-Node Packageについて、`runtime/go/packagingprobe`で確認できた範囲を記録します。
+この文書は、PMS-04、Product Packaging baseline、ADR-0029に対して、current Packaging / Persistence probeで実際に確認できた範囲を記録します。
 
-今回のprobeで確認したのは、**portable Semantic Interchangeをfilesystemへ保存し、元のin-memory runtime stateを破棄した後に別のruntime objectから再構成できること、およびPersistence Realizationを変更してもportable semantic bytesを保持できること**です。
-
-実際のOS process再起動、配布バイナリ、production database、crash durability、同時書き込み、production backup運用を実証するものではありません。
+今回、新たに**build済みGo executableを別々のOS processとして起動し、保存processの終了後にdurable dataだけから再開できること**まで確認しました。
 
 ```text
-packaging probe PASS
-  != distributable package proven
-  != literal OS-process restart proven
+probe PASS
+  != supported distributable artifact proven
+  != executable version upgrade proven
   != crash durability proven
-  != SCN-0008 actual Storage migration proven
-  != Release Evidence
-  != Operational / Adoption Evidence
+  != actual production Storage migration proven
+  != Release / Operational / Adoption Evidence
 ```
 
-## 2. 実装したprobe
+## 2. 実装した境界
 
-`runtime/go/packagingprobe`に、runtime-levelの小さなPersistence境界を実装しました。
+`runtime/go/packagingprobe`には、probe-localな`Persistence`境界とfilesystem / memoryの二つのRealizationがあります。Semantic Interchangeの意味解釈は新しく実装せず、既存の`semanticruntime.LoadInterchange`と`Bundle.ExportOriginal`を再利用します。
+
+`runtime/go/cmd/soza-package-probe`には、process境界を検査するための`save` / `inspect`だけを持つGo executableを追加しました。このcommandは正式なProduct Interaction CLIではありません。
+
+filesystem Realizationでは`semantic.bundle.json`をcanonical bundle fileとして扱い、temporary fileへの書き込み、file sync、close、renameを使います。このmechanics自体はUniversal仕様ではなく、power lossや全OS / filesystemでのcrash durabilityも今回のEvidenceには含めません。
+
+## 3. literal process restart
+
+`process_test.go`では、まず`go build`でprobe executableを実際に生成し、その後に独立したprocessを順に起動します。
 
 ```text
-Semantic Interchange bytes
-          │
-          ▼
-      Persistence
-       /        \
-filesystem     memory
+process A: save
+  -> durable data root
+  -> exit
+
+process B: inspect
+  -> durable data root only
+  -> semantic reconstruction
 ```
 
-このPersistence interfaceはprobe / runtimeの実装境界であり、Universal Semantic Contractではありません。
+`partial-knowledge-interchange.json`について、次を確認しました。
 
-semantic parse / validationは別実装せず、既存の次を再利用します。
-
-- `semanticruntime.LoadInterchange`
-- `semanticruntime.Bundle.ExportOriginal`
-
-したがって、Packaging probeがSemantic Interchangeの第二の意味解釈系になることを避けています。
-
-## 3. filesystem Persistence
-
-最初のfilesystem Realizationでは、data root配下の`semantic.bundle.json`をcanonical bundle fileとして扱います。
-
-file pathはphysical locatorであり、Logical Referenceではありません。
-
-保存では、probeの範囲で次の手順を用います。
-
-```text
-complete bytes
-  -> temporary file
-  -> file sync
-  -> close
-  -> rename to canonical file
-```
-
-これはfirst filesystem Realizationの実装であり、すべてのPersistence Providerへ同じmechanicsを要求するものではありません。
-
-また、この手順だけでOS crash時のdurabilityを保証したとは主張しません。directory fsync、filesystem固有のrename保証、Windows等の異なるplatform behaviorは今回の検証範囲外です。
-
-## 4. memory Persistence
-
-Persistence交換の境界を確認するため、第二Realizationとしてmemory Persistenceを実装しました。
-
-これはproduction in-memory StorageをsupportするDecisionではありません。filesystemからexportしたportable bytesを別のPersistence Realizationへimportできることを小さく確認するためのprobeです。
-
-したがって、この二Realization間のPASSを、SCN-0008が想定するprototype filesystemからproduction DB / object store等へのactual Storage migrationと同一視しません。
-
-## 5. 確認したExecutable Evidence
-
-Semantic Runtime Conformance Run `33506712038`のruntime-conformance jobで、current Contract fixtureの再検査と`runtime/go`全体の`go test ./...`がsuccessしました。
-
-### 5.1 保存後の再構成
-
-`partial-knowledge-interchange.json`を既存`semanticruntime.LoadInterchange`で読み、filesystem Persistenceへ`Bundle.ExportOriginal()`のbytesを保存しました。
-
-その後、元の`Bundle` objectを破棄し、新しい`FilePersistence`と`LoadBundle`呼び出しから再読しています。
-
-確認した内容は次です。
-
+- process A終了後、process Bが同じdata rootから再読できる。
+- 保存されたSemantic Interchange bytesが入力fixtureと一致する。
 - `bundle_id`が保持される。
-- original Semantic Interchange bytesが変化しない。
-- Capability ObservationとDecisionのtyped recordが再構成される。
+- 2件のknown recordを`validated`として再構成できる。
 
-これは同一test process内でruntime objectを作り直したEvidenceです。OS processを実際に終了・再起動したEvidenceではありません。
+process Bはprocess AのheapやGo objectを共有しません。このため、**same-versionのbuild済みGo executableによるsave → exit → independent reload**にはscoped Executable Evidenceがあります。
 
-### 5.2 unknown Contractの保持
+## 4. unknown Contractの保持
 
-`unknown-contract-version.json`を保存・再読し、未知のnested Contractが`RecordNotVerified`のまま保持されることを確認しました。
-
-original bytesも変化しません。
+`unknown-contract-version.json`でもsave processとinspect processを分けています。再開後もunknown recordは`not_verified`のままであり、保存・再開できたことを「意味を理解しvalidatedした」と読み替えません。
 
 ```text
-retained across persistence
+retained across process boundary
   != semantics understood
   != validated
 ```
 
-### 5.3 filesystemからmemory Persistenceへの交換
+## 5. その他のPersistence Evidence
 
-filesystem Persistenceからportable bytesをexportし、memory Persistenceへimportした後、再び`LoadInterchange`経由で読み直せることを確認しました。
+unit-level probeでは、元の`Bundle` objectを破棄し、新しい`FilePersistence` / `LoadBundle`から同じbytesとtyped recordを再構成できます。
 
-交換前後で次を保持しています。
+filesystemからportable bytesをexportし、memory Persistenceへimportした後にも同じbundleを再読できます。この交換でSemantic Revisionは生成しません。ただしmemory Persistenceは評価用Realizationであり、このPASSをfilesystemからproduction RDB / object storeへのactual Storage migrationと同一視しません。
 
-- original Semantic Interchange bytes
-- `bundle_id`
-- current runtimeが再構成できるtyped semantic record
+canonical bundle fileを別directoryへcopyし、restore先から同じportable bytesを再読できることも確認しています。これはcanonical semantic bundle fileに限ったrestore probeであり、external payloadやcredential等を含むproduction backup全体のEvidenceではありません。
 
-Persistence Realizationの交換に伴うSemantic Revisionは生成していません。
+## 6. negative case
 
-これはStorage-neutralなruntime境界を実行可能に確認するprobeであり、production Storage migrationそのものではありません。
+次をactual testで確認しています。
 
-### 5.4 data rootのcopy / restore
+- invalid JSON / invalid Semantic Interchangeを正常packageとして受理しない。
+- temporary fileだけが存在しcanonical fileがない状態をcompleted saveと扱わない。
+- invalid importで直前のvalid memory stateを壊さない。
+- physical data-root変更でsemantic bytesを書き換えない。
+- unknown Contractをvalidatedへ昇格させない。
 
-保存済みcanonical bundle fileを別directoryへ複製し、そのrestore先を新しいdata rootとして読み直せることを確認しました。
+## 7. SCN-0008との関係
 
-restore先のphysical pathが変わってもportable semantic bytesは変化しません。
-
-このtestが確認するのはcanonical semantic bundleのcopy / restoreです。将来data rootへ追加される外部payload、index、credential等を含む完全なproduction backupを証明するものではありません。
-
-### 5.5 invalid / incomplete stateの拒否
-
-次をnegative caseとして確認しました。
-
-- invalid JSONまたはSemantic Interchangeとして不正なcanonical fileを正常packageとして受理しない。
-- temporary fileだけが存在し、canonical bundle fileがない場合は保存済みpackageとして扱わない。
-- memory Persistenceへinvalid bytesをimportしようとして失敗しても、直前のvalid stateを置き換えない。
-
-### 5.6 physical locatorとsemantic identityの分離
-
-異なる二つのfilesystem data root間でportable bytesを移動し、physical locatorの変更がSemantic Interchange bytesへ影響しないことを確認しました。
-
-このprobeはfile pathやdirectory名をLogical Referenceへ変換しません。
-
-## 6. SCN-0008との関係
-
-SCN-0008「Storageを交換する」は、prototypeで利用したfilesystem等からDB / object store等へ移行しても、logical identity、semantic revision、provenance、reference integrity、historical exact bindingを保持できることを求めています。
-
-今回のfilesystem / memory probeは、**その前提となるPersistence Realization交換境界が実装可能であり、portable Semantic Interchange bytesをphysical locatorから独立して扱えることを示す補助的なExecutable Evidence**です。
-
-一方、memory Persistenceは評価用Realizationであり、production classのStorage移行ではありません。RDB、object store、schema migration、long-running data、historical exact-bound payloadを含むactual migrationをまだ実施していないため、SCN-0008のCurrent Evidenceは引き続き**Executable: Not Yet Verified**と読みます。
+filesystem / memory probeは、Storage-neutralなPersistence境界が実装可能であることを補助的に示します。
 
 ```text
 Persistence exchange probe PASS
@@ -151,93 +87,60 @@ Persistence exchange probe PASS
   != SCN-0008 actual Storage migration verified
 ```
 
-## 7. process restart後のresumeの扱い
-
-今回のtestでは、元のBundle objectを明示的に捨て、新しいruntime objectからdurable bytesを再読しています。
-
-これは「前のin-memory stateに依存せず再構成できる」ことのEvidenceです。一方、次はまだ確認していません。
-
-- 別OS processをspawnしてsaveする。
-- processを終了する。
-- 新しいprocessを起動してloadする。
-- executable versionを交換して再開する。
-
-したがって、literalなprocess restart acceptanceを新しいStable Scenarioとして追加する根拠にはまだしません。
+production classのRDB / object store migrationを行っていないため、SCN-0008自体のExecutable Evidenceは引き続き**Not Yet Verified**です。
 
 ## 8. Requirement / Acceptance再監査
 
-probe結果から、新しいstable Product RequirementまたはAcceptance Scenarioを追加する独立した必要性は確認されませんでした。
+literal process restartまで実施した結果、新しいstable Product RequirementやAcceptance Scenarioを追加する独立した必要性は確認されませんでした。
 
-今回の意味は、引き続き主に次で表現できます。
+引き続きREQ-0001 / 0005 / 0009 / 0011 / 0018 / 0020 / 0021、SCN-0008 / 0010を主な検査軸とします。literal process restartは、PMS-04と既存Requirementを検査する実証手段として扱います。
 
-- REQ-0001 — 技術やStorageが変わっても意味を引き継ぐ。
-- REQ-0005 — Decisionを歴史的に再構成する。
-- REQ-0009 — physical migrationとSemantic Revisionを混同しない。
-- REQ-0011 — Surfaceを意味上の正本にしない。
-- REQ-0018 — Storage実装から意味を独立させる。
-- REQ-0020 — Evidenceを超える達成主張をしない。
-- REQ-0021 — Persistence等のRealizationを交換可能にする。
-- SCN-0008 — Storageを交換する。
-- SCN-0010 — 可変Artifact更新後に過去Decisionを再構成する。
+## 9. PMS-04への反映
 
-SCN-0008の実Storage交換やliteral OS-process restart、配布物起動で、既存Scenarioでは表現できない独立したProduct failureが見つかった場合にのみ、Candidate Scenarioを再検討します。
-
-## 9. 今回確認していないこと
-
-- 実際のGo binary build / distribution
-- CLI / Web / desktop Surfaceを含むend-user package
-- literal OS-process restart
-- executable version upgrade後のresume
-- process crash / power loss durability
-- directory fsyncを含むfilesystem crash guarantee
-- Windows / macOSを含むcross-platform filesystem semantics
-- concurrent writer
-- transaction isolation
-- locking
-- production RDB / object store
-- actual SCN-0008 Storage migration
-- online migration
-- payload areaを含む完全backup / restore
-- encryption at rest
-- credential storage
-- login / authorization / collaboration
-- HA / replication
-- production security
-- latency / throughput / resource usage
-- Release / Operational / Adoption / Outcome Evidence
-
-## 10. PMS-04への反映
-
-PMS-04について、Packaging / Deployment Design Evidenceに加えて、**scoped filesystem persistence / runtime-state-independent reconstruction / Persistence Realization exchange Executable Evidence available**と判断できます。
-
-ただし、PMS-04のOutcomeに含まれる「実際に起動・配布できる最小package」全体を満たしたとはまだ主張しません。
+現在のEvidenceは次の高さです。
 
 ```text
-Packaging Design: established
-filesystem persistence probe: executable evidence available
-runtime-state-independent reconstruction: executable evidence available
-filesystem -> memory Persistence exchange: executable evidence available
-actual Storage migration: not yet verified
-distributable product package: not yet verified
-literal process restart: not yet verified
+Packaging / Deployment Design: established
+filesystem persistence: scoped Executable Evidence available
+runtime-state-independent reconstruction: scoped Executable Evidence available
+same-version literal process restart: scoped Executable Evidence available
+filesystem -> memory Persistence exchange: scoped Executable Evidence available
+canonical bundle copy / restore: scoped Executable Evidence available
+supported distributable artifact: not yet verified
+version upgrade resume: not yet verified
+actual production Storage migration: not yet verified
 Release / Operational / Adoption: not yet verified
 ```
 
-## 11. CI Evidence
+PMS-04のOutcome全体に含まれる「利用者へ渡せる最小package」はまだ成立扱いにしません。残差はISSUE-000055で扱います。
 
-- Workflow: `Semantic Runtime Conformance`
-- Run: `33506712038`
-- Job: `runtime-conformance`
-- Result: **success**
-- Scope:
+## 10. CI Evidence
+
+literal process probeを含むhead `9d28d2f04d5e31a7ca766a1a6d05eedc6c00d4d8`で、次が**success**しました。
+
+- Semantic Runtime Conformance Run `33508376230`
   - current Contract fixture再検査
-  - `runtime/go`で`go test ./...`
-  - `runtime/go/packagingprobe`のcurrent test
+  - `runtime/go`全体の`go test ./...`
+  - probe executableの`go build`
+  - independent save / inspect process test
+- Plan integrity Run `33508376256`
 
-同じheadではPlan integrity Run `33506712033`も**success**し、Packaging Design、ADR / Issue registry、Document Review Registryの整合を確認しています。
+このCI successは記載したscopeに限ったEvidenceです。
 
-これらのCI successは、記載したscopeに限ったEvidenceとして扱います。
+## 11. 未検証範囲
+
+- supported distribution artifact
+- executable version upgrade後のresume
+- production Product Interaction CLI / Web / desktop Surface
+- process crash / power loss durability
+- cross-platform filesystem guarantee
+- concurrent writer / locking / transaction isolation
+- production RDB / object storeとactual SCN-0008 migration
+- external payloadを含む完全backup / restore
+- encryption / credential storage / login / authorization / collaboration
+- HA / replication / production security
+- Release / Operational / Adoption / Outcome Evidence
 
 ## 12. Natural Japanese review
 
-Product Packaging baseline、Deployment Architecture、ADR-0029、ISSUE-000046 / 000054、REQ-0018 / 0021、SCN-0008 / 0010、current Semantic Interchange runtime、`runtime/go/packagingprobe`のactual test、Semantic Runtime Conformance Run `33506712038`、Plan integrity Run `33506712033`を照合しました。runtime object破棄後の再構成とliteral OS-process restart、Persistence Realization交換probeとSCN-0008のactual Storage migrationを区別し、filesystem probeの成功をcrash durability、production Storage migration、Release / Operational Evidenceへ広げていません。また、Persistence interface、file layout、temporary-file mechanicsをUniversal semantic modelへ昇格させていません。そのうえで、意味、Evidence強度、未検証範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Packaging baseline、Deployment Architecture、ADR-0029、ISSUE-000046 / 000054 / 000055、REQ-0018 / 0021、SCN-0008 / 0010、current Semantic Interchange runtime、`runtime/go/packagingprobe`、build可能なprocess probe executable、Semantic Runtime Conformance Run `33508376230`、Plan integrity Run `33508376256`を照合しました。runtime object再生成とliteralな別OS processからの再開、Persistence交換probeとactual production Storage migration、build可能なtest executableとsupported distribution artifactを明確に分けています。process restartの成功をversion upgrade、crash durability、Release / Operational Evidenceへ広げず、probe commandやPersistence interfaceもUniversal semantic modelや正式Product Interactionへ昇格させていません。そのうえで、意味、Evidence強度、未検証範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
