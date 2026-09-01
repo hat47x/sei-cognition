@@ -68,6 +68,18 @@ bytes retained
   != validation succeeded
 ```
 
+### 2.5 artifact identityとsemantic identityを分ける
+
+配布archiveにはbuild version、source commit、target等のidentityを持たせられますが、それらはArtifactの追跡情報です。
+
+```text
+artifact identity
+  != semantic identity
+  != Semantic Contract version
+```
+
+archive名やbinary versionをLogical Reference、Decision identity、Semantic Contract identityへ流用しません。
+
 ## 3. 最初のPackaging Profile
 
 最初に成立させる最小profileを、**Local Single-Node Package**とします。
@@ -160,7 +172,34 @@ reference probeではfilesystemからmemory Persistenceへoriginal Semantic Inte
 
 これはPersistence Realization交換の補助的なExecutable Evidenceです。memory Persistenceは評価用であり、SCN-0008が想定するproduction RDB / object storeへのactual Storage migrationを証明するものではありません。
 
-## 9. Product Interactionとの境界
+## 9. Local Reference Package
+
+PMS-04の最小配布Evidenceを得るため、ISSUE-000055でLinux / amd64向けの**Local Reference Package**を実体化しました。
+
+current reference profileは次です。
+
+- version: `0.2.0-reference`
+- target: `linux-amd64`
+- archive: `soza-local-reference-linux-amd64.tar.gz`
+- executable: `soza-local-reference`
+- build metadata format: `soza.local-reference/v1`
+
+Local Package Artifact workflowでは、同一inputからbinaryを2回buildし、byte-for-byte一致を確認します。さらにbuild identityを検査し、決定的なarchiveとSHA-256 checksumを作成します。
+
+生成したarchiveは別directoryへ展開し、その中のbinary自身を独立したprocessとして使って、Semantic Interchangeのsave → process終了 → reloadを検査します。
+
+Local Package Artifact Run `33509521544`はsuccessし、workflow artifact ID `9801021136`、workflow artifact digest `sha256:6282a2fe0b58dd023090d363e3323ce963a9f29c097f869ebab79b73aab2ba85`が記録されています。
+
+```text
+Local Reference Package PASS
+  = PMS-04 Minimum scoped Executable Evidence
+  != Product Release
+  != formal platform support matrix
+```
+
+Linux / amd64、tar.gz、checksum、現在のlifecycle commandはreference distribution profileのRealizationです。Universal Product Requirementや恒久的Release formatではありません。
+
+## 10. Product Interactionとの境界
 
 PMS-04で扱うpackage lifecycle controlと、PMS-03で扱うProduct Interaction Surfaceを分けます。
 
@@ -169,17 +208,19 @@ package lifecycle control
   != human / AI Product Interaction
 ```
 
-ISSUE-000054で用いた`soza-package-probe`はprocess境界を検査するtest commandです。これを正式なSOZA CLIやproduction human-facing Surfaceへ昇格させません。
+`soza-local-reference`の`version` / `save` / `inspect`はPackaging acceptance用の管理操作です。Inquiry、Observation、Recommendation、Decision等を扱う正式なSOZA CLIではありません。
 
-次のISSUE-000055では、supported distributable artifactに必要な最小管理入口を検討しますが、その際もProduct Interactionの正式Surface選定とは分離します。
+正式なhuman-facing / AI-facing Surfaceは、引き続きPMS-03側のOpen Questionとして扱います。
 
-## 10. Requirement / Acceptance監査
+## 11. Requirement / Acceptance監査
 
-current Packaging境界とprobe結果は、主に既存のREQ-0001 / 0005 / 0009 / 0011 / 0018 / 0020 / 0021、SCN-0008 / 0010で表現できます。
+current Packaging境界とartifact実証は、主に既存のREQ-0001 / 0005 / 0009 / 0011 / 0018 / 0020 / 0021、SCN-0008 / 0010で表現できます。
 
-literal process restartまで実証した結果も、既存Requirementでは表現できない独立したfailureを示しませんでした。そのため、新しいstable Requirement / Scenarioは追加していません。
+literal process restartとreference distribution artifactまで実証した結果も、既存Requirementでは表現できない独立したfailureを示しませんでした。そのため、新しいstable Requirement / Scenarioは追加していません。
 
-## 11. Current Evidence
+archive形式、target、checksum、build identity、package lifecycle commandはcurrent reference profileの実現方式であり、Universal Requirementではありません。
+
+## 12. Current Evidence
 
 ```text
 Packaging / Deployment Design: established
@@ -188,22 +229,29 @@ runtime-state-independent reconstruction: scoped Executable Evidence available
 same-version literal process restart: scoped Executable Evidence available
 canonical bundle copy / restore: scoped Executable Evidence available
 filesystem -> memory Persistence exchange: scoped Executable Evidence available
-supported distributable artifact: not yet verified
+Local Reference Package distribution artifact: scoped Executable Evidence available
+Product Release: not yet verified
+formal platform support matrix: not yet verified
 version upgrade resume: not yet verified
 actual production Storage migration: not yet verified
 Release / Operational / Adoption: not yet verified
 ```
 
-literal process probeを含むSemantic Runtime Conformance Run `33508376230`とPlan integrity Run `33508376256`はsuccessしています。
+主なCIは次です。
 
-詳細な検査内容と非主張範囲は`../../runtime/PACKAGING_PROBE_EVIDENCE_2026-09-01.md`を正とします。
+- Semantic Runtime Conformance Run `33508376230` — literal process probe success
+- Local Package Artifact Run `33509521544` — distribution artifact build / extract / save / reload / upload success
+- Plan integrity Run `33509521580` — success
+- Semantic Runtime Conformance Run `33509521596` — success
 
-## 12. 次に固定しないこと
+詳細は`../../runtime/PACKAGING_PROBE_EVIDENCE_2026-09-01.md`と`../../runtime/LOCAL_PACKAGE_ARTIFACT_EVIDENCE_2026-09-01.md`を参照します。
+
+## 13. 次に固定しないこと
 
 次はOpen Questionのまま残します。
 
-- first supported distribution artifactのOS / architecture scope
-- archive形式、checksum、build identity
+- Product Releaseとして最初にsupportするOS / architecture
+- production archive、installer、package manager、code signing、auto-update
 - executable version upgrade後のresume
 - productionで最初に採用するhuman-facing / AI-facing Product Interaction Surface
 - RDBを最初のserver-side Storageとするか
@@ -212,9 +260,9 @@ literal process probeを含むSemantic Runtime Conformance Run `33508376230`とP
 - container imageやcloud-managed deploymentを正式配布形態とするか
 - background daemonを必須にするか
 
-これらはprocess probeのPASSだけを理由にRequirementへ昇格させません。
+これらはLocal Reference PackageのPASSだけを理由にRequirementへ昇格させません。
 
-## 13. 関連文書
+## 14. 関連文書
 
 - `../definition/SOZA_PRODUCT_SHAPE.md`
 - `../roadmap/SOZA_PRODUCT_MILESTONES.md`
@@ -229,7 +277,8 @@ literal process probeを含むSemantic Runtime Conformance Run `33508376230`とP
 - `../../plan/issue/ISSUE-000054-materialize-packaged-resume-and-storage-migration-probe.md`
 - `../../plan/issue/ISSUE-000055-materialize-first-supported-local-package-artifact.md`
 - `../../runtime/PACKAGING_PROBE_EVIDENCE_2026-09-01.md`
+- `../../runtime/LOCAL_PACKAGE_ARTIFACT_EVIDENCE_2026-09-01.md`
 
-## 14. Natural Japanese review
+## 15. Natural Japanese review
 
-Product Value、Product Shape、PMS-04、Product Interaction、REQ-0001 / 0005 / 0009 / 0011 / 0018 / 0020 / 0021、SCN-0008 / 0010、ADR-0007 / 0027 / 0029、current Semantic Interchange runtime、Packaging probe、build済みGo executableによるliteral process restart、Semantic Runtime Conformance Run `33508376230`、Plan integrity Run `33508376256`を照合しました。Packagingをsemantic ontologyではなく、実行物・Persistence・durable data・portable semantic dataの組み合わせとして整理し、same-version process restartとversion upgrade、Persistence交換probeとactual production Storage migration、test commandと正式Product Interactionを分けています。そのうえで、意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Value、Product Shape、PMS-04、Product Interaction、REQ-0001 / 0005 / 0009 / 0011 / 0018 / 0020 / 0021、SCN-0008 / 0010、ADR-0007 / 0027 / 0029、current Semantic Interchange runtime、Packaging probe、Local Reference Package、Local Package Artifact Run `33509521544`とartifact metadataを照合しました。Packagingをsemantic ontologyではなく、実行物・Persistence・durable data・portable semantic dataの組み合わせとして整理し、same-version process restartとversion upgrade、Persistence交換probeとactual production Storage migration、reference distribution artifactとProduct Release、package lifecycle controlと正式Product Interactionを分けています。そのうえで、意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
