@@ -19,6 +19,7 @@ reviewed:
 
   - scope: product/README.md
     status: revised
+    note: Product Value、Product Shape、期限を持たないProduct Milestone、未定領域の探索手順をcurrent Product入口として再整理済み。
   - scope: product/value/*.md
     status: revised
     coverage:
@@ -36,6 +37,12 @@ reviewed:
     status: revised
   - scope: product/principles/SOZA_PRODUCT_PRINCIPLES.md
     status: revised
+    note: Open Question、議論・実証、Candidate Requirement、Stable Requirementを分離する上流原則を追加し、既存原則との意味整合を監査済み。
+  - scope: product/roadmap/*.md
+    status: revised
+    coverage:
+      - SOZA_PRODUCT_MILESTONES.md
+    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義し、historical実装MilestoneやProduct ontologyと分離済み。
 
   - scope: plan/adr/ADR-*.md
     status: revised
@@ -43,8 +50,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、新規ADRも通常作業単位で自然な日本語全文再ドラフトと最終意味監査まで実施する。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000050
-    note: ISSUE-000042の文書監査coverage、ISSUE-000043のCognitive Method実体化、ISSUE-000044〜000050のProduct Shape / end-to-end Product Journey関連課題を含め、新規Issueは同じ作業単位で自然な日本語全文再ドラフトと最終意味監査まで実施する。
+    coverage: ISSUE-000001..ISSUE-000051
+    note: ISSUE-000042の文書監査coverage、ISSUE-000043のCognitive Method実体化、ISSUE-000044〜000050のProduct Shape / end-to-end Product Journey、ISSUE-000051の上流Product Planning baselineを含め、新規Issueは同じ作業単位で自然な日本語全文再ドラフトと最終意味監査まで実施する。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -149,8 +156,13 @@ reviewed:
 
   - scope: plan/README.md
     status: revised
+    note: Product Milestoneと上流探索・Requirement化の配置規則をcurrent planning入口へ反映済み。
+  - scope: plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md
+    status: revised
+    note: Open Questionから議論・実証、Candidate Requirement、stable Requirementへ進む標準フローと現在の探索優先領域を正本化済み。
   - scope: plan/DEVELOPMENT_WORKFLOW.md
     status: revised
+    note: Product Milestoneと未定領域の探索をRequirement / Architectureより上流へ置く開発順序へ更新済み。
   - scope: plan/DOCUMENT_AUTHORING_STANDARD.md
     status: revised
   - scope: plan/DOCUMENT_REVIEW_REPORT_2026-08-31.md
