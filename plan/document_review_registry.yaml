@@ -37,8 +37,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに全件監査済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000039
-    note: ISSUE-000038 / 000039を含む新規Issueは、ISSUE-000015で確立した標準工程を作成・解決時に適用し、自然な日本語全文再ドラフトと最終意味監査まで同じ作業単位で完了している。
+    coverage: ISSUE-000001..ISSUE-000040
+    note: ISSUE-000038〜000040を含む新規Issueは、ISSUE-000015で確立した標準工程を作成・解決時に適用し、自然な日本語全文再ドラフトと最終意味監査まで同じ作業単位で完了している。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -92,7 +92,7 @@ reviewed:
 
   - scope: runtime/CONFORMANCE_EVIDENCE_2026-08-31.md
     status: revised
-    note: first semantic runtime / synthetic Provider Adapterの限定Executable Evidenceを5段階Evidenceへ再整理済み。
+    note: first semantic runtime、Verifier Registry、synthetic Payload Source、synthetic Provider Adapterの限定Executable Evidenceを5段階Evidenceへ再整理済み。
 
   - scope: evaluation/v6-v7/*.md
     status: revised
@@ -159,7 +159,7 @@ exclusions:
     reason: 固定評価入力・Expected Evidenceであり、自然な日本語への改稿対象ではない。
   - scope: tools/*.{py,go,txt}
     status: excluded-historical
-    reason: 実行コード・依存定義であり、本台帳が対象とする開発文書本文ではない。
+    reason: 実行コード・依存定義であり、本台帳が対象とする自然言語文書本文ではない。
   - scope: .github/workflows/*.yml
     status: excluded-historical
     reason: CI定義であり、本台帳が対象とする自然言語文書ではない。
