@@ -43,7 +43,7 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_MILESTONES.md
-    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06はE3b-P1までをscoped Executable Evidenceとして反映し、PMS-07ではactual v0.2.0 Release Candidate EvidenceとRelease Evidenceを分離している。
+    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06はmerge後developで再現したE3b-P1までをscoped Executable Evidenceとして反映し、ISSUE-000061のTEI executable注入境界とactual E3b-P2を分離している。PMS-07ではactual v0.2.0 Release Candidate EvidenceとRelease Evidenceを分けている。
   - scope: product/interaction/*.md
     status: revised
     coverage:
@@ -66,8 +66,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、自然な日本語全文再ドラフトと最終意味監査を実施済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000060
-    note: E3a外部artifact integration、v0.2.0 Release Candidate境界、E3b-P1 public live Provider integrationまでを含め、各Issueの意味・Evidence高さ・非主張範囲を自然な日本語で監査している。
+    coverage: ISSUE-000001..ISSUE-000061
+    note: E3a外部artifact integration、v0.2.0 Release Candidate境界、E3b-P1 public live Provider integrationに加え、actual TEI実行とは区別した外部TEI executable注入境界までを含め、各Issueの意味・Evidence高さ・非主張範囲を自然な日本語で監査している。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -145,7 +145,7 @@ reviewed:
     note: Product Access / Responsibility分離、denied / not_evaluated、Selective DisclosureのScoped Executable Evidenceを記録済み。
   - scope: runtime/LIVE_EXTERNAL_PROVIDER_EVIDENCE_2026-09-02.md
     status: revised
-    note: E3b-P1としてpublic GitHub REST APIを実際に呼び、固定revisionのidentity確認、current Capability Observationへのmapping、revision mismatch / HTTP failure / timeout / Provider固有field非漏出をScoped Executable Evidenceとして記録した。live TEI、external Cognitive Method、private credential、Operational / Release / Adoptionへ昇格させない境界を自然な日本語で明示済み。
+    note: E3b-P1としてpublic GitHub REST APIを実際に呼び、固定revisionのidentity確認、current Capability Observationへのmapping、negative caseを検証した。PR #37の最終headとmerge後developの6系統CIまで同期し、live TEI、external Cognitive Method、private credential、Operational / Release / Adoptionへ昇格させない境界を自然な日本語で明示済み。
   - scope: runtime/package/reference/*.md
     status: revised
     coverage:
@@ -204,7 +204,7 @@ reviewed:
     note: Product Milestoneと上流探索・Requirement化の配置規則をcurrent planning入口へ反映済み。
   - scope: plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md
     status: revised
-    note: Open Questionから議論・実証、Candidate Requirement、stable Requirementへ進む標準フローを正本化済み。
+    note: 現在の主探索系列をReal Method / Provider Portabilityへ更新し、E3b-P1からTEIのactual executionへ進む際にsource / binary acquisition、credential、process invocation、Provider固有JSON解釈、SOZA mappingを分離する方針を自然な日本語で正本化済み。
   - scope: plan/DEVELOPMENT_WORKFLOW.md
     status: revised
     note: Product Milestoneと未定領域の探索をRequirement / Architectureより上流へ置く開発境界を監査済み。

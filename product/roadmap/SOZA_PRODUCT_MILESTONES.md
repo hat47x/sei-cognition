@@ -284,7 +284,7 @@ synthetic fixtureだけでなく、実際のCognitive Method Realization、AI、
 
 ### Current state
 
-**Partial / E2 Scoped Executable Evidence available / E3a Scoped Executable Evidence available / E3b-P1 public live Provider Scoped Executable Evidence available / E3b-P2・M1 pending.**
+**Partial / E2 Scoped Executable Evidence available / E3a Scoped Executable Evidence available / E3b-P1 Scoped Executable Evidence available / E3b-P2・M1 pending.**
 
 `product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`で、交換してよいRealization / Providerと、交換後にも判断記憶として守る意味を正本化しています。
 
@@ -298,15 +298,15 @@ E1 Contract / in-process synthetic
   → E4 operational portability
 ```
 
-E3bは現在、作業上さらに次へ分けています。
+E3bは、何を実際に確認したかを混同しないため、現在の作業上は次へ分けています。
 
 ```text
 E3b-P1 public live Provider service
-  → E3b-P2 live TEI process / service
-  → E3b-M1 live external Cognitive Method execution
+  → E3b-P2 actual TEI process / service
+  → E3b-M1 external Cognitive Method live execution
 ```
 
-このP1 / P2 / M1はEvidenceの範囲を明示するための区分であり、新しいProduct ontologyではありません。
+このP1 / P2 / M1はEvidenceの範囲を示すための区分であり、新しいProduct ontologyではありません。
 
 ### E2 — out-of-process reference exchange
 
@@ -347,25 +347,26 @@ live responseのcommit SHAが期待値と一致する場合だけ、外部servic
 
 ローカル再現可能なtestでは、successに加えてrevision mismatch、HTTP failure、timeout / cancellation、Provider固有fieldの非漏出を検査しました。
 
-PR #37の初回current-baseline head `977773dc3071c8a4d6f33bf4f29e3ffc0c1fec23`では次がsuccessしました。
+PR #37の最終head `ce56cf44426b2d061bf3bd57bbc7524f77736b4a` では、Plan integrity、External Integration E3a、Semantic Runtime Conformance、Local Package Artifact、External Integration E3b、Release Candidate Gateの6系統がすべてsuccessしました。
 
-- External Integration E3b Run `33569912285`
-- Semantic Runtime Conformance Run `33569912339`
-- Plan integrity Run `33569912230`
-- External Integration E3a Run `33569912086`
-- Local Package Artifact Run `33569912317`
+PR #37をmergeしたactual `develop/v0.2.0` commit `655662d9b39718046c66862d370969a9a2a8b985`でも、次のpush workflowがすべてsuccessしています。
 
-同じheadのRelease Candidate Gate Run `33569912273`はGate 1〜8がsuccessし、OpenなISSUE-000060をGate 9が意図どおりblockしました。Issue解決・文書同期後のheadで再検査します。
+- External Integration E3a Run `33571264348`
+- Plan integrity Run `33571264398`
+- Local Package Artifact Run `33571264381`
+- External Integration E3b Run `33571264402`
+- Semantic Runtime Conformance Run `33571264359`
+- Release Candidate Gate Run `33571264355`
 
-この結果から、E3b-P1には限定されたExecutable Evidenceがあると判断します。
+これにより、E3b-P1には統合後の`develop/v0.2.0`でも再現できるScoped Executable Evidenceがあると判断します。
 
-ただし、E3b全体の完了ではありません。
+ただし、v0.2.0 Release Candidateのsupported scopeはE3aまでです。Release Candidate Gateの回帰成功を理由に、E3b-P1をv0.2.0のsupported release scopeへ追加しません。
 
 ```text
 E3a PASS + E3b-P1 PASS
   != external Method execution PASS
   != live private-repository acquisition PASS
-  != live TEI process / service integration PASS
+  != actual TEI process / service PASS
   != production credential / network / rate-limit portability
   != E3b全体 PASS
   != E4 Operational portability
@@ -373,18 +374,45 @@ E3a PASS + E3b-P1 PASS
   != Adoption / Outcome Evidence
 ```
 
+### E3b-P2へ進むための準備境界
+
+E3b-P1の後、`hat47x/tei-platform`の実体を確認したところ、TEIにはGo製CLI `cmd/tei`があり、`deployment-provider-plan`、`deployment-reconcile`、`deployment-simulate`等のJSON出力面が既に存在します。
+
+そのため、SOZA専用のTEI wire protocolを新設するのではなく、既存TEI CLIをProvider固有の外部processとして扱う方向を優先します。
+
+一方、TEI repositoryはprivateです。SOZAの標準`GITHUB_TOKEN`が別private repositoryを読めるとは仮定しません。ISSUE-000061では、E3b-P2の前段として次を分離します。
+
+```text
+TEI source / binary acquisition
+  != credential resolution
+  != external process invocation
+  != Provider-specific JSON decoding
+  != SOZA Capability Observation mapping
+```
+
+`runtime/go/teiintegration`では、外部から明示的に与えられた`tei` executableを呼び出せる境界を作り、Provider Plan JSONをAdapter内でstrictに検査したうえで、必要最小限の観測だけをCapability Observationへ戻します。
+
+この境界のdeterministic testではhelper processを使います。helper processのPASSは、**actual TEI executableを実行したEvidenceではありません**。実TEI sourceまたはbinaryが明示的に与えられる環境で実行できた時点で、E3b-P2のEvidenceを別途収集します。
+
+### E3b-M1の現在地
+
+`cultural-substrate-weaving`にはversion管理されたSkill、platform adapter、build / validation基盤がありますが、現在のrepository調査では、Methodを独立processとして実行してRecommendationを返す標準runnerは確認できていません。
+
+そのため、SOZA側が便宜的なrunnerを作り、それを「実Cognitive Methodのlive execution」とみなすことはしません。既存の実runnerまたは実際のhost integrationを特定できてから、E3b-M1の実験系を設計します。
+
 ### Open questions
 
-- E3b-M1で最初に呼び出す実Cognitive Method runner
-- TEI CLIの既存JSON Surfaceのうち、E3b-P2で最初にlive integrationへ使うもの
+- actual TEI executableをどの環境から、どのEvidence付きでSOZA integration testへ渡すか
+- private repository credentialを使う必要がある場合、その処理をacquisition / deployment policyへどう閉じ込めるか
+- TEI CLI version交換時に必要なProvenance / Exact Bindingの水準
+- E3b-M1で利用する実Cognitive Method runnerまたはhost integration
 - TEIと非TEI Providerをどの組み合わせで比較するか
-- private credential / timeout / rate limit / network degradationをどこまでProduct acceptanceへ含めるか
+- timeout以外のnetwork degradationやrate limitをどこまでProduct acceptanceへ含めるか
 - production Realization protocolを標準化する必要が本当にあるか
 - artifact source / live ProviderをGitHub以外へ交換したときのProvenance境界
-- Realization version交換時のExact Binding / Provenanceの必要水準
 - E4のOperational portabilityを何で測るか
 
-E3b-P1のPASSだけを理由に、新しいStable Requirement、Universal Contract、正式integration protocolへ固定しません。
+E3b-P1やISSUE-000061の境界testだけを理由に、新しいStable Requirement、Universal Contract、正式integration protocolへ固定しません。
 
 ## 10. PMS-07 — release可能な製品として成立する
 
@@ -404,7 +432,7 @@ Release Evidence。
 
 これはRelease前のExecutable Evidenceを一つのcandidateへ束ねた記録です。actual tag / release identity / released artifactとの結び付きがない限り、Release Evidenceへ昇格しません。
 
-また、PMS-06のE3b-P1はcurrent v0.2.0 supported scope外で進める追加のScoped Executable Evidenceです。E3b-P1のPASSを、既存candidate scopeの拡張やProduct Release成立へ自動反映しません。
+PMS-06のE3b-P1とISSUE-000061の外部process境界は、current v0.2.0 supported scope外で進める追加のScoped Executable Evidenceです。これらのPASSを、既存candidate scopeの拡張やProduct Release成立へ自動反映しません。
 
 ## 11. PMS-08 — 実運用と利用者成果からProduct Valueを検証できる
 
@@ -438,4 +466,4 @@ Open Questionを直接Stable Requirementへ飛ばしません。
 
 ## 14. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、Product Identity / Access / Collaboration、Realization / Provider Exchange、v0.2.0 Release Acceptance、REQ-0001〜0022、SCN-0005 / 0007 / 0008 / 0010 / 0012 / 0013 / 0014 / 0018、ADR-0024 / 0025 / 0028 / 0029 / 0030、ISSUE-000046 / 000047 / 000053〜000060、current Go runtime、Interaction / Packaging / Product Access / Realization exchange / External Integration E3a / E3b-P1 / actual v0.2.0 candidate Evidenceへ戻ってMilestone全体を再監査した。PMS-03はscoped Interaction Executable Evidence、PMS-04はLocal Reference PackageによるMinimum scoped Executable Evidence、PMS-05はProduct Access責務分離のDesignとscoped Executable Evidence、PMS-06はE2、E3a、E3b-P1までを明確にしている。PMS-07ではactual develop Release Candidate EvidenceをRelease Evidenceから分離した。一方、production IdP、formal access policy、external Methodのlive実行、live TEI process / service integration、private credential / rate-limit portability、Operational portability、actual Product Release、Adoption / Outcome Evidenceは未検証のままである。意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、Product Identity / Access / Collaboration、Realization / Provider Exchange、v0.2.0 Release Acceptance、REQ-0001〜0022、SCN-0005 / 0007 / 0008 / 0010 / 0012 / 0013 / 0014 / 0018、ADR-0024 / 0025 / 0028 / 0029 / 0030、ISSUE-000046 / 000047 / 000053〜000061、current Go runtime、Interaction / Packaging / Product Access / Realization exchange / External Integration E3a / E3b-P1 / actual v0.2.0 candidate Evidence、`hat47x/tei-platform`の実CLIとprivate repository条件へ戻ってMilestone全体を再監査した。PMS-03はscoped Interaction Executable Evidence、PMS-04はLocal Reference PackageによるMinimum scoped Executable Evidence、PMS-05はProduct Access責務分離のDesignとscoped Executable Evidence、PMS-06はE2、E3a、E3b-P1までを成立済みとして整理した。E3b-P1はPR #37の最終headだけでなくmerge後`develop/v0.2.0`でも6系統のCIがsuccessしている。一方、ISSUE-000061のhelper process testはactual TEI executionへ昇格させず、TEI executable acquisition、credential、process invocation、Provider固有JSON、SOZA mappingを分離した準備境界として位置付けた。PMS-07ではactual develop Release Candidate EvidenceをRelease Evidenceから分離し、current v0.2.0 supported scopeがE3aまでであることも維持した。external Methodのlive実行、actual TEI process / service、private credential portability、Operational portability、actual Product Release、Adoption / Outcome Evidenceは未検証のままである。意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。

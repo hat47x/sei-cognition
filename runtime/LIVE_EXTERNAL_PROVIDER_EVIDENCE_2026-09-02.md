@@ -76,22 +76,31 @@ Provider identity
 
 ## 5. Closure CI Evidence
 
-PR #37では、Issue本文とregistryをResolvedへ同期した検査点 `12621fe67a6fbc6226da5b37f56fcc39d5066faf` で次の6系統がすべてsuccessしました。
+ISSUE-000060の解決過程では、Issue本文とregistryをResolvedへ同期した検査点 `12621fe67a6fbc6226da5b37f56fcc39d5066faf` で、External Integration E3bを含む6系統がsuccessしました。この時点でRelease Candidate GateもGate 9まで通り、Open Issue blockerとの整合を確認しています。
 
-- External Integration E3b Run `33570935966`
-  - deterministic live integration boundary test: success
-  - public GitHub REST APIへのactual live call: success
-  - fixed commit responseのidentity確認: success
-  - current Capability Observationへのmapping / validation: success
-- Semantic Runtime Conformance Run `33570935849`: success
-- Plan integrity Run `33570935878`: success
-- External Integration E3a Run `33570935851`: success
-- Local Package Artifact Run `33570935996`: success
-- Release Candidate Gate Run `33570935867`: success
+その後、文書同期を含むPR #37の最終head `ce56cf44426b2d061bf3bd57bbc7524f77736b4a` でも、次の6系統がすべてsuccessしました。
 
-Release Candidate GateもGate 9まで成功し、ISSUE-000060をResolvedへ移した状態とcandidate blockerの整合を確認しました。
+- Plan integrity Run `33571090291`
+- External Integration E3a Run `33571090247`
+- Semantic Runtime Conformance Run `33571090251`
+- Local Package Artifact Run `33571090268`
+- External Integration E3b Run `33571090275`
+- Release Candidate Gate Run `33571090254`
 
-このEvidence点を文書へ記録するcommit自身はSHAを変えるため、Evidence対象を常に文書HEADへ追従させる自己参照は行いません。後続の文書同期commitについては同じCI群で回帰を確認します。
+PR #37は`develop/v0.2.0`へmergeされ、merge commitは`655662d9b39718046c66862d370969a9a2a8b985`です。PR上のtest mergeだけでなく、actual develop上でも次のpush workflowがすべてsuccessしました。
+
+- External Integration E3a Run `33571264348`
+- Plan integrity Run `33571264398`
+- Local Package Artifact Run `33571264381`
+- External Integration E3b Run `33571264402`
+- Semantic Runtime Conformance Run `33571264359`
+- Release Candidate Gate Run `33571264355`
+
+Release Candidate Gate Run `33571264355`ではGate 1〜9がすべてsuccessし、Local Reference Packageとcandidate reportのuploadも完了しました。
+
+したがって、E3b-P1のScoped Executable Evidenceは、PR内の一時的な検査点だけでなく、統合後の`develop/v0.2.0`でも再現できています。
+
+ただし、v0.2.0 Release Candidateのsupported scopeはE3aまでです。この回帰PASSは、E3b-P1をv0.2.0のsupported release scopeへ追加したことを意味しません。
 
 ## 6. Evidenceの読み方
 
@@ -138,8 +147,10 @@ E3b全体には、少なくとも次が残っています。
 - version change時のProvenance / historical reconstruction
 - formal integration protocolを本当に必要とするかの再判断
 
+ISSUE-000061では、E3b-P2へ進む前段として、TEI executableの取得方法・credential解決と、外部process invocation・Provider固有JSON解釈・SOZA Capability Observation mappingを分離する境界を検証します。helper processによるこの境界のPASSを、actual TEI CLI executionのEvidenceとは扱いません。
+
 これらは、最初のP1の実証結果をそのまま一般化せず、対象ごとに必要な意味差を確認して進めます。
 
 ## 9. Natural Japanese review
 
-PMS-06、`product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`、v0.2.0 Release Acceptance、ISSUE-000057 / 000058 / 000060、current Capability Observation Contract、Provider Adapter、PR #37のclosure Evidence点を照合した。live network invocationが成立した事実と、TEI・Cognitive Method・production credential・Operational portability・Product Releaseが未検証である事実を分離し、GitHub固有のresponse shapeやprotocolをUniversal semantic modelへ持ち込まない境界を確認した。そのうえで、実証内容、negative case、Evidence強度、未検証範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+PMS-06、`product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`、v0.2.0 Release Acceptance、ISSUE-000057 / 000058 / 000060 / 000061、current Capability Observation Contract、Provider Adapter、PR #37の最終headとmerge後`develop/v0.2.0`のCI Evidenceを照合した。初期のclosure検査点だけでなく、最終PR headとactual developの双方でE3b-P1が再現できていることへEvidence記述を更新した。一方、v0.2.0のsupported release scopeはE3aまでであるため、Release Candidate Gateの回帰成功をE3b-P1のrelease supportへ読み替えていない。また、live network invocationが成立した事実と、TEI・Cognitive Method・private credential・Operational portability・Product Releaseが未検証である事実を分離した。そのうえで、実証内容、negative case、Evidence強度、未検証範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
