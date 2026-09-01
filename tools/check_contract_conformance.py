@@ -83,6 +83,7 @@ FIXTURES = [
     FixtureExpectation("negative/cognitive-method-pattern-field.json", "cognitive-method", "schema_fail"),
     FixtureExpectation("negative/same-logical-lineage-without-exact.json", "semantic-reference", "semantic_fail"),
     FixtureExpectation("negative/interchange-mismatched-exact-binding.json", "semantic-interchange", "semantic_fail"),
+    FixtureExpectation("negative/interchange-cognitive-method-exact-mismatch.json", "semantic-interchange", "semantic_fail"),
     FixtureExpectation("boundary/unknown-contract-version.json", "semantic-interchange", "not_verified"),
     FixtureExpectation("boundary/unknown-cognitive-method-version.json", "semantic-interchange", "not_verified"),
     FixtureExpectation("boundary/verification-not-verified.json", "semantic-reference", "pass"),
@@ -90,6 +91,7 @@ FIXTURES = [
     FixtureExpectation("boundary/recommendation-without-decision.json", "decision-memory", "pass"),
     FixtureExpectation("boundary/decision-with-unresolved.json", "decision-memory", "pass"),
     FixtureExpectation("boundary/partial-knowledge-interchange.json", "semantic-interchange", "pass"),
+    FixtureExpectation("boundary/interchange-cognitive-method-exact-match.json", "semantic-interchange", "pass"),
 ]
 
 
@@ -181,22 +183,86 @@ def semantic_reference_errors(document: Any) -> list[str]:
     return errors
 
 
-def decision_basis_exact_bindings(payload: Any) -> list[Any]:
+def exact_refs_from_list(value: Any, role: str) -> list[tuple[str, Any]]:
+    if not isinstance(value, list):
+        return []
+    return [(role, ref) for ref in value if is_exact_endpoint(ref)]
+
+
+def lineage_exact_refs(value: Any, role: str) -> list[tuple[str, Any]]:
+    if not isinstance(value, dict):
+        return []
+    result: list[tuple[str, Any]] = []
+    for field in ("from", "to"):
+        ref = value.get(field)
+        if is_exact_endpoint(ref):
+            result.append((f"{role}.{field}", ref))
+    result.extend(exact_refs_from_list(value.get("basis_refs"), f"{role}.basis_refs"))
+    return result
+
+
+def known_payload_exact_refs(schema_name: str, payload: Any) -> list[tuple[str, Any]]:
     if not isinstance(payload, dict):
         return []
-    record_type = payload.get("record_type")
-    if record_type == "decision":
-        body = payload.get("decision")
-    elif record_type == "recommendation":
-        body = payload.get("recommendation")
-    else:
-        return []
-    if not isinstance(body, dict):
-        return []
-    refs = body.get("basis_refs")
-    if not isinstance(refs, list):
-        return []
-    return [ref for ref in refs if is_exact_endpoint(ref)]
+    result: list[tuple[str, Any]] = []
+
+    if schema_name == "decision-memory":
+        record_type = payload.get("record_type")
+        body_name = "decision" if record_type == "decision" else "recommendation" if record_type == "recommendation" else None
+        body = payload.get(body_name) if body_name else None
+        if isinstance(body, dict):
+            for field in ("context_refs", "basis_refs", "recommendation_refs", "unresolved_refs", "responsibility_refs"):
+                result.extend(exact_refs_from_list(body.get(field), f"{body_name}.{field}"))
+            result.extend(lineage_exact_refs(body.get("lineage"), f"{body_name}.lineage"))
+
+    elif schema_name == "cognitive-method":
+        record_type = payload.get("record_type")
+        if record_type == "method_definition":
+            body = payload.get("method_definition")
+            if isinstance(body, dict):
+                for field in ("context_refs", "specification_refs"):
+                    result.extend(exact_refs_from_list(body.get(field), f"method_definition.{field}"))
+        elif record_type == "method_realization":
+            body = payload.get("method_realization")
+            if isinstance(body, dict):
+                if is_exact_endpoint(body.get("method_ref")):
+                    result.append(("method_realization.method_ref", body["method_ref"]))
+                for field in ("implementation_refs", "context_refs"):
+                    result.extend(exact_refs_from_list(body.get(field), f"method_realization.{field}"))
+        elif record_type == "method_application":
+            body = payload.get("method_application")
+            if isinstance(body, dict):
+                for field in ("method_ref", "realization_ref"):
+                    if is_exact_endpoint(body.get(field)):
+                        result.append((f"method_application.{field}", body[field]))
+                for field in ("context_refs", "input_refs", "output_refs", "residual_refs", "provenance_refs", "responsibility_refs"):
+                    result.extend(exact_refs_from_list(body.get(field), f"method_application.{field}"))
+
+    elif schema_name == "capability-observation":
+        body = payload.get("observation")
+        if isinstance(body, dict):
+            conditions = body.get("conditions")
+            if isinstance(conditions, list):
+                for condition in conditions:
+                    if isinstance(condition, dict):
+                        result.extend(exact_refs_from_list(condition.get("source_refs"), "capability_observation.conditions.source_refs"))
+            result.extend(exact_refs_from_list(body.get("provenance_refs"), "capability_observation.provenance_refs"))
+            mapping = body.get("mapping_provenance")
+            if isinstance(mapping, dict) and is_exact_endpoint(mapping.get("mapping_ref")):
+                result.append(("capability_observation.mapping_provenance.mapping_ref", mapping["mapping_ref"]))
+
+    elif schema_name == "semantic-reference":
+        record_type = payload.get("record_type")
+        if record_type == "exact_binding" and is_exact_endpoint(payload.get("exact_binding")):
+            result.append(("semantic_reference.exact_binding", payload["exact_binding"]))
+        elif record_type == "semantic_lineage":
+            result.extend(lineage_exact_refs(payload.get("semantic_lineage"), "semantic_reference.semantic_lineage"))
+        elif record_type == "verification_outcome":
+            outcome = payload.get("verification_outcome")
+            if isinstance(outcome, dict) and is_exact_endpoint(outcome.get("binding")):
+                result.append(("semantic_reference.verification_outcome.binding", outcome["binding"]))
+
+    return result
 
 
 def nested_interchange_status(
@@ -215,7 +281,7 @@ def nested_interchange_status(
     if not isinstance(records, list):
         return errors, not_verified
 
-    local_exact: dict[tuple[str | None, str | None, str | None], tuple[Any, ...]] = {}
+    local_exact: dict[tuple[str | None, str | None, str | None], list[tuple[Any, ...]]] = {}
     for index, record in enumerate(records):
         if not isinstance(record, dict):
             continue
@@ -228,7 +294,7 @@ def nested_interchange_status(
                 )
         signature = binding_signature(exact)
         if signature is not None:
-            local_exact[logical_identity(exact)] = signature
+            local_exact.setdefault(logical_identity(exact), []).append(signature)
 
     for index, record in enumerate(records):
         if not isinstance(record, dict):
@@ -252,16 +318,17 @@ def nested_interchange_status(
                 for message in semantic_reference_errors(payload)
             )
 
-        if schema_name == "decision-memory" and not nested_schema_errors:
-            for basis in decision_basis_exact_bindings(payload):
-                basis_identity = logical_identity(basis)
-                local_signature = local_exact.get(basis_identity)
-                if local_signature is None:
+        if not nested_schema_errors:
+            for role, exact_ref in known_payload_exact_refs(schema_name, payload):
+                identity = logical_identity(exact_ref)
+                candidates = local_exact.get(identity, [])
+                if not candidates:
                     continue
-                if binding_signature(basis) != local_signature:
+                signature = binding_signature(exact_ref)
+                if signature not in candidates:
                     errors.append(
-                        f"records/{index}/payload: exact basis for {basis_identity} does not "
-                        "match the exact record included in this interchange bundle"
+                        f"records/{index}/payload: {role} exact binding for {identity} does not "
+                        "match any exact record included in this interchange bundle"
                     )
 
         declared = payload.get("contract") if isinstance(payload, dict) else None
