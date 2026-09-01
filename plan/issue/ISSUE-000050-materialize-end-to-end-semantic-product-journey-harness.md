@@ -61,7 +61,15 @@ Inquiry、Unknown、execution receipt等でcurrent Universal Contractを持た�
 - execution後ObservationはDecisionより後に取得されたものとして扱う。
 - execution resultが`succeeded`でもhistorical Decision statement / basisを書き換えない。
 
-Semantic Runtime Conformance Run `33477970035`で、Contract fixture再検査と`go test ./...`がともに**success**した。
+### third slice: Projection非権威
+
+`runtime/go/journeyharness/projection_test.go`を追加し、Projectionが存在してもcanonical Product Journeyのauthorityへ昇格しないことを検査した。
+
+- Projectionがcanonical recordsと併存してもJourney検査結果を変えない。
+- canonical Decisionを除去しProjectionだけを残した場合、Decision欠落としてFAILする。
+- Projectionのsummary text等からDecision meaningを推測復元しない。
+
+主なSemantic Runtime ConformanceはRun `33478127484`で**success**した。Plan integrityも同一headでRun `33478127535`が**success**した。
 
 ## 評価用Journey manifest
 
@@ -125,6 +133,11 @@ manifestは**評価用の検査構成**であり、SOZAの新しいsemantic auth
 
 - external executionがなくてもDecisionまでのJourneyを正当な状態として扱える。
 
+### Projection
+
+- Projectionはcanonical recordと併存できるがauthorityにはしない。
+- canonical DecisionがなければProjectionだけからDecisionを補完しない。
+
 ## Current executable tests
 
 actual Go testとして、少なくとも次を実装済みである。
@@ -140,11 +153,15 @@ actual Go testとして、少なくとも次を実装済みである。
 9. opaque Inquiry / execution receiptの`not_verified`保持
 10. Interchange original bytesのread時非改変
 11. execution success後もhistorical Decision statement / basisを非改変のまま保つこと
+12. Projectionとcanonical recordsの安全な併存
+13. Projectionだけでは欠落したcanonical Decisionを代替できないこと
 
 主なCI Evidence:
 
 - Run `33477245347` — first in-memory harness: **success**
 - Run `33477970035` — Semantic Interchange normal journey追加後: **success**
+- Run `33478127484` — Projection非権威追加後: **success**
+- Plan integrity Run `33478127535`: **success**
 
 ## Scope
 
@@ -187,7 +204,7 @@ Decisionまでで終了し、external executionがなくてもDecision recordと
 11. unsupported versionをknown versionとして扱わない。
 12. Projectionだけをcanonical sourceとして利用しない。
 
-現時点で1〜11の意味境界はfirst / second sliceで少なくとも部分的に検査できる。12のProjection非権威については、既存V6/V7 Projection evaluationでは検査済みだが、SCN-0018の一つのend-to-end経路としては未統合である。
+1〜12について、現時点ではsynthetic / fixture-scopedなExecutable Evidenceがある。これはproduction Product Journey全体の実証ではない。
 
 ## Non-goals
 
@@ -224,8 +241,8 @@ Decisionまでで終了し、external executionがなくてもDecision recordと
 - [x] unsupported recordを`not_verified`として扱う境界を検査できる。
 - [x] Semantic Interchangeからactual `Bundle`を構成するnormal pathがPASSする。
 - [x] execution successがhistorical Decision statement / basisを書き換えないことを検査する。
-- [x] `go test ./...`とcurrent Contract fixture再検査がRun `33477970035`でsuccessする。
-- [ ] Projection非権威をSCN-0018のend-to-end経路として検査する。
+- [x] Projectionがcanonical Decisionを代替しないことを検査する。
+- [x] `go test ./...`とcurrent Contract fixture再検査がRun `33478127484`でsuccessする。
 
 ### Evidence update
 
@@ -244,9 +261,9 @@ Decisionまでで終了し、external executionがなくてもDecision recordと
 
 ## 次の実装順序
 
-1. SCN-0018 / Requirement / Product Value Traceabilityへ、Run `33477970035`で確認できた範囲だけEvidenceを反映する。
-2. Projection非権威をSCN-0018のend-to-end経路へ接続する最小検査を追加する。
-3. component-level PASSとend-to-end Product Journey PASSの差をEvidence文書へ明示する。
+1. SCN-0018 / Requirement / Product Value Traceabilityへ、Run `33478127484`で確認できた範囲だけEvidenceを反映する。
+2. component-level PASSとend-to-end Product Journey PASSの差をEvidence文書へ明示する。
+3. Evidence反映後に本IssueをResolvedへ移せるか最終監査する。
 4. 必要なら専用CI名へ分離する。現時点ではSemantic Runtime Conformance内の`go test ./...`で検査する。
 5. 追加・更新文書を自然な日本語へ全文再ドラフトし、最終意味監査する。
 6. 対象CIをsuccessさせる。
@@ -256,11 +273,11 @@ CI failureを検出した場合は、原因を解消してsuccessを確認して
 ## Evidence state
 
 - Design Evidence: **Satisfied for the current harness structure** — 既存Contractを束ねる評価用Journey manifestと、Interchange loaderを通るnormal pathを定義した。
-- Executable Evidence: **Partially Satisfied for SCN-0018** — Run `33477970035`でnormal / uncertain / collaborative / provider replacement / no-executionに必要な主要境界とInterchange loader経路を検査できた。Projection非権威のend-to-end統合は未完了。
+- Executable Evidence: **Partially Satisfied for SCN-0018** — Run `33478127484`でnormal / uncertain / collaborative / provider replacement / no-execution、temporal integrity、historical Decision非改変、unsupported record、Projection非権威をfixture-scopedに検査できた。
 - Release Evidence: **Not Yet Verified**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
 
 ## Natural Japanese review
 
-Product Shape、`PRODUCT_JOURNEY_COMPOSITION.md`、SCN-0018、REQ-0001〜REQ-0022、current Semantic Reference / Decision Memory / Capability Observation / Semantic Interchange / Cognitive Method Contract、first runtimeへ戻り、二段階のExecutable sliceを再整理した。Journeyを表すためだけにUniversal Contractを追加せず、評価用manifestは検査構成に限定し、耐久的な意味は既存record側へ残している。Run `33477970035`で実際に確認したnormal Interchange pathとhistorical Decision非改変を含む範囲だけExecutable Evidenceを`Partially Satisfied`として記録し、production UI、Release、Operational、Adoption / Outcomeへは昇格させていない。そのうえで、意味、規範強度、非対象範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+Product Shape、`PRODUCT_JOURNEY_COMPOSITION.md`、SCN-0018、REQ-0001〜REQ-0022、current Semantic Reference / Decision Memory / Capability Observation / Semantic Interchange / Cognitive Method Contract、first runtime、V6/V7 Projection evaluationへ戻り、三段階のExecutable sliceを再整理した。Journeyを表すためだけにUniversal Contractを追加せず、評価用manifestは検査構成に限定し、耐久的な意味は既存record側へ残している。Run `33478127484`で実際に確認したnormal Interchange path、historical Decision非改変、Projection非権威を含む範囲だけExecutable Evidenceを`Partially Satisfied`として記録し、production UI、Release、Operational、Adoption / Outcomeへは昇格させていない。そのうえで、意味、規範強度、非対象範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
