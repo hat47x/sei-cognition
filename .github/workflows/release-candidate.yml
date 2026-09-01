@@ -4,8 +4,10 @@ on:
   push:
     branches:
       - "develop/v0.1.0"
+      - "develop/v0.2.0"
     tags:
       - "v0.1.0"
+      - "v0.2.0"
     paths:
       - "README.md"
       - "product/**"
@@ -20,6 +22,15 @@ on:
       - "tools/**"
       - ".github/workflows/release-candidate.yml"
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Release candidate policy version"
+        required: true
+        default: "0.2.0"
+        type: choice
+        options:
+          - "0.1.0"
+          - "0.2.0"
 
 permissions:
   contents: read
@@ -32,6 +43,26 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Resolve version-specific candidate policy
+        id: policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            version="${{ inputs.version }}"
+          else
+            case "${GITHUB_REF_NAME}" in
+              develop/v0.1.0|v0.1.0) version="0.1.0" ;;
+              develop/v0.2.0|v0.2.0) version="0.2.0" ;;
+              *) echo "unsupported release candidate ref: ${GITHUB_REF_NAME}" >&2; exit 1 ;;
+            esac
+          fi
+          config="release/v${version}/release-candidate.json"
+          report="generated/release-candidate/v${version}-report.json"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "config=${config}" >> "$GITHUB_OUTPUT"
+          echo "report=${report}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -51,6 +82,7 @@ jobs:
         run: |
           python3 -m py_compile \
             plan/scripts/check_plan_registry.py \
+            plan/scripts/check_document_review_registry.py \
             plan/scripts/check_requirements_registry.py \
             plan/scripts/test_check_requirements_registry.py \
             tools/check_contract_conformance.py \
@@ -59,7 +91,9 @@ jobs:
             evaluation/v6-v7/check_projection_evaluation.py
 
       - name: Gate 1 - Plan integrity
-        run: python3 plan/scripts/check_plan_registry.py
+        run: |
+          python3 plan/scripts/check_plan_registry.py
+          python3 plan/scripts/check_document_review_registry.py
 
       - name: Gate 2 - Requirements registry
         run: |
@@ -90,16 +124,97 @@ jobs:
       - name: Gate 7 - V6 V7 Projection evaluation
         run: python3 evaluation/v6-v7/check_projection_evaluation.py
 
-      - name: Gate 8 - Release candidate policy and bound report
+      - name: Gate 8 - Local Reference Package
+        if: steps.policy.outputs.version == '0.2.0'
+        env:
+          ARTIFACT_VERSION: "0.2.0-reference"
+          ARTIFACT_TARGET: "linux-amd64"
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf dist
+          mkdir -p dist/soza-local-reference-linux-amd64 dist/repro
+          LDFLAGS="-s -w -X main.buildVersion=${ARTIFACT_VERSION} -X main.buildCommit=${GITHUB_SHA} -X main.buildTarget=${ARTIFACT_TARGET}"
+          (
+            cd runtime/go
+            CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -buildvcs=false -trimpath -ldflags="$LDFLAGS" -o ../../dist/soza-local-reference-linux-amd64/soza-local-reference ./cmd/soza-package-probe
+            CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -buildvcs=false -trimpath -ldflags="$LDFLAGS" -o ../../dist/repro/soza-local-reference ./cmd/soza-package-probe
+          )
+          cmp dist/soza-local-reference-linux-amd64/soza-local-reference dist/repro/soza-local-reference
+          cp runtime/package/reference/README.md dist/soza-local-reference-linux-amd64/README.md
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          metadata = {
+              "artifact_format": "soza.local-reference/v1",
+              "version": os.environ["ARTIFACT_VERSION"],
+              "commit": os.environ["GITHUB_SHA"],
+              "target": os.environ["ARTIFACT_TARGET"],
+          }
+          Path("dist/soza-local-reference-linux-amd64/build-metadata.json").write_text(
+              json.dumps(metadata, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+          )
+          PY
+          dist/soza-local-reference-linux-amd64/soza-local-reference version > dist/version.json
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          actual = json.loads(Path("dist/version.json").read_text(encoding="utf-8"))
+          expected = {
+              "version": os.environ["ARTIFACT_VERSION"],
+              "commit": os.environ["GITHUB_SHA"],
+              "target": os.environ["ARTIFACT_TARGET"],
+          }
+          if actual != expected:
+              raise SystemExit(f"build identity mismatch: {actual!r} != {expected!r}")
+          PY
+          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner \
+            -C dist/soza-local-reference-linux-amd64 -cf dist/soza-local-reference-linux-amd64.tar .
+          gzip -n -9 dist/soza-local-reference-linux-amd64.tar
+          sha256sum dist/soza-local-reference-linux-amd64.tar.gz > dist/soza-local-reference-linux-amd64.tar.gz.sha256
+          mkdir -p dist/extracted dist/runtime-data
+          tar -xzf dist/soza-local-reference-linux-amd64.tar.gz -C dist/extracted
+          test "$(python3 -c 'import json; print(json.load(open("dist/extracted/build-metadata.json"))["commit"])')" = "$GITHUB_SHA"
+          dist/extracted/soza-local-reference save \
+            --data-root dist/runtime-data \
+            --input fixtures/contracts/v1alpha1/boundary/partial-knowledge-interchange.json
+          dist/extracted/soza-local-reference inspect --data-root dist/runtime-data > dist/inspect.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          actual = json.loads(Path("dist/inspect.json").read_text(encoding="utf-8"))
+          expected = {
+              "bundle_id": "partial-knowledge-interchange",
+              "record_count": 2,
+              "validated_count": 2,
+              "not_verified_count": 0,
+          }
+          if actual != expected:
+              raise SystemExit(f"artifact resume mismatch: {actual!r} != {expected!r}")
+          PY
+
+      - name: Gate 9 - Release candidate policy and bound report
         run: |
           mkdir -p generated/release-candidate
           python3 tools/check_release_candidate.py \
-            --report generated/release-candidate/v0.1.0-report.json
+            --config "${{ steps.policy.outputs.config }}" \
+            --report "${{ steps.policy.outputs.report }}"
+
+      - name: Upload v0.2.0 Local Reference Package
+        if: steps.policy.outputs.version == '0.2.0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: soza-v0.2.0-local-reference-${{ github.sha }}
+          path: |
+            dist/soza-local-reference-linux-amd64.tar.gz
+            dist/soza-local-reference-linux-amd64.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Upload candidate report
         uses: actions/upload-artifact@v4
         with:
-          name: soza-v0.1.0-release-candidate-${{ github.sha }}
-          path: generated/release-candidate/v0.1.0-report.json
+          name: soza-v${{ steps.policy.outputs.version }}-release-candidate-${{ github.sha }}
+          path: ${{ steps.policy.outputs.report }}
           if-no-files-found: error
           retention-days: 30
