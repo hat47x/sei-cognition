@@ -190,11 +190,12 @@ type SemanticInterchange struct {
 }
 
 type RuntimeRecord struct {
-	EnvelopeRecord InterchangeRecord
-	Status         RecordValidationStatus
-	Decision       *DecisionMemoryDocument
-	Capability     *CapabilityObservationDocument
-	Reference      *SemanticReferenceDocument
+	EnvelopeRecord  InterchangeRecord
+	Status          RecordValidationStatus
+	Decision        *DecisionMemoryDocument
+	Capability      *CapabilityObservationDocument
+	Reference       *SemanticReferenceDocument
+	CognitiveMethod *CognitiveMethodDocument
 }
 
 type Bundle struct {

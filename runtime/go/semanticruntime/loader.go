@@ -9,14 +9,14 @@ import (
 )
 
 const (
-	ContractSemanticInterchange       = "soza.semantic-interchange/v1alpha1"
-	ContractSemanticReference         = "soza.semantic-reference/v1alpha1"
-	ContractDecisionMemory            = "soza.decision-memory/v1alpha1"
-	ContractCapabilityObservation     = "soza.capability-observation/v1alpha1"
-	ContractIDSemanticReference       = "soza.semantic-reference"
-	ContractIDDecisionMemory          = "soza.decision-memory"
-	ContractIDCapabilityObservation   = "soza.capability-observation"
-	ContractVersionV1Alpha1           = "v1alpha1"
+	ContractSemanticInterchange     = "soza.semantic-interchange/v1alpha1"
+	ContractSemanticReference       = "soza.semantic-reference/v1alpha1"
+	ContractDecisionMemory          = "soza.decision-memory/v1alpha1"
+	ContractCapabilityObservation   = "soza.capability-observation/v1alpha1"
+	ContractIDSemanticReference     = "soza.semantic-reference"
+	ContractIDDecisionMemory        = "soza.decision-memory"
+	ContractIDCapabilityObservation = "soza.capability-observation"
+	ContractVersionV1Alpha1         = "v1alpha1"
 )
 
 func decodeStrict(data []byte, target any) error {
@@ -297,6 +297,9 @@ func LoadStandalone(data []byte) (RuntimeRecord, error) {
 	case ContractCapabilityObservation:
 		doc, err := parseCapabilityObservation(data)
 		return RuntimeRecord{Status: RecordValidated, Capability: doc}, err
+	case ContractCognitiveMethod:
+		doc, err := parseCognitiveMethod(data)
+		return RuntimeRecord{Status: RecordValidated, CognitiveMethod: doc}, err
 	case ContractSemanticInterchange:
 		return RuntimeRecord{}, errors.New("semantic interchange must be loaded with LoadInterchange")
 	default:
@@ -351,6 +354,13 @@ func parseInterchangeRecord(record InterchangeRecord) (RuntimeRecord, error) {
 		}
 		runtimeRecord.Status = RecordValidated
 		runtimeRecord.Capability = doc
+	case ContractCognitiveMethod:
+		doc, err := parseCognitiveMethod(record.Payload)
+		if err != nil {
+			return runtimeRecord, err
+		}
+		runtimeRecord.Status = RecordValidated
+		runtimeRecord.CognitiveMethod = doc
 	default:
 		// Unknown nested Contract is retained as opaque payload. The runtime does
 		// not claim that it has validated semantics it does not understand.
