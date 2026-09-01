@@ -1,6 +1,6 @@
 # SOZA Acceptance Scenarios
 
-更新日: 2026-08-31  
+更新日: 2026-09-01  
 状態: **Current Acceptance Scenario Baseline**
 
 ## 1. この文書の役割
@@ -161,7 +161,7 @@ Aは可逆で低影響な内部作業、Bは不可逆性が高く外部影響や
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Not Yet Verified** — Profile / Policyによる明示量の切替runtimeは未実装。
+- Executable: **Partially Satisfied** — V6/V7 evaluation harnessで、low-impactの最小Decisionをlight Projectionで扱い、basis / Responsibility等の最大詳細を一律必須にしないことを確認した。high-impactのrich Decisionではaudit Projectionを要求し、lightだけで完了扱いにするnegative caseを拒否できる。productionでのimpact判定Policy / Profile runtimeや実運用は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -213,8 +213,8 @@ Aは可逆で低影響な内部作業、Bは不可逆性が高く外部影響や
 
 ### Current Evidence
 
-- Design: **Partially Satisfied** — Projection非権威の原則とArchitecture boundaryはあるが、具体Projectionの設計は限定的。
-- Executable: **Not Yet Verified**
+- Design: **Satisfied** — Projection非権威のArchitecture boundaryに加え、同一canonical sourceからlight / auditを派生させる評価protocolとsemantic question setを実体化した。
+- Executable: **Partially Satisfied** — rich canonical sourceからlight / audit Projectionを決定的に再生成でき、Projectionを再構築してもcanonical sourceのstructural digestが変わらないことをharnessで確認した。lightから未解決事項と詳細の存在へ辿れる一方、Web / CLI / desktop等のproduction Projection交換は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -395,8 +395,8 @@ Providerは、内部topologyや契約情報を全量開示できないが、Capa
 
 ### Current Evidence
 
-- Design: **Partially Satisfied**
-- Executable: **Not Yet Verified** — human-readable Contract Definitionとmachine-readable Schemaはあるが、simple UI / Projectionの実装Evidenceはない。
+- Design: **Satisfied** — light / audit Projectionの役割、同一canonical source、semantic question set、Progressive Explicitness policyを評価protocolとして定義済み。
+- Executable: **Partially Satisfied** — lightはDecision、未解決事項、Authorization Evidence stateを前景化し、basis / Responsibility / Provenanceの件数とaudit導線を保持する。auditは6 semantic questionsについてmachine-readable sourceと一致し、low-impactでは不要な最大詳細を強制しないことをRun `33456710459`で確認した。production UIと実利用者の可読性は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -504,7 +504,7 @@ TEI Design KnowledgeのPattern Cardを、AIがCognitive Methodの探索対象と
 ### Current Evidence
 
 - Design: **Satisfied** — Value Acceptance / ADR-0018 / REQ-0020で5段階Evidenceを定義。
-- Executable: **Partially Satisfied** — current checker / fixture / runtime CIのEvidence文書で対象範囲を限定し、historical PASSをcurrent PASSへ継承しない運用を実施。Evidence claim専用の自動linterは未実装。
+- Executable: **Partially Satisfied** — current checker / fixture / runtime CIに加え、V6/V7 Projection evaluationもsummaryで`release=false / operational=false / adoption_outcome=false`を明示し、Product Value TraceabilityではRun `33456710459`をevaluation-harness scoped Executable Evidenceとしてのみ記録している。Evidence claim専用の汎用linterは未実装。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -530,11 +530,17 @@ Scenarioが存在することだけでCore化を決定するものではあり�
 
 ## 4. Executable fixtureとの関係
 
-current repositoryでは、すでに一部Scenarioがfixture / runtimeへ接続されています。
+current repositoryでは、一部Scenarioがfixture / runtime / evaluation harnessへ接続されています。
 
 例:
 
 ```text
+SCN-0004 / SCN-0006 / SCN-0013
+  → V6 / V7 Projection evaluation harness
+  → rich / low-impact canonical source
+  → light / audit Projection
+  → semantic question / negative case checker
+
 SCN-0011
   → Capability Observation F1 / F4
   → synthetic Provider Adapter missing→unknown test
@@ -555,4 +561,4 @@ Scenarioの一部だけを検証した場合は`Partially Satisfied`とし、Sce
 
 ## 6. Natural Japanese review
 
-SCN-0001〜0017をcurrent Product Value traceability、Contract 17 fixture、Representation Profile、first runtime、synthetic Provider Adapterへ一件ずつ照合した。実際にExecutable EvidenceがあるScenarioだけを限定的に更新し、Release / Operational / Adoption / Outcomeへは引き上げていない。その後、Scenarioの意味、期待、失敗条件、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+SCN-0001〜0017をcurrent Product Value traceability、Contract 17 fixture、Representation Profile、first runtime、synthetic Provider Adapter、V6/V7 Projection evaluation harnessへ一件ずつ照合しました。SCN-0004 / 0006 / 0013 / 0017について、Run `33456710459`で直接確認できた範囲だけExecutable Evidenceへ反映し、Release / Operational / Adoption / Outcomeへは引き上げていません。その後、Scenarioの意味、期待、失敗条件、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
