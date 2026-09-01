@@ -16,7 +16,7 @@ Product Value / Value Proposition
   → Value Model / Value Acceptance
   → Vision / Principles / Product Shape
   → Deadline-free Product Milestones
-  → Product Interaction / Packaging / other Product boundaries
+  → Product Interaction / Packaging / Identity・Access / other Product boundaries
   → Open Question / Product Hypothesis
   → Discussion / Research / Experiment
   → Requirements / Acceptance Scenarios
@@ -120,6 +120,27 @@ ISSUE-000055では、Linux / amd64向けのLocal Reference PackageをCIで生成
 
 これらはPMS-04のMinimum scoped Executable Evidenceです。一方、Product Release、正式support matrix、version upgrade互換性、crash durability、production Storage migrationを実証したものではありません。
 
+### `security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`
+
+PMS-05に対応するIdentity / Access / Collaboration boundaryを定めます。
+
+中心となる分離は次です。
+
+```text
+authentication identity
+  != Bounded Subject
+  != product access permission
+  != semantic Responsibility / Authority
+```
+
+外部IdPのsubjectをそのままhistorical Responsibilityへ使わず、Identity Bindingを介してBounded Subjectへ対応付けます。また、Product administratorやhuman / AIというactor kindからsemantic Responsibility / Authorityを推定しません。
+
+Product Access Scopeはtenant / workspace等に対応し得ますが、Product-localなsecurity / collaboration concernとして扱い、Universal Coreへ自動昇格させません。
+
+ISSUE-000056の`runtime/go/accessprobe`では、IdP相当identity交換後のResponsibility continuity、ResponsibilityとProduct accessの非同一性、Product adminとsemantic Responsibilityの非同一性、`denied` / `not_evaluated`の分離、Selective Disclosureによるcanonical source非改変を限定的に確認しています。
+
+Product access separationの必要性はDesignとprobeの双方で確認していますが、permission vocabularyやProduct Access Scopeの粒度はまだreference Realizationです。そのため新しいStable Requirement IDは先取りせず、Candidate Requirementとして次の実IdP / team実証へ渡します。
+
 ## 3. 未定領域の扱い
 
 未定のProduct領域は、最初からstable Requirementとして扱いません。
@@ -135,7 +156,7 @@ Open Question
 
 チャット上の議論は探索・統合の作業空間として使えますが、current正本はrepository上のProduct / Requirement / ADR等へ戻します。
 
-Product InteractionやPackagingについても、Design boundaryやreference artifactのExecutable Evidenceが成立したことと、production UI / protocol / Release / Storage / usabilityが成立したことは分けます。実利用や後続実証から新しい意味上の必要性が確認された場合だけRequirement / Scenario追加を再検討します。
+Product Interaction、Packaging、Identity / Accessについても、Design boundaryやreference probeのExecutable Evidenceが成立したことと、production UI / protocol / Release / Storage / security / usabilityが成立したことは分けます。実利用や後続実証から新しい意味上の必要性が確認された場合だけRequirement / Scenario追加を再検討します。
 
 ## 4. 具体的なScenarioの正本
 
@@ -150,7 +171,7 @@ Product Value / V1〜V8
   → ADR / Architecture / Contract / Test
 ```
 
-Product Milestone、Product Interaction、Product Packagingの各項目も、そのままRequirementやScenarioへ変換しません。独立した規範上の必要性が確認できたものだけを下位正本へ反映します。
+Product Milestoneや各Product boundaryの項目を、そのままRequirementやScenarioへ変換しません。独立した規範上の必要性が確認できたものだけを下位正本へ反映します。
 
 ## 5. 現在のProduct Milestone上の位置
 
@@ -162,15 +183,16 @@ current repositoryでは、少なくとも次の状態まで確認していま�
 - first usable Product Interaction: **Design baseline established / scoped Executable Evidence available**
 - Packaging / Deployment: **Design baseline established / Minimum scoped Executable Evidence available**
 - Local Reference Package: **scoped Executable Evidence available for Linux / amd64 reference profile**
+- Product Identity / Access / Collaboration: **Design baseline established / scoped Product Access separation Executable Evidence available**
+- production IdP / team collaboration security: **Not Yet Verified**
 - Product Release / formal support matrix: **Not Yet Verified**
-- Product Identity / Authorization / Collaboration: **Not Yet Verified**
 - real Method / Provider portability: **Partial**
 - current Product Shape全体のRelease Evidence: **Not Yet Verified**
 - Operational / Adoption Outcome: **Not Yet Verified**
 
-Product Interactionの詳細なEvidenceは`../runtime/INTERACTION_PROBE_EVIDENCE_2026-09-01.md`、Packaging / Persistenceは`../runtime/PACKAGING_PROBE_EVIDENCE_2026-09-01.md`、Local Reference Package artifactは`../runtime/LOCAL_PACKAGE_ARTIFACT_EVIDENCE_2026-09-01.md`を参照してください。
+Product Interactionの詳細なEvidenceは`../runtime/INTERACTION_PROBE_EVIDENCE_2026-09-01.md`、Packaging / Persistenceは`../runtime/PACKAGING_PROBE_EVIDENCE_2026-09-01.md`、Local Reference Package artifactは`../runtime/LOCAL_PACKAGE_ARTIFACT_EVIDENCE_2026-09-01.md`、Product Access / Collaboration probeは`../runtime/ACCESS_COLLABORATION_PROBE_EVIDENCE_2026-09-01.md`を参照してください。
 
-個別probeやreference artifactのPASSから、production UIの使いやすさ、supported protocol、Product Release、version upgrade compatibility、crash durability、Operational / Adoption Evidenceを推定しません。
+個別probeやreference artifactのPASSから、production UIの使いやすさ、supported protocol、Product Release、version upgrade compatibility、production IAM / security、crash durability、Operational / Adoption Evidenceを推定しません。
 
 ## 6. Product Valueを変更するとき
 
@@ -201,7 +223,7 @@ Coreへ追加する前に、少なくとも次を検討します。
 
 現在の実装で便利であることや、関連製品との距離が近いことだけをCore昇格理由にしません。
 
-Product Interaction上の`Case`、`Session`、`Workspace`、`Thread`等、reference probeの`CanonicalStore`やSurface DTO、Packaging probeのPersistence interface、filesystem layout、reference artifactのarchive / build identityも、実装上便利という理由だけでUniversal Coreへ追加しません。
+Product Interaction上の`Case`、`Session`、`Workspace`、`Thread`等、reference probeの`CanonicalStore`やSurface DTO、Packaging probeのPersistence interface、filesystem layout、reference artifactのarchive / build identity、Product Access Scopeやprobe-local permission vocabularyも、実装上便利という理由だけでUniversal Coreへ追加しません。
 
 ## 8. 推奨する読む順序
 
@@ -215,12 +237,14 @@ Product Interaction上の`Case`、`Session`、`Workspace`、`Thread`等、refere
 8. `roadmap/SOZA_PRODUCT_MILESTONES.md`
 9. `interaction/SOZA_PRODUCT_INTERACTION.md`
 10. `packaging/SOZA_PRODUCT_PACKAGING.md`
-11. `../plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`
-12. `../requirements/PRODUCT_REQUIREMENTS.md`
-13. `../requirements/ACCEPTANCE_SCENARIOS.md`
-14. `../architecture/SOZA_DEPLOYMENT_ARCHITECTURE.md`
-15. `../architecture/TRACEABILITY.md`
-16. `../contracts/TRACEABILITY.md`
+11. `security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`
+12. `../plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`
+13. `../requirements/PRODUCT_REQUIREMENTS.md`
+14. `../requirements/ACCEPTANCE_SCENARIOS.md`
+15. `../architecture/SOZA_DEPLOYMENT_ARCHITECTURE.md`
+16. `../architecture/SOZA_PRODUCT_ACCESS_ARCHITECTURE.md`
+17. `../architecture/TRACEABILITY.md`
+18. `../contracts/TRACEABILITY.md`
 
 ## 9. 文書品質
 
@@ -232,4 +256,4 @@ Product文書は、内容と構造を確定した後に、意味、規範強度�
 
 ## 10. Natural Japanese review
 
-current Product Value、Value Proposition、Product Shape、Product Milestone、Product Journey、Product Interaction、Product Packaging、ISSUE-000053 / 000054 / 000055の実証、Local Package Artifact Run `33509521544`とcurrent Evidenceを確認しました。Product Interactionはscoped reference probe、Packagingはliteral process restartとLocal Reference PackageまでのMinimum scoped Executable Evidenceを同期する一方、Product Release、formal support matrix、version upgrade、crash durability、production Storage migration、Operational / Adoptionへ広げていません。画面やchat、probe固有DTO、Persistence interface、filesystem layout、artifact identity等の都合からUniversal概念を増やさない境界も維持しています。そのうえで、Product Value、Milestone、Requirement、Implementationの権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+current Product Value、Value Proposition、Product Shape、Product Milestone、Product Journey、Product Interaction、Product Packaging、Product Identity / Access / Collaboration、ISSUE-000053〜000056の実証とcurrent Evidenceを確認しました。PMS-03はInteraction、PMS-04はPackaging、PMS-05はProduct Access責務分離のscoped Executable Evidenceまでを同期する一方、production UI / protocol、Product Release、formal support matrix、version upgrade、production IAM / team security、production Selective Disclosure、Operational / Adoptionへ広げていません。画面やchat、probe固有DTO、Persistence interface、filesystem layout、artifact identity、Product Access Scope、permission vocabulary等の都合からUniversal概念を増やさず、Product access separationはCandidate Requirementとして次の実証へ渡しています。そのうえで、Product Value、Milestone、Requirement、Implementationの権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
