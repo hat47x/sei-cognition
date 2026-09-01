@@ -1,7 +1,7 @@
 # SOZA v0.2.0 Release Acceptance
 
 更新日: 2026-09-02  
-状態: **Release Candidate Design Baseline / Release Evidence Not Yet Verified**
+状態: **Release Candidate Gate verified on PR test merge / Release Evidence Not Yet Verified**
 
 ## 1. この文書の役割
 
@@ -157,6 +157,8 @@ v0.2.0では`ISSUE-000021`だけを許可します。これはhistorical chat ex
 
 このallow-listはSOZA Universal Plan ontologyではなくv0.2.0 candidate policyです。
 
+PR #34のbootstrap Run `33531336681`では、Gate 1〜8がsuccessした後、Gate 9が`ISSUE-000059 = In Progress`を意図どおりblockしました。これにより、未解決Issue blockerが実際に機能することを確認しています。
+
 ## 7. required paths
 
 candidate policyは、v0.2.0 scopeを支える正本・Executable Evidenceの主要anchorを列挙します。
@@ -270,18 +272,49 @@ candidate gate failureはrelease条件を弱める理由にはしません。
 4. 同じcandidate gateを再実行する。
 5. success後にのみcandidate statusを更新する。
 
-## 14. current state
+PR #34のpost-closure検証では、Registry全置換時に`ISSUE-000013`の既存ファイル名を誤って転記したため、Run `33568527280`のGate 1がfailureしました。実ファイル名へ戻した後、Plan integrity Run `33568653098`とRelease Candidate Gate Run `33568653099`がsuccessしています。
 
-現時点ではこの文書はDesign baselineです。
+このfailureをRelease条件の緩和で回避せず、原因を修正して同じ検査を通し直した履歴をEvidenceとして残します。
 
-- v0.2.0 Release Candidate Design: **Satisfied by this baseline**
-- v0.2.0 integrated candidate gate: **Not Yet Verified until actual CI success**
+## 14. PR #34で得たRelease Candidate Evidence
+
+closure head `ffa3824908d2fa50c8363ffc68611b5b25d56344`について、Release Candidate Gate Run `33568653099`がsuccessしました。
+
+PR workflowはGitHubが生成したtest merge commit `cb88cc49d5d38293231b63db9d93e8e5804acd7b`をcheckoutしており、9 gateすべてがそのtest merge状態でsuccessしています。
+
+- Release Candidate Gate Run: `33568653099` — **success**
+- candidate report artifact ID: `9824110337`
+- candidate report artifact digest: `sha256:2d71979ec4f466bd679178bae88b2ba32584ec121d8618217b9b70d2c79a216a`
+- Local Reference Package artifact ID: `9824109925`
+- Local Reference Package artifact digest: `sha256:6b319c6ac2cd0aeb98a13d6234e6c1d9c06ae09a10927a3b54fa48878fc46fa6`
+- Plan integrity Run: `33568653098` — **success**
+- External Integration E3a Run: `33568653077` — **success**
+
+このEvidenceはPR上のtest merge状態に対するものです。actual `develop/v0.2.0`へ統合したcommitを自動的に検査済みとは扱いません。
+
+```text
+PR test merge candidate PASS
+  != actual develop head PASS
+  != actual v0.2.0 release
+```
+
+## 15. current state
+
+現時点の状態は次です。
+
+- v0.2.0 Release Candidate Design: **Satisfied**
+- PR #34 test mergeに対するv0.2.0 integrated candidate gate: **Satisfied** — Run `33568653099`
+- actual `develop/v0.2.0` headのcandidate gate: **merge後に再確認する**
 - Release Evidence: **Not Yet Verified**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
 
-componentごとの既存Executable Evidenceを、この文書だけでv0.2.0 candidate PASSへ読み替えません。
+componentごとのExecutable EvidenceやPR test mergeのPASSを、actual Product Releaseやproduction readinessへ読み替えません。
 
-## 15. Natural Japanese review
+## 16. Natural Japanese review
 
-Product Value、PMS-03〜07、v0.1.0 Release Acceptance、Product Interaction、Local Single-Node Packaging、Product Access、Realization / Provider Exchange、ISSUE-000055〜000058、E3a external artifact integration、current CI Evidenceを照合した。そのうえで、v0.2.0で実際にsupportする範囲をLocal Reference Product Baselineへ限定し、E3b / E4、production security / Storage / formal support matrixを非主張範囲へ残した。candidate gate、actual release、Operational / Adoption Evidenceを明確に分け、reference artifactのLinux / amd64検査を正式な全platform supportへ拡張しないよう整理している。最後に、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+Product Value、PMS-03〜07、v0.1.0 Release Acceptance、Product Interaction、Local Single-Node Packaging、Product Access、Realization / Provider Exchange、ISSUE-000055〜000059、E3a external artifact integration、actual GitHub Actions Evidenceを照合しました。
+
+そのうえで、v0.2.0で実際にsupportする範囲をLocal Reference Product Baselineへ限定し、E3b / E4、production security / Storage / formal support matrixを非主張範囲へ残しています。candidate gate、PR上のtest merge、actual develop head、actual release、Operational / Adoption Evidenceを分け、Linux / amd64のreference artifact検査を正式な全platform supportへ拡張しないよう整理しました。
+
+最後に、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。
