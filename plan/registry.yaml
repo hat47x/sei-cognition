@@ -157,4 +157,4 @@ issue:
   - {id: ISSUE-000047, file: plan/issue/ISSUE-000047-define-product-identity-authorization-and-collaboration-boundary.md, status: Open, priority: 2, related_adrs: [ADR-0004, ADR-0006, ADR-0016, ADR-0021]}
   - {id: ISSUE-000048, file: plan/issue/ISSUE-000048-define-end-to-end-golden-journey-acceptance.md, status: Resolved, priority: 1, related_adrs: [ADR-0005, ADR-0018, ADR-0020, ADR-0021, ADR-0025]}
   - {id: ISSUE-000049, file: plan/issue/ISSUE-000049-generalize-bundle-exact-binding-consistency.md, status: Open, priority: 2, related_adrs: [ADR-0008, ADR-0009, ADR-0021, ADR-0022, ADR-0025, ADR-0026]}
-  - {id: ISSUE-000050, file: plan/issue/ISSUE-000050-materialize-end-to-end-semantic-product-journey-harness.md, status: In Progress, priority: 1, related_adrs: [ADR-0005, ADR-0008, ADR-0009, ADR-0018, ADR-0020, ADR-0021, ADR-0022, ADR-0025]}
+  - {id: ISSUE-000050, file: plan/issue/ISSUE-000050-materialize-end-to-end-semantic-product-journey-harness.md, status: Resolved, priority: 1, related_adrs: [ADR-0005, ADR-0008, ADR-0009, ADR-0018, ADR-0020, ADR-0021, ADR-0022, ADR-0025]}
