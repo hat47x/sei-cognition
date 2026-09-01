@@ -1,13 +1,13 @@
 # ISSUE-000061: 実TEI CLIを受け入れる外部process境界を準備する
 
-Status: **Open**  
+Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0013, ADR-0019, ADR-0021, ADR-0024**  
 Updated: 2026-09-02
 
 ## Goal
 
-PMS-06のE3b-P2「live TEI process / service integration」へ進む前段として、**SOZAがTEIの取得方法やprivate repositoryのcredential方式を意味契約へ取り込まず、外部から与えられた実`tei` executableを別OS processとして呼び、そのProvider固有JSONをcurrent Capability Observationへ戻せる境界**を実体化する。
+PMS-06のE3b-P2「live TEI process / service integration」へ進む前段として、**SOZAがTEIの取得方法やprivate repositoryのcredential方式を意味契約へ取り込まず、外部から与えられた`tei` executableを別OS processとして呼び、そのProvider固有JSONをcurrent Capability Observationへ戻せる境界**を実体化する。
 
 このIssueでは、実TEIをSOZA CIから取得・実行できたことまでは完了条件にしない。TEI repositoryはprivateであり、SOZAの標準`GITHUB_TOKEN`に別repositoryのread権限があるとは仮定できないためである。
 
@@ -75,11 +75,64 @@ Executor、Observation route、Evidence route、Plugin Runtime等のTEI内部fie
 11. deterministic testではhelper processを使い、actual TEI executionと区別する。
 12. このIssueのPASSをE3b-P2、Operational、Release、Adoption / Outcome Evidenceへ昇格させない。
 
+## Resolution
+
+`runtime/go/teiintegration`に、外部から明示的に与えられたTEI executableを呼び出すreference Adapterを実装した。
+
+Adapterは`deployment-provider-plan`を対象とし、次を外部から注入できる。
+
+- executable path
+- executableの前置引数
+- workspace path
+- durable run path
+- solution ID / version
+- plugin lock path
+- optional expected revision
+
+これにより、install済み`tei` binaryだけでなく、呼出側が明示的に用意したwrapperや`go run .../cmd/tei`相当の実行面にも対応できる。ただし、どのようにTEI source / binaryを取得したかはAdapterの意味契約に含めない。
+
+Provider Plan JSONはAdapter-local DTOとしてstrictにdecodeする。unknown top-level field、malformed JSON、複数JSON値、認識できるProvider Plan情報がない応答、incomplete routeを拒否する。
+
+process exit failure、timeout / cancellationではCapability Observationを生成しない。成功時もTEI固有のExecutor、Observation route、Evidence route、Plugin Runtime等をUniversal fieldへ転写せず、次の最小観測だけをcurrent Capability Observationへ戻す。
+
+- `availability = true`
+- `provider_plan_resolved = true`
+
+mapping provenanceは`tei-deployment-provider-plan-to-capability-observation/reference-v1`として区別する。
+
+## Executable Evidence
+
+`runtime/go/teiintegration/tei_cli_test.go`では、test binaryをhelper subprocessとして起動し、実際に別OS processを経由して次を検査した。
+
+- executable / argumentsを明示的に注入できる。
+- success responseをcurrent Capability Observationへmappingできる。
+- mapping結果がcurrent validatorを通る。
+- TEI固有field / valueがCapability Observationへ漏れない。
+- unknown top-level fieldを拒否する。
+- malformed JSONを拒否する。
+- 複数JSON値を拒否する。
+- 空のProvider Planを拒否する。
+- process failure時にObservationを生成しない。
+- timeout時にObservationを生成しない。
+- 必須のTEI固有入力が欠けた場合はprocess起動前に拒否する。
+
+文書同期前の検査点 `64537c156c2cec255f06a28a9fda6594674658f5` では、次がsuccessした。
+
+- Plan integrity Run `33572094543`
+- External Integration E3a Run `33572094551`
+- Local Package Artifact Run `33572094571`
+- External Integration E3b Run `33572094573`
+- Semantic Runtime Conformance Run `33572094600`
+
+Release Candidate Gate Run `33572094580`はGate 1〜8がsuccessし、OpenだったISSUE-000061をGate 9が意図どおりblockした。これは実装不備ではなく、未解決Issueをcandidateから排除する既存policyが正常に機能した結果である。
+
+このhelper subprocess Evidenceは**external executable injection boundaryのScoped Executable Evidence**であり、actual `hat47x/tei-platform`のbinaryを実行したEvidenceではない。
+
 ## Requirement / Scenario監査
 
 新しいStable Requirement / Scenarioは追加しない。
 
-主な既存正本は次で足りると考える。
+主な既存正本は次で今回の境界を表現できる。
 
 - REQ-0001 — 耐久的な意味の連続性
 - REQ-0007 — Capability / Providerの中立性
@@ -105,22 +158,22 @@ Executor、Observation route、Evidence route、Plugin Runtime等のTEI内部fie
 
 ## 完了条件
 
-- [ ] TEI CLI external process Adapterを実装する。
-- [ ] executable pathとTEI固有入力を明示的に注入できるようにする。
-- [ ] success / malformed / unknown field / process failure / timeoutをtestへ落とす。
-- [ ] Provider固有fieldの非漏出をtestへ落とす。
-- [ ] current Capability Observation validatorを通す。
-- [ ] current runtime regressionを含むCIをsuccessさせる。
-- [ ] E3b-P1の最終Evidence記録を最新merge後CIへ同期する。
-- [ ] 上流計画へ、P2を「実行面」と「取得・credential境界」に分離する方針を反映する。
-- [ ] plan registry / document review registryを同期する。
-- [ ] 自然な日本語を最重要視した全文再ドラフトと最終意味監査を行う。
+- [x] TEI CLI external process Adapterを実装する。
+- [x] executable pathとTEI固有入力を明示的に注入できるようにする。
+- [x] success / malformed / unknown field / process failure / timeoutをtestへ落とす。
+- [x] Provider固有fieldの非漏出をtestへ落とす。
+- [x] current Capability Observation validatorを通す。
+- [x] current runtime regressionを含むCIをsuccessさせる。
+- [x] E3b-P1の最終Evidence記録を最新merge後CIへ同期する。
+- [x] 上流計画へ、P2を「実行面」と「取得・credential境界」に分離する方針を反映する。
+- [x] plan registry / document review registryを同期する。
+- [x] 自然な日本語を最重要視した全文再ドラフトと最終意味監査を行う。
 
 ## Evidence state
 
-- Design Evidence: **In Progress**
+- Design Evidence: **Satisfied for the current boundary**
 - E3b-P1 public live Provider service: **Scoped Executable Evidence available**
-- external TEI executable injection boundary: **Not Yet Verified**
+- external TEI executable injection boundary: **Scoped Executable Evidence available with helper subprocess**
 - E3b-P2 actual TEI CLI execution: **Not Yet Verified**
 - E3b-M1 live external Cognitive Method execution: **Not Yet Verified**
 - E4 Operational portability: **Not Yet Verified**
@@ -137,4 +190,4 @@ Executor、Observation route、Evidence route、Plugin Runtime等のTEI内部fie
 
 ## Natural Japanese review
 
-PMS-06、ISSUE-000057 / 000058 / 000060、current Capability Observation Contract、Provider Adapter、`hat47x/tei-platform`の`cmd/tei`とReference Workspace、TEI CIで実行されている既存CLI面を照合した。TEIには実際に呼び出せるJSON CLI面がある一方、private repository取得をSOZAの意味契約や必須CIへ暗黙に持ち込むべきではないため、executable acquisitionとprocess invocationを分離した。ISSUE-000061ではこの境界自体だけをExecutable Evidence化し、actual TEI executionはE3b-P2として明示的に未検証のまま残す。意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+PMS-06、ISSUE-000057 / 000058 / 000060、current Capability Observation Contract、Provider Adapter、`hat47x/tei-platform`の`cmd/tei`とReference Workspace、TEI CIで実行されている既存CLI面、今回のhelper subprocess testを照合した。TEIには実際に呼び出せるJSON CLI面がある一方、private repository取得をSOZAの意味契約や必須CIへ暗黙に持ち込むべきではないため、executable acquisition、credential、process invocation、Provider固有JSON解釈、SOZA mappingを分離した。今回成立したのは外部実行ファイルを受け入れる境界のScoped Executable Evidenceであり、helper processをactual TEI executionへ読み替えていない。E3b-P2は明示的に未検証のまま残す。意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
