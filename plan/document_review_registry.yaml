@@ -37,8 +37,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに全件監査済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000040
-    note: ISSUE-000038〜000040を含む新規Issueは、ISSUE-000015で確立した標準工程を作成・解決時に適用し、自然な日本語全文再ドラフトと最終意味監査まで同じ作業単位で完了している。
+    coverage: ISSUE-000001..ISSUE-000042
+    note: ISSUE-000038〜000042を含む新規Issueは、ISSUE-000015で確立した標準工程を作成・解決時に適用し、自然な日本語全文再ドラフトと最終意味監査まで同じ作業単位で実施する。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -107,6 +107,15 @@ reviewed:
       - evaluation/v6-v7/projections/audit.md
     note: current canonical fixtureから再生成可能な評価用Projection例として、意味欠落や独自Authority追加がないことをcheckerで照合済み。
 
+  - scope: release/README.md
+    status: reviewed-no-change
+    note: v0.1.0 Release Candidate Evidence、actual release、Operational / Adoption Outcomeの境界を確認し、開発４で作成済みの本文をそのまま維持した。
+  - scope: release/v0.1.0/*.md
+    status: reviewed-no-change
+    coverage:
+      - release/v0.1.0/RELEASE_ACCEPTANCE.md
+    note: release candidateとRelease Evidenceの非同一性、非主張範囲、actual gate Evidenceを確認し、本文変更なしと判断した。
+
   - scope: fixtures/contracts/v1alpha1/README.md
     status: revised
     note: 17 fixtureのcurrent Contract Conformance成立をfixture-scoped Executable Evidenceとして明記済み。
@@ -138,6 +147,7 @@ reviewed:
     note: 全件監査完了後の最終報告へ更新済み。
   - scope: plan/scripts/README.md
     status: revised
+    note: ADR / Issue registry integrityに加え、Document Review Registry coverage checkerの責務・self-test・Evidence境界を記載済み。
 
 pending: []
 
