@@ -1,8 +1,8 @@
 schema: soza.document-review-registry/v1
-updated: 2026-09-01
+updated: 2026-09-02
 
 purpose: >-
-  ISSUE-000015で行った既存開発文書の自然な日本語監査について、current branch上の
+  ISSUE-000015で確立した自然な日本語監査について、current branch上の開発文書の
   対象範囲と監査状態を管理する台帳。意味上の正本は各文書自身であり、この台帳は
   監査管理のための補助資料とする。
 
@@ -19,7 +19,7 @@ reviewed:
 
   - scope: product/README.md
     status: revised
-    note: Product Value、Product Shape、期限を持たないProduct Milestone、Product Interaction、Product Packaging、未定領域の探索手順をcurrent Product入口として再整理し、InteractionとPackagingの限定Executable Evidenceを同期済み。
+    note: Product Value、Product Shape、期限を持たないProduct Milestone、Product Interaction、Product Packaging、未定領域の探索手順をcurrent Product入口として整理済み。
   - scope: product/value/*.md
     status: revised
     coverage:
@@ -32,47 +32,42 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_SHAPE.md
-    note: 利用者から見た主要な仕事、論理Surface、SOZA内外境界、Minimum Usable Product Shapeをcurrent Product Valueから整理済み。
+      - SOZA_REALIZATION_PROVIDER_EXCHANGE.md
+    note: Product Shapeに加え、out-of-process Realization Provider exchangeの境界をcurrent Product definitionとして自然な日本語で整理済み。
   - scope: product/vision/SOZA_PRODUCT_VISION.md
     status: revised
   - scope: product/principles/SOZA_PRODUCT_PRINCIPLES.md
     status: revised
-    note: Open Question、議論・実証、Candidate Requirement、Stable Requirementを分離する上流原則を追加し、既存原則との意味整合を監査済み。
   - scope: product/roadmap/*.md
     status: revised
     coverage:
       - SOZA_PRODUCT_MILESTONES.md
-    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-03はInteraction、PMS-04はLocal Reference Package、PMS-05はProduct Access責務分離のscoped Executable Evidenceまでを反映し、production securityやRelease / Operational / Adoption Evidenceへは昇格させていない。
+    note: calendar deadlineではなくOutcomeとEvidenceでProduct Milestoneを定義し、current probe / package / provider-exchange Evidenceを過大評価しない形で同期済み。
   - scope: product/interaction/*.md
     status: revised
     coverage:
       - SOZA_PRODUCT_INTERACTION.md
-    note: first usable Product Interactionをhuman / AIの異なるSurfaceから同じcanonical meaningへ戻る操作境界として定義し、ISSUE-000053のreference probe Evidenceを反映済み。UI、chat、session、workspace、probe固有DTO等を意味上の正本やUniversal Coreへ昇格させない境界を維持している。
   - scope: product/packaging/*.md
     status: revised
     coverage:
       - SOZA_PRODUCT_PACKAGING.md
-    note: Local Single-Node Packageを最初のPackaging Profileとして定義し、Go runtime、replaceable Persistence、durable data root、portable Semantic Interchangeを分離した。literal process restartとLocal Reference Package archiveのscoped Executable Evidenceを同期し、reference artifactとProduct Release、package lifecycle controlと正式Product Interactionを分離している。
   - scope: product/security/*.md
     status: revised
     coverage:
       - SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md
-    note: authentication identity、Bounded Subject、Product access permission、semantic Responsibility / Authority、external execution authorizationを分離し、Product Access Scopeやpermission vocabularyをUniversal CoreやStable Requirementへ先取りしないProduct baselineとして自然な日本語で正本化済み。
 
   - scope: plan/adr/ADR-*.md
     status: revised
     coverage: ADR-0001..ADR-0030
-    note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、ADR-0030のProduct Access Controlとsemantic Responsibility / Authorityの分離まで、自然な日本語全文再ドラフトと最終意味監査を実施済み。
+    note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、自然な日本語全文再ドラフトと最終意味監査を実施済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000056
-    note: ISSUE-000047のProduct Identity / Access / Collaboration Design closureと、ISSUE-000056のProduct Access / Selective Disclosure reference probeを含め、自然な日本語全文再ドラフトと最終意味監査まで実施済み。
+    coverage: ISSUE-000001..ISSUE-000057
+    note: ISSUE-000049のbundle-local Exact Binding一般化とISSUE-000057のout-of-process Realization Provider exchangeを含め、current Issueを自然な日本語で監査済み。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
-    note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
   - scope: plan/issue/ISSUE_TEMPLATE.md
     status: revised
-    note: Goal / Resolution / Reopen、5段階Evidence、CI failure handling、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
 
   - scope: requirements/*.md
     status: revised
@@ -81,7 +76,6 @@ reviewed:
       - requirements/PRODUCT_REQUIREMENTS.md
       - requirements/ACCEPTANCE_SCENARIOS.md
       - requirements/PRODUCT_JOURNEY_COMPOSITION.md
-    note: Requirement / Scenario / Testの境界を維持したまま監査済み。Product Access separationはscoped probeで必要性を確認したが、permission vocabulary等がreference RealizationであるためCandidate Requirementとして保持し、新しいStable REQ / SCN IDは先取りしていない。
   - scope: requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md
     status: revised
 
@@ -94,7 +88,6 @@ reviewed:
       - architecture/SOZA_PRODUCT_ACCESS_ARCHITECTURE.md
       - architecture/IMPLEMENTATION_LANGUAGE_POLICY.md
       - architecture/TRACEABILITY.md
-    note: Go production runtime、Product Interaction、Local Single-Node Deploymentに加え、Authentication Adapter、Identity Binding、Product Access Policy、Guarded Canonical Access、Disclosure ProjectionをProduct security componentとして配置した。Product Access Scopeやpermission modelをUniversal semantic entityへ昇格させない境界を維持している。
   - scope: architecture/history/HISTORICAL_ARCHITECTURE_MAPPING.md
     status: revised
 
@@ -104,6 +97,7 @@ reviewed:
     status: revised
   - scope: contracts/CONFORMANCE_EVIDENCE_2026-08-31.md
     status: revised
+    note: current 36-fixture Contract Conformanceとknown Contract横断のbundle-local Exact Binding consistencyを、fixture-scoped Executable Evidenceとして自然な日本語で同期済み。
   - scope: contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md
     status: revised
   - scope: contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md
@@ -112,11 +106,11 @@ reviewed:
     status: revised
   - scope: contracts/cognitive-method/SOZA_COGNITIVE_METHOD_v1alpha1.md
     status: revised
-    note: develop/v0.2.0で追加されたCognitive Method current Contract Definition。Definition / Realization / Application境界と自然な日本語監査を確認済み。
   - scope: contracts/interchange/SOZA_SEMANTIC_INTERCHANGE_v1alpha1.md
     status: revised
   - scope: contracts/TRACEABILITY.md
     status: revised
+    note: ADR-0026 / ISSUE-000049の一般化をcurrent Contract Traceabilityへ反映し、payload verificationとの差を維持している。
   - scope: contracts/profiles/*.md
     status: revised
     coverage:
@@ -129,84 +123,65 @@ reviewed:
 
   - scope: runtime/CONFORMANCE_EVIDENCE_2026-08-31.md
     status: revised
-    note: first semantic runtime、Verifier Registry、synthetic Payload Source、synthetic Provider Adapterの限定Executable Evidenceを5段階Evidenceへ再整理済み。
+    note: first semantic runtime、Verifier Registry、Payload Source、synthetic Provider Adapterに加え、known Contract横断のbundle-local Exact Binding consistencyを5段階Evidenceへ再整理済み。
   - scope: runtime/INTERACTION_PROBE_EVIDENCE_2026-09-01.md
     status: revised
-    note: human-oriented / machine-oriented Surfaceが同じcanonical sourceを扱うreference probeのScoped Executable Evidenceを、production UX・protocol・Storage・Identity・Operational / Adoptionへ過大評価しない境界とともに自然な日本語で記録済み。
   - scope: runtime/PACKAGING_PROBE_EVIDENCE_2026-09-01.md
     status: revised
-    note: filesystem persistence、runtime-state-independent reconstruction、build済みGo executableによるliteral process restart、copy / restore、filesystemからmemory Persistenceへの交換をScoped Executable Evidenceとして記録し、supported artifact、version upgrade、crash durability、actual production Storage migration、Release / Operational / Adoptionへ昇格させない境界を自然な日本語で明示済み。
   - scope: runtime/LOCAL_PACKAGE_ARTIFACT_EVIDENCE_2026-09-01.md
     status: revised
-    note: Linux / amd64のLocal Reference Packageについて、二重build一致、build identity、決定的archive、checksum、archive展開後の独立process save / reload、workflow artifact保存をScoped Executable Evidenceとして記録し、Product Releaseや正式support matrixへ昇格させない境界を自然な日本語で明示済み。
   - scope: runtime/ACCESS_COLLABORATION_PROBE_EVIDENCE_2026-09-01.md
     status: revised
-    note: IdP相当identity交換、ResponsibilityとProduct accessの非同一性、Product adminとsemantic Responsibilityの非同一性、actor kind非推定、denied / not_evaluated分離、Selective Disclosureのcanonical非改変をScoped Executable Evidenceとして記録し、production IAM / securityへ昇格させない境界を自然な日本語で明示済み。
   - scope: runtime/package/reference/*.md
     status: revised
     coverage:
       - runtime/package/reference/README.md
-    note: Local Reference PackageをProduct Releaseや正式Product Interactionと混同せず、artifact identityとsemantic identityを分けた評価用配布物として自然な日本語で説明済み。
 
   - scope: evaluation/v6-v7/*.md
     status: revised
     coverage:
       - evaluation/v6-v7/README.md
       - evaluation/v6-v7/HUMAN_REVIEW_TEMPLATE.md
-    note: V6 / V7評価protocolとstructured human reviewを、Projection非権威と5段階Evidence境界を保ったまま自然な日本語へ再ドラフト済み。
   - scope: evaluation/v6-v7/projections/*.md
     status: revised
     coverage:
       - evaluation/v6-v7/projections/light.md
       - evaluation/v6-v7/projections/audit.md
-    note: current canonical fixtureから再生成可能な評価用Projection例として、意味欠落や独自Authority追加がないことをcheckerで照合済み。
 
   - scope: release/README.md
     status: reviewed-no-change
-    note: v0.1.0 Release Candidate Evidence、actual release、Operational / Adoption Outcomeの境界を確認し、既存本文をそのまま維持した。
   - scope: release/v0.1.0/*.md
     status: reviewed-no-change
     coverage:
       - release/v0.1.0/RELEASE_ACCEPTANCE.md
-    note: release candidateとRelease Evidenceの非同一性、非主張範囲、actual gate Evidenceを確認し、本文変更なしと判断した。
 
   - scope: fixtures/contracts/v1alpha1/README.md
     status: revised
-    note: current Contract fixtureのExecutable Evidenceをfixture-scopedとして明記済み。
+    note: current 36 fixtureとbundle-local Exact Bindingのpositive / negative / unknown-boundary caseをfixture-scoped Evidenceとして整理済み。
   - scope: fixtures/providers/synthetic/README.md
     status: revised
-    note: synthetic Provider Adapterの検査境界とproduction未検証範囲を分離済み。
 
   - scope: plan/kj/README.md
     status: revised
-    note: KJ working recordとcurrent Accepted ADR / Contract / Runtimeのauthority境界を新設済み。
   - scope: plan/kj/2026-08-31_ReferenceModel_CapabilityObservation_ラウンドKJ.md
     status: reviewed-no-change
-    note: 生カードと当時のDecision preparationを思考履歴として保全。current landingはplan/kj/README.mdでADR-0017 / ADR-0019 / ADR-0024へ対応付けた。
   - scope: plan/kj/2026-08-31_RequirementInquiry_AuthorizationEvidence_ラウンドKJ.md
     status: reviewed-no-change
-    note: 生カードと当時のDecision preparationを保全。current landingはADR-0015 / ADR-0016としてplan/kj/README.mdに明記した。
   - scope: plan/kj/2026-08-31_TEI設計系列_ラウンドKJ統合.md
     status: reviewed-no-change
-    note: 広域統合時点の生カード・束ね・核融合・残差を原記録として保全し、current authorityとの読み分けをplan/kj/README.mdへ分離した。
 
   - scope: plan/README.md
     status: revised
-    note: Product Milestoneと上流探索・Requirement化の配置規則をcurrent planning入口へ反映済み。
   - scope: plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md
     status: revised
-    note: Open Questionから議論・実証、Candidate Requirement、stable Requirementへ進む標準フローと現在の探索優先領域を正本化済み。
   - scope: plan/DEVELOPMENT_WORKFLOW.md
     status: revised
-    note: Product Milestoneと未定領域の探索をRequirement / Architectureより上流へ置き、ADR-0027に基づくGo production runtime標準とPython等の研究・外部Realization利用境界を追加済み。
   - scope: plan/DOCUMENT_AUTHORING_STANDARD.md
     status: revised
   - scope: plan/DOCUMENT_REVIEW_REPORT_2026-08-31.md
     status: revised
-    note: 全件監査完了後の最終報告へ更新済み。
   - scope: plan/scripts/README.md
     status: revised
-    note: ADR / Issue registry integrityに加え、Document Review Registry coverage checkerの責務・self-test・Evidence境界を記載済み。
 
 pending: []
 
@@ -222,7 +197,7 @@ exclusions:
     reason: source codeであり、本台帳が対象とする開発文書本文ではない。code commentは実装変更時の通常reviewで扱う。
   - scope: evaluation/**/*.py
     status: excluded-historical
-    reason: 評価実行コードであり、本台帳が対象とする自然言語文書本文ではない。code commentは実装変更時の通常reviewで扱う。
+    reason: 評価実行コードであり、本台帳が対象とする自然言語文書本文ではない。
   - scope: evaluation/**/*.json
     status: excluded-historical
     reason: 固定評価入力・Expected Evidenceであり、自然な日本語への改稿対象ではない。

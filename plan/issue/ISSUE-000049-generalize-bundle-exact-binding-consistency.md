@@ -1,166 +1,196 @@
 # ISSUE-000049: bundle-local Exact Binding整合をknown Contract横断で実装する
 
-Status: **Open**  
+Status: **Resolved**  
 Priority: **2**  
 Related ADRs: **ADR-0008, ADR-0009, ADR-0021, ADR-0022, ADR-0025, ADR-0026**  
-Updated: 2026-09-01
+Updated: 2026-09-02
 
 ## Goal
 
-ADR-0026に基づき、Semantic Interchange内のbundle-local Exact Binding整合検査をDecision basis専用ロジックから切り離し、current runtimeが意味を理解しているknown ContractのExact Referenceへ一貫して適用できるようにする。
+ADR-0026に基づき、Semantic Interchange内のbundle-local Exact Binding整合検査をDecision `basis_refs`専用の処理から切り離し、current runtimeが意味を理解しているknown ContractのExact Referenceへ同じ規則を適用する。
 
-このIssueで検査するのは、**同一bundleに含まれるexact-bound recordと、known typed Contractから得られたExact Referenceの内部整合**である。payload bytesの取得・再hash・Verification Outcome生成は対象外とする。
+このIssueが扱うのは、**同一bundleに含まれるexact-bound recordと、known typed Contractから得られたExact Referenceの内部整合**である。payload bytesの取得、digest再計算、Verification Outcome生成、外部Artifactの存在保証は別の責務として維持する。
 
-## Why now
+## Resolution
 
-v0.1.0 runtimeでは、Decisionのhistorical basis再構成を優先し、bundle内exact recordとDecision `basis_refs`の不一致を検出する最小検査を実装した。
+Decision専用だった検査を、次の二段構成へ一般化した。
 
-v0.2.0では`soza.cognitive-method/v1alpha1`が加わり、Method Applicationが`method_ref`、`realization_ref`、`input_refs`等をExact Bindingとして保持できるようになった。
+```text
+known typed Contract
+  → typed Exact Reference extraction
+  → []ExactBinding
 
-このままContractごとに個別比較を増やすと、同じ意味規則がfield名ごとに複製され、将来のContract追加時に検査漏れが起きやすい。
+bundle exact index
+  + extracted Exact Reference
+  → common bundle-local consistency check
+```
 
-## Scope
+Go runtimeとPython Contract checkerの双方で同じ意味規則を実装した。実装同士を意味上のauthorityにはせず、ADR-0026と各Contract Definitionを共通の基準とする。
 
-### 1. typed Exact Reference extraction
+## 実装した境界
 
-current known Contractごとに、Exact Referenceを持ち得るsemantic Reference roleを型付きに抽出する。
+### 1. known typed Reference roleからだけ抽出する
 
-少なくとも検討対象:
+Go runtimeでは`extractKnownExactReferences`、Python checkerでは`known_contract_exact_references`を設け、current known Contractのtyped Reference roleだけを対象にした。
 
-- Decision Memory
-  - context / basis / recommendation / unresolved / responsibility refs
-- Cognitive Method
-  - method / realization / context / input / output / residual / provenance / responsibility refs
-- Capability Observation
-  - condition source refs
-  - provenance refs
-  - mapping provenance ref
-- Semantic Reference
-  - lineage endpoints / basis refs等、bundle-local比較が意味を持つもの
+主な対象:
+
+- Semantic Reference — lineage endpoint、Verification Outcome binding等
+- Decision Memory — context / basis / recommendation / unresolved / responsibility、lineage
+- Cognitive Method — Method / Realization / context / input / output / residual / provenance / responsibility
+- Capability Observation — condition source / provenance / mapping Reference
 
 Logical Referenceだけの値はExact Referenceとして抽出しない。
 
-### 2. bundle exact index
+### 2. 同一logical identityの複数revisionを保持する
 
-Semantic Interchange envelopeの`exact_binding`をlogical identityごとに索引化する。
-
-同一logical identityへ複数Exact Bindingが存在することを許容し、単一値へlatest-winsで潰さない。
+bundle envelopeの`exact_binding`は単一値mapへ潰さず、次の形で索引化する。
 
 ```text
 logical identity
   → [exact binding A, exact binding B, ...]
 ```
 
-### 3. common consistency check
+参照側Exact Bindingがcandidateのいずれか一つと一致すれば整合とする。latest-winsは採用しない。
 
-known Contractから抽出したExact Referenceについて、同一logical identityのexact-bound recordがbundle内に存在する場合、そのいずれかとbinding全体が一致することを確認する。
+### 3. binding全体を比較する
 
-比較:
+同じlogical identityのexact-bound recordがbundle内に存在する場合、少なくとも一つのcandidateと次が一致しなければSemantic Interchange validation errorとする。
 
-- logical ref
+- logical reference
 - content digest
 - Representation Profile ID
 - Representation Profile version
 
-不一致の場合はSemantic Interchange validation errorとする。
+### 4. external Exact Referenceをbundle不在だけで拒否しない
 
-### 4. external Exact Reference
-
-同一logical identityのexact-bound recordがbundle内に存在しない場合は、この検査だけを理由にFAILとしない。
-
-外部payloadの検証はPayload Source / Verifier Registryへ委ねる。
-
-### 5. unknown Contract
-
-unknown Contract versionはopaque + `not_verified`を維持する。
-
-未知payloadをJSON field名から推測走査してExact Referenceを抽出しない。
-
-## Required fixtures
-
-少なくとも次を追加する。
-
-### PASS
-
-1. Cognitive Method Applicationのexact `method_ref`がbundle内Method Definition exact recordと一致する。
-2. exact `realization_ref`がbundle内Realization exact recordと一致する。
-3. 同じlogical identityの複数exact revisionがbundleにあり、参照がその一つへ正しく一致する。
-4. external Exact Referenceでbundle内recordが存在しない。
-5. logical-only Referenceとbundle内exact recordが共存するが、logical refをexactへ自動昇格しない。
-6. unknown Contract payloadにExact Bindingらしいfieldがあってもopaque + `not_verified`を維持する。
-
-### FAIL
-
-1. Cognitive Method exact `method_ref`とbundle内Method Definitionのdigestが異なる。
-2. Cognitive Method exact `realization_ref`とbundle内RealizationのProfile versionが異なる。
-3. Capability Observationのexact provenance/source refがbundle内recordと不一致になる。
-4. Decision以外のknown Contractで不一致があっても見逃さない。
-
-## Implementation direction
-
-Decision専用の`validateBundleExactReferences`を巨大なJSON再帰探索へ置き換えない。
-
-概念上は次を分ける。
+同じlogical identityのrecordがbundle内に存在しなければ、この規則だけを理由にFAILにしない。
 
 ```text
-extractExactReferences(known typed record)
-        ↓
-[]ExactBinding
-        ↓
-checkBundleLocalConsistency(index, refs)
+no matching logical identity in bundle
+  != binding mismatch
 ```
 
-具体的なGo API名は実装時に調整してよい。
+外部payloadの取得・digest再計算はPayload Source / Representation Verifierへ委ねる。
 
-Contract checker側も、同じ意味規則をPythonのknown Contract extractor + common compareとして実装する。Go実装とPython実装が互いのauthorityになるのではなく、ADR-0026と各Contract Definitionを共通の意味基準とする。
+### 5. unknown Contractを推測走査しない
 
-## Non-goals
+unknown Contract versionはopaque + `not_verified`のまま保持する。
 
-- external payload acquisition
-- digest再計算
-- Verification Outcome生成
-- signature / timestamp verification
-- Truth / Assurance判定
-- unknown Contractのbest-effort field introspection
-- Logical ReferenceをExact Bindingへ自動変換すること
-- bundle外Artifactの存在保証
+unknown payloadに`logical_ref`、`content_digest`、`representation_profile`らしいfieldがあっても、current Exact Binding semanticsとして再帰探索・推測抽出しない。
+
+```text
+unknown Contract
+  → opaque + not_verified
+  != best-effort semantic introspection
+```
+
+## fixture / test
+
+### Positive / boundary
+
+`C9-interchange-exact-reference-consistency.json`で次を一つのbundleとして確認した。
+
+- exact Method Referenceがbundle内Method Definition revisionと一致する。
+- exact Realization Referenceがbundle内Realizationと一致する。
+- 同一logical identityに複数revisionが存在しても、一致するrevisionを正しく選べる。
+- external Exact Referenceがbundle外でも、それだけではFAILしない。
+- logical-only ReferenceをExact Referenceへ自動昇格しない。
+
+`unknown-contract-exact-looking-reference.json`では、unknown Contract payload内のexact-looking fieldを推測解釈しないことを確認した。
+
+### Negative
+
+次の不一致をsemantic validation errorとして確認した。
+
+- Cognitive Method exact `method_ref`のdigest mismatch
+- Cognitive Method exact `realization_ref`のRepresentation Profile version mismatch
+- Capability Observation exact source refのbundle-local mismatch
+
+既存Decision basis mismatchも回帰確認した。
 
 ## Acceptance criteria
 
 ### Design
 
-- [x] ADR-0026でbundle-local Exact Binding整合の意味境界をAcceptedする。
-- [ ] current ContractごとのReference roleを監査し、抽出対象を明文化する。
+- [x] ADR-0026でbundle-local Exact Binding整合の意味境界をAcceptedした。
+- [x] current Contractごとのtyped Reference roleを監査し、抽出対象を実装・Evidence文書へ明文化した。
 
 ### Executable
 
-- [ ] Decision専用比較を共通bundle-local consistency判定へ分離する。
-- [ ] Cognitive Methodのexact Method / Realization Referenceを検査できる。
-- [ ] Capability Observation等、Decision以外のknown Contractにも同じ規則を適用できる。
-- [ ] 同一logical identityの複数exact revisionをlatest-winsで潰さない。
-- [ ] external Exact Referenceをbundle不在だけでFAILにしない。
-- [ ] logical-only Referenceをexactへ自動昇格しない。
-- [ ] unknown Contractはopaque + `not_verified`を維持する。
-- [ ] positive / negative fixtureをContract checkerとGo runtime testの双方で検査する。
-- [ ] Contract ConformanceとSemantic Runtime Conformanceがactual CIでsuccessする。
+- [x] Decision専用比較を共通bundle-local consistency判定へ分離した。
+- [x] Cognitive Methodのexact Method / Realization Referenceを検査できる。
+- [x] Capability Observationを含むDecision以外のknown Contractにも同じ規則を適用した。
+- [x] 同一logical identityの複数exact revisionをlatest-winsで潰さない。
+- [x] external Exact Referenceをbundle不在だけでFAILにしない。
+- [x] logical-only Referenceをexactへ自動昇格しない。
+- [x] unknown Contractはopaque + `not_verified`を維持する。
+- [x] positive / negative / boundary fixtureをContract checkerとGo runtime testで検査した。
+- [x] 最新develop追随後のContract ConformanceとSemantic Runtime Conformanceをsuccessさせた。
 
 ### Evidence
 
-- [ ] runtime / Contract Evidenceへscopeを反映する。
-- [ ] historical reconstructionのExecutable Evidenceを、実際に確認した範囲だけ更新する。
-- [ ] Release / Operational / Adoption・Outcomeへは昇格させない。
+- [x] Contract / runtime / fixture Evidenceへscopeを反映した。
+- [x] historical reconstructionに関するExecutable Evidenceを、bundle-local consistencyとして実際に確認した範囲だけ更新した。
+- [x] Release / Operational / Adoption・Outcomeへは昇格させていない。
+
+## Actual CI Evidence
+
+最新developを取り込んだPR head `5415972249e5f935337d8d872da2d9596da3098c`で次を確認した。
+
+- Contract Conformance Run `33527524514`: **success**
+- Semantic Runtime Conformance Run `33527524668`: **success**
+- V6/V7 Projection Evaluation Run `33527524747`: **success**
+- Local Package Artifact Run `33527524476`: **success**
+
+Contract / Runtimeのsuccessが本Issueの直接Evidenceであり、Projection / Packageは回帰確認として扱う。
+
+## Evidence state
+
+- Design Evidence: **Satisfied**
+- Executable Evidence: **Satisfied within the bundle-local known-Contract consistency scope**
+- Release Evidence: **Not Yet Verified**
+- Operational Evidence: **Not Yet Verified**
+- Adoption / Outcome Evidence: **Not Yet Verified**
+
+```text
+bundle-local Exact Binding consistency PASS
+  != payload content verified
+  != Verification Outcome = verified
+  != external Artifact existence verified
+  != Release / Operational / Outcome verified
+```
+
+## Non-goalsとして維持するもの
+
+- external payload acquisition
+- digest再計算
+- signature / timestamp verification
+- Truth / quality / Assurance判定
+- unknown Contractのbest-effort field introspection
+- Logical ReferenceをExact Bindingへ自動変換すること
+- bundle外Artifactの存在保証
+
+## Reopen条件
+
+次のいずれかが具体的なScenarioで確認された場合は、本Issueを再開するか後続Issueを起票する。
+
+- current known Contractに新しいReference roleが加わり、typed extractorへの追加漏れが生じた。
+- selective disclosureとして正当なbundleがcommon consistency checkによって継続的に拒否される。
+- exact-bound recordの候補選択にlogical identity以外の規範が必要になった。
+- unknown Contractをopaqueに保つだけではinteroperabilityを維持できない具体例が複数現れた。
 
 ## Relation to ISSUE-000043
 
-ISSUE-000043はCognitive Method Contractとfirst typed runtime sliceの実体化を扱う。
-
-本Issueは、そのfirst sliceによって新たに露出した**cross-Contract bundle consistencyの一般化**を後続課題として扱う。ISSUE-000043をResolvedにするために本Issueの完了を必須とはしない。
+ISSUE-000043はCognitive Method Contractとfirst typed runtime sliceを実体化した。本Issueは、そのsliceで新たに現れたExact ReferenceをDecision専用規則へ押し込まず、known Contract横断の共通整合規則へ引き上げた後続課題である。
 
 ```text
 Cognitive Method typed runtime established
-  != all cross-Contract exact consistency generalized
+  != bundle-local exact consistency generalized
 ```
+
+両者は別のEvidenceとして追跡する。
 
 ## Natural Japanese review
 
-ADR-0008 / ADR-0009 / ADR-0022 / ADR-0025 / ADR-0026、current Semantic Interchange checker、Go runtime、Cognitive MethodのExact Reference roleを照合しました。実装課題をpayload verificationやunknown Contract解析へ拡張せず、bundle内で既に表明されたExact Binding同士の整合に限定しています。その後、AcceptanceとNon-goalの境界を保ったまま、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+ADR-0008 / ADR-0009 / ADR-0022 / ADR-0025 / ADR-0026、5 current Contract Definition、Python Contract checker、Go semantic runtime、36 fixture、最新develop追随後のactual CIへ戻って意味境界を再確認した。実装結果をpayload verificationやunknown Contract解析へ拡張せず、同一bundle内で既に表明されたExact Bindingの整合に限定した。そのうえで、実装内容、Acceptance、Evidence、Non-goal、Reopen条件が自然につながるよう全文を再構成し、自然な日本語となることを最重要視して再ドラフトした後、最終意味監査を実施済みである。

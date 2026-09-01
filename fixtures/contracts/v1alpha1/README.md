@@ -1,13 +1,13 @@
 # SOZA Contract v1alpha1 Fixtures
 
-更新日: 2026-09-01  
+更新日: 2026-09-02  
 状態: **Fixture-scoped Executable Evidence Baseline**
 
 ## 1. このfixture群の役割
 
-`fixtures/contracts/v1alpha1/`は、current 5 Contract familyの意味境界をpositive / negative / boundary caseとして再現する固定入力です。
+`fixtures/contracts/v1alpha1/`は、current 5 Contract familyの意味境界をpositive / negative / boundary caseとして固定し、Contract checkerとGo semantic runtimeで繰り返し検査するための入力です。
 
-fixtureそのものはContract Definitionではありません。また、fixtureが存在するだけではExecutable Evidenceになりません。
+fixtureそのものはContract DefinitionでもEvidenceでもありません。actual checker / runtimeで期待結果を再現できた範囲だけをExecutable Evidenceとして扱います。
 
 ```text
 Contract Definition
@@ -16,23 +16,21 @@ Contract Definition
   != Checker Result
 ```
 
-actual checkerで期待結果を再現できた範囲だけをfixture-scoped Executable Evidenceとして扱います。
-
 ## 2. Capability Observation F1〜F7
 
 | Fixture | 主な検証 | Value Axis |
 |---|---|---|
 | F1 | TEIの部分劣化をCapability全体のunavailableへ潰さない | V1, V2, V4, V5 |
 | F2 | proposed stateとactual stateを分ける | V1, V2, V3, V5 |
-| F3 | Release存在だけでEnvironment availabilityを確定しない | V2, V4, V5 |
+| F3 | Releaseの存在だけでEnvironment availabilityを確定しない | V2, V4, V5 |
 | F4 | not observedをunavailableへ変換しない | V2, V5 |
 | F5 | TEI / SaaSをProvider-neutralに並べ、固有情報を平坦化しない | V4, V8 |
 | F6 | 過去Decision時のObservation / mappingをExact Bindingで再構成する | V1, V3, V4 |
 | F7 | WithheldとUnknownを区別し、非開示をincompatibleへ変換しない | V2, V4, V5 |
 
-F1〜F7だけを理由にCapability Choice全体やproduction Provider integrationを検証済みとはしません。
+F1〜F7のPASSだけを理由に、Capability Choice全体やproduction Provider integrationを検証済みとはしません。
 
-## 3. Cognitive Method C1〜C8
+## 3. Cognitive Method C1〜C9
 
 | Fixture | 主な検証 | 関連Scenario |
 |---|---|---|
@@ -44,8 +42,9 @@ F1〜F7だけを理由にCapability Choice全体やproduction Provider integrati
 | C6 | Method / RealizationのExact Binding metadataを保持する | SCN-0005, SCN-0015 |
 | C7 | output / residualを別Referenceとして保持する | SCN-0005 |
 | C8 | current Semantic Interchange内のMethod Applicationをtyped validationする | SCN-0005, SCN-0015 |
+| C9 | bundle-local Exact Binding整合を複数revision・外部参照・logical-only参照を含めて検査する | SCN-0003, SCN-0005, SCN-0010 |
 
-基本境界:
+C9では、同一logical identityのMethod Definitionを複数revision含むbundleで、参照したExact Bindingがそのうち一つと一致すれば成立することを確認します。同じbundleにexact-bound recordがあっても、logical-only ReferenceはExact Referenceへ自動昇格させません。また、bundle外を指すExact Referenceは、bundle内に同一logical identityが存在しないという理由だけではFAILにしません。
 
 ```text
 Method Definition
@@ -55,10 +54,9 @@ Method Definition
   != Decision
   != Assurance
 
+Logical Reference != Exact Historical Binding
 Pattern != Cognitive Method
 ```
-
-C1〜C8はMethodのportable meaningに対するfixtureです。Method executorや結論品質を検査するものではありません。
 
 ## 4. Boundary fixtures
 
@@ -73,7 +71,8 @@ C1〜C8はMethodのportable meaningに対するfixtureです。Method executor�
 ### Expected `not_verified`
 
 - `boundary/unknown-contract-version.json` — unknown nested Contract versionをknown Contractとして解釈しない。
-- `boundary/unknown-cognitive-method-version.json` — unknown Cognitive Method versionをcurrent v1alpha1として推測解釈せず、opaque payloadを保持する。
+- `boundary/unknown-cognitive-method-version.json` — unknown Cognitive Method versionをcurrent v1alpha1として推測解釈しない。
+- `boundary/unknown-contract-exact-looking-reference.json` — unknown payload内にExact Bindingらしい形があっても推測抽出せず、opaque + `not_verified`を維持する。
 
 ```text
 unknown version != failed != current version
@@ -83,109 +82,89 @@ unknown version != failed != current version
 
 ### Expected Schema FAIL
 
-- `negative/decision-authority-field.json` — DecisionへAuthorityを直接埋め込む。
-- `negative/capability-missing-observed-at.json` — Capability Observationの観測時点がない。
-- `negative/cognitive-method-decision-field.json` — Method ApplicationへDecisionを直接埋め込む。
-- `negative/cognitive-method-assurance-field.json` — Method ApplicationへAssuranceを直接埋め込む。
-- `negative/cognitive-method-realization-missing-method-ref.json` — RealizationがMethodを参照しない。
-- `negative/cognitive-method-application-missing-method-ref.json` — ApplicationがMethodを参照しない。
-- `negative/cognitive-method-pattern-field.json` — Pattern固有表現をCognitive Method recordへ直接取り込む。
+- `negative/decision-authority-field.json`
+- `negative/capability-missing-observed-at.json`
+- `negative/cognitive-method-decision-field.json`
+- `negative/cognitive-method-assurance-field.json`
+- `negative/cognitive-method-realization-missing-method-ref.json`
+- `negative/cognitive-method-application-missing-method-ref.json`
+- `negative/cognitive-method-pattern-field.json`
 
 ### Expected Semantic FAIL
 
 - `negative/same-logical-lineage-without-exact.json` — 同一logical identity内revisionにExact endpointがない。
 - `negative/interchange-mismatched-exact-binding.json` — bundle内recordとDecision basisのExact Bindingが一致しない。
+- `negative/interchange-cognitive-method-mismatched-method-ref.json` — Method Applicationのexact `method_ref`とbundle内Method Definitionのdigestが一致しない。
+- `negative/interchange-cognitive-method-mismatched-realization-profile.json` — exact `realization_ref`とbundle内RealizationのRepresentation Profile versionが一致しない。
+- `negative/interchange-capability-mismatched-source-ref.json` — Capability Observationのexact source refとbundle内exact-bound source recordが一致しない。
 
-Schemaで自然に表せないcross-record invariantはsemantic validatorで検出します。
+Schemaだけでは自然に表せないcross-record invariantはsemantic validatorで検出します。
 
 ## 6. current fixture count
 
-current `v1alpha1` fixture setは合計31件です。
+current `v1alpha1` fixture setは合計36件です。
 
 ```text
 Capability Observation F1〜F7 = 7
-Cognitive Method C1〜C8 = 8
-Boundary / expected PASS or NOT_VERIFIED = 7
-Negative schema / semantic FAIL = 9
-Total = 31
+Cognitive Method C1〜C9 = 9
+Boundary / expected PASS or NOT_VERIFIED = 8
+Negative schema / semantic FAIL = 12
+Total = 36
 ```
 
-Contract Conformanceのcurrent代表run:
+current代表run:
 
-- Run ID: `33467838961`
-- conclusion: **success**
-- fixture count: **31**
+- Contract Conformance Run `33527524514`: **success**
+- Semantic Runtime Conformance Run `33527524668`: **success**
+- V6/V7 Projection regression Run `33527524747`: **success**
 
-同じHEADのSemantic Runtime Conformance:
+いずれも最新developへ追随したPR head `5415972249e5f935337d8d872da2d9596da3098c`で再実行しています。
 
-- Run ID: `33467838941`
-- conclusion: **success**
-
-2026-08-31の17-fixture runはhistorical Executable Evidenceとして残りますが、current 31-fixture baselineの代わりにはしません。
+2026-08-31の17-fixture runや、その後の31-fixture runはhistorical Executable Evidenceとして残りますが、current 36-fixture baselineの代わりにはしません。
 
 ## 7. Runtimeとの関係
 
-Go semantic runtimeは、このfixture群を使ってknown Contractをread / validate / reconstructします。
+Go semantic runtimeは、known Contractのtyped Reference roleからExact Referenceだけを抽出し、bundle envelopeのExact Binding indexと共通規則で比較します。
 
-Cognitive Methodについては、C1〜C7 standaloneとC8 nested Interchangeをruntime testへ接続しています。
+確認した主な境界:
 
-確認している範囲:
-
-- typed Method Definition / Realization / Application
-- Reference preservation
-- Exact Binding metadata preservation
-- Realization省略の非推論
-- Pattern Referenceの非昇格
-- output / residual保持
-- unknown Method versionのopaque + `not_verified`
-- Interchange original bytesのlossless export
+- Decision / RecommendationのReference role
+- Cognitive Method Definition / Realization / ApplicationのReference role
+- Capability Observationのcondition source / provenance / mapping Reference
+- Semantic Referenceの既知typed Reference role
+- 同一logical identityの複数Exact Bindingを単一値へ潰さない
+- external Exact Referenceをbundle不在だけでFAILにしない
+- logical-only Referenceをexactへ自動昇格しない
+- unknown Contractを推測走査しない
 
 ```text
-fixture checker PASS
-  != runtime coverage complete
-runtime PASS
-  != Method execution
-runtime PASS
-  != production interoperability
+bundle-local consistency PASS
+  != payload content verification
+  != Verification Outcome
+  != external Artifact existence verified
 ```
 
-fixtureはsemantic scenarioの固定入力であり、runtime実装へ意味上のauthorityを移しません。
+## 8. ISSUE-000049で確立した範囲
 
-## 8. ISSUE-000049との関係
+ADR-0026 / ISSUE-000049により、従来Decision `basis_refs`へ閉じていたbundle-local Exact Binding整合検査を、current runtimeが意味を理解しているknown Contractのtyped Reference roleへ一般化しました。
 
-C6によりCognitive MethodのExact Reference自体は表現・読込可能です。一方、bundle内exact-bound recordとknown ContractのExact ReferenceをContract横断で整合検査する一般化は、ADR-0026 / ISSUE-000049で別途扱います。
-
-```text
-Exact Reference preserved
-  != every known Contract role has bundle-local consistency check
-```
-
-ISSUE-000049はOpenなので、その一般化を31-fixture current PASSへ先取りしません。
+この一般化は、巨大なJSON再帰探索ではなく、Contractごとのtyped extractionと共通比較を分けて実装しています。unknown Contractのforward compatibilityを守るため、未知payloadにExact Bindingらしいfieldがあっても意味を推測しません。
 
 ## 9. Evidence boundary
 
-```text
-Design Evidence
-  != Executable Evidence
-  != Release Evidence
-  != Operational Evidence
-  != Adoption / Outcome Evidence
-```
-
-current fixture setについてはactual checkerで期待結果が再現されているため、対象範囲のExecutable Evidenceがあります。
+current 36 fixtureについては、actual checkerで期待結果が再現されているためfixture-scoped Executable Evidenceがあります。
 
 このfixture群から次は主張しません。
 
 - Contract全意味領域の完全coverage
+- payload bytesの再hash完了
+- bundle外Artifactの存在保証
 - Method execution / quality / Assurance
-- ISSUE-000049の一般化完了
 - production Provider / Storage / federation interoperability
 - Release Evidence
 - Operational Evidence
 - Adoption / Outcome Evidence
 
-Value Axisやfixture件数はtraceabilityのための参照であり、Product Valueの点数ではありません。
-
 ## 10. Natural Japanese review
 
-current 31 fixture、5 Contract Definition、Contract checker、Cognitive Method typed runtime、actual Run `33467838961` / `33467838941`、Product Valueの5段階Evidenceへ戻って役割を再監査しました。そのうえで、Cognitive Method C1〜C8とunknown future versionをcurrent fixture baselineへ統合し、fixture PASSをMethod実行やproduction成立へ拡張しない形に整理しました。最後に、各fixtureの期待結果と意味境界を保ったまま、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+current 5 Contract Definition、ADR-0026、ISSUE-000049、36 fixture、Python Contract checker、Go semantic runtime、actual Run `33527524514` / `33527524668`へ戻って検査境界を再確認しました。今回成立したものをbundle-local Exact Bindingの内部整合に限定し、payload検証や外部Artifactの存在保証へ広げていません。そのうえで、fixtureの期待結果、`not_verified != failed`、Logical ReferenceとExact Historical Bindingの差を保ったまま、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
