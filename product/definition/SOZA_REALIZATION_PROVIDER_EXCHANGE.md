@@ -157,8 +157,8 @@ E3bでは、version固定artifactを読むだけでなく、SOZAとは独立し�
 
 ```text
 E3b-P1 public live Provider service
-  → E3b-P2 live TEI process / service
-  → E3b-M1 live external Cognitive Method execution
+  → E3b-P2 actual TEI process / service
+  → E3b-M1 external Cognitive Method live execution
 ```
 
 P1 / P2 / M1はEvidenceの収集範囲を明示するための区分であり、SOZAのUniversal ontologyではありません。
@@ -169,24 +169,53 @@ ISSUE-000060では、public GitHub REST APIの固定commit取得面をreference 
 
 - repository: `hat47x/cultural-substrate-weaving`
 - expected commit: `aa3651f3460a6db7dc70bd848f93b600f149ffe8`
-- initial current-baseline External Integration E3b Run: `33569912285`
 
 live responseのcommit identityが期待値と一致した場合だけ、外部serviceへ到達できたことと期待revisionを確認できたことをcurrent Capability Observationへmappingします。GitHub固有の`node_id`、URL、response shape等はUniversal Contractへ転写しません。
 
 また、revision mismatch、HTTP failure、timeout / cancellationではCapability Observationを生成しないことをローカル再現可能なtestで確認しました。
 
+PR #37の最終head `ce56cf44426b2d061bf3bd57bbc7524f77736b4a`では、Plan integrity、External Integration E3a、Semantic Runtime Conformance、Local Package Artifact、External Integration E3b、Release Candidate Gateの6系統がすべてsuccessしました。
+
+さらに、PR #37をmergeした`develop/v0.2.0` commit `655662d9b39718046c66862d370969a9a2a8b985`でも、次のpush workflowがすべてsuccessしています。
+
+- External Integration E3a Run `33571264348`
+- Plan integrity Run `33571264398`
+- Local Package Artifact Run `33571264381`
+- External Integration E3b Run `33571264402`
+- Semantic Runtime Conformance Run `33571264359`
+- Release Candidate Gate Run `33571264355`
+
 この範囲については**Scoped Executable Evidence available**です。
 
-#### E3b-P2 / M1 — 未検証
+ただし、v0.2.0 Release Candidateのsupported scopeはE3aまでです。Release Candidate Gateの回帰成功を理由に、E3b-P1をv0.2.0のsupported release scopeへ追加しません。
 
-次に残る主な対象は次です。
+#### E3b-P2へ進むための外部実行境界
 
-- TEI CLIまたはserviceのlive invocation
-- external Cognitive Method runnerのlive execution
-- private credential
-- network degradation / rate limit
-- Realization version change時のProvenanceとhistorical reconstruction
-- formal integration protocolを本当に必要とするかの再判断
+`hat47x/tei-platform`の実体を確認したところ、Go製CLI `cmd/tei`が存在し、`deployment-provider-plan`、`deployment-reconcile`、`deployment-simulate`等のJSON出力面が既に実装されています。
+
+そのため、SOZA向けに新しいTEI protocolを作るのではなく、既存TEI CLIをProvider固有の外部processとして扱う方向を優先します。
+
+一方、TEI repositoryはprivateです。SOZAの標準`GITHUB_TOKEN`が別private repositoryを読めるとは仮定しません。ISSUE-000061では次を分離しました。
+
+```text
+TEI source / binary acquisition
+  != credential resolution
+  != external process invocation
+  != Provider-specific JSON decoding
+  != SOZA Capability Observation mapping
+```
+
+`runtime/go/teiintegration`では、外部から明示的に与えられたexecutableを使って`deployment-provider-plan`を呼べるreference Adapterを実装しました。Provider Plan JSONはAdapter-local DTOとしてstrictに検査し、TEI固有のExecutor、Observation route、Evidence route、Plugin Runtime等をUniversal fieldへ転写しません。
+
+helper subprocessによるdeterministic testで、この外部実行ファイル注入境界にはScoped Executable Evidenceがあります。ただし、**helper subprocessのPASSはactual TEI CLI executionのEvidenceではありません**。
+
+actual `hat47x/tei-platform`のsourceまたはbinaryが明示的に与えられる環境で実行できた時点で、E3b-P2のEvidenceを別に収集します。
+
+#### E3b-M1 — 未検証
+
+`cultural-substrate-weaving`にはversion管理されたSkill、platform adapter、build / validation基盤がありますが、現在のrepository調査では、Methodを独立processとして実行してRecommendationを返す標準runnerは確認できていません。
+
+SOZA側が便宜的なrunnerを作って「実Cognitive Methodを実行した」とみなすことはしません。既存の実runnerまたは実際のhost integrationを特定できてからE3b-M1を設計します。
 
 **Not Yet Verified.**
 
@@ -202,16 +231,20 @@ E3aでは、取得したartifactが本当に想定したsourceであるかを確
 
 E3b-P1では、live serviceから返された固定revisionが期待するrevisionと一致することを確認します。
 
-ただし、これらは取得・Provenance・Provider response verificationのための情報です。
+ISSUE-000061では、TEI executable pathや実行引数をAdapter-local configurationとして扱い、binary取得経路やcredential解決をsemantic identityから分離します。
 
 ```text
 repository / commit / path / blob identity
   != Method Definition identity
   != Capability identity
   != Decision identity
+
+executable path / credential / process command
+  != Capability identity
+  != semantic authority
 ```
 
-GitHub、Git、HTTPを使っていること自体をSOZA Universal Coreへ持ち込みません。他のartifact storeやProvider serviceへ交換できる余地を残します。
+GitHub、Git、HTTP、CLIを使っていること自体をSOZA Universal Coreへ持ち込みません。他のartifact store、Provider service、process surfaceへ交換できる余地を残します。
 
 外部sourceのProvenanceは、current E3a probeではopaqueな`external-artifact-provenance` recordとして保持します。これは新しいUniversal Contractを意味しません。SOZAがそのmetadataを理解済みの普遍的意味として宣言するのではなく、source由来を失わず残すためのreference Realizationです。
 
@@ -229,7 +262,8 @@ GitHub、Git、HTTPを使っていること自体をSOZA Universal Coreへ持ち
 6. failed Realization / Provider / artifact verificationがcanonical sourceを中途半端に変更しない。
 7. process / binary / vendor / repositoryのidentityをsemantic identityへ短絡させない。
 8. 外部固有fieldをUniversal Contractへ漏らさない。
-9. live serviceの通信成功そのものをsemantic authorityへ昇格させない。
+9. live serviceやprocessの通信・終了成功そのものをsemantic authorityへ昇格させない。
+10. acquisition / credential policyをProviderのUniversal semanticsとして固定しない。
 
 ## 8. 現在確認できているE3 Executable Evidence
 
@@ -248,27 +282,36 @@ External Integration E3a Run `33528003902`では、次がすべてsuccessしま�
 
 ### E3b-P1
 
-PR #37の初回current-baseline head `977773dc3071c8a4d6f33bf4f29e3ffc0c1fec23`では、次がsuccessしました。
+PR #37の最終headとmerge後`develop/v0.2.0`の双方で、External Integration E3bを含む6系統のCIがsuccessしました。merge後のRun IDは次です。
 
-- External Integration E3b Run `33569912285`
-- Semantic Runtime Conformance Run `33569912339`
-- Plan integrity Run `33569912230`
-- External Integration E3a Run `33569912086`
-- Local Package Artifact Run `33569912317`
+- External Integration E3a Run `33571264348`
+- Plan integrity Run `33571264398`
+- Local Package Artifact Run `33571264381`
+- External Integration E3b Run `33571264402`
+- Semantic Runtime Conformance Run `33571264359`
+- Release Candidate Gate Run `33571264355`
 
 External Integration E3bでは、ローカル再現可能なsuccess / revision mismatch / HTTP failure / timeout / field non-leakage testに加え、public GitHub REST APIへのactual live callと固定commit identityの確認を実行しました。
 
-同じheadのRelease Candidate Gate Run `33569912273`はGate 1〜8がsuccessし、OpenなISSUE-000060をGate 9が意図どおりblockしました。これはE3b-P1の失敗ではなく、Release Candidate policyが未解決Issueを検出した結果です。Issue解決・文書同期後のheadでGate 9を含めて再検査します。
+### E3b-P2 preparation boundary
 
-このEvidenceから、E3aとE3b-P1の限定範囲にはScoped Executable Evidenceがあると判断します。
+ISSUE-000061では、test binaryをhelper subprocessとして実際に別OS processで起動し、外部executable注入、TEI Provider Plan相当JSONのstrict decode、process failure、timeout、Provider固有field非漏出、current Capability Observation validationを検査しました。
 
-一方、E3b全体を成立とはしません。
+これは**external TEI executable injection boundaryのScoped Executable Evidence**です。
 
 ```text
-E3a PASS + E3b-P1 PASS
+helper subprocess PASS
+  != actual TEI CLI execution PASS
+  != E3b-P2 PASS
+```
+
+E3b全体を成立とはしません。
+
+```text
+E3a PASS + E3b-P1 PASS + TEI injection boundary PASS
   != external Method execution PASS
   != live private-repository acquisition PASS
-  != live TEI process / service integration PASS
+  != actual TEI process / service PASS
   != production credential / network / rate-limit portability
   != E3b全体 PASS
   != E4 Operational portability
@@ -291,9 +334,9 @@ E3a PASS + E3b-P1 PASS
 - SCN-0014 — Execution Providerを交換する
 - SCN-0018 — Inquiryから実行後の再検討までを一続きに扱う
 
-E2のout-of-process化、E3aの外部artifact取得、E3b-P1のpublic live Provider invocationは、これらのRequirementに対するEvidenceを厚くするための実証です。Git repository、HTTP、GitHub REST APIという現在の実装方式だけを理由に、新しいProduct Requirementを作りません。
+E2のout-of-process化、E3aの外部artifact取得、E3b-P1のpublic live Provider invocation、ISSUE-000061の外部executable注入境界は、これらのRequirementに対するEvidenceを厚くするための実証です。Git repository、HTTP、GitHub REST API、TEI CLIという現在の実装方式だけを理由に、新しいProduct Requirementを作りません。
 
-今後のE3bで既存Requirementでは表現できない独立したProduct failureが見つかった場合には、Open Question / Candidate Requirementへ戻して再検討します。
+今後actual E3b-P2 / M1を実行したとき、既存Requirementでは表現できない独立したProduct failureが見つかった場合には、Open Question / Candidate Requirementへ戻して再検討します。
 
 ## 10. 現時点で固定しないこと
 
@@ -305,6 +348,7 @@ E2のout-of-process化、E3aの外部artifact取得、E3b-P1のpublic live Provi
 - Provider discovery / marketplace
 - GitHubを唯一のartifact source / Provider serviceとすること
 - private repository credential方式
+- TEI binaryの取得・配布・署名方式
 - retry / circuit breaker / queue方式
 - secret management
 - billing / rate limit model
@@ -316,8 +360,9 @@ E2のout-of-process化、E3aの外部artifact取得、E3b-P1のpublic live Provi
 - E2 out-of-process reference exchange: **Scoped Executable Evidence available**
 - E3a version-pinned external artifact integration: **Scoped Executable Evidence available** — External Integration E3a Run `33528003902`
 - E3b live external process / service integration: **Partial**
-  - E3b-P1 public live Provider service: **Scoped Executable Evidence available** — External Integration E3b Run `33569912285`
-  - E3b-P2 live TEI process / service: **Not Yet Verified**
+  - E3b-P1 public live Provider service: **Scoped Executable Evidence available** — merge後 External Integration E3b Run `33571264402`
+  - external TEI executable injection boundary: **Scoped Executable Evidence available with helper subprocess**
+  - E3b-P2 actual TEI process / service: **Not Yet Verified**
   - E3b-M1 live external Cognitive Method execution: **Not Yet Verified**
 - E4 Operational portability: **Not Yet Verified**
 - Release Evidence: **Not Yet Verified**
@@ -332,6 +377,7 @@ E2のout-of-process化、E3aの外部artifact取得、E3b-P1のpublic live Provi
 - `../../plan/issue/ISSUE-000057-materialize-out-of-process-realization-provider-exchange.md`
 - `../../plan/issue/ISSUE-000058-materialize-version-pinned-external-artifact-integration.md`
 - `../../plan/issue/ISSUE-000060-materialize-first-live-external-provider-integration.md`
+- `../../plan/issue/ISSUE-000061-prepare-live-tei-cli-integration-boundary.md`
 - `../../plan/adr/ADR-0013-capability-realization-boundary.md`
 - `../../plan/adr/ADR-0017-reference-model-cognitive-method-boundary.md`
 - `../../plan/adr/ADR-0024-provider-adapter-observation-mapping-boundary.md`
@@ -339,4 +385,4 @@ E2のout-of-process化、E3aの外部artifact取得、E3b-P1のpublic live Provi
 
 ## 13. Natural Japanese review
 
-Product Value、PMS-06、v0.2.0 Release Acceptance、REQ-0001 / 0004 / 0005 / 0007 / 0021、SCN-0005 / 0014 / 0018、Cognitive Method Contract、Capability Observation Contract、Provider Adapter、ISSUE-000057 / 000058 / 000060、E2のactual process test、E3aで使用した`cultural-substrate-weaving`とTEIの外部source、PR #37初回headのExternal Integration E3b / Semantic Runtime / Plan integrity / E3a / Local Packageの結果へ戻り、Realization / Provider交換で何を変えてよく、何を判断記憶として維持する必要があるかを再監査した。E3bをpublic live Provider、live TEI、live external Cognitive Methodへ作業上分割することで、最初のnetwork invocation成功をproduction portabilityやProduct Releaseへ広げていない。また、GitHubやTEIだけを特別なProvider ontologyとして扱わず、外部固有responseをAdapter境界の外側に保った。意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+Product Value、PMS-06、v0.2.0 Release Acceptance、REQ-0001 / 0004 / 0005 / 0007 / 0021、SCN-0005 / 0014 / 0018、Cognitive Method Contract、Capability Observation Contract、Provider Adapter、ISSUE-000057 / 000058 / 000060 / 000061、E2のactual process test、E3aで使用した`cultural-substrate-weaving`とTEIの外部source、PR #37の最終headとmerge後`develop/v0.2.0`のE3b-P1 Evidence、`hat47x/tei-platform`の実CLIとprivate repository条件、ISSUE-000061のhelper subprocess testへ戻り、Realization / Provider交換で何を変えてよく、何を判断記憶として維持する必要があるかを再監査した。E3bをpublic live Provider、actual TEI、live external Cognitive Methodへ作業上分割し、さらにTEIについてsource / binary acquisition、credential、process invocation、Provider固有JSON解釈、SOZA mappingを分離した。これにより、最初のnetwork invocation成功やhelper process成功をactual TEI、production portability、Product Releaseへ広げていない。また、GitHubやTEIだけを特別なProvider ontologyとして扱わず、外部固有responseをAdapter境界の内側に保った。意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
