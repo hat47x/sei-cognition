@@ -170,7 +170,7 @@ Packaging / DeploymentのDesign Evidenceと、最小packageのExecutable Evidenc
 
 ### Current state
 
-**Design baseline established / scoped persistence・literal process restart Executable Evidence available / supported distributable artifact pending.**
+**Design baseline established / Minimum scoped Executable Evidence available.**
 
 `product/packaging/SOZA_PRODUCT_PACKAGING.md`とADR-0029で、最初に成立させるPackaging / Deployment ProfileをLocal Single-Node Packageとして正本化しました。
 
@@ -181,38 +181,53 @@ Go runtime executable
   + portable semantic data
 ```
 
-runtime executableはcanonical semantic dataではなく、filesystem pathもLogical Referenceではありません。portable export / importにはcurrent Semantic Interchangeを再利用し、package専用Universal Contractは追加していません。
+runtime executableをcanonical semantic dataにはせず、filesystem pathもLogical Referenceにはしません。portable export / importにはcurrent Semantic Interchangeを再利用し、package専用Universal Contractは追加していません。
 
-ISSUE-000054では、`runtime/go/packagingprobe`とbuild可能な`soza-package-probe` executableを用いて、次を限定範囲で確認しました。
+ISSUE-000054では、filesystem Persistenceとbuild可能なGo executableを用いて、次を限定範囲で確認しました。
 
 - portable Semantic Interchangeをfilesystemへ保存できる。
 - in-memory runtime stateを破棄した後にも同じbytesとtyped recordを再構成できる。
-- 実際にGo executableをbuildできる。
-- 独立したsave processを終了した後、別のinspect processがdurable dataだけからbundleを再読できる。
+- 独立したsave processを終了した後、別processがdurable dataだけからbundleを再読できる。
 - unknown Contractをprocess越しでも`not_verified`のまま保持できる。
 - canonical bundle fileを別directoryへcopyし、restore先から再読できる。
 - filesystemからmemory Persistenceへportable bytesを移し、同じbundleを再読できる。
 - invalid / incomplete stateを正常packageとして扱わない。
 - physical data-root変更やPersistence交換をsemantic identity / Semantic Revisionへ持ち込まない。
 
-literal process probeを含むSemantic Runtime Conformance Run `33508376230`とPlan integrity Run `33508376256`はともにsuccessしました。
+literal process probeを含むSemantic Runtime Conformance Run `33508376230`とPlan integrity Run `33508376256`はsuccessしました。
+
+ISSUE-000055では、Linux / amd64向けの**Local Reference Package**をdistribution artifactとして生成しました。
+
+Local Package Artifact Run `33509521544`では、次を一続きに検査しています。
+
+- 同一inputからreference binaryを2回buildし、byte-for-byte一致を確認する。
+- artifact version、source commit、targetをbuild identityとしてbinaryとmetadataへ持たせる。
+- file順、mtime、owner / groupを固定したarchiveを作り、SHA-256 checksumを生成する。
+- archiveを別directoryへ展開する。
+- 展開したartifact自身でSemantic Interchangeを保存してprocessを終了する。
+- 別processで同じdurable data rootから再読し、expected bundleを再構成する。
+- tar.gzとchecksumをGitHub Actions artifactとして保存する。
+
+Run `33509521544`で保存されたworkflow artifactは、artifact ID `9801021136`、workflow artifact digest `sha256:6282a2fe0b58dd023090d363e3323ce963a9f29c097f869ebab79b73aab2ba85`です。
+
+同一headではPlan integrity Run `33509521580`とSemantic Runtime Conformance Run `33509521596`もsuccessしました。
+
+このEvidenceにより、PMS-04が求めるPackaging / Deployment Designと「配布・保存・再開」の最小Executable Evidenceはreference profileの範囲で揃いました。
 
 ```text
-same-version process restart PASS
-  != supported distributable artifact proven
+PMS-04 Minimum scoped Evidence available
+  != Product Release
+  != formal platform support matrix
   != executable version upgrade proven
   != crash durability proven
   != actual production Storage migration proven
   != Release / Operational / Adoption Evidence
 ```
 
-PMS-04の残差は、test内でbuildできることとsupportedな配布artifactとして成立することの差です。ISSUE-000055で、package lifecycle controlとProduct Interactionを分けたまま、reproducible build、artifact identity、version表示、配布artifactからのsave / reloadを検証します。
-
 ### Open questions
 
-- first supported artifactのOS / architecture scope
-- archive形式とartifact integrity metadata
-- package lifecycle用管理入口の最小範囲
+- Product Releaseとして最初にsupportするOS / architecture
+- production向けarchive / installer / package manager / signing方式
 - executable version upgrade後のresume
 - productionで最初にsupportedとするhuman / AI Product Interaction Surface
 - server-side StorageをいつRDB / object storeへ進めるか
@@ -220,7 +235,7 @@ PMS-04の残差は、test内でbuildできることとsupportedな配布artifact
 - online migration、production backup SLA、HA / replication
 - container / cloud-managed distribution
 
-これらはprocess probeのPASSだけを理由にRequirementへ固定しません。
+これらはLocal Reference PackageのPASSだけを理由にRequirementへ固定しません。Releaseとして何をsupportするかはPMS-07で改めてEvidenceを要求します。
 
 ## 8. PMS-05 — identity・authorization・collaborationを製品として安全に扱える
 
@@ -277,7 +292,7 @@ Release Evidence。
 
 **Not Yet Verified for the current Product Shape as a whole.**
 
-過去のrelease candidate gateや個別CI Evidenceを、このMilestoneへ自動昇格させません。
+PMS-04のLocal Reference PackageはPackagingのMinimum Executable Evidenceであり、PMS-07のProduct Releaseではありません。reference archive、workflow artifact、個別CI PASSをRelease Evidenceへ自動昇格させません。
 
 ## 11. PMS-08 — 実運用と利用者成果からProduct Valueを検証できる
 
@@ -311,4 +326,4 @@ Open Questionを直接Stable Requirementへ飛ばしません。
 
 ## 14. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、REQ-0001〜0022、SCN-0008 / 0010 / 0013 / 0018、ADR-0028 / 0029、ISSUE-000046 / 000053 / 000054 / 000055、current Go runtime、Semantic Interchange、Interaction / Packaging probeとcurrent CI Evidenceへ戻ってMilestoneを再監査しました。PMS-03はscoped Interaction Executable Evidenceまで、PMS-04はPackaging / Deployment Design、filesystem persistence、runtime-state-independent reconstruction、same-versionのliteral process restartまでを明確にEvidence化しています。一方、supported distributable artifact、version upgrade、actual production Storage migration、Release / Operational Evidenceは未検証のままです。Local Single-Node Package、filesystem、probe executableを唯一のdeployment topology、正式Product Interaction、semantic authorityへ昇格させず、未定領域を先にRequirementへ固定しない境界を維持したうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、REQ-0001〜0022、SCN-0008 / 0010 / 0013 / 0018、ADR-0028 / 0029、ISSUE-000046 / 000053 / 000054 / 000055、current Go runtime、Semantic Interchange、Interaction / Packaging probe、Local Reference Package artifact、Local Package Artifact Run `33509521544`とcurrent CI Evidenceへ戻ってMilestoneを再監査しました。PMS-03はscoped Interaction Executable Evidenceまで、PMS-04はPackaging / Deployment DesignとLocal Reference PackageによるMinimum scoped Executable Evidenceまでを明確にしています。一方、Product Release、formal support matrix、version upgrade、crash durability、actual production Storage migration、Release / Operational / Adoption Evidenceは未検証のままです。Local Single-Node Package、filesystem、package lifecycle command、Linux / amd64 reference artifactを唯一のdeployment topology、正式Product Interaction、semantic authorityへ昇格させず、未定領域を先にRequirementへ固定しない境界を維持したうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
