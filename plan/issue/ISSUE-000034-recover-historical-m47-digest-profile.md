@@ -1,6 +1,7 @@
 # ISSUE-000034: historical M47 digestのRepresentation Profileを回収・対応付けする
 
-Status: **Blocked — semantic primary assets recovered; digest-producing source / binding anchor still unavailable**  
+Status: **Blocked**  
+Recovery state: **semantic primary assets recovered; digest-producing source / binding anchor still unavailable**  
 Priority: **2**  
 Related ADRs: **ADR-0008, ADR-0009, ADR-0017, ADR-0023**  
 Updated: 2026-09-01
