@@ -1,11 +1,11 @@
 # SOZA Product Principles
 
-更新日: 2026-08-31  
+更新日: 2026-09-01  
 状態: **Product Principles Baseline**
 
 ## 1. この文書の役割
 
-この文書は、`SOZA_PRODUCT_VALUE.md`と`SOZA_VALUE_MODEL.md`で定めた価値を、Requirements、ADR、Architecture、Implementationへ落とすときに繰り返し適用する設計原則をまとめます。
+この文書は、`SOZA_PRODUCT_VALUE.md`と`SOZA_VALUE_MODEL.md`で定めた価値を、Milestone、Requirements、ADR、Architecture、Implementationへ落とすときに繰り返し適用する設計原則をまとめます。
 
 個別の型やAPIを直接決める文書ではありません。下位設計で迷ったときに、どちらの方向がSOZAのProduct Valueへ近いかを判断するために使います。
 
@@ -114,9 +114,9 @@ Simple View != Lossy Canonical Model
 
 ## 14. 実装順序と世界の意味構造を混同しない
 
-M48、M49等のMilestoneは開発上の順序です。
+M48、M49等のhistorical Milestoneは開発上の順序です。
 
-実装の順番を、そのまま利用者世界の必須workflowやontologyへ変換しません。
+実装の順番を、そのまま利用者世界の必須workflowやontologyへ変換しません。Product Milestoneも同様に、製品成立の確認点であってUniversal ontologyではありません。
 
 ## 15. code shedding / prompt sheddingを前提とする
 
@@ -159,21 +159,40 @@ TEIを含む関連製品・技術を、SOZAとの関係が近いという理由�
 
 同じIntent、Constraint、Evidence、Decision境界のもとで、他のCapability Providerと比較可能であることを原則とします。
 
-## 20. Product Valueの変更は明示的に再基線化する
+## 20. 仮説・実証・Requirementを分離する
+
+まだ製品として何を要求すべきか十分に分からない領域を、早い段階でstable Requirementへ固定しません。
+
+```text
+Open Question
+  → Discussion / Research / Experiment
+  → Candidate Requirement
+  → Stable Requirement
+```
+
+チャット上の議論、資料調査、prototype、fixture、human review等は、Requirementを発見・反証するための入力として利用します。ただし、それらの途中結論を自動的にcurrent Requirementへ昇格させません。
+
+stable Requirementへ進める前に、Product Valueとの関係、具体Scenario、既存REQとの重複、配置層、将来耐性、観測可能なAcceptanceを確認します。
+
+調査の結果、既存Requirementで十分である、または新しいRequirementは不要であるという結論も正当です。
+
+## 21. Product Valueの変更は明示的に再基線化する
 
 下位実装の都合だけでProduct ValueやValue Modelを書き換えません。
 
 上位価値を変更する必要が生じた場合は、反証Evidence、影響範囲、互換性、Revisit条件を明示し、通常の実装変更とは分けて再基線化します。
 
-Product Valueの変更後は、影響するRequirements、ADR、Architecture、Implementationを上位から再監査します。
+Product Valueの変更後は、影響するMilestone、Requirements、ADR、Architecture、Implementationを上位から再監査します。
 
-## 21. 関連文書
+## 22. 関連文書
 
 - `product/value/SOZA_PRODUCT_VALUE.md`
 - `product/value/SOZA_VALUE_MODEL.md`
 - `product/vision/SOZA_PRODUCT_VISION.md`
+- `product/roadmap/SOZA_PRODUCT_MILESTONES.md`
+- `plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`
 - `plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md`
 
-## 22. 自然な日本語ドラフト
+## 23. 自然な日本語ドラフト
 
-Value ModelとProduct Visionへ戻って意味整合を確認し、重複する原則を整理した後、意味、仕様、強度、留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトしました。その後、最終意味監査を実施しています。
+Value Model、Product Vision、Product Shape、期限を持たないProduct Milestoneと上流開発計画へ戻って意味整合を確認し、未定領域を早期にRequirementへ固定しない原則を追加した。その後、既存の意味、仕様、強度、留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

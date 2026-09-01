@@ -1,25 +1,28 @@
 # SOZA Product文書の読み方
 
-更新日: 2026-08-31  
+更新日: 2026-09-01  
 状態: **Current Product Documentation Baseline**
 
 ## 1. この文書の役割
 
-`product/`は、SOZAが**なぜ存在するのか、何を失ってはならないのか、長期的にどの方向を目指すのか**を定める上位文書の入口です。
+`product/`は、SOZAが**なぜ存在するのか、何を失ってはならないのか、どのような製品状態を目指し、どこまで成立したら次の段階へ進めるのか**を定める上位文書の入口です。
 
-個別の実装方式、現在のMilestone、特定Providerの都合をProduct定義へ持ち込む場所ではありません。
+個別の実装方式や特定Providerの都合をProduct定義へ持ち込む場所ではありません。期限やcalendar scheduleもここでは固定せず、Product MilestoneはOutcomeとEvidenceの成立条件で表します。
 
-SOZAでは、下位設計を上位価値へ戻って検査できるよう、概ね次の依存方向を維持します。
+SOZAでは、概ね次の依存方向を維持します。
 
 ```text
-Product Value
+Product Value / Value Proposition
   → Value Model / Value Acceptance
-  → Vision / Principles
+  → Vision / Principles / Product Shape
+  → Deadline-free Product Milestones
+  → Open Question / Product Hypothesis
+  → Discussion / Research / Experiment
   → Requirements / Acceptance Scenarios
   → Issue / ADR
-  → Architecture
-  → Contract / Representation Profile
-  → Runtime / Provider Adapter / Test / Evidence
+  → Architecture / Contract
+  → Runtime / Provider Adapter / Test
+  → Evidence
 ```
 
 下位の実装・検証から上位仮説への反証が得られた場合は、必要に応じてProduct Valueまで戻って再検討します。ただし、既存実装を温存するためだけに上位価値を書き換えません。
@@ -29,6 +32,12 @@ Product Value
 ### `value/SOZA_PRODUCT_VALUE.md`
 
 SOZAが存在する理由と、最も上位で守る価値を定めます。
+
+Product Valueから個別RequirementやUniversal型を機械的に生成しません。まだ何を要求すべきか十分に分からない領域は、議論・調査・実証を通して必要性を確認します。
+
+### `value/SOZA_VALUE_PROPOSITION.md`
+
+Product Valueを、利用者がどのような問題を解き、どのような価値を受け取る製品なのかという観点から表します。
 
 ### `value/SOZA_VALUE_MODEL.md`
 
@@ -57,13 +66,13 @@ Design Evidence
   != Adoption / Outcome Evidence
 ```
 
-本番で安定して動作することと、利用者・組織の判断や成果に価値が届くことは別に検証します。
-
 ### `value/SOZA_VALUE_TRACEABILITY.md`
 
 Product Valueからcurrent Requirements、Acceptance Scenarios、ADR、Architecture、Contract、Representation Profile、runtime、Provider Adapter、Evidence gapへ戻るための索引です。
 
-この文書は新しい意味上の正本を作るものではありません。
+### `definition/SOZA_PRODUCT_SHAPE.md`
+
+SOZAを製品として見たときの主要な仕事、論理Surface、SOZA内外の境界、Minimum Usable Product Shapeを定めます。
 
 ### `vision/SOZA_PRODUCT_VISION.md`
 
@@ -71,9 +80,30 @@ Product Valueを長期的な到達方向として表します。未来の特定�
 
 ### `principles/SOZA_PRODUCT_PRINCIPLES.md`
 
-繰り返し現れる設計判断で利用する製品原則を定めます。PrincipleはProduct Valueより上位ではありません。
+繰り返し現れる設計判断で利用する製品原則を定めます。未定領域については、Open Question、実証、Candidate Requirement、Stable Requirementを分離します。
 
-## 3. 具体的なScenarioの正本
+### `roadmap/SOZA_PRODUCT_MILESTONES.md`
+
+SOZAをどの順序で製品として成立させるかを、**期限ではなくOutcomeとEvidence**で示します。
+
+historicalなM48 / M49等の実装順序とは役割が異なります。MilestoneはProduct ontologyでも固定workflowでもありません。
+
+## 3. 未定領域の扱い
+
+未定のProduct領域は、最初からstable Requirementとして扱いません。
+
+```text
+Open Question
+  → Discussion / Research / Experiment
+  → Candidate Requirement
+  → Stable Requirement
+```
+
+詳細な進め方は`../plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`を正とします。
+
+チャット上の議論は探索・統合の作業空間として使えますが、current正本はrepository上のProduct / Requirement / ADR等へ戻します。
+
+## 4. 具体的なScenarioの正本
 
 具体的な利用・検証場面は、`requirements/ACCEPTANCE_SCENARIOS.md`の`SCN-*`をcurrent正本とします。
 
@@ -86,55 +116,25 @@ Product Value / V1〜V8
   → ADR / Architecture / Contract / Test
 ```
 
-## 4. 現在のEvidence状態
+Product Milestoneの各項目も、そのままRequirementやScenarioへ変換しません。独立した規範上の必要性が確認できたものだけを下位正本へ反映します。
 
-2026-08-31時点では、少なくとも次がactual repositoryにあります。
+## 5. 現在のProduct Milestone上の位置
 
-### Design baseline
+current repositoryでは、少なくとも次の状態まで確認しています。
 
-- Product Value / Value Model / Value Acceptance
-- REQ-0001〜REQ-0022
-- SCN-0001〜SCN-0017
-- ADR-0001〜ADR-0024
-- current Reference Architecture
-- current 4 Contract Definition
-- current Representation Profile Definition
-- first semantic runtime slice
-- Provider Adapter observation mapping boundary
+- Product Value / Value Proposition / Vision / Principles / Product Shape: **Design baseline established**
+- current semantic Contract群: **scoped Executable Evidence available**
+- SCN-0018 end-to-end Semantic Product Journey: **fixture-scoped Executable Evidence available**
+- first usable Product Interaction: **Not Yet Verified**
+- packaged product: **Not Yet Verified**
+- Product Identity / Authorization / Collaboration: **Not Yet Verified**
+- real Method / Provider portability: **Partial**
+- current Product Shape全体のRelease Evidence: **Not Yet Verified**
+- Operational / Adoption Outcome: **Not Yet Verified**
 
-### scoped Executable Evidence
+個別CIやfixtureのPASSを、上位Milestoneへ自動昇格させません。
 
-- Planning registry integrity checker
-- Requirements registry checkerとnegative self-test
-- Contract v1alpha1 schema / 17 fixture / semantic validator / conformance workflow
-- JCS / raw-bytes Representation Profile fixtureとGo verifier probe
-- Contract fixtureを読むGo first semantic runtime slice
-- synthetic heterogeneous Provider A / B Adapter slice
-
-代表的なactual CI:
-
-- Requirements Registry Conformance — Run `33346697016`: **success**
-- Contract Conformance — Run `33346472419`: **success**
-- Representation Profile Conformance — Run `33347989530`: **success**
-- Semantic Runtime Conformance #3 — Run `33348972805`: **success**
-- Semantic Runtime Conformance #4 — Run `33349604842`: **success** — synthetic Adapter slice
-- Semantic Runtime Conformance #5 — Run `33349801993`: **success** — Provider-specific field非漏洩の追加hardening
-
-これらは、それぞれ定めた対象範囲のExecutable Evidenceです。SOZA全体のExecutable Acceptance完了を意味しません。
-
-### currentでまだ主張しないもの
-
-- historical M47 digest mapping
-- production Provider / TEI integration
-- Release Evidence
-- Operational Evidence
-- Adoption / Outcome Evidence
-
-```text
-CI PASS != release ready != operational success != user-value realization
-```
-
-## 5. Product Valueを変更するとき
+## 6. Product Valueを変更するとき
 
 Product ValueやValue Modelの意味変更は、通常の実装変更より重く扱います。
 
@@ -142,18 +142,16 @@ Product ValueやValue Modelの意味変更は、通常の実装変更より重�
 
 1. 何が反証されたのか。
 2. 変更する価値は何か。
-3. V1〜V8、Requirements、SCN、ADR、Architecture、Contractのどこへ影響するか。
+3. Milestone、V1〜V8、Requirements、SCN、ADR、Architecture、Contractのどこへ影響するか。
 4. 過去の判断と互換性があるか。
 5. どのEvidenceで変更の必要性を説明できるか。
-6. いつ再検討するか。
+6. どの条件で再検討するか。
 
 詳細はADR-0018を正とします。
 
-Value AcceptanceのEvidence区分を精緻化するときも、V1〜V8の意味を暗黙に変更していないかを確認します。
+## 7. 新しい概念をCoreへ入れる前に
 
-## 6. 新しい概念をCoreへ入れる前に
-
-Product文書から新しいUniversal Core概念が自動的に生えるわけではありません。
+Product文書やMilestoneから新しいUniversal Core概念が自動的に生えるわけではありません。
 
 Coreへ追加する前に、少なくとも次を検討します。
 
@@ -161,29 +159,27 @@ Coreへ追加する前に、少なくとも次を検討します。
 - 複数domainで同じ意味境界が反復するか。
 - 判断、責任、不確実性、来歴の再構成に不可欠か。
 - Reference、Profile、Adapter、Provider、domain-specific knowledgeで扱えないか。
+- 評価時点から10〜50倍程度先を見ても意味上の必要性が残るか。
 
 現在の実装で便利であることや、関連製品との距離が近いことだけをCore昇格理由にしません。
 
-ADR-0024のProvider Adapterも、この原則に従ってProvider-specific input schemaをUniversal Coreへ持ち込みません。synthetic sliceでもProvider A / B固有fieldがCapability Observation schemaへ漏れないことを検査しています。
-
-## 7. 読む順序
-
-Product層から読み始める場合は、次の順序を推奨します。
+## 8. 推奨する読む順序
 
 1. `value/SOZA_PRODUCT_VALUE.md`
-2. `value/SOZA_VALUE_MODEL.md`
-3. `value/SOZA_VALUE_ACCEPTANCE.md`
-4. `value/SOZA_VALUE_TRACEABILITY.md`
-5. `vision/SOZA_PRODUCT_VISION.md`
-6. `principles/SOZA_PRODUCT_PRINCIPLES.md`
-7. `../requirements/PRODUCT_REQUIREMENTS.md`
-8. `../requirements/ACCEPTANCE_SCENARIOS.md`
-9. `../architecture/TRACEABILITY.md`
-10. `../contracts/TRACEABILITY.md`
-11. `../contracts/profiles/README.md`
-12. `../plan/adr/ADR-0024-provider-adapter-observation-mapping-boundary.md`
+2. `value/SOZA_VALUE_PROPOSITION.md`
+3. `value/SOZA_VALUE_MODEL.md`
+4. `value/SOZA_VALUE_ACCEPTANCE.md`
+5. `definition/SOZA_PRODUCT_SHAPE.md`
+6. `vision/SOZA_PRODUCT_VISION.md`
+7. `principles/SOZA_PRODUCT_PRINCIPLES.md`
+8. `roadmap/SOZA_PRODUCT_MILESTONES.md`
+9. `../plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`
+10. `../requirements/PRODUCT_REQUIREMENTS.md`
+11. `../requirements/ACCEPTANCE_SCENARIOS.md`
+12. `../architecture/TRACEABILITY.md`
+13. `../contracts/TRACEABILITY.md`
 
-## 8. 文書品質
+## 9. 文書品質
 
 Product文書は、内容と構造を確定した後に、意味、規範強度、留保、Evidence強度を変えず、**自然な日本語となることを最重要視して全文をドラフトし直します**。
 
@@ -191,6 +187,6 @@ Product文書は、内容と構造を確定した後に、意味、規範強度�
 
 詳細な文書作成手順は`../plan/DOCUMENT_AUTHORING_STANDARD.md`を参照してください。
 
-## 9. Natural Japanese review
+## 10. Natural Japanese review
 
-current Product / Requirements / ADR-0001〜0024 / Architecture / Contract / Representation Profile / runtime / synthetic Provider Adapterの正本関係とactual Evidenceを確認し、重複した正本や第二のScenario体系を作らないよう役割を整理しました。その後、意味、権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+current Product Value、Value Proposition、Product Shape、Product Journeyとcurrent Evidenceを確認し、期限を持たないProduct Milestoneと未定領域の探索手順をProduct文書の入口へ追加した。Product Value、Milestone、Requirement、Implementationの正本関係を分けたうえで、意味、権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

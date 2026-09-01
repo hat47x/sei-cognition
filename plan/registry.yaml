@@ -5,7 +5,7 @@ adr:
   - id: ADR-0001
     file: plan/adr/ADR-0001-moving-future-horizon.md
     status: Accepted
-    related_issues: [ISSUE-000001]
+    related_issues: [ISSUE-000001, ISSUE-000051]
   - id: ADR-0002
     file: plan/adr/ADR-0002-claim-interpretation-boundary.md
     status: Accepted
@@ -73,7 +73,7 @@ adr:
   - id: ADR-0018
     file: plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000023, ISSUE-000025, ISSUE-000026, ISSUE-000028, ISSUE-000029, ISSUE-000037, ISSUE-000039, ISSUE-000041, ISSUE-000044, ISSUE-000045, ISSUE-000048, ISSUE-000050]
+    related_issues: [ISSUE-000023, ISSUE-000025, ISSUE-000026, ISSUE-000028, ISSUE-000029, ISSUE-000037, ISSUE-000039, ISSUE-000041, ISSUE-000044, ISSUE-000045, ISSUE-000048, ISSUE-000050, ISSUE-000051]
   - id: ADR-0019
     file: plan/adr/ADR-0019-provider-neutral-capability-observation-boundary.md
     status: Accepted
@@ -81,11 +81,11 @@ adr:
   - id: ADR-0020
     file: plan/adr/ADR-0020-requirements-traceability-and-evidence-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000025, ISSUE-000026, ISSUE-000027, ISSUE-000028, ISSUE-000029, ISSUE-000031, ISSUE-000037, ISSUE-000039, ISSUE-000041, ISSUE-000044, ISSUE-000045, ISSUE-000048, ISSUE-000050]
+    related_issues: [ISSUE-000025, ISSUE-000026, ISSUE-000027, ISSUE-000028, ISSUE-000029, ISSUE-000031, ISSUE-000037, ISSUE-000039, ISSUE-000041, ISSUE-000044, ISSUE-000045, ISSUE-000048, ISSUE-000050, ISSUE-000051]
   - id: ADR-0021
     file: plan/adr/ADR-0021-architecture-contract-authority-and-versioning.md
     status: Accepted
-    related_issues: [ISSUE-000022, ISSUE-000028, ISSUE-000029, ISSUE-000030, ISSUE-000031, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000038, ISSUE-000039, ISSUE-000041, ISSUE-000043, ISSUE-000044, ISSUE-000045, ISSUE-000046, ISSUE-000047, ISSUE-000048, ISSUE-000049, ISSUE-000050]
+    related_issues: [ISSUE-000022, ISSUE-000028, ISSUE-000029, ISSUE-000030, ISSUE-000031, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000038, ISSUE-000039, ISSUE-000041, ISSUE-000043, ISSUE-000044, ISSUE-000045, ISSUE-000046, ISSUE-000047, ISSUE-000048, ISSUE-000049, ISSUE-000050, ISSUE-000051]
   - id: ADR-0022
     file: plan/adr/ADR-0022-runtime-first-slice-read-validate-reconstruct.md
     status: Accepted
@@ -158,3 +158,4 @@ issue:
   - {id: ISSUE-000048, file: plan/issue/ISSUE-000048-define-end-to-end-golden-journey-acceptance.md, status: Resolved, priority: 1, related_adrs: [ADR-0005, ADR-0018, ADR-0020, ADR-0021, ADR-0025]}
   - {id: ISSUE-000049, file: plan/issue/ISSUE-000049-generalize-bundle-exact-binding-consistency.md, status: Open, priority: 2, related_adrs: [ADR-0008, ADR-0009, ADR-0021, ADR-0022, ADR-0025, ADR-0026]}
   - {id: ISSUE-000050, file: plan/issue/ISSUE-000050-materialize-end-to-end-semantic-product-journey-harness.md, status: Resolved, priority: 1, related_adrs: [ADR-0005, ADR-0008, ADR-0009, ADR-0018, ADR-0020, ADR-0021, ADR-0022, ADR-0025]}
+  - {id: ISSUE-000051, file: plan/issue/ISSUE-000051-establish-upstream-product-planning-baseline.md, status: Resolved, priority: 1, related_adrs: [ADR-0001, ADR-0018, ADR-0020, ADR-0021]}
