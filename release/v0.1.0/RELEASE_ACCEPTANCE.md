@@ -1,7 +1,7 @@
 # SOZA v0.1.0 Release Acceptance
 
 更新日: 2026-09-01  
-状態: **Release candidate acceptance defined / Release Evidence Not Yet Verified**
+状態: **Release candidate gate verified / Release Evidence Not Yet Verified**
 
 ## 1. 目的
 
@@ -201,18 +201,43 @@ explicit non-claims
 
 このEvidence文書はrelease後の記録であり、tag対象source treeへ自己参照的に事前埋め込みする必要はありません。
 
-## 14. current state
+## 14. 初回Release Candidate Evidence
 
-このRelease Acceptanceとcandidate gateを整備した時点では、v0.1.0はまだactual releaseされていません。
+Release Candidate Gateを実装したcommitについて、actual GitHub Actionsで統合gateのsuccessを確認しました。
 
-したがって状態は次です。
+- source commit: `4ee3f75753972e56fff8ab9f88b977cfe3d7b67b`
+- source tree: `0f7bcfa297fe83ca05b9e297c5897b6f1a354b70`
+- Release Candidate Gate Run: `33462821768` — **success**
+- job: `99716406410` — **success**
+- Plan integrity Run: `33462821772` — **success**
+- candidate report artifact ID: `9783773779`
+- artifact name: `soza-v0.1.0-release-candidate-4ee3f75753972e56fff8ab9f88b977cfe3d7b67b`
+- artifact digest: `sha256:3efef517ffdcc1c5588f9ab5893059ae1c4239354e58c79036b0e4c244697113`
+
+統合gateでは、Plan、Requirements、Contract、Representation Profile、commit-pinned JCS probe、semantic runtime、V6/V7 Projection、release candidate policy / bound reportが同一checkoutでsuccessしました。
+
+このEvidenceは特定のsource commit / treeへ結び付いています。以後、文書追記を含めsource treeが変われば、その新しいcommitについてRelease Candidate Gateを改めて実行します。
+
+CI artifactのretention期間は30日です。artifact保持期限を越えても、actual release時にはtag、source commit / tree、gate Run、release identityを恒久的なEvidence recordへ結び付けます。
+
+```text
+candidate gate verified
+  != actual release exists
+  != Release Evidence satisfied
+```
+
+## 15. current state
+
+現時点の状態は次です。
 
 - Release Candidate design: **Satisfied**
-- Release Candidate executable gate: **gate success後に評価**
+- Release Candidate executable gate: **Satisfied for source commit `4ee3f757...`**
 - Release Evidence: **Not Yet Verified**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
 
-## 15. 自然な日本語レビュー
+この文書自身を含むsource treeが更新された場合、最新HEADについては次のRelease Candidate Gate結果が得られるまで「最新HEADも検査済み」とは扱いません。
 
-SOZA_VALUE_ACCEPTANCE、ADR-0018、DEVELOPMENT_WORKFLOW、current Product / Requirements / Contract / Profile / runtime / evaluation、current Plan状態を照合しました。そのうえで、v0.1.0をsemantic development baselineのsource releaseとするscope、candidate identity、統合gate、actual releaseへの昇格条件、非主張範囲を整理しました。最後に、Evidence高さや技術的条件を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+## 16. 自然な日本語レビュー
+
+SOZA_VALUE_ACCEPTANCE、ADR-0018、DEVELOPMENT_WORKFLOW、current Product / Requirements / Contract / Profile / runtime / evaluation、current Plan、actual Release Candidate Gate Runを照合しました。そのうえで、v0.1.0をsemantic development baselineのsource releaseとするscope、candidate identity、統合gate、actual releaseへの昇格条件、非主張範囲、初回candidate Evidenceを整理しました。最後に、Evidence高さや技術的条件を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
