@@ -474,7 +474,7 @@ TEI Design KnowledgeのPattern Cardを、AIがCognitive Methodの探索対象と
 ### Current Evidence
 
 - Design: **Partially Satisfied** — unresolved参照は定義済みだが、reopen conditionのcurrent Contractは限定的。
-- Executable: **Partially Satisfied** — Decision with unresolved fixtureとruntimeで残差保持を確認。Inquiry再開のend-to-end runtimeは未検証。
+- Executable: **Partially Satisfied** — Decision with unresolved fixtureとruntimeに加え、end-to-end Product Journey harnessで、Decisionの`unresolved_refs`とexecution後の新しいObservationを後続のreopen Method Applicationへ入力として引き渡すsynthetic pathをRun `33478127484`で確認した。実業務上のInquiry lifecycle、reopen policy、D1→D2の運用は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -556,7 +556,7 @@ TEI Design KnowledgeのPattern Cardを、AIがCognitive Methodの探索対象と
 ### Current Evidence
 
 - Design: **Satisfied** — `PRODUCT_JOURNEY_COMPOSITION.md`でProduct ShapeとREQ-0001〜REQ-0022、SCN-0001〜SCN-0017を横断し、新しいUniversal Requirementを追加せずに統合Scenarioとして成立することを確認した。
-- Executable: **Not Yet Verified** — Cognitive Method、Decision、Capability / Provider、実行後Observation、historical review / reopenを一続きに検査するcurrent end-to-end harnessはまだない。既存のContract / runtime / Provider / Projection Evidenceは個別境界のscoped Evidenceであり、本Scenario全体のPASSへは昇格させない。
+- Executable: **Partially Satisfied** — `runtime/go/journeyharness`でnormal / uncertain / collaborative / provider replacement / no-executionの主要variantを一つのsemantic Product Journeyとして検査するfixtureを実体化した。Run `33478127484`では、Semantic Interchange loaderを通るnormal path、RecommendationとDecisionの分離、Responsibility分離、execution後Observationの時間境界、historical Decision statement / basisの非改変、unresolvedからreopenへの引継ぎ、Provider / Capability分離、unsupported recordの`not_verified`保持、Projectionがcanonical Decisionを代替しないことを確認した。ただしproduction UI、production Provider / execution engine、実際のAuthorization、長期運用上のreopen、実利用者価値は未検証であり、本Scenario全体を`Satisfied`にはしない。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -604,14 +604,14 @@ SCN-0012
 
 SCN-0018
   → end-to-end semantic Product Journey harness
-  → Not Yet Verified
+  → Partially Satisfied (fixture-scoped; Run 33478127484)
 ```
 
 SCN IDはsemantic scenario identityとして保ち、fixture / test IDとは分けます。fixtureのPASS / FAILによってSCNそのものの意味を変更しません。
 
 Scenarioの一部だけを検証した場合は`Partially Satisfied`とし、Scenario全体の実装完了へ読み替えません。
 
-SCN-0018では、既存のcomponent-level PASSを合算してend-to-end PASSとみなしません。Cognitive Method、Decision、Provider、実行後Observation、historical review / reopenが一つの検査経路として接続されて初めて、Executable Evidenceを評価します。
+SCN-0018では、既存のcomponent-level PASSを合算してend-to-end PASSとみなしません。今回のEvidenceは、Cognitive Method、Recommendation、Decision、Provider / execution result、historical review / reopen、Projection非権威を一つの検査経路として接続したfixture-scoped Evidenceです。production Product Journeyや利用者成果への昇格は行いません。
 
 ## 5. Historical Scenarioとの関係
 
@@ -623,4 +623,4 @@ SCN-0018は、historical Scenarioの単純な再採番ではなく、current Pro
 
 ## 6. Natural Japanese review
 
-SCN-0001〜0018をcurrent Product Value、Product Shape、`PRODUCT_JOURNEY_COMPOSITION.md`、Contract / Representation Profile、first runtime、synthetic Provider Adapter、V6/V7 Projection evaluation harnessへ照合しました。SCN-0018は既存Scenarioを置き換えるのではなく、個別の意味境界が一つのProduct Journeyでも同時に保たれることを確認する統合Scenarioとして追加しています。とくに、実行後に得たObservationを過去Decisionのbasisへ時間逆行させず、次のInquiry / Decision reviewへ接続する境界を明示しました。component-level Evidenceをend-to-end Evidenceへ昇格させず、Release / Operational / Adoption / Outcomeも`Not Yet Verified`のまま維持しています。その後、Scenarioの意味、期待、失敗条件、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+SCN-0001〜0018をcurrent Product Value、Product Shape、`PRODUCT_JOURNEY_COMPOSITION.md`、Contract / Representation Profile、semantic runtime、synthetic Provider Adapter、V6/V7 Projection evaluation、end-to-end Product Journey harnessへ照合しました。SCN-0018は既存Scenarioを置き換えるのではなく、個別の意味境界が一つのProduct Journeyでも同時に保たれることを確認する統合Scenarioとして扱っています。Run `33478127484`でactual fixtureとして確認できた範囲だけExecutable Evidenceを`Partially Satisfied`へ更新し、実行後Observationを過去Decisionのbasisへ時間逆行させないこと、残差から後続reviewへ戻れること、Projectionをcanonical authorityへしないことを明示しました。component-level / fixture-scoped Evidenceをproductionのend-to-end Product Acceptanceへ昇格させず、Release / Operational / Adoption / Outcomeも`Not Yet Verified`のまま維持しています。その後、Scenarioの意味、期待、失敗条件、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
