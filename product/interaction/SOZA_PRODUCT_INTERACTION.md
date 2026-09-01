@@ -222,7 +222,7 @@ reference probe surface
   != supported production surface decision
 ```
 
-Semantic Runtime Conformance Run `33503251170`では、current Contract fixture再検査と`runtime/go`全体の`go test ./...`がsuccessしました。
+追加negative testを含むSemantic Runtime Conformance Run `33504002579`では、current Contract fixture再検査と`runtime/go`全体の`go test ./...`がsuccessしました。
 
 productionで最初にsupportedとするSurfaceは、human usability、AI integration、Packaging / Deploymentとの整合を見て別途判断します。
 
@@ -294,7 +294,7 @@ Packaging / DeploymentはISSUE-000046、Identity / Authorization / Collaboration
 ## 14. Evidence状態
 
 - Product Interaction Design Evidence: **Established**
-- Executable Evidence: **Scoped Evidence available** — `runtime/go/interactionprobe`とSemantic Runtime Conformance Run `33503251170`。
+- Executable Evidence: **Scoped Evidence available** — `runtime/go/interactionprobe`とSemantic Runtime Conformance Run `33504002579`。
 - Release Evidence: **Not Yet Verified**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
@@ -314,4 +314,4 @@ current reference probeは、異なるSurfaceが同じcanonical sourceへ接続�
 
 ## 16. Natural Japanese review
 
-Product Value、Product Shape、PMS-03、REQ-0001 / 0005 / 0006 / 0010 / 0011 / 0014 / 0015 / 0019、SCN-0013 / 0018、ADR-0028、`runtime/go/interactionprobe`、Semantic Runtime Conformance Run `33503251170`を照合し、利用者の仕事とcanonical meaningの関係からInteraction boundaryを再監査しました。reference probeで確認できたSurface間の意味共有、Projection非権威性、Recommendation / Decision分離等をExecutable Evidenceとして反映する一方、production UI、protocol、Storage、Identity、Operational / Adoptionは未検証のまま明確に残しています。UI、conversation、session等を意味上の正本へ昇格させず、新しいRequirementやUniversal概念も不要に追加していません。そのうえで、意味、要求強度、未決事項、Evidenceの高さを変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Value、Product Shape、PMS-03、REQ-0001 / 0005 / 0006 / 0010 / 0011 / 0014 / 0015 / 0019、SCN-0013 / 0018、ADR-0028、`runtime/go/interactionprobe`、Semantic Runtime Conformance Run `33504002579`を照合し、利用者の仕事とcanonical meaningの関係からInteraction boundaryを再監査しました。reference probeで確認できたSurface間の意味共有、Projection非権威性、Recommendation / Decision分離等をExecutable Evidenceとして反映する一方、production UI、protocol、Storage、Identity、Operational / Adoptionは未検証のまま明確に残しています。UI、conversation、session等を意味上の正本へ昇格させず、新しいRequirementやUniversal概念も不要に追加していません。そのうえで、意味、要求強度、未決事項、Evidenceの高さを変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
