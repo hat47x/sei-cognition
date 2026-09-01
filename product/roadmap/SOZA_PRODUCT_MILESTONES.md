@@ -155,7 +155,6 @@ reference probe PASS
 - Web / desktop / CLI / API / MCP等のsupported combination
 - human usabilityを損なわずlight / auditを往復する具体UX
 - Packaging / DeploymentとInteraction Surfaceの組み合わせ
-- production persistenceとprocess restart後のresume
 
 これらは現時点でRequirementとして先取りしません。reference probeのSurfaceや単一Inquiry向けin-memory storeをproduction標準へ昇格させません。
 
@@ -173,16 +172,37 @@ Packaging / DeploymentのDesign Evidenceと、最小packageのExecutable Evidenc
 
 ### Current state
 
-**Not Yet Verified as a packaged product.**
+**Design baseline established / packaged resume Executable Evidence pending.**
 
-ISSUE-000046で検討します。
+`product/packaging/SOZA_PRODUCT_PACKAGING.md`とADR-0029で、最初に成立させるPackaging / Deployment ProfileをLocal Single-Node Packageとして正本化しました。
+
+```text
+Go runtime executable
+  + replaceable Persistence boundary
+  + explicit durable data root
+  + portable semantic data
+```
+
+Goの単一バイナリ化は配布上の利点として利用しますが、runtime executableをcanonical semantic dataにはしません。filesystemは最初のPersistence Realizationとして利用できる一方、file pathをLogical Referenceへ昇格させません。
+
+portable export / importにはcurrent Semantic Interchangeを再利用し、package専用Universal Contractは追加していません。
+
+Deployment上のcomponent配置は`architecture/SOZA_DEPLOYMENT_ARCHITECTURE.md`へ分離しました。単一processへInteraction、Semantic Runtime、Persistence、Integrationを同居させても、それらを一つのsemantic concernとはみなしません。
+
+save → process state破棄 → 別runtime instanceでreload、filesystem data rootのrestore、filesystemから別Persistence Realization相当へのportable migrationは、ISSUE-000054でExecutable Evidenceを取得します。
 
 ### Open questions
 
-- library / service / CLI / reference UIの最初のsupported combination
-- embedded / external Storage
-- import / export / migration
-- backup / restoreの最小条件
+- productionで最初にsupportedとするhuman-facing Surface
+- productionで最初にsupportedとするAI-facing protocol
+- server-side StorageをいつRDB / object storeへ進めるか
+- team / multi-user deployment topology
+- online migration
+- production backup SLA
+- HA / replication
+- container / cloud-managed distribution
+
+これらはLocal Single-Node Packageを採用したことだけを理由にRequirementへ固定しません。
 
 ## 8. PMS-05 — identity・authorization・collaborationを製品として安全に扱える
 
@@ -273,4 +293,4 @@ Open Questionを直接Stable Requirementへ飛ばしません。
 
 ## 14. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、Product Interaction baseline、REQ-0001〜0022、SCN-0013 / 0018、ADR-0028、ISSUE-000045 / 000053、`runtime/go/interactionprobe`、Semantic Runtime Conformance Run `33504002579`を照合し、PMS-03をDesign成立だけでなくscoped Executable Evidenceが得られた状態へ更新しました。一方、reference probeの成功をproduction UX、supported protocol、Packaging、Operational / Adoption Evidenceへ広げていません。未定領域を先にRequirementへ固定しない境界も保っています。そのうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、REQ-0001〜0022、SCN-0008 / 0010 / 0013 / 0018、ADR-0028 / 0029、ISSUE-000046 / 000053 / 000054、current Go runtimeとSemantic Interchangeへ戻ってMilestoneを再監査しました。PMS-03はscoped Interaction Executable Evidenceまで、PMS-04はPackaging / Deployment Design成立までを明確に分けています。Local Single-Node Packageやfilesystemを唯一のdeployment topologyやsemantic authorityへ昇格させず、packaged resume / Storage migrationのExecutable Evidenceは後続probeへ残しています。未定領域を先にRequirementへ固定しない境界も維持したうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
