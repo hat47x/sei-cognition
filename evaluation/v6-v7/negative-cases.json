@@ -1,0 +1,40 @@
+{
+  "schema": "soza.v6-v7-negative-cases/v1",
+  "cases": [
+    {
+      "id": "N1-hide-unresolved",
+      "expected_error": "E_UNRESOLVED_HIDDEN",
+      "description": "未解決事項をlight Projectionから隠す。"
+    },
+    {
+      "id": "N2-hide-basis-access",
+      "expected_error": "E_BASIS_UNTRACEABLE",
+      "description": "canonical sourceにbasisがあるのに、light Projectionから存在を辿れなくする。"
+    },
+    {
+      "id": "N3-hide-responsibility-access",
+      "expected_error": "E_RESPONSIBILITY_UNTRACEABLE",
+      "description": "canonical sourceにResponsibilityがあるのに、light Projectionから存在を辿れなくする。"
+    },
+    {
+      "id": "N4-invent-authorization",
+      "expected_error": "E_AUTHORIZATION_INVENTED",
+      "description": "未解決のAuthorization Evidenceをverifiedとして表示する。"
+    },
+    {
+      "id": "N5-mutate-canonical",
+      "expected_error": "E_CANONICAL_MUTATED",
+      "description": "Projection編集の副作用としてcanonical sourceを書き換える。"
+    },
+    {
+      "id": "N6-high-impact-light-only",
+      "expected_error": "E_HIGH_IMPACT_DETAIL_MISSING",
+      "description": "high-impact案件をlight Projectionだけで完了扱いにする。"
+    },
+    {
+      "id": "N7-low-impact-force-audit",
+      "expected_error": "E_LOW_IMPACT_OVEREXPLICIT",
+      "description": "low-impact案件へaudit最大詳細を一律必須化する。"
+    }
+  ]
+}
