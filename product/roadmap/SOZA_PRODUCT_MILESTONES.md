@@ -1,0 +1,248 @@
+# SOZA Product Milestones
+
+更新日: 2026-09-01  
+状態: **Current Deadline-free Product Milestone Baseline**
+
+## 1. この文書の役割
+
+この文書は、SOZAをどの順序で製品として成立させていくかを、日付や期限ではなく**成立条件とEvidenceの高さ**で示します。
+
+Milestoneは開発管理上の目印であり、SOZAのUniversal ontologyや利用者の業務workflowではありません。また、特定versionへ固定されたrelease scheduleでもありません。
+
+```text
+Product Value
+  → Product Milestone
+  → Requirement / Acceptance Scenario
+  → Issue / ADR
+  → Architecture / Contract
+  → Implementation / Evidence
+```
+
+未定の領域をMilestone文書だけでRequirementへ昇格させません。具体的な意味境界がまだ分からない場合は、チャット上の議論、資料検討、prototype、fixture、実証実験等を先に行い、その結果から独立した規範上の必要性が確認できた場合だけRequirementへ反映します。
+
+## 2. Milestoneの読み方
+
+各Milestoneは、少なくとも次を分けて扱います。
+
+- **Outcome** — 製品として何が成立している必要があるか。
+- **Minimum Evidence** — そのMilestoneを成立とみなす最低限のEvidence。
+- **Current state** — 現在確認できている高さ。
+- **Open questions** — まだ先に決めない領域。
+
+Milestone間には依存関係がありますが、すべてを直列に完了させる必要はありません。上位価値を壊さない範囲で、実証に必要な作業は並行できます。
+
+## 3. PMS-00 — Product Valueと製品境界が正本化されている
+
+### Outcome
+
+SOZAが何のために存在し、何を価値として守り、何を自らの恒久的中心にしないかを説明できます。
+
+少なくとも次が相互に矛盾せず読める状態を求めます。
+
+- Product Value
+- Value Proposition
+- Value Model / Acceptance
+- Product Vision
+- Product Principles
+- Product Shape
+- SOZA / TEI / external Providerの境界
+
+### Minimum Evidence
+
+Design Evidence。
+
+### Current state
+
+**Established at Design level.**
+
+下位実装やCIの存在をもって、このMilestoneより上のOperational / Adoption Evidenceを主張しません。
+
+## 4. PMS-01 — 耐久的なsemantic substrateを機械的に扱える
+
+### Outcome
+
+判断仕事に必要な意味のうち、現在正本化されている範囲を、特定UIやStorageへ閉じ込めずに読み、検証し、再構成できます。
+
+代表例はSemantic Reference、Decision Memory、Capability Observation、Cognitive Method、Semantic Interchange、Representation Profileです。
+
+### Minimum Evidence
+
+対象ContractごとのExecutable Evidence。
+
+### Current state
+
+**Scoped Executable Evidence available.**
+
+ただし、Contract単体のPASSは製品全体の利用可能性を意味しません。
+
+## 5. PMS-02 — 一つの判断仕事をend-to-endで再構成できる
+
+### Outcome
+
+次の代表的なProduct Journeyを、一続きの意味として検査できます。
+
+```text
+Inquiry
+  → Observation / Evidence / Unknown / Conflict
+  → Cognitive Method Application
+  → Recommendation
+  → Decision / Responsibility
+  → external Capability / Execution
+  → resulting Observation
+  → historical review / reopen
+```
+
+この順序を固定workflowとして要求しません。重要なのは、複数の意味境界を同時に扱っても、RecommendationとDecision、過去のbasisと後から得たObservation、CapabilityとProvider等が混ざらないことです。
+
+### Minimum Evidence
+
+代表variantを含むfixture-scoped Executable Evidence。
+
+### Current state
+
+**Scoped Executable Evidence available.**
+
+SCN-0018とend-to-end Semantic Product Journey harnessで、normal / uncertain / collaborative / provider replacement / no-execution等を限定範囲で検査しています。
+
+## 6. PMS-03 — 人間とAIが最初のusable interactionから同じcanonical meaningへ触れられる
+
+### Outcome
+
+人間とAIが、同じcanonicalな判断文脈へ別の入口やProjectionから触れ、Inquiryの開始・再開、Observation追加、Recommendation / Decision確認、historical review等を一続きに行えます。
+
+低影響な利用では最大詳細を強制せず、必要な場合だけaudit detailへ降りられることを求めます。
+
+### Minimum Evidence
+
+Interaction boundaryのDesign Evidenceと、最小prototypeまたはconformanceによるExecutable Evidence。
+
+### Current state
+
+**Not Yet Verified as a usable interaction.**
+
+ISSUE-000045で検討します。
+
+### Open questions
+
+- 最初のhuman-facing surface
+- AI向けaccess surface
+- Web / desktop / CLI / API / MCP等の組み合わせ
+- light / audit Projectionの操作上の往復
+
+これらは現時点でRequirementとして先取りしません。
+
+## 7. PMS-04 — 配布・保存・再開が可能な最小製品単位が成立する
+
+### Outcome
+
+SOZAを実際に起動・配布し、canonical stateを保存し、後から再び開ける最小packageが成立します。
+
+semantic boundaryとdeployable unitを混同せず、StorageやProviderを後から交換できる余地を保ちます。
+
+### Minimum Evidence
+
+Packaging / DeploymentのDesign Evidenceと、最小packageのExecutable Evidence。
+
+### Current state
+
+**Not Yet Verified as a packaged product.**
+
+ISSUE-000046で検討します。
+
+### Open questions
+
+- library / service / CLI / reference UIの最初のsupported combination
+- embedded / external Storage
+- import / export / migration
+- backup / restoreの最小条件
+
+## 8. PMS-05 — identity・authorization・collaborationを製品として安全に扱える
+
+### Outcome
+
+semanticなResponsibility / Authorityと、製品access controlを混同せずに、single-userからteam / external collaborationへ進めます。
+
+```text
+actor identity
+  != Responsibility
+  != Authority
+  != product access permission
+```
+
+Selective Disclosureを扱う場合も、withheldとunknown等の意味差を失いません。
+
+### Minimum Evidence
+
+security / collaboration boundaryのDesign Evidenceと、対象範囲のExecutable Evidence。
+
+### Current state
+
+**Not Yet Verified.**
+
+ISSUE-000047で検討します。
+
+## 9. PMS-06 — 実際のMethod / Providerを交換しても判断記憶が保たれる
+
+### Outcome
+
+synthetic fixtureだけでなく、実際のCognitive Method Realization、AI、外部SaaS、TEI、custom code等を接続し、実現手段を交換してもIntent、Decision、Responsibility、Provenance等が壊れないことを確認します。
+
+### Minimum Evidence
+
+複数の実Realization / Providerを用いたExecutable Evidence。必要に応じて限定されたOperational Evidenceも収集します。
+
+### Current state
+
+**Partial.**
+
+Provider-neutralな境界やsynthetic Adapter、Cognitive Method portable ContractにはExecutable Evidenceがありますが、production Realization交換や実Provider横断はまだ一般化して主張しません。
+
+## 10. PMS-07 — release可能な製品として成立する
+
+### Outcome
+
+Product Valueを満たす最小supported scopeが明確で、配布物、versioning、migration、security、failure handling、release acceptanceを含めてrelease候補を再現可能に評価できます。
+
+### Minimum Evidence
+
+Release Evidence。
+
+### Current state
+
+**Not Yet Verified for the current Product Shape as a whole.**
+
+過去のrelease candidate gateや個別CI Evidenceを、このMilestoneへ自動昇格させません。
+
+## 11. PMS-08 — 実運用と利用者成果からProduct Valueを検証できる
+
+### Outcome
+
+実際の利用環境で、SOZAが単に動作しただけでなく、判断の再構成、引継ぎ、再検討、Provider交換、不確実性保持等に役立ったかを検証できます。
+
+### Minimum Evidence
+
+Operational Evidence、および対象価値に応じたAdoption / Outcome Evidence。
+
+### Current state
+
+**Not Yet Verified.**
+
+## 12. 横断Milestone — Moving Rebaseline
+
+PMS-00〜08とは別に、主要な技術変化・利用知見・反証Evidenceが得られた場合は、評価時点の現在から10〜50倍程度先を見渡すMoving Future Horizonで上位文書を再監査します。
+
+これは「最後に行う工程」ではありません。どのMilestoneでも、下位Evidenceが上位仮説を反証した時点でProduct Value / Vision / Principlesへ戻ります。
+
+## 13. 未定領域の扱い
+
+未定領域には、次の三状態を明確に認めます。
+
+- **Open Question** — まだ何を要求すべきか自体が分からない。
+- **Candidate Requirement** — 議論や実証から必要性が見えたが、重複・耐久性・適用範囲を未監査。
+- **Stable Requirement** — Product Valueから独立した規範上の必要性を説明でき、既存REQとの重複を監査し、Acceptanceを定義できる。
+
+Open Questionを直接Stable Requirementへ飛ばしません。
+
+## 14. Natural Japanese review
+
+Product Value、Value Proposition、Product Shape、REQ-0001〜0022、SCN-0018、ISSUE-000045〜000050とcurrent Evidenceへ戻り、historical M48 / M49等の実装順序ではなく、製品として成立する状態を期限なしのMilestoneとして再構成した。未定領域を先にRequirementへ固定しない境界を明示したうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
