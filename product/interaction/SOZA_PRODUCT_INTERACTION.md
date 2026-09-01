@@ -1,7 +1,7 @@
 # SOZA Product Interaction
 
 更新日: 2026-09-01  
-状態: **Current Product Interaction Design Baseline**
+状態: **Current Product Interaction Baseline / Scoped Executable Evidence Available**
 
 ## 1. この文書の役割
 
@@ -208,23 +208,27 @@ review history / reopen
 
 現時点では、Web UI、desktop UI、CLI、HTTP API、MCPのいずれもProduct標準として確定しません。
 
-ただし、Interaction boundaryを実証するreference probeでは、次の二つの入口を意図的に分けて試す価値があります。
+ISSUE-000053では、Interaction boundaryを実証するreference probeとして、次の二つの入口をGoで実体化しました。
 
-- **human-oriented probe** — 人間が最小入力から開始し、light / auditを往復できる簡素なtext / CLI相当の入口。
-- **machine-oriented probe** — AIやtoolが構造化された操作を行うJSON / process相当の入口。
+- **human-oriented probe** — 最小入力から開始し、light / auditを往復する操作をGo APIとして表現。
+- **machine-oriented probe** — typed recordの追加とstructured viewをGo APIとして表現。
 
-このprobeは製品UI選定ではありません。同じinteraction coreへ異なるSurfaceを載せてもcanonical meaningが保たれるかを確認する実験です。
+両者は同じevaluation-onlyの`CanonicalStore`へ接続します。typed recordは既存`semanticruntime`のvalidatorを通し、Surface-local stateやProjectionはcanonical authorityにしません。
+
+このprobeは製品UI選定ではありません。
 
 ```text
 reference probe surface
   != supported production surface decision
 ```
 
-実証後、human usability、AI integration、Packaging / Deploymentとの整合を見て、最初のsupported surfaceを別途判断します。
+追加negative testを含むSemantic Runtime Conformance Run `33504002579`では、current Contract fixture再検査と`runtime/go`全体の`go test ./...`がsuccessしました。
+
+productionで最初にsupportedとするSurfaceは、human usability、AI integration、Packaging / Deploymentとの整合を見て別途判断します。
 
 ## 11. Requirement / Acceptance監査
 
-今回のInteraction boundaryは、現時点では新しいProduct Requirementを必要としません。
+今回のInteraction boundaryとreference probeから、現時点で新しいProduct Requirementを追加する必要性は確認されていません。
 
 主な根拠は既存Requirementで表現されています。
 
@@ -237,24 +241,30 @@ reference probe surface
 - REQ-0015 — private chain-of-thoughtへ依存しない。
 - REQ-0019 — 人間とAIの双方が意味を読める。
 
-Acceptanceについても、SCN-0013「簡略UIとcanonical meaningを両立する」とSCN-0018「Inquiryから実行後の再検討までを一続きに扱う」を組み合わせることで、Design上の必要性は表現できます。
+Acceptanceについても、SCN-0013「簡略UIとcanonical meaningを両立する」とSCN-0018「Inquiryから実行後の再検討までを一続きに扱う」を組み合わせることで、今回確認したDesign / Executable境界を表現できます。
 
-そのため、Interactionを理由に新しいREQ / SCN IDを機械的に追加しません。reference probeで既存Scenarioでは表現できない失敗が見つかった場合だけ、追加を再検討します。
+したがって、Interaction probeの実装都合だけで新しいREQ / SCN IDを追加しません。production usabilityやPackaging等の実証で既存Scenarioでは表現できない独立した失敗が見つかった場合だけ、追加を再検討します。
 
-## 12. reference probeのExecutable Evidence条件
+## 12. reference probeで得たExecutable Evidence
 
-PMS-03をExecutable Evidenceへ進めるため、後続probeでは少なくとも次を検査します。
+`runtime/go/interactionprobe`では、少なくとも次をactual testとして確認しました。
 
-1. 人間向け入口と機械向け入口が同じcanonical sourceを利用する。
-2. 最小入力からInquiry相当の文脈を開始でき、後から詳細化できる。
-3. AI側が追加したObservation / Recommendationを、人間側が別Projectionから再読できる。
-4. 人間側が記録したDecisionを、AI側がRecommendationへ読み替えずに取得できる。
-5. Unknown / Conflictを未入力やfalseへ平坦化しない。
-6. light Projectionを削除・再生成してもcanonical sourceが変化しない。
-7. audit Projectionからbasis / provenance / responsibility等へ降りられる。
-8. hidden reasoning transcriptなしで一連の操作を成立させる。
-9. 実行後Observationを追加しても、過去Decisionのbasisを改変しない。
-10. actor kindからAuthority / Responsibilityを推定しない。
+1. HumanSurfaceとMachineSurfaceが同じcanonical sourceを利用する。
+2. Inquiryだけの最小状態から開始し、後から詳細化できる。
+3. machine側が追加したCapability Observation / Recommendationをhuman側が再読できる。
+4. human側が記録したDecisionをmachine側がDecisionとして再読できる。
+5. RecommendationとDecisionを同一recordへ平坦化しない。
+6. Unknown / Conflictをopaqueな`not_verified` recordとして失わず保持する。
+7. light / audit / structured Projectionを生成してもcanonical sourceを変更しない。
+8. audit viewからDecision basis、Responsibility、unresolved refsへ降りられる。
+9. private chain-of-thoughtを要求せずRecommendationを記録できる。
+10. post-decision Observationを追加してもhistorical Decision basisを改変しない。
+11. machine SurfaceであることからResponsibilityを自動付与しない。
+12. Surface-local stateを破棄してもcanonical artifactを失わない。
+13. 会話履歴だけのRecommendation相当文字列や画面状態だけのDecision相当文字列をcanonical recordとして扱わない。
+14. opaque recordを`validated`と偽って追加する操作を拒否する。
+
+詳細は`../../runtime/INTERACTION_PROBE_EVIDENCE_2026-09-01.md`を参照してください。
 
 このprobeのPASSは、production UIの使いやすさやPMS-03全体のOperational / Adoption Evidenceを意味しません。
 
@@ -274,6 +284,7 @@ interaction probe PASS
 - HTTP API / MCP / SDKのどれを最初の主要AI-facing surfaceにするか。
 - login / workspace / tenant等のIdentity / Collaboration設計。
 - production Storage。
+- process restart後のresume方式。
 - UI visual design。
 - impact levelを判定するproduction Policy / Profile。
 - agent orchestrationやworkflow engine。
@@ -282,13 +293,13 @@ Packaging / DeploymentはISSUE-000046、Identity / Authorization / Collaboration
 
 ## 14. Evidence状態
 
-- Product Interaction Design Evidence: **Established by this baseline**
-- Executable Evidence: **Not Yet Verified for first usable interaction**
+- Product Interaction Design Evidence: **Established**
+- Executable Evidence: **Scoped Evidence available** — `runtime/go/interactionprobe`とSemantic Runtime Conformance Run `33504002579`。
 - Release Evidence: **Not Yet Verified**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
 
-current V6 / V7 Projection evaluationやSCN-0018 harnessには関連するscoped Executable Evidenceがありますが、それらをfirst usable interactionの実証へ自動昇格させません。
+current reference probeは、異なるSurfaceが同じcanonical sourceへ接続できることを限定的に確認したものです。production supported Surface、production persistence、実AI integration、human usabilityはまだ確認していません。
 
 ## 15. 関連文書
 
@@ -296,10 +307,11 @@ current V6 / V7 Projection evaluationやSCN-0018 harnessには関連するscoped
 - `../roadmap/SOZA_PRODUCT_MILESTONES.md`
 - `../../requirements/PRODUCT_REQUIREMENTS.md`
 - `../../requirements/ACCEPTANCE_SCENARIOS.md`
+- `../../runtime/INTERACTION_PROBE_EVIDENCE_2026-09-01.md`
 - `../../plan/issue/ISSUE-000045-define-first-usable-product-interaction-boundary.md`
 - `../../plan/adr/ADR-0028-product-interaction-canonical-operation-boundary.md`
 - `../../plan/issue/ISSUE-000053-materialize-first-product-interaction-reference-probe.md`
 
 ## 16. Natural Japanese review
 
-Product Value、Product Shape、PMS-03、REQ-0001 / 0005 / 0006 / 0010 / 0011 / 0014 / 0015 / 0019、SCN-0013 / 0018、current Projection evaluationとend-to-end Semantic Product Journeyへ戻り、利用者の仕事とcanonical meaningの関係からInteraction boundaryを組み直しました。UI、conversation、session等を意味上の正本へ昇格させず、人間とAIが異なる入口から同じ意味へ戻れることを中心に据えています。そのうえで、意味、要求強度、未決事項、Evidenceの高さを変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Value、Product Shape、PMS-03、REQ-0001 / 0005 / 0006 / 0010 / 0011 / 0014 / 0015 / 0019、SCN-0013 / 0018、ADR-0028、`runtime/go/interactionprobe`、Semantic Runtime Conformance Run `33504002579`を照合し、利用者の仕事とcanonical meaningの関係からInteraction boundaryを再監査しました。reference probeで確認できたSurface間の意味共有、Projection非権威性、Recommendation / Decision分離等をExecutable Evidenceとして反映する一方、production UI、protocol、Storage、Identity、Operational / Adoptionは未検証のまま明確に残しています。UI、conversation、session等を意味上の正本へ昇格させず、新しいRequirementやUniversal概念も不要に追加していません。そのうえで、意味、要求強度、未決事項、Evidenceの高さを変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
