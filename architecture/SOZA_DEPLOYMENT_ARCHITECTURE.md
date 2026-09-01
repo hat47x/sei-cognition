@@ -102,13 +102,15 @@ filesystem probeでは、次の手順を使います。
 ```text
 complete bytes
   -> temporary file
-  -> flush / close
+  -> file sync / close
   -> rename to canonical file
 ```
 
 この手順はfirst filesystem Realizationの実装です。将来のDB transaction等を同じ方法へ揃えることは要求しません。
 
 重要なのは、不完全なwriteを正常なcanonical packageとして公開しないことです。
+
+reference probeではtemporary fileだけが存在する状態をcompleted packageとして扱わず、invalid canonical fileもSemantic Interchangeとして拒否することを確認しています。ただし、この実装だけでpower loss時のcrash durabilityやすべてのOS / filesystemにおけるatomicityを保証したとは主張しません。
 
 ## 6. 再開境界
 
@@ -126,6 +128,10 @@ resume
 
 未知Contract / versionはopaque `not_verified`のまま保持でき、runtimeが理解できないことを理由に削除しません。
 
+ISSUE-000054のprobeでは、同一test process内で元のBundle objectを破棄し、新しい`FilePersistence` / `LoadBundle`呼び出しから同じportable bytesとtyped recordを再構成できることを確認しました。
+
+これはin-memory runtime stateへ依存しない再構成のExecutable Evidenceです。literalなOS process終了・再起動や、executable version交換後のresumeはまだ未検証です。
+
 ## 7. export / import
 
 Persistence Adapterの内部形式が将来変わっても、portable Semantic InterchangeをStorage交換境界として利用します。
@@ -142,11 +148,15 @@ RDB / object-store / other adapter
 
 export / importでphysical locatorをsemantic identityへ変換しません。
 
+reference probeでは、filesystem Persistenceからoriginal bytesをexportし、memory Persistenceへimportした後に同じbundleを再読できることを確認しました。これはPersistence交換境界の限定Executable Evidenceであり、production DB / object store migrationを意味しません。
+
 ## 8. backup / restore
 
 最初のfilesystem profileでは、整合したcanonical fileを含むdata rootを別locationへ複製し、そこから新しいruntime instanceが同じbundleを再読できることを最小restore条件とします。
 
 running processのheap、Surface-local state、temporary fileは最小backupのcanonical対象ではありません。
+
+reference probeではcanonical bundle fileを別directoryへcopyし、restore先から同じSemantic Interchange bytesを再読できることを確認しました。外部payload等を含む将来のdata root全体のproduction backupは未検証です。
 
 online snapshot、incremental backup、PITRは後続Profileで扱います。
 
@@ -160,6 +170,8 @@ online snapshot、incremental backup、PITRは後続Profileで扱います。
 - save途中のtemporary fileしか存在しない。
 
 一方、Semantic Interchange内にruntime未知のnested Contractが含まれることは、それだけでpackage全体の破損とはみなしません。unknown recordは`not_verified`として保持します。
+
+reference probeでは、このfailure boundaryをactual testで確認しました。invalid importが失敗しても直前のvalid memory stateを置き換えません。
 
 ## 10. 将来のservice分割
 
@@ -189,12 +201,25 @@ PMS-05 / ISSUE-000047で、product access permissionとsemantic Authority / Resp
 ## 12. Evidence状態
 
 - Deployment Architecture Design Evidence: **Established**
-- filesystem packaged resume Executable Evidence: **Not Yet Verified at document creation time**
-- Storage migration Executable Evidence: **Not Yet Verified at document creation time**
+- filesystem persistence / runtime-state-independent reconstruction Executable Evidence: **Scoped Evidence available**
+- filesystem → memory Persistence migration Executable Evidence: **Scoped Evidence available**
+- canonical bundle copy / restore Executable Evidence: **Scoped Evidence available**
+- literal OS-process restart: **Not Yet Verified**
+- distributable package: **Not Yet Verified**
+- crash durability / cross-platform filesystem guarantee: **Not Yet Verified**
+- production Storage migration: **Not Yet Verified**
 - Release Evidence: **Not Yet Verified**
 - Operational Evidence: **Not Yet Verified**
 
-Executable EvidenceはISSUE-000054のreference probeで取得します。
+詳細は`../runtime/PACKAGING_PROBE_EVIDENCE_2026-09-01.md`を参照します。
+
+```text
+probe PASS
+  != production deployment proven
+  != literal process restart proven
+  != crash durability proven
+  != Release / Operational Evidence
+```
 
 ## 13. 関連文書
 
@@ -204,7 +229,8 @@ Executable EvidenceはISSUE-000054のreference probeで取得します。
 - `../plan/adr/ADR-0007-canonical-persistence-boundary.md`
 - `../plan/adr/ADR-0029-local-single-node-packaging-profile.md`
 - `../plan/issue/ISSUE-000054-materialize-packaged-resume-and-storage-migration-probe.md`
+- `../runtime/PACKAGING_PROBE_EVIDENCE_2026-09-01.md`
 
 ## 14. Natural Japanese review
 
-Reference Architecture、Product Packaging baseline、ADR-0007 / 0029、Semantic Interchange runtime、Payload Source、Product Interaction boundaryを照合し、Local Single-Node Packageをdeployment componentの配置として整理しました。単一processやfilesystem layoutをsemantic concernへ昇格させず、保存、再開、export / import、backup / restore、failureの境界を分けています。そのうえで、意味、Architecture上の責務、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Reference Architecture、Product Packaging baseline、ADR-0007 / 0029、Semantic Interchange runtime、Payload Source、Product Interaction boundary、`runtime/go/packagingprobe`とcurrent CI Evidenceを照合し、Local Single-Node Packageをdeployment componentの配置として再監査しました。単一processやfilesystem layoutをsemantic concernへ昇格させず、保存、再開、export / import、backup / restore、failureの境界を分けています。また、runtime object破棄後の再構成とliteral OS-process restart、filesystem→memory probeとproduction Storage migration、file sync / renameとcrash durability guaranteeを区別しています。そのうえで、意味、Architecture上の責務、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
