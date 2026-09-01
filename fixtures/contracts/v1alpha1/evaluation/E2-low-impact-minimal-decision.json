@@ -1,0 +1,11 @@
+{
+  "contract": "soza.decision-memory/v1alpha1",
+  "record_type": "decision",
+  "decision": {
+    "ref": {"kind": "decision", "id": "D-V6V7-low"},
+    "statement": "可逆なローカルプレビューを再実行する。",
+    "unresolved_refs": [
+      {"kind": "question", "id": "cosmetic-copy-review"}
+    ]
+  }
+}
