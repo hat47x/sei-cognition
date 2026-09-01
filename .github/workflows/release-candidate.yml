@@ -21,6 +21,23 @@ on:
       - "runtime/**"
       - "tools/**"
       - ".github/workflows/release-candidate.yml"
+  pull_request:
+    branches:
+      - "develop/v0.1.0"
+      - "develop/v0.2.0"
+    paths:
+      - "README.md"
+      - "product/**"
+      - "requirements/**"
+      - "architecture/**"
+      - "contracts/**"
+      - "evaluation/**"
+      - "fixtures/**"
+      - "plan/**"
+      - "release/**"
+      - "runtime/**"
+      - "tools/**"
+      - ".github/workflows/release-candidate.yml"
   workflow_dispatch:
     inputs:
       version:
@@ -51,6 +68,12 @@ jobs:
           set -euo pipefail
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             version="${{ inputs.version }}"
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            case "${GITHUB_BASE_REF}" in
+              develop/v0.1.0) version="0.1.0" ;;
+              develop/v0.2.0) version="0.2.0" ;;
+              *) echo "unsupported release candidate base: ${GITHUB_BASE_REF}" >&2; exit 1 ;;
+            esac
           else
             case "${GITHUB_REF_NAME}" in
               develop/v0.1.0|v0.1.0) version="0.1.0" ;;
