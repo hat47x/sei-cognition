@@ -73,7 +73,34 @@ Product Milestone
 
 historicalなM48 / M49等の実装順序とも区別します。
 
-## 6. 一つの開発単位で行うこと
+## 6. Production runtimeの実装言語
+
+ADR-0027に従い、SOZA自身が所有・配布するproduction runtimeとfirst-party reference implementationはGoを標準とします。
+
+一方、次へGoを一律に強制しません。
+
+- Semantic Contractそのもの
+- Cognitive Method Realization
+- Capability Provider
+- AI / ML研究
+- evaluation / analysis
+- fixture生成やone-shot tooling
+
+Python等で作ったprototypeをproductionへ進める場合は、次の順序で扱います。
+
+1. 外部Method / Providerとして明示的境界に残せるか確認する。
+2. SOZA first-party runtimeへ含める必要性を確認する。
+3. 含める必要がある場合は、Go移植と多言語runtime維持のコストを比較する。
+4. Go以外をfirst-party production runtimeへ採用する場合は、ADR-0027との整合またはRevisit理由を明示する。
+
+```text
+standard runtime language = Go
+connected implementation language != Go required
+```
+
+詳細は`architecture/IMPLEMENTATION_LANGUAGE_POLICY.md`とADR-0027を正とします。
+
+## 7. 一つの開発単位で行うこと
 
 一つの課題を進めるときは、必要な範囲で次を行います。
 
@@ -94,7 +121,7 @@ historicalなM48 / M49等の実装順序とも区別します。
 
 CI failureが出た場合は、最後まで先送りしません。**失敗を検出した時点で原因を解消し、successを確認してから後続作業へ進みます。**
 
-## 7. Requirementを増やす前の停止線
+## 8. Requirementを増やす前の停止線
 
 新しいREQ IDを付ける前に、少なくとも次を確認します。
 
@@ -109,7 +136,9 @@ CI failureが出た場合は、最後まで先送りしません。**失敗を�
 
 この監査の結果、新Requirementを作らないことも正当な完了です。
 
-## 8. 文書品質を後処理にしない
+実装言語も原則としてRequirementへ持ち込みません。Goはcurrent standard realizationであり、Goであること自体が利用者世界のsemantic obligationではありません。
+
+## 9. 文書品質を後処理にしない
 
 自然な日本語への再ドラフトは、release直前にまとめて行う後処理ではありません。
 
@@ -119,7 +148,7 @@ CI failureが出た場合は、最後まで先送りしません。**失敗を�
 
 ただし、このCIは自然な日本語の品質や文書の意味を自動判定しません。機械的なcoverage検査と、全文再ドラフト・最終意味監査は別の責務です。
 
-## 9. Evidenceを超える状態更新をしない
+## 10. Evidenceを超える状態更新をしない
 
 Product Value Acceptanceでは次の5段階を分けます。
 
@@ -135,7 +164,7 @@ Design Evidence
 
 Issue、Requirement、Milestone、README等の状態は、実際に確認できた高さまでだけ更新します。
 
-## 10. 実装順序を製品ontologyにしない
+## 11. 実装順序を製品ontologyにしない
 
 `M48`、`M49`、`M50`等はhistoricalな開発Milestoneです。
 
@@ -143,7 +172,7 @@ Issue、Requirement、Milestone、README等の状態は、実際に確認でき�
 
 意味上の前提が変わった場合は、旧実装を守ることよりProduct Value / Requirement / ADRへ戻って再検討することを優先します。
 
-## 11. Planning変更は可能な範囲でatomicにする
+## 12. Planning変更は可能な範囲でatomicにする
 
 ADR / Issue本文のStatus、`plan/registry.yaml`、関連文書を同時に変更する必要がある場合は、可能な範囲で一つの変更単位へまとめます。
 
@@ -151,7 +180,7 @@ ADR / Issue本文のStatus、`plan/registry.yaml`、関連文書を同時に変�
 
 分割commitが必要な場合は、最終branch状態でPlan integrityが成立し、途中状態を達成Evidenceとして扱わないようにします。
 
-## 12. CI failureの扱い
+## 13. CI failureの扱い
 
 CI failureは次の設計入力でもあります。
 
@@ -162,6 +191,6 @@ CI failureは次の設計入力でもあります。
 5. 必要ならIssue / Evidence文書へ原因と修正内容を残す。
 6. その後に次の作業へ進む。
 
-## 13. Natural Japanese review
+## 14. Natural Japanese review
 
-current Product Value、Product Shape、Product Journey、期限を持たないProduct Milestone、5段階Evidence、Document Review Registryへ戻ってworkflowを再構成した。未定領域では議論・実証をRequirementより先に置き、新Requirementを増やさない結論も正当な成果とする境界を追加したうえで、既存のbranch方針、Evidence境界、CI即時解消方針を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+current Product Value、Product Shape、Product Journey、期限を持たないProduct Milestone、5段階Evidence、Document Review Registry、ADR-0027のproduction runtime言語方針へ戻ってworkflowを再構成した。未定領域では議論・実証をRequirementより先に置き、production runtimeではGoを標準としながら、外部Method / Provider、AI / ML研究、評価へ言語制約を広げない境界を追加した。既存のbranch方針、Evidence境界、CI即時解消方針を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
