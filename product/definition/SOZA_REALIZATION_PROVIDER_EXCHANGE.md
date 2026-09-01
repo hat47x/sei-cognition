@@ -151,15 +151,42 @@ TEI repositoryはprivateです。SOZA CIの標準`GITHUB_TOKEN`へ別private rep
 
 ### E3b — live external process / service integration
 
-次の段階では、version固定artifactを読むだけでなく、SOZAとは独立した外部process / serviceを実際に呼びます。
+E3bでは、version固定artifactを読むだけでなく、SOZAとは独立した外部process / serviceを実際に呼びます。
 
-対象候補には次があります。
+一度にproduction integrationまで固定せず、現在はEvidenceを次の作業上のスライスへ分けています。
 
-- TEI CLIの既存JSON出力面
-- external Cognitive Method runner
-- AI / SaaS / custom service
+```text
+E3b-P1 public live Provider service
+  → E3b-P2 live TEI process / service
+  → E3b-M1 live external Cognitive Method execution
+```
 
-この段階では、credential、network failure、timeout、rate limit、version change等の現実の境界も扱います。
+P1 / P2 / M1はEvidenceの収集範囲を明示するための区分であり、SOZAのUniversal ontologyではありません。
+
+#### E3b-P1 — public live Provider service
+
+ISSUE-000059では、public GitHub REST APIの固定commit取得面をreference Providerとして実際に呼びました。
+
+- repository: `hat47x/cultural-substrate-weaving`
+- expected commit: `aa3651f3460a6db7dc70bd848f93b600f149ffe8`
+- External Integration E3b Run: `33568867910`
+
+live responseのcommit identityが期待値と一致した場合だけ、外部serviceへ到達できたことと期待revisionを確認できたことをcurrent Capability Observationへmappingします。GitHub固有の`node_id`、URL、response shape等はUniversal Contractへ転写しません。
+
+また、revision mismatch、HTTP failure、timeout / cancellationではCapability Observationを生成しないことをローカル再現可能なtestで確認しました。
+
+この範囲については**Scoped Executable Evidence available**です。
+
+#### E3b-P2 / M1 — 未検証
+
+次に残る主な対象は次です。
+
+- TEI CLIまたはserviceのlive invocation
+- external Cognitive Method runnerのlive execution
+- private credential
+- network degradation / rate limit
+- Realization version change時のProvenanceとhistorical reconstruction
+- formal integration protocolを本当に必要とするかの再判断
 
 **Not Yet Verified.**
 
@@ -173,7 +200,9 @@ TEI repositoryはprivateです。SOZA CIの標準`GITHUB_TOKEN`へ別private rep
 
 E3aでは、取得したartifactが本当に想定したsourceであるかを確認するため、repository、commit、path、Git blob identityを使います。また、検証済みbytesについてSHA-256も記録します。
 
-ただし、これらは取得・Provenanceのための情報です。
+E3b-P1では、live serviceから返された固定revisionが期待するrevisionと一致することを確認します。
+
+ただし、これらは取得・Provenance・Provider response verificationのための情報です。
 
 ```text
 repository / commit / path / blob identity
@@ -182,7 +211,7 @@ repository / commit / path / blob identity
   != Decision identity
 ```
 
-GitHubやGitを使っていること自体をSOZA Universal Coreへ持ち込みません。他のartifact storeへ交換できる余地を残します。
+GitHub、Git、HTTPを使っていること自体をSOZA Universal Coreへ持ち込みません。他のartifact storeやProvider serviceへ交換できる余地を残します。
 
 外部sourceのProvenanceは、current E3a probeではopaqueな`external-artifact-provenance` recordとして保持します。これは新しいUniversal Contractを意味しません。SOZAがそのmetadataを理解済みの普遍的意味として宣言するのではなく、source由来を失わず残すためのreference Realizationです。
 
@@ -200,8 +229,11 @@ GitHubやGitを使っていること自体をSOZA Universal Coreへ持ち込み�
 6. failed Realization / Provider / artifact verificationがcanonical sourceを中途半端に変更しない。
 7. process / binary / vendor / repositoryのidentityをsemantic identityへ短絡させない。
 8. 外部固有fieldをUniversal Contractへ漏らさない。
+9. live serviceの通信成功そのものをsemantic authorityへ昇格させない。
 
-## 8. 現在確認できているE3a Executable Evidence
+## 8. 現在確認できているE3 Executable Evidence
+
+### E3a
 
 External Integration E3a Run `33528003902`では、次がすべてsuccessしました。
 
@@ -216,17 +248,29 @@ External Integration E3a Run `33528003902`では、次がすべてsuccessしま�
 
 同じ初期headでは、Plan integrity Run `33528003813`とLocal Package Artifact Run `33528003781`もsuccessし、Semantic Runtime Conformance Run `33528003760`のruntime-conformance jobもsuccessしました。
 
-このEvidenceから、E3aの限定範囲についてはScoped Executable Evidenceがあると判断します。
+### E3b-P1
 
-一方、E3全体を成立とはしません。
+初回PR head `94253c845879ad2d8ad67f8e5ebe50249995d18b`では、次がすべてsuccessしました。
+
+- External Integration E3b Run `33568867910`
+- Semantic Runtime Conformance Run `33568867872`
+- Plan integrity Run `33568867865`
+- External Integration E3a Run `33568867847`
+- Local Package Artifact Run `33568867882`
+
+External Integration E3bでは、ローカル再現可能なsuccess / revision mismatch / HTTP failure / timeout / field non-leakage testに加え、public GitHub REST APIへのactual live callと固定commit identityの確認を実行しました。
+
+このEvidenceから、E3aとE3b-P1の限定範囲にはScoped Executable Evidenceがあると判断します。
+
+一方、E3b全体を成立とはしません。
 
 ```text
-E3a PASS
+E3a PASS + E3b-P1 PASS
   != external Method execution PASS
   != live private-repository acquisition PASS
   != live TEI process / service integration PASS
   != production credential / network / rate-limit portability
-  != E3b PASS
+  != E3b全体 PASS
   != E4 Operational portability
   != Release / Adoption / Outcome Evidence
 ```
@@ -246,9 +290,9 @@ E3a PASS
 - SCN-0014 — Execution Providerを交換する
 - SCN-0018 — Inquiryから実行後の再検討までを一続きに扱う
 
-E2のout-of-process化やE3aの外部artifact取得は、これらのRequirementに対するEvidenceを厚くするための実証です。Git repositoryやartifact取得という現在の実装方式だけを理由に、新しいProduct Requirementを作りません。
+E2のout-of-process化、E3aの外部artifact取得、E3b-P1のpublic live Provider invocationは、これらのRequirementに対するEvidenceを厚くするための実証です。Git repository、HTTP、GitHub REST APIという現在の実装方式だけを理由に、新しいProduct Requirementを作りません。
 
-E3bで既存Requirementでは表現できない独立したProduct failureが見つかった場合には、Open Question / Candidate Requirementへ戻して再検討します。
+今後のE3bで既存Requirementでは表現できない独立したProduct failureが見つかった場合には、Open Question / Candidate Requirementへ戻して再検討します。
 
 ## 10. 現時点で固定しないこと
 
@@ -258,7 +302,7 @@ E3bで既存Requirementでは表現できない独立したProduct failureが見
 - process isolationを全Realizationへ強制すること
 - Plugin SDKの正式仕様
 - Provider discovery / marketplace
-- GitHubを唯一のartifact sourceとすること
+- GitHubを唯一のartifact source / Provider serviceとすること
 - private repository credential方式
 - retry / circuit breaker / queue方式
 - secret management
@@ -270,7 +314,10 @@ E3bで既存Requirementでは表現できない独立したProduct failureが見
 - E1 Contract / in-process synthetic: **Scoped Executable Evidence available**
 - E2 out-of-process reference exchange: **Scoped Executable Evidence available**
 - E3a version-pinned external artifact integration: **Scoped Executable Evidence available** — External Integration E3a Run `33528003902`
-- E3b live external process / service integration: **Not Yet Verified**
+- E3b live external process / service integration: **Partial**
+  - E3b-P1 public live Provider service: **Scoped Executable Evidence available** — External Integration E3b Run `33568867910`
+  - E3b-P2 live TEI process / service: **Not Yet Verified**
+  - E3b-M1 live external Cognitive Method execution: **Not Yet Verified**
 - E4 Operational portability: **Not Yet Verified**
 - Release Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
@@ -280,8 +327,10 @@ E3bで既存Requirementでは表現できない独立したProduct failureが見
 - `../roadmap/SOZA_PRODUCT_MILESTONES.md`
 - `../../requirements/PRODUCT_REQUIREMENTS.md`
 - `../../requirements/ACCEPTANCE_SCENARIOS.md`
+- `../../runtime/LIVE_EXTERNAL_PROVIDER_EVIDENCE_2026-09-02.md`
 - `../../plan/issue/ISSUE-000057-materialize-out-of-process-realization-provider-exchange.md`
 - `../../plan/issue/ISSUE-000058-materialize-version-pinned-external-artifact-integration.md`
+- `../../plan/issue/ISSUE-000059-materialize-first-live-external-provider-integration.md`
 - `../../plan/adr/ADR-0013-capability-realization-boundary.md`
 - `../../plan/adr/ADR-0017-reference-model-cognitive-method-boundary.md`
 - `../../plan/adr/ADR-0024-provider-adapter-observation-mapping-boundary.md`
@@ -289,4 +338,4 @@ E3bで既存Requirementでは表現できない独立したProduct failureが見
 
 ## 13. Natural Japanese review
 
-Product Value、PMS-06、REQ-0001 / 0004 / 0005 / 0007 / 0021、SCN-0005 / 0014 / 0018、Cognitive Method Contract、Capability Observation Contract、Provider Adapter、ISSUE-000057 / 000058、E2のactual process test、E3aで使用した`cultural-substrate-weaving`とTEIの外部source、External Integration E3a Run `33528003902`へ戻り、Realization / Provider交換で何を変えてよく、何を判断記憶として維持する必要があるかを再監査した。E3をartifact integrationとlive process / service integrationに分けることで、semantic portabilityとrepository認証・network条件を混同していない。また、TEIだけを特別なProvider ontologyとして扱わず、外部Cognitive Methodと同じくProvenanceを持つ交換可能なRealizationとして位置付けた。外部sourceのbytesそのものはEvidenceとして改稿せず、SOZAが作成する説明・設計文書について、意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+Product Value、PMS-06、REQ-0001 / 0004 / 0005 / 0007 / 0021、SCN-0005 / 0014 / 0018、Cognitive Method Contract、Capability Observation Contract、Provider Adapter、ISSUE-000057 / 000058 / 000059、E2のactual process test、E3aで使用した`cultural-substrate-weaving`とTEIの外部source、External Integration E3a Run `33528003902`、E3b-P1の初回PR head `94253c845879ad2d8ad67f8f7a7cc0f808b2f6c4a`ではなく実際の評価head `94253c845879ad2d8ad67f8e5ebe50249995d18b`とExternal Integration E3b Run `33568867910`へ戻り、Realization / Provider交換で何を変えてよく、何を判断記憶として維持する必要があるかを再監査した。E3bをpublic live Provider、live TEI、live external Cognitive Methodへ作業上分割することで、最初のnetwork invocation成功をproduction portabilityへ広げていない。また、GitHubやTEIだけを特別なProvider ontologyとして扱わず、外部固有responseをProvenanceとAdapter境界の外側に保った。意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
