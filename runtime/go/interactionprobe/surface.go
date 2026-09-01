@@ -167,6 +167,7 @@ func (s *MachineSurface) RecordRecommendation(input RecommendationInput) error {
 type MethodApplicationInput struct {
 	Ref                semanticruntime.LogicalReference
 	MethodRef          semanticruntime.LogicalReference
+	RealizationRef     *semanticruntime.LogicalReference
 	ContextRefs        []semanticruntime.LogicalReference
 	InputRefs          []semanticruntime.LogicalReference
 	OutputRefs         []semanticruntime.LogicalReference
@@ -181,12 +182,18 @@ func (s *MachineSurface) RecordMethodApplication(input MethodApplicationInput) e
 	if s == nil || s.store == nil {
 		return errors.New("machine surface requires a canonical store")
 	}
+	var realizationRef *semanticruntime.Reference
+	if input.RealizationRef != nil {
+		value := ref(*input.RealizationRef)
+		realizationRef = &value
+	}
 	doc := &semanticruntime.CognitiveMethodDocument{
 		Contract:   semanticruntime.ContractCognitiveMethod,
 		RecordType: "method_application",
 		MethodApplication: &semanticruntime.MethodApplication{
 			Ref:                input.Ref,
 			MethodRef:          ref(input.MethodRef),
+			RealizationRef:     realizationRef,
 			ContextRefs:        refs(input.ContextRefs),
 			InputRefs:          refs(input.InputRefs),
 			OutputRefs:         refs(input.OutputRefs),
@@ -232,12 +239,37 @@ type LightItem struct {
 }
 
 type LightView struct {
-	Inquiry        LightItem
-	Observations   []LightItem
-	Unknowns       []LightItem
-	Conflicts      []LightItem
+	Inquiry         LightItem
+	Observations    []LightItem
+	Unknowns        []LightItem
+	Conflicts       []LightItem
 	Recommendations []LightItem
-	Decisions      []LightItem
+	Decisions       []LightItem
+}
+
+type AuditRecord struct {
+	Ref                semanticruntime.LogicalReference
+	Kind               string
+	Status             semanticruntime.RecordStatus
+	BasisRefs          []semanticruntime.LogicalReference
+	RecommendationRefs []semanticruntime.LogicalReference
+	UnresolvedRefs     []semanticruntime.LogicalReference
+	ResponsibilityRefs []semanticruntime.LogicalReference
+}
+
+type AuditView struct {
+	CanonicalDigest string
+	Records         []AuditRecord
+}
+
+type MachineRecord struct {
+	Ref    semanticruntime.LogicalReference `json:"ref"`
+	Kind   string                           `json:"kind"`
+	Status semanticruntime.RecordStatus     `json:"status"`
+}
+
+type MachineView struct {
+	Records []MachineRecord `json:"records"`
 }
 
 func (s *HumanSurface) LightView() (LightView, error) {
@@ -250,47 +282,26 @@ func (s *HumanSurface) LightView() (LightView, error) {
 	}
 	view := LightView{}
 	for _, record := range records {
-		item, kind, ok := lightItem(record)
+		ref, ok := recordLogicalRef(record)
 		if !ok {
 			continue
 		}
-		switch kind {
-		case "inquiry":
-			view.Inquiry = item
-		case "capability_observation":
-			view.Observations = append(view.Observations, item)
-		case "unknown":
-			view.Unknowns = append(view.Unknowns, item)
-		case "conflict":
-			view.Conflicts = append(view.Conflicts, item)
-		case "recommendation":
-			view.Recommendations = append(view.Recommendations, item)
-		case "decision":
-			view.Decisions = append(view.Decisions, item)
+		switch {
+		case record.EnvelopeRecord.Kind == "inquiry":
+			view.Inquiry = LightItem{Ref: ref, Text: opaqueText(record.EnvelopeRecord.Payload)}
+		case record.EnvelopeRecord.Kind == "unknown":
+			view.Unknowns = append(view.Unknowns, LightItem{Ref: ref, Text: opaqueText(record.EnvelopeRecord.Payload)})
+		case record.EnvelopeRecord.Kind == "conflict":
+			view.Conflicts = append(view.Conflicts, LightItem{Ref: ref, Text: opaqueText(record.EnvelopeRecord.Payload)})
+		case record.Capability != nil:
+			view.Observations = append(view.Observations, LightItem{Ref: ref, Text: capabilitySummary(record.Capability)})
+		case record.Decision != nil && record.Decision.Recommendation != nil:
+			view.Recommendations = append(view.Recommendations, LightItem{Ref: ref, Text: record.Decision.Recommendation.Statement})
+		case record.Decision != nil && record.Decision.Decision != nil:
+			view.Decisions = append(view.Decisions, LightItem{Ref: ref, Text: record.Decision.Decision.Statement})
 		}
 	}
 	return view, nil
-}
-
-type AuditRecord struct {
-	Ref                semanticruntime.LogicalReference
-	Kind               string
-	Status             semanticruntime.RecordValidationStatus
-	Statement          string
-	ContextRefs        []semanticruntime.LogicalReference
-	BasisRefs          []semanticruntime.LogicalReference
-	RecommendationRefs []semanticruntime.LogicalReference
-	UnresolvedRefs     []semanticruntime.LogicalReference
-	ResponsibilityRefs []semanticruntime.LogicalReference
-	ProvenanceRefs     []semanticruntime.LogicalReference
-	InputRefs          []semanticruntime.LogicalReference
-	OutputRefs         []semanticruntime.LogicalReference
-	ResidualRefs       []semanticruntime.LogicalReference
-}
-
-type AuditView struct {
-	CanonicalDigest string
-	Records         []AuditRecord
 }
 
 func (s *HumanSurface) AuditView() (AuditView, error) {
@@ -307,155 +318,86 @@ func (s *HumanSurface) AuditView() (AuditView, error) {
 	}
 	view := AuditView{CanonicalDigest: digest}
 	for _, record := range records {
-		view.Records = append(view.Records, auditRecord(record))
+		ref, ok := recordLogicalRef(record)
+		if !ok {
+			continue
+		}
+		item := AuditRecord{Ref: ref, Kind: recordKind(record), Status: record.Status}
+		if record.Decision != nil && record.Decision.Decision != nil {
+			item.BasisRefs = logicalRefs(record.Decision.Decision.BasisRefs)
+			item.RecommendationRefs = logicalRefs(record.Decision.Decision.RecommendationRefs)
+			item.UnresolvedRefs = logicalRefs(record.Decision.Decision.UnresolvedRefs)
+			item.ResponsibilityRefs = logicalRefs(record.Decision.Decision.ResponsibilityRefs)
+		}
+		view.Records = append(view.Records, item)
 	}
 	return view, nil
 }
 
-type StructuredRecord struct {
-	Ref                semanticruntime.LogicalReference `json:"ref"`
-	Kind               string                           `json:"kind"`
-	Status             semanticruntime.RecordValidationStatus `json:"status"`
-	Statement          string                           `json:"statement,omitempty"`
-	BasisRefs          []semanticruntime.LogicalReference `json:"basis_refs,omitempty"`
-	UnresolvedRefs     []semanticruntime.LogicalReference `json:"unresolved_refs,omitempty"`
-	ResponsibilityRefs []semanticruntime.LogicalReference `json:"responsibility_refs,omitempty"`
-}
-
-type StructuredView struct {
-	CanonicalDigest string             `json:"canonical_digest"`
-	Records         []StructuredRecord `json:"records"`
-}
-
-func (s *MachineSurface) StructuredView() (StructuredView, error) {
+func (s *MachineSurface) StructuredView() (MachineView, error) {
 	if s == nil || s.store == nil {
-		return StructuredView{}, errors.New("machine surface requires a canonical store")
-	}
-	digest, err := s.store.Digest()
-	if err != nil {
-		return StructuredView{}, err
+		return MachineView{}, errors.New("machine surface requires a canonical store")
 	}
 	records, err := s.store.Records()
 	if err != nil {
-		return StructuredView{}, err
+		return MachineView{}, err
 	}
-	view := StructuredView{CanonicalDigest: digest}
+	view := MachineView{Records: make([]MachineRecord, 0, len(records))}
 	for _, record := range records {
-		audit := auditRecord(record)
-		view.Records = append(view.Records, StructuredRecord{
-			Ref:                audit.Ref,
-			Kind:               audit.Kind,
-			Status:             audit.Status,
-			Statement:          audit.Statement,
-			BasisRefs:          audit.BasisRefs,
-			UnresolvedRefs:     audit.UnresolvedRefs,
-			ResponsibilityRefs: audit.ResponsibilityRefs,
-		})
+		ref, ok := recordLogicalRef(record)
+		if !ok {
+			continue
+		}
+		view.Records = append(view.Records, MachineRecord{Ref: ref, Kind: recordKind(record), Status: record.Status})
 	}
 	return view, nil
 }
 
-func (s *MachineSurface) ReadDecision(target semanticruntime.LogicalReference) (semanticruntime.Decision, error) {
-	if s == nil || s.store == nil {
-		return semanticruntime.Decision{}, errors.New("machine surface requires a canonical store")
-	}
-	record, found, err := s.store.Find(target)
+func (s *MachineSurface) ReadDecision(ref semanticruntime.LogicalReference) (semanticruntime.Decision, error) {
+	record, ok, err := s.store.Find(ref)
 	if err != nil {
 		return semanticruntime.Decision{}, err
 	}
-	if !found || record.Decision == nil || record.Decision.Decision == nil {
-		return semanticruntime.Decision{}, fmt.Errorf("decision not found: %s/%s", target.Kind, target.ID)
+	if !ok || record.Decision == nil || record.Decision.Decision == nil {
+		return semanticruntime.Decision{}, fmt.Errorf("decision not found: %s/%s", ref.Kind, ref.ID)
 	}
 	return *record.Decision.Decision, nil
 }
 
-func (s *MachineSurface) ReadRecommendation(target semanticruntime.LogicalReference) (semanticruntime.Recommendation, error) {
-	if s == nil || s.store == nil {
-		return semanticruntime.Recommendation{}, errors.New("machine surface requires a canonical store")
+func opaqueText(payload json.RawMessage) string {
+	var value opaqueTextPayload
+	if err := json.Unmarshal(payload, &value); err != nil {
+		return ""
 	}
-	record, found, err := s.store.Find(target)
-	if err != nil {
-		return semanticruntime.Recommendation{}, err
-	}
-	if !found || record.Decision == nil || record.Decision.Recommendation == nil {
-		return semanticruntime.Recommendation{}, fmt.Errorf("recommendation not found: %s/%s", target.Kind, target.ID)
-	}
-	return *record.Decision.Recommendation, nil
+	return value.Text
 }
 
-func lightItem(record semanticruntime.RuntimeRecord) (LightItem, string, bool) {
-	logical, ok := recordLogicalRef(record)
-	if !ok {
-		return LightItem{}, "", false
+func capabilitySummary(doc *semanticruntime.CapabilityObservationDocument) string {
+	if doc == nil {
+		return ""
 	}
-	kind := logical.Kind
-	item := LightItem{Ref: logical}
-
-	if record.Decision != nil {
-		if record.Decision.Recommendation != nil {
-			kind = "recommendation"
-			item.Text = record.Decision.Recommendation.Statement
-		}
-		if record.Decision.Decision != nil {
-			kind = "decision"
-			item.Text = record.Decision.Decision.Statement
-		}
+	parts := make([]string, 0, len(doc.Observation.Conditions))
+	for _, condition := range doc.Observation.Conditions {
+		parts = append(parts, condition.Key+"="+condition.State)
 	}
-	if record.Capability != nil {
-		kind = "capability_observation"
-		parts := make([]string, 0, len(record.Capability.Observation.Conditions))
-		for _, condition := range record.Capability.Observation.Conditions {
-			parts = append(parts, condition.Key+"="+condition.State)
-		}
-		item.Text = strings.Join(parts, ", ")
-	}
-	if record.CognitiveMethod != nil && record.CognitiveMethod.MethodApplication != nil {
-		kind = "method_application"
-		item.Text = record.CognitiveMethod.MethodApplication.Summary
-	}
-	if item.Text == "" && len(record.EnvelopeRecord.Payload) > 0 {
-		var payload opaqueTextPayload
-		if json.Unmarshal(record.EnvelopeRecord.Payload, &payload) == nil {
-			item.Text = payload.Text
-		}
-	}
-	return item, kind, true
+	return strings.Join(parts, ", ")
 }
 
-func auditRecord(record semanticruntime.RuntimeRecord) AuditRecord {
-	logical, _ := recordLogicalRef(record)
-	out := AuditRecord{Ref: logical, Kind: logical.Kind, Status: record.Status}
-	if item, kind, ok := lightItem(record); ok {
-		out.Kind = kind
-		out.Statement = item.Text
+func recordKind(record semanticruntime.RuntimeRecord) string {
+	if record.EnvelopeRecord.Kind != "" {
+		return record.EnvelopeRecord.Kind
 	}
 	if record.Decision != nil {
-		if record.Decision.Decision != nil {
-			decision := record.Decision.Decision
-			out.ContextRefs = logicalRefs(decision.ContextRefs)
-			out.BasisRefs = logicalRefs(decision.BasisRefs)
-			out.RecommendationRefs = logicalRefs(decision.RecommendationRefs)
-			out.UnresolvedRefs = logicalRefs(decision.UnresolvedRefs)
-			out.ResponsibilityRefs = logicalRefs(decision.ResponsibilityRefs)
-		}
-		if record.Decision.Recommendation != nil {
-			recommendation := record.Decision.Recommendation
-			out.ContextRefs = logicalRefs(recommendation.ContextRefs)
-			out.BasisRefs = logicalRefs(recommendation.BasisRefs)
-			out.ResponsibilityRefs = logicalRefs(recommendation.ResponsibilityRefs)
-		}
+		return record.Decision.RecordType
 	}
 	if record.Capability != nil {
-		out.ProvenanceRefs = logicalRefs(record.Capability.Observation.ProvenanceRefs)
+		return "capability_observation"
 	}
-	if record.CognitiveMethod != nil && record.CognitiveMethod.MethodApplication != nil {
-		application := record.CognitiveMethod.MethodApplication
-		out.ContextRefs = logicalRefs(application.ContextRefs)
-		out.InputRefs = logicalRefs(application.InputRefs)
-		out.OutputRefs = logicalRefs(application.OutputRefs)
-		out.ResidualRefs = logicalRefs(application.ResidualRefs)
-		out.ProvenanceRefs = logicalRefs(application.ProvenanceRefs)
-		out.ResponsibilityRefs = logicalRefs(application.ResponsibilityRefs)
+	if record.CognitiveMethod != nil {
+		return record.CognitiveMethod.RecordType
 	}
-	return out
+	if record.Reference != nil {
+		return record.Reference.RecordType
+	}
+	return "unknown"
 }
