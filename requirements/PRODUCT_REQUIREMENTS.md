@@ -1,6 +1,6 @@
 # SOZA Product Requirements
 
-更新日: 2026-08-31  
+更新日: 2026-09-01  
 状態: **Current Product Requirements Baseline**
 
 ## 1. この文書の位置づけ
@@ -20,7 +20,7 @@ Requirement Accepted
   != Adoption / Outcome Evidence Satisfied
 ```
 
-actual repositoryには現在、Product / Plan / Requirementsだけでなく、Reference Architecture、Contract Definition、JSON Schema、Fixture、Representation Profile、Goによるfirst semantic runtime slice、synthetic Provider Adapter、各種checker / CIが実体化されています。
+actual repositoryには現在、Product / Plan / Requirementsだけでなく、Reference Architecture、5 Semantic Contract family、JSON Schema、31 fixture、Representation Profile、Go semantic runtime、Cognitive Method typed runtime、synthetic Provider Adapter、V6/V7 Projection evaluation、end-to-end Semantic Product Journey harness、各種checker / CIが実体化されています。
 
 ただし、Executable EvidenceはRequirementごとに確認範囲が異なります。fixtureやruntime sliceで一部を直接検証できたRequirementだけを`Partially Satisfied`等として扱い、production Provider integration、Release、Operational、Adoption / Outcome Evidenceへは広げません。
 
@@ -60,7 +60,7 @@ actual repositoryには現在、Product / Plan / Requirementsだけでなく、R
 **Status:** Accepted  
 **Type:** Semantic / Interoperability  
 **Value:** V1, V3, V4, V8  
-**Related Scenarios:** SCN-0003, SCN-0005, SCN-0008, SCN-0014  
+**Related Scenarios:** SCN-0003, SCN-0005, SCN-0008, SCN-0014, SCN-0018  
 **Related ADRs:** ADR-0003, ADR-0007, ADR-0008, ADR-0014
 
 ### Requirement
@@ -78,7 +78,7 @@ SOZAの価値は現在の実装方式ではなく、技術が入れ替わって�
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Partially Satisfied** — Semantic Interchange、Logical Reference / Exact Binding metadata、Decision / Capabilityのcurrent fixtureとfirst runtime sliceで、意味を分けたまま読み込む境界を確認した。Storage migrationやproduction Provider交換までは未検証。
+- Executable: **Partially Satisfied** — Semantic Interchange、Logical Reference / Exact Binding metadata、Decision / Capability / Cognitive Methodのcurrent fixtureとruntimeで、意味を分けたまま読み込む境界を確認した。SCN-0018 harnessではInterchange loaderを通るProduct Journeyとhistorical Decision basis非改変も確認した。Storage migrationやproduction Provider交換までは未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -88,7 +88,7 @@ SOZAの価値は現在の実装方式ではなく、技術が入れ替わって�
 **Status:** Accepted  
 **Type:** Semantic  
 **Value:** V2, V5  
-**Related Scenarios:** SCN-0001, SCN-0003, SCN-0011, SCN-0016  
+**Related Scenarios:** SCN-0001, SCN-0003, SCN-0011, SCN-0016, SCN-0018  
 **Related ADRs:** ADR-0002, ADR-0010, ADR-0019
 
 ### Requirement
@@ -104,7 +104,7 @@ Observation、Unknown、Conflict、Hypothesis、Evidence Use、Assurance等の�
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Partially Satisfied** — F4 / F7、partial-knowledge interchange、Decision unresolved fixtureで`unknown`、`withheld`、未解決参照を保持できることを確認した。Inquiry全体のproduction runtimeは未実装。
+- Executable: **Partially Satisfied** — F4 / F7、partial-knowledge interchange、Decision unresolved fixtureで`unknown`、`withheld`、未解決参照を保持できる。SCN-0018 harnessでは未解決参照をDecision後も保持し、後続reviewへ入力できるsynthetic pathを確認した。Inquiry全体のproduction lifecycleは未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -128,7 +128,7 @@ Observation、Unknown、Conflict、Hypothesis、Evidence Use、Assurance等の�
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Partially Satisfied** — Capability Observationでprovenance / mapping provenanceを読み込める境界は確認した。Discovery route、Derivation、Method Applicationを横断するruntime sliceは未検証。
+- Executable: **Partially Satisfied** — Capability Observationでprovenance / mapping provenanceを読み込め、Cognitive Method Applicationのinput / output / residual Referenceもtyped runtimeで保持できる。Discovery routeや一般的Derivationを含むproduction経路は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -138,8 +138,8 @@ Observation、Unknown、Conflict、Hypothesis、Evidence Use、Assurance等の�
 **Status:** Accepted  
 **Type:** Semantic / Interoperability  
 **Value:** V3, V8  
-**Related Scenarios:** SCN-0005, SCN-0015  
-**Related ADRs:** ADR-0017
+**Related Scenarios:** SCN-0005, SCN-0015, SCN-0018  
+**Related ADRs:** ADR-0017, ADR-0025
 
 ### Requirement
 
@@ -154,7 +154,7 @@ SOZAが保持すべきなのは特定のPromptや実装ではなく、どの方�
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Not Yet Verified** — first runtime sliceはCognitive Method Applicationを直接実装対象としていない。
+- Executable: **Partially Satisfied** — `soza.cognitive-method/v1alpha1`、C1〜C8 fixture、negative / unknown-version boundary、Go typed runtimeによりMethod Definition / Realization / Applicationを分離してread / validate / reconstructできる。SCN-0018 harnessでもMethod ApplicationをRecommendation / Decisionとは別recordとして接続する。Method executorやproduction Realization交換は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -164,7 +164,7 @@ SOZAが保持すべきなのは特定のPromptや実装ではなく、どの方�
 **Status:** Accepted  
 **Type:** Semantic  
 **Value:** V1, V3, V5  
-**Related Scenarios:** SCN-0003, SCN-0009, SCN-0010, SCN-0016  
+**Related Scenarios:** SCN-0003, SCN-0009, SCN-0010, SCN-0016, SCN-0018  
 **Related ADRs:** ADR-0008, ADR-0010, ADR-0011
 
 ### Requirement
@@ -180,7 +180,7 @@ Decisionについて、少なくともその時点のIntent / Goal文脈、明�
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Partially Satisfied** — Decision basis / recommendation / unresolved / rationale / lineageをruntimeへ読み込み、F6で当時のCapability Observationへのexact basisを保持する境界を確認した。Authority Providerや実組織Decisionのproduction再構成は未検証。
+- Executable: **Partially Satisfied** — Decision basis / recommendation / unresolved / rationale / lineageをruntimeへ読み込み、F6で当時のCapability Observationへのexact basisを保持できる。SCN-0018 harnessではexecution後Observationをhistorical basisへ混入させず、execution success後もDecision statement / basisを非改変のまま保持することを確認した。Authority Providerや実組織Decisionのproduction再構成は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -190,7 +190,7 @@ Decisionについて、少なくともその時点のIntent / Goal文脈、明�
 **Status:** Accepted  
 **Type:** Semantic / Constraint  
 **Value:** V2  
-**Related Scenarios:** SCN-0002, SCN-0004, SCN-0009, SCN-0011  
+**Related Scenarios:** SCN-0002, SCN-0004, SCN-0009, SCN-0011, SCN-0018  
 **Related ADRs:** ADR-0010, ADR-0014, ADR-0016
 
 ### Requirement
@@ -210,7 +210,7 @@ AIの提案能力や自動化率が高まっても、責任線と統制可能性
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Partially Satisfied** — Recommendation without Decisionを正常に読み込み、Decision recordへの`authority`埋め込みをSchema / runtime双方で拒否できる。Action Intent / Execution runtimeはscope外。
+- Executable: **Partially Satisfied** — Recommendation without Decisionを正常に読み込み、Decision recordへの`authority`埋め込みをSchema / runtime双方で拒否できる。SCN-0018 harnessではRecommendation identityをDecisionとして流用するcaseを拒否し、execution successがhistorical Decision自体を書き換えないことも検査した。実Authorization / Action executionはscope外。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -220,7 +220,7 @@ AIの提案能力や自動化率が高まっても、責任線と統制可能性
 **Status:** Accepted  
 **Type:** Semantic / Interoperability  
 **Value:** V4, V8  
-**Related Scenarios:** SCN-0002, SCN-0011, SCN-0014  
+**Related Scenarios:** SCN-0002, SCN-0011, SCN-0014, SCN-0018  
 **Related ADRs:** ADR-0012, ADR-0013, ADR-0014, ADR-0019, ADR-0024
 
 ### Requirement
@@ -236,7 +236,7 @@ SOZAとの関係が近いこと、Provider kind、実装上の接続容易性だ
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Partially Satisfied** — F5でTEIとSaaSを同一Capabilityの異質なProvider候補として別Observationに保持できる。さらにsynthetic Provider A / Bでは、異なるProvider-specific input shapeをAdapter内に閉じたまま同一CapabilityのObservationへ変換し、Provider identityを分離して保持できることを確認した。production Provider adapter / interoperabilityは未検証。
+- Executable: **Partially Satisfied** — F5とsynthetic Provider A / Bで異なるProvider-specific inputを同一CapabilityのObservationへ収束させ、Provider identityを分離して保持できる。SCN-0018 harnessでは交換前後Observationが同じCapabilityを参照しつつProviderだけが異なることを検査する。production Provider adapter / interoperabilityは未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -246,7 +246,7 @@ SOZAとの関係が近いこと、Provider kind、実装上の接続容易性だ
 **Status:** Accepted  
 **Type:** Semantic  
 **Value:** V1, V2, V3  
-**Related Scenarios:** SCN-0002, SCN-0003, SCN-0009  
+**Related Scenarios:** SCN-0002, SCN-0003, SCN-0009, SCN-0018  
 **Related ADRs:** ADR-0004, ADR-0010, ADR-0011
 
 ### Requirement
@@ -260,7 +260,7 @@ Outcomeだけを保存すると、同じ結果へ至った異なる責任線・�
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Partially Satisfied** — Decision / Recommendation / Capability / Provider referenceを別構造として保持できる。Cognitive Methodと実Responsibilityを含むend-to-end経路は未検証。
+- Executable: **Partially Satisfied** — Decision / Recommendation / Capability / Provider / Cognitive Methodを別構造として保持できる。SCN-0018 collaborative pathではMethod Application側とDecision側のResponsibility Referenceを分離して一続きに検査している。実主体・Authority Providerを含むproduction経路は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -314,7 +314,7 @@ storage revision、representation change、content digest changeを、それだ�
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Not Yet Verified** — Profile / Policy駆動の明示性切替を実行するcurrent runtimeは未実装。
+- Executable: **Partially Satisfied** — V6/V7 Projection evaluationで、low-impactのminimal Decisionにはlight Projectionを許容し、high-impactのrich Decisionではaudit detailを要求するsynthetic policy boundaryを検査した。productionのimpact判定Policy / Profile runtimeや実利用上の入力負担は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -324,7 +324,7 @@ storage revision、representation change、content digest changeを、それだ�
 **Status:** Accepted  
 **Type:** Constraint  
 **Value:** V6, V8  
-**Related Scenarios:** SCN-0006, SCN-0013  
+**Related Scenarios:** SCN-0006, SCN-0013, SCN-0018  
 **Related ADRs:** ADR-0007
 
 ### Requirement
@@ -339,8 +339,8 @@ UIや可視化方式は技術進歩や利用目的によって大きく変わる
 
 ### Current Evidence
 
-- Design: **Partially Satisfied** — Reference ArchitectureでProjectionをDurable Semantic Coreから分離済み。Projection-specificなContract / Scenarioの具体化はまだ限定的。
-- Executable: **Not Yet Verified**
+- Design: **Partially Satisfied** — Reference ArchitectureでProjectionをDurable Semantic Coreから分離し、SCN-0006 / 0013 / 0018で意味境界を具体化している。production Projection lifecycleの設計はまだ限定的。
+- Executable: **Partially Satisfied** — V6/V7 evaluationで同じcanonical sourceからlight / audit Projectionを再生成してもsource digestを変えないことを確認した。SCN-0018 harnessではProjectionがcanonical recordsと併存してもauthorityにならず、canonical Decisionを除去してProjectionだけを残すcaseをDecision欠落として拒否する。production UI交換は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -376,7 +376,7 @@ UIや可視化方式は技術進歩や利用目的によって大きく変わる
 **Status:** Accepted  
 **Type:** Constraint  
 **Value:** V2, V4  
-**Related Scenarios:** SCN-0004, SCN-0009  
+**Related Scenarios:** SCN-0004, SCN-0009, SCN-0018  
 **Related ADRs:** ADR-0004, ADR-0012, ADR-0016
 
 ### Requirement
@@ -392,7 +392,7 @@ UIや可視化方式は技術進歩や利用目的によって大きく変わる
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Partially Satisfied** — Decision schema / runtimeへAuthority fieldを混入させない境界は確認した。Authorization Providerとの実接続は未検証。
+- Executable: **Partially Satisfied** — Decision schema / runtimeへAuthority fieldを混入させない境界に加え、SCN-0018 collaborative pathでMethod側とDecision側のResponsibilityを別Referenceとして要求する。actor kindからAuthorityは生成しない。Authorization Providerとの実接続は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -402,7 +402,7 @@ UIや可視化方式は技術進歩や利用目的によって大きく変わる
 **Status:** Accepted  
 **Type:** Semantic  
 **Value:** V1, V3, V5  
-**Related Scenarios:** SCN-0001, SCN-0003, SCN-0016  
+**Related Scenarios:** SCN-0001, SCN-0003, SCN-0016, SCN-0018  
 **Related ADRs:** ADR-0010
 
 ### Requirement
@@ -417,8 +417,8 @@ Decisionが行われたことは、すべての不確実性が解消したこと
 
 ### Current Evidence
 
-- Design: **Partially Satisfied** — Decision MemoryとReference Architectureで未解決参照の保持は定義済みだが、reopen condition自体のcurrent Contractはまだ固定していない。
-- Executable: **Partially Satisfied** — Decision with unresolved fixtureとruntime testで未解決参照を保持できることを確認した。
+- Design: **Partially Satisfied** — Decision MemoryとReference Architectureで未解決参照の保持は定義済みだが、reopen condition自体のcurrent Universal Contractは固定していない。
+- Executable: **Partially Satisfied** — Decision with unresolved fixtureとruntimeで未解決参照を保持できる。SCN-0018 harnessではDecisionの`unresolved_refs`とexecution後の新しいObservationを後続reopen Method Applicationのinputとして引き渡すsynthetic pathを確認した。実業務上のInquiry lifecycle / reopen policyは未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -428,8 +428,8 @@ Decisionが行われたことは、すべての不確実性が解消したこと
 **Status:** Accepted  
 **Type:** Constraint  
 **Value:** V2, V6, V8  
-**Related Scenarios:** SCN-0005, SCN-0015  
-**Related ADRs:** ADR-0017
+**Related Scenarios:** SCN-0005, SCN-0015, SCN-0018  
+**Related ADRs:** ADR-0017, ADR-0025
 
 ### Requirement
 
@@ -444,7 +444,7 @@ private chain-of-thoughtは共有可能な長期契約ではなく、モデル�
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Partially Satisfied** — first runtime sliceは外在化されたContract ArtifactだけからDecision / Capability等を再構成し、private chain-of-thoughtを入力契約として要求しない。Cognitive Method Application全体は未実装。
+- Executable: **Partially Satisfied** — semantic runtimeとCognitive Method Contractは外在化されたDefinition / Realization / Application、input / output / residual Referenceだけから再構成し、private chain-of-thoughtを入力契約として要求しない。SCN-0018 harnessも外在化recordだけを接続する。Method実行品質やproduction AI Providerは未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -470,7 +470,7 @@ private chain-of-thoughtは共有可能な長期契約ではなく、モデル�
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Partially Satisfied** — Capability Observationとmapping provenanceを別要素として保持し、Provider stateをDecisionへ直接昇格させないfixtureを検証した。synthetic Provider A / Bでもstatus interpretationやunit conversionをmappingとして明示し、source state / mapping provenanceを保持したままObservationへ変換できることを確認した。一般的なObservation / Hypothesis runtimeは未実装。
+- Executable: **Partially Satisfied** — Capability Observationとmapping provenanceを別要素として保持し、Provider stateをDecisionへ直接昇格させないfixtureを検証した。synthetic Provider A / Bでもstatus interpretationやunit conversionをmappingとして明示し、source state / mapping provenanceを保持したままObservationへ変換できる。一般的なObservation / Hypothesis runtimeは未実装。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -480,7 +480,7 @@ private chain-of-thoughtは共有可能な長期契約ではなく、モデル�
 **Status:** Accepted  
 **Type:** Semantic / Constraint  
 **Value:** V1, V2  
-**Related Scenarios:** SCN-0003, SCN-0009  
+**Related Scenarios:** SCN-0003, SCN-0009, SCN-0018  
 **Related ADRs:** ADR-0004, ADR-0010, ADR-0016
 
 ### Requirement
@@ -496,7 +496,7 @@ Responsibilityの記録からAuthorization、Credential、Trust、actor hierarch
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Partially Satisfied** — Decision / Recommendationはcontextual responsibility refsを保持できる。実際のSubject / Authority Provider統合は未検証。
+- Executable: **Partially Satisfied** — Decision / Recommendation / Cognitive Method Applicationはcontextual responsibility refsを保持できる。SCN-0018 collaborative pathではMethod Application側とDecision側のResponsibilityが別であることを検査する。実Subject / Authority Provider統合は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -548,7 +548,7 @@ SOZAの重要なArtifact、Requirement、Decision、Evidence関係は、AIが構
 ### Current Evidence
 
 - Design: **Partially Satisfied** — human-readable Contract Definitionとmachine-readable Schemaを分け、Contract Definitionをsemantic normative sourceとしている。実利用での人間向けProjection usabilityは未検証。
-- Executable: **Partially Satisfied** — Schema / validator / Go runtimeが同じContract fixtureを扱える。人間向けProjectionのExecutable Evidenceは未確認。
+- Executable: **Partially Satisfied** — Schema / validator / Go runtimeが同じContract fixtureを扱える。V6/V7 evaluationではlight / audit Projectionがmachine-readable canonical sourceとsemantic questions上で一致することを確認した。実利用者による可読性・理解度は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -558,7 +558,7 @@ SOZAの重要なArtifact、Requirement、Decision、Evidence関係は、AIが構
 **Status:** Accepted  
 **Type:** Constraint / Non-functional  
 **Value:** V1, V6  
-**Related Scenarios:** SCN-0010, SCN-0017  
+**Related Scenarios:** SCN-0010, SCN-0017, SCN-0018  
 **Related ADRs:** ADR-0009, ADR-0018, ADR-0020
 
 ### Requirement
@@ -574,7 +574,7 @@ SOZA自身がEvidenceと判断を扱う基盤である以上、自身の開発�
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Partially Satisfied** — Requirements registry checker、Contract Conformance、Representation Profile Conformance、Semantic Runtime Conformanceで、対象範囲と非対象範囲を分けたEvidenceを実際に運用している。
+- Executable: **Partially Satisfied** — Requirements Registry、Contract / Profile / Runtime Conformance、V6/V7 evaluation、SCN-0018 Journey harnessで対象範囲と非対象範囲を分けたEvidenceを運用している。SCN-0018もfixture-scoped PASSを`Partially Satisfied`に留め、production Product Acceptanceへ昇格していない。
 - Release: **Not Yet Verified** — CI PASSをrelease成立へ昇格していない。
 - Operational: **Not Yet Verified** — CI PASSやsynthetic testをproduction成立へ昇格していない。
 - Adoption / Outcome: **Not Yet Verified** — 実利用による判断、再検討、説明可能性、Provider選択、業務成果への価値実現はまだ検証していない。
@@ -584,8 +584,8 @@ SOZA自身がEvidenceと判断を扱う基盤である以上、自身の開発�
 **Status:** Accepted  
 **Type:** Interoperability / Non-functional  
 **Value:** V4, V8  
-**Related Scenarios:** SCN-0005, SCN-0008, SCN-0014  
-**Related ADRs:** ADR-0013, ADR-0014, ADR-0017, ADR-0024
+**Related Scenarios:** SCN-0005, SCN-0008, SCN-0014, SCN-0018  
+**Related ADRs:** ADR-0013, ADR-0014, ADR-0017, ADR-0024, ADR-0025
 
 ### Requirement
 
@@ -600,7 +600,7 @@ Cognitive Method Realization、Capability Provider、Execution Provider、Projec
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Partially Satisfied** — Go runtimeをContract semantic authorityから分離し、Representation verifier implementationもProfile authorityから分けている。さらにsynthetic Provider A / Bの異なるinput schemaをAdapter-localに保ったまま同じCapability Observation Contractへ収束できることを確認した。production Provider、Storage、Execution Providerの実差し替えは未検証。
+- Executable: **Partially Satisfied** — Go runtimeをContract semantic authorityから分離し、Representation verifier implementationもProfile authorityから分けている。Cognitive MethodではDefinition / Realization / Applicationを分離し、synthetic Provider A / Bは異なるinput schemaをAdapter-localに保ったまま同じCapability Observationへ収束する。SCN-0018ではno-execution path、Provider replacement boundary、Projection非権威を検査している。production Provider / Storage / Execution Providerの実差し替えは未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -610,7 +610,7 @@ Cognitive Method Realization、Capability Provider、Execution Provider、Projec
 **Status:** Accepted  
 **Type:** Semantic / Interoperability  
 **Value:** V1, V2, V4, V5, V8  
-**Related Scenarios:** SCN-0002, SCN-0011, SCN-0012, SCN-0010  
+**Related Scenarios:** SCN-0002, SCN-0010, SCN-0011, SCN-0012, SCN-0018  
 **Related ADRs:** ADR-0006, ADR-0008, ADR-0012, ADR-0013, ADR-0014, ADR-0019, ADR-0024
 
 ### Requirement
@@ -628,7 +628,7 @@ Provider Independenceを守りつつ、実際のCapability Choiceに必要な状
 ### Current Evidence
 
 - Design: **Satisfied** — ADR-0019、ADR-0024、Capability Observation Contract、Reference Architectureで境界をAccepted。
-- Executable: **Partially Satisfied** — F1〜F7をContract checkerとGo semantic runtimeの双方で検証し、Provider-neutral observation、provider-specific reference、mapping provenance、Unknown / Withheld、historical exact basisを保持できる。さらにsynthetic Provider A / Bで、異なるinput shape、status interpretation、unit conversion、missing値の`unknown`保持、mapping provenance、source state reference、Provider-specific fieldの非漏洩、Decision / Authority / Executionへの非昇格を検査している。production Provider adapter / interoperabilityは未検証。
+- Executable: **Partially Satisfied** — F1〜F7をContract checkerとGo runtimeで検証し、Provider-neutral observation、provider-specific reference、mapping provenance、Unknown / Withheld、historical exact basisを保持できる。synthetic Provider A / Bではinput shape、status interpretation、unit conversion、missing値の`unknown`保持、mapping provenance、source state reference、Provider-specific fieldの非漏洩、Decision / Authority / Executionへの非昇格を検査している。SCN-0018 harnessでも同一Capabilityに対する異Provider Observationとexecution後Observationのprovenanceを扱う。production Provider adapter / interoperabilityは未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -643,6 +643,7 @@ Provider Independenceを守りつつ、実際のCapability Choiceに必要な状
 REQ-0003 Provenance
   + REQ-0005 Decision reconstruction
   + REQ-0009 Revision integrity
+  + REQ-0014 residual / reopen
   + REQ-0018 Storage independence
 ```
 
@@ -671,6 +672,16 @@ REQ-0010 Progressive explicitness
   + REQ-0019 Human / AI readability
 ```
 
+### Product Journey統合
+
+```text
+SCN-0018
+  = existing REQ composition
+  != new workflow ontology
+```
+
+SCN-0018は、上記Requirement群を一つの代表的なJourneyで同時に検査するための統合Scenarioです。Product Journeyの順序やUI都合を、それだけで新しいUniversal Requirementへ昇格させません。
+
 ## 4. Current evidence baseline
 
 current actual repositoryでは、次のEvidence層まで存在します。
@@ -678,7 +689,7 @@ current actual repositoryでは、次のEvidence層まで存在します。
 ### Design Evidence
 
 ```text
-Product Value
+Product Value / Value Proposition / Product Shape
   → Requirement / Scenario
   → ADR
   → Reference Architecture
@@ -690,22 +701,31 @@ Product Value
 現在、少なくとも次をactual CIで再現しています。
 
 - Requirements Registry Conformance
-- Contract Conformance
+- current 31-fixture Contract Conformance
 - Capability Observation F1〜F7
+- Cognitive Method C1〜C8 / boundary / negative fixtures
 - Representation Profile Conformance
-- first Semantic Runtime Conformance
+- semantic runtime / Cognitive Method typed runtime
 - synthetic Provider Adapter A / B mapping tests
+- V6 / V7 Projection Evaluation
+- end-to-end Semantic Product Journey harness
 
-first semantic runtime sliceはSemantic Runtime Conformance run #3（Run ID `33348972805`）で、current Contract fixture checkerと`go test ./...`の双方が成功しました。
+current SCN-0018正本Evidence更新後の代表Run:
 
-synthetic Provider Adapterはrun #4（Run ID `33349604842`）で最初のsuccessを確認し、Provider-specific fieldの非漏洩検査を追加したrun #5（Run ID `33349801993`）でもsuccessしています。
+- Requirements Registry Conformance Run `33478396211`: **success**
+- Semantic Runtime Conformance Run `33478396131`: **success**
+- V6 V7 Projection Evaluation Run `33478396138`: **success**
+- Plan integrity Run `33478396165`: **success**
 
-ただし、これらのExecutable Evidenceは各fixture / runtime sliceの確認範囲に限定されます。
+Journey harness自体ではRun `33478127484`でnormal / uncertain / collaborative / provider replacement / no-execution、temporal integrity、historical Decision非改変、unsupported record、Projection非権威をfixture-scopedに確認しています。
+
+ただし、これらのExecutable Evidenceは各fixture / runtime / evaluation sliceの確認範囲に限定されます。
 
 ```text
-fixture / runtime CI PASS
+fixture / runtime / journey CI PASS
   != whole Requirement satisfied
-  != Provider production integration
+  != production Provider integration
+  != production Product Journey validated
   != Release Evidence
   != Operational Evidence
   != Adoption / Outcome Evidence
@@ -715,7 +735,7 @@ Requirementごとの`Current Evidence`は、この境界を前提として更新
 
 ### Release / Operational / Adoption・Outcome
 
-2026-08-31時点では、Release、Operational、Adoption / Outcomeのいずれもcurrent Requirement全体についてSatisfiedとは主張しません。
+2026-09-01時点では、Release、Operational、Adoption / Outcomeのいずれもcurrent Requirement全体についてSatisfiedとは主張しません。
 
 ```text
 release artifact verified
@@ -731,8 +751,6 @@ release artifact verified
 
 旧番号や旧Evidence状態はcurrent正本ではありません。詳細な対応は`history/HISTORICAL_REQUIREMENT_MAPPING.md`を参照します。
 
-## 6. 自然な日本語ドラフト
+## 6. Natural Japanese review
 
-Product Value、Value Model、Value Acceptance、Accepted ADR、current Architecture / Contract / Representation Profile / Runtime、synthetic Provider Adapter、actual CI Evidence、およびhistorical candidateの意味核を照合し、Requirement本文の意味や要求強度を変えずにEvidence欄を現在状態へ再基線化しました。
-
-そのうえで、Design / Executable / Release / Operational / Adoption・Outcomeの区別、未検証事項、production境界を変えない範囲で、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しています。
+Product Value、Value Proposition、Product Shape、Value Model、Value Acceptance、Accepted ADR、current Architecture、5 Semantic Contract family、31 fixture、Representation Profile、semantic runtime、Cognitive Method typed runtime、synthetic Provider Adapter、V6/V7 Projection evaluation、SCN-0018 end-to-end Product Journey harness、actual CI Evidence、およびhistorical candidateの意味核を照合し、Requirement本文の意味や要求強度を変えずにEvidence欄をcurrent状態へ再基線化しました。とくにCognitive Method、historical Decision非改変、Projection非権威、残差からreopenへの引継ぎは、実際に検査できたsynthetic範囲だけ`Partially Satisfied`へ反映しています。そのうえで、Design / Executable / Release / Operational / Adoption・Outcomeの区別、未検証事項、production境界を変えない範囲で、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
