@@ -19,7 +19,7 @@ reviewed:
 
   - scope: product/README.md
     status: revised
-    note: Product Value、Product Shape、期限を持たないProduct Milestone、Product Interaction、未定領域の探索手順をcurrent Product入口として再整理し、first Product Interaction reference probeの限定Executable Evidenceを同期済み。
+    note: Product Value、Product Shape、期限を持たないProduct Milestone、Product Interaction、Product Packaging、未定領域の探索手順をcurrent Product入口として再整理し、InteractionとPackagingの限定Executable Evidenceを同期済み。
   - scope: product/value/*.md
     status: revised
     coverage:
@@ -42,7 +42,7 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_MILESTONES.md
-    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義し、PMS-03をProduct Interaction Design成立 / scoped Executable Evidence availableへ同期済み。PMS-04はLocal Single-Node PackageのDesign boundaryを別文書で正本化し、Executable EvidenceはISSUE-000054へ分離している。
+    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-03はInteractionのscoped Executable Evidence、PMS-04はPackaging Designとscoped Persistence / resume / Storage migration Evidenceまでを反映し、distributable packageやliteral process restartへは昇格させていない。
   - scope: product/interaction/*.md
     status: revised
     coverage:
@@ -52,7 +52,7 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_PACKAGING.md
-    note: Local Single-Node Packageを最初のPackaging Profileとして定義し、Go runtime、replaceable Persistence、durable data root、portable Semantic Interchangeを分離した。filesystemを最初のRealizationとして扱う一方、file pathや単一processをsemantic authorityへ昇格させない境界を自然な日本語で正本化済み。
+    note: Local Single-Node Packageを最初のPackaging Profileとして定義し、Go runtime、replaceable Persistence、durable data root、portable Semantic Interchangeを分離した。ISSUE-000054のprobe結果を同期し、filesystem / memory間の限定Evidenceをproduction Storageや配布物の成立へ過大評価しない境界も自然な日本語で正本化済み。
 
   - scope: plan/adr/ADR-*.md
     status: revised
@@ -61,7 +61,7 @@ reviewed:
   - scope: plan/issue/ISSUE-*.md
     status: revised
     coverage: ISSUE-000001..ISSUE-000054
-    note: ISSUE-000053のProduct Interaction reference probe、ISSUE-000046のPackaging Design closure、ISSUE-000054のpackaged resume / Storage migration probe計画を含め、自然な日本語全文再ドラフトと最終意味監査まで実施済み。
+    note: ISSUE-000053のProduct Interaction reference probe、ISSUE-000046のPackaging Design closure、ISSUE-000054のpackaged persistence / Storage migration probe実体化とEvidence境界を含め、自然な日本語全文再ドラフトと最終意味監査まで実施済み。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -76,7 +76,7 @@ reviewed:
       - requirements/PRODUCT_REQUIREMENTS.md
       - requirements/ACCEPTANCE_SCENARIOS.md
       - requirements/PRODUCT_JOURNEY_COMPOSITION.md
-    note: SCN-0018の正本化とProduct Journey composition analysisを含め、Requirement / Scenario / Testの境界を維持したまま監査済み。Product InteractionおよびPackaging Designでは既存REQ / SCNを先に再利用し、新しいIDを機械的に追加していない。
+    note: SCN-0018の正本化とProduct Journey composition analysisを含め、Requirement / Scenario / Testの境界を維持したまま監査済み。Product InteractionとPackagingのprobe後も既存REQ / SCNを先に再利用し、新しいIDを機械的に追加していない。
   - scope: requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md
     status: revised
 
@@ -88,7 +88,7 @@ reviewed:
       - architecture/SOZA_DEPLOYMENT_ARCHITECTURE.md
       - architecture/IMPLEMENTATION_LANGUAGE_POLICY.md
       - architecture/TRACEABILITY.md
-    note: ADR-0027に基づくGo production runtime標準、ADR-0028のProduct Interaction境界に加え、ADR-0029のLocal Single-Node Deploymentをcomponent配置として定義した。単一process、filesystem layout、Persistence interfaceをUniversal semantic modelへ昇格させない境界を維持している。
+    note: ADR-0027に基づくGo production runtime標準、ADR-0028のProduct Interaction境界、ADR-0029のLocal Single-Node Deploymentをcurrent Architectureへ配置した。Packaging probe Evidenceも反映し、単一process、filesystem layout、Persistence interfaceをUniversal semantic modelへ昇格させない境界を維持している。
   - scope: architecture/history/HISTORICAL_ARCHITECTURE_MAPPING.md
     status: revised
 
@@ -127,6 +127,9 @@ reviewed:
   - scope: runtime/INTERACTION_PROBE_EVIDENCE_2026-09-01.md
     status: revised
     note: human-oriented / machine-oriented Surfaceが同じcanonical sourceを扱うreference probeのScoped Executable Evidenceを、production UX・protocol・Storage・Identity・Operational / Adoptionへ過大評価しない境界とともに自然な日本語で記録済み。
+  - scope: runtime/PACKAGING_PROBE_EVIDENCE_2026-09-01.md
+    status: revised
+    note: filesystem persistence、in-memory runtime state破棄後の再構成、canonical bundle copy / restore、filesystemからmemory Persistenceへの移行をScoped Executable Evidenceとして記録し、literal OS-process restart、crash durability、production Storage migration、Release / Operational / Adoptionへ昇格させない境界を自然な日本語で明示済み。
 
   - scope: evaluation/v6-v7/*.md
     status: revised
