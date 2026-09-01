@@ -1,6 +1,6 @@
 # SOZA Value Traceability
 
-更新日: 2026-08-31  
+更新日: 2026-09-01  
 状態: **Current Product Value Traceability Baseline**
 
 ## 1. この文書の役割
@@ -17,6 +17,7 @@
 - Contract: `../../contracts/TRACEABILITY.md`および各Contract Definition
 - Representation Profile: `../../contracts/profiles/`
 - runtime: `../../runtime/go/`
+- V6 / V7 evaluation: `../../evaluation/v6-v7/`
 - 設計判断: `../../plan/adr/`
 - 作業・Evidence状態: `../../plan/issue/`
 
@@ -34,7 +35,7 @@ Product Value
   → ADR
   → Architecture concern
   → Contract / Representation Profile / Runtime / Provider Adapter
-  → Fixture / Test / CI
+  → Projection Evaluation / Fixture / Test / CI
   → Evidence state
 ```
 
@@ -51,8 +52,8 @@ Product Value
 | **V3 Revision Integrity** | REQ-0001, 0003, 0004, 0005, 0008, 0009, 0014, 0018 | SCN-0003, 0005, 0008, 0010, 0015, 0016 | ADR-0003, 0007, 0008, 0009, 0010, 0011, 0017, 0021, 0023, 0024 | lineage / exact binding invariant、Representation Profile fixture、runtime validation、Adapter mapping provenance |
 | **V4 Provider Independence** | REQ-0001, 0007, 0012, 0013, 0021, 0022 | SCN-0002, 0007, 0010, 0011, 0012, 0014 | ADR-0006, 0012, 0013, 0014, 0019, 0021, 0022, 0024 | Capability Observation F1〜F7、cross-provider fixture、synthetic Provider A/B Adapter slice |
 | **V5 Uncertainty Preservation** | REQ-0002, 0005, 0012, 0014, 0016, 0022 | SCN-0001, 0003, 0007, 0011, 0012, 0016 | ADR-0002, 0005, 0006, 0010, 0011, 0019, 0022, 0024 | Unknown / Conflict / Withheld / partial-knowledge fixture、Adapter missing→unknown検査 |
-| **V6 Human / AI Readability** | REQ-0010, 0011, 0019, 0020 | SCN-0004, 0006, 0013, 0017 | ADR-0005, 0017, 0018, 0020, 0021 | human-readable Contract Definitionとmachine-readable schema。Projection実利用は未検証 |
-| **V7 Progressive Explicitness** | REQ-0010 | SCN-0004, 0013 | ADR-0005, 0019 | Design境界は存在。軽量／高影響の実運用比較は未検証 |
+| **V6 Human / AI Readability** | REQ-0010, 0011, 0019, 0020 | SCN-0004, 0006, 0013, 0017 | ADR-0005, 0017, 0018, 0020, 0021 | human-readable Contract Definition / machine-readable schemaに加え、V6/V7 evaluation harnessでrich canonical source→light/audit Projection、6 semantic questions、7 negative casesを検査 |
+| **V7 Progressive Explicitness** | REQ-0010 | SCN-0004, 0013 | ADR-0005, 0019 | low-impact minimal Decisionとhigh-impact rich Decisionを同じharnessで評価し、low=light / high=auditの明示量policyを検査 |
 | **V8 Execution Independence** | REQ-0001, 0004, 0007, 0011, 0012, 0015, 0018, 0021, 0022 | SCN-0002, 0005, 0006, 0007, 0008, 0012, 0014, 0015 | ADR-0006, 0007, 0012, 0013, 0014, 0017, 0019, 0022, 0024 | Provider-neutral Contract、first runtime slice、Provider-specific inputをAdapter-localに保つsynthetic slice |
 
 表中の実装・fixtureが存在しても、そのValue Axis全体のExecutable AcceptanceがSatisfiedになったとは読みません。
@@ -209,7 +210,7 @@ Design Evidence
 
 ### Design Evidence
 
-current repositoryには、Product、Requirements、Accepted ADR-0001〜0024、Reference Architecture、Contract Definition、Representation Profile Definition、runtime / Provider Adapter boundaryがあります。
+current repositoryには、Product、Requirements、Accepted ADR-0001〜0024、Reference Architecture、Contract Definition、Representation Profile Definition、runtime / Provider Adapter boundary、V6/V7 Projection evaluation protocolがあります。
 
 ### Executable Evidence
 
@@ -221,6 +222,19 @@ current repositoryには、Product、Requirements、Accepted ADR-0001〜0024、R
 - Representation Profile fixture / Go probe conformance
 - first semantic runtime slice conformance
 - synthetic Provider Adapter slice conformance
+- V6 / V7 Projection evaluation harness conformance
+
+V6 V7 Projection Evaluation:
+
+- Run ID: `33456710459`
+- current Contract baseline recheck: **success**
+- V6 / V7 Projection evaluation: **success**
+- rich / low-impact canonical source: 2件
+- Projection profile: light / audit
+- semantic question: 6件
+- negative case: 7件
+
+このRunが確認するのはevaluation-harness scoped Executable Evidenceです。実利用者の理解可能性やproduction UXを直接確認したものではありません。
 
 ### Release Evidence
 
@@ -264,11 +278,15 @@ Unknown / Conflict / Withheld / partial knowledgeに加え、Adapter入力欠落
 
 ### V6 Human / AI Readability
 
-human-readable Definitionとmachine-readable representationはありますが、実務負荷を含む人間・AI双方の可読性評価は未完了です。
+rich canonical sourceから生成したaudit Projectionとmachine-readable representationについて、Decision、unresolved、basis、Responsibility、Authorization Evidence state、Provenanceの6 semantic questionsが一致することをharnessで確認しました。light ProjectionでもDecision、未解決事項、Authorization Evidence stateを前景化し、詳細の存在とaudit導線を保持します。
+
+ただし、これはstatic / synthetic評価です。実利用者が実務上必要な時間と負担で理解できるか、異なるAI実装が同じ意味を安定して読めるかというOperational / Adoption Evidenceはありません。
 
 ### V7 Progressive Explicitness
 
-Design boundaryはありますが、軽量案件と高影響案件を実運用で比較したEvidenceはありません。
+low-impactの最小Decisionはlight Projectionで成立し、basis / Responsibility等の最大詳細を一律必須にしません。high-impactのrich Decisionはaudit Projectionを要求し、lightだけで完了扱いにするとnegative caseとして失敗します。
+
+これによりProgressive Explicitnessのevaluation-harness scoped Executable Evidenceは得られましたが、実運用でのimpact判定、入力負担、見落とし率等は未検証です。
 
 ### V8 Execution Independence
 
@@ -289,10 +307,10 @@ SOZA semantic runtimeをexecution dispatchから分離し、Provider固有schema
 
 ## 13. 更新規則
 
-Product Value、REQ、SCN、ADR、Architecture、Contract、Profile、runtime、Provider Adapterのいずれかが変わった場合、この文書を必要に応じて更新します。
+Product Value、REQ、SCN、ADR、Architecture、Contract、Profile、runtime、Provider Adapter、Projection evaluationのいずれかが変わった場合、この文書を必要に応じて更新します。
 
 ただし、下位実装の都合に合わせてProduct Valueを後付けで変更しません。上位仮説を変える必要がある場合はADR-0018のProduct Value再基線化規則に従います。
 
 ## 14. 自然な日本語ドラフト
 
-V1〜V8、REQ-0001〜0022、SCN-0001〜0017、ADR-0001〜0024、current Architecture、4 Contract family、Representation Profile、first semantic runtime slice、synthetic Provider Adapter slice、actual CI結果へ戻って追跡を再確認しました。その後、Design / Executable / Release / Operational / Adoption・OutcomeのEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+V1〜V8、REQ-0001〜0022、SCN-0001〜0017、ADR-0001〜0024、current Architecture、4 Contract family、Representation Profile、first semantic runtime slice、synthetic Provider Adapter slice、V6/V7 Projection evaluation harness、actual CI結果へ戻って追跡を再確認しました。その後、Design / Executable / Release / Operational / Adoption・OutcomeのEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
