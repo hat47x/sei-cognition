@@ -118,13 +118,34 @@ Interaction boundaryのDesign Evidenceと、最小prototypeまたはconformance�
 
 ### Current state
 
-**Design baseline established / Executable Evidence pending.**
+**Design baseline established / scoped Executable Evidence available.**
 
-`product/interaction/SOZA_PRODUCT_INTERACTION.md`とADR-0028で、first usable Product Interactionをcanonical meaning上の操作境界として正本化しました。
+`product/interaction/SOZA_PRODUCT_INTERACTION.md`とADR-0028で、first usable Product Interactionをcanonical meaning上の操作境界として正本化しています。
 
-人間向け画面、AI conversation、session、workspace等を意味上の正本にはせず、human-oriented / machine-orientedな異なるSurfaceから同じcanonical artifactへ戻れることを中心に置いています。新しいUniversalなCase / Session等は追加していません。
+ISSUE-000053では、`runtime/go/interactionprobe`にhuman-oriented Surfaceとmachine-oriented Surfaceを実体化し、同じin-memory canonical sourceへ接続しました。既存`semanticruntime`型を再利用し、Recommendation / Decision / Capability Observation / Cognitive Method Applicationはcurrent validatorを通して保持します。Inquiry / Unknown / Conflictは、未対応意味を理解済みと偽らずopaqueな`not_verified` recordとして扱います。
 
-Executable EvidenceはISSUE-000053のreference probeで検証します。
+Semantic Runtime Conformance Run `33503251170`で、current Contract fixture再検査と`runtime/go`全体の`go test ./...`がsuccessしました。
+
+このExecutable Evidenceで確認できたのは、主として次の境界です。
+
+- machine側が追加したObservation / Recommendationをhuman側から再読できる。
+- human側Decisionをmachine側がDecisionとして再読できる。
+- RecommendationとDecisionを同一recordへ平坦化しない。
+- Unknown / Conflictを失わない。
+- light / audit / structured Projection生成でcanonical sourceを変更しない。
+- Surface-local stateを破棄してもcanonical recordを失わない。
+- post-decision Observation追加でhistorical Decision basisを書き換えない。
+- machine SurfaceであることからResponsibilityを自動推定しない。
+
+ただし、これはproduction UIの使いやすさやsupported protocolの確定を意味しません。
+
+```text
+reference probe PASS
+  != production UX proven
+  != supported protocol finalized
+  != packaged product proven
+  != Operational / Adoption Evidence
+```
 
 ### Open questions
 
@@ -133,8 +154,9 @@ Executable EvidenceはISSUE-000053のreference probeで検証します。
 - Web / desktop / CLI / API / MCP等のsupported combination
 - human usabilityを損なわずlight / auditを往復する具体UX
 - Packaging / DeploymentとInteraction Surfaceの組み合わせ
+- production persistenceとprocess restart後のresume
 
-これらは現時点でRequirementとして先取りしません。reference probeではtext / CLI相当とJSON / process相当の二入口を使いますが、probeのSurfaceをproduction標準とはみなしません。
+これらは現時点でRequirementとして先取りしません。reference probeのSurfaceや単一Inquiry向けin-memory storeをproduction標準へ昇格させません。
 
 ## 7. PMS-04 — 配布・保存・再開が可能な最小製品単位が成立する
 
@@ -250,4 +272,4 @@ Open Questionを直接Stable Requirementへ飛ばしません。
 
 ## 14. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、Product Interaction baseline、REQ-0001〜0022、SCN-0013 / 0018、ADR-0028、ISSUE-000045 / 000053とcurrent Evidenceへ戻り、historical M48 / M49等の実装順序ではなく、製品として成立する状態を期限なしのMilestoneとして再監査しました。PMS-03はDesign boundaryが成立し、Executable Evidenceはまだpendingであることを明確に分けています。未定領域を先にRequirementへ固定しない境界を保ったうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Value、Value Proposition、Product Shape、Product Interaction baseline、REQ-0001〜0022、SCN-0013 / 0018、ADR-0028、ISSUE-000045 / 000053、`runtime/go/interactionprobe`、Semantic Runtime Conformance Run `33503251170`を照合し、PMS-03をDesign成立だけでなくscoped Executable Evidenceが得られた状態へ更新しました。一方、reference probeの成功をproduction UX、supported protocol、Packaging、Operational / Adoption Evidenceへ広げていません。未定領域を先にRequirementへ固定しない境界も保っています。そのうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
