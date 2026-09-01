@@ -1,95 +1,166 @@
 # ISSUE-000047: Product Identity / Authorization / Collaboration boundaryを定義する
 
-Status: **Open**  
+Status: **Resolved**  
 Priority: **2**  
-Related ADRs: **ADR-0004, ADR-0006, ADR-0016, ADR-0021**  
+Related ADRs: **ADR-0004, ADR-0006, ADR-0016, ADR-0021, ADR-0030**  
 Updated: 2026-09-01
 
 ## Goal
 
-SOZAのsemanticなResponsibility / Authorityと、製品利用時のlogin、identity、access control、tenant / workspace、共有、Selective Disclosureを混同せず、実際の製品security / collaboration boundaryを定義する。
+SOZAのsemanticなResponsibility / Authorityと、製品利用時のauthentication identity、access control、Product Access Scope、共有、Selective Disclosureを混同せず、single-userからteam・外部協働へ広げられるProduct security / collaboration boundaryを定義する。
 
-## 背景
+## Resolution
 
-current SOZAでは次を意図的に分けている。
+Product Identity / Access / Collaborationの正本を`product/security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`、Architecture配置を`architecture/SOZA_PRODUCT_ACCESS_ARCHITECTURE.md`、主要DecisionをADR-0030として定義した。
+
+中心となる分離は次である。
 
 ```text
-actor identity
-  != Responsibility
-  != Authority
-  != Authorization Evidence
+authentication identity
+  != Bounded Subject
+  != product access permission
+  != semantic Responsibility / Authority
 ```
 
-この分離はsemantic modelとして重要だが、実際の製品では「誰がどのrecordを読めるか・書けるか」「どの組織やworkspaceへ属するか」「外部IdPをどう利用するか」も決める必要がある。
+また、SOZA内部のProduct access authorizationと、ADR-0016で扱う外部Execution ProviderのAuthorizationも別責務とする。
 
-Product securityの都合を理由にResponsibility / Authorityの意味をlogin roleへ平坦化せず、逆にsemantic Authority recordが存在することだけからsystem accessを自動付与しない境界が必要である。
+```text
+SOZA product access authorization
+  != external execution authorization
+```
 
-## 検討対象
+## Identity boundary
 
-### Identity
+認証Provider固有のsubjectは、Identity Bindingを介してADR-0004のBounded Subjectへ対応付ける。
 
-- local identityをSOZA自身が所有する必要があるか。
-- external IdP / enterprise directoryとの境界をどうするか。
-- stable actor referenceとauthentication subjectをどのように対応付けるか。
-- identity provider交換後もhistorical Responsibilityを読めるようにするには何が必要か。
+IdPを交換した場合でも、過去Decision / Responsibilityが参照するBounded Subjectを現在のlogin subjectへ書き換えない。
 
-### Authorization
+credential、token、session、MFA secret等をsemantic identityへ埋め込まない。
 
-- read / write / append / review / administer等の製品access controlをどこで定義するか。
-- semantic Authority / Authorization Evidenceとproduct access controlをどう分離するか。
-- AI / service account / humanの種別だけから権限を推定しないこと。
+## Product Access Scope
 
-### Collaboration boundary
+team / organization / external collaboratorのaccess boundaryとしてProduct Access ScopeをProduct layerへ置ける。
 
-- single-user、team、organization、external collaboratorをどの粒度で扱うか。
-- tenant / workspace概念がUniversal semantic Coreに必要か、それともProduct / deployment concernか。
-- concurrent edit、review、handoffの最低限の整合条件は何か。
+実装上tenant、workspace、project等の名前を使えるが、それらをUniversal semantic entityへ自動的に昇格させない。
 
-### Selective Disclosure
+Product Access Scope IDをDecisionやResponsibilityのsemantic identityへ流用することも要求しない。
 
-- withheldとunknownを区別したまま、共有範囲を制御できるか。
-- canonical recordを複製して意味を分岐させずに、Projection / disclosure boundaryを構成できるか。
-- external collaboration時にProvenance / Exact Bindingをどこまで共有する必要があるか。
+## Product Access Policy
 
-## Requirement候補
+現在のauthentication identityをBounded Subjectへ解決し、Product Access ScopeとoperationについてProduct permissionを評価する。
 
-stable ID付与前に、少なくとも次を監査する。
+reference probeでは`read / append / review / share / administer`を用いたが、これはprobe-localなvocabularyであり、将来のStable RequirementやUniversal role hierarchyとして固定しない。
 
-- REQ-0012 — Bounded CollaborationとSelective Disclosure
-- REQ-0013 — actor種別からAuthority等を推定しない
-- REQ-0017 — Responsibilityを文脈に結び付ける
-- REQ-0020 — Evidenceを超える達成主張をしない
+次を禁止する。
 
-既存Requirementがsemantic側だけを定め、product security上の追加Requirementが必要と確認できた場合だけ追加する。
+- semantic Responsibility / AuthorityからProduct accessを自動許可する。
+- Product administrator等からDecision Authority / Responsibilityを生成する。
+- human / AI / service等のactor kindだけからpermissionを推定する。
 
-## Non-goals
+評価できなかった`not_evaluated`と、Policyが明示的に拒否した`denied`も区別する。
 
-- 独自Identity Providerの実装を前提にすること
-- enterprise IAM製品との全統合を一度に実装すること
-- semantic AuthorityをRBAC roleへ置換すること
-- tenant IDをUniversal Coreへ無条件に追加すること
-- cryptographic access-control schemeの早期固定
+## Selective Disclosure
+
+外部協働ではcanonical sourceを複製・改変せず、Disclosure Policyに応じたProjectionを作る。
+
+非開示recordは`withheld`として扱い、`unknown`、`not observed`、削除済みへ読み替えない。
+
+```text
+withheld != unknown != deleted
+```
+
+## Collaboration boundary
+
+### single-user
+
+一つのlocal identityを一つのProduct Access Scopeへ対応付ける簡素なProfileを許容する。
+
+### team
+
+複数Bounded Subjectを同じProduct Access Scopeへ参加させ、Product permissionを独立して評価できる。
+
+### external collaborator
+
+別organization / IdPの主体も限定的に参加できる。内部directoryやcredentialの全量共有を要求せず、Selective Disclosureで開示範囲を分離する。
+
+## Executable Evidence
+
+ISSUE-000056で`runtime/go/accessprobe`を実体化した。
+
+初期probe headのSemantic Runtime Conformance Run `33511885433`は**success**し、次をactual testで確認した。
+
+- 旧・新IdP相当identityを同じBounded Subjectへbindingできる。
+- identity交換後もhistorical Responsibility Refを変更しない。
+- ResponsibilityがあってもProduct permissionがなければreadを拒否する。
+- Product administrator permissionを与えてもsemantic Responsibilityを生成しない。
+- actor kindからpermissionを推定しない。
+- `denied`と`not_evaluated`を区別する。
+- Selective Disclosureで非開示recordをProjectionから除外しつつ、canonical sourceを変更しない。
+- Product Scope readなしではDisclosure Projectionを返さない。
+
+これはproduction OIDC / IAM / securityを実証したEvidenceではない。
+
+## Requirement / Acceptance再監査
+
+Product accessをsemantic Responsibility / Authorityやactor kindから分離する必要性は、Designとscoped probeの双方で確認できた。
+
+ただし、permission vocabulary、Product Access Scopeのgranularity、Identity Binding lifecycleはまだreference Realizationである。
+
+そのため、新しいStable Requirement / Scenario IDは今回追加しない。
+
+次をCandidate Requirementとして保持する。
+
+> SOZAの製品アクセス権は、semantic Responsibility / Authorityやactor kindから自動導出せず、認証identityとの対応を含むProduct Access Policyで独立に評価できる必要がある。
+
+production IdP / team deployment / external collaborationの実証で、既存REQ-0012 / 0013 / 0017ではこのProduct failureを十分に表現できないことが確認された場合にStable Requirement化を再検討する。
+
+## Non-goals / 未検証範囲
+
+- 独自Identity Providerの内製
+- production OIDC / SAML / passkey integration
+- password / token / session / MFA lifecycle
+- enterprise IAM / SCIM
+- RBAC / ABACの正式policy model
+- tenant / workspaceの正式階層
+- database row-level security
+- encryption / key management
+- invitation / membership lifecycle
+- production Selective Disclosure security
+- security audit retention / tamper resistance
+- Release / Operational / Adoption / Outcome Evidence
 
 ## 完了条件
 
-- [ ] semantic Responsibility / Authorityとproduct access controlの境界を定義する。
-- [ ] identity source / actor reference / historical continuityの方針を定める。
-- [ ] single-userからteam利用へ進む最小collaboration boundaryを定める。
-- [ ] Selective Disclosureのproduct-level Acceptanceを具体化する。
-- [ ] 既存REQ / SCNとの重複監査後、必要な追加だけを行う。
-- [ ] Architecture / Contract / Product policyのどこへ各責務を置くかADRで決める。
-- [ ] security conformanceまたはprototypeのExecutable Evidence条件を定義する。
-- [ ] 自然な日本語全文再ドラフトと最終意味監査を行う。
-- [ ] 対象CIをsuccessさせる。
+- [x] semantic Responsibility / AuthorityとProduct access controlの境界を定義する。
+- [x] identity source / Bounded Subject / historical continuityの方針を定める。
+- [x] single-userからteam / external collaborationへ進む最小境界を定める。
+- [x] Selective DisclosureのProduct-level boundaryを具体化する。
+- [x] 既存REQ / SCNとの重複監査を行う。Stable IDは今回追加しない。
+- [x] Product / Architecture責務をADR-0030で正本化する。
+- [x] reference probeのExecutable Evidence条件をISSUE-000056へ定義し、実体化する。
+- [x] 自然な日本語全文再ドラフトと最終意味監査を行う。
+- [ ] 最終headの対象CIをsuccessさせる。
+
+初期Runtime probeはsuccessしている。plan registry、Document Review Registry、PMS-05を同期した最終headで対象CIを再確認し、本項目を完了Evidenceへ更新する。
 
 ## Evidence state
 
-- Design Evidence: **Not Yet Verified for product identity / access control**
-- Executable Evidence: **Not Yet Verified**
+- Design Evidence: **Satisfied**
+- Executable Evidence: **Scoped Product Access separation Evidence available** — ISSUE-000056 / `runtime/go/accessprobe`。
+- external IdP integration: **Not Yet Verified**
+- production Selective Disclosure / team security: **Not Yet Verified**
 - Release Evidence: **Not Yet Verified**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
 
+## Reopen条件
+
+- production IdP交換でhistorical Bounded Subject continuityを保持できない。
+- Product Access ScopeをProduct-local concernへ留めると実team利用の意味が壊れる。
+- semantic Responsibility / Product permission分離では実際のsecurity requirementを満たせない。
+- Projection-based Selective Disclosureでは外部協働の開示境界を安全に保持できない。
+- Candidate Requirementを既存REQへ統合できず、新しいStable Requirementが必要と実証された。
+
 ## Natural Japanese review
 
-ADR-0004 / 0006 / 0016、REQ-0012 / 0013 / 0017、Selective DisclosureとAuthorization Evidenceの既存境界へ戻り、semantic Authorityとproduct access controlを別責務として扱う課題に整理した。tenant / workspaceや独自IdPをCoreへ先に固定せず、実際の利用・security要件から配置を決める方針を保ったまま、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+Product Value、PMS-05、ADR-0004 / 0006 / 0016 / 0030、REQ-0012 / 0013 / 0017、SCN-0007 / 0012、Product Interaction、Local Single-Node Packaging、`runtime/go/accessprobe`と初期CI Evidenceを照合しました。authentication identity、Bounded Subject、Product access permission、semantic Responsibility / Authority、external execution authorizationを別責務とし、tenant / workspaceや特定IdP、permission vocabularyをUniversal CoreやStable Requirementへ先に固定していません。Selective Disclosureではwithheldとunknownを分け、probeの成功をproduction securityへ広げない境界も維持しています。そのうえで、意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
