@@ -56,11 +56,14 @@ v0.2.0では従来のsemantic / Requirements / Contract / Representation Profile
 
 PR #34のbootstrap Run `33531336681`ではGate 1〜8がすべてsuccessし、Gate 9だけが`ISSUE-000059 = In Progress`をblockしてfailureとなった。これはrelease条件を弱めたfailureではなく、「未解決Issueを候補へ持ち込まない」というPlan blocker policyが実際に機能することを確認した結果である。
 
-本Issue自身がcandidate blockerであるため、実装成立を確認したこの時点でIssueをResolvedへ移す。その後、同一PRで全9 gateを再実行する。closure後の全9 gateがfailureした場合は、本Issueを直ちにReopenし、原因を修正してから再検証する。
+本Issue自身がcandidate blockerであるため、実装成立を確認した時点でIssueをResolvedへ移し、同一PRで全9 gateを再実行した。途中、Registry全置換時に`ISSUE-000013`の既存ファイル名を誤って転記し、Run `33568527280`のGate 1がfailureしたが、実ファイル名へ戻した後、Plan integrity Run `33568653098`とRelease Candidate Gate Run `33568653099`がsuccessした。
+
+Run `33568653099`ではGate 1〜9、Local Reference Package artifact upload、candidate report uploadがすべてsuccessしている。External Integration E3a Run `33568653077`もsuccessした。
 
 ```text
 implementation boundary resolved
-  + all-gate post-closure verification required
+  + PR test merge all-gate PASS
+  != actual develop head PASS
   != Release Evidence
 ```
 
@@ -188,11 +191,11 @@ candidate gate PASS
 
 - [x] version-aware candidate checkerを実装し、v0.1.0 policyの意味を維持する。
 - [x] `release/v0.2.0/release-candidate.json`を追加する。
-- [x] v0.2.0 Release Candidate Gateを`develop/v0.2.0` / `v0.2.0` tag /対象PRで実行できる。
+- [x] v0.2.0 Release Candidate Gateを`develop/v0.2.0` / `v0.2.0` tag / 対象PRで実行できる。
 - [x] Local Reference Packageのdeterministic artifact検査をcandidate gateへ含める。
 - [x] candidate reportへsource commit / tree / executed gates / non-claimsを記録する。
 - [x] Open / In Progress / Blocked IssueをGate 9でblockする。bootstrap Run `33531336681`で`ISSUE-000059`のblockを実確認した。
-- [x] bootstrap Run `33531336681`でGate 1〜8のcomponent / integrated検査がsuccessした。
+- [x] PR #34のclosure検証で全9 gateをsuccessさせる。Run `33568653099`で確認した。
 
 ### Evidence / documentation
 
@@ -200,13 +203,17 @@ candidate gate PASS
 - [x] v0.2.0 candidate policyへsupported scopeと非主張範囲をmachine-readableに固定する。
 - [x] Document Review Registryへ新規文書を反映する。
 - [x] candidate PASSをRelease / Operational / Adoption・Outcomeへ昇格させない。
+- [x] candidate reportとLocal Reference Package artifactのidentityを記録する。
 - [x] 全文を自然な日本語となることを最重要視して再ドラフトし、最終意味監査を行う。
 
 ## Evidence state
 
 - Design Evidence: **Satisfied**
-- Executable Evidence: **Scoped evidence available** — bootstrap Run `33531336681`でGate 1〜8 success、Gate 9 self-blockを確認
-- Release Candidate Evidence for a closure head: **post-closure verification required**
+- Executable Evidence: **Satisfied for the scoped v0.2.0 candidate boundary**
+- PR #34 test merge Release Candidate Evidence: **Satisfied** — Run `33568653099`
+- candidate report artifact: ID `9824110337`, digest `sha256:2d71979ec4f466bd679178bae88b2ba32584ec121d8618217b9b70d2c79a216a`
+- Local Reference Package artifact: ID `9824109925`, digest `sha256:6b319c6ac2cd0aeb98a13d6234e6c1d9c06ae09a10927a3b54fa48878fc46fa6`
+- actual `develop/v0.2.0` head Release Candidate Evidence: **Not Yet Verified until merge後のactual headで再検査**
 - Release Evidence: **Not Yet Verified**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
@@ -222,6 +229,8 @@ candidate gate PASS
 5. 同じ検査を再実行する。
 6. successを確認した後にのみclosureを維持する。
 
+今回のRun `33568527280`でも、この手順に従いRegistry転記ミスを修正してからRun `33568653099`をsuccessさせた。
+
 ## Non-goals
 
 - actual `v0.2.0` tag / GitHub Releaseの作成
@@ -233,7 +242,7 @@ candidate gate PASS
 
 ## Reopen条件
 
-- closure後のRelease Candidate Gateで9 gateのいずれかがfailureする。
+- Release Candidate Gateで9 gateのいずれかがfailureする。
 - v0.1.0 policyがv0.2.0対応によって意味的に変質したことが判明する。
 - Local Reference Packageのartifact identityまたはresume検査が再現できない。
 - E3b / E4やproduction領域をv0.2.0 candidateが暗黙に主張してしまう。
@@ -241,6 +250,6 @@ candidate gate PASS
 
 ## Natural Japanese review
 
-Product Value、PMS-04〜07、v0.1.0 Release Acceptance、Local Reference Package、Product Interaction、Product Access、Realization / Provider Exchange、E3a外部artifact integration、5段階Evidenceへ戻ってscopeを整理した。v0.2.0をproduction完成版へ見せず、現在再現できるLocal Reference Product Baselineをrelease候補として固定すること、actual releaseとcandidate gateを分けること、E3b / E4やproduction securityを非主張範囲へ残すことを中心に据えている。
+Product Value、PMS-04〜07、v0.1.0 / v0.2.0 Release Acceptance、Local Reference Package、Product Interaction、Product Access、Realization / Provider Exchange、E3a外部artifact integration、5段階Evidence、actual GitHub Actions Evidenceへ戻ってscopeを整理した。v0.2.0をproduction完成版へ見せず、現在再現できるLocal Reference Product Baselineをrelease候補として固定すること、actual releaseとcandidate gateを分けること、E3b / E4やproduction securityを非主張範囲へ残すことを中心に据えている。
 
-さらにbootstrap Runの結果を踏まえ、Issue自身がcandidate blockerとなる自己参照を、条件緩和ではなく「実装成立の確認後にclosureへ移し、そのclosure headを全gateで再検証する」という手順として明示した。意味・規範強度・Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+bootstrap Runとpost-closure Runの両方を踏まえ、Issue自身がcandidate blockerとなる自己参照、途中のRegistry転記ミス、修正後の全9 gate successを、Evidenceの強さを誇張しない形で記録した。意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
