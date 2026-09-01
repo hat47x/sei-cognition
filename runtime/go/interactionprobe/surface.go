@@ -250,7 +250,7 @@ type LightView struct {
 type AuditRecord struct {
 	Ref                semanticruntime.LogicalReference
 	Kind               string
-	Status             semanticruntime.RecordStatus
+	Status             semanticruntime.RecordValidationStatus
 	BasisRefs          []semanticruntime.LogicalReference
 	RecommendationRefs []semanticruntime.LogicalReference
 	UnresolvedRefs     []semanticruntime.LogicalReference
@@ -263,9 +263,9 @@ type AuditView struct {
 }
 
 type MachineRecord struct {
-	Ref    semanticruntime.LogicalReference `json:"ref"`
-	Kind   string                           `json:"kind"`
-	Status semanticruntime.RecordStatus     `json:"status"`
+	Ref    semanticruntime.LogicalReference      `json:"ref"`
+	Kind   string                                `json:"kind"`
+	Status semanticruntime.RecordValidationStatus `json:"status"`
 }
 
 type MachineView struct {
