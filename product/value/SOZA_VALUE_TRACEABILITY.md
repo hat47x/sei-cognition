@@ -35,7 +35,7 @@ Product Value
   → ADR
   → Architecture concern
   → Contract / Representation Profile / Runtime / Provider Adapter
-  → Projection Evaluation / Fixture / Test / CI
+  → Payload Source / Projection Evaluation / Fixture / Test / CI
   → Evidence state
 ```
 
@@ -47,14 +47,14 @@ Product Value
 
 | Value Axis | 主なREQ | 主なSCN | 主なADR | current executable material |
 |---|---|---|---|---|
-| **V1 Historical Reconstruction** | REQ-0001, 0003, 0005, 0008, 0009, 0014, 0017, 0018, 0020, 0022 | SCN-0001, 0003, 0005, 0008, 0009, 0010, 0014, 0016 | ADR-0003, 0007, 0008, 0009, 0010, 0011, 0019, 0021, 0022, 0023, 0024 | Semantic Reference / Decision Memory / Interchange fixture、F6 historical reconstruction、Go runtime slice、Adapter mapping provenance / source state保持 |
+| **V1 Historical Reconstruction** | REQ-0001, 0003, 0005, 0008, 0009, 0014, 0017, 0018, 0020, 0022 | SCN-0001, 0003, 0005, 0008, 0009, 0010, 0014, 0016 | ADR-0003, 0007, 0008, 0009, 0010, 0011, 0019, 0021, 0022, 0023, 0024 | Semantic Reference / Decision Memory / Interchange fixture、F6 historical reconstruction、Go runtime slice、Verifier Registry、synthetic Payload Source、Adapter mapping provenance / source state保持 |
 | **V2 Semantic Separation** | REQ-0002, 0003, 0006, 0008, 0013, 0015, 0016, 0017, 0022 | SCN-0001, 0002, 0004, 0009, 0011, 0015, 0016 | ADR-0002, 0004, 0010, 0011, 0012, 0016, 0017, 0019, 0022, 0024 | Recommendation-only、Decision with unresolved、Authority field rejection、Adapter outputのsemantic escalation非生成 |
-| **V3 Revision Integrity** | REQ-0001, 0003, 0004, 0005, 0008, 0009, 0014, 0018 | SCN-0003, 0005, 0008, 0010, 0015, 0016 | ADR-0003, 0007, 0008, 0009, 0010, 0011, 0017, 0021, 0023, 0024 | lineage / exact binding invariant、Representation Profile fixture、runtime validation、Adapter mapping provenance |
+| **V3 Revision Integrity** | REQ-0001, 0003, 0004, 0005, 0008, 0009, 0014, 0018 | SCN-0003, 0005, 0008, 0010, 0015, 0016 | ADR-0003, 0007, 0008, 0009, 0010, 0011, 0017, 0021, 0023, 0024 | lineage / exact binding invariant、Representation Profile fixture、runtime verification、Payload Sourceの取得不能≠digest mismatch、Adapter mapping provenance |
 | **V4 Provider Independence** | REQ-0001, 0007, 0012, 0013, 0021, 0022 | SCN-0002, 0007, 0010, 0011, 0012, 0014 | ADR-0006, 0012, 0013, 0014, 0019, 0021, 0022, 0024 | Capability Observation F1〜F7、cross-provider fixture、synthetic Provider A/B Adapter slice |
 | **V5 Uncertainty Preservation** | REQ-0002, 0005, 0012, 0014, 0016, 0022 | SCN-0001, 0003, 0007, 0011, 0012, 0016 | ADR-0002, 0005, 0006, 0010, 0011, 0019, 0022, 0024 | Unknown / Conflict / Withheld / partial-knowledge fixture、Adapter missing→unknown検査 |
 | **V6 Human / AI Readability** | REQ-0010, 0011, 0019, 0020 | SCN-0004, 0006, 0013, 0017 | ADR-0005, 0017, 0018, 0020, 0021 | human-readable Contract Definition / machine-readable schemaに加え、V6/V7 evaluation harnessでrich canonical source→light/audit Projection、6 semantic questions、7 negative casesを検査 |
 | **V7 Progressive Explicitness** | REQ-0010 | SCN-0004, 0013 | ADR-0005, 0019 | low-impact minimal Decisionとhigh-impact rich Decisionを同じharnessで評価し、low=light / high=auditの明示量policyを検査 |
-| **V8 Execution Independence** | REQ-0001, 0004, 0007, 0011, 0012, 0015, 0018, 0021, 0022 | SCN-0002, 0005, 0006, 0007, 0008, 0012, 0014, 0015 | ADR-0006, 0007, 0012, 0013, 0014, 0017, 0019, 0022, 0024 | Provider-neutral Contract、first runtime slice、Provider-specific inputをAdapter-localに保つsynthetic slice |
+| **V8 Execution Independence** | REQ-0001, 0004, 0007, 0011, 0012, 0015, 0018, 0021, 0022 | SCN-0002, 0005, 0006, 0007, 0008, 0012, 0014, 0015 | ADR-0006, 0007, 0012, 0013, 0014, 0017, 0019, 0022, 0024 | Provider-neutral Contract、first runtime slice、Provider-specific inputをAdapter-localに保つsynthetic slice、Storage-specific locatorをCoreへ入れないPayload Source boundary |
 
 表中の実装・fixtureが存在しても、そのValue Axis全体のExecutable AcceptanceがSatisfiedになったとは読みません。
 
@@ -196,7 +196,40 @@ synthetic Adapter CI PASS
   != release readiness
 ```
 
-## 10. Evidenceの現在地
+## 10. Exact Binding verification / payload acquisition slice
+
+ISSUE-000038ではcurrent JCS / raw-bytes Profileをin-process Verifier Registryへ接続し、ISSUE-000040ではpayloadの取得を別の`PayloadSource` runtime boundaryへ分離しました。
+
+```text
+Exact Binding
+  ↓
+Payload Source
+  ↓
+Verifier Registry
+  ↓
+Verification Outcome
+```
+
+次を区別します。
+
+- payload取得不能 → `not_verified`
+- source operational error → semantic outcomeは`not_verified`、errorは別に観測
+- local verification limit超過 → `not_verified`
+- payload取得成功 + digest mismatch → `failed`
+- payload取得成功 + digest一致 → `verified`
+
+Storage path、object key、HTTP details等のsource固有情報はPayload Source実装側へ留め、Exact BindingやRepresentation Profileへ自動昇格させません。
+
+Semantic Runtime Conformance:
+
+- Verifier Registry closure: Run `33452115728` — **success**
+- Payload acquisition boundary: Run `33457416359` — **success**
+
+Run `33457416359`ではcurrent Contract fixture再検査と、raw bytes / JCS、unavailable、operational error、nil source、zero-length payload、local size limit、Exact Binding非変異を含むGo testsがsuccessしました。
+
+これはsynthetic Payload Sourceを使うruntime-boundary scoped Executable Evidenceです。production filesystem / S3 / MinIO / HTTP等のAdapterやStorage migrationのEvidenceではありません。
+
+## 11. Evidenceの現在地
 
 Product Valueの受入れでは、次の高さを分けます。
 
@@ -210,7 +243,7 @@ Design Evidence
 
 ### Design Evidence
 
-current repositoryには、Product、Requirements、Accepted ADR-0001〜0024、Reference Architecture、Contract Definition、Representation Profile Definition、runtime / Provider Adapter boundary、V6/V7 Projection evaluation protocolがあります。
+current repositoryには、Product、Requirements、Accepted ADR-0001〜0024、Reference Architecture、Contract Definition、Representation Profile Definition、runtime / Provider Adapter / Payload Source boundary、V6/V7 Projection evaluation protocolがあります。
 
 ### Executable Evidence
 
@@ -221,6 +254,8 @@ current repositoryには、Product、Requirements、Accepted ADR-0001〜0024、R
 - Contract v1alpha1 17-fixture conformance
 - Representation Profile fixture / Go probe conformance
 - first semantic runtime slice conformance
+- current 2 ProfileのVerifier Registry conformance
+- synthetic Payload Source acquisition boundary conformance
 - synthetic Provider Adapter slice conformance
 - V6 / V7 Projection evaluation harness conformance
 
@@ -235,6 +270,14 @@ V6 V7 Projection Evaluation:
 - negative case: 7件
 
 このRunが確認するのはevaluation-harness scoped Executable Evidenceです。実利用者の理解可能性やproduction UXを直接確認したものではありません。
+
+Payload acquisition boundary:
+
+- Run ID: `33457416359`
+- current Contract baseline recheck: **success**
+- Go semantic runtime / Provider Adapter / Verifier / Payload Source tests: **success**
+
+このRunが確認するのはsynthetic sourceを使ったruntime-boundary scoped Executable Evidenceです。production Storageやnetwork behaviorを直接確認したものではありません。
 
 ### Release Evidence
 
@@ -254,11 +297,11 @@ V6 V7 Projection Evaluation:
 Operational success != user-value realization
 ```
 
-## 11. Value Axisごとの主要な未検証点
+## 12. Value Axisごとの主要な未検証点
 
 ### V1 Historical Reconstruction
 
-current Contract / Profile / runtime / Adapter fixtureで一部境界を検査済みです。一方、historical M47 digest mapping、実Provider mapping変更をまたぐhistorical reconstruction、長期間の実運用履歴、実利用での再判断への寄与は未検証です。
+current Contract / Profile / runtime / Adapter fixtureに加え、Payload Sourceから取得不能・取得成功を区別しながらExact Binding verificationへ接続する境界を検査済みです。一方、historical M47 digest mapping、production Storageからのhistorical payload取得、実Provider mapping変更をまたぐhistorical reconstruction、長期間の実運用履歴、実利用での再判断への寄与は未検証です。
 
 ### V2 Semantic Separation
 
@@ -266,7 +309,7 @@ Recommendation / Decision / Authority等の分離に加え、Adapter mappingがD
 
 ### V3 Revision Integrity
 
-lineage / exact binding invariantとmapping provenanceの保持は一部検査済みです。mapping versionの変更を実際の長期運用で跨ぐEvidenceはありません。
+lineage / exact binding invariant、mapping provenance、取得不能をdigest mismatchへ変換しないPayload Source境界を一部検査済みです。production Storage revisionやmapping version変更を長期運用で跨ぐEvidenceはありません。
 
 ### V4 Provider Independence
 
@@ -290,9 +333,9 @@ low-impactの最小Decisionはlight Projectionで成立し、basis / Responsibil
 
 ### V8 Execution Independence
 
-SOZA semantic runtimeをexecution dispatchから分離し、Provider固有schemaをAdapter-localに保つsynthetic sliceも成立しています。異なるproduction Execution Provider間で意味を維持したEvidenceはありません。
+SOZA semantic runtimeをexecution dispatchから分離し、Provider固有schemaをAdapter-localに保つsynthetic sliceに加え、payload取得もStorage固有locatorをCoreへ入れない`PayloadSource`として分離しました。異なるproduction Execution Provider / Storage Provider間で意味を維持したEvidenceはありません。
 
-## 12. CoverageをKPIにしない
+## 13. CoverageをKPIにしない
 
 この文書は成熟度スコア表ではありません。
 
@@ -305,12 +348,12 @@ SOZA semantic runtimeをexecution dispatchから分離し、Provider固有schema
 
 追跡の目的は、**どこまで確認したかと、どこから先をまだ主張してはいけないかを見失わないこと**です。
 
-## 13. 更新規則
+## 14. 更新規則
 
-Product Value、REQ、SCN、ADR、Architecture、Contract、Profile、runtime、Provider Adapter、Projection evaluationのいずれかが変わった場合、この文書を必要に応じて更新します。
+Product Value、REQ、SCN、ADR、Architecture、Contract、Profile、runtime、Provider Adapter、Payload Source、Projection evaluationのいずれかが変わった場合、この文書を必要に応じて更新します。
 
 ただし、下位実装の都合に合わせてProduct Valueを後付けで変更しません。上位仮説を変える必要がある場合はADR-0018のProduct Value再基線化規則に従います。
 
-## 14. 自然な日本語ドラフト
+## 15. 自然な日本語ドラフト
 
-V1〜V8、REQ-0001〜0022、SCN-0001〜0017、ADR-0001〜0024、current Architecture、4 Contract family、Representation Profile、first semantic runtime slice、synthetic Provider Adapter slice、V6/V7 Projection evaluation harness、actual CI結果へ戻って追跡を再確認しました。その後、Design / Executable / Release / Operational / Adoption・OutcomeのEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+V1〜V8、REQ-0001〜0022、SCN-0001〜0017、ADR-0001〜0024、current Architecture、4 Contract family、Representation Profile、first semantic runtime slice、Verifier Registry、synthetic Payload Source、synthetic Provider Adapter slice、V6/V7 Projection evaluation harness、actual CI結果へ戻って追跡を再確認しました。その後、Design / Executable / Release / Operational / Adoption・OutcomeのEvidence強度、Storage-neutrality、取得不能とcontent mismatchの意味差を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
