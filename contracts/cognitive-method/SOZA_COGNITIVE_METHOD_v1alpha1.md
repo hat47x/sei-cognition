@@ -2,7 +2,7 @@
 
 contract_id: `soza.cognitive-method`  
 version: `v1alpha1`  
-状態: **Current pre-stable Design Baseline / Executable Evidence Pending**  
+状態: **Current pre-stable Design Baseline / Fixture-scoped Executable Evidence Available**  
 更新日: 2026-09-01
 
 ## 1. 目的
@@ -252,9 +252,14 @@ unknown Method Contract version
 
 本Contract DefinitionはDesign Evidenceです。
 
-schema、fixture、semantic validator、Go runtimeで実際に確認した範囲だけをExecutable Evidenceとします。
+current first sliceでは、schema、C1〜C8 fixture、negative / unknown-version boundary、semantic validator、Go typed runtimeをactual CIへ接続しています。
 
-未検証のものを含みます。
+- Contract Conformance Run `33467838961`: **success**
+- Semantic Runtime Conformance Run `33467838941`: **success**
+
+この範囲では、Method Definition / Realization / Applicationの分離、Realization省略の非推論、Pattern Referenceの非昇格、Exact-bound Method / Realization Referenceの保持、output / residual保持、current Semantic Interchange内のtyped load、unknown Method versionのopaque + `not_verified`保持、Method ApplicationへのDecision / Assurance等の混入拒否にExecutable Evidenceがあります。
+
+ただし、未検証のものを含みます。
 
 - Method execution engine
 - production Method Provider
@@ -270,6 +275,7 @@ Method fixture PASS
   != Method is good
   != conclusion is true
   != Decision is valid
+  != production Realization exchange verified
 ```
 
 ## 15. 関連
@@ -279,7 +285,12 @@ Method fixture PASS
 - ADR-0008, ADR-0009, ADR-0017, ADR-0021, ADR-0022, ADR-0025
 - `contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md`
 - `contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md`
+- `contracts/CONTRACT_CATALOG.md`
+- `contracts/TRACEABILITY.md`
+- `contracts/CONFORMANCE_EVIDENCE_2026-08-31.md`
+- `fixtures/contracts/v1alpha1/README.md`
+- `runtime/go/semanticruntime/cognitive_method_test.go`
 
 ## 16. Natural Japanese review
 
-current Product Value、REQ-0003 / 0004 / 0015 / 0016 / 0021、SCN-0005 / 0015、ADR-0017 / 0025、Reference Architecture、Semantic Reference、Decision Memoryへ戻って意味境界を照合しました。historical M47のfield setを正本化せず、Definition / Realization / Application、Pattern、Decision、Assurance、private chain-of-thought、Exact Bindingの差をcurrent要件から構成しています。その後、意味、規範強度、留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+current Product Value、REQ-0003 / 0004 / 0015 / 0016 / 0021、SCN-0005 / 0015、ADR-0017 / 0025、Reference Architecture、Semantic Reference、Decision Memory、current 31-fixture Contract Conformance、Cognitive Method typed runtimeへ戻って意味境界とEvidence範囲を照合しました。historical M47のfield setを正本化せず、Definition / Realization / Application、Pattern、Decision、Assurance、private chain-of-thought、Exact Bindingの差をcurrent要件から構成しています。実際に確認できたfirst-slice Executable Evidenceだけを追記し、Method実行、production Realization交換、Release以降へは昇格させていません。そのうえで、意味、規範強度、留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
