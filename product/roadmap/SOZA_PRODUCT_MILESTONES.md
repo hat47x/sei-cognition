@@ -124,7 +124,7 @@ Interaction boundaryのDesign Evidenceと、最小prototypeまたはconformance�
 
 ISSUE-000053では、`runtime/go/interactionprobe`にhuman-oriented Surfaceとmachine-oriented Surfaceを実体化し、同じin-memory canonical sourceへ接続しました。既存`semanticruntime`型を再利用し、Recommendation / Decision / Capability Observation / Cognitive Method Applicationはcurrent validatorを通して保持します。Inquiry / Unknown / Conflictは、未対応意味を理解済みと偽らずopaqueな`not_verified` recordとして扱います。
 
-Semantic Runtime Conformance Run `33503251170`で、current Contract fixture再検査と`runtime/go`全体の`go test ./...`がsuccessしました。
+追加negative testを含むSemantic Runtime Conformance Run `33504002579`で、current Contract fixture再検査と`runtime/go`全体の`go test ./...`がsuccessしました。
 
 このExecutable Evidenceで確認できたのは、主として次の境界です。
 
@@ -134,6 +134,7 @@ Semantic Runtime Conformance Run `33503251170`で、current Contract fixture再�
 - Unknown / Conflictを失わない。
 - light / audit / structured Projection生成でcanonical sourceを変更しない。
 - Surface-local stateを破棄してもcanonical recordを失わない。
+- chat / UIにしか存在しないRecommendation / Decision相当情報をcanonical recordへ昇格させない。
 - post-decision Observation追加でhistorical Decision basisを書き換えない。
 - machine SurfaceであることからResponsibilityを自動推定しない。
 
@@ -272,4 +273,4 @@ Open Questionを直接Stable Requirementへ飛ばしません。
 
 ## 14. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、Product Interaction baseline、REQ-0001〜0022、SCN-0013 / 0018、ADR-0028、ISSUE-000045 / 000053、`runtime/go/interactionprobe`、Semantic Runtime Conformance Run `33503251170`を照合し、PMS-03をDesign成立だけでなくscoped Executable Evidenceが得られた状態へ更新しました。一方、reference probeの成功をproduction UX、supported protocol、Packaging、Operational / Adoption Evidenceへ広げていません。未定領域を先にRequirementへ固定しない境界も保っています。そのうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Value、Value Proposition、Product Shape、Product Interaction baseline、REQ-0001〜0022、SCN-0013 / 0018、ADR-0028、ISSUE-000045 / 000053、`runtime/go/interactionprobe`、Semantic Runtime Conformance Run `33504002579`を照合し、PMS-03をDesign成立だけでなくscoped Executable Evidenceが得られた状態へ更新しました。一方、reference probeの成功をproduction UX、supported protocol、Packaging、Operational / Adoption Evidenceへ広げていません。未定領域を先にRequirementへ固定しない境界も保っています。そのうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
