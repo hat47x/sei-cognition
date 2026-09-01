@@ -5,7 +5,7 @@
 
 ## 1. Scope
 
-本書は、current Contractから再導出したSemantic Runtime slice、synthetic Provider Adapter slice、current Representation Profileを解決するin-process Verifier Registryについて、actual repository上で再現したExecutable Evidenceを記録します。
+本書は、current Contractから再導出したSemantic Runtime slice、synthetic Provider Adapter slice、current Representation Profileを解決するin-process Verifier Registry、およびVerifierへpayloadを渡すPayload Source boundaryについて、actual repository上で再現したExecutable Evidenceを記録します。
 
 対象:
 
@@ -22,7 +22,7 @@ Design Evidence
   != Adoption / Outcome Evidence
 ```
 
-Production Provider integration、external payload acquisition、Authorization / Action execution、Release、Operational、Adoption / Outcomeは本Evidenceから主張しません。
+Production Provider integration、production Storage / object-store adapter、Authorization / Action execution、Release、Operational、Adoption / Outcomeは本Evidenceから主張しません。
 
 ## 2. Semantic Runtime boundary
 
@@ -90,7 +90,59 @@ runtime Registryは次を区別します。
 
 検証結果は新しい`VerificationOutcome`として返し、入力Exact Bindingをmutateしません。
 
-## 4. Provider Adapter boundary
+## 4. Payload acquisition boundary
+
+ISSUE-000040では、payloadの取得処理とRepresentation verificationを別runtime boundaryへ分離しました。
+
+```text
+Exact Binding
+  ↓
+PayloadRequest
+  ↓
+PayloadSource
+  ↓
+PayloadLoadResult
+  ↓
+Verifier Registry
+  ↓
+Verification Outcome
+```
+
+`PayloadSource`はfilesystem、object store、remote artifact service等を将来接続するための交換可能なruntime interfaceです。Storage path、object key、HTTP details、credential、retry等をUniversal Coreへ持ち込みません。
+
+`PayloadLoadResult`は次を分けます。
+
+- `Available`
+- payload bytes
+- opaque `SourceRef`
+
+`SourceRef`はruntime metadataであり、Exact BindingやRepresentation Profileのcanonical identityではありません。
+
+### Acquisition outcome
+
+current orchestrationは次を区別します。
+
+- available payload + digest一致 → `verified`
+- available payload + digest mismatch → `failed`
+- sourceがavailableでない → `not_verified`
+- source operational error → semantic outcomeは`not_verified`、operational errorは別戻り値
+- source未設定 → `not_verified`
+- caller指定local size limit超過 → `not_verified` + operational error
+- availableな0 byte payload → 通常のpayloadとして検証可能
+
+```text
+payload unavailable
+  != content mismatch
+
+operational acquisition error
+  != semantic Verification Outcome
+```
+
+callerが指定する`MaxBytes`はlocal resource policyであり、SOZA Universal Coreの固定制限ではありません。
+
+Payload SourceはJCS canonicalization、Unicode normalization、改行変換等を行いません。JCS source testでは非canonical JSON bytesをそのまま返し、JCS Verifier側だけがcanonicalizationを担当することを確認しています。
+
+## 5. Provider Adapter boundary
 
 Provider Adapterは、Provider固有stateからCapability Observationへの観測・解釈境界として扱います。
 
@@ -123,9 +175,9 @@ endpoint
 
 これらのProvider固有field setをSOZA Universal ontologyにはしません。
 
-## 5. Executable paths
+## 6. Executable paths
 
-current runtime / Adapter / Verifier実装:
+current runtime / Adapter / Verifier / Payload Source実装:
 
 ```text
 runtime/go/semanticruntime/model.go
@@ -133,6 +185,8 @@ runtime/go/semanticruntime/loader.go
 runtime/go/semanticruntime/loader_test.go
 runtime/go/semanticruntime/verifier.go
 runtime/go/semanticruntime/verifier_test.go
+runtime/go/semanticruntime/payload_source.go
+runtime/go/semanticruntime/payload_source_test.go
 runtime/go/provideradapter/adapter.go
 runtime/go/provideradapter/synthetic.go
 runtime/go/provideradapter/adapter_test.go
@@ -162,7 +216,7 @@ CIは同じcheckoutで、概ね次を順に実行します。
 
 Representation Profile fixtureもruntime testの入力になったため、同fixture変更時にSemantic Runtime Conformanceが起動するようpath triggerを追加しています。
 
-## 6. Current Contract fixture result
+## 7. Current Contract fixture result
 
 current baselineでは17 fixtureについて、期待結果とactual checkerの結果が一致することを確認しています。
 
@@ -173,7 +227,7 @@ passed = true
 
 主な境界にはCapability Observation F1〜F7、Decision / Authority分離、same-logical-id lineage、Exact Binding mismatch、unknown nested Contract、partial knowledge等を含みます。
 
-## 7. Semantic Runtime evidence
+## 8. Semantic Runtime evidence
 
 runtime testではcurrent Contract fixtureを直接利用し、少なくとも次を確認しています。
 
@@ -187,7 +241,7 @@ runtime testではcurrent Contract fixtureを直接利用し、少なくとも�
 - unknown nested Contractを完全検証済みとして扱わない。
 - original Semantic Interchange bytesを読込み時に勝手にnormalizeせず再exportできる。
 
-## 8. Synthetic Provider Adapter evidence
+## 9. Synthetic Provider Adapter evidence
 
 synthetic Provider A / Bについて、少なくとも次を確認しています。
 
@@ -202,7 +256,7 @@ synthetic Provider A / Bについて、少なくとも次を確認していま�
 - Recommendation / Decision / Authority / Executionへ自動昇格しない。
 - Provider固有fieldをCapability ObservationのUniversal field setへ直接漏らさない。
 
-## 9. GitHub Actions evidence
+## 10. GitHub Actions evidence
 
 ### First semantic runtime closure
 
@@ -239,31 +293,44 @@ synthetic Provider A / Bについて、少なくとも次を確認していま�
 
 JCS moduleは`v1.0.1`へ固定しており、ADR-0023の既存probeで使用しているcommit `1a4242a66e1a8e03d7458324d0bc95c327527cbb`に対応します。
 
-## 10. Evidence boundary
+### Payload acquisition boundary
 
-今回追加で直接確認できたのは、**repository内または呼出し側から与えられたpayload bytesを使うin-process Representation verification**です。
+- Run ID: `33457416359`
+- Head SHA: `125bda1693f0712c2b741f149059d361cce7f97a`
+- current Contract fixture recheck: **success**
+- semantic runtime / Provider Adapter / Verifier / Payload Source tests: **success**
+- conclusion: **success**
+
+このRunではsynthetic Payload Sourceを用い、raw bytes / JCS、unavailable、operational error、nil source、zero-length payload、local size limit、Exact Binding非変異を検査しています。
+
+## 11. Evidence boundary
+
+今回追加で直接確認できたのは、**交換可能なPayload Sourceから取得結果を受け、in-process Verifier Registryへ接続する境界**です。
 
 ```text
-in-process Verifier Registry PASS
-  != external payload acquisition
-  != object-storage integration
+Payload Source boundary PASS
+  != production filesystem adapter
+  != production object-storage adapter
+  != production remote artifact service
   != production streaming verification
-  != production Provider interoperability
+  != Storage migration completed
   != Release Evidence
   != Operational Evidence
   != Adoption / Outcome Evidence
 ```
 
+特に、synthetic Payload Sourceが動くことから実Storageの可用性・retention・credential・retry・network behaviorを推定しません。
+
 historical M47 digestのRepresentation Profileも未確認であり、ISSUE-000034で独立して扱います。
 
 current Evidence state:
 
-- Design: **Satisfied** — ADR-0008 / ADR-0009 / ADR-0022 / ADR-0023とContract / Profileで境界を定義済み。
-- Executable: **Partially Satisfied** — Contract fixture、first runtime、synthetic Adapter、current 2 Profileのin-process verificationを再現可能。
+- Design: **Satisfied** — ADR-0007 / ADR-0008 / ADR-0009 / ADR-0022 / ADR-0023とcurrent runtime boundaryで意味と実現を分離済み。
+- Executable: **Partially Satisfied** — Contract fixture、first runtime、synthetic Adapter、current 2 Profileのverification、synthetic Payload Source acquisition boundaryを再現可能。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
 
-## 11. Natural Japanese review
+## 12. Natural Japanese review
 
-actual GitHub Actions、current Contract fixture、Representation Profile fixture、Semantic Runtime、synthetic Provider Adapter、Verifier Registry実装とtestを相互照合しました。CI failureとその解消もEvidence履歴として残し、直接確認できたin-process verificationと、external payload acquisition / production operation以降の未検証範囲を分離しています。その後、意味、数値、Evidence強度、Exact Binding / Verification Outcome / Profile authorityの境界を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+actual GitHub Actions、current Contract fixture、Representation Profile fixture、Semantic Runtime、synthetic Provider Adapter、Verifier Registry、Payload Source boundaryの実装とtestを相互照合しました。取得不能、operational error、local resource limitをdigest mismatchへ誤変換しないこと、source固有metadataをExact Bindingへ混入させないことを確認し、production Storage / streaming以降の未検証範囲を分離しています。その後、意味、Evidence強度、Exact Binding / Verification Outcome / Profile authority / Storage-neutralityの境界を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
