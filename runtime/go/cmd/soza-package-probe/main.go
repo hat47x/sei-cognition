@@ -12,11 +12,23 @@ import (
 	"github.com/hat47x/soza/runtime/go/semanticruntime"
 )
 
+var (
+	buildVersion = "dev"
+	buildCommit  = "unknown"
+	buildTarget  = "unknown"
+)
+
 type inspectResult struct {
 	BundleID         string `json:"bundle_id"`
 	RecordCount      int    `json:"record_count"`
 	ValidatedCount   int    `json:"validated_count"`
 	NotVerifiedCount int    `json:"not_verified_count"`
+}
+
+type versionResult struct {
+	Version string `json:"version"`
+	Commit  string `json:"commit"`
+	Target  string `json:"target"`
 }
 
 func main() {
@@ -28,7 +40,7 @@ func main() {
 
 func run(ctx context.Context, args []string) error {
 	if len(args) == 0 {
-		return errors.New("subcommand is required: save or inspect")
+		return errors.New("subcommand is required: save, inspect, or version")
 	}
 
 	switch args[0] {
@@ -36,8 +48,10 @@ func run(ctx context.Context, args []string) error {
 		return runSave(ctx, args[1:])
 	case "inspect":
 		return runInspect(ctx, args[1:])
+	case "version":
+		return runVersion()
 	default:
-		return fmt.Errorf("unknown subcommand %q: expected save or inspect", args[0])
+		return fmt.Errorf("unknown subcommand %q: expected save, inspect, or version", args[0])
 	}
 }
 
@@ -96,10 +110,22 @@ func runInspect(ctx context.Context, args []string) error {
 		}
 	}
 
+	return writeJSON(result)
+}
+
+func runVersion() error {
+	return writeJSON(versionResult{
+		Version: buildVersion,
+		Commit:  buildCommit,
+		Target:  buildTarget,
+	})
+}
+
+func writeJSON(value any) error {
 	encoder := json.NewEncoder(os.Stdout)
 	encoder.SetEscapeHTML(false)
-	if err := encoder.Encode(result); err != nil {
-		return fmt.Errorf("write inspection result: %w", err)
+	if err := encoder.Encode(value); err != nil {
+		return fmt.Errorf("write JSON output: %w", err)
 	}
 	return nil
 }
