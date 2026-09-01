@@ -105,7 +105,7 @@ current repositoryでは成立済みです。
 - 出力をcurrent Contract / Adapterへ戻す。
 - 交換後もhistorical Decisionを変更しない。
 
-ISSUE-000057の対象です。
+ISSUE-000057で**scoped Executable Evidenceを取得済み**です。
 
 ### E3 — real external integration
 
@@ -134,7 +134,36 @@ ISSUE-000057の対象です。
 6. failed Realization / Providerがcanonical sourceを中途半端に変更しない。
 7. process / binary / vendorのidentityをsemantic identityへ短絡させない。
 
-## 8. Requirement / Scenario
+## 8. E2で確認したExecutable Evidence
+
+`runtime/go/realizationprobe`では、reference Provider A / Bとreference Method Realization A / Bを、SOZA runtimeとは別のOS processとして実際にbuild・起動します。
+
+Provider A / Bは異なるProvider固有state shapeを返し、それぞれ`ReferenceProviderAAdapter` / `ReferenceProviderBAdapter`を通してcurrent Capability Observationへmappingします。Method A / Bは同じMethod Definitionに対する異なるRealizationとして実行し、各Method Applicationに異なる`realization_ref`を保持します。
+
+Semantic Runtime Conformance Run `33516101445`では、current Contract fixture 31件の再検査と`runtime/go`全体の`go test ./...`が**success**しました。
+
+actual testでは、次を確認しています。
+
+- Provider A / Bを別OS processとして起動できる。
+- A / Bの異なるProvider固有stateを別Provider identityとして保持できる。
+- Providerが変わっても同じCapability identityへmappingできる。
+- mapping後のCapability Observationをcurrent validatorへ戻せる。
+- 同じMethod Definitionに対する二つのRealizationを別OS processで実行できる。
+- Method Applicationごとに異なる`realization_ref`を保持できる。
+- Realization A / Bが異なるRecommendationを返しても、それぞれをRecommendationとして保持し、Decisionへ自動昇格しない。
+- Provider / Method交換後にも、交換前Decisionのbasis、Recommendation、Responsibility、unresolvedを変更しない。
+- unsupported profile等で外部processが失敗した場合、canonical sourceを変更しない。
+
+この結果から、E2の交換境界には限定されたExecutable Evidenceがあると判断します。ただし、reference processはSOZA repository内でbuildした評価用Realizationであり、実外部事業者やTEI production instanceではありません。
+
+```text
+E2 PASS
+  != E3 real external integration PASS
+  != production credential / network / SLA portability
+  != E4 operational portability
+```
+
+## 9. Requirement / Scenario
 
 現時点では、新しいStable Requirement / Scenarioを追加しません。
 
@@ -151,7 +180,7 @@ ISSUE-000057の対象です。
 
 out-of-process化はEvidenceを厚くするための実証であり、それ自体を新しいProduct Requirementにはしません。
 
-## 9. 現時点で固定しないこと
+## 10. 現時点で固定しないこと
 
 - production AI Provider
 - production SaaS / TEI integration protocol
@@ -164,16 +193,16 @@ out-of-process化はEvidenceを厚くするための実証であり、それ自�
 - billing / rate limit model
 - production Provider SLA
 
-## 10. Evidence状態
+## 11. Evidence状態
 
 - Contract / synthetic exchange: **Scoped Executable Evidence available**
-- out-of-process reference exchange: **Implementation prepared / CI Evidence pending**
+- out-of-process reference exchange: **Scoped Executable Evidence available** — Semantic Runtime Conformance Run `33516101445`
 - real external AI / SaaS / TEI exchange: **Not Yet Verified**
 - Operational portability: **Not Yet Verified**
 - Release Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
 
-## 11. 関連文書
+## 12. 関連文書
 
 - `../roadmap/SOZA_PRODUCT_MILESTONES.md`
 - `../../requirements/PRODUCT_REQUIREMENTS.md`
@@ -184,6 +213,6 @@ out-of-process化はEvidenceを厚くするための実証であり、それ自�
 - `../../plan/adr/ADR-0024-provider-adapter-observation-mapping-boundary.md`
 - `../../plan/adr/ADR-0025-cognitive-method-portable-contract-boundary.md`
 
-## 12. Natural Japanese review
+## 13. Natural Japanese review
 
-Product Value、PMS-06、REQ-0001 / 0004 / 0005 / 0007 / 0021、SCN-0005 / 0014 / 0018、Cognitive Method Contract、Provider Adapter、end-to-end journey harnessへ戻り、Realization / Provider交換で何を変えてよく、何を判断記憶として維持する必要があるかを整理した。同じ出力を返すことをportableの条件にはせず、Method DefinitionとRealization、CapabilityとProvider、RecommendationとDecision、現在のObservationとhistorical basisを分離したまま再構成できることを中心に置いている。また、out-of-process reference profileをproduction外部連携へ過大評価せず、process-local protocolをUniversal Contractへ昇格させない。そのうえで、意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+Product Value、PMS-06、REQ-0001 / 0004 / 0005 / 0007 / 0021、SCN-0005 / 0014 / 0018、Cognitive Method Contract、Provider Adapter、end-to-end journey harness、`runtime/go/realizationprobe`のactual testとSemantic Runtime Conformance Run `33516101445`へ戻り、Realization / Provider交換で何を変えてよく、何を判断記憶として維持する必要があるかを整理した。同じ出力を返すことをportableの条件にはせず、Method DefinitionとRealization、CapabilityとProvider、RecommendationとDecision、現在のObservationとhistorical basisを分離したまま再構成できることを中心に置いている。また、E2のreference process成功を実AI / SaaS / TEI連携やOperational portabilityへ過大評価せず、process-local protocolをUniversal Contractへ昇格させない。そのうえで、意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
