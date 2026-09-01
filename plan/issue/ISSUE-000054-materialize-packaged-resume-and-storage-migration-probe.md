@@ -2,7 +2,7 @@
 
 Status: **Open**  
 Priority: **1**  
-Related ADRs: **ADR-0007, ADR-0021, ADR-0022, ADR-0027, ADR-0029**  
+Related ADRs: **ADR-0007, ADR-0021, ADR-0022, ADR-0029**  
 Updated: 2026-09-01
 
 ## Goal
@@ -128,4 +128,4 @@ process restart後のresumeが、これらでは表現できない独立したPr
 
 ## Natural Japanese review
 
-PMS-04、Product Packaging baseline、ADR-0029、REQ-0018 / 0021、SCN-0008 / 0010、current Semantic Interchange runtimeを照合し、production Storage選定ではなくsave / restart / restore / Storage交換の意味保持を確認するreference probeとして整理しました。probe-local Persistence interfaceをUniversal Contractへ昇格させず、既存runtimeを再利用する方針と未検証範囲を明確にしたうえで、意味、検査強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+PMS-04、Product Packaging baseline、ADR-0027のruntime言語方針、ADR-0029のPackaging Decision、REQ-0018 / 0021、SCN-0008 / 0010、current Semantic Interchange runtimeを照合し、production Storage選定ではなくsave / restart / restore / Storage交換の意味保持を確認するreference probeとして整理しました。probe-local Persistence interfaceをUniversal Contractへ昇格させず、既存runtimeを再利用する方針と未検証範囲を明確にしたうえで、意味、検査強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
