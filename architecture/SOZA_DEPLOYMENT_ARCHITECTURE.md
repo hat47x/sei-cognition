@@ -5,7 +5,7 @@
 
 ## 1. この文書の役割
 
-この文書は、`product/packaging/SOZA_PRODUCT_PACKAGING.md`とADR-0029で採用したLocal Single-Node Packageを、current Reference Architectureのsemantic concernを壊さずに配置するためのDeployment Architectureです。
+この文書は、Product Packaging baselineとADR-0029で採用したLocal Single-Node Packageを、current Reference Architectureのsemantic concernを壊さずに配置するためのDeployment Architectureです。
 
 ここでいうcomponentはdeployment上の実現単位であり、Universal semantic entityではありません。
 
@@ -45,43 +45,31 @@ Human / Machine Surface
 
 ### 3.1 Interaction Adapter
 
-人間向け・機械向けSurfaceからの操作を、canonical semantic operationへ接続します。
-
-UI state、chat transcript、cursor、tab等をcanonical persistenceの必須要素にしません。
+人間向け・機械向けSurfaceからの操作をcanonical semantic operationへ接続します。UI state、chat transcript、cursor、tab等をcanonical persistenceの必須要素にしません。
 
 ### 3.2 Canonical Semantic Runtime
 
-current Semantic Contractを読み、既知recordを検証し、unknown recordをEvidence強度を上げずに保持します。
-
-Deployment固有のfile path、process ID、port番号等をLogical Referenceへ持ち込みません。
+current Semantic Contractを読み、既知recordを検証し、unknown recordをEvidence強度を上げずに保持します。deployment固有のfile path、process ID、port番号等をLogical Referenceへ持ち込みません。
 
 ### 3.3 Persistence Port
 
-保存・再読のruntime境界です。
-
-最初のprobeでは`Save` / `Load`相当の小さなinterfaceを使いますが、このGo interface自体はUniversal Contractではありません。
-
-Persistence Portの責務は、portable semantic bytesをStorage Realizationへ渡し、後から同じportable representationとして取り出せることです。
+保存・再読のruntime境界です。probeでは小さな`Save` / `Load`相当interfaceを使いますが、このGo interface自体はUniversal Contractではありません。
 
 ### 3.4 Persistence Adapter
 
-最初のRealizationはfilesystemです。
-
-filesystem Adapterは、directory、file name、temporary file、rename、permission等の物理mechanicsを所有します。これらをSemantic Contractへ漏らしません。
+最初のRealizationはfilesystemです。directory、file name、temporary file、rename、permission等のphysical mechanicsを所有し、それらをSemantic Contractへ漏らしません。
 
 後続のRDB / object store Adapterも、同じsemantic boundaryを満たせる限り交換可能です。
 
 ### 3.5 Provider / Integration Adapter
 
-TEI、SaaS、AI、外部System等との接続を担います。
-
-Packagingのためにworkflow / agent runtimeを内蔵必須にはしません。
+TEI、SaaS、AI、外部System等との接続を担います。Packagingのためにworkflow / agent runtimeを内蔵必須にはしません。
 
 ## 4. durable data root
 
 durable data rootは、process終了後にも残るphysical storage locationです。
 
-最初のfilesystem profileでは、canonical semantic bundleを明示的なfileとして保持します。
+最初のfilesystem profileでは、canonical semantic bundleを次のような明示的fileとして保持します。
 
 ```text
 data root/
@@ -91,13 +79,11 @@ data root/
 
 このlayoutはfilesystem Realizationのprofileであり、SOZA Universal ontologyではありません。
 
-`semantic.bundle.json`の内容にはcurrent Semantic Interchangeを利用します。
-
 ## 5. 保存境界
 
-正常なsaveは、呼び出し元へ成功を返す前に、少なくとも完全なportable semantic bytesをPersistence Adapterへ渡し切る必要があります。
+正常なsaveは、成功を返す前に完全なportable semantic bytesをPersistence Adapterへ渡し切る必要があります。
 
-filesystem probeでは、次の手順を使います。
+filesystem probeでは次を用います。
 
 ```text
 complete bytes
@@ -106,15 +92,13 @@ complete bytes
   -> rename to canonical file
 ```
 
-この手順はfirst filesystem Realizationの実装です。将来のDB transaction等を同じ方法へ揃えることは要求しません。
+重要なのは、不完全なwriteを正常なcanonical packageとして公開しないことです。この具体mechanicsをDB等へ一般化しません。
 
-重要なのは、不完全なwriteを正常なcanonical packageとして公開しないことです。
-
-reference probeではtemporary fileだけが存在する状態をcompleted packageとして扱わず、invalid canonical fileもSemantic Interchangeとして拒否することを確認しています。ただし、この実装だけでpower loss時のcrash durabilityやすべてのOS / filesystemにおけるatomicityを保証したとは主張しません。
+reference probeではinvalid canonical fileやtemporary fileだけの状態を正常packageとして扱わないことを確認しています。一方、この結果をpower loss時のcrash durabilityや全platformでのatomicity保証へは広げません。
 
 ## 6. 再開境界
 
-resumeはprocess memoryの復元ではありません。
+resumeはprocess heapの復元ではありません。
 
 ```text
 resume
@@ -124,17 +108,34 @@ resume
   != restore UI session state
 ```
 
-新しいruntime instanceがdata rootからbundleを読み、既知Contractをcurrent validatorで再構成します。
+ISSUE-000054では、二段階でこの境界を検査しました。
 
-未知Contract / versionはopaque `not_verified`のまま保持でき、runtimeが理解できないことを理由に削除しません。
+1. 元の`Bundle` objectを破棄し、新しいruntime objectからdurable bytesを再構成する。
+2. `go build`で生成したGo executableを独立したprocess Aとして起動して保存し、process A終了後に別process Bを起動して同じdata rootから再読する。
 
-ISSUE-000054のprobeでは、同一test process内で元のBundle objectを破棄し、新しい`FilePersistence` / `LoadBundle`呼び出しから同じportable bytesとtyped recordを再構成できることを確認しました。
+process Bはprocess Aのin-memory stateを共有しません。これにより、same-versionのbuild済みexecutableによるliteral process restartにはscoped Executable Evidenceがあります。
 
-これはin-memory runtime stateへ依存しない再構成のExecutable Evidenceです。literalなOS process終了・再起動や、executable version交換後のresumeはまだ未検証です。
+```text
+same-version process restart: verified in scoped probe
+version-upgrade resume: not yet verified
+```
 
-## 7. export / import
+未知Contract / versionはprocessを跨いでもopaque `not_verified`のまま保持します。
 
-Persistence Adapterの内部形式が将来変わっても、portable Semantic InterchangeをStorage交換境界として利用します。
+## 7. package lifecycle controlとProduct Interaction
+
+process probe executableには`save` / `inspect`だけを置いています。これはDeployment / Packaging acceptanceを検査するための管理入口です。
+
+```text
+package lifecycle control
+  != Product Interaction Surface
+```
+
+このcommandを正式なSOZA CLI、human-facing UI、AI-facing protocolへ昇格させません。supported artifactの管理入口はISSUE-000055で検討します。
+
+## 8. export / import
+
+Persistence内部形式が変わっても、portable Semantic InterchangeをStorage交換境界として利用します。
 
 ```text
 filesystem adapter
@@ -143,24 +144,20 @@ filesystem adapter
 Semantic Interchange bytes
       │ import
       ▼
-RDB / object-store / other adapter
+other Persistence adapter
 ```
 
-export / importでphysical locatorをsemantic identityへ変換しません。
+reference probeではfilesystemからmemory Persistenceへoriginal bytesを移し、同じbundleを再読できることを確認しました。これはPersistence交換境界の補助的Evidenceであり、production DB / object store migrationではありません。
 
-reference probeでは、filesystem Persistenceからoriginal bytesをexportし、memory Persistenceへimportした後に同じbundleを再読できることを確認しました。これはPersistence交換境界の限定Executable Evidenceであり、production DB / object store migrationを意味しません。
+## 9. backup / restore
 
-## 8. backup / restore
+最初のfilesystem profileでは、整合したcanonical bundleを別locationへ複製し、そこから新しいruntimeが同じsemantic dataを再読できることを最小restore条件とします。
 
-最初のfilesystem profileでは、整合したcanonical fileを含むdata rootを別locationへ複製し、そこから新しいruntime instanceが同じbundleを再読できることを最小restore条件とします。
+reference probeではcanonical bundle fileのcopy / restoreを確認しています。running processのheap、Surface-local state、temporary fileは最小backupのcanonical対象ではありません。
 
-running processのheap、Surface-local state、temporary fileは最小backupのcanonical対象ではありません。
+external payload等を含む完全なproduction backup、online snapshot、incremental backup、PITRは未検証です。
 
-reference probeではcanonical bundle fileを別directoryへcopyし、restore先から同じSemantic Interchange bytesを再読できることを確認しました。外部payload等を含む将来のdata root全体のproduction backupは未検証です。
-
-online snapshot、incremental backup、PITRは後続Profileで扱います。
-
-## 9. failure boundary
+## 10. failure boundary
 
 次を正常なpackage stateとして扱いません。
 
@@ -169,26 +166,22 @@ online snapshot、incremental backup、PITRは後続Profileで扱います。
 - Semantic Interchangeとして検証できない。
 - save途中のtemporary fileしか存在しない。
 
-一方、Semantic Interchange内にruntime未知のnested Contractが含まれることは、それだけでpackage全体の破損とはみなしません。unknown recordは`not_verified`として保持します。
+一方、runtime未知のnested Contractが含まれることだけでpackage全体を破損扱いにはしません。unknown recordは`not_verified`として保持します。
 
-reference probeでは、このfailure boundaryをactual testで確認しました。invalid importが失敗しても直前のvalid memory stateを置き換えません。
+## 11. 将来のservice分割
 
-## 10. 将来のservice分割
-
-将来、Interaction、Persistence、Provider Adapter等を別process / serviceへ分割できます。
-
-その際も次を守ります。
+将来、Interaction、Persistence、Provider Adapter等を別process / serviceへ分割できます。その際も次を守ります。
 
 - Logical Referenceをservice-local IDへ置換しない。
 - service境界をsemantic authority境界と同一視しない。
 - transport retryやqueue stateをDecision stateへ昇格させない。
 - Persistence内部transactionをSemantic Revisionへ昇格させない。
 
-Local Single-Node Profileは、将来の分割を禁止するものではありません。
+Local Single-Node Profileは将来の分割を禁止するものではありません。
 
-## 11. Security / Identityとの境界
+## 12. Security / Identityとの境界
 
-filesystem permission、process user、credential等は重要ですが、本baselineではProduct Identity / Authorizationの意味境界を確定しません。
+filesystem permission、process user、credential等は重要ですが、本baselineではProduct Identity / Authorizationを確定しません。
 
 ```text
 OS file permission
@@ -198,30 +191,35 @@ OS file permission
 
 PMS-05 / ISSUE-000047で、product access permissionとsemantic Authority / Responsibilityを分離して扱います。
 
-## 12. Evidence状態
-
-- Deployment Architecture Design Evidence: **Established**
-- filesystem persistence / runtime-state-independent reconstruction Executable Evidence: **Scoped Evidence available**
-- filesystem → memory Persistence migration Executable Evidence: **Scoped Evidence available**
-- canonical bundle copy / restore Executable Evidence: **Scoped Evidence available**
-- literal OS-process restart: **Not Yet Verified**
-- distributable package: **Not Yet Verified**
-- crash durability / cross-platform filesystem guarantee: **Not Yet Verified**
-- production Storage migration: **Not Yet Verified**
-- Release Evidence: **Not Yet Verified**
-- Operational Evidence: **Not Yet Verified**
-
-詳細は`../runtime/PACKAGING_PROBE_EVIDENCE_2026-09-01.md`を参照します。
+## 13. Evidence状態
 
 ```text
-probe PASS
-  != production deployment proven
-  != literal process restart proven
+Deployment Architecture Design: established
+filesystem persistence: scoped Executable Evidence available
+runtime-state-independent reconstruction: scoped Executable Evidence available
+same-version literal process restart: scoped Executable Evidence available
+canonical bundle copy / restore: scoped Executable Evidence available
+filesystem -> memory Persistence exchange: scoped Executable Evidence available
+supported distributable artifact: not yet verified
+version upgrade resume: not yet verified
+crash durability / cross-platform guarantee: not yet verified
+actual production Storage migration: not yet verified
+Release / Operational: not yet verified
+```
+
+literal process probeを含むSemantic Runtime Conformance Run `33508376230`、Plan integrity Run `33508376256`はsuccessしています。
+
+```text
+process probe PASS
+  != supported distribution artifact proven
+  != version upgrade proven
   != crash durability proven
   != Release / Operational Evidence
 ```
 
-## 13. 関連文書
+詳細は`../runtime/PACKAGING_PROBE_EVIDENCE_2026-09-01.md`を参照します。
+
+## 14. 関連文書
 
 - `SOZA_REFERENCE_ARCHITECTURE.md`
 - `IMPLEMENTATION_LANGUAGE_POLICY.md`
@@ -229,8 +227,9 @@ probe PASS
 - `../plan/adr/ADR-0007-canonical-persistence-boundary.md`
 - `../plan/adr/ADR-0029-local-single-node-packaging-profile.md`
 - `../plan/issue/ISSUE-000054-materialize-packaged-resume-and-storage-migration-probe.md`
+- `../plan/issue/ISSUE-000055-materialize-first-supported-local-package-artifact.md`
 - `../runtime/PACKAGING_PROBE_EVIDENCE_2026-09-01.md`
 
-## 14. Natural Japanese review
+## 15. Natural Japanese review
 
-Reference Architecture、Product Packaging baseline、ADR-0007 / 0029、Semantic Interchange runtime、Payload Source、Product Interaction boundary、`runtime/go/packagingprobe`とcurrent CI Evidenceを照合し、Local Single-Node Packageをdeployment componentの配置として再監査しました。単一processやfilesystem layoutをsemantic concernへ昇格させず、保存、再開、export / import、backup / restore、failureの境界を分けています。また、runtime object破棄後の再構成とliteral OS-process restart、filesystem→memory probeとproduction Storage migration、file sync / renameとcrash durability guaranteeを区別しています。そのうえで、意味、Architecture上の責務、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Reference Architecture、Product Packaging baseline、ADR-0007 / 0029、Semantic Interchange runtime、Product Interaction boundary、`runtime/go/packagingprobe`、build済みGo executableによるliteral process restart、Semantic Runtime Conformance Run `33508376230`、Plan integrity Run `33508376256`を照合しました。Local Single-Node Packageをdeployment componentの配置として整理し、単一process、filesystem layout、probe commandをsemantic concernや正式Product Interactionへ昇格させていません。runtime object再生成とliteral process restart、same-version restartとversion upgrade、Persistence交換probeとactual production Storage migration、file sync / renameとcrash durability guaranteeを分けたうえで、意味、Architecture上の責務、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
