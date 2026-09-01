@@ -136,7 +136,7 @@ issue:
   - {id: ISSUE-000010, file: plan/issue/ISSUE-000010-define-m49-decision-memory-acceptance-boundary.md, status: Resolved, priority: 2, related_adrs: [ADR-0010]}
   - {id: ISSUE-000011, file: plan/issue/ISSUE-000011-define-decision-memory-reference-role-semantics.md, status: Resolved, priority: 3, related_adrs: [ADR-0010, ADR-0011]}
   - {id: ISSUE-000012, file: plan/issue/ISSUE-000012-define-m49-progressive-decision-explicitness.md, status: Resolved, priority: 4, related_adrs: [ADR-0005, ADR-0010, ADR-0011]}
-  - {id: ISSUE-000013, file: plan/issue/ISSUE-000013-define-capability-choice-acceptance-boundary.md, status: Resolved, priority: 3, related_adrs: [ADR-0012, ADR-0013]}
+  - {id: ISSUE-000013, file: plan/issue/ISSUE-000013-define-capability-choice-semantic-boundary.md, status: Resolved, priority: 3, related_adrs: [ADR-0012, ADR-0013]}
   - {id: ISSUE-000014, file: plan/issue/ISSUE-000014-investigate-capability-realization-offering-boundary.md, status: Resolved, priority: 5, related_adrs: [ADR-0012, ADR-0013]}
   - {id: ISSUE-000015, file: plan/issue/ISSUE-000015-natural-japanese-document-audit.md, status: Resolved, priority: 1, related_adrs: []}
   - {id: ISSUE-000016, file: plan/issue/ISSUE-000016-formalize-soza-tei-product-boundary.md, status: Resolved, priority: 1, related_adrs: [ADR-0014]}
@@ -182,4 +182,4 @@ issue:
   - {id: ISSUE-000056, file: plan/issue/ISSUE-000056-materialize-product-access-collaboration-probe.md, status: Resolved, priority: 1, related_adrs: [ADR-0004, ADR-0006, ADR-0016, ADR-0030]}
   - {id: ISSUE-000057, file: plan/issue/ISSUE-000057-materialize-out-of-process-realization-provider-exchange.md, status: Resolved, priority: 1, related_adrs: [ADR-0013, ADR-0017, ADR-0019, ADR-0024, ADR-0025]}
   - {id: ISSUE-000058, file: plan/issue/ISSUE-000058-materialize-version-pinned-external-artifact-integration.md, status: Resolved, priority: 1, related_adrs: [ADR-0013, ADR-0017, ADR-0019, ADR-0021, ADR-0024, ADR-0025]}
-  - {id: ISSUE-000059, file: plan/issue/ISSUE-000059-materialize-v0-2-0-release-candidate-boundary.md, status: In Progress, priority: 1, related_adrs: [ADR-0018, ADR-0020, ADR-0021, ADR-0029]}
+  - {id: ISSUE-000059, file: plan/issue/ISSUE-000059-materialize-v0-2-0-release-candidate-boundary.md, status: Resolved, priority: 1, related_adrs: [ADR-0018, ADR-0020, ADR-0021, ADR-0029]}
