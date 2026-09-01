@@ -1,5 +1,5 @@
 schema: soza.document-review-registry/v1
-updated: 2026-09-01
+updated: 2026-09-02
 
 purpose: >-
   ISSUE-000015で行った既存開発文書の自然な日本語監査について、current branch上の
@@ -32,7 +32,8 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_SHAPE.md
-    note: 利用者から見た主要な仕事、論理Surface、SOZA内外境界、Minimum Usable Product Shapeをcurrent Product Valueから整理済み。
+      - SOZA_REALIZATION_PROVIDER_EXCHANGE.md
+    note: Product Shapeに加え、Realization / Provider交換をE1〜E4のEvidence ladderで整理し、E3b-P1のpublic live Provider実証をScoped Executable Evidenceとして反映した。GitHub / TEI / HTTP等の外部固有概念をUniversal Coreへ昇格させず、E3b全体やOperational Evidenceへ過大評価しない境界を自然な日本語で監査済み。
   - scope: product/vision/SOZA_PRODUCT_VISION.md
     status: revised
   - scope: product/principles/SOZA_PRODUCT_PRINCIPLES.md
@@ -42,7 +43,7 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_MILESTONES.md
-    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-03はInteraction、PMS-04はLocal Reference Package、PMS-05はProduct Access責務分離のscoped Executable Evidenceまでを反映し、production securityやRelease / Operational / Adoption Evidenceへは昇格させていない。
+    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06はE2、E3aに続きE3b-P1のpublic live Provider serviceまでをScoped Executable Evidenceとして反映し、live TEI、external Cognitive Method、Release / Operational / Adoption Evidenceは未検証のまま保持している。
   - scope: product/interaction/*.md
     status: revised
     coverage:
@@ -65,8 +66,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、ADR-0030のProduct Access Controlとsemantic Responsibility / Authorityの分離まで、自然な日本語全文再ドラフトと最終意味監査を実施済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000056
-    note: ISSUE-000047のProduct Identity / Access / Collaboration Design closureと、ISSUE-000056のProduct Access / Selective Disclosure reference probeを含め、自然な日本語全文再ドラフトと最終意味監査まで実施済み。
+    coverage: ISSUE-000001..ISSUE-000059
+    note: ISSUE-000057のout-of-process exchange、ISSUE-000058のversion-pinned external artifact integration、ISSUE-000059の最初のpublic live Provider integrationを含め、意味・未検証範囲・Evidence強度を変えず、自然な日本語全文再ドラフトと最終意味監査まで実施済み。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -142,6 +143,9 @@ reviewed:
   - scope: runtime/ACCESS_COLLABORATION_PROBE_EVIDENCE_2026-09-01.md
     status: revised
     note: IdP相当identity交換、ResponsibilityとProduct accessの非同一性、Product adminとsemantic Responsibilityの非同一性、actor kind非推定、denied / not_evaluated分離、Selective Disclosureのcanonical非改変をScoped Executable Evidenceとして記録し、production IAM / securityへ昇格させない境界を自然な日本語で明示済み。
+  - scope: runtime/LIVE_EXTERNAL_PROVIDER_EVIDENCE_2026-09-02.md
+    status: revised
+    note: E3b-P1としてpublic GitHub REST APIを実際に呼び、固定revisionのidentity確認、current Capability Observationへのmapping、revision mismatch / HTTP failure / timeout / Provider固有field非漏出をScoped Executable Evidenceとして記録した。live TEI、external Cognitive Method、private credential、Operational / Release / Adoptionへ昇格させない境界を自然な日本語で明示済み。
   - scope: runtime/package/reference/*.md
     status: revised
     coverage:
