@@ -1,4 +1,4 @@
-# ISSUE-000042: Cognitive Method Contractとfirst runtime sliceを実体化する
+# ISSUE-000043: Cognitive Method Contractとfirst runtime sliceを実体化する
 
 Status: **In Progress**  
 Priority: **1**  

@@ -1,7 +1,7 @@
 # ADR-0025: Cognitive Methodのportable Contract境界を独立させる
 
 Status: **Accepted**  
-Related Issue: **ISSUE-000042**  
+Related Issue: **ISSUE-000043**  
 Updated: 2026-09-01
 
 ## Context
@@ -224,7 +224,7 @@ Semantic Interchange内に未知の`soza.cognitive-method` versionが存在す�
 - REQ-0003, REQ-0004, REQ-0015, REQ-0016, REQ-0021
 - SCN-0005, SCN-0015
 - ADR-0008, ADR-0009, ADR-0017, ADR-0021, ADR-0022
-- ISSUE-000042
+- ISSUE-000043
 
 本ADRはDesign Evidenceである。schema、fixture、runtime、CIが成立するまではCognitive MethodのExecutable EvidenceをSatisfiedへ引き上げない。
 

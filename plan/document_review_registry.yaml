@@ -23,9 +23,15 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_VALUE.md
+      - SOZA_VALUE_PROPOSITION.md
       - SOZA_VALUE_MODEL.md
       - SOZA_VALUE_ACCEPTANCE.md
       - SOZA_VALUE_TRACEABILITY.md
+  - scope: product/definition/*.md
+    status: revised
+    coverage:
+      - SOZA_PRODUCT_SHAPE.md
+    note: 利用者から見た主要な仕事、論理Surface、SOZA内外境界、Minimum Usable Product Shapeをcurrent Product Valueから整理済み。
   - scope: product/vision/SOZA_PRODUCT_VISION.md
     status: revised
   - scope: product/principles/SOZA_PRODUCT_PRINCIPLES.md
@@ -33,12 +39,12 @@ reviewed:
 
   - scope: plan/adr/ADR-*.md
     status: revised
-    coverage: ADR-0001..ADR-0024
-    note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに全件監査済み。
+    coverage: ADR-0001..ADR-0025
+    note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、新規ADRも通常作業単位で自然な日本語全文再ドラフトと最終意味監査まで実施する。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000040
-    note: ISSUE-000038〜000040を含む新規Issueは、ISSUE-000015で確立した標準工程を作成・解決時に適用し、自然な日本語全文再ドラフトと最終意味監査まで同じ作業単位で完了している。
+    coverage: ISSUE-000001..ISSUE-000048
+    note: ISSUE-000042の文書監査coverage、ISSUE-000043のCognitive Method実体化、ISSUE-000044〜000048のProduct Shape関連課題を含め、新規Issueは同じ作業単位で自然な日本語全文再ドラフトと最終意味監査まで実施する。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -76,6 +82,9 @@ reviewed:
     status: revised
   - scope: contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md
     status: revised
+  - scope: contracts/cognitive-method/SOZA_COGNITIVE_METHOD_v1alpha1.md
+    status: revised
+    note: develop/v0.2.0で追加されたCognitive Method current Contract Definition。Definition / Realization / Application境界と自然な日本語監査を確認済み。
   - scope: contracts/interchange/SOZA_SEMANTIC_INTERCHANGE_v1alpha1.md
     status: revised
   - scope: contracts/TRACEABILITY.md
@@ -106,6 +115,15 @@ reviewed:
       - evaluation/v6-v7/projections/light.md
       - evaluation/v6-v7/projections/audit.md
     note: current canonical fixtureから再生成可能な評価用Projection例として、意味欠落や独自Authority追加がないことをcheckerで照合済み。
+
+  - scope: release/README.md
+    status: reviewed-no-change
+    note: v0.1.0 Release Candidate Evidence、actual release、Operational / Adoption Outcomeの境界を確認し、既存本文をそのまま維持した。
+  - scope: release/v0.1.0/*.md
+    status: reviewed-no-change
+    coverage:
+      - release/v0.1.0/RELEASE_ACCEPTANCE.md
+    note: release candidateとRelease Evidenceの非同一性、非主張範囲、actual gate Evidenceを確認し、本文変更なしと判断した。
 
   - scope: fixtures/contracts/v1alpha1/README.md
     status: revised
@@ -138,6 +156,7 @@ reviewed:
     note: 全件監査完了後の最終報告へ更新済み。
   - scope: plan/scripts/README.md
     status: revised
+    note: ADR / Issue registry integrityに加え、Document Review Registry coverage checkerの責務・self-test・Evidence境界を記載済み。
 
 pending: []
 
