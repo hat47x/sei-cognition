@@ -11,7 +11,7 @@ SOZAのsemanticなResponsibility / Authorityと、製品利用時のauthenticati
 
 ## Resolution
 
-Product Identity / Access / Collaborationの正本を`product/security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`、Architecture配置を`architecture/SOZA_PRODUCT_ACCESS_ARCHITECTURE.md`、主要DecisionをADR-0030として定義した。
+Product Identity / Access / Collaborationの正本を`product/security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`、Architecture上の配置を`architecture/SOZA_PRODUCT_ACCESS_ARCHITECTURE.md`、主要DecisionをADR-0030として定義した。
 
 中心となる分離は次である。
 
@@ -22,7 +22,7 @@ authentication identity
   != semantic Responsibility / Authority
 ```
 
-また、SOZA内部のProduct access authorizationと、ADR-0016で扱う外部Execution ProviderのAuthorizationも別責務とする。
+また、SOZA内部のProduct access authorizationと、ADR-0016で扱う外部Execution ProviderのAuthorizationも別の責務とする。
 
 ```text
 SOZA product access authorization
@@ -33,28 +33,28 @@ SOZA product access authorization
 
 認証Provider固有のsubjectは、Identity Bindingを介してADR-0004のBounded Subjectへ対応付ける。
 
-IdPを交換した場合でも、過去Decision / Responsibilityが参照するBounded Subjectを現在のlogin subjectへ書き換えない。
+IdPを交換した場合でも、過去のDecision / Responsibilityが参照するBounded Subjectを、現在のlogin subjectへ書き換えない。
 
 credential、token、session、MFA secret等をsemantic identityへ埋め込まない。
 
 ## Product Access Scope
 
-team / organization / external collaboratorのaccess boundaryとしてProduct Access ScopeをProduct layerへ置ける。
+team / organization / external collaboratorのaccess boundaryとして、Product layerにProduct Access Scopeを置ける。
 
-実装上tenant、workspace、project等の名前を使えるが、それらをUniversal semantic entityへ自動的に昇格させない。
+実装ではtenant、workspace、project等の名前を使えるが、それらをUniversal semantic entityへ自動的に昇格させない。
 
 Product Access Scope IDをDecisionやResponsibilityのsemantic identityへ流用することも要求しない。
 
 ## Product Access Policy
 
-現在のauthentication identityをBounded Subjectへ解決し、Product Access ScopeとoperationについてProduct permissionを評価する。
+現在のauthentication identityをBounded Subjectへ解決し、Product Access Scopeとoperationに対するProduct permissionを評価する。
 
 reference probeでは`read / append / review / share / administer`を用いたが、これはprobe-localなvocabularyであり、将来のStable RequirementやUniversal role hierarchyとして固定しない。
 
-次を禁止する。
+次の短絡を認めない。
 
-- semantic Responsibility / AuthorityからProduct accessを自動許可する。
-- Product administrator等からDecision Authority / Responsibilityを生成する。
+- semantic Responsibility / Authorityがあることを理由にProduct accessを自動許可する。
+- Product administrator等の製品roleからDecision Authority / Responsibilityを生成する。
 - human / AI / service等のactor kindだけからpermissionを推定する。
 
 評価できなかった`not_evaluated`と、Policyが明示的に拒否した`denied`も区別する。
@@ -77,7 +77,7 @@ withheld != unknown != deleted
 
 ### team
 
-複数Bounded Subjectを同じProduct Access Scopeへ参加させ、Product permissionを独立して評価できる。
+複数のBounded Subjectを同じProduct Access Scopeへ参加させ、Product permissionを独立して評価できる。
 
 ### external collaborator
 
@@ -87,7 +87,11 @@ withheld != unknown != deleted
 
 ISSUE-000056で`runtime/go/accessprobe`を実体化した。
 
-初期probe headのSemantic Runtime Conformance Run `33511885433`は**success**し、次をactual testで確認した。
+最終同期前head `4b05854ff4e31dd625e73a0fc05afe8e4bbbf0ec`では、Semantic Runtime Conformance Run `33513323477`、Plan integrity Run `33513323475`、Local Package Artifact Run `33513323460`がすべて**success**した。
+
+さらに、Evidence文書へ最終Runを同期したhead `85401ec7d28aca84047923619bc54abb77880054`でも、Semantic Runtime Conformance Run `33513470530`、Plan integrity Run `33513470462`、Local Package Artifact Run `33513470467`がすべて**success**した。
+
+actual testでは、次を確認している。
 
 - 旧・新IdP相当identityを同じBounded Subjectへbindingできる。
 - identity交換後もhistorical Responsibility Refを変更しない。
@@ -104,7 +108,7 @@ ISSUE-000056で`runtime/go/accessprobe`を実体化した。
 
 Product accessをsemantic Responsibility / Authorityやactor kindから分離する必要性は、Designとscoped probeの双方で確認できた。
 
-ただし、permission vocabulary、Product Access Scopeのgranularity、Identity Binding lifecycleはまだreference Realizationである。
+ただし、permission vocabulary、Product Access Scopeのgranularity、Identity Binding lifecycleは、まだreference Realizationである。
 
 そのため、新しいStable Requirement / Scenario IDは今回追加しない。
 
@@ -139,9 +143,7 @@ production IdP / team deployment / external collaborationの実証で、既存RE
 - [x] Product / Architecture責務をADR-0030で正本化する。
 - [x] reference probeのExecutable Evidence条件をISSUE-000056へ定義し、実体化する。
 - [x] 自然な日本語全文再ドラフトと最終意味監査を行う。
-- [ ] 最終headの対象CIをsuccessさせる。
-
-初期Runtime probeはsuccessしている。plan registry、Document Review Registry、PMS-05を同期した最終headで対象CIを再確認し、本項目を完了Evidenceへ更新する。
+- [x] 対象CIをsuccessさせる。
 
 ## Evidence state
 
@@ -163,4 +165,4 @@ production IdP / team deployment / external collaborationの実証で、既存RE
 
 ## Natural Japanese review
 
-Product Value、PMS-05、ADR-0004 / 0006 / 0016 / 0030、REQ-0012 / 0013 / 0017、SCN-0007 / 0012、Product Interaction、Local Single-Node Packaging、`runtime/go/accessprobe`と初期CI Evidenceを照合しました。authentication identity、Bounded Subject、Product access permission、semantic Responsibility / Authority、external execution authorizationを別責務とし、tenant / workspaceや特定IdP、permission vocabularyをUniversal CoreやStable Requirementへ先に固定していません。Selective Disclosureではwithheldとunknownを分け、probeの成功をproduction securityへ広げない境界も維持しています。そのうえで、意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Value、PMS-05、ADR-0004 / 0006 / 0016 / 0030、REQ-0012 / 0013 / 0017、SCN-0007 / 0012、Product Interaction、Local Single-Node Packaging、`runtime/go/accessprobe`と最終CI Evidenceを照合した。authentication identity、Bounded Subject、Product access permission、semantic Responsibility / Authority、external execution authorizationを別責務とし、tenant / workspaceや特定IdP、permission vocabularyをUniversal CoreやStable Requirementへ先に固定していない。Selective Disclosureではwithheldとunknownを分け、probeの成功をproduction securityへ広げない境界も維持した。そのうえで、意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
