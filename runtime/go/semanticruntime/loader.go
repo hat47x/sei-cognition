@@ -380,16 +380,12 @@ func validateBundleExactReferences(bundle *Bundle) error {
 	}
 
 	for _, record := range bundle.Records {
-		if record.Decision == nil || record.Decision.Decision == nil {
-			continue
-		}
-		for _, ref := range record.Decision.Decision.BasisRefs {
-			binding, ok := ref.ExactBinding()
-			if !ok {
-				continue
-			}
+		for _, exactRef := range extractKnownExactReferences(record) {
+			binding := exactRef.Binding
 			candidates := exactByLogical[binding.LogicalRef]
 			if len(candidates) == 0 {
+				// The reference may point outside this bundle. Payload acquisition and
+				// digest verification are handled by Payload Source / Verifier layers.
 				continue
 			}
 			matched := false
@@ -400,7 +396,7 @@ func validateBundleExactReferences(bundle *Bundle) error {
 				}
 			}
 			if !matched {
-				return fmt.Errorf("decision basis exact binding does not match bundle record for %s/%s", binding.LogicalRef.Kind, binding.LogicalRef.ID)
+				return fmt.Errorf("%s exact binding does not match bundle record for %s/%s", exactRef.Role, binding.LogicalRef.Kind, binding.LogicalRef.ID)
 			}
 		}
 	}
