@@ -19,7 +19,7 @@ reviewed:
 
   - scope: product/README.md
     status: revised
-    note: Product Value、Product Shape、期限を持たないProduct Milestone、未定領域の探索手順をcurrent Product入口として再整理済み。
+    note: Product Value、Product Shape、期限を持たないProduct Milestone、Product Interaction、未定領域の探索手順をcurrent Product入口として再整理済み。
   - scope: product/value/*.md
     status: revised
     coverage:
@@ -42,16 +42,21 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_MILESTONES.md
-    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義し、historical実装MilestoneやProduct ontologyと分離済み。
+    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義し、PMS-03をProduct Interaction Design成立 / Executable Evidence pendingへ同期済み。
+  - scope: product/interaction/*.md
+    status: revised
+    coverage:
+      - SOZA_PRODUCT_INTERACTION.md
+    note: first usable Product Interactionをhuman / AIの異なるSurfaceから同じcanonical meaningへ戻る操作境界として定義し、UI、chat、session、workspace等を意味上の正本へ昇格させない境界を自然な日本語で正本化済み。
 
   - scope: plan/adr/ADR-*.md
     status: revised
-    coverage: ADR-0001..ADR-0027
-    note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、ADR-0027のGo production runtime標準化を含め、新規ADRも通常作業単位で自然な日本語全文再ドラフトと最終意味監査まで実施する。
+    coverage: ADR-0001..ADR-0028
+    note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、ADR-0027のGo production runtime標準化とADR-0028のProduct Interaction操作境界を含め、新規ADRも通常作業単位で自然な日本語全文再ドラフトと最終意味監査まで実施する。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000052
-    note: ISSUE-000042の文書監査coverage、ISSUE-000043のCognitive Method実体化、ISSUE-000044〜000050のProduct Shape / end-to-end Product Journey、ISSUE-000051の上流Product Planning baseline、ISSUE-000052のproduction runtime言語方針を含め、新規Issueは同じ作業単位で自然な日本語全文再ドラフトと最終意味監査まで実施する。
+    coverage: ISSUE-000001..ISSUE-000053
+    note: ISSUE-000042の文書監査coverage、ISSUE-000043のCognitive Method実体化、ISSUE-000044〜000050のProduct Shape / end-to-end Product Journey、ISSUE-000051の上流Product Planning baseline、ISSUE-000052のproduction runtime言語方針、ISSUE-000045のProduct Interaction Design closure、ISSUE-000053のreference probe計画を含め、新規Issueは同じ作業単位で自然な日本語全文再ドラフトと最終意味監査まで実施する。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -66,7 +71,7 @@ reviewed:
       - requirements/PRODUCT_REQUIREMENTS.md
       - requirements/ACCEPTANCE_SCENARIOS.md
       - requirements/PRODUCT_JOURNEY_COMPOSITION.md
-    note: SCN-0018の正本化とProduct Journey composition analysisを含め、Requirement / Scenario / Testの境界を維持したまま監査済み。
+    note: SCN-0018の正本化とProduct Journey composition analysisを含め、Requirement / Scenario / Testの境界を維持したまま監査済み。Product Interaction Designでは既存REQ / SCNでDesign上の必要性を表現できると判断し、新IDを追加していない。
   - scope: requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md
     status: revised
 
@@ -77,7 +82,7 @@ reviewed:
       - architecture/SOZA_REFERENCE_ARCHITECTURE.md
       - architecture/IMPLEMENTATION_LANGUAGE_POLICY.md
       - architecture/TRACEABILITY.md
-    note: ADR-0027に基づきGoをfirst-party production runtimeの標準Realizationとし、Semantic Contractや外部Method / Providerへ言語制約を広げないArchitecture policyを追加済み。
+    note: ADR-0027に基づきGoをfirst-party production runtimeの標準Realizationとし、Semantic Contractや外部Method / Providerへ言語制約を広げないArchitecture policyを追加済み。Product Interactionの新しいArchitecture DecisionはADR-0028を正本とし、既存Reference ArchitectureのWork / Interaction Surfaceと矛盾しないことを確認済み。
   - scope: architecture/history/HISTORICAL_ARCHITECTURE_MAPPING.md
     status: revised
 
