@@ -1,6 +1,6 @@
 # ISSUE-000060: 最初のlive external Provider integrationを実体化する
 
-Status: **Open**  
+Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0013, ADR-0019, ADR-0021, ADR-0024**  
 Updated: 2026-09-02
@@ -21,71 +21,65 @@ E3a version-pinned external artifact integration
 
 ここでP1 / P2 / M1はEvidenceを段階的に集めるための作業上の区分であり、新しいProduct ontologyやUniversal Contractではない。
 
-## 背景
+## Resolution
 
-ISSUE-000058では、SOZAとは別repositoryで独立にversion管理される実artifactについて、source identityを検証し、既存のMethod Realization / Capability Observation境界へ結び付けた。
+`runtime/go/liveintegration`に、public GitHub REST APIの固定commit取得面を実際に呼び出すreference clientを追加した。
 
-ただし、E3aで実際に外部通信したのはpublic artifactの取得までであり、外部Provider serviceから応答を受け、その応答を判断文脈のObservationへ変換するlive integrationは未検証である。また、TEI repositoryはprivateであり、SOZA CIの標準`GITHUB_TOKEN`へ別private repositoryの権限を暗黙に要求することはできない。
-
-そのため、最初のE3bでは次を分離する。
-
-1. publicな外部serviceを実際に呼べること。
-2. live responseをProvider固有stateとして扱い、current Capability Observationへmappingできること。
-3. HTTP failure、応答identity不一致、timeout等でcanonicalな意味記録を生成しないこと。
-4. protocolやProvider固有fieldをUniversal semantic identityへ昇格させないこと。
-5. live public serviceの成功をTEI live integration、external Method execution、Operational Evidenceへ拡張しないこと。
-
-## 最初の外部service
-
-最初のreference ProviderとしてGitHub REST APIのcommit取得面を使う。
-
-対象は、ISSUE-000058でも外部Cognitive Method artifactとして利用したpublic repositoryの固定commitとする。
+対象は、ISSUE-000058でも外部Cognitive Method artifactとして利用したpublic repositoryの固定commitである。
 
 - repository: `hat47x/cultural-substrate-weaving`
 - expected commit: `aa3651f3460a6db7dc70bd848f93b600f149ffe8`
 
-GitHubをSOZAの標準Providerとする意図はない。追加credentialなしでもCIから到達でき、固定revisionを問い合わせることで、変動する現在値とlive network invocationを混同せず検査できるため、最初のreference serviceとして採用する。
+live responseのcommit SHAが期待値と一致した場合だけ、外部serviceへ到達できたことと期待revisionを確認できたことをcurrent Capability Observationへmappingする。GitHub固有の`node_id`、URL、API response shape等はUniversal Contractへ転写しない。
+
+通常のGo testでは`httptest`を使い、success、revision mismatch、HTTP failure、timeout / cancellation、Provider固有fieldの非漏出、不正repository指定を外部networkなしで再現可能にした。専用`External Integration E3b` workflowではpublic GitHub REST APIを実際に呼び、固定commitの取得とmappingを確認する。
 
 ```text
 GitHub REST response
   != SOZA Universal Provider State
+
+HTTP success
+  != semantic authority
 
 repository / commit / HTTP
   != Capability identity
   != Decision identity
 ```
 
-## 実装方針
+## 必須検査の結果
 
-`runtime/go/liveintegration`にreference client / Adapter境界を置く。
+1. **public GitHub REST APIをCIから実際に呼び、固定commitを取得できる** — Satisfied。
+2. **live responseのcommit SHAが期待値と一致する場合だけCapability Observationを生成する** — Satisfied。
+3. **生成したCapability Observationがcurrent validatorを通る** — Satisfied。
+4. **Provider固有response fieldがCapability Observationへそのまま漏れない** — Satisfied。
+5. **HTTP failure時にCapability Observationを生成しない** — Satisfied。
+6. **response identity不一致時にCapability Observationを生成しない** — Satisfied。
+7. **timeout / cancellation時にCapability Observationを生成しない** — Satisfied。
+8. **HTTP client / JSON responseをUniversal Contractへ昇格させない** — Design / implementation boundaryとして維持した。
+9. **既存Contract、runtime、Interaction、Packaging、Access、Provider Adapterの回帰を壊さない** — current-baseline CIで確認した。
+10. **E3b-P1をE3b全体やOperational / Release Evidenceへ昇格させない** — Product Milestone、Realization / Provider Exchange、Evidence文書へ明示した。
 
-live responseからSOZA側へ持ち込むのは、対象Capabilityについて観測できた最小限の事実とProvenanceだけとする。GitHub固有のowner、node ID、URL、API response shape等はUniversal Contractへ追加しない。
+## 初回current-baseline CI Evidence
 
-最初のObservationでは、少なくとも次を区別する。
+PR #37の初回head `977773dc3071c8a4d6f33bf4f29e3ffc0c1fec23`では、次がすべて**success**した。
 
-- 外部serviceへ到達し正常応答を得られたこと。
-- 期待した固定revisionがその応答で確認できたこと。
+- External Integration E3b Run `33569912285`
+- Semantic Runtime Conformance Run `33569912339`
+- Plan integrity Run `33569912230`
+- External Integration E3a Run `33569912086`
+- Local Package Artifact Run `33569912317`
 
-Provider identityはProvider固有の参照として保持するが、それをCapability identityへ短絡させない。
+External Integration E3bでは、deterministic boundary testとpublic GitHub REST APIへのactual live callの両方がsuccessした。
 
-## 必須検査
+同じheadのRelease Candidate Gate Run `33569912273`はGate 1〜8がsuccessし、OpenなISSUE-000060をGate 9が意図どおりblockした。これはE3b-P1の失敗ではなく、未解決Issue blockerが機能した結果である。
 
-1. public GitHub REST APIをCIから実際に呼び、固定commitを取得できる。
-2. live responseのcommit SHAが期待値と一致する場合だけCapability Observationを生成する。
-3. 生成したCapability Observationがcurrent validatorを通る。
-4. Provider固有response fieldがCapability Observationへそのまま漏れない。
-5. HTTP failure時にCapability Observationを生成しない。
-6. response identity不一致時にCapability Observationを生成しない。
-7. timeout / cancellation時にCapability Observationを生成しない。
-8. live integration用HTTP client / JSON responseをUniversal Contractへ昇格させない。
-9. 既存Contract、runtime、Interaction、Packaging、Access、Provider Adapter、Release Candidate gateの回帰を壊さない。
-10. E3b-P1のPASSをE3b全体、TEI live integration、external Method execution、Operational / Release / Adoption Evidenceへ昇格させない。
+IssueをResolvedへ移したこの後のheadで、Gate 9を含むRelease Candidate Gateを再検査し、merge前にsuccessを確認する。失敗した場合は本Issueを再度Open / In Progressへ戻して原因を解消する。
 
-## Requirement / Scenario監査
+## Requirement / Scenario再監査
 
-現時点では新しいStable Requirement / Scenarioを追加しない。
+新しいStable Requirement / Scenarioは追加しない。
 
-今回の検査対象は、主として既存の次に対するEvidenceを厚くするものと考える。
+今回のlive network integrationで確認したfailure boundaryは、既存の次で表現できる。
 
 - REQ-0001 — 耐久的な意味の連続性
 - REQ-0007 — Capability / Providerの中立性
@@ -93,7 +87,23 @@ Provider identityはProvider固有の参照として保持するが、それをC
 - SCN-0014 — Execution Providerを交換する
 - SCN-0018 — Inquiryから実行後の再検討までを一続きに扱う
 
-live network integrationで既存Requirementでは防げない独立したProduct failureが確認された場合に限り、Candidate Requirementへ戻して再検討する。
+HTTP、GitHub、固定commitという現在の実装方式だけを理由に、新しいProduct Requirementを作らない。
+
+## PMS-06への反映
+
+E3bを次の作業上のスライスへ分けた。
+
+```text
+E3b-P1 public live Provider service
+  → E3b-P2 live TEI process / service
+  → E3b-M1 live external Cognitive Method execution
+```
+
+今回のprobeによりE3b-P1にはScoped Executable Evidenceが成立した。
+
+一方、E3b全体は引き続きPartialであり、live TEI、external Cognitive Method、private credential、network degradation / rate limit、E4 Operational portabilityは未検証である。
+
+v0.2.0 Release Candidateのsupported scopeはE3aまでであり、本Issueを理由にcandidate scopeを暗黙に拡張しない。
 
 ## Non-goals / 未検証範囲
 
@@ -113,23 +123,24 @@ live network integrationで既存Requirementでは防げない独立したProduc
 
 ## 完了条件
 
-- [ ] live external Provider client / Adapter境界を実装する。
-- [ ] success / identity mismatch / HTTP failure / timeoutをローカル再現可能なtestへ落とす。
-- [ ] Provider固有fieldの非漏出をtestへ落とす。
-- [ ] public serviceを実際に呼ぶ専用CIを追加する。
-- [ ] live CIで固定commitの取得・mappingを確認する。
-- [ ] current runtimeとv0.2.0 Release Candidate gateを含むCIをsuccessさせる。
-- [ ] PMS-06 / Realization Provider Exchange文書へEvidenceを同期する。
-- [ ] Stable Requirement / Scenario追加の要否を再監査する。
-- [ ] Evidence文書とplan registry / document review registryを同期する。
-- [ ] 自然な日本語を最重要視した全文再ドラフトと最終意味監査を行う。
+- [x] live external Provider client / Adapter境界を実装する。
+- [x] success / identity mismatch / HTTP failure / timeoutをローカル再現可能なtestへ落とす。
+- [x] Provider固有fieldの非漏出をtestへ落とす。
+- [x] public serviceを実際に呼ぶ専用CIを追加する。
+- [x] live CIで固定commitの取得・mappingを確認する。
+- [x] current runtime regressionを含むCIをsuccessさせる。
+- [x] PMS-06 / Realization Provider Exchange文書へEvidenceを同期する。
+- [x] Stable Requirement / Scenario追加の要否を再監査する。今回は追加しない。
+- [x] Evidence文書とplan registry / document review registryを同期する。
+- [x] 自然な日本語を最重要視した全文再ドラフトと最終意味監査を行う。
+- [ ] Resolved状態のheadでv0.2.0 Release Candidate GateをGate 9までsuccessさせる。merge前の最終確認条件として扱う。
 
 ## Evidence state
 
-- Design Evidence: **In Progress**
+- Design Evidence: **Satisfied**
 - E2 out-of-process reference exchange: **Scoped Executable Evidence available**
 - E3a version-pinned external artifact integration: **Scoped Executable Evidence available**
-- E3b-P1 public live Provider service: **Not Yet Verified on the current Release Candidate baseline**
+- E3b-P1 public live Provider service: **Scoped Executable Evidence available** — External Integration E3b Run `33569912285`
 - E3b-P2 live TEI process / service: **Not Yet Verified**
 - E3b-M1 live external Cognitive Method execution: **Not Yet Verified**
 - E4 Operational portability: **Not Yet Verified**
@@ -138,6 +149,7 @@ live network integrationで既存Requirementでは防げない独立したProduc
 
 ## Reopen / escalation条件
 
+- Resolved状態のheadでRelease Candidate GateがE3b変更に起因してfailureする。
 - live Provider responseをcurrent Capability Observationでは意味を失わず表現できない。
 - network failureとsemanticなUnknown / Conflictの区別に新しいProduct-level規範が必要と判明する。
 - Provider identityやmapping provenanceをcurrent Referenceで保持できない。
@@ -146,4 +158,4 @@ live network integrationで既存Requirementでは防げない独立したProduc
 
 ## Natural Japanese review
 
-PMS-06、`product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`、ISSUE-000057 / 000058 / 000059、v0.2.0 Release Candidate baseline、REQ-0001 / 0007 / 0021、SCN-0014 / 0018、ADR-0013 / 0019 / 0021 / 0024、current Provider AdapterとCapability Observation Contractを照合した。E3bを一度にproduction integrationへ広げず、最初のpublic live Provider serviceを独立した実証単位として切り出した。GitHub REST APIの採用理由をreference serviceとして限定し、GitHub固有概念をUniversal Coreへ持ち込まない境界、通信失敗とsemantic meaningの分離、Release Candidate Evidenceを含む上位Evidenceへの非昇格を明示した。意味・規範強度・未検証範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+PMS-06、`product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`、v0.2.0 Release Acceptance、ISSUE-000057 / 000058 / 000059、REQ-0001 / 0007 / 0021、SCN-0014 / 0018、ADR-0013 / 0019 / 0021 / 0024、current Provider Adapter、Capability Observation Contract、`runtime/go/liveintegration`のactual test、PR #37初回current-baseline headのCIを照合した。E3bを一度にproduction integrationへ広げず、最初のpublic live Provider serviceを独立した実証単位として完了させた。GitHub REST APIはreference serviceに限定し、GitHub固有概念をUniversal Coreへ持ち込まない境界、通信失敗とsemantic meaningの分離、E3b-P1から上位Evidenceへの非昇格を維持した。また、v0.2.0 Release Candidateのsupported scopeをE3aから暗黙に広げていない。そのうえで、目的、実装結果、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
