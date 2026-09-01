@@ -244,10 +244,10 @@ PMS-04 Minimum scoped Evidence available
 semanticなResponsibility / Authorityと、製品access controlを混同せずに、single-userからteam / external collaborationへ進めます。
 
 ```text
-actor identity
-  != Responsibility
-  != Authority
+authentication identity
+  != Bounded Subject
   != product access permission
+  != semantic Responsibility / Authority
 ```
 
 Selective Disclosureを扱う場合も、withheldとunknown等の意味差を失いません。
@@ -258,9 +258,60 @@ security / collaboration boundaryのDesign Evidenceと、対象範囲のExecutab
 
 ### Current state
 
-**Not Yet Verified.**
+**Design baseline established / scoped Product Access separation Executable Evidence available / production IdP・team security pending.**
 
-ISSUE-000047で検討します。
+`product/security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`とADR-0030で、Product Identity / Access / Collaboration boundaryを正本化しました。
+
+Product Access Scopeはtenant / workspace等に対応し得ますが、Product-localなsecurity / collaboration concernとして扱い、Universal semantic entityへ自動昇格させません。
+
+ISSUE-000056では`runtime/go/accessprobe`を実体化し、既存`interactionprobe.CanonicalStore`と`semanticruntime`を再利用して次を限定範囲で確認しました。
+
+- 旧・新IdP相当のauthentication identityを同じBounded Subjectへbindingできる。
+- identity交換後もhistorical DecisionのResponsibility Refを書き換えない。
+- semantic Responsibilityが存在してもProduct permissionがなければreadを拒否する。
+- Product `administer` permissionを与えてもsemantic Responsibilityを生成しない。
+- human / AI / serviceというactor kindだけからpermissionを推定しない。
+- identityを解決できない`not_evaluated`と、Policy上の`denied`を区別する。
+- external collaborator向けSelective Disclosureで非開示recordを`withheld`として扱い、fake Unknownを作らない。
+- Disclosure Projection生成前後でcanonical sourceを変更しない。
+- Product Scopeのread permissionがなければProjection自体を返さない。
+
+初期probe headのSemantic Runtime Conformance Run `33511885433`はsuccessしました。
+
+このEvidenceは責務分離を支持しますが、production OIDC / IAM、formal RBAC / ABAC、credential / session lifecycle、production Selective Disclosure securityを実証するものではありません。
+
+### Candidate Requirement
+
+Product accessをsemantic Responsibility / Authorityやactor kindから自動導出しない必要性は、Designとscoped probeの双方で確認できました。
+
+一方、reference probeで使った`read / append / review / share / administer` vocabulary、Product Access Scopeの粒度、Identity Binding lifecycleはまだRealization依存です。
+
+そのため、新しいStable Requirement / Scenario IDは現時点で追加せず、次をCandidate Requirementとして保持します。
+
+> SOZAの製品アクセス権は、semantic Responsibility / Authorityやactor kindから自動導出せず、認証identityとの対応を含むProduct Access Policyで独立に評価できる必要がある。
+
+production IdP、実team deployment、external collaborationの実証から、既存REQ-0012 / 0013 / 0017ではこのProduct failureを十分に表現できないことが確認された場合にStable Requirement化を再検討します。
+
+### Open questions
+
+- 最初にsupportedとするauthentication方式
+- Product Access Scopeの正式名称・granularity・lifecycle
+- Product permission vocabularyとPolicy model
+- hosted / team deploymentのmembership・invitation lifecycle
+- production Selective Disclosureのsecurity boundary
+- security audit eventのretention / tamper resistance
+- enterprise IdP / directory integration
+- encryption / key management
+
+これらをreference probeのPASSだけでStable Requirementへ固定しません。
+
+```text
+Product Access probe PASS
+  != production authentication proven
+  != production authorization policy proven
+  != production collaboration security proven
+  != Release / Operational / Adoption Evidence
+```
 
 ## 9. PMS-06 — 実際のMethod / Providerを交換しても判断記憶が保たれる
 
@@ -326,4 +377,4 @@ Open Questionを直接Stable Requirementへ飛ばしません。
 
 ## 14. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、REQ-0001〜0022、SCN-0008 / 0010 / 0013 / 0018、ADR-0028 / 0029、ISSUE-000046 / 000053 / 000054 / 000055、current Go runtime、Semantic Interchange、Interaction / Packaging probe、Local Reference Package artifact、Local Package Artifact Run `33509521544`とcurrent CI Evidenceへ戻ってMilestoneを再監査しました。PMS-03はscoped Interaction Executable Evidenceまで、PMS-04はPackaging / Deployment DesignとLocal Reference PackageによるMinimum scoped Executable Evidenceまでを明確にしています。一方、Product Release、formal support matrix、version upgrade、crash durability、actual production Storage migration、Release / Operational / Adoption Evidenceは未検証のままです。Local Single-Node Package、filesystem、package lifecycle command、Linux / amd64 reference artifactを唯一のdeployment topology、正式Product Interaction、semantic authorityへ昇格させず、未定領域を先にRequirementへ固定しない境界を維持したうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、Product Identity / Access / Collaboration、REQ-0001〜0022、SCN-0007 / 0008 / 0010 / 0012 / 0013 / 0018、ADR-0028 / 0029 / 0030、ISSUE-000046 / 000047 / 000053〜000056、current Go runtime、Interaction / Packaging / Product Access probeとcurrent CI Evidenceへ戻ってMilestoneを再監査しました。PMS-03はscoped Interaction Executable Evidence、PMS-04はLocal Reference PackageによるMinimum scoped Executable Evidence、PMS-05はProduct Access責務分離のDesignとscoped Executable Evidenceまでを明確にしています。一方、PMS-05のproduction IdP、formal access policy、team security、production Selective Disclosure、Product Release、Operational / Adoption Evidenceは未検証のままです。Product Access Scope、permission vocabulary、Identity BindingをUniversal CoreやStable Requirementへ先に固定せず、Candidate Requirementとして次の実証へ渡す境界も維持しました。そのうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
