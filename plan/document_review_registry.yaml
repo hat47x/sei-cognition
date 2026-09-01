@@ -82,6 +82,9 @@ reviewed:
     status: revised
   - scope: contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md
     status: revised
+  - scope: contracts/cognitive-method/SOZA_COGNITIVE_METHOD_v1alpha1.md
+    status: revised
+    note: develop/v0.2.0で追加されたCognitive Method current Contract Definition。Definition / Realization / Application境界と自然な日本語監査を確認済み。
   - scope: contracts/interchange/SOZA_SEMANTIC_INTERCHANGE_v1alpha1.md
     status: revised
   - scope: contracts/TRACEABILITY.md
