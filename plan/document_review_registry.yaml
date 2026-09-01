@@ -42,7 +42,7 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_MILESTONES.md
-    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-03はInteractionのscoped Executable Evidence、PMS-04はPackaging Design、filesystem persistence、same-version literal process restartまでを反映し、supported distributable artifact、version upgrade、Release / Operational Evidenceへは昇格させていない。
+    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-03はInteractionのscoped Executable Evidence、PMS-04はLocal Reference Packageを含むMinimum scoped Executable Evidenceまでを反映し、Product Release、version upgrade、Operational / Adoption Evidenceへは昇格させていない。
   - scope: product/interaction/*.md
     status: revised
     coverage:
@@ -52,7 +52,7 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_PACKAGING.md
-    note: Local Single-Node Packageを最初のPackaging Profileとして定義し、Go runtime、replaceable Persistence、durable data root、portable Semantic Interchangeを分離した。build済みGo executableによるliteral process restartまで同期し、probe commandと正式Product Interaction、Persistence交換probeとactual production Storage migrationを分離している。
+    note: Local Single-Node Packageを最初のPackaging Profileとして定義し、Go runtime、replaceable Persistence、durable data root、portable Semantic Interchangeを分離した。literal process restartとLocal Reference Package archiveのscoped Executable Evidenceを同期し、reference artifactとProduct Release、package lifecycle controlと正式Product Interactionを分離している。
 
   - scope: plan/adr/ADR-*.md
     status: revised
@@ -61,7 +61,7 @@ reviewed:
   - scope: plan/issue/ISSUE-*.md
     status: revised
     coverage: ISSUE-000001..ISSUE-000055
-    note: ISSUE-000054のliteral process restartまでのPackaging probe実証と、ISSUE-000055のreference distribution artifact実体化計画を含め、自然な日本語全文再ドラフトと最終意味監査まで実施済み。
+    note: ISSUE-000054のliteral process restartまでのPackaging probeと、ISSUE-000055のLocal Reference Package artifact実体化・CI Evidenceを含め、自然な日本語全文再ドラフトと最終意味監査まで実施済み。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -88,7 +88,7 @@ reviewed:
       - architecture/SOZA_DEPLOYMENT_ARCHITECTURE.md
       - architecture/IMPLEMENTATION_LANGUAGE_POLICY.md
       - architecture/TRACEABILITY.md
-    note: ADR-0027に基づくGo production runtime標準、ADR-0028のProduct Interaction境界、ADR-0029のLocal Single-Node Deploymentをcurrent Architectureへ配置した。literal process restartのscoped Evidenceも同期し、単一process、filesystem layout、probe commandをUniversal semantic modelや正式Product Interactionへ昇格させない境界を維持している。
+    note: ADR-0027に基づくGo production runtime標準、ADR-0028のProduct Interaction境界、ADR-0029のLocal Single-Node Deploymentをcurrent Architectureへ配置した。literal process restartとreference artifactのscoped Evidenceを反映し、単一process、filesystem layout、package lifecycle command、artifact identityをUniversal semantic modelや正式Product Interactionへ昇格させない境界を維持している。
   - scope: architecture/history/HISTORICAL_ARCHITECTURE_MAPPING.md
     status: revised
 
@@ -130,6 +130,9 @@ reviewed:
   - scope: runtime/PACKAGING_PROBE_EVIDENCE_2026-09-01.md
     status: revised
     note: filesystem persistence、runtime-state-independent reconstruction、build済みGo executableによるliteral process restart、copy / restore、filesystemからmemory Persistenceへの交換をScoped Executable Evidenceとして記録し、supported artifact、version upgrade、crash durability、actual production Storage migration、Release / Operational / Adoptionへ昇格させない境界を自然な日本語で明示済み。
+  - scope: runtime/LOCAL_PACKAGE_ARTIFACT_EVIDENCE_2026-09-01.md
+    status: revised
+    note: Linux / amd64のLocal Reference Packageについて、二重build一致、build identity、決定的archive、checksum、archive展開後の独立process save / reload、workflow artifact保存をScoped Executable Evidenceとして記録し、Product Releaseや正式support matrixへ昇格させない境界を自然な日本語で明示済み。
   - scope: runtime/package/reference/*.md
     status: revised
     coverage:
