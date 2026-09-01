@@ -74,6 +74,7 @@ FIXTURES = [
     FixtureExpectation("cognitive-method/C6-exact-bound-method-realization.json", "cognitive-method", "pass"),
     FixtureExpectation("cognitive-method/C7-output-and-residual-refs.json", "cognitive-method", "pass"),
     FixtureExpectation("cognitive-method/C8-interchange-method-application.json", "semantic-interchange", "pass"),
+    FixtureExpectation("cognitive-method/C9-interchange-exact-reference-consistency.json", "semantic-interchange", "pass"),
     FixtureExpectation("negative/decision-authority-field.json", "decision-memory", "schema_fail"),
     FixtureExpectation("negative/capability-missing-observed-at.json", "capability-observation", "schema_fail"),
     FixtureExpectation("negative/cognitive-method-decision-field.json", "cognitive-method", "schema_fail"),
@@ -83,8 +84,12 @@ FIXTURES = [
     FixtureExpectation("negative/cognitive-method-pattern-field.json", "cognitive-method", "schema_fail"),
     FixtureExpectation("negative/same-logical-lineage-without-exact.json", "semantic-reference", "semantic_fail"),
     FixtureExpectation("negative/interchange-mismatched-exact-binding.json", "semantic-interchange", "semantic_fail"),
+    FixtureExpectation("negative/interchange-cognitive-method-mismatched-method-ref.json", "semantic-interchange", "semantic_fail"),
+    FixtureExpectation("negative/interchange-cognitive-method-mismatched-realization-profile.json", "semantic-interchange", "semantic_fail"),
+    FixtureExpectation("negative/interchange-capability-mismatched-source-ref.json", "semantic-interchange", "semantic_fail"),
     FixtureExpectation("boundary/unknown-contract-version.json", "semantic-interchange", "not_verified"),
     FixtureExpectation("boundary/unknown-cognitive-method-version.json", "semantic-interchange", "not_verified"),
+    FixtureExpectation("boundary/unknown-contract-exact-looking-reference.json", "semantic-interchange", "not_verified"),
     FixtureExpectation("boundary/verification-not-verified.json", "semantic-reference", "pass"),
     FixtureExpectation("boundary/verification-failed.json", "semantic-reference", "pass"),
     FixtureExpectation("boundary/recommendation-without-decision.json", "decision-memory", "pass"),
@@ -131,7 +136,12 @@ def schema_errors(
 
 
 def is_exact_endpoint(endpoint: Any) -> bool:
-    return isinstance(endpoint, dict) and "logical_ref" in endpoint and "content_digest" in endpoint
+    return (
+        isinstance(endpoint, dict)
+        and "logical_ref" in endpoint
+        and "content_digest" in endpoint
+        and "representation_profile" in endpoint
+    )
 
 
 def logical_identity(endpoint: Any) -> tuple[str | None, str | None, str | None]:
@@ -181,22 +191,97 @@ def semantic_reference_errors(document: Any) -> list[str]:
     return errors
 
 
-def decision_basis_exact_bindings(payload: Any) -> list[Any]:
+def append_exact_reference(bindings: list[Any], ref: Any) -> None:
+    if binding_signature(ref) is not None:
+        bindings.append(ref)
+
+
+def append_exact_references(bindings: list[Any], refs: Any) -> None:
+    if not isinstance(refs, list):
+        return
+    for ref in refs:
+        append_exact_reference(bindings, ref)
+
+
+def append_lineage_exact_references(bindings: list[Any], lineage: Any) -> None:
+    if not isinstance(lineage, dict):
+        return
+    append_exact_reference(bindings, lineage.get("from"))
+    append_exact_reference(bindings, lineage.get("to"))
+    append_exact_references(bindings, lineage.get("basis_refs"))
+
+
+def known_contract_exact_references(schema_name: str, payload: Any) -> list[Any]:
+    """Extract exact references only from typed roles of known Contract payloads."""
     if not isinstance(payload, dict):
         return []
+
+    bindings: list[Any] = []
     record_type = payload.get("record_type")
-    if record_type == "decision":
-        body = payload.get("decision")
-    elif record_type == "recommendation":
-        body = payload.get("recommendation")
-    else:
-        return []
-    if not isinstance(body, dict):
-        return []
-    refs = body.get("basis_refs")
-    if not isinstance(refs, list):
-        return []
-    return [ref for ref in refs if is_exact_endpoint(ref)]
+
+    if schema_name == "semantic-reference":
+        if record_type == "semantic_lineage":
+            append_lineage_exact_references(bindings, payload.get("semantic_lineage"))
+        elif record_type == "verification_outcome":
+            outcome = payload.get("verification_outcome")
+            if isinstance(outcome, dict):
+                append_exact_reference(bindings, outcome.get("binding"))
+        return bindings
+
+    if schema_name == "decision-memory":
+        body_key = "decision" if record_type == "decision" else "recommendation"
+        body = payload.get(body_key)
+        if not isinstance(body, dict):
+            return bindings
+        for field in ("context_refs", "basis_refs", "responsibility_refs"):
+            append_exact_references(bindings, body.get(field))
+        if record_type == "decision":
+            for field in ("recommendation_refs", "unresolved_refs"):
+                append_exact_references(bindings, body.get(field))
+            append_lineage_exact_references(bindings, body.get("lineage"))
+        return bindings
+
+    if schema_name == "cognitive-method":
+        body = payload.get(record_type) if isinstance(record_type, str) else None
+        if not isinstance(body, dict):
+            return bindings
+        if record_type == "method_definition":
+            for field in ("context_refs", "specification_refs"):
+                append_exact_references(bindings, body.get(field))
+        elif record_type == "method_realization":
+            append_exact_reference(bindings, body.get("method_ref"))
+            for field in ("implementation_refs", "context_refs"):
+                append_exact_references(bindings, body.get(field))
+        elif record_type == "method_application":
+            append_exact_reference(bindings, body.get("method_ref"))
+            append_exact_reference(bindings, body.get("realization_ref"))
+            for field in (
+                "context_refs",
+                "input_refs",
+                "output_refs",
+                "residual_refs",
+                "provenance_refs",
+                "responsibility_refs",
+            ):
+                append_exact_references(bindings, body.get(field))
+        return bindings
+
+    if schema_name == "capability-observation":
+        observation = payload.get("observation")
+        if not isinstance(observation, dict):
+            return bindings
+        conditions = observation.get("conditions")
+        if isinstance(conditions, list):
+            for condition in conditions:
+                if isinstance(condition, dict):
+                    append_exact_references(bindings, condition.get("source_refs"))
+        append_exact_references(bindings, observation.get("provenance_refs"))
+        mapping = observation.get("mapping_provenance")
+        if isinstance(mapping, dict):
+            append_exact_reference(bindings, mapping.get("mapping_ref"))
+        return bindings
+
+    return bindings
 
 
 def nested_interchange_status(
@@ -215,7 +300,9 @@ def nested_interchange_status(
     if not isinstance(records, list):
         return errors, not_verified
 
-    local_exact: dict[tuple[str | None, str | None, str | None], tuple[Any, ...]] = {}
+    local_exact: dict[
+        tuple[str | None, str | None, str | None], list[tuple[Any, ...]]
+    ] = {}
     for index, record in enumerate(records):
         if not isinstance(record, dict):
             continue
@@ -228,7 +315,7 @@ def nested_interchange_status(
                 )
         signature = binding_signature(exact)
         if signature is not None:
-            local_exact[logical_identity(exact)] = signature
+            local_exact.setdefault(logical_identity(exact), []).append(signature)
 
     for index, record in enumerate(records):
         if not isinstance(record, dict):
@@ -252,16 +339,18 @@ def nested_interchange_status(
                 for message in semantic_reference_errors(payload)
             )
 
-        if schema_name == "decision-memory" and not nested_schema_errors:
-            for basis in decision_basis_exact_bindings(payload):
-                basis_identity = logical_identity(basis)
-                local_signature = local_exact.get(basis_identity)
-                if local_signature is None:
+        if not nested_schema_errors:
+            for exact_ref in known_contract_exact_references(schema_name, payload):
+                identity = logical_identity(exact_ref)
+                candidates = local_exact.get(identity)
+                if not candidates:
+                    # An exact reference may legitimately point outside this bundle.
                     continue
-                if binding_signature(basis) != local_signature:
+                signature = binding_signature(exact_ref)
+                if signature not in candidates:
                     errors.append(
-                        f"records/{index}/payload: exact basis for {basis_identity} does not "
-                        "match the exact record included in this interchange bundle"
+                        f"records/{index}/payload: exact reference for {identity} does not "
+                        "match any exact-bound record included in this interchange bundle"
                     )
 
         declared = payload.get("contract") if isinstance(payload, dict) else None
