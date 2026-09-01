@@ -59,21 +59,20 @@ repository / commit / HTTP
 9. **既存Contract、runtime、Interaction、Packaging、Access、Provider Adapterの回帰を壊さない** — current-baseline CIで確認した。
 10. **E3b-P1をE3b全体やOperational / Release Evidenceへ昇格させない** — Product Milestone、Realization / Provider Exchange、Evidence文書へ明示した。
 
-## 初回current-baseline CI Evidence
+## Closure CI Evidence
 
-PR #37の初回head `977773dc3071c8a4d6f33bf4f29e3ffc0c1fec23`では、次がすべて**success**した。
+PR #37では、Issue本文とregistryをResolvedへ同期した検査点 `12621fe67a6fbc6226da5b37f56fcc39d5066faf` で次の6系統がすべて**success**した。
 
-- External Integration E3b Run `33569912285`
-- Semantic Runtime Conformance Run `33569912339`
-- Plan integrity Run `33569912230`
-- External Integration E3a Run `33569912086`
-- Local Package Artifact Run `33569912317`
+- External Integration E3b Run `33570935966`
+- Semantic Runtime Conformance Run `33570935849`
+- Plan integrity Run `33570935878`
+- External Integration E3a Run `33570935851`
+- Local Package Artifact Run `33570935996`
+- Release Candidate Gate Run `33570935867`
 
-External Integration E3bでは、deterministic boundary testとpublic GitHub REST APIへのactual live callの両方がsuccessした。
+External Integration E3bでは、deterministic boundary testとpublic GitHub REST APIへのactual live callの両方が成功している。Release Candidate GateもGate 9まで通過し、ISSUE-000060のResolved状態とcandidate blockerの整合を確認した。
 
-同じheadのRelease Candidate Gate Run `33569912273`はGate 1〜8がsuccessし、OpenなISSUE-000060をGate 9が意図どおりblockした。これはE3b-P1の失敗ではなく、未解決Issue blockerが機能した結果である。
-
-IssueをResolvedへ移したこの後のheadで、Gate 9を含むRelease Candidate Gateを再検査し、merge前にsuccessを確認する。失敗した場合は本Issueを再度Open / In Progressへ戻して原因を解消する。
+このEvidence点を文書へ記録するcommit自身はSHAを変えるため、Evidenceの対象commitを常に文書HEADへ追従させる自己参照は行わない。以後の文書同期commitについては同じCI群で回帰を確認する。
 
 ## Requirement / Scenario再監査
 
@@ -133,14 +132,14 @@ v0.2.0 Release Candidateのsupported scopeはE3aまでであり、本Issueを理
 - [x] Stable Requirement / Scenario追加の要否を再監査する。今回は追加しない。
 - [x] Evidence文書とplan registry / document review registryを同期する。
 - [x] 自然な日本語を最重要視した全文再ドラフトと最終意味監査を行う。
-- [ ] Resolved状態のheadでv0.2.0 Release Candidate GateをGate 9までsuccessさせる。merge前の最終確認条件として扱う。
+- [x] Resolved状態の検査点でv0.2.0 Release Candidate GateをGate 9までsuccessさせる。
 
 ## Evidence state
 
 - Design Evidence: **Satisfied**
 - E2 out-of-process reference exchange: **Scoped Executable Evidence available**
 - E3a version-pinned external artifact integration: **Scoped Executable Evidence available**
-- E3b-P1 public live Provider service: **Scoped Executable Evidence available** — External Integration E3b Run `33569912285`
+- E3b-P1 public live Provider service: **Scoped Executable Evidence available** — External Integration E3b Run `33570935966`
 - E3b-P2 live TEI process / service: **Not Yet Verified**
 - E3b-M1 live external Cognitive Method execution: **Not Yet Verified**
 - E4 Operational portability: **Not Yet Verified**
@@ -149,7 +148,7 @@ v0.2.0 Release Candidateのsupported scopeはE3aまでであり、本Issueを理
 
 ## Reopen / escalation条件
 
-- Resolved状態のheadでRelease Candidate GateがE3b変更に起因してfailureする。
+- Resolved後の回帰CIがE3b変更に起因してfailureする。
 - live Provider responseをcurrent Capability Observationでは意味を失わず表現できない。
 - network failureとsemanticなUnknown / Conflictの区別に新しいProduct-level規範が必要と判明する。
 - Provider identityやmapping provenanceをcurrent Referenceで保持できない。
@@ -158,4 +157,4 @@ v0.2.0 Release Candidateのsupported scopeはE3aまでであり、本Issueを理
 
 ## Natural Japanese review
 
-PMS-06、`product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`、v0.2.0 Release Acceptance、ISSUE-000057 / 000058 / 000059、REQ-0001 / 0007 / 0021、SCN-0014 / 0018、ADR-0013 / 0019 / 0021 / 0024、current Provider Adapter、Capability Observation Contract、`runtime/go/liveintegration`のactual test、PR #37初回current-baseline headのCIを照合した。E3bを一度にproduction integrationへ広げず、最初のpublic live Provider serviceを独立した実証単位として完了させた。GitHub REST APIはreference serviceに限定し、GitHub固有概念をUniversal Coreへ持ち込まない境界、通信失敗とsemantic meaningの分離、E3b-P1から上位Evidenceへの非昇格を維持した。また、v0.2.0 Release Candidateのsupported scopeをE3aから暗黙に広げていない。そのうえで、目的、実装結果、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+PMS-06、`product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`、v0.2.0 Release Acceptance、ISSUE-000057 / 000058 / 000059、REQ-0001 / 0007 / 0021、SCN-0014 / 0018、ADR-0013 / 0019 / 0021 / 0024、current Provider Adapter、Capability Observation Contract、`runtime/go/liveintegration`のactual test、PR #37のclosure Evidence点を照合した。E3bを一度にproduction integrationへ広げず、最初のpublic live Provider serviceを独立した実証単位として完了させた。GitHub REST APIはreference serviceに限定し、GitHub固有概念をUniversal Coreへ持ち込まない境界、通信失敗とsemantic meaningの分離、E3b-P1から上位Evidenceへの非昇格を維持した。また、v0.2.0 Release Candidateのsupported scopeをE3aから暗黙に広げていない。そのうえで、目的、実装結果、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
