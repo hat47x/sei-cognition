@@ -1,0 +1,73 @@
+{
+  "schema": "soza.release-candidate/v1",
+  "version": "0.2.0",
+  "repository": "hat47x/soza",
+  "release_scope": "local-reference-product-baseline",
+  "required_paths": [
+    "README.md",
+    "product/value/SOZA_PRODUCT_VALUE.md",
+    "product/value/SOZA_VALUE_ACCEPTANCE.md",
+    "product/value/SOZA_VALUE_TRACEABILITY.md",
+    "product/definition/SOZA_PRODUCT_SHAPE.md",
+    "product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md",
+    "product/interaction/SOZA_PRODUCT_INTERACTION.md",
+    "product/packaging/SOZA_PRODUCT_PACKAGING.md",
+    "product/security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md",
+    "product/roadmap/SOZA_PRODUCT_MILESTONES.md",
+    "requirements/PRODUCT_REQUIREMENTS.md",
+    "requirements/ACCEPTANCE_SCENARIOS.md",
+    "requirements/PRODUCT_JOURNEY_COMPOSITION.md",
+    "architecture/SOZA_REFERENCE_ARCHITECTURE.md",
+    "architecture/SOZA_DEPLOYMENT_ARCHITECTURE.md",
+    "architecture/SOZA_PRODUCT_ACCESS_ARCHITECTURE.md",
+    "architecture/TRACEABILITY.md",
+    "contracts/CONTRACT_CATALOG.md",
+    "contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md",
+    "contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md",
+    "contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md",
+    "contracts/cognitive-method/SOZA_COGNITIVE_METHOD_v1alpha1.md",
+    "contracts/interchange/SOZA_SEMANTIC_INTERCHANGE_v1alpha1.md",
+    "contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md",
+    "contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md",
+    "contracts/schemas/v1alpha1",
+    "fixtures/contracts/v1alpha1",
+    "fixtures/representation-profiles",
+    "fixtures/providers/synthetic",
+    "fixtures/external/e3a",
+    "runtime/go",
+    "runtime/package/reference",
+    "evaluation/v6-v7",
+    "plan/registry.yaml",
+    "release/v0.2.0/RELEASE_ACCEPTANCE.md"
+  ],
+  "allowed_deferred_issues": [
+    "ISSUE-000021"
+  ],
+  "prohibited_plan_statuses": [
+    "Open",
+    "In Progress",
+    "Blocked"
+  ],
+  "required_gates": [
+    "plan-integrity",
+    "requirements-registry",
+    "contract-conformance",
+    "representation-profile-fixtures",
+    "jcs-go-probe",
+    "semantic-runtime-conformance",
+    "v6-v7-projection-evaluation",
+    "local-reference-package",
+    "release-candidate-policy"
+  ],
+  "explicit_non_claims": {
+    "release_evidence": false,
+    "operational_evidence": false,
+    "adoption_outcome_evidence": false,
+    "production_provider_integration": false,
+    "production_storage_integration": false,
+    "production_identity_security": false,
+    "e3b_live_external_integration": false,
+    "e4_operational_portability": false,
+    "formal_platform_support_matrix": false
+  }
+}
