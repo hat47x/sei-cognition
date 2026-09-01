@@ -2,7 +2,7 @@
 
 Status: **Resolved**  
 Priority: **2**  
-Related ADRs: **ADR-0007, ADR-0014, ADR-0021, ADR-0022, ADR-0027, ADR-0029**  
+Related ADRs: **ADR-0007, ADR-0014, ADR-0021, ADR-0022, ADR-0029**  
 Updated: 2026-09-01
 
 ## Goal
