@@ -1,6 +1,6 @@
 # SOZA 上流プロダクト開発計画
 
-更新日: 2026-09-01  
+更新日: 2026-09-02  
 状態: **Current Upstream Planning Baseline**
 
 ## 1. この文書の役割
@@ -54,6 +54,7 @@ Evidence
 - `product/value/SOZA_VALUE_MODEL.md`
 - `product/value/SOZA_VALUE_ACCEPTANCE.md`
 - `product/definition/SOZA_PRODUCT_SHAPE.md`
+- `product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`
 - `product/vision/SOZA_PRODUCT_VISION.md`
 - `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
 - `product/roadmap/SOZA_PRODUCT_MILESTONES.md`
@@ -64,13 +65,14 @@ Evidence
 
 現時点でRequirementとして十分に定まっていない領域は、まずOpen Questionとして扱います。
 
-現在の代表例は次です。
+Product Interaction、Local Single-Node Packaging、Product Access責務分離については、Design baselineと限定されたExecutable Evidenceまで進みました。現在の主要な未定領域は次です。
 
-- first usable Product Interaction
-- Packaging / Deployment
-- Product Identity / Authorization / Collaboration
-- 実Cognitive Method Realizationの交換
-- 実Provider / TEI / SaaS等をまたぐproduct-level portability
+- E3b-P2: 実TEI process / serviceをどの実行面から接続するか
+- E3b-P2で、TEI executableの取得・private credentialとSOZA semantic integrationをどう分離するか
+- E3b-M1: 実Cognitive Methodをlive実行するrunnerを何とするか
+- Provider / Realization version交換時に必要なProvenance / Exact Bindingの水準
+- formal integration protocolを本当に標準化する必要があるか
+- actual Product Releaseへ進む時点とRelease Evidenceの成立条件
 - release後のOperational / Adoption / Outcome評価方法
 
 既存Issueがある領域は、そのIssueを探索入口として使います。新しいRequirementを追加すること自体を成果にしません。
@@ -95,8 +97,8 @@ Evidence
 
 例:
 
-- 人間が最初に触るsurfaceは、本当にWeb UIである必要があるか。
-- single-user packageでcanonical stateを保持する最小Storage要件は何か。
+- 実TEI CLIを呼ぶために、SOZAがrepository取得方式まで知る必要は本当にあるか。
+- external Cognitive Methodをlive実行するとき、Method Definitionとrunner固有protocolをどこまで分離できるか。
 - product login identityとhistorical actor referenceは同じidentityを要求するか。
 
 この段階では選択肢をRequirementへ固定しません。
@@ -106,6 +108,8 @@ Evidence
 設計上の論点、利用場面、失敗例、既存技術、代替案を広く検討します。
 
 チャットは探索と統合の作業空間として利用できますが、**チャット上の結論そのものをcurrent正本にはしません**。後続作業でIssue、Product文書、Requirement、ADR等へ必要な内容を移します。
+
+外部Projectを候補にする場合は、名称や想像上のAPIだけで判断せず、実際のrepository、CLI、artifact、service surface、versioning、credential条件まで確認します。
 
 ### Step 3 — 実証実験を設計する
 
@@ -118,6 +122,7 @@ Evidence
 - どの選択肢が利用負担を減らすか。
 - ProviderやUIを交換しても意味が残るか。
 - 失敗時に何が失われるか。
+- artifact取得、credential、process invocation、semantic mappingを分けられるか。
 
 ### Step 4 — Evidenceの高さを記録する
 
@@ -126,12 +131,15 @@ Evidence
 ```text
 Design Evidence
   != Executable Evidence
+  != Release Candidate Evidence
   != Release Evidence
   != Operational Evidence
   != Adoption / Outcome Evidence
 ```
 
-synthetic fixtureのPASSを実利用Requirementの実証へ自動昇格させません。
+Release Candidate Evidenceは5段階Evidenceへ新しい普遍段階を加えるものではありません。特定candidateについて必要なExecutable Evidenceをまとめて再検査した記録として扱います。
+
+synthetic fixture、helper process、version固定artifact、public live serviceのPASSを、それぞれが確認していない実Providerや実運用のEvidenceへ自動昇格させません。
 
 ### Step 5 — Candidate Requirementを作る
 
@@ -169,11 +177,12 @@ Requirementは、その状態を成立させるために必ず守るべき規範
 
 したがって、Milestoneの箇条書きをそのままRequirementへ変換しません。
 
-たとえばPMS-03で「人間とAIがusable interactionから同じcanonical meaningへ触れられる」ことを求めても、Web UI、MCP、CLI等の具体方式はOpen Questionのままにできます。
+たとえばPMS-06で実TEIを接続することを求めても、GitHub token、private clone、CLI配布方式、HTTP / gRPC / MCP等の具体方式をStable Requirementにする必要はありません。
 
 ```text
 Milestone outcome
   != implementation choice
+  != acquisition mechanism
   != Universal Requirement field list
 ```
 
@@ -181,33 +190,73 @@ Milestone outcome
 
 ### 6.1 Product Interaction
 
-入口: ISSUE-000045。
+ISSUE-000045 / 000053で、human-oriented Surfaceとmachine-oriented Surfaceを同じcanonical sourceへ戻す境界について、Design baselineと限定されたExecutable Evidenceがあります。
 
-まず、human / AI parity、light / audit Projection、canonical authority、最小操作を整理します。protocol / UI technologyは、その後に比較します。
+productionで最初にsupportするWeb / desktop / CLI / API / MCP等は引き続きOpen Questionですが、現時点の主探索系列ではありません。将来の実利用やPackaging要件から必要性が現れた時点で再開します。
 
 ### 6.2 Packaging / Deployment
 
-入口: ISSUE-000046。
+ISSUE-000046 / 000054 / 000055で、Local Single-Node Package、durable data root、save / reload、deterministic reference artifactについて限定されたExecutable Evidenceがあります。
 
-最小supported package、Storage、import / export、migrationを整理します。deployable unitをsemantic ontologyへしません。
+v0.2.0ではLocal Reference Product Baselineまでをcandidate scopeとし、production installer、formal platform support matrix、server topology等は先取りしません。
 
 ### 6.3 Identity / Authorization / Collaboration
 
-入口: ISSUE-000047。
+ISSUE-000047 / 000056で、authentication identity、Bounded Subject、Product access permission、semantic Responsibility / Authorityを分離するDesign baselineと限定されたExecutable Evidenceがあります。
 
-semantic Responsibility / Authorityとproduct access permissionを分離したまま、single-userからteam利用へ進める条件を調べます。
+production IdP / IAM、formal RBAC / ABAC、team membership lifecycle等は未検証ですが、PMS-06の実Provider交換を進めるために先に固定する必要はありません。
 
 ### 6.4 Real Method / Provider Portability
 
-current Cognitive Method Contract、Provider Adapter、Product Journey harnessを基礎に、実Realization / Providerを交換したときの意味保存を検証します。
+現在の主探索系列です。
 
-新しいUniversal型を追加する前に、既存Contract / Reference / opaque extensionで十分かを確認します。
+Evidenceを次の段階に分けます。
 
-### 6.5 Operational / Adoption Outcome
+```text
+E1 Contract / in-process synthetic
+  → E2 out-of-process reference exchange
+  → E3a version-pinned external artifact integration
+  → E3b-P1 public live Provider service
+  → E3b-P2 actual TEI process / service
+  → E3b-M1 external Cognitive Method live execution
+  → E4 operational portability
+```
 
-Release後に初めて測れる価値については、現段階で数値KPIを固定しすぎません。
+E2、E3a、E3b-P1には、それぞれ対象を限定したExecutable Evidenceがあります。これらを一括して「E3b完了」とは扱いません。
 
-Product Valueが実際に届いたかを検証するため、過去Decisionの再構成負担、Provider交換後の意味継続、Unknown / Conflict保持の有用性、入力負担等を候補として扱い、実利用から測定方法を精緻化します。
+#### 6.4.1 次に進めるE3b-P2
+
+実体を調査した結果、TEIには`cmd/tei`が存在し、`deployment-provider-plan`、`deployment-reconcile`、`deployment-simulate`等のJSON出力面を既に持っています。このため、SOZA向けの新しいwire protocolをTEIへ追加するより、**既存TEI CLIをProvider固有の外部processとして扱う**方が現在の境界に適合します。
+
+一方、TEI repositoryはprivateです。SOZA CIの標準`GITHUB_TOKEN`が別private repositoryを読めるとは仮定しません。
+
+そのため、ISSUE-000061では次を明示的に分けます。
+
+```text
+TEI source / binary acquisition
+  != credential resolution
+  != external process invocation
+  != Provider-specific JSON decoding
+  != SOZA Capability Observation mapping
+```
+
+まず、外部から与えられたTEI executableを呼べるAdapter境界をExecutable Evidence化します。helper processによる境界testはactual TEI executionの代替にはせず、実TEI executableを実際に呼べる環境が得られた時点でE3b-P2 Evidenceを別に収集します。
+
+credentialを利用する実証が必要になった場合も、GitHub PATや特定Secret製品をUniversal semanticsへ持ち込まず、acquisition / deployment policy側の問題として扱います。
+
+#### 6.4.2 E3b-M1の扱い
+
+`cultural-substrate-weaving`にはversion管理されたSkill、複数platform向けadapter、build / validation基盤がありますが、現時点のrepository調査では、Methodを独立processとして実行してRecommendationを返す標準runnerは確認できていません。
+
+したがって、SOZA側が便宜的なrunnerを作って「実Cognitive Methodを実行した」とみなすことはしません。既存の実runnerまたは実際のhost integrationを特定できてからE3b-M1を設計します。
+
+### 6.5 Release / Operational / Adoption Outcome
+
+v0.2.0については、actual `develop/v0.2.0`上でRelease Candidate Gateを再現できるEvidenceがありますが、actual Product Release / Release Evidenceは別です。
+
+release tag、release identity、配布Artifactとのexactな対応等を成立させる操作は、開発中のscoped Evidenceから自動実行しません。releaseを行う判断が明示された時点で、`release/v0.2.0/RELEASE_ACCEPTANCE.md`の条件へ戻ります。
+
+Operational / Adoption / Outcomeは、実利用後に初めて測れる価値を含みます。現段階で数値KPIを固定しすぎず、過去Decisionの再構成負担、Provider交換後の意味継続、Unknown / Conflict保持の有用性、入力負担等を候補として扱い、実利用から測定方法を精緻化します。
 
 ## 7. 作業の停止線
 
@@ -216,8 +265,9 @@ Product Valueが実際に届いたかを検証するため、過去Decisionの�
 - 何を価値として守るか説明できない。
 - RequirementがProduct Valueとつながらない。
 - 同じRequirementを既存REQが既に包含している可能性が高い。
-- UIやprovider都合をUniversal Coreへ持ち込もうとしている。
-- fixture PASSだけを理由にproduct-level達成を主張しようとしている。
+- UIやProvider固有schemaをUniversal Coreへ持ち込もうとしている。
+- repository取得方式やcredential方式をsemantic identityへ混ぜようとしている。
+- fixture / helper process / artifact PASSだけを理由に実Providerのproduct-level達成を主張しようとしている。
 - 未定事項を「実装しやすいから」という理由で確定しようとしている。
 
 ## 8. 計画文書の更新単位
@@ -228,6 +278,7 @@ Product Valueが実際に届いたかを検証するため、過去Decisionの�
 - Product Milestone
 - Issue / ADR
 - Requirement / Acceptance Scenario
+- Evidence文書
 - `plan/registry.yaml`
 - `plan/document_review_registry.yaml`
 
@@ -235,4 +286,4 @@ Product Valueが実際に届いたかを検証するため、過去Decisionの�
 
 ## 9. Natural Japanese review
 
-current Product Value、Product Shape、Product Journey、ISSUE-000045〜000050、5段階Evidence、Moving Future Horizonへ戻り、未定領域を早期にRequirementへ固定しない上流開発手順として再構成した。チャット上の議論と実証実験を探索入力として認めつつ、current正本はrepository文書へ戻す境界を明示し、意味と規範強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+current Product Value、Product Shape、Product Milestone、v0.2.0 Release Candidate boundary、ISSUE-000045〜000061、E2 / E3a / E3b-P1のactual Evidence、`hat47x/tei-platform`の実CLIとprivate repository条件、`cultural-substrate-weaving`のcurrent repository構成へ戻り、現在の上流探索順序を再監査した。Product Interaction、Packaging、Product Accessの既存scoped Evidenceを「未着手」のまま残さず、現在の主探索系列をReal Method / Provider Portabilityへ更新した。TEIについては既存CLIを利用できる実行可能性と、private source / binary acquisitionのcredential問題を分離し、helper process testをactual TEI executionへ昇格させない停止線を明示した。Cognitive Method側も、実runnerが確認できていない段階で便宜的な実装を正式Realizationとみなさない。意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
