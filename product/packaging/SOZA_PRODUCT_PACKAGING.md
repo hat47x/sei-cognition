@@ -1,7 +1,7 @@
 # SOZA Product Packaging / Deployment
 
 更新日: 2026-09-01  
-状態: **Current Product Packaging / Deployment Design Baseline**
+状態: **Current Product Packaging / Deployment Baseline**
 
 ## 1. この文書の役割
 
@@ -145,7 +145,9 @@ Local Single-Node Packageは、少なくとも次を満たす必要がありま�
 5. runtime executableを入れ替えても、supported Contract範囲では同じsemantic dataを読める。
 6. Surface-local stateが失われてもcanonical semantic dataは失われない。
 
-保存のatomicityを実現する具体手段はPersistence Realizationへ委ねます。最初のfilesystem probeではtemporary fileへの完全書き込み後に置換する方式を候補としますが、これをUniversal要件にはしません。
+保存のatomicityを実現する具体手段はPersistence Realizationへ委ねます。最初のfilesystem probeではtemporary fileへの完全書き込み、file sync、close、renameを用いましたが、これをUniversal要件にはしません。
+
+現時点のExecutable Evidenceは、同一test process内で元のin-memory runtime stateを破棄し、新しいruntime objectからdurable bytesを再構成できる範囲です。literalなOS process終了・再起動と、executable version交換後のresumeはまだ検証していません。
 
 ## 6. backup / restore
 
@@ -154,6 +156,8 @@ Local Single-Node Packageは、少なくとも次を満たす必要がありま�
 backup対象は、別processで意味を再構成するために必要なdurable dataです。
 
 filesystem Realizationでは、停止中または整合したsnapshotとしてdata rootを複製し、別の場所へrestoreした後に同じsemantic dataを再読できることを最小条件とします。
+
+reference probeではcanonical semantic bundle fileを別directoryへ複製し、restore先から同じportable bytesを再読できることを確認しました。外部payload等を含む将来のdata root全体を対象とするproduction backupは未検証です。
 
 online backup、incremental backup、point-in-time recovery等は現時点では必須にしません。
 
@@ -169,7 +173,7 @@ portable Semantic Interchangeを、新しいPersistence Realizationへ取り込�
 
 ### 7.3 migration
 
-最小のStorage migrationは、次の形で実証できます。
+最小のStorage migrationは、次の形で検査します。
 
 ```text
 Persistence A
@@ -180,6 +184,8 @@ Persistence A
 ```
 
 比較ではphysical locatorや内部indexの一致ではなく、logical identity、record kind、meaningful references、historical binding等の保持を確認します。
+
+reference probeではfilesystemからmemory Persistenceへoriginal Semantic Interchange bytesを移し、同じbundleを再読できることを確認しました。これはStorage交換境界の限定Executable Evidenceであり、production RDB / object store migrationを証明するものではありません。
 
 ## 8. 最初に固定しないこと
 
@@ -195,11 +201,11 @@ Persistence A
 - cloud-managed deployment
 - background daemonを必須にするか
 
-これらはPackaging Designが成立したことだけを理由にRequirementへ昇格させません。
+これらはPackaging Designやreference probeのPASSだけを理由にRequirementへ昇格させません。
 
 ## 9. Requirement / Acceptance監査
 
-現時点のPackaging境界は、主に既存Requirementで表現できます。
+current Packaging境界とprobe結果は、主に既存Requirementで表現できます。
 
 - REQ-0001 — 実装やStorageが変わっても意味を引き継ぐ。
 - REQ-0005 — 保存後もDecisionを歴史的に再構成できる。
@@ -211,45 +217,67 @@ Persistence A
 
 AcceptanceではSCN-0008「Storageを交換する」とSCN-0010「可変Artifact更新後に過去Decisionを再構成する」を中心に再利用します。
 
-process restartを含むpackaged resumeについては、既存Scenarioだけで十分かを後続probeで監査します。既存Scenarioでは独立した失敗を表現できないと確認された場合だけCandidate Scenarioを検討します。
+reference probeから、新しいstable Requirement / Scenarioを追加する独立した必要性は確認されませんでした。literal OS-process restartや配布binary起動で、既存Scenarioでは表現できない独立した失敗が確認された場合だけCandidate Scenarioを検討します。
 
-## 10. Packaging reference probe
+## 10. Packaging reference probeの結果
 
-DesignをExecutable Evidenceへ進めるため、後続probeでは最低限次を確認します。
+ISSUE-000054で、`runtime/go/packagingprobe`を実体化しました。
 
-1. Semantic Interchange bundleをfilesystemへ保存する。
-2. in-memory stateを破棄する。
-3. 新しいruntime instanceでfilesystemからbundleを再読する。
-4. original bytesまたはsemantic identityを必要な範囲で保持する。
-5. Unknown / unsupported recordを勝手にvalidatedへ昇格させない。
-6. Surface-local stateがなくてもcanonical dataを再構成できる。
-7. data rootを別directoryへ複製してrestoreできる。
-8. filesystem locatorをLogical Referenceへ混入させない。
-9. save中断や不完全fileを正常packageとして受理しない。
-10. portable exportを別Persistence Realization相当のmemory storeへimportし、semantic equivalenceを確認する。
+確認できた範囲は次です。
 
-このprobeはproduction filesystem durability、OS crash guarantee、DB migration、concurrent transactionを証明するものではありません。
+1. Semantic Interchange bundleをfilesystemへ保存できる。
+2. 元のin-memory Bundleを破棄し、新しいruntime objectからfilesystemのbundleを再読できる。
+3. original Semantic Interchange bytesを保持できる。
+4. current runtimeが理解するtyped recordを再構成できる。
+5. unknown Contract recordを`not_verified`のまま保持できる。
+6. Surface-local stateなしにcanonical bundleを再構成できる。
+7. canonical bundle fileを別directoryへcopyし、restore先から同じbytesを再読できる。
+8. filesystem locatorをsemantic bytesやLogical Referenceへ混入させない。
+9. invalid canonical fileやtemporary fileだけの状態を正常packageとして受理しない。
+10. filesystemからmemory Persistenceへportable bytesをimportし、同じbundleを再読できる。
+11. failed importで直前のvalid stateを壊さない。
+12. Storage交換をSemantic Revisionへ自動変換しない。
+
+このprobeはproduction filesystem durability、literal OS process restart、DB migration、concurrent transaction、配布物起動を証明するものではありません。
+
+詳細は`../../runtime/PACKAGING_PROBE_EVIDENCE_2026-09-01.md`を正とします。
 
 ## 11. Evidence状態
 
-- Packaging / Deployment Design Evidence: **Established by this baseline**
-- Packaged resume Executable Evidence: **Not Yet Verified**
-- Storage migration Executable Evidence: **Not Yet Verified**
+- Packaging / Deployment Design Evidence: **Established**
+- Persistence / runtime-state-independent reconstruction Executable Evidence: **Scoped Evidence available**
+- filesystem → memory Storage migration Executable Evidence: **Scoped Evidence available**
+- literal OS-process restart: **Not Yet Verified**
+- distributable product package: **Not Yet Verified**
+- production Storage migration: **Not Yet Verified**
 - Release Evidence: **Not Yet Verified**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
+
+```text
+packaging probe PASS
+  != distributable package proven
+  != literal process restart proven
+  != crash durability proven
+  != production Storage migration proven
+  != Release / Operational / Adoption Evidence
+```
 
 ## 12. 関連文書
 
 - `../definition/SOZA_PRODUCT_SHAPE.md`
 - `../roadmap/SOZA_PRODUCT_MILESTONES.md`
 - `../interaction/SOZA_PRODUCT_INTERACTION.md`
+- `../../architecture/SOZA_DEPLOYMENT_ARCHITECTURE.md`
 - `../../requirements/PRODUCT_REQUIREMENTS.md`
 - `../../requirements/ACCEPTANCE_SCENARIOS.md`
 - `../../plan/adr/ADR-0007-canonical-persistence-boundary.md`
 - `../../plan/adr/ADR-0027-go-as-standard-production-runtime-language.md`
+- `../../plan/adr/ADR-0029-local-single-node-packaging-profile.md`
 - `../../plan/issue/ISSUE-000046-define-v0-2-0-product-packaging-and-deployment-boundary.md`
+- `../../plan/issue/ISSUE-000054-materialize-packaged-resume-and-storage-migration-probe.md`
+- `../../runtime/PACKAGING_PROBE_EVIDENCE_2026-09-01.md`
 
 ## 13. Natural Japanese review
 
-Product Value、Product Shape、PMS-04、Product Interaction、REQ-0001 / 0005 / 0009 / 0011 / 0018 / 0020 / 0021、SCN-0008 / 0010、ADR-0007 / 0014 / 0021 / 0022 / 0027、current Semantic Interchange runtimeとPayload Source境界へ戻り、Packagingをsemantic ontologyではなく実行物・永続化・portable dataの組み合わせとして再構成しました。Goの単一バイナリという実装上の利点は利用しつつ、それを意味上の正本や唯一のdeployment topologyへ昇格させていません。保存・再開・移行・backupの成立条件と未決事項を分けたうえで、意味、要求強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Value、Product Shape、PMS-04、Product Interaction、REQ-0001 / 0005 / 0009 / 0011 / 0018 / 0020 / 0021、SCN-0008 / 0010、ADR-0007 / 0014 / 0021 / 0022 / 0027 / 0029、current Semantic Interchange runtime、`runtime/go/packagingprobe`とcurrent CI Evidenceへ戻り、Packagingをsemantic ontologyではなく実行物・永続化・portable dataの組み合わせとして再監査しました。Goの単一バイナリやfilesystemの利点は利用しつつ、それらを意味上の正本や唯一のdeployment topologyへ昇格させていません。また、runtime object破棄後の再構成とliteral OS-process restart、filesystem→memory probeとproduction Storage migrationを明確に分けています。意味、要求強度、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
