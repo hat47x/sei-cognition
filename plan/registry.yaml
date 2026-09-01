@@ -109,7 +109,7 @@ adr:
   - id: ADR-0027
     file: plan/adr/ADR-0027-go-as-standard-production-runtime-language.md
     status: Accepted
-    related_issues: [ISSUE-000052, ISSUE-000054]
+    related_issues: [ISSUE-000052]
   - id: ADR-0028
     file: plan/adr/ADR-0028-product-interaction-canonical-operation-boundary.md
     status: Accepted
@@ -165,7 +165,7 @@ issue:
   - {id: ISSUE-000043, file: plan/issue/ISSUE-000043-materialize-cognitive-method-contract-runtime.md, status: Resolved, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0017, ADR-0021, ADR-0022, ADR-0025]}
   - {id: ISSUE-000044, file: plan/issue/ISSUE-000044-formalize-product-value-proposition-and-shape.md, status: Resolved, priority: 1, related_adrs: [ADR-0014, ADR-0018, ADR-0020, ADR-0021]}
   - {id: ISSUE-000045, file: plan/issue/ISSUE-000045-define-first-usable-product-interaction-boundary.md, status: Resolved, priority: 1, related_adrs: [ADR-0005, ADR-0018, ADR-0020, ADR-0021, ADR-0028]}
-  - {id: ISSUE-000046, file: plan/issue/ISSUE-000046-define-v0-2-0-product-packaging-and-deployment-boundary.md, status: Resolved, priority: 2, related_adrs: [ADR-0007, ADR-0014, ADR-0021, ADR-0022, ADR-0027, ADR-0029]}
+  - {id: ISSUE-000046, file: plan/issue/ISSUE-000046-define-v0-2-0-product-packaging-and-deployment-boundary.md, status: Resolved, priority: 2, related_adrs: [ADR-0007, ADR-0014, ADR-0021, ADR-0022, ADR-0029]}
   - {id: ISSUE-000047, file: plan/issue/ISSUE-000047-define-product-identity-authorization-and-collaboration-boundary.md, status: Open, priority: 2, related_adrs: [ADR-0004, ADR-0006, ADR-0016, ADR-0021]}
   - {id: ISSUE-000048, file: plan/issue/ISSUE-000048-define-end-to-end-golden-journey-acceptance.md, status: Resolved, priority: 1, related_adrs: [ADR-0005, ADR-0018, ADR-0020, ADR-0021, ADR-0025]}
   - {id: ISSUE-000049, file: plan/issue/ISSUE-000049-generalize-bundle-exact-binding-consistency.md, status: Open, priority: 2, related_adrs: [ADR-0008, ADR-0009, ADR-0021, ADR-0022, ADR-0025, ADR-0026]}
@@ -173,4 +173,4 @@ issue:
   - {id: ISSUE-000051, file: plan/issue/ISSUE-000051-establish-upstream-product-planning-baseline.md, status: Resolved, priority: 1, related_adrs: [ADR-0001, ADR-0018, ADR-0020, ADR-0021]}
   - {id: ISSUE-000052, file: plan/issue/ISSUE-000052-formalize-production-runtime-language-policy.md, status: Resolved, priority: 1, related_adrs: [ADR-0014, ADR-0021, ADR-0022, ADR-0025, ADR-0027]}
   - {id: ISSUE-000053, file: plan/issue/ISSUE-000053-materialize-first-product-interaction-reference-probe.md, status: Resolved, priority: 1, related_adrs: [ADR-0005, ADR-0018, ADR-0020, ADR-0021, ADR-0028]}
-  - {id: ISSUE-000054, file: plan/issue/ISSUE-000054-materialize-packaged-resume-and-storage-migration-probe.md, status: Open, priority: 1, related_adrs: [ADR-0007, ADR-0021, ADR-0022, ADR-0027, ADR-0029]}
+  - {id: ISSUE-000054, file: plan/issue/ISSUE-000054-materialize-packaged-resume-and-storage-migration-probe.md, status: Open, priority: 1, related_adrs: [ADR-0007, ADR-0021, ADR-0022, ADR-0029]}
