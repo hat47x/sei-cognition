@@ -1,6 +1,6 @@
 # ISSUE-000039: Human / AI ReadabilityとProgressive Explicitnessを再現可能に評価する
 
-Status: **Open**  
+Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0005, ADR-0018, ADR-0020, ADR-0021**  
 Updated: 2026-09-01
@@ -20,26 +20,9 @@ Projection evaluation
 
 ## Background
 
-current Product Value Traceabilityでは、V1〜V5とV8にはContract、fixture、Representation Profile、first semantic runtime、synthetic Provider Adapter等の限定Executable Evidenceが存在する。
+V1〜V5とV8にはContract、fixture、Representation Profile、semantic runtime、synthetic Provider Adapter等の限定Executable Evidenceが先行していた。一方、V6 / V7については、意味境界は定義されていたものの、具体的なProjectionと明示量切替を使った再現可能なExecutable Evidenceが不足していた。
 
-一方、V6 / V7には次のgapが残っている。
-
-### V6 Human / AI Readability
-
-- human-readable Contract Definitionとmachine-readable Schemaは存在する。
-- REQ-0019は、人間とAIの双方が同じ意味へ戻れることを要求している。
-- SCN-0006ではProjectionを作り直してもcanonical meaningを失わないことを要求している。
-- SCN-0013ではsimple viewとmachine-readable representationの意味整合を要求している。
-- しかし、具体的なProjectionを使ってbasis、未解決点、Responsibility等を人間が回収できるExecutable Evidenceはまだない。
-
-### V7 Progressive Explicitness
-
-- ADR-0005とREQ-0010で、案件の影響・不確実性・不可逆性等に応じて必要な明示量を段階的に変える境界は定義済みである。
-- SCN-0004では低影響案件と高影響案件で必要な明示性が異なることを要求している。
-- SCN-0013では簡略表示のためにcanonical meaningを削除しないことを要求している。
-- しかし、軽量Projectionと監査・高影響Projectionを同じcanonical sourceから生成・比較する再現可能なEvidenceはまだない。
-
-この状態のままRelease準備やUI実装を先行すると、「意味は厳密だが人間には追いにくい」「簡単に使うためにはcanonical meaningを削る」といった逆転が起こり得る。
+このため、本IssueではUI製品仕様を作るのではなく、Projectionをcanonical authorityへ昇格させない小さな評価harnessを作り、V6 / V7の意味境界を反証可能な形で検査した。
 
 ## Product Value trace
 
@@ -64,159 +47,148 @@ current Product Value Traceabilityでは、V1〜V5とV8にはContract、fixture�
 
 ### Current Evidence
 
-- Design: V6 / V7ともに境界は定義済み。ただしProjection具体化は一部`Partially Satisfied`。
-- Executable: representative Projection / detail-level切替については**Not Yet Verified**。
+- Design: **Satisfied for this evaluation boundary** — protocol、semantic question set、light / audit Projection、low / high impact評価policy、negative case、structured human review様式を実体化した。
+- Executable: **Partially Satisfied at evaluation-harness scope** — current Contractに適合する2件のcanonical sourceからProjectionを再生成し、6 semantic questions、7 negative cases、Projection交換、low / high policyをCIで検査した。
 - Release: **Not Yet Verified**。
 - Operational: **Not Yet Verified**。
 - Adoption / Outcome: **Not Yet Verified**。
 
-## Questions
+## Questionsと得られた回答
 
-1. 同一のcanonical Artifactから、軽量表示と監査向け詳細表示を作っても、意味上必要な情報を失わずに済むか。
-2. 人間向けProjectionとmachine-readable representationから、同じbasis、未解決点、Responsibility、重要なEvidence / Authority境界を回収できるか。
-3. 低影響案件では不要な詳細を前面へ出さず、高影響案件では必要な詳細を省略しない切替を、固定UIではなくProfile / Policyまたは評価入力として表せるか。
-4. Projection固有stateがcanonical semantic stateへ逆流していないことを、どのnegative caseで検査するか。
-5. 再現可能なExecutable Evidenceを作るために必要な最小Projection harnessは何か。新しいUniversal ContractやCore概念を追加せずに成立するか。
-6. 人間とAIの「同じ意味を読める」を、単一の数値スコアへ還元せず、Scenario単位でどのように判定するか。
+### 1. 同一canonical sourceから軽量表示と監査表示を作れるか
 
-## Constraints
+作れる。`evaluation/v6-v7/`では、同じrich canonical sourceからlight / audit Projectionを生成し、Projection生成前後でcanonical sourceのstructural digestが変わらないことを検査する。
 
-- Web、CLI、desktop、dashboard等の特定UI技術をUniversal Coreへ固定しない。
-- Projectionをcanonical semantic authorityへ昇格させない。
-- UIを簡略化するためにUnknown、Conflict、Responsibility、basis、revision、Authority / Evidence境界等をcanonical recordから削除しない。
-- 高影響案件で必要な明示性を、入力負担削減だけを理由に省略しない。
-- 低影響案件へ最大詳細の入力・表示を一律に強制しない。
-- machine-readable側だけに重要なbasisを残し、人間向けProjectionから辿れない状態を合格にしない。
-- 人間向け説明だけに意味を追加し、machine-readable canonical dataと矛盾する状態を合格にしない。
-- private chain-of-thoughtの保存・復元を評価成立条件にしない。
-- 読了時間、クリック数、文字数等の単一UX指標をProduct Valueの普遍的KPIにしない。
-- synthetic / static harnessのPASSをRelease / Operational / Adoption / Outcomeへ昇格させない。
+Projectionを削除・再生成しても、canonical meaning自体はProjectionに依存しない。
 
-## Required scenarios / experiments
+### 2. 人間向けProjectionとmachine-readable representationから同じ意味へ戻れるか
 
-### E1 — 同一Decisionのlight / audit Projection
+評価harnessでは、少なくとも次の6 semantic questionsを固定した。
 
-一つのrepresentative Decision Memory / Semantic Interchangeをcanonical sourceとし、少なくとも次の二つのProjectionを作る。
+1. 何がDecisionされたか。
+2. 何が未解決のまま残ったか。
+3. 何がbasisとして使われたか。
+4. どのResponsibilityが関係するか。
+5. Authorization Evidenceの認識状態は何か。
+6. basisに関係するProvenanceへ戻れるか。
 
-- **light** — 日常的な判断確認に必要な要約、Decision状態、主要な未解決点等を前景化する。
-- **audit** — basis、provenance、revision、Responsibility、必要なEvidence / Authority境界等へ降りられる。
+Audit Projectionはmachine-readable canonical sourceと6項目を照合する。Light Projectionでは全詳細を前景化せず、Decision、unresolved、Authorization Evidence stateを保持し、basis / Responsibility / Provenanceの存在件数とauditへの導線を残す。
 
-両者は別のcanonical recordを持たない。
+### 3. 低影響と高影響で明示量を変えられるか
 
-### E2 — machine-readable representationとの意味照合
+評価用policyとして再現できた。
 
-同じcanonical sourceについて、人間向けProjectionとmachine-readable representationの双方から、事前に定めたsemantic questionsへ回答できることを確認する。
+- low-impact / reversible: light Projectionを許容し、存在しないbasis / Responsibility等を最大詳細として一律入力必須にはしない。
+- high-impact / consequential: audit Projectionを要求し、lightだけで完了扱いにしない。
 
-例:
+この`low / high`は評価harness上の入力であり、SOZA Universal Coreへ固定risk taxonomyを追加する判断ではない。
 
-- 何がDecisionされたか。
-- 何がbasisとして使われたか。
-- 何が未解決のまま残ったか。
-- 誰／何がどの文脈でResponsibilityを持つか。
-- Authority / Authorizationが未確認なら、その未確認性を識別できるか。
-- どのArtifact / Observationの版が重要なbasisだったか。
+### 4. Projection固有stateの逆流をどう検査するか
 
-「同じ回答文になること」ではなく、意味上の矛盾や欠落がないことを評価する。
+canonical sourceのdigest比較とnegative caseで検査する。Projection生成や再生成によってcanonical sourceが暗黙に変わる場合は失敗とする。
 
-### E3 — 低影響 / 高影響のProgressive Explicitness
+### 5. 新しいUniversal ContractやCore概念は必要だったか
 
-SCN-0004に対応する二つの評価入力を用意する。
+必要なかった。current Decision Memory / Semantic Interchange Contractをcanonical sourceとして利用し、Projection評価は`evaluation/v6-v7/`へ隔離できた。
 
-- low-impact / reversible case
-- high-impact / irreversible or externally consequential case
+したがって、本Issueから新しいADRやUniversal semantic conceptを追加しない。
 
-低影響では不要な詳細を前景化しなくてもよい一方、高影響では必要なbasis、Authority / Evidence、未解決点等を見えないまま進めないことを確認する。
+### 6. Human / AI Readabilityを単一スコアへ還元せず評価できるか
 
-### E4 — Projection交換
+できる。機械評価ではsemantic questionとnegative caseを使い、人間向け評価では`HUMAN_REVIEW_TEMPLATE.md`でScenario単位に`scenario-satisfied / partially-satisfied / not-satisfied / not-yet-verified`を記録する。
 
-同じcanonical sourceから別形式のProjectionを作り、最初のProjectionを削除してもsemantic Artifactを失わないことを確認する。
+人間review templateが存在すること自体は、人間による実利用Evidenceではない。
 
-実装形式は固定しない。最低限、二つの異なるProjection表現で再現できればよい。
+## 実体化した評価基線
 
-### E5 — Negative cases
+### Protocol / harness
 
-少なくとも次を失敗として検出する。
+- `evaluation/v6-v7/README.md`
+- `evaluation/v6-v7/check_projection_evaluation.py`
+- `evaluation/v6-v7/negative-cases.json`
+- `evaluation/v6-v7/projections/light.md`
+- `evaluation/v6-v7/projections/audit.md`
+- `evaluation/v6-v7/HUMAN_REVIEW_TEMPLATE.md`
 
-1. light ProjectionがUnknown / unresolvedを「問題なし」のように見せる。
-2. Responsibilityがcanonical dataにはあるが人間向けProjectionから辿れない。
-3. machine-readable側だけがbasisを保持し、人間向け表示では根拠不明になる。
-4. human summaryがcanonical dataに存在しないAuthorityや確定事実を追加する。
-5. Projectionの編集によりcanonical Artifactが暗黙に書き換わる。
-6. high-impact caseで必要な明示性がlight profileのまま欠落する。
-7. low-impact caseへ不要な最大詳細入力を必須化し、Progressive Explicitnessが実質的に機能しない。
+### Canonical source
 
-## Evaluation approach
+- `fixtures/contracts/v1alpha1/evaluation/E1-projection-rich-decision.json`
+- `fixtures/contracts/v1alpha1/evaluation/E2-low-impact-minimal-decision.json`
 
-最初の評価は、actual production UIではなく**dependency-lightな再現可能harness**を優先する。
+E1はbasis、unresolved、Responsibility、Capability Observation、Provenanceを含むrich / high-impact側の入力である。E2は低影響・可逆な案件を想定したminimal Decisionであり、最大詳細を一律必須にしないことの反証材料として使う。
 
-候補:
+### Negative cases
 
-```text
-canonical fixture
-  → projection adapter / renderer
-  → light representation
-  → audit representation
-  → semantic question checker / invariant checker
-```
+次の7件を固定し、期待するerror codeで拒否できることを検査する。
 
-このharnessは評価用Projectionであり、SOZA Universal Coreの新しいContract familyとはみなさない。
+1. 未解決事項をlight Projectionから隠す。
+2. basisがcanonical sourceにあるのにlightから存在へ辿れなくする。
+3. Responsibilityがcanonical sourceにあるのにlightから存在へ辿れなくする。
+4. canonical sourceにないAuthorization成立をProjectionが追加する。
+5. Projectionの副作用としてcanonical sourceを書き換える。
+6. high-impact案件をlightだけで完了扱いにする。
+7. low-impact案件へaudit最大詳細を一律必須化する。
 
-人間向け評価については、完全自動化を無理に目指さない。機械的に検査できる意味欠落はcheckerへ置き、読みやすさ・理解可能性はScenarioに沿ったstructured reviewで記録してよい。
+## Executable Evidence
 
-## Deliverables
+GitHub Actions `V6 V7 Projection Evaluation` Run `33456710459`（run #2）がsuccessした。
 
-1. V6 / V7評価プロトコル文書。
-2. representative canonical fixtureの選定、または評価用fixtureの追加。
-3. light / auditの少なくとも二つのProjection例。
-4. machine-readable representationとのsemantic question対応表。
-5. 自動検査可能なnegative caseとchecker / test。実装可能な範囲でdependency-lightにする。
-6. 人間向けstructured reviewの記録様式。
-7. actual Executable Evidenceが得られた場合のみ、SCN-0004 / 0006 / 0013およびV6 / V7 TraceabilityのEvidence状態を更新する。
-8. 評価中に既存意味境界では表せない差が見つかった場合に限り、別Issue / ADR候補として切り出す。
+このRunでは、少なくとも次を確認した。
 
-## Dependencies / interaction with ISSUE-000038
+- current Contract baseline recheck: **success**
+- canonical source: **2件**
+- Projection profile: **light / audit**
+- semantic question: **6件**
+- negative case: **7件**
+- Projection再生成: canonical sourceを変更せず再現可能
+- low-impact: lightを許容
+- high-impact: auditを要求
 
-ISSUE-000038はruntime Representation Verifier Registryを扱う別課題であり、本Issueとは独立である。
-
-V6 / V7評価がExact Binding verificationを利用する場合でも、Verifier Registry完成を本Issue全体の前提にはしない。必要な検査だけをcurrent verified profile / fixtureで行い、依存が実際に発生した箇所だけ明示する。
+この結果はProduct Value TraceabilityとSCN-0004 / 0006 / 0013 / 0017へ反映済みである。
 
 ## Completion criteria
 
 ### Semantic / Design Acceptance
 
-- [ ] 評価protocolがV6 / V7、REQ-0010 / 0011 / 0019 / 0020、SCN-0004 / 0006 / 0013 / 0017へ追跡できる。
-- [ ] light / auditの意味差を「表示量の差」として扱い、別canonical meaningにしていない。
-- [ ] 人間向けProjectionとmachine-readable representationのsemantic question setを定義している。
-- [ ] negative caseがcanonical meaning lossと過剰明示の双方を含む。
+- [x] 評価protocolがV6 / V7、REQ-0010 / 0011 / 0019 / 0020、SCN-0004 / 0006 / 0013 / 0017へ追跡できる。
+- [x] light / auditの意味差を表示量の差として扱い、別canonical meaningにしていない。
+- [x] 人間向けProjectionとmachine-readable representationのsemantic question setを定義した。
+- [x] negative caseがcanonical meaning lossと過剰明示の双方を含む。
 
 ### Executable Acceptance
 
-- [ ] representative canonical sourceから少なくとも二つのProjectionを再現できる。
-- [ ] 自動検査可能なsemantic invariant / negative caseがactual repositoryでPASSする。
-- [ ] Projection交換後もcanonical sourceが保持されることを再現できる。
-- [ ] high-impact caseでは必要情報が欠落せず、low-impact caseでは不要な最大詳細を強制しないことを評価できる。
+- [x] representative canonical sourceから少なくとも二つのProjectionを再現できる。
+- [x] 自動検査可能なsemantic invariant / negative caseがactual repositoryでPASSした。
+- [x] Projection交換後もcanonical sourceが保持されることを再現した。
+- [x] high-impact caseでは必要情報を隠さず、low-impact caseでは不要な最大詳細を強制しないことを評価できる。
 
-### Adoption / Outcomeへの留保
+## Resolution
 
-本Issueで得られるのは最大でもevaluation-harness scoped Executable Evidenceである。
+本Issueは**evaluation-harness scoped Executable Acceptanceまで完了したためResolved**とする。
+
+このResolutionは、V6 / V7全体が実運用で実証されたことを意味しない。特に、実利用者が必要な時間と負担で意味を理解できるか、production UIで誤読や見落としが起きないか、異なるAI実装が長期に同じ意味へ戻れるか、判断品質や業務成果が改善するかは未検証である。
 
 ```text
-projection harness PASS
+Projection Evaluation PASS
   != production UX validated
+  != Release Evidence
   != Operational Evidence
   != Adoption / Outcome Evidence
 ```
 
-実利用者が実務上必要な時間・負担で意味を理解できるか、判断品質が改善するかは、後続のOperational / Adoption・Outcome評価で扱う。
+また、評価中に既存意味境界では表せない新しいUniversal semantic conceptは確認されなかったため、本Issueから新しいADR / Core概念は追加しない。
 
-## Resolution / reopen conditions
+## Reopen conditions
 
-Executable Acceptanceまで満たした時点で、本IssueをResolvedにできる。
+次の場合は、本Issueを再開するか、より具体的な後続Issueを作成する。
 
-ただし、評価結果から新しいUniversal semantic conceptが必要に見えた場合は、本Issue内で即座にCore化しない。複数Scenarioで不可欠な意味差かを確認し、別ADR候補として扱う。
-
-Resolved後も、production Projectionや実利用で「人間には必要な意味が見えない」「簡略化がcanonical意味を削る」「高影響案件で明示量が不足する」といった反例が得られた場合は再開または後続Issueを作成する。
+- production Projectionで必要な意味が人間から見えない。
+- light化によってcanonical meaningや重要な未解決状態が失われる。
+- high-impact案件で必要な明示量が不足する。
+- low-impact案件で最大詳細が事実上必須となり、Progressive Explicitnessが機能しない。
+- 人間reviewや異なるAI実装で、6 semantic questionsへ安定して戻れない反例が得られる。
+- evaluation harnessのpolicyをUniversal Coreへ昇格させなければならないように見える新しい意味差が現れる。
 
 ## Natural Japanese review
 
-Product Value Traceability、Value Acceptance、REQ-0010 / 0011 / 0019 / 0020、SCN-0004 / 0006 / 0013 / 0017、ADR-0005 / 0018 / 0020 / 0021、current Contract / Runtime Evidenceへ戻って論点を整理した。その後、UI実装とProduct Value評価、Executable EvidenceとOperational / Adoption・Outcomeを混同しないよう意味と留保を固定し、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+Product Value Traceability、Value Acceptance、REQ-0010 / 0011 / 0019 / 0020、SCN-0004 / 0006 / 0013 / 0017、ADR-0005 / 0018 / 0020 / 0021、current Contract、`evaluation/v6-v7/`の実装、Run `33456710459`へ戻って、設計時の問いと実測結果を照合した。その後、UI実装とProduct Value評価、evaluation-harness scoped Executable EvidenceとRelease / Operational / Adoption・Outcomeを混同しないよう意味と留保を固定し、自然な日本語となることを最重要視して全文を再ドラフトした。最後に、ResolutionによってEvidence強度を過大評価していないことを再監査済みである。
