@@ -325,9 +325,57 @@ synthetic fixtureだけでなく、実際のCognitive Method Realization、AI、
 
 ### Current state
 
-**Partial.**
+**Partial / out-of-process reference exchange scoped Executable Evidence available / real external AI・SaaS・TEI pending.**
 
-Provider-neutralな境界やsynthetic Adapter、Cognitive Method portable ContractにはExecutable Evidenceがありますが、production Realization交換や実Provider横断はまだ一般化して主張しません。
+`product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`で、交換してよいRealization / Providerと、交換後も判断記憶として守る意味を正本化しました。
+
+PMS-06のEvidenceは、少なくとも次の段階に分けて扱います。
+
+```text
+E1 Contract / in-process synthetic
+  → E2 out-of-process reference exchange
+  → E3 real external integration
+  → E4 operational portability
+```
+
+current repositoryではE1に加え、ISSUE-000057でE2まで限定的に実証しました。
+
+`runtime/go/realizationprobe`では、reference Provider A / Bとreference Method Realization A / BをSOZA runtimeとは別のOS processとしてbuild・起動します。Provider固有stateは既存Provider Adapterを通してcurrent Capability Observationへ戻し、Method Applicationは既存Cognitive Method Contractの`realization_ref`を保持します。
+
+Semantic Runtime Conformance Run `33516101445`では、current Contract fixture 31件の再検査と`runtime/go`全体の`go test ./...`が**success**しました。
+
+確認した主な境界は次です。
+
+- Provider A / Bを別OS processとして起動し、異なるProvider固有state shapeを取得できる。
+- A / Bを別Provider identityとして保持しつつ、同じCapabilityへmappingできる。
+- mapping後のCapability Observationをcurrent validatorへ戻せる。
+- 同じMethod Definitionに対し、二つのMethod Realizationを別OS processで実行できる。
+- 各Method Applicationが異なる`realization_ref`を保持できる。
+- Realizationごとに異なるRecommendationを生成しても、RecommendationをDecisionへ自動昇格しない。
+- Provider / Methodを交換した後も、交換前Decisionのbasis、Recommendation、Responsibility、unresolvedを変更しない。
+- failed Provider / Method processがcanonical sourceを変更しない。
+
+交換の成功を「異なるRealizationが同じ文字列を返すこと」とは定義しません。重要なのは、どのRealization / Providerを用い、どのObservation / Recommendationが生じたかを区別したまま、historical Decisionを当時のbasisで読み直せることです。
+
+```text
+out-of-process reference exchange PASS
+  != real external AI / SaaS / TEI integration proven
+  != production network / credential / version portability proven
+  != Operational portability
+  != Release / Adoption Evidence
+```
+
+### Open questions
+
+- E3で最初に接続する実Cognitive Method Realization
+- TEIと非TEI Providerをどの組み合わせで比較するか
+- 実外部Providerのcredential / rate limit / network failureをどう評価するか
+- production Realization protocolを標準化する必要が本当にあるか
+- process-local protocolとportable Contractの境界
+- Realization version交換時のExact Binding / Provenanceの必要水準
+- E4のOperational portabilityを何で測るか
+
+これらをE2のPASSだけでStable Requirementや正式protocolへ固定しません。
 
 ## 10. PMS-07 — release可能な製品として成立する
 
@@ -377,4 +425,4 @@ Open Questionを直接Stable Requirementへ飛ばしません。
 
 ## 14. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、Product Identity / Access / Collaboration、REQ-0001〜0022、SCN-0007 / 0008 / 0010 / 0012 / 0013 / 0018、ADR-0028 / 0029 / 0030、ISSUE-000046 / 000047 / 000053〜000056、current Go runtime、Interaction / Packaging / Product Access probeとcurrent CI Evidenceへ戻ってMilestoneを再監査しました。PMS-03はscoped Interaction Executable Evidence、PMS-04はLocal Reference PackageによるMinimum scoped Executable Evidence、PMS-05はProduct Access責務分離のDesignとscoped Executable Evidenceまでを明確にしています。一方、PMS-05のproduction IdP、formal access policy、team security、production Selective Disclosure、Product Release、Operational / Adoption Evidenceは未検証のままです。Product Access Scope、permission vocabulary、Identity BindingをUniversal CoreやStable Requirementへ先に固定せず、Candidate Requirementとして次の実証へ渡す境界も維持しました。そのうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、Product Identity / Access / Collaboration、Realization / Provider Exchange、REQ-0001〜0022、SCN-0005 / 0007 / 0008 / 0010 / 0012 / 0013 / 0014 / 0018、ADR-0024 / 0025 / 0028 / 0029 / 0030、ISSUE-000046 / 000047 / 000053〜000057、current Go runtime、Interaction / Packaging / Product Access / Realization exchange probeとcurrent CI Evidenceへ戻ってMilestoneを再監査しました。PMS-03はscoped Interaction Executable Evidence、PMS-04はLocal Reference PackageによるMinimum scoped Executable Evidence、PMS-05はProduct Access責務分離のDesignとscoped Executable Evidence、PMS-06はout-of-process reference exchangeのE2 scoped Executable Evidenceまでを明確にしています。一方、production IdP、formal access policy、実AI / SaaS / TEI integration、Operational portability、Product Release、Adoption / Outcome Evidenceは未検証のままです。probe固有のpermission vocabulary、process-local JSON、binary構成、Provider ID等をUniversal Core、Stable Requirement、正式protocolへ先に固定しない境界も維持しました。そのうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。

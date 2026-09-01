@@ -12,6 +12,11 @@ const (
 	providerBID = "synthetic-provider-b"
 	mappingAID  = "synthetic-provider-a-to-capability-observation/v1"
 	mappingBID  = "synthetic-provider-b-to-capability-observation/v1"
+
+	referenceProviderAID = "reference-process-provider-a"
+	referenceProviderBID = "reference-process-provider-b"
+	referenceMappingAID  = "reference-process-provider-a-to-capability-observation/v1"
+	referenceMappingBID  = "reference-process-provider-b-to-capability-observation/v1"
 )
 
 // ProviderAState deliberately uses a Provider-specific shape. It is not a SOZA
@@ -31,6 +36,12 @@ type ProviderBState struct {
 
 type ProviderAAdapter struct{}
 type ProviderBAdapter struct{}
+
+// ReferenceProviderAAdapter / BAdapter は、別OS processで取得したProvider固有stateを
+// current Capability Observationへ戻すreference probe用Adapterです。wire protocolや
+// Provider IDをUniversal Contractへ昇格させるものではありません。
+type ReferenceProviderAAdapter struct{}
+type ReferenceProviderBAdapter struct{}
 
 func availabilityFromHealth(health *string) (semanticruntime.ObservedCondition, error) {
 	condition := semanticruntime.ObservedCondition{Key: "availability"}
@@ -143,7 +154,7 @@ func baseObservation(context ObservationContext, providerID, providerTarget, map
 	}
 }
 
-func (ProviderAAdapter) Observe(context ObservationContext, payload []byte) (semanticruntime.CapabilityObservationDocument, error) {
+func observeProviderA(context ObservationContext, payload []byte, providerID, mappingID, inputSchema string) (semanticruntime.CapabilityObservationDocument, error) {
 	if err := validateContext(context); err != nil {
 		return semanticruntime.CapabilityObservationDocument{}, err
 	}
@@ -162,10 +173,10 @@ func (ProviderAAdapter) Observe(context ObservationContext, payload []byte) (sem
 	if err != nil {
 		return semanticruntime.CapabilityObservationDocument{}, err
 	}
-	return baseObservation(context, providerAID, state.ServiceRef, mappingAID, "synthetic-provider-a/v1", []semanticruntime.ObservedCondition{availability, latency}), nil
+	return baseObservation(context, providerID, state.ServiceRef, mappingID, inputSchema, []semanticruntime.ObservedCondition{availability, latency}), nil
 }
 
-func (ProviderBAdapter) Observe(context ObservationContext, payload []byte) (semanticruntime.CapabilityObservationDocument, error) {
+func observeProviderB(context ObservationContext, payload []byte, providerID, mappingID, inputSchema string) (semanticruntime.CapabilityObservationDocument, error) {
 	if err := validateContext(context); err != nil {
 		return semanticruntime.CapabilityObservationDocument{}, err
 	}
@@ -184,5 +195,21 @@ func (ProviderBAdapter) Observe(context ObservationContext, payload []byte) (sem
 	if err != nil {
 		return semanticruntime.CapabilityObservationDocument{}, err
 	}
-	return baseObservation(context, providerBID, state.Endpoint, mappingBID, "synthetic-provider-b/v1", []semanticruntime.ObservedCondition{availability, latency}), nil
+	return baseObservation(context, providerID, state.Endpoint, mappingID, inputSchema, []semanticruntime.ObservedCondition{availability, latency}), nil
+}
+
+func (ProviderAAdapter) Observe(context ObservationContext, payload []byte) (semanticruntime.CapabilityObservationDocument, error) {
+	return observeProviderA(context, payload, providerAID, mappingAID, "synthetic-provider-a/v1")
+}
+
+func (ProviderBAdapter) Observe(context ObservationContext, payload []byte) (semanticruntime.CapabilityObservationDocument, error) {
+	return observeProviderB(context, payload, providerBID, mappingBID, "synthetic-provider-b/v1")
+}
+
+func (ReferenceProviderAAdapter) Observe(context ObservationContext, payload []byte) (semanticruntime.CapabilityObservationDocument, error) {
+	return observeProviderA(context, payload, referenceProviderAID, referenceMappingAID, "reference-process-provider-a/v1")
+}
+
+func (ReferenceProviderBAdapter) Observe(context ObservationContext, payload []byte) (semanticruntime.CapabilityObservationDocument, error) {
+	return observeProviderB(context, payload, referenceProviderBID, referenceMappingBID, "reference-process-provider-b/v1")
 }

@@ -167,6 +167,7 @@ func (s *MachineSurface) RecordRecommendation(input RecommendationInput) error {
 type MethodApplicationInput struct {
 	Ref                semanticruntime.LogicalReference
 	MethodRef          semanticruntime.LogicalReference
+	RealizationRef     *semanticruntime.LogicalReference
 	ContextRefs        []semanticruntime.LogicalReference
 	InputRefs          []semanticruntime.LogicalReference
 	OutputRefs         []semanticruntime.LogicalReference
@@ -181,12 +182,18 @@ func (s *MachineSurface) RecordMethodApplication(input MethodApplicationInput) e
 	if s == nil || s.store == nil {
 		return errors.New("machine surface requires a canonical store")
 	}
+	var realizationRef *semanticruntime.Reference
+	if input.RealizationRef != nil {
+		value := ref(*input.RealizationRef)
+		realizationRef = &value
+	}
 	doc := &semanticruntime.CognitiveMethodDocument{
 		Contract:   semanticruntime.ContractCognitiveMethod,
 		RecordType: "method_application",
 		MethodApplication: &semanticruntime.MethodApplication{
 			Ref:                input.Ref,
 			MethodRef:          ref(input.MethodRef),
+			RealizationRef:     realizationRef,
 			ContextRefs:        refs(input.ContextRefs),
 			InputRefs:          refs(input.InputRefs),
 			OutputRefs:         refs(input.OutputRefs),
@@ -232,12 +239,12 @@ type LightItem struct {
 }
 
 type LightView struct {
-	Inquiry        LightItem
-	Observations   []LightItem
-	Unknowns       []LightItem
-	Conflicts      []LightItem
+	Inquiry         LightItem
+	Observations    []LightItem
+	Unknowns        []LightItem
+	Conflicts       []LightItem
 	Recommendations []LightItem
-	Decisions      []LightItem
+	Decisions       []LightItem
 }
 
 func (s *HumanSurface) LightView() (LightView, error) {
@@ -313,13 +320,13 @@ func (s *HumanSurface) AuditView() (AuditView, error) {
 }
 
 type StructuredRecord struct {
-	Ref                semanticruntime.LogicalReference `json:"ref"`
-	Kind               string                           `json:"kind"`
+	Ref                semanticruntime.LogicalReference      `json:"ref"`
+	Kind               string                                `json:"kind"`
 	Status             semanticruntime.RecordValidationStatus `json:"status"`
-	Statement          string                           `json:"statement,omitempty"`
-	BasisRefs          []semanticruntime.LogicalReference `json:"basis_refs,omitempty"`
-	UnresolvedRefs     []semanticruntime.LogicalReference `json:"unresolved_refs,omitempty"`
-	ResponsibilityRefs []semanticruntime.LogicalReference `json:"responsibility_refs,omitempty"`
+	Statement          string                                `json:"statement,omitempty"`
+	BasisRefs          []semanticruntime.LogicalReference    `json:"basis_refs,omitempty"`
+	UnresolvedRefs     []semanticruntime.LogicalReference    `json:"unresolved_refs,omitempty"`
+	ResponsibilityRefs []semanticruntime.LogicalReference    `json:"responsibility_refs,omitempty"`
 }
 
 type StructuredView struct {
