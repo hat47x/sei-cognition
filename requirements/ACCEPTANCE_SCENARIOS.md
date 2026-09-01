@@ -189,7 +189,7 @@ Aは可逆で低影響な内部作業、Bは不可逆性が高く外部影響や
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Not Yet Verified** — first runtime sliceはCognitive Method Applicationを直接対象としていない。
+- Executable: **Partially Satisfied** — `soza.cognitive-method/v1alpha1`、C1〜C8 fixtureとGo typed runtimeでMethod Definition / Realization / Applicationを分離してread / validate / reconstructし、Realization省略の非推論、input / output / residual、Exact-bound Method / Realization Reference、unknown Method versionのopaque + `not_verified`保持を確認した。Method ApplicationへのDecision / Assurance混入も拒否できる。actual Prompt / model program / human procedureを交換して同じMethodを再実行するproduction Realization exchangeとMethod executorは未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -448,8 +448,8 @@ TEI Design KnowledgeのPattern Cardを、AIがCognitive Methodの探索対象と
 
 ### Current Evidence
 
-- Design: **Satisfied** — ADR-0017。
-- Executable: **Not Yet Verified** — Pattern / Cognitive Methodを横断するcurrent runtime sliceは未実装。
+- Design: **Satisfied** — ADR-0017とCognitive Method ContractでPatternをdomain-specific Design KnowledgeのままReferenceする境界を定義した。
+- Executable: **Partially Satisfied** — C5でPatternをMethod Applicationのdomain-specific input Referenceとして保持し、Cognitive Methodへ昇格させないことをtyped runtimeで確認した。Pattern固有fieldをMethod recordへ混入するnegative fixtureを拒否し、Method Application自体もDecision / Assuranceへ自動昇格させない。actual Pattern catalogのhistorical revisionをDecision basisとして再構成するproduction pathと、Pattern matchから別設計をDecisionする実利用経路は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -595,6 +595,11 @@ SCN-0004 / SCN-0006 / SCN-0013
   → light / audit Projection
   → semantic question / negative case checker
 
+SCN-0005 / SCN-0015
+  → Cognitive Method C1〜C8 / negative / unknown-version fixture
+  → standalone / Semantic Interchange typed runtime
+  → Partially Satisfied (fixture-scoped; Run 33467838961 / 33467838941)
+
 SCN-0011
   → Capability Observation F1 / F4
   → synthetic Provider Adapter missing→unknown test
@@ -611,6 +616,8 @@ SCN IDはsemantic scenario identityとして保ち、fixture / test IDとは分�
 
 Scenarioの一部だけを検証した場合は`Partially Satisfied`とし、Scenario全体の実装完了へ読み替えません。
 
+Cognitive Methodのcurrent first sliceでは、SCN-0005 / SCN-0015のportable semantic boundaryを検査しています。Method executor、production Realization交換、actual Pattern catalogの長期revision運用までをScenario全体のPASSへ読み替えません。
+
 SCN-0018では、既存のcomponent-level PASSを合算してend-to-end PASSとみなしません。今回のEvidenceは、Cognitive Method、Recommendation、Decision、Provider / execution result、historical review / reopen、Projection非権威を一つの検査経路として接続したfixture-scoped Evidenceです。production Product Journeyや利用者成果への昇格は行いません。
 
 ## 5. Historical Scenarioとの関係
@@ -623,4 +630,4 @@ SCN-0018は、historical Scenarioの単純な再採番ではなく、current Pro
 
 ## 6. Natural Japanese review
 
-SCN-0001〜0018をcurrent Product Value、Product Shape、`PRODUCT_JOURNEY_COMPOSITION.md`、Contract / Representation Profile、semantic runtime、synthetic Provider Adapter、V6/V7 Projection evaluation、end-to-end Product Journey harnessへ照合しました。SCN-0018は既存Scenarioを置き換えるのではなく、個別の意味境界が一つのProduct Journeyでも同時に保たれることを確認する統合Scenarioとして扱っています。Run `33478127484`でactual fixtureとして確認できた範囲だけExecutable Evidenceを`Partially Satisfied`へ更新し、実行後Observationを過去Decisionのbasisへ時間逆行させないこと、残差から後続reviewへ戻れること、Projectionをcanonical authorityへしないことを明示しました。component-level / fixture-scoped Evidenceをproductionのend-to-end Product Acceptanceへ昇格させず、Release / Operational / Adoption / Outcomeも`Not Yet Verified`のまま維持しています。その後、Scenarioの意味、期待、失敗条件、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+SCN-0001〜0018をcurrent Product Value、Product Shape、`PRODUCT_JOURNEY_COMPOSITION.md`、Contract / Representation Profile、semantic runtime、synthetic Provider Adapter、V6/V7 Projection evaluation、end-to-end Product Journey harnessへ照合しました。SCN-0005 / SCN-0015については、Cognitive Method C1〜C8、negative / unknown-version fixture、standalone / Semantic Interchange typed runtimeでactualに確認できたportable semantic boundaryだけを`Partially Satisfied`へ更新し、Method executor、production Realization交換、actual Pattern catalogの長期運用は未検証のまま残しています。SCN-0018は既存Scenarioを置き換えるのではなく、個別の意味境界が一つのProduct Journeyでも同時に保たれることを確認する統合Scenarioとして扱っています。Run `33478127484`でactual fixtureとして確認できた範囲だけExecutable Evidenceを`Partially Satisfied`へ更新し、実行後Observationを過去Decisionのbasisへ時間逆行させないこと、残差から後続reviewへ戻れること、Projectionをcanonical authorityへしないことを明示しました。component-level / fixture-scoped Evidenceをproductionのend-to-end Product Acceptanceへ昇格させず、Release / Operational / Adoption / Outcomeも`Not Yet Verified`のまま維持しています。その後、Scenarioの意味、期待、失敗条件、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
