@@ -52,6 +52,8 @@ Authentication Provider固有のsubjectをADR-0004のBounded Subjectへ対応付
 
 Binding自体はProduct security configuration / Evidenceであり、Universal Identity ontologyではありません。
 
+ISSUE-000056のreference probeでは、旧・新IdP相当の二つのauthentication identityを同じBounded Subjectへbindingし、どちらからreadしてもhistorical DecisionのResponsibility Refが変化しないことを確認しました。
+
 ## 5. Product Access Scope
 
 Product Access ScopeはProduct resourceをaccess-control上まとめる境界です。
@@ -63,29 +65,35 @@ Product Access Scope ID
   != Semantic Logical Reference by default
 ```
 
+current probeのscope IDもProduct-localです。将来の正式tenant / workspace modelとして固定しません。
+
 ## 6. Product Access Policy Evaluator
 
 Bounded Subject、Product Access Scope、operation、必要なcontextを入力として、Product permissionを評価します。
 
-最小operation例はread / append / review / share / administerです。
+reference probeではread / append / review / share / administerを用いています。
 
-評価結果は少なくとも次を区別できます。
+評価結果は少なくとも次を区別します。
 
 - allowed
 - denied
 - not evaluated
 
-not evaluatedをdeniedと同じ監査意味へ平坦化しません。ただしenforcementでは両方をsafe failureとして拒否できます。
+`not_evaluated`を`denied`と同じ監査意味へ平坦化しません。ただしenforcementでは両方をsafe failureとして拒否できます。
 
 Product role、actor kind、semantic Responsibility / Authorityからpermissionを黙って推定しません。
 
+probeでは、Responsibility Refを持つ主体でもread grantがなければ拒否され、binding済みAI主体でもappend grantがなければ拒否されることを確認しました。一方、identity binding自体がないhuman主体は`not_evaluated`となり、`denied`と区別されます。
+
 ## 7. Guarded Canonical Access
 
-Canonical Semantic Runtime / Storeへ到達する前に、Product Access Policyの評価を行います。
+Canonical Semantic Runtime / Storeへ到達する前に、Product Access Policyを評価します。
 
 readが許可されていない主体へcanonical recordを返さず、appendが許可されていない主体へcanonical mutation operationを渡しません。
 
 Product Access Policyが許可したことだけで、追加recordにsemantic Responsibility / Authorityを自動挿入しません。
+
+probeでは、Product `administer` permissionを付与しても既存DecisionのResponsibility Refとcanonical digestが変化しないことを確認しました。
 
 ## 8. Disclosure Projection
 
@@ -101,6 +109,10 @@ canonical digest before projection
 Projection生成でcanonical sourceを削除・上書きしません。
 
 withheld itemをUnknownのopaque semantic recordとして保存することもしません。
+
+ISSUE-000056のprobeでは、外部collaboratorへDecisionを非開示とするProjectionを生成し、Decision本文を返さず`WithheldCount`だけを外在化しました。Projection生成前後でcanonical digestが一致し、canonical Decision自体も残ることを確認しています。
+
+Product Scopeのread permissionがない場合は、Selective Disclosure Projection自体を返しません。
 
 ## 9. Security audit
 
@@ -127,17 +139,28 @@ SOZA append allowed
 
 同一processであることからsemantic concernを統合しません。team / hosted deploymentへ進む場合も同じcomponent boundaryを維持できます。
 
-## 12. Evidence状態
+## 12. Candidate Requirementとの関係
+
+Product Access Controlをsemantic Responsibility / Authorityやactor kindから分離する必要性は、Designとscoped probeで支持されています。
+
+ただしcurrent permission vocabulary、Product Access Scopeの粒度、Identity Binding lifecycleはreference Realizationです。
+
+そのためArchitectureからStable Requirement IDを自動生成せず、Product層のCandidate Requirementとして保持します。
+
+## 13. Evidence状態
 
 - Product Access Architecture Design Evidence: **Established**
-- Identity Binding / access separation Executable Evidence: **Not Yet Verified at document creation time**
+- Identity Binding / Product access separation Executable Evidence: **Scoped Evidence available**
+- Selective Disclosure canonical non-mutation Executable Evidence: **Scoped Evidence available**
 - production IdP integration: **Not Yet Verified**
-- production policy engine: **Not Yet Verified**
-- Release / Operational Evidence: **Not Yet Verified**
+- production policy engine / team security: **Not Yet Verified**
+- Release / Operational / Adoption Evidence: **Not Yet Verified**
 
-Executable EvidenceはISSUE-000056で取得します。
+初期probe headのSemantic Runtime Conformance Run `33511885433`と、上流台帳同期後のRun `33513012309`はともにsuccessしています。
 
-## 13. 関連文書
+詳細は`../runtime/ACCESS_COLLABORATION_PROBE_EVIDENCE_2026-09-01.md`を参照します。
+
+## 14. 関連文書
 
 - `SOZA_REFERENCE_ARCHITECTURE.md`
 - `SOZA_DEPLOYMENT_ARCHITECTURE.md`
@@ -146,7 +169,8 @@ Executable EvidenceはISSUE-000056で取得します。
 - `../plan/adr/ADR-0016-authorization-evidence-provider-boundary.md`
 - `../plan/adr/ADR-0030-product-access-control-separation.md`
 - `../plan/issue/ISSUE-000056-materialize-product-access-collaboration-probe.md`
+- `../runtime/ACCESS_COLLABORATION_PROBE_EVIDENCE_2026-09-01.md`
 
-## 14. Natural Japanese review
+## 15. Natural Japanese review
 
-Product Identity / Access / Collaboration baseline、ADR-0004 / 0016 / 0030、Product Interaction、Local Single-Node Deploymentを照合し、Authentication、Identity Binding、Product Access Policy、Guarded Canonical Access、Disclosure Projectionを別componentとして配置しました。同一processやtenant / workspace等の実装都合をUniversal semantic entityへ昇格させず、Product accessとexternal execution authorizationの境界も維持しています。そのうえで、Architecture責務、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Identity / Access / Collaboration baseline、ADR-0004 / 0016 / 0030、Product Interaction、Local Single-Node Deployment、`runtime/go/accessprobe`とcurrent CI Evidenceを照合し、Authentication、Identity Binding、Product Access Policy、Guarded Canonical Access、Disclosure Projectionを別componentとして配置しました。IdP相当identity交換後のResponsibility continuity、Product permissionとsemantic Responsibilityの非同一性、`denied` / `not_evaluated`分離、Selective Disclosureのcanonical非改変をscoped Evidenceとして反映する一方、production IAM / securityへは広げていません。同一process、tenant / workspace、permission vocabulary等の実装都合をUniversal semantic entityやStable Requirementへ昇格させない境界も維持しています。そのうえで、Architecture責務、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
