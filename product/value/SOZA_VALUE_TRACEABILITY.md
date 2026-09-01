@@ -1,11 +1,11 @@
 # SOZA Value Traceability
 
-更新日: 2026-09-01  
+更新日: 2026-09-02  
 状態: **Current Product Value Traceability Baseline**
 
 ## 1. この文書の役割
 
-この文書は、SOZAのProduct Valueを、current Requirements、Acceptance Scenarios、ADR、Reference Architecture、Semantic Contract、Representation Profile、runtime、Provider Adapter、Payload Source、Projection Evaluation、end-to-end Product Journey harness、Release Candidate Gate、現在のEvidence状態まで上位から追跡するための索引です。
+この文書は、SOZAのProduct Valueを、current Requirements、Acceptance Scenarios、ADR、Reference Architecture、Semantic Contract、Representation Profile、runtime、Provider / Storage / Interaction probe、Projection Evaluation、Product Journey、Release Candidate Gate、現在のEvidence状態まで上位から追跡するための索引です。
 
 新しい意味上の正本は作りません。詳細は次を正とします。
 
@@ -37,7 +37,7 @@ Product Value / Value Proposition / Product Shape
   → ADR / Issue
   → Architecture concern
   → Semantic Contract / Representation Profile
-  → Runtime / Provider Adapter / Payload Source / Projection / Journey harness
+  → Runtime / Adapter / Payload Source / Projection / Probe / Journey harness
   → Fixture / Test / CI / Release Candidate Gate
   → Evidence state
 ```
@@ -46,20 +46,20 @@ Product Value / Value Proposition / Product Shape
 
 ## 3. V1〜V8のcurrent trace
 
-| Value Axis | 主なREQ | 主なSCN | 主なADR | current executable material |
-|---|---|---|---|---|
-| **V1 Historical Reconstruction** | REQ-0001, 0003, 0005, 0008, 0009, 0014, 0017, 0018, 0020, 0022 | SCN-0001, 0003, 0005, 0008, 0009, 0010, 0014, 0016, **0018** | ADR-0003, 0007, 0008, 0009, 0010, 0011, 0019, 0021, 0022, 0023, 0024, 0025 | Semantic Reference / Decision Memory / Interchange fixture、F6 historical reconstruction、Cognitive Method、Go runtime、Verifier Registry、synthetic Payload Source、Adapter mapping provenance、Product Journey temporal-integrity / historical-basis tests |
-| **V2 Semantic Separation** | REQ-0002, 0003, 0006, 0008, 0013, 0015, 0016, 0017, 0022 | SCN-0001, 0002, 0004, 0009, 0011, 0015, 0016, **0018** | ADR-0002, 0004, 0010, 0011, 0012, 0016, 0017, 0019, 0022, 0024, 0025 | Recommendation-only、Decision with unresolved、Authority field rejection、Cognitive Method / Recommendation / Decision分離、Journey harnessのResponsibility分離・semantic promotion negative cases |
-| **V3 Revision Integrity** | REQ-0001, 0003, 0004, 0005, 0008, 0009, 0014, 0018 | SCN-0003, 0005, 0008, 0010, 0015, 0016, **0018** | ADR-0003, 0007, 0008, 0009, 0010, 0011, 0017, 0021, 0023, 0024, 0025, 0026 | lineage / exact binding invariant、Profile fixture、runtime verification、Cognitive Method exact metadata、取得不能≠digest mismatch、mapping provenance、post-execution Observationのhistorical basis非混入 |
-| **V4 Provider Independence** | REQ-0001, 0007, 0012, 0013, 0021, 0022 | SCN-0002, 0007, 0010, 0011, 0012, 0014, **0018** | ADR-0006, 0012, 0013, 0014, 0019, 0021, 0022, 0024 | Capability Observation F1〜F7、cross-provider fixture、synthetic Provider A/B Adapter、Journey harnessの同一Capability / 異Provider検査 |
-| **V5 Uncertainty Preservation** | REQ-0002, 0005, 0012, 0014, 0016, 0022 | SCN-0001, 0003, 0007, 0011, 0012, 0016, **0018** | ADR-0002, 0005, 0006, 0010, 0011, 0019, 0022, 0024 | Unknown / Conflict / Withheld / partial knowledge、Adapter missing→unknown、Decision unresolved → reopen Method Applicationのsynthetic path |
-| **V6 Human / AI Readability** | REQ-0010, 0011, 0019, 0020 | SCN-0004, 0006, 0013, 0017 | ADR-0005, 0017, 0018, 0020, 0021 | human-readable Contract / machine-readable schema、light/audit Projection、semantic questions / negative cases、Journey harnessでProjectionをcanonical Decisionの代替にしない検査 |
-| **V7 Progressive Explicitness** | REQ-0010 | SCN-0004, 0013 | ADR-0005, 0019 | low-impact minimal Decisionとhigh-impact rich Decisionを同一evaluation harnessで評価 |
-| **V8 Execution Independence** | REQ-0001, 0004, 0007, 0011, 0012, 0015, 0018, 0021, 0022 | SCN-0002, 0005, 0006, 0007, 0008, 0012, 0014, 0015, **0018** | ADR-0006, 0007, 0012, 0013, 0014, 0017, 0019, 0022, 0024, 0025 | Provider-neutral Contract、Cognitive Method portable Contract、execution非依存runtime、Adapter-local provider schema、Storage-neutral Payload Source、no-execution Product Journey |
+| Value Axis | 主なREQ | 主なSCN | current executable material |
+|---|---|---|---|
+| **V1 Historical Reconstruction** | REQ-0001, 0003, 0005, 0008, 0009, 0014, 0017, 0018, 0020, 0022 | SCN-0001, 0003, 0005, 0008, 0009, 0010, 0014, 0016, 0018 | Semantic Reference / Decision Memory / Interchange、Exact Binding、Cognitive Method、Verifier / Payload Source、Product Journeyのhistorical-basis非改変、known Contract横断bundle-local consistency |
+| **V2 Semantic Separation** | REQ-0002, 0003, 0006, 0008, 0013, 0015, 0016, 0017, 0022 | SCN-0001, 0002, 0004, 0009, 0011, 0015, 0016, 0018 | Recommendation / Decision / Authority分離、Unknown / Withheld、Cognitive Method分離、Responsibility分離、unknown Contract非推測解析 |
+| **V3 Revision Integrity** | REQ-0001, 0003, 0004, 0005, 0008, 0009, 0014, 0018 | SCN-0003, 0005, 0008, 0010, 0015, 0016, 0018 | lineage / Exact Binding invariant、Representation Profile、Cognitive Method exact refs、複数exact revision保持、historical basis非改変 |
+| **V4 Provider Independence** | REQ-0001, 0007, 0012, 0013, 0021, 0022 | SCN-0002, 0007, 0010, 0011, 0012, 0014, 0018 | Capability Observation、synthetic Provider Adapter、Provider replacement journey、out-of-process realization provider exchange probe |
+| **V5 Uncertainty Preservation** | REQ-0002, 0005, 0012, 0014, 0016, 0022 | SCN-0001, 0003, 0007, 0011, 0012, 0016, 0018 | Unknown / Conflict / Withheld / partial knowledge、missing→unknown、Decision residual→reopen path |
+| **V6 Human / AI Readability** | REQ-0010, 0011, 0019, 0020 | SCN-0004, 0006, 0013, 0017 | human-readable Contract、machine-readable schema、light / audit Projection、first Product Interaction reference probe |
+| **V7 Progressive Explicitness** | REQ-0010 | SCN-0004, 0013 | low-impact / high-impact Projection evaluation、canonical operationとInteractionの分離 |
+| **V8 Execution Independence** | REQ-0001, 0004, 0007, 0011, 0012, 0015, 0018, 0021, 0022 | SCN-0002, 0005, 0006, 0007, 0008, 0012, 0014, 0015, 0018 | provider-neutral Contract、Cognitive Method、Payload Source、no-execution journey、local package / storage migration probe、out-of-process realization provider exchange |
 
 表中のmaterialが存在しても、そのValue Axis全体のExecutable AcceptanceがSatisfiedになったとは読みません。
 
-## 4. Requirement / Scenario / Product Journey baseline
+## 4. Requirement / Scenario baseline
 
 current Product Requirementsは`REQ-0001`〜`REQ-0022`、Acceptance Scenariosは`SCN-0001`〜`SCN-0018`です。
 
@@ -67,28 +67,11 @@ current Product Requirementsは`REQ-0001`〜`REQ-0022`、Acceptance Scenariosは
 Requirement != Acceptance Scenario != Test Case
 ```
 
-SCN-0018は、既存Scenarioを置き換えるものではありません。次を代表的な一つのProduct Journeyとして接続し、個別の意味境界が同時に壊れないことを検査します。
+SCN-0018は個別Scenarioを置き換えません。InquiryからDecision、外部実行、実行後Observation、historical review / reopenまでを代表的な一つのProduct Journeyとして接続し、複数の意味境界が同時に失われないことを検査します。
 
-```text
-Inquiry
-  → Observation / Evidence / Unknown / Conflict
-  → Cognitive Method Application
-  → Recommendation
-  → Decision / Responsibility
-  → external Capability / Execution
-  → resulting Observation
-  → historical review / reopen
-```
+## 5. Contract / Representation baseline
 
-`requirements/PRODUCT_JOURNEY_COMPOSITION.md`の分析では、現時点でこのJourneyのためだけに新しいUniversal Requirementを追加する必要はないと整理しています。
-
-Requirements Registry Conformanceのcurrent SCN-0018 Evidence反映後Run `33478396211`は**success**しています。これはRequirements RegistryとScenario正本の構造整合に対するExecutable Evidenceであり、Requirement内容のproduction実現を証明しません。
-
-## 5. Architecture / Contract baseline
-
-current Reference Architectureは実装package順ではなく、意味上のarchitecture concernで構成します。
-
-current Semantic Contractは次の5 familyです。
+current Semantic Contractは5 familyです。
 
 - `soza.semantic-reference/v1alpha1`
 - `soza.decision-memory/v1alpha1`
@@ -96,144 +79,133 @@ current Semantic Contractは次の5 familyです。
 - `soza.cognitive-method/v1alpha1`
 - `soza.semantic-interchange/v1alpha1`
 
-Cognitive Methodは、Method Definition / Realization / ApplicationをPromptや実行engineから分離してportableに保持するContractです。Method Applicationの存在をRecommendation、Decision、Authority、Execution、Assuranceへ自動昇格させません。
-
-current v1alpha1 fixture baselineは31件です。
+current v1alpha1 fixture baselineは39件です。
 
 ```text
 Capability Observation F1〜F7 = 7
 Cognitive Method C1〜C8 = 8
-Boundary / expected PASS or NOT_VERIFIED = 7
-Negative schema / semantic FAIL = 9
-Total = 31
+Boundary / expected PASS or NOT_VERIFIED = 12
+Negative schema / semantic FAIL = 12
+Total = 39
 ```
 
-代表的なcurrent Contract Conformance Run `33467838961`は**success**、同じHEADのSemantic Runtime Conformance Run `33467838941`も**success**しています。
+39件基線の代表CI:
 
-2026-08-31の17-fixture runはhistorical Executable Evidenceとして残しますが、current 31-fixture baselineの代わりにはしません。
+- Contract Conformance `33527512045`: **success**
+- Semantic Runtime Conformance `33527512016`: **success**
+- Plan integrity `33527511976`: **success**
+- V6 V7 Projection Evaluation `33527511966`: **success**
+- Local Package Artifact `33527511934`: **success**
 
-## 6. Representation Profile baseline
-
-current/future Exact Binding向けProfile:
+Representation ProfileはSemantic Contractと別のversion空間を持ちます。
 
 - `soza.jcs+sha256/v1alpha1`
 - `soza.raw-bytes+sha256/v1alpha1`
 
-Profile Conformance:
-
-- Run `33347989530`: **success**
-
-Runtime Verifier Registry:
-
-- Run `33452115728`: **success**
-
 ```text
-Semantic Contract != Representation Profile != verifier implementation
+Semantic Contract
+  != Representation Profile
+  != verifier implementation
 ```
 
-### historical M47 digest
+historical M47 digest ruleはISSUE-000034の方針どおり、直接Evidenceから回収できない範囲を`not_verified`として維持します。
 
-historical M47 digest mappingはcurrent Profileとは別問題としてISSUE-000034で回収しました。
+## 6. known Contract横断のbundle-local Exact Binding consistency
 
-GitHub reachable history、branch、Actions、Library semantic / exact-name search、個別Go / Python inventory、archive時系列まで確認しましたが、actual digest-producing source、actual M47 conformance tool、actual historical digest anchor、M47 source archiveは回収できませんでした。
+ADR-0026 / ISSUE-000049により、Decision `basis_refs`専用だったbundle-local Exact Binding比較を、current runtimeが理解するknown typed ContractのReference roleへ一般化しました。
 
-そのためISSUE-000034は、**現在保持された直接Evidenceからdigest ruleを回収不能であることを確定し、historical bindingを`not_verified`として保持する**方針でResolvedとしています。
+対象にはDecision Memory、Cognitive Method、Capability Observation、Semantic Referenceを含みます。
 
 ```text
-ISSUE-000034 Resolved
-  != historical M47 Profile verified
-
-current Profile verified
-  != historical digest identified
+known typed Contract
+  → typed Exact Reference extraction
+  → logical identityごとの複数Exact Binding index
+  → common bundle-local consistency check
 ```
 
-新たな一次資料が得られた場合は再開できます。
+### V1 / V3に対する意味
 
-## 7. semantic runtime / Verifier / Payload Source
+同じlogical identityに複数revisionが存在する場合でも、latest-winsで一つへ潰さず、Referenceが指すexact revisionを候補の一つとして検査できます。
+
+これにより、「現在版が存在する」ことから「過去のReferenceも現在版を指していた」と読み替える危険を減らします。
+
+### 明確な境界
+
+bundle内に同じlogical identityのexact-bound recordが存在しない場合、この検査だけを理由にFAILとしません。
+
+```text
+bundle-local consistency
+  != external payload acquisition
+  != digest verification
+  != Verification Outcome
+```
+
+外部bytesの取得はPayload Source、digest再計算はVerifier Registryの責務です。
+
+unknown ContractのpayloadにExact Bindingらしいfieldがあっても、field名から推測解析しません。unknown versionはopaque + `not_verified`を維持します。
+
+## 7. semantic runtime / Provider / Storage
 
 semantic runtimeはread / validate / reconstructを中核にし、SOZA自身をworkflow / agent execution engineへしません。
 
-代表的なcurrent Evidence:
+current scoped material:
 
-- first semantic runtime: Run `33348972805` — **success**
-- Verifier Registry: Run `33452115728` — **success**
-- Payload acquisition boundary: Run `33457416359` — **success**
-- Cognitive Methodを含む31-fixture runtime baseline: Run `33467838941` — **success**
+- known Contract typed runtime
+- Representation Verifier Registry
+- synthetic Payload Source
+- synthetic Provider Adapter
+- Cognitive Method typed runtime
+- known Contract横断bundle-local Exact Binding consistency
+- out-of-process realization provider exchange probe
+- packaged resume / storage migration probe
 
-Payload SourceはStorage固有mechanicsをCoreへ持ち込まず、取得不能・source error・local size limitをdigest mismatchと区別します。
+これらのprobeやruntime PASSは、production Provider / Storageの運用成立を意味しません。
+
+## 8. Product Interaction / Access / Packaging
+
+Product Shapeの外側を明確にするため、現行Planでは次の設計・reference probeもResolvedになっています。
+
+- first usable Product Interaction boundary / reference probe
+- v0.2.0 packaging / deployment boundary
+- local single-node package artifact
+- packaged resume / storage migration probe
+- Product Identity / Authorization / Collaboration boundary
+- Product access / collaboration probe
+
+これらは、SOZAの耐久的意味を特定UI、process、identity provider、package mechanicsへ固定しないためのscoped Executable Evidenceです。
 
 ```text
-payload unavailable / operational acquisition failure
-  → not_verified
-
-payload available + digest mismatch
-  → failed
+reference probe PASS
+  != production UX validated
+  != production authorization validated
+  != operational deployment validated
 ```
-
-synthetic Payload SourceのPASSをproduction S3 / MinIO / filesystem / HTTP integrationへ拡張しません。
-
-## 8. synthetic Provider Adapter
-
-ADR-0024 / ISSUE-000036に基づき、異なるProvider-specific input shapeを各Adapterが解釈し、Capability Observationへ収束させます。
-
-- first Adapter slice: Run `33349604842` — **success**
-- Provider-specific field非漏洩hardening: Run `33349801993` — **success**
-
-AdapterはRecommendation / Decision / Authority / Executionを生成しません。
 
 ## 9. V6 / V7 Projection evaluation
 
-代表Run `33456710459`は**success**しています。
-
-- canonical source: rich / low-impact 2件
-- Projection: light / audit
-- semantic question: 6件
-- negative case: 7件
-
-SCN-0018 Evidence更新後もV6/V7 Projection Evaluation Run `33478396138`は**success**しています。
+light / audit Projectionを同じcanonical sourceから生成し、semantic question setとnegative caseで意味境界を検査しています。
 
 これはstatic / synthetic evaluation-harness scoped Executable Evidenceです。実利用者の理解可能性、入力負担、見落とし率、production UXのOperational / Adoption Evidenceではありません。
 
-## 10. end-to-end Semantic Product Journey harness
+## 10. end-to-end Semantic Product Journey
 
-`runtime/go/journeyharness`は、SCN-0018を一つのsynthetic semantic Product Journeyとして検査します。
+`runtime/go/journeyharness`はSCN-0018をsynthetic semantic Product Journeyとして検査します。
 
-Journey manifestは評価用の検査構成であり、新しいUniversal Contractやcanonical product stateではありません。耐久的な意味は既存Contract record側に残します。
+主な確認範囲:
 
-現在のfixture-scoped検査範囲:
-
-- normal path
-- uncertain path / unresolved → reopen
-- collaborative path / Responsibility分離
-- provider replacement path / same Capability, different Provider
-- no-execution path
+- normal / uncertain / collaborative / provider replacement / no-execution
 - RecommendationとDecisionの分離
+- Responsibility分離
 - execution後Observationの時間境界
-- post-execution Observationのhistorical Decision basisへの混入拒否
-- execution success後もhistorical Decision statement / basisを非改変
-- unsupported / external recordのopaque + `not_verified`保持
-- Semantic Interchange loader経由のnormal journey
-- Interchange original bytesのread時非改変
+- historical Decision statement / basisの非改変
+- unresolved → reopen
+- unsupported recordのopaque + `not_verified`
 - Projectionがcanonical Decisionを代替しないこと
-
-主なCI:
-
-- Run `33477245347` — first in-memory harness: **success**
-- Run `33477970035` — Semantic Interchange normal journey: **success**
-- Run `33478127484` — Projection非権威を含むcurrent journey harness: **success**
-- SCN-0018正本Evidence更新後のSemantic Runtime Conformance Run `33478396131`: **success**
-- 同じ正本更新に対するPlan integrity Run `33478396165`: **success**
-- Requirements Registry Run `33478396211`: **success**
-
-SCN-0018のExecutable Evidenceはこの範囲で**Partially Satisfied**です。
 
 ```text
 fixture-scoped Product Journey PASS
   != production Product Journey validated
   != human interaction validated
-  != Release Evidence
-  != Operational Evidence
-  != Adoption / Outcome Evidence
 ```
 
 ## 11. Evidenceの現在地
@@ -248,51 +220,27 @@ Design Evidence
 
 ### Design Evidence
 
-Product Value、Value Proposition、Product Shape、REQ-0001〜0022、SCN-0001〜0018、ADR-0001〜0026、Reference Architecture、5 Semantic Contract family、2 Representation Profile、runtime / Adapter / Payload Source boundary、V6/V7 evaluation protocol、Product Journey composition / harness design、v0.1.0 release acceptanceがあります。
+Product Value、Value Proposition、Product Shape、REQ-0001〜0022、SCN-0001〜0018、current ADR群、Reference Architecture、5 Contract family、2 Representation Profile、Interaction / Access / Packaging boundary等があります。
 
 ### Executable Evidence — scoped
 
-- Plan registry integrity
-- Requirements registry structural conformance
-- current 31-fixture Contract conformance
-- Representation Profile fixture / probe
+- Plan / Requirements structural conformance
+- current 39-fixture Contract conformance
 - semantic runtime
-- current 2 ProfileのVerifier Registry
-- synthetic Payload Source
-- synthetic Provider Adapter
+- Representation Profile / Verifier Registry
+- synthetic Payload Source / Provider Adapter
 - Cognitive Method typed runtime
-- V6 / V7 Projection evaluation harness
-- end-to-end Semantic Product Journey harness
+- known Contract bundle-local Exact Binding consistency
+- V6 / V7 Projection evaluation
+- Product Journey harness
+- Product Interaction / Packaging / Storage / Access / out-of-process Providerのreference probe
 - v0.1.0 Release Candidate Gate
-
-### Release Candidate Evidence — Executable Evidence内のrelease準備分類
-
-Release Candidate EvidenceはProduct Valueの第6段階ではありません。特定のsource commitについて主要Executable gateを同一checkoutで再検査したことを表す、Executable Evidence内のrelease準備上の分類です。
-
-v0.1.0で記録済みの候補:
-
-- source commit: `9313d527068ad587e03212f17e217dcac562109d`
-- source tree: `b12b350a5a2d3fb3a6732accea229af5b9eeb257`
-- Release Candidate Gate Run `33465412382`: **success**
-- Plan integrity Run `33465412473`: **success**
-- candidate report artifact ID: `9784659353`
-- artifact digest: `sha256:cd97af7c03f59967b946e7e94b74b88e4378ace0575c9f78e433f51170e5e566`
-
-統合gate内ではPlan、Requirements、Contract、Representation Profile、commit-pinned JCS probe、semantic runtime、V6/V7 Projection、release candidate policy / reportがsuccessしています。
-
-```text
-Release Candidate Gate success
-  != source release exists
-  != Release Evidence satisfied
-```
-
-v0.2.0のcurrent development Evidenceを、過去のv0.1.0 Release Candidate Evidenceへ遡及的に混入させません。
 
 ### Release Evidence
 
 **Not Yet Verified**
 
-actual release identityと、そのrelease対象source / artifact / gateを結ぶEvidence recordは、current Product Value上のRelease Evidenceとしてまだ確認していません。
+actual release identityと、そのrelease対象source / artifact / gateを結ぶProduct Value上のRelease Evidenceは、ここでは成立済みと主張しません。
 
 ### Operational Evidence
 
@@ -306,55 +254,47 @@ actual release identityと、そのrelease対象source / artifact / gateを結�
 
 ### V1 Historical Reconstruction
 
-current Contract / Profile / runtime / Cognitive Method / Journey harnessの限定境界は検査済みです。Journey harnessではexecution後Observationを過去Decision basisへ時間逆行させず、historical Decision statement / basisを非改変のまま保持するsynthetic pathを確認しました。historical M47 digest ruleは回収不能として`not_verified`を維持しています。production Storage、実Provider変更、長期運用をまたぐhistorical reconstructionと再判断への寄与は未検証です。
+bundle-local Exact Binding整合、historical basis非改変、Payload Source / Verifier境界はscopedに検査済みです。production Storage、長期間のProvider / representation変更をまたぐhistorical reconstructionと、実際の再判断への寄与は未検証です。
 
 ### V2 Semantic Separation
 
-Recommendation / Decision / Authority等の分離、Cognitive Method / Recommendation / Decisionの分離、Adapterが後続意味へ自動昇格しないこと、collaborative pathでのResponsibility分離を一部検査済みです。production責任線・権限線をまたぐOperational Evidenceはありません。
+主要な意味分離はfixture / runtimeで検査しています。production責任線・権限線をまたぐOperational Evidenceはありません。
 
 ### V3 Revision Integrity
 
-lineage / exact binding invariant、Cognitive Method exact metadata、mapping provenance、取得不能をdigest mismatchへ変換しない境界、post-execution Observationのhistorical basis非混入を検査済みです。ISSUE-000049のknown Contract横断bundle-local Exact Binding一般化はOpenであり、production Storage revisionや長期間のmapping changeをまたぐEvidenceもありません。
+同一logical identityの複数Exact Bindingを保持し、参照先revisionをlatest-winsで潰さない境界を追加で検査しました。cross-bundleの実payload検証や長期Storage revisionは未検証です。
 
 ### V4 Provider Independence
 
-cross-provider fixture、synthetic A/B Adapter、Journey harnessで同じCapabilityを別Providerへ接続するsemantic boundaryを検査済みです。実Providerの交換・廃止・移行を伴うOperational / Outcome Evidenceはありません。
+synthetic Adapter、Provider replacement journey、out-of-process realization provider exchangeはscopedに検査済みです。実Providerの交換・廃止・移行を伴うOperational / Outcome Evidenceはありません。
 
 ### V5 Uncertainty Preservation
 
-Unknown / Conflict / Withheld / partial knowledge、Adapter missing→unknown、Decision unresolvedからreopen Method Applicationへのsynthetic引継ぎを検査済みです。実際のInquiry lifecycleや誤判断回避へ寄与したOutcome Evidenceはありません。
+Unknown / Conflict / Withheld / residual / reopenの境界はscopedに検査済みです。実際の誤判断回避や再検討品質へのOutcome Evidenceはありません。
 
 ### V6 Human / AI Readability
 
-semantic question一致とlight/audit Projectionをstatic harnessで確認し、Journey harnessではProjectionだけからcanonical Decisionを補完しないことも確認しました。実利用者・異なるAI実装によるOperational / Adoption Evidenceはありません。
+ProjectionとInteraction reference probeはありますが、実利用者・異なるAI実装による理解度Evidenceはありません。
 
 ### V7 Progressive Explicitness
 
-low-impactでは軽量、high-impactではauditを要求するharnessを検査しました。実運用でのimpact判定、入力負担、見落とし率は未検証です。
+low-impact / high-impactのsynthetic evaluationはあります。実運用でのimpact判定、入力負担、見落とし率は未検証です。
 
 ### V8 Execution Independence
 
-semantic runtime、Cognitive Method、Provider Adapter、Payload Sourceをexecution / provider / storage mechanicsから分離し、no-execution Product Journeyも成立することをfixtureで確認しました。異なるproduction Execution / Storage Provider間で意味を維持したEvidenceはありません。
+Provider / Storage / Realization交換のscoped probeは増えました。異なるproduction Execution / Storage Provider間で長期的に意味を維持したOperational Evidenceはありません。
 
 ## 13. current Planとの関係
 
-current registryはADR-0001〜0026、ISSUE-000001〜000050を管理します。
+current registryはADR-0001〜0030、ISSUE-000001〜000057を管理します。
 
-主要なcurrent状態:
+主要状態:
 
-- ISSUE-000001〜000020: Resolved
-- ISSUE-000021: Deferred — design history provenance逐語監査
-- ISSUE-000022〜000044: Resolved — ISSUE-000043 Cognitive Method first sliceとISSUE-000044 Product Value Proposition / Product Shapeを含む
-- ISSUE-000045: Open — first usable Product Interaction boundary
-- ISSUE-000046: Open — v0.2.0 Product Packaging / Deployment boundary
-- ISSUE-000047: Open — Product Identity / Authorization / Collaboration boundary
-- ISSUE-000048: Resolved — SCN-0018 end-to-end Acceptance Design
-- ISSUE-000049: Open — known Contract横断bundle-local Exact Binding consistency
-- ISSUE-000050: Resolved — end-to-end Semantic Product Journey harness / Evidence同期
+- ISSUE-000021: **Deferred** — design history provenance逐語監査
+- ISSUE-000049: **Resolved** — known Contract横断bundle-local Exact Binding consistency
+- ISSUE-000001〜000020、000022〜000057: **Resolved**
 
-Cognitive Method正本Evidence同期後の`develop/v0.2.0`では、Plan integrity Run `33498119146`が**success**しています。これに先立ち、SCN-0018正本Evidence更新後Run `33478396165`も**success**しています。
-
-ISSUE-000021はhistorical chat export等が利用できる場合の再監査留保であり、current Product / Runtimeのblockerではありません。
+IssueがResolvedであることは、その対象についてRelease / Operational / Adoption・Outcome EvidenceまでVerifiedであることを意味しません。
 
 ## 14. CoverageをKPIにしない
 
@@ -365,17 +305,16 @@ ISSUE-000021はhistorical chat export等が利用できる場合の再監査留�
 - CIが多く通るほど利用者価値が高い。
 - Executable Evidenceが増えればRelease / Operational / Outcomeも自動的に増える。
 - IssueがResolvedなら、その対象がすべてVerifiedである。
-- Product Journey fixtureが通ればproduct usabilityやbusiness outcomeが証明されたことになる。
-- Release Candidate Gateが通ればactual release済みである。
+- reference probeやProduct Journey fixtureが通ればproduct usabilityやbusiness outcomeが証明されたことになる。
 
 追跡の目的は、**どこまで確認したかと、どこから先をまだ主張してはいけないかを見失わないこと**です。
 
 ## 15. 更新規則
 
-Product Value、Value Proposition、Product Shape、REQ、SCN、ADR、Architecture、Contract、Profile、runtime、Provider Adapter、Payload Source、Projection Evaluation、Product Journey harness、release candidate、Evidence stateのいずれかが変わった場合、この文書を必要に応じて更新します。
+Product Value、Value Proposition、Product Shape、REQ、SCN、ADR、Architecture、Contract、Profile、runtime、各probe、Projection Evaluation、Product Journey、release candidate、Evidence stateのいずれかが変わった場合、この文書を必要に応じて更新します。
 
 下位実装の都合に合わせてProduct Valueを後付けで変更しません。上位仮説を変える必要がある場合はADR-0018の再基線化規則に従います。
 
 ## 16. Natural Japanese review
 
-V1〜V8、Value Proposition、Product Shape、REQ-0001〜0022、SCN-0001〜0018、ADR-0001〜0026、current Architecture、5 Semantic Contract family、31-fixture baseline、2 Representation Profile、semantic runtime、Cognitive Method、Verifier Registry、synthetic Payload Source、synthetic Provider Adapter、V6/V7 Projection evaluation、end-to-end Semantic Product Journey harness、ISSUE-000034 recovery closure、v0.1.0 Release Candidate Evidenceへ戻って追跡を再確認しました。Cognitive MethodについてはC1〜C8、negative / unknown-version fixture、typed runtimeで実際に確認したportable semantic boundaryだけをSCN-0005 / SCN-0015の`Partially Satisfied`へ反映し、Method executorやproduction Realization交換へは昇格させていません。SCN-0018についてもRun `33478127484`および正本更新後Run `33478396131`で実際に確認したfixture-scoped範囲だけExecutable Evidenceへ反映し、component-level PASSやsynthetic Product Journey PASSをproduction Product Acceptance、Release、Operational、Adoption / Outcomeへ昇格させていません。その後、Issue closureとVerification、Design / Executable / Release / Operational / Adoption・OutcomeのEvidence強度を混同せず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+V1〜V8、Value Proposition、Product Shape、REQ-0001〜0022、SCN-0001〜0018、current ADR / Issue registry、5 Semantic Contract family、39-fixture baseline、2 Representation Profile、semantic runtime、Verifier / Payload Source、Provider / Storage / Interaction / Accessのscoped probe、V6/V7 Projection evaluation、end-to-end Product Journey、v0.1.0 Release Candidate Evidenceへ戻って追跡を再確認しました。ISSUE-000049については、actual 39-fixture Contract ConformanceとSemantic Runtime Conformanceで確認したknown Contract横断bundle-local consistencyだけをV1 / V3のExecutable Evidenceへ反映し、external payload verificationやproduction historical reconstructionへは昇格させていません。そのうえで、Issue closureとVerification、Design / Executable / Release / Operational / Adoption・OutcomeのEvidence強度を混同せず、自然な日本語となることを重要視して全文を再ドラフトし、最終意味監査を実施済みです。

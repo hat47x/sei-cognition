@@ -1,6 +1,6 @@
 # SOZA Contract Traceability
 
-更新日: 2026-09-01  
+更新日: 2026-09-02  
 状態: **Current Contract Traceability Baseline**
 
 ## 1. 目的
@@ -23,7 +23,7 @@ Contract exists
 | `soza.decision-memory/v1alpha1` | REQ-0005, 0006, 0008, 0014, 0015, 0017 | SCN-0001, 0003, 0009, 0016 | ADR-0010, 0011, 0015, 0016, 0021 | Decision Memory; Responsibility / Authority boundary |
 | `soza.capability-observation/v1alpha1` | REQ-0002, 0007, 0013, 0016, 0021, 0022 | SCN-0002, 0010, 0011, 0012 | ADR-0012, 0013, 0014, 0019, 0021, 0024 | Capability Understanding; Provider / Adapter |
 | `soza.cognitive-method/v1alpha1` | REQ-0003, 0004, 0015, 0016, 0021 | SCN-0005, 0015 | ADR-0017, 0021, 0022, 0025 | Cognitive Method; Reference / Provenance |
-| `soza.semantic-interchange/v1alpha1` | REQ-0001, 0002, 0003, 0018, 0019, 0020 | SCN-0001, 0003, 0005, 0006, 0008, 0010, 0015 | ADR-0007, 0008, 0009, 0014, 0021 | Durable Semantic Core; portable interchange; Persistence |
+| `soza.semantic-interchange/v1alpha1` | REQ-0001, 0002, 0003, 0018, 0019, 0020 | SCN-0001, 0003, 0005, 0006, 0008, 0010, 0015 | ADR-0007, 0008, 0009, 0014, 0021, 0026 | Durable Semantic Core; portable interchange; bundle-local consistency |
 
 Architecture concernをすべて独立Contractへ変換しません。Contract化の有無は意味の重要度ではなく、portable version boundaryを独立して持つ必要性で判断します。
 
@@ -67,8 +67,6 @@ Recommendation != Decision != Authority != Action Intent != Execution
 Provider state != Capability interpretation != Decision
 ```
 
-synthetic Provider Adapterは、このContractを出力境界として利用します。Provider-specific input schemaそのものはUniversal Contractにしません。
-
 ### Cognitive Method
 
 - Method Definition / Realization / Applicationの分離
@@ -96,10 +94,19 @@ Pattern != Cognitive Method
 - unknown nested Contractのopaque保持
 - partial knowledge
 - envelope / payload Contract identity整合
-- bundle-local Exact Binding整合の一部
+- known typed Contract横断のbundle-local Exact Binding整合
 - original exchange bytesをreadだけで書き換えない境界
 
-ADR-0026では、現在Decision basis中心のbundle-local Exact Binding比較をknown Contract横断へ一般化する設計をAcceptedしました。実装はISSUE-000049で追跡し、未実装範囲をcurrent PASSへ先取りしません。
+ADR-0026 / ISSUE-000049により、Decision basis専用だったExact Binding比較をknown Contractのtyped Reference roleへ一般化しました。
+
+```text
+known typed Contract
+  → typed Exact Reference extraction
+  → logical identityごとの複数Exact Binding index
+  → common bundle-local consistency check
+```
+
+この検査はpayload bytesの再hashではありません。
 
 ## 4. Representation Profileとの境界
 
@@ -107,7 +114,7 @@ ADR-0026では、現在Decision basis中心のbundle-local Exact Binding比較�
 Semantic Contract != Representation Profile != verifier implementation
 ```
 
-ADR-0023に基づくcurrent/future Exact Binding向けProfile:
+current/future Exact Binding向けProfile:
 
 - `soza.jcs+sha256/v1alpha1`
 - `soza.raw-bytes+sha256/v1alpha1`
@@ -123,7 +130,7 @@ historical M47 digest mappingはISSUE-000034のResolved方針どおりcurrent Pr
 | SCN-0001 根拠が割れている判断 | Interchange / Decision MemoryがUnknown / Conflict / provenanceを潰さない |
 | SCN-0002 同じIntent、異なるCapability Provider | Capability ObservationでProvider-neutralな状態を扱う |
 | SCN-0003 新しいEvidenceでDecisionを見直す | Decision Memory + Semantic Referenceで当時basisとlineageを保持する |
-| SCN-0005 Cognitive MethodとRealizationを交換する | Cognitive MethodでDefinition / Realization / Applicationを分離し、Exact Referenceを保持する |
+| SCN-0005 Cognitive MethodとRealizationを交換する | Cognitive MethodでDefinition / Realization / Applicationを分離し、必要なExact Referenceを保持する |
 | SCN-0006 Projectionを作り直す | Interchange / canonical sourceをProjection authorityから分離する |
 | SCN-0008 Storageを交換する | Reference / InterchangeがStorage identityに意味を固定しない |
 | SCN-0009 RecommendationからExecutionまで | Decision MemoryがRecommendation / Decisionを分離する |
@@ -148,126 +155,82 @@ contracts/schemas/v1alpha1/
 
 Schemaで自然に表せないcross-record / semantic invariantは`tools/check_contract_conformance.py`で検査します。
 
-```text
-Schema valid != Semantic conformance complete
-```
-
 Contract Definitionがsemantic normative sourceです。Schema、checker、Go structの都合からContract意味を後付けで変更しません。
 
 ## 7. Contract fixture-scoped Executable Evidence
 
-current Contract checkerは31 fixtureを検査します。
+current Contract checkerは39 fixtureを検査します。
 
-GitHub Actions `Contract Conformance`:
+代表CI:
 
-- Run ID: `33467838961`
-- conclusion: **success**
-- fixture count: **31**
+- Contract Conformance Run `33527512045`: **success**
+- Semantic Runtime Conformance Run `33527512016`: **success**
 
 主な検査対象:
 
 - Capability Observation F1〜F7
+- Cognitive Method C1〜C8
 - Recommendation-only / unresolved Decision
 - same-logical lineage invariant
-- exact-binding mismatch
 - partial knowledge
 - unknown nested Contract → `not_verified`
-- Cognitive Method C1〜C8
-- Method ApplicationへのDecision / Assurance / Pattern field混入拒否
-- Method / Application required-reference欠落拒否
-- unknown Cognitive Method version → opaque / `not_verified`
+- Cognitive Method `method_ref` / `realization_ref`のbundle-local Exact Binding整合
+- Capability Observation source refのbundle-local Exact Binding整合
+- 同一logical identityの複数Exact Binding保持
+- external Exact Referenceの非FAIL
+- logical-only Referenceの非昇格
+- unknown Contractのexact風fieldを非推測解析
 
 fixture PASSはContract全意味領域の完全coverageではありません。
 
 ## 8. semantic runtimeとの接続
 
-Go semantic runtimeはread / validate / reconstructに限定します。
+Go semantic runtimeはread / validate / reconstructを中核とし、workflow / agent execution engineにはしません。
 
-current Cognitive Method first sliceでは、次をactual testで確認しています。
+current bundle-local consistencyでは、`RecordValidated`になったknown typed ContractだけからExact Referenceを抽出します。
 
-- C1〜C7 standalone documentのtyped load
-- C8 current Semantic Interchange内Method Applicationのtyped load
-- original Interchange bytesのlossless export
-- Realization省略を勝手に補わない
-- Exact-bound Method / Realization Referenceを保持する
-- Pattern inputをPatternのReferenceとして保持する
-- output / residual refsを保持する
-- unknown Cognitive Method versionをopaque + `not_verified`にする
-- Method ApplicationをDecisionへ昇格させない
+対象:
 
-Semantic Runtime Conformance:
+- Decision / RecommendationのReference role
+- Cognitive Method Definition / Realization / ApplicationのReference role
+- Capability Observationのsource / provenance / mapping role
+- Semantic ReferenceのExact Binding / lineage / verification binding
 
-- Run ID: `33467838941`
-- conclusion: **success**
+同じlogical identityに複数のexact-bound recordが存在する場合は候補をすべて保持し、参照がいずれか一つと完全一致すれば受理します。
 
 ```text
-Cognitive Method typed read PASS
-  != Method execution verified
-  != Method quality / Assurance verified
+same logical identity
+  != same exact revision
 ```
 
-### Representation Verifier Registry
+bundle内に同じlogical identityのexact-bound recordが存在しない場合、この検査だけを理由にFAILとしません。外部payloadの取得・digest再計算はPayload Source / Verifier Registryへ委ねます。
 
-runtime Registryはcurrent Profileをin-processで解決します。
+unknown Contractはopaque + `not_verified`のままとし、JSON field名からExact Referenceを推測しません。
 
-- `soza.jcs+sha256/v1alpha1`
-- `soza.raw-bytes+sha256/v1alpha1`
-
-代表Run:
-
-- `33452115728`: **success**
-
-Payload取得不能とdigest mismatchを分離し、unknown Profileを`not_verified`へ保ちます。Verifier実装はProfile authorityではありません。
-
-## 9. Provider Adapterとの接続
-
-actual repositoryにはsynthetic Provider A / B Adapter sliceがあります。
+## 9. Representation Verifier / Payload Sourceとの責務分離
 
 ```text
-runtime/go/provideradapter/
-fixtures/providers/synthetic/
+bundle-local consistency
+  != payload acquisition
+  != digest verification
+  != Verification Outcome
 ```
 
-主な確認範囲:
+- Verifier Registry代表Run `33452115728`: **success**
+- Payload Source代表Run `33457416359`: **success**
 
-- 異なるProvider-specific input shape
-- status interpretation / unit conversion
-- mapping provenance / source state reference
-- missing → `unknown`
-- Provider-specific fieldのUniversal Capability Observationへの非漏洩
-- Adapter outputのDecision / Authority / Executionへの非昇格
+bundle-local検査がPASSしても、参照先bytesを実際に取得・再hashできたとは主張しません。
+
+## 10. Provider Adapterとの接続
+
+synthetic Provider A / B AdapterはCapability Observationを出力境界として利用します。
 
 代表Run:
 
 - `33349604842`: **success**
 - `33349801993`: **success**
 
-```text
-synthetic Adapter PASS
-  != production Provider interoperability
-```
-
-## 10. Exact Binding bundle consistencyの次段
-
-current runtimeには、bundle内のexact-bound recordとDecision basisのExact Binding不一致を検出する実装があります。
-
-Cognitive Method Contract追加により、Exact BindingはMethod / Realization / input等にも現れ得ます。ADR-0026はこの共通意味を整理し、ISSUE-000049で次を実装対象にしました。
-
-```text
-known typed Contract
-  → typed Exact Reference extraction
-  → common bundle-local consistency check
-```
-
-ただし、これはpayload bytesの再hashではありません。
-
-```text
-bundle-local consistency
-  != content verification
-  != Verification Outcome
-```
-
-ISSUE-000049がOpenであるため、この一般化をcurrent Executable Evidenceとしてはまだ主張しません。
+Provider-specific input schemaそのものはUniversal Contractにしません。
 
 ## 11. Evidence状態
 
@@ -283,8 +246,9 @@ Design Evidence
 
 - 5 current Contract Design baseline
 - 5 JSON Schema
-- 31-fixture Contract Conformance
+- 39-fixture Contract Conformance
 - Go semantic runtimeによるcurrent known Contract read / validate / reconstruct
+- known typed Contract横断のbundle-local Exact Binding consistency
 - Cognitive Method typed runtime slice
 - current Representation Profiles / in-process verifier
 - synthetic Provider Adapter
@@ -292,9 +256,9 @@ Design Evidence
 ### Not Yet Verified / intentionally outside this scope
 
 - Contract全意味領域の完全coverage
+- external payload acquisitionを含むcross-bundle verification
 - Method executor / Prompt / agent / human procedure execution
 - Cognitive Method quality / conclusion truth / Assurance
-- ISSUE-000049のcross-Contract Exact Binding一般化実装
 - production Provider / TEI interoperability
 - production Storage migration
 - Release Evidence
@@ -309,4 +273,4 @@ Contract family数、fixture数、Requirement link数、CI件数をProduct Value
 
 ## 13. 自然な日本語レビュー
 
-REQ / SCN、ADR-0001〜0026、Reference Architecture、5 Contract Definition、31 fixture、2 Representation Profile、Go semantic runtime、Cognitive Method first slice、synthetic Provider Adapter、actual CIへ戻って追跡を再確認しました。その後、Cognitive Methodの新しいExecutable Evidenceと、ISSUE-000049でまだ未実装のcross-Contract consistency、production / Release以降の未検証範囲を分離し、意味とEvidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+REQ / SCN、ADR-0001〜0026、Reference Architecture、5 Contract Definition、current 39 fixture、2 Representation Profile、Go semantic runtime、Payload Source、Verifier Registry、actual CIへ戻って追跡を再確認しました。ISSUE-000049で実装したcross-Contract consistencyをExecutable Evidenceへ反映する一方、bundle-local整合をpayload verificationやproduction成立へ読み替えないよう境界を明示しています。そのうえで、意味とEvidence強度を変えず、自然な日本語となることを重要視して全文を再ドラフトし、最終意味監査を実施済みです。
