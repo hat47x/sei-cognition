@@ -38,7 +38,7 @@ reviewed:
   - scope: plan/issue/ISSUE-*.md
     status: revised
     coverage: ISSUE-000001..ISSUE-000039
-    note: ISSUE-000038 / 000039を含む新規Issueは、ISSUE-000015で確立した標準工程を作成時に適用し、自然な日本語全文再ドラフトと最終意味監査まで同じ作業単位で完了している。
+    note: ISSUE-000038 / 000039を含む新規Issueは、ISSUE-000015で確立した標準工程を作成・解決時に適用し、自然な日本語全文再ドラフトと最終意味監査まで同じ作業単位で完了している。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -94,6 +94,19 @@ reviewed:
     status: revised
     note: first semantic runtime / synthetic Provider Adapterの限定Executable Evidenceを5段階Evidenceへ再整理済み。
 
+  - scope: evaluation/v6-v7/*.md
+    status: revised
+    coverage:
+      - evaluation/v6-v7/README.md
+      - evaluation/v6-v7/HUMAN_REVIEW_TEMPLATE.md
+    note: V6 / V7評価protocolとstructured human reviewを、Projection非権威と5段階Evidence境界を保ったまま自然な日本語へ再ドラフト済み。
+  - scope: evaluation/v6-v7/projections/*.md
+    status: revised
+    coverage:
+      - evaluation/v6-v7/projections/light.md
+      - evaluation/v6-v7/projections/audit.md
+    note: current canonical fixtureから再生成可能な評価用Projection例として、意味欠落や独自Authority追加がないことをcheckerで照合済み。
+
   - scope: fixtures/contracts/v1alpha1/README.md
     status: revised
     note: 17 fixtureのcurrent Contract Conformance成立をfixture-scoped Executable Evidenceとして明記済み。
@@ -138,6 +151,12 @@ exclusions:
   - scope: runtime/**/*.go
     status: excluded-historical
     reason: source codeであり、本台帳が対象とする開発文書本文ではない。code commentは実装変更時の通常reviewで扱う。
+  - scope: evaluation/**/*.py
+    status: excluded-historical
+    reason: 評価実行コードであり、本台帳が対象とする自然言語文書本文ではない。code commentは実装変更時の通常reviewで扱う。
+  - scope: evaluation/**/*.json
+    status: excluded-historical
+    reason: 固定評価入力・Expected Evidenceであり、自然な日本語への改稿対象ではない。
   - scope: tools/*.{py,go,txt}
     status: excluded-historical
     reason: 実行コード・依存定義であり、本台帳が対象とする開発文書本文ではない。
