@@ -110,7 +110,7 @@ TEI固有fieldはAdapter内部に閉じ、current Capability Observationへは�
 
 ## CI Evidence
 
-初期E3a head `aafbad6d5598ca883a957bc426c8edc68119cdcb`で、次を確認した。
+初期E3a head `aafbad6d5598ca883a957bc426c8edc68119cdcb`で、外部artifact取得とsemantic mappingの成立を確認した。
 
 - External Integration E3a Run `33528003902` — **success**
 - Plan integrity Run `33528003813` — **success**
@@ -125,7 +125,18 @@ External Integration E3a Run `33528003902`では、次の全stepがsuccessした
 - TEI pinned source snapshotのGit blob identity検証
 - external artifact / semantic mapping boundaryのGo test
 
-この結果から、E3aには限定されたExecutable Evidenceがあると判断する。
+PRの作業中に`develop/v0.2.0`へcross-contract Exact Bindingの変更が統合されたため、その最新baseを親としてE3a差分を載せ直した。併せて、Plan integrityが検出した既存registryのファイル名不一致をactual treeに合わせて修正した。E3a以外の並行変更は取り込んだまま保持している。
+
+その後のclosure head `afdd51056635ae7b7d3d16f8c53732895fdea1d8`では、次の4系統がすべてsuccessした。
+
+- External Integration E3a Run `33529803952` — **success**
+- Semantic Runtime Conformance Run `33529803957` — **success**
+- Plan integrity Run `33529803963` — **success**
+- Local Package Artifact Run `33529804070` — **success**
+
+Plan integrity Run `33529803963`では、ADR / Issue / registry整合、Document Review Registry coverageを含む全stepがsuccessしている。
+
+この結果から、最新`develop/v0.2.0`との整合を保ったclosure状態でも、E3aには限定されたExecutable Evidenceがあると判断する。
 
 ## Requirement / Scenario再監査
 
@@ -194,7 +205,7 @@ E3a PASS
 
 - Design Evidence: **Satisfied**
 - E2 out-of-process reference exchange: **Scoped Executable Evidence available**
-- E3a version-pinned external artifact integration: **Scoped Executable Evidence available** — External Integration E3a Run `33528003902`
+- E3a version-pinned external artifact integration: **Scoped Executable Evidence available** — closure headのExternal Integration E3a Run `33529803952`
 - E3b live external process / service integration: **Not Yet Verified**
 - E4 Operational portability: **Not Yet Verified**
 - Release Evidence: **Not Yet Verified**
@@ -210,4 +221,4 @@ E3a PASS
 
 ## Natural Japanese review
 
-PMS-06、`product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`、ISSUE-000057、REQ-0001 / 0004 / 0005 / 0007 / 0021、SCN-0005 / 0014 / 0018、ADR-0013 / 0017 / 0019 / 0021 / 0024 / 0025、current Cognitive Method Contract、Capability Observation Contract、`runtime/go/externalartifact`、`runtime/go/externalintegration`、`cultural-substrate-weaving`とTEIの実source artifact、External Integration E3a Run `33528003902`へ戻り、E2から実外部integrationへ進む際の意味境界とEvidenceを再監査した。外部artifactの取得・identity検証とlive process / service invocationを分けることで、semantic portabilityとrepository認証・network条件を混同していない。cultural-substrate-weavingとTEIを同じ外部artifact境界に置き、TEIだけを特別なProvider ontologyへ昇格させない構造も維持した。外部sourceのbytesそのものはEvidenceとして改稿せず、SOZAが作成する本文について、目的、検査結果、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+PMS-06、`product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`、ISSUE-000057、REQ-0001 / 0004 / 0005 / 0007 / 0021、SCN-0005 / 0014 / 0018、ADR-0013 / 0017 / 0019 / 0021 / 0024 / 0025、current Cognitive Method Contract、Capability Observation Contract、`runtime/go/externalartifact`、`runtime/go/externalintegration`、`cultural-substrate-weaving`とTEIの実source artifact、初期E3a Runとclosure headの4系統CIへ戻り、E2から実外部integrationへ進む際の意味境界とEvidenceを再監査した。外部artifactの取得・identity検証とlive process / service invocationを分けることで、semantic portabilityとrepository認証・network条件を混同していない。cultural-substrate-weavingとTEIを同じ外部artifact境界に置き、TEIだけを特別なProvider ontologyへ昇格させない構造も維持した。また、並行して`develop/v0.2.0`へ統合されたExact Bindingの変更を失わず、planning registryもactual treeと整合する状態へ戻した。外部sourceのbytesそのものはEvidenceとして改稿せず、SOZAが作成する本文について、目的、検査結果、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
