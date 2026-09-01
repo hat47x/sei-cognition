@@ -158,16 +158,16 @@ func TestNormalJourneyThroughSemanticInterchange(t *testing.T) {
 	}
 
 	manifest := Manifest{
-		InquiryRef:            inquiry,
-		MethodApplicationRef:  methodApplication,
-		RecommendationRef:     recommendation,
-		DecisionRef:           decision,
-		DecisionAt:            "2026-09-01T10:00:00Z",
-		ExecutionReceiptRef:   &executionReceipt,
-		ResultObservationRef:  &resultObservation,
-		ReopenApplicationRef:  &reviewApplication,
-		UnsupportedRecordRef:  &inquiry,
-		RequireReopen:         true,
+		InquiryRef:           inquiry,
+		MethodApplicationRef: methodApplication,
+		RecommendationRef:    recommendation,
+		DecisionRef:          decision,
+		DecisionAt:           "2026-09-01T10:00:00Z",
+		ExecutionReceiptRef:  &executionReceipt,
+		ResultObservationRef: &resultObservation,
+		ReopenApplicationRef: &reviewApplication,
+		UnsupportedRecordRef: &inquiry,
+		RequireReopen:        true,
 	}
 
 	var beforeStatement string
