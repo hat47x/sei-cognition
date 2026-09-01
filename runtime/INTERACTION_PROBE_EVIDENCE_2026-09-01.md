@@ -79,7 +79,7 @@ Surfaceが持つ選択状態、cursor、tab等に相当するlocal stateはcanon
 
 ## 6. 確認したExecutable Evidence
 
-Semantic Runtime Conformance Run `33503251170`で、current Contract fixtureの再検査と`runtime/go`全体の`go test ./...`がsuccessしました。
+Semantic Runtime Conformance Run `33504002579`で、current Contract fixtureの再検査と`runtime/go`全体の`go test ./...`がsuccessしました。このRunには、Surface-local stateだけに存在するRecommendation / Decision相当の情報をcanonical recordとして扱わないnegative testも含まれます。
 
 `interactionprobe`では、少なくとも次をactual testとして確認しています。
 
@@ -108,12 +108,14 @@ UnknownとConflictを空欄、false、latest-winsへ変換せず、別のopaque 
 - Recommendationと同じlogical identityをDecisionへ再利用しようとした場合、canonical storeがduplicate recordとして拒否する。
 - MachineSurfaceがhuman DecisionをRecommendationへ読み替えない。
 
-### 6.5 light / audit / structured Projectionの非権威性
+### 6.5 light / audit / structured ProjectionとSurface-local stateの非権威性
 
 - light viewを生成してもcanonical digestが変わらない。
 - audit viewを生成してもcanonical digestが変わらない。
 - Surface-local stateを設定・破棄してもcanonical digestが変わらない。
 - audit viewからDecision basis、Responsibility、unresolved refsへ降りられる。
+- chat履歴を模したlocal stateにRecommendation相当の文字列を置いても、canonical RecommendationとしてProjectionへ現れない。
+- UI状態を模したlocal stateにDecision相当の文字列を置いても、canonical DecisionとしてProjectionへ現れない。
 
 ### 6.6 private reasoningへ依存しない
 
@@ -214,15 +216,17 @@ Operational / Adoption Evidence: not verified
 ## 11. CI Evidence
 
 - Workflow: `Semantic Runtime Conformance`
-- Run: `33503251170`
+- Run: `33504002579`
 - Result: **success**
 - Scope:
   - current Contract fixture再検査
   - `runtime/go`で`go test ./...`
-  - `interactionprobe`を含むcurrent Go runtime test
+  - Surface-local state negative caseを含む`interactionprobe`のcurrent Go runtime test
 
-CIのsuccessは、上記scopeに限ったExecutable Evidenceとして扱います。
+同じheadではPlan integrity Run `33504002562`も**success**し、ISSUE / ADR / registry integrityとDocument Review Registry coverageを確認しています。
+
+CIのsuccessは、上記scopeに限ったEvidenceとして扱います。
 
 ## 12. Natural Japanese review
 
-Product Interaction baseline、ADR-0028、ISSUE-000053、REQ-0001 / 0005 / 0006 / 0010 / 0011 / 0014 / 0015 / 0019、SCN-0013 / 0018、existing semanticruntime / journeyharness / V6-V7 Projection evaluation、Semantic Runtime Conformance Run `33503251170`を照合しました。実装で確認したことと、production UI、Packaging、Operational / Adoptionとしてまだ確認していないことを分けています。また、probe固有のin-memory storeやSurface DTOをUniversal semantic modelへ昇格させていません。そのうえで、意味、Evidence強度、未検証範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Interaction baseline、ADR-0028、ISSUE-000053、REQ-0001 / 0005 / 0006 / 0010 / 0011 / 0014 / 0015 / 0019、SCN-0013 / 0018、existing semanticruntime / journeyharness / V6-V7 Projection evaluation、Semantic Runtime Conformance Run `33504002579`、Plan integrity Run `33504002562`を照合しました。実装で確認したことと、production UI、Packaging、Operational / Adoptionとしてまだ確認していないことを分けています。また、probe固有のin-memory storeやSurface DTOをUniversal semantic modelへ昇格させていません。そのうえで、意味、Evidence強度、未検証範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
