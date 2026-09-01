@@ -1,0 +1,48 @@
+{
+  "contract": "soza.semantic-interchange/v1alpha1",
+  "bundle_id": "bundle-capability-source-mismatch",
+  "records": [
+    {
+      "record_id": "source-evidence",
+      "contract": {"contract_id": "soza.semantic-reference", "version": "v1alpha1"},
+      "kind": "logical_reference",
+      "logical_ref": {"kind": "source_evidence", "id": "evidence-a"},
+      "exact_binding": {
+        "logical_ref": {"kind": "source_evidence", "id": "evidence-a"},
+        "content_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "representation_profile": {"profile_id": "soza.raw-bytes+sha256", "version": "v1alpha1"}
+      },
+      "payload": {
+        "contract": "soza.semantic-reference/v1alpha1",
+        "record_type": "logical_reference",
+        "logical_reference": {"kind": "source_evidence", "id": "evidence-a"}
+      }
+    },
+    {
+      "record_id": "capability-observation",
+      "contract": {"contract_id": "soza.capability-observation", "version": "v1alpha1"},
+      "kind": "capability_observation",
+      "payload": {
+        "contract": "soza.capability-observation/v1alpha1",
+        "observation": {
+          "ref": {"kind": "capability_observation", "id": "observation-a"},
+          "target": {"capability_ref": {"kind": "capability", "id": "capability-a"}},
+          "observed_at": "2026-09-01T12:00:00Z",
+          "conditions": [
+            {
+              "key": "availability",
+              "state": "available",
+              "source_refs": [
+                {
+                  "logical_ref": {"kind": "source_evidence", "id": "evidence-a"},
+                  "content_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+                  "representation_profile": {"profile_id": "soza.raw-bytes+sha256", "version": "v1alpha1"}
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

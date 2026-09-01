@@ -198,10 +198,10 @@ func parseDecisionMemory(data []byte) (*DecisionMemoryDocument, error) {
 			return nil, errors.New("decision requires ref and statement")
 		}
 		for label, refs := range map[string][]Reference{
-			"context_refs": decision.ContextRefs,
-			"basis_refs": decision.BasisRefs,
+			"context_refs":        decision.ContextRefs,
+			"basis_refs":          decision.BasisRefs,
 			"recommendation_refs": decision.RecommendationRefs,
-			"unresolved_refs": decision.UnresolvedRefs,
+			"unresolved_refs":     decision.UnresolvedRefs,
 			"responsibility_refs": decision.ResponsibilityRefs,
 		} {
 			if err := validateReferenceList(label, refs); err != nil {
@@ -222,8 +222,8 @@ func parseDecisionMemory(data []byte) (*DecisionMemoryDocument, error) {
 			return nil, errors.New("recommendation requires ref and statement")
 		}
 		for label, refs := range map[string][]Reference{
-			"context_refs": recommendation.ContextRefs,
-			"basis_refs": recommendation.BasisRefs,
+			"context_refs":        recommendation.ContextRefs,
+			"basis_refs":          recommendation.BasisRefs,
 			"responsibility_refs": recommendation.ResponsibilityRefs,
 		} {
 			if err := validateReferenceList(label, refs); err != nil {
@@ -369,6 +369,105 @@ func parseInterchangeRecord(record InterchangeRecord) (RuntimeRecord, error) {
 	return runtimeRecord, nil
 }
 
+func appendExactReference(bindings []ExactBinding, ref Reference) []ExactBinding {
+	binding, ok := ref.ExactBinding()
+	if !ok {
+		return bindings
+	}
+	return append(bindings, binding)
+}
+
+func appendExactReferences(bindings []ExactBinding, refs []Reference) []ExactBinding {
+	for _, ref := range refs {
+		bindings = appendExactReference(bindings, ref)
+	}
+	return bindings
+}
+
+func appendLineageExactReferences(bindings []ExactBinding, lineage *SemanticLineage) []ExactBinding {
+	if lineage == nil {
+		return bindings
+	}
+	bindings = appendExactReference(bindings, lineage.From)
+	bindings = appendExactReference(bindings, lineage.To)
+	return appendExactReferences(bindings, lineage.BasisRefs)
+}
+
+// extractKnownExactReferences enumerates only typed Reference roles from
+// Contracts this runtime understands. Unknown payloads remain opaque and are
+// never searched heuristically for exact-looking JSON fields.
+func extractKnownExactReferences(record RuntimeRecord) []ExactBinding {
+	if record.Status != RecordValidated {
+		return nil
+	}
+
+	var bindings []ExactBinding
+
+	if doc := record.Reference; doc != nil {
+		switch doc.RecordType {
+		case "semantic_lineage":
+			bindings = appendLineageExactReferences(bindings, doc.SemanticLineage)
+		case "verification_outcome":
+			if doc.VerificationOutcome != nil {
+				bindings = append(bindings, doc.VerificationOutcome.Binding)
+			}
+		}
+	}
+
+	if doc := record.Decision; doc != nil {
+		if decision := doc.Decision; decision != nil {
+			bindings = appendExactReferences(bindings, decision.ContextRefs)
+			bindings = appendExactReferences(bindings, decision.BasisRefs)
+			bindings = appendExactReferences(bindings, decision.RecommendationRefs)
+			bindings = appendExactReferences(bindings, decision.UnresolvedRefs)
+			bindings = appendExactReferences(bindings, decision.ResponsibilityRefs)
+			bindings = appendLineageExactReferences(bindings, decision.Lineage)
+		}
+		if recommendation := doc.Recommendation; recommendation != nil {
+			bindings = appendExactReferences(bindings, recommendation.ContextRefs)
+			bindings = appendExactReferences(bindings, recommendation.BasisRefs)
+			bindings = appendExactReferences(bindings, recommendation.ResponsibilityRefs)
+		}
+	}
+
+	if doc := record.CognitiveMethod; doc != nil {
+		if definition := doc.MethodDefinition; definition != nil {
+			bindings = appendExactReferences(bindings, definition.ContextRefs)
+			bindings = appendExactReferences(bindings, definition.SpecificationRefs)
+		}
+		if realization := doc.MethodRealization; realization != nil {
+			bindings = appendExactReference(bindings, realization.MethodRef)
+			bindings = appendExactReferences(bindings, realization.ImplementationRefs)
+			bindings = appendExactReferences(bindings, realization.ContextRefs)
+		}
+		if application := doc.MethodApplication; application != nil {
+			bindings = appendExactReference(bindings, application.MethodRef)
+			if application.RealizationRef != nil {
+				bindings = appendExactReference(bindings, *application.RealizationRef)
+			}
+			bindings = appendExactReferences(bindings, application.ContextRefs)
+			bindings = appendExactReferences(bindings, application.InputRefs)
+			bindings = appendExactReferences(bindings, application.OutputRefs)
+			bindings = appendExactReferences(bindings, application.ResidualRefs)
+			bindings = appendExactReferences(bindings, application.ProvenanceRefs)
+			bindings = appendExactReferences(bindings, application.ResponsibilityRefs)
+		}
+	}
+
+	if doc := record.Capability; doc != nil {
+		observation := doc.Observation
+		for _, condition := range observation.Conditions {
+			bindings = appendExactReferences(bindings, condition.SourceRefs)
+		}
+		bindings = appendExactReferences(bindings, observation.ProvenanceRefs)
+		if observation.MappingProvenance != nil {
+			bindings = appendExactReference(bindings, observation.MappingProvenance.MappingRef)
+		}
+	}
+
+	return bindings
+}
+
 func validateBundleExactReferences(bundle *Bundle) error {
 	exactByLogical := map[LogicalReference][]ExactBinding{}
 	for _, record := range bundle.Records {
@@ -380,16 +479,10 @@ func validateBundleExactReferences(bundle *Bundle) error {
 	}
 
 	for _, record := range bundle.Records {
-		if record.Decision == nil || record.Decision.Decision == nil {
-			continue
-		}
-		for _, ref := range record.Decision.Decision.BasisRefs {
-			binding, ok := ref.ExactBinding()
-			if !ok {
-				continue
-			}
+		for _, binding := range extractKnownExactReferences(record) {
 			candidates := exactByLogical[binding.LogicalRef]
 			if len(candidates) == 0 {
+				// An exact reference may legitimately point outside this bundle.
 				continue
 			}
 			matched := false
@@ -400,7 +493,7 @@ func validateBundleExactReferences(bundle *Bundle) error {
 				}
 			}
 			if !matched {
-				return fmt.Errorf("decision basis exact binding does not match bundle record for %s/%s", binding.LogicalRef.Kind, binding.LogicalRef.ID)
+				return fmt.Errorf("bundle-local exact reference does not match bundle record for %s/%s", binding.LogicalRef.Kind, binding.LogicalRef.ID)
 			}
 		}
 	}
