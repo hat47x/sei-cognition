@@ -124,21 +124,19 @@ Interaction boundaryのDesign Evidenceと、最小prototypeまたはconformance�
 
 ISSUE-000053では、`runtime/go/interactionprobe`にhuman-oriented Surfaceとmachine-oriented Surfaceを実体化し、同じin-memory canonical sourceへ接続しました。既存`semanticruntime`型を再利用し、Recommendation / Decision / Capability Observation / Cognitive Method Applicationはcurrent validatorを通して保持します。Inquiry / Unknown / Conflictは、未対応意味を理解済みと偽らずopaqueな`not_verified` recordとして扱います。
 
-追加negative testを含むSemantic Runtime Conformance Run `33504002579`で、current Contract fixture再検査と`runtime/go`全体の`go test ./...`がsuccessしました。
+Semantic Runtime Conformance Run `33504002579`で、current Contract fixture再検査と`runtime/go`全体の`go test ./...`がsuccessしました。
 
-このExecutable Evidenceで確認できたのは、主として次の境界です。
+確認できた主な境界は次です。
 
 - machine側が追加したObservation / Recommendationをhuman側から再読できる。
 - human側Decisionをmachine側がDecisionとして再読できる。
 - RecommendationとDecisionを同一recordへ平坦化しない。
 - Unknown / Conflictを失わない。
-- light / audit / structured Projection生成でcanonical sourceを変更しない。
+- Projection生成でcanonical sourceを変更しない。
 - Surface-local stateを破棄してもcanonical recordを失わない。
-- chat / UIにしか存在しないRecommendation / Decision相当情報をcanonical recordへ昇格させない。
-- post-decision Observation追加でhistorical Decision basisを書き換えない。
-- machine SurfaceであることからResponsibilityを自動推定しない。
-
-ただし、これはproduction UIの使いやすさやsupported protocolの確定を意味しません。
+- chat / UIだけの情報をcanonical Recommendation / Decisionへ昇格させない。
+- post-decision Observationでhistorical Decision basisを書き換えない。
+- machine SurfaceであることからResponsibilityを推定しない。
 
 ```text
 reference probe PASS
@@ -150,14 +148,13 @@ reference probe PASS
 
 ### Open questions
 
-- productionで最初にsupportedとするhuman-facing surface
-- productionで最初にsupportedとするAI-facing access surface
+- productionで最初にsupportedとするhuman-facing Surface
+- productionで最初にsupportedとするAI-facing access Surface
 - Web / desktop / CLI / API / MCP等のsupported combination
 - human usabilityを損なわずlight / auditを往復する具体UX
 - Packaging / DeploymentとInteraction Surfaceの組み合わせ
-- production persistenceとprocess restart後のresume
 
-これらは現時点でRequirementとして先取りしません。reference probeのSurfaceや単一Inquiry向けin-memory storeをproduction標準へ昇格させません。
+これらは現時点でRequirementとして先取りしません。
 
 ## 7. PMS-04 — 配布・保存・再開が可能な最小製品単位が成立する
 
@@ -173,16 +170,72 @@ Packaging / DeploymentのDesign Evidenceと、最小packageのExecutable Evidenc
 
 ### Current state
 
-**Not Yet Verified as a packaged product.**
+**Design baseline established / Minimum scoped Executable Evidence available.**
 
-ISSUE-000046で検討します。
+`product/packaging/SOZA_PRODUCT_PACKAGING.md`とADR-0029で、最初に成立させるPackaging / Deployment ProfileをLocal Single-Node Packageとして正本化しました。
+
+```text
+Go runtime executable
+  + replaceable Persistence boundary
+  + explicit durable data root
+  + portable semantic data
+```
+
+runtime executableをcanonical semantic dataにはせず、filesystem pathもLogical Referenceにはしません。portable export / importにはcurrent Semantic Interchangeを再利用し、package専用Universal Contractは追加していません。
+
+ISSUE-000054では、filesystem Persistenceとbuild可能なGo executableを用いて、次を限定範囲で確認しました。
+
+- portable Semantic Interchangeをfilesystemへ保存できる。
+- in-memory runtime stateを破棄した後にも同じbytesとtyped recordを再構成できる。
+- 独立したsave processを終了した後、別processがdurable dataだけからbundleを再読できる。
+- unknown Contractをprocess越しでも`not_verified`のまま保持できる。
+- canonical bundle fileを別directoryへcopyし、restore先から再読できる。
+- filesystemからmemory Persistenceへportable bytesを移し、同じbundleを再読できる。
+- invalid / incomplete stateを正常packageとして扱わない。
+- physical data-root変更やPersistence交換をsemantic identity / Semantic Revisionへ持ち込まない。
+
+literal process probeを含むSemantic Runtime Conformance Run `33508376230`とPlan integrity Run `33508376256`はsuccessしました。
+
+ISSUE-000055では、Linux / amd64向けの**Local Reference Package**をdistribution artifactとして生成しました。
+
+Local Package Artifact Run `33509521544`では、次を一続きに検査しています。
+
+- 同一inputからreference binaryを2回buildし、byte-for-byte一致を確認する。
+- artifact version、source commit、targetをbuild identityとしてbinaryとmetadataへ持たせる。
+- file順、mtime、owner / groupを固定したarchiveを作り、SHA-256 checksumを生成する。
+- archiveを別directoryへ展開する。
+- 展開したartifact自身でSemantic Interchangeを保存してprocessを終了する。
+- 別processで同じdurable data rootから再読し、expected bundleを再構成する。
+- tar.gzとchecksumをGitHub Actions artifactとして保存する。
+
+Run `33509521544`で保存されたworkflow artifactは、artifact ID `9801021136`、workflow artifact digest `sha256:6282a2fe0b58dd023090d363e3323ce963a9f29c097f869ebab79b73aab2ba85`です。
+
+同一headではPlan integrity Run `33509521580`とSemantic Runtime Conformance Run `33509521596`もsuccessしました。
+
+このEvidenceにより、PMS-04が求めるPackaging / Deployment Designと「配布・保存・再開」の最小Executable Evidenceはreference profileの範囲で揃いました。
+
+```text
+PMS-04 Minimum scoped Evidence available
+  != Product Release
+  != formal platform support matrix
+  != executable version upgrade proven
+  != crash durability proven
+  != actual production Storage migration proven
+  != Release / Operational / Adoption Evidence
+```
 
 ### Open questions
 
-- library / service / CLI / reference UIの最初のsupported combination
-- embedded / external Storage
-- import / export / migration
-- backup / restoreの最小条件
+- Product Releaseとして最初にsupportするOS / architecture
+- production向けarchive / installer / package manager / signing方式
+- executable version upgrade後のresume
+- productionで最初にsupportedとするhuman / AI Product Interaction Surface
+- server-side StorageをいつRDB / object storeへ進めるか
+- team / multi-user deployment topology
+- online migration、production backup SLA、HA / replication
+- container / cloud-managed distribution
+
+これらはLocal Reference PackageのPASSだけを理由にRequirementへ固定しません。Releaseとして何をsupportするかはPMS-07で改めてEvidenceを要求します。
 
 ## 8. PMS-05 — identity・authorization・collaborationを製品として安全に扱える
 
@@ -239,7 +292,7 @@ Release Evidence。
 
 **Not Yet Verified for the current Product Shape as a whole.**
 
-過去のrelease candidate gateや個別CI Evidenceを、このMilestoneへ自動昇格させません。
+PMS-04のLocal Reference PackageはPackagingのMinimum Executable Evidenceであり、PMS-07のProduct Releaseではありません。reference archive、workflow artifact、個別CI PASSをRelease Evidenceへ自動昇格させません。
 
 ## 11. PMS-08 — 実運用と利用者成果からProduct Valueを検証できる
 
@@ -273,4 +326,4 @@ Open Questionを直接Stable Requirementへ飛ばしません。
 
 ## 14. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、Product Interaction baseline、REQ-0001〜0022、SCN-0013 / 0018、ADR-0028、ISSUE-000045 / 000053、`runtime/go/interactionprobe`、Semantic Runtime Conformance Run `33504002579`を照合し、PMS-03をDesign成立だけでなくscoped Executable Evidenceが得られた状態へ更新しました。一方、reference probeの成功をproduction UX、supported protocol、Packaging、Operational / Adoption Evidenceへ広げていません。未定領域を先にRequirementへ固定しない境界も保っています。そのうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、REQ-0001〜0022、SCN-0008 / 0010 / 0013 / 0018、ADR-0028 / 0029、ISSUE-000046 / 000053 / 000054 / 000055、current Go runtime、Semantic Interchange、Interaction / Packaging probe、Local Reference Package artifact、Local Package Artifact Run `33509521544`とcurrent CI Evidenceへ戻ってMilestoneを再監査しました。PMS-03はscoped Interaction Executable Evidenceまで、PMS-04はPackaging / Deployment DesignとLocal Reference PackageによるMinimum scoped Executable Evidenceまでを明確にしています。一方、Product Release、formal support matrix、version upgrade、crash durability、actual production Storage migration、Release / Operational / Adoption Evidenceは未検証のままです。Local Single-Node Package、filesystem、package lifecycle command、Linux / amd64 reference artifactを唯一のdeployment topology、正式Product Interaction、semantic authorityへ昇格させず、未定領域を先にRequirementへ固定しない境界を維持したうえで、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
