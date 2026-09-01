@@ -16,7 +16,7 @@ packaging probe PASS
   != distributable package proven
   != literal OS-process restart proven
   != crash durability proven
-  != production Storage migration proven
+  != SCN-0008 actual Storage migration proven
   != Release Evidence
   != Operational / Adoption Evidence
 ```
@@ -65,9 +65,11 @@ complete bytes
 
 ## 4. memory Persistence
 
-Storage交換の境界を確認するため、第二Realizationとしてmemory Persistenceを実装しました。
+Persistence交換の境界を確認するため、第二Realizationとしてmemory Persistenceを実装しました。
 
 これはproduction in-memory StorageをsupportするDecisionではありません。filesystemからexportしたportable bytesを別のPersistence Realizationへimportできることを小さく確認するためのprobeです。
+
+したがって、この二Realization間のPASSを、SCN-0008が想定するprototype filesystemからproduction DB / object store等へのactual Storage migrationと同一視しません。
 
 ## 5. 確認したExecutable Evidence
 
@@ -99,17 +101,19 @@ retained across persistence
   != validated
 ```
 
-### 5.3 filesystemからmemory Persistenceへの移行
+### 5.3 filesystemからmemory Persistenceへの交換
 
 filesystem Persistenceからportable bytesをexportし、memory Persistenceへimportした後、再び`LoadInterchange`経由で読み直せることを確認しました。
 
-移行前後で次を保持しています。
+交換前後で次を保持しています。
 
 - original Semantic Interchange bytes
 - `bundle_id`
 - current runtimeが再構成できるtyped semantic record
 
-Storage migrationに伴うSemantic Revisionは生成していません。
+Persistence Realizationの交換に伴うSemantic Revisionは生成していません。
+
+これはStorage-neutralなruntime境界を実行可能に確認するprobeであり、production Storage migrationそのものではありません。
 
 ### 5.4 data rootのcopy / restore
 
@@ -133,13 +137,19 @@ restore先のphysical pathが変わってもportable semantic bytesは変化し�
 
 このprobeはfile pathやdirectory名をLogical Referenceへ変換しません。
 
-## 6. SCN-0008への反映
+## 6. SCN-0008との関係
 
-SCN-0008「Storageを交換する」に対して、filesystem Persistenceとmemory Persistenceの二Realization間でportable Semantic Interchange bytesを移し、Storage-specific locatorに依存せず再読できる**限定されたExecutable Evidence**が得られました。
+SCN-0008「Storageを交換する」は、prototypeで利用したfilesystem等からDB / object store等へ移行しても、logical identity、semantic revision、provenance、reference integrity、historical exact bindingを保持できることを求めています。
 
-ただし、RDB、object store、schema migration、long-running production data等のactual migrationは未検証です。
+今回のfilesystem / memory probeは、**その前提となるPersistence Realization交換境界が実装可能であり、portable Semantic Interchange bytesをphysical locatorから独立して扱えることを示す補助的なExecutable Evidence**です。
 
-そのためSCN-0008を全面的にSatisfiedとはしません。
+一方、memory Persistenceは評価用Realizationであり、production classのStorage移行ではありません。RDB、object store、schema migration、long-running data、historical exact-bound payloadを含むactual migrationをまだ実施していないため、SCN-0008のCurrent Evidenceは引き続き**Executable: Not Yet Verified**と読みます。
+
+```text
+Persistence exchange probe PASS
+  supports SCN-0008 design
+  != SCN-0008 actual Storage migration verified
+```
 
 ## 7. process restart後のresumeの扱い
 
@@ -170,7 +180,7 @@ probe結果から、新しいstable Product RequirementまたはAcceptance Scena
 - SCN-0008 — Storageを交換する。
 - SCN-0010 — 可変Artifact更新後に過去Decisionを再構成する。
 
-literal OS-process restartや配布物起動で、これらでは表現できない独立したProduct failureが見つかった場合にのみ、Candidate Scenarioを再検討します。
+SCN-0008の実Storage交換やliteral OS-process restart、配布物起動で、既存Scenarioでは表現できない独立したProduct failureが見つかった場合にのみ、Candidate Scenarioを再検討します。
 
 ## 9. 今回確認していないこと
 
@@ -185,6 +195,7 @@ literal OS-process restartや配布物起動で、これらでは表現できな
 - transaction isolation
 - locking
 - production RDB / object store
+- actual SCN-0008 Storage migration
 - online migration
 - payload areaを含む完全backup / restore
 - encryption at rest
@@ -197,7 +208,7 @@ literal OS-process restartや配布物起動で、これらでは表現できな
 
 ## 10. PMS-04への反映
 
-PMS-04について、Packaging / Deployment Design Evidenceに加えて、**scoped persistence / resume / Storage migration Executable Evidence available**と判断できます。
+PMS-04について、Packaging / Deployment Design Evidenceに加えて、**scoped filesystem persistence / runtime-state-independent reconstruction / Persistence Realization exchange Executable Evidence available**と判断できます。
 
 ただし、PMS-04のOutcomeに含まれる「実際に起動・配布できる最小package」全体を満たしたとはまだ主張しません。
 
@@ -205,7 +216,8 @@ PMS-04について、Packaging / Deployment Design Evidenceに加えて、**scop
 Packaging Design: established
 filesystem persistence probe: executable evidence available
 runtime-state-independent reconstruction: executable evidence available
-filesystem -> memory migration: executable evidence available
+filesystem -> memory Persistence exchange: executable evidence available
+actual Storage migration: not yet verified
 distributable product package: not yet verified
 literal process restart: not yet verified
 Release / Operational / Adoption: not yet verified
@@ -228,4 +240,4 @@ Release / Operational / Adoption: not yet verified
 
 ## 12. Natural Japanese review
 
-Product Packaging baseline、Deployment Architecture、ADR-0029、ISSUE-000046 / 000054、REQ-0018 / 0021、SCN-0008 / 0010、current Semantic Interchange runtime、`runtime/go/packagingprobe`のactual test、Semantic Runtime Conformance Run `33506712038`、Plan integrity Run `33506712033`を照合しました。runtime object破棄後の再構成とliteral OS-process restartを区別し、filesystem probeの成功をcrash durability、production Storage migration、Release / Operational Evidenceへ広げていません。また、Persistence interface、file layout、temporary-file mechanicsをUniversal semantic modelへ昇格させていません。そのうえで、意味、Evidence強度、未検証範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Packaging baseline、Deployment Architecture、ADR-0029、ISSUE-000046 / 000054、REQ-0018 / 0021、SCN-0008 / 0010、current Semantic Interchange runtime、`runtime/go/packagingprobe`のactual test、Semantic Runtime Conformance Run `33506712038`、Plan integrity Run `33506712033`を照合しました。runtime object破棄後の再構成とliteral OS-process restart、Persistence Realization交換probeとSCN-0008のactual Storage migrationを区別し、filesystem probeの成功をcrash durability、production Storage migration、Release / Operational Evidenceへ広げていません。また、Persistence interface、file layout、temporary-file mechanicsをUniversal semantic modelへ昇格させていません。そのうえで、意味、Evidence強度、未検証範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
