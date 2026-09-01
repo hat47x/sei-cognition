@@ -43,8 +43,6 @@ canonical meaningは新しく作り直さず、既存の`interactionprobe.Canoni
 
 ## 3. 確認したExecutable Evidence
 
-初期probe head `41463a0881d7d9623a1f4fa36350747cce8d8bbd`では、Semantic Runtime Conformance Run `33511885433`が**success**しました。current Contract fixtureの再検査と`runtime/go`全体の`go test ./...`に、`accessprobe`のtestが含まれています。
-
 ### 3.1 IdP相当のidentity交換とhistorical subject continuity
 
 旧Providerのauthentication identityと、新Providerのauthentication identityを、同じBounded Subjectへbindingしました。
@@ -176,18 +174,22 @@ PMS-05は、Identity / Access / CollaborationのDesign baselineに加えて、�
 
 ## 8. CI Evidence
 
-初期probe implementationについて:
+最終文書同期前のcurrent head `4b05854ff4e31dd625e73a0fc05afe8e4bbbf0ec`では、次の三つがすべて**success**しました。
 
-- Workflow: `Semantic Runtime Conformance`
-- Run: `33511885433`
-- Result: **success**
-- Scope:
+- Semantic Runtime Conformance Run `33513323477`
   - current Contract fixture再検査
   - `runtime/go`で`go test ./...`
   - `runtime/go/accessprobe`のcurrent test
+- Plan integrity Run `33513323475`
+  - ADR / Issue / registry integrity
+  - Document Review Registry coverage
+- Local Package Artifact Run `33513323460`
+  - PMS-04の既存Packaging回帰
 
-Plan integrityは同じ初期headで、新規ADR / Issueがregistryへ未登録だったため失敗しました。これはruntime test failureではなく、上流台帳同期前に意図的に早期CIを回した結果です。最終headではregistryとDocument Review Registryを同期して再検査します。
+初期probe head `41463a0881d7d9623a1f4fa36350747cce8d8bbd`のSemantic Runtime Conformance Run `33511885433`もsuccessしています。初期Plan integrityのfailureは、新規ADR / Issueをregistryへ登録する前に早期Runtime CIを行ったことによる台帳未同期であり、その後解消済みです。
+
+これらのsuccessは記載したscopeに限ったEvidenceとして扱います。
 
 ## 9. Natural Japanese review
 
-PMS-05、Product Identity / Access / Collaboration baseline、ADR-0004 / 0006 / 0016 / 0030、REQ-0012 / 0013 / 0017、SCN-0007 / 0012、`runtime/go/accessprobe`のactual testとSemantic Runtime Conformance Run `33511885433`を照合しました。authentication identity、Bounded Subject、Product permission、semantic Responsibilityを分け、Selective Disclosureの成功をproduction IAMやsecurity成立へ広げていません。また、probe-localなpermission vocabularyやProduct Access ScopeをUniversal semantic modelへ昇格させず、Candidate RequirementをStable IDへ先取りしない境界を維持しています。そのうえで、意味、Evidence強度、未検証範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+PMS-05、Product Identity / Access / Collaboration baseline、ADR-0004 / 0006 / 0016 / 0030、REQ-0012 / 0013 / 0017、SCN-0007 / 0012、`runtime/go/accessprobe`のactual test、Semantic Runtime Conformance Run `33513323477`、Plan integrity Run `33513323475`、Local Package Artifact Run `33513323460`を照合しました。authentication identity、Bounded Subject、Product permission、semantic Responsibilityを分け、Selective Disclosureの成功をproduction IAMやsecurity成立へ広げていません。また、probe-localなpermission vocabularyやProduct Access ScopeをUniversal semantic modelへ昇格させず、Candidate RequirementをStable IDへ先取りしない境界を維持しています。そのうえで、意味、Evidence強度、未検証範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
