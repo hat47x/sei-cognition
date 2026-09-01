@@ -1,0 +1,42 @@
+{
+  "projection": "audit/v1alpha1",
+  "source_contract": "soza.decision-memory/v1alpha1",
+  "source_ref": {
+    "kind": "decision",
+    "id": "projection-evaluation-001"
+  },
+  "statement": "未解決の権限確認と遅延根拠を明示したまま、可逆的な試行を実施する。",
+  "context_refs": [
+    {
+      "kind": "goal",
+      "id": "safe-reversible-pilot"
+    }
+  ],
+  "basis_refs": [
+    {
+      "kind": "observation",
+      "id": "pilot-readiness-observation"
+    },
+    {
+      "kind": "recommendation",
+      "id": "reversible-pilot-recommendation"
+    }
+  ],
+  "unresolved_refs": [
+    {
+      "kind": "unknown",
+      "id": "authority-confirmation"
+    },
+    {
+      "kind": "conflict",
+      "id": "latency-source-conflict"
+    }
+  ],
+  "responsibility_refs": [
+    {
+      "kind": "responsibility",
+      "id": "pilot-review-owner"
+    }
+  ],
+  "rationale": "試行は期間限定で元に戻せるため実施する。ただし、本格展開の前に未解決事項を再確認する。"
+}
