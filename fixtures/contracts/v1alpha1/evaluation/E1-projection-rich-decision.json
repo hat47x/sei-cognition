@@ -1,0 +1,62 @@
+{
+  "contract": "soza.semantic-interchange/v1alpha1",
+  "bundle_id": "v6-v7-rich-decision",
+  "created_at": "2026-09-01T00:00:00Z",
+  "records": [
+    {
+      "record_id": "provider-route-health",
+      "contract": {"contract_id": "soza.capability-observation", "version": "v1alpha1"},
+      "kind": "capability-observation",
+      "payload": {
+        "contract": "soza.capability-observation/v1alpha1",
+        "observation": {
+          "ref": {"kind": "capability-observation", "id": "provider-route-health-at-D-V6V7"},
+          "target": {
+            "capability_ref": {"kind": "capability", "id": "settlement-routing"},
+            "provider_ref": {"kind": "provider", "id": "provider-a"},
+            "provider_target_ref": "provider-a://settlement/route"
+          },
+          "observed_at": "2026-09-01T00:00:00Z",
+          "conditions": [
+            {"key": "availability", "state": "observed", "value": true},
+            {"key": "capacity", "state": "unknown", "note": "次回決済窓の容量はまだ確認できていない。"}
+          ],
+          "provenance_refs": [
+            {"kind": "evidence", "id": "route-health-snapshot-2026-09-01"}
+          ],
+          "mapping_provenance": {
+            "mapping_ref": {"kind": "adapter-mapping", "id": "provider-route-health-v1"},
+            "source_state_ref": "provider-a://state/settlement/2026-09-01T00:00:00Z"
+          }
+        }
+      }
+    },
+    {
+      "record_id": "decision-v6-v7-rich",
+      "contract": {"contract_id": "soza.decision-memory", "version": "v1alpha1"},
+      "kind": "decision",
+      "payload": {
+        "contract": "soza.decision-memory/v1alpha1",
+        "record_type": "decision",
+        "decision": {
+          "ref": {"kind": "decision", "id": "D-V6V7-rich"},
+          "statement": "次回の決済処理ではProvider Aを使用し、容量確認と変更承認は未解決事項として残す。",
+          "context_refs": [
+            {"kind": "intent", "id": "settlement-continuity"}
+          ],
+          "basis_refs": [
+            {"kind": "capability-observation", "id": "provider-route-health-at-D-V6V7"}
+          ],
+          "unresolved_refs": [
+            {"kind": "question", "id": "capacity-confirmation"},
+            {"kind": "authorization-evidence", "id": "settlement-window-approval"}
+          ],
+          "responsibility_refs": [
+            {"kind": "responsibility", "id": "settlement-service-owner"}
+          ],
+          "rationale": "可用性は観測済みだが、容量と変更承認の確認が残っているため。"
+        }
+      }
+    }
+  ]
+}
