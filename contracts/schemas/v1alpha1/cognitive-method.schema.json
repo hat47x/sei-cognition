@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soza.example/contracts/v1alpha1/cognitive-method.schema.json",
+  "title": "SOZA Cognitive Method v1alpha1",
+  "description": "Machine-readable representation of soza.cognitive-method/v1alpha1. Method Definition, Realization, and Application remain distinct; Method Application does not encode Decision or Assurance.",
+  "type": "object",
+  "required": ["contract", "record_type"],
+  "properties": {
+    "contract": {"const": "soza.cognitive-method/v1alpha1"},
+    "record_type": {
+      "enum": ["method_definition", "method_realization", "method_application"]
+    },
+    "method_definition": {"$ref": "#/$defs/methodDefinition"},
+    "method_realization": {"$ref": "#/$defs/methodRealization"},
+    "method_application": {"$ref": "#/$defs/methodApplication"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"record_type": {"const": "method_definition"}}},
+      "then": {
+        "required": ["method_definition"],
+        "not": {"anyOf": [{"required": ["method_realization"]}, {"required": ["method_application"]}]}
+      }
+    },
+    {
+      "if": {"properties": {"record_type": {"const": "method_realization"}}},
+      "then": {
+        "required": ["method_realization"],
+        "not": {"anyOf": [{"required": ["method_definition"]}, {"required": ["method_application"]}]}
+      }
+    },
+    {
+      "if": {"properties": {"record_type": {"const": "method_application"}}},
+      "then": {
+        "required": ["method_application"],
+        "not": {"anyOf": [{"required": ["method_definition"]}, {"required": ["method_realization"]}]}
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "logicalReference": {
+      "$ref": "semantic-reference.schema.json#/$defs/logicalReference"
+    },
+    "exactBinding": {
+      "$ref": "semantic-reference.schema.json#/$defs/exactBinding"
+    },
+    "reference": {
+      "oneOf": [
+        {"$ref": "#/$defs/logicalReference"},
+        {"$ref": "#/$defs/exactBinding"}
+      ]
+    },
+    "referenceList": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/reference"},
+      "uniqueItems": true
+    },
+    "methodDefinition": {
+      "type": "object",
+      "required": ["ref", "title", "purpose"],
+      "properties": {
+        "ref": {"$ref": "#/$defs/logicalReference"},
+        "title": {"type": "string", "minLength": 1},
+        "purpose": {"type": "string", "minLength": 1},
+        "context_refs": {"$ref": "#/$defs/referenceList"},
+        "specification_refs": {"$ref": "#/$defs/referenceList"},
+        "extensions": {"type": "object", "additionalProperties": true}
+      },
+      "additionalProperties": false
+    },
+    "methodRealization": {
+      "type": "object",
+      "required": ["ref", "method_ref", "description"],
+      "properties": {
+        "ref": {"$ref": "#/$defs/logicalReference"},
+        "method_ref": {"$ref": "#/$defs/reference"},
+        "description": {"type": "string", "minLength": 1},
+        "implementation_refs": {"$ref": "#/$defs/referenceList"},
+        "context_refs": {"$ref": "#/$defs/referenceList"},
+        "extensions": {"type": "object", "additionalProperties": true}
+      },
+      "additionalProperties": false
+    },
+    "methodApplication": {
+      "type": "object",
+      "required": ["ref", "method_ref"],
+      "properties": {
+        "ref": {"$ref": "#/$defs/logicalReference"},
+        "method_ref": {"$ref": "#/$defs/reference"},
+        "realization_ref": {"$ref": "#/$defs/reference"},
+        "context_refs": {"$ref": "#/$defs/referenceList"},
+        "input_refs": {"$ref": "#/$defs/referenceList"},
+        "output_refs": {"$ref": "#/$defs/referenceList"},
+        "residual_refs": {"$ref": "#/$defs/referenceList"},
+        "provenance_refs": {"$ref": "#/$defs/referenceList"},
+        "responsibility_refs": {"$ref": "#/$defs/referenceList"},
+        "applied_at": {"type": "string", "format": "date-time"},
+        "summary": {"type": "string", "minLength": 1},
+        "extensions": {"type": "object", "additionalProperties": true}
+      },
+      "additionalProperties": false
+    }
+  }
+}

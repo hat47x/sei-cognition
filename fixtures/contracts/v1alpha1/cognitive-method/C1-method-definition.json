@@ -1,0 +1,12 @@
+{
+  "contract": "soza.cognitive-method/v1alpha1",
+  "record_type": "method_definition",
+  "method_definition": {
+    "ref": {"kind": "cognitive_method", "id": "contrastive-review"},
+    "title": "対照レビュー",
+    "purpose": "複数の候補・根拠・反例を対照し、残差を失わずに検査する。",
+    "context_refs": [
+      {"kind": "requirement", "id": "REQ-0004"}
+    ]
+  }
+}

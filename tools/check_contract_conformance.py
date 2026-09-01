@@ -9,8 +9,7 @@ This checker deliberately separates three layers:
    Contract version, such as an unknown nested Contract version.
 
 A PASS from this tool is executable evidence for the checked fixtures only. It is
-not release or operational evidence, and it does not stabilize a Representation
-Profile tracked by ISSUE-000009.
+not release or operational evidence.
 """
 
 from __future__ import annotations
@@ -40,6 +39,7 @@ SCHEMA_FILES = {
     "semantic-reference": SCHEMA_DIR / "semantic-reference.schema.json",
     "decision-memory": SCHEMA_DIR / "decision-memory.schema.json",
     "capability-observation": SCHEMA_DIR / "capability-observation.schema.json",
+    "cognitive-method": SCHEMA_DIR / "cognitive-method.schema.json",
     "semantic-interchange": SCHEMA_DIR / "semantic-interchange.schema.json",
 }
 
@@ -47,6 +47,7 @@ KNOWN_RECORD_CONTRACTS = {
     ("soza.semantic-reference", "v1alpha1"): "semantic-reference",
     ("soza.decision-memory", "v1alpha1"): "decision-memory",
     ("soza.capability-observation", "v1alpha1"): "capability-observation",
+    ("soza.cognitive-method", "v1alpha1"): "cognitive-method",
 }
 
 
@@ -65,11 +66,24 @@ FIXTURES = [
     FixtureExpectation("capability/F5-cross-provider-comparison.json", "semantic-interchange", "pass"),
     FixtureExpectation("capability/F6-historical-reconstruction.json", "semantic-interchange", "pass"),
     FixtureExpectation("capability/F7-selective-disclosure.json", "capability-observation", "pass"),
+    FixtureExpectation("cognitive-method/C1-method-definition.json", "cognitive-method", "pass"),
+    FixtureExpectation("cognitive-method/C2-method-realization.json", "cognitive-method", "pass"),
+    FixtureExpectation("cognitive-method/C3-application-with-realization.json", "cognitive-method", "pass"),
+    FixtureExpectation("cognitive-method/C4-application-without-realization.json", "cognitive-method", "pass"),
+    FixtureExpectation("cognitive-method/C5-pattern-as-input-reference.json", "cognitive-method", "pass"),
+    FixtureExpectation("cognitive-method/C6-exact-bound-method-realization.json", "cognitive-method", "pass"),
+    FixtureExpectation("cognitive-method/C7-output-and-residual-refs.json", "cognitive-method", "pass"),
     FixtureExpectation("negative/decision-authority-field.json", "decision-memory", "schema_fail"),
     FixtureExpectation("negative/capability-missing-observed-at.json", "capability-observation", "schema_fail"),
+    FixtureExpectation("negative/cognitive-method-decision-field.json", "cognitive-method", "schema_fail"),
+    FixtureExpectation("negative/cognitive-method-assurance-field.json", "cognitive-method", "schema_fail"),
+    FixtureExpectation("negative/cognitive-method-realization-missing-method-ref.json", "cognitive-method", "schema_fail"),
+    FixtureExpectation("negative/cognitive-method-application-missing-method-ref.json", "cognitive-method", "schema_fail"),
+    FixtureExpectation("negative/cognitive-method-pattern-field.json", "cognitive-method", "schema_fail"),
     FixtureExpectation("negative/same-logical-lineage-without-exact.json", "semantic-reference", "semantic_fail"),
     FixtureExpectation("negative/interchange-mismatched-exact-binding.json", "semantic-interchange", "semantic_fail"),
     FixtureExpectation("boundary/unknown-contract-version.json", "semantic-interchange", "not_verified"),
+    FixtureExpectation("boundary/unknown-cognitive-method-version.json", "semantic-interchange", "not_verified"),
     FixtureExpectation("boundary/verification-not-verified.json", "semantic-reference", "pass"),
     FixtureExpectation("boundary/verification-failed.json", "semantic-reference", "pass"),
     FixtureExpectation("boundary/recommendation-without-decision.json", "decision-memory", "pass"),
@@ -326,6 +340,7 @@ def main() -> int:
             "soza.semantic-reference/v1alpha1",
             "soza.decision-memory/v1alpha1",
             "soza.capability-observation/v1alpha1",
+            "soza.cognitive-method/v1alpha1",
             "soza.semantic-interchange/v1alpha1",
         ],
         "fixture_count": len(results),
@@ -336,7 +351,7 @@ def main() -> int:
             "executable": "fixture-scoped only when this command completes successfully",
             "release": False,
             "operational": False,
-            "stable_representation_profile": False,
+            "adoption_outcome": False,
         },
     }
     print(json.dumps(summary, ensure_ascii=False, indent=2))
