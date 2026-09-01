@@ -37,14 +37,20 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに全件監査済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000040
-    note: ISSUE-000038〜000040を含む新規Issueは、ISSUE-000015で確立した標準工程を作成・解決時に適用し、自然な日本語全文再ドラフトと最終意味監査まで同じ作業単位で完了している。
+    coverage: ISSUE-000001..ISSUE-000041
+    note: ISSUE-000038〜000041を含む新規Issueは、ISSUE-000015で確立した標準工程を作成・解決時に適用し、自然な日本語全文再ドラフトと最終意味監査まで同じ作業単位で実施する。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
   - scope: plan/issue/ISSUE_TEMPLATE.md
     status: revised
     note: Goal / Resolution / Reopen、5段階Evidence、CI failure handling、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
+
+  - scope: plan/release/*.md
+    status: revised
+    coverage:
+      - plan/release/V0_1_0_RELEASE_READINESS.md
+    note: release candidate readinessとRelease Evidenceを分離し、同一commit gateの意味・制約を自然な日本語で再ドラフト済み。
 
   - scope: requirements/*.md
     status: revised

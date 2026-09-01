@@ -5,7 +5,7 @@
 
 ## 1. この文書の役割
 
-この文書は、SOZAのProduct Valueを、current Requirements、Acceptance Scenarios、ADR、Reference Architecture、Semantic Contract、Representation Profile、runtime、Provider Adapter、Payload Source、Projection Evaluation、現在のEvidence状態まで上位から追跡するための索引です。
+この文書は、SOZAのProduct Valueを、current Requirements、Acceptance Scenarios、ADR、Reference Architecture、Semantic Contract、Representation Profile、runtime、Provider Adapter、Payload Source、Projection Evaluation、release candidate readiness、現在のEvidence状態まで上位から追跡するための索引です。
 
 新しい意味上の正本は作りません。詳細は次を正とします。
 
@@ -18,6 +18,7 @@
 - Representation Profile: `../../contracts/profiles/`
 - runtime: `../../runtime/go/`
 - V6 / V7 evaluation: `../../evaluation/v6-v7/`
+- release candidate readiness: `../../plan/release/V0_1_0_RELEASE_READINESS.md`
 - ADR / Issue: `../../plan/`
 
 この追跡表が埋まっていること自体をProduct Valueの達成とはみなしません。
@@ -34,6 +35,7 @@ Product Value
   → Semantic Contract / Representation Profile
   → Runtime / Provider Adapter / Payload Source / Projection Evaluation
   → Fixture / Test / CI
+  → Release Candidate Readiness
   → Evidence state
 ```
 
@@ -154,7 +156,42 @@ Run `33456710459`は**success**しています。
 
 これはstatic / synthetic evaluation-harness scoped Executable Evidenceです。実利用者の理解可能性、入力負担、見落とし率、production UXのOperational / Adoption Evidenceではありません。
 
-## 10. Evidenceの現在地
+## 10. v0.1.0 Release Candidate Readiness
+
+ISSUE-000041で、current checkerを同一commit上で一括再実行するRelease Readiness Gateを実体化しました。
+
+negative self-testを含む確認Run:
+
+- Workflow: `v0.1.0 Release Readiness`
+- Run ID: `33462118480`
+- candidate Head SHA: `d4539322bf5cd4eca55c339c57b98a61cfa72f69`
+- conclusion: **success**
+
+同一candidate commitで次がsuccessしています。
+
+- Plan registry integrity
+- document review checker negative self-tests
+- document review registry integrity
+- Requirements checker self-tests / registry
+- Contract conformance
+- Representation Profile fixtures
+- commit-pinned RFC 8785 JCS probe
+- Go semantic runtime / Provider Adapter / Verifier / Payload Source tests
+- V6 / V7 Projection evaluation
+
+closure commitでも同じGateを再実行し、Issue / registry / Traceability更新後の回帰がないことを確認しています。
+
+これはrelease-candidate readiness scoped Executable Evidenceです。
+
+```text
+Release Readiness Gate PASS
+  != Git tag created
+  != GitHub Release published
+  != distributed Artifact verified
+  != Release Evidence
+```
+
+## 11. Evidenceの現在地
 
 ```text
 Design Evidence
@@ -166,11 +203,12 @@ Design Evidence
 
 ### Design Evidence
 
-Product、Requirements、ADR-0001〜0024、Reference Architecture、4 Semantic Contract family、2 Representation Profile、runtime / Adapter / Payload Source boundary、V6/V7 evaluation protocolがあります。
+Product、Requirements、ADR-0001〜0024、Reference Architecture、4 Semantic Contract family、2 Representation Profile、runtime / Adapter / Payload Source boundary、V6/V7 evaluation protocol、release-readiness baselineがあります。
 
 ### Executable Evidence — scoped
 
 - Plan registry integrity
+- document review registry integrity + negative self-tests
 - Requirements registry structural conformance
 - Contract 17-fixture conformance
 - Representation Profile fixture / probe
@@ -179,10 +217,13 @@ Product、Requirements、ADR-0001〜0024、Reference Architecture、4 Semantic C
 - synthetic Payload Source
 - synthetic Provider Adapter
 - V6 / V7 Projection evaluation harness
+- v0.1.0 Release Candidate Readiness Gate
 
 ### Release Evidence
 
 **Not Yet Verified**
+
+readiness gateのPASSを、実際に配布されたArtifactのRelease Evidenceへ昇格させません。
 
 ### Operational Evidence
 
@@ -192,7 +233,7 @@ Product、Requirements、ADR-0001〜0024、Reference Architecture、4 Semantic C
 
 **Not Yet Verified**
 
-## 11. Value Axisごとの主要な未検証点
+## 12. Value Axisごとの主要な未検証点
 
 ### V1 Historical Reconstruction
 
@@ -226,13 +267,13 @@ low-impactでは軽量、high-impactではauditを要求するharnessを検査�
 
 semantic runtime、Provider Adapter、Payload Sourceをexecution / provider / storage mechanicsから分離しています。異なるproduction Execution / Storage Provider間で意味を維持したEvidenceはありません。
 
-## 12. current Planとの関係
+## 13. current Planとの関係
 
-current registryはADR-0001〜0024、ISSUE-000001〜000040を管理します。
+current registryはADR-0001〜0024、ISSUE-000001〜000041を管理します。
 
 - ISSUE-000001〜000020: Resolved
 - ISSUE-000021: Deferred — design history provenance逐語監査
-- ISSUE-000022〜000040: Resolved
+- ISSUE-000022〜000041: Resolved
 
 ISSUE-000021はhistorical chat export等が利用できる場合の再監査留保であり、current Product / Runtimeのblockerではありません。
 
@@ -241,7 +282,9 @@ historical M47 closure後のPlan integrity:
 - commit: `7aaa1280da01810c212b83de28b0741f5adccd2b`
 - Run `33461793246`: **success**
 
-## 13. CoverageをKPIにしない
+v0.1.0 Release Readiness closureでは、ISSUE-000041とdocument review registryを含めたPlan integrityもsuccessしています。
+
+## 14. CoverageをKPIにしない
 
 次の読み方をしません。
 
@@ -253,12 +296,12 @@ historical M47 closure後のPlan integrity:
 
 追跡の目的は、**どこまで確認したかと、どこから先をまだ主張してはいけないかを見失わないこと**です。
 
-## 14. 更新規則
+## 15. 更新規則
 
-Product Value、REQ、SCN、ADR、Architecture、Contract、Profile、runtime、Provider Adapter、Payload Source、Projection Evaluation、Evidence stateのいずれかが変わった場合、この文書を必要に応じて更新します。
+Product Value、REQ、SCN、ADR、Architecture、Contract、Profile、runtime、Provider Adapter、Payload Source、Projection Evaluation、Release Readiness、Evidence stateのいずれかが変わった場合、この文書を必要に応じて更新します。
 
 下位実装の都合に合わせてProduct Valueを後付けで変更しません。上位仮説を変える必要がある場合はADR-0018の再基線化規則に従います。
 
-## 15. 自然な日本語ドラフト
+## 16. 自然な日本語ドラフト
 
-V1〜V8、REQ-0001〜0022、SCN-0001〜0017、ADR-0001〜0024、current Architecture、4 Semantic Contract family、2 Representation Profile、first semantic runtime、Verifier Registry、synthetic Payload Source、synthetic Provider Adapter、V6/V7 Projection evaluation、ISSUE-000034 recovery closure、actual CIへ戻って追跡を再確認しました。その後、Issue closureとVerification、Design / Executable / Release / Operational / Adoption・OutcomeのEvidence強度を混同せず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+V1〜V8、REQ-0001〜0022、SCN-0001〜0017、ADR-0001〜0024、current Architecture、4 Semantic Contract family、2 Representation Profile、first semantic runtime、Verifier Registry、synthetic Payload Source、synthetic Provider Adapter、V6/V7 Projection evaluation、ISSUE-000034 recovery closure、ISSUE-000041 Release Readiness closure、actual CIへ戻って追跡を再確認しました。その後、Issue closureとVerification、readiness-scoped Executable EvidenceとRelease Evidence、Design / Executable / Release / Operational / Adoption・OutcomeのEvidence強度を混同せず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。

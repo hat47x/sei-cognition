@@ -1,0 +1,99 @@
+name: v0.1.0 Release Readiness
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "release/**"
+  pull_request:
+    paths:
+      - ".github/workflows/release-readiness.yml"
+      - "plan/release/**"
+      - "plan/document_review_registry.yaml"
+      - "plan/scripts/check_document_review_registry.py"
+      - "plan/scripts/test_check_document_review_registry.py"
+      - "plan/issue/ISSUE-000041-establish-v0-1-0-release-readiness-gate.md"
+
+permissions:
+  contents: read
+
+jobs:
+  release-readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact candidate commit
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.x"
+          cache-dependency-path: runtime/go/go.mod
+
+      - name: Install Contract checker dependencies
+        run: python -m pip install --disable-pip-version-check -r tools/contract-check-requirements.txt
+
+      - name: Compile repository checkers
+        run: |
+          python3 -m py_compile \
+            plan/scripts/check_plan_registry.py \
+            plan/scripts/next_plan_id.py \
+            plan/scripts/check_requirements_registry.py \
+            plan/scripts/test_check_requirements_registry.py \
+            plan/scripts/check_document_review_registry.py \
+            plan/scripts/test_check_document_review_registry.py \
+            tools/check_contract_conformance.py \
+            tools/check_representation_profiles.py \
+            evaluation/v6-v7/check_projection_evaluation.py
+
+      - name: Check Plan registry integrity
+        run: python3 plan/scripts/check_plan_registry.py
+
+      - name: Run document review checker self-tests
+        working-directory: plan/scripts
+        run: python3 test_check_document_review_registry.py
+
+      - name: Check document review registry integrity
+        run: python3 plan/scripts/check_document_review_registry.py
+
+      - name: Run Requirements checker self-tests
+        run: python3 plan/scripts/test_check_requirements_registry.py
+
+      - name: Check Requirements / Scenario registry
+        run: python3 plan/scripts/check_requirements_registry.py
+
+      - name: Check current Contract baseline
+        run: python tools/check_contract_conformance.py
+
+      - name: Check Representation Profile fixtures
+        run: python3 tools/check_representation_profiles.py
+
+      - name: Run commit-pinned RFC 8785 JCS probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          probe_dir="$(mktemp -d)"
+          cp tools/jcs_probe.go "$probe_dir/main.go"
+          cd "$probe_dir"
+          go mod init soza.local/jcsprobe
+          go get github.com/gowebpki/jcs@1a4242a66e1a8e03d7458324d0bc95c327527cbb
+          echo "Pinned JCS module:"
+          go list -m github.com/gowebpki/jcs
+          go run . "$GITHUB_WORKSPACE/fixtures/representation-profiles/jcs-v1alpha1.json"
+
+      - name: Test semantic runtime and adapters
+        working-directory: runtime/go
+        run: go test ./...
+
+      - name: Evaluate V6 / V7 Projections
+        run: python evaluation/v6-v7/check_projection_evaluation.py
+
+      - name: Record candidate identity
+        run: |
+          echo "Release-readiness candidate SHA: $GITHUB_SHA"
+          echo "This PASS is readiness-scoped Executable Evidence, not Release Evidence."
