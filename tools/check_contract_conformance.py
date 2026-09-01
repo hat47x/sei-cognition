@@ -73,6 +73,7 @@ FIXTURES = [
     FixtureExpectation("cognitive-method/C5-pattern-as-input-reference.json", "cognitive-method", "pass"),
     FixtureExpectation("cognitive-method/C6-exact-bound-method-realization.json", "cognitive-method", "pass"),
     FixtureExpectation("cognitive-method/C7-output-and-residual-refs.json", "cognitive-method", "pass"),
+    FixtureExpectation("cognitive-method/C8-interchange-method-application.json", "semantic-interchange", "pass"),
     FixtureExpectation("negative/decision-authority-field.json", "decision-memory", "schema_fail"),
     FixtureExpectation("negative/capability-missing-observed-at.json", "capability-observation", "schema_fail"),
     FixtureExpectation("negative/cognitive-method-decision-field.json", "cognitive-method", "schema_fail"),
