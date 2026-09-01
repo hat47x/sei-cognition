@@ -1,153 +1,230 @@
-# SOZA Contract Conformance Evidence — 2026-08-31
+# SOZA Contract Conformance Evidence — 2026-08-31 baseline / 2026-09-01 update
 
-更新日: 2026-08-31  
+更新日: 2026-09-01  
 状態: **Fixture-scoped Executable Evidence — PASS**
 
 ## 1. 対象
 
-current `develop/v0.1.0` branchで、次のContract `v1alpha1`についてmachine-readable schema、fixture、semantic validatorを検証した結果を記録します。
+この文書は、SOZA current Contract `v1alpha1`に対するmachine-readable schema、fixture、semantic validatorのactual CI Evidenceを記録します。
+
+current `develop/v0.2.0`で対象となるContract familyは次の5つです。
 
 - `soza.semantic-reference/v1alpha1`
 - `soza.decision-memory/v1alpha1`
 - `soza.capability-observation/v1alpha1`
+- `soza.cognitive-method/v1alpha1`
 - `soza.semantic-interchange/v1alpha1`
 
-本書はRun `33346472419`のEvidenceを保存しつつ、その後current repositoryへ追加されたProfile / Runtime / Adapter Evidenceとの位置関係も明示します。
+2026-08-31時点の17-fixture baselineを履歴として否定せず、2026-09-01にCognitive Methodを追加したcurrent 31-fixture runを現在の代表Evidenceとします。
 
-## 2. 実行Evidence
+## 2. current実行Evidence
 
 GitHub Actions:
 
 - Workflow: `Contract Conformance`
-- Run ID: `33346472419`
-- Head SHA: `9921c66f0803ddfe7810ea46c86b995f52895472`
+- Run ID: `33467838961`
+- Head SHA: `d9f1e9995b4e512c4042fae5928724fc721e7194`
 - Conclusion: **success**
-- Python: 3.12
 - Checker: `python tools/check_contract_conformance.py`
-- Fixture count: **17**
+- Fixture count: **31**
 - Overall result: **passed = true**
 
-## 3. 検証したfixture
+同じHEADのSemantic Runtime Conformance:
 
-### Expected PASS
+- Run ID: `33467838941`
+- Conclusion: **success**
 
-1. `F1-tei-partial-degradation.json`
-2. `F2-proposed-state-vs-actual.json`
-3. `F3-release-without-environment-binding.json`
-4. `F4-observation-gap.json`
-5. `F5-cross-provider-comparison.json`
-6. `F6-historical-reconstruction.json`
-7. `F7-selective-disclosure.json`
-8. `verification-not-verified.json`
-9. `verification-failed.json`
-10. `recommendation-without-decision.json`
-11. `decision-with-unresolved.json`
-12. `partial-knowledge-interchange.json`
+V6/V7 Projection regression:
 
-### Expected Schema FAIL
+- Run ID: `33467838952`
+- Conclusion: **success**
 
-13. `decision-authority-field.json`
-   - Decision recordへ`authority`を直接埋め込む表現を拒否した。
-14. `capability-missing-observed-at.json`
-   - Capability Observationの観測時点欠落を拒否した。
+Projection runはContract coverageを増やすEvidenceではなく、Contract / runtime追加による既存Projection回帰がないことの確認です。
 
-### Expected Semantic FAIL
+## 3. fixture構成
 
-15. `same-logical-lineage-without-exact.json`
-   - 同一logical identity内のrevisionにexact endpointがないため拒否した。
-16. `interchange-mismatched-exact-binding.json`
-   - bundle内のexact recordとDecision basisのdigest / profileが一致しないため拒否した。
+### Capability Observation F1〜F7 — 7件
 
-### Expected `not_verified`
+- F1 partial degradation
+- F2 proposed state vs actual
+- F3 release without environment binding
+- F4 observation gap
+- F5 cross-provider comparison
+- F6 historical reconstruction
+- F7 selective disclosure
 
-17. `unknown-contract-version.json`
-   - unknown nested Contract versionを既知Contractとして解釈せず、failureとも混同せず`not_verified`として分類した。
+### Cognitive Method C1〜C8 — 8件
 
-## 4. このEvidenceで直接確認できたこと
+- C1 Method Definition
+- C2 Method Realization
+- C3 Application with Realization
+- C4 Application without Realization
+- C5 Pattern as input Reference
+- C6 Exact-bound Method / Realization Reference
+- C7 output / residual refs
+- C8 current Semantic Interchange内Method Application
+
+### Boundary / expected PASS or `not_verified` — 7件
+
+- verification-not-verified
+- verification-failed
+- recommendation-without-decision
+- decision-with-unresolved
+- partial-knowledge-interchange
+- unknown-contract-version → `not_verified`
+- unknown-cognitive-method-version → `not_verified`
+
+### Negative Schema / Semantic FAIL — 9件
+
+- decision-authority-field
+- capability-missing-observed-at
+- same-logical-lineage-without-exact
+- interchange-mismatched-exact-binding
+- cognitive-method-decision-field
+- cognitive-method-assurance-field
+- cognitive-method-realization-missing-method-ref
+- cognitive-method-application-missing-method-ref
+- cognitive-method-pattern-field
+
+```text
+7 Capability
++ 8 Cognitive Method
++ 7 Boundary
++ 9 Negative
+= 31 fixtures
+```
+
+## 4. Cognitive Methodで直接確認した境界
+
+### Definition / Realization / Applicationの分離
+
+`soza.cognitive-method/v1alpha1`は次を別recordとして扱います。
+
+```text
+Method Definition
+  != Method Realization
+  != Method Application
+```
+
+Realizationが省略されたApplicationを、Realization不存在やMethod未適用へ読み替えません。
+
+### semantic escalationを拒否する
+
+negative fixtureにより、Method ApplicationへDecisionやAssuranceを直接埋め込む表現を拒否します。
+
+```text
+Method Application != Decision != Assurance
+```
+
+Pattern固有fieldをCognitive Method recordへ取り込む表現も拒否し、Patternはdomain-specific knowledgeへのReferenceとして保持します。
+
+### Reference / Exact Binding
+
+Method / Realization / input / output / residual / provenance等をReferenceで扱えます。
+
+C6ではMethod / RealizationのExact Binding metadataを保持できることを確認しています。
+
+これはExact Binding metadataの構造・runtime read Evidenceであり、payload bytesをこのfixtureだけで再hashして検証したことを意味しません。
+
+### unknown future version
+
+`soza.cognitive-method/v1alpha2`の未知nested recordは、known v1alpha1として推測解釈せず、opaque payloadを保持した`not_verified`になります。
+
+```text
+unknown version != failed != current version
+```
+
+## 5. 従来境界の回帰確認
+
+current 31-fixture runでも次を維持しています。
 
 ### Capability Observation
 
-- TEIの部分劣化をCapability全体の`unavailable`へ平坦化しない。
-- proposed stateとactual stateを区別する。
-- Releaseの存在とruntime availabilityを分ける。
+- 部分劣化をCapability全体のunavailableへ平坦化しない。
+- proposed / actualを分ける。
 - `not observed`を`unavailable`へ変換しない。
-- TEIとSaaSをProvider-neutralに同じCapability候補として扱える。
-- Provider固有contextをUniversal fieldへ無理に展開しない。
-- Decision時点のObservation / mappingをexact bindingで保持できる。
-- WithheldとUnknownを区別できる。
+- Provider-neutral observationとprovider-specific contextを分離する。
+- WithheldとUnknownを区別する。
 
 ### Decision Memory
 
-- RecommendationはDecisionなしでも存在できる。
-- DecisionはUnknown / Conflictを残したまま存在できる。
-- Decision recordへAuthorityを埋め込む表現を拒否できる。
-- Decision basisがbundle内exact recordと食い違う場合をsemantic violationとして検出できる。
+- Recommendationだけの状態をDecision済みとしない。
+- Decision後もunresolved stateを保持できる。
+- AuthorityをDecision recordへ内包させる表現を拒否する。
 
 ### Semantic Reference / Interchange
 
-- Schemaだけでは表しにくいsame-logical-id lineage invariantをvalidatorで検出できる。
-- `failed`と`not_verified`を別状態として保持できる。
+- same-logical lineage invariantを検査する。
+- `failed`と`not_verified`を分ける。
 - unknown Contract versionをknown扱いしない。
-- partial knowledgeをmalformed interchangeと同一視しない。
+- partial knowledgeをmalformed dataと同一視しない。
+- current known nested Contractをtyped validationする。
 
-## 5. Evidenceの高さ
+## 6. bundle-local Exact Binding consistency
 
-本Runから直接主張するのは、**current repository上の17 fixtureに限定したExecutable Evidence**です。
+current checker / runtimeには、bundle内exact-bound recordとDecision basisの不一致を検出する既存Evidenceがあります。
+
+Cognitive Method追加によって同じ意味規則をMethod / Realization等にも一般化する必要が明確になったため、ADR-0026 / ISSUE-000049を起票しました。
 
 ```text
-Current Contract Design Baseline: Satisfied
-17-fixture Contract Conformance: Satisfied within fixture scope
+Decision basis mismatch checked
+  != all known Contract reference roles generalized
+```
+
+ISSUE-000049はOpenであり、その一般化をcurrent 31-fixture PASSへ含めません。
+
+## 7. Evidenceの高さ
+
+current runから直接主張するのは、**31 fixtureとcurrent checkerが表現する範囲に限定したExecutable Evidence**です。
+
+```text
+Current 5-Contract Design Baseline: Satisfied
+31-fixture Contract Conformance: Satisfied within fixture scope
+Cognitive Method typed runtime: Satisfied within first-slice scope
 Release Evidence: Not Yet Verified
 Operational Evidence: Not Yet Verified
 Adoption / Outcome Evidence: Not Yet Verified
 ```
 
-Design、Executable、Release、Operational、Adoption / Outcomeを一つの`verified`へまとめません。
+CI PASSをSOZA全体のrelease readiness、production interoperability、Method quality、利用者価値へ拡張しません。
 
-CI PASSをSOZA全体のrelease readiness、production interoperability、利用者価値へ拡張して解釈しません。
-
-## 6. 後続Evidenceとの関係
-
-本Run以後、同じ意味境界の一部について別のExecutable Evidenceが追加されています。
+## 8. 主要な後続Evidence
 
 ### Representation Profile
 
-- Run `33347989530`: `profile-fixtures` / `jcs-go-probe` **success**
+- Run `33347989530`: fixture / JCS probe **success**
 - current Profile: `soza.jcs+sha256/v1alpha1`, `soza.raw-bytes+sha256/v1alpha1`
 
-これはcurrent/future Exact BindingのRepresentation Profileに対する別のscoped Executable Evidenceです。本17-fixture RunがProfile verifierを実証したことにはしません。
+### Runtime Verifier Registry
 
-### first semantic runtime
+- Run `33452115728`: **success**
 
-- Semantic Runtime Conformance #3 / Run `33348972805`: **success**
+### Payload Source
 
-Contract fixtureをGo runtimeがread / validate / reconstructできる範囲を追加で確認しています。
+- Run `33457416359`: **success**
 
 ### synthetic Provider Adapter
 
-- Semantic Runtime Conformance #4 / Run `33349604842`: **success**
-- Semantic Runtime Conformance #5 / Run `33349801993`: **success**
+- Run `33349604842`: **success**
+- Run `33349801993`: **success**
 
-異なるProvider-specific inputからCapability Observationへ収束し、Provider固有fieldをUniversal schemaへ漏らさず、missing値を`unknown`として扱う境界を追加で確認しています。
+これらは互いに別のscoped Executable Evidenceです。あるRunのPASSを別境界のEvidenceへ遡及的に読み替えません。
 
-```text
-later runtime / adapter PASS
-  != this Contract Run covered those implementations
-```
+## 9. currentで未検証の事項
 
-## 7. currentで未検証の事項
-
-- historical M47 digest規則のRepresentation Profile特定 — ISSUE-000034
+- Cognitive Method executor / actual Prompt / AI / human procedure execution
+- Method Applicationの結論品質 / Assurance
+- ISSUE-000049のcross-Contract bundle consistency一般化
 - actual Storage migration
 - production Provider / TEI interoperability
-- production Decision / Authority / Executionをまたぐend-to-end運用
+- production Decision / Authority / Execution end-to-end
 - Release Evidence
 - Operational Evidence
 - Adoption / Outcome Evidence
 
-current `v1alpha1` Representation Profile自体はADR-0023でAcceptedされ、fixture / verifier probeのscoped Executable Evidenceがあります。historical M47 mappingが未完了であることと混同しません。
+historical M47 digest ruleはISSUE-000034のResolved方針どおり回収不能範囲を`not_verified`として保持します。
 
-## 8. 再現方法
+## 10. 再現方法
 
 ```bash
 python -m pip install -r tools/contract-check-requirements.txt
@@ -156,6 +233,6 @@ python tools/check_contract_conformance.py
 
 GitHub Actionsでは`.github/workflows/contract-conformance.yml`から同じcheckerを実行します。
 
-## 9. Natural Japanese review
+## 11. Natural Japanese review
 
-Run `33346472419`のCIログと17 fixtureの期待結果を保存したまま、current Contract / Representation Profile / first runtime / synthetic Provider Adapterの後続Evidenceへ戻って位置づけを再監査しました。その後、数値、run ID、fixture期待結果、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+2026-08-31の17-fixture Evidence、2026-09-01のCognitive Method追加、current 31 fixture、Contract checker、Go runtime、actual Run `33467838961` / `33467838941`へ戻って検査範囲を再確認しました。そのうえで、旧Evidenceを消さずcurrent代表Evidenceを更新し、Method runtime PASSをMethod実行・品質・Release以降へ拡張しない形に整理しました。最後に、数値、run ID、fixture期待結果、意味境界を保ったまま、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
