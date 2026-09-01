@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os/exec"
 )
 
@@ -36,8 +37,11 @@ func RunJSON(binary string, args []string, input any, output any) error {
 		return fmt.Errorf("reference process outputを読めません: %w", err)
 	}
 	var extra any
-	if err := decoder.Decode(&extra); !errors.Is(err, nil) {
-		// 2個目のJSONが存在しない通常ケースはio.EOFです。Decode結果を下で扱います。
+	if err := decoder.Decode(&extra); !errors.Is(err, io.EOF) {
+		if err == nil {
+			return errors.New("reference process outputに複数のJSON値があります")
+		}
+		return fmt.Errorf("reference process outputの末尾を検査できません: %w", err)
 	}
 	return nil
 }
