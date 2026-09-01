@@ -1,0 +1,38 @@
+{
+  "contract": "soza.semantic-interchange/v1alpha1",
+  "bundle_id": "unknown-exact-looking-payload",
+  "records": [
+    {
+      "record_id": "known-record",
+      "contract": {"contract_id": "soza.semantic-reference", "version": "v1alpha1"},
+      "kind": "exact-binding",
+      "logical_ref": {"kind": "artifact", "id": "opaque-target"},
+      "exact_binding": {
+        "logical_ref": {"kind": "artifact", "id": "opaque-target"},
+        "content_digest": "sha256:known",
+        "representation_profile": {"profile_id": "fixture.raw-json", "version": "v0"}
+      },
+      "payload": {
+        "contract": "soza.semantic-reference/v1alpha1",
+        "record_type": "exact_binding",
+        "exact_binding": {
+          "logical_ref": {"kind": "artifact", "id": "opaque-target"},
+          "content_digest": "sha256:known",
+          "representation_profile": {"profile_id": "fixture.raw-json", "version": "v0"}
+        }
+      }
+    },
+    {
+      "record_id": "future-record",
+      "contract": {"contract_id": "soza.future-semantic", "version": "v9"},
+      "kind": "future-kind",
+      "payload": {
+        "exact_binding": {
+          "logical_ref": {"kind": "artifact", "id": "opaque-target"},
+          "content_digest": "sha256:must-not-be-inspected",
+          "representation_profile": {"profile_id": "fixture.raw-json", "version": "v0"}
+        }
+      }
+    }
+  ]
+}
