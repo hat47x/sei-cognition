@@ -16,7 +16,7 @@ Product Value / Value Proposition
   → Value Model / Value Acceptance
   → Vision / Principles / Product Shape
   → Deadline-free Product Milestones
-  → Product Interaction / other Product boundaries
+  → Product Interaction / Packaging / other Product boundaries
   → Open Question / Product Hypothesis
   → Discussion / Research / Experiment
   → Requirements / Acceptance Scenarios
@@ -99,6 +99,25 @@ ISSUE-000053では、この境界を`runtime/go/interactionprobe`のreference pr
 
 ただし、reference probeのSurfaceやin-memory storeはproduction標準ではありません。
 
+### `packaging/SOZA_PRODUCT_PACKAGING.md`
+
+PMS-04に対応する最初のPackaging / Deployment boundaryを定めます。
+
+最初のprofileはLocal Single-Node Packageです。
+
+```text
+Go runtime executable
+  + replaceable Persistence boundary
+  + explicit durable data root
+  + portable semantic data
+```
+
+Goの単一バイナリ化やfilesystemの扱いやすさは最初のRealizationで活用しますが、runtime executable、file path、single-process topologyをsemantic authorityへ昇格させません。
+
+ISSUE-000054の`runtime/go/packagingprobe`では、filesystemへの保存、元のin-memory runtime stateを破棄した後の再構成、canonical bundle fileのcopy / restore、filesystemからmemory Persistenceへのportable migrationを限定的に確認しています。
+
+このprobeはliteralなOS process再起動、配布バイナリ、crash durability、production DB migrationを実証するものではありません。
+
 ## 3. 未定領域の扱い
 
 未定のProduct領域は、最初からstable Requirementとして扱いません。
@@ -114,7 +133,7 @@ Open Question
 
 チャット上の議論は探索・統合の作業空間として使えますが、current正本はrepository上のProduct / Requirement / ADR等へ戻します。
 
-Product Interactionについても、Design boundaryとreference probeのExecutable Evidenceが成立したことと、production UI / protocol / Storage / usabilityが成立したことは分けます。実利用やPackagingから新しい意味上の必要性が確認された場合だけRequirement / Scenario追加を再検討します。
+Product InteractionやPackagingについても、Design boundaryやreference probeのExecutable Evidenceが成立したことと、production UI / protocol / distribution / Storage / usabilityが成立したことは分けます。実利用や後続実証から新しい意味上の必要性が確認された場合だけRequirement / Scenario追加を再検討します。
 
 ## 4. 具体的なScenarioの正本
 
@@ -129,7 +148,7 @@ Product Value / V1〜V8
   → ADR / Architecture / Contract / Test
 ```
 
-Product MilestoneやProduct Interactionの各項目も、そのままRequirementやScenarioへ変換しません。独立した規範上の必要性が確認できたものだけを下位正本へ反映します。
+Product Milestone、Product Interaction、Product Packagingの各項目も、そのままRequirementやScenarioへ変換しません。独立した規範上の必要性が確認できたものだけを下位正本へ反映します。
 
 ## 5. 現在のProduct Milestone上の位置
 
@@ -139,15 +158,16 @@ current repositoryでは、少なくとも次の状態まで確認していま�
 - current semantic Contract群: **scoped Executable Evidence available**
 - SCN-0018 end-to-end Semantic Product Journey: **fixture-scoped Executable Evidence available**
 - first usable Product Interaction: **Design baseline established / scoped Executable Evidence available**
-- packaged product: **Not Yet Verified**
+- Packaging / Deployment: **Design baseline established / scoped persistence・resume・Storage migration Executable Evidence available**
+- distributable end-user package: **Not Yet Verified**
 - Product Identity / Authorization / Collaboration: **Not Yet Verified**
 - real Method / Provider portability: **Partial**
 - current Product Shape全体のRelease Evidence: **Not Yet Verified**
 - Operational / Adoption Outcome: **Not Yet Verified**
 
-Product Interactionについては、`interaction/SOZA_PRODUCT_INTERACTION.md`とADR-0028でDesign boundaryを正本化し、ISSUE-000053の`runtime/go/interactionprobe`でhuman-oriented / machine-oriented Surfaceが同じcanonical sourceへ接続できることを限定範囲で確認しました。詳細なEvidenceは`../runtime/INTERACTION_PROBE_EVIDENCE_2026-09-01.md`を参照してください。
+Product Interactionの詳細なEvidenceは`../runtime/INTERACTION_PROBE_EVIDENCE_2026-09-01.md`、Packaging / Persistence probeは`../runtime/PACKAGING_PROBE_EVIDENCE_2026-09-01.md`を参照してください。
 
-このprobeのPASSから、production UIの使いやすさ、supported protocol、Packaging、Operational / Adoption Evidenceを推定しません。
+個別probeのPASSから、production UIの使いやすさ、supported protocol、distributable package、crash durability、Release / Operational / Adoption Evidenceを推定しません。
 
 ## 6. Product Valueを変更するとき
 
@@ -178,7 +198,7 @@ Coreへ追加する前に、少なくとも次を検討します。
 
 現在の実装で便利であることや、関連製品との距離が近いことだけをCore昇格理由にしません。
 
-Product Interaction上の`Case`、`Session`、`Workspace`、`Thread`等についても、UI上便利という理由だけでUniversal Coreへ追加しません。reference probeの`CanonicalStore`やSurface DTOも同様です。
+Product Interaction上の`Case`、`Session`、`Workspace`、`Thread`等、reference probeの`CanonicalStore`やSurface DTO、Packaging probeのPersistence interfaceやfilesystem layoutも、実装上便利という理由だけでUniversal Coreへ追加しません。
 
 ## 8. 推奨する読む順序
 
@@ -191,11 +211,13 @@ Product Interaction上の`Case`、`Session`、`Workspace`、`Thread`等につい
 7. `principles/SOZA_PRODUCT_PRINCIPLES.md`
 8. `roadmap/SOZA_PRODUCT_MILESTONES.md`
 9. `interaction/SOZA_PRODUCT_INTERACTION.md`
-10. `../plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`
-11. `../requirements/PRODUCT_REQUIREMENTS.md`
-12. `../requirements/ACCEPTANCE_SCENARIOS.md`
-13. `../architecture/TRACEABILITY.md`
-14. `../contracts/TRACEABILITY.md`
+10. `packaging/SOZA_PRODUCT_PACKAGING.md`
+11. `../plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`
+12. `../requirements/PRODUCT_REQUIREMENTS.md`
+13. `../requirements/ACCEPTANCE_SCENARIOS.md`
+14. `../architecture/SOZA_DEPLOYMENT_ARCHITECTURE.md`
+15. `../architecture/TRACEABILITY.md`
+16. `../contracts/TRACEABILITY.md`
 
 ## 9. 文書品質
 
@@ -207,4 +229,4 @@ Product文書は、内容と構造を確定した後に、意味、規範強度�
 
 ## 10. Natural Japanese review
 
-current Product Value、Value Proposition、Product Shape、Product Milestone、Product Journey、Product Interaction baseline、ISSUE-000053のreference probeとcurrent Evidenceを確認し、Product Interactionの状態をDesign baselineだけでなくscoped Executable Evidenceが得られた段階へ同期しました。一方、reference probeの成功をproduction UX、supported protocol、Storage、Packaging、Operational / Adoptionへ広げていません。画面やchat、probe固有DTO等の都合からUniversal概念を増やさない境界も維持しています。そのうえで、Product Value、Milestone、Requirement、Implementationの権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+current Product Value、Value Proposition、Product Shape、Product Milestone、Product Journey、Product Interaction、Product Packaging、ISSUE-000053 / 000054のreference probeとcurrent Evidenceを確認しました。Product InteractionとPackagingについて、Design boundaryとscoped Executable Evidenceが得られた範囲を同期する一方、production UX、supported protocol、literal process restart、distributable package、crash durability、Release / Operational / Adoptionへ広げていません。画面やchat、probe固有DTO、Persistence interface、filesystem layout等の都合からUniversal概念を増やさない境界も維持しています。そのうえで、Product Value、Milestone、Requirement、Implementationの権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
