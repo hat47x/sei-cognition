@@ -72,9 +72,9 @@ H1から、**current Method Realization + implementation refs + Exact Bindingに
 
 ## H2 — live integrationで情報を落とさない
 
-H1でCore Contractの能力は確認できたが、M1a / M1bのlive mapping自体は同じlogical Realizationへ畳み込んでいた。H2では、実際のmappingでこの情報欠落をなくす。
+H1でCore Contractの能力は確認できたが、M1a / M1bのlive mapping自体は同じlogical Realizationへ畳み込んでいた。H2では、実際のmappingでこの情報欠落をなくした。
 
-### H2で採る表現
+### H2で採った表現
 
 M1aとM1bは、同じRealizationの単なるartifact revisionではなく、実現機構そのものが異なる。
 
@@ -135,17 +135,31 @@ M1b workflowでは次を明示する。
 - model: `qwen2.5:0.5b`
 - model ID: `a8b0c5157701`
 
-Applicationは対応するRealization logical referenceを保持し、Provenanceから具体的な実行条件を読み直せるようにする。
+Applicationは対応するRealization logical referenceを保持し、Provenanceから具体的な実行条件を読み直せるようにした。
 
-### H2で検査すること
+また、不完全なExecution Identityをcanonical state変更前に拒否するnegative testを追加した。これにより、実行条件を記録しようとしているのにprofile等の最低限の意味が欠けた状態を、曖昧なProvenanceとして残さない。
 
-- M1a / M1bが同じRealizationへ畳み込まれない。
-- live Applicationの`realization_ref`がworkflowから明示したidentityと一致する。
-- model / runtime等の実行条件がopaque Provenanceへ保持される。
-- 実行条件を追加してもKJ Atlas固有responseをUniversal Contractへ昇格させない。
-- grouping結果をRecommendation / Decisionへ自動昇格させない。
-- 不完全なExecution Identityはcanonical stateを書き換える前に拒否する。
-- 既存のlogical-only利用を壊さない。
+### H2 CI
+
+current PR head `711b31cccdcd4644ab47554322455e4219f910b6`で次を確認した。
+
+- External Method Integration E3b Run `33630741545`: **success**
+  - M1a actual KJ Atlas grouping: success
+  - mapping boundary tests: success
+  - `MR-KJ-ATLAS-M1A` + deterministic stub execution identityでのSOZA mapping: success
+- External Model-backed Method E3b M1b Run `33630741559`: **success**
+  - digest-pinned Ollama runtime install: success
+  - model identity `a8b0c5157701`確認: success
+  - actual inference: success
+  - mapping boundary tests: success
+  - `MR-KJ-ATLAS-M1B` + Ollama / qwen execution identityでのSOZA mapping: success
+- Semantic Runtime Conformance Run `33630741581`: **success**
+- Plan integrity Run `33630741593`: **success**
+- Release Candidate Gate Run `33630741555`: **success**
+  - Gate 1〜9: success
+  - 公開済みv0.2.0のprepare / publish: skip
+
+同headで起動した9系統のworkflowはすべてsuccessした。
 
 ## H1とH2の関係
 
@@ -153,7 +167,7 @@ H2でM1a / M1bを別Realizationとして扱うことは、H1を否定しない�
 
 H1は、**一つのRealizationについてhistorical revisionを固定する必要が生じた場合にExact Bindingで表現できる**ことを示した。
 
-H2は、**実現機構が異なるM1a / M1bを同じRealizationへ誤って畳み込まない**ことを示す。
+H2は、**実現機構が異なるM1a / M1bを同じRealizationへ誤って畳み込まない**ことを示した。
 
 ```text
 H2: 実現機構が違う
@@ -163,13 +177,13 @@ H1: 同じRealizationのhistorical revisionを区別したい
   → Exact Bindingを使う
 ```
 
-現時点では、この二段構えで必要な意味を表現できるため、Universal Contract拡張は不要と判断している。
+この二段構えで今回必要な意味を表現できたため、Universal Contract拡張は不要と判断する。
 
 ## Requirement / Scenario監査
 
-新しいStable Requirement / Scenarioは追加しない。
+H1 / H2の結果から、新しいStable Requirement / Scenarioは追加しない。
 
-既存の次で扱える。
+既存の次で今回のProduct failureと解決境界を表現できる。
 
 - REQ-0001 — 耐久的な意味の連続性
 - REQ-0004 — Methodと一つのRealizationを同一視しない
@@ -177,7 +191,7 @@ H1: 同じRealizationのhistorical revisionを区別したい
 - SCN-0005 — Cognitive Methodの交換・再構成
 - SCN-0015 — Method Applicationのportable reconstruction
 
-H2のactual CIでcurrent Contractでは守れない独立したProduct failureが現れた場合にだけ、Candidate Requirementを検討する。
+今回の実証からは、Contract fieldやRequirementを増やすより、既存Contractをintegration mappingで正しく使うことが必要だったと判断する。
 
 ## Non-goals / 停止線
 
@@ -212,28 +226,41 @@ H1 / H2 historical reconstruction PASS
 - [x] actual CIでH1 probeを成功させる。
 - [x] H1時点ではUniversal Contract / Requirement変更をNo Changeとする。
 
-### H2 / Issue closure
+### H2
 
 - [x] M1a / M1bを別Realizationとして扱うcurrent mapping方針を定める。
 - [x] live mappingへ明示的なRealization identityを渡す。
 - [x] model / runtime等の実行条件をopaque Provenanceへ保持する。
 - [x] 不完全なExecution Identityをcanonical state変更前に拒否するtestを追加する。
-- [ ] M1a actual workflowで新しいmappingを成功させる。
-- [ ] M1b actual workflowで新しいmappingを成功させる。
-- [ ] Plan integrity / Semantic Runtime / Release Candidate Gateを含む対象CIをsuccessさせる。
-- [ ] H2結果からRequirement / Contract変更の要否を最終監査する。
-- [ ] 上流計画へH1 / H2結果を同期する。
-- [ ] 自然な日本語を最重要視して全文を再確認し、最終意味監査を行う。
+- [x] M1a actual workflowで新しいmappingを成功させる。
+- [x] M1b actual workflowで新しいmappingを成功させる。
+- [x] Plan integrity / Semantic Runtime / Release Candidate Gateを含む対象CIをsuccessさせる。
+- [x] H2結果からRequirement / Contract変更の要否を再監査し、No Changeとする。
+- [ ] H1 / H2結果を上流計画へ同期する。
+- [x] 自然な日本語を最重要視して本Issueを全文再確認し、H1 / H2実装完了時点の意味監査を行う。
 
 ## Evidence state
 
 - M1a deterministic model stub execution: **Scoped Executable Evidence available**
 - M1b actual model-backed execution: **Scoped Executable Evidence available**
 - H1 Core / Bundle historical reconstruction: **Scoped Executable Evidence available — Run `33629248978`**
-- H2 live integration preservation: **Awaiting current PR CI**
+- H2 live integration preservation: **Scoped Executable Evidence available — Runs `33630741545` / `33630741559`**
 - arbitrary model / runtime version portability: **Not Yet Verified**
 - E4 Operational portability: **Not Yet Verified**
 - Operational Evidence: **Not Yet Verified**
+
+## 現在Openで残す理由
+
+H1 / H2の実装・実証は完了した。ISSUE-000067をまだResolvedにしないのは、上流計画へ今回の知見を反映し、次の探索点を正しく移す工程だけが残っているためである。
+
+この残作業では新しい実装を追加することを目的にしない。Upstream Product Development Plan上で、次を明確にする。
+
+- 異なる実現機構は別Realizationとして扱える。
+- 同一Realization内のhistorical revisionは必要に応じてExact Bindingで固定できる。
+- model / runtime固有fieldのUniversal Contract追加は現時点で不要である。
+- 次に残るのはarbitrary version交換、E4 Operational portability、品質評価等であり、今回のH1 / H2 PASSから自動的に成立しない。
+
+上流計画との同期後、Plan Registryと本IssueをResolvedへ揃えて閉じる。
 
 ## Reopen / escalation条件
 
@@ -247,8 +274,8 @@ H1 / H2 historical reconstruction PASS
 
 ## 自然な日本語レビュー
 
-current Upstream Product Development Plan、Cognitive Method Contract、ADR-0008 / 0009 / 0017 / 0021 / 0025 / 0026、E3b-M1a / M1b Evidence、`runtime/go/livemethodintegration`、H1 probeと実行結果を照合した。
+current Upstream Product Development Plan、Cognitive Method Contract、ADR-0008 / 0009 / 0017 / 0021 / 0025 / 0026、E3b-M1a / M1b Evidence、`runtime/go/livemethodintegration`、H1 probe、H2 actual workflow結果を照合した。
 
-H1で確認した「同一Realization内のhistorical revision」と、H2で扱う「実現機構そのものが異なるRealization」を分けて整理した。M1a / M1bの違いをmodel / runtime固有のUniversal fieldへ持ち込まず、logical Realizationとopaque Provenanceで保持する。一方、同じRealization内のrevisionを固定する必要がある場合にはExact Bindingを利用できる。
+H1で確認した「同一Realization内のhistorical revision」と、H2で扱った「実現機構そのものが異なるRealization」を分けて整理した。M1a / M1bの違いをmodel / runtime固有のUniversal fieldへ持ち込まず、logical Realizationとopaque Provenanceで保持する。一方、同じRealization内のrevisionを固定する必要がある場合にはExact Bindingを利用できる。
 
-意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語として一続きに読めることを最重要視して全文を再ドラフトし、H2 CI前の意味監査を実施した。
+H1 / H2の実装と実測結果を反映したうえで、意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語として一続きに読めることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
