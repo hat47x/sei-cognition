@@ -134,7 +134,34 @@ future develop commit
 
 導入途中のcommit `f6477e3c89ec01a970c48cb6f3f55a0830744ff2`では、workflow側を先に更新したため旧release requestに`publication_state`がなく、Run `33585287867`がlifecycle stepでfailureしました。直後にrequestを`completed`へ同期し、同じ検査を通し直してsuccessを確認しています。failureを条件緩和で回避せず、原因となったversion固有release stateを修正しました。
 
-## 8. failureの扱い
+## 8. Plan blockerのversion境界
+
+Release Candidate Gateをrelease後の`develop`でも回帰検査として使う場合、**現在存在するすべてのPlan Issueを過去versionのrelease blockerへしてはなりません**。後から追加された実証課題がOpenであることと、既に成立したversionのcandidate条件は別だからです。
+
+このため、version固有の`release-candidate.json`に`plan_issue_scope_max`を持たせ、candidate policyが参照するPlan Issueの上限を固定します。
+
+現在の境界は次です。
+
+```text
+v0.1.0 → ISSUE-000041 まで
+v0.2.0 → ISSUE-000062 まで
+```
+
+v0.1.0の初回candidate commitにはISSUE-000041までが存在し、v0.2.0のactual release source commitにはISSUE-000062までが存在しました。したがって、これより後に追加されたIssueは、旧versionのcandidate blockerへ遡及させません。
+
+一方、境界内のIssueが後から`Open`、`In Progress`、`Blocked`へ戻った場合は、現在のPlan registryとの不整合としてcandidate revalidationをblockします。過去versionの条件を凍結することと、過去の意味上の前提が現在明示的に撤回された場合まで無視することは同じではありません。
+
+```text
+post-release Issue is Open
+  != old release candidate blocked
+
+in-scope historical Issue reopened
+  → old candidate revalidation blocked
+```
+
+この境界はIssueを無理に`Resolved`へ変更してCIを通すための例外ではありません。各versionが実際にrelease判断へ含めたPlan snapshotを機械的に再現するためのpolicyです。
+
+## 9. failureの扱い
 
 candidate / publicationのfailureは、条件を弱める理由にはしません。
 
@@ -142,10 +169,10 @@ failureが生じた場合は、Plan policy、checker、runtime、artifact build�
 
 `failed`を`not_verified`やPASSへ読み替えません。
 
-## 9. 自然な日本語レビュー
+## 10. 自然な日本語レビュー
 
-v0.2.0 Release Acceptance、Release Notes、Release Evidence、release request、ISSUE-000059〜000063、actual tag ref、GitHub Release、Run `33574947445`、各release asset digest、release後のcandidate Run `33585297218`を照合しました。
+v0.1.0 / v0.2.0 Release Acceptance、各`release-candidate.json`、Release Notes、Release Evidence、release request、actual release sourceのPlan registry、ISSUE-000059〜000065、actual tag ref、GitHub Release、Run `33574947445`、各release asset digest、release後のcandidate Runを照合しました。
 
-候補の成立、actual releaseの成立、publication lifecycleの完了、後続のE3b等のExecutable Evidence、Operational / Adoption Evidenceを分け、現在の状態をrelease入口から自然にたどれる構成へ整理しています。特に、actual release後のdevelop更新を同じversionの再publicationと混同せず、candidate revalidationだけを継続する境界を明示しました。
+候補の成立、actual releaseの成立、publication lifecycleの完了、後続のE3b等のExecutable Evidence、Operational / Adoption Evidenceを分け、現在の状態をrelease入口から自然にたどれる構成へ整理しています。さらに、release後に追加されたOpen Issueを過去versionのblockerへ遡及させないよう、versionごとのPlan snapshot境界を明示しました。ただし、境界内のIssueが現在明示的にreopenされた場合はcandidate revalidationを止めるため、過去条件の再現と現在の反証の双方を失わない構成にしています。
 
 意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
