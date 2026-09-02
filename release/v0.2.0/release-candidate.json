@@ -38,7 +38,11 @@
     "runtime/package/reference",
     "evaluation/v6-v7",
     "plan/registry.yaml",
-    "release/v0.2.0/RELEASE_ACCEPTANCE.md"
+    "release/v0.2.0/RELEASE_ACCEPTANCE.md",
+    "release/v0.2.0/RELEASE_NOTES.md",
+    "release/v0.2.0/release-request.json",
+    "tools/prepare_v0_2_0_release.py",
+    ".github/workflows/release-candidate.yml"
   ],
   "allowed_deferred_issues": [
     "ISSUE-000021"
