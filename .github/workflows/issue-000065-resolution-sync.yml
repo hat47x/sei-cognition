@@ -1,0 +1,36 @@
+name: ISSUE-000065 resolution sync
+
+on:
+  push:
+    branches:
+      - work/close-actual-tei-e3b-p2-v0.2.0
+    paths:
+      - ".github/workflows/issue-000065-resolution-sync.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: work/close-actual-tei-e3b-p2-v0.2.0
+
+      - name: ISSUE-000065のResolutionを台帳へ同期
+        run: python3 .github/scripts/sync_issue_000065_resolution.py
+
+      - name: 一時同期ファイルを削除してcommit
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/scripts/sync_issue_000065_resolution.py
+          rm .github/workflows/issue-000065-resolution-sync.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "plan: synchronize ISSUE-000065 resolution"
+          git push origin HEAD:work/close-actual-tei-e3b-p2-v0.2.0
