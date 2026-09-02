@@ -33,7 +33,7 @@ reviewed:
     coverage:
       - SOZA_PRODUCT_SHAPE.md
       - SOZA_REALIZATION_PROVIDER_EXCHANGE.md
-    note: Product Shapeに加え、Realization / Provider Exchange、E3a外部artifact integration、E3b-P1 public live Provider integrationを含むcurrent Product定義を、Universal semanticsとreference Realizationを混同しない形で監査済み。
+    note: Product Shapeに加え、Realization / Provider Exchange、E3a外部artifact integration、E3b-P1 public live Provider integrationを含むcurrent Product定義を監査済み。E3b-M1aの実証もこの既存境界へ従い、KJ Atlas固有schemaをUniversal semanticsへ昇格させていない。
   - scope: product/vision/SOZA_PRODUCT_VISION.md
     status: revised
   - scope: product/principles/SOZA_PRODUCT_PRINCIPLES.md
@@ -43,7 +43,7 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_MILESTONES.md
-    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06はmerge後developで再現したE3b-P1までをscoped Executable Evidenceとして反映し、ISSUE-000061のTEI executable注入境界とactual E3b-P2を分離している。PMS-07ではactual v0.2.0 Release Candidate EvidenceとRelease Evidenceを分けている。
+    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06はmerge後developで再現したE3b-P1、ISSUE-000061のTEI executable注入境界、ISSUE-000062のE3b-M1a live KJ Atlas process実証を分離している。PMS-07ではactual v0.2.0 Release Candidate EvidenceとRelease Evidenceを分けている。
   - scope: product/interaction/*.md
     status: revised
     coverage:
@@ -66,8 +66,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、自然な日本語全文再ドラフトと最終意味監査を実施済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000061
-    note: E3a外部artifact integration、v0.2.0 Release Candidate境界、E3b-P1 public live Provider integrationに加え、actual TEI実行とは区別した外部TEI executable注入境界までを含め、各Issueの意味・Evidence高さ・非主張範囲を自然な日本語で監査している。
+    coverage: ISSUE-000001..ISSUE-000062
+    note: E3a外部artifact integration、v0.2.0 Release Candidate境界、E3b-P1 public live Provider integration、actual TEI実行とは区別したISSUE-000061の外部TEI executable注入境界、ISSUE-000062のE3b-M1a live KJ Atlas process実証までを含め、各Issueの意味・Evidence高さ・非主張範囲を自然な日本語で監査している。並行開発で生じた旧ISSUE-000061の重複採番は000062への改番で解消した。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -146,6 +146,9 @@ reviewed:
   - scope: runtime/LIVE_EXTERNAL_PROVIDER_EVIDENCE_2026-09-02.md
     status: revised
     note: E3b-P1としてpublic GitHub REST APIを実際に呼び、固定revisionのidentity確認、current Capability Observationへのmapping、negative caseを検証した。PR #37の最終headとmerge後developの6系統CIまで同期し、live TEI、external Cognitive Method、private credential、Operational / Release / Adoptionへ昇格させない境界を自然な日本語で明示済み。
+  - scope: runtime/LIVE_EXTERNAL_METHOD_EVIDENCE_2026-09-02.md
+    status: revised
+    note: E3b-M1aとして固定commitのKJ Atlas FastAPIとdeterministic model stubを別processで実際に起動し、actual grouping responseをopaque not_verified outputとProvenanceを介してcurrent Cognitive Method Applicationへ結び付けたScoped Executable Evidenceを記録する。旧ISSUE-000061からcurrent ISSUE-000062への改番来歴も保持し、実外部AI/model品質、M1b、actual TEI、Operational / Release / Adoptionへは昇格させない。
   - scope: runtime/package/reference/*.md
     status: revised
     coverage:

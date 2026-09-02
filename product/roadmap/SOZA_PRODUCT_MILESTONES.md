@@ -284,7 +284,7 @@ synthetic fixtureだけでなく、実際のCognitive Method Realization、AI、
 
 ### Current state
 
-**Partial / E2 Scoped Executable Evidence available / E3a Scoped Executable Evidence available / E3b-P1 Scoped Executable Evidence available / E3b-P2・M1 pending.**
+**Partial / E2・E3a・E3b-P1・E3b-M1aにScoped Executable Evidence available / E3b-P2・E3b-M1b・E4 pending.**
 
 `product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`で、交換してよいRealization / Providerと、交換後にも判断記憶として守る意味を正本化しています。
 
@@ -298,15 +298,18 @@ E1 Contract / in-process synthetic
   → E4 operational portability
 ```
 
-E3bは、何を実際に確認したかを混同しないため、現在の作業上は次へ分けています。
+E3bはProvider側とCognitive Method側を独立に検査します。
 
 ```text
-E3b-P1 public live Provider service
-  → E3b-P2 actual TEI process / service
-  → E3b-M1 external Cognitive Method live execution
+E3b
+  ├─ P1 public live Provider service — Scoped Executable Evidence available
+  ├─ P2 actual TEI process / service — Not Yet Verified
+  └─ M1 live external Cognitive Method
+       ├─ M1a live KJ Atlas process + deterministic model stub — Scoped Executable Evidence available
+       └─ M1b live external model-backed KJ execution — Not Yet Verified
 ```
 
-このP1 / P2 / M1はEvidenceの範囲を示すための区分であり、新しいProduct ontologyではありません。
+P1 / P2 / M1a / M1bはEvidenceの範囲を示すための作業上の区分であり、新しいProduct ontologyではありません。
 
 ### E2 — out-of-process reference exchange
 
@@ -394,25 +397,47 @@ TEI source / binary acquisition
 
 この境界のdeterministic testではhelper processを使います。helper processのPASSは、**actual TEI executableを実行したEvidenceではありません**。実TEI sourceまたはbinaryが明示的に与えられる環境で実行できた時点で、E3b-P2のEvidenceを別途収集します。
 
-### E3b-M1の現在地
+### E3b-M1a — live KJ Atlas process + deterministic model stub
+
+ISSUE-000062では、public repository `hat47x/kj-atlas`の固定commit `4f28c13abe4176503c6fed863383a2d1db2299e9`をSOZA CIから取得し、KJ Atlas FastAPI backendとKJ Atlas同梱のdeterministic model stubをSOZAとは別processとして実際に起動しました。
+
+KJ Atlas自身が提供する`POST /ai/suggest-card-groups`をHTTP経由で呼び、review済みカードからgrouping候補を得ています。`doc.cards`で`holdState = held`としたカードがKJ AtlasのLLM input IR / SafeMode経路で`excludedCardIds`へ除外されることも確認しました。
+
+KJ Atlas固有responseはUniversal Cognitive Method Contractへ昇格させません。responseのJSON内容はopaqueな`not_verified` Method outputとして保持し、source repository、commit、entry point、result digestをopaqueなProvenanceとして残します。既存Cognitive Method Applicationは`realization_ref`、`output_refs`、`provenance_refs`を使ってそれらを参照します。
+
+また、grouping候補をRecommendationやDecisionへ自動昇格させません。
+
+```text
+KJ Atlas grouping suggestion
+  != Recommendation
+  != Decision
+```
+
+改番前の修正後head `078b33e29272668a7ed2074e23e18c91225e1832`では、External Method Integration E3b Run `33572160458`、Semantic Runtime Conformance Run `33572160466`、Plan integrity Run `33572160460`、External Integration E3a Run `33572160463`、External Integration E3b Provider Run `33572160510`、Local Package Artifact Run `33572160459`がsuccessしました。
+
+さらに改番前検査点 `44adf21ebfa38d976560514360eebdbbf08cbc25`でも実装・回帰系CIはsuccessし、Release Candidate Gate Run `33572621894`だけが当時の未解決IssueをGate 9でblockしました。並行開発でcurrent `ISSUE-000061`がTEI境界として確定したため、このM1a作業は`ISSUE-000062`へ改番してcurrent baseへ載せ直しています。
+
+今回使ったmodelはKJ Atlas同梱の決定的stubです。そのためM1aのPASSを、実外部AI modelの接続や生成品質のEvidenceへは昇格させません。
+
+### E3b-M1bの現在地
 
 `cultural-substrate-weaving`にはversion管理されたSkill、platform adapter、build / validation基盤がありますが、現在のrepository調査では、Methodを独立processとして実行してRecommendationを返す標準runnerは確認できていません。
 
-そのため、SOZA側が便宜的なrunnerを作り、それを「実Cognitive Methodのlive execution」とみなすことはしません。既存の実runnerまたは実際のhost integrationを特定できてから、E3b-M1の実験系を設計します。
+一方、KJ AtlasではM1aとしてactual method processまで到達しました。次のM1bでは、deterministic stubではなく実外部model-backed executionを扱う必要があります。M1aのreference AdapterをそのままUniversal protocolへ昇格させず、credential、model identity、failure、Provenanceに新しい恒久境界が必要かを実証から判断します。
 
 ### Open questions
 
 - actual TEI executableをどの環境から、どのEvidence付きでSOZA integration testへ渡すか
 - private repository credentialを使う必要がある場合、その処理をacquisition / deployment policyへどう閉じ込めるか
 - TEI CLI version交換時に必要なProvenance / Exact Bindingの水準
-- E3b-M1で利用する実Cognitive Method runnerまたはhost integration
+- E3b-M1bで最初に使う実外部modelとcredential管理
 - TEIと非TEI Providerをどの組み合わせで比較するか
 - timeout以外のnetwork degradationやrate limitをどこまでProduct acceptanceへ含めるか
 - production Realization protocolを標準化する必要が本当にあるか
-- artifact source / live ProviderをGitHub以外へ交換したときのProvenance境界
+- artifact source / live Provider / live Methodを交換したときのProvenance境界
 - E4のOperational portabilityを何で測るか
 
-E3b-P1やISSUE-000061の境界testだけを理由に、新しいStable Requirement、Universal Contract、正式integration protocolへ固定しません。
+E3b-P1、ISSUE-000061のTEI境界test、ISSUE-000062のM1a PASSだけを理由に、新しいStable Requirement、Universal Contract、正式integration protocolへ固定しません。
 
 ## 10. PMS-07 — release可能な製品として成立する
 
@@ -432,7 +457,7 @@ Release Evidence。
 
 これはRelease前のExecutable Evidenceを一つのcandidateへ束ねた記録です。actual tag / release identity / released artifactとの結び付きがない限り、Release Evidenceへ昇格しません。
 
-PMS-06のE3b-P1とISSUE-000061の外部process境界は、current v0.2.0 supported scope外で進める追加のScoped Executable Evidenceです。これらのPASSを、既存candidate scopeの拡張やProduct Release成立へ自動反映しません。
+PMS-06のE3b-P1、ISSUE-000061の外部TEI executable注入境界、ISSUE-000062のE3b-M1aは、current v0.2.0 supported scope外で進める追加のScoped Executable Evidenceです。これらのPASSを、既存candidate scopeの拡張やProduct Release成立へ自動反映しません。
 
 ## 11. PMS-08 — 実運用と利用者成果からProduct Valueを検証できる
 
@@ -466,4 +491,4 @@ Open Questionを直接Stable Requirementへ飛ばしません。
 
 ## 14. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、Product Identity / Access / Collaboration、Realization / Provider Exchange、v0.2.0 Release Acceptance、REQ-0001〜0022、SCN-0005 / 0007 / 0008 / 0010 / 0012 / 0013 / 0014 / 0018、ADR-0024 / 0025 / 0028 / 0029 / 0030、ISSUE-000046 / 000047 / 000053〜000061、current Go runtime、Interaction / Packaging / Product Access / Realization exchange / External Integration E3a / E3b-P1 / actual v0.2.0 candidate Evidence、`hat47x/tei-platform`の実CLIとprivate repository条件へ戻ってMilestone全体を再監査した。PMS-03はscoped Interaction Executable Evidence、PMS-04はLocal Reference PackageによるMinimum scoped Executable Evidence、PMS-05はProduct Access責務分離のDesignとscoped Executable Evidence、PMS-06はE2、E3a、E3b-P1までを成立済みとして整理した。E3b-P1はPR #37の最終headだけでなくmerge後`develop/v0.2.0`でも6系統のCIがsuccessしている。一方、ISSUE-000061のhelper process testはactual TEI executionへ昇格させず、TEI executable acquisition、credential、process invocation、Provider固有JSON、SOZA mappingを分離した準備境界として位置付けた。PMS-07ではactual develop Release Candidate EvidenceをRelease Evidenceから分離し、current v0.2.0 supported scopeがE3aまでであることも維持した。external Methodのlive実行、actual TEI process / service、private credential portability、Operational portability、actual Product Release、Adoption / Outcome Evidenceは未検証のままである。意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、Product Identity / Access / Collaboration、Realization / Provider Exchange、v0.2.0 Release Acceptance、REQ-0001〜0022、SCN-0005 / 0007 / 0008 / 0010 / 0012 / 0013 / 0014 / 0018、ADR-0024 / 0025 / 0028 / 0029 / 0030、ISSUE-000046 / 000047 / 000053〜000062、current Go runtime、Interaction / Packaging / Product Access / Realization exchange / External Integration E3a / E3b-P1 / E3b-M1a / actual v0.2.0 candidate Evidence、`hat47x/tei-platform`の実CLIとprivate repository条件、`hat47x/kj-atlas`の実FastAPI経路へ戻ってMilestone全体を再監査した。PMS-03はscoped Interaction Executable Evidence、PMS-04はLocal Reference PackageによるMinimum scoped Executable Evidence、PMS-05はProduct Access責務分離のDesignとscoped Executable Evidence、PMS-06はE2、E3a、E3b-P1、E3b-M1aまでをEvidenceの高さを分けて示している。ISSUE-000061のhelper process testはactual TEI executionへ昇格させず、TEI executable acquisition、credential、process invocation、Provider固有JSON、SOZA mappingを分離した準備境界として維持した。ISSUE-000062ではKJ Atlas本体のlive processとdeterministic model stubを実行したが、実外部model-backed executionへは昇格させない。並行開発で一時的に生じたIssue番号衝突も、current baseの61を保ちM1aを62へ改番することで解消した。PMS-07ではactual develop Release Candidate EvidenceをRelease Evidenceから分離し、current v0.2.0 supported scopeがE3aまでであることも維持した。E3b-M1bの実外部model-backed execution、actual TEI process / service、private credential portability、Operational portability、actual Product Release、Adoption / Outcome Evidenceは未検証のままである。意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
