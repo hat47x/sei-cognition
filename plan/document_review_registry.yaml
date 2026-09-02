@@ -19,7 +19,7 @@ reviewed:
 
   - scope: product/README.md
     status: revised
-    note: Product Value、Milestone、Interaction、Packaging、Identity / Access、Realization / Provider Exchange、v0.2.0 Release Evidence、release後のE3b-M1aまでをcurrent Product入口として自然な日本語で再整理済み。
+    note: Product Value、Milestone、Interaction、Packaging、Identity / Access、Realization / Provider Exchange、v0.2.0 Release Evidence、release後のE3b-M1aとE3b-P2 acquisition probeまでをcurrent Product入口として自然な日本語で再整理済み。P2はactual execution未検証のまま明示している。
   - scope: product/value/*.md
     status: revised
     coverage:
@@ -44,7 +44,7 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_MILESTONES.md
-    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06はE2 / E3a / E3b-P1 / E3b-M1aまでをScoped Executable Evidenceとして反映し、PMS-07はv0.2.0 Local Reference Product BaselineのRelease Evidence成立を維持する。M1aをv0.2.0 supported scopeへ遡及させず、PMS-08は未検証のまま分離している。
+    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06はE2 / E3a / E3b-P1 / E3b-M1aまでをScoped Executable Evidenceとして維持し、M1aをcurrent正本のISSUE-000064へ修正した。E3b-P2はISSUE-000065のcredential-aware probeを反映したが、actual TEI stepがskipされたため未検証のまま分離している。PMS-07はv0.2.0 Local Reference Product BaselineのRelease Evidence成立を維持し、post-release Evidenceやprobeをsupported scopeへ遡及させていない。
   - scope: product/interaction/*.md
     status: revised
     coverage:
@@ -67,8 +67,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、自然な日本語全文再ドラフトと最終意味監査を実施済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000064
-    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidenceに加え、KJ Atlasをlive実行するE3b-M1aまでを監査した。ISSUE-000063をRelease Evidence、ISSUE-000064をM1aとして分離し、並行作業の成果を巻き戻さない番号体系へ同期済み。
+    coverage: ISSUE-000001..ISSUE-000065
+    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidence、KJ Atlasをlive実行するE3b-M1aに加え、actual TEI実行を狙うE3b-P2のISSUE-000065まで監査した。ISSUE-000064をM1a、ISSUE-000065をP2としてcurrent番号体系へ同期し、資格情報不足でactual stepがskipされた最初のprobeをP2成功へ読み替えていない。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -150,6 +150,9 @@ reviewed:
   - scope: runtime/LIVE_EXTERNAL_METHOD_EVIDENCE_2026-09-02.md
     status: revised
     note: E3b-M1aとして固定revisionのKJ Atlas FastAPIとrepository同梱model stubを別processで実行し、actual grouping responseを既存Cognitive Method Applicationへ戻すScoped Executable Evidenceを記録した。KJ Atlas固有responseをUniversal Contractへ昇格させず、grouping候補をRecommendation / Decisionへ自動昇格しない境界、M1bとの差、v0.2.0 scope非拡張を自然な日本語で明示している。
+  - scope: runtime/ACTUAL_TEI_INTEGRATION_PROBE_EVIDENCE_2026-09-02.md
+    status: revised
+    note: E3b-P2の最初のcredential-aware probeを記録した。Run 33589190828ではdeterministic process境界はsuccessした一方、private TEI取得資格情報が利用できずactual checkout / build / validate / Adapter executionがskipされたため、P2をNot Yet Verifiedのまま保持している。
   - scope: runtime/package/reference/*.md
     status: revised
     coverage:
@@ -210,7 +213,7 @@ reviewed:
     note: Product Milestoneと上流探索・Requirement化の配置規則をcurrent planning入口へ反映済み。
   - scope: plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md
     status: revised
-    note: 主探索系列をReal Method / Provider Portabilityとして再整理し、E3b-M1aまでの成立範囲と、次のE3b-P2 / M1b / E4、次release、Operational / Adoption評価を分離した。並行作業でISSUE-000063がRelease Evidenceへ使われたためM1aをISSUE-000064へ移した経緯も、current正本を巻き戻さない形で自然な日本語へ整理済み。
+    note: 主探索系列をReal Method / Provider Portabilityとして維持し、E3b-M1aまでの成立範囲と、ISSUE-000065のE3b-P2 acquisition probe、次のactual TEI実行 / M1b / E4、次release、Operational / Adoption評価を分離した。M1aはISSUE-000064へ同期し、credential-aware workflow successをskipされたactual executionへ昇格させない停止線も自然な日本語で明示した。
   - scope: plan/DEVELOPMENT_WORKFLOW.md
     status: revised
     note: Product Milestoneと未定領域の探索をRequirement / Architectureより上流へ置く開発境界を監査済み。
