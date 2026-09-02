@@ -111,6 +111,7 @@ jobs:
             tools/check_contract_conformance.py \
             tools/check_representation_profiles.py \
             tools/check_release_candidate.py \
+            tools/prepare_v0_2_0_release.py \
             evaluation/v6-v7/check_projection_evaluation.py
 
       - name: Gate 1 - Plan integrity
@@ -241,3 +242,143 @@ jobs:
           path: ${{ steps.policy.outputs.report }}
           if-no-files-found: error
           retention-days: 30
+
+  prepare-v0-2-0-release:
+    needs: release-candidate
+    if: >-
+      (github.event_name == 'pull_request' && github.base_ref == 'develop/v0.2.0') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/develop/v0.2.0')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download Local Reference Package
+        uses: actions/download-artifact@v4
+        with:
+          name: soza-v0.2.0-local-reference-${{ github.sha }}
+          path: generated/release-preparation/package
+
+      - name: Download candidate report
+        uses: actions/download-artifact@v4
+        with:
+          name: soza-v0.2.0-release-candidate-${{ github.sha }}
+          path: generated/release-preparation/report
+
+      - name: Validate and prepare publication bundle
+        run: |
+          python3 tools/prepare_v0_2_0_release.py \
+            --request release/v0.2.0/release-request.json \
+            --candidate-report generated/release-preparation/report/v0.2.0-report.json \
+            --package generated/release-preparation/package/soza-local-reference-linux-amd64.tar.gz \
+            --checksum generated/release-preparation/package/soza-local-reference-linux-amd64.tar.gz.sha256 \
+            --notes release/v0.2.0/RELEASE_NOTES.md \
+            --output-dir generated/release-publication \
+            --expected-commit "${GITHUB_SHA}" \
+            --candidate-run-id "${GITHUB_RUN_ID}"
+
+      - name: Upload prepared release publication bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: soza-v0.2.0-release-publication-${{ github.sha }}
+          path: generated/release-publication
+          if-no-files-found: error
+          retention-days: 30
+
+  publish-v0-2-0:
+    needs:
+      - release-candidate
+      - prepare-v0-2-0-release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop/v0.2.0'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: v0.2.0
+    steps:
+      - name: Checkout exact release source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download prepared publication bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: soza-v0.2.0-release-publication-${{ github.sha }}
+          path: generated/release-publication
+
+      - name: Validate publication request
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          request = json.loads(Path("release/v0.2.0/release-request.json").read_text(encoding="utf-8"))
+          expected = {
+              "schema": "soza.release-request/v1",
+              "version": "0.2.0",
+              "tag": "v0.2.0",
+              "repository": "hat47x/soza",
+              "target_branch": "develop/v0.2.0",
+              "release_scope": "local-reference-product-baseline",
+              "artifact_target": "linux-amd64",
+              "publish": True,
+          }
+          for key, value in expected.items():
+              if request.get(key) != value:
+                  raise SystemExit(f"release request mismatch: {key}={request.get(key)!r}, expected {value!r}")
+          print("release publication request: validated")
+          PY
+
+      - name: Publish tag and GitHub Release
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_sha="${GITHUB_SHA}"
+          release_name="$(python3 -c 'import json; print(json.load(open("release/v0.2.0/release-request.json"))["release_name"])')"
+
+          set +e
+          tag_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG}" --jq '.object.sha' 2>/dev/null)"
+          tag_status=$?
+          set -e
+
+          if [[ ${tag_status} -eq 0 ]]; then
+            if [[ "${tag_sha}" != "${source_sha}" ]]; then
+              echo "existing ${TAG} points to ${tag_sha}, expected ${source_sha}" >&2
+              exit 1
+            fi
+            echo "tag ${TAG} already points to expected commit ${source_sha}"
+          else
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/git/refs" \
+              -f ref="refs/tags/${TAG}" \
+              -f sha="${source_sha}" >/dev/null
+            echo "created tag ${TAG} -> ${source_sha}"
+          fi
+
+          if gh release view "${TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            echo "GitHub Release ${TAG} already exists; publication is idempotently complete."
+            exit 0
+          fi
+
+          gh release create "${TAG}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --verify-tag \
+            --title "${release_name}" \
+            --notes-file release/v0.2.0/RELEASE_NOTES.md \
+            generated/release-publication/soza-local-reference-linux-amd64.tar.gz \
+            generated/release-publication/soza-local-reference-linux-amd64.tar.gz.sha256 \
+            generated/release-publication/v0.2.0-candidate-report.json \
+            generated/release-publication/release-metadata.json
+
+          gh release view "${TAG}" --repo "${GITHUB_REPOSITORY}" --json tagName,url,isDraft,isPrerelease
