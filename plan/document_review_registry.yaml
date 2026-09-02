@@ -49,7 +49,7 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_INTERACTION.md
-    note: first usable Product Interactionをhuman / AIの異なるSurfaceから同じcanonical sourceへ戻る操作境界として定義し、reference probe Evidenceを同期済み。
+    note: first usable Product Interactionをhuman / AIの異なるSurfaceから同じcanonical sourceへ戻す操作境界として定義し、reference probe Evidenceを同期済み。
   - scope: product/packaging/*.md
     status: revised
     coverage:
@@ -67,8 +67,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、自然な日本語全文再ドラフトと最終意味監査を実施済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000066
-    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidence、E3b-P2 fixed-artifact actual TEI CLI execution、KJ Atlasをdeterministic model stubでlive実行するM1a、actual inference modelへ接続するM1bまで監査した。ISSUE-000066では実行成立をmodel品質やKJ法としての成果品質へ昇格させず、merge後回帰だけを残したOpen状態として整理している。
+    coverage: ISSUE-000001..ISSUE-000067
+    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidence、E3b-P2 fixed-artifact actual TEI CLI execution、KJ Atlasをdeterministic model stubでlive実行するM1a、actual inference modelへ接続するM1bまでを監査した。ISSUE-000066はmerge後回帰CI成立に合わせてResolvedへ同期済み。新規ISSUE-000067は、同じMethodを異なるmodel Realizationで実行したときのhistorical reconstructionを、Universal Provenance fieldへ先取りせず実証するOpen課題として自然な日本語で再ドラフト済み。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
