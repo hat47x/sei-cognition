@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "runtime/go/livemethodintegration/**"
+      - "!runtime/go/livemethodintegration/runtime_version_exchange_test.go"
       - "runtime/integration/e3b_m1b_ollama_adapter.py"
       - "runtime/go/go.mod"
       - "runtime/go/go.sum"
@@ -13,6 +14,7 @@ on:
       - develop/v0.2.0
     paths:
       - "runtime/go/livemethodintegration/**"
+      - "!runtime/go/livemethodintegration/runtime_version_exchange_test.go"
       - "runtime/integration/e3b_m1b_ollama_adapter.py"
       - "runtime/go/go.mod"
       - "runtime/go/go.sum"
