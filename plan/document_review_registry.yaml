@@ -68,7 +68,7 @@ reviewed:
   - scope: plan/issue/ISSUE-*.md
     status: revised
     coverage: ISSUE-000001..ISSUE-000070
-    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidence、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1b、ISSUE-000067のhistorical reconstruction H1 / H2、ISSUE-000068のactual二モデル交換までをcurrent履歴として監査した。ISSUE-000069では`pull_request.paths`のPR全体差分という性質を明示し、文書だけの独立PR、scenario-local test、共有mapping、直接依存する共有Go packageを分けて実証責務を整理した。PR #64でdocs-only選択、PR #65で`semanticruntime`共有依存の正側選択をrun生成レベルで確認し、Local Package Artifactも実際のbuild依存へ限定した。ISSUE-000070ではmodel artifactを`qwen2.5:0.5b`へ固定してOllama `0.32.13` / `0.32.14`だけを交換する実験を、同じlogical Method Realizationの異なるExact Binding revisionとして設計した。公式Release metadataとarchive layoutの静的確認、既存Exact Reference mappingのExecutable Evidence、runtime交換本体のNot Yet Verifiedを分離し、共有依存triggerもISSUE-000069の原則へ同期している。runner未割当をProduct / Evidence failureへ読み替えず、検査本文、既存Evidence強度、v0.2.0 supported scopeは変更していない。
+    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidence、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1b、ISSUE-000067のhistorical reconstruction H1 / H2、ISSUE-000068のactual二モデル交換までをcurrent履歴として監査した。ISSUE-000069では`pull_request.paths`のPR全体差分という性質を明示し、文書だけの独立PR、scenario-local test、共有mapping、直接依存する共有Go packageを分けて実証責務を整理した。PR #64でdocs-only選択、PR #65で`semanticruntime`共有依存の正側選択をrun生成レベルで確認し、Local Package Artifactも実際のbuild依存へ限定した。ISSUE-000070ではmodel artifactを`qwen2.5:0.5b`へ固定し、Run `33670697154`でactualに観測したdigest `a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67`まで期待artifact identityとして固定した上で、Ollama `0.32.13` / `0.32.14`だけを交換する実験へ精密化した。同じlogical Method Realizationの異なるExact Binding revision、公式Release metadataとarchive layoutの静的確認、既存Exact Reference mappingのExecutable Evidence、runtime交換本体のNot Yet Verifiedを分離している。runner未割当をProduct / Evidence failureへ読み替えず、CI failure時もpushは継続し、merge・Evidence確定・Resolved判定のgateとは分けている。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -170,59 +170,16 @@ reviewed:
     coverage:
       - evaluation/v6-v7/README.md
       - evaluation/v6-v7/HUMAN_REVIEW_TEMPLATE.md
-    note: V6 / V7評価protocolとstructured human reviewを、Projection非権威と5段階Evidence境界を保って監査済み。
-  - scope: evaluation/v6-v7/projections/*.md
-    status: revised
-    coverage:
-      - evaluation/v6-v7/projections/light.md
-      - evaluation/v6-v7/projections/audit.md
-    note: current canonical fixtureから再生成可能な評価用Projection例として監査済み。
-
-  - scope: release/README.md
-    status: revised
-    note: actual v0.2.0 release成立後の入口として、release planning、candidate、actual Release Evidence、Operational / Adoption Outcomeの境界を再整理し、tag・commit・artifact・gate resultの追跡関係を自然な日本語で同期済み。
-  - scope: release/v0.1.0/*.md
-    status: reviewed-no-change
-    coverage:
-      - release/v0.1.0/RELEASE_ACCEPTANCE.md
-    note: v0.1.0のhistorical candidate policyとRelease Evidence非同一性を維持する。
-  - scope: release/v0.2.0/*.md
-    status: revised
-    coverage:
-      - release/v0.2.0/RELEASE_ACCEPTANCE.md
-      - release/v0.2.0/RELEASE_NOTES.md
-      - release/v0.2.0/RELEASE_EVIDENCE.md
-    note: Local Reference Product Baselineのsupported scopeをE3aまでに保ったまま、9段階candidate gate、actual publication、actual tag・GitHub Release・4 asset・package digestの対応をRelease Evidenceとして正本化した。release後のE3b-P1 / E3b-P2 fixed-artifact / M1a / M1bはこのsupported scopeへ遡及させない。
-
-  - scope: fixtures/contracts/v1alpha1/README.md
-    status: revised
-    note: current Contract fixtureのExecutable Evidenceをfixture-scopedとして明記済み。
-  - scope: fixtures/providers/synthetic/README.md
-    status: revised
-    note: synthetic Provider Adapterの検査境界とproduction未検証範囲を分離済み。
-
-  - scope: plan/kj/README.md
-    status: revised
-    note: KJ working recordとcurrent Accepted ADR / Contract / Runtimeのauthority境界を新設済み。
-  - scope: plan/kj/2026-08-31_ReferenceModel_CapabilityObservation_ラウンドKJ.md
-    status: reviewed-no-change
-    note: 生カードと当時のDecision preparationを思考履歴として保全。
-  - scope: plan/kj/2026-08-31_RequirementInquiry_AuthorizationEvidence_ラウンドKJ.md
-    status: reviewed-no-change
-    note: 生カードと当時のDecision preparationを保全。
-  - scope: plan/kj/2026-08-31_TEI設計系列_ラウンドKJ統合.md
-    status: reviewed-no-change
-    note: 広域統合時点の生カード・束ね・核融合・残差を原記録として保全する。
+    note: V6 / V7の評価設計とHuman Review Templateを自然な日本語で監査済み。
 
   - scope: plan/README.md
     status: revised
-    note: Product Milestoneと上流探索・Requirement化の配置規則をcurrent planning入口へ反映済み。
   - scope: plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md
     status: revised
     note: 主探索系列をReal Method / Provider Portabilityとして維持し、E3b-P2 fixed-artifact、E3b-M1b、historical reconstruction H1 / H2、ISSUE-000068のactual二モデル交換までをScoped Executable Evidenceとして反映した。二モデル交換ではhistorical Applicationを保持できた一方、生成内容と言語適合性が変化したため、次の探索点をruntime version交換、より広いmodel / Provider交換、model・KJ法としての成果品質評価、E4、Operational / Adoption評価へ分離した。actual inferenceやresponse shapeのsuccessを生成品質・Operational Evidenceへ昇格させない停止線も自然な日本語で明示している。
   - scope: plan/DEVELOPMENT_WORKFLOW.md
     status: revised
-    note: Product Milestoneと未定領域の探索をRequirement / Architectureより上流へ置く開発境界を維持しつつ、CI failureをpush停止条件から外した。failureは観測・修正対象として扱い、`steps=[]`等のrunner未割当と実行本文のfailureを分離する。通常の修正pushを継続できる一方、merge / release / Evidence確定に必要なgateは別に扱う運用へ自然な日本語で同期済み。
+    note: Product Milestoneと未定領域の探索をRequirement / Architectureより上流へ置く開発境界を監査し、CI failureは修正対象として観測しつつpushを停止する条件にはしない運用へ同期済み。merge / release / Evidence確定のgateは通常pushと分離している。
   - scope: plan/DOCUMENT_AUTHORING_STANDARD.md
     status: revised
   - scope: plan/DOCUMENT_REVIEW_REPORT_2026-08-31.md
