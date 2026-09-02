@@ -1,7 +1,7 @@
 # SOZA Product文書の読み方
 
 更新日: 2026-09-02  
-状態: **Current Product Documentation Baseline — v0.2.0 Release Evidence / E3b-M1a reflected**
+状態: **Current Product Documentation Baseline — v0.2.0 Release Evidence / E3b-M1a / E3b-P2 acquisition probe reflected**
 
 ## 1. この文書の役割
 
@@ -89,7 +89,7 @@ Product Valueを長期的な到達方向として表します。未来の特定�
 
 SOZAをどの順序で製品として成立させるかを、**期限ではなくOutcomeとEvidence**で示します。
 
-現在、PMS-06ではE2、E3a、E3b-P1に加えてE3b-M1aまでScoped Executable Evidenceがあります。一方、PMS-07はv0.2.0 Local Reference Product Baselineの範囲でRelease EvidenceがSatisfiedです。PMS-08のOperational / Adoption・Outcome Evidenceは未検証のままです。
+現在、PMS-06ではE2、E3a、E3b-P1、E3b-M1aにScoped Executable Evidenceがあります。E3b-P2ではactual TEI専用probe経路まで具体化しましたが、最初のrunではprivate TEI取得資格情報が利用できずactual executionがskipされたため、P2自体は未検証です。一方、PMS-07はv0.2.0 Local Reference Product Baselineの範囲でRelease EvidenceがSatisfiedです。PMS-08のOperational / Adoption・Outcome Evidenceは未検証のままです。
 
 ### `interaction/SOZA_PRODUCT_INTERACTION.md`
 
@@ -136,7 +136,7 @@ PMS-06に対応し、Cognitive Method RealizationやCapability Providerを交換
 - E3b-P1 public live Provider service
 - E3b-M1a live KJ Atlas process + deterministic model stub
 
-E3b-P2 actual TEI executionとE3b-M1b external model-backed Method executionは未検証です。
+E3b-P2ではactual TEI専用testとcredential-aware workflowまで用意しましたが、actual TEI checkout / build / executionはまだ成立していません。E3b-M1b external model-backed Method executionも未検証です。
 
 ## 3. 未定領域の扱い
 
@@ -182,7 +182,7 @@ current repositoryでは、少なくとも次の状態まで確認していま�
 - Realization / Provider portability: **Partial — E2 / E3a / E3b-P1 / E3b-M1a Scoped Executable Evidence available**
 - PMS-07: **Satisfied for v0.2.0 Local Reference Product Baseline**
 - production IdP / team collaboration security: **Not Yet Verified**
-- E3b-P2 actual TEI process / service: **Not Yet Verified**
+- E3b-P2 actual TEI process / service: **probe path available / actual execution Not Yet Verified**
 - E3b-M1b external model-backed Cognitive Method execution: **Not Yet Verified**
 - E4 Operational portability: **Not Yet Verified**
 - PMS-08 Operational / Adoption・Outcome Evidence: **Not Yet Verified**
@@ -202,10 +202,10 @@ v0.2.0は、現在のsemantic baselineにProduct Interaction、Local Single-Node
 
 actual releaseでは、tag、source commit、Release Candidate Gate、Local Reference Package、checksum、candidate report、release metadataを追跡できる状態で配布しています。
 
-repositoryには、release scope確定後に得られたE3b-P1、TEI executable injection boundary、E3b-M1aのScoped Executable Evidenceも存在します。しかし、それらを理由にv0.2.0のsupported scopeを後から広げません。
+repositoryには、release scope確定後に得られたE3b-P1、TEI executable injection boundary、E3b-P2 acquisition probe、E3b-M1aのEvidenceや実証準備も存在します。しかし、それらを理由にv0.2.0のsupported scopeを後から広げません。
 
 ```text
-post-release scoped Evidence exists
+post-release scoped Evidence / probe exists
   != v0.2.0 supported scope expanded
 ```
 
@@ -216,6 +216,8 @@ E3b-M1a PASS
   != external model quality proven
   != E3b-M1b PASS
 ```
+
+E3b-P2の最初のcredential-aware runはworkflow全体としてsuccessしましたが、actual TEI stepがskipされました。そのため、P2のScoped Executable Evidenceには数えていません。
 
 ## 7. Product Valueを変更するとき
 
@@ -271,8 +273,8 @@ Coreへ追加する前に、少なくとも次を検討します。
 
 ## 10. Natural Japanese review
 
-Product Value、Value Proposition、Value Model / Acceptance、Product Shape、Vision / Principles、Product Milestones、Interaction、Packaging、Identity / Access / Collaboration、Realization / Provider Exchange、REQ-0001〜0022、SCN-0001〜0018、v0.2.0 Release Acceptance / Release Evidence、E3b-M1a Evidenceへ戻ってProduct文書の入口を再監査しました。
+Product Value、Value Proposition、Value Model / Acceptance、Product Shape、Vision / Principles、Product Milestones、Interaction、Packaging、Identity / Access / Collaboration、Realization / Provider Exchange、REQ-0001〜0022、SCN-0001〜0018、v0.2.0 Release Acceptance / Release Evidence、E3b-M1a Evidence、E3b-P2 acquisition probeへ戻ってProduct文書の入口を再監査しました。
 
-v0.2.0のRelease Evidence成立を維持しながら、release後に成立したM1aをPMS-06のScoped Executable Evidenceとして追加しました。M1aをv0.2.0 supported scopeへ遡及させず、E3b-P2、M1b、E4、Operational / Adoption・Outcome Evidenceを未検証のまま分離しています。
+v0.2.0のRelease Evidence成立を維持しながら、release後に成立したM1aをPMS-06のScoped Executable Evidenceとして保持しています。さらにE3b-P2の実TEI専用probe経路をProduct入口へ反映しましたが、最初のrunではactual TEI stepがskipされたため、P2を未検証のまま明示しています。M1aやP2 probeをv0.2.0 supported scopeへ遡及させず、E3b-M1b、E4、Operational / Adoption・Outcome Evidenceも未検証のまま分離しています。
 
 意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。
