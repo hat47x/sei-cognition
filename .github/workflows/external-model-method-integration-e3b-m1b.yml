@@ -65,8 +65,11 @@ jobs:
           go-version: 1.25.x
           cache-dependency-path: runtime/go/go.mod
 
-      - name: Test grouping structure checker
-        run: python -m unittest evaluation/method-quality/test_check_grouping_structure.py
+      - name: Test Method quality evaluation tools
+        run: |
+          python -m unittest \
+            evaluation/method-quality/test_check_grouping_structure.py \
+            evaluation/method-quality/test_build_review_bundle_manifest.py
 
       - name: Install digest-pinned Ollama runtime
         shell: bash
@@ -236,6 +239,21 @@ jobs:
           SOZA_E3B_METHOD_MODEL_ID: a8b0c5157701
         run: go test ./livemethodintegration -run '^TestLiveKJAtlasMethodExecution$' -count=1 -v
 
+      - name: Build Method quality review bundle manifest
+        run: |
+          python evaluation/method-quality/build_review_bundle_manifest.py \
+            --workflow-run-id "${{ github.run_id }}" \
+            --workflow-run-attempt "${{ github.run_attempt }}" \
+            --repository-commit "$(git rev-parse HEAD)" \
+            --method-source-commit "4f28c13abe4176503c6fed863383a2d1db2299e9" \
+            --request /tmp/kj-atlas-m1b-request.json \
+            --result /tmp/kj-atlas-m1b-result.json \
+            --model-evidence /tmp/soza-e3b-m1b-model-call.json \
+            --structure-report /tmp/soza-method-quality-structure-report.json \
+            --runtime-version /tmp/ollama-version.txt \
+            --model-list /tmp/ollama-list.txt \
+            --output /tmp/soza-method-quality-review-manifest.json
+
       - name: Preserve Method quality review bundle
         if: always()
         uses: actions/upload-artifact@v4
@@ -247,6 +265,7 @@ jobs:
             /tmp/kj-atlas-m1b-result.json
             /tmp/soza-e3b-m1b-model-call.json
             /tmp/soza-method-quality-structure-report.json
+            /tmp/soza-method-quality-review-manifest.json
             /tmp/ollama-version.txt
             /tmp/ollama-list.txt
 
@@ -256,6 +275,7 @@ jobs:
           cat /tmp/kj-atlas-m1b-result.json || true
           cat /tmp/soza-e3b-m1b-model-call.json || true
           cat /tmp/soza-method-quality-structure-report.json || true
+          cat /tmp/soza-method-quality-review-manifest.json || true
           cat /tmp/ollama-list.txt || true
           cat /tmp/ollama-version.txt || true
           cat /tmp/soza-m1b-adapter.log || true
