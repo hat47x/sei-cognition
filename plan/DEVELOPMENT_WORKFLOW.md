@@ -1,6 +1,6 @@
 # SOZA 開発ワークフロー
 
-更新日: 2026-09-01  
+更新日: 2026-09-03  
 状態: **Accepted Development Convention**
 
 ## 1. 目的
@@ -117,9 +117,19 @@ connected implementation language != Go required
 11. 文書を自然な日本語へ全文再ドラフトする。
 12. 意味・仕様・留保・Evidence強度が変わっていないか最終監査する。
 13. current Markdown文書を追加・更新した場合は、`plan/document_review_registry.yaml`へ監査状態を反映する。
-14. 対象CIがsuccessしていることを確認する。
+14. 対象CIの状態を確認し、success / 実行本文のfailure / runner未割当等を区別して記録する。
 
-CI failureが出た場合は、最後まで先送りしません。**失敗を検出した時点で原因を解消し、successを確認してから後続作業へ進みます。**
+CI failureは修正対象ですが、**pushを止める条件にはしません**。変更を安全な単位でcommitしたらpushし、その結果を観測して必要な修正を次のcommitとしてpushします。
+
+```text
+commit
+  → push
+  → CIで観測
+  → 必要なら修正
+  → 再push
+```
+
+CIが赤い間も、原因調査や修正commitのpushを継続できます。merge、release、Evidence確定に必要なgateは別に扱い、通常のpush経路へ混同しません。
 
 ## 8. Requirementを増やす前の停止線
 
@@ -182,15 +192,26 @@ ADR / Issue本文のStatus、`plan/registry.yaml`、関連文書を同時に変�
 
 ## 13. CI failureの扱い
 
-CI failureは次の設計入力でもあります。
+CI failureは、開発を停止させるロックではなく、次の修正判断に使う観測結果です。
 
-1. 失敗したworkflow / step / fixtureを確認する。
-2. Product / Plan / Requirement / Contract / runtime / 文書台帳のどの層の問題かを切り分ける。
-3. current Product Value / Contractを安易に弱めず、誤っている層を修正する。
-4. 同じCIを再実行し、successを確認する。
-5. 必要ならIssue / Evidence文書へ原因と修正内容を残す。
-6. その後に次の作業へ進む。
+1. failureが出ても、後続の修正commitをpushすることは止めない。
+2. 失敗したworkflow / step / fixtureを確認する。
+3. `steps=[]`や`runner_id=0`のように検査本文へ到達していない場合は、repository内のtest failureと分けて扱う。
+4. 実際にstepが開始された後のfailureでは、Product / Plan / Requirement / Contract / runtime / 文書台帳のどの層の問題かを切り分ける。
+5. current Product Value / Contractを安易に弱めず、誤っている層を修正し、その修正をpushする。
+6. subsequent pushまたは明示的な再実行でCIを再確認する。
+7. 必要ならIssue / Evidence文書へ原因、未検証範囲、修正内容を残す。
+
+```text
+workflow failure
+  → investigate / fix / push
+  != push prohibited
+```
+
+mergeやreleaseに特定の検査成功を要求する場合は、そのgateを個別に定義します。通常の開発pushまでrequired status checkで塞ぐことは、別途明示的に方針変更しない限り行いません。
 
 ## 14. Natural Japanese review
 
-current Product Value、Product Shape、Product Journey、期限を持たないProduct Milestone、5段階Evidence、Document Review Registry、ADR-0027のproduction runtime言語方針へ戻ってworkflowを再構成した。未定領域では議論・実証をRequirementより先に置き、production runtimeではGoを標準としながら、外部Method / Provider、AI / ML研究、評価へ言語制約を広げない境界を追加した。既存のbranch方針、Evidence境界、CI即時解消方針を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+current Product Value、Product Shape、Product Journey、期限を持たないProduct Milestone、5段階Evidence、Document Review Registry、ADR-0027のproduction runtime言語方針へ戻ってworkflowを再構成した。未定領域では議論・実証をRequirementより先に置き、production runtimeではGoを標準としながら、外部Method / Provider、AI / ML研究、評価へ言語制約を広げない境界を維持している。
+
+CIについては、失敗を見落とさず原因を調べる従来の責務を保ちながら、「CIがsuccessするまで後続作業もpushも止める」という運用を外した。pushは観測と修正を回すための通常経路として継続し、merge / release / Evidence確定のgateとは分離した。意味・Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
