@@ -116,16 +116,35 @@ current KJ Atlasでは`holdState`を`doc.cards`側で表現するため、top-le
 
 ## Executable Evidence
 
-再基線化前のPR #41では、actual v0.2.0 publicationを含む当時の`develop/v0.2.0`をbaseとして、KJ Atlas取得、install、migration、model/backend process起動、actual grouping、SOZA mapping boundary test、actual result mappingまでを専用workflowで実行し、成功した。
+### 再基線化前のlive Evidence
+
+再基線化前のPR #41でも、KJ Atlas取得、install、migration、model/backend process起動、actual grouping、SOZA mapping boundary test、actual result mappingまでを専用workflowで実行し、成功した。
 
 代表的な成功Runは次のとおり。
 
 - External Method Integration E3b Run `33584876930`
 - External Method Integration E3b Run `33585078576`
 
-同じhead系列ではSemantic Runtime Conformance、Plan integrity、External Integration E3a / E3b、Local Package Artifact、Release Candidate Gateも成功している。
+### current developへの再基線化後
 
-その後、並行作業でv0.2.0 Release Evidenceが`develop/v0.2.0`へ先に統合されたため、本Issueは最新developを基点に再基線化する。再基線化後の最終CIはmerge前に改めて確認し、M1aの成立範囲を変更せずcurrent integration regressionとして扱う。
+並行作業でv0.2.0 Release Evidenceが先に`develop/v0.2.0`へ統合されたため、PR #41はcurrent develop commit `5abc9abdd16456b60ebb1f006d65377c1ca51d29`から作り直した。
+
+再基線化後のbehavior-complete head `0313f707a352dec7bec0eb40f8e3a980e74c9eae`では、次のPR workflowがすべてsuccessした。
+
+- External Method Integration E3b Run `33587455439`
+- Plan integrity Run `33587455472`
+- Semantic Runtime Conformance Run `33587455445`
+- External Integration E3a Run `33587455452`
+- External Integration E3b Run `33587455442`
+- Local Package Artifact Run `33587455447`
+- V6 V7 Projection Evaluation Run `33587455441`
+- Release Candidate Gate Run `33587455459`
+
+専用M1a Run `33587455439`では、KJ Atlas checkout、backend install、Alembic migration、model/backend process起動、actual grouping、SOZA mapping boundary test、actual result mappingまでの主要stepがすべてsuccessした。
+
+Release Candidate Gate Run `33587455459`ではGate 1〜9がsuccessし、公開済みv0.2.0に対する`prepare-v0-2-0-release`と`publish-v0-2-0`はともにskipされた。したがって、M1aの回帰検査によって既存v0.2.0を再publicationしていない。
+
+このRun群は、M1aの意味上の成立範囲を広げるものではなく、current repositoryとの統合回帰が成立したことを示す。
 
 ## v0.2.0との関係
 
@@ -182,8 +201,8 @@ KJ Atlas、FastAPI、HTTP、SQLite、deterministic model stubという現在の�
 - [x] Stable Requirement / Scenario追加の要否を再監査する。今回は追加しない。
 - [x] ISSUE-000061〜000063の並行成果を保持し、M1aをISSUE-000064として再構成する。
 - [x] v0.2.0 Release EvidenceとM1a Evidenceを分離する。
+- [x] 最新`develop/v0.2.0`をbaseにしたbehavior-complete branchで8系統の回帰CIをsuccessさせる。
 - [x] 自然な日本語を最重要視して全文を再ドラフトし、最終意味監査を行う。
-- [ ] 最新`develop/v0.2.0`をbaseにした最終branchで回帰CIをsuccessさせる。
 - [ ] merge後`develop/v0.2.0`でM1a専用workflowを含む回帰CIを確認する。
 
 ## Evidence state
@@ -212,7 +231,7 @@ KJ Atlas、FastAPI、HTTP、SQLite、deterministic model stubという現在の�
 
 ## Natural Japanese review
 
-PMS-06、最新`develop/v0.2.0`のRealization / Provider Exchange、ISSUE-000057〜000063、v0.2.0 Release Acceptance / Release Evidence、ADR-0017 / 0021 / 0025、current Cognitive Method Contract、`runtime/go/interactionprobe`、`runtime/go/teiintegration`、KJ Atlas固定commitのcurrent backend、再基線化前PR #41のactual workflow Evidenceを照合した。
+PMS-06、最新`develop/v0.2.0`のRealization / Provider Exchange、ISSUE-000057〜000063、v0.2.0 Release Acceptance / Release Evidence、ADR-0017 / 0021 / 0025、current Cognitive Method Contract、KJ Atlas固定commit、再基線化後のPR #41 actual workflow Evidenceを照合した。
 
 Release Evidence系列を巻き戻さず、Cognitive Method側のM1aだけをISSUE-000064として独立させた。技術固有の実装語彙をUniversal semanticsへ持ち込まず、KJ Atlasのgrouping候補とRecommendation / Decisionの意味差、M1aとM1bのEvidence差、v0.2.0 supported scopeとの非包含関係が自然に読めるよう全文を組み直している。
 
