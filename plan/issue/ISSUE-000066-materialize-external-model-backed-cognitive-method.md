@@ -1,9 +1,10 @@
 # ISSUE-000066: external model-backed Cognitive Method executionを実証する
 
-- Status: Open
-- Priority: 1
-- Related ADRs: ADR-0017, ADR-0021, ADR-0025
-- Product Milestone: PMS-06
+Status: **Open**  
+Priority: **1**  
+Related ADRs: **ADR-0017, ADR-0021, ADR-0025**  
+Product Milestone: **PMS-06**  
+Updated: 2026-09-02
 
 ## 背景
 
