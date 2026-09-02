@@ -185,4 +185,4 @@ issue:
   - {id: ISSUE-000059, file: plan/issue/ISSUE-000059-materialize-v0-2-0-release-candidate-boundary.md, status: Resolved, priority: 1, related_adrs: [ADR-0018, ADR-0020, ADR-0021, ADR-0029]}
   - {id: ISSUE-000060, file: plan/issue/ISSUE-000060-materialize-first-live-external-provider-integration.md, status: Resolved, priority: 1, related_adrs: [ADR-0013, ADR-0019, ADR-0021, ADR-0024]}
   - {id: ISSUE-000061, file: plan/issue/ISSUE-000061-prepare-live-tei-cli-integration-boundary.md, status: Resolved, priority: 1, related_adrs: [ADR-0013, ADR-0019, ADR-0021, ADR-0024]}
-  - {id: ISSUE-000062, file: plan/issue/ISSUE-000062-materialize-v0-2-0-release-publication-workflow.md, status: In Progress, priority: 1, related_adrs: [ADR-0018, ADR-0020, ADR-0021, ADR-0029]}
+  - {id: ISSUE-000062, file: plan/issue/ISSUE-000062-materialize-v0-2-0-release-publication-workflow.md, status: Resolved, priority: 1, related_adrs: [ADR-0018, ADR-0020, ADR-0021, ADR-0029]}
