@@ -35,6 +35,8 @@ jobs:
     name: same model artifact / two Ollama runtime versions
     runs-on: ubuntu-latest
     timeout-minutes: 35
+    env:
+      SOZA_E3B_RUNTIME_EXCHANGE_MODEL_SHA256: "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67"
 
     steps:
       - name: Checkout SOZA
@@ -170,6 +172,11 @@ jobs:
           assert model is not None, payload
           digest = model.get('digest')
           assert isinstance(digest, str) and len(digest) == 64, model
+          expected = os.environ['SOZA_E3B_RUNTIME_EXCHANGE_MODEL_SHA256']
+          if digest != expected:
+              raise SystemExit(
+                  f"pinned model artifact changed: actual={digest}, expected={expected}"
+              )
           Path(f"/tmp/runtime-exchange-{os.environ['LABEL']}-model-id.txt").write_text(digest + "\n", encoding='utf-8')
           print(json.dumps({'model': 'qwen2.5:0.5b', 'digest': digest}, sort_keys=True))
           PY
@@ -250,6 +257,11 @@ jobs:
 
           model_a = Path('/tmp/runtime-exchange-a-model-id.txt').read_text(encoding='utf-8').strip()
           model_b = Path('/tmp/runtime-exchange-b-model-id.txt').read_text(encoding='utf-8').strip()
+          expected = os.environ['SOZA_E3B_RUNTIME_EXCHANGE_MODEL_SHA256']
+          if model_a != expected or model_b != expected:
+              raise SystemExit(
+                  f'pinned model artifact changed: A={model_a}, B={model_b}, expected={expected}'
+              )
           if model_a != model_b:
               raise SystemExit(f'model artifact changed across runtimes: A={model_a}, B={model_b}')
 
