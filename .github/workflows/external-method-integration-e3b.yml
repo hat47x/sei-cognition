@@ -8,6 +8,7 @@ on:
       - "product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md"
       - "product/roadmap/SOZA_PRODUCT_MILESTONES.md"
       - "plan/issue/ISSUE-000064-*.md"
+      - "plan/issue/ISSUE-000067-*.md"
       - "plan/registry.yaml"
       - "plan/document_review_registry.yaml"
       - ".github/workflows/external-method-integration-e3b.yml"
@@ -20,6 +21,7 @@ on:
       - "product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md"
       - "product/roadmap/SOZA_PRODUCT_MILESTONES.md"
       - "plan/issue/ISSUE-000064-*.md"
+      - "plan/issue/ISSUE-000067-*.md"
       - "plan/registry.yaml"
       - "plan/document_review_registry.yaml"
       - ".github/workflows/external-method-integration-e3b.yml"
@@ -150,6 +152,9 @@ jobs:
           SOZA_E3B_METHOD_LIVE: "1"
           SOZA_E3B_METHOD_RESULT: /tmp/kj-atlas-result.json
           SOZA_E3B_METHOD_SOURCE_COMMIT: 4f28c13abe4176503c6fed863383a2d1db2299e9
+          SOZA_E3B_METHOD_REALIZATION_ID: MR-KJ-ATLAS-M1A
+          SOZA_E3B_METHOD_EXECUTION_PROFILE: kj-atlas-deterministic-model-stub
+          SOZA_E3B_METHOD_MODEL: mock
         run: go test ./livemethodintegration -run '^TestLiveKJAtlasMethodExecution$' -count=1 -v
 
       - name: Show external process logs on failure

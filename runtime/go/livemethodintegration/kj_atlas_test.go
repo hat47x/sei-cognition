@@ -66,6 +66,59 @@ func TestApplyKJAtlasGroupingResultRecordsMethodApplicationWithoutPromotingRecom
 	}
 }
 
+func TestApplyKJAtlasGroupingResultPreservesExecutionIdentityInProvenance(t *testing.T) {
+	store := interactionprobe.NewCanonicalStore()
+	input := referenceInput(store, sampleGroupingResult)
+	input.RealizationRef = logical("method-realization", "MR-KJ-ATLAS-MODEL-BACKED")
+	input.Execution = ExecutionIdentity{
+		Profile:        "ollama-model-backed",
+		Runtime:        "ollama",
+		RuntimeVersion: "0.32.14",
+		Model:          "qwen2.5:0.5b",
+		ModelID:        "a8b0c5157701",
+	}
+
+	if err := ApplyKJAtlasGroupingResult(input); err != nil {
+		t.Fatalf("ApplyKJAtlasGroupingResult() error = %v", err)
+	}
+
+	provenance, found, err := store.Find(input.ProvenanceRef)
+	if err != nil || !found {
+		t.Fatalf("provenance not stored: found=%v err=%v", found, err)
+	}
+	var payload provenancePayload
+	if err := json.Unmarshal(provenance.EnvelopeRecord.Payload, &payload); err != nil {
+		t.Fatalf("decode provenance: %v", err)
+	}
+	if payload.Execution == nil {
+		t.Fatal("execution identity was not retained in provenance")
+	}
+	if !reflect.DeepEqual(*payload.Execution, input.Execution) {
+		t.Fatalf("execution identity = %#v, want %#v", *payload.Execution, input.Execution)
+	}
+}
+
+func TestInvalidExecutionIdentityDoesNotMutateCanonicalState(t *testing.T) {
+	store := interactionprobe.NewCanonicalStore()
+	before, err := store.Digest()
+	if err != nil {
+		t.Fatalf("Digest() error = %v", err)
+	}
+	input := referenceInput(store, sampleGroupingResult)
+	input.Execution = ExecutionIdentity{RuntimeVersion: "0.32.14"}
+
+	if err := ApplyKJAtlasGroupingResult(input); err == nil {
+		t.Fatal("ApplyKJAtlasGroupingResult() succeeded without an execution profile")
+	}
+	after, err := store.Digest()
+	if err != nil {
+		t.Fatalf("Digest() error = %v", err)
+	}
+	if before != after {
+		t.Fatalf("invalid execution identity mutated canonical state: before=%s after=%s", before, after)
+	}
+}
+
 func TestInvalidKJAtlasResultDoesNotMutateCanonicalState(t *testing.T) {
 	store := interactionprobe.NewCanonicalStore()
 	before, err := store.Digest()
@@ -135,6 +188,14 @@ func TestLiveKJAtlasMethodExecution(t *testing.T) {
 	if commit != pinnedKJAtlasCommit {
 		t.Fatalf("KJ Atlas source commit = %q, want pinned %q", commit, pinnedKJAtlasCommit)
 	}
+	realizationID := os.Getenv("SOZA_E3B_METHOD_REALIZATION_ID")
+	if realizationID == "" {
+		t.Fatal("SOZA_E3B_METHOD_REALIZATION_ID is required")
+	}
+	executionProfile := os.Getenv("SOZA_E3B_METHOD_EXECUTION_PROFILE")
+	if executionProfile == "" {
+		t.Fatal("SOZA_E3B_METHOD_EXECUTION_PROFILE is required")
+	}
 	result, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("read live KJ Atlas result: %v", err)
@@ -152,6 +213,14 @@ func TestLiveKJAtlasMethodExecution(t *testing.T) {
 	input := referenceInput(store, result)
 	input.Source.Commit = commit
 	input.Source.EntryPoint = "POST /ai/suggest-card-groups"
+	input.RealizationRef = logical("method-realization", realizationID)
+	input.Execution = ExecutionIdentity{
+		Profile:        executionProfile,
+		Runtime:        os.Getenv("SOZA_E3B_METHOD_RUNTIME"),
+		RuntimeVersion: os.Getenv("SOZA_E3B_METHOD_RUNTIME_VERSION"),
+		Model:          os.Getenv("SOZA_E3B_METHOD_MODEL"),
+		ModelID:        os.Getenv("SOZA_E3B_METHOD_MODEL_ID"),
+	}
 	input.ApplicationRef = logical("method-application", "MA-KJ-ATLAS-LIVE")
 	input.OutputRef = logical("cognitive-method-output", "MO-KJ-ATLAS-LIVE")
 	input.ProvenanceRef = logical("provenance", "PROV-KJ-ATLAS-LIVE")
@@ -163,11 +232,27 @@ func TestLiveKJAtlasMethodExecution(t *testing.T) {
 	if err != nil || !found || application.CognitiveMethod == nil || application.CognitiveMethod.MethodApplication == nil {
 		t.Fatalf("live method application not reconstructed: found=%v err=%v record=%#v", found, err, application)
 	}
+	app := application.CognitiveMethod.MethodApplication
+	if app.RealizationRef == nil {
+		t.Fatal("live method application lost realization_ref")
+	}
+	actualRealization, ok := app.RealizationRef.LogicalIdentity()
+	if !ok || actualRealization != input.RealizationRef {
+		t.Fatalf("live realization_ref = %#v, want %#v", actualRealization, input.RealizationRef)
+	}
 	if _, found, _ := store.Find(input.OutputRef); !found {
 		t.Fatal("live external method output was not retained")
 	}
-	if _, found, _ := store.Find(input.ProvenanceRef); !found {
-		t.Fatal("live external method provenance was not retained")
+	provenance, found, err := store.Find(input.ProvenanceRef)
+	if err != nil || !found {
+		t.Fatalf("live external method provenance was not retained: found=%v err=%v", found, err)
+	}
+	var payload provenancePayload
+	if err := json.Unmarshal(provenance.EnvelopeRecord.Payload, &payload); err != nil {
+		t.Fatalf("decode live provenance: %v", err)
+	}
+	if payload.Execution == nil || !reflect.DeepEqual(*payload.Execution, input.Execution) {
+		t.Fatalf("live execution identity = %#v, want %#v", payload.Execution, input.Execution)
 	}
 }
 
@@ -175,8 +260,9 @@ func referenceInput(store *interactionprobe.CanonicalStore, result []byte) Apply
 	return ApplyGroupingInput{
 		Store:          store,
 		Source:         SourceIdentity{Repository: "hat47x/kj-atlas", Commit: pinnedKJAtlasCommit, EntryPoint: "POST /ai/suggest-card-groups"},
+		Execution:      ExecutionIdentity{Profile: "reference-deterministic-stub", Model: "mock"},
 		MethodRef:      logical("method", "M-KJ-ATLAS-GROUPING"),
-		RealizationRef: logical("method-realization", "MR-KJ-ATLAS-4F28C13"),
+		RealizationRef: logical("method-realization", "MR-KJ-ATLAS-REFERENCE"),
 		ApplicationRef: logical("method-application", "MA-KJ-ATLAS-001"),
 		OutputRef:      logical("cognitive-method-output", "MO-KJ-ATLAS-001"),
 		ProvenanceRef:  logical("provenance", "PROV-KJ-ATLAS-001"),
