@@ -67,8 +67,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、自然な日本語全文再ドラフトと最終意味監査を実施済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000069
-    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidence、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1b、ISSUE-000067のhistorical reconstruction H1 / H2、ISSUE-000068のactual二モデル交換までをcurrent履歴として監査した。ISSUE-000069では`pull_request.paths`のPR全体差分という性質を明示し、文書だけの独立PR、scenario-local test、共有mapping、直接依存する共有Go packageを分けて実証責務を整理した。PR #64でdocs-only選択、PR #65で`semanticruntime`共有依存の正側選択をrun生成レベルで確認し、Local Package Artifactも実際のbuild依存へ限定した。runnerは全面復旧と扱わず、`steps=[]`のjobと実際に完走したRun 33670697154を分けて記録している。検査本文、既存Evidence強度、v0.2.0 supported scopeは変更していない。
+    coverage: ISSUE-000001..ISSUE-000070
+    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidence、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1b、ISSUE-000067のhistorical reconstruction H1 / H2、ISSUE-000068のactual二モデル交換までをcurrent履歴として監査した。ISSUE-000069では`pull_request.paths`のPR全体差分という性質を明示し、文書だけの独立PR、scenario-local test、共有mapping、直接依存する共有Go packageを分けて実証責務を整理した。PR #64でdocs-only選択、PR #65で`semanticruntime`共有依存の正側選択をrun生成レベルで確認し、Local Package Artifactも実際のbuild依存へ限定した。ISSUE-000070ではmodel artifactを`qwen2.5:0.5b`へ固定してOllama `0.32.13` / `0.32.14`だけを交換する実験を、同じlogical Method Realizationの異なるExact Binding revisionとして設計した。公式Release metadataとarchive layoutの静的確認、既存Exact Reference mappingのExecutable Evidence、runtime交換本体のNot Yet Verifiedを分離し、共有依存triggerもISSUE-000069の原則へ同期している。runner未割当をProduct / Evidence failureへ読み替えず、検査本文、既存Evidence強度、v0.2.0 supported scopeは変更していない。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
