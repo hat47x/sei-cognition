@@ -1,0 +1,36 @@
+name: E3b-P2 actual Evidence document sync
+
+on:
+  push:
+    branches:
+      - work/close-actual-tei-e3b-p2-v0.2.0
+    paths:
+      - ".github/workflows/e3b-p2-actual-doc-sync.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: work/close-actual-tei-e3b-p2-v0.2.0
+
+      - name: E3b-P2 actual Evidenceを上流文書へ同期
+        run: python3 .github/scripts/sync_e3b_p2_actual_evidence.py
+
+      - name: 一時同期ファイルを削除してcommit
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/scripts/sync_e3b_p2_actual_evidence.py
+          rm .github/workflows/e3b-p2-actual-doc-sync.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "product: align E3b-P2 actual TEI Evidence"
+          git push origin HEAD:work/close-actual-tei-e3b-p2-v0.2.0
