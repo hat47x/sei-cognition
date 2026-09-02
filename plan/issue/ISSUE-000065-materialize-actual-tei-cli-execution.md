@@ -223,7 +223,25 @@ private repositoryの継続取得、credential運用、正式なbinary配布・�
 - [x] actual Provider Plan bytesをdigest付きfixtureとして通常CIへ追加する。
 - [x] plan registry / document review registry / Product Milestone / 上流計画をactual Evidenceへ同期する。
 - [x] 自然な日本語を最重要視した全文再ドラフトと最終意味監査を行う。
-- [ ] Resolution反映後のPR headで対象CIをsuccessさせる。
+- [x] Resolution反映後のPR headで対象CIをsuccessさせる。
+
+## Resolution反映後のCI
+
+Resolutionと台帳同期を含むPR head `afd34174ba17c8459c3546272ac8a37593b80b2d`では、次の9系統がすべてsuccessした。
+
+- Plan integrity Run `33597150206`
+- Semantic Runtime Conformance Run `33597150208`
+- External Integration E3a Run `33597150186`
+- External Integration E3b Run `33597150242`
+- External TEI Integration E3b P2 Run `33597150191`
+- External Method Integration E3b Run `33597150205`
+- V6 V7 Projection Evaluation Run `33597150252`
+- Local Package Artifact Run `33597150228`
+- Release Candidate Gate Run `33597150279`
+
+Release Candidate GateはGate 1〜9がsuccessし、既に公開済みのv0.2.0に対するrelease preparation / publicationは意図どおりskipされた。
+
+External TEI Integration E3b P2のsuccessは、SOZA Actionsでprivate repository credential経路のactual stepが実行されたという意味ではない。fixed-artifact actual execution Evidenceは、TEI側Run `33589084290`と取得済みartifactを用いたSOZA Adapter実証として別に記録する。
 
 ## Evidence state
 
