@@ -12,12 +12,17 @@ import (
 	"github.com/hat47x/soza/runtime/go/semanticruntime"
 )
 
-const actualTEIProviderPlanSHA256 = "39eafb26cf189681e0bd2ff46fcaf000cbe2f860cf698765bbadac6dfbd2a950"
+const (
+	actualTEISourceCommit       = "48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67"
+	actualTEIProviderPlanSHA256 = "39eafb26cf189681e0bd2ff46fcaf000cbe2f860cf698765bbadac6dfbd2a950"
+)
 
 // TestActualTEIProviderPlanFixtureMapsThroughCurrentBoundary は、固定した実TEIが
 // deployment-provider-planで生成した出力をcurrent SOZA runtimeで読み、Provider固有の
 // 情報をUniversal Capability Observationへ持ち込まずにmappingできることを確認します。
 // fixtureのSHA-256を固定することで、別の出力へ知らないうちに置き換わることも防ぎます。
+// Evidence artifactを同梱binaryで再生したときにも、このfixtureと同一bytesのProvider Planが
+// 得られることを別途確認しています。
 //
 // actual TEI processを起動したEvidenceはACTUAL_TEI_CLI_EVIDENCE_2026-09-02.mdで別に記録します。
 // このテストが示すのは、そこで得たactual outputとcurrent Adapter / validatorの互換性が
@@ -43,7 +48,7 @@ func TestActualTEIProviderPlanFixtureMapsThroughCurrentBoundary(t *testing.T) {
 			ID:   "deployment-provider-routing",
 		},
 		ObservedAt:     "2026-09-02T00:00:00Z",
-		SourceStateRef: "tei-cli:48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67:provider-plan-fixture",
+		SourceStateRef: "tei-cli:" + actualTEISourceCommit + ":provider-plan-fixture",
 	})
 	if err != nil {
 		t.Fatalf("実TEI Provider Planのmappingに失敗しました: %v", err)
