@@ -69,7 +69,7 @@ adr:
   - id: ADR-0017
     file: plan/adr/ADR-0017-reference-model-cognitive-method-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000019, ISSUE-000034, ISSUE-000043, ISSUE-000064]
+    related_issues: [ISSUE-000019, ISSUE-000034, ISSUE-000043, ISSUE-000064, ISSUE-000066]
   - id: ADR-0018
     file: plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md
     status: Accepted
@@ -85,7 +85,7 @@ adr:
   - id: ADR-0021
     file: plan/adr/ADR-0021-architecture-contract-authority-and-versioning.md
     status: Accepted
-    related_issues: [ISSUE-000022, ISSUE-000028, ISSUE-000029, ISSUE-000030, ISSUE-000031, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000038, ISSUE-000039, ISSUE-000041, ISSUE-000043, ISSUE-000044, ISSUE-000045, ISSUE-000046, ISSUE-000047, ISSUE-000048, ISSUE-000049, ISSUE-000050, ISSUE-000051, ISSUE-000053, ISSUE-000054, ISSUE-000056, ISSUE-000062, ISSUE-000063, ISSUE-000064, ISSUE-000065]
+    related_issues: [ISSUE-000022, ISSUE-000028, ISSUE-000029, ISSUE-000030, ISSUE-000031, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000038, ISSUE-000039, ISSUE-000041, ISSUE-000043, ISSUE-000044, ISSUE-000045, ISSUE-000046, ISSUE-000047, ISSUE-000048, ISSUE-000049, ISSUE-000050, ISSUE-000051, ISSUE-000053, ISSUE-000054, ISSUE-000056, ISSUE-000062, ISSUE-000063, ISSUE-000064, ISSUE-000065, ISSUE-000066]
   - id: ADR-0022
     file: plan/adr/ADR-0022-runtime-first-slice-read-validate-reconstruct.md
     status: Accepted
@@ -101,7 +101,7 @@ adr:
   - id: ADR-0025
     file: plan/adr/ADR-0025-cognitive-method-portable-contract-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000043, ISSUE-000048, ISSUE-000049, ISSUE-000050, ISSUE-000064]
+    related_issues: [ISSUE-000043, ISSUE-000048, ISSUE-000049, ISSUE-000050, ISSUE-000064, ISSUE-000066]
   - id: ADR-0026
     file: plan/adr/ADR-0026-cross-contract-bundle-exact-binding-consistency.md
     status: Accepted
@@ -189,3 +189,4 @@ issue:
   - {id: ISSUE-000063, file: plan/issue/ISSUE-000063-record-v0-2-0-release-evidence.md, status: Resolved, priority: 1, related_adrs: [ADR-0018, ADR-0020, ADR-0021, ADR-0029]}
   - {id: ISSUE-000064, file: plan/issue/ISSUE-000064-materialize-live-external-cognitive-method-execution.md, status: Resolved, priority: 1, related_adrs: [ADR-0017, ADR-0021, ADR-0025]}
   - {id: ISSUE-000065, file: plan/issue/ISSUE-000065-materialize-actual-tei-cli-execution.md, status: Resolved, priority: 1, related_adrs: [ADR-0013, ADR-0019, ADR-0021, ADR-0024]}
+  - {id: ISSUE-000066, file: plan/issue/ISSUE-000066-materialize-external-model-backed-cognitive-method.md, status: Open, priority: 1, related_adrs: [ADR-0017, ADR-0021, ADR-0025]}
