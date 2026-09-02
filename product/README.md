@@ -1,7 +1,7 @@
 # SOZA Product文書の読み方
 
 更新日: 2026-09-02  
-状態: **Current Product Documentation Baseline — v0.2.0 Release Evidence / E3b-M1a / E3b-P2 acquisition probe reflected**
+状態: **Current Product Documentation Baseline — v0.2.0 Release Evidence / E3b-P2 fixed-artifact / E3b-M1b reflected**
 
 ## 1. この文書の役割
 
@@ -89,7 +89,7 @@ Product Valueを長期的な到達方向として表します。未来の特定�
 
 SOZAをどの順序で製品として成立させるかを、**期限ではなくOutcomeとEvidence**で示します。
 
-現在、PMS-06ではE2、E3a、E3b-P1、E3b-P2のfixed-artifact actual TEI CLI execution、E3b-M1aにScoped Executable Evidenceがあります。E3b-P2では固定revisionの実TEIをbuild・起動し、SOZA Adapter経由でcurrent Capability Observationへ戻せることまで確認しました。一方、SOZA Actionsからprivate TEIを継続取得するcredential運用、任意version互換性、E3b-M1b、E4は未検証です。PMS-07はv0.2.0 Local Reference Product Baselineの範囲でRelease EvidenceがSatisfiedであり、PMS-08のOperational / Adoption・Outcome Evidenceは未検証のままです。
+現在、PMS-06ではE2、E3a、E3b-P1、E3b-P2のfixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1bにScoped Executable Evidenceがあります。E3b-P2では固定revisionの実TEIをbuild・起動し、SOZA Adapter経由でcurrent Capability Observationへ戻せることまで確認しました。E3b-M1bでは、固定revisionのKJ Atlasを実際に推論するmodel artifactへ接続し、actual inferenceから既存Cognitive Method Applicationへのmappingまでを確認しています。一方、SOZA Actionsからprivate TEIを継続取得するcredential運用、任意version互換性、model出力やKJ法としての成果品質、E4は未検証です。PMS-07はv0.2.0 Local Reference Product Baselineの範囲でRelease EvidenceがSatisfiedであり、PMS-08のOperational / Adoption・Outcome Evidenceは未検証のままです。
 
 ### `interaction/SOZA_PRODUCT_INTERACTION.md`
 
@@ -136,8 +136,11 @@ PMS-06に対応し、Cognitive Method RealizationやCapability Providerを交換
 - E3b-P1 public live Provider service
 - E3b-P2 fixed-artifact actual TEI CLI execution
 - E3b-M1a live KJ Atlas process + deterministic model stub
+- E3b-M1b live KJ Atlas process + actual inference model
 
-E3b-P2では、固定revisionの実TEI CLIをbuild・起動し、actual `deployment-provider-plan`をSOZA Adapterでstrictに読み、current Capability Observationへ戻す範囲までScoped Executable Evidenceがあります。SOZA Actionsからprivate TEIを継続取得するcredential運用、任意version互換性、E3b-M1b external model-backed Method executionは未検証です。
+E3b-P2では、固定revisionの実TEI CLIをbuild・起動し、actual `deployment-provider-plan`をSOZA Adapterでstrictに読み、current Capability Observationへ戻す範囲までScoped Executable Evidenceがあります。E3b-M1bでは、KJ Atlasの既存Method surfaceとpromptを保ったままactual model inferenceを通し、その結果を既存SOZA Method mapping boundaryへ戻せることを確認しました。
+
+ただし、SOZA Actionsからprivate TEIを継続取得するcredential運用、任意のTEI / model / runtime version互換性、model出力品質、KJ法としての成果品質は未検証です。
 
 ## 3. 未定領域の扱い
 
@@ -180,11 +183,11 @@ current repositoryでは、少なくとも次の状態まで確認していま�
 - Packaging / Deployment: **Design baseline established / Minimum scoped Executable Evidence available**
 - Local Reference Package: **release asset available for v0.2.0 Linux / amd64 reference profile**
 - Product Identity / Access / Collaboration: **Design baseline established / scoped Product Access separation Executable Evidence available**
-- Realization / Provider portability: **Partial — E2 / E3a / E3b-P1 / E3b-P2 fixed-artifact / E3b-M1a Scoped Executable Evidence available**
+- Realization / Provider portability: **Partial — E2 / E3a / E3b-P1 / E3b-P2 fixed-artifact / E3b-M1a / E3b-M1b Scoped Executable Evidence available**
 - PMS-07: **Satisfied for v0.2.0 Local Reference Product Baseline**
 - production IdP / team collaboration security: **Not Yet Verified**
 - E3b-P2 actual TEI process / service: **fixed-artifact Scoped Executable Evidence available / credential operation・arbitrary version pending**
-- E3b-M1b external model-backed Cognitive Method execution: **Not Yet Verified**
+- E3b-M1b external model-backed Cognitive Method execution: **Scoped Executable Evidence available / model・KJ-method quality Not Evaluated**
 - E4 Operational portability: **Not Yet Verified**
 - PMS-08 Operational / Adoption・Outcome Evidence: **Not Yet Verified**
 
@@ -203,19 +206,22 @@ v0.2.0は、現在のsemantic baselineにProduct Interaction、Local Single-Node
 
 actual releaseでは、tag、source commit、Release Candidate Gate、Local Reference Package、checksum、candidate report、release metadataを追跡できる状態で配布しています。
 
-repositoryには、release scope確定後に得られたE3b-P1、TEI executable injection boundary、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1aのScoped Executable Evidenceも存在します。しかし、それらを理由にv0.2.0のsupported scopeを後から広げません。
+repositoryには、release scope確定後に得られたE3b-P1、TEI executable injection boundary、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1bのScoped Executable Evidenceも存在します。しかし、それらを理由にv0.2.0のsupported scopeを後から広げません。
 
 ```text
 post-release scoped Evidence / probe exists
   != v0.2.0 supported scope expanded
 ```
 
-とくにE3b-M1aは、固定revisionのKJ Atlas本体を別processとして実行できたことを示しますが、modelにはKJ Atlas同梱の決定的stubを使います。
+E3b-M1aは、固定revisionのKJ Atlas本体を別processとして実行できたことを示しますが、modelにはKJ Atlas同梱の決定的stubを使います。E3b-M1bでは、そのMethod surfaceを保ったまま実際に推論するmodel artifactへ置き換え、prompt評価とtoken生成を伴うactual inferenceまで確認しました。
 
 ```text
 E3b-M1a PASS
+  != E3b-M1b PASS automatically
+
+E3b-M1b execution PASS
   != external model quality proven
-  != E3b-M1b PASS
+  != KJ-method outcome quality proven
 ```
 
 E3b-P2の最初のcredential-aware runではactual TEI stepがskipされましたが、その後、固定source commitからactual `cmd/tei`をbuild・実行したEvidence artifactを作成し、同artifactをcurrent SOZA Adapterから実processとして起動できることを確認しました。最初のskip記録は履歴として保持し、後続Evidenceによってfixed-artifact範囲だけを前進させています。
@@ -274,8 +280,8 @@ Coreへ追加する前に、少なくとも次を検討します。
 
 ## 10. Natural Japanese review
 
-Product Value、Value Proposition、Value Model / Acceptance、Product Shape、Vision / Principles、Product Milestones、Interaction、Packaging、Identity / Access / Collaboration、Realization / Provider Exchange、REQ-0001〜0022、SCN-0001〜0018、v0.2.0 Release Acceptance / Release Evidence、E3b-M1a Evidence、E3b-P2 acquisition probeへ戻ってProduct文書の入口を再監査しました。
+Product Value、Value Proposition、Value Model / Acceptance、Product Shape、Vision / Principles、Product Milestones、Interaction、Packaging、Identity / Access / Collaboration、Realization / Provider Exchange、REQ-0001〜0022、SCN-0001〜0018、v0.2.0 Release Acceptance / Release Evidence、E3b-P2 fixed-artifact Evidence、E3b-M1a Evidence、E3b-M1b Evidenceへ戻ってProduct文書の入口を再監査しました。
 
-v0.2.0のRelease Evidence成立を維持しながら、release後に成立したM1aをPMS-06のScoped Executable Evidenceとして保持しています。さらにE3b-P2の実TEI専用probe経路をProduct入口へ反映しましたが、最初のrunではactual TEI stepがskipされたため、P2を未検証のまま明示しています。M1aやP2 probeをv0.2.0 supported scopeへ遡及させず、E3b-M1b、E4、Operational / Adoption・Outcome Evidenceも未検証のまま分離しています。
+v0.2.0のRelease Evidence成立を維持しながら、release後に成立したP2、M1a、M1bを、それぞれ対象を限定したScoped Executable Evidenceとして整理しています。M1bではactual model inferenceが成立したことと、model出力やKJ法としての成果品質が十分であることを明確に分離しました。また、P2 / M1bの成立をv0.2.0 supported scopeへ遡及させず、credential運用、任意version互換性、E4、Operational / Adoption・Outcome Evidenceも未検証のまま分離しています。
 
 意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。
