@@ -1,0 +1,4 @@
+package semanticruntime
+
+// このファイルは、semanticruntimeの変更時に依存するCI実証workflowが選択されることを
+// run生成レベルで確認するための一時的なprobeです。production挙動やContractは変更しません。
