@@ -119,8 +119,11 @@ review bundleには少なくとも次を含めます。
 - actual modelから得たgrouping result
 - model callの実行Evidence
 - grouping structure checkerのreport
+- review bundle manifest
 - 実行したOllama version
 - 取得済みmodel identity一覧
+
+manifestは、workflow run、repository commit、Method source commitと各ファイルのSHA-256 / byte sizeを対応付けます。さらに、structure reportが記録したrequest / result digestと実ファイルのdigestが一致しない場合はbundle生成を拒否します。manifest自身は成果品質を採点しません。
 
 このbundleは、生成結果そのものと、その構造検査・実行条件を同じrunへ結び付けて読み直すための材料です。artifactが存在すること自体を成果品質のEvidenceにはしません。
 
@@ -138,6 +141,7 @@ workflowが途中で失敗した場合にも、そこまでに生成されたフ
 この評価系のcheckerやtemplateが存在すること自体は、成果品質のEvidenceではありません。
 
 - checker testのPASS: 評価コードが想定した構造違反を検出できる限定Executable Evidence
+- manifest generator testのPASS: review bundleのidentity / digest対応と停止線を評価コードが検査できる限定Executable Evidence
 - actual M1b outputへのchecker PASS: その出力が定義済み構造不変条件を満たした限定Executable Evidence
 - actual M1b review bundle: 対象runのinput / output / execution / structureを後から人間が再確認できる記録
 - human review record: 人間による評価観測。条件・評価者・対象を伴って読む
@@ -147,10 +151,12 @@ workflowが途中で失敗した場合にも、そこまでに生成されたフ
 
 ## 8. ファイル
 
-- `check_grouping_structure.py` — grouping resultの構造不変条件を検査する。
-- `test_check_grouping_structure.py` — positive / negative controlを検査する。
+- `check_grouping_structure.py` — grouping resultの構造不変条件だけを検査する。
+- `test_check_grouping_structure.py` — checkerのpositive / negative controlを検査する。
+- `build_review_bundle_manifest.py` — review bundleのrun identity、source commit、file digestを対応付け、request / result digestの不一致を拒否する。
+- `test_build_review_bundle_manifest.py` — manifest生成器のidentity / digest検査と、structure PASSをquality PASSへ昇格しない停止線を検査する。
 - `HUMAN_REVIEW_TEMPLATE.md` — 人間が成果品質と残差を記録する。
 
 ## 9. Natural Japanese review
 
-ISSUE-000066のactual model-backed Evidence、ISSUE-000067のRealization / Provenance境界、ISSUE-000068のactual model artifact交換、既存V6 / V7 structured reviewへ戻り、機械検査と人間判断が互いを代替しない構成として整理しました。さらに、actual outputを一時ログだけに閉じ込めず、request、result、実行Evidence、structure reportを同じrunのreview bundleとして人間へ渡せるようにしました。その後、意味とEvidence強度を固定し、自然な日本語として読み進められることを最重要視して全文を再ドラフトしています。
+ISSUE-000066のactual model-backed Evidence、ISSUE-000067のRealization / Provenance境界、ISSUE-000068のactual model artifact交換、既存V6 / V7 structured reviewへ戻り、機械検査と人間判断が互いを代替しない構成として整理しました。さらに、actual outputを一時ログだけに閉じ込めず、request、result、実行Evidence、structure report、review bundle manifestを同じrunの材料として人間へ渡せるようにしました。manifestはidentityとdigestの整合だけを担い、成果品質の判断を機械へ先取りしません。その後、意味とEvidence強度を固定し、自然な日本語として読み進められることを最重要視して全文を再ドラフトしています。
