@@ -2,7 +2,7 @@
 """SOZAのversion別Release Candidate policyを検査し、候補commitへ結び付いたreportを生成する。
 
 このcheckerが確認するのはrelease candidateの準備条件であり、actual Release Evidenceではない。
-versionごとのsupported scope、required path、required gate、非主張範囲は独立policyとして扱い、
+versionごとのsupported scope、required path、Plan snapshot、required gate、非主張範囲は独立policyとして扱い、
 共通checkerを使うことを理由に異なるversionのrelease境界を混同しない。
 """
 
@@ -29,6 +29,7 @@ ISSUE_ROW = re.compile(
     r"status: (?P<status>[^,]+), priority: (?P<priority>\d+), "
     r"related_adrs: \[(?P<adrs>[^\]]*)\]\}\s*$"
 )
+ISSUE_ID = re.compile(r"^ISSUE-\d{6}$")
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
 
@@ -197,7 +198,7 @@ def parse_issue_statuses() -> dict[str, str]:
     return issues
 
 
-def check_plan_policy(config: dict[str, Any]) -> list[str]:
+def check_plan_policy(config: dict[str, Any]) -> tuple[list[str], str]:
     prohibited = set(require_string_list(config, "prohibited_plan_statuses"))
     if prohibited != EXPECTED_PROHIBITED_STATUSES:
         fail(
@@ -205,22 +206,46 @@ def check_plan_policy(config: dict[str, Any]) -> list[str]:
             f"{sorted(EXPECTED_PROHIBITED_STATUSES)}, got {sorted(prohibited)}"
         )
 
+    scope_max = require_string(config, "plan_issue_scope_max")
+    if not ISSUE_ID.fullmatch(scope_max):
+        fail(f"plan_issue_scope_max must be an ISSUE-###### id, got {scope_max!r}")
+
     allowed_deferred = set(require_string_list(config, "allowed_deferred_issues"))
     issues = parse_issue_statuses()
+    if scope_max not in issues:
+        fail(f"plan_issue_scope_max is not present in plan registry: {scope_max}")
 
-    blockers = sorted(issue_id for issue_id, status in issues.items() if status in prohibited)
+    scoped_issues = {
+        issue_id: status
+        for issue_id, status in issues.items()
+        if issue_id <= scope_max
+    }
+
+    out_of_scope_allowed = sorted(issue_id for issue_id in allowed_deferred if issue_id > scope_max)
+    if out_of_scope_allowed:
+        fail(f"allowed_deferred_issues exceed plan_issue_scope_max: {out_of_scope_allowed}")
+
+    blockers = sorted(
+        issue_id
+        for issue_id, status in scoped_issues.items()
+        if status in prohibited
+    )
     if blockers:
-        fail(f"release candidate has blocking Plan issues: {blockers}")
+        fail(f"release candidate has blocking Plan issues within {scope_max}: {blockers}")
 
     unknown_statuses = sorted(
         (issue_id, status)
-        for issue_id, status in issues.items()
+        for issue_id, status in scoped_issues.items()
         if status not in {"Resolved", "Deferred"}
     )
     if unknown_statuses:
-        fail(f"release candidate has unsupported Plan statuses: {unknown_statuses}")
+        fail(f"release candidate has unsupported Plan statuses within {scope_max}: {unknown_statuses}")
 
-    observed_deferred = {issue_id for issue_id, status in issues.items() if status == "Deferred"}
+    observed_deferred = {
+        issue_id
+        for issue_id, status in scoped_issues.items()
+        if status == "Deferred"
+    }
     unapproved = sorted(observed_deferred - allowed_deferred)
     if unapproved:
         fail(f"Deferred issues are not approved by candidate policy: {unapproved}")
@@ -229,7 +254,7 @@ def check_plan_policy(config: dict[str, Any]) -> list[str]:
     if stale_allowlist:
         fail(f"allowed_deferred_issues are not currently Deferred: {stale_allowlist}")
 
-    return sorted(observed_deferred)
+    return sorted(observed_deferred), scope_max
 
 
 def check_gates(config: dict[str, Any], policy: VersionPolicy) -> list[str]:
@@ -278,6 +303,7 @@ def build_report(
     policy: VersionPolicy,
     gates: list[str],
     deferred: list[str],
+    plan_issue_scope_max: str,
     non_claims: dict[str, bool],
 ) -> dict[str, Any]:
     return {
@@ -287,6 +313,7 @@ def build_report(
         "release_scope": policy.release_scope,
         "source_commit_sha": git_rev("HEAD"),
         "source_tree_sha": git_rev("HEAD^{tree}"),
+        "plan_issue_scope_max": plan_issue_scope_max,
         "executed_gates": gates,
         "observed_allowed_deferred_issues": deferred,
         "candidate_gate_passed": True,
@@ -318,12 +345,13 @@ def main() -> int:
         check_required_paths(paths, policy)
         gates = check_gates(config, policy)
         non_claims = check_non_claims(config, policy)
-        deferred = check_plan_policy(config)
+        deferred, plan_issue_scope_max = check_plan_policy(config)
         report = build_report(
             version=version,
             policy=policy,
             gates=gates,
             deferred=deferred,
+            plan_issue_scope_max=plan_issue_scope_max,
             non_claims=non_claims,
         )
 
@@ -341,7 +369,7 @@ def main() -> int:
         print(
             f"PASS: SOZA v{version} release candidate policy; "
             f"commit={report['source_commit_sha']} tree={report['source_tree_sha']} "
-            f"deferred={deferred}"
+            f"plan_scope<={plan_issue_scope_max} deferred={deferred}"
         )
         print("Release Evidence remains NOT VERIFIED until an actual release is created and bound.")
         return 0
