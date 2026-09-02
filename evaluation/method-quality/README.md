@@ -1,6 +1,6 @@
 # Cognitive Method成果品質の評価基線
 
-更新日: 2026-09-02  
+更新日: 2026-09-03  
 状態: **Evaluation baseline — quality itself is Not Yet Verified**
 
 ## 1. この評価系の役割
@@ -109,23 +109,48 @@ same input identity
 
 複数出力を比較するときも、自動的な勝者を決めることを目的にしません。差異そのものを、Method Realizationの性質を理解するための観測として残します。
 
-## 6. Evidenceの読み方
+## 6. actual出力をレビューへ渡す
+
+`External Model-backed Method E3b M1b`では、実行時の結果をログ表示だけで終わらせず、人間レビューへ引き渡せるActions artifactとして保持します。
+
+review bundleには少なくとも次を含めます。
+
+- KJ Atlasへ渡したrequest
+- actual modelから得たgrouping result
+- model callの実行Evidence
+- grouping structure checkerのreport
+- 実行したOllama version
+- 取得済みmodel identity一覧
+
+このbundleは、生成結果そのものと、その構造検査・実行条件を同じrunへ結び付けて読み直すための材料です。artifactが存在すること自体を成果品質のEvidenceにはしません。
+
+```text
+review bundle preserved
+  = output / provenance / structureを後から再確認できる
+  != human review completed
+  != Cognitive Method outcome quality satisfied
+```
+
+workflowが途中で失敗した場合にも、そこまでに生成されたファイルは可能な範囲でartifactへ残します。欠けたファイルがある場合は、その欠落自体を実行状況の一部として扱い、完全なreview bundleが成立したものとはみなしません。
+
+## 7. Evidenceの読み方
 
 この評価系のcheckerやtemplateが存在すること自体は、成果品質のEvidenceではありません。
 
 - checker testのPASS: 評価コードが想定した構造違反を検出できる限定Executable Evidence
 - actual M1b outputへのchecker PASS: その出力が定義済み構造不変条件を満たした限定Executable Evidence
+- actual M1b review bundle: 対象runのinput / output / execution / structureを後から人間が再確認できる記録
 - human review record: 人間による評価観測。条件・評価者・対象を伴って読む
 - repeated actual use: Operational / Adoption / Outcomeを検討するための別Evidence
 
 人間レビューが一件成立しても、それだけでproduction品質や一般的なKJ法能力を主張しません。
 
-## 7. ファイル
+## 8. ファイル
 
 - `check_grouping_structure.py` — grouping resultの構造不変条件を検査する。
 - `test_check_grouping_structure.py` — positive / negative controlを検査する。
 - `HUMAN_REVIEW_TEMPLATE.md` — 人間が成果品質と残差を記録する。
 
-## 8. Natural Japanese review
+## 9. Natural Japanese review
 
-ISSUE-000066のactual model-backed Evidence、ISSUE-000067のRealization / Provenance境界、ISSUE-000068のactual model artifact交換、既存V6 / V7 structured reviewへ戻り、機械検査と人間判断が互いを代替しない構成として整理しました。その後、意味とEvidence強度を固定し、自然な日本語として読み進められることを最重要視して全文を再ドラフトしています。
+ISSUE-000066のactual model-backed Evidence、ISSUE-000067のRealization / Provenance境界、ISSUE-000068のactual model artifact交換、既存V6 / V7 structured reviewへ戻り、機械検査と人間判断が互いを代替しない構成として整理しました。さらに、actual outputを一時ログだけに閉じ込めず、request、result、実行Evidence、structure reportを同じrunのreview bundleとして人間へ渡せるようにしました。その後、意味とEvidence強度を固定し、自然な日本語として読み進められることを最重要視して全文を再ドラフトしています。
