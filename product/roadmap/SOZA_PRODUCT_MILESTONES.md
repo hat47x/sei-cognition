@@ -1,7 +1,7 @@
 # SOZA Product Milestones
 
 更新日: 2026-09-02  
-状態: **Current Deadline-free Product Milestone Baseline — v0.2.0 Release Evidence reflected**
+状態: **Current Deadline-free Product Milestone Baseline — v0.2.0 Release Evidence / E3b-P2 / E3b-M1b reflected**
 
 ## 1. この文書の役割
 
@@ -268,7 +268,7 @@ synthetic fixtureだけでなく、実際のCognitive Method Realization、AI、
 
 ### Current state
 
-**Partial / E2 + E3a + E3b-P1 + E3b-P2 fixed-artifact + E3b-M1a Scoped Executable Evidence available / E3b-M1b・E4 pending.**
+**Partial / E2 + E3a + E3b-P1 + E3b-P2 fixed-artifact + E3b-M1a + E3b-M1b Scoped Executable Evidence available / E4 pending.**
 
 Evidenceを次の段階に分けます。
 
@@ -290,8 +290,8 @@ E3b
   │    ├─ fixed-artifact actual TEI CLI execution [Scoped Evidence]
   │    └─ private-repository credential operation / arbitrary version [pending]
   └─ M1 live external Cognitive Method
-       ├─ M1a live KJ Atlas process + deterministic model stub
-       └─ M1b live external model-backed KJ execution
+       ├─ M1a live KJ Atlas process + deterministic model stub [Scoped Evidence]
+       └─ M1b live external model-backed KJ execution [Scoped Evidence]
 ```
 
 この区分はEvidenceの範囲を示すためのもので、新しいProduct ontologyではありません。
@@ -364,12 +364,30 @@ KJ Atlas grouping suggestion
 
 PR #41は`develop/v0.2.0`へマージ済みで、merge commitは`fe0588c1ca24903fad49dfbacde84700b94d3ecc`です。マージ後の基線でもPlan integrity、live Provider integration、projection evaluation等の回帰checkがsuccessしており、既存v0.2.0の再publicationは意図どおりskipされています。
 
-### v0.2.0との関係
+### E3b-M1b — live external model-backed KJ execution
 
-v0.2.0のsupported release scopeはE3aまでです。E3b-P1、TEI executable注入境界、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1aはrelease後に積み上がったScoped Executable Evidenceであり、既に公開済みのv0.2.0 supported scopeやRelease Evidenceを遡及的に広げません。
+ISSUE-000066ではM1aと同じKJ Atlas revisionを使い、KJ AtlasのMethod surfaceを変えずに、deterministic model stubだけを実際に推論するmodel artifactへ置き換えました。
+
+先行Workflow Run `33596839607`では、Ollama `0.32.14`と`qwen2.5:0.5b`をGitHub Actions runner上で取得し、KJ Atlasの`POST /generate`境界をintegration-only AdapterからOllamaへ接続しました。AdapterはKJ Atlasのpromptやgrouping内容を補正していません。
+
+actual inferenceでは、`prompt_eval_count = 196`、`eval_count = 78`を観測しました。KJ Atlasはmodel outputを受理し、group候補とheld cardの除外情報を返しました。そのresultをM1aと同じ既存SOZA Method mapping boundaryへ通し、Cognitive Method Applicationへ戻しています。
 
 ```text
-post-release E3b Evidence / probe exists
+actual model inference succeeded
+  != model output quality satisfied
+  != KJ-method outcome quality satisfied
+  != Recommendation
+  != Decision
+```
+
+このため、M1bはactual model-backed executionの範囲でScoped Executable Evidence availableです。生成内容の妥当性や有用性を評価する品質試験は別に扱います。
+
+### v0.2.0との関係
+
+v0.2.0のsupported release scopeはE3aまでです。E3b-P1、TEI executable注入境界、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1bはrelease後に積み上がったScoped Executable Evidenceであり、既に公開済みのv0.2.0 supported scopeやRelease Evidenceを遡及的に広げません。
+
+```text
+post-release E3b Evidence exists
   != v0.2.0 supported scope expanded
   != v0.2.0 Release Evidence expanded
 ```
@@ -380,7 +398,8 @@ post-release E3b Evidence / probe exists
 - TEI executableの正式な取得・配布方式をどの時点で決めるか
 - fixed revision以外のTEI versionへ交換したときにも同じ意味境界を保てるか
 - TEI CLI version交換時に必要なProvenance / Exact Bindingの水準
-- E3b-M1bで利用する実外部modelと、その品質評価をsemantic execution Evidenceからどう分離するか
+- model / runtime version交換時に必要なProvenance / Exact Bindingの水準
+- model出力品質とKJ法としての成果品質をsemantic execution Evidenceからどう独立に評価するか
 - model / Method / Provider version交換をまたぐhistorical reconstructionをどう検査するか
 - E4 Operational portabilityを何で測るか
 
@@ -421,7 +440,7 @@ v0.2.0 Release Evidence Satisfied
   != Adoption / Outcome Evidence
 ```
 
-v0.2.0でsupportを主張するRealization / Provider exchangeの範囲はE3aまでです。release後に得られたE3b-P1、TEI executable注入境界、E3b-P2 probe、E3b-M1aのEvidenceや実証準備を、v0.2.0のsupported scopeへ自動的に追加しません。
+v0.2.0でsupportを主張するRealization / Provider exchangeの範囲はE3aまでです。release後に得られたE3b-P1、TEI executable注入境界、E3b-P2 fixed-artifact、E3b-M1a、E3b-M1bのEvidenceを、v0.2.0のsupported scopeへ自動的に追加しません。
 
 詳細は`release/v0.2.0/RELEASE_EVIDENCE.md`を正とします。
 
@@ -439,7 +458,7 @@ Operational Evidence、および対象価値に応じたAdoption / Outcome Evide
 
 **Not Yet Verified.**
 
-v0.2.0 Release EvidenceやE3b-M1aのScoped Executable EvidenceをPMS-08の成立へ読み替えません。
+v0.2.0 Release EvidenceやE3b-P2 / M1a / M1bのScoped Executable EvidenceをPMS-08の成立へ読み替えません。
 
 ## 12. 横断Milestone — Moving Rebaseline
 
@@ -459,10 +478,12 @@ Open Questionを直接Stable Requirementへ飛ばしません。
 
 ## 14. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、Product Identity / Access / Collaboration、Realization / Provider Exchange、v0.2.0 Release Acceptance / Release Evidence、REQ-0001〜0022、SCN-0001〜0018、ADR-0024 / 0025 / 0028 / 0029 / 0030、ISSUE-000046 / 000047 / 000053〜000065、current Go runtime、Interaction / Packaging / Product Access / E2 / E3a / E3b-P1 / TEI executable injection boundary / E3b-P2 probe / E3b-M1a、actual `v0.2.0` tag / GitHub Release / release assetへ戻ってMilestone全体を再監査しました。
+Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、Product Identity / Access / Collaboration、Realization / Provider Exchange、v0.2.0 Release Acceptance / Release Evidence、REQ-0001〜0022、SCN-0001〜0018、ADR-0024 / 0025 / 0028 / 0029 / 0030、ISSUE-000046 / 000047 / 000053〜000066、current Go runtime、Interaction / Packaging / Product Access / E2 / E3a / E3b-P1 / TEI executable injection boundary / E3b-P2 / E3b-M1a / E3b-M1b、actual `v0.2.0` tag / GitHub Release / release assetへ戻ってMilestone全体を再監査しました。
 
-PMS-06では、ISSUE-000065の最初のcredential-aware probeでactual TEI stepがskipされた履歴を保ったまま、後続の固定artifact実証を追加しました。TEI側Run `33589084290`でactual `cmd/tei`をbuild・実行し、そのartifactをcurrent SOZA Adapterから実processとして起動できたため、E3b-P2はfixed-artifact範囲でScoped Executable Evidence availableへ進みました。一方、SOZA Actionsのprivate-repository credential運用、任意TEI version互換性、E4は未検証のままです。
+PMS-06では、ISSUE-000065の最初のcredential-aware probeでactual TEI stepがskipされた履歴を保ったまま、後続の固定artifact実証を追加しています。TEI側Run `33589084290`でactual `cmd/tei`をbuild・実行し、そのartifactをcurrent SOZA Adapterから実processとして起動できたため、E3b-P2はfixed-artifact範囲でScoped Executable Evidence availableへ進みました。
 
-PMS-07のv0.2.0 supported scopeはE3aまでに保ち、post-releaseのE3b-P1、TEI executable注入境界、E3b-P2 probe、M1aによってRelease Evidenceを遡及的に拡張していません。private-repository credential運用、任意TEI version互換性、E3b-M1b、E4 Operational portability、production security / Storage、PMS-08のOperational / Adoption・Outcome Evidenceは未検証のままです。
+さらにISSUE-000066では、M1aと同じKJ Atlas Method surfaceを実際に推論するmodelへ接続しました。actual inferenceとSOZAへのmappingは成立しましたが、model出力品質やKJ法としての成果品質は評価していません。実行成立と品質評価を一つのPASSへ潰さず、Recommendation / Decisionへの自動昇格も認めていません。
+
+PMS-07のv0.2.0 supported scopeはE3aまでに保ち、post-releaseのE3b-P1、TEI executable注入境界、E3b-P2、M1a、M1bによってRelease Evidenceを遡及的に拡張していません。private-repository credential運用、任意TEI / model / runtime version互換性、E4 Operational portability、production security / Storage、PMS-08のOperational / Adoption・Outcome Evidenceは未検証のままです。
 
 意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。

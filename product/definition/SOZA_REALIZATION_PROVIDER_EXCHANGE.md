@@ -1,7 +1,7 @@
 # SOZA Realization / Provider Exchange
 
 更新日: 2026-09-02  
-状態: **Current Realization / Provider Exchange Design Baseline — E3b-M1a reflected**
+状態: **Current Realization / Provider Exchange Design Baseline — E3b-P2 fixed-artifact / E3b-M1b reflected**
 
 ## 1. この文書の役割
 
@@ -62,6 +62,8 @@ Realization AとBが異なる出力を返しても、それぞれを別のMethod
 Method Realizationの交換に、同じ結論を返すことは要求しません。守るべきなのは、**どのRealizationを使い、何を入力し、何を出力し、どのProvenanceや残差があったかを区別して保持できること**です。
 
 外部repositoryで配布されるSkillやPrompt pack等をRealizationとして使う場合も、repository名、commit、path等をCognitive MethodのUniversal fieldへ直接持ち込みません。取得元はProvenanceとして保持し、Method Definition / Realizationの意味とartifact取得方式を分離します。
+
+AI modelを含むRealizationでも同じです。model tagやinference runtimeは実行の再構成に必要なProvenanceになり得ますが、それらをCognitive Method Definitionのsemantic identityと同一視しません。
 
 ## 4. Provider exchange
 
@@ -173,7 +175,7 @@ ISSUE-000065では、TEI commit `48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67`を固
 
 ### 6.3 E3b-M1a — live KJ Atlas process + deterministic model stub
 
-ISSUE-000064では、public repository `hat47x/kj-atlas`を固定commitで取得し、KJ Atlas FastAPI backendとKJ Atlas同梱のdeterministic model stubをSOZAとは別processとして実際に起動します。
+ISSUE-000064では、public repository `hat47x/kj-atlas`を固定commitで取得し、KJ Atlas FastAPI backendとKJ Atlas同梱のdeterministic model stubをSOZAとは別processとして実際に起動しました。
 
 - repository: `hat47x/kj-atlas`
 - commit: `4f28c13abe4176503c6fed863383a2d1db2299e9`
@@ -193,26 +195,41 @@ KJ Atlas grouping suggestion
   != Decision
 ```
 
-再基線化前のPR #41では、KJ Atlas checkout、backend install、migration、model/backend process起動、actual grouping、SOZA mapping boundary、actual result mappingまでを専用workflowで実行し、成功しています。
+PR #41では、KJ Atlas checkout、backend install、migration、model/backend process起動、actual grouping、SOZA mapping boundary、actual result mappingまでを専用workflowで実行し、成功しています。
 
 **Scoped Executable Evidence available for M1a scope.**
 
 ### 6.4 E3b-M1b — live external model-backed KJ execution
 
-M1aではKJ Atlas本体のlive execution pathを通しますが、model processにはrepository同梱の決定的stubを使います。
+ISSUE-000066では、M1aと同じKJ Atlas revisionとMethod surfaceを保ち、model processだけを実際に推論するartifactへ置き換えました。
 
-したがって、実外部AI modelを用いたKJ execution、model品質、KJ法としての成果品質はまだ確認していません。
+最初の実証条件は次です。
+
+- KJ Atlas commit: `4f28c13abe4176503c6fed863383a2d1db2299e9`
+- Inference runtime: Ollama `0.32.14`
+- Model: `qwen2.5:0.5b`
+- Observed model ID: `a8b0c5157701`
+- KJ Atlas model boundary: `POST /generate`
+
+integration-only AdapterはKJ Atlasのpromptを変更せず、Ollamaのtransportへ変換するだけに限定しています。group labelやcard ID等の意味内容をAdapter側で生成・補正しません。
+
+先行Workflow Run `33596839607`では、actual model取得、KJ Atlas backend起動、actual `POST /ai/suggest-card-groups`、SOZA Method mappingまでをskipなしで実行しました。Ollamaからは`prompt_eval_count = 196`、`eval_count = 78`が記録され、process起動だけでなくprompt評価とtoken生成を伴うactual inferenceが確認できました。
+
+KJ Atlasはactual model outputを受理し、二つの対象cardを一つのgroup候補として返し、held cardを`excludedCardIds`へ分離しました。そのresultはM1aと同じSOZA mapping boundaryからCognitive Method Applicationへ戻しています。
 
 ```text
-E3b-M1a PASS
-  != E3b-M1b PASS
+actual model inference succeeded
+  != model output quality satisfied
+  != KJ-method outcome quality satisfied
+  != Recommendation
+  != Decision
 ```
 
-**Not Yet Verified.**
+したがって、E3b-M1bは**actual model-backed executionの範囲でScoped Executable Evidence available**です。model品質、KJ法としての成果品質、任意model / runtime version互換性は別の未検証範囲として残します。
 
 ## 7. 外部source identityとsemantic identityを分ける
 
-外部integrationでは、repository、commit、path、blob identity、result digest、service revision、executable path等を追跡に使うことがあります。
+外部integrationでは、repository、commit、path、blob identity、result digest、service revision、executable path、inference runtime、model tag等を追跡に使うことがあります。
 
 しかし、それらはSOZAのsemantic identityそのものではありません。
 
@@ -225,9 +242,16 @@ repository / commit / path / blob identity
 executable path / credential / process command
   != Capability identity
   != semantic authority
+
+model tag / runtime version
+  != Cognitive Method Definition identity
+  != Recommendation
+  != Decision
 ```
 
-GitHub、Git、HTTP、CLI、FastAPI、SQLiteを使っていること自体をUniversal Coreへ持ち込みません。他のartifact store、Provider service、process surfaceへ交換できる余地を残します。
+GitHub、Git、HTTP、CLI、FastAPI、SQLite、Ollamaを使っていること自体をUniversal Coreへ持ち込みません。他のartifact store、Provider service、process surface、model runtimeへ交換できる余地を残します。
+
+一方、modelやruntimeの交換をまたいで過去Applicationを再構成する際に、どこまでのidentityをDurable Provenanceとして保持すべきかは、今後のversion交換実証で検討します。
 
 ## 8. 外部Method outputとRecommendation / Decisionを分ける
 
@@ -242,7 +266,7 @@ Method output
   != Decision automatically
 ```
 
-この分離により、Method Realizationを交換したときに異なるgroupingや解釈候補が返っても、過去Decisionを自動的に書き換えずに保持できます。
+この分離により、Method Realizationやmodelを交換したときに異なるgroupingや解釈候補が返っても、過去Decisionを自動的に書き換えずに保持できます。
 
 ## 9. failure時の境界
 
@@ -252,13 +276,15 @@ external integrationでは、少なくとも次を分けます。
 - acquisition failure
 - credential failure
 - process start / network failure
+- model artifact acquisition failure
+- inference failure / timeout
 - Provider / Method固有responseのinvalid shape
 - Adapter mapping failure
 - semantic validation failure
 
 failureを一つのgeneric errorへ潰さない一方、外部system固有のerror vocabularyをUniversal Contractへ先取りしません。
 
-KJ Atlas M1a reference Adapterでは、invalid responseやduplicate targetでcanonical stateを部分更新しないことを検査します。これはsingle-thread reference probeの安全策であり、production transaction semanticsを定義するものではありません。
+KJ Atlas M1a / M1bのreference mappingでは、invalid responseやduplicate targetでcanonical stateを部分更新しないことを検査します。これはsingle-thread reference probeの安全策であり、production transaction semanticsを定義するものではありません。
 
 ## 10. Releaseとの関係
 
@@ -266,11 +292,12 @@ v0.2.0 Local Reference Product Baselineについては、`release/v0.2.0/RELEASE
 
 ただし、v0.2.0でsupportを主張するRealization / Provider exchangeの範囲はE3aまでです。
 
-E3b-P1やE3b-M1aのScoped Executable Evidenceは、そのrelease後に存在するcurrent repository Evidenceとして扱います。
+E3b-P1、E3b-P2 fixed-artifact、E3b-M1a、E3b-M1bのScoped Executable Evidenceは、そのrelease後に存在するcurrent repository Evidenceとして扱います。
 
 ```text
 post-release E3b Evidence
   != v0.2.0 supported scope expanded
+  != v0.2.0 Release Evidence expanded
 ```
 
 ## 11. 現在のEvidence表
@@ -283,8 +310,8 @@ post-release E3b Evidence
 | E3b-P1 public live Provider | Scoped Executable Evidence | ISSUE-000060 | actual TEI / external Method |
 | external TEI executable injection boundary | Scoped Executable Evidence | ISSUE-000061 | actual TEI / credential operation |
 | E3b-P2 actual TEI | Fixed-artifact Scoped Executable Evidence | ISSUE-000065 | credential operation / arbitrary version / Operational portability |
-| E3b-M1a live KJ Atlas + model stub | Scoped Executable Evidence | ISSUE-000064 | external model quality / M1b |
-| E3b-M1b live external model-backed Method | Not Yet Verified | — | — |
+| E3b-M1a live KJ Atlas + model stub | Scoped Executable Evidence | ISSUE-000064 | actual model-backed execution / model quality |
+| E3b-M1b live external model-backed Method | Scoped Executable Evidence | ISSUE-000066 | model・KJ-method quality / arbitrary model・runtime version / Operational portability |
 | E4 operational portability | Not Yet Verified | — | — |
 
 ## 12. 次の探索点
@@ -294,22 +321,27 @@ post-release E3b Evidence
 - fixed-artifact Evidenceを維持しながら、private repository credentialをacquisition / deployment policyへどう閉じ込めるか
 - TEI executableの配布・更新経路をどの段階で正式化するか
 - TEI CLI version交換時のProvenance / Exact Binding水準
-- E3b-M1bで実外部modelを用いたときにもM1aの意味境界が保てるか
+- model / runtime version交換時に、historical Method Applicationを十分に再構成するためのProvenance水準
+- model出力品質とCognitive Methodとしての成果品質を、semantic execution Evidenceからどう独立に評価するか
 - formal integration protocolを本当に標準化する必要があるか
 - E4 Operational portabilityを何で評価するか
 
 ## 13. Requirement化の境界
 
-E2〜E3bの実証で使ったGitHub、HTTP、CLI、FastAPI、SQLite等を、そのままStable Requirementへ昇格させません。
+E2〜E3bの実証で使ったGitHub、HTTP、CLI、FastAPI、SQLite、Ollama等を、そのままStable Requirementへ昇格させません。
 
 新しいStable Requirementが必要なのは、特定実装を越えて残る意味差が確認された場合です。
 
-現時点では、M1aで確認した境界は既存のCognitive Method交換可能性、historical Decision reconstruction、Realization / Execution交換のRequirement / Scenarioで表現できるため、ISSUE-000064では新しいREQ / SCNを追加しません。
+M1a / M1bで確認した境界は、現時点では既存のCognitive Method交換可能性、historical Decision reconstruction、Realization / Execution交換のRequirement / Scenarioで表現できます。ISSUE-000066のactual model接続でも、それらで表せない独立したProduct failureは確認されなかったため、新しいREQ / SCNを追加しません。
+
+model / runtime version交換を行った結果、現在のProvenanceでは過去Applicationを十分に区別できないことが分かった場合は、その時点でCandidate Requirementとして上流へ戻します。
 
 ## 14. 自然な日本語レビュー
 
-PMS-06、ADR-0017 / 0021 / 0025、ISSUE-000057〜000065、current Cognitive Method / Capability Observation Contract、E3a / E3b Provider Evidence、v0.2.0 Release Evidence、KJ Atlas固定commitのactual integration結果、固定TEI artifactのactual execution結果を照合しました。
+PMS-06、ADR-0017 / 0021 / 0025、ISSUE-000057〜000066、current Cognitive Method / Capability Observation Contract、E3a / E3b Provider Evidence、v0.2.0 Release Evidence、KJ Atlas固定commitのM1a / M1b actual integration結果、固定TEI artifactのactual execution結果を照合しました。
 
-そのうえで、外部artifactを取得したEvidence、public Providerをliveに呼んだEvidence、TEI executable注入境界、fixed-artifact actual TEI execution、KJ Atlasをlive実行したM1aを一つの段階へ潰さず、それぞれ何を確認したかが自然に読めるよう整理しました。
+そのうえで、外部artifactを取得したEvidence、public Providerをliveに呼んだEvidence、TEI executable注入境界、fixed-artifact actual TEI execution、KJ Atlasをdeterministic model stubでlive実行したM1a、actual inference modelへ置き換えたM1bを一つの段階へ潰さず、それぞれ何を確認したかが自然に読めるよう整理しました。
+
+M1bについては、actual inferenceの成立と生成品質を明確に分けています。実モデルを通せたことを「良いgroupingができた」「KJ法として十分である」「RecommendationやDecisionが成立した」と読み替えない停止線も維持しました。
 
 意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。
