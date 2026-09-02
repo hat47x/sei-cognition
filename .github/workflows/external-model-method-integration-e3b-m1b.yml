@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
       - "runtime/integration/e3b_m1b_ollama_adapter.py"
+      - "runtime/go/livemethodintegration/**"
       - "runtime/MODEL_BACKED_METHOD_EVIDENCE_*.md"
       - "product/README.md"
       - "product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md"
       - "product/roadmap/SOZA_PRODUCT_MILESTONES.md"
       - "plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md"
       - "plan/issue/ISSUE-000066-*.md"
+      - "plan/issue/ISSUE-000067-*.md"
       - "plan/registry.yaml"
       - "plan/document_review_registry.yaml"
       - ".github/workflows/external-model-method-integration-e3b-m1b.yml"
@@ -18,12 +20,14 @@ on:
       - develop/v0.2.0
     paths:
       - "runtime/integration/e3b_m1b_ollama_adapter.py"
+      - "runtime/go/livemethodintegration/**"
       - "runtime/MODEL_BACKED_METHOD_EVIDENCE_*.md"
       - "product/README.md"
       - "product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md"
       - "product/roadmap/SOZA_PRODUCT_MILESTONES.md"
       - "plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md"
       - "plan/issue/ISSUE-000066-*.md"
+      - "plan/issue/ISSUE-000067-*.md"
       - "plan/registry.yaml"
       - "plan/document_review_registry.yaml"
       - ".github/workflows/external-model-method-integration-e3b-m1b.yml"
@@ -208,6 +212,12 @@ jobs:
           SOZA_E3B_METHOD_LIVE: "1"
           SOZA_E3B_METHOD_RESULT: /tmp/kj-atlas-m1b-result.json
           SOZA_E3B_METHOD_SOURCE_COMMIT: 4f28c13abe4176503c6fed863383a2d1db2299e9
+          SOZA_E3B_METHOD_REALIZATION_ID: MR-KJ-ATLAS-M1B
+          SOZA_E3B_METHOD_EXECUTION_PROFILE: ollama-model-backed
+          SOZA_E3B_METHOD_RUNTIME: ollama
+          SOZA_E3B_METHOD_RUNTIME_VERSION: "0.32.14"
+          SOZA_E3B_METHOD_MODEL: qwen2.5:0.5b
+          SOZA_E3B_METHOD_MODEL_ID: a8b0c5157701
         run: go test ./livemethodintegration -run '^TestLiveKJAtlasMethodExecution$' -count=1 -v
 
       - name: Show process evidence on failure
