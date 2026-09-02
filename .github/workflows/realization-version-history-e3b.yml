@@ -1,0 +1,305 @@
+name: Realization Version History E3b
+
+on:
+  pull_request:
+    paths:
+      - "runtime/go/livemethodintegration/**"
+      - "runtime/integration/e3b_m1b_ollama_adapter.py"
+      - "runtime/REALIZATION_VERSION_HISTORY_EVIDENCE_*.md"
+      - "plan/issue/ISSUE-000067-*.md"
+      - "plan/registry.yaml"
+      - "plan/document_review_registry.yaml"
+      - "plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md"
+      - "product/**"
+      - ".github/workflows/realization-version-history-e3b.yml"
+  push:
+    branches:
+      - develop/v0.2.0
+    paths:
+      - "runtime/go/livemethodintegration/**"
+      - "runtime/integration/e3b_m1b_ollama_adapter.py"
+      - "runtime/REALIZATION_VERSION_HISTORY_EVIDENCE_*.md"
+      - "plan/issue/ISSUE-000067-*.md"
+      - "plan/registry.yaml"
+      - "plan/document_review_registry.yaml"
+      - "plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md"
+      - "product/**"
+      - ".github/workflows/realization-version-history-e3b.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  realization-version-history:
+    name: two actual models / historical reconstruction
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: SOZAをcheckoutする
+        uses: actions/checkout@v4
+
+      - name: 固定revisionのKJ Atlasをcheckoutする
+        uses: actions/checkout@v4
+        with:
+          repository: hat47x/kj-atlas
+          ref: 4f28c13abe4176503c6fed863383a2d1db2299e9
+          path: _external/kj-atlas
+          fetch-depth: 1
+
+      - name: Pythonを準備する
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Goを準備する
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.25.x
+          cache-dependency-path: runtime/go/go.mod
+
+      - name: digest固定したOllama runtimeを導入する
+        shell: bash
+        env:
+          OLLAMA_VERSION: "0.32.14"
+          OLLAMA_INSTALLER_SHA256: "25f64b810b947145095956533e1bdf56eacea2673c55a7e586be4515fc882c9f"
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location \
+            "https://github.com/ollama/ollama/releases/download/v${OLLAMA_VERSION}/install.sh" \
+            --output /tmp/ollama-install.sh
+          printf '%s  %s\n' "${OLLAMA_INSTALLER_SHA256}" /tmp/ollama-install.sh \
+            | sha256sum --check --strict
+          OLLAMA_VERSION="${OLLAMA_VERSION}" sh /tmp/ollama-install.sh
+          ollama --version 2>&1 | tee /tmp/ollama-version.txt
+          grep -F "${OLLAMA_VERSION}" /tmp/ollama-version.txt
+          echo "SOZA_E3B_RUNTIME_VERSION=${OLLAMA_VERSION}" >> "$GITHUB_ENV"
+
+      - name: Ollamaを起動し二つのmodel artifactを取得する
+        shell: bash
+        env:
+          OLLAMA_HOST: 127.0.0.1:11434
+        run: |
+          set -euo pipefail
+          ollama serve >/tmp/ollama-history.log 2>&1 &
+          echo $! >/tmp/ollama-history.pid
+
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:11434/api/tags >/dev/null; then
+              break
+            fi
+            if [[ "${attempt}" == "60" ]]; then
+              echo "Ollama did not become ready" >&2
+              cat /tmp/ollama-history.log >&2 || true
+              exit 1
+            fi
+            sleep 0.5
+          done
+
+          ollama pull qwen2.5:0.5b
+          ollama pull qwen2.5:1.5b
+          curl --fail --silent http://127.0.0.1:11434/api/tags >/tmp/ollama-tags.json
+
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          payload = json.loads(Path('/tmp/ollama-tags.json').read_text(encoding='utf-8'))
+          models = payload.get('models', [])
+
+          def digest(name: str) -> str:
+              item = next((model for model in models if model.get('name') == name), None)
+              assert item is not None, (name, payload)
+              value = item.get('digest')
+              assert isinstance(value, str) and len(value) == 64, item
+              return value
+
+          model_a = digest('qwen2.5:0.5b')
+          model_b = digest('qwen2.5:1.5b')
+          assert model_a != model_b, (model_a, model_b)
+          env_path = Path(os.environ['GITHUB_ENV'])
+          with env_path.open('a', encoding='utf-8') as handle:
+              handle.write(f'SOZA_E3B_MODEL_ARTIFACT_ID_A={model_a}\n')
+              handle.write(f'SOZA_E3B_MODEL_ARTIFACT_ID_B={model_b}\n')
+          print(json.dumps({'qwen2.5:0.5b': model_a, 'qwen2.5:1.5b': model_b}, sort_keys=True))
+          PY
+
+      - name: 固定KJ Atlas backendを導入する
+        run: python -m pip install -e "_external/kj-atlas/03_Implement/backend"
+
+      - name: 二つのKJ Atlas databaseを初期化する
+        working-directory: _external/kj-atlas/03_Implement/backend
+        shell: bash
+        run: |
+          set -euo pipefail
+          KJ_ATLAS_DATABASE_URL=sqlite:////tmp/kj-atlas-history-a.db alembic upgrade head
+          KJ_ATLAS_DATABASE_URL=sqlite:////tmp/kj-atlas-history-b.db alembic upgrade head
+
+      - name: 二つのmodel AdapterとKJ Atlas processを起動する
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          SOZA_M1B_MODEL=qwen2.5:0.5b \
+          SOZA_M1B_MODEL_EVIDENCE=/tmp/model-a.json \
+            python runtime/integration/e3b_m1b_ollama_adapter.py \
+              --host 127.0.0.1 --port 8001 >/tmp/adapter-a.log 2>&1 &
+          echo $! >/tmp/adapter-a.pid
+
+          SOZA_M1B_MODEL=qwen2.5:1.5b \
+          SOZA_M1B_MODEL_EVIDENCE=/tmp/model-b.json \
+            python runtime/integration/e3b_m1b_ollama_adapter.py \
+              --host 127.0.0.1 --port 8002 >/tmp/adapter-b.log 2>&1 &
+          echo $! >/tmp/adapter-b.pid
+
+          KJ_ATLAS_DATABASE_URL=sqlite:////tmp/kj-atlas-history-a.db \
+          KJ_ATLAS_RUNTIME_PROFILE=local-dev \
+          KJ_ATLAS_LLM_PROVIDER=local \
+          KJ_ATLAS_LOCAL_LLM_BASE_URL=http://127.0.0.1:8001 \
+          KJ_ATLAS_LOCAL_LLM_MODEL=qwen2.5:0.5b \
+          KJ_ATLAS_LLM_FALLBACK_TO_NONE=false \
+          PYTHONPATH=_external/kj-atlas/03_Implement/backend/src \
+            uvicorn kj_atlas_api.main:app --host 127.0.0.1 --port 8101 \
+              >/tmp/kj-atlas-a.log 2>&1 &
+          echo $! >/tmp/kj-atlas-a.pid
+
+          KJ_ATLAS_DATABASE_URL=sqlite:////tmp/kj-atlas-history-b.db \
+          KJ_ATLAS_RUNTIME_PROFILE=local-dev \
+          KJ_ATLAS_LLM_PROVIDER=local \
+          KJ_ATLAS_LOCAL_LLM_BASE_URL=http://127.0.0.1:8002 \
+          KJ_ATLAS_LOCAL_LLM_MODEL=qwen2.5:1.5b \
+          KJ_ATLAS_LLM_FALLBACK_TO_NONE=false \
+          PYTHONPATH=_external/kj-atlas/03_Implement/backend/src \
+            uvicorn kj_atlas_api.main:app --host 127.0.0.1 --port 8102 \
+              >/tmp/kj-atlas-b.log 2>&1 &
+          echo $! >/tmp/kj-atlas-b.pid
+
+          for attempt in $(seq 1 100); do
+            if curl --fail --silent http://127.0.0.1:8001/ >/dev/null \
+              && curl --fail --silent http://127.0.0.1:8002/ >/dev/null \
+              && curl --fail --silent http://127.0.0.1:8101/healthz >/dev/null \
+              && curl --fail --silent http://127.0.0.1:8102/healthz >/dev/null; then
+              exit 0
+            fi
+            sleep 0.25
+          done
+
+          echo "Realization history probe processes did not become ready" >&2
+          cat /tmp/adapter-a.log >&2 || true
+          cat /tmp/adapter-b.log >&2 || true
+          cat /tmp/kj-atlas-a.log >&2 || true
+          cat /tmp/kj-atlas-b.log >&2 || true
+          exit 1
+
+      - name: 同じMethod inputを二つのactual modelで実行する
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat >/tmp/kj-atlas-history-request.json <<'JSON'
+          {
+            "cards": [
+              {"id":"c-remote-time","text":"在宅勤務では通勤に使う時間を減らせる","textReviewed":true},
+              {"id":"c-remote-load","text":"在宅勤務では移動による負担を減らせる","textReviewed":true},
+              {"id":"c-held","text":"人事評価制度の見直しはまだ着手していない","textReviewed":true}
+            ],
+            "doc": {
+              "version": 1,
+              "id": "soza-e3b-realization-history",
+              "createdAt": "2026-09-02T00:00:00Z",
+              "updatedAt": "2026-09-02T00:00:00Z",
+              "transform": {"panX":0,"panY":0,"zoom":1},
+              "cards": [
+                {"id":"c-remote-time","text":"在宅勤務では通勤に使う時間を減らせる","x":0,"y":0,"textReviewed":true},
+                {"id":"c-remote-load","text":"在宅勤務では移動による負担を減らせる","x":40,"y":0,"textReviewed":true},
+                {"id":"c-held","text":"人事評価制度の見直しはまだ着手していない","x":80,"y":0,"textReviewed":true,"holdState":"held"}
+              ],
+              "edges": [],
+              "islands": [],
+              "evidenceLinks": []
+            }
+          }
+          JSON
+
+          curl --fail-with-body --silent --show-error \
+            -H 'Content-Type: application/json' \
+            --data @/tmp/kj-atlas-history-request.json \
+            http://127.0.0.1:8101/ai/suggest-card-groups \
+            >/tmp/kj-result-a.json
+
+          curl --fail-with-body --silent --show-error \
+            -H 'Content-Type: application/json' \
+            --data @/tmp/kj-atlas-history-request.json \
+            http://127.0.0.1:8102/ai/suggest-card-groups \
+            >/tmp/kj-result-b.json
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          result_a = json.loads(Path('/tmp/kj-result-a.json').read_text(encoding='utf-8'))
+          result_b = json.loads(Path('/tmp/kj-result-b.json').read_text(encoding='utf-8'))
+          evidence_a = json.loads(Path('/tmp/model-a.json').read_text(encoding='utf-8'))
+          evidence_b = json.loads(Path('/tmp/model-b.json').read_text(encoding='utf-8'))
+
+          for result in (result_a, result_b):
+              assert isinstance(result.get('groups'), list) and result['groups'], result
+              assert result.get('excludedCardIds') == ['c-held'], result
+              assert result.get('truncated') is False, result
+
+          assert evidence_a.get('model') == 'qwen2.5:0.5b', evidence_a
+          assert evidence_b.get('model') == 'qwen2.5:1.5b', evidence_b
+          assert evidence_a.get('prompt_sha256') == evidence_b.get('prompt_sha256'), (evidence_a, evidence_b)
+          for evidence in (evidence_a, evidence_b):
+              assert evidence.get('ollama_done') is True, evidence
+              assert isinstance(evidence.get('prompt_eval_count'), int) and evidence['prompt_eval_count'] > 0, evidence
+              assert isinstance(evidence.get('eval_count'), int) and evidence['eval_count'] > 0, evidence
+
+          print(json.dumps({'resultA': result_a, 'resultB': result_b}, ensure_ascii=False, sort_keys=True))
+          print(json.dumps({'evidenceA': evidence_a, 'evidenceB': evidence_b}, ensure_ascii=False, sort_keys=True))
+          PY
+
+      - name: 通常のMethod mapping回帰テストを実行する
+        working-directory: runtime/go
+        run: go test ./livemethodintegration -count=1
+
+      - name: 後続Realization追加後もhistorical Applicationが変わらないことを検査する
+        working-directory: runtime/go
+        env:
+          SOZA_E3B_REALIZATION_HISTORY_LIVE: "1"
+          SOZA_E3B_METHOD_RESULT_A: /tmp/kj-result-a.json
+          SOZA_E3B_METHOD_RESULT_B: /tmp/kj-result-b.json
+          SOZA_E3B_MODEL_EVIDENCE_A: /tmp/model-a.json
+          SOZA_E3B_MODEL_EVIDENCE_B: /tmp/model-b.json
+          SOZA_E3B_RUNTIME_VERSION: ${{ env.SOZA_E3B_RUNTIME_VERSION }}
+          SOZA_E3B_MODEL_ARTIFACT_ID_A: ${{ env.SOZA_E3B_MODEL_ARTIFACT_ID_A }}
+          SOZA_E3B_MODEL_ARTIFACT_ID_B: ${{ env.SOZA_E3B_MODEL_ARTIFACT_ID_B }}
+        run: go test ./livemethodintegration -run '^TestLiveKJAtlasRealizationVersionExchange$' -count=1 -v
+
+      - name: 失敗時に実行Evidenceを表示する
+        if: failure()
+        run: |
+          cat /tmp/ollama-version.txt || true
+          cat /tmp/ollama-tags.json || true
+          cat /tmp/model-a.json || true
+          cat /tmp/model-b.json || true
+          cat /tmp/kj-result-a.json || true
+          cat /tmp/kj-result-b.json || true
+          cat /tmp/adapter-a.log || true
+          cat /tmp/adapter-b.log || true
+          cat /tmp/kj-atlas-a.log || true
+          cat /tmp/kj-atlas-b.log || true
+          cat /tmp/ollama-history.log || true
+
+      - name: 外部processを停止する
+        if: always()
+        run: |
+          for pidfile in \
+            /tmp/kj-atlas-a.pid /tmp/kj-atlas-b.pid \
+            /tmp/adapter-a.pid /tmp/adapter-b.pid \
+            /tmp/ollama-history.pid; do
+            if test -f "$pidfile"; then
+              kill "$(cat "$pidfile")" 2>/dev/null || true
+            fi
+          done
