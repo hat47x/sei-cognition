@@ -2,9 +2,28 @@ name: External Integration E3a
 
 on:
   pull_request:
+    paths:
+      - "runtime/go/externalartifact/**"
+      - "runtime/go/externalintegration/**"
+      - "runtime/go/go.mod"
+      - "runtime/go/go.sum"
+      - "fixtures/external/e3a/**"
+      - ".github/workflows/external-integration-e3a.yml"
   push:
     branches:
       - develop/v0.2.0
+    paths:
+      - "runtime/go/externalartifact/**"
+      - "runtime/go/externalintegration/**"
+      - "runtime/go/go.mod"
+      - "runtime/go/go.sum"
+      - "fixtures/external/e3a/**"
+      - ".github/workflows/external-integration-e3a.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
