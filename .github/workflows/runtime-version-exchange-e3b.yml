@@ -1,0 +1,308 @@
+name: Runtime Version Exchange E3b
+
+on:
+  pull_request:
+    paths:
+      - "runtime/go/livemethodintegration/**"
+      - "runtime/go/interactionprobe/**"
+      - "runtime/go/semanticruntime/**"
+      - "runtime/integration/e3b_m1b_ollama_adapter.py"
+      - "runtime/go/go.mod"
+      - "runtime/go/go.sum"
+      - ".github/workflows/runtime-version-exchange-e3b.yml"
+  push:
+    branches:
+      - develop/v0.2.0
+    paths:
+      - "runtime/go/livemethodintegration/**"
+      - "runtime/go/interactionprobe/**"
+      - "runtime/go/semanticruntime/**"
+      - "runtime/integration/e3b_m1b_ollama_adapter.py"
+      - "runtime/go/go.mod"
+      - "runtime/go/go.sum"
+      - ".github/workflows/runtime-version-exchange-e3b.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  actual-runtime-version-exchange:
+    name: same model artifact / two Ollama runtime versions
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout SOZA
+        uses: actions/checkout@v4
+
+      - name: Checkout pinned KJ Atlas
+        uses: actions/checkout@v4
+        with:
+          repository: hat47x/kj-atlas
+          ref: 4f28c13abe4176503c6fed863383a2d1db2299e9
+          path: _external/kj-atlas
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.25.x
+          cache-dependency-path: runtime/go/go.mod
+
+      - name: Install pinned KJ Atlas backend
+        run: python -m pip install -e "_external/kj-atlas/03_Implement/backend"
+
+      - name: Acquire pinned Ollama runtime artifacts
+        shell: bash
+        env:
+          OLLAMA_03213_SHA256: "0fd1dece38a1c6242e8013ce20b597345c5de072ae6b320160edb0e729ef1de1"
+          OLLAMA_03214_SHA256: "c620917a71e146ab3a7f893084f066069c4c65d144ef8379a91c3cbe8b27de8f"
+        run: |
+          set -euo pipefail
+          command -v zstd >/dev/null
+
+          acquire_runtime() {
+            local label="$1"
+            local version="$2"
+            local expected_sha="$3"
+            local archive="/tmp/ollama-${label}.tar.zst"
+            local root="/tmp/ollama-runtime-${label}"
+
+            mkdir -p "${root}"
+            curl --fail --silent --show-error --location \
+              "https://github.com/ollama/ollama/releases/download/v${version}/ollama-linux-amd64.tar.zst" \
+              --output "${archive}"
+            printf '%s  %s\n' "${expected_sha}" "${archive}" | sha256sum --check --strict
+            zstd -dc "${archive}" | tar -xf - -C "${root}"
+            test -x "${root}/bin/ollama"
+          }
+
+          acquire_runtime a 0.32.13 "${OLLAMA_03213_SHA256}"
+          acquire_runtime b 0.32.14 "${OLLAMA_03214_SHA256}"
+
+      - name: Execute identical Method input through two runtime versions
+        shell: bash
+        env:
+          OLLAMA_HOST: 127.0.0.1:11434
+          OLLAMA_MODELS: /tmp/ollama-runtime-exchange-models
+        run: |
+          set -euo pipefail
+
+          cat >/tmp/kj-atlas-runtime-exchange-request.json <<'JSON'
+          {
+            "cards": [
+              {"id":"c-remote-time","text":"在宅勤務では通勤に使う時間を減らせる","textReviewed":true},
+              {"id":"c-remote-load","text":"在宅勤務では移動による負担を減らせる","textReviewed":true},
+              {"id":"c-held","text":"人事評価制度の見直しはまだ着手していない","textReviewed":true}
+            ],
+            "doc": {
+              "version": 1,
+              "id": "soza-e3b-runtime-exchange",
+              "createdAt": "2026-09-02T00:00:00Z",
+              "updatedAt": "2026-09-02T00:00:00Z",
+              "transform": {"panX":0,"panY":0,"zoom":1},
+              "cards": [
+                {"id":"c-remote-time","text":"在宅勤務では通勤に使う時間を減らせる","x":0,"y":0,"textReviewed":true},
+                {"id":"c-remote-load","text":"在宅勤務では移動による負担を減らせる","x":40,"y":0,"textReviewed":true},
+                {"id":"c-held","text":"人事評価制度の見直しはまだ着手していない","x":80,"y":0,"textReviewed":true,"holdState":"held"}
+              ],
+              "edges": [],
+              "islands": [],
+              "evidenceLinks": []
+            }
+          }
+          JSON
+
+          run_probe() {
+            local label="$1"
+            local version="$2"
+            local runtime_root="$3"
+            local ollama="${runtime_root}/bin/ollama"
+            local database="/tmp/kj-atlas-runtime-exchange-${label}.db"
+            local result="/tmp/runtime-exchange-${label}-result.json"
+            local evidence="/tmp/runtime-exchange-${label}-evidence.json"
+            local tags="/tmp/runtime-exchange-${label}-tags.json"
+            local version_log="/tmp/runtime-exchange-${label}-version.txt"
+            local ollama_log="/tmp/runtime-exchange-${label}-ollama.log"
+            local adapter_log="/tmp/runtime-exchange-${label}-adapter.log"
+            local kj_log="/tmp/runtime-exchange-${label}-kj.log"
+
+            echo "=== Ollama ${version}: verify pinned runtime artifact ==="
+            "${ollama}" --version 2>&1 | tee "${version_log}"
+            local escaped_version="${version//./\.}"
+            grep -Eq "(^|[^0-9])${escaped_version}([^0-9]|$)" "${version_log}"
+
+            "${ollama}" serve >"${ollama_log}" 2>&1 &
+            local ollama_pid=$!
+            for attempt in $(seq 1 60); do
+              if curl --fail --silent http://127.0.0.1:11434/api/tags >/dev/null; then
+                break
+              fi
+              if [[ "${attempt}" == "60" ]]; then
+                echo "Ollama ${version} did not become ready" >&2
+                cat "${ollama_log}" >&2 || true
+                kill "${ollama_pid}" 2>/dev/null || true
+                return 1
+              fi
+              sleep 0.5
+            done
+
+            "${ollama}" pull qwen2.5:0.5b
+            curl --fail --silent http://127.0.0.1:11434/api/tags >"${tags}"
+
+            LABEL="${label}" TAGS="${tags}" python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          payload = json.loads(Path(os.environ['TAGS']).read_text(encoding='utf-8'))
+          model = next((item for item in payload.get('models', []) if item.get('name') == 'qwen2.5:0.5b'), None)
+          assert model is not None, payload
+          digest = model.get('digest')
+          assert isinstance(digest, str) and len(digest) == 64, model
+          Path(f"/tmp/runtime-exchange-{os.environ['LABEL']}-model-id.txt").write_text(digest + "\n", encoding='utf-8')
+          print(json.dumps({'model': 'qwen2.5:0.5b', 'digest': digest}, sort_keys=True))
+          PY
+
+            (
+              cd _external/kj-atlas/03_Implement/backend
+              KJ_ATLAS_DATABASE_URL="sqlite:///${database}" alembic upgrade head
+            )
+
+            SOZA_M1B_MODEL=qwen2.5:0.5b \
+            SOZA_M1B_MODEL_EVIDENCE="${evidence}" \
+              python runtime/integration/e3b_m1b_ollama_adapter.py \
+                --host 127.0.0.1 --port 8001 >"${adapter_log}" 2>&1 &
+            local adapter_pid=$!
+
+            KJ_ATLAS_DATABASE_URL="sqlite:///${database}" \
+            KJ_ATLAS_RUNTIME_PROFILE=local-dev \
+            KJ_ATLAS_LLM_PROVIDER=local \
+            KJ_ATLAS_LOCAL_LLM_BASE_URL=http://127.0.0.1:8001 \
+            KJ_ATLAS_LOCAL_LLM_MODEL=qwen2.5:0.5b \
+            KJ_ATLAS_LLM_FALLBACK_TO_NONE=false \
+            PYTHONPATH=_external/kj-atlas/03_Implement/backend/src \
+              uvicorn kj_atlas_api.main:app --host 127.0.0.1 --port 8101 \
+                >"${kj_log}" 2>&1 &
+            local kj_pid=$!
+
+            for attempt in $(seq 1 100); do
+              if curl --fail --silent http://127.0.0.1:8001/ >/dev/null \
+                && curl --fail --silent http://127.0.0.1:8101/healthz >/dev/null; then
+                break
+              fi
+              if [[ "${attempt}" == "100" ]]; then
+                echo "runtime ${label} Method processes did not become ready" >&2
+                cat "${adapter_log}" >&2 || true
+                cat "${kj_log}" >&2 || true
+                kill "${kj_pid}" "${adapter_pid}" "${ollama_pid}" 2>/dev/null || true
+                return 1
+              fi
+              sleep 0.25
+            done
+
+            curl --fail-with-body --silent --show-error \
+              -H 'Content-Type: application/json' \
+              --data @/tmp/kj-atlas-runtime-exchange-request.json \
+              http://127.0.0.1:8101/ai/suggest-card-groups \
+              >"${result}"
+
+            RESULT="${result}" EVIDENCE="${evidence}" python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          result = json.loads(Path(os.environ['RESULT']).read_text(encoding='utf-8'))
+          evidence = json.loads(Path(os.environ['EVIDENCE']).read_text(encoding='utf-8'))
+          assert isinstance(result.get('groups'), list) and result['groups'], result
+          assert result.get('excludedCardIds') == ['c-held'], result
+          assert result.get('truncated') is False, result
+          assert evidence.get('model') == 'qwen2.5:0.5b', evidence
+          assert evidence.get('task') == 'suggest_card_groups', evidence
+          assert evidence.get('ollama_done') is True, evidence
+          assert isinstance(evidence.get('prompt_eval_count'), int) and evidence['prompt_eval_count'] > 0, evidence
+          assert isinstance(evidence.get('eval_count'), int) and evidence['eval_count'] > 0, evidence
+          print(json.dumps({'result': result, 'evidence': evidence}, ensure_ascii=False, sort_keys=True))
+          PY
+
+            kill "${kj_pid}" "${adapter_pid}" "${ollama_pid}" 2>/dev/null || true
+            wait "${kj_pid}" "${adapter_pid}" "${ollama_pid}" 2>/dev/null || true
+            sleep 1
+          }
+
+          run_probe a 0.32.13 /tmp/ollama-runtime-a
+          run_probe b 0.32.14 /tmp/ollama-runtime-b
+
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          model_a = Path('/tmp/runtime-exchange-a-model-id.txt').read_text(encoding='utf-8').strip()
+          model_b = Path('/tmp/runtime-exchange-b-model-id.txt').read_text(encoding='utf-8').strip()
+          if model_a != model_b:
+              raise SystemExit(f'model artifact changed across runtimes: A={model_a}, B={model_b}')
+
+          evidence_a = json.loads(Path('/tmp/runtime-exchange-a-evidence.json').read_text(encoding='utf-8'))
+          evidence_b = json.loads(Path('/tmp/runtime-exchange-b-evidence.json').read_text(encoding='utf-8'))
+          if evidence_a.get('prompt_sha256') != evidence_b.get('prompt_sha256'):
+              raise SystemExit(
+                  'model prompt changed across runtimes: '
+                  f"A={evidence_a.get('prompt_sha256')}, B={evidence_b.get('prompt_sha256')}"
+              )
+
+          with Path(os.environ['GITHUB_ENV']).open('a', encoding='utf-8') as handle:
+              handle.write('SOZA_E3B_RUNTIME_EXCHANGE_RUNTIME_VERSION_A=0.32.13\n')
+              handle.write('SOZA_E3B_RUNTIME_EXCHANGE_RUNTIME_VERSION_B=0.32.14\n')
+              handle.write(f'SOZA_E3B_RUNTIME_EXCHANGE_MODEL_ID_A={model_a}\n')
+              handle.write(f'SOZA_E3B_RUNTIME_EXCHANGE_MODEL_ID_B={model_b}\n')
+
+          print(json.dumps({
+              'runtimeA': '0.32.13',
+              'runtimeB': '0.32.14',
+              'modelDigest': model_a,
+              'promptSHA256': evidence_a.get('prompt_sha256'),
+          }, sort_keys=True))
+          PY
+
+      - name: Reuse current Method mapping boundary tests
+        working-directory: runtime/go
+        run: go test ./livemethodintegration -count=1
+
+      - name: Verify historical Application preservation after runtime version exchange
+        working-directory: runtime/go
+        env:
+          SOZA_E3B_RUNTIME_EXCHANGE_LIVE: "1"
+          SOZA_E3B_RUNTIME_EXCHANGE_RESULT_A: /tmp/runtime-exchange-a-result.json
+          SOZA_E3B_RUNTIME_EXCHANGE_RESULT_B: /tmp/runtime-exchange-b-result.json
+          SOZA_E3B_RUNTIME_EXCHANGE_EVIDENCE_A: /tmp/runtime-exchange-a-evidence.json
+          SOZA_E3B_RUNTIME_EXCHANGE_EVIDENCE_B: /tmp/runtime-exchange-b-evidence.json
+        run: go test ./livemethodintegration -run '^TestLiveKJAtlasRuntimeVersionExchangePreservesHistoricalApplication$' -count=1 -v
+
+      - name: Show execution evidence on failure
+        if: failure()
+        run: |
+          cat /tmp/runtime-exchange-a-version.txt || true
+          cat /tmp/runtime-exchange-b-version.txt || true
+          cat /tmp/runtime-exchange-a-tags.json || true
+          cat /tmp/runtime-exchange-b-tags.json || true
+          cat /tmp/runtime-exchange-a-evidence.json || true
+          cat /tmp/runtime-exchange-b-evidence.json || true
+          cat /tmp/runtime-exchange-a-result.json || true
+          cat /tmp/runtime-exchange-b-result.json || true
+          cat /tmp/runtime-exchange-a-adapter.log || true
+          cat /tmp/runtime-exchange-b-adapter.log || true
+          cat /tmp/runtime-exchange-a-kj.log || true
+          cat /tmp/runtime-exchange-b-kj.log || true
+          cat /tmp/runtime-exchange-a-ollama.log || true
+          cat /tmp/runtime-exchange-b-ollama.log || true
