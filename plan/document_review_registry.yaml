@@ -19,7 +19,7 @@ reviewed:
 
   - scope: product/README.md
     status: revised
-    note: Product Value、Product Shape、期限を持たないProduct Milestone、Product Interaction、Packaging、Identity / Access、Realization / Provider Exchange、v0.2.0 Release Evidenceまでをcurrent Product入口として再整理済み。
+    note: Product Value、Milestone、Interaction、Packaging、Identity / Access、Realization / Provider Exchange、v0.2.0 Release Evidence、release後のE3b-M1aまでをcurrent Product入口として自然な日本語で再整理済み。
   - scope: product/value/*.md
     status: revised
     coverage:
@@ -34,7 +34,7 @@ reviewed:
     coverage:
       - SOZA_PRODUCT_SHAPE.md
       - SOZA_REALIZATION_PROVIDER_EXCHANGE.md
-    note: Product Shapeに加え、Realization / Provider Exchange、E3a外部artifact integration、E3b-P1 public live Provider integrationを含むcurrent Product定義を、Universal semanticsとreference Realizationを混同しない形で監査済み。
+    note: Product ShapeとRealization / Provider Exchangeを全文監査し、E2、E3a、E3b-P1、TEI executable注入境界、E3b-M1aを同じEvidence ladder上で分離した。KJ Atlas固有responseや実装方式をUniversal semanticsへ持ち込まない境界も明示済み。
   - scope: product/vision/SOZA_PRODUCT_VISION.md
     status: revised
   - scope: product/principles/SOZA_PRODUCT_PRINCIPLES.md
@@ -44,7 +44,7 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_MILESTONES.md
-    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06はE2 / E3a / E3b-P1までをScoped Executable Evidenceとして保ち、PMS-07はv0.2.0 Local Reference Product Baselineのactual Release Evidence成立へ同期した。PMS-08は未検証のまま分離している。
+    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06はE2 / E3a / E3b-P1 / E3b-M1aまでをScoped Executable Evidenceとして反映し、PMS-07はv0.2.0 Local Reference Product BaselineのRelease Evidence成立を維持する。M1aをv0.2.0 supported scopeへ遡及させず、PMS-08は未検証のまま分離している。
   - scope: product/interaction/*.md
     status: revised
     coverage:
@@ -67,8 +67,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、自然な日本語全文再ドラフトと最終意味監査を実施済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000063
-    note: E3a外部artifact integration、v0.2.0 Release Candidate境界、E3b-P1 public live Provider integration、actual TEI実行とは区別した外部TEI executable注入境界、v0.2.0 actual release publicationに加え、actual tag・commit・asset・digest・gate resultを結び付けるRelease Evidenceまで自然な日本語で監査している。
+    coverage: ISSUE-000001..ISSUE-000064
+    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidenceに加え、KJ Atlasをlive実行するE3b-M1aまでを監査した。ISSUE-000063をRelease Evidence、ISSUE-000064をM1aとして分離し、並行作業の成果を巻き戻さない番号体系へ同期済み。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -83,7 +83,7 @@ reviewed:
       - requirements/PRODUCT_REQUIREMENTS.md
       - requirements/ACCEPTANCE_SCENARIOS.md
       - requirements/PRODUCT_JOURNEY_COMPOSITION.md
-    note: Requirement / Scenario / Testの境界を維持したまま監査済み。reference probe固有の実装語彙をStable Requirementへ先取りしない。
+    note: Requirement / Scenario / Testの境界を維持したまま監査済み。M1a固有のKJ Atlas、FastAPI、HTTP、model stub等をStable Requirementへ先取りしない。
   - scope: requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md
     status: revised
 
@@ -146,7 +146,10 @@ reviewed:
     note: Product Access / Responsibility分離、denied / not_evaluated、Selective DisclosureのScoped Executable Evidenceを記録済み。
   - scope: runtime/LIVE_EXTERNAL_PROVIDER_EVIDENCE_2026-09-02.md
     status: revised
-    note: E3b-P1としてpublic GitHub REST APIを実際に呼び、固定revisionのidentity確認、current Capability Observationへのmapping、negative caseを検証した。PR #37の最終headとmerge後developの6系統CIまで同期し、live TEI、external Cognitive Method、private credential、Operational / Release / Adoptionへ昇格させない境界を自然な日本語で明示済み。
+    note: E3b-P1としてpublic GitHub REST APIを実際に呼び、固定revisionのidentity確認、current Capability Observationへのmapping、negative caseを検証した。live TEI、external Cognitive Method、private credential、Operational / Release / Adoptionへ昇格させない境界を自然な日本語で明示済み。
+  - scope: runtime/LIVE_EXTERNAL_METHOD_EVIDENCE_2026-09-02.md
+    status: revised
+    note: E3b-M1aとして固定revisionのKJ Atlas FastAPIとrepository同梱model stubを別processで実行し、actual grouping responseを既存Cognitive Method Applicationへ戻すScoped Executable Evidenceを記録した。KJ Atlas固有responseをUniversal Contractへ昇格させず、grouping候補をRecommendation / Decisionへ自動昇格しない境界、M1bとの差、v0.2.0 scope非拡張を自然な日本語で明示している。
   - scope: runtime/package/reference/*.md
     status: revised
     coverage:
@@ -180,7 +183,7 @@ reviewed:
       - release/v0.2.0/RELEASE_ACCEPTANCE.md
       - release/v0.2.0/RELEASE_NOTES.md
       - release/v0.2.0/RELEASE_EVIDENCE.md
-    note: Local Reference Product Baselineのsupported scopeをE3aまでに保ったまま、9段階candidate gate、actual publication、actual tag・GitHub Release・4 asset・package digestの対応をRelease Evidenceとして正本化した。E3b全体 / E4、production領域、Operational / Adoption・Outcome Evidenceは非主張または未検証のまま明示している。
+    note: Local Reference Product Baselineのsupported scopeをE3aまでに保ったまま、9段階candidate gate、actual publication、actual tag・GitHub Release・4 asset・package digestの対応をRelease Evidenceとして正本化した。release後のE3b-P1 / M1aはこのsupported scopeへ遡及させない。
 
   - scope: fixtures/contracts/v1alpha1/README.md
     status: revised
@@ -207,7 +210,7 @@ reviewed:
     note: Product Milestoneと上流探索・Requirement化の配置規則をcurrent planning入口へ反映済み。
   - scope: plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md
     status: revised
-    note: 現在の主探索系列をReal Method / Provider Portabilityへ更新し、E3b-P1からTEIのactual executionへ進む際にsource / binary acquisition、credential、process invocation、Provider固有JSON解釈、SOZA mappingを分離する方針を自然な日本語で正本化済み。
+    note: 主探索系列をReal Method / Provider Portabilityとして再整理し、E3b-M1aまでの成立範囲と、次のE3b-P2 / M1b / E4、次release、Operational / Adoption評価を分離した。並行作業でISSUE-000063がRelease Evidenceへ使われたためM1aをISSUE-000064へ移した経緯も、current正本を巻き戻さない形で自然な日本語へ整理済み。
   - scope: plan/DEVELOPMENT_WORKFLOW.md
     status: revised
     note: Product Milestoneと未定領域の探索をRequirement / Architectureより上流へ置く開発境界を監査済み。

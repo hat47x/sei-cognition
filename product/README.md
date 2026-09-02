@@ -1,7 +1,7 @@
 # SOZA Product文書の読み方
 
 更新日: 2026-09-02  
-状態: **Current Product Documentation Baseline — v0.2.0 Release Evidence reflected**
+状態: **Current Product Documentation Baseline — v0.2.0 Release Evidence / E3b-M1a reflected**
 
 ## 1. この文書の役割
 
@@ -36,7 +36,7 @@ Product Value / Value Proposition
 
 SOZAが存在する理由と、最も上位で守る価値を定めます。
 
-Product Valueから個別RequirementやUniversal型を機械的に生成しません。まだ何を要求すべきか十分に分からない領域は、議論・調査・実証を通して必要性を確認します。
+Product Valueから個別RequirementやUniversal型を機械的に生成しません。何を要求すべきか十分に分からない領域は、議論・調査・実証を通して必要性を確認します。
 
 ### `value/SOZA_VALUE_PROPOSITION.md`
 
@@ -89,7 +89,7 @@ Product Valueを長期的な到達方向として表します。未来の特定�
 
 SOZAをどの順序で製品として成立させるかを、**期限ではなくOutcomeとEvidence**で示します。
 
-v0.2.0 Release Evidenceの成立により、PMS-07はLocal Reference Product Baselineの範囲でSatisfiedです。PMS-08のOperational / Adoption・Outcome Evidenceは未検証のままです。
+現在、PMS-06ではE2、E3a、E3b-P1に加えてE3b-M1aまでScoped Executable Evidenceがあります。一方、PMS-07はv0.2.0 Local Reference Product Baselineの範囲でRelease EvidenceがSatisfiedです。PMS-08のOperational / Adoption・Outcome Evidenceは未検証のままです。
 
 ### `interaction/SOZA_PRODUCT_INTERACTION.md`
 
@@ -129,7 +129,14 @@ ISSUE-000056では、IdP相当identity交換後のResponsibility continuity、Re
 
 PMS-06に対応し、Cognitive Method RealizationやCapability Providerを交換するときに、何を交換可能とし、何を判断記憶として保つかを定めます。
 
-現在はE2、E3a、E3b-P1までScoped Executable Evidenceがあります。v0.2.0のsupported release scopeはE3aまでです。
+現在は次の範囲にScoped Executable Evidenceがあります。
+
+- E2 out-of-process reference exchange
+- E3a version-pinned external artifact integration
+- E3b-P1 public live Provider service
+- E3b-M1a live KJ Atlas process + deterministic model stub
+
+E3b-P2 actual TEI executionとE3b-M1b external model-backed Method executionは未検証です。
 
 ## 3. 未定領域の扱い
 
@@ -166,17 +173,17 @@ Product Milestoneや各Product boundaryの項目を、そのままRequirementや
 current repositoryでは、少なくとも次の状態まで確認しています。
 
 - Product Value / Value Proposition / Vision / Principles / Product Shape: **Design baseline established**
-- current semantic Contract群: **scoped Executable Evidence available**
+- current semantic Contract群: **Scoped Executable Evidence available**
 - SCN-0018 end-to-end Semantic Product Journey: **fixture-scoped Executable Evidence available**
 - first usable Product Interaction: **Design baseline established / scoped Executable Evidence available**
 - Packaging / Deployment: **Design baseline established / Minimum scoped Executable Evidence available**
 - Local Reference Package: **release asset available for v0.2.0 Linux / amd64 reference profile**
 - Product Identity / Access / Collaboration: **Design baseline established / scoped Product Access separation Executable Evidence available**
-- Realization / Provider portability: **Partial — E2 / E3a / E3b-P1 Scoped Executable Evidence available**
+- Realization / Provider portability: **Partial — E2 / E3a / E3b-P1 / E3b-M1a Scoped Executable Evidence available**
 - PMS-07: **Satisfied for v0.2.0 Local Reference Product Baseline**
 - production IdP / team collaboration security: **Not Yet Verified**
 - E3b-P2 actual TEI process / service: **Not Yet Verified**
-- E3b-M1 external Cognitive Method live execution: **Not Yet Verified**
+- E3b-M1b external model-backed Cognitive Method execution: **Not Yet Verified**
 - E4 Operational portability: **Not Yet Verified**
 - PMS-08 Operational / Adoption・Outcome Evidence: **Not Yet Verified**
 
@@ -189,17 +196,25 @@ v0.2.0 Release Evidence Satisfied
   != Adoption / Outcome Evidence
 ```
 
-## 6. v0.2.0 releaseの読み方
+## 6. v0.2.0 releaseと後続Evidenceの読み方
 
 v0.2.0は、現在のsemantic baselineにProduct Interaction、Local Single-Node Packaging、Product Access責務分離、Realization / Provider交換、E3a external artifact integrationまでを加えた **Local Reference Product Baseline** です。
 
 actual releaseでは、tag、source commit、Release Candidate Gate、Local Reference Package、checksum、candidate report、release metadataを追跡できる状態で配布しています。
 
-一方、repositoryにはrelease scope確定後に得られたE3b-P1やTEI executable injection boundaryのScoped Evidenceも存在します。これらを理由に、v0.2.0のsupported scopeを後から広げません。
+repositoryには、release scope確定後に得られたE3b-P1、TEI executable injection boundary、E3b-M1aのScoped Executable Evidenceも存在します。しかし、それらを理由にv0.2.0のsupported scopeを後から広げません。
 
 ```text
-later scoped Evidence exists
+post-release scoped Evidence exists
   != v0.2.0 supported scope expanded
+```
+
+とくにE3b-M1aは、固定revisionのKJ Atlas本体を別processとして実行できたことを示しますが、modelにはKJ Atlas同梱の決定的stubを使います。
+
+```text
+E3b-M1a PASS
+  != external model quality proven
+  != E3b-M1b PASS
 ```
 
 ## 7. Product Valueを変更するとき
@@ -256,8 +271,8 @@ Coreへ追加する前に、少なくとも次を検討します。
 
 ## 10. Natural Japanese review
 
-Product Value、Value Proposition、Value Model / Acceptance、Product Shape、Vision / Principles、Product Milestones、Interaction、Packaging、Identity / Access / Collaboration、Realization / Provider Exchange、REQ-0001〜0022、SCN-0001〜0018、v0.2.0 Release Acceptance / Release Evidence、actual tag / GitHub Release / release assetへ戻ってProduct文書の入口を再監査しました。
+Product Value、Value Proposition、Value Model / Acceptance、Product Shape、Vision / Principles、Product Milestones、Interaction、Packaging、Identity / Access / Collaboration、Realization / Provider Exchange、REQ-0001〜0022、SCN-0001〜0018、v0.2.0 Release Acceptance / Release Evidence、E3b-M1a Evidenceへ戻ってProduct文書の入口を再監査しました。
 
-旧本文に残っていた「Product Release / current Product Shape全体のRelease Evidenceは未検証」という状態を、actual v0.2.0 release後の現在地へ更新しました。ただし、成立したRelease EvidenceはLocal Reference Product Baselineに限定し、E3b全体、E4、production IdP / Storage / security、formal support matrix、Operational / Adoption・Outcome Evidenceは未検証のままです。
+v0.2.0のRelease Evidence成立を維持しながら、release後に成立したM1aをPMS-06のScoped Executable Evidenceとして追加しました。M1aをv0.2.0 supported scopeへ遡及させず、E3b-P2、M1b、E4、Operational / Adoption・Outcome Evidenceを未検証のまま分離しています。
 
 意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。

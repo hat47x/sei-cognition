@@ -268,7 +268,7 @@ synthetic fixtureだけでなく、実際のCognitive Method Realization、AI、
 
 ### Current state
 
-**Partial / E2 + E3a + E3b-P1 Scoped Executable Evidence available / E3b-P2・E3b-M1 pending.**
+**Partial / E2 + E3a + E3b-P1 + E3b-M1a Scoped Executable Evidence available / E3b-P2・E3b-M1b pending.**
 
 Evidenceを次の段階に分けます。
 
@@ -280,15 +280,19 @@ E1 Contract / in-process synthetic
   → E4 Operational portability
 ```
 
-E3bは、何を実際に確認したかを混同しないため、現在の作業上は次へ分けています。
+E3bは、Provider側とCognitive Method側の異なるfailure boundaryを混同しないため、現在は次のように分けています。
 
 ```text
-E3b-P1 public live Provider service
-  → E3b-P2 actual TEI process / service
-  → E3b-M1 external Cognitive Method live execution
+E3b
+  ├─ P1 public live Provider service
+  ├─ P2 actual TEI process / service
+  │    └─ preparation: external TEI executable injection boundary
+  └─ M1 live external Cognitive Method
+       ├─ M1a live KJ Atlas process + deterministic model stub
+       └─ M1b live external model-backed KJ execution
 ```
 
-このP1 / P2 / M1はEvidenceの範囲を示すための区分であり、新しいProduct ontologyではありません。
+この区分はEvidenceの範囲を示すためのもので、新しいProduct ontologyではありません。
 
 ### E2 — out-of-process reference exchange
 
@@ -311,16 +315,6 @@ revision mismatch、HTTP failure、timeout / cancellation、Provider固有field�
 
 merge後`develop/v0.2.0`でもE3b-P1のScoped Executable Evidenceを再現しています。
 
-ただし、v0.2.0のsupported release scopeはE3aまでです。
-
-```text
-E3b-P1 PASS
-  != E3b全体 PASS
-  != actual TEI execution PASS
-  != external Method live execution PASS
-  != E4 Operational portability
-```
-
 ### E3b-P2へ進むための準備境界
 
 ISSUE-000061では、actual TEI CLI integrationの前段として次を分離しています。
@@ -335,12 +329,41 @@ TEI source / binary acquisition
 
 `runtime/go/teiintegration`のhelper process testはexternal executable injection boundaryを検査するものであり、actual TEI executableを実行したEvidenceではありません。
 
+### E3b-M1a — live KJ Atlas process + deterministic model stub
+
+ISSUE-000065では、public repository `hat47x/kj-atlas`の固定commit `4f28c13abe4176503c6fed863383a2d1db2299e9`を取得し、KJ Atlas FastAPI backendと同repositoryのdeterministic model stubをSOZAとは別processとして実際に起動しました。
+
+`POST /ai/suggest-card-groups`をactual HTTPで呼び、KJ Atlasのrequest model、LLM input IR、SafeMode、local model routing、response filteringを通したうえで、grouping responseをSOZAのCognitive Method Applicationへ戻しています。
+
+KJ Atlas固有responseはopaqueな`not_verified` Method outputとして保持し、grouping候補をRecommendation / Decisionへ自動昇格させません。
+
+```text
+KJ Atlas grouping suggestion
+  != Recommendation
+  != Decision
+```
+
+current PR #41の検査点`5cd3fff304c6bd99e0ab29dc2df4765d4f0e59be`では、External Method Integration E3b Run `33586658465`、Semantic Runtime `33586658788`、Plan integrity `33586658513`、E3a `33586658524`、Provider側E3b `33586658542`、Local Package `33586658477`、Release Candidate Gate `33586658457`がすべてsuccessしました。
+
+Release Candidate Gateは9/9 successで、既存v0.2.0のrelease preparation / publicationは意図どおりskippedされています。
+
+### v0.2.0との関係
+
+v0.2.0のsupported release scopeはE3aまでです。E3b-P1、TEI executable注入境界、E3b-M1aはrelease後に積み上がったScoped Executable Evidenceであり、既に公開済みのv0.2.0 supported scopeやRelease Evidenceを遡及的に広げません。
+
+```text
+post-release E3b Evidence exists
+  != v0.2.0 supported scope expanded
+  != v0.2.0 Release Evidence expanded
+```
+
 ### Open questions
 
 - actual TEI executableをどの環境から、どのEvidence付きでintegration testへ渡すか
 - private repository credentialをacquisition / deployment policyへどう閉じ込めるか
 - TEI CLI version交換時に必要なProvenance / Exact Bindingの水準
-- E3b-M1で利用する実Cognitive Method runnerまたはhost integration
+- E3b-M1bで利用する実外部modelと、その品質評価をsemantic execution Evidenceからどう分離するか
+- model / Method / Provider version交換をまたぐhistorical reconstructionをどう検査するか
 - E4 Operational portabilityを何で測るか
 
 ## 10. PMS-07 — release可能な製品として成立する
@@ -380,7 +403,7 @@ v0.2.0 Release Evidence Satisfied
   != Adoption / Outcome Evidence
 ```
 
-v0.2.0でsupportを主張するRealization / Provider exchangeの範囲はE3aまでです。release後に得られたE3b-P1やTEI integration準備のEvidenceを、v0.2.0のsupported scopeへ自動的に追加しません。
+v0.2.0でsupportを主張するRealization / Provider exchangeの範囲はE3aまでです。release後に得られたE3b-P1、TEI executable注入境界、E3b-M1aのEvidenceを、v0.2.0のsupported scopeへ自動的に追加しません。
 
 詳細は`release/v0.2.0/RELEASE_EVIDENCE.md`を正とします。
 
@@ -398,7 +421,7 @@ Operational Evidence、および対象価値に応じたAdoption / Outcome Evide
 
 **Not Yet Verified.**
 
-v0.2.0 Release Evidenceの成立をPMS-08の成立へ読み替えません。
+v0.2.0 Release EvidenceやE3b-M1aのScoped Executable EvidenceをPMS-08の成立へ読み替えません。
 
 ## 12. 横断Milestone — Moving Rebaseline
 
@@ -418,8 +441,8 @@ Open Questionを直接Stable Requirementへ飛ばしません。
 
 ## 14. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、Product Identity / Access / Collaboration、Realization / Provider Exchange、v0.2.0 Release Acceptance / Release Evidence、REQ-0001〜0022、SCN-0001〜0018、ADR-0024 / 0025 / 0028 / 0029 / 0030、ISSUE-000046 / 000047 / 000053〜000063、current Go runtime、Interaction / Packaging / Product Access / E2 / E3a / E3b-P1 / TEI executable injection boundary、actual `v0.2.0` tag / GitHub Release / release assetへ戻ってMilestone全体を再監査しました。
+Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、Product Identity / Access / Collaboration、Realization / Provider Exchange、v0.2.0 Release Acceptance / Release Evidence、REQ-0001〜0022、SCN-0001〜0018、ADR-0024 / 0025 / 0028 / 0029 / 0030、ISSUE-000046 / 000047 / 000053〜000063 / 000065、current Go runtime、Interaction / Packaging / Product Access / E2 / E3a / E3b-P1 / TEI executable injection boundary / E3b-M1a、actual `v0.2.0` tag / GitHub Release / release assetへ戻ってMilestone全体を再監査しました。
 
-PMS-03〜06のScoped Executable Evidenceの高さは変えず、PMS-07だけをv0.2.0 Local Reference Product BaselineのRelease Evidence成立に合わせて更新しました。E3b-P1やISSUE-000061の準備境界をv0.2.0 supported scopeへ追加せず、actual TEI execution、external Cognitive Method live execution、E4 Operational portability、production security / Storage、PMS-08のOperational / Adoption・Outcome Evidenceは未検証のままです。
+PMS-06にはKJ Atlasを用いたE3b-M1aのScoped Executable Evidenceを追加しましたが、deterministic model stubの生成品質を実外部AI model品質へ昇格させていません。また、PMS-07のv0.2.0 supported scopeはE3aまでに保ち、post-releaseのE3b-P1、TEI executable注入境界、M1aによってRelease Evidenceを遡及的に拡張していません。actual TEI execution、E3b-M1b、E4 Operational portability、production security / Storage、PMS-08のOperational / Adoption・Outcome Evidenceは未検証のままです。
 
 意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。

@@ -1,13 +1,13 @@
 # SOZA Value Traceability
 
 更新日: 2026-09-02  
-状態: **Current Product Value Traceability Baseline — v0.2.0 Release Evidence reflected**
+状態: **Current Product Value Traceability Baseline — v0.2.0 Release Evidence / E3b-M1a reflected**
 
 ## 1. この文書の役割
 
 この文書は、SOZAのProduct Valueを、current Requirements、Acceptance Scenarios、ADR、Reference Architecture、Semantic Contract、Representation Profile、runtime、各種probe、Release Candidate Gate、actual Release Evidenceまで上位から追跡するための索引です。
 
-この文書自体が新しい意味上の正本になることはありません。詳細は次を正とします。
+この文書自体を新しい意味上の正本にはしません。詳細は次の文書を正とします。
 
 - Product Value / V1〜V8: `SOZA_PRODUCT_VALUE.md`, `SOZA_VALUE_MODEL.md`
 - Value Proposition: `SOZA_VALUE_PROPOSITION.md`
@@ -20,7 +20,7 @@
 - Architecture: `../../architecture/SOZA_REFERENCE_ARCHITECTURE.md`, `../../architecture/TRACEABILITY.md`
 - Contract: `../../contracts/TRACEABILITY.md`, `../../contracts/CONTRACT_CATALOG.md`
 - Representation Profile: `../../contracts/profiles/`
-- runtime: `../../runtime/go/`
+- runtime / probe Evidence: `../../runtime/`
 - V6 / V7 evaluation: `../../evaluation/v6-v7/`
 - release acceptance / evidence: `../../release/v0.2.0/`
 - ADR / Issue: `../../plan/`
@@ -51,14 +51,14 @@ Product Value / Value Proposition / Product Shape
 
 | Value Axis | 主なREQ | 主なSCN | current executable / release material |
 |---|---|---|---|
-| **V1 Historical Reconstruction** | REQ-0001, 0003, 0005, 0008, 0009, 0014, 0017, 0018, 0020, 0022 | SCN-0001, 0003, 0005, 0008, 0009, 0010, 0014, 0016, 0018 | Semantic Reference / Decision Memory / Interchange、Exact Binding、Cognitive Method、Verifier / Payload Source、historical basis非改変、known Contract横断bundle-local consistency |
-| **V2 Semantic Separation** | REQ-0002, 0003, 0006, 0008, 0013, 0015, 0016, 0017, 0022 | SCN-0001, 0002, 0004, 0009, 0011, 0015, 0016, 0018 | Recommendation / Decision / Authority分離、Unknown / Withheld、Cognitive Method分離、Responsibility分離、unknown Contract非推測解析 |
+| **V1 Historical Reconstruction** | REQ-0001, 0003, 0005, 0008, 0009, 0014, 0017, 0018, 0020, 0022 | SCN-0001, 0003, 0005, 0008, 0009, 0010, 0014, 0016, 0018 | Semantic Reference / Decision Memory / Interchange、Exact Binding、Cognitive Method、historical basis非改変、known Contract横断bundle-local consistency |
+| **V2 Semantic Separation** | REQ-0002, 0003, 0006, 0008, 0013, 0015, 0016, 0017, 0022 | SCN-0001, 0002, 0004, 0009, 0011, 0015, 0016, 0018 | Recommendation / Decision / Authority分離、Unknown / Withheld、Cognitive Method分離、Responsibility分離、unknown Contract非推測解析、KJ grouping候補の非自動昇格 |
 | **V3 Revision Integrity** | REQ-0001, 0003, 0004, 0005, 0008, 0009, 0014, 0018 | SCN-0003, 0005, 0008, 0010, 0015, 0016, 0018 | lineage / Exact Binding invariant、Representation Profile、Cognitive Method exact refs、複数exact revision保持、historical basis非改変 |
-| **V4 Provider Independence** | REQ-0001, 0007, 0012, 0013, 0021, 0022 | SCN-0002, 0007, 0010, 0011, 0012, 0014, 0018 | Capability Observation、synthetic Provider Adapter、Provider replacement journey、out-of-process exchange、E3a external artifact、E3b-P1 public live Provider |
-| **V5 Uncertainty Preservation** | REQ-0002, 0005, 0012, 0014, 0016, 0022 | SCN-0001, 0003, 0007, 0011, 0012, 0016, 0018 | Unknown / Conflict / Withheld / partial knowledge、missing→unknown、Decision residual→reopen path |
+| **V4 Provider Independence** | REQ-0001, 0007, 0012, 0013, 0021, 0022 | SCN-0002, 0007, 0010, 0011, 0012, 0014, 0018 | Capability Observation、Provider replacement journey、out-of-process exchange、E3a external artifact、E3b-P1 public live Provider、E3b-M1a live external Method |
+| **V5 Uncertainty Preservation** | REQ-0002, 0005, 0012, 0014, 0016, 0022 | SCN-0001, 0003, 0007, 0011, 0012, 0016, 0018 | Unknown / Conflict / Withheld / partial knowledge、missing→unknown、Decision residual→reopen path、opaque `not_verified` external Method output |
 | **V6 Human / AI Readability** | REQ-0010, 0011, 0019, 0020 | SCN-0004, 0006, 0013, 0017 | human-readable Contract、machine-readable schema、light / audit Projection、first Product Interaction reference probe |
 | **V7 Progressive Explicitness** | REQ-0010 | SCN-0004, 0013 | low-impact / high-impact Projection evaluation、canonical operationとInteractionの分離 |
-| **V8 Execution Independence** | REQ-0001, 0004, 0007, 0011, 0012, 0015, 0018, 0021, 0022 | SCN-0002, 0005, 0006, 0007, 0008, 0012, 0014, 0015, 0018 | provider-neutral Contract、Cognitive Method、Payload Source、no-execution journey、local package / Storage migration、out-of-process exchange、TEI executable injection boundary |
+| **V8 Execution Independence** | REQ-0001, 0004, 0007, 0011, 0012, 0015, 0018, 0021, 0022 | SCN-0002, 0005, 0006, 0007, 0008, 0012, 0014, 0015, 0018 | provider-neutral Contract、Cognitive Method、Payload Source、local package、out-of-process exchange、TEI executable injection boundary、E3b-M1a external Method process |
 
 表中のmaterialが存在しても、そのValue Axis全体がOperational / OutcomeまでSatisfiedになったとは読みません。
 
@@ -71,6 +71,8 @@ Requirement != Acceptance Scenario != Test Case
 ```
 
 SCN-0018は個別Scenarioを置き換えません。InquiryからDecision、外部実行、実行後Observation、historical review / reopenまでを代表的なProduct Journeyとして接続し、複数の意味境界が同時に失われないことを検査します。
+
+E3b-M1aでは新しいStable Requirement / Scenarioを追加していません。KJ Atlas、FastAPI、HTTP、SQLite、model stub等の実装方式だけを理由にUniversalな要求を増やさず、既存のCognitive Method交換可能性、historical reconstruction、Realization / Execution交換の要求へ戻して評価します。
 
 ## 5. Contract / Representation baseline
 
@@ -93,7 +95,7 @@ Semantic Contract
   != verifier implementation
 ```
 
-historical M47 digest ruleはISSUE-000034の方針どおり、現在保持されている直接Evidenceから回収できない範囲を`not_verified`として維持します。
+KJ Atlasのresponse shapeも、新しいUniversal Cognitive Method Contractではありません。M1aでは外部Method outputとしてopaqueに保持します。
 
 ## 6. Exact Bindingとhistorical reconstruction
 
@@ -110,9 +112,9 @@ bundle-local consistency
   != Verification Outcome
 ```
 
-外部bytesの取得はPayload Source、digest再計算はVerifier Registryの責務です。unknown Contractのpayloadに似たfieldがあっても、field名から推測解析しません。
+M1aではKJ Atlas source repository / commit / entry point / result digestをProvenanceとして保持しますが、それらをMethod Definitionのsemantic identityへ置き換えません。
 
-## 7. semantic runtime / Provider / Storage
+## 7. semantic runtime / Provider / Storage / Method
 
 semantic runtimeはread / validate / reconstructを中核にし、SOZA自身をworkflow / agent execution engineへしません。
 
@@ -120,16 +122,16 @@ current scoped materialには次があります。
 
 - known Contract typed runtime
 - Representation Verifier Registry
-- synthetic Payload Source
-- synthetic Provider Adapter
+- synthetic Payload Source / Provider Adapter
 - Cognitive Method typed runtime
 - known Contract横断bundle-local Exact Binding consistency
 - out-of-process Realization / Provider exchange
-- packaged resume / Storage migration probe
+- packaged resume / Persistence exchange probe
 - Product Interaction / Access probe
 - E3a version-pinned external artifact integration
 - E3b-P1 public live Provider integration
 - actual TEI実行前のexternal executable injection boundary
+- E3b-M1a live KJ Atlas process integration
 
 これらのPASSはproduction Provider / Storage / external executionの運用成立を意味しません。
 
@@ -140,7 +142,7 @@ current Product baselineでは、次の境界とreference probeが成立して�
 - human-oriented / machine-oriented Surfaceから同じcanonical meaningへ戻るProduct Interaction
 - Local Single-Node Packaging
 - deterministic Linux / amd64 Local Reference Package
-- process restart後のresume / Storage migration probe
+- process restart後のresume / Persistence exchange probe
 - authentication identityとBounded Subjectの分離
 - Product access permissionとsemantic Responsibility / Authorityの分離
 - Selective Disclosureにおける`withheld`保持
@@ -164,13 +166,27 @@ E1 Contract / in-process synthetic
   → E4 Operational portability
 ```
 
-E3bは現在、P1 / P2 / M1へ分けて観測しています。
+E3bは、現在次の範囲へ分けています。
 
 - E3b-P1: public live Provider service — **Scoped Executable Evidence available**
 - E3b-P2: actual TEI process / service — **Not Yet Verified**
-- E3b-M1: external Cognitive Method live execution — **Not Yet Verified**
+- external TEI executable injection boundary — **Scoped Executable Evidence with helper subprocess**
+- E3b-M1a: live KJ Atlas process + deterministic model stub — **Scoped Executable Evidence available**
+- E3b-M1b: live external model-backed KJ execution — **Not Yet Verified**
 
-v0.2.0でsupportを主張するrelease scopeはE3aまでです。後続のE3b-P1 Evidenceが存在しても、release後にv0.2.0 scopeを拡張しません。
+ISSUE-000064のM1aでは、固定revisionのKJ Atlas FastAPI backendとrepository同梱model stubをSOZAとは別processとして実行し、actual grouping responseを既存Cognitive Method Applicationへ戻します。
+
+```text
+KJ Atlas grouping suggestion
+  != Recommendation
+  != Decision
+
+E3b-M1a PASS
+  != external model quality proven
+  != E3b-M1b PASS
+```
+
+v0.2.0でsupportを主張するrelease scopeはE3aまでです。後続のE3b-P1 / M1a Evidenceが存在しても、v0.2.0 scopeを遡及的に拡張しません。
 
 ## 10. V6 / V7 Projection evaluation
 
@@ -201,7 +217,7 @@ fixture-scoped Product Journey PASS
 
 ## 12. v0.2.0 Release Evidence
 
-v0.2.0は、Local Reference Product Baselineとしてactual release済みです。
+v0.2.0はLocal Reference Product Baselineとしてactual release済みです。
 
 - tag: `v0.2.0`
 - source commit: `c3640bdfcc43652b63a5b9941fd6b472312ec28f`
@@ -212,36 +228,23 @@ v0.2.0は、Local Reference Product Baselineとしてactual release済みです�
 
 Local Reference Packageについて、release preparationで算出したSHA-256とactual GitHub Release assetのdigestが一致しています。
 
-`37f34d3ae4885df655e889f2799b9aea1d8c7c8c060c207df83f50459431ef17`
+```text
+37f34d3ae4885df655e889f2799b9aea1d8c7c8c060c207df83f50459431ef17
+```
 
-4つのrelease assetも実在を確認済みです。
-
-- `soza-local-reference-linux-amd64.tar.gz`
-- `soza-local-reference-linux-amd64.tar.gz.sha256`
-- `v0.2.0-candidate-report.json`
-- `release-metadata.json`
-
-これにより、**v0.2.0 Local Reference Product BaselineについてRelease EvidenceをSatisfied**と評価します。
+したがって、**v0.2.0 Local Reference Product BaselineについてRelease EvidenceはSatisfied**です。
 
 ```text
 Release Evidence Satisfied
-  != E3b全体 Satisfied
+  != E3b included in v0.2.0 supported scope
   != production readiness
   != Operational Evidence
   != Adoption / Outcome Evidence
 ```
 
-詳細なEvidence recordは`../../release/v0.2.0/RELEASE_EVIDENCE.md`を正とします。
+詳細は`../../release/v0.2.0/RELEASE_EVIDENCE.md`を正とします。
 
 ## 13. Evidenceの現在地
-
-```text
-Design Evidence
-  != Executable Evidence
-  != Release Evidence
-  != Operational Evidence
-  != Adoption / Outcome Evidence
-```
 
 ### Design Evidence
 
@@ -249,13 +252,13 @@ Product Value、Value Proposition、Product Shape、Product Milestone、REQ-0001
 
 ### Executable Evidence — scoped
 
-Plan / Requirements / Contract conformance、semantic runtime、Representation Profile / Verifier Registry、Payload Source / Provider Adapter、Cognitive Method、V6 / V7 evaluation、Product Journey、Interaction / Packaging / Storage / Access / Realization exchange、E3a、E3b-P1等の限定Evidenceがあります。
+Plan / Requirements / Contract conformance、semantic runtime、Representation Profile / Verifier Registry、Payload Source / Provider Adapter、Cognitive Method、V6 / V7 evaluation、Product Journey、Interaction / Packaging / Persistence / Access / Realization exchange、E3a、E3b-P1、E3b-M1a等の限定Evidenceがあります。
 
 ### Release Evidence
 
 **Satisfied for v0.2.0 Local Reference Product Baseline.**
 
-supported scopeはE3aまでです。E3b-P1等の後続Evidenceをv0.2.0 release scopeへ自動的に取り込みません。
+supported scopeはE3aまでです。E3b-P1 / M1a等の後続Evidenceをv0.2.0 release scopeへ自動的に取り込みません。
 
 ### Operational Evidence
 
@@ -273,7 +276,7 @@ bundle-local Exact Binding整合、historical basis非改変、Payload Source / 
 
 ### V2 Semantic Separation
 
-主要な意味分離はfixture / runtimeで検査しています。production責任線・権限線をまたぐOperational Evidenceはありません。
+主要な意味分離はfixture / runtimeで検査しています。M1aでもMethod outputをRecommendation / Decisionへ自動昇格させない境界を確認します。production責任線・権限線をまたぐOperational Evidenceはありません。
 
 ### V3 Revision Integrity
 
@@ -281,11 +284,11 @@ bundle-local Exact Binding整合、historical basis非改変、Payload Source / 
 
 ### V4 Provider Independence
 
-synthetic Adapter、Provider replacement journey、out-of-process exchange、E3a、E3b-P1までscopedに検査済みです。実Providerの交換・廃止・移行を伴うOperational / Outcome Evidenceはありません。
+synthetic Adapter、Provider replacement journey、out-of-process exchange、E3a、E3b-P1、M1aまでscopedに検査しています。actual TEI、実外部model、実Providerの交換・廃止・移行を伴うOperational / Outcome Evidenceはありません。
 
 ### V5 Uncertainty Preservation
 
-Unknown / Conflict / Withheld / residual / reopenの境界はscopedに検査済みです。実際の誤判断回避や再検討品質へのOutcome Evidenceはありません。
+Unknown / Conflict / Withheld / residual / reopenの境界はscopedに検査済みです。M1aの外部Method outputも`not_verified`として保持します。実際の誤判断回避や再検討品質へのOutcome Evidenceはありません。
 
 ### V6 Human / AI Readability
 
@@ -297,17 +300,18 @@ low-impact / high-impactのsynthetic evaluationはあります。実運用での
 
 ### V8 Execution Independence
 
-Provider / Storage / Realization交換のscoped probeは増えましたが、異なるproduction Execution / Storage Provider間で長期的に意味を維持したOperational Evidenceはありません。
+Provider / Persistence / Realization交換とM1a external Method processのscoped probeは増えましたが、actual TEIや実外部modelを含むproduction環境で長期的に意味を維持したOperational Evidenceはありません。
 
 ## 15. current Planとの関係
 
-current registryはADR-0001〜ADR-0030、ISSUE-000001〜ISSUE-000063を管理します。
+current registryはADR-0001〜ADR-0030、ISSUE-000001〜ISSUE-000064を管理します。
 
-主要状態:
+主要状態は次です。
 
 - ISSUE-000021: **Deferred** — historical design provenance逐語監査
-- ISSUE-000063: **Resolved** — v0.2.0 actual Release Evidence記録
-- ISSUE-000001〜000020、000022〜000063: **Resolved**
+- ISSUE-000063: **Resolved** — v0.2.0 actual Release Evidence
+- ISSUE-000064: **Resolved** — E3b-M1a live KJ Atlas Cognitive Method execution
+- その他のcurrent Issue: repository registryに従う
 
 IssueがResolvedであることは、その対象についてOperational / Adoption・Outcome EvidenceまでVerifiedであることを意味しません。
 
@@ -322,16 +326,19 @@ Requirement数、Scenario数、fixture数、Issue数、CI本数、release asset�
 v0.2.0 release後に深める主要な領域は次です。
 
 - actual TEI process / serviceを用いたE3b-P2
-- external Cognitive Method live execution
+- 実外部modelを用いたE3b-M1b
 - E4 Operational portability
 - production Provider / Storage / identity / securityが必要となる具体的な利用文脈
+- 次releaseでE3bをsupported scopeへ含める条件
 - Operational Evidence
 - Adoption / Outcome Evidence
 
-これらはv0.2.0 Release Evidence成立を理由に自動的にSatisfiedへ上げません。
+これらはv0.2.0 Release EvidenceやM1aの成立を理由に自動的にSatisfiedへ上げません。
 
 ## 18. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、Product Milestone、REQ-0001〜0022、SCN-0001〜0018、ADR-0001〜0030、5 Semantic Contract family、2 Representation Profile、current runtime / probe、E3a / E3b-P1、v0.2.0 Release Acceptance、actual `v0.2.0` tag、GitHub Release、release asset、Run `33574947445`、ISSUE-000063へ戻って全体を再監査しました。
+Product Value、Value Proposition、Product Shape、Product Milestone、REQ-0001〜0022、SCN-0001〜0018、ADR-0001〜0030、5 Semantic Contract family、2 Representation Profile、current runtime / probe、E3a / E3b-P1、E3b-M1a、v0.2.0 Release Acceptance / Release Evidence、ISSUE-000063 / 000064へ戻って全体を再監査しました。
 
-旧本文に残っていた「Release Evidence Not Yet Verified」や古いPlan範囲をcurrent stateへ改める一方、Release Evidenceの成立範囲をv0.2.0 Local Reference Product Baselineへ限定しました。E3b全体、E4、production readiness、Operational Evidence、Adoption / Outcome Evidenceは未検証のままです。意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。
+v0.2.0 Release Evidenceの成立範囲をLocal Reference Product Baselineへ限定したまま、release後に得られたM1aをV2 / V4 / V5 / V8へ関係するScoped Executable Evidenceとして追跡しています。E3b-P2、M1b、E4、production readiness、Operational Evidence、Adoption / Outcome Evidenceは未検証のままです。
+
+意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。
