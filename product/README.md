@@ -89,7 +89,7 @@ Product Valueを長期的な到達方向として表します。未来の特定�
 
 SOZAをどの順序で製品として成立させるかを、**期限ではなくOutcomeとEvidence**で示します。
 
-現在、PMS-06ではE2、E3a、E3b-P1、E3b-M1aにScoped Executable Evidenceがあります。E3b-P2ではactual TEI専用probe経路まで具体化しましたが、最初のrunではprivate TEI取得資格情報が利用できずactual executionがskipされたため、P2自体は未検証です。一方、PMS-07はv0.2.0 Local Reference Product Baselineの範囲でRelease EvidenceがSatisfiedです。PMS-08のOperational / Adoption・Outcome Evidenceは未検証のままです。
+現在、PMS-06ではE2、E3a、E3b-P1、E3b-P2のfixed-artifact actual TEI CLI execution、E3b-M1aにScoped Executable Evidenceがあります。E3b-P2では固定revisionの実TEIをbuild・起動し、SOZA Adapter経由でcurrent Capability Observationへ戻せることまで確認しました。一方、SOZA Actionsからprivate TEIを継続取得するcredential運用、任意version互換性、E3b-M1b、E4は未検証です。PMS-07はv0.2.0 Local Reference Product Baselineの範囲でRelease EvidenceがSatisfiedであり、PMS-08のOperational / Adoption・Outcome Evidenceは未検証のままです。
 
 ### `interaction/SOZA_PRODUCT_INTERACTION.md`
 
@@ -134,9 +134,10 @@ PMS-06に対応し、Cognitive Method RealizationやCapability Providerを交換
 - E2 out-of-process reference exchange
 - E3a version-pinned external artifact integration
 - E3b-P1 public live Provider service
+- E3b-P2 fixed-artifact actual TEI CLI execution
 - E3b-M1a live KJ Atlas process + deterministic model stub
 
-E3b-P2ではactual TEI専用testとcredential-aware workflowまで用意しましたが、actual TEI checkout / build / executionはまだ成立していません。E3b-M1b external model-backed Method executionも未検証です。
+E3b-P2では、固定revisionの実TEI CLIをbuild・起動し、actual `deployment-provider-plan`をSOZA Adapterでstrictに読み、current Capability Observationへ戻す範囲までScoped Executable Evidenceがあります。SOZA Actionsからprivate TEIを継続取得するcredential運用、任意version互換性、E3b-M1b external model-backed Method executionは未検証です。
 
 ## 3. 未定領域の扱い
 
@@ -179,10 +180,10 @@ current repositoryでは、少なくとも次の状態まで確認していま�
 - Packaging / Deployment: **Design baseline established / Minimum scoped Executable Evidence available**
 - Local Reference Package: **release asset available for v0.2.0 Linux / amd64 reference profile**
 - Product Identity / Access / Collaboration: **Design baseline established / scoped Product Access separation Executable Evidence available**
-- Realization / Provider portability: **Partial — E2 / E3a / E3b-P1 / E3b-M1a Scoped Executable Evidence available**
+- Realization / Provider portability: **Partial — E2 / E3a / E3b-P1 / E3b-P2 fixed-artifact / E3b-M1a Scoped Executable Evidence available**
 - PMS-07: **Satisfied for v0.2.0 Local Reference Product Baseline**
 - production IdP / team collaboration security: **Not Yet Verified**
-- E3b-P2 actual TEI process / service: **probe path available / actual execution Not Yet Verified**
+- E3b-P2 actual TEI process / service: **fixed-artifact Scoped Executable Evidence available / credential operation・arbitrary version pending**
 - E3b-M1b external model-backed Cognitive Method execution: **Not Yet Verified**
 - E4 Operational portability: **Not Yet Verified**
 - PMS-08 Operational / Adoption・Outcome Evidence: **Not Yet Verified**
@@ -202,7 +203,7 @@ v0.2.0は、現在のsemantic baselineにProduct Interaction、Local Single-Node
 
 actual releaseでは、tag、source commit、Release Candidate Gate、Local Reference Package、checksum、candidate report、release metadataを追跡できる状態で配布しています。
 
-repositoryには、release scope確定後に得られたE3b-P1、TEI executable injection boundary、E3b-P2 acquisition probe、E3b-M1aのEvidenceや実証準備も存在します。しかし、それらを理由にv0.2.0のsupported scopeを後から広げません。
+repositoryには、release scope確定後に得られたE3b-P1、TEI executable injection boundary、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1aのScoped Executable Evidenceも存在します。しかし、それらを理由にv0.2.0のsupported scopeを後から広げません。
 
 ```text
 post-release scoped Evidence / probe exists
@@ -217,7 +218,7 @@ E3b-M1a PASS
   != E3b-M1b PASS
 ```
 
-E3b-P2の最初のcredential-aware runはworkflow全体としてsuccessしましたが、actual TEI stepがskipされました。そのため、P2のScoped Executable Evidenceには数えていません。
+E3b-P2の最初のcredential-aware runではactual TEI stepがskipされましたが、その後、固定source commitからactual `cmd/tei`をbuild・実行したEvidence artifactを作成し、同artifactをcurrent SOZA Adapterから実processとして起動できることを確認しました。最初のskip記録は履歴として保持し、後続Evidenceによってfixed-artifact範囲だけを前進させています。
 
 ## 7. Product Valueを変更するとき
 

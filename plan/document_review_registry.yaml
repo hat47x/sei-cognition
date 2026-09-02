@@ -19,7 +19,7 @@ reviewed:
 
   - scope: product/README.md
     status: revised
-    note: Product Value、Milestone、Interaction、Packaging、Identity / Access、Realization / Provider Exchange、v0.2.0 Release Evidence、release後のE3b-M1aとE3b-P2 acquisition probeまでをcurrent Product入口として自然な日本語で再整理済み。P2はactual execution未検証のまま明示している。
+    note: Product Value、Milestone、Interaction、Packaging、Identity / Access、Realization / Provider Exchange、v0.2.0 Release Evidence、release後のE3b-P2 fixed-artifact actual TEI executionとE3b-M1aまでをcurrent Product入口として自然な日本語で再整理済み。credential運用・任意version・E4を未検証として分離している。
   - scope: product/value/*.md
     status: revised
     coverage:
@@ -44,7 +44,7 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_MILESTONES.md
-    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06はE2 / E3a / E3b-P1 / E3b-M1aまでをScoped Executable Evidenceとして維持し、M1aをcurrent正本のISSUE-000064へ修正した。E3b-P2はISSUE-000065のcredential-aware probeを反映したが、actual TEI stepがskipされたため未検証のまま分離している。PMS-07はv0.2.0 Local Reference Product BaselineのRelease Evidence成立を維持し、post-release Evidenceやprobeをsupported scopeへ遡及させていない。
+    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06はE2 / E3a / E3b-P1 / E3b-P2 fixed-artifact / E3b-M1aまでをScoped Executable Evidenceとして整理し、credential運用・任意version・M1b・E4を未検証として分離している。PMS-07はv0.2.0 Local Reference Product BaselineのRelease Evidence成立を維持し、post-release Evidenceをsupported scopeへ遡及させていない。
   - scope: product/interaction/*.md
     status: revised
     coverage:
@@ -152,7 +152,10 @@ reviewed:
     note: E3b-M1aとして固定revisionのKJ Atlas FastAPIとrepository同梱model stubを別processで実行し、actual grouping responseを既存Cognitive Method Applicationへ戻すScoped Executable Evidenceを記録した。KJ Atlas固有responseをUniversal Contractへ昇格させず、grouping候補をRecommendation / Decisionへ自動昇格しない境界、M1bとの差、v0.2.0 scope非拡張を自然な日本語で明示している。
   - scope: runtime/ACTUAL_TEI_INTEGRATION_PROBE_EVIDENCE_2026-09-02.md
     status: revised
-    note: E3b-P2の最初のcredential-aware probeを記録した。Run 33589190828ではdeterministic process境界はsuccessした一方、private TEI取得資格情報が利用できずactual checkout / build / validate / Adapter executionがskipされたため、P2をNot Yet Verifiedのまま保持している。
+    note: E3b-P2の最初のcredential-aware probeを記録した。Run 33589190828ではdeterministic process境界はsuccessした一方、private TEI取得資格情報が利用できずactual checkout / build / validate / Adapter executionがskipされた事実を履歴として保持している。
+  - scope: runtime/ACTUAL_TEI_CLI_EVIDENCE_2026-09-02.md
+    status: revised
+    note: E3b-P2の後続Evidenceとして、固定TEI sourceからactual `cmd/tei`をbuild・実行し、Evidence artifactをcurrent SOZA Adapterから別processとして起動してCapability Observationへ戻した範囲を記録した。fixed-artifact Executable Evidenceとcredential運用・任意version・Operational Evidenceを分離している。
   - scope: runtime/package/reference/*.md
     status: revised
     coverage:

@@ -130,7 +130,8 @@ current scoped materialには次があります。
 - Product Interaction / Access probe
 - E3a version-pinned external artifact integration
 - E3b-P1 public live Provider integration
-- actual TEI実行前のexternal executable injection boundary
+- external TEI executable injection boundary
+- E3b-P2 fixed-artifact actual TEI CLI integration
 - E3b-M1a live KJ Atlas process integration
 
 これらのPASSはproduction Provider / Storage / external executionの運用成立を意味しません。
@@ -169,7 +170,7 @@ E1 Contract / in-process synthetic
 E3bは、現在次の範囲へ分けています。
 
 - E3b-P1: public live Provider service — **Scoped Executable Evidence available**
-- E3b-P2: actual TEI process / service — **Not Yet Verified**
+- E3b-P2: actual TEI process / service — **fixed-artifact Scoped Executable Evidence available**
 - external TEI executable injection boundary — **Scoped Executable Evidence with helper subprocess**
 - E3b-M1a: live KJ Atlas process + deterministic model stub — **Scoped Executable Evidence available**
 - E3b-M1b: live external model-backed KJ execution — **Not Yet Verified**
@@ -252,7 +253,7 @@ Product Value、Value Proposition、Product Shape、Product Milestone、REQ-0001
 
 ### Executable Evidence — scoped
 
-Plan / Requirements / Contract conformance、semantic runtime、Representation Profile / Verifier Registry、Payload Source / Provider Adapter、Cognitive Method、V6 / V7 evaluation、Product Journey、Interaction / Packaging / Persistence / Access / Realization exchange、E3a、E3b-P1、E3b-M1a等の限定Evidenceがあります。
+Plan / Requirements / Contract conformance、semantic runtime、Representation Profile / Verifier Registry、Payload Source / Provider Adapter、Cognitive Method、V6 / V7 evaluation、Product Journey、Interaction / Packaging / Persistence / Access / Realization exchange、E3a、E3b-P1、E3b-P2 fixed-artifact、E3b-M1a等の限定Evidenceがあります。
 
 ### Release Evidence
 
@@ -284,7 +285,7 @@ bundle-local Exact Binding整合、historical basis非改変、Payload Source / 
 
 ### V4 Provider Independence
 
-synthetic Adapter、Provider replacement journey、out-of-process exchange、E3a、E3b-P1、M1aまでscopedに検査しています。actual TEI、実外部model、実Providerの交換・廃止・移行を伴うOperational / Outcome Evidenceはありません。
+synthetic Adapter、Provider replacement journey、out-of-process exchange、E3a、E3b-P1、fixed-artifact actual TEI、M1aまでscopedに検査しています。任意TEI versionへの交換、実外部model、実Providerの廃止・移行を伴うOperational / Outcome Evidenceはありません。
 
 ### V5 Uncertainty Preservation
 
@@ -300,17 +301,18 @@ low-impact / high-impactのsynthetic evaluationはあります。実運用での
 
 ### V8 Execution Independence
 
-Provider / Persistence / Realization交換とM1a external Method processのscoped probeは増えましたが、actual TEIや実外部modelを含むproduction環境で長期的に意味を維持したOperational Evidenceはありません。
+Provider / Persistence / Realization交換、fixed-artifact actual TEI、M1a external Method processまでscopedなExecutable Evidenceは増えましたが、実外部modelやversion交換を含むproduction環境で長期的に意味を維持したOperational Evidenceはありません。
 
 ## 15. current Planとの関係
 
-current registryはADR-0001〜ADR-0030、ISSUE-000001〜ISSUE-000064を管理します。
+current registryはADR-0001〜ADR-0030、ISSUE-000001〜ISSUE-000065を管理します。
 
 主要状態は次です。
 
 - ISSUE-000021: **Deferred** — historical design provenance逐語監査
 - ISSUE-000063: **Resolved** — v0.2.0 actual Release Evidence
 - ISSUE-000064: **Resolved** — E3b-M1a live KJ Atlas Cognitive Method execution
+- ISSUE-000065: **E3b-P2 fixed-artifact actual TEI CLI executionのEvidence確定中**
 - その他のcurrent Issue: repository registryに従う
 
 IssueがResolvedであることは、その対象についてOperational / Adoption・Outcome EvidenceまでVerifiedであることを意味しません。
@@ -325,7 +327,7 @@ Requirement数、Scenario数、fixture数、Issue数、CI本数、release asset�
 
 v0.2.0 release後に深める主要な領域は次です。
 
-- actual TEI process / serviceを用いたE3b-P2
+- E3b-P2で残るprivate-repository credential運用とTEI version交換
 - 実外部modelを用いたE3b-M1b
 - E4 Operational portability
 - production Provider / Storage / identity / securityが必要となる具体的な利用文脈
@@ -337,8 +339,8 @@ v0.2.0 release後に深める主要な領域は次です。
 
 ## 18. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、Product Milestone、REQ-0001〜0022、SCN-0001〜0018、ADR-0001〜0030、5 Semantic Contract family、2 Representation Profile、current runtime / probe、E3a / E3b-P1、E3b-M1a、v0.2.0 Release Acceptance / Release Evidence、ISSUE-000063 / 000064へ戻って全体を再監査しました。
+Product Value、Value Proposition、Product Shape、Product Milestone、REQ-0001〜0022、SCN-0001〜0018、ADR-0001〜0030、5 Semantic Contract family、2 Representation Profile、current runtime / probe、E3a / E3b-P1 / E3b-P2 fixed-artifact / E3b-M1a、v0.2.0 Release Acceptance / Release Evidence、ISSUE-000063〜000065へ戻って全体を再監査しました。
 
-v0.2.0 Release Evidenceの成立範囲をLocal Reference Product Baselineへ限定したまま、release後に得られたM1aをV2 / V4 / V5 / V8へ関係するScoped Executable Evidenceとして追跡しています。E3b-P2、M1b、E4、production readiness、Operational Evidence、Adoption / Outcome Evidenceは未検証のままです。
+v0.2.0 Release Evidenceの成立範囲をLocal Reference Product Baselineへ限定したまま、release後に得られたE3b-P2 fixed-artifact actual TEI executionとM1aをScoped Executable Evidenceとして追跡しています。private-repository credential運用、任意TEI version互換性、M1b、E4、production readiness、Operational Evidence、Adoption / Outcome Evidenceは未検証のままです。
 
 意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。
