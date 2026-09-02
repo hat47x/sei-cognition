@@ -68,7 +68,7 @@ reviewed:
   - scope: plan/issue/ISSUE-*.md
     status: revised
     coverage: ISSUE-000001..ISSUE-000066
-    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidence、E3b-P2 fixed-artifact actual TEI CLI execution、KJ Atlasをdeterministic model stubでlive実行するM1a、actual inference modelへ接続するM1bまで監査した。ISSUE-000066では実行成立をmodel品質やKJ法としての成果品質へ昇格させず、merge後回帰だけを残したOpen状態として整理している。
+    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidence、E3b-P2 fixed-artifact actual TEI CLI execution、KJ Atlasをdeterministic model stubでlive実行するM1a、actual inference modelへ接続するM1bまで監査した。ISSUE-000066は統合後のdevelop回帰まで確認してResolvedとし、実行成立をmodel品質、KJ法としての成果品質、生成文の決定性へ昇格させない停止線を明示している。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -152,7 +152,7 @@ reviewed:
     note: E3b-M1aとして固定revisionのKJ Atlas FastAPIとrepository同梱model stubを別processで実行し、actual grouping responseを既存Cognitive Method Applicationへ戻すScoped Executable Evidenceを記録した。KJ Atlas固有responseをUniversal Contractへ昇格させず、grouping候補をRecommendation / Decisionへ自動昇格しない境界、M1bとの差、v0.2.0 scope非拡張を自然な日本語で明示している。
   - scope: runtime/MODEL_BACKED_METHOD_EVIDENCE_2026-09-02.md
     status: revised
-    note: E3b-M1bとしてOllama上の実モデル推論をKJ Atlasの既存Method経路へ接続し、先行runとE3b-P2統合後の再実証runのactual inference counters、KJ Atlasによるresponse受理、既存SOZA Method mappingまでをScoped Executable Evidenceとして記録した。model出力品質、KJ法としての成果品質、Recommendation / Decision、任意version互換性、Operational Evidenceへ昇格させない境界を自然な日本語で明示している。
+    note: E3b-M1bとしてOllama上の実モデル推論をKJ Atlasの既存Method経路へ接続し、先行run、E3b-P2統合後の再実証run、PR #50統合後のdevelop回帰runについて、actual inference counters、KJ Atlasによるresponse受理、既存SOZA Method mappingまでをScoped Executable Evidenceとして記録した。統合後runで同一prompt digestから異なる生成文が得られたことも保持し、model出力品質、KJ法としての成果品質、生成文の決定性、Recommendation / Decision、任意version互換性、Operational Evidenceへ昇格させない境界を自然な日本語で明示している。
   - scope: runtime/ACTUAL_TEI_INTEGRATION_PROBE_EVIDENCE_2026-09-02.md
     status: revised
     note: E3b-P2の最初のcredential-aware probeを記録した。Run 33589190828ではdeterministic process境界はsuccessした一方、private TEI取得資格情報が利用できずactual checkout / build / validate / Adapter executionがskipされた事実を履歴として保持している。
