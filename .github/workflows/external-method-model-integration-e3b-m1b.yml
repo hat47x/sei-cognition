@@ -4,7 +4,6 @@ on:
   pull_request:
     paths:
       - '.github/workflows/external-method-model-integration-e3b-m1b.yml'
-      - 'runtime/tools/github_models_openai_v1_proxy.py'
       - 'runtime/go/livemethodintegration/**'
       - 'runtime/EXTERNAL_METHOD_MODEL_INTEGRATION_EVIDENCE_*.md'
       - 'plan/issue/ISSUE-000066-*.md'
@@ -17,7 +16,6 @@ on:
       - develop/v0.2.0
     paths:
       - '.github/workflows/external-method-model-integration-e3b-m1b.yml'
-      - 'runtime/tools/github_models_openai_v1_proxy.py'
       - 'runtime/go/livemethodintegration/**'
       - 'runtime/EXTERNAL_METHOD_MODEL_INTEGRATION_EVIDENCE_*.md'
       - 'plan/issue/ISSUE-000066-*.md'
@@ -29,13 +27,12 @@ on:
 
 permissions:
   contents: read
-  models: read
 
 jobs:
   actual-model-method:
-    name: actual KJ Atlas + GitHub Models
+    name: actual KJ Atlas + Ollama Qwen2.5
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: SOZAをcheckoutする
@@ -61,48 +58,82 @@ jobs:
       - name: KJ Atlas backendを導入する
         run: python -m pip install -e '_external/kj-atlas/03_Implement/backend'
 
+      - name: Ollamaと実modelを準備する
+        run: |
+          set -euo pipefail
+          curl -fsSL https://ollama.com/install.sh | sh
+
+          if ! curl --fail --silent http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
+            OLLAMA_HOST=127.0.0.1:11434 ollama serve >/tmp/ollama-m1b.log 2>&1 &
+            echo $! >/tmp/ollama-m1b.pid
+          fi
+
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:11434/api/tags >/dev/null; then
+              break
+            fi
+            if test "$attempt" = 60; then
+              echo 'Ollama did not become ready' >&2
+              cat /tmp/ollama-m1b.log >&2 || true
+              exit 1
+            fi
+            sleep 0.5
+          done
+
+          ollama pull qwen2.5:1.5b
+          curl --fail --silent http://127.0.0.1:11434/api/tags \
+            >/tmp/ollama-models-before.json
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          body = json.loads(Path('/tmp/ollama-models-before.json').read_text(encoding='utf-8'))
+          models = body.get('models', [])
+          model = next((item for item in models if item.get('name') == 'qwen2.5:1.5b'), None)
+          assert model is not None, body
+          digest = model.get('digest')
+          assert isinstance(digest, str) and len(digest) >= 12, model
+          Path('/tmp/ollama-model-digest.txt').write_text(digest + '\n', encoding='utf-8')
+          print(f'pulled_model=qwen2.5:1.5b digest={digest}')
+          PY
+
       - name: KJ Atlas databaseを初期化する
         working-directory: _external/kj-atlas/03_Implement/backend
         env:
           KJ_ATLAS_DATABASE_URL: sqlite:////tmp/kj-atlas-e3b-m1b.db
           KJ_ATLAS_RUNTIME_PROFILE: local-dev
           KJ_ATLAS_LLM_PROVIDER: deepseek
-          KJ_ATLAS_DEEPSEEK_BASE_URL: http://127.0.0.1:8001
-          KJ_ATLAS_DEEPSEEK_MODEL: openai/gpt-4.1-mini
-          KJ_ATLAS_DEEPSEEK_API_KEY: ${{ github.token }}
+          KJ_ATLAS_DEEPSEEK_BASE_URL: http://127.0.0.1:11434
+          KJ_ATLAS_DEEPSEEK_MODEL: qwen2.5:1.5b
+          KJ_ATLAS_DEEPSEEK_API_KEY: ollama-evidence-only
           KJ_ATLAS_LLM_FALLBACK_TO_NONE: 'false'
         run: alembic upgrade head
 
-      - name: protocol shimとKJ Atlasを起動する
+      - name: 固定revisionのKJ Atlasを起動する
         env:
           KJ_ATLAS_DATABASE_URL: sqlite:////tmp/kj-atlas-e3b-m1b.db
           KJ_ATLAS_RUNTIME_PROFILE: local-dev
           KJ_ATLAS_LLM_PROVIDER: deepseek
-          KJ_ATLAS_DEEPSEEK_BASE_URL: http://127.0.0.1:8001
-          KJ_ATLAS_DEEPSEEK_MODEL: openai/gpt-4.1-mini
-          KJ_ATLAS_DEEPSEEK_API_KEY: ${{ github.token }}
+          KJ_ATLAS_DEEPSEEK_BASE_URL: http://127.0.0.1:11434
+          KJ_ATLAS_DEEPSEEK_MODEL: qwen2.5:1.5b
+          KJ_ATLAS_DEEPSEEK_API_KEY: ollama-evidence-only
           KJ_ATLAS_LLM_FALLBACK_TO_NONE: 'false'
         run: |
           set -euo pipefail
-          python runtime/tools/github_models_openai_v1_proxy.py \
-            --host 127.0.0.1 --port 8001 >/tmp/soza-m1b-proxy.log 2>&1 &
-          echo $! >/tmp/soza-m1b-proxy.pid
-
           PYTHONPATH=_external/kj-atlas/03_Implement/backend/src \
             uvicorn kj_atlas_api.main:app --host 127.0.0.1 --port 8000 \
             >/tmp/kj-atlas-m1b-backend.log 2>&1 &
           echo $! >/tmp/kj-atlas-m1b-backend.pid
 
           for attempt in $(seq 1 60); do
-            if curl --fail --silent http://127.0.0.1:8001/healthz >/dev/null \
-              && curl --fail --silent http://127.0.0.1:8000/healthz >/dev/null; then
+            if curl --fail --silent http://127.0.0.1:8000/healthz >/dev/null; then
               exit 0
             fi
             sleep 0.25
           done
 
-          echo 'M1b probe processes did not become ready' >&2
-          cat /tmp/soza-m1b-proxy.log >&2 || true
+          echo 'KJ Atlas did not become ready' >&2
           cat /tmp/kj-atlas-m1b-backend.log >&2 || true
           exit 1
 
@@ -113,7 +144,13 @@ jobs:
             http://127.0.0.1:8000/ai/provider-status \
             >/tmp/kj-atlas-provider-status-before.json
 
-      - name: GitHub Modelsを使ってKJ Atlasのgrouping methodを実行する
+          # pullだけではmodel processはloadされないことを確認する。
+          if ollama ps | grep -F 'qwen2.5:1.5b'; then
+            echo 'qwen2.5:1.5b was already loaded before the Method request' >&2
+            exit 1
+          fi
+
+      - name: Ollamaの実modelを使ってKJ Atlasのgrouping methodを実行する
         run: |
           set -euo pipefail
           cat >/tmp/kj-atlas-m1b-request.json <<'JSON'
@@ -147,12 +184,13 @@ jobs:
             http://127.0.0.1:8000/ai/suggest-card-groups \
             >/tmp/kj-atlas-m1b-result.json
 
-      - name: model呼び出しとKJ Atlas出力境界を検証する
+      - name: model実行とKJ Atlas出力境界を検証する
         run: |
           set -euo pipefail
           curl --fail-with-body --silent --show-error \
             http://127.0.0.1:8000/ai/provider-status \
             >/tmp/kj-atlas-provider-status-after.json
+          ollama ps >/tmp/ollama-ps-after.txt
 
           python - <<'PY'
           import json
@@ -161,18 +199,25 @@ jobs:
           before = json.loads(Path('/tmp/kj-atlas-provider-status-before.json').read_text(encoding='utf-8'))
           after = json.loads(Path('/tmp/kj-atlas-provider-status-after.json').read_text(encoding='utf-8'))
           result = json.loads(Path('/tmp/kj-atlas-m1b-result.json').read_text(encoding='utf-8'))
+          loaded = Path('/tmp/ollama-ps-after.txt').read_text(encoding='utf-8')
+          digest = Path('/tmp/ollama-model-digest.txt').read_text(encoding='utf-8').strip()
 
+          # `deepseek`は固定KJ Atlas内のOpenAI互換transport名であり、
+          # 実際のmodel runtimeはこのworkflowではOllamaである。
           assert before.get('providerKind') == 'deepseek', before
           assert after.get('providerKind') == 'deepseek', after
           assert before.get('callCounts', {}).get('deepseek', 0) == 0, before
           assert after.get('callCounts', {}).get('deepseek', 0) >= 1, after
           assert after.get('callCounts', {}).get('total', 0) >= 1, after
+          assert 'qwen2.5:1.5b' in loaded, loaded
 
           assert isinstance(result.get('groups'), list) and result['groups'], result
           assert result.get('excludedCardIds') == ['c-held'], result
           assert result.get('truncated') is False, result
 
           print(json.dumps({
+              'actualModel': 'qwen2.5:1.5b',
+              'actualModelDigest': digest,
               'providerStatusBefore': before,
               'providerStatusAfter': after,
               'resultShape': {
@@ -201,11 +246,12 @@ jobs:
           cat /tmp/kj-atlas-provider-status-before.json || true
           cat /tmp/kj-atlas-provider-status-after.json || true
           cat /tmp/kj-atlas-m1b-result.json || true
-          cat /tmp/soza-m1b-proxy.log || true
+          cat /tmp/ollama-ps-after.txt || true
           cat /tmp/kj-atlas-m1b-backend.log || true
+          cat /tmp/ollama-m1b.log || true
 
       - name: probe processを停止する
         if: always()
         run: |
           if test -f /tmp/kj-atlas-m1b-backend.pid; then kill "$(cat /tmp/kj-atlas-m1b-backend.pid)" 2>/dev/null || true; fi
-          if test -f /tmp/soza-m1b-proxy.pid; then kill "$(cat /tmp/soza-m1b-proxy.pid)" 2>/dev/null || true; fi
+          if test -f /tmp/ollama-m1b.pid; then kill "$(cat /tmp/ollama-m1b.pid)" 2>/dev/null || true; fi
