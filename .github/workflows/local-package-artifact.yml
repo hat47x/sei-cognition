@@ -5,13 +5,21 @@ on:
     branches:
       - "develop/**"
     paths:
-      - "runtime/go/**"
+      - "runtime/go/cmd/soza-package-probe/**"
+      - "runtime/go/packagingprobe/**"
+      - "runtime/go/semanticruntime/**"
+      - "runtime/go/go.mod"
+      - "runtime/go/go.sum"
       - "runtime/package/reference/**"
       - "fixtures/contracts/v1alpha1/boundary/**"
       - ".github/workflows/local-package-artifact.yml"
   pull_request:
     paths:
-      - "runtime/go/**"
+      - "runtime/go/cmd/soza-package-probe/**"
+      - "runtime/go/packagingprobe/**"
+      - "runtime/go/semanticruntime/**"
+      - "runtime/go/go.mod"
+      - "runtime/go/go.sum"
       - "runtime/package/reference/**"
       - "fixtures/contracts/v1alpha1/boundary/**"
       - ".github/workflows/local-package-artifact.yml"
