@@ -49,7 +49,7 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_INTERACTION.md
-    note: first usable Product Interactionをhuman / AIの異なるSurfaceから同じcanonical sourceへ戻る操作境界として定義し、reference probe Evidenceを同期済み。
+    note: first usable Product Interactionをhuman / AIの異なるSurfaceから同じcanonical sourceへ戻す操作境界として定義し、reference probe Evidenceを同期済み。
   - scope: product/packaging/*.md
     status: revised
     coverage:
@@ -67,8 +67,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、自然な日本語全文再ドラフトと最終意味監査を実施済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000068
-    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidence、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1b、ISSUE-000067のhistorical reconstruction H1 / H2、ISSUE-000068のactual二モデル交換まで監査した。ISSUE-000068では同じKJ Atlas / Method input / Ollama runtimeの下で異なるmodel artifactを実行し、historical Applicationを保持できた一方、生成内容と言語適合性が変化した事実を保持している。実行成立をmodel品質、KJ法としての成果品質、arbitrary portability、E4へ昇格させない停止線も明示している。
+    coverage: ISSUE-000001..ISSUE-000069
+    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidence、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1b、ISSUE-000067のhistorical reconstruction H1 / H2、ISSUE-000068のactual二モデル交換までに加え、ISSUE-000069でGitHub-hosted runner利用不能とSOZA内のworkflow regressionを分離した。ISSUE-000069では観測事実から外部原因を断定せず、実証workflowの自動起動をruntime / Adapter / fixture / workflowの意味変更へ寄せる一方、検証本文とEvidence強度を弱めず、runner復旧後のactual回帰を完了条件として残している。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
