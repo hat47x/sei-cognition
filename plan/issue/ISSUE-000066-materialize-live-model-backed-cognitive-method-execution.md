@@ -99,21 +99,21 @@ Adapterは各actual inferenceについて、少なくとも次をintegration Evi
 
 M1bでは、`prompt_eval_count > 0`かつ`eval_count > 0`をactual inference成立の最低条件とした。
 
-Workflow Run `33596839607`では次を観測した。
+先行PR #48のRun `33596839607`では`prompt_eval_count = 196`、`eval_count = 78`を観測した。さらにE3b-P2統合後の最新develop基線から作り直したPR #50のRun `33608342203`でも、次を観測した。
 
 - `ollama_done = true`
 - `done_reason = stop`
 - `prompt_eval_count = 196`
-- `eval_count = 78`
+- `eval_count = 83`
 - prompt SHA-256: `cd3d5eeb64cddfbdce63d80b0451b19703f43bcd2d1b09d7188f6bd4d7de2d33`
 
-したがって、model processの起動だけではなく、prompt評価とtoken生成を伴うactual inferenceが成立したと判断する。
+したがって、model processの起動だけではなく、prompt評価とtoken生成を伴うactual inferenceが、P2統合後の基線でも成立したと判断する。
 
-これらのOllama固有fieldはintegration Evidenceであり、SOZA Universal Cognitive Method Contractではない。
+`eval_count`の差は生成token数の観測値であり、同一値であることをM1bの要件にはしない。これらのOllama固有fieldはintegration Evidenceであって、SOZA Universal Cognitive Method Contractではない。
 
 ## 実行結果
 
-PR #48の初回実証では、Workflow Run `33596839607`で次をskipなしで成功させた。
+PR #48の先行Run `33596839607`と、最新develop基線から再構成したPR #50のRun `33608342203`で、いずれも次をskipなしで成功させた。
 
 1. 固定commitのKJ Atlasを取得した。
 2. Ollama `0.32.14`を導入した。
@@ -126,7 +126,7 @@ PR #48の初回実証では、Workflow Run `33596839607`で次をskipなしで�
 9. existing SOZA Method mapping boundary testを再実行した。
 10. actual model-backed resultを既存Cognitive Method Applicationへ戻した。
 
-KJ Atlasは二つの在宅勤務カードを一つのgroup候補として返し、`holdState = held`のカードを`excludedCardIds`へ分離した。実際に生成されたgroup labelやrationaleの品質は、このIssueの完了条件には含めない。
+両runとも、KJ Atlasは二つの在宅勤務カードを一つのgroup候補として返し、`holdState = held`のカードを`excludedCardIds`へ分離した。実際に生成されたgroup labelやrationaleの品質は、このIssueの完了条件には含めない。
 
 ## Requirement / Scenario監査
 
@@ -154,7 +154,7 @@ M1bでは、KJ Atlas source identityとactual model identityの双方をEvidence
 
 ただし、今回だけを根拠にmodel repository、Ollama tag、Ollama model ID等をUniversal Provenance fieldへ昇格させない。
 
-model version交換をまたぐhistorical reconstructionに必要な最小Provenanceは、今回のEvidenceと今後のversion交換実証を入力として別途検討する。
+model / runtime version交換をまたぐhistorical reconstructionに必要な最小Provenanceは、今回のEvidenceと今後のversion交換実証を入力として別途検討する。
 
 ## Non-goals / 未検証範囲
 
@@ -184,14 +184,15 @@ E3b-P2 actual TEI CLIについては、別Issue / Evidence trackでfixed-artifac
 - [x] KJ Atlas `POST /ai/suggest-card-groups`がactual model outputを受理する。
 - [x] actual resultをSOZAの既存Cognitive Method Applicationへ戻す。
 - [x] M1b Evidence文書をactual runへ同期する。
-- [ ] Product Milestone / Product入口 / Realization / Provider Exchange / 上流計画 / Plan台帳を同期する。
-- [ ] 自然な日本語を最重要視した全文再ドラフトと最終意味監査を行う。
+- [x] Product Milestone / Product入口 / Realization / Provider Exchange / Value Traceability / 上流計画 / Plan台帳を同期する。
+- [x] 自然な日本語を最重要視した全文再ドラフトと最終意味監査を行う。
 - [ ] merge後の`develop/v0.2.0`でM1b workflowを含む回帰CIを確認する。
 
 ## Evidence state
 
 - E3b-M1a live KJ Atlas + deterministic model stub: **Scoped Executable Evidence available**
-- E3b-M1b actual model-backed execution: **Scoped Executable Evidence available in Run 33596839607**
+- E3b-M1b actual model-backed execution: **Scoped Executable Evidence available in Runs 33596839607 / 33608342203**
+- latest-develop rebaseline execution before merge: **Verified in Run 33608342203**
 - actual model output quality: **Not Evaluated**
 - KJ-method outcome quality: **Not Evaluated**
 - E3b-P2 actual TEI: **Scoped Executable Evidence available on its separate fixed-artifact track**
@@ -210,8 +211,8 @@ E3b-P2 actual TEI CLIについては、別Issue / Evidence trackでfixed-artifac
 
 ## 自然な日本語レビュー
 
-PMS-06、ISSUE-000064、current Cognitive Method Contract、KJ Atlas固定commitの`local` Provider / `POST /generate`境界、M1a workflow、M1b workflow、integration-only Ollama Adapter、Workflow Run `33596839607`の実行ログを照合した。
+PMS-06、ISSUE-000064 / 000065、current Cognitive Method Contract、KJ Atlas固定commitの`local` Provider / `POST /generate`境界、M1a workflow、M1b workflow、integration-only Ollama Adapter、Runs `33596839607` / `33608342203`の実行ログ、Product Milestone、Product入口、Realization / Provider Exchange、Value Traceability、上流計画を照合した。
 
-実証前に置いた成功条件と実際のrunを一つずつ対応させ、actual model取得、actual inference、KJ Atlasによるresponse受理、SOZAへのmappingが成立した範囲だけをScoped Executable Evidenceへ更新した。一方、実際に生成されたgroup labelやrationaleの妥当性を含むmodel品質、KJ法としての成果品質は評価しておらず、Recommendation / Decisionにも昇格させていない。
+実証前に置いた成功条件とactual runを一つずつ対応させ、actual model取得、actual inference、KJ Atlasによるresponse受理、SOZAへのmappingが成立した範囲だけをScoped Executable Evidenceへ更新した。一方、実際に生成されたgroup labelやrationaleの妥当性を含むmodel品質、KJ法としての成果品質は評価しておらず、Recommendation / Decisionにも昇格させていない。
 
-意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+E3b-P2統合後の基線でも同じ意味境界が保たれたことを確認したが、この再現結果を任意version互換性やOperational portabilityへは拡張しない。意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
