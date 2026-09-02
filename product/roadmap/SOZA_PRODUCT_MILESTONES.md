@@ -1,7 +1,7 @@
 # SOZA Product Milestones
 
 更新日: 2026-09-02  
-状態: **Current Deadline-free Product Milestone Baseline — v0.2.0 Release Evidence reflected**
+状態: **Current Deadline-free Product Milestone Baseline — v0.2.0 Release Evidence / E3b-M1a reflected**
 
 ## 1. この文書の役割
 
@@ -19,7 +19,7 @@ Product Value
   → Implementation / Evidence
 ```
 
-未定領域をMilestone文書だけからRequirementへ昇格させません。意味境界や必要性がまだ明らかでない場合は、議論、資料検討、prototype、fixture、実証実験等を先に行い、独立した規範上の必要性が確認できた場合だけRequirementへ反映します。
+未定領域をMilestoneだけからRequirementへ昇格させません。意味境界や必要性が十分に確認できていない場合は、議論、資料調査、prototype、fixture、実証実験を先に行い、独立した規範上の必要性が確認できた場合だけRequirementへ反映します。
 
 ## 2. Milestoneの読み方
 
@@ -30,7 +30,7 @@ Product Value
 - **Current state** — 現在どこまで確認できているか。
 - **Open questions** — 現時点では固定しない領域。
 
-Milestoneには依存関係がありますが、すべてを直列に完了させる必要はありません。上位価値を壊さない範囲で、実証に必要な作業は並行できます。
+Milestoneには依存関係がありますが、すべてを直列に完了させる必要はありません。上位価値を壊さない範囲で、必要な実証は並行して進めます。
 
 ## 3. PMS-00 — Product Valueと製品境界が正本化されている
 
@@ -40,12 +40,9 @@ SOZAが何のために存在し、何を価値として守り、何を自らの�
 
 少なくとも次が相互に矛盾せず読める状態を求めます。
 
-- Product Value
-- Value Proposition
-- Value Model / Acceptance
-- Product Vision
-- Product Principles
-- Product Shape
+- Product Value / Value Proposition
+- Value Model / Acceptance / Traceability
+- Product Vision / Principles / Product Shape
 - SOZA / TEI / external Providerの境界
 
 ### Minimum Evidence
@@ -56,7 +53,7 @@ Design Evidence。
 
 **Established at Design level.**
 
-下位実装やCIの存在だけを理由に、Operational / Adoption Evidenceへは昇格させません。
+下位実装やCIの存在だけを理由に、Operational / Adoption Evidenceへ昇格させません。
 
 ## 4. PMS-01 — 耐久的なsemantic substrateを機械的に扱える
 
@@ -76,7 +73,11 @@ Design Evidence。
 
 current runtimeでは、known Contractのtyped read / validate / reconstruct、Representation Verifier Registry、Payload Source、Cognitive Method、Exact Binding consistency等を限定範囲で検査しています。
 
-Contract単体のPASSは、製品全体が利用可能であることを意味しません。
+```text
+Contract conformance PASS
+  != product readiness
+  != Operational Evidence
+```
 
 ## 5. PMS-02 — 一つの判断仕事をend-to-endで再構成できる
 
@@ -95,7 +96,7 @@ Inquiry
   → historical review / reopen
 ```
 
-この順序を固定workflowとして要求しません。重要なのは、複数の意味境界を同時に扱っても、RecommendationとDecision、過去のbasisと後から得たObservation、CapabilityとProvider等が混ざらないことです。
+この順序を固定workflowとして要求しません。重要なのは、RecommendationとDecision、過去のbasisと後から得たObservation、CapabilityとProvider等を混同しないことです。
 
 ### Minimum Evidence
 
@@ -107,19 +108,13 @@ Inquiry
 
 SCN-0018とend-to-end Semantic Product Journey harnessで、normal / uncertain / collaborative / provider replacement / no-execution等を限定範囲で検査しています。
 
-```text
-journey harness PASS
-  != production Product Journey validated
-  != human interaction validated
-```
-
 ## 6. PMS-03 — 人間とAIが最初のusable interactionから同じcanonical meaningへ触れられる
 
 ### Outcome
 
-人間とAIが、同じcanonicalな判断文脈へ別の入口やProjectionから触れ、Inquiryの開始・再開、Observation追加、Recommendation / Decision確認、historical review等を一続きに行えます。
+人間とAIが、異なるSurfaceから同じcanonicalな判断文脈へ触れ、Inquiryの開始・再開、Observation追加、Recommendation / Decision確認、historical review等を行えます。
 
-低影響な利用では最大詳細を強制せず、必要な場合だけaudit detailへ降りられることを求めます。
+低影響な利用で最大詳細を強制せず、必要なときだけaudit detailへ降りられることを求めます。
 
 ### Minimum Evidence
 
@@ -129,35 +124,16 @@ Interaction boundaryのDesign Evidenceと、最小prototypeまたはconformance�
 
 **Design baseline established / scoped Executable Evidence available.**
 
-`product/interaction/SOZA_PRODUCT_INTERACTION.md`とADR-0028で、first usable Product Interactionをcanonical meaning上の操作境界として正本化しています。
+`product/interaction/SOZA_PRODUCT_INTERACTION.md`とADR-0028で、Product Interactionをcanonical meaning上の操作境界として正本化しています。
 
-ISSUE-000053のreference probeでは、少なくとも次を確認しました。
-
-- human-oriented Surfaceとmachine-oriented Surfaceが同じcanonical sourceを扱う。
-- machine側が追加したObservation / Recommendationをhuman側から再読できる。
-- human側Decisionをmachine側がDecisionとして再読できる。
-- RecommendationとDecisionを同一recordへ平坦化しない。
-- Unknown / Conflictを失わない。
-- Projection生成でcanonical sourceを変更しない。
-- Surface-local stateを破棄してもcanonical recordを失わない。
-- post-decision Observationでhistorical Decision basisを書き換えない。
-- machine SurfaceであることからResponsibilityを推定しない。
-
-```text
-reference interaction probe PASS
-  != production UX proven
-  != supported protocol finalized
-  != Operational / Adoption Evidence
-```
+ISSUE-000053のreference probeでは、human-oriented / machine-oriented Surfaceが同じcanonical sourceへ戻ること、RecommendationとDecisionを平坦化しないこと、Unknown / Conflictを失わないこと、Surface-local stateを破棄してもcanonical recordを失わないこと等を確認しました。
 
 ### Open questions
 
-- productionで最初にsupportedとするhuman-facing Surface
-- productionで最初にsupportedとするAI-facing access Surface
+- productionで最初にsupportするhuman-facing Surface
+- productionで最初にsupportするAI-facing access Surface
 - Web / desktop / CLI / API / MCP等のsupported combination
-- human usabilityを損なわずlight / auditを往復する具体UX
-
-これらは現時点でRequirementとして先取りしません。
+- light / auditを自然に往復する具体UX
 
 ## 7. PMS-04 — 配布・保存・再開が可能な最小製品単位が成立する
 
@@ -184,7 +160,7 @@ Go runtime executable
   + portable semantic data
 ```
 
-ISSUE-000054ではprocess終了後の再読、copy / restore、Persistence交換、unknown Contractの`not_verified`保持、invalid state拒否等を限定範囲で確認しました。
+ISSUE-000054ではprocess終了後の再読、copy / restore、Persistence交換、unknown Contractの`not_verified`保持、invalid state拒否等を確認しました。
 
 ISSUE-000055ではLinux / amd64向けLocal Reference Packageについて、二重buildのbyte一致、build identity、deterministic archive、checksum、展開後の独立process save / reloadを検査しました。
 
@@ -200,8 +176,8 @@ PMS-04 scoped Evidence available
 
 ### Open questions
 
-- Product Releaseとして今後正式にsupportするOS / architecture
-- production向けinstaller / package manager / signing方式
+- 今後正式にsupportするOS / architecture
+- production installer / package manager / signing方式
 - executable version upgrade後のresume
 - team / multi-user deployment topology
 - online migration、backup SLA、HA / replication
@@ -229,25 +205,11 @@ security / collaboration boundaryのDesign Evidenceと、対象範囲のExecutab
 
 **Design baseline established / scoped Product Access separation Executable Evidence available / production IdP・team security pending.**
 
-`product/security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`とADR-0030で境界を正本化し、ISSUE-000056のreference probeでは次を限定範囲で確認しました。
-
-- identity交換後もhistorical DecisionのResponsibility Refを書き換えない。
-- semantic Responsibilityが存在してもProduct permissionがなければreadを拒否する。
-- Product `administer` permissionを与えてもsemantic Responsibilityを生成しない。
-- actor kindだけからpermissionを推定しない。
-- `not_evaluated`と`denied`を区別する。
-- Selective Disclosureで非開示recordを`withheld`として扱う。
-- Disclosure Projection生成前後でcanonical sourceを変更しない。
-
-### Candidate Requirement
-
-> SOZAの製品アクセス権は、semantic Responsibility / Authorityやactor kindから自動導出せず、認証identityとの対応を含むProduct Access Policyで独立に評価できる必要がある。
-
-reference probe固有のpermission vocabularyやscope粒度はRealization依存であるため、Stable Requirementへ先取りしません。
+`product/security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`とADR-0030で境界を正本化し、ISSUE-000056のreference probeでProduct Accessとsemantic Responsibilityの分離、`denied`と`not_evaluated`の分離、Selective Disclosureでの`withheld`保持等を限定範囲で確認しました。
 
 ### Open questions
 
-- 最初にsupportedとするauthentication方式
+- 最初にsupportするauthentication方式
 - Product Access Scopeの正式なgranularity / lifecycle
 - formal RBAC / ABACの必要性
 - hosted / team deploymentのmembership lifecycle
@@ -268,7 +230,7 @@ synthetic fixtureだけでなく、実際のCognitive Method Realization、AI、
 
 ### Current state
 
-**Partial / E2 + E3a + E3b-P1 Scoped Executable Evidence available / E3b-P2・E3b-M1 pending.**
+**Partial / E2 + E3a + E3b-P1 + E3b-M1a Scoped Executable Evidence available / E3b-P2・E3b-M1b pending.**
 
 Evidenceを次の段階に分けます。
 
@@ -280,23 +242,24 @@ E1 Contract / in-process synthetic
   → E4 Operational portability
 ```
 
-E3bは、何を実際に確認したかを混同しないため、現在の作業上は次へ分けています。
+E3bは、何を実際に確認したかを混同しないため、現在の作業上は次へ分けます。
 
 ```text
 E3b-P1 public live Provider service
-  → E3b-P2 actual TEI process / service
-  → E3b-M1 external Cognitive Method live execution
+E3b-P2 actual TEI process / service
+E3b-M1a live KJ Atlas process + deterministic model stub
+E3b-M1b live external model-backed KJ execution
 ```
 
-このP1 / P2 / M1はEvidenceの範囲を示すための区分であり、新しいProduct ontologyではありません。
+P1 / P2 / M1a / M1bはEvidence範囲を明示するための区分であり、新しいProduct ontologyではありません。
 
 ### E2 — out-of-process reference exchange
 
-ISSUE-000057では、SOZA runtimeとは別のOS processとしてreference Provider A / Bとreference Method Realization A / Bを実際にbuild・起動し、Provider / Method交換後もhistorical Decisionを変更しないこと、異なるRecommendationをDecisionへ自動昇格しないこと等を確認しました。
+ISSUE-000057では、SOZA runtimeとは別のOS processとしてreference Provider A / Bとreference Method Realization A / Bをbuild・起動し、Provider / Method交換後もhistorical Decisionを変更しないこと、異なるRecommendationをDecisionへ自動昇格しないこと等を確認しました。
 
 ### E3a — version固定した実外部artifact integration
 
-ISSUE-000058では、SOZAとは別repositoryで独立にversion管理されるartifactを扱いました。
+ISSUE-000058では、SOZAとは別repositoryで独立にversion管理される実artifactを扱いました。
 
 - Cognitive Method側: `hat47x/cultural-substrate-weaving`のversion固定artifact
 - Capability Provider側: `hat47x/tei-platform`のversion固定observed deployment state
@@ -307,23 +270,18 @@ source identityを確認し、Provider / repository固有情報をUniversal Cont
 
 ISSUE-000060では、SOZAとは独立したpublic serviceをネットワーク越しに実際に呼びました。reference ProviderにはGitHub REST APIの固定commit取得面を利用し、期待revisionと一致する場合だけCapability Observationへmappingしています。
 
-revision mismatch、HTTP failure、timeout / cancellation、Provider固有fieldの非漏出も検査しました。
-
-merge後`develop/v0.2.0`でもE3b-P1のScoped Executable Evidenceを再現しています。
-
-ただし、v0.2.0のsupported release scopeはE3aまでです。
+revision mismatch、HTTP failure、timeout / cancellation、Provider固有fieldの非漏出も検査済みです。
 
 ```text
 E3b-P1 PASS
   != E3b全体 PASS
   != actual TEI execution PASS
   != external Method live execution PASS
-  != E4 Operational portability
 ```
 
-### E3b-P2へ進むための準備境界
+### E3b-P2へ進むための外部実行境界
 
-ISSUE-000061では、actual TEI CLI integrationの前段として次を分離しています。
+ISSUE-000061では、actual TEI CLI integrationの前段として次を分離しました。
 
 ```text
 TEI source / binary acquisition
@@ -335,12 +293,35 @@ TEI source / binary acquisition
 
 `runtime/go/teiintegration`のhelper process testはexternal executable injection boundaryを検査するものであり、actual TEI executableを実行したEvidenceではありません。
 
+### E3b-M1a — live KJ Atlas process + deterministic model stub
+
+ISSUE-000064では、public repository `hat47x/kj-atlas`の固定commitを取得し、KJ Atlas FastAPI backendとKJ Atlas同梱のdeterministic model stubをSOZAとは別processとして実際に起動します。
+
+KJ Atlas自身の`POST /ai/suggest-card-groups`をactual HTTPで呼び、得られたgrouping responseをSOZAの既存Cognitive Method Applicationへ結び付けます。
+
+KJ Atlas固有responseはUniversal Contractへ昇格させず、opaqueな`not_verified` Method outputとして保持します。source repository、commit、entry point、result digestはopaque Provenanceとして残します。
+
+また、grouping候補をRecommendation / Decisionへ自動昇格させません。
+
+```text
+KJ Atlas grouping suggestion
+  != Recommendation
+  != Decision
+
+E3b-M1a PASS
+  != external model quality proven
+  != E3b-M1b PASS
+```
+
+再基線化前PR #41では、KJ Atlas取得、install、migration、model/backend起動、actual grouping、SOZA mapping boundary、actual result mappingまでを専用workflowで実行し、成功しています。最新developへ再基線化した後も、merge前に同じ専用workflowと全体回帰を再確認します。
+
 ### Open questions
 
 - actual TEI executableをどの環境から、どのEvidence付きでintegration testへ渡すか
 - private repository credentialをacquisition / deployment policyへどう閉じ込めるか
 - TEI CLI version交換時に必要なProvenance / Exact Bindingの水準
-- E3b-M1で利用する実Cognitive Method runnerまたはhost integration
+- E3b-M1bで実外部modelを利用したときにもM1aの意味境界が保てるか
+- formal integration protocolを本当に標準化する必要があるか
 - E4 Operational portabilityを何で測るか
 
 ## 10. PMS-07 — release可能な製品として成立する
@@ -357,69 +338,87 @@ Release Evidence。
 
 **Satisfied for v0.2.0 Local Reference Product Baseline.**
 
-v0.2.0はactual release済みです。
+v0.2.0はactual release済みで、`release/v0.2.0/RELEASE_EVIDENCE.md`により次の対応を確認しています。
 
-- tag: `v0.2.0`
-- source commit: `c3640bdfcc43652b63a5b9941fd6b472312ec28f`
-- Release Candidate Gate Run `33574947445`: **9 gate success**
-- release preparation: **success**
-- publication: **success**
-- GitHub Release ID: `380902898`
+- tag `v0.2.0`
+- source commit `c3640bdfcc43652b63a5b9941fd6b472312ec28f`
+- Release Candidate Gate Run `33574947445`
+- GitHub Release `SOZA v0.2.0 — Local Reference Product Baseline`
+- Local Reference Packageとrelease asset digest
 
-Local Reference Packageについて、release preparationで算出したSHA-256とactual release asset digestが一致しています。
+このRelease Evidenceが成立するsupported scopeは、Release Acceptance / Release Notesで定めた**E3aまで**です。
 
-`37f34d3ae4885df655e889f2799b9aea1d8c7c8c060c207df83f50459431ef17`
-
-expected 4 assetも実在を確認しています。
+E3b-P1やE3b-M1aのScoped Executable Evidenceがrelease後に存在しても、v0.2.0のscopeを遡及的に広げません。
 
 ```text
 v0.2.0 Release Evidence Satisfied
-  != production readiness
-  != E3b全体 Satisfied
+  != E3b included in v0.2.0 supported scope
   != Operational Evidence
-  != Adoption / Outcome Evidence
 ```
 
-v0.2.0でsupportを主張するRealization / Provider exchangeの範囲はE3aまでです。release後に得られたE3b-P1やTEI integration準備のEvidenceを、v0.2.0のsupported scopeへ自動的に追加しません。
+### Open questions
 
-詳細は`release/v0.2.0/RELEASE_EVIDENCE.md`を正とします。
+- 次releaseでsupport範囲をどこまで広げるか
+- installer / signing / platform support matrixをいつrelease条件へ含めるか
+- upgrade compatibilityをどこまでrelease acceptanceへ含めるか
 
-## 11. PMS-08 — 実運用と利用者成果からProduct Valueを検証できる
+## 11. PMS-08 — 実運用と利用成果を評価できる
 
 ### Outcome
 
-実際の利用環境で、SOZAが単に動作しただけでなく、判断の再構成、引継ぎ、再検討、Provider交換、不確実性保持等に役立ったかを検証できます。
+実際の利用環境でSOZAが継続利用でき、Product Valueが利用者や組織の判断仕事へどのような影響を与えたかを評価できます。
 
 ### Minimum Evidence
 
-Operational Evidence、および対象価値に応じたAdoption / Outcome Evidence。
+Operational EvidenceおよびAdoption / Outcome Evidence。
 
 ### Current state
 
 **Not Yet Verified.**
 
-v0.2.0 Release Evidenceの成立をPMS-08の成立へ読み替えません。
+v0.2.0 Release Evidence、E3b-P1、E3b-M1a等のExecutable Evidenceだけから、運用安定性、利用定着、意思決定品質、組織成果を推測しません。
 
-## 12. 横断Milestone — Moving Rebaseline
+### Open questions
 
-PMS-00〜08とは別に、主要な技術変化・利用知見・反証Evidenceが得られた場合は、評価時点の現在から10〜50倍程度先を見渡すMoving Future Horizonで上位文書を再監査します。
+- 実利用で最初に測るfailure / recovery / portability指標
+- 利用者負担と判断記憶の継続性をどう評価するか
+- AI / Method / Provider交換が実際の判断品質へ与える影響
+- Adoption / Outcomeを短期engagement指標へ矮小化しない評価方法
 
-これは最後に一度だけ行う工程ではありません。どのMilestoneでも、下位Evidenceが上位仮説を反証した時点でProduct Value / Vision / Principlesへ戻ります。
+## 12. Moving Rebaseline — 将来地平を固定しない
 
-## 13. 未定領域の扱い
+SOZAは、現在の生成AI、UI、workflow engine、database、agent frameworkの制約を恒久前提にしません。
 
-未定領域には、次の三状態を明確に認めます。
+評価時点から概ね10〜50倍程度の能力向上を仮置きし、現在の実装都合だけでUniversal semanticsを固定していないかを継続的に再検査します。
 
-- **Open Question** — まだ何を要求すべきか自体が分からない。
-- **Candidate Requirement** — 議論や実証から必要性が見えたが、重複・耐久性・適用範囲を未監査。
-- **Stable Requirement** — Product Valueから独立した規範上の必要性を説明でき、既存REQとの重複を監査し、Acceptanceを定義できる。
+これは数値benchmarkではなく、設計の近視眼化を防ぐための移動する地平です。
 
-Open Questionを直接Stable Requirementへ飛ばしません。
+```text
+current implementation constraint
+  != durable product meaning
+```
 
-## 14. Natural Japanese review
+## 13. Evidenceの共通境界
 
-Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、Product Identity / Access / Collaboration、Realization / Provider Exchange、v0.2.0 Release Acceptance / Release Evidence、REQ-0001〜0022、SCN-0001〜0018、ADR-0024 / 0025 / 0028 / 0029 / 0030、ISSUE-000046 / 000047 / 000053〜000063、current Go runtime、Interaction / Packaging / Product Access / E2 / E3a / E3b-P1 / TEI executable injection boundary、actual `v0.2.0` tag / GitHub Release / release assetへ戻ってMilestone全体を再監査しました。
+このMilestone全体では、次を混同しません。
 
-PMS-03〜06のScoped Executable Evidenceの高さは変えず、PMS-07だけをv0.2.0 Local Reference Product BaselineのRelease Evidence成立に合わせて更新しました。E3b-P1やISSUE-000061の準備境界をv0.2.0 supported scopeへ追加せず、actual TEI execution、external Cognitive Method live execution、E4 Operational portability、production security / Storage、PMS-08のOperational / Adoption・Outcome Evidenceは未検証のままです。
+```text
+Design Evidence
+  != Executable Evidence
+  != Release Candidate Evidence
+  != Release Evidence
+  != Operational Evidence
+  != Adoption / Outcome Evidence
+```
 
-意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。
+Release Candidate Evidenceは5段階Evidenceへ新しい普遍段階を追加するものではなく、特定candidateに必要なExecutable Evidence群をまとめて再検査した記録として扱います。
+
+同様に、あるMilestoneで最低限のEvidenceが成立していても、より高いEvidenceや隣接Milestoneが自動的に成立したとはみなしません。
+
+## 14. 自然な日本語レビュー
+
+Product Value / Shape、current Requirements / Architecture / Contract、ISSUE-000045〜000064、v0.2.0 Release Acceptance / Release Evidence、Realization / Provider Exchange、各runtime Evidenceを照合しました。
+
+そのうえで、PMS-06にはE3b-M1aのScoped Executable Evidenceを追加し、PMS-07では既に成立しているv0.2.0 Release Evidenceを維持しました。release後に得られたM1aをv0.2.0のsupported scopeへ遡及させず、E3b-P2、M1b、E4、Operational / Adoption Evidenceを未検証のまま明示しています。
+
+意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。
