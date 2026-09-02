@@ -191,4 +191,4 @@ issue:
   - {id: ISSUE-000065, file: plan/issue/ISSUE-000065-materialize-actual-tei-cli-execution.md, status: Resolved, priority: 1, related_adrs: [ADR-0013, ADR-0019, ADR-0021, ADR-0024]}
   - {id: ISSUE-000066, file: plan/issue/ISSUE-000066-materialize-live-model-backed-cognitive-method-execution.md, status: Resolved, priority: 1, related_adrs: [ADR-0017, ADR-0021, ADR-0025]}
   - {id: ISSUE-000067, file: plan/issue/ISSUE-000067-verify-method-realization-version-historical-reconstruction.md, status: Resolved, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0017, ADR-0021, ADR-0025, ADR-0026]}
-  - {id: ISSUE-000068, file: plan/issue/ISSUE-000068-verify-actual-model-artifact-exchange-history.md, status: Open, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0017, ADR-0021, ADR-0025, ADR-0026]}
+  - {id: ISSUE-000068, file: plan/issue/ISSUE-000068-verify-actual-model-artifact-exchange-history.md, status: Resolved, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0017, ADR-0021, ADR-0025, ADR-0026]}
