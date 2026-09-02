@@ -1,9 +1,10 @@
 name: Repair PR59 planning registries
 
 on:
-  push:
+  pull_request:
     branches:
-      - work/method-outcome-quality-evaluation
+      - develop/v0.2.0
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
@@ -14,6 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: work/method-outcome-quality-evaluation
           fetch-depth: 0
       - name: Merge ISSUE-000069 into current planning registries
         shell: bash
@@ -48,6 +50,8 @@ jobs:
           ]
 
           for old, new in replacements:
+              if new in text:
+                  continue
               if text.count(old) != 1:
                   raise SystemExit(f'expected exactly one registry match: {old.strip()}')
               text = text.replace(old, new, 1)
@@ -63,28 +67,30 @@ jobs:
 
           review_path = Path('plan/document_review_registry.yaml')
           review = review_path.read_text(encoding='utf-8')
-          old_coverage = '    coverage: ISSUE-000001..ISSUE-000068\n'
-          if review.count(old_coverage) != 1:
-              raise SystemExit('document review issue coverage baseline was not found exactly once')
-          review = review.replace(old_coverage, '    coverage: ISSUE-000001..ISSUE-000069\n', 1)
+          if '    coverage: ISSUE-000001..ISSUE-000069\n' not in review:
+              old_coverage = '    coverage: ISSUE-000001..ISSUE-000068\n'
+              if review.count(old_coverage) != 1:
+                  raise SystemExit('document review issue coverage baseline was not found exactly once')
+              review = review.replace(old_coverage, '    coverage: ISSUE-000001..ISSUE-000069\n', 1)
 
           lines = review.splitlines()
           issue_note_prefix = '    note: E3a、E3b-P1、TEI executable注入境界、'
+          target_note = ('    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidence、'
+                         'E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1b、ISSUE-000067のhistorical reconstruction H1 / H2、'
+                         'ISSUE-000068のactual二モデル交換までをResolved Evidenceとして監査した。ISSUE-000069では、execution conformance、構造安全性、'
+                         '人間によるCognitive Method成果品質、Product Value / Adoption outcomeを分離する評価基線をOpen Issueとして追加した。'
+                         '評価基盤の実行可能性を成果品質そのもののSatisfiedへ昇格させない停止線を維持している。')
           replaced = False
           for i, line in enumerate(lines):
               if line.startswith(issue_note_prefix):
-                  lines[i] = ('    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidence、'
-                              'E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1b、ISSUE-000067のhistorical reconstruction H1 / H2、'
-                              'ISSUE-000068のactual二モデル交換までをResolved Evidenceとして監査した。ISSUE-000069では、execution conformance、構造安全性、'
-                              '人間によるCognitive Method成果品質、Product Value / Adoption outcomeを分離する評価基線をOpen Issueとして追加した。'
-                              '評価基盤の実行可能性を成果品質そのもののSatisfiedへ昇格させない停止線を維持している。')
+                  lines[i] = target_note
                   replaced = True
                   break
-          if not replaced:
+          if not replaced and target_note not in lines:
               raise SystemExit('document review issue note was not found')
 
           review = '\n'.join(lines) + '\n'
-          marker = ('    note: current canonical fixtureから再生成可能な評価用Projection例として監査済み。\n')
+          marker = '    note: current canonical fixtureから再生成可能な評価用Projection例として監査済み。\n'
           eval_block = '''  - scope: evaluation/method-quality/*.md
     status: revised
     coverage:
@@ -103,9 +109,12 @@ jobs:
           python3 plan/scripts/check_plan_registry.py
           python3 plan/scripts/check_document_review_registry.py
 
-          rm .github/workflows/repair-pr59-planning-registries.yml
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add plan/registry.yaml plan/document_review_registry.yaml .github/workflows/repair-pr59-planning-registries.yml
+          git add plan/registry.yaml plan/document_review_registry.yaml
+          if git diff --cached --quiet; then
+            echo "registries already synchronized"
+            exit 0
+          fi
           git commit -m "ISSUE-000069を最新Planning基線へ同期する"
-          git push
+          git push origin HEAD:work/method-outcome-quality-evaluation
