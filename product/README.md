@@ -1,7 +1,7 @@
 # SOZA Product文書の読み方
 
-更新日: 2026-09-01  
-状態: **Current Product Documentation Baseline**
+更新日: 2026-09-02  
+状態: **Current Product Documentation Baseline — v0.2.0 Release Evidence reflected**
 
 ## 1. この文書の役割
 
@@ -22,8 +22,10 @@ Product Value / Value Proposition
   → Requirements / Acceptance Scenarios
   → Issue / ADR
   → Architecture / Contract
-  → Runtime / Provider Adapter / Test
-  → Evidence
+  → Runtime / Adapter / Probe / Test
+  → Executable Evidence
+  → Release Candidate / Release Evidence
+  → Operational / Adoption・Outcome Evidence
 ```
 
 下位の実装・検証から上位仮説への反証が得られた場合は、必要に応じてProduct Valueまで戻って再検討します。ただし、既存実装を温存するためだけに上位価値を書き換えません。
@@ -69,7 +71,7 @@ Design Evidence
 
 ### `value/SOZA_VALUE_TRACEABILITY.md`
 
-Product Valueからcurrent Requirements、Acceptance Scenarios、ADR、Architecture、Contract、Representation Profile、runtime、Provider Adapter、Evidence gapへ戻るための索引です。
+Product Valueからcurrent Requirements、Acceptance Scenarios、ADR、Architecture、Contract、Representation Profile、runtime、probe、Release Evidence、Evidence gapへ戻るための索引です。
 
 ### `definition/SOZA_PRODUCT_SHAPE.md`
 
@@ -87,23 +89,19 @@ Product Valueを長期的な到達方向として表します。未来の特定�
 
 SOZAをどの順序で製品として成立させるかを、**期限ではなくOutcomeとEvidence**で示します。
 
-historicalなM48 / M49等の実装順序とは役割が異なります。MilestoneはProduct ontologyでも固定workflowでもありません。
+v0.2.0 Release Evidenceの成立により、PMS-07はLocal Reference Product Baselineの範囲でSatisfiedです。PMS-08のOperational / Adoption・Outcome Evidenceは未検証のままです。
 
 ### `interaction/SOZA_PRODUCT_INTERACTION.md`
 
-PMS-03に対応するfirst usable Product Interactionについて、人間とAIがどのような仕事を、どのcanonical meaningへ接続して行える必要があるかを定めます。
+PMS-03に対応するfirst usable Product Interactionについて、人間とAIがどのcanonical meaningへ接続し、どの操作を行える必要があるかを定めます。
 
-Web UI、desktop UI、CLI、HTTP API、MCP等を先に標準化せず、**利用者向け操作境界とcanonical authorityの関係**を正本化します。画面、chat、session、workspace等を意味上の正本へ昇格させず、人間向け・AI向けの異なるSurfaceから同じcanonical meaningへ戻れることを中心に置きます。
+Web UI、desktop UI、CLI、HTTP API、MCP等を先に標準化せず、利用者向け操作境界とcanonical authorityの関係を正本化します。
 
-ISSUE-000053では、この境界を`runtime/go/interactionprobe`のreference probeで限定的に実証しました。human-oriented Surfaceとmachine-oriented Surfaceを同じcanonical sourceへ接続し、Recommendation / Decisionの分離、Unknown / Conflictの保持、Projectionの非権威性、historical Decision basisの非改変等をactual testで確認しています。
-
-ただし、reference probeのSurfaceやin-memory storeはproduction標準ではありません。
+ISSUE-000053ではhuman-oriented Surfaceとmachine-oriented Surfaceを同じcanonical sourceへ接続し、Recommendation / Decision分離、Unknown / Conflict保持、Projectionの非権威性、historical Decision basis非改変等をreference probeで確認しました。
 
 ### `packaging/SOZA_PRODUCT_PACKAGING.md`
 
-PMS-04に対応する最初のPackaging / Deployment boundaryを定めます。
-
-最初のprofileはLocal Single-Node Packageです。
+PMS-04に対応する最初のPackaging / Deployment boundaryを定めます。最初のprofileはLocal Single-Node Packageです。
 
 ```text
 Go runtime executable
@@ -112,19 +110,11 @@ Go runtime executable
   + portable semantic data
 ```
 
-Goの単一バイナリ化やfilesystemの扱いやすさは最初のRealizationで活用しますが、runtime executable、file path、single-process topologyをsemantic authorityへ昇格させません。
-
-ISSUE-000054では、filesystemへの保存、runtime stateに依存しない再構成、build済みGo executableによるliteralな別processからの再開、canonical bundleのcopy / restore、filesystemからmemory Persistenceへの交換を限定的に確認しました。
-
-ISSUE-000055では、Linux / amd64向けのLocal Reference PackageをCIで生成し、同一inputからの二重build一致、build identity、決定的archive、SHA-256、archive展開後のsave → process終了 → reload、workflow artifact保存まで確認しました。
-
-これらはPMS-04のMinimum scoped Executable Evidenceです。一方、Product Release、正式support matrix、version upgrade互換性、crash durability、production Storage migrationを実証したものではありません。
+Linux / amd64のLocal Reference Packageはv0.2.0 release assetとして配布済みです。ただし、formal platform support matrix、production installer、signing、crash durability、production Storage migrationの成立を意味しません。
 
 ### `security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`
 
 PMS-05に対応するIdentity / Access / Collaboration boundaryを定めます。
-
-中心となる分離は次です。
 
 ```text
 authentication identity
@@ -133,17 +123,17 @@ authentication identity
   != semantic Responsibility / Authority
 ```
 
-外部IdPのsubjectをそのままhistorical Responsibilityへ使わず、Identity Bindingを介してBounded Subjectへ対応付けます。また、Product administratorやhuman / AIというactor kindからsemantic Responsibility / Authorityを推定しません。
+ISSUE-000056では、IdP相当identity交換後のResponsibility continuity、ResponsibilityとProduct accessの非同一性、Product adminとsemantic Responsibilityの非同一性、`denied` / `not_evaluated`、Selective Disclosureのcanonical source非改変を限定範囲で確認しています。
 
-Product Access Scopeはtenant / workspace等に対応し得ますが、Product-localなsecurity / collaboration concernとして扱い、Universal Coreへ自動昇格させません。
+### `definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`
 
-ISSUE-000056の`runtime/go/accessprobe`では、IdP相当identity交換後のResponsibility continuity、ResponsibilityとProduct accessの非同一性、Product adminとsemantic Responsibilityの非同一性、`denied` / `not_evaluated`の分離、Selective Disclosureによるcanonical source非改変を限定的に確認しています。
+PMS-06に対応し、Cognitive Method RealizationやCapability Providerを交換するときに、何を交換可能とし、何を判断記憶として保つかを定めます。
 
-Product access separationの必要性はDesignとprobeの双方で確認していますが、permission vocabularyやProduct Access Scopeの粒度はまだreference Realizationです。そのため新しいStable Requirement IDは先取りせず、Candidate Requirementとして次の実IdP / team実証へ渡します。
+現在はE2、E3a、E3b-P1までScoped Executable Evidenceがあります。v0.2.0のsupported release scopeはE3aまでです。
 
 ## 3. 未定領域の扱い
 
-未定のProduct領域は、最初からstable Requirementとして扱いません。
+未定のProduct領域は、最初からStable Requirementとして扱いません。
 
 ```text
 Open Question
@@ -155,8 +145,6 @@ Open Question
 詳細な進め方は`../plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`を正とします。
 
 チャット上の議論は探索・統合の作業空間として使えますが、current正本はrepository上のProduct / Requirement / ADR等へ戻します。
-
-Product Interaction、Packaging、Identity / Accessについても、Design boundaryやreference probeのExecutable Evidenceが成立したことと、production UI / protocol / Release / Storage / security / usabilityが成立したことは分けます。実利用や後続実証から新しい意味上の必要性が確認された場合だけRequirement / Scenario追加を再検討します。
 
 ## 4. 具体的なScenarioの正本
 
@@ -182,19 +170,39 @@ current repositoryでは、少なくとも次の状態まで確認していま�
 - SCN-0018 end-to-end Semantic Product Journey: **fixture-scoped Executable Evidence available**
 - first usable Product Interaction: **Design baseline established / scoped Executable Evidence available**
 - Packaging / Deployment: **Design baseline established / Minimum scoped Executable Evidence available**
-- Local Reference Package: **scoped Executable Evidence available for Linux / amd64 reference profile**
+- Local Reference Package: **release asset available for v0.2.0 Linux / amd64 reference profile**
 - Product Identity / Access / Collaboration: **Design baseline established / scoped Product Access separation Executable Evidence available**
+- Realization / Provider portability: **Partial — E2 / E3a / E3b-P1 Scoped Executable Evidence available**
+- PMS-07: **Satisfied for v0.2.0 Local Reference Product Baseline**
 - production IdP / team collaboration security: **Not Yet Verified**
-- Product Release / formal support matrix: **Not Yet Verified**
-- real Method / Provider portability: **Partial**
-- current Product Shape全体のRelease Evidence: **Not Yet Verified**
-- Operational / Adoption Outcome: **Not Yet Verified**
+- E3b-P2 actual TEI process / service: **Not Yet Verified**
+- E3b-M1 external Cognitive Method live execution: **Not Yet Verified**
+- E4 Operational portability: **Not Yet Verified**
+- PMS-08 Operational / Adoption・Outcome Evidence: **Not Yet Verified**
 
-Product Interactionの詳細なEvidenceは`../runtime/INTERACTION_PROBE_EVIDENCE_2026-09-01.md`、Packaging / Persistenceは`../runtime/PACKAGING_PROBE_EVIDENCE_2026-09-01.md`、Local Reference Package artifactは`../runtime/LOCAL_PACKAGE_ARTIFACT_EVIDENCE_2026-09-01.md`、Product Access / Collaboration probeは`../runtime/ACCESS_COLLABORATION_PROBE_EVIDENCE_2026-09-01.md`を参照してください。
+v0.2.0 Release Evidenceの詳細は`../release/v0.2.0/RELEASE_EVIDENCE.md`を参照してください。
 
-個別probeやreference artifactのPASSから、production UIの使いやすさ、supported protocol、Product Release、version upgrade compatibility、production IAM / security、crash durability、Operational / Adoption Evidenceを推定しません。
+```text
+v0.2.0 Release Evidence Satisfied
+  != production readiness
+  != Operational Evidence
+  != Adoption / Outcome Evidence
+```
 
-## 6. Product Valueを変更するとき
+## 6. v0.2.0 releaseの読み方
+
+v0.2.0は、現在のsemantic baselineにProduct Interaction、Local Single-Node Packaging、Product Access責務分離、Realization / Provider交換、E3a external artifact integrationまでを加えた **Local Reference Product Baseline** です。
+
+actual releaseでは、tag、source commit、Release Candidate Gate、Local Reference Package、checksum、candidate report、release metadataを追跡できる状態で配布しています。
+
+一方、repositoryにはrelease scope確定後に得られたE3b-P1やTEI executable injection boundaryのScoped Evidenceも存在します。これらを理由に、v0.2.0のsupported scopeを後から広げません。
+
+```text
+later scoped Evidence exists
+  != v0.2.0 supported scope expanded
+```
+
+## 7. Product Valueを変更するとき
 
 Product ValueやValue Modelの意味変更は、通常の実装変更より重く扱います。
 
@@ -209,7 +217,7 @@ Product ValueやValue Modelの意味変更は、通常の実装変更より重�
 
 詳細はADR-0018を正とします。
 
-## 7. 新しい概念をCoreへ入れる前に
+## 8. 新しい概念をCoreへ入れる前に
 
 Product文書やMilestoneから新しいUniversal Core概念が自動的に生えるわけではありません。
 
@@ -223,9 +231,7 @@ Coreへ追加する前に、少なくとも次を検討します。
 
 現在の実装で便利であることや、関連製品との距離が近いことだけをCore昇格理由にしません。
 
-Product Interaction上の`Case`、`Session`、`Workspace`、`Thread`等、reference probeの`CanonicalStore`やSurface DTO、Packaging probeのPersistence interface、filesystem layout、reference artifactのarchive / build identity、Product Access Scopeやprobe-local permission vocabularyも、実装上便利という理由だけでUniversal Coreへ追加しません。
-
-## 8. 推奨する読む順序
+## 9. 推奨する読む順序
 
 1. `value/SOZA_PRODUCT_VALUE.md`
 2. `value/SOZA_VALUE_PROPOSITION.md`
@@ -238,22 +244,20 @@ Product Interaction上の`Case`、`Session`、`Workspace`、`Thread`等、refere
 9. `interaction/SOZA_PRODUCT_INTERACTION.md`
 10. `packaging/SOZA_PRODUCT_PACKAGING.md`
 11. `security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`
-12. `../plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`
-13. `../requirements/PRODUCT_REQUIREMENTS.md`
-14. `../requirements/ACCEPTANCE_SCENARIOS.md`
-15. `../architecture/SOZA_DEPLOYMENT_ARCHITECTURE.md`
-16. `../architecture/SOZA_PRODUCT_ACCESS_ARCHITECTURE.md`
-17. `../architecture/TRACEABILITY.md`
-18. `../contracts/TRACEABILITY.md`
-
-## 9. 文書品質
-
-Product文書は、内容と構造を確定した後に、意味、規範強度、留保、Evidence強度を変えず、**自然な日本語となることを最重要視して全文をドラフトし直します**。
-
-その後、日本語を整えたことで意味が狭まったり、未検証事項が確定事項へ変わったりしていないか、最終意味監査を行います。
-
-詳細な文書作成手順は`../plan/DOCUMENT_AUTHORING_STANDARD.md`を参照してください。
+12. `definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`
+13. `value/SOZA_VALUE_TRACEABILITY.md`
+14. `../release/v0.2.0/RELEASE_ACCEPTANCE.md`
+15. `../release/v0.2.0/RELEASE_EVIDENCE.md`
+16. `../plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`
+17. `../requirements/PRODUCT_REQUIREMENTS.md`
+18. `../requirements/ACCEPTANCE_SCENARIOS.md`
+19. `../architecture/TRACEABILITY.md`
+20. `../contracts/TRACEABILITY.md`
 
 ## 10. Natural Japanese review
 
-current Product Value、Value Proposition、Product Shape、Product Milestone、Product Journey、Product Interaction、Product Packaging、Product Identity / Access / Collaboration、ISSUE-000053〜000056の実証とcurrent Evidenceを確認しました。PMS-03はInteraction、PMS-04はPackaging、PMS-05はProduct Access責務分離のscoped Executable Evidenceまでを同期する一方、production UI / protocol、Product Release、formal support matrix、version upgrade、production IAM / team security、production Selective Disclosure、Operational / Adoptionへ広げていません。画面やchat、probe固有DTO、Persistence interface、filesystem layout、artifact identity、Product Access Scope、permission vocabulary等の都合からUniversal概念を増やさず、Product access separationはCandidate Requirementとして次の実証へ渡しています。そのうえで、Product Value、Milestone、Requirement、Implementationの権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Value、Value Proposition、Value Model / Acceptance、Product Shape、Vision / Principles、Product Milestones、Interaction、Packaging、Identity / Access / Collaboration、Realization / Provider Exchange、REQ-0001〜0022、SCN-0001〜0018、v0.2.0 Release Acceptance / Release Evidence、actual tag / GitHub Release / release assetへ戻ってProduct文書の入口を再監査しました。
+
+旧本文に残っていた「Product Release / current Product Shape全体のRelease Evidenceは未検証」という状態を、actual v0.2.0 release後の現在地へ更新しました。ただし、成立したRelease EvidenceはLocal Reference Product Baselineに限定し、E3b全体、E4、production IdP / Storage / security、formal support matrix、Operational / Adoption・Outcome Evidenceは未検証のままです。
+
+意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。

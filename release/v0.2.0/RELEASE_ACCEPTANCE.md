@@ -1,11 +1,11 @@
 # SOZA v0.2.0 Release Acceptance
 
 更新日: 2026-09-02  
-状態: **Actual develop Release Candidate Evidence available / Release Evidence Not Yet Verified**
+状態: **Release Evidence Satisfied for the Local Reference Product Baseline**
 
 ## 1. この文書の役割
 
-この文書は、SOZA v0.2.0について、**何をrelease可能な最小supported scopeとして扱い、その候補をどの検査で確認するか**を定めます。
+この文書は、SOZA v0.2.0について、**何をsupported scopeとしてreleaseし、candidateからactual releaseまでをどのEvidenceで判断するか**を定めます。
 
 v0.2.0はproduction完成版ではありません。現在のrepositoryで再現できる意味・操作・保存・配布・責務分離・交換可能性を、開発者や評価者が検証できる **Local Reference Product Baseline** として固定します。
 
@@ -19,11 +19,11 @@ Executable Evidence
   != Adoption / Outcome Evidence
 ```
 
-Release Candidate Evidenceは、5段階Evidenceに新しいUniversal段階を加えるものではありません。特定の候補commitについて、release前に必要なExecutable Evidenceをまとめて再検査した記録です。
+Release Candidate Evidenceは5段階Evidenceに新しいUniversal段階を加えるものではありません。特定のcandidate commitについて、release前に必要なExecutable Evidenceをまとめて再検査した記録です。
+
+Release Evidenceは、その候補がactual tag / release / artifactとして配布され、検査済みsource commitへ追跡できることを示します。
 
 ## 2. v0.2.0のsupported scope
-
-v0.2.0では、次をLocal Reference Product Baselineとして扱います。
 
 ### 2.1 Product / semantic baseline
 
@@ -69,7 +69,7 @@ reference probe固有のpermission vocabularyを正式RBAC / ABAC仕様へ昇格
 
 ### 2.5 Realization / Provider exchange baseline
 
-PMS-06では、次までをv0.2.0 scopeに含めます。
+v0.2.0でsupportを主張する範囲は次までです。
 
 ```text
 E1 Contract / in-process synthetic
@@ -79,19 +79,21 @@ E1 Contract / in-process synthetic
 
 E3aでは、別repositoryでversion管理されるartifactをsource identity付きで扱い、既存Cognitive Method / Capability Observation boundaryへ戻せることを確認しています。
 
-次はscope外です。
+release source commitには、E3b-P1 public live Provider integrationやTEI executable injection boundaryのScoped Executable Evidenceも存在します。しかし、repositoryに後続Evidenceが存在することだけを理由に、v0.2.0のsupported scopeを広げません。
 
 ```text
-E3b live external process / service integration
-E4 Operational portability
+later scoped Evidence exists
+  != v0.2.0 supported scope expanded
 ```
 
 ## 3. v0.2.0で主張しないこと
 
-Release Candidate Gateがsuccessしても、次を自動的にSatisfiedへ上げません。
+actual v0.2.0 Releaseが成立しても、次をSatisfiedへ上げません。
 
-- actual Product Releaseの存在
-- E3b live external AI / SaaS / TEI process・service integration
+- production serviceとしての完成
+- E3b live external AI / SaaS / TEI process・service integration全体
+- actual TEI CLI integrationの完了
+- external Cognitive Methodのlive実行
 - E4 Operational portability
 - production Provider interoperability
 - production Storage integration
@@ -105,7 +107,7 @@ Release Candidate Gateがsuccessしても、次を自動的にSatisfiedへ上げ
 - Adoption / Outcome Evidence
 
 ```text
-Local Reference Product Baseline candidate PASS
+Local Reference Product Baseline released
   != production service proven
 ```
 
@@ -120,7 +122,7 @@ source commit SHA
 source tree SHA
 ```
 
-source commitを`release-candidate.json`へ固定しません。設定ファイル自身を書き換えるたびにcommitが変わる自己参照を避けるためです。
+source commitを`release-candidate.json`へ固定しません。設定ファイル自身の変更でcommitが変わる自己参照を避けるためです。
 
 Release Candidate Gateは実行時にGitからcommit / tree SHAを取得し、derived reportへ記録します。
 
@@ -150,21 +152,21 @@ In Progress
 Blocked
 ```
 
-`Deferred`はversion固有allow-listに列挙したものだけを許可します。v0.2.0では`ISSUE-000021`だけを許可しています。これはhistorical design provenanceの再監査であり、current Local Reference Product Baselineの意味、build、配布再現性を止める課題ではないためです。
+`Deferred`はversion固有allow-listに列挙したものだけを許可します。v0.2.0では`ISSUE-000021`だけを許可しています。
 
-PR #34のbootstrap Run `33531336681`では、Gate 1〜8がsuccessした後、Gate 9が`ISSUE-000059 = In Progress`を意図どおりblockしました。未解決Issue blockerが実際に機能することを、このRunで確認しています。
+PR #34のbootstrap Run `33531336681`では`ISSUE-000059`が、PR #40のbootstrap Run `33574397299`では`ISSUE-000062`が、それぞれGate 9で意図どおりblockされました。未解決Issueをrelease candidateへ持ち込まないpolicyがExecutableに機能していることを確認しています。
 
 ## 7. required paths
 
 candidate policyは、v0.2.0 scopeを支える主要な正本とExecutable Evidenceをanchorとして列挙します。
 
-対象には少なくとも、Product Value / Shape / Milestone、Interaction、Packaging、Identity / Access / Collaboration、Realization / Provider Exchange、Requirements / Scenarios / Journey、Architecture、current Contract / Profile / fixture、Go runtime / reference probes、Local Reference Package資料、V6 / V7 evaluation、Plan registry、v0.2.0 Release Acceptanceを含めます。
+Product Value / Shape / Milestone、Interaction、Packaging、Identity / Access / Collaboration、Realization / Provider Exchange、Requirements / Scenarios / Journey、Architecture、current Contract / Profile / fixture、Go runtime / reference probes、Local Reference Package資料、V6 / V7 evaluation、Plan registry、Release Acceptanceに加え、actual publicationに必要なRelease Notes、release request、preparation script、publication workflowもrequired pathへ含めます。
 
-required pathはcoverage指標ではありません。重要な正本をcandidate scopeから黙って外してgateを通すことを防ぐためのものです。
+required pathはcoverage指標ではありません。重要な正本を黙ってcandidate scopeから外してgateを通すことを防ぐためのanchorです。
 
 ## 8. Local Reference Package gate
 
-`go test ./...`だけでは、配布artifactの再現性までは確認できません。そのためv0.2.0 candidateでは、Local Reference Packageについて次を同じsource commitから再現します。
+`go test ./...`だけでは配布artifactの再現性まで確認できないため、v0.2.0 candidateでは次を同じsource commitから再現します。
 
 - `CGO_ENABLED=0`, Linux / amd64でreference binaryを2回buildする。
 - 二つのbinaryがbyte-for-byteで一致する。
@@ -177,7 +179,7 @@ required pathはcoverage指標ではありません。重要な正本をcandidat
 
 この検査はreference artifactの再現性を示します。正式なcross-platform supportやproduction durabilityを示しません。
 
-## 9. candidate report
+## 9. candidate reportとpublication preparation
 
 candidate gateが最後まで成功した場合、machine-readable reportへ少なくとも次を記録します。
 
@@ -188,7 +190,11 @@ candidate gateが最後まで成功した場合、machine-readable reportへ少�
 - candidate gate result
 - explicit non-claims
 
-reportやartifactはderived Evidenceです。Product ValueやSemantic Contractのauthorityではありません。
+v0.2.0では、candidate reportとLocal Reference Packageをactual publication前にもう一度照合します。
+
+`prepare-v0-2-0-release`では、candidate reportのsource commit、package checksum、release request、Release Notesを確認し、actual publicationへ渡すbundleをread-onlyで作成します。
+
+PR上ではこの準備までを検査し、tag / GitHub Releaseは作成しません。
 
 ## 10. actual Release Evidenceへの昇格条件
 
@@ -198,15 +204,11 @@ Release Evidenceへ昇格するには、candidate gate PASSに加えて少なく
 2. tagがcandidate gateを通したsource commitへexactに結び付く。
 3. 配布Artifactがtag / source commitへ追跡できる。
 4. Local Reference Package bytesをdigest等で識別できる。
-5. release notesがsupported scopeと非主張範囲を明示する。
+5. Release Notesがsupported scopeと非主張範囲を明示する。
 6. tag対象commitでv0.2.0 Release Candidate Gateがsuccessしている。
 7. release後のEvidence recordがtag、commit、artifact、gate resultを結び付ける。
 
-```text
-candidate PASS
-  + no actual release
-  != Release Evidence
-```
+v0.2.0では、これらを`release/v0.2.0/RELEASE_EVIDENCE.md`で確認済みです。
 
 ## 11. v0.1.0との境界
 
@@ -222,7 +224,7 @@ checkerやworkflowを共通化しても、各versionの`release-candidate.json`�
 
 ## 12. branch / tag boundary
 
-自動candidate gateはversionごとにpolicyを選びます。
+candidate workflowはversionごとにpolicyを選びます。
 
 ```text
 develop/v0.1.0 → release/v0.1.0 policy
@@ -231,76 +233,72 @@ v0.1.0 tag     → release/v0.1.0 policy
 v0.2.0 tag     → release/v0.2.0 policy
 ```
 
-`workflow_dispatch`ではpolicy versionを明示して再検査できます。将来versionのOpen Issueを過去versionのrelease blockerとして誤検出しないよう、version固有の境界を維持します。
+ただし、v0.2.0の自動publicationでは、`develop/v0.2.0`のRelease Candidate Gateがsuccessした後、同じRunの`GITHUB_TOKEN`でtagを作ります。GitHub Actionsの再帰抑制により、このtag作成から通常のtag-push Runは別途起動しません。
+
+この経路では、**tag対象commitをpre-publication gateで検査し、その同じ`GITHUB_SHA`へtagを作る**ことでRelease Acceptanceを満たします。
+
+手動または外部credential等からtagが作成された場合に備え、tag trigger自体は維持します。`workflow_dispatch`でもpolicy versionを明示して再検査できます。
 
 ## 13. failure時の扱い
 
-candidate gate failureはrelease条件を弱める理由にはしません。
+candidate gateやpublicationのfailureは、release条件を弱める理由にはしません。
 
-1. failureしたsub-gateを特定する。
-2. Product policy、checker、workflow、runtime、artifact buildのどこに原因があるか切り分ける。
+1. failureしたgate / jobを特定する。
+2. Product policy、checker、runtime、artifact build、release preparation、publicationのどこに原因があるか切り分ける。
 3. 原因のある層を修正する。
-4. 同じcandidate gateを再実行する。
+4. 同じ検査を再実行する。
 5. success後にのみEvidence状態を更新する。
 
-PR #34では、Registry全置換時に`ISSUE-000013`の既存ファイル名を誤って転記したため、Run `33568527280`のGate 1がfailureしました。実ファイル名へ戻した後、Plan integrityとRelease Candidate Gateを通し直してsuccessを確認しています。
+`failed`を`not_verified`やPASSへ読み替えません。
 
-このfailureを条件緩和で回避せず、原因を直して同じ検査を再実行した履歴を残します。
+## 14. Release Candidateからactual ReleaseまでのEvidence
 
-## 14. Release Candidate Evidence
+### 14.1 初期Release Candidate境界
 
-### 14.1 PR #34 test merge
+PR #34ではRelease Candidate boundaryを実装し、test mergeとactual develop上で9 gateのsuccessを確認しました。actual developの最初のcandidate Evidence pointはcommit `724cba2a744582252c6ccba8322fc34a55b76b1b`、Run `33569004831`です。
 
-PR #34では、merge前のtest merge状態で9 gateがsuccessしました。最終文書同期後のRelease Candidate Gate Run `33568925573`もsuccessしています。
+このEvidenceは、その時点のcandidate成立を示すものであり、後のactual releaseそのものではありません。
 
-これは、base branchとPR差分を組み合わせた状態が候補条件を満たすことを確認したEvidenceです。
+### 14.2 actual v0.2.0 release source
 
-### 14.2 actual `develop/v0.2.0` Evidence point
+actual release sourceは次です。
 
-PR #34をmergeしたactual `develop/v0.2.0` commit
-`724cba2a744582252c6ccba8322fc34a55b76b1b`について、push-triggered Release Candidate Gate Run `33569004831`がsuccessしました。
+- tag: `v0.2.0`
+- source commit: `c3640bdfcc43652b63a5b9941fd6b472312ec28f`
+- Release Candidate Gate: Run `33574947445` — **success**
+- GitHub Release ID: `380902898`
+- Release: draft `false`, prerelease `false`
 
-同じcommitで次もsuccessしています。
+同Runでは9 gate、release preparation、publicationがすべてsuccessしています。
 
-- Plan integrity Run `33569004843`
-- External Integration E3a Run `33569004842`
-
-Release Candidate Gateでは9 gateすべてに加え、candidate reportとLocal Reference Packageのartifact uploadもsuccessしました。
-
-- candidate report artifact ID: `9824232506`
-- candidate report artifact digest: `sha256:f6c9326e6af415654df80446893c5ba5c847fccd4e2d7192806b7056eb6c781d`
-- Local Reference Package artifact ID: `9824232197`
-- Local Reference Package artifact digest: `sha256:13bb5ed0ba8ab39e817a5dadc952e8bfb8934df9965474aa8435718136138ac7`
-
-このcommitを、v0.2.0における最初のactual develop candidate Evidence pointとして固定します。
-
-Evidence文書を更新するとbranch HEAD自身は変わるため、文書中のEvidence pointを常に最新HEADへ追従させる自己参照は行いません。後続commitの回帰はCIで確認し、Release Evidenceへ進む際にはactual tag対象commitを改めてexactに検査します。
+Local Reference Packageは、release preparationで算出したSHA-256とactual GitHub Release asset digestが一致しました。
 
 ```text
-actual develop candidate Evidence point established
-  != every future develop commit automatically verified
-  != v0.2.0 tag exists
-  != Release Evidence
+37f34d3ae4885df655e889f2799b9aea1d8c7c8c060c207df83f50459431ef17
 ```
+
+actual releaseのasset ID / digestを含む詳細は`RELEASE_EVIDENCE.md`を正とします。
 
 ## 15. current state
 
 現時点の状態は次です。
 
 - v0.2.0 Release Candidate Design: **Satisfied**
-- PR #34 test merge candidate Evidence: **Satisfied**
-- actual `develop/v0.2.0` candidate Evidence point: **Satisfied** — commit `724cba2a...`, Run `33569004831`
-- actual `v0.2.0` tag / release: **Not Yet Created**
-- Release Evidence: **Not Yet Verified**
+- v0.2.0 Release Candidate Evidence: **Satisfied**
+- actual `v0.2.0` tag / GitHub Release: **Created and verified**
+- Release Evidence: **Satisfied for the Local Reference Product Baseline**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
 
-candidate Evidenceの成立を、actual Product Releaseやproduction readinessへ読み替えません。
+```text
+Release Evidence Satisfied
+  != production readiness
+```
 
 ## 16. Natural Japanese review
 
-Product Value、PMS-03〜07、v0.1.0 Release Acceptance、Product Interaction、Local Single-Node Packaging、Product Access、Realization / Provider Exchange、ISSUE-000055〜000059、E3a external artifact integration、PR #34とactual `develop/v0.2.0`のGitHub Actions Evidenceを照合しました。
+Product Value、PMS-03〜07、v0.1.0 Release Acceptance、Product Interaction、Local Single-Node Packaging、Product Access、Realization / Provider Exchange、ISSUE-000055〜000063、E3a / E3b-P1、Release Candidate Gate、publication workflow、actual tag / GitHub Release / asset digestを照合しました。
 
-そのうえで、v0.2.0で実際にsupportする範囲をLocal Reference Product Baselineへ限定し、E3b / E4、production security / Storage / formal support matrixを非主張範囲へ残しています。PR test merge、actual develop candidate Evidence point、後続commit、actual tag / release、Operational / Adoption Evidenceを分け、reference artifactの検査をproduction readinessへ拡張しないよう整理しました。
+そのうえで、v0.2.0でsupportする範囲をE3aまでのLocal Reference Product Baselineへ限定し、後続のE3b Evidence、production security / Storage / formal support matrix、Operational / Adoption Evidenceを非主張範囲へ残しています。candidate、publication、actual Release Evidenceを一続きに追跡できる一方、それぞれのEvidence高さを混同しない構成へ整理しました。
 
-最後に、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。
+意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。

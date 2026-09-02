@@ -55,6 +55,9 @@ permissions:
 jobs:
   release-candidate:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.policy.outputs.version }}
+      publication_requested: ${{ steps.publication_state.outputs.requested }}
     steps:
       - name: Checkout exact candidate
         uses: actions/checkout@v4
@@ -91,6 +94,50 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: Resolve release publication lifecycle
+        id: publication_state
+        shell: bash
+        run: |
+          set -euo pipefail
+          requested="false"
+          if [[ "${{ steps.policy.outputs.version }}" == "0.2.0" ]]; then
+            requested="$(python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          request = json.loads(Path("release/v0.2.0/release-request.json").read_text(encoding="utf-8"))
+          expected = {
+              "schema": "soza.release-request/v1",
+              "version": "0.2.0",
+              "tag": "v0.2.0",
+              "repository": "hat47x/soza",
+              "target_branch": "develop/v0.2.0",
+              "release_scope": "local-reference-product-baseline",
+              "artifact_target": "linux-amd64",
+          }
+          for key, value in expected.items():
+              if request.get(key) != value:
+                  raise SystemExit(
+                      f"release request mismatch: {key}={request.get(key)!r}, expected {value!r}"
+                  )
+
+          publish = request.get("publish")
+          if not isinstance(publish, bool):
+              raise SystemExit("release request.publish must be a boolean")
+          state = request.get("publication_state")
+          expected_state = "requested" if publish else "completed"
+          if state != expected_state:
+              raise SystemExit(
+                  f"release request publication lifecycle mismatch: state={state!r}, "
+                  f"expected {expected_state!r} for publish={publish!r}"
+              )
+          print("true" if publish else "false")
+          PY
+          )"
+          fi
+          echo "requested=${requested}" >> "$GITHUB_OUTPUT"
+          echo "release publication requested: ${requested}"
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -246,8 +293,9 @@ jobs:
   prepare-v0-2-0-release:
     needs: release-candidate
     if: >-
-      (github.event_name == 'pull_request' && github.base_ref == 'develop/v0.2.0') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/develop/v0.2.0')
+      needs['release-candidate'].outputs.publication_requested == 'true' &&
+      ((github.event_name == 'pull_request' && github.base_ref == 'develop/v0.2.0') ||
+       (github.event_name == 'push' && github.ref == 'refs/heads/develop/v0.2.0'))
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -297,7 +345,10 @@ jobs:
     needs:
       - release-candidate
       - prepare-v0-2-0-release
-    if: github.event_name == 'push' && github.ref == 'refs/heads/develop/v0.2.0'
+    if: >-
+      needs['release-candidate'].outputs.publication_requested == 'true' &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/develop/v0.2.0'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -334,6 +385,7 @@ jobs:
               "release_scope": "local-reference-product-baseline",
               "artifact_target": "linux-amd64",
               "publish": True,
+              "publication_state": "requested",
           }
           for key, value in expected.items():
               if request.get(key) != value:

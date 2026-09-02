@@ -6,6 +6,7 @@
   "target_branch": "develop/v0.2.0",
   "release_scope": "local-reference-product-baseline",
   "artifact_target": "linux-amd64",
-  "publish": true,
+  "publish": false,
+  "publication_state": "completed",
   "release_name": "SOZA v0.2.0 — Local Reference Product Baseline"
 }

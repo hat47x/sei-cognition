@@ -15,11 +15,11 @@ status_vocabulary:
 reviewed:
   - scope: README.md
     status: revised
-    note: Product Value traceabilityと5段階Evidence境界を反映したcurrent root README。
+    note: v0.2.0 Local Reference Product Baselineのactual Release Evidence、current develop branch、5 Contract family、current Plan範囲へ同期し、旧v0.1.0基線の記述を自然な日本語で全面再ドラフト済み。
 
   - scope: product/README.md
     status: revised
-    note: Product Value、Product Shape、期限を持たないProduct Milestone、Product Interaction、Product Packaging、未定領域の探索手順をcurrent Product入口として再整理し、InteractionとPackagingの限定Executable Evidenceを同期済み。
+    note: Product Value、Product Shape、期限を持たないProduct Milestone、Product Interaction、Packaging、Identity / Access、Realization / Provider Exchange、v0.2.0 Release Evidenceまでをcurrent Product入口として再整理済み。
   - scope: product/value/*.md
     status: revised
     coverage:
@@ -28,6 +28,7 @@ reviewed:
       - SOZA_VALUE_MODEL.md
       - SOZA_VALUE_ACCEPTANCE.md
       - SOZA_VALUE_TRACEABILITY.md
+    note: Value Traceabilityはactual v0.2.0 tag / release / asset / candidate gateを反映し、Release EvidenceをLocal Reference Product Baselineへ限定してSatisfiedとした。Operational / Adoption・Outcomeは未検証のまま保持している。
   - scope: product/definition/*.md
     status: revised
     coverage:
@@ -43,7 +44,7 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_MILESTONES.md
-    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06はmerge後developで再現したE3b-P1までをscoped Executable Evidenceとして反映し、ISSUE-000061のTEI executable注入境界とactual E3b-P2を分離している。PMS-07ではactual v0.2.0 Release Candidate EvidenceとRelease Evidenceを分けている。
+    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06はE2 / E3a / E3b-P1までをScoped Executable Evidenceとして保ち、PMS-07はv0.2.0 Local Reference Product Baselineのactual Release Evidence成立へ同期した。PMS-08は未検証のまま分離している。
   - scope: product/interaction/*.md
     status: revised
     coverage:
@@ -66,8 +67,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、自然な日本語全文再ドラフトと最終意味監査を実施済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000062
-    note: E3a外部artifact integration、v0.2.0 Release Candidate境界、E3b-P1 public live Provider integration、actual TEI実行とは区別した外部TEI executable注入境界に加え、v0.2.0 actual release publicationの責務とEvidence境界までを自然な日本語で監査している。
+    coverage: ISSUE-000001..ISSUE-000063
+    note: E3a外部artifact integration、v0.2.0 Release Candidate境界、E3b-P1 public live Provider integration、actual TEI実行とは区別した外部TEI executable注入境界、v0.2.0 actual release publicationに加え、actual tag・commit・asset・digest・gate resultを結び付けるRelease Evidenceまで自然な日本語で監査している。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -166,8 +167,8 @@ reviewed:
     note: current canonical fixtureから再生成可能な評価用Projection例として監査済み。
 
   - scope: release/README.md
-    status: reviewed-no-change
-    note: release planning、candidate、actual release、Operational / Adoption Outcomeの境界を確認済み。
+    status: revised
+    note: actual v0.2.0 release成立後の入口として、release planning、candidate、actual Release Evidence、Operational / Adoption Outcomeの境界を再整理し、tag・commit・artifact・gate resultの追跡関係を自然な日本語で同期済み。
   - scope: release/v0.1.0/*.md
     status: reviewed-no-change
     coverage:
@@ -178,7 +179,8 @@ reviewed:
     coverage:
       - release/v0.2.0/RELEASE_ACCEPTANCE.md
       - release/v0.2.0/RELEASE_NOTES.md
-    note: Local Reference Product Baselineのsupported scope、9段階のcandidate gate、actual release publication条件を正本化した。repositoryにはE3b-P1やTEI executable注入境界のScoped Evidenceも存在するが、v0.2.0でsupportを主張する範囲はE3aまでとし、E3b全体 / E4とproduction領域を非主張のまま自然な日本語で明示している。
+      - release/v0.2.0/RELEASE_EVIDENCE.md
+    note: Local Reference Product Baselineのsupported scopeをE3aまでに保ったまま、9段階candidate gate、actual publication、actual tag・GitHub Release・4 asset・package digestの対応をRelease Evidenceとして正本化した。E3b全体 / E4、production領域、Operational / Adoption・Outcome Evidenceは非主張または未検証のまま明示している。
 
   - scope: fixtures/contracts/v1alpha1/README.md
     status: revised
