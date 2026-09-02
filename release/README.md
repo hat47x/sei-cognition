@@ -31,7 +31,7 @@ v0.2.0では、少なくとも次を管理しています。
 
 - `RELEASE_ACCEPTANCE.md` — supported scopeとcandidate / actual releaseの受入れ条件
 - `release-candidate.json` — machine-readableなcandidate policy
-- `release-request.json` — actual publicationのversion固有request
+- `release-request.json` — actual publicationのversion固有requestとpublication lifecycle
 - `RELEASE_NOTES.md` — actual GitHub Releaseへ掲示する説明
 - `RELEASE_EVIDENCE.md` — actual tag / commit / artifact / gate resultを結び付けるEvidence record
 
@@ -108,16 +108,44 @@ same source commit
 
 手動・外部credential等からtagを作成する場合に備え、tag trigger自体はcandidate workflowに残しています。
 
-## 7. failureの扱い
+## 7. publication lifecycleの完了
+
+actual `v0.2.0` release成立後は、後続の`develop/v0.2.0` commitを同じtagへ再publicationしません。
+
+`release-request.json`では現在、次の状態を明示しています。
+
+```text
+publish = false
+publication_state = completed
+```
+
+Release Candidate Gateはこのlifecycleを検査し、publicationが完了している場合は通常のcandidate gateを継続しつつ、`prepare-v0-2-0-release`と`publish-v0-2-0`をskipします。
+
+これにより、後続の文書・実装変更を検査するたびに既存`v0.2.0` tagを最新develop commitへ付け替えようとすることを防ぎます。
+
+```text
+future develop commit
+  → candidate revalidation
+  != v0.2.0 retag
+  != v0.2.0 republish
+```
+
+この境界を導入した最終HEADでは、Release Candidate Gate Run `33585297218`が9 gateすべてsuccessし、release preparation / publicationは意図どおりskippedになりました。
+
+導入途中のcommit `f6477e3c89ec01a970c48cb6f3f55a0830744ff2`では、workflow側を先に更新したため旧release requestに`publication_state`がなく、Run `33585287867`がlifecycle stepでfailureしました。直後にrequestを`completed`へ同期し、同じ検査を通し直してsuccessを確認しています。failureを条件緩和で回避せず、原因となったversion固有release stateを修正しました。
+
+## 8. failureの扱い
 
 candidate / publicationのfailureは、条件を弱める理由にはしません。
 
-failureが生じた場合は、Plan policy、checker、runtime、artifact build、release preparation、publicationのどこに原因があるかを切り分け、修正後に同じ検査を通し直します。
+failureが生じた場合は、Plan policy、checker、runtime、artifact build、release preparation、publication lifecycleのどこに原因があるかを切り分け、修正後に同じ検査を通し直します。
 
 `failed`を`not_verified`やPASSへ読み替えません。
 
-## 8. 自然な日本語レビュー
+## 9. 自然な日本語レビュー
 
-v0.2.0 Release Acceptance、Release Notes、Release Evidence、ISSUE-000059〜000063、actual tag ref、GitHub Release、Run `33574947445`、各release asset digestを照合しました。
+v0.2.0 Release Acceptance、Release Notes、Release Evidence、release request、ISSUE-000059〜000063、actual tag ref、GitHub Release、Run `33574947445`、各release asset digest、release後のcandidate Run `33585297218`を照合しました。
 
-候補の成立、actual releaseの成立、後続のE3b等のExecutable Evidence、Operational / Adoption Evidenceを分け、現在の状態をrelease入口から自然にたどれる構成へ整理しています。意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+候補の成立、actual releaseの成立、publication lifecycleの完了、後続のE3b等のExecutable Evidence、Operational / Adoption Evidenceを分け、現在の状態をrelease入口から自然にたどれる構成へ整理しています。特に、actual release後のdevelop更新を同じversionの再publicationと混同せず、candidate revalidationだけを継続する境界を明示しました。
+
+意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
