@@ -66,8 +66,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、自然な日本語全文再ドラフトと最終意味監査を実施済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000061
-    note: E3a外部artifact integration、v0.2.0 Release Candidate境界、E3b-P1 public live Provider integrationに加え、actual TEI実行とは区別した外部TEI executable注入境界までを含め、各Issueの意味・Evidence高さ・非主張範囲を自然な日本語で監査している。
+    coverage: ISSUE-000001..ISSUE-000062
+    note: E3a外部artifact integration、v0.2.0 Release Candidate境界、E3b-P1 public live Provider integration、actual TEI実行とは区別した外部TEI executable注入境界に加え、v0.2.0 actual release publicationの責務とEvidence境界までを自然な日本語で監査している。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -177,7 +177,8 @@ reviewed:
     status: revised
     coverage:
       - release/v0.2.0/RELEASE_ACCEPTANCE.md
-    note: Local Reference Product Baselineのsupported scope、9段階のcandidate gate、E3b / E4とproduction領域の非主張、actual develop Release Candidate Evidence、actual Release Evidenceへの昇格条件を自然な日本語で正本化している。
+      - release/v0.2.0/RELEASE_NOTES.md
+    note: Local Reference Product Baselineのsupported scope、9段階のcandidate gate、actual release publication条件を正本化した。repositoryにはE3b-P1やTEI executable注入境界のScoped Evidenceも存在するが、v0.2.0でsupportを主張する範囲はE3aまでとし、E3b全体 / E4とproduction領域を非主張のまま自然な日本語で明示している。
 
   - scope: fixtures/contracts/v1alpha1/README.md
     status: revised
