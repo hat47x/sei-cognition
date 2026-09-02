@@ -1,5 +1,5 @@
 schema: soza.document-review-registry/v1
-updated: 2026-09-02
+updated: 2026-09-03
 
 purpose: >-
   ISSUE-000015で行った既存開発文書の自然な日本語監査について、current branch上の
@@ -68,7 +68,7 @@ reviewed:
   - scope: plan/issue/ISSUE-*.md
     status: revised
     coverage: ISSUE-000001..ISSUE-000069
-    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidence、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1b、ISSUE-000067のhistorical reconstruction H1 / H2、ISSUE-000068のactual二モデル交換までに加え、ISSUE-000069でGitHub-hosted runner利用不能とSOZA内のworkflow regressionを分離した。ISSUE-000069では観測事実から外部原因を断定せず、実証workflowの自動起動をruntime / Adapter / fixture / workflowの意味変更へ寄せる一方、検証本文とEvidence強度を弱めず、runner復旧後のactual回帰を完了条件として残している。
+    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidence、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1b、ISSUE-000067のhistorical reconstruction H1 / H2、ISSUE-000068のactual二モデル交換までをcurrent履歴として監査した。ISSUE-000069では、GitHub Actionsの`pull_request.paths`がPR全体のbase→head差分で評価されることを明示し、文書だけの独立PR、scenario-local test、shared実装変更を分けて実証責務を整理した。runnerは全面停止とも全面復旧とも扱わず、Run 33670697154でactual二モデル交換が完走した一方、同じ時点でもstep未開始のjobが残る部分的・不安定な割当として記録している。さらにLocal Package Artifactは実際のbuild依存である`soza-package-probe`、`packagingprobe`、`semanticruntime`、Go module等へ起動範囲を限定し、検査本文と既存Evidence強度は変更していない。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
