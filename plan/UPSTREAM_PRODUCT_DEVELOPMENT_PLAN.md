@@ -1,7 +1,7 @@
 # SOZA 上流プロダクト開発計画
 
 更新日: 2026-09-02  
-状態: **Current Upstream Planning Baseline**
+状態: **Current Upstream Planning Baseline — v0.2.0 Release Evidence / E3b-M1a reflected**
 
 ## 1. この文書の役割
 
@@ -59,21 +59,22 @@ Evidence
 - `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
 - `product/roadmap/SOZA_PRODUCT_MILESTONES.md`
 
-下位作業がこの層と矛盾した場合は、実装を先に温存しません。矛盾がProduct Value側の誤りを示すならEvidenceを明示して再基線化し、そうでなければ下位設計を修正します。
+下位作業がこの層と矛盾した場合は、実装を先に温存しません。Product Value側の見直しが必要ならEvidenceを明示して再基線化し、そうでなければ下位設計を修正します。
 
 ### Priority B — 未定領域の探索
 
-現時点でRequirementとして十分に定まっていない領域は、まずOpen Questionとして扱います。
+Product Interaction、Local Single-Node Packaging、Product Access責務分離、v0.2.0 Local Reference Product Baselineのreleaseについては、それぞれDesign / Executable / Release Evidenceが現在の範囲で成立しています。
 
-Product Interaction、Local Single-Node Packaging、Product Access責務分離については、Design baselineと限定されたExecutable Evidenceまで進みました。現在の主要な未定領域は次です。
+Real Method / Provider Portabilityでは、E2、E3a、E3b-P1、E3b-M1aまで限定されたExecutable Evidenceが得られました。現在の主要な未定領域は次です。
 
-- E3b-P2: 実TEI process / serviceをどの実行面から接続するか
-- E3b-P2で、TEI executableの取得・private credentialとSOZA semantic integrationをどう分離するか
-- E3b-M1: 実Cognitive Methodをlive実行するrunnerを何とするか
+- E3b-P2: actual TEI process / serviceをどの実行面から接続するか
+- TEI executableの取得・private credentialとSOZA semantic integrationをどう分離するか
+- E3b-M1b: 実外部modelを用いたKJ Atlas executionでもM1aの意味境界が保てるか
 - Provider / Realization version交換時に必要なProvenance / Exact Bindingの水準
 - formal integration protocolを本当に標準化する必要があるか
-- actual Product Releaseへ進む時点とRelease Evidenceの成立条件
-- release後のOperational / Adoption / Outcome評価方法
+- E4 Operational portabilityを何で評価するか
+- v0.2.0以後のreleaseでsupported scopeをどこまで広げるか
+- Operational / Adoption / Outcome Evidenceをどの利用場面で収集するか
 
 既存Issueがある領域は、そのIssueを探索入口として使います。新しいRequirementを追加すること自体を成果にしません。
 
@@ -97,9 +98,9 @@ Product Interaction、Local Single-Node Packaging、Product Access責務分離�
 
 例:
 
-- 実TEI CLIを呼ぶために、SOZAがrepository取得方式まで知る必要は本当にあるか。
+- actual TEI CLIを呼ぶために、SOZAがrepository取得方式まで知る必要は本当にあるか。
 - external Cognitive Methodをlive実行するとき、Method Definitionとrunner固有protocolをどこまで分離できるか。
-- product login identityとhistorical actor referenceは同じidentityを要求するか。
+- M1aで使ったmodel stubを実外部modelへ交換したとき、どの意味差が新たに必要になるか。
 
 この段階では選択肢をRequirementへ固定しません。
 
@@ -119,10 +120,10 @@ Product Interaction、Local Single-Node Packaging、Product Access責務分離�
 
 - 意味境界が本当に必要か。
 - 既存Requirementで十分か。
-- どの選択肢が利用負担を減らすか。
-- ProviderやUIを交換しても意味が残るか。
-- 失敗時に何が失われるか。
+- ProviderやMethodを交換してもhistorical meaningが残るか。
+- failure時にcanonical stateを壊さないか。
 - artifact取得、credential、process invocation、semantic mappingを分けられるか。
+- 外部system固有schemaをUniversal Contractへ持ち込まずに済むか。
 
 ### Step 4 — Evidenceの高さを記録する
 
@@ -139,7 +140,7 @@ Design Evidence
 
 Release Candidate Evidenceは5段階Evidenceへ新しい普遍段階を加えるものではありません。特定candidateについて必要なExecutable Evidenceをまとめて再検査した記録として扱います。
 
-synthetic fixture、helper process、version固定artifact、public live serviceのPASSを、それぞれが確認していない実Providerや実運用のEvidenceへ自動昇格させません。
+synthetic fixture、helper process、version固定artifact、public live service、KJ Atlas + model stubのPASSを、それぞれが確認していないactual Provider、実外部model、実運用のEvidenceへ自動昇格させません。
 
 ### Step 5 — Candidate Requirementを作る
 
@@ -177,7 +178,7 @@ Requirementは、その状態を成立させるために必ず守るべき規範
 
 したがって、Milestoneの箇条書きをそのままRequirementへ変換しません。
 
-たとえばPMS-06で実TEIを接続することを求めても、GitHub token、private clone、CLI配布方式、HTTP / gRPC / MCP等の具体方式をStable Requirementにする必要はありません。
+たとえばPMS-06でactual TEIやexternal Cognitive Methodを接続することを求めても、GitHub token、private clone、HTTP、FastAPI、SQLite、CLI配布方式等をStable Requirementにする必要はありません。
 
 ```text
 Milestone outcome
@@ -198,39 +199,44 @@ productionで最初にsupportするWeb / desktop / CLI / API / MCP等は引き�
 
 ISSUE-000046 / 000054 / 000055で、Local Single-Node Package、durable data root、save / reload、deterministic reference artifactについて限定されたExecutable Evidenceがあります。
 
-v0.2.0ではLocal Reference Product Baselineまでをcandidate scopeとし、production installer、formal platform support matrix、server topology等は先取りしません。
+v0.2.0ではLocal Reference Product Baselineをactual Releaseとして固定し、Release Evidenceまで成立しました。ただしproduction installer、formal platform support matrix、server topology等は未検証です。
 
 ### 6.3 Identity / Authorization / Collaboration
 
 ISSUE-000047 / 000056で、authentication identity、Bounded Subject、Product access permission、semantic Responsibility / Authorityを分離するDesign baselineと限定されたExecutable Evidenceがあります。
 
-production IdP / IAM、formal RBAC / ABAC、team membership lifecycle等は未検証ですが、PMS-06の実Provider交換を進めるために先に固定する必要はありません。
+production IdP / IAM、formal RBAC / ABAC、team membership lifecycle等は未検証ですが、PMS-06の実Provider / Method交換を進めるために先に固定する必要はありません。
 
 ### 6.4 Real Method / Provider Portability
 
 現在の主探索系列です。
 
-Evidenceを次の段階に分けます。
-
 ```text
 E1 Contract / in-process synthetic
   → E2 out-of-process reference exchange
   → E3a version-pinned external artifact integration
-  → E3b-P1 public live Provider service
-  → E3b-P2 actual TEI process / service
-  → E3b-M1 external Cognitive Method live execution
+  → E3b live external process / service integration
   → E4 operational portability
 ```
 
-E2、E3a、E3b-P1には、それぞれ対象を限定したExecutable Evidenceがあります。これらを一括して「E3b完了」とは扱いません。
+E3bは次へ分けます。
 
-#### 6.4.1 次に進めるE3b-P2
+```text
+E3b-P1 public live Provider service
+E3b-P2 actual TEI process / service
+E3b-M1a live KJ Atlas process + deterministic model stub
+E3b-M1b live external model-backed KJ execution
+```
 
-実体を調査した結果、TEIには`cmd/tei`が存在し、`deployment-provider-plan`、`deployment-reconcile`、`deployment-simulate`等のJSON出力面を既に持っています。このため、SOZA向けの新しいwire protocolをTEIへ追加するより、**既存TEI CLIをProvider固有の外部processとして扱う**方が現在の境界に適合します。
+E2、E3a、E3b-P1、E3b-M1aには、それぞれ対象を限定したScoped Executable Evidenceがあります。これらを一括して「E3b完了」とは扱いません。
+
+#### 6.4.1 E3b-P2 — actual TEI
+
+TEIには`cmd/tei`が存在し、`deployment-provider-plan`等のJSON出力面があります。このため、SOZA向けの新しいwire protocolをTEIへ追加するより、既存TEI CLIをProvider固有の外部processとして扱う方針を優先します。
 
 一方、TEI repositoryはprivateです。SOZA CIの標準`GITHUB_TOKEN`が別private repositoryを読めるとは仮定しません。
 
-そのため、ISSUE-000061では次を明示的に分けます。
+ISSUE-000061では次を明示的に分けています。
 
 ```text
 TEI source / binary acquisition
@@ -240,50 +246,108 @@ TEI source / binary acquisition
   != SOZA Capability Observation mapping
 ```
 
-まず、外部から与えられたTEI executableを呼べるAdapter境界をExecutable Evidence化します。helper processによる境界testはactual TEI executionの代替にはせず、実TEI executableを実際に呼べる環境が得られた時点でE3b-P2 Evidenceを別に収集します。
+外部から与えられたexecutableを呼べるAdapter境界にはhelper processによるScoped Executable Evidenceがありますが、actual TEI executionではありません。
 
-credentialを利用する実証が必要になった場合も、GitHub PATや特定Secret製品をUniversal semanticsへ持ち込まず、acquisition / deployment policy側の問題として扱います。
+次のP2実証では、TEI executable / service自体を実際に呼べる環境と、そのsource identityをどのように確認するかを先に決めます。
 
-#### 6.4.2 E3b-M1の扱い
+#### 6.4.2 E3b-M1a — KJ Atlas live execution
 
-`cultural-substrate-weaving`にはversion管理されたSkill、複数platform向けadapter、build / validation基盤がありますが、現時点のrepository調査では、Methodを独立processとして実行してRecommendationを返す標準runnerは確認できていません。
+ISSUE-000064では、`hat47x/kj-atlas`の固定commitを取得し、KJ Atlas FastAPI backendとrepository同梱のdeterministic model stubをSOZAとは別processとして起動します。
 
-したがって、SOZA側が便宜的なrunnerを作って「実Cognitive Methodを実行した」とみなすことはしません。既存の実runnerまたは実際のhost integrationを特定できてからE3b-M1を設計します。
+KJ Atlas自身の`POST /ai/suggest-card-groups`をactual HTTPで呼び、responseをopaqueな`not_verified` Method outputとして既存Cognitive Method Applicationへ結び付けます。
+
+この実証では次の意味境界を固定しません。
+
+- KJ Atlas response schemaをUniversal Contractへしない。
+- grouping候補をRecommendation / Decisionへ自動昇格しない。
+- repository / commit / HTTP endpointをMethod Definition identityへしない。
+- model stubの出力品質をCognitive Method品質へ読み替えない。
+
+再基線化前のPR #41ではactual KJ Atlas processまで成功しており、最新developへ再基線化した最終branchでも回帰CIを再確認します。
+
+#### 6.4.3 次に進めるE3b-M1b
+
+M1aはKJ Atlas本体の実処理経路を通しますが、modelは決定的stubです。
+
+次のM1bでは実外部modelを利用し、次を確認します。
+
+- modelを交換してもMethod Application / Provenanceの意味境界が保てるか。
+- non-deterministic outputをRecommendation / Decisionへ自動昇格しないか。
+- external model failureをSOZAのUnknown / Conflictへどこまで結び付けるべきか。
+- model provider固有情報をUniversal Contractへ持ち込まずに済むか。
+
+ここで新しい恒久的意味差が見つからなければ、新Requirementは追加しません。
 
 ### 6.5 Release / Operational / Adoption Outcome
 
-v0.2.0については、actual `develop/v0.2.0`上でRelease Candidate Gateを再現できるEvidenceがありますが、actual Product Release / Release Evidenceは別です。
+v0.2.0 Local Reference Product Baselineはactual releaseされ、`release/v0.2.0/RELEASE_EVIDENCE.md`によってRelease EvidenceがSatisfiedとなっています。
 
-release tag、release identity、配布Artifactとのexactな対応等を成立させる操作は、開発中のscoped Evidenceから自動実行しません。releaseを行う判断が明示された時点で、`release/v0.2.0/RELEASE_ACCEPTANCE.md`の条件へ戻ります。
+ただし、supported Realization / Provider exchange scopeはE3aまでです。release後に成立したE3b-P1やE3b-M1aをv0.2.0へ遡及的に含めません。
 
-Operational / Adoption / Outcomeは、実利用後に初めて測れる価値を含みます。現段階で数値KPIを固定しすぎず、過去Decisionの再構成負担、Provider交換後の意味継続、Unknown / Conflict保持の有用性、入力負担等を候補として扱い、実利用から測定方法を精緻化します。
+```text
+Release Evidence Satisfied
+  != Operational Evidence
+  != Adoption / Outcome Evidence
+```
 
-## 7. 作業の停止線
+今後は、次releaseのscope拡張とOperational / Adoption評価を別々に設計します。
 
-次の場合は、実装へ急いで進まず上流へ戻ります。
+## 7. 並行作業とIssue番号の扱い
 
-- 何を価値として守るか説明できない。
-- RequirementがProduct Valueとつながらない。
-- 同じRequirementを既存REQが既に包含している可能性が高い。
-- UIやProvider固有schemaをUniversal Coreへ持ち込もうとしている。
-- repository取得方式やcredential方式をsemantic identityへ混ぜようとしている。
-- fixture / helper process / artifact PASSだけを理由に実Providerのproduct-level達成を主張しようとしている。
-- 未定事項を「実装しやすいから」という理由で確定しようとしている。
+複数branchが同時に進む場合、Issue番号は先に`develop`へ統合された正本を優先します。
 
-## 8. 計画文書の更新単位
+今回の系列では、release作業が先に統合されたため次を正本とします。
 
-上流作業では、必要に応じて次を同じ変更単位で更新します。
+```text
+ISSUE-000061 = external TEI executable injection boundary
+ISSUE-000062 = v0.2.0 release publication workflow
+ISSUE-000063 = v0.2.0 actual Release Evidence
+ISSUE-000064 = E3b-M1a live KJ Atlas Cognitive Method execution
+```
 
-- Product文書
-- Product Milestone
-- Issue / ADR
-- Requirement / Acceptance Scenario
-- Evidence文書
-- `plan/registry.yaml`
-- `plan/document_review_registry.yaml`
+古いbranchの番号を維持するためにcurrent Planを巻き戻しません。意味上の成果を最新番号へ移し、古いPRはHistorical Evidenceとして扱います。
 
-文書追加・更新後は、自然な日本語となることを最重要視して全文を再ドラフトし、意味・規範強度・Evidence強度が変わっていないか最終監査します。
+## 8. CI failureの扱い
 
-## 9. Natural Japanese review
+CI failureは、その場で原因を切り分けます。
 
-current Product Value、Product Shape、Product Milestone、v0.2.0 Release Candidate boundary、ISSUE-000045〜000061、E2 / E3a / E3b-P1のactual Evidence、`hat47x/tei-platform`の実CLIとprivate repository条件、`cultural-substrate-weaving`のcurrent repository構成へ戻り、現在の上流探索順序を再監査した。Product Interaction、Packaging、Product Accessの既存scoped Evidenceを「未着手」のまま残さず、現在の主探索系列をReal Method / Provider Portabilityへ更新した。TEIについては既存CLIを利用できる実行可能性と、private source / binary acquisitionのcredential問題を分離し、helper process testをactual TEI executionへ昇格させない停止線を明示した。Cognitive Method側も、実runnerが確認できていない段階で便宜的な実装を正式Realizationとみなさない。意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+- 実装不備なら実装を修正する。
+- registry / document coverage不備なら計画文書を同期する。
+- 外部repositoryのcurrent contract差なら、固定revisionとactual contractを照合する。
+- flaky network等なら、Evidence強度を落とさず再現性のある検査とlive pathを分ける。
+
+失敗したrunを隠して成功runだけを残すのではなく、必要な場合はEvidence文書に「何が失敗し、何を補正したか」を残します。
+
+## 9. 自然な日本語の最終工程
+
+開発文書は、内容・構造・Evidence境界を固めた後に、必ず全文を自然な日本語として読み直します。
+
+この工程では、意味や規範強度を変えず、次を確認します。
+
+- 英語設計語の直訳を並べただけの文になっていないか。
+- 主語と述語の関係が自然か。
+- Evidenceの成立範囲と非主張範囲が一読して分かるか。
+- 同じ意味を複数の用語で揺らしていないか。
+- 技術的な固有名がProduct-level概念へ紛れ込んでいないか。
+
+自然な日本語化は装飾ではなく、設計上の曖昧さを見つける最終監査として扱います。
+
+## 10. Current next focus
+
+現時点では、次の順で探索を継続します。
+
+1. **E3b-P2 actual TEI execution** — source / binary acquisitionとcredentialをsemantic mappingから分離したまま、actual TEIを実行できる環境を特定する。
+2. **E3b-M1b external model-backed Method execution** — M1aの意味境界を保ったまま実外部modelへ進める。
+3. **E4 Operational portability** — 実運用でMethod / Providerを交換したときの継続利用を評価する。
+4. **次releaseのscope判断** — E3b等をsupported scopeへ含めるに足るEvidenceがあるかを別途評価する。
+5. **Operational / Adoption / Outcome Evidence** — releaseの成立とは分離して、利用時の価値と負担を観測する。
+
+この順序は期限ではありません。新しいEvidenceによって前提が崩れた場合は、上位文書へ戻って再基線化します。
+
+## 11. 自然な日本語レビュー
+
+最新`develop/v0.2.0`のProduct Value / Milestones、Realization / Provider Exchange、ISSUE-000045〜000064、v0.2.0 Release Evidence、current runtime Evidenceを照合しました。
+
+release系列を巻き戻さず、M1aだけをcurrent正本へ追加し、次の探索対象をactual TEI、実外部model、Operational portabilityへ分けています。実装上のGitHub、HTTP、FastAPI、SQLite、CLI等をStable Requirementへ昇格させず、Evidenceの高さと非主張範囲が自然に読めるよう全文を再構成しました。
+
+意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。
