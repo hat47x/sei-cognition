@@ -1,6 +1,6 @@
 # ISSUE-000066: 実モデルを用いたCognitive Method実行を検証する
 
-Status: **Open**  
+Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0017, ADR-0021, ADR-0025**  
 Updated: 2026-09-02
@@ -128,6 +128,18 @@ PR #48の先行Run `33596839607`と、最新develop基線から再構成したPR
 
 両runとも、KJ Atlasは二つの在宅勤務カードを一つのgroup候補として返し、`holdState = held`のカードを`excludedCardIds`へ分離した。実際に生成されたgroup labelやrationaleの品質は、このIssueの完了条件には含めない。
 
+## merge後の回帰CI
+
+PR #50を`develop/v0.2.0`へ統合したmerge commit `51ec4502bf0a34097f975a5445069c26ea831f32`について、merge後のpush CIを確認した。
+
+同commitでは9系統のworkflowが実行され、いずれもsuccessした。M1b固有の`External Model-backed Method E3b M1b` Run `33609470323`でも、実モデルを介したKJ AtlasのMethod実行経路がmerge後のdevelop上で成立している。
+
+あわせて、Plan integrity Run `33609470271`、Semantic Runtime Conformance Run `33609470262`、External TEI Integration E3b P2 Run `33609470337`、Release Candidate Gate Run `33609470278`を含む既存の回帰検査もsuccessした。
+
+これにより、M1bの変更を`develop/v0.2.0`へ統合した後も、既存のPlan、Semantic Runtime、E3b-P2、release境界を壊していないことを確認した。
+
+このmerge後CIの成立は、model出力品質、KJ法としての成果品質、任意のmodel / runtime versionとの互換性、E4 Operational portability、Operational Evidence、Adoption / Outcome Evidenceを新たに成立させるものではない。また、公開済みv0.2.0のsupported scopeを遡及的に広げるものでもない。
+
 ## Requirement / Scenario監査
 
 新しいStable Requirement / Scenarioは追加しない。
@@ -186,19 +198,26 @@ E3b-P2 actual TEI CLIについては、別Issue / Evidence trackでfixed-artifac
 - [x] M1b Evidence文書をactual runへ同期する。
 - [x] Product Milestone / Product入口 / Realization / Provider Exchange / Value Traceability / 上流計画 / Plan台帳を同期する。
 - [x] 自然な日本語を最重要視した全文再ドラフトと最終意味監査を行う。
-- [ ] merge後の`develop/v0.2.0`でM1b workflowを含む回帰CIを確認する。
+- [x] merge後の`develop/v0.2.0`でM1b workflowを含む回帰CIを確認する。
 
 ## Evidence state
 
 - E3b-M1a live KJ Atlas + deterministic model stub: **Scoped Executable Evidence available**
 - E3b-M1b actual model-backed execution: **Scoped Executable Evidence available in Runs 33596839607 / 33608342203**
 - latest-develop rebaseline execution before merge: **Verified in Run 33608342203**
+- merge後の`develop/v0.2.0`回帰: **Verified in Run 33609470323**
 - actual model output quality: **Not Evaluated**
 - KJ-method outcome quality: **Not Evaluated**
 - E3b-P2 actual TEI: **Scoped Executable Evidence available on its separate fixed-artifact track**
 - E4 Operational portability: **Not Yet Verified**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
+
+## Resolution
+
+E3b-M1bとして定めた完了条件は、PR #48 / #50のactual model-backed executionと、PR #50のmerge後に`develop/v0.2.0`で実行されたRun `33609470323`を含む回帰CIによってすべて満たされた。
+
+このため、本IssueをResolvedとする。今後、model / runtimeの交換、historical reconstructionに必要な最小Provenance、model品質の評価、E4 Operational portabilityなどを検証する場合は、本Issueを再び未完了へ戻すのではなく、それぞれの目的とEvidence境界を持つ後続課題として扱う。
 
 ## Reopen / escalation条件
 
@@ -211,8 +230,8 @@ E3b-P2 actual TEI CLIについては、別Issue / Evidence trackでfixed-artifac
 
 ## 自然な日本語レビュー
 
-PMS-06、ISSUE-000064 / 000065、current Cognitive Method Contract、KJ Atlas固定commitの`local` Provider / `POST /generate`境界、M1a workflow、M1b workflow、integration-only Ollama Adapter、Runs `33596839607` / `33608342203`の実行ログ、Product Milestone、Product入口、Realization / Provider Exchange、Value Traceability、上流計画を照合した。
+PMS-06、ISSUE-000064 / 000065、current Cognitive Method Contract、KJ Atlas固定commitの`local` Provider / `POST /generate`境界、M1a workflow、M1b workflow、integration-only Ollama Adapter、Runs `33596839607` / `33608342203`、merge後のRun `33609470323`、Product Milestone、Product入口、Realization / Provider Exchange、Value Traceability、上流計画を照合した。
 
-実証前に置いた成功条件とactual runを一つずつ対応させ、actual model取得、actual inference、KJ Atlasによるresponse受理、SOZAへのmappingが成立した範囲だけをScoped Executable Evidenceへ更新した。一方、実際に生成されたgroup labelやrationaleの妥当性を含むmodel品質、KJ法としての成果品質は評価しておらず、Recommendation / Decisionにも昇格させていない。
+実証前に置いた成功条件とactual runを一つずつ対応させ、actual model取得、actual inference、KJ Atlasによるresponse受理、SOZAへのmapping、merge後のdevelop回帰が成立した範囲だけをScoped Executable Evidenceへ更新した。一方、実際に生成されたgroup labelやrationaleの妥当性を含むmodel品質、KJ法としての成果品質は評価しておらず、Recommendation / Decisionにも昇格させていない。
 
-E3b-P2統合後の基線でも同じ意味境界が保たれたことを確認したが、この再現結果を任意version互換性やOperational portabilityへは拡張しない。意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+E3b-P2統合後の基線とM1b統合後のdevelopでも同じ意味境界が保たれたことを確認したが、この再現結果を任意version互換性やOperational portabilityへは拡張しない。意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を読み直し、最終意味監査を実施した。
