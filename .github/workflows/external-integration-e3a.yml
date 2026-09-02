@@ -5,6 +5,8 @@ on:
     paths:
       - "runtime/go/externalartifact/**"
       - "runtime/go/externalintegration/**"
+      - "runtime/go/provideradapter/**"
+      - "runtime/go/semanticruntime/**"
       - "runtime/go/go.mod"
       - "runtime/go/go.sum"
       - "fixtures/external/e3a/**"
@@ -15,6 +17,8 @@ on:
     paths:
       - "runtime/go/externalartifact/**"
       - "runtime/go/externalintegration/**"
+      - "runtime/go/provideradapter/**"
+      - "runtime/go/semanticruntime/**"
       - "runtime/go/go.mod"
       - "runtime/go/go.sum"
       - "fixtures/external/e3a/**"

@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "runtime/go/teiintegration/**"
+      - "runtime/go/provideradapter/**"
+      - "runtime/go/semanticruntime/**"
       - "runtime/go/go.mod"
       - "runtime/go/go.sum"
       - ".github/workflows/external-tei-integration-e3b-p2.yml"
@@ -12,6 +14,8 @@ on:
       - develop/v0.2.0
     paths:
       - "runtime/go/teiintegration/**"
+      - "runtime/go/provideradapter/**"
+      - "runtime/go/semanticruntime/**"
       - "runtime/go/go.mod"
       - "runtime/go/go.sum"
       - ".github/workflows/external-tei-integration-e3b-p2.yml"

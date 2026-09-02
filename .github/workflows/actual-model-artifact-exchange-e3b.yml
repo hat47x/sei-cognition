@@ -5,6 +5,8 @@ on:
     paths:
       - "runtime/go/livemethodintegration/**"
       - "!runtime/go/livemethodintegration/runtime_version_exchange_test.go"
+      - "runtime/go/interactionprobe/**"
+      - "runtime/go/semanticruntime/**"
       - "runtime/integration/e3b_m1b_ollama_adapter.py"
       - "runtime/go/go.mod"
       - "runtime/go/go.sum"
@@ -15,6 +17,8 @@ on:
     paths:
       - "runtime/go/livemethodintegration/**"
       - "!runtime/go/livemethodintegration/runtime_version_exchange_test.go"
+      - "runtime/go/interactionprobe/**"
+      - "runtime/go/semanticruntime/**"
       - "runtime/integration/e3b_m1b_ollama_adapter.py"
       - "runtime/go/go.mod"
       - "runtime/go/go.sum"
