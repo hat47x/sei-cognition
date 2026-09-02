@@ -13,14 +13,28 @@ import (
 	"github.com/hat47x/soza/runtime/go/semanticruntime"
 )
 
-var fullCommitSHA = regexp.MustCompile(`^[0-9a-f]{40}$`)
+var (
+	fullCommitSHA = regexp.MustCompile(`^[0-9a-f]{40}$`)
+	fullSHA256    = regexp.MustCompile(`^[0-9a-f]{64}$`)
+)
 
-// SourceIdentityはE3b-M1aの取得・実行元を追跡するためのprobe-local情報です。
+// SourceIdentityはE3b-M1a以降の取得・実行元を追跡するためのprobe-local情報です。
 // repositoryやcommitをUniversalなMethod identityへ昇格させるものではありません。
 type SourceIdentity struct {
 	Repository string `json:"repository"`
 	Commit     string `json:"commit"`
 	EntryPoint string `json:"entry_point"`
+}
+
+// ExecutionIdentityは、同じCognitive Method sourceの内側でmodel / runtimeを
+// 交換した実行をhistoricalに区別するためのprobe-localな来歴です。
+// field名やOllama / modelの概念をSOZAのUniversal Contractへ固定するものではありません。
+type ExecutionIdentity struct {
+	RuntimeName     string `json:"runtime_name"`
+	RuntimeVersion  string `json:"runtime_version"`
+	ModelTag        string `json:"model_tag"`
+	ModelArtifactID string `json:"model_artifact_id"`
+	PromptSHA256    string `json:"prompt_sha256"`
 }
 
 type KJAtlasGroup struct {
@@ -38,6 +52,7 @@ type KJAtlasGroupingResult struct {
 type ApplyGroupingInput struct {
 	Store          *interactionprobe.CanonicalStore
 	Source         SourceIdentity
+	Execution      *ExecutionIdentity
 	MethodRef      semanticruntime.LogicalReference
 	RealizationRef semanticruntime.LogicalReference
 	ApplicationRef semanticruntime.LogicalReference
@@ -50,10 +65,11 @@ type ApplyGroupingInput struct {
 }
 
 type provenancePayload struct {
-	Repository   string `json:"repository"`
-	Commit       string `json:"commit"`
-	EntryPoint   string `json:"entry_point"`
-	ResultSHA256 string `json:"result_sha256"`
+	Repository   string             `json:"repository"`
+	Commit       string             `json:"commit"`
+	EntryPoint   string             `json:"entry_point"`
+	Execution    *ExecutionIdentity `json:"execution,omitempty"`
+	ResultSHA256 string             `json:"result_sha256"`
 }
 
 // ParseKJAtlasGroupingResultは、version固定したKJ Atlasのresponseを
@@ -109,6 +125,11 @@ func ApplyKJAtlasGroupingResult(input ApplyGroupingInput) error {
 	if err := validateSource(input.Source); err != nil {
 		return err
 	}
+	if input.Execution != nil {
+		if err := validateExecutionIdentity(*input.Execution); err != nil {
+			return err
+		}
+	}
 	if err := validateRef("method", input.MethodRef); err != nil {
 		return err
 	}
@@ -146,6 +167,7 @@ func ApplyKJAtlasGroupingResult(input ApplyGroupingInput) error {
 		Repository:   input.Source.Repository,
 		Commit:       input.Source.Commit,
 		EntryPoint:   input.Source.EntryPoint,
+		Execution:    cloneExecutionIdentity(input.Execution),
 		ResultSHA256: hex.EncodeToString(digest[:]),
 	})
 	if err != nil {
@@ -206,6 +228,14 @@ func opaqueRecord(ref semanticruntime.LogicalReference, payload json.RawMessage)
 	}
 }
 
+func cloneExecutionIdentity(identity *ExecutionIdentity) *ExecutionIdentity {
+	if identity == nil {
+		return nil
+	}
+	copy := *identity
+	return &copy
+}
+
 func validateSource(source SourceIdentity) error {
 	if strings.TrimSpace(source.Repository) == "" {
 		return errors.New("source repository is required")
@@ -215,6 +245,23 @@ func validateSource(source SourceIdentity) error {
 	}
 	if strings.TrimSpace(source.EntryPoint) == "" {
 		return errors.New("source entry point is required")
+	}
+	return nil
+}
+
+func validateExecutionIdentity(identity ExecutionIdentity) error {
+	for label, value := range map[string]string{
+		"execution runtime_name":      identity.RuntimeName,
+		"execution runtime_version":   identity.RuntimeVersion,
+		"execution model_tag":         identity.ModelTag,
+		"execution model_artifact_id": identity.ModelArtifactID,
+	} {
+		if strings.TrimSpace(value) == "" {
+			return fmt.Errorf("%s is required", label)
+		}
+	}
+	if !fullSHA256.MatchString(identity.PromptSHA256) {
+		return errors.New("execution prompt_sha256 must be a full lowercase SHA-256 digest")
 	}
 	return nil
 }
