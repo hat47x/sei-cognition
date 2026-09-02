@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import unittest
 from pathlib import Path
@@ -46,7 +47,8 @@ def valid_result() -> dict:
 
 class GroupingStructureTest(unittest.TestCase):
     def inspect(self, result: dict, request: dict | None = None) -> dict:
-        return CHECKER.inspect_grouping_structure(request or request_body(), result)
+        actual_request = request if request is not None else request_body()
+        return CHECKER.inspect_grouping_structure(actual_request, result)
 
     def violation_codes(self, report: dict) -> set[str]:
         return {item["code"] for item in report["violations"]}
@@ -102,6 +104,12 @@ class GroupingStructureTest(unittest.TestCase):
         report = self.inspect(result)
         self.assertIn("empty_group_label", self.violation_codes(report))
 
+    def test_empty_group_fails(self) -> None:
+        result = valid_result()
+        result["groups"][0]["cardIds"] = []
+        report = self.inspect(result)
+        self.assertIn("empty_group", self.violation_codes(report))
+
     def test_different_nonempty_wording_is_structurally_equivalent(self) -> None:
         first = valid_result()
         second = valid_result()
@@ -118,6 +126,40 @@ class GroupingStructureTest(unittest.TestCase):
         result["excludedCardIds"].append("c-unknown")
         report = self.inspect(result)
         self.assertIn("excluded_card_not_in_request", self.violation_codes(report))
+
+    def test_duplicate_excluded_card_id_fails(self) -> None:
+        result = valid_result()
+        result["excludedCardIds"].append("c-held")
+        report = self.inspect(result)
+        self.assertIn("duplicate_excluded_card_id", self.violation_codes(report))
+
+    def test_duplicate_request_card_id_fails(self) -> None:
+        request = request_body()
+        request["cards"].append({"id": "c-a", "text": "duplicate"})
+        report = self.inspect(valid_result(), request)
+        self.assertIn("duplicate_request_card_id", self.violation_codes(report))
+
+    def test_held_card_not_in_request_fails(self) -> None:
+        request = request_body()
+        request["cards"] = [card for card in request["cards"] if card["id"] != "c-held"]
+        result = valid_result()
+        result["excludedCardIds"] = []
+        report = self.inspect(result, request)
+        self.assertIn("held_card_not_in_request", self.violation_codes(report))
+
+    def test_report_records_exact_request_and_result_digests(self) -> None:
+        request_bytes = b'{"request":"exact-bytes"}\n'
+        result_bytes = b'{"result":"exact-bytes"}\n'
+        report = CHECKER.inspect_grouping_structure(
+            request_body(),
+            valid_result(),
+            request_bytes=request_bytes,
+            result_bytes=result_bytes,
+        )
+
+        self.assertEqual(hashlib.sha256(request_bytes).hexdigest(), report["requestSha256"])
+        self.assertEqual(hashlib.sha256(result_bytes).hexdigest(), report["resultSha256"])
+        self.assertEqual("not_evaluated", report["qualityJudgement"])
 
 
 if __name__ == "__main__":
