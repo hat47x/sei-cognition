@@ -1,0 +1,211 @@
+name: External Method Model Integration E3b-M1b
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/external-method-model-integration-e3b-m1b.yml'
+      - 'runtime/tools/github_models_openai_v1_proxy.py'
+      - 'runtime/go/livemethodintegration/**'
+      - 'runtime/EXTERNAL_METHOD_MODEL_INTEGRATION_EVIDENCE_*.md'
+      - 'plan/issue/ISSUE-000066-*.md'
+      - 'plan/registry.yaml'
+      - 'plan/document_review_registry.yaml'
+      - 'product/**'
+      - 'architecture/**'
+  push:
+    branches:
+      - develop/v0.2.0
+    paths:
+      - '.github/workflows/external-method-model-integration-e3b-m1b.yml'
+      - 'runtime/tools/github_models_openai_v1_proxy.py'
+      - 'runtime/go/livemethodintegration/**'
+      - 'runtime/EXTERNAL_METHOD_MODEL_INTEGRATION_EVIDENCE_*.md'
+      - 'plan/issue/ISSUE-000066-*.md'
+      - 'plan/registry.yaml'
+      - 'plan/document_review_registry.yaml'
+      - 'product/**'
+      - 'architecture/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  models: read
+
+jobs:
+  actual-model-method:
+    name: actual KJ Atlas + GitHub Models
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: SOZAをcheckoutする
+        uses: actions/checkout@v4
+
+      - name: 固定revisionのKJ Atlasをcheckoutする
+        uses: actions/checkout@v4
+        with:
+          repository: hat47x/kj-atlas
+          ref: 4f28c13abe4176503c6fed863383a2d1db2299e9
+          path: _external/kj-atlas
+
+      - name: Pythonを準備する
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Goを準備する
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+
+      - name: KJ Atlas backendを導入する
+        run: python -m pip install -e '_external/kj-atlas/03_Implement/backend'
+
+      - name: KJ Atlas databaseを初期化する
+        working-directory: _external/kj-atlas/03_Implement/backend
+        env:
+          KJ_ATLAS_DATABASE_URL: sqlite:////tmp/kj-atlas-e3b-m1b.db
+          KJ_ATLAS_RUNTIME_PROFILE: local-dev
+          KJ_ATLAS_LLM_PROVIDER: deepseek
+          KJ_ATLAS_DEEPSEEK_BASE_URL: http://127.0.0.1:8001
+          KJ_ATLAS_DEEPSEEK_MODEL: openai/gpt-4.1-mini
+          KJ_ATLAS_DEEPSEEK_API_KEY: ${{ github.token }}
+          KJ_ATLAS_LLM_FALLBACK_TO_NONE: 'false'
+        run: alembic upgrade head
+
+      - name: protocol shimとKJ Atlasを起動する
+        env:
+          KJ_ATLAS_DATABASE_URL: sqlite:////tmp/kj-atlas-e3b-m1b.db
+          KJ_ATLAS_RUNTIME_PROFILE: local-dev
+          KJ_ATLAS_LLM_PROVIDER: deepseek
+          KJ_ATLAS_DEEPSEEK_BASE_URL: http://127.0.0.1:8001
+          KJ_ATLAS_DEEPSEEK_MODEL: openai/gpt-4.1-mini
+          KJ_ATLAS_DEEPSEEK_API_KEY: ${{ github.token }}
+          KJ_ATLAS_LLM_FALLBACK_TO_NONE: 'false'
+        run: |
+          set -euo pipefail
+          python runtime/tools/github_models_openai_v1_proxy.py \
+            --host 127.0.0.1 --port 8001 >/tmp/soza-m1b-proxy.log 2>&1 &
+          echo $! >/tmp/soza-m1b-proxy.pid
+
+          PYTHONPATH=_external/kj-atlas/03_Implement/backend/src \
+            uvicorn kj_atlas_api.main:app --host 127.0.0.1 --port 8000 \
+            >/tmp/kj-atlas-m1b-backend.log 2>&1 &
+          echo $! >/tmp/kj-atlas-m1b-backend.pid
+
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8001/healthz >/dev/null \
+              && curl --fail --silent http://127.0.0.1:8000/healthz >/dev/null; then
+              exit 0
+            fi
+            sleep 0.25
+          done
+
+          echo 'M1b probe processes did not become ready' >&2
+          cat /tmp/soza-m1b-proxy.log >&2 || true
+          cat /tmp/kj-atlas-m1b-backend.log >&2 || true
+          exit 1
+
+      - name: actual model呼び出し前の状態を記録する
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error \
+            http://127.0.0.1:8000/ai/provider-status \
+            >/tmp/kj-atlas-provider-status-before.json
+
+      - name: GitHub Modelsを使ってKJ Atlasのgrouping methodを実行する
+        run: |
+          set -euo pipefail
+          cat >/tmp/kj-atlas-m1b-request.json <<'JSON'
+          {
+            "cards": [
+              {"id":"c-remote","text":"在宅勤務でも成果を出せると考えている","textReviewed":true},
+              {"id":"c-office","text":"対面でないと設計の議論が浅くなると感じている","textReviewed":true},
+              {"id":"c-held","text":"評価制度の見直しはまだ着手していない","textReviewed":true}
+            ],
+            "doc": {
+              "version": 1,
+              "id": "soza-e3b-m1b",
+              "createdAt": "2026-09-02T00:00:00Z",
+              "updatedAt": "2026-09-02T00:00:00Z",
+              "transform": {"panX":0,"panY":0,"zoom":1},
+              "cards": [
+                {"id":"c-remote","text":"在宅勤務でも成果を出せると考えている","x":0,"y":0,"textReviewed":true},
+                {"id":"c-office","text":"対面でないと設計の議論が浅くなると感じている","x":40,"y":0,"textReviewed":true},
+                {"id":"c-held","text":"評価制度の見直しはまだ着手していない","x":80,"y":0,"textReviewed":true,"holdState":"held"}
+              ],
+              "edges": [],
+              "islands": [],
+              "evidenceLinks": []
+            }
+          }
+          JSON
+
+          curl --fail-with-body --silent --show-error \
+            -H 'Content-Type: application/json' \
+            --data @/tmp/kj-atlas-m1b-request.json \
+            http://127.0.0.1:8000/ai/suggest-card-groups \
+            >/tmp/kj-atlas-m1b-result.json
+
+      - name: model呼び出しとKJ Atlas出力境界を検証する
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error \
+            http://127.0.0.1:8000/ai/provider-status \
+            >/tmp/kj-atlas-provider-status-after.json
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          before = json.loads(Path('/tmp/kj-atlas-provider-status-before.json').read_text(encoding='utf-8'))
+          after = json.loads(Path('/tmp/kj-atlas-provider-status-after.json').read_text(encoding='utf-8'))
+          result = json.loads(Path('/tmp/kj-atlas-m1b-result.json').read_text(encoding='utf-8'))
+
+          assert before.get('providerKind') == 'deepseek', before
+          assert after.get('providerKind') == 'deepseek', after
+          assert before.get('callCounts', {}).get('deepseek', 0) == 0, before
+          assert after.get('callCounts', {}).get('deepseek', 0) >= 1, after
+          assert after.get('callCounts', {}).get('total', 0) >= 1, after
+
+          assert isinstance(result.get('groups'), list) and result['groups'], result
+          assert result.get('excludedCardIds') == ['c-held'], result
+          assert result.get('truncated') is False, result
+
+          print(json.dumps({
+              'providerStatusBefore': before,
+              'providerStatusAfter': after,
+              'resultShape': {
+                  'groupCount': len(result['groups']),
+                  'excludedCardIds': result['excludedCardIds'],
+                  'truncated': result['truncated'],
+              },
+          }, ensure_ascii=False, sort_keys=True))
+          PY
+
+      - name: SOZA method mappingの境界テストを実行する
+        working-directory: runtime/go
+        run: go test ./livemethodintegration
+
+      - name: actual model-backed Method結果をSOZA semantic recordsへ写像する
+        working-directory: runtime/go
+        env:
+          SOZA_E3B_METHOD_LIVE: '1'
+          SOZA_E3B_METHOD_RESULT: /tmp/kj-atlas-m1b-result.json
+          SOZA_E3B_METHOD_SOURCE_COMMIT: 4f28c13abe4176503c6fed863383a2d1db2299e9
+        run: go test ./livemethodintegration -run '^TestLiveKJAtlasMethodExecution$' -count=1 -v
+
+      - name: 失敗時に非secret logを表示する
+        if: failure()
+        run: |
+          cat /tmp/kj-atlas-provider-status-before.json || true
+          cat /tmp/kj-atlas-provider-status-after.json || true
+          cat /tmp/kj-atlas-m1b-result.json || true
+          cat /tmp/soza-m1b-proxy.log || true
+          cat /tmp/kj-atlas-m1b-backend.log || true
+
+      - name: probe processを停止する
+        if: always()
+        run: |
+          if test -f /tmp/kj-atlas-m1b-backend.pid; then kill "$(cat /tmp/kj-atlas-m1b-backend.pid)" 2>/dev/null || true; fi
+          if test -f /tmp/soza-m1b-proxy.pid; then kill "$(cat /tmp/soza-m1b-proxy.pid)" 2>/dev/null || true; fi
