@@ -57,13 +57,21 @@ jobs:
           go-version: 1.25.x
           cache-dependency-path: runtime/go/go.mod
 
-      - name: Install pinned Ollama runtime
+      - name: Install digest-pinned Ollama runtime
         shell: bash
+        env:
+          OLLAMA_VERSION: "0.32.14"
+          OLLAMA_INSTALLER_SHA256: "25f64b810b947145095956533e1bdf56eacea2673c55a7e586be4515fc882c9f"
         run: |
           set -euo pipefail
-          curl --fail --silent --show-error --location https://ollama.com/install.sh \
-            | OLLAMA_VERSION=0.32.14 sh
-          ollama --version
+          curl --fail --silent --show-error --location \
+            "https://github.com/ollama/ollama/releases/download/v${OLLAMA_VERSION}/install.sh" \
+            --output /tmp/ollama-install.sh
+          printf '%s  %s\n' "${OLLAMA_INSTALLER_SHA256}" /tmp/ollama-install.sh \
+            | sha256sum --check --strict
+          OLLAMA_VERSION="${OLLAMA_VERSION}" sh /tmp/ollama-install.sh
+          ollama --version 2>&1 | tee /tmp/ollama-version.txt
+          grep -F "${OLLAMA_VERSION}" /tmp/ollama-version.txt
 
       - name: Start Ollama and acquire the pinned model identity
         shell: bash
@@ -208,6 +216,7 @@ jobs:
           cat /tmp/kj-atlas-m1b-result.json || true
           cat /tmp/soza-e3b-m1b-model-call.json || true
           cat /tmp/ollama-list.txt || true
+          cat /tmp/ollama-version.txt || true
           cat /tmp/soza-m1b-adapter.log || true
           cat /tmp/kj-atlas-m1b-backend.log || true
           cat /tmp/ollama.log || true
