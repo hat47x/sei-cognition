@@ -1,7 +1,7 @@
 # SOZA 上流プロダクト開発計画
 
 更新日: 2026-09-02  
-状態: **Current Upstream Planning Baseline — v0.2.0 Release Evidence / E3b-P2 fixed-artifact / E3b-M1b reflected**
+状態: **Current Upstream Planning Baseline — v0.2.0 Release Evidence / E3b-P2 fixed-artifact / E3b-M1b / historical reconstruction H1-H2 reflected**
 
 ## 1. この文書の役割
 
@@ -65,14 +65,16 @@ Evidence
 
 Product Interaction、Local Single-Node Packaging、Product Access責務分離は、Design baselineと限定されたExecutable Evidenceまで進みました。v0.2.0 Local Reference Product Baselineについてはactual Release Evidenceも成立しています。
 
-Real Method / Provider Portabilityでは、E2、E3a、E3b-P1、E3b-M1aに加え、E3b-P2でも固定revisionのactual TEI CLIをbuild・実行し、current SOZA Adapterへ戻す範囲までScoped Executable Evidenceが得られました。さらにE3b-M1bでは、M1aと同じKJ Atlas Method surfaceを実際に推論するmodel artifactへ接続し、actual inferenceからcurrent Cognitive Method Applicationへのmappingまでを確認しました。
+Real Method / Provider Portabilityでは、E2、E3a、E3b-P1、E3b-M1aに加え、E3b-P2でも固定revisionのactual TEI CLIをbuild・実行し、current SOZA Adapterへ戻す範囲までScoped Executable Evidenceが得られました。E3b-M1bでは、M1aと同じKJ Atlas Method surfaceを実際に推論するmodel artifactへ接続し、actual inferenceからcurrent Cognitive Method Applicationへのmappingまでを確認しました。
+
+さらにISSUE-000067のH1 / H2では、Method Realization交換後のhistorical reconstructionを検査しました。実現機構が異なるM1a / M1bを別Realizationとして保持し、model / runtime等の具体条件をopaque Provenanceへ残せることをactual workflowで確認しています。同一Realization内のhistorical revisionについても、必要な場合はExact Bindingで当時のrevisionへ固定できることを確認しました。
 
 現在の主要な未定領域は次です。
 
 - E3b-P2: SOZA Actionsからprivate TEIを継続取得するrepository-scoped credentialを、どの運用境界で供給するか
 - E3b-P2: fixed revision以外のTEI versionへ交換してもcurrent Adapter境界とhistorical reconstructionを保てるか
 - E3b-M1b後続: model出力品質とKJ法としての成果品質を、semantic execution Evidenceと分離してどのように評価するか
-- Provider / Realization / model / runtime version交換時に必要なProvenance / Exact Bindingとhistorical reconstructionの水準
+- H1 / H2で確認した境界を越えて、任意のProvider / Realization / model / runtime versionへ交換してもhistorical reconstructionを保てるか
 - network degradation、rate limit、credential失効、model acquisition failure等をどのEvidence段階で扱うか
 - formal integration protocolを本当に標準化する必要があるか
 - E4 Operational portabilityを何で観測するか
@@ -231,11 +233,12 @@ E1 Contract / in-process synthetic
        │    └─ credential operation / arbitrary version   [Not Yet Verified]
        └─ M1 live external Cognitive Method
             ├─ M1a KJ Atlas + deterministic model stub   [Scoped Evidence]
-            └─ M1b external model-backed execution       [Scoped Evidence]
+            ├─ M1b external model-backed execution       [Scoped Evidence]
+            └─ H1/H2 historical reconstruction boundary  [Scoped Evidence]
   → E4 operational portability                           [Not Yet Verified]
 ```
 
-E2、E3a、E3b-P1、E3b-P2 fixed-artifact、E3b-M1a、E3b-M1bには、それぞれ対象を限定したExecutable Evidenceがあります。これらを一括して「E3b全体完了」や「Operational portability成立」とは扱いません。
+E2、E3a、E3b-P1、E3b-P2 fixed-artifact、E3b-M1a、E3b-M1b、H1 / H2には、それぞれ対象を限定したExecutable Evidenceがあります。これらを一括して「E3b全体完了」や「Operational portability成立」とは扱いません。
 
 #### 6.4.1 E3b-P2の後続探索
 
@@ -263,27 +266,47 @@ ISSUE-000065では、TEI commit `48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67`を固
 
 ISSUE-000064では、`hat47x/kj-atlas`の固定commitを取得し、KJ Atlas FastAPI backendと同repositoryのdeterministic model stubをSOZAとは別processとして実際に起動しました。actual `POST /ai/suggest-card-groups`を通してKJ Atlasの処理経路を実行し、結果をopaqueな`not_verified` Method outputとしてcurrent Cognitive Method Applicationへ戻せることを確認しています。
 
-ISSUE-000066では、同じKJ Atlas revisionとMethod surfaceを保ったまま、model processだけをOllama `0.32.14`上の`qwen2.5:0.5b`へ置き換えました。先行Workflow Run `33596839607`では`prompt_eval_count = 196`、`eval_count = 78`を観測し、prompt評価とtoken生成を伴うactual inferenceが成立しました。KJ Atlasがmodel outputを受理した後、既存SOZA Method mapping boundaryを通してCognitive Method Applicationへ戻せています。
+ISSUE-000066では、同じKJ Atlas revisionとMethod surfaceを保ったまま、model processだけをOllama `0.32.14`上の`qwen2.5:0.5b`へ置き換えました。actual inferenceではprompt評価とtoken生成を伴う推論を観測し、KJ Atlasがmodel outputを受理した後、既存SOZA Method mapping boundaryを通してCognitive Method Applicationへ戻せています。
 
-この結果、M1bの「actual modelを含む実行経路が成立するか」という問いにはScoped Executable Evidenceが得られました。次に残るのは、主として次の問いです。
+この結果、M1bの「actual modelを含む実行経路が成立するか」という問いにはScoped Executable Evidenceが得られました。さらにISSUE-000067のH2では、M1aとM1bを別RealizationとしてApplicationへ残し、model / runtime等の具体条件をopaque Provenanceとして保持したままactual mappingできることを確認しました。
+
+次に残るのは、主として次の問いです。
 
 ```text
 actual model-backed execution PASS
+  + H1/H2 historical reconstruction boundary PASS
   != model output quality satisfied
   != KJ-method outcome quality satisfied
   != arbitrary model/runtime portability
   != Operational portability
 ```
 
-model出力品質やKJ法としての成果品質を評価する場合は、semantic execution conformanceとは別の評価系として設計します。また、model / runtime交換でhistorical reconstructionが不足する場合にだけ、Durable ProvenanceやRequirementの追加を検討します。
+model出力品質やKJ法としての成果品質を評価する場合は、semantic execution conformanceとは別の評価系として設計します。また、H1 / H2で確認した範囲を越える任意version交換でhistorical reconstructionが不足する場合にだけ、Durable ProvenanceやRequirementの追加を再検討します。
 
 #### 6.4.3 version交換とhistorical reconstruction
 
-E3b-P2 / M1bの成立を踏まえ、Provider、Method Realization、model、runtime等のversionを交換したときに、交換前後のProvenanceとhistorical Decision reconstructionが失われないかを検査します。
+ISSUE-000067では、M1a / M1bを入力としてhistorical reconstructionの最小境界をH1 / H2で検査しました。
 
-同じ出力を再現することではなく、当時どのRealization / Provider / source revision / model実行条件を使ったかを必要な範囲で追跡し、後続revisionの存在によってhistorical basisを書き換えないことが中心です。
+H1では、同じMethod Realizationの中でhistorical revisionを区別する必要がある場合、current `MethodRealization.implementation_refs`と`MethodApplication.realization_ref`にExact Bindingを利用することで、後続revisionの存在によって過去Applicationのbindingを書き換えずに保持できることを確認しました。logical-only referenceでは複数revisionから過去revisionを一意に選べないこともnegative controlとして確認しています。
 
-現在のrepository / commit / endpoint / model tag等をそのままUniversal identityへ昇格させず、必要なExact BindingやProvenanceの水準を実証から決めます。
+H2では、deterministic model stubを使うM1aとOllama上のactual modelを使うM1bは、単なる同一Realizationのrevisionではなく実現機構が異なるため、同じMethod Definitionを実現する別のlogical Realizationとして保持しました。model名、runtime名、version、model ID等はUniversal Cognitive Method fieldへ追加せず、probe-localなopaque Provenanceへ残しています。M1a / M1bのactual workflowの双方で、この情報を保持したままSOZA Method Applicationへ戻せることを確認しました。
+
+したがって、current boundaryは次のように整理します。
+
+```text
+実現機構が異なる
+  → logical Realizationを分ける
+
+同じRealizationのhistorical revisionを固定する必要がある
+  → Exact Bindingを使う
+
+model / runtime等の具体的な実行条件
+  → 必要な範囲でProvenanceへ残す
+```
+
+この実証では、model / runtime固有fieldをUniversal Contractへ追加する必要は確認されませんでした。新しいStable Requirement / Scenarioも追加せず、REQ-0001、REQ-0004、REQ-0021、SCN-0005、SCN-0015の既存境界で扱います。
+
+一方、H1 / H2は任意のProvider / Realization / model / runtime version交換を実証したものではありません。今後は、異なるversionや別Realizationへ交換した実環境でも同じ境界で判断記憶を継続利用できるかをE4側で観測します。
 
 ### 6.5 Release / Operational / Adoption Outcome
 
@@ -295,7 +318,7 @@ v0.2.0 Release Evidence Satisfied
   != Adoption / Outcome Evidence
 ```
 
-post-releaseのE3b-P1、TEI executable注入境界、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1bは新しいScoped Executable Evidenceです。これらを既に公開済みのv0.2.0 supported scopeやRelease Evidenceへ遡及的に含めません。
+post-releaseのE3b-P1、TEI executable注入境界、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1b、H1 / H2 historical reconstructionは新しいScoped Executable Evidenceです。これらを既に公開済みのv0.2.0 supported scopeやRelease Evidenceへ遡及的に含めません。
 
 今後の焦点は、E4として実環境でRealization / Provider / model等を交換しても判断記憶を継続利用できるかを観測することと、利用者にとっての実際の価値をOperational / Adoption / Outcome Evidenceとして分離して測ることです。
 
@@ -310,7 +333,9 @@ post-releaseのE3b-P1、TEI executable注入境界、E3b-P2 fixed-artifact actua
 - 同じRequirementを既存REQが既に包含している可能性が高い。
 - UIやProvider / Method固有schemaをUniversal Coreへ持ち込もうとしている。
 - repository取得方式やcredential方式をsemantic identityへ混ぜようとしている。
+- model名、runtime名、repository名等の実装固有情報を、H1 / H2で必要性が確認されていないUniversal fieldへ昇格させようとしている。
 - fixture / helper process / deterministic model stub / actual inferenceのPASSだけを理由に、それぞれが確認していない実運用品質や生成品質のproduct-level達成を主張しようとしている。
+- H1 / H2のPASSだけを理由に、任意version交換やOperational portabilityまで成立したと扱おうとしている。
 - credential-aware workflowのsuccessだけを理由に、skipされたactual Provider / Method executionを成功扱いしようとしている。
 - post-releaseのExecutable Evidenceを既存releaseのsupported scopeへ遡及的に追加しようとしている。
 - 未定事項を「実装しやすいから」という理由で確定しようとしている。
@@ -331,10 +356,12 @@ post-releaseのE3b-P1、TEI executable注入境界、E3b-P2 fixed-artifact actua
 
 ## 9. Natural Japanese review
 
-current Product Value、Product Shape、Product Milestone、v0.2.0 Release Evidence、ISSUE-000045〜000066、E2 / E3a / E3b-P1 / E3b-P2 fixed-artifact / E3b-M1a / E3b-M1bのactual Evidence、`hat47x/tei-platform`の固定CLI artifactとprivate repository条件、KJ Atlasの固定commit、actual model-backed executionへ戻り、現在の上流探索順序を再監査しました。
+current Product Value、Product Shape、Product Milestone、v0.2.0 Release Evidence、ISSUE-000045〜000067、E2 / E3a / E3b-P1 / E3b-P2 fixed-artifact / E3b-M1a / E3b-M1b / H1 / H2のactual Evidence、`hat47x/tei-platform`の固定CLI artifactとprivate repository条件、KJ Atlasの固定commit、actual model-backed executionへ戻り、現在の上流探索順序を再監査しました。
 
-Product Interaction、Packaging、Product Accessの既存scoped Evidenceを「未着手」のまま残さず、Real Method / Provider Portabilityを主探索系列として維持しています。E3b-P2では最初のcredential-aware probeのskipを成功扱いせず、その後に固定revisionのactual `cmd/tei` build / executionとSOZA Adapter mappingを別経路で実証しました。E3b-M1bではactual inferenceとSOZA Method Applicationへのmappingまで成立したため、次の作業点を「実モデルを一度呼ぶこと」から、品質評価、model / runtime version交換時のProvenance、E4へ移しています。
+Product Interaction、Packaging、Product Accessの既存scoped Evidenceを「未着手」のまま残さず、Real Method / Provider Portabilityを主探索系列として維持しています。E3b-P2では最初のcredential-aware probeのskipを成功扱いせず、その後に固定revisionのactual `cmd/tei` build / executionとSOZA Adapter mappingを別経路で実証しました。E3b-M1bではactual inferenceとSOZA Method Applicationへのmappingまで成立しています。
 
-v0.2.0 actual Release Evidenceは成立済みとして計画へ反映し、post-releaseのE3b Evidenceによってsupported scopeを遡及的に広げていません。また、helper processをactual TEI executionへ、credential-aware workflow successをskipされたactual executionへ、fixed-artifact実行をcredential運用やOperational portabilityへ、actual model inferenceをmodel品質やKJ法としての成果品質へ昇格させない停止線を維持しています。
+その後のH1 / H2では、historical reconstructionに必要な意味差をさらに分けました。実現機構が異なるM1a / M1bは別Realizationとして保持し、同一Realization内のhistorical revisionは必要に応じてExact Bindingで固定できることを確認しています。model / runtime等の具体条件はopaque Provenanceへ残し、Universal Cognitive Method fieldへ持ち込んでいません。既存REQ / SCNで必要な意味を表現できたため、新しいStable Requirementも追加していません。
+
+これにより、次の作業点を「historical reconstructionの最小境界を決めること」から、任意version交換、品質評価、E4 Operational portabilityへ移しました。v0.2.0 actual Release Evidenceは成立済みとして維持し、post-releaseのE3b / H1 / H2 Evidenceによってsupported scopeを遡及的に広げていません。
 
 意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。
