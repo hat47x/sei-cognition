@@ -55,7 +55,19 @@ Release Notesでは、repositoryにE3b-P1やTEI executable injection boundaryの
 
 bootstrap PR #40のRun `33574397299`ではGate 1〜8がすべてsuccessし、Gate 9だけが`ISSUE-000062`をblocking Plan Issueとして検出してfailureした。これはpublication実装の不具合ではなく、未解決Issueをcandidateへ持ち込まない既存policyが意図どおり機能した結果である。
 
-本Issue自身がcandidate blockerであるため、実装成立とblocker動作を確認したこの時点でResolvedへ移す。closure後は同じPRで全9 gateとread-only release preparationを再実行し、失敗した場合は本IssueをReopenする。
+本IssueをResolvedへ移した後、PR #40のRun `33574586621`で全9 gateがsuccessした。GitHubがPR検査用に生成したtest merge commit `00e9f120351229b9329926733bd1fcdea3614886`について、Local Reference Packageとcandidate reportを生成し、その後の`prepare-v0-2-0-release`もsuccessしている。
+
+prepared publication bundle artifactはID `9826164245`、artifact digestは`sha256:7550b0f46e9b15545f277b2065e733db1b410afba65890d9e738140a2a8e1061`である。同じRunではLocal Reference Package artifact ID `9826157261`、candidate report artifact ID `9826157624`も生成された。
+
+PR上では`publish-v0-2-0` jobが明示的にskippedされ、検証後にもGitHub Releaseとtagの一覧が空であることを確認した。したがって、PRでread-only preparationだけを行う境界がExecutableに確認できている。
+
+```text
+PR test merge all-gate PASS
+  + release preparation PASS
+  + publication skipped
+  != actual develop publication
+  != Release Evidence
+```
 
 ## Design
 
@@ -137,9 +149,9 @@ publication途中でtagだけが作られた場合も、同じcommitを指して
 
 - [x] IssueがIn Progressの状態でGate 9がblockerとして機能することを確認する。Run `33574397299`でGate 1〜8 success、Gate 9のself-blockを確認した。
 - [x] implementation確認後に本IssueをResolvedへ移す。
-- [ ] closure headで9 gateすべてをsuccessさせる。
-- [ ] PR上のrelease preparation dry-runをsuccessさせる。
-- [ ] PRではtag / GitHub Releaseが作られないことを確認する。
+- [x] closure headで9 gateすべてをsuccessさせる。Run `33574586621`で確認した。
+- [x] PR上のrelease preparation dry-runをsuccessさせる。同Runの`prepare-v0-2-0-release`で確認した。
+- [x] PRではtag / GitHub Releaseが作られないことを確認する。`publish-v0-2-0`はskippedで、検証後のtag / release一覧も空である。
 
 ### Post-merge verification
 
@@ -151,8 +163,10 @@ publication途中でtagだけが作られた場合も、同じcommitを指して
 ## Evidence state
 
 - Design Evidence: **Satisfied for the publication boundary**
-- Executable Evidence: **bootstrap scoped evidence available** — Run `33574397299`でGate 1〜8 success、Gate 9 self-blockを確認
-- closure-head Release Candidate / preparation Evidence: **Not Yet Verified until post-closure CI success**
+- Executable Evidence: **Satisfied for PR-scoped publication preparation** — Run `33574586621`
+- prepared publication bundle: artifact ID `9826164245`, digest `sha256:7550b0f46e9b15545f277b2065e733db1b410afba65890d9e738140a2a8e1061`
+- PR publication job: **Skipped as designed**
+- actual develop publication: **Not Yet Verified**
 - Release Evidence: **Not Yet Verified**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
@@ -207,4 +221,4 @@ closure後の全9 gate、release preparation、またはdevelop merge後のpubli
 
 v0.2.0 Release Acceptance、ISSUE-000059〜000061、Product Milestone、Release Candidate Gate、Local Reference Package、E3b-P1とTEI executable injection boundary、5段階Evidenceへ戻り、candidate検査とactual publicationを別の責務として整理した。とくに、PRではread-onlyの準備だけを検証し、write権限はcandidate success後のdevelop pushへ限定することで、release操作を安全側に倒している。
 
-bootstrap Runの結果も反映し、Gate 1〜8の成功とGate 9のself-blockを、publication成立やRelease Evidenceへ過大評価せず記録した。E3b-P1等の後続実験が存在してもv0.2.0のsupported scopeはE3aまでとし、repositoryに存在するEvidenceとreleaseでsupportを主張する範囲を分離した。actual Release Evidenceはpublication mechanismの成立とは別に扱い、tag / GitHub Release / asset / gate resultを実観測した後に評価する。意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+bootstrap Runとclosure Runの両方を反映し、self-block、全9 gate success、prepared bundle生成、PR publication skipを、それぞれ異なるEvidenceとして記録した。E3b-P1等の後続実験が存在してもv0.2.0のsupported scopeはE3aまでとし、repositoryに存在するEvidenceとreleaseでsupportを主張する範囲を分離した。actual Release Evidenceはpublication mechanismの成立とは別に扱い、tag / GitHub Release / asset / gate resultを実観測した後に評価する。意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
