@@ -96,20 +96,46 @@ Semantic Interchangeから再読したopaque JSONについて、空白や改行�
 
 source bytesそのものの完全同一性が必要になった場合は、artifact / Exact Bindingとして別に要求を定めます。
 
-## 6. これまでのactual workflow Evidence
+## 6. actual workflow Evidence
 
-再基線化前のPR #41では、KJ Atlasの固定commit取得、backend install、migration、model/backend process起動、actual grouping、SOZA mapping boundary test、actual result mappingまでを実際に通しています。
+### 再基線化前
+
+再基線化前のPR #41でも、KJ Atlasの固定commit取得、backend install、migration、model/backend process起動、actual grouping、SOZA mapping boundary test、actual result mappingまでを実際に通しています。
 
 代表的な成功Runは次です。
 
 - External Method Integration E3b Run `33584876930`
 - External Method Integration E3b Run `33585078576`
 
-これらのrunでは、M1a専用job内の主要stepがすべてsuccessしました。
+### current developへの再基線化後
 
-同じbranch系列ではPlan integrity、Semantic Runtime Conformance、External Integration E3a / E3b、Local Package Artifact、Release Candidate Gateも成功しています。
+v0.2.0 Release Evidenceを含むcurrent `develop/v0.2.0` commit `5abc9abdd16456b60ebb1f006d65377c1ca51d29`からPR #41を作り直しました。
 
-その後、並行開発でv0.2.0 Release Evidenceが先に`develop/v0.2.0`へ統合されたため、本作業は最新developへ再基線化しています。再基線化後のCIは、M1aの新しい意味主張ではなく、current repositoryとの統合回帰としてmerge前に再確認します。
+behavior-complete head `0313f707a352dec7bec0eb40f8e3a980e74c9eae`では、次の8系統がすべてsuccessしました。
+
+- External Method Integration E3b Run `33587455439`
+- Plan integrity Run `33587455472`
+- Semantic Runtime Conformance Run `33587455445`
+- External Integration E3a Run `33587455452`
+- External Integration E3b Run `33587455442`
+- Local Package Artifact Run `33587455447`
+- V6 V7 Projection Evaluation Run `33587455441`
+- Release Candidate Gate Run `33587455459`
+
+専用Run `33587455439`では、次のM1a経路がすべてsuccessしています。
+
+- pinned KJ Atlas checkout
+- backend install
+- SQLite / Alembic migration
+- deterministic model stub起動
+- FastAPI backend起動
+- actual `POST /ai/suggest-card-groups`
+- SOZA method mapping boundary test
+- actual external resultのSOZA semantic recordsへのmapping
+
+Release Candidate Gate Run `33587455459`ではGate 1〜9がsuccessし、公開済みv0.2.0に対するrelease preparationとpublicationはともにskipされました。したがって、このM1a PRの検査によって既存v0.2.0をretag / republishしていません。
+
+このEvidence記録後のdoc-only headについてはPRの最終CIで再検査します。Run IDを文書へ書き込むたびにさらに新しいRun IDが生じる再帰を避けるため、上記Run群を**behavior-complete headに対する実行Evidence**として固定し、最終doc-only headの結果はPR merge判定で確認します。
 
 ## 7. v0.2.0 Release Evidenceとの関係
 
@@ -171,7 +197,7 @@ actual TEI executable / serviceを実際に接続したEvidenceは別系列で�
 
 ## 11. 自然な日本語レビュー
 
-最新`develop/v0.2.0`のPMS-06、Realization / Provider Exchange、ISSUE-000057〜000063、v0.2.0 Release Evidence、current Cognitive Method Contract、KJ Atlas固定commit、再基線化前PR #41のactual CIを照合しました。
+最新`develop/v0.2.0`のPMS-06、Realization / Provider Exchange、ISSUE-000057〜000064、v0.2.0 Release Evidence、current Cognitive Method Contract、KJ Atlas固定commit、再基線化後PR #41のactual CIを照合しました。
 
 実外部Methodを呼べたという技術的事実を過大評価せず、KJ Atlas固有response、SOZAのMethod Application、Recommendation / Decision、Release Evidence、Operational Evidenceを別々の意味として読めるよう構成しています。
 
