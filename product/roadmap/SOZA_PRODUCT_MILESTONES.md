@@ -286,7 +286,8 @@ E3bは、Provider側とCognitive Method側の異なるfailure boundaryを混同�
 E3b
   ├─ P1 public live Provider service
   ├─ P2 actual TEI process / service
-  │    └─ preparation: external TEI executable injection boundary
+  │    ├─ preparation: external TEI executable injection boundary
+  │    └─ current probe: pinned private TEI acquisition path / actual execution pending
   └─ M1 live external Cognitive Method
        ├─ M1a live KJ Atlas process + deterministic model stub
        └─ M1b live external model-backed KJ execution
@@ -315,9 +316,9 @@ revision mismatch、HTTP failure、timeout / cancellation、Provider固有field�
 
 merge後`develop/v0.2.0`でもE3b-P1のScoped Executable Evidenceを再現しています。
 
-### E3b-P2へ進むための準備境界
+### E3b-P2 — actual TEI process / service
 
-ISSUE-000061では、actual TEI CLI integrationの前段として次を分離しています。
+ISSUE-000061では、actual TEI CLI integrationの前段として次を分離しました。
 
 ```text
 TEI source / binary acquisition
@@ -329,9 +330,22 @@ TEI source / binary acquisition
 
 `runtime/go/teiintegration`のhelper process testはexternal executable injection boundaryを検査するものであり、actual TEI executableを実行したEvidenceではありません。
 
+ISSUE-000065では、この境界へ固定revisionの実TEIを渡す専用integration testとworkflowを追加しました。最初のRun `33589190828`ではdeterministic process-boundary testはsuccessしましたが、`TEI_REPOSITORY_TOKEN`を利用できなかったため、pinned TEI checkout、`cmd/tei` build、Reference Workspace validation、SOZA Adapter経由のactual `deployment-provider-plan`実行はすべてskipされています。
+
+したがって、workflow全体がsuccessであってもE3b-P2のScoped Executable Evidenceとは数えません。
+
+```text
+credential-aware probe success
+  != actual TEI checkout success
+  != actual TEI execution success
+  != E3b-P2 Satisfied
+```
+
+現在の実行結果は`runtime/ACTUAL_TEI_INTEGRATION_PROBE_EVIDENCE_2026-09-02.md`に記録しています。
+
 ### E3b-M1a — live KJ Atlas process + deterministic model stub
 
-ISSUE-000065では、public repository `hat47x/kj-atlas`の固定commit `4f28c13abe4176503c6fed863383a2d1db2299e9`を取得し、KJ Atlas FastAPI backendと同repositoryのdeterministic model stubをSOZAとは別processとして実際に起動しました。
+ISSUE-000064では、public repository `hat47x/kj-atlas`の固定commit `4f28c13abe4176503c6fed863383a2d1db2299e9`を取得し、KJ Atlas FastAPI backendと同repositoryのdeterministic model stubをSOZAとは別processとして実際に起動しました。
 
 `POST /ai/suggest-card-groups`をactual HTTPで呼び、KJ Atlasのrequest model、LLM input IR、SafeMode、local model routing、response filteringを通したうえで、grouping responseをSOZAのCognitive Method Applicationへ戻しています。
 
@@ -343,24 +357,22 @@ KJ Atlas grouping suggestion
   != Decision
 ```
 
-current PR #41の検査点`5cd3fff304c6bd99e0ab29dc2df4765d4f0e59be`では、External Method Integration E3b Run `33586658465`、Semantic Runtime `33586658788`、Plan integrity `33586658513`、E3a `33586658524`、Provider側E3b `33586658542`、Local Package `33586658477`、Release Candidate Gate `33586658457`がすべてsuccessしました。
-
-Release Candidate Gateは9/9 successで、既存v0.2.0のrelease preparation / publicationは意図どおりskippedされています。
+PR #41は`develop/v0.2.0`へマージ済みで、merge commitは`fe0588c1ca24903fad49dfbacde84700b94d3ecc`です。マージ後の基線でもPlan integrity、live Provider integration、projection evaluation等の回帰checkがsuccessしており、既存v0.2.0の再publicationは意図どおりskipされています。
 
 ### v0.2.0との関係
 
-v0.2.0のsupported release scopeはE3aまでです。E3b-P1、TEI executable注入境界、E3b-M1aはrelease後に積み上がったScoped Executable Evidenceであり、既に公開済みのv0.2.0 supported scopeやRelease Evidenceを遡及的に広げません。
+v0.2.0のsupported release scopeはE3aまでです。E3b-P1、TEI executable注入境界、E3b-P2 probe、E3b-M1aはrelease後に積み上がったEvidenceまたは実証準備であり、既に公開済みのv0.2.0 supported scopeやRelease Evidenceを遡及的に広げません。
 
 ```text
-post-release E3b Evidence exists
+post-release E3b Evidence / probe exists
   != v0.2.0 supported scope expanded
   != v0.2.0 Release Evidence expanded
 ```
 
 ### Open questions
 
-- actual TEI executableをどの環境から、どのEvidence付きでintegration testへ渡すか
-- private repository credentialをacquisition / deployment policyへどう閉じ込めるか
+- SOZA Actionsからprivate TEIの固定revisionを取得するrepository-scoped credentialを、どの運用境界で供給するか
+- TEI executableの正式な取得・配布方式をどの時点で決めるか
 - TEI CLI version交換時に必要なProvenance / Exact Bindingの水準
 - E3b-M1bで利用する実外部modelと、その品質評価をsemantic execution Evidenceからどう分離するか
 - model / Method / Provider version交換をまたぐhistorical reconstructionをどう検査するか
@@ -403,7 +415,7 @@ v0.2.0 Release Evidence Satisfied
   != Adoption / Outcome Evidence
 ```
 
-v0.2.0でsupportを主張するRealization / Provider exchangeの範囲はE3aまでです。release後に得られたE3b-P1、TEI executable注入境界、E3b-M1aのEvidenceを、v0.2.0のsupported scopeへ自動的に追加しません。
+v0.2.0でsupportを主張するRealization / Provider exchangeの範囲はE3aまでです。release後に得られたE3b-P1、TEI executable注入境界、E3b-P2 probe、E3b-M1aのEvidenceや実証準備を、v0.2.0のsupported scopeへ自動的に追加しません。
 
 詳細は`release/v0.2.0/RELEASE_EVIDENCE.md`を正とします。
 
@@ -441,8 +453,10 @@ Open Questionを直接Stable Requirementへ飛ばしません。
 
 ## 14. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、Product Identity / Access / Collaboration、Realization / Provider Exchange、v0.2.0 Release Acceptance / Release Evidence、REQ-0001〜0022、SCN-0001〜0018、ADR-0024 / 0025 / 0028 / 0029 / 0030、ISSUE-000046 / 000047 / 000053〜000063 / 000065、current Go runtime、Interaction / Packaging / Product Access / E2 / E3a / E3b-P1 / TEI executable injection boundary / E3b-M1a、actual `v0.2.0` tag / GitHub Release / release assetへ戻ってMilestone全体を再監査しました。
+Product Value、Value Proposition、Product Shape、Product Interaction、Product Packaging、Product Identity / Access / Collaboration、Realization / Provider Exchange、v0.2.0 Release Acceptance / Release Evidence、REQ-0001〜0022、SCN-0001〜0018、ADR-0024 / 0025 / 0028 / 0029 / 0030、ISSUE-000046 / 000047 / 000053〜000065、current Go runtime、Interaction / Packaging / Product Access / E2 / E3a / E3b-P1 / TEI executable injection boundary / E3b-P2 probe / E3b-M1a、actual `v0.2.0` tag / GitHub Release / release assetへ戻ってMilestone全体を再監査しました。
 
-PMS-06にはKJ Atlasを用いたE3b-M1aのScoped Executable Evidenceを追加しましたが、deterministic model stubの生成品質を実外部AI model品質へ昇格させていません。また、PMS-07のv0.2.0 supported scopeはE3aまでに保ち、post-releaseのE3b-P1、TEI executable注入境界、M1aによってRelease Evidenceを遡及的に拡張していません。actual TEI execution、E3b-M1b、E4 Operational portability、production security / Storage、PMS-08のOperational / Adoption・Outcome Evidenceは未検証のままです。
+PMS-06では、M1aのIssue番号をcurrent正本のISSUE-000064へ修正し、マージ済みPR #41とマージ後回帰checkへ記述を同期しました。また、ISSUE-000065のE3b-P2専用probeを追加しましたが、最初のrunではprivate TEI取得資格情報が利用できずactual TEI stepがskipされたため、E3b-P2は未検証のままです。workflow successをactual TEI successへ読み替えていません。
+
+PMS-07のv0.2.0 supported scopeはE3aまでに保ち、post-releaseのE3b-P1、TEI executable注入境界、E3b-P2 probe、M1aによってRelease Evidenceを遡及的に拡張していません。actual TEI execution、E3b-M1b、E4 Operational portability、production security / Storage、PMS-08のOperational / Adoption・Outcome Evidenceは未検証のままです。
 
 意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。
