@@ -165,9 +165,11 @@ TEI source / binary acquisition
 
 `runtime/go/teiintegration`では、外部から明示的に与えられたexecutableを呼べるAdapter境界を実装しています。
 
-helper subprocessによるdeterministic testにはScoped Executable Evidenceがありますが、**helper subprocessのPASSはactual TEI CLI executionのEvidenceではありません**。
+helper subprocessによるdeterministic testにはScoped Executable Evidenceがありますが、**helper subprocessのPASSだけをactual TEI CLI executionのEvidenceとは扱いません**。
 
-actual `hat47x/tei-platform` executable / serviceを実際に呼んだE3b-P2は、引き続き**Not Yet Verified**です。
+ISSUE-000065では、TEI commit `48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67`を固定し、TEI側Workflow Run `33589084290`でactual `cmd/tei`をbuildして`deployment-provider-plan`を実行しました。得られたactual artifactをcurrent SOZA Adapterから別OS processとして起動し、strict decode、Capability Observation mapping / validation、Provider固有情報の非漏出を確認しています。
+
+したがって、E3b-P2は**fixed-artifact scopeでScoped Executable Evidence available**です。SOZA Actionsからprivate repositoryを継続取得するcredential運用、任意TEI version互換性、production integrationは別の未検証範囲として残します。
 
 ### 6.3 E3b-M1a — live KJ Atlas process + deterministic model stub
 
@@ -279,8 +281,8 @@ post-release E3b Evidence
 | E2 out-of-process reference exchange | Scoped Executable Evidence | ISSUE-000057 | external independent artifact |
 | E3a version-pinned external artifact | Scoped Executable Evidence | ISSUE-000058 | live Provider / Method execution |
 | E3b-P1 public live Provider | Scoped Executable Evidence | ISSUE-000060 | actual TEI / external Method |
-| external TEI executable injection boundary | Scoped Executable Evidence | ISSUE-000061 | actual TEI execution |
-| E3b-P2 actual TEI | Not Yet Verified | — | — |
+| external TEI executable injection boundary | Scoped Executable Evidence | ISSUE-000061 | actual TEI / credential operation |
+| E3b-P2 actual TEI | Fixed-artifact Scoped Executable Evidence | ISSUE-000065 | credential operation / arbitrary version / Operational portability |
 | E3b-M1a live KJ Atlas + model stub | Scoped Executable Evidence | ISSUE-000064 | external model quality / M1b |
 | E3b-M1b live external model-backed Method | Not Yet Verified | — | — |
 | E4 operational portability | Not Yet Verified | — | — |
@@ -289,8 +291,8 @@ post-release E3b Evidence
 
 次に固定せず調べる領域は次です。
 
-- actual TEI executable / serviceをどの環境からEvidence付きで渡すか
-- private repository credentialをacquisition / deployment policyへどう閉じ込めるか
+- fixed-artifact Evidenceを維持しながら、private repository credentialをacquisition / deployment policyへどう閉じ込めるか
+- TEI executableの配布・更新経路をどの段階で正式化するか
 - TEI CLI version交換時のProvenance / Exact Binding水準
 - E3b-M1bで実外部modelを用いたときにもM1aの意味境界が保てるか
 - formal integration protocolを本当に標準化する必要があるか
@@ -306,8 +308,8 @@ E2〜E3bの実証で使ったGitHub、HTTP、CLI、FastAPI、SQLite等を、そ�
 
 ## 14. 自然な日本語レビュー
 
-PMS-06、ADR-0017 / 0021 / 0025、ISSUE-000057〜000064、current Cognitive Method / Capability Observation Contract、E3a / E3b Provider Evidence、v0.2.0 Release Evidence、KJ Atlas固定commitのactual integration結果を照合しました。
+PMS-06、ADR-0017 / 0021 / 0025、ISSUE-000057〜000065、current Cognitive Method / Capability Observation Contract、E3a / E3b Provider Evidence、v0.2.0 Release Evidence、KJ Atlas固定commitのactual integration結果、固定TEI artifactのactual execution結果を照合しました。
 
-そのうえで、外部artifactを取得したEvidence、public Providerをliveに呼んだEvidence、TEI executable注入境界、KJ Atlasをlive実行したM1aを一つの段階へ潰さず、それぞれ何を確認したかが自然に読めるよう整理しました。
+そのうえで、外部artifactを取得したEvidence、public Providerをliveに呼んだEvidence、TEI executable注入境界、fixed-artifact actual TEI execution、KJ Atlasをlive実行したM1aを一つの段階へ潰さず、それぞれ何を確認したかが自然に読めるよう整理しました。
 
 意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。

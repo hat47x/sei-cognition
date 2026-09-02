@@ -1,7 +1,7 @@
 # SOZA 上流プロダクト開発計画
 
 更新日: 2026-09-02  
-状態: **Current Upstream Planning Baseline — v0.2.0 Release Evidence / E3b-M1a / E3b-P2 acquisition probe reflected**
+状態: **Current Upstream Planning Baseline — v0.2.0 Release Evidence / E3b-P2 fixed-artifact / E3b-M1a reflected**
 
 ## 1. この文書の役割
 
@@ -65,12 +65,12 @@ Evidence
 
 Product Interaction、Local Single-Node Packaging、Product Access責務分離は、Design baselineと限定されたExecutable Evidenceまで進みました。v0.2.0 Local Reference Product Baselineについてはactual Release Evidenceも成立しています。
 
-Real Method / Provider Portabilityでは、E2、E3a、E3b-P1に加え、E3b-M1aとしてKJ Atlasのlive process + deterministic model stubまでScoped Executable Evidenceが得られました。E3b-P2については、実TEI専用integration testとcredential-aware workflowまで実装し、最初のprobeでprivate repository資格情報が利用できずactual TEI stepが実行されないことを確認しています。
+Real Method / Provider Portabilityでは、E2、E3a、E3b-P1、E3b-M1aに加え、E3b-P2でも固定revisionのactual TEI CLIをbuild・実行し、current SOZA Adapterへ戻す範囲までScoped Executable Evidenceが得られました。最初のcredential-aware probeでactual TEI stepがskipされた履歴は保持し、後続のfixed-artifact Evidenceと混同しません。
 
 現在の主要な未定領域は次です。
 
-- E3b-P2: SOZA Actionsからprivate TEIの固定revisionを取得するrepository-scoped credentialを、どの運用境界で供給するか
-- E3b-P2: 資格情報を与えた実runでactual TEI CLIのbuild / validate / `deployment-provider-plan` / Capability Observation mappingが成立するか
+- E3b-P2: SOZA Actionsからprivate TEIを継続取得するrepository-scoped credentialを、どの運用境界で供給するか
+- E3b-P2: fixed revision以外のTEI versionへ交換してもcurrent Adapter境界とhistorical reconstructionを保てるか
 - E3b-M1b: 実外部model-backed Cognitive Method executionを、Method実行成立と生成品質評価へどう分けるか
 - Provider / Realization / model version交換時に必要なProvenance / Exact Bindingとhistorical reconstructionの水準
 - network degradation、rate limit、credential失効等をどのEvidence段階で扱うか
@@ -224,9 +224,10 @@ E1 Contract / in-process synthetic
   → E3a version-pinned external artifact integration     [Scoped Evidence]
   → E3b
        ├─ P1 public live Provider service                 [Scoped Evidence]
-       ├─ P2 actual TEI process / service                 [Not Yet Verified]
+       ├─ P2 actual TEI process / service
        │    ├─ external executable injection boundary     [Scoped Evidence]
-       │    └─ credential-aware acquisition probe         [actual TEI skipped]
+       │    ├─ fixed-artifact actual TEI CLI execution    [Scoped Evidence]
+       │    └─ credential operation / arbitrary version   [Not Yet Verified]
        └─ M1 live external Cognitive Method
             ├─ M1a KJ Atlas + deterministic model stub   [Scoped Evidence]
             └─ M1b external model-backed execution       [Not Yet Verified]
@@ -251,13 +252,11 @@ TEI source / binary acquisition
   != SOZA Capability Observation mapping
 ```
 
-ISSUE-000065では、TEI commit `48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67`を固定し、実TEI専用integration testとcredential-aware workflowを追加しました。最初のRun `33589190828`ではdeterministic process-boundary testはsuccessしましたが、`TEI_REPOSITORY_TOKEN`が利用できず、actual TEI checkout / build / validate / Adapter実行はskipされました。
+ISSUE-000065では、TEI commit `48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67`を固定しました。最初のcredential-aware Run `33589190828`では`TEI_REPOSITORY_TOKEN`が利用できずactual TEI stepがskipされましたが、後続のTEI側Run `33589084290`でactual `cmd/tei`をbuildし、`deployment-provider-plan`をskipなしで実行しました。
 
-このため、E3b-P2は**Not Yet Verified**のままです。run全体のsuccessをactual TEI executionへ読み替えません。
+生成したactual artifactをcurrent SOZA Adapterから別processとして起動し、strict decode、Capability Observation mapping / validation、Provider固有情報の非漏出まで確認しています。actual Provider Plan bytesはdigest付きfixtureとして通常CIで継続検査します。したがって、E3b-P2はfixed-artifact範囲で**Scoped Executable Evidence available**へ進みました。
 
-次の実証では、repository-scoped credentialをacquisition / deployment policy側から与え、actual checkout、`cmd/tei` build、Reference Workspace validation、`deployment-provider-plan`実行、current Capability Observation mappingまでをskipなしで通します。
-
-credentialを利用する場合も、GitHub PATや特定Secret製品をUniversal semanticsへ持ち込まず、acquisition / deployment policy側の問題として扱います。今回のprobeだけから「残る問題は資格情報だけである」とも断定せず、actual TEIを起動した後に初めて現れるCLI / JSON / lifecycle差を引き続き検証対象にします。
+次の探索点は、SOZA Actionsからprivate TEIを継続取得するcredential運用、TEI executableの配布・更新、fixed revision以外のversion交換、E4 Operational portabilityです。credentialを利用する場合も、GitHub PATや特定Secret製品をUniversal semanticsへ持ち込まず、acquisition / deployment policy側の問題として扱います。
 
 #### 6.4.2 E3b-M1aからM1bへ
 
@@ -295,7 +294,7 @@ v0.2.0 Release Evidence Satisfied
   != Adoption / Outcome Evidence
 ```
 
-post-releaseのE3b-P1、TEI executable注入境界、E3b-P2 acquisition probe、E3b-M1aは新しいScoped Executable Evidenceまたは実証準備です。これらを既に公開済みのv0.2.0 supported scopeやRelease Evidenceへ遡及的に含めません。
+post-releaseのE3b-P1、TEI executable注入境界、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1aは新しいScoped Executable Evidenceです。これらを既に公開済みのv0.2.0 supported scopeやRelease Evidenceへ遡及的に含めません。
 
 今後の焦点は、E4として実環境でRealization / Providerを交換しても判断記憶を継続利用できるかを観測することと、利用者にとっての実際の価値をOperational / Adoption / Outcome Evidenceとして分離して測ることです。
 
@@ -331,10 +330,10 @@ post-releaseのE3b-P1、TEI executable注入境界、E3b-P2 acquisition probe、
 
 ## 9. Natural Japanese review
 
-current Product Value、Product Shape、Product Milestone、v0.2.0 Release Evidence、ISSUE-000045〜000065、E2 / E3a / E3b-P1 / E3b-M1aのactual Evidence、ISSUE-000065のE3b-P2 probe、`hat47x/tei-platform`の実CLIとprivate repository条件、KJ Atlasの固定commitとactual process実証へ戻り、現在の上流探索順序を再監査しました。
+current Product Value、Product Shape、Product Milestone、v0.2.0 Release Evidence、ISSUE-000045〜000065、E2 / E3a / E3b-P1 / E3b-P2 fixed-artifact / E3b-M1aのactual Evidence、`hat47x/tei-platform`の固定CLI artifactとprivate repository条件、KJ Atlasの固定commitとactual process実証へ戻り、現在の上流探索順序を再監査しました。
 
-Product Interaction、Packaging、Product Accessの既存scoped Evidenceを「未着手」のまま残さず、Real Method / Provider Portabilityを主探索系列として維持しています。そのうえで、M1aのcurrent Issue番号をISSUE-000064へ同期し、E3b-P2は実TEI専用testとworkflowまで具体化しました。最初のprobeではprivate repository資格情報が利用できずactual TEI stepがskipされたため、次の作業点を「接続方式を考える」から「資格情報をacquisition境界で供給し、固定revisionのactual executionをskipなしで検証する」へ狭めています。
+Product Interaction、Packaging、Product Accessの既存scoped Evidenceを「未着手」のまま残さず、Real Method / Provider Portabilityを主探索系列として維持しています。E3b-P2では最初のcredential-aware probeのskipを成功扱いせず、その後に固定revisionのactual `cmd/tei` build / executionとSOZA Adapter mappingを別経路で実証しました。これにより次の作業点は、fixed-artifact実行そのものから、private-repository credential運用、artifact配布・更新、TEI version交換、E4へ移ります。
 
-v0.2.0 actual Release Evidenceは成立済みとして計画へ反映し、post-releaseのE3b Evidenceやprobeによってsupported scopeを遡及的に広げていません。また、helper processをactual TEI executionへ、credential-aware workflow successをskipされたactual executionへ、deterministic model stubを実外部model品質へ昇格させない停止線を維持しています。
+v0.2.0 actual Release Evidenceは成立済みとして計画へ反映し、post-releaseのE3b Evidenceによってsupported scopeを遡及的に広げていません。また、helper processをactual TEI executionへ、credential-aware workflow successをskipされたactual executionへ、fixed-artifact実行をcredential運用やOperational portabilityへ、deterministic model stubを実外部model品質へ昇格させない停止線を維持しています。
 
 意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。
