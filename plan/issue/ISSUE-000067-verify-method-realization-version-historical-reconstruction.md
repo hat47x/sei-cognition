@@ -40,15 +40,15 @@ M1b workflowではmodel / runtime identityをintegration Evidenceとして別途
 
 したがって、同じsource revisionの下でmodel / runtimeだけを交換した場合、**実行時の観測Evidenceには差があるのに、portable Application historyでは実現条件の差を十分に辿れない可能性**がある。
 
-これはUniversal Contractの不足とはまだ断定しない。current Contractはすでに次を許しているためである。
+これはUniversal Contractの不足とは断定しない。current Contractはすでに次を許しているためである。
 
 - `MethodRealization.implementation_refs`にExact Referenceを置く。
 - `MethodApplication.realization_ref`にExact Referenceを置く。
 - 同じLogical Referenceに複数のExact Binding revisionを持たせる。
 
-## 最初の実証仮説
+## H1 — current Contractだけでhistorical revisionを区別できるか
 
-最初のH1 probeでは、M1a / M1bを次の二つのRealization revisionとして扱う。
+H1では、M1a / M1bを次の二つのRealization revisionとして表現した。
 
 ```text
 Method Definition
@@ -66,24 +66,76 @@ Revision B
   + Ollama 0.32.14 / qwen2.5:0.5b execution artifact
 ```
 
-Revision A / Bは同じMethod Definitionを実現し、同じRealization logical identityの履歴に属するが、実装ArtifactのExact BindingとRealization自身のExact Bindingは異なるものとして記録する。
+Revision A / Bは同じMethod Definitionを実現し、同じRealization logical identityの履歴に属する。一方、実装ArtifactのExact BindingとRealization自身のExact Bindingはrevisionごとに分ける。
 
 各Method Applicationは、その時点で用いたRealization revisionをExact Referenceで指す。
 
-この表現で次が成立するなら、model / runtime固有fieldをMethod Applicationへ追加する必要はない。
+model / runtimeの具体情報はprobe-localなimplementation Artifact payloadに置き、Cognitive Method Contractへ`model`や`runtime`のUniversal fieldを追加しない。
 
-## H1 probeで確認すること
+## H1で確認したこと
 
-1. M1a / M1bに相当する二つのRealization revisionが、同じLogical Referenceの下で共存できる。
-2. 両Realizationは同じKJ Atlas source Artifactを参照できる。
-3. model execution Artifactだけを別のExact Bindingとして保持できる。
+`runtime/go/semanticruntime/method_realization_reconstruction_test.go`で、次を検査した。
+
+1. M1a / M1b相当の二つのRealization revisionが、同じLogical Referenceの下で共存できる。
+2. 両Realizationは同じKJ Atlas source ArtifactのExact Bindingを共有できる。
+3. model execution Artifactだけを異なるExact Bindingとして保持できる。
 4. Application AはRevision A、Application BはRevision BをExact Referenceで指せる。
-5. 後からRevision Bが追加されても、Application Aのhistorical bindingがRevision Bへ置き換わらない。
+5. 後からRevision Bが存在しても、Application Aが保持するhistorical bindingはRevision Bへ置き換わらない。
 6. bundle内のExact Reference consistencyが成立する。
-7. logical-onlyなRealization Referenceでは、複数revisionが存在するとhistorical revisionを一意に選べないことをnegative controlとして確認する。
-8. model / runtime identityはprobe-localなimplementation Artifactの内容として保持し、Universal Cognitive Method fieldへ昇格させない。
+7. logical-onlyなRealization Referenceでは候補が二つとなり、historical revisionを一意に選べない。
+8. model / runtime identityをUniversal Cognitive Method fieldへ昇格させなくても、implementation Artifactを経由して当時の実現条件へ辿れる。
 
-## 実証に用いる既存Evidence
+### H1 CI
+
+- `Semantic Runtime Conformance` Run `33629248978`: **success**
+- Job `100244317333`: **success**
+- 同Runの`go test ./...`にH1 probeを含む。
+- Plan integrity Run `33629248942`: **success**
+
+後続headでもSemantic Runtime Conformance Run `33629465281`はsuccessしている。
+
+H1の正本Evidenceは`runtime/METHOD_REALIZATION_RECONSTRUCTION_EVIDENCE_2026-09-02.md`とする。
+
+## H1から得た判断
+
+H1の範囲では、**current Method Realization + implementation refs + Exact Bindingでhistorical revisionを区別できる**。
+
+したがって、現時点では次を追加しない。
+
+- model / runtime固有のUniversal Contract field
+- 新しいStable Requirement / Scenario
+- すべてのMethod ApplicationへExact Bindingを要求する一律規則
+
+```text
+H1 Core / Bundle reconstruction PASS
+  != current live integration preservation PASS
+  != arbitrary model/runtime portability
+  != E4 Operational portability
+```
+
+H1はCore Contract / Bundleの表現力を確認したものであり、current live integration helperがその表現力を実際に使えていることまでは確認していない。
+
+## H2 — live integrationへ落としたときの最小表現を比較する
+
+ISSUE-000067はH1 successだけでは閉じない。
+
+current `livemethodintegration`はApplicationへlogical-only Realization Referenceを渡している。また、`interactionprobe.CanonicalStore`はlogical identityを中心にrecordを扱っており、同一logical identityの複数Exact revisionを同一storeへ保持する用途はまだ実証していない。
+
+H2では、少なくとも次の二案を比較する。
+
+### A. 実行条件が異なるものを別Realization logical identityとして扱う
+
+M1aとM1bを別のMethod Realizationとして記録し、両方を同じMethod Definitionへ結び付ける。
+
+### B. 同じRealization logical identityのExact revisionとして扱う
+
+H1と同様にlogical identityを共有し、implementation Artifactの違いをExact revisionとして表す。
+
+どちらかをUniversal ruleとして先に固定しない。実際のApplication history、CanonicalStore、bundle交換、historical reviewで失われる意味を比較し、情報を落とさない最小境界を選ぶ。
+
+必要性が残る場合には、閉じたPR #55で試した二つのactual modelによる交換probeの考え方をH2の実験入力として再利用できる。ただし、新しい`ExecutionIdentity`等の意味構造を先に正本へ追加しない。
+
+## 実証に用いた既存Evidence
 
 ### Revision A相当 — M1a
 
@@ -103,13 +155,13 @@ Revision A / Bは同じMethod Definitionを実現し、同じRealization logical
 - observed model ID: `a8b0c5157701`
 - post-merge Run: `33609470323`
 
-このH1 probeではactual modelを再度呼ぶこと自体を目的にしない。既に成立したM1a / M1bの実行identityを入力として、portable historical reconstructionの意味境界を検査する。
+H1ではactual modelを再度呼ぶこと自体を目的としていない。既に成立したM1a / M1bの実行identityを入力として、portable historical reconstructionの意味境界を検査した。
 
 ## Requirement / Scenario監査
 
-現時点では新しいStable Requirement / Scenarioを追加しない。
+H1の結果を踏まえても、新しいStable Requirement / Scenarioは追加しない。
 
-まず既存の次で表現できるかを検査する。
+既存の次で引き続き扱う。
 
 - REQ-0001 — 耐久的な意味の連続性
 - REQ-0004 — Methodと一つのRealizationを同一視しない
@@ -117,7 +169,7 @@ Revision A / Bは同じMethod Definitionを実現し、同じRealization logical
 - SCN-0005 — Cognitive Methodの交換・再構成
 - SCN-0015 — Method Applicationのportable reconstruction
 
-H1 probeでcurrent Contract / Exact Bindingだけでは守れない独立したProduct failureが確認された場合にだけ、Candidate Requirementを検討する。
+H2でcurrent Contract / Exact Bindingだけでは守れない独立したProduct failureが確認された場合にだけ、Candidate Requirementを検討する。
 
 ## Non-goals / 停止線
 
@@ -132,7 +184,7 @@ H1 probeでcurrent Contract / Exact Bindingだけでは守れない独立したP
 - v0.2.0 supported scopeを遡及的に拡張すること
 
 ```text
-historical reconstruction probe PASS
+historical reconstruction H1 PASS
   != arbitrary model/runtime portability
   != model quality
   != Operational Evidence
@@ -140,24 +192,35 @@ historical reconstruction probe PASS
 
 ## 完了条件
 
+### H1
+
 - [x] M1a / M1bの差とcurrent live integration記録の差を整理する。
 - [x] current Cognitive Method Contract / Exact Bindingで表現可能な仮説を定義する。
-- [ ] 同一Realization logical identityに二つのExact Binding revisionを置くH1 probeを実装する。
-- [ ] 各Applicationが対応するRealization revisionをExact Referenceで保持できることを確認する。
-- [ ] logical-only referenceが複数revisionを一意に復元できないnegative controlを確認する。
-- [ ] bundle Exact Reference consistencyを確認する。
-- [ ] actual CIでH1 probeを成功させる。
-- [ ] 実証結果から、Universal Contract / Requirement変更が必要かを監査する。
-- [ ] Evidence文書、上流計画、Plan台帳を同期する。
-- [ ] 自然な日本語を最重要視して全文を再ドラフトし、最終意味監査を行う。
+- [x] 同一Realization logical identityに二つのExact Binding revisionを置くH1 probeを実装する。
+- [x] 各Applicationが対応するRealization revisionをExact Referenceで保持できることを確認する。
+- [x] logical-only referenceが複数revisionを一意に復元できないnegative controlを確認する。
+- [x] bundle Exact Reference consistencyを確認する。
+- [x] actual CIでH1 probeを成功させる。
+- [x] 実証結果からUniversal Contract / Requirement変更の要否を監査し、H1時点ではNo Changeとする。
+- [x] H1 Evidence文書を作成する。
+
+### H2 / Issue closure
+
+- [ ] H1結果を上流計画、Product Milestone、文書監査台帳へ同期する。
+- [ ] current live integrationでRealization execution identityを失わない最小表現を比較・実証する。
+- [ ] H2結果からRequirement / Contract変更の要否を再監査する。
+- [ ] 対象CIをすべてsuccessさせる。
+- [ ] 自然な日本語を最重要視して更新文書を全文再確認し、最終意味監査を行う。
 
 ## Evidence state
 
 - M1a deterministic model stub execution: **Scoped Executable Evidence available**
 - M1b actual model-backed execution: **Scoped Executable Evidence available**
-- Realization revision historical reconstruction H1: **Not Yet Verified**
+- H1 Core / Bundle historical reconstruction: **Scoped Executable Evidence available — Run `33629248978`**
+- live integration preservation of Realization execution identity: **Not Yet Verified**
 - arbitrary model / runtime version portability: **Not Yet Verified**
 - E4 Operational portability: **Not Yet Verified**
+- Operational Evidence: **Not Yet Verified**
 
 ## Reopen / escalation条件
 
@@ -171,8 +234,8 @@ historical reconstruction probe PASS
 
 ## 自然な日本語レビュー
 
-current Upstream Product Development Plan、Cognitive Method Contract、ADR-0008 / 0009 / 0017 / 0021 / 0025 / 0026、E3b-M1a / M1b Evidence、`runtime/go/livemethodintegration`のcurrent mappingを照合した。
+current Upstream Product Development Plan、Cognitive Method Contract、ADR-0008 / 0009 / 0017 / 0021 / 0025 / 0026、E3b-M1a / M1b Evidence、`runtime/go/livemethodintegration`のcurrent mapping、H1 probe、Run `33629248978`を照合した。
 
-M1aとM1bではKJ Atlasのsource revisionが同じままmodel executionだけが変わるため、source commitだけをRealization identityの手掛かりにするとhistorical reconstructionが不足し得ることを明示した。一方、これを直ちにUniversal model fieldの不足とは扱わず、既存のMethod Realization、implementation refs、Exact Bindingで解けるかを先に実証する構成とした。
+M1aとM1bではKJ Atlasのsource revisionが同じままmodel executionだけが変わる。H1では、その差を直ちにUniversal model fieldの不足とは扱わず、既存のMethod Realization、implementation refs、Exact Bindingだけでhistorical revisionを一意に辿れることを確認した。一方、current live integrationはまだlogical-only Realization Referenceを使っているため、Core Contractの表現力と実際のmapping成立を混同せずH2へ残している。
 
-意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語として一続きに読めることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
