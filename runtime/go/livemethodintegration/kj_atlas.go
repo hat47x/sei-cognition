@@ -15,12 +15,23 @@ import (
 
 var fullCommitSHA = regexp.MustCompile(`^[0-9a-f]{40}$`)
 
-// SourceIdentityはE3b-M1aの取得・実行元を追跡するためのprobe-local情報です。
+// SourceIdentityは、KJ Atlas側の取得元と実行入口を追跡するためのprobe-local情報です。
 // repositoryやcommitをUniversalなMethod identityへ昇格させるものではありません。
 type SourceIdentity struct {
 	Repository string `json:"repository"`
 	Commit     string `json:"commit"`
 	EntryPoint string `json:"entry_point"`
+}
+
+// ExecutionIdentityは、あるMethod Realizationを実行したときの具体的な実現条件を
+// probe-local Provenanceとして残すための情報です。modelやruntimeをUniversal Contractの
+// 固定fieldへ昇格させず、後から実行条件の違いを読み直せるようにします。
+type ExecutionIdentity struct {
+	Profile        string `json:"profile"`
+	Runtime        string `json:"runtime,omitempty"`
+	RuntimeVersion string `json:"runtime_version,omitempty"`
+	Model          string `json:"model,omitempty"`
+	ModelID        string `json:"model_id,omitempty"`
 }
 
 type KJAtlasGroup struct {
@@ -38,6 +49,7 @@ type KJAtlasGroupingResult struct {
 type ApplyGroupingInput struct {
 	Store          *interactionprobe.CanonicalStore
 	Source         SourceIdentity
+	Execution      ExecutionIdentity
 	MethodRef      semanticruntime.LogicalReference
 	RealizationRef semanticruntime.LogicalReference
 	ApplicationRef semanticruntime.LogicalReference
@@ -50,10 +62,11 @@ type ApplyGroupingInput struct {
 }
 
 type provenancePayload struct {
-	Repository   string `json:"repository"`
-	Commit       string `json:"commit"`
-	EntryPoint   string `json:"entry_point"`
-	ResultSHA256 string `json:"result_sha256"`
+	Repository   string             `json:"repository"`
+	Commit       string             `json:"commit"`
+	EntryPoint   string             `json:"entry_point"`
+	Execution    *ExecutionIdentity `json:"execution,omitempty"`
+	ResultSHA256 string             `json:"result_sha256"`
 }
 
 // ParseKJAtlasGroupingResultは、version固定したKJ Atlasのresponseを
@@ -109,6 +122,9 @@ func ApplyKJAtlasGroupingResult(input ApplyGroupingInput) error {
 	if err := validateSource(input.Source); err != nil {
 		return err
 	}
+	if err := validateExecution(input.Execution); err != nil {
+		return err
+	}
 	if err := validateRef("method", input.MethodRef); err != nil {
 		return err
 	}
@@ -142,10 +158,16 @@ func ApplyKJAtlasGroupingResult(input ApplyGroupingInput) error {
 	}
 
 	digest := sha256.Sum256(input.ResultJSON)
+	var execution *ExecutionIdentity
+	if !executionIdentityEmpty(input.Execution) {
+		value := input.Execution
+		execution = &value
+	}
 	provenanceBytes, err := json.Marshal(provenancePayload{
 		Repository:   input.Source.Repository,
 		Commit:       input.Source.Commit,
 		EntryPoint:   input.Source.EntryPoint,
+		Execution:    execution,
 		ResultSHA256: hex.EncodeToString(digest[:]),
 	})
 	if err != nil {
@@ -217,6 +239,30 @@ func validateSource(source SourceIdentity) error {
 		return errors.New("source entry point is required")
 	}
 	return nil
+}
+
+func validateExecution(execution ExecutionIdentity) error {
+	if executionIdentityEmpty(execution) {
+		return nil
+	}
+	if strings.TrimSpace(execution.Profile) == "" {
+		return errors.New("execution profile is required when execution identity is recorded")
+	}
+	if strings.TrimSpace(execution.RuntimeVersion) != "" && strings.TrimSpace(execution.Runtime) == "" {
+		return errors.New("execution runtime is required when runtime_version is recorded")
+	}
+	if strings.TrimSpace(execution.ModelID) != "" && strings.TrimSpace(execution.Model) == "" {
+		return errors.New("execution model is required when model_id is recorded")
+	}
+	return nil
+}
+
+func executionIdentityEmpty(execution ExecutionIdentity) bool {
+	return strings.TrimSpace(execution.Profile) == "" &&
+		strings.TrimSpace(execution.Runtime) == "" &&
+		strings.TrimSpace(execution.RuntimeVersion) == "" &&
+		strings.TrimSpace(execution.Model) == "" &&
+		strings.TrimSpace(execution.ModelID) == ""
 }
 
 func validateRef(label string, ref semanticruntime.LogicalReference) error {
