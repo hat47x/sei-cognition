@@ -90,6 +90,8 @@ checkout pinned TEI revision
 
 資格情報が無いrunでは、deterministic boundaryが成功してもE3b-P2のPASSとは扱わない。workflow logにその境界を明記する。
 
+PR時の検査だけでなく、`develop/v0.2.0`への統合後にも同じ専用workflowを自動実行する。これにより、PR上の境界検査と統合後のcurrent branchでの回帰確認を分けて記録する。
+
 ## 最初のprobe結果
 
 PR #44のProbe commit `348bdfa5d3cac97af3e0d12d2959d948922e7ceb`に対するWorkflow Run `33589190828`で、最初のcredential-aware probeを実行した。
@@ -113,6 +115,24 @@ Run 33589190828 success
 確認結果は`runtime/ACTUAL_TEI_INTEGRATION_PROBE_EVIDENCE_2026-09-02.md`へ記録した。
 
 今回のprobeによりacquisition層の資格情報が現在の阻害点として観測されたが、「残る問題は資格情報だけである」とは断定しない。資格情報を供給した後に、actual TEIのCLI / JSON / process lifecycleで追加差分が現れる可能性は未検証である。
+
+## `develop/v0.2.0`統合後の回帰結果
+
+PR #45でE3b-P2専用workflowに`develop/v0.2.0`へのpush triggerを追加し、merge commit `5167e7e6e3ffb8ed4f21030547f8e4c384ad1502`に対するWorkflow Run `33590170686`が実際に自動起動することを確認した。
+
+このrunでは、deterministic process-boundary testと資格情報確認、Evidence境界の記録がsuccessした。`TEI_REPOSITORY_TOKEN`は引き続き利用できなかったため、actual TEIのcheckout、build、Reference Workspace validation、SOZA Adapter経由の実行はすべてskipされた。
+
+したがって、次の二点を分けて扱う。
+
+```text
+merge後の専用workflow回帰確認
+  = Satisfied
+
+actual TEI CLI execution
+  = Not Yet Verified
+```
+
+この結果により、「merge後のcurrent branchでも専用検査経路が動くこと」は確認できたが、E3b-P2のEvidence強度そのものは上がっていない。
 
 ## 必須Evidence
 
@@ -166,18 +186,19 @@ E3b-P2をSatisfiedへ移すには、少なくとも次を記録する。
 - [x] 最初のcredential-aware probe結果をEvidence文書へ記録する。
 - [x] plan registry / document review registry / Product Milestone / 上流計画をcurrent probeへ同期する。
 - [x] 自然な日本語を最重要視した全文再ドラフトと最終意味監査を行う。
+- [x] merge後の`develop/v0.2.0`でE3b-P2専用workflowを含む回帰CIを確認する。
 - [ ] fixed TEI revisionのcheckoutを実際に成功させる。
 - [ ] actual `cmd/tei` buildを成功させる。
 - [ ] TEI Reference Workspace validationを成功させる。
 - [ ] actual `deployment-provider-plan`をSOZA Adapter経由で実行する。
 - [ ] actual mapping結果をcurrent Capability Observation validatorへ通す。
-- [ ] merge後の`develop/v0.2.0`でE3b-P2専用workflowを含む回帰CIを確認する。
 
 ## Evidence state
 
 - Design Evidence: **Satisfied for the current boundary**
 - ISSUE-000061 external TEI executable injection boundary: **Scoped Executable Evidence available with helper subprocess**
 - Credential-aware acquisition probe: **Executed / actual TEI acquisition unavailable in Run 33589190828**
+- Post-merge E3b-P2 workflow regression: **Satisfied in Run 33590170686 / actual TEI steps skipped**
 - E3b-P2 actual TEI CLI execution: **Not Yet Verified**
 - E3b-M1a live external Cognitive Method execution: **Scoped Executable Evidence available**
 - E3b-M1b external model-backed Cognitive Method execution: **Not Yet Verified**
@@ -196,6 +217,8 @@ E3b-P2をSatisfiedへ移すには、少なくとも次を記録する。
 
 ## Natural Japanese review
 
-ISSUE-000061、PMS-06、current Capability Observation Contract、`runtime/go/teiintegration`、固定した`hat47x/tei-platform`の`cmd/tei`、Reference Workspace、TEI CIで用いられているdurable run、PR #44のWorkflow Run `33589190828`を照合した。今回の焦点を「private repositoryをどう取得するか」だけに縮退させず、「固定revisionから得た実TEI CLIを既存Provider Adapter境界で実行しても意味の分離が保たれるか」に置いたまま、現時点で実際に観測できた阻害点をacquisition層へ記録している。
+ISSUE-000061、PMS-06、current Capability Observation Contract、`runtime/go/teiintegration`、固定した`hat47x/tei-platform`の`cmd/tei`、Reference Workspace、TEI CIで用いられているdurable run、PR #44のWorkflow Run `33589190828`、PR #45統合後のWorkflow Run `33590170686`を照合した。
 
-最初のrunではactual TEI stepがskipされたため、workflow successやdeterministic test successをE3b-P2へ読み替えていない。また、資格情報を供給すれば必ずactual executionが成功するとも推定していない。意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+最初のprobeと統合後の回帰runはいずれも、actual TEI stepがskipされたためE3b-P2へ読み替えていない。一方、PR時だけでなく`develop/v0.2.0`へ統合した後にも専用workflowが自動起動し、deterministic境界が壊れていないことは独立した回帰結果として記録した。また、資格情報を供給すれば必ずactual executionが成功するとも推定していない。
+
+意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
