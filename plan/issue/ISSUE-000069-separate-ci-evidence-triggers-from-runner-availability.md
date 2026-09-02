@@ -12,7 +12,9 @@ GitHub Actionsのrunner割当など外部実行環境の問題と、SOZA reposit
 
 あわせて、外部Providerやactual modelを起動する実証workflowについて、**PRが最終的に含むどの意味変更に対して自動再実証が必要なのか**を明確にする。文書だけの独立PRでactual external executionを無条件に起動せず、scenario-local testだけの変更では無関係な実証を選ばず、共有実装を変更した場合は依存する実証を確実に選ぶ構成を目指す。
 
-このIssueの完了条件は「CIを緑色に見せること」でも「workflow実行回数を最小化すること」でもない。runner未割当をsuccessとして扱わず、GitHub Actionsの実際のpath filter semanticsを前提に、PR差分と実証責務を一致させる。
+同じ原則をLocal Reference Packageにも適用する。package artifactをbuildする実際のGo依存と無関係なpackage変更で再buildせず、`soza-package-probe`の成立に必要な変更では確実に再検証する。
+
+このIssueの完了条件は「CIを緑色に見せること」でも「workflow実行回数を最小化すること」でもない。runner未割当をsuccessとして扱わず、GitHub Actionsの実際のpath filter semanticsと実装依存を前提に、PR差分と検査責務を一致させる。
 
 ## Background
 
@@ -22,9 +24,13 @@ PR #60を`develop/v0.2.0`へ統合した後、複数のGitHub Actions workflow�
 
 同じ時刻帯には、別のprivate repositoryである`hat47x/tei-platform`でも複数jobが同様にstep開始前で終了していた。このため、当初の現象をSOZA固有のtest regressionやworkflow本文の失敗とは判断しなかった。
 
-一方、調査の過程で別の問題も確認した。外部実証workflowには、対応する実装責務より広い`paths`が指定されている箇所があり、ある実証だけに属するtestを追加しただけでも、M1a、M1b、actual二モデル交換など複数の重い実証が同時に対象になっていた。
+一方、調査の過程でrepository側にも二種類の粗さを確認した。
 
-この二つは分けて扱う必要がある。
+第一に、外部実証workflowには対応する実装責務より広い`paths`が指定されている箇所があり、ある実証だけに属するtestを追加しただけでも、M1a、M1b、actual二モデル交換など複数の重い実証が同時に対象になっていた。
+
+第二に、`Local Package Artifact`は`runtime/go/**`全体を監視していたが、実際にbuildする`cmd/soza-package-probe`は`packagingprobe`と`semanticruntime`だけを利用し、`packagingprobe`も`semanticruntime`だけへ依存している。したがって`livemethodintegration`等の変更でLocal Reference Packageを再buildするのは依存関係に対して広すぎた。
+
+これらとrunner割当問題は分けて扱う必要がある。
 
 ```text
 runnerが割り当てられずstepを開始できない
@@ -39,6 +45,12 @@ runnerが割り当てられずstepを開始できない
 
 文書だけの独立PR
   → actual external execution用pathsには一致させない
+
+Local Reference Packageのbuild依存が変わった
+  → Local Package Artifactを再検証する
+
+無関係なGo packageだけが変わった
+  → Local Package Artifactを自動対象にしない
 ```
 
 ## `pull_request.paths`の重要な制約
@@ -66,18 +78,20 @@ runtime変更を含むPRへ文書commitを追加
 1. 外部実証workflowを自動対象にすべき変更範囲は、どのruntime / Adapter / fixture / scenario-local test / workflowに限定できるか。
 2. 文書だけの独立PRでは、既に成立したScoped Executable Evidenceをactual model取得によって毎回再実証する必要があるか。
 3. 同一package内でも、共有実装と特定実証専用testの変更責務をどこまで分けられるか。
-4. PR時の広いrelease candidate検査と、merge後pushでの再検査をどこまで分離できるか。
-5. runnerが割り当てられない状態を、repository内のCI failureと混同せず記録するには何を残すべきか。
-6. runner割当が一部だけ成立する不安定な状態で、どのEvidenceまで確定できるか。
+4. Local Package Artifactは、どのGo packageとmodule変更を実際のbuild依存として監視すべきか。
+5. PR時の広いrelease candidate検査と、merge後pushでの再検査をどこまで分離できるか。
+6. runnerが割り当てられない状態を、repository内のCI failureと混同せず記録するには何を残すべきか。
+7. runner割当が一部だけ成立する不安定な状態で、どのEvidenceまで確定できるか。
 
 ## Constraints
 
 - runner未割当をCI successとして扱わない。
 - workflowを単に無効化して赤い状態を隠さない。
-- E3a、E3b-P1、E3b-P2、E3b-M1a、E3b-M1b、actual二モデル交換で既に得られたEvidenceの意味や高さを変更しない。
-- actual external executionの処理本文、SOZA mapping、historical reconstruction test、Release Gateの受入条件を、実行量削減だけを理由に弱めない。
+- E3a、E3b-P1、E3b-P2、E3b-M1a、E3b-M1b、actual二モデル交換、Local Reference Packageで既に得られたEvidenceの意味や高さを変更しない。
+- actual external executionの処理本文、SOZA mapping、historical reconstruction test、Release Gate、Local Package Artifactの検査本文を、実行量削減だけを理由に弱めない。
 - `workflow_dispatch`等による明示的な再実証経路を必要なworkflowで残す。
 - `pull_request.paths`のPR全体差分というGitHubの挙動を、commit単位のfilterとして誤って説明しない。
+- pathを狭めるときは、実際のbuild / test依存を確認して必要な変更を取りこぼさない。
 - CI使用量や課金方式をUniversal Product Requirementへ持ち込まない。
 - post-releaseのExecutable Evidenceをv0.2.0 supported scopeへ遡及的に追加しない。
 
@@ -125,9 +139,57 @@ PR #63でExact Realization Reference対応を`kj_atlas.go`へ追加した後、�
 
 runtime / Adapter / fixture / scenario-local test / workflowを変更せず、Issue、上流計画、Evidence説明、監査台帳だけを変更する独立PRを用意した場合、actual external execution用pathsに一致しないことを確認する。
 
+PR #64をPR #61のheadから分岐し、差分を`plan/document_review_registry.yaml`だけに限定して検証した。
+
+head `d292ce43298c537124739becb6963fdef848e39f`で生成されたworkflowは次の1本だけだった。
+
+- Plan integrity Run `33672679058`
+
+次は生成されなかった。
+
+- External Integration E3a
+- External Integration E3b
+- External TEI Integration E3b P2
+- External Method Integration E3b
+- External Model-backed Method E3b M1b
+- Actual Model Artifact Exchange E3b
+- Local Package Artifact
+
+したがって、文書だけの独立PRではactual external executionとLocal Package Artifactを選択しないことを**run生成レベルで確認済み**である。
+
+Plan integrity Job `100389847417`自体は`steps=[]`のまま終了したため、Plan integrityの検査本文がPASSしたとは扱わない。trigger selectionとrunner executionを分けて記録する。
+
 同じruntime変更PRへ文書commitを追加した場合は、PR全体差分にruntime変更が残るため本scenarioの対象外とする。
 
-### E6 — runner割当成立後の回帰
+### E6 — Local Package Artifactのbuild依存選択
+
+`Local Package Artifact`がbuildする`cmd/soza-package-probe`のimportを確認した。
+
+```text
+cmd/soza-package-probe
+  → packagingprobe
+  → semanticruntime
+
+cmd/soza-package-probe
+  → semanticruntime
+```
+
+この実依存に合わせ、自動起動条件を次へ限定した。
+
+- `runtime/go/cmd/soza-package-probe/**`
+- `runtime/go/packagingprobe/**`
+- `runtime/go/semanticruntime/**`
+- `runtime/go/go.mod`
+- `runtime/go/go.sum`
+- `runtime/package/reference/**`
+- `fixtures/contracts/v1alpha1/boundary/**`
+- `.github/workflows/local-package-artifact.yml`
+
+build、二重build一致、build identity、deterministic archive、checksum、展開後resumeの検査本文は変更していない。
+
+PR #63のような`livemethodintegration`のみの変更ではLocal Package Artifactを対象にせず、上記build依存を変更した場合は対象にすることを確認対象とする。
+
+### E7 — runner割当成立後の回帰
 
 runnerが割り当てられたworkflowについて、既存検査本文が実際にsuccessすることを確認する。
 
@@ -139,6 +201,7 @@ runnerが割り当てられたworkflowについて、既存検査本文が実際
 - External Method Integration E3b
 - External Model-backed Method E3b M1b
 - Actual Model Artifact Exchange E3b
+- Local Package Artifact
 - Release Candidate Gate
 - Plan integrity
 
@@ -156,6 +219,7 @@ PR #63 head `765eb189f97d7dba402cec864960cecb3a5a91a6`では、`Actual Model Art
 - `.github/workflows/external-method-integration-e3b.yml`
 - `.github/workflows/external-model-method-integration-e3b-m1b.yml`
 - `.github/workflows/actual-model-artifact-exchange-e3b.yml`
+- `.github/workflows/local-package-artifact.yml`
 - `.github/workflows/release-candidate.yml`
 - 本Issue
 - `plan/registry.yaml`
@@ -166,6 +230,10 @@ PR #63 head `765eb189f97d7dba402cec864960cecb3a5a91a6`では、`Actual Model Art
 2026-09-03時点で、PR #61のworkflow変更はGitHubに受理されている。
 
 scenario-local testのpath選択については、PR #63のhead `55bfcfb45e6e19210e925923565700a075ab006d`で期待どおりの選択性を確認した。その後shared mappingを変更すると依存workflowが再び選択され、PR全体の意味変更に応じたtriggerとして動作している。
+
+文書だけの独立PRについてはPR #64で確認し、Plan integrityだけが生成され、actual external executionとLocal Package Artifactは一切生成されなかった。したがってE5はrun生成レベルで成立した。
+
+Local Package Artifactについては、`soza-package-probe → packagingprobe → semanticruntime`という実依存を確認し、`runtime/go/**`全体からbuild依存範囲へtriggerを限定した。検査本文は変更していない。
 
 runnerについては、当初の「ほぼ全面的にstep開始前で終了する状態」から変化が見られる。PR #63 head `765eb189f97d7dba402cec864960cecb3a5a91a6`のRun `33670697154`ではactual二モデル交換が全stepを完走した。
 
@@ -180,6 +248,12 @@ scenario-local trigger selection
 
 shared-change dependent trigger selection
   = confirmed
+
+docs-only independent PR selection
+  = confirmed in PR #64
+
+Local Package Artifact dependency boundary
+  = refined from actual Go imports; runtime execution not yet re-confirmed
 
 runner assignment
   = partially available / unstable
@@ -197,15 +271,18 @@ GitHub側の具体的な原因を課金、budget、runner pool等のいずれか
 
 Open中。
 
-次をすべて満たした時点でResolvedとする。
+次のうち1〜5と7は成立した。6は静的な依存監査まで完了しているが、trigger変更後のactual package workflow回帰が未確認である。8はrunner割当の不安定さにより未完了である。
 
-1. PR #61で外部実証workflowの起動範囲が、共有実装とscenario-local実証の責務に沿って整理されている。
-2. actual executionの処理本文やEvidence強度を弱めていないことを差分監査で確認している。
-3. scenario-local testだけのPR差分では、無関係なactual external workflowが選択されないことを確認している。
-4. shared実装変更では、依存するactual external workflowが選択されることを確認している。
-5. 文書だけの独立PRでは、actual external execution用pathsに一致しないことを確認している。
-6. runner割当が成立した状態で、PR #61の対象workflowについて必要な回帰実行がsuccessしている。
-7. runner未割当期間やstep未開始failureをSOZA Product / Evidenceのfailureとして誤記していない。
+1. PR #61で外部実証workflowの起動範囲が、共有実装とscenario-local実証の責務に沿って整理されている。**完了**
+2. actual executionの処理本文やEvidence強度を弱めていないことを差分監査で確認している。**完了**
+3. scenario-local testだけのPR差分では、無関係なactual external workflowが選択されないことを確認している。**完了**
+4. shared実装変更では、依存するactual external workflowが選択されることを確認している。**完了**
+5. 文書だけの独立PRでは、actual external execution用pathsに一致しないことを確認している。**完了: PR #64**
+6. Local Package Artifactが実際のbuild依存変更で起動し、無関係なGo package変更では起動しないことを確認する。**部分完了: dependency / path設計済み、runner上の回帰未確認**
+7. runner未割当期間やstep未開始failureをSOZA Product / Evidenceのfailureとして誤記していない。**完了**
+8. runner割当が成立した状態で、PR #61の対象workflowについて必要な回帰実行がsuccessしている。**未完了**
+
+6と8まで確認した時点でResolvedとする。
 
 ## Reopen conditions
 
@@ -214,6 +291,8 @@ Resolved後も、次の場合は再開する。
 - triggerを狭めた結果、runtime / Adapter / fixtureの意味変更時に必要な実証が選択されない。
 - scenario-local testだけの変更で無関係な重い実証が再び対象になる。
 - 文書だけの独立PRでactual external workflowが無条件に対象になる。
+- Local Package Artifactの実依存を変更したのにpackage workflowが対象にならない。
+- 無関係なGo package変更だけでLocal Package Artifactが恒常的に対象になる。
 - `workflow_dispatch`を含む再実証経路が失われる。
 - release publicationに必要なpush / tag経路が起動しなくなる。
 - CI使用量削減のために検証本文やAcceptanceが弱められる。
@@ -238,9 +317,11 @@ runnerが割り当てられないrunでは、差分監査によって検査本�
 
 当初は「文書だけを更新したcommitなら重いworkflowを再実行しない」という読み方ができる記述があったが、GitHub Actionsの`pull_request.paths`はPR全体の差分で判定されるため、その表現を修正した。
 
-現在の目的はcommit単位の実行抑制ではなく、文書だけの独立PR、scenario-local test、shared実装変更という**PR差分の意味**と実証責務を一致させることである。
+現在の目的はcommit単位の実行抑制ではなく、文書だけの独立PR、scenario-local test、shared実装変更という**PR差分の意味**と実証責務を一致させることである。PR #64を使い、文書だけの独立PRではPlan integrityだけが選択されることも実測した。
 
-runner状態についても、「利用不能」から「復旧済み」へ単純に二値化していない。Run `33670697154`ではactual workflowが完走した一方、同じheadでもstep未開始のjobが残っているため、部分的・不安定な割当として記録した。
+Local Package Artifactについても「Goの変更なら全部再build」という粗い説明を避け、実際にbuildする`soza-package-probe`からimport依存をたどって起動範囲を整理した。検査本文を減らすのではなく、artifactに影響する変更と再build責務を一致させている。
+
+runner状態については、「利用不能」から「復旧済み」へ単純に二値化していない。Run `33670697154`ではactual workflowが完走した一方、同じheadでもstep未開始のjobが残っているため、部分的・不安定な割当として記録した。
 
 `steps=[]`という観測事実からSOZA固有test failureを推論せず、課金・budget・GitHub側障害等の具体原因も未確認のまま断定しない。
 
