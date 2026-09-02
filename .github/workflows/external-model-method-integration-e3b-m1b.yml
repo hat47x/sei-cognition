@@ -5,6 +5,8 @@ on:
     paths:
       - "runtime/integration/e3b_m1b_ollama_adapter.py"
       - "runtime/go/livemethodintegration/**"
+      - "!runtime/go/livemethodintegration/model_artifact_exchange_test.go"
+      - "!runtime/go/livemethodintegration/runtime_version_exchange_test.go"
       - "runtime/go/go.mod"
       - "runtime/go/go.sum"
       - ".github/workflows/external-model-method-integration-e3b-m1b.yml"
@@ -14,6 +16,8 @@ on:
     paths:
       - "runtime/integration/e3b_m1b_ollama_adapter.py"
       - "runtime/go/livemethodintegration/**"
+      - "!runtime/go/livemethodintegration/model_artifact_exchange_test.go"
+      - "!runtime/go/livemethodintegration/runtime_version_exchange_test.go"
       - "runtime/go/go.mod"
       - "runtime/go/go.sum"
       - ".github/workflows/external-model-method-integration-e3b-m1b.yml"
