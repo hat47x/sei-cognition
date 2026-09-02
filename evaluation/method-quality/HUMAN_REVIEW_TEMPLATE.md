@@ -1,6 +1,6 @@
 # Cognitive Method成果品質 Human Review Template
 
-更新日: 2026-09-02  
+更新日: 2026-09-03  
 位置づけ: **Structured human review record template — この様式自体はEvidenceではない**
 
 ## 1. 使い方
@@ -17,12 +17,16 @@
 - Case ID:
 - Reviewer role / context:
 - KJ法に関する経験・前提:
+- Workflow run / review bundle artifact:
 - Input identity / digest:
 - Method Definition / Realization:
 - Method source revision:
 - Output identity / digest:
+- Structure report identity / digest:
 - Model / runtime等のProvenance（必要な場合）:
 - レビュー前にmodel / runtime identityを知っていたか: yes / no / partial
+
+workflow artifactを使う場合は、request、result、model call Evidence、structure reportが同じrunに属することを確認し、そのrunまたはartifactを上欄へ記録します。artifactの存在自体を品質判定の根拠にはしません。
 
 model名やruntime名は評価結果の意味を再構成するために必要な範囲で記録します。特定modelをSOZAの標準として扱うための欄ではありません。
 
@@ -126,4 +130,4 @@ one human review
 
 ## 10. Natural Japanese review
 
-KJ法の成果を単一尺度で裁定するのではなく、元cardへ戻りながら「訴え」「束ね」「表札」「残差」「次の壁打ち」を具体的に記録できる形へ整理しました。技術的な実行identityは必要な範囲に留め、レビュー本文では人間が自然に読み書きできる日本語を最優先して全文を再ドラフトしています。
+KJ法の成果を単一尺度で裁定するのではなく、元cardへ戻りながら「訴え」「束ね」「表札」「残差」「次の壁打ち」を具体的に記録できる形へ整理しました。actual workflowのreview bundleを使う場合も、artifactの存在と品質判断を混同せず、同じrunのrequest / result / structure / Provenanceへ戻れるようにしました。技術的な実行identityは必要な範囲に留め、レビュー本文では人間が自然に読み書きできる日本語を最優先して全文を再ドラフトしています。
