@@ -1,24 +1,20 @@
 name: Plan integrity
 
 on:
-  pull_request:
-    paths:
-      - "plan/**"
-      - "**/*.md"
-      - ".github/workflows/plan-integrity.yml"
+  push:
+    branches:
+      - work/method-outcome-quality-evaluation
 
 permissions:
   contents: write
 
 jobs:
   repair-pr59-registries:
-    if: ${{ github.event.pull_request.number == 59 }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout PR head
+      - name: Checkout branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
 
       - name: Synchronize current planning registries
@@ -40,4 +36,4 @@ jobs:
             exit 0
           fi
           git commit -m "ISSUE-000069を最新Planning基線へ同期する"
-          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          git push origin HEAD:work/method-outcome-quality-evaluation
