@@ -15,11 +15,11 @@ status_vocabulary:
 reviewed:
   - scope: README.md
     status: revised
-    note: Product Value traceabilityと5段階Evidence境界を反映したcurrent root README。
+    note: v0.2.0 Local Reference Product Baselineのactual Release Evidence、current develop branch、5 Contract family、current Plan範囲へ同期し、旧v0.1.0基線の記述を自然な日本語で全面再ドラフト済み。
 
   - scope: product/README.md
     status: revised
-    note: Product Value、Product Shape、期限を持たないProduct Milestone、Product Interaction、Product Packaging、未定領域の探索手順をcurrent Product入口として再整理し、InteractionとPackagingの限定Executable Evidenceを同期済み。
+    note: Product Value、Product Shape、期限を持たないProduct Milestone、Product Interaction、Packaging、Identity / Access、Realization / Provider Exchange、v0.2.0 Release Evidenceまでをcurrent Product入口として再整理済み。
   - scope: product/value/*.md
     status: revised
     coverage:
@@ -28,6 +28,7 @@ reviewed:
       - SOZA_VALUE_MODEL.md
       - SOZA_VALUE_ACCEPTANCE.md
       - SOZA_VALUE_TRACEABILITY.md
+    note: Value Traceabilityはactual v0.2.0 tag / release / asset / candidate gateを反映し、Release EvidenceをLocal Reference Product Baselineへ限定してSatisfiedとした。Operational / Adoption・Outcomeは未検証のまま保持している。
   - scope: product/definition/*.md
     status: revised
     coverage:
@@ -43,7 +44,7 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_MILESTONES.md
-    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06はmerge後developで再現したE3b-P1までをscoped Executable Evidenceとして反映し、ISSUE-000061のTEI executable注入境界とactual E3b-P2を分離している。PMS-07ではactual v0.2.0 Release Candidate EvidenceとRelease Evidenceを分けている。
+    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06はE2 / E3a / E3b-P1までをScoped Executable Evidenceとして保ち、PMS-07はv0.2.0 Local Reference Product Baselineのactual Release Evidence成立へ同期した。PMS-08は未検証のまま分離している。
   - scope: product/interaction/*.md
     status: revised
     coverage:
