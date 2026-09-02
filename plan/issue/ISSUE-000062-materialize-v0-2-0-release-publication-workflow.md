@@ -1,6 +1,6 @@
 # ISSUE-000062: v0.2.0 actual release publication workflowを実体化する
 
-Status: **In Progress**  
+Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0018, ADR-0020, ADR-0021, ADR-0029**  
 Updated: 2026-09-02
@@ -24,7 +24,7 @@ candidate gate PASS
 
 ISSUE-000059により、v0.2.0はLocal Reference Product Baselineとしてcandidate scopeが定義された。その後もdevelopではE3b-P1 public live Provider integrationと、actual TEI実行の前段となるexternal executable injection boundaryまで実装が進んでいる。
 
-最新の基準点 `c8c6fab583a60fc31f13348ccd2a895ef058eba2` では、Release Candidate Gate Run `33572742329`、Plan integrity Run `33572742370`、External Integration E3a Run `33572742330`、External Integration E3b Run `33572742309`、Semantic Runtime Conformance Run `33572742418`、Local Package Artifact Run `33572742415`がsuccessしている。
+実装開始時の基準点 `c8c6fab583a60fc31f13348ccd2a895ef058eba2` では、Release Candidate Gate Run `33572742329`、Plan integrity Run `33572742370`、External Integration E3a Run `33572742330`、External Integration E3b Run `33572742309`、Semantic Runtime Conformance Run `33572742418`、Local Package Artifact Run `33572742415`がsuccessしていた。
 
 一方、repositoryにはまだ`v0.2.0` tagもGitHub Releaseも存在しない。
 
@@ -40,6 +40,22 @@ Release Acceptanceでは、Release Evidenceへ進む条件として少なくと�
 - tag対象commitでcandidate検査がsuccessしている。
 
 これらを人手の記憶に依存させず、repository内のrelease policyと同じく再現可能にする必要がある。
+
+## Resolution
+
+v0.2.0のpublicationを、既存Release Candidate Gateの後段に置く二段階構成として実装した。
+
+PRでは`prepare-v0-2-0-release` jobだけが動作し、candidate report、Local Reference Package、checksum、Release Notes、release requestをread-onlyで照合する。actual `v0.2.0` tag / GitHub Releaseを作る`publish-v0-2-0` jobは、`develop/v0.2.0`へのpushでRelease Candidate Gateとrelease preparationが成功した場合だけ実行される。
+
+write権限はpublication jobだけへ限定した。PR上の検査や通常のcandidate jobには`contents: write`を与えない。
+
+既存tagがある場合は、検査済みsource commitと一致する場合だけ再利用する。別commitを指すtagは上書きせずfailureとする。tag作成後にRelease作成だけが失敗した場合は、同じcommitを指すtagを確認したうえで再実行できる。
+
+Release Notesでは、repositoryにE3b-P1やTEI executable injection boundaryのScoped Evidenceが存在していても、v0.2.0のsupported scopeはE3aまでであることを明記した。
+
+bootstrap PR #40のRun `33574397299`ではGate 1〜8がすべてsuccessし、Gate 9だけが`ISSUE-000062`をblocking Plan Issueとして検出してfailureした。これはpublication実装の不具合ではなく、未解決Issueをcandidateへ持ち込まない既存policyが意図どおり機能した結果である。
+
+本Issue自身がcandidate blockerであるため、実装成立とblocker動作を確認したこの時点でResolvedへ移す。closure後は同じPRで全9 gateとread-only release preparationを再実行し、失敗した場合は本IssueをReopenする。
 
 ## Design
 
@@ -109,18 +125,18 @@ publication途中でtagだけが作られた場合も、同じcommitを指して
 
 ### Design / implementation
 
-- [ ] release requestをmachine-readableに追加する。
-- [ ] release notesを自然な日本語で正本化する。
-- [ ] candidate report / package checksumを検査するrelease preparation scriptを追加する。
-- [ ] Release Candidate Gateへread-only release preparation jobを追加する。
-- [ ] actual publication jobのwrite権限を`develop/v0.2.0` push時だけに限定する。
-- [ ] tagの既存・不一致・部分publishを安全に扱う。
-- [ ] package / checksum / candidate report / metadataをRelease assetへ含める。
+- [x] release requestをmachine-readableに追加する。
+- [x] release notesを自然な日本語で正本化する。
+- [x] candidate report / package checksumを検査するrelease preparation scriptを追加する。
+- [x] Release Candidate Gateへread-only release preparation jobを追加する。
+- [x] actual publication jobのwrite権限を`develop/v0.2.0` push時だけに限定する。
+- [x] tagの既存・不一致・部分publishを安全に扱う。
+- [x] package / checksum / candidate report / metadataをRelease assetへ含める。
 
 ### PR verification
 
-- [ ] IssueがIn Progressの状態でGate 9がblockerとして機能することを確認する。
-- [ ] implementation確認後に本IssueをResolvedへ移す。
+- [x] IssueがIn Progressの状態でGate 9がblockerとして機能することを確認する。Run `33574397299`でGate 1〜8 success、Gate 9のself-blockを確認した。
+- [x] implementation確認後に本IssueをResolvedへ移す。
 - [ ] closure headで9 gateすべてをsuccessさせる。
 - [ ] PR上のrelease preparation dry-runをsuccessさせる。
 - [ ] PRではtag / GitHub Releaseが作られないことを確認する。
@@ -131,6 +147,15 @@ publication途中でtagだけが作られた場合も、同じcommitを指して
 - [ ] publication jobが`v0.2.0` tag / GitHub Releaseを作成する。
 - [ ] tag対象commitのcandidate gateがsuccessしていることを確認する。
 - [ ] actual Release Evidence評価を別Issueへ引き継ぐ。
+
+## Evidence state
+
+- Design Evidence: **Satisfied for the publication boundary**
+- Executable Evidence: **bootstrap scoped evidence available** — Run `33574397299`でGate 1〜8 success、Gate 9 self-blockを確認
+- closure-head Release Candidate / preparation Evidence: **Not Yet Verified until post-closure CI success**
+- Release Evidence: **Not Yet Verified**
+- Operational Evidence: **Not Yet Verified**
+- Adoption / Outcome Evidence: **Not Yet Verified**
 
 ## Evidence boundary
 
@@ -146,6 +171,17 @@ release exists
 ```
 
 actual tag、GitHub Release、release asset、tag対象commitのgate resultを確認した後、別IssueでRelease Evidenceを評価する。
+
+## CI failure handling
+
+closure後の全9 gate、release preparation、またはdevelop merge後のpublicationがfailureした場合、release条件を弱めて通さない。
+
+1. failureしたjob / stepを特定する。
+2. candidate policy、preparation script、workflow、artifact identity、GitHub publicationのどこに原因があるか切り分ける。
+3. 本IssueをReopenする。
+4. 原因のある層を修正する。
+5. 同じ検査を再実行する。
+6. success確認後にのみclosureを維持する。
 
 ## Non-goals
 
@@ -164,10 +200,11 @@ actual tag、GitHub Release、release asset、tag対象commitのgate resultを�
 - release-candidate failureでもpublishできてしまう。
 - tagが別commitを指していても上書きできてしまう。
 - package checksumとrelease asset bytesの対応を検証できない。
+- closure headの9 gateまたはrelease preparationがfailureする。
 - actual develop publicationがfailureする。
 
 ## Natural Japanese review
 
 v0.2.0 Release Acceptance、ISSUE-000059〜000061、Product Milestone、Release Candidate Gate、Local Reference Package、E3b-P1とTEI executable injection boundary、5段階Evidenceへ戻り、candidate検査とactual publicationを別の責務として整理した。とくに、PRではread-onlyの準備だけを検証し、write権限はcandidate success後のdevelop pushへ限定することで、release操作を安全側に倒している。
 
-E3b-P1等の後続実験が存在してもv0.2.0のsupported scopeはE3aまでとし、repositoryに存在するEvidenceとreleaseでsupportを主張する範囲を分離した。actual Release Evidenceはpublication mechanismの成立とは別に扱い、tag / GitHub Release / asset / gate resultを実観測した後に評価する。意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+bootstrap Runの結果も反映し、Gate 1〜8の成功とGate 9のself-blockを、publication成立やRelease Evidenceへ過大評価せず記録した。E3b-P1等の後続実験が存在してもv0.2.0のsupported scopeはE3aまでとし、repositoryに存在するEvidenceとreleaseでsupportを主張する範囲を分離した。actual Release Evidenceはpublication mechanismの成立とは別に扱い、tag / GitHub Release / asset / gate resultを実観測した後に評価する。意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
