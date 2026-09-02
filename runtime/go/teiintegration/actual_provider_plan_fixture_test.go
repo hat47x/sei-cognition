@@ -14,11 +14,14 @@ import (
 
 const actualTEIProviderPlanSHA256 = "39eafb26cf189681e0bd2ff46fcaf000cbe2f860cf698765bbadac6dfbd2a950"
 
-// TestActualTEIProviderPlanFixtureMapsThroughCurrentBoundary は、固定した実TEIの
-// deployment-provider-plan出力をcurrent SOZA runtimeで読み、Provider固有情報を
-// Universal Capability Observationへ持ち込まずにmappingできることを確認します。
-// このfixture test自体は実processの起動Evidenceではなく、実出力との互換性を継続して
-// 検査するための回帰テストです。
+// TestActualTEIProviderPlanFixtureMapsThroughCurrentBoundary は、固定した実TEIが
+// deployment-provider-planで生成した出力をcurrent SOZA runtimeで読み、Provider固有の
+// 情報をUniversal Capability Observationへ持ち込まずにmappingできることを確認します。
+// fixtureのSHA-256を固定することで、別の出力へ知らないうちに置き換わることも防ぎます。
+//
+// actual TEI processを起動したEvidenceはACTUAL_TEI_CLI_EVIDENCE_2026-09-02.mdで別に記録します。
+// このテストが示すのは、そこで得たactual outputとcurrent Adapter / validatorの互換性が
+// 通常CIでも保たれていることまでです。
 func TestActualTEIProviderPlanFixtureMapsThroughCurrentBoundary(t *testing.T) {
 	payload, err := os.ReadFile("testdata/tei-provider-plan-48a7ca1f.json")
 	if err != nil {
