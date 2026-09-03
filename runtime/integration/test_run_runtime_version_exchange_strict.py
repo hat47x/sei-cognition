@@ -71,7 +71,8 @@ class StrictRuntimeVersionExchangeTest(unittest.TestCase):
             self.assertEqual("source", calls[1][0])
             self.assertEqual("run", calls[2][0])
             command = calls[2][1]
-            self.assertEqual(str(ENTRYPOINT.HARNESS), command[0])
+            self.assertEqual("bash", command[0])
+            self.assertEqual(str(ENTRYPOINT.HARNESS), command[1])
             self.assertIn("--kj-atlas-backend-bundle", command)
             self.assertIn("--model-dir", command)
             self.assertIn("--evidence-dir", command)
