@@ -175,7 +175,7 @@ def _verify_runner_evidence_directory_provenance(
     created_by = runner.get("evidenceDirectoryCreatedBy")
     verification.require(
         "provenance.runner.evidence-directory-created-by",
-        created_by in ALLOWED_EVIDENCE_DIRECTORY_CREATORS,
+        isinstance(created_by, str) and created_by in ALLOWED_EVIDENCE_DIRECTORY_CREATORS,
         f"Evidence directory作成主体を確認しました: {created_by}",
         f"Evidence directory作成主体を認識できません: {created_by!r}",
     )
@@ -200,7 +200,7 @@ def _verify_source_preparation(
     preparation = runner.get("sourcePreparation")
     verification.require(
         "provenance.runner.source-preparation",
-        preparation in ALLOWED_SOURCE_PREPARATIONS,
+        isinstance(preparation, str) and preparation in ALLOWED_SOURCE_PREPARATIONS,
         f"runner source preparationを確認しました: {preparation}",
         f"runner source preparationを認識できません: {preparation!r}",
     )
