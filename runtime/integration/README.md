@@ -2,7 +2,12 @@
 
 このディレクトリには、SOZAと外部Cognitive Method / model runtimeの接続を実際に確かめるためのintegration資産を置きます。
 
-ここにあるprobeは、GitHub Actionsや特定runnerを意味上の成立条件にしません。手動実行、開発端末、将来の外部runnerなど、どの実行面から呼び出しても、同じ固定条件と検査境界を再現できることを優先します。
+ここにあるprobeは、GitHub Actionsや特定のrunnerを意味上の成立条件にしません。手動実行、開発端末、外部runner、将来のCIなど、どの実行面から呼び出しても同じ固定条件と検査境界を再現できることを優先します。
+
+```text
+what must be verified
+  != where it is executed
+```
 
 ## Runtime version exchange
 
@@ -84,6 +89,32 @@ scriptは専用Python virtual environmentを作り、固定Ollama archiveを取�
 
 Ollama、SOZA model adapter、KJ Atlasには固定local portを使います。各processを起動する前にportが空いていることを確認し、起動後もharness自身が開始したPIDが生存していることを確認します。既に動いている別processのhealth responseを、今回のruntime交換実験の実行事実として誤認しないためです。
 
+live testへ渡すKJ Atlas checkout、runtime A / B archive、version logのpathは、harnessがすべて明示します。Go側のartifact guardは`GITHUB_WORKSPACE`や固定`/tmp`配置へ暗黙に戻りません。実行場所が変わっても、実際に検査したsourceやartifactを取り違えないための停止線です。
+
+## Harnessの軽量検査
+
+`test_run_runtime_version_exchange.py`は、actual modelやruntime archiveを取得せず、repository-local harnessとGo側live guardの接続条件だけを検査します。
+
+```bash
+python3 runtime/integration/test_run_runtime_version_exchange.py
+```
+
+確認するのは次です。
+
+- shell syntaxが有効であること。
+- `--help`をprobe起動なしで参照できること。
+- shell側のOllama version / archive digestと、Go側でExact Bindingに使う固定値が一致すること。
+- harnessがKJ Atlas checkout、runtime archive、version logのpathをlive guardへ明示すること。
+- Go側live guardがGitHub Actions固有のworkspaceや固定`/tmp`へ暗黙fallbackしないこと。
+
+この検査は、harnessのinterfaceと固定identityのずれを早期に検出するためのものです。actual runtimeを起動していないため、runtime version交換のExecutable Evidenceにはなりません。
+
+```text
+harness interface test PASS
+  != actual Ollama A/B inference PASS
+  != runtime-version-exchange Scoped Executable Evidence
+```
+
 ## Evidenceの読み方
 
 Evidence directoryには、存在する範囲で次を保存します。
@@ -123,3 +154,11 @@ runtime exchange PASS
 ## Ollama adapter
 
 `e3b_m1b_ollama_adapter.py`は、KJ Atlasのlocal model境界からOllamaへ接続するintegration-only adapterです。model / runtime固有fieldをSOZA Universal Contractへ追加するための実装ではありません。
+
+## Natural Japanese review
+
+このREADMEでは、実験を動かす手順と、得られた結果をどう読めるかを一つの成功条件へまとめないようにしました。
+
+repository-local harnessが固定する条件、ローカル実行で事故や実行identityの取り違えを避ける停止線、Go側artifact guardへ渡すpath、actual runtimeを使わない軽量検査の責務を順に整理しています。
+
+actual Ollama `0.32.13` / `0.32.14`交換が未完了であることは変えていません。実装済みの安全策と未検証のactual A / B実行を自然な日本語として読み分けられることを最重要視して再ドラフトしました。
