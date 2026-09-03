@@ -123,6 +123,57 @@ Ollama、SOZA model adapter、KJ Atlasには固定local portを使います。�
 
 live testへ渡すKJ Atlas checkout、runtime A / B archive、version logのpathは、harnessがすべて明示します。Go側のartifact guardは`GITHUB_WORKSPACE`や固定`/tmp`配置へ暗黙に戻りません。実行場所が変わっても、実際に検査したsourceやartifactを取り違えないための停止線です。
 
+## ローカルpreflight
+
+actual runtime交換を開始する前に、`check_runtime_version_exchange_preflight.py`でローカル実行条件だけを副作用なく確認できます。
+
+```bash
+python3 runtime/integration/check_runtime_version_exchange_preflight.py \
+  --kj-atlas-dir /path/to/kj-atlas
+```
+
+このpreflightはprocessを起動せず、runtime archiveやmodelを取得しません。主に次を確認します。
+
+- hostが固定artifactの対象であるLinux / amd64か。
+- harnessが必要とするコマンドが利用可能か。
+- SOZA / KJ AtlasがGit working treeで、未commit変更がないか。
+- KJ Atlasが固定commitに一致するか。
+- work / Evidence pathがsource repository配下を指していないか、既存pathを誤って再利用しないか。
+- 事前配置runtime archiveを指定した場合、実測SHA-256が固定値と一致するか。
+- 事前配置model storageを指定した場合、directoryが存在し安全な位置にあるか。
+- Ollama / model adapter / KJ Atlasで使うlocal portが空いているか。
+
+事前配置artifactだけで実行できる状態を確認したい場合は、次のようにします。
+
+```bash
+python3 runtime/integration/check_runtime_version_exchange_preflight.py \
+  --kj-atlas-dir /path/to/kj-atlas \
+  --runtime-a-archive /path/to/ollama-0.32.13-linux-amd64.tar.zst \
+  --runtime-b-archive /path/to/ollama-0.32.14-linux-amd64.tar.zst \
+  --model-dir /path/to/ollama-models \
+  --require-prepositioned-artifacts
+```
+
+`--json`を付けると、`ready` / `blocked`、blocker ID、各checkの状態をJSONで取得できます。
+
+preflightが`ready`でも、事前配置model storage内のfull model digestはまだ確認済みとは扱いません。model artifact identityは、固定Ollama runtimeを実際に起動した後、`/api/tags`から観測したfull digestで確認します。また、download経路を許可した通常preflightではruntime archiveの未取得状態を`deferred`として扱います。
+
+```text
+preflight ready
+  = actual probeを開始できるローカル条件が揃った
+  != actual Ollama A/B inference PASS
+  != fixed model digest verified
+  != runtime-version-exchange Scoped Executable Evidence
+```
+
+preflight自身の境界は次で確認します。
+
+```bash
+python3 runtime/integration/test_check_runtime_version_exchange_preflight.py
+```
+
+このtestは、固定archive digest検査、事前配置必須時の停止、source path境界、harnessとの固定identity一致、Evidenceへの過大昇格を防ぐ停止線を検査します。
+
 ## Harnessの軽量検査
 
 `test_run_runtime_version_exchange.py`は、actual modelやruntime archiveを取得せず、repository-local harnessとGo側live guardの接続条件だけを検査します。
@@ -202,6 +253,8 @@ runtime exchange PASS
 このREADMEでは、実験を動かす手順と、得られた結果をどう読めるかを一つの成功条件へまとめないようにしました。
 
 repository-local harnessが固定する条件、ローカル実行で事故や実行identityの取り違えを避ける停止線、Go側artifact guardへ渡すpath、actual runtimeを使わない軽量検査の責務を順に整理しています。
+
+ローカルpreflightも、実験そのものを小さく代替する仕組みではありません。process起動前に解消できる環境不足や固定artifact不一致を先に見つけ、actual probeを開始できる状態と、actual inferenceが成立した状態を分けるための診断面として追加しました。
 
 さらに、runtime/model artifactの「どの経路から入手したか」と「どのbytes / digestを実際に使ったか」を分けました。downloadできる環境だけを実験成立条件にせず、事前配置したartifactも同じ固定digest検査へ通します。一方で、事前配置を理由にidentity検査を省略したり、既存model storageを暗黙に更新したりしません。
 
