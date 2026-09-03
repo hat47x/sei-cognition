@@ -3,6 +3,7 @@ import re
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import check_runtime_version_exchange_preflight as preflight
 
@@ -88,6 +89,60 @@ class RuntimeVersionExchangePreflightTest(unittest.TestCase):
         self.assertEqual(1421191399, preflight.RUNTIME_SIZE_B)
         self.assertEqual(2842984585, preflight.TOTAL_COMPRESSED_RUNTIME_BYTES)
 
+    def test_parser_rejects_checkout_and_bundle_together(self):
+        parser = preflight.build_parser()
+        with self.assertRaises(SystemExit):
+            parser.parse_args(
+                [
+                    "--kj-atlas-dir",
+                    "/tmp/kj-atlas",
+                    "--kj-atlas-backend-bundle",
+                    "/tmp/kj-atlas-bundle",
+                ]
+            )
+
+    def test_runtime_bundle_check_accepts_verified_identity(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            soza = root / "soza"
+            bundle = root / "bundle"
+            soza.mkdir()
+            bundle.mkdir()
+            payload = {
+                "sourceCommit": preflight.PINNED_IDENTITY.source_commit,
+                "pinnedBackendTree": preflight.PINNED_IDENTITY.backend_tree,
+                "runtimeSurfaceTree": preflight.PINNED_IDENTITY.runtime_surface_tree,
+            }
+            with patch.object(preflight, "verify_runtime_bundle", return_value=payload):
+                checks = preflight.runtime_bundle_check(bundle, soza)
+            self.assertEqual(["ok", "ok"], [check.status for check in checks])
+            self.assertIn(preflight.PINNED_IDENTITY.runtime_surface_tree, checks[1].detail)
+
+    def test_runtime_bundle_check_rejects_identity_mismatch(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            soza = root / "soza"
+            bundle = root / "bundle"
+            soza.mkdir()
+            bundle.mkdir()
+            with patch.object(
+                preflight,
+                "verify_runtime_bundle",
+                side_effect=ValueError("runtime source bundle identity mismatch"),
+            ):
+                checks = preflight.runtime_bundle_check(bundle, soza)
+            self.assertEqual("blocked", checks[0].status)
+            self.assertIn("identity", checks[0].detail)
+
+    def test_runtime_bundle_check_rejects_bundle_inside_soza(self):
+        with tempfile.TemporaryDirectory() as temp:
+            soza = Path(temp) / "soza"
+            bundle = soza / "bundle"
+            bundle.mkdir(parents=True)
+            checks = preflight.runtime_bundle_check(bundle, soza)
+            self.assertEqual("blocked", checks[0].status)
+            self.assertIn("SOZA repository配下", checks[0].detail)
+
     def test_preflight_and_harness_use_the_same_fixed_identity(self):
         text = HARNESS.read_text(encoding="utf-8")
         pairs = [
@@ -102,6 +157,7 @@ class RuntimeVersionExchangePreflightTest(unittest.TestCase):
         for shell_name, expected in pairs:
             with self.subTest(shell=shell_name):
                 self.assertEqual(expected, shell_value(text, shell_name))
+        self.assertEqual(preflight.KJ_ATLAS_COMMIT, preflight.PINNED_IDENTITY.source_commit)
 
     def test_report_exposes_fixed_artifact_sizes_without_promoting_evidence(self):
         result = preflight.report([preflight.Check("sample", "ok", "ok")])
@@ -110,6 +166,17 @@ class RuntimeVersionExchangePreflightTest(unittest.TestCase):
         self.assertEqual(1421191399, result["fixedArtifacts"]["runtimeB"]["sizeBytes"])
         self.assertEqual(2842984585, result["fixedArtifacts"]["totalCompressedRuntimeBytes"])
         self.assertIn("!= actual runtime A/B inference PASS", result["stopLine"])
+
+    def test_report_exposes_pinned_source_identity_without_claiming_verification(self):
+        result = preflight.report([preflight.Check("sample", "ok", "ok")])
+        pinned = result["pinnedSourceIdentity"]
+        self.assertEqual(preflight.PINNED_IDENTITY.source_commit, pinned["sourceCommit"])
+        self.assertEqual(preflight.PINNED_IDENTITY.backend_tree, pinned["pinnedBackendTree"])
+        self.assertEqual(
+            preflight.PINNED_IDENTITY.runtime_surface_tree,
+            pinned["runtimeSurfaceTree"],
+        )
+        self.assertNotIn("verified", pinned)
 
     def test_report_is_blocked_when_any_check_is_blocked(self):
         result = preflight.report(
