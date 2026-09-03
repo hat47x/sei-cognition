@@ -1,5 +1,7 @@
 package livemethodintegration
 
+// CI trigger probe only: no behavioral change.
+
 import (
 	"encoding/json"
 	"os"
