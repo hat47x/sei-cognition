@@ -68,8 +68,9 @@ actual inference PASS
 
 - カードの訴えが保たれたか。
 - 無理な束ねが起きていないか。
+- 明らかに響き合うcardを見落としていないか。
 - 表札が具体性や差異を消しすぎていないか。
-- 入力にない断定を持ち込んでいないか。
+- 入力にない断定・因果・評価を持ち込んでいないか。
 - 違和感、異論、保留、残差を次の探索へ持ち越せるか。
 - proposalとして人間の壁打ちに使えるか。
 
@@ -79,7 +80,7 @@ actual inference PASS
 
 current baselineでは、生成AIや別のLLMを品質graderとして採用しません。
 
-AIを使った比較や指摘が将来補助材料として役立つ可能性はありますが、その出力を人間のKJ法レビューと同等の正解にはしません。AI graderを導入する場合は、grader自身の再現性、偏り、根拠、human reviewとの関係を別の評価protocolで検証してから扱います。
+AIを使った比較や指摘が補助材料として役立つ可能性はありますが、その出力を人間のKJ法レビューと同等の正解にはしません。AI graderを導入する場合は、grader自身の再現性、偏り、根拠、human reviewとの関係を別の評価protocolで検証してから扱います。
 
 ```text
 AI critique
@@ -125,8 +126,6 @@ review bundleには少なくとも次を含めます。
 
 manifestは、workflow run、repository commit、Method source commitと各ファイルのSHA-256 / byte sizeを対応付けます。さらに、structure reportが記録したrequest / result digestと実ファイルのdigestが一致しない場合はbundle生成を拒否します。manifest自身は成果品質を採点しません。
 
-このbundleは、生成結果そのものと、その構造検査・実行条件を同じrunへ結び付けて読み直すための材料です。artifactが存在すること自体を成果品質のEvidenceにはしません。
-
 ```text
 review bundle preserved
   = output / provenance / structureを後から再確認できる
@@ -160,17 +159,62 @@ case catalog valid
   != Method output quality satisfied
 ```
 
-ケース集を増やす場合も、機械採点のための隠れた正解表へ変えません。特定の出力を比較対象として残す必要がある場合は、human review recordや観測Evidenceとしてidentity付きで保持します。
+ケース集を増やす場合も、機械採点のための隠れた正解表へ変えません。
 
-このcase catalogとvalidatorは、actual modelを起動しない軽量な`Method Quality Evaluation` workflowでも検査します。評価tool自体の回帰と、actual M1b executionのEvidenceは別の責務として扱います。
+## 8. historical actual sample
 
-## 8. Evidenceの読み方
+既存M1bのactual出力を、将来の比較レビューから参照できるよう`historical_actual_samples.json`へ保存します。
+
+current baselineでは次の2 runを保持します。
+
+- Run `33596839607` / Job `100141890796`
+  - label: `生活習慣`
+- Run `33609470323` / Job `100180968648`
+  - label: `在宅勤務`
+
+両runは、同じrequest、KJ Atlas source revision、Ollama `0.32.14`、`qwen2.5:0.5b`、observed model ID prefix、prompt SHA-256を共有しています。一方、生成されたlabel / rationaleは一致しません。
+
+これらを「正解例」「優良例」「失敗例」にはしません。actualに観測された出力とsource identityを、後から同じ条件へ戻るためのhistorical sampleとして保存します。
+
+`test_historical_actual_samples.py`では次だけを確認します。
+
+- 各sampleが定義済みstructure checkerを通過する。
+- `qualityJudgement`は`not_evaluated`のままである。
+- 同じ実行identityから異なるgenerated wordingが保存されている。
+- run / job / repository commitを区別して追跡できる。
+- `expectedGroups`、`expectedLabel`、`qualityScore`、`preferred`、`winner`等を持たない。
+
+```text
+historical sample retained
+  = actual variation can be revisited
+  != preferred output selected
+  != quality judgement completed
+```
+
+この4テストは手元で実行し、`Ran 4 tests` / `OK`を確認しています。既に確認済みのstructure checker 15件、manifest 4件、case catalog validator 10件と合わせ、current evaluation toolは33ケース相当です。
+
+## 9. 軽量評価tool CI
+
+case catalogや評価toolの変更は、actual modelを取得しない`Method Quality Evaluation` workflowでも検査します。
+
+このworkflowは次を担当します。
+
+- structure checker test
+- review bundle manifest test
+- case catalog validator test
+- historical actual sample test
+- current `case_catalog.json`のvalidation
+
+actual M1b workflowはactual model-backed executionとreview bundle生成を担当します。軽量評価tool回帰とactual execution Evidenceを一つのworkflow責務へ混ぜません。
+
+## 10. Evidenceの読み方
 
 この評価系のcheckerやtemplateが存在すること自体は、成果品質のEvidenceではありません。
 
-- checker testのPASS: 評価コードが想定した構造違反を検出できる限定Executable Evidence
-- manifest generator testのPASS: review bundleのidentity / digest対応と停止線を評価コードが検査できる限定Executable Evidence
-- case catalog validator testのPASS: ケース定義の整合と「機械的なgolden answerを持たない」という停止線を検査できる限定Executable Evidence
+- checker testのPASS: 想定した構造違反を検出できる限定Executable Evidence
+- manifest generator testのPASS: review bundleのidentity / digest対応と停止線を検査できる限定Executable Evidence
+- case catalog validator testのPASS: ケース定義とnon-golden境界を検査できる限定Executable Evidence
+- historical sample testのPASS: actual出力のvariationを構造・identityとともに保持できる限定Executable Evidence
 - actual M1b outputへのchecker PASS: その出力が定義済み構造不変条件を満たした限定Executable Evidence
 - actual M1b review bundle: 対象runのinput / output / execution / structureを後から人間が再確認できる記録
 - human review record: 人間による評価観測。条件・評価者・対象を伴って読む
@@ -178,7 +222,7 @@ case catalog valid
 
 人間レビューが一件成立しても、それだけでproduction品質や一般的なKJ法能力を主張しません。
 
-## 9. ファイル
+## 11. ファイル
 
 - `check_grouping_structure.py` — grouping resultの構造不変条件だけを検査する。
 - `test_check_grouping_structure.py` — checkerのpositive / negative controlを検査する。
@@ -187,14 +231,16 @@ case catalog valid
 - `case_catalog.json` — golden groupingを持たず、意味上の難所とhuman review focusを保持する評価ケース集。
 - `validate_case_catalog.py` — case catalogの形式とnon-golden境界だけを検査する。
 - `test_validate_case_catalog.py` — duplicate ID、golden field、machine scoring等を拒否するpositive / negative control。
+- `historical_actual_samples.json` — actual M1b runのinput / output / source identityを品質順位なしで保存する。
+- `test_historical_actual_samples.py` — historical sampleの構造、identity、variation、non-golden境界を検査する。
 - `HUMAN_REVIEW_TEMPLATE.md` — 人間が成果品質と残差を記録する。
 
-## 10. Natural Japanese review
+## 12. Natural Japanese review
 
 ISSUE-000066のactual model-backed Evidence、ISSUE-000067のRealization / Provenance境界、ISSUE-000068のactual model artifact交換、既存V6 / V7 structured reviewへ戻り、機械検査と人間判断が互いを代替しない構成として整理しました。
 
-さらに、actual outputを一時ログだけに閉じ込めず、request、result、実行Evidence、structure report、review bundle manifestを同じrunの材料として人間へ渡せるようにしました。manifestはidentityとdigestの整合だけを担い、成果品質の判断を機械へ先取りしません。
+actual outputは一時ログだけに閉じ込めず、request、result、実行Evidence、structure report、review bundle manifestを同じrunの材料として人間へ渡せるようにしました。manifestはidentityとdigestの整合だけを担い、成果品質の判断を機械へ先取りしません。
 
-評価ケースについても、期待groupや期待表札を正解として埋め込むのではなく、意味的近接、話題語と訴えの違い、緊張、橋、held・異論・残差、孤立を残す必要性という観測点だけを保持しました。ケース定義を機械採点用のgolden datasetへ変えない停止線をvalidatorとtestで明示しています。
+評価ケースは期待groupや期待表札を正解として埋め込まず、意味的近接、話題語と訴えの違い、緊張、橋、held・異論・残差、孤立を残す必要性という観測点だけを保持します。既存actual出力も優劣を付けずhistorical sampleとして保存し、同じ実行identityでも生成文が変わり得ることを後から再確認できるようにしました。
 
 意味とEvidence強度を固定し、自然な日本語として読み進められることを最重要視して全文を再ドラフトしました。
