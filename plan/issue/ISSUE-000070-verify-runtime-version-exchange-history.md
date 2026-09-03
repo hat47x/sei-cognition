@@ -179,20 +179,23 @@ runtime交換のlive testを開始する前に、Go側でも実際の実験条�
 
 `runtime_version_artifact_guard_test.go`は、`SOZA_E3B_RUNTIME_EXCHANGE_LIVE=1`のときだけ次を検査する。
 
-- 指定されたKJ Atlas checkoutのactual commitが固定commitと一致する。
-- runtime A / Bのversion logが、それぞれ`0.32.13` / `0.32.14`を示す。
-- 取得済みruntime archive bytesのSHA-256が固定値と一致する。
+- harnessが明示したKJ Atlas checkoutのactual commitが固定commitと一致する。
+- harnessが明示したruntime A / Bのversion logが、それぞれ`0.32.13` / `0.32.14`を示す。
+- harnessが明示したruntime archive bytesのSHA-256が固定値と一致する。
 
-KJ Atlas path、runtime archive、version logはrepository-local harnessから明示できる。`GITHUB_WORKSPACE`はhistoricalな互換fallbackとしてのみ扱い、必須条件にしない。
+current live guardは`GITHUB_WORKSPACE`や固定`/tmp`配置へ暗黙に戻らない。実行器が検証対象pathをすべて明示することで、実行面を変えたときにも別のsourceやartifactを誤って検査する余地を狭める。
 
 通常のunit testではexternal runtimeを要求しない。
 
-`runtime_version_artifact_guard_unit_test.go`では、PR #71で次を固定した。
+`runtime_version_artifact_guard_unit_test.go`では、次を固定する。
 
 - exact version tokenを受理する。
 - `0.32.13`と`0.32.130`のようなnumeric suffixを取り違えない。
 - exact artifact digestを受理する。
 - artifact digest mismatchを拒否する。
+- live guard用pathが明示されている場合だけ、そのpathを利用できる。
+- 必須pathが空ならlive guardを開始しない。
+- `GITHUB_WORKSPACE`だけではKJ Atlas pathを補完しない。
 - Realization payload bytesが宣言したRaw Bytes SHA-256 Exact Bindingで`verified`になる。
 - payloadを改変すると`verification_failed`になる。
 - 同一のRealization identityから同じExact Bindingを決定的に再構成できる。
@@ -204,6 +207,24 @@ KJ Atlas path、runtime archive、version logはrepository-local harnessから�
 actual execution identity guard
   != payload digest verification
   != bundle-local Exact Reference resolution
+```
+
+### harness interfaceの軽量検査
+
+`runtime/integration/test_run_runtime_version_exchange.py`は、actual runtimeやmodelを取得せず、harnessとGo側の固定境界がずれていないかを検査する。
+
+確認対象は次である。
+
+- shell syntaxが有効である。
+- `--help`をprobe起動なしで参照できる。
+- shell側のOllama version / archive digestがGo側の固定値と一致する。
+- harnessがKJ Atlas checkout、A / B archive、A / B version logをlive guardへ明示する。
+- Go側live guardに`GITHUB_WORKSPACE`や固定`/tmp`の暗黙fallbackが残っていない。
+
+```text
+harness interface test PASS
+  != actual runtime A/B inference PASS
+  != runtime-version-exchange Scoped Executable Evidence
 ```
 
 ## Required experiments
@@ -384,6 +405,8 @@ current implementationには次がある。
 - 既存`--work-dir`を拒否し、harness所有の新規作業directoryだけをcleanupする境界
 - local port availabilityと起動PIDの生存確認
 - A / B runtime archiveの実測SHA-256保存
+- live guardへ検査対象pathを明示する境界
+- harness / Go固定identityの軽量整合test
 - failure途中も保存できるfilesystem Evidence directory
 
 ただし、repository-local harnessによるactual Ollama `0.32.13` / `0.32.14`交換はまだ完走確認していない。
@@ -407,10 +430,13 @@ repository-local runtime exchange harness
   = implemented
 
 post-merge harness hardening
-  = implemented; added shell block syntax checked with bash -n
+  = implemented
+
+harness / Go fixed-identity consistency checks
+  = implemented; actual runtime not required
 
 runtime artifact / source / version live guard
-  = implemented
+  = implemented with explicit paths
 
 actual runtime 0.32.13 / 0.32.14 acquisition through current harness
   = Not Yet Verified
@@ -474,6 +500,7 @@ Resolved後も次の場合は再開する。
 - promptが交換軸へ混入する。
 - 別processのhealth responseを今回のactual runtime実行として誤認できる。
 - 利用者が指定した既存作業directoryをharnessが上書き・削除できる。
+- live guardが実行器から渡されたpath以外を暗黙に参照し、source / artifact identityを取り違えられる。
 - runtime固有情報をUniversal semanticsへ先取りする。
 - actual実験本文が特定automation providerにしか存在せず、repositoryから再実行できなくなる。
 - runtime交換successをmodel / KJ成果品質やE4へ過大評価する。
@@ -500,7 +527,9 @@ execution成立、historical reconstruction、生成品質を別の評価軸と�
 
 ISSUE-000067 / ISSUE-000068、Cognitive Method Contract、Exact Binding、current KJ Atlas mapping、PR #70以降のno-Actions baseline、PR #71のExact Binding補強、ISSUE-000071で確立した成果品質評価境界を再照合した。
 
-PR #76でactual実験本文をrepository-local harnessへ戻した後、ローカル実行特有の前提も再監査した。workflow上では暗黙にcleanだったsource tree、専用作業領域、process起動環境を明示し、別processのhealth responseや利用者所有directoryを今回の実験へ誤って取り込まないようにした。また、runtime archiveについて期待digestだけでなく実測digestもEvidenceへ残すことで、途中失敗時の事実へ戻れるようにした。
+PR #76でactual実験本文をrepository-local harnessへ戻した後、ローカル実行特有の前提も再監査した。source treeのcleanliness、専用作業領域、実行platform、process起動環境を明示し、別processのhealth responseや利用者所有directoryを今回の実験へ誤って取り込まないようにした。また、runtime archiveについて期待digestだけでなく実測digestもEvidenceへ残すことで、途中失敗時の事実へ戻れるようにした。
+
+さらに、harnessとGo側live guardの間で検査対象pathを暗黙のworkspaceや`/tmp`へ委ねないようにした。KJ Atlas checkout、runtime archive、version logは実行器が明示し、軽量testでshell側とGo側の固定runtime identityがずれていないことも確認できる構造にした。この軽量testはactual inferenceの代替にはしない。
 
 これらはruntime交換が成功したというEvidenceではない。実行identityを取り違えず、失敗時にも観測事実を残すための実験基盤の補強である。actual Ollama `0.32.13` / `0.32.14`交換は引き続きNot Yet Verifiedとして維持している。
 
