@@ -204,12 +204,14 @@ run-isolated Evidence preservation
   ↓
 runner observation
   ↓
-mechanical Evidence verification
+core mechanical Evidence verification
+  ↓
+saved preflight / source acquisition Provenance verification
   ↓
 Requirement / Contract assessment + quality review
 ```
 
-harnessのexit code 0、保存済みEvidenceの機械的な十分性、Requirement / Contract再照合、成果品質評価は別の段階として扱う。
+harnessのexit code 0、保存済みEvidenceの機械的な十分性、Provenanceの整合、Requirement / Contract再照合、成果品質評価は別の段階として扱う。
 
 ### Preflight
 
@@ -233,6 +235,13 @@ free bytesは観測値であり、十分なdisk容量の証明にはしない。
 preflight ready
   != actual Ollama A/B inference PASS
   != runtime-version-exchange Scoped Executable Evidence
+```
+
+`--require-prepositioned-artifacts`を使う場合、preflightはruntime A / B archiveと固定model storeが事前配置済みであることを要求する。このmodeはruntime / model artifactの取得方針を`prepositioned-only`へ絞るものであり、Python package解決を含む実行環境全体の完全offline動作を保証するものではない。
+
+```text
+prepositioned runtime / model artifacts
+  != fully offline execution guaranteed
 ```
 
 ### Strict entrypoint
@@ -260,31 +269,52 @@ strict entrypoint verification PASS
 
 actual実験本文は`run_runtime_version_exchange.sh`に置く。strict Evidenceでは原則としてstrict入口から利用する。
 
-low-level harnessはactual runtime archive / binary version / `/api/tags` model digest / prompt digest / inference / Exact Binding / historical Application / portable reconstruction / negative controlを一続きに確認し、run専用Evidence directoryへ保存する。
+low-level harnessはverified KJ Atlas runtime bundleだけを実行sourceとして受け付け、actual runtime archive / binary version / `/api/tags` model digest / prompt digest / inference / Exact Binding / historical Application / portable reconstruction / negative controlを一続きに確認し、run専用Evidence directoryへ保存する。
 
 ### Post-run runner / mechanical verifier
 
-actual実行時は`run_runtime_version_exchange_with_verification.py`を利用できる。このrunnerはstrict入口を正本として呼び出し、source / model準備ロジックを重複実装しない。
+actual実行時の標準入口は`run_runtime_version_exchange_with_verification.py`である。このrunnerはstrict入口を正本として呼び出し、source / model準備ロジックを重複実装しない。
 
 runnerは次を行う。
 
 1. strict入口へsource、model、work、Evidenceを明示的に渡す。
 2. identity / safety optionを下位entrypointへ迂回上書きできないようにする。
-3. strict実行のstdout / stderrを一つのcombined logへ保存する。
-4. exit code、combined log SHA-256 / bytes、source preparationをrunner observationへ記録する。
-5. Evidence directoryが生成された場合、成功・失敗にかかわらず`verify_runtime_version_exchange_evidence.py`を実行する。
-6. mechanical verification reportはEvidence directoryの外へ保存し、検証対象そのものを書き換えない。
+3. actual処理へ進む前にside-effect-free preflightを実行する。
+4. strict実行のstdout / stderrを一つのcombined logへ保存する。
+5. exit code、combined log SHA-256 / bytes、source preparation、preflight resultをrunner observationへ記録する。
+6. 成功したpreflight reportを`runtime-exchange-preflight.json`として同じrun Evidenceへ保存する。
+7. Evidence directoryが生成された場合、成功・失敗にかかわらずpost-run verifierを実行する。
+8. verification reportはEvidence directoryの外へ保存し、検証対象そのものを書き換えない。
 
-mechanical verifierは、固定source / runtime / model / Method input / prompt、actual inference counter、KJ Atlas result境界、runner exit code、completion marker、combined log digest、`qualityJudgement=not_evaluated`を再確認する。
+post-run verificationは二層に分ける。
 
-全機械条件を満たす場合だけ`ready-to-review`、不足や不一致がある場合は`not-sufficient`とblocker IDを返す。
+1. `verify_runtime_version_exchange_evidence.py`
+   - 固定source / runtime / model / Method input / prompt
+   - actual inference counter
+   - KJ Atlas result境界
+   - runner exit code
+   - completion marker
+   - combined log digest
+   - `qualityJudgement=not_evaluated`
+   をcore mechanical Evidenceとして再確認する。
+2. `verify_runtime_version_exchange_provenance.py`
+   - 上記core verifierを先に実行する。
+   - 保存済みpreflightが`ready`かつ`blockers=[]`であることを再確認する。
+   - preflightの固定runtime / model / KJ Atlas source identityをcurrent固定値へ戻す。
+   - runner observationの`preflightResult`と保存済みpreflightを一致させる。
+   - `sourcePreparation`を`verified-runtime-bundle`または`checkout-to-verified-runtime-bundle`へ限定する。
+   - checkout起点では`runtime-exchange-source-export.json`を必須とし、固定commit objectからのexport結果をactual source identity fileへ一致させる。
+   - verified bundle直入力ではcheckout source-export fileの混在を拒否する。
+
+全機械条件とProvenance条件を満たした場合だけ`ready-to-review`、不足や不一致がある場合は`not-sufficient`とblocker IDを返す。
 
 ```text
 strict harness exit code 0
-  != mechanical Evidence verification PASS
+  != core mechanical Evidence verification PASS
 
-mechanical Evidence verification PASS
-  = 保存済みrunが固定された機械条件を満たし、レビュー可能である
+core mechanical Evidence verification PASS
+  + saved preflight / source acquisition Provenance verification PASS
+  = 保存済みrunが固定された機械条件と取得履歴の整合を満たし、レビュー可能である
   != Requirement / Contract assessment complete
   != model output quality satisfied
   != KJ-method outcome quality satisfied
@@ -303,6 +333,8 @@ model storeは次の3経路を許可する。
 
 どの経路でも最終的にfixed model identityへ戻す。取得経路はProvenanceでありRealization identityではない。
 
+`--require-prepositioned-artifacts`は、このうちruntime archiveとmodel artifactについてnetwork fallbackを許さず、事前配置済み入力だけを使うためのacquisition policyである。Python package indexへの到達性など、artifact以外のhost実行条件までofflineに固定する意味は持たせない。
+
 ```text
 acquisition / storage mode
   = Provenance
@@ -312,6 +344,9 @@ artifact identity
 
 acquisition path
   != artifact identity
+
+prepositioned-only artifact policy
+  != fully offline execution guarantee
 ```
 
 ## Local execution safety
@@ -341,17 +376,23 @@ actual runtimeを起動せず、次の境界を個別に検査できる。
 - source exporter / verifier
 - preflight
 - strict entrypoint
-- post-run runner / mechanical Evidence verifier
+- post-run runner / core mechanical Evidence verifier / Provenance verifier
 - low-level harness interface
 - Exact Binding / historical reconstructionのpure-Go control
 
 2026-09-03にはstrict entrypointのpath分離について、依存moduleをstub化したローカル個別実行で`10 tests / OK`、return code 0を確認した。
 
-また、post-run Evidence検証について、current artifact manifestと同じ構造を使ったsynthetic回帰でverifier 12件、runner 7件の計`19 tests / OK`を確認した。これはactual Ollama A / B実行ではない。
+また、post-run Evidence検証について、current artifact manifestと同じ構造を使ったsynthetic回帰でcore verifier 12件、runner 7件の計`19 tests / OK`を確認した。これはactual Ollama A / B実行ではない。
+
+PR #114で追加したpreflight / source acquisition Provenance verifierとそのfocused regressionは実装済みである。ただしcurrent ChatGPT実行環境からprivate repository branchをローカル実行環境へmaterializeできないため、この追加suiteはactualには未実行である。未実行をPASSやfailureへ読み替えない。
 
 ```text
 local helper test PASS
   != actual runtime A/B inference PASS
+
+new helper test not executed
+  != helper test failure
+  != helper test PASS
 ```
 
 ## Required experiments
@@ -428,6 +469,8 @@ run専用Evidence directoryから、存在する範囲で次へ戻れること�
 - SOZA commit
 - KJ Atlas source identity / source export provenance
 - model store preparation / static verification
+- successful preflight report
+- runner source preparation / preflight result
 - host OS / architecture
 - runtime A / B version / digest / acquisition mode
 - model expected / actual digest / storage mode
@@ -439,20 +482,23 @@ run専用Evidence directoryから、存在する範囲で次へ戻れること�
 
 ```text
 Evidence preserved
-  != mechanical Evidence verification PASS
+  != mechanical Evidence + Provenance verification PASS
   != runtime exchange PASS
   != output quality satisfied
 ```
 
-### E10 — independent mechanical Evidence verification
+### E10 — independent mechanical Evidence / Provenance verification
 
 - verifierはrun専用Evidence directoryをread-only入力として扱う。
 - verification reportをEvidence directoryの外へ保存する。
-- fixed source / runtime / model / Method input / promptを再確認する。
+- core verifierでfixed source / runtime / model / Method input / promptを再確認する。
 - `ollama_done=true`、positive eval counter、KJ Atlas result境界を再確認する。
 - runner exit code、completion marker、combined output SHA-256 / bytesを再確認する。
-- missing / drift / symlink / non-strict source / quality promotionを`not-sufficient`として拒否する。
-- 全機械条件を満たした場合だけ`ready-to-review`を返す。
+- Provenance verifierで保存済みpreflightの`ready`、固定artifact / source identityを再確認する。
+- runnerの`preflightResult`と保存済みpreflightを一致させる。
+- source preparation種別を限定し、checkout起点ではsource export provenanceをactual source identityへ一致させる。
+- missing / drift / symlink / non-strict source / quality promotion / Provenance不整合を`not-sufficient`として拒否する。
+- 全機械条件とProvenance条件を満たした場合だけ`ready-to-review`を返す。
 
 ## Existing Evidence
 
@@ -474,14 +520,17 @@ current developには次がある。
 - model store preparation helper / static verifier
 - side-effect-free preflight
 - strict runtime exchange entrypoint
-- post-run verified runner / mechanical Evidence verifier
+- post-run verified runner
+- core mechanical Evidence verifier
+- saved preflight / source acquisition Provenance verifier
 - repository-local low-level harness
 - source / model / Evidence / work / verification output path separation
 - clean-tree / port / PID safety guard
 - run-isolated Evidence directory
 - download / prepositioned runtime archive経路
 - prepositioned / prepared / work-local model store経路
-- acquisition / storage mode Provenance
+- prepositioned-only runtime / model artifact acquisition policy
+- acquisition / storage / source preparation Provenance
 - archive size early guard / disk free-space observational diagnostic
 - live Go guard / negative control
 
@@ -505,8 +554,11 @@ model store preparation / static verification
 preflight / strict entrypoint / low-level harness
   = implemented
 
-post-run runner / mechanical Evidence verifier
+post-run runner / core mechanical Evidence verifier
   = implemented; synthetic 19-test regression available
+
+saved preflight / source acquisition Provenance verifier
+  = implemented; focused regression not yet executed in current environment
 
 actual runtime A/B binary / archive digest / model / prompt / inference
   = Not Yet Verified
@@ -535,11 +587,11 @@ runtime-version-exchange Scoped Executable Evidence
 7. Application AのReference / Provenance / outputがB追加後も不変である。
 8. Realization payload verification、portable reconstruction、unknown revision negative controlがPASSする。
 9. Recommendation / Decisionへの自動昇格がない。
-10. run専用Evidence directoryから実験identity、source identity、model preparation / static verification、取得状況、入力、A / B actual runtime digest、model Evidence、出力、runner observation / combined output logへ戻れる。
-11. 保存済みEvidenceを独立mechanical verifierへ通し、固定された機械条件について`ready-to-review`を得る。
+10. run専用Evidence directoryから実験identity、source identity / source preparation、model preparation / static verification、preflight、取得状況、入力、A / B actual runtime digest、model Evidence、出力、runner observation / combined output logへ戻れる。
+11. 保存済みEvidenceをcore mechanical verifierとProvenance verifierへ通し、固定された機械条件と保存済み取得履歴について`ready-to-review`を得る。
 12. Requirement / Contract再照合と自然な日本語最終監査を行う。
 
-archive preparation、model store preparation、static model verification、preflight ready、strict entrypoint verification、mechanical verifierのsynthetic test、disk free-space、source export成功、GitHub Actions再導入、artifactの実行時download可否は、それ単独ではResolution条件にしない。
+archive preparation、model store preparation、static model verification、preflight ready、strict entrypoint verification、mechanical / Provenance verifierのsynthetic test、disk free-space、source export成功、GitHub Actions再導入、artifactの実行時download可否は、それ単独ではResolution条件にしない。
 
 ## Reopen conditions
 
@@ -560,7 +612,10 @@ Resolved後も次の場合は再開する。
 - 別processのhealth responseを今回のactual実行と誤認する。
 - 既存work / Evidence directoryを上書き・混在できる。
 - live guardが暗黙pathへfallbackする。
-- runner log改変、completion marker欠落、missing Evidence、identity driftをmechanical verifierが見逃す。
+- runner log改変、completion marker欠落、missing Evidence、identity driftをcore mechanical verifierが見逃す。
+- 保存済みpreflightのblocker、fixed artifact drift、source identity driftをProvenance verifierが見逃す。
+- runnerの`preflightResult`と保存済みpreflightの不一致を受理する。
+- checkout起点なのにsource export provenanceを欠く、またはverified bundle直入力へcheckout source exportを混在させても受理する。
 - runtime固有情報をUniversal semanticsへ先取りする。
 - actual実験本文が特定automation providerにしか存在しなくなる。
 - runtime交換successをmodel / KJ成果品質やE4へ過大評価する。
@@ -584,9 +639,11 @@ runtime 0.32.13 / 0.32.14 exchange PASS
 
 ISSUE-000067 / 000068 / 000071、Cognitive Method Contract、Exact Binding、current KJ Atlas mapping、no-Actions baseline、repository-local runtime資産へ戻って全文を再監査した。
 
-現在の実行経路を、runtime artifact準備、source identity固定、model store検証または新規準備、preflight、strict entrypoint、low-level harness、actual API / inference、run専用Evidence保存、runner observation、独立mechanical verification、Requirement / Contract再照合の順に整理した。
+現在の実行経路を、runtime artifact準備、source identity固定、model store検証または新規準備、preflight、strict entrypoint、low-level harness、actual API / inference、run専用Evidence保存、runner observation、core mechanical Evidence verification、保存済みpreflight / source acquisition Provenance verification、Requirement / Contract再照合の順に整理した。
 
-新しいpost-run runner / verifierは、actual実行の成功を増幅して見せるためのものではない。harnessのexit code 0と保存済みEvidenceの十分性を分離し、Evidenceをread-onlyに再検証して`ready-to-review`または`not-sufficient`を返す。その判定も成果品質やIssue Resolutionへは自動昇格しない。
+post-run検証は一つの大きな判定へ混ぜず、core execution Evidenceと実行前後のProvenanceを二層に分けた。新しいProvenance verifierは既存core verifierを先に実行するため、actual inference、runtime / model identity、runner log等の既存条件を弱めない。preflightの`ready`、runnerが記録したsource preparation、checkout起点のsource export履歴を追加で再確認しても、それ自体を成果品質やIssue Resolutionへ昇格させない。
+
+`--require-prepositioned-artifacts`も、完全offline実行を意味する名称として扱わない。runtime A / B archiveとmodel artifactの取得経路をprepositioned-onlyへ限定するacquisition policyであり、Python package解決やhost環境までnetwork-freeであることの証明ではない。
 
 model store準備経路は、取得方法を増やすためのものでありartifact identityを弱めるものではない。registryから取得したmanifest / blobは固定digestへ戻し、完成storeをstatic verifierへ再度通す。それでもactual `/api/tags`観測とA / B inferenceは別に必要である。
 
