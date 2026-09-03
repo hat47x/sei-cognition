@@ -5,6 +5,8 @@ from pathlib import Path
 import check_runtime_version_exchange_preflight as preflight
 import prepare_runtime_version_exchange_archives as prepare
 import verify_kj_atlas_runtime_source as source_verifier
+import verify_runtime_version_exchange_evidence as core_evidence
+import verify_runtime_version_exchange_provenance as provenance
 
 
 INTEGRATION_DIR = Path(__file__).resolve().parent
@@ -75,6 +77,32 @@ class RuntimeVersionExchangeIdentityConsistencyTest(unittest.TestCase):
         self.assertEqual(
             method_source["runtimeSurfaceTree"],
             go_value(guard, "pinnedKJAtlasRuntimeSurfaceTree"),
+        )
+
+    def test_manifest_source_identity_matches_core_evidence_verifier(self):
+        method_source = prepare.load_manifest()["methodSource"]
+
+        self.assertEqual(method_source["commit"], core_evidence.EXPECTED_SOURCE_COMMIT)
+        self.assertEqual(
+            method_source["backendTree"],
+            core_evidence.EXPECTED_PARENT_BACKEND_TREE,
+        )
+        self.assertEqual(
+            method_source["runtimeSurfaceTree"],
+            core_evidence.EXPECTED_RUNTIME_SURFACE_TREE,
+        )
+
+    def test_manifest_source_identity_matches_provenance_expectation(self):
+        method_source = prepare.load_manifest()["methodSource"]
+
+        self.assertEqual(
+            {
+                "repository": method_source["repository"],
+                "sourceCommit": method_source["commit"],
+                "pinnedBackendTree": method_source["backendTree"],
+                "runtimeSurfaceTree": method_source["runtimeSurfaceTree"],
+            },
+            provenance._expected_source_identity(),
         )
 
     def test_manifest_source_git_object_ids_are_lowercase_sha1(self):
