@@ -41,8 +41,9 @@
     "release/v0.2.0/RELEASE_ACCEPTANCE.md",
     "release/v0.2.0/RELEASE_NOTES.md",
     "release/v0.2.0/release-request.json",
-    "tools/prepare_v0_2_0_release.py",
-    ".github/workflows/release-candidate.yml"
+    "tools/check_release_candidate.py",
+    "tools/test_check_release_candidate.py",
+    "tools/prepare_v0_2_0_release.py"
   ],
   "plan_issue_scope_max": "ISSUE-000062",
   "allowed_deferred_issues": [
