@@ -77,6 +77,37 @@ def _validate_archive_members(members: list[tarfile.TarInfo]) -> None:
             raise ValueError(f"unexpected runtime source archive member: {member.name}")
 
 
+def _paths_overlap(left: Path, right: Path) -> bool:
+    left = left.expanduser().resolve(strict=False)
+    right = right.expanduser().resolve(strict=False)
+    return left == right or left in right.parents or right in left.parents
+
+
+def _prepare_identity_output_path(
+    path: Path,
+    *,
+    checkout_dir: Path,
+    output_dir: Path,
+) -> Path:
+    checkout = checkout_dir.expanduser().resolve(strict=True)
+    bundle = output_dir.expanduser().resolve(strict=False)
+    if path.is_symlink():
+        raise ValueError(f"identity output must not be a symlink: {path}")
+    output = path.expanduser().resolve(strict=False)
+    if output.exists():
+        raise ValueError(f"identity output already exists: {output}")
+    for label, protected in (
+        ("KJ Atlas repository", checkout),
+        ("runtime source bundle", bundle),
+    ):
+        if _paths_overlap(output, protected):
+            raise ValueError(
+                "identity output must be separated from source inputs and exported bundle: "
+                f"output={output} overlaps={label}:{protected}"
+            )
+    return output
+
+
 def export_runtime_bundle(
     checkout_dir: Path,
     output_dir: Path,
@@ -147,13 +178,22 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
+        identity_output = (
+            _prepare_identity_output_path(
+                args.identity_output,
+                checkout_dir=args.checkout_dir,
+                output_dir=args.output_dir,
+            )
+            if args.identity_output is not None
+            else None
+        )
         payload = export_runtime_bundle(args.checkout_dir, args.output_dir)
     except (OSError, ValueError, subprocess.SubprocessError, tarfile.TarError) as exc:
         parser.exit(1, f"KJ Atlas runtime source export failed: {exc}\n")
 
     rendered = json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
-    if args.identity_output is not None:
-        args.identity_output.write_text(rendered, encoding="utf-8")
+    if identity_output is not None:
+        identity_output.write_text(rendered, encoding="utf-8")
     print(rendered, end="")
     return 0
 
