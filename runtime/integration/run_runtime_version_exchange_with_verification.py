@@ -19,6 +19,16 @@ EVIDENCE_VERIFIER = INTEGRATION_DIR / "verify_runtime_version_exchange_provenanc
 RUNTIME_ARCHIVE_OPTIONS = ("--runtime-a-archive", "--runtime-b-archive")
 
 
+class PreflightBlocked(ValueError):
+    def __init__(self, report: dict[str, object], returncode: int) -> None:
+        self.report = report
+        self.returncode = returncode
+        super().__init__(
+            "runtime exchange preflight blocked: "
+            f"blockers={report.get('blockers')!r}"
+        )
+
+
 def _reject_forwarded_options(arguments: list[str]) -> None:
     forbidden = {
         "--kj-atlas-dir",
@@ -158,8 +168,7 @@ def _run_preflight(command: list[str]) -> dict[str, object]:
     if not isinstance(payload, dict):
         raise ValueError("runtime exchange preflightはJSON objectを返す必要があります")
     if completed.returncode != 0 or payload.get("result") != "ready":
-        blockers = payload.get("blockers")
-        raise ValueError(f"runtime exchange preflight blocked: blockers={blockers!r}")
+        raise PreflightBlocked(payload, completed.returncode)
     return payload
 
 
@@ -257,6 +266,52 @@ def _prepare_evidence_directory_after_run(evidence_dir: Path, exit_code: int) ->
     return "verified-runner-after-failure"
 
 
+def _run_verifier(evidence_dir: Path, verification_output: Path) -> int:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(EVIDENCE_VERIFIER),
+            "--evidence-dir",
+            str(evidence_dir),
+            "--output",
+            str(verification_output),
+        ],
+        check=False,
+    )
+    return completed.returncode
+
+
+def _preserve_blocked_preflight(
+    evidence_dir: Path,
+    *,
+    verification_output: Path,
+    blocked: PreflightBlocked,
+) -> None:
+    if evidence_dir.is_symlink() or evidence_dir.exists():
+        raise ValueError(
+            "blocked preflightのEvidence保存先は新しい通常directoryである必要があります: "
+            f"{evidence_dir}"
+        )
+    evidence_dir.mkdir(parents=True, exist_ok=False)
+    _write_json_once(
+        evidence_dir / "runtime-exchange-preflight.json",
+        blocked.report,
+    )
+    _write_json_once(
+        evidence_dir / "runtime-exchange-preflight-observation.json",
+        {
+            "schema": "soza.runtime-version-exchange-preflight-observation/v1",
+            "completed": True,
+            "exitCode": blocked.returncode,
+            "preflightResult": blocked.report.get("result"),
+            "blockers": blocked.report.get("blockers"),
+            "strictStarted": False,
+            "qualityJudgement": "not_evaluated",
+        },
+    )
+    _run_verifier(evidence_dir, verification_output)
+
+
 def _preserve_runner_observation(
     evidence_dir: Path,
     *,
@@ -333,7 +388,15 @@ def run(
         forwarded=forwarded,
         require_prepositioned_artifacts=require_prepositioned_artifacts,
     )
-    preflight_report = _run_preflight(preflight_command)
+    try:
+        preflight_report = _run_preflight(preflight_command)
+    except PreflightBlocked as blocked:
+        _preserve_blocked_preflight(
+            evidence_dir,
+            verification_output=verification_output,
+            blocked=blocked,
+        )
+        return 2
 
     command, source_preparation = _build_command(
         kj_atlas_dir=kj_atlas_dir,
@@ -361,19 +424,9 @@ def run(
             evidence_directory_created_by=evidence_directory_created_by,
         )
 
-        verifier = subprocess.run(
-            [
-                sys.executable,
-                str(EVIDENCE_VERIFIER),
-                "--evidence-dir",
-                str(evidence_dir),
-                "--output",
-                str(verification_output),
-            ],
-            check=False,
-        )
+        verifier_returncode = _run_verifier(evidence_dir, verification_output)
         if exit_code == 0:
-            return verifier.returncode
+            return verifier_returncode
         return exit_code
     finally:
         log_path.unlink(missing_ok=True)
