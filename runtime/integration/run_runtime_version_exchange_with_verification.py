@@ -13,8 +13,10 @@ from pathlib import Path
 
 INTEGRATION_DIR = Path(__file__).resolve().parent
 SOZA_ROOT = INTEGRATION_DIR.parents[1]
+PREFLIGHT = INTEGRATION_DIR / "check_runtime_version_exchange_preflight.py"
 STRICT_ENTRYPOINT = INTEGRATION_DIR / "run_runtime_version_exchange_strict.py"
 EVIDENCE_VERIFIER = INTEGRATION_DIR / "verify_runtime_version_exchange_evidence.py"
+RUNTIME_ARCHIVE_OPTIONS = ("--runtime-a-archive", "--runtime-b-archive")
 
 
 def _reject_forwarded_options(arguments: list[str]) -> None:
@@ -87,6 +89,76 @@ def _default_verification_output(evidence_dir: Path) -> Path:
     return evidence_dir.parent / f"{evidence_dir.name}-verification.json"
 
 
+def _runtime_archive_preflight_arguments(arguments: list[str]) -> list[str]:
+    selected: list[str] = []
+    index = 0
+    while index < len(arguments):
+        argument = arguments[index]
+        matched = False
+        for option in RUNTIME_ARCHIVE_OPTIONS:
+            if argument == option:
+                if index + 1 >= len(arguments):
+                    raise ValueError(f"{option} requires PATH")
+                selected.extend([option, arguments[index + 1]])
+                index += 2
+                matched = True
+                break
+            if argument.startswith(option + "="):
+                selected.append(argument)
+                index += 1
+                matched = True
+                break
+        if not matched:
+            index += 1
+    return selected
+
+
+def _build_preflight_command(
+    *,
+    kj_atlas_dir: Path | None,
+    kj_atlas_backend_bundle: Path | None,
+    model_dir: Path | None,
+    work_dir: Path | None,
+    evidence_dir: Path,
+    forwarded: list[str],
+) -> list[str]:
+    command = [sys.executable, str(PREFLIGHT)]
+    if kj_atlas_dir is not None:
+        command.extend(["--kj-atlas-dir", str(kj_atlas_dir)])
+    elif kj_atlas_backend_bundle is not None:
+        command.extend(["--kj-atlas-backend-bundle", str(kj_atlas_backend_bundle)])
+    else:
+        raise ValueError("KJ Atlas sourceを指定してください")
+    if model_dir is not None:
+        command.extend(["--model-dir", str(model_dir)])
+    if work_dir is not None:
+        command.extend(["--work-dir", str(work_dir)])
+    command.extend(["--evidence-dir", str(evidence_dir)])
+    command.extend(_runtime_archive_preflight_arguments(forwarded))
+    command.append("--json")
+    return command
+
+
+def _run_preflight(command: list[str]) -> dict[str, object]:
+    completed = subprocess.run(
+        command,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    try:
+        payload = json.loads(completed.stdout)
+    except json.JSONDecodeError as exc:
+        detail = completed.stderr.strip() or completed.stdout.strip() or "no output"
+        raise ValueError(f"runtime exchange preflightのJSONを読めません: {detail}") from exc
+    if not isinstance(payload, dict):
+        raise ValueError("runtime exchange preflightはJSON objectを返す必要があります")
+    if completed.returncode != 0 or payload.get("result") != "ready":
+        blockers = payload.get("blockers")
+        raise ValueError(f"runtime exchange preflight blocked: blockers={blockers!r}")
+    return payload
+
+
 def _build_command(
     *,
     kj_atlas_dir: Path | None,
@@ -153,6 +225,15 @@ def _run_and_capture(command: list[str]) -> tuple[int, Path, str, int]:
         raise
 
 
+def _write_json_once(path: Path, payload: dict[str, object]) -> None:
+    if path.exists():
+        raise ValueError(f"Evidence path already exists: {path}")
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
 def _preserve_runner_observation(
     evidence_dir: Path,
     *,
@@ -161,14 +242,16 @@ def _preserve_runner_observation(
     output_bytes: int,
     exit_code: int,
     source_preparation: str,
+    preflight_report: dict[str, object],
 ) -> None:
     if not evidence_dir.is_dir():
         return
 
     target_log = evidence_dir / "runtime-exchange-runner.log"
     target_observation = evidence_dir / "runtime-exchange-runner-observation.json"
-    if target_log.exists() or target_observation.exists():
-        raise ValueError("runner observation path already exists in Evidence directory")
+    target_preflight = evidence_dir / "runtime-exchange-preflight.json"
+    if target_log.exists():
+        raise ValueError("runner log path already exists in Evidence directory")
 
     os.replace(log_path, target_log)
     observation = {
@@ -176,14 +259,13 @@ def _preserve_runner_observation(
         "completed": exit_code == 0,
         "exitCode": exit_code,
         "sourcePreparation": source_preparation,
+        "preflightResult": preflight_report.get("result"),
         "combinedOutputSha256": output_sha256,
         "combinedOutputBytes": output_bytes,
         "qualityJudgement": "not_evaluated",
     }
-    target_observation.write_text(
-        json.dumps(observation, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    _write_json_once(target_preflight, preflight_report)
+    _write_json_once(target_observation, observation)
 
 
 def run(
@@ -210,6 +292,16 @@ def run(
         work_dir=work_dir,
     )
 
+    preflight_command = _build_preflight_command(
+        kj_atlas_dir=kj_atlas_dir,
+        kj_atlas_backend_bundle=kj_atlas_backend_bundle,
+        model_dir=model_dir,
+        work_dir=work_dir,
+        evidence_dir=evidence_dir,
+        forwarded=forwarded,
+    )
+    preflight_report = _run_preflight(preflight_command)
+
     command, source_preparation = _build_command(
         kj_atlas_dir=kj_atlas_dir,
         kj_atlas_backend_bundle=kj_atlas_backend_bundle,
@@ -228,6 +320,7 @@ def run(
             output_bytes=output_bytes,
             exit_code=exit_code,
             source_preparation=source_preparation,
+            preflight_report=preflight_report,
         )
         if log_path.exists():
             # strict entrypointがEvidence directory作成前に失敗した場合は、一時logを残さない。
@@ -255,8 +348,8 @@ def run(
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "ISSUE-000070のstrict runtime version exchangeを実行し、"
-            "harness observationとEvidence検証結果を保存します。"
+            "ISSUE-000070のruntime version exchangeを副作用なしpreflightから開始し、"
+            "strict実行、runner observation、Evidence再検証まで一続きに行います。"
         ),
         allow_abbrev=False,
     )
