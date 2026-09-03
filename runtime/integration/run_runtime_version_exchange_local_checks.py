@@ -76,6 +76,11 @@ def prepare_result_output(path: Path) -> Path:
     requested = path.expanduser()
     if requested.is_symlink():
         raise ValueError(f"focused check result outputにsymlinkは利用できません: {requested}")
+    if requested.parent.is_symlink():
+        raise ValueError(
+            "focused check result outputのparentにsymlinkは利用できません: "
+            f"{requested.parent}"
+        )
 
     resolved = canonical_path(requested)
     if is_within(resolved, SOZA_ROOT):
@@ -86,8 +91,6 @@ def prepare_result_output(path: Path) -> Path:
     if resolved.exists():
         raise ValueError(f"focused check result outputは新規pathを指定してください: {resolved}")
     parent = resolved.parent
-    if parent.is_symlink():
-        raise ValueError(f"focused check result outputのparentにsymlinkは利用できません: {parent}")
     if not parent.is_dir():
         raise ValueError(
             "focused check result outputのparent directoryが存在しません: "
@@ -194,10 +197,9 @@ def build_result(
 
 
 def write_result(path: Path, payload: dict[str, object]) -> None:
-    path.write_text(
-        json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    with path.open("x", encoding="utf-8") as handle:
+        handle.write(json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2))
+        handle.write("\n")
 
 
 def run_checks(
