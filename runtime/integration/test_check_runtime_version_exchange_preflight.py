@@ -59,6 +59,40 @@ class RuntimeVersionExchangePreflightTest(unittest.TestCase):
             self.assertEqual("blocked", checks[0].status)
             self.assertIn("digest", checks[0].detail)
 
+    def test_archive_check_rejects_source_tree_location(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp) / "source"
+            source.mkdir()
+            archive = source / "runtime.tar.zst"
+            data = b"fixed-runtime-artifact"
+            archive.write_bytes(data)
+            expected = hashlib.sha256(data).hexdigest()
+            checks = preflight.archive_check(
+                "runtime-a",
+                archive,
+                expected,
+                len(data),
+                True,
+                (source,),
+            )
+            self.assertEqual("blocked", checks[0].status)
+            self.assertEqual("archive.runtime-a.path", checks[0].id)
+            self.assertIn("source配下", checks[0].detail)
+
+    def test_archive_check_rejects_symlink(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            actual = root / "actual.tar.zst"
+            data = b"fixed-runtime-artifact"
+            actual.write_bytes(data)
+            archive = root / "runtime.tar.zst"
+            archive.symlink_to(actual)
+            expected = hashlib.sha256(data).hexdigest()
+            checks = preflight.archive_check("runtime-a", archive, expected, len(data), True)
+            self.assertEqual("blocked", checks[0].status)
+            self.assertEqual("archive.runtime-a.path", checks[0].id)
+            self.assertIn("symlink", checks[0].detail)
+
     def test_missing_archive_is_deferred_when_download_is_allowed(self):
         checks = preflight.archive_check("runtime-a", None, "0" * 64, 123, False)
         self.assertEqual("deferred", checks[0].status)
