@@ -9,17 +9,9 @@ on:
       - "v0.1.0"
       - "v0.2.0"
     paths:
-      - "README.md"
-      - "product/**"
-      - "requirements/**"
-      - "architecture/**"
-      - "contracts/**"
-      - "evaluation/**"
-      - "fixtures/**"
-      - "plan/**"
       - "release/**"
-      - "runtime/**"
-      - "tools/**"
+      - "tools/check_release_candidate.py"
+      - "tools/prepare_v0_2_0_release.py"
       - ".github/workflows/release-candidate.yml"
   pull_request:
     branches:

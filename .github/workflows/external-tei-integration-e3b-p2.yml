@@ -2,10 +2,28 @@ name: External TEI Integration E3b P2
 
 on:
   pull_request:
+    paths:
+      - "runtime/go/teiintegration/**"
+      - "runtime/go/provideradapter/**"
+      - "runtime/go/semanticruntime/**"
+      - "runtime/go/go.mod"
+      - "runtime/go/go.sum"
+      - ".github/workflows/external-tei-integration-e3b-p2.yml"
   push:
     branches:
       - develop/v0.2.0
+    paths:
+      - "runtime/go/teiintegration/**"
+      - "runtime/go/provideradapter/**"
+      - "runtime/go/semanticruntime/**"
+      - "runtime/go/go.mod"
+      - "runtime/go/go.sum"
+      - ".github/workflows/external-tei-integration-e3b-p2.yml"
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

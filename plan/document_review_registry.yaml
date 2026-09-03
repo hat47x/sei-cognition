@@ -1,5 +1,5 @@
 schema: soza.document-review-registry/v1
-updated: 2026-09-02
+updated: 2026-09-03
 
 purpose: >-
   ISSUE-000015で行った既存開発文書の自然な日本語監査について、current branch上の
@@ -49,7 +49,7 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_INTERACTION.md
-    note: first usable Product Interactionをhuman / AIの異なるSurfaceから同じcanonical sourceへ戻る操作境界として定義し、reference probe Evidenceを同期済み。
+    note: first usable Product Interactionをhuman / AIの異なるSurfaceから同じcanonical sourceへ戻す操作境界として定義し、reference probe Evidenceを同期済み。
   - scope: product/packaging/*.md
     status: revised
     coverage:
@@ -67,8 +67,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、自然な日本語全文再ドラフトと最終意味監査を実施済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000068
-    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidence、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1b、ISSUE-000067のhistorical reconstruction H1 / H2、ISSUE-000068のactual二モデル交換まで監査した。ISSUE-000068では同じKJ Atlas / Method input / Ollama runtimeの下で異なるmodel artifactを実行し、historical Applicationを保持できた一方、生成内容と言語適合性が変化した事実を保持している。実行成立をmodel品質、KJ法としての成果品質、arbitrary portability、E4へ昇格させない停止線も明示している。
+    coverage: ISSUE-000001..ISSUE-000069
+    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidence、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1b、ISSUE-000067のhistorical reconstruction H1 / H2、ISSUE-000068のactual二モデル交換までをcurrent履歴として監査した。ISSUE-000069では`pull_request.paths`のPR全体差分という性質を明示し、文書だけの独立PR、scenario-local test、共有mapping、直接依存する共有Go packageを分けて実証責務を整理した。PR #64でdocs-only選択、PR #65で`semanticruntime`共有依存の正側選択をrun生成レベルで確認し、Local Package Artifactも実際のbuild依存へ限定した。runnerは全面復旧と扱わず、`steps=[]`のjobと実際に完走したRun 33670697154を分けて記録している。検査本文、既存Evidence強度、v0.2.0 supported scopeは変更していない。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -222,7 +222,7 @@ reviewed:
     note: 主探索系列をReal Method / Provider Portabilityとして維持し、E3b-P2 fixed-artifact、E3b-M1b、historical reconstruction H1 / H2、ISSUE-000068のactual二モデル交換までをScoped Executable Evidenceとして反映した。二モデル交換ではhistorical Applicationを保持できた一方、生成内容と言語適合性が変化したため、次の探索点をruntime version交換、より広いmodel / Provider交換、model・KJ法としての成果品質評価、E4、Operational / Adoption評価へ分離した。actual inferenceやresponse shapeのsuccessを生成品質・Operational Evidenceへ昇格させない停止線も自然な日本語で明示している。
   - scope: plan/DEVELOPMENT_WORKFLOW.md
     status: revised
-    note: Product Milestoneと未定領域の探索をRequirement / Architectureより上流へ置く開発境界を監査済み。
+    note: Product Milestoneと未定領域の探索をRequirement / Architectureより上流へ置く開発境界を維持しつつ、CI failureをpush停止条件から外した。failureは観測・修正対象として扱い、`steps=[]`等のrunner未割当と実行本文のfailureを分離する。通常の修正pushを継続できる一方、merge / release / Evidence確定に必要なgateは別に扱う運用へ自然な日本語で同期済み。
   - scope: plan/DOCUMENT_AUTHORING_STANDARD.md
     status: revised
   - scope: plan/DOCUMENT_REVIEW_REPORT_2026-08-31.md
