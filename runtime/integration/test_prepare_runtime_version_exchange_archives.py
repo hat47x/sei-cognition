@@ -160,6 +160,27 @@ class RuntimeVersionExchangeArchivePreparationTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "platform"):
                 prepare.load_manifest(path)
 
+    def test_output_dir_inside_soza_repository_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "SOZA repository"):
+            prepare.validate_output_dir(prepare.SOZA_ROOT / "runtime-archives")
+
+    def test_external_new_output_dir_is_accepted(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            expected = Path(temporary) / "runtime-archives"
+            actual = prepare.validate_output_dir(expected)
+            self.assertEqual(expected.resolve(strict=False), actual)
+            self.assertFalse(actual.exists())
+
+    def test_symlink_output_dir_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            real = root / "real"
+            real.mkdir()
+            link = root / "link"
+            link.symlink_to(real, target_is_directory=True)
+            with self.assertRaisesRegex(ValueError, "symlink"):
+                prepare.validate_output_dir(link)
+
     def test_plan_reports_exact_compressed_total_without_network_access(self):
         manifest = prepare.load_manifest()
         with tempfile.TemporaryDirectory() as temp:
@@ -187,6 +208,17 @@ class RuntimeVersionExchangeArchivePreparationTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "archive size"):
                 prepare.verify_archive(archive, len(data) + 1, "0" * 64)
 
+    def test_verify_archive_rejects_symlink(self):
+        data = b"fixed-runtime"
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            actual = root / "actual.tar.zst"
+            actual.write_bytes(data)
+            link = root / "runtime.tar.zst"
+            link.symlink_to(actual)
+            with self.assertRaisesRegex(ValueError, "symlink"):
+                prepare.verify_archive(link, len(data), hashlib.sha256(data).hexdigest())
+
     def test_existing_valid_archive_is_reused_without_opening_network(self):
         data = b"already-present"
         opened = []
@@ -207,6 +239,23 @@ class RuntimeVersionExchangeArchivePreparationTest(unittest.TestCase):
             )
         self.assertEqual([], opened)
         self.assertEqual(len(data), verification.size_bytes)
+
+    def test_download_rejects_target_symlink(self):
+        data = b"already-present"
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            actual = root / "actual.tar.zst"
+            actual.write_bytes(data)
+            target = root / "runtime.tar.zst"
+            target.symlink_to(actual)
+            with self.assertRaisesRegex(ValueError, "symlink"):
+                prepare.download_archive(
+                    "https://example.invalid/runtime",
+                    target,
+                    len(data),
+                    hashlib.sha256(data).hexdigest(),
+                    opener=lambda _url: FakeResponse(data),
+                )
 
     def test_download_uses_partial_file_then_atomically_promotes_verified_bytes(self):
         data = b"downloaded-runtime"
@@ -239,6 +288,25 @@ class RuntimeVersionExchangeArchivePreparationTest(unittest.TestCase):
                 )
             self.assertEqual(b"partial", partial.read_bytes())
             self.assertFalse(target.exists())
+
+    def test_existing_partial_symlink_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            target = root / "runtime.tar.zst"
+            actual = root / "actual.part"
+            actual.write_bytes(b"partial")
+            partial = target.with_name(target.name + ".part")
+            partial.symlink_to(actual)
+            with self.assertRaisesRegex(ValueError, "symlink"):
+                prepare.download_archive(
+                    "https://example.invalid/runtime",
+                    target,
+                    1,
+                    hashlib.sha256(b"x").hexdigest(),
+                    opener=lambda _url: FakeResponse(b"x"),
+                )
+            self.assertFalse(target.exists())
+            self.assertEqual(b"partial", actual.read_bytes())
 
     def test_failed_download_preserves_partial_for_diagnosis_but_not_final_target(self):
         data = b"wrong"
