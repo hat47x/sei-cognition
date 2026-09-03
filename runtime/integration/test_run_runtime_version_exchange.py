@@ -45,6 +45,9 @@ class RuntimeVersionExchangeHarnessTest(unittest.TestCase):
         self.assertIn("runtime/integration/run_runtime_version_exchange.sh", completed.stdout)
         self.assertIn("GitHub Actions", completed.stdout)
         self.assertIn("--evidence-dir", completed.stdout)
+        self.assertIn("--runtime-a-archive", completed.stdout)
+        self.assertIn("--runtime-b-archive", completed.stdout)
+        self.assertIn("--model-dir", completed.stdout)
         self.assertIn("既存pathは拒否する", completed.stdout)
 
     def test_shell_and_go_use_the_same_runtime_versions_and_artifact_digests(self):
@@ -81,6 +84,27 @@ class RuntimeVersionExchangeHarnessTest(unittest.TestCase):
     def test_evidence_directory_must_be_new_for_each_run(self):
         self.assertIn('if [[ -e "${EVIDENCE_DIR}" ]]', self.script_text)
         self.assertIn("Evidence directory already exists; specify a new path", self.script_text)
+
+    def test_prepositioned_runtime_archives_are_still_digest_verified(self):
+        self.assertIn('RUNTIME_ACQUISITION_A="prepositioned"', self.script_text)
+        self.assertIn('RUNTIME_ACQUISITION_B="prepositioned"', self.script_text)
+        self.assertIn('read -r actual_sha remainder < <(sha256sum "${archive}")', self.script_text)
+        self.assertIn('if [[ "${actual_sha}" != "${expected_sha}" ]]', self.script_text)
+
+    def test_prepositioned_model_store_is_not_auto_pulled_when_pinned_model_is_missing(self):
+        marker = 'if [[ "${MODEL_STORE_MODE}" == "prepositioned" ]]'
+        start = self.script_text.index(marker)
+        end = self.script_text.index('"${ollama}" pull "${MODEL_NAME}"', start)
+        prepositioned_branch = self.script_text[start:end]
+        self.assertIn("prepositioned model directory does not contain the pinned artifact", prepositioned_branch)
+        self.assertIn("return 1", prepositioned_branch)
+
+    def test_acquisition_path_is_recorded_without_replacing_artifact_identity(self):
+        self.assertIn('"archiveAcquisition": os.environ["RUNTIME_ACQUISITION_A"]', self.script_text)
+        self.assertIn('"archiveAcquisition": os.environ["RUNTIME_ACQUISITION_B"]', self.script_text)
+        self.assertIn('"archiveSha256": os.environ["RUNTIME_SHA256_A"]', self.script_text)
+        self.assertIn('"archiveSha256": os.environ["RUNTIME_SHA256_B"]', self.script_text)
+        self.assertIn('"storageMode": os.environ["MODEL_STORE_MODE"]', self.script_text)
 
 
 if __name__ == "__main__":

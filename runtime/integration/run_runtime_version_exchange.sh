@@ -17,6 +17,9 @@ RUNTIME_SHA256_B="c620917a71e146ab3a7f893084f066069c4c65d144ef8379a91c3cbe8b27de
 KJ_ATLAS_DIR="${SOZA_RUNTIME_EXCHANGE_KJ_ATLAS_DIR:-${SOZA_ROOT}/_external/kj-atlas}"
 WORK_DIR="${SOZA_RUNTIME_EXCHANGE_WORK_DIR:-}"
 EVIDENCE_DIR="${SOZA_RUNTIME_EXCHANGE_EVIDENCE_DIR:-}"
+PREPOSITIONED_RUNTIME_ARCHIVE_A="${SOZA_RUNTIME_EXCHANGE_PREPOSITIONED_ARCHIVE_A:-}"
+PREPOSITIONED_RUNTIME_ARCHIVE_B="${SOZA_RUNTIME_EXCHANGE_PREPOSITIONED_ARCHIVE_B:-}"
+EXTERNAL_MODEL_STORE="${SOZA_RUNTIME_EXCHANGE_MODEL_DIR:-}"
 KEEP_WORK="${SOZA_RUNTIME_EXCHANGE_KEEP_WORK:-0}"
 
 usage() {
@@ -24,11 +27,14 @@ usage() {
 Usage: runtime/integration/run_runtime_version_exchange.sh [options]
 
 Options:
-  --kj-atlas-dir PATH   固定KJ Atlas checkoutの場所。既定は _external/kj-atlas。
-  --work-dir PATH       新規に作成する一時作業ディレクトリ。既存pathは拒否する。
-  --evidence-dir PATH   新規に作成するEvidence保存先。既存pathは拒否する。
-  --keep-work           一時作業ディレクトリを削除しない。
-  -h, --help            この説明を表示する。
+  --kj-atlas-dir PATH          固定KJ Atlas checkoutの場所。既定は _external/kj-atlas。
+  --work-dir PATH              新規に作成する一時作業ディレクトリ。既存pathは拒否する。
+  --evidence-dir PATH          新規に作成するEvidence保存先。既存pathは拒否する。
+  --runtime-a-archive PATH     事前配置したOllama 0.32.13 archiveを利用する。
+  --runtime-b-archive PATH     事前配置したOllama 0.32.14 archiveを利用する。
+  --model-dir PATH             固定model artifactを保持済みのOllama model storageを利用する。
+  --keep-work                  一時作業ディレクトリを削除しない。
+  -h, --help                   この説明を表示する。
 
 必要コマンド:
   git, python3, go, curl, zstd, tar, sha256sum, uname, mktemp
@@ -36,7 +42,12 @@ Options:
 現在の固定runtime artifactはLinux / amd64用です。
 SOZAとKJ AtlasはcleanなGit checkoutである必要があります。
 KJ Atlas checkoutのHEADは固定commitと一致している必要があります。
-work / Evidence directoryをSOZAまたはKJ Atlas repository配下には置けません。
+work / Evidence / external model directoryをSOZAまたはKJ Atlas repository配下には置けません。
+
+runtime archiveを指定しない場合だけOllama公式GitHub Releaseから取得します。事前配置した
+archiveも同じ固定SHA-256を必ず検証します。--model-dirを指定した場合は、そのdirectoryに
+固定model digestが既に存在するときだけ利用し、不足時に勝手なpullや更新は行いません。
+
 このscriptはGitHub Actions、runner ID、workflow run IDを実験成立条件にしません。
 USAGE
 }
@@ -56,6 +67,21 @@ while (($# > 0)); do
     --evidence-dir)
       [[ $# -ge 2 ]] || { echo "--evidence-dir requires PATH" >&2; exit 2; }
       EVIDENCE_DIR="$2"
+      shift 2
+      ;;
+    --runtime-a-archive)
+      [[ $# -ge 2 ]] || { echo "--runtime-a-archive requires PATH" >&2; exit 2; }
+      PREPOSITIONED_RUNTIME_ARCHIVE_A="$2"
+      shift 2
+      ;;
+    --runtime-b-archive)
+      [[ $# -ge 2 ]] || { echo "--runtime-b-archive requires PATH" >&2; exit 2; }
+      PREPOSITIONED_RUNTIME_ARCHIVE_B="$2"
+      shift 2
+      ;;
+    --model-dir)
+      [[ $# -ge 2 ]] || { echo "--model-dir requires PATH" >&2; exit 2; }
+      EXTERNAL_MODEL_STORE="$2"
       shift 2
       ;;
     --keep-work)
@@ -209,14 +235,47 @@ if [[ -e "${EVIDENCE_DIR}" ]]; then
 fi
 mkdir -p "${EVIDENCE_DIR}"
 
+if [[ -n "${PREPOSITIONED_RUNTIME_ARCHIVE_A}" ]]; then
+  PREPOSITIONED_RUNTIME_ARCHIVE_A="$(canonical_path "${PREPOSITIONED_RUNTIME_ARCHIVE_A}")"
+  [[ -f "${PREPOSITIONED_RUNTIME_ARCHIVE_A}" ]] || {
+    echo "prepositioned runtime A archive is not a file: ${PREPOSITIONED_RUNTIME_ARCHIVE_A}" >&2
+    exit 1
+  }
+fi
+if [[ -n "${PREPOSITIONED_RUNTIME_ARCHIVE_B}" ]]; then
+  PREPOSITIONED_RUNTIME_ARCHIVE_B="$(canonical_path "${PREPOSITIONED_RUNTIME_ARCHIVE_B}")"
+  [[ -f "${PREPOSITIONED_RUNTIME_ARCHIVE_B}" ]] || {
+    echo "prepositioned runtime B archive is not a file: ${PREPOSITIONED_RUNTIME_ARCHIVE_B}" >&2
+    exit 1
+  }
+fi
+
 VENV_DIR="${WORK_DIR}/venv"
-MODEL_STORE="${WORK_DIR}/ollama-models"
+if [[ -n "${EXTERNAL_MODEL_STORE}" ]]; then
+  EXTERNAL_MODEL_STORE="$(canonical_path "${EXTERNAL_MODEL_STORE}")"
+  require_safe_output_path "external model directory" "${EXTERNAL_MODEL_STORE}"
+  [[ -d "${EXTERNAL_MODEL_STORE}" ]] || {
+    echo "external model directory does not exist: ${EXTERNAL_MODEL_STORE}" >&2
+    exit 1
+  }
+  MODEL_STORE="${EXTERNAL_MODEL_STORE}"
+  MODEL_STORE_MODE="prepositioned"
+else
+  MODEL_STORE="${WORK_DIR}/ollama-models"
+  mkdir -p "${MODEL_STORE}"
+  MODEL_STORE_MODE="work-local"
+fi
+
 REQUEST_FILE="${WORK_DIR}/kj-atlas-runtime-exchange-request.json"
 IDENTITY_FILE="${WORK_DIR}/runtime-exchange-identity.json"
 RUNTIME_ROOT_A="${WORK_DIR}/ollama-runtime-a"
 RUNTIME_ROOT_B="${WORK_DIR}/ollama-runtime-b"
-RUNTIME_ARCHIVE_A="${WORK_DIR}/ollama-a.tar.zst"
-RUNTIME_ARCHIVE_B="${WORK_DIR}/ollama-b.tar.zst"
+RUNTIME_ARCHIVE_A="${PREPOSITIONED_RUNTIME_ARCHIVE_A:-${WORK_DIR}/ollama-a.tar.zst}"
+RUNTIME_ARCHIVE_B="${PREPOSITIONED_RUNTIME_ARCHIVE_B:-${WORK_DIR}/ollama-b.tar.zst}"
+RUNTIME_ACQUISITION_A="downloaded"
+RUNTIME_ACQUISITION_B="downloaded"
+[[ -n "${PREPOSITIONED_RUNTIME_ARCHIVE_A}" ]] && RUNTIME_ACQUISITION_A="prepositioned"
+[[ -n "${PREPOSITIONED_RUNTIME_ARCHIVE_B}" ]] && RUNTIME_ACQUISITION_B="prepositioned"
 
 OLLAMA_PID=""
 ADAPTER_PID=""
@@ -304,8 +363,11 @@ RUNTIME_VERSION_A="${RUNTIME_VERSION_A}" \
 RUNTIME_VERSION_B="${RUNTIME_VERSION_B}" \
 RUNTIME_SHA256_A="${RUNTIME_SHA256_A}" \
 RUNTIME_SHA256_B="${RUNTIME_SHA256_B}" \
+RUNTIME_ACQUISITION_A="${RUNTIME_ACQUISITION_A}" \
+RUNTIME_ACQUISITION_B="${RUNTIME_ACQUISITION_B}" \
 MODEL_NAME="${MODEL_NAME}" \
 MODEL_SHA256="${MODEL_SHA256}" \
+MODEL_STORE_MODE="${MODEL_STORE_MODE}" \
 HOST_OS="${HOST_OS}" \
 HOST_ARCH="${HOST_ARCH}" \
 python3 - <<'PY'
@@ -327,15 +389,18 @@ payload = {
         "name": "ollama",
         "version": os.environ["RUNTIME_VERSION_A"],
         "archiveSha256": os.environ["RUNTIME_SHA256_A"],
+        "archiveAcquisition": os.environ["RUNTIME_ACQUISITION_A"],
     },
     "runtimeB": {
         "name": "ollama",
         "version": os.environ["RUNTIME_VERSION_B"],
         "archiveSha256": os.environ["RUNTIME_SHA256_B"],
+        "archiveAcquisition": os.environ["RUNTIME_ACQUISITION_B"],
     },
     "model": {
         "name": os.environ["MODEL_NAME"],
         "expectedDigest": os.environ["MODEL_SHA256"],
+        "storageMode": os.environ["MODEL_STORE_MODE"],
     },
     "qualityJudgement": "not_evaluated",
 }
@@ -354,12 +419,15 @@ acquire_runtime() {
   local expected_sha="$3"
   local archive="$4"
   local root="$5"
+  local acquisition="$6"
   local digest_file="${WORK_DIR}/runtime-exchange-${label}-archive-sha256.txt"
 
   mkdir -p "${root}"
-  curl --fail --silent --show-error --location \
-    "https://github.com/ollama/ollama/releases/download/v${version}/ollama-linux-amd64.tar.zst" \
-    --output "${archive}"
+  if [[ "${acquisition}" == "downloaded" ]]; then
+    curl --fail --silent --show-error --location \
+      "https://github.com/ollama/ollama/releases/download/v${version}/ollama-linux-amd64.tar.zst" \
+      --output "${archive}"
+  fi
 
   local actual_sha remainder
   read -r actual_sha remainder < <(sha256sum "${archive}")
@@ -373,8 +441,8 @@ acquire_runtime() {
   test -x "${root}/bin/ollama"
 }
 
-acquire_runtime a "${RUNTIME_VERSION_A}" "${RUNTIME_SHA256_A}" "${RUNTIME_ARCHIVE_A}" "${RUNTIME_ROOT_A}"
-acquire_runtime b "${RUNTIME_VERSION_B}" "${RUNTIME_SHA256_B}" "${RUNTIME_ARCHIVE_B}" "${RUNTIME_ROOT_B}"
+acquire_runtime a "${RUNTIME_VERSION_A}" "${RUNTIME_SHA256_A}" "${RUNTIME_ARCHIVE_A}" "${RUNTIME_ROOT_A}" "${RUNTIME_ACQUISITION_A}"
+acquire_runtime b "${RUNTIME_VERSION_B}" "${RUNTIME_SHA256_B}" "${RUNTIME_ARCHIVE_B}" "${RUNTIME_ROOT_B}" "${RUNTIME_ACQUISITION_B}"
 
 cat >"${REQUEST_FILE}" <<'JSON'
 {
@@ -404,6 +472,20 @@ JSON
 export OLLAMA_HOST="127.0.0.1:11434"
 export OLLAMA_MODELS="${MODEL_STORE}"
 export SOZA_E3B_RUNTIME_EXCHANGE_MODEL_SHA256="${MODEL_SHA256}"
+
+model_store_has_pinned_artifact() {
+  local tags="$1"
+  TAGS="${tags}" MODEL_NAME="${MODEL_NAME}" MODEL_SHA256="${MODEL_SHA256}" \
+    "${VENV_DIR}/bin/python" - <<'PY'
+import json
+import os
+from pathlib import Path
+
+payload = json.loads(Path(os.environ["TAGS"]).read_text(encoding="utf-8"))
+model = next((item for item in payload.get("models", []) if item.get("name") == os.environ["MODEL_NAME"]), None)
+raise SystemExit(0 if model and model.get("digest") == os.environ["MODEL_SHA256"] else 1)
+PY
+}
 
 run_probe() {
   local label="$1"
@@ -450,8 +532,15 @@ run_probe() {
     sleep 0.5
   done
 
-  "${ollama}" pull "${MODEL_NAME}"
   curl --fail --silent http://127.0.0.1:11434/api/tags >"${tags}"
+  if ! model_store_has_pinned_artifact "${tags}"; then
+    if [[ "${MODEL_STORE_MODE}" == "prepositioned" ]]; then
+      echo "prepositioned model directory does not contain the pinned artifact: ${MODEL_SHA256}" >&2
+      return 1
+    fi
+    "${ollama}" pull "${MODEL_NAME}"
+    curl --fail --silent http://127.0.0.1:11434/api/tags >"${tags}"
+  fi
 
   LABEL="${label}" TAGS="${tags}" MODEL_NAME="${MODEL_NAME}" MODEL_SHA256="${MODEL_SHA256}" WORK_DIR="${WORK_DIR}" \
     "${VENV_DIR}/bin/python" - <<'PY'
