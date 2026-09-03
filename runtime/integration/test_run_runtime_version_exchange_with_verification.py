@@ -88,6 +88,7 @@ class VerifiedRunnerTest(unittest.TestCase):
             "--prepare-model-dir",
             "--evidence-dir",
             "--work-dir",
+            "--require-prepositioned-artifacts",
         ):
             with self.subTest(option=option):
                 with self.assertRaises(ValueError):
@@ -119,6 +120,58 @@ class VerifiedRunnerTest(unittest.TestCase):
         self.assertNotIn("--keep-work", command)
         self.assertNotIn("--prepare-model-dir", command)
         self.assertEqual("--json", command[-1])
+
+    def test_prepositioned_only_flag_is_applied_to_preflight_not_strict_harness(self):
+        preflight = MODULE._build_preflight_command(
+            kj_atlas_dir=None,
+            kj_atlas_backend_bundle=Path("/tmp/bundle"),
+            model_dir=Path("/tmp/models"),
+            work_dir=None,
+            evidence_dir=Path("/tmp/evidence"),
+            forwarded=[
+                "--runtime-a-archive=/tmp/a.tar.zst",
+                "--runtime-b-archive=/tmp/b.tar.zst",
+            ],
+            require_prepositioned_artifacts=True,
+        )
+        strict, _ = MODULE._build_command(
+            kj_atlas_dir=None,
+            kj_atlas_backend_bundle=Path("/tmp/bundle"),
+            model_dir=Path("/tmp/models"),
+            prepare_model_dir=None,
+            work_dir=None,
+            evidence_dir=Path("/tmp/evidence"),
+            forwarded=[
+                "--runtime-a-archive=/tmp/a.tar.zst",
+                "--runtime-b-archive=/tmp/b.tar.zst",
+            ],
+        )
+        self.assertIn("--require-prepositioned-artifacts", preflight)
+        self.assertNotIn("--require-prepositioned-artifacts", strict)
+
+    def test_prepositioned_only_rejects_model_preparation_before_preflight(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            with patch.object(MODULE, "_run_preflight") as preflight, patch.object(
+                MODULE, "_run_and_capture"
+            ) as runner:
+                with self.assertRaisesRegex(ValueError, "--model-dirで事前配置"):
+                    MODULE.run(
+                        kj_atlas_dir=None,
+                        kj_atlas_backend_bundle=root / "bundle",
+                        model_dir=None,
+                        prepare_model_dir=root / "new-models",
+                        work_dir=None,
+                        evidence_dir=root / "evidence",
+                        verification_output=root / "verification.json",
+                        forwarded=[
+                            "--runtime-a-archive=/tmp/a.tar.zst",
+                            "--runtime-b-archive=/tmp/b.tar.zst",
+                        ],
+                        require_prepositioned_artifacts=True,
+                    )
+            preflight.assert_not_called()
+            runner.assert_not_called()
 
     def test_prepare_model_path_is_not_required_by_side_effect_free_preflight(self):
         command = MODULE._build_preflight_command(
