@@ -200,8 +200,16 @@ actual Ollama /api/tags
   ↓
 actual A/B inference
   ↓
-Evidence read-back
+run-isolated Evidence preservation
+  ↓
+runner observation
+  ↓
+mechanical Evidence verification
+  ↓
+Requirement / Contract assessment + quality review
 ```
+
+harnessのexit code 0、保存済みEvidenceの機械的な十分性、Requirement / Contract再照合、成果品質評価は別の段階として扱う。
 
 ### Preflight
 
@@ -254,6 +262,35 @@ actual実験本文は`run_runtime_version_exchange.sh`に置く。strict Evidenc
 
 low-level harnessはactual runtime archive / binary version / `/api/tags` model digest / prompt digest / inference / Exact Binding / historical Application / portable reconstruction / negative controlを一続きに確認し、run専用Evidence directoryへ保存する。
 
+### Post-run runner / mechanical verifier
+
+actual実行時は`run_runtime_version_exchange_with_verification.py`を利用できる。このrunnerはstrict入口を正本として呼び出し、source / model準備ロジックを重複実装しない。
+
+runnerは次を行う。
+
+1. strict入口へsource、model、work、Evidenceを明示的に渡す。
+2. identity / safety optionを下位entrypointへ迂回上書きできないようにする。
+3. strict実行のstdout / stderrを一つのcombined logへ保存する。
+4. exit code、combined log SHA-256 / bytes、source preparationをrunner observationへ記録する。
+5. Evidence directoryが生成された場合、成功・失敗にかかわらず`verify_runtime_version_exchange_evidence.py`を実行する。
+6. mechanical verification reportはEvidence directoryの外へ保存し、検証対象そのものを書き換えない。
+
+mechanical verifierは、固定source / runtime / model / Method input / prompt、actual inference counter、KJ Atlas result境界、runner exit code、completion marker、combined log digest、`qualityJudgement=not_evaluated`を再確認する。
+
+全機械条件を満たす場合だけ`ready-to-review`、不足や不一致がある場合は`not-sufficient`とblocker IDを返す。
+
+```text
+strict harness exit code 0
+  != mechanical Evidence verification PASS
+
+mechanical Evidence verification PASS
+  = 保存済みrunが固定された機械条件を満たし、レビュー可能である
+  != Requirement / Contract assessment complete
+  != model output quality satisfied
+  != KJ-method outcome quality satisfied
+  != ISSUE-000070 Resolved
+```
+
 ## Acquisition boundary
 
 runtime archiveはdownload / prepositionedを許可し、どちらもactual bytesの固定SHA-256へ戻す。
@@ -285,6 +322,7 @@ acquisition path
 - verified source bundleが固定Git object identityと一致しなければ開始しない。
 - work / Evidence / prepared model targetは新しいpathだけを受け付ける。
 - source、model store、Evidence、work directoryを相互に分離する。
+- mechanical verification outputもsource、model store、Evidence、work directoryから分離する。
 - Evidenceをmodel store配下へ置き、read-only入力を変更できないようにする。
 - fixed local port `11434` / `8001` / `8101`が使用中なら開始しない。
 - harness自身が起動したPIDを確認する。
@@ -303,10 +341,13 @@ actual runtimeを起動せず、次の境界を個別に検査できる。
 - source exporter / verifier
 - preflight
 - strict entrypoint
+- post-run runner / mechanical Evidence verifier
 - low-level harness interface
 - Exact Binding / historical reconstructionのpure-Go control
 
 2026-09-03にはstrict entrypointのpath分離について、依存moduleをstub化したローカル個別実行で`10 tests / OK`、return code 0を確認した。
+
+また、post-run Evidence検証について、current artifact manifestと同じ構造を使ったsynthetic回帰でverifier 12件、runner 7件の計`19 tests / OK`を確認した。これはactual Ollama A / B実行ではない。
 
 ```text
 local helper test PASS
@@ -393,13 +434,25 @@ run専用Evidence directoryから、存在する範囲で次へ戻れること�
 - fixed Method request
 - A / B inference Evidence / KJ Atlas result
 - process log
+- runner observation / combined output log
 - `qualityJudgement = not_evaluated`
 
 ```text
 Evidence preserved
+  != mechanical Evidence verification PASS
   != runtime exchange PASS
   != output quality satisfied
 ```
+
+### E10 — independent mechanical Evidence verification
+
+- verifierはrun専用Evidence directoryをread-only入力として扱う。
+- verification reportをEvidence directoryの外へ保存する。
+- fixed source / runtime / model / Method input / promptを再確認する。
+- `ollama_done=true`、positive eval counter、KJ Atlas result境界を再確認する。
+- runner exit code、completion marker、combined output SHA-256 / bytesを再確認する。
+- missing / drift / symlink / non-strict source / quality promotionを`not-sufficient`として拒否する。
+- 全機械条件を満たした場合だけ`ready-to-review`を返す。
 
 ## Existing Evidence
 
@@ -421,8 +474,9 @@ current developには次がある。
 - model store preparation helper / static verifier
 - side-effect-free preflight
 - strict runtime exchange entrypoint
+- post-run verified runner / mechanical Evidence verifier
 - repository-local low-level harness
-- source / model / Evidence / work path separation
+- source / model / Evidence / work / verification output path separation
 - clean-tree / port / PID safety guard
 - run-isolated Evidence directory
 - download / prepositioned runtime archive経路
@@ -451,6 +505,9 @@ model store preparation / static verification
 preflight / strict entrypoint / low-level harness
   = implemented
 
+post-run runner / mechanical Evidence verifier
+  = implemented; synthetic 19-test regression available
+
 actual runtime A/B binary / archive digest / model / prompt / inference
   = Not Yet Verified
 
@@ -478,10 +535,11 @@ runtime-version-exchange Scoped Executable Evidence
 7. Application AのReference / Provenance / outputがB追加後も不変である。
 8. Realization payload verification、portable reconstruction、unknown revision negative controlがPASSする。
 9. Recommendation / Decisionへの自動昇格がない。
-10. run専用Evidence directoryから実験identity、source identity、model preparation / static verification、取得状況、入力、A / B actual runtime digest、model Evidence、出力へ戻れる。
-11. Requirement / Contract再照合と自然な日本語最終監査を行う。
+10. run専用Evidence directoryから実験identity、source identity、model preparation / static verification、取得状況、入力、A / B actual runtime digest、model Evidence、出力、runner observation / combined output logへ戻れる。
+11. 保存済みEvidenceを独立mechanical verifierへ通し、固定された機械条件について`ready-to-review`を得る。
+12. Requirement / Contract再照合と自然な日本語最終監査を行う。
 
-archive preparation、model store preparation、static model verification、preflight ready、strict entrypoint verification、disk free-space、source export成功、GitHub Actions再導入、artifactの実行時download可否は、それ単独ではResolution条件にしない。
+archive preparation、model store preparation、static model verification、preflight ready、strict entrypoint verification、mechanical verifierのsynthetic test、disk free-space、source export成功、GitHub Actions再導入、artifactの実行時download可否は、それ単独ではResolution条件にしない。
 
 ## Reopen conditions
 
@@ -492,7 +550,7 @@ Resolved後も次の場合は再開する。
 - payload / Binding不一致、unknown revision digestを受理する。
 - ignored runtime-affecting fileをstrict sourceへ混入できる。
 - verified runtime surfaceのGit object identity不一致を受理する。
-- source、model store、Evidence、workを重ねて入力を実行副作用で変更できる。
+- source、model store、Evidence、work、verification outputを重ねて入力やEvidenceを検証副作用で変更できる。
 - model manifest / blob bytesが固定identityと異なるstoreを受理する。
 - fixed registry以外からprepared storeを暗黙に構成する。
 - model tagだけでartifact identityを推論する。
@@ -502,6 +560,7 @@ Resolved後も次の場合は再開する。
 - 別processのhealth responseを今回のactual実行と誤認する。
 - 既存work / Evidence directoryを上書き・混在できる。
 - live guardが暗黙pathへfallbackする。
+- runner log改変、completion marker欠落、missing Evidence、identity driftをmechanical verifierが見逃す。
 - runtime固有情報をUniversal semanticsへ先取りする。
 - actual実験本文が特定automation providerにしか存在しなくなる。
 - runtime交換successをmodel / KJ成果品質やE4へ過大評価する。
@@ -525,9 +584,11 @@ runtime 0.32.13 / 0.32.14 exchange PASS
 
 ISSUE-000067 / 000068 / 000071、Cognitive Method Contract、Exact Binding、current KJ Atlas mapping、no-Actions baseline、repository-local runtime資産へ戻って全文を再監査した。
 
-現在の実行経路を、runtime artifact準備、source identity固定、model store検証または新規準備、preflight、strict entrypoint、low-level harness、actual API / inference、Evidence読み戻しの順に整理した。
+現在の実行経路を、runtime artifact準備、source identity固定、model store検証または新規準備、preflight、strict entrypoint、low-level harness、actual API / inference、run専用Evidence保存、runner observation、独立mechanical verification、Requirement / Contract再照合の順に整理した。
 
-新しいmodel store準備経路は、取得方法を増やすためのものでありartifact identityを弱めるものではない。registryから取得したmanifest / blobは固定digestへ戻し、完成storeをstatic verifierへ再度通す。それでもactual `/api/tags`観測とA / B inferenceは別に必要である。
+新しいpost-run runner / verifierは、actual実行の成功を増幅して見せるためのものではない。harnessのexit code 0と保存済みEvidenceの十分性を分離し、Evidenceをread-onlyに再検証して`ready-to-review`または`not-sufficient`を返す。その判定も成果品質やIssue Resolutionへは自動昇格しない。
+
+model store準備経路は、取得方法を増やすためのものでありartifact identityを弱めるものではない。registryから取得したmanifest / blobは固定digestへ戻し、完成storeをstatic verifierへ再度通す。それでもactual `/api/tags`観測とA / B inferenceは別に必要である。
 
 GitHub Actionsは完全停止を維持する。actual Ollama `0.32.13` / `0.32.14`交換はNot Yet Verifiedであり、本IssueはOpenのままとする。
 

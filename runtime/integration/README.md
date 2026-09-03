@@ -74,10 +74,13 @@ strict Evidenceへ進む標準経路は次のとおりです。
 5. strict entrypointから実行する
 6. low-level repository-local harnessがactual processを動かす
 7. actual /api/tagsとA/B inferenceを確認する
-8. Evidenceを読み戻す
+8. run専用Evidenceを保存する
+9. runner observationを保存する
+10. Evidence directoryを独立verifierで機械検証する
+11. Requirement / Contractと成果品質の評価へ進む
 ```
 
-各工程の成功を、まだ実行していない後続工程の成功へ読み替えません。
+各工程の成功を、まだ実行していない後続工程の成功へ読み替えません。特に、harnessのexit code 0と、保存済みEvidenceが固定条件を満たしていることは別々に確認します。
 
 ## Runtime archiveの準備
 
@@ -257,6 +260,67 @@ strict entrypoint verification PASS
   != actual runtime A/B inference PASS
 ```
 
+## 実行とEvidence独立検証を一続きに行う
+
+actual実行時は、`run_runtime_version_exchange_with_verification.py`を使うと、strict入口の実行、runner observationの保存、実行後Evidenceの機械検証までを一続きに行えます。このrunnerはsourceやmodelの準備処理を重複実装せず、current `run_runtime_version_exchange_strict.py`へ委譲します。
+
+既存model storeを使う例:
+
+```bash
+python3 runtime/integration/run_runtime_version_exchange_with_verification.py \
+  --kj-atlas-dir /path/to/kj-atlas \
+  --model-dir /path/to/ollama-models \
+  --evidence-dir /path/to/new-evidence-directory \
+  --verification-output /path/to/new-verification.json \
+  -- \
+  --runtime-a-archive /path/to/runtime-archives/ollama-0.32.13-linux-amd64.tar.zst \
+  --runtime-b-archive /path/to/runtime-archives/ollama-0.32.14-linux-amd64.tar.zst
+```
+
+model storeを新規準備する場合は、`--model-dir`の代わりに`--prepare-model-dir /path/to/new-ollama-models`を指定します。sourceは既存verified bundleを`--kj-atlas-backend-bundle`で渡すこともできます。
+
+runnerはstrict実行のstdout/stderrを一つのlogとして保存し、exit code、log SHA-256、bytes、source preparationを`runtime-exchange-runner-observation.json`へ記録します。Evidence directoryが生成された場合は、成功・失敗にかかわらずpost-run verifierを実行します。
+
+検証reportはEvidence directoryの外へ保存します。検証対象のEvidence自身をverifierが書き換えないためです。
+
+```text
+strict harness exit code 0
+  != mechanical Evidence verification PASS
+
+mechanical Evidence verification PASS
+  = 保存済みrunが固定された機械条件を満たし、レビュー可能である
+  != Requirement / Contract assessment complete
+  != model output quality satisfied
+  != KJ-method outcome quality satisfied
+  != ISSUE-000070 Resolved
+```
+
+## 保存済みEvidenceだけを再検証する
+
+既に保存されたEvidence directoryは、`verify_runtime_version_exchange_evidence.py`で副作用なく再検証できます。
+
+```bash
+python3 runtime/integration/verify_runtime_version_exchange_evidence.py \
+  --evidence-dir /path/to/evidence-directory \
+  --output /path/to/new-verification.json
+```
+
+全機械条件を満たした場合だけ`ready-to-review`を返します。不足や不一致があれば`not-sufficient`とblocker IDを返します。
+
+主な確認対象は次です。
+
+- fixed KJ Atlas source commit / parent backend tree / runtime surface tree
+- runtime A / Bのactual versionとarchive SHA-256
+- fixed model full digestとA / Bそれぞれの`/api/tags`観測
+- fixed 3-card Method inputとheld card
+- A / Bのsame prompt SHA-256
+- `ollama_done=true`、`prompt_eval_count>0`、`eval_count>0`
+- KJ Atlas resultの最低限の構造境界
+- runner exit code、completion marker、combined log SHA-256 / bytes
+- `qualityJudgement=not_evaluated`
+
+生成文の内容一致や成果品質は、このmechanical verifierのPASS条件には含めません。
+
 ## Low-level repository-local harness
 
 `run_runtime_version_exchange.sh`がactual A / B processを動かします。strict Evidenceでは原則としてstrict入口から利用します。
@@ -279,6 +343,7 @@ low-level harnessは次を一続きに確認します。
 
 - work / Evidenceには新しいpathを使う。
 - source、model store、work、Evidenceを重ねない。
+- verification outputもsource、model store、work、Evidenceから分離する。
 - 一つのEvidence directoryを一つのrunだけへ対応させる。
 - fixed port `11434` / `8001` / `8101`の空きを確認する。
 - health responseだけでなく、harness自身が起動したPIDの生存を確認する。
@@ -297,6 +362,8 @@ python3 runtime/integration/test_runtime_version_exchange_preflight_model_store.
 python3 runtime/integration/test_run_runtime_version_exchange_strict.py
 python3 runtime/integration/test_run_runtime_version_exchange_strict_model_preparation.py
 python3 runtime/integration/test_run_runtime_version_exchange.py
+python3 runtime/integration/test_run_runtime_version_exchange_with_verification.py
+python3 runtime/integration/test_verify_runtime_version_exchange_evidence.py
 ```
 
 ```text
@@ -321,9 +388,14 @@ Evidence directoryには、存在する範囲で次を保存します。
 - 固定Method request
 - A / B inference Evidence / KJ Atlas result
 - Adapter / KJ Atlas / Ollama log
+- runner observation
+- runner combined output log
+
+mechanical verification reportはEvidence directoryの外へ保存します。これにより、検証結果を書き込むことで検証対象そのものを変更する循環を避けます。
 
 ```text
 Evidence preserved
+  != mechanical Evidence verification PASS
   != runtime exchange PASS
   != output quality satisfied
 ```
@@ -346,8 +418,10 @@ runtime exchange PASS
 
 ## 自然な日本語レビュー
 
-このREADMEをcurrent no-Actions baseline、固定runtime / source / model identity、artifact準備tool、preflight、strict entrypoint、low-level harness、Evidence保存、成果品質評価境界へ戻って全文再ドラフトしました。
+このREADMEをcurrent no-Actions baseline、固定runtime / source / model identity、artifact準備tool、preflight、strict entrypoint、実行後runner、mechanical Evidence verifier、low-level harness、Evidence保存、成果品質評価境界へ戻って全文再ドラフトしました。
 
-特に、既存model storeを静的検証する経路と、固定registryから新しいmodel storeを準備する経路を分けました。新規準備では、取得したmanifest / blobを検証し終えるまで完成storeとして公開しません。それでも、準備成功はactual Ollama API観測ではありません。
+特に、実行のexit code、保存済みEvidenceの機械的な十分性、Requirement / Contract再照合、成果品質評価を別の段階として読み分けられるようにしました。mechanical verifierが`ready-to-review`を返しても、それだけでISSUE-000070をResolvedにはしません。
 
-actual Ollama `0.32.13` / `0.32.14`交換は引き続きNot Yet Verifiedです。準備・静的検証・preflight・strict入口と、未完了のactual A / B実行を明確に読み分けられることを最重要視しています。
+既存model storeを静的検証する経路と、固定registryから新しいmodel storeを準備する経路も分けたまま維持しています。新規準備では、取得したmanifest / blobを検証し終えるまで完成storeとして公開しません。それでも、準備成功はactual Ollama API観測ではありません。
+
+actual Ollama `0.32.13` / `0.32.14`交換は引き続きNot Yet Verifiedです。準備・静的検証・preflight・strict入口・runner / verifierと、未完了のactual A / B実行を明確に読み分けられることを最重要視しています。
