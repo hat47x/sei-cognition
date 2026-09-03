@@ -33,7 +33,9 @@ Options:
 必要コマンド:
   git, python3, go, curl, zstd, tar, sha256sum
 
-KJ Atlas checkoutは指定場所に存在し、HEADが固定commitと一致している必要があります。
+SOZAとKJ AtlasはcleanなGit checkoutである必要があります。
+KJ Atlas checkoutのHEADは固定commitと一致している必要があります。
+work / Evidence directoryをSOZAまたはKJ Atlas repository配下には置けません。
 このscriptはGitHub Actions、runner ID、workflow run IDを実験成立条件にしません。
 USAGE
 }
@@ -75,11 +77,58 @@ for command in git python3 go curl zstd tar sha256sum; do
   }
 done
 
+canonical_path() {
+  python3 - "$1" <<'PY'
+import os
+import sys
+print(os.path.realpath(sys.argv[1]))
+PY
+}
+
+is_within_path() {
+  local candidate="$1"
+  local parent="$2"
+  [[ "${candidate}" == "${parent}" || "${candidate}" == "${parent}/"* ]]
+}
+
+require_clean_repository() {
+  local label="$1"
+  local path="$2"
+  if ! git -C "${path}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "${label} is not a Git working tree: ${path}" >&2
+    exit 1
+  fi
+  local status
+  status="$(git -C "${path}" status --porcelain --untracked-files=all)"
+  if [[ -n "${status}" ]]; then
+    echo "${label} working tree is not clean: ${path}" >&2
+    printf '%s\n' "${status}" >&2
+    exit 1
+  fi
+}
+
+if [[ ! -d "${KJ_ATLAS_DIR}/.git" ]]; then
+  echo "KJ Atlas checkout not found: ${KJ_ATLAS_DIR}" >&2
+  echo "Clone hat47x/kj-atlas and checkout ${KJ_ATLAS_COMMIT}, or pass --kj-atlas-dir." >&2
+  exit 1
+fi
+KJ_ATLAS_DIR="$(canonical_path "${KJ_ATLAS_DIR}")"
+
+require_clean_repository "SOZA" "${SOZA_ROOT}"
+require_clean_repository "KJ Atlas" "${KJ_ATLAS_DIR}"
+
+ACTUAL_KJ_COMMIT="$(git -C "${KJ_ATLAS_DIR}" rev-parse HEAD)"
+if [[ "${ACTUAL_KJ_COMMIT}" != "${KJ_ATLAS_COMMIT}" ]]; then
+  echo "KJ Atlas commit mismatch: actual=${ACTUAL_KJ_COMMIT} expected=${KJ_ATLAS_COMMIT}" >&2
+  exit 1
+fi
+SOZA_COMMIT="$(git -C "${SOZA_ROOT}" rev-parse HEAD)"
+
 if [[ -z "${WORK_DIR}" ]]; then
   WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/soza-runtime-version-exchange.XXXXXX")"
 else
   mkdir -p "${WORK_DIR}"
-  WORK_DIR="$(cd "${WORK_DIR}" && pwd)"
+  WORK_DIR="$(canonical_path "${WORK_DIR}")"
 fi
 
 EXECUTION_ID="${SOZA_RUNTIME_EXCHANGE_EXECUTION_ID:-local-$(date -u +%Y%m%dT%H%M%SZ)-$$}"
@@ -87,7 +136,18 @@ if [[ -z "${EVIDENCE_DIR}" ]]; then
   EVIDENCE_DIR="${TMPDIR:-/tmp}/soza-runtime-version-exchange-evidence-${EXECUTION_ID}"
 fi
 mkdir -p "${EVIDENCE_DIR}"
-EVIDENCE_DIR="$(cd "${EVIDENCE_DIR}" && pwd)"
+EVIDENCE_DIR="$(canonical_path "${EVIDENCE_DIR}")"
+
+for output_dir in "${WORK_DIR}" "${EVIDENCE_DIR}"; do
+  if is_within_path "${output_dir}" "${SOZA_ROOT}"; then
+    echo "runtime exchange output directory must not be inside the SOZA repository: ${output_dir}" >&2
+    exit 1
+  fi
+  if is_within_path "${output_dir}" "${KJ_ATLAS_DIR}"; then
+    echo "runtime exchange output directory must not be inside the KJ Atlas repository: ${output_dir}" >&2
+    exit 1
+  fi
+done
 
 VENV_DIR="${WORK_DIR}/venv"
 MODEL_STORE="${WORK_DIR}/ollama-models"
@@ -116,7 +176,8 @@ cleanup_processes() {
 }
 
 preserve_evidence() {
-  mkdir -p "${EVIDENCE_DIR}"
+  local preserve_status=0
+  mkdir -p "${EVIDENCE_DIR}" || return 1
   local path
   for path in \
     "${IDENTITY_FILE}" \
@@ -137,40 +198,41 @@ preserve_evidence() {
     "${WORK_DIR}/runtime-exchange-b-kj.log" \
     "${WORK_DIR}/runtime-exchange-a-ollama.log" \
     "${WORK_DIR}/runtime-exchange-b-ollama.log"; do
-    if [[ -f "${path}" ]]; then
-      cp -f "${path}" "${EVIDENCE_DIR}/"
+    if [[ -f "${path}" && "$(dirname "${path}")" != "${EVIDENCE_DIR}" ]]; then
+      cp -f "${path}" "${EVIDENCE_DIR}/" || preserve_status=1
     fi
   done
+  return "${preserve_status}"
 }
 
 finish() {
   local status=$?
+  set +e
   cleanup_processes
   preserve_evidence
+  local preserve_status=$?
+
   if [[ "${KEEP_WORK}" != "1" ]]; then
-    rm -rf "${VENV_DIR}" "${RUNTIME_ROOT_A}" "${RUNTIME_ROOT_B}" "${MODEL_STORE}" 2>/dev/null || true
+    if is_within_path "${EVIDENCE_DIR}" "${WORK_DIR}"; then
+      echo "Evidence directory is inside the work directory; retaining work directory: ${WORK_DIR}" >&2
+    else
+      rm -rf "${WORK_DIR}"
+    fi
   fi
+
+  if [[ "${status}" == "0" && "${preserve_status}" != "0" ]]; then
+    status="${preserve_status}"
+  fi
+
   echo "Evidence directory: ${EVIDENCE_DIR}"
   if [[ "${KEEP_WORK}" == "1" ]]; then
     echo "Work directory: ${WORK_DIR}"
   fi
+
+  trap - EXIT
   exit "${status}"
 }
 trap finish EXIT
-
-if [[ ! -d "${KJ_ATLAS_DIR}/.git" ]]; then
-  echo "KJ Atlas checkout not found: ${KJ_ATLAS_DIR}" >&2
-  echo "Clone hat47x/kj-atlas and checkout ${KJ_ATLAS_COMMIT}, or pass --kj-atlas-dir." >&2
-  exit 1
-fi
-KJ_ATLAS_DIR="$(cd "${KJ_ATLAS_DIR}" && pwd)"
-ACTUAL_KJ_COMMIT="$(git -C "${KJ_ATLAS_DIR}" rev-parse HEAD)"
-if [[ "${ACTUAL_KJ_COMMIT}" != "${KJ_ATLAS_COMMIT}" ]]; then
-  echo "KJ Atlas commit mismatch: actual=${ACTUAL_KJ_COMMIT} expected=${KJ_ATLAS_COMMIT}" >&2
-  exit 1
-fi
-
-SOZA_COMMIT="$(git -C "${SOZA_ROOT}" rev-parse HEAD 2>/dev/null || printf 'unknown')"
 
 SOZA_COMMIT="${SOZA_COMMIT}" \
 KJ_ATLAS_COMMIT="${ACTUAL_KJ_COMMIT}" \
