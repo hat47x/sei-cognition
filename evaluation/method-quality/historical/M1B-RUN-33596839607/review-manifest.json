@@ -1,0 +1,41 @@
+{
+  "files": {
+    "modelEvidence": {
+      "bytes": 351,
+      "name": "model-evidence.json",
+      "sha256": "583b22a80f70107d10625fb14a3fd3c0db522ea863178987e236dd1b5ac5c959"
+    },
+    "modelList": {
+      "bytes": 116,
+      "name": "model-list.txt",
+      "sha256": "c46b48e8ed6fb14aab4c7714cf13c017f3c01eee580e8efb5f6fc3ee029b047d"
+    },
+    "request": {
+      "bytes": 1023,
+      "name": "request.json",
+      "sha256": "f07684c39c9bbb1f1ffcc223da33506c94c91393bf09abc45f550f0baac83cc0"
+    },
+    "result": {
+      "bytes": 276,
+      "name": "result.json",
+      "sha256": "3b52f421e3a8240ae6e3ae3c625becdc380ff08cf5235f65df8896d9562c9355"
+    },
+    "runtimeVersion": {
+      "bytes": 35,
+      "name": "runtime-version.txt",
+      "sha256": "c8e899ffbab3019eeec2f0186b3465975dd3ea80863212f07941d21a2e287540"
+    },
+    "structureReport": {
+      "bytes": 427,
+      "name": "structure-report.json",
+      "sha256": "982bb96994d65c801c42e0cf696effb0327cffcc8df2aa49ead33f7e659612c5"
+    }
+  },
+  "methodSourceCommit": "4f28c13abe4176503c6fed863383a2d1db2299e9",
+  "qualityJudgement": "not_evaluated",
+  "repositoryCommit": "27476bb6a1e9583282ae59f54395abbdef185186",
+  "schema": "soza.method-quality-review-bundle/v1",
+  "structureStatus": "passed",
+  "workflowRunAttempt": "1",
+  "workflowRunId": "33596839607"
+}
