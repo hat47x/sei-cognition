@@ -26,7 +26,7 @@ Usage: runtime/integration/run_runtime_version_exchange.sh [options]
 Options:
   --kj-atlas-dir PATH   固定KJ Atlas checkoutの場所。既定は _external/kj-atlas。
   --work-dir PATH       新規に作成する一時作業ディレクトリ。既存pathは拒否する。
-  --evidence-dir PATH   Evidence保存先。未指定時は/tmp配下に作成する。
+  --evidence-dir PATH   新規に作成するEvidence保存先。既存pathは拒否する。
   --keep-work           一時作業ディレクトリを削除しない。
   -h, --help            この説明を表示する。
 
@@ -203,6 +203,10 @@ if [[ -z "${EVIDENCE_DIR}" ]]; then
 fi
 EVIDENCE_DIR="$(canonical_path "${EVIDENCE_DIR}")"
 require_safe_output_path "Evidence directory" "${EVIDENCE_DIR}"
+if [[ -e "${EVIDENCE_DIR}" ]]; then
+  echo "Evidence directory already exists; specify a new path: ${EVIDENCE_DIR}" >&2
+  exit 1
+fi
 mkdir -p "${EVIDENCE_DIR}"
 
 VENV_DIR="${WORK_DIR}/venv"
