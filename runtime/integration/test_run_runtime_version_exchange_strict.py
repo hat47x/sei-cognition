@@ -22,9 +22,10 @@ class StrictRuntimeVersionExchangeTest(unittest.TestCase):
             "--kj-atlas-backend-bundle=/tmp/source",
             "--model-dir",
             "--evidence-dir=/tmp/evidence",
+            "--work-dir=/tmp/work",
         ):
             with self.subTest(option=option):
-                with self.assertRaisesRegex(ValueError, "identity option"):
+                with self.assertRaisesRegex(ValueError, "identity / safety option"):
                     ENTRYPOINT._reject_forwarded_identity_options([option])
 
     def test_prepositioned_model_store_is_verified_before_harness(self):
@@ -182,6 +183,140 @@ class StrictRuntimeVersionExchangeTest(unittest.TestCase):
                     )
                 source_verifier.assert_not_called()
                 runner.assert_not_called()
+
+    def test_model_store_inside_checkout_is_rejected_before_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            checkout = root / "checkout"
+            model = checkout / "models"
+            evidence = root / "evidence"
+            model.mkdir(parents=True)
+
+            with patch.object(ENTRYPOINT, "verify_model_store") as model_verifier, patch.object(
+                ENTRYPOINT,
+                "export_runtime_bundle",
+            ) as exporter, patch.object(ENTRYPOINT.subprocess, "run") as runner:
+                with self.assertRaisesRegex(ValueError, "model directory.*KJ Atlas checkout"):
+                    ENTRYPOINT.run_strict_probe(
+                        checkout_dir=checkout,
+                        backend_bundle=None,
+                        model_dir=model,
+                        evidence_dir=evidence,
+                        harness_arguments=[],
+                    )
+
+            model_verifier.assert_not_called()
+            exporter.assert_not_called()
+            runner.assert_not_called()
+
+    def test_evidence_inside_checkout_is_rejected_before_export(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            checkout = root / "checkout"
+            checkout.mkdir()
+            evidence = checkout / "evidence"
+
+            with patch.object(ENTRYPOINT, "export_runtime_bundle") as exporter, patch.object(
+                ENTRYPOINT.subprocess,
+                "run",
+            ) as runner:
+                with self.assertRaisesRegex(ValueError, "Evidence directory.*KJ Atlas checkout"):
+                    ENTRYPOINT.run_strict_probe(
+                        checkout_dir=checkout,
+                        backend_bundle=None,
+                        model_dir=None,
+                        evidence_dir=evidence,
+                        harness_arguments=[],
+                    )
+
+            exporter.assert_not_called()
+            runner.assert_not_called()
+
+    def test_evidence_inside_model_store_is_rejected_without_mutating_store(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bundle = root / "bundle"
+            model = root / "model"
+            evidence = model / "evidence"
+            bundle.mkdir()
+            model.mkdir()
+
+            with patch.object(ENTRYPOINT, "verify_model_store") as model_verifier, patch.object(
+                ENTRYPOINT,
+                "verify_runtime_bundle",
+            ) as source_verifier, patch.object(ENTRYPOINT.subprocess, "run") as runner:
+                with self.assertRaisesRegex(ValueError, "Evidence directory.*model directory"):
+                    ENTRYPOINT.run_strict_probe(
+                        checkout_dir=None,
+                        backend_bundle=bundle,
+                        model_dir=model,
+                        evidence_dir=evidence,
+                        harness_arguments=[],
+                    )
+
+            model_verifier.assert_not_called()
+            source_verifier.assert_not_called()
+            runner.assert_not_called()
+            self.assertFalse(evidence.exists())
+
+    def test_safe_custom_work_directory_is_forwarded_by_strict_entrypoint(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bundle = root / "bundle"
+            evidence = root / "evidence"
+            work = root / "work"
+            bundle.mkdir()
+
+            class Completed:
+                returncode = 0
+
+            def fake_run(command, check):
+                evidence.mkdir()
+                return Completed()
+
+            with patch.object(ENTRYPOINT, "verify_runtime_bundle"), patch.object(
+                ENTRYPOINT.subprocess,
+                "run",
+                side_effect=fake_run,
+            ) as runner:
+                result = ENTRYPOINT.run_strict_probe(
+                    checkout_dir=None,
+                    backend_bundle=bundle,
+                    model_dir=None,
+                    evidence_dir=evidence,
+                    harness_arguments=[],
+                    work_dir=work,
+                )
+
+            self.assertEqual(0, result)
+            command = runner.call_args.args[0]
+            self.assertIn("--work-dir", command)
+            self.assertEqual(str(work.resolve()), command[command.index("--work-dir") + 1])
+
+    def test_work_directory_inside_checkout_is_rejected_before_export(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            checkout = root / "checkout"
+            checkout.mkdir()
+            evidence = root / "evidence"
+            work = checkout / "work"
+
+            with patch.object(ENTRYPOINT, "export_runtime_bundle") as exporter, patch.object(
+                ENTRYPOINT.subprocess,
+                "run",
+            ) as runner:
+                with self.assertRaisesRegex(ValueError, "Work directory.*KJ Atlas checkout"):
+                    ENTRYPOINT.run_strict_probe(
+                        checkout_dir=checkout,
+                        backend_bundle=None,
+                        model_dir=None,
+                        evidence_dir=evidence,
+                        harness_arguments=[],
+                        work_dir=work,
+                    )
+
+            exporter.assert_not_called()
+            runner.assert_not_called()
 
 
 if __name__ == "__main__":
