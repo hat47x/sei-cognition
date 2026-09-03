@@ -9,6 +9,7 @@
       "runtime": "ollama",
       "version": "0.32.13",
       "assetName": "ollama-linux-amd64.tar.zst",
+      "localFileName": "ollama-0.32.13-linux-amd64.tar.zst",
       "platform": {
         "os": "linux",
         "arch": "amd64"
@@ -21,6 +22,7 @@
       "runtime": "ollama",
       "version": "0.32.14",
       "assetName": "ollama-linux-amd64.tar.zst",
+      "localFileName": "ollama-0.32.14-linux-amd64.tar.zst",
       "platform": {
         "os": "linux",
         "arch": "amd64"
