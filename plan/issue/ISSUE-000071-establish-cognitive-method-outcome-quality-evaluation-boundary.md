@@ -1,6 +1,6 @@
 # ISSUE-000071: Cognitive Method成果品質の評価境界を確立する
 
-Status: **Open**  
+Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0017, ADR-0018, ADR-0020, ADR-0021, ADR-0025**  
 Product Milestone: **PMS-06**  
@@ -8,9 +8,9 @@ Updated: 2026-09-03
 
 ## Goal
 
-actual Cognitive Methodを「実行できた」ことと、その出力が人間の探索やKJ法実践にとって「よい成果だった」ことを分離して評価できる基線を作る。
+actual Cognitive Methodが「実行できた」ことと、その出力が人間の探索やKJ法の実践にとって「よい成果だった」ことを分けて評価できる基線を作る。
 
-E3b-M1bで成立したactual model-backed executionと、ISSUE-000068で実証したactual model artifact交換を入力として、少なくとも次の四層を混同しない。
+E3b-M1bのactual model-backed executionと、ISSUE-000068のactual model artifact交換で得たEvidenceを入力として、少なくとも次の四つを同じPASS / FAILへ押し込めないようにする。
 
 ```text
 execution conformance
@@ -19,13 +19,13 @@ execution conformance
   != Product Value / Adoption outcome
 ```
 
-成果品質を単一スコアへ圧縮したり、生成AI自身の採点を正解として採用したりせず、機械検査で確認できる事実と、人間のレビューを必要とする判断を明確に分ける。
+成果品質を単一スコアへ圧縮せず、生成AI自身の採点も正解として扱わない。機械的に確認できる事実、人間が判断すべき意味上の品質、製品価値として評価すべき結果を、それぞれ別の責務として残す。
 
 ## Background
 
 ISSUE-000066では、固定revisionのKJ AtlasをOllama上のactual modelへ接続し、actual inferenceからSOZA Cognitive Method ApplicationへのmappingまでをScoped Executable Evidenceとして確認した。
 
-ISSUE-000067ではMethod RealizationとExact Bindingのhistorical reconstruction境界を整理し、ISSUE-000068では同じKJ Atlas / Method input / Ollama runtimeのもとでactual model artifactを交換しても、先行ApplicationのRealization、Provenance、outputを保持できることをScoped Executable Evidenceとして実証した。
+ISSUE-000067ではMethod RealizationとExact Bindingによるhistorical reconstruction境界を整理し、ISSUE-000068では同じKJ Atlas / Method input / Ollama runtimeの下でactual model artifactを交換しても、先行ApplicationのRealization、Provenance、outputを保持できることを実証した。
 
 一方、同じprompt SHA-256、同じKJ Atlas revision、同じruntime / model identityを使ったM1bの複数runでも、生成されたgroup labelやrationaleは一致しなかった。
 
@@ -35,101 +35,137 @@ same prompt digest
   != same cognitive quality
 ```
 
-既存runでは同じ二枚の在宅勤務cardを一つのgroupへ束ね、held cardを除外する構造は共通していたが、Run `33596839607`では表札が`生活習慣`、Run `33609470323`では`在宅勤務`となった。
+保存済みのactual runでは、どちらも在宅勤務に関する2枚を一つに束ね、held cardを除外している。ただし、Run `33596839607`の表札は`生活習慣`、Run `33609470323`の表札は`在宅勤務`だった。
 
-両方とも構造検査の範囲では成立し得る。しかし、表札が元cardの訴えを広げすぎていないか、単なる話題名に退いていないか、rationaleが入力にない分類や因果を持ち込んでいないかは、構造検査だけでは判断できない。
+この差は構造検査だけでは良否を決められない。表札が元cardの訴えを広げすぎていないか、単なる話題名に退いていないか、rationaleが入力にない分類や因果を持ち込んでいないかは、人間が元cardへ戻って確認する必要がある。
 
-この観測をhuman reviewの代用にはしない。execution conformanceと成果品質を同じPASS / FAILへ押し込めないことを示す比較材料として保持する。
+この観測自体をhuman reviewの代用にはしない。execution conformanceと成果品質を分ける必要性を示す比較材料として保持する。
 
-## Questions
+## Questions and answers
 
-1. Cognitive Method outputについて、意味内容を採点せず機械的に確認できる構造上の不変条件は何か。
-2. KJ法としてのgrouping、表札、残差の扱い等について、人間のレビューで何を確認すべきか。
-3. 同じ入力から異なる生成結果が得られた場合、差異を「ばらつき」として捨てず、比較可能な記録としてどう保持するか。
-4. model出力品質、KJ法としての成果品質、Product Valueへの寄与を、どのEvidence段階で別々に扱うか。
-5. 評価方法の都合からOllama、Qwen、KJ Atlas固有fieldをSOZA Universal Contractへ持ち込まずに済むか。
-6. 意味的近接、話題語による誤分類、緊張、橋、held・異論・残差、孤立を残す必要性をどう評価入力へ含めるか。
-7. 評価ケースが機械的なgolden groupingや期待表札の固定へ変質しないよう、どこに停止線を置くか。
-8. 既存actual outputを品質の正解へ昇格させず、将来の比較レビューへ再利用できるhistorical sampleとしてどう保存するか。
+### 1. 機械検査でどこまで確認するか
+
+意味内容を採点せず、入力card identity、held / excluded、重複所属、空group / label、request / result digest等の構造不変条件だけを確認する。
+
+### 2. 人間は何を確認するか
+
+元cardの「訴え」、束ね方、無理な統合、見落とし、表札の具体性、入力にない断定、held・異論・残差、次の壁打ちへの有用性を、単一スコアへ潰さず記録する。
+
+### 3. 同一条件で異なる生成結果をどう扱うか
+
+勝敗やgolden answerへ変換せず、input identity、Method source、runtime / model identity、prompt digest、raw result、structure result、review contextを比較可能なhistorical observationとして残す。
+
+### 4. Product Valueとの境界
+
+structure checkや一件のhuman reviewを、Operational EvidenceやAdoption / Outcome Evidenceへ昇格させない。実利用で価値が届いたかどうかは別の評価段階で扱う。
 
 ## Constraints
 
-- 生成AIまたは自動評価器の品質判定を、人間のKJ法レビューと同等の正解として扱わない。
+- 生成AIや自動評価器の品質判定を、人間のKJ法レビューと同等の正解として扱わない。
 - model名、runtime名、temperature、特定prompt等をUniversal Cognitive Method Contractの必須fieldへ先取りしない。
-- 構造検査のPASSを、groupingや表札の意味的品質のPASSへ昇格させない。
+- structure checkのPASSを、groupingや表札の意味的品質のPASSへ昇格させない。
 - human reviewの記録を、直ちにOperational EvidenceやAdoption / Outcome Evidenceへ昇格させない。
-- 単一の総合点だけで品質を表現しない。少数の数値へ圧縮する場合も、元の観測・違和感・残差を失わない。
-- held / excluded、入力card identity、生成group、Provenance等、後から判断過程を辿るための情報を保持する。
+- 成果品質を単一の総合点だけで表現しない。数値化する場合も、元の観測、違和感、残差を失わない。
+- held / excluded、入力card identity、生成group、Provenance等、後から判断過程へ戻るための情報を保持する。
 - KJ法の成果物をRecommendationやDecisionへ自動昇格させない既存境界を維持する。
-- 評価case catalogへ`expectedGroups`、`expectedLabel`、`qualityScore`等の機械的な正解を持ち込まない。
-- historical sampleへ`preferred`、`winner`、期待表札等を付けず、observed outputとsource identityだけを保存する。
-- 現時点では新しいStable Requirement / Scenarioを追加しない。必要性は評価実証の後で再監査する。
-- GitHub Actions workflowの存在やrunner availabilityを、本Issueの評価境界成立条件にしない。検査はrepository同梱toolとして再現可能であることを優先する。
+- case catalogへ`expectedGroups`、`expectedLabel`、`qualityScore`等の機械的な正解を持ち込まない。
+- historical sampleへ`preferred`、`winner`、期待表札等を付けない。
+- AI補助観測にもwinner、golden label、machine scoreを持ち込まず、human reviewと明確に分離する。
+- 現時点では新しいStable Requirement / Scenarioを追加しない。
+- GitHub Actions workflowやrunner availabilityを、この評価基盤の意味上の成立条件にしない。
 
-## Required scenarios / experiments
+## Established evaluation boundary
 
-### EVAL-Q1 — 機械的な構造検査
+### EVAL-Q1 — 構造検査
 
-actualまたはfixtureのgrouping resultに対して、少なくとも次を検査する。
+`evaluation/method-quality/check_grouping_structure.py`は、actualまたはfixtureのgrouping resultについて次を確認する。
 
 - group内のcard IDが入力候補に存在する。
 - held cardがgroupへ再混入していない。
 - held cardと`excludedCardIds`の対応を確認できる。
 - 同じcardが複数groupへ重複所属していない。
-- 同じcardがgroupと`excludedCardIds`の双方へ同時に現れない。
-- group labelが空でない。
-- 検査対象のinput / result digestを記録できる。
+- 同じcardがgroupと`excludedCardIds`の双方へ現れない。
+- groupとlabelが空でない。
+- request / resultのSHA-256を記録できる。
 
-これは構造安全性の検査であり、groupingの意味的品質は採点しない。
+出力には`qualityJudgement = not_evaluated`を保持する。これは構造安全性の検査であり、意味的品質の採点ではない。
 
-### EVAL-Q2 — 人間によるstructured review
+### EVAL-Q2 — structured human review
 
-少なくとも次を単一スコアへ潰さず記録できるreview templateを維持する。
+`evaluation/method-quality/HUMAN_REVIEW_TEMPLATE.md`では、少なくとも次を個別に記録できる。
 
-- cardの「訴え」が保たれているか。
-- 分類語の近さだけで束ねていないか。
-- 無理に一つの島へ押し込めていないか。
+- cardの訴えが保たれているか。
+- 表面的な分類語だけで束ねていないか。
+- 離しておくべきcardを無理に押し込めていないか。
 - 明らかに響き合うcardを見落としていないか。
 - 表札が元cardの具体性や差異を消しすぎていないか。
 - 入力にない断定・因果・評価を持ち込んでいないか。
 - held、異論、違和感、未整理部分を処理済みに見せていないか。
-- その出力を次の壁打ち・配置・統合・文章化のproposalとして使えるか。
+- 次の壁打ち、配置、統合、文章化のproposalとして役立つか。
 
-### EVAL-Q3 — 同一条件で異なる生成結果を保持する
+### EVAL-Q3 — historical observation
 
-同じprompt digestから異なるlabel / rationaleが出た既存M1b Evidenceを、execution failureでも品質上の勝敗でもなく、比較可能なhistorical observationとして扱う。
+`historical_actual_samples.json`へ、Run `33596839607`とRun `33609470323`を保存している。
 
-少なくとも次を別々に保持する。
+両者は同じrequest、Method source、Ollama `0.32.14`、`qwen2.5:0.5b`、prompt SHA-256を共有する一方、生成されたlabel / rationaleが異なる。この差をexecution failureや品質上の順位へ変換せず、actual outputの変動として保持する。
 
-- input identity
-- repository / Method source revision
-- runtime / model identity
-- prompt digest
-- raw generated result
-- structure check result
-- human review record
+### EVAL-Q4 — actual M1bへの接続
 
-### EVAL-Q4 — actual M1bへの評価基盤接続
+PR #72で、成功済みactual M1b Run `33596839607` / Job `100141890796`について、repositoryに保存したhistorical sampleとGitHubに残る当該job logからreview bundleを再構成した。
 
-M1bのactual model-backed実行で得たKJ Atlas resultへEVAL-Q1の構造検査を適用できるようにする。
+保存先:
 
-actual request、result、model call Evidence、structure report、runtime / model identityをreview bundleとして保持し、manifestでrun / repository commit / Method source commit / file digestを対応付ける。
+`evaluation/method-quality/historical/M1B-RUN-33596839607/`
+
+保存しているもの:
+
+- `request.json`
+- `result.json`
+- `model-evidence.json`
+- `runtime-version.txt`
+- `model-list.txt`
+- `structure-report.json`
+- `review-manifest.json`
+- `reconstruction-provenance.json`
+
+structure checkの結果は次だった。
 
 ```text
-structure check PASS
-  + review bundle preserved
-  != grouping quality satisfied
-  != KJ-method outcome quality satisfied
-  != Product Value satisfied
+status = passed
+violations = []
+inputCardCount = 3
+heldCardCount = 1
+groupedCardCount = 2
+excludedCardCount = 1
+qualityJudgement = not_evaluated
 ```
 
-この接続はGitHub Actionsを必須としない。手動実行、ローカル実行、将来の外部runner等、実行場所を評価意味から分離する。
+request SHA-256:
+`f07684c39c9bbb1f1ffcc223da33506c94c91393bf09abc45f550f0baac83cc0`
+
+result SHA-256:
+`3b52f421e3a8240ae6e3ae3c625becdc380ff08cf5235f65df8896d9562c9355`
+
+元workflowはartifactを保存していなかったため、このbundleを「当時のworkflow artifact」とは扱わない。`reconstruction-provenance.json`で`originalWorkflowArtifactAvailable = false`を明示し、historical sampleと保存job logからの再構成物として扱う。
+
+`test_historical_review_bundle.py`では、保存request / resultからstructure reportを再生成できること、manifestを再生成できること、原artifactが存在したかのような主張をしていないことを検査する。3件はローカルでPASSしている。
+
+```text
+actual historical output
+  + log-derived execution provenance
+  + structural check PASS
+  + reproducible review manifest
+  = review-ready reconstructed bundle
+
+review-ready bundle
+  != original workflow artifact
+  != human review completed
+  != grouping quality satisfied
+```
 
 ### EVAL-Q5 — non-golden case catalog
 
-一つの簡単なM1b入力だけでは捉えにくい難所を複数の評価ケースとして保持する。
-
-current catalogでは少なくとも次を含める。
+`case_catalog.json`では、期待groupや期待表札を正解として固定せず、少なくとも次の難所を保持する。
 
 - 語彙が異なるが訴えが近いcard。
 - 同じ話題語を含むが訴えが異なるcard。
@@ -138,33 +174,43 @@ current catalogでは少なくとも次を含める。
 - held、異論、未整理の残差を含むcase。
 - 一部だけが近く、残りは孤立させた方が自然なcase。
 
-case catalogは「何を観測したいか」だけを持ち、期待groupや期待表札を正解として固定しない。
+validatorはgolden-answer化につながるfieldを拒否する。
 
-### EVAL-Q6 — 評価toolの再現可能な検査
+### EVAL-Q6 — 再現可能な評価tool
 
-actual model取得を必要としない範囲で、少なくとも次を一括して再実行できる状態を保つ。
+actual model取得を必要としない範囲で、次をrepository同梱toolとして再実行できる。
 
 - grouping structure checker test
 - review bundle manifest test
 - case catalog validator test
 - historical actual sample test
+- historical review bundle reconstruction test
+- AI supplemental observation boundary test
 - current `case_catalog.json` validation
 
-GitHub Actionsへの配置は任意とし、評価toolの意味上の責務とは分離する。
+旧作業branchで、structure checker / manifestの19ケース、case catalog validatorの10ケース、historical actual sampleの4ケース、合計33ケースを確認済みである。
 
-### EVAL-Q7 — historical actual sampleの保存
+PR #72でhistorical review bundleの3ケースを追加し、ローカルでPASSを確認した。PR #73で追加したAI補助観測の境界3ケースについても、2026-09-03にローカルでPASSを再確認した。
 
-既存runのrequest / result / source identityを`historical_actual_samples.json`へ保存する。
+これらは累積39ケースの検査資産に相当する。ただし、各時点の検査結果を一つのCI runが39件まとめて実行したという意味ではない。
 
-current baselineでは少なくともRun `33596839607`とRun `33609470323`を保持する。両者は同じrequest、Method source、Ollama `0.32.14`、`qwen2.5:0.5b`、prompt SHA-256を共有する一方、生成されたlabel / rationaleが異なる。
+### EVAL-Q7 — AI補助観測とhuman reviewの分離
 
-sample testでは次を確認する。
+PR #73では、2つのactual M1b resultの意味上の差を、`non_authoritative_ai_supplement`として別保存した。
 
-- 各sampleがstructure checkerを通過する。
-- `qualityJudgement`は`not_evaluated`のままである。
-- 同じexecution identityから異なるgenerated wordingが保存されている。
-- run / job / commit identityを区別して追跡できる。
-- `expectedGroups`、`expectedLabel`、`qualityScore`、`preferred`、`winner`等のgolden / ranking fieldを持たない。
+AI補助観測では、`生活習慣`が元cardより広い分類へずれている可能性、`在宅勤務`が共通核より一般的な話題名に退いている可能性などを、人間が確認するための論点として記録した。
+
+一方、次を明示的に保持している。
+
+```text
+humanReviewCompleted = false
+qualityJudgement = not_evaluated
+winnerSelection = false
+goldenLabel = false
+machineScore = false
+```
+
+したがって、AIの観測をHuman Review TemplateのQ1〜Q8へそのまま転記せず、人間が元cardとactual resultを読み直す。
 
 ## Deliverables
 
@@ -179,58 +225,60 @@ sample testでは次を確認する。
 - `evaluation/method-quality/test_validate_case_catalog.py`
 - `evaluation/method-quality/historical_actual_samples.json`
 - `evaluation/method-quality/test_historical_actual_samples.py`
-- actual M1b結果へ構造検査とreview bundle生成を適用できる実行境界
+- `evaluation/method-quality/historical/M1B-RUN-33596839607/*`
+- `evaluation/method-quality/test_historical_review_bundle.py`
+- `evaluation/method-quality/historical/ai-supplemental-comparison.json`
+- `evaluation/method-quality/test_ai_supplemental_comparison.py`
 - `plan/registry.yaml`
 - `plan/document_review_registry.yaml`
 
-## Current verification state
-
-旧作業branchでは、評価toolのローカル検査として既存19ケース、case catalog validator 10ケース、historical actual sample 4ケースを合わせて33ケース相当まで確認済みである。
-
-同branchではGitHub Actions workflowも試作されたが、現在の統合基線ではworkflowを採用しない。runner割当やworkflow生成の成否を、この評価基盤の意味的な成立証拠として扱わない。
-
-```text
-evaluation tools reproducible
-  != runner assigned
-  != GitHub Actions required
-  != outcome quality satisfied
-```
-
 ## Resolution
 
-次を満たした時点でResolvedにできる。
+次の9条件を確認し、本IssueをResolvedとする。
 
-1. execution conformance、structural safety、human outcome review、Product Value / Adoption outcomeの境界が文書化されている。
-2. grouping resultの構造検査がpositive / negative testで動作する。
-3. review bundle manifestがidentity / digestの整合を検査し、structure PASSをquality PASSへ昇格させない。
-4. non-golden case catalogとvalidatorが、意味的な正解を固定せず複数の評価難所を保持できる。
-5. historical actual sampleがactual outputの変動を品質順位へ変換せず保存できる。
-6. actual E3b-M1b outputにも同じ構造検査を適用し、review bundleを生成できる。
-7. 人間レビュー用templateが、単一スコアやAI採点を正解としない形式で用意されている。
-8. 評価toolの再現可能な検査とactual M1b実証の責務が分離されている。
-9. 上流計画と文書レビュー台帳がcurrent stateへ同期している。
+1. execution conformance、structural safety、human outcome review、Product Value / Adoption outcomeの境界を文書化した。**完了**
+2. grouping resultの構造検査についてpositive / negative testを用意した。**完了**
+3. review bundle manifestがidentity / digestの整合を検査し、structure PASSをquality PASSへ昇格させない。**完了**
+4. non-golden case catalogとvalidatorが、意味的な正解を固定せず複数の評価難所を保持する。**完了**
+5. historical actual sampleがactual outputの変動を品質順位へ変換せず保存する。**完了**
+6. actual E3b-M1b outputへ同じ構造検査を適用し、review bundleを再構成できることをPR #72で確認した。**完了**
+7. 人間レビュー用templateが、単一スコアやAI採点を正解としない形式で用意されている。**完了**
+8. 評価toolの再現可能な検査とactual M1b実証の責務を分離した。**完了**
+9. 上流計画と文書レビュー台帳をcurrent stateへ同期する。**本Issueを閉じるPlan整合変更で完了**
 
-このIssueのResolvedは、成果品質そのものがSatisfiedになったことを意味しない。実際のhuman review、複数caseでのactual比較、実利用時の価値評価は後続Evidenceとして残す。
+このResolvedは、Cognitive Methodの成果品質がSatisfiedになったことを意味しない。
+
+```text
+evaluation boundary established
+  != human review completed
+  != model quality proven
+  != KJ-method outcome quality proven
+  != Product Value satisfied
+```
+
+実際のhuman review、複数caseでのactual比較、実利用時の価値評価は後続Evidenceとして扱う。
 
 ## Reopen conditions
 
-- 構造検査が意味的品質を暗黙に採点してしまうことが判明した。
-- case catalogやhistorical sampleが、実質的なgolden answer / ranking datasetへ変質した。
+- 構造検査が意味的品質を暗黙に採点していることが分かった。
+- case catalogやhistorical sampleが実質的なgolden answer / ranking datasetへ変質した。
 - KJ法の実践者レビューで、現在の質問群では重要な残差を記録できないことが分かった。
 - 別Cognitive Methodで現在の四層分離が成立しない事例が見つかった。
-- model / runtime交換時に、品質比較へ必要なProvenanceを保持できないことが判明した。
+- model / runtime交換時に、品質比較へ必要なProvenanceを保持できないことが分かった。
 - Product Value / Requirementの変更により、成果品質の評価責任を見直す必要が生じた。
 
 ## Verification
 
-repository同梱の評価toolを、外部model取得なしで再現可能に実行する。actual M1b評価は、固定したinput / source / runtime / model identityとともに別途実行し、structure reportとreview bundleを保存する。
+repository同梱の評価toolは、外部model取得やGitHub Actionsを必須とせず再実行できるようにする。actual model-backed executionが必要な評価は、固定したinput / source / runtime / model identityとともに別途実行し、後から同じ対象へ戻れるEvidenceを保存する。
 
-workflowやrunnerの有無は検証手段の選択肢であり、本Issueの意味上の完了条件には含めない。
+workflowやrunnerは実行手段の一つであり、評価意味の正本ではない。
 
 ## Natural Japanese review
 
-M1bのactual Evidence、ISSUE-000067で整理したRealization / Provenance境界、ISSUE-000068のactual model artifact交換、既存V6 / V7 human structured reviewへ戻り、評価責任を過不足なく分離した。
+M1bのactual Evidence、ISSUE-000067のRealization / Provenance境界、ISSUE-000068のactual model artifact交換、既存V6 / V7 human structured reviewへ戻り、評価責任を再確認した。
 
-さらに、単一の簡単な入力だけへ評価を閉じないようnon-golden case catalogを設け、期待groupや期待表札を機械的な正解として固定しない停止線を維持した。既存actual runについても、表札やrationaleの差を勝敗へ変換せずhistorical sampleとして保持し、後から同じ入力・実行identity・生成結果へ戻れるようにした。
+文章は「何が検査できるか」「何を人間へ残すか」「何をまだ主張しないか」が自然に読み分けられるように組み直した。case catalogやhistorical sampleは正解集にせず、actual resultの揺れや違和感へ戻るための材料として位置づけた。
 
-最後に、現在のCI停止方針へ合わせ、GitHub Actionsのworkflow生成やrunner availabilityを評価基盤そのものの成立条件から外した。意味、要求強度、未検証範囲、Evidence強度を固定したうえで、自然な日本語として一続きに読めることを最重要視して全文を再ドラフトした。
+PR #72でhistorical actual outputからreview-ready bundleを再構成できることを確認したが、元workflow artifactが存在しなかった事実はそのまま残した。PR #73のAI補助観測についても、人間の判断を代行したように読めないよう、非権威的な補助記録として分離した。
+
+意味、要求強度、未検証範囲、Evidence強度を変えず、自然な日本語として一続きに読めることを最重要視して全文を再ドラフトした。
