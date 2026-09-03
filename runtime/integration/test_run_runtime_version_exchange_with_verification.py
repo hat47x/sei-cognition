@@ -197,6 +197,92 @@ raise SystemExit(1)
                     forwarded=[],
                 )
 
+    def test_verification_output_cannot_overlap_source_model_or_work(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            evidence = root / "evidence"
+            cases = (
+                (
+                    "checkout",
+                    root / "checkout" / "verification.json",
+                    {"kj_atlas_dir": root / "checkout"},
+                ),
+                (
+                    "bundle-parent",
+                    root / "bundle-parent",
+                    {"kj_atlas_backend_bundle": root / "bundle-parent" / "bundle"},
+                ),
+                (
+                    "model",
+                    root / "model" / "verification.json",
+                    {"model_dir": root / "model"},
+                ),
+                (
+                    "prepared-model",
+                    root / "prepared" / "verification.json",
+                    {"prepare_model_dir": root / "prepared"},
+                ),
+                (
+                    "work",
+                    root / "work" / "verification.json",
+                    {"work_dir": root / "work"},
+                ),
+            )
+            for label, output, overrides in cases:
+                with self.subTest(label=label):
+                    arguments = {
+                        "evidence_dir": evidence,
+                        "kj_atlas_dir": None,
+                        "kj_atlas_backend_bundle": None,
+                        "model_dir": None,
+                        "prepare_model_dir": None,
+                        "work_dir": None,
+                    }
+                    arguments.update(overrides)
+                    with self.assertRaisesRegex(ValueError, "verification output"):
+                        MODULE._protect_verification_output(output, **arguments)
+
+    def test_verification_output_cannot_contain_evidence_directory(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            output = root / "container"
+            evidence = output / "evidence"
+            with self.assertRaisesRegex(ValueError, "verification output"):
+                MODULE._protect_verification_output(
+                    output,
+                    evidence_dir=evidence,
+                    kj_atlas_dir=None,
+                    kj_atlas_backend_bundle=None,
+                    model_dir=None,
+                    prepare_model_dir=None,
+                    work_dir=None,
+                )
+
+    def test_verification_output_inside_soza_repository_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "SOZA repository"):
+            MODULE._protect_verification_output(
+                MODULE.SOZA_ROOT / ".tmp-runtime-exchange-verification.json",
+                evidence_dir=Path("/tmp/soza-evidence-outside-repository"),
+                kj_atlas_dir=None,
+                kj_atlas_backend_bundle=None,
+                model_dir=None,
+                prepare_model_dir=None,
+                work_dir=None,
+            )
+
+    def test_safe_sibling_verification_output_is_accepted(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            MODULE._protect_verification_output(
+                root / "verification.json",
+                evidence_dir=root / "evidence",
+                kj_atlas_dir=root / "checkout",
+                kj_atlas_backend_bundle=None,
+                model_dir=root / "model",
+                prepare_model_dir=None,
+                work_dir=root / "work",
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
