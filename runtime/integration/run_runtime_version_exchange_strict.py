@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import tempfile
 from pathlib import Path
@@ -15,7 +16,17 @@ from verify_runtime_version_exchange_model_store import verify_model_store
 
 
 INTEGRATION_DIR = Path(__file__).resolve().parent
+SOZA_ROOT = INTEGRATION_DIR.parents[1]
 HARNESS = INTEGRATION_DIR / "run_runtime_version_exchange.sh"
+RUNTIME_ARCHIVE_OPTIONS = ("--runtime-a-archive", "--runtime-b-archive")
+STRICT_CHILD_ENVIRONMENT_KEYS = (
+    "SOZA_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_BUNDLE",
+    "SOZA_RUNTIME_EXCHANGE_WORK_DIR",
+    "SOZA_RUNTIME_EXCHANGE_EVIDENCE_DIR",
+    "SOZA_RUNTIME_EXCHANGE_PREPOSITIONED_ARCHIVE_A",
+    "SOZA_RUNTIME_EXCHANGE_PREPOSITIONED_ARCHIVE_B",
+    "SOZA_RUNTIME_EXCHANGE_MODEL_DIR",
+)
 
 
 def _reject_forwarded_identity_options(arguments: list[str]) -> None:
@@ -33,6 +44,40 @@ def _reject_forwarded_identity_options(arguments: list[str]) -> None:
                 "strict Evidenceのidentity / safety optionはこのentrypoint側で確定します。"
                 f"harnessへ直接渡せません: {argument}"
             )
+
+
+def _forwarded_runtime_archives(arguments: list[str]) -> dict[str, Path]:
+    """low-level harnessへ渡す事前配置runtime archiveを曖昧さなく抽出する。"""
+
+    selected: dict[str, Path] = {}
+    index = 0
+    while index < len(arguments):
+        argument = arguments[index]
+        matched = False
+        for option in RUNTIME_ARCHIVE_OPTIONS:
+            value: str | None = None
+            if argument == option:
+                if index + 1 >= len(arguments):
+                    raise ValueError(f"{option} requires PATH")
+                value = arguments[index + 1]
+                index += 2
+                matched = True
+            elif argument.startswith(option + "="):
+                value = argument.split("=", 1)[1]
+                index += 1
+                matched = True
+
+            if matched:
+                if not value:
+                    raise ValueError(f"{option} requires PATH")
+                if option in selected:
+                    raise ValueError(f"runtime archive optionを重複指定できません: {option}")
+                selected[option] = Path(value)
+                break
+
+        if not matched:
+            index += 1
+    return selected
 
 
 def _new_path(path: Path, label: str) -> Path:
@@ -58,6 +103,35 @@ def _reject_overlap(candidate: Path, candidate_label: str, roots: tuple[tuple[st
                 f"{candidate_label}で{root_label}を包含できません: "
                 f"candidate={candidate} root={root}"
             )
+
+
+def _validate_runtime_archives(
+    arguments: list[str],
+    *,
+    source_input: Path,
+    source_label: str,
+) -> None:
+    roots = (("SOZA repository", SOZA_ROOT), (source_label, source_input))
+    for option, requested in _forwarded_runtime_archives(arguments).items():
+        expanded = requested.expanduser()
+        if expanded.is_symlink():
+            raise ValueError(f"{option}にsymlinkは利用できません: {expanded}")
+        try:
+            resolved = expanded.resolve(strict=True)
+        except FileNotFoundError as exc:
+            raise ValueError(f"{option}のarchive fileが存在しません: {expanded}") from exc
+        if not resolved.is_file():
+            raise ValueError(f"{option}はregular fileを指定してください: {resolved}")
+        _reject_overlap(resolved, f"{option} runtime archive", roots)
+
+
+def _strict_child_environment() -> dict[str, str]:
+    """strict入口が確定するidentity / safety値を親環境から継承させない。"""
+
+    environment = os.environ.copy()
+    for key in STRICT_CHILD_ENVIRONMENT_KEYS:
+        environment.pop(key, None)
+    return environment
 
 
 def _write_json(path: Path, payload: dict[str, object]) -> None:
@@ -91,6 +165,13 @@ def run_strict_probe(
         assert backend_bundle is not None
         source_input = backend_bundle.expanduser().resolve(strict=True)
         source_label = "KJ Atlas verified runtime bundle"
+
+    # 事前配置runtime archiveは、source/model準備やharness起動より前にpath境界を固定する。
+    _validate_runtime_archives(
+        harness_arguments,
+        source_input=source_input,
+        source_label=source_label,
+    )
 
     resolved_model_dir: Path | None = None
     model_will_be_prepared = prepare_model_dir is not None
@@ -149,7 +230,11 @@ def run_strict_probe(
             command.extend(["--work-dir", str(resolved_work_dir)])
         command.extend(harness_arguments)
 
-        completed = subprocess.run(command, check=False)
+        completed = subprocess.run(
+            command,
+            check=False,
+            env=_strict_child_environment(),
+        )
     finally:
         if evidence_dir.is_dir():
             if model_preparation is not None:
