@@ -1,4 +1,3 @@
-import argparse
 import hashlib
 import re
 import tempfile
@@ -29,28 +28,43 @@ class RuntimeVersionExchangePreflightTest(unittest.TestCase):
             self.assertTrue(preflight.is_within(child, root))
             self.assertFalse(preflight.is_within(sibling, root))
 
-    def test_archive_check_accepts_exact_digest(self):
+    def test_archive_check_accepts_exact_size_and_digest(self):
         with tempfile.TemporaryDirectory() as temp:
             archive = Path(temp) / "runtime.tar.zst"
-            archive.write_bytes(b"fixed-runtime-artifact")
-            expected = hashlib.sha256(archive.read_bytes()).hexdigest()
-            checks = preflight.archive_check("runtime-a", archive, expected, True)
+            data = b"fixed-runtime-artifact"
+            archive.write_bytes(data)
+            expected = hashlib.sha256(data).hexdigest()
+            checks = preflight.archive_check("runtime-a", archive, expected, len(data), True)
             self.assertEqual("ok", checks[0].status)
+            self.assertIn("size=", checks[0].detail)
+            self.assertIn("sha256=", checks[0].detail)
 
-    def test_archive_check_rejects_digest_mismatch(self):
+    def test_archive_check_rejects_size_mismatch_before_digest(self):
         with tempfile.TemporaryDirectory() as temp:
             archive = Path(temp) / "runtime.tar.zst"
-            archive.write_bytes(b"different-runtime-artifact")
-            checks = preflight.archive_check("runtime-a", archive, "0" * 64, True)
+            data = b"fixed-runtime-artifact"
+            archive.write_bytes(data)
+            expected = hashlib.sha256(data).hexdigest()
+            checks = preflight.archive_check("runtime-a", archive, expected, len(data) + 1, True)
+            self.assertEqual("blocked", checks[0].status)
+            self.assertIn("size", checks[0].detail)
+
+    def test_archive_check_rejects_digest_mismatch_after_size_match(self):
+        with tempfile.TemporaryDirectory() as temp:
+            archive = Path(temp) / "runtime.tar.zst"
+            data = b"different-runtime-artifact"
+            archive.write_bytes(data)
+            checks = preflight.archive_check("runtime-a", archive, "0" * 64, len(data), True)
             self.assertEqual("blocked", checks[0].status)
             self.assertIn("digest", checks[0].detail)
 
     def test_missing_archive_is_deferred_when_download_is_allowed(self):
-        checks = preflight.archive_check("runtime-a", None, "0" * 64, False)
+        checks = preflight.archive_check("runtime-a", None, "0" * 64, 123, False)
         self.assertEqual("deferred", checks[0].status)
+        self.assertIn("123", checks[0].detail)
 
     def test_missing_archive_blocks_prepositioned_only_preflight(self):
-        checks = preflight.archive_check("runtime-a", None, "0" * 64, True)
+        checks = preflight.archive_check("runtime-a", None, "0" * 64, 123, True)
         self.assertEqual("blocked", checks[0].status)
 
     def test_model_store_does_not_claim_digest_verification(self):
@@ -62,6 +76,18 @@ class RuntimeVersionExchangePreflightTest(unittest.TestCase):
             checks = preflight.model_store_check(model, (source,), True)
             self.assertEqual("ok", checks[0].status)
             self.assertIn("Ollama起動後", checks[0].detail)
+
+    def test_disk_capacity_check_is_observational_only(self):
+        with tempfile.TemporaryDirectory() as temp:
+            check = preflight.disk_capacity_check(Path(temp) / "future-work")
+            self.assertEqual("ok", check.status)
+            self.assertIn(str(preflight.TOTAL_COMPRESSED_RUNTIME_BYTES), check.detail)
+            self.assertIn("十分とは判定しません", check.detail)
+
+    def test_fixed_runtime_sizes_match_official_metadata_values(self):
+        self.assertEqual(1421793186, preflight.RUNTIME_SIZE_A)
+        self.assertEqual(1421191399, preflight.RUNTIME_SIZE_B)
+        self.assertEqual(2842984585, preflight.TOTAL_COMPRESSED_RUNTIME_BYTES)
 
     def test_parser_rejects_checkout_and_bundle_together(self):
         parser = preflight.build_parser()
@@ -133,19 +159,24 @@ class RuntimeVersionExchangePreflightTest(unittest.TestCase):
                 self.assertEqual(expected, shell_value(text, shell_name))
         self.assertEqual(preflight.KJ_ATLAS_COMMIT, preflight.PINNED_IDENTITY.source_commit)
 
-    def test_report_contains_source_identity_without_promoting_it(self):
-        result = preflight.report([preflight.Check("sample", "ok", "ok")])
-        self.assertEqual(preflight.PINNED_IDENTITY.source_commit, result["sourceIdentity"]["sourceCommit"])
-        self.assertEqual(
-            preflight.PINNED_IDENTITY.runtime_surface_tree,
-            result["sourceIdentity"]["runtimeSurfaceTree"],
-        )
-        self.assertIn("!= actual runtime A/B inference PASS", result["stopLine"])
-
-    def test_report_never_promotes_preflight_to_executable_evidence(self):
+    def test_report_exposes_fixed_artifact_sizes_without_promoting_evidence(self):
         result = preflight.report([preflight.Check("sample", "ok", "ok")])
         self.assertEqual("ready", result["result"])
+        self.assertEqual(1421793186, result["fixedArtifacts"]["runtimeA"]["sizeBytes"])
+        self.assertEqual(1421191399, result["fixedArtifacts"]["runtimeB"]["sizeBytes"])
+        self.assertEqual(2842984585, result["fixedArtifacts"]["totalCompressedRuntimeBytes"])
         self.assertIn("!= actual runtime A/B inference PASS", result["stopLine"])
+
+    def test_report_exposes_pinned_source_identity_without_claiming_verification(self):
+        result = preflight.report([preflight.Check("sample", "ok", "ok")])
+        pinned = result["pinnedSourceIdentity"]
+        self.assertEqual(preflight.PINNED_IDENTITY.source_commit, pinned["sourceCommit"])
+        self.assertEqual(preflight.PINNED_IDENTITY.backend_tree, pinned["pinnedBackendTree"])
+        self.assertEqual(
+            preflight.PINNED_IDENTITY.runtime_surface_tree,
+            pinned["runtimeSurfaceTree"],
+        )
+        self.assertNotIn("verified", pinned)
 
     def test_report_is_blocked_when_any_check_is_blocked(self):
         result = preflight.report(
