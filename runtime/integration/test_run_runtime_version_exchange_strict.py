@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -28,6 +29,86 @@ class StrictRuntimeVersionExchangeTest(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "identity / safety option"):
                     ENTRYPOINT._reject_forwarded_identity_options([option])
 
+    def test_forwarded_runtime_archive_options_support_split_and_equals_forms(self):
+        selected = ENTRYPOINT._forwarded_runtime_archives(
+            [
+                "--runtime-a-archive",
+                "/tmp/a.tar.zst",
+                "--keep-work",
+                "--runtime-b-archive=/tmp/b.tar.zst",
+            ]
+        )
+        self.assertEqual(Path("/tmp/a.tar.zst"), selected["--runtime-a-archive"])
+        self.assertEqual(Path("/tmp/b.tar.zst"), selected["--runtime-b-archive"])
+
+    def test_duplicate_runtime_archive_option_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "重複指定"):
+            ENTRYPOINT._forwarded_runtime_archives(
+                [
+                    "--runtime-a-archive=/tmp/a.tar.zst",
+                    "--runtime-a-archive",
+                    "/tmp/b.tar.zst",
+                ]
+            )
+
+    def test_strict_child_environment_removes_identity_and_safety_overrides(self):
+        injected = {
+            key: f"unexpected-{index}"
+            for index, key in enumerate(ENTRYPOINT.STRICT_CHILD_ENVIRONMENT_KEYS)
+        }
+        with patch.dict(os.environ, injected, clear=False):
+            environment = ENTRYPOINT._strict_child_environment()
+        for key in ENTRYPOINT.STRICT_CHILD_ENVIRONMENT_KEYS:
+            self.assertNotIn(key, environment)
+
+    def test_runtime_archive_inside_source_is_rejected_before_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bundle = root / "bundle"
+            bundle.mkdir()
+            archive = bundle / "runtime-a.tar.zst"
+            archive.write_bytes(b"runtime")
+            evidence = root / "evidence"
+
+            with patch.object(ENTRYPOINT, "verify_runtime_bundle") as source_verifier, patch.object(
+                ENTRYPOINT.subprocess, "run"
+            ) as runner:
+                with self.assertRaisesRegex(ValueError, "runtime archive.*KJ Atlas verified runtime bundle"):
+                    ENTRYPOINT.run_strict_probe(
+                        checkout_dir=None,
+                        backend_bundle=bundle,
+                        model_dir=None,
+                        evidence_dir=evidence,
+                        harness_arguments=["--runtime-a-archive", str(archive)],
+                    )
+            source_verifier.assert_not_called()
+            runner.assert_not_called()
+
+    def test_runtime_archive_symlink_is_rejected_before_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bundle = root / "bundle"
+            bundle.mkdir()
+            actual = root / "actual.tar.zst"
+            actual.write_bytes(b"runtime")
+            archive = root / "runtime-a.tar.zst"
+            archive.symlink_to(actual)
+            evidence = root / "evidence"
+
+            with patch.object(ENTRYPOINT, "verify_runtime_bundle") as source_verifier, patch.object(
+                ENTRYPOINT.subprocess, "run"
+            ) as runner:
+                with self.assertRaisesRegex(ValueError, "symlink"):
+                    ENTRYPOINT.run_strict_probe(
+                        checkout_dir=None,
+                        backend_bundle=bundle,
+                        model_dir=None,
+                        evidence_dir=evidence,
+                        harness_arguments=["--runtime-a-archive", str(archive)],
+                    )
+            source_verifier.assert_not_called()
+            runner.assert_not_called()
+
     def test_prepositioned_model_store_is_verified_before_harness(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -49,8 +130,8 @@ class StrictRuntimeVersionExchangeTest(unittest.TestCase):
             class Completed:
                 returncode = 0
 
-            def fake_run(command, check):
-                calls.append(("run", command, check))
+            def fake_run(command, check, env=None):
+                calls.append(("run", command, check, env))
                 evidence.mkdir()
                 return Completed()
 
@@ -72,12 +153,15 @@ class StrictRuntimeVersionExchangeTest(unittest.TestCase):
             self.assertEqual("source", calls[1][0])
             self.assertEqual("run", calls[2][0])
             command = calls[2][1]
+            child_env = calls[2][3]
             self.assertEqual("bash", command[0])
             self.assertEqual(str(ENTRYPOINT.HARNESS), command[1])
             self.assertIn("--kj-atlas-backend-bundle", command)
             self.assertIn("--model-dir", command)
             self.assertIn("--evidence-dir", command)
             self.assertIn("--keep-work", command)
+            for key in ENTRYPOINT.STRICT_CHILD_ENVIRONMENT_KEYS:
+                self.assertNotIn(key, child_env)
 
             payload = json.loads(
                 (evidence / "runtime-exchange-model-store-static-verification.json").read_text(
@@ -135,8 +219,8 @@ class StrictRuntimeVersionExchangeTest(unittest.TestCase):
             class Completed:
                 returncode = 1
 
-            def fake_run(command, check):
-                calls.append(("run", command, check))
+            def fake_run(command, check, env=None):
+                calls.append(("run", command, check, env))
                 evidence.mkdir()
                 return Completed()
 
@@ -270,7 +354,7 @@ class StrictRuntimeVersionExchangeTest(unittest.TestCase):
             class Completed:
                 returncode = 0
 
-            def fake_run(command, check):
+            def fake_run(command, check, env=None):
                 evidence.mkdir()
                 return Completed()
 
@@ -292,6 +376,9 @@ class StrictRuntimeVersionExchangeTest(unittest.TestCase):
             command = runner.call_args.args[0]
             self.assertIn("--work-dir", command)
             self.assertEqual(str(work.resolve()), command[command.index("--work-dir") + 1])
+            child_env = runner.call_args.kwargs["env"]
+            for key in ENTRYPOINT.STRICT_CHILD_ENVIRONMENT_KEYS:
+                self.assertNotIn(key, child_env)
 
     def test_work_directory_inside_checkout_is_rejected_before_export(self):
         with tempfile.TemporaryDirectory() as temporary:
