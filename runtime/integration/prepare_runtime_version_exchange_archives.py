@@ -12,7 +12,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import BinaryIO, Callable
 
-MANIFEST_PATH = Path(__file__).with_name("runtime_version_exchange_artifacts.json")
+INTEGRATION_DIR = Path(__file__).resolve().parent
+SOZA_ROOT = INTEGRATION_DIR.parents[1]
+MANIFEST_PATH = INTEGRATION_DIR / "runtime_version_exchange_artifacts.json"
 MANIFEST_SCHEMA = "soza.runtime-version-exchange-artifact-manifest/v1"
 VERSION_PATTERN = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
 HEX_SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
@@ -23,6 +25,28 @@ class Verification:
     path: Path
     size_bytes: int
     sha256: str
+
+
+def _is_within(candidate: Path, root: Path) -> bool:
+    candidate = candidate.expanduser().resolve(strict=False)
+    root = root.expanduser().resolve(strict=True)
+    return candidate == root or root in candidate.parents
+
+
+def validate_output_dir(output_dir: Path) -> Path:
+    requested = output_dir.expanduser()
+    if requested.is_symlink():
+        raise ValueError(f"runtime archive output directoryにsymlinkは利用できません: {requested}")
+
+    resolved = requested.resolve(strict=False)
+    if _is_within(resolved, SOZA_ROOT):
+        raise ValueError(
+            "runtime archiveをSOZA repository配下には配置できません: "
+            f"{resolved}"
+        )
+    if resolved.exists() and not resolved.is_dir():
+        raise ValueError(f"runtime archive output pathがdirectoryではありません: {resolved}")
+    return resolved
 
 
 def load_manifest(path: Path = MANIFEST_PATH) -> dict[str, object]:
@@ -111,6 +135,10 @@ def sha256_file(path: Path) -> str:
 
 
 def verify_archive(path: Path, expected_size: int, expected_sha256: str) -> Verification:
+    requested = path.expanduser()
+    if requested.is_symlink():
+        raise ValueError(f"runtime archive fileにsymlinkは利用できません: {requested}")
+    path = requested.resolve(strict=False)
     if not path.is_file():
         raise ValueError(f"archive fileが存在しません: {path}")
     actual_size = path.stat().st_size
@@ -135,13 +163,18 @@ def download_archive(
     expected_sha256: str,
     opener: Callable[..., BinaryIO] | None = None,
 ) -> Verification:
-    target = target.expanduser().resolve(strict=False)
+    requested = target.expanduser()
+    if requested.is_symlink():
+        raise ValueError(f"runtime archive targetにsymlinkは利用できません: {requested}")
+    target = requested.resolve(strict=False)
     target.parent.mkdir(parents=True, exist_ok=True)
 
     if target.exists():
         return verify_archive(target, expected_size, expected_sha256)
 
     partial = target.with_name(target.name + ".part")
+    if partial.is_symlink():
+        raise ValueError(f"runtime archive partial fileにsymlinkは利用できません: {partial}")
     if partial.exists():
         raise ValueError(
             f"途中downloadと思われるfileが既にあります: {partial}。"
@@ -231,7 +264,7 @@ def build_parser() -> argparse.ArgumentParser:
         )
     )
     parser.add_argument(
-        "--output-dir", type=Path, required=True, help="archiveを置くdirectory。"
+        "--output-dir", type=Path, required=True, help="SOZA repository外でarchiveを置くdirectory。"
     )
     parser.add_argument(
         "--runtime",
@@ -256,7 +289,10 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     manifest = load_manifest()
-    output_dir = args.output_dir.expanduser().resolve(strict=False)
+    try:
+        output_dir = validate_output_dir(args.output_dir)
+    except ValueError as exc:
+        build_parser().exit(1, f"runtime archive preparation failed: {exc}\n")
     plan = build_plan(manifest, output_dir, args.runtime)
 
     if args.plan:
