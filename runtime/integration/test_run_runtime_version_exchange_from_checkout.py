@@ -87,7 +87,7 @@ class RuntimeVersionExchangeFromCheckoutTest(unittest.TestCase):
             payload = json.loads(identity.read_text(encoding="utf-8"))
             self.assertEqual("git-archive-from-pinned-commit", payload["sourceAcquisition"])
 
-    def test_existing_identity_path_is_rejected_before_harness(self):
+    def test_existing_identity_path_is_rejected_before_export_or_harness(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             checkout = root / "checkout"
@@ -96,14 +96,7 @@ class RuntimeVersionExchangeFromCheckoutTest(unittest.TestCase):
             identity = root / "source-export.json"
             identity.write_text("existing\n", encoding="utf-8")
 
-            def fake_export(_checkout_dir, output_dir):
-                output_dir.mkdir()
-                return {
-                    "schema": "soza.kj-atlas-runtime-source-export/v1",
-                    "sourceAcquisition": "git-archive-from-pinned-commit",
-                }
-
-            with patch.object(ENTRYPOINT, "export_runtime_bundle", side_effect=fake_export), patch.object(
+            with patch.object(ENTRYPOINT, "export_runtime_bundle") as exporter, patch.object(
                 ENTRYPOINT.subprocess,
                 "run",
             ) as runner:
@@ -114,7 +107,44 @@ class RuntimeVersionExchangeFromCheckoutTest(unittest.TestCase):
                         source_bundle_dir=bundle,
                         source_export_identity=identity,
                     )
+                exporter.assert_not_called()
                 runner.assert_not_called()
+
+    def test_identity_path_inside_checkout_is_rejected_before_export(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            checkout = root / "checkout"
+            checkout.mkdir()
+            bundle = root / "bundle"
+            identity = checkout / "local" / "source-export.json"
+
+            with patch.object(ENTRYPOINT, "export_runtime_bundle") as exporter:
+                with self.assertRaisesRegex(ValueError, "must not be inside the KJ Atlas repository"):
+                    ENTRYPOINT.run_from_checkout(
+                        checkout,
+                        [],
+                        source_bundle_dir=bundle,
+                        source_export_identity=identity,
+                    )
+                exporter.assert_not_called()
+
+    def test_identity_path_inside_bundle_is_rejected_before_export(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            checkout = root / "checkout"
+            checkout.mkdir()
+            bundle = root / "bundle"
+            identity = bundle / "source-export.json"
+
+            with patch.object(ENTRYPOINT, "export_runtime_bundle") as exporter:
+                with self.assertRaisesRegex(ValueError, "must not be inside the verified runtime bundle"):
+                    ENTRYPOINT.run_from_checkout(
+                        checkout,
+                        [],
+                        source_bundle_dir=bundle,
+                        source_export_identity=identity,
+                    )
+                exporter.assert_not_called()
 
 
 if __name__ == "__main__":
