@@ -42,6 +42,7 @@
     "release/v0.2.0/RELEASE_NOTES.md",
     "release/v0.2.0/release-request.json",
     "tools/check_release_candidate.py",
+    "tools/test_check_release_candidate.py",
     "tools/prepare_v0_2_0_release.py"
   ],
   "plan_issue_scope_max": "ISSUE-000062",
