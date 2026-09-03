@@ -5,9 +5,11 @@
 
 ## 1. 目的
 
-この文書は、SOZAの開発をどのbranchで進め、どの順序で価値定義・探索・要件化・設計・実装・検証するかを定めます。
+この文書は、SOZAの開発をどのbranchで進め、Product Value、探索、Requirement、設計、実装、検証をどの順序で扱うかを定めます。
 
-開発速度だけを優先して実装を先行させるのではなく、Product Valueと製品として成立させたい状態を先に明確にします。まだ何を要求すべきか分からない領域では、議論や実証を通して必要性を確認してからRequirementへ進みます。
+実装を早く積み上げること自体を目的にはしません。まず「何を価値として守るか」を確認し、まだ要求が定まっていない領域は、議論や実証を通して必要性を確かめてからRequirementへ進めます。
+
+検証手段も意味上の正本とは分けます。GitHub Actions、ローカルtest、repository同梱checker、外部runner、手動実証は、いずれも検証のための手段です。Product Value、Requirement、Contract、Evidenceの意味を、特定の実行基盤へ依存させません。
 
 ## 2. Branch運用
 
@@ -17,13 +19,13 @@
 develop/vX.Y.Z
 ```
 
-原則として開発中の変更を`main`へ直接積み上げません。まとまりのよい単位まで`develop/vX.Y.Z`で整備し、文書・検査・Evidenceが揃った段階で`main`へ統合します。
+原則として、開発中の変更を`main`へ直接積み上げません。まとまりのよい単位まで`develop/vX.Y.Z`で整備し、必要な文書・検査・Evidenceが揃った段階で`main`へ統合します。
 
-個別作業では、Product、Plan、Requirement、runtime等の責務が分かるtopic branchを使えます。branch名をProduct ontologyや恒久的なMilestone IDとして扱いません。
+個別作業では、Product、Plan、Requirement、runtime等の責務が分かるtopic branchを利用できます。branch名をProduct ontologyや恒久的なMilestone IDとして扱いません。
 
 ## 3. 優先順位
 
-開発作業は原則として次の順序を優先します。
+開発では、原則として次の順序を優先します。
 
 1. `product/value`、`product/definition`、`product/vision`、`product/principles`
 2. `product/roadmap/SOZA_PRODUCT_MILESTONES.md`
@@ -36,11 +38,11 @@ develop/vX.Y.Z
 9. Operational Evidence
 10. Adoption / Outcome Evidence
 
-上位文書を毎回大量に書くという意味ではありません。実装へ進む前に、上位の意味と判断が十分に定まっているかを確認するための優先順位です。
+上位文書を毎回大量に書くという意味ではありません。実装へ進む前に、上位の意味と判断が十分に定まっているかを確認するための順序です。
 
 ## 4. 未定領域の標準フロー
 
-まだRequirementとして十分に定まっていない領域では、次の流れを基本とします。
+Requirementとして十分に定まっていない領域では、次の流れを基本とします。
 
 ```text
 Open Question
@@ -52,9 +54,9 @@ Open Question
   → Stable Requirement / existing Requirement integration / No Change
 ```
 
-Open Questionを直接stable REQへ変換しません。
+Open Questionを直接Stable Requirementへ変換しません。
 
-チャット上の議論は探索・統合に利用できますが、current正本はrepository上のProduct / Plan / Requirement / ADR等へ戻します。
+チャット上の議論は探索や統合に利用できますが、current正本はrepository上のProduct / Plan / Requirement / ADRへ戻します。
 
 Requirement化の詳細なgateは`plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`を正とします。
 
@@ -62,7 +64,7 @@ Requirement化の詳細なgateは`plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`を�
 
 `product/roadmap/SOZA_PRODUCT_MILESTONES.md`は、期限ではなくOutcomeとEvidenceで製品成立段階を示します。
 
-Milestoneは次の作業の優先順位を決める入力になりますが、その内容をそのままRequirementやworkflowへ変換しません。
+Milestoneは次の作業の優先順位を考える入力にはなりますが、その内容をそのままRequirementやworkflowへ変換しません。
 
 ```text
 Product Milestone
@@ -77,7 +79,7 @@ historicalなM48 / M49等の実装順序とも区別します。
 
 ADR-0027に従い、SOZA自身が所有・配布するproduction runtimeとfirst-party reference implementationはGoを標準とします。
 
-一方、次へGoを一律に強制しません。
+一方、次にはGoを一律に強制しません。
 
 - Semantic Contractそのもの
 - Cognitive Method Realization
@@ -88,7 +90,7 @@ ADR-0027に従い、SOZA自身が所有・配布するproduction runtimeとfirst
 
 Python等で作ったprototypeをproductionへ進める場合は、次の順序で扱います。
 
-1. 外部Method / Providerとして明示的境界に残せるか確認する。
+1. 外部Method / Providerとして明示的な境界に残せるか確認する。
 2. SOZA first-party runtimeへ含める必要性を確認する。
 3. 含める必要がある場合は、Go移植と多言語runtime維持のコストを比較する。
 4. Go以外をfirst-party production runtimeへ採用する場合は、ADR-0027との整合またはRevisit理由を明示する。
@@ -108,28 +110,18 @@ connected implementation language != Go required
 2. 何を要求すべきか未定なら、Open QuestionとしてIssueまたは上流計画へ置く。
 3. 必要に応じて議論、資料調査、prototype、fixture、human review等で実証する。
 4. 新Requirementが必要そうな場合はCandidateとして既存REQ / SCNとの重複を監査する。
-5. stable Requirement / Acceptance Scenarioへ影響する場合は、Architectureより先に反映する。
+5. Stable Requirement / Acceptance Scenarioへ影響する場合はArchitectureより先に反映する。
 6. 設計判断が必要であればADRを作成・更新する。
 7. Architecture / Contractを整える。
 8. 実装する。
-9. fixture / test / conformanceで確認する。
+9. fixture / test / conformance / checker等で確認する。
 10. 実際に得られた高さまでEvidenceと未完了事項を更新する。
 11. 文書を自然な日本語へ全文再ドラフトする。
 12. 意味・仕様・留保・Evidence強度が変わっていないか最終監査する。
 13. current Markdown文書を追加・更新した場合は、`plan/document_review_registry.yaml`へ監査状態を反映する。
-14. 対象CIの状態を確認し、success / 実行本文のfailure / runner未割当等を区別して記録する。
+14. 利用可能な検証手段を確認し、実行できた検査と実行できなかった検査を分けて記録する。
 
-CI failureは修正対象ですが、**pushを止める条件にはしません**。変更を安全な単位でcommitしたらpushし、その結果を観測して必要な修正を次のcommitとしてpushします。
-
-```text
-commit
-  → push
-  → CIで観測
-  → 必要なら修正
-  → 再push
-```
-
-CIが赤い間も、原因調査や修正commitのpushを継続できます。merge、release、Evidence確定に必要なgateは別に扱い、通常のpush経路へ混同しません。
+GitHub Actionsがcurrent baselineに存在しない期間は、Actionsのsuccessを開発完了の一般条件にはしません。repository同梱test、checker、fixture、保存Evidence、必要に応じた外部実行を使い、確認できた範囲だけをEvidenceとして記録します。
 
 ## 8. Requirementを増やす前の停止線
 
@@ -154,9 +146,7 @@ CIが赤い間も、原因調査や修正commitのpushを継続できます。me
 
 新しく作成・更新した開発文書は、その作業単位を閉じる前に`plan/DOCUMENT_AUTHORING_STANDARD.md`の工程を通します。
 
-`Plan integrity`はMarkdown変更でも起動し、Document Review Registryのcoverageと`pending`の有無を検査します。
-
-ただし、このCIは自然な日本語の品質や文書の意味を自動判定しません。機械的なcoverage検査と、全文再ドラフト・最終意味監査は別の責務です。
+Document Review Registryのcoverage確認と、全文の自然な日本語レビューは別の責務です。checkerが存在する場合も、機械的なcoverage検査だけで日本語の自然さや文書の意味が保証されたとは扱いません。
 
 ## 10. Evidenceを超える状態更新をしない
 
@@ -170,7 +160,7 @@ Design Evidence
   != Adoption / Outcome Evidence
 ```
 
-設計が完了したこと、actual repositoryでCIが通ったこと、release Artifactが成立したこと、本番で安定して動作したこと、利用者・組織へ価値が届いたことは、それぞれ別の主張です。
+設計が完了したこと、repository上のtestが通ったこと、release Artifactが成立したこと、本番で安定して動いたこと、利用者・組織へ価値が届いたことは、それぞれ別の主張です。
 
 Issue、Requirement、Milestone、README等の状態は、実際に確認できた高さまでだけ更新します。
 
@@ -184,34 +174,57 @@ Issue、Requirement、Milestone、README等の状態は、実際に確認でき�
 
 ## 12. Planning変更は可能な範囲でatomicにする
 
-ADR / Issue本文のStatus、`plan/registry.yaml`、関連文書を同時に変更する必要がある場合は、可能な範囲で一つの変更単位へまとめます。
+ADR / Issue本文のStatus、`plan/registry.yaml`、関連する上流文書を同時に変更する必要がある場合は、可能な範囲で一つの変更単位へまとめます。
 
-同様に、新しいcurrent Markdown文書を追加した場合は、可能な範囲で`plan/document_review_registry.yaml`への監査状態反映も同じ作業単位へ含めます。
+同様に、新しいcurrent Markdown文書を追加した場合は、`plan/document_review_registry.yaml`への監査状態反映も同じ作業単位へ含めます。
 
-分割commitが必要な場合は、最終branch状態でPlan integrityが成立し、途中状態を達成Evidenceとして扱わないようにします。
+分割commitが必要な場合も、最終branch状態でPlan Registryと文書台帳が一致するようにします。途中状態を達成Evidenceとして扱いません。
 
-## 13. CI failureの扱い
+## 13. pushと検証を分ける
 
-CI failureは、開発を停止させるロックではなく、次の修正判断に使う観測結果です。
-
-1. failureが出ても、後続の修正commitをpushすることは止めない。
-2. 失敗したworkflow / step / fixtureを確認する。
-3. `steps=[]`や`runner_id=0`のように検査本文へ到達していない場合は、repository内のtest failureと分けて扱う。
-4. 実際にstepが開始された後のfailureでは、Product / Plan / Requirement / Contract / runtime / 文書台帳のどの層の問題かを切り分ける。
-5. current Product Value / Contractを安易に弱めず、誤っている層を修正し、その修正をpushする。
-6. subsequent pushまたは明示的な再実行でCIを再確認する。
-7. 必要ならIssue / Evidence文書へ原因、未検証範囲、修正内容を残す。
+検証のfailureや外部実行基盤の利用不能は、原因調査や修正commitのpushを止めるためのロックではありません。
 
 ```text
-workflow failure
-  → investigate / fix / push
-  != push prohibited
+commit
+  → push
+  → 利用可能な手段で観測
+  → 必要なら修正
+  → 再push
 ```
 
-mergeやreleaseに特定の検査成功を要求する場合は、そのgateを個別に定義します。通常の開発pushまでrequired status checkで塞ぐことは、別途明示的に方針変更しない限り行いません。
+GitHub Actions等の自動検証を将来再導入した場合も、次を分けます。
 
-## 14. Natural Japanese review
+- workflowが定義・選択されたか。
+- runnerが割り当てられたか。
+- stepが開始されたか。
+- 検査本文がPASS / FAILしたか。
+- その結果がどのEvidence段階を支えるか。
 
-current Product Value、Product Shape、Product Journey、期限を持たないProduct Milestone、5段階Evidence、Document Review Registry、ADR-0027のproduction runtime言語方針へ戻ってworkflowを再構成した。未定領域では議論・実証をRequirementより先に置き、production runtimeではGoを標準としながら、外部Method / Provider、AI / ML研究、評価へ言語制約を広げない境界を維持している。
+`runner_id = 0`、`steps = []`のように検査本文へ到達していないfailureをrepository test failureとして扱いません。
 
-CIについては、失敗を見落とさず原因を調べる従来の責務を保ちながら、「CIがsuccessするまで後続作業もpushも止める」という運用を外した。pushは観測と修正を回すための通常経路として継続し、merge / release / Evidence確定のgateとは分離した。意味・Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+一方、実際に検査本文が開始されて失敗した場合は、Product / Plan / Requirement / Contract / runtime / fixture / 文書台帳のどの層に問題があるかを切り分け、Product ValueやContractを安易に弱めず誤っている層を修正します。
+
+## 14. merge / release / Evidence gate
+
+push、merge、release、Evidence確定は同じgateではありません。
+
+```text
+push allowed
+  != merge allowed
+  != release allowed
+  != Evidence claim established
+```
+
+特定の検査成功をmergeやreleaseに要求する場合は、その対象と理由を個別に定義します。通常の開発pushをrequired status checkで塞ぐ方針は、別途明示的に決めない限り採用しません。
+
+current baselineではGitHub Actions workflow群を常設していません。将来自動検証を再導入するときは、ISSUE-000069のReopen条件に従い、実証責務、共有依存、外部runner availabilityを改めて監査します。
+
+## 15. Natural Japanese review
+
+Product Value、Product Shape、Product Journey、期限を持たないProduct Milestone、5段階Evidence、Document Review Registry、ADR-0027のproduction runtime言語方針へ戻り、開発の流れを再構成しました。
+
+以前の文書には、GitHub Actionsが常に存在し、Plan integrity等が自動起動することを前提に読める箇所が残っていました。PR #70でActionsをcurrent baselineから外したため、「何を検証すべきか」と「どの実行基盤で検証するか」を分けて書き直しました。
+
+CI failureをpush停止条件にしない原則は維持しています。同時に、検証を省略してよいという意味にも読めないよう、利用可能なtest、checker、fixture、保存Evidence、外部実行で確認できた範囲を記録し、merge / release / Evidence gateは別に扱うことを明示しました。
+
+意味、要求強度、Evidence強度を変えず、現在のrepository方針として自然な日本語で一続きに読めることを最重要視して全文を再ドラフトしました。
