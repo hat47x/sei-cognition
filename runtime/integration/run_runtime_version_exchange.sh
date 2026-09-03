@@ -14,7 +14,12 @@ RUNTIME_VERSION_B="0.32.14"
 RUNTIME_SHA256_A="0fd1dece38a1c6242e8013ce20b597345c5de072ae6b320160edb0e729ef1de1"
 RUNTIME_SHA256_B="c620917a71e146ab3a7f893084f066069c4c65d144ef8379a91c3cbe8b27de8f"
 
-KJ_ATLAS_DIR="${SOZA_RUNTIME_EXCHANGE_KJ_ATLAS_DIR:-${SOZA_ROOT}/_external/kj-atlas}"
+KJ_ATLAS_DIR_ENV="${SOZA_RUNTIME_EXCHANGE_KJ_ATLAS_DIR:-}"
+KJ_ATLAS_DIR="${KJ_ATLAS_DIR_ENV:-${SOZA_ROOT}/_external/kj-atlas}"
+KJ_ATLAS_DIR_EXPLICIT=0
+[[ -n "${KJ_ATLAS_DIR_ENV}" ]] && KJ_ATLAS_DIR_EXPLICIT=1
+KJ_ATLAS_BACKEND_BUNDLE="${SOZA_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_BUNDLE:-}"
+KJ_ATLAS_SOURCE_VERIFIER="${SOZA_ROOT}/runtime/integration/verify_kj_atlas_runtime_source.py"
 WORK_DIR="${SOZA_RUNTIME_EXCHANGE_WORK_DIR:-}"
 EVIDENCE_DIR="${SOZA_RUNTIME_EXCHANGE_EVIDENCE_DIR:-}"
 PREPOSITIONED_RUNTIME_ARCHIVE_A="${SOZA_RUNTIME_EXCHANGE_PREPOSITIONED_ARCHIVE_A:-}"
@@ -27,22 +32,24 @@ usage() {
 Usage: runtime/integration/run_runtime_version_exchange.sh [options]
 
 Options:
-  --kj-atlas-dir PATH          固定KJ Atlas checkoutの場所。既定は _external/kj-atlas。
-  --work-dir PATH              新規に作成する一時作業ディレクトリ。既存pathは拒否する。
-  --evidence-dir PATH          新規に作成するEvidence保存先。既存pathは拒否する。
-  --runtime-a-archive PATH     事前配置したOllama 0.32.13 archiveを利用する。
-  --runtime-b-archive PATH     事前配置したOllama 0.32.14 archiveを利用する。
-  --model-dir PATH             固定model artifactを保持済みのOllama model storageを利用する。
-  --keep-work                  一時作業ディレクトリを削除しない。
-  -h, --help                   この説明を表示する。
+  --kj-atlas-dir PATH              固定KJ Atlas checkoutの場所。既定は _external/kj-atlas。
+  --kj-atlas-backend-bundle PATH   固定commit由来の最小backend source bundleを利用する。
+  --work-dir PATH                  新規に作成する一時作業ディレクトリ。既存pathは拒否する。
+  --evidence-dir PATH              新規に作成するEvidence保存先。既存pathは拒否する。
+  --runtime-a-archive PATH         事前配置したOllama 0.32.13 archiveを利用する。
+  --runtime-b-archive PATH         事前配置したOllama 0.32.14 archiveを利用する。
+  --model-dir PATH                 固定model artifactを保持済みのOllama model storageを利用する。
+  --keep-work                      一時作業ディレクトリを削除しない。
+  -h, --help                       この説明を表示する。
 
 必要コマンド:
-  git, python3, go, curl, zstd, tar, sha256sum, uname, mktemp
+  git, python3, go, curl, zstd, tar, sha256sum, uname, mktemp, cp
 
 現在の固定runtime artifactはLinux / amd64用です。
-SOZAとKJ AtlasはcleanなGit checkoutである必要があります。
-KJ Atlas checkoutのHEADは固定commitと一致している必要があります。
-work / Evidence / external model directoryをSOZAまたはKJ Atlas repository配下には置けません。
+SOZAはcleanなGit checkoutである必要があります。
+KJ Atlas sourceは、固定commitのclean checkout、または固定Git object identityを再検証できる
+最小backend bundleのどちらかを利用します。bundleを指定した場合はcheckout pathを併用しません。
+work / Evidence / external model directoryをSOZAまたはKJ Atlas source配下には置けません。
 
 runtime archiveを指定しない場合だけOllama公式GitHub Releaseから取得します。事前配置した
 archiveも同じ固定SHA-256を必ず検証します。--model-dirを指定した場合は、そのdirectoryに
@@ -57,6 +64,12 @@ while (($# > 0)); do
     --kj-atlas-dir)
       [[ $# -ge 2 ]] || { echo "--kj-atlas-dir requires PATH" >&2; exit 2; }
       KJ_ATLAS_DIR="$2"
+      KJ_ATLAS_DIR_EXPLICIT=1
+      shift 2
+      ;;
+    --kj-atlas-backend-bundle)
+      [[ $# -ge 2 ]] || { echo "--kj-atlas-backend-bundle requires PATH" >&2; exit 2; }
+      KJ_ATLAS_BACKEND_BUNDLE="$2"
       shift 2
       ;;
     --work-dir)
@@ -100,7 +113,7 @@ while (($# > 0)); do
   esac
 done
 
-for command in git python3 go curl zstd tar sha256sum uname mktemp; do
+for command in git python3 go curl zstd tar sha256sum uname mktemp cp; do
   command -v "${command}" >/dev/null || {
     echo "Required command is missing: ${command}" >&2
     exit 1
@@ -160,8 +173,8 @@ require_safe_output_path() {
     echo "${label} must not be inside the SOZA repository: ${candidate}" >&2
     exit 1
   fi
-  if is_within_path "${candidate}" "${KJ_ATLAS_DIR}"; then
-    echo "${label} must not be inside the KJ Atlas repository: ${candidate}" >&2
+  if is_within_path "${candidate}" "${KJ_ATLAS_SOURCE_ROOT}"; then
+    echo "${label} must not be inside the KJ Atlas source: ${candidate}" >&2
     exit 1
   fi
 }
@@ -184,22 +197,51 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
 PY
 }
 
-KJ_ATLAS_DIR="$(canonical_path "${KJ_ATLAS_DIR}")"
-if ! git -C "${KJ_ATLAS_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  echo "KJ Atlas checkout not found: ${KJ_ATLAS_DIR}" >&2
-  echo "Clone hat47x/kj-atlas and checkout ${KJ_ATLAS_COMMIT}, or pass --kj-atlas-dir." >&2
-  exit 1
-fi
-
 require_clean_repository "SOZA" "${SOZA_ROOT}"
-require_clean_repository "KJ Atlas" "${KJ_ATLAS_DIR}"
-
-ACTUAL_KJ_COMMIT="$(git -C "${KJ_ATLAS_DIR}" rev-parse HEAD)"
-if [[ "${ACTUAL_KJ_COMMIT}" != "${KJ_ATLAS_COMMIT}" ]]; then
-  echo "KJ Atlas commit mismatch: actual=${ACTUAL_KJ_COMMIT} expected=${KJ_ATLAS_COMMIT}" >&2
-  exit 1
-fi
 SOZA_COMMIT="$(git -C "${SOZA_ROOT}" rev-parse HEAD)"
+
+KJ_ATLAS_SOURCE_MODE=""
+KJ_ATLAS_SOURCE_ROOT=""
+KJ_ATLAS_BACKEND_DIR=""
+KJ_ATLAS_INSTALL_DIR=""
+ACTUAL_KJ_COMMIT="${KJ_ATLAS_COMMIT}"
+
+if [[ -n "${KJ_ATLAS_BACKEND_BUNDLE}" ]]; then
+  if [[ "${KJ_ATLAS_DIR_EXPLICIT}" == "1" ]]; then
+    echo "--kj-atlas-dir and --kj-atlas-backend-bundle must not be used together" >&2
+    exit 2
+  fi
+  KJ_ATLAS_BACKEND_BUNDLE="$(canonical_path "${KJ_ATLAS_BACKEND_BUNDLE}")"
+  if is_within_path "${KJ_ATLAS_BACKEND_BUNDLE}" "${SOZA_ROOT}"; then
+    echo "KJ Atlas backend bundle must not be inside the SOZA repository: ${KJ_ATLAS_BACKEND_BUNDLE}" >&2
+    exit 1
+  fi
+  [[ -d "${KJ_ATLAS_BACKEND_BUNDLE}" ]] || {
+    echo "KJ Atlas backend bundle not found: ${KJ_ATLAS_BACKEND_BUNDLE}" >&2
+    exit 1
+  }
+  python3 "${KJ_ATLAS_SOURCE_VERIFIER}" --backend-dir "${KJ_ATLAS_BACKEND_BUNDLE}" >/dev/null
+  KJ_ATLAS_SOURCE_MODE="verified-runtime-bundle"
+  KJ_ATLAS_SOURCE_ROOT="${KJ_ATLAS_BACKEND_BUNDLE}"
+  KJ_ATLAS_DIR=""
+else
+  KJ_ATLAS_DIR="$(canonical_path "${KJ_ATLAS_DIR}")"
+  if ! git -C "${KJ_ATLAS_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "KJ Atlas checkout not found: ${KJ_ATLAS_DIR}" >&2
+    echo "Clone hat47x/kj-atlas and checkout ${KJ_ATLAS_COMMIT}, pass --kj-atlas-dir, or use --kj-atlas-backend-bundle." >&2
+    exit 1
+  fi
+  require_clean_repository "KJ Atlas" "${KJ_ATLAS_DIR}"
+  ACTUAL_KJ_COMMIT="$(git -C "${KJ_ATLAS_DIR}" rev-parse HEAD)"
+  if [[ "${ACTUAL_KJ_COMMIT}" != "${KJ_ATLAS_COMMIT}" ]]; then
+    echo "KJ Atlas commit mismatch: actual=${ACTUAL_KJ_COMMIT} expected=${KJ_ATLAS_COMMIT}" >&2
+    exit 1
+  fi
+  git -C "${KJ_ATLAS_DIR}" cat-file -e "${ACTUAL_KJ_COMMIT}^{commit}"
+  KJ_ATLAS_SOURCE_MODE="git-checkout"
+  KJ_ATLAS_SOURCE_ROOT="${KJ_ATLAS_DIR}"
+  KJ_ATLAS_BACKEND_DIR="${KJ_ATLAS_DIR}/03_Implement/backend"
+fi
 
 EXECUTION_ID="${SOZA_RUNTIME_EXCHANGE_EXECUTION_ID:-local-$(date -u +%Y%m%dT%H%M%SZ)-$$}"
 if [[ ! "${EXECUTION_ID}" =~ ^[A-Za-z0-9._-]+$ ]]; then
@@ -234,6 +276,47 @@ if [[ -e "${EVIDENCE_DIR}" ]]; then
   exit 1
 fi
 mkdir -p "${EVIDENCE_DIR}"
+
+KJ_ATLAS_SOURCE_IDENTITY_FILE="${WORK_DIR}/kj-atlas-source-identity.json"
+KJ_ATLAS_INSTALL_DIR="${WORK_DIR}/kj-atlas-backend-install"
+mkdir -p "${KJ_ATLAS_INSTALL_DIR}"
+if [[ "${KJ_ATLAS_SOURCE_MODE}" == "verified-runtime-bundle" ]]; then
+  KJ_ATLAS_BACKEND_DIR="${WORK_DIR}/kj-atlas-backend-execution"
+  mkdir -p "${KJ_ATLAS_BACKEND_DIR}"
+  cp -a "${KJ_ATLAS_SOURCE_ROOT}/." "${KJ_ATLAS_BACKEND_DIR}/"
+  cp -a "${KJ_ATLAS_SOURCE_ROOT}/." "${KJ_ATLAS_INSTALL_DIR}/"
+  python3 "${KJ_ATLAS_SOURCE_VERIFIER}" \
+    --backend-dir "${KJ_ATLAS_BACKEND_DIR}" \
+    --output "${KJ_ATLAS_SOURCE_IDENTITY_FILE}" >/dev/null
+  python3 "${KJ_ATLAS_SOURCE_VERIFIER}" --backend-dir "${KJ_ATLAS_INSTALL_DIR}" >/dev/null
+else
+  # package buildの副作用をactual checkoutへ持ち込まないよう、install対象だけwork領域へ複製する。
+  cp -a "${KJ_ATLAS_BACKEND_DIR}/." "${KJ_ATLAS_INSTALL_DIR}/"
+  KJ_ATLAS_SOURCE_IDENTITY_FILE="${KJ_ATLAS_SOURCE_IDENTITY_FILE}" \
+  KJ_ATLAS_COMMIT="${ACTUAL_KJ_COMMIT}" \
+  python3 - <<'PY'
+import json
+import os
+from pathlib import Path
+
+Path(os.environ["KJ_ATLAS_SOURCE_IDENTITY_FILE"]).write_text(
+    json.dumps(
+        {
+            "schema": "soza.kj-atlas-runtime-source-identity/v1",
+            "verified": True,
+            "sourceMode": "git-checkout",
+            "repository": "hat47x/kj-atlas",
+            "sourceCommit": os.environ["KJ_ATLAS_COMMIT"],
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+        indent=2,
+    )
+    + "\n",
+    encoding="utf-8",
+)
+PY
+fi
 
 if [[ -n "${PREPOSITIONED_RUNTIME_ARCHIVE_A}" ]]; then
   PREPOSITIONED_RUNTIME_ARCHIVE_A="$(canonical_path "${PREPOSITIONED_RUNTIME_ARCHIVE_A}")"
@@ -300,6 +383,7 @@ preserve_evidence() {
   local path
   for path in \
     "${IDENTITY_FILE}" \
+    "${KJ_ATLAS_SOURCE_IDENTITY_FILE}" \
     "${REQUEST_FILE}" \
     "${WORK_DIR}/runtime-exchange-a-version.txt" \
     "${WORK_DIR}/runtime-exchange-b-version.txt" \
@@ -357,6 +441,7 @@ trap finish EXIT
 
 SOZA_COMMIT="${SOZA_COMMIT}" \
 KJ_ATLAS_COMMIT="${ACTUAL_KJ_COMMIT}" \
+KJ_ATLAS_SOURCE_IDENTITY_FILE="${KJ_ATLAS_SOURCE_IDENTITY_FILE}" \
 EXECUTION_ID="${EXECUTION_ID}" \
 IDENTITY_FILE="${IDENTITY_FILE}" \
 RUNTIME_VERSION_A="${RUNTIME_VERSION_A}" \
@@ -375,12 +460,16 @@ import json
 import os
 from pathlib import Path
 
+method_source = json.loads(
+    Path(os.environ["KJ_ATLAS_SOURCE_IDENTITY_FILE"]).read_text(encoding="utf-8")
+)
 payload = {
     "schema": "soza.runtime-version-exchange-evidence-identity/v1",
     "executionId": os.environ["EXECUTION_ID"],
     "executionSurface": "repository-local-harness",
     "repositoryCommit": os.environ["SOZA_COMMIT"],
     "methodSourceCommit": os.environ["KJ_ATLAS_COMMIT"],
+    "methodSource": method_source,
     "executionHost": {
         "os": os.environ["HOST_OS"].lower(),
         "arch": os.environ["HOST_ARCH"],
@@ -411,7 +500,7 @@ Path(os.environ["IDENTITY_FILE"]).write_text(
 PY
 
 python3 -m venv "${VENV_DIR}"
-"${VENV_DIR}/bin/python" -m pip install --disable-pip-version-check -e "${KJ_ATLAS_DIR}/03_Implement/backend"
+"${VENV_DIR}/bin/python" -m pip install --disable-pip-version-check "${KJ_ATLAS_INSTALL_DIR}"
 
 acquire_runtime() {
   local label="$1"
@@ -564,8 +653,10 @@ print(json.dumps({"model": model_name, "digest": digest}, sort_keys=True))
 PY
 
   (
-    cd "${KJ_ATLAS_DIR}/03_Implement/backend"
-    KJ_ATLAS_DATABASE_URL="sqlite:///${database}" "${VENV_DIR}/bin/alembic" upgrade head
+    cd "${KJ_ATLAS_BACKEND_DIR}"
+    KJ_ATLAS_DATABASE_URL="sqlite:///${database}" \
+    PYTHONPATH="${KJ_ATLAS_BACKEND_DIR}/src" \
+      "${VENV_DIR}/bin/alembic" upgrade head
   )
 
   SOZA_M1B_MODEL="${MODEL_NAME}" \
@@ -580,7 +671,7 @@ PY
   KJ_ATLAS_LOCAL_LLM_BASE_URL=http://127.0.0.1:8001 \
   KJ_ATLAS_LOCAL_LLM_MODEL="${MODEL_NAME}" \
   KJ_ATLAS_LLM_FALLBACK_TO_NONE=false \
-  PYTHONPATH="${KJ_ATLAS_DIR}/03_Implement/backend/src" \
+  PYTHONPATH="${KJ_ATLAS_BACKEND_DIR}/src" \
     "${VENV_DIR}/bin/python" -m uvicorn kj_atlas_api.main:app --host 127.0.0.1 --port 8101 \
       >"${kj_log}" 2>&1 &
   KJ_PID=$!
@@ -675,7 +766,10 @@ PY
 )
 
 export SOZA_E3B_RUNTIME_EXCHANGE_LIVE=1
+export SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_MODE="${KJ_ATLAS_SOURCE_MODE}"
 export SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_DIR="${KJ_ATLAS_DIR}"
+export SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_DIR="${KJ_ATLAS_BACKEND_DIR}"
+export SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_VERIFIER="${KJ_ATLAS_SOURCE_VERIFIER}"
 export SOZA_E3B_RUNTIME_EXCHANGE_RUNTIME_VERSION_A="${RUNTIME_VERSION_A}"
 export SOZA_E3B_RUNTIME_EXCHANGE_RUNTIME_VERSION_B="${RUNTIME_VERSION_B}"
 export SOZA_E3B_RUNTIME_EXCHANGE_MODEL_ID_A="${MODEL_ID_A}"
