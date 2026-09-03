@@ -26,6 +26,31 @@ def _reject_unsafe_forwarded_source_options(arguments: list[str]) -> None:
             )
 
 
+def _prepare_identity_path(
+    path: Path | None,
+    *,
+    checkout_dir: Path,
+    bundle_dir: Path,
+) -> Path | None:
+    if path is None:
+        return None
+
+    identity_path = path.expanduser().resolve(strict=False)
+    if identity_path.exists():
+        raise ValueError(f"source export identity already exists: {identity_path}")
+    if identity_path == checkout_dir or checkout_dir in identity_path.parents:
+        raise ValueError(
+            "source export identity must not be inside the KJ Atlas repository: "
+            f"{identity_path}"
+        )
+    if identity_path == bundle_dir or bundle_dir in identity_path.parents:
+        raise ValueError(
+            "source export identity must not be inside the verified runtime bundle: "
+            f"{identity_path}"
+        )
+    return identity_path
+
+
 def run_from_checkout(
     checkout_dir: Path,
     harness_arguments: list[str],
@@ -43,13 +68,16 @@ def run_from_checkout(
     else:
         bundle_dir = source_bundle_dir.expanduser().resolve(strict=False)
 
+    identity_path = _prepare_identity_path(
+        source_export_identity,
+        checkout_dir=checkout_dir,
+        bundle_dir=bundle_dir,
+    )
+
     try:
         payload = export_runtime_bundle(checkout_dir, bundle_dir)
         rendered = json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
-        if source_export_identity is not None:
-            identity_path = source_export_identity.expanduser().resolve(strict=False)
-            if identity_path.exists():
-                raise ValueError(f"source export identity already exists: {identity_path}")
+        if identity_path is not None:
             identity_path.parent.mkdir(parents=True, exist_ok=True)
             identity_path.write_text(rendered, encoding="utf-8")
         else:
