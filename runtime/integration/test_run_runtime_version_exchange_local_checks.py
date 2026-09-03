@@ -15,6 +15,33 @@ class RuntimeVersionExchangeLocalChecksTest(unittest.TestCase):
                 self.assertTrue(path.is_file())
                 self.assertFalse(path.is_symlink())
 
+    def test_allowlist_covers_all_focused_candidates(self):
+        self.assertEqual(
+            set(local_checks.CHECK_FILES),
+            local_checks.discover_focused_candidate_names(),
+        )
+
+    def test_validate_rejects_unregistered_runtime_exchange_test(self):
+        discovered = set(local_checks.CHECK_FILES) | {"test_runtime_version_exchange_new_boundary.py"}
+        with patch.object(
+            local_checks,
+            "discover_focused_candidate_names",
+            return_value=discovered,
+        ):
+            with self.assertRaisesRegex(ValueError, "allowlistへ未登録"):
+                local_checks.validate_check_files()
+
+    def test_validate_rejects_stale_allowlist_entry(self):
+        discovered = set(local_checks.CHECK_FILES)
+        discovered.remove("test_verify_runtime_version_exchange_provenance.py")
+        with patch.object(
+            local_checks,
+            "discover_focused_candidate_names",
+            return_value=discovered,
+        ):
+            with self.assertRaisesRegex(ValueError, "候補外"):
+                local_checks.validate_check_files()
+
     def test_source_identity_and_evidence_checks_are_included(self):
         expected = {
             "test_verify_kj_atlas_runtime_source.py",
