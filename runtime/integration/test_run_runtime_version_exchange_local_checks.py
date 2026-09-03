@@ -1,5 +1,8 @@
+import json
 import os
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 import run_runtime_version_exchange_local_checks as local_checks
@@ -105,6 +108,99 @@ class RuntimeVersionExchangeLocalChecksTest(unittest.TestCase):
         self.assertNotIn("SOZA_RUNTIME_EXCHANGE_MODEL_DIR", actual)
         self.assertNotIn("OLLAMA_HOST", actual)
         self.assertNotIn("OLLAMA_MODELS", actual)
+
+    def test_result_output_must_be_new_and_outside_soza_repository(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            soza = root / "soza"
+            soza.mkdir()
+            outside = root / "focused-result.json"
+            with patch.object(local_checks, "SOZA_ROOT", soza):
+                self.assertEqual(outside, local_checks.prepare_result_output(outside))
+                with self.assertRaisesRegex(ValueError, "SOZA repository外"):
+                    local_checks.prepare_result_output(soza / "focused-result.json")
+
+                outside.write_text("existing\n", encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "新規path"):
+                    local_checks.prepare_result_output(outside)
+
+    def test_result_output_rejects_symlink_path(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            soza = root / "soza"
+            soza.mkdir()
+            actual = root / "actual.json"
+            actual.write_text("existing\n", encoding="utf-8")
+            linked = root / "linked.json"
+            linked.symlink_to(actual)
+            with patch.object(local_checks, "SOZA_ROOT", soza):
+                with self.assertRaisesRegex(ValueError, "symlink"):
+                    local_checks.prepare_result_output(linked)
+
+    def test_build_result_never_promotes_focused_success_to_actual_evidence(self):
+        selected = [Path("test_a.py"), Path("test_b.py")]
+        executions = [
+            {"name": "test_a.py", "exitCode": 0},
+            {"name": "test_b.py", "exitCode": 0},
+        ]
+        with patch.object(
+            local_checks,
+            "repository_observation",
+            return_value={
+                "commit": "a" * 40,
+                "clean": True,
+                "commitObserved": True,
+                "cleanlinessObserved": True,
+            },
+        ):
+            result = local_checks.build_result(
+                selected=selected,
+                executions=executions,
+                stopped_early=False,
+            )
+
+        self.assertEqual("ok", result["result"])
+        self.assertFalse(result["actualRuntimeExchangeEvidence"])
+        self.assertEqual("not_evaluated", result["qualityJudgement"])
+        self.assertEqual(2, result["selectedCount"])
+        self.assertEqual(2, result["executedCount"])
+        self.assertEqual(0, result["failedCount"])
+        self.assertIn("!= actual Ollama A/B inference PASS", result["stopLine"])
+
+    def test_build_result_marks_failure_and_early_stop(self):
+        selected = [Path("test_a.py"), Path("test_b.py")]
+        executions = [{"name": "test_a.py", "exitCode": 3}]
+        with patch.object(local_checks, "repository_observation", return_value={}):
+            result = local_checks.build_result(
+                selected=selected,
+                executions=executions,
+                stopped_early=True,
+            )
+
+        self.assertEqual("failed", result["result"])
+        self.assertEqual(1, result["executedCount"])
+        self.assertEqual(1, result["failedCount"])
+        self.assertTrue(result["stoppedEarly"])
+        self.assertFalse(result["actualRuntimeExchangeEvidence"])
+
+    def test_write_result_creates_machine_readable_json(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "result.json"
+            payload = {
+                "schema": local_checks.RESULT_SCHEMA,
+                "result": "ok",
+                "actualRuntimeExchangeEvidence": False,
+            }
+            local_checks.write_result(path, payload)
+            actual = json.loads(path.read_text(encoding="utf-8"))
+
+        self.assertEqual(payload, actual)
+
+    def test_parser_rejects_list_with_result_output(self):
+        parser = local_checks.build_parser()
+        args = parser.parse_args(["--list", "--result-output", "/tmp/result.json"])
+        self.assertTrue(args.list)
+        self.assertIsNotNone(args.result_output)
 
     def test_stop_line_does_not_promote_helper_success_to_actual_evidence(self):
         self.assertIn("!= actual Ollama A/B inference PASS", local_checks.STOP_LINE)
