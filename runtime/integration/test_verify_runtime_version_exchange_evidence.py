@@ -179,6 +179,26 @@ class EvidenceVerifierTest(unittest.TestCase):
         report = self.report(mutate)
         self.assertIn("source.mode", report["blockers"])
 
+    def test_non_string_runtime_archive_acquisition_is_rejected(self):
+        def mutate(root):
+            path = root / "runtime-exchange-identity.json"
+            payload = json.loads(path.read_text())
+            payload["runtimeA"]["archiveAcquisition"] = ["prepositioned"]
+            path.write_text(json.dumps(payload))
+
+        report = self.report(mutate)
+        self.assertIn("identity.runtimeA", report["blockers"])
+
+    def test_non_string_model_storage_mode_is_rejected(self):
+        def mutate(root):
+            path = root / "runtime-exchange-identity.json"
+            payload = json.loads(path.read_text())
+            payload["model"]["storageMode"] = ["prepositioned"]
+            path.write_text(json.dumps(payload))
+
+        report = self.report(mutate)
+        self.assertIn("identity.model", report["blockers"])
+
     def test_completion_marker_missing_is_rejected(self):
         def mutate(root):
             import hashlib
