@@ -45,6 +45,7 @@ class RuntimeVersionExchangeHarnessTest(unittest.TestCase):
         self.assertIn("runtime/integration/run_runtime_version_exchange.sh", completed.stdout)
         self.assertIn("GitHub Actions", completed.stdout)
         self.assertIn("--evidence-dir", completed.stdout)
+        self.assertIn("既存pathは拒否する", completed.stdout)
 
     def test_shell_and_go_use_the_same_runtime_versions_and_artifact_digests(self):
         pairs = [
@@ -76,6 +77,10 @@ class RuntimeVersionExchangeHarnessTest(unittest.TestCase):
         self.assertNotIn("GITHUB_WORKSPACE", self.go_guard_text)
         self.assertNotIn('"/tmp/runtime-exchange-', self.go_guard_text)
         self.assertNotIn('"/tmp/ollama-', self.go_guard_text)
+
+    def test_evidence_directory_must_be_new_for_each_run(self):
+        self.assertIn('if [[ -e "${EVIDENCE_DIR}" ]]', self.script_text)
+        self.assertIn("Evidence directory already exists; specify a new path", self.script_text)
 
 
 if __name__ == "__main__":
