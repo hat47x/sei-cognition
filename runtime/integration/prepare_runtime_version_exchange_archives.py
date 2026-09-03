@@ -29,13 +29,28 @@ def load_manifest(path: Path = MANIFEST_PATH) -> dict[str, object]:
     archives = payload.get("runtimeArchives")
     if not isinstance(archives, dict) or set(archives) != {"a", "b"}:
         raise ValueError("manifestにはruntimeArchives.a / runtimeArchives.bが必要です")
+    local_names: set[str] = set()
     for label in ("a", "b"):
         archive = archives[label]
         if not isinstance(archive, dict):
             raise ValueError(f"runtimeArchives.{label}がobjectではありません")
-        for name in ("runtime", "version", "assetName", "sizeBytes", "sha256", "downloadUrl"):
+        for name in (
+            "runtime",
+            "version",
+            "assetName",
+            "localFileName",
+            "sizeBytes",
+            "sha256",
+            "downloadUrl",
+        ):
             if name not in archive:
                 raise ValueError(f"runtimeArchives.{label}.{name}がありません")
+        local_name = archive["localFileName"]
+        if not isinstance(local_name, str) or not local_name or Path(local_name).name != local_name:
+            raise ValueError(f"runtimeArchives.{label}.localFileNameが不正です")
+        if local_name in local_names:
+            raise ValueError("runtime A / BのlocalFileNameが衝突しています")
+        local_names.add(local_name)
         sha256 = archive["sha256"]
         if not isinstance(sha256, str) or len(sha256) != 64:
             raise ValueError(f"runtimeArchives.{label}.sha256が不正です")
@@ -144,8 +159,9 @@ def build_plan(
                 "label": label,
                 "runtime": archive["runtime"],
                 "version": archive["version"],
+                "officialAssetName": archive["assetName"],
                 "target": str(
-                    (output_dir / str(archive["assetName"])).resolve(strict=False)
+                    (output_dir / str(archive["localFileName"])).resolve(strict=False)
                 ),
                 "sizeBytes": size,
                 "sha256": archive["sha256"],
@@ -219,7 +235,7 @@ def main(argv: list[str] | None = None) -> int:
 
     results = []
     for label, archive in selected_archives(manifest, args.runtime):
-        target = output_dir / str(archive["assetName"])
+        target = output_dir / str(archive["localFileName"])
         try:
             if args.verify_only:
                 verification = verify_archive(
