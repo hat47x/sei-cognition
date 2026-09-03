@@ -21,6 +21,12 @@ class RuntimeVersionExchangeLocalChecksTest(unittest.TestCase):
             local_checks.discover_focused_candidate_names(),
         )
 
+    def test_runner_self_test_is_registered(self):
+        self.assertIn(
+            "test_run_runtime_version_exchange_local_checks.py",
+            local_checks.CHECK_FILES,
+        )
+
     def test_validate_rejects_unregistered_runtime_exchange_test(self):
         discovered = set(local_checks.CHECK_FILES) | {"test_runtime_version_exchange_new_boundary.py"}
         with patch.object(

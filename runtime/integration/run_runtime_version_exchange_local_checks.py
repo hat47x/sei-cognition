@@ -24,6 +24,7 @@ CHECK_FILES = (
     "test_run_runtime_version_exchange_strict_model_preparation.py",
     "test_run_runtime_version_exchange.py",
     "test_run_runtime_version_exchange_with_verification.py",
+    "test_run_runtime_version_exchange_local_checks.py",
     "test_runtime_version_exchange_blocked_preflight_evidence.py",
     "test_verify_runtime_version_exchange_evidence.py",
     "test_verify_runtime_version_exchange_provenance.py",
@@ -32,12 +33,11 @@ CHECK_FILES = (
 )
 
 # ファイル名だけではruntime version exchangeとの関係を判定できないsource identity testを
-# 明示的に候補へ含める。runner自身のtestは再帰実行を避けるため対象外とする。
+# 明示的に候補へ含める。runner自身のself-testも通常のfocused checkとして実行する。
 SUPPLEMENTAL_FOCUSED_TESTS = {
     "test_verify_kj_atlas_runtime_source.py",
     "test_export_kj_atlas_runtime_source.py",
 }
-SELF_TEST_FILE = "test_run_runtime_version_exchange_local_checks.py"
 
 STOP_LINE = (
     "focused local checks PASS != actual Ollama A/B inference PASS "
@@ -65,8 +65,6 @@ def discover_focused_candidate_names() -> set[str]:
     candidates: set[str] = set()
     for path in INTEGRATION_DIR.glob("test_*.py"):
         name = path.name
-        if name == SELF_TEST_FILE:
-            continue
         if "runtime_version_exchange" in name or name in SUPPLEMENTAL_FOCUSED_TESTS:
             candidates.add(name)
     return candidates
