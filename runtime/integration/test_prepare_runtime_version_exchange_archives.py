@@ -95,11 +95,11 @@ class RuntimeVersionExchangeArchivePreparationTest(unittest.TestCase):
 
         self.assertEqual(
             manifest["runtimeArchives"]["a"]["sizeBytes"],
-            preflight.RUNTIME_SIZE_BYTES_A,
+            preflight.RUNTIME_SIZE_A,
         )
         self.assertEqual(
             manifest["runtimeArchives"]["b"]["sizeBytes"],
-            preflight.RUNTIME_SIZE_BYTES_B,
+            preflight.RUNTIME_SIZE_B,
         )
         self.assertEqual(manifest["model"]["name"], preflight.MODEL_NAME)
         self.assertEqual(manifest["model"]["sha256"], preflight.MODEL_SHA256)
