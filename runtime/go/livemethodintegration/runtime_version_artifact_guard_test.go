@@ -24,11 +24,11 @@ func TestMain(m *testing.M) {
 			os.Exit(1)
 		}
 		for _, runtime := range []struct {
-			label        string
-			version      string
-			versionLog   string
-			archive      string
-			artifactSHA  string
+			label       string
+			version     string
+			versionLog  string
+			archive     string
+			artifactSHA string
 		}{
 			{label: "A", version: runtimeExchangeVersionA, versionLog: "/tmp/runtime-exchange-a-version.txt", archive: "/tmp/ollama-a.tar.zst", artifactSHA: runtimeExchangeArtifactA},
 			{label: "B", version: runtimeExchangeVersionB, versionLog: "/tmp/runtime-exchange-b-version.txt", archive: "/tmp/ollama-b.tar.zst", artifactSHA: runtimeExchangeArtifactB},
