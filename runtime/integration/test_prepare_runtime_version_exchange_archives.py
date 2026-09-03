@@ -56,6 +56,15 @@ class RuntimeVersionExchangeArchivePreparationTest(unittest.TestCase):
             manifest["model"]["sha256"],
         )
 
+    def test_manifest_keeps_a_and_b_local_archive_names_distinct(self):
+        manifest = prepare.load_manifest()
+        a = manifest["runtimeArchives"]["a"]
+        b = manifest["runtimeArchives"]["b"]
+        self.assertEqual(a["assetName"], b["assetName"])
+        self.assertNotEqual(a["localFileName"], b["localFileName"])
+        self.assertIn(a["version"], a["localFileName"])
+        self.assertIn(b["version"], b["localFileName"])
+
     def test_manifest_runtime_identity_matches_preflight_harness_and_go(self):
         manifest = prepare.load_manifest()
         harness = HARNESS.read_text(encoding="utf-8")
@@ -101,6 +110,8 @@ class RuntimeVersionExchangeArchivePreparationTest(unittest.TestCase):
             plan = prepare.build_plan(manifest, Path(temp), "all")
         self.assertEqual(2842984585, plan["compressedBytesTotal"])
         self.assertIn("!= actual runtime A/B inference PASS", plan["stopLine"])
+        targets = [item["target"] for item in plan["archives"]]
+        self.assertEqual(2, len(set(targets)))
 
     def test_verify_archive_accepts_exact_size_and_digest(self):
         data = b"fixed-runtime"
