@@ -1,9 +1,21 @@
 import hashlib
+import re
 import tempfile
 import unittest
 from pathlib import Path
 
 import check_runtime_version_exchange_preflight as preflight
+
+
+INTEGRATION_DIR = Path(__file__).resolve().parent
+HARNESS = INTEGRATION_DIR / "run_runtime_version_exchange.sh"
+
+
+def shell_value(text: str, name: str) -> str:
+    match = re.search(rf'^{re.escape(name)}="([^"]+)"$', text, re.MULTILINE)
+    if match is None:
+        raise AssertionError(f"shell constant not found: {name}")
+    return match.group(1)
 
 
 class RuntimeVersionExchangePreflightTest(unittest.TestCase):
@@ -48,6 +60,21 @@ class RuntimeVersionExchangePreflightTest(unittest.TestCase):
             checks = preflight.model_store_check(model, (source,), True)
             self.assertEqual("ok", checks[0].status)
             self.assertIn("Ollama起動後", checks[0].detail)
+
+    def test_preflight_and_harness_use_the_same_fixed_identity(self):
+        text = HARNESS.read_text(encoding="utf-8")
+        pairs = [
+            ("KJ_ATLAS_COMMIT", preflight.KJ_ATLAS_COMMIT),
+            ("MODEL_NAME", preflight.MODEL_NAME),
+            ("MODEL_SHA256", preflight.MODEL_SHA256),
+            ("RUNTIME_VERSION_A", preflight.RUNTIME_VERSION_A),
+            ("RUNTIME_VERSION_B", preflight.RUNTIME_VERSION_B),
+            ("RUNTIME_SHA256_A", preflight.RUNTIME_SHA256_A),
+            ("RUNTIME_SHA256_B", preflight.RUNTIME_SHA256_B),
+        ]
+        for shell_name, expected in pairs:
+            with self.subTest(shell=shell_name):
+                self.assertEqual(expected, shell_value(text, shell_name))
 
     def test_report_never_promotes_preflight_to_executable_evidence(self):
         result = preflight.report([preflight.Check("sample", "ok", "ok")])
