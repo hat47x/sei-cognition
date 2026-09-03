@@ -137,6 +137,19 @@ class RuntimeVersionExchangeLocalChecksTest(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "symlink"):
                     local_checks.prepare_result_output(linked)
 
+    def test_result_output_rejects_symlink_parent(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            soza = root / "soza"
+            soza.mkdir()
+            actual_parent = root / "actual-parent"
+            actual_parent.mkdir()
+            linked_parent = root / "linked-parent"
+            linked_parent.symlink_to(actual_parent, target_is_directory=True)
+            with patch.object(local_checks, "SOZA_ROOT", soza):
+                with self.assertRaisesRegex(ValueError, "parentにsymlink"):
+                    local_checks.prepare_result_output(linked_parent / "result.json")
+
     def test_build_result_never_promotes_focused_success_to_actual_evidence(self):
         selected = [Path("test_a.py"), Path("test_b.py")]
         executions = [
@@ -183,7 +196,7 @@ class RuntimeVersionExchangeLocalChecksTest(unittest.TestCase):
         self.assertTrue(result["stoppedEarly"])
         self.assertFalse(result["actualRuntimeExchangeEvidence"])
 
-    def test_write_result_creates_machine_readable_json(self):
+    def test_write_result_creates_machine_readable_json_without_overwrite(self):
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "result.json"
             payload = {
@@ -193,14 +206,15 @@ class RuntimeVersionExchangeLocalChecksTest(unittest.TestCase):
             }
             local_checks.write_result(path, payload)
             actual = json.loads(path.read_text(encoding="utf-8"))
+            with self.assertRaises(FileExistsError):
+                local_checks.write_result(path, payload)
 
         self.assertEqual(payload, actual)
 
-    def test_parser_rejects_list_with_result_output(self):
-        parser = local_checks.build_parser()
-        args = parser.parse_args(["--list", "--result-output", "/tmp/result.json"])
-        self.assertTrue(args.list)
-        self.assertIsNotNone(args.result_output)
+    def test_main_rejects_list_with_result_output(self):
+        with self.assertRaises(SystemExit) as raised:
+            local_checks.main(["--list", "--result-output", "/tmp/result.json"])
+        self.assertEqual(2, raised.exception.code)
 
     def test_stop_line_does_not_promote_helper_success_to_actual_evidence(self):
         self.assertIn("!= actual Ollama A/B inference PASS", local_checks.STOP_LINE)
