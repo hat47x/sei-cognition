@@ -21,7 +21,9 @@ def _reject_forwarded_options(arguments: list[str]) -> None:
         "--kj-atlas-dir",
         "--kj-atlas-backend-bundle",
         "--model-dir",
+        "--prepare-model-dir",
         "--evidence-dir",
+        "--work-dir",
     }
     for argument in arguments:
         if argument in forbidden or any(argument.startswith(name + "=") for name in forbidden):
@@ -47,6 +49,8 @@ def _build_command(
     kj_atlas_dir: Path | None,
     kj_atlas_backend_bundle: Path | None,
     model_dir: Path | None,
+    prepare_model_dir: Path | None,
+    work_dir: Path | None,
     evidence_dir: Path,
     forwarded: list[str],
 ) -> tuple[list[str], str]:
@@ -60,8 +64,14 @@ def _build_command(
     else:
         raise ValueError("KJ Atlas sourceを指定してください")
 
+    if model_dir is not None and prepare_model_dir is not None:
+        raise ValueError("--model-dirと--prepare-model-dirは同時に指定できません")
     if model_dir is not None:
         command.extend(["--model-dir", str(model_dir)])
+    elif prepare_model_dir is not None:
+        command.extend(["--prepare-model-dir", str(prepare_model_dir)])
+    if work_dir is not None:
+        command.extend(["--work-dir", str(work_dir)])
     command.extend(["--evidence-dir", str(evidence_dir), "--", *forwarded])
     return command, source_preparation
 
@@ -138,6 +148,8 @@ def run(
     kj_atlas_dir: Path | None,
     kj_atlas_backend_bundle: Path | None,
     model_dir: Path | None,
+    prepare_model_dir: Path | None,
+    work_dir: Path | None,
     evidence_dir: Path,
     verification_output: Path,
     forwarded: list[str],
@@ -155,6 +167,8 @@ def run(
         kj_atlas_dir=kj_atlas_dir,
         kj_atlas_backend_bundle=kj_atlas_backend_bundle,
         model_dir=model_dir,
+        prepare_model_dir=prepare_model_dir,
+        work_dir=work_dir,
         evidence_dir=evidence_dir,
         forwarded=forwarded,
     )
@@ -202,8 +216,11 @@ def build_parser() -> argparse.ArgumentParser:
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument("--kj-atlas-dir", type=Path)
     source.add_argument("--kj-atlas-backend-bundle", type=Path)
-    parser.add_argument("--model-dir", type=Path)
+    model = parser.add_mutually_exclusive_group()
+    model.add_argument("--model-dir", type=Path)
+    model.add_argument("--prepare-model-dir", type=Path)
     parser.add_argument("--evidence-dir", required=True, type=Path)
+    parser.add_argument("--work-dir", type=Path)
     parser.add_argument(
         "--verification-output",
         type=Path,
@@ -229,6 +246,8 @@ def main() -> int:
             kj_atlas_dir=args.kj_atlas_dir,
             kj_atlas_backend_bundle=args.kj_atlas_backend_bundle,
             model_dir=args.model_dir,
+            prepare_model_dir=args.prepare_model_dir,
+            work_dir=args.work_dir,
             evidence_dir=evidence_dir,
             verification_output=verification_output,
             forwarded=forwarded,
