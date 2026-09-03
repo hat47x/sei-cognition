@@ -124,6 +124,67 @@ class KJAtlasRuntimeSourceExporterTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "must not be inside"):
                 EXPORTER.export_runtime_bundle(root, root / "bundle", identity)
 
+    def test_identity_output_inside_repository_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            checkout = base / "repo"
+            checkout.mkdir()
+            bundle = base / "bundle"
+
+            with self.assertRaisesRegex(ValueError, "separated from source inputs"):
+                EXPORTER._prepare_identity_output_path(
+                    checkout / "identity.json",
+                    checkout_dir=checkout,
+                    output_dir=bundle,
+                )
+
+    def test_identity_output_inside_exported_bundle_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            checkout = base / "repo"
+            checkout.mkdir()
+            bundle = base / "bundle"
+
+            with self.assertRaisesRegex(ValueError, "separated from source inputs"):
+                EXPORTER._prepare_identity_output_path(
+                    bundle / "identity.json",
+                    checkout_dir=checkout,
+                    output_dir=bundle,
+                )
+
+    def test_existing_identity_output_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            checkout = base / "repo"
+            checkout.mkdir()
+            bundle = base / "bundle"
+            identity_output = base / "identity.json"
+            identity_output.write_text("existing\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(ValueError, "already exists"):
+                EXPORTER._prepare_identity_output_path(
+                    identity_output,
+                    checkout_dir=checkout,
+                    output_dir=bundle,
+                )
+
+    def test_external_new_identity_output_is_accepted(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            checkout = base / "repo"
+            checkout.mkdir()
+            bundle = base / "bundle"
+            identity_output = base / "identity.json"
+
+            prepared = EXPORTER._prepare_identity_output_path(
+                identity_output,
+                checkout_dir=checkout,
+                output_dir=bundle,
+            )
+
+            self.assertEqual(identity_output.resolve(strict=False), prepared)
+            self.assertFalse(identity_output.exists())
+
 
 if __name__ == "__main__":
     unittest.main()
