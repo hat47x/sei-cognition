@@ -4,14 +4,12 @@
 
 このディレクトリには、SOZAと外部Cognitive Method / model runtimeの接続を実際に確かめるためのintegration資産を置きます。
 
-ここにあるprobeは、GitHub Actionsや特定のrunnerを意味上の成立条件にしません。手動実行、開発端末、外部runner、将来のCIなど、どの実行面から呼び出しても同じ固定条件と検査境界へ戻れることを優先します。
+ここで重要なのは、**何を検証するか**と**どこで実行するか**を分けることです。current `develop/v0.2.0`ではGitHub Actions workflowを常設していません。必要な検証はrepository-localなtest、checker、probeをローカル等から個別に実行します。過去のActions Runはhistorical Evidenceとして残しますが、現在の成立条件にはしません。
 
 ```text
 what must be verified
   != where it is executed
 ```
-
-current `develop/v0.2.0`ではGitHub Actions workflowを常設していません。過去のActions Runはhistorical Evidenceとして保持しますが、現在のprobe実行条件にはしません。
 
 ## Runtime version exchange
 
@@ -43,18 +41,29 @@ same model prompt
 runtime revision A != runtime revision B
 ```
 
-この実験の中心は、runtime versionを交換した後も先行Method ApplicationのExact Reference、Provenance、outputを変更せず保持できるかを確認することです。
+確認したい中心命題は、runtime versionを交換した後も先行Method ApplicationのExact Reference、Provenance、outputを変更せず保持できることです。
+
+```text
+runtime version exchange
+  → new exact Realization revision
+  != historical Application rewrite
+```
 
 ## 固定runtime artifact
 
 現在のprobeはLinux / amd64用のOllama公式archiveを固定します。
 
-| revision | asset | size | SHA-256 |
+| revision | official asset | size | SHA-256 |
 | --- | --- | ---: | --- |
 | A / `0.32.13` | `ollama-linux-amd64.tar.zst` | `1421793186` bytes | `0fd1dece38a1c6242e8013ce20b597345c5de072ae6b320160edb0e729ef1de1` |
 | B / `0.32.14` | `ollama-linux-amd64.tar.zst` | `1421191399` bytes | `c620917a71e146ab3a7f893084f066069c4c65d144ef8379a91c3cbe8b27de8f` |
 
 圧縮archive 2本の合計は`2842984585` bytesです。
+
+公式asset名はA / Bで同じなので、ローカル準備時には次のversion付きfile名へ分けます。
+
+- `ollama-0.32.13-linux-amd64.tar.zst`
+- `ollama-0.32.14-linux-amd64.tar.zst`
 
 sizeは、明らかに異なるfileを大きなSHA-256計算の前に拒否するための早期guardです。artifact identityの正本は実bytesのSHA-256です。
 
@@ -67,79 +76,142 @@ archive size match
   = fixed runtime archive identity guard
 ```
 
-MLX / ROCm等の別assetは、同じversion名であっても別bytes / 別digestです。小さいという理由だけでこの実験の固定artifactへ置き換えません。
+MLX / ROCm等の別assetは、同じversion名でも別bytes / 別digestです。小さいという理由だけで本実験の固定artifactへ置き換えません。
 
-Linux / amd64という制約はISSUE-000070のprobe-local条件です。SOZA全体のformal platform support matrixをLinux / amd64へ固定するものではありません。
+Linux / amd64はISSUE-000070のprobe-local条件です。SOZA全体のplatform supportをLinux / amd64へ固定する意味ではありません。
 
-## 事前準備
+## ローカル実行までの流れ
 
-次のコマンドを利用できる環境を用意します。
+actual A / B実行までを、次の順に分けます。
 
-- `git`
-- `python3`
-- `go`
-- `curl`
-- `zstd`
-- `tar`
-- `sha256sum`
-- `uname`
-- `mktemp`
+```text
+1. fixed runtime archiveの計画確認
+2. fixed runtime archiveの準備・再検証
+3. fixed KJ Atlas checkoutの準備
+4. side-effect-free preflight
+5. actual A / B harness
+6. Evidenceの読み戻し
+```
 
-`curl`は外部archiveの取得だけでなく、localhost上のOllama / model adapter / KJ Atlas API確認にも使うため、runtime archiveやmodel artifactを事前配置した場合も必要です。
+途中の工程が成功しても、その後の工程まで成功したとは扱いません。
 
-SOZAとKJ Atlasは、どちらも未commit変更のないcleanなGit checkoutである必要があります。KJ Atlasは固定commitをcheckoutします。
+## 1. runtime archiveの計画確認
+
+固定artifact metadataは`runtime_version_exchange_artifacts.json`に機械可読な形でも置いています。現在のmanifestには、固定KJ Atlas commit、runtime A / Bのversion・公式asset名・ローカル保存名・size・SHA-256・公式URL、および固定model identityを記録しています。
+
+取得前に、networkアクセスやfile作成を行わず計画だけを確認できます。
+
+```bash
+python3 runtime/integration/prepare_runtime_version_exchange_archives.py \
+  --output-dir /path/to/runtime-archives \
+  --plan
+```
+
+構造化して確認する場合は`--json`を付けます。
+
+```bash
+python3 runtime/integration/prepare_runtime_version_exchange_archives.py \
+  --output-dir /path/to/runtime-archives \
+  --plan \
+  --json
+```
+
+`--plan`の成功は、archiveを取得済みであることを意味しません。
+
+## 2. runtime archiveの準備・再検証
+
+networkへ到達できる環境では、固定archiveを次で準備できます。
+
+```bash
+python3 runtime/integration/prepare_runtime_version_exchange_archives.py \
+  --output-dir /path/to/runtime-archives
+```
+
+このtoolは、download中のbytesを最終fileへ直接書きません。まず`.part`へ保存し、sizeとSHA-256の両方が固定値に一致した場合だけ最終fileへ原子的に昇格します。
+
+既に正しいarchiveが存在する場合は、networkを使わず再検証して再利用します。既存fileが固定条件に一致しない場合は上書きしません。また、`.part`が残っている場合も暗黙に再開・上書きせず停止します。途中状態を利用者が確認できるようにするためです。
+
+network取得を行わず、既存fileだけを確認する場合は`--verify-only`を使います。
+
+```bash
+python3 runtime/integration/prepare_runtime_version_exchange_archives.py \
+  --output-dir /path/to/runtime-archives \
+  --verify-only
+```
+
+AまたはBだけを扱う場合は`--runtime a`または`--runtime b`を指定できます。
+
+```text
+archive preparation success
+  = fixed runtime archive bytesを準備・再検証できた
+  != actual Ollama A/B inference PASS
+  != runtime-version-exchange Scoped Executable Evidence
+```
+
+準備tool自身の境界は次で検査します。
+
+```bash
+python3 runtime/integration/test_prepare_runtime_version_exchange_archives.py
+```
+
+このtestは、manifestとpreflight / harness / Go側固定identityの整合、A / Bのローカルfile名分離、既存fileの再利用、`.part`を介した原子的昇格、途中fileの非上書き等を確認します。
+
+## 3. KJ Atlas checkoutの準備
+
+SOZAとKJ Atlasは、どちらも未commit変更のないcleanなGit checkoutである必要があります。KJ Atlasは固定commitへ合わせます。
 
 ```bash
 git clone https://github.com/hat47x/kj-atlas.git _external/kj-atlas
 git -C _external/kj-atlas checkout 4f28c13abe4176503c6fed863383a2d1db2299e9
 ```
 
-既存checkoutを利用する場合は`--kj-atlas-dir`で明示できます。
+既存checkoutを使う場合は、preflight / harnessの`--kj-atlas-dir`で明示できます。
 
-## ローカルpreflight
+harnessはKJ Atlasのrepository identityを名前だけで信用せず、actual HEADを固定commitへ照合します。
 
-actual runtimeを起動する前に、`check_runtime_version_exchange_preflight.py`で副作用のない診断を行えます。
+## 4. ローカルpreflight
+
+actual processを起動する前に、`check_runtime_version_exchange_preflight.py`で副作用のない診断を行えます。
 
 ```bash
 python3 runtime/integration/check_runtime_version_exchange_preflight.py \
   --kj-atlas-dir /path/to/kj-atlas
 ```
 
-preflightはprocessを起動せず、runtime archiveやmodelをdownloadしません。主に次を確認します。
+preflightはruntime / model processを起動せず、artifactをdownloadしません。主に次を確認します。
 
 - hostがLinux / amd64か。
 - 必要コマンドを利用できるか。
-- SOZA / KJ AtlasがGit working treeか。
-- 両working treeがcleanか。
+- SOZA / KJ AtlasがGit working treeでcleanか。
 - KJ Atlas HEADが固定commitか。
 - work / Evidence / external model pathがsource repository配下を指していないか。
 - 新規pathが必要な場所で既存pathを再利用していないか。
 - 事前配置runtime archiveのsizeとSHA-256が固定値に一致するか。
 - 事前配置model storageが安全な場所に存在するか。
-- 固定local port `11434` / `8001` / `8101`が空いているか。
-- work領域を置くfilesystemの空き容量がどの程度あるか。
+- local port `11434` / `8001` / `8101`が空いているか。
+- work領域を置くfilesystemにどの程度のfree bytesがあるか。
 
-空き容量は診断値として記録します。固定runtime archive 2本の圧縮bytes合計との比較材料にはできますが、展開後runtime、Python virtual environment、work-local model storageには追加容量が必要です。
+空き容量は診断値です。固定archive 2本の圧縮bytes合計との比較材料にはできますが、展開後runtime、Python virtual environment、model storageには追加容量が必要です。
 
 ```text
 disk free-space observation
   != enough capacity proven
 ```
 
-事前配置artifactだけで開始できるかを確認する場合は、次のようにします。
+runtime archiveとmodel storageをすべて事前配置した状態だけを確認する場合は、次のようにします。
 
 ```bash
 python3 runtime/integration/check_runtime_version_exchange_preflight.py \
   --kj-atlas-dir /path/to/kj-atlas \
-  --runtime-a-archive /path/to/ollama-0.32.13-linux-amd64.tar.zst \
-  --runtime-b-archive /path/to/ollama-0.32.14-linux-amd64.tar.zst \
+  --runtime-a-archive /path/to/runtime-archives/ollama-0.32.13-linux-amd64.tar.zst \
+  --runtime-b-archive /path/to/runtime-archives/ollama-0.32.14-linux-amd64.tar.zst \
   --model-dir /path/to/ollama-models \
   --require-prepositioned-artifacts
 ```
 
 `--json`を付けると、`ready` / `blocked`、blocker ID、固定artifact metadata、各checkを構造化JSONで取得できます。
 
-preflightが`ready`でも、model storage内のfull model digestは確認済みとは扱いません。model identityは固定Ollama runtimeを実際に起動した後、Ollama APIから観測したfull digestで確認します。
+model storage directoryが存在するだけでは、固定model artifactを検証済みとは扱いません。model identityは固定Ollama runtimeをactualに起動した後、Ollama APIから観測したfull digestで確認します。
 
 ```text
 preflight ready
@@ -149,23 +221,15 @@ preflight ready
   != runtime-version-exchange Scoped Executable Evidence
 ```
 
-preflight自身の境界は次で検査します。
+preflight自身は次で検査します。
 
 ```bash
 python3 runtime/integration/test_check_runtime_version_exchange_preflight.py
 ```
 
-current testは、固定archive size / digest、事前配置必須時の停止、path境界、disk観測の非昇格、harnessとの固定identity一致、Evidenceの停止線を扱います。
+## 5. actual harnessの実行
 
-## actual harnessの実行
-
-SOZA repository rootから実行します。
-
-```bash
-runtime/integration/run_runtime_version_exchange.sh
-```
-
-KJ Atlas checkoutとEvidence保存先を明示する例です。
+runtime archiveをharness自身に取得させる場合は次を実行します。
 
 ```bash
 runtime/integration/run_runtime_version_exchange.sh \
@@ -173,13 +237,23 @@ runtime/integration/run_runtime_version_exchange.sh \
   --evidence-dir /path/to/new-evidence-directory
 ```
 
-固定runtime archiveとmodel storageを事前配置している場合は次のように指定します。
+準備toolで固定runtime archiveを揃えた場合は、そのpathを明示します。
 
 ```bash
 runtime/integration/run_runtime_version_exchange.sh \
   --kj-atlas-dir /path/to/kj-atlas \
-  --runtime-a-archive /path/to/ollama-0.32.13-linux-amd64.tar.zst \
-  --runtime-b-archive /path/to/ollama-0.32.14-linux-amd64.tar.zst \
+  --runtime-a-archive /path/to/runtime-archives/ollama-0.32.13-linux-amd64.tar.zst \
+  --runtime-b-archive /path/to/runtime-archives/ollama-0.32.14-linux-amd64.tar.zst \
+  --evidence-dir /path/to/new-evidence-directory
+```
+
+固定model storageも事前配置している場合は`--model-dir`で明示します。
+
+```bash
+runtime/integration/run_runtime_version_exchange.sh \
+  --kj-atlas-dir /path/to/kj-atlas \
+  --runtime-a-archive /path/to/runtime-archives/ollama-0.32.13-linux-amd64.tar.zst \
+  --runtime-b-archive /path/to/runtime-archives/ollama-0.32.14-linux-amd64.tar.zst \
   --model-dir /path/to/ollama-models \
   --evidence-dir /path/to/new-evidence-directory
 ```
@@ -197,19 +271,17 @@ acquisition path
   != artifact identity
 ```
 
-`--model-dir`を指定した場合も、model tagだけでは受理しません。Ollama APIから観測したfull model digestが固定値と一致する必要があります。
+`--model-dir`を指定した場合もmodel tagだけでは受理せず、Ollama APIから観測したfull model digestが固定値と一致することを要求します。既存model storageに固定artifactがなければ、harnessはそのdirectoryを暗黙に更新せず停止します。
 
-既存model storageに固定artifactがなければ、harnessはそのdirectoryへ勝手に`ollama pull`せず停止します。harness自身が作るwork-local storageでは、固定artifactが存在しない場合に取得を試み、取得後に同じfull digestを検査します。
+harness自身が作成したwork-local model storageでは、固定artifactが存在しない場合に取得を試み、取得後に同じfull digestを検査します。
 
 ## pathとprocessの安全境界
 
-`--work-dir`と`--evidence-dir`には、まだ存在しない新しいpathを指定します。
-
-一つのEvidence directoryを一つのrunだけへ対応させることで、失敗した新runに前回runの後半ファイルが残り、一つの実行結果に見える状態を避けます。
+`--work-dir`と`--evidence-dir`には、まだ存在しない新しいpathを使います。一つのEvidence directoryを一つのrunだけへ対応させ、前回runと今回runのEvidenceが混在しないようにします。
 
 work / Evidence / external model directoryはSOZAまたはKJ Atlas repository配下へ置けません。実体pathへ正規化した後に判定します。
 
-固定portを使うprocessは、起動前にportが空いていることを確認し、起動後もharness自身が開始したPIDの生存を確認します。別processのhealth responseを今回の実行identityへ取り込まないためです。
+固定portを使うprocessは起動前にportが空いていることを確認し、起動後もharness自身が開始したPIDの生存を確認します。別processのhealth responseを今回の実行identityへ取り込まないためです。
 
 Go側artifact guardへ渡すKJ Atlas checkout、runtime archive、version logのpathはharnessがすべて明示します。`GITHUB_WORKSPACE`や固定`/tmp`へ暗黙fallbackしません。
 
@@ -231,23 +303,25 @@ harnessは概ね次を一続きに確認します。
 
 生成文そのものの一致はPASS条件ではありません。
 
-## Harnessの軽量検査
+## ローカルの軽量検査
 
-actual runtimeやmodelを取得せず、shell interfaceとGo側guardの接続条件を次で確認できます。
+actual runtimeやmodelを取得せず、ローカルで確認できる境界は分けて実行できます。
 
 ```bash
+python3 runtime/integration/test_prepare_runtime_version_exchange_archives.py
+python3 runtime/integration/test_check_runtime_version_exchange_preflight.py
 python3 runtime/integration/test_run_runtime_version_exchange.py
 ```
 
-このtestは、shell syntax、`--help`、固定runtime version / digest、明示path、run単位のEvidence directory、事前配置artifactのdigest検査、model storageの非自動更新等を確認します。
+これらは、artifact preparation、preflight、harness interfaceの退行を検出するためのものです。
 
 ```text
-harness interface test PASS
+local helper test PASS
   != actual Ollama A/B inference PASS
   != runtime-version-exchange Scoped Executable Evidence
 ```
 
-## Evidenceの読み方
+## 6. Evidenceの読み方
 
 Evidence directoryには、存在する範囲で次を保存します。
 
@@ -279,7 +353,7 @@ Evidence preserved
 
 ## 成果品質との境界
 
-このprobeが確認するのはruntime交換に伴うexecution identityとhistorical reconstructionです。
+このprobeが確認するのは、runtime交換に伴うexecution identityとhistorical reconstructionです。
 
 actual KJ Atlas outputの意味上の品質は`evaluation/method-quality/`の評価境界で別に扱います。
 
@@ -301,12 +375,12 @@ runtime exchange PASS
 
 ## 自然な日本語レビュー
 
-このREADMEを、current no-Actions baseline、ISSUE-000070のrepository-local harness、固定artifact、事前配置経路、preflight、Evidence保存、ISSUE-000071の成果品質評価境界へ戻って全文監査しました。
+このREADMEを、current no-Actions baseline、ISSUE-000070、固定runtime / model identity、archive準備tool、preflight、repository-local harness、Evidence保存、ISSUE-000071の成果品質評価境界へ戻って全文監査しました。
 
-実験を動かす手順と、結果をどう評価できるかを一つの成功条件へまとめていません。特に、preflightの`ready`、archive size一致、disk空き容量、harness interface testのPASSをactual runtime交換成立へ昇格させない構成にしました。
+手順は「固定条件を確認する」「artifactを準備する」「実行環境を診断する」「actual processを動かす」「Evidenceを読み戻す」に分けました。各段階の成功を、まだ実行していない後続段階の成功へ読み替えない構成にしています。
 
-Ollama公式Release metadataで確認した固定archive sizeをpreflightへ反映し、事前配置fileの明らかな取り違えを早期に止められるようにしました。ただしsizeはSHA-256の代替ではありません。artifact identityは実bytesのdigestへ戻します。
+archive準備では、A / Bの公式asset名が同じであることから生じるローカルfile名衝突を避け、version付きfile名へ分離しました。また、途中downloadを最終fileとして扱わず、sizeとSHA-256が一致したbytesだけを昇格させます。ただし、この準備成功もactual runtime交換のEvidenceではありません。
 
-また、runtime/model artifactの取得経路とidentityを分け、downloadできる環境だけを実験成立条件にしていません。事前配置したartifactも同じidentity検査へ通し、既存model storageを暗黙に更新しません。
+preflightの`ready`、archive size一致、disk空き容量、各種軽量testのPASSもactual A / B成立へ昇格させません。artifact identityはactual bytes / full digestへ戻し、model identityはactual Ollama APIで確認します。
 
-actual Ollama `0.32.13` / `0.32.14`交換が未完了であることは変えていません。実装済みの安全策とactual A / BのNot Yet Verifiedを、自然な日本語として読み分けられることを最重要視して再ドラフトし、最終意味監査を実施しました。
+actual Ollama `0.32.13` / `0.32.14`交換は引き続きNot Yet Verifiedです。実装済みの準備・安全策と、未完了のactual A / B実行を自然な日本語として明確に読み分けられることを最重要視して再ドラフトしました。
