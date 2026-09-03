@@ -27,6 +27,7 @@ def _reject_forwarded_options(arguments: list[str]) -> None:
         "--prepare-model-dir",
         "--evidence-dir",
         "--work-dir",
+        "--require-prepositioned-artifacts",
     }
     for argument in arguments:
         if argument in forbidden or any(argument.startswith(name + "=") for name in forbidden):
@@ -121,6 +122,7 @@ def _build_preflight_command(
     work_dir: Path | None,
     evidence_dir: Path,
     forwarded: list[str],
+    require_prepositioned_artifacts: bool = False,
 ) -> list[str]:
     command = [sys.executable, str(PREFLIGHT)]
     if kj_atlas_dir is not None:
@@ -135,6 +137,8 @@ def _build_preflight_command(
         command.extend(["--work-dir", str(work_dir)])
     command.extend(["--evidence-dir", str(evidence_dir)])
     command.extend(_runtime_archive_preflight_arguments(forwarded))
+    if require_prepositioned_artifacts:
+        command.append("--require-prepositioned-artifacts")
     command.append("--json")
     return command
 
@@ -278,8 +282,15 @@ def run(
     evidence_dir: Path,
     verification_output: Path,
     forwarded: list[str],
+    require_prepositioned_artifacts: bool = False,
 ) -> int:
     _reject_forwarded_options(forwarded)
+    if require_prepositioned_artifacts and prepare_model_dir is not None:
+        raise ValueError(
+            "--require-prepositioned-artifactsでは--prepare-model-dirを使用できません。"
+            "固定model storeを--model-dirで事前配置してください"
+        )
+
     evidence_dir = _prepare_new_path(evidence_dir, "Evidence directory")
     verification_output = _prepare_new_path(verification_output, "verification output")
     _protect_verification_output(
@@ -299,6 +310,7 @@ def run(
         work_dir=work_dir,
         evidence_dir=evidence_dir,
         forwarded=forwarded,
+        require_prepositioned_artifacts=require_prepositioned_artifacts,
     )
     preflight_report = _run_preflight(preflight_command)
 
@@ -362,6 +374,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--evidence-dir", required=True, type=Path)
     parser.add_argument("--work-dir", type=Path)
     parser.add_argument(
+        "--require-prepositioned-artifacts",
+        action="store_true",
+        help=(
+            "network fallbackを許可せず、runtime A/B archiveと固定model storeが"
+            "すべて事前配置済みであることをpreflightで要求します。"
+        ),
+    )
+    parser.add_argument(
         "--verification-output",
         type=Path,
         help=(
@@ -394,6 +414,7 @@ def main() -> int:
             evidence_dir=evidence_dir,
             verification_output=verification_output,
             forwarded=forwarded,
+            require_prepositioned_artifacts=args.require_prepositioned_artifacts,
         )
     except (OSError, ValueError, subprocess.SubprocessError) as exc:
         parser.exit(2, f"runtime version exchange verified runner failed: {exc}\n")
