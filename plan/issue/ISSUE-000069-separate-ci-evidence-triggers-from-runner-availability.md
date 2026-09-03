@@ -26,7 +26,7 @@ GitHub Actionsのrunner割当など外部実行環境の問題と、SOZA reposit
 
 PR #60を`develop/v0.2.0`へ統合した後、複数のGitHub Actions workflowがほぼ同時にfailureした。
 
-通常のtest failureであれば、checkout、setup、test等のstepが開始された後に失敗箇所を特定できる。しかし当初のSOZA側runでは、`Plan integrity`を含む対象jobがstepを一つも開始せず、再実行しても`steps=[]`のまま終了する状態が続いた。
+通常のtest failureであれば、checkout、setup、test等のstepが開始された後に失敗箇所を特定できる。しかしSOZA側で繰り返し観測したjobは、`Plan integrity`を含めてstepを一つも開始せず、再実行しても`steps=[]`のまま終了する状態だった。
 
 同じ時刻帯には、別のprivate repositoryである`hat47x/tei-platform`でも同様にstep開始前で終了するjobが確認された。そのため、この現象をSOZA固有のtest regressionやworkflow本文の失敗とは判断しなかった。
 
@@ -110,6 +110,7 @@ runtime変更を含むPRへ文書commitを追加
 - pathを狭める場合は、直接依存する共有packageまで確認し、必要な回帰を取りこぼさない。
 - CI使用量やGitHub側の実行条件をUniversal Product Requirementへ持ち込まない。
 - post-releaseのExecutable Evidenceをv0.2.0 supported scopeへ遡及的に追加しない。
+- runner割当失敗の具体原因を、観測していないbilling、quota、budget、runner pool、GitHub障害等へ推定しない。
 
 ## Required scenarios / experiments
 
@@ -209,9 +210,9 @@ build、二重build一致、build identity、deterministic archive、checksum、
 
 検査本文には変更を加えていない。
 
-そのうえでPR #65をPR #61最新head `c430a78ef06b8a1f8ff3abaa375c273fc4244b9b`から分岐し、`runtime/go/semanticruntime/ci_trigger_dependency_probe_test.go`だけを追加した。内容はpackage宣言と説明コメントだけであり、production semanticsは変更していない。
+そのうえでPR #65をPR #61のheadから分岐し、`runtime/go/semanticruntime/ci_trigger_dependency_probe_test.go`だけを追加した。内容はpackage宣言と説明コメントだけであり、production semanticsは変更していない。
 
-head `aadd277ee70eb8f0469c9430c3d4493a1489ff09`から次のrunが生成された。
+そのheadから次のrunが生成された。
 
 - Semantic Runtime Conformance — `33695770360`
 - Local Package Artifact — `33695770498`
@@ -242,13 +243,58 @@ runnerが割り当てられたworkflowについて、既存検査本文が実際
 - Release Candidate Gate
 - Plan integrity
 
-runnerは全面停止とも全面復旧とも判定できない。
+過去にはrunner割当が成立した実例がある。
 
-PR #63 head `765eb189f97d7dba402cec864960cecb3a5a91a6`では、Actual Model Artifact Exchange E3b Run `33670697154` / Job `100383296117`がrunnerへ割り当てられ、全stepがsuccessした。このrunではactual model実行、`go test ./livemethodintegration -count=1`、historical Application保持testまで成功している。
+PR #63の先行headではActual Model Artifact Exchange E3b Run `33670697154` / Job `100383296117`がrunnerへ割り当てられ、全stepがsuccessした。このrunではactual model実行、`go test ./livemethodintegration -count=1`、historical Application保持testまで成功している。
 
-一方、その後も多くのjobが`steps=[]`のまま終了している。PR #65でもExternal Method Integration E3b Run `33695770625` / Job `100464173110`はstepを開始しなかった。
+一方、その後は多くのjobが`steps=[]`のまま終了している。したがって、runner利用可能性を「過去も現在も全面停止」または「全面復旧」のどちらにも単純化しない。
 
-したがって、現時点ではrunner利用可能性を全面復旧とは扱わない。
+### E9 — hosted runner labelを変えてallocation層を切り分ける
+
+repository test本文、Ollama、Linux固有処理からrunner割当問題を切り離すため、一時PR #68で最小workflowを実行した。
+
+workflowはcheckoutもrepository testも行わず、次の3種類のGitHub-hosted runnerについて、割当後にrunner OS / archを表示する1 stepだけを持つmatrixとした。
+
+- `ubuntu-latest`
+- `windows-latest`
+- `macos-latest`
+
+Run `33700247624`では、3 jobすべてが同じ時刻帯に生成されたが、約4秒でstep開始前に終了した。
+
+- Ubuntu Job `100477777560`
+  - `runner_id = 0`
+  - `runner_name = ""`
+  - `steps = []`
+- Windows Job `100477777950`
+  - `runner_id = 0`
+  - `runner_name = ""`
+  - `steps = []`
+- macOS Job `100477777990`
+  - `runner_id = 0`
+  - `runner_name = ""`
+  - `steps = []`
+
+この観測により、現在の現象は少なくとも次だけでは説明できない。
+
+- `ubuntu-latest`固有のrunner image問題。
+- Linux shell固有の問題。
+- Ollamaやmodel取得処理の問題。
+- SOZA repository内のtest本文が失敗したこと。
+
+3 OSで共通してrunner assignment前に終了しているため、個別OSのworkflow本文より上流にあるGitHub-hosted runnerの共通allocation条件、またはそれ以前の共通条件を疑う材料が増えた。
+
+ただし、このEvidenceだけからbilling、spending limit、quota、repository policy、GitHub service-side condition等の具体原因を一つへ確定しない。
+
+PR #68は診断だけを目的とし、観測後にworkflowファイルを削除して**mergeせずclose**した。したがって、diagnostic workflowは`develop/v0.2.0`へ入っていない。
+
+```text
+ubuntu + windows + macos
+  all runner_id=0 / steps=[]
+
+→ OS固有・Linux固有・repository test本文固有の説明は弱くなる
+→ hosted runner allocationの共通条件を疑う材料が増える
+!= specific root cause proven
+```
 
 ## Deliverables
 
@@ -287,23 +333,28 @@ Local Package Artifact dependency selection
 shared semanticruntime dependency selection
   = confirmed in PR #65
 
-runner assignment
-  = partially available / unstable
+historical GitHub-hosted runner assignment
+  = actual success exists in Run 33670697154
 
-actual two-model regression after shared mapping change
-  = success in Run 33670697154
+current hosted runner allocation
+  = unavailable in cross-OS probe for ubuntu / windows / macos
+
+specific allocation root cause
+  = unknown
 
 full PR #61 regression on current trigger set
   = not yet confirmed
 ```
 
-GitHub側の具体原因を課金、budget、runner pool等のいずれかへ断定するEvidenceはないため、原因は未確定のまま保持する。
+runner問題の切り分けは「不安定」という一語より具体化できた。過去にはactual runner assignmentが成立した一方、現在のcross-OS probeでは3 OSすべてがassignment前に終了している。
+
+具体原因をbilling、budget、quota、runner pool、service-side condition等のいずれかへ断定するEvidenceはないため、原因は未確定のまま保持する。
 
 ## Resolution
 
 Open中。
 
-trigger設計そのものについては、次を完了した。
+trigger設計とrunner切り分けについて、次を完了した。
 
 1. 外部実証workflowの起動範囲をscenario-local変更、共有実装、直接依存する共有packageへ整理した。**完了**
 2. actual executionの処理本文やEvidence強度を弱めていないことを差分監査した。**完了**
@@ -313,12 +364,13 @@ trigger設計そのものについては、次を完了した。
 6. Local Package Artifactについて、build依存の正側・負側選択を確認した。**完了**
 7. `semanticruntime`共有依存変更時のactual実証選択をPR #65で確認した。**完了**
 8. runner未割当期間やstep未開始failureをSOZA Product / Evidenceのfailureとして誤記していない。**完了**
+9. checkoutやtestを持たないcross-OS probeで、Ubuntu / Windows / macOSすべてがrunner assignment前に終了することを確認し、OS固有・repository test本文固有の可能性を切り分けた。**完了**
 
 残る条件は次である。
 
-9. runner割当が成立した状態で、PR #61のcurrent trigger setについて必要な回帰実行がsuccessしている。**未完了**
+10. runner割当が成立した状態で、PR #61で統合したcurrent trigger setについて必要な回帰実行がsuccessしている。**未完了**
 
-9を確認した時点でResolvedとする。
+10を確認した時点でResolvedとする。
 
 ## Reopen conditions
 
@@ -333,6 +385,7 @@ Resolved後も、次の場合は再開する。
 - release publicationに必要なpush / tag経路が起動しなくなる。
 - CI使用量削減のために検証本文やAcceptanceが弱められる。
 - runner環境の障害をProduct Evidenceの失敗として扱う運用が再発する。
+- cross-OS allocation Evidenceを根拠なく特定のbilling / quota / GitHub障害原因へ読み替える。
 
 ## CI / verification
 
@@ -359,6 +412,6 @@ runnerが割り当てられないrunでは、差分監査によって検査本�
 
 Local Package Artifactについても「Goの変更なら全部再build」という粗い説明を避け、`soza-package-probe`から実依存をたどって起動範囲を整理した。
 
-runner状態は「利用不能」から「復旧済み」へ単純に二値化していない。Run `33670697154`ではactual workflowが完走した一方、その後もstep未開始のjobが多数残るため、部分的・不安定な割当として記録している。
+runner状態は「利用不能」から「復旧済み」へ単純に二値化していない。過去のRun `33670697154`ではactual workflowが完走した一方、PR #68の最小cross-OS probeではUbuntu / Windows / macOSのすべてがrunner assignment前に終了した。これにより、現在の現象をLinuxやSOZA test本文に帰属させる説明は弱くなったが、具体的な外部原因までは断定していない。
 
-既存Evidenceの高さ、Release Evidence、Product Requirement、v0.2.0 supported scopeを変更せず、観測済みの事実、trigger設計、runner上で未確認の事項を自然に読み分けられるよう全文を再ドラフトした。
+既存Evidenceの高さ、Release Evidence、Product Requirement、v0.2.0 supported scopeを変更せず、観測済みの事実、trigger設計、runner allocationの切り分け、runner上で未確認の事項を自然に読み分けられるよう全文を再ドラフトした。
