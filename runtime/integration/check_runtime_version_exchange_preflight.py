@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Iterable
 
 from verify_kj_atlas_runtime_source import PINNED_IDENTITY, verify_runtime_bundle
+from verify_runtime_version_exchange_model_store import verify_model_store
 
 KJ_ATLAS_COMMIT = "4f28c13abe4176503c6fed863383a2d1db2299e9"
 RUNTIME_VERSION_A = "0.32.13"
@@ -258,12 +259,29 @@ def model_store_check(
             return [Check("model.store", "blocked", f"source配下は使用できません: {resolved}")]
     if not resolved.is_dir():
         return [Check("model.store", "blocked", f"model storage directoryが存在しません: {resolved}")]
+
+    try:
+        payload = verify_model_store(resolved)
+    except (OSError, ValueError) as exc:
+        return [
+            Check("model.store", "ok", f"model storage directoryを確認しました: {resolved}"),
+            Check(
+                "model.store.identity",
+                "blocked",
+                f"固定model artifact identityと一致しません: {exc}",
+            ),
+        ]
+
     return [
+        Check("model.store", "ok", f"model storage directoryを確認しました: {resolved}"),
         Check(
-            "model.store",
+            "model.store.identity",
             "ok",
-            f"model storage directoryを確認しました: {resolved}。固定model digestの一致はOllama起動後に確認します",
-        )
+            "固定model store identityを静的に再検証しました: "
+            f"model={payload['model']} manifestSha256={payload['manifestSha256']} "
+            f"referencedBlobCount={payload['referencedBlobCount']}。"
+            "actual Ollama /api/tags と runtime A/B inference は実行時に別途確認します",
+        ),
     ]
 
 
