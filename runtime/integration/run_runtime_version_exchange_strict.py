@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 
 from export_kj_atlas_runtime_source import export_runtime_bundle
+from prepare_runtime_version_exchange_model_store import prepare_model_store
 from verify_kj_atlas_runtime_source import verify_runtime_bundle
 from verify_runtime_version_exchange_model_store import verify_model_store
 
@@ -22,6 +23,7 @@ def _reject_forwarded_identity_options(arguments: list[str]) -> None:
         "--kj-atlas-dir",
         "--kj-atlas-backend-bundle",
         "--model-dir",
+        "--prepare-model-dir",
         "--evidence-dir",
         "--work-dir",
     }
@@ -73,11 +75,14 @@ def run_strict_probe(
     evidence_dir: Path,
     harness_arguments: list[str],
     work_dir: Path | None = None,
+    prepare_model_dir: Path | None = None,
 ) -> int:
     _reject_forwarded_identity_options(harness_arguments)
 
     if (checkout_dir is None) == (backend_bundle is None):
         raise ValueError("--kj-atlas-dirまたは--kj-atlas-backend-bundleのどちらか一方を指定してください")
+    if model_dir is not None and prepare_model_dir is not None:
+        raise ValueError("--model-dirと--prepare-model-dirは同時に指定できません")
 
     if checkout_dir is not None:
         source_input = checkout_dir.expanduser().resolve(strict=True)
@@ -88,8 +93,12 @@ def run_strict_probe(
         source_label = "KJ Atlas verified runtime bundle"
 
     resolved_model_dir: Path | None = None
+    model_will_be_prepared = prepare_model_dir is not None
     if model_dir is not None:
         resolved_model_dir = model_dir.expanduser().resolve(strict=True)
+    elif prepare_model_dir is not None:
+        resolved_model_dir = _new_path(prepare_model_dir, "Prepared model directory")
+    if resolved_model_dir is not None:
         _reject_overlap(resolved_model_dir, "model directory", ((source_label, source_input),))
 
     evidence_dir = _new_path(evidence_dir, "Evidence directory")
@@ -106,7 +115,8 @@ def run_strict_probe(
         _reject_overlap(resolved_work_dir, "Work directory", tuple(work_roots))
 
     model_verification: dict[str, object] | None = None
-    if resolved_model_dir is not None:
+    model_preparation: dict[str, object] | None = None
+    if resolved_model_dir is not None and not model_will_be_prepared:
         model_verification = verify_model_store(resolved_model_dir)
 
     temporary: tempfile.TemporaryDirectory[str] | None = None
@@ -120,6 +130,10 @@ def run_strict_probe(
         else:
             verified_bundle = source_input
             verify_runtime_bundle(verified_bundle)
+
+        if resolved_model_dir is not None and model_will_be_prepared:
+            model_preparation = prepare_model_store(resolved_model_dir)
+            model_verification = verify_model_store(resolved_model_dir)
 
         command = [
             "bash",
@@ -138,6 +152,11 @@ def run_strict_probe(
         completed = subprocess.run(command, check=False)
     finally:
         if evidence_dir.is_dir():
+            if model_preparation is not None:
+                _write_json(
+                    evidence_dir / "runtime-exchange-model-store-preparation.json",
+                    model_preparation,
+                )
             if model_verification is not None:
                 _write_json(
                     evidence_dir / "runtime-exchange-model-store-static-verification.json",
@@ -160,15 +179,18 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "ISSUE-000070のstrict runtime交換を開始します。KJ Atlas sourceをverified runtime "
-            "bundleへ固定し、事前配置model storeを指定した場合はOllama起動前にmanifest / blob "
-            "bytesを静的検証してからrepository-local harnessへ委譲します。"
+            "bundleへ固定し、事前配置model storeはOllama起動前にmanifest / blob bytesを静的検証します。"
+            "--prepare-model-dirを指定した場合は固定model storeをregistryから新規に準備し、"
+            "再検証してからrepository-local harnessへ委譲します。"
         ),
         allow_abbrev=False,
     )
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument("--kj-atlas-dir", type=Path)
     source.add_argument("--kj-atlas-backend-bundle", type=Path)
-    parser.add_argument("--model-dir", type=Path)
+    model = parser.add_mutually_exclusive_group()
+    model.add_argument("--model-dir", type=Path)
+    model.add_argument("--prepare-model-dir", type=Path)
     parser.add_argument("--evidence-dir", required=True, type=Path)
     parser.add_argument("--work-dir", type=Path)
     return parser
@@ -188,6 +210,7 @@ def main() -> int:
             evidence_dir=args.evidence_dir,
             harness_arguments=harness_arguments,
             work_dir=args.work_dir,
+            prepare_model_dir=args.prepare_model_dir,
         )
     except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:
         parser.exit(1, f"strict runtime version exchange entrypoint failed: {exc}\n")
