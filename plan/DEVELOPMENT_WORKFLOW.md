@@ -9,7 +9,18 @@
 
 実装を早く積み上げること自体を目的にはしません。まず「何を価値として守るか」を確認し、まだ要求が定まっていない領域は、議論や実証を通して必要性を確かめてからRequirementへ進めます。
 
-検証手段も意味上の正本とは分けます。GitHub Actions、ローカルtest、repository同梱checker、外部runner、手動実証は、いずれも検証のための手段です。Product Value、Requirement、Contract、Evidenceの意味を、特定の実行基盤へ依存させません。
+検証手段と意味上の正本も分けます。Product Value、Requirement、Contract、Evidenceの意味を、特定のCIやrunnerへ依存させません。
+
+当面、SOZAでは **GitHub Actionsを完全に停止**します。current baselineには`.github/workflows`を置かず、workflowの新設・再導入・過去runの再実行も行いません。必要な検証は、ローカル環境でtest、checker、fixture、probeを個別に実行します。
+
+```text
+what must be verified
+  != where it is executed
+
+current verification surface
+  = local individual execution
+  != GitHub Actions
+```
 
 ## 2. Branch運用
 
@@ -114,16 +125,42 @@ connected implementation language != Go required
 6. 設計判断が必要であればADRを作成・更新する。
 7. Architecture / Contractを整える。
 8. 実装する。
-9. fixture / test / conformance / checker等で確認する。
+9. 必要なtest / checker / fixture / probeをローカルで個別に実行する。
 10. 実際に得られた高さまでEvidenceと未完了事項を更新する。
 11. 文書を自然な日本語へ全文再ドラフトする。
 12. 意味・仕様・留保・Evidence強度が変わっていないか最終監査する。
 13. current Markdown文書を追加・更新した場合は、`plan/document_review_registry.yaml`へ監査状態を反映する。
-14. 利用可能な検証手段を確認し、実行できた検査と実行できなかった検査を分けて記録する。
+14. 実行できた検査と、環境制約等で実行できなかった検査を分けて記録する。
 
-GitHub Actionsがcurrent baselineに存在しない期間は、Actionsのsuccessを開発完了の一般条件にはしません。repository同梱test、checker、fixture、保存Evidence、必要に応じた外部実行を使い、確認できた範囲だけをEvidenceとして記録します。
+ローカルで実行できない検査があっても、未実行をPASSへ読み替えません。その検査が必要なEvidenceであれば`Not Yet Verified`として残します。
 
-## 8. Requirementを増やす前の停止線
+## 8. GitHub Actionsの当面停止方針
+
+当面、GitHub Actionsは開発・検証・merge・Evidence確定のいずれにも利用しません。
+
+停止期間中は次を行いません。
+
+- `.github/workflows`へworkflowを追加・復元する。
+- historical branchに残るworkflowを再実行する。
+- GitHub-hosted runnerの割当状況を継続監視する。
+- Actionsのsuccess / failureをpush、merge、release、Evidenceの条件として利用する。
+- local testをActionsへ移すこと自体を改善目標にする。
+
+必要な動作確認は、対象を絞ってローカルで個別に行います。
+
+```text
+implementation change
+  → local test / checker / probe
+  → observed result
+  → fix if needed
+  → Evidence update
+```
+
+ローカル環境で外部artifactやserviceが必要な検証を実行できない場合は、実行可能な静的検査やunit testまで進め、actual実証は未完了として残します。検証を通すために意味上の条件やContractを弱めません。
+
+GitHub Actionsを再開する場合は、単にworkflow fileを追加するだけでは再開しません。利用者が明示的に再開を決めたうえで、この文書と必要なPlanを先に更新し、何を自動化するか、local verificationとの責務をどう分けるかを改めて定義します。
+
+## 9. Requirementを増やす前の停止線
 
 新しいREQ IDを付ける前に、少なくとも次を確認します。
 
@@ -140,7 +177,7 @@ GitHub Actionsがcurrent baselineに存在しない期間は、Actionsのsuccess
 
 実装言語も原則としてRequirementへ持ち込みません。Goはcurrent standard realizationであり、Goであること自体が利用者世界のsemantic obligationではありません。
 
-## 9. 文書品質を後処理にしない
+## 10. 文書品質を後処理にしない
 
 自然な日本語への再ドラフトは、release直前にまとめて行う後処理ではありません。
 
@@ -148,7 +185,7 @@ GitHub Actionsがcurrent baselineに存在しない期間は、Actionsのsuccess
 
 Document Review Registryのcoverage確認と、全文の自然な日本語レビューは別の責務です。checkerが存在する場合も、機械的なcoverage検査だけで日本語の自然さや文書の意味が保証されたとは扱いません。
 
-## 10. Evidenceを超える状態更新をしない
+## 11. Evidenceを超える状態更新をしない
 
 Product Value Acceptanceでは次の5段階を分けます。
 
@@ -164,7 +201,7 @@ Design Evidence
 
 Issue、Requirement、Milestone、README等の状態は、実際に確認できた高さまでだけ更新します。
 
-## 11. 実装順序を製品ontologyにしない
+## 12. 実装順序を製品ontologyにしない
 
 `M48`、`M49`、`M50`等はhistoricalな開発Milestoneです。
 
@@ -172,7 +209,7 @@ Issue、Requirement、Milestone、README等の状態は、実際に確認でき�
 
 意味上の前提が変わった場合は、旧実装を守ることよりProduct Value / Requirement / ADRへ戻って再検討することを優先します。
 
-## 12. Planning変更は可能な範囲でatomicにする
+## 13. Planning変更は可能な範囲でatomicにする
 
 ADR / Issue本文のStatus、`plan/registry.yaml`、関連する上流文書を同時に変更する必要がある場合は、可能な範囲で一つの変更単位へまとめます。
 
@@ -180,31 +217,23 @@ ADR / Issue本文のStatus、`plan/registry.yaml`、関連する上流文書を�
 
 分割commitが必要な場合も、最終branch状態でPlan Registryと文書台帳が一致するようにします。途中状態を達成Evidenceとして扱いません。
 
-## 13. pushと検証を分ける
+## 14. pushと検証を分ける
 
-検証のfailureや外部実行基盤の利用不能は、原因調査や修正commitのpushを止めるためのロックではありません。
+検証failureや、検証に必要な外部artifact・serviceを利用できないことは、原因調査や修正commitのpushを止めるためのロックではありません。
 
 ```text
 commit
   → push
-  → 利用可能な手段で観測
+  → local verification
   → 必要なら修正
   → 再push
 ```
 
-GitHub Actions等の自動検証を将来再導入した場合も、次を分けます。
+ローカルtestが実際に開始されて失敗した場合は、Product / Plan / Requirement / Contract / runtime / fixture / 文書台帳のどの層に問題があるかを切り分けます。Product ValueやContractを安易に弱めず、誤っている層を修正します。
 
-- workflowが定義・選択されたか。
-- runnerが割り当てられたか。
-- stepが開始されたか。
-- 検査本文がPASS / FAILしたか。
-- その結果がどのEvidence段階を支えるか。
+実行環境がなく検査本文へ到達できなかった場合は、repository test failureとは扱わず、未実行範囲を明記します。
 
-`runner_id = 0`、`steps = []`のように検査本文へ到達していないfailureをrepository test failureとして扱いません。
-
-一方、実際に検査本文が開始されて失敗した場合は、Product / Plan / Requirement / Contract / runtime / fixture / 文書台帳のどの層に問題があるかを切り分け、Product ValueやContractを安易に弱めず誤っている層を修正します。
-
-## 14. merge / release / Evidence gate
+## 15. merge / release / Evidence gate
 
 push、merge、release、Evidence確定は同じgateではありません。
 
@@ -215,16 +244,18 @@ push allowed
   != Evidence claim established
 ```
 
-特定の検査成功をmergeやreleaseに要求する場合は、その対象と理由を個別に定義します。通常の開発pushをrequired status checkで塞ぐ方針は、別途明示的に決めない限り採用しません。
+特定の検査成功をmergeやreleaseに要求する場合は、その対象と理由を個別に定義します。ただしGitHub Actions停止中は、Actions statusをそのgateに利用しません。
 
-current baselineではGitHub Actions workflow群を常設していません。将来自動検証を再導入するときは、ISSUE-000069のReopen条件に従い、実証責務、共有依存、外部runner availabilityを改めて監査します。
+local testやcheckerのPASSも、それだけでRelease EvidenceやOperational Evidenceへ昇格しません。各Evidenceの意味は、実際に確認した対象と条件に限定します。
 
-## 15. Natural Japanese review
+## 16. Natural Japanese review
 
-Product Value、Product Shape、Product Journey、期限を持たないProduct Milestone、5段階Evidence、Document Review Registry、ADR-0027のproduction runtime言語方針へ戻り、開発の流れを再構成しました。
+Product Value、Product Shape、Product Journey、期限を持たないProduct Milestone、5段階Evidence、Document Review Registry、ADR-0027のproduction runtime言語方針へ戻り、開発の流れを再確認しました。
 
-以前の文書には、GitHub Actionsが常に存在し、Plan integrity等が自動起動することを前提に読める箇所が残っていました。PR #70でActionsをcurrent baselineから外したため、「何を検証すべきか」と「どの実行基盤で検証するか」を分けて書き直しました。
+これまでの文書では、GitHub Actionsをcurrent baselineから外したことは記載していたものの、将来の再導入やrunner状態の説明が残っており、「当面は完全に停止する」という現在方針が十分に明瞭ではありませんでした。
 
-CI failureをpush停止条件にしない原則は維持しています。同時に、検証を省略してよいという意味にも読めないよう、利用可能なtest、checker、fixture、保存Evidence、外部実行で確認できた範囲を記録し、merge / release / Evidence gateは別に扱うことを明示しました。
+今回、GitHub Actionsを当面利用しないことを独立した開発規約として明記しました。workflowの作成・復元・再実行・runner監視を行わず、必要な検証はローカルで対象ごとに個別実行します。ローカルで実行できない検証は未完了として残し、未実行をPASSへ読み替えません。
 
-意味、要求強度、Evidence強度を変えず、現在のrepository方針として自然な日本語で一続きに読めることを最重要視して全文を再ドラフトしました。
+push、merge、release、Evidence確定の責務分離は維持しています。CIを止めることを検証省略の理由にはせず、検証内容と実行場所を分けたまま、現在利用できる手段で確認した事実だけをEvidenceとして扱います。
+
+意味、要求強度、Evidence強度を変えず、現在の開発方針として自然な日本語で一続きに読めることを最重要視して全文を再ドラフトしました。
