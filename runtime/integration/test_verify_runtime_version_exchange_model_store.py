@@ -174,6 +174,24 @@ class RuntimeVersionExchangeModelStoreVerifierTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "異なるsize"):
                 self.verify_fixture(root, digest(raw))
 
+    def test_output_path_inside_model_store_is_detected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            self.assertTrue(verifier._is_within(root / "verification.json", root))
+            self.assertFalse(verifier._is_within(root.parent / "verification.json", root))
+
+    def test_output_path_through_existing_symlink_into_model_store_is_detected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            root = base / "models"
+            root.mkdir()
+            link = base / "model-link"
+            try:
+                link.symlink_to(root, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+            self.assertTrue(verifier._is_within(link / "verification.json", root))
+
 
 if __name__ == "__main__":
     unittest.main()
