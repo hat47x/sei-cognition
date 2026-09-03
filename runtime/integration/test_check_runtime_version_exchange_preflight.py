@@ -67,15 +67,40 @@ class RuntimeVersionExchangePreflightTest(unittest.TestCase):
         checks = preflight.archive_check("runtime-a", None, "0" * 64, 123, True)
         self.assertEqual("blocked", checks[0].status)
 
-    def test_model_store_does_not_claim_digest_verification(self):
+    def test_model_store_requires_static_identity_verification(self):
         with tempfile.TemporaryDirectory() as temp:
             source = Path(temp) / "source"
             model = Path(temp) / "model"
             source.mkdir()
             model.mkdir()
-            checks = preflight.model_store_check(model, (source,), True)
-            self.assertEqual("ok", checks[0].status)
-            self.assertIn("Ollama起動後", checks[0].detail)
+            payload = {
+                "model": preflight.MODEL_NAME,
+                "manifestSha256": preflight.MODEL_SHA256,
+                "referencedBlobCount": 4,
+            }
+            with patch.object(preflight, "verify_model_store", return_value=payload):
+                checks = preflight.model_store_check(model, (source,), True)
+
+        self.assertEqual(["ok", "ok"], [check.status for check in checks])
+        self.assertIn("静的に再検証", checks[1].detail)
+        self.assertIn(preflight.MODEL_SHA256, checks[1].detail)
+        self.assertIn("/api/tags", checks[1].detail)
+
+    def test_model_store_blocks_when_static_identity_verification_fails(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp) / "source"
+            model = Path(temp) / "model"
+            source.mkdir()
+            model.mkdir()
+            with patch.object(
+                preflight,
+                "verify_model_store",
+                side_effect=ValueError("model manifest digest mismatch"),
+            ):
+                checks = preflight.model_store_check(model, (source,), True)
+
+        self.assertEqual(["ok", "blocked"], [check.status for check in checks])
+        self.assertIn("固定model artifact identity", checks[1].detail)
 
     def test_disk_capacity_check_is_observational_only(self):
         with tempfile.TemporaryDirectory() as temp:
