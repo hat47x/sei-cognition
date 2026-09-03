@@ -4,7 +4,7 @@
 
 このディレクトリには、SOZAと外部Cognitive Method / model runtimeの接続を実際に確かめるためのintegration資産を置きます。
 
-current `develop/v0.2.0`ではGitHub Actionsを停止しています。workflowの作成・復元・再実行・runner監視は行わず、必要なtest、checker、probeをローカルで個別に実行します。過去のActions Runはhistorical Evidenceとして保持しますが、現在の成立条件にはしません。
+current `develop/v0.2.0`ではGitHub Actionsを停止しています。workflowの作成・復元・再実行・runner監視は行わず、必要なtest、checker、probeをrepository-localに実行します。過去のActions Runはhistorical Evidenceとして保持しますが、現在の成立条件にはしません。
 
 ```text
 what must be verified
@@ -64,23 +64,25 @@ archive size match
 
 ## 標準実行経路
 
-strict Evidenceへ進む標準経路は次のとおりです。
+actual runtime交換へ進む標準入口は`run_runtime_version_exchange_with_verification.py`です。手動preflight、strict入口、low-level harness、post-run verifierを別々に持ちながら、actual実行時には一つの経路へ接続します。
 
 ```text
 1. fixed runtime archiveを準備・再検証する
 2. fixed KJ Atlas source identityを準備する
 3. fixed model storeを既存storeから検証する、またはregistryから新規準備する
-4. side-effect-free preflightを行う
-5. strict entrypointから実行する
-6. low-level repository-local harnessがactual processを動かす
-7. actual /api/tagsとA/B inferenceを確認する
-8. run専用Evidenceを保存する
-9. runner observationを保存する
-10. Evidence directoryを独立verifierで機械検証する
-11. Requirement / Contractと成果品質の評価へ進む
+4. 必要に応じて手動preflightで実行条件を診断する
+5. verified runnerを起動する
+6. verified runnerがside-effect-free preflightを必ず再実行する
+7. preflight readyの場合だけstrict entrypointへ進む
+8. strict entrypointがsource / model / path境界を固定する
+9. low-level harnessがactual processを動かす
+10. actual /api/tagsとA/B inferenceを確認する
+11. run専用Evidence、preflight report、runner observationを保存する
+12. Evidence directoryを独立verifierで機械検証する
+13. Requirement / Contract再照合と成果品質の評価へ進む
 ```
 
-各工程の成功を、まだ実行していない後続工程の成功へ読み替えません。特に、harnessのexit code 0と、保存済みEvidenceが固定条件を満たしていることは別々に確認します。
+各工程の成功を、まだ実行していない後続工程の成功へ読み替えません。特に、preflight `ready`、harnessのexit code 0、保存済みEvidenceの機械的な十分性、Requirement / Contractの判断、成果品質は別々の段階です。
 
 ## Runtime archiveの準備
 
@@ -184,7 +186,7 @@ prepared model store PASS
 
 ## ローカルpreflight
 
-actual processを起動する前に、副作用のない診断を行えます。
+actual processを起動する前に、副作用のない診断を単独でも行えます。
 
 ```bash
 python3 runtime/integration/check_runtime_version_exchange_preflight.py \
@@ -206,6 +208,8 @@ preflightはruntime / model processを起動せず、artifactもdownloadしま�
 
 `--model-dir`を指定した場合、directoryが存在するだけでは`ready`にせず、固定manifestと全参照blobを静的に再検証します。
 
+手動preflightは事前診断に使えますが、actual実行の標準runnerは同じpreflightを実行直前にもう一度行います。そこで`blocked`になった場合は、model storeの新規準備やstrict入口、actual processを開始しません。
+
 ```text
 static model store verification PASS
   != actual Ollama /api/tags observation PASS
@@ -218,7 +222,7 @@ preflight ready
 
 ## Strict entrypoint
 
-strict Evidenceの標準入口は`run_runtime_version_exchange_strict.py`です。
+`run_runtime_version_exchange_strict.py`はsource / model / pathのstrict境界を担う入口です。actual実行では通常、後述のverified runnerから利用します。必要に応じて単独でも実行できます。
 
 ### 既存model storeを使う場合
 
@@ -262,7 +266,7 @@ strict entrypoint verification PASS
 
 ## 実行とEvidence独立検証を一続きに行う
 
-actual実行時は、`run_runtime_version_exchange_with_verification.py`を使うと、strict入口の実行、runner observationの保存、実行後Evidenceの機械検証までを一続きに行えます。このrunnerはsourceやmodelの準備処理を重複実装せず、current `run_runtime_version_exchange_strict.py`へ委譲します。
+actual実行の標準入口は`run_runtime_version_exchange_with_verification.py`です。このrunnerはsourceやmodelの準備処理を重複実装せず、preflight、current strict入口、post-run verifierを一つの実行経路へ接続します。
 
 既存model storeを使う例:
 
@@ -279,11 +283,16 @@ python3 runtime/integration/run_runtime_version_exchange_with_verification.py \
 
 model storeを新規準備する場合は、`--model-dir`の代わりに`--prepare-model-dir /path/to/new-ollama-models`を指定します。sourceは既存verified bundleを`--kj-atlas-backend-bundle`で渡すこともできます。
 
-runnerはstrict実行のstdout/stderrを一つのlogとして保存し、exit code、log SHA-256、bytes、source preparationを`runtime-exchange-runner-observation.json`へ記録します。Evidence directoryが生成された場合は、成功・失敗にかかわらずpost-run verifierを実行します。
+runnerはactual処理へ進む前にside-effect-free preflightを実行します。KJ Atlas source、既存model store、work / Evidence path、および明示されたruntime archiveを診断し、`blocked`ならstrict入口を起動しません。`--prepare-model-dir`はまだ存在しない新規targetなのでpreflightのmodel existence条件へは渡さず、strict入口がpath境界を確認した後に準備・再検証します。
 
-検証reportはEvidence directoryの外へ保存します。検証対象のEvidence自身をverifierが書き換えないためです。
+preflightが`ready`ならstrict入口を起動します。strict実行のstdout/stderrは一つのlogとして保存し、exit code、log SHA-256、bytes、source preparation、preflight resultを`runtime-exchange-runner-observation.json`へ記録します。成功したpreflight report自体も`runtime-exchange-preflight.json`として同じrun Evidenceへ保存します。
+
+Evidence directoryが生成された場合は、strict実行の成功・失敗にかかわらずpost-run verifierを実行します。検証reportはEvidence directoryの外へ保存し、さらにSOZA repository、KJ Atlas source、model store、work、Evidenceのいずれとも親子関係を持つpathを拒否します。検証結果の保存によって入力資産や検証対象を変更しないためです。
 
 ```text
+preflight ready
+  != strict harness exit code 0
+
 strict harness exit code 0
   != mechanical Evidence verification PASS
 
@@ -323,7 +332,7 @@ python3 runtime/integration/verify_runtime_version_exchange_evidence.py \
 
 ## Low-level repository-local harness
 
-`run_runtime_version_exchange.sh`がactual A / B processを動かします。strict Evidenceでは原則としてstrict入口から利用します。
+`run_runtime_version_exchange.sh`がactual A / B processを動かします。strict Evidenceでは、verified runner → strict入口から利用するのを標準とします。
 
 low-level harnessは次を一続きに確認します。
 
@@ -343,9 +352,9 @@ low-level harnessは次を一続きに確認します。
 
 - work / Evidenceには新しいpathを使う。
 - source、model store、work、Evidenceを重ねない。
-- verification outputもsource、model store、work、Evidenceから分離する。
+- verification outputもSOZA repository、source、model store、work、Evidenceから分離する。
 - 一つのEvidence directoryを一つのrunだけへ対応させる。
-- fixed port `11434` / `8001` / `8101`の空きを確認する。
+- fixed port `11434` / `8001` / `8101`の空きをpreflightとactual harnessで確認する。
 - health responseだけでなく、harness自身が起動したPIDの生存を確認する。
 - Go live guardへ必要pathを明示し、`GITHUB_WORKSPACE`や固定`/tmp`へ暗黙fallbackしない。
 
@@ -381,6 +390,7 @@ Evidence directoryには、存在する範囲で次を保存します。
 - KJ Atlas source identity / source export provenance
 - model store preparation result
 - static model store verification
+- successful preflight report (`runtime-exchange-preflight.json`)
 - host OS / architecture
 - runtime A / B version、expected / actual archive digest、acquisition mode
 - model name、expected digest、storage mode、A / B `/api/tags`
@@ -418,9 +428,11 @@ runtime exchange PASS
 
 ## 自然な日本語レビュー
 
-このREADMEをcurrent no-Actions baseline、固定runtime / source / model identity、artifact準備tool、preflight、strict entrypoint、実行後runner、mechanical Evidence verifier、low-level harness、Evidence保存、成果品質評価境界へ戻って全文再ドラフトしました。
+このREADMEをcurrent no-Actions baseline、固定runtime / source / model identity、artifact準備tool、manual preflight、verified runner内preflight、strict entrypoint、low-level harness、runner observation、mechanical Evidence verifier、Evidence保存、成果品質評価境界へ戻って全文再ドラフトしました。
 
-特に、実行のexit code、保存済みEvidenceの機械的な十分性、Requirement / Contract再照合、成果品質評価を別の段階として読み分けられるようにしました。mechanical verifierが`ready-to-review`を返しても、それだけでISSUE-000070をResolvedにはしません。
+特に、事前診断としての手動preflightと、actual実行直前にverified runnerが必ず行うpreflight gateを区別しました。後者が`blocked`の場合は、model preparationやactual processを始めません。
+
+また、preflight `ready`、実行のexit code、保存済みEvidenceの機械的な十分性、Requirement / Contract再照合、成果品質評価を別の段階として読み分けられるようにしています。mechanical verifierが`ready-to-review`を返しても、それだけでISSUE-000070をResolvedにはしません。
 
 既存model storeを静的検証する経路と、固定registryから新しいmodel storeを準備する経路も分けたまま維持しています。新規準備では、取得したmanifest / blobを検証し終えるまで完成storeとして公開しません。それでも、準備成功はactual Ollama API観測ではありません。
 
