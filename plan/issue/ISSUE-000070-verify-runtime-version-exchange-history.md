@@ -15,7 +15,7 @@ runtime version差は別のlogical Method Realizationへ分けない。同じ実
 ```text
 same Method Definition
 same logical Method Realization
-same KJ Atlas source
+same verified KJ Atlas runtime surface
 same Method input
 same pinned model artifact
 same model prompt
@@ -46,7 +46,7 @@ runtime version交換
 - 同じ実現機構のversion差は、同じlogical Realizationに属するhistorical revisionとしてExact Bindingで固定できる。
 - Method Applicationは、実行時に利用したRealization revisionをExact Referenceで保持できる。
 - runtime / model固有情報は、必要なProvenance / realization-local metadataとして保持する。
-- runtime archive、model artifact、KJ Atlas sourceをどの経路で入手したかはProvenanceであり、artifact / source identityそのものではない。
+- source / artifactの取得経路はProvenanceであり、それ自体をRealization identityにはしない。
 - Method outputをRecommendation / Decisionへ自動昇格しない。
 - GitHub Actions、runner ID、workflow run IDはCognitive Methodの意味やruntime交換成立条件にしない。
 
@@ -94,9 +94,9 @@ model交換とruntime revision交換を別の探索軸として扱う。
 - held card: `c-held`
 - SOZA Method mapping: current `livemethodintegration`
 
-model artifact digestは、Actual Model Artifact Exchange E3b Run `33670697154`でOllama `0.32.14`から実際に観測した`qwen2.5:0.5b`のartifact identityである。
+model artifact digestは、Actual Model Artifact Exchange E3b Run `33670697154`でOllama `0.32.14`から実際に観測したartifact identityである。
 
-A / Bのdigestが一つの実行内で互いに等しいだけでは固定条件成立とみなさない。両方がこの期待digestに一致することを要求する。同じmodel tagが将来別artifactを指した場合は、実験条件が変わったものとして停止する。
+A / Bのdigestが一つの実行内で互いに等しいだけでは固定条件成立とみなさない。両方がこの期待digestに一致することを要求する。
 
 交換するのはOllama runtime versionだけとする。
 
@@ -105,20 +105,16 @@ A / Bのdigestが一つの実行内で互いに等しいだけでは固定条件
 
 ## Pinned runtime artifacts
 
-installerによるglobal installは使わず、Linux amd64 archiveの実bytesを固定SHA-256で識別し、別々の一時directoryへ展開してbinaryを直接起動する。
+Linux amd64 archiveの実bytesを固定SHA-256で識別し、別々の一時directoryへ展開してbinaryを直接起動する。
 
 - `v0.32.13 / ollama-linux-amd64.tar.zst`
   - SHA-256: `0fd1dece38a1c6242e8013ce20b597345c5de072ae6b320160edb0e729ef1de1`
 - `v0.32.14 / ollama-linux-amd64.tar.zst`
   - SHA-256: `c620917a71e146ab3a7f893084f066069c4c65d144ef8379a91c3cbe8b27de8f`
 
-2026-09-03の静的再監査では、両digestがOllama公式GitHub Release metadataの各asset digestと一致することを確認した。また、公式Linux installerの展開方式と`${root}/bin/ollama`というlayout前提が整合することを確認した。
+2026-09-03の静的再監査では、両digestがOllama公式GitHub Release metadataの各asset digestと一致することを確認した。これはruntime交換をactualに実行したExecutable Evidenceではない。
 
-これはruntime交換をactualに実行したExecutable Evidenceではない。
-
-current harnessはこの固定artifactに合わせてLinux / amd64だけを受理する。これはSOZA全体のplatform supportをLinux / amd64へ限定する意味ではなく、今回の交換実験に使うartifact条件を実行前に固定するprobe-localな制約である。
-
-runtime archiveはharnessがOllama公式GitHub Releaseから取得しても、別経路で事前配置してもよい。ただし、どちらの経路でも実際に利用するarchive bytesのSHA-256を計算し、上記固定値へ一致させる。
+archiveはdownloadしても事前配置してもよい。どちらでも実際に利用するbytesのSHA-256を計算し、固定値へ一致させる。
 
 ```text
 archive acquisition
@@ -133,33 +129,34 @@ acquisition path
 
 ## KJ Atlas source identity
 
-KJ Atlas sourceは、次の二経路を受理する。
+### clean checkoutだけではstrict Evidenceにならない
 
-1. 固定commitのclean Git checkout。
-2. 固定commitから切り出し、Git object identityを再検証できる最小runtime source bundle。
+KJ Atlasは`.env`、`*.so`、`__pycache__`、`*.pyc`、`*.egg-info`等をGit管理外にできる。`Settings`も`.env`を読み得る。
 
-Git checkoutの存在自体を実験成立条件にはしない。一方で、bundle pathやfile名だけを固定sourceの根拠にも使わない。
+したがって、HEADが固定commitで通常の`git status`がcleanであっても、working treeに存在するignored fileまで固定commit identityへ含まれるわけではない。
 
-### Git checkout mode
+```text
+HEAD = pinned commit
+  + normal Git clean
+  != byte-complete runtime source identity
+```
 
-checkout modeでは次を確認する。
+このため、`--kj-atlas-dir`によるdirect checkout executionは互換・開発用経路として残すが、本IssueをResolvedにするstrict runtime-version-exchange Evidenceには使わない。
 
-- working treeがcleanである。
-- HEADが固定commit `4f28c13abe4176503c6fed863383a2d1db2299e9`である。
-- 固定commit objectをrepository内で参照できる。
-- package installはactual checkoutを直接build対象にせず、harness所有のwork directoryへ作ったcopyから行う。
-- live Go test直前にもcheckoutがcleanなままであることを再確認する。
+### strict Evidenceでは固定commit objectからexportする
 
-これにより、package buildが生成するmetadata等を、実際に使ったKJ Atlas sourceの未記録変更として混入させない。
+`runtime/integration/export_kj_atlas_runtime_source.py`を使い、Git working treeではなく固定commit objectから追跡済みruntime surfaceだけをexportする。
 
-### Verified runtime bundle mode
-
-`--kj-atlas-backend-bundle`では、固定commitの`03_Implement/backend`から実行に必要な次の4要素だけを持ち込む。
+対象は次の4要素である。
 
 - `pyproject.toml`
 - `alembic.ini`
 - `alembic/`
 - `src/`
+
+exporterは`git archive`へ固定commitを明示する。working treeにignored `.env`、binary extension、bytecode cache等が存在してもexport対象にはならない。HEADが後続commitへ進んでいても、固定commit objectがrepository内に存在すれば同じsurfaceへ戻れる。
+
+export後は`verify_kj_atlas_runtime_source.py`でGit object identityを再計算する。
 
 固定identityは次のように区別する。
 
@@ -174,376 +171,188 @@ minimal runtime surface tree
   208bea71eef4afed3ddfd3fabb36b0969d167a90
 ```
 
-`parent backend tree`は、固定commit内でruntime surfaceを切り出した親文脈である。`minimal runtime surface tree`は、実際にbundleへ持ち込む4要素だけからGit object規則で再構成したtree identityである。
+`parent backend tree`は固定commit内の親文脈であり、`minimal runtime surface tree`は実際に実行へ持ち込む4要素だけのtree identityである。
 
 ```text
 parent backend tree
   != runtime surface tree
 ```
 
-`runtime/integration/verify_kj_atlas_runtime_source.py`は、Git blob / tree object IDをsource bytesとdirectory構造から再計算し、次を検査する。
+verifierは次を検査する。
 
 - `pyproject.toml` blob
 - `alembic.ini` blob
 - `alembic/` tree
 - `src/` tree
-- 4要素だけから再構成したruntime surface tree
-- 予期しないtop-level要素が存在しないこと
-- symlinkが混入していないこと
-- runtime source fileへ実行bitが付いていないこと
+- runtime surface tree
+- 予期しないtop-level要素がないこと
+- symlinkがないこと
+- runtime source fileに実行bitがないこと
 
-bundle modeでは、検証済みの外部bundleを直接build・実行しない。harness所有のwork directoryへ実行用copyとpackage install用copyを別々に作り、両方を再検証する。live test開始時にはGo側guardから実行用copyを再度検証する。
+固定commitの`pyproject.toml`はREADMEやlicense等をbuild metadataとして参照せず、setuptools package探索は`src`を基準とする。したがって今回のpackage buildに必要なsource境界をこの4要素で構成できる。
 
-`--kj-atlas-dir`と`--kj-atlas-backend-bundle`は同時に指定できない。
+strict Evidenceのsource経路は次とする。
+
+```text
+KJ Atlas Git repository
+  ↓ fixed commit object
+export_kj_atlas_runtime_source.py
+  ↓ tracked runtime surface only
+verify_kj_atlas_runtime_source.py
+  ↓ verified runtime bundle
+run_runtime_version_exchange.sh --kj-atlas-backend-bundle ...
+```
+
+source取得方法と実行source identityを分ける。
 
 ```text
 source acquisition
-  = clean-git-checkout | verified-runtime-bundle
-
-source identity
-  = pinned commit context + verified source bytes
-
-source acquisition path
-  != Method Realization identity by itself
+  != source identity
 ```
 
 ## Exact Realization Reference
 
-既存のKJ Atlas live mappingへ、後方互換なoptional経路として`ApplyGroupingInput.RealizationReference`を追加した。
+既存のKJ Atlas live mappingには、後方互換なoptional経路として`ApplyGroupingInput.RealizationReference`がある。
 
-- 未指定の場合は従来どおりlogical-only Realization Referenceを保持する。
-- 指定した場合は`method_application.realization_ref`へ`semanticruntime.Reference`を保持する。
+- 未指定時はlogical-only Realization Referenceを保持する。
+- 指定時は`method_application.realization_ref`へ`semanticruntime.Reference`を保持する。
 - logical identityが`RealizationRef`と一致しなければ、canonical stateを変更せず拒否する。
 
 Exact Bindingを作るMethod Realization payloadと、portable Semantic Interchangeへ格納するRealization recordは同じ生成経路を使う。
 
-このmappingではExact Referenceを保持するためMethod Application recordを直接`CanonicalStore.Add`へ渡すが、semantic validationを迂回しない。`CanonicalStore.Add`はtyped recordを`semanticruntime.LoadStandalone`で再検証してから保存する。
-
-共有mapping自体はActual Model Artifact Exchange E3b Run `33670697154` / Job `100383296117`で`go test ./livemethodintegration -count=1`を含めactualにPASSしている。したがってExact Reference mappingにはExecutable Evidenceがあるが、この既存Evidenceをruntime version交換の成立証明には使わない。
+共有mapping自体はActual Model Artifact Exchange E3b Run `33670697154` / Job `100383296117`でactualにPASSしている。ただし、この既存Evidenceをruntime version交換の成立証明には使わない。
 
 ## Repository-local execution harness
 
-runtime交換のactual実行本文はautomation providerから切り離し、repository同梱の次のharnessへ置く。
+actual実行本文は`runtime/integration/run_runtime_version_exchange.sh`へ置く。
 
-- `runtime/integration/run_runtime_version_exchange.sh`
+strict Evidenceでは、export済みverified bundleを`--kj-atlas-backend-bundle`で渡す。
 
-harnessは次を一続きに実行する。
+harnessは次を一続きに行う。
 
-1. Linux / amd64の実行環境であることを確認する。
-2. SOZAがcleanであることを確認し、KJ Atlas sourceをcheckoutまたはverified bundleとして検証する。
-3. KJ Atlas package install用copyをwork directoryへ作り、専用Python virtual environmentへ導入する。
-4. Ollama `0.32.13` / `0.32.14`のarchiveを取得または事前配置pathから参照し、実測SHA-256を保存して固定値と照合する。
-5. 同じmodel storageで`qwen2.5:0.5b`を利用し、A / B双方のmodel digestが固定値と一致することを確認する。
-6. 同じ3-card Method inputをA / Bへ通し、actual inference countersとKJ Atlas responseを確認する。
-7. A / Bのprompt SHA-256が同一であることを確認する。
-8. `livemethodintegration`の通常testを実行する。
-9. source、runtime artifact、versionをGo側でも再確認したうえでruntime交換live testを実行し、historical Applicationとportable reconstructionを検査する。
-10. 成否にかかわらず、そこまで生成されたEvidenceをrun専用directoryへ保存する。
+1. Linux / amd64であることを確認する。
+2. SOZA working treeと入力pathの安全境界を確認する。
+3. KJ Atlas verified bundleのGit object identityを確認する。
+4. bundleをexecution sourceとpackage install sourceへ分けてwork directoryへcopyし、双方を再検証する。
+5. 専用Python virtual environmentへpackageを導入する。
+6. Ollama `0.32.13` / `0.32.14` archiveを取得または事前配置pathから参照し、実測SHA-256を固定値へ照合する。
+7. 同じmodel storageで`qwen2.5:0.5b`を利用し、A / B双方のfull model digestを固定値へ照合する。
+8. 同じ3-card Method inputをA / Bへ通し、actual inference countersとKJ Atlas responseを確認する。
+9. A / Bのprompt SHA-256が同一であることを確認する。
+10. live Go test直前にexecution source、runtime version、runtime archiveを再確認する。
+11. historical Applicationとportable reconstructionを検査する。
+12. 成否にかかわらず、そこまで生成されたEvidenceをrun専用directoryへ保存する。
 
-実行場所、source取得経路、artifact取得経路は、それ自体を意味上のidentityにしない。
+package buildの副作用をexecution sourceへ混ぜないため、execution copyとinstall copyは分離する。
 
 ```text
 repository-local harness
   = reproducible execution boundary
   != GitHub Actions required
   != specific runner required
-
-prepositioned artifact
-  = another acquisition path
-  != weaker identity verification
 ```
-
-## Artifact acquisition boundary
-
-実験成立に必要なのは固定したruntime / model artifactそのものであり、実行時に外部ネットワークから取得できることではない。
-
-runtime archiveは次の二経路を許可する。
-
-- harnessがOllama公式GitHub Releaseから取得する。
-- `--runtime-a-archive` / `--runtime-b-archive`で事前配置済みarchiveを指定する。
-
-どちらも同じ実測SHA-256検証へ通す。事前配置pathやファイル名だけを根拠に固定artifactとはみなさない。
-
-model storageも次の二経路を許可する。
-
-- harness所有のwork-local model storageを使い、固定artifactがなければ`ollama pull`した後にfull digestを検査する。
-- `--model-dir`で既存model storageを指定し、固定full digestのartifactが既に存在するときだけ利用する。不足していてもharnessから自動pullしない。
-
-Evidence identityにはruntime archiveの`archiveAcquisition`とmodelの`storageMode`を残す。これは再実行時に取得状況へ戻るためのProvenanceであり、Realization identityを分けるfieldではない。
-
-KJ Atlas sourceについても、`git-checkout`または`verified-runtime-bundle`という取得経路と、実際に検証したsource identityを分けてEvidenceへ残す。
-
-これらの経路は外部取得依存を減らせるが、KJ Atlas backendのPython依存関係まで含めた完全offline実行を保証するものではない。
-
-## Local execution safety
-
-repository-local化に伴い、次を明示的な停止線とする。
-
-- SOZAに未commit変更がある場合は開始しない。
-- checkout modeのKJ Atlasに未commit変更がある場合は開始しない。
-- checkout modeではpackage install後もactual checkoutがcleanなままかlive test直前に再確認する。
-- bundle modeではsource bytesを外部入力時、実行用copy作成後、install用copy作成後、live test直前に検証する。
-- `--work-dir`は既存directoryを受け付けず、harness自身が新しく作成したdirectoryだけを一時作業領域として扱う。
-- `--evidence-dir`も既存directoryを受け付けず、一つのdirectoryに一つのrunだけを対応させる。
-- work / Evidence / external model directoryがSOZAまたはKJ Atlas source配下を指す場合は拒否する。
-- 固定local port `11434` / `8001` / `8101`が使用中なら開始しない。
-- Ollama / model adapter / KJ Atlasのready判定では、health responseだけでなくharness自身が起動したPIDの生存も確認する。
-- 事前配置runtime archiveはfile実在と実測digestを確認し、不一致なら展開しない。
-- 事前配置model storageに固定model digestが存在しなければ、自動取得せず停止する。
-
-Evidence directoryをrunごとに分離し、途中失敗したrunへ前回runの未上書きファイルが混在することを防ぐ。
 
 ## Local preflight
 
-actual runtimeを起動する前に、ローカル環境で解消できる不足を副作用なく検出するため、次を使う。
+`check_runtime_version_exchange_preflight.py`はactual runtimeを起動せず、実行前に解消できる不足を確認する。
 
-- `runtime/integration/check_runtime_version_exchange_preflight.py`
-- `runtime/integration/test_check_runtime_version_exchange_preflight.py`
+strict Evidenceではexport済みbundleを`--kj-atlas-backend-bundle`で指定する。
 
-preflightはruntime / model processを起動せず、artifactをdownloadしない。次を診断する。
+preflightは主に次を診断する。
 
-- hostがLinux / amd64か。
-- harnessが必要とするcommandが利用可能か。
-- SOZAがGit working treeでcleanか。
-- KJ Atlas sourceがclean checkoutまたはverified runtime bundleとして固定identityを満たすか。
-- `--kj-atlas-dir`と`--kj-atlas-backend-bundle`が同時指定されていないか。
-- work / Evidence pathがsource配下を指していないか、既存pathを誤って再利用しないか。
-- 事前配置runtime archiveを指定した場合、実測SHA-256が固定値と一致するか。
-- 事前配置model storageを指定した場合、directoryが存在し安全な位置にあるか。
-- Ollama / model adapter / KJ Atlas用local portが空いているか。
-
-`--require-prepositioned-artifacts`を指定すると、runtime archiveとmodel storageが事前配置済みであること自体をpreflight条件にできる。`--json`では`ready` / `blocked`、blocker ID、各checkの状態、KJ Atlas sourceの固定identityを構造化して返す。
-
-model storageのdirectoryが存在するだけでは固定model artifactを検証済みとはみなさない。full model digestはOllamaをactualに起動した後、APIから観測して確認する。download経路を許可した通常preflightでも、まだ取得していないruntime archiveは`deferred`として扱う。
+- host OS / architecture
+- 必要command
+- SOZA working tree
+- KJ Atlas checkoutまたはbundleの入力条件
+- checkout / bundle同時指定の拒否
+- work / Evidence / model path境界
+- 事前配置runtime archiveのdigest
+- 事前配置model storageのdirectory境界
+- local port
 
 ```text
 preflight ready
-  = actual probeを開始できるローカル条件が揃った
   != actual Ollama A/B inference PASS
   != fixed model digest verified
   != runtime-version-exchange Scoped Executable Evidence
 ```
 
-最新developで追加されたpreflightの純粋ロジックと固定identity境界については、9件のローカルtestがPASSしている。本変更ではsource bundle経路を同じpreflight interfaceへ追加したが、追加後の最終branch全体についてactual runtimeはまだ起動していない。
+最新developへ統合済みだったpreflight純粋ロジックの9件test PASSは保持する。一方、本Issueで追加したexporter / bundle拡張を含む最終branch全体のactual A/B実行はまだ完了していない。
 
-## Artifact / source guard
+## Source / artifact guard
 
-runtime交換のlive testを開始する前に、Go側でも実際の実験条件を再確認する。
+live Go testでは、verified bundle modeについて次を再確認する。
 
-`runtime_version_artifact_guard_test.go`は、`SOZA_E3B_RUNTIME_EXCHANGE_LIVE=1`のときだけ次を検査する。
+- source commit
+- parent backend tree
+- runtime surface tree
+- verification basis
+- runtime A / B version log
+- runtime A / B archive SHA-256
 
-### checkout mode
+`GITHUB_WORKSPACE`や固定`/tmp`へ暗黙fallbackせず、harnessが実際のpathを明示する。
 
-- harnessが明示したKJ Atlas checkoutのactual commitが固定commitと一致する。
-- fixed commit objectを参照できる。
-- working treeがlive test直前もcleanである。
-
-### bundle mode
-
-- harnessが明示した実行sourceをPython verifierで再検証する。
-- source commitが固定値と一致する。
-- 親backend treeが固定値と一致する。
-- runtime surface treeが固定値と一致する。
-- verification basisが`pinned-git-object-identities`である。
-
-### runtime artifacts
-
-- harnessが明示したruntime A / Bのversion logが、それぞれ`0.32.13` / `0.32.14`を示す。
-- harnessが明示したruntime archive bytesのSHA-256が固定値と一致する。
-
-current live guardは`GITHUB_WORKSPACE`や固定`/tmp`配置へ暗黙に戻らない。実行器が検証対象pathとsource modeをすべて明示する。
-
-通常のunit testではexternal runtimeを要求しない。guard / Exact Binding controlでは少なくとも次を固定する。
-
-- source mode未指定・未知modeを拒否する。
-- checkout modeでpath未指定を拒否する。
-- bundle modeでsource / verifier path未指定を拒否する。
-- bundle verifierのsource commit / 親backend tree / runtime surface tree driftを拒否する。
-- exact version tokenを受理し、`0.32.13`と`0.32.130`を取り違えない。
-- exact artifact digestを受理し、mismatchを拒否する。
-- Realization payload bytesが宣言したRaw Bytes SHA-256 Exact Bindingで`verified`になる。
-- payloadを改変すると`verification_failed`になる。
-- 同一identityから同じExact Bindingを決定的に再構成できる。
-- runtime version、runtime artifact digest、model artifact digestのいずれかを変えるとExact Bindingも変わる。
-
-```text
-actual execution identity guard
-  != payload digest verification
-  != bundle-local Exact Reference resolution
-```
-
-## Lightweight boundary tests
-
-actual runtimeやmodelを取得しない軽量検査として、次を用意する。
-
-- `runtime/integration/test_verify_kj_atlas_runtime_source.py`
-- `runtime/integration/test_check_runtime_version_exchange_preflight.py`
-- `runtime/integration/test_run_runtime_version_exchange.py`
-- `runtime/go/livemethodintegration/runtime_version_source_guard_unit_test.go`
-
-主な確認対象は次である。
-
-- Git tree SHA再構成が`git write-tree`と一致する。
-- 固定4要素から再構成したruntime surface treeが`208bea71eef4afed3ddfd3fabb36b0969d167a90`へ一致する。
-- 親backend treeとruntime surface treeを同一視しない。
-- source改変、予期しないtop-level file、symlink、実行bit差を拒否する。
-- harness / preflight / Python verifier / Go guardで固定source identityが一致する。
-- shell側とGo側のruntime version / archive digestが一致する。
-- checkout / bundle inputを混在できない。
-- bundleは実行用copyとinstall用copyへ分離する。
-- checkoutでもpackage installはwork領域のcopyから行い、actual checkoutをbuild対象にしない。
-- harnessがsource mode、source path、verifier、runtime archive、version logをlive guardへ明示する。
-- `GITHUB_WORKSPACE`や固定`/tmp`への暗黙fallbackがない。
-- run専用Evidence directoryを要求する。
-- 事前配置runtime archiveでも実測SHA-256を固定値へ照合する。
-- 事前配置model storageに固定artifactがなければ自動pullしない。
-- artifact取得経路と固定identityを別fieldとして保持する。
-
-```text
-lightweight boundary test PASS
-  != actual runtime A/B inference PASS
-  != runtime-version-exchange Scoped Executable Evidence
-```
+pure-Go / Pythonの軽量testでは、source mode、Exact Binding、tamper、unknown digest、source verifier、preflight、harness interface等をactual runtimeなしで検査する。
 
 ## Required experiments
 
-### E1 — runtime artifact identity
+### E1 — strict source identity
 
-両runtime archiveを固定URLから取得するか事前配置pathから参照し、実測SHA-256を固定値と照合する。
-
-PASS条件:
-
-- Aが`0.32.13`として起動する。
-- Bが`0.32.14`として起動する。
-- A / Bそれぞれの実測archive digestが固定値と一致する。
-- download / prepositionedのどちらでも同じdigest検証を通る。
-- 実測digestをEvidence directoryから読み直せる。
-
-### E2 — same pinned model artifact
-
-両runtimeで`qwen2.5:0.5b`を利用し、APIが返すmodel digestを確認する。
+固定KJ Atlas commit objectからruntime surfaceをexportし、verified bundleとしてharnessへ渡す。
 
 PASS条件:
 
-- A / Bのmodel digestが同一である。
-- A / Bのmodel digestが固定した期待artifact identityと一致する。
-- model tagだけで同一性を推論しない。
-- 事前配置model storageでもfull digest一致を要求する。
-- 事前配置model storageに固定artifactがなければ自動pullで内容を変更しない。
+- working treeのignored fileがexport bundleへ混入しない。
+- fixed commitから4要素を再構成できる。
+- runtime surface treeが固定値へ一致する。
+- source tamper / unexpected top-level / symlink / executable bitを拒否する。
+- actual A / B実行の両方が同じverified runtime surfaceを使う。
 
-### E3 — same source / prompt / actual inference
+### E2 — runtime artifact identity
 
-同じKJ Atlas source identityと同じMethod inputをmodel adapterへ通す。
+A / Bそれぞれのactual archive digestを固定値へ照合し、実際のbinary versionを確認する。
 
-PASS条件:
+### E3 — same pinned model artifact
 
-- source modeにかかわらず、実行したKJ Atlas sourceが固定identityへ検証される。
-- A / Bのmodel evidenceに同じprompt SHA-256が記録される。
-- `ollama_done = true`である。
-- `prompt_eval_count > 0`である。
-- `eval_count > 0`である。
-- KJ Atlas response boundaryが両responseを受理する。
+A / Bのfull model digestが互いに同じで、固定期待digestにも一致することを確認する。tagだけで同一性を推論しない。
+
+### E4 — same prompt / actual inference
+
+A / Bでprompt SHA-256が一致し、`ollama_done = true`、`prompt_eval_count > 0`、`eval_count > 0`を確認する。KJ Atlas response boundaryが両responseを受理する。
 
 生成文そのものの一致はPASS条件にしない。
 
-### E4 — same logical Realization / different Exact Binding
+### E5 — same logical Realization / different Exact Binding
 
-runtime version、runtime artifact digest、model artifact identityを含むMethod Realization documentからExact Bindingを決定的に作る。
+A / Bが同じlogical Realizationを持ち、runtime revision差によって異なるExact Bindingを持つことを確認する。
 
-PASS条件:
+source / artifactの取得経路だけの違いは別Realization identityへ昇格させない。
 
-- A / Bは同じlogical Realizationを持つ。
-- A / BはいずれもExact Bindingである。
-- A / BのExact Bindingは異なる。
-- 同じidentityから再構成したExact Bindingは同じになる。
-- execution artifact identityを変えた場合はExact Bindingも変わる。
-- source acquisition modeやarchive acquisition modeだけを変えても、同じsource / artifact bytesである限りRealization identityを別物として扱わない。
+### E6 — historical Application immutability
 
-### E5 — historical Application immutability
+runtime B追加後もApplication AのExact Realization Reference、Provenance、outputが変わらないことを確認する。
 
-runtime Aの結果をSOZAへ記録し、その後runtime Bの結果を追加する。
+### E7 — portable historical reconstruction
 
-PASS条件:
+二つのRealization revisionと二つのApplicationをSemantic Interchangeへ格納し、payload verification、bundle-local resolution、unknown revision negative controlを確認する。
 
-- Application AのExact Realization Referenceが変わらない。
-- Application AのProvenanceが変わらない。
-- Application Aのoutputが変わらない。
-- Application Bはrevision BのExact Referenceを保持する。
-- 両Applicationは同じMethod Definitionを指す。
-- 両Provenanceは同じ固定model artifactを指す。
-- 各Provenanceから対応するruntime versionを読み直せる。
+### E8 — no semantic promotion
 
-### E6 — portable historical reconstruction
-
-二つのMethod Realization revision recordと二つのApplication recordを一つのSemantic Interchangeへ格納する。
-
-PASS条件:
-
-- Realization payloadをRaw Bytes SHA-256 Profileで検証できる。
-- `semanticruntime.LoadInterchange`がbundle-local Exact Binding検証を通過する。
-- Application AのExact Referenceをrevision Aへ解決できる。
-- Application BのExact Referenceをrevision Bへ解決できる。
-- payload改変はVerifierで拒否される。
-- 存在しないrevision digestを参照するnegative bundleは`LoadInterchange`で拒否される。
-
-```text
-exact-looking reference retained
-  != payload verified
-  != historical revision resolvable
-
-payload verification
-  + matching Realization revision record
-  + Application exact reference
-  + bundle-local Exact Binding validation
-  → portable historical reconstruction boundary
-```
-
-### E7 — no semantic promotion
-
-runtime交換後もMethod outputをRecommendation / Decisionへ自動昇格しない。
-
-### E8 — execution surface independence
-
-runtime交換実験をGitHub Actions、特定source取得経路、特定artifact取得経路に閉じ込めず、repository-local harnessから再現できる状態を保つ。
-
-PASS条件:
-
-- fixed experiment identityがrepository同梱資産に明示されている。
-- KJ Atlas sourceをclean checkoutまたはverified runtime bundleとして固定identityへ戻せる。
-- runtime archiveをdownload / prepositionedの双方から同じdigest検証へ通せる。
-- 事前配置model storageでも固定full digestを検証できる。
-- source / artifact acquisition modeをProvenanceとして残せる。
-- 実験に使うOS / architectureとsource commitをEvidenceへ残せる。
-- 起動前のport確認と起動PID確認によって、別processを今回の実行identityへ取り込まない。
-- GitHub Actions、runner ID、source / artifact取得経路をMethod / Realization identityへ含めない。
+Method outputをRecommendation / Decisionへ自動昇格しない。
 
 ### E9 — Evidence preservation
 
-actual runtime交換の入力、実行条件、結果を一時ログだけに閉じない。
+run専用Evidence directoryから、少なくとも次へ戻れることを確認する。
 
-Evidence directoryへ、存在する範囲で次を保存する。
-
-- experiment identity
-  - execution ID
-  - SOZA repository commit
-  - KJ Atlas source mode / source commit
-  - bundle modeでは親backend tree / runtime surface tree / component Git object ID
-  - execution host OS / architecture
-  - runtime A / B version / expected archive SHA-256
-  - runtime A / B archive acquisition mode
-  - expected model digest
-  - model storage mode
-  - `qualityJudgement = not_evaluated`
-- `kj-atlas-source-identity.json`
+- SOZA commit
+- KJ Atlas verified source identity
 - Method request
-- A / B runtime version log
-- A / B actual runtime archive SHA-256
-- A / B model digest / tags
-- A / B inference Evidence
-- A / B KJ Atlas result
-- Adapter / KJ Atlas / Ollama log
-
-途中で停止した場合も、そこまで生成されたEvidenceを残す。一つのEvidence directoryは一つのrun専用とし、既存directoryへ追記しない。
+- runtime A / B version
+- actual runtime archive digest
+- model digest / tags
+- inference Evidence
+- KJ Atlas result
+- process logs
 
 ```text
 Evidence directory preserved
@@ -553,63 +362,47 @@ Evidence directory preserved
 
 ## Existing Evidence
 
-### Exact Reference mapping / fixed model artifact source
+### Exact Reference mapping / fixed model artifact
 
-Actual Model Artifact Exchange E3b Run `33670697154` / Job `100383296117`はactualに完走した。
+Actual Model Artifact Exchange E3b Run `33670697154` / Job `100383296117`では、actual model artifact exchange、full model digest、prompt digest、historical Application保持を確認した。
 
-このrunでは、actual model artifact exchange、full model digest、prompt digest、`go test ./livemethodintegration -count=1`、historical Application保持を確認した。
-
-したがってExact Reference mappingにはExecutable Evidenceがあり、今回固定する`qwen2.5:0.5b`のmodel artifact identityもactual observationに基づく。ただし、これはruntime version交換のExecutable Evidenceではない。
+したがってExact Reference mappingと今回固定するmodel artifact identityには既存Executable Evidenceがある。ただし、runtime version交換のExecutable Evidenceではない。
 
 ### Historical GitHub Actions exploration
 
-PR #63の作業中にはruntime交換workflow、scenario-local trigger、shared dependency trigger、Evidence artifact保存を試作した。一方、GitHub-hosted runnerは長期間`runner_id=0 / steps=[]`のまま割り当て前に終了し、PR #68の最小cross-OS probeでもUbuntu / Windows / macOSのすべてで同じ現象を観測した。
+過去にはruntime交換workflow等を試作したが、GitHub-hosted runnerは割り当て前に終了する状態が続いた。具体的な外部原因は確定していない。
 
-この履歴は保存するが、具体的な外部原因は確定しない。
-
-現在はGitHub Actionsを当面完全停止している。workflowの追加・復元、過去runの再実行、runner監視は行わず、current actual実証はrepository-local harnessとローカル個別検査を正とする。
+現在はGitHub Actionsを当面完全停止している。workflow追加・復元、過去run再実行、runner監視は行わず、current実証はrepository-local harnessとローカル個別検査を正とする。
 
 ### Local preflight
 
-最新developへ統合済みのpreflight純粋ロジックと固定identity境界について、9件のローカルtestがPASSしている。
+既存preflight境界には9件のローカルtest PASSがある。これはactual Ollama A / B inferenceを開始したEvidenceではない。
 
-これはactual Ollama A / B inferenceを開始したEvidenceではなく、runtime交換実験を開始する前の診断面に限定したExecutable Evidenceである。
+### Source exporter / verifier
 
-本変更で追加したverified runtime bundle経路とcheckout source汚染防止については、軽量testを追加しているが、最終収束branch全体のactual Ollama交換はまだ実行していない。
+固定commit objectからruntime surfaceだけをexportする実装とsynthetic Git testを追加した。実装中のローカル再現では、ignored `.env` / `.so` / `__pycache__`がexportへ混入しないこと、HEADが後続commitでも固定commit objectから同じsurfaceへ戻れることを確認した。
+
+ただし、private repositoryの最終PR head全体をこの実行環境へmaterializeできていないため、PR head上の全軽量test PASSやactual KJ Atlas package install PASSへは昇格させない。
 
 ## Current implementation state
 
-current implementationには次がある。
+current branchには次がある。
 
-- Exact Realization Referenceを保持できるKJ Atlas mapping
-- logical identity不一致時の無変更失敗test
-- fixed runtime / model identity
-- runtime execution identity guard
-- Realization payload Exact Binding verification
-- Exact Binding決定性とidentity差分test
+- Exact Realization Reference mapping
+- runtime / model固定identity
 - historical Application / Provenance / output不変性test
 - portable Semantic Interchange reconstruction
-- unknown revision digestのnegative control
+- unknown revision negative control
 - repository-local runtime exchange harness
-- Linux / amd64の実行前guard
-- KJ Atlas clean checkout mode
-- KJ Atlas verified runtime bundle mode
-- 親backend tree / runtime surface treeの分離
-- Git blob / tree object IDを再構成するsource verifier
-- checkout / bundle双方でpackage install sourceとactual execution sourceを分離する境界
-- live test直前のsource再検証
-- source repository配下を拒否するwork / Evidence / external model path guard
-- 既存work / Evidence directoryを再利用しない境界
-- local port availabilityと起動PIDの生存確認
-- A / B runtime archiveの実測SHA-256保存
-- live guardへ検査対象pathを明示する境界
-- fixed runtime archiveのdownload / prepositioned両経路
-- fixed model artifactのwork-local / prepositioned storage両経路
-- 事前配置model storageを暗黙更新しない停止線
-- source / artifact acquisition modeをEvidenceへ残すProvenance
-- failure途中も保存できるrun専用filesystem Evidence directory
-- side-effect-free local preflight
-- preflight / harness / source verifier / Go guardの固定identity一致test
+- local preflight
+- KJ Atlas runtime source verifier
+- fixed commit objectからのruntime source exporter
+- parent backend tree / runtime surface treeの分離
+- verified bundleのexecution / package-install copy分離
+- source / runtime artifact live guard
+- run-isolated Evidence directory
+- prepositioned runtime / model artifact経路
+- source / artifact acquisitionとidentityを分けるProvenance境界
 
 ただし、repository-local harnessによるactual Ollama `0.32.13` / `0.32.14`交換はまだ完走確認していない。
 
@@ -625,37 +418,19 @@ qwen2.5:0.5b expected model artifact identity
 Exact Realization Reference mapping
   = Executable Evidence available in Run 33670697154
 
-pure-Go Exact Binding controls
-  = implemented
-
-repository-local runtime exchange harness
-  = implemented
-
-local preflight boundary tests
+local preflight baseline
   = 9 tests PASS; actual runtime not started
 
-KJ Atlas clean checkout source guard
+verified runtime source bundle boundary
   = implemented
 
-KJ Atlas verified runtime bundle source guard
-  = implemented; actual A/B execution through this path Not Yet Verified
+fixed-commit runtime source exporter
+  = implemented; focused synthetic behavior locally reproduced
 
-parent backend tree / runtime surface tree separation
-  = implemented and fixed in source verifier / Go guard
+PR head full lightweight test suite
+  = Not Yet Verified in the current execution environment
 
-runtime artifact / source / version live guard
-  = implemented with explicit paths
-
-run-isolated Evidence directory guard
-  = implemented
-
-prepositioned runtime/model artifact paths
-  = implemented; actual A/B execution through these paths Not Yet Verified
-
-actual runtime 0.32.13 / 0.32.14 acquisition or prepositioned load through current harness
-  = Not Yet Verified
-
-actual runtime-version exchange inference through current harness
+actual runtime 0.32.13 / 0.32.14 execution through verified bundle
   = Not Yet Verified
 
 same pinned model digest / same prompt digest across runtime versions
@@ -668,7 +443,7 @@ runtime-version-exchange Scoped Executable Evidence
   = not available yet
 ```
 
-ISSUE-000071は評価境界の確立としてResolvedになったが、これはhuman reviewやKJ-method outcome qualityがSatisfiedになったことを意味しない。本Issueでもruntime交換のexecution conformanceと成果品質を混同しない。
+ISSUE-000071は評価境界の確立としてResolvedになったが、human reviewやKJ-method outcome qualityがSatisfiedになったことを意味しない。本Issueでもexecution conformanceと成果品質を混同しない。
 
 ## Requirement / Contract assessment
 
@@ -688,52 +463,46 @@ actual実証後に次へ再照合する。
 
 次をすべて満たした時点でResolvedにできる。
 
-1. KJ Atlas sourceをclean checkoutまたはverified runtime bundleとして固定identityへ検証できる。
-2. repository-local harnessが固定runtime artifact A / Bを取得または事前配置pathから参照し、実測digestを保存したうえで固定値と一致することを確認できる。
-3. A / Bのactual binary versionを確認できる。
-4. A / B双方のmodel digestが固定artifact identityと一致し、same prompt digestもactual executionで確認できる。
+1. 固定KJ Atlas commit objectからexportしたruntime surfaceをverified bundleとして固定identityへ検証する。
+2. strict A / B実行ではdirect checkoutではなく、そのverified runtime bundleを使う。
+3. runtime A / B archiveのactual digestとbinary versionを確認する。
+4. A / B双方のmodel digestが固定artifact identityと一致し、same prompt digestもactual executionで確認する。
 5. 両runtimeでactual inferenceが成立する。
 6. Application A / Bがsame logical / different Exact Realization revisionを保持する。
 7. Application AのReference / Provenance / outputがB追加後も不変である。
 8. Realization payload verification、portable reconstruction、unknown revision negative controlがPASSする。
 9. Recommendation / Decisionへの自動昇格がない。
-10. run専用filesystem Evidence directoryからsource identity、artifact取得状況、入力、A / Bの実測runtime digest、出力、model Evidenceへ戻れる。
+10. run専用Evidence directoryからsource identity、入力、actual runtime digest、model identity、出力、inference Evidenceへ戻れる。
 11. Requirement / Contract再照合と自然な日本語最終監査を行う。
 
-GitHub-hosted runnerの復旧、GitHub Actions workflowの再導入、runtime / model artifactの実行時download可否、preflightの`ready`だけではResolution条件を満たさない。
+GitHub-hosted runnerの復旧、GitHub Actions workflowの再導入、runtime / model artifactの実行時download可否、preflightの`ready`、direct checkout executionだけではResolution条件を満たさない。
 
 ## Reopen conditions
 
 Resolved後も次の場合は再開する。
 
-- runtime revisionを交換するとhistorical ApplicationのExact Referenceが失われる。
+- runtime revision交換でhistorical ApplicationのExact Referenceが失われる。
 - same logical RealizationのrevisionをExact Bindingで区別できない。
-- Realization payloadと宣言Exact Bindingの不一致を検出できない。
-- portable bundle内でApplicationのExact Referenceを対応revisionへ解決できない。
-- unknown revision digestを参照するbundleを受理する。
-- KJ Atlas source acquisition modeだけでsource identityを推論する。
-- 親backend treeと最小runtime surface treeを同一identityとして扱う。
+- portable bundleでApplicationのExact Referenceを対応revisionへ解決できない。
+- unknown revision digestを受理する。
+- working treeのignored fileがstrict runtime sourceへ混入できる。
+- source acquisition modeだけでsource identityを推論する。
+- 親backend treeとruntime surface treeを同一視する。
 - bundle pathやfile名だけで固定sourceとみなす。
-- source改変、予期しないtop-level要素、symlink、実行bit差をsource verifierが見逃す。
-- package buildの副作用がactual execution sourceへ混入しても検出できない。
-- model tagが固定artifact identityと異なるartifactを指し、model artifactが交換軸へ混入する。
+- source tamper、symlink、実行bit差を見逃す。
+- package buildの副作用がexecution sourceへ混入する。
+- model tagだけでartifact identityを固定する。
 - promptが交換軸へ混入する。
-- 事前配置runtime archiveをpathやファイル名だけで信用し、実測digest検査を省略できる。
-- 事前配置model storageに固定artifactがないとき、harnessが暗黙にpullして検証対象を変更する。
-- source / artifact acquisition modeだけの違いを別Realization identityとして扱う。
-- preflightがmodel storage directoryの存在だけで固定model digest検証済みと判定する。
-- preflight `ready`をactual runtime交換PASSへ昇格できる。
-- 別processのhealth responseを今回のactual runtime実行として誤認できる。
-- 利用者が指定した既存作業directoryをharnessが上書き・削除できる。
-- 複数runのEvidenceが同じdirectoryへ混在し、一つの実行identityとして読めてしまう。
-- live guardが実行器から渡されたpath以外を暗黙に参照し、source / artifact identityを取り違えられる。
+- 事前配置artifactでdigest検査を省略できる。
+- 既存model storageをharnessが暗黙更新する。
+- preflight `ready`をactual runtime交換PASSへ昇格する。
+- 別processを今回runの実行identityとして誤認する。
+- 複数runのEvidenceが同じdirectoryへ混在する。
 - runtime固有情報をUniversal semanticsへ先取りする。
-- actual実験本文が特定automation providerにしか存在せず、repositoryから再実行できなくなる。
+- actual実験本文が特定automation providerにしか存在しなくなる。
 - runtime交換successをmodel / KJ成果品質やE4へ過大評価する。
 
 ## Stop line
-
-runtime交換がPASSしても、次を意味しない。
 
 ```text
 runtime 0.32.13 / 0.32.14 exchange PASS
@@ -752,16 +521,14 @@ execution成立、historical reconstruction、生成品質を別の評価軸と�
 
 ## Natural Japanese review
 
-ISSUE-000067 / ISSUE-000068、Cognitive Method Contract、Exact Binding、current KJ Atlas mapping、GitHub Actions完全停止後の開発運用、repository-local harness、local preflight、artifact / source guard、ISSUE-000071で確立した成果品質評価境界を再照合した。
+ISSUE-000067 / ISSUE-000068、Cognitive Method Contract、Exact Binding、current KJ Atlas mapping、GitHub Actions完全停止後の開発運用、repository-local harness、local preflight、source / artifact guard、ISSUE-000071の成果品質評価境界を再照合した。
 
-今回、KJ Atlas sourceをGit checkoutそのものへ固定せず、固定commit由来の最小runtime surfaceをGit object identityで再検証できる経路を加えた。ただし親backend treeと実際に持ち込むruntime surface treeは別のidentityとして扱い、最小bundleをbackend全体と同一視しない。
+今回の重要な修正は、「固定commitのclean checkout」と「固定commit由来の実行bytes」を同一視しないことである。KJ Atlasでは`.env`やbinary / bytecode cache等をGit管理外にできるため、通常のclean判定だけではstrict source identityにならない。
 
-source取得経路を増やす代わりに検証強度を下げないよう、checkout modeでは実行sourceをbuild対象から分離し、live test直前にもcleanlinessを再確認する。bundle modeでは外部入力、実行用copy、install用copy、live test直前の実行sourceを固定Git object identityへ戻す。
+そこでstrict Evidenceでは、working treeを直接実行せず、固定commit objectから追跡済みruntime surfaceだけをexportする。その出力を既存bundle verifierへ通し、execution sourceとpackage install sourceをさらに分離する。
 
-preflightもcheckout / bundleの二経路へ同期した。`ready`はactual probeを開始できる条件が揃ったことだけを表し、source identityの確認、runtime archive digest、actual model digest、actual inference、historical reconstructionを一つの成功条件へ圧縮しない。
+これにより、Git repositoryは固定sourceを得るための取得面となり、実験に使う実際のsource bytesは一つのverified runtime surfaceへ収束する。
 
-GitHub Actionsの過去runはhistorical Evidenceとして保持するが、現在はworkflowの追加・復元・再実行・runner監視を行わない。必要な検証はローカルで個別に実行し、実行できない範囲は`Not Yet Verified`として残す。
+preflight、source export、source verification、actual process execution、historical reconstruction、成果品質も別責務として記述した。actual Ollama `0.32.13` / `0.32.14`交換は引き続きNot Yet Verifiedである。
 
-これらはruntime交換が成功したというEvidenceではない。実行identityを取り違えず、失敗時にも観測事実を残し、actual A/B実行へ安全に進むための実験基盤である。actual Ollama `0.32.13` / `0.32.14`交換は引き続きNot Yet Verifiedとして維持する。
-
-実行sourceの固定、source取得経路、artifact取得経路、preflight、actual process identity、payload digest検証、bundle-local reference解決、Evidence保存を別の責務として記述した。意味、規範強度、Evidence強度、未検証範囲を変えず、自然な日本語として読み通せることを最重要視して全文を再ドラフトした。
+意味、規範強度、Evidence強度、未検証範囲を変えず、自然な日本語として読み通せることを最重要視して全文を再ドラフトした。
