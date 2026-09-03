@@ -5,6 +5,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import sys
 import urllib.request
 from dataclasses import dataclass
@@ -13,6 +14,8 @@ from typing import BinaryIO, Callable
 
 MANIFEST_PATH = Path(__file__).with_name("runtime_version_exchange_artifacts.json")
 MANIFEST_SCHEMA = "soza.runtime-version-exchange-artifact-manifest/v1"
+VERSION_PATTERN = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
+HEX_SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 
 
 @dataclass(frozen=True)
@@ -39,24 +42,63 @@ def load_manifest(path: Path = MANIFEST_PATH) -> dict[str, object]:
             "version",
             "assetName",
             "localFileName",
+            "platform",
             "sizeBytes",
             "sha256",
             "downloadUrl",
         ):
             if name not in archive:
                 raise ValueError(f"runtimeArchives.{label}.{name}がありません")
+
+        runtime = archive["runtime"]
+        if runtime != "ollama":
+            raise ValueError(
+                f"runtimeArchives.{label}.runtimeはollamaである必要があります: {runtime!r}"
+            )
+
+        version = archive["version"]
+        if not isinstance(version, str) or VERSION_PATTERN.fullmatch(version) is None:
+            raise ValueError(f"runtimeArchives.{label}.versionが不正です: {version!r}")
+
+        asset_name = archive["assetName"]
+        if (
+            not isinstance(asset_name, str)
+            or not asset_name
+            or Path(asset_name).name != asset_name
+        ):
+            raise ValueError(f"runtimeArchives.{label}.assetNameが不正です")
+
         local_name = archive["localFileName"]
         if not isinstance(local_name, str) or not local_name or Path(local_name).name != local_name:
             raise ValueError(f"runtimeArchives.{label}.localFileNameが不正です")
         if local_name in local_names:
             raise ValueError("runtime A / BのlocalFileNameが衝突しています")
         local_names.add(local_name)
+
+        platform = archive["platform"]
+        if platform != {"os": "linux", "arch": "amd64"}:
+            raise ValueError(
+                f"runtimeArchives.{label}.platformはlinux/amd64である必要があります: {platform!r}"
+            )
+
         sha256 = archive["sha256"]
-        if not isinstance(sha256, str) or len(sha256) != 64:
+        if not isinstance(sha256, str) or HEX_SHA256_PATTERN.fullmatch(sha256) is None:
             raise ValueError(f"runtimeArchives.{label}.sha256が不正です")
+
         size = archive["sizeBytes"]
-        if not isinstance(size, int) or size <= 0:
+        if not isinstance(size, int) or isinstance(size, bool) or size <= 0:
             raise ValueError(f"runtimeArchives.{label}.sizeBytesが不正です")
+
+        download_url = archive["downloadUrl"]
+        expected_url = (
+            "https://github.com/ollama/ollama/releases/download/"
+            f"v{version}/{asset_name}"
+        )
+        if download_url != expected_url:
+            raise ValueError(
+                f"runtimeArchives.{label}.downloadUrlがOllama公式release assetと一致しません: "
+                f"actual={download_url!r} expected={expected_url!r}"
+            )
     return payload
 
 
