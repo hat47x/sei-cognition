@@ -56,11 +56,13 @@ class RuntimeVersionExchangeHarnessTest(unittest.TestCase):
         self.assertIn("runtime/integration/run_runtime_version_exchange.sh", completed.stdout)
         self.assertIn("GitHub Actions", completed.stdout)
         self.assertIn("--kj-atlas-backend-bundle", completed.stdout)
+        self.assertNotIn("--kj-atlas-dir", completed.stdout)
         self.assertIn("--evidence-dir", completed.stdout)
         self.assertIn("--runtime-a-archive", completed.stdout)
         self.assertIn("--runtime-b-archive", completed.stdout)
         self.assertIn("--model-dir", completed.stdout)
         self.assertIn("既存pathは拒否する", completed.stdout)
+        self.assertIn("run_runtime_version_exchange_strict.py", completed.stdout)
 
     def test_shell_and_go_use_the_same_runtime_versions_and_artifact_digests(self):
         pairs = [
@@ -102,7 +104,6 @@ class RuntimeVersionExchangeHarnessTest(unittest.TestCase):
     def test_harness_passes_every_live_guard_path_explicitly(self):
         required_names = {
             "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_MODE",
-            "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_DIR",
             "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_DIR",
             "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_VERIFIER",
             "SOZA_E3B_RUNTIME_EXCHANGE_ARCHIVE_A",
@@ -113,6 +114,7 @@ class RuntimeVersionExchangeHarnessTest(unittest.TestCase):
         for name in required_names:
             with self.subTest(environment=name):
                 self.assertIn(f'export {name}=', self.script_text)
+        self.assertNotIn("SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_DIR", self.script_text)
 
     def test_go_live_guard_has_no_github_workspace_or_tmp_fallback(self):
         self.assertNotIn("GITHUB_WORKSPACE", self.go_guard_text)
@@ -134,18 +136,25 @@ class RuntimeVersionExchangeHarnessTest(unittest.TestCase):
 
     def test_package_install_never_builds_from_actual_execution_source(self):
         self.assertIn('KJ_ATLAS_INSTALL_DIR="${WORK_DIR}/kj-atlas-backend-install"', self.script_text)
-        self.assertIn('cp -a "${KJ_ATLAS_BACKEND_DIR}/." "${KJ_ATLAS_INSTALL_DIR}/"', self.script_text)
+        self.assertIn('cp -a "${KJ_ATLAS_SOURCE_ROOT}/." "${KJ_ATLAS_INSTALL_DIR}/"', self.script_text)
         self.assertIn(
             'pip install --disable-pip-version-check "${KJ_ATLAS_INSTALL_DIR}"',
             self.script_text,
         )
         self.assertNotIn('pip install --disable-pip-version-check -e', self.script_text)
 
-    def test_checkout_and_bundle_inputs_cannot_be_mixed(self):
-        self.assertIn('KJ_ATLAS_DIR_EXPLICIT=1', self.script_text)
+    def test_low_level_harness_requires_verified_bundle_and_has_no_checkout_fallback(self):
+        self.assertIn('if [[ -z "${KJ_ATLAS_BACKEND_BUNDLE}" ]]', self.script_text)
+        self.assertIn("verified KJ Atlas backend bundle is required", self.script_text)
+        self.assertNotIn("--kj-atlas-dir", self.script_text)
+        self.assertNotIn("_external/kj-atlas", self.script_text)
+        self.assertNotIn('"sourceMode": "git-checkout"', self.script_text)
+        self.assertIn('KJ_ATLAS_SOURCE_MODE="verified-runtime-bundle"', self.script_text)
+
+    def test_go_live_guard_keeps_git_checkout_rejected(self):
         self.assertIn(
-            "--kj-atlas-dir and --kj-atlas-backend-bundle must not be used together",
-            self.script_text,
+            "runtime exchange live testではGit working treeを実行sourceにできません",
+            self.go_guard_text,
         )
 
     def test_source_identity_is_preserved_as_run_evidence(self):
