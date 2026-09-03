@@ -232,6 +232,7 @@ def archive_check(
     expected_sha: str,
     expected_size: int,
     require_prepositioned: bool,
+    source_roots: Iterable[Path] = (),
 ) -> list[Check]:
     if path is None:
         status = "blocked" if require_prepositioned else "deferred"
@@ -244,7 +245,28 @@ def archive_check(
             )
         )
         return [Check(f"archive.{label}", status, detail)]
-    resolved = canonical_path(path)
+
+    requested = path.expanduser()
+    if requested.is_symlink():
+        return [
+            Check(
+                f"archive.{label}.path",
+                "blocked",
+                f"runtime archiveにsymlinkは利用できません: {requested}",
+            )
+        ]
+
+    resolved = canonical_path(requested)
+    for root in source_roots:
+        if is_within(resolved, root):
+            return [
+                Check(
+                    f"archive.{label}.path",
+                    "blocked",
+                    f"runtime archiveをsource配下には置けません: {resolved}",
+                )
+            ]
+
     if not resolved.is_file():
         return [Check(f"archive.{label}", "blocked", f"archive fileが存在しません: {resolved}")]
     actual_size = resolved.stat().st_size
@@ -426,6 +448,7 @@ def collect_checks(args: argparse.Namespace, soza_root: Path) -> list[Check]:
             RUNTIME_SHA256_A,
             RUNTIME_SIZE_A,
             args.require_prepositioned_artifacts,
+            source_roots,
         )
     )
     checks.extend(
@@ -435,6 +458,7 @@ def collect_checks(args: argparse.Namespace, soza_root: Path) -> list[Check]:
             RUNTIME_SHA256_B,
             RUNTIME_SIZE_B,
             args.require_prepositioned_artifacts,
+            source_roots,
         )
     )
     checks.extend(model_store_check(args.model_dir, source_roots, args.require_prepositioned_artifacts))
