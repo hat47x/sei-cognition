@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import platform
 import shutil
 import socket
@@ -17,6 +18,9 @@ RUNTIME_VERSION_A = "0.32.13"
 RUNTIME_VERSION_B = "0.32.14"
 RUNTIME_SHA256_A = "0fd1dece38a1c6242e8013ce20b597345c5de072ae6b320160edb0e729ef1de1"
 RUNTIME_SHA256_B = "c620917a71e146ab3a7f893084f066069c4c65d144ef8379a91c3cbe8b27de8f"
+RUNTIME_SIZE_A = 1421793186
+RUNTIME_SIZE_B = 1421191399
+TOTAL_COMPRESSED_RUNTIME_BYTES = RUNTIME_SIZE_A + RUNTIME_SIZE_B
 MODEL_NAME = "qwen2.5:0.5b"
 MODEL_SHA256 = "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67"
 REQUIRED_COMMANDS = ("git", "python3", "go", "curl", "zstd", "tar", "sha256sum", "uname", "mktemp")
@@ -110,18 +114,37 @@ def output_path_check(label: str, path: Path | None, source_roots: Iterable[Path
     return [Check(f"path.{label}", "ok", f"path境界を確認しました: {resolved}")]
 
 
-def archive_check(label: str, path: Path | None, expected_sha: str, require_prepositioned: bool) -> list[Check]:
+def archive_check(
+    label: str,
+    path: Path | None,
+    expected_sha: str,
+    expected_size: int,
+    require_prepositioned: bool,
+) -> list[Check]:
     if path is None:
         status = "blocked" if require_prepositioned else "deferred"
-        detail = "事前配置archiveが必要ですが指定されていません" if require_prepositioned else "archiveは実行時download経路を利用します。actual bytesのdigest検証は実行時に行います"
+        detail = (
+            "事前配置archiveが必要ですが指定されていません"
+            if require_prepositioned
+            else f"archiveは実行時download経路を利用します。公式固定size={expected_size} bytes。actual bytesのsize / digest検証は実行時に行います"
+        )
         return [Check(f"archive.{label}", status, detail)]
     resolved = canonical_path(path)
     if not resolved.is_file():
         return [Check(f"archive.{label}", "blocked", f"archive fileが存在しません: {resolved}")]
+    actual_size = resolved.stat().st_size
+    if actual_size != expected_size:
+        return [
+            Check(
+                f"archive.{label}",
+                "blocked",
+                f"archive sizeが公式固定値と一致しません: actual={actual_size} expected={expected_size}",
+            )
+        ]
     actual = sha256_file(resolved)
     if actual != expected_sha:
         return [Check(f"archive.{label}", "blocked", f"archive digestが固定値と一致しません: actual={actual} expected={expected_sha}")]
-    return [Check(f"archive.{label}", "ok", f"固定digestと一致します: {actual}")]
+    return [Check(f"archive.{label}", "ok", f"固定size / digestと一致します: size={actual_size} sha256={actual}")]
 
 
 def model_store_check(path: Path | None, source_roots: Iterable[Path], require_prepositioned: bool) -> list[Check]:
@@ -136,6 +159,36 @@ def model_store_check(path: Path | None, source_roots: Iterable[Path], require_p
     if not resolved.is_dir():
         return [Check("model.store", "blocked", f"model storage directoryが存在しません: {resolved}")]
     return [Check("model.store", "ok", f"model storage directoryを確認しました: {resolved}。固定model digestの一致はOllama起動後に確認します")]
+
+
+def nearest_existing_path(path: Path) -> Path | None:
+    current = canonical_path(path)
+    while not current.exists():
+        parent = current.parent
+        if parent == current:
+            return None
+        current = parent
+    return current
+
+
+def disk_capacity_check(path: Path) -> Check:
+    existing = nearest_existing_path(path)
+    if existing is None:
+        return Check("disk.work", "deferred", f"disk容量を確認できる既存parentがありません: {canonical_path(path)}")
+    try:
+        free = shutil.disk_usage(existing).free
+    except OSError as exc:
+        return Check("disk.work", "deferred", f"disk空き容量を確認できませんでした: path={existing} error={exc}")
+    return Check(
+        "disk.work",
+        "ok",
+        (
+            f"work領域の既存parent={existing}; free={free} bytes; "
+            f"固定runtime archive 2本の圧縮bytes合計={TOTAL_COMPRESSED_RUNTIME_BYTES}。"
+            "展開後runtime、Python環境、work-local model storageには追加容量が必要です。"
+            "この観測だけではdisk容量が十分とは判定しません"
+        ),
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -165,12 +218,34 @@ def collect_checks(args: argparse.Namespace, soza_root: Path) -> list[Check]:
     source_roots = (soza_root, kj_atlas_dir)
     checks.extend(output_path_check("work", args.work_dir, source_roots, must_be_new=True))
     checks.extend(output_path_check("evidence", args.evidence_dir, source_roots, must_be_new=True))
-    checks.extend(archive_check("runtime-a", args.runtime_a_archive, RUNTIME_SHA256_A, args.require_prepositioned_artifacts))
-    checks.extend(archive_check("runtime-b", args.runtime_b_archive, RUNTIME_SHA256_B, args.require_prepositioned_artifacts))
+    work_target = canonical_path(args.work_dir or Path(os.environ.get("TMPDIR", "/tmp")))
+    checks.append(disk_capacity_check(work_target))
+    checks.extend(archive_check("runtime-a", args.runtime_a_archive, RUNTIME_SHA256_A, RUNTIME_SIZE_A, args.require_prepositioned_artifacts))
+    checks.extend(archive_check("runtime-b", args.runtime_b_archive, RUNTIME_SHA256_B, RUNTIME_SIZE_B, args.require_prepositioned_artifacts))
     checks.extend(model_store_check(args.model_dir, source_roots, args.require_prepositioned_artifacts))
     for label, port in REQUIRED_PORTS:
         checks.append(port_check(label, port))
     return checks
+
+
+def fixed_artifact_report() -> dict[str, object]:
+    return {
+        "runtimeA": {
+            "version": RUNTIME_VERSION_A,
+            "sizeBytes": RUNTIME_SIZE_A,
+            "sha256": RUNTIME_SHA256_A,
+        },
+        "runtimeB": {
+            "version": RUNTIME_VERSION_B,
+            "sizeBytes": RUNTIME_SIZE_B,
+            "sha256": RUNTIME_SHA256_B,
+        },
+        "totalCompressedRuntimeBytes": TOTAL_COMPRESSED_RUNTIME_BYTES,
+        "model": {
+            "name": MODEL_NAME,
+            "sha256": MODEL_SHA256,
+        },
+    }
 
 
 def report(checks: list[Check]) -> dict[str, object]:
@@ -179,6 +254,7 @@ def report(checks: list[Check]) -> dict[str, object]:
         "schema": "soza.runtime-version-exchange-preflight/v1",
         "result": "blocked" if blockers else "ready",
         "blockers": blockers,
+        "fixedArtifacts": fixed_artifact_report(),
         "checks": [asdict(check) for check in checks],
         "stopLine": "preflight ready != actual runtime A/B inference PASS != runtime-version-exchange Scoped Executable Evidence",
     }
