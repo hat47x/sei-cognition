@@ -9,7 +9,7 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from verify_kj_atlas_runtime_source import (
     PINNED_IDENTITY,
@@ -52,7 +52,12 @@ def _validate_archive_members(members: list[tarfile.TarInfo]) -> None:
     allowed_roots = set(RUNTIME_PATHS)
 
     for member in members:
-        name = member.name.rstrip("/")
+        raw_name = member.name.rstrip("/")
+        path = PurePosixPath(raw_name)
+        if path.is_absolute() or ".." in path.parts:
+            raise ValueError(f"unsafe runtime source archive path: {member.name}")
+
+        name = path.as_posix()
         if name == BACKEND_PREFIX:
             if not member.isdir():
                 raise ValueError(f"backend archive root must be a directory: {member.name}")
@@ -103,7 +108,9 @@ def export_runtime_bundle(
         with tarfile.open(fileobj=io.BytesIO(archive.stdout), mode="r:") as handle:
             members = handle.getmembers()
             _validate_archive_members(members)
-            handle.extractall(extraction_root, members=members, filter="data")
+            # archiveはGit自身が固定commitから生成し、上でpathとentry typeを全件検査している。
+            # Python 3.10でも動作させるため、3.12以降のextraction filterには依存しない。
+            handle.extractall(extraction_root, members=members)
 
         backend_dir = extraction_root / BACKEND_PREFIX
         if not backend_dir.is_dir():
