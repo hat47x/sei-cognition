@@ -148,7 +148,7 @@ harnessは次を一続きに実行する。
 7. A / Bのprompt SHA-256が同一であることを確認する。
 8. `livemethodintegration`の通常testを実行する。
 9. runtime交換live testを実行し、historical Applicationとportable reconstructionを検査する。
-10. 成否にかかわらず、そこまで生成されたEvidenceを通常directoryへ保存する。
+10. 成否にかかわらず、そこまで生成されたEvidenceをrun専用directoryへ保存する。
 
 実行場所は意味上の条件にしない。
 
@@ -167,11 +167,14 @@ repository-local化によって、workflow環境では暗黙に成立してい�
 
 - SOZA / KJ Atlasに未commit変更がある場合は、実行bytesとcommit identityが一致しないため開始しない。
 - `--work-dir`は既存directoryを受け付けず、harness自身が新しく作成したdirectoryだけを一時作業領域として扱う。
+- `--evidence-dir`も既存directoryを受け付けず、一つのdirectoryに一つのrunだけを対応させる。
 - work / Evidence directoryがSOZAまたはKJ Atlas repository配下を指す場合は、directory作成前に拒否する。
 - 固定local port `11434` / `8001` / `8101`が使用中なら開始しない。
 - Ollama / model adapter / KJ Atlasのready判定では、health responseだけでなくharness自身が起動したPIDの生存も確認する。
 
-この停止線により、既に動いている別Ollama等のresponseを今回のruntime version交換Evidenceとして誤認したり、利用者が指定した既存作業directoryをcleanupで削除したりすることを避ける。
+Evidence directoryをrunごとに分離するのは、今回runが途中で停止した場合に、前回runの未上書きファイルが残って一つのEvidence集合に見えることを防ぐためである。
+
+この停止線により、既に動いている別Ollama等のresponseを今回のruntime version交換Evidenceとして誤認したり、利用者が指定した既存作業directoryをcleanupで削除したり、複数runのEvidenceを混在させたりすることを避ける。
 
 ## Artifact guard
 
@@ -220,6 +223,7 @@ actual execution identity guard
 - shell側のOllama version / archive digestがGo側の固定値と一致する。
 - harnessがKJ Atlas checkout、A / B archive、A / B version logをlive guardへ明示する。
 - Go側live guardに`GITHUB_WORKSPACE`や固定`/tmp`の暗黙fallbackが残っていない。
+- Evidence directoryをrunごとの新しいpathへ分離する停止線が残っている。
 
 ```text
 harness interface test PASS
@@ -356,6 +360,8 @@ Evidence directoryへ、存在する範囲で次を保存する。
 
 途中で停止した場合も、そこまで生成されたEvidenceを残す。runtime archiveのdigest mismatchで停止した場合も、期待値だけでなく実際に計算したdigestを保存する。
 
+一つのEvidence directoryは一つのrun専用とし、既存directoryへ追記しない。これにより、途中失敗したrunに前回runの後半Evidenceが残っているような混在を防ぐ。
+
 ```text
 Evidence directory preserved
   != runtime exchange PASS
@@ -403,6 +409,7 @@ current implementationには次がある。
 - SOZA / KJ Atlas clean-tree guard
 - source repository配下を拒否するwork / Evidence path guard
 - 既存`--work-dir`を拒否し、harness所有の新規作業directoryだけをcleanupする境界
+- 既存`--evidence-dir`を拒否し、Evidenceをrun単位に分離する境界
 - local port availabilityと起動PIDの生存確認
 - A / B runtime archiveの実測SHA-256保存
 - live guardへ検査対象pathを明示する境界
@@ -437,6 +444,9 @@ harness / Go fixed-identity consistency checks
 
 runtime artifact / source / version live guard
   = implemented with explicit paths
+
+run-isolated Evidence directory guard
+  = implemented
 
 actual runtime 0.32.13 / 0.32.14 acquisition through current harness
   = Not Yet Verified
@@ -482,7 +492,7 @@ actual実証後に次へ再照合する。
 6. Application AのReference / Provenance / outputがB追加後も不変である。
 7. Realization payload verification、portable reconstruction、unknown revision negative controlがPASSする。
 8. Recommendation / Decisionへの自動昇格がない。
-9. filesystem Evidence directoryから実験identity、入力、A / Bの実測runtime digest、出力、model Evidenceへ戻れる。
+9. run専用filesystem Evidence directoryから実験identity、入力、A / Bの実測runtime digest、出力、model Evidenceへ戻れる。
 10. Requirement / Contract再照合と自然な日本語最終監査を行う。
 
 GitHub-hosted runnerの復旧やGitHub Actions workflowの再導入はResolution条件にしない。
@@ -500,6 +510,7 @@ Resolved後も次の場合は再開する。
 - promptが交換軸へ混入する。
 - 別processのhealth responseを今回のactual runtime実行として誤認できる。
 - 利用者が指定した既存作業directoryをharnessが上書き・削除できる。
+- 複数runのEvidenceが同じdirectoryへ混在し、一つの実行identityとして読めてしまう。
 - live guardが実行器から渡されたpath以外を暗黙に参照し、source / artifact identityを取り違えられる。
 - runtime固有情報をUniversal semanticsへ先取りする。
 - actual実験本文が特定automation providerにしか存在せず、repositoryから再実行できなくなる。
@@ -530,6 +541,8 @@ ISSUE-000067 / ISSUE-000068、Cognitive Method Contract、Exact Binding、curren
 PR #76でactual実験本文をrepository-local harnessへ戻した後、ローカル実行特有の前提も再監査した。source treeのcleanliness、専用作業領域、実行platform、process起動環境を明示し、別processのhealth responseや利用者所有directoryを今回の実験へ誤って取り込まないようにした。また、runtime archiveについて期待digestだけでなく実測digestもEvidenceへ残すことで、途中失敗時の事実へ戻れるようにした。
 
 さらに、harnessとGo側live guardの間で検査対象pathを暗黙のworkspaceや`/tmp`へ委ねないようにした。KJ Atlas checkout、runtime archive、version logは実行器が明示し、軽量testでshell側とGo側の固定runtime identityがずれていないことも確認できる構造にした。この軽量testはactual inferenceの代替にはしない。
+
+Evidence保存先もrunごとの新しいdirectoryに限定した。途中失敗した新runへ過去runのファイルが残り、実際には生成されていない後半Evidenceまで今回のものとして読める状態を避けるためである。
 
 これらはruntime交換が成功したというEvidenceではない。実行identityを取り違えず、失敗時にも観測事実を残すための実験基盤の補強である。actual Ollama `0.32.13` / `0.32.14`交換は引き続きNot Yet Verifiedとして維持している。
 
