@@ -289,7 +289,7 @@ model storeを新規準備する場合は`--prepare-model-dir`を使います。
 
 preflightが`ready`ならstrict入口を起動します。strict実行のstdout/stderrは一つのrunner logへ集約し、SHA-256とbytesをrunner observationへ保存します。
 
-strict processが失敗し、その時点でEvidence directoryがまだ作られていない場合は、process終了後にverified runnerが新しいEvidence directoryを作成し、少なくとも次を残します。
+strict processが失敗し、その時点でEvidence directoryがまだ作られていない場合は、process終了後にverified runnerが新しいEvidence directoryを作成して、少なくとも次を残します。
 
 - successful preflight report
 - runner combined output log
@@ -328,7 +328,7 @@ python3 runtime/integration/verify_runtime_version_exchange_provenance.py \
 - preflightのfixed artifact条件がcurrent artifact manifestと一致すること
 - preflightのpinned source identityがcurrent固定値と一致すること
 - checkout起点の場合、fixed commit objectからのsource export Provenanceがactual source identityと一致すること
-- verified bundle直入力の場合、checkout source-export fileが混入していないこと
+- verified bundle直入力の場合、checkout source export fileが混入していないこと
 
 完全なrunだけが`ready-to-review`になり得ます。blocked preflightや途中失敗のpartial Evidenceは、保存されていても`not-sufficient`です。
 
@@ -387,29 +387,39 @@ low-level harnessは次を一続きに確認します。
 
 ## ローカルの軽量検査
 
-actual runtimeを起動せず確認できる境界は個別に実行します。
+actual runtimeを起動しないfocused regressionの標準入口は`run_runtime_version_exchange_local_checks.py`です。個々のtestをREADMEへ重複列挙せず、実行順序と対象集合はrunnerの`CHECK_FILES`を正とします。
+
+全focused checkを実行する場合:
 
 ```bash
-python3 runtime/integration/test_prepare_runtime_version_exchange_archives.py
-python3 runtime/integration/test_prepare_runtime_version_exchange_model_store.py
-python3 runtime/integration/test_verify_runtime_version_exchange_model_store.py
-python3 runtime/integration/test_check_runtime_version_exchange_preflight.py
-python3 runtime/integration/test_runtime_version_exchange_preflight_model_store.py
-python3 runtime/integration/test_run_runtime_version_exchange_strict.py
-python3 runtime/integration/test_run_runtime_version_exchange_strict_model_preparation.py
-python3 runtime/integration/test_run_runtime_version_exchange.py
-python3 runtime/integration/test_run_runtime_version_exchange_with_verification.py
-python3 runtime/integration/test_runtime_version_exchange_blocked_preflight_evidence.py
-python3 runtime/integration/test_verify_runtime_version_exchange_evidence.py
-python3 runtime/integration/test_verify_runtime_version_exchange_provenance.py
-python3 runtime/integration/test_runtime_version_exchange_provenance_wiring.py
+python3 runtime/integration/run_runtime_version_exchange_local_checks.py
 ```
 
+現在の登録内容と順序だけを確認する場合:
+
+```bash
+python3 runtime/integration/run_runtime_version_exchange_local_checks.py --list
+```
+
+登録済みtestの一部だけを実行する場合:
+
+```bash
+python3 runtime/integration/run_runtime_version_exchange_local_checks.py \
+  --only test_verify_runtime_version_exchange_provenance.py
+```
+
+runnerは、`runtime/integration/test_*.py`からruntime交換に属するcandidateを検出し、明示allowlistと完全一致することを実行前に確認します。新しいruntime交換testを追加したのにallowlistへ登録していない場合も、逆に古い登録だけが残っている場合も、focused checkを開始する前に拒否します。KJ Atlas source identityを担うtestは、名前だけではruntime交換との関係を判定できないため明示的な補助集合として扱います。
+
+runner自身のself-testも通常のfocused checkに含めます。self-testはrunnerを再帰実行せず、allowlist完全性、環境変数のsanitize、選択順序、Evidence停止線などrunner自身の境界をunit testとして確認します。
+
 ```text
-local helper test PASS
+focused local checks PASS
+  = 登録済みfocused regressionがすべて成功した
   != actual Ollama A/B inference PASS
   != runtime-version-exchange Scoped Executable Evidence
 ```
+
+個別testを直接実行することもできますが、ISSUE-000070向けのfocused regressionを一式確認するときはrunnerを標準入口とします。
 
 ## Evidenceの読み方
 
@@ -470,12 +480,14 @@ runtime exchange PASS
 
 ## 自然な日本語レビュー
 
-このREADMEを、current no-Actions baseline、固定runtime / source / model identity、artifact準備、preflight、strict entrypoint、bundle-only low-level harness、failure Evidence保存、core Evidence verifier、Provenance verifier、成果品質評価境界へ戻って全文再監査しました。
+このREADMEを、current no-Actions baseline、固定runtime / source / model identity、artifact準備、preflight、strict entrypoint、bundle-only low-level harness、failure Evidence保存、core Evidence verifier、Provenance verifier、focused local check runner、成果品質評価境界へ戻って全文再監査しました。
 
 現在は、preflightで止まったrun、strict開始後に止まったrun、complete runを同じ「成功／失敗」の二値へ押し込まず、どこまで進んだかをEvidenceから読める構成にしています。失敗情報を残すことと、実証が成立したと判断することは明確に分けています。
 
 また、checkoutは固定commit objectの取得元として利用できますが、low-level harnessへworking treeを直接渡す経路は廃止しました。strict Evidenceで実行するsourceは、固定Git object identityを再検証したruntime bundleです。
 
 保存済みrunの標準検証は、core execution条件に加えてpreflightとsource acquisitionまで見る`verify_runtime_version_exchange_provenance.py`としました。core verifierは独立した下位境界として残し、双方のPASSをRequirement / Contract判断や成果品質へ自動昇格させません。
+
+focused local check runnerでは、実行対象を明示allowlistとして管理しながら、candidate discoveryとの完全一致を開始前に検証します。runner自身のself-testも通常実行へ含めることで、focused regressionの対象漏れとrunner境界の回帰を同時に検出できるようにしています。
 
 actual Ollama `0.32.13` / `0.32.14`交換は引き続きNot Yet Verifiedです。実装済みの準備・安全策・失敗Evidence保存と、未完了のactual A/B実行を自然な日本語として明確に読み分けられることを最重要視しています。
