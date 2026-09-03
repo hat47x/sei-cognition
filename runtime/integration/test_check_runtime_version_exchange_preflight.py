@@ -1,5 +1,6 @@
 import hashlib
 import re
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -101,6 +102,49 @@ class RuntimeVersionExchangePreflightTest(unittest.TestCase):
 
         self.assertEqual(["ok", "blocked"], [check.status for check in checks])
         self.assertIn("固定model artifact identity", checks[1].detail)
+
+    def test_source_repository_check_uses_pinned_commit_object_not_head_or_tree_state(self):
+        calls: list[tuple[str, ...]] = []
+
+        def fake_run_git(path: Path, *args: str) -> subprocess.CompletedProcess[str]:
+            calls.append(args)
+            if args == ("rev-parse", "--is-inside-work-tree"):
+                return subprocess.CompletedProcess([], 0, stdout="true\n", stderr="")
+            if args == ("cat-file", "-e", f"{preflight.KJ_ATLAS_COMMIT}^{{commit}}"):
+                return subprocess.CompletedProcess([], 0, stdout="", stderr="")
+            raise AssertionError(f"unexpected git call: {args}")
+
+        with patch.object(preflight, "run_git", side_effect=fake_run_git):
+            checks = preflight.repository_commit_object_check(
+                "kj-atlas",
+                Path("/tmp/kj-atlas"),
+                preflight.KJ_ATLAS_COMMIT,
+            )
+
+        self.assertEqual(["ok", "ok"], [check.status for check in checks])
+        self.assertEqual(
+            [
+                ("rev-parse", "--is-inside-work-tree"),
+                ("cat-file", "-e", f"{preflight.KJ_ATLAS_COMMIT}^{{commit}}"),
+            ],
+            calls,
+        )
+        self.assertIn("HEADやworking treeの内容はstrict runtime sourceに使用しません", checks[1].detail)
+
+    def test_source_repository_check_rejects_missing_pinned_commit_object(self):
+        results = [
+            subprocess.CompletedProcess([], 0, stdout="true\n", stderr=""),
+            subprocess.CompletedProcess([], 1, stdout="", stderr="missing object"),
+        ]
+        with patch.object(preflight, "run_git", side_effect=results):
+            checks = preflight.repository_commit_object_check(
+                "kj-atlas",
+                Path("/tmp/kj-atlas"),
+                preflight.KJ_ATLAS_COMMIT,
+            )
+
+        self.assertEqual(["ok", "blocked"], [check.status for check in checks])
+        self.assertEqual("kj-atlas.commit-object", checks[1].id)
 
     def test_disk_capacity_check_is_observational_only(self):
         with tempfile.TemporaryDirectory() as temp:
