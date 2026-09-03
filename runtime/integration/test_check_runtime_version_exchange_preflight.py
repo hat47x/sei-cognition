@@ -121,6 +121,32 @@ class RuntimeVersionExchangePreflightTest(unittest.TestCase):
         self.assertIn(preflight.MODEL_SHA256, checks[1].detail)
         self.assertIn("/api/tags", checks[1].detail)
 
+    def test_model_store_rejects_location_inside_source_before_identity_verification(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source = Path(temp) / "source"
+            model = source / "model"
+            model.mkdir(parents=True)
+            with patch.object(preflight, "verify_model_store") as verifier:
+                checks = preflight.model_store_check(model, (source,), True)
+
+        verifier.assert_not_called()
+        self.assertEqual("blocked", checks[0].status)
+        self.assertEqual("model.store", checks[0].id)
+        self.assertIn("source配下", checks[0].detail)
+
+    def test_model_store_rejects_parent_containing_source_before_identity_verification(self):
+        with tempfile.TemporaryDirectory() as temp:
+            model = Path(temp) / "model"
+            source = model / "kj-atlas"
+            source.mkdir(parents=True)
+            with patch.object(preflight, "verify_model_store") as verifier:
+                checks = preflight.model_store_check(model, (source,), True)
+
+        verifier.assert_not_called()
+        self.assertEqual("blocked", checks[0].status)
+        self.assertEqual("model.store", checks[0].id)
+        self.assertIn("sourceを包含できません", checks[0].detail)
+
     def test_model_store_blocks_when_static_identity_verification_fails(self):
         with tempfile.TemporaryDirectory() as temp:
             source = Path(temp) / "source"

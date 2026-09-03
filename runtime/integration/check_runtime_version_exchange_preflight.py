@@ -311,8 +311,23 @@ def model_store_check(
         return [Check("model.store", status, detail)]
     resolved = canonical_path(path)
     for root in source_roots:
-        if is_within(resolved, root):
-            return [Check("model.store", "blocked", f"source配下は使用できません: {resolved}")]
+        canonical_root = canonical_path(root)
+        if is_within(resolved, canonical_root):
+            return [
+                Check(
+                    "model.store",
+                    "blocked",
+                    f"model storageをsource配下には置けません: model={resolved} source={canonical_root}",
+                )
+            ]
+        if is_within(canonical_root, resolved):
+            return [
+                Check(
+                    "model.store",
+                    "blocked",
+                    f"model storageでsourceを包含できません: model={resolved} source={canonical_root}",
+                )
+            ]
     if not resolved.is_dir():
         return [Check("model.store", "blocked", f"model storage directoryが存在しません: {resolved}")]
 
