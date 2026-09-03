@@ -132,6 +132,44 @@ class RuntimeVersionExchangeIdentityConsistencyTest(unittest.TestCase):
         self.assertEqual(manifest["model"]["name"], shell_value(harness, "MODEL_NAME"))
         self.assertEqual(manifest["model"]["sha256"], shell_value(harness, "MODEL_SHA256"))
 
+    def test_runtime_archive_size_and_platform_remain_manifest_aligned(self):
+        manifest = prepare.load_manifest()
+        runtime_a = manifest["runtimeArchives"]["a"]
+        runtime_b = manifest["runtimeArchives"]["b"]
+        expected_platform = {"os": "linux", "arch": "amd64"}
+
+        self.assertEqual(runtime_a["sizeBytes"], preflight.RUNTIME_SIZE_A)
+        self.assertEqual(runtime_b["sizeBytes"], preflight.RUNTIME_SIZE_B)
+        self.assertEqual(
+            runtime_a["sizeBytes"] + runtime_b["sizeBytes"],
+            preflight.TOTAL_COMPRESSED_RUNTIME_BYTES,
+        )
+        self.assertEqual(expected_platform, runtime_a["platform"])
+        self.assertEqual(expected_platform, runtime_b["platform"])
+
+        harness = HARNESS.read_text(encoding="utf-8")
+        self.assertIn('if [[ "${HOST_OS}" != "Linux" ]]', harness)
+        self.assertIn("x86_64|amd64)", harness)
+
+    def test_runtime_archive_download_origin_remains_manifest_aligned(self):
+        manifest = prepare.load_manifest()
+        harness = HARNESS.read_text(encoding="utf-8")
+
+        for label in ("a", "b"):
+            archive = manifest["runtimeArchives"][label]
+            expected_url = (
+                "https://github.com/ollama/ollama/releases/download/"
+                f"v{archive['version']}/{archive['assetName']}"
+            )
+            with self.subTest(runtime=label):
+                self.assertEqual(expected_url, archive["downloadUrl"])
+                self.assertEqual("ollama-linux-amd64.tar.zst", archive["assetName"])
+
+        self.assertIn(
+            'https://github.com/ollama/ollama/releases/download/v${version}/ollama-linux-amd64.tar.zst',
+            harness,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
