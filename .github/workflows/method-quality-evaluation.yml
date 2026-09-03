@@ -1,0 +1,49 @@
+name: Method Quality Evaluation
+
+on:
+  pull_request:
+    paths:
+      - "evaluation/method-quality/**"
+      - ".github/workflows/method-quality-evaluation.yml"
+  push:
+    branches:
+      - develop/v0.2.0
+    paths:
+      - "evaluation/method-quality/**"
+      - ".github/workflows/method-quality-evaluation.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  evaluation-tools:
+    name: structural and non-golden evaluation tools
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout SOZA
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run evaluation tool tests
+        working-directory: evaluation/method-quality
+        run: |
+          python -m unittest \
+            test_check_grouping_structure.py \
+            test_build_review_bundle_manifest.py \
+            test_validate_case_catalog.py
+
+      - name: Validate non-golden case catalog
+        working-directory: evaluation/method-quality
+        run: |
+          python validate_case_catalog.py case_catalog.json
