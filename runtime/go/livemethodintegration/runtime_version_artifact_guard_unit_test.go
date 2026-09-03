@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/hat47x/soza/runtime/go/semanticruntime"
 )
 
 func TestVerifyRuntimeExchangeVersionAcceptsExactVersionToken(t *testing.T) {
@@ -56,5 +58,139 @@ func TestVerifyRuntimeExchangeArtifactRejectsDigestMismatch(t *testing.T) {
 		"0000000000000000000000000000000000000000000000000000000000000000",
 	); err == nil {
 		t.Fatal("runtime artifact guard accepted a digest mismatch")
+	}
+}
+
+// Realization recordのExact Bindingはbundle内の参照整合だけでなく、
+// Raw Bytes SHA-256 Profileに従って実際のpayload bytesとも一致する必要があります。
+func TestRuntimeExchangeRealizationPayloadExactBindingVerification(t *testing.T) {
+	revision := runtimeExchangeRealizationRevisionRecord(
+		t,
+		"record-runtime-exchange-realization-verifier",
+		logical("method-realization", "MR-KJ-ATLAS-RUNTIME-EXCHANGE"),
+		runtimeExchangeVersionA,
+		runtimeExchangeArtifactA,
+		"qwen2.5:0.5b",
+		"a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+	)
+	if revision.Record.ExactBinding == nil {
+		t.Fatal("runtime realization record lost exact binding")
+	}
+
+	registry, err := semanticruntime.NewDefaultVerifierRegistry()
+	if err != nil {
+		t.Fatalf("create verifier registry: %v", err)
+	}
+	outcome := registry.Verify(*revision.Record.ExactBinding, revision.Record.Payload)
+	if outcome.Status != semanticruntime.VerificationVerified {
+		t.Fatalf("runtime realization payload was not verified: %#v", outcome)
+	}
+
+	tampered := append([]byte(nil), revision.Record.Payload...)
+	if len(tampered) == 0 {
+		t.Fatal("runtime realization payload is empty")
+	}
+	tampered[len(tampered)-1] ^= 0x01
+	outcome = registry.Verify(*revision.Record.ExactBinding, tampered)
+	if outcome.Status != semanticruntime.VerificationFailed {
+		t.Fatalf("tampered runtime realization payload was not rejected: %#v", outcome)
+	}
+}
+
+func TestRuntimeExchangeRealizationBindingIsDeterministicForSameIdentity(t *testing.T) {
+	logicalRef := logical("method-realization", "MR-KJ-ATLAS-RUNTIME-EXCHANGE")
+	modelID := "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67"
+
+	first := runtimeExchangeRealizationRevisionRecord(
+		t,
+		"record-runtime-exchange-realization-deterministic-a",
+		logicalRef,
+		runtimeExchangeVersionA,
+		runtimeExchangeArtifactA,
+		"qwen2.5:0.5b",
+		modelID,
+	)
+	second := runtimeExchangeRealizationRevisionRecord(
+		t,
+		"record-runtime-exchange-realization-deterministic-b",
+		logicalRef,
+		runtimeExchangeVersionA,
+		runtimeExchangeArtifactA,
+		"qwen2.5:0.5b",
+		modelID,
+	)
+
+	if first.Record.ExactBinding == nil || second.Record.ExactBinding == nil {
+		t.Fatal("deterministic realization record lost exact binding")
+	}
+	if first.Record.ExactBinding.ContentDigest != second.Record.ExactBinding.ContentDigest {
+		t.Fatalf(
+			"same realization identity produced different exact bindings: first=%s second=%s",
+			first.Record.ExactBinding.ContentDigest,
+			second.Record.ExactBinding.ContentDigest,
+		)
+	}
+}
+
+func TestRuntimeExchangeRealizationBindingChangesWhenExecutionArtifactIdentityChanges(t *testing.T) {
+	logicalRef := logical("method-realization", "MR-KJ-ATLAS-RUNTIME-EXCHANGE")
+	modelID := "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67"
+	base := runtimeExchangeRealizationRevisionRecord(
+		t,
+		"record-runtime-exchange-realization-base",
+		logicalRef,
+		runtimeExchangeVersionA,
+		runtimeExchangeArtifactA,
+		"qwen2.5:0.5b",
+		modelID,
+	)
+	if base.Record.ExactBinding == nil {
+		t.Fatal("base realization record lost exact binding")
+	}
+
+	tests := []struct {
+		name            string
+		runtimeVersion  string
+		runtimeArtifact string
+		modelID         string
+	}{
+		{
+			name:            "runtime version",
+			runtimeVersion:  runtimeExchangeVersionB,
+			runtimeArtifact: runtimeExchangeArtifactA,
+			modelID:         modelID,
+		},
+		{
+			name:            "runtime artifact",
+			runtimeVersion:  runtimeExchangeVersionA,
+			runtimeArtifact: runtimeExchangeArtifactB,
+			modelID:         modelID,
+		},
+		{
+			name:            "model artifact",
+			runtimeVersion:  runtimeExchangeVersionA,
+			runtimeArtifact: runtimeExchangeArtifactA,
+			modelID:         "b" + modelID[1:],
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			changed := runtimeExchangeRealizationRevisionRecord(
+				t,
+				"record-runtime-exchange-realization-changed",
+				logicalRef,
+				tt.runtimeVersion,
+				tt.runtimeArtifact,
+				"qwen2.5:0.5b",
+				tt.modelID,
+			)
+			if changed.Record.ExactBinding == nil {
+				t.Fatal("changed realization record lost exact binding")
+			}
+			if changed.Record.ExactBinding.ContentDigest == base.Record.ExactBinding.ContentDigest {
+				t.Fatalf("%s change did not change realization exact binding", tt.name)
+			}
+		})
 	}
 }
