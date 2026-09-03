@@ -153,6 +153,21 @@ def verify_runtime_bundle(
     }
 
 
+def _prepare_output_path(path: Path, backend_dir: Path) -> Path:
+    backend = backend_dir.expanduser().resolve(strict=True)
+    if path.is_symlink():
+        raise ValueError(f"output path must not be a symlink: {path}")
+    output = path.expanduser().resolve(strict=False)
+    if output.exists():
+        raise ValueError(f"output path already exists: {output}")
+    if output == backend or backend in output.parents:
+        raise ValueError(
+            "verification output must be outside the verified runtime source bundle: "
+            f"{output}"
+        )
+    return output
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Verify the pinned KJ Atlas runtime source bundle."
@@ -163,12 +178,17 @@ def main() -> int:
 
     try:
         payload = verify_runtime_bundle(args.backend_dir)
+        output = (
+            _prepare_output_path(args.output, args.backend_dir)
+            if args.output is not None
+            else None
+        )
     except (OSError, ValueError) as exc:
         parser.exit(1, f"KJ Atlas runtime source verification failed: {exc}\n")
 
     rendered = json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
-    if args.output is not None:
-        args.output.write_text(rendered, encoding="utf-8")
+    if output is not None:
+        output.write_text(rendered, encoding="utf-8")
     print(rendered, end="")
     return 0
 
