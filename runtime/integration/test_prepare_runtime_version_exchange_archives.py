@@ -1,5 +1,6 @@
 import hashlib
 import io
+import json
 import re
 import tempfile
 import unittest
@@ -43,6 +44,13 @@ class FakeResponse(io.BytesIO):
 
 
 class RuntimeVersionExchangeArchivePreparationTest(unittest.TestCase):
+    def write_manifest(self, root: Path, mutate) -> Path:
+        payload = prepare.load_manifest()
+        mutate(payload)
+        path = root / "manifest.json"
+        path.write_text(json.dumps(payload), encoding="utf-8")
+        return path
+
     def test_manifest_contains_fixed_runtime_and_model_identity(self):
         manifest = prepare.load_manifest()
         self.assertEqual(
@@ -103,6 +111,54 @@ class RuntimeVersionExchangeArchivePreparationTest(unittest.TestCase):
         )
         self.assertEqual(manifest["model"]["name"], preflight.MODEL_NAME)
         self.assertEqual(manifest["model"]["sha256"], preflight.MODEL_SHA256)
+
+    def test_manifest_loader_rejects_non_official_runtime_url(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            path = self.write_manifest(
+                root,
+                lambda payload: payload["runtimeArchives"]["a"].__setitem__(
+                    "downloadUrl", "https://example.invalid/ollama.tar.zst"
+                ),
+            )
+            with self.assertRaisesRegex(ValueError, "downloadUrl"):
+                prepare.load_manifest(path)
+
+    def test_manifest_loader_rejects_boolean_runtime_size(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            path = self.write_manifest(
+                root,
+                lambda payload: payload["runtimeArchives"]["a"].__setitem__(
+                    "sizeBytes", True
+                ),
+            )
+            with self.assertRaisesRegex(ValueError, "sizeBytes"):
+                prepare.load_manifest(path)
+
+    def test_manifest_loader_rejects_non_hex_runtime_sha256(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            path = self.write_manifest(
+                root,
+                lambda payload: payload["runtimeArchives"]["a"].__setitem__(
+                    "sha256", "z" * 64
+                ),
+            )
+            with self.assertRaisesRegex(ValueError, "sha256"):
+                prepare.load_manifest(path)
+
+    def test_manifest_loader_rejects_non_linux_amd64_platform(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            path = self.write_manifest(
+                root,
+                lambda payload: payload["runtimeArchives"]["a"].__setitem__(
+                    "platform", {"os": "darwin", "arch": "arm64"}
+                ),
+            )
+            with self.assertRaisesRegex(ValueError, "platform"):
+                prepare.load_manifest(path)
 
     def test_plan_reports_exact_compressed_total_without_network_access(self):
         manifest = prepare.load_manifest()
