@@ -15,7 +15,6 @@ import (
 
 const (
 	runtimeExchangeKJAtlasSourceModeEnv     = "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_MODE"
-	runtimeExchangeKJAtlasDirEnv            = "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_DIR"
 	runtimeExchangeKJAtlasBackendDirEnv     = "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_DIR"
 	runtimeExchangeKJAtlasSourceVerifierEnv = "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_VERIFIER"
 	runtimeExchangeAVersionLogEnv           = "SOZA_E3B_RUNTIME_EXCHANGE_VERSION_LOG_A"
@@ -34,9 +33,10 @@ const (
 // Exact Bindingへ固定するidentityと実行事実が一致しない状態では、historical
 // revisionの検査を開始しません。
 //
-// current baselineでは実行場所を意味境界から分離するため、GitHub Actions固有の
-// workspaceや固定/tmp配置へ暗黙に戻りません。repository-local harnessなどの
-// 実行器が、検証対象のpathとsource modeを明示的な環境変数として渡します。
+// KJ AtlasのGit checkoutはsource取得元として利用できますが、working treeを
+// actual実行sourceにはしません。.env、__pycache__、*.soなどGitのignored fileが
+// 実行条件へ混入し得るためです。live Evidenceでは、固定commit objectからexportした
+// runtime surfaceか、同じGit object identityを持つ外部bundleを必ずverifierへ通します。
 func TestMain(m *testing.M) {
 	if os.Getenv("SOZA_E3B_RUNTIME_EXCHANGE_LIVE") == "1" {
 		if err := verifyRuntimeExchangeKJAtlasSource(); err != nil {
@@ -107,39 +107,15 @@ func verifyRuntimeExchangeKJAtlasSource() error {
 
 	switch sourceMode {
 	case runtimeExchangeKJAtlasSourceModeGitCheckout:
-		return verifyRuntimeExchangeKJAtlasGitCheckout()
+		return fmt.Errorf(
+			"runtime exchange live testではGit working treeを実行sourceにできません。" +
+				"固定commit objectからverified runtime bundleをexportしてください",
+		)
 	case runtimeExchangeKJAtlasSourceModeBundle:
 		return verifyRuntimeExchangeKJAtlasBundle()
 	default:
 		return fmt.Errorf("runtime exchange KJ Atlas source modeを認識できません: %s", sourceMode)
 	}
-}
-
-func verifyRuntimeExchangeKJAtlasGitCheckout() error {
-	kjAtlasDir, err := runtimeExchangeRequiredPath(runtimeExchangeKJAtlasDirEnv)
-	if err != nil {
-		return err
-	}
-	command := exec.Command("git", "-C", kjAtlasDir, "rev-parse", "HEAD")
-	output, err := command.Output()
-	if err != nil {
-		return fmt.Errorf("KJ Atlas checkoutのcommitを確認できません: dir=%s: %w", kjAtlasDir, err)
-	}
-	actual := strings.TrimSpace(string(output))
-	if actual != pinnedKJAtlasCommit {
-		return fmt.Errorf("KJ Atlas checkoutがExact Binding用の固定commitと一致しません: actual=%s expected=%s", actual, pinnedKJAtlasCommit)
-	}
-	if err := exec.Command("git", "-C", kjAtlasDir, "cat-file", "-e", actual+"^{commit}").Run(); err != nil {
-		return fmt.Errorf("KJ Atlas checkoutで固定commit objectを確認できません: commit=%s: %w", actual, err)
-	}
-	status, err := exec.Command("git", "-C", kjAtlasDir, "status", "--porcelain", "--untracked-files=all").Output()
-	if err != nil {
-		return fmt.Errorf("KJ Atlas checkoutのworking tree状態を再確認できません: dir=%s: %w", kjAtlasDir, err)
-	}
-	if strings.TrimSpace(string(status)) != "" {
-		return fmt.Errorf("KJ Atlas checkoutがlive test開始前にcleanではありません: dir=%s status=%q", kjAtlasDir, strings.TrimSpace(string(status)))
-	}
-	return nil
 }
 
 func verifyRuntimeExchangeKJAtlasBundle() error {
