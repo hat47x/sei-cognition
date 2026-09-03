@@ -1,0 +1,185 @@
+{
+  "schema": "soza.method-quality-historical-actual-samples/v1",
+  "rules": {
+    "goldenGrouping": false,
+    "machineScoring": false,
+    "preferredOutput": false,
+    "qualityJudgement": "not_evaluated"
+  },
+  "samples": [
+    {
+      "id": "M1B-RUN-33596839607",
+      "source": {
+        "workflowRunId": "33596839607",
+        "jobId": "100141890796",
+        "repositoryCommit": "27476bb6a1e9583282ae59f54395abbdef185186",
+        "methodSourceCommit": "4f28c13abe4176503c6fed863383a2d1db2299e9",
+        "runtime": "ollama",
+        "runtimeVersion": "0.32.14",
+        "model": "qwen2.5:0.5b",
+        "observedModelIdPrefix": "a8b0c5157701",
+        "promptSha256": "cd3d5eeb64cddfbdce63d80b0451b19703f43bcd2d1b09d7188f6bd4d7de2d33"
+      },
+      "request": {
+        "cards": [
+          {
+            "id": "c-remote-time",
+            "text": "在宅勤務では通勤に使う時間を減らせる",
+            "textReviewed": true
+          },
+          {
+            "id": "c-remote-load",
+            "text": "在宅勤務では移動による負担を減らせる",
+            "textReviewed": true
+          },
+          {
+            "id": "c-held",
+            "text": "人事評価制度の見直しはまだ着手していない",
+            "textReviewed": true
+          }
+        ],
+        "doc": {
+          "version": 1,
+          "id": "soza-e3b-m1b",
+          "createdAt": "2026-09-02T00:00:00Z",
+          "updatedAt": "2026-09-02T00:00:00Z",
+          "transform": {
+            "panX": 0,
+            "panY": 0,
+            "zoom": 1
+          },
+          "cards": [
+            {
+              "id": "c-remote-time",
+              "text": "在宅勤務では通勤に使う時間を減らせる",
+              "x": 0,
+              "y": 0,
+              "textReviewed": true
+            },
+            {
+              "id": "c-remote-load",
+              "text": "在宅勤務では移動による負担を減らせる",
+              "x": 40,
+              "y": 0,
+              "textReviewed": true
+            },
+            {
+              "id": "c-held",
+              "text": "人事評価制度の見直しはまだ着手していない",
+              "x": 80,
+              "y": 0,
+              "textReviewed": true,
+              "holdState": "held"
+            }
+          ],
+          "edges": [],
+          "islands": [],
+          "evidenceLinks": []
+        }
+      },
+      "result": {
+        "excludedCardIds": [
+          "c-held"
+        ],
+        "groups": [
+          {
+            "cardIds": [
+              "c-remote-time",
+              "c-remote-load"
+            ],
+            "label": "生活習慣",
+            "rationale": "在宅勤務では通勤に使う時間を減らせると、移動による負担を減らすための生活習慣の一つです。"
+          }
+        ],
+        "truncated": false
+      }
+    },
+    {
+      "id": "M1B-RUN-33609470323",
+      "source": {
+        "workflowRunId": "33609470323",
+        "jobId": "100180968648",
+        "repositoryCommit": "51ec4502bf0a34097f975a5445069c26ea831f32",
+        "methodSourceCommit": "4f28c13abe4176503c6fed863383a2d1db2299e9",
+        "runtime": "ollama",
+        "runtimeVersion": "0.32.14",
+        "model": "qwen2.5:0.5b",
+        "observedModelIdPrefix": "a8b0c5157701",
+        "promptSha256": "cd3d5eeb64cddfbdce63d80b0451b19703f43bcd2d1b09d7188f6bd4d7de2d33"
+      },
+      "request": {
+        "cards": [
+          {
+            "id": "c-remote-time",
+            "text": "在宅勤務では通勤に使う時間を減らせる",
+            "textReviewed": true
+          },
+          {
+            "id": "c-remote-load",
+            "text": "在宅勤務では移動による負担を減らせる",
+            "textReviewed": true
+          },
+          {
+            "id": "c-held",
+            "text": "人事評価制度の見直しはまだ着手していない",
+            "textReviewed": true
+          }
+        ],
+        "doc": {
+          "version": 1,
+          "id": "soza-e3b-m1b",
+          "createdAt": "2026-09-02T00:00:00Z",
+          "updatedAt": "2026-09-02T00:00:00Z",
+          "transform": {
+            "panX": 0,
+            "panY": 0,
+            "zoom": 1
+          },
+          "cards": [
+            {
+              "id": "c-remote-time",
+              "text": "在宅勤務では通勤に使う時間を減らせる",
+              "x": 0,
+              "y": 0,
+              "textReviewed": true
+            },
+            {
+              "id": "c-remote-load",
+              "text": "在宅勤務では移動による負担を減らせる",
+              "x": 40,
+              "y": 0,
+              "textReviewed": true
+            },
+            {
+              "id": "c-held",
+              "text": "人事評価制度の見直しはまだ着手していない",
+              "x": 80,
+              "y": 0,
+              "textReviewed": true,
+              "holdState": "held"
+            }
+          ],
+          "edges": [],
+          "islands": [],
+          "evidenceLinks": []
+        }
+      },
+      "result": {
+        "excludedCardIds": [
+          "c-held"
+        ],
+        "groups": [
+          {
+            "cardIds": [
+              "c-remote-time",
+              "c-remote-load"
+            ],
+            "label": "在宅勤務",
+            "rationale": "在宅勤務では通勤に使う時間を減らせると、移動による負担を減らすための効果がある。"
+          }
+        ],
+        "truncated": false
+      }
+    }
+  ]
+}

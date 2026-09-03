@@ -47,18 +47,19 @@ type KJAtlasGroupingResult struct {
 }
 
 type ApplyGroupingInput struct {
-	Store          *interactionprobe.CanonicalStore
-	Source         SourceIdentity
-	Execution      ExecutionIdentity
-	MethodRef      semanticruntime.LogicalReference
-	RealizationRef semanticruntime.LogicalReference
-	ApplicationRef semanticruntime.LogicalReference
-	OutputRef      semanticruntime.LogicalReference
-	ProvenanceRef  semanticruntime.LogicalReference
-	ContextRefs    []semanticruntime.LogicalReference
-	InputRefs      []semanticruntime.LogicalReference
-	AppliedAt      string
-	ResultJSON     []byte
+	Store                *interactionprobe.CanonicalStore
+	Source               SourceIdentity
+	Execution            ExecutionIdentity
+	MethodRef            semanticruntime.LogicalReference
+	RealizationRef       semanticruntime.LogicalReference
+	RealizationReference *semanticruntime.Reference
+	ApplicationRef       semanticruntime.LogicalReference
+	OutputRef            semanticruntime.LogicalReference
+	ProvenanceRef        semanticruntime.LogicalReference
+	ContextRefs          []semanticruntime.LogicalReference
+	InputRefs            []semanticruntime.LogicalReference
+	AppliedAt            string
+	ResultJSON           []byte
 }
 
 type provenancePayload struct {
@@ -115,6 +116,10 @@ func ParseKJAtlasGroupingResult(raw []byte) (KJAtlasGroupingResult, error) {
 // ApplyKJAtlasGroupingResultは、外部Cognitive Methodの結果をopaqueな出力として保持し、
 // 既存Cognitive Method Application Contractから参照します。grouping結果を
 // RecommendationやDecisionへ自動変換しません。
+//
+// RealizationReferenceが与えられた場合は、既存Contractで許されているExact Referenceを
+// そのままMethod Applicationへ保持します。modelやruntimeのversionをUniversal fieldへ
+// 昇格させるための経路ではありません。
 func ApplyKJAtlasGroupingResult(input ApplyGroupingInput) error {
 	if input.Store == nil {
 		return errors.New("canonical store is required")
@@ -128,7 +133,8 @@ func ApplyKJAtlasGroupingResult(input ApplyGroupingInput) error {
 	if err := validateRef("method", input.MethodRef); err != nil {
 		return err
 	}
-	if err := validateRef("realization", input.RealizationRef); err != nil {
+	realizationReference, err := resolveRealizationReference(input)
+	if err != nil {
 		return err
 	}
 	if err := validateRef("application", input.ApplicationRef); err != nil {
@@ -176,6 +182,7 @@ func ApplyKJAtlasGroupingResult(input ApplyGroupingInput) error {
 
 	provenanceRecord := opaqueRecord(input.ProvenanceRef, provenanceBytes)
 	outputRecord := opaqueRecord(input.OutputRef, json.RawMessage(append([]byte(nil), input.ResultJSON...)))
+	applicationRecord := methodApplicationRecord(input, result, realizationReference)
 
 	// 先に一時storeで同じ3 recordを検証し、入力不備による部分追加を避けます。
 	// production transactionを定義するものではなく、single-thread reference probeの安全策です。
@@ -186,8 +193,7 @@ func ApplyKJAtlasGroupingResult(input ApplyGroupingInput) error {
 	if err := probeStore.Add(outputRecord); err != nil {
 		return err
 	}
-	probeMachine := interactionprobe.NewMachineSurface(probeStore)
-	if err := probeMachine.RecordMethodApplication(methodApplicationInput(input, result)); err != nil {
+	if err := probeStore.Add(applicationRecord); err != nil {
 		return err
 	}
 
@@ -197,23 +203,64 @@ func ApplyKJAtlasGroupingResult(input ApplyGroupingInput) error {
 	if err := input.Store.Add(outputRecord); err != nil {
 		return err
 	}
-	machine := interactionprobe.NewMachineSurface(input.Store)
-	return machine.RecordMethodApplication(methodApplicationInput(input, result))
+	return input.Store.Add(applicationRecord)
 }
 
-func methodApplicationInput(input ApplyGroupingInput, result KJAtlasGroupingResult) interactionprobe.MethodApplicationInput {
-	realization := input.RealizationRef
-	return interactionprobe.MethodApplicationInput{
-		Ref:            input.ApplicationRef,
-		MethodRef:      input.MethodRef,
-		RealizationRef: &realization,
-		ContextRefs:    input.ContextRefs,
-		InputRefs:      input.InputRefs,
-		OutputRefs:     []semanticruntime.LogicalReference{input.OutputRef},
-		ProvenanceRefs: []semanticruntime.LogicalReference{input.ProvenanceRef},
-		AppliedAt:      input.AppliedAt,
-		Summary:        fmt.Sprintf("KJ Atlasのsuggest-card-groupsを実行し、%d件のgroup候補を得た。", len(result.Groups)),
+func resolveRealizationReference(input ApplyGroupingInput) (semanticruntime.Reference, error) {
+	if input.RealizationReference == nil {
+		if err := validateRef("realization", input.RealizationRef); err != nil {
+			return semanticruntime.Reference{}, err
+		}
+		return logicalReference(input.RealizationRef), nil
 	}
+
+	value := *input.RealizationReference
+	logical, ok := value.LogicalIdentity()
+	if !ok {
+		return semanticruntime.Reference{}, errors.New("realization reference requires a logical identity")
+	}
+	if input.RealizationRef.Kind != "" || input.RealizationRef.ID != "" || input.RealizationRef.Scope != "" {
+		if err := validateRef("realization", input.RealizationRef); err != nil {
+			return semanticruntime.Reference{}, err
+		}
+		if logical != input.RealizationRef {
+			return semanticruntime.Reference{}, fmt.Errorf("realization logical reference does not match exact reference: logical=%s/%s exact=%s/%s", input.RealizationRef.Kind, input.RealizationRef.ID, logical.Kind, logical.ID)
+		}
+	}
+	return value, nil
+}
+
+func methodApplicationRecord(input ApplyGroupingInput, result KJAtlasGroupingResult, realizationReference semanticruntime.Reference) semanticruntime.RuntimeRecord {
+	realization := realizationReference
+	return semanticruntime.RuntimeRecord{
+		CognitiveMethod: &semanticruntime.CognitiveMethodDocument{
+			Contract:   semanticruntime.ContractCognitiveMethod,
+			RecordType: "method_application",
+			MethodApplication: &semanticruntime.MethodApplication{
+				Ref:            input.ApplicationRef,
+				MethodRef:      logicalReference(input.MethodRef),
+				RealizationRef: &realization,
+				ContextRefs:    logicalReferences(input.ContextRefs),
+				InputRefs:      logicalReferences(input.InputRefs),
+				OutputRefs:     []semanticruntime.Reference{logicalReference(input.OutputRef)},
+				ProvenanceRefs: []semanticruntime.Reference{logicalReference(input.ProvenanceRef)},
+				AppliedAt:      input.AppliedAt,
+				Summary:        fmt.Sprintf("KJ Atlasのsuggest-card-groupsを実行し、%d件のgroup候補を得た。", len(result.Groups)),
+			},
+		},
+	}
+}
+
+func logicalReference(value semanticruntime.LogicalReference) semanticruntime.Reference {
+	return semanticruntime.Reference{Kind: value.Kind, ID: value.ID, Scope: value.Scope}
+}
+
+func logicalReferences(values []semanticruntime.LogicalReference) []semanticruntime.Reference {
+	out := make([]semanticruntime.Reference, 0, len(values))
+	for _, value := range values {
+		out = append(out, logicalReference(value))
+	}
+	return out
 }
 
 func opaqueRecord(ref semanticruntime.LogicalReference, payload json.RawMessage) semanticruntime.RuntimeRecord {
