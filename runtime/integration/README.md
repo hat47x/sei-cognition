@@ -41,7 +41,7 @@ commit
 
 runtime交換の厳密なEvidenceでは、Git working treeをそのまま実行sourceとして使いません。
 
-KJ Atlasは`.env`、`*.so`、`__pycache__`、`*.pyc`、`*.egg-info`などをGit管理外にできます。したがってworking treeが通常の`git status`でcleanでも、ignored fileまで固定commit identityに含まれるわけではありません。
+KJ Atlasは`.env`、`*.so`、`__pycache__`、`*.pyc`、`*.egg-info`などをGit管理外にできます。`Settings`も`.env`を読み得ます。したがってworking treeが通常の`git status`でcleanでも、ignored fileまで固定commit identityに含まれるわけではありません。
 
 ```text
 clean Git checkout
@@ -109,6 +109,45 @@ verifierは次を実測します。
 
 ## 厳密なruntime交換実行
 
+### checkoutを起点に一度で実行する
+
+KJ Atlas repositoryを手元に置ける場合は、`run_runtime_version_exchange_from_checkout.py`をstrict Evidence用の入口とします。
+
+```bash
+python3 runtime/integration/run_runtime_version_exchange_from_checkout.py \
+  --kj-atlas-dir /path/to/kj-atlas \
+  --source-export-identity /path/to/new-source-export-identity.json \
+  -- \
+  --evidence-dir /path/to/new-evidence-directory
+```
+
+このentrypointはcheckoutのworking treeをharnessへ渡しません。固定commit objectからverified runtime bundleを生成し、内部で次の形へ変換します。
+
+```text
+KJ Atlas Git repository
+  ↓ fixed commit object
+export_kj_atlas_runtime_source.py
+  ↓ verified runtime bundle
+run_runtime_version_exchange.sh --kj-atlas-backend-bundle ...
+```
+
+生成したbundle自体も残したい場合は、まだ存在しないpathを`--source-bundle-dir`で指定します。
+
+```bash
+python3 runtime/integration/run_runtime_version_exchange_from_checkout.py \
+  --kj-atlas-dir /path/to/kj-atlas \
+  --source-bundle-dir /path/to/new-kj-atlas-runtime-bundle \
+  --source-export-identity /path/to/new-source-export-identity.json \
+  -- \
+  --evidence-dir /path/to/new-evidence-directory
+```
+
+`--source-export-identity`は、checkoutからbundleを作った取得Provenanceを別JSONとして残すための任意指定です。既存file、KJ Atlas repository配下、verified runtime bundle配下は拒否します。
+
+entrypointからharnessへ`--kj-atlas-dir`または別の`--kj-atlas-backend-bundle`を重ねて渡すことも拒否します。sourceの選択を一つに固定するためです。
+
+### 事前にexportしたbundleを使う
+
 export済みbundleをpreflightへ渡します。
 
 ```bash
@@ -135,7 +174,7 @@ runtime/integration/run_runtime_version_exchange.sh \
   --evidence-dir /path/to/new-evidence-directory
 ```
 
-`run_runtime_version_exchange.sh`には従来の`--kj-atlas-dir`も残しています。ただし、これはcheckoutのcommit / cleanlinessを確認する互換・開発用経路です。ignored fileまで含むbyte-complete source identityを固定しないため、ISSUE-000070をResolvedにするruntime-version-exchange Evidenceでは、上記のexport済みverified bundle経路を使います。
+`run_runtime_version_exchange.sh`には従来の`--kj-atlas-dir`も残しています。ただし、これはcheckoutのcommit / cleanlinessを確認する互換・開発用経路です。ignored fileまで含むbyte-complete source identityを固定しないため、ISSUE-000070をResolvedにするruntime-version-exchange Evidenceには使いません。
 
 ## runtime / model artifact
 
@@ -186,7 +225,7 @@ Ollama、SOZA model adapter、KJ Atlasには固定local port `11434` / `8001` / 
 - 事前配置model storageのdirectory境界
 - local portの空き
 
-strict Evidence経路では`--kj-atlas-backend-bundle`を指定します。
+strict Evidence経路では、export後の`--kj-atlas-backend-bundle`をpreflightへ指定します。checkoutの通常clean判定は準備診断には利用できますが、byte-complete runtime source identityの代替にはしません。
 
 ```text
 preflight ready
@@ -215,6 +254,7 @@ actual Ollamaを起動しない境界検査として次を用意しています�
 ```bash
 python3 runtime/integration/test_verify_kj_atlas_runtime_source.py
 python3 runtime/integration/test_export_kj_atlas_runtime_source.py
+python3 runtime/integration/test_run_runtime_version_exchange_from_checkout.py
 python3 runtime/integration/test_check_runtime_version_exchange_preflight.py
 python3 runtime/integration/test_run_runtime_version_exchange.py
 
@@ -229,6 +269,8 @@ go test ./livemethodintegration -count=1
 - ignored `.env` / `.so` / `__pycache__`がcommit-object exportへ混入しないこと
 - HEADが後続commitでも固定commit objectをexportできること
 - source tamper / top-level drift / symlink / executable bitの拒否
+- checkout entrypointがworking tree pathをharnessへ渡さず、verified bundle modeだけを使うこと
+- source export identityの既存path / checkout配下 / bundle配下を副作用前に拒否すること
 - preflight / harness / verifier / Go guardの固定identity整合
 - runtime version / archive digestの整合
 - Evidence directory分離
@@ -258,6 +300,8 @@ Evidence directoryには、存在する範囲で次を保存します。
 - KJ Atlas result
 - Adapter / KJ Atlas / Ollama log
 
+checkoutからstrict entrypointを使った場合、`--source-export-identity`で保存したJSONは、固定commit objectからruntime bundleを取得した経路のProvenanceとしてEvidenceと併せて保管できます。この取得経路自体をMethod Realization identityには昇格させません。
+
 Evidence directoryが作成されたこと自体は、実験成功を意味しません。
 
 ```text
@@ -282,7 +326,7 @@ runtime exchange PASS
 
 このREADMEでは、sourceを「どこから得たか」と「実際にどのbytesを実行したか」を分けました。
 
-特にGit checkoutについて、通常のclean判定ではignored fileまで固定できないことを明示しました。厳密なEvidenceでは固定commit objectから追跡済みruntime surfaceだけをexportし、bundle verifierへ戻します。これにより、working treeのローカル状態を固定commit由来の実行sourceと誤認しません。
+特にGit checkoutについて、通常のclean判定ではignored fileまで固定できないことを明示しました。厳密なEvidenceでは固定commit objectから追跡済みruntime surfaceだけをexportし、bundle verifierへ戻します。checkoutを起点に実行する場合も専用entrypointを通し、working treeそのものをharnessへ渡しません。これにより、ローカル状態を固定commit由来の実行sourceと誤認しないようにしています。
 
 同様にruntime / model artifactでも、downloadか事前配置かという取得経路と、実際に使ったbytes / digestを分けています。
 
