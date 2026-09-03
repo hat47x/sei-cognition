@@ -111,6 +111,40 @@ def repository_check(
     return checks
 
 
+def repository_commit_object_check(label: str, path: Path, expected_commit: str) -> list[Check]:
+    """source acquisition用repositoryが固定commit objectを保持するかだけを確認する。
+
+    strict Evidenceではworking treeそのものを実行せず、exporterが固定commit objectから
+    verified runtime bundleを作る。そのためcheckoutのHEADやdirty/ignored fileは
+    runtime source identityではなく、ここでcleanlinessやHEAD一致を要求しない。
+    """
+
+    inside = run_git(path, "rev-parse", "--is-inside-work-tree")
+    if inside.returncode != 0 or inside.stdout.strip() != "true":
+        return [Check(f"{label}.git", "blocked", f"Git working treeではありません: {path}")]
+
+    checks = [Check(f"{label}.git", "ok", f"Git working treeを確認しました: {path}")]
+    commit = run_git(path, "cat-file", "-e", f"{expected_commit}^{{commit}}")
+    if commit.returncode != 0:
+        checks.append(
+            Check(
+                f"{label}.commit-object",
+                "blocked",
+                f"固定commit objectを確認できません: expected={expected_commit}",
+            )
+        )
+    else:
+        checks.append(
+            Check(
+                f"{label}.commit-object",
+                "ok",
+                "source acquisitionに必要な固定commit objectを確認しました: "
+                f"{expected_commit}。HEADやworking treeの内容はstrict runtime sourceに使用しません",
+            )
+        )
+    return checks
+
+
 def runtime_bundle_check(path: Path, soza_root: Path) -> list[Check]:
     resolved = canonical_path(path)
     if is_within(resolved, soza_root):
@@ -375,10 +409,10 @@ def collect_checks(args: argparse.Namespace, soza_root: Path) -> list[Check]:
             Check(
                 "kj-atlas.source-mode",
                 "ok",
-                "source mode: git-checkout（準備診断用。strict Evidenceではverified runtime bundleへexportします）",
+                "source mode: git-checkout（source acquisition用。strict Evidenceでは固定commit objectからverified runtime bundleへexportします）",
             )
         )
-        checks.extend(repository_check("kj-atlas", source_root, expected_commit=KJ_ATLAS_COMMIT))
+        checks.extend(repository_commit_object_check("kj-atlas", source_root, KJ_ATLAS_COMMIT))
 
     source_roots = (soza_root, source_root)
     checks.extend(output_path_check("work", args.work_dir, source_roots, must_be_new=True))
