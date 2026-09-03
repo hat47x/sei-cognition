@@ -31,6 +31,14 @@ CHECK_FILES = (
     "test_runtime_version_exchange_identity_consistency.py",
 )
 
+# ファイル名だけではruntime version exchangeとの関係を判定できないsource identity testを
+# 明示的に候補へ含める。runner自身のtestは再帰実行を避けるため対象外とする。
+SUPPLEMENTAL_FOCUSED_TESTS = {
+    "test_verify_kj_atlas_runtime_source.py",
+    "test_export_kj_atlas_runtime_source.py",
+}
+SELF_TEST_FILE = "test_run_runtime_version_exchange_local_checks.py"
+
 STOP_LINE = (
     "focused local checks PASS != actual Ollama A/B inference PASS "
     "!= runtime-version-exchange Scoped Executable Evidence"
@@ -51,6 +59,19 @@ def sanitized_environment() -> dict[str, str]:
     return environment
 
 
+def discover_focused_candidate_names() -> set[str]:
+    """命名規則から、allowlistへ登録すべきfocused testを検出する。"""
+
+    candidates: set[str] = set()
+    for path in INTEGRATION_DIR.glob("test_*.py"):
+        name = path.name
+        if name == SELF_TEST_FILE:
+            continue
+        if "runtime_version_exchange" in name or name in SUPPLEMENTAL_FOCUSED_TESTS:
+            candidates.add(name)
+    return candidates
+
+
 def validate_check_files() -> list[Path]:
     paths: list[Path] = []
     seen: set[str] = set()
@@ -65,6 +86,19 @@ def validate_check_files() -> list[Path]:
         if not path.is_file():
             raise ValueError(f"focused check fileがありません: {path}")
         paths.append(path)
+
+    registered = set(CHECK_FILES)
+    discovered = discover_focused_candidate_names()
+    missing = sorted(discovered - registered)
+    stale = sorted(registered - discovered)
+    if missing:
+        raise ValueError(
+            "runtime交換testがfocused check allowlistへ未登録です: " + ", ".join(missing)
+        )
+    if stale:
+        raise ValueError(
+            "focused check allowlistに候補外のtestが残っています: " + ", ".join(stale)
+        )
     return paths
 
 
