@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/hat47x/soza/runtime/go/semanticruntime"
 )
 
 func TestVerifyRuntimeExchangeVersionAcceptsExactVersionToken(t *testing.T) {
@@ -56,5 +58,41 @@ func TestVerifyRuntimeExchangeArtifactRejectsDigestMismatch(t *testing.T) {
 		"0000000000000000000000000000000000000000000000000000000000000000",
 	); err == nil {
 		t.Fatal("runtime artifact guard accepted a digest mismatch")
+	}
+}
+
+// Realization recordのExact Bindingはbundle内の参照整合だけでなく、
+// Raw Bytes SHA-256 Profileに従って実際のpayload bytesとも一致する必要があります。
+func TestRuntimeExchangeRealizationPayloadExactBindingVerification(t *testing.T) {
+	revision := runtimeExchangeRealizationRevisionRecord(
+		t,
+		"record-runtime-exchange-realization-verifier",
+		logical("method-realization", "MR-KJ-ATLAS-RUNTIME-EXCHANGE"),
+		runtimeExchangeVersionA,
+		runtimeExchangeArtifactA,
+		"qwen2.5:0.5b",
+		"a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+	)
+	if revision.Record.ExactBinding == nil {
+		t.Fatal("runtime realization record lost exact binding")
+	}
+
+	registry, err := semanticruntime.NewDefaultVerifierRegistry()
+	if err != nil {
+		t.Fatalf("create verifier registry: %v", err)
+	}
+	outcome := registry.Verify(*revision.Record.ExactBinding, revision.Record.Payload)
+	if outcome.Status != semanticruntime.VerificationVerified {
+		t.Fatalf("runtime realization payload was not verified: %#v", outcome)
+	}
+
+	tampered := append([]byte(nil), revision.Record.Payload...)
+	if len(tampered) == 0 {
+		t.Fatal("runtime realization payload is empty")
+	}
+	tampered[len(tampered)-1] ^= 0x01
+	outcome = registry.Verify(*revision.Record.ExactBinding, tampered)
+	if outcome.Status != semanticruntime.VerificationFailed {
+		t.Fatalf("tampered runtime realization payload was not rejected: %#v", outcome)
 	}
 }
