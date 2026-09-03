@@ -5,7 +5,7 @@ set -euo pipefail
 # Ollama runtimeだけを0.32.13から0.32.14へ交換し、SOZAの履歴再構成境界を検証します。
 # 実験結果の意味はISSUE-000070を正とし、このscriptの成功を成果品質やE4へ昇格させません。
 
-SOZA_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+SOZA_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 KJ_ATLAS_COMMIT="4f28c13abe4176503c6fed863383a2d1db2299e9"
 MODEL_NAME="qwen2.5:0.5b"
 MODEL_SHA256="a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67"
@@ -25,14 +25,15 @@ Usage: runtime/integration/run_runtime_version_exchange.sh [options]
 
 Options:
   --kj-atlas-dir PATH   固定KJ Atlas checkoutの場所。既定は _external/kj-atlas。
-  --work-dir PATH       一時作業ディレクトリ。未指定時はmktempで作成する。
-  --evidence-dir PATH   Evidence保存先。未指定時は/tmp配下に作成する。
+  --work-dir PATH       新規に作成する一時作業ディレクトリ。既存pathは拒否する。
+  --evidence-dir PATH   新規に作成するEvidence保存先。既存pathは拒否する。
   --keep-work           一時作業ディレクトリを削除しない。
   -h, --help            この説明を表示する。
 
 必要コマンド:
-  git, python3, go, curl, zstd, tar, sha256sum
+  git, python3, go, curl, zstd, tar, sha256sum, uname, mktemp
 
+現在の固定runtime artifactはLinux / amd64用です。
 SOZAとKJ AtlasはcleanなGit checkoutである必要があります。
 KJ Atlas checkoutのHEADは固定commitと一致している必要があります。
 work / Evidence directoryをSOZAまたはKJ Atlas repository配下には置けません。
@@ -43,14 +44,17 @@ USAGE
 while (($# > 0)); do
   case "$1" in
     --kj-atlas-dir)
+      [[ $# -ge 2 ]] || { echo "--kj-atlas-dir requires PATH" >&2; exit 2; }
       KJ_ATLAS_DIR="$2"
       shift 2
       ;;
     --work-dir)
+      [[ $# -ge 2 ]] || { echo "--work-dir requires PATH" >&2; exit 2; }
       WORK_DIR="$2"
       shift 2
       ;;
     --evidence-dir)
+      [[ $# -ge 2 ]] || { echo "--evidence-dir requires PATH" >&2; exit 2; }
       EVIDENCE_DIR="$2"
       shift 2
       ;;
@@ -70,12 +74,28 @@ while (($# > 0)); do
   esac
 done
 
-for command in git python3 go curl zstd tar sha256sum; do
+for command in git python3 go curl zstd tar sha256sum uname mktemp; do
   command -v "${command}" >/dev/null || {
     echo "Required command is missing: ${command}" >&2
     exit 1
   }
 done
+
+HOST_OS="$(uname -s)"
+HOST_ARCH_RAW="$(uname -m)"
+if [[ "${HOST_OS}" != "Linux" ]]; then
+  echo "runtime version exchange harness currently requires Linux: actual=${HOST_OS}" >&2
+  exit 1
+fi
+case "${HOST_ARCH_RAW}" in
+  x86_64|amd64)
+    HOST_ARCH="amd64"
+    ;;
+  *)
+    echo "runtime version exchange harness currently requires amd64: actual=${HOST_ARCH_RAW}" >&2
+    exit 1
+    ;;
+esac
 
 canonical_path() {
   python3 - "$1" <<'PY'
@@ -107,12 +127,43 @@ require_clean_repository() {
   fi
 }
 
-if [[ ! -d "${KJ_ATLAS_DIR}/.git" ]]; then
+require_safe_output_path() {
+  local label="$1"
+  local candidate="$2"
+  if is_within_path "${candidate}" "${SOZA_ROOT}"; then
+    echo "${label} must not be inside the SOZA repository: ${candidate}" >&2
+    exit 1
+  fi
+  if is_within_path "${candidate}" "${KJ_ATLAS_DIR}"; then
+    echo "${label} must not be inside the KJ Atlas repository: ${candidate}" >&2
+    exit 1
+  fi
+}
+
+ensure_tcp_port_available() {
+  local label="$1"
+  local port="$2"
+  LABEL="${label}" PORT="${port}" python3 - <<'PY'
+import os
+import socket
+
+label = os.environ["LABEL"]
+port = int(os.environ["PORT"])
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        sock.bind(("127.0.0.1", port))
+    except OSError as exc:
+        raise SystemExit(f"{label} port {port} is not available: {exc}")
+PY
+}
+
+KJ_ATLAS_DIR="$(canonical_path "${KJ_ATLAS_DIR}")"
+if ! git -C "${KJ_ATLAS_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   echo "KJ Atlas checkout not found: ${KJ_ATLAS_DIR}" >&2
   echo "Clone hat47x/kj-atlas and checkout ${KJ_ATLAS_COMMIT}, or pass --kj-atlas-dir." >&2
   exit 1
 fi
-KJ_ATLAS_DIR="$(canonical_path "${KJ_ATLAS_DIR}")"
 
 require_clean_repository "SOZA" "${SOZA_ROOT}"
 require_clean_repository "KJ Atlas" "${KJ_ATLAS_DIR}"
@@ -124,30 +175,39 @@ if [[ "${ACTUAL_KJ_COMMIT}" != "${KJ_ATLAS_COMMIT}" ]]; then
 fi
 SOZA_COMMIT="$(git -C "${SOZA_ROOT}" rev-parse HEAD)"
 
-if [[ -z "${WORK_DIR}" ]]; then
-  WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/soza-runtime-version-exchange.XXXXXX")"
-else
-  mkdir -p "${WORK_DIR}"
-  WORK_DIR="$(canonical_path "${WORK_DIR}")"
+EXECUTION_ID="${SOZA_RUNTIME_EXCHANGE_EXECUTION_ID:-local-$(date -u +%Y%m%dT%H%M%SZ)-$$}"
+if [[ ! "${EXECUTION_ID}" =~ ^[A-Za-z0-9._-]+$ ]]; then
+  echo "SOZA_RUNTIME_EXCHANGE_EXECUTION_ID contains unsupported characters: ${EXECUTION_ID}" >&2
+  exit 1
 fi
 
-EXECUTION_ID="${SOZA_RUNTIME_EXCHANGE_EXECUTION_ID:-local-$(date -u +%Y%m%dT%H%M%SZ)-$$}"
+TMP_ROOT="$(canonical_path "${TMPDIR:-/tmp}")"
+require_safe_output_path "temporary root" "${TMP_ROOT}"
+
+if [[ -z "${WORK_DIR}" ]]; then
+  WORK_DIR="$(mktemp -d "${TMP_ROOT}/soza-runtime-version-exchange.XXXXXX")"
+else
+  WORK_DIR="$(canonical_path "${WORK_DIR}")"
+  require_safe_output_path "work directory" "${WORK_DIR}"
+  if [[ -e "${WORK_DIR}" ]]; then
+    echo "work directory already exists; specify a new path: ${WORK_DIR}" >&2
+    exit 1
+  fi
+  mkdir -p "${WORK_DIR}"
+fi
+WORK_DIR="$(canonical_path "${WORK_DIR}")"
+require_safe_output_path "work directory" "${WORK_DIR}"
+
 if [[ -z "${EVIDENCE_DIR}" ]]; then
-  EVIDENCE_DIR="${TMPDIR:-/tmp}/soza-runtime-version-exchange-evidence-${EXECUTION_ID}"
+  EVIDENCE_DIR="${TMP_ROOT}/soza-runtime-version-exchange-evidence-${EXECUTION_ID}"
+fi
+EVIDENCE_DIR="$(canonical_path "${EVIDENCE_DIR}")"
+require_safe_output_path "Evidence directory" "${EVIDENCE_DIR}"
+if [[ -e "${EVIDENCE_DIR}" ]]; then
+  echo "Evidence directory already exists; specify a new path: ${EVIDENCE_DIR}" >&2
+  exit 1
 fi
 mkdir -p "${EVIDENCE_DIR}"
-EVIDENCE_DIR="$(canonical_path "${EVIDENCE_DIR}")"
-
-for output_dir in "${WORK_DIR}" "${EVIDENCE_DIR}"; do
-  if is_within_path "${output_dir}" "${SOZA_ROOT}"; then
-    echo "runtime exchange output directory must not be inside the SOZA repository: ${output_dir}" >&2
-    exit 1
-  fi
-  if is_within_path "${output_dir}" "${KJ_ATLAS_DIR}"; then
-    echo "runtime exchange output directory must not be inside the KJ Atlas repository: ${output_dir}" >&2
-    exit 1
-  fi
-done
 
 VENV_DIR="${WORK_DIR}/venv"
 MODEL_STORE="${WORK_DIR}/ollama-models"
@@ -184,6 +244,8 @@ preserve_evidence() {
     "${REQUEST_FILE}" \
     "${WORK_DIR}/runtime-exchange-a-version.txt" \
     "${WORK_DIR}/runtime-exchange-b-version.txt" \
+    "${WORK_DIR}/runtime-exchange-a-archive-sha256.txt" \
+    "${WORK_DIR}/runtime-exchange-b-archive-sha256.txt" \
     "${WORK_DIR}/runtime-exchange-a-model-id.txt" \
     "${WORK_DIR}/runtime-exchange-b-model-id.txt" \
     "${WORK_DIR}/runtime-exchange-a-tags.json" \
@@ -216,7 +278,7 @@ finish() {
     if is_within_path "${EVIDENCE_DIR}" "${WORK_DIR}"; then
       echo "Evidence directory is inside the work directory; retaining work directory: ${WORK_DIR}" >&2
     else
-      rm -rf "${WORK_DIR}"
+      rm -rf -- "${WORK_DIR}"
     fi
   fi
 
@@ -244,6 +306,8 @@ RUNTIME_SHA256_A="${RUNTIME_SHA256_A}" \
 RUNTIME_SHA256_B="${RUNTIME_SHA256_B}" \
 MODEL_NAME="${MODEL_NAME}" \
 MODEL_SHA256="${MODEL_SHA256}" \
+HOST_OS="${HOST_OS}" \
+HOST_ARCH="${HOST_ARCH}" \
 python3 - <<'PY'
 import json
 import os
@@ -255,6 +319,10 @@ payload = {
     "executionSurface": "repository-local-harness",
     "repositoryCommit": os.environ["SOZA_COMMIT"],
     "methodSourceCommit": os.environ["KJ_ATLAS_COMMIT"],
+    "executionHost": {
+        "os": os.environ["HOST_OS"].lower(),
+        "arch": os.environ["HOST_ARCH"],
+    },
     "runtimeA": {
         "name": "ollama",
         "version": os.environ["RUNTIME_VERSION_A"],
@@ -286,12 +354,21 @@ acquire_runtime() {
   local expected_sha="$3"
   local archive="$4"
   local root="$5"
+  local digest_file="${WORK_DIR}/runtime-exchange-${label}-archive-sha256.txt"
 
   mkdir -p "${root}"
   curl --fail --silent --show-error --location \
     "https://github.com/ollama/ollama/releases/download/v${version}/ollama-linux-amd64.tar.zst" \
     --output "${archive}"
-  printf '%s  %s\n' "${expected_sha}" "${archive}" | sha256sum --check --strict
+
+  local actual_sha remainder
+  read -r actual_sha remainder < <(sha256sum "${archive}")
+  printf '%s\n' "${actual_sha}" >"${digest_file}"
+  if [[ "${actual_sha}" != "${expected_sha}" ]]; then
+    echo "runtime ${label} archive digest mismatch: actual=${actual_sha} expected=${expected_sha}" >&2
+    return 1
+  fi
+
   zstd -dc "${archive}" | tar -xf - -C "${root}"
   test -x "${root}/bin/ollama"
 }
@@ -343,6 +420,9 @@ run_probe() {
   local kj_log="${WORK_DIR}/runtime-exchange-${label}-kj.log"
 
   cleanup_processes
+  ensure_tcp_port_available "Ollama" 11434
+  ensure_tcp_port_available "SOZA model adapter" 8001
+  ensure_tcp_port_available "KJ Atlas" 8101
 
   echo "=== Ollama ${version}: verify pinned runtime artifact ==="
   "${ollama}" --version 2>&1 | tee "${version_log}"
@@ -352,8 +432,15 @@ run_probe() {
   "${ollama}" serve >"${ollama_log}" 2>&1 &
   OLLAMA_PID=$!
   for attempt in $(seq 1 60); do
+    if ! kill -0 "${OLLAMA_PID}" 2>/dev/null; then
+      echo "Ollama ${version} exited before becoming ready" >&2
+      cat "${ollama_log}" >&2 || true
+      return 1
+    fi
     if curl --fail --silent http://127.0.0.1:11434/api/tags >/dev/null; then
-      break
+      if kill -0 "${OLLAMA_PID}" 2>/dev/null; then
+        break
+      fi
     fi
     if [[ "${attempt}" == "60" ]]; then
       echo "Ollama ${version} did not become ready" >&2
@@ -410,9 +497,21 @@ PY
   KJ_PID=$!
 
   for attempt in $(seq 1 100); do
+    if ! kill -0 "${ADAPTER_PID}" 2>/dev/null; then
+      echo "runtime ${label} model adapter exited before becoming ready" >&2
+      cat "${adapter_log}" >&2 || true
+      return 1
+    fi
+    if ! kill -0 "${KJ_PID}" 2>/dev/null; then
+      echo "runtime ${label} KJ Atlas exited before becoming ready" >&2
+      cat "${kj_log}" >&2 || true
+      return 1
+    fi
     if curl --fail --silent http://127.0.0.1:8001/ >/dev/null \
       && curl --fail --silent http://127.0.0.1:8101/healthz >/dev/null; then
-      break
+      if kill -0 "${ADAPTER_PID}" 2>/dev/null && kill -0 "${KJ_PID}" 2>/dev/null; then
+        break
+      fi
     fi
     if [[ "${attempt}" == "100" ]]; then
       echo "runtime ${label} Method processes did not become ready" >&2

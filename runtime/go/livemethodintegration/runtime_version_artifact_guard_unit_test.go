@@ -61,6 +61,32 @@ func TestVerifyRuntimeExchangeArtifactRejectsDigestMismatch(t *testing.T) {
 	}
 }
 
+func TestRuntimeExchangeRequiredPathReturnsExplicitValue(t *testing.T) {
+	t.Setenv(runtimeExchangeAArchiveEnv, "/work/runtime-a.tar.zst")
+	got, err := runtimeExchangeRequiredPath(runtimeExchangeAArchiveEnv)
+	if err != nil {
+		t.Fatalf("explicit runtime path was rejected: %v", err)
+	}
+	if got != "/work/runtime-a.tar.zst" {
+		t.Fatalf("runtime path = %q, want explicit environment path", got)
+	}
+}
+
+func TestRuntimeExchangeRequiredPathRejectsMissingValue(t *testing.T) {
+	t.Setenv(runtimeExchangeAArchiveEnv, "")
+	if _, err := runtimeExchangeRequiredPath(runtimeExchangeAArchiveEnv); err == nil {
+		t.Fatal("runtime exchange accepted an unspecified artifact path")
+	}
+}
+
+func TestRuntimeExchangeLivePathDoesNotUseGitHubWorkspaceFallback(t *testing.T) {
+	t.Setenv(runtimeExchangeKJAtlasDirEnv, "")
+	t.Setenv("GITHUB_WORKSPACE", "/historical/actions/workspace")
+	if _, err := runtimeExchangeRequiredPath(runtimeExchangeKJAtlasDirEnv); err == nil {
+		t.Fatal("runtime exchange accepted GITHUB_WORKSPACE instead of an explicit KJ Atlas path")
+	}
+}
+
 // Realization recordのExact Bindingはbundle内の参照整合だけでなく、
 // Raw Bytes SHA-256 Profileに従って実際のpayload bytesとも一致する必要があります。
 func TestRuntimeExchangeRealizationPayloadExactBindingVerification(t *testing.T) {
@@ -180,10 +206,10 @@ func TestRuntimeExchangeRealizationBindingChangesWhenExecutionArtifactIdentityCh
 				t,
 				"record-runtime-exchange-realization-changed",
 				logicalRef,
-				tt.runtimeVersion,
-				tt.runtimeArtifact,
+				t.runtimeVersion,
+				t.runtimeArtifact,
 				"qwen2.5:0.5b",
-				tt.modelID,
+				t.modelID,
 			)
 			if changed.Record.ExactBinding == nil {
 				t.Fatal("changed realization record lost exact binding")

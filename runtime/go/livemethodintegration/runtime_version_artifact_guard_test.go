@@ -7,49 +7,73 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
+)
+
+const (
+	runtimeExchangeKJAtlasDirEnv  = "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_DIR"
+	runtimeExchangeAVersionLogEnv = "SOZA_E3B_RUNTIME_EXCHANGE_VERSION_LOG_A"
+	runtimeExchangeBVersionLogEnv = "SOZA_E3B_RUNTIME_EXCHANGE_VERSION_LOG_B"
+	runtimeExchangeAArchiveEnv    = "SOZA_E3B_RUNTIME_EXCHANGE_ARCHIVE_A"
+	runtimeExchangeBArchiveEnv    = "SOZA_E3B_RUNTIME_EXCHANGE_ARCHIVE_B"
 )
 
 // TestMainは、runtime version交換のlive testを実行するときだけ、実際に使った
 // KJ Atlas source、runtime version、runtime archiveをGo側でも再検証します。
 // Exact Bindingへ固定するidentityと実行事実が一致しない状態では、historical
 // revisionの検査を開始しません。
+//
+// current baselineでは実行場所を意味境界から分離するため、GitHub Actions固有の
+// workspaceや固定/tmp配置へ暗黙に戻りません。repository-local harnessなどの
+// 実行器が、検証対象のpathを明示的な環境変数として渡します。
 func TestMain(m *testing.M) {
 	if os.Getenv("SOZA_E3B_RUNTIME_EXCHANGE_LIVE") == "1" {
 		if err := verifyRuntimeExchangeKJAtlasSource(); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-		for _, runtime := range []struct {
-			label       string
-			version     string
-			versionLog  string
-			archive     string
-			artifactSHA string
+
+		runtimes := []struct {
+			label         string
+			version       string
+			versionLogEnv string
+			archiveEnv    string
+			artifactSHA   string
 		}{
 			{
-				label:       "A",
-				version:     runtimeExchangeVersionA,
-				versionLog:  runtimeExchangePath("SOZA_E3B_RUNTIME_EXCHANGE_VERSION_LOG_A", "/tmp/runtime-exchange-a-version.txt"),
-				archive:     runtimeExchangePath("SOZA_E3B_RUNTIME_EXCHANGE_ARCHIVE_A", "/tmp/ollama-a.tar.zst"),
-				artifactSHA: runtimeExchangeArtifactA,
+				label:         "A",
+				version:       runtimeExchangeVersionA,
+				versionLogEnv: runtimeExchangeAVersionLogEnv,
+				archiveEnv:    runtimeExchangeAArchiveEnv,
+				artifactSHA:   runtimeExchangeArtifactA,
 			},
 			{
-				label:       "B",
-				version:     runtimeExchangeVersionB,
-				versionLog:  runtimeExchangePath("SOZA_E3B_RUNTIME_EXCHANGE_VERSION_LOG_B", "/tmp/runtime-exchange-b-version.txt"),
-				archive:     runtimeExchangePath("SOZA_E3B_RUNTIME_EXCHANGE_ARCHIVE_B", "/tmp/ollama-b.tar.zst"),
-				artifactSHA: runtimeExchangeArtifactB,
+				label:         "B",
+				version:       runtimeExchangeVersionB,
+				versionLogEnv: runtimeExchangeBVersionLogEnv,
+				archiveEnv:    runtimeExchangeBArchiveEnv,
+				artifactSHA:   runtimeExchangeArtifactB,
 			},
-		} {
-			if err := verifyRuntimeExchangeVersion(runtime.label, runtime.versionLog, runtime.version); err != nil {
+		}
+
+		for _, runtime := range runtimes {
+			versionLog, err := runtimeExchangeRequiredPath(runtime.versionLogEnv)
+			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
 			}
-			if err := verifyRuntimeExchangeArtifact(runtime.label, runtime.archive, runtime.artifactSHA); err != nil {
+			archive, err := runtimeExchangeRequiredPath(runtime.archiveEnv)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+			if err := verifyRuntimeExchangeVersion(runtime.label, versionLog, runtime.version); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+			if err := verifyRuntimeExchangeArtifact(runtime.label, archive, runtime.artifactSHA); err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
 			}
@@ -58,32 +82,23 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func runtimeExchangePath(envName, fallback string) string {
-	if value := strings.TrimSpace(os.Getenv(envName)); value != "" {
-		return value
+func runtimeExchangeRequiredPath(envName string) (string, error) {
+	value := strings.TrimSpace(os.Getenv(envName))
+	if value == "" {
+		return "", fmt.Errorf("runtime exchange live testでは%sを明示してください", envName)
 	}
-	return fallback
-}
-
-func runtimeExchangeKJAtlasDir() (string, error) {
-	if value := strings.TrimSpace(os.Getenv("SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_DIR")); value != "" {
-		return value, nil
-	}
-	if workspace := strings.TrimSpace(os.Getenv("GITHUB_WORKSPACE")); workspace != "" {
-		return filepath.Join(workspace, "_external", "kj-atlas"), nil
-	}
-	return "", fmt.Errorf("runtime exchange live testではSOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_DIRが必要です")
+	return value, nil
 }
 
 func verifyRuntimeExchangeKJAtlasSource() error {
-	kjAtlasDir, err := runtimeExchangeKJAtlasDir()
+	kjAtlasDir, err := runtimeExchangeRequiredPath(runtimeExchangeKJAtlasDirEnv)
 	if err != nil {
 		return err
 	}
 	command := exec.Command("git", "-C", kjAtlasDir, "rev-parse", "HEAD")
 	output, err := command.Output()
 	if err != nil {
-		return fmt.Errorf("KJ Atlas checkoutのcommitを確認できません: %w", err)
+		return fmt.Errorf("KJ Atlas checkoutのcommitを確認できません: dir=%s: %w", kjAtlasDir, err)
 	}
 	actual := strings.TrimSpace(string(output))
 	if actual != pinnedKJAtlasCommit {
