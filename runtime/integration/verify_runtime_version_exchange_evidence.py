@@ -344,23 +344,27 @@ def verify_evidence_directory(
         )
         for label, expected in (("runtimeA", runtime_a), ("runtimeB", runtime_b)):
             actual = identity.get(label)
+            archive_acquisition = actual.get("archiveAcquisition") if isinstance(actual, dict) else None
             verification.require(
                 f"identity.{label}",
                 isinstance(actual, dict)
                 and actual.get("name") == "ollama"
                 and actual.get("version") == expected["version"]
                 and actual.get("archiveSha256") == expected["sha256"]
-                and actual.get("archiveAcquisition") in {"downloaded", "prepositioned"},
+                and isinstance(archive_acquisition, str)
+                and archive_acquisition in {"downloaded", "prepositioned"},
                 f"{label}固定identityを確認しました",
                 f"{label}固定identityがartifact manifestと一致しません: {actual!r}",
             )
         actual_model = identity.get("model")
+        storage_mode = actual_model.get("storageMode") if isinstance(actual_model, dict) else None
         verification.require(
             "identity.model",
             isinstance(actual_model, dict)
             and actual_model.get("name") == model_name
             and actual_model.get("expectedDigest") == model_sha
-            and actual_model.get("storageMode") in {"work-local", "prepositioned"},
+            and isinstance(storage_mode, str)
+            and storage_mode in {"work-local", "prepositioned"},
             "固定model identityを確認しました",
             f"固定model identityがartifact manifestと一致しません: {actual_model!r}",
         )
