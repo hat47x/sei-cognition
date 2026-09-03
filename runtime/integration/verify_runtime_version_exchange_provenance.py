@@ -20,6 +20,12 @@ ALLOWED_SOURCE_PREPARATIONS = {
     SOURCE_PREPARATION_DIRECT,
     SOURCE_PREPARATION_CHECKOUT,
 }
+EVIDENCE_DIRECTORY_CREATED_BY_STRICT = "strict-entrypoint"
+EVIDENCE_DIRECTORY_CREATED_BY_FAILURE = "verified-runner-after-failure"
+ALLOWED_EVIDENCE_DIRECTORY_CREATORS = {
+    EVIDENCE_DIRECTORY_CREATED_BY_STRICT,
+    EVIDENCE_DIRECTORY_CREATED_BY_FAILURE,
+}
 
 
 @dataclass(frozen=True)
@@ -162,6 +168,28 @@ def _verify_preflight(
     )
 
 
+def _verify_runner_evidence_directory_provenance(
+    runner: dict[str, Any],
+    verification: Verification,
+) -> None:
+    created_by = runner.get("evidenceDirectoryCreatedBy")
+    verification.require(
+        "provenance.runner.evidence-directory-created-by",
+        created_by in ALLOWED_EVIDENCE_DIRECTORY_CREATORS,
+        f"Evidence directory作成主体を確認しました: {created_by}",
+        f"Evidence directory作成主体を認識できません: {created_by!r}",
+    )
+
+    completed_successfully = runner.get("completed") is True and runner.get("exitCode") == 0
+    verification.require(
+        "provenance.runner.complete-run-directory-creator",
+        not completed_successfully or created_by == EVIDENCE_DIRECTORY_CREATED_BY_STRICT,
+        "complete runのEvidence directoryがstrict entrypoint由来であることを確認しました",
+        "complete runのEvidence directory作成主体がstrict entrypointではありません: "
+        f"{created_by!r}",
+    )
+
+
 def _verify_source_preparation(
     root: Path,
     *,
@@ -276,6 +304,7 @@ def verify_run_provenance(
             f"runner={runner.get('preflightResult')!r} "
             f"preflight={preflight.get('result') if preflight else None!r}",
         )
+        _verify_runner_evidence_directory_provenance(runner, verification)
         _verify_source_preparation(
             root,
             runner=runner,
