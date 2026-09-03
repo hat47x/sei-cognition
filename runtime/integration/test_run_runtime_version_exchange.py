@@ -1,3 +1,4 @@
+import importlib.util
 import re
 import subprocess
 import unittest
@@ -7,8 +8,18 @@ from pathlib import Path
 INTEGRATION_DIR = Path(__file__).resolve().parent
 RUNTIME_DIR = INTEGRATION_DIR.parent
 SCRIPT = INTEGRATION_DIR / "run_runtime_version_exchange.sh"
+SOURCE_VERIFIER = INTEGRATION_DIR / "verify_kj_atlas_runtime_source.py"
 GO_EXCHANGE_TEST = RUNTIME_DIR / "go" / "livemethodintegration" / "runtime_version_exchange_test.go"
 GO_GUARD = RUNTIME_DIR / "go" / "livemethodintegration" / "runtime_version_artifact_guard_test.go"
+
+SOURCE_VERIFIER_SPEC = importlib.util.spec_from_file_location(
+    "verify_kj_atlas_runtime_source",
+    SOURCE_VERIFIER,
+)
+if SOURCE_VERIFIER_SPEC is None or SOURCE_VERIFIER_SPEC.loader is None:
+    raise RuntimeError(f"cannot load source verifier: {SOURCE_VERIFIER}")
+SOURCE_VERIFIER_MODULE = importlib.util.module_from_spec(SOURCE_VERIFIER_SPEC)
+SOURCE_VERIFIER_SPEC.loader.exec_module(SOURCE_VERIFIER_MODULE)
 
 
 def shell_value(text: str, name: str) -> str:
@@ -44,6 +55,7 @@ class RuntimeVersionExchangeHarnessTest(unittest.TestCase):
         )
         self.assertIn("runtime/integration/run_runtime_version_exchange.sh", completed.stdout)
         self.assertIn("GitHub Actions", completed.stdout)
+        self.assertIn("--kj-atlas-backend-bundle", completed.stdout)
         self.assertIn("--evidence-dir", completed.stdout)
         self.assertIn("--runtime-a-archive", completed.stdout)
         self.assertIn("--runtime-b-archive", completed.stdout)
@@ -64,9 +76,35 @@ class RuntimeVersionExchangeHarnessTest(unittest.TestCase):
                     go_value(self.go_exchange_text, go_name),
                 )
 
+    def test_source_identity_is_shared_across_harness_verifier_and_go_guard(self):
+        self.assertEqual(
+            shell_value(self.script_text, "KJ_ATLAS_COMMIT"),
+            SOURCE_VERIFIER_MODULE.PINNED_IDENTITY.source_commit,
+        )
+        self.assertEqual(
+            go_value(self.go_guard_text, "pinnedKJAtlasBackendTree"),
+            SOURCE_VERIFIER_MODULE.PINNED_IDENTITY.backend_tree,
+        )
+        self.assertEqual(
+            go_value(self.go_guard_text, "pinnedKJAtlasRuntimeSurfaceTree"),
+            SOURCE_VERIFIER_MODULE.PINNED_IDENTITY.runtime_surface_tree,
+        )
+
+    def test_runtime_surface_tree_is_not_confused_with_parent_backend_tree(self):
+        self.assertNotEqual(
+            SOURCE_VERIFIER_MODULE.PINNED_IDENTITY.runtime_surface_tree,
+            SOURCE_VERIFIER_MODULE.PINNED_IDENTITY.backend_tree,
+        )
+        verifier_text = SOURCE_VERIFIER.read_text(encoding="utf-8")
+        self.assertIn('"pinnedBackendTree": identity.backend_tree', verifier_text)
+        self.assertIn('"runtimeSurfaceTree": actual["runtimeSurfaceTree"]', verifier_text)
+
     def test_harness_passes_every_live_guard_path_explicitly(self):
         required_names = {
+            "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_MODE",
             "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_DIR",
+            "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_DIR",
+            "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_VERIFIER",
             "SOZA_E3B_RUNTIME_EXCHANGE_ARCHIVE_A",
             "SOZA_E3B_RUNTIME_EXCHANGE_ARCHIVE_B",
             "SOZA_E3B_RUNTIME_EXCHANGE_VERSION_LOG_A",
@@ -84,6 +122,36 @@ class RuntimeVersionExchangeHarnessTest(unittest.TestCase):
     def test_evidence_directory_must_be_new_for_each_run(self):
         self.assertIn('if [[ -e "${EVIDENCE_DIR}" ]]', self.script_text)
         self.assertIn("Evidence directory already exists; specify a new path", self.script_text)
+
+    def test_verified_source_bundle_is_copied_before_execution_and_install(self):
+        self.assertIn('KJ_ATLAS_BACKEND_DIR="${WORK_DIR}/kj-atlas-backend-execution"', self.script_text)
+        self.assertIn('KJ_ATLAS_INSTALL_DIR="${WORK_DIR}/kj-atlas-backend-install"', self.script_text)
+        self.assertIn('cp -a "${KJ_ATLAS_SOURCE_ROOT}/." "${KJ_ATLAS_BACKEND_DIR}/"', self.script_text)
+        self.assertIn('cp -a "${KJ_ATLAS_SOURCE_ROOT}/." "${KJ_ATLAS_INSTALL_DIR}/"', self.script_text)
+        self.assertIn('--backend-dir "${KJ_ATLAS_BACKEND_DIR}"', self.script_text)
+        self.assertIn('--backend-dir "${KJ_ATLAS_INSTALL_DIR}"', self.script_text)
+        self.assertIn('PYTHONPATH="${KJ_ATLAS_BACKEND_DIR}/src"', self.script_text)
+
+    def test_package_install_never_builds_from_actual_execution_source(self):
+        self.assertIn('KJ_ATLAS_INSTALL_DIR="${WORK_DIR}/kj-atlas-backend-install"', self.script_text)
+        self.assertIn('cp -a "${KJ_ATLAS_BACKEND_DIR}/." "${KJ_ATLAS_INSTALL_DIR}/"', self.script_text)
+        self.assertIn(
+            'pip install --disable-pip-version-check "${KJ_ATLAS_INSTALL_DIR}"',
+            self.script_text,
+        )
+        self.assertNotIn('pip install --disable-pip-version-check -e', self.script_text)
+
+    def test_checkout_and_bundle_inputs_cannot_be_mixed(self):
+        self.assertIn('KJ_ATLAS_DIR_EXPLICIT=1', self.script_text)
+        self.assertIn(
+            "--kj-atlas-dir and --kj-atlas-backend-bundle must not be used together",
+            self.script_text,
+        )
+
+    def test_source_identity_is_preserved_as_run_evidence(self):
+        self.assertIn('KJ_ATLAS_SOURCE_IDENTITY_FILE="${WORK_DIR}/kj-atlas-source-identity.json"', self.script_text)
+        self.assertIn('"methodSource": method_source', self.script_text)
+        self.assertIn('"${KJ_ATLAS_SOURCE_IDENTITY_FILE}" \\', self.script_text)
 
     def test_prepositioned_runtime_archives_are_still_digest_verified(self):
         self.assertIn('RUNTIME_ACQUISITION_A="prepositioned"', self.script_text)
