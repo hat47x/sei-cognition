@@ -57,6 +57,9 @@ class RuntimeVersionExchangeProvenanceVerifierTest(unittest.TestCase):
         runner_path = root / "runtime-exchange-runner-observation.json"
         runner = json.loads(runner_path.read_text(encoding="utf-8"))
         runner["preflightResult"] = "ready"
+        runner["evidenceDirectoryCreatedBy"] = (
+            PROVENANCE.EVIDENCE_DIRECTORY_CREATED_BY_STRICT
+        )
         runner_path.write_text(json.dumps(runner), encoding="utf-8")
 
     def report(self, mutate=None):
@@ -126,11 +129,75 @@ class RuntimeVersionExchangeProvenanceVerifierTest(unittest.TestCase):
         report = self.report(mutate)
         self.assertIn("provenance.runner.preflight-result", report["blockers"])
 
+    def test_missing_evidence_directory_creator_is_rejected(self):
+        def mutate(root: Path) -> None:
+            path = root / "runtime-exchange-runner-observation.json"
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload.pop("evidenceDirectoryCreatedBy")
+            path.write_text(json.dumps(payload), encoding="utf-8")
+
+        report = self.report(mutate)
+        self.assertIn(
+            "provenance.runner.evidence-directory-created-by",
+            report["blockers"],
+        )
+
+    def test_unknown_evidence_directory_creator_is_rejected(self):
+        def mutate(root: Path) -> None:
+            path = root / "runtime-exchange-runner-observation.json"
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload["evidenceDirectoryCreatedBy"] = "unknown-writer"
+            path.write_text(json.dumps(payload), encoding="utf-8")
+
+        report = self.report(mutate)
+        self.assertIn(
+            "provenance.runner.evidence-directory-created-by",
+            report["blockers"],
+        )
+
+    def test_non_string_evidence_directory_creator_is_rejected(self):
+        def mutate(root: Path) -> None:
+            path = root / "runtime-exchange-runner-observation.json"
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload["evidenceDirectoryCreatedBy"] = ["strict-entrypoint"]
+            path.write_text(json.dumps(payload), encoding="utf-8")
+
+        report = self.report(mutate)
+        self.assertIn(
+            "provenance.runner.evidence-directory-created-by",
+            report["blockers"],
+        )
+
+    def test_complete_run_cannot_claim_failure_directory_creator(self):
+        def mutate(root: Path) -> None:
+            path = root / "runtime-exchange-runner-observation.json"
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload["evidenceDirectoryCreatedBy"] = (
+                PROVENANCE.EVIDENCE_DIRECTORY_CREATED_BY_FAILURE
+            )
+            path.write_text(json.dumps(payload), encoding="utf-8")
+
+        report = self.report(mutate)
+        self.assertIn(
+            "provenance.runner.complete-run-directory-creator",
+            report["blockers"],
+        )
+
     def test_unknown_source_preparation_is_rejected(self):
         def mutate(root: Path) -> None:
             path = root / "runtime-exchange-runner-observation.json"
             payload = json.loads(path.read_text(encoding="utf-8"))
             payload["sourcePreparation"] = "working-tree-direct"
+            path.write_text(json.dumps(payload), encoding="utf-8")
+
+        report = self.report(mutate)
+        self.assertIn("provenance.runner.source-preparation", report["blockers"])
+
+    def test_non_string_source_preparation_is_rejected(self):
+        def mutate(root: Path) -> None:
+            path = root / "runtime-exchange-runner-observation.json"
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload["sourcePreparation"] = [PROVENANCE.SOURCE_PREPARATION_DIRECT]
             path.write_text(json.dumps(payload), encoding="utf-8")
 
         report = self.report(mutate)
