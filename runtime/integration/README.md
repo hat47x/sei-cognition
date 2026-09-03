@@ -20,6 +20,12 @@
 - revision A: `0.32.13`
 - revision B: `0.32.14`
 
+### 現在の実行対象
+
+固定しているOllama archiveはLinux / amd64用です。そのため、current harnessはLinux / amd64環境だけを対象にします。
+
+実行開始時にOSとCPU architectureを確認し、対象外の環境ではruntime artifactを取得する前に停止します。これはSOZA全体のplatform support方針ではなく、ISSUE-000070で使う固定実験artifactの境界です。
+
 ### 事前準備
 
 次のコマンドを利用できる環境を用意します。
@@ -31,6 +37,10 @@
 - `zstd`
 - `tar`
 - `sha256sum`
+- `uname`
+- `mktemp`
+
+SOZAとKJ Atlasは、どちらも未commit変更のないcleanなGit checkoutである必要があります。SOZA repositoryでは`_external/`をlocal external checkoutとして`.gitignore`していますが、KJ Atlas側のworking treeはKJ Atlas自身のrepositoryで別途検査します。
 
 KJ Atlasは固定commitをcheckoutしておきます。
 
@@ -57,25 +67,48 @@ runtime/integration/run_runtime_version_exchange.sh \
   --evidence-dir /path/to/evidence
 ```
 
-scriptは専用Python virtual environmentを作り、固定Ollama archiveを取得・SHA-256検証した後、同じmodel storageと同じMethod inputをA / Bのruntimeへ通します。その後、`runtime/go/livemethodintegration`の通常testとruntime交換live testを実行します。
+`--work-dir`を指定する場合は、**まだ存在しない新しいpath**を指定します。harnessがそのdirectoryを自分で作成し、通常終了時には削除します。既存directoryをそのまま作業領域として再利用しないことで、利用者の既存ファイルを上書き・削除する可能性を避けます。作業directoryを残したい場合は`--keep-work`を指定します。
+
+work / Evidence directoryをSOZAまたはKJ Atlas repository配下には置けません。pathは作成前に実体pathへ正規化し、source repository配下を指す場合は停止します。
+
+### 実行中のidentity確認
+
+scriptは専用Python virtual environmentを作り、固定Ollama archiveを取得した後、次を順に確認します。
+
+1. A / Bそれぞれのruntime archiveについて実測SHA-256を計算し、固定値と照合する。
+2. 実際に起動したbinaryが期待するOllama versionを返すことを確認する。
+3. A / Bで同じmodel storageを使い、`qwen2.5:0.5b`のactual model digestが固定値と一致することを確認する。
+4. 同じMethod inputをA / Bへ通し、actual inference countersとKJ Atlas responseを確認する。
+5. A / Bのprompt SHA-256が同一であることを確認する。
+6. `runtime/go/livemethodintegration`の通常testとruntime交換live testを実行する。
+
+Ollama、SOZA model adapter、KJ Atlasには固定local portを使います。各processを起動する前にportが空いていることを確認し、起動後もharness自身が開始したPIDが生存していることを確認します。既に動いている別processのhealth responseを、今回のruntime交換実験の実行事実として誤認しないためです。
 
 ## Evidenceの読み方
 
 Evidence directoryには、存在する範囲で次を保存します。
 
 - 実験identity
+  - SOZA commit
+  - KJ Atlas commit
+  - execution host OS / architecture
+  - expected runtime / model artifact identity
 - 固定Method request
 - A / Bのruntime version log
+- A / Bの**実測runtime archive SHA-256**
 - A / Bのmodel digest / tags
 - model inference Evidence
 - KJ Atlas result
 - Adapter / KJ Atlas / Ollama log
 
-途中で失敗した場合も、そこまで生成されたファイルを保存します。
+途中で失敗した場合も、そこまで生成されたファイルを保存します。たとえばruntime archiveのdigest不一致で停止した場合でも、実際に計算したdigestをEvidence directoryへ残せます。
 
 ```text
 Evidence directoryが作られた
   != runtime exchange PASS
+
+runtime archive digestが一致した
+  != actual inference succeeded
 
 runtime exchange PASS
   != arbitrary runtime portability
