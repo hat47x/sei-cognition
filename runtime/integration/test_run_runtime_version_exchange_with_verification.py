@@ -30,6 +30,8 @@ class VerifiedRunnerTest(unittest.TestCase):
             kj_atlas_dir=Path("/tmp/kj"),
             kj_atlas_backend_bundle=None,
             model_dir=Path("/tmp/models"),
+            prepare_model_dir=None,
+            work_dir=Path("/tmp/work"),
             evidence_dir=Path("/tmp/evidence"),
             forwarded=["--keep-work"],
         )
@@ -38,6 +40,7 @@ class VerifiedRunnerTest(unittest.TestCase):
         self.assertEqual(str(MODULE.STRICT_ENTRYPOINT), command[1])
         self.assertIn("--kj-atlas-dir", command)
         self.assertIn("--model-dir", command)
+        self.assertIn("--work-dir", command)
         self.assertIn("--evidence-dir", command)
 
     def test_bundle_command_uses_same_strict_entrypoint(self):
@@ -45,6 +48,8 @@ class VerifiedRunnerTest(unittest.TestCase):
             kj_atlas_dir=None,
             kj_atlas_backend_bundle=Path("/tmp/bundle"),
             model_dir=None,
+            prepare_model_dir=None,
+            work_dir=None,
             evidence_dir=Path("/tmp/evidence"),
             forwarded=[],
         )
@@ -53,12 +58,29 @@ class VerifiedRunnerTest(unittest.TestCase):
         self.assertEqual(str(MODULE.STRICT_ENTRYPOINT), command[1])
         self.assertIn("--kj-atlas-backend-bundle", command)
 
+    def test_prepare_model_dir_is_forwarded_before_separator(self):
+        command, _ = MODULE._build_command(
+            kj_atlas_dir=None,
+            kj_atlas_backend_bundle=Path("/tmp/bundle"),
+            model_dir=None,
+            prepare_model_dir=Path("/tmp/new-models"),
+            work_dir=Path("/tmp/work"),
+            evidence_dir=Path("/tmp/evidence"),
+            forwarded=["--keep-work"],
+        )
+        separator = command.index("--")
+        self.assertLess(command.index("--prepare-model-dir"), separator)
+        self.assertLess(command.index("--work-dir"), separator)
+        self.assertGreater(command.index("--keep-work"), separator)
+
     def test_forwarded_identity_and_evidence_options_are_rejected(self):
         for option in (
             "--kj-atlas-dir",
             "--kj-atlas-backend-bundle=/tmp/x",
             "--model-dir",
+            "--prepare-model-dir",
             "--evidence-dir",
+            "--work-dir",
         ):
             with self.subTest(option=option):
                 with self.assertRaises(ValueError):
@@ -95,6 +117,8 @@ out.write_text('{\"result\":\"ready-to-review\"}\\n')
                     kj_atlas_dir=None,
                     kj_atlas_backend_bundle=root / "bundle",
                     model_dir=None,
+                    prepare_model_dir=None,
+                    work_dir=None,
                     evidence_dir=evidence,
                     verification_output=output,
                     forwarded=[],
@@ -144,6 +168,8 @@ raise SystemExit(1)
                     kj_atlas_dir=None,
                     kj_atlas_backend_bundle=root / "bundle",
                     model_dir=None,
+                    prepare_model_dir=None,
+                    work_dir=None,
                     evidence_dir=evidence,
                     verification_output=output,
                     forwarded=[],
@@ -164,6 +190,8 @@ raise SystemExit(1)
                     kj_atlas_dir=None,
                     kj_atlas_backend_bundle=root / "bundle",
                     model_dir=None,
+                    prepare_model_dir=None,
+                    work_dir=None,
                     evidence_dir=root / "evidence",
                     verification_output=root / "evidence" / "verification.json",
                     forwarded=[],
