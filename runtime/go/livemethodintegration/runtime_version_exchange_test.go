@@ -32,11 +32,12 @@ type runtimeExchangeRealizationRevision struct {
 // Method Realizationの各revisionをExact Bindingで区別し、先に記録した
 // Method Applicationの来歴が後続実行によって書き換わらないことを検査します。
 //
-// このtestは専用E3b workflowからのみ有効化します。通常のunit testではactual runtimeを
-// 必須にせず、runtime名やversionをUniversal Contractへ昇格させません。
+// このtestはrepository-local harness等の実行器からactual Evidence pathと
+// SOZA_E3B_RUNTIME_EXCHANGE_LIVE=1を明示した場合だけ有効化します。通常のunit testでは
+// actual runtimeを必須にせず、runtime名やversionをUniversal Contractへ昇格させません。
 func TestLiveKJAtlasRuntimeVersionExchangePreservesHistoricalApplication(t *testing.T) {
 	if os.Getenv("SOZA_E3B_RUNTIME_EXCHANGE_LIVE") != "1" {
-		t.Skip("actual runtime version exchange probe is enabled only by the dedicated E3b workflow")
+		t.Skip("actual runtime version exchange probeは明示的なlive実行時だけ有効です")
 	}
 
 	resultA := readExchangeFile(t, "SOZA_E3B_RUNTIME_EXCHANGE_RESULT_A")
