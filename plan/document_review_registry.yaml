@@ -67,8 +67,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、自然な日本語全文再ドラフトと最終意味監査を実施済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000070
-    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidence、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1b、ISSUE-000067のhistorical reconstruction H1 / H2、ISSUE-000068のactual二モデル交換までをcurrent履歴として監査した。ISSUE-000069では`pull_request.paths`のPR全体差分という性質を明示し、文書だけの独立PR、scenario-local test、共有mapping、直接依存する共有Go packageを分けて実証責務を整理した。PR #64でdocs-only選択、PR #65で`semanticruntime`共有依存の正側選択をrun生成レベルで確認し、Local Package Artifactも実際のbuild依存へ限定した。runnerは全面復旧と扱わず、`steps=[]`のjobと実際に完走したRun 33670697154を分けて記録している。ISSUE-000070では`qwen2.5:0.5b`をtag名だけでなくRun `33670697154`でactualに観測したdigest `a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67`まで固定し、Ollama `0.32.13` / `0.32.14`だけを交換する実験へ精密化した。同じlogical Method Realizationの異なるExact Binding revision、固定runtime artifact、既存Exact Reference mappingのExecutable Evidence、runtime交換本体のNot Yet Verifiedを分離している。CI failure時もpushは継続し、merge・Evidence確定・Resolved判定のgateとは分けている。検査本文、既存Evidence強度、v0.2.0 supported scopeは変更していない。
+    coverage: ISSUE-000001..ISSUE-000071
+    note: E3a、E3b-P1、TEI executable注入境界、v0.2.0 publication / Release Evidence、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1b、ISSUE-000067のhistorical reconstruction H1 / H2、ISSUE-000068のactual二モデル交換までをcurrent履歴として監査した。ISSUE-000069では`pull_request.paths`のPR全体差分という性質を明示し、文書だけの独立PR、scenario-local test、共有mapping、直接依存する共有Go packageを分けて実証責務を整理した。PR #64でdocs-only選択、PR #65で`semanticruntime`共有依存の正側選択をrun生成レベルで確認し、Local Package Artifactも実際のbuild依存へ限定した。runnerは全面復旧と扱わず、`steps=[]`のjobと実際に完走したRun 33670697154を分けて記録している。ISSUE-000070では`qwen2.5:0.5b`をtag名だけでなくRun `33670697154`でactualに観測したdigest `a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67`まで固定し、Ollama `0.32.13` / `0.32.14`だけを交換する実験へ精密化した。同じlogical Method Realizationの異なるExact Binding revision、固定runtime artifact、既存Exact Reference mappingのExecutable Evidence、runtime交換本体のNot Yet Verifiedを分離している。ISSUE-000071ではexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeを分離し、non-golden case catalog、historical actual sample、structured human reviewを保持したまま、GitHub Actions workflowやrunner availabilityを評価基盤の成立条件から外した。検査本文、既存Evidence強度、v0.2.0 supported scopeは変更していない。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -177,6 +177,12 @@ reviewed:
       - evaluation/v6-v7/projections/light.md
       - evaluation/v6-v7/projections/audit.md
     note: current canonical fixtureから再生成可能な評価用Projection例として監査済み。
+  - scope: evaluation/method-quality/*.md
+    status: revised
+    coverage:
+      - evaluation/method-quality/README.md
+      - evaluation/method-quality/HUMAN_REVIEW_TEMPLATE.md
+    note: Cognitive Method成果品質をexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeから分離する評価資料として監査済み。golden answerや単一スコアを正解化せず、構造検査とhuman reviewの責務を分離している。
 
   - scope: release/README.md
     status: revised
