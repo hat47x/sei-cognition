@@ -10,7 +10,7 @@ Updated: 2026-09-03
 
 同じCognitive Method、同じKJ Atlas source、同じMethod input、同じactual model artifactを使い、Ollama runtime versionだけを交換したときに、SOZAが先行Method Applicationの履歴を失わず保持できるかを実証する。
 
-runtime version差は別のlogical Method Realizationへ分けず、同じ実現機構に属するhistorical revisionとして扱う。revisionの違いは、Cognitive Method Contractが既に持つExact Bindingで固定する。
+runtime version差は別のlogical Method Realizationへ分けない。同じ実現機構に属するhistorical revisionとして扱い、Cognitive Method Contractが既に持つExact Bindingで区別する。
 
 ```text
 same Method Definition
@@ -47,12 +47,21 @@ runtime version交換
 - Method Applicationは、実行時に利用したRealization revisionをExact Referenceで保持できる。
 - runtime / model固有情報は、必要なProvenance / realization-local metadataとして保持する。
 - Method outputをRecommendation / Decisionへ自動昇格しない。
+- GitHub Actions、runner ID、workflow run IDはCognitive Methodの意味やruntime交換成立条件にしない。
 
 ## ISSUE-000067 / ISSUE-000068との接続
 
-ISSUE-000067では、Method Definition / Realization / Applicationを履歴として再構成するためのH1 / H2境界を検討した。
+ISSUE-000067では、Method Definition / Realization / Applicationを履歴として再構成する境界を検証した。
 
-ISSUE-000068では、KJ Atlas source、runtime、Method inputを固定し、actual model artifactだけを交換した。先行Applicationを後続model実行後も保持できることを確認した一方、modelが変われば生成内容や言語適合性も変わり得ることが観測された。
+```text
+実現機構が異なる
+  → logical Realizationを分ける
+
+同じRealizationのhistorical revisionを固定する
+  → Exact Bindingを使う
+```
+
+ISSUE-000068では、KJ Atlas source、runtime、Method inputを固定し、actual model artifactだけを交換した。後続model実行を追加しても先行ApplicationのRealization、Provenance、outputを保持できることをScoped Executable Evidenceとして確認した。
 
 本Issueでは交換軸をさらに狭める。
 
@@ -78,13 +87,13 @@ model交換とruntime revision交換を別の探索軸として扱う。
 - model adapter: `runtime/integration/e3b_m1b_ollama_adapter.py`
 - model: `qwen2.5:0.5b`
 - model artifact digest: `a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67`
-- Method input: dedicated workflow内の固定3-card input
+- Method input: repository-local harness内の固定3-card input
 - held card: `c-held`
 - SOZA Method mapping: current `livemethodintegration`
 
 model artifact digestは、Actual Model Artifact Exchange E3b Run `33670697154`でOllama `0.32.14`から実際に観測した`qwen2.5:0.5b`のartifact identityである。
 
-A / Bのdigestが一つのrun内で互いに等しいだけでは固定条件成立とみなさない。両方がこの期待digestに一致することを要求する。同じmodel tagが将来別artifactを指した場合は、実験条件が変わったものとして停止する。
+A / Bのdigestが一つの実行内で互いに等しいだけでは固定条件成立とみなさない。両方がこの期待digestに一致することを要求する。同じmodel tagが将来別artifactを指した場合は、実験条件が変わったものとして停止する。
 
 交換するのはOllama runtime versionだけとする。
 
@@ -100,25 +109,54 @@ installerによるglobal installは使わず、GitHub ReleaseのLinux amd64 arch
 - `v0.32.14 / ollama-linux-amd64.tar.zst`
   - SHA-256: `c620917a71e146ab3a7f893084f066069c4c65d144ef8379a91c3cbe8b27de8f`
 
-2026-09-03の静的再監査では、両digestがOllama公式GitHub Release metadataの各asset digestと一致することを確認した。また、公式Linux installerの展開方式と、dedicated workflowが利用する`${root}/bin/ollama`というlayout前提が整合することを確認した。
+2026-09-03の静的再監査では、両digestがOllama公式GitHub Release metadataの各asset digestと一致することを確認した。また、公式Linux installerの展開方式と`${root}/bin/ollama`というlayout前提が整合することを確認した。
 
-これはsource identity / workflow designの確認であり、runtime交換をactualに実行したExecutable Evidenceではない。
+これはsource identityの静的確認であり、runtime交換をactualに実行したExecutable Evidenceではない。
 
 ## Exact Realization Reference
 
 既存のKJ Atlas live mappingへ、後方互換なoptional経路として`ApplyGroupingInput.RealizationReference`を追加した。
 
 - 未指定の場合
-  - M1a / M1bと同じlogical-only Realization Referenceを保持する。
+  - 従来どおりlogical-only Realization Referenceを保持する。
 - 指定した場合
   - `method_application.realization_ref`へ`semanticruntime.Reference`を保持する。
   - logical identityが`RealizationRef`と一致しなければ、canonical stateを変更せず拒否する。
 
-Exact Bindingを作るMethod Realization payloadと、portable Semantic Interchangeへ格納するRealization recordは同じ生成経路を使う。bindingだけを別途再生成してpayloadとずれる二重実装にはしていない。
+Exact Bindingを作るMethod Realization payloadと、portable Semantic Interchangeへ格納するRealization recordは同じ生成経路を使う。
 
-この共有mappingは、Actual Model Artifact Exchange E3b Run `33670697154` / Job `100383296117`で`go test ./livemethodintegration -count=1`を含めactualにPASSしている。したがってExact Reference mapping自体にはExecutable Evidenceがある。
+このmappingでは、Exact Referenceを保持するためMethod Application recordを直接`CanonicalStore.Add`へ渡す。これはsemantic validationの迂回ではない。`CanonicalStore.Add`はtyped recordを`semanticruntime.LoadStandalone`で再検証してから保存するため、従来の`MachineSurface.RecordMethodApplication`と同じContract検証境界を通る。
 
-ただし、この既存Evidenceをruntime version交換の成立証明には使わない。
+共有mapping自体はActual Model Artifact Exchange E3b Run `33670697154` / Job `100383296117`で`go test ./livemethodintegration -count=1`を含めactualにPASSしている。したがってExact Reference mappingにはExecutable Evidenceがあるが、この既存Evidenceをruntime version交換の成立証明には使わない。
+
+## Repository-local execution harness
+
+PR #70ではGitHub Actions workflowをcurrent `develop/v0.2.0`から撤去した。そこで、runtime交換のactual実行本文をautomation providerから切り離し、repository同梱の次のharnessへ移す。
+
+- `runtime/integration/run_runtime_version_exchange.sh`
+
+harnessは次を一続きに実行する。
+
+1. KJ Atlas checkoutが固定commitであることを確認する。
+2. 専用Python virtual environmentへ固定KJ Atlas backendを導入する。
+3. Ollama `0.32.13` / `0.32.14`のarchiveを取得し、固定SHA-256を検証する。
+4. 同じmodel storageで`qwen2.5:0.5b`を利用し、A / B双方のmodel digestが固定値と一致することを確認する。
+5. 同じ3-card Method inputをA / Bへ通し、actual inference countersとKJ Atlas responseを確認する。
+6. A / Bのprompt SHA-256が同一であることを確認する。
+7. `livemethodintegration`の通常testを実行する。
+8. runtime交換live testを実行し、historical Applicationとportable reconstructionを検査する。
+9. 成否にかかわらず、そこまで生成されたEvidenceを通常directoryへ保存する。
+
+実行場所は意味上の条件にしない。
+
+```text
+repository-local harness
+  = reproducible execution boundary
+  != GitHub Actions required
+  != specific runner required
+```
+
+旧workflowで実装していたactual実験本文を、GitHub Actionsの存在と分離して保持することが目的である。
 
 ## Artifact guard
 
@@ -126,20 +164,32 @@ runtime交換のlive testを開始する前に、Go側でも実際の実験条�
 
 `runtime_version_artifact_guard_test.go`は、`SOZA_E3B_RUNTIME_EXCHANGE_LIVE=1`のときだけ次を検査する。
 
-- `_external/kj-atlas`のactual checkout commitが固定commitと一致する。
+- 指定されたKJ Atlas checkoutのactual commitが固定commitと一致する。
 - runtime A / Bのversion logが、それぞれ`0.32.13` / `0.32.14`を示す。
-- 取得済みruntime archiveのSHA-256が固定値と一致する。
+- 取得済みruntime archive bytesのSHA-256が固定値と一致する。
+
+KJ Atlas path、runtime archive、version logはrepository-local harnessから明示できる。`GITHUB_WORKSPACE`はhistoricalな互換fallbackとしてのみ扱い、必須条件にしない。
 
 通常のunit testではexternal runtimeを要求しない。
 
-さらに`runtime_version_artifact_guard_unit_test.go`で、external runtimeを使わず次を制御する。
+`runtime_version_artifact_guard_unit_test.go`では、PR #71で次を固定した。
 
 - exact version tokenを受理する。
 - `0.32.13`と`0.32.130`のようなnumeric suffixを取り違えない。
 - exact artifact digestを受理する。
 - artifact digest mismatchを拒否する。
+- Realization payload bytesが宣言したRaw Bytes SHA-256 Exact Bindingで`verified`になる。
+- payloadを改変すると`verification_failed`になる。
+- 同一のRealization identityから同じExact Bindingを決定的に再構成できる。
+- runtime version、runtime artifact digest、model artifact digestのいずれかを変えるとExact Bindingも変わる。
 
-新規unit test fileについては`gofmt -d`で差分がないことを確認済みである。package全体のrunner-backed実行は、runner利用可能性の回復後に確認する。
+これにより、次を別々に検査する。
+
+```text
+actual execution identity guard
+  != payload digest verification
+  != bundle-local Exact Reference resolution
+```
 
 ## Required experiments
 
@@ -160,10 +210,8 @@ PASS条件:
 PASS条件:
 
 - A / Bのmodel digestが同一である。
-- A / Bのmodel digestが、固定した期待artifact identity `a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67`と一致する。
+- A / Bのmodel digestが固定した期待artifact identityと一致する。
 - model tagだけで同一性を推論しない。
-
-A / Bでは同じ`OLLAMA_MODELS`を利用する。これはmodel artifactを交換軸から外し、同じmodel storageを異なるruntime binaryで読み、推論できることを見るためである。各runtimeから`ollama pull`と`/api/tags`の確認を行い、固定digestと一致しない場合は停止する。
 
 ### E3 — same prompt / actual inference
 
@@ -181,13 +229,15 @@ PASS条件:
 
 ### E4 — same logical Realization / different Exact Binding
 
-runtime versionとruntime artifact digestを含むMethod Realization documentからExact Bindingを決定的に作る。
+runtime version、runtime artifact digest、model artifact identityを含むMethod Realization documentからExact Bindingを決定的に作る。
 
 PASS条件:
 
 - A / Bは同じlogical Realizationを持つ。
 - A / BはいずれもExact Bindingである。
 - A / BのExact Bindingは異なる。
+- 同じidentityから再構成したExact Bindingは同じになる。
+- execution artifact identityを変えた場合はExact Bindingも変わる。
 
 ### E5 — historical Application immutability
 
@@ -205,22 +255,25 @@ PASS条件:
 
 ### E6 — portable historical reconstruction
 
-二つのMethod Realization revision recordと二つのApplication recordを、一つのSemantic Interchangeへ格納する。
+二つのMethod Realization revision recordと二つのApplication recordを一つのSemantic Interchangeへ格納する。
 
 PASS条件:
 
+- Realization payloadをRaw Bytes SHA-256 Profileで検証できる。
 - `semanticruntime.LoadInterchange`がbundle-local Exact Binding検証を通過する。
 - Application AのExact Referenceをrevision Aへ解決できる。
 - Application BのExact Referenceをrevision Bへ解決できる。
-
-negative controlとしてApplication Bのdigestを存在しないrevisionへ差し替え、`LoadInterchange`が拒否することを要求する。
+- payload改変はVerifierで拒否される。
+- 存在しないrevision digestを参照するnegative bundleは`LoadInterchange`で拒否される。
 
 ```text
 exact-looking reference retained
+  != payload verified
   != historical revision resolvable
 
-Application exact reference
+payload verification
   + matching Realization revision record
+  + Application exact reference
   + bundle-local Exact Binding validation
   → portable historical reconstruction boundary
 ```
@@ -229,42 +282,28 @@ Application exact reference
 
 runtime交換後もMethod outputをRecommendation / Decisionへ自動昇格しない。
 
-### E8 — CI trigger responsibility
+### E8 — execution surface independence
 
-scenario-local testと共有依存を分ける。
+runtime交換実験をGitHub Actions workflowに閉じ込めず、repository-local harnessから再現できる状態を保つ。
 
-- runtime交換専用testだけの変更
-  - Runtime Version Exchange E3bを選ぶ。
-  - M1a / M1b / actual二モデル交換を自動対象にしない。
-- model artifact交換専用testだけの変更
-  - Actual Model Artifact Exchange E3bを選ぶ。
-  - Runtime Version Exchange E3b / M1a / M1bを自動対象にしない。
-- runtime交換が直接依存する共有packageの変更
-  - Runtime Version Exchange E3bを再選択する。
+PASS条件:
 
-Runtime Version Exchange E3bのtrigger対象には次を含める。
+- fixed experiment identityがscript内に明示されている。
+- actual inferenceに必要な処理がrepository同梱資産として残る。
+- harnessからlive Go testへ必要なKJ Atlas path、runtime log、archive path、model identityを渡せる。
+- GitHub Actionsやrunner IDをMethod / Realization identityへ含めない。
 
-- `runtime/go/livemethodintegration/**`
-- `!runtime/go/livemethodintegration/model_artifact_exchange_test.go`
-- `runtime/go/interactionprobe/**`
-- `runtime/go/semanticruntime/**`
-- `runtime/integration/e3b_m1b_ollama_adapter.py`
-- `runtime/go/go.mod`
-- `runtime/go/go.sum`
-- workflow自身
+### E9 — Evidence preservation
 
-### E9 — Evidence bundle preservation
+actual runtime交換の入力、実行条件、結果を一時ログだけに閉じない。
 
-actual runtime交換の結果を一時的なActions logだけに閉じない。
+Evidence directoryへ、存在する範囲で次を保存する。
 
-workflow artifact `runtime-version-exchange-${run_id}-${run_attempt}`へ、巨大なruntime archive本体を除いて次を保存する。
-
-- fixed experiment identity
-  - workflow run / attempt
-  - checked-out SOZA commit
+- experiment identity
+  - execution ID
+  - SOZA repository commit
   - KJ Atlas source commit
-  - runtime A / B version
-  - runtime A / B archive SHA-256
+  - runtime A / B version / archive SHA-256
   - expected model digest
   - `qualityJudgement = not_evaluated`
 - Method request
@@ -274,16 +313,13 @@ workflow artifact `runtime-version-exchange-${run_id}-${run_attempt}`へ、巨�
 - A / B KJ Atlas result
 - Adapter / KJ Atlas / Ollama log
 
-`if: always()`で、途中失敗時にもそこまで生成されたファイルを可能な範囲で残す。
+途中で停止した場合も、そこまで生成されたEvidenceを残す。
 
 ```text
-Evidence bundle preserved
-  = actual runの入力・条件・出力へ戻れる
+Evidence directory preserved
   != runtime exchange PASS
   != output quality satisfied
 ```
-
-artifactが存在すること自体をEvidence成立へ昇格させない。実験が途中で停止した場合は、欠落ファイルも含めてそのrunの状態として読む。
 
 ## Existing Evidence
 
@@ -291,94 +327,66 @@ artifactが存在すること自体をEvidence成立へ昇格させない。実�
 
 Actual Model Artifact Exchange E3b Run `33670697154` / Job `100383296117`はrunner上でactualに完走した。
 
-このrunでは次がsuccessした。
+このrunでは、actual model artifact exchange、full model digest、prompt digest、`go test ./livemethodintegration -count=1`、historical Application保持を確認した。
 
-- actual model artifact exchange
-- `qwen2.5:0.5b` full model digestのactual観測
-- model prompt digest `cd3d5eeb64cddfbdce63d80b0451b19703f43bcd2d1b09d7188f6bd4d7de2d33`のactual観測
-- `go test ./livemethodintegration -count=1`
-- Exact Reference保持test
-- logical identity不一致時の無変更失敗test
-- historical Application保持test
+したがって、Exact Reference mappingにはExecutable Evidenceがある。また、今回固定する`qwen2.5:0.5b`のmodel artifact identityはactual observationに基づく。
 
-このrunはExact Reference mappingとmodel artifact identityの入力Evidenceとして使うが、runtime version交換のExecutable Evidenceへは昇格させない。
+これはruntime version交換のExecutable Evidenceではない。
 
-### scenario-local trigger selection
+### Historical GitHub Actions exploration
 
-runtime交換専用差分だけだった先行headでは、Runtime Version Exchange E3bだけが外部Method実証として生成され、M1a / M1b / actual二モデル交換は生成されなかった。
+PR #63の作業中には、runtime交換workflow、scenario-local trigger、shared dependency trigger、Evidence artifact保存を試作した。
 
-PR #67では`model_artifact_exchange_test.go`だけを変更するprobeを行い、Actual Model Artifact Exchange E3bとSemantic Runtime Conformanceは生成された一方、Runtime Version Exchange E3b / M1a / M1bは生成されなかった。
+一方、GitHub-hosted runnerは長期間`runner_id=0 / steps=[]`のまま割り当て前に終了した。PR #68の最小cross-OS probeではUbuntu / Windows / macOSのすべてで同じ現象を観測した。
 
-したがって、runtime交換専用testとmodel artifact交換専用testの双方について、scenario-localな責務分離をrun生成レベルで確認済みである。
+この観測は、Linux固有、Ollama固有、SOZA test本文固有の説明を弱めるが、billing、quota、repository policy、GitHub service-side condition等の具体原因を確定しない。
 
-### shared dependency trigger selection
-
-PR #66では`semanticruntime`だけを変更するprobeからRuntime Version Exchange E3bが生成された。共有dependencyの正側選択もrun生成レベルで確認済みである。
-
-### PR #61 integration
-
-CI trigger責務を整理したPR #61は、2026-09-03に`develop/v0.2.0`へmerge commit `4b2609b7fd7906467e8cdf59805ce07a710b2f6a`として統合した。
-
-本PRもそのdevelop基線をbranch履歴へ取り込み、runtime交換固有差分だけを保持している。
+PR #70ではcurrent `develop/v0.2.0`からGitHub Actions workflowを撤去した。ISSUE-000069も、検証内容と実行場所を分ける境界が確立したものとしてResolvedになった。したがって、runner復旧は本IssueのResolution条件ではない。過去のrun / trigger観測はhistoryとして保持するが、current actual実証はrepository-local harnessを正とする。
 
 ## Current implementation state
 
-実装済みの範囲は次である。
+current implementationには次がある。
 
-- fixed runtime artifact acquisition
-- runtime artifact SHA-256 verification
-- actual version log verification
-- artifact guardとそのunit control
-- same model storage
-- known actual model digestへの固定
-- A / Bそれぞれでの期待model digest検証
-- prompt digest comparison
-- actual inference countersの検証
-- Exact Realization revision生成
-- Application A / BへのExact Reference保持
-- historical Application / Provenance / output不変性検査
+- Exact Realization Referenceを保持できるKJ Atlas mapping
+- logical identity不一致時の無変更失敗test
+- fixed runtime / model identity
+- runtime execution identity guard
+- artifact guard unit tests
+- Realization payload Exact Binding verification
+- Exact Binding決定性とidentity差分test
+- historical Application / Provenance / output不変性test
 - portable Semantic Interchange reconstruction
 - unknown revision digestのnegative control
-- Recommendation / Decisionへの非昇格検査
-- partial failureを含むEvidence bundle preservation
+- repository-local runtime exchange harness
+- failure途中も保存できるfilesystem Evidence directory
 
-## Current runner / Evidence state
+ただし、repository-local harnessによるactual Ollama `0.32.13` / `0.32.14`交換はまだ完走確認していない。
 
-GitHub-hosted runnerは現在も安定して割り当てられていない。
-
-Evidence bundle追加後のRun `33699821956`、artifact guard unit control追加後のRun `33700013855`はいずれもworkflowとして生成されたが、jobはstep開始前に終了した。Run `33699821956`は個別再実行も行ったが、再実行attemptも`steps=[]`のまま終了した。
-
-このため、赤いrunをworkflow本文やGo testのFAILとして扱わない。
+## Current Evidence state
 
 ```text
-workflow definition
-  = implemented / accepted by GitHub
-
-pinned runtime artifact identity against official release metadata
+fixed runtime artifact identity against official release metadata
   = statically verified
 
-runtime archive layout assumption
-  = statically cross-checked
-
 qwen2.5:0.5b expected model artifact identity
-  = actual digest observed in Run 33670697154 and pinned
-
-scenario-local workflow selection
-  = confirmed in both directions
-
-shared semanticruntime trigger selection
-  = confirmed
+  = actual digest observed in Run 33670697154
 
 Exact Realization Reference mapping
   = Executable Evidence available in Run 33670697154
 
-runtime artifact guard unit file formatting
-  = locally checked with gofmt
+pure-Go Exact Binding controls
+  = implemented in current develop via PR #71
 
-runtime 0.32.13 / 0.32.14 artifact acquisition in this workflow
+repository-local runtime exchange harness
+  = implemented; shell syntax checked on the source branch
+
+runtime artifact / source / version live guard
+  = implemented
+
+actual runtime 0.32.13 / 0.32.14 acquisition through current harness
   = Not Yet Verified
 
-actual runtime-version exchange inference
+actual runtime-version exchange inference through current harness
   = Not Yet Verified
 
 same pinned model digest / same prompt digest across runtime versions
@@ -391,9 +399,7 @@ runtime-version-exchange Scoped Executable Evidence
   = not available yet
 ```
 
-CI failureは修正対象だがpushを停止する条件にはしない。runner未割当を含む赤いrunが残っていても、原因調査、実験条件の強化、修正commitは通常どおりpushする。
-
-一方、actual runtime exchangeのEvidence確定と本IssueのResolved判定はrunner-backed実行を必要とする。
+ISSUE-000071は評価境界の確立としてResolvedになったが、これはhuman reviewやKJ-method outcome qualityがSatisfiedになったことを意味しない。本Issueでもruntime交換のexecution conformanceと成果品質を混同しない。
 
 ## Requirement / Contract assessment
 
@@ -408,6 +414,38 @@ actual実証後に次へ再照合する。
 - SCN-0015
 
 既存Requirement / Contractで観測結果を十分に表せる場合はNo Changeとする。
+
+## Resolution
+
+次をすべて満たした時点でResolvedにできる。
+
+1. repository-local harnessが固定runtime artifact A / Bを取得し、digestを検証できる。
+2. A / Bのactual binary versionを確認できる。
+3. A / B双方のmodel digestが固定artifact identityと一致し、same prompt digestもactual executionで確認できる。
+4. 両runtimeでactual inferenceが成立する。
+5. Application A / Bがsame logical / different Exact Realization revisionを保持する。
+6. Application AのReference / Provenance / outputがB追加後も不変である。
+7. Realization payload verification、portable reconstruction、unknown revision negative controlがPASSする。
+8. Recommendation / Decisionへの自動昇格がない。
+9. filesystem Evidence directoryから実験identity、入力、A / B出力、model Evidenceへ戻れる。
+10. Requirement / Contract再照合と自然な日本語最終監査を行う。
+
+GitHub-hosted runnerの復旧やGitHub Actions workflowの再導入はResolution条件にしない。
+
+## Reopen conditions
+
+Resolved後も次の場合は再開する。
+
+- runtime revisionを交換するとhistorical ApplicationのExact Referenceが失われる。
+- same logical RealizationのrevisionをExact Bindingで区別できない。
+- Realization payloadと宣言Exact Bindingの不一致を検出できない。
+- portable bundle内でApplicationのExact Referenceを対応revisionへ解決できない。
+- unknown revision digestを参照するbundleを受理する。
+- model tagが固定artifact identityと異なるartifactを指し、model artifactが交換軸へ混入する。
+- promptが交換軸へ混入する。
+- runtime固有情報をUniversal semanticsへ先取りする。
+- actual実験本文が特定automation providerにしか存在せず、repositoryから再実行できなくなる。
+- runtime交換successをmodel / KJ成果品質やE4へ過大評価する。
 
 ## Stop line
 
@@ -427,52 +465,12 @@ runtime 0.32.13 / 0.32.14 exchange PASS
 
 execution成立、historical reconstruction、生成品質を別の評価軸として扱う。
 
-## Resolution
-
-Open中。
-
-次をすべて満たした時点でResolvedとする。
-
-1. fixed runtime artifact A / Bをactual runner上で取得・digest検証できる。
-2. A / Bのruntime versionをactual binaryから確認できる。
-3. A / B双方のmodel digestが固定した期待artifact identityと一致し、same prompt digestもactual executionで確認できる。
-4. 両runtimeでactual inferenceが成立する。
-5. Application A / Bがsame logical / different Exact Realization revisionを保持する。
-6. Application AのReference / Provenance / outputがB追加後も不変である。
-7. portable reconstructionとunknown revision negative controlがPASSする。
-8. Recommendation / Decisionへの自動昇格がない。
-9. Evidence bundleから実行identity、入力、A / Bの出力へ戻れる。
-10. current trigger setで必要なworkflow回帰がrunner上でsuccessする。
-11. Requirement / Contract再照合と自然な日本語最終監査を行う。
-
-trigger選択性と実験harnessは整備済みだが、actual runtime exchangeが未実行のためResolvedにはしない。
-
-## Reopen conditions
-
-Resolved後も次の場合は再開する。
-
-- runtime revisionを交換するとhistorical ApplicationのExact Referenceが失われる。
-- same logical RealizationのrevisionをExact Bindingで区別できない。
-- portable bundle内でApplicationのExact Referenceを対応revisionへ解決できない。
-- unknown revision digestを参照するbundleを受理する。
-- model tagが固定した期待artifact identityと異なるartifactを指し、model artifactが交換軸へ混入する。
-- promptが交換軸へ混入する。
-- runtime固有情報をUniversal semanticsへ先取りする。
-- 共有依存変更時にruntime交換workflowが選択されない。
-- model artifact交換専用testだけの変更でruntime交換workflowが再び選択される。
-- Evidence bundleの存在を実験成功や成果品質へ読み替える。
-- runtime交換successをmodel / KJ成果品質やE4へ過大評価する。
-
 ## Natural Japanese review
 
-ISSUE-000067 / ISSUE-000068、Cognitive Method Contract、current live mapping、ISSUE-000069で確立したCI trigger原則を再照合した。
+ISSUE-000067 / ISSUE-000068、Cognitive Method Contract、Exact Binding、current KJ Atlas mapping、PR #70以降のno-Actions baseline、PR #71のExact Binding補強、ISSUE-000071で確立した成果品質評価境界を再照合した。
 
-「実現機構そのものの違い」と「同一実現機構のversion差」を分け、後者を一つのlogical Realizationに属するhistorical revisionとしてExact Bindingで固定する構造を維持している。
+旧本文ではdedicated workflow、Actions artifact、runner復旧がcurrent実験手段として混在していた。これらをhistorical explorationへ移し、actual実験本文はrepository-local harnessへ戻した。これにより、GitHub Actionsを使わないことと、actual runtime交換を未実証のまま残すことを両立させている。
 
-また、「同じmodel」をtag名や一回のA / B比較だけで済ませず、既にactual runで観測したfull model digestを期待artifact identityとして固定した。runtime archiveもversion名だけでなくSHA-256まで固定し、live test開始時にはGo側のartifact guardでも再確認する。
+また、Exact Referenceを保持するためKJ Atlas mappingが`CanonicalStore.Add`へ直接recordを渡す点も再監査した。`CanonicalStore.Add`はtyped semantic documentを`semanticruntime.LoadStandalone`で再検証するため、MachineSurfaceを経由しないことをsemantic validationの回避とは扱わない。
 
-actual実験が成立した際には、その事実をActions logだけへ閉じず、実験identity、request、A / Bのversion・model identity・inference Evidence・resultへ戻れる小さなEvidence bundleを残す。ただしartifactの存在自体をruntime交換の成功や成果品質へ昇格させない。
-
-CIについては、scenario-local test、model artifact交換専用test、共有依存を分けてrun生成を実測した。runner未割当についても、`failure`という表示だけからrepository test failureを推定せず、step未開始という観測事実を保持する。
-
-固定artifactのsource identity、既存Exact Reference mapping Evidence、trigger選択、実装済みharness、runner上で未確認のactual runtime交換を一つの成功や失敗へまとめず、自然な日本語として読み分けられるよう全文を再ドラフトした。
+実行artifactの固定、payload digest検証、bundle-local reference解決、Evidence保存を別の責務として記述し、一つのPASSへ圧縮していない。意味、規範強度、Evidence強度、未検証範囲を変えず、自然な日本語として読み通せることを最重要視して全文を再ドラフトした。
