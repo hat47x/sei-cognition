@@ -238,6 +238,25 @@ def _write_json_once(path: Path, payload: dict[str, object]) -> None:
     )
 
 
+def _prepare_evidence_directory_after_run(evidence_dir: Path, exit_code: int) -> str:
+    """strict実行後のEvidence directoryを確定し、失敗観測を失わないようにする。"""
+
+    if evidence_dir.is_symlink():
+        raise ValueError(f"Evidence directoryはsymlinkを許可しません: {evidence_dir}")
+    if evidence_dir.exists():
+        if not evidence_dir.is_dir():
+            raise ValueError(f"Evidence directoryではありません: {evidence_dir}")
+        return "strict-entrypoint"
+    if exit_code == 0:
+        raise ValueError(
+            "strict entrypointが成功終了しましたがEvidence directoryを作成しませんでした: "
+            f"{evidence_dir}"
+        )
+
+    evidence_dir.mkdir(parents=True, exist_ok=False)
+    return "verified-runner-after-failure"
+
+
 def _preserve_runner_observation(
     evidence_dir: Path,
     *,
@@ -247,9 +266,10 @@ def _preserve_runner_observation(
     exit_code: int,
     source_preparation: str,
     preflight_report: dict[str, object],
+    evidence_directory_created_by: str,
 ) -> None:
     if not evidence_dir.is_dir():
-        return
+        raise ValueError(f"runner observationの保存先がEvidence directoryではありません: {evidence_dir}")
 
     target_log = evidence_dir / "runtime-exchange-runner.log"
     target_observation = evidence_dir / "runtime-exchange-runner-observation.json"
@@ -264,6 +284,7 @@ def _preserve_runner_observation(
         "exitCode": exit_code,
         "sourcePreparation": source_preparation,
         "preflightResult": preflight_report.get("result"),
+        "evidenceDirectoryCreatedBy": evidence_directory_created_by,
         "combinedOutputSha256": output_sha256,
         "combinedOutputBytes": output_bytes,
         "qualityJudgement": "not_evaluated",
@@ -325,6 +346,10 @@ def run(
     )
     exit_code, log_path, output_sha256, output_bytes = _run_and_capture(command)
     try:
+        evidence_directory_created_by = _prepare_evidence_directory_after_run(
+            evidence_dir,
+            exit_code,
+        )
         _preserve_runner_observation(
             evidence_dir,
             log_path=log_path,
@@ -333,25 +358,22 @@ def run(
             exit_code=exit_code,
             source_preparation=source_preparation,
             preflight_report=preflight_report,
+            evidence_directory_created_by=evidence_directory_created_by,
         )
-        if log_path.exists():
-            # strict entrypointがEvidence directory作成前に失敗した場合は、一時logを残さない。
-            log_path.unlink()
 
-        if evidence_dir.is_dir():
-            verifier = subprocess.run(
-                [
-                    sys.executable,
-                    str(EVIDENCE_VERIFIER),
-                    "--evidence-dir",
-                    str(evidence_dir),
-                    "--output",
-                    str(verification_output),
-                ],
-                check=False,
-            )
-            if exit_code == 0:
-                return verifier.returncode
+        verifier = subprocess.run(
+            [
+                sys.executable,
+                str(EVIDENCE_VERIFIER),
+                "--evidence-dir",
+                str(evidence_dir),
+                "--output",
+                str(verification_output),
+            ],
+            check=False,
+        )
+        if exit_code == 0:
+            return verifier.returncode
         return exit_code
     finally:
         log_path.unlink(missing_ok=True)

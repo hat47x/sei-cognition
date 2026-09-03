@@ -260,6 +260,7 @@ out.write_text('{\"result\":\"ready-to-review\"}\\n')
             self.assertEqual(0, observation["exitCode"])
             self.assertEqual("ready", observation["preflightResult"])
             self.assertEqual("verified-runtime-bundle", observation["sourcePreparation"])
+            self.assertEqual("strict-entrypoint", observation["evidenceDirectoryCreatedBy"])
             self.assertEqual(len(log), observation["combinedOutputBytes"])
             self.assertIn(b"fixture strict output", log)
             self.assertTrue(output.is_file())
@@ -310,7 +311,90 @@ raise SystemExit(1)
             self.assertFalse(observation["completed"])
             self.assertEqual(7, observation["exitCode"])
             self.assertEqual("ready", observation["preflightResult"])
+            self.assertEqual("strict-entrypoint", observation["evidenceDirectoryCreatedBy"])
             self.assertTrue(output.is_file())
+
+    def test_failure_before_evidence_creation_is_preserved_after_process_exit(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            strict = executable(
+                root / "strict.py",
+                """#!/usr/bin/env python3
+print('failed before strict Evidence directory creation')
+raise SystemExit(7)
+""",
+            )
+            verifier = executable(
+                root / "verifier.py",
+                """#!/usr/bin/env python3
+import pathlib, sys
+args=sys.argv[1:]
+out=pathlib.Path(args[args.index('--output')+1])
+out.write_text('{\"result\":\"not-sufficient\"}\\n')
+raise SystemExit(1)
+""",
+            )
+            evidence = root / "evidence"
+            output = root / "verification.json"
+            with patch.object(MODULE, "_run_preflight", return_value=dict(READY_PREFLIGHT)), patch.object(
+                MODULE, "STRICT_ENTRYPOINT", strict
+            ), patch.object(MODULE, "EVIDENCE_VERIFIER", verifier):
+                status = MODULE.run(
+                    kj_atlas_dir=None,
+                    kj_atlas_backend_bundle=root / "bundle",
+                    model_dir=None,
+                    prepare_model_dir=None,
+                    work_dir=None,
+                    evidence_dir=evidence,
+                    verification_output=output,
+                    forwarded=[],
+                )
+            self.assertEqual(7, status)
+            self.assertTrue(evidence.is_dir())
+            observation = json.loads(
+                (evidence / "runtime-exchange-runner-observation.json").read_text()
+            )
+            self.assertFalse(observation["completed"])
+            self.assertEqual(7, observation["exitCode"])
+            self.assertEqual(
+                "verified-runner-after-failure",
+                observation["evidenceDirectoryCreatedBy"],
+            )
+            self.assertIn(
+                "failed before strict Evidence directory creation",
+                (evidence / "runtime-exchange-runner.log").read_text(),
+            )
+            self.assertTrue((evidence / "runtime-exchange-preflight.json").is_file())
+            self.assertTrue(output.is_file())
+
+    def test_success_without_evidence_directory_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            strict = executable(
+                root / "strict.py",
+                """#!/usr/bin/env python3
+print('incorrect success without Evidence')
+""",
+            )
+            evidence = root / "evidence"
+            output = root / "verification.json"
+            with patch.object(MODULE, "_run_preflight", return_value=dict(READY_PREFLIGHT)), patch.object(
+                MODULE, "STRICT_ENTRYPOINT", strict
+            ), patch.object(MODULE, "EVIDENCE_VERIFIER") as verifier:
+                with self.assertRaisesRegex(ValueError, "成功終了しましたがEvidence directory"):
+                    MODULE.run(
+                        kj_atlas_dir=None,
+                        kj_atlas_backend_bundle=root / "bundle",
+                        model_dir=None,
+                        prepare_model_dir=None,
+                        work_dir=None,
+                        evidence_dir=evidence,
+                        verification_output=output,
+                        forwarded=[],
+                    )
+            verifier.assert_not_called()
+            self.assertFalse(evidence.exists())
+            self.assertFalse(output.exists())
 
     def test_verification_output_inside_evidence_is_rejected(self):
         with tempfile.TemporaryDirectory() as temp:
