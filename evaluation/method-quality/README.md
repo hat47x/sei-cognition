@@ -136,12 +136,41 @@ review bundle preserved
 
 workflowが途中で失敗した場合にも、そこまでに生成されたファイルは可能な範囲でartifactへ残します。欠けたファイルがある場合は、その欠落自体を実行状況の一部として扱い、完全なreview bundleが成立したものとはみなしません。
 
-## 7. Evidenceの読み方
+## 7. 正解を固定しない評価ケース
+
+簡単な一ケースだけで成果品質を語らないため、`case_catalog.json`に複数の評価入力を用意します。ただし、ここへ「正しいgrouping」や「正しい表札」をgolden answerとして置きません。
+
+ケースが持つのは、入力cardと、人間がレビュー時に見落としたくない観測点です。現在は次の難所を含めています。
+
+- 語彙が違っていても訴えが近いcardを見いだせるか。
+- 同じ話題語を含んでいても、訴えが異なるcardを安易に一括しないか。
+- 利点と懸念の緊張関係を、どちらか一方へ勝手に解消しないか。
+- 二つのまとまりをまたぐ橋cardの可能性を、排他的な分類で消さないか。
+- held、異論、未整理の残差を処理済みに見せないか。
+- 全cardを束ね切ること自体を成果にせず、孤立cardを残せるか。
+
+`validate_case_catalog.py`は、このケース集の形式と停止線だけを検査します。`expectedGroups`、`expectedLabel`、`qualityScore`等をケースへ追加すると失敗させます。
+
+```text
+review focus
+  = 人間が見るべき問い
+  != machine-authoritative answer
+
+case catalog valid
+  != Method output quality satisfied
+```
+
+ケース集を増やす場合も、機械採点のための隠れた正解表へ変えません。特定の出力を比較対象として残す必要がある場合は、human review recordや観測Evidenceとしてidentity付きで保持します。
+
+このcase catalogとvalidatorは、actual modelを起動しない軽量な`Method Quality Evaluation` workflowでも検査します。評価tool自体の回帰と、actual M1b executionのEvidenceは別の責務として扱います。
+
+## 8. Evidenceの読み方
 
 この評価系のcheckerやtemplateが存在すること自体は、成果品質のEvidenceではありません。
 
 - checker testのPASS: 評価コードが想定した構造違反を検出できる限定Executable Evidence
 - manifest generator testのPASS: review bundleのidentity / digest対応と停止線を評価コードが検査できる限定Executable Evidence
+- case catalog validator testのPASS: ケース定義の整合と「機械的なgolden answerを持たない」という停止線を検査できる限定Executable Evidence
 - actual M1b outputへのchecker PASS: その出力が定義済み構造不変条件を満たした限定Executable Evidence
 - actual M1b review bundle: 対象runのinput / output / execution / structureを後から人間が再確認できる記録
 - human review record: 人間による評価観測。条件・評価者・対象を伴って読む
@@ -149,14 +178,23 @@ workflowが途中で失敗した場合にも、そこまでに生成されたフ
 
 人間レビューが一件成立しても、それだけでproduction品質や一般的なKJ法能力を主張しません。
 
-## 8. ファイル
+## 9. ファイル
 
 - `check_grouping_structure.py` — grouping resultの構造不変条件だけを検査する。
 - `test_check_grouping_structure.py` — checkerのpositive / negative controlを検査する。
 - `build_review_bundle_manifest.py` — review bundleのrun identity、source commit、file digestを対応付け、request / result digestの不一致を拒否する。
 - `test_build_review_bundle_manifest.py` — manifest生成器のidentity / digest検査と、structure PASSをquality PASSへ昇格しない停止線を検査する。
+- `case_catalog.json` — golden groupingを持たず、意味上の難所とhuman review focusを保持する評価ケース集。
+- `validate_case_catalog.py` — case catalogの形式とnon-golden境界だけを検査する。
+- `test_validate_case_catalog.py` — duplicate ID、golden field、machine scoring等を拒否するpositive / negative control。
 - `HUMAN_REVIEW_TEMPLATE.md` — 人間が成果品質と残差を記録する。
 
-## 9. Natural Japanese review
+## 10. Natural Japanese review
 
-ISSUE-000066のactual model-backed Evidence、ISSUE-000067のRealization / Provenance境界、ISSUE-000068のactual model artifact交換、既存V6 / V7 structured reviewへ戻り、機械検査と人間判断が互いを代替しない構成として整理しました。さらに、actual outputを一時ログだけに閉じ込めず、request、result、実行Evidence、structure report、review bundle manifestを同じrunの材料として人間へ渡せるようにしました。manifestはidentityとdigestの整合だけを担い、成果品質の判断を機械へ先取りしません。その後、意味とEvidence強度を固定し、自然な日本語として読み進められることを最重要視して全文を再ドラフトしています。
+ISSUE-000066のactual model-backed Evidence、ISSUE-000067のRealization / Provenance境界、ISSUE-000068のactual model artifact交換、既存V6 / V7 structured reviewへ戻り、機械検査と人間判断が互いを代替しない構成として整理しました。
+
+さらに、actual outputを一時ログだけに閉じ込めず、request、result、実行Evidence、structure report、review bundle manifestを同じrunの材料として人間へ渡せるようにしました。manifestはidentityとdigestの整合だけを担い、成果品質の判断を機械へ先取りしません。
+
+評価ケースについても、期待groupや期待表札を正解として埋め込むのではなく、意味的近接、話題語と訴えの違い、緊張、橋、held・異論・残差、孤立を残す必要性という観測点だけを保持しました。ケース定義を機械採点用のgolden datasetへ変えない停止線をvalidatorとtestで明示しています。
+
+意味とEvidence強度を固定し、自然な日本語として読み進められることを最重要視して全文を再ドラフトしました。
