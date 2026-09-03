@@ -21,11 +21,10 @@ func TestVerifyRuntimeExchangeKJAtlasSourceRejectsUnsupportedMode(t *testing.T) 
 	}
 }
 
-func TestVerifyRuntimeExchangeKJAtlasGitCheckoutRequiresExplicitPath(t *testing.T) {
+func TestVerifyRuntimeExchangeKJAtlasSourceRejectsGitCheckoutMode(t *testing.T) {
 	t.Setenv(runtimeExchangeKJAtlasSourceModeEnv, runtimeExchangeKJAtlasSourceModeGitCheckout)
-	t.Setenv(runtimeExchangeKJAtlasDirEnv, "")
 	if err := verifyRuntimeExchangeKJAtlasSource(); err == nil {
-		t.Fatal("git-checkout source mode accepted a missing checkout path")
+		t.Fatal("runtime exchange source guard accepted a Git working tree as live Evidence source")
 	}
 }
 
