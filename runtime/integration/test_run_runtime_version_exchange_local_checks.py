@@ -150,6 +150,26 @@ class RuntimeVersionExchangeLocalChecksTest(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "parentにsymlink"):
                     local_checks.prepare_result_output(linked_parent / "result.json")
 
+    def test_repository_observation_records_git_unavailability_without_raising(self):
+        with patch.object(
+            local_checks.subprocess,
+            "run",
+            side_effect=OSError("git executable unavailable"),
+        ):
+            observation = local_checks.repository_observation()
+
+        self.assertIsNone(observation["commit"])
+        self.assertFalse(observation["clean"])
+        self.assertFalse(observation["commitObserved"])
+        self.assertFalse(observation["cleanlinessObserved"])
+        self.assertEqual(2, len(observation["errors"]))
+        self.assertEqual(
+            {"commit", "cleanliness"},
+            {item["observation"] for item in observation["errors"]},
+        )
+        for item in observation["errors"]:
+            self.assertIn("git executable unavailable", item["error"])
+
     def test_build_result_never_promotes_focused_success_to_actual_evidence(self):
         selected = [Path("test_a.py"), Path("test_b.py")]
         executions = [
@@ -164,6 +184,7 @@ class RuntimeVersionExchangeLocalChecksTest(unittest.TestCase):
                 "clean": True,
                 "commitObserved": True,
                 "cleanlinessObserved": True,
+                "errors": [],
             },
         ):
             result = local_checks.build_result(

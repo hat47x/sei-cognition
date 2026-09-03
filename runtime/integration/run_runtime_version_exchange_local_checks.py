@@ -99,24 +99,40 @@ def prepare_result_output(path: Path) -> Path:
     return resolved
 
 
+def _run_git_observation(*args: str) -> tuple[subprocess.CompletedProcess[str] | None, str | None]:
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(SOZA_ROOT), *args],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError as exc:
+        return None, str(exc)
+    if completed.returncode != 0:
+        detail = completed.stderr.strip() or f"git exit {completed.returncode}"
+        return completed, detail
+    return completed, None
+
+
 def repository_observation() -> dict[str, object]:
-    commit = subprocess.run(
-        ["git", "-C", str(SOZA_ROOT), "rev-parse", "HEAD"],
-        check=False,
-        capture_output=True,
-        text=True,
+    commit, commit_error = _run_git_observation("rev-parse", "HEAD")
+    status, status_error = _run_git_observation(
+        "status", "--porcelain", "--untracked-files=all"
     )
-    status = subprocess.run(
-        ["git", "-C", str(SOZA_ROOT), "status", "--porcelain", "--untracked-files=all"],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+    commit_observed = commit is not None and commit.returncode == 0
+    cleanliness_observed = status is not None and status.returncode == 0
+    errors = []
+    if commit_error is not None:
+        errors.append({"observation": "commit", "error": commit_error})
+    if status_error is not None:
+        errors.append({"observation": "cleanliness", "error": status_error})
     return {
-        "commit": commit.stdout.strip() if commit.returncode == 0 else None,
-        "clean": status.returncode == 0 and not status.stdout.strip(),
-        "commitObserved": commit.returncode == 0,
-        "cleanlinessObserved": status.returncode == 0,
+        "commit": commit.stdout.strip() if commit_observed else None,
+        "clean": cleanliness_observed and not status.stdout.strip(),
+        "commitObserved": commit_observed,
+        "cleanlinessObserved": cleanliness_observed,
+        "errors": errors,
     }
 
 
