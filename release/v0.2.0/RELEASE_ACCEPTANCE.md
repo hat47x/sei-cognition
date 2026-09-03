@@ -1,13 +1,13 @@
 # SOZA v0.2.0 Release Acceptance
 
-更新日: 2026-09-02  
+更新日: 2026-09-03  
 状態: **Release Evidence Satisfied for the Local Reference Product Baseline**
 
 ## 1. この文書の役割
 
 この文書は、SOZA v0.2.0について、**何をsupported scopeとしてreleaseし、candidateからactual releaseまでをどのEvidenceで判断するか**を定めます。
 
-v0.2.0はproduction完成版ではありません。現在のrepositoryで再現できる意味・操作・保存・配布・責務分離・交換可能性を、開発者や評価者が検証できる **Local Reference Product Baseline** として固定します。
+v0.2.0はproduction完成版ではありません。repositoryで再現できる意味・操作・保存・配布・責務分離・交換可能性を、開発者や評価者が検証できるLocal Reference Product Baselineとして固定します。
 
 Product Value上のEvidence高さは`product/value/SOZA_VALUE_ACCEPTANCE.md`とADR-0018を正とします。
 
@@ -124,11 +124,11 @@ source tree SHA
 
 source commitを`release-candidate.json`へ固定しません。設定ファイル自身の変更でcommitが変わる自己参照を避けるためです。
 
-Release Candidate Gateは実行時にGitからcommit / tree SHAを取得し、derived reportへ記録します。
+repository-local candidate checkerは実行時にGitからcommit / tree SHAを取得し、derived reportへ記録します。どのautomation providerから実行したかはcandidate identityに含めません。
 
 ## 5. v0.2.0 Release Candidate Gate
 
-同じsource commitをcheckoutした環境で、次を再検査します。
+同じsource commitをcheckoutした環境で、次の9責務を再検査します。
 
 1. Plan registry / Document Review Registry integrity
 2. Requirements Registry checker self-testとcurrent REQ / SCN整合
@@ -140,7 +140,17 @@ Release Candidate Gateは実行時にGitからcommit / tree SHAを取得し、de
 8. Local Reference Packageのdeterministic build / archive / checksum / independent-process resume
 9. v0.2.0 candidate policy / required-path validation / bound report
 
-過去の個別workflowがgreenであることは有用な履歴Evidenceですが、この統合gateの代替にはしません。
+`release-candidate.json`の`required_gates`は、この検査責務をmachine-readableに固定します。
+
+GitHub Actionsは当面完全に停止しているため、current再検証では各gateに対応するchecker、test、probeをローカルで個別に実行します。Actions workflowやjobの存在そのものをRelease Acceptance条件にしません。
+
+```text
+required gate
+  = required verification responsibility
+  != GitHub Actions job required
+```
+
+過去のworkflowがgreenだったことはactual v0.2.0 releaseの履歴Evidenceとして保持しますが、後続source commitの再検証を代替しません。
 
 ## 6. Plan status policy
 
@@ -154,13 +164,17 @@ Blocked
 
 `Deferred`はversion固有allow-listに列挙したものだけを許可します。v0.2.0では`ISSUE-000021`だけを許可しています。
 
-PR #34のbootstrap Run `33531336681`では`ISSUE-000059`が、PR #40のbootstrap Run `33574397299`では`ISSUE-000062`が、それぞれGate 9で意図どおりblockされました。未解決Issueをrelease candidateへ持ち込まないpolicyがExecutableに機能していることを確認しています。
+historicalには、PR #34のbootstrap Run `33531336681`で`ISSUE-000059`が、PR #40のbootstrap Run `33574397299`で`ISSUE-000062`が、それぞれGate 9で意図どおりblockされました。未解決Issueをrelease candidateへ持ち込まないpolicyが実際に機能したEvidenceとして保持します。
+
+current再検証でも同じPlan status policyを`tools/check_release_candidate.py`から適用します。
 
 ## 7. required paths
 
 candidate policyは、v0.2.0 scopeを支える主要な正本とExecutable Evidenceをanchorとして列挙します。
 
-Product Value / Shape / Milestone、Interaction、Packaging、Identity / Access / Collaboration、Realization / Provider Exchange、Requirements / Scenarios / Journey、Architecture、current Contract / Profile / fixture、Go runtime / reference probes、Local Reference Package資料、V6 / V7 evaluation、Plan registry、Release Acceptanceに加え、actual publicationに必要なRelease Notes、release request、preparation script、publication workflowもrequired pathへ含めます。
+Product Value / Shape / Milestone、Interaction、Packaging、Identity / Access / Collaboration、Realization / Provider Exchange、Requirements / Scenarios / Journey、Architecture、current Contract / Profile / fixture、Go runtime / reference probes、Local Reference Package資料、V6 / V7 evaluation、Plan registry、Release Acceptance、Release Notes、release request、repository-local candidate checkerとその境界test、historical publication bundle preparation scriptをrequired pathへ含めます。
+
+GitHub Actions停止中のcurrent policyでは、削除済みworkflowをrequired pathへ含めません。actual v0.2.0 publication時にworkflowを利用した事実は、source commitとRelease Evidenceからhistoricalに追跡します。
 
 required pathはcoverage指標ではありません。重要な正本を黙ってcandidate scopeから外してgateを通すことを防ぐためのanchorです。
 
@@ -181,7 +195,7 @@ required pathはcoverage指標ではありません。重要な正本を黙っ�
 
 ## 9. candidate reportとpublication preparation
 
-candidate gateが最後まで成功した場合、machine-readable reportへ少なくとも次を記録します。
+9つの検査責務が実際に成功したcandidateについて、machine-readable reportへ少なくとも次を記録します。
 
 - schema / version / repository / release scope
 - source commit SHA / source tree SHA
@@ -190,11 +204,11 @@ candidate gateが最後まで成功した場合、machine-readable reportへ少�
 - candidate gate result
 - explicit non-claims
 
-v0.2.0では、candidate reportとLocal Reference Packageをactual publication前にもう一度照合します。
+`tools/check_release_candidate.py`は、candidate policyそのもの、required paths、Plan snapshot等を検査し、candidate reportを生成できます。このreportで`executed_gates`が列挙されることは、他の8責務をchecker自身が実行したという意味ではありません。各責務の実行結果を別途確認したうえでcandidate Evidenceを成立させます。
 
-`prepare-v0-2-0-release`では、candidate reportのsource commit、package checksum、release request、Release Notesを確認し、actual publicationへ渡すbundleをread-onlyで作成します。
+v0.2.0のactual publication時には、candidate reportとLocal Reference Packageをpublication前にもう一度照合しました。`tools/prepare_v0_2_0_release.py`はcandidate reportのsource commit、package checksum、release request、Release Notesを確認し、publicationへ渡すread-only bundleを作成するhistorical publication toolingとして保持します。
 
-PR上ではこの準備までを検査し、tag / GitHub Releaseは作成しません。
+現在の`release-request.json`はpublication完了状態であり、current再検証から既存v0.2.0を再publicationしません。
 
 ## 10. actual Release Evidenceへの昇格条件
 
@@ -220,36 +234,41 @@ shared checker
   != shared supported scope
 ```
 
-checkerやworkflowを共通化しても、各versionの`release-candidate.json`を独立したpolicyとして保持します。v0.1.0のhistorical candidate Evidenceも、その時点のcommit / tree / gate resultへ結び付いた記録として維持します。
+repository-local checkerを共通化しても、各versionの`release-candidate.json`を独立したpolicyとして保持します。v0.1.0のhistorical candidate Evidenceも、その時点のcommit / tree / gate resultへ結び付いた記録として維持します。
 
 ## 12. branch / tag boundary
 
-candidate workflowはversionごとにpolicyを選びます。
+current local検証では、対象versionのpolicyを明示してcandidate checkerを実行します。
 
-```text
-develop/v0.1.0 → release/v0.1.0 policy
-develop/v0.2.0 → release/v0.2.0 policy
-v0.1.0 tag     → release/v0.1.0 policy
-v0.2.0 tag     → release/v0.2.0 policy
+```bash
+python3 tools/check_release_candidate.py \
+  --config release/v0.2.0/release-candidate.json
 ```
 
-ただし、v0.2.0の自動publicationでは、`develop/v0.2.0`のRelease Candidate Gateがsuccessした後、同じRunの`GITHUB_TOKEN`でtagを作ります。GitHub Actionsの再帰抑制により、このtag作成から通常のtag-push Runは別途起動しません。
+branch名やtag eventによってGitHub Actions workflowが自動選択されることを、現在の検証経路にはしません。
 
-この経路では、**tag対象commitをpre-publication gateで検査し、その同じ`GITHUB_SHA`へtagを作る**ことでRelease Acceptanceを満たします。
+actual v0.2.0 publication時には、`develop/v0.2.0`のRelease Candidate Gateがsuccessした後、同じRunの`GITHUB_TOKEN`でtagを作成しました。GitHub Actionsの再帰抑制により、このtag作成から通常のtag-push Runは別途起動していません。
 
-手動または外部credential等からtagが作成された場合に備え、tag trigger自体は維持します。`workflow_dispatch`でもpolicy versionを明示して再検査できます。
+このhistorical経路では、tag対象commitをpre-publication gateで検査し、その同じ`GITHUB_SHA`へtagを作ることでRelease Acceptanceを満たしました。
+
+```text
+historical publication used GitHub Actions
+  != current validation uses GitHub Actions
+```
+
+GitHub Actionsを将来再開する場合は、`plan/DEVELOPMENT_WORKFLOW.md`に従って明示的にPlanを更新してから実行面を設計し直します。
 
 ## 13. failure時の扱い
 
-candidate gateやpublicationのfailureは、release条件を弱める理由にはしません。
+candidate検査やpublication preparationのfailureは、release条件を弱める理由にはしません。
 
-1. failureしたgate / jobを特定する。
-2. Product policy、checker、runtime、artifact build、release preparation、publicationのどこに原因があるか切り分ける。
+1. failureしたchecker / test / probeを特定する。
+2. Product policy、checker、runtime、artifact build、release preparationのどこに原因があるか切り分ける。
 3. 原因のある層を修正する。
 4. 同じ検査を再実行する。
 5. success後にのみEvidence状態を更新する。
 
-`failed`を`not_verified`やPASSへ読み替えません。
+`failed`を`not_verified`やPASSへ読み替えません。ローカル環境で必要な検査を実行できない場合も、未実行のまま`Not Yet Verified`として残します。
 
 ## 14. Release Candidateからactual ReleaseまでのEvidence
 
@@ -265,7 +284,7 @@ actual release sourceは次です。
 
 - tag: `v0.2.0`
 - source commit: `c3640bdfcc43652b63a5b9941fd6b472312ec28f`
-- Release Candidate Gate: Run `33574947445` — **success**
+- historical Release Candidate Gate: Run `33574947445` — **success**
 - GitHub Release ID: `380902898`
 - Release: draft `false`, prerelease `false`
 
@@ -284,21 +303,25 @@ actual releaseのasset ID / digestを含む詳細は`RELEASE_EVIDENCE.md`を正�
 現時点の状態は次です。
 
 - v0.2.0 Release Candidate Design: **Satisfied**
-- v0.2.0 Release Candidate Evidence: **Satisfied**
+- v0.2.0 historical Release Candidate Evidence: **Satisfied**
 - actual `v0.2.0` tag / GitHub Release: **Created and verified**
 - Release Evidence: **Satisfied for the Local Reference Product Baseline**
+- current develop再検証: **必要なときにローカル個別検査で実施**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
 
 ```text
 Release Evidence Satisfied
+  != every later develop commit revalidated
   != production readiness
 ```
 
 ## 16. Natural Japanese review
 
-Product Value、PMS-03〜07、v0.1.0 Release Acceptance、Product Interaction、Local Single-Node Packaging、Product Access、Realization / Provider Exchange、ISSUE-000055〜000063、E3a / E3b-P1、Release Candidate Gate、publication workflow、actual tag / GitHub Release / asset digestを照合しました。
+Product Value、PMS-03〜07、v0.1.0 Release Acceptance、Product Interaction、Local Single-Node Packaging、Product Access、Realization / Provider Exchange、ISSUE-000055〜000063、E3a / E3b-P1、repository-local candidate checker、release-candidate policy、historical Release Candidate Gate、actual tag / GitHub Release / asset digestを照合しました。
 
-そのうえで、v0.2.0でsupportする範囲をE3aまでのLocal Reference Product Baselineへ限定し、後続のE3b Evidence、production security / Storage / formal support matrix、Operational / Adoption Evidenceを非主張範囲へ残しています。candidate、publication、actual Release Evidenceを一続きに追跡できる一方、それぞれのEvidence高さを混同しない構成へ整理しました。
+過去のactual publicationがGitHub Actionsで成立した事実はEvidenceとして保存しながら、現在の検証手段からは分離しました。current `release-candidate.json`は削除済みworkflowをrequired pathへ要求せず、candidate検査責務をローカルchecker、test、probeから再現できる形にしています。
 
-意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。
+candidate policy checkerが9つのgate名をreportへ記録することと、9責務を実際にすべて実行したことも分けました。未実行の検査をPASSへ読み替えず、candidate、publication、actual Release Evidence、Operational / Adoption Evidenceをそれぞれ独立して読めることを重視しています。
+
+意味、規範強度、historical Evidenceを変えず、現在の運用として自然な日本語で読み通せることを最重要視して全文を再ドラフトしました。
