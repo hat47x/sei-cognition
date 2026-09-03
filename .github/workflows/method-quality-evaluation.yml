@@ -41,7 +41,8 @@ jobs:
           python -m unittest \
             test_check_grouping_structure.py \
             test_build_review_bundle_manifest.py \
-            test_validate_case_catalog.py
+            test_validate_case_catalog.py \
+            test_historical_actual_samples.py
 
       - name: Validate non-golden case catalog
         working-directory: evaluation/method-quality
