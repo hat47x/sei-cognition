@@ -18,6 +18,7 @@ from verify_kj_atlas_runtime_source import (
 )
 
 BACKEND_PREFIX = "03_Implement/backend"
+ARCHIVE_PARENT_DIRECTORIES = {"03_Implement", BACKEND_PREFIX}
 RUNTIME_PATHS = (
     f"{BACKEND_PREFIX}/pyproject.toml",
     f"{BACKEND_PREFIX}/alembic.ini",
@@ -58,9 +59,9 @@ def _validate_archive_members(members: list[tarfile.TarInfo]) -> None:
             raise ValueError(f"unsafe runtime source archive path: {member.name}")
 
         name = path.as_posix()
-        if name == BACKEND_PREFIX:
+        if name in ARCHIVE_PARENT_DIRECTORIES:
             if not member.isdir():
-                raise ValueError(f"backend archive root must be a directory: {member.name}")
+                raise ValueError(f"runtime source archive parent must be a directory: {member.name}")
             continue
         if not name.startswith(prefix):
             raise ValueError(f"archive member escaped backend prefix: {member.name}")
