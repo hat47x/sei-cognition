@@ -74,6 +74,8 @@ ISSUE-000071は成果品質の評価境界を確立したIssueであり、human 
 
 - KJ Atlas repository: `hat47x/kj-atlas`
 - KJ Atlas commit: `4f28c13abe4176503c6fed863383a2d1db2299e9`
+- parent backend tree: `7d71ac2b4d32bef90f3a481ade1b4c92ddddd084`
+- minimal runtime surface tree: `208bea71eef4afed3ddfd3fabb36b0969d167a90`
 - KJ Atlas endpoint: `POST /ai/suggest-card-groups`
 - model adapter: `runtime/integration/e3b_m1b_ollama_adapter.py`
 - model: `qwen2.5:0.5b`
@@ -108,12 +110,14 @@ Linux / amd64は本probeの実行条件であり、SOZA全体のplatform support
 
 ## KJ Atlas source identity
 
-通常のclean checkoutだけでは、ignored `.env`、binary extension、bytecode cache等まで固定commit identityへ含まれるとは限らない。
+通常のworking treeは、固定commit objectを保持しているrepositoryとして利用できる。一方、ignored `.env`、binary extension、bytecode cache等まで含めると、working treeそのものをbyte-completeなruntime source identityとはみなせない。
 
 ```text
-HEAD = pinned commit
-  + normal Git clean
-  != byte-complete runtime source identity
+pinned commit object available
+  = fixed sourceを再構成できる
+
+working tree path
+  != strict runtime source identity
 ```
 
 strict Evidenceでは`export_kj_atlas_runtime_source.py`を使い、固定commit objectから次の追跡済みruntime surfaceだけをexportする。
@@ -123,12 +127,6 @@ strict Evidenceでは`export_kj_atlas_runtime_source.py`を使い、固定commit
 - `alembic/`
 - `src/`
 
-固定identity:
-
-- source commit: `4f28c13abe4176503c6fed863383a2d1db2299e9`
-- parent backend tree: `7d71ac2b4d32bef90f3a481ade1b4c92ddddd084`
-- minimal runtime surface tree: `208bea71eef4afed3ddfd3fabb36b0969d167a90`
-
 `verify_kj_atlas_runtime_source.py`はblob / tree identity、runtime surface tree、予期しないtop-level要素、symlink、実行bit等を再検証する。
 
 ```text
@@ -136,7 +134,9 @@ source acquisition
   != source identity
 ```
 
-checkoutから開始する場合も、strict入口はworking treeそのものを実行sourceへせず、固定commit objectからverified bundleを作る。
+checkoutから開始する場合、verified runnerまたはstrict入口はcheckoutを固定commit objectの取得元として扱い、working treeそのものをlow-level harnessへ渡さない。actual runtime sourceは固定commit objectから生成し、再検証したverified bundleである。
+
+`run_runtime_version_exchange.sh`はverified backend bundle専用とし、direct checkoutや暗黙の`_external/kj-atlas` fallbackを受け付けない。
 
 ## Pinned model artifact identity
 
@@ -186,15 +186,17 @@ A / Bのactual実行では、両runtimeの`/api/tags`から同じ期待full dige
 ```text
 fixed runtime archive preparation
   ↓
-fixed KJ Atlas source preparation
+fixed KJ Atlas commit object available | verified source bundle
   ↓
-fixed model store verification | preparation
+existing model store verification | prepared model target
+  ↓
+verified runner
   ↓
 side-effect-free preflight
-  ↓
+  ↓ ready only
 strict entrypoint
   ↓
-low-level repository-local harness
+verified-bundle-only low-level harness
   ↓
 actual Ollama /api/tags
   ↓
@@ -204,12 +206,17 @@ run-isolated Evidence preservation
   ↓
 runner observation
   ↓
-mechanical Evidence verification
+Evidence + Provenance verification
   ↓
 Requirement / Contract assessment + quality review
 ```
 
-harnessのexit code 0、保存済みEvidenceの機械的な十分性、Requirement / Contract再照合、成果品質評価は別の段階として扱う。
+artifact準備、preflight、strict実行、Evidence + Provenanceの機械検証、Requirement / Contract再照合、成果品質評価は別の段階として扱う。
+
+```text
+failure Evidence preserved
+  != runtime exchange PASS
+```
 
 ### Preflight
 
@@ -220,12 +227,14 @@ harnessのexit code 0、保存済みEvidenceの機械的な十分性、Requireme
 - Linux / amd64
 - required command
 - SOZA Git working tree / cleanliness
-- KJ Atlas checkoutまたはverified bundle identity
+- KJ Atlas固定commit objectの取得可能性、またはverified bundle identity
 - work / Evidence / model path境界
 - 事前配置runtime archiveのofficial size / actual SHA-256
 - 事前配置model storeのmanifest / blob identity
 - local port availability
 - work filesystemのfree bytes
+
+checkoutの現在HEADやignored fileはstrict runtime source identityの判定には使わない。checkoutは固定commit objectを取得できるrepositoryであることを確認する。
 
 free bytesは観測値であり、十分なdisk容量の証明にはしない。
 
@@ -233,6 +242,26 @@ free bytesは観測値であり、十分なdisk容量の証明にはしない。
 preflight ready
   != actual Ollama A/B inference PASS
   != runtime-version-exchange Scoped Executable Evidence
+```
+
+#### Structured blocked preflight
+
+verified runner内のpreflightが構造化された`blocked`結果を返した場合、strict入口、model preparation、runtime取得を開始しない。
+
+blocked判定後にrun専用Evidence directoryを作成し、少なくとも次を保存する。
+
+- `runtime-exchange-preflight.json`
+- `runtime-exchange-preflight-observation.json`
+- Evidence + Provenance verification report（Evidence directoryの外）
+
+preflight observationにはpreflight exit code、blocker、`strictStarted=false`、`qualityJudgement=not_evaluated`を記録する。runnerはnon-zeroのまま終了する。
+
+JSON自体を解釈できない等、構造化preflightとして扱えない異常ではEvidenceを推測で作らず、通常エラーとして停止する。
+
+```text
+blocked preflight Evidence preserved
+  != strict execution started
+  != runtime exchange PASS
 ```
 
 ### Strict entrypoint
@@ -247,8 +276,8 @@ preflight ready
 4. `--prepare-model-dir`指定時は固定registryから新規storeを準備し、静的再検証する。
 5. source、model store、Evidence、work directoryの重なりを拒否する。
 6. identity / safety optionをlow-level harnessへ迂回上書きできないようにする。
-7. low-level harnessを`bash`経由で起動する。
-8. Evidence directoryが作成された場合、source export、model preparation、static model verificationを同じrun Evidenceへ保存する。
+7. verified bundleだけをlow-level harnessへ渡す。
+8. Evidence directoryが作成された範囲で、source export、model preparation、static model verificationを同じrun Evidenceへ保存する。
 
 ```text
 strict entrypoint verification PASS
@@ -258,33 +287,57 @@ strict entrypoint verification PASS
 
 ### Low-level harness
 
-actual実験本文は`run_runtime_version_exchange.sh`に置く。strict Evidenceでは原則としてstrict入口から利用する。
+actual実験本文は`run_runtime_version_exchange.sh`に置く。low-level harnessはverified KJ Atlas backend bundleを必須とし、checkoutを直接実行sourceにはしない。
 
-low-level harnessはactual runtime archive / binary version / `/api/tags` model digest / prompt digest / inference / Exact Binding / historical Application / portable reconstruction / negative controlを一続きに確認し、run専用Evidence directoryへ保存する。
+actual runtime archive / binary version / `/api/tags` model digest / prompt digest / inference / Exact Binding / historical Application / portable reconstruction / negative controlを一続きに確認し、run専用Evidence directoryへ保存する。
 
-### Post-run runner / mechanical verifier
+### Verified runner / failure Evidence
 
-actual実行時は`run_runtime_version_exchange_with_verification.py`を利用できる。このrunnerはstrict入口を正本として呼び出し、source / model準備ロジックを重複実装しない。
+actual実行時の標準入口は`run_runtime_version_exchange_with_verification.py`である。source / model準備ロジックはstrict入口を正本とし、runner側で重複実装しない。
 
 runnerは次を行う。
 
-1. strict入口へsource、model、work、Evidenceを明示的に渡す。
-2. identity / safety optionを下位entrypointへ迂回上書きできないようにする。
-3. strict実行のstdout / stderrを一つのcombined logへ保存する。
-4. exit code、combined log SHA-256 / bytes、source preparationをrunner observationへ記録する。
-5. Evidence directoryが生成された場合、成功・失敗にかかわらず`verify_runtime_version_exchange_evidence.py`を実行する。
-6. mechanical verification reportはEvidence directoryの外へ保存し、検証対象そのものを書き換えない。
+1. side-effect-free preflightを実行する。
+2. preflight `ready`の場合だけstrict入口を起動する。
+3. strict実行のstdout / stderrをcombined logへ集約する。
+4. exit code、combined log SHA-256 / bytes、source preparation、preflight resultをrunner observationへ記録する。
+5. strict processが失敗し、Evidence directoryがまだ無い場合は、process終了後に新しいEvidence directoryを作成してrunner logとpreflightを保存する。
+6. strict processがexit code 0なのにEvidence directoryが無い場合は成功扱いせず拒否する。
+7. 保存できたrunについてEvidence + Provenance verifierを実行する。
+8. verification reportはEvidence directoryの外へ保存する。
 
-mechanical verifierは、固定source / runtime / model / Method input / prompt、actual inference counter、KJ Atlas result境界、runner exit code、completion marker、combined log digest、`qualityJudgement=not_evaluated`を再確認する。
-
-全機械条件を満たす場合だけ`ready-to-review`、不足や不一致がある場合は`not-sufficient`とblocker IDを返す。
+strict入口またはlow-level harnessがEvidence directoryを作成した場合、runner observationには`evidenceDirectoryCreatedBy=strict-entrypoint`を記録する。strictがEvidence作成前に失敗し、verified runnerが失敗後にdirectoryを作った場合は`evidenceDirectoryCreatedBy=verified-runner-after-failure`を記録する。
 
 ```text
-strict harness exit code 0
-  != mechanical Evidence verification PASS
+strict process exit 0
+  + Evidence directory missing
+  = reject
 
-mechanical Evidence verification PASS
-  = 保存済みrunが固定された機械条件を満たし、レビュー可能である
+strict failure Evidence preserved
+  != strict execution PASS
+```
+
+失敗runへverifierを実行しても元のstrict non-zero exit codeは保持する。
+
+### Evidence + Provenance verification
+
+保存済みrunの標準verifierは`verify_runtime_version_exchange_provenance.py`である。
+
+このverifierは、`verify_runtime_version_exchange_evidence.py`によるcore execution Evidence検証に加え、次を再検証する。
+
+- 保存済みpreflightが`ready` / `blockers=[]`であること。
+- preflightのfixed artifact条件がcurrent artifact manifestと一致すること。
+- preflightのpinned source identityがcurrent固定値と一致すること。
+- checkout起点では、fixed commit objectからのsource export Provenanceがactual source identityと一致すること。
+- verified bundle直入力では、checkout source export fileが混入していないこと。
+
+core verifierは、固定source / runtime / model / Method input / prompt、actual inference counter、KJ Atlas result境界、runner exit code、completion marker、combined log digest、`qualityJudgement=not_evaluated`を再確認する。
+
+全機械条件とProvenance条件を満たすcomplete runだけが`ready-to-review`になり得る。blocked preflightや途中失敗のpartial Evidenceは、保存されていても`not-sufficient`である。
+
+```text
+Evidence + Provenance verification ready-to-review
+  = 保存済みrunが固定された機械条件とProvenance条件を満たし、レビュー可能である
   != Requirement / Contract assessment complete
   != model output quality satisfied
   != KJ-method outcome quality satisfied
@@ -318,17 +371,18 @@ acquisition path
 
 次を停止線とする。
 
-- SOZAに未commit変更があれば開始しない。
-- verified source bundleが固定Git object identityと一致しなければ開始しない。
-- work / Evidence / prepared model targetは新しいpathだけを受け付ける。
-- source、model store、Evidence、work directoryを相互に分離する。
-- mechanical verification outputもsource、model store、Evidence、work directoryから分離する。
+- SOZAに未commit変更があればactual harnessを開始しない。
+- KJ Atlas sourceはfixed commit objectからverified bundleへ再構成するか、既存verified bundleを再検証する。
+- low-level harnessへworking treeを直接渡さない。
+- work / Evidence / prepared model target / verification outputは新しいpathだけを受け付ける。
+- source、model store、Evidence、work、verification outputを相互に分離する。
 - Evidenceをmodel store配下へ置き、read-only入力を変更できないようにする。
-- fixed local port `11434` / `8001` / `8101`が使用中なら開始しない。
+- fixed local port `11434` / `8001` / `8101`が使用中ならactual processを開始しない。
 - harness自身が起動したPIDを確認する。
 - 事前配置runtime archiveはactual size / SHA-256を検査する。
 - model storeはstatic identityとactual `/api/tags` full digestを区別して確認する。
 - 一つのEvidence directoryを一つのrunだけへ対応させる。
+- exit code 0でもEvidence directoryが欠落していれば成功扱いしない。
 - Go live guardは必要pathを明示し、`GITHUB_WORKSPACE`や固定`/tmp`へ暗黙fallbackしない。
 
 ## Local lightweight regression
@@ -341,13 +395,14 @@ actual runtimeを起動せず、次の境界を個別に検査できる。
 - source exporter / verifier
 - preflight
 - strict entrypoint
-- post-run runner / mechanical Evidence verifier
+- blocked preflight Evidence preservation
+- verified runner failure Evidence preservation
+- core Evidence verifier
+- Provenance verifier
 - low-level harness interface
 - Exact Binding / historical reconstructionのpure-Go control
 
-2026-09-03にはstrict entrypointのpath分離について、依存moduleをstub化したローカル個別実行で`10 tests / OK`、return code 0を確認した。
-
-また、post-run Evidence検証について、current artifact manifestと同じ構造を使ったsynthetic回帰でverifier 12件、runner 7件の計`19 tests / OK`を確認した。これはactual Ollama A / B実行ではない。
+過去の開発時には、strict entrypointのpath分離やpost-run verifierについてsynthetic / stub化したローカル回帰を行っている。ただし、それらのhelper test結果はactual Ollama A / B実行のEvidenceではない。
 
 ```text
 local helper test PASS
@@ -363,6 +418,7 @@ local helper test PASS
 - runtime surface treeが固定値へ一致する。
 - source tamper / unexpected top-level / symlink / executable bitを拒否する。
 - A / Bが同じverified runtime surfaceを使う。
+- low-level harnessへworking treeを直接渡す経路がない。
 
 ### E1 — runtime artifact identity
 
@@ -418,15 +474,34 @@ runtime交換後もMethod outputをRecommendation / Decisionへ自動昇格し�
 
 - actual実験本文がrepository同梱資産として残る。
 - source / runtime / model取得経路を同じidentity検証へ戻せる。
+- checkoutはfixed commit objectの取得元に限定し、working treeをstrict runtime sourceへしない。
+- low-level harnessはverified bundleだけを受け付ける。
 - GitHub Actions、runner ID、取得経路をMethod / Realization identityに含めない。
 
 ### E9 — Evidence preservation
 
-run専用Evidence directoryから、存在する範囲で次へ戻れることを要求する。
+runが停止した地点に応じて、存在する範囲のEvidenceを失わない。
+
+preflightでblockedした場合:
+
+- structured preflight report
+- preflight observation
+- blocker / exit code
+- `strictStarted=false`
+
+strict開始後に失敗した場合:
+
+- successful preflight report
+- runner combined output log
+- runner exit code / log SHA-256 / bytes
+- source preparation mode
+- その時点までstrict / low-level harnessが生成済みのEvidence
+
+complete runではさらに次へ戻れることを要求する。
 
 - execution ID
 - SOZA commit
-- KJ Atlas source identity / source export provenance
+- KJ Atlas source identity / source export Provenance
 - model store preparation / static verification
 - host OS / architecture
 - runtime A / B version / digest / acquisition mode
@@ -439,20 +514,22 @@ run専用Evidence directoryから、存在する範囲で次へ戻れること�
 
 ```text
 Evidence preserved
-  != mechanical Evidence verification PASS
+  != Evidence + Provenance verification PASS
   != runtime exchange PASS
   != output quality satisfied
 ```
 
-### E10 — independent mechanical Evidence verification
+### E10 — independent Evidence + Provenance verification
 
 - verifierはrun専用Evidence directoryをread-only入力として扱う。
 - verification reportをEvidence directoryの外へ保存する。
-- fixed source / runtime / model / Method input / promptを再確認する。
-- `ollama_done=true`、positive eval counter、KJ Atlas result境界を再確認する。
-- runner exit code、completion marker、combined output SHA-256 / bytesを再確認する。
+- core verifierがfixed source / runtime / model / Method input / promptを再確認する。
+- core verifierがactual inference counter、KJ Atlas result境界、runner completion / log digestを再確認する。
+- Provenance verifierがsaved preflightとcurrent fixed artifact条件を再照合する。
+- checkout起点のsource export Provenanceをactual source identityへ照合する。
 - missing / drift / symlink / non-strict source / quality promotionを`not-sufficient`として拒否する。
-- 全機械条件を満たした場合だけ`ready-to-review`を返す。
+- blocked preflightやpartial failure Evidenceを`ready-to-review`へ昇格しない。
+- complete runの全条件を満たした場合だけ`ready-to-review`を返す。
 
 ## Existing Evidence
 
@@ -474,8 +551,13 @@ current developには次がある。
 - model store preparation helper / static verifier
 - side-effect-free preflight
 - strict runtime exchange entrypoint
-- post-run verified runner / mechanical Evidence verifier
-- repository-local low-level harness
+- verified-bundle-only low-level harness
+- verified runner
+- blocked preflight Evidence preservation
+- strict失敗時のrunner Evidence preservation
+- exit code 0 / Evidence欠落の拒否
+- core Evidence verifier
+- preflight / source acquisitionまで含むProvenance verifier
 - source / model / Evidence / work / verification output path separation
 - clean-tree / port / PID safety guard
 - run-isolated Evidence directory
@@ -502,11 +584,14 @@ fixed model expected digest
 model store preparation / static verification
   = helpers available
 
-preflight / strict entrypoint / low-level harness
+preflight / strict entrypoint / verified-bundle-only low-level harness
   = implemented
 
-post-run runner / mechanical Evidence verifier
-  = implemented; synthetic 19-test regression available
+failure Evidence preservation
+  = structured preflight blocked / strict failure paths implemented
+
+core Evidence + Provenance verification
+  = implemented
 
 actual runtime A/B binary / archive digest / model / prompt / inference
   = Not Yet Verified
@@ -535,11 +620,11 @@ runtime-version-exchange Scoped Executable Evidence
 7. Application AのReference / Provenance / outputがB追加後も不変である。
 8. Realization payload verification、portable reconstruction、unknown revision negative controlがPASSする。
 9. Recommendation / Decisionへの自動昇格がない。
-10. run専用Evidence directoryから実験identity、source identity、model preparation / static verification、取得状況、入力、A / B actual runtime digest、model Evidence、出力、runner observation / combined output logへ戻れる。
-11. 保存済みEvidenceを独立mechanical verifierへ通し、固定された機械条件について`ready-to-review`を得る。
+10. complete runの専用Evidence directoryから実験identity、source identity / Provenance、model preparation / static verification、取得状況、入力、A / B actual runtime digest、model Evidence、出力、runner observation / combined output logへ戻れる。
+11. complete runの保存済みEvidenceを独立Evidence + Provenance verifierへ通し、固定された機械条件とProvenance条件について`ready-to-review`を得る。
 12. Requirement / Contract再照合と自然な日本語最終監査を行う。
 
-archive preparation、model store preparation、static model verification、preflight ready、strict entrypoint verification、mechanical verifierのsynthetic test、disk free-space、source export成功、GitHub Actions再導入、artifactの実行時download可否は、それ単独ではResolution条件にしない。
+archive preparation、model store preparation、static model verification、preflight ready、failure Evidence保存、strict entrypoint verification、helper / synthetic test、disk free-space、source export成功、GitHub Actions再導入、artifactの実行時download可否は、それ単独ではResolution条件にしない。
 
 ## Reopen conditions
 
@@ -548,7 +633,8 @@ Resolved後も次の場合は再開する。
 - historical ApplicationのExact Referenceがruntime交換で失われる。
 - same logical RealizationのrevisionをExact Bindingで区別できない。
 - payload / Binding不一致、unknown revision digestを受理する。
-- ignored runtime-affecting fileをstrict sourceへ混入できる。
+- working treeやignored runtime-affecting fileをstrict sourceへ直接混入できる。
+- low-level harnessがdirect checkoutへfallbackできる。
 - verified runtime surfaceのGit object identity不一致を受理する。
 - source、model store、Evidence、work、verification outputを重ねて入力やEvidenceを検証副作用で変更できる。
 - model manifest / blob bytesが固定identityと異なるstoreを受理する。
@@ -559,8 +645,12 @@ Resolved後も次の場合は再開する。
 - acquisition modeだけの違いを別Realization identityへする。
 - 別processのhealth responseを今回のactual実行と誤認する。
 - 既存work / Evidence directoryを上書き・混在できる。
+- strict processがexit code 0でもEvidence欠落を成功扱いする。
+- structured blocked preflightやstrict failureの診断を保存できず、失敗地点を追えない。
+- partial failure Evidenceをcomplete runとして`ready-to-review`へ昇格する。
+- saved preflight / source acquisition Provenanceのdriftを標準verifierが見逃す。
 - live guardが暗黙pathへfallbackする。
-- runner log改変、completion marker欠落、missing Evidence、identity driftをmechanical verifierが見逃す。
+- runner log改変、completion marker欠落、missing Evidence、identity driftをcore verifierが見逃す。
 - runtime固有情報をUniversal semanticsへ先取りする。
 - actual実験本文が特定automation providerにしか存在しなくなる。
 - runtime交換successをmodel / KJ成果品質やE4へ過大評価する。
@@ -584,11 +674,15 @@ runtime 0.32.13 / 0.32.14 exchange PASS
 
 ISSUE-000067 / 000068 / 000071、Cognitive Method Contract、Exact Binding、current KJ Atlas mapping、no-Actions baseline、repository-local runtime資産へ戻って全文を再監査した。
 
-現在の実行経路を、runtime artifact準備、source identity固定、model store検証または新規準備、preflight、strict entrypoint、low-level harness、actual API / inference、run専用Evidence保存、runner observation、独立mechanical verification、Requirement / Contract再照合の順に整理した。
+現在の実行経路を、runtime artifact準備、fixed commit objectまたはverified bundleによるsource準備、model store検証または新規準備、preflight、strict entrypoint、verified-bundle-only low-level harness、actual API / inference、run専用Evidence保存、runner observation、Evidence + Provenance独立検証、Requirement / Contract再照合の順に整理した。
 
-新しいpost-run runner / verifierは、actual実行の成功を増幅して見せるためのものではない。harnessのexit code 0と保存済みEvidenceの十分性を分離し、Evidenceをread-onlyに再検証して`ready-to-review`または`not-sufficient`を返す。その判定も成果品質やIssue Resolutionへは自動昇格しない。
+失敗時のEvidenceは、成功を補強するためではなく、どこで何が成立しなかったかを失わないために保存する。structured preflight blockedではstrict executionを開始せず、strict開始後の失敗では可能な範囲のrunner /途中Evidenceを残す。いずれもpartial Evidenceを`ready-to-review`やruntime exchange PASSへ昇格しない。
 
-model store準備経路は、取得方法を増やすためのものでありartifact identityを弱めるものではない。registryから取得したmanifest / blobは固定digestへ戻し、完成storeをstatic verifierへ再度通す。それでもactual `/api/tags`観測とA / B inferenceは別に必要である。
+checkoutはfixed commit objectを取得するrepositoryとして利用できるが、working treeそのものをstrict runtime sourceにはしない。low-level harnessはverified bundleだけを受け付ける。
+
+保存済みrunの標準検証は、core execution条件に加えてsaved preflightとsource acquisitionまで見る`verify_runtime_version_exchange_provenance.py`とした。core `verify_runtime_version_exchange_evidence.py`は下位境界として残す。どちらのPASSもRequirement / Contract判断や成果品質へ自動昇格させない。
+
+model store準備経路は取得方法を増やすためのものであり、artifact identityを弱めるものではない。registryから取得したmanifest / blobは固定digestへ戻し、完成storeをstatic verifierへ再度通す。それでもactual `/api/tags`観測とA / B inferenceは別に必要である。
 
 GitHub Actionsは完全停止を維持する。actual Ollama `0.32.13` / `0.32.14`交換はNot Yet Verifiedであり、本IssueはOpenのままとする。
 
