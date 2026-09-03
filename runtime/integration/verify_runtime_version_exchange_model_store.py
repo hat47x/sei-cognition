@@ -35,6 +35,12 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _is_within(candidate: Path, root: Path) -> bool:
+    candidate = candidate.expanduser().resolve(strict=False)
+    root = root.expanduser().resolve(strict=True)
+    return candidate == root or root in candidate.parents
+
+
 def _require_regular_file_without_symlink(path: Path, root: Path, label: str) -> Path:
     root = root.resolve(strict=True)
     candidate = path.resolve(strict=True)
@@ -214,6 +220,9 @@ def main() -> int:
     rendered = json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
     if args.output is not None:
         output = args.output.expanduser().resolve(strict=False)
+        model_store = Path(str(payload["modelStore"]))
+        if _is_within(output, model_store):
+            parser.exit(1, f"output path must be outside model store: {output}\n")
         if output.exists():
             parser.exit(1, f"output file already exists: {output}\n")
         output.parent.mkdir(parents=True, exist_ok=True)
