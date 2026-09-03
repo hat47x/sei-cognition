@@ -79,6 +79,7 @@ def run_strict_probe(
         verify_runtime_bundle(verified_bundle)
 
     command = [
+        "bash",
         str(HARNESS),
         "--kj-atlas-backend-bundle",
         str(verified_bundle),
