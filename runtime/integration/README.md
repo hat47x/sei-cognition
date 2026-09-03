@@ -69,10 +69,12 @@ Evidence保存先を明示する場合は次のようにします。
 ```bash
 runtime/integration/run_runtime_version_exchange.sh \
   --kj-atlas-dir /path/to/kj-atlas \
-  --evidence-dir /path/to/evidence
+  --evidence-dir /path/to/new-evidence-directory
 ```
 
 `--work-dir`を指定する場合は、**まだ存在しない新しいpath**を指定します。harnessがそのdirectoryを自分で作成し、通常終了時には削除します。既存directoryをそのまま作業領域として再利用しないことで、利用者の既存ファイルを上書き・削除する可能性を避けます。作業directoryを残したい場合は`--keep-work`を指定します。
+
+`--evidence-dir`も、runごとに**まだ存在しない新しいpath**を指定します。既存Evidence directoryを再利用すると、前回runの未上書きファイルと今回runのファイルが混在し、実行identityを誤認するおそれがあるためです。harnessは既存pathを拒否し、一つのEvidence directoryに一つのrunだけを対応させます。
 
 work / Evidence directoryをSOZAまたはKJ Atlas repository配下には置けません。pathは作成前に実体pathへ正規化し、source repository配下を指す場合は停止します。
 
@@ -106,6 +108,7 @@ python3 runtime/integration/test_run_runtime_version_exchange.py
 - shell側のOllama version / archive digestと、Go側でExact Bindingに使う固定値が一致すること。
 - harnessがKJ Atlas checkout、runtime archive、version logのpathをlive guardへ明示すること。
 - Go側live guardがGitHub Actions固有のworkspaceや固定`/tmp`へ暗黙fallbackしないこと。
+- Evidence directoryをrunごとの新しいpathへ分離する停止線が残っていること。
 
 この検査は、harnessのinterfaceと固定identityのずれを早期に検出するためのものです。actual runtimeを起動していないため、runtime version交換のExecutable Evidenceにはなりません。
 
@@ -134,6 +137,8 @@ Evidence directoryには、存在する範囲で次を保存します。
 
 途中で失敗した場合も、そこまで生成されたファイルを保存します。たとえばruntime archiveのdigest不一致で停止した場合でも、実際に計算したdigestをEvidence directoryへ残せます。
 
+Evidence directoryはrunごとに新規作成するため、途中失敗したrunに前回runの後半Evidenceが残っているような状態を許しません。
+
 ```text
 Evidence directoryが作られた
   != runtime exchange PASS
@@ -160,5 +165,7 @@ runtime exchange PASS
 このREADMEでは、実験を動かす手順と、得られた結果をどう読めるかを一つの成功条件へまとめないようにしました。
 
 repository-local harnessが固定する条件、ローカル実行で事故や実行identityの取り違えを避ける停止線、Go側artifact guardへ渡すpath、actual runtimeを使わない軽量検査の責務を順に整理しています。
+
+Evidenceについても、単に「保存する」とだけ書かず、一つのdirectoryを一つのrunへ対応させる理由を明示しました。途中失敗したrunへ過去runのファイルが混ざることを避け、保存物から実際の実行事実へ戻れることを優先しています。
 
 actual Ollama `0.32.13` / `0.32.14`交換が未完了であることは変えていません。実装済みの安全策と未検証のactual A / B実行を自然な日本語として読み分けられることを最重要視して再ドラフトしました。
