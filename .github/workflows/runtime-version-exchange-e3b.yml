@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "runtime/go/livemethodintegration/**"
+      - "!runtime/go/livemethodintegration/model_artifact_exchange_test.go"
       - "runtime/go/interactionprobe/**"
       - "runtime/go/semanticruntime/**"
       - "runtime/integration/e3b_m1b_ollama_adapter.py"
@@ -15,6 +16,7 @@ on:
       - develop/v0.2.0
     paths:
       - "runtime/go/livemethodintegration/**"
+      - "!runtime/go/livemethodintegration/model_artifact_exchange_test.go"
       - "runtime/go/interactionprobe/**"
       - "runtime/go/semanticruntime/**"
       - "runtime/integration/e3b_m1b_ollama_adapter.py"
