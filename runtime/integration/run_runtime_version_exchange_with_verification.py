@@ -12,6 +12,7 @@ import tempfile
 from pathlib import Path
 
 INTEGRATION_DIR = Path(__file__).resolve().parent
+SOZA_ROOT = INTEGRATION_DIR.parents[1]
 STRICT_ENTRYPOINT = INTEGRATION_DIR / "run_runtime_version_exchange_strict.py"
 EVIDENCE_VERIFIER = INTEGRATION_DIR / "verify_runtime_version_exchange_evidence.py"
 
@@ -33,11 +34,53 @@ def _reject_forwarded_options(arguments: list[str]) -> None:
             )
 
 
+def _canonical_path(path: Path) -> Path:
+    return path.expanduser().resolve(strict=False)
+
+
 def _prepare_new_path(path: Path, label: str) -> Path:
-    resolved = path.expanduser().resolve(strict=False)
+    resolved = _canonical_path(path)
     if resolved.exists():
         raise ValueError(f"{label} already exists: {resolved}")
     return resolved
+
+
+def _paths_overlap(left: Path, right: Path) -> bool:
+    left = _canonical_path(left)
+    right = _canonical_path(right)
+    return left == right or left in right.parents or right in left.parents
+
+
+def _protect_verification_output(
+    output: Path,
+    *,
+    evidence_dir: Path,
+    kj_atlas_dir: Path | None,
+    kj_atlas_backend_bundle: Path | None,
+    model_dir: Path | None,
+    prepare_model_dir: Path | None,
+    work_dir: Path | None,
+) -> None:
+    protected: list[tuple[str, Path]] = [
+        ("SOZA repository", SOZA_ROOT),
+        ("Evidence directory", evidence_dir),
+    ]
+    for label, path in (
+        ("KJ Atlas checkout", kj_atlas_dir),
+        ("KJ Atlas verified runtime bundle", kj_atlas_backend_bundle),
+        ("model directory", model_dir),
+        ("prepared model directory", prepare_model_dir),
+        ("work directory", work_dir),
+    ):
+        if path is not None:
+            protected.append((label, path))
+
+    for label, path in protected:
+        if _paths_overlap(output, path):
+            raise ValueError(
+                "verification outputは入力資産・作業領域・Evidenceから分離してください: "
+                f"output={output} overlaps={label}:{_canonical_path(path)}"
+            )
 
 
 def _default_verification_output(evidence_dir: Path) -> Path:
@@ -157,11 +200,15 @@ def run(
     _reject_forwarded_options(forwarded)
     evidence_dir = _prepare_new_path(evidence_dir, "Evidence directory")
     verification_output = _prepare_new_path(verification_output, "verification output")
-    if verification_output == evidence_dir or evidence_dir in verification_output.parents:
-        raise ValueError(
-            "verification outputはEvidence directoryの外へ保存してください: "
-            f"{verification_output}"
-        )
+    _protect_verification_output(
+        verification_output,
+        evidence_dir=evidence_dir,
+        kj_atlas_dir=kj_atlas_dir,
+        kj_atlas_backend_bundle=kj_atlas_backend_bundle,
+        model_dir=model_dir,
+        prepare_model_dir=prepare_model_dir,
+        work_dir=work_dir,
+    )
 
     command, source_preparation = _build_command(
         kj_atlas_dir=kj_atlas_dir,
@@ -224,7 +271,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--verification-output",
         type=Path,
-        help="Evidence検証結果を保存する新規JSON path。省略時はEvidence directoryの隣へ保存します。",
+        help=(
+            "Evidence検証結果を保存する新規JSON path。省略時はEvidence directoryの隣へ保存します。"
+            "SOZA/KJ Atlas source、model、work、Evidenceとは重ならないpathが必要です。"
+        ),
     )
     return parser
 
@@ -235,9 +285,9 @@ def main() -> int:
     if forwarded and forwarded[0] == "--":
         forwarded = forwarded[1:]
 
-    evidence_dir = args.evidence_dir.expanduser().resolve(strict=False)
+    evidence_dir = _canonical_path(args.evidence_dir)
     verification_output = (
-        args.verification_output.expanduser().resolve(strict=False)
+        _canonical_path(args.verification_output)
         if args.verification_output is not None
         else _default_verification_output(evidence_dir)
     )
