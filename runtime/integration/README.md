@@ -29,7 +29,7 @@ what must be verified
 
 固定しているOllama archiveはLinux / amd64用です。そのため、current harnessはLinux / amd64環境だけを対象にします。
 
-実行開始時にOSとCPU architectureを確認し、対象外の環境ではruntime artifactを取得する前に停止します。これはSOZA全体のplatform support方針ではなく、ISSUE-000070で使う固定実験artifactの境界です。
+実行開始時にOSとCPU architectureを確認し、対象外の環境ではruntime artifactを扱う前に停止します。これはSOZA全体のplatform support方針ではなく、ISSUE-000070で使う固定実験artifactの境界です。
 
 ### 事前準備
 
@@ -44,6 +44,8 @@ what must be verified
 - `sha256sum`
 - `uname`
 - `mktemp`
+
+`curl`はOllama release archiveの取得だけでなく、localhost上のOllama / model adapter / KJ Atlas API確認にも使います。そのため、runtime archiveやmodel artifactを事前配置した場合も必要です。
 
 SOZAとKJ Atlasは、どちらも未commit変更のないcleanなGit checkoutである必要があります。SOZA repositoryでは`_external/`をlocal external checkoutとして`.gitignore`していますが、KJ Atlas側のworking treeはKJ Atlas自身のrepositoryで別途検査します。
 
@@ -72,15 +74,43 @@ runtime/integration/run_runtime_version_exchange.sh \
   --evidence-dir /path/to/new-evidence-directory
 ```
 
+固定runtime archiveとmodel storageを事前配置している場合は、次のように指定できます。
+
+```bash
+runtime/integration/run_runtime_version_exchange.sh \
+  --kj-atlas-dir /path/to/kj-atlas \
+  --runtime-a-archive /path/to/ollama-0.32.13-linux-amd64.tar.zst \
+  --runtime-b-archive /path/to/ollama-0.32.14-linux-amd64.tar.zst \
+  --model-dir /path/to/ollama-models \
+  --evidence-dir /path/to/new-evidence-directory
+```
+
+事前配置は検証条件を緩める仕組みではありません。runtime archiveは取得済みbytesから実測SHA-256を計算し、download経路と同じ固定値へ照合します。`--model-dir`を指定した場合も、`qwen2.5:0.5b`というtagだけでは受理せず、Ollama APIから観測したfull model digestが固定値と一致することを要求します。
+
+```text
+archive acquisition
+  = downloaded | prepositioned
+
+artifact identity
+  = actual bytes / full digest
+
+acquisition path
+  != artifact identity
+```
+
+`--model-dir`で指定した既存model storageに固定model artifactがなければ、harnessはそのdirectoryへ勝手に`ollama pull`せず停止します。harness自身が作成したwork-local model storageでは、固定artifactがまだ存在しない場合に限って`ollama pull`を行い、取得後に同じfull digestを検査します。
+
+この事前配置経路により、Ollama release archiveやmodel artifactの外部取得が許可されていない実行環境でも、必要なartifactを別経路で事前に用意できれば同じ実験境界へ接続できます。ただし、KJ Atlas backendのPython依存関係など、runtime/model artifact以外の環境準備まで完全なoffline実行を保証するものではありません。
+
 `--work-dir`を指定する場合は、**まだ存在しない新しいpath**を指定します。harnessがそのdirectoryを自分で作成し、通常終了時には削除します。既存directoryをそのまま作業領域として再利用しないことで、利用者の既存ファイルを上書き・削除する可能性を避けます。作業directoryを残したい場合は`--keep-work`を指定します。
 
 `--evidence-dir`も、runごとに**まだ存在しない新しいpath**を指定します。既存Evidence directoryを再利用すると、前回runの未上書きファイルと今回runのファイルが混在し、実行identityを誤認するおそれがあるためです。harnessは既存pathを拒否し、一つのEvidence directoryに一つのrunだけを対応させます。
 
-work / Evidence directoryをSOZAまたはKJ Atlas repository配下には置けません。pathは作成前に実体pathへ正規化し、source repository配下を指す場合は停止します。
+work / Evidence / external model directoryをSOZAまたはKJ Atlas repository配下には置けません。pathは実体pathへ正規化し、source repository配下を指す場合は停止します。
 
 ### 実行中のidentity確認
 
-scriptは専用Python virtual environmentを作り、固定Ollama archiveを取得した後、次を順に確認します。
+scriptは専用Python virtual environmentを作り、固定Ollama archiveを取得または事前配置pathから参照した後、次を順に確認します。
 
 1. A / Bそれぞれのruntime archiveについて実測SHA-256を計算し、固定値と照合する。
 2. 実際に起動したbinaryが期待するOllama versionを返すことを確認する。
@@ -109,6 +139,9 @@ python3 runtime/integration/test_run_runtime_version_exchange.py
 - harnessがKJ Atlas checkout、runtime archive、version logのpathをlive guardへ明示すること。
 - Go側live guardがGitHub Actions固有のworkspaceや固定`/tmp`へ暗黙fallbackしないこと。
 - Evidence directoryをrunごとの新しいpathへ分離する停止線が残っていること。
+- 事前配置runtime archiveでも実測SHA-256を固定値へ照合すること。
+- 事前配置model storageで固定artifactが見つからない場合、harnessが自動pullせず停止すること。
+- archiveの取得経路と固定artifact identityを別のEvidence fieldとして保持すること。
 
 この検査は、harnessのinterfaceと固定identityのずれを早期に検出するためのものです。actual runtimeを起動していないため、runtime version交換のExecutable Evidenceにはなりません。
 
@@ -127,6 +160,8 @@ Evidence directoryには、存在する範囲で次を保存します。
   - KJ Atlas commit
   - execution host OS / architecture
   - expected runtime / model artifact identity
+  - runtime archive acquisition mode (`downloaded` / `prepositioned`)
+  - model storage mode (`work-local` / `prepositioned`)
 - 固定Method request
 - A / Bのruntime version log
 - A / Bの**実測runtime archive SHA-256**
@@ -134,6 +169,8 @@ Evidence directoryには、存在する範囲で次を保存します。
 - model inference Evidence
 - KJ Atlas result
 - Adapter / KJ Atlas / Ollama log
+
+取得経路をEvidenceへ残すのは再現時の状況を追えるようにするためであり、`downloaded`と`prepositioned`を別のRealization identityへ昇格させるためではありません。実際のruntime identityは固定versionと実測archive digestで検証します。
 
 途中で失敗した場合も、そこまで生成されたファイルを保存します。たとえばruntime archiveのdigest不一致で停止した場合でも、実際に計算したdigestをEvidence directoryへ残せます。
 
@@ -165,6 +202,8 @@ runtime exchange PASS
 このREADMEでは、実験を動かす手順と、得られた結果をどう読めるかを一つの成功条件へまとめないようにしました。
 
 repository-local harnessが固定する条件、ローカル実行で事故や実行identityの取り違えを避ける停止線、Go側artifact guardへ渡すpath、actual runtimeを使わない軽量検査の責務を順に整理しています。
+
+さらに、runtime/model artifactの「どの経路から入手したか」と「どのbytes / digestを実際に使ったか」を分けました。downloadできる環境だけを実験成立条件にせず、事前配置したartifactも同じ固定digest検査へ通します。一方で、事前配置を理由にidentity検査を省略したり、既存model storageを暗黙に更新したりしません。
 
 Evidenceについても、単に「保存する」とだけ書かず、一つのdirectoryを一つのrunへ対応させる理由を明示しました。途中失敗したrunへ過去runのファイルが混ざることを避け、保存物から実際の実行事実へ戻れることを優先しています。
 
