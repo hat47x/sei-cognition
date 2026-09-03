@@ -51,17 +51,41 @@ func TestMain(m *testing.M) {
 			archiveEnv    string
 			artifactSHA   string
 		}{
-			{label: "A", version: runtimeExchangeVersionA, versionLogEnv: runtimeExchangeAVersionLogEnv, archiveEnv: runtimeExchangeAArchiveEnv, artifactSHA: runtimeExchangeArtifactA},
-			{label: "B", version: runtimeExchangeVersionB, versionLogEnv: runtimeExchangeBVersionLogEnv, archiveEnv: runtimeExchangeBArchiveEnv, artifactSHA: runtimeExchangeArtifactB},
+			{
+				label:         "A",
+				version:       runtimeExchangeVersionA,
+				versionLogEnv: runtimeExchangeAVersionLogEnv,
+				archiveEnv:    runtimeExchangeAArchiveEnv,
+				artifactSHA:   runtimeExchangeArtifactA,
+			},
+			{
+				label:         "B",
+				version:       runtimeExchangeVersionB,
+				versionLogEnv: runtimeExchangeBVersionLogEnv,
+				archiveEnv:    runtimeExchangeBArchiveEnv,
+				artifactSHA:   runtimeExchangeArtifactB,
+			},
 		}
 
 		for _, runtime := range runtimes {
 			versionLog, err := runtimeExchangeRequiredPath(runtime.versionLogEnv)
-			if err != nil { fmt.Fprintln(os.Stderr, err); os.Exit(1) }
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
 			archive, err := runtimeExchangeRequiredPath(runtime.archiveEnv)
-			if err != nil { fmt.Fprintln(os.Stderr, err); os.Exit(1) }
-			if err := verifyRuntimeExchangeVersion(runtime.label, versionLog, runtime.version); err != nil { fmt.Fprintln(os.Stderr, err); os.Exit(1) }
-			if err := verifyRuntimeExchangeArtifact(runtime.label, archive, runtime.artifactSHA); err != nil { fmt.Fprintln(os.Stderr, err); os.Exit(1) }
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+			if err := verifyRuntimeExchangeVersion(runtime.label, versionLog, runtime.version); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+			if err := verifyRuntimeExchangeArtifact(runtime.label, archive, runtime.artifactSHA); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
 		}
 	}
 	os.Exit(m.Run())
@@ -69,62 +93,114 @@ func TestMain(m *testing.M) {
 
 func runtimeExchangeRequiredPath(envName string) (string, error) {
 	value := strings.TrimSpace(os.Getenv(envName))
-	if value == "" { return "", fmt.Errorf("runtime exchange live testでは%sを明示してください", envName) }
+	if value == "" {
+		return "", fmt.Errorf("runtime exchange live testでは%sを明示してください", envName)
+	}
 	return value, nil
 }
 
 func verifyRuntimeExchangeKJAtlasSource() error {
 	sourceMode := strings.TrimSpace(os.Getenv(runtimeExchangeKJAtlasSourceModeEnv))
-	if sourceMode == "" { return fmt.Errorf("runtime exchange live testでは%sを明示してください", runtimeExchangeKJAtlasSourceModeEnv) }
-	if sourceMode == runtimeExchangeKJAtlasSourceModeGitCheckout {
-		return fmt.Errorf("runtime exchange live testではGit working treeを実行sourceにできません。固定commit objectからverified runtime bundleをexportしてください")
+	if sourceMode == "" {
+		return fmt.Errorf("runtime exchange live testでは%sを明示してください", runtimeExchangeKJAtlasSourceModeEnv)
 	}
-	if sourceMode != runtimeExchangeKJAtlasSourceModeBundle { return fmt.Errorf("runtime exchange KJ Atlas source modeを認識できません: %s", sourceMode) }
-	return verifyRuntimeExchangeKJAtlasBundle()
+
+	switch sourceMode {
+	case runtimeExchangeKJAtlasSourceModeGitCheckout:
+		return fmt.Errorf(
+			"runtime exchange live testではGit working treeを実行sourceにできません。" +
+				"固定commit objectからverified runtime bundleをexportしてください",
+		)
+	case runtimeExchangeKJAtlasSourceModeBundle:
+		return verifyRuntimeExchangeKJAtlasBundle()
+	default:
+		return fmt.Errorf("runtime exchange KJ Atlas source modeを認識できません: %s", sourceMode)
+	}
 }
 
 func verifyRuntimeExchangeKJAtlasBundle() error {
 	backendDir, err := runtimeExchangeRequiredPath(runtimeExchangeKJAtlasBackendDirEnv)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	verifier, err := runtimeExchangeRequiredPath(runtimeExchangeKJAtlasSourceVerifierEnv)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	command := exec.Command("python3", verifier, "--backend-dir", backendDir)
 	output, err := command.CombinedOutput()
-	if err != nil { return fmt.Errorf("KJ Atlas runtime source bundleを再検証できません: %s: %w", strings.TrimSpace(string(output)), err) }
+	if err != nil {
+		return fmt.Errorf("KJ Atlas runtime source bundleを再検証できません: %s: %w", strings.TrimSpace(string(output)), err)
+	}
 
 	var payload struct {
-		Verified bool `json:"verified"`
-		SourceMode string `json:"sourceMode"`
-		SourceCommit string `json:"sourceCommit"`
-		PinnedBackendTree string `json:"pinnedBackendTree"`
+		Verified           bool   `json:"verified"`
+		SourceMode         string `json:"sourceMode"`
+		SourceCommit       string `json:"sourceCommit"`
+		PinnedBackendTree  string `json:"pinnedBackendTree"`
 		RuntimeSurfaceTree string `json:"runtimeSurfaceTree"`
-		VerificationBasis string `json:"verificationBasis"`
+		VerificationBasis  string `json:"verificationBasis"`
 	}
-	if err := json.Unmarshal(output, &payload); err != nil { return fmt.Errorf("KJ Atlas runtime source verifierの出力を解釈できません: %w", err) }
-	if !payload.Verified || payload.SourceMode != runtimeExchangeKJAtlasSourceModeBundle { return fmt.Errorf("KJ Atlas runtime source verifierがverified bundleを返しませんでした: %#v", payload) }
-	if payload.SourceCommit != pinnedKJAtlasCommit { return fmt.Errorf("KJ Atlas runtime source bundleのsource commitが固定値と一致しません: actual=%s expected=%s", payload.SourceCommit, pinnedKJAtlasCommit) }
-	if payload.PinnedBackendTree != pinnedKJAtlasBackendTree { return fmt.Errorf("KJ Atlas runtime source bundleの親backend treeが固定値と一致しません: actual=%s expected=%s", payload.PinnedBackendTree, pinnedKJAtlasBackendTree) }
-	if payload.RuntimeSurfaceTree != pinnedKJAtlasRuntimeSurfaceTree { return fmt.Errorf("KJ Atlas runtime source bundleの実行surface treeが固定値と一致しません: actual=%s expected=%s", payload.RuntimeSurfaceTree, pinnedKJAtlasRuntimeSurfaceTree) }
-	if payload.VerificationBasis != "pinned-git-object-identities" { return fmt.Errorf("KJ Atlas runtime source bundleの検証根拠を認識できません: %s", payload.VerificationBasis) }
+	if err := json.Unmarshal(output, &payload); err != nil {
+		return fmt.Errorf("KJ Atlas runtime source verifierの出力を解釈できません: %w", err)
+	}
+	if !payload.Verified || payload.SourceMode != runtimeExchangeKJAtlasSourceModeBundle {
+		return fmt.Errorf("KJ Atlas runtime source verifierがverified bundleを返しませんでした: %#v", payload)
+	}
+	if payload.SourceCommit != pinnedKJAtlasCommit {
+		return fmt.Errorf(
+			"KJ Atlas runtime source bundleのsource commitが固定値と一致しません: actual=%s expected=%s",
+			payload.SourceCommit,
+			pinnedKJAtlasCommit,
+		)
+	}
+	if payload.PinnedBackendTree != pinnedKJAtlasBackendTree {
+		return fmt.Errorf(
+			"KJ Atlas runtime source bundleの親backend treeが固定値と一致しません: actual=%s expected=%s",
+			payload.PinnedBackendTree,
+			pinnedKJAtlasBackendTree,
+		)
+	}
+	if payload.RuntimeSurfaceTree != pinnedKJAtlasRuntimeSurfaceTree {
+		return fmt.Errorf(
+			"KJ Atlas runtime source bundleの実行surface treeが固定値と一致しません: actual=%s expected=%s",
+			payload.RuntimeSurfaceTree,
+			pinnedKJAtlasRuntimeSurfaceTree,
+		)
+	}
+	if payload.VerificationBasis != "pinned-git-object-identities" {
+		return fmt.Errorf("KJ Atlas runtime source bundleの検証根拠を認識できません: %s", payload.VerificationBasis)
+	}
 	return nil
 }
 
 func verifyRuntimeExchangeVersion(label, path, expected string) error {
 	data, err := os.ReadFile(path)
-	if err != nil { return fmt.Errorf("runtime %s version logを読めません: %w", label, err) }
+	if err != nil {
+		return fmt.Errorf("runtime %s version logを読めません: %w", label, err)
+	}
 	pattern := regexp.MustCompile(`(^|[^0-9])` + regexp.QuoteMeta(expected) + `([^0-9]|$)`)
-	if !pattern.Match(data) { return fmt.Errorf("runtime %s versionがExact Binding用の固定値と一致しません: expected=%s log=%q", label, expected, strings.TrimSpace(string(data))) }
+	if !pattern.Match(data) {
+		return fmt.Errorf("runtime %s versionがExact Binding用の固定値と一致しません: expected=%s log=%q", label, expected, strings.TrimSpace(string(data)))
+	}
 	return nil
 }
 
 func verifyRuntimeExchangeArtifact(label, path, expected string) error {
 	file, err := os.Open(path)
-	if err != nil { return fmt.Errorf("runtime %s artifactを開けません: %w", label, err) }
+	if err != nil {
+		return fmt.Errorf("runtime %s artifactを開けません: %w", label, err)
+	}
 	defer file.Close()
+
 	hash := sha256.New()
-	if _, err := io.Copy(hash, file); err != nil { return fmt.Errorf("runtime %s artifactのSHA-256を計算できません: %w", label, err) }
+	if _, err := io.Copy(hash, file); err != nil {
+		return fmt.Errorf("runtime %s artifactのSHA-256を計算できません: %w", label, err)
+	}
 	actual := hex.EncodeToString(hash.Sum(nil))
-	if actual != expected { return fmt.Errorf("runtime %s artifact digestがExact Binding用の固定値と一致しません: actual=%s expected=%s", label, actual, expected) }
+	if actual != expected {
+		return fmt.Errorf("runtime %s artifact digestがExact Binding用の固定値と一致しません: actual=%s expected=%s", label, actual, expected)
+	}
 	return nil
 }
