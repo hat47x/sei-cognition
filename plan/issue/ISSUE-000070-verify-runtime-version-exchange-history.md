@@ -10,14 +10,14 @@ Updated: 2026-09-03
 
 同じCognitive Method、同じKJ Atlas source、同じMethod input、同じactual model artifactを使い、Ollama runtime versionだけを交換したときに、SOZAが先行Method Applicationの履歴を失わず保持できるかを実証する。
 
-このIssueでは、runtime version差を別のlogical Method Realizationとして扱わない。同じ実現機構のhistorical revisionとして扱い、Cognitive Method Contractが既に持つExact Bindingで区別する。
+runtime version差は別のlogical Method Realizationへ分けず、同じ実現機構に属するhistorical revisionとして扱う。revisionの違いは、Cognitive Method Contractが既に持つExact Bindingで固定する。
 
 ```text
 same Method Definition
 same logical Method Realization
 same KJ Atlas source
 same Method input
-same model artifact
+same pinned model artifact
 same model prompt
 
 Ollama 0.32.13
@@ -27,7 +27,7 @@ Ollama 0.32.14
   = Exact Realization revision B
 ```
 
-確認したい中心命題は次である。
+中心命題は次である。
 
 ```text
 runtime version交換
@@ -66,7 +66,7 @@ ISSUE-000070
   runtime versionだけを交換
 ```
 
-これにより、model交換とruntime revision交換を別の探索軸として扱う。
+model交換とruntime revision交換を別の探索軸として扱う。
 
 ## Fixed conditions
 
@@ -82,9 +82,9 @@ ISSUE-000070
 - held card: `c-held`
 - SOZA Method mapping: current `livemethodintegration`
 
-model artifact digestは、Actual Model Artifact Exchange E3b Run `33670697154`でOllama `0.32.14`から実際に観測した`qwen2.5:0.5b`のartifact identityである。A / Bのdigestがそのrun内で互いに等しいだけでは固定条件成立とみなさず、両方がこの期待digestに一致することを要求する。
+model artifact digestは、Actual Model Artifact Exchange E3b Run `33670697154`でOllama `0.32.14`から実際に観測した`qwen2.5:0.5b`のartifact identityである。
 
-これにより、将来同じmodel tagが別artifactを指した場合は実験条件が変わったものとして停止し、runtime交換実験が暗黙に別model artifactへ追随することを防ぐ。
+A / Bのdigestが一つのrun内で互いに等しいだけでは固定条件成立とみなさない。両方がこの期待digestに一致することを要求する。将来同じmodel tagが別artifactを指した場合は、実験条件が変わったものとして停止する。
 
 交換するのはOllama runtime versionだけとする。
 
@@ -104,7 +104,7 @@ installerによるglobal installは使わず、GitHub ReleaseのLinux amd64 arch
 
 また、公式Linux installerはarchiveをinstall rootへ展開し、その配下の`bin/ollama`を利用する構成である。dedicated workflowの`${root}/bin/ollama`という展開前提はこのlayoutと整合する。
 
-ただし、これはsource identity / workflow designの確認であり、runtime交換をactualに実行したExecutable Evidenceではない。
+ただし、これらはsource identity / workflow designの確認であり、runtime交換をactualに実行したExecutable Evidenceではない。
 
 ## Exact Realization Reference
 
@@ -212,13 +212,18 @@ runtime交換後もMethod outputをRecommendation / Decisionへ自動昇格し�
 
 ### E8 — CI trigger responsibility
 
-runtime交換専用testだけの変更では、M1a / M1b / actual二モデル交換を自動対象にしない。
+scenario-local testと共有依存を分ける。
 
-一方、runtime交換testが直接依存する共有packageを変更した場合はruntime交換workflowを再選択する。
+runtime交換専用testだけの変更では、Runtime Version Exchange E3bだけを外部Method実証として選び、M1a / M1b / actual二モデル交換を自動対象にしない。
 
-current trigger対象には次を含める。
+model artifact交換専用testだけの変更では、Actual Model Artifact Exchange E3bを選び、Runtime Version Exchange E3b / M1a / M1bを自動対象にしない。
+
+一方、runtime交換が直接依存する共有packageを変更した場合はRuntime Version Exchange E3bを再選択する。
+
+Runtime Version Exchange E3bのcurrent trigger対象には次を含める。
 
 - `runtime/go/livemethodintegration/**`
+- `!runtime/go/livemethodintegration/model_artifact_exchange_test.go`
 - `runtime/go/interactionprobe/**`
 - `runtime/go/semanticruntime/**`
 - `runtime/integration/e3b_m1b_ollama_adapter.py`
@@ -244,15 +249,28 @@ PR #63の先行head `765eb189f97d7dba402cec864960cecb3a5a91a6`では、Actual Mo
 - logical identity不一致時の無変更失敗test
 - `TestLiveKJAtlasActualModelArtifactExchangePreservesHistoricalApplication`
 
-したがって、Exact Realization Reference mapping自体にはExecutable Evidenceがある。また、共有mapping変更後も既存actual二モデル交換のScoped Executable Evidenceは回帰していない。今回のruntime交換workflowでは、このrunで観測した0.5b model digestを期待artifact identityとして固定した。
+したがって、Exact Realization Reference mapping自体にはExecutable Evidenceがある。また、共有mapping変更後も既存actual二モデル交換のScoped Executable Evidenceは回帰していない。runtime交換workflowでは、このrunで観測した0.5b model digestを期待artifact identityとして固定した。
 
 これはruntime version交換のExecutable Evidenceではない。
 
 ### scenario-local trigger selection
 
-PR #63のruntime交換固有差分だけだったhead `55bfcfb45e6e19210e925923565700a075ab006d`では、Runtime Version Exchange E3bだけが外部Method実証として生成され、M1a / M1b / actual二モデル交換は生成されなかった。
+runtime交換専用差分だけだったhead `55bfcfb45e6e19210e925923565700a075ab006d`では、Runtime Version Exchange E3bだけが外部Method実証として生成され、M1a / M1b / actual二モデル交換は生成されなかった。
 
-scenario-local testの責務分離はrun生成レベルで確認済みである。
+さらにPR #67では、`model_artifact_exchange_test.go`だけへ説明コメントを加えたhead `e8c85dc8b3de41aff6700e1a2bab144140152609`から次だけが生成された。
+
+- Actual Model Artifact Exchange E3b — Run `33697970020`
+- Semantic Runtime Conformance — Run `33697970044`
+
+Runtime Version Exchange E3b / M1a / M1bは生成されなかった。
+
+これにより、runtime交換専用testとmodel artifact交換専用testの双方について、scenario-localな責務分離をrun生成レベルで確認した。PR #67はmergeせず閉じている。
+
+### shared dependency trigger selection
+
+PR #66では、`semanticruntime`だけを変更する一時probe head `2144af136d230cd1ca6a8db733caae222b67f64b`からRuntime Version Exchange E3b Run `33696752851`が生成された。
+
+したがって、共有`semanticruntime`変更時にruntime交換workflowを取りこぼさないこともrun生成レベルで確認済みである。PR #66はmergeせず閉じている。
 
 ### Local Package Artifact boundary
 
@@ -262,9 +280,9 @@ PR #63の`livemethodintegration`差分ではLocal Package Artifactが生成さ�
 
 ## Current implementation state
 
-PR #63は最新PR #61 head `32a1cabeb6c66fd8d4f37e22c1e2cbfc142ebc43`をbaseとしている。
+PR #63はPR #61 head `32a1cabeb6c66fd8d4f37e22c1e2cbfc142ebc43`をbaseとしている。
 
-再基線化時にruntime交換workflowへ`interactionprobe/**`と`semanticruntime/**`を追加し、PR #61で確立した共有依存trigger原則へ揃えた。
+runtime交換workflowは、PR #61で確立したtrigger原則に合わせ、共有依存を取りこぼさずscenario-local test同士を不要に連鎖させない構成へ整理した。
 
 実験実装は次を含む。
 
@@ -284,7 +302,25 @@ PR #63は最新PR #61 head `32a1cabeb6c66fd8d4f37e22c1e2cbfc142ebc43`をbaseと�
 
 ## Current Evidence state
 
-固定model digestを導入したhead `fc5ed84dfccd4ac935de17d9ff08836869543346`では、Runtime Version Exchange E3b Run `33696551406` / Job `100466538566`が生成された。workflow定義はGitHubに受理されたが、jobは`steps=null`のまま終了しており、digest固定処理を含む検査本文はまだrunner上で実行されていない。
+current trigger整理後のPR #63 head `f4f504948f3af37554c2c849c82fd7cfebbf21c2`では、Runtime Version Exchange E3b Run `33697884915` / Job `100470627125`が生成された。
+
+GitHub APIのjob metadataでは次を確認した。
+
+- labels: `ubuntu-latest`
+- `runner_id = 0`
+- `runner_name = ""`
+- `runner_group_id = 0`
+- `runner_group_name = ""`
+- `steps = []`
+- 作成から約3秒でfailure終了
+
+job log blobは生成されておらず、log取得要求も404となる。
+
+このため、今回のfailureはworkflow本文のstepへ到達したtest failureとは扱わない。
+
+また、PR #61の軽量Plan integrity Run `33696109434`も明示的に再実行したが、再実行Job `100470021380`は`steps=[]`のまま終了した。runner利用可能性は依然として回復済みとは扱えない。
+
+公開GitHub Statusでは確認時点でActionsはOperationalだったため、今回の現象をGitHub全体障害と断定するEvidenceもない。account / allocation / service-side conditionを含め、具体原因は未確定のまま保持する。
 
 現時点では次のとおりである。
 
@@ -305,7 +341,10 @@ pinned model digest enforcement
   = implemented / accepted by GitHub, not yet runner-executed
 
 scenario-local workflow selection
-  = confirmed at run-generation level
+  = confirmed in both directions
+
+shared semanticruntime trigger selection
+  = confirmed in PR #66
 
 Exact Realization Reference mapping
   = Executable Evidence available in Run 33670697154
@@ -329,9 +368,7 @@ runtime-version-exchange Scoped Executable Evidence
   = not available yet
 ```
 
-GitHub-hosted runnerは、Run `33670697154`のように割当が成立した例がある一方、その後も多数のjobが`steps=[]`または`steps=null`のまま終了している。runner未割当をruntime交換testのFAILとして扱わない。
-
-また、CI failureは修正対象だがpushを停止する条件にはしない。runner未割当を含む赤いrunが残っていても、原因調査、実験条件の強化、修正commitは通常どおりpushする。merge、Evidence確定、IssueのResolved判定に必要なgateは別に扱う。
+CI failureは修正対象だがpushを停止する条件にはしない。runner未割当を含む赤いrunが残っていても、原因調査、実験条件の強化、修正commitは通常どおりpushする。merge、Evidence確定、IssueのResolved判定に必要なgateは別に扱う。
 
 ## Requirement / Contract assessment
 
@@ -382,6 +419,8 @@ Open中。
 9. current trigger setで必要なworkflow回帰がrunner上でsuccessする。
 10. Requirement / Contract再照合と自然な日本語最終監査を行う。
 
+trigger選択性はrun生成レベルで確認済みだが、actual runtime exchangeが未実行のためResolvedにはしない。
+
 ## Reopen conditions
 
 Resolved後も次の場合は再開する。
@@ -394,6 +433,7 @@ Resolved後も次の場合は再開する。
 - promptが交換軸へ混入する。
 - runtime固有情報をUniversal semanticsへ先取りする。
 - 共有依存変更時にruntime交換workflowが選択されない。
+- model artifact交換専用testだけの変更でruntime交換workflowが再び選択される。
 - runtime交換successをmodel / KJ成果品質やE4へ過大評価する。
 
 ## Natural Japanese review
@@ -402,8 +442,12 @@ ISSUE-000067 / ISSUE-000068、Cognitive Method Contract、current live mapping�
 
 「実現機構そのものの違い」と「同一実現機構のversion差」を分け、後者を一つのlogical Realizationに属するhistorical revisionとしてExact Bindingで固定する構造を維持している。
 
-さらに「同じmodel」をtag名や一回のA / B比較だけで済ませず、既にactual runで観測したmodel digestを期待artifact identityとして固定した。これにより、runtimeだけを交換するという実験条件をrunを跨いでも明示できる。固定artifactのsource identity確認、Exact Reference mappingの既存Executable Evidence、runtime交換本体のactual未実証は一つの成功へまとめていない。
+また、「同じmodel」をtag名や一回のA / B比較だけで済ませず、既にactual runで観測したmodel digestを期待artifact identityとして固定した。これにより、runtimeだけを交換するという実験条件をrunを跨いでも明示できる。
 
-CIについてもscenario-local testと共有依存を分け、run生成の成否をruntime compatibilityのEvidenceへ読み替えない。failureが残っていてもpushは止めず、mergeやEvidence確定のgateと分離する。
+CIについては、runtime交換専用test、model artifact交換専用test、共有依存をそれぞれ分けた。PR #66 / #67によって正側と負側のrun生成を実測し、検査本文を弱めずにtrigger責務だけを精密化している。
+
+さらに、`failure`という表示だけでrepository test failureと読まないよう、`runner_id=0`、`steps=[]`、log未生成という観測事実まで明示した。公開statusに障害表示がないことから具体原因を逆に推定することもせず、原因は未確定のまま保っている。
+
+固定artifactのsource identity確認、Exact Reference mappingの既存Executable Evidence、trigger選択、runner未割当、runtime交換本体のactual未実証を一つの成功や失敗へまとめていない。
 
 意味、規範強度、Evidence強度、未検証範囲を変えず、観測済みの事実、実装済みの設計、runner上で未確認の事項を自然に読み分けられるよう全文を再ドラフトした。
