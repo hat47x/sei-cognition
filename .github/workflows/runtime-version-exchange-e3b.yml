@@ -52,6 +52,49 @@ jobs:
           path: _external/kj-atlas
           fetch-depth: 1
 
+      - name: Record fixed experiment identity
+        shell: bash
+        env:
+          OLLAMA_03213_SHA256: "0fd1dece38a1c6242e8013ce20b597345c5de072ae6b320160edb0e729ef1de1"
+          OLLAMA_03214_SHA256: "c620917a71e146ab3a7f893084f066069c4c65d144ef8379a91c3cbe8b27de8f"
+        run: |
+          set -euo pipefail
+          SOZA_COMMIT="$(git rev-parse HEAD)" \
+          KJ_ATLAS_COMMIT="$(git -C _external/kj-atlas rev-parse HEAD)" \
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          payload = {
+              "schema": "soza.runtime-version-exchange-evidence-identity/v1",
+              "workflowRunId": os.environ["GITHUB_RUN_ID"],
+              "workflowRunAttempt": os.environ["GITHUB_RUN_ATTEMPT"],
+              "repositoryCommit": os.environ["SOZA_COMMIT"],
+              "methodSourceCommit": os.environ["KJ_ATLAS_COMMIT"],
+              "runtimeA": {
+                  "name": "ollama",
+                  "version": "0.32.13",
+                  "archiveSha256": os.environ["OLLAMA_03213_SHA256"],
+              },
+              "runtimeB": {
+                  "name": "ollama",
+                  "version": "0.32.14",
+                  "archiveSha256": os.environ["OLLAMA_03214_SHA256"],
+              },
+              "model": {
+                  "name": "qwen2.5:0.5b",
+                  "expectedDigest": os.environ["SOZA_E3B_RUNTIME_EXCHANGE_MODEL_SHA256"],
+              },
+              "qualityJudgement": "not_evaluated",
+          }
+          Path("/tmp/runtime-exchange-identity.json").write_text(
+              json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(payload, ensure_ascii=False, sort_keys=True))
+          PY
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -303,9 +346,36 @@ jobs:
           SOZA_E3B_RUNTIME_EXCHANGE_EVIDENCE_B: /tmp/runtime-exchange-b-evidence.json
         run: go test ./livemethodintegration -run '^TestLiveKJAtlasRuntimeVersionExchangePreservesHistoricalApplication$' -count=1 -v
 
+      - name: Preserve runtime version exchange evidence bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-version-exchange-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
+          path: |
+            /tmp/runtime-exchange-identity.json
+            /tmp/kj-atlas-runtime-exchange-request.json
+            /tmp/runtime-exchange-a-version.txt
+            /tmp/runtime-exchange-b-version.txt
+            /tmp/runtime-exchange-a-model-id.txt
+            /tmp/runtime-exchange-b-model-id.txt
+            /tmp/runtime-exchange-a-tags.json
+            /tmp/runtime-exchange-b-tags.json
+            /tmp/runtime-exchange-a-evidence.json
+            /tmp/runtime-exchange-b-evidence.json
+            /tmp/runtime-exchange-a-result.json
+            /tmp/runtime-exchange-b-result.json
+            /tmp/runtime-exchange-a-adapter.log
+            /tmp/runtime-exchange-b-adapter.log
+            /tmp/runtime-exchange-a-kj.log
+            /tmp/runtime-exchange-b-kj.log
+            /tmp/runtime-exchange-a-ollama.log
+            /tmp/runtime-exchange-b-ollama.log
+
       - name: Show execution evidence on failure
         if: failure()
         run: |
+          cat /tmp/runtime-exchange-identity.json || true
           cat /tmp/runtime-exchange-a-version.txt || true
           cat /tmp/runtime-exchange-b-version.txt || true
           cat /tmp/runtime-exchange-a-tags.json || true
