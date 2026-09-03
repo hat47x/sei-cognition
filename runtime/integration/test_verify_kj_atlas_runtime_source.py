@@ -125,6 +125,40 @@ class KJAtlasRuntimeSourceVerifierTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "must not be executable"):
                 VERIFIER.verify_runtime_bundle(root, identity)
 
+    def test_output_inside_verified_bundle_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "bundle"
+            root.mkdir()
+            self.make_bundle(root)
+
+            with self.assertRaisesRegex(ValueError, "outside the verified runtime source bundle"):
+                VERIFIER._prepare_output_path(root / "verification.json", root)
+
+    def test_existing_output_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            root = base / "bundle"
+            root.mkdir()
+            self.make_bundle(root)
+            output = base / "verification.json"
+            output.write_text("existing\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(ValueError, "already exists"):
+                VERIFIER._prepare_output_path(output, root)
+
+    def test_external_new_output_is_accepted(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            root = base / "bundle"
+            root.mkdir()
+            self.make_bundle(root)
+            output = base / "verification.json"
+
+            prepared = VERIFIER._prepare_output_path(output, root)
+
+            self.assertEqual(output.resolve(strict=False), prepared)
+            self.assertFalse(output.exists())
+
 
 if __name__ == "__main__":
     unittest.main()
