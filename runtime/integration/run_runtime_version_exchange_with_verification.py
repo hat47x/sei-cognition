@@ -15,7 +15,7 @@ INTEGRATION_DIR = Path(__file__).resolve().parent
 SOZA_ROOT = INTEGRATION_DIR.parents[1]
 PREFLIGHT = INTEGRATION_DIR / "check_runtime_version_exchange_preflight.py"
 STRICT_ENTRYPOINT = INTEGRATION_DIR / "run_runtime_version_exchange_strict.py"
-EVIDENCE_VERIFIER = INTEGRATION_DIR / "verify_runtime_version_exchange_evidence.py"
+EVIDENCE_VERIFIER = INTEGRATION_DIR / "verify_runtime_version_exchange_provenance.py"
 RUNTIME_ARCHIVE_OPTIONS = ("--runtime-a-archive", "--runtime-b-archive")
 
 
