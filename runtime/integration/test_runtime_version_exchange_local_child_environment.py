@@ -1,9 +1,13 @@
 import os
 import subprocess
+import sys
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 import run_runtime_version_exchange_local_checks as local_checks
+import run_runtime_version_exchange_with_verification as verified_runner
 
 
 class RuntimeVersionExchangeLocalChildEnvironmentTest(unittest.TestCase):
@@ -87,6 +91,103 @@ class RuntimeVersionExchangeLocalChildEnvironmentTest(unittest.TestCase):
         self.assertEqual("/usr/bin", environment["PATH"])
         self.assertEqual("keep", environment["UNRELATED"])
         self.assertFalse(any(key.startswith("GIT_") for key in environment))
+
+    def test_verified_runner_child_environment_isolated_from_parent_python_git_and_temp(self):
+        parent = {
+            "PATH": "/usr/bin",
+            "HOME": "/home/example",
+            "VIRTUAL_ENV": "/tmp/venv",
+            "UNRELATED": "keep",
+            "PYTHONPATH": "/tmp/injected-pythonpath",
+            "PYTHONHOME": "/tmp/injected-pythonhome",
+            "PYTHONSTARTUP": "/tmp/startup.py",
+            "PYTHONUSERBASE": "/tmp/userbase",
+            "TMPDIR": "/tmp/injected-tmpdir",
+            "TMP": "/tmp/injected-tmp",
+            "TEMP": "/tmp/injected-temp",
+            "GIT_DIR": "/tmp/other.git",
+            "GIT_WORK_TREE": "/tmp/other-work-tree",
+            "GIT_COMMON_DIR": "/tmp/other-common",
+            "GIT_INDEX_FILE": "/tmp/other-index",
+            "PYTHONDONTWRITEBYTECODE": "0",
+            "PYTHONNOUSERSITE": "0",
+        }
+        with patch.dict(os.environ, parent, clear=True):
+            environment = verified_runner._verified_child_environment()
+
+        self.assertEqual("/usr/bin", environment["PATH"])
+        self.assertEqual("/home/example", environment["HOME"])
+        self.assertEqual("/tmp/venv", environment["VIRTUAL_ENV"])
+        self.assertEqual("keep", environment["UNRELATED"])
+        for key in verified_runner.VERIFIED_CHILD_PYTHON_ENVIRONMENT_KEYS:
+            self.assertNotIn(key, environment)
+        for key in verified_runner.VERIFIED_CHILD_TEMP_ENVIRONMENT_KEYS:
+            self.assertNotIn(key, environment)
+        self.assertFalse(any(key.startswith("GIT_") for key in environment))
+        self.assertEqual("1", environment["PYTHONDONTWRITEBYTECODE"])
+        self.assertEqual("1", environment["PYTHONNOUSERSITE"])
+
+    def test_verified_preflight_receives_sanitized_environment(self):
+        completed = subprocess.CompletedProcess(
+            args=["preflight"],
+            returncode=0,
+            stdout='{"result":"ready","blockers":[]}',
+            stderr="",
+        )
+        parent = {
+            "PATH": "/usr/bin",
+            "PYTHONPATH": "/tmp/injected",
+            "GIT_DIR": "/tmp/other.git",
+            "TMPDIR": "/tmp/injected-tmpdir",
+        }
+        with patch.dict(os.environ, parent, clear=True), patch.object(
+            verified_runner.subprocess,
+            "run",
+            return_value=completed,
+        ) as runner:
+            result = verified_runner._run_preflight(["preflight"])
+
+        self.assertEqual("ready", result["result"])
+        environment = runner.call_args.kwargs["env"]
+        self.assertNotIn("PYTHONPATH", environment)
+        self.assertNotIn("TMPDIR", environment)
+        self.assertFalse(any(key.startswith("GIT_") for key in environment))
+        self.assertEqual("1", environment["PYTHONDONTWRITEBYTECODE"])
+        self.assertEqual("1", environment["PYTHONNOUSERSITE"])
+
+    def test_verified_runner_combined_log_uses_explicit_evidence_parent(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            log_dir = Path(temporary)
+            parent = {
+                "PATH": os.environ.get("PATH", ""),
+                "PYTHONPATH": "/tmp/injected-pythonpath",
+                "PYTHONHOME": "/tmp/injected-pythonhome",
+                "TMPDIR": "/tmp/injected-tmpdir",
+                "GIT_DIR": "/tmp/other.git",
+            }
+            command = [
+                sys.executable,
+                "-c",
+                (
+                    "import os; "
+                    "print(os.environ.get('PYTHONPATH')); "
+                    "print(os.environ.get('GIT_DIR')); "
+                    "print(os.environ.get('TMPDIR'))"
+                ),
+            ]
+            with patch.dict(os.environ, parent, clear=True):
+                status, log_path, _digest, size = verified_runner._run_and_capture(
+                    command,
+                    log_dir=log_dir,
+                )
+            try:
+                content = log_path.read_text(encoding="utf-8")
+                self.assertEqual(0, status)
+                self.assertEqual(log_dir, log_path.parent)
+                self.assertGreater(size, 0)
+                self.assertEqual(["None", "None", "None"], content.strip().splitlines())
+            finally:
+                log_path.unlink(missing_ok=True)
 
     def test_new_environment_test_is_registered_as_focused_check(self):
         self.assertIn(
