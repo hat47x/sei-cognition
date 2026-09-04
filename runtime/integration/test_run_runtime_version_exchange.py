@@ -168,6 +168,35 @@ class RuntimeVersionExchangeHarnessTest(unittest.TestCase):
         self.assertIn('read -r actual_sha remainder < <(sha256sum "${archive}")', self.script_text)
         self.assertIn('if [[ "${actual_sha}" != "${expected_sha}" ]]', self.script_text)
 
+    def test_downloaded_runtime_archives_use_the_canonical_preparation_helper(self):
+        self.assertIn(
+            'RUNTIME_ARCHIVE_PREPARER="${SOZA_ROOT}/runtime/integration/prepare_runtime_version_exchange_archives.py"',
+            self.script_text,
+        )
+        self.assertIn('prepare_downloaded_runtime_archive()', self.script_text)
+        self.assertIn('python3 "${RUNTIME_ARCHIVE_PREPARER}" \\', self.script_text)
+        self.assertIn('--output-dir "${RUNTIME_ARCHIVE_PREPARATION_DIR}"', self.script_text)
+        self.assertIn('--runtime "${label}"', self.script_text)
+        self.assertIn('--json >"${result_file}"', self.script_text)
+        self.assertIn('RUNTIME_ARCHIVE_A="$(prepare_downloaded_runtime_archive a)"', self.script_text)
+        self.assertIn('RUNTIME_ARCHIVE_B="$(prepare_downloaded_runtime_archive b)"', self.script_text)
+        self.assertNotIn(
+            'https://github.com/ollama/ollama/releases/download/v${version}/ollama-linux-amd64.tar.zst',
+            self.script_text,
+        )
+
+    def test_runtime_archive_preparation_observation_is_preserved_when_available(self):
+        self.assertIn(
+            '"${WORK_DIR}/runtime-exchange-a-archive-preparation.json" \\',
+            self.script_text,
+        )
+        self.assertIn(
+            '"${WORK_DIR}/runtime-exchange-b-archive-preparation.json" \\',
+            self.script_text,
+        )
+        self.assertIn('payload.get("result") != "ok"', self.script_text)
+        self.assertIn('archive.get("status") != "ok"', self.script_text)
+
     def test_prepositioned_model_store_is_not_auto_pulled_when_pinned_model_is_missing(self):
         marker = 'if [[ "${MODEL_STORE_MODE}" == "prepositioned" ]]'
         start = self.script_text.index(marker)
