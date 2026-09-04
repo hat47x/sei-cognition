@@ -92,6 +92,8 @@ def verify_repository(
         "result": "verified",
         "repositoryRoot": str(repo),
         "head": head,
+        "expectedHead": expected_head,
+        "expectedHeadMatched": expected_head is None or head == expected_head,
         "revisionBExactHead": head == REVISION_B,
         "executionSourceObjects": observed,
         "worktreeCleanWithinBoundary": True,
