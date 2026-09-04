@@ -79,12 +79,21 @@ def _write_report(path: Path, value: dict[str, object]) -> None:
     os.replace(candidate, path)
 
 
-def _failure(stage: str, exc: Exception) -> dict[str, str]:
-    return {
+def _failure(stage: str, exc: Exception) -> dict[str, object]:
+    result: dict[str, object] = {
         "stage": stage,
         "type": type(exc).__name__,
         "message": str(exc),
     }
+    detail_builder = getattr(exc, "as_dict", None)
+    if callable(detail_builder):
+        detail = detail_builder()
+        if isinstance(detail, dict):
+            substage = detail.get("stage")
+            if isinstance(substage, str) and substage:
+                result["substage"] = substage
+            result["detail"] = detail
+    return result
 
 
 def _prepare_output_paths(
