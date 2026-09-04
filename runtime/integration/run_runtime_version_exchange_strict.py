@@ -5,8 +5,8 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import subprocess
-import tempfile
 from pathlib import Path
 
 from export_kj_atlas_runtime_source import export_runtime_bundle
@@ -97,6 +97,12 @@ def _default_work_path(evidence_dir: Path) -> Path:
     """親TMPDIRへ依存せず、Evidenceと同じ安全なparentに既定work pathを置く。"""
 
     return evidence_dir.parent / f"{evidence_dir.name}-work"
+
+
+def _default_source_bundle_root(evidence_dir: Path) -> Path:
+    """checkout起点の一時source bundleもEvidenceと同じ安全なparentへ固定する。"""
+
+    return evidence_dir.parent / f"{evidence_dir.name}-source"
 
 
 def _is_within(candidate: Path, root: Path) -> bool:
@@ -257,6 +263,20 @@ def run_strict_probe(
     work_roots.append(("Evidence directory", evidence_dir))
     _reject_overlap(resolved_work_dir, "Work directory", tuple(work_roots))
 
+    temporary_source_root: Path | None = None
+    if checkout_dir is not None:
+        temporary_source_root = _new_path(
+            _default_source_bundle_root(evidence_dir),
+            "Temporary source directory",
+        )
+        source_temp_roots = list(work_roots)
+        source_temp_roots.append(("Work directory", resolved_work_dir))
+        _reject_overlap(
+            temporary_source_root,
+            "Temporary source directory",
+            tuple(source_temp_roots),
+        )
+
     # 明白なpath blockerをすべて除いた後、重いsource exportやmodel準備より前にactual archive bytesを固定する。
     _verify_runtime_archive_identities(runtime_archives)
 
@@ -265,13 +285,12 @@ def run_strict_probe(
     if resolved_model_dir is not None and not model_will_be_prepared:
         model_verification = verify_model_store(resolved_model_dir)
 
-    temporary: tempfile.TemporaryDirectory[str] | None = None
     source_export: dict[str, object] | None = None
     completed: subprocess.CompletedProcess[bytes] | subprocess.CompletedProcess[str] | None = None
     try:
         if checkout_dir is not None:
-            temporary = tempfile.TemporaryDirectory(prefix="soza-runtime-exchange-strict-source-")
-            verified_bundle = Path(temporary.name) / "backend"
+            assert temporary_source_root is not None
+            verified_bundle = temporary_source_root / "backend"
             source_export = export_runtime_bundle(source_input, verified_bundle)
         else:
             verified_bundle = source_input
@@ -316,8 +335,8 @@ def run_strict_probe(
                     evidence_dir / "runtime-exchange-source-export.json",
                     source_export,
                 )
-        if temporary is not None:
-            temporary.cleanup()
+        if temporary_source_root is not None:
+            shutil.rmtree(temporary_source_root, ignore_errors=True)
 
     if completed is None:
         raise RuntimeError("runtime exchange harnessが開始されませんでした")
@@ -330,7 +349,7 @@ def build_parser() -> argparse.ArgumentParser:
             "ISSUE-000070のstrict runtime交換を開始します。KJ Atlas sourceをverified runtime "
             "bundleへ固定し、事前配置runtime archiveはharness起動前に固定size / SHA-256を再検証し、"
             "事前配置model storeはOllama起動前にmanifest / blob bytesを静的検証します。"
-            "work directoryを省略した場合もEvidence directoryの隣へ新規pathを明示固定し、"
+            "work directoryとcheckout起点の一時source bundleをEvidence directory側へ明示固定し、"
             "親processのTMPDIRへ実行surfaceを委ねません。"
             "--prepare-model-dirを指定した場合は固定model storeをregistryから新規に準備し、"
             "再検証してからrepository-local harnessへ委譲します。"
