@@ -17,6 +17,13 @@ PREFLIGHT = INTEGRATION_DIR / "check_runtime_version_exchange_preflight.py"
 STRICT_ENTRYPOINT = INTEGRATION_DIR / "run_runtime_version_exchange_strict.py"
 EVIDENCE_VERIFIER = INTEGRATION_DIR / "verify_runtime_version_exchange_provenance.py"
 RUNTIME_ARCHIVE_OPTIONS = ("--runtime-a-archive", "--runtime-b-archive")
+VERIFIED_CHILD_PYTHON_ENVIRONMENT_KEYS = (
+    "PYTHONPATH",
+    "PYTHONHOME",
+    "PYTHONSTARTUP",
+    "PYTHONUSERBASE",
+)
+VERIFIED_CHILD_TEMP_ENVIRONMENT_KEYS = ("TMPDIR", "TMP", "TEMP")
 
 
 class PreflightBlocked(ValueError):
@@ -27,6 +34,22 @@ class PreflightBlocked(ValueError):
             "runtime exchange preflight blocked: "
             f"blockers={report.get('blockers')!r}"
         )
+
+
+def _verified_child_environment() -> dict[str, str]:
+    """preflight / strict / verifier childを親shellのPython/Git/temp指定から分離する。"""
+
+    environment = os.environ.copy()
+    for key in tuple(environment):
+        if key in VERIFIED_CHILD_PYTHON_ENVIRONMENT_KEYS:
+            environment.pop(key, None)
+        elif key in VERIFIED_CHILD_TEMP_ENVIRONMENT_KEYS:
+            environment.pop(key, None)
+        elif key.startswith("GIT_"):
+            environment.pop(key, None)
+    environment["PYTHONDONTWRITEBYTECODE"] = "1"
+    environment["PYTHONNOUSERSITE"] = "1"
+    return environment
 
 
 def _reject_forwarded_options(arguments: list[str]) -> None:
@@ -159,6 +182,7 @@ def _run_preflight(command: list[str]) -> dict[str, object]:
         check=False,
         capture_output=True,
         text=True,
+        env=_verified_child_environment(),
     )
     try:
         payload = json.loads(completed.stdout)
@@ -204,10 +228,15 @@ def _build_command(
     return command, source_preparation
 
 
-def _run_and_capture(command: list[str]) -> tuple[int, Path, str, int]:
+def _run_and_capture(
+    command: list[str],
+    *,
+    log_dir: Path,
+) -> tuple[int, Path, str, int]:
     temporary = tempfile.NamedTemporaryFile(
         prefix="soza-runtime-exchange-runner-",
         suffix=".log",
+        dir=log_dir,
         delete=False,
     )
     log_path = Path(temporary.name)
@@ -219,6 +248,7 @@ def _run_and_capture(command: list[str]) -> tuple[int, Path, str, int]:
                 command,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
+                env=_verified_child_environment(),
             ) as process:
                 assert process.stdout is not None
                 for chunk in iter(lambda: process.stdout.read(64 * 1024), b""):
@@ -277,6 +307,7 @@ def _run_verifier(evidence_dir: Path, verification_output: Path) -> int:
             str(verification_output),
         ],
         check=False,
+        env=_verified_child_environment(),
     )
     return completed.returncode
 
@@ -369,6 +400,11 @@ def run(
 
     evidence_dir = _prepare_new_path(evidence_dir, "Evidence directory")
     verification_output = _prepare_new_path(verification_output, "verification output")
+    if not evidence_dir.parent.is_dir():
+        raise ValueError(
+            "Evidence directoryのparent directoryが存在しません: "
+            f"{evidence_dir.parent}"
+        )
     _protect_verification_output(
         verification_output,
         evidence_dir=evidence_dir,
@@ -407,7 +443,10 @@ def run(
         evidence_dir=evidence_dir,
         forwarded=forwarded,
     )
-    exit_code, log_path, output_sha256, output_bytes = _run_and_capture(command)
+    exit_code, log_path, output_sha256, output_bytes = _run_and_capture(
+        command,
+        log_dir=evidence_dir.parent,
+    )
     try:
         evidence_directory_created_by = _prepare_evidence_directory_after_run(
             evidence_dir,
