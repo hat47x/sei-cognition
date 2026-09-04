@@ -273,6 +273,23 @@ class RuntimeVersionExchangeArchivePreparationTest(unittest.TestCase):
             self.assertEqual(data, target.read_bytes())
         self.assertEqual(len(data), verification.size_bytes)
 
+    def test_download_size_overrun_is_rejected_before_excess_bytes_are_written(self):
+        data = b"12345"
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp) / "runtime.tar.zst"
+            partial = target.with_name(target.name + ".part")
+            with self.assertRaisesRegex(ValueError, "固定値を超えました"):
+                prepare.download_archive(
+                    "https://example.invalid/runtime",
+                    target,
+                    4,
+                    hashlib.sha256(data[:4]).hexdigest(),
+                    opener=lambda _url: FakeResponse(data),
+                )
+            self.assertFalse(target.exists())
+            self.assertTrue(partial.is_file())
+            self.assertEqual(b"", partial.read_bytes())
+
     def test_existing_partial_file_is_not_silently_reused_or_overwritten(self):
         with tempfile.TemporaryDirectory() as temp:
             target = Path(temp) / "runtime.tar.zst"
