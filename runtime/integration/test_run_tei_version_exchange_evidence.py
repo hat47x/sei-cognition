@@ -147,6 +147,35 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
             build.assert_not_called()
             adapter.assert_not_called()
 
+    @mock.patch.object(subject.adapter_runner, "run_compatibility")
+    @mock.patch.object(subject.build_runner, "produce_bundle")
+    def test_overwrite_removes_stale_bundle_before_e2_failure(self, build, adapter):
+        build.side_effect = ValueError("build failed")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source, reference, soza = self.make_inputs(root)
+            tei_go = self.make_go(root, "go123")
+            soza_go = self.make_go(root, "go125")
+            output = root / "evidence"
+            output.mkdir()
+            stale_bundle = output / subject.BUNDLE_NAME
+            stale_bundle.write_bytes(b"stale")
+            (output / subject.REPORT_NAME).write_text("old\n", encoding="utf-8")
+            with self.assertRaises(subject.VersionExchangeRunFailed):
+                subject.run_version_exchange(
+                    source,
+                    reference,
+                    soza,
+                    output,
+                    tei_go_executable=tei_go,
+                    soza_go_executable=soza_go,
+                    overwrite=True,
+                )
+            self.assertFalse(stale_bundle.exists())
+            report = json.loads((output / subject.REPORT_NAME).read_text(encoding="utf-8"))
+            self.assertEqual("e2_failed", report["result"])
+            adapter.assert_not_called()
+
     def test_go_executable_basename_is_fixed(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -156,6 +185,20 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "basename"):
                 with subject._go_on_path(invalid):
                     pass
+
+    def test_go_symlink_named_go_is_accepted(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target = root / "toolchains/go-real"
+            target.parent.mkdir(parents=True)
+            target.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+            target.chmod(0o755)
+            link = root / "bin/go"
+            link.parent.mkdir()
+            link.symlink_to(target)
+            with subject._go_on_path(link) as resolved:
+                self.assertEqual(target.resolve(), resolved)
+                self.assertEqual(target.resolve(), Path(shutil.which("go")).resolve())
 
 
 if __name__ == "__main__":
