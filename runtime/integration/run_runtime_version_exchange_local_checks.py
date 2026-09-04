@@ -25,6 +25,7 @@ CHECK_FILES = (
     "test_check_runtime_version_exchange_preflight.py",
     "test_runtime_version_exchange_preflight_model_store.py",
     "test_run_runtime_version_exchange_strict.py",
+    "test_runtime_version_exchange_strict_archive_boundaries.py",
     "test_run_runtime_version_exchange_strict_model_preparation.py",
     "test_run_runtime_version_exchange.py",
     "test_run_runtime_version_exchange_with_verification.py",
