@@ -93,6 +93,12 @@ def _new_path(path: Path, label: str) -> Path:
     return resolved
 
 
+def _default_work_path(evidence_dir: Path) -> Path:
+    """親TMPDIRへ依存せず、Evidenceと同じ安全なparentに既定work pathを置く。"""
+
+    return evidence_dir.parent / f"{evidence_dir.name}-work"
+
+
 def _is_within(candidate: Path, root: Path) -> bool:
     return candidate == root or root in candidate.parents
 
@@ -164,12 +170,14 @@ def _verify_runtime_archive_identities(runtime_archives: dict[str, Path]) -> Non
         verify_archive(resolved, expected_size, expected_sha256)
 
 
-def _strict_child_environment() -> dict[str, str]:
+def _strict_child_environment(work_dir: Path | None = None) -> dict[str, str]:
     """strict入口が確定するidentity / safety値を親環境から継承させない。"""
 
     environment = os.environ.copy()
     for key in STRICT_CHILD_ENVIRONMENT_KEYS:
         environment.pop(key, None)
+    if work_dir is not None:
+        environment["TMPDIR"] = str(work_dir)
     return environment
 
 
@@ -243,12 +251,11 @@ def run_strict_probe(
         evidence_roots.append(("model directory", resolved_model_dir))
     _reject_overlap(evidence_dir, "Evidence directory", tuple(evidence_roots))
 
-    resolved_work_dir: Path | None = None
-    if work_dir is not None:
-        resolved_work_dir = _new_path(work_dir, "Work directory")
-        work_roots = list(evidence_roots)
-        work_roots.append(("Evidence directory", evidence_dir))
-        _reject_overlap(resolved_work_dir, "Work directory", tuple(work_roots))
+    requested_work_dir = work_dir if work_dir is not None else _default_work_path(evidence_dir)
+    resolved_work_dir = _new_path(requested_work_dir, "Work directory")
+    work_roots = list(evidence_roots)
+    work_roots.append(("Evidence directory", evidence_dir))
+    _reject_overlap(resolved_work_dir, "Work directory", tuple(work_roots))
 
     # 明白なpath blockerをすべて除いた後、重いsource exportやmodel準備より前にactual archive bytesを固定する。
     _verify_runtime_archive_identities(runtime_archives)
@@ -284,14 +291,13 @@ def run_strict_probe(
         ]
         if resolved_model_dir is not None:
             command.extend(["--model-dir", str(resolved_model_dir)])
-        if resolved_work_dir is not None:
-            command.extend(["--work-dir", str(resolved_work_dir)])
+        command.extend(["--work-dir", str(resolved_work_dir)])
         command.extend(harness_arguments)
 
         completed = subprocess.run(
             command,
             check=False,
-            env=_strict_child_environment(),
+            env=_strict_child_environment(resolved_work_dir),
         )
     finally:
         if evidence_dir.is_dir():
@@ -324,6 +330,8 @@ def build_parser() -> argparse.ArgumentParser:
             "ISSUE-000070のstrict runtime交換を開始します。KJ Atlas sourceをverified runtime "
             "bundleへ固定し、事前配置runtime archiveはharness起動前に固定size / SHA-256を再検証し、"
             "事前配置model storeはOllama起動前にmanifest / blob bytesを静的検証します。"
+            "work directoryを省略した場合もEvidence directoryの隣へ新規pathを明示固定し、"
+            "親processのTMPDIRへ実行surfaceを委ねません。"
             "--prepare-model-dirを指定した場合は固定model storeをregistryから新規に準備し、"
             "再検証してからrepository-local harnessへ委譲します。"
         ),
