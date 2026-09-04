@@ -1,5 +1,6 @@
 import hashlib
 import importlib.util
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -245,6 +246,45 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
 
             source_verifier.assert_not_called()
             runner.assert_not_called()
+
+    def test_omitted_work_dir_is_derived_from_evidence_and_parent_tmpdir_is_not_used(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bundle = root / "bundle"
+            evidence = root / "evidence"
+            expected_work = root / "evidence-work"
+            bundle.mkdir()
+
+            class Completed:
+                returncode = 0
+
+            def fake_run(command, check, env=None):
+                evidence.mkdir()
+                return Completed()
+
+            with patch.dict(os.environ, {"TMPDIR": str(bundle)}, clear=False), patch.object(
+                ENTRYPOINT,
+                "verify_runtime_bundle",
+            ), patch.object(ENTRYPOINT.subprocess, "run", side_effect=fake_run) as runner:
+                result = ENTRYPOINT.run_strict_probe(
+                    checkout_dir=None,
+                    backend_bundle=bundle,
+                    model_dir=None,
+                    evidence_dir=evidence,
+                    harness_arguments=[],
+                    work_dir=None,
+                )
+
+            self.assertEqual(0, result)
+            command = runner.call_args.args[0]
+            self.assertIn("--work-dir", command)
+            self.assertEqual(
+                str(expected_work.resolve()),
+                command[command.index("--work-dir") + 1],
+            )
+            child_env = runner.call_args.kwargs["env"]
+            self.assertEqual(str(expected_work.resolve()), child_env["TMPDIR"])
+            self.assertNotEqual(str(bundle.resolve()), child_env["TMPDIR"])
 
 
 if __name__ == "__main__":
