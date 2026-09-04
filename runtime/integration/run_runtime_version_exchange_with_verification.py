@@ -119,6 +119,52 @@ def _protect_verification_output(
             )
 
 
+def _protect_runner_output_paths(
+    *,
+    evidence_dir: Path,
+    work_dir: Path,
+    verification_output: Path,
+    kj_atlas_dir: Path | None,
+    kj_atlas_backend_bundle: Path | None,
+    model_dir: Path | None,
+    prepare_model_dir: Path | None,
+) -> None:
+    """preflight失敗時も含め、runnerが入力資産をEvidence等で変更しないようにする。"""
+
+    inputs: list[tuple[str, Path]] = [("SOZA repository", SOZA_ROOT)]
+    for label, path in (
+        ("KJ Atlas checkout", kj_atlas_dir),
+        ("KJ Atlas verified runtime bundle", kj_atlas_backend_bundle),
+        ("model directory", model_dir),
+    ):
+        if path is not None:
+            inputs.append((label, _canonical_path(path)))
+
+    outputs: list[tuple[str, Path]] = [
+        ("Evidence directory", _canonical_path(evidence_dir)),
+        ("work directory", _canonical_path(work_dir)),
+        ("verification output", _canonical_path(verification_output)),
+    ]
+    if prepare_model_dir is not None:
+        outputs.append(("prepared model directory", _canonical_path(prepare_model_dir)))
+
+    for output_label, output_path in outputs:
+        for input_label, input_path in inputs:
+            if _paths_overlap(output_path, input_path):
+                raise ValueError(
+                    f"{output_label}を{input_label}と重ねられません: "
+                    f"output={output_path} input={input_path}"
+                )
+
+    for index, (left_label, left_path) in enumerate(outputs):
+        for right_label, right_path in outputs[index + 1 :]:
+            if _paths_overlap(left_path, right_path):
+                raise ValueError(
+                    f"runner出力pathを相互に重ねられません: "
+                    f"{left_label}={left_path} {right_label}={right_path}"
+                )
+
+
 def _default_verification_output(evidence_dir: Path) -> Path:
     return evidence_dir.parent / f"{evidence_dir.name}-verification.json"
 
@@ -409,11 +455,15 @@ def run(
     evidence_dir = _prepare_new_path(evidence_dir, "Evidence directory")
     effective_work_dir = _effective_work_dir(evidence_dir, work_dir)
     verification_output = _prepare_new_path(verification_output, "verification output")
-    if not evidence_dir.parent.is_dir():
-        raise ValueError(
-            "Evidence directoryのparent directoryが存在しません: "
-            f"{evidence_dir.parent}"
-        )
+    _protect_runner_output_paths(
+        evidence_dir=evidence_dir,
+        work_dir=effective_work_dir,
+        verification_output=verification_output,
+        kj_atlas_dir=kj_atlas_dir,
+        kj_atlas_backend_bundle=kj_atlas_backend_bundle,
+        model_dir=model_dir,
+        prepare_model_dir=prepare_model_dir,
+    )
     _protect_verification_output(
         verification_output,
         evidence_dir=evidence_dir,
@@ -423,6 +473,16 @@ def run(
         prepare_model_dir=prepare_model_dir,
         work_dir=effective_work_dir,
     )
+    if not evidence_dir.parent.is_dir():
+        raise ValueError(
+            "Evidence directoryのparent directoryが存在しません: "
+            f"{evidence_dir.parent}"
+        )
+    if not verification_output.parent.is_dir():
+        raise ValueError(
+            "verification outputのparent directoryが存在しません: "
+            f"{verification_output.parent}"
+        )
 
     preflight_command = _build_preflight_command(
         kj_atlas_dir=kj_atlas_dir,
@@ -454,7 +514,7 @@ def run(
     )
     exit_code, log_path, output_sha256, output_bytes = _run_and_capture(
         command,
-        log_dir=evidence_dir.parent,
+        log_dir=verification_output.parent,
     )
     try:
         evidence_directory_created_by = _prepare_evidence_directory_after_run(
