@@ -5,6 +5,7 @@ import subprocess
 from pathlib import Path
 from typing import Mapping
 
+REVISION_A = "48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67"
 REVISION_B = "1a7028d444fcae60a1c4f2f2d247456f4c7c35be"
 EXPECTED_OBJECTS = {
     "cmd": "ac4d4406dfa590a2078cf91217c4fe30797e7f8e",
@@ -12,6 +13,11 @@ EXPECTED_OBJECTS = {
     "reference": "57fafb742988ecb936b9ab261fa8a991e37ed5c7",
     "go.mod": "f8763f8fb2d64d73f1b40b905f62b5e09c44493b",
     "go.sum": "c7cd14781271dca2b014daf2f53d49d95b8e8826",
+}
+REVISION_A_REFERENCE_OBJECTS = {
+    "reference/workspace": "5d596cfa5387b201cd733a07160307332d29a382",
+    "reference/workspace/.tei/plugin-lock.json": "0fa63ad634c72395781eaaae5ee0132f73d03541",
+    "reference/order_rollout.durable-run.m0.21.start.json": "6fe7b1586fcfd17f23f3b659df5632b31a6baf1f",
 }
 STOP_LINE = (
     "TEI execution-source Git identity verified != actual TEI binary built "
