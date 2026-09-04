@@ -6,6 +6,14 @@
 
 ここでいう「ready」は、actual Evidenceを得たという意味ではありません。exact revision Bのsource checkoutと、historical revision Aのfixed reference inputを実行可能なLinux / amd64環境へ用意できたとき、取得・build・Provider Plan実行・current SOZA Adapter検査までをrepository-localに再現できる状態を指します。
 
+関連文書の役割は次のように分けます。
+
+- `plan/issue/ISSUE-000072-verify-tei-executable-version-exchange.md`: Goal、Constraints、Required experiments、Resolution Criteriaの正本。
+- `runtime/TEI_VERSION_EXCHANGE_EVIDENCE_2026-09-05.md`: その時点までに実際に観測した履歴Evidenceの記録。文中の「現在」は記録時点のsnapshotであり、その後のrunner整備を自動的には反映しません。
+- 本文書: actual実行前の**current execution path / readiness snapshot**。実行入口や未観測範囲を確認するときは本書を参照します。
+
+履歴Evidenceのactual観測値はEvidence文書を優先し、現在の実行経路・未実行状態は本書を優先します。どちらからも未観測のactual結果を推定しません。
+
 ```text
 execution path ready
   != revision B build PASS
@@ -242,6 +250,51 @@ run_tei_bundle_adapter_compatibility.py
   ↓
 record current Adapter / Capability Observation result
 ```
+
+### 実行例
+
+次の変数はrepository外の作業領域を指します。
+
+```bash
+export TEI_B_REPO=/path/to/tei-revision-b
+export TEI_A_REPO=/path/to/tei-revision-a
+export TEI_B_BUNDLE=/path/to/evidence/tei-revision-b-linux-amd64.tar.gz
+export SOZA_REPO=/path/to/soza
+```
+
+E2ではBをbuild source、Aをfixed reference inputとして明示的に分けます。
+
+```bash
+python3 "$SOZA_REPO/runtime/integration/run_tei_revision_b_prepositioned.py" \
+  --source-repo "$TEI_B_REPO" \
+  --reference-source-repo "$TEI_A_REPO" \
+  --output-archive "$TEI_B_BUNDLE" \
+  --json
+```
+
+生成後は、取得・生成経路から独立したverifierへ戻します。
+
+```bash
+python3 "$SOZA_REPO/runtime/integration/verify_tei_evidence_bundle.py" \
+  "$TEI_B_BUNDLE" \
+  --expected-source-commit 1a7028d444fcae60a1c4f2f2d247456f4c7c35be \
+  --json
+```
+
+E3では、検査対象SOZA checkoutのHEADをその場で固定してlive testへ渡します。
+
+```bash
+SOZA_HEAD="$(git -C "$SOZA_REPO" rev-parse HEAD)"
+
+python3 "$SOZA_REPO/runtime/integration/run_tei_bundle_adapter_compatibility.py" \
+  "$TEI_B_BUNDLE" \
+  --soza-repo-root "$SOZA_REPO" \
+  --expected-source-commit 1a7028d444fcae60a1c4f2f2d247456f4c7c35be \
+  --expected-soza-head "$SOZA_HEAD" \
+  --json
+```
+
+runner側でもsource identity、fixed input identity、worktree cleanlinessを再確認します。この実行例は人手でidentity検証を省略するための近道ではなく、同じ検証を一つの標準経路へ寄せるための入口です。
 
 E2が失敗した場合、取得、source identity、Go toolchain、build、workspace load、validation、durable run、plugin lock、Provider Plan生成のどこで停止したかを分けて記録します。
 
