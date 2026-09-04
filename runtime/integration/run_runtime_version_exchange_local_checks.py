@@ -17,6 +17,7 @@ RESULT_SCHEMA = "soza.runtime-version-exchange-focused-local-check-result/v1"
 # strict入口、failure Evidence、保存済みEvidence verifierのfocused regressionだけを並べる。
 CHECK_FILES = (
     "test_prepare_runtime_version_exchange_archives.py",
+    "test_check_runtime_version_exchange_manifest_consistency.py",
     "test_verify_kj_atlas_runtime_source.py",
     "test_export_kj_atlas_runtime_source.py",
     "test_prepare_runtime_version_exchange_model_store.py",
