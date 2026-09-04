@@ -20,6 +20,7 @@ TIMEOUT_EXIT_CODE = 124
 # strict入口、failure Evidence、保存済みEvidence verifierのfocused regressionだけを並べる。
 CHECK_FILES = (
     "test_prepare_runtime_version_exchange_archives.py",
+    "test_issue70_prepositioned_inputs.py",
     "test_check_runtime_version_exchange_manifest_consistency.py",
     "test_verify_kj_atlas_runtime_source.py",
     "test_export_kj_atlas_runtime_source.py",
@@ -41,11 +42,12 @@ CHECK_FILES = (
     "test_runtime_version_exchange_identity_consistency.py",
 )
 
-# ファイル名だけではruntime version exchangeとの関係を判定できないsource identity testを
-# 明示的に候補へ含める。runner自身のself-testも通常のfocused checkとして実行する。
+# ファイル名だけではruntime version exchangeとの関係を判定できないsource identity testや
+# ISSUE固有のorchestration testを明示的に候補へ含める。runner自身のself-testも通常のfocused checkとして実行する。
 SUPPLEMENTAL_FOCUSED_TESTS = {
     "test_verify_kj_atlas_runtime_source.py",
     "test_export_kj_atlas_runtime_source.py",
+    "test_issue70_prepositioned_inputs.py",
 }
 
 STOP_LINE = (
