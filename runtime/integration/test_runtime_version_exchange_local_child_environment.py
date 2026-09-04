@@ -1,4 +1,5 @@
 import os
+import subprocess
 import unittest
 from unittest.mock import patch
 
@@ -54,6 +55,38 @@ class RuntimeVersionExchangeLocalChildEnvironmentTest(unittest.TestCase):
 
         self.assertEqual("1", actual["PYTHONDONTWRITEBYTECODE"])
         self.assertEqual("1", actual["PYTHONNOUSERSITE"])
+
+    def test_repository_observation_does_not_inherit_parent_git_internal_environment(self):
+        parent = {
+            "PATH": "/usr/bin",
+            "UNRELATED": "keep",
+            "GIT_DIR": "/tmp/other.git",
+            "GIT_WORK_TREE": "/tmp/other-work-tree",
+            "GIT_COMMON_DIR": "/tmp/other-common-dir",
+            "GIT_INDEX_FILE": "/tmp/other-index",
+            "GIT_OBJECT_DIRECTORY": "/tmp/other-objects",
+        }
+        completed = subprocess.CompletedProcess(
+            args=["git"],
+            returncode=0,
+            stdout="a" * 40 + "\n",
+            stderr="",
+        )
+        with patch.dict(os.environ, parent, clear=True), patch.object(
+            local_checks.subprocess,
+            "run",
+            return_value=completed,
+        ) as runner:
+            observed, error = local_checks._run_git_observation("rev-parse", "HEAD")
+
+        self.assertIsNone(error)
+        self.assertIs(observed, completed)
+        command = runner.call_args.args[0]
+        self.assertEqual(["git", "-C", str(local_checks.SOZA_ROOT)], command[:3])
+        environment = runner.call_args.kwargs["env"]
+        self.assertEqual("/usr/bin", environment["PATH"])
+        self.assertEqual("keep", environment["UNRELATED"])
+        self.assertFalse(any(key.startswith("GIT_") for key in environment))
 
     def test_new_environment_test_is_registered_as_focused_check(self):
         self.assertIn(
