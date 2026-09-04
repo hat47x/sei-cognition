@@ -174,6 +174,16 @@ def run_strict_probe(
         source_input = backend_bundle.expanduser().resolve(strict=True)
         source_label = "KJ Atlas verified runtime bundle"
 
+    _reject_overlap(
+        source_input,
+        source_label,
+        (("SOZA repository", SOZA_ROOT),),
+    )
+    strict_input_roots = (
+        ("SOZA repository", SOZA_ROOT),
+        (source_label, source_input),
+    )
+
     # 事前配置runtime archiveは、source/model準備やharness起動より前にpath境界を固定する。
     runtime_archives = _validate_runtime_archives(
         harness_arguments,
@@ -188,7 +198,7 @@ def run_strict_probe(
     elif prepare_model_dir is not None:
         resolved_model_dir = _new_path(prepare_model_dir, "Prepared model directory")
     if resolved_model_dir is not None:
-        _reject_overlap(resolved_model_dir, "model directory", ((source_label, source_input),))
+        _reject_overlap(resolved_model_dir, "model directory", strict_input_roots)
         for option, archive in runtime_archives.items():
             _reject_overlap(
                 archive,
@@ -197,7 +207,7 @@ def run_strict_probe(
             )
 
     evidence_dir = _new_path(evidence_dir, "Evidence directory")
-    evidence_roots: list[tuple[str, Path]] = [(source_label, source_input)]
+    evidence_roots: list[tuple[str, Path]] = list(strict_input_roots)
     if resolved_model_dir is not None:
         evidence_roots.append(("model directory", resolved_model_dir))
     _reject_overlap(evidence_dir, "Evidence directory", tuple(evidence_roots))
