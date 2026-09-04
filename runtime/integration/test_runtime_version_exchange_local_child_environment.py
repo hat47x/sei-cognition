@@ -138,6 +138,50 @@ class RuntimeVersionExchangeLocalChildEnvironmentTest(unittest.TestCase):
         self.assertEqual(root / "evidence-work", default_work)
         self.assertEqual(root / "custom-work", explicit)
 
+    def test_verified_runner_output_paths_cannot_modify_model_input(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            model = root / "model"
+            model.mkdir()
+            with self.assertRaisesRegex(ValueError, "Evidence directory.*model directory"):
+                verified_runner._protect_runner_output_paths(
+                    evidence_dir=model / "evidence",
+                    work_dir=root / "work",
+                    verification_output=root / "verification.json",
+                    kj_atlas_dir=None,
+                    kj_atlas_backend_bundle=root / "bundle",
+                    model_dir=model,
+                    prepare_model_dir=None,
+                )
+
+    def test_verified_runner_output_paths_cannot_overlap_each_other(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            evidence = root / "evidence"
+            with self.assertRaisesRegex(ValueError, "runner出力pathを相互に重ねられません"):
+                verified_runner._protect_runner_output_paths(
+                    evidence_dir=evidence,
+                    work_dir=evidence / "work",
+                    verification_output=root / "verification.json",
+                    kj_atlas_dir=None,
+                    kj_atlas_backend_bundle=root / "bundle",
+                    model_dir=None,
+                    prepare_model_dir=None,
+                )
+
+    def test_verified_runner_safe_sibling_outputs_are_accepted(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            verified_runner._protect_runner_output_paths(
+                evidence_dir=root / "evidence",
+                work_dir=root / "work",
+                verification_output=root / "verification.json",
+                kj_atlas_dir=None,
+                kj_atlas_backend_bundle=root / "bundle",
+                model_dir=root / "model",
+                prepare_model_dir=root / "prepared-model",
+            )
+
     def test_verified_preflight_receives_sanitized_environment(self):
         completed = subprocess.CompletedProcess(
             args=["preflight"],
@@ -166,7 +210,7 @@ class RuntimeVersionExchangeLocalChildEnvironmentTest(unittest.TestCase):
         self.assertEqual("1", environment["PYTHONDONTWRITEBYTECODE"])
         self.assertEqual("1", environment["PYTHONNOUSERSITE"])
 
-    def test_verified_runner_combined_log_uses_explicit_evidence_parent(self):
+    def test_verified_runner_combined_log_uses_explicit_safe_parent(self):
         with tempfile.TemporaryDirectory() as temporary:
             log_dir = Path(temporary)
             parent = {
