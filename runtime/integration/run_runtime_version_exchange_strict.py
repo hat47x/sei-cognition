@@ -13,6 +13,7 @@ from export_kj_atlas_runtime_source import export_runtime_bundle
 from prepare_runtime_version_exchange_archives import load_manifest as load_artifact_manifest
 from prepare_runtime_version_exchange_archives import verify_archive
 from prepare_runtime_version_exchange_model_store import prepare_model_store
+from runtime_path_safety import reject_symlink_path_or_ancestors
 from verify_kj_atlas_runtime_source import verify_runtime_bundle
 from verify_runtime_version_exchange_model_store import verify_model_store
 
@@ -101,13 +102,7 @@ def _new_path(path: Path, label: str) -> Path:
     """新規出力pathを、symlink解決前の要求pathから検証する。"""
 
     requested = path.expanduser()
-    if requested.is_symlink():
-        raise ValueError(f"{label}にsymlinkは利用できません: {requested}")
-    if requested.parent.is_symlink():
-        raise ValueError(
-            f"{label}のparentにsymlinkは利用できません: {requested.parent}"
-        )
-
+    reject_symlink_path_or_ancestors(requested, label)
     resolved = requested.resolve(strict=False)
     if resolved.exists():
         raise ValueError(f"{label}は新しいpathを指定してください: {resolved}")
@@ -115,15 +110,10 @@ def _new_path(path: Path, label: str) -> Path:
 
 
 def _existing_directory(path: Path, label: str) -> Path:
-    """既存directory inputのroot symlinkを、resolve前に拒否する。"""
+    """既存directory inputを、symlink解決前の要求pathから検証する。"""
 
     requested = path.expanduser()
-    if requested.is_symlink():
-        raise ValueError(f"{label}にsymlinkは利用できません: {requested}")
-    if requested.parent.is_symlink():
-        raise ValueError(
-            f"{label}のparentにsymlinkは利用できません: {requested.parent}"
-        )
+    reject_symlink_path_or_ancestors(requested, label)
     try:
         resolved = requested.resolve(strict=True)
     except FileNotFoundError as exc:
@@ -177,8 +167,7 @@ def _validate_runtime_archives(
     validated: dict[str, Path] = {}
     for option, requested in _forwarded_runtime_archives(arguments).items():
         expanded = requested.expanduser()
-        if expanded.is_symlink():
-            raise ValueError(f"{option}にsymlinkは利用できません: {expanded}")
+        reject_symlink_path_or_ancestors(expanded, option)
         try:
             resolved = expanded.resolve(strict=True)
         except FileNotFoundError as exc:
@@ -276,11 +265,14 @@ def run_strict_probe(
         raise ValueError("--model-dirと--prepare-model-dirは同時に指定できません")
 
     if checkout_dir is not None:
-        source_input = checkout_dir.expanduser().resolve(strict=True)
+        source_input = _existing_directory(checkout_dir, "KJ Atlas checkout")
         source_label = "KJ Atlas checkout"
     else:
         assert backend_bundle is not None
-        source_input = backend_bundle.expanduser().resolve(strict=True)
+        source_input = _existing_directory(
+            backend_bundle,
+            "KJ Atlas verified runtime bundle",
+        )
         source_label = "KJ Atlas verified runtime bundle"
 
     _reject_overlap(
