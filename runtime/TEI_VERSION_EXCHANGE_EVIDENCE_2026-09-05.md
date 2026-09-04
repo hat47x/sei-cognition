@@ -175,7 +175,39 @@ workflow run failure before job steps
 
 これを正式なTEI distribution contractとは扱いません。Release asset、署名、更新channel、retention、credential lifecycleは別の未確定領域です。
 
-## 7. 現在のEvidence状態
+## 7. bootstrap/final-source調査で確認した境界
+
+GitHub-hosted workflowとは別のrevision B取得経路として、TEI repositoryに残る`bootstrap/final-source/*`を調査しました。
+
+2026-09-05のcurrent TEI main `c1451327557a2b84a8748a225d0ed4f173602127`では、`bootstrap/final-source`に`0000`から`0061`まで62個のchunkが存在します。`.github/workflows/normalize-source.yml`には、それらを連結してBase64 decodeし、XZ archiveへ戻す手順と固定SHA-256が残っています。
+
+```text
+bootstrap/final-source/0000 ... 0061
+  → concatenate
+  → Base64 decode
+  → tei-source.tar.xz
+
+fixed SHA-256
+  6e0d22efaa4896c4fc44adf1c543d8950abfa910e2a6a0306ec84b3655acc801
+```
+
+ただし、このworkflow自身の名称は`Normalize TEI M0.22.1 source`であり、archiveを展開する処理は`git checkout -B normalize origin/main`の後に行われます。したがって、このpayloadはcurrent Git revisionの完全なsource archiveではなく、M0.22.1 source normalizationに使う固定payloadとして扱うのが妥当です。
+
+このため、payloadがrevision Bを含むtree上に存在することだけから、payload bytesをrevision B source bytesへ同一視しません。
+
+```text
+bootstrap payload digest verified
+  != payload proven identical to Git revision B source
+  != revision B CLI Executable Evidence
+```
+
+また、revision A `48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67`からrevision B `1a7028d444fcae60a1c4f2f2d247456f4c7c35be`まではGitHub compare上で1748 commits aheadでした。多数の追加・変更ファイルがあるため、revision A artifactやM0.22.1 normalization payloadへ小さな差分だけを適用してBを再構成する前提も採用しません。
+
+current TEI mainは調査中に`c1451327557a2b84a8748a225d0ed4f173602127`まで進みましたが、ISSUE-000072のrevision B identityは既に固定した`1a7028d444fcae60a1c4f2f2d247456f4c7c35be`から無言で差し替えません。current mainの追随は、必要なら別revision Cとして明示的に扱います。
+
+今回利用可能だったDesktop実行環境はオフラインで、そこからprivate repositoryをcloneする経路も成立しませんでした。この取得failureもTEI product incompatibilityへ読み替えません。
+
+## 8. 現在のEvidence状態
 
 ```text
 revision A fixed source / actual CLI
@@ -202,6 +234,9 @@ revision B actual CLI build / execution
 revision B Provider Plan
   = Not Yet Observed
 
+bootstrap M0.22.1 payload
+  = reconstruction method and fixed digest observed; not revision B Evidence
+
 A/B SOZA Adapter compatibility comparison
   = Not Yet Verified
 
@@ -212,7 +247,7 @@ credential lifecycle / Operational portability
   = Not Yet Verified
 ```
 
-## 8. 次の成立条件
+## 9. 次の成立条件
 
 次にEvidence強度が上がるのは、revision Bについて実際のEvidence bundleを取得できた時です。
 
@@ -222,10 +257,10 @@ A/BでProvider Plan bytesやbinary digestが異なっても、それ自体をfai
 
 新しいStable RequirementやUniversal TEI fieldは、actual B Evidenceを得る前に追加しません。
 
-## 9. 自然な日本語レビュー
+## 10. 自然な日本語レビュー
 
-PMS-06、ISSUE-000061 / 000065 / 000072、既存Actual TEI CLI Evidence、current `teiintegration`、TEI current main、TEI Evidence workflow、revision A artifact、今回のrevision B workflow attempt 1 / 2を照合しました。
+PMS-06、ISSUE-000061 / 000065 / 000072、既存Actual TEI CLI Evidence、current `teiintegration`、TEI current main、TEI Evidence workflow、revision A artifact、今回のrevision B workflow attempt 1 / 2、`bootstrap/final-source`、`normalize-source.yml`を照合しました。
 
-今回前進したのは、過去artifactを再取得してactual bytesを再検証できたことと、そのidentity検証をGitHub Actionsやcredentialから独立したrepository-local toolへ分離したことです。一方、revision Bのworkflowは2回ともjob step開始前に停止したため、BのCLIやProvider Planについて実行結果を推定していません。
+今回前進したのは、過去artifactを再取得してactual bytesを再検証できたこと、そのidentity検証をGitHub Actionsやcredentialから独立したrepository-local toolへ分離したこと、さらにbootstrap payloadをrevision B sourceと誤認しない境界を明示できたことです。一方、revision Bのworkflowは2回ともjob step開始前に停止し、別のactual source取得経路も現時点では成立していないため、BのCLIやProvider Planについて実行結果を推定していません。
 
 Evidenceの高さと未検証範囲を変えず、自然な日本語となることを最重要視して記録しています。
