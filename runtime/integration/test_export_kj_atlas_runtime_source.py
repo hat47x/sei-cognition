@@ -161,7 +161,7 @@ class KJAtlasRuntimeSourceExporterTest(unittest.TestCase):
             output = Path(temporary) / "bundle"
             output.mkdir()
 
-            with self.assertRaisesRegex(ValueError, "already exists"):
+            with self.assertRaisesRegex(ValueError, "新規path"):
                 EXPORTER.export_runtime_bundle(root, output, identity)
 
     def test_output_inside_repository_is_rejected(self):
@@ -170,8 +170,40 @@ class KJAtlasRuntimeSourceExporterTest(unittest.TestCase):
             root.mkdir()
             _backend, identity = self.init_repository(root)
 
-            with self.assertRaisesRegex(ValueError, "must not be inside"):
+            with self.assertRaisesRegex(ValueError, "repository配下"):
                 EXPORTER.export_runtime_bundle(root, root / "bundle", identity)
+
+    def test_output_directory_symlink_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            root = base / "repo"
+            root.mkdir()
+            _backend, identity = self.init_repository(root)
+            output = base / "bundle"
+            try:
+                output.symlink_to(base / "missing-bundle-target")
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            with self.assertRaisesRegex(ValueError, "bundle出力.*symlink"):
+                EXPORTER.export_runtime_bundle(root, output, identity)
+
+    def test_output_directory_with_symlink_parent_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            root = base / "repo"
+            root.mkdir()
+            _backend, identity = self.init_repository(root)
+            actual_parent = base / "actual-output-parent"
+            actual_parent.mkdir()
+            link_parent = base / "output-parent-link"
+            try:
+                link_parent.symlink_to(actual_parent, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            with self.assertRaisesRegex(ValueError, "bundle出力のparent.*symlink"):
+                EXPORTER.export_runtime_bundle(root, link_parent / "bundle", identity)
 
     def test_identity_output_inside_repository_is_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -180,7 +212,7 @@ class KJAtlasRuntimeSourceExporterTest(unittest.TestCase):
             checkout.mkdir()
             bundle = base / "bundle"
 
-            with self.assertRaisesRegex(ValueError, "separated from source inputs"):
+            with self.assertRaisesRegex(ValueError, "source input"):
                 EXPORTER._prepare_identity_output_path(
                     checkout / "identity.json",
                     checkout_dir=checkout,
@@ -194,7 +226,7 @@ class KJAtlasRuntimeSourceExporterTest(unittest.TestCase):
             checkout.mkdir()
             bundle = base / "bundle"
 
-            with self.assertRaisesRegex(ValueError, "separated from source inputs"):
+            with self.assertRaisesRegex(ValueError, "source input"):
                 EXPORTER._prepare_identity_output_path(
                     bundle / "identity.json",
                     checkout_dir=checkout,
@@ -210,9 +242,49 @@ class KJAtlasRuntimeSourceExporterTest(unittest.TestCase):
             identity_output = base / "identity.json"
             identity_output.write_text("existing\n", encoding="utf-8")
 
-            with self.assertRaisesRegex(ValueError, "already exists"):
+            with self.assertRaisesRegex(ValueError, "新規path"):
                 EXPORTER._prepare_identity_output_path(
                     identity_output,
+                    checkout_dir=checkout,
+                    output_dir=bundle,
+                )
+
+    def test_identity_output_symlink_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            checkout = base / "repo"
+            checkout.mkdir()
+            bundle = base / "bundle"
+            identity_output = base / "identity.json"
+            try:
+                identity_output.symlink_to(base / "missing-identity-target.json")
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            with self.assertRaisesRegex(ValueError, "identity output.*symlink"):
+                EXPORTER._prepare_identity_output_path(
+                    identity_output,
+                    checkout_dir=checkout,
+                    output_dir=bundle,
+                )
+
+    def test_identity_output_with_symlink_parent_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            checkout = base / "repo"
+            checkout.mkdir()
+            bundle = base / "bundle"
+            actual_parent = base / "actual-identity-parent"
+            actual_parent.mkdir()
+            link_parent = base / "identity-parent-link"
+            try:
+                link_parent.symlink_to(actual_parent, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            with self.assertRaisesRegex(ValueError, "identity outputのparent.*symlink"):
+                EXPORTER._prepare_identity_output_path(
+                    link_parent / "identity.json",
                     checkout_dir=checkout,
                     output_dir=bundle,
                 )
