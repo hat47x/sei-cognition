@@ -38,6 +38,8 @@ class TEIExecutionSourceIdentityVerificationTest(unittest.TestCase):
             result = subject.verify_repository(repo, expected_objects=objects, expected_head=head)
         self.assertEqual("verified", result["result"])
         self.assertTrue(result["worktreeCleanWithinBoundary"])
+        self.assertEqual(head, result["expectedHead"])
+        self.assertTrue(result["expectedHeadMatched"])
         self.assertEqual("not_evaluated", result["qualityJudgement"])
 
     def test_object_identity_drift_is_rejected(self):

@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+import tarfile
 import tempfile
 import unittest
 from pathlib import Path
@@ -11,12 +12,18 @@ import verify_tei_execution_source_identity as source_identity
 
 
 class TEIRevisionBPrepositionedRunnerTest(unittest.TestCase):
-    def make_source(self, root: Path) -> Path:
-        repo = root / "tei"
+    def make_source(self, root: Path, name: str, fixture: str) -> Path:
+        repo = root / name
         (repo / "reference/workspace/.tei").mkdir(parents=True)
-        (repo / "reference/order_rollout.durable-run.m0.21.start.json").write_text("{}\n", encoding="utf-8")
-        (repo / "reference/workspace/.tei/plugin-lock.json").write_text("{}\n", encoding="utf-8")
-        (repo / "reference/workspace/input.txt").write_text("fixture\n", encoding="utf-8")
+        (repo / "reference/order_rollout.durable-run.m0.21.start.json").write_text(
+            "{}\n", encoding="utf-8"
+        )
+        (repo / "reference/workspace/.tei/plugin-lock.json").write_text(
+            "{}\n", encoding="utf-8"
+        )
+        (repo / "reference/workspace/input.txt").write_text(
+            fixture + "\n", encoding="utf-8"
+        )
         return repo
 
     def fake_run(self, argv, *, cwd, env):
@@ -26,8 +33,11 @@ class TEIRevisionBPrepositionedRunnerTest(unittest.TestCase):
             output.chmod(0o755)
             return subprocess.CompletedProcess(argv, 0, "", "")
         if argv == ["go", "version"]:
-            return subprocess.CompletedProcess(argv, 0, "go version go1.23.2 linux/amd64\n", "")
+            return subprocess.CompletedProcess(
+                argv, 0, "go version go1.23.2 linux/amd64\n", ""
+            )
         if len(argv) > 1 and argv[1] == "deployment-provider-plan":
+            self.provider_argv = argv
             return subprocess.CompletedProcess(
                 argv,
                 0,
@@ -36,42 +46,121 @@ class TEIRevisionBPrepositionedRunnerTest(unittest.TestCase):
             )
         raise AssertionError(argv)
 
-    @mock.patch.object(subject, "_ensure_linux_amd64")
-    @mock.patch.object(subject.source_identity, "verify_repository")
-    @mock.patch.object(subject, "_run")
-    def test_exact_b_checkout_produces_verified_bundle(self, run, verify_source, ensure_platform):
-        run.side_effect = self.fake_run
-        verify_source.return_value = {
-            "result": "verified",
-            "head": source_identity.REVISION_B,
-        }
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            repo = self.make_source(root)
-            output = root / "out.tar.gz"
-            result = subject.produce_bundle(repo, output)
-            self.assertTrue(output.is_file())
-        self.assertEqual("bundle_produced", result["result"])
-        self.assertEqual(source_identity.REVISION_B, result["bundle"]["observation"]["source_commit"])
-        verify_source.assert_called_once_with(repo.resolve(), expected_head=source_identity.REVISION_B)
+    def verified_observations(self):
+        return [
+            {
+                "result": "verified",
+                "head": source_identity.REVISION_B,
+            },
+            {
+                "result": "verified",
+                "head": source_identity.REVISION_A,
+                "executionSourceObjects": source_identity.REVISION_A_REFERENCE_OBJECTS,
+            },
+        ]
 
     @mock.patch.object(subject, "_ensure_linux_amd64")
     @mock.patch.object(subject.source_identity, "verify_repository")
     @mock.patch.object(subject, "_run")
-    def test_source_identity_failure_stops_before_build(self, run, verify_source, ensure_platform):
+    def test_exact_b_checkout_uses_exact_a_reference_input(
+        self, run, verify_source, ensure_platform
+    ):
+        run.side_effect = self.fake_run
+        verify_source.side_effect = self.verified_observations()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_repo = self.make_source(root, "tei-b", "revision-b-input")
+            reference_repo = self.make_source(root, "tei-a", "revision-a-input")
+            output = root / "out.tar.gz"
+            result = subject.produce_bundle(source_repo, reference_repo, output)
+            self.assertTrue(output.is_file())
+
+            with tarfile.open(output, "r:gz") as tar:
+                fixed_input = tar.extractfile("reference/workspace/input.txt")
+                self.assertIsNotNone(fixed_input)
+                self.assertEqual(b"revision-a-input\n", fixed_input.read())
+                metadata_file = tar.extractfile("metadata.json")
+                self.assertIsNotNone(metadata_file)
+                metadata = json.load(metadata_file)
+
+        self.assertEqual("bundle_produced", result["result"])
+        self.assertEqual(
+            source_identity.REVISION_B,
+            result["bundle"]["observation"]["source_commit"],
+        )
+        self.assertEqual(
+            source_identity.REVISION_A,
+            result["referenceInput"]["head"],
+        )
+        self.assertEqual(
+            source_identity.REVISION_A,
+            metadata["reference_input_source_commit"],
+        )
+        self.assertEqual(
+            source_identity.REVISION_A_REFERENCE_OBJECTS[subject.FIXED_WORKSPACE],
+            metadata["reference_workspace_tree"],
+        )
+        self.assertIn(str(reference_repo / subject.FIXED_WORKSPACE), self.provider_argv)
+        self.assertNotIn(str(source_repo / subject.FIXED_WORKSPACE), self.provider_argv)
+        self.assertEqual(
+            [
+                mock.call(
+                    source_repo.resolve(),
+                    expected_head=source_identity.REVISION_B,
+                ),
+                mock.call(
+                    reference_repo.resolve(),
+                    expected_objects=source_identity.REVISION_A_REFERENCE_OBJECTS,
+                    expected_head=source_identity.REVISION_A,
+                ),
+            ],
+            verify_source.call_args_list,
+        )
+
+    @mock.patch.object(subject, "_ensure_linux_amd64")
+    @mock.patch.object(subject.source_identity, "verify_repository")
+    @mock.patch.object(subject, "_run")
+    def test_source_identity_failure_stops_before_build(
+        self, run, verify_source, ensure_platform
+    ):
         verify_source.side_effect = ValueError("HEADが期待値と一致しません")
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            repo = self.make_source(root)
+            source_repo = self.make_source(root, "tei-b", "revision-b-input")
+            reference_repo = self.make_source(root, "tei-a", "revision-a-input")
             with self.assertRaisesRegex(ValueError, "HEADが期待値"):
-                subject.produce_bundle(repo, root / "out.tar.gz")
+                subject.produce_bundle(
+                    source_repo, reference_repo, root / "out.tar.gz"
+                )
         run.assert_not_called()
 
     @mock.patch.object(subject, "_ensure_linux_amd64")
     @mock.patch.object(subject.source_identity, "verify_repository")
     @mock.patch.object(subject, "_run")
-    def test_invalid_provider_plan_leaves_no_final_archive(self, run, verify_source, ensure_platform):
-        verify_source.return_value = {"result": "verified", "head": source_identity.REVISION_B}
+    def test_reference_input_identity_failure_stops_before_build(
+        self, run, verify_source, ensure_platform
+    ):
+        verify_source.side_effect = [
+            {"result": "verified", "head": source_identity.REVISION_B},
+            ValueError("Git object identityが期待値と一致しません"),
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_repo = self.make_source(root, "tei-b", "revision-b-input")
+            reference_repo = self.make_source(root, "tei-a", "changed-input")
+            with self.assertRaisesRegex(ValueError, "Git object identity"):
+                subject.produce_bundle(
+                    source_repo, reference_repo, root / "out.tar.gz"
+                )
+        run.assert_not_called()
+
+    @mock.patch.object(subject, "_ensure_linux_amd64")
+    @mock.patch.object(subject.source_identity, "verify_repository")
+    @mock.patch.object(subject, "_run")
+    def test_invalid_provider_plan_leaves_no_final_archive(
+        self, run, verify_source, ensure_platform
+    ):
+        verify_source.side_effect = self.verified_observations()
 
         def invalid_provider(argv, *, cwd, env):
             result = self.fake_run(argv, cwd=cwd, env=env)
@@ -82,10 +171,11 @@ class TEIRevisionBPrepositionedRunnerTest(unittest.TestCase):
         run.side_effect = invalid_provider
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            repo = self.make_source(root)
+            source_repo = self.make_source(root, "tei-b", "revision-b-input")
+            reference_repo = self.make_source(root, "tei-a", "revision-a-input")
             output = root / "out.tar.gz"
             with self.assertRaisesRegex(ValueError, "unknown top-level field"):
-                subject.produce_bundle(repo, output)
+                subject.produce_bundle(source_repo, reference_repo, output)
             self.assertFalse(output.exists())
 
     def test_controlled_go_env_disables_workspace_and_user_goflags(self):
