@@ -113,15 +113,19 @@ official Release metadata match
 
 ## 現作業環境での観測
 
-2026-09-05の現作業環境ではLinux / amd64、Python、Go、Git、zstdと約30GBの空き容量を確認できています。一方、この実行containerからはactual実証に必要な約2.84GBの固定runtime archiveと固定model storeを通常の外部download経路で配置できませんでした。
+2026-09-05、ChatGPT側の実行containerではLinux / amd64、Python、Go、Git、zstdと約30GBの空き容量を確認できています。一方、このcontainerからはactual実証に必要な約2.84GBの固定runtime archiveと固定model storeを通常の外部download経路で配置できませんでした。
 
-GitHub connectorから公式Release metadataは読めますが、そのことはbinary bytesが実行containerへ配置されたことを意味しません。過去のrelevant GitHub Actions Runにも再利用できるworkflow artifactは残っていません。
+同日、Remote Desktop Commander経由でユーザー管理端末`HAT47X`を確認し、WSL2の`Ubuntu-22.04`がLinux / x86_64で稼働していること、root filesystemに約884GBの空き容量があること、GitHubへHTTP 200で外部到達できることを実測しました。`git`、`python3`、`curl`、`tar`、`sha256sum`、`mktemp`、`cp`はWSL内で確認済みです。`go`と`zstd`はWSL内ではまだ確認できていないため、actual実行前にpreflight要件として確認またはuser-local配置が必要です。
 
-これは現作業環境の取得境界であり、SOZAのProduct failureやruntime交換失敗とは扱いません。
+このWSL2環境により、固定artifactを取得してactual A/Bを実行できる具体的なLinux / amd64候補が確認できました。ただし環境確認後にRemote Desktop Commander接続が切断され、固定artifactの取得、固定model storeの準備、preflight、actual Ollama A/B起動にはまだ進んでいません。
+
+GitHub connectorから公式Release metadataを読めることや、WSL2実行候補の存在を確認したことは、binary bytesが配置されたことやactual runtime交換Evidenceが得られたことを意味しません。過去のrelevant GitHub Actions Runにも再利用できるworkflow artifactは残っていません。
+
+現在の未実行理由は、repository側の実装不足ではなく、actual実行候補へのremote接続が継続していないという運用上の状態です。これをSOZAのProduct failureやruntime交換失敗とは扱いません。
 
 ## 次にEvidence強度が上がる条件
 
-次の前進は追加のguard実装ではなく、固定artifactを取得可能なLinux / amd64環境で上記標準経路をactualに一度通すことです。
+次の前進は追加のguard実装ではなく、上記WSL2等の固定artifactを取得可能なLinux / amd64環境で標準経路をactualに一度通すことです。
 
 Evidence + Provenance verifierが`ready-to-review`へ到達した後も、それだけでISSUE-000070をResolvedにはしません。Application AのReference / Provenance / output不変性、same logical / different Exact Binding、portable historical reconstruction、no semantic promotion、Requirement / Contract再照合、自然な日本語最終監査まで確認します。
 
