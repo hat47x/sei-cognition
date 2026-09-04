@@ -29,6 +29,9 @@ class RuntimeVersionExchangeLocalChildEnvironmentTest(unittest.TestCase):
             "TEMP": "/tmp/injected-temp",
             "GIT_DIR": "/tmp/injected-git-dir",
             "GIT_WORK_TREE": "/tmp/injected-work-tree",
+            "GIT_COMMON_DIR": "/tmp/injected-common-dir",
+            "GIT_INDEX_FILE": "/tmp/injected-index",
+            "GIT_OBJECT_DIRECTORY": "/tmp/injected-objects",
             "PYTHONDONTWRITEBYTECODE": "0",
             "PYTHONNOUSERSITE": "0",
         }
@@ -51,12 +54,11 @@ class RuntimeVersionExchangeLocalChildEnvironmentTest(unittest.TestCase):
             "TMPDIR",
             "TMP",
             "TEMP",
-            "GIT_DIR",
-            "GIT_WORK_TREE",
         ):
             with self.subTest(key=key):
                 self.assertNotIn(key, actual)
 
+        self.assertFalse(any(key.startswith("GIT_") for key in actual))
         self.assertEqual("1", actual["PYTHONDONTWRITEBYTECODE"])
         self.assertEqual("1", actual["PYTHONNOUSERSITE"])
 
