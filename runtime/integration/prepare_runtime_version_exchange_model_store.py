@@ -139,9 +139,15 @@ def _download_blob(
             chunk = response.read(CHUNK_SIZE)
             if not chunk:
                 break
+            next_size = size + len(chunk)
+            if next_size > expected_size:
+                raise ValueError(
+                    "model blob sizeが固定manifestを超えました: "
+                    f"received={next_size} expected={expected_size} url={url}"
+                )
             output.write(chunk)
             digest.update(chunk)
-            size += len(chunk)
+            size = next_size
     actual_sha256 = digest.hexdigest()
     if size != expected_size:
         raise ValueError(
