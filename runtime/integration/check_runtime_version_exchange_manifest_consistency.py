@@ -15,6 +15,10 @@ from verify_runtime_version_exchange_model_store import _load_fixed_model_identi
 
 INTEGRATION_DIR = Path(__file__).resolve().parent
 ARTIFACT_MANIFEST = INTEGRATION_DIR / "runtime_version_exchange_artifacts.json"
+OFFICIAL_RELEASE_SNAPSHOT = (
+    INTEGRATION_DIR / "runtime_version_exchange_official_release_snapshot.json"
+)
+RELEASE_SNAPSHOT_SCHEMA = "soza.runtime-version-exchange-official-release-snapshot/v1"
 
 
 @dataclass(frozen=True)
@@ -37,7 +41,89 @@ def _equal(checks: list[Check], check_id: str, actual: object, expected: object)
         )
 
 
-def collect_checks(manifest_path: Path = ARTIFACT_MANIFEST) -> list[Check]:
+def _load_release_snapshot(path: Path) -> dict[str, object]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if payload.get("schema") != RELEASE_SNAPSHOT_SCHEMA:
+        raise ValueError(f"official release snapshot schemaが未対応です: {payload.get('schema')!r}")
+    if payload.get("sourceRepository") != "ollama/ollama":
+        raise ValueError("official release snapshotのsourceRepositoryがollama/ollamaではありません")
+    if payload.get("sourceType") != "github-release-api":
+        raise ValueError("official release snapshotのsourceTypeがgithub-release-apiではありません")
+    archives = payload.get("archives")
+    if not isinstance(archives, dict) or set(archives) != {"a", "b"}:
+        raise ValueError("official release snapshotにはarchives.a / archives.bが必要です")
+    return payload
+
+
+def _release_snapshot_checks(
+    checks: list[Check],
+    archives: dict[str, object],
+    snapshot_path: Path,
+) -> None:
+    try:
+        snapshot = _load_release_snapshot(snapshot_path)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        checks.append(Check("release-snapshot.schema", "blocked", str(exc)))
+        return
+
+    checks.append(
+        Check(
+            "release-snapshot.schema",
+            "ok",
+            "Ollama公式GitHub Release APIの観測snapshotを読み込みました",
+        )
+    )
+    snapshot_archives = snapshot["archives"]
+    assert isinstance(snapshot_archives, dict)
+
+    for label in ("a", "b"):
+        archive = archives[label]
+        observed = snapshot_archives[label]
+        if not isinstance(archive, dict) or not isinstance(observed, dict):
+            checks.append(
+                Check(
+                    f"release-snapshot.{label}",
+                    "blocked",
+                    "manifestまたはofficial release snapshotのarchiveがobjectではありません",
+                )
+            )
+            continue
+
+        _equal(checks, f"release-snapshot.{label}.version", archive.get("version"), observed.get("version"))
+        _equal(checks, f"release-snapshot.{label}.assetName", archive.get("assetName"), observed.get("assetName"))
+        _equal(checks, f"release-snapshot.{label}.sizeBytes", archive.get("sizeBytes"), observed.get("sizeBytes"))
+        observed_digest = observed.get("digest")
+        expected_digest = (
+            f"sha256:{archive.get('sha256')}"
+            if isinstance(archive.get("sha256"), str)
+            else None
+        )
+        _equal(checks, f"release-snapshot.{label}.digest", expected_digest, observed_digest)
+        _equal(
+            checks,
+            f"release-snapshot.{label}.browserDownloadUrl",
+            archive.get("downloadUrl"),
+            observed.get("browserDownloadUrl"),
+        )
+        _equal(
+            checks,
+            f"release-snapshot.{label}.releaseTag",
+            f"v{archive.get('version')}",
+            observed.get("releaseTag"),
+        )
+        _equal(checks, f"release-snapshot.{label}.assetState", observed.get("assetState"), "uploaded")
+        _equal(
+            checks,
+            f"release-snapshot.{label}.contentType",
+            observed.get("contentType"),
+            "application/zstd",
+        )
+
+
+def collect_checks(
+    manifest_path: Path = ARTIFACT_MANIFEST,
+    release_snapshot_path: Path = OFFICIAL_RELEASE_SNAPSHOT,
+) -> list[Check]:
     checks: list[Check] = []
     try:
         payload = load_manifest(manifest_path)
@@ -84,6 +170,8 @@ def collect_checks(manifest_path: Path = ARTIFACT_MANIFEST) -> list[Check]:
         assert isinstance(archive, dict)
         _equal(checks, f"runtime-{label}.{key}", archive.get(key), expected)
 
+    _release_snapshot_checks(checks, archives, release_snapshot_path)
+
     model = payload.get("model")
     if not isinstance(model, dict):
         checks.append(Check("manifest.model", "blocked", "modelがobjectではありません"))
@@ -115,18 +203,25 @@ def collect_checks(manifest_path: Path = ARTIFACT_MANIFEST) -> list[Check]:
     return checks
 
 
-def report(manifest_path: Path = ARTIFACT_MANIFEST) -> dict[str, object]:
-    checks = collect_checks(manifest_path)
+def report(
+    manifest_path: Path = ARTIFACT_MANIFEST,
+    release_snapshot_path: Path = OFFICIAL_RELEASE_SNAPSHOT,
+) -> dict[str, object]:
+    checks = collect_checks(manifest_path, release_snapshot_path)
     blockers = [check.id for check in checks if check.status == "blocked"]
     return {
         "schema": "soza.runtime-version-exchange-manifest-consistency/v1",
         "result": "blocked" if blockers else "consistent",
         "manifest": str(manifest_path.expanduser().resolve(strict=False)),
+        "officialReleaseSnapshot": str(
+            release_snapshot_path.expanduser().resolve(strict=False)
+        ),
         "blockers": blockers,
         "checks": [asdict(check) for check in checks],
         "stopLine": (
-            "manifest consistency != artifact bytes verified "
-            "!= actual runtime A/B inference PASS != ISSUE-000070 Resolved"
+            "manifest consistency + official release metadata snapshot agreement "
+            "!= artifact bytes verified != actual runtime A/B inference PASS "
+            "!= ISSUE-000070 Resolved"
         ),
     }
 
@@ -134,15 +229,19 @@ def report(manifest_path: Path = ARTIFACT_MANIFEST) -> dict[str, object]:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "ISSUE-000070の固定artifact manifestとsource / preflight / model consumerの"
-            "固定identityが相互に一致するかを、副作用なく確認します。"
+            "ISSUE-000070の固定artifact manifestとsource / preflight / model consumer、"
+            "Ollama公式GitHub Release APIの観測snapshotが相互に一致するかを、"
+            "副作用なく確認します。"
         )
     )
     parser.add_argument("--manifest", type=Path, default=ARTIFACT_MANIFEST)
+    parser.add_argument(
+        "--official-release-snapshot", type=Path, default=OFFICIAL_RELEASE_SNAPSHOT
+    )
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
-    result = report(args.manifest)
+    result = report(args.manifest, args.official_release_snapshot)
     if args.json:
         print(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2))
     else:
