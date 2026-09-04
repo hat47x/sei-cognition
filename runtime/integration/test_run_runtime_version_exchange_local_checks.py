@@ -286,6 +286,37 @@ class RuntimeVersionExchangeLocalChecksTest(unittest.TestCase):
         self.assertFalse(payload["actualRuntimeExchangeEvidence"])
         self.assertEqual("not_evaluated", payload["qualityJudgement"])
 
+    def test_launch_error_is_recorded_as_failure_without_losing_result(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "result.json"
+            with patch.object(
+                local_checks.subprocess,
+                "run",
+                side_effect=OSError("python executable unavailable"),
+            ), patch.object(
+                local_checks,
+                "repository_observation",
+                return_value={},
+            ):
+                status = local_checks.run_checks(
+                    [Path("test_a.py")],
+                    stop_on_failure=False,
+                    result_output=output,
+                    timeout_seconds=5,
+                )
+
+            payload = json.loads(output.read_text(encoding="utf-8"))
+
+        self.assertEqual(1, status)
+        self.assertEqual("failed", payload["result"])
+        execution = payload["executed"][0]
+        self.assertEqual(local_checks.LAUNCH_ERROR_EXIT_CODE, execution["exitCode"])
+        self.assertFalse(execution["timedOut"])
+        self.assertEqual(5, execution["timeoutSeconds"])
+        self.assertIn("python executable unavailable", execution["launchError"])
+        self.assertFalse(payload["actualRuntimeExchangeEvidence"])
+        self.assertEqual("not_evaluated", payload["qualityJudgement"])
+
     def test_stop_on_failure_stops_after_timeout(self):
         with tempfile.TemporaryDirectory() as temporary:
             output = Path(temporary) / "result.json"

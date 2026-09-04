@@ -13,6 +13,7 @@ INTEGRATION_DIR = Path(__file__).resolve().parent
 SOZA_ROOT = INTEGRATION_DIR.parents[1]
 RESULT_SCHEMA = "soza.runtime-version-exchange-focused-local-check-result/v1"
 DEFAULT_TEST_TIMEOUT_SECONDS = 120
+LAUNCH_ERROR_EXIT_CODE = 127
 TIMEOUT_EXIT_CODE = 124
 
 # actual Ollama / KJ Atlas A/B実行を含めず、固定identity、準備、preflight、
@@ -263,6 +264,19 @@ def run_checks(
                 file=sys.stderr,
                 flush=True,
             )
+        except OSError as exc:
+            execution = {
+                "name": path.name,
+                "exitCode": LAUNCH_ERROR_EXIT_CODE,
+                "timedOut": False,
+                "timeoutSeconds": timeout_seconds,
+                "launchError": str(exc),
+            }
+            print(
+                f"focused checkを起動できませんでした: {path.name}: {exc}",
+                file=sys.stderr,
+                flush=True,
+            )
         executions.append(execution)
         if execution["exitCode"] != 0 and stop_on_failure:
             stopped_early = index < len(paths)
@@ -285,6 +299,8 @@ def run_checks(
                 print(
                     f"  - {item['name']}: timeout after {item['timeoutSeconds']} seconds"
                 )
+            elif item.get("launchError"):
+                print(f"  - {item['name']}: launch error: {item['launchError']}")
             else:
                 print(f"  - {item['name']}: exit {item['exitCode']}")
     print(f"- timeout per test: {timeout_seconds} seconds")
@@ -319,7 +335,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--stop-on-failure",
         action="store_true",
-        help="最初のnon-zero終了またはtimeoutで残りのcheckを実行せず停止します。",
+        help="最初のnon-zero終了、timeout、起動失敗で残りのcheckを実行せず停止します。",
     )
     parser.add_argument(
         "--timeout-seconds",
