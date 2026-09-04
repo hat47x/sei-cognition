@@ -181,6 +181,21 @@ class RuntimeVersionExchangeArchivePreparationTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "symlink"):
                 prepare.validate_output_dir(link)
 
+    def test_output_dir_with_deep_symlink_ancestor_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            actual = root / "actual"
+            (actual / "nested").mkdir(parents=True)
+            link = root / "linked-root"
+            try:
+                link.symlink_to(actual, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+            requested = link / "nested" / "runtime-archives"
+            with self.assertRaisesRegex(ValueError, "ancestorにsymlink"):
+                prepare.validate_output_dir(requested)
+            self.assertFalse((actual / "nested" / "runtime-archives").exists())
+
     def test_plan_reports_exact_compressed_total_without_network_access(self):
         manifest = prepare.load_manifest()
         with tempfile.TemporaryDirectory() as temp:
@@ -219,6 +234,27 @@ class RuntimeVersionExchangeArchivePreparationTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "symlink"):
                 prepare.verify_archive(link, len(data), hashlib.sha256(data).hexdigest())
 
+    def test_verify_archive_rejects_deep_symlink_ancestor(self):
+        data = b"fixed-runtime"
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            actual_root = root / "actual"
+            (actual_root / "nested").mkdir(parents=True)
+            archive = actual_root / "nested" / "runtime.tar.zst"
+            archive.write_bytes(data)
+            link_root = root / "linked-root"
+            try:
+                link_root.symlink_to(actual_root, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+            requested = link_root / "nested" / "runtime.tar.zst"
+            with self.assertRaisesRegex(ValueError, "ancestorにsymlink"):
+                prepare.verify_archive(
+                    requested,
+                    len(data),
+                    hashlib.sha256(data).hexdigest(),
+                )
+
     def test_existing_valid_archive_is_reused_without_opening_network(self):
         data = b"already-present"
         opened = []
@@ -256,6 +292,36 @@ class RuntimeVersionExchangeArchivePreparationTest(unittest.TestCase):
                     hashlib.sha256(data).hexdigest(),
                     opener=lambda _url: FakeResponse(data),
                 )
+
+    def test_download_rejects_deep_symlink_ancestor_before_network_access(self):
+        data = b"downloaded-runtime"
+        opened = []
+
+        def opener(_url):
+            opened.append(True)
+            return FakeResponse(data)
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            actual_root = root / "actual"
+            (actual_root / "nested").mkdir(parents=True)
+            link_root = root / "linked-root"
+            try:
+                link_root.symlink_to(actual_root, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+            target = link_root / "nested" / "runtime.tar.zst"
+            with self.assertRaisesRegex(ValueError, "ancestorにsymlink"):
+                prepare.download_archive(
+                    "https://example.invalid/runtime",
+                    target,
+                    len(data),
+                    hashlib.sha256(data).hexdigest(),
+                    opener=opener,
+                )
+            self.assertEqual([], opened)
+            self.assertFalse((actual_root / "nested" / "runtime.tar.zst").exists())
+            self.assertFalse((actual_root / "nested" / "runtime.tar.zst.part").exists())
 
     def test_download_uses_partial_file_then_atomically_promotes_verified_bytes(self):
         data = b"downloaded-runtime"
