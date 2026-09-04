@@ -1,5 +1,5 @@
 schema: soza.document-review-registry/v1
-updated: 2026-09-03
+updated: 2026-09-05
 
 purpose: >-
   ISSUE-000015で行った既存開発文書の自然な日本語監査について、current branch上の
@@ -67,8 +67,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、自然な日本語全文再ドラフトと最終意味監査を実施済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000071
-    note: ISSUE-000001〜000071をcurrent履歴として監査済み。ISSUE-000069はGitHub Actions常設時に得たtrigger選択とrunner allocation Evidenceをhistoricalに保持しつつ、PR #70でworkflow群がcurrent baselineから外れたため、未実行の全面回帰をPASSへ読み替えず「現行方針では非適用」としてResolvedへ整理した。ISSUE-000070は固定model artifactの下でOllama `0.32.13` / `0.32.14`だけを交換するactual実証をrepository-local harnessへ移し、固定KJ Atlas commit、runtime archive digest、model digest、同一Method input / prompt、historical Application不変性、portable reconstructionを同じ実行境界から検査できる状態にした。ただしcurrent harnessによるactual A / B交換は未完了のためOpenを維持する。ISSUE-000071はexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeを分離し、PR #72のactual履歴からのreview bundle再構成とPR #73の非権威的AI補助観測までを反映して評価境界をResolvedとした。ただしhuman reviewと成果品質判定は未完了のまま残している。各Issueは意味、留保、Evidence強度を変えず、自然な日本語を最重要視して再ドラフト済み。
+    coverage: ISSUE-000001..ISSUE-000072
+    note: ISSUE-000001〜000072をcurrent履歴として監査済み。ISSUE-000069はGitHub Actions常設時に得たtrigger選択とrunner allocation Evidenceをhistoricalに保持しつつ、PR #70でworkflow群がcurrent baselineから外れたため、未実行の全面回帰をPASSへ読み替えず「現行方針では非適用」としてResolvedへ整理した。ISSUE-000070は固定model artifactの下でOllama `0.32.13` / `0.32.14`だけを交換するactual実証をrepository-local harnessへ移し、固定KJ Atlas commit、runtime archive digest、model digest、同一Method input / prompt、historical Application不変性、portable reconstructionを同じ実行境界から検査できる状態にした。ただしcurrent harnessによるactual A / B交換は未完了のためOpenを維持する。ISSUE-000071はexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeを分離し、PR #72のactual履歴からのreview bundle再構成とPR #73の非権威的AI補助観測までを反映して評価境界をResolvedとした。ただしhuman reviewと成果品質判定は未完了のまま残している。ISSUE-000072はTEI executableの取得経路、artifact identity、Provider surface compatibility、SOZA Capability Observationを分離し、revision A artifact再検証とacquisition-independent bundle verifierをcurrent Evidenceとして保持する一方、revision B actual CLI / Adapter compatibilityは未検証としてOpenを維持する。各Issueは意味、留保、Evidence強度を変えず、自然な日本語を最重要視して再ドラフト済み。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -159,6 +159,9 @@ reviewed:
   - scope: runtime/ACTUAL_TEI_CLI_EVIDENCE_2026-09-02.md
     status: revised
     note: E3b-P2の後続Evidenceとして、固定TEI sourceからactual `cmd/tei`をbuild・実行し、Evidence artifactをcurrent SOZA Adapterから別processとして起動してCapability Observationへ戻した範囲を記録した。fixed-artifact Executable Evidenceとcredential運用・任意version・Operational Evidenceを分離している。
+  - scope: runtime/TEI_VERSION_EXCHANGE_EVIDENCE_2026-09-05.md
+    status: revised
+    note: PMS-06で未検証だったTEI executable version交換の後続探索として、revision A Evidence artifactの再取得・actual bytes再検証、acquisition-independent bundle verifier、revision B source固定、GitHub-hosted workflow attempt 1 / 2のjob step開始前failureを記録した。Actions failureをTEI互換性failureへ昇格させず、B actual CLI / SOZA Adapter compatibilityを未検証として明示している。
   - scope: runtime/integration/README.md
     status: revised
     note: external Cognitive Method / model runtimeのactual integration probeをrepository-localに実行する入口として監査済み。GitHub Actionsや特定runnerを成立条件にせず、ISSUE-000070の固定runtime / model identity、Evidence保存、actual runtime交換と成果品質・E4の停止線を自然な日本語で説明している。
