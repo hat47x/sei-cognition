@@ -18,6 +18,7 @@ RUNTIME_SHA256_B="c620917a71e146ab3a7f893084f066069c4c65d144ef8379a91c3cbe8b27de
 
 KJ_ATLAS_BACKEND_BUNDLE="${SOZA_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_BUNDLE:-}"
 KJ_ATLAS_SOURCE_VERIFIER="${SOZA_ROOT}/runtime/integration/verify_kj_atlas_runtime_source.py"
+RUNTIME_ARCHIVE_PREPARER="${SOZA_ROOT}/runtime/integration/prepare_runtime_version_exchange_archives.py"
 WORK_DIR="${SOZA_RUNTIME_EXCHANGE_WORK_DIR:-}"
 EVIDENCE_DIR="${SOZA_RUNTIME_EXCHANGE_EVIDENCE_DIR:-}"
 PREPOSITIONED_RUNTIME_ARCHIVE_A="${SOZA_RUNTIME_EXCHANGE_PREPOSITIONED_ARCHIVE_A:-}"
@@ -49,9 +50,10 @@ KJ Atlas checkoutを起点にする場合は、run_runtime_version_exchange_stri
 固定commit objectからverified runtime bundleへ変換してから本harnessへ委譲してください。
 work / Evidence / external model directoryをSOZAまたはKJ Atlas source配下には置けません。
 
-runtime archiveを指定しない場合だけOllama公式GitHub Releaseから取得します。事前配置した
-archiveも同じ固定SHA-256を必ず検証します。--model-dirを指定した場合は、そのdirectoryに
-固定model digestが既に存在するときだけ利用し、不足時に勝手なpullや更新は行いません。
+runtime archiveを指定しない場合だけ、repository-localのarchive preparation helperを通して
+Ollama公式GitHub Releaseから取得します。事前配置したarchiveも同じ固定SHA-256を必ず
+検証します。--model-dirを指定した場合は、そのdirectoryに固定model digestが既に存在するとき
+だけ利用し、不足時に勝手なpullや更新は行いません。
 
 このscriptはGitHub Actions、runner ID、workflow run IDを実験成立条件にしません。
 USAGE
@@ -294,8 +296,9 @@ REQUEST_FILE="${WORK_DIR}/kj-atlas-runtime-exchange-request.json"
 IDENTITY_FILE="${WORK_DIR}/runtime-exchange-identity.json"
 RUNTIME_ROOT_A="${WORK_DIR}/ollama-runtime-a"
 RUNTIME_ROOT_B="${WORK_DIR}/ollama-runtime-b"
-RUNTIME_ARCHIVE_A="${PREPOSITIONED_RUNTIME_ARCHIVE_A:-${WORK_DIR}/ollama-a.tar.zst}"
-RUNTIME_ARCHIVE_B="${PREPOSITIONED_RUNTIME_ARCHIVE_B:-${WORK_DIR}/ollama-b.tar.zst}"
+RUNTIME_ARCHIVE_PREPARATION_DIR="${WORK_DIR}/runtime-archives"
+RUNTIME_ARCHIVE_A="${PREPOSITIONED_RUNTIME_ARCHIVE_A:-}"
+RUNTIME_ARCHIVE_B="${PREPOSITIONED_RUNTIME_ARCHIVE_B:-}"
 RUNTIME_ACQUISITION_A="downloaded"
 RUNTIME_ACQUISITION_B="downloaded"
 [[ -n "${PREPOSITIONED_RUNTIME_ARCHIVE_A}" ]] && RUNTIME_ACQUISITION_A="prepositioned"
@@ -318,6 +321,34 @@ cleanup_processes() {
   OLLAMA_PID=""
 }
 
+prepare_downloaded_runtime_archive() {
+  local label="$1"
+  local result_file="${WORK_DIR}/runtime-exchange-${label}-archive-preparation.json"
+
+  python3 "${RUNTIME_ARCHIVE_PREPARER}" \
+    --output-dir "${RUNTIME_ARCHIVE_PREPARATION_DIR}" \
+    --runtime "${label}" \
+    --json >"${result_file}"
+
+  RESULT_FILE="${result_file}" LABEL="${label}" python3 - <<'PY'
+import json
+import os
+from pathlib import Path
+
+payload = json.loads(Path(os.environ["RESULT_FILE"]).read_text(encoding="utf-8"))
+archives = payload.get("archives")
+if payload.get("result") != "ok" or not isinstance(archives, list) or len(archives) != 1:
+    raise SystemExit(f"runtime archive preparation did not return one successful artifact: {payload!r}")
+archive = archives[0]
+if archive.get("label") != os.environ["LABEL"] or archive.get("status") != "ok":
+    raise SystemExit(f"runtime archive preparation result is inconsistent: {archive!r}")
+path = archive.get("path")
+if not isinstance(path, str) or not path:
+    raise SystemExit(f"runtime archive preparation did not return a path: {archive!r}")
+print(path)
+PY
+}
+
 preserve_evidence() {
   local preserve_status=0
   mkdir -p "${EVIDENCE_DIR}" || return 1
@@ -326,6 +357,8 @@ preserve_evidence() {
     "${IDENTITY_FILE}" \
     "${KJ_ATLAS_SOURCE_IDENTITY_FILE}" \
     "${REQUEST_FILE}" \
+    "${WORK_DIR}/runtime-exchange-a-archive-preparation.json" \
+    "${WORK_DIR}/runtime-exchange-b-archive-preparation.json" \
     "${WORK_DIR}/runtime-exchange-a-version.txt" \
     "${WORK_DIR}/runtime-exchange-b-version.txt" \
     "${WORK_DIR}/runtime-exchange-a-archive-sha256.txt" \
@@ -379,6 +412,13 @@ finish() {
   exit "${status}"
 }
 trap finish EXIT
+
+if [[ "${RUNTIME_ACQUISITION_A}" == "downloaded" ]]; then
+  RUNTIME_ARCHIVE_A="$(prepare_downloaded_runtime_archive a)"
+fi
+if [[ "${RUNTIME_ACQUISITION_B}" == "downloaded" ]]; then
+  RUNTIME_ARCHIVE_B="$(prepare_downloaded_runtime_archive b)"
+fi
 
 SOZA_COMMIT="${SOZA_COMMIT}" \
 KJ_ATLAS_COMMIT="${ACTUAL_KJ_COMMIT}" \
@@ -445,19 +485,16 @@ python3 -m venv "${VENV_DIR}"
 
 acquire_runtime() {
   local label="$1"
-  local version="$2"
-  local expected_sha="$3"
-  local archive="$4"
-  local root="$5"
-  local acquisition="$6"
+  local expected_sha="$2"
+  local archive="$3"
+  local root="$4"
   local digest_file="${WORK_DIR}/runtime-exchange-${label}-archive-sha256.txt"
 
   mkdir -p "${root}"
-  if [[ "${acquisition}" == "downloaded" ]]; then
-    curl --fail --silent --show-error --location \
-      "https://github.com/ollama/ollama/releases/download/v${version}/ollama-linux-amd64.tar.zst" \
-      --output "${archive}"
-  fi
+  [[ -n "${archive}" ]] || {
+    echo "runtime ${label} archive path is empty after preparation" >&2
+    return 1
+  }
 
   local actual_sha remainder
   read -r actual_sha remainder < <(sha256sum "${archive}")
@@ -471,8 +508,8 @@ acquire_runtime() {
   test -x "${root}/bin/ollama"
 }
 
-acquire_runtime a "${RUNTIME_VERSION_A}" "${RUNTIME_SHA256_A}" "${RUNTIME_ARCHIVE_A}" "${RUNTIME_ROOT_A}" "${RUNTIME_ACQUISITION_A}"
-acquire_runtime b "${RUNTIME_VERSION_B}" "${RUNTIME_SHA256_B}" "${RUNTIME_ARCHIVE_B}" "${RUNTIME_ROOT_B}" "${RUNTIME_ACQUISITION_B}"
+acquire_runtime a "${RUNTIME_SHA256_A}" "${RUNTIME_ARCHIVE_A}" "${RUNTIME_ROOT_A}"
+acquire_runtime b "${RUNTIME_SHA256_B}" "${RUNTIME_ARCHIVE_B}" "${RUNTIME_ROOT_B}"
 
 cat >"${REQUEST_FILE}" <<'JSON'
 {
