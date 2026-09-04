@@ -33,6 +33,7 @@ CHECK_FILES = (
     "test_run_runtime_version_exchange.py",
     "test_run_runtime_version_exchange_with_verification.py",
     "test_run_runtime_version_exchange_local_checks.py",
+    "test_runtime_version_exchange_local_child_environment.py",
     "test_runtime_version_exchange_blocked_preflight_evidence.py",
     "test_verify_runtime_version_exchange_evidence.py",
     "test_verify_runtime_version_exchange_provenance.py",
@@ -54,7 +55,7 @@ STOP_LINE = (
 
 
 def sanitized_environment() -> dict[str, str]:
-    """親shellのlive probe設定をfocused testへ暗黙継承させない。"""
+    """親shellのlive probe設定やPython/Git解釈をfocused testへ暗黙継承させない。"""
 
     environment = os.environ.copy()
     for key in tuple(environment):
@@ -62,8 +63,26 @@ def sanitized_environment() -> dict[str, str]:
             "SOZA_E3B_RUNTIME_EXCHANGE_"
         ):
             environment.pop(key, None)
-    environment.pop("OLLAMA_HOST", None)
-    environment.pop("OLLAMA_MODELS", None)
+
+    for key in (
+        "OLLAMA_HOST",
+        "OLLAMA_MODELS",
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "PYTHONSTARTUP",
+        "PYTHONUSERBASE",
+        "TMPDIR",
+        "TMP",
+        "TEMP",
+        "GIT_DIR",
+        "GIT_WORK_TREE",
+    ):
+        environment.pop(key, None)
+
+    # focused testのimport先をsys.executable + repository-local cwdへ戻し、
+    # bytecode cacheやuser siteによるsource tree / user環境への副作用を避ける。
+    environment["PYTHONDONTWRITEBYTECODE"] = "1"
+    environment["PYTHONNOUSERSITE"] = "1"
     return environment
 
 
