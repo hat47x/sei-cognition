@@ -1,6 +1,6 @@
 # Runtime Version Exchange — Actual A/B Execution Handoff
 
-更新日: 2026-09-04  
+更新日: 2026-09-05  
 対象: ISSUE-000070
 
 ## 目的
@@ -8,6 +8,8 @@
 この文書は、Ollama `0.32.13` / `0.32.14` のactual runtime交換を、取得工程と実行工程を分離して行うための最短handoffです。
 
 ここで準備するのは固定artifactだけです。準備成功をactual inference、historical reconstruction、成果品質、E4 Operational portabilityの成立へ読み替えません。
+
+現在どこまで実装され、どこからが未検証かを先に確認する場合は、`RUNTIME_VERSION_EXCHANGE_CURRENT_STATE.md`を参照します。意味上のGoalとResolution Criteriaは`plan/issue/ISSUE-000070-verify-runtime-version-exchange-history.md`を正とします。
 
 ## 1. 前提
 
