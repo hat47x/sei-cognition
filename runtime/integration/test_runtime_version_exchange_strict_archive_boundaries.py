@@ -286,6 +286,55 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
             self.assertEqual(str(expected_work.resolve()), child_env["TMPDIR"])
             self.assertNotEqual(str(bundle.resolve()), child_env["TMPDIR"])
 
+    def test_checkout_source_bundle_is_derived_from_evidence_and_cleaned_after_run(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            checkout = root / "checkout"
+            evidence = root / "evidence"
+            expected_source_root = root / "evidence-source"
+            expected_bundle = expected_source_root / "backend"
+            checkout.mkdir()
+            observed_outputs: list[Path] = []
+
+            def fake_export(source, output):
+                observed_outputs.append(output.resolve())
+                output.mkdir(parents=True)
+                return {
+                    "schema": "soza.kj-atlas-runtime-source-export/v1",
+                    "sourceAcquisition": "git-archive-from-pinned-commit",
+                }
+
+            class Completed:
+                returncode = 0
+
+            def fake_run(command, check, env=None):
+                evidence.mkdir()
+                return Completed()
+
+            with patch.dict(os.environ, {"TMPDIR": str(checkout)}, clear=False), patch.object(
+                ENTRYPOINT,
+                "export_runtime_bundle",
+                side_effect=fake_export,
+            ), patch.object(ENTRYPOINT.subprocess, "run", side_effect=fake_run) as runner:
+                result = ENTRYPOINT.run_strict_probe(
+                    checkout_dir=checkout,
+                    backend_bundle=None,
+                    model_dir=None,
+                    evidence_dir=evidence,
+                    harness_arguments=[],
+                    work_dir=None,
+                )
+
+            self.assertEqual(0, result)
+            self.assertEqual([expected_bundle.resolve()], observed_outputs)
+            command = runner.call_args.args[0]
+            self.assertEqual(
+                str(expected_bundle.resolve()),
+                command[command.index("--kj-atlas-backend-bundle") + 1],
+            )
+            self.assertFalse(expected_source_root.exists())
+            self.assertTrue((evidence / "runtime-exchange-source-export.json").is_file())
+
 
 if __name__ == "__main__":
     unittest.main()

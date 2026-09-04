@@ -1,8 +1,10 @@
 import importlib.util
+import os
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 INTEGRATION_DIR = Path(__file__).resolve().parent
@@ -103,6 +105,33 @@ class KJAtlasRuntimeSourceExporterTest(unittest.TestCase):
 
             self.assertEqual(identity.source_commit, payload["sourceCommit"])
             self.assertTrue(payload["verification"]["verified"])
+
+    def test_export_temporary_extraction_uses_output_parent_not_parent_tmpdir(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            root = base / "repo"
+            root.mkdir()
+            _backend, identity = self.init_repository(root)
+            output = base / "safe" / "bundle"
+            unsafe_tmp = root / "unsafe-tmp"
+            unsafe_tmp.mkdir()
+            original_temporary_directory = tempfile.TemporaryDirectory
+            observed_dirs: list[Path] = []
+
+            def tracked_temporary_directory(*args, **kwargs):
+                observed_dirs.append(Path(kwargs["dir"]).resolve())
+                return original_temporary_directory(*args, **kwargs)
+
+            with patch.dict(os.environ, {"TMPDIR": str(unsafe_tmp)}, clear=False), patch.object(
+                EXPORTER.tempfile,
+                "TemporaryDirectory",
+                side_effect=tracked_temporary_directory,
+            ):
+                payload = EXPORTER.export_runtime_bundle(root, output, identity)
+
+            self.assertTrue(payload["verification"]["verified"])
+            self.assertEqual([output.parent.resolve()], observed_dirs)
+            self.assertFalse(any(unsafe_tmp in path.parents or path == unsafe_tmp for path in observed_dirs))
 
     def test_existing_output_directory_is_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:
