@@ -78,11 +78,59 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "link/device"):
                 subject._stage_bundle(archive, root / "stage")
 
+    def test_reference_identity_accepts_matching_metadata_and_staged_bytes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            archive = self.make_bundle(root)
+            paths = subject._stage_bundle(archive, root / "stage")
+            expected = {
+                subject.FIXED_WORKSPACE: subject._git_tree_sha1(paths["workspace"]),
+                subject.FIXED_RUN: subject._git_blob_sha1(paths["run"]),
+                subject.FIXED_PLUGIN_LOCK: subject._git_blob_sha1(
+                    paths["plugin_lock"]
+                ),
+            }
+            metadata = {
+                "reference_input_source_commit": subject.REVISION_A,
+                "reference_workspace_tree": expected[subject.FIXED_WORKSPACE],
+                "reference_run_blob": expected[subject.FIXED_RUN],
+                "reference_plugin_lock_blob": expected[subject.FIXED_PLUGIN_LOCK],
+            }
+            result = subject._verify_reference_input_identity(
+                paths, metadata, expected_objects=expected
+            )
+        self.assertEqual(subject.REVISION_A, result["sourceCommit"])
+        self.assertEqual(expected, result["objects"])
+
+    def test_reference_identity_rejects_metadata_mismatch(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            archive = self.make_bundle(root)
+            paths = subject._stage_bundle(archive, root / "stage")
+            expected = {
+                subject.FIXED_WORKSPACE: subject._git_tree_sha1(paths["workspace"]),
+                subject.FIXED_RUN: subject._git_blob_sha1(paths["run"]),
+                subject.FIXED_PLUGIN_LOCK: subject._git_blob_sha1(
+                    paths["plugin_lock"]
+                ),
+            }
+            metadata = {
+                "reference_input_source_commit": "0" * 40,
+                "reference_workspace_tree": expected[subject.FIXED_WORKSPACE],
+                "reference_run_blob": expected[subject.FIXED_RUN],
+                "reference_plugin_lock_blob": expected[subject.FIXED_PLUGIN_LOCK],
+            }
+            with self.assertRaisesRegex(ValueError, "bundle metadata"):
+                subject._verify_reference_input_identity(
+                    paths, metadata, expected_objects=expected
+                )
+
+    @mock.patch.object(subject, "_verify_reference_input_identity")
     @mock.patch.object(subject, "_ensure_linux_amd64")
     @mock.patch.object(subject.subprocess, "run")
     @mock.patch.object(subject.bundle_verifier, "verify_bundle")
     def test_verified_bundle_runs_existing_live_test_with_provenance(
-        self, verify, run, ensure
+        self, verify, run, ensure, verify_reference
     ):
         verify.return_value = {
             "observation": {
@@ -90,7 +138,12 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
                 "binary_sha256": "b" * 64,
                 "provider_plan_sha256": "c" * 64,
                 "archive_sha256": "d" * 64,
-            }
+            },
+            "metadata": {},
+        }
+        verify_reference.return_value = {
+            "sourceCommit": subject.REVISION_A,
+            "objects": {},
         }
         run.return_value = subprocess.CompletedProcess([], 0, "PASS\n", "")
         with tempfile.TemporaryDirectory() as tmp:
@@ -115,15 +168,16 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
         env = run.call_args.kwargs["env"]
         self.assertEqual("1", env["SOZA_E3B_TEI_LIVE"])
         self.assertEqual(
-            f"tei-cli:{subject.REVISION_B}:bundle-sha256:{'d' * 64}",
+            f"tei-cli:{subject.REVISION_B}:reference:{subject.REVISION_A}:bundle-sha256:{'d' * 64}",
             env["SOZA_TEI_SOURCE_STATE_REF"],
         )
 
+    @mock.patch.object(subject, "_verify_reference_input_identity")
     @mock.patch.object(subject, "_ensure_linux_amd64")
     @mock.patch.object(subject.subprocess, "run")
     @mock.patch.object(subject.bundle_verifier, "verify_bundle")
     def test_live_test_failure_is_not_promoted_to_compatibility(
-        self, verify, run, ensure
+        self, verify, run, ensure, verify_reference
     ):
         verify.return_value = {
             "observation": {
@@ -131,7 +185,12 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
                 "binary_sha256": "b" * 64,
                 "provider_plan_sha256": "c" * 64,
                 "archive_sha256": "d" * 64,
-            }
+            },
+            "metadata": {},
+        }
+        verify_reference.return_value = {
+            "sourceCommit": subject.REVISION_A,
+            "objects": {},
         }
         run.return_value = subprocess.CompletedProcess(
             [], 1, "FAIL\n", "adapter failure"
