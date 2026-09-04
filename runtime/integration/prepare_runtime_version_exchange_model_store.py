@@ -45,6 +45,27 @@ def _require_ollama_registry_url(url: str, label: str) -> str:
     return url
 
 
+def _expected_model_acquisition_locations(name: str) -> tuple[str, str, str]:
+    repository, separator, tag = name.rpartition(":")
+    if separator != ":" or not repository or not tag:
+        raise ValueError(f"runtime artifact manifestのmodel.nameがrepository:tag形式ではありません: {name!r}")
+    if ":" in repository or any(character in repository for character in "\\?#"):
+        raise ValueError(f"runtime artifact manifestのmodel.name repository部が不正です: {name!r}")
+    if any(character in tag for character in "/\\?#:"):
+        raise ValueError(f"runtime artifact manifestのmodel.name tag部が不正です: {name!r}")
+
+    repository_path = Path(repository)
+    if repository_path.is_absolute() or ".." in repository_path.parts:
+        raise ValueError(f"runtime artifact manifestのmodel.name repository部が不正です: {name!r}")
+
+    registry_repository = f"library/{repository}"
+    return (
+        f"manifests/{REGISTRY_HOST}/{registry_repository}/{tag}",
+        f"https://{REGISTRY_HOST}/v2/{registry_repository}/manifests/{tag}",
+        f"https://{REGISTRY_HOST}/v2/{registry_repository}/blobs",
+    )
+
+
 def _validate_model_acquisition(model: Mapping[str, object]) -> dict[str, str]:
     result: dict[str, str] = {}
     for key in MODEL_ACQUISITION_FIELDS:
@@ -66,6 +87,21 @@ def _validate_model_acquisition(model: Mapping[str, object]) -> dict[str, str]:
 
     _require_ollama_registry_url(result["registryManifestUrl"], "registryManifestUrl")
     _require_ollama_registry_url(result["registryBlobBaseUrl"], "registryBlobBaseUrl")
+
+    expected_store_path, expected_manifest_url, expected_blob_base_url = (
+        _expected_model_acquisition_locations(result["name"])
+    )
+    expected_values = (
+        ("storeManifestPath", expected_store_path),
+        ("registryManifestUrl", expected_manifest_url),
+        ("registryBlobBaseUrl", expected_blob_base_url),
+    )
+    for key, expected in expected_values:
+        if result[key] != expected:
+            raise ValueError(
+                f"runtime artifact manifestのmodel.{key}がmodel.nameと一致しません: "
+                f"actual={result[key]!r} expected={expected!r}"
+            )
     return result
 
 
