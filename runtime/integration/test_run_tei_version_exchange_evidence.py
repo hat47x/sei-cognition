@@ -91,6 +91,41 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
             report = json.loads((output / subject.REPORT_NAME).read_text(encoding="utf-8"))
             self.assertEqual("e2_failed", report["result"])
             self.assertEqual("E2", report["failure"]["stage"])
+            self.assertNotIn("substage", report["failure"])
+
+    @mock.patch.object(subject.adapter_runner, "run_compatibility")
+    @mock.patch.object(subject.build_runner, "produce_bundle")
+    def test_staged_e2_failure_propagates_substage_detail(self, build, adapter):
+        build.side_effect = subject.build_runner.TEIEvidenceStageError(
+            "tei_cli_build",
+            "external process returned non-zero status",
+            command=["go", "build", "./cmd/tei"],
+            returncode=2,
+            stderr="compile failed",
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source, reference, soza = self.make_inputs(root)
+            tei_go = self.make_go(root, "go123")
+            soza_go = self.make_go(root, "go125")
+            output = root / "evidence"
+            with self.assertRaises(subject.VersionExchangeRunFailed):
+                subject.run_version_exchange(
+                    source,
+                    reference,
+                    soza,
+                    output,
+                    tei_go_executable=tei_go,
+                    soza_go_executable=soza_go,
+                )
+            report = json.loads((output / subject.REPORT_NAME).read_text(encoding="utf-8"))
+            failure = report["failure"]
+            self.assertEqual("E2", failure["stage"])
+            self.assertEqual("tei_cli_build", failure["substage"])
+            self.assertEqual("tei_cli_build", failure["detail"]["stage"])
+            self.assertEqual(2, failure["detail"]["returnCode"])
+            self.assertEqual("compile failed", failure["detail"]["stderrTail"])
+            adapter.assert_not_called()
 
     @mock.patch.object(subject.adapter_runner, "run_compatibility")
     @mock.patch.object(subject.build_runner, "produce_bundle")
