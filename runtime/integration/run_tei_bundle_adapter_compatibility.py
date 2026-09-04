@@ -21,6 +21,12 @@ FIXED_RUN = "reference/order_rollout.durable-run.m0.21.start.json"
 FIXED_WORKSPACE = "reference/workspace"
 FIXED_PLUGIN_LOCK = "reference/workspace/.tei/plugin-lock.json"
 LIVE_TEST = "^TestLiveTEIProviderPlan$"
+SOZA_EVIDENCE_PATHS = [
+    "runtime/go",
+    "runtime/integration/run_tei_bundle_adapter_compatibility.py",
+    "runtime/integration/verify_tei_evidence_bundle.py",
+    "runtime/integration/verify_tei_execution_source_identity.py",
+]
 REFERENCE_OBJECTS = source_identity.REVISION_A_REFERENCE_OBJECTS
 STOP_LINE = (
     "current SOZA Adapter compatibility verified for exact-B executable + exact-A fixed input bundle "
@@ -183,10 +189,64 @@ def _verify_reference_input_identity(
     }
 
 
+def _git(repo: Path, *args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["git", "-C", str(repo), *args],
+        check=check,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+
+def _verify_soza_source_identity(
+    repo: Path,
+    *,
+    paths: list[str] = SOZA_EVIDENCE_PATHS,
+    expected_head: str | None = None,
+) -> dict[str, object]:
+    inside = _git(repo, "rev-parse", "--is-inside-work-tree", check=False)
+    if inside.returncode != 0 or inside.stdout.strip() != "true":
+        raise ValueError(f"SOZA Git repositoryではありません: {repo}")
+    dirty = _git(
+        repo,
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all",
+        "--",
+        *paths,
+    ).stdout.splitlines()
+    dirty = [line for line in dirty if line.strip()]
+    if dirty:
+        raise ValueError(
+            "SOZA Adapter / Evidence runner境界に未commit変更またはuntracked fileがあります: "
+            + " | ".join(dirty)
+        )
+    head = _git(repo, "rev-parse", "HEAD").stdout.strip()
+    if expected_head is not None and head != expected_head:
+        raise ValueError(
+            f"SOZA HEADが期待値と一致しません: expected={expected_head} actual={head}"
+        )
+    objects: dict[str, str] = {}
+    for path in paths:
+        result = _git(repo, "rev-parse", f"HEAD:{path}", check=False)
+        if result.returncode != 0:
+            raise ValueError(f"SOZA Git objectを取得できません: {path}")
+        objects[path] = result.stdout.strip()
+    return {
+        "head": head,
+        "expectedHead": expected_head,
+        "expectedHeadMatched": expected_head is None or head == expected_head,
+        "objects": objects,
+        "worktreeCleanWithinBoundary": True,
+    }
+
+
 def _controlled_env(paths: dict[str, Path], source_state_ref: str) -> dict[str, str]:
     env = os.environ.copy()
     env["GOWORK"] = "off"
     env["GOENV"] = "off"
+    env["GOTOOLCHAIN"] = "local"
     env.pop("GOFLAGS", None)
     env.pop("GOOS", None)
     env.pop("GOARCH", None)
@@ -208,6 +268,7 @@ def run_compatibility(
     *,
     soza_repo_root: Path,
     expected_source_commit: str = REVISION_B,
+    expected_soza_head: str | None = None,
 ) -> dict[str, object]:
     archive = archive.expanduser().resolve(strict=True)
     soza_repo_root = soza_repo_root.expanduser().resolve(strict=True)
@@ -216,6 +277,10 @@ def run_compatibility(
         raise ValueError(f"SOZA runtime/go moduleを確認できません: {go_root}")
     if not (go_root / "teiintegration/tei_live_test.go").is_file():
         raise ValueError("current teiintegration live testを確認できません")
+
+    soza_source = _verify_soza_source_identity(
+        soza_repo_root, expected_head=expected_soza_head
+    )
 
     verification = bundle_verifier.verify_bundle(
         archive,
@@ -235,6 +300,24 @@ def run_compatibility(
             f"bundle-sha256:{archive_sha256}"
         )
         env = _controlled_env(paths, source_state_ref)
+        go_version_process = subprocess.run(
+            ["go", "version"],
+            cwd=go_root,
+            env=env,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=30,
+            check=False,
+        )
+        if go_version_process.returncode != 0:
+            detail = (
+                go_version_process.stderr.strip()
+                or go_version_process.stdout.strip()
+            )[-8192:]
+            raise RuntimeError("SOZA Go toolchainを確認できません: " + detail)
+        go_version = go_version_process.stdout.strip()
+
         process = subprocess.run(
             [
                 "go",
@@ -265,6 +348,8 @@ def run_compatibility(
         "result": "adapter_compatible",
         "sourceCommit": source_commit,
         "referenceInput": reference_observation,
+        "sozaSource": soza_source,
+        "sozaGoVersion": go_version,
         "binarySha256": observation["binary_sha256"],
         "providerPlanSha256": observation["provider_plan_sha256"],
         "archiveSha256": archive_sha256,
@@ -291,6 +376,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path(__file__).resolve().parents[2],
     )
     parser.add_argument("--expected-source-commit", default=REVISION_B)
+    parser.add_argument("--expected-soza-head")
     parser.add_argument("--json", action="store_true")
     return parser
 
@@ -302,6 +388,7 @@ def main(argv: list[str] | None = None) -> int:
             args.archive,
             soza_repo_root=args.soza_repo_root,
             expected_source_commit=args.expected_source_commit,
+            expected_soza_head=args.expected_soza_head,
         )
     except (
         OSError,
