@@ -1,3 +1,4 @@
+import hashlib
 import importlib.util
 import tempfile
 import unittest
@@ -95,6 +96,52 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
 
             self.assertEqual(archive_a.resolve(), validated["--runtime-a-archive"])
             self.assertEqual(archive_b.resolve(), validated["--runtime-b-archive"])
+
+    def test_runtime_archive_identity_uses_fixed_manifest_metadata(self):
+        data = b"runtime-a"
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            archive = root / "runtime-a.tar.zst"
+            archive.write_bytes(data)
+            manifest = {
+                "runtimeArchives": {
+                    "a": {
+                        "sizeBytes": len(data),
+                        "sha256": hashlib.sha256(data).hexdigest(),
+                    }
+                }
+            }
+            with patch.object(ENTRYPOINT, "load_artifact_manifest", return_value=manifest):
+                ENTRYPOINT._verify_runtime_archive_identities(
+                    {"--runtime-a-archive": archive.resolve()}
+                )
+
+    def test_wrong_runtime_archive_identity_stops_before_source_or_model_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bundle = root / "bundle"
+            model = root / "model"
+            bundle.mkdir()
+            model.mkdir()
+            archive = root / "runtime-a.tar.zst"
+            archive.write_bytes(b"wrong-runtime")
+
+            with patch.object(ENTRYPOINT, "verify_model_store") as model_verifier, patch.object(
+                ENTRYPOINT,
+                "verify_runtime_bundle",
+            ) as source_verifier, patch.object(ENTRYPOINT.subprocess, "run") as runner:
+                with self.assertRaisesRegex(ValueError, "archive size"):
+                    ENTRYPOINT.run_strict_probe(
+                        checkout_dir=None,
+                        backend_bundle=bundle,
+                        model_dir=model,
+                        evidence_dir=root / "evidence",
+                        harness_arguments=["--runtime-a-archive", str(archive)],
+                    )
+
+            model_verifier.assert_not_called()
+            source_verifier.assert_not_called()
+            runner.assert_not_called()
 
     def test_source_bundle_inside_soza_repository_is_rejected_before_verification(self):
         with tempfile.TemporaryDirectory() as temporary:
