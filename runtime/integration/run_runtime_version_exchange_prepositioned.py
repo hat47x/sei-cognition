@@ -7,11 +7,77 @@ import subprocess
 import sys
 from pathlib import Path
 
-from prepare_runtime_version_exchange_inputs import prepare_prepositioned_inputs
+from prepare_runtime_version_exchange_inputs import RESULT_SCHEMA, prepare_prepositioned_inputs
 
 
 INTEGRATION_DIR = Path(__file__).resolve().parent
 VERIFIED_RUNNER = INTEGRATION_DIR / "run_runtime_version_exchange_with_verification.py"
+
+
+def _prepared_artifact_path(value: object, *, name: str, root: Path) -> str:
+    if not isinstance(value, str) or not value:
+        raise ValueError(f"verifiedRunnerInputs.{name}のartifact pathが不正です")
+
+    requested = Path(value).expanduser()
+    if not requested.is_absolute():
+        raise ValueError(f"verifiedRunnerInputs.{name}は絶対pathである必要があります")
+
+    resolved = requested.resolve(strict=False)
+    if root not in resolved.parents:
+        raise ValueError(
+            f"verifiedRunnerInputs.{name}がprepositioned input root配下ではありません: "
+            f"path={resolved} root={root}"
+        )
+    return str(resolved)
+
+
+def _validate_preparation_result(
+    prepared: dict[str, object], artifact_root: Path
+) -> tuple[str, str, str]:
+    if prepared.get("schema") != RESULT_SCHEMA:
+        raise ValueError(
+            "prepositioned input preparation resultのschemaが未対応です: "
+            f"{prepared.get('schema')!r}"
+        )
+    if prepared.get("result") != "ok":
+        raise ValueError(
+            "prepositioned input preparation resultがokではありません: "
+            f"{prepared.get('result')!r}"
+        )
+
+    prepared_root = prepared.get("root")
+    if not isinstance(prepared_root, str) or not prepared_root:
+        raise ValueError("prepositioned input preparation resultにrootがありません")
+
+    expected_root = artifact_root.expanduser().resolve(strict=False)
+    observed_root = Path(prepared_root).expanduser().resolve(strict=False)
+    if observed_root != expected_root:
+        raise ValueError(
+            "prepositioned input preparation resultのrootが要求したartifact rootと一致しません: "
+            f"actual={observed_root} expected={expected_root}"
+        )
+
+    runner_inputs = prepared.get("verifiedRunnerInputs")
+    if not isinstance(runner_inputs, dict):
+        raise ValueError("prepositioned input preparation resultにverifiedRunnerInputsがありません")
+
+    require_prepositioned = runner_inputs.get("requirePrepositionedArtifacts")
+    if require_prepositioned is not True:
+        raise ValueError("verifiedRunnerInputsはrequirePrepositionedArtifacts=trueである必要があります")
+
+    model_dir = _prepared_artifact_path(
+        runner_inputs.get("modelDir"), name="modelDir", root=observed_root
+    )
+    runtime_a = _prepared_artifact_path(
+        runner_inputs.get("runtimeAArchive"), name="runtimeAArchive", root=observed_root
+    )
+    runtime_b = _prepared_artifact_path(
+        runner_inputs.get("runtimeBArchive"), name="runtimeBArchive", root=observed_root
+    )
+    if runtime_a == runtime_b:
+        raise ValueError("verifiedRunnerInputsのruntime A / B archive pathが同一です")
+
+    return model_dir, runtime_a, runtime_b
 
 
 def build_verified_runner_command(
@@ -29,18 +95,7 @@ def build_verified_runner_command(
         )
 
     prepared = prepare_prepositioned_inputs(artifact_root, verify_only=True)
-    runner_inputs = prepared.get("verifiedRunnerInputs")
-    if not isinstance(runner_inputs, dict):
-        raise ValueError("prepositioned input preparation resultにverifiedRunnerInputsがありません")
-
-    model_dir = runner_inputs.get("modelDir")
-    runtime_a = runner_inputs.get("runtimeAArchive")
-    runtime_b = runner_inputs.get("runtimeBArchive")
-    require_prepositioned = runner_inputs.get("requirePrepositionedArtifacts")
-    if not all(isinstance(value, str) and value for value in (model_dir, runtime_a, runtime_b)):
-        raise ValueError("verifiedRunnerInputsのartifact pathが不正です")
-    if require_prepositioned is not True:
-        raise ValueError("verifiedRunnerInputsはrequirePrepositionedArtifacts=trueである必要があります")
+    model_dir, runtime_a, runtime_b = _validate_preparation_result(prepared, artifact_root)
 
     command = [sys.executable, str(VERIFIED_RUNNER)]
     if kj_atlas_dir is not None:

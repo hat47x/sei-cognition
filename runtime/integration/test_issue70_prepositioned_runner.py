@@ -7,12 +7,15 @@ import run_runtime_version_exchange_prepositioned as subject
 
 
 PREPARED = {
+    "schema": subject.RESULT_SCHEMA,
+    "result": "ok",
+    "root": "/artifacts",
     "verifiedRunnerInputs": {
         "modelDir": "/artifacts/ollama-models",
         "runtimeAArchive": "/artifacts/runtime-archives/ollama-0.32.13-linux-amd64.tar.zst",
         "runtimeBArchive": "/artifacts/runtime-archives/ollama-0.32.14-linux-amd64.tar.zst",
         "requirePrepositionedArtifacts": True,
-    }
+    },
 }
 
 
@@ -63,12 +66,11 @@ class PrepositionedRuntimeExchangeRunnerTest(unittest.TestCase):
 
     def test_invalid_preparation_result_never_starts_verified_runner(self):
         invalid = {
+            **PREPARED,
             "verifiedRunnerInputs": {
-                "modelDir": "/artifacts/ollama-models",
-                "runtimeAArchive": "/artifacts/a",
-                "runtimeBArchive": "/artifacts/b",
+                **PREPARED["verifiedRunnerInputs"],
                 "requirePrepositionedArtifacts": False,
-            }
+            },
         }
         with (
             patch.object(subject, "prepare_prepositioned_inputs", return_value=invalid),
@@ -82,6 +84,76 @@ class PrepositionedRuntimeExchangeRunnerTest(unittest.TestCase):
                     evidence_dir=Path("/evidence/run-3"),
                 )
         run_process.assert_not_called()
+
+    def test_schema_drift_never_starts_verified_runner(self):
+        invalid = {**PREPARED, "schema": "unsupported/v2"}
+        with (
+            patch.object(subject, "prepare_prepositioned_inputs", return_value=invalid),
+            patch.object(subject.subprocess, "run") as run_process,
+        ):
+            with self.assertRaisesRegex(ValueError, "schemaが未対応"):
+                subject.run(
+                    artifact_root=Path("/artifacts"),
+                    kj_atlas_dir=Path("/kj-atlas"),
+                    kj_atlas_backend_bundle=None,
+                    evidence_dir=Path("/evidence/run-schema"),
+                )
+        run_process.assert_not_called()
+
+    def test_root_drift_never_starts_verified_runner(self):
+        invalid = {**PREPARED, "root": "/different-root"}
+        with (
+            patch.object(subject, "prepare_prepositioned_inputs", return_value=invalid),
+            patch.object(subject.subprocess, "run") as run_process,
+        ):
+            with self.assertRaisesRegex(ValueError, "rootが要求したartifact rootと一致しません"):
+                subject.run(
+                    artifact_root=Path("/artifacts"),
+                    kj_atlas_dir=Path("/kj-atlas"),
+                    kj_atlas_backend_bundle=None,
+                    evidence_dir=Path("/evidence/run-root"),
+                )
+        run_process.assert_not_called()
+
+    def test_artifact_path_escape_never_starts_verified_runner(self):
+        invalid = {
+            **PREPARED,
+            "verifiedRunnerInputs": {
+                **PREPARED["verifiedRunnerInputs"],
+                "runtimeBArchive": "/outside/ollama-0.32.14-linux-amd64.tar.zst",
+            },
+        }
+        with (
+            patch.object(subject, "prepare_prepositioned_inputs", return_value=invalid),
+            patch.object(subject.subprocess, "run") as run_process,
+        ):
+            with self.assertRaisesRegex(ValueError, "prepositioned input root配下ではありません"):
+                subject.run(
+                    artifact_root=Path("/artifacts"),
+                    kj_atlas_dir=Path("/kj-atlas"),
+                    kj_atlas_backend_bundle=None,
+                    evidence_dir=Path("/evidence/run-path"),
+                )
+        run_process.assert_not_called()
+
+    def test_runtime_archive_paths_must_be_distinct(self):
+        invalid = {
+            **PREPARED,
+            "verifiedRunnerInputs": {
+                **PREPARED["verifiedRunnerInputs"],
+                "runtimeBArchive": PREPARED["verifiedRunnerInputs"]["runtimeAArchive"],
+            },
+        }
+        with patch.object(subject, "prepare_prepositioned_inputs", return_value=invalid):
+            with self.assertRaisesRegex(ValueError, "runtime A / B archive pathが同一"):
+                subject.build_verified_runner_command(
+                    artifact_root=Path("/artifacts"),
+                    kj_atlas_dir=Path("/kj-atlas"),
+                    kj_atlas_backend_bundle=None,
+                    evidence_dir=Path("/evidence/run-same"),
+                    verification_output=None,
+                    work_dir=None,
+                )
 
     def test_runner_exit_code_is_preserved(self):
         completed = subprocess.CompletedProcess(args=["python"], returncode=7)
