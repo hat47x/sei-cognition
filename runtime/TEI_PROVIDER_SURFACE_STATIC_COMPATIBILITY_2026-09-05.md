@@ -60,9 +60,145 @@ internal/plugin/runtime/model.go
 
 前者は`executors`の`deploymentrouting.RoutedCommand`、後者は`pluginRuntime`の`pluginruntime.EnvironmentPlan`を支えるsourceです。
 
-この同一性は、A / Bで当該型のsource bytesが同一であることを示します。ただし、workspace、durable run、plugin lock、environment等の入力から生成される**実際の値**まで同一であることは意味しません。
+さらに、`deployment-provider-plan`で直接利用する主要subtreeには、A / Bでtree全体が同一のものがあります。
 
-## 4. current SOZA Adapterとの静的な整合
+```text
+internal/deployment
+  A/B tree: e398c3723b638eb033a4b3bb96a9964377734805
+
+internal/environment
+  A/B tree: e5b85c854f439566aaa12b4653d57cde599567aa
+
+internal/releaseplan
+  A/B tree: 69c2dee2f92056b3520a23c959218dbfbd4d4919
+
+internal/plugin/runtime
+  A/B tree: e306aab50112c28d656303e6cb1a192c8a16f9ef
+
+internal/core
+  A/B tree: 70a7f2219dcfeaff4cc0a7b1b324e656d8e6915a
+```
+
+この同一性は、A / Bで当該source bytesが同一であることを示します。ただし、workspace、durable run、plugin lock、environment等の入力から生成される**実際の値**まで同一であることは意味しません。
+
+## 4. Provider Plan生成前段にはA/B差分が残る
+
+`deployment-provider-plan`は、top-level JSONを組み立てる前に次の処理を通ります。
+
+```text
+workspace.Load
+  ↓
+validation.Validate
+  ↓
+loadCheckedDeploymentRun
+  ↓
+releaseplan.CompileWithDeployment
+  ↓
+deployment durable checks
+  ↓
+plugin runtime fingerprints / BuildPlan
+  ↓
+RouteCommands / observation / evidence binding
+  ↓
+Provider Plan JSON
+```
+
+このうち、すべてがA / Bで同一ではありません。
+
+### A/Bでtreeが同一の主要領域
+
+```text
+internal/deployment
+  e398c3723b638eb033a4b3bb96a9964377734805
+
+internal/environment
+  e5b85c854f439566aaa12b4653d57cde599567aa
+
+internal/releaseplan
+  69c2dee2f92056b3520a23c959218dbfbd4d4919
+
+internal/core
+  70a7f2219dcfeaff4cc0a7b1b324e656d8e6915a
+```
+
+したがって、durable deployment state machine、environment provider定義、release plan compilation実装そのものには、このA/B間でsource driftを観測していません。
+
+### A/Bで変化している主要領域
+
+```text
+internal/workspace
+  A: ff5bffdebeb421d1389094065bec8735e73ff93a
+  B: a841df70c1e305c9317a8dd5098c5c8f7e8e800d
+
+internal/validation
+  A: cfa39e042d3bd632bde87f8d8c07f603bb470fa0
+  B: a6d6e53566c9c6c6c5c727d7b090b5de1039c95a
+
+internal/ir
+  A: 1a5926d767b5d71287b356c1e431d8edc7557dbe
+  B: e9eaec0ec032ba2944e691fdbc40ef8338af7999
+
+internal/plugin
+  A: b57adc3a51bf6a84d513c1602e6b0fac7ad9590d
+  B: f24e8556d3efcb25c893670ba5b047d4bf4e064b
+```
+
+`workspace`では`loader.go`自体も変化しています。
+
+```text
+internal/workspace/loader.go
+  A blob: 3e37f9ed25205660f8ad9c16106cfe6c1455c61d
+  B blob: 948c3558b0f8ed8dd48d4a108ab2da6bffb379b0
+```
+
+Bにはcontract-query系などの新しいloader surfaceが追加されています。`validation`にも新しい検査が増え、中心の`validation.go`も変化しています。
+
+```text
+internal/validation/validation.go
+  A blob: 271cb517d0fdc3be1d940e8c75e79425469ca26f
+  B blob: 093cf00eb22eff60c0ba8bcd349b3c92dbbed909
+```
+
+一方で、deployment固有のvalidation fileはA / Bで同じblobです。
+
+```text
+internal/validation/deployment.go
+  A/B blob: 013b139ee8d6432ba28f64bfc7ca268392cc06e5
+```
+
+plugin側はtop-level modelに`contract-query-executor` capability kindが追加されていますが、既存field構造、lock / resolve実装、`internal/plugin/runtime` subtreeは同一です。
+
+```text
+internal/plugin/model.go
+  A: fe1f1deaa75f2fe322f9df4bd4745b77674e1590
+  B: cb715c881b3c487cd8ad6a091a141ac62405dec4
+
+internal/plugin/runtime
+  A/B tree: e306aab50112c28d656303e6cb1a192c8a16f9ef
+```
+
+したがって、現時点の静的Evidenceは次のように読むのが妥当です。
+
+```text
+Provider Plan output surface
+  = strong static continuity observed
+
+Provider Plan core deployment / environment / releaseplan logic
+  = exact source-tree continuity observed
+
+workspace / validation / IR input interpretation
+  = changed; actual fixed-input execution required
+
+plugin runtime implementation
+  = exact subtree continuity observed
+
+plugin model accepted capability set
+  = extended; actual fixed-input compatibility still required
+```
+
+これは重要な停止線です。**top-level JSON surfaceが同じことから、fixed reference inputがrevision Bでも必ず同じ経路を通って成功すると推定しません。**
+
+## 5. current SOZA Adapterとの静的な整合
 
 current SOZA `runtime/go/teiintegration/tei_cli.go`のblob SHAは次です。
 
@@ -90,9 +226,9 @@ availability = true
 provider_plan_resolved = true
 ```
 
-したがって、今回確認したA / Bのsource surfaceはcurrent Adapter-local DTOと静的には整合しています。
+したがって、今回確認したA / Bの**出力surface**はcurrent Adapter-local DTOと静的には整合しています。ただし、Bがfixed reference inputを受理してそのsurfaceへ実際に到達できるかは別のactual確認対象です。
 
-## 5. 今回確認できたこと
+## 6. 今回確認できたこと
 
 ```text
 revision A → B
@@ -101,29 +237,40 @@ revision A → B
 cmd/tei/main.go
   = exact same Git blob
 
-routing executor source
-  = exact same Git blob
+internal/deployment
+  = exact same Git tree
 
-plugin runtime model source
-  = exact same Git blob
+internal/environment
+  = exact same Git tree
+
+internal/releaseplan
+  = exact same Git tree
+
+plugin runtime
+  = exact same Git tree
+
+workspace / validation / IR
+  = changed
 
 current SOZA Adapter top-level DTO
   = executors / observations / evidence / pluginRuntime
 ```
 
-このため、1748 commitsの差があるにもかかわらず、今回のfixed `deployment-provider-plan` invocationについて、**既知のtop-level Provider Plan source surfaceがA→Bで漂流している兆候は静的には見つかりませんでした**。
+このため、1748 commitsの差があるにもかかわらず、今回のfixed `deployment-provider-plan` invocationについて、**既知のProvider Plan出力surfaceとdeployment中核実装に大きな静的連続性がある**ことを確認できました。
 
-これはactual B実行前のriskを絞るEvidenceとして利用できます。
+同時に、workspace / validation / IRの入力解釈経路には差分が残るため、actual B実行が必要な理由もより明確になりました。
 
-## 6. このEvidenceから言えないこと
+## 7. このEvidenceから言えないこと
 
 次は未検証のままです。
 
 - revision Bがactualにbuildできること
 - revision B executable bytesとそのSHA-256
+- fixed reference workspaceをrevision Bの`workspace.Load`が受理すること
+- fixed reference worldがrevision Bの`validation.Validate`を通ること
+- fixed reference durable run / plugin lockがBでも整合すること
 - fixed reference inputで`deployment-provider-plan` processが成功すること
 - revision Bが実際に出力するProvider Plan JSONとそのSHA-256
-- workspace / durable run / plugin lock / environment処理のruntime互換性
 - routeやplugin runtimeに入るactual値の互換性
 - current SOZA Adapterによるrevision B processのlive strict decode
 - current Capability Observation validatorまでのend-to-end成立
@@ -131,7 +278,8 @@ current SOZA Adapter top-level DTO
 したがって、停止線は次です。
 
 ```text
-same Provider Plan source surface
+same Provider Plan output surface
+  != same input interpretation
   != same repository revision
   != same executable bytes
   != revision B build PASS
@@ -140,16 +288,17 @@ same Provider Plan source surface
   != ISSUE-000072 Resolved
 ```
 
-## 7. 次のactual検証
+## 8. 次のactual検証
 
 actual実行可能なLinux / amd64環境が利用できたら、次を行います。
 
 1. 固定revision B `1a7028d444fcae60a1c4f2f2d247456f4c7c35be`からactual `cmd/tei`をbuildまたは固定artifactとして取得する。
 2. actual binary SHA-256を記録する。
-3. revision Aと同じfixed reference invocationで`deployment-provider-plan`を実行する。
-4. actual Provider Plan SHA-256とProvider固有outputを記録する。
-5. 取得したbundleを`verify_tei_evidence_bundle.py`で取得経路から独立して再検証する。
-6. current `runtime/go/teiintegration`からactual B executableを別OS processとして起動し、strict decodeとCapability Observation mappingを確認する。
-7. revision A Evidenceを変更せず、A / Bのsource / binary / output / acquisition Provenanceを別々に保持する。
+3. revision Aと同じfixed reference workspace / durable run / plugin lockを使用する。
+4. Bのworkspace load / validation / durable run checkを含む同じ`deployment-provider-plan` invocationをactualに実行する。
+5. actual Provider Plan SHA-256とProvider固有outputを記録する。
+6. 取得したbundleを`verify_tei_evidence_bundle.py`で取得経路から独立して再検証する。
+7. current `runtime/go/teiintegration`からactual B executableを別OS processとして起動し、strict decodeとCapability Observation mappingを確認する。
+8. revision A Evidenceを変更せず、A / Bのsource / binary / output / acquisition Provenanceを別々に保持する。
 
 このactual検証までは、新しいStable RequirementやUniversal TEI fieldを追加しません。
