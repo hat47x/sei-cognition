@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import platform
@@ -9,16 +10,20 @@ import subprocess
 import tarfile
 import tempfile
 from pathlib import Path, PurePosixPath
+from typing import Mapping
 
 import verify_tei_evidence_bundle as bundle_verifier
+import verify_tei_execution_source_identity as source_identity
 
-REVISION_B = "1a7028d444fcae60a1c4f2f2d247456f4c7c35be"
+REVISION_A = source_identity.REVISION_A
+REVISION_B = source_identity.REVISION_B
 FIXED_RUN = "reference/order_rollout.durable-run.m0.21.start.json"
 FIXED_WORKSPACE = "reference/workspace"
 FIXED_PLUGIN_LOCK = "reference/workspace/.tei/plugin-lock.json"
 LIVE_TEST = "^TestLiveTEIProviderPlan$"
+REFERENCE_OBJECTS = source_identity.REVISION_A_REFERENCE_OBJECTS
 STOP_LINE = (
-    "current SOZA Adapter compatibility verified for this fixed TEI bundle "
+    "current SOZA Adapter compatibility verified for exact-B executable + exact-A fixed input bundle "
     "!= arbitrary TEI version compatibility != Release Evidence "
     "!= Operational Evidence != ISSUE-000072 Resolved"
 )
@@ -106,6 +111,78 @@ def _stage_bundle(archive: Path, target: Path) -> dict[str, Path]:
     }
 
 
+def _git_blob_sha1(path: Path) -> str:
+    payload = path.read_bytes()
+    header = f"blob {len(payload)}\0".encode("ascii")
+    return hashlib.sha1(header + payload).hexdigest()
+
+
+def _git_tree_sha1(root: Path) -> str:
+    entries: list[tuple[bytes, str, str, str]] = []
+    for path in root.iterdir():
+        if path.is_symlink():
+            raise ValueError(f"fixed reference workspaceにsymlinkがあります: {path}")
+        if path.is_dir():
+            mode = "40000"
+            digest = _git_tree_sha1(path)
+            sort_key = path.name.encode("utf-8") + b"/"
+        elif path.is_file():
+            mode = "100755" if path.stat().st_mode & 0o111 else "100644"
+            digest = _git_blob_sha1(path)
+            sort_key = path.name.encode("utf-8")
+        else:
+            raise ValueError(f"fixed reference workspaceに未対応entryがあります: {path}")
+        entries.append((sort_key, mode, path.name, digest))
+
+    body = bytearray()
+    for _, mode, name, digest in sorted(entries, key=lambda entry: entry[0]):
+        body.extend(mode.encode("ascii"))
+        body.extend(b" ")
+        body.extend(name.encode("utf-8"))
+        body.extend(b"\0")
+        body.extend(bytes.fromhex(digest))
+    header = f"tree {len(body)}\0".encode("ascii")
+    return hashlib.sha1(header + body).hexdigest()
+
+
+def _verify_reference_input_identity(
+    paths: dict[str, Path],
+    metadata: Mapping[str, object],
+    *,
+    expected_objects: Mapping[str, str] = REFERENCE_OBJECTS,
+) -> dict[str, object]:
+    expected_metadata = {
+        "reference_input_source_commit": REVISION_A,
+        "reference_workspace_tree": expected_objects[FIXED_WORKSPACE],
+        "reference_run_blob": expected_objects[FIXED_RUN],
+        "reference_plugin_lock_blob": expected_objects[FIXED_PLUGIN_LOCK],
+    }
+    for key, expected in expected_metadata.items():
+        actual = metadata.get(key)
+        if actual != expected:
+            raise ValueError(
+                "bundle metadataのfixed reference identityが期待値と一致しません: "
+                f"field={key} expected={expected} actual={actual!r}"
+            )
+
+    observed = {
+        FIXED_WORKSPACE: _git_tree_sha1(paths["workspace"]),
+        FIXED_RUN: _git_blob_sha1(paths["run"]),
+        FIXED_PLUGIN_LOCK: _git_blob_sha1(paths["plugin_lock"]),
+    }
+    for path, expected in expected_objects.items():
+        actual = observed[path]
+        if actual != expected:
+            raise ValueError(
+                "staged fixed revision A reference inputのGit object identityが一致しません: "
+                f"path={path} expected={expected} actual={actual}"
+            )
+    return {
+        "sourceCommit": REVISION_A,
+        "objects": observed,
+    }
+
+
 def _controlled_env(paths: dict[str, Path], source_state_ref: str) -> dict[str, str]:
     env = os.environ.copy()
     env["GOWORK"] = "off"
@@ -145,14 +222,17 @@ def run_compatibility(
         expected_source_commit=expected_source_commit,
     )
     observation = verification["observation"]
+    metadata = verification["metadata"]
     source_commit = str(observation["source_commit"])
     archive_sha256 = str(observation["archive_sha256"])
 
     _ensure_linux_amd64()
     with tempfile.TemporaryDirectory(prefix="soza-tei-adapter-") as tmp:
         paths = _stage_bundle(archive, Path(tmp))
+        reference_observation = _verify_reference_input_identity(paths, metadata)
         source_state_ref = (
-            f"tei-cli:{source_commit}:bundle-sha256:{archive_sha256}"
+            f"tei-cli:{source_commit}:reference:{REVISION_A}:"
+            f"bundle-sha256:{archive_sha256}"
         )
         env = _controlled_env(paths, source_state_ref)
         process = subprocess.run(
@@ -184,6 +264,7 @@ def run_compatibility(
         "schema": "soza.tei-bundle-adapter-compatibility/v1",
         "result": "adapter_compatible",
         "sourceCommit": source_commit,
+        "referenceInput": reference_observation,
         "binarySha256": observation["binary_sha256"],
         "providerPlanSha256": observation["provider_plan_sha256"],
         "archiveSha256": archive_sha256,
@@ -197,9 +278,9 @@ def run_compatibility(
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "検証済みTEI Evidence bundleを一時領域へ安全にstageし、current SOZA "
-            "teiintegration live testでactual CLI process / strict decode / "
-            "Capability Observation mappingを確認します。"
+            "exact-B executable + exact-A fixed reference inputを含む検証済みTEI Evidence "
+            "bundleを一時領域へ安全にstageし、current SOZA teiintegration live testで"
+            "actual CLI process / strict decode / Capability Observation mappingを確認します。"
         ),
         allow_abbrev=False,
     )
@@ -236,6 +317,10 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print("TEI bundle Adapter compatibility: verified")
         print(f"- source commit: {result['sourceCommit']}")
+        print(
+            f"- reference input source commit: "
+            f"{result['referenceInput']['sourceCommit']}"
+        )
         print(f"- binary SHA-256: {result['binarySha256']}")
         print(f"- Provider Plan SHA-256: {result['providerPlanSha256']}")
         print(result["stopLine"])
