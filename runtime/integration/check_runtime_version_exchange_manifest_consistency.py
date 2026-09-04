@@ -176,6 +176,10 @@ def collect_checks(
     if not isinstance(model, dict):
         checks.append(Check("manifest.model", "blocked", "modelがobjectではありません"))
     else:
+        # Acquisition内のfield同士が矛盾していても、固定identityからのdriftを
+        # 独立した診断として失わない。取得境界とidentity境界は別々に報告する。
+        _equal(checks, "model.name", model.get("name"), preflight.MODEL_NAME)
+        _equal(checks, "model.sha256", model.get("sha256"), preflight.MODEL_SHA256)
         try:
             acquisition = _validate_model_acquisition(model)
         except (OSError, ValueError) as exc:
@@ -188,9 +192,6 @@ def collect_checks(
                     "model取得条件をmodel preparation境界で検証しました",
                 )
             )
-            _equal(checks, "model.name", acquisition["name"], preflight.MODEL_NAME)
-            _equal(checks, "model.sha256", acquisition["sha256"], preflight.MODEL_SHA256)
-
             fixed_model = _load_fixed_model_identity()
             for key in ("name", "sha256", "storeManifestPath", "digestBasis"):
                 _equal(

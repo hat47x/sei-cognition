@@ -17,7 +17,8 @@ LAUNCH_ERROR_EXIT_CODE = 127
 TIMEOUT_EXIT_CODE = 124
 
 # actual Ollama / KJ Atlas A/B実行を含めず、固定identity、準備、preflight、
-# strict入口、failure Evidence、保存済みEvidence verifierのfocused regressionだけを並べる。
+# strict入口、Go harness package、failure Evidence、保存済みEvidence verifierの
+# focused regressionだけを並べる。
 CHECK_FILES = (
     "test_prepare_runtime_version_exchange_archives.py",
     "test_issue70_prepositioned_inputs.py",
@@ -41,6 +42,7 @@ CHECK_FILES = (
     "test_verify_runtime_version_exchange_provenance.py",
     "test_runtime_version_exchange_provenance_wiring.py",
     "test_runtime_version_exchange_identity_consistency.py",
+    "test_runtime_version_exchange_go_package.py",
 )
 
 # ファイル名だけではruntime version exchangeとの関係を判定できないsource identity testや
@@ -351,7 +353,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "ISSUE-000070のactual A/B processを起動せず、repository-localのfocused "
-            "Python regressionを明示的なallowlistから順番に実行します。"
+            "regressionを明示的なallowlistから順番に実行します。"
         ),
         allow_abbrev=False,
     )

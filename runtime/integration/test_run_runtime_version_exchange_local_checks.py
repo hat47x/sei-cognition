@@ -57,6 +57,7 @@ class RuntimeVersionExchangeLocalChecksTest(unittest.TestCase):
             "test_verify_kj_atlas_runtime_source.py",
             "test_export_kj_atlas_runtime_source.py",
             "test_runtime_version_exchange_identity_consistency.py",
+            "test_runtime_version_exchange_go_package.py",
             "test_verify_runtime_version_exchange_evidence.py",
             "test_verify_runtime_version_exchange_provenance.py",
         }

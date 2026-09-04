@@ -151,7 +151,7 @@ class RuntimeVersionExchangeIdentityConsistencyTest(unittest.TestCase):
         self.assertIn('if [[ "${HOST_OS}" != "Linux" ]]', harness)
         self.assertIn("x86_64|amd64)", harness)
 
-    def test_runtime_archive_download_origin_remains_manifest_aligned(self):
+    def test_runtime_archive_download_origin_remains_manifest_owned(self):
         manifest = prepare.load_manifest()
         harness = HARNESS.read_text(encoding="utf-8")
 
@@ -166,6 +166,18 @@ class RuntimeVersionExchangeIdentityConsistencyTest(unittest.TestCase):
                 self.assertEqual("ollama-linux-amd64.tar.zst", archive["assetName"])
 
         self.assertIn(
+            'RUNTIME_ARCHIVE_PREPARER="${SOZA_ROOT}/runtime/integration/prepare_runtime_version_exchange_archives.py"',
+            harness,
+        )
+        self.assertIn(
+            'RUNTIME_ARCHIVE_A="$(prepare_downloaded_runtime_archive a)"',
+            harness,
+        )
+        self.assertIn(
+            'RUNTIME_ARCHIVE_B="$(prepare_downloaded_runtime_archive b)"',
+            harness,
+        )
+        self.assertNotIn(
             'https://github.com/ollama/ollama/releases/download/v${version}/ollama-linux-amd64.tar.zst',
             harness,
         )

@@ -61,7 +61,7 @@ class StrictRuntimeVersionExchangeModelPreparationTest(unittest.TestCase):
             class Completed:
                 returncode = 0
 
-            def fake_run(command, check):
+            def fake_run(command, check, env=None):
                 calls.append(("run", command))
                 evidence.mkdir()
                 return Completed()

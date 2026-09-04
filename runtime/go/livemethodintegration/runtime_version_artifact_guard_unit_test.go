@@ -79,11 +79,11 @@ func TestRuntimeExchangeRequiredPathRejectsMissingValue(t *testing.T) {
 	}
 }
 
-func TestRuntimeExchangeLivePathDoesNotUseGitHubWorkspaceFallback(t *testing.T) {
-	t.Setenv(runtimeExchangeKJAtlasDirEnv, "")
+func TestRuntimeExchangeRequiredPathDoesNotUseGitHubWorkspaceFallback(t *testing.T) {
+	t.Setenv(runtimeExchangeAArchiveEnv, "")
 	t.Setenv("GITHUB_WORKSPACE", "/historical/actions/workspace")
-	if _, err := runtimeExchangeRequiredPath(runtimeExchangeKJAtlasDirEnv); err == nil {
-		t.Fatal("runtime exchange accepted GITHUB_WORKSPACE instead of an explicit KJ Atlas path")
+	if _, err := runtimeExchangeRequiredPath(runtimeExchangeAArchiveEnv); err == nil {
+		t.Fatal("runtime exchange accepted GITHUB_WORKSPACE instead of an explicit artifact path")
 	}
 }
 
@@ -206,10 +206,10 @@ func TestRuntimeExchangeRealizationBindingChangesWhenExecutionArtifactIdentityCh
 				t,
 				"record-runtime-exchange-realization-changed",
 				logicalRef,
-				t.runtimeVersion,
-				t.runtimeArtifact,
+				tt.runtimeVersion,
+				tt.runtimeArtifact,
 				"qwen2.5:0.5b",
-				t.modelID,
+				tt.modelID,
 			)
 			if changed.Record.ExactBinding == nil {
 				t.Fatal("changed realization record lost exact binding")

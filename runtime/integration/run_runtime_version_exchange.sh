@@ -3,6 +3,7 @@ set -euo pipefail
 
 # GitHub Actionsに依存せず、同一のKJ Atlas / model artifact / Method inputで
 # Ollama runtimeだけを0.32.13から0.32.14へ交換し、SOZAの履歴再構成境界を検証します。
+# Linuxで直接実行するため、このfileはrepository上でもLFを維持します。
 # 実験結果の意味はISSUE-000070を正とし、このscriptの成功を成果品質やE4へ昇格させません。
 # strict Evidenceのsourceはverified runtime bundleだけを受け付けます。KJ Atlas checkoutを
 # 起点にする場合はrun_runtime_version_exchange_strict.pyで固定commit objectからexportします。
