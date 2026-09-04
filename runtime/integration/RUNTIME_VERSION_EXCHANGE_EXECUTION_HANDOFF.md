@@ -1,6 +1,6 @@
 # Runtime Version Exchange — Actual A/B Execution Handoff
 
-更新日: 2026-09-05  
+更新日: 2026-09-05
 対象: ISSUE-000070
 
 ## 目的
@@ -10,6 +10,8 @@
 ここで準備するのは固定artifactだけです。準備成功をactual inference、historical reconstruction、成果品質、E4 Operational portabilityの成立へ読み替えません。
 
 現在どこまで実装され、どこからが未検証かを先に確認する場合は、`RUNTIME_VERSION_EXCHANGE_CURRENT_STATE.md`を参照します。意味上のGoalとResolution Criteriaは`plan/issue/ISSUE-000070-verify-runtime-version-exchange-history.md`を正とします。
+
+この標準経路は2026-09-05にexecution ID `local-20260904T193531Z-7855`で完走済みです。初回Evidenceは`../RUNTIME_VERSION_EXCHANGE_EVIDENCE_2026-09-05.md`、保存コピーは`../evidence/runtime-version-exchange-local-20260904T193531Z/`にあります。本書は再実行・診断のための手順として維持します。
 
 ## 1. 前提
 

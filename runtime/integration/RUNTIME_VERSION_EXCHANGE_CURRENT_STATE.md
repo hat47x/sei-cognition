@@ -1,6 +1,6 @@
 # Runtime Version Exchange — Current Execution State
 
-更新日: 2026-09-05  
+更新日: 2026-09-05
 対象: ISSUE-000070
 
 ## この文書の役割
@@ -31,16 +31,18 @@ Evidence + Provenance verification
   = implemented
 
 actual Ollama 0.32.13 / 0.32.14 A/B execution
-  = Not Yet Verified
+  = Verified for the fixed scope
 
 runtime-version-exchange Scoped Executable Evidence
-  = not available yet
+  = available
 
 ISSUE-000070
-  = Open
+  = Resolved
 ```
 
-`focused local checks`、helper test、artifact metadata照合、preflight、failure Evidence保存の成功をactual runtime交換の成立へ読み替えません。
+2026-09-05にexecution ID `local-20260904T193531Z-7855`で標準経路を完走しました。独立Evidence + Provenance verifierは107 checkすべてを`ok`とし、blockerなしで`ready-to-review`を返しました。その後、Application A不変性、same logical / different Exact Binding、portable reconstruction、no semantic promotion、Requirement / Contractを再照合し、ISSUE-000070をResolvedとしました。
+
+詳細は`../RUNTIME_VERSION_EXCHANGE_EVIDENCE_2026-09-05.md`、保存Evidenceは`../evidence/runtime-version-exchange-local-20260904T193531Z/`を参照します。
 
 ## 現在の標準実行経路
 
@@ -111,26 +113,35 @@ official Release metadata match
   != actual A/B inference PASS
 ```
 
-## 現作業環境での観測
+## Actual runの観測
 
-2026-09-05の現作業環境ではLinux / amd64、Python、Go、Git、zstdと約30GBの空き容量を確認できています。一方、この実行containerからはactual実証に必要な約2.84GBの固定runtime archiveと固定model storeを通常の外部download経路で配置できませんでした。
+actual runでは、計画に固定した2本のruntime archiveを実バイトで取得し、size / SHA-256を一致させました。固定model storeもmanifest raw bytesと5 blobのsize / SHA-256を再検証しています。
 
-GitHub connectorから公式Release metadataは読めますが、そのことはbinary bytesが実行containerへ配置されたことを意味しません。過去のrelevant GitHub Actions Runにも再利用できるworkflow artifactは残っていません。
+- A actual binary: Ollama `0.32.13`
+- B actual binary: Ollama `0.32.14`
+- A / B actual model digest: `a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67`
+- A / B prompt SHA-256: `cd3d5eeb64cddfbdce63d80b0451b19703f43bcd2d1b09d7188f6bd4d7de2d33`
+- A / B actual inference: PASS
+- live historical Application test: PASS
+- Evidence + Provenance verification: `ready-to-review`
 
-これは現作業環境の取得境界であり、SOZAのProduct failureやruntime交換失敗とは扱いません。
+以前の作業環境で外部artifactを配置できなかった観測は、当時の取得境界としてIssueに残します。今回の成功で過去の未実行を遡ってPASSにはしません。
 
 ## 次にEvidence強度が上がる条件
 
-次の前進は追加のguard実装ではなく、固定artifactを取得可能なLinux / amd64環境で上記標準経路をactualに一度通すことです。
+ISSUE-000070の固定scopeは完了しました。次の探索は、今回のPASSを過大評価せず、別の軸へ移します。
 
-Evidence + Provenance verifierが`ready-to-review`へ到達した後も、それだけでISSUE-000070をResolvedにはしません。Application AのReference / Provenance / output不変性、same logical / different Exact Binding、portable historical reconstruction、no semantic promotion、Requirement / Contract再照合、自然な日本語最終監査まで確認します。
+- actual human reviewによるmodel / KJ-method outcome quality評価
+- fixed 2 revisionを越えるruntime / model / Method / Provider portability
+- private artifact acquisition / credential lifecycle
+- fully offline execution条件
+- E4 Operational portability
+- 次releaseでsupportする範囲とRelease Evidence
 
 ```text
-artifact preparation PASS
-  != preflight ready
-  != actual A/B inference PASS
-  != ready-to-review
-  != ISSUE-000070 Resolved
+fixed Ollama 0.32.13 / 0.32.14 exchange PASS
+  != arbitrary runtime version portability
+  != fully offline execution guaranteed
   != model output quality satisfied
   != KJ-method outcome quality satisfied
   != E4 Operational portability

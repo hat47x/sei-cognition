@@ -1,6 +1,6 @@
 # runtime integration probes
 
-更新日: 2026-09-04
+更新日: 2026-09-05
 
 このディレクトリには、SOZAと外部Cognitive Method / model runtimeの接続を実際に確かめるためのintegration資産を置きます。
 
@@ -435,7 +435,7 @@ python3 runtime/integration/run_runtime_version_exchange_local_checks.py \
 
 各testの既定timeoutは120秒です。必要なら`--timeout-seconds`で変更できます。timeoutはexit code `124`、child起動自体の失敗はexit code `127`相当としてmachine-readable resultへ残します。`--stop-on-failure`はnon-zero、timeout、launch errorのいずれでも停止できます。
 
-runnerは明示allowlistとcandidate discoveryを照合し、runtime version exchangeに関係するtestが未登録のまま増えることを検出します。runner自身のself-testもfocused checkへ含めます。
+runnerは明示allowlistとcandidate discoveryを照合し、runtime version exchangeに関係するtestが未登録のまま増えることを検出します。runner自身のself-testに加え、actual harnessが利用する`livemethodintegration` Go packageのnon-live compile / testもfocused checkへ含めます。
 
 親shellの`SOZA_RUNTIME_EXCHANGE_*`、`SOZA_E3B_RUNTIME_EXCHANGE_*`、`OLLAMA_HOST`、`OLLAMA_MODELS`はfocused regressionへ暗黙継承しません。
 
@@ -489,6 +489,19 @@ strictがEvidence directory作成前に失敗しても、verified runnerが失�
 
 mechanical verification reportはEvidence directoryの外へ保存します。
 
+## 2026-09-05 actual A/B Evidence
+
+標準prepositioned runnerをcleanなSOZA commit `ae9f631b7d570a6c3853bb71b794d501761fdf63`から実行し、execution ID `local-20260904T193531Z-7855`でOllama `0.32.13` / `0.32.14`のactual交換を完走しました。
+
+- fixed source / runtime / model / Method input / prompt: PASS
+- A / B actual inference: PASS
+- same logical Realization / different Exact Binding: PASS
+- historical Application A immutability: PASS
+- portable historical reconstruction / negative control: PASS
+- independent Evidence + Provenance verification: `107 ok / 0 blocked`, `ready-to-review`
+
+詳細は`../RUNTIME_VERSION_EXCHANGE_EVIDENCE_2026-09-05.md`、保存Evidenceは`../evidence/runtime-version-exchange-local-20260904T193531Z/`を参照します。
+
 ## 成果品質との境界
 
 このprobeが確認するのはruntime交換に伴うexecution identityとhistorical reconstructionです。actual KJ Atlas outputの意味上の品質は`evaluation/method-quality/`で別に扱います。
@@ -503,11 +516,11 @@ runtime exchange PASS
   != E4 Operational portability
 ```
 
-実験の意味とResolution条件は`plan/issue/ISSUE-000070-verify-runtime-version-exchange-history.md`を正とします。
+実験の意味とResolution条件は`plan/issue/ISSUE-000070-verify-runtime-version-exchange-history.md`を正とします。2026-09-05のactual EvidenceとRequirement / Contract再照合によって、同Issueは固定されたscopeでResolvedになりました。
 
 ## 自然な日本語レビュー
 
-current no-Actions baseline、固定runtime / source / model identity、artifact manifest横断整合、公式Release snapshot、runtime archiveのrepository外準備、source export、model store、preflight、strict entrypoint、failure Evidence、core / Provenance verifier、focused local runnerへ戻って全文を再監査しました。
+current no-Actions baseline、固定runtime / source / model identity、artifact manifest横断整合、公式Release snapshot、runtime archiveのrepository外準備、source export、model store、preflight、strict entrypoint、failure Evidence、core / Provenance verifier、focused local runner、2026-09-05 actual A / B Evidenceへ戻って全文を再監査しました。
 
 現在は、取得元、actual bytes、実行source、作業path、Evidence、成果品質を別の概念として扱っています。artifactの取得経路や配置場所をidentityの代わりにはせず、固定bytes / Git objectへ戻って検証します。
 
@@ -515,4 +528,4 @@ source acquisitionではworking treeを直接実行せず、固定commit object�
 
 GitHub Actionsを使わない現在の開発では、actual A/Bを起動しないfocused regressionを専用runnerへ集約し、timeout、launch error、Git観測、machine-readable resultまで保存できるようにしています。ただし、そのPASSをactual runtime exchange Evidenceへ昇格しません。
 
-actual Ollama `0.32.13` / `0.32.14`交換は引き続きNot Yet Verifiedです。実装済みの準備・安全策・failure Evidence・focused regressionと、未完了のactual A/B実行を明確に読み分けられることを最重要視しています。
+actual Ollama `0.32.13` / `0.32.14`交換は、focused regressionとは別のactual processと独立verifierを通してScoped Executable Evidenceになりました。一方、生成されたlabel / rationaleの品質、任意runtime互換性、fully offline execution、E4は未検証です。成立した範囲と停止線を明確に読み分けられることを最重要視しています。
