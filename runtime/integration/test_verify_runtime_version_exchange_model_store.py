@@ -141,6 +141,38 @@ class RuntimeVersionExchangeModelStoreVerifierTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "symlink"):
                 self.verify_fixture(root, manifest_sha)
 
+    def test_model_store_root_symlink_is_rejected_before_identity_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            actual_store = base / "actual-models"
+            actual_store.mkdir()
+            manifest_sha, _blobs, _manifest_path = self.make_store(actual_store)
+            model_link = base / "models-link"
+            try:
+                model_link.symlink_to(actual_store, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            with self.assertRaisesRegex(ValueError, "model store root.*symlink"):
+                self.verify_fixture(model_link, manifest_sha)
+
+    def test_model_store_root_with_symlink_parent_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            actual_parent = base / "actual-parent"
+            actual_parent.mkdir()
+            actual_store = actual_parent / "models"
+            actual_store.mkdir()
+            manifest_sha, _blobs, _manifest_path = self.make_store(actual_store)
+            link_parent = base / "model-parent-link"
+            try:
+                link_parent.symlink_to(actual_parent, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            with self.assertRaisesRegex(ValueError, "rootのparent.*symlink"):
+                self.verify_fixture(link_parent / "models", manifest_sha)
+
     def test_unreferenced_blob_does_not_change_fixed_model_identity(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
