@@ -22,8 +22,9 @@ FIXED_SOLUTION = "order_rollout"
 FIXED_VERSION = "2026.8.27"
 EXPECTED_GO_VERSION = "go1.23.2"
 STOP_LINE = (
-    "prepositioned exact-B bundle produced != SOZA Adapter compatibility verified "
-    "!= TEI version exchange PASS != Operational Evidence"
+    "prepositioned exact-B bundle produced with exact-A reference input "
+    "!= SOZA Adapter compatibility verified != TEI version exchange PASS "
+    "!= Operational Evidence"
 )
 
 
@@ -72,27 +73,37 @@ def _run(
     )
 
 
-def _copy_reference_inputs(source_repo: Path, bundle_root: Path) -> None:
-    workspace = source_repo / FIXED_WORKSPACE
-    run_file = source_repo / FIXED_RUN
-    plugin_lock = source_repo / FIXED_PLUGIN_LOCK
+def _copy_reference_inputs(reference_source_repo: Path, bundle_root: Path) -> None:
+    workspace = reference_source_repo / FIXED_WORKSPACE
+    run_file = reference_source_repo / FIXED_RUN
+    plugin_lock = reference_source_repo / FIXED_PLUGIN_LOCK
     for path in (workspace, run_file, plugin_lock):
         if not path.exists():
-            raise ValueError(f"fixed reference inputがありません: {path}")
+            raise ValueError(f"fixed revision A reference inputがありません: {path}")
 
     reference_root = bundle_root / "reference"
     shutil.copytree(workspace, reference_root / "workspace")
     shutil.copy2(run_file, reference_root / run_file.name)
 
 
-def produce_bundle(source_repo: Path, output_archive: Path) -> dict[str, object]:
+def produce_bundle(
+    source_repo: Path,
+    reference_source_repo: Path,
+    output_archive: Path,
+) -> dict[str, object]:
     source_repo = source_repo.expanduser().resolve(strict=True)
+    reference_source_repo = reference_source_repo.expanduser().resolve(strict=True)
     output_archive = output_archive.expanduser().resolve()
     output_archive.parent.mkdir(parents=True, exist_ok=True)
 
     source_observation = source_identity.verify_repository(
         source_repo,
         expected_head=source_identity.REVISION_B,
+    )
+    reference_observation = source_identity.verify_repository(
+        reference_source_repo,
+        expected_objects=source_identity.REVISION_A_REFERENCE_OBJECTS,
+        expected_head=source_identity.REVISION_A,
     )
 
     _ensure_linux_amd64()
@@ -130,15 +141,15 @@ def produce_bundle(source_repo: Path, output_archive: Path) -> dict[str, object]
                 str(binary),
                 "deployment-provider-plan",
                 "-workspace",
-                str(source_repo / FIXED_WORKSPACE),
+                str(reference_source_repo / FIXED_WORKSPACE),
                 "-run",
-                str(source_repo / FIXED_RUN),
+                str(reference_source_repo / FIXED_RUN),
                 "-solution",
                 FIXED_SOLUTION,
                 "-version",
                 FIXED_VERSION,
                 "-plugin-lock",
-                str(source_repo / FIXED_PLUGIN_LOCK),
+                str(reference_source_repo / FIXED_PLUGIN_LOCK),
             ],
             cwd=source_repo,
             env=env,
@@ -148,7 +159,7 @@ def produce_bundle(source_repo: Path, output_archive: Path) -> dict[str, object]
 
         bundle_verifier._parse_provider_plan(provider.stdout.encode("utf-8"))
 
-        _copy_reference_inputs(source_repo, bundle_root)
+        _copy_reference_inputs(reference_source_repo, bundle_root)
         metadata = {
             "schema": bundle_verifier.SCHEMA,
             "repository": bundle_verifier.REPOSITORY,
@@ -157,6 +168,10 @@ def produce_bundle(source_repo: Path, output_archive: Path) -> dict[str, object]
             "binary_sha256": _sha256(binary),
             "provider_plan_sha256": _sha256(provider_plan),
             "go_version": go_version,
+            "reference_input_source_commit": source_identity.REVISION_A,
+            "reference_workspace_tree": source_identity.REVISION_A_REFERENCE_OBJECTS[FIXED_WORKSPACE],
+            "reference_run_blob": source_identity.REVISION_A_REFERENCE_OBJECTS[FIXED_RUN],
+            "reference_plugin_lock_blob": source_identity.REVISION_A_REFERENCE_OBJECTS[FIXED_PLUGIN_LOCK],
         }
         (bundle_root / "metadata.json").write_text(
             json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
@@ -179,6 +194,7 @@ def produce_bundle(source_repo: Path, output_archive: Path) -> dict[str, object]
         "schema": "soza.tei-revision-b-prepositioned-run/v1",
         "result": "bundle_produced",
         "source": source_observation,
+        "referenceInput": reference_observation,
         "bundle": verification,
         "outputArchive": str(output_archive),
         "qualityJudgement": "not_evaluated",
@@ -189,12 +205,24 @@ def produce_bundle(source_repo: Path, output_archive: Path) -> dict[str, object]
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "prepositionedされたexact revision BのTEI checkoutを検証し、"
-            "historical E3b-P2と同じbuild / deployment-provider-plan条件でEvidence bundleを生成します。"
+            "prepositionedされたexact revision BのTEI checkoutをbuild sourceとして検証し、"
+            "exact revision Aのfixed reference inputを別checkoutから与えて、"
+            "runtime revisionだけを交換したdeployment-provider-plan Evidence bundleを生成します。"
         ),
         allow_abbrev=False,
     )
-    parser.add_argument("--source-repo", required=True, type=Path)
+    parser.add_argument(
+        "--source-repo",
+        required=True,
+        type=Path,
+        help="exact revision BのTEI checkout。build sourceとしてのみ使用する。",
+    )
+    parser.add_argument(
+        "--reference-source-repo",
+        required=True,
+        type=Path,
+        help="exact revision AのTEI checkout。historical fixed reference inputとしてのみ使用する。",
+    )
     parser.add_argument("--output-archive", required=True, type=Path)
     parser.add_argument("--json", action="store_true")
     return parser
@@ -203,7 +231,11 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
-        result = produce_bundle(args.source_repo, args.output_archive)
+        result = produce_bundle(
+            args.source_repo,
+            args.reference_source_repo,
+            args.output_archive,
+        )
     except (OSError, ValueError, subprocess.SubprocessError, tarfile.TarError) as exc:
         print(f"TEI revision B prepositioned run failed: {exc}")
         return 1
@@ -212,8 +244,10 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2))
     else:
         observation = result["bundle"]["observation"]
+        reference = result["referenceInput"]
         print("TEI revision B prepositioned run: bundle produced")
         print(f"- source commit: {observation['source_commit']}")
+        print(f"- reference input source commit: {reference['head']}")
         print(f"- binary SHA-256: {observation['binary_sha256']}")
         print(f"- Provider Plan SHA-256: {observation['provider_plan_sha256']}")
         print(result["stopLine"])
