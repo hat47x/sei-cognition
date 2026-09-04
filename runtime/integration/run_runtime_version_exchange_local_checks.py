@@ -12,6 +12,8 @@ from pathlib import Path
 INTEGRATION_DIR = Path(__file__).resolve().parent
 SOZA_ROOT = INTEGRATION_DIR.parents[1]
 RESULT_SCHEMA = "soza.runtime-version-exchange-focused-local-check-result/v1"
+DEFAULT_TEST_TIMEOUT_SECONDS = 120
+TIMEOUT_EXIT_CODE = 124
 
 # actual Ollama / KJ Atlas A/B実行を含めず、固定identity、準備、preflight、
 # strict入口、failure Evidence、保存済みEvidence verifierのfocused regressionだけを並べる。
@@ -196,6 +198,7 @@ def build_result(
     selected: list[Path],
     executions: list[dict[str, object]],
     stopped_early: bool,
+    timeout_seconds: int = DEFAULT_TEST_TIMEOUT_SECONDS,
 ) -> dict[str, object]:
     failures = [item for item in executions if item["exitCode"] != 0]
     return {
@@ -208,6 +211,7 @@ def build_result(
         "executedCount": len(executions),
         "failedCount": len(failures),
         "stoppedEarly": stopped_early,
+        "testTimeoutSeconds": timeout_seconds,
         "actualRuntimeExchangeEvidence": False,
         "qualityJudgement": "not_evaluated",
         "stopLine": STOP_LINE,
@@ -225,6 +229,7 @@ def run_checks(
     *,
     stop_on_failure: bool,
     result_output: Path | None = None,
+    timeout_seconds: int = DEFAULT_TEST_TIMEOUT_SECONDS,
 ) -> int:
     environment = sanitized_environment()
     executions: list[dict[str, object]] = []
@@ -232,14 +237,34 @@ def run_checks(
 
     for index, path in enumerate(paths, start=1):
         print(f"\n[{index}/{len(paths)}] {path.name}", flush=True)
-        completed = subprocess.run(
-            [sys.executable, str(path)],
-            cwd=INTEGRATION_DIR,
-            env=environment,
-            check=False,
-        )
-        executions.append({"name": path.name, "exitCode": completed.returncode})
-        if completed.returncode != 0 and stop_on_failure:
+        try:
+            completed = subprocess.run(
+                [sys.executable, str(path)],
+                cwd=INTEGRATION_DIR,
+                env=environment,
+                check=False,
+                timeout=timeout_seconds,
+            )
+            execution = {
+                "name": path.name,
+                "exitCode": completed.returncode,
+                "timedOut": False,
+                "timeoutSeconds": timeout_seconds,
+            }
+        except subprocess.TimeoutExpired:
+            execution = {
+                "name": path.name,
+                "exitCode": TIMEOUT_EXIT_CODE,
+                "timedOut": True,
+                "timeoutSeconds": timeout_seconds,
+            }
+            print(
+                f"focused check timeout: {path.name} は{timeout_seconds}秒以内に終了しませんでした",
+                file=sys.stderr,
+                flush=True,
+            )
+        executions.append(execution)
+        if execution["exitCode"] != 0 and stop_on_failure:
             stopped_early = index < len(paths)
             break
 
@@ -247,6 +272,7 @@ def run_checks(
         selected=paths,
         executions=executions,
         stopped_early=stopped_early,
+        timeout_seconds=timeout_seconds,
     )
 
     print("\nfocused local check summary")
@@ -255,7 +281,13 @@ def run_checks(
     print(f"- failed: {payload['failedCount']}")
     for item in executions:
         if item["exitCode"] != 0:
-            print(f"  - {item['name']}: exit {item['exitCode']}")
+            if item.get("timedOut"):
+                print(
+                    f"  - {item['name']}: timeout after {item['timeoutSeconds']} seconds"
+                )
+            else:
+                print(f"  - {item['name']}: exit {item['exitCode']}")
+    print(f"- timeout per test: {timeout_seconds} seconds")
     print(f"- stop line: {STOP_LINE}")
 
     if result_output is not None:
@@ -287,7 +319,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--stop-on-failure",
         action="store_true",
-        help="最初のnon-zero終了で残りのcheckを実行せず停止します。",
+        help="最初のnon-zero終了またはtimeoutで残りのcheckを実行せず停止します。",
+    )
+    parser.add_argument(
+        "--timeout-seconds",
+        type=int,
+        default=DEFAULT_TEST_TIMEOUT_SECONDS,
+        help=(
+            "各focused testの最大実行秒数。既定は"
+            f"{DEFAULT_TEST_TIMEOUT_SECONDS}秒です。"
+        ),
     )
     parser.add_argument(
         "--result-output",
@@ -306,6 +347,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.list and args.result_output is not None:
         parser.error("--listと--result-outputは同時に指定できません")
+    if args.timeout_seconds <= 0:
+        parser.error("--timeout-secondsには1以上の整数を指定してください")
 
     try:
         paths = select_checks(args.only)
@@ -321,6 +364,7 @@ def main(argv: list[str] | None = None) -> int:
         print("runtime version exchange focused local checks")
         for path in paths:
             print(f"- {path.name}")
+        print(f"- timeout per test: {args.timeout_seconds} seconds")
         print(f"- stop line: {STOP_LINE}")
         return 0
 
@@ -328,6 +372,7 @@ def main(argv: list[str] | None = None) -> int:
         paths,
         stop_on_failure=args.stop_on_failure,
         result_output=result_output,
+        timeout_seconds=args.timeout_seconds,
     )
 
 
