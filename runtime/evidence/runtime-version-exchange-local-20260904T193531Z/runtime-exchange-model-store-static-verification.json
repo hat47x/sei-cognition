@@ -1,0 +1,46 @@
+{
+  "blobVerification": "declared-size+actual-sha256",
+  "blobs": [
+    {
+      "digest": "sha256:005f95c7475154a17e84b85cd497949d6dd2a4f9d77c096e3c66e4d9c32acaf5",
+      "path": "/work/inputs/ollama-models/blobs/sha256-005f95c7475154a17e84b85cd497949d6dd2a4f9d77c096e3c66e4d9c32acaf5",
+      "sha256": "005f95c7475154a17e84b85cd497949d6dd2a4f9d77c096e3c66e4d9c32acaf5",
+      "size_bytes": 490
+    },
+    {
+      "digest": "sha256:c5396e06af294bd101b30dce59131a76d2b773e76950acc870eda801d3ab0515",
+      "path": "/work/inputs/ollama-models/blobs/sha256-c5396e06af294bd101b30dce59131a76d2b773e76950acc870eda801d3ab0515",
+      "sha256": "c5396e06af294bd101b30dce59131a76d2b773e76950acc870eda801d3ab0515",
+      "size_bytes": 397807936
+    },
+    {
+      "digest": "sha256:66b9ea09bd5b7099cbb4fc820f31b575c0366fa439b08245566692c6784e281e",
+      "path": "/work/inputs/ollama-models/blobs/sha256-66b9ea09bd5b7099cbb4fc820f31b575c0366fa439b08245566692c6784e281e",
+      "sha256": "66b9ea09bd5b7099cbb4fc820f31b575c0366fa439b08245566692c6784e281e",
+      "size_bytes": 68
+    },
+    {
+      "digest": "sha256:eb4402837c7829a690fa845de4d7f3fd842c2adee476d5341da8a46ea9255175",
+      "path": "/work/inputs/ollama-models/blobs/sha256-eb4402837c7829a690fa845de4d7f3fd842c2adee476d5341da8a46ea9255175",
+      "sha256": "eb4402837c7829a690fa845de4d7f3fd842c2adee476d5341da8a46ea9255175",
+      "size_bytes": 1482
+    },
+    {
+      "digest": "sha256:832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e",
+      "path": "/work/inputs/ollama-models/blobs/sha256-832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e",
+      "sha256": "832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e",
+      "size_bytes": 11343
+    }
+  ],
+  "digestBasis": "ollama-manifest-raw-bytes-sha256",
+  "manifestPath": "/work/inputs/ollama-models/manifests/registry.ollama.ai/library/qwen2.5/0.5b",
+  "manifestRelativePath": "manifests/registry.ollama.ai/library/qwen2.5/0.5b",
+  "manifestSha256": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+  "model": "qwen2.5:0.5b",
+  "modelStore": "/work/inputs/ollama-models",
+  "referencedBlobCount": 5,
+  "referencedBytesTotal": 397821319,
+  "schema": "soza.runtime-version-exchange-model-store-verification/v1",
+  "stopLine": "static model store verification PASS != actual Ollama /api/tags observation PASS != actual runtime A/B inference PASS",
+  "verified": true
+}

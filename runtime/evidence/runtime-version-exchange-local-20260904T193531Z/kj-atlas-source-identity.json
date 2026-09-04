@@ -1,0 +1,17 @@
+{
+  "pinnedBackendTree": "7d71ac2b4d32bef90f3a481ade1b4c92ddddd084",
+  "repository": "hat47x/kj-atlas",
+  "runtimeSurface": {
+    "alembicIniBlob": "05ace092c712dfda73634ef70e7bcb52eb74c712",
+    "alembicTree": "fbecd06d167e162609ae8b844dda3c7585479960",
+    "pyprojectBlob": "29d9427889a29cb8efcef10c59da5228c82147af",
+    "runtimeSurfaceTree": "208bea71eef4afed3ddfd3fabb36b0969d167a90",
+    "srcTree": "4c0b786a81bded22eab5d308289dc55a91cf8324"
+  },
+  "runtimeSurfaceTree": "208bea71eef4afed3ddfd3fabb36b0969d167a90",
+  "schema": "soza.kj-atlas-runtime-source-identity/v1",
+  "sourceCommit": "4f28c13abe4176503c6fed863383a2d1db2299e9",
+  "sourceMode": "verified-runtime-bundle",
+  "verificationBasis": "pinned-git-object-identities",
+  "verified": true
+}

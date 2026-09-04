@@ -1,1 +1,4 @@
 *.sh text eol=lf
+
+# Preserve post-run Evidence bytes so recorded log digests survive checkout EOL policy.
+runtime/evidence/runtime-version-exchange-local-20260904T193531Z/** -text
