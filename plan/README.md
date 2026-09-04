@@ -1,16 +1,17 @@
 # SOZA `plan/` 運用規約
 
-更新日: 2026-08-31  
+更新日: 2026-09-01  
 状態: **Accepted Planning Convention**
 
 ## 1. `plan/`の役割
 
 `plan/`は、SOZAの価値そのものを定義する場所ではありません。
 
-`product/`と`requirements/`を前提として、**何を決める必要があるか、なぜその判断が必要か、何を調査するか、どの設計判断を採用したか**を記録します。
+`product/`と`requirements/`を前提として、**何を決める必要があるか、何がまだ分かっていないか、何を調査・実証するか、どの設計判断を採用したか**を記録します。
 
 主に次を扱います。
 
+- 上流Product Development Plan
 - ADR（Architecture Decision Record）
 - Issue（未決論点、調査、比較、反証、委任課題）
 - ADR / Issueの状態と関連を管理するregistry
@@ -24,12 +25,15 @@ SOZAでは、文書を作成時期や担当者ではなく、**何を定義・�
 ```text
 product/
   ├─ value/        # なぜSOZAが存在するか、何を守り、どう価値を評価するか
+  ├─ definition/   # 製品としての外形
   ├─ vision/       # 長期的にどのような利用状態を目指すか
-  └─ principles/   # 下位設計で反復して適用する製品原則
+  ├─ principles/   # 下位設計で反復して適用する製品原則
+  └─ roadmap/      # 期限ではなくOutcome / Evidenceで示すProduct Milestone
 
-requirements/      # Product Valueを満たすために必要な要求とScenario
+requirements/      # Product Valueを満たすためのstable RequirementとScenario
 
 plan/
+  ├─ UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md # 未定領域を議論・実証から要件化する上流計画
   ├─ adr/          # 設計判断
   ├─ issue/        # 未決論点、調査、比較、委任課題
   ├─ kj/           # 設計統合・思考記録
@@ -44,18 +48,14 @@ fixtures/          # Executable Evidenceの入力・境界例
 tools/             # checker / probe等の検証補助
 ```
 
-`product/value/`では、少なくとも次を分けます。
-
-- Product Value — なぜ存在するか、何を中核価値とするか
-- Value Model — 価値の優先関係、V1〜V8、Core境界、失敗条件
-- Value Acceptance — V1〜V8を満たしたと主張するためのEvidence境界
-- Value Traceability — 上位価値からcurrent下位設計・Evidence gapへ戻る索引
-
 概念上の依存方向は、おおむね次のとおりです。
 
 ```text
 Product Value
-  → Requirements
+  → Product Milestone
+  → Open Question / Product Hypothesis
+  → Discussion / Research / Experiment
+  → Stable Requirement / Acceptance Scenario
   → Issue / ADR
   → Architecture
   → Contract / Representation Profile
@@ -65,7 +65,25 @@ Product Value
 
 下位の実装・検証から上位仮説への反証が得られた場合は上位文書へ戻ります。ただし、**既存実装を温存するためだけにProduct Valueを書き換えません。**
 
-## 3. ADRの役割
+## 3. 上流Product Development Plan
+
+`UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`は、まだRequirementとして十分に定まっていない領域をどう扱うかを定めます。
+
+基本は次です。
+
+```text
+Open Question
+  → Discussion / Research / Experiment
+  → Candidate Requirement
+  → Requirement audit
+  → Stable Requirement / existing Requirement integration / No Change
+```
+
+チャット上の議論は探索・統合に利用できますが、current正本はrepository文書へ戻します。
+
+Product Milestoneの箇条書きを、そのままREQへ変換しません。
+
+## 4. ADRの役割
 
 ADRは、SOZAに関する**設計上の判断**を残します。
 
@@ -85,24 +103,26 @@ Product Valueが主な判断根拠となる場合は、V1〜V8のうち実際に
 
 未決の場合は`Proposed`または`Decision Deferred`とし、判断できない理由と追加Evidenceを明示します。「まだ決めない」こと自体が境界を固定する場合はADRにできますが、単なる調査不足を無理にADR化しません。
 
-## 4. Issueの役割
+## 5. Issueの役割
 
 Issueは、調査・比較・反証・実体化等の**作業単位**を扱います。
 
 たとえば次を置きます。
 
+- Open Questionの整理
 - 調査・比較・pressure test
+- prototype / fixture / human review等の実証
+- Candidate Requirementの検討
 - Acceptance Scenarioの作成
-- 実装前の設計精緻化
 - ADRを決定可能にする材料収集
 - schema / fixture / runtime等の実体化
 - 他のAIや担当者へ委任できる課題
 
-Issueの完了は「何かを採用した」ことを意味しません。`Coreへ追加しない`、`Deferredとする`、`調査の結果変更不要`という結論も正当です。
+Issueの完了は「何かを採用した」ことを意味しません。`新Requirement不要`、`Coreへ追加しない`、`Deferredとする`、`調査の結果変更不要`という結論も正当です。
 
-設計判断が確定した一方で実体化が残る場合は、設計Issueを無理にOpenのまま維持せず、**設計IssueをResolvedにし、実装・検証を別Issueへ分離**できます。何が未決で、何が未実装なのかを混同しないためです。
+設計判断が確定した一方で実体化が残る場合は、設計Issueを無理にOpenのまま維持せず、**設計IssueをResolvedにし、実装・検証を別Issueへ分離**できます。
 
-## 5. 採番
+## 6. 採番
 
 ADRは4桁固定です。
 
@@ -122,9 +142,9 @@ ISSUE-000001 ... ISSUE-999999
 
 ADRとIssueは別々の番号空間です。同じ番号でも自動的な関連はなく、本文と`plan/registry.yaml`で明示します。
 
-状態をIDへ埋め込みません。状態変更で恒久IDやファイル名を変えないためです。
+状態をIDへ埋め込みません。
 
-## 6. 推奨状態
+## 7. 推奨状態
 
 ADR:
 
@@ -146,12 +166,13 @@ Issue:
 
 独自状態を増やす場合は、既存状態では意味を表せないことを先に確認します。
 
-## 7. Product ValueからEvidenceまでの追跡
+## 8. Product ValueからEvidenceまでの追跡
 
 重要なADR / Issueでは、必要な範囲で次の線を辿れるようにします。
 
 ```text
 Product Value
+  → Product Milestone
   → Value Model V1〜V8
   → Value Acceptance
   → Requirement / Acceptance Scenario
@@ -162,7 +183,7 @@ Product Value
   → Evidence
 ```
 
-### 7.1 V1〜V8
+### 8.1 V1〜V8
 
 - V1 Historical Reconstruction
 - V2 Semantic Separation
@@ -175,7 +196,7 @@ Product Value
 
 関係しない軸を形式的に付けると追跡の意味が薄れるため、判断に効く軸を示します。
 
-### 7.2 Evidenceの高さ
+### 8.2 Evidenceの高さ
 
 `SOZA_VALUE_ACCEPTANCE.md`に従い、次の5段階を区別します。
 
@@ -193,27 +214,29 @@ Design Evidence
   != Adoption / Outcome Evidence
 ```
 
-設計文書の完成をactual repositoryのPASSとは呼びません。fixtureやCIがPASSしたことをrelease readinessとも呼びません。本番で安定して動作したことだけから、利用者・組織へProduct Valueが届いたとも判断しません。
+IssueやMilestoneの状態は、実際に確認できたEvidenceの高さまでだけ更新します。
 
-IssueのAcceptanceは、必要に応じて次の高さへ分けます。
+## 9. Requirement化の停止線
 
-```text
-Semantic / Design Acceptance
-Executable Acceptance
-Release Acceptance
-Operational Acceptance
-Adoption / Outcome Acceptance
-```
+stable REQ IDを付ける前に、少なくとも次を確認します。
 
-すべてのIssueへ5欄を機械的に要求するのではなく、達成主張を誤読しやすい場合に明示します。
+- Product Valueとの関係を説明できるか。
+- 具体Scenarioまたは失敗例があるか。
+- 既存REQ / SCNで十分ではないか。
+- 現在のUI / AI / Provider / Storageの都合だけではないか。
+- Profile / Projection / Adapter等へ置く方が自然ではないか。
+- 10〜50倍程度先を見ても意味差が残るか。
+- Acceptanceを観測可能に定義できるか。
 
-## 8. 将来耐性
+Requirementを追加しない結論も正当です。
+
+## 10. 将来耐性
 
 将来耐性は固定された「100倍未来」ではなく、**評価時点の現実からおおむね10〜50倍程度先を見る移動基準**として扱います。
 
 10や50はbenchmark scoreではありません。現在のAIや実装制約へ過適合していないかを考えるための距離です。詳細はADR-0001を正とします。
 
-## 9. 文書作成の必須工程
+## 11. 文書作成の必須工程
 
 SOZAの開発文書は、次の順序で作成・更新します。
 
@@ -224,51 +247,18 @@ SOZAの開発文書は、次の順序で作成・更新します。
 5. **自然な日本語となることを最重要視して全文をドラフトし直す。**
 6. **再ドラフトによって意味・仕様・留保・Evidence強度が変わっていないか最終監査する。**
 
-第5工程は省略しません。新規文書だけでなく、既存開発文書もISSUE-000015と`plan/document_review_registry.yaml`で順次同じ工程へ通します。
+第5工程は省略しません。
 
-## 10. 自然な日本語ドラフトの基準
+## 12. 既存文書の監査
 
-優先順位は次のとおりです。
-
-1. 意味・仕様・留保・Evidence強度を変えない。
-2. 日本語として自然な語順と接続にする。
-3. 不要な英単語の混在を減らす。ただし識別に必要な技術用語は保持する。
-4. 名詞を連結しすぎず、必要に応じて述語を補う。
-5. 同じ概念を文書内で不用意に別名へ揺らさない。
-6. `!=`等の境界式には、重要な箇所で自然な日本語の説明も添える。
-7. 生成AI向けの断片的な作業メモを正式文書へ残さない。
-8. 意味上必要な曖昧さを、読みやすさのために勝手に確定させない。
-
-## 11. 既存文書の監査
-
-既存文書の監査状態は`plan/document_review_registry.yaml`を管理入口とし、ISSUE-000015で完了条件を追跡します。
-
-監査順は原則として次のとおりです。
-
-1. Product文書
-2. ADR / Issue
-3. Requirements
-4. Architecture / Contracts
-5. Runtime / Fixture / Toolの説明文書
-6. KJ統合・historical mapping・報告文書
-7. Template等の補助文書
+既存文書の監査状態は`plan/document_review_registry.yaml`を管理入口とします。
 
 原文そのものがEvidenceであるhistorical資料や固定fixtureは、自然な日本語化を理由に改変しません。
 
-## 12. `registry.yaml`
+## 13. `registry.yaml`
 
 `plan/registry.yaml`はADR / IssueのID、ファイル、状態、関連、優先度を一覧化する台帳です。検索と機械検査のための補助であり、判断理由の意味上の正本は各ADR / Issue本文です。
 
-IssueまたはADR本文のStatusを変更した場合は、同じ作業単位でregistryも更新します。本文とregistryのStatusが食い違ったまま作業を終えません。
-
-Plan文書とregistryを同時に変更する場合は、可能な範囲でatomic commitとし、一時的な不整合によるCI failureを避けます。
-
-## 13. CI failureの扱い
-
-CI failureを検出した場合は、**その時点で原因を特定・修正し、successを確認してから次の作業へ進みます。**
-
-検査を通すために意味契約やnegative caseを安易に弱めません。失敗がContract、fixture、test、tool、文書台帳のどこに由来するかを切り分け、正しい層を修正します。
-
 ## 14. Natural Japanese review
 
-Product Value traceability、5段階Evidence、current ADR / Issue / Contract / Runtime / Provider Adapter、文書監査台帳へ戻って運用規約を再構成した。その後、採番、Status、権威関係、Evidence強度、CI handlingを変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+current Product Value、Product Shape、期限を持たないProduct Milestone、5段階Evidenceと既存Planning規約へ戻り、`plan/`を未定領域の探索からstable Requirement・ADRへつなぐ場所として再整理した。採番、状態、Evidence、将来耐性等の既存規則を維持したまま、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

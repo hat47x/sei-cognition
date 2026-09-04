@@ -1,0 +1,34 @@
+{
+  "contract": "soza.semantic-interchange/v1alpha1",
+  "bundle_id": "bundle-cognitive-method-current-v1alpha1",
+  "records": [
+    {
+      "record_id": "record-method-application-current",
+      "contract": {
+        "contract_id": "soza.cognitive-method",
+        "version": "v1alpha1"
+      },
+      "kind": "method_application",
+      "logical_ref": {"kind": "method_application", "id": "review-2026-09-01-interchange"},
+      "payload": {
+        "contract": "soza.cognitive-method/v1alpha1",
+        "record_type": "method_application",
+        "method_application": {
+          "ref": {"kind": "method_application", "id": "review-2026-09-01-interchange"},
+          "method_ref": {"kind": "cognitive_method", "id": "contrastive-review"},
+          "realization_ref": {"kind": "method_realization", "id": "contrastive-review-assisted-v1"},
+          "input_refs": [
+            {"kind": "design_knowledge_pattern", "id": "provider-selection-pattern-a"}
+          ],
+          "output_refs": [
+            {"kind": "recommendation", "id": "recommendation-method-review-a"}
+          ],
+          "residual_refs": [
+            {"kind": "question", "id": "question-method-review-a"}
+          ],
+          "summary": "Cognitive Method Applicationをcurrent Semantic Interchange内で交換する。"
+        }
+      }
+    }
+  ]
+}

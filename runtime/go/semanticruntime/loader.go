@@ -9,14 +9,14 @@ import (
 )
 
 const (
-	ContractSemanticInterchange       = "soza.semantic-interchange/v1alpha1"
-	ContractSemanticReference         = "soza.semantic-reference/v1alpha1"
-	ContractDecisionMemory            = "soza.decision-memory/v1alpha1"
-	ContractCapabilityObservation     = "soza.capability-observation/v1alpha1"
-	ContractIDSemanticReference       = "soza.semantic-reference"
-	ContractIDDecisionMemory          = "soza.decision-memory"
-	ContractIDCapabilityObservation   = "soza.capability-observation"
-	ContractVersionV1Alpha1           = "v1alpha1"
+	ContractSemanticInterchange     = "soza.semantic-interchange/v1alpha1"
+	ContractSemanticReference       = "soza.semantic-reference/v1alpha1"
+	ContractDecisionMemory          = "soza.decision-memory/v1alpha1"
+	ContractCapabilityObservation   = "soza.capability-observation/v1alpha1"
+	ContractIDSemanticReference     = "soza.semantic-reference"
+	ContractIDDecisionMemory        = "soza.decision-memory"
+	ContractIDCapabilityObservation = "soza.capability-observation"
+	ContractVersionV1Alpha1         = "v1alpha1"
 )
 
 func decodeStrict(data []byte, target any) error {
@@ -297,6 +297,9 @@ func LoadStandalone(data []byte) (RuntimeRecord, error) {
 	case ContractCapabilityObservation:
 		doc, err := parseCapabilityObservation(data)
 		return RuntimeRecord{Status: RecordValidated, Capability: doc}, err
+	case ContractCognitiveMethod:
+		doc, err := parseCognitiveMethod(data)
+		return RuntimeRecord{Status: RecordValidated, CognitiveMethod: doc}, err
 	case ContractSemanticInterchange:
 		return RuntimeRecord{}, errors.New("semantic interchange must be loaded with LoadInterchange")
 	default:
@@ -351,6 +354,13 @@ func parseInterchangeRecord(record InterchangeRecord) (RuntimeRecord, error) {
 		}
 		runtimeRecord.Status = RecordValidated
 		runtimeRecord.Capability = doc
+	case ContractCognitiveMethod:
+		doc, err := parseCognitiveMethod(record.Payload)
+		if err != nil {
+			return runtimeRecord, err
+		}
+		runtimeRecord.Status = RecordValidated
+		runtimeRecord.CognitiveMethod = doc
 	default:
 		// Unknown nested Contract is retained as opaque payload. The runtime does
 		// not claim that it has validated semantics it does not understand.
@@ -370,14 +380,8 @@ func validateBundleExactReferences(bundle *Bundle) error {
 	}
 
 	for _, record := range bundle.Records {
-		if record.Decision == nil || record.Decision.Decision == nil {
-			continue
-		}
-		for _, ref := range record.Decision.Decision.BasisRefs {
-			binding, ok := ref.ExactBinding()
-			if !ok {
-				continue
-			}
+		for _, exactRef := range extractKnownExactReferences(record) {
+			binding := exactRef.Binding
 			candidates := exactByLogical[binding.LogicalRef]
 			if len(candidates) == 0 {
 				continue
@@ -390,7 +394,7 @@ func validateBundleExactReferences(bundle *Bundle) error {
 				}
 			}
 			if !matched {
-				return fmt.Errorf("decision basis exact binding does not match bundle record for %s/%s", binding.LogicalRef.Kind, binding.LogicalRef.ID)
+				return fmt.Errorf("%s exact binding does not match bundle record for %s/%s", exactRef.Role, binding.LogicalRef.Kind, binding.LogicalRef.ID)
 			}
 		}
 	}

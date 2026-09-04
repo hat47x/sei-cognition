@@ -1,0 +1,298 @@
+{
+  "executors": [
+    {
+      "executorId": "migration.atlas",
+      "command": {
+        "id": "sales_expand/apply",
+        "actionId": "sales_expand/apply",
+        "idempotencyKey": "tei:deploy:production:ee84a63c8f571370:sales_expand/apply",
+        "kind": "database-release",
+        "version": "4.1.0",
+        "database": "sales_core"
+      }
+    }
+  ],
+  "pluginRuntime": {
+    "environment": "production",
+    "pluginLockFingerprint": "74d225e985ebf68be9d0289f533d6599b7eb17e6757bb4425c1d0b08cfede220",
+    "runtimePolicyFingerprint": "bc67cae4df0f8ad7c9b441c348055f6237433eadfb9ab3654031cef2597a8f3d",
+    "plugins": [
+      {
+        "plugin": {
+          "id": "tei.database.observer.reference",
+          "version": "1.0.0"
+        },
+        "descriptorFingerprint": "2c55da013160c1afbd07e017b2fe3a278ad1349d4cb26514e7ab7d8500722d2f",
+        "boundary": "in-process",
+        "trust": "host-trusted",
+        "artifact": {}
+      },
+      {
+        "plugin": {
+          "id": "tei.database.oracle",
+          "version": "1.0.0"
+        },
+        "descriptorFingerprint": "26045b36a9192e191d5305008ab6f8353ffc336d24d5667a3286c038bebcac7c",
+        "boundary": "in-process",
+        "trust": "host-trusted",
+        "artifact": {}
+      },
+      {
+        "plugin": {
+          "id": "tei.database.postgres",
+          "version": "1.0.0"
+        },
+        "descriptorFingerprint": "1e2db2065b8594c9557aa83e27486d5867ff6ce09f9035c277189023924679a2",
+        "boundary": "in-process",
+        "trust": "host-trusted",
+        "artifact": {}
+      },
+      {
+        "plugin": {
+          "id": "tei.health.reference",
+          "version": "1.0.0"
+        },
+        "descriptorFingerprint": "11a5e27d23e07606d10850e44c43663bb34db997555227fdb087f431a3a08eed",
+        "boundary": "in-process",
+        "trust": "host-trusted",
+        "artifact": {}
+      },
+      {
+        "plugin": {
+          "id": "tei.migration.atlas",
+          "version": "1.0.0"
+        },
+        "descriptorFingerprint": "a39b77d70f4b8c0838dcb96bf4d3bca8c41d8d081449fbe865d3ed8ec0fa2f76",
+        "boundary": "process",
+        "trust": "external-process",
+        "command": "atlas",
+        "sandboxPolicy": "required",
+        "artifact": {
+          "digest": "sha256:553a998532767887a13c39f58b43936bbae4a5f0ccd6764f1c2500f575acded2",
+          "signatureRef": "sigstore://tei/reference/tei-migration-atlas@1.0.0",
+          "provenance": "source://tei/reference/plugins/tei-migration-atlas/1.0.0"
+        }
+      },
+      {
+        "plugin": {
+          "id": "tei.runtime.reference",
+          "version": "1.0.0"
+        },
+        "descriptorFingerprint": "f093059463561b9ba0463666424fc7db1f99bc2faace2321873efbada52eee0b",
+        "boundary": "in-process",
+        "trust": "host-trusted",
+        "artifact": {}
+      },
+      {
+        "plugin": {
+          "id": "tei.traffic.reference",
+          "version": "1.0.0"
+        },
+        "descriptorFingerprint": "d35cac7faf335f33b2482539ce244498a696fc09cf39621ac7b5a5c47f983878",
+        "boundary": "in-process",
+        "trust": "host-trusted",
+        "artifact": {}
+      }
+    ],
+    "capabilities": [
+      {
+        "plugin": {
+          "id": "tei.database.oracle",
+          "version": "1.0.0"
+        },
+        "capability": {
+          "kind": "database-provider",
+          "id": "database.oracle",
+          "databaseProviders": [
+            "oracle"
+          ]
+        },
+        "boundary": "in-process",
+        "leasePolicy": {}
+      },
+      {
+        "plugin": {
+          "id": "tei.database.postgres",
+          "version": "1.0.0"
+        },
+        "capability": {
+          "kind": "database-provider",
+          "id": "database.postgres",
+          "databaseProviders": [
+            "postgres"
+          ]
+        },
+        "boundary": "in-process",
+        "leasePolicy": {}
+      },
+      {
+        "plugin": {
+          "id": "tei.migration.atlas",
+          "version": "1.0.0"
+        },
+        "capability": {
+          "kind": "deployment-executor",
+          "id": "migration.atlas",
+          "actions": [
+            "database-release"
+          ],
+          "permissions": [
+            {
+              "kind": "filesystem",
+              "access": "read-write",
+              "scope": "migration-workdir"
+            },
+            {
+              "kind": "network",
+              "access": "connect",
+              "scope": "database-endpoint"
+            },
+            {
+              "kind": "secret",
+              "access": "read",
+              "scope": "database-credential"
+            }
+          ]
+        },
+        "boundary": "process",
+        "permissionLease": [
+          {
+            "kind": "filesystem",
+            "access": "read-write",
+            "scope": "migration-workdir"
+          },
+          {
+            "kind": "network",
+            "access": "connect",
+            "scope": "database-endpoint"
+          },
+          {
+            "kind": "secret",
+            "access": "read",
+            "scope": "database-credential"
+          }
+        ],
+        "resourceBindings": [
+          {
+            "kind": "filesystem",
+            "scope": "migration-workdir",
+            "resourceId": "production.sales_core.migration_workdir",
+            "refresh": "none"
+          },
+          {
+            "kind": "network",
+            "scope": "database-endpoint",
+            "resourceId": "production.sales_core.database_endpoint",
+            "refresh": "none"
+          },
+          {
+            "kind": "secret",
+            "scope": "database-credential",
+            "resourceId": "production.sales_core.migration_credential",
+            "secretDelivery": "environment",
+            "secretTarget": "TEI_DATABASE_CREDENTIAL",
+            "refresh": "live"
+          }
+        ],
+        "leasePolicy": {
+          "maxLifetime": "45m",
+          "renewBefore": "5m",
+          "revokeTimeout": "15s",
+          "renewalFailure": "fail-closed"
+        }
+      },
+      {
+        "plugin": {
+          "id": "tei.runtime.reference",
+          "version": "1.0.0"
+        },
+        "capability": {
+          "kind": "deployment-executor",
+          "id": "runtime.reference",
+          "actions": [
+            "application-retire",
+            "application-start",
+            "stop-accepting-work"
+          ]
+        },
+        "boundary": "in-process",
+        "leasePolicy": {}
+      },
+      {
+        "plugin": {
+          "id": "tei.traffic.reference",
+          "version": "1.0.0"
+        },
+        "capability": {
+          "kind": "deployment-executor",
+          "id": "traffic.reference",
+          "actions": [
+            "traffic-shift"
+          ]
+        },
+        "boundary": "in-process",
+        "leasePolicy": {}
+      },
+      {
+        "plugin": {
+          "id": "tei.health.reference",
+          "version": "1.0.0"
+        },
+        "capability": {
+          "kind": "evidence-provider",
+          "id": "health.reference",
+          "evidence": [
+            "rollout-health"
+          ]
+        },
+        "boundary": "in-process",
+        "leasePolicy": {}
+      },
+      {
+        "plugin": {
+          "id": "tei.migration.atlas",
+          "version": "1.0.0"
+        },
+        "capability": {
+          "kind": "migration-provider",
+          "id": "migration.atlas",
+          "migrationTools": [
+            "atlas"
+          ]
+        },
+        "boundary": "process",
+        "leasePolicy": {}
+      },
+      {
+        "plugin": {
+          "id": "tei.database.observer.reference",
+          "version": "1.0.0"
+        },
+        "capability": {
+          "kind": "observation-provider",
+          "id": "database.observer",
+          "observations": [
+            "database-state"
+          ]
+        },
+        "boundary": "in-process",
+        "leasePolicy": {}
+      },
+      {
+        "plugin": {
+          "id": "tei.runtime.reference",
+          "version": "1.0.0"
+        },
+        "capability": {
+          "kind": "observation-provider",
+          "id": "runtime.observer",
+          "observations": [
+            "application-runtime"
+          ]
+        },
+        "boundary": "in-process",
+        "leasePolicy": {}
+      }
+    ]
+  }
+}

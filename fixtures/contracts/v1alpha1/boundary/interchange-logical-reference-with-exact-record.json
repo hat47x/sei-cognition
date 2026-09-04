@@ -1,0 +1,39 @@
+{
+  "contract": "soza.semantic-interchange/v1alpha1",
+  "bundle_id": "logical-reference-with-exact-record",
+  "records": [
+    {
+      "record_id": "method-record",
+      "contract": {"contract_id": "soza.cognitive-method", "version": "v1alpha1"},
+      "kind": "method-definition",
+      "logical_ref": {"kind": "cognitive_method", "id": "logical-method"},
+      "exact_binding": {
+        "logical_ref": {"kind": "cognitive_method", "id": "logical-method"},
+        "content_digest": "sha256:known-revision",
+        "representation_profile": {"profile_id": "fixture.raw-json", "version": "v0"}
+      },
+      "payload": {
+        "contract": "soza.cognitive-method/v1alpha1",
+        "record_type": "method_definition",
+        "method_definition": {
+          "ref": {"kind": "cognitive_method", "id": "logical-method"},
+          "title": "Logical method",
+          "purpose": "Keep logical and exact references distinct."
+        }
+      }
+    },
+    {
+      "record_id": "application-record",
+      "contract": {"contract_id": "soza.cognitive-method", "version": "v1alpha1"},
+      "kind": "method-application",
+      "payload": {
+        "contract": "soza.cognitive-method/v1alpha1",
+        "record_type": "method_application",
+        "method_application": {
+          "ref": {"kind": "method_application", "id": "logical-application"},
+          "method_ref": {"kind": "cognitive_method", "id": "logical-method"}
+        }
+      }
+    }
+  ]
+}

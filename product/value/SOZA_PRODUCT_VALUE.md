@@ -1,6 +1,6 @@
 # SOZA Product Value
 
-更新日: 2026-08-31  
+更新日: 2026-09-01  
 状態: **Product Value Baseline**
 
 ## 1. SOZAが存在する理由
@@ -69,7 +69,29 @@ SOZAの記録は、機械処理可能であるだけでなく、人間が意味�
 
 過剰な内部推論やprivate chain-of-thoughtの保存ではなく、観察、問い、根拠、未解決点、判断理由、責任、来歴など、外在化して共有すべき情報を扱います。
 
-## 4. 価値を測るときの考え方
+## 4. Product Valueと下位設計の境界
+
+Product Valueは、現在の実装で何が作れるかを列挙する文書ではありません。また、Product Valueの文言から個別のRequirementやUniversal型を機械的に生成しません。
+
+SOZAでは、価値を実際の製品へ落とすときに、次の高さを分けます。
+
+```text
+Product Value
+  → Product Milestone
+  → Open Question / Product Hypothesis
+  → Discussion / Research / Experiment
+  → Candidate Requirement
+  → Stable Requirement / Acceptance Scenario
+  → Architecture / Contract / Implementation
+```
+
+まだ何を要求すべきか十分に分かっていない領域では、未定であることをそのまま認めます。チャット上の議論、資料調査、prototype、fixture、human review、provider接続試験等を通して必要性を確かめ、**独立した規範上の必要性が確認できたものだけをRequirementへ昇格**させます。
+
+実験の結果、既存Requirementで十分だった、新しいUniversal概念は不要だった、という結論もProduct Valueに沿った正当な成果です。
+
+この境界により、Product Valueを守りながら、現在のUI、AI、Storage、Provider等の制約を恒久的な製品要件へ焼き付けることを避けます。
+
+## 5. 価値を測るときの考え方
 
 SOZAの価値を、単純な自動化率や実行件数だけで評価しません。
 
@@ -81,12 +103,14 @@ SOZAの価値を、単純な自動化率や実行件数だけで評価しませ�
 4. 相反するEvidenceやUnknownを保持したまま扱えるか。
 5. 過去のDecisionを現在の知識で上書きせず、変更の来歴を辿れるか。
 6. 実行ランタイムが変わっても、SOZAの中核価値が残るか。
+7. 人間とAIが、同じcanonical meaningへ必要な粒度で戻れるか。
+8. 利用者が過剰な入力負担なしに、必要な場面だけ詳細化できるか。
 
 これらを実際の設計評価へ使うときは、`SOZA_VALUE_MODEL.md`のV1〜V8へ展開します。単一の総合点へ還元せず、どの価値を満たし、どこに未充足やtrade-offが残るかを個別に確認します。
 
-さらに、「満たしている」という主張の高さを正確にするため、`SOZA_VALUE_ACCEPTANCE.md`ではDesign、Executable、Release、Operational Evidenceを分けます。設計文書が整っているだけでactual repositoryやproductionで実証済みとは扱いません。
+さらに、「満たしている」という主張の高さを正確にするため、`SOZA_VALUE_ACCEPTANCE.md`ではDesign、Executable、Release、Operational、Adoption / Outcome Evidenceを分けます。設計文書が整っているだけでactual repositoryやproductionで実証済みとは扱いません。
 
-## 5. SOZAが価値としないもの
+## 6. SOZAが価値としないもの
 
 SOZAは、次をそれ自体の目的とはしません。
 
@@ -97,21 +121,28 @@ SOZAは、次をそれ自体の目的とはしません。
 - Universalな単一スコアによる判断の自動化
 - すべての仕事をSOZA内部で実行すること
 - 実装量やコード量を製品価値とみなすこと
+- 未定領域を早くRequirement化した件数を進捗とみなすこと
 
-## 6. 長期的に守る中心
+## 7. 長期的に守る中心
 
 技術が進歩するほど、現在の実装・プロンプト・オーケストレーションの一部は不要になります。
 
 SOZAが守るべき中心は、それらの仕組みではなく、**認識、問い、不確実性、根拠、判断、責任、Capability、来歴を、人間とAIが後から読み直し、選び直せる状態に保つこと**です。
 
-## 7. 関連文書
+期限を持たないProduct Milestoneは、この中心価値が製品としてどこまで成立したかを確認するために使います。Milestone自体をProduct Valueより上位に置きません。
+
+## 8. 関連文書
 
 - `product/value/SOZA_VALUE_MODEL.md` — 価値の優先関係、Core境界、V1〜V8、失敗条件
 - `product/value/SOZA_VALUE_ACCEPTANCE.md` — V1〜V8を満たしたと判断するためのEvidence境界
+- `product/value/SOZA_VALUE_PROPOSITION.md` — 利用者から見た価値提案
+- `product/definition/SOZA_PRODUCT_SHAPE.md` — 製品としての外形
 - `product/vision/SOZA_PRODUCT_VISION.md` — 長期的に目指す利用状態
 - `product/principles/SOZA_PRODUCT_PRINCIPLES.md` — 下位設計で反復して適用する原則
+- `product/roadmap/SOZA_PRODUCT_MILESTONES.md` — 期限を持たない製品成立Milestone
+- `plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md` — 未定領域を議論・実証からRequirementへ進める手順
 - `plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md` — Product Valueの権威関係と変更・評価境界
 
-## 8. 自然な日本語ドラフト
+## 9. 自然な日本語ドラフト
 
-Value ModelとValue Acceptanceの役割分担を確認した後、意味、強度、留保、技術的境界を変えず、自然な日本語となることを最重要視して全文を再ドラフトしました。その後、最終意味監査を実施しています。
+Value Model、Value Acceptance、Value Proposition、Product Shape、Product Milestoneと上流開発計画の役割分担を確認した。Product ValueからRequirementを直接生成せず、未定領域は議論・実証を経て必要なものだけ要件化する境界を追加したうえで、既存の中核価値、強度、留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

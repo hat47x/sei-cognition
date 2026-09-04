@@ -28,6 +28,7 @@
     "plan/registry.yaml",
     "release/v0.1.0/RELEASE_ACCEPTANCE.md"
   ],
+  "plan_issue_scope_max": "ISSUE-000041",
   "allowed_deferred_issues": [
     "ISSUE-000021"
   ],

@@ -1,25 +1,31 @@
 # SOZA Product文書の読み方
 
-更新日: 2026-08-31  
-状態: **Current Product Documentation Baseline**
+更新日: 2026-09-02  
+状態: **Current Product Documentation Baseline — v0.2.0 Release Evidence / E3b-M1a / E3b-P2 acquisition probe reflected**
 
 ## 1. この文書の役割
 
-`product/`は、SOZAが**なぜ存在するのか、何を失ってはならないのか、長期的にどの方向を目指すのか**を定める上位文書の入口です。
+`product/`は、SOZAが**なぜ存在するのか、何を失ってはならないのか、どのような製品状態を目指し、どこまで成立したら次の段階へ進めるのか**を定める上位文書の入口です。
 
-個別の実装方式、現在のMilestone、特定Providerの都合をProduct定義へ持ち込む場所ではありません。
+個別の実装方式や特定Providerの都合をProduct定義へ持ち込む場所ではありません。期限やcalendar scheduleもここでは固定せず、Product MilestoneはOutcomeとEvidenceの成立条件で表します。
 
-SOZAでは、下位設計を上位価値へ戻って検査できるよう、概ね次の依存方向を維持します。
+SOZAでは、概ね次の依存方向を維持します。
 
 ```text
-Product Value
+Product Value / Value Proposition
   → Value Model / Value Acceptance
-  → Vision / Principles
+  → Vision / Principles / Product Shape
+  → Deadline-free Product Milestones
+  → Product Interaction / Packaging / Identity・Access / other Product boundaries
+  → Open Question / Product Hypothesis
+  → Discussion / Research / Experiment
   → Requirements / Acceptance Scenarios
   → Issue / ADR
-  → Architecture
-  → Contract / Representation Profile
-  → Runtime / Provider Adapter / Test / Evidence
+  → Architecture / Contract
+  → Runtime / Adapter / Probe / Test
+  → Executable Evidence
+  → Release Candidate / Release Evidence
+  → Operational / Adoption・Outcome Evidence
 ```
 
 下位の実装・検証から上位仮説への反証が得られた場合は、必要に応じてProduct Valueまで戻って再検討します。ただし、既存実装を温存するためだけに上位価値を書き換えません。
@@ -29,6 +35,12 @@ Product Value
 ### `value/SOZA_PRODUCT_VALUE.md`
 
 SOZAが存在する理由と、最も上位で守る価値を定めます。
+
+Product Valueから個別RequirementやUniversal型を機械的に生成しません。何を要求すべきか十分に分からない領域は、議論・調査・実証を通して必要性を確認します。
+
+### `value/SOZA_VALUE_PROPOSITION.md`
+
+Product Valueを、利用者がどのような問題を解き、どのような価値を受け取る製品なのかという観点から表します。
 
 ### `value/SOZA_VALUE_MODEL.md`
 
@@ -57,13 +69,13 @@ Design Evidence
   != Adoption / Outcome Evidence
 ```
 
-本番で安定して動作することと、利用者・組織の判断や成果に価値が届くことは別に検証します。
-
 ### `value/SOZA_VALUE_TRACEABILITY.md`
 
-Product Valueからcurrent Requirements、Acceptance Scenarios、ADR、Architecture、Contract、Representation Profile、runtime、Provider Adapter、Evidence gapへ戻るための索引です。
+Product Valueからcurrent Requirements、Acceptance Scenarios、ADR、Architecture、Contract、Representation Profile、runtime、probe、Release Evidence、Evidence gapへ戻るための索引です。
 
-この文書は新しい意味上の正本を作るものではありません。
+### `definition/SOZA_PRODUCT_SHAPE.md`
+
+SOZAを製品として見たときの主要な仕事、論理Surface、SOZA内外の境界、Minimum Usable Product Shapeを定めます。
 
 ### `vision/SOZA_PRODUCT_VISION.md`
 
@@ -71,9 +83,78 @@ Product Valueを長期的な到達方向として表します。未来の特定�
 
 ### `principles/SOZA_PRODUCT_PRINCIPLES.md`
 
-繰り返し現れる設計判断で利用する製品原則を定めます。PrincipleはProduct Valueより上位ではありません。
+繰り返し現れる設計判断で利用する製品原則を定めます。未定領域については、Open Question、実証、Candidate Requirement、Stable Requirementを分離します。
 
-## 3. 具体的なScenarioの正本
+### `roadmap/SOZA_PRODUCT_MILESTONES.md`
+
+SOZAをどの順序で製品として成立させるかを、**期限ではなくOutcomeとEvidence**で示します。
+
+現在、PMS-06ではE2、E3a、E3b-P1、E3b-P2のfixed-artifact actual TEI CLI execution、E3b-M1aにScoped Executable Evidenceがあります。E3b-P2では固定revisionの実TEIをbuild・起動し、SOZA Adapter経由でcurrent Capability Observationへ戻せることまで確認しました。一方、SOZA Actionsからprivate TEIを継続取得するcredential運用、任意version互換性、E3b-M1b、E4は未検証です。PMS-07はv0.2.0 Local Reference Product Baselineの範囲でRelease EvidenceがSatisfiedであり、PMS-08のOperational / Adoption・Outcome Evidenceは未検証のままです。
+
+### `interaction/SOZA_PRODUCT_INTERACTION.md`
+
+PMS-03に対応するfirst usable Product Interactionについて、人間とAIがどのcanonical meaningへ接続し、どの操作を行える必要があるかを定めます。
+
+Web UI、desktop UI、CLI、HTTP API、MCP等を先に標準化せず、利用者向け操作境界とcanonical authorityの関係を正本化します。
+
+ISSUE-000053ではhuman-oriented Surfaceとmachine-oriented Surfaceを同じcanonical sourceへ接続し、Recommendation / Decision分離、Unknown / Conflict保持、Projectionの非権威性、historical Decision basis非改変等をreference probeで確認しました。
+
+### `packaging/SOZA_PRODUCT_PACKAGING.md`
+
+PMS-04に対応する最初のPackaging / Deployment boundaryを定めます。最初のprofileはLocal Single-Node Packageです。
+
+```text
+Go runtime executable
+  + replaceable Persistence boundary
+  + explicit durable data root
+  + portable semantic data
+```
+
+Linux / amd64のLocal Reference Packageはv0.2.0 release assetとして配布済みです。ただし、formal platform support matrix、production installer、signing、crash durability、production Storage migrationの成立を意味しません。
+
+### `security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`
+
+PMS-05に対応するIdentity / Access / Collaboration boundaryを定めます。
+
+```text
+authentication identity
+  != Bounded Subject
+  != product access permission
+  != semantic Responsibility / Authority
+```
+
+ISSUE-000056では、IdP相当identity交換後のResponsibility continuity、ResponsibilityとProduct accessの非同一性、Product adminとsemantic Responsibilityの非同一性、`denied` / `not_evaluated`、Selective Disclosureのcanonical source非改変を限定範囲で確認しています。
+
+### `definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`
+
+PMS-06に対応し、Cognitive Method RealizationやCapability Providerを交換するときに、何を交換可能とし、何を判断記憶として保つかを定めます。
+
+現在は次の範囲にScoped Executable Evidenceがあります。
+
+- E2 out-of-process reference exchange
+- E3a version-pinned external artifact integration
+- E3b-P1 public live Provider service
+- E3b-P2 fixed-artifact actual TEI CLI execution
+- E3b-M1a live KJ Atlas process + deterministic model stub
+
+E3b-P2では、固定revisionの実TEI CLIをbuild・起動し、actual `deployment-provider-plan`をSOZA Adapterでstrictに読み、current Capability Observationへ戻す範囲までScoped Executable Evidenceがあります。SOZA Actionsからprivate TEIを継続取得するcredential運用、任意version互換性、E3b-M1b external model-backed Method executionは未検証です。
+
+## 3. 未定領域の扱い
+
+未定のProduct領域は、最初からStable Requirementとして扱いません。
+
+```text
+Open Question
+  → Discussion / Research / Experiment
+  → Candidate Requirement
+  → Stable Requirement
+```
+
+詳細な進め方は`../plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`を正とします。
+
+チャット上の議論は探索・統合の作業空間として使えますが、current正本はrepository上のProduct / Requirement / ADR等へ戻します。
+
+## 4. 具体的なScenarioの正本
 
 具体的な利用・検証場面は、`requirements/ACCEPTANCE_SCENARIOS.md`の`SCN-*`をcurrent正本とします。
 
@@ -86,55 +167,60 @@ Product Value / V1〜V8
   → ADR / Architecture / Contract / Test
 ```
 
-## 4. 現在のEvidence状態
+Product Milestoneや各Product boundaryの項目を、そのままRequirementやScenarioへ変換しません。独立した規範上の必要性が確認できたものだけを下位正本へ反映します。
 
-2026-08-31時点では、少なくとも次がactual repositoryにあります。
+## 5. 現在のProduct Milestone上の位置
 
-### Design baseline
+current repositoryでは、少なくとも次の状態まで確認しています。
 
-- Product Value / Value Model / Value Acceptance
-- REQ-0001〜REQ-0022
-- SCN-0001〜SCN-0017
-- ADR-0001〜ADR-0024
-- current Reference Architecture
-- current 4 Contract Definition
-- current Representation Profile Definition
-- first semantic runtime slice
-- Provider Adapter observation mapping boundary
+- Product Value / Value Proposition / Vision / Principles / Product Shape: **Design baseline established**
+- current semantic Contract群: **Scoped Executable Evidence available**
+- SCN-0018 end-to-end Semantic Product Journey: **fixture-scoped Executable Evidence available**
+- first usable Product Interaction: **Design baseline established / scoped Executable Evidence available**
+- Packaging / Deployment: **Design baseline established / Minimum scoped Executable Evidence available**
+- Local Reference Package: **release asset available for v0.2.0 Linux / amd64 reference profile**
+- Product Identity / Access / Collaboration: **Design baseline established / scoped Product Access separation Executable Evidence available**
+- Realization / Provider portability: **Partial — E2 / E3a / E3b-P1 / E3b-P2 fixed-artifact / E3b-M1a Scoped Executable Evidence available**
+- PMS-07: **Satisfied for v0.2.0 Local Reference Product Baseline**
+- production IdP / team collaboration security: **Not Yet Verified**
+- E3b-P2 actual TEI process / service: **fixed-artifact Scoped Executable Evidence available / credential operation・arbitrary version pending**
+- E3b-M1b external model-backed Cognitive Method execution: **Not Yet Verified**
+- E4 Operational portability: **Not Yet Verified**
+- PMS-08 Operational / Adoption・Outcome Evidence: **Not Yet Verified**
 
-### scoped Executable Evidence
-
-- Planning registry integrity checker
-- Requirements registry checkerとnegative self-test
-- Contract v1alpha1 schema / 17 fixture / semantic validator / conformance workflow
-- JCS / raw-bytes Representation Profile fixtureとGo verifier probe
-- Contract fixtureを読むGo first semantic runtime slice
-- synthetic heterogeneous Provider A / B Adapter slice
-
-代表的なactual CI:
-
-- Requirements Registry Conformance — Run `33346697016`: **success**
-- Contract Conformance — Run `33346472419`: **success**
-- Representation Profile Conformance — Run `33347989530`: **success**
-- Semantic Runtime Conformance #3 — Run `33348972805`: **success**
-- Semantic Runtime Conformance #4 — Run `33349604842`: **success** — synthetic Adapter slice
-- Semantic Runtime Conformance #5 — Run `33349801993`: **success** — Provider-specific field非漏洩の追加hardening
-
-これらは、それぞれ定めた対象範囲のExecutable Evidenceです。SOZA全体のExecutable Acceptance完了を意味しません。
-
-### currentでまだ主張しないもの
-
-- historical M47 digest mapping
-- production Provider / TEI integration
-- Release Evidence
-- Operational Evidence
-- Adoption / Outcome Evidence
+v0.2.0 Release Evidenceの詳細は`../release/v0.2.0/RELEASE_EVIDENCE.md`を参照してください。
 
 ```text
-CI PASS != release ready != operational success != user-value realization
+v0.2.0 Release Evidence Satisfied
+  != production readiness
+  != Operational Evidence
+  != Adoption / Outcome Evidence
 ```
 
-## 5. Product Valueを変更するとき
+## 6. v0.2.0 releaseと後続Evidenceの読み方
+
+v0.2.0は、現在のsemantic baselineにProduct Interaction、Local Single-Node Packaging、Product Access責務分離、Realization / Provider交換、E3a external artifact integrationまでを加えた **Local Reference Product Baseline** です。
+
+actual releaseでは、tag、source commit、Release Candidate Gate、Local Reference Package、checksum、candidate report、release metadataを追跡できる状態で配布しています。
+
+repositoryには、release scope確定後に得られたE3b-P1、TEI executable injection boundary、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1aのScoped Executable Evidenceも存在します。しかし、それらを理由にv0.2.0のsupported scopeを後から広げません。
+
+```text
+post-release scoped Evidence / probe exists
+  != v0.2.0 supported scope expanded
+```
+
+とくにE3b-M1aは、固定revisionのKJ Atlas本体を別processとして実行できたことを示しますが、modelにはKJ Atlas同梱の決定的stubを使います。
+
+```text
+E3b-M1a PASS
+  != external model quality proven
+  != E3b-M1b PASS
+```
+
+E3b-P2の最初のcredential-aware runではactual TEI stepがskipされましたが、その後、固定source commitからactual `cmd/tei`をbuild・実行したEvidence artifactを作成し、同artifactをcurrent SOZA Adapterから実processとして起動できることを確認しました。最初のskip記録は履歴として保持し、後続Evidenceによってfixed-artifact範囲だけを前進させています。
+
+## 7. Product Valueを変更するとき
 
 Product ValueやValue Modelの意味変更は、通常の実装変更より重く扱います。
 
@@ -142,18 +228,16 @@ Product ValueやValue Modelの意味変更は、通常の実装変更より重�
 
 1. 何が反証されたのか。
 2. 変更する価値は何か。
-3. V1〜V8、Requirements、SCN、ADR、Architecture、Contractのどこへ影響するか。
+3. Milestone、V1〜V8、Requirements、SCN、ADR、Architecture、Contractのどこへ影響するか。
 4. 過去の判断と互換性があるか。
 5. どのEvidenceで変更の必要性を説明できるか。
-6. いつ再検討するか。
+6. どの条件で再検討するか。
 
 詳細はADR-0018を正とします。
 
-Value AcceptanceのEvidence区分を精緻化するときも、V1〜V8の意味を暗黙に変更していないかを確認します。
+## 8. 新しい概念をCoreへ入れる前に
 
-## 6. 新しい概念をCoreへ入れる前に
-
-Product文書から新しいUniversal Core概念が自動的に生えるわけではありません。
+Product文書やMilestoneから新しいUniversal Core概念が自動的に生えるわけではありません。
 
 Coreへ追加する前に、少なくとも次を検討します。
 
@@ -161,36 +245,37 @@ Coreへ追加する前に、少なくとも次を検討します。
 - 複数domainで同じ意味境界が反復するか。
 - 判断、責任、不確実性、来歴の再構成に不可欠か。
 - Reference、Profile、Adapter、Provider、domain-specific knowledgeで扱えないか。
+- 評価時点から10〜50倍程度先を見ても意味上の必要性が残るか。
 
 現在の実装で便利であることや、関連製品との距離が近いことだけをCore昇格理由にしません。
 
-ADR-0024のProvider Adapterも、この原則に従ってProvider-specific input schemaをUniversal Coreへ持ち込みません。synthetic sliceでもProvider A / B固有fieldがCapability Observation schemaへ漏れないことを検査しています。
-
-## 7. 読む順序
-
-Product層から読み始める場合は、次の順序を推奨します。
+## 9. 推奨する読む順序
 
 1. `value/SOZA_PRODUCT_VALUE.md`
-2. `value/SOZA_VALUE_MODEL.md`
-3. `value/SOZA_VALUE_ACCEPTANCE.md`
-4. `value/SOZA_VALUE_TRACEABILITY.md`
-5. `vision/SOZA_PRODUCT_VISION.md`
-6. `principles/SOZA_PRODUCT_PRINCIPLES.md`
-7. `../requirements/PRODUCT_REQUIREMENTS.md`
-8. `../requirements/ACCEPTANCE_SCENARIOS.md`
-9. `../architecture/TRACEABILITY.md`
-10. `../contracts/TRACEABILITY.md`
-11. `../contracts/profiles/README.md`
-12. `../plan/adr/ADR-0024-provider-adapter-observation-mapping-boundary.md`
+2. `value/SOZA_VALUE_PROPOSITION.md`
+3. `value/SOZA_VALUE_MODEL.md`
+4. `value/SOZA_VALUE_ACCEPTANCE.md`
+5. `definition/SOZA_PRODUCT_SHAPE.md`
+6. `vision/SOZA_PRODUCT_VISION.md`
+7. `principles/SOZA_PRODUCT_PRINCIPLES.md`
+8. `roadmap/SOZA_PRODUCT_MILESTONES.md`
+9. `interaction/SOZA_PRODUCT_INTERACTION.md`
+10. `packaging/SOZA_PRODUCT_PACKAGING.md`
+11. `security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`
+12. `definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`
+13. `value/SOZA_VALUE_TRACEABILITY.md`
+14. `../release/v0.2.0/RELEASE_ACCEPTANCE.md`
+15. `../release/v0.2.0/RELEASE_EVIDENCE.md`
+16. `../plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`
+17. `../requirements/PRODUCT_REQUIREMENTS.md`
+18. `../requirements/ACCEPTANCE_SCENARIOS.md`
+19. `../architecture/TRACEABILITY.md`
+20. `../contracts/TRACEABILITY.md`
 
-## 8. 文書品質
+## 10. Natural Japanese review
 
-Product文書は、内容と構造を確定した後に、意味、規範強度、留保、Evidence強度を変えず、**自然な日本語となることを最重要視して全文をドラフトし直します**。
+Product Value、Value Proposition、Value Model / Acceptance、Product Shape、Vision / Principles、Product Milestones、Interaction、Packaging、Identity / Access / Collaboration、Realization / Provider Exchange、REQ-0001〜0022、SCN-0001〜0018、v0.2.0 Release Acceptance / Release Evidence、E3b-M1a Evidence、E3b-P2 acquisition probeへ戻ってProduct文書の入口を再監査しました。
 
-その後、日本語を整えたことで意味が狭まったり、未検証事項が確定事項へ変わったりしていないか、最終意味監査を行います。
+v0.2.0のRelease Evidence成立を維持しながら、release後に成立したM1aをPMS-06のScoped Executable Evidenceとして保持しています。さらにE3b-P2の実TEI専用probe経路をProduct入口へ反映しましたが、最初のrunではactual TEI stepがskipされたため、P2を未検証のまま明示しています。M1aやP2 probeをv0.2.0 supported scopeへ遡及させず、E3b-M1b、E4、Operational / Adoption・Outcome Evidenceも未検証のまま分離しています。
 
-詳細な文書作成手順は`../plan/DOCUMENT_AUTHORING_STANDARD.md`を参照してください。
-
-## 9. Natural Japanese review
-
-current Product / Requirements / ADR-0001〜0024 / Architecture / Contract / Representation Profile / runtime / synthetic Provider Adapterの正本関係とactual Evidenceを確認し、重複した正本や第二のScenario体系を作らないよう役割を整理しました。その後、意味、権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。

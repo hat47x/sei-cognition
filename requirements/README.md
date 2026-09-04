@@ -1,6 +1,6 @@
 # SOZA Requirements
 
-更新日: 2026-08-31  
+更新日: 2026-09-01  
 状態: **Current Requirements Baseline**
 
 ## 1. このディレクトリの役割
@@ -12,7 +12,7 @@ Product Valueそのものや長期Visionを定義する場所ではなく、具�
 概念上の関係は次のとおりです。
 
 ```text
-Product Value / Value Model / Value Acceptance
+Product Value / Value Model / Value Acceptance / Product Shape
   ↓
 Requirements / Acceptance Scenarios
   ↓
@@ -36,13 +36,17 @@ requirements/
   README.md
   PRODUCT_REQUIREMENTS.md
   ACCEPTANCE_SCENARIOS.md
+  PRODUCT_JOURNEY_COMPOSITION.md
   history/
     HISTORICAL_REQUIREMENT_MAPPING.md
 ```
 
 - `PRODUCT_REQUIREMENTS.md` — current Product Requirementの正本入口
 - `ACCEPTANCE_SCENARIOS.md` — current Acceptance Scenarioの正本入口
+- `PRODUCT_JOURNEY_COMPOSITION.md` — Product Shapeを既存REQ / SCNへ照合し、end-to-end Product Journeyの重複・不足を分析する補助文書
 - `history/HISTORICAL_REQUIREMENT_MAPPING.md` — historical candidateからcurrent baselineへの意味上の対応
+
+`PRODUCT_JOURNEY_COMPOSITION.md`は、新しいRequirementやScenarioの第二の正本ではありません。分析結果からstableな意味を採用するときは、`PRODUCT_REQUIREMENTS.md`または`ACCEPTANCE_SCENARIOS.md`へ反映します。
 
 将来、RequirementやScenarioを個別ファイルへ分割しても、stable IDは維持します。
 
@@ -74,6 +78,8 @@ Requirement != Acceptance Scenario != Test Case
 
 一つのScenarioが複数Requirementを同時に検証して構いません。fixtureがPASSしてもScenario全体が満たされたとは限らないため、確認した範囲を明示します。
 
+SCN-0018のような統合Scenarioは、既存Scenarioを置き換えるものではありません。個別の意味境界が一つのProduct Journeyでも同時に保たれることを検査します。
+
 ## 5. Product Valueとの追跡
 
 current Requirementは、原則として`SOZA_VALUE_MODEL.md`のV1〜V8、または明示的なProduct Principle / external constraintへ追跡します。
@@ -90,6 +96,8 @@ current Requirementは、原則として`SOZA_VALUE_MODEL.md`のV1〜V8、また
 8軸すべてを形式的に付けず、実際に関係する軸だけを示します。
 
 上位からの横断的な索引は`product/value/SOZA_VALUE_TRACEABILITY.md`を参照します。
+
+Product ShapeからRequirementへ降りるときは、製品上の操作や画面構造をそのままUniversal Requirementへ昇格させません。まず既存REQとの重複を確認し、既存の規範で表現できない独立した必要性がある場合だけ新しいREQを追加します。
 
 ## 6. Requirement statusとEvidenceを分ける
 
@@ -125,9 +133,11 @@ Requirement Accepted
   != Adoption / Outcome Evidence Satisfied
 ```
 
+また、個別Contract / runtime / Provider AdapterがそれぞれPASSしていても、それらを足し合わせるだけでend-to-end Product Acceptanceが成立したことにはしません。
+
 ## 7. current actual repositoryのEvidence
 
-現在のactual repositoryには、Product / Plan / Requirementsに加えて、Reference Architecture、4 Contract family、JSON Schema、17 Contract fixture、Representation Profile、Go first semantic runtime、synthetic Provider Adapter、各checker / CIが存在します。
+現在のactual repositoryには、Product / Plan / Requirementsに加えて、Reference Architecture、5 Contract family、JSON Schema、Contract fixture、Representation Profile、Go first semantic runtime、synthetic Provider Adapter、各checker / CIが存在します。
 
 主なscoped Executable Evidence:
 
@@ -137,8 +147,11 @@ Requirement Accepted
 - Representation Profile Conformance
 - first Semantic Runtime Conformance
 - synthetic Provider Adapter Conformance
+- V6 / V7 Projection Evaluation
 
-ただし、これらのPASSをすべてのRequirementへ一律に継承しません。Requirement / Scenarioごとに実際に触れている意味境界だけを`Partially Satisfied`等へ更新します。
+これらのPASSをすべてのRequirementへ一律に継承しません。Requirement / Scenarioごとに実際に触れている意味境界だけを`Partially Satisfied`等へ更新します。
+
+SCN-0018のend-to-end Product Journeyについては、component-level Evidenceは存在しますが、一続きのExecutable harnessは現時点で`Not Yet Verified`です。
 
 Release、Operational、Adoption / Outcome Evidenceは現時点では主張しません。
 
@@ -158,11 +171,11 @@ Release、Operational、Adoption / Outcome Evidenceは現時点では主張し�
 
 ## 9. Requirement作成・更新の必須工程
 
-1. Product Value / Value Model / Value Acceptanceを確認する。
+1. Product Value / Value Model / Value Acceptance / Product Shapeを確認する。
 2. Requirementとして必要な意味差を定める。
 3. 既存REQとの重複を確認する。
 4. 関連するV1〜V8、Scenario、ADR / Issueを確認する。
-5. Requirementと実装方式を混同していないか確認する。
+5. Requirementと実装方式、Product Interaction上の都合を混同していないか確認する。
 6. Evidence状態をactual evidenceへ合わせる。
 7. 内容と構造を確定する。
 8. **意味・強度・例外・留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトする。**
@@ -175,6 +188,8 @@ CI failureを検出した場合は、原因を解消してsuccessを確認する
 
 - `product/README.md`
 - `product/value/SOZA_PRODUCT_VALUE.md`
+- `product/value/SOZA_VALUE_PROPOSITION.md`
+- `product/definition/SOZA_PRODUCT_SHAPE.md`
 - `product/value/SOZA_VALUE_MODEL.md`
 - `product/value/SOZA_VALUE_ACCEPTANCE.md`
 - `product/value/SOZA_VALUE_TRACEABILITY.md`
@@ -182,7 +197,8 @@ CI failureを検出した場合は、原因を解消してsuccessを確認する
 - `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
 - `plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md`
 - `plan/adr/ADR-0020-requirements-traceability-and-evidence-boundary.md`
+- `plan/issue/ISSUE-000048-define-end-to-end-golden-journey-acceptance.md`
 
 ## 11. Natural Japanese review
 
-current Product Value traceability、5段階Evidence、REQ / SCN、Architecture / Contract / Runtime / Provider Adapterのactual Evidenceへ戻って運用規則を再確認した。その後、RequirementとScenarioとTestの境界、stable ID、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+current Product Value、Product Shape、5段階Evidence、REQ-0001〜REQ-0022、SCN-0001〜SCN-0018、Architecture / Contract / Runtime / Provider Adapterのactual Evidenceへ戻って運用規則を再確認した。Product Journeyの分析文書を第二の正本にせず、製品上の操作をそのままUniversal Requirementへ昇格させない境界を追加した。その後、RequirementとScenarioとTestの関係、stable ID、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

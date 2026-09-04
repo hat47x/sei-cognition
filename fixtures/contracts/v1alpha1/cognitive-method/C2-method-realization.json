@@ -1,0 +1,12 @@
+{
+  "contract": "soza.cognitive-method/v1alpha1",
+  "record_type": "method_realization",
+  "method_realization": {
+    "ref": {"kind": "method_realization", "id": "contrastive-review-assisted-v1"},
+    "method_ref": {"kind": "cognitive_method", "id": "contrastive-review"},
+    "description": "外在化された比較表と検査手順を生成AI支援で作成し、人間が確認する実現。",
+    "implementation_refs": [
+      {"kind": "procedure", "id": "contrastive-review-procedure-v1"}
+    ]
+  }
+}
