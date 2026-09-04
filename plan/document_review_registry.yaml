@@ -1,5 +1,5 @@
 schema: soza.document-review-registry/v1
-updated: 2026-09-03
+updated: 2026-09-05
 
 purpose: >-
   ISSUE-000015で行った既存開発文書の自然な日本語監査について、current branch上の
@@ -15,11 +15,11 @@ status_vocabulary:
 reviewed:
   - scope: README.md
     status: revised
-    note: v0.2.0 Local Reference Product Baselineのactual Release Evidence、current develop branch、5 Contract family、current Plan範囲へ同期し、旧v0.1.0基線の記述を自然な日本語で全面再ドラフト済み。
+    note: v0.2.0 Local Reference Product Baselineのactual Release Evidence、current develop branch、5 Contract family、current Plan範囲へ同期した。ISSUE-000070のfixed-scope actual runtime exchange成立とResolved、registry上のOpen Issueなし、arbitrary portability / fully offline / outcome qualityの停止線までを入口へ反映し、自然な日本語で再監査済み。
 
   - scope: product/README.md
     status: revised
-    note: Product Value、Milestone、Interaction、Packaging、Identity / Access、Realization / Provider Exchange、v0.2.0 Release Evidence、release後のE3b-P2 fixed-artifact actual TEI execution、E3b-M1a、E3b-M1bまでをcurrent Product入口として自然な日本語で再整理済み。M1bのactual inference成立とmodel・KJ法としての成果品質を分離し、credential運用・任意version・E4も未検証として残している。
+    note: Product Value、Milestone、Interaction、Packaging、Identity / Access、Realization / Provider Exchange、v0.2.0 Release Evidence、release後のE3b-P2、M1a、M1b、historical reconstruction、actual model / runtime exchangeまでをcurrent Product入口として再整理した。fixed-scope runtime exchange成立を任意互換性、fully offline、成果品質、E4へ広げない停止線を自然な日本語で再監査済み。
   - scope: product/value/*.md
     status: revised
     coverage:
@@ -28,13 +28,13 @@ reviewed:
       - SOZA_VALUE_MODEL.md
       - SOZA_VALUE_ACCEPTANCE.md
       - SOZA_VALUE_TRACEABILITY.md
-    note: Value Traceabilityはactual v0.2.0 Release EvidenceをLocal Reference Product Baselineへ限定したまま、post-releaseのE3b-P2 fixed-artifact、M1a、M1bをScoped Executable Evidenceとして追跡した。M1b固有実装をStable Requirementへ先取りせず、model / runtime version交換、品質評価、E4、Operational / Adoption・Outcomeを次のEvidence gapとして分離している。
+    note: Value Traceabilityはactual v0.2.0 Release EvidenceをLocal Reference Product Baselineへ限定したまま、post-releaseのE3b-P2、M1a、M1b、historical reconstruction、actual model artifact交換、fixed-scope actual runtime version交換をScoped Executable Evidenceとして追跡した。既存Requirement / Contractで表現できた結果と、任意互換性、品質評価、E4、Operational / Adoption・OutcomeのEvidence gapを分離している。
   - scope: product/definition/*.md
     status: revised
     coverage:
       - SOZA_PRODUCT_SHAPE.md
       - SOZA_REALIZATION_PROVIDER_EXCHANGE.md
-    note: Product ShapeとRealization / Provider Exchangeを全文監査し、E2、E3a、E3b-P1、TEI executable注入境界、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1bを同じEvidence ladder上で分離した。TEI / KJ Atlas / Ollama固有responseや実装方式をUniversal semanticsへ持ち込まず、model品質、credential運用、任意version、E4を未検証として残している。
+    note: Product ShapeとRealization / Provider Exchangeを全文監査し、E2、E3a、E3b-P1、E3b-P2、E3b-M1a、E3b-M1b、historical reconstruction、actual model / runtime exchangeを同じEvidence ladder上で分離した。TEI / KJ Atlas / Ollama固有responseや実装方式をUniversal semanticsへ持ち込まず、成果品質、credential運用、任意version、fully offline、E4を未検証として残している。
   - scope: product/vision/SOZA_PRODUCT_VISION.md
     status: revised
   - scope: product/principles/SOZA_PRODUCT_PRINCIPLES.md
@@ -44,7 +44,7 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_MILESTONES.md
-    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06はE2 / E3a / E3b-P1 / E3b-P2 fixed-artifact / E3b-M1a / E3b-M1bまでをScoped Executable Evidenceとして整理し、model・KJ法としての成果品質、credential運用、任意version、E4を未検証として分離している。PMS-07はv0.2.0 Local Reference Product BaselineのRelease Evidence成立を維持し、post-release Evidenceをsupported scopeへ遡及させていない。
+    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06はE2 / E3a / E3b-P1 / E3b-P2 / E3b-M1a / E3b-M1b、historical reconstruction、actual model / runtime exchangeまでをScoped Executable Evidenceとして整理し、成果品質、credential運用、任意version、fully offline、E4を未検証として分離している。PMS-07はv0.2.0 Local Reference Product BaselineのRelease Evidence成立を維持し、post-release Evidenceをsupported scopeへ遡及させていない。
   - scope: product/interaction/*.md
     status: revised
     coverage:
@@ -68,7 +68,7 @@ reviewed:
   - scope: plan/issue/ISSUE-*.md
     status: revised
     coverage: ISSUE-000001..ISSUE-000071
-    note: ISSUE-000001〜000071をcurrent履歴として監査済み。ISSUE-000069はGitHub Actions常設時に得たtrigger選択とrunner allocation Evidenceをhistoricalに保持しつつ、PR #70でworkflow群がcurrent baselineから外れたため、未実行の全面回帰をPASSへ読み替えず「現行方針では非適用」としてResolvedへ整理した。ISSUE-000070は固定model artifactの下でOllama `0.32.13` / `0.32.14`だけを交換するactual実証をrepository-local harnessへ移し、固定KJ Atlas commit、runtime archive digest、model digest、同一Method input / prompt、historical Application不変性、portable reconstructionを同じ実行境界から検査できる状態にした。ただしcurrent harnessによるactual A / B交換は未完了のためOpenを維持する。ISSUE-000071はexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeを分離し、PR #72のactual履歴からのreview bundle再構成とPR #73の非権威的AI補助観測までを反映して評価境界をResolvedとした。ただしhuman reviewと成果品質判定は未完了のまま残している。各Issueは意味、留保、Evidence強度を変えず、自然な日本語を最重要視して再ドラフト済み。
+    note: ISSUE-000001〜000071をcurrent履歴として監査済み。ISSUE-000069はcurrent no-Actions方針の下で未実行をPASSへ読み替えずResolvedへ整理した。ISSUE-000070は固定KJ Atlas source、Method input、prompt、model artifactの下でOllama `0.32.13` / `0.32.14`をactualに交換し、異なるExact Binding、先行Application不変性、portable reconstruction、非自動昇格を確認したためResolvedとした。独立verifierは`107 ok / 0 blocked`で、Requirement / Scenario / ContractはNo Changeである。成果品質、任意runtime互換性、fully offline、E4、上位Evidenceは未検証のまま残した。ISSUE-000071も評価境界のResolvedとhuman review未完了を分離している。各Issueは意味、留保、Evidence強度を変えず、自然な日本語を最重要視して再監査済み。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -83,7 +83,7 @@ reviewed:
       - requirements/PRODUCT_REQUIREMENTS.md
       - requirements/ACCEPTANCE_SCENARIOS.md
       - requirements/PRODUCT_JOURNEY_COMPOSITION.md
-    note: Requirement / Scenario / Testの境界を維持したまま監査済み。M1a / M1b固有のKJ Atlas、FastAPI、HTTP、model stub、Ollama、特定model tag等をStable Requirementへ先取りしない。
+    note: Requirement / Scenario / Testの境界を維持し、ISSUE-000070のactual結果をREQ-0001 / 0004 / 0021とSCN-0005 / 0015のPartially SatisfiedなEvidenceへ反映した。KJ Atlas、Ollama、特定version / digest等をStable RequirementやUniversal fieldへ先取りせず、Requirement / ScenarioはNo Changeとして再監査済み。
   - scope: requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md
     status: revised
 
@@ -159,9 +159,18 @@ reviewed:
   - scope: runtime/ACTUAL_TEI_CLI_EVIDENCE_2026-09-02.md
     status: revised
     note: E3b-P2の後続Evidenceとして、固定TEI sourceからactual `cmd/tei`をbuild・実行し、Evidence artifactをcurrent SOZA Adapterから別processとして起動してCapability Observationへ戻した範囲を記録した。fixed-artifact Executable Evidenceとcredential運用・任意version・Operational Evidenceを分離している。
+  - scope: runtime/RUNTIME_VERSION_EXCHANGE_EVIDENCE_2026-09-05.md
+    status: revised
+    note: 固定KJ Atlas source、Method input、prompt、qwen2.5:0.5b artifactの下でOllama `0.32.13` / `0.32.14`をactualに交換したEvidenceを記録した。actual inference、異なるExact Binding、先行Application不変性、portable reconstruction、独立verifier `107 ok / 0 blocked`を、成果品質、任意互換性、fully offline、E4、上位Evidenceへ拡張しない停止線とともに再監査済み。
   - scope: runtime/integration/README.md
     status: revised
     note: external Cognitive Method / model runtimeのactual integration probeをrepository-localに実行する入口として監査済み。GitHub Actionsや特定runnerを成立条件にせず、ISSUE-000070の固定runtime / model identity、Evidence保存、actual runtime交換と成果品質・E4の停止線を自然な日本語で説明している。
+  - scope: runtime/integration/RUNTIME_VERSION_EXCHANGE_CURRENT_STATE.md
+    status: revised
+    note: ISSUE-000070のfixed-scope actual A/B成立、独立verifier結果、Resolved、Requirement / Contract No Changeを短く示し、成果品質、任意互換性、fully offline、E4を次の未検証範囲として残す運用snapshotへ更新した。
+  - scope: runtime/integration/RUNTIME_VERSION_EXCHANGE_EXECUTION_HANDOFF.md
+    status: revised
+    note: 固定artifactの準備、事前配置rootからの標準実行、完了判定を一続きに案内する再実行手順として維持し、成功済みexecution IDとEvidence文書への導線を追加した。ready-to-reviewと成果品質・任意互換性を分離する停止線も再監査済み。
   - scope: runtime/package/reference/*.md
     status: revised
     coverage:
@@ -222,13 +231,16 @@ reviewed:
   - scope: plan/kj/2026-08-31_TEI設計系列_ラウンドKJ統合.md
     status: reviewed-no-change
     note: 広域統合時点の生カード・束ね・核融合・残差を原記録として保全する。
+  - scope: plan/kj/2026-09-03_KJAtlas統合意味論_横断影響監査.md
+    status: reviewed-no-change
+    note: KJ Atlas固有の統合意味論をSOZAのUniversal Contractへ先取りせず、Method Definition、Realization、Application、residual、lineageの既存境界で受け止める横断監査として全文を確認した。
 
   - scope: plan/README.md
     status: revised
     note: Product Milestoneと上流探索・Requirement化の配置規則をcurrent planning入口へ反映済み。
   - scope: plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md
     status: revised
-    note: v0.2.0 Release Evidence、E3b-P2 fixed-artifact、E3b-M1a / M1b、historical reconstruction、actual二モデル交換を維持しつつ、ISSUE-000071の評価境界確立をcurrent stateへ反映した。成果品質そのものは未評価のまま、次の主探索をISSUE-000070のruntime version交換、actual human review、broader portability、E4 Operational portabilityへ整理した。PR #70後のActions停止方針に合わせ、検証内容と実行基盤を分離し、未実行をPASSへ読み替えない停止線を自然な日本語で再構成した。
+    note: v0.2.0 Release Evidence、E3b-P2、E3b-M1a / M1b、historical reconstruction、actual model交換を維持しつつ、ISSUE-000070のfixed-scope actual runtime交換とISSUE-000071の評価境界をcurrent stateへ反映した。既存REQ / SCN / Contractで表現できたためNo Changeとし、次の主探索をactual human review、broader model / runtime portability、fully offline、E4へ整理した。Actionsを成立条件にせず、検証内容と実行基盤、scoped PASSと上位Evidenceを分離して再監査済み。
   - scope: plan/DEVELOPMENT_WORKFLOW.md
     status: revised
     note: Product Valueと未定領域の探索をRequirement / Architectureより上流へ置く原則を維持したうえで、PR #70後のActions停止状態へ全文を再整理した。GitHub Actions、local test、repository checker、external runnerを検証手段として意味上の正本から分離し、failureがpushを止めないことと、merge / release / Evidence gateが別責務であることを自然な日本語で明示した。

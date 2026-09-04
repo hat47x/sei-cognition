@@ -193,5 +193,5 @@ issue:
   - {id: ISSUE-000067, file: plan/issue/ISSUE-000067-verify-method-realization-version-historical-reconstruction.md, status: Resolved, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0017, ADR-0021, ADR-0025, ADR-0026]}
   - {id: ISSUE-000068, file: plan/issue/ISSUE-000068-verify-actual-model-artifact-exchange-history.md, status: Resolved, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0017, ADR-0021, ADR-0025, ADR-0026]}
   - {id: ISSUE-000069, file: plan/issue/ISSUE-000069-separate-ci-evidence-triggers-from-runner-availability.md, status: Resolved, priority: 1, related_adrs: [ADR-0018, ADR-0020, ADR-0021]}
-  - {id: ISSUE-000070, file: plan/issue/ISSUE-000070-verify-runtime-version-exchange-history.md, status: Open, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0017, ADR-0021, ADR-0025, ADR-0026]}
+  - {id: ISSUE-000070, file: plan/issue/ISSUE-000070-verify-runtime-version-exchange-history.md, status: Resolved, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0017, ADR-0021, ADR-0025, ADR-0026]}
   - {id: ISSUE-000071, file: plan/issue/ISSUE-000071-establish-cognitive-method-outcome-quality-evaluation-boundary.md, status: Resolved, priority: 1, related_adrs: [ADR-0017, ADR-0018, ADR-0020, ADR-0021, ADR-0025]}

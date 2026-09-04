@@ -1,7 +1,7 @@
 # SOZA 上流プロダクト開発計画
 
-更新日: 2026-09-03  
-状態: **Current Upstream Planning Baseline — v0.2.0 Release Evidence / E3b fixed-artifact Evidence / historical reconstruction / method-quality evaluation boundary reflected**
+更新日: 2026-09-05
+状態: **Current Upstream Planning Baseline — v0.2.0 Release Evidence / E3b fixed-artifact Evidence / historical reconstruction / fixed runtime exchange / method-quality evaluation boundary reflected**
 
 ## 1. この文書の役割
 
@@ -81,7 +81,7 @@ ISSUE-000069では、GitHub-hosted runnerの割当問題とrepository内の実�
 
 現在の主要な未定領域は次です。
 
-- **runtime version交換**: ISSUE-000070。model artifactを固定したままOllama `0.32.13` / `0.32.14`を交換し、historical reconstructionを保てるか。
+- **broader runtime portability**: ISSUE-000070で固定2 revisionのactual交換は成立した。別version系列、別OS、長期保管、fully offline再実行でもhistorical reconstructionを保てるか。
 - **actual human review**: ISSUE-000071で確立した評価基盤を使い、actual outputを人間がどのように評価するか。
 - **broader portability**: 二つのQwen artifactを越え、別model family、別Provider、別Realizationでも同じ意味境界を保てるか。
 - **TEI acquisition / version exchange**: fixed revision以外のTEI executable交換や、private artifact取得をどのdeployment / acquisition境界で扱うか。
@@ -98,7 +98,7 @@ actual v0.2.0 Releaseそのものは未定領域ではありません。既に�
 
 既存REQ / SCNで表現できる場合は新しいIDを増やさず、横断AcceptanceやEvidenceの不足として扱います。
 
-ISSUE-000067 / 000068 / 000071では、current RequirementとContract境界で必要な意味を表現できたため、新しいStable RequirementやUniversal Contract fieldを追加していません。
+ISSUE-000067 / 000068 / 000070 / 000071では、current RequirementとContract境界で必要な意味を表現できたため、新しいStable RequirementやUniversal Contract fieldを追加していません。
 
 ### Priority D — Architecture / Contract / Implementation
 
@@ -115,7 +115,7 @@ ISSUE-000067 / 000068 / 000071では、current RequirementとContract境界で�
 例:
 
 - external Cognitive Methodをactual modelで動かした後、実行成立と生成品質をどの評価境界で分けるか。
-- runtime versionだけを交換したとき、過去Applicationを同じrevisionへ戻すために何を残す必要があるか。
+- 固定2 revisionを越えるruntime交換や長期保管でも、過去Applicationを同じrevisionへ戻すために何を残す必要があるか。
 - external executableを取得するためのcredential方式を、SOZAのsemantic identityからどこまで分離できるか。
 
 この段階では選択肢をRequirementへ固定しません。
@@ -274,7 +274,7 @@ PR #73では2つのactual resultの差をAI補助観測として保存しまし�
 
 #### 6.4.4 runtime version交換とhistorical reconstruction
 
-ISSUE-000070はOpenです。
+ISSUE-000070は、固定条件下のactual交換Evidenceが成立したためResolvedです。
 
 固定条件は、KJ Atlas source、Method input、`qwen2.5:0.5b`のactual model artifactです。交換するのはOllama runtime versionだけとします。
 
@@ -283,9 +283,9 @@ ISSUE-000070はOpenです。
 
 runtime archiveは固定SHA-256で識別し、Method Realization payloadとExact Bindingが実際に一致すること、同じidentityなら同じBindingになること、runtime version / runtime artifact / model artifact identityが変わればBindingも変わることをpure-Go testで補強しています。
 
-ただし、actual Ollama `0.32.13` / `0.32.14`交換実験そのものはまだNot Yet Verifiedです。
+actual Ollama `0.32.13` / `0.32.14`交換は両方のinferenceを完走しました。同じlogical Realizationに異なるExact Bindingを与え、後続Application追加後も先行ApplicationのReference / Provenance / outputを変えず、Semantic Interchangeから当時revisionをportableに再構成できました。保存Evidenceの独立verifierは`107 ok / 0 blocked`です。
 
-GitHub Actionsをcurrent baselineへ戻すことを、この実証の意味上の条件にはしません。利用可能な実行環境でactual A/Bを実行し、固定条件と結果を再構成できるEvidenceを得た時点で評価します。
+この結果は固定KJ Atlas source、固定model artifact、固定prompt、固定2 runtime revisionに限るScoped Executable Evidenceです。生成内容の品質、任意runtime互換性、fully offline execution、E4、Release / Operational / Adoption・Outcomeを証明しません。既存Requirement / Contractで表現できたため変更はありません。
 
 ### 6.5 Release / Operational / Adoption Outcome
 
@@ -331,7 +331,7 @@ GitHub Actions等を再導入する場合はISSUE-000069のReopen条件へ戻り
 - actual inferenceのPASSだけでmodel品質やKJ法としての成果品質を主張しようとしている。
 - structure checkのPASSだけでhuman outcome qualityをSatisfiedとしようとしている。
 - AI補助観測をhuman reviewとして扱おうとしている。
-- 二モデル交換のPASSだけでarbitrary model portability、runtime version portability、E4 Operational portabilityまで成立したと扱おうとしている。
+- 二モデル交換や固定2 runtime revision交換のPASSだけでarbitrary model / runtime portability、E4 Operational portabilityまで成立したと扱おうとしている。
 - 未実行の検証を、実行基盤がなくなったことを理由にPASSへ読み替えようとしている。
 - post-releaseのExecutable Evidenceを既存releaseのsupported scopeへ遡及的に追加しようとしている。
 - 未定事項を「実装しやすいから」という理由だけで確定しようとしている。
@@ -356,8 +356,8 @@ Product Value、Product Shape、Product Milestone、v0.2.0 Release Evidence、E3
 
 以前の文書では、GitHub Actions上の実証と今後の探索が一部で強く結び付いていました。PR #70でActionsをcurrent baselineから外したため、検証内容と実行場所を分離しました。検証を弱めるのではなく、利用可能なtest、checker、保存Evidence、外部実行で実際に確認できた高さだけを記録する方針です。
 
-ISSUE-000071については「品質評価が完了した」と誤読されないよう、評価境界の確立とactual human reviewを分けました。ISSUE-000070についてはpure-GoのExact Binding補強が進んでいても、actual runtime A/B交換が未実証であることを明確に残しています。
+ISSUE-000071については「品質評価が完了した」と誤読されないよう、評価境界の確立とactual human reviewを分けました。ISSUE-000070についてはactual runtime A/B交換、historical Application保持、portable reconstructionが成立した固定scopeと、成果品質・任意互換性・上位Evidenceを分けました。
 
-既存REQ / SCNで現在必要な意味を表現できているため、新しいStable RequirementやUniversal Contract fieldを追加していません。次の主探索をruntime version交換、actual human review、broader portability、E4 Operational portabilityへ整理しました。
+既存REQ / SCNで現在必要な意味を表現できているため、新しいStable RequirementやUniversal Contract fieldを追加していません。次の主探索をactual human review、fixed scopeを越えるmodel / runtime portability、fully offline再実行、E4 Operational portabilityへ整理しました。
 
 意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語として一続きに読めることを最重要視して全文を再ドラフトしました。
