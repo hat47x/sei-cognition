@@ -12,6 +12,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import BinaryIO, Callable
 
+from runtime_path_safety import reject_symlink_path_or_ancestors
+
 INTEGRATION_DIR = Path(__file__).resolve().parent
 SOZA_ROOT = INTEGRATION_DIR.parents[1]
 MANIFEST_PATH = INTEGRATION_DIR / "runtime_version_exchange_artifacts.json"
@@ -35,8 +37,7 @@ def _is_within(candidate: Path, root: Path) -> bool:
 
 def validate_output_dir(output_dir: Path) -> Path:
     requested = output_dir.expanduser()
-    if requested.is_symlink():
-        raise ValueError(f"runtime archive output directoryにsymlinkは利用できません: {requested}")
+    reject_symlink_path_or_ancestors(requested, "runtime archive output directory")
 
     resolved = requested.resolve(strict=False)
     if _is_within(resolved, SOZA_ROOT):
@@ -136,8 +137,7 @@ def sha256_file(path: Path) -> str:
 
 def verify_archive(path: Path, expected_size: int, expected_sha256: str) -> Verification:
     requested = path.expanduser()
-    if requested.is_symlink():
-        raise ValueError(f"runtime archive fileにsymlinkは利用できません: {requested}")
+    reject_symlink_path_or_ancestors(requested, "runtime archive file")
     path = requested.resolve(strict=False)
     if not path.is_file():
         raise ValueError(f"archive fileが存在しません: {path}")
@@ -164,8 +164,7 @@ def download_archive(
     opener: Callable[..., BinaryIO] | None = None,
 ) -> Verification:
     requested = target.expanduser()
-    if requested.is_symlink():
-        raise ValueError(f"runtime archive targetにsymlinkは利用できません: {requested}")
+    reject_symlink_path_or_ancestors(requested, "runtime archive target")
     target = requested.resolve(strict=False)
     target.parent.mkdir(parents=True, exist_ok=True)
 
@@ -173,8 +172,7 @@ def download_archive(
         return verify_archive(target, expected_size, expected_sha256)
 
     partial = target.with_name(target.name + ".part")
-    if partial.is_symlink():
-        raise ValueError(f"runtime archive partial fileにsymlinkは利用できません: {partial}")
+    reject_symlink_path_or_ancestors(partial, "runtime archive partial file")
     if partial.exists():
         raise ValueError(
             f"途中downloadと思われるfileが既にあります: {partial}。"
