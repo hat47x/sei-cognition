@@ -4,7 +4,7 @@
 
 PMS-06 / ISSUE-000072のactual revision B実行では、失敗を「TEI version交換 failure」という一語へまとめると、source取得・toolchain・build・Provider Plan process・output validation・SOZA Adapter compatibilityの境界を失います。
 
-そこで、repository-local E2 runnerが外部から確実に観測できる境界だけをmachine-readable stageとして返すよう整理しました。
+そこで、repository-local E2 / E3 runnerが**外部から確実に観測できる境界だけ**をmachine-readable stageとして返すよう整理しました。
 
 これはactual revision Bが失敗したというEvidenceではありません。actual実行前に、将来のfailureを誤った層へ昇格させないためのExecutable-path instrumentationです。
 
@@ -86,9 +86,65 @@ archive作成・再検証・final配置は、それぞれ`evidence_bundle_packag
 
 このため、Provider Planが成立した後のEvidence packaging failureをTEI Provider incompatibilityへ読み替えません。
 
-## 3. process detailの保持境界
+## 3. E3 stage taxonomy
 
-`TEIEvidenceStageError`は、外部process failureについて次を保持できます。
+`runtime/integration/run_tei_bundle_adapter_compatibility.py`の`TEIAdapterStageError`は、current SOZA Adapter live検査を次の外部境界へ分けます。
+
+```text
+soza_runtime_layout
+soza_source_identity
+bundle_identity_verification
+execution_platform
+bundle_staging
+reference_input_identity
+soza_go_toolchain
+soza_teiintegration_live_test
+```
+
+成功時はこの順序を`completedStages`へ記録します。
+
+### SOZA source / bundle / fixed input
+
+`soza_runtime_layout`は、current `runtime/go` moduleと既存`teiintegration` live testの存在境界です。
+
+`soza_source_identity`は、検査対象SOZA checkoutのHEAD / Git object identity / worktree cleanlinessです。
+
+`bundle_identity_verification`は、B source / binary / Provider Plan identityを既存bundle verifierで再確認する境界です。
+
+`bundle_staging`は、検証済みbundleからactual CLIとfixed reference inputだけを一時領域へ安全にstageする境界です。
+
+`reference_input_identity`は、stagedされたhistorical A workspace / durable run / plugin lockのGit object identityをactual bytesから再確認する境界です。
+
+これにより、bundle identity failure、safe staging failure、fixed input driftをAdapter incompatibilityへまとめません。
+
+### SOZA toolchain / live test
+
+`soza_go_toolchain`は、`GOTOOLCHAIN=local`のcurrent SOZA test environmentで`go version`を起動できる境界です。
+
+`soza_teiintegration_live_test`は、既存`runtime/go/teiintegration.TestLiveTEIProviderPlan`を実行する**Go test process全体の境界**です。
+
+既存live testの内部では、actual TEI CLI process、strict Provider Plan decode、Capability Observation mapping / validation、TEI固有field非漏出等を検査します。しかし、Go testのstdout / stderrに現れた文言だけから、repository-local runnerが次のような新しいsubstageを作ることはしません。
+
+```text
+external TEI process
+strict decode
+Capability Observation mapping
+validator
+provider field leakage check
+```
+
+たとえば出力に`strict decode`や`validator failure`とあっても、machine-readable stageは`soza_teiintegration_live_test`のままです。
+
+```text
+Go test output contains "validator"
+  != machine-readable SOZA validator-stage Evidence
+```
+
+将来、`teiintegration`側がmachine-readable test result / error stageを正式に出力する場合だけ、そのactual contractを確認して細分化を再評価します。
+
+## 4. process detailの保持境界
+
+E2の`TEIEvidenceStageError`とE3の`TEIAdapterStageError`は、外部process failureについて次を保持できます。
 
 - stage
 - message
@@ -97,33 +153,40 @@ archive作成・再検証・final配置は、それぞれ`evidence_bundle_packag
 - stdout tail
 - stderr tail
 
-stdout / stderrはそれぞれ末尾16 KiBへ制限します。長大な外部process出力をEvidence reportへ無制限に取り込みません。
+E2のstdout / stderrはそれぞれ末尾16 KiB、E3はそれぞれ末尾32 KiBへ制限します。長大な外部process出力をEvidence reportへ無制限に取り込みません。
 
-このdetailはdiagnostic / provenanceです。stderr文字列そのものをUniversal semanticsへ昇格させません。
+このdetailはdiagnostic / provenanceです。stdout / stderr文字列そのものをUniversal semanticsへ昇格させません。
 
-## 4. combined E2 / E3 reportとの接続
+## 5. combined E2 / E3 reportとの接続
 
-`runtime/integration/run_tei_version_exchange_evidence.py`は上位stageを次のように保持します。
+`runtime/integration/run_tei_version_exchange_evidence.py`は、version交換全体の上位stageとrunner内部stageを分離します。
 
 ```text
 stage = E2
 substage = tei_cli_build
 ```
 
-のように、version交換全体の段階とE2内部stageを分離します。
-
-stage-aware exceptionでは`detail`もそのままJSON reportへ格納します。一方、通常の`ValueError`等でmachine-readable substageがない場合は、無理にsubstageを作りません。
+または、
 
 ```text
-known E2 substage
+stage = E3
+substage = soza_teiintegration_live_test
+```
+
+のように記録します。
+
+stage-aware exceptionでは`detail`もJSON reportへ格納します。一方、通常の`ValueError` / `RuntimeError`等でmachine-readable substageがない場合は、例外文言からsubstageを作りません。
+
+```text
+known runner substage
   != inferred substage from exception text
 ```
 
-E3については、current Adapter runnerが現在持つbundle / fixed input / SOZA source / toolchain / live-test境界をそのまま利用します。E3内部をこの変更だけで新しいtaxonomyへ作り替えません。
+E2が成立しE3だけが失敗した場合は、成立済みE2 bundleを保持したままE3 failureを別に記録します。
 
-## 5. synthetic / focused checks
+## 6. synthetic / focused checks
 
-branch上には、少なくとも次のnegative controlを追加しました。
+E2側には、少なくとも次のnegative controlを追加しています。
 
 - B source identity failure → `revision_b_source_identity`
 - A fixed input failure → `revision_a_fixed_reference_identity`
@@ -134,16 +197,27 @@ branch上には、少なくとも次のnegative controlを追加しました。
 - unknown Provider Plan field → `provider_plan_validation`
 - process detail tailを16 KiBへ制限する
 - success pathではfinal bundleと`completedStages`を得る
-- combined reportでE2 / substageを別々に保持する
 
-current work containerではGitHub raw sourceを再取得できないため、branch上のunittest suite全体をこの環境へ再現してはいません。一方、stage error、combined substage伝播、stderr非推測、output tail上限の中核ロジックはfocused local check 4件を実行しPASSしました。
+E3側には次のnegative controlを追加しています。
+
+- bundle verifier failure → `bundle_identity_verification`
+- A fixed input failure → `reference_input_identity`
+- SOZA Go process failure → `soza_go_toolchain`
+- live test non-zero → `soza_teiintegration_live_test`
+- live test出力に`strict decode` / `validator`があっても、その内部stageへ昇格しない
+- process detail tailを32 KiBへ制限する
+- success pathでは既存live testを実行し`completedStages`を得る
+
+combined reportについても、E2 / E3の上位stageとstage-aware substageを別々に保持するnegative controlを追加しています。
+
+current work containerではGitHub raw sourceを再取得できないため、branch上のunittest suite全体をこの環境へ再現してはいません。一方、E2 stage error、combined substage伝播、stderr非推測、output tail上限の中核ロジックについてfocused local check 4件を実行しPASSしました。E3側も同じ原則のstage modelとして実装し、branch testへnegative controlを追加しています。
 
 この制約をactual Executable Evidenceへ読み替えません。
 
-## 6. 現在の停止線
+## 7. 現在の停止線
 
 ```text
-stage-aware E2 diagnostics implemented
+stage-aware E2/E3 diagnostics implemented
   != actual revision B execution attempted
 
 E2 substage captured
@@ -153,6 +227,11 @@ Provider Plan process failure
   != workspace-load failure
   != validation failure
   != plugin-lock incompatibility
+  unless machine-readable Evidence establishes that boundary
+
+E3 substage captured
+  != strict-decode failure proven
+  != Observation validator failure proven
   unless machine-readable Evidence establishes that boundary
 
 E2 failure
