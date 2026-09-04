@@ -125,12 +125,47 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
                     paths, metadata, expected_objects=expected
                 )
 
+    def test_soza_source_identity_rejects_dirty_runtime_boundary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "soza"
+            (root / "runtime/go").mkdir(parents=True)
+            (root / "runtime/go/file.go").write_text(
+                "package x\n", encoding="utf-8"
+            )
+            subprocess.run(["git", "-C", str(root), "init", "-q"], check=True)
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(root),
+                    "config",
+                    "user.email",
+                    "test@example.invalid",
+                ],
+                check=True,
+            )
+            subprocess.run(
+                ["git", "-C", str(root), "config", "user.name", "test"],
+                check=True,
+            )
+            subprocess.run(["git", "-C", str(root), "add", "."], check=True)
+            subprocess.run(
+                ["git", "-C", str(root), "commit", "-qm", "fixture"],
+                check=True,
+            )
+            (root / "runtime/go/file.go").write_text(
+                "package changed\n", encoding="utf-8"
+            )
+            with self.assertRaisesRegex(ValueError, "未commit変更"):
+                subject._verify_soza_source_identity(root, paths=["runtime/go"])
+
+    @mock.patch.object(subject, "_verify_soza_source_identity")
     @mock.patch.object(subject, "_verify_reference_input_identity")
     @mock.patch.object(subject, "_ensure_linux_amd64")
     @mock.patch.object(subject.subprocess, "run")
     @mock.patch.object(subject.bundle_verifier, "verify_bundle")
     def test_verified_bundle_runs_existing_live_test_with_provenance(
-        self, verify, run, ensure, verify_reference
+        self, verify, run, ensure, verify_reference, verify_soza
     ):
         verify.return_value = {
             "observation": {
@@ -145,14 +180,20 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
             "sourceCommit": subject.REVISION_A,
             "objects": {},
         }
-        run.return_value = subprocess.CompletedProcess([], 0, "PASS\n", "")
+        verify_soza.return_value = {"head": "e" * 40, "objects": {}}
+        run.side_effect = [
+            subprocess.CompletedProcess(
+                [], 0, "go version go1.25.0 linux/amd64\n", ""
+            ),
+            subprocess.CompletedProcess([], 0, "PASS\n", ""),
+        ]
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             archive = self.make_bundle(root)
             soza = self.make_soza(root / "soza")
             result = subject.run_compatibility(archive, soza_repo_root=soza)
         self.assertEqual("adapter_compatible", result["result"])
-        argv = run.call_args.args[0]
+        argv = run.call_args_list[1].args[0]
         self.assertEqual(
             [
                 "go",
@@ -165,19 +206,22 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
             ],
             argv,
         )
-        env = run.call_args.kwargs["env"]
+        env = run.call_args_list[1].kwargs["env"]
         self.assertEqual("1", env["SOZA_E3B_TEI_LIVE"])
+        self.assertEqual("local", env["GOTOOLCHAIN"])
         self.assertEqual(
-            f"tei-cli:{subject.REVISION_B}:reference:{subject.REVISION_A}:bundle-sha256:{'d' * 64}",
+            f"tei-cli:{subject.REVISION_B}:reference:{subject.REVISION_A}:"
+            f"bundle-sha256:{'d' * 64}",
             env["SOZA_TEI_SOURCE_STATE_REF"],
         )
 
+    @mock.patch.object(subject, "_verify_soza_source_identity")
     @mock.patch.object(subject, "_verify_reference_input_identity")
     @mock.patch.object(subject, "_ensure_linux_amd64")
     @mock.patch.object(subject.subprocess, "run")
     @mock.patch.object(subject.bundle_verifier, "verify_bundle")
     def test_live_test_failure_is_not_promoted_to_compatibility(
-        self, verify, run, ensure, verify_reference
+        self, verify, run, ensure, verify_reference, verify_soza
     ):
         verify.return_value = {
             "observation": {
@@ -192,9 +236,13 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
             "sourceCommit": subject.REVISION_A,
             "objects": {},
         }
-        run.return_value = subprocess.CompletedProcess(
-            [], 1, "FAIL\n", "adapter failure"
-        )
+        verify_soza.return_value = {"head": "e" * 40, "objects": {}}
+        run.side_effect = [
+            subprocess.CompletedProcess(
+                [], 0, "go version go1.25.0 linux/amd64\n", ""
+            ),
+            subprocess.CompletedProcess([], 1, "FAIL\n", "adapter failure"),
+        ]
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             archive = self.make_bundle(root)
