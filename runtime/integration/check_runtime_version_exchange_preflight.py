@@ -140,7 +140,7 @@ def repository_commit_object_check(label: str, path: Path, expected_commit: str)
     if inside.returncode != 0 or inside.stdout.strip() != "true":
         return [Check(f"{label}.git", "blocked", f"Git working treeではありません: {path}")]
 
-    checks = [Check(f"{label}.git", "ok", f"Git working treeを確認しました: {path}"))]
+    checks = [Check(f"{label}.git", "ok", f"Git working treeを確認しました: {path}")]
     commit = run_git(path, "cat-file", "-e", f"{expected_commit}^{{commit}}")
     if commit.returncode != 0:
         checks.append(
