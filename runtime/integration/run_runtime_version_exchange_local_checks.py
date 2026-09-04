@@ -86,6 +86,16 @@ def sanitized_environment() -> dict[str, str]:
     return environment
 
 
+def repository_observation_environment() -> dict[str, str]:
+    """SOZA repository観測を親shellのGit内部指定から分離する。"""
+
+    environment = os.environ.copy()
+    for key in tuple(environment):
+        if key.startswith("GIT_"):
+            environment.pop(key, None)
+    return environment
+
+
 def canonical_path(path: Path) -> Path:
     return path.expanduser().resolve(strict=False)
 
@@ -130,6 +140,7 @@ def _run_git_observation(*args: str) -> tuple[subprocess.CompletedProcess[str] |
             check=False,
             capture_output=True,
             text=True,
+            env=repository_observation_environment(),
         )
     except OSError as exc:
         return None, str(exc)
