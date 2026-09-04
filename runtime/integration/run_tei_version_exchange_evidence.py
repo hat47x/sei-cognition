@@ -139,12 +139,12 @@ def run_version_exchange(
 
     try:
         with _go_on_path(tei_go_executable) as tei_go:
+            comparison_axis["teiGoExecutable"] = str(tei_go)
             e2 = build_runner.produce_bundle(
                 source_repo,
                 reference_source_repo,
                 bundle_path,
             )
-            comparison_axis["teiGoExecutable"] = str(tei_go)
     except EXPECTED_RUN_ERRORS as exc:
         report = {
             "schema": SCHEMA,
@@ -174,13 +174,13 @@ def run_version_exchange(
 
     try:
         with _go_on_path(soza_go_executable) as soza_go:
+            comparison_axis["sozaGoExecutable"] = str(soza_go)
             e3 = adapter_runner.run_compatibility(
                 bundle_path,
                 soza_repo_root=soza_repo_root,
                 expected_source_commit=source_identity.REVISION_B,
                 expected_soza_head=expected_soza_head,
             )
-            comparison_axis["sozaGoExecutable"] = str(soza_go)
     except EXPECTED_RUN_ERRORS as exc:
         report = {
             **interim,
