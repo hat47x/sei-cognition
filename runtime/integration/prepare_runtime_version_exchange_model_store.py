@@ -150,7 +150,15 @@ def prepare_model_store(
     acquisition: Mapping[str, object] | None = None,
 ) -> dict[str, object]:
     fixed = _validate_model_acquisition(acquisition) if acquisition is not None else _load_model_acquisition()
-    target = target_dir.expanduser().resolve(strict=False)
+    requested = target_dir.expanduser()
+    if requested.is_symlink():
+        raise ValueError(f"model store targetにsymlinkは利用できません: {requested}")
+    if requested.parent.is_symlink():
+        raise ValueError(
+            "model store targetのparentにsymlinkは利用できません: "
+            f"{requested.parent}"
+        )
+    target = requested.resolve(strict=False)
     if _is_within(target, SOZA_ROOT):
         raise ValueError(f"model storeをSOZA repository配下には作成できません: {target}")
     if target.exists():
