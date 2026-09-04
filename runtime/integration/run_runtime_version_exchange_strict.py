@@ -136,16 +136,21 @@ def _validate_runtime_archives(
                 f"option={option} path={resolved}"
             )
         validated[option] = resolved
+    return validated
 
-    if not validated:
-        return validated
+
+def _verify_runtime_archive_identities(runtime_archives: dict[str, Path]) -> None:
+    """事前配置archiveのactual bytesを固定manifestへ照合する。"""
+
+    if not runtime_archives:
+        return
 
     manifest = load_artifact_manifest()
     archives = manifest.get("runtimeArchives")
     if not isinstance(archives, dict):
         raise ValueError("runtime artifact manifestにruntimeArchivesがありません")
 
-    for option, resolved in validated.items():
+    for option, resolved in runtime_archives.items():
         label = RUNTIME_ARCHIVE_MANIFEST_LABELS[option]
         metadata = archives.get(label)
         if not isinstance(metadata, dict):
@@ -157,8 +162,6 @@ def _validate_runtime_archives(
         if not isinstance(expected_sha256, str):
             raise ValueError(f"runtimeArchives.{label}.sha256が不正です")
         verify_archive(resolved, expected_size, expected_sha256)
-
-    return validated
 
 
 def _strict_child_environment() -> dict[str, str]:
@@ -212,7 +215,7 @@ def run_strict_probe(
         (source_label, source_input),
     )
 
-    # 事前配置runtime archiveは、source/model準備やharness起動より前にpathとbytes identityを固定する。
+    # 事前配置runtime archiveは、source/model準備やharness起動より前にpath境界を固定する。
     runtime_archives = _validate_runtime_archives(
         harness_arguments,
         source_input=source_input,
@@ -246,6 +249,9 @@ def run_strict_probe(
         work_roots = list(evidence_roots)
         work_roots.append(("Evidence directory", evidence_dir))
         _reject_overlap(resolved_work_dir, "Work directory", tuple(work_roots))
+
+    # 明白なpath blockerをすべて除いた後、重いsource exportやmodel準備より前にactual archive bytesを固定する。
+    _verify_runtime_archive_identities(runtime_archives)
 
     model_verification: dict[str, object] | None = None
     model_preparation: dict[str, object] | None = None
