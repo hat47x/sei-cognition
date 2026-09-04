@@ -210,6 +210,29 @@ class RuntimeVersionExchangeModelStorePreparationTest(unittest.TestCase):
             self.assertFalse((actual_parent / "models").exists())
         self.assertEqual([], opener.calls)
 
+    def test_target_deep_symlink_ancestor_is_rejected_before_network_access(self):
+        acquisition, payloads, _config_digest, _model_digest = self.fixture()
+        opener = FakeOpener(payloads)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            actual_root = root / "actual-root"
+            (actual_root / "nested").mkdir(parents=True)
+            linked_root = root / "linked-root"
+            try:
+                linked_root.symlink_to(actual_root, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+            target = linked_root / "nested" / "models"
+            with self.assertRaisesRegex(ValueError, "ancestorにsymlink"):
+                prepare.prepare_model_store(
+                    target,
+                    opener=opener,
+                    acquisition=acquisition,
+                )
+            self.assertFalse((actual_root / "nested" / "models").exists())
+            self.assertEqual([], list((actual_root / "nested").glob(".models.partial-*")))
+        self.assertEqual([], opener.calls)
+
     def test_duplicate_blob_digest_is_downloaded_once(self):
         acquisition, payloads, _config_digest, model_digest = self.fixture(duplicate=True)
         opener = FakeOpener(payloads)
