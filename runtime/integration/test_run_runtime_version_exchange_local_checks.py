@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -199,6 +200,7 @@ class RuntimeVersionExchangeLocalChecksTest(unittest.TestCase):
         self.assertEqual(2, result["selectedCount"])
         self.assertEqual(2, result["executedCount"])
         self.assertEqual(0, result["failedCount"])
+        self.assertEqual(local_checks.DEFAULT_TEST_TIMEOUT_SECONDS, result["testTimeoutSeconds"])
         self.assertIn("!= actual Ollama A/B inference PASS", result["stopLine"])
 
     def test_build_result_marks_failure_and_early_stop(self):
@@ -216,6 +218,101 @@ class RuntimeVersionExchangeLocalChecksTest(unittest.TestCase):
         self.assertEqual(1, result["failedCount"])
         self.assertTrue(result["stoppedEarly"])
         self.assertFalse(result["actualRuntimeExchangeEvidence"])
+
+    def test_run_checks_passes_timeout_and_records_success_observation(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "result.json"
+            completed = subprocess.CompletedProcess(args=["python"], returncode=0)
+            with patch.object(
+                local_checks.subprocess,
+                "run",
+                return_value=completed,
+            ) as runner, patch.object(
+                local_checks,
+                "repository_observation",
+                return_value={},
+            ):
+                status = local_checks.run_checks(
+                    [Path("test_a.py")],
+                    stop_on_failure=False,
+                    result_output=output,
+                    timeout_seconds=7,
+                )
+
+            payload = json.loads(output.read_text(encoding="utf-8"))
+
+        self.assertEqual(0, status)
+        self.assertEqual(7, runner.call_args.kwargs["timeout"])
+        self.assertEqual(7, payload["testTimeoutSeconds"])
+        self.assertEqual(
+            {
+                "name": "test_a.py",
+                "exitCode": 0,
+                "timedOut": False,
+                "timeoutSeconds": 7,
+            },
+            payload["executed"][0],
+        )
+        self.assertFalse(payload["actualRuntimeExchangeEvidence"])
+
+    def test_timeout_is_recorded_as_failure_without_promoting_evidence(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "result.json"
+            timeout = subprocess.TimeoutExpired(cmd=["python", "test_a.py"], timeout=3)
+            with patch.object(
+                local_checks.subprocess,
+                "run",
+                side_effect=timeout,
+            ), patch.object(
+                local_checks,
+                "repository_observation",
+                return_value={},
+            ):
+                status = local_checks.run_checks(
+                    [Path("test_a.py")],
+                    stop_on_failure=False,
+                    result_output=output,
+                    timeout_seconds=3,
+                )
+
+            payload = json.loads(output.read_text(encoding="utf-8"))
+
+        self.assertEqual(1, status)
+        self.assertEqual("failed", payload["result"])
+        self.assertEqual(1, payload["failedCount"])
+        self.assertEqual(local_checks.TIMEOUT_EXIT_CODE, payload["executed"][0]["exitCode"])
+        self.assertTrue(payload["executed"][0]["timedOut"])
+        self.assertEqual(3, payload["executed"][0]["timeoutSeconds"])
+        self.assertFalse(payload["actualRuntimeExchangeEvidence"])
+        self.assertEqual("not_evaluated", payload["qualityJudgement"])
+
+    def test_stop_on_failure_stops_after_timeout(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "result.json"
+            timeout = subprocess.TimeoutExpired(cmd=["python", "test_a.py"], timeout=2)
+            with patch.object(
+                local_checks.subprocess,
+                "run",
+                side_effect=timeout,
+            ) as runner, patch.object(
+                local_checks,
+                "repository_observation",
+                return_value={},
+            ):
+                status = local_checks.run_checks(
+                    [Path("test_a.py"), Path("test_b.py")],
+                    stop_on_failure=True,
+                    result_output=output,
+                    timeout_seconds=2,
+                )
+
+            payload = json.loads(output.read_text(encoding="utf-8"))
+
+        self.assertEqual(1, status)
+        self.assertEqual(1, runner.call_count)
+        self.assertEqual(1, payload["executedCount"])
+        self.assertTrue(payload["stoppedEarly"])
+        self.assertTrue(payload["executed"][0]["timedOut"])
 
     def test_write_result_creates_machine_readable_json_without_overwrite(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -235,6 +332,11 @@ class RuntimeVersionExchangeLocalChecksTest(unittest.TestCase):
     def test_main_rejects_list_with_result_output(self):
         with self.assertRaises(SystemExit) as raised:
             local_checks.main(["--list", "--result-output", "/tmp/result.json"])
+        self.assertEqual(2, raised.exception.code)
+
+    def test_main_rejects_non_positive_timeout(self):
+        with self.assertRaises(SystemExit) as raised:
+            local_checks.main(["--list", "--timeout-seconds", "0"])
         self.assertEqual(2, raised.exception.code)
 
     def test_stop_line_does_not_promote_helper_success_to_actual_evidence(self):
