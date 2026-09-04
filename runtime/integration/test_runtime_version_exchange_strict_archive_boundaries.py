@@ -96,6 +96,109 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
             self.assertEqual(archive_a.resolve(), validated["--runtime-a-archive"])
             self.assertEqual(archive_b.resolve(), validated["--runtime-b-archive"])
 
+    def test_source_bundle_inside_soza_repository_is_rejected_before_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            soza = root / "soza"
+            bundle = soza / "bundle"
+            soza.mkdir()
+            bundle.mkdir()
+
+            with patch.object(ENTRYPOINT, "SOZA_ROOT", soza), patch.object(
+                ENTRYPOINT,
+                "verify_runtime_bundle",
+            ) as source_verifier, patch.object(ENTRYPOINT.subprocess, "run") as runner:
+                with self.assertRaisesRegex(ValueError, "KJ Atlas verified runtime bundle.*SOZA repository"):
+                    ENTRYPOINT.run_strict_probe(
+                        checkout_dir=None,
+                        backend_bundle=bundle,
+                        model_dir=None,
+                        evidence_dir=root / "evidence",
+                        harness_arguments=[],
+                    )
+
+            source_verifier.assert_not_called()
+            runner.assert_not_called()
+
+    def test_model_store_inside_soza_repository_is_rejected_before_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            soza = root / "soza"
+            bundle = root / "bundle"
+            model = soza / "models"
+            soza.mkdir()
+            bundle.mkdir()
+            model.mkdir()
+
+            with patch.object(ENTRYPOINT, "SOZA_ROOT", soza), patch.object(
+                ENTRYPOINT,
+                "verify_model_store",
+            ) as model_verifier, patch.object(ENTRYPOINT, "verify_runtime_bundle") as source_verifier, patch.object(
+                ENTRYPOINT.subprocess,
+                "run",
+            ) as runner:
+                with self.assertRaisesRegex(ValueError, "model directory.*SOZA repository"):
+                    ENTRYPOINT.run_strict_probe(
+                        checkout_dir=None,
+                        backend_bundle=bundle,
+                        model_dir=model,
+                        evidence_dir=root / "evidence",
+                        harness_arguments=[],
+                    )
+
+            model_verifier.assert_not_called()
+            source_verifier.assert_not_called()
+            runner.assert_not_called()
+
+    def test_evidence_inside_soza_repository_is_rejected_before_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            soza = root / "soza"
+            bundle = root / "bundle"
+            soza.mkdir()
+            bundle.mkdir()
+
+            with patch.object(ENTRYPOINT, "SOZA_ROOT", soza), patch.object(
+                ENTRYPOINT,
+                "verify_runtime_bundle",
+            ) as source_verifier, patch.object(ENTRYPOINT.subprocess, "run") as runner:
+                with self.assertRaisesRegex(ValueError, "Evidence directory.*SOZA repository"):
+                    ENTRYPOINT.run_strict_probe(
+                        checkout_dir=None,
+                        backend_bundle=bundle,
+                        model_dir=None,
+                        evidence_dir=soza / "evidence",
+                        harness_arguments=[],
+                    )
+
+            source_verifier.assert_not_called()
+            runner.assert_not_called()
+
+    def test_work_inside_soza_repository_is_rejected_before_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            soza = root / "soza"
+            bundle = root / "bundle"
+            soza.mkdir()
+            bundle.mkdir()
+
+            with patch.object(ENTRYPOINT, "SOZA_ROOT", soza), patch.object(
+                ENTRYPOINT,
+                "verify_runtime_bundle",
+            ) as source_verifier, patch.object(ENTRYPOINT.subprocess, "run") as runner:
+                with self.assertRaisesRegex(ValueError, "Work directory.*SOZA repository"):
+                    ENTRYPOINT.run_strict_probe(
+                        checkout_dir=None,
+                        backend_bundle=bundle,
+                        model_dir=None,
+                        evidence_dir=root / "evidence",
+                        harness_arguments=[],
+                        work_dir=soza / "work",
+                    )
+
+            source_verifier.assert_not_called()
+            runner.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
