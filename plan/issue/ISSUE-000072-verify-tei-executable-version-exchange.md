@@ -62,6 +62,8 @@ GitHub-hosted job start failure
 - A / B Provider Plan source surfaceの静的比較
 - exact-B build source + exact-A fixed reference inputによるprepositioned Evidence runner
 - verified Evidence bundleからcurrent SOZA `teiintegration` live testへ接続するAdapter compatibility runner
+- E2用Go 1.23.2とE3用current SOZA Goを分離して連続実行するorchestrator
+- E2 / E3 failureを外部観測可能なstageへ分けて記録するstage-aware diagnostics
 
 version交換の比較軸については、revision AとBの`reference/workspace` treeが異なることを確認したため、**B checkout内のreference inputを使わず、historical revision Aのfixed reference inputを別checkoutから与える**形へ補正した。
 
@@ -74,6 +76,8 @@ fixed reference input
 ```
 
 これにより、runtime revisionとreference inputの交換を混同しない。
+
+また、E2 historical buildはGo `1.23.2`、E3 current SOZA live testはcurrent `runtime/go/go.mod`と`GOTOOLCHAIN=local`を使うため、同じ`go` command名を同一toolchain identityとは扱わない。combined runnerでは2つのGo executableを別々に明示する。
 
 また、2026-09-05時点で`hat47x/tei-platform`のGitHub Releasesは0件であり、正式なTEI executable distribution surfaceはまだ確認できない。
 
@@ -100,6 +104,8 @@ fixed reference input
 - artifact bundle検証PASSをSOZA Adapter互換、Operational Evidence、Release Evidenceへ昇格させない。
 - 静的なProvider Plan source continuityをactual revision B execution PASSへ昇格させない。
 - B executableの検証で、B checkout内の変化したreference workspaceをhistorical fixed inputへ無言で置き換えない。
+- stderr / stdoutの文言だけからTEI内部のworkspace load / validation / plugin lock等のsubstageを推定しない。
+- Go live testの文言だけからstrict decode / Capability Observation validator等のsubstageを推定しない。
 - 新しいStable Requirement / Universal Contract fieldは、actual B Evidenceまたは独立したProduct failureが確認される前に追加しない。
 - 現時点でTEI GitHub Releaseの新設や特定配布方式を完了条件にしない。
 
@@ -128,7 +134,8 @@ fixed reference input
 - actual `deployment-provider-plan`を実行する。
 - Bのactual binary / Provider Plan SHA-256を記録する。
 - job割当や取得failureをCLI互換性failureと区別する。
-- workspace load、validation、durable run、plugin lock、Provider Plan生成のどこで停止したかを区別できる。
+- source identity / fixed input identity / platform / Go toolchain / build / Provider Plan process / output validation / Evidence packagingのどの外部stageまで成立したかを区別できる。
+- `deployment-provider-plan` process内部のworkspace load / validation / durable run / plugin lock等は、machine-readable Evidenceが得られた場合だけ追加で細分化する。
 
 ### E3 — current SOZA Adapter compatibility
 
@@ -139,6 +146,8 @@ fixed reference input
 - TEI固有fieldをUniversal Capability Observationへ漏らさない。
 - B source、A fixed reference input、bundle identityをMapping Provenanceから追跡できる。
 - どのSOZA source / local Go toolchainでlive検査したかを記録する。
+- SOZA source identity / bundle verification / staging / fixed input identity / Go toolchain / existing `teiintegration` live-test processのどの外部stageまで成立したかを区別できる。
+- live-test内部のstrict decode / mapping / validator等は、machine-readable Evidenceが得られた場合だけ追加で細分化する。
 
 ### E4 — A/B historical separation
 
@@ -202,11 +211,26 @@ workspace / validation / IR input interpretation
 version-exchange comparison axis
   = exact-B build source + exact-A fixed reference input
 
-prepositioned B Evidence runner
-  = implemented; synthetic / fixed-input isolation checks passed
+prepositioned B Evidence runner baseline
+  = implemented; earlier synthetic / fixed-input isolation checks passed
 
-bundle → current Adapter live runner
-  = implemented; 8 synthetic tests passed
+E2 stage-aware diagnostics
+  = implemented; focused stage-model checks 4 passed; expanded branch tests added but full suite not re-run in current container
+
+bundle → current Adapter live runner baseline
+  = implemented; 8 synthetic tests passed before stage instrumentation
+
+E3 stage-aware diagnostics
+  = implemented; focused stage-model checks 4 passed; expanded branch tests added but full suite not re-run in current container
+
+E2/E3 separate Go toolchains
+  = identified and explicit in combined runner
+
+toolchain-split combined runner baseline
+  = implemented; 7 synthetic tests passed before stage-instrumentation additions
+
+combined E2/E3 substage propagation
+  = implemented; branch negative controls added; full suite not re-run in current container
 
 revision B workflow attempt 1
   = failure before any job step
@@ -231,9 +255,12 @@ revision B current SOZA Adapter live compatibility
 - `runtime/integration/verify_tei_execution_source_identity.py`
 - `runtime/integration/run_tei_revision_b_prepositioned.py`
 - `runtime/integration/run_tei_bundle_adapter_compatibility.py`
+- `runtime/integration/run_tei_version_exchange_evidence.py`
 - `runtime/TEI_VERSION_EXCHANGE_EVIDENCE_2026-09-05.md`
 - `runtime/TEI_PROVIDER_SURFACE_STATIC_COMPATIBILITY_2026-09-05.md`
 - `runtime/TEI_VERSION_EXCHANGE_EXECUTION_READINESS_2026-09-05.md`
+- `runtime/TEI_VERSION_EXCHANGE_TOOLCHAIN_READINESS_2026-09-05.md`
+- `runtime/TEI_VERSION_EXCHANGE_FAILURE_STAGES_2026-09-05.md`
 
 ## Deliverables
 
@@ -244,6 +271,8 @@ revision B current SOZA Adapter live compatibility
 - Provider Plan source surface / input interpretation差分のStatic Evidence
 - exact-B build source + exact-A fixed inputのprepositioned Evidence runner
 - verified bundleからcurrent SOZA Adapter live testへ接続するrunner
+- E2 / E3を別toolchainで連続実行し段階別reportを残すcombined runner
+- E2 / E3 failure stage taxonomyとnegative control
 - revision B actual artifactを取得できた場合のB verification report
 - A/B Adapter compatibility Evidence
 - Requirement / Contract再照合結果
@@ -255,8 +284,8 @@ revision B current SOZA Adapter live compatibility
 
 1. revision A historical artifactを現在のverifierで再検証できる。
 2. revision Bのactual executableまたは固定Evidence bundleを取得し、そのsource / binary / Provider Plan identityを記録できる。
-3. revision B actual `deployment-provider-plan`がexact-A fixed reference inputで成立するか、不成立ならprocess / input interpretation / Provider surfaceのどこで不成立かを判別できる。
-4. current SOZA Adapterでrevision Bを実行し、Capability Observationへのmapping成立可否を確認する。
+3. revision B actual `deployment-provider-plan`がexact-A fixed reference inputで成立するか、不成立ならrepository-local E2 stageのどこで停止したかを判別できる。TEI内部substageはmachine-readable Evidenceがある場合だけ追加で特定する。
+4. current SOZA Adapterでrevision Bを実行し、Capability Observationへのmapping成立可否を確認する。不成立ならrepository-local E3 stageのどこで停止したかを判別し、live-test内部原因はmachine-readable Evidenceがある場合だけ追加で特定する。
 5. revision B追加後もrevision A Evidenceを不変に保持する。
 6. acquisition / credential / artifact identity / fixed input identity / Provider compatibilityの境界をEvidenceで確認する。
 7. REQ-0001、REQ-0007、REQ-0021、SCN-0014、SCN-0018へ再照合し、新しいStable Requirementが必要かを監査する。
@@ -287,12 +316,16 @@ actual Bのrepository-local経路では、exact revision B checkoutをbuild sour
 
 B Evidence bundleを得た後は、cleanなSOZA checkoutで`run_tei_bundle_adapter_compatibility.py`を実行し、既存`runtime/go/teiintegration.TestLiveTEIProviderPlan`へ接続する。runnerのsynthetic testやStatic Evidenceはactual TEI process executionの代替ではない。
 
+E2からE3までを一度に実行する場合は`run_tei_version_exchange_evidence.py`を使い、TEI historical build用Go 1.23.2とcurrent SOZA live-test用Goを別々のexecutableとして明示する。failure reportは上位`E2` / `E3`とstage-aware `substage`を分離し、通常の例外文言からsubstageを捏造しない。
+
 ## Natural Japanese review
 
-PMS-06、ISSUE-000061 / 000065、ADR-0013 / 0019 / 0021 / 0024、Actual TEI CLI Evidence、current `teiintegration`、revision A Evidence artifact、revision B Evidence workflow attempt 1 / 2、revision B Git object identity、A / B Provider Plan static compatibility、exact-A fixed reference input、E2 prepositioned runner、E3 Adapter live runnerを照合した。
+PMS-06、ISSUE-000061 / 000065、ADR-0013 / 0019 / 0021 / 0024、Actual TEI CLI Evidence、current `teiintegration`、revision A Evidence artifact、revision B Evidence workflow attempt 1 / 2、revision B Git object identity、A / B Provider Plan static compatibility、exact-A fixed reference input、E2 prepositioned runner、E3 Adapter live runner、toolchain-split combined runner、E2 / E3 failure-stage instrumentationを照合した。
 
 取得方法、artifact identity、build source、fixed reference input、Provider固有surface、SOZAのCapability Observationを一つにまとめず、今回すでに観測できたことと、revision B actual executionが未検証であることを分離している。
 
 特に、A / Bでworkspace treeが異なることから「B checkout内のsame pathを使えば同じinput」という早合点を修正し、version交換ではB executableへhistorical A inputを与える比較軸へ固定した。また、Static EvidenceでProvider Plan出力surfaceに連続性がある一方、workspace / validation / IRが変化しているためactual検証が必要であることも明記した。
+
+さらに、actual failureの切り分けでは、stderr / stdoutの自然言語からTEI内部stageやSOZA live-test内部stageを推定せず、repository-local runnerが直接観測できる外部境界だけをEvidence stageとして扱う。これにより、診断情報を保持しつつ、原因の高さをEvidence以上に引き上げない。
 
 意味、要求強度、留保、Evidenceの高さを固定したうえで、自然な日本語となることを最重要視して全文を再監査した。
