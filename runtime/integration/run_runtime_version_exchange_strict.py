@@ -52,7 +52,9 @@ def _reject_forwarded_identity_options(arguments: list[str]) -> None:
         "--work-dir",
     }
     for argument in arguments:
-        if argument in forbidden or any(argument.startswith(name + "=") for name in forbidden):
+        if argument in forbidden or any(
+            argument.startswith(name + "=") for name in forbidden
+        ):
             raise ValueError(
                 "strict Evidenceのidentity / safety optionはこのentrypoint側で確定します。"
                 f"harnessへ直接渡せません: {argument}"
@@ -84,7 +86,9 @@ def _forwarded_runtime_archives(arguments: list[str]) -> dict[str, Path]:
                 if not value:
                     raise ValueError(f"{option} requires PATH")
                 if option in selected:
-                    raise ValueError(f"runtime archive optionを重複指定できません: {option}")
+                    raise ValueError(
+                        f"runtime archive optionを重複指定できません: {option}"
+                    )
                 selected[option] = Path(value)
                 break
 
@@ -94,9 +98,38 @@ def _forwarded_runtime_archives(arguments: list[str]) -> dict[str, Path]:
 
 
 def _new_path(path: Path, label: str) -> Path:
-    resolved = path.expanduser().resolve(strict=False)
+    """新規出力pathを、symlink解決前の要求pathから検証する。"""
+
+    requested = path.expanduser()
+    if requested.is_symlink():
+        raise ValueError(f"{label}にsymlinkは利用できません: {requested}")
+    if requested.parent.is_symlink():
+        raise ValueError(
+            f"{label}のparentにsymlinkは利用できません: {requested.parent}"
+        )
+
+    resolved = requested.resolve(strict=False)
     if resolved.exists():
         raise ValueError(f"{label}は新しいpathを指定してください: {resolved}")
+    return resolved
+
+
+def _existing_directory(path: Path, label: str) -> Path:
+    """既存directory inputのroot symlinkを、resolve前に拒否する。"""
+
+    requested = path.expanduser()
+    if requested.is_symlink():
+        raise ValueError(f"{label}にsymlinkは利用できません: {requested}")
+    if requested.parent.is_symlink():
+        raise ValueError(
+            f"{label}のparentにsymlinkは利用できません: {requested.parent}"
+        )
+    try:
+        resolved = requested.resolve(strict=True)
+    except FileNotFoundError as exc:
+        raise ValueError(f"{label}が存在しません: {requested}") from exc
+    if not resolved.is_dir():
+        raise ValueError(f"{label}はdirectoryを指定してください: {resolved}")
     return resolved
 
 
@@ -116,7 +149,11 @@ def _is_within(candidate: Path, root: Path) -> bool:
     return candidate == root or root in candidate.parents
 
 
-def _reject_overlap(candidate: Path, candidate_label: str, roots: tuple[tuple[str, Path], ...]) -> None:
+def _reject_overlap(
+    candidate: Path,
+    candidate_label: str,
+    roots: tuple[tuple[str, Path], ...],
+) -> None:
     for root_label, root in roots:
         if _is_within(candidate, root):
             raise ValueError(
@@ -145,7 +182,9 @@ def _validate_runtime_archives(
         try:
             resolved = expanded.resolve(strict=True)
         except FileNotFoundError as exc:
-            raise ValueError(f"{option}のarchive fileが存在しません: {expanded}") from exc
+            raise ValueError(
+                f"{option}のarchive fileが存在しません: {expanded}"
+            ) from exc
         if not resolved.is_file():
             raise ValueError(f"{option}はregular fileを指定してください: {resolved}")
         _reject_overlap(resolved, f"{option} runtime archive", roots)
@@ -173,7 +212,9 @@ def _verify_runtime_archive_identities(runtime_archives: dict[str, Path]) -> Non
         label = RUNTIME_ARCHIVE_MANIFEST_LABELS[option]
         metadata = archives.get(label)
         if not isinstance(metadata, dict):
-            raise ValueError(f"runtime artifact manifestにruntimeArchives.{label}がありません")
+            raise ValueError(
+                f"runtime artifact manifestにruntimeArchives.{label}がありません"
+            )
         expected_size = metadata.get("sizeBytes")
         expected_sha256 = metadata.get("sha256")
         if not isinstance(expected_size, int) or isinstance(expected_size, bool):
@@ -228,7 +269,9 @@ def run_strict_probe(
     _reject_forwarded_identity_options(harness_arguments)
 
     if (checkout_dir is None) == (backend_bundle is None):
-        raise ValueError("--kj-atlas-dirまたは--kj-atlas-backend-bundleのどちらか一方を指定してください")
+        raise ValueError(
+            "--kj-atlas-dirまたは--kj-atlas-backend-bundleのどちらか一方を指定してください"
+        )
     if model_dir is not None and prepare_model_dir is not None:
         raise ValueError("--model-dirと--prepare-model-dirは同時に指定できません")
 
@@ -260,9 +303,12 @@ def run_strict_probe(
     resolved_model_dir: Path | None = None
     model_will_be_prepared = prepare_model_dir is not None
     if model_dir is not None:
-        resolved_model_dir = model_dir.expanduser().resolve(strict=True)
+        resolved_model_dir = _existing_directory(model_dir, "Model directory")
     elif prepare_model_dir is not None:
-        resolved_model_dir = _new_path(prepare_model_dir, "Prepared model directory")
+        resolved_model_dir = _new_path(
+            prepare_model_dir,
+            "Prepared model directory",
+        )
     if resolved_model_dir is not None:
         _reject_overlap(resolved_model_dir, "model directory", strict_input_roots)
         for option, archive in runtime_archives.items():
@@ -278,7 +324,9 @@ def run_strict_probe(
         evidence_roots.append(("model directory", resolved_model_dir))
     _reject_overlap(evidence_dir, "Evidence directory", tuple(evidence_roots))
 
-    requested_work_dir = work_dir if work_dir is not None else _default_work_path(evidence_dir)
+    requested_work_dir = (
+        work_dir if work_dir is not None else _default_work_path(evidence_dir)
+    )
     resolved_work_dir = _new_path(requested_work_dir, "Work directory")
     work_roots = list(evidence_roots)
     work_roots.append(("Evidence directory", evidence_dir))

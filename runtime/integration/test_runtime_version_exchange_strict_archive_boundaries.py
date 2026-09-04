@@ -335,6 +335,110 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
             self.assertFalse(expected_source_root.exists())
             self.assertTrue((evidence / "runtime-exchange-source-export.json").is_file())
 
+    def test_dangling_evidence_symlink_is_rejected_before_source_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bundle = root / "bundle"
+            bundle.mkdir()
+            evidence = root / "evidence"
+            evidence.symlink_to(root / "missing-evidence-target")
+
+            with patch.object(ENTRYPOINT, "verify_runtime_bundle") as source_verifier, patch.object(
+                ENTRYPOINT.subprocess,
+                "run",
+            ) as runner:
+                with self.assertRaisesRegex(ValueError, "Evidence directory.*symlink"):
+                    ENTRYPOINT.run_strict_probe(
+                        checkout_dir=None,
+                        backend_bundle=bundle,
+                        model_dir=None,
+                        evidence_dir=evidence,
+                        harness_arguments=[],
+                    )
+
+            source_verifier.assert_not_called()
+            runner.assert_not_called()
+
+    def test_work_path_with_symlink_parent_is_rejected_before_source_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bundle = root / "bundle"
+            actual_parent = root / "actual-work-parent"
+            link_parent = root / "work-parent-link"
+            bundle.mkdir()
+            actual_parent.mkdir()
+            link_parent.symlink_to(actual_parent, target_is_directory=True)
+
+            with patch.object(ENTRYPOINT, "verify_runtime_bundle") as source_verifier, patch.object(
+                ENTRYPOINT.subprocess,
+                "run",
+            ) as runner:
+                with self.assertRaisesRegex(ValueError, "Work directory.*parent.*symlink"):
+                    ENTRYPOINT.run_strict_probe(
+                        checkout_dir=None,
+                        backend_bundle=bundle,
+                        model_dir=None,
+                        evidence_dir=root / "evidence",
+                        harness_arguments=[],
+                        work_dir=link_parent / "work",
+                    )
+
+            source_verifier.assert_not_called()
+            runner.assert_not_called()
+
+    def test_dangling_prepared_model_symlink_is_rejected_before_preparation(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bundle = root / "bundle"
+            bundle.mkdir()
+            prepared = root / "prepared-model"
+            prepared.symlink_to(root / "missing-model-target")
+
+            with patch.object(ENTRYPOINT, "prepare_model_store") as preparer, patch.object(
+                ENTRYPOINT,
+                "verify_runtime_bundle",
+            ) as source_verifier, patch.object(ENTRYPOINT.subprocess, "run") as runner:
+                with self.assertRaisesRegex(ValueError, "Prepared model directory.*symlink"):
+                    ENTRYPOINT.run_strict_probe(
+                        checkout_dir=None,
+                        backend_bundle=bundle,
+                        model_dir=None,
+                        prepare_model_dir=prepared,
+                        evidence_dir=root / "evidence",
+                        harness_arguments=[],
+                    )
+
+            preparer.assert_not_called()
+            source_verifier.assert_not_called()
+            runner.assert_not_called()
+
+    def test_prepositioned_model_store_root_symlink_is_rejected_before_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bundle = root / "bundle"
+            actual_model = root / "actual-model"
+            model_link = root / "model-link"
+            bundle.mkdir()
+            actual_model.mkdir()
+            model_link.symlink_to(actual_model, target_is_directory=True)
+
+            with patch.object(ENTRYPOINT, "verify_model_store") as model_verifier, patch.object(
+                ENTRYPOINT,
+                "verify_runtime_bundle",
+            ) as source_verifier, patch.object(ENTRYPOINT.subprocess, "run") as runner:
+                with self.assertRaisesRegex(ValueError, "Model directory.*symlink"):
+                    ENTRYPOINT.run_strict_probe(
+                        checkout_dir=None,
+                        backend_bundle=bundle,
+                        model_dir=model_link,
+                        evidence_dir=root / "evidence",
+                        harness_arguments=[],
+                    )
+
+            model_verifier.assert_not_called()
+            source_verifier.assert_not_called()
+            runner.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
