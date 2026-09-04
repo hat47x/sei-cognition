@@ -110,8 +110,9 @@ def _validate_runtime_archives(
     *,
     source_input: Path,
     source_label: str,
-) -> None:
+) -> dict[str, Path]:
     roots = (("SOZA repository", SOZA_ROOT), (source_label, source_input))
+    validated: dict[str, Path] = {}
     for option, requested in _forwarded_runtime_archives(arguments).items():
         expanded = requested.expanduser()
         if expanded.is_symlink():
@@ -123,6 +124,13 @@ def _validate_runtime_archives(
         if not resolved.is_file():
             raise ValueError(f"{option}はregular fileを指定してください: {resolved}")
         _reject_overlap(resolved, f"{option} runtime archive", roots)
+        if resolved in validated.values():
+            raise ValueError(
+                "runtime A / Bへ同じarchive pathを指定できません: "
+                f"option={option} path={resolved}"
+            )
+        validated[option] = resolved
+    return validated
 
 
 def _strict_child_environment() -> dict[str, str]:
@@ -167,7 +175,7 @@ def run_strict_probe(
         source_label = "KJ Atlas verified runtime bundle"
 
     # 事前配置runtime archiveは、source/model準備やharness起動より前にpath境界を固定する。
-    _validate_runtime_archives(
+    runtime_archives = _validate_runtime_archives(
         harness_arguments,
         source_input=source_input,
         source_label=source_label,
@@ -181,6 +189,12 @@ def run_strict_probe(
         resolved_model_dir = _new_path(prepare_model_dir, "Prepared model directory")
     if resolved_model_dir is not None:
         _reject_overlap(resolved_model_dir, "model directory", ((source_label, source_input),))
+        for option, archive in runtime_archives.items():
+            _reject_overlap(
+                archive,
+                f"{option} runtime archive",
+                (("model directory", resolved_model_dir),),
+            )
 
     evidence_dir = _new_path(evidence_dir, "Evidence directory")
     evidence_roots: list[tuple[str, Path]] = [(source_label, source_input)]
