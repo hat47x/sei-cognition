@@ -10,6 +10,8 @@ import tempfile
 from pathlib import Path
 
 from export_kj_atlas_runtime_source import export_runtime_bundle
+from prepare_runtime_version_exchange_archives import load_manifest as load_artifact_manifest
+from prepare_runtime_version_exchange_archives import verify_archive
 from prepare_runtime_version_exchange_model_store import prepare_model_store
 from verify_kj_atlas_runtime_source import verify_runtime_bundle
 from verify_runtime_version_exchange_model_store import verify_model_store
@@ -19,6 +21,10 @@ INTEGRATION_DIR = Path(__file__).resolve().parent
 SOZA_ROOT = INTEGRATION_DIR.parents[1]
 HARNESS = INTEGRATION_DIR / "run_runtime_version_exchange.sh"
 RUNTIME_ARCHIVE_OPTIONS = ("--runtime-a-archive", "--runtime-b-archive")
+RUNTIME_ARCHIVE_MANIFEST_LABELS = {
+    "--runtime-a-archive": "a",
+    "--runtime-b-archive": "b",
+}
 STRICT_CHILD_ENVIRONMENT_KEYS = (
     "SOZA_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_BUNDLE",
     "SOZA_RUNTIME_EXCHANGE_WORK_DIR",
@@ -130,6 +136,28 @@ def _validate_runtime_archives(
                 f"option={option} path={resolved}"
             )
         validated[option] = resolved
+
+    if not validated:
+        return validated
+
+    manifest = load_artifact_manifest()
+    archives = manifest.get("runtimeArchives")
+    if not isinstance(archives, dict):
+        raise ValueError("runtime artifact manifestにruntimeArchivesがありません")
+
+    for option, resolved in validated.items():
+        label = RUNTIME_ARCHIVE_MANIFEST_LABELS[option]
+        metadata = archives.get(label)
+        if not isinstance(metadata, dict):
+            raise ValueError(f"runtime artifact manifestにruntimeArchives.{label}がありません")
+        expected_size = metadata.get("sizeBytes")
+        expected_sha256 = metadata.get("sha256")
+        if not isinstance(expected_size, int) or isinstance(expected_size, bool):
+            raise ValueError(f"runtimeArchives.{label}.sizeBytesが不正です")
+        if not isinstance(expected_sha256, str):
+            raise ValueError(f"runtimeArchives.{label}.sha256が不正です")
+        verify_archive(resolved, expected_size, expected_sha256)
+
     return validated
 
 
@@ -184,7 +212,7 @@ def run_strict_probe(
         (source_label, source_input),
     )
 
-    # 事前配置runtime archiveは、source/model準備やharness起動より前にpath境界を固定する。
+    # 事前配置runtime archiveは、source/model準備やharness起動より前にpathとbytes identityを固定する。
     runtime_archives = _validate_runtime_archives(
         harness_arguments,
         source_input=source_input,
@@ -288,7 +316,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "ISSUE-000070のstrict runtime交換を開始します。KJ Atlas sourceをverified runtime "
-            "bundleへ固定し、事前配置model storeはOllama起動前にmanifest / blob bytesを静的検証します。"
+            "bundleへ固定し、事前配置runtime archiveはharness起動前に固定size / SHA-256を再検証し、"
+            "事前配置model storeはOllama起動前にmanifest / blob bytesを静的検証します。"
             "--prepare-model-dirを指定した場合は固定model storeをregistryから新規に準備し、"
             "再検証してからrepository-local harnessへ委譲します。"
         ),
