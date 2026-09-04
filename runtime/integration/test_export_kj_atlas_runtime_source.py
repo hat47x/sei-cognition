@@ -133,6 +133,26 @@ class KJAtlasRuntimeSourceExporterTest(unittest.TestCase):
             self.assertEqual([output.parent.resolve()], observed_dirs)
             self.assertFalse(any(unsafe_tmp in path.parents or path == unsafe_tmp for path in observed_dirs))
 
+    def test_copy_failure_removes_partial_exported_bundle(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            root = base / "repo"
+            root.mkdir()
+            _backend, identity = self.init_repository(root)
+            output = base / "safe" / "bundle"
+
+            def failing_copytree(_source, destination):
+                destination = Path(destination)
+                destination.mkdir(parents=True)
+                (destination / "partial.txt").write_text("partial\n", encoding="utf-8")
+                raise OSError("simulated copy failure")
+
+            with patch.object(EXPORTER.shutil, "copytree", side_effect=failing_copytree):
+                with self.assertRaisesRegex(OSError, "simulated copy failure"):
+                    EXPORTER.export_runtime_bundle(root, output, identity)
+
+            self.assertFalse(output.exists())
+
     def test_existing_output_directory_is_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary) / "repo"
