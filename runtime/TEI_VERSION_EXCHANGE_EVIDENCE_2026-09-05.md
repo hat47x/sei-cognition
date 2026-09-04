@@ -207,7 +207,52 @@ current TEI mainは調査中に`c1451327557a2b84a8748a225d0ed4f173602127`まで�
 
 今回利用可能だったDesktop実行環境はオフラインで、そこからprivate repositoryをcloneする経路も成立しませんでした。この取得failureもTEI product incompatibilityへ読み替えません。
 
-## 8. 現在のEvidence状態
+## 8. Revision Bの実行source Git identity
+
+revision Bのactual source archiveを現在の作業containerへ取得する経路は成立しませんでしたが、Git object identityから、実行に関係するsource境界を追加で確認しました。
+
+revision B `1a7028d444fcae60a1c4f2f2d247456f4c7c35be`のroot treeは`630d3e9e2acaea70312bee19cf8a0f7235655cd6`です。このtreeから、今回のfixed invocationに関係する主要なsource / input identityを次のように固定できます。
+
+```text
+cmd tree
+  ac4d4406dfa590a2078cf91217c4fe30797e7f8e
+
+internal tree
+  10d2bfea4932c308fa6537e3b081bc6ea5501205
+
+reference tree
+  57fafb742988ecb936b9ab261fa8a991e37ed5c7
+
+go.mod blob
+  f8763f8fb2d64d73f1b40b905f62b5e09c44493b
+
+go.sum blob
+  c7cd14781271dca2b014daf2f53d49d95b8e8826
+```
+
+mainの第一親履歴を遡り、この5 objectがBと一致する境界を調べました。
+
+直前のmain側commit `694ff4fb77141ee671c0e847b8bc5a203bdaef27`では、Bとのcompareに`internal/driver/queryruntime/oracle/runner.go`とそのtestの差分が残ります。その次のmain merge `5e89975fe188b190a95df071eda79fa60fcff607`では、上記5 object SHAがrevision Bとすべて一致します。
+
+`5e89975fe188b190a95df071eda79fa60fcff607`は、`Oracle actual readでdriver観測のraw列metadataを保持する`をmainへ取り込んだmergeで、commit時刻は`2026-09-04T10:48:14Z`、日本時間では`2026-09-04T19:48:14+09:00`です。
+
+一方、`5e89975fe188b190a95df071eda79fa60fcff607`とrevision Bでは`plan`と`tools`のtree SHAが異なります。したがって、repository commit全体を同一とは扱いません。確認できたのは、今回のCLI buildとfixed reference invocationに直接関係する上記object群のcontent-addressed identityです。
+
+```text
+same cmd/internal/reference/go.mod/go.sum Git object identity
+  != same repository commit
+  != actual executable bytes
+  != revision B Provider Plan execution
+  != SOZA Adapter compatibility
+```
+
+この同一性からhistorical artifactの`metadata.source_commit`を書き換えることもしません。artifactが別commitから生成されたなら、そのprovenanceは別commitのまま保持します。
+
+また、`5e89975fe188b190a95df071eda79fa60fcff607`自身に紐づくGitHub Actions runは0件でした。その後、revision BまでのB-equivalent source区間についても、確認したrepository-level Actions実行履歴から再利用可能なactual CLI artifactは見つかりませんでした。
+
+したがって、今回の調査で強くなったのはrevision Bの**静的な実行source identity**です。revision Bのactual CLI bytesをbuild・取得・実行したというExecutable Evidenceへはまだ昇格させません。
+
+## 9. 現在のEvidence状態
 
 ```text
 revision A fixed source / actual CLI
@@ -224,6 +269,15 @@ acquisition-independent bundle verifier
 
 revision B source identity
   = fixed to 1a7028d444fcae60a1c4f2f2d247456f4c7c35be
+
+revision B execution-source Git identity
+  = cmd/internal/reference/go.mod/go.sum object SHA fixed
+
+main第一親履歴上で確認したB-equivalent実行source成立境界
+  = 5e89975fe188b190a95df071eda79fa60fcff607
+
+B-equivalent source区間のactual executable artifact
+  = Not Observed
 
 revision B GitHub-hosted attempts
   = 2 failures before any job step
@@ -247,20 +301,24 @@ credential lifecycle / Operational portability
   = Not Yet Verified
 ```
 
-## 9. 次の成立条件
+## 10. 次の成立条件
 
 次にEvidence強度が上がるのは、revision Bについて実際のEvidence bundleを取得できた時です。
 
 取得経路はGitHub Actionsに限定しません。どの経路で取得しても、まず`verify_tei_evidence_bundle.py`へ戻してsource / binary / Provider Plan identityを確認します。その後、SOZAのcurrent `teiintegration` Adapterでactual B binaryを起動し、current Capability Observationへmappingできるかを確認します。
 
+今回固定したGit object identityは、取得したsource treeが意図したBの実行sourceと一致するかを確認する補助線として利用できます。ただし、Git object identityだけからbinary digestやProvider Planを推定しません。
+
 A/BでProvider Plan bytesやbinary digestが異なっても、それ自体をfailureにはしません。一方、既存Adapter-local surfaceで意味を壊さず解釈できない場合は、Provider compatibilityの独立したEvidenceとして上流Requirement / Contractへ戻します。
 
 新しいStable RequirementやUniversal TEI fieldは、actual B Evidenceを得る前に追加しません。
 
-## 10. 自然な日本語レビュー
+## 11. 自然な日本語レビュー
 
-PMS-06、ISSUE-000061 / 000065 / 000072、既存Actual TEI CLI Evidence、current `teiintegration`、TEI current main、TEI Evidence workflow、revision A artifact、今回のrevision B workflow attempt 1 / 2、`bootstrap/final-source`、`normalize-source.yml`を照合しました。
+PMS-06、ISSUE-000061 / 000065 / 000072、既存Actual TEI CLI Evidence、current `teiintegration`、TEI current main、TEI Evidence workflow、revision A artifact、revision B workflow attempt 1 / 2、`bootstrap/final-source`、`normalize-source.yml`、revision Bおよびその第一親履歴のGit tree identityを照合しました。
 
-今回前進したのは、過去artifactを再取得してactual bytesを再検証できたこと、そのidentity検証をGitHub Actionsやcredentialから独立したrepository-local toolへ分離したこと、さらにbootstrap payloadをrevision B sourceと誤認しない境界を明示できたことです。一方、revision Bのworkflowは2回ともjob step開始前に停止し、別のactual source取得経路も現時点では成立していないため、BのCLIやProvider Planについて実行結果を推定していません。
+今回前進したのは、過去artifactを再取得してactual bytesを再検証できたこと、そのidentity検証をGitHub Actionsやcredentialから独立したrepository-local toolへ分離したこと、bootstrap payloadをrevision B sourceと誤認しない境界を明示できたことに加え、revision Bの`cmd` / `internal` / `reference` / module filesについてcontent-addressed identityを固定できたことです。
+
+一方、この静的identityはactual binaryを取得した証拠ではありません。revision Bのworkflowは2回ともjob step開始前に停止し、B-equivalent source区間にも再利用可能なactual executable artifactは観測できなかったため、BのCLI実行、Provider Plan、SOZA Adapter互換性について結果を推定していません。
 
 Evidenceの高さと未検証範囲を変えず、自然な日本語となることを最重要視して記録しています。
