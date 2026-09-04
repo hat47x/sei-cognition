@@ -70,7 +70,9 @@ def _load_fixed_model_identity() -> dict[str, str]:
         if not isinstance(value, str) or not value:
             raise ValueError(f"runtime artifact manifestのmodel.{key}が不正です")
 
-    if len(model["sha256"]) != 64 or any(ch not in "0123456789abcdef" for ch in model["sha256"]):
+    if len(model["sha256"]) != 64 or any(
+        ch not in "0123456789abcdef" for ch in model["sha256"]
+    ):
         raise ValueError("runtime artifact manifestのmodel.sha256が不正です")
     if model["digestBasis"] != "ollama-manifest-raw-bytes-sha256":
         raise ValueError(f"未対応のmodel digest basisです: {model['digestBasis']}")
@@ -113,7 +115,17 @@ def verify_model_store(
     manifest_sha256 = expected_manifest_sha256 or fixed["sha256"]
     relative_path = manifest_relative_path or fixed["storeManifestPath"]
 
-    model_dir = model_dir.expanduser().resolve(strict=True)
+    requested_model_dir = model_dir.expanduser()
+    if requested_model_dir.is_symlink():
+        raise ValueError(
+            f"Ollama model store rootにsymlinkは利用できません: {requested_model_dir}"
+        )
+    if requested_model_dir.parent.is_symlink():
+        raise ValueError(
+            "Ollama model store rootのparentにsymlinkは利用できません: "
+            f"{requested_model_dir.parent}"
+        )
+    model_dir = requested_model_dir.resolve(strict=True)
     if not model_dir.is_dir():
         raise ValueError(f"Ollama model storeがdirectoryではありません: {model_dir}")
 
