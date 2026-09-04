@@ -439,6 +439,66 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
             source_verifier.assert_not_called()
             runner.assert_not_called()
 
+    def test_new_path_rejects_deep_symlink_ancestor(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            actual_root = root / "actual"
+            (actual_root / "nested").mkdir(parents=True)
+            link_root = root / "linked-root"
+            try:
+                link_root.symlink_to(actual_root, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            requested = link_root / "nested" / "new-output"
+            with self.assertRaisesRegex(ValueError, "ancestorにsymlink"):
+                ENTRYPOINT._new_path(requested, "Work directory")
+            self.assertFalse((actual_root / "nested" / "new-output").exists())
+
+    def test_existing_directory_rejects_deep_symlink_ancestor(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            actual_root = root / "actual"
+            existing = actual_root / "nested" / "bundle"
+            existing.mkdir(parents=True)
+            link_root = root / "linked-root"
+            try:
+                link_root.symlink_to(actual_root, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            requested = link_root / "nested" / "bundle"
+            with self.assertRaisesRegex(ValueError, "ancestorにsymlink"):
+                ENTRYPOINT._existing_directory(
+                    requested,
+                    "KJ Atlas verified runtime bundle",
+                )
+
+    def test_runtime_archive_rejects_deep_symlink_ancestor_before_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bundle = root / "bundle"
+            bundle.mkdir()
+            actual_root = root / "actual"
+            (actual_root / "nested").mkdir(parents=True)
+            archive = actual_root / "nested" / "runtime-a.tar.zst"
+            archive.write_bytes(b"runtime")
+            link_root = root / "linked-root"
+            try:
+                link_root.symlink_to(actual_root, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            requested = link_root / "nested" / "runtime-a.tar.zst"
+            with patch.object(ENTRYPOINT, "verify_archive") as archive_verifier:
+                with self.assertRaisesRegex(ValueError, "ancestorにsymlink"):
+                    ENTRYPOINT._validate_runtime_archives(
+                        ["--runtime-a-archive", str(requested)],
+                        source_input=bundle,
+                        source_label="KJ Atlas verified runtime bundle",
+                    )
+            archive_verifier.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
