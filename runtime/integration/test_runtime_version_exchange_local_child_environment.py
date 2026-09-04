@@ -127,6 +127,17 @@ class RuntimeVersionExchangeLocalChildEnvironmentTest(unittest.TestCase):
         self.assertEqual("1", environment["PYTHONDONTWRITEBYTECODE"])
         self.assertEqual("1", environment["PYTHONNOUSERSITE"])
 
+    def test_verified_runner_default_work_is_evidence_sibling_and_ignores_parent_tmpdir(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            evidence = root / "evidence"
+            with patch.dict(os.environ, {"TMPDIR": "/tmp/injected-parent"}, clear=False):
+                default_work = verified_runner._effective_work_dir(evidence, None)
+            explicit = verified_runner._effective_work_dir(evidence, root / "custom-work")
+
+        self.assertEqual(root / "evidence-work", default_work)
+        self.assertEqual(root / "custom-work", explicit)
+
     def test_verified_preflight_receives_sanitized_environment(self):
         completed = subprocess.CompletedProcess(
             args=["preflight"],

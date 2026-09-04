@@ -123,6 +123,14 @@ def _default_verification_output(evidence_dir: Path) -> Path:
     return evidence_dir.parent / f"{evidence_dir.name}-verification.json"
 
 
+def _effective_work_dir(evidence_dir: Path, requested_work_dir: Path | None) -> Path:
+    """preflightとstrict entrypointが同じwork pathを診断・利用するよう一度だけ確定する。"""
+
+    if requested_work_dir is not None:
+        return _canonical_path(requested_work_dir)
+    return evidence_dir.parent / f"{evidence_dir.name}-work"
+
+
 def _runtime_archive_preflight_arguments(arguments: list[str]) -> list[str]:
     selected: list[str] = []
     index = 0
@@ -399,6 +407,7 @@ def run(
         )
 
     evidence_dir = _prepare_new_path(evidence_dir, "Evidence directory")
+    effective_work_dir = _effective_work_dir(evidence_dir, work_dir)
     verification_output = _prepare_new_path(verification_output, "verification output")
     if not evidence_dir.parent.is_dir():
         raise ValueError(
@@ -412,14 +421,14 @@ def run(
         kj_atlas_backend_bundle=kj_atlas_backend_bundle,
         model_dir=model_dir,
         prepare_model_dir=prepare_model_dir,
-        work_dir=work_dir,
+        work_dir=effective_work_dir,
     )
 
     preflight_command = _build_preflight_command(
         kj_atlas_dir=kj_atlas_dir,
         kj_atlas_backend_bundle=kj_atlas_backend_bundle,
         model_dir=model_dir,
-        work_dir=work_dir,
+        work_dir=effective_work_dir,
         evidence_dir=evidence_dir,
         forwarded=forwarded,
         require_prepositioned_artifacts=require_prepositioned_artifacts,
@@ -439,7 +448,7 @@ def run(
         kj_atlas_backend_bundle=kj_atlas_backend_bundle,
         model_dir=model_dir,
         prepare_model_dir=prepare_model_dir,
-        work_dir=work_dir,
+        work_dir=effective_work_dir,
         evidence_dir=evidence_dir,
         forwarded=forwarded,
     )
