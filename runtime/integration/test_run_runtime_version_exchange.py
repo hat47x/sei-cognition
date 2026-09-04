@@ -197,13 +197,28 @@ class RuntimeVersionExchangeHarnessTest(unittest.TestCase):
         self.assertIn('payload.get("result") != "ok"', self.script_text)
         self.assertIn('archive.get("status") != "ok"', self.script_text)
 
-    def test_prepositioned_model_store_is_not_auto_pulled_when_pinned_model_is_missing(self):
-        marker = 'if [[ "${MODEL_STORE_MODE}" == "prepositioned" ]]'
-        start = self.script_text.index(marker)
-        end = self.script_text.index('"${ollama}" pull "${MODEL_NAME}"', start)
-        prepositioned_branch = self.script_text[start:end]
-        self.assertIn("prepositioned model directory does not contain the pinned artifact", prepositioned_branch)
-        self.assertIn("return 1", prepositioned_branch)
+    def test_work_local_model_store_is_prepared_before_runtime_and_never_pulled(self):
+        self.assertIn(
+            'MODEL_STORE_PREPARER="${SOZA_ROOT}/runtime/integration/prepare_runtime_version_exchange_model_store.py"',
+            self.script_text,
+        )
+        self.assertIn('MODEL_STORE_MODE="work-local"', self.script_text)
+        self.assertIn('MODEL_STORE_NEEDS_PREPARATION=1', self.script_text)
+        self.assertIn('python3 "${MODEL_STORE_PREPARER}" --target-dir "${MODEL_STORE}"', self.script_text)
+        self.assertIn('"${MODEL_STORE_PREPARATION_FILE}" \\', self.script_text)
+        self.assertNotIn('"${ollama}" pull "${MODEL_NAME}"', self.script_text)
+
+    def test_missing_pinned_model_stops_runtime_without_mutating_store(self):
+        self.assertIn(
+            'if ! model_store_has_pinned_artifact "${tags}"; then',
+            self.script_text,
+        )
+        self.assertIn(
+            'model directory does not contain the pinned artifact',
+            self.script_text,
+        )
+        self.assertIn("return 1", self.script_text)
+        self.assertNotIn("prepositioned model directory does not contain", self.script_text)
 
     def test_acquisition_path_is_recorded_without_replacing_artifact_identity(self):
         self.assertIn('"archiveAcquisition": os.environ["RUNTIME_ACQUISITION_A"]', self.script_text)
