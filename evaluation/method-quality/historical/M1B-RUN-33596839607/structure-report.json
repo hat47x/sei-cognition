@@ -1,0 +1,13 @@
+{
+  "excludedCardCount": 1,
+  "groupCount": 1,
+  "groupedCardCount": 2,
+  "heldCardCount": 1,
+  "inputCardCount": 3,
+  "qualityJudgement": "not_evaluated",
+  "requestSha256": "f07684c39c9bbb1f1ffcc223da33506c94c91393bf09abc45f550f0baac83cc0",
+  "resultSha256": "3b52f421e3a8240ae6e3ae3c625becdc380ff08cf5235f65df8896d9562c9355",
+  "schema": "soza.method-quality-structure-report/v1",
+  "status": "passed",
+  "violations": []
+}

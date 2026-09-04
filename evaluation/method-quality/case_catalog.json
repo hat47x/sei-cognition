@@ -1,0 +1,168 @@
+{
+  "schema": "soza.method-quality-case-catalog/v1",
+  "updated": "2026-09-03",
+  "purpose": "Cognitive Method成果品質を人間が読むための入力ケース集。golden groupingや正解表札は定義せず、観測したい意味上の難所だけを記録する。",
+  "rules": {
+    "goldenGrouping": false,
+    "machineScoring": false,
+    "humanReviewRequiredForOutcomeQuality": true
+  },
+  "cases": [
+    {
+      "id": "MQC-001-semantic-nearness-with-different-wording",
+      "title": "語彙が異なっても訴えが近いカード",
+      "cards": [
+        {
+          "id": "c-decision-note",
+          "text": "朝会の口頭合意だけで作業方針が変わると、後から変更理由を追えない"
+        },
+        {
+          "id": "c-chat-context",
+          "text": "判断時の前提がチャットに散らばると、翌週には経緯を再構成しにくい"
+        },
+        {
+          "id": "c-color-held",
+          "text": "顧客向け画面の配色は後で決める",
+          "holdState": "held"
+        }
+      ],
+      "reviewFocus": [
+        "表面的な共通語が少なくても、意思決定の経緯を後から追えないという近さを拾えるか",
+        "単なる『情報管理』のような広すぎる表札で具体性を消していないか",
+        "held cardを未処理のまま保持できるか"
+      ]
+    },
+    {
+      "id": "MQC-002-same-topic-different-claims",
+      "title": "同じ話題でも訴えが異なるカード",
+      "cards": [
+        {
+          "id": "c-remote-time",
+          "text": "在宅勤務では通勤に使う時間を減らせる"
+        },
+        {
+          "id": "c-remote-question",
+          "text": "在宅勤務では雑談が減り、新人が小さな疑問を質問しにくい"
+        },
+        {
+          "id": "c-remote-rule",
+          "text": "在宅勤務規定は来月改訂される予定だ"
+        }
+      ],
+      "reviewFocus": [
+        "『在宅勤務』という共通語だけで三枚を一つに押し込めていないか",
+        "時間削減、質問のしにくさ、規定改訂という異なる訴えを区別できるか",
+        "孤立させるべきカードを無理に束ねていないか"
+      ]
+    },
+    {
+      "id": "MQC-003-tension-without-premature-resolution",
+      "title": "緊張関係を解消せず残すカード",
+      "cards": [
+        {
+          "id": "c-automation-benefit",
+          "text": "定型処理を自動化すれば、担当者の反復作業を減らせる"
+        },
+        {
+          "id": "c-exception-risk",
+          "text": "例外が多い業務を完全自動化すると、人が確認していた違和感を見落としやすい"
+        },
+        {
+          "id": "c-manual-check",
+          "text": "担当者は例外だけを手作業で確認している"
+        }
+      ],
+      "reviewFocus": [
+        "自動化の利点と例外確認の必要性を、どちらか一方へ単純化していないか",
+        "対立を勝手に解決した結論や推奨を表札・rationaleへ持ち込んでいないか",
+        "三枚の間にある条件依存や緊張を次の検討材料として残せるか"
+      ]
+    },
+    {
+      "id": "MQC-004-bridge-between-portability-and-history",
+      "title": "二つの島をまたぐ橋になり得るカード",
+      "cards": [
+        {
+          "id": "c-provider-exchange",
+          "text": "外部Providerを交換できれば、一つの製品実装へ閉じにくくなる"
+        },
+        {
+          "id": "c-core-neutral",
+          "text": "Provider固有の項目を中核Contractへ固定すると交換可能性が下がる"
+        },
+        {
+          "id": "c-provider-history",
+          "text": "過去結果を読み直すには、実行時に使ったProvider revisionを履歴へ残す必要がある"
+        },
+        {
+          "id": "c-decision-history",
+          "text": "後から判断を検証するには、その時点の入力と実行条件をたどれることが重要だ"
+        }
+      ],
+      "reviewFocus": [
+        "交換可能性と履歴再構成という二つのまとまりを識別できるか",
+        "Provider revisionのカードが複数のまとまりを橋渡しする可能性を消していないか",
+        "一枚を一つの分類へ排他的に閉じることを目的化していないか"
+      ]
+    },
+    {
+      "id": "MQC-005-held-and-unresolved-residual",
+      "title": "保留・未整理・残差を処理済みに見せないケース",
+      "cards": [
+        {
+          "id": "c-user-history",
+          "text": "利用者は前回の検討結果から続きを始めたい"
+        },
+        {
+          "id": "c-source-trace",
+          "text": "結論だけでなく、どの資料や観測から考えたかも後でたどりたい"
+        },
+        {
+          "id": "c-unknown-retention",
+          "text": "どこまで古い途中経過を残すべきかは、まだ判断できていない",
+          "holdState": "held"
+        },
+        {
+          "id": "c-dissent",
+          "text": "履歴を増やしすぎると、読むべき情報が埋もれるという懸念もある"
+        }
+      ],
+      "reviewFocus": [
+        "held cardをgroupへ再混入させず、未決定として残せるか",
+        "履歴保持への異論を単なるノイズとして消していないか",
+        "『履歴は多いほどよい』のような一方向の評価へ勝手に収束していないか"
+      ]
+    },
+    {
+      "id": "MQC-006-avoid-forced-completeness",
+      "title": "全カードを束ね切ることを目的化しないケース",
+      "cards": [
+        {
+          "id": "c-restart",
+          "text": "プロセスを再起動しても作業中の記録を読み直せる必要がある"
+        },
+        {
+          "id": "c-copy-restore",
+          "text": "データを別の場所へコピーしても同じ記録を再開できると移行しやすい"
+        },
+        {
+          "id": "c-ui-touch",
+          "text": "タッチパネル端末では一画面の操作遅延を小さくしたい"
+        },
+        {
+          "id": "c-access",
+          "text": "利用者によって閲覧できる情報の範囲を変える必要がある"
+        },
+        {
+          "id": "c-wording",
+          "text": "開発文書は意味を変えず自然な日本語で読めることを重視する"
+        }
+      ],
+      "reviewFocus": [
+        "restartとcopy / restoreの近さを拾いつつ、他の三枚まで無理に同じ島へ押し込めていないか",
+        "孤立cardを失敗扱いせず残せるか",
+        "カード数を減らすこと自体を成果としていないか"
+      ]
+    }
+  ]
+}

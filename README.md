@@ -1,6 +1,6 @@
 # 綜座 / SOZA
 
-更新日: 2026-09-02  
+更新日: 2026-09-03  
 状態: **v0.2.0 Local Reference Product Baseline released / development continues**
 
 SOZAは、人間・AI・組織・既存システム・外部サービスが入れ替わっても、**何を見て、何を問い、何を根拠とし、何を決め、何を未解決として残したか**を失わないための、可搬な認知・意思決定基盤です。
@@ -15,7 +15,7 @@ v0.2.0は、開発者・評価者が現在のProduct ValueとSemantic Contract�
 
 - tag: `v0.2.0`
 - source commit: `c3640bdfcc43652b63a5b9941fd6b472312ec28f`
-- Release Candidate Gate: Run `33574947445` — **success**
+- historical Release Candidate Gate: Run `33574947445` — **success**
 - Release Evidence: **Satisfied for v0.2.0 Local Reference Product Baseline**
 
 これはproduction完成版を意味しません。
@@ -34,7 +34,6 @@ Releaseの詳細は`release/v0.2.0/RELEASE_ACCEPTANCE.md`、`RELEASE_NOTES.md`�
 current treeには、少なくとも次の領域があります。
 
 ```text
-.github/
 product/
 requirements/
 architecture/
@@ -46,6 +45,8 @@ release/
 runtime/
 tools/
 ```
+
+GitHub Actionsは当面完全に停止しており、current `develop/v0.2.0`には`.github/workflows`を置いていません。必要なchecker、test、probeは変更範囲に応じてローカルで個別に実行します。
 
 正本関係は概ね次のとおりです。
 
@@ -71,7 +72,7 @@ Executable Evidence
 Release Candidate / Release Evidence
 ```
 
-下位の実装やCIが上位の意味を自動的に決めることはありません。上位文書に戻って、何を証明したEvidenceなのかを確認します。
+下位の実装や検証手段が上位の意味を自動的に決めることはありません。上位文書に戻って、何を証明したEvidenceなのかを確認します。
 
 ## 3. Evidenceの読み方
 
@@ -93,6 +94,8 @@ Design Evidence
 historical PASS != current PASS
 not_verified != failed
 ```
+
+GitHub Actions停止中も検証を省略するわけではありません。ローカルで実行したchecker、test、probeの結果だけをその高さのEvidenceとして扱い、実行できない検証は`Not Yet Verified`のまま残します。
 
 ## 4. 最初に読む文書
 
@@ -212,12 +215,11 @@ historical M47 digest規則は、現在保持されている直接Evidenceから
 
 ## 8. current executable material
 
-現在のrepositoryには、限定されたExecutable Evidenceとして少なくとも次があります。
+現在のrepositoryには、限定されたExecutable Evidenceまたはその再実行資産として、少なくとも次があります。
 
 - semantic runtime
 - Representation Verifier Registry
-- synthetic Payload Source
-- synthetic Provider Adapter
+- synthetic Payload Source / Provider Adapter
 - Cognitive Method typed runtime
 - known Contract横断bundle-local Exact Binding consistency
 - V6 / V7 Projection evaluation
@@ -228,15 +230,23 @@ historical M47 digest規則は、現在保持されている直接Evidenceから
 - out-of-process Realization / Provider exchange
 - E3a version-pinned external artifact integration
 - E3b-P1 public live Provider integration
-- actual TEI実行に先立つexternal executable injection boundary
+- E3b-P2 fixed-artifact actual TEI CLI integration
+- E3b-M1a fixed KJ Atlas + deterministic model-stub integration
+- E3b-M1b Ollama actual model-backed Cognitive Method integration
+- actual model artifact交換のhistorical Application保持
+- Method Realization historical revision / portable reconstruction
+- Cognitive Method outcome-quality evaluation boundary
+- runtime version交換用repository-local harness / artifact guard / local preflight
 
-このうち、v0.2.0の**supported release scopeはE3aまで**です。E3b-P1やTEI integration準備のEvidenceがrepositoryに存在することだけを理由に、v0.2.0のsupport範囲を後から広げません。
+このうち、v0.2.0の**supported release scopeはE3aまで**です。release後に得られたE3b-P2、M1a / M1b等のEvidenceを理由に、公開済みv0.2.0のsupport範囲を後から広げません。
+
+また、runtime version交換については実験基盤まで整っていますが、固定model artifactの下でOllama `0.32.13` / `0.32.14`をactualに交換する実証はまだ完了していません。
 
 ## 9. v0.2.0 Release Evidence
 
-v0.2.0では、Release Candidate Gateで同じsource commitに対してPlan、Requirements、Contract、Representation Profile、JCS probe、semantic runtime、Projection evaluation、Local Reference Package、release policyをまとめて再検査しました。
+v0.2.0のactual release時には、同じsource commitに対してPlan、Requirements、Contract、Representation Profile、JCS probe、semantic runtime、Projection evaluation、Local Reference Package、release policyをまとめて再検査しました。
 
-actual releaseでは、tag、source commit、GitHub Release、4つのrelease asset、package digestを相互に照合しています。
+actual releaseでは、tag、source commit、GitHub Release、release asset、package digestを相互に照合しています。
 
 ```text
 candidate PASS
@@ -251,6 +261,8 @@ Local Reference PackageのSHA-256は次です。
 
 release preparationで得たdigestと、GitHub Release上のpackage asset digestが一致しています。
 
+このrelease Evidenceはhistoricalに確定しています。後続develop commitの検証は、必要なローカルchecker、test、probeを別途実行して判断します。
+
 ## 10. SOZAとTEI
 
 鼎（TEI）はSOZAそのものではなく、SOZAから利用し得るCapability Providerの一つです。
@@ -264,33 +276,63 @@ TEI  = 実行可能な業務Capabilityを実現する一つの手段
 
 ## 11. current Plan
 
-current registryはADR-0001〜ADR-0030、ISSUE-000001〜ISSUE-000063を管理します。
+current registryはADR-0001〜ADR-0030、ISSUE-000001〜ISSUE-000071を管理します。
+
+現在の未解決Issueは次です。
+
+- ISSUE-000070: **Open** — model artifactを固定したOllama runtime version交換とhistorical Application保持のactual実証
+
+また、次は意図的にDeferredです。
 
 - ISSUE-000021: **Deferred** — historical design provenanceの逐語監査
-- ISSUE-000001〜000020、000022〜000063: **Resolved**
+
+ISSUE-000069はGitHub Actions / runner availabilityと検証責務の分離としてResolvedです。ISSUE-000071はCognitive Method成果品質の**評価境界の確立**としてResolvedですが、actual human reviewや成果品質そのものがSatisfiedになったことを意味しません。
 
 Resolvedは、対象作業の完了を示します。Release / Operational / Adoption・Outcome Evidenceまで自動的にVerifiedになったことを意味しません。
 
 ## 12. 次に深める領域
 
-v0.2.0のrelease後も、実装量やIssue数を増やすこと自体を目的にしません。Product Valueへ戻りながら、主に次を深めます。
+現時点の最優先はISSUE-000070です。
 
-1. actual TEI process / serviceを用いたE3b-P2のEvidence
-2. external Cognitive Methodのlive execution
-3. E4 Operational portabilityの測定方法
-4. production Provider / Storage / identity / securityを必要とする具体的ユースケースとAcceptance
-5. 実運用後のOperational Evidence
-6. 実利用後のAdoption / Outcome Evidence
-7. historical design provenanceの一次資料が得られた場合のISSUE-000021再開
+1. 固定model artifactの下でOllama `0.32.13` / `0.32.14`をactualに交換する。
+2. same logical Realization / different Exact Bindingをactual Evidenceで確認する。
+3. Application AのExact Reference / Provenance / outputがB追加後も不変であることを確認する。
+4. actual runtime A/B Evidenceを含むportable historical reconstructionを確認する。
+5. ISSUE-000071で整えたreview bundleを使い、必要に応じてactual human reviewを行う。
+6. 別model family、別Provider、別Realizationへbroader portabilityを広げる。
+7. TEI acquisition / version交換、network degradation、credential失効等のfailure behaviorを探索する。
+8. E4 Operational portabilityとAdoption / Outcome Evidenceへ進む。
 
-## 13. 文書品質
+実装量やIssue数を増やすこと自体は目的にしません。既存RequirementとContractで表現できる場合は、実証のためだけにUniversal semanticsを増やしません。
+
+## 13. 検証の実行方針
+
+GitHub Actionsは当面完全に停止しています。workflowの追加・復元、historical runの再実行、runner監視は行いません。
+
+変更内容に応じて、repository同梱のchecker、test、fixture、probeをローカルで個別に実行します。
+
+```text
+change scope
+  → relevant local check
+  → observed result
+  → fix if needed
+  → Evidence update
+```
+
+検証できなかった項目は`Not Yet Verified`として残します。GitHub Actionsが停止していることを、検証済みの代替にはしません。
+
+## 14. 文書品質
 
 開発文書は、内容・構造・技術的一貫性を整えた後、**意味・仕様・留保・Evidenceの強さを変えず、自然な日本語となることを最重要視して全文をドラフトし直す工程**を通し、その後に最終意味監査を行います。
 
 詳細は`plan/DOCUMENT_AUTHORING_STANDARD.md`を参照してください。
 
-## 14. 自然な日本語レビュー
+## 15. 自然な日本語レビュー
 
-2026-09-02時点のProduct Value、Value Proposition、Product Shape、Product Milestone、REQ-0001〜0022、SCN-0001〜0018、ADR-0001〜0030、5 Semantic Contract family、2 Representation Profile、current runtime / probe群、v0.2.0 Release Candidate Gate、actual tag / GitHub Release / release asset、ISSUE-000001〜000063へ戻って現在地を再監査しました。
+2026-09-03時点のProduct Value、Product Milestone、REQ-0001〜0022、SCN-0001〜0018、ADR-0001〜0030、ISSUE-000001〜000071、5 Semantic Contract family、2 Representation Profile、current runtime / probe / evaluation資産、v0.2.0 historical Release Evidence、ISSUE-000067〜000071へ戻って現在地を再監査しました。
 
-そのうえで、旧READMEに残っていた`develop/v0.1.0`、4 Contract family、Release未成立等の古い記述をcurrent stateへ更新しました。v0.2.0のRelease EvidenceはLocal Reference Product Baselineに限定してSatisfiedとし、E3b全体、E4、production readiness、Operational Evidence、Adoption / Outcome Evidenceは未検証のまま保持しています。意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。
+旧READMEに残っていた`.github/`のcurrent tree記載、ISSUE-000063までのPlan状態、既に完了したTEI / external Cognitive Method実証を「次の作業」とする記述を更新しました。GitHub Actionsのhistorical Evidenceは保存しながら、現在の検証はローカル個別実行へ切り替えています。
+
+v0.2.0のRelease EvidenceはLocal Reference Product Baselineに限定してSatisfiedとし、後続E3b Evidenceをrelease scopeへ遡及させません。ISSUE-000070のactual runtime version交換、human outcome review、E4、Operational / Adoption Evidenceも未検証範囲を維持しています。
+
+意味、規範強度、Evidence強度を変えず、入口文書として自然な日本語で現在地をたどれることを最重要視して全文を再ドラフトしました。

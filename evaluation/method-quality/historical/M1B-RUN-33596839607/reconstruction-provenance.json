@@ -1,0 +1,20 @@
+{
+  "schema": "soza.method-quality-historical-review-reconstruction/v1",
+  "reconstructionDate": "2026-09-03",
+  "sourceWorkflowRunId": "33596839607",
+  "sourceWorkflowRunAttempt": "1",
+  "sourceJobId": "100141890796",
+  "checkedOutRepositoryCommit": "27476bb6a1e9583282ae59f54395abbdef185186",
+  "workflowHeadSha": "fc88cee28fd67049922327384f7fafbbc56315d6",
+  "methodSourceCommit": "4f28c13abe4176503c6fed863383a2d1db2299e9",
+  "sources": {
+    "request": "historical_actual_samples.json and archived successful job log",
+    "result": "historical_actual_samples.json and archived successful job log",
+    "modelEvidence": "archived successful job log JSON output",
+    "runtimeVersion": "archived successful job log: Warning: client version is 0.32.14",
+    "modelList": "archived successful job log: ollama list output"
+  },
+  "originalWorkflowArtifactAvailable": false,
+  "qualityJudgement": "not_evaluated",
+  "note": "This bundle is reconstructed from retained repository sample data and the archived successful GitHub Actions job log. It is not claimed to be an original workflow artifact."
+}

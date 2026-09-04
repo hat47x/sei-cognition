@@ -1,0 +1,41 @@
+{
+  "schema": "soza.method-quality-ai-supplemental-observation/v1",
+  "created": "2026-09-03",
+  "reviewAuthority": "non_authoritative_ai_supplement",
+  "humanReviewCompleted": false,
+  "qualityJudgement": "not_evaluated",
+  "sourceSampleIds": [
+    "M1B-RUN-33596839607",
+    "M1B-RUN-33609470323"
+  ],
+  "rules": {
+    "humanJudgementSubstitution": false,
+    "winnerSelection": false,
+    "goldenLabel": false,
+    "machineScore": false
+  },
+  "observations": {
+    "common": [
+      "両runとも、通勤時間の削減と移動負担の削減を述べる2枚を同じgroupへ置き、held状態の人事評価制度cardをexcludedCardIdsへ残している。",
+      "この共通構造はstructure checkの対象になり得るが、表札やrationaleの意味的品質を決めない。"
+    ],
+    "M1B-RUN-33596839607": [
+      "表札『生活習慣』は、元cardが明示している在宅勤務による通勤時間・移動負担の変化より広い分類語であり、cardの具体的な訴えから『習慣』という別の分類へずれる可能性がある。",
+      "rationaleの『生活習慣の一つです』は元cardにはない分類を追加しており、human reviewではQ5とQ6の観点から確認する余地がある。"
+    ],
+    "M1B-RUN-33609470323": [
+      "表札『在宅勤務』は元cardに明示された話題の範囲には留まる一方、2枚が共有する『通勤時間と移動負担が軽くなる』という関係より一般的な話題名に退いている可能性がある。",
+      "rationaleの『効果がある』は2枚を便益としてまとめる方向だが、『ための効果』という表現と因果・評価のまとめ方が元cardの言い方をどこまで保っているかはhuman reviewで確認する必要がある。"
+    ],
+    "comparison": [
+      "同じinput / Method source / runtime / model / prompt digestでも、表札が『生活習慣』と『在宅勤務』へ変動しているため、execution identityの一致だけから成果の意味的安定性は推論できない。",
+      "一方をwinnerとして選ばず、human reviewでは『2枚の共通核を、元cardより広げすぎず表札にできているか』を比較問いとして残す。",
+      "編集上の検討例として『通勤時間と移動負担の軽減』のように2枚の具体的内容を直接言い表す方向は考えられるが、これは期待表札やgolden answerではない。"
+    ]
+  },
+  "humanReviewHandoff": {
+    "template": "evaluation/method-quality/HUMAN_REVIEW_TEMPLATE.md",
+    "focusQuestionIds": ["Q1", "Q2", "Q5", "Q6", "Q7", "Q8"],
+    "note": "このAI補助観測をhuman judgement欄へそのまま転記せず、元cardとactual resultを人間が読み直して判断する。"
+  }
+}

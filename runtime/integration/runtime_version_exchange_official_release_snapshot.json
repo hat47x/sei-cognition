@@ -1,0 +1,43 @@
+{
+  "schema": "soza.runtime-version-exchange-official-release-snapshot/v1",
+  "observedDate": "2026-09-04",
+  "sourceRepository": "ollama/ollama",
+  "sourceType": "github-release-api",
+  "archives": {
+    "a": {
+      "version": "0.32.13",
+      "releaseId": 370771819,
+      "releaseTag": "v0.32.13",
+      "releasePublishedAt": "2026-08-14T19:16:07Z",
+      "releaseImmutable": false,
+      "assetId": 514796034,
+      "assetApiUrl": "https://api.github.com/repos/ollama/ollama/releases/assets/514796034",
+      "assetName": "ollama-linux-amd64.tar.zst",
+      "assetState": "uploaded",
+      "contentType": "application/zstd",
+      "sizeBytes": 1421793186,
+      "digest": "sha256:0fd1dece38a1c6242e8013ce20b597345c5de072ae6b320160edb0e729ef1de1",
+      "browserDownloadUrl": "https://github.com/ollama/ollama/releases/download/v0.32.13/ollama-linux-amd64.tar.zst",
+      "assetCreatedAt": "2026-08-14T19:09:00Z",
+      "assetUpdatedAt": "2026-08-14T19:09:51Z"
+    },
+    "b": {
+      "version": "0.32.14",
+      "releaseId": 371138535,
+      "releaseTag": "v0.32.14",
+      "releasePublishedAt": "2026-08-15T19:41:23Z",
+      "releaseImmutable": false,
+      "assetId": 517039292,
+      "assetApiUrl": "https://api.github.com/repos/ollama/ollama/releases/assets/517039292",
+      "assetName": "ollama-linux-amd64.tar.zst",
+      "assetState": "uploaded",
+      "contentType": "application/zstd",
+      "sizeBytes": 1421191399,
+      "digest": "sha256:c620917a71e146ab3a7f893084f066069c4c65d144ef8379a91c3cbe8b27de8f",
+      "browserDownloadUrl": "https://github.com/ollama/ollama/releases/download/v0.32.14/ollama-linux-amd64.tar.zst",
+      "assetCreatedAt": "2026-08-16T17:20:44Z",
+      "assetUpdatedAt": "2026-08-16T17:21:14Z"
+    }
+  },
+  "note": "このsnapshotは2026-09-04時点でOllama公式GitHub Release APIから観測したmetadataを保存する。releaseImmutable=falseであるため、将来の公式metadata不変性を証明するものではない。actual archive bytesのsizeとSHA-256検証、およびruntime A/B実行の代替にはしない。"
+}
