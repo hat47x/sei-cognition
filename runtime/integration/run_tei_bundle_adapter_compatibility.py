@@ -21,6 +21,7 @@ FIXED_RUN = "reference/order_rollout.durable-run.m0.21.start.json"
 FIXED_WORKSPACE = "reference/workspace"
 FIXED_PLUGIN_LOCK = "reference/workspace/.tei/plugin-lock.json"
 LIVE_TEST = "^TestLiveTEIProviderPlan$"
+MAX_STAGE_OUTPUT = 32 * 1024
 SOZA_EVIDENCE_PATHS = [
     "runtime/go",
     "runtime/integration/run_tei_bundle_adapter_compatibility.py",
@@ -33,6 +34,80 @@ STOP_LINE = (
     "!= arbitrary TEI version compatibility != Release Evidence "
     "!= Operational Evidence != ISSUE-000072 Resolved"
 )
+
+
+class TEIAdapterStageError(RuntimeError):
+    def __init__(
+        self,
+        stage: str,
+        message: str,
+        *,
+        command: list[str] | None = None,
+        returncode: int | None = None,
+        stdout: str = "",
+        stderr: str = "",
+    ) -> None:
+        super().__init__(f"{stage}: {message}")
+        self.stage = stage
+        self.message = message
+        self.command = command
+        self.returncode = returncode
+        self.stdout = stdout[-MAX_STAGE_OUTPUT:]
+        self.stderr = stderr[-MAX_STAGE_OUTPUT:]
+
+    def as_dict(self) -> dict[str, object]:
+        value: dict[str, object] = {
+            "stage": self.stage,
+            "message": self.message,
+        }
+        if self.command is not None:
+            value["command"] = self.command
+        if self.returncode is not None:
+            value["returnCode"] = self.returncode
+        if self.stdout:
+            value["stdoutTail"] = self.stdout
+        if self.stderr:
+            value["stderrTail"] = self.stderr
+        return value
+
+
+def _wrap_stage(stage: str, exc: Exception) -> TEIAdapterStageError:
+    if isinstance(exc, TEIAdapterStageError):
+        return exc
+    return TEIAdapterStageError(stage, str(exc))
+
+
+def _run_stage(
+    stage: str,
+    argv: list[str],
+    *,
+    cwd: Path,
+    env: dict[str, str],
+    timeout: int,
+) -> subprocess.CompletedProcess[str]:
+    try:
+        result = subprocess.run(
+            argv,
+            cwd=cwd,
+            env=env,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=timeout,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise TEIAdapterStageError(stage, str(exc), command=argv) from exc
+    if result.returncode != 0:
+        raise TEIAdapterStageError(
+            stage,
+            "external process returned non-zero status",
+            command=argv,
+            returncode=result.returncode,
+            stdout=result.stdout,
+            stderr=result.stderr,
+        )
+    return result
 
 
 def _member_name(member: tarfile.TarInfo) -> str:
@@ -273,52 +348,68 @@ def run_compatibility(
     archive = archive.expanduser().resolve(strict=True)
     soza_repo_root = soza_repo_root.expanduser().resolve(strict=True)
     go_root = soza_repo_root / "runtime/go"
-    if not (go_root / "go.mod").is_file():
-        raise ValueError(f"SOZA runtime/go moduleを確認できません: {go_root}")
-    if not (go_root / "teiintegration/tei_live_test.go").is_file():
-        raise ValueError("current teiintegration live testを確認できません")
 
-    soza_source = _verify_soza_source_identity(
-        soza_repo_root, expected_head=expected_soza_head
-    )
+    try:
+        if not (go_root / "go.mod").is_file():
+            raise ValueError(f"SOZA runtime/go moduleを確認できません: {go_root}")
+        if not (go_root / "teiintegration/tei_live_test.go").is_file():
+            raise ValueError("current teiintegration live testを確認できません")
+    except ValueError as exc:
+        raise _wrap_stage("soza_runtime_layout", exc) from exc
 
-    verification = bundle_verifier.verify_bundle(
-        archive,
-        expected_source_commit=expected_source_commit,
-    )
+    try:
+        soza_source = _verify_soza_source_identity(
+            soza_repo_root, expected_head=expected_soza_head
+        )
+    except (OSError, ValueError, subprocess.SubprocessError) as exc:
+        raise _wrap_stage("soza_source_identity", exc) from exc
+
+    try:
+        verification = bundle_verifier.verify_bundle(
+            archive,
+            expected_source_commit=expected_source_commit,
+        )
+    except (OSError, ValueError, tarfile.TarError) as exc:
+        raise _wrap_stage("bundle_identity_verification", exc) from exc
+
     observation = verification["observation"]
     metadata = verification["metadata"]
     source_commit = str(observation["source_commit"])
     archive_sha256 = str(observation["archive_sha256"])
 
-    _ensure_linux_amd64()
+    try:
+        _ensure_linux_amd64()
+    except ValueError as exc:
+        raise _wrap_stage("execution_platform", exc) from exc
+
     with tempfile.TemporaryDirectory(prefix="soza-tei-adapter-") as tmp:
-        paths = _stage_bundle(archive, Path(tmp))
-        reference_observation = _verify_reference_input_identity(paths, metadata)
+        try:
+            paths = _stage_bundle(archive, Path(tmp))
+        except (OSError, ValueError, tarfile.TarError) as exc:
+            raise _wrap_stage("bundle_staging", exc) from exc
+
+        try:
+            reference_observation = _verify_reference_input_identity(paths, metadata)
+        except (OSError, ValueError) as exc:
+            raise _wrap_stage("reference_input_identity", exc) from exc
+
         source_state_ref = (
             f"tei-cli:{source_commit}:reference:{REVISION_A}:"
             f"bundle-sha256:{archive_sha256}"
         )
         env = _controlled_env(paths, source_state_ref)
-        go_version_process = subprocess.run(
+
+        go_version_process = _run_stage(
+            "soza_go_toolchain",
             ["go", "version"],
             cwd=go_root,
             env=env,
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
             timeout=30,
-            check=False,
         )
-        if go_version_process.returncode != 0:
-            detail = (
-                go_version_process.stderr.strip()
-                or go_version_process.stdout.strip()
-            )[-8192:]
-            raise RuntimeError("SOZA Go toolchainを確認できません: " + detail)
         go_version = go_version_process.stdout.strip()
 
-        process = subprocess.run(
+        _run_stage(
+            "soza_teiintegration_live_test",
             [
                 "go",
                 "test",
@@ -330,18 +421,8 @@ def run_compatibility(
             ],
             cwd=go_root,
             env=env,
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
             timeout=180,
-            check=False,
         )
-        if process.returncode != 0:
-            detail = (process.stderr.strip() or process.stdout.strip())[-32768:]
-            raise RuntimeError(
-                "current SOZA teiintegration live testが成立しませんでした: "
-                + detail
-            )
 
     return {
         "schema": "soza.tei-bundle-adapter-compatibility/v1",
@@ -355,6 +436,16 @@ def run_compatibility(
         "archiveSha256": archive_sha256,
         "liveTest": "runtime/go/teiintegration.TestLiveTEIProviderPlan",
         "sourceStateRef": source_state_ref,
+        "completedStages": [
+            "soza_runtime_layout",
+            "soza_source_identity",
+            "bundle_identity_verification",
+            "execution_platform",
+            "bundle_staging",
+            "reference_input_identity",
+            "soza_go_toolchain",
+            "soza_teiintegration_live_test",
+        ],
         "qualityJudgement": "not_evaluated",
         "stopLine": STOP_LINE,
     }
@@ -390,6 +481,12 @@ def main(argv: list[str] | None = None) -> int:
             expected_source_commit=args.expected_source_commit,
             expected_soza_head=args.expected_soza_head,
         )
+    except TEIAdapterStageError as exc:
+        print(
+            "TEI bundle Adapter compatibility run failed at "
+            f"{exc.stage}: {exc.message}"
+        )
+        return 1
     except (
         OSError,
         ValueError,
@@ -397,7 +494,7 @@ def main(argv: list[str] | None = None) -> int:
         subprocess.SubprocessError,
         tarfile.TarError,
     ) as exc:
-        print(f"TEI bundle Adapter compatibility run failed: {exc}")
+        print(f"TEI bundle Adapter compatibility run failed before staged execution: {exc}")
         return 1
     if args.json:
         print(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2))
@@ -408,6 +505,8 @@ def main(argv: list[str] | None = None) -> int:
             f"- reference input source commit: "
             f"{result['referenceInput']['sourceCommit']}"
         )
+        print(f"- SOZA source commit: {result['sozaSource']['head']}")
+        print(f"- SOZA Go: {result['sozaGoVersion']}")
         print(f"- binary SHA-256: {result['binarySha256']}")
         print(f"- Provider Plan SHA-256: {result['providerPlanSha256']}")
         print(result["stopLine"])
