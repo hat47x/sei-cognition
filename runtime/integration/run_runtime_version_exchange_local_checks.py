@@ -63,6 +63,8 @@ def sanitized_environment() -> dict[str, str]:
             "SOZA_E3B_RUNTIME_EXCHANGE_"
         ):
             environment.pop(key, None)
+        elif key.startswith("GIT_"):
+            environment.pop(key, None)
 
     for key in (
         "OLLAMA_HOST",
@@ -74,8 +76,6 @@ def sanitized_environment() -> dict[str, str]:
         "TMPDIR",
         "TMP",
         "TEMP",
-        "GIT_DIR",
-        "GIT_WORK_TREE",
     ):
         environment.pop(key, None)
 
