@@ -29,6 +29,29 @@ class RuntimeVersionExchangePreflightTest(unittest.TestCase):
             self.assertTrue(preflight.is_within(child, root))
             self.assertFalse(preflight.is_within(sibling, root))
 
+    def test_output_path_check_rejects_deep_symlink_ancestor(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            actual_root = root / "actual"
+            (actual_root / "nested").mkdir(parents=True)
+            linked_root = root / "linked-root"
+            try:
+                linked_root.symlink_to(actual_root, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            checks = preflight.output_path_check(
+                "work",
+                linked_root / "nested" / "work",
+                (),
+                must_be_new=True,
+            )
+
+        self.assertEqual("blocked", checks[0].status)
+        self.assertEqual("path.work", checks[0].id)
+        self.assertIn("ancestor", checks[0].detail)
+        self.assertIn("symlink", checks[0].detail)
+
     def test_archive_check_accepts_exact_size_and_digest(self):
         with tempfile.TemporaryDirectory() as temp:
             archive = Path(temp) / "runtime.tar.zst"
@@ -93,6 +116,35 @@ class RuntimeVersionExchangePreflightTest(unittest.TestCase):
             self.assertEqual("archive.runtime-a.path", checks[0].id)
             self.assertIn("symlink", checks[0].detail)
 
+    def test_archive_check_rejects_deep_symlink_ancestor_before_digest(self):
+        data = b"fixed-runtime-artifact"
+        expected = hashlib.sha256(data).hexdigest()
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            actual_root = root / "actual"
+            (actual_root / "nested").mkdir(parents=True)
+            actual_archive = actual_root / "nested" / "runtime.tar.zst"
+            actual_archive.write_bytes(data)
+            linked_root = root / "linked-root"
+            try:
+                linked_root.symlink_to(actual_root, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            with patch.object(preflight, "sha256_file") as digest:
+                checks = preflight.archive_check(
+                    "runtime-a",
+                    linked_root / "nested" / "runtime.tar.zst",
+                    expected,
+                    len(data),
+                    True,
+                )
+
+            digest.assert_not_called()
+            self.assertEqual("blocked", checks[0].status)
+            self.assertEqual("archive.runtime-a.path", checks[0].id)
+            self.assertIn("ancestor", checks[0].detail)
+
     def test_missing_archive_is_deferred_when_download_is_allowed(self):
         checks = preflight.archive_check("runtime-a", None, "0" * 64, 123, False)
         self.assertEqual("deferred", checks[0].status)
@@ -146,6 +198,27 @@ class RuntimeVersionExchangePreflightTest(unittest.TestCase):
         self.assertEqual("blocked", checks[0].status)
         self.assertEqual("model.store", checks[0].id)
         self.assertIn("sourceを包含できません", checks[0].detail)
+
+    def test_model_store_rejects_deep_symlink_ancestor_before_identity_verification(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            actual_root = root / "actual"
+            model = actual_root / "nested" / "model"
+            model.mkdir(parents=True)
+            linked_root = root / "linked-root"
+            try:
+                linked_root.symlink_to(actual_root, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            requested = linked_root / "nested" / "model"
+            with patch.object(preflight, "verify_model_store") as verifier:
+                checks = preflight.model_store_check(requested, (), True)
+
+            verifier.assert_not_called()
+            self.assertEqual("blocked", checks[0].status)
+            self.assertEqual("model.store.path", checks[0].id)
+            self.assertIn("ancestor", checks[0].detail)
 
     def test_model_store_blocks_when_static_identity_verification_fails(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -205,6 +278,30 @@ class RuntimeVersionExchangePreflightTest(unittest.TestCase):
 
         self.assertEqual(["ok", "blocked"], [check.status for check in checks])
         self.assertEqual("kj-atlas.commit-object", checks[1].id)
+
+    def test_source_repository_check_rejects_deep_symlink_ancestor_before_git(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            actual_root = root / "actual"
+            checkout = actual_root / "nested" / "checkout"
+            checkout.mkdir(parents=True)
+            linked_root = root / "linked-root"
+            try:
+                linked_root.symlink_to(actual_root, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            with patch.object(preflight, "run_git") as run_git:
+                checks = preflight.repository_commit_object_check(
+                    "kj-atlas",
+                    linked_root / "nested" / "checkout",
+                    preflight.KJ_ATLAS_COMMIT,
+                )
+
+            run_git.assert_not_called()
+            self.assertEqual("blocked", checks[0].status)
+            self.assertEqual("kj-atlas.path", checks[0].id)
+            self.assertIn("ancestor", checks[0].detail)
 
     def test_disk_capacity_check_is_observational_only(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -271,6 +368,31 @@ class RuntimeVersionExchangePreflightTest(unittest.TestCase):
             checks = preflight.runtime_bundle_check(bundle, soza)
             self.assertEqual("blocked", checks[0].status)
             self.assertIn("SOZA repository配下", checks[0].detail)
+
+    def test_runtime_bundle_check_rejects_deep_symlink_ancestor_before_identity_verification(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            soza = root / "soza"
+            actual_root = root / "actual"
+            bundle = actual_root / "nested" / "bundle"
+            soza.mkdir()
+            bundle.mkdir(parents=True)
+            linked_root = root / "linked-root"
+            try:
+                linked_root.symlink_to(actual_root, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            with patch.object(preflight, "verify_runtime_bundle") as verifier:
+                checks = preflight.runtime_bundle_check(
+                    linked_root / "nested" / "bundle",
+                    soza,
+                )
+
+            verifier.assert_not_called()
+            self.assertEqual("blocked", checks[0].status)
+            self.assertEqual("kj-atlas.bundle.path", checks[0].id)
+            self.assertIn("ancestor", checks[0].detail)
 
     def test_preflight_and_harness_use_the_same_fixed_identity(self):
         text = HARNESS.read_text(encoding="utf-8")
