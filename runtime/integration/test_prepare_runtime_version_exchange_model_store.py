@@ -145,6 +145,21 @@ class RuntimeVersionExchangeModelStorePreparationTest(unittest.TestCase):
                 )
             self.assertFalse(target.exists())
 
+    def test_blob_size_overrun_is_rejected_before_excess_bytes_are_written(self):
+        payload = b"12345"
+        with tempfile.TemporaryDirectory() as temporary:
+            target = Path(temporary) / "blob"
+            with self.assertRaisesRegex(ValueError, "固定manifestを超えました"):
+                prepare._download_blob(
+                    "https://registry.ollama.ai/v2/library/test/blobs/sha256:dummy",
+                    target,
+                    4,
+                    sha256(payload[:4]),
+                    lambda _url: io.BytesIO(payload),
+                )
+            self.assertTrue(target.is_file())
+            self.assertEqual(b"", target.read_bytes())
+
     def test_existing_target_is_rejected_before_network_access(self):
         acquisition, payloads, _config_digest, _model_digest = self.fixture()
         opener = FakeOpener(payloads)
