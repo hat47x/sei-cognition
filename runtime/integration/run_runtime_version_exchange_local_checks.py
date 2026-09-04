@@ -21,6 +21,7 @@ TIMEOUT_EXIT_CODE = 124
 CHECK_FILES = (
     "test_prepare_runtime_version_exchange_archives.py",
     "test_issue70_prepositioned_inputs.py",
+    "test_issue70_prepositioned_runner.py",
     "test_check_runtime_version_exchange_manifest_consistency.py",
     "test_verify_kj_atlas_runtime_source.py",
     "test_export_kj_atlas_runtime_source.py",
@@ -48,6 +49,7 @@ SUPPLEMENTAL_FOCUSED_TESTS = {
     "test_verify_kj_atlas_runtime_source.py",
     "test_export_kj_atlas_runtime_source.py",
     "test_issue70_prepositioned_inputs.py",
+    "test_issue70_prepositioned_runner.py",
 }
 
 STOP_LINE = (

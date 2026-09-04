@@ -57,7 +57,39 @@ python3 runtime/integration/prepare_runtime_version_exchange_inputs.py \
   --verify-only
 ```
 
-## 3. 副作用なしpreflightで実行可能性を確認する
+## 3. 標準入口からactual A/Bを実行する
+
+事前配置済みrootからactual実行へ進む標準入口は`run_runtime_version_exchange_prepositioned.py`です。
+
+```bash
+python3 runtime/integration/run_runtime_version_exchange_prepositioned.py \
+  --artifact-root "$SOZA_RUNTIME_EXCHANGE_INPUTS" \
+  --kj-atlas-dir /path/to/kj-atlas \
+  --evidence-dir "$SOZA_RUNTIME_EXCHANGE_EVIDENCE" \
+  --verification-output "$SOZA_RUNTIME_EXCHANGE_VERIFY"
+```
+
+この入口はactual processを開始する前に、`prepare_runtime_version_exchange_inputs.py --verify-only`と同じ固定artifact再検証を行います。その結果からmodel store、runtime A、runtime Bのpathを取得し、`--require-prepositioned-artifacts`を付けて標準verified runnerへ委譲します。
+
+利用者がA/B archive file名やmodel pathを手で再構成しないことを目的とします。runtime / model identityの検証規則を新しく持たず、既存helperとverified runnerへ戻します。
+
+```text
+prepositioned root
+  → static fixed-artifact verification
+  → verified runner
+  → side-effect-free preflight
+  → strict entrypoint
+  → actual A/B
+  → Evidence + Provenance verification
+```
+
+既存verified KJ Atlas runtime bundleから開始する場合は、`--kj-atlas-dir`の代わりに`--kj-atlas-backend-bundle`を指定できます。
+
+## 4. 手動preflightとverified runnerを使う場合
+
+標準入口がblockedしたときに個々のpathやpreflight結果を診断する場合は、下位入口を直接利用できます。
+
+### 副作用なしpreflight
 
 ```bash
 python3 runtime/integration/check_runtime_version_exchange_preflight.py \
@@ -72,7 +104,7 @@ python3 runtime/integration/check_runtime_version_exchange_preflight.py \
 
 `result=ready`になったことを確認します。blockedの場合はactual processを開始せず、blockerを解消します。
 
-## 4. verified runnerからactual A/Bを実行する
+### verified runner
 
 ```bash
 python3 runtime/integration/run_runtime_version_exchange_with_verification.py \
@@ -117,10 +149,11 @@ artifact preparation PASS
 
 ## 6. repository-local orchestration test
 
-新しい事前配置入口だけをactual networkなしで検査する場合:
+事前配置入力準備と上位runnerの接続だけをactual networkなしで検査する場合:
 
 ```bash
 python3 runtime/integration/test_issue70_prepositioned_inputs.py
+python3 runtime/integration/test_issue70_prepositioned_runner.py
 ```
 
-このtestは取得helperそのもののdigest検査を置き換えません。既存のarchive/model helper testに加えて、準備入口が新規準備・既存再利用・verify-onlyを正しく委譲することを検査します。
+これらのtestは取得helperそのもののdigest検査やactual A/B実行を置き換えません。既存archive/model helper testに加えて、準備入口が新規準備・既存再利用・verify-onlyを正しく委譲すること、上位runnerが固定artifact pathを取り違えずverified runnerへ渡すことを検査します。
