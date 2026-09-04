@@ -19,6 +19,7 @@ RUNTIME_SHA256_B="c620917a71e146ab3a7f893084f066069c4c65d144ef8379a91c3cbe8b27de
 KJ_ATLAS_BACKEND_BUNDLE="${SOZA_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_BUNDLE:-}"
 KJ_ATLAS_SOURCE_VERIFIER="${SOZA_ROOT}/runtime/integration/verify_kj_atlas_runtime_source.py"
 RUNTIME_ARCHIVE_PREPARER="${SOZA_ROOT}/runtime/integration/prepare_runtime_version_exchange_archives.py"
+MODEL_STORE_PREPARER="${SOZA_ROOT}/runtime/integration/prepare_runtime_version_exchange_model_store.py"
 WORK_DIR="${SOZA_RUNTIME_EXCHANGE_WORK_DIR:-}"
 EVIDENCE_DIR="${SOZA_RUNTIME_EXCHANGE_EVIDENCE_DIR:-}"
 PREPOSITIONED_RUNTIME_ARCHIVE_A="${SOZA_RUNTIME_EXCHANGE_PREPOSITIONED_ARCHIVE_A:-}"
@@ -52,8 +53,9 @@ work / Evidence / external model directoryをSOZAまたはKJ Atlas source配下�
 
 runtime archiveを指定しない場合だけ、repository-localのarchive preparation helperを通して
 Ollama公式GitHub Releaseから取得します。事前配置したarchiveも同じ固定SHA-256を必ず
-検証します。--model-dirを指定した場合は、そのdirectoryに固定model digestが既に存在するとき
-だけ利用し、不足時に勝手なpullや更新は行いません。
+検証します。--model-dirを指定しない場合は、runtime A/Bを起動する前にrepository-localの
+model preparation helperで固定manifest / blobを検証したwork-local storeを一度だけ準備し、
+両runtimeで同じstoreを利用します。runtime実行中の暗黙なmodel pullは行いません。
 
 このscriptはGitHub Actions、runner ID、workflow run IDを実験成立条件にしません。
 USAGE
@@ -277,6 +279,8 @@ if [[ -n "${PREPOSITIONED_RUNTIME_ARCHIVE_B}" ]]; then
 fi
 
 VENV_DIR="${WORK_DIR}/venv"
+MODEL_STORE_PREPARATION_FILE="${WORK_DIR}/runtime-exchange-model-store-preparation.json"
+MODEL_STORE_NEEDS_PREPARATION=0
 if [[ -n "${EXTERNAL_MODEL_STORE}" ]]; then
   EXTERNAL_MODEL_STORE="$(canonical_path "${EXTERNAL_MODEL_STORE}")"
   require_safe_output_path "external model directory" "${EXTERNAL_MODEL_STORE}"
@@ -288,8 +292,8 @@ if [[ -n "${EXTERNAL_MODEL_STORE}" ]]; then
   MODEL_STORE_MODE="prepositioned"
 else
   MODEL_STORE="${WORK_DIR}/ollama-models"
-  mkdir -p "${MODEL_STORE}"
   MODEL_STORE_MODE="work-local"
+  MODEL_STORE_NEEDS_PREPARATION=1
 fi
 
 REQUEST_FILE="${WORK_DIR}/kj-atlas-runtime-exchange-request.json"
@@ -359,6 +363,7 @@ preserve_evidence() {
     "${REQUEST_FILE}" \
     "${WORK_DIR}/runtime-exchange-a-archive-preparation.json" \
     "${WORK_DIR}/runtime-exchange-b-archive-preparation.json" \
+    "${MODEL_STORE_PREPARATION_FILE}" \
     "${WORK_DIR}/runtime-exchange-a-version.txt" \
     "${WORK_DIR}/runtime-exchange-b-version.txt" \
     "${WORK_DIR}/runtime-exchange-a-archive-sha256.txt" \
@@ -418,6 +423,12 @@ if [[ "${RUNTIME_ACQUISITION_A}" == "downloaded" ]]; then
 fi
 if [[ "${RUNTIME_ACQUISITION_B}" == "downloaded" ]]; then
   RUNTIME_ARCHIVE_B="$(prepare_downloaded_runtime_archive b)"
+fi
+if [[ "${MODEL_STORE_NEEDS_PREPARATION}" == "1" ]]; then
+  MODEL_STORE_PREPARATION_JSON="$(
+    python3 "${MODEL_STORE_PREPARER}" --target-dir "${MODEL_STORE}"
+  )"
+  printf '%s\n' "${MODEL_STORE_PREPARATION_JSON}" >"${MODEL_STORE_PREPARATION_FILE}"
 fi
 
 SOZA_COMMIT="${SOZA_COMMIT}" \
@@ -601,12 +612,8 @@ run_probe() {
 
   curl --fail --silent http://127.0.0.1:11434/api/tags >"${tags}"
   if ! model_store_has_pinned_artifact "${tags}"; then
-    if [[ "${MODEL_STORE_MODE}" == "prepositioned" ]]; then
-      echo "prepositioned model directory does not contain the pinned artifact: ${MODEL_SHA256}" >&2
-      return 1
-    fi
-    "${ollama}" pull "${MODEL_NAME}"
-    curl --fail --silent http://127.0.0.1:11434/api/tags >"${tags}"
+    echo "${MODEL_STORE_MODE} model directory does not contain the pinned artifact: ${MODEL_SHA256}" >&2
+    return 1
   fi
 
   LABEL="${label}" TAGS="${tags}" MODEL_NAME="${MODEL_NAME}" MODEL_SHA256="${MODEL_SHA256}" WORK_DIR="${WORK_DIR}" \
