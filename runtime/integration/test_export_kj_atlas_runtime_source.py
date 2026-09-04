@@ -205,6 +205,25 @@ class KJAtlasRuntimeSourceExporterTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "bundle出力のparent.*symlink"):
                 EXPORTER.export_runtime_bundle(root, link_parent / "bundle", identity)
 
+    def test_output_directory_with_deep_symlink_ancestor_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            root = base / "repo"
+            root.mkdir()
+            _backend, identity = self.init_repository(root)
+            actual_root = base / "actual-output-root"
+            (actual_root / "nested").mkdir(parents=True)
+            link_root = base / "output-root-link"
+            try:
+                link_root.symlink_to(actual_root, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            output = link_root / "nested" / "bundle"
+            with self.assertRaisesRegex(ValueError, "bundle出力のancestor.*symlink"):
+                EXPORTER.export_runtime_bundle(root, output, identity)
+            self.assertFalse((actual_root / "nested" / "bundle").exists())
+
     def test_identity_output_inside_repository_is_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:
             base = Path(temporary)
@@ -288,6 +307,29 @@ class KJAtlasRuntimeSourceExporterTest(unittest.TestCase):
                     checkout_dir=checkout,
                     output_dir=bundle,
                 )
+
+    def test_identity_output_with_deep_symlink_ancestor_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            checkout = base / "repo"
+            checkout.mkdir()
+            bundle = base / "bundle"
+            actual_root = base / "actual-identity-root"
+            (actual_root / "nested").mkdir(parents=True)
+            link_root = base / "identity-root-link"
+            try:
+                link_root.symlink_to(actual_root, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            identity_output = link_root / "nested" / "identity.json"
+            with self.assertRaisesRegex(ValueError, "identity outputのancestor.*symlink"):
+                EXPORTER._prepare_identity_output_path(
+                    identity_output,
+                    checkout_dir=checkout,
+                    output_dir=bundle,
+                )
+            self.assertFalse((actual_root / "nested" / "identity.json").exists())
 
     def test_external_new_identity_output_is_accepted(self):
         with tempfile.TemporaryDirectory() as temporary:
