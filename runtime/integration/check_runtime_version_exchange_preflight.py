@@ -13,6 +13,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Iterable
 
+from runtime_path_safety import reject_symlink_path_or_ancestors
 from verify_kj_atlas_runtime_source import PINNED_IDENTITY, verify_runtime_bundle
 from verify_runtime_version_exchange_model_store import verify_model_store
 
@@ -56,6 +57,14 @@ def is_within(candidate: Path, parent: Path) -> bool:
     candidate = canonical_path(candidate)
     parent = canonical_path(parent)
     return candidate == parent or parent in candidate.parents
+
+
+def symlink_path_blocker(check_id: str, path: Path, label: str) -> Check | None:
+    try:
+        reject_symlink_path_or_ancestors(path, label)
+    except ValueError as exc:
+        return Check(check_id, "blocked", str(exc))
+    return None
 
 
 def sha256_file(path: Path) -> str:
@@ -119,11 +128,19 @@ def repository_commit_object_check(label: str, path: Path, expected_commit: str)
     runtime source identityではなく、ここでcleanlinessやHEAD一致を要求しない。
     """
 
+    blocker = symlink_path_blocker(
+        f"{label}.path",
+        path,
+        "KJ Atlas checkout",
+    )
+    if blocker is not None:
+        return [blocker]
+
     inside = run_git(path, "rev-parse", "--is-inside-work-tree")
     if inside.returncode != 0 or inside.stdout.strip() != "true":
         return [Check(f"{label}.git", "blocked", f"Git working treeではありません: {path}")]
 
-    checks = [Check(f"{label}.git", "ok", f"Git working treeを確認しました: {path}")]
+    checks = [Check(f"{label}.git", "ok", f"Git working treeを確認しました: {path}"))]
     commit = run_git(path, "cat-file", "-e", f"{expected_commit}^{{commit}}")
     if commit.returncode != 0:
         checks.append(
@@ -146,6 +163,14 @@ def repository_commit_object_check(label: str, path: Path, expected_commit: str)
 
 
 def runtime_bundle_check(path: Path, soza_root: Path) -> list[Check]:
+    blocker = symlink_path_blocker(
+        "kj-atlas.bundle.path",
+        path,
+        "KJ Atlas verified runtime bundle",
+    )
+    if blocker is not None:
+        return [blocker]
+
     resolved = canonical_path(path)
     if is_within(resolved, soza_root):
         return [
@@ -217,6 +242,15 @@ def output_path_check(
 ) -> list[Check]:
     if path is None:
         return [Check(f"path.{label}", "deferred", "pathはharnessの既定値を使用します")]
+
+    blocker = symlink_path_blocker(
+        f"path.{label}",
+        path,
+        f"{label} path",
+    )
+    if blocker is not None:
+        return [blocker]
+
     resolved = canonical_path(path)
     for root in source_roots:
         if is_within(resolved, root):
@@ -247,14 +281,13 @@ def archive_check(
         return [Check(f"archive.{label}", status, detail)]
 
     requested = path.expanduser()
-    if requested.is_symlink():
-        return [
-            Check(
-                f"archive.{label}.path",
-                "blocked",
-                f"runtime archiveにsymlinkは利用できません: {requested}",
-            )
-        ]
+    blocker = symlink_path_blocker(
+        f"archive.{label}.path",
+        requested,
+        "runtime archive",
+    )
+    if blocker is not None:
+        return [blocker]
 
     resolved = canonical_path(requested)
     for root in source_roots:
@@ -311,22 +344,13 @@ def model_store_check(
         return [Check("model.store", status, detail)]
 
     requested = path.expanduser()
-    if requested.is_symlink():
-        return [
-            Check(
-                "model.store.path",
-                "blocked",
-                f"model storage rootにsymlinkは利用できません: {requested}",
-            )
-        ]
-    if requested.parent.is_symlink():
-        return [
-            Check(
-                "model.store.path",
-                "blocked",
-                f"model storage rootのparentにsymlinkは利用できません: {requested.parent}",
-            )
-        ]
+    blocker = symlink_path_blocker(
+        "model.store.path",
+        requested,
+        "model storage root",
+    )
+    if blocker is not None:
+        return [blocker]
 
     resolved = canonical_path(requested)
     for root in source_roots:
@@ -456,11 +480,11 @@ def collect_checks(args: argparse.Namespace, soza_root: Path) -> list[Check]:
     checks.extend(repository_check("soza", soza_root))
 
     if args.kj_atlas_backend_bundle is not None:
-        source_root = canonical_path(args.kj_atlas_backend_bundle)
+        source_root = args.kj_atlas_backend_bundle.expanduser()
         checks.append(Check("kj-atlas.source-mode", "ok", "source mode: verified-runtime-bundle"))
         checks.extend(runtime_bundle_check(source_root, soza_root))
     else:
-        source_root = canonical_path(args.kj_atlas_dir or (soza_root / "_external" / "kj-atlas"))
+        source_root = (args.kj_atlas_dir or (soza_root / "_external" / "kj-atlas")).expanduser()
         checks.append(
             Check(
                 "kj-atlas.source-mode",
