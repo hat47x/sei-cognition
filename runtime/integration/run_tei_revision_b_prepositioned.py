@@ -21,11 +21,47 @@ FIXED_PLUGIN_LOCK = "reference/workspace/.tei/plugin-lock.json"
 FIXED_SOLUTION = "order_rollout"
 FIXED_VERSION = "2026.8.27"
 EXPECTED_GO_VERSION = "go1.23.2"
+MAX_STAGE_OUTPUT = 16 * 1024
 STOP_LINE = (
     "prepositioned exact-B bundle produced with exact-A reference input "
     "!= SOZA Adapter compatibility verified != TEI version exchange PASS "
     "!= Operational Evidence"
 )
+
+
+class TEIEvidenceStageError(RuntimeError):
+    def __init__(
+        self,
+        stage: str,
+        message: str,
+        *,
+        command: list[str] | None = None,
+        returncode: int | None = None,
+        stdout: str = "",
+        stderr: str = "",
+    ) -> None:
+        super().__init__(f"{stage}: {message}")
+        self.stage = stage
+        self.message = message
+        self.command = command
+        self.returncode = returncode
+        self.stdout = stdout[-MAX_STAGE_OUTPUT:]
+        self.stderr = stderr[-MAX_STAGE_OUTPUT:]
+
+    def as_dict(self) -> dict[str, object]:
+        value: dict[str, object] = {
+            "stage": self.stage,
+            "message": self.message,
+        }
+        if self.command is not None:
+            value["command"] = self.command
+        if self.returncode is not None:
+            value["returnCode"] = self.returncode
+        if self.stdout:
+            value["stdoutTail"] = self.stdout
+        if self.stderr:
+            value["stderrTail"] = self.stderr
+        return value
 
 
 def _sha256(path: Path) -> str:
@@ -66,11 +102,34 @@ def _run(
         argv,
         cwd=cwd,
         env=env,
-        check=True,
+        check=False,
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
+
+
+def _run_stage(
+    stage: str,
+    argv: list[str],
+    *,
+    cwd: Path,
+    env: dict[str, str],
+) -> subprocess.CompletedProcess[str]:
+    try:
+        result = _run(argv, cwd=cwd, env=env)
+    except OSError as exc:
+        raise TEIEvidenceStageError(stage, str(exc), command=argv) from exc
+    if result.returncode != 0:
+        raise TEIEvidenceStageError(
+            stage,
+            "external process returned non-zero status",
+            command=argv,
+            returncode=result.returncode,
+            stdout=result.stdout,
+            stderr=result.stderr,
+        )
+    return result
 
 
 def _copy_reference_inputs(reference_source_repo: Path, bundle_root: Path) -> None:
@@ -86,6 +145,12 @@ def _copy_reference_inputs(reference_source_repo: Path, bundle_root: Path) -> No
     shutil.copy2(run_file, reference_root / run_file.name)
 
 
+def _wrap_stage(stage: str, exc: Exception) -> TEIEvidenceStageError:
+    if isinstance(exc, TEIEvidenceStageError):
+        return exc
+    return TEIEvidenceStageError(stage, str(exc))
+
+
 def produce_bundle(
     source_repo: Path,
     reference_source_repo: Path,
@@ -96,23 +161,44 @@ def produce_bundle(
     output_archive = output_archive.expanduser().resolve()
     output_archive.parent.mkdir(parents=True, exist_ok=True)
 
-    source_observation = source_identity.verify_repository(
-        source_repo,
-        expected_head=source_identity.REVISION_B,
-    )
-    reference_observation = source_identity.verify_repository(
-        reference_source_repo,
-        expected_objects=source_identity.REVISION_A_REFERENCE_OBJECTS,
-        expected_head=source_identity.REVISION_A,
-    )
+    try:
+        source_observation = source_identity.verify_repository(
+            source_repo,
+            expected_head=source_identity.REVISION_B,
+        )
+    except (OSError, ValueError, subprocess.SubprocessError) as exc:
+        raise _wrap_stage("revision_b_source_identity", exc) from exc
 
-    _ensure_linux_amd64()
+    try:
+        reference_observation = source_identity.verify_repository(
+            reference_source_repo,
+            expected_objects=source_identity.REVISION_A_REFERENCE_OBJECTS,
+            expected_head=source_identity.REVISION_A,
+        )
+    except (OSError, ValueError, subprocess.SubprocessError) as exc:
+        raise _wrap_stage("revision_a_fixed_reference_identity", exc) from exc
+
+    try:
+        _ensure_linux_amd64()
+    except ValueError as exc:
+        raise _wrap_stage("execution_platform", exc) from exc
+
     env = _controlled_go_env()
-    go_version = _run(["go", "version"], cwd=source_repo, env=env).stdout.strip()
+    go_version_process = _run_stage(
+        "tei_go_toolchain",
+        ["go", "version"],
+        cwd=source_repo,
+        env=env,
+    )
+    go_version = go_version_process.stdout.strip()
     if not go_version.startswith(f"go version {EXPECTED_GO_VERSION} "):
-        raise ValueError(
+        raise TEIEvidenceStageError(
+            "tei_go_toolchain",
             "historical EvidenceとGo toolchain versionが一致しません: "
-            f"expected={EXPECTED_GO_VERSION} actual={go_version}"
+            f"expected={EXPECTED_GO_VERSION} actual={go_version}",
+            command=["go", "version"],
+            stdout=go_version_process.stdout,
+            stderr=go_version_process.stderr,
         )
 
     with tempfile.TemporaryDirectory(prefix="soza-tei-b-") as tmp:
@@ -120,7 +206,8 @@ def produce_bundle(
         binary = bundle_root / "bin" / "tei"
         binary.parent.mkdir(parents=True)
 
-        _run(
+        _run_stage(
+            "tei_cli_build",
             [
                 "go",
                 "build",
@@ -134,9 +221,13 @@ def produce_bundle(
             env=env,
         )
         if not binary.is_file() or not os.access(binary, os.X_OK):
-            raise ValueError("build後のbin/teiがexecutable fileではありません")
+            raise TEIEvidenceStageError(
+                "tei_cli_build",
+                "build後のbin/teiがexecutable fileではありません",
+            )
 
-        provider = _run(
+        provider = _run_stage(
+            "deployment_provider_plan_execution",
             [
                 str(binary),
                 "deployment-provider-plan",
@@ -155,11 +246,21 @@ def produce_bundle(
             env=env,
         )
         provider_plan = bundle_root / "provider-plan.json"
-        provider_plan.write_text(provider.stdout, encoding="utf-8")
+        try:
+            provider_plan.write_text(provider.stdout, encoding="utf-8")
+        except OSError as exc:
+            raise _wrap_stage("provider_plan_capture", exc) from exc
 
-        bundle_verifier._parse_provider_plan(provider.stdout.encode("utf-8"))
+        try:
+            bundle_verifier._parse_provider_plan(provider.stdout.encode("utf-8"))
+        except ValueError as exc:
+            raise _wrap_stage("provider_plan_validation", exc) from exc
 
-        _copy_reference_inputs(reference_source_repo, bundle_root)
+        try:
+            _copy_reference_inputs(reference_source_repo, bundle_root)
+        except (OSError, ValueError) as exc:
+            raise _wrap_stage("reference_input_packaging", exc) from exc
+
         metadata = {
             "schema": bundle_verifier.SCHEMA,
             "repository": bundle_verifier.REPOSITORY,
@@ -173,22 +274,35 @@ def produce_bundle(
             "reference_run_blob": source_identity.REVISION_A_REFERENCE_OBJECTS[FIXED_RUN],
             "reference_plugin_lock_blob": source_identity.REVISION_A_REFERENCE_OBJECTS[FIXED_PLUGIN_LOCK],
         }
-        (bundle_root / "metadata.json").write_text(
-            json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
-            encoding="utf-8",
-        )
+        try:
+            (bundle_root / "metadata.json").write_text(
+                json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+        except OSError as exc:
+            raise _wrap_stage("evidence_metadata_write", exc) from exc
 
         candidate = Path(tmp) / "tei-e3b-p2-linux-amd64.tar.gz"
-        with tarfile.open(candidate, "w:gz") as tar:
-            for path in sorted(bundle_root.rglob("*")):
-                arcname = path.relative_to(bundle_root).as_posix()
-                tar.add(path, arcname=arcname, recursive=False)
+        try:
+            with tarfile.open(candidate, "w:gz") as tar:
+                for path in sorted(bundle_root.rglob("*")):
+                    arcname = path.relative_to(bundle_root).as_posix()
+                    tar.add(path, arcname=arcname, recursive=False)
+        except (OSError, tarfile.TarError) as exc:
+            raise _wrap_stage("evidence_bundle_packaging", exc) from exc
 
-        verification = bundle_verifier.verify_bundle(
-            candidate,
-            expected_source_commit=source_identity.REVISION_B,
-        )
-        shutil.copy2(candidate, output_archive)
+        try:
+            verification = bundle_verifier.verify_bundle(
+                candidate,
+                expected_source_commit=source_identity.REVISION_B,
+            )
+        except (OSError, ValueError, tarfile.TarError) as exc:
+            raise _wrap_stage("evidence_bundle_verification", exc) from exc
+
+        try:
+            shutil.copy2(candidate, output_archive)
+        except OSError as exc:
+            raise _wrap_stage("evidence_bundle_publish", exc) from exc
 
     return {
         "schema": "soza.tei-revision-b-prepositioned-run/v1",
@@ -197,6 +311,21 @@ def produce_bundle(
         "referenceInput": reference_observation,
         "bundle": verification,
         "outputArchive": str(output_archive),
+        "completedStages": [
+            "revision_b_source_identity",
+            "revision_a_fixed_reference_identity",
+            "execution_platform",
+            "tei_go_toolchain",
+            "tei_cli_build",
+            "deployment_provider_plan_execution",
+            "provider_plan_capture",
+            "provider_plan_validation",
+            "reference_input_packaging",
+            "evidence_metadata_write",
+            "evidence_bundle_packaging",
+            "evidence_bundle_verification",
+            "evidence_bundle_publish",
+        ],
         "qualityJudgement": "not_evaluated",
         "stopLine": STOP_LINE,
     }
@@ -236,8 +365,14 @@ def main(argv: list[str] | None = None) -> int:
             args.reference_source_repo,
             args.output_archive,
         )
+    except TEIEvidenceStageError as exc:
+        print(
+            "TEI revision B prepositioned run failed at "
+            f"{exc.stage}: {exc.message}"
+        )
+        return 1
     except (OSError, ValueError, subprocess.SubprocessError, tarfile.TarError) as exc:
-        print(f"TEI revision B prepositioned run failed: {exc}")
+        print(f"TEI revision B prepositioned run failed before staged execution: {exc}")
         return 1
 
     if args.json:
