@@ -1,0 +1,214 @@
+# TEI Version Exchange Evidence — 2026-09-05
+
+## 1. この文書の位置づけ
+
+この文書は、PMS-06で未検証として残っているTEI executableの取得・version交換について、2026-09-05に行った追加実証を記録します。
+
+対象は、ISSUE-000065で成立したfixed-artifact actual TEI CLI executionを起点に、別source revisionへ交換しても同じProvider integration surfaceを追跡できるかという後続探索です。
+
+今回の中心は次です。
+
+```text
+artifact acquisition path
+  != artifact identity
+  != Provider surface compatibility
+  != SOZA Capability Observation identity
+```
+
+また、GitHub Actionsのjobが開始できなかったことをTEI CLI互換性の失敗へ読み替えません。
+
+## 2. Revision A — 既存actual artifactの再取得と再検証
+
+ISSUE-000065で利用した既存Evidence artifactは2026-09-05時点でもGitHub上に保持されていました。
+
+- TEI source commit: `48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67`
+- Workflow Run: `33589084290`
+- Artifact ID: `9831112092`
+- Artifact name: `tei-soza-e3b-p2-linux-amd64`
+- GitHub artifact digest: `sha256:1ee8bf4112d9ae97e1f66b3165f70278663951e9dd4bd6020b465471f563a287`
+- Expiration: `2026-09-16T03:59:55Z`
+
+GitHub connectorのartifact download経路からZIPを取得し、その中の`tei-e3b-p2-linux-amd64.tar.gz`を現在の作業containerへ配置しました。
+
+bundle内のactual bytesを再計算した結果は次です。
+
+```text
+metadata.source_commit
+  48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67
+
+actual bin/tei SHA-256
+  31f0298b47f9caaa93cd4b2da538cda72e23e5b518f2d0ddad2cf98c46882154
+
+actual provider-plan.json SHA-256
+  39eafb26cf189681e0bd2ff46fcaf000cbe2f860cf698765bbadac6dfbd2a950
+```
+
+いずれも2026-09-02のEvidence文書とmetadataの固定値へ一致しました。`bin/tei`にはexecutable bitがあり、container内で起動すると`deployment-provider-plan`を含む既知CLI surfaceを表示できました。
+
+この再取得は、GitHub Actions artifactという一つのacquisition pathからactual bytesを再び取り出せることの観測です。artifact retentionの永続性や正式なTEI配布方式を証明するものではありません。
+
+## 3. Acquisitionから独立したbundle verifier
+
+外部artifactの取得方法とidentity検証を分離するため、次のrepository-local verifierを追加しました。
+
+- `runtime/integration/verify_tei_evidence_bundle.py`
+- `runtime/integration/test_verify_tei_evidence_bundle.py`
+
+verifierは`.tar.gz`を展開せずread-onlyに読み、少なくとも次を確認します。
+
+- archive memberにabsolute path / `..` traversalがない。
+- symlink / hardlink / device memberを受理しない。
+- `metadata.json`、`provider-plan.json`、`bin/tei`が存在する。
+- metadata schema / repository / entry pointが既知境界と一致する。
+- source commitが40桁lowercase hexadecimalである。
+- actual binary SHA-256がmetadataと一致する。
+- actual Provider Plan SHA-256がmetadataと一致する。
+- Provider Planのtop-level fieldが既知Adapter-local surface内にある。
+- Provider Planに認識可能な情報が存在する。
+- `bin/tei`にexecutable bitがある。
+- 必要ならexpected source / binary / Provider Plan digestへ追加照合できる。
+
+出力には`qualityJudgement = not_evaluated`を保持します。
+
+```text
+TEI Evidence bundle identity verified
+  != SOZA Adapter compatibility verified
+  != TEI version exchange PASS
+  != Operational Evidence
+```
+
+### ローカル検証
+
+同一内容のverifierを作業containerでrevision Aのactual bundleへ適用し、上記3 identityの一致を確認しました。
+
+さらにsynthetic bundleを用いた7件のtestを実行し、すべてPASSしました。
+
+- valid bundle
+- binary digest drift
+- unknown Provider Plan top-level field
+- path traversal member
+- symlink member
+- non-executable binary
+- expected source commit mismatch
+
+この7件はartifact identity / archive safetyのrepository-local検査であり、actual TEI revision B executionではありません。
+
+## 4. Revision B — current TEI mainを固定
+
+version交換候補Bとして、2026-09-05時点のTEI current mainを固定しました。
+
+- Repository: `hat47x/tei-platform`
+- Source commit: `1a7028d444fcae60a1c4f2f2d247456f4c7c35be`
+- Evidence branch: `evidence/soza-e3b-p2-version-exchange-2026-09-05`
+- Evidence workflow commit: `5e87cd18967b6d86001cc4d5229bd4886b94e30d`
+
+旧revision Aと同じ`deployment-provider-plan`入力条件を使い、Bのactual CLIをbuild・実行して別artifactを作るEvidence workflowをbranch上で起動しました。
+
+出力bytesの一致は要求していません。確認したいのは、少なくとも次の境界です。
+
+```text
+revision A source != revision B source
+
+same intended Provider surface
+same fixed reference invocation
+
+→ B actual CLI build / execution
+→ B Provider Plan identity
+→ SOZA Adapter compatibility
+```
+
+## 5. Revision B workflowの観測
+
+Evidence workflow Run `33913500170`は起動しましたが、約4秒で`failure`となりました。
+
+- Workflow: `SOZA E3b-P2 TEI Evidence`
+- Run: `33913500170`
+- Head commit: `5e87cd18967b6d86001cc4d5229bd4886b94e30d`
+- Job: `actual-tei-cli`
+- Job ID: `101155229525`
+- Job conclusion: `failure`
+- 実行されたjob steps: **0**
+- Evidence artifact: **なし**
+
+job stepが一つも開始していないため、次は今回のrunから観測していません。
+
+- revision B source checkout
+- Go setup
+- `cmd/tei` build
+- `deployment-provider-plan`実行
+- Provider Plan decode
+- Evidence artifact生成
+
+したがって、このrunをTEI revision Bの互換性failureへ数えません。
+
+```text
+workflow run failure before job steps
+  != TEI build failure
+  != deployment-provider-plan incompatibility
+  != SOZA Adapter incompatibility
+```
+
+現在のEvidenceは「実行基盤へjobを割り当てる前の段階で停止した」という範囲に限定します。
+
+## 6. TEI配布面の現状
+
+2026-09-05時点で`hat47x/tei-platform`のGitHub Releasesは0件でした。
+
+したがって、現在確認できるactual binary取得経路は少なくとも次の性質を持ちます。
+
+- source revisionからbuildする。
+- または過去のGitHub Actions Evidence artifactをretention期間内に取得する。
+
+これを正式なTEI distribution contractとは扱いません。Release asset、署名、更新channel、retention、credential lifecycleは別の未確定領域です。
+
+## 7. 現在のEvidence状態
+
+```text
+revision A fixed source / actual CLI
+  = Scoped Executable Evidence available
+
+revision A Evidence artifact re-acquisition
+  = observed
+
+revision A bundle identity re-verification
+  = verified in current work session
+
+acquisition-independent bundle verifier
+  = implemented; 7 local tests passed
+
+revision B source identity
+  = fixed to 1a7028d444fcae60a1c4f2f2d247456f4c7c35be
+
+revision B actual CLI build / execution
+  = Not Yet Verified
+
+revision B Provider Plan
+  = Not Yet Observed
+
+A/B SOZA Adapter compatibility comparison
+  = Not Yet Verified
+
+formal TEI executable distribution
+  = Not Yet Defined
+
+credential lifecycle / Operational portability
+  = Not Yet Verified
+```
+
+## 8. 次の成立条件
+
+次にEvidence強度が上がるのは、revision Bについて実際のEvidence bundleを取得できた時です。
+
+取得経路はGitHub Actionsに限定しません。どの経路で取得しても、まず`verify_tei_evidence_bundle.py`へ戻してsource / binary / Provider Plan identityを確認します。その後、SOZAのcurrent `teiintegration` Adapterでactual B binaryを起動し、current Capability Observationへmappingできるかを確認します。
+
+A/BでProvider Plan bytesやbinary digestが異なっても、それ自体をfailureにはしません。一方、既存Adapter-local surfaceで意味を壊さず解釈できない場合は、Provider compatibilityの独立したEvidenceとして上流Requirement / Contractへ戻します。
+
+新しいStable RequirementやUniversal TEI fieldは、actual B Evidenceを得る前に追加しません。
+
+## 9. 自然な日本語レビュー
+
+PMS-06、ISSUE-000061 / 000065、既存Actual TEI CLI Evidence、current `teiintegration`、TEI current main、TEI Evidence workflow、revision A artifact、今回のrevision B workflow結果を照合しました。
+
+今回前進したのは、過去artifactを再取得してactual bytesを再検証できたことと、そのidentity検証をGitHub Actionsやcredentialから独立したrepository-local toolへ分離したことです。一方、revision Bのworkflowはjob step開始前に停止したため、BのCLIやProvider Planについて実行結果を推定していません。
+
+Evidenceの高さと未検証範囲を変えず、自然な日本語となることを最重要視して記録しています。
