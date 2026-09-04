@@ -11,6 +11,7 @@ import tarfile
 import tempfile
 from pathlib import Path, PurePosixPath
 
+from runtime_path_safety import reject_symlink_path_or_ancestors
 from verify_kj_atlas_runtime_source import (
     PINNED_IDENTITY,
     RuntimeSourceIdentity,
@@ -86,13 +87,7 @@ def _paths_overlap(left: Path, right: Path) -> bool:
 def _prepare_bundle_output_path(output_dir: Path, checkout_dir: Path) -> Path:
     checkout = checkout_dir.expanduser().resolve(strict=True)
     requested = output_dir.expanduser()
-    if requested.is_symlink():
-        raise ValueError(f"runtime source bundle出力にsymlinkは利用できません: {requested}")
-    if requested.parent.is_symlink():
-        raise ValueError(
-            "runtime source bundle出力のparentにsymlinkは利用できません: "
-            f"{requested.parent}"
-        )
+    reject_symlink_path_or_ancestors(requested, "runtime source bundle出力")
 
     output = requested.resolve(strict=False)
     if output.exists():
@@ -114,12 +109,7 @@ def _prepare_identity_output_path(
     checkout = checkout_dir.expanduser().resolve(strict=True)
     bundle = output_dir.expanduser().resolve(strict=False)
     requested = path.expanduser()
-    if requested.is_symlink():
-        raise ValueError(f"identity outputにsymlinkは利用できません: {requested}")
-    if requested.parent.is_symlink():
-        raise ValueError(
-            f"identity outputのparentにsymlinkは利用できません: {requested.parent}"
-        )
+    reject_symlink_path_or_ancestors(requested, "identity output")
     output = requested.resolve(strict=False)
     if output.exists():
         raise ValueError(f"identity outputは新規pathを指定してください: {output}")
