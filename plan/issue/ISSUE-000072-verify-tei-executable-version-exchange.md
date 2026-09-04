@@ -55,6 +55,26 @@ GitHub-hosted job start failure
 
 このため、revision B actual executionは現時点ではNot Yet Verifiedである。
 
+その後、GitHub-hosted executionとは独立してactual Bを検証できるよう、次のrepository-local経路を整備した。
+
+- revision B execution-source Git identity verifier
+- revision A fixed reference input identity verifier
+- A / B Provider Plan source surfaceの静的比較
+- exact-B build source + exact-A fixed reference inputによるprepositioned Evidence runner
+- verified Evidence bundleからcurrent SOZA `teiintegration` live testへ接続するAdapter compatibility runner
+
+version交換の比較軸については、revision AとBの`reference/workspace` treeが異なることを確認したため、**B checkout内のreference inputを使わず、historical revision Aのfixed reference inputを別checkoutから与える**形へ補正した。
+
+```text
+executable/build source
+  = exact revision B
+
+fixed reference input
+  = exact revision A
+```
+
+これにより、runtime revisionとreference inputの交換を混同しない。
+
 また、2026-09-05時点で`hat47x/tei-platform`のGitHub Releasesは0件であり、正式なTEI executable distribution surfaceはまだ確認できない。
 
 ## Questions
@@ -65,6 +85,7 @@ GitHub-hosted job start failure
 4. Provider Plan surfaceがversion間で変化した場合、Adapter-local compatibility changeとして扱えるか、それとも既存Requirement / Contractでは表現できないProduct failureがあるか。
 5. historical revision Aを後から再取得・再検証できなくなった場合、どのEvidenceをdurableに保存する必要があるか。
 6. 正式な配布・署名・更新channelをSOZA側で標準化する必要が本当にあるか。それともTEI側またはdeployment policyへ残すべきか。
+7. executable revisionだけを交換したい検証で、workspace / durable run / plugin lock等のreference input identityをどこまで固定すべきか。
 
 ## Constraints
 
@@ -77,6 +98,8 @@ GitHub-hosted job start failure
 - Provider Planの意味的差分を、byte比較だけで良否判定しない。
 - GitHub-hosted runner failureをTEI Product failureへ昇格させない。
 - artifact bundle検証PASSをSOZA Adapter互換、Operational Evidence、Release Evidenceへ昇格させない。
+- 静的なProvider Plan source continuityをactual revision B execution PASSへ昇格させない。
+- B executableの検証で、B checkout内の変化したreference workspaceをhistorical fixed inputへ無言で置き換えない。
 - 新しいStable Requirement / Universal Contract fieldは、actual B Evidenceまたは独立したProduct failureが確認される前に追加しない。
 - 現時点でTEI GitHub Releaseの新設や特定配布方式を完了条件にしない。
 
@@ -100,9 +123,12 @@ GitHub-hosted job start failure
 
 - revision B source identityを固定する。
 - actual `cmd/tei`をbuildまたは同等の固定artifactとして取得する。
+- executable/build sourceはexact revision Bへ固定する。
+- historical fixed reference inputはexact revision Aへ固定する。
 - actual `deployment-provider-plan`を実行する。
 - Bのactual binary / Provider Plan SHA-256を記録する。
 - job割当や取得failureをCLI互換性failureと区別する。
+- workspace load、validation、durable run、plugin lock、Provider Plan生成のどこで停止したかを区別できる。
 
 ### E3 — current SOZA Adapter compatibility
 
@@ -111,12 +137,15 @@ GitHub-hosted job start failure
 - current Capability Observation validatorを通る。
 - `availability = true`と`provider_plan_resolved = true`を観測できる。
 - TEI固有fieldをUniversal Capability Observationへ漏らさない。
+- B source、A fixed reference input、bundle identityをMapping Provenanceから追跡できる。
+- どのSOZA source / local Go toolchainでlive検査したかを記録する。
 
 ### E4 — A/B historical separation
 
 - revision B追加後もrevision Aのsource / binary / output Evidenceを変更しない。
 - A/Bの取得経路、source identity、binary identity、Provider Plan identityを別々に追跡できる。
 - Provider Planの差がある場合、その差をbyte drift、Adapter compatibility、semantic changeへ分けて評価できる。
+- build sourceとfixed reference inputのProvenanceを別々に追跡できる。
 
 ### E5 — distribution / credential boundary assessment
 
@@ -150,10 +179,34 @@ acquisition-independent bundle verifier
   = implemented
 
 bundle verifier synthetic tests
-  = 7 passed in current work session
+  = 7 passed
 
 revision B source identity
-  = fixed
+  = fixed to 1a7028d444fcae60a1c4f2f2d247456f4c7c35be
+
+revision B execution-source Git identity
+  = fixed; repository-local verifier implemented
+
+revision A fixed reference input identity
+  = workspace tree / durable run blob / plugin-lock blob fixed
+
+Provider Plan output surface A/B
+  = strong static continuity observed
+
+deployment / environment / releaseplan / plugin-runtime / core
+  = exact source-tree continuity observed
+
+workspace / validation / IR input interpretation
+  = changed; actual fixed-input execution required
+
+version-exchange comparison axis
+  = exact-B build source + exact-A fixed reference input
+
+prepositioned B Evidence runner
+  = implemented; synthetic / fixed-input isolation checks passed
+
+bundle → current Adapter live runner
+  = implemented; 8 synthetic tests passed
 
 revision B workflow attempt 1
   = failure before any job step
@@ -161,24 +214,36 @@ revision B workflow attempt 1
 revision B workflow attempt 2
   = failure before any job step
 
-revision B actual CLI / Provider Plan
+revision B actual CLI build / execution
   = Not Yet Verified
 
-A/B SOZA Adapter compatibility
+revision B Provider Plan
+  = Not Yet Observed
+
+revision B current SOZA Adapter live compatibility
   = Not Yet Verified
 ```
 
-bundle verifierと現在の観測記録は次へ置く。
+現在の主な実装・観測記録は次へ置く。
 
 - `runtime/integration/verify_tei_evidence_bundle.py`
 - `runtime/integration/test_verify_tei_evidence_bundle.py`
+- `runtime/integration/verify_tei_execution_source_identity.py`
+- `runtime/integration/run_tei_revision_b_prepositioned.py`
+- `runtime/integration/run_tei_bundle_adapter_compatibility.py`
 - `runtime/TEI_VERSION_EXCHANGE_EVIDENCE_2026-09-05.md`
+- `runtime/TEI_PROVIDER_SURFACE_STATIC_COMPATIBILITY_2026-09-05.md`
+- `runtime/TEI_VERSION_EXCHANGE_EXECUTION_READINESS_2026-09-05.md`
 
 ## Deliverables
 
 - TEI Evidence bundle verifier
 - bundle verifierのnegative control
+- revision B / revision A fixed inputのGit identity verifier
 - revision A / B identityと取得経路を分けたEvidence report
+- Provider Plan source surface / input interpretation差分のStatic Evidence
+- exact-B build source + exact-A fixed inputのprepositioned Evidence runner
+- verified bundleからcurrent SOZA Adapter live testへ接続するrunner
 - revision B actual artifactを取得できた場合のB verification report
 - A/B Adapter compatibility Evidence
 - Requirement / Contract再照合結果
@@ -190,10 +255,10 @@ bundle verifierと現在の観測記録は次へ置く。
 
 1. revision A historical artifactを現在のverifierで再検証できる。
 2. revision Bのactual executableまたは固定Evidence bundleを取得し、そのsource / binary / Provider Plan identityを記録できる。
-3. revision B actual `deployment-provider-plan`が成立するか、不成立ならprocess / Provider surfaceのどこで不成立かを判別できる。
+3. revision B actual `deployment-provider-plan`がexact-A fixed reference inputで成立するか、不成立ならprocess / input interpretation / Provider surfaceのどこで不成立かを判別できる。
 4. current SOZA Adapterでrevision Bを実行し、Capability Observationへのmapping成立可否を確認する。
 5. revision B追加後もrevision A Evidenceを不変に保持する。
-6. acquisition / credential / artifact identity / Provider compatibilityの境界をEvidenceで確認する。
+6. acquisition / credential / artifact identity / fixed input identity / Provider compatibilityの境界をEvidenceで確認する。
 7. REQ-0001、REQ-0007、REQ-0021、SCN-0014、SCN-0018へ再照合し、新しいStable Requirementが必要かを監査する。
 8. 自然な日本語を最重要視した最終意味監査を行う。
 
@@ -208,6 +273,7 @@ Resolved後も次の場合は再開する。
 - TEI version交換でProvider固有fieldがUniversal Capability Observationへ漏れる。
 - current Adapterがversion固有fieldをUniversal semanticsとして要求する。
 - Provider Plan差分をbyte driftとsemantic incompatibilityへ分離できない。
+- build sourceとfixed reference inputのProvenanceを分離できない。
 - distribution / credential方式をsemantic identityへ取り込まないと履歴再構成できないことが判明する。
 - Product Value / Requirementが変更される。
 
@@ -217,12 +283,16 @@ GitHub ActionsはこのIssueの意味上の成立条件にしない。
 
 TEI側Evidence workflowを利用できる場合はactual artifact生成の一経路として使うが、jobが開始されなかったrunをTEI compatibility failureへ数えない。取得済みartifactはrepository-local `verify_tei_evidence_bundle.py`へ戻して再検証する。
 
-SOZA側のbundle verifier testはactual TEI process executionの代替ではない。revision B artifactを得た後は、current `teiintegration`のactual live testを別途実行する。
+actual Bのrepository-local経路では、exact revision B checkoutをbuild source、exact revision A checkoutをfixed reference inputとして`run_tei_revision_b_prepositioned.py`へ渡す。
+
+B Evidence bundleを得た後は、cleanなSOZA checkoutで`run_tei_bundle_adapter_compatibility.py`を実行し、既存`runtime/go/teiintegration.TestLiveTEIProviderPlan`へ接続する。runnerのsynthetic testやStatic Evidenceはactual TEI process executionの代替ではない。
 
 ## Natural Japanese review
 
-PMS-06、ISSUE-000061 / 000065、ADR-0013 / 0019 / 0021 / 0024、Actual TEI CLI Evidence、current `teiintegration`、revision A Evidence artifact、TEI current main、revision B Evidence workflowのattempt 1 / 2を照合した。
+PMS-06、ISSUE-000061 / 000065、ADR-0013 / 0019 / 0021 / 0024、Actual TEI CLI Evidence、current `teiintegration`、revision A Evidence artifact、revision B Evidence workflow attempt 1 / 2、revision B Git object identity、A / B Provider Plan static compatibility、exact-A fixed reference input、E2 prepositioned runner、E3 Adapter live runnerを照合した。
 
-取得方法、artifact identity、Provider固有surface、SOZAのCapability Observationを一つにまとめず、今回すでに観測できたことと、revision B actual executionが未検証であることを分離している。また、GitHub-hosted job開始前failureをTEI互換性の失敗へ読み替えず、Actionsに依存しないbundle verifierを先にrepositoryへ実体化した。
+取得方法、artifact identity、build source、fixed reference input、Provider固有surface、SOZAのCapability Observationを一つにまとめず、今回すでに観測できたことと、revision B actual executionが未検証であることを分離している。
 
-意味、要求強度、留保、Evidenceの高さを固定したうえで、自然な日本語となることを最重要視して全文をドラフトし、Goal、Questions、Constraints、Required scenarios、Resolution、Reopen条件を再監査した。
+特に、A / Bでworkspace treeが異なることから「B checkout内のsame pathを使えば同じinput」という早合点を修正し、version交換ではB executableへhistorical A inputを与える比較軸へ固定した。また、Static EvidenceでProvider Plan出力surfaceに連続性がある一方、workspace / validation / IRが変化しているためactual検証が必要であることも明記した。
+
+意味、要求強度、留保、Evidenceの高さを固定したうえで、自然な日本語となることを最重要視して全文を再監査した。
