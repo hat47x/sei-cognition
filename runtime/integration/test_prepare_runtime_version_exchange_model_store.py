@@ -253,6 +253,64 @@ class RuntimeVersionExchangeModelStorePreparationTest(unittest.TestCase):
             self.assertFalse(target.exists())
         self.assertEqual([], opener.calls)
 
+    def test_store_manifest_path_must_match_model_name(self):
+        acquisition, payloads, _config_digest, _model_digest = self.fixture()
+        acquisition = dict(acquisition)
+        acquisition["storeManifestPath"] = "manifests/registry.ollama.ai/library/other/fixed"
+        opener = FakeOpener(payloads)
+        with tempfile.TemporaryDirectory() as temporary:
+            with self.assertRaisesRegex(ValueError, "storeManifestPath.*model.name"):
+                prepare.prepare_model_store(
+                    Path(temporary) / "models",
+                    opener=opener,
+                    acquisition=acquisition,
+                )
+        self.assertEqual([], opener.calls)
+
+    def test_manifest_url_must_match_model_name_even_on_official_host(self):
+        acquisition, payloads, _config_digest, _model_digest = self.fixture()
+        acquisition = dict(acquisition)
+        acquisition["registryManifestUrl"] = (
+            "https://registry.ollama.ai/v2/library/other/manifests/fixed"
+        )
+        opener = FakeOpener(payloads)
+        with tempfile.TemporaryDirectory() as temporary:
+            with self.assertRaisesRegex(ValueError, "registryManifestUrl.*model.name"):
+                prepare.prepare_model_store(
+                    Path(temporary) / "models",
+                    opener=opener,
+                    acquisition=acquisition,
+                )
+        self.assertEqual([], opener.calls)
+
+    def test_blob_base_url_must_match_model_name_even_on_official_host(self):
+        acquisition, payloads, _config_digest, _model_digest = self.fixture()
+        acquisition = dict(acquisition)
+        acquisition["registryBlobBaseUrl"] = "https://registry.ollama.ai/v2/library/other/blobs"
+        opener = FakeOpener(payloads)
+        with tempfile.TemporaryDirectory() as temporary:
+            with self.assertRaisesRegex(ValueError, "registryBlobBaseUrl.*model.name"):
+                prepare.prepare_model_store(
+                    Path(temporary) / "models",
+                    opener=opener,
+                    acquisition=acquisition,
+                )
+        self.assertEqual([], opener.calls)
+
+    def test_model_name_must_include_repository_and_tag(self):
+        acquisition, payloads, _config_digest, _model_digest = self.fixture()
+        acquisition = dict(acquisition)
+        acquisition["name"] = "test"
+        opener = FakeOpener(payloads)
+        with tempfile.TemporaryDirectory() as temporary:
+            with self.assertRaisesRegex(ValueError, "repository:tag"):
+                prepare.prepare_model_store(
+                    Path(temporary) / "models",
+                    opener=opener,
+                    acquisition=acquisition,
+                )
+        self.assertEqual([], opener.calls)
+
 
 if __name__ == "__main__":
     unittest.main()
