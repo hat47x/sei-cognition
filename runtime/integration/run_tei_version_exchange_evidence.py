@@ -5,6 +5,8 @@ import argparse
 import json
 import os
 import shutil
+import subprocess
+import tarfile
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
@@ -16,6 +18,13 @@ import verify_tei_execution_source_identity as source_identity
 SCHEMA = "soza.tei-version-exchange-evidence-run/v1"
 BUNDLE_NAME = "tei-e3b-p2-revision-b.tar.gz"
 REPORT_NAME = "tei-version-exchange-evidence.json"
+EXPECTED_RUN_ERRORS = (
+    OSError,
+    ValueError,
+    RuntimeError,
+    subprocess.SubprocessError,
+    tarfile.TarError,
+)
 STOP_LINE = (
     "fixed-scope E2/E3 verified != arbitrary TEI version compatibility "
     "!= Release Evidence != Operational Evidence != ISSUE-000072 Resolved"
@@ -32,26 +41,28 @@ class VersionExchangeRunFailed(RuntimeError):
 
 @contextmanager
 def _go_on_path(executable: Path) -> Iterator[Path]:
-    executable = executable.expanduser().resolve(strict=True)
-    if not executable.is_file() or not os.access(executable, os.X_OK):
-        raise ValueError(f"Go executableではありません: {executable}")
-    if executable.name != "go":
+    requested = executable.expanduser()
+    if requested.name != "go":
         raise ValueError(
             "Linux actual EvidenceではGo executableのbasenameを'go'に固定します: "
-            f"{executable}"
+            f"{requested}"
         )
+    resolved = requested.resolve(strict=True)
+    if not resolved.is_file() or not os.access(resolved, os.X_OK):
+        raise ValueError(f"Go executableではありません: {resolved}")
 
+    bin_dir = requested.parent.resolve(strict=True)
     original_present = "PATH" in os.environ
     original_path = os.environ.get("PATH", "")
-    os.environ["PATH"] = str(executable.parent) + os.pathsep + original_path
+    os.environ["PATH"] = str(bin_dir) + os.pathsep + original_path
     try:
-        resolved = shutil.which("go")
-        if resolved is None or Path(resolved).resolve() != executable:
+        discovered = shutil.which("go")
+        if discovered is None or Path(discovered).resolve() != resolved:
             raise ValueError(
                 "指定したGo executableをPATH先頭へ固定できません: "
-                f"expected={executable} actual={resolved}"
+                f"expected={resolved} actual={discovered}"
             )
-        yield executable
+        yield resolved
     finally:
         if original_present:
             os.environ["PATH"] = original_path
@@ -76,6 +87,25 @@ def _failure(stage: str, exc: Exception) -> dict[str, str]:
     }
 
 
+def _prepare_output_paths(
+    bundle_path: Path,
+    report_path: Path,
+    *,
+    overwrite: bool,
+) -> None:
+    existing = [path for path in (bundle_path, report_path) if path.exists()]
+    if existing and not overwrite:
+        raise ValueError(
+            "既存Evidenceを無言で上書きしません。--overwriteを明示してください: "
+            + ", ".join(str(path) for path in existing)
+        )
+    if overwrite:
+        for path in existing:
+            if not path.is_file() and not path.is_symlink():
+                raise ValueError(f"Evidence出力先がfileではありません: {path}")
+            path.unlink()
+
+
 def run_version_exchange(
     source_repo: Path,
     reference_source_repo: Path,
@@ -95,17 +125,13 @@ def run_version_exchange(
 
     bundle_path = output_dir / BUNDLE_NAME
     report_path = output_dir / REPORT_NAME
-    if not overwrite:
-        existing = [path for path in (bundle_path, report_path) if path.exists()]
-        if existing:
-            raise ValueError(
-                "既存Evidenceを無言で上書きしません。--overwriteを明示してください: "
-                + ", ".join(str(path) for path in existing)
-            )
+    _prepare_output_paths(bundle_path, report_path, overwrite=overwrite)
 
     comparison_axis = {
         "buildSourceCommit": source_identity.REVISION_B,
         "referenceInputSourceCommit": source_identity.REVISION_A,
+        "teiGoRequirement": build_runner.EXPECTED_GO_VERSION,
+        "sozaGoRequirement": "runtime/go go.mod with GOTOOLCHAIN=local",
         "teiGoExecutable": str(tei_go_executable.expanduser()),
         "sozaGoExecutable": str(soza_go_executable.expanduser()),
         "expectedSozaHead": expected_soza_head,
@@ -119,7 +145,7 @@ def run_version_exchange(
                 bundle_path,
             )
             comparison_axis["teiGoExecutable"] = str(tei_go)
-    except Exception as exc:
+    except EXPECTED_RUN_ERRORS as exc:
         report = {
             "schema": SCHEMA,
             "result": "e2_failed",
@@ -155,7 +181,7 @@ def run_version_exchange(
                 expected_soza_head=expected_soza_head,
             )
             comparison_axis["sozaGoExecutable"] = str(soza_go)
-    except Exception as exc:
+    except EXPECTED_RUN_ERRORS as exc:
         report = {
             **interim,
             "result": "e2_verified_e3_failed",
@@ -184,7 +210,7 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "exact revision B build sourceとexact revision A fixed reference inputを使い、"
             "E2 Evidence bundle生成からE3 current SOZA Adapter live testまでを連続実行します。"
-            "TEI build用Go 1.23.2とSOZA検査用Go 1.25は別executableとして明示します。"
+            "TEI build用Go 1.23.2とSOZA検査用Go 1.25系は別executableとして明示します。"
         ),
         allow_abbrev=False,
     )
