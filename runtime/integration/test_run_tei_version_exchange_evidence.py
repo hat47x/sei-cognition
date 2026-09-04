@@ -25,6 +25,10 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
             path.mkdir()
         return source, reference, soza
 
+    def build_success(self, archive: Path):
+        archive.write_bytes(b"bundle")
+        return {"result": "bundle_produced"}
+
     @mock.patch.object(subject.adapter_runner, "run_compatibility")
     @mock.patch.object(subject.build_runner, "produce_bundle")
     def test_distinct_go_toolchains_are_used_for_e2_and_e3(self, build, adapter):
@@ -38,8 +42,7 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
 
             def build_side_effect(source_repo, reference_repo, archive):
                 observed["e2_go"] = Path(shutil.which("go")).resolve()
-                archive.write_bytes(b"bundle")
-                return {"result": "bundle_produced"}
+                return self.build_success(archive)
 
             def adapter_side_effect(archive, **kwargs):
                 observed["e3_go"] = Path(shutil.which("go")).resolve()
@@ -137,11 +140,7 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
             soza_go = self.make_go(root, "go125")
             output = root / "evidence"
 
-            def build_side_effect(source_repo, reference_repo, archive):
-                archive.write_bytes(b"bundle")
-                return {"result": "bundle_produced"}
-
-            build.side_effect = build_side_effect
+            build.side_effect = lambda source_repo, reference_repo, archive: self.build_success(archive)
             adapter.side_effect = RuntimeError("adapter live test failed")
             with self.assertRaises(subject.VersionExchangeRunFailed) as raised:
                 subject.run_version_exchange(
@@ -157,7 +156,44 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
             report = json.loads((output / subject.REPORT_NAME).read_text(encoding="utf-8"))
             self.assertEqual("e2_verified_e3_failed", report["result"])
             self.assertEqual("E3", report["failure"]["stage"])
+            self.assertNotIn("substage", report["failure"])
             self.assertEqual("bundle_produced", report["e2"]["result"])
+
+    @mock.patch.object(subject.adapter_runner, "run_compatibility")
+    @mock.patch.object(subject.build_runner, "produce_bundle")
+    def test_staged_e3_failure_propagates_substage_detail(self, build, adapter):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source, reference, soza = self.make_inputs(root)
+            tei_go = self.make_go(root, "go123")
+            soza_go = self.make_go(root, "go125")
+            output = root / "evidence"
+            build.side_effect = lambda source_repo, reference_repo, archive: self.build_success(archive)
+            adapter.side_effect = subject.adapter_runner.TEIAdapterStageError(
+                "soza_teiintegration_live_test",
+                "external process returned non-zero status",
+                command=["go", "test", "./teiintegration"],
+                returncode=1,
+                stderr="strict decode / validator failure",
+            )
+            with self.assertRaises(subject.VersionExchangeRunFailed):
+                subject.run_version_exchange(
+                    source,
+                    reference,
+                    soza,
+                    output,
+                    tei_go_executable=tei_go,
+                    soza_go_executable=soza_go,
+                )
+            report = json.loads((output / subject.REPORT_NAME).read_text(encoding="utf-8"))
+            failure = report["failure"]
+            self.assertEqual("E3", failure["stage"])
+            self.assertEqual("soza_teiintegration_live_test", failure["substage"])
+            self.assertEqual(
+                "soza_teiintegration_live_test", failure["detail"]["stage"]
+            )
+            self.assertEqual(1, failure["detail"]["returnCode"])
+            self.assertIn("validator", failure["detail"]["stderrTail"])
 
     @mock.patch.object(subject.adapter_runner, "run_compatibility")
     @mock.patch.object(subject.build_runner, "produce_bundle")
