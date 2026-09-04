@@ -68,6 +68,48 @@ class RuntimeVersionExchangePreflightModelStoreTest(unittest.TestCase):
         self.assertEqual("blocked", checks[0].status)
         self.assertEqual("model.store", checks[0].id)
 
+    def test_model_store_root_symlink_is_rejected_before_identity_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            actual_store = base / "actual-models"
+            actual_store.mkdir()
+            model_link = base / "models-link"
+            try:
+                model_link.symlink_to(actual_store, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            with mock.patch.object(preflight, "verify_model_store") as verify:
+                checks = preflight.model_store_check(model_link, (), True)
+
+        verify.assert_not_called()
+        self.assertEqual(1, len(checks))
+        self.assertEqual("model.store.path", checks[0].id)
+        self.assertEqual("blocked", checks[0].status)
+        self.assertIn("rootにsymlink", checks[0].detail)
+
+    def test_model_store_with_symlink_parent_is_rejected_before_identity_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            actual_parent = base / "actual-parent"
+            actual_parent.mkdir()
+            actual_store = actual_parent / "models"
+            actual_store.mkdir()
+            link_parent = base / "model-parent-link"
+            try:
+                link_parent.symlink_to(actual_parent, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            with mock.patch.object(preflight, "verify_model_store") as verify:
+                checks = preflight.model_store_check(link_parent / "models", (), True)
+
+        verify.assert_not_called()
+        self.assertEqual(1, len(checks))
+        self.assertEqual("model.store.path", checks[0].id)
+        self.assertEqual("blocked", checks[0].status)
+        self.assertIn("rootのparentにsymlink", checks[0].detail)
+
 
 if __name__ == "__main__":
     unittest.main()
