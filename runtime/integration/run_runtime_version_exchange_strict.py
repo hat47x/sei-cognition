@@ -33,6 +33,13 @@ STRICT_CHILD_ENVIRONMENT_KEYS = (
     "SOZA_RUNTIME_EXCHANGE_PREPOSITIONED_ARCHIVE_B",
     "SOZA_RUNTIME_EXCHANGE_MODEL_DIR",
 )
+STRICT_CHILD_PYTHON_ENVIRONMENT_KEYS = (
+    "PYTHONPATH",
+    "PYTHONHOME",
+    "PYTHONSTARTUP",
+    "PYTHONUSERBASE",
+)
+STRICT_CHILD_TEMP_ENVIRONMENT_KEYS = ("TMPDIR", "TMP", "TEMP")
 
 
 def _reject_forwarded_identity_options(arguments: list[str]) -> None:
@@ -177,13 +184,27 @@ def _verify_runtime_archive_identities(runtime_archives: dict[str, Path]) -> Non
 
 
 def _strict_child_environment(work_dir: Path | None = None) -> dict[str, str]:
-    """strict入口が確定するidentity / safety値を親環境から継承させない。"""
+    """strict入口が確定するidentity / safety / Python / Git / temp境界を親環境から分離する。"""
 
     environment = os.environ.copy()
-    for key in STRICT_CHILD_ENVIRONMENT_KEYS:
-        environment.pop(key, None)
+    for key in tuple(environment):
+        if key in STRICT_CHILD_ENVIRONMENT_KEYS:
+            environment.pop(key, None)
+        elif key in STRICT_CHILD_PYTHON_ENVIRONMENT_KEYS:
+            environment.pop(key, None)
+        elif key in STRICT_CHILD_TEMP_ENVIRONMENT_KEYS:
+            environment.pop(key, None)
+        elif key.startswith("GIT_"):
+            environment.pop(key, None)
+
+    # Python helper/KJ Atlas/adapterのimportを親shellのuser siteやbytecode副作用へ委ねない。
+    environment["PYTHONDONTWRITEBYTECODE"] = "1"
+    environment["PYTHONNOUSERSITE"] = "1"
+
     if work_dir is not None:
-        environment["TMPDIR"] = str(work_dir)
+        resolved_work = str(work_dir)
+        for key in STRICT_CHILD_TEMP_ENVIRONMENT_KEYS:
+            environment[key] = resolved_work
     return environment
 
 
@@ -350,7 +371,7 @@ def build_parser() -> argparse.ArgumentParser:
             "bundleへ固定し、事前配置runtime archiveはharness起動前に固定size / SHA-256を再検証し、"
             "事前配置model storeはOllama起動前にmanifest / blob bytesを静的検証します。"
             "work directoryとcheckout起点の一時source bundleをEvidence directory側へ明示固定し、"
-            "親processのTMPDIRへ実行surfaceを委ねません。"
+            "親processのTMPDIRやPython/Git内部指定へ実行surfaceを委ねません。"
             "--prepare-model-dirを指定した場合は固定model storeをregistryから新規に準備し、"
             "再検証してからrepository-local harnessへ委譲します。"
         ),

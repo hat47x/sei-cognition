@@ -61,6 +61,43 @@ class StrictRuntimeVersionExchangeTest(unittest.TestCase):
         for key in ENTRYPOINT.STRICT_CHILD_ENVIRONMENT_KEYS:
             self.assertNotIn(key, environment)
 
+    def test_strict_child_environment_isolates_python_git_and_temp_from_parent(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            work = Path(temporary) / "work"
+            parent = {
+                "PATH": "/usr/bin",
+                "HOME": "/home/example",
+                "VIRTUAL_ENV": "/tmp/venv",
+                "UNRELATED": "keep",
+                "PYTHONPATH": "/tmp/injected-pythonpath",
+                "PYTHONHOME": "/tmp/injected-pythonhome",
+                "PYTHONSTARTUP": "/tmp/startup.py",
+                "PYTHONUSERBASE": "/tmp/userbase",
+                "TMPDIR": "/tmp/injected-tmpdir",
+                "TMP": "/tmp/injected-tmp",
+                "TEMP": "/tmp/injected-temp",
+                "GIT_DIR": "/tmp/other.git",
+                "GIT_WORK_TREE": "/tmp/other-work-tree",
+                "GIT_COMMON_DIR": "/tmp/other-common",
+                "GIT_INDEX_FILE": "/tmp/other-index",
+                "PYTHONDONTWRITEBYTECODE": "0",
+                "PYTHONNOUSERSITE": "0",
+            }
+            with patch.dict(os.environ, parent, clear=True):
+                environment = ENTRYPOINT._strict_child_environment(work)
+
+        self.assertEqual("/usr/bin", environment["PATH"])
+        self.assertEqual("/home/example", environment["HOME"])
+        self.assertEqual("/tmp/venv", environment["VIRTUAL_ENV"])
+        self.assertEqual("keep", environment["UNRELATED"])
+        for key in ENTRYPOINT.STRICT_CHILD_PYTHON_ENVIRONMENT_KEYS:
+            self.assertNotIn(key, environment)
+        self.assertFalse(any(key.startswith("GIT_") for key in environment))
+        for key in ENTRYPOINT.STRICT_CHILD_TEMP_ENVIRONMENT_KEYS:
+            self.assertEqual(str(work), environment[key])
+        self.assertEqual("1", environment["PYTHONDONTWRITEBYTECODE"])
+        self.assertEqual("1", environment["PYTHONNOUSERSITE"])
+
     def test_runtime_archive_inside_source_is_rejected_before_verification(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -162,6 +199,11 @@ class StrictRuntimeVersionExchangeTest(unittest.TestCase):
             self.assertIn("--keep-work", command)
             for key in ENTRYPOINT.STRICT_CHILD_ENVIRONMENT_KEYS:
                 self.assertNotIn(key, child_env)
+            for key in ENTRYPOINT.STRICT_CHILD_PYTHON_ENVIRONMENT_KEYS:
+                self.assertNotIn(key, child_env)
+            self.assertFalse(any(key.startswith("GIT_") for key in child_env))
+            self.assertEqual("1", child_env["PYTHONDONTWRITEBYTECODE"])
+            self.assertEqual("1", child_env["PYTHONNOUSERSITE"])
 
             payload = json.loads(
                 (evidence / "runtime-exchange-model-store-static-verification.json").read_text(
@@ -379,6 +421,8 @@ class StrictRuntimeVersionExchangeTest(unittest.TestCase):
             child_env = runner.call_args.kwargs["env"]
             for key in ENTRYPOINT.STRICT_CHILD_ENVIRONMENT_KEYS:
                 self.assertNotIn(key, child_env)
+            for key in ENTRYPOINT.STRICT_CHILD_TEMP_ENVIRONMENT_KEYS:
+                self.assertEqual(str(work.resolve()), child_env[key])
 
     def test_work_directory_inside_checkout_is_rejected_before_export(self):
         with tempfile.TemporaryDirectory() as temporary:
