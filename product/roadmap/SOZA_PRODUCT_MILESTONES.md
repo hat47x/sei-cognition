@@ -1,7 +1,7 @@
 # SOZA Product Milestones
 
-更新日: 2026-09-03  
-状態: **Current Deadline-free Product Milestone Baseline — v0.2.0 Release Evidence / E3b-P2 / E3b-M1b / historical reconstruction / quality-evaluation boundary reflected**
+更新日: 2026-09-05
+状態: **Current Deadline-free Product Milestone Baseline — v0.2.0 Release Evidence / E3b-P2 / E3b-M1b / historical reconstruction / fixed runtime exchange / quality-evaluation boundary reflected**
 
 ## 1. この文書の役割
 
@@ -340,19 +340,20 @@ ISSUE-000068ではKJ Atlas source、Method surface、runtime、入力を固定�
 
 ### runtime version exchange
 
-ISSUE-000070では交換軸をruntime versionだけへ狭め、model artifactを固定します。
+ISSUE-000070では交換軸をruntime versionだけへ狭め、model artifactを固定しました。
 
 - revision A: Ollama `0.32.13`
 - revision B: Ollama `0.32.14`
 
-repository-local harness、固定runtime archive digest、fixed model digest、Exact Binding control、artifact guard、事前配置artifact経路、run専用Evidence directory、local preflightまで整備しています。
+repository-local標準経路をactualに実行し、固定runtime archive、fixed model digest、同一prompt、A / B inference、same logical / different Exact Binding、先行Application不変性、portable reconstructionを一続きに確認しました。独立Evidence + Provenance verifierも`ready-to-review`です。
 
 ```text
-runtime exchange harness / preflight implemented
-  != actual runtime A/B inference PASS
+fixed Ollama 0.32.13 / 0.32.14 exchange PASS
+  != arbitrary runtime portability
+  != outcome quality satisfied
 ```
 
-actual `0.32.13` / `0.32.14`交換は**Not Yet Verified**です。
+actual `0.32.13` / `0.32.14`交換は**Scoped Executable Evidence available**です。
 
 ### outcome-quality evaluation boundary
 
@@ -370,7 +371,8 @@ v0.2.0のsupported release scopeはE3aまでです。release後に積み上が�
 - TEI executableの正式な取得・配布方式
 - fixed revision以外のTEI version交換
 - TEI CLI version交換時に必要なProvenance / Exact Bindingの水準
-- ISSUE-000070のactual Ollama runtime version交換
+- fixed 2 revisionを越えるruntime version / runtime実装のportability
+- fully offline executionに必要なdependency acquisition境界
 - 別model family / Provider / Realizationへ広げたportability
 - actual human reviewとKJ法としての成果品質
 - network degradation、rate limit、credential失効、artifact acquisition failure等のfailure behavior
@@ -449,7 +451,7 @@ Product Value、Product Shape、Product Interaction、Packaging、Identity / Acc
 
 historical Actions Runは、当時actualに得たExecutable / Release Evidenceとして保持しています。一方、current Open Questionから`SOZA Actionsからcredentialを供給する`という実行面固有の表現を外し、private artifact acquisition / credential lifecycleという製品側の論点へ戻しました。current継続検査もGitHub Actionsではなくrepository-local testを前提とします。
 
-PMS-06にはE3b-P2、M1a、M1bだけでなく、ISSUE-000067のhistorical reconstruction、ISSUE-000068のactual model artifact交換、ISSUE-000070のruntime version交換基盤、ISSUE-000071の成果品質評価境界まで反映しました。runtime version交換のactual A/Bとhuman outcome reviewは未完了のままです。
+PMS-06にはE3b-P2、M1a、M1bだけでなく、ISSUE-000067のhistorical reconstruction、ISSUE-000068のactual model artifact交換、ISSUE-000070のfixed-scope actual runtime version交換、ISSUE-000071の成果品質評価境界まで反映しました。human outcome review、arbitrary portability、fully offline executionは未完了のままです。
 
 PMS-07のv0.2.0 supported scopeはE3aまでに保ち、post-release EvidenceによってRelease Evidenceを遡及的に拡張していません。E4、production security / Storage、PMS-08のOperational / Adoption・Outcome Evidenceも未検証のままです。
 

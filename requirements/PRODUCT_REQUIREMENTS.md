@@ -1,6 +1,6 @@
 # SOZA Product Requirements
 
-更新日: 2026-09-01  
+更新日: 2026-09-05
 状態: **Current Product Requirements Baseline**
 
 ## 1. この文書の位置づけ
@@ -78,7 +78,7 @@ SOZAの価値は現在の実装方式ではなく、技術が入れ替わって�
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Partially Satisfied** — Semantic Interchange、Logical Reference / Exact Binding metadata、Decision / Capability / Cognitive Methodのcurrent fixtureとruntimeで、意味を分けたまま読み込む境界を確認した。SCN-0018 harnessではInterchange loaderを通るProduct Journeyとhistorical Decision basis非改変も確認した。Storage migrationやproduction Provider交換までは未検証。
+- Executable: **Partially Satisfied** — Semantic Interchange、Logical Reference / Exact Binding metadata、Decision / Capability / Cognitive Methodのcurrent fixtureとruntimeで、意味を分けたまま読み込む境界を確認した。SCN-0018 harnessではInterchange loaderを通るProduct Journeyとhistorical Decision basis非改変も確認した。さらに固定model artifact下でOllama `0.32.13` / `0.32.14`をactualに交換し、revisionごとのExact Binding、先行Application非改変、portable reconstructionを確認した。Storage migration、production Provider交換、任意runtime互換性は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -154,7 +154,7 @@ SOZAが保持すべきなのは特定のPromptや実装ではなく、どの方�
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Partially Satisfied** — `soza.cognitive-method/v1alpha1`、C1〜C8 fixture、negative / unknown-version boundary、Go typed runtimeによりMethod Definition / Realization / Applicationを分離してread / validate / reconstructできる。SCN-0018 harnessでもMethod ApplicationをRecommendation / Decisionとは別recordとして接続する。Method executorやproduction Realization交換は未検証。
+- Executable: **Partially Satisfied** — `soza.cognitive-method/v1alpha1`、C1〜C8 fixture、negative / unknown-version boundary、Go typed runtimeによりMethod Definition / Realization / Applicationを分離してread / validate / reconstructできる。SCN-0018 harnessでもMethod ApplicationをRecommendation / Decisionとは別recordとして接続する。固定KJ Atlas / Ollamaではactual model artifact交換とruntime revision交換を行い、後続Application追加後も先行Applicationを保持した。別Method、人間手順、production Realizationへの交換は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -600,7 +600,7 @@ Cognitive Method Realization、Capability Provider、Execution Provider、Projec
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Partially Satisfied** — Go runtimeをContract semantic authorityから分離し、Representation verifier implementationもProfile authorityから分けている。Cognitive MethodではDefinition / Realization / Applicationを分離し、synthetic Provider A / Bは異なるinput schemaをAdapter-localに保ったまま同じCapability Observationへ収束する。SCN-0018ではno-execution path、Provider replacement boundary、Projection非権威を検査している。production Provider / Storage / Execution Providerの実差し替えは未検証。
+- Executable: **Partially Satisfied** — Go runtimeをContract semantic authorityから分離し、Representation verifier implementationもProfile authorityから分けている。Cognitive MethodではDefinition / Realization / Applicationを分離し、synthetic Provider A / Bは異なるinput schemaをAdapter-localに保ったまま同じCapability Observationへ収束する。SCN-0018ではno-execution path、Provider replacement boundary、Projection非権威を検査している。固定artifactでactual TEI、model、Ollama runtime revisionを交換し、交換対象固有情報をUniversal Coreへ昇格させずhistorical Applicationを保持した。production Provider / Storage / Execution Providerと任意artifactへの交換は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -753,4 +753,4 @@ release artifact verified
 
 ## 6. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、Value Model、Value Acceptance、Accepted ADR、current Architecture、5 Semantic Contract family、31 fixture、Representation Profile、semantic runtime、Cognitive Method typed runtime、synthetic Provider Adapter、V6/V7 Projection evaluation、SCN-0018 end-to-end Product Journey harness、actual CI Evidence、およびhistorical candidateの意味核を照合し、Requirement本文の意味や要求強度を変えずにEvidence欄をcurrent状態へ再基線化しました。とくにCognitive Method、historical Decision非改変、Projection非権威、残差からreopenへの引継ぎは、実際に検査できたsynthetic範囲だけ`Partially Satisfied`へ反映しています。そのうえで、Design / Executable / Release / Operational / Adoption・Outcomeの区別、未検証事項、production境界を変えない範囲で、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Value、Value Proposition、Product Shape、Value Model、Value Acceptance、Accepted ADR、current Architecture、5 Semantic Contract family、31 fixture、Representation Profile、semantic runtime、Cognitive Method typed runtime、synthetic Provider Adapter、V6/V7 Projection evaluation、SCN-0018 end-to-end Product Journey harness、actual CI Evidence、fixed-scope actual model / runtime exchange、およびhistorical candidateの意味核を照合し、Requirement本文の意味や要求強度を変えずにEvidence欄をcurrent状態へ再基線化しました。とくにCognitive Method、historical Decision非改変、Projection非権威、残差からreopenへの引継ぎは、実際に検査できた範囲だけ`Partially Satisfied`へ反映しています。ISSUE-000070の結果は既存REQ-0001 / 0004 / 0021で表現できるため、新しいStable Requirementは追加していません。そのうえで、Design / Executable / Release / Operational / Adoption・Outcomeの区別、未検証事項、production境界を変えない範囲で、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。

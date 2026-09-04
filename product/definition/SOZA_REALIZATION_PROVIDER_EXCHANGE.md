@@ -1,7 +1,7 @@
 # SOZA Realization / Provider Exchange
 
-更新日: 2026-09-03  
-状態: **Current Realization / Provider Exchange Design Baseline — E3b-P2 / M1b / historical reconstruction reflected, runtime-version exchange pending**
+更新日: 2026-09-05
+状態: **Current Realization / Provider Exchange Design Baseline — E3b-P2 / M1b / historical reconstruction / fixed runtime exchange reflected**
 
 ## 1. この文書の役割
 
@@ -305,21 +305,21 @@ model artifact exchange PASS
 
 ### 7.3 ISSUE-000070 — runtime version exchange
 
-ISSUE-000070では交換軸をさらに狭め、同じKJ Atlas source、同じMethod input、同じactual model artifactの下でOllama runtime versionだけを交換します。
+ISSUE-000070では交換軸をさらに狭め、同じKJ Atlas source、同じMethod input、同じactual model artifactの下でOllama runtime versionだけを交換しました。
 
 - revision A: Ollama `0.32.13`
 - revision B: Ollama `0.32.14`
 - model: `qwen2.5:0.5b`
 - fixed model artifact digest: `a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67`
 
-repository-local harness、fixed runtime artifact guard、Exact Binding control、run単位のEvidence保存、preflightは実装済みです。
+repository-local標準経路をactualに実行し、fixed runtime artifact、fixed model、same prompt、A / B inference、Exact Binding、historical Application不変性、portable reconstructionを確認しました。
 
-一方、current harnessによるactual Ollama `0.32.13` / `0.32.14`交換はまだ完走確認していません。したがってISSUE-000070はOpenであり、runtime-version-exchange Scoped Executable Evidenceは**Not Yet Verified**です。
+独立Evidence + Provenance verifierは107 checkすべてを`ok`とし、`ready-to-review`を返しました。Requirement / Contract再照合でも既存境界で表現できることを確認したため、ISSUE-000070はResolvedであり、runtime-version-exchangeは**Scoped Executable Evidence available**です。
 
 ```text
-preflight ready
-  != actual runtime A/B inference PASS
-  != runtime-version-exchange Scoped Executable Evidence
+fixed runtime A/B exchange PASS
+  != arbitrary runtime portability
+  != outcome quality satisfied
 ```
 
 GitHub Actionsや特定runnerの復旧はResolution条件にしません。actual実験の意味はrepository-local harnessと固定artifact identityへ戻します。
@@ -423,7 +423,7 @@ post-release E3b Evidence
   != v0.2.0 Release Evidence expanded
 ```
 
-ISSUE-000070が将来Resolvedになっても、そのEvidenceを理由に既存v0.2.0のsupported scopeを遡及的に変更しません。
+ISSUE-000070はResolvedですが、そのEvidenceを理由に既存v0.2.0のsupported scopeを遡及的に変更しません。
 
 ## 12. 現在のEvidence表
 
@@ -439,7 +439,7 @@ ISSUE-000070が将来Resolvedになっても、そのEvidenceを理由に既存v
 | E3b-M1b live external model-backed Method | Scoped Executable Evidence | ISSUE-000066 | model・KJ-method quality / arbitrary model・runtime version / Operational portability |
 | historical Method reconstruction boundary | Scoped Executable Evidence | ISSUE-000067 | arbitrary realization portability |
 | actual model artifact exchange | Scoped Executable Evidence | ISSUE-000068 | arbitrary model compatibility / quality equivalence |
-| runtime version exchange | Harness / guards / preflight implemented, actual A/B Not Yet Verified | ISSUE-000070 | runtime-version-exchange Scoped Executable Evidence |
+| runtime version exchange | Fixed Ollama `0.32.13` / `0.32.14` Scoped Executable Evidence | ISSUE-000070 | arbitrary runtime / other implementation / outcome quality / Operational portability |
 | Method outcome-quality evaluation boundary | Evaluation boundary established | ISSUE-000071 | human review completion / outcome quality satisfied |
 | E4 Operational portability | Not Yet Verified | — | — |
 
@@ -447,7 +447,8 @@ ISSUE-000070が将来Resolvedになっても、そのEvidenceを理由に既存v
 
 次に固定せず調べる領域は次です。
 
-- ISSUE-000070のactual Ollama `0.32.13` / `0.32.14`交換を固定artifact条件で完走できるか
+- fixed 2 revisionを越えるruntime version / runtime実装でも同じ境界を保てるか
+- fully offline executionに必要なdependency acquisitionをどこまで固定するか
 - fixed-artifact Evidenceを維持しながら、private artifact credential lifecycleをacquisition / deployment policyへどう閉じ込めるか
 - TEI executableの配布・更新経路をどの段階で正式化するか
 - fixed revision以外のTEI version交換でも同じ意味境界を保てるか
@@ -462,19 +463,19 @@ E2〜E3bの実証で使ったGitHub、HTTP、CLI、FastAPI、SQLite、Ollama等�
 
 新しいStable Requirementが必要なのは、特定実装を越えて残る意味差が確認された場合です。
 
-M1a / M1b、historical reconstruction、model artifact exchangeで確認した境界は、現時点では既存のCognitive Method交換可能性、historical Decision reconstruction、Realization / Execution交換のRequirement / Scenarioで表現できます。これらで表せない独立したProduct failureが確認されていないため、新しいREQ / SCNは追加しません。
+M1a / M1b、historical reconstruction、model artifact exchange、fixed runtime version exchangeで確認した境界は、現時点では既存のCognitive Method交換可能性、historical reconstruction、Realization / Execution交換のRequirement / Scenarioで表現できます。これらで表せない独立したProduct failureが確認されていないため、新しいREQ / SCNは追加しません。
 
-ISSUE-000070のactual runtime交換で、現在のProvenance / Exact Bindingでは過去Applicationを十分に区別・再構成できないことが分かった場合は、その時点でCandidate Requirementとして上流へ戻します。
+ISSUE-000070のactual runtime交換では、current Provenance / Exact Bindingで過去Applicationを区別・再構成できました。固定2 revisionを越える探索で独立したProduct failureが確認された場合にだけ、Candidate Requirementとして上流へ戻します。
 
 成果品質についても、ISSUE-000071で評価境界を設けたこと自体をStable Requirement追加の根拠にはしません。human reviewや実利用から、特定実装を越えて必要なProduct上の意味差が確認された場合に改めて検討します。
 
 ## 15. 自然な日本語レビュー
 
-PMS-06、ADR-0017 / 0021 / 0025、ISSUE-000057〜000071、current Cognitive Method / Capability Observation Contract、E3a / E3b Provider Evidence、v0.2.0 Release Evidence、KJ Atlas固定commitのM1a / M1b actual integration、固定TEI artifactのactual execution、historical reconstruction、actual model artifact exchange、runtime version exchange harness、成果品質評価境界を照合しました。
+PMS-06、ADR-0017 / 0021 / 0025、ISSUE-000057〜000071、current Cognitive Method / Capability Observation Contract、E3a / E3b Provider Evidence、v0.2.0 Release Evidence、KJ Atlas固定commitのM1a / M1b actual integration、固定TEI artifactのactual execution、historical reconstruction、actual model artifact exchange、fixed runtime version exchange Evidence、成果品質評価境界を照合しました。
 
 そのうえで、外部artifactを取得したEvidence、public Providerをliveに呼んだEvidence、TEI executable注入境界、fixed-artifact actual TEI execution、KJ Atlasをdeterministic model stubでlive実行したM1a、actual inference modelへ置き換えたM1bを一つの段階へ潰さず、それぞれ何を確認したかが自然に読めるよう整理しました。
 
-さらに、M1b成立後に進んだ履歴再構成をProduct境界へ戻しました。異なる実現機構はlogical Realizationを分け、同じ実現機構のhistorical revisionはExact Bindingで区別します。model artifact交換では先行Applicationを保持できた一方、runtime version交換はharness、guard、preflightまで整ったもののactual A / B実行は未完了です。この差を維持し、ISSUE-000070をOpenのまま扱っています。
+さらに、M1b成立後に進んだ履歴再構成をProduct境界へ戻しました。異なる実現機構はlogical Realizationを分け、同じ実現機構のhistorical revisionはExact Bindingで区別します。model artifact交換に続き、runtime version交換でも後続Application追加後の先行Application保持とportable reconstructionをactualに確認しました。
 
 成果品質についても、actual inferenceが成立したこと、構造検査を通ること、人間が成果を妥当と評価すること、Product Valueや利用成果へつながることを分離しました。ISSUE-000071のResolvedをhuman review完了やKJ法としての品質Satisfiedへ読み替えていません。
 

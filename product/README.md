@@ -1,7 +1,7 @@
 # SOZA Product文書の読み方
 
-更新日: 2026-09-03  
-状態: **Current Product Documentation Baseline — v0.2.0 Release Evidence / E3b-P2 / E3b-M1a・M1b / historical reconstruction / quality-evaluation boundary reflected**
+更新日: 2026-09-05
+状態: **Current Product Documentation Baseline — v0.2.0 Release Evidence / E3b-P2 / E3b-M1a・M1b / historical reconstruction / fixed runtime exchange / quality-evaluation boundary reflected**
 
 ## 1. この文書の役割
 
@@ -95,8 +95,9 @@ PMS-06では、現在までに次のScoped Executable Evidenceがあります。
 - E3b-M1b fixed KJ Atlas + actual inference model
 - Method Realization historical revision / portable reconstruction
 - actual model artifact交換後のhistorical Application保持
+- fixed model artifact下のactual Ollama runtime version交換とhistorical Application保持
 
-一方、固定model artifactの下でOllama `0.32.13` / `0.32.14`だけを交換するISSUE-000070は、repository-local harness、Exact Binding control、artifact guard、local preflightまで整っていますが、actual A/B実行はまだ完了していません。
+ISSUE-000070ではOllama `0.32.13` / `0.32.14`をactualに交換し、同じlogical Realizationの異なるExact Bindingとして保持しながら、先行Applicationとportable reconstructionを保てることまで確認しました。
 
 また、ISSUE-000071ではCognitive Method成果品質の**評価境界**を確立しました。これはhuman reviewやKJ法としての成果品質がSatisfiedになったことを意味しません。
 
@@ -142,7 +143,8 @@ E3b-P2では固定revisionの実TEI CLIをbuild・起動し、actual `deployment
 
 - private artifact acquisition / credential lifecycle
 - 任意のTEI / model / runtime version互換性
-- fixed model artifact下のactual runtime version交換
+- fixed 2 revisionを越えるruntime / model / Method / Provider portability
+- fully offline execution
 - model出力品質
 - KJ法としての成果品質
 - E4 Operational portability
@@ -185,8 +187,8 @@ current repositoryでは、少なくとも次の状態まで確認していま�
 - Packaging / Deployment: **Design baseline established / Minimum scoped Executable Evidence available**
 - Local Reference Package: **release asset available for v0.2.0 Linux / amd64 reference profile**
 - Product Identity / Access / Collaboration: **Design baseline established / scoped Product Access separation Executable Evidence available**
-- Realization / Provider portability: **Partial — E2 / E3a / E3b-P1 / E3b-P2 / E3b-M1a / E3b-M1b / historical reconstruction / actual model artifact exchangeまでScoped Executable Evidenceあり**
-- runtime version exchange: **ISSUE-000070 Open — local harness / guard / preflight implemented, actual A/B Not Yet Verified**
+- Realization / Provider portability: **Partial — E2 / E3a / E3b-P1 / E3b-P2 / E3b-M1a / E3b-M1b / historical reconstruction / actual model artifact exchange / fixed runtime version exchangeまでScoped Executable Evidenceあり**
+- runtime version exchange: **ISSUE-000070 Resolved — fixed Ollama `0.32.13` / `0.32.14` actual A/B Scoped Executable Evidence available**
 - Cognitive Method outcome quality: **evaluation boundary established / actual human review and quality judgement pending**
 - PMS-07: **Satisfied for v0.2.0 Local Reference Product Baseline**
 - E4 Operational portability: **Not Yet Verified**
@@ -262,6 +264,6 @@ Product Value、Value Proposition、Value Model / Acceptance、Product Shape、V
 
 旧文書に残っていた「SOZA Actionsからprivate TEIを取得するcredential運用」という実行面固有の表現を、private artifact acquisition / credential lifecycleというProduct側の未検証境界へ戻しました。GitHub Actionsは当面完全停止しており、その停止自体をProduct semanticsへ持ち込みません。
 
-さらに、historical reconstruction、actual model artifact交換、ISSUE-000070のruntime version交換基盤、ISSUE-000071の成果品質評価境界まで現在地を同期しました。runtime version交換のactual A/Bとhuman outcome reviewは未完了のまま保持しています。
+さらに、historical reconstruction、actual model artifact交換、ISSUE-000070のactual runtime version交換、ISSUE-000071の成果品質評価境界まで現在地を同期しました。runtime交換は固定2 revisionのScoped Executable Evidenceに限定し、human outcome review、arbitrary portability、fully offline executionは未完了のまま保持しています。
 
 v0.2.0のRelease EvidenceはLocal Reference Product Baselineに限定してSatisfiedとし、release後のEvidenceをsupported scopeへ遡及させません。意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語として現在地をたどれることを最重要視して全文を再ドラフトしました。

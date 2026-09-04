@@ -1,6 +1,6 @@
 # 綜座 / SOZA
 
-更新日: 2026-09-03  
+更新日: 2026-09-05
 状態: **v0.2.0 Local Reference Product Baseline released / development continues**
 
 SOZAは、人間・AI・組織・既存システム・外部サービスが入れ替わっても、**何を見て、何を問い、何を根拠とし、何を決め、何を未解決として残したか**を失わないための、可搬な認知・意思決定基盤です。
@@ -236,11 +236,11 @@ historical M47 digest規則は、現在保持されている直接Evidenceから
 - actual model artifact交換のhistorical Application保持
 - Method Realization historical revision / portable reconstruction
 - Cognitive Method outcome-quality evaluation boundary
-- runtime version交換用repository-local harness / artifact guard / local preflight
+- fixed model artifact下のactual Ollama runtime version交換とhistorical Application保持
 
 このうち、v0.2.0の**supported release scopeはE3aまで**です。release後に得られたE3b-P2、M1a / M1b等のEvidenceを理由に、公開済みv0.2.0のsupport範囲を後から広げません。
 
-また、runtime version交換については実験基盤まで整っていますが、固定model artifactの下でOllama `0.32.13` / `0.32.14`をactualに交換する実証はまだ完了していません。
+runtime version交換については、固定model artifactの下でOllama `0.32.13` / `0.32.14`をactualに交換し、same logical / different Exact Binding、先行Application不変性、portable reconstructionをScoped Executable Evidenceとして確認しました。これもpost-release Evidenceであり、v0.2.0のsupported scopeは広げません。
 
 ## 9. v0.2.0 Release Evidence
 
@@ -278,30 +278,26 @@ TEI  = 実行可能な業務Capabilityを実現する一つの手段
 
 current registryはADR-0001〜ADR-0030、ISSUE-000001〜ISSUE-000071を管理します。
 
-現在の未解決Issueは次です。
-
-- ISSUE-000070: **Open** — model artifactを固定したOllama runtime version交換とhistorical Application保持のactual実証
+現在、registry上のOpen Issueはありません。
 
 また、次は意図的にDeferredです。
 
 - ISSUE-000021: **Deferred** — historical design provenanceの逐語監査
 
-ISSUE-000069はGitHub Actions / runner availabilityと検証責務の分離としてResolvedです。ISSUE-000071はCognitive Method成果品質の**評価境界の確立**としてResolvedですが、actual human reviewや成果品質そのものがSatisfiedになったことを意味しません。
+ISSUE-000069はGitHub Actions / runner availabilityと検証責務の分離としてResolvedです。ISSUE-000070は固定model artifact下のOllama 2 revision交換とhistorical Application保持のactual実証としてResolvedです。ISSUE-000071はCognitive Method成果品質の**評価境界の確立**としてResolvedですが、actual human reviewや成果品質そのものがSatisfiedになったことを意味しません。
 
 Resolvedは、対象作業の完了を示します。Release / Operational / Adoption・Outcome Evidenceまで自動的にVerifiedになったことを意味しません。
 
 ## 12. 次に深める領域
 
-現時点の最優先はISSUE-000070です。
+ISSUE-000070の固定runtime交換scopeは完了しました。次は、未解決Issue数を増やす前に、残る価値上の不確実性を優先します。
 
-1. 固定model artifactの下でOllama `0.32.13` / `0.32.14`をactualに交換する。
-2. same logical Realization / different Exact Bindingをactual Evidenceで確認する。
-3. Application AのExact Reference / Provenance / outputがB追加後も不変であることを確認する。
-4. actual runtime A/B Evidenceを含むportable historical reconstructionを確認する。
-5. ISSUE-000071で整えたreview bundleを使い、必要に応じてactual human reviewを行う。
-6. 別model family、別Provider、別Realizationへbroader portabilityを広げる。
-7. TEI acquisition / version交換、network degradation、credential失効等のfailure behaviorを探索する。
-8. E4 Operational portabilityとAdoption / Outcome Evidenceへ進む。
+1. ISSUE-000071で整えたreview bundleを使い、actual human reviewでmodel / KJ-method outcome qualityを評価する。
+2. 別model family、別Provider、別Realization、固定2 revisionを越えるruntimeへbroader portabilityを広げる。
+3. TEI acquisition / version交換、network degradation、credential失効等のfailure behaviorを探索する。
+4. fully offline executionに必要なdependency acquisition境界を明確にする。
+5. E4 Operational portabilityとAdoption / Outcome Evidenceへ進む。
+6. 次releaseでE3bのどこまでをsupported scopeへ含めるかを定める。
 
 実装量やIssue数を増やすこと自体は目的にしません。既存RequirementとContractで表現できる場合は、実証のためだけにUniversal semanticsを増やしません。
 
@@ -329,10 +325,10 @@ change scope
 
 ## 15. 自然な日本語レビュー
 
-2026-09-03時点のProduct Value、Product Milestone、REQ-0001〜0022、SCN-0001〜0018、ADR-0001〜0030、ISSUE-000001〜000071、5 Semantic Contract family、2 Representation Profile、current runtime / probe / evaluation資産、v0.2.0 historical Release Evidence、ISSUE-000067〜000071へ戻って現在地を再監査しました。
+2026-09-05時点のProduct Value、Product Milestone、REQ-0001〜0022、SCN-0001〜0018、ADR-0001〜0030、ISSUE-000001〜000071、5 Semantic Contract family、2 Representation Profile、current runtime / probe / evaluation資産、v0.2.0 historical Release Evidence、ISSUE-000067〜000071へ戻って現在地を再監査しました。
 
 旧READMEに残っていた`.github/`のcurrent tree記載、ISSUE-000063までのPlan状態、既に完了したTEI / external Cognitive Method実証を「次の作業」とする記述を更新しました。GitHub Actionsのhistorical Evidenceは保存しながら、現在の検証はローカル個別実行へ切り替えています。
 
-v0.2.0のRelease EvidenceはLocal Reference Product Baselineに限定してSatisfiedとし、後続E3b Evidenceをrelease scopeへ遡及させません。ISSUE-000070のactual runtime version交換、human outcome review、E4、Operational / Adoption Evidenceも未検証範囲を維持しています。
+v0.2.0のRelease EvidenceはLocal Reference Product Baselineに限定してSatisfiedとし、後続E3b Evidenceをrelease scopeへ遡及させません。ISSUE-000070のfixed-scope actual runtime version交換だけをScoped Executable Evidenceへ更新し、human outcome review、arbitrary portability、fully offline execution、E4、Operational / Adoption Evidenceは未検証範囲を維持しています。
 
 意味、規範強度、Evidence強度を変えず、入口文書として自然な日本語で現在地をたどれることを最重要視して全文を再ドラフトしました。

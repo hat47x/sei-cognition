@@ -1,6 +1,6 @@
 # SOZA Acceptance Scenarios
 
-更新日: 2026-09-01  
+更新日: 2026-09-05
 状態: **Current Acceptance Scenario Baseline**
 
 ## 1. この文書の役割
@@ -189,7 +189,7 @@ Aは可逆で低影響な内部作業、Bは不可逆性が高く外部影響や
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Partially Satisfied** — `soza.cognitive-method/v1alpha1`のC1〜C8、negative / unknown-version fixture、standalone / Semantic Interchange双方のtyped runtimeで、Method Definition / Realization / Applicationを分離し、input / output / residual、Exact-bound Method / Realization Reference、Realization省略を意味を変えずに保持できることを確認した。Contract Conformance Run `33467838961`とSemantic Runtime Conformance Run `33467838941`はsuccess。異なるMethodやRealizationをproductionで実際に差し替えて運用する経路は未検証。
+- Executable: **Partially Satisfied** — `soza.cognitive-method/v1alpha1`のC1〜C8、negative / unknown-version fixture、standalone / Semantic Interchange双方のtyped runtimeで、Method Definition / Realization / Applicationを分離し、input / output / residual、Exact-bound Method / Realization Reference、Realization省略を意味を変えずに保持できることを確認した。固定KJ Atlas / Ollamaではactual model artifact交換とOllama `0.32.13` / `0.32.14`交換を完走し、後続Application追加後も先行ApplicationのReference / Provenance / outputを保持した。異なるMethod、人間手順、production Realizationを実際に差し替えて運用する経路は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -449,7 +449,7 @@ TEI Design KnowledgeのPattern Cardを、AIがCognitive Methodの探索対象と
 ### Current Evidence
 
 - Design: **Satisfied** — ADR-0017 / ADR-0025でPatternとCognitive Methodを別の意味境界として扱う。
-- Executable: **Partially Satisfied** — Cognitive Method C5でdomain-specific Pattern相当の外部ArtifactをApplication input Referenceとして保持し、Pattern固有Universal fieldをMethod recordへ混入させるnegative fixtureを拒否する。typed runtimeはPattern inputをReferenceのまま保持し、Method ApplicationをRecommendation / Decision / Assuranceへ昇格させない。Contract Conformance Run `33467838961`とSemantic Runtime Conformance Run `33467838941`はsuccess。実際のTEI Pattern Card catalog、Pattern matching、別設計を選ぶproduction Decision workflowは未検証。
+- Executable: **Partially Satisfied** — Cognitive Method C5でdomain-specific Pattern相当の外部ArtifactをApplication input Referenceとして保持し、Pattern固有Universal fieldをMethod recordへ混入させるnegative fixtureを拒否する。typed runtimeはPattern inputをReferenceのまま保持し、Method ApplicationをRecommendation / Decision / Assuranceへ昇格させない。actual KJ Atlasのmodel / runtime交換でもoutputを`not_verified`のMethod outputとして保持し、Decision wrapperを生成しなかった。実際のTEI Pattern Card catalog、Pattern matching、別設計を選ぶproduction Decision workflow、成果品質は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -616,7 +616,7 @@ SCN IDはsemantic scenario identityとして保ち、fixture / test IDとは分�
 
 Scenarioの一部だけを検証した場合は`Partially Satisfied`とし、Scenario全体の実装完了へ読み替えません。
 
-SCN-0005 / SCN-0015では、portable Cognitive Method Contractとtyped runtimeが成立していても、Method execution、production Realization交換、TEI Pattern catalog / Pattern matching、Method品質やAssuranceまで検証済みとは扱いません。
+SCN-0005 / SCN-0015では、portable Cognitive Method Contractとtyped runtimeに加え、固定KJ Atlas / model / runtime revisionのactual交換まで確認しました。ただし、別Method、人間手順、production Realization交換、TEI Pattern catalog / Pattern matching、Method品質やAssuranceまで検証済みとは扱いません。
 
 SCN-0018では、既存のcomponent-level PASSを合算してend-to-end PASSとみなしません。今回のEvidenceは、Cognitive Method、Recommendation、Decision、Provider / execution result、historical review / reopen、Projection非権威を一つの検査経路として接続したfixture-scoped Evidenceです。production Product Journeyや利用者成果への昇格は行いません。
 
@@ -630,4 +630,4 @@ SCN-0018は、historical Scenarioの単純な再採番ではなく、current Pro
 
 ## 6. Natural Japanese review
 
-SCN-0001〜0018をcurrent Product Value、Product Shape、`PRODUCT_JOURNEY_COMPOSITION.md`、5 Contract family、Representation Profile、semantic runtime、synthetic Provider Adapter、V6/V7 Projection evaluation、end-to-end Product Journey harnessへ照合した。SCN-0005 / SCN-0015は、Cognitive Method Contractとtyped runtimeで実際に確認できた範囲だけExecutable Evidenceを`Partially Satisfied`へ更新し、Method実行、production Realization交換、Pattern matching、Method品質やAssuranceは未検証のまま維持した。SCN-0018は既存Scenarioを置き換えるのではなく、個別の意味境界が一つのProduct Journeyでも同時に保たれることを確認する統合Scenarioとして扱っている。component-level / fixture-scoped Evidenceをproductionのend-to-end Product Acceptanceへ昇格させず、Release / Operational / Adoption / Outcomeも`Not Yet Verified`のまま維持した。その後、Scenarioの意味、期待、失敗条件、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+SCN-0001〜0018をcurrent Product Value、Product Shape、`PRODUCT_JOURNEY_COMPOSITION.md`、5 Contract family、Representation Profile、semantic runtime、synthetic Provider Adapter、V6/V7 Projection evaluation、end-to-end Product Journey harness、fixed-scope actual model / runtime exchangeへ照合した。SCN-0005 / SCN-0015は、Cognitive Method Contractとtyped runtimeに加えて、固定条件下のactual inference、historical Application保持、非自動昇格までをExecutable Evidenceへ反映した。別Method、人間手順、production Realization交換、Pattern matching、Method品質やAssuranceは未検証のまま維持している。SCN-0018は既存Scenarioを置き換えるのではなく、個別の意味境界が一つのProduct Journeyでも同時に保たれることを確認する統合Scenarioとして扱っている。scoped Evidenceをproductionのend-to-end Product Acceptanceへ昇格させず、Release / Operational / Adoption / Outcomeも`Not Yet Verified`のまま維持した。その後、Scenarioの意味、期待、失敗条件、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
