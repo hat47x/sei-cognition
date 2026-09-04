@@ -4,7 +4,7 @@
 
 この文書は、PMS-06で未検証として残っているTEI executableの取得・version交換について、2026-09-05に行った追加実証を記録します。
 
-対象は、ISSUE-000065で成立したfixed-artifact actual TEI CLI executionを起点に、別source revisionへ交換しても同じProvider integration surfaceを追跡できるかという後続探索です。
+対象は、ISSUE-000065で成立したfixed-artifact actual TEI CLI executionを起点に、別source revisionへ交換しても同じProvider integration surfaceを追跡できるかという後続探索です。現在はISSUE-000072でこの探索を継続します。
 
 今回の中心は次です。
 
@@ -119,10 +119,12 @@ same fixed reference invocation
 
 ## 5. Revision B workflowの観測
 
-Evidence workflow Run `33913500170`は起動しましたが、約4秒で`failure`となりました。
+Evidence workflow Run `33913500170`は2回実行を試みましたが、いずれもjob stepを一つも開始しないまま`failure`となりました。
 
-- Workflow: `SOZA E3b-P2 TEI Evidence`
+### Attempt 1
+
 - Run: `33913500170`
+- Run attempt: `1`
 - Head commit: `5e87cd18967b6d86001cc4d5229bd4886b94e30d`
 - Job: `actual-tei-cli`
 - Job ID: `101155229525`
@@ -130,7 +132,19 @@ Evidence workflow Run `33913500170`は起動しましたが、約4秒で`failure
 - 実行されたjob steps: **0**
 - Evidence artifact: **なし**
 
-job stepが一つも開始していないため、次は今回のrunから観測していません。
+### Attempt 2
+
+attempt 1が一時的なrunner割当failureだった可能性だけを切り分けるため、同じfailed jobを一度だけ再実行しました。
+
+- Run: `33913500170`
+- Run attempt: `2`
+- Job: `actual-tei-cli`
+- Job ID: `101156710003`
+- Job conclusion: `failure`
+- 実行されたjob steps: **0**
+- Evidence artifact: **なし**
+
+attempt 1 / 2ともstepが一つも開始していないため、次は今回のrunから観測していません。
 
 - revision B source checkout
 - Go setup
@@ -148,7 +162,7 @@ workflow run failure before job steps
   != SOZA Adapter incompatibility
 ```
 
-現在のEvidenceは「実行基盤へjobを割り当てる前の段階で停止した」という範囲に限定します。
+同じ停止点が2回観測されたため、少なくとも今回のGitHub-hosted実行面ではjob開始前に継続して停止する状態として扱います。ただし、その原因をTEI Product側へ帰属させません。
 
 ## 6. TEI配布面の現状
 
@@ -179,6 +193,9 @@ acquisition-independent bundle verifier
 revision B source identity
   = fixed to 1a7028d444fcae60a1c4f2f2d247456f4c7c35be
 
+revision B GitHub-hosted attempts
+  = 2 failures before any job step
+
 revision B actual CLI build / execution
   = Not Yet Verified
 
@@ -207,8 +224,8 @@ A/BでProvider Plan bytesやbinary digestが異なっても、それ自体をfai
 
 ## 9. 自然な日本語レビュー
 
-PMS-06、ISSUE-000061 / 000065、既存Actual TEI CLI Evidence、current `teiintegration`、TEI current main、TEI Evidence workflow、revision A artifact、今回のrevision B workflow結果を照合しました。
+PMS-06、ISSUE-000061 / 000065 / 000072、既存Actual TEI CLI Evidence、current `teiintegration`、TEI current main、TEI Evidence workflow、revision A artifact、今回のrevision B workflow attempt 1 / 2を照合しました。
 
-今回前進したのは、過去artifactを再取得してactual bytesを再検証できたことと、そのidentity検証をGitHub Actionsやcredentialから独立したrepository-local toolへ分離したことです。一方、revision Bのworkflowはjob step開始前に停止したため、BのCLIやProvider Planについて実行結果を推定していません。
+今回前進したのは、過去artifactを再取得してactual bytesを再検証できたことと、そのidentity検証をGitHub Actionsやcredentialから独立したrepository-local toolへ分離したことです。一方、revision Bのworkflowは2回ともjob step開始前に停止したため、BのCLIやProvider Planについて実行結果を推定していません。
 
 Evidenceの高さと未検証範囲を変えず、自然な日本語となることを最重要視して記録しています。
