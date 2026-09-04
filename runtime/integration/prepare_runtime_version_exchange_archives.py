@@ -190,9 +190,15 @@ def download_archive(
                 chunk = response.read(1024 * 1024)
                 if not chunk:
                     break
+                next_size = size + len(chunk)
+                if next_size > expected_size:
+                    raise ValueError(
+                        "downloadしたarchive sizeが固定値を超えました: "
+                        f"received={next_size} expected={expected_size}"
+                    )
                 output.write(chunk)
                 digest.update(chunk)
-                size += len(chunk)
+                size = next_size
 
         actual_sha256 = digest.hexdigest()
         if size != expected_size:
