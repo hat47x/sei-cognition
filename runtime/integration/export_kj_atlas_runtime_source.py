@@ -83,6 +83,28 @@ def _paths_overlap(left: Path, right: Path) -> bool:
     return left == right or left in right.parents or right in left.parents
 
 
+def _prepare_bundle_output_path(output_dir: Path, checkout_dir: Path) -> Path:
+    checkout = checkout_dir.expanduser().resolve(strict=True)
+    requested = output_dir.expanduser()
+    if requested.is_symlink():
+        raise ValueError(f"runtime source bundle出力にsymlinkは利用できません: {requested}")
+    if requested.parent.is_symlink():
+        raise ValueError(
+            "runtime source bundle出力のparentにsymlinkは利用できません: "
+            f"{requested.parent}"
+        )
+
+    output = requested.resolve(strict=False)
+    if output.exists():
+        raise ValueError(f"runtime source bundle出力は新規pathを指定してください: {output}")
+    if output == checkout or checkout in output.parents:
+        raise ValueError(
+            "runtime source bundle出力をKJ Atlas repository配下には置けません: "
+            f"{output}"
+        )
+    return output
+
+
 def _prepare_identity_output_path(
     path: Path,
     *,
@@ -91,18 +113,23 @@ def _prepare_identity_output_path(
 ) -> Path:
     checkout = checkout_dir.expanduser().resolve(strict=True)
     bundle = output_dir.expanduser().resolve(strict=False)
-    if path.is_symlink():
-        raise ValueError(f"identity output must not be a symlink: {path}")
-    output = path.expanduser().resolve(strict=False)
+    requested = path.expanduser()
+    if requested.is_symlink():
+        raise ValueError(f"identity outputにsymlinkは利用できません: {requested}")
+    if requested.parent.is_symlink():
+        raise ValueError(
+            f"identity outputのparentにsymlinkは利用できません: {requested.parent}"
+        )
+    output = requested.resolve(strict=False)
     if output.exists():
-        raise ValueError(f"identity output already exists: {output}")
+        raise ValueError(f"identity outputは新規pathを指定してください: {output}")
     for label, protected in (
         ("KJ Atlas repository", checkout),
         ("runtime source bundle", bundle),
     ):
         if _paths_overlap(output, protected):
             raise ValueError(
-                "identity output must be separated from source inputs and exported bundle: "
+                "identity outputはsource inputとexport bundleから分離してください: "
                 f"output={output} overlaps={label}:{protected}"
             )
     return output
@@ -114,12 +141,7 @@ def export_runtime_bundle(
     identity: RuntimeSourceIdentity = PINNED_IDENTITY,
 ) -> dict[str, object]:
     checkout_dir = checkout_dir.resolve(strict=True)
-    output_dir = output_dir.expanduser().resolve(strict=False)
-
-    if output_dir.exists():
-        raise ValueError(f"output directory already exists: {output_dir}")
-    if output_dir == checkout_dir or checkout_dir in output_dir.parents:
-        raise ValueError(f"output directory must not be inside the KJ Atlas repository: {output_dir}")
+    output_dir = _prepare_bundle_output_path(output_dir, checkout_dir)
 
     _require_git_repository(checkout_dir, identity)
 
