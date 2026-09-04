@@ -155,14 +155,20 @@ def verify_runtime_bundle(
 
 def _prepare_output_path(path: Path, backend_dir: Path) -> Path:
     backend = backend_dir.expanduser().resolve(strict=True)
-    if path.is_symlink():
-        raise ValueError(f"output path must not be a symlink: {path}")
-    output = path.expanduser().resolve(strict=False)
+    requested = path.expanduser()
+    if requested.is_symlink():
+        raise ValueError(f"verification outputにsymlinkは利用できません: {requested}")
+    if requested.parent.is_symlink():
+        raise ValueError(
+            "verification outputのparentにsymlinkは利用できません: "
+            f"{requested.parent}"
+        )
+    output = requested.resolve(strict=False)
     if output.exists():
-        raise ValueError(f"output path already exists: {output}")
+        raise ValueError(f"verification outputは新規pathを指定してください: {output}")
     if output == backend or backend in output.parents:
         raise ValueError(
-            "verification output must be outside the verified runtime source bundle: "
+            "verification outputはverified runtime source bundle外へ保存してください: "
             f"{output}"
         )
     return output
