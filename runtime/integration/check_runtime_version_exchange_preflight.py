@@ -309,7 +309,26 @@ def model_store_check(
             else "work-local model storageを利用します。固定model digestはOllama起動後にAPIで確認します"
         )
         return [Check("model.store", status, detail)]
-    resolved = canonical_path(path)
+
+    requested = path.expanduser()
+    if requested.is_symlink():
+        return [
+            Check(
+                "model.store.path",
+                "blocked",
+                f"model storage rootにsymlinkは利用できません: {requested}",
+            )
+        ]
+    if requested.parent.is_symlink():
+        return [
+            Check(
+                "model.store.path",
+                "blocked",
+                f"model storage rootのparentにsymlinkは利用できません: {requested.parent}",
+            )
+        ]
+
+    resolved = canonical_path(requested)
     for root in source_roots:
         canonical_root = canonical_path(root)
         if is_within(resolved, canonical_root):
