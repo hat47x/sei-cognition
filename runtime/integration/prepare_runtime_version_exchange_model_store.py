@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import BinaryIO, Callable, Mapping
 from urllib.parse import urlparse
 
+from runtime_path_safety import reject_symlink_path_or_ancestors
 from verify_runtime_version_exchange_model_store import verify_model_store
 
 
@@ -193,13 +194,7 @@ def prepare_model_store(
 ) -> dict[str, object]:
     fixed = _validate_model_acquisition(acquisition) if acquisition is not None else _load_model_acquisition()
     requested = target_dir.expanduser()
-    if requested.is_symlink():
-        raise ValueError(f"model store targetにsymlinkは利用できません: {requested}")
-    if requested.parent.is_symlink():
-        raise ValueError(
-            "model store targetのparentにsymlinkは利用できません: "
-            f"{requested.parent}"
-        )
+    reject_symlink_path_or_ancestors(requested, "model store target")
     target = requested.resolve(strict=False)
     if _is_within(target, SOZA_ROOT):
         raise ValueError(f"model storeをSOZA repository配下には作成できません: {target}")
