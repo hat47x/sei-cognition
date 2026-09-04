@@ -135,30 +135,31 @@ def export_runtime_bundle(
         detail = archive.stderr.decode("utf-8", errors="replace").strip()
         raise ValueError(f"固定commitからruntime sourceをexportできません: {detail}")
 
-    # 一時展開先も最終bundleと同じ側へ置き、親processのTMPDIRへsource bytesを流さない。
-    extraction_parent = output_dir.parent
-    extraction_parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(
-        prefix="soza-kj-atlas-source-export-",
-        dir=extraction_parent,
-    ) as temporary:
-        extraction_root = Path(temporary)
-        with tarfile.open(fileobj=io.BytesIO(archive.stdout), mode="r:") as handle:
-            members = handle.getmembers()
-            _validate_archive_members(members)
-            # archiveはGit自身が固定commitから生成し、上でpathとentry typeを全件検査している。
-            # Python 3.10でも動作させるため、3.12以降のextraction filterには依存しない。
-            handle.extractall(extraction_root, members=members)
-
-        backend_dir = extraction_root / BACKEND_PREFIX
-        if not backend_dir.is_dir():
-            raise ValueError("runtime source archiveにbackend rootがありません")
-
-        shutil.copytree(backend_dir, output_dir)
-
     try:
+        # 一時展開先も最終bundleと同じ側へ置き、親processのTMPDIRへsource bytesを流さない。
+        extraction_parent = output_dir.parent
+        extraction_parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(
+            prefix="soza-kj-atlas-source-export-",
+            dir=extraction_parent,
+        ) as temporary:
+            extraction_root = Path(temporary)
+            with tarfile.open(fileobj=io.BytesIO(archive.stdout), mode="r:") as handle:
+                members = handle.getmembers()
+                _validate_archive_members(members)
+                # archiveはGit自身が固定commitから生成し、上でpathとentry typeを全件検査している。
+                # Python 3.10でも動作させるため、3.12以降のextraction filterには依存しない。
+                handle.extractall(extraction_root, members=members)
+
+            backend_dir = extraction_root / BACKEND_PREFIX
+            if not backend_dir.is_dir():
+                raise ValueError("runtime source archiveにbackend rootがありません")
+
+            shutil.copytree(backend_dir, output_dir)
+
         verification = verify_runtime_bundle(output_dir, identity)
     except Exception:
+        # 未完成または検証不成立のbundleを「既存output」として残さない。
         shutil.rmtree(output_dir, ignore_errors=True)
         raise
 
