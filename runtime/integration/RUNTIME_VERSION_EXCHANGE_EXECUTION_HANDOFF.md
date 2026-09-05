@@ -24,9 +24,10 @@ export SOZA_RUNTIME_EXCHANGE_ROOT="$HOME/soza-runtime-exchange"
 export SOZA_RUNTIME_EXCHANGE_INPUTS="$SOZA_RUNTIME_EXCHANGE_ROOT/inputs"
 export SOZA_RUNTIME_EXCHANGE_EVIDENCE="$SOZA_RUNTIME_EXCHANGE_ROOT/evidence-$(date -u +%Y%m%dT%H%M%SZ)"
 export SOZA_RUNTIME_EXCHANGE_VERIFY="$SOZA_RUNTIME_EXCHANGE_EVIDENCE-verification.json"
+export SOZA_RUNTIME_EXCHANGE_PROGRESS="$SOZA_RUNTIME_EXCHANGE_EVIDENCE-progress.json"
 ```
 
-`$SOZA_RUNTIME_EXCHANGE_INPUTS`は再利用可能な固定artifact置き場です。Evidenceとverification outputはrunごとに新しいpathを使います。
+`$SOZA_RUNTIME_EXCHANGE_INPUTS`は再利用可能な固定artifact置き場です。Evidence、verification output、progress outputはrunごとに新しいpathを使います。verification / progress outputはEvidence directoryの外へ置きます。
 
 ## 2. 固定runtime A/B archiveとmodel storeを先に準備する
 
@@ -122,9 +123,42 @@ python3 runtime/integration/run_runtime_version_exchange_with_verification.py \
 
 標準verified runnerは実行直前にもpreflightを再実行します。したがって手動preflightとactual runの間で状態が変化した場合も、そのままstrict実行へ進めません。
 
-## 5. 完了判定
+## 5. 途中停止・完走後のprogressを補助的に確認する
 
-process exit code 0だけでは完了扱いにしません。verification outputが`ready-to-review`となり、ISSUE-000070のResolution Criteriaに沿って少なくとも次を確認します。
+actual run後、保存済みEvidenceから「どこまで観測できたか」を整理する場合は`observe_runtime_version_exchange_progress.py`を使います。
+
+```bash
+python3 runtime/integration/observe_runtime_version_exchange_progress.py \
+  --evidence-dir "$SOZA_RUNTIME_EXCHANGE_EVIDENCE" \
+  --output "$SOZA_RUNTIME_EXCHANGE_PROGRESS"
+```
+
+このobserverはEvidence directoryをread-only入力として扱い、stderr / stdoutの自然言語からfailure原因を推測しません。固定model store、KJ Atlas source、runtime A/B archive SHA-256、固定Method input、A/B version / model digest / inference、prompt identityなど、Evidenceから直接確認できるmilestoneだけを順に評価します。
+
+途中停止では、たとえば次のような境界を返します。
+
+```text
+last observed = runtime_a_inference_observed
+next unobserved = runtime_b_version_observed
+```
+
+これは「A inferenceまではEvidenceで確認でき、B versionはまだ確認できない」という意味です。この情報だけから、runtime Bの展開、起動、port、model、KJ Atlasなどのどこが原因かを推定しません。
+
+後段Evidenceがある一方で必要な前段Evidenceが欠ける場合は`inconsistent_evidence_order`とし、後段だけを根拠に進行済みとは扱いません。runner observationもrunner logのSHA-256 / bytesへ照合し、complete runではcompletion markerまで確認します。
+
+progress observerはcanonical Evidence + Provenance verifierの代替ではありません。`all_observed_milestones_completed`であっても、verification outputの`ready-to-review`を意味しません。
+
+```text
+progress milestones observed
+  != canonical Evidence + Provenance verification PASS
+  != runtime compatibility judgement
+  != outcome quality judgement
+  != ISSUE-000070 Resolved
+```
+
+## 6. 完了判定
+
+process exit code 0やprogress observerの完走表示だけでは完了扱いにしません。canonical verification outputが`ready-to-review`となり、ISSUE-000070のResolution Criteriaに沿って少なくとも次を確認します。
 
 - runtime A actual binary version = `0.32.13`
 - runtime B actual binary version = `0.32.14`
@@ -142,6 +176,7 @@ process exit code 0だけでは完了扱いにしません。verification output
 ```text
 artifact preparation PASS
   != preflight ready
+  != progress milestones observed
   != actual A/B inference PASS
   != verifier ready-to-review
   != ISSUE-000070 Resolved
@@ -149,13 +184,14 @@ artifact preparation PASS
   != E4 Operational portability
 ```
 
-## 6. repository-local orchestration test
+## 7. repository-local orchestration test
 
 事前配置入力準備と上位runnerの接続だけをactual networkなしで検査する場合:
 
 ```bash
 python3 runtime/integration/test_issue70_prepositioned_inputs.py
 python3 runtime/integration/test_issue70_prepositioned_runner.py
+python3 runtime/integration/test_observe_runtime_version_exchange_progress.py
 ```
 
-これらのtestは取得helperそのもののdigest検査やactual A/B実行を置き換えません。既存archive/model helper testに加えて、準備入口が新規準備・既存再利用・verify-onlyを正しく委譲すること、上位runnerが固定artifact pathを取り違えずverified runnerへ渡すことを検査します。
+これらのtestは取得helperそのもののdigest検査やactual A/B実行を置き換えません。既存archive/model helper testに加えて、準備入口が新規準備・既存再利用・verify-onlyを正しく委譲すること、上位runnerが固定artifact pathを取り違えずverified runnerへ渡すこと、progress observerが前段Evidence欠落やrunner log identity不一致を成功へ丸めないことを検査します。
