@@ -15,11 +15,11 @@ status_vocabulary:
 reviewed:
   - scope: README.md
     status: revised
-    note: v0.2.0 Local Reference Product Baselineのactual Release Evidence、current develop branch、5 Contract family、current Plan範囲へ同期し、旧v0.1.0基線の記述を自然な日本語で全面再ドラフト済み。
+    note: v0.2.0 Local Reference Product Baselineのactual Release Evidence、current develop branch、5 Contract family、current Plan範囲へ同期し、PMS-06のOpen探索をISSUE-000070 / ISSUE-000072の2本へ更新済み。
 
   - scope: product/README.md
     status: revised
-    note: Product Value、Milestone、Interaction、Packaging、Identity / Access、Realization / Provider Exchange、v0.2.0 Release Evidence、release後のE3b-P2 fixed-artifact actual TEI execution、E3b-M1a、E3b-M1bまでをcurrent Product入口として自然な日本語で再整理済み。M1bのactual inference成立とmodel・KJ法としての成果品質を分離し、credential運用・任意version・E4も未検証として残している。
+    note: Product Value、Milestone、Interaction、Packaging、Identity / Access、Realization / Provider Exchange、v0.2.0 Release Evidence、release後のE3b-P2 revision A fixed-artifact、E3b-M1a、E3b-M1b、PMS-06 current snapshotまでをcurrent Product入口として自然な日本語で再整理済み。ISSUE-000070のOllama runtime version交換とISSUE-000072のTEI executable version交換を別軸として扱い、actual交換はともに未検証として残している。
   - scope: product/value/*.md
     status: revised
     coverage:
@@ -28,13 +28,13 @@ reviewed:
       - SOZA_VALUE_MODEL.md
       - SOZA_VALUE_ACCEPTANCE.md
       - SOZA_VALUE_TRACEABILITY.md
-    note: Value Traceabilityはactual v0.2.0 Release EvidenceをLocal Reference Product Baselineへ限定したまま、post-releaseのE3b-P2 fixed-artifact、M1a、M1bをScoped Executable Evidenceとして追跡した。M1b固有実装をStable Requirementへ先取りせず、model / runtime version交換、品質評価、E4、Operational / Adoption・Outcomeを次のEvidence gapとして分離している。
+    note: Value Traceabilityはactual v0.2.0 Release EvidenceをLocal Reference Product Baselineへ限定したまま、post-releaseのE3b-P2 revision A fixed-artifact、M1a、M1b、historical reconstruction、model artifact交換をScoped Executable Evidenceとして追跡した。ISSUE-000070 / 000072はrepository-side readinessとactual Evidenceを分離し、Stable Requirementやv0.2.0 supported scopeへ先取りしていない。
   - scope: product/definition/*.md
     status: revised
     coverage:
       - SOZA_PRODUCT_SHAPE.md
       - SOZA_REALIZATION_PROVIDER_EXCHANGE.md
-    note: Product ShapeとRealization / Provider Exchangeを全文監査し、E2、E3a、E3b-P1、TEI executable注入境界、E3b-P2 fixed-artifact actual TEI CLI execution、E3b-M1a、E3b-M1bを同じEvidence ladder上で分離した。TEI / KJ Atlas / Ollama固有responseや実装方式をUniversal semanticsへ持ち込まず、model品質、credential運用、任意version、E4を未検証として残している。
+    note: Product ShapeとRealization / Provider Exchangeを全文監査し、E2、E3a、E3b-P1、TEI executable注入境界、E3b-P2 revision A fixed-artifact、E3b-M1a、E3b-M1bを同じEvidence ladder上で分離した。ISSUE-000070 / 000072のversion交換を別軸として追加し、TEI / KJ Atlas / Ollama固有response、revision、toolchainをUniversal semanticsへ持ち込まない境界を維持している。
   - scope: product/vision/SOZA_PRODUCT_VISION.md
     status: revised
   - scope: product/principles/SOZA_PRODUCT_PRINCIPLES.md
@@ -44,7 +44,8 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_MILESTONES.md
-    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06はE2 / E3a / E3b-P1 / E3b-P2 fixed-artifact / E3b-M1a / E3b-M1bまでをScoped Executable Evidenceとして整理し、model・KJ法としての成果品質、credential運用、任意version、E4を未検証として分離している。PMS-07はv0.2.0 Local Reference Product BaselineのRelease Evidence成立を維持し、post-release Evidenceをsupported scopeへ遡及させていない。
+      - PMS06_CURRENT_STATE_2026-09-05.md
+    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義し、PMS-06 current snapshotではISSUE-000070とISSUE-000072を独立したOpen version-exchange探索として整理している。repository-side readinessをactual Scoped Executable Evidenceへ昇格させず、PMS-07のv0.2.0 supported scopeもE3aまでに維持している。
   - scope: product/interaction/*.md
     status: revised
     coverage:
@@ -68,7 +69,7 @@ reviewed:
   - scope: plan/issue/ISSUE-*.md
     status: revised
     coverage: ISSUE-000001..ISSUE-000072
-    note: ISSUE-000001〜000072をcurrent履歴として監査済み。ISSUE-000069はGitHub Actions常設時に得たtrigger選択とrunner allocation Evidenceをhistoricalに保持しつつ、PR #70でworkflow群がcurrent baselineから外れたため、未実行の全面回帰をPASSへ読み替えず「現行方針では非適用」としてResolvedへ整理した。ISSUE-000070は固定model artifactの下でOllama `0.32.13` / `0.32.14`だけを交換するactual実証をrepository-local harnessへ移し、固定KJ Atlas commit、runtime archive digest、model digest、同一Method input / prompt、historical Application不変性、portable reconstructionを同じ実行境界から検査できる状態にした。ただしcurrent harnessによるactual A / B交換は未完了のためOpenを維持する。ISSUE-000071はexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeを分離し、PR #72のactual履歴からのreview bundle再構成とPR #73の非権威的AI補助観測までを反映して評価境界をResolvedとした。ただしhuman reviewと成果品質判定は未完了のまま残している。ISSUE-000072はTEI executableの取得経路、artifact identity、Provider surface compatibility、SOZA Capability Observationを分離し、revision A artifact再検証とacquisition-independent bundle verifierをcurrent Evidenceとして保持する一方、revision B actual CLI / Adapter compatibilityは未検証としてOpenを維持する。各Issueは意味、留保、Evidence強度を変えず、自然な日本語を最重要視して再ドラフト済み。
+    note: ISSUE-000001〜000072をcurrent履歴として監査済み。ISSUE-000069はGitHub Actions常設時に得たtrigger選択とrunner allocation Evidenceをhistoricalに保持しつつcurrent baselineからActionsを外した。ISSUE-000070は固定KJ Atlas source / Method input / model artifact / promptの下でOllama `0.32.13` / `0.32.14`だけを交換するrepository-local実証経路を整えたがactual A / Bは未完了のためOpenを維持する。ISSUE-000071はexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeを分離してResolvedとしたがhuman reviewと成果品質判定は未完了。ISSUE-000072はrevision A historical Evidenceを保持し、exact revision B executable source + exact revision A fixed input、E2 / E3別toolchain、stage-aware diagnostics、Requirement / Scenario pre-auditまで整えたがrevision B actual CLI / Provider Plan / current Adapter compatibilityは未検証のためOpenを維持する。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -159,12 +160,33 @@ reviewed:
   - scope: runtime/ACTUAL_TEI_CLI_EVIDENCE_2026-09-02.md
     status: revised
     note: E3b-P2の後続Evidenceとして、固定TEI sourceからactual `cmd/tei`をbuild・実行し、Evidence artifactをcurrent SOZA Adapterから別processとして起動してCapability Observationへ戻した範囲を記録した。fixed-artifact Executable Evidenceとcredential運用・任意version・Operational Evidenceを分離している。
+  - scope: runtime/TEI_PROVIDER_SURFACE_STATIC_COMPATIBILITY_2026-09-05.md
+    status: revised
+    note: revision A / BのProvider surfaceを静的比較し、静的互換性観測をactual revision B build / Provider Plan / Adapter compatibilityへ昇格させない境界を監査済み。
   - scope: runtime/TEI_VERSION_EXCHANGE_EVIDENCE_2026-09-05.md
     status: revised
-    note: PMS-06で未検証だったTEI executable version交換の後続探索として、revision A Evidence artifactの再取得・actual bytes再検証、acquisition-independent bundle verifier、revision B source固定、GitHub-hosted workflow attempt 1 / 2のjob step開始前failureを記録した。Actions failureをTEI互換性failureへ昇格させず、B actual CLI / SOZA Adapter compatibilityを未検証として明示している。
+    note: PMS-06のTEI executable version交換について、revision A historical Evidence、revision B source固定、fixed reference input、実行環境上の未完了を分離して記録している。workflow / runner failureをTEI compatibility failureへ昇格させず、revision B actual CLI / Provider Plan / current Adapter compatibilityを未検証として保持している。
+  - scope: runtime/TEI_VERSION_EXCHANGE_EXECUTION_READINESS_2026-09-05.md
+    status: revised
+    note: actual E2→E3のcanonical入口、exact-B executable + exact-A fixed input、E2 / E3別Go toolchain、machine-readable external stage、actual未検証範囲をcurrent実行handoffとして監査済み。
+  - scope: runtime/TEI_VERSION_EXCHANGE_FAILURE_STAGES_2026-09-05.md
+    status: revised
+    note: E2 / E3 failureをrepository-local machine-readable stageで観測し、stderr等の自然言語だけからTEI内部またはSOZA内部substageを推定しない停止線を監査済み。
+  - scope: runtime/TEI_VERSION_EXCHANGE_REQUIREMENT_PREAUDIT_2026-09-05.md
+    status: revised
+    note: revision B actual前にREQ-0001 / 0007 / 0021、SCN-0014 / 0018と隣接REQ-0022の再照合基準を固定し、build / toolchain / Adapter-local failureだけでStable Requirementを増やさない境界を監査済み。
+  - scope: runtime/TEI_VERSION_EXCHANGE_TOOLCHAIN_READINESS_2026-09-05.md
+    status: revised
+    note: historical TEI E2用Goとcurrent SOZA E3用Goを別executableとして扱うtoolchain境界を監査済み。toolchain readinessをactual Provider / Adapter compatibility Evidenceへ昇格させていない。
   - scope: runtime/integration/README.md
     status: revised
-    note: external Cognitive Method / model runtimeのactual integration probeをrepository-localに実行する入口として監査済み。GitHub Actionsや特定runnerを成立条件にせず、ISSUE-000070の固定runtime / model identity、Evidence保存、actual runtime交換と成果品質・E4の停止線を自然な日本語で説明している。
+    note: external Cognitive Method / model runtime / TEI version exchangeのrepository-local integration入口として監査済み。GitHub Actionsや特定runnerを成立条件にせず、ISSUE-000070 / 000072の固定identity、Evidence保存、actual未検証範囲を分離している。
+  - scope: runtime/integration/RUNTIME_VERSION_EXCHANGE_CURRENT_STATE.md
+    status: revised
+    note: ISSUE-000070について、fixed runtime/model/input identity、repository-side execution / verification path、progress observer、actual Ollama A/B未検証をcurrent snapshotとして監査済み。
+  - scope: runtime/integration/RUNTIME_VERSION_EXCHANGE_EXECUTION_HANDOFF.md
+    status: revised
+    note: ISSUE-000070のprepositioned actual実行、canonical verifier、補助progress observerの順序と停止線を監査済み。progress完走だけをready-to-reviewやIssue Resolutionへ昇格させない。
   - scope: runtime/package/reference/*.md
     status: revised
     coverage:
@@ -231,7 +253,7 @@ reviewed:
     note: Product Milestoneと上流探索・Requirement化の配置規則をcurrent planning入口へ反映済み。
   - scope: plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md
     status: revised
-    note: v0.2.0 Release Evidence、E3b-P2 fixed-artifact、E3b-M1a / M1b、historical reconstruction、actual二モデル交換を維持しつつ、ISSUE-000071の評価境界確立をcurrent stateへ反映した。成果品質そのものは未評価のまま、次の主探索をISSUE-000070のruntime version交換、actual human review、broader portability、E4 Operational portabilityへ整理した。PR #70後のActions停止方針に合わせ、検証内容と実行基盤を分離し、未実行をPASSへ読み替えない停止線を自然な日本語で再構成した。
+    note: v0.2.0 Release Evidenceと既存E3b / historical reconstructionを維持しつつ、PMS-06の主探索をISSUE-000070 Ollama runtime version交換とISSUE-000072 TEI executable version交換へ同期した。000072ではexact-B + exact-A fixed-input比較、E2 / E3別toolchain、stage-aware Evidence、actual前Requirement / Scenario pre-auditを反映し、repository-side readinessをactual compatibilityや新Stable Requirementへ昇格させていない。
   - scope: plan/DEVELOPMENT_WORKFLOW.md
     status: revised
     note: Product Valueと未定領域の探索をRequirement / Architectureより上流へ置く原則を維持したうえで、PR #70後のActions停止状態へ全文を再整理した。GitHub Actions、local test、repository checker、external runnerを検証手段として意味上の正本から分離し、failureがpushを止めないことと、merge / release / Evidence gateが別責務であることを自然な日本語で明示した。
