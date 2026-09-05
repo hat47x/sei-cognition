@@ -1,0 +1,41 @@
+{
+  "schema": "soza.tei-revision-b-git-object-reconstruction/v1",
+  "repository": "hat47x/tei-platform",
+  "revisionB": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be",
+  "gitCommitApiVerification": {
+    "verified": true,
+    "reason": "valid",
+    "tree": "630d3e9e2acaea70312bee19cf8a0f7235655cd6",
+    "parents": [
+      "e3cc33d1d3f9180a8dc3c7735af6812baf8d1ac6",
+      "db8c556da2cd4fcf9f636df59bf60e5f2fad088d"
+    ],
+    "payloadSha256": "7e777347e0915a74b70e3385c953e10b6d49491e1e8bda67b62307453b9c0f3c",
+    "signatureSha256": "07bc174a5034d2efdfca39f857a4511f54e9e079a79b2fd61978e504aae0d414"
+  },
+  "localReconstruction": {
+    "rawCommitBytes": 1208,
+    "reconstructedCommitSha1": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be",
+    "expectedCommitSha1": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be",
+    "exactCommitObjectMatched": true,
+    "note": "GitHub Git Commit APIが返したverification payloadとPGP signatureからgit commit raw objectを再構成し、Git object SHA-1を独立再計算した。PGP signature末尾改行とgpgsig continuation formatをGit raw object表現どおり保持した。"
+  },
+  "expectedExecutionSourceObjects": {
+    "cmd": "ac4d4406dfa590a2078cf91217c4fe30797e7f8e",
+    "internal": "10d2bfea4932c308fa6537e3b081bc6ea5501205",
+    "reference": "57fafb742988ecb936b9ab261fa8a991e37ed5c7",
+    "go.mod": "f8763f8fb2d64d73f1b40b905f62b5e09c44493b",
+    "go.sum": "c7cd14781271dca2b014daf2f53d49d95b8e8826"
+  },
+  "currentEvidenceBoundary": {
+    "exactCommitObjectReconstructed": true,
+    "exactRevisionBCheckoutMaterialized": false,
+    "revisionBExecutionSourceVerified": false,
+    "revisionBBuildPass": false,
+    "providerPlanExecutionPass": false,
+    "sozaAdapterCompatibilityPass": false,
+    "issue000072Resolved": false,
+    "qualityJudgement": "not_evaluated"
+  },
+  "stopLine": "exact revision B signed commit object reconstructed != exact revision B checkout materialized != revision B build PASS != Provider Plan execution PASS != SOZA Adapter compatibility PASS != ISSUE-000072 Resolved"
+}
