@@ -489,3 +489,93 @@ fixed_scope_e2_e3_verified
 ```
 
 actual B Evidenceを得る前に、新しいStable RequirementやUniversal TEI fieldを追加しません。GitHub ActionsもISSUE-000072の意味上の成立条件にはしません。
+
+## 11. 2026-09-06 current delta
+
+この節はPR #245 / #247 / #246 / #248後の追加境界を記録します。前節までの比較軸、stage vocabulary、停止線を変更せず、actual実行前に新たに固定できたsource acquisitionと実行前後identity観測を補足します。
+
+### revision B source acquisitionの進展
+
+exact revision Bについて、signed commit / execution tree identityに加え、取得境界を次まで進めました。
+
+- PR #245: exact B commitへpinしたGitHub Contents APIからselected source bytesを取得し、固定Git blob identityへbindingした。
+- `go.mod` / `go.sum` / `cmd/tei/source_index.go` / `cmd/tei/validation_output.go`は取得bytesからGit blob SHA-1を独立再計算し、固定値へ一致した。
+- `cmd/tei/main.go`はexact B commitのsource bytesとblob referenceを取得済みだが、このEvidenceでは全bytes独立再ハッシュ成立とは数えない。
+- PR #247: canonical verifierが見る`cmd` / `internal` / `reference` treeのrecursive listingがすべて`truncated=false`であることを確認した。
+- したがってverifier境界内の全tracked leafについて、取得すべきpath / mode / blob SHAをcontent-addressedに列挙可能である。
+
+```text
+selected exact-B source bytes acquired
+  + complete verifier-boundary leaf addressability
+  != all tracked leaf bytes materialized
+  != exact revision B checkout materialized
+  != working-tree purity verified on a full checkout
+  != revision B build PASS
+```
+
+canonical E2は引き続き、full exact-B checkoutとworking-tree purity verificationを実行前提とします。object reconstruction / selected-byte acquisitionだけをactual checkoutの代替とは扱いません。
+
+### E2のpre/post execution identity
+
+PR #246以降、E2はinitial identity verificationだけでは終了しません。Provider Plan processが成功し、JSON surfaceを検証した直後、fixed input packagingより前に次を再検証します。
+
+- revision B source checkout: exact HEAD / fixed execution-source objects / tracked・untracked・ignored boundary purity
+- revision A checkout取得時: exact HEAD / fixed workspace・durable run・plugin-lock objects / working-tree purity
+- historical A Evidence bundle取得時: A checkoutは存在しないためpost-execution Git再検証は行わず、materialized fixed bytesと最終bundle byte verificationを維持する
+
+成功resultはpre-execution observationとは別に`postExecutionIdentity`を保持します。failure stageは増やさず、既存`revision_b_source_identity` / `revision_a_fixed_reference_identity`へ収束します。
+
+```text
+pre-execution source identity verified
+  + Provider Plan process completed
+  + post-execution source identity reverified
+  != immutable source snapshot proven
+```
+
+この再検証は、post-execution check時点に残るHEAD / object / working-tree driftを検出します。検査間に一時変更され、再検証前に完全復元された事象まで暗号学的に排除するものではありません。
+
+### E3のpre/post live source identity
+
+PR #248以降、E3もcurrent SOZA Evidence source surfaceをlive test前後の二点で観測します。
+
+- pre-live: existing `sozaSource`
+- post-live: `postLiveTestSozaSource`
+- 対象は`runtime/go`、combined runner、E2/E3 runner、fixed-reference helper、path-safety helper、bundle/source verifierを含むcurrent 8-path boundary
+- post-live driftは新stageを追加せず、既存`soza_source_identity`で停止する
+
+```text
+pre-live SOZA source identity verified
+  + current Adapter live test completed
+  + post-live SOZA source identity reverified
+  != immutable SOZA source snapshot proven
+```
+
+### current Evidence stateの追記
+
+```text
+revision B selected source-byte acquisition
+  = partial acquisition Evidence available; full checkout not materialized in current environment
+
+revision B complete verifier-boundary leaf addressability
+  = verified; all tracked leaf bytes are not yet materialized
+
+E2 post-execution source/fixed-input revalidation
+  = implemented; dedicated tests committed; full repository suite not re-run in current environment
+
+E3 post-live SOZA source revalidation
+  = implemented; dedicated tests committed; full repository suite not re-run in current environment
+
+revision B actual CLI build / execution
+  = Not Yet Verified
+
+revision B Provider Plan
+  = Not Yet Observed
+
+revision B current SOZA Adapter live compatibility
+  = Not Yet Verified
+
+ISSUE-000072
+  = Open
+```
+
+このdeltaでもEvidenceの高さは上げません。GitHub Actionsをcurrent成立条件へ戻さず、actual B E2→E3が成立するまでは`fixed_scope_e2_e3_verified`を主張しません。
