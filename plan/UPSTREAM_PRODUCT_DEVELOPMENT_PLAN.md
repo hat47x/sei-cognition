@@ -1,7 +1,7 @@
 # SOZA 上流プロダクト開発計画
 
-更新日: 2026-09-03  
-状態: **Current Upstream Planning Baseline — v0.2.0 Release Evidence / E3b fixed-artifact Evidence / historical reconstruction / method-quality evaluation boundary reflected**
+更新日: 2026-09-05  
+状態: **Current Upstream Planning Baseline — v0.2.0 Release Evidence / E3b fixed-artifact Evidence / historical reconstruction / method-quality evaluation boundary / PMS-06 version-exchange state reflected**
 
 ## 1. この文書の役割
 
@@ -53,11 +53,13 @@ Implementation / Fixture / Test / Tool
 - `product/value/SOZA_VALUE_PROPOSITION.md`
 - `product/value/SOZA_VALUE_MODEL.md`
 - `product/value/SOZA_VALUE_ACCEPTANCE.md`
+- `product/value/SOZA_VALUE_TRACEABILITY.md`
 - `product/definition/SOZA_PRODUCT_SHAPE.md`
 - `product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`
 - `product/vision/SOZA_PRODUCT_VISION.md`
 - `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
 - `product/roadmap/SOZA_PRODUCT_MILESTONES.md`
+- `product/roadmap/PMS06_CURRENT_STATE_2026-09-05.md`
 
 下位作業がこの層と矛盾した場合、実装を先に温存しません。Product Value側の誤りを示すEvidenceがあるなら上位を再基線化し、そうでなければ下位設計を修正します。
 
@@ -65,7 +67,7 @@ Implementation / Fixture / Test / Tool
 
 Product Interaction、Local Single-Node Packaging、Product Access責務分離は、Design baselineと限定されたExecutable Evidenceまで進んでいます。v0.2.0 Local Reference Product Baselineについてはactual Release Evidenceも成立しています。
 
-Real Method / Provider Portabilityでは、E2、E3a、E3b-P1、E3b-P2 fixed-artifact、E3b-M1a、E3b-M1b、historical reconstruction H1 / H2、actual model artifact交換まで段階的に実証しました。
+Real Method / Provider Portabilityでは、E2、E3a、E3b-P1、E3b-P2 revision A fixed-artifact、E3b-M1a、E3b-M1b、historical reconstruction H1 / H2、actual model artifact交換まで段階的に実証しました。
 
 ISSUE-000067では、実現機構が異なるM1a / M1bを別のlogical Method Realizationとして保持し、同一Realization内のhistorical revisionを固定する必要がある場合はExact Bindingを利用できることを確認しました。
 
@@ -79,18 +81,34 @@ ISSUE-000071では、この問題に対する評価境界を確立しました�
 
 ISSUE-000069では、GitHub-hosted runnerの割当問題とrepository内の実証責務を分けました。その後PR #70でGitHub Actions workflow群をcurrent baselineから外したため、現在はActionsの成否をProduct / Plan / Evidenceの意味上の成立条件にしていません。
 
+PMS-06では現在、version exchangeを二つの独立した探索軸として扱います。
+
+- **Ollama runtime version交換 — ISSUE-000070**: KJ Atlas source、Method input、model artifact、promptを固定し、Ollama `0.32.13` / `0.32.14`だけを交換する。repository-side harness、artifact guard、side-effect-free preflight、canonical Evidence / Provenance verifier、progress observerまで整っているが、actual A / BはNot Yet Verified。
+- **TEI executable version交換 — ISSUE-000072**: historical revision Aを保持したまま、exact revision B executable source + exact revision A fixed reference inputで`deployment-provider-plan`とcurrent SOZA Adapter compatibilityを検証する。source / fixed-input identity verifier、E2 / E3 runner、E2 / E3別Go toolchain、canonical combined runner、stage-aware failure Evidence、actual前Requirement / Scenario pre-auditまで整っているが、revision B actualはNot Yet Verified。
+
+この二つは交換軸が異なります。片方のPASSをもう片方のEvidenceへ流用しません。
+
+```text
+ISSUE-000070 repository-side ready
+  != actual Ollama A/B PASS
+
+ISSUE-000072 repository-side ready
+  != revision B actual TEI / Adapter compatibility PASS
+```
+
 現在の主要な未定領域は次です。
 
-- **runtime version交換**: ISSUE-000070。model artifactを固定したままOllama `0.32.13` / `0.32.14`を交換し、historical reconstructionを保てるか。
+- **Ollama runtime version交換**: ISSUE-000070。model artifactを固定したままOllama `0.32.13` / `0.32.14`を交換し、historical reconstructionを保てるか。
+- **TEI executable version交換**: ISSUE-000072。exact revision B executable + exact revision A fixed inputでactual Provider Planを得て、current SOZA AdapterのProvider-neutral Observation境界へ戻せるか。
 - **actual human review**: ISSUE-000071で確立した評価基盤を使い、actual outputを人間がどのように評価するか。
-- **broader portability**: 二つのQwen artifactを越え、別model family、別Provider、別Realizationでも同じ意味境界を保てるか。
-- **TEI acquisition / version exchange**: fixed revision以外のTEI executable交換や、private artifact取得をどのdeployment / acquisition境界で扱うか。
-- **failure behavior**: network degradation、rate limit、credential失効、model acquisition failure等をどのEvidence段階で扱うか。
+- **broader portability**: 二つのQwen artifactや固定TEI revisionを越え、別model family、別Provider、別Realization、arbitrary versionでも同じ意味境界を保てるか。
+- **private artifact acquisition / credential lifecycle**: version compatibilityとは分け、artifact取得・配布・更新をどのdeployment / acquisition policyへ閉じ込めるか。
+- **failure behavior**: network degradation、rate limit、credential失効、model acquisition failure、artifact acquisition failure等をどのEvidence段階で扱うか。
 - **formal integration protocol**: 標準化する必要が本当にあるか。必要ならどこまでをUniversal semanticsへ含めるか。
 - **E4 Operational portability**: 実環境でRealization / Provider / model / runtime交換後も判断記憶を継続利用できるか。
 - **Adoption / Outcome**: 実際の利用者や組織にとって、SOZAがどの価値を届けたかをどう測るか。
 
-actual v0.2.0 Releaseそのものは未定領域ではありません。既に成立したRelease Evidenceを維持し、post-releaseのExecutable Evidenceを公開済みv0.2.0のsupported scopeへ遡及的に追加しません。
+actual v0.2.0 Releaseそのものは未定領域ではありません。既に成立したRelease Evidenceを維持し、post-releaseのExecutable Evidenceやversion-exchange readinessを公開済みv0.2.0のsupported scopeへ遡及的に追加しません。
 
 ### Priority C — RequirementとAcceptanceの精緻化
 
@@ -99,6 +117,16 @@ actual v0.2.0 Releaseそのものは未定領域ではありません。既に�
 既存REQ / SCNで表現できる場合は新しいIDを増やさず、横断AcceptanceやEvidenceの不足として扱います。
 
 ISSUE-000067 / 000068 / 000071では、current RequirementとContract境界で必要な意味を表現できたため、新しいStable RequirementやUniversal Contract fieldを追加していません。
+
+ISSUE-000072についても、actual revision Bの結果を見る前に`runtime/TEI_VERSION_EXCHANGE_REQUIREMENT_PREAUDIT_2026-09-05.md`でREQ-0001 / 0007 / 0021、SCN-0014 / 0018の判定基準を固定しました。Provider-neutral Capability Observationの隣接境界としてREQ-0022も監査対象候補です。
+
+現時点ではexisting Requirement coverageで意味境界を表せると見ています。actual BがNot Yet Verifiedであるため、新しいStable RequirementやUniversal Contract fieldを追加する根拠にはしません。
+
+```text
+pre-audit completed
+  != independent Product failure observed
+  != new Stable Requirement required
+```
 
 ### Priority D — Architecture / Contract / Implementation
 
@@ -116,6 +144,7 @@ ISSUE-000067 / 000068 / 000071では、current RequirementとContract境界で�
 
 - external Cognitive Methodをactual modelで動かした後、実行成立と生成品質をどの評価境界で分けるか。
 - runtime versionだけを交換したとき、過去Applicationを同じrevisionへ戻すために何を残す必要があるか。
+- TEI revision B executableをrevision A fixed inputで動かしたとき、failureが起きた場合に不足しているのはDurable Semantic Coreの意味か、Provider / Adapter-local compatibilityか、execution environmentか。
 - external executableを取得するためのcredential方式を、SOZAのsemantic identityからどこまで分離できるか。
 
 この段階では選択肢をRequirementへ固定しません。
@@ -142,6 +171,9 @@ ISSUE-000067 / 000068 / 000071では、current RequirementとContract境界で�
 - artifact取得、credential、process invocation、semantic mappingを分けられるか。
 - live processが動いたことと、modelやMethodの品質を分けて評価できるか。
 - model / runtimeを交換したとき、過去Applicationを再構成するためのProvenanceが不足しないか。
+- version交換の比較では、build / executable sourceとfixed reference inputを別々に固定・追跡できるか。
+- execution toolchain要件をactual process開始前に観測できるか。
+- machine-readable stageがない内部原因をstderrや自然言語logから推定してEvidenceを過大化していないか。
 
 ### Step 4 — Evidenceの高さを記録する
 
@@ -157,7 +189,7 @@ Design Evidence
 
 Release Candidateの検査記録は、5段階Evidenceへ別の普遍段階を増やすものではありません。特定candidateについて必要なExecutable Evidenceをまとめて確認するgateとして扱います。
 
-synthetic fixture、helper process、deterministic model stub、actual inference、actual model artifact交換、構造検査のPASSを、それぞれが確認していない生成品質、実運用品質、利用者価値へ自動昇格させません。
+synthetic fixture、helper process、deterministic model stub、actual inference、actual model artifact交換、version-exchange execution path、構造検査のPASSを、それぞれが確認していないactual version互換性、生成品質、実運用品質、利用者価値へ自動昇格させません。
 
 ### Step 5 — Candidate Requirementを作る
 
@@ -172,7 +204,7 @@ Stable Requirementへ昇格する前に、少なくとも次を確認します�
 1. Product Valueのどの価値を守るために必要か。
 2. 具体的な利用Scenarioまたは失敗例で必要性を説明できるか。
 3. 既存REQ / SCNの組み合わせで既に表現できないか。
-4. 現在のUI、AI、DB、workflow等の弱点を補うだけの一時的要求ではないか。
+4. 現在のUI、AI、DB、workflow、Provider revision、toolchain等の弱点を補うだけの一時的要求ではないか。
 5. Provider / Profile / Projection / Adapter / deployment policyへ置く方が自然ではないか。
 6. 評価時点から10〜50倍程度先を見ても意味上の必要性が残るか。
 7. Acceptanceを観測可能な形で定義できるか。
@@ -195,12 +227,13 @@ Requirementは、その状態を成立させるために必ず守るべき規範
 
 したがって、Milestoneの箇条書きをそのままRequirementへ変換しません。
 
-たとえばPMS-06でactual TEIやactual model-backed Methodとの接続を観測しても、GitHub token、private clone、CLI配布方式、Ollama、特定model tag、HTTP / gRPC / MCP等を直ちにStable Requirementへしません。
+たとえばPMS-06でactual TEIやactual model-backed Methodとの接続を観測しても、GitHub token、private clone、CLI配布方式、Go version、Ollama、特定model tag、HTTP / gRPC / MCP等を直ちにStable Requirementへしません。
 
 ```text
 Milestone outcome
   != implementation choice
   != acquisition mechanism
+  != execution toolchain
   != Universal Requirement field list
 ```
 
@@ -230,9 +263,27 @@ identity providerやpermission vocabularyをUniversal semanticsへ固定しま�
 
 E3a / E3b-P1では、synthetic・version固定artifact・public live serviceを段階的に接続しました。
 
-E3b-P2では固定TEI sourceからactual `cmd/tei`をbuild・実行し、そのartifactをSOZA Adapterから別processとして呼び出し、Capability Observationへ戻す範囲までScoped Executable Evidenceがあります。
+E3b-P2ではTEI revision A `48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67`からactual `cmd/tei`をbuild・実行し、そのartifactをSOZA Adapterから別processとして呼び出し、Capability Observationへ戻す範囲までScoped Executable Evidenceがあります。
 
-最初のcredential-aware probeでprivate TEI取得がskipされた事実は、そのまま履歴として保持しています。その後、別経路で固定revisionのactual executable実行を確認したからといって、credential運用自体が解決したとは扱いません。
+最初のcredential-aware probeでprivate TEI取得がskipされた事実は、そのまま履歴として保持しています。その後、別経路でrevision Aのactual executable実行を確認したからといって、credential運用自体が解決したとは扱いません。
+
+ISSUE-000072では、TEI executable version交換の一変数比較を成立させるため、build / executable sourceをexact revision B、fixed reference inputをexact revision Aへ分離しました。
+
+- revision A: `48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67`
+- revision B: `1a7028d444fcae60a1c4f2f2d247456f4c7c35be`
+- B build source: exact revision B
+- fixed input: exact revision A
+
+repository側ではrevision A historical Evidence再検証、revision B source identity、revision A fixed-input identity、E2 / E3 runner、E2 / E3別Go toolchain、canonical combined runner、stage-aware failure Evidenceまで整っています。
+
+current SOZA E3 live testでは`runtime/go/go.mod`のGo directiveとactual E3 `go version`をlive test開始前に比較し、要件未満のtoolchainを`soza_go_toolchain` stageとして停止できるようにしています。このprecheckのPASSもAdapter compatibility PASSではありません。
+
+```text
+E3 Go requirement precheck PASS
+  != current SOZA Adapter live compatibility PASS
+```
+
+revision B actual CLI / `deployment-provider-plan` / current SOZA Adapter compatibilityは**Not Yet Verified**です。
 
 #### 6.4.2 actual model-backed Method
 
@@ -272,20 +323,58 @@ PR #73では2つのactual resultの差をAI補助観測として保存しまし�
 
 次の段階は、Human Review Templateを使ったactual human reviewと、より難しいcaseでの比較です。
 
-#### 6.4.4 runtime version交換とhistorical reconstruction
+#### 6.4.4 Ollama runtime version交換とhistorical reconstruction
 
 ISSUE-000070はOpenです。
 
-固定条件は、KJ Atlas source、Method input、`qwen2.5:0.5b`のactual model artifactです。交換するのはOllama runtime versionだけとします。
+固定条件は、KJ Atlas source、Method input、`qwen2.5:0.5b`のactual model artifact、promptです。交換するのはOllama runtime versionだけとします。
 
 - revision A: `0.32.13`
 - revision B: `0.32.14`
 
 runtime archiveは固定SHA-256で識別し、Method Realization payloadとExact Bindingが実際に一致すること、同じidentityなら同じBindingになること、runtime version / runtime artifact / model artifact identityが変わればBindingも変わることをpure-Go testで補強しています。
 
+repository-local harness、artifact guard、side-effect-free preflight、canonical Evidence / Provenance verifier、partial / complete run progress observerまで整っています。
+
 ただし、actual Ollama `0.32.13` / `0.32.14`交換実験そのものはまだNot Yet Verifiedです。
 
+```text
+runtime exchange path ready
+  != actual runtime archive bytes verified
+  != actual binary versions verified
+  != actual A/B model identity verified
+  != actual A/B inference PASS
+```
+
 GitHub Actionsをcurrent baselineへ戻すことを、この実証の意味上の条件にはしません。利用可能な実行環境でactual A/Bを実行し、固定条件と結果を再構成できるEvidenceを得た時点で評価します。
+
+#### 6.4.5 TEI executable version交換とRequirement再照合
+
+ISSUE-000072はOpenです。
+
+この探索ではTEI revision BそのものをCapability identityへ昇格させず、revision A historical Evidenceを保持したままProvider implementation revisionを交換できるかを見ます。
+
+```text
+build / executable source = exact revision B
+fixed reference input     = exact revision A
+```
+
+actual E2 / E3を実行するcanonical entrypointは`runtime/integration/run_tei_version_exchange_evidence.py`です。E2 historical TEI build用GoとE3 current SOZA live-test用Goを別executableとして明示し、current `go.mod`の要件もactual E3 process前に確認します。
+
+失敗時はrepository-local machine-readable stageまでをEvidenceとし、TEI内部のworkspace load / validation / durable run / plugin lockや、SOZA内部のstrict decode / mapping / validatorをstderr等の自然言語から推定しません。
+
+actual結果を見る前にRequirement / Scenario pre-auditを固定しています。一次再照合対象はREQ-0001 / 0007 / 0021、SCN-0014 / 0018で、Provider-neutral Observationの隣接境界としてREQ-0022も確認対象候補です。
+
+```text
+exact-B + exact-A fixed-input path ready
+  != revision B build PASS
+  != Provider Plan execution PASS
+  != current Adapter compatibility PASS
+  != SCN-0014 Satisfied
+  != new Stable Requirement required
+```
+
+actual Bで独立したProduct failureが確認されるまでは、build failure、toolchain failure、Provider Plan process failure、Adapter-local DTO incompatibilityだけを理由にStable RequirementやUniversal Contractを増やしません。
 
 ### 6.5 Release / Operational / Adoption Outcome
 
@@ -297,7 +386,7 @@ v0.2.0 Release Evidence Satisfied
   != Adoption / Outcome Evidence
 ```
 
-post-releaseのE3b-P1、E3b-P2 fixed-artifact、E3b-M1a、E3b-M1b、H1 / H2、actual二モデル交換、成果品質評価基盤は、新しいDesign / Executable Evidenceとして扱います。これらを公開済みv0.2.0のsupported scopeへ遡及的に含めません。
+post-releaseのE3b-P1、E3b-P2 revision A fixed-artifact、E3b-M1a、E3b-M1b、H1 / H2、actual二モデル交換、成果品質評価基盤、version-exchange repository-side readinessは、新しいDesign / Executable materialとして扱います。これらを公開済みv0.2.0のsupported scopeへ遡及的に含めません。
 
 今後はE4として、実環境でRealization / Provider / model / runtime等を交換した後も判断記憶を継続利用できるかを観測します。同時に、利用者にとっての価値をOperational / Adoption / Outcome Evidenceとして別に測ります。
 
@@ -327,11 +416,16 @@ GitHub Actions等を再導入する場合はISSUE-000069のReopen条件へ戻り
 - 既存REQが同じ意味を既に包含している可能性が高い。
 - UIやProvider / Method固有schemaをUniversal Coreへ持ち込もうとしている。
 - repository取得方式やcredential方式をsemantic identityへ混ぜようとしている。
-- model名、runtime名、repository名、model digest、prompt digest等の実装・実験固有情報を、必要性が確認されていないUniversal fieldへ昇格させようとしている。
+- model名、runtime名、repository名、model digest、prompt digest、TEI revision、Go toolchain等の実装・実験固有情報を、必要性が確認されていないUniversal fieldへ昇格させようとしている。
 - actual inferenceのPASSだけでmodel品質やKJ法としての成果品質を主張しようとしている。
 - structure checkのPASSだけでhuman outcome qualityをSatisfiedとしようとしている。
 - AI補助観測をhuman reviewとして扱おうとしている。
 - 二モデル交換のPASSだけでarbitrary model portability、runtime version portability、E4 Operational portabilityまで成立したと扱おうとしている。
+- ISSUE-000070のPASSをISSUE-000072のProvider compatibility Evidenceとして流用しようとしている、またはその逆。
+- repository-side version-exchange pathやtoolchain precheckのPASSだけでactual version compatibilityを主張しようとしている。
+- 自然言語logの語句だけからformal contractのない内部substageやroot causeをEvidenceとして断定しようとしている。
+- ISSUE-000072の限定TEI executable version exchange PASSだけでSCN-0014のExecution Provider exchange全体をSatisfiedへ上げようとしている。
+- build / toolchain / Adapter-local failureだけで新しいStable RequirementやUniversal fieldを追加しようとしている。
 - 未実行の検証を、実行基盤がなくなったことを理由にPASSへ読み替えようとしている。
 - post-releaseのExecutable Evidenceを既存releaseのsupported scopeへ遡及的に追加しようとしている。
 - 未定事項を「実装しやすいから」という理由だけで確定しようとしている。
@@ -352,12 +446,14 @@ GitHub Actions等を再導入する場合はISSUE-000069のReopen条件へ戻り
 
 ## 10. Natural Japanese review
 
-Product Value、Product Shape、Product Milestone、v0.2.0 Release Evidence、E3b-P2 fixed-artifact、E3b-M1a、E3b-M1b、historical reconstruction H1 / H2、actual二モデル交換、ISSUE-000069〜000071へ戻り、上流探索の現在地を再構成しました。
+2026-09-05時点のProduct Value、Product Shape、Product Milestone、PMS-06 current snapshot、Realization / Provider Exchange、Value Traceability、v0.2.0 Release Evidence、E3b-P2 revision A fixed-artifact、E3b-M1a、E3b-M1b、historical reconstruction H1 / H2、actual二モデル交換、ISSUE-000069〜000072へ戻り、上流探索の現在地を再構成しました。
 
 以前の文書では、GitHub Actions上の実証と今後の探索が一部で強く結び付いていました。PR #70でActionsをcurrent baselineから外したため、検証内容と実行場所を分離しました。検証を弱めるのではなく、利用可能なtest、checker、保存Evidence、外部実行で実際に確認できた高さだけを記録する方針です。
 
-ISSUE-000071については「品質評価が完了した」と誤読されないよう、評価境界の確立とactual human reviewを分けました。ISSUE-000070についてはpure-GoのExact Binding補強が進んでいても、actual runtime A/B交換が未実証であることを明確に残しています。
+ISSUE-000071については「品質評価が完了した」と誤読されないよう、評価境界の確立とactual human reviewを分けています。ISSUE-000070についてはrepository-side execution / verification pathが整っていても、actual Ollama A/B交換が未実証であることを明確に残しています。
 
-既存REQ / SCNで現在必要な意味を表現できているため、新しいStable RequirementやUniversal Contract fieldを追加していません。次の主探索をruntime version交換、actual human review、broader portability、E4 Operational portabilityへ整理しました。
+ISSUE-000072については、revision A historical fixed-artifact Evidenceとrevision B actual compatibilityを分離しました。exact-B executable + exact-A fixed inputの比較軸、E2 / E3別toolchain、current Go directiveのprecheck、stage-aware failure Evidence、actual前Requirement / Scenario pre-auditまでを上流計画へ同期していますが、revision B actual CLI / Provider Plan / current SOZA Adapter compatibilityはNot Yet Verifiedです。
+
+既存REQ / SCNで現在必要な意味を表現できているため、新しいStable RequirementやUniversal Contract fieldを追加していません。次の主探索を、ISSUE-000070のactual runtime version交換、ISSUE-000072のactual TEI executable version交換、actual human review、broader portability、E4 Operational portabilityへ整理しました。
 
 意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語として一続きに読めることを最重要視して全文を再ドラフトしました。
