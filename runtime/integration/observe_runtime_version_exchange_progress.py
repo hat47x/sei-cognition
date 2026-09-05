@@ -163,14 +163,14 @@ def observe_progress(
     )
 
     inference_a, prompt_a = _inference_matches(
-        root / "runtime-a-model-evidence.json",
-        root / "kj-atlas-runtime-a-result.json",
+        root / "runtime-exchange-a-evidence.json",
+        root / "runtime-exchange-a-result.json",
         label="a",
         model_name=model_name,
     )
     inference_b, prompt_b = _inference_matches(
-        root / "runtime-b-model-evidence.json",
-        root / "kj-atlas-runtime-b-result.json",
+        root / "runtime-exchange-b-evidence.json",
+        root / "runtime-exchange-b-result.json",
         label="b",
         model_name=model_name,
     )
@@ -289,6 +289,7 @@ def observe_progress(
         and runner.get("schema") == RUNNER_SCHEMA
         and runner.get("completed") is False
         and isinstance(runner.get("exitCode"), int)
+        and not isinstance(runner.get("exitCode"), bool)
         and runner.get("exitCode") != 0
     )
 
@@ -356,18 +357,20 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
+        output = (
+            core._prepare_output_path(args.output, args.evidence_dir)
+            if args.output is not None
+            else None
+        )
         report = observe_progress(args.evidence_dir)
     except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
         parser.exit(2, f"runtime version exchange progress observation failed: {exc}\n")
 
     rendered = json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
-    if args.output is not None:
-        output = args.output.expanduser().resolve()
-        if output.exists() or output.is_symlink():
-            parser.exit(2, f"progress output already exists: {output}\n")
+    if output is not None:
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(rendered, encoding="utf-8")
-    if args.json or args.output is None:
+    if args.json or output is None:
         print(rendered, end="")
     else:
         print(f"Runtime version exchange progress: {report['state']}")
