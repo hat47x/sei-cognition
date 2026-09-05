@@ -31,7 +31,7 @@ same command name "go"
 - `--source-repo`: exact revision B checkout
 - `--reference-source-repo`: exact revision A checkout
 - `--soza-repo-root`: current SOZA checkout
-- `--output-dir`: Evidence出力先
+- `--output-dir`: Evidence出力先。revision B / revision A / SOZA checkoutと相互包含しない、新しいnon-symlink pathを使う。
 - `--tei-go-executable`: E2用Go 1.23.2 executable
 - `--soza-go-executable`: E3用current SOZA Go executable
 
@@ -50,6 +50,17 @@ E3
 ```
 
 既存runnerのbuild条件、Provider Plan invocation、Adapter mapping semanticsは変更しません。
+
+actual process開始前にはEvidence出力pathも検査します。combined runnerは`--output-dir`自身または既存ancestorのsymlinkを拒否し、revision B checkout、revision A checkout、SOZA checkoutの配下へEvidence directoryを置くことも、Evidence directoryがそれらを包含することも拒否します。`mkdir`はこの検査後にだけ行います。
+
+standalone E2もfinal archive path / ancestor symlink、入力checkoutやSOZA repository配下への出力、既存archiveの暗黙上書きを拒否します。
+
+```text
+Evidence path configuration rejected
+  = pre-stage configuration rejection
+  != E2 process failure
+  != E3 process failure
+```
 
 ## 3. Evidence reportの段階性
 
@@ -80,6 +91,8 @@ E3が失敗しても、成立済みE2 bundleを削除しません。E2 Evidence�
 
 一方、E2が失敗した場合はE3を起動しません。
 
+path configuration rejectionはこれらのE2 / E3 resultへ昇格させません。checkoutやEvidenceへ副作用を出す前の入力拒否です。
+
 ## 4. 既存Evidenceの上書き境界
 
 既定では、出力先にbundleまたはreportが既に存在すると実行を拒否します。
@@ -91,11 +104,13 @@ existing Evidence
 
 再実行で同じ出力先を使う場合だけ`--overwrite`を明示します。
 
-`--overwrite`時は旧bundle / reportを実行開始前に削除します。したがって、新しいE2が失敗したときに旧bundleだけが残り、新しいrunで生成したEvidenceのように見える状態を作りません。
+`--overwrite`時はcombined runnerが旧bundle / reportを実行開始前に削除します。したがって、新しいE2が失敗したときに旧bundleだけが残り、新しいrunで生成したEvidenceのように見える状態を作りません。
+
+standalone E2は既存archiveを暗黙上書きしません。`--overwrite`はcombined runner側の明示契約であり、standalone E2へ既存archiveをそのまま渡して上書きさせるものではありません。
 
 ## 5. synthetic検査
 
-repository-local synthetic検査では次の7件を確認しました。
+path-safety追加前に、repository-local orchestrator synthetic検査で次の7件を確認済みです。
 
 1. E2とE3で別々のGo executableがPATH先頭へ入る。
 2. E2 failureではfailure reportを残し、E3を起動しない。
@@ -104,6 +119,18 @@ repository-local synthetic検査では次の7件を確認しました。
 5. `--overwrite`後にE2が失敗しても旧bundleが残らない。
 6. basenameが`go`ではないtoolchain指定を拒否する。
 7. basenameが`go`のsymlinkをactual target identityへ解決して利用できる。
+
+PR #223では、さらに次のnegative controlをbranch testへ追加しました。
+
+- standalone E2: revision A/B checkout内出力を拒否する。
+- standalone E2: SOZA repository内出力を拒否する。
+- standalone E2: existing archiveを拒否する。
+- standalone E2: symlink archiveを拒否する。
+- combined runner: revision A/B/SOZA checkout内のoutput directoryを作成前に拒否する。
+- combined runner: output directoryが入力checkoutを包含する配置を拒否する。
+- combined runner: symlink output directoryをrunner開始前に拒否する。
+
+これら追加testをcurrent ChatGPT execution environmentでfull suiteとして再実行したとは主張しません。HAT47Xがofflineであり、GitHub Actionsもcurrent baselineでは使用しません。
 
 これはorchestration / Evidence境界のsynthetic検査であり、actual TEI revision BのbuildやSOZA Adapter互換性を示すものではありません。
 
@@ -168,13 +195,13 @@ official archive SHA-256 verified
   != current SOZA Adapter live compatibility PASS
 ```
 
-actual実行では、2つのGo installationを別々に指定します。
+actual実行では、2つのGo installationを別々に指定します。`EVIDENCE_DIR`は3つのcheckoutと相互包含しない別directoryを指定します。
 
 ```bash
 export TEI_B_REPO=/path/to/tei-revision-b
 export TEI_A_REPO=/path/to/tei-revision-a
 export SOZA_REPO=/path/to/soza
-export EVIDENCE_DIR=/path/to/evidence/tei-version-exchange
+export EVIDENCE_DIR=/path/outside/checkouts/tei-version-exchange-evidence
 export TEI_GO="$HOME/.local/opt/soza-tei-go/go1.23.2/bin/go"
 export SOZA_GO="$HOME/.local/opt/soza-tei-go/go1.25.0/bin/go"
 
@@ -202,8 +229,14 @@ separate E2/E3 toolchain requirement
 toolchain-split E2->E3 orchestrator
   = implemented
 
-orchestrator synthetic tests
+orchestrator synthetic tests before later path-safety additions
   = 7 passed
+
+Evidence output / checkout separation guard
+  = implemented
+
+path-safety negative controls
+  = committed; full suite not re-run in current environment
 
 revision B actual CLI build / execution
   = Not Yet Verified
@@ -219,6 +252,7 @@ revision B current SOZA Adapter live compatibility
 
 ```text
 toolchain split resolved in execution path
+  + Evidence output path safety implemented
   != revision B build PASS
   != Provider Plan observed
   != current SOZA Adapter live compatibility PASS
@@ -228,4 +262,4 @@ toolchain split resolved in execution path
   != ISSUE-000072 Resolved
 ```
 
-このtoolchain差はStable RequirementやUniversal Contractへ昇格させません。historical TEI build再現とcurrent SOZA test executionというEvidence環境の差として保持します。
+このtoolchain差やEvidence配置規則はStable RequirementやUniversal Contractへ昇格させません。historical TEI build再現とcurrent SOZA test executionを安全に観測するためのEvidence環境として保持します。

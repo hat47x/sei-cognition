@@ -123,18 +123,19 @@ same Provider Plan output surface
 
 - `--source-repo`: exact revision B。build sourceとしてのみ使用する。
 - `--reference-source-repo`: exact revision A。fixed reference inputとしてのみ使用する。
-- `--output-archive`: 生成するEvidence bundle。
+- `--output-archive`: 生成するEvidence bundle。revision B / revision A / SOZA repository配下ではない、新しいnon-symlink pathを使う。
 
 主な処理:
 
-1. B execution-source Git identityとexact HEADを確認する。
-2. A fixed reference input Git identityとexact HEADを確認する。
-3. Linux / amd64とE2用Go `1.23.2`を確認する。
-4. historical Evidenceと同じbuild条件でB CLIをbuildする。
-5. B binaryへAのworkspace / durable run / plugin lockを与え、`deployment-provider-plan`を実行する。
-6. Provider Planの既知surfaceを確認する。
-7. B binary SHA-256、Provider Plan SHA-256、A reference identityをmetadataへ記録する。
-8. Evidence bundleを生成し、`verify_tei_evidence_bundle.py`で再検証してからfinal archiveへ配置する。
+1. output archive path / ancestor symlink、入力checkoutやSOZA repository配下への配置、既存archiveの暗黙上書きを副作用前に拒否する。
+2. B execution-source Git identityとexact HEADを確認する。
+3. A fixed reference input Git identityとexact HEADを確認する。
+4. Linux / amd64とE2用Go `1.23.2`を確認する。
+5. historical Evidenceと同じbuild条件でB CLIをbuildする。
+6. B binaryへAのworkspace / durable run / plugin lockを与え、`deployment-provider-plan`を実行する。
+7. Provider Planの既知surfaceを確認する。
+8. B binary SHA-256、Provider Plan SHA-256、A reference identityをmetadataへ記録する。
+9. Evidence bundleを生成し、`verify_tei_evidence_bundle.py`で再検証してからfinal archiveへ配置する。
 
 build時は`GOWORK=off`、`GOENV=off`とし、外部`GOFLAGS` / `GOOS` / `GOARCH`を持ち込みません。
 
@@ -205,7 +206,7 @@ actual E2 → E3の標準入口は次の1本です。
 export TEI_B_REPO=/path/to/tei-revision-b
 export TEI_A_REPO=/path/to/tei-revision-a
 export SOZA_REPO=/path/to/soza
-export EVIDENCE_DIR=/path/to/evidence/tei-version-exchange
+export EVIDENCE_DIR=/path/outside/checkouts/tei-version-exchange-evidence
 export TEI_GO="$HOME/.local/opt/soza-tei-go/go1.23.2/bin/go"
 export SOZA_GO="$HOME/.local/opt/soza-tei-go/go1.25.0/bin/go"
 
@@ -221,6 +222,8 @@ python3 "$SOZA_REPO/runtime/integration/run_tei_version_exchange_evidence.py" \
   --expected-soza-head "$SOZA_HEAD" \
   --json
 ```
+
+`EVIDENCE_DIR`はrevision B checkout、revision A checkout、SOZA checkoutの外側へ置き、いずれのcheckoutとも相互包含しないpathを使います。output path自身または既存ancestorがsymlinkの場合も開始前に拒否します。このconfiguration検査は`mkdir`より前に行います。
 
 既存Evidenceを暗黙に上書きしません。同じoutput directoryへ意図的に再実行するときだけ`--overwrite`を明示します。`--overwrite`時は旧bundle / reportを実行開始前に除去するため、新しいE2が失敗した後に旧bundleだけが残り、新runの成果に見える状態を作りません。
 
@@ -247,6 +250,14 @@ fixed_scope_e2_e3_verified
 ## 7. stage-aware failure Evidence
 
 E2 / E3 failureは、自然言語logの文字列から内部原因を推測せず、runnerが機械的に発行する外部stageまでをEvidenceとして扱います。
+
+Evidence output pathのconfiguration rejectionはこれらstageより前に行います。checkout overlap、symlink chain、existing standalone archive等の拒否を、E2 build failureやE3 Adapter failureへ読み替えません。
+
+```text
+pre-stage path configuration rejection
+  != E2 failure
+  != E3 failure
+```
 
 E2で記録できる主なstage:
 
@@ -352,6 +363,12 @@ E2 / E3 separate Go toolchains
 toolchain-split combined runner
   = implemented; baseline 7 synthetic tests passed before later stage-instrumentation additions
 
+Evidence output / checkout separation guard
+  = implemented; path-safety negative controls committed
+
+path-safety additions full suite in current environment
+  = Not Re-run
+
 revision B actual CLI build / execution
   = Not Yet Verified
 
@@ -368,7 +385,7 @@ credential lifecycle / Operational portability
   = Not Yet Verified
 ```
 
-expanded branch unit suitesの一部はcurrent ChatGPT containerでrepository全体を再実行できず、stage instrumentation後のfull suiteをこの環境で再実行したと主張しません。focused stage-model checks、focused Go requirement check、それ以前に実行済みのbaseline testを区別して記録します。
+expanded branch unit suitesの一部はcurrent ChatGPT containerでrepository全体を再実行できず、stage instrumentation / path-safety追加後のfull suiteをこの環境で再実行したと主張しません。focused stage-model checks、focused Go requirement check、それ以前に実行済みのbaseline testを区別して記録します。
 
 ## 9. actual後のRequirement / Scenario再照合
 
@@ -401,6 +418,9 @@ exact B source verified
 
 exact A fixed input verified
   != B accepts A input
+
+Evidence output path safety implemented
+  != actual process started
 
 Go toolchains prepared
   != E3 Go requirement precheck PASS
