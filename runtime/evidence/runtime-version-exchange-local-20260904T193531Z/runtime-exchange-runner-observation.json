@@ -1,0 +1,11 @@
+{
+  "combinedOutputBytes": 20320,
+  "combinedOutputSha256": "4fb5833f8522ad65ab6552629a4982175337b73431d0d4e2913f8ffea827f48d",
+  "completed": true,
+  "evidenceDirectoryCreatedBy": "strict-entrypoint",
+  "exitCode": 0,
+  "preflightResult": "ready",
+  "qualityJudgement": "not_evaluated",
+  "schema": "soza.runtime-version-exchange-runner-observation/v1",
+  "sourcePreparation": "checkout-to-verified-runtime-bundle"
+}
