@@ -5,58 +5,117 @@
 
 ## この文書の役割
 
-この文書は、ISSUE-000070のactual runtime version交換について、現在どこまで実装され、どこからが未検証かを短く確認するための運用上のsnapshotです。
+この文書は、ISSUE-000070のactual runtime version交換について、現在どこまでEvidenceが成立しているかを短く確認するための運用上のsnapshotです。
 
 意味上のGoal、Fixed conditions、Resolution Criteriaは`plan/issue/ISSUE-000070-verify-runtime-version-exchange-history.md`を正とします。実行手順は`RUNTIME_VERSION_EXCHANGE_EXECUTION_HANDOFF.md`を正とします。本書はそれらを置き換えません。
 
 ## 現在のEvidence状態
 
+2026-09-05、historical branch `codex/issue-000070-actual-evidence` からexecution `local-20260904T193531Z-7855` のactual Evidenceをcurrent developへ回収しました。
+
 ```text
-fixed source / runtime / model identity machinery
-  = implemented
+fixed KJ Atlas source identity
+  = Verified
 
-fixed artifact preparation
-  = implemented
+Ollama 0.32.13 / 0.32.14 actual archive bytes / binary version
+  = Verified
 
-prepositioned artifact root static re-verification
-  = implemented
+fixed qwen2.5:0.5b model artifact identity
+  = Verified statically and by A/B actual /api/tags observation
 
-prepositioned root → verified runner orchestration
-  = implemented
+same fixed Method input / same prompt digest
+  = Verified
 
-preflight → strict entrypoint → low-level harness
-  = implemented
+actual A/B inference
+  = Verified
 
-partial / complete run progress observation
-  = implemented; canonical Evidence verifierとは別の補助観測
+same logical Realization / different Exact Binding
+  = Verified
+
+historical Application A immutability
+  = Verified
+
+portable historical reconstruction / negative control
+  = Verified
 
 Evidence + Provenance verification
-  = implemented
-
-actual Ollama 0.32.13 / 0.32.14 A/B execution
-  = Not Yet Verified
+  = ready-to-review; 107 ok / 0 blocked
 
 runtime-version-exchange Scoped Executable Evidence
-  = not available yet
+  = available
 
 ISSUE-000070
-  = Open
+  = Resolved
 ```
 
-`focused local checks`、helper test、artifact metadata照合、preflight、failure Evidence保存、progress observerの成功をactual runtime交換の成立へ読み替えません。
+raw Evidenceは次に保存しています。
 
-## 現在の標準実行経路
+- `runtime/evidence/runtime-version-exchange-local-20260904T193531Z/`
+- `runtime/RUNTIME_VERSION_EXCHANGE_EVIDENCE_2026-09-05.md`
+- `runtime/integration/RUNTIME_VERSION_EXCHANGE_RECOVERED_EVIDENCE_2026-09-05.md`
+- `runtime/RUNTIME_VERSION_EXCHANGE_CURRENT_CONTRACT_REVALIDATION_2026-09-05.md`
 
-固定artifactを取得できるLinux / amd64環境では、まずrepository外の一つのrootへruntime A/B archiveと固定model storeを準備します。
+## actual executionの主要観測
+
+actual runはSOZA commit `ae9f631b7d570a6c3853bb71b794d501761fdf63`で実行されました。
+
+runner observation:
+
+- execution ID: `local-20260904T193531Z-7855`
+- `completed = true`
+- `exitCode = 0`
+- `preflightResult = ready`
+- `evidenceDirectoryCreatedBy = strict-entrypoint`
+- `qualityJudgement = not_evaluated`
+- combined log SHA-256: `4fb5833f8522ad65ab6552629a4982175337b73431d0d4e2913f8ffea827f48d`
+
+runtime exchange:
+
+| axis | revision A | revision B |
+| --- | --- | --- |
+| Ollama | `0.32.13` | `0.32.14` |
+| archive SHA-256 | `0fd1dece38a1c6242e8013ce20b597345c5de072ae6b320160edb0e729ef1de1` | `c620917a71e146ab3a7f893084f066069c4c65d144ef8379a91c3cbe8b27de8f` |
+| model | `qwen2.5:0.5b` | `qwen2.5:0.5b` |
+| model digest | `a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67` | same |
+| prompt SHA-256 | `cd3d5eeb64cddfbdce63d80b0451b19703f43bcd2d1b09d7188f6bd4d7de2d33` | same |
+| `ollama_done` | `true` | `true` |
+| `prompt_eval_count` | `196` | `196` |
+| `eval_count` | `78` | `78` |
+
+生成文そのものの一致はPASS条件ではありません。
+
+## current canonical baselineとの再照合
+
+回収直後は、historical runの保存済みverificationをcurrent canonical verifier / current Contractへまだ再照合していない可能性を保守的な未完了事項として残していました。
+
+その後、actual run commitとcurrent developをGit object identityで比較し、次が同一objectであることを確認しました。
+
+- ISSUE-000070 Resolution Criteria
+- core Evidence verifier
+- Evidence + Provenance verifier
+- fixed artifact manifest
+- Product Requirements
+- Acceptance Scenarios
+- Cognitive Method / Semantic Reference / Semantic Interchangeを含むrelevant Contract baseline
+
+したがって、保存済み`ready-to-review`結果が「現在とは異なる古いverifier / manifest / Contractだけに対する結果」という懸念は成立しません。
+
+Requirement / Contract再照合と自然な日本語最終監査も完了し、新しいStable Requirement / Acceptance Scenario / Universal Contract fieldは不要と判断しました。
+
+詳細は`runtime/RUNTIME_VERSION_EXCHANGE_CURRENT_CONTRACT_REVALIDATION_2026-09-05.md`を参照します。
+
+## 標準実行経路
+
+再現・追加検証を行う場合の標準入口は引き続き変えません。
+
+固定artifact準備:
 
 ```bash
 python3 runtime/integration/prepare_runtime_version_exchange_inputs.py \
   --root "$SOZA_RUNTIME_EXCHANGE_INPUTS"
 ```
 
-この入口は、既存のruntime archive preparation helperとmodel store preparation / verifierを利用し、成功時に`verifiedRunnerInputs`を返します。
-
-actual A/B実行では、個別のruntime archive pathやmodel pathを手で再構成せず、そのrootを上位入口へ渡します。
+actual A/B実行:
 
 ```bash
 python3 runtime/integration/run_runtime_version_exchange_prepositioned.py \
@@ -66,119 +125,51 @@ python3 runtime/integration/run_runtime_version_exchange_prepositioned.py \
   --verification-output "$SOZA_RUNTIME_EXCHANGE_VERIFY"
 ```
 
-上位入口はactual processを始める前に固定artifact rootをnetworkなしで再検証し、machine-readableな`verifiedRunnerInputs`だけからmodel store、runtime A、runtime Bを標準verified runnerへ渡します。`--require-prepositioned-artifacts`は上位入口が強制します。
+保存済みEvidenceの標準再検証:
 
-```text
-external fixed-artifact root
-  ↓
-prepare_runtime_version_exchange_inputs.py
-  ↓
-verified prepositioned inputs
-  ↓
-run_runtime_version_exchange_prepositioned.py
-  ↓ static verify-only revalidation
-run_runtime_version_exchange_with_verification.py
-  ↓
-side-effect-free preflight
-  ↓ ready only
-strict entrypoint
-  ↓
-verified-bundle-only low-level harness
-  ↓
-actual Ollama /api/tags + A/B inference
-  ↓
-run-isolated Evidence
-  ↓
-Evidence + Provenance verifier
-  ↓
-ready-to-review | not-sufficient
-  ↓ supplementary observation
-observe_runtime_version_exchange_progress.py
+```bash
+python3 runtime/integration/verify_runtime_version_exchange_provenance.py \
+  --evidence-dir /path/to/evidence-directory \
+  --output /path/to/new-verification.json
 ```
 
-progress observerはcanonical verifierの代替ではありません。保存済みEvidenceから、stderr / stdoutの自然言語を解析せず、固定されたEvidence fileとidentityだけを使って「最後に観測できたmilestone」と「次に未観測のmilestone」を整理します。
+repository-local focused regression:
 
-主なmilestoneは次の順です。
-
-1. preflight ready
-2. fixed model store static identity
-3. verified KJ Atlas runtime source identity
-4. source / runtime A/B / model fixed identity
-5. runtime A / B archive actual SHA-256
-6. fixed 3-card Method input
-7. runtime A version / model digest / inference
-8. runtime B version / model digest / inference
-9. A / B prompt SHA-256 identity
-
-後段Evidenceがあるのに必要な前段Evidenceが欠けている場合は`inconsistent_evidence_order`とし、都合よく進行済みとは扱いません。runner observationもJSONだけでは信用せず、`runtime-exchange-runner.log`のSHA-256 / bytesと照合し、complete runではcompletion markerも要求します。
-
-途中停止では、たとえば次のような区間だけを記録します。
-
-```text
-last observed = runtime_a_inference_observed
-next unobserved = runtime_b_version_observed
+```bash
+python3 runtime/integration/run_runtime_version_exchange_local_checks.py
 ```
 
-この観測だけから「B runtime展開失敗」「Ollama起動失敗」などの内部原因へ細分化しません。
+これらの入口は、今回のhistorical actual Evidence回収後も再現性やreopen条件の監査に利用できます。
+
+## Remote Desktopとの関係
+
+`HAT47X` / WSL2は、固定artifactを取得して独立にactual runを再現できる具体的なLinux / amd64候補として確認済みですが、現在Remote Desktop接続はofflineです。
+
+これは今後の独立reproductionや追加runを妨げる運用上の状態ではありますが、すでに回収・検証済みのactual Evidenceを無効化せず、ISSUE-000070のResolutionを妨げません。
 
 ```text
-observed Evidence milestone boundary
-  != exact failing command or internal root cause
-  != canonical Evidence + Provenance verification PASS
-  != runtime compatibility judgement
-  != outcome quality judgement
-  != ISSUE-000070 Resolved
+HAT47X offline
+  != recovered actual Evidence invalid
+  != Ollama incompatibility
+  != ISSUE-000070 reopen condition
 ```
 
-手動preflightや下位verified runnerを直接使う経路は、blocked時の診断や個別境界の確認に残します。通常のhandoffでは、利用者がA/B archive file名を再入力する必要はありません。
+## 成果品質との境界
 
-## 公式Release metadataの再確認
+今回成立したのは、固定scopeでのruntime version交換とhistorical reconstructionに関するScoped Executable Evidenceです。
 
-2026-09-05にOllama公式GitHub Release APIを再確認し、ISSUE-000070で固定しているLinux / amd64 archiveのsizeとdigestが現在の公式Release metadataと一致することを確認しました。
-
-| revision | size | GitHub Release asset digest |
-| --- | ---: | --- |
-| Ollama `0.32.13` | `1421793186` bytes | `sha256:0fd1dece38a1c6242e8013ce20b597345c5de072ae6b320160edb0e729ef1de1` |
-| Ollama `0.32.14` | `1421191399` bytes | `sha256:c620917a71e146ab3a7f893084f066069c4c65d144ef8379a91c3cbe8b27de8f` |
-
-この再確認は取得元metadataの監査であり、actual archive bytesを取得・検証したことにはなりません。artifact identityの成立条件は、実行時に準備したactual bytesのSHA-256を固定値へ一致させることです。
+- model output quality: Not Evaluated
+- language suitability: Not Evaluated
+- KJ-method outcome quality: Not Evaluated
+- Recommendation correctness: Not Evaluated
+- Decision correctness: Not Evaluated
+- E4 Operational portability: Not Established
 
 ```text
-official Release metadata match
-  != actual archive bytes acquired
-  != actual binary version observed
-  != actual A/B inference PASS
-```
-
-## 現作業環境での観測
-
-2026-09-05、ChatGPT側の実行containerではLinux / amd64、Python、Go、Git、zstdと約30GBの空き容量を確認できています。一方、このcontainerからはactual実証に必要な約2.84GBの固定runtime archiveと固定model storeを通常の外部download経路で配置できませんでした。
-
-同日、Remote Desktop Commander経由でユーザー管理端末`HAT47X`を確認し、WSL2の`Ubuntu-22.04`がLinux / x86_64で稼働していること、root filesystemに約884GBの空き容量があること、GitHubへHTTP 200で外部到達できることを実測しました。`git`、`python3`、`curl`、`tar`、`sha256sum`、`mktemp`、`cp`はWSL内で確認済みです。`go`と`zstd`はWSL内ではまだ確認できていないため、actual実行前にpreflight要件として確認またはuser-local配置が必要です。
-
-このWSL2環境により、固定artifactを取得してactual A/Bを実行できる具体的なLinux / amd64候補が確認できました。ただし環境確認後にRemote Desktop Commander接続が切断され、固定artifactの取得、固定model storeの準備、preflight、actual Ollama A/B起動にはまだ進んでいません。
-
-その後の2026-09-05 09時台（JST）の再確認でも、`HAT47X`は登録済みですが`offline`でした。このため、progress observer追加後もactual runtime archive / model store / A/B inferenceは実行していません。
-
-GitHub connectorから公式Release metadataを読めることや、WSL2実行候補の存在を確認したことは、binary bytesが配置されたことやactual runtime交換Evidenceが得られたことを意味しません。過去のrelevant GitHub Actions Runにも再利用できるworkflow artifactは残っていません。
-
-現在の未実行理由は、repository側の実装不足ではなく、actual実行候補へのremote接続が継続していないという運用上の状態です。これをSOZAのProduct failureやruntime交換失敗とは扱いません。
-
-## 次にEvidence強度が上がる条件
-
-次の前進は追加のguard実装ではなく、上記WSL2等の固定artifactを取得可能なLinux / amd64環境で標準経路をactualに一度通すことです。
-
-actual runが途中で停止した場合は、まずrun専用Evidenceをcanonical Evidence + Provenance verifierへ通し、progress observerは「どこまでactual Evidenceが残ったか」を補助的に整理するために使います。observerの`all_observed_milestones_completed`だけで`ready-to-review`へ昇格させません。
-
-Evidence + Provenance verifierが`ready-to-review`へ到達した後も、それだけでISSUE-000070をResolvedにはしません。Application AのReference / Provenance / output不変性、same logical / different Exact Binding、portable historical reconstruction、no semantic promotion、Requirement / Contract再照合、自然な日本語最終監査まで確認します。
-
-```text
-artifact preparation PASS
-  != preflight ready
-  != progress milestones observed
-  != actual A/B inference PASS
-  != ready-to-review
-  != ISSUE-000070 Resolved
+ISSUE-000070 Resolved
+  != arbitrary runtime version portability
+  != other runtime implementation portability
+  != fully offline execution guaranteed
   != model output quality satisfied
   != KJ-method outcome quality satisfied
   != E4 Operational portability
