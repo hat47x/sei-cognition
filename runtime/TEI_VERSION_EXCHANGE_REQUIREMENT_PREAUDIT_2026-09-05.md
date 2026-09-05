@@ -34,7 +34,7 @@ revision B
   reference input     = exact A
 ```
 
-revision AとBでは`reference/workspace` treeが異なるため、B checkout内のreference inputを使うとexecutable revisionとinput interpretationの両方を交換してしまいます。したがってactual Bではhistorical Aのfixed reference inputを別checkoutから与えます。
+revision AとBでは`reference/workspace` treeが異なるため、B checkout内のreference inputを使うとexecutable revisionとinput interpretationの両方を交換してしまいます。したがってactual Bではhistorical Aのfixed reference inputをexact A checkoutまたはverified historical A Evidence bundleから与えます。どちらを使ってもfixed input identityはexact Aへ固定し、取得方式はCapability identityではなくAcquisition Provenanceとして分離します。
 
 この固定はTEI固有のUniversal Requirementではなく、一変数比較を成立させるためのExperiment / Evidence条件です。
 
