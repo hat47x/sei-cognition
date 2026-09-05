@@ -59,11 +59,13 @@ GitHub-hosted job start failure
 
 - revision B execution-source Git identity verifier
 - revision A fixed reference input identity verifier
+- tracked変更 / untracked / gitignored entryをexecution source / fixed input境界から排除するworking-tree purity guard
 - A / B Provider Plan source surfaceの静的比較
 - exact-B build source + exact-A fixed reference inputによるprepositioned Evidence runner
 - verified Evidence bundleからcurrent SOZA `teiintegration` live testへ接続するAdapter compatibility runner
 - E2用Go 1.23.2とE3用current SOZA Goを分離して連続実行するorchestrator
 - E2 / E3 failureを外部観測可能なstageへ分けて記録するstage-aware diagnostics
+- revision A / B / SOZA checkoutとEvidence outputを副作用前に分離し、symlinkや暗黙上書きを拒否するpath-safety guard
 
 version交換の比較軸については、revision AとBの`reference/workspace` treeが異なることを確認したため、**B checkout内のreference inputを使わず、historical revision Aのfixed reference inputを別checkoutから与える**形へ補正した。
 
@@ -78,6 +80,8 @@ fixed reference input
 これにより、runtime revisionとreference inputの交換を混同しない。
 
 また、E2 historical buildはGo `1.23.2`、E3 current SOZA live testはcurrent `runtime/go/go.mod`と`GOTOOLCHAIN=local`を使うため、同じ`go` command名を同一toolchain identityとは扱わない。combined runnerでは2つのGo executableを別々に明示する。
+
+actual E2 → E3は特定hostや特定のRemote Desktop接続を成立条件にしない。exact revision B / exact revision A fixed input / current SOZA、必要toolchain、checkoutから分離したEvidence出力を配置できる適切なLinux / amd64実行環境で実行する。
 
 また、2026-09-05時点で`hat47x/tei-platform`のGitHub Releasesは0件であり、正式なTEI executable distribution surfaceはまだ確認できない。
 
@@ -104,8 +108,13 @@ fixed reference input
 - artifact bundle検証PASSをSOZA Adapter互換、Operational Evidence、Release Evidenceへ昇格させない。
 - 静的なProvider Plan source continuityをactual revision B execution PASSへ昇格させない。
 - B executableの検証で、B checkout内の変化したreference workspaceをhistorical fixed inputへ無言で置き換えない。
+- Git object identityが一致していても、execution boundary内のtracked変更、untracked entry、gitignored entryをactual source / fixed inputへ混入させない。
+- Evidence outputをrevision B / revision A / SOZA checkout配下へ置かず、Evidence directoryがそれらcheckoutを包含する配置もしない。
+- Evidence output path / ancestor symlinkやstandalone E2 archiveの暗黙上書きを許可しない。
+- Evidence path configuration rejectionをE2 build failure、Provider Plan failure、SOZA Adapter failureへ昇格させない。
 - stderr / stdoutの文言だけからTEI内部のworkspace load / validation / plugin lock等のsubstageを推定しない。
 - Go live testの文言だけからstrict decode / Capability Observation validator等のsubstageを推定しない。
+- 特定host / runner / Remote Desktop接続をProduct semantics上の成立条件にしない。
 - 新しいStable Requirement / Universal Contract fieldは、actual B Evidenceまたは独立したProduct failureが確認される前に追加しない。
 - 現時点でTEI GitHub Releaseの新設や特定配布方式を完了条件にしない。
 
@@ -128,9 +137,12 @@ fixed reference input
 ### E2 — revision B actual executable
 
 - revision B source identityを固定する。
+- revision B build sourceとrevision A fixed reference inputの対象境界にtracked変更、untracked entry、gitignored entryがないことを確認する。
 - actual `cmd/tei`をbuildまたは同等の固定artifactとして取得する。
 - executable/build sourceはexact revision Bへ固定する。
 - historical fixed reference inputはexact revision Aへ固定する。
+- Evidence出力を入力checkoutから分離したnon-symlink pathへ置き、既存standalone archiveを暗黙上書きしない。
+- path configuration rejectionはactual E2 process開始前の入力拒否として扱う。
 - actual `deployment-provider-plan`を実行する。
 - Bのactual binary / Provider Plan SHA-256を記録する。
 - job割当や取得failureをCLI互換性failureと区別する。
@@ -196,6 +208,9 @@ revision B source identity
 revision B execution-source Git identity
   = fixed; repository-local verifier implemented
 
+source / fixed-input working-tree purity
+  = tracked changes / untracked / ignored entries rejected; PR #226 synthetic Git cases 5 passed
+
 revision A fixed reference input identity
   = workspace tree / durable run blob / plugin-lock blob fixed
 
@@ -232,6 +247,12 @@ toolchain-split combined runner baseline
 combined E2/E3 substage propagation
   = implemented; branch negative controls added; full suite not re-run in current container
 
+Evidence output / checkout separation guard
+  = implemented; PR #223 path-safety negative controls committed; full suite not re-run in current container
+
+specific execution host
+  = not selected; any suitable Linux / amd64 environment may be used
+
 revision B workflow attempt 1
   = failure before any job step
 
@@ -267,11 +288,13 @@ revision B current SOZA Adapter live compatibility
 - TEI Evidence bundle verifier
 - bundle verifierのnegative control
 - revision B / revision A fixed inputのGit identity verifier
+- source / fixed input working-tree purity guard
 - revision A / B identityと取得経路を分けたEvidence report
 - Provider Plan source surface / input interpretation差分のStatic Evidence
 - exact-B build source + exact-A fixed inputのprepositioned Evidence runner
 - verified bundleからcurrent SOZA Adapter live testへ接続するrunner
 - E2 / E3を別toolchainで連続実行し段階別reportを残すcombined runner
+- Evidence output / input checkout separation guard
 - E2 / E3 failure stage taxonomyとnegative control
 - revision B actual artifactを取得できた場合のB verification report
 - A/B Adapter compatibility Evidence
@@ -291,7 +314,9 @@ revision B current SOZA Adapter live compatibility
 7. REQ-0001、REQ-0007、REQ-0021、SCN-0014、SCN-0018へ再照合し、新しいStable Requirementが必要かを監査する。
 8. 自然な日本語を最重要視した最終意味監査を行う。
 
-formal Release asset、特定credential方式、特定CI provider、binary byte同一性、Provider Plan byte同一性はResolution条件にしない。
+working-tree purity、Evidence output分離、toolchain固定はactual E2 / E3 Evidenceを信頼するためのexecution preconditionであり、新しいProduct outcomeをResolution Criteriaへ追加するものではない。
+
+formal Release asset、特定credential方式、特定CI provider、特定execution host、binary byte同一性、Provider Plan byte同一性はResolution条件にしない。
 
 ## Reopen conditions
 
@@ -312,20 +337,28 @@ GitHub ActionsはこのIssueの意味上の成立条件にしない。
 
 TEI側Evidence workflowを利用できる場合はactual artifact生成の一経路として使うが、jobが開始されなかったrunをTEI compatibility failureへ数えない。取得済みartifactはrepository-local `verify_tei_evidence_bundle.py`へ戻して再検証する。
 
-actual Bのrepository-local経路では、exact revision B checkoutをbuild source、exact revision A checkoutをfixed reference inputとして`run_tei_revision_b_prepositioned.py`へ渡す。
+actual Bのrepository-local経路では、exact revision B checkoutをbuild source、exact revision A checkoutをfixed reference inputとして`run_tei_revision_b_prepositioned.py`へ渡す。両checkoutはGit object identityだけでなく、対象境界のtracked / untracked / ignored entryがないことを確認する。
+
+Evidence archive / directoryはrevision B、revision A、SOZA checkoutから分離したnon-symlink pathへ置く。path configurationが不正な場合はactual processを開始せず、E2 / E3 failure stageへ読み替えない。standalone E2は既存archiveを暗黙上書きしない。
 
 B Evidence bundleを得た後は、cleanなSOZA checkoutで`run_tei_bundle_adapter_compatibility.py`を実行し、既存`runtime/go/teiintegration.TestLiveTEIProviderPlan`へ接続する。runnerのsynthetic testやStatic Evidenceはactual TEI process executionの代替ではない。
 
 E2からE3までを一度に実行する場合は`run_tei_version_exchange_evidence.py`を使い、TEI historical build用Go 1.23.2とcurrent SOZA live-test用Goを別々のexecutableとして明示する。failure reportは上位`E2` / `E3`とstage-aware `substage`を分離し、通常の例外文言からsubstageを捏造しない。
 
+特定hostやRemote Desktop接続の復帰を待つことは完了条件にしない。上記identity / purity / toolchain / path条件を満たせる適切なLinux / amd64実行環境を用意できた時点でactual E2 → E3へ進む。
+
 ## Natural Japanese review
 
-PMS-06、ISSUE-000061 / 000065、ADR-0013 / 0019 / 0021 / 0024、Actual TEI CLI Evidence、current `teiintegration`、revision A Evidence artifact、revision B Evidence workflow attempt 1 / 2、revision B Git object identity、A / B Provider Plan static compatibility、exact-A fixed reference input、E2 prepositioned runner、E3 Adapter live runner、toolchain-split combined runner、E2 / E3 failure-stage instrumentationを照合した。
+PMS-06、ISSUE-000061 / 000065、ADR-0013 / 0019 / 0021 / 0024、Actual TEI CLI Evidence、current `teiintegration`、revision A Evidence artifact、revision B Evidence workflow attempt 1 / 2、revision B Git object identity、A / B Provider Plan static compatibility、exact-A fixed reference input、E2 prepositioned runner、E3 Adapter live runner、toolchain-split combined runner、E2 / E3 failure-stage instrumentation、Evidence output path safety、source / fixed-input working-tree purityを照合した。
 
 取得方法、artifact identity、build source、fixed reference input、Provider固有surface、SOZAのCapability Observationを一つにまとめず、今回すでに観測できたことと、revision B actual executionが未検証であることを分離している。
 
 特に、A / Bでworkspace treeが異なることから「B checkout内のsame pathを使えば同じinput」という早合点を修正し、version交換ではB executableへhistorical A inputを与える比較軸へ固定した。また、Static EvidenceでProvider Plan出力surfaceに連続性がある一方、workspace / validation / IRが変化しているためactual検証が必要であることも明記した。
 
-さらに、actual failureの切り分けでは、stderr / stdoutの自然言語からTEI内部stageやSOZA live-test内部stageを推定せず、repository-local runnerが直接観測できる外部境界だけをEvidence stageとして扱う。これにより、診断情報を保持しつつ、原因の高さをEvidence以上に引き上げない。
+さらに、Git object identityが一致していてもworking treeのignored entryがactual build / fixed inputへ混入し得るため、tracked / untracked / ignoredをすべてexecution boundaryのpurity対象へ含めた。Evidence出力についても、入力checkoutとのoverlap、symlink、暗黙上書きをactual process前に拒否し、そのconfiguration failureをProvider compatibilityの失敗へ昇格させない。
+
+actual failureの切り分けでは、stderr / stdoutの自然言語からTEI内部stageやSOZA live-test内部stageを推定せず、repository-local runnerが直接観測できる外部境界だけをEvidence stageとして扱う。これにより、診断情報を保持しつつ、原因の高さをEvidence以上に引き上げない。
+
+また、特定host / CI provider / Remote DesktopをProduct semanticsへ持ち込まず、必要な固定identityとtoolchainを配置できる実行環境をexecution mechanismとして分離した。
 
 意味、要求強度、留保、Evidenceの高さを固定したうえで、自然な日本語となることを最重要視して全文を再監査した。
