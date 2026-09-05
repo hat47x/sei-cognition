@@ -302,3 +302,64 @@ actual実行可能なLinux / amd64環境が利用できたら、次を行いま�
 8. revision A Evidenceを変更せず、A / Bのsource / binary / output / acquisition Provenanceを別々に保持する。
 
 このactual検証までは、新しいStable RequirementやUniversal TEI fieldを追加しません。
+
+## 9. fixed invocationのfilesystem input / cwd境界
+
+actual handoffのE2 runnerはB executableを`cwd=revision B source checkout`で起動します。このcwdが、明示したA fixed reference inputとは別の暗黙runtime inputになっていないかをexact revision B sourceで追加監査しました。
+
+確認したsource:
+
+```text
+cmd/tei/main.go
+  blob: 6a27b98b7f6dbe4e66d1261edfc847402cd608a5
+
+internal/workspace/loader.go
+  B blob: 948c3558b0f8ed8dd48d4a108ab2da6bffb379b0
+
+go.mod
+  blob: f8763f8fb2d64d73f1b40b905f62b5e09c44493b
+```
+
+revision Bの`cmd/tei/main.go`はstandard library以外のrepository-local packageを`tei/internal/...`からのみimportします。`go.mod`は`module tei` / `go 1.23.2`と`github.com/lib/pq` requirementだけで、local `replace`はありません。したがって、`cmd/tei` buildについて別のtop-level local module/treeが暗黙に参加するsource構成は観測していません。
+
+`deployment-provider-plan` caseでは、Provider Plan生成までに使う外部pathはflagから渡された値です。
+
+```text
+-workspace
+  → loadWorld(..., workspacePath)
+  → workspace.Load(workspacePath)
+
+-run
+  → loadCheckedDeploymentRun(..., runPath, ...)
+  → decodeJSONFile(runPath)
+
+-plugin-lock
+  → runtimeFingerprintsForEnvironment(..., pluginLockPath, ...)
+  → decodeJSONFile(pluginLockPath)
+
+-solution / -version
+  → loaded World内のSolution Release selection
+```
+
+case本体、`loadWorld()`、`loadCheckedDeploymentRun()`、`runtimeFingerprintsForEnvironment()`の追跡範囲では、current working directoryから固定relative pathを組み立てる処理は観測していません。
+
+`workspace.Load(root)`もmanifestと各source rootを、渡された`root`を基準に`filepath.Join(root, ...)`して読み込みます。Query authoringからnative SQL fileを参照できる経路についても、`resolveNativeSQLFile()`は次を検査します。
+
+- absolute pathを拒否する。
+- declarationからの論理relative pathがWorkspace外へescapeする場合は拒否する。
+- `filepath.EvalSymlinks`後のreal pathでもWorkspace外へ出る場合は拒否する。
+- `.sql`のregular fileだけを許可する。
+
+したがって、**今回追跡したfixed `deployment-provider-plan`経路では、revision B source checkoutのcwdをA fixed reference inputとは別のfilesystem inputとして読むsource pathは静的に確認されませんでした。**
+
+これは「cwdがどこでもactual結果は必ず同じ」というruntime証明ではありません。current E2はhistorical comparison条件を保つため引き続きB source checkoutをcwdとして使います。また、workspace / validation / IR自体はA/Bで変化しているため、exact A inputをBがactualに受理することは依然として実行確認が必要です。
+
+```text
+explicit fixed-input path flow observed
+  + no repository-cwd filesystem read found on traced source path
+  != cwd-independence proven for arbitrary TEI command
+  != revision B build PASS
+  != revision B Provider Plan execution PASS
+  != current SOZA Adapter live compatibility PASS
+  != ISSUE-000072 Resolved
+```
