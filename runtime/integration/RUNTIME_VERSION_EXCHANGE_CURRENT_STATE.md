@@ -27,6 +27,9 @@ prepositioned root → verified runner orchestration
 preflight → strict entrypoint → low-level harness
   = implemented
 
+partial / complete run progress observation
+  = implemented; canonical Evidence verifierとは別の補助観測
+
 Evidence + Provenance verification
   = implemented
 
@@ -40,7 +43,7 @@ ISSUE-000070
   = Open
 ```
 
-`focused local checks`、helper test、artifact metadata照合、preflight、failure Evidence保存の成功をactual runtime交換の成立へ読み替えません。
+`focused local checks`、helper test、artifact metadata照合、preflight、failure Evidence保存、progress observerの成功をactual runtime交換の成立へ読み替えません。
 
 ## 現在の標準実行経路
 
@@ -89,6 +92,42 @@ run-isolated Evidence
 Evidence + Provenance verifier
   ↓
 ready-to-review | not-sufficient
+  ↓ supplementary observation
+observe_runtime_version_exchange_progress.py
+```
+
+progress observerはcanonical verifierの代替ではありません。保存済みEvidenceから、stderr / stdoutの自然言語を解析せず、固定されたEvidence fileとidentityだけを使って「最後に観測できたmilestone」と「次に未観測のmilestone」を整理します。
+
+主なmilestoneは次の順です。
+
+1. preflight ready
+2. fixed model store static identity
+3. verified KJ Atlas runtime source identity
+4. source / runtime A/B / model fixed identity
+5. runtime A / B archive actual SHA-256
+6. fixed 3-card Method input
+7. runtime A version / model digest / inference
+8. runtime B version / model digest / inference
+9. A / B prompt SHA-256 identity
+
+後段Evidenceがあるのに必要な前段Evidenceが欠けている場合は`inconsistent_evidence_order`とし、都合よく進行済みとは扱いません。runner observationもJSONだけでは信用せず、`runtime-exchange-runner.log`のSHA-256 / bytesと照合し、complete runではcompletion markerも要求します。
+
+途中停止では、たとえば次のような区間だけを記録します。
+
+```text
+last observed = runtime_a_inference_observed
+next unobserved = runtime_b_version_observed
+```
+
+この観測だけから「B runtime展開失敗」「Ollama起動失敗」などの内部原因へ細分化しません。
+
+```text
+observed Evidence milestone boundary
+  != exact failing command or internal root cause
+  != canonical Evidence + Provenance verification PASS
+  != runtime compatibility judgement
+  != outcome quality judgement
+  != ISSUE-000070 Resolved
 ```
 
 手動preflightや下位verified runnerを直接使う経路は、blocked時の診断や個別境界の確認に残します。通常のhandoffでは、利用者がA/B archive file名を再入力する必要はありません。
@@ -119,6 +158,8 @@ official Release metadata match
 
 このWSL2環境により、固定artifactを取得してactual A/Bを実行できる具体的なLinux / amd64候補が確認できました。ただし環境確認後にRemote Desktop Commander接続が切断され、固定artifactの取得、固定model storeの準備、preflight、actual Ollama A/B起動にはまだ進んでいません。
 
+その後の2026-09-05 09時台（JST）の再確認でも、`HAT47X`は登録済みですが`offline`でした。このため、progress observer追加後もactual runtime archive / model store / A/B inferenceは実行していません。
+
 GitHub connectorから公式Release metadataを読めることや、WSL2実行候補の存在を確認したことは、binary bytesが配置されたことやactual runtime交換Evidenceが得られたことを意味しません。過去のrelevant GitHub Actions Runにも再利用できるworkflow artifactは残っていません。
 
 現在の未実行理由は、repository側の実装不足ではなく、actual実行候補へのremote接続が継続していないという運用上の状態です。これをSOZAのProduct failureやruntime交換失敗とは扱いません。
@@ -127,11 +168,14 @@ GitHub connectorから公式Release metadataを読めることや、WSL2実行�
 
 次の前進は追加のguard実装ではなく、上記WSL2等の固定artifactを取得可能なLinux / amd64環境で標準経路をactualに一度通すことです。
 
+actual runが途中で停止した場合は、まずrun専用Evidenceをcanonical Evidence + Provenance verifierへ通し、progress observerは「どこまでactual Evidenceが残ったか」を補助的に整理するために使います。observerの`all_observed_milestones_completed`だけで`ready-to-review`へ昇格させません。
+
 Evidence + Provenance verifierが`ready-to-review`へ到達した後も、それだけでISSUE-000070をResolvedにはしません。Application AのReference / Provenance / output不変性、same logical / different Exact Binding、portable historical reconstruction、no semantic promotion、Requirement / Contract再照合、自然な日本語最終監査まで確認します。
 
 ```text
 artifact preparation PASS
   != preflight ready
+  != progress milestones observed
   != actual A/B inference PASS
   != ready-to-review
   != ISSUE-000070 Resolved
