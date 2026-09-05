@@ -127,14 +127,19 @@ class TEIRevisionBPrepositionedRunnerTest(unittest.TestCase):
             verify_source.assert_not_called()
             run.assert_not_called()
 
+    @mock.patch.object(subject.bundle_verifier, "verify_bundle")
     @mock.patch.object(subject, "_ensure_linux_amd64")
     @mock.patch.object(subject.source_identity, "verify_repository")
     @mock.patch.object(subject, "_run")
     def test_exact_b_checkout_uses_exact_a_reference_input(
-        self, run, verify_source, ensure_platform
+        self, run, verify_source, ensure_platform, verify_bundle
     ):
         run.side_effect = self.fake_run
         verify_source.side_effect = self.verified_observations()
+        verify_bundle.return_value = {
+            "result": "verified",
+            "observation": {"source_commit": source_identity.REVISION_B},
+        }
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             source_repo, reference_repo = self.make_pair(root)
@@ -177,6 +182,11 @@ class TEIRevisionBPrepositionedRunnerTest(unittest.TestCase):
                 ),
             ],
             verify_source.call_args_list,
+        )
+        verify_bundle.assert_called_once()
+        self.assertEqual(
+            source_identity.REVISION_B,
+            verify_bundle.call_args.kwargs["expected_source_commit"],
         )
 
     @mock.patch.object(subject, "_ensure_linux_amd64")
