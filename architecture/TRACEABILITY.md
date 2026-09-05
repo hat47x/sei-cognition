@@ -49,12 +49,12 @@ traceability coverage
 | REQ-0013 | ADR-0004, 0012, 0016 | Responsibility / Authority; Capability / Provider | Covered |
 | REQ-0014 | ADR-0010 | Inquiry / Epistemics; Decision Memory | Covered |
 | REQ-0015 | ADR-0017, 0025 | Cognitive Method; Decision rationale | Covered |
-| REQ-0016 | ADR-0002, 0017, 0019, 0024, 0025 | Inquiry / Epistemics; Cognitive Method; Adapter interpretation | Covered |
+| REQ-0016 | ADR-0002, 0017, 0019, 0024 | Inquiry / Epistemics; Cognitive Method; Adapter interpretation | Covered |
 | REQ-0017 | ADR-0004, 0010, 0016 | Responsibility / Authority | Covered |
-| REQ-0018 | ADR-0007, 0008, 0009, 0023, 0026 | Persistence; Reference / Binding / Revision; Representation Profile boundary | Covered |
+| REQ-0018 | ADR-0007, 0008, 0009, 0023 | Persistence; Reference / Binding / Revision; Representation Profile boundary | Covered |
 | REQ-0019 | ADR-0018, 0020, 0021, 0028 | Projection; Contract Definition; Product Interaction; traceability | Covered |
 | REQ-0020 | ADR-0009, 0018, 0020, 0021 | Evidence / Assurance boundary | Covered |
-| REQ-0021 | ADR-0013, 0014, 0017, 0022, 0024, 0025, 0027 | Provider / Adapter; Method Realization; runtime boundary | Covered |
+| REQ-0021 | ADR-0013, 0014, 0017, 0022, 0024 | Provider / Adapter; Method Realization; runtime boundary | Covered |
 | REQ-0022 | ADR-0006, 0008, 0012, 0013, 0014, 0019, 0024 | Capability Observation; Provider / Adapter; Exact Binding; Federation | Covered |
 
 ## 4. ADRからArchitectureへの追加境界
@@ -84,6 +84,15 @@ current ProfileとしてJCS+SHA-256とraw-bytes+SHA-256を定義しています�
 ### ADR-0024 — Provider Adapter observation mapping boundary
 
 Provider Adapterを、Provider固有stateからProvider-neutralなCapability Observationへの観測・解釈境界として扱います。
+
+```text
+Provider-owned state
+  + observation context
+        ↓
+Adapter / Mapping
+        ↓
+Capability Observation
+```
 
 Provider-specific input schemaをSOZA Universal ontologyへ統合しません。field mapping、unit conversion、status interpretation等の解釈をmapping provenanceとして追跡可能にし、missing / unknownをnegative factへ変換しない境界を維持します。
 
