@@ -1,7 +1,7 @@
 # SOZA Reference Architecture
 
-更新日: 2026-08-31  
-状態: **Current Reference Architecture Baseline**
+更新日: 2026-09-05  
+状態: **Current Reference Architecture Baseline — current Product / Contract / scoped Evidence reflected**
 
 ## 1. 目的
 
@@ -272,7 +272,9 @@ Provider state != Capability interpretation != Decision
 
 mappingが重要なDecision basisになった場合、当時利用したmapping versionを特定できるようにします。
 
-current synthetic Provider Adapterは、この境界の限定的なExecutable Evidenceです。Provider A / B固有fieldをUniversal Capability Observationへ漏らさず、missing値を`false`や`0`へ捏造せず、mapping provenanceとsource state referenceを保持することを検査しています。ただし、production Provider / TEI integrationを確認したものではありません。
+current synthetic Provider Adapterは、この境界の限定的なExecutable Evidenceです。Provider A / B固有fieldをUniversal Capability Observationへ漏らさず、missing値を`false`や`0`へ捏造せず、mapping provenanceとsource state referenceを保持することを検査しています。
+
+さらに、E3b-P1ではpublic live Provider serviceをactualに呼び、E3b-P2 revision Aではfixed-artifact actual TEI CLIをSOZA Adapter境界へ接続するScoped Executable Evidenceがあります。ただし、これらはarbitrary Provider互換性やTEI revision B互換性を意味しません。ISSUE-000072のrevision B actual CLI / Provider Plan / current SOZA Adapter compatibilityはNot Yet Verifiedです。
 
 ### 8.4 Matching
 
@@ -540,44 +542,56 @@ current Architectureから、独立versioningと相互運用上の合意が必�
 
 | Concern | current Contract / Profile | current Evidence |
 |---|---|---|
-| Semantic Reference / Revision / Exact Binding | `soza.semantic-reference/v1alpha1` | Contract fixture / runtimeで一部検証 |
-| Decision Memory | `soza.decision-memory/v1alpha1` | Contract fixture / runtimeで一部検証 |
-| Capability Observation | `soza.capability-observation/v1alpha1` | F1〜F7 / runtime / synthetic Adapterで一部検証 |
-| Portable Semantic Interchange | `soza.semantic-interchange/v1alpha1` | Contract fixture / runtimeで一部検証 |
+| Semantic Reference / Revision / Exact Binding | `soza.semantic-reference/v1alpha1` | Contract fixture / runtime / historical reconstructionで限定検証 |
+| Decision Memory | `soza.decision-memory/v1alpha1` | Contract fixture / runtime / Product Journeyで限定検証 |
+| Capability Observation | `soza.capability-observation/v1alpha1` | runtime / synthetic Adapter / E3b Provider integrationで限定検証 |
+| Cognitive Method Definition / Realization / Application | `soza.cognitive-method/v1alpha1` | runtime / M1a / M1b / historical reconstruction / model・runtime exchangeで限定検証 |
+| Portable Semantic Interchange | `soza.semantic-interchange/v1alpha1` | Contract fixture / runtime / Product Journeyで限定検証 |
 | Exact Binding Representation | `soza.jcs+sha256/v1alpha1` | Representation Profile fixture / Go probe |
-| Exact Binding Representation | `soza.raw-bytes+sha256/v1alpha1` | Representation Profile fixture |
+| Exact Binding Representation | `soza.raw-bytes+sha256/v1alpha1` | Representation Profile fixture / external artifact bindingで限定検証 |
 
-これらはcurrent baselineでAcceptedされた相互運用境界です。ただし、4 Contract familyや2 ProfileがSOZAの全意味領域を覆うとは主張しません。
+これらはcurrent baselineでAcceptedされた相互運用境界です。ただし、5 Contract familyや2 ProfileがSOZAの全意味領域を覆うとは主張しません。
 
-Projection、Federation、Cognitive Method等について、current Scenarioで独立Contractが必要になっていないものは先回りしてUniversal Contract化しません。
+Projection、Federation、Product Access Policy、Packaging layout等について、独立したportable semantic agreementが必要だと確認される前にUniversal Contractを先回りして追加しません。
 
-## 19. current Executable Evidenceの範囲
+## 19. current Evidenceの範囲
 
 actual repositoryには、Architectureの一部を再現可能に確認するmaterialがあります。
 
-- Contract v1alpha1 schema / 17 fixture / semantic validator
-- JCS / raw-bytes Representation Profile fixtureとGo verifier probe
-- Contract fixtureを読むGo first semantic runtime slice
-- synthetic heterogeneous Provider A / B Adapter slice
+代表的なScoped Executable Evidence:
 
-代表的なactual CI:
+- current 5 Contract family / 2 Representation Profile conformance
+- Go semantic runtime / synthetic Provider Adapter
+- end-to-end Semantic Product Journey
+- Product Interaction reference probe
+- Packaging / Persistence / Local Reference Package probes
+- Product Access / Collaboration probe
+- E2 out-of-process Realization / Provider exchange
+- E3a version-pinned external artifact integration
+- E3b-P1 public live Provider integration
+- E3b-P2 revision A fixed-artifact actual TEI CLI integration
+- E3b-M1a live KJ Atlas + deterministic model stub
+- E3b-M1b live KJ Atlas + actual inference model
+- Method Realization historical revision / portable reconstruction
+- actual model artifact exchange後のhistorical Application保持
+- fixed-model Ollama `0.32.13` / `0.32.14` runtime version exchange後のhistorical Application保持 — ISSUE-000070 Resolved
 
-- Contract Conformance — Run `33346472419`: **success**
-- Representation Profile Conformance — Run `33347989530`: **success**
-- Semantic Runtime Conformance #3 — Run `33348972805`: **success**
-- Semantic Runtime Conformance #4 — Run `33349604842`: **success**
-- Semantic Runtime Conformance #5 — Run `33349801993`: **success**
+historical GitHub Actions Runは、その時点で実際に得られたEvidenceとして保持しますが、current Architectureや検証成立条件をGitHub Actionsへ依存させません。
+
+v0.2.0 Local Reference Product Baselineについてactual Release Evidenceがあります。ただし、supported release scopeはE3aまでです。post-release E3b / historical reconstruction / model・runtime exchange Evidenceを、公開済みv0.2.0のsupport範囲へ遡及させません。
 
 ```text
-fixture-scoped CI PASS
+Scoped Executable Evidence available
   != Architecture implementation complete
-  != production Provider / TEI integration
-  != Release Evidence
+  != arbitrary Provider / model / runtime portability
+  != v0.2.0 supported scope expanded
   != Operational Evidence
   != Adoption / Outcome Evidence
 ```
 
-historical M47 digest mappingはISSUE-000034で別途扱い、current Profile conformanceから過去方式を推定しません。
+ISSUE-000072のrevision B actual CLI / Provider Plan / current SOZA Adapter compatibilityはNot Yet Verifiedです。repository-side runner、identity verifier、toolchain分離、stage-aware diagnostics、Evidence output path guardが存在しても、それ自体をrevision B compatibility PASSへ読み替えません。
+
+historical M47 digest mappingについてはISSUE-000034で、保持されている直接Evidenceから旧digest規則を権威的に復元できないと整理しています。current Profile conformanceから過去方式を推定しません。
 
 ## 20. 現時点でArchitectureが固定しないもの
 
@@ -616,6 +630,7 @@ AIや実行基盤が大幅に高度化しても、提案したこと、判断し
 - `../product/value/SOZA_VALUE_MODEL.md`
 - `../product/value/SOZA_VALUE_ACCEPTANCE.md`
 - `../product/value/SOZA_VALUE_TRACEABILITY.md`
+- `../product/roadmap/PMS06_CURRENT_STATE_2026-09-05.md`
 - `../requirements/PRODUCT_REQUIREMENTS.md`
 - `../requirements/ACCEPTANCE_SCENARIOS.md`
 - `TRACEABILITY.md`
@@ -625,7 +640,17 @@ AIや実行基盤が大幅に高度化しても、提案したこと、判断し
 - `../plan/adr/ADR-0022-runtime-first-slice-read-validate-reconstruct.md`
 - `../plan/adr/ADR-0023-current-representation-profile-baseline.md`
 - `../plan/adr/ADR-0024-provider-adapter-observation-mapping-boundary.md`
+- `../plan/adr/ADR-0025-cognitive-method-portable-contract-boundary.md`
+- `../plan/adr/ADR-0026-cross-contract-bundle-exact-binding-consistency.md`
+- `../plan/adr/ADR-0027-go-as-standard-production-runtime-language.md`
+- `../plan/adr/ADR-0028-product-interaction-canonical-operation-boundary.md`
+- `../plan/adr/ADR-0029-local-single-node-packaging-deployment-profile.md`
+- `../plan/adr/ADR-0030-product-identity-access-collaboration-boundary.md`
 
 ## 23. Natural Japanese review
 
-current Product Value、REQ-0001〜0022、SCN-0001〜0017、ADR-0001〜0024、4 Contract family、2 Representation Profile、first semantic runtime slice、synthetic Provider Adapter、およびactual CI Evidenceへ戻ってReference Architectureを再監査しました。historical candidateで未決だったContract / Representation候補と、currentで既にAccepted・実体化・限定検証された境界を分離し直しています。その後、意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+current Product Value、REQ-0001〜0022、SCN-0001〜0018、ADR-0001〜0030、current 5 Contract family、2 Representation Profile、semantic runtime、Provider Adapter、Cognitive Method、Product Journey、Product Interaction、Packaging / Persistence、Product Access、v0.2.0 Release Evidence、PMS-06のE3b / historical reconstruction / model・runtime version exchangeへ戻ってReference Architectureを再監査しました。
+
+旧版に残っていた「4 Contract family」「Cognitive Method Contract未成立」「production Provider / TEI integration未確認」「Release Evidence未成立」という2026-08-31時点の記述をcurrent stateへ更新しました。
+
+そのうえで、ISSUE-000070のfixed-scope Scoped Executable Evidenceをarbitrary portabilityや成果品質へ拡張せず、ISSUE-000072 revision B actual、E4 Operational portability、Adoption / Outcome Evidenceを未検証として残しています。意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して最終意味監査を行いました。
