@@ -1,0 +1,166 @@
+{
+  "blockers": [],
+  "checks": [
+    {
+      "detail": "host OS: Linux; 固定runtime artifactはLinux用です",
+      "id": "host.os",
+      "status": "ok"
+    },
+    {
+      "detail": "host architecture: x86_64; 固定runtime artifactはamd64用です",
+      "id": "host.arch",
+      "status": "ok"
+    },
+    {
+      "detail": "git: /usr/bin/git",
+      "id": "command.git",
+      "status": "ok"
+    },
+    {
+      "detail": "python3: /usr/bin/python3",
+      "id": "command.python3",
+      "status": "ok"
+    },
+    {
+      "detail": "go: /usr/local/go/bin/go",
+      "id": "command.go",
+      "status": "ok"
+    },
+    {
+      "detail": "curl: /usr/bin/curl",
+      "id": "command.curl",
+      "status": "ok"
+    },
+    {
+      "detail": "zstd: /usr/bin/zstd",
+      "id": "command.zstd",
+      "status": "ok"
+    },
+    {
+      "detail": "tar: /usr/bin/tar",
+      "id": "command.tar",
+      "status": "ok"
+    },
+    {
+      "detail": "sha256sum: /usr/bin/sha256sum",
+      "id": "command.sha256sum",
+      "status": "ok"
+    },
+    {
+      "detail": "uname: /usr/bin/uname",
+      "id": "command.uname",
+      "status": "ok"
+    },
+    {
+      "detail": "mktemp: /usr/bin/mktemp",
+      "id": "command.mktemp",
+      "status": "ok"
+    },
+    {
+      "detail": "cp: /usr/bin/cp",
+      "id": "command.cp",
+      "status": "ok"
+    },
+    {
+      "detail": "Git working treeを確認しました: /work/source/soza",
+      "id": "soza.git",
+      "status": "ok"
+    },
+    {
+      "detail": "working treeはcleanです",
+      "id": "soza.clean",
+      "status": "ok"
+    },
+    {
+      "detail": "source mode: git-checkout（source acquisition用。strict Evidenceでは固定commit objectからverified runtime bundleへexportします）",
+      "id": "kj-atlas.source-mode",
+      "status": "ok"
+    },
+    {
+      "detail": "Git working treeを確認しました: /work/source/kj-atlas",
+      "id": "kj-atlas.git",
+      "status": "ok"
+    },
+    {
+      "detail": "source acquisitionに必要な固定commit objectを確認しました: 4f28c13abe4176503c6fed863383a2d1db2299e9。HEADやworking treeの内容はstrict runtime sourceに使用しません",
+      "id": "kj-atlas.commit-object",
+      "status": "ok"
+    },
+    {
+      "detail": "path境界を確認しました: /work/evidence-20260904T193500Z-work",
+      "id": "path.work",
+      "status": "ok"
+    },
+    {
+      "detail": "path境界を確認しました: /work/evidence-20260904T193500Z",
+      "id": "path.evidence",
+      "status": "ok"
+    },
+    {
+      "detail": "work領域の既存parent=/work; free=949033861120 bytes; 固定runtime archive 2本の圧縮bytes合計=2842984585。展開後runtime、Python環境、work-local model storageには追加容量が必要です。この観測だけではdisk容量が十分とは判定しません",
+      "id": "disk.work",
+      "status": "ok"
+    },
+    {
+      "detail": "固定size / digestと一致します: size=1421793186 sha256=0fd1dece38a1c6242e8013ce20b597345c5de072ae6b320160edb0e729ef1de1",
+      "id": "archive.runtime-a",
+      "status": "ok"
+    },
+    {
+      "detail": "固定size / digestと一致します: size=1421191399 sha256=c620917a71e146ab3a7f893084f066069c4c65d144ef8379a91c3cbe8b27de8f",
+      "id": "archive.runtime-b",
+      "status": "ok"
+    },
+    {
+      "detail": "model storage directoryを確認しました: /work/inputs/ollama-models",
+      "id": "model.store",
+      "status": "ok"
+    },
+    {
+      "detail": "固定model store identityを静的に再検証しました: model=qwen2.5:0.5b manifestSha256=a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67 referencedBlobCount=5。actual Ollama /api/tags と runtime A/B inference は実行時に別途確認します",
+      "id": "model.store.identity",
+      "status": "ok"
+    },
+    {
+      "detail": "127.0.0.1:11434 は使用可能です",
+      "id": "port.ollama",
+      "status": "ok"
+    },
+    {
+      "detail": "127.0.0.1:8001 は使用可能です",
+      "id": "port.soza-model-adapter",
+      "status": "ok"
+    },
+    {
+      "detail": "127.0.0.1:8101 は使用可能です",
+      "id": "port.kj-atlas",
+      "status": "ok"
+    }
+  ],
+  "fixedArtifacts": {
+    "model": {
+      "name": "qwen2.5:0.5b",
+      "sha256": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67"
+    },
+    "runtimeA": {
+      "sha256": "0fd1dece38a1c6242e8013ce20b597345c5de072ae6b320160edb0e729ef1de1",
+      "sizeBytes": 1421793186,
+      "version": "0.32.13"
+    },
+    "runtimeB": {
+      "sha256": "c620917a71e146ab3a7f893084f066069c4c65d144ef8379a91c3cbe8b27de8f",
+      "sizeBytes": 1421191399,
+      "version": "0.32.14"
+    },
+    "totalCompressedRuntimeBytes": 2842984585
+  },
+  "pinnedSourceIdentity": {
+    "pinnedBackendTree": "7d71ac2b4d32bef90f3a481ade1b4c92ddddd084",
+    "repository": "hat47x/kj-atlas",
+    "runtimeSurfaceTree": "208bea71eef4afed3ddfd3fabb36b0969d167a90",
+    "sourceCommit": "4f28c13abe4176503c6fed863383a2d1db2299e9"
+  },
+  "result": "ready",
+  "schema": "soza.runtime-version-exchange-preflight/v1",
+  "stopLine": "preflight ready != actual runtime A/B inference PASS != runtime-version-exchange Scoped Executable Evidence"
+}
