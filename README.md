@@ -236,13 +236,13 @@ historical M47 digest規則は、現在保持されている直接Evidenceから
 - E3b-M1b Ollama actual model-backed Cognitive Method integration
 - actual model artifact交換のhistorical Application保持
 - Method Realization historical revision / portable reconstruction
+- fixed-model Ollama `0.32.13` / `0.32.14` runtime version exchangeのScoped Executable Evidence
 - Cognitive Method outcome-quality evaluation boundary
-- Ollama runtime version交換用repository-local harness / artifact guard / preflight / Evidence verifier / progress observer
 - TEI executable version交換用source / fixed-input identity verifier、E2 / E3 runner、toolchain-split combined runner、stage-aware diagnostics
 
-このうち、v0.2.0の**supported release scopeはE3aまで**です。release後に得られたE3b-P2、M1a / M1b等のEvidenceを理由に、公開済みv0.2.0のsupport範囲を後から広げません。
+このうち、v0.2.0の**supported release scopeはE3aまで**です。release後に得られたE3b-P2、M1a / M1b、runtime version exchange等のEvidenceを理由に、公開済みv0.2.0のsupport範囲を後から広げません。
 
-また、version交換についてはrepository-sideの実験基盤まで整っていますが、固定model artifact下のOllama `0.32.13` / `0.32.14` actual交換と、revision B TEI executableのactual build / Provider Plan / current SOZA Adapter compatibilityは、どちらもまだ完了していません。
+ISSUE-000070の固定model artifact下のOllama `0.32.13` / `0.32.14` actual交換はhistorical execution `local-20260904T193531Z-7855`の回収・検証によりResolvedです。一方、revision B TEI executableのactual build / Provider Plan / current SOZA Adapter compatibilityはまだ完了していません。
 
 ## 9. v0.2.0 Release Evidence
 
@@ -282,30 +282,28 @@ current registryはADR-0001〜ADR-0030、ISSUE-000001〜ISSUE-000072を管理し
 
 現在の未解決Issueは次です。
 
-- ISSUE-000070: **Open** — model artifactを固定したOllama runtime version交換とhistorical Application保持のactual実証
 - ISSUE-000072: **Open** — TEI executable revision交換後もProvider Observation境界を保てるかのactual実証
 
 また、次は意図的にDeferredです。
 
 - ISSUE-000021: **Deferred** — historical design provenanceの逐語監査
 
-ISSUE-000069はGitHub Actions / runner availabilityと検証責務の分離としてResolvedです。ISSUE-000071はCognitive Method成果品質の**評価境界の確立**としてResolvedですが、actual human reviewや成果品質そのものがSatisfiedになったことを意味しません。
+ISSUE-000069はGitHub Actions / runner availabilityと検証責務の分離としてResolvedです。ISSUE-000070はfixed-model Ollama runtime version交換のScoped Executable Evidenceに基づきResolvedです。ISSUE-000071はCognitive Method成果品質の**評価境界の確立**としてResolvedですが、actual human reviewや成果品質そのものがSatisfiedになったことを意味しません。
 
 Resolvedは、対象作業の完了を示します。Release / Operational / Adoption・Outcome Evidenceまで自動的にVerifiedになったことを意味しません。
 
 ## 12. 次に深める領域
 
-現時点では、PMS-06の二つのOpen version-exchange実証をactualに通すことが最優先です。片方のPASSをもう片方のEvidenceへ流用しません。
+現時点では、PMS-06の主要Open version-exchange実証はISSUE-000072です。ISSUE-000070の固定scope PASSをTEI側のEvidenceへ流用しません。
 
-1. ISSUE-000070で、固定model artifactの下でOllama `0.32.13` / `0.32.14`をactualに交換する。
-2. ISSUE-000070で、same logical Realization / different Exact Binding、Application AのExact Reference / Provenance / output不変性、portable historical reconstructionをactual Evidenceで確認する。
-3. ISSUE-000072で、exact revision B executable + exact revision A fixed inputによりactual `deployment-provider-plan`を実行する。
-4. ISSUE-000072で、revision Bをcurrent SOZA Adapterからactualに起動し、Capability Observation mapping成立可否を確認する。
-5. ISSUE-000072のactual結果をREQ-0001 / 0007 / 0021、SCN-0014 / 0018へ戻し、必要なら隣接REQ-0022も監査する。
-6. ISSUE-000071で整えたreview bundleを使い、必要に応じてactual human reviewを行う。
-7. 別model family、別Provider、別Realizationへbroader portabilityを広げる。
-8. network degradation、credential失効、artifact acquisition failure等のfailure behaviorを探索する。
-9. E4 Operational portabilityとAdoption / Outcome Evidenceへ進む。
+1. ISSUE-000072で、exact revision B executable + exact revision A fixed inputによりactual `deployment-provider-plan`を実行する。
+2. ISSUE-000072で、revision Bをcurrent SOZA Adapterからactualに起動し、Capability Observation mapping成立可否を確認する。
+3. ISSUE-000072のactual結果をREQ-0001 / 0007 / 0021、SCN-0014 / 0018へ戻し、必要なら隣接REQ-0022も監査する。
+4. ISSUE-000070 fixed-scope Evidenceを必要に応じて独立reproductionし、別runtime / model familyへの一般化可能性を探索する。
+5. ISSUE-000071で整えたreview bundleを使い、必要に応じてactual human reviewを行う。
+6. 別model family、別Provider、別Realizationへbroader portabilityを広げる。
+7. network degradation、credential失効、artifact acquisition failure等のfailure behaviorを探索する。
+8. E4 Operational portabilityとAdoption / Outcome Evidenceへ進む。
 
 実装量やIssue数を増やすこと自体は目的にしません。既存RequirementとContractで表現できる場合は、実証のためだけにUniversal semanticsを増やしません。
 
@@ -335,8 +333,10 @@ change scope
 
 2026-09-05時点のProduct Value、Product Milestone、PMS-06 current snapshot、REQ-0001〜0022、SCN-0001〜0018、ADR-0001〜0030、ISSUE-000001〜000072、5 Semantic Contract family、2 Representation Profile、current runtime / probe / evaluation資産、v0.2.0 historical Release Evidence、ISSUE-000067〜000072へ戻って現在地を再監査しました。
 
-旧READMEに残っていた`.github/`のcurrent tree記載、ISSUE-000063までのPlan状態、既に完了したTEI / external Cognitive Method実証を「次の作業」とする記述は以前に更新済みです。今回さらに、ISSUE-000072追加後もregistry範囲とOpen Issueが000071 / 000070のまま残っていた入口状態を修正しました。GitHub Actionsのhistorical Evidenceは保存しながら、現在の検証はローカル個別実行へ切り替えています。
+v0.2.0のRelease EvidenceはLocal Reference Product Baselineに限定してSatisfiedとし、後続E3b Evidenceをrelease scopeへ遡及させません。ISSUE-000070のactual Ollama runtime version交換は固定scopeのScoped Executable Evidenceとして成立し、current-contract object equivalenceまで監査したうえでResolvedです。
 
-v0.2.0のRelease EvidenceはLocal Reference Product Baselineに限定してSatisfiedとし、後続E3b Evidenceをrelease scopeへ遡及させません。ISSUE-000070のactual Ollama runtime version交換、ISSUE-000072のactual TEI executable version交換、human outcome review、E4、Operational / Adoption Evidenceはいずれも未検証範囲を維持しています。
+一方、ISSUE-000072のactual TEI executable revision B交換、human outcome review、E4、Operational / Adoption Evidenceはいずれも未検証範囲を維持しています。ISSUE-000070のResolvedをそれらへ拡張しません。
 
-意味、規範強度、Evidence強度を変えず、入口文書として自然な日本語で現在地をたどれることを最重要視して全文を再ドラフトしました。
+GitHub Actionsのhistorical Evidenceは保存しながら、現在の検証はローカル個別実行へ切り替えています。
+
+意味、規範強度、Evidence強度を混同せず、入口文書として自然な日本語で現在地をたどれることを最重要視して全文を再監査しました。

@@ -244,9 +244,9 @@ synthetic fixtureだけでなく、実際のCognitive Method Realization、AI、
 
 ### Current state
 
-**Partial / E2 + E3a + E3b-P1 + E3b-P2 revision A fixed-artifact + E3b-M1a + E3b-M1b + historical reconstruction + actual model artifact exchangeまでScoped Executable Evidence available / ISSUE-000070 Ollama runtime version exchange・ISSUE-000072 TEI executable version exchange・E4 pending.**
+**Partial / E2 + E3a + E3b-P1 + E3b-P2 revision A fixed-artifact + E3b-M1a + E3b-M1b + historical reconstruction + actual model artifact exchange + fixed-model Ollama runtime version exchangeまでScoped Executable Evidence available / ISSUE-000072 TEI executable version exchange・E4 pending.**
 
-current Open探索の短いsnapshotは`PMS06_CURRENT_STATE_2026-09-05.md`を参照します。ISSUE-000070とISSUE-000072は交換軸が異なり、片方のPASSをもう片方のEvidenceへ流用しません。
+current stateの短いsnapshotは`PMS06_CURRENT_STATE_2026-09-05.md`を参照します。ISSUE-000070の固定scope runtime version exchangeはResolved、ISSUE-000072はOpenです。交換軸が異なるため、片方のPASSをもう片方のEvidenceへ流用しません。
 
 Evidenceを次の段階に分けます。
 
@@ -270,7 +270,7 @@ E3b
   └─ M1 live external Cognitive Method
        ├─ M1a live KJ Atlas process + deterministic model stub [Scoped Evidence]
        ├─ M1b live external model-backed KJ execution [Scoped Evidence]
-       └─ fixed model artifact + Ollama runtime version exchange [pending]
+       └─ fixed model artifact + Ollama 0.32.13 / 0.32.14 runtime version exchange [Scoped Evidence]
 ```
 
 この区分はEvidenceの範囲を示すためのもので、新しいProduct ontologyではありません。
@@ -370,22 +370,25 @@ ISSUE-000068ではKJ Atlas source、Method surface、runtime、入力を固定�
 
 ### Ollama runtime version exchange
 
-ISSUE-000070では交換軸をruntime versionだけへ狭め、model artifactを固定します。
+ISSUE-000070では交換軸をruntime versionだけへ狭め、model artifactを固定しました。
 
 - revision A: Ollama `0.32.13`
 - revision B: Ollama `0.32.14`
 
-repository-local harness、固定runtime archive metadata / digest、fixed model digest、Exact Binding control、artifact guard、事前配置artifact経路、run専用Evidence directory、side-effect-free preflight、canonical Evidence / Provenance verifier、partial / complete run progress observerまで整備しています。
+historical execution `local-20260904T193531Z-7855`のactual Evidenceをcurrent developへ回収し、固定KJ Atlas source、runtime A/B actual archive bytes / binary version、固定model full digest、same Method input / prompt、A/B actual inference、same logical / different Exact Binding、historical Application不変性、portable reconstruction、negative controlを確認しています。
+
+canonical Evidence + Provenance verificationは`ready-to-review`、`107 ok / 0 blocked`です。actual run commitとcurrent developをobject-levelで比較し、ISSUE-000070 Resolution Criteria、core / Provenance verifier、fixed artifact manifest、Requirement / Scenario、relevant Contract baselineが同一であることも再監査しました。
 
 ```text
-runtime exchange execution path / observer ready
-  != actual runtime A/B archive bytes verified
-  != actual binary versions verified
-  != actual A/B model identity verified
-  != actual runtime A/B inference PASS
-```
+fixed-scope Ollama 0.32.13 / 0.32.14 runtime exchange
+  = Scoped Executable Evidence available
+  = ISSUE-000070 Resolved
 
-actual `0.32.13` / `0.32.14`交換は**Not Yet Verified**です。
+  != arbitrary runtime version portability
+  != model output quality satisfied
+  != KJ-method outcome quality satisfied
+  != E4 Operational portability
+```
 
 ### outcome-quality evaluation boundary
 
@@ -395,7 +398,7 @@ ISSUE-000071では、execution conformance、structural safety、human outcome r
 
 ### v0.2.0との関係
 
-v0.2.0のsupported release scopeはE3aまでです。release後に積み上がったE3b、historical reconstruction、model artifact exchange、version-exchange repository-side readiness等を、既に公開済みのv0.2.0 supported scopeやRelease Evidenceへ遡及的に追加しません。
+v0.2.0のsupported release scopeはE3aまでです。release後に積み上がったE3b、historical reconstruction、model artifact exchange、fixed-scope runtime version exchange等を、既に公開済みのv0.2.0 supported scopeやRelease Evidenceへ遡及的に追加しません。
 
 ### Open questions
 
@@ -403,7 +406,6 @@ v0.2.0のsupported release scopeはE3aまでです。release後に積み上が�
 - TEI executableの正式な取得・配布方式
 - ISSUE-000072のrevision B actual CLI / Provider Plan / current SOZA Adapter compatibility
 - arbitrary TEI / model / runtime version compatibility
-- ISSUE-000070のactual Ollama runtime version exchange
 - version交換後のhistorical Exact Binding / Provenanceを長期運用でどこまで保持するか
 - 別model family / Provider / Realizationへ広げたportability
 - actual human reviewとKJ法としての成果品質
@@ -483,10 +485,12 @@ Open Questionを直接Stable Requirementへ飛ばしません。
 
 historical Actions Runは、当時actualに得たExecutable / Release Evidenceとして保持しています。一方、current Open Questionから`SOZA Actionsからcredentialを供給する`という実行面固有の表現を外し、private artifact acquisition / credential lifecycleという製品側の論点へ戻しました。current継続検査もGitHub Actionsではなくrepository-local testを前提とします。
 
-PMS-06にはE3b-P2 revision A、M1a、M1b、ISSUE-000067のhistorical reconstruction、ISSUE-000068のactual model artifact交換、ISSUE-000071の成果品質評価境界に加え、ISSUE-000070のOllama runtime version交換とISSUE-000072のTEI executable version交換を別のOpen探索軸として反映しました。両方ともrepository-side actual pathは整っていますが、actual version交換自体はNot Yet Verifiedです。
+PMS-06にはE3b-P2 revision A、M1a、M1b、ISSUE-000067のhistorical reconstruction、ISSUE-000068のactual model artifact交換、ISSUE-000071の成果品質評価境界に加え、ISSUE-000070のfixed-model Ollama runtime version交換をScoped Executable Evidenceとして反映しました。ISSUE-000072のTEI executable version交換は引き続きOpenで、actual revision BはNot Yet Verifiedです。
+
+ISSUE-000070については、historical actual Evidenceの回収だけでなく、actual run時とcurrent developのResolution Criteria / canonical verifier / fixed artifact manifest / Requirement / Scenario / relevant Contractが同一Git objectであることまで再監査しました。これにより固定scopeのResolution Criteriaを満たす一方、成果品質、任意runtime portability、E4へは拡張していません。
 
 ISSUE-000072については、revision A historical Evidenceとrevision B actual compatibilityを分離し、exact-B executable + exact-A fixed inputという比較軸、E2 / E3別toolchain、stage-aware failure Evidence、actual前Requirement / Scenario pre-auditをMilestone上のcurrent stateへ同期しました。これらをrevision B actual PASSや新Stable Requirement成立へ読み替えていません。
 
-PMS-07のv0.2.0 supported scopeはE3aまでに保ち、post-release Evidenceやversion-exchange readinessによってRelease Evidenceを遡及的に拡張していません。E4、production security / Storage、PMS-08のOperational / Adoption・Outcome Evidenceも未検証のままです。
+PMS-07のv0.2.0 supported scopeはE3aまでに保ち、post-release Evidenceやversion-exchange EvidenceによってRelease Evidenceを遡及的に拡張していません。E4、production security / Storage、PMS-08のOperational / Adoption・Outcome Evidenceも未検証のままです。
 
-意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語としてMilestoneの現在地を読み通せることを最重要視して全文を再ドラフトしました。
+意味、規範強度、未決事項、Evidence強度を混同せず、自然な日本語としてMilestoneの現在地を読み通せることを最重要視して全文を再監査しました。
