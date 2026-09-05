@@ -1,6 +1,6 @@
 # 綜座 / SOZA
 
-更新日: 2026-09-03  
+更新日: 2026-09-05  
 状態: **v0.2.0 Local Reference Product Baseline released / development continues**
 
 SOZAは、人間・AI・組織・既存システム・外部サービスが入れ替わっても、**何を見て、何を問い、何を根拠とし、何を決め、何を未解決として残したか**を失わないための、可搬な認知・意思決定基盤です。
@@ -109,41 +109,42 @@ GitHub Actions停止中も検証を省略するわけではありません。ロ
 6. `product/value/SOZA_VALUE_TRACEABILITY.md`
 7. `product/definition/SOZA_PRODUCT_SHAPE.md`
 8. `product/roadmap/SOZA_PRODUCT_MILESTONES.md`
+9. `product/roadmap/PMS06_CURRENT_STATE_2026-09-05.md`
 
 ### Requirements
 
-9. `requirements/README.md`
-10. `requirements/PRODUCT_REQUIREMENTS.md`
-11. `requirements/ACCEPTANCE_SCENARIOS.md`
-12. `requirements/PRODUCT_JOURNEY_COMPOSITION.md`
+10. `requirements/README.md`
+11. `requirements/PRODUCT_REQUIREMENTS.md`
+12. `requirements/ACCEPTANCE_SCENARIOS.md`
+13. `requirements/PRODUCT_JOURNEY_COMPOSITION.md`
 
 ### Architecture
 
-13. `architecture/README.md`
-14. `architecture/SOZA_REFERENCE_ARCHITECTURE.md`
-15. `architecture/TRACEABILITY.md`
+14. `architecture/README.md`
+15. `architecture/SOZA_REFERENCE_ARCHITECTURE.md`
+16. `architecture/TRACEABILITY.md`
 
 ### Contracts / Representation Profiles
 
-16. `contracts/README.md`
-17. `contracts/CONTRACT_CATALOG.md`
-18. `contracts/TRACEABILITY.md`
-19. `contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md`
-20. `contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md`
-21. `contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md`
-22. `contracts/cognitive-method/SOZA_COGNITIVE_METHOD_v1alpha1.md`
-23. `contracts/interchange/SOZA_SEMANTIC_INTERCHANGE_v1alpha1.md`
-24. `contracts/profiles/README.md`
+17. `contracts/README.md`
+18. `contracts/CONTRACT_CATALOG.md`
+19. `contracts/TRACEABILITY.md`
+20. `contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md`
+21. `contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md`
+22. `contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md`
+23. `contracts/cognitive-method/SOZA_COGNITIVE_METHOD_v1alpha1.md`
+24. `contracts/interchange/SOZA_SEMANTIC_INTERCHANGE_v1alpha1.md`
+25. `contracts/profiles/README.md`
 
 ### Release / Planning
 
-25. `release/README.md`
-26. `release/v0.2.0/RELEASE_ACCEPTANCE.md`
-27. `release/v0.2.0/RELEASE_EVIDENCE.md`
-28. `plan/README.md`
-29. `plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`
-30. `plan/DEVELOPMENT_WORKFLOW.md`
-31. `plan/registry.yaml`
+26. `release/README.md`
+27. `release/v0.2.0/RELEASE_ACCEPTANCE.md`
+28. `release/v0.2.0/RELEASE_EVIDENCE.md`
+29. `plan/README.md`
+30. `plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`
+31. `plan/DEVELOPMENT_WORKFLOW.md`
+32. `plan/registry.yaml`
 
 Statusの正本は、各ADR / Issue本文と`plan/registry.yaml`です。
 
@@ -236,11 +237,12 @@ historical M47 digest規則は、現在保持されている直接Evidenceから
 - actual model artifact交換のhistorical Application保持
 - Method Realization historical revision / portable reconstruction
 - Cognitive Method outcome-quality evaluation boundary
-- runtime version交換用repository-local harness / artifact guard / local preflight
+- Ollama runtime version交換用repository-local harness / artifact guard / preflight / Evidence verifier / progress observer
+- TEI executable version交換用source / fixed-input identity verifier、E2 / E3 runner、toolchain-split combined runner、stage-aware diagnostics
 
 このうち、v0.2.0の**supported release scopeはE3aまで**です。release後に得られたE3b-P2、M1a / M1b等のEvidenceを理由に、公開済みv0.2.0のsupport範囲を後から広げません。
 
-また、runtime version交換については実験基盤まで整っていますが、固定model artifactの下でOllama `0.32.13` / `0.32.14`をactualに交換する実証はまだ完了していません。
+また、version交換についてはrepository-sideの実験基盤まで整っていますが、固定model artifact下のOllama `0.32.13` / `0.32.14` actual交換と、revision B TEI executableのactual build / Provider Plan / current SOZA Adapter compatibilityは、どちらもまだ完了していません。
 
 ## 9. v0.2.0 Release Evidence
 
@@ -276,11 +278,12 @@ TEI  = 実行可能な業務Capabilityを実現する一つの手段
 
 ## 11. current Plan
 
-current registryはADR-0001〜ADR-0030、ISSUE-000001〜ISSUE-000071を管理します。
+current registryはADR-0001〜ADR-0030、ISSUE-000001〜ISSUE-000072を管理します。
 
 現在の未解決Issueは次です。
 
 - ISSUE-000070: **Open** — model artifactを固定したOllama runtime version交換とhistorical Application保持のactual実証
+- ISSUE-000072: **Open** — TEI executable revision交換後もProvider Observation境界を保てるかのactual実証
 
 また、次は意図的にDeferredです。
 
@@ -292,16 +295,17 @@ Resolvedは、対象作業の完了を示します。Release / Operational / Ado
 
 ## 12. 次に深める領域
 
-現時点の最優先はISSUE-000070です。
+現時点では、PMS-06の二つのOpen version-exchange実証をactualに通すことが最優先です。片方のPASSをもう片方のEvidenceへ流用しません。
 
-1. 固定model artifactの下でOllama `0.32.13` / `0.32.14`をactualに交換する。
-2. same logical Realization / different Exact Bindingをactual Evidenceで確認する。
-3. Application AのExact Reference / Provenance / outputがB追加後も不変であることを確認する。
-4. actual runtime A/B Evidenceを含むportable historical reconstructionを確認する。
-5. ISSUE-000071で整えたreview bundleを使い、必要に応じてactual human reviewを行う。
-6. 別model family、別Provider、別Realizationへbroader portabilityを広げる。
-7. TEI acquisition / version交換、network degradation、credential失効等のfailure behaviorを探索する。
-8. E4 Operational portabilityとAdoption / Outcome Evidenceへ進む。
+1. ISSUE-000070で、固定model artifactの下でOllama `0.32.13` / `0.32.14`をactualに交換する。
+2. ISSUE-000070で、same logical Realization / different Exact Binding、Application AのExact Reference / Provenance / output不変性、portable historical reconstructionをactual Evidenceで確認する。
+3. ISSUE-000072で、exact revision B executable + exact revision A fixed inputによりactual `deployment-provider-plan`を実行する。
+4. ISSUE-000072で、revision Bをcurrent SOZA Adapterからactualに起動し、Capability Observation mapping成立可否を確認する。
+5. ISSUE-000072のactual結果をREQ-0001 / 0007 / 0021、SCN-0014 / 0018へ戻し、必要なら隣接REQ-0022も監査する。
+6. ISSUE-000071で整えたreview bundleを使い、必要に応じてactual human reviewを行う。
+7. 別model family、別Provider、別Realizationへbroader portabilityを広げる。
+8. network degradation、credential失効、artifact acquisition failure等のfailure behaviorを探索する。
+9. E4 Operational portabilityとAdoption / Outcome Evidenceへ進む。
 
 実装量やIssue数を増やすこと自体は目的にしません。既存RequirementとContractで表現できる場合は、実証のためだけにUniversal semanticsを増やしません。
 
@@ -329,10 +333,10 @@ change scope
 
 ## 15. 自然な日本語レビュー
 
-2026-09-03時点のProduct Value、Product Milestone、REQ-0001〜0022、SCN-0001〜0018、ADR-0001〜0030、ISSUE-000001〜000071、5 Semantic Contract family、2 Representation Profile、current runtime / probe / evaluation資産、v0.2.0 historical Release Evidence、ISSUE-000067〜000071へ戻って現在地を再監査しました。
+2026-09-05時点のProduct Value、Product Milestone、PMS-06 current snapshot、REQ-0001〜0022、SCN-0001〜0018、ADR-0001〜0030、ISSUE-000001〜000072、5 Semantic Contract family、2 Representation Profile、current runtime / probe / evaluation資産、v0.2.0 historical Release Evidence、ISSUE-000067〜000072へ戻って現在地を再監査しました。
 
-旧READMEに残っていた`.github/`のcurrent tree記載、ISSUE-000063までのPlan状態、既に完了したTEI / external Cognitive Method実証を「次の作業」とする記述を更新しました。GitHub Actionsのhistorical Evidenceは保存しながら、現在の検証はローカル個別実行へ切り替えています。
+旧READMEに残っていた`.github/`のcurrent tree記載、ISSUE-000063までのPlan状態、既に完了したTEI / external Cognitive Method実証を「次の作業」とする記述は以前に更新済みです。今回さらに、ISSUE-000072追加後もregistry範囲とOpen Issueが000071 / 000070のまま残っていた入口状態を修正しました。GitHub Actionsのhistorical Evidenceは保存しながら、現在の検証はローカル個別実行へ切り替えています。
 
-v0.2.0のRelease EvidenceはLocal Reference Product Baselineに限定してSatisfiedとし、後続E3b Evidenceをrelease scopeへ遡及させません。ISSUE-000070のactual runtime version交換、human outcome review、E4、Operational / Adoption Evidenceも未検証範囲を維持しています。
+v0.2.0のRelease EvidenceはLocal Reference Product Baselineに限定してSatisfiedとし、後続E3b Evidenceをrelease scopeへ遡及させません。ISSUE-000070のactual Ollama runtime version交換、ISSUE-000072のactual TEI executable version交換、human outcome review、E4、Operational / Adoption Evidenceはいずれも未検証範囲を維持しています。
 
 意味、規範強度、Evidence強度を変えず、入口文書として自然な日本語で現在地をたどれることを最重要視して全文を再ドラフトしました。
