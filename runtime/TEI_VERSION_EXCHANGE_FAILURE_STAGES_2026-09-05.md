@@ -15,7 +15,39 @@ failure stage instrumentation ready
   != SOZA Adapter incompatibility observed
 ```
 
-## 2. E2 stage taxonomy
+## 2. stage開始前のconfiguration rejection
+
+E2 / E3のmachine-readable stageへ入る前に、actual Evidenceを安全に開始できるpath configurationかを確認します。
+
+combined runner `runtime/integration/run_tei_version_exchange_evidence.py`は、`--output-dir`を作成する前に次を拒否します。
+
+- output path自身または既存ancestorがsymlinkである。
+- output directoryがrevision B source checkout配下にある。
+- output directoryがrevision A fixed-reference checkout配下にある。
+- output directoryがSOZA checkout配下にある。
+- output directoryがこれらinput checkoutを包含する。
+- 既存pathがdirectoryではない。
+
+standalone E2 `run_tei_revision_b_prepositioned.py`も、final archiveについて次を副作用前に拒否します。
+
+- output path自身または既存ancestorがsymlinkである。
+- output archiveがrevision B source / revision A reference / SOZA repository配下にある。
+- output archiveが既に存在し、暗黙上書きになる。
+
+これらはTEI processやSOZA Adapterを開始した結果ではないため、`TEIEvidenceStageError` / `TEIAdapterStageError`へ昇格させません。
+
+```text
+Evidence output path rejected
+  = pre-stage configuration rejection
+  != revision_b_source_identity failure
+  != tei_cli_build failure
+  != deployment_provider_plan_execution failure
+  != soza_teiintegration_live_test failure
+```
+
+configuration rejection時にmachine-readable E2 / E3 substageを作らないこと自体が、root causeを過大に推定しないための境界です。
+
+## 3. E2 stage taxonomy
 
 `runtime/integration/run_tei_revision_b_prepositioned.py`の`TEIEvidenceStageError`は、次のstageを区別します。
 
@@ -86,7 +118,7 @@ archive作成・再検証・final配置は、それぞれ`evidence_bundle_packag
 
 このため、Provider Planが成立した後のEvidence packaging failureをTEI Provider incompatibilityへ読み替えません。
 
-## 3. E3 stage taxonomy
+## 4. E3 stage taxonomy
 
 `runtime/integration/run_tei_bundle_adapter_compatibility.py`の`TEIAdapterStageError`は、current SOZA Adapter live検査を次の外部境界へ分けます。
 
@@ -150,7 +182,7 @@ Go test output contains "validator"
 
 将来、`teiintegration`側がmachine-readable test result / error stageを正式に出力する場合だけ、そのactual contractを確認して細分化を再評価します。
 
-## 4. process detailの保持境界
+## 5. process detailの保持境界
 
 E2の`TEIEvidenceStageError`とE3の`TEIAdapterStageError`は、外部process failureについて次を保持できます。
 
@@ -165,7 +197,7 @@ E2のstdout / stderrはそれぞれ末尾16 KiB、E3はそれぞれ末尾32 KiB�
 
 このdetailはdiagnostic / provenanceです。stdout / stderr文字列そのものをUniversal semanticsへ昇格させません。
 
-## 5. combined E2 / E3 reportとの接続
+## 6. combined E2 / E3 reportとの接続
 
 `runtime/integration/run_tei_version_exchange_evidence.py`は、version交換全体の上位stageとrunner内部stageを分離します。
 
@@ -192,7 +224,9 @@ known runner substage
 
 E2が成立しE3だけが失敗した場合は、成立済みE2 bundleを保持したままE3 failureを別に記録します。
 
-## 6. synthetic / focused checks
+output path configurationはcombined reportのE2 / E3 execution stateより前の入力条件です。path validationで拒否した場合、E2 / E3が開始したというreportを推測生成しません。
+
+## 7. synthetic / focused checks
 
 E2側には、少なくとも次のnegative controlを追加しています。
 
@@ -219,15 +253,26 @@ E3側には次のnegative controlを追加しています。
 
 combined reportについても、E2 / E3の上位stageとstage-aware substageを別々に保持するnegative controlを追加しています。E3のGo要件判定ロジック自体はcombined側へ複製せず、standalone E3 runnerの結果またはstage-aware failureをそのまま利用します。
 
-current work containerではGitHub raw sourceを再取得できないため、branch上のunittest suite全体をこの環境へ再現してはいません。一方、E2 stage error、combined substage伝播、stderr非推測、output tail上限の中核ロジックについてfocused local check 4件を実行しPASSしました。E3側も同じ原則のstage modelとして実装し、branch testへnegative controlを追加しています。
+PR #223では、stage開始前のpath-safety negative controlも追加しました。
+
+- standalone E2 input checkout / SOZA repository内出力を拒否し、source verifier / processを開始しない。
+- standalone E2 existing archive / symlink archiveを拒否し、既存bytesを変更しない。
+- combined runner input checkout内output、input checkoutを包含するoutput、symlink outputを拒否し、E2 / E3 runnerを開始しない。
+
+current work containerではGitHub raw sourceを再取得できないため、branch上のunittest suite全体をこの環境へ再現してはいません。一方、E2 stage error、combined substage伝播、stderr非推測、output tail上限の中核ロジックについてfocused local check 4件を以前に実行しPASSしました。E3側も同じ原則のstage modelとして実装し、branch testへnegative controlを追加しています。PR #223で追加したpath-safety testをこのturnでfull suiteとして再実行したとは主張しません。
 
 この制約をactual Executable Evidenceへ読み替えません。
 
-## 7. 現在の停止線
+## 8. 現在の停止線
 
 ```text
 stage-aware E2/E3 diagnostics implemented
+  + pre-stage Evidence path safety implemented
   != actual revision B execution attempted
+
+Evidence path configuration rejected
+  != E2 failure
+  != E3 failure
 
 E2 substage captured
   != root cause proven inside TEI
