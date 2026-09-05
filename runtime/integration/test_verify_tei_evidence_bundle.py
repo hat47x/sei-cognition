@@ -9,6 +9,27 @@ from pathlib import Path
 import verify_tei_evidence_bundle as subject
 
 
+def git_blob(raw: bytes) -> str:
+    header = f"blob {len(raw)}\0".encode("ascii")
+    return hashlib.sha1(header + raw).hexdigest()
+
+
+def git_tree(entries: list[tuple[str, str, str]]) -> str:
+    body = bytearray()
+    sortable: list[tuple[bytes, str, str, str]] = []
+    for mode, name, digest in entries:
+        sort_key = name.encode("utf-8") + (b"/" if mode == "40000" else b"")
+        sortable.append((sort_key, mode, name, digest))
+    for _, mode, name, digest in sorted(sortable, key=lambda entry: entry[0]):
+        body.extend(mode.encode("ascii"))
+        body.extend(b" ")
+        body.extend(name.encode("utf-8"))
+        body.extend(b"\0")
+        body.extend(bytes.fromhex(digest))
+    header = f"tree {len(body)}\0".encode("ascii")
+    return hashlib.sha1(header + body).hexdigest()
+
+
 class TEIEvidenceBundleVerificationTest(unittest.TestCase):
     def build_bundle(
         self,
@@ -53,6 +74,10 @@ class TEIEvidenceBundleVerificationTest(unittest.TestCase):
                     info.size = len(data)
                     info.mode = 0o644
                     tar.addfile(info, io.BytesIO(data))
+                elif kind == "dir":
+                    info.type = tarfile.DIRTYPE
+                    info.mode = 0o755
+                    tar.addfile(info)
                 elif kind == "symlink":
                     info.type = tarfile.SYMTYPE
                     info.linkname = "metadata.json"
@@ -61,6 +86,44 @@ class TEIEvidenceBundleVerificationTest(unittest.TestCase):
                     raise AssertionError(kind)
         return archive
 
+    def fixed_reference_fixture(
+        self, *, run_bytes: bytes = b'{"run":"fixed"}\n'
+    ) -> tuple[dict[str, object], list[tuple[str, bytes, str]], dict[str, str]]:
+        input_bytes = b"fixed input\n"
+        plugin_lock = b'{"plugins":[]}\n'
+        plugin_blob = git_blob(plugin_lock)
+        tei_tree = git_tree([("100644", "plugin-lock.json", plugin_blob)])
+        input_blob = git_blob(input_bytes)
+        workspace_tree = git_tree(
+            [
+                ("40000", ".tei", tei_tree),
+                ("100644", "input.txt", input_blob),
+            ]
+        )
+        run_blob = git_blob(run_bytes)
+        source_commit = "c" * 40
+        metadata = {
+            "reference_input_source_commit": source_commit,
+            "reference_workspace_tree": workspace_tree,
+            "reference_run_blob": run_blob,
+            "reference_plugin_lock_blob": plugin_blob,
+        }
+        members = [
+            ("reference", b"", "dir"),
+            ("reference/workspace", b"", "dir"),
+            ("reference/workspace/.tei", b"", "dir"),
+            ("reference/workspace/.tei/plugin-lock.json", plugin_lock, "file"),
+            ("reference/workspace/input.txt", input_bytes, "file"),
+            ("reference/order_rollout.durable-run.m0.21.start.json", run_bytes, "file"),
+        ]
+        expected = {
+            "source_commit": source_commit,
+            "workspace_tree": workspace_tree,
+            "run_blob": run_blob,
+            "plugin_lock_blob": plugin_blob,
+        }
+        return metadata, members, expected
+
     def test_valid_bundle_is_verified(self):
         with tempfile.TemporaryDirectory() as tmp:
             archive = self.build_bundle(Path(tmp))
@@ -68,7 +131,54 @@ class TEIEvidenceBundleVerificationTest(unittest.TestCase):
         self.assertEqual("verified", result["result"])
         self.assertTrue(result["observation"]["provider_surface_recognized"])
         self.assertTrue(result["observation"]["binary_executable"])
+        self.assertNotIn("referenceInput", result)
         self.assertEqual("not_evaluated", result["qualityJudgement"])
+
+    def test_fixed_reference_bytes_are_reverified(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            metadata, members, expected = self.fixed_reference_fixture()
+            archive = self.build_bundle(
+                Path(tmp), metadata_override=metadata, extra_members=members
+            )
+            result = subject.verify_bundle(archive)
+        self.assertEqual(expected, result["referenceInput"])
+
+    def test_fixed_reference_run_byte_drift_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            metadata, members, _ = self.fixed_reference_fixture()
+            mutated = []
+            for name, data, kind in members:
+                if name == "reference/order_rollout.durable-run.m0.21.start.json":
+                    data = b'{"run":"mutated"}\n'
+                mutated.append((name, data, kind))
+            archive = self.build_bundle(
+                Path(tmp), metadata_override=metadata, extra_members=mutated
+            )
+            with self.assertRaisesRegex(ValueError, "fixed reference input Git object identity"):
+                subject.verify_bundle(archive)
+
+    def test_fixed_reference_workspace_byte_drift_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            metadata, members, _ = self.fixed_reference_fixture()
+            mutated = []
+            for name, data, kind in members:
+                if name == "reference/workspace/input.txt":
+                    data = b"mutated input\n"
+                mutated.append((name, data, kind))
+            archive = self.build_bundle(
+                Path(tmp), metadata_override=metadata, extra_members=mutated
+            )
+            with self.assertRaisesRegex(ValueError, "fixed reference input Git object identity"):
+                subject.verify_bundle(archive)
+
+    def test_partial_fixed_reference_metadata_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            archive = self.build_bundle(
+                Path(tmp),
+                metadata_override={"reference_input_source_commit": "c" * 40},
+            )
+            with self.assertRaisesRegex(ValueError, "metadataが部分的"):
+                subject.verify_bundle(archive)
 
     def test_binary_digest_drift_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
