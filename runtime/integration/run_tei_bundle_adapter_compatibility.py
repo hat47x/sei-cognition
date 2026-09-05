@@ -24,7 +24,10 @@ LIVE_TEST = "^TestLiveTEIProviderPlan$"
 MAX_STAGE_OUTPUT = 32 * 1024
 SOZA_EVIDENCE_PATHS = [
     "runtime/go",
+    "runtime/integration/run_tei_version_exchange_evidence.py",
+    "runtime/integration/run_tei_revision_b_prepositioned.py",
     "runtime/integration/run_tei_bundle_adapter_compatibility.py",
+    "runtime/integration/runtime_path_safety.py",
     "runtime/integration/verify_tei_evidence_bundle.py",
     "runtime/integration/verify_tei_execution_source_identity.py",
 ]
