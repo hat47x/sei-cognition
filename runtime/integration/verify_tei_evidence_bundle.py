@@ -8,6 +8,7 @@ import re
 import tarfile
 from dataclasses import asdict, dataclass
 from pathlib import Path, PurePosixPath
+from typing import Mapping
 
 SCHEMA = "tei.soza-e3b-p2-evidence/v1"
 REPOSITORY = "hat47x/tei-platform"
@@ -24,6 +25,12 @@ REFERENCE_METADATA_FIELDS = (
     "reference_workspace_tree",
     "reference_run_blob",
     "reference_plugin_lock_blob",
+)
+REFERENCE_OBSERVATION_FIELDS = (
+    "source_commit",
+    "workspace_tree",
+    "run_blob",
+    "plugin_lock_blob",
 )
 
 
@@ -202,6 +209,24 @@ def _git_tree_sha1_from_bundle(
     return hash_tree(tree)
 
 
+def _observe_reference_identity(
+    tar: tarfile.TarFile,
+    members: dict[str, tarfile.TarInfo],
+    *,
+    source_commit: str,
+) -> dict[str, str]:
+    return {
+        "source_commit": source_commit,
+        "workspace_tree": _git_tree_sha1_from_bundle(
+            tar, members, REFERENCE_WORKSPACE
+        ),
+        "run_blob": _git_blob_sha1(_read_member(tar, members, REFERENCE_RUN)),
+        "plugin_lock_blob": _git_blob_sha1(
+            _read_member(tar, members, REFERENCE_PLUGIN_LOCK)
+        ),
+    }
+
+
 def _verify_reference_identity(
     tar: tarfile.TarFile,
     members: dict[str, tarfile.TarInfo],
@@ -210,17 +235,11 @@ def _verify_reference_identity(
     if not all(key in metadata for key in REFERENCE_METADATA_FIELDS):
         return None
 
-    workspace_tree = _git_tree_sha1_from_bundle(tar, members, REFERENCE_WORKSPACE)
-    run_blob = _git_blob_sha1(_read_member(tar, members, REFERENCE_RUN))
-    plugin_lock_blob = _git_blob_sha1(
-        _read_member(tar, members, REFERENCE_PLUGIN_LOCK)
+    observed = _observe_reference_identity(
+        tar,
+        members,
+        source_commit=str(metadata["reference_input_source_commit"]),
     )
-    observed = {
-        "source_commit": str(metadata["reference_input_source_commit"]),
-        "workspace_tree": workspace_tree,
-        "run_blob": run_blob,
-        "plugin_lock_blob": plugin_lock_blob,
-    }
     expected = {
         "workspace_tree": str(metadata["reference_workspace_tree"]),
         "run_blob": str(metadata["reference_run_blob"]),
@@ -236,12 +255,53 @@ def _verify_reference_identity(
     return observed
 
 
+def _verify_expected_reference_identity(
+    tar: tarfile.TarFile,
+    members: dict[str, tarfile.TarInfo],
+    expected: Mapping[str, str],
+    declared: dict[str, str] | None,
+) -> dict[str, str]:
+    missing = [key for key in REFERENCE_OBSERVATION_FIELDS if key not in expected]
+    if missing:
+        raise ValueError(
+            "expected fixed reference identityが不足しています: "
+            f"missing={missing}"
+        )
+    for key in REFERENCE_OBSERVATION_FIELDS:
+        value = expected[key]
+        if not isinstance(value, str) or HEX40.fullmatch(value) is None:
+            raise ValueError(
+                f"expected fixed reference identity {key}は40桁lowercase Git object hexである必要があります"
+            )
+
+    observed = _observe_reference_identity(
+        tar,
+        members,
+        source_commit=expected["source_commit"],
+    )
+    for key in REFERENCE_OBSERVATION_FIELDS:
+        if observed[key] != expected[key]:
+            raise ValueError(
+                "actual fixed reference input Git object identityが期待値と一致しません: "
+                f"field={key} actual={observed[key]} expected={expected[key]}"
+            )
+    if declared is not None:
+        for key in REFERENCE_OBSERVATION_FIELDS:
+            if declared[key] != expected[key]:
+                raise ValueError(
+                    "bundle metadataのfixed reference identityが外部期待値と一致しません: "
+                    f"field={key} metadata={declared[key]} expected={expected[key]}"
+                )
+    return observed
+
+
 def verify_bundle(
     archive: Path,
     *,
     expected_source_commit: str | None = None,
     expected_binary_sha256: str | None = None,
     expected_provider_plan_sha256: str | None = None,
+    expected_reference_input: Mapping[str, str] | None = None,
 ) -> dict[str, object]:
     archive = archive.expanduser().resolve(strict=True)
     if not archive.is_file():
@@ -268,6 +328,13 @@ def verify_bundle(
         binary_raw = _read_member(tar, members, "bin/tei")
         binary_member = members["bin/tei"]
         reference_identity = _verify_reference_identity(tar, members, metadata)
+        if expected_reference_input is not None:
+            reference_identity = _verify_expected_reference_identity(
+                tar,
+                members,
+                expected_reference_input,
+                reference_identity,
+            )
 
     binary_sha256 = hashlib.sha256(binary_raw).hexdigest()
     provider_plan_sha256 = hashlib.sha256(provider_plan_raw).hexdigest()
