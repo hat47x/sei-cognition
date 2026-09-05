@@ -125,6 +125,7 @@ repository側では次まで整っています。
 - acquisition-independent TEI Evidence bundle verifier
 - historical A Evidence bundleをexternal fixed identityへ照合しreference inputだけをmaterializeするhelper
 - revision B execution-source Git identity verifier
+- revision B signed commit objectをGitHub verified payload / PGP signatureから独立再構成し、固定commit SHA-1へ一致することを確認したacquisition Evidence
 - revision A fixed reference input identity verifier
 - tracked変更 / untracked / gitignored entryをactual source / checkout fixed input境界から排除するworking-tree purity guard
 - A/B Provider Plan source surface static comparison
@@ -143,6 +144,8 @@ E2 historical TEI buildとE3 current SOZA live testは別toolchainを使いま�
 
 Git object identityが一致するだけではactual source / checkout fixed inputのpurity成立とは扱いません。execution boundary内にtracked変更、untracked entry、gitignored entryがあればE2開始前に拒否します。historical bundle経路ではworking treeの代わりに、bundle metadataのA source commit、historical binary / Provider Plan digest、およびactual reference bytesから再計算したGit object identityを固定値へ照合します。
 
+revision Bについては、GitHub Git Commit APIのverified payload / PGP signatureからsigned commit raw objectを独立再構成し、Git object SHA-1が固定revision B `1a7028d444fcae60a1c4f2f2d247456f4c7c35be`へ一致することを確認済みです。ただし、これはfull source checkoutをmaterializeしたEvidenceではありません。canonical source verifierが要求するworking tree cleanlinessやactual build source bytesの配置は、実行環境上で別途成立させる必要があります。
+
 ```text
 Git object identity matched
   + tracked / untracked / ignored execution boundary clean
@@ -152,6 +155,10 @@ Git object identity matched
 historical bundle fixed input identity verified
   != revision A source checkout reconstructed
   != fixed input acquisition path identity
+  != revision B build PASS
+
+exact revision B signed commit object reconstructed
+  != exact revision B checkout materialized
   != revision B build PASS
 ```
 
@@ -231,6 +238,8 @@ actual実行に必要なのは、canonical runnerが要求する固定identity�
 - E2 historical TEI build用Go `1.23.2`
 - current SOZA E3 live-test要件を満たすGo `1.25`系
 - revision B / SOZA checkoutから分離されたEvidence出力directory。A checkout利用時はA checkoutからも分離し、historical bundle利用時は入力bundleをそのEvidence directory配下に置かないこと
+
+signed commit objectの独立再構成は、上記exact revision B checkoutの代替にはしません。commit object identity、source checkout materialization、working-tree purity、actual buildは別々のEvidence境界です。
 
 どの端末・runner・外部実行基盤を使うかはexecution mechanismであり、Product Requirement / Capability identity / Universal Contractではありません。
 
