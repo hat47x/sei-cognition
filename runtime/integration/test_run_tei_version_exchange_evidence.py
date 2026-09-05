@@ -60,7 +60,11 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
 
             def adapter_side_effect(archive, **kwargs):
                 observed["e3_go"] = Path(shutil.which("go")).resolve()
-                return {"result": "adapter_compatible"}
+                return {
+                    "result": "adapter_compatible",
+                    "sozaGoRequirement": "1.25",
+                    "sozaGoVersion": "go version go1.25.0 linux/amd64",
+                }
 
             build.side_effect = build_side_effect
             adapter.side_effect = adapter_side_effect

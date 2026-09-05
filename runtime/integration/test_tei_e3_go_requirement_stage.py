@@ -34,7 +34,7 @@ class TEIE3GoRequirementStageTest(unittest.TestCase):
             soza = self.make_soza(root / "soza")
             go = self.make_go(root, "go1.25.0")
             with subject._go_on_path(go):
-                observation = subject._verify_soza_go_requirement(soza)
+                observation = subject.adapter_runner._verify_soza_go_requirement(soza)
         self.assertEqual("1.25", observation["required"])
         self.assertEqual(
             "go version go1.25.0 linux/amd64",
@@ -50,13 +50,13 @@ class TEIE3GoRequirementStageTest(unittest.TestCase):
                 with self.assertRaises(
                     subject.adapter_runner.TEIAdapterStageError
                 ) as raised:
-                    subject._verify_soza_go_requirement(soza)
+                    subject.adapter_runner._verify_soza_go_requirement(soza)
         self.assertEqual("soza_go_toolchain", raised.exception.stage)
         self.assertIn("required>=1.25", raised.exception.message)
 
     @mock.patch.object(subject.adapter_runner, "run_compatibility")
     @mock.patch.object(subject.build_runner, "produce_bundle")
-    def test_combined_runner_stops_before_live_test_on_old_soza_go(
+    def test_combined_runner_propagates_soza_go_toolchain_failure(
         self, build, adapter
     ):
         with tempfile.TemporaryDirectory() as tmp:
@@ -75,6 +75,12 @@ class TEIE3GoRequirementStageTest(unittest.TestCase):
                 return {"result": "bundle_produced"}
 
             build.side_effect = build_success
+            adapter.side_effect = subject.adapter_runner.TEIAdapterStageError(
+                "soza_go_toolchain",
+                "current SOZA go.modのGo要件を満たしません: required>=1.25 actual=go1.24.9",
+                command=["go", "version"],
+                stdout="go version go1.24.9 linux/amd64\n",
+            )
             with self.assertRaises(subject.VersionExchangeRunFailed) as raised:
                 subject.run_version_exchange(
                     source,
@@ -86,7 +92,7 @@ class TEIE3GoRequirementStageTest(unittest.TestCase):
                 )
 
             self.assertEqual("E3", raised.exception.stage)
-            adapter.assert_not_called()
+            adapter.assert_called_once()
             report = json.loads(
                 (output / subject.REPORT_NAME).read_text(encoding="utf-8")
             )

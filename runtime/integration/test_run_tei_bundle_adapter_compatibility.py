@@ -36,7 +36,9 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
     def make_soza(self, root: Path):
         go_root = root / "runtime/go"
         (go_root / "teiintegration").mkdir(parents=True)
-        (go_root / "go.mod").write_text("module test\n", encoding="utf-8")
+        (go_root / "go.mod").write_text(
+            "module test\n\ngo 1.25\n", encoding="utf-8"
+        )
         (go_root / "teiintegration/tei_live_test.go").write_text(
             "package teiintegration\n", encoding="utf-8"
         )
@@ -227,6 +229,10 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
             soza = self.make_soza(root / "soza")
             result = subject.run_compatibility(archive, soza_repo_root=soza)
         self.assertEqual("adapter_compatible", result["result"])
+        self.assertEqual("1.25", result["sozaGoRequirement"])
+        self.assertEqual(
+            "go version go1.25.0 linux/amd64", result["sozaGoVersion"]
+        )
         self.assertIn("soza_teiintegration_live_test", result["completedStages"])
         argv = run.call_args_list[1].args[0]
         self.assertEqual(
@@ -277,6 +283,34 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
         self.assertEqual("soza_go_toolchain", exc.stage)
         self.assertEqual(1, exc.returncode)
         self.assertEqual("go unavailable", exc.stderr)
+
+    @mock.patch.object(subject, "_verify_soza_source_identity")
+    @mock.patch.object(subject, "_verify_reference_input_identity")
+    @mock.patch.object(subject, "_ensure_linux_amd64")
+    @mock.patch.object(subject.subprocess, "run")
+    @mock.patch.object(subject.bundle_verifier, "verify_bundle")
+    def test_old_go_is_rejected_before_live_test(
+        self, verify, run, ensure, verify_reference, verify_soza
+    ):
+        verify.return_value = self.verified_bundle()
+        verify_reference.return_value = {
+            "sourceCommit": subject.REVISION_A,
+            "objects": {},
+        }
+        verify_soza.return_value = {"head": "e" * 40, "objects": {}}
+        run.return_value = subprocess.CompletedProcess(
+            [], 0, "go version go1.24.9 linux/amd64\n", ""
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            archive = self.make_bundle(root)
+            soza = self.make_soza(root / "soza")
+            with self.assertRaises(subject.TEIAdapterStageError) as raised:
+                subject.run_compatibility(archive, soza_repo_root=soza)
+        exc = raised.exception
+        self.assertEqual("soza_go_toolchain", exc.stage)
+        self.assertIn("required>=1.25", exc.message)
+        self.assertEqual(1, run.call_count)
 
     @mock.patch.object(subject, "_verify_soza_source_identity")
     @mock.patch.object(subject, "_verify_reference_input_identity")

@@ -70,98 +70,6 @@ def _go_on_path(executable: Path) -> Iterator[Path]:
             os.environ.pop("PATH", None)
 
 
-def _parse_go_version(value: str) -> tuple[int, int, int]:
-    token = value.strip()
-    if token.startswith("go"):
-        token = token[2:]
-    parts = token.split(".")
-    if len(parts) not in {2, 3} or not all(part.isdigit() for part in parts):
-        raise ValueError(f"Go versionを解釈できません: {value!r}")
-    numbers = [int(part) for part in parts]
-    if len(numbers) == 2:
-        numbers.append(0)
-    return numbers[0], numbers[1], numbers[2]
-
-
-def _read_go_directive(go_mod: Path) -> str:
-    try:
-        lines = go_mod.read_text(encoding="utf-8").splitlines()
-    except OSError as exc:
-        raise adapter_runner.TEIAdapterStageError(
-            "soza_go_toolchain",
-            f"current SOZA go.modを読めません: {exc}",
-        ) from exc
-    for line in lines:
-        fields = line.strip().split()
-        if len(fields) == 2 and fields[0] == "go":
-            try:
-                _parse_go_version(fields[1])
-            except ValueError as exc:
-                raise adapter_runner.TEIAdapterStageError(
-                    "soza_go_toolchain",
-                    f"current SOZA go.modのGo directiveを解釈できません: {fields[1]!r}",
-                ) from exc
-            return fields[1]
-    raise adapter_runner.TEIAdapterStageError(
-        "soza_go_toolchain",
-        "current SOZA go.modにGo directiveがありません",
-    )
-
-
-def _verify_soza_go_requirement(soza_repo_root: Path) -> dict[str, str]:
-    go_root = soza_repo_root / "runtime/go"
-    go_mod = go_root / "go.mod"
-    requirement = _read_go_directive(go_mod)
-    env = os.environ.copy()
-    env["GOWORK"] = "off"
-    env["GOENV"] = "off"
-    env["GOTOOLCHAIN"] = "local"
-    env.pop("GOFLAGS", None)
-    env.pop("GOOS", None)
-    env.pop("GOARCH", None)
-    process = adapter_runner._run_stage(
-        "soza_go_toolchain",
-        ["go", "version"],
-        cwd=go_root,
-        env=env,
-        timeout=30,
-    )
-    observed = process.stdout.strip()
-    fields = observed.split()
-    if len(fields) < 3 or fields[0:2] != ["go", "version"]:
-        raise adapter_runner.TEIAdapterStageError(
-            "soza_go_toolchain",
-            f"go version出力を解釈できません: {observed!r}",
-            command=["go", "version"],
-            stdout=process.stdout,
-            stderr=process.stderr,
-        )
-    try:
-        actual = _parse_go_version(fields[2])
-        required = _parse_go_version(requirement)
-    except ValueError as exc:
-        raise adapter_runner.TEIAdapterStageError(
-            "soza_go_toolchain",
-            str(exc),
-            command=["go", "version"],
-            stdout=process.stdout,
-            stderr=process.stderr,
-        ) from exc
-    if actual < required:
-        raise adapter_runner.TEIAdapterStageError(
-            "soza_go_toolchain",
-            "current SOZA go.modのGo要件を満たしません: "
-            f"required>={requirement} actual={fields[2]}",
-            command=["go", "version"],
-            stdout=process.stdout,
-            stderr=process.stderr,
-        )
-    return {
-        "required": requirement,
-        "observed": observed,
-    }
-
-
 def _write_report(path: Path, value: dict[str, object]) -> None:
     candidate = path.with_name(path.name + ".tmp")
     candidate.write_text(
@@ -287,15 +195,14 @@ def run_version_exchange(
         with _go_on_path(soza_go_executable) as soza_go:
             e3_toolchain_entered = True
             comparison_axis["sozaGoExecutable"] = str(soza_go)
-            soza_go_observation = _verify_soza_go_requirement(soza_repo_root)
-            comparison_axis["sozaGoRequirement"] = soza_go_observation["required"]
-            comparison_axis["sozaGoObserved"] = soza_go_observation["observed"]
             e3 = adapter_runner.run_compatibility(
                 bundle_path,
                 soza_repo_root=soza_repo_root,
                 expected_source_commit=source_identity.REVISION_B,
                 expected_soza_head=expected_soza_head,
             )
+            comparison_axis["sozaGoRequirement"] = e3["sozaGoRequirement"]
+            comparison_axis["sozaGoObserved"] = e3["sozaGoVersion"]
     except EXPECTED_RUN_ERRORS as exc:
         if not e3_toolchain_entered and not isinstance(
             exc, adapter_runner.TEIAdapterStageError
