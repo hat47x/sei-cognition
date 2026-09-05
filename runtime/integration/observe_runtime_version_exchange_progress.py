@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Callable
@@ -18,6 +20,7 @@ SOURCE_IDENTITY_SCHEMA = "soza.kj-atlas-runtime-source-identity/v1"
 MODEL_STORE_VERIFICATION_SCHEMA = "soza.runtime-version-exchange-model-store-verification/v1"
 STOP_LINE = (
     "observed Evidence milestone boundary != exact failing command or internal root cause "
+    "!= canonical Evidence + Provenance verification PASS "
     "!= runtime compatibility judgement != outcome quality judgement != ISSUE-000070 Resolved"
 )
 
@@ -64,6 +67,14 @@ def _version_matches(path: Path, expected_version: str) -> bool:
 def _tags_match(path: Path, model_name: str, model_sha: str) -> bool:
     payload = _read_json(path)
     return payload is not None and core._model_digest_from_tags(payload, model_name) == model_sha
+
+
+def _request_matches(payload: dict[str, Any] | None) -> bool:
+    if payload is None:
+        return False
+    verification = core.Verification()
+    core._verify_request(payload, verification)
+    return verification.ready
 
 
 def _inference_matches(
@@ -151,6 +162,44 @@ def _identity_matches(
     )
 
 
+def _runner_observation_matches(
+    root: Path,
+    runner: dict[str, Any] | None,
+) -> bool:
+    if runner is None:
+        return False
+    completed = runner.get("completed")
+    exit_code = runner.get("exitCode")
+    output_sha = runner.get("combinedOutputSha256")
+    output_bytes = runner.get("combinedOutputBytes")
+    if not (
+        runner.get("schema") == RUNNER_SCHEMA
+        and runner.get("qualityJudgement") == "not_evaluated"
+        and isinstance(completed, bool)
+        and isinstance(exit_code, int)
+        and not isinstance(exit_code, bool)
+        and isinstance(output_sha, str)
+        and re.fullmatch(r"[0-9a-f]{64}", output_sha) is not None
+        and isinstance(output_bytes, int)
+        and not isinstance(output_bytes, bool)
+        and output_bytes >= 0
+    ):
+        return False
+
+    log_path = root / "runtime-exchange-runner.log"
+    if log_path.is_symlink() or not log_path.is_file():
+        return False
+    try:
+        payload = log_path.read_bytes()
+    except OSError:
+        return False
+    if hashlib.sha256(payload).hexdigest() != output_sha or len(payload) != output_bytes:
+        return False
+    if completed is True and exit_code == 0 and core.EXPECTED_COMPLETION_MARKER not in payload:
+        return False
+    return True
+
+
 def _milestone(
     milestone_id: str,
     predicate: Callable[[], bool],
@@ -197,6 +246,7 @@ def observe_progress(
         root / "runtime-exchange-model-store-static-verification.json"
     )
     identity = _read_json(root / "runtime-exchange-identity.json")
+    request = _read_json(root / "kj-atlas-runtime-exchange-request.json")
 
     preflight_blocked = (
         preflight is not None
@@ -268,6 +318,12 @@ def observe_progress(
             ),
             "runtime B actual archive SHA-256の一致を確認できます",
             "runtime B actual archive SHA-256一致を確認できません",
+        ),
+        _milestone(
+            "fixed_method_input_recorded",
+            lambda: _request_matches(request),
+            "固定3-card Method inputとheld card条件をEvidenceから確認できます",
+            "固定Method input Evidenceを確認できません",
         ),
         _milestone(
             "runtime_a_version_observed",
@@ -342,21 +398,16 @@ def observe_progress(
     )
 
     runner_present = runner is not None
-    runner_recognized = (
-        runner is not None
-        and runner.get("schema") == RUNNER_SCHEMA
-        and runner.get("qualityJudgement") == "not_evaluated"
-        and isinstance(runner.get("completed"), bool)
-        and isinstance(runner.get("exitCode"), int)
-        and not isinstance(runner.get("exitCode"), bool)
-    )
+    runner_recognized = _runner_observation_matches(root, runner)
     runner_completed = (
         runner_recognized
+        and runner is not None
         and runner.get("completed") is True
         and runner.get("exitCode") == 0
     )
     runner_failed = (
         runner_recognized
+        and runner is not None
         and runner.get("completed") is False
         and runner.get("exitCode") != 0
     )
@@ -372,7 +423,10 @@ def observe_progress(
         boundary = "strict entrypointは開始されていません"
     elif next_unobserved is None and runner_completed:
         state = "all_observed_milestones_completed"
-        boundary = "定義したA/B actual milestoneをすべて観測しました"
+        boundary = (
+            "定義したA/B actual milestoneとrunner log identityをすべて観測しました。"
+            "canonical Evidence + Provenance verifierは別途必要です"
+        )
     elif runner_failed:
         state = "partial_after_strict_failure"
         boundary = (
@@ -383,7 +437,7 @@ def observe_progress(
         state = "partial_without_valid_runner_observation"
         boundary = (
             f"last observed={last_observed!r}; next unobserved={next_unobserved!r}. "
-            "認識可能なrunner observationを確認できません"
+            "runner observationとrunner logの整合を確認できません"
         )
     else:
         state = "partial_or_unverified"
@@ -407,6 +461,7 @@ def observe_progress(
         "nextUnobservedMilestone": next_unobserved,
         "monotonicEvidenceOrder": monotonic,
         "unexpectedLaterObservedMilestones": later_observed,
+        "canonicalEvidenceVerification": "required_separately",
         "boundary": boundary,
         "qualityJudgement": "not_evaluated",
         "stopLine": STOP_LINE,
