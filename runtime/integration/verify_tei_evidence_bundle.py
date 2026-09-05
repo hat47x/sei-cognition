@@ -16,6 +16,15 @@ HEX40 = re.compile(r"^[0-9a-f]{40}$")
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
 ALLOWED_PROVIDER_PLAN_FIELDS = {"executors", "observations", "evidence", "pluginRuntime"}
 REQUIRED_MEMBERS = {"metadata.json", "provider-plan.json", "bin/tei"}
+REFERENCE_WORKSPACE = "reference/workspace"
+REFERENCE_RUN = "reference/order_rollout.durable-run.m0.21.start.json"
+REFERENCE_PLUGIN_LOCK = "reference/workspace/.tei/plugin-lock.json"
+REFERENCE_METADATA_FIELDS = (
+    "reference_input_source_commit",
+    "reference_workspace_tree",
+    "reference_run_blob",
+    "reference_plugin_lock_blob",
+)
 
 
 @dataclass(frozen=True)
@@ -82,6 +91,25 @@ def _parse_metadata(raw: bytes) -> dict[str, object]:
         digest = value.get(key)
         if not isinstance(digest, str) or HEX64.fullmatch(digest) is None:
             raise ValueError(f"metadata {key}は64桁lowercase hexである必要があります")
+
+    present_reference_fields = [
+        key for key in REFERENCE_METADATA_FIELDS if key in value
+    ]
+    if present_reference_fields and len(present_reference_fields) != len(
+        REFERENCE_METADATA_FIELDS
+    ):
+        missing = sorted(set(REFERENCE_METADATA_FIELDS) - set(present_reference_fields))
+        raise ValueError(
+            "fixed reference identity metadataが部分的です: "
+            f"missing={missing}"
+        )
+    if present_reference_fields:
+        for key in REFERENCE_METADATA_FIELDS:
+            digest = value.get(key)
+            if not isinstance(digest, str) or HEX40.fullmatch(digest) is None:
+                raise ValueError(
+                    f"metadata {key}は40桁lowercase Git object hexである必要があります"
+                )
     return value
 
 
@@ -102,6 +130,110 @@ def _parse_provider_plan(raw: bytes) -> dict[str, object]:
     if not any(value.get(key) for key in ALLOWED_PROVIDER_PLAN_FIELDS):
         raise ValueError("Provider Planに認識可能な情報がありません")
     return value
+
+
+def _git_blob_sha1(raw: bytes) -> str:
+    header = f"blob {len(raw)}\0".encode("ascii")
+    return hashlib.sha1(header + raw).hexdigest()
+
+
+def _git_tree_sha1_from_bundle(
+    tar: tarfile.TarFile,
+    members: dict[str, tarfile.TarInfo],
+    root: str,
+) -> str:
+    root_member = members.get(root)
+    if root_member is None or not root_member.isdir():
+        raise ValueError(f"bundleにfixed reference workspace directoryがありません: {root}")
+
+    tree: dict[str, object] = {}
+    prefix = root + "/"
+    for name, member in members.items():
+        if not name.startswith(prefix) or not member.isfile():
+            continue
+        relative = PurePosixPath(name[len(prefix) :])
+        if not relative.parts:
+            continue
+        node = tree
+        for part in relative.parts[:-1]:
+            existing = node.get(part)
+            if existing is None:
+                child: dict[str, object] = {}
+                node[part] = child
+                node = child
+            elif isinstance(existing, dict):
+                node = existing
+            else:
+                raise ValueError(
+                    "fixed reference workspaceのfile/directory構造が競合しています: "
+                    f"{name}"
+                )
+        leaf = relative.parts[-1]
+        if leaf in node:
+            raise ValueError(
+                f"fixed reference workspaceのentryが競合しています: {name}"
+            )
+        raw = _read_member(tar, members, name)
+        mode = "100755" if member.mode & 0o111 else "100644"
+        node[leaf] = (mode, _git_blob_sha1(raw))
+
+    def hash_tree(node: dict[str, object]) -> str:
+        entries: list[tuple[bytes, str, str, str]] = []
+        for name, value in node.items():
+            if isinstance(value, dict):
+                digest = hash_tree(value)
+                mode = "40000"
+                sort_key = name.encode("utf-8") + b"/"
+            else:
+                mode, digest = value
+                sort_key = name.encode("utf-8")
+            entries.append((sort_key, mode, name, digest))
+
+        body = bytearray()
+        for _, mode, name, digest in sorted(entries, key=lambda entry: entry[0]):
+            body.extend(mode.encode("ascii"))
+            body.extend(b" ")
+            body.extend(name.encode("utf-8"))
+            body.extend(b"\0")
+            body.extend(bytes.fromhex(digest))
+        header = f"tree {len(body)}\0".encode("ascii")
+        return hashlib.sha1(header + body).hexdigest()
+
+    return hash_tree(tree)
+
+
+def _verify_reference_identity(
+    tar: tarfile.TarFile,
+    members: dict[str, tarfile.TarInfo],
+    metadata: dict[str, object],
+) -> dict[str, str] | None:
+    if not all(key in metadata for key in REFERENCE_METADATA_FIELDS):
+        return None
+
+    workspace_tree = _git_tree_sha1_from_bundle(tar, members, REFERENCE_WORKSPACE)
+    run_blob = _git_blob_sha1(_read_member(tar, members, REFERENCE_RUN))
+    plugin_lock_blob = _git_blob_sha1(
+        _read_member(tar, members, REFERENCE_PLUGIN_LOCK)
+    )
+    observed = {
+        "source_commit": str(metadata["reference_input_source_commit"]),
+        "workspace_tree": workspace_tree,
+        "run_blob": run_blob,
+        "plugin_lock_blob": plugin_lock_blob,
+    }
+    expected = {
+        "workspace_tree": str(metadata["reference_workspace_tree"]),
+        "run_blob": str(metadata["reference_run_blob"]),
+        "plugin_lock_blob": str(metadata["reference_plugin_lock_blob"]),
+    }
+    for key, expected_value in expected.items():
+        actual = observed[key]
+        if actual != expected_value:
+            raise ValueError(
+                "actual fixed reference input Git object identityがmetadataと一致しません: "
+                f"field={key} actual={actual} metadata={expected_value}"
+            )
+    return observed
 
 
 def verify_bundle(
@@ -135,6 +267,7 @@ def verify_bundle(
         _parse_provider_plan(provider_plan_raw)
         binary_raw = _read_member(tar, members, "bin/tei")
         binary_member = members["bin/tei"]
+        reference_identity = _verify_reference_identity(tar, members, metadata)
 
     binary_sha256 = hashlib.sha256(binary_raw).hexdigest()
     provider_plan_sha256 = hashlib.sha256(provider_plan_raw).hexdigest()
@@ -176,7 +309,7 @@ def verify_bundle(
     if not observation.binary_executable:
         raise ValueError("bin/teiにexecutable bitがありません")
 
-    return {
+    result: dict[str, object] = {
         "schema": "soza.tei-evidence-bundle-verification/v1",
         "result": "verified",
         "archive": str(archive),
@@ -188,6 +321,9 @@ def verify_bundle(
             "!= TEI version exchange PASS != Operational Evidence"
         ),
     }
+    if reference_identity is not None:
+        result["referenceInput"] = reference_identity
+    return result
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -226,6 +362,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"- source commit: {observation['source_commit']}")
         print(f"- binary SHA-256: {observation['binary_sha256']}")
         print(f"- Provider Plan SHA-256: {observation['provider_plan_sha256']}")
+        if "referenceInput" in result:
+            reference = result["referenceInput"]
+            print(f"- reference input source commit: {reference['source_commit']}")
+            print(f"- reference workspace tree: {reference['workspace_tree']}")
         print(result["stopLine"])
     return 0
 
