@@ -1,10 +1,10 @@
 # ISSUE-000070: model artifactを固定したruntime version交換後もMethod Applicationの履歴を保てるか検証する
 
-Status: **Open**  
+Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0008, ADR-0009, ADR-0017, ADR-0021, ADR-0025, ADR-0026**  
 Product Milestone: **PMS-06**  
-Updated: 2026-09-04
+Updated: 2026-09-05
 
 ## Goal
 
@@ -277,7 +277,7 @@ preflight observationにはpreflight exit code、blocker、`strictStarted=false`
 3. 事前配置runtime archiveのsymlink、不存在、SOZA/source/modelとのoverlap、A/B同一pathを拒否する。
 4. 事前配置runtime archiveのactual size / SHA-256を、source exportやmodel準備より前に固定manifestへ照合する。
 5. `--model-dir`指定時は既存storeを静的検証する。
-6. `--prepare-model-dir`指定時は固定registryから新規storeを準備し、静的再検証する。
+6. `--prepare-model-dir`指定時は固定registryから新しいstoreを準備し、静的再検証する。
 7. source、model store、Evidence、work directoryの双方向overlapを拒否する。
 8. identity / safety optionをlow-level harnessへ迂回上書きできないようにする。
 9. verified bundleだけをlow-level harnessへ渡す。
@@ -549,9 +549,11 @@ Actual Model Artifact Exchange E3b Run `33670697154`はactualに完走し、mode
 
 過去のruntime交換workflow試作ではGitHub-hosted runnerの割当前終了を観測した。current baselineではGitHub Actionsを撤去済みであり、runner復旧やActions再導入は本IssueのResolution条件ではない。
 
-2026-09-03から2026-09-04の現作業環境ではLinux / amd64、主要Python依存、Go、約30GB前後のローカル空き容量を観測した。一方、actual実証に必要な固定Ollama runtime / model artifactを実行containerへ取得する通常の外部DNS / raw download経路は利用できなかった。historical Actions Run `33670697154`にも再利用可能なworkflow artifactは残っていなかった。2026-09-04の再確認でも公開KJ Atlas raw取得とcurrent registry tag再観測はこの実行環境から成立しなかった。
+2026-09-05に、execution `local-20260904T193531Z-7855` のactual Evidenceをcurrent developへ回収した。固定KJ Atlas runtime surface、Ollama `0.32.13` / `0.32.14` actual archive bytes / binary version、固定model full digest、同一prompt digest、A/B actual inference、Exact Binding、historical Application不変性、portable reconstruction、negative controlを確認し、Evidence + Provenance verifierは`ready-to-review` / `107 ok / 0 blocked`を記録している。
 
-これらは環境固有の観測でありSOZAのProduct failureではない。
+raw Evidenceは`runtime/evidence/runtime-version-exchange-local-20260904T193531Z/`、要約は`runtime/RUNTIME_VERSION_EXCHANGE_EVIDENCE_2026-09-05.md`へ保存した。
+
+さらに`runtime/RUNTIME_VERSION_EXCHANGE_CURRENT_CONTRACT_REVALIDATION_2026-09-05.md`でactual run commitとcurrent developをGit object identityで再監査し、ISSUE-000070本文、core / Provenance verifier、fixed artifact manifest、Product Requirements、Acceptance Scenarios、relevant Semantic Contract baselineが同一objectであることを確認した。
 
 ## Current implementation state
 
@@ -597,49 +599,52 @@ current developには次がある。
 - focused machine-readable result / Git observation分離
 - per-test timeout / launch-error preservation
 - live Go guard / negative control
+- recovered actual A/B Evidence archive / current-contract equivalence audit
 
-actual Ollama `0.32.13` / `0.32.14`交換はまだ完走確認していない。
+actual Ollama `0.32.13` / `0.32.14`交換は固定scopeで完走確認済みである。
 
 ## Current Evidence state
 
 ```text
 fixed source identity
-  = verifier / exporter available
+  = Verified
 
-fixed runtime metadata / acquisition boundary
-  = repository-local checker / tests / official Release snapshot available
+fixed runtime A/B actual bytes / binary version
+  = Verified
 
-fixed model expected digest
-  = actual historical observation available
+fixed model static identity + A/B actual /api/tags identity
+  = Verified
 
-model store preparation / static verification
-  = helpers available
+same Method input / prompt
+  = Verified
 
-preflight / strict entrypoint / verified-bundle-only low-level harness
-  = implemented
+actual runtime A/B inference
+  = Verified
 
-focused local check runner
-  = implemented; new full run in this session not observed
+same logical Realization / different Exact Binding
+  = Verified
 
-failure Evidence preservation
-  = structured preflight blocked / strict failure paths implemented
+historical Application A immutability
+  = Verified
+
+portable historical reconstruction / negative control
+  = Verified
 
 core Evidence + Provenance verification
-  = implemented
+  = ready-to-review; 107 ok / 0 blocked
 
-actual runtime A/B binary / archive digest / model / prompt / inference
-  = Not Yet Verified
-
-portable reconstruction using actual runtime A/B evidence
-  = implemented, Not Yet Verified
+Requirement / Contract / natural Japanese audit
+  = completed; current baseline object equivalence confirmed
 
 runtime-version-exchange Scoped Executable Evidence
-  = not available yet
+  = available
 ```
 
 ## Requirement / Contract assessment
 
-現時点では新しいStable Requirement / Acceptance Scenario / Universal Contract fieldを追加しない。actual実証後に少なくともREQ-0001、REQ-0004、REQ-0021、SCN-0005、SCN-0015へ再照合する。既存Requirement / Contractで十分に表せる場合はNo Changeとする。
+REQ-0001、REQ-0004、REQ-0021、SCN-0005、SCN-0015へ再照合した。既存Cognitive Method Contract、Semantic Reference、Semantic Interchange、Raw Bytes SHA-256 Profileで今回必要な意味を表現でき、新しいStable Requirement / Acceptance Scenario / Universal Contract fieldは不要と判断した。
+
+runtime version、archive digest、model digest、prompt digestはRealization-local metadata / Provenance / Evidenceに留める。Method outputをRecommendation / Decisionへ自動昇格しない。
 
 ## Resolution
 
@@ -657,6 +662,17 @@ runtime-version-exchange Scoped Executable Evidence
 10. complete runの専用Evidence directoryから実験identity、source identity / Provenance、model preparation / static verification、取得状況、入力、A / B actual runtime digest、model Evidence、出力、runner observation / combined output logへ戻れる。
 11. complete runの保存済みEvidenceを独立Evidence + Provenance verifierへ通し、固定された機械条件とProvenance条件について`ready-to-review`を得る。
 12. Requirement / Contract再照合と自然な日本語最終監査を行う。
+
+2026-09-05のactual Evidence回収とcurrent-contract object equivalence監査により、上記1〜12をすべて満たしたことを確認した。したがって本Issueを**Resolved**とする。
+
+```text
+ISSUE-000070 Resolved
+  = fixed KJ Atlas + fixed model artifact下のOllama 0.32.13 / 0.32.14 runtime version exchangeについてScoped Executable Evidence available
+  != arbitrary runtime version portability
+  != model output quality satisfied
+  != KJ-method outcome quality satisfied
+  != E4 Operational portability
+```
 
 archive preparation、model store preparation、static model verification、preflight ready、failure Evidence保存、strict entrypoint verification、source export成功、focused local checks、helper / synthetic test、manifest consistency、official Release snapshot、disk free-space、GitHub Actions再導入、artifactの実行時download可否は、それ単独ではResolution条件にしない。
 
@@ -717,16 +733,14 @@ runtime 0.32.13 / 0.32.14 exchange PASS
 
 ## 自然な日本語レビュー
 
-ISSUE-000067 / 000068 / 000071、Cognitive Method Contract、Exact Binding、current KJ Atlas mapping、no-Actions baseline、repository-local runtime資産へ戻って全文を再監査した。
+ISSUE-000067 / 000068 / 000071、Cognitive Method Contract、Exact Binding、current KJ Atlas mapping、no-Actions baseline、repository-local runtime資産、actual Evidence、current-contract equivalence auditへ戻って全文を再監査した。
 
 現在の実行経路を、runtime artifactの固定条件と公式取得境界、fixed commit objectまたはverified bundleによるsource準備、model store検証または新規準備、focused local regression、preflight、strict entrypoint、verified-bundle-only low-level harness、actual API / inference、run専用Evidence保存、runner observation、Evidence + Provenance独立検証、Requirement / Contract再照合の順に整理した。
 
 取得元・配置path・artifact identityを混同しない。runtime archiveは公式Releaseを取得入口としても最終identityをactual bytesのSHA-256へ戻す。KJ Atlas checkoutはfixed commit objectの取得元であり、working treeそのものをstrict runtime sourceにはしない。sourceの一時展開やstrict内部bundleも親`TMPDIR`から分離し、失敗時のpartial bundleを残さない。model storeもstatic manifest / blob identityとactual `/api/tags`観測を分離する。
 
-preflightやfocused regressionで明白な問題を早く止めても、それはactual A / B実行の成立を意味しない。focused resultには`actualRuntimeExchangeEvidence=false`と`qualityJudgement=not_evaluated`を残し、timeoutやlaunch errorも成功へ丸めない。
+preflightやfocused regressionで明白な問題を早く止めても、それはactual A / B実行の成立を意味しない。今回のResolved判断は、回収済みactual A/B Evidenceと`ready-to-review` verification、historical reconstruction、Requirement / Contract再照合に基づく。
 
-失敗時のEvidenceは、成功を補強するためではなく、どこで何が成立しなかったかを失わないために保存する。partial Evidenceを`ready-to-review`やruntime exchange PASSへ昇格しない。
+GitHub Actionsは完全停止を維持する。成果品質、任意runtime portability、E4 Operational portabilityは未成立のままとし、本IssueのScoped Executable Evidenceをそれらへ拡張しない。
 
-GitHub Actionsは完全停止を維持する。actual Ollama `0.32.13` / `0.32.14`交換はNot Yet Verifiedであり、本IssueはOpenのままとする。
-
-意味、規範強度、Resolution条件、Evidence強度、未検証範囲を変えず、自然な日本語となることを最重要視して再ドラフトした。
+意味、規範強度、Resolution条件、Evidence強度、未検証範囲を混同せず、自然な日本語となることを最重要視して最終監査した。
