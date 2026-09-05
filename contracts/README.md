@@ -1,7 +1,7 @@
 # SOZA Contracts
 
-更新日: 2026-08-31  
-状態: **Current Contract Baseline / Scoped Executable Evidence Available**
+更新日: 2026-09-05  
+状態: **Current Contract Baseline / Scoped Executable Evidence Available / v0.2.0 Release Evidence Reflected**
 
 ## 1. このディレクトリの役割
 
@@ -42,9 +42,10 @@ schemaだけに新しいsemantic requirementを追加しません。Markdownとs
 | Semantic Reference | `soza.semantic-reference` | `v1alpha1` | Design baseline + scoped Executable Evidence |
 | Decision Memory | `soza.decision-memory` | `v1alpha1` | Design baseline + scoped Executable Evidence |
 | Capability Observation | `soza.capability-observation` | `v1alpha1` | Design baseline + scoped Executable Evidence |
+| Cognitive Method | `soza.cognitive-method` | `v1alpha1` | Design baseline + scoped Executable Evidence |
 | Semantic Interchange | `soza.semantic-interchange` | `v1alpha1` | Design baseline + scoped Executable Evidence |
 
-4 Contract familyの意味境界は各Definitionを正本とします。対応Requirement、ADR、Architecture、fixture、runtimeとの関係は`CONTRACT_CATALOG.md`と`TRACEABILITY.md`を参照します。
+5 Contract familyの意味境界は各Definitionを正本とします。対応Requirement、ADR、Architecture、fixture、runtimeとの関係は`CONTRACT_CATALOG.md`と`TRACEABILITY.md`を参照します。
 
 ## 4. Representation Profile
 
@@ -57,26 +58,34 @@ ADR-0023により、current/future Exact Binding向けの`v1alpha1`基線とし�
 - `soza.jcs+sha256/v1alpha1`
 - `soza.raw-bytes+sha256/v1alpha1`
 
-これらはcurrent Profileであり、SOZA Universal Core唯一のrepresentationではありません。historical M47 digest規則の特定はISSUE-000034で別途追跡します。
+これらはcurrent Profileであり、SOZA Universal Core唯一のrepresentationではありません。historical M47 digest規則についてはISSUE-000034で、保持されている直接Evidenceから権威的に復元できないと整理しています。current Profile conformanceから旧方式を推定しません。
 
 ## 5. current Executable Evidence
 
 actual repositoryには、少なくとも次があります。
 
-- 4 ContractのJSON Schema
-- Contract v1alpha1の17 fixture
+- 5 Contract familyのJSON Schema
+- current Contract checkerの39 fixture
 - semantic validator / conformance checker
 - Representation Profile fixture / verifier probe
-- Contract fixtureを読むGo first semantic runtime slice
+- current known Contractを読むGo semantic runtime
+- known typed Contract横断のbundle-local Exact Binding consistency
+- Cognitive Method typed runtime
 - Capability Observationへ収束するsynthetic Provider A / B Adapter slice
 
-代表的なCI:
+さらに、Contractを利用する下流のScoped Executable Evidenceとして、次があります。
 
-- Contract Conformance — Run `33346472419`: **success**
-- Representation Profile Conformance — Run `33347989530`: **success**
-- Semantic Runtime Conformance #3 — Run `33348972805`: **success**
-- Semantic Runtime Conformance #4 — Run `33349604842`: **success**
-- Semantic Runtime Conformance #5 — Run `33349801993`: **success**
+- end-to-end Semantic Product Journey
+- E2 out-of-process Realization / Provider exchange
+- E3a version-pinned external artifact integration
+- E3b-P1 public live Provider integration
+- E3b-P2 revision A fixed-artifact actual TEI CLI integration
+- E3b-M1a / M1b live Cognitive Method integration
+- Method Realization historical reconstruction
+- actual model artifact exchange後のhistorical Application保持
+- fixed-model Ollama runtime version exchange後のhistorical Application保持 — ISSUE-000070 Resolved
+
+historical GitHub Actions Runは、その時点で実際に得たEvidenceとして保持しますが、current Contract成立条件をGitHub Actionsへ依存させません。
 
 Contract fixtureやruntimeが確認した範囲だけをExecutable Evidenceとし、Contract全体やProduct Value全体の達成へ広げません。
 
@@ -92,14 +101,17 @@ Design Evidence
   != Adoption / Outcome Evidence
 ```
 
-current baselineでは、4 Contract familyにDesign Evidenceがあり、その一部意味境界にはscoped Executable Evidenceがあります。
+current baselineでは、5 Contract familyにDesign Evidenceがあり、その意味境界の一部にはscoped Executable Evidenceがあります。
 
-一方、Release、Operational、Adoption / Outcomeは`Not Yet Verified`です。
+v0.2.0 Local Reference Product Baselineについてactual Release Evidenceがあります。ただし、supported release scopeはE3aまでです。release後に得たE3b、historical reconstruction、model / runtime version exchange Evidenceを、公開済みv0.2.0のsupport範囲へ遡及させません。
+
+Operational EvidenceとAdoption / Outcome EvidenceはNot Establishedです。
 
 ```text
-Contract CI PASS
-  != release readiness
-  != production interoperability
+Contract conformance / scoped integration PASS
+  != arbitrary interoperability
+  != v0.2.0 supported scope expanded
+  != Operational Evidence
   != user-value realization
 ```
 
@@ -114,7 +126,9 @@ Provider-specific input != Universal Contract
 Adapter output != Decision != Authority != Execution
 ```
 
-synthetic Adapterの成功はproduction Provider / TEI interoperabilityのEvidenceではありません。
+synthetic Adapterに加え、E3b-P1 public live ProviderとE3b-P2 revision A fixed-artifact actual TEI CLIで、Provider固有情報をCapability Observation境界へ戻すScoped Executable Evidenceがあります。
+
+一方、ISSUE-000072のTEI revision B actual CLI / Provider Plan / current SOZA Adapter compatibilityはNot Yet Verifiedです。revision Aやrepository-side runnerの存在だけから任意TEI version互換性を主張しません。
 
 ## 8. historical Contract
 
@@ -128,4 +142,8 @@ Contract文書は、意味・規範強度・例外・Evidence境界を確定し�
 
 ## 10. Natural Japanese review
 
-4 Contract Definition、current JSON Schema / 17 fixture、2 Representation Profile、first semantic runtime、synthetic Provider Adapter、およびactual CI Evidenceへ戻って本READMEを再監査しました。historical候補とcurrentでAccepted・実体化・限定検証済みの境界を分け、Evidenceを5段階へ揃えています。その後、意味、権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+5 Contract Definition、current JSON Schema / 39 fixture、2 Representation Profile、Go semantic runtime、Verifier Registry / Payload Source、synthetic Provider Adapter、Product Journey、E2 / E3a / E3b integration、historical reconstruction、model / runtime exchange、v0.2.0 Release Evidenceへ戻って本READMEを再監査しました。
+
+旧版に残っていた「4 Contract family」「17 fixture」「production Provider / TEI未確認」「Release Evidence未成立」という2026-08-31時点の記述をcurrent stateへ更新しました。
+
+そのうえで、ISSUE-000070のfixed-scope Evidenceをarbitrary portabilityや成果品質へ拡張せず、ISSUE-000072 revision B actual、Operational / Adoption・Outcomeを未検証として残しています。意味、権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して最終意味監査を行いました。
