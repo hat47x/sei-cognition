@@ -1,6 +1,6 @@
 # runtime integration probes
 
-更新日: 2026-09-04
+更新日: 2026-09-05
 
 このディレクトリには、SOZAと外部Cognitive Method / model runtimeの接続を実際に確かめるためのintegration資産を置きます。
 
@@ -13,7 +13,7 @@ what must be verified
 
 ## Runtime version exchange
 
-ISSUE-000070では、同じCognitive Method、同じKJ Atlas source、同じMethod input、同じmodel artifact、同じmodel promptを使い、Ollama runtime versionだけを交換します。
+ISSUE-000070では、同じCognitive Method、同じKJ Atlas source、同じMethod input、同じmodel artifact、同じmodel promptを使い、Ollama runtime versionだけを交換しました。
 
 固定条件は次のとおりです。
 
@@ -38,12 +38,28 @@ same model prompt
 runtime revision A != runtime revision B
 ```
 
-確認したい中心命題は、runtime versionを交換しても先行Method ApplicationのExact Reference、Provenance、outputを変更せず保持できることです。
+中心命題は、runtime versionを交換しても先行Method ApplicationのExact Reference、Provenance、outputを変更せず保持できることです。
 
 ```text
 runtime version exchange
   → new exact Realization revision
   != historical Application rewrite
+```
+
+historical execution `local-20260904T193531Z-7855`では、A/B actual archive bytes / binary version、fixed model full digest、same prompt、actual inference、same logical Realization / different Exact Binding、historical Application Aの不変性、portable reconstruction、negative controlを確認しました。
+
+保存済みcanonical Evidence + Provenance verificationは`ready-to-review`、`107 ok / 0 blocked`です。actual run時とcurrent developのResolution Criteria、canonical verifier、fixed artifact manifest、Requirement / Scenario、relevant Contract baselineもGit object identityで再照合し、ISSUE-000070はfixed scopeで**Resolved**です。
+
+このREADMEの実行経路は、既存Resolved Evidenceの独立reproduction、Reopen conditionの監査、broader portabilityへ進む追加Evidenceの取得にも利用します。
+
+```text
+ISSUE-000070 Resolved
+  = fixed-scope runtime-version-exchange Scoped Executable Evidence available
+  != arbitrary runtime version portability
+  != other runtime implementation portability
+  != model output quality satisfied
+  != KJ-method outcome quality satisfied
+  != E4 Operational portability
 ```
 
 ## 判定を分離する
@@ -61,10 +77,12 @@ strict execution PASS
   != Evidence + Provenance verification PASS
 
 Evidence + Provenance verification PASS
-  != ISSUE-000070 Resolved
+  != automatic Issue Resolution
   != model output quality satisfied
   != KJ-method outcome quality satisfied
 ```
+
+ISSUE-000070がResolvedであるのは、単一runのmechanical PASSだけではなく、fixed-scope actual Evidence、historical reconstruction、Requirement / Contract再照合、current-contract object-equivalence監査までResolution Criteriaへ対応したためです。
 
 失敗情報を保存できたことも、runtime交換の成立とは別です。
 
@@ -99,7 +117,7 @@ artifact identity
 
 ## 標準実行経路
 
-actual runtime交換へ進む標準入口は`run_runtime_version_exchange_with_verification.py`です。
+runtime交換を独立reproductionする標準入口は`run_runtime_version_exchange_with_verification.py`です。
 
 ```text
 1. fixed runtime archiveをrepository外へ準備・再検証する
@@ -450,6 +468,8 @@ focused local checks PASS
   != runtime-version-exchange Scoped Executable Evidence
 ```
 
+この停止線はfocused regression自身のEvidence強度を示します。ISSUE-000070に既存actual Scoped Executable Evidenceがあることを否定するものではありません。
+
 ## Evidenceの読み方
 
 ### preflightでblockedしたrun
@@ -507,7 +527,7 @@ runtime exchange PASS
 
 ## 自然な日本語レビュー
 
-current no-Actions baseline、固定runtime / source / model identity、artifact manifest横断整合、公式Release snapshot、runtime archiveのrepository外準備、source export、model store、preflight、strict entrypoint、failure Evidence、core / Provenance verifier、focused local runnerへ戻って全文を再監査しました。
+current no-Actions baseline、固定runtime / source / model identity、artifact manifest横断整合、公式Release snapshot、runtime archiveのrepository外準備、source export、model store、preflight、strict entrypoint、failure Evidence、core / Provenance verifier、focused local runner、回収済みactual Evidence、current-contract revalidationへ戻って全文を再監査しました。
 
 現在は、取得元、actual bytes、実行source、作業path、Evidence、成果品質を別の概念として扱っています。artifactの取得経路や配置場所をidentityの代わりにはせず、固定bytes / Git objectへ戻って検証します。
 
@@ -515,4 +535,6 @@ source acquisitionではworking treeを直接実行せず、固定commit object�
 
 GitHub Actionsを使わない現在の開発では、actual A/Bを起動しないfocused regressionを専用runnerへ集約し、timeout、launch error、Git観測、machine-readable resultまで保存できるようにしています。ただし、そのPASSをactual runtime exchange Evidenceへ昇格しません。
 
-actual Ollama `0.32.13` / `0.32.14`交換は引き続きNot Yet Verifiedです。実装済みの準備・安全策・failure Evidence・focused regressionと、未完了のactual A/B実行を明確に読み分けられることを最重要視しています。
+ISSUE-000070ではhistorical execution `local-20260904T193531Z-7855`のactual Ollama `0.32.13` / `0.32.14`交換を回収し、canonical `ready-to-review`、historical Application不変性、portable reconstruction、current-contract object-equivalence監査までResolution Criteriaへ再照合してResolvedとしました。
+
+このResolvedはfixed scopeに限ります。独立reproductionは再現性の追加Evidence、別runtime version / implementationへの展開はbroader portabilityの新しい探索です。model出力品質、KJ法としての成果品質、E4 Operational portabilityは未成立のままです。
