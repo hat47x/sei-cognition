@@ -1,0 +1,34 @@
+{
+  "schema": "soza.tei-revision-a-fixed-input-revalidation/v1",
+  "subject": {
+    "repository": "hat47x/tei-platform",
+    "revision": "48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67",
+    "githubArtifactId": 9831112092,
+    "githubArtifactZipSha256": "1ee8bf4112d9ae97e1f66b3165f70278663951e9dd4bd6020b465471f563a287",
+    "innerEvidenceBundleSha256": "6c1728abe75f9d3486dbe4676621c553d07e07e345cd09ec837e8d632f484f52"
+  },
+  "verification": {
+    "method": "Extract the historical revision A Evidence bundle, hash durable-run and plugin-lock bytes with Git blob serialization, recursively reconstruct the workspace Git tree from extracted regular-file bytes and Git modes, and compare the resulting object IDs with the fixed ISSUE-000072 reference identities.",
+    "observed": {
+      "workspaceTree": "5d596cfa5387b201cd733a07160307332d29a382",
+      "durableRunBlob": "6fe7b1586fcfd17f23f3b659df5632b31a6baf1f",
+      "pluginLockBlob": "0fa63ad634c72395781eaaae5ee0132f73d03541"
+    },
+    "expected": {
+      "workspaceTree": "5d596cfa5387b201cd733a07160307332d29a382",
+      "durableRunBlob": "6fe7b1586fcfd17f23f3b659df5632b31a6baf1f",
+      "pluginLockBlob": "0fa63ad634c72395781eaaae5ee0132f73d03541"
+    },
+    "result": "verified"
+  },
+  "interpretation": {
+    "revisionAFixedInputArtifactBytesRevalidated": true,
+    "actualRevisionBExecution": false,
+    "revisionBBuildPass": false,
+    "providerPlanExecutionPass": false,
+    "sozaAdapterCompatibilityPass": false,
+    "issue000072Resolved": false,
+    "qualityJudgement": "not_evaluated"
+  },
+  "stopLine": "revision A fixed-input artifact bytes revalidated != revision B build PASS != Provider Plan execution PASS != SOZA Adapter compatibility PASS != ISSUE-000072 Resolved"
+}
