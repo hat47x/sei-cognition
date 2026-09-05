@@ -47,6 +47,7 @@ def _worktree_status(repo: Path, paths: list[str]) -> list[str]:
         "status",
         "--porcelain=v1",
         "--untracked-files=all",
+        "--ignored=matching",
         "--",
         *paths,
     )
@@ -66,7 +67,7 @@ def verify_repository(
     dirty = _worktree_status(repo, paths)
     if dirty:
         raise ValueError(
-            "execution-source境界に未commit変更またはuntracked fileがあります: "
+            "execution-source境界に未commit変更、untracked file、またはignored entryがあります: "
             + " | ".join(dirty)
         )
 
