@@ -34,6 +34,7 @@ CHECK_FILES = (
     "test_run_runtime_version_exchange_strict_model_preparation.py",
     "test_run_runtime_version_exchange.py",
     "test_run_runtime_version_exchange_with_verification.py",
+    "test_observe_runtime_version_exchange_progress.py",
     "test_run_runtime_version_exchange_local_checks.py",
     "test_runtime_version_exchange_local_child_environment.py",
     "test_runtime_version_exchange_blocked_preflight_evidence.py",
