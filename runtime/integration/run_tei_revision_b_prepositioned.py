@@ -14,6 +14,7 @@ from pathlib import Path
 
 import verify_tei_evidence_bundle as bundle_verifier
 import verify_tei_execution_source_identity as source_identity
+from runtime_path_safety import reject_symlink_path_or_ancestors
 
 FIXED_RUN = "reference/order_rollout.durable-run.m0.21.start.json"
 FIXED_WORKSPACE = "reference/workspace"
@@ -22,6 +23,7 @@ FIXED_SOLUTION = "order_rollout"
 FIXED_VERSION = "2026.8.27"
 EXPECTED_GO_VERSION = "go1.23.2"
 MAX_STAGE_OUTPUT = 16 * 1024
+SOZA_ROOT = Path(__file__).resolve().parents[2]
 STOP_LINE = (
     "prepositioned exact-B bundle produced with exact-A reference input "
     "!= SOZA Adapter compatibility verified != TEI version exchange PASS "
@@ -151,6 +153,37 @@ def _wrap_stage(stage: str, exc: Exception) -> TEIEvidenceStageError:
     return TEIEvidenceStageError(stage, str(exc))
 
 
+def _is_within(candidate: Path, root: Path) -> bool:
+    return candidate == root or root in candidate.parents
+
+
+def _prepare_output_archive(
+    output_archive: Path,
+    *,
+    source_repo: Path,
+    reference_source_repo: Path,
+) -> Path:
+    requested = output_archive.expanduser()
+    reject_symlink_path_or_ancestors(requested, "TEI Evidence output archive")
+    resolved = requested.resolve(strict=False)
+    if resolved.exists():
+        raise ValueError(
+            "既存TEI Evidence archiveを無言で上書きしません: "
+            f"{resolved}"
+        )
+    for label, root in (
+        ("revision B source checkout", source_repo),
+        ("revision A reference checkout", reference_source_repo),
+        ("SOZA repository", SOZA_ROOT),
+    ):
+        if _is_within(resolved, root):
+            raise ValueError(
+                f"TEI Evidence output archiveを{label}配下には置けません: "
+                f"output={resolved} root={root}"
+            )
+    return resolved
+
+
 def produce_bundle(
     source_repo: Path,
     reference_source_repo: Path,
@@ -158,7 +191,11 @@ def produce_bundle(
 ) -> dict[str, object]:
     source_repo = source_repo.expanduser().resolve(strict=True)
     reference_source_repo = reference_source_repo.expanduser().resolve(strict=True)
-    output_archive = output_archive.expanduser().resolve()
+    output_archive = _prepare_output_archive(
+        output_archive,
+        source_repo=source_repo,
+        reference_source_repo=reference_source_repo,
+    )
     output_archive.parent.mkdir(parents=True, exist_ok=True)
 
     try:

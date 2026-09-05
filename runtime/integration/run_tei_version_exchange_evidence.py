@@ -14,6 +14,7 @@ from typing import Iterator
 import run_tei_bundle_adapter_compatibility as adapter_runner
 import run_tei_revision_b_prepositioned as build_runner
 import verify_tei_execution_source_identity as source_identity
+from runtime_path_safety import reject_symlink_path_or_ancestors
 
 SCHEMA = "soza.tei-version-exchange-evidence-run/v1"
 BUNDLE_NAME = "tei-e3b-p2-revision-b.tar.gz"
@@ -96,6 +97,47 @@ def _failure(stage: str, exc: Exception) -> dict[str, object]:
     return result
 
 
+def _is_within(candidate: Path, root: Path) -> bool:
+    return candidate == root or root in candidate.parents
+
+
+def _prepare_output_dir(
+    output_dir: Path,
+    *,
+    source_repo: Path,
+    reference_source_repo: Path,
+    soza_repo_root: Path,
+) -> Path:
+    requested = output_dir.expanduser()
+    reject_symlink_path_or_ancestors(
+        requested,
+        "TEI version exchange Evidence directory",
+    )
+    resolved = requested.resolve(strict=False)
+    if resolved.exists() and not resolved.is_dir():
+        raise ValueError(
+            "TEI version exchange Evidence出力先がdirectoryではありません: "
+            f"{resolved}"
+        )
+
+    for label, root in (
+        ("revision B source checkout", source_repo),
+        ("revision A reference checkout", reference_source_repo),
+        ("SOZA repository", soza_repo_root),
+    ):
+        if _is_within(resolved, root):
+            raise ValueError(
+                f"TEI version exchange Evidence directoryを{label}配下には置けません: "
+                f"output={resolved} root={root}"
+            )
+        if _is_within(root, resolved):
+            raise ValueError(
+                f"TEI version exchange Evidence directoryで{label}を包含できません: "
+                f"output={resolved} root={root}"
+            )
+    return resolved
+
+
 def _prepare_output_paths(
     bundle_path: Path,
     report_path: Path,
@@ -129,7 +171,12 @@ def run_version_exchange(
     source_repo = source_repo.expanduser().resolve(strict=True)
     reference_source_repo = reference_source_repo.expanduser().resolve(strict=True)
     soza_repo_root = soza_repo_root.expanduser().resolve(strict=True)
-    output_dir = output_dir.expanduser().resolve()
+    output_dir = _prepare_output_dir(
+        output_dir,
+        source_repo=source_repo,
+        reference_source_repo=reference_source_repo,
+        soza_repo_root=soza_repo_root,
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
 
     bundle_path = output_dir / BUNDLE_NAME
