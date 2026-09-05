@@ -64,6 +64,25 @@ class TEIExecutionSourceIdentityVerificationTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "untracked file"):
                 subject.verify_repository(repo, expected_objects=objects)
 
+    def test_ignored_entries_in_boundary_are_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo, objects, _ = self.make_repo(Path(tmp))
+            exclude = repo / ".git" / "info" / "exclude"
+            exclude.write_text(
+                "cmd/ignored.go\nreference/ignored-input.tmp\n",
+                encoding="utf-8",
+            )
+            (repo / "cmd" / "ignored.go").write_text(
+                "package main\n",
+                encoding="utf-8",
+            )
+            (repo / "reference" / "ignored-input.tmp").write_text(
+                "ignored\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "ignored entry"):
+                subject.verify_repository(repo, expected_objects=objects)
+
     def test_expected_head_mismatch_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             repo, objects, _ = self.make_repo(Path(tmp))
