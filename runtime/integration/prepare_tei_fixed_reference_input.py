@@ -53,6 +53,9 @@ def verify_fixed_reference_input_bundle(archive: Path) -> dict[str, object]:
         "schema": "soza.tei-fixed-reference-input-bundle/v1",
         "result": "verified",
         "acquisitionMode": "historical_evidence_bundle",
+        "sourceCommit": source_identity.REVISION_A,
+        "head": source_identity.REVISION_A,
+        "executionSourceObjects": dict(source_identity.REVISION_A_REFERENCE_OBJECTS),
         "archive": str(resolved),
         "archiveSha256": verification["observation"]["archive_sha256"],
         "referenceInput": verification["referenceInput"],
@@ -185,7 +188,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print("TEI fixed reference input: verified")
         print(f"- acquisition: {result['acquisitionMode']}")
-        print(f"- source commit: {result['referenceInput']['source_commit']}")
+        print(f"- source commit: {result['sourceCommit']}")
         print(f"- workspace tree: {result['referenceInput']['workspace_tree']}")
         if "materializedRoot" in result:
             print(f"- materialized root: {result['materializedRoot']}")
