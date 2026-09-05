@@ -47,16 +47,20 @@ class TEIRevisionBPrepositionedRunnerTest(unittest.TestCase):
         raise AssertionError(argv)
 
     def verified_observations(self):
+        source_observation = {
+            "result": "verified",
+            "head": source_identity.REVISION_B,
+        }
+        reference_observation = {
+            "result": "verified",
+            "head": source_identity.REVISION_A,
+            "executionSourceObjects": source_identity.REVISION_A_REFERENCE_OBJECTS,
+        }
         return [
-            {
-                "result": "verified",
-                "head": source_identity.REVISION_B,
-            },
-            {
-                "result": "verified",
-                "head": source_identity.REVISION_A,
-                "executionSourceObjects": source_identity.REVISION_A_REFERENCE_OBJECTS,
-            },
+            source_observation,
+            reference_observation,
+            source_observation,
+            reference_observation,
         ]
 
     def make_pair(self, root: Path):
@@ -162,6 +166,14 @@ class TEIRevisionBPrepositionedRunnerTest(unittest.TestCase):
         )
         self.assertEqual(source_identity.REVISION_A, result["referenceInput"]["head"])
         self.assertEqual(
+            source_identity.REVISION_B,
+            result["postExecutionIdentity"]["source"]["head"],
+        )
+        self.assertEqual(
+            source_identity.REVISION_A,
+            result["postExecutionIdentity"]["referenceInput"]["head"],
+        )
+        self.assertEqual(
             source_identity.REVISION_A,
             metadata["reference_input_source_commit"],
         )
@@ -174,6 +186,12 @@ class TEIRevisionBPrepositionedRunnerTest(unittest.TestCase):
         self.assertIn("evidence_bundle_publish", result["completedStages"])
         self.assertEqual(
             [
+                mock.call(source_repo.resolve(), expected_head=source_identity.REVISION_B),
+                mock.call(
+                    reference_repo.resolve(),
+                    expected_objects=source_identity.REVISION_A_REFERENCE_OBJECTS,
+                    expected_head=source_identity.REVISION_A,
+                ),
                 mock.call(source_repo.resolve(), expected_head=source_identity.REVISION_B),
                 mock.call(
                     reference_repo.resolve(),

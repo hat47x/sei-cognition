@@ -214,6 +214,43 @@ def _prepare_output_archive(
     return resolved
 
 
+def _reverify_execution_inputs_after_provider(
+    source_repo: Path,
+    reference_source_repo: Path | None,
+) -> dict[str, object]:
+    try:
+        source_observation = source_identity.verify_repository(
+            source_repo,
+            expected_head=source_identity.REVISION_B,
+        )
+    except (OSError, ValueError, subprocess.SubprocessError) as exc:
+        detail = ValueError(
+            "Provider Plan実行後のrevision B source再検証に失敗しました: "
+            f"{exc}"
+        )
+        raise _wrap_stage("revision_b_source_identity", detail) from exc
+
+    reference_observation: dict[str, object] | None = None
+    if reference_source_repo is not None:
+        try:
+            reference_observation = source_identity.verify_repository(
+                reference_source_repo,
+                expected_objects=source_identity.REVISION_A_REFERENCE_OBJECTS,
+                expected_head=source_identity.REVISION_A,
+            )
+        except (OSError, ValueError, subprocess.SubprocessError) as exc:
+            detail = ValueError(
+                "Provider Plan実行後のrevision A fixed input再検証に失敗しました: "
+                f"{exc}"
+            )
+            raise _wrap_stage("revision_a_fixed_reference_identity", detail) from exc
+
+    return {
+        "source": source_observation,
+        "referenceInput": reference_observation,
+    }
+
+
 def produce_bundle(
     source_repo: Path,
     reference_source_repo: Path | None,
@@ -351,6 +388,11 @@ def produce_bundle(
         except ValueError as exc:
             raise _wrap_stage("provider_plan_validation", exc) from exc
 
+        post_execution_identity = _reverify_execution_inputs_after_provider(
+            source_repo,
+            reference_source_repo,
+        )
+
         try:
             _copy_reference_inputs(reference_input_root, bundle_root)
         except (OSError, ValueError) as exc:
@@ -409,6 +451,7 @@ def produce_bundle(
         "result": "bundle_produced",
         "source": source_observation,
         "referenceInput": reference_observation,
+        "postExecutionIdentity": post_execution_identity,
         "bundle": verification,
         "outputArchive": str(output_archive),
         "completedStages": [
