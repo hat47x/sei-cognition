@@ -109,15 +109,74 @@ repository-local synthetic検査では次の7件を確認しました。
 
 ## 6. actual実行例
 
-実行環境では、2つのGo installationを別々に用意します。
+### root権限なしのuser-local toolchain準備例
+
+実行環境にGoがない場合、system packageや`sudo`を前提にせず、Go公式Linux / amd64 archiveをrepository外へ展開できます。
+
+E2用Go 1.23.2はhistorical Evidence条件へ固定します。E3用のGo 1.25.0は、current `runtime/go/go.mod`のGo 1.25を満たす**再現可能なexecution candidate**としてここで例示するもので、Stable RequirementやUniversal Contractへ昇格させません。実行時にはactual `go version`がEvidence reportへ残ります。
+
+Go公式配布ページで確認したLinux / amd64 archiveのSHA-256は次です。
+
+```text
+go1.23.2.linux-amd64.tar.gz
+  542d3c1705f1c6a1c5a80d5dc62e2e45171af291e755d591c5e6531ef63b454e
+
+go1.25.0.linux-amd64.tar.gz
+  2852af0cb20a13139b3448992e69b868e50ed0f8a1e5940ee1de9e19a123b613
+```
+
+user-local配置例:
+
+```bash
+export TOOLCHAIN_ROOT="$HOME/.local/opt/soza-tei-go"
+mkdir -p "$TOOLCHAIN_ROOT"
+cd "$TOOLCHAIN_ROOT"
+
+test ! -e "$TOOLCHAIN_ROOT/go1.23.2"
+curl -fL --retry 3 \
+  -o go1.23.2.linux-amd64.tar.gz \
+  https://go.dev/dl/go1.23.2.linux-amd64.tar.gz
+printf '%s  %s\n' \
+  542d3c1705f1c6a1c5a80d5dc62e2e45171af291e755d591c5e6531ef63b454e \
+  go1.23.2.linux-amd64.tar.gz | sha256sum -c -
+mkdir "$TOOLCHAIN_ROOT/go1.23.2"
+tar -C "$TOOLCHAIN_ROOT/go1.23.2" --strip-components=1 \
+  -xzf go1.23.2.linux-amd64.tar.gz
+
+test ! -e "$TOOLCHAIN_ROOT/go1.25.0"
+curl -fL --retry 3 \
+  -o go1.25.0.linux-amd64.tar.gz \
+  https://go.dev/dl/go1.25.0.linux-amd64.tar.gz
+printf '%s  %s\n' \
+  2852af0cb20a13139b3448992e69b868e50ed0f8a1e5940ee1de9e19a123b613 \
+  go1.25.0.linux-amd64.tar.gz | sha256sum -c -
+mkdir "$TOOLCHAIN_ROOT/go1.25.0"
+tar -C "$TOOLCHAIN_ROOT/go1.25.0" --strip-components=1 \
+  -xzf go1.25.0.linux-amd64.tar.gz
+
+test "$("$TOOLCHAIN_ROOT/go1.23.2/bin/go" version)" = \
+  "go version go1.23.2 linux/amd64"
+test "$("$TOOLCHAIN_ROOT/go1.25.0/bin/go" version)" = \
+  "go version go1.25.0 linux/amd64"
+```
+
+archive bytesのSHA-256確認前に展開しません。既存toolchain directoryも暗黙に上書きしません。
+
+```text
+official archive SHA-256 verified
+  != TEI revision B build PASS
+  != current SOZA Adapter live compatibility PASS
+```
+
+actual実行では、2つのGo installationを別々に指定します。
 
 ```bash
 export TEI_B_REPO=/path/to/tei-revision-b
 export TEI_A_REPO=/path/to/tei-revision-a
 export SOZA_REPO=/path/to/soza
 export EVIDENCE_DIR=/path/to/evidence/tei-version-exchange
-export TEI_GO=/opt/go1.23.2/bin/go
-export SOZA_GO=/opt/go1.25/bin/go
+export TEI_GO="$HOME/.local/opt/soza-tei-go/go1.23.2/bin/go"
+export SOZA_GO="$HOME/.local/opt/soza-tei-go/go1.25.0/bin/go"
 
 SOZA_HEAD="$(git -C "$SOZA_REPO" rev-parse HEAD)"
 
