@@ -101,11 +101,39 @@ def _is_within(candidate: Path, root: Path) -> bool:
     return candidate == root or root in candidate.parents
 
 
+def _prepare_reference_input_paths(
+    reference_source_repo: Path | None,
+    reference_evidence_bundle: Path | None,
+) -> tuple[Path | None, Path | None]:
+    if (reference_source_repo is None) == (reference_evidence_bundle is None):
+        raise ValueError(
+            "exact revision A fixed inputは--reference-source-repoまたは"
+            "--reference-evidence-bundleのどちらか一方で指定してください"
+        )
+    if reference_source_repo is not None:
+        return reference_source_repo.expanduser().resolve(strict=True), None
+
+    assert reference_evidence_bundle is not None
+    requested = reference_evidence_bundle.expanduser()
+    reject_symlink_path_or_ancestors(
+        requested,
+        "TEI historical reference Evidence bundle",
+    )
+    resolved = requested.resolve(strict=True)
+    if not resolved.is_file():
+        raise ValueError(
+            "TEI historical reference Evidence bundleがfileではありません: "
+            f"{resolved}"
+        )
+    return None, resolved
+
+
 def _prepare_output_dir(
     output_dir: Path,
     *,
     source_repo: Path,
-    reference_source_repo: Path,
+    reference_source_repo: Path | None,
+    reference_evidence_bundle: Path | None,
     soza_repo_root: Path,
 ) -> Path:
     requested = output_dir.expanduser()
@@ -120,11 +148,13 @@ def _prepare_output_dir(
             f"{resolved}"
         )
 
-    for label, root in (
+    roots: list[tuple[str, Path]] = [
         ("revision B source checkout", source_repo),
-        ("revision A reference checkout", reference_source_repo),
         ("SOZA repository", soza_repo_root),
-    ):
+    ]
+    if reference_source_repo is not None:
+        roots.insert(1, ("revision A reference checkout", reference_source_repo))
+    for label, root in roots:
         if _is_within(resolved, root):
             raise ValueError(
                 f"TEI version exchange Evidence directoryを{label}配下には置けません: "
@@ -135,6 +165,15 @@ def _prepare_output_dir(
                 f"TEI version exchange Evidence directoryで{label}を包含できません: "
                 f"output={resolved} root={root}"
             )
+
+    if reference_evidence_bundle is not None and _is_within(
+        reference_evidence_bundle, resolved
+    ):
+        raise ValueError(
+            "TEI version exchange Evidence directoryでhistorical reference bundleを"
+            "包含できません: "
+            f"output={resolved} bundle={reference_evidence_bundle}"
+        )
     return resolved
 
 
@@ -159,22 +198,27 @@ def _prepare_output_paths(
 
 def run_version_exchange(
     source_repo: Path,
-    reference_source_repo: Path,
+    reference_source_repo: Path | None,
     soza_repo_root: Path,
     output_dir: Path,
     *,
+    reference_evidence_bundle: Path | None = None,
     tei_go_executable: Path,
     soza_go_executable: Path,
     expected_soza_head: str | None = None,
     overwrite: bool = False,
 ) -> dict[str, object]:
     source_repo = source_repo.expanduser().resolve(strict=True)
-    reference_source_repo = reference_source_repo.expanduser().resolve(strict=True)
+    reference_source_repo, reference_evidence_bundle = _prepare_reference_input_paths(
+        reference_source_repo,
+        reference_evidence_bundle,
+    )
     soza_repo_root = soza_repo_root.expanduser().resolve(strict=True)
     output_dir = _prepare_output_dir(
         output_dir,
         source_repo=source_repo,
         reference_source_repo=reference_source_repo,
+        reference_evidence_bundle=reference_evidence_bundle,
         soza_repo_root=soza_repo_root,
     )
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -183,9 +227,18 @@ def run_version_exchange(
     report_path = output_dir / REPORT_NAME
     _prepare_output_paths(bundle_path, report_path, overwrite=overwrite)
 
+    acquisition_mode = (
+        "git_checkout" if reference_source_repo is not None else "historical_evidence_bundle"
+    )
     comparison_axis = {
         "buildSourceCommit": source_identity.REVISION_B,
         "referenceInputSourceCommit": source_identity.REVISION_A,
+        "referenceInputAcquisition": acquisition_mode,
+        "referenceInputBundle": (
+            str(reference_evidence_bundle)
+            if reference_evidence_bundle is not None
+            else None
+        ),
         "teiGoRequirement": build_runner.EXPECTED_GO_VERSION,
         "sozaGoRequirement": "runtime/go go.mod with GOTOOLCHAIN=local",
         "teiGoExecutable": str(tei_go_executable.expanduser()),
@@ -198,11 +251,20 @@ def run_version_exchange(
         with _go_on_path(tei_go_executable) as tei_go:
             comparison_axis["teiGoExecutable"] = str(tei_go)
             e2_runner_started = True
-            e2 = build_runner.produce_bundle(
-                source_repo,
-                reference_source_repo,
-                bundle_path,
-            )
+            if reference_source_repo is not None:
+                e2 = build_runner.produce_bundle(
+                    source_repo,
+                    reference_source_repo,
+                    bundle_path,
+                )
+            else:
+                assert reference_evidence_bundle is not None
+                e2 = build_runner.produce_bundle(
+                    source_repo,
+                    None,
+                    bundle_path,
+                    reference_evidence_bundle=reference_evidence_bundle,
+                )
     except EXPECTED_RUN_ERRORS as exc:
         if not e2_runner_started and not isinstance(
             exc, build_runner.TEIEvidenceStageError
@@ -286,12 +348,15 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "exact revision B build sourceとexact revision A fixed reference inputを使い、"
             "E2 Evidence bundle生成からE3 current SOZA Adapter live testまでを連続実行します。"
+            "A fixed inputはexact Git checkoutまたはverified historical Evidence bundleから取得し、"
             "TEI build用Go 1.23.2とSOZA検査用Go 1.25系は別executableとして明示します。"
         ),
         allow_abbrev=False,
     )
     parser.add_argument("--source-repo", required=True, type=Path)
-    parser.add_argument("--reference-source-repo", required=True, type=Path)
+    reference_group = parser.add_mutually_exclusive_group(required=True)
+    reference_group.add_argument("--reference-source-repo", type=Path)
+    reference_group.add_argument("--reference-evidence-bundle", type=Path)
     parser.add_argument(
         "--soza-repo-root",
         type=Path,
@@ -314,6 +379,7 @@ def main(argv: list[str] | None = None) -> int:
             args.reference_source_repo,
             args.soza_repo_root,
             args.output_dir,
+            reference_evidence_bundle=args.reference_evidence_bundle,
             tei_go_executable=args.tei_go_executable,
             soza_go_executable=args.soza_go_executable,
             expected_soza_head=args.expected_soza_head,
@@ -332,6 +398,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2))
     else:
         print("TEI version exchange fixed-scope E2/E3: verified")
+        print(f"- reference input acquisition: {result['comparisonAxis']['referenceInputAcquisition']}")
         print(f"- bundle: {result['bundleArchive']}")
         print(f"- report: {report_path}")
         print(result["stopLine"])
