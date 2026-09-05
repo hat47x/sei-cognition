@@ -4,15 +4,18 @@
 
 この文書は、PMS-06 / ISSUE-000072で進めているTEI executable version交換について、actual revision B実行の前に整備した検証経路と、まだ観測していない範囲を整理したものです。
 
-ここでいう「ready」は、actual Evidenceを得たという意味ではありません。exact revision Bのsource checkoutと、historical revision Aのfixed reference inputを実行可能なLinux / amd64環境へ用意できたとき、取得・build・Provider Plan実行・current SOZA Adapter検査までをrepository-localに再現できる状態を指します。
+ここでいう「ready」はactual Evidenceを得たという意味ではありません。exact revision Bのsource checkout、historical revision Aのfixed reference input、E2用Go、E3用Go、current SOZA checkoutを実行可能なLinux / amd64環境へ用意できたとき、build、Provider Plan実行、Evidence bundle検証、current SOZA Adapter live検査までをrepository-localに再現できる状態を指します。
 
 関連文書の役割は次のように分けます。
 
 - `plan/issue/ISSUE-000072-verify-tei-executable-version-exchange.md`: Goal、Constraints、Required experiments、Resolution Criteriaの正本。
-- `runtime/TEI_VERSION_EXCHANGE_EVIDENCE_2026-09-05.md`: その時点までに実際に観測した履歴Evidenceの記録。文中の「現在」は記録時点のsnapshotであり、その後のrunner整備を自動的には反映しません。
-- 本文書: actual実行前の**current execution path / readiness snapshot**。実行入口や未観測範囲を確認するときは本書を参照します。
+- `runtime/TEI_VERSION_EXCHANGE_EVIDENCE_2026-09-05.md`: その時点までにactualに観測した履歴Evidenceの記録。
+- `runtime/TEI_VERSION_EXCHANGE_TOOLCHAIN_READINESS_2026-09-05.md`: E2 / E3で別Go toolchainが必要な理由、user-local準備例、canonical combined runnerの実行例。
+- `runtime/TEI_VERSION_EXCHANGE_FAILURE_STAGES_2026-09-05.md`: E2 / E3で外部観測可能なmachine-readable stageの境界。
+- `runtime/TEI_VERSION_EXCHANGE_REQUIREMENT_PREAUDIT_2026-09-05.md`: actual結果を見る前に固定したRequirement / Scenario再照合基準。
+- 本文書: actual実行前のcurrent execution path / readiness snapshot。
 
-履歴Evidenceのactual観測値はEvidence文書を優先し、現在の実行経路・未実行状態は本書を優先します。どちらからも未観測のactual結果を推定しません。
+履歴Evidenceのactual観測値はEvidence文書を優先し、現在の実行経路・未実行状態は本書とtoolchain readinessを優先します。どの文書からも未観測のactual結果を推定しません。
 
 ```text
 execution path ready
@@ -44,7 +47,7 @@ reference/workspace/.tei/plugin-lock.json blob
   0fa63ad634c72395781eaaae5ee0132f73d03541
 ```
 
-AとBでは`reference/workspace` treeが異なります。そのため、B checkout内の同じpathを使うだけでは「TEI executable revisionだけを交換した比較」になりません。現在のrunnerは、exact B checkoutをbuild source、exact A checkoutをfixed reference sourceとして別々に受け取ります。
+AとBでは`reference/workspace` treeが異なります。そのため、B checkout内のreference inputをそのまま使うと、executable revisionだけでなくinput interpretationも同時に交換してしまいます。current runnerはexact B checkoutをbuild source、exact A checkoutをfixed reference sourceとして別々に受け取ります。
 
 ```text
 exact B build source + exact A fixed input verified
@@ -52,9 +55,9 @@ exact B build source + exact A fixed input verified
   != Provider Plan execution PASS
 ```
 
-## 3. revision B execution-source identity
+## 3. source identityと静的Provider surface
 
-`runtime/integration/verify_tei_execution_source_identity.py`は、revision Bについて次のGit object identityを固定しています。
+`runtime/integration/verify_tei_execution_source_identity.py`はrevision Bについて次のGit object identityを固定しています。
 
 ```text
 cmd tree
@@ -73,13 +76,11 @@ go.sum blob
   c7cd14781271dca2b014daf2f53d49d95b8e8826
 ```
 
-同verifierは、対象境界に未commit変更やuntracked fileがないことも確認します。revision A fixed inputについては、前節のworkspace / durable run / plugin lock identityを別のexpected object setとして検証します。
+同verifierは対象境界に未commit変更やuntracked fileがないことも確認します。revision A fixed inputは、前節のworkspace / durable run / plugin lock identityを別のexpected object setとして検証します。
 
 この検査はsource identityです。binary bytesやruntime結果を導出しません。
 
-## 4. Provider Plan surfaceの静的Evidence
-
-`runtime/TEI_PROVIDER_SURFACE_STATIC_COMPATIBILITY_2026-09-05.md`では、A / BのProvider Plan出力surfaceと、その前段を分けて確認しています。
+`runtime/TEI_PROVIDER_SURFACE_STATIC_COMPATIBILITY_2026-09-05.md`では、A / BのProvider Plan出力surfaceとその前段を分けて比較しています。
 
 静的に強い連続性を確認した領域:
 
@@ -88,17 +89,9 @@ cmd/tei/main.go
   = exact same Git blob
 
 internal/deployment
-  = exact same Git tree
-
 internal/environment
-  = exact same Git tree
-
 internal/releaseplan
-  = exact same Git tree
-
 internal/plugin/runtime
-  = exact same Git tree
-
 internal/core
   = exact same Git tree
 ```
@@ -112,7 +105,7 @@ internal/ir
 top-level internal/plugin
 ```
 
-したがって、既知のProvider Plan出力surfaceとdeployment中核には静的連続性がありますが、fixed reference inputをBのworkspace / validation経路がactualに受理することは推定しません。
+したがって既知のProvider Plan出力surfaceとdeployment中核には静的連続性がありますが、fixed reference inputをBのworkspace / validation経路がactualに受理することは推定しません。
 
 ```text
 same Provider Plan output surface
@@ -120,9 +113,11 @@ same Provider Plan output surface
   != revision B actual execution PASS
 ```
 
-## 5. E2 — actual revision B bundle生成経路
+## 4. E2 / E3のrunner境界
 
-`runtime/integration/run_tei_revision_b_prepositioned.py`は、GitHub Actionsを使わず、prepositionedされた2つのcheckoutからEvidence bundleを生成するrunnerです。
+### E2 — revision B bundle生成
+
+`runtime/integration/run_tei_revision_b_prepositioned.py`は、GitHub Actionsを使わず、prepositionedされた2つのcheckoutからEvidence bundleを生成します。
 
 入力:
 
@@ -134,33 +129,30 @@ same Provider Plan output surface
 
 1. B execution-source Git identityとexact HEADを確認する。
 2. A fixed reference input Git identityとexact HEADを確認する。
-3. Linux / amd64、Go `1.23.2`を要求する。
-4. historical Evidenceと同じ`go build -trimpath -ldflags='-s -w' ./cmd/tei`でB CLIをbuildする。
-5. B binaryへAのworkspace / durable run / plugin lockを渡し、`deployment-provider-plan`を実行する。
-6. Provider Planの既知top-level surfaceを確認する。
+3. Linux / amd64とE2用Go `1.23.2`を確認する。
+4. historical Evidenceと同じbuild条件でB CLIをbuildする。
+5. B binaryへAのworkspace / durable run / plugin lockを与え、`deployment-provider-plan`を実行する。
+6. Provider Planの既知surfaceを確認する。
 7. B binary SHA-256、Provider Plan SHA-256、A reference identityをmetadataへ記録する。
 8. Evidence bundleを生成し、`verify_tei_evidence_bundle.py`で再検証してからfinal archiveへ配置する。
 
 build時は`GOWORK=off`、`GOENV=off`とし、外部`GOFLAGS` / `GOOS` / `GOARCH`を持ち込みません。
 
-このrunnerのsynthetic / fixed-input isolation検査はPASSしていますが、actual revision B checkoutを用いたbuild / Provider Plan実行はまだ行っていません。
+### E3 — current SOZA Adapter live検査
 
-## 6. E3 — current SOZA Adapter live検査経路
-
-`runtime/integration/run_tei_bundle_adapter_compatibility.py`は、E2で得たEvidence bundleをcurrent SOZA Adapterへ接続するrunnerです。
+`runtime/integration/run_tei_bundle_adapter_compatibility.py`は、E2で得たEvidence bundleをcurrent SOZA Adapterへ接続します。
 
 主な処理:
 
-1. `verify_tei_evidence_bundle.py`でB source / binary / Provider Plan identityを再検証する。
+1. Evidence bundleのB source / binary / Provider Plan identityを再検証する。
 2. archive traversal、link / device、duplicate memberを拒否する。
 3. `bin/tei`とA fixed reference inputだけを一時領域へstageする。
-4. bundle metadataのA reference identityを固定値へ照合する。
-5. staged workspaceのGit tree SHA、durable run / plugin-lockのGit blob SHAをactual bytesから再計算する。
-6. current SOZAの`runtime/go`とEvidence runner / verifierのGit object identityを記録し、その境界に未commit変更やuntracked fileがないことを要求する。
-7. `GOTOOLCHAIN=local`でSOZA側の使用toolchainを記録し、検査中の暗黙toolchain downloadを行わない。
-8. 既存`runtime/go/teiintegration.TestLiveTEIProviderPlan`だけを実行する。
+4. staged inputのtree / blob identityをactual bytesから再計算する。
+5. current SOZAの`runtime/go`と関連runner / verifierのsource identityを記録し、対象境界の未commit変更やuntracked fileを拒否する。
+6. `GOTOOLCHAIN=local`で指定されたE3用Goを使用し、検査中の暗黙toolchain downloadを行わない。
+7. 既存`runtime/go/teiintegration.TestLiveTEIProviderPlan`を実行する。
 
-既存live testが確認する意味境界は次です。
+live testの意味境界は次です。
 
 - actual TEI CLIを別OS processとして起動できる。
 - Provider Planをcurrent Adapter-local DTOでstrictにdecodeできる。
@@ -170,16 +162,149 @@ build時は`GOWORK=off`、`GOENV=off`とし、外部`GOFLAGS` / `GOOS` / `GOARCH
 - Provider固有の`executors` / `observations` / `evidence` / `pluginRuntime`をUniversal Capability Observationへ漏らさない。
 - `SourceStateRef`をMapping Provenanceとして保持する。
 
-runnerは、B source commit、A fixed input commit、bundle SHA-256を`SourceStateRef`へ含めます。また、どのSOZA source / toolchainで検査したかも結果へ残します。
+revision B actual互換性はまだNot Yet Verifiedです。
 
-runner自身のsynthetic testは8件PASSしています。
+## 5. E2 / E3は別Go toolchainで実行する
+
+E2 historical TEI buildとE3 current SOZA live testは、同じcommand名`go`でも同じtoolchain identityを前提にしません。
 
 ```text
-Adapter live runner ready
-  != actual revision B Adapter compatibility PASS
+E2 historical TEI build
+  = Go 1.23.2
+
+E3 current SOZA live test
+  = current runtime/go/go.modを満たすGo 1.25系
+  + GOTOOLCHAIN=local
 ```
 
-## 7. 現在のEvidence状態
+actual実行では、E2用とE3用の`go` executableを別々に指定します。root権限やsystem packageを必須にせずuser-localへ準備する方法と固定archive SHA-256は`TEI_VERSION_EXCHANGE_TOOLCHAIN_READINESS_2026-09-05.md`を正とします。
+
+canonical combined runnerはE3 live testへ進む前に、current `runtime/go/go.mod`の`go` directiveと、指定されたE3 Go executableのactual `go version`を直接比較します。observed versionがrequirement未満なら`soza_go_toolchain` stageで停止し、`soza_teiintegration_live_test`を開始しません。必要versionと観測versionはcomparison axisへ記録します。
+
+したがって、後続`go test`のstderrにversion関連の文字列が出たことを根拠にtoolchain原因を推測しません。toolchain不成立はlive test開始前のmachine-readable stageで止めます。
+
+```text
+Go toolchains prepared
+  != E3 Go requirement precheck PASS
+  != revision B build PASS
+  != Provider Plan observed
+  != Adapter live compatibility PASS
+```
+
+## 6. canonical actual入口
+
+actual E2 → E3の標準入口は次の1本です。
+
+`runtime/integration/run_tei_version_exchange_evidence.py`
+
+単一PATHの`go`をE2からE3へ使い回す旧orchestratorは削除済みで、actual handoffとして使用しません。
+
+実行例:
+
+```bash
+export TEI_B_REPO=/path/to/tei-revision-b
+export TEI_A_REPO=/path/to/tei-revision-a
+export SOZA_REPO=/path/to/soza
+export EVIDENCE_DIR=/path/to/evidence/tei-version-exchange
+export TEI_GO="$HOME/.local/opt/soza-tei-go/go1.23.2/bin/go"
+export SOZA_GO="$HOME/.local/opt/soza-tei-go/go1.25.0/bin/go"
+
+SOZA_HEAD="$(git -C "$SOZA_REPO" rev-parse HEAD)"
+
+python3 "$SOZA_REPO/runtime/integration/run_tei_version_exchange_evidence.py" \
+  --source-repo "$TEI_B_REPO" \
+  --reference-source-repo "$TEI_A_REPO" \
+  --soza-repo-root "$SOZA_REPO" \
+  --output-dir "$EVIDENCE_DIR" \
+  --tei-go-executable "$TEI_GO" \
+  --soza-go-executable "$SOZA_GO" \
+  --expected-soza-head "$SOZA_HEAD" \
+  --json
+```
+
+既存Evidenceを暗黙に上書きしません。同じoutput directoryへ意図的に再実行するときだけ`--overwrite`を明示します。`--overwrite`時は旧bundle / reportを実行開始前に除去するため、新しいE2が失敗した後に旧bundleだけが残り、新runの成果に見える状態を作りません。
+
+combined reportは少なくとも次を区別します。
+
+```text
+e2_failed
+  = E2 bundle生成まで成立していない
+
+e2_bundle_verified_e3_not_run
+  = E2成立後、E3開始前のinterim state
+
+e2_verified_e3_failed
+  = E2 bundleは成立したがE3 current Adapter live検査は不成立
+
+fixed_scope_e2_e3_verified
+  = exact-B executable + exact-A fixed input + 記録されたSOZA sourceについてE2/E3が成立
+```
+
+`fixed_scope_e2_e3_verified`もISSUE解決やarbitrary TEI version compatibilityを意味しません。
+
+個別の`run_tei_revision_b_prepositioned.py` / `run_tei_bundle_adapter_compatibility.py`は、E2またはE3だけを切り分けて再実行・診断するときの下位入口として残します。通常のactual handoffではcombined runnerを使います。
+
+## 7. stage-aware failure Evidence
+
+E2 / E3 failureは、自然言語logの文字列から内部原因を推測せず、runnerが機械的に発行する外部stageまでをEvidenceとして扱います。
+
+E2で記録できる主なstage:
+
+```text
+revision_b_source_identity
+revision_a_fixed_reference_identity
+execution_platform
+tei_go_toolchain
+tei_cli_build
+deployment_provider_plan_execution
+provider_plan_capture
+provider_plan_validation
+reference_input_packaging
+evidence_metadata_write
+evidence_bundle_packaging
+evidence_bundle_verification
+evidence_bundle_publish
+```
+
+E3で記録できる主なstage:
+
+```text
+soza_runtime_layout
+soza_source_identity
+bundle_identity_verification
+execution_platform
+bundle_staging
+reference_input_identity
+soza_go_toolchain
+soza_teiintegration_live_test
+```
+
+外部process failureではcommand、return code、stdout / stderr tailをboundedに保存します。ただし、出力に`validation`、`plugin lock`、`strict decode`、`validator`等の語が含まれていても、それだけでmachine-readable substageへ昇格しません。
+
+特に次を区別します。
+
+```text
+E2 deployment_provider_plan_execution
+  != workspace load
+  != validation
+  != durable run
+  != plugin lock
+
+E3 soza_teiintegration_live_test
+  != strict decode
+  != mapping
+  != Capability Observation validator
+```
+
+TEIまたは`teiintegration`側から正式なmachine-readable error contractが得られた場合にだけ、より内側のsubstageを追加します。
+
+```text
+observed repository-local stage
+  != inferred internal root cause
+  != Provider incompatibility judgement
+```
+
+## 8. 現在のEvidence状態
 
 ```text
 revision A fixed source / actual CLI
@@ -194,11 +319,11 @@ revision B source identity
 revision B execution-source Git identity
   = fixed; repository-local verifier implemented
 
+revision A fixed reference input identity
+  = fixed and repository-local verifier implemented
+
 Provider Plan output surface A/B
   = strong static continuity observed
-
-deployment / environment / releaseplan / plugin-runtime / core
-  = exact source-tree continuity observed
 
 workspace / validation / IR input interpretation
   = changed; actual fixed-input execution required
@@ -207,10 +332,25 @@ version-exchange comparison axis
   = exact-B build source + exact-A fixed reference input
 
 prepositioned B Evidence runner
-  = implemented; synthetic / fixed-input isolation checks passed
+  = implemented; earlier synthetic / fixed-input isolation checks passed
+
+E2 stage-aware diagnostics
+  = implemented; focused stage-model checks 4 passed
 
 bundle → current Adapter live runner
-  = implemented; 8 synthetic tests passed
+  = implemented; baseline synthetic tests passed before stage instrumentation
+
+E3 stage-aware diagnostics
+  = implemented; focused stage-model checks 4 passed
+
+E3 Go directive precheck
+  = implemented; focused version-comparison model check passed
+
+E2 / E3 separate Go toolchains
+  = identified and explicit in canonical combined runner
+
+toolchain-split combined runner
+  = implemented; baseline 7 synthetic tests passed before later stage-instrumentation additions
 
 revision B actual CLI build / execution
   = Not Yet Verified
@@ -228,81 +368,29 @@ credential lifecycle / Operational portability
   = Not Yet Verified
 ```
 
-## 8. actual実行時の順序
+expanded branch unit suitesの一部はcurrent ChatGPT containerでrepository全体を再実行できず、stage instrumentation後のfull suiteをこの環境で再実行したと主張しません。focused stage-model checks、focused Go requirement check、それ以前に実行済みのbaseline testを区別して記録します。
 
-実行可能なLinux / amd64環境が利用できたら、次の順序で進めます。
+## 9. actual後のRequirement / Scenario再照合
+
+actual Bの成功・失敗を見てからRequirementの意味を後付けしないため、`runtime/TEI_VERSION_EXCHANGE_REQUIREMENT_PREAUDIT_2026-09-05.md`で事前判定基準を固定しています。
+
+主な再照合対象:
+
+- REQ-0001 — durable meaning continuity
+- REQ-0007 — Capability / Provider neutrality
+- REQ-0021 — replaceable Realization / Execution
+- SCN-0014 — Execution Provider exchange
+- SCN-0018 — end-to-end Product Journey
+- adjacent REQ-0022 — provider-neutral Capability Observation
+
+build / toolchain / Provider Plan process / Adapter-local DTO failureだけを理由に、新しいStable RequirementやUniversal Contract fieldを追加しません。historical Aを保持するためにProvider revisionをCapability identityへ昇格させなければならない、TEI version固有fieldをUniversal Coreへ入れないと意味を保持できない、などの独立したProduct failureがactualに確認された場合だけCandidate Requirementを再検討します。
 
 ```text
-exact revision B checkout
-exact revision A checkout
-  ↓
-verify source identities
-  ↓
-run_tei_revision_b_prepositioned.py
-  ↓
-verify generated Evidence bundle
-  ↓
-record B binary / Provider Plan digests
-  ↓
-clean SOZA checkout + local Go toolchain
-  ↓
-run_tei_bundle_adapter_compatibility.py
-  ↓
-record current Adapter / Capability Observation result
+actual incompatibility observed
+  != new Stable Requirement automatically required
 ```
 
-### 実行例
-
-次の変数はrepository外の作業領域を指します。
-
-```bash
-export TEI_B_REPO=/path/to/tei-revision-b
-export TEI_A_REPO=/path/to/tei-revision-a
-export TEI_B_BUNDLE=/path/to/evidence/tei-revision-b-linux-amd64.tar.gz
-export SOZA_REPO=/path/to/soza
-```
-
-E2ではBをbuild source、Aをfixed reference inputとして明示的に分けます。
-
-```bash
-python3 "$SOZA_REPO/runtime/integration/run_tei_revision_b_prepositioned.py" \
-  --source-repo "$TEI_B_REPO" \
-  --reference-source-repo "$TEI_A_REPO" \
-  --output-archive "$TEI_B_BUNDLE" \
-  --json
-```
-
-生成後は、取得・生成経路から独立したverifierへ戻します。
-
-```bash
-python3 "$SOZA_REPO/runtime/integration/verify_tei_evidence_bundle.py" \
-  "$TEI_B_BUNDLE" \
-  --expected-source-commit 1a7028d444fcae60a1c4f2f2d247456f4c7c35be \
-  --json
-```
-
-E3では、検査対象SOZA checkoutのHEADをその場で固定してlive testへ渡します。
-
-```bash
-SOZA_HEAD="$(git -C "$SOZA_REPO" rev-parse HEAD)"
-
-python3 "$SOZA_REPO/runtime/integration/run_tei_bundle_adapter_compatibility.py" \
-  "$TEI_B_BUNDLE" \
-  --soza-repo-root "$SOZA_REPO" \
-  --expected-source-commit 1a7028d444fcae60a1c4f2f2d247456f4c7c35be \
-  --expected-soza-head "$SOZA_HEAD" \
-  --json
-```
-
-runner側でもsource identity、fixed input identity、worktree cleanlinessを再確認します。この実行例は人手でidentity検証を省略するための近道ではなく、同じ検証を一つの標準経路へ寄せるための入口です。
-
-E2が失敗した場合、取得、source identity、Go toolchain、build、workspace load、validation、durable run、plugin lock、Provider Plan生成のどこで停止したかを分けて記録します。
-
-E3が失敗した場合、bundle identity、A fixed input identity、SOZA source identity、SOZA toolchain、external process、strict decode、Observation mapping / validationのどこで停止したかを分けて記録します。
-
-failureを別の層へ昇格させません。
-
-## 9. 残る停止線
+## 10. 残る停止線
 
 ```text
 static source continuity
@@ -314,14 +402,20 @@ exact B source verified
 exact A fixed input verified
   != B accepts A input
 
+Go toolchains prepared
+  != E3 Go requirement precheck PASS
+  != E2/E3 PASS
+
 B Evidence bundle produced
   != current SOZA Adapter compatibility verified
 
-current SOZA Adapter compatibility verified for one fixed bundle
+fixed_scope_e2_e3_verified
   != arbitrary TEI version compatibility
-  != formal Release Evidence
+  != formal executable distribution
+  != Release Evidence
   != Operational Evidence
   != Adoption / Outcome Evidence
+  != ISSUE-000072 Resolved
 ```
 
 actual B Evidenceを得る前に、新しいStable RequirementやUniversal TEI fieldを追加しません。GitHub ActionsもISSUE-000072の意味上の成立条件にはしません。
