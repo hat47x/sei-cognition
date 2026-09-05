@@ -45,6 +45,79 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
 
     @mock.patch.object(subject.adapter_runner, "run_compatibility")
     @mock.patch.object(subject.build_runner, "produce_bundle")
+    def test_output_dir_inside_input_checkout_is_rejected_before_creation(
+        self, build, adapter
+    ):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source, reference, soza = self.make_inputs(root)
+            tei_go = self.make_go(root, "go123")
+            soza_go = self.make_go(root, "go125")
+            for input_repo in (source, reference, soza):
+                with self.subTest(input_repo=input_repo.name):
+                    output = input_repo / "nested/evidence"
+                    with self.assertRaisesRegex(ValueError, "配下には置けません"):
+                        subject.run_version_exchange(
+                            source,
+                            reference,
+                            soza,
+                            output,
+                            tei_go_executable=tei_go,
+                            soza_go_executable=soza_go,
+                        )
+                    self.assertFalse(output.exists())
+            build.assert_not_called()
+            adapter.assert_not_called()
+
+    @mock.patch.object(subject.adapter_runner, "run_compatibility")
+    @mock.patch.object(subject.build_runner, "produce_bundle")
+    def test_output_dir_cannot_contain_input_checkouts(self, build, adapter):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            workspace = root / "workspace"
+            workspace.mkdir()
+            source, reference, soza = self.make_inputs(workspace)
+            tei_go = self.make_go(root, "go123")
+            soza_go = self.make_go(root, "go125")
+            with self.assertRaisesRegex(ValueError, "包含できません"):
+                subject.run_version_exchange(
+                    source,
+                    reference,
+                    soza,
+                    workspace,
+                    tei_go_executable=tei_go,
+                    soza_go_executable=soza_go,
+                )
+            build.assert_not_called()
+            adapter.assert_not_called()
+
+    @mock.patch.object(subject.adapter_runner, "run_compatibility")
+    @mock.patch.object(subject.build_runner, "produce_bundle")
+    def test_symlink_output_dir_is_rejected_before_runner_start(self, build, adapter):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source, reference, soza = self.make_inputs(root)
+            tei_go = self.make_go(root, "go123")
+            soza_go = self.make_go(root, "go125")
+            actual = root / "actual-evidence"
+            actual.mkdir()
+            output = root / "evidence-link"
+            output.symlink_to(actual, target_is_directory=True)
+            with self.assertRaisesRegex(ValueError, "symlink"):
+                subject.run_version_exchange(
+                    source,
+                    reference,
+                    soza,
+                    output,
+                    tei_go_executable=tei_go,
+                    soza_go_executable=soza_go,
+                )
+            self.assertEqual([], list(actual.iterdir()))
+            build.assert_not_called()
+            adapter.assert_not_called()
+
+    @mock.patch.object(subject.adapter_runner, "run_compatibility")
+    @mock.patch.object(subject.build_runner, "produce_bundle")
     def test_distinct_go_toolchains_are_used_for_e2_and_e3(self, build, adapter):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
