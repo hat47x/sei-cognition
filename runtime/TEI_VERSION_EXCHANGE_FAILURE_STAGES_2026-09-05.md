@@ -119,7 +119,15 @@ soza_teiintegration_live_test
 
 ### SOZA toolchain / live test
 
-`soza_go_toolchain`は、`GOTOOLCHAIN=local`のcurrent SOZA test environmentで`go version`を起動できる境界です。
+`soza_go_toolchain`は、`GOTOOLCHAIN=local`のcurrent SOZA test environmentで`go version`を起動できるだけでなく、current `runtime/go/go.mod`の`go` directiveをactual toolchainが満たすことまで確認する境界です。directiveを読めない、`go version`を解釈できない、またはactual Goがdirective未満の場合は、`go test`を開始せずこのstageで停止します。
+
+この判定はstandalone E3 runner `run_tei_bundle_adapter_compatibility.py`を正本とします。combined runner `run_tei_version_exchange_evidence.py`も同じE3 runnerを呼び、成功時はそこで観測した`sozaGoRequirement` / `sozaGoVersion`をcomparison axisへ戻します。
+
+```text
+actual Go < current go.mod requirement
+  = soza_go_toolchain failure
+  != soza_teiintegration_live_test failure
+```
 
 `soza_teiintegration_live_test`は、既存`runtime/go/teiintegration.TestLiveTEIProviderPlan`を実行する**Go test process全体の境界**です。
 
@@ -203,12 +211,13 @@ E3側には次のnegative controlを追加しています。
 - bundle verifier failure → `bundle_identity_verification`
 - A fixed input failure → `reference_input_identity`
 - SOZA Go process failure → `soza_go_toolchain`
+- current `go.mod`より古いSOZA Go → `soza_go_toolchain`、live test未開始
 - live test non-zero → `soza_teiintegration_live_test`
 - live test出力に`strict decode` / `validator`があっても、その内部stageへ昇格しない
 - process detail tailを32 KiBへ制限する
-- success pathでは既存live testを実行し`completedStages`を得る
+- success pathではcurrent Go requirement / observed versionと既存live testの成立を得る
 
-combined reportについても、E2 / E3の上位stageとstage-aware substageを別々に保持するnegative controlを追加しています。
+combined reportについても、E2 / E3の上位stageとstage-aware substageを別々に保持するnegative controlを追加しています。E3のGo要件判定ロジック自体はcombined側へ複製せず、standalone E3 runnerの結果またはstage-aware failureをそのまま利用します。
 
 current work containerではGitHub raw sourceを再取得できないため、branch上のunittest suite全体をこの環境へ再現してはいません。一方、E2 stage error、combined substage伝播、stderr非推測、output tail上限の中核ロジックについてfocused local check 4件を実行しPASSしました。E3側も同じ原則のstage modelとして実装し、branch testへnegative controlを追加しています。
 
