@@ -387,13 +387,14 @@ def _verify_soza_source_identity(
         "status",
         "--porcelain=v1",
         "--untracked-files=all",
+        "--ignored=matching",
         "--",
         *paths,
     ).stdout.splitlines()
     dirty = [line for line in dirty if line.strip()]
     if dirty:
         raise ValueError(
-            "SOZA Adapter / Evidence runner境界に未commit変更またはuntracked fileがあります: "
+            "SOZA Adapter / Evidence runner境界に未commit変更、untracked file、またはignored entryがあります: "
             + " | ".join(dirty)
         )
     head = _git(repo, "rev-parse", "HEAD").stdout.strip()
