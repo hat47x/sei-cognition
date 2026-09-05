@@ -98,6 +98,33 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
 
     @mock.patch.object(subject.adapter_runner, "run_compatibility")
     @mock.patch.object(subject.build_runner, "produce_bundle")
+    def test_missing_e2_go_is_recorded_as_tei_go_toolchain(self, build, adapter):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source, reference, soza = self.make_inputs(root)
+            missing_tei_go = root / "missing-e2/bin/go"
+            soza_go = self.make_go(root, "go125")
+            output = root / "evidence"
+            with self.assertRaises(subject.VersionExchangeRunFailed) as raised:
+                subject.run_version_exchange(
+                    source,
+                    reference,
+                    soza,
+                    output,
+                    tei_go_executable=missing_tei_go,
+                    soza_go_executable=soza_go,
+                )
+            self.assertEqual("E2", raised.exception.stage)
+            build.assert_not_called()
+            adapter.assert_not_called()
+            report = json.loads((output / subject.REPORT_NAME).read_text(encoding="utf-8"))
+            failure = report["failure"]
+            self.assertEqual("E2", failure["stage"])
+            self.assertEqual("tei_go_toolchain", failure["substage"])
+            self.assertEqual("tei_go_toolchain", failure["detail"]["stage"])
+
+    @mock.patch.object(subject.adapter_runner, "run_compatibility")
+    @mock.patch.object(subject.build_runner, "produce_bundle")
     def test_staged_e2_failure_propagates_substage_detail(self, build, adapter):
         build.side_effect = subject.build_runner.TEIEvidenceStageError(
             "tei_cli_build",
@@ -158,6 +185,35 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
             self.assertEqual("E3", report["failure"]["stage"])
             self.assertNotIn("substage", report["failure"])
             self.assertEqual("bundle_produced", report["e2"]["result"])
+
+    @mock.patch.object(subject.adapter_runner, "run_compatibility")
+    @mock.patch.object(subject.build_runner, "produce_bundle")
+    def test_missing_e3_go_is_recorded_as_soza_go_toolchain(self, build, adapter):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source, reference, soza = self.make_inputs(root)
+            tei_go = self.make_go(root, "go123")
+            missing_soza_go = root / "missing-e3/bin/go"
+            output = root / "evidence"
+            build.side_effect = lambda source_repo, reference_repo, archive: self.build_success(archive)
+            with self.assertRaises(subject.VersionExchangeRunFailed) as raised:
+                subject.run_version_exchange(
+                    source,
+                    reference,
+                    soza,
+                    output,
+                    tei_go_executable=tei_go,
+                    soza_go_executable=missing_soza_go,
+                )
+            self.assertEqual("E3", raised.exception.stage)
+            adapter.assert_not_called()
+            self.assertTrue((output / subject.BUNDLE_NAME).is_file())
+            report = json.loads((output / subject.REPORT_NAME).read_text(encoding="utf-8"))
+            failure = report["failure"]
+            self.assertEqual("e2_verified_e3_failed", report["result"])
+            self.assertEqual("E3", failure["stage"])
+            self.assertEqual("soza_go_toolchain", failure["substage"])
+            self.assertEqual("soza_go_toolchain", failure["detail"]["stage"])
 
     @mock.patch.object(subject.adapter_runner, "run_compatibility")
     @mock.patch.object(subject.build_runner, "produce_bundle")
