@@ -1,3 +1,4 @@
+import hashlib
 import json
 import subprocess
 import sys
@@ -91,6 +92,39 @@ class RuntimeVersionExchangeProgressObserverTest(unittest.TestCase):
             },
         )
 
+    def write_fixed_request(self, root: Path) -> None:
+        cards = [
+            {
+                "id": "c-remote-time",
+                "text": "在宅勤務では通勤に使う時間を減らせる",
+                "textReviewed": True,
+            },
+            {
+                "id": "c-remote-load",
+                "text": "在宅勤務では移動による負担を減らせる",
+                "textReviewed": True,
+            },
+            {
+                "id": "c-held",
+                "text": "人事評価制度の見直しはまだ着手していない",
+                "textReviewed": True,
+            },
+        ]
+        self.write_json(
+            root,
+            "kj-atlas-runtime-exchange-request.json",
+            {
+                "cards": cards,
+                "doc": {
+                    "cards": [
+                        cards[0],
+                        cards[1],
+                        {**cards[2], "holdState": "held"},
+                    ]
+                },
+            },
+        )
+
     def write_archive_digest(self, root: Path, label: str, *, valid: bool = True) -> None:
         manifest = subject.core._load_manifest()
         digest = manifest["runtimeArchives"][label]["sha256"] if valid else "0" * 64
@@ -146,7 +180,15 @@ class RuntimeVersionExchangeProgressObserverTest(unittest.TestCase):
         completed: bool,
         exit_code: int,
         schema: str | None = None,
+        valid_log_identity: bool = True,
     ) -> None:
+        log = b"synthetic runtime exchange output\n"
+        if completed and exit_code == 0:
+            log += subject.core.EXPECTED_COMPLETION_MARKER + b"\n"
+        (root / "runtime-exchange-runner.log").write_bytes(log)
+        digest = hashlib.sha256(log).hexdigest()
+        if not valid_log_identity:
+            digest = "0" * 64
         self.write_json(
             root,
             "runtime-exchange-runner-observation.json",
@@ -154,6 +196,8 @@ class RuntimeVersionExchangeProgressObserverTest(unittest.TestCase):
                 "schema": schema or subject.RUNNER_SCHEMA,
                 "completed": completed,
                 "exitCode": exit_code,
+                "combinedOutputSha256": digest,
+                "combinedOutputBytes": len(log),
                 "qualityJudgement": "not_evaluated",
             },
         )
@@ -168,6 +212,7 @@ class RuntimeVersionExchangeProgressObserverTest(unittest.TestCase):
         self.write_strict_prefix(root)
         self.write_archive_digest(root, "a")
         self.write_archive_digest(root, "b")
+        self.write_fixed_request(root)
         self.write_version(root, "a")
         self.write_tags(root, "a")
         self.write_inference(root, "a")
@@ -261,6 +306,7 @@ class RuntimeVersionExchangeProgressObserverTest(unittest.TestCase):
         self.assertTrue(report["monotonicEvidenceOrder"])
         self.assertTrue(report["runner"]["recognized"])
         self.assertTrue(all(item["observed"] for item in report["milestones"]))
+        self.assertEqual("required_separately", report["canonicalEvidenceVerification"])
 
     def test_invalid_runner_schema_is_not_used_as_runner_evidence(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -279,6 +325,21 @@ class RuntimeVersionExchangeProgressObserverTest(unittest.TestCase):
         self.assertFalse(report["runner"]["recognized"])
         self.assertIsNone(report["nextUnobservedMilestone"])
 
+    def test_runner_log_digest_mismatch_is_not_used_as_runner_evidence(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.write_complete(root)
+            self.write_runner(
+                root,
+                completed=True,
+                exit_code=0,
+                valid_log_identity=False,
+            )
+            report = subject.observe_progress(root)
+
+        self.assertEqual("partial_without_valid_runner_observation", report["state"])
+        self.assertFalse(report["runner"]["recognized"])
+
     def test_later_evidence_without_required_prefix_is_inconsistent(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -293,6 +354,24 @@ class RuntimeVersionExchangeProgressObserverTest(unittest.TestCase):
         self.assertEqual("runtime_a_archive_digest_observed", report["nextUnobservedMilestone"])
         self.assertIn(
             "runtime_b_archive_digest_observed",
+            report["unexpectedLaterObservedMilestones"],
+        )
+
+    def test_method_input_must_exist_before_runtime_a_observation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.write_strict_prefix(root)
+            self.write_archive_digest(root, "a")
+            self.write_archive_digest(root, "b")
+            self.write_version(root, "a")
+            self.write_runner(root, completed=False, exit_code=1)
+            report = subject.observe_progress(root)
+
+        self.assertEqual("inconsistent_evidence_order", report["state"])
+        self.assertEqual("runtime_b_archive_digest_observed", report["lastObservedMilestone"])
+        self.assertEqual("fixed_method_input_recorded", report["nextUnobservedMilestone"])
+        self.assertIn(
+            "runtime_a_version_observed",
             report["unexpectedLaterObservedMilestones"],
         )
 
@@ -314,6 +393,7 @@ class RuntimeVersionExchangeProgressObserverTest(unittest.TestCase):
             self.write_strict_prefix(root)
             self.write_archive_digest(root, "a")
             self.write_archive_digest(root, "b")
+            self.write_fixed_request(root)
             self.write_version(root, "a")
             self.write_tags(root, "a")
             (root / "runtime-exchange-a-evidence.json").write_text("{broken", encoding="utf-8")
