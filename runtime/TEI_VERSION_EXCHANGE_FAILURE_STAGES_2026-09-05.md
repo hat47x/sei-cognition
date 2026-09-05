@@ -23,15 +23,17 @@ combined runner `runtime/integration/run_tei_version_exchange_evidence.py`は、
 
 - output path自身または既存ancestorがsymlinkである。
 - output directoryがrevision B source checkout配下にある。
-- output directoryがrevision A fixed-reference checkout配下にある。
+- exact A checkout取得時、output directoryがrevision A fixed-reference checkout配下にある。
 - output directoryがSOZA checkout配下にある。
 - output directoryがこれらinput checkoutを包含する。
+- historical A Evidence bundle取得時、入力bundleがoutput directory配下に含まれる。
 - 既存pathがdirectoryではない。
 
 standalone E2 `run_tei_revision_b_prepositioned.py`も、final archiveについて次を副作用前に拒否します。
 
 - output path自身または既存ancestorがsymlinkである。
-- output archiveがrevision B source / revision A reference / SOZA repository配下にある。
+- output archiveがrevision B source / SOZA repository配下にある。
+- exact A checkout取得時、output archiveがrevision A reference checkout配下にある。
 - output archiveが既に存在し、暗黙上書きになる。
 
 これらはTEI processやSOZA Adapterを開始した結果ではないため、`TEIEvidenceStageError` / `TEIAdapterStageError`へ昇格させません。
@@ -73,9 +75,16 @@ evidence_bundle_publish
 
 `revision_b_source_identity`はexact revision Bのbuild source identityです。
 
-`revision_a_fixed_reference_identity`はhistorical revision Aのworkspace / durable run / plugin lock identityです。
+`revision_a_fixed_reference_identity`はhistorical revision Aのworkspace / durable run / plugin lock identityです。exact A checkoutを使う場合はGit HEAD / object identity / working-tree purityを検証します。verified historical A Evidence bundleを使う場合は、bundle metadataのA source commit、historical binary / Provider Plan SHA-256、およびactual reference bytesから再計算したGit object identityを固定値へ照合し、reference inputだけを一時領域へmaterializeします。
 
-この2つを分けることで、B source driftとA fixed input driftを同じ取得failureへまとめません。
+取得経路が違ってもfixed input identity検証という外部境界は同じなので、新しいE2 stageは作りません。historical bundleのidentity verificationやmaterializationが成立しない場合も`revision_a_fixed_reference_identity`で停止します。
+
+```text
+fixed input acquisition path differs
+  != new machine-readable E2 stage required
+```
+
+この2つを分けることで、B source driftとA fixed input driftを同じ取得failureへまとめません。一方、A fixed inputのcheckout取得 / historical bundle取得の違いはAcquisition Provenanceとして保持し、Capability identityへ昇格させません。
 
 ### platform / toolchain / build
 
@@ -139,7 +148,7 @@ soza_teiintegration_live_test
 
 `soza_runtime_layout`は、current `runtime/go` moduleと既存`teiintegration` live testの存在境界です。
 
-`soza_source_identity`は、検査対象SOZA checkoutのHEAD / Git object identity / worktree cleanlinessです。
+`soza_source_identity`は、検査対象SOZA checkoutのHEAD / Git object identity / worktree cleanlinessです。canonical E2→E3でactual Provider Plan実行前に使うfixed-reference helperもこのSOZA Evidence source surfaceへ含めます。
 
 `bundle_identity_verification`は、B source / binary / Provider Plan identityを既存bundle verifierで再確認する境界です。
 
@@ -232,6 +241,7 @@ E2側には、少なくとも次のnegative controlを追加しています。
 
 - B source identity failure → `revision_b_source_identity`
 - A fixed input failure → `revision_a_fixed_reference_identity`
+- historical A Evidence bundle identity / materialization failure → `revision_a_fixed_reference_identity`
 - Go version mismatch → `tei_go_toolchain`
 - build non-zero → `tei_cli_build` + return code / stderr
 - Provider Plan process non-zero → `deployment_provider_plan_execution`
@@ -259,7 +269,16 @@ PR #223では、stage開始前のpath-safety negative controlも追加しまし�
 - standalone E2 existing archive / symlink archiveを拒否し、既存bytesを変更しない。
 - combined runner input checkout内output、input checkoutを包含するoutput、symlink outputを拒否し、E2 / E3 runnerを開始しない。
 
-current work containerではGitHub raw sourceを再取得できないため、branch上のunittest suite全体をこの環境へ再現してはいません。一方、E2 stage error、combined substage伝播、stderr非推測、output tail上限の中核ロジックについてfocused local check 4件を以前に実行しPASSしました。E3側も同じ原則のstage modelとして実装し、branch testへnegative controlを追加しています。PR #223で追加したpath-safety testをこのturnでfull suiteとして再実行したとは主張しません。
+PR #239では、historical A Evidence bundleをfixed input acquisitionとして使う専用negative controlを追加しました。
+
+- legacy A bundleのactual reference bytesを外部固定Git object identityへ照合する。
+- reference byte drift / incomplete expectationを拒否する。
+- fixed input materializationのlink / overwrite境界を拒否する。
+- E2のhistorical bundle取得経路を既存`revision_a_fixed_reference_identity` stageへ収束させる。
+- combined runnerがacquisition modeをcomparison axisへ記録する。
+- fixed-reference helperをE3 SOZA source identity boundaryへ含める。
+
+current work containerではbranch上のunittest suite全体を再現してはいません。E2 stage error、combined substage伝播、stderr非推測、output tail上限の中核ロジックについてfocused local check 4件を以前に実行しPASSしました。E3側も同じ原則のstage modelとして実装し、branch testへnegative controlを追加しています。PR #223 / #239で追加したpath-safety / historical-bundle testをcurrent environmentでfull suiteとして再実行したとは主張しません。
 
 この制約をactual Executable Evidenceへ読み替えません。
 
@@ -268,11 +287,17 @@ current work containerではGitHub raw sourceを再取得できないため、br
 ```text
 stage-aware E2/E3 diagnostics implemented
   + pre-stage Evidence path safety implemented
+  + historical A fixed-input acquisition path implemented
   != actual revision B execution attempted
 
 Evidence path configuration rejected
   != E2 failure
   != E3 failure
+
+historical A bundle acquisition rejected at revision_a_fixed_reference_identity
+  != revision B build failure
+  != Provider Plan failure
+  != new internal TEI substage
 
 E2 substage captured
   != root cause proven inside TEI
