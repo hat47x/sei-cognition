@@ -144,7 +144,13 @@ E2 historical TEI buildとE3 current SOZA live testは別toolchainを使いま�
 Git object identityが一致するだけではactual source / checkout fixed inputのpurity成立とは扱いません。execution boundary内にtracked変更、untracked entry、gitignored entryがあればE2開始前に拒否します。historical bundle経路ではworking treeの代わりに、bundle metadataのA source commit、historical binary / Provider Plan digest、およびactual reference bytesから再計算したGit object identityを固定値へ照合します。
 
 ```text
-fixed input identity verified
+Git object identity matched
+  + tracked / untracked / ignored execution boundary clean
+  = source / checkout-fixed-input identity precondition satisfied
+  != revision B build PASS
+
+historical bundle fixed input identity verified
+  != revision A source checkout reconstructed
   != fixed input acquisition path identity
   != revision B build PASS
 ```
