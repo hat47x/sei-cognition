@@ -65,6 +65,68 @@ class TEIRevisionBPrepositionedRunnerTest(unittest.TestCase):
             self.make_source(root, "tei-a", "revision-a-input"),
         )
 
+    @mock.patch.object(subject.source_identity, "verify_repository")
+    @mock.patch.object(subject, "_run")
+    def test_output_inside_input_checkout_is_rejected_before_side_effect(
+        self, run, verify_source
+    ):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_repo, reference_repo = self.make_pair(root)
+            for input_repo in (source_repo, reference_repo):
+                with self.subTest(input_repo=input_repo.name):
+                    output = input_repo / "generated-evidence/out.tar.gz"
+                    with self.assertRaisesRegex(ValueError, "配下には置けません"):
+                        subject.produce_bundle(source_repo, reference_repo, output)
+                    self.assertFalse(output.parent.exists())
+                    verify_source.assert_not_called()
+                    run.assert_not_called()
+
+    @mock.patch.object(subject.source_identity, "verify_repository")
+    @mock.patch.object(subject, "_run")
+    def test_existing_output_archive_is_not_overwritten(self, run, verify_source):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_repo, reference_repo = self.make_pair(root)
+            output = root / "existing.tar.gz"
+            output.write_bytes(b"keep")
+            with self.assertRaisesRegex(ValueError, "無言で上書き"):
+                subject.produce_bundle(source_repo, reference_repo, output)
+            self.assertEqual(b"keep", output.read_bytes())
+            verify_source.assert_not_called()
+            run.assert_not_called()
+
+    @mock.patch.object(subject.source_identity, "verify_repository")
+    @mock.patch.object(subject, "_run")
+    def test_symlink_output_archive_is_rejected(self, run, verify_source):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_repo, reference_repo = self.make_pair(root)
+            target = root / "target.tar.gz"
+            output = root / "out.tar.gz"
+            output.symlink_to(target)
+            with self.assertRaisesRegex(ValueError, "symlink"):
+                subject.produce_bundle(source_repo, reference_repo, output)
+            self.assertFalse(target.exists())
+            verify_source.assert_not_called()
+            run.assert_not_called()
+
+    @mock.patch.object(subject.source_identity, "verify_repository")
+    @mock.patch.object(subject, "_run")
+    def test_output_inside_soza_repository_is_rejected(self, run, verify_source):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_repo, reference_repo = self.make_pair(root)
+            soza_root = root / "soza"
+            soza_root.mkdir()
+            output = soza_root / "evidence/out.tar.gz"
+            with mock.patch.object(subject, "SOZA_ROOT", soza_root.resolve()):
+                with self.assertRaisesRegex(ValueError, "SOZA repository"):
+                    subject.produce_bundle(source_repo, reference_repo, output)
+            self.assertFalse(output.parent.exists())
+            verify_source.assert_not_called()
+            run.assert_not_called()
+
     @mock.patch.object(subject, "_ensure_linux_amd64")
     @mock.patch.object(subject.source_identity, "verify_repository")
     @mock.patch.object(subject, "_run")
