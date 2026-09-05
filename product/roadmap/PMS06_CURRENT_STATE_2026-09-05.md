@@ -104,9 +104,25 @@ repository側では次まで整っています。
 - exact-B + exact-A fixed-input prepositioned E2 runner
 - verified bundle → current SOZA Adapter E3 runner
 - E2 / E3 separate Go toolchains
-- combined actual orchestrator
+- canonical toolchain-split combined runner: `runtime/integration/run_tei_version_exchange_evidence.py`
 - E2 / E3 stage-aware failure Evidence
 - Requirement / Scenario pre-audit
+
+単一PATHの`go`をE2からE3へ使い回す重複actual entrypointは削除し、combined executionは上記toolchain-split runnerへ一本化しています。
+
+execution environment準備ではroot権限やsystem packageを必須にせず、Go公式Linux / amd64 archiveをuser-localへ配置する手順があります。
+
+- E2 historical TEI build candidate: Go `1.23.2`
+- E3 current SOZA live-test candidate: Go `1.25.0`
+
+Go `1.25.0`はcurrent `runtime/go/go.mod`のGo 1.25条件を満たす再現可能なexecution candidateであり、Stable RequirementやUniversal Contractへ固定するものではありません。actual runでは使用した`go version`をEvidenceへ記録します。
+
+```text
+user-local toolchain archive verified
+  != revision B build PASS
+  != Provider Plan observed
+  != Adapter live compatibility PASS
+```
 
 未検証:
 
@@ -194,7 +210,7 @@ repository-side preparationが進んだこともactual PASSへ読み替えませ
 
 ### ISSUE-000072
 
-exact revision B checkout、exact revision A fixed input checkout、TEI historical build用Go、current SOZA live-test用Goを用意し、E2 → E3をactualに通します。
+exact revision B checkout、exact revision A fixed input checkout、TEI historical build用Go、current SOZA live-test用Goを用意し、canonical `run_tei_version_exchange_evidence.py`からE2 → E3をactualに通します。
 
 どちらも途中停止した場合は、保存されたmachine-readable stage / milestoneまでをEvidenceとし、自然言語logから内部原因を推測してEvidence強度を上げません。
 
