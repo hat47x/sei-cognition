@@ -38,6 +38,15 @@ revision AとBでは`reference/workspace` treeが異なるため、B checkout内
 
 この固定はTEI固有のUniversal Requirementではなく、一変数比較を成立させるためのExperiment / Evidence条件です。
 
+actual E2 → E3のcanonical combined entrypointは`runtime/integration/run_tei_version_exchange_evidence.py`です。E2 historical build用GoとE3 current SOZA live-test用Goを別executableとして明示し、単一PATHの`go`を両段階へ使い回しません。
+
+```text
+canonical combined execution surface fixed
+  != either toolchain installed
+  != revision B build PASS
+  != current Adapter compatibility PASS
+```
+
 ## REQ-0001 — 耐久的な意味の連続性
 
 current Requirementは、AIモデル、Prompt、Skill、実装言語、UI、Storage、Capability Provider、Execution Provider等が変わっても、Intent、Observation、Decision、Responsibility、Provenance等の耐久的意味を別の意味へ黙って読み替えずに引き継ぐことを要求しています。
