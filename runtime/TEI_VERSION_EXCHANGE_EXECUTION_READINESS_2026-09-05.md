@@ -179,8 +179,13 @@ E3 current SOZA live test
 
 actual実行では、E2用とE3用の`go` executableを別々に指定します。root権限やsystem packageを必須にせずuser-localへ準備する方法と固定archive SHA-256は`TEI_VERSION_EXCHANGE_TOOLCHAIN_READINESS_2026-09-05.md`を正とします。
 
+canonical combined runnerはE3 live testへ進む前に、current `runtime/go/go.mod`の`go` directiveと、指定されたE3 Go executableのactual `go version`を直接比較します。observed versionがrequirement未満なら`soza_go_toolchain` stageで停止し、`soza_teiintegration_live_test`を開始しません。必要versionと観測versionはcomparison axisへ記録します。
+
+したがって、後続`go test`のstderrにversion関連の文字列が出たことを根拠にtoolchain原因を推測しません。toolchain不成立はlive test開始前のmachine-readable stageで止めます。
+
 ```text
 Go toolchains prepared
+  != E3 Go requirement precheck PASS
   != revision B build PASS
   != Provider Plan observed
   != Adapter live compatibility PASS
@@ -338,6 +343,9 @@ bundle → current Adapter live runner
 E3 stage-aware diagnostics
   = implemented; focused stage-model checks 4 passed
 
+E3 Go directive precheck
+  = implemented; focused version-comparison model check passed
+
 E2 / E3 separate Go toolchains
   = identified and explicit in canonical combined runner
 
@@ -360,7 +368,7 @@ credential lifecycle / Operational portability
   = Not Yet Verified
 ```
 
-expanded branch unit suitesの一部はcurrent ChatGPT containerでrepository全体を再実行できず、stage instrumentation後のfull suiteをこの環境で再実行したと主張しません。focused stage-model checksと、それ以前に実行済みのbaseline testを区別して記録します。
+expanded branch unit suitesの一部はcurrent ChatGPT containerでrepository全体を再実行できず、stage instrumentation後のfull suiteをこの環境で再実行したと主張しません。focused stage-model checks、focused Go requirement check、それ以前に実行済みのbaseline testを区別して記録します。
 
 ## 9. actual後のRequirement / Scenario再照合
 
@@ -395,6 +403,7 @@ exact A fixed input verified
   != B accepts A input
 
 Go toolchains prepared
+  != E3 Go requirement precheck PASS
   != E2/E3 PASS
 
 B Evidence bundle produced
