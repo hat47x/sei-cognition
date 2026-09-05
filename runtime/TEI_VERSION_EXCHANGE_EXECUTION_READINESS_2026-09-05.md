@@ -76,7 +76,18 @@ go.sum blob
   c7cd14781271dca2b014daf2f53d49d95b8e8826
 ```
 
-同verifierは対象境界に未commit変更やuntracked fileがないことも確認します。revision A fixed inputは、前節のworkspace / durable run / plugin lock identityを別のexpected object setとして検証します。
+同verifierはGit object identityだけでなく、対象execution boundaryにtracked変更、untracked entry、gitignored entryがないことも確認します。PR #226でstatus観測へ`--ignored=matching`を加え、`.git/info/exclude`等でignoredにした`.go` fileやhistorical reference inputも「statusに出ないから許可」とは扱わないようにしました。
+
+repository-local synthetic Git検査では、clean checkout、tracked変更、untracked `.go`、ignored `.go` + ignored reference input、HEAD mismatchの5ケースを実行し、cleanだけをverifiedとして他を拒否することを確認しています。
+
+```text
+Git object identity matched
+  + tracked / untracked / ignored execution boundary clean
+  = source identity precondition satisfied
+  != revision B build PASS
+```
+
+revision A fixed inputも、前節のworkspace / durable run / plugin lock identityを別のexpected object setとして検証し、working-tree側にignored entryを含む追加入力を混入させません。
 
 この検査はsource identityです。binary bytesやruntime結果を導出しません。
 
@@ -128,8 +139,8 @@ same Provider Plan output surface
 主な処理:
 
 1. output archive path / ancestor symlink、入力checkoutやSOZA repository配下への配置、既存archiveの暗黙上書きを副作用前に拒否する。
-2. B execution-source Git identityとexact HEADを確認する。
-3. A fixed reference input Git identityとexact HEADを確認する。
+2. B execution-source Git identity、exact HEAD、tracked / untracked / ignored entryの不存在を確認する。
+3. A fixed reference input Git identity、exact HEAD、tracked / untracked / ignored entryの不存在を確認する。
 4. Linux / amd64とE2用Go `1.23.2`を確認する。
 5. historical Evidenceと同じbuild条件でB CLIをbuildする。
 6. B binaryへAのworkspace / durable run / plugin lockを与え、`deployment-provider-plan`を実行する。
@@ -330,6 +341,9 @@ revision B source identity
 revision B execution-source Git identity
   = fixed; repository-local verifier implemented
 
+source working-tree purity
+  = tracked changes / untracked / ignored entries rejected; PR #226 synthetic Git cases 5 passed
+
 revision A fixed reference input identity
   = fixed and repository-local verifier implemented
 
@@ -385,7 +399,7 @@ credential lifecycle / Operational portability
   = Not Yet Verified
 ```
 
-expanded branch unit suitesの一部はcurrent ChatGPT containerでrepository全体を再実行できず、stage instrumentation / path-safety追加後のfull suiteをこの環境で再実行したと主張しません。focused stage-model checks、focused Go requirement check、それ以前に実行済みのbaseline testを区別して記録します。
+expanded branch unit suitesの一部はcurrent ChatGPT containerでrepository全体を再実行できず、stage instrumentation / path-safety追加後のfull suiteをこの環境で再実行したと主張しません。PR #226のsource-identity synthetic Git 5ケース、focused stage-model checks、focused Go requirement check、それ以前に実行済みのbaseline testを区別して記録します。
 
 ## 9. actual後のRequirement / Scenario再照合
 
