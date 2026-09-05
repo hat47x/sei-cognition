@@ -238,15 +238,24 @@ def run_version_exchange(
         "expectedSozaHead": expected_soza_head,
     }
 
+    e2_runner_started = False
     try:
         with _go_on_path(tei_go_executable) as tei_go:
             comparison_axis["teiGoExecutable"] = str(tei_go)
+            e2_runner_started = True
             e2 = build_runner.produce_bundle(
                 source_repo,
                 reference_source_repo,
                 bundle_path,
             )
     except EXPECTED_RUN_ERRORS as exc:
+        if not e2_runner_started and not isinstance(
+            exc, build_runner.TEIEvidenceStageError
+        ):
+            exc = build_runner.TEIEvidenceStageError(
+                "tei_go_toolchain",
+                str(exc),
+            )
         report = {
             "schema": SCHEMA,
             "result": "e2_failed",
@@ -273,8 +282,10 @@ def run_version_exchange(
     }
     _write_report(report_path, interim)
 
+    e3_toolchain_entered = False
     try:
         with _go_on_path(soza_go_executable) as soza_go:
+            e3_toolchain_entered = True
             comparison_axis["sozaGoExecutable"] = str(soza_go)
             soza_go_observation = _verify_soza_go_requirement(soza_repo_root)
             comparison_axis["sozaGoRequirement"] = soza_go_observation["required"]
@@ -286,6 +297,13 @@ def run_version_exchange(
                 expected_soza_head=expected_soza_head,
             )
     except EXPECTED_RUN_ERRORS as exc:
+        if not e3_toolchain_entered and not isinstance(
+            exc, adapter_runner.TEIAdapterStageError
+        ):
+            exc = adapter_runner.TEIAdapterStageError(
+                "soza_go_toolchain",
+                str(exc),
+            )
         report = {
             **interim,
             "result": "e2_verified_e3_failed",
