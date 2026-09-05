@@ -12,6 +12,7 @@ import tarfile
 import tempfile
 from pathlib import Path
 
+import prepare_tei_fixed_reference_input as fixed_reference
 import verify_tei_evidence_bundle as bundle_verifier
 import verify_tei_execution_source_identity as source_identity
 from runtime_path_safety import reject_symlink_path_or_ancestors
@@ -134,10 +135,10 @@ def _run_stage(
     return result
 
 
-def _copy_reference_inputs(reference_source_repo: Path, bundle_root: Path) -> None:
-    workspace = reference_source_repo / FIXED_WORKSPACE
-    run_file = reference_source_repo / FIXED_RUN
-    plugin_lock = reference_source_repo / FIXED_PLUGIN_LOCK
+def _copy_reference_inputs(reference_input_root: Path, bundle_root: Path) -> None:
+    workspace = reference_input_root / FIXED_WORKSPACE
+    run_file = reference_input_root / FIXED_RUN
+    plugin_lock = reference_input_root / FIXED_PLUGIN_LOCK
     for path in (workspace, run_file, plugin_lock):
         if not path.exists():
             raise ValueError(f"fixed revision A reference inputがありません: {path}")
@@ -157,11 +158,38 @@ def _is_within(candidate: Path, root: Path) -> bool:
     return candidate == root or root in candidate.parents
 
 
+def _prepare_reference_inputs(
+    reference_source_repo: Path | None,
+    reference_evidence_bundle: Path | None,
+) -> tuple[Path | None, Path | None]:
+    if (reference_source_repo is None) == (reference_evidence_bundle is None):
+        raise ValueError(
+            "exact revision A fixed inputは--reference-source-repoまたは"
+            "--reference-evidence-bundleのどちらか一方で指定してください"
+        )
+    if reference_source_repo is not None:
+        return reference_source_repo.expanduser().resolve(strict=True), None
+
+    assert reference_evidence_bundle is not None
+    requested = reference_evidence_bundle.expanduser()
+    reject_symlink_path_or_ancestors(
+        requested,
+        "TEI historical reference Evidence bundle",
+    )
+    resolved = requested.resolve(strict=True)
+    if not resolved.is_file():
+        raise ValueError(
+            "TEI historical reference Evidence bundleがfileではありません: "
+            f"{resolved}"
+        )
+    return None, resolved
+
+
 def _prepare_output_archive(
     output_archive: Path,
     *,
     source_repo: Path,
-    reference_source_repo: Path,
+    reference_source_repo: Path | None,
 ) -> Path:
     requested = output_archive.expanduser()
     reject_symlink_path_or_ancestors(requested, "TEI Evidence output archive")
@@ -171,11 +199,13 @@ def _prepare_output_archive(
             "既存TEI Evidence archiveを無言で上書きしません: "
             f"{resolved}"
         )
-    for label, root in (
+    roots: list[tuple[str, Path]] = [
         ("revision B source checkout", source_repo),
-        ("revision A reference checkout", reference_source_repo),
         ("SOZA repository", SOZA_ROOT),
-    ):
+    ]
+    if reference_source_repo is not None:
+        roots.insert(1, ("revision A reference checkout", reference_source_repo))
+    for label, root in roots:
         if _is_within(resolved, root):
             raise ValueError(
                 f"TEI Evidence output archiveを{label}配下には置けません: "
@@ -186,11 +216,16 @@ def _prepare_output_archive(
 
 def produce_bundle(
     source_repo: Path,
-    reference_source_repo: Path,
+    reference_source_repo: Path | None,
     output_archive: Path,
+    *,
+    reference_evidence_bundle: Path | None = None,
 ) -> dict[str, object]:
     source_repo = source_repo.expanduser().resolve(strict=True)
-    reference_source_repo = reference_source_repo.expanduser().resolve(strict=True)
+    reference_source_repo, reference_evidence_bundle = _prepare_reference_inputs(
+        reference_source_repo,
+        reference_evidence_bundle,
+    )
     output_archive = _prepare_output_archive(
         output_archive,
         source_repo=source_repo,
@@ -206,40 +241,63 @@ def produce_bundle(
     except (OSError, ValueError, subprocess.SubprocessError) as exc:
         raise _wrap_stage("revision_b_source_identity", exc) from exc
 
-    try:
-        reference_observation = source_identity.verify_repository(
-            reference_source_repo,
-            expected_objects=source_identity.REVISION_A_REFERENCE_OBJECTS,
-            expected_head=source_identity.REVISION_A,
-        )
-    except (OSError, ValueError, subprocess.SubprocessError) as exc:
-        raise _wrap_stage("revision_a_fixed_reference_identity", exc) from exc
-
-    try:
-        _ensure_linux_amd64()
-    except ValueError as exc:
-        raise _wrap_stage("execution_platform", exc) from exc
-
-    env = _controlled_go_env()
-    go_version_process = _run_stage(
-        "tei_go_toolchain",
-        ["go", "version"],
-        cwd=source_repo,
-        env=env,
-    )
-    go_version = go_version_process.stdout.strip()
-    if not go_version.startswith(f"go version {EXPECTED_GO_VERSION} "):
-        raise TEIEvidenceStageError(
-            "tei_go_toolchain",
-            "historical EvidenceとGo toolchain versionが一致しません: "
-            f"expected={EXPECTED_GO_VERSION} actual={go_version}",
-            command=["go", "version"],
-            stdout=go_version_process.stdout,
-            stderr=go_version_process.stderr,
-        )
-
     with tempfile.TemporaryDirectory(prefix="soza-tei-b-") as tmp:
-        bundle_root = Path(tmp) / "tei-e3b-p2"
+        temp_root = Path(tmp)
+        if reference_source_repo is not None:
+            try:
+                verified_reference = source_identity.verify_repository(
+                    reference_source_repo,
+                    expected_objects=source_identity.REVISION_A_REFERENCE_OBJECTS,
+                    expected_head=source_identity.REVISION_A,
+                )
+            except (OSError, ValueError, subprocess.SubprocessError) as exc:
+                raise _wrap_stage("revision_a_fixed_reference_identity", exc) from exc
+            reference_input_root = reference_source_repo
+            reference_observation = {
+                **verified_reference,
+                "acquisitionMode": "git_checkout",
+                "sourceCommit": source_identity.REVISION_A,
+            }
+        else:
+            assert reference_evidence_bundle is not None
+            try:
+                materialized = fixed_reference.materialize_fixed_reference_input_bundle(
+                    reference_evidence_bundle,
+                    temp_root / "fixed-reference-input",
+                )
+            except (OSError, ValueError, tarfile.TarError) as exc:
+                raise _wrap_stage("revision_a_fixed_reference_identity", exc) from exc
+            reference_input_root = Path(str(materialized["materializedRoot"]))
+            reference_observation = {
+                key: value
+                for key, value in materialized.items()
+                if key != "materializedRoot"
+            }
+
+        try:
+            _ensure_linux_amd64()
+        except ValueError as exc:
+            raise _wrap_stage("execution_platform", exc) from exc
+
+        env = _controlled_go_env()
+        go_version_process = _run_stage(
+            "tei_go_toolchain",
+            ["go", "version"],
+            cwd=source_repo,
+            env=env,
+        )
+        go_version = go_version_process.stdout.strip()
+        if not go_version.startswith(f"go version {EXPECTED_GO_VERSION} "):
+            raise TEIEvidenceStageError(
+                "tei_go_toolchain",
+                "historical EvidenceとGo toolchain versionが一致しません: "
+                f"expected={EXPECTED_GO_VERSION} actual={go_version}",
+                command=["go", "version"],
+                stdout=go_version_process.stdout,
+                stderr=go_version_process.stderr,
+            )
+
+        bundle_root = temp_root / "tei-e3b-p2"
         binary = bundle_root / "bin" / "tei"
         binary.parent.mkdir(parents=True)
 
@@ -269,15 +327,15 @@ def produce_bundle(
                 str(binary),
                 "deployment-provider-plan",
                 "-workspace",
-                str(reference_source_repo / FIXED_WORKSPACE),
+                str(reference_input_root / FIXED_WORKSPACE),
                 "-run",
-                str(reference_source_repo / FIXED_RUN),
+                str(reference_input_root / FIXED_RUN),
                 "-solution",
                 FIXED_SOLUTION,
                 "-version",
                 FIXED_VERSION,
                 "-plugin-lock",
-                str(reference_source_repo / FIXED_PLUGIN_LOCK),
+                str(reference_input_root / FIXED_PLUGIN_LOCK),
             ],
             cwd=source_repo,
             env=env,
@@ -294,7 +352,7 @@ def produce_bundle(
             raise _wrap_stage("provider_plan_validation", exc) from exc
 
         try:
-            _copy_reference_inputs(reference_source_repo, bundle_root)
+            _copy_reference_inputs(reference_input_root, bundle_root)
         except (OSError, ValueError) as exc:
             raise _wrap_stage("reference_input_packaging", exc) from exc
 
@@ -307,10 +365,15 @@ def produce_bundle(
             "provider_plan_sha256": _sha256(provider_plan),
             "go_version": go_version,
             "reference_input_source_commit": source_identity.REVISION_A,
+            "reference_input_acquisition_mode": reference_observation["acquisitionMode"],
             "reference_workspace_tree": source_identity.REVISION_A_REFERENCE_OBJECTS[FIXED_WORKSPACE],
             "reference_run_blob": source_identity.REVISION_A_REFERENCE_OBJECTS[FIXED_RUN],
             "reference_plugin_lock_blob": source_identity.REVISION_A_REFERENCE_OBJECTS[FIXED_PLUGIN_LOCK],
         }
+        if reference_observation["acquisitionMode"] == "historical_evidence_bundle":
+            metadata["reference_input_bundle_archive_sha256"] = reference_observation[
+                "archiveSha256"
+            ]
         try:
             (bundle_root / "metadata.json").write_text(
                 json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
@@ -319,7 +382,7 @@ def produce_bundle(
         except OSError as exc:
             raise _wrap_stage("evidence_metadata_write", exc) from exc
 
-        candidate = Path(tmp) / "tei-e3b-p2-linux-amd64.tar.gz"
+        candidate = temp_root / "tei-e3b-p2-linux-amd64.tar.gz"
         try:
             with tarfile.open(candidate, "w:gz") as tar:
                 for path in sorted(bundle_root.rglob("*")):
@@ -372,8 +435,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "prepositionedされたexact revision BのTEI checkoutをbuild sourceとして検証し、"
-            "exact revision Aのfixed reference inputを別checkoutから与えて、"
-            "runtime revisionだけを交換したdeployment-provider-plan Evidence bundleを生成します。"
+            "exact revision Aのfixed reference inputをGit checkoutまたは検証済みhistorical "
+            "Evidence bundleから与えて、runtime revisionだけを交換した"
+            "deployment-provider-plan Evidence bundleを生成します。"
         ),
         allow_abbrev=False,
     )
@@ -383,11 +447,19 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         help="exact revision BのTEI checkout。build sourceとしてのみ使用する。",
     )
-    parser.add_argument(
+    reference_group = parser.add_mutually_exclusive_group(required=True)
+    reference_group.add_argument(
         "--reference-source-repo",
-        required=True,
         type=Path,
         help="exact revision AのTEI checkout。historical fixed reference inputとしてのみ使用する。",
+    )
+    reference_group.add_argument(
+        "--reference-evidence-bundle",
+        type=Path,
+        help=(
+            "historical revision Aのverified TEI Evidence bundle。保存済みreference inputを"
+            "Git object identityへ戻して検証した後にだけ使用する。"
+        ),
     )
     parser.add_argument("--output-archive", required=True, type=Path)
     parser.add_argument("--json", action="store_true")
@@ -401,6 +473,7 @@ def main(argv: list[str] | None = None) -> int:
             args.source_repo,
             args.reference_source_repo,
             args.output_archive,
+            reference_evidence_bundle=args.reference_evidence_bundle,
         )
     except TEIEvidenceStageError as exc:
         print(
@@ -417,9 +490,11 @@ def main(argv: list[str] | None = None) -> int:
     else:
         observation = result["bundle"]["observation"]
         reference = result["referenceInput"]
+        reference_source = reference.get("sourceCommit", reference.get("head"))
         print("TEI revision B prepositioned run: bundle produced")
         print(f"- source commit: {observation['source_commit']}")
-        print(f"- reference input source commit: {reference['head']}")
+        print(f"- reference input source commit: {reference_source}")
+        print(f"- reference input acquisition: {reference['acquisitionMode']}")
         print(f"- binary SHA-256: {observation['binary_sha256']}")
         print(f"- Provider Plan SHA-256: {observation['provider_plan_sha256']}")
         print(result["stopLine"])

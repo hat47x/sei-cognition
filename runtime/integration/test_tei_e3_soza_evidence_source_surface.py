@@ -11,6 +11,7 @@ EXPECTED_EXECUTION_PATHS = {
     "runtime/integration/run_tei_version_exchange_evidence.py",
     "runtime/integration/run_tei_revision_b_prepositioned.py",
     "runtime/integration/run_tei_bundle_adapter_compatibility.py",
+    "runtime/integration/prepare_tei_fixed_reference_input.py",
     "runtime/integration/runtime_path_safety.py",
     "runtime/integration/verify_tei_evidence_bundle.py",
     "runtime/integration/verify_tei_execution_source_identity.py",
@@ -54,20 +55,30 @@ class TEIE3SOZAEvidenceSourceSurfaceTest(unittest.TestCase):
         self.assertTrue(result["worktreeCleanWithinBoundary"])
         self.assertEqual(EXPECTED_EXECUTION_PATHS, set(result["objects"]))
 
-    def test_ignored_path_safety_helper_is_rejected(self):
+    def assert_ignored_helper_is_rejected(self, relative: str):
         with tempfile.TemporaryDirectory() as tmp:
             repo = self.make_repo(Path(tmp))
-            helper = repo / "runtime/integration/runtime_path_safety.py"
+            helper = repo / relative
             subprocess.run(["git", "-C", str(repo), "rm", "-q", str(helper)], check=True)
-            subprocess.run(["git", "-C", str(repo), "commit", "-qm", "remove helper"], check=True)
-            exclude = repo / ".git/info/exclude"
-            exclude.write_text(
-                "runtime/integration/runtime_path_safety.py\n", encoding="utf-8"
+            subprocess.run(
+                ["git", "-C", str(repo), "commit", "-qm", "remove helper"], check=True
             )
+            exclude = repo / ".git/info/exclude"
+            exclude.write_text(relative + "\n", encoding="utf-8")
             helper.write_text("# ignored replacement\n", encoding="utf-8")
 
             with self.assertRaisesRegex(ValueError, "ignored"):
                 subject._verify_soza_source_identity(repo)
+
+    def test_ignored_path_safety_helper_is_rejected(self):
+        self.assert_ignored_helper_is_rejected(
+            "runtime/integration/runtime_path_safety.py"
+        )
+
+    def test_ignored_fixed_reference_helper_is_rejected(self):
+        self.assert_ignored_helper_is_rejected(
+            "runtime/integration/prepare_tei_fixed_reference_input.py"
+        )
 
 
 if __name__ == "__main__":
