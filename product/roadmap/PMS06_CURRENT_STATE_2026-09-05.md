@@ -121,29 +121,37 @@ fixed reference input
 repository側では次まで整っています。
 
 - revision A historical Evidence再検証
+- historical A artifact内workspace / durable run / plugin lock bytesの固定Git object identity再検証
 - acquisition-independent TEI Evidence bundle verifier
+- historical A Evidence bundleをexternal fixed identityへ照合しreference inputだけをmaterializeするhelper
 - revision B execution-source Git identity verifier
 - revision A fixed reference input identity verifier
-- tracked変更 / untracked / gitignored entryをactual source / fixed input境界から排除するworking-tree purity guard
+- tracked変更 / untracked / gitignored entryをactual source / checkout fixed input境界から排除するworking-tree purity guard
 - A/B Provider Plan source surface static comparison
 - exact-B + exact-A fixed-input prepositioned E2 runner
+- A fixed input acquisitionをexact A checkout / verified historical A Evidence bundleから選べるE2 / combined runner
 - verified bundle → current SOZA Adapter E3 runner
 - E2 / E3 separate Go toolchains
 - canonical combined runner: `runtime/integration/run_tei_version_exchange_evidence.py`
 - E2 / E3 stage-aware failure Evidence
 - E3 Go requirement判定のstandalone runner側への集約
 - combined runnerのGo path setup failureに対するmachine-readable toolchain stage
-- Evidence出力pathをrevision B / revision A / SOZA checkoutから分離する実行前guard
+- Evidence出力pathをrevision B / SOZA checkoutから分離し、checkout取得時はrevision A checkoutとも分離し、historical bundle取得時は入力bundleをEvidence directory内へ包含しない実行前guard
 - Requirement / Scenario pre-audit
 
 E2 historical TEI buildとE3 current SOZA live testは別toolchainを使います。Go versionや配置方法はexecution EvidenceでありStable Requirement / Universal Contractではありません。
 
-Git object identityが一致するだけではactual source / fixed inputのpurity成立とは扱いません。execution boundary内にtracked変更、untracked entry、gitignored entryがあればE2開始前に拒否します。
+Git object identityが一致するだけではactual source / checkout fixed inputのpurity成立とは扱いません。execution boundary内にtracked変更、untracked entry、gitignored entryがあればE2開始前に拒否します。historical bundle経路ではworking treeの代わりに、bundle metadataのA source commit、historical binary / Provider Plan digest、およびactual reference bytesから再計算したGit object identityを固定値へ照合します。
 
 ```text
 Git object identity matched
   + tracked / untracked / ignored execution boundary clean
-  = source identity precondition satisfied
+  = source / checkout-fixed-input identity precondition satisfied
+  != revision B build PASS
+
+historical bundle fixed input identity verified
+  != revision A source checkout reconstructed
+  != fixed input acquisition path identity
   != revision B build PASS
 ```
 
@@ -215,12 +223,14 @@ actual実行に必要なのは、canonical runnerが要求する固定identity�
 最低限、次を用意します。
 
 - exact revision B TEI checkout
-- exact revision A fixed reference input checkout
+- exact revision A fixed reference input。取得元はexact A checkoutまたはverified historical A Evidence bundleのどちらか一方
 - current SOZA checkout
-- revision B / revision A fixed-input execution boundaryがtracked / untracked / ignored entryを含まずcleanであること
+- revision B execution boundaryがtracked / untracked / ignored entryを含まずcleanであること
+- exact A checkoutを使う場合はfixed-input execution boundaryもtracked / untracked / ignored entryを含まずcleanであること
+- historical A Evidence bundleを使う場合はA source commit、historical binary / Provider Plan digest、actual workspace / durable run / plugin lock Git object identityが固定値へ一致すること
 - E2 historical TEI build用Go `1.23.2`
 - current SOZA E3 live-test要件を満たすGo `1.25`系
-- 入力checkoutから分離されたEvidence出力directory
+- revision B / SOZA checkoutから分離されたEvidence出力directory。A checkout利用時はA checkoutからも分離し、historical bundle利用時は入力bundleをそのEvidence directory配下に置かないこと
 
 どの端末・runner・外部実行基盤を使うかはexecution mechanismであり、Product Requirement / Capability identity / Universal Contractではありません。
 
@@ -237,9 +247,9 @@ specific execution host not selected
 
 現在のPMS-06で次にEvidence強度が上がる主対象はISSUE-000072です。
 
-exact revision B checkout、exact revision A fixed input checkout、TEI historical build用Go、current SOZA live-test用Goを用意し、canonical `run_tei_version_exchange_evidence.py`からE2 → E3をactualに通します。
+exact revision B checkout、exact revision A fixed input（exact A checkoutまたはverified historical A Evidence bundle）、TEI historical build用Go、current SOZA live-test用Goを用意し、canonical `run_tei_version_exchange_evidence.py`からE2 → E3をactualに通します。
 
-途中停止した場合は、保存されたmachine-readable stageまでをEvidenceとし、自然言語logから内部原因を推測してEvidence強度を上げません。path configurationやworking-tree purityの事前拒否はE2 / E3 process failureへ読み替えません。
+途中停止した場合は、保存されたmachine-readable stageまでをEvidenceとし、自然言語logから内部原因を推測してEvidence強度を上げません。path configurationやworking-tree purity / historical bundle identityの事前拒否はE2 / E3 process failureへ読み替えません。
 
 ISSUE-000070について再実行が必要になるのは、Reopen conditionに該当するEvidenceやContract driftが観測された場合です。Resolvedであることを理由に任意runtime portabilityや成果品質へ主張を広げません。
 
