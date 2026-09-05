@@ -514,12 +514,25 @@ def run_compatibility(
             timeout=180,
         )
 
+        try:
+            post_live_soza_source = _verify_soza_source_identity(
+                soza_repo_root,
+                expected_head=expected_soza_head,
+            )
+        except (OSError, ValueError, subprocess.SubprocessError) as exc:
+            detail = ValueError(
+                "SOZA Adapter live test実行後のsource identity再検証に失敗しました: "
+                f"{exc}"
+            )
+            raise _wrap_stage("soza_source_identity", detail) from exc
+
     return {
         "schema": "soza.tei-bundle-adapter-compatibility/v1",
         "result": "adapter_compatible",
         "sourceCommit": source_commit,
         "referenceInput": reference_observation,
         "sozaSource": soza_source,
+        "postLiveTestSozaSource": post_live_soza_source,
         "sozaGoRequirement": go_observation["required"],
         "sozaGoVersion": go_observation["observed"],
         "binarySha256": observation["binary_sha256"],
