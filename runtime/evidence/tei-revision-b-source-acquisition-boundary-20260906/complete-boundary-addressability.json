@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "observedDate": "2026-09-06",
+  "purpose": "Record that every tracked Git leaf address inside the canonical TEI revision B execution-source verifier boundary is enumerable from complete recursive Git tree listings, without claiming that all leaf bytes have been materialized.",
+  "repository": "hat47x/tei-platform",
+  "sourceCommit": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be",
+  "rootTree": "630d3e9e2acaea70312bee19cf8a0f7235655cd6",
+  "executionBoundary": {
+    "cmd": {
+      "objectType": "tree",
+      "sha": "ac4d4406dfa590a2078cf91217c4fe30797e7f8e",
+      "recursiveListingObserved": true,
+      "recursiveListingTruncated": false
+    },
+    "internal": {
+      "objectType": "tree",
+      "sha": "10d2bfea4932c308fa6537e3b081bc6ea5501205",
+      "recursiveListingObserved": true,
+      "recursiveListingTruncated": false
+    },
+    "reference": {
+      "objectType": "tree",
+      "sha": "57fafb742988ecb936b9ab261fa8a991e37ed5c7",
+      "recursiveListingObserved": true,
+      "recursiveListingTruncated": false
+    },
+    "go.mod": {
+      "objectType": "blob",
+      "sha": "f8763f8fb2d64d73f1b40b905f62b5e09c44493b"
+    },
+    "go.sum": {
+      "objectType": "blob",
+      "sha": "c7cd14781271dca2b014daf2f53d49d95b8e8826"
+    }
+  },
+  "interpretation": {
+    "completeTrackedLeafAddressabilityForVerifierBoundary": true,
+    "selectedSourceBytesPreviouslyObserved": true,
+    "allTrackedLeafBytesMaterialized": false,
+    "exactRevisionBCheckoutMaterialized": false,
+    "workingTreePurityVerified": false,
+    "revisionBBuildPass": false,
+    "providerPlanExecutionPass": false,
+    "sozaAdapterCompatibilityPass": false,
+    "issue000072Resolved": false,
+    "qualityJudgement": "not_evaluated"
+  },
+  "stopLine": "complete recursive Git leaf addressability != all leaf bytes materialized != exact checkout verified != working-tree purity verified != revision B build PASS != Provider Plan execution PASS != SOZA Adapter compatibility PASS != ISSUE-000072 Resolved"
+}
