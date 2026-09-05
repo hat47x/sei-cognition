@@ -132,6 +132,7 @@ repository側では次まで整っています。
 - E2 / E3 stage-aware failure Evidence
 - E3 Go requirement判定のstandalone runner側への集約
 - combined runnerのGo path setup failureに対するmachine-readable toolchain stage
+- Evidence出力pathをrevision B / revision A / SOZA checkoutから分離する実行前guard
 - Requirement / Scenario pre-audit
 
 E2 historical TEI buildとE3 current SOZA live testは別toolchainを使います。Go versionや配置方法はexecution EvidenceでありStable Requirement / Universal Contractではありません。
@@ -195,19 +196,31 @@ version exchange implementation exists
   != new Stable Requirement needed
 ```
 
-## Current execution constraint
+## Current execution prerequisite
 
-2026-09-05の最新確認では、TEI revision B actual execution候補として確認済みのRemote Desktop端末`HAT47X`はofflineです。
+ISSUE-000072のactual E2 → E3は、特定端末や特定のRemote Desktop接続を成立条件にしません。
 
-このためISSUE-000072のactual E2 → E3はまだ進めていません。
+actual実行に必要なのは、canonical runnerが要求する固定identityとtoolchainを配置できる**適切なLinux / amd64実行環境**です。
+
+最低限、次を用意します。
+
+- exact revision B TEI checkout
+- exact revision A fixed reference input checkout
+- current SOZA checkout
+- E2 historical TEI build用Go `1.23.2`
+- current SOZA E3 live-test要件を満たすGo `1.25`系
+- 入力checkoutから分離されたEvidence出力directory
+
+どの端末・runner・外部実行基盤を使うかはexecution mechanismであり、Product Requirement / Capability identity / Universal Contractではありません。
 
 ```text
-execution environment unavailable
+specific execution host not selected
   != TEI incompatibility
   != SOZA Adapter failure
+  != ISSUE-000072 blocked by Product semantics
 ```
 
-ISSUE-000070は保存済みactual Evidenceとcurrent-contract object-equivalence監査により既にResolvedしており、HAT47Xの再接続をResolution条件にはしません。
+したがって、今後は特定端末の復帰待ちをPMS-06のcurrent blockerとして扱わず、上記条件を満たす実行環境を用意できた時点でactual E2 → E3へ進みます。
 
 ## 次にEvidence強度が上がる条件
 
