@@ -124,6 +124,7 @@ repository側では次まで整っています。
 - acquisition-independent TEI Evidence bundle verifier
 - revision B execution-source Git identity verifier
 - revision A fixed reference input identity verifier
+- tracked変更 / untracked / gitignored entryをactual source / fixed input境界から排除するworking-tree purity guard
 - A/B Provider Plan source surface static comparison
 - exact-B + exact-A fixed-input prepositioned E2 runner
 - verified bundle → current SOZA Adapter E3 runner
@@ -136,6 +137,15 @@ repository側では次まで整っています。
 - Requirement / Scenario pre-audit
 
 E2 historical TEI buildとE3 current SOZA live testは別toolchainを使います。Go versionや配置方法はexecution EvidenceでありStable Requirement / Universal Contractではありません。
+
+Git object identityが一致するだけではactual source / fixed inputのpurity成立とは扱いません。execution boundary内にtracked変更、untracked entry、gitignored entryがあればE2開始前に拒否します。
+
+```text
+Git object identity matched
+  + tracked / untracked / ignored execution boundary clean
+  = source identity precondition satisfied
+  != revision B build PASS
+```
 
 未検証:
 
@@ -207,6 +217,7 @@ actual実行に必要なのは、canonical runnerが要求する固定identity�
 - exact revision B TEI checkout
 - exact revision A fixed reference input checkout
 - current SOZA checkout
+- revision B / revision A fixed-input execution boundaryがtracked / untracked / ignored entryを含まずcleanであること
 - E2 historical TEI build用Go `1.23.2`
 - current SOZA E3 live-test要件を満たすGo `1.25`系
 - 入力checkoutから分離されたEvidence出力directory
@@ -228,7 +239,7 @@ specific execution host not selected
 
 exact revision B checkout、exact revision A fixed input checkout、TEI historical build用Go、current SOZA live-test用Goを用意し、canonical `run_tei_version_exchange_evidence.py`からE2 → E3をactualに通します。
 
-途中停止した場合は、保存されたmachine-readable stageまでをEvidenceとし、自然言語logから内部原因を推測してEvidence強度を上げません。
+途中停止した場合は、保存されたmachine-readable stageまでをEvidenceとし、自然言語logから内部原因を推測してEvidence強度を上げません。path configurationやworking-tree purityの事前拒否はE2 / E3 process failureへ読み替えません。
 
 ISSUE-000070について再実行が必要になるのは、Reopen conditionに該当するEvidenceやContract driftが観測された場合です。Resolvedであることを理由に任意runtime portabilityや成果品質へ主張を広げません。
 
