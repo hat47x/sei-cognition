@@ -14,6 +14,8 @@ RUNNER_SCHEMA = "soza.runtime-version-exchange-runner-observation/v1"
 PREFLIGHT_SCHEMA = "soza.runtime-version-exchange-preflight/v1"
 PREFLIGHT_OBSERVATION_SCHEMA = "soza.runtime-version-exchange-preflight-observation/v1"
 IDENTITY_SCHEMA = "soza.runtime-version-exchange-evidence-identity/v1"
+SOURCE_IDENTITY_SCHEMA = "soza.kj-atlas-runtime-source-identity/v1"
+MODEL_STORE_VERIFICATION_SCHEMA = "soza.runtime-version-exchange-model-store-verification/v1"
 STOP_LINE = (
     "observed Evidence milestone boundary != exact failing command or internal root cause "
     "!= runtime compatibility judgement != outcome quality judgement != ISSUE-000070 Resolved"
@@ -81,7 +83,42 @@ def _inference_matches(
     return verification.ready, prompt_sha if verification.ready else None
 
 
-def _identity_matches(payload: dict[str, Any] | None, manifest: dict[str, Any]) -> bool:
+def _source_identity_matches(payload: dict[str, Any] | None) -> bool:
+    if payload is None:
+        return False
+    return (
+        payload.get("schema") == SOURCE_IDENTITY_SCHEMA
+        and payload.get("verified") is True
+        and payload.get("sourceMode") == core.EXPECTED_SOURCE_MODE
+        and payload.get("repository") == "hat47x/kj-atlas"
+        and payload.get("sourceCommit") == core.EXPECTED_SOURCE_COMMIT
+        and payload.get("pinnedBackendTree") == core.EXPECTED_PARENT_BACKEND_TREE
+        and payload.get("runtimeSurfaceTree") == core.EXPECTED_RUNTIME_SURFACE_TREE
+        and payload.get("verificationBasis") == core.EXPECTED_SOURCE_VERIFICATION_BASIS
+    )
+
+
+def _model_store_verification_matches(
+    payload: dict[str, Any] | None,
+    model: dict[str, Any],
+) -> bool:
+    if payload is None:
+        return False
+    return (
+        payload.get("schema") == MODEL_STORE_VERIFICATION_SCHEMA
+        and payload.get("verified") is True
+        and payload.get("model") == model["name"]
+        and payload.get("manifestSha256") == model["sha256"]
+        and payload.get("digestBasis") == model["digestBasis"]
+        and payload.get("blobVerification") == "declared-size+actual-sha256"
+    )
+
+
+def _identity_matches(
+    payload: dict[str, Any] | None,
+    manifest: dict[str, Any],
+    source_identity: dict[str, Any] | None,
+) -> bool:
     if payload is None or payload.get("schema") != IDENTITY_SCHEMA:
         return False
     runtime_a = manifest["runtimeArchives"]["a"]
@@ -90,16 +127,26 @@ def _identity_matches(payload: dict[str, Any] | None, manifest: dict[str, Any]) 
     actual_a = payload.get("runtimeA")
     actual_b = payload.get("runtimeB")
     actual_model = payload.get("model")
+    acquisition_a = actual_a.get("archiveAcquisition") if isinstance(actual_a, dict) else None
+    acquisition_b = actual_b.get("archiveAcquisition") if isinstance(actual_b, dict) else None
+    storage_mode = actual_model.get("storageMode") if isinstance(actual_model, dict) else None
     return (
-        isinstance(actual_a, dict)
+        _source_identity_matches(source_identity)
+        and payload.get("methodSource") == source_identity
+        and isinstance(actual_a, dict)
+        and actual_a.get("name") == "ollama"
         and actual_a.get("version") == runtime_a["version"]
         and actual_a.get("archiveSha256") == runtime_a["sha256"]
+        and acquisition_a in {"downloaded", "prepositioned"}
         and isinstance(actual_b, dict)
+        and actual_b.get("name") == "ollama"
         and actual_b.get("version") == runtime_b["version"]
         and actual_b.get("archiveSha256") == runtime_b["sha256"]
+        and acquisition_b in {"downloaded", "prepositioned"}
         and isinstance(actual_model, dict)
         and actual_model.get("name") == model["name"]
         and actual_model.get("expectedDigest") == model["sha256"]
+        and storage_mode in {"work-local", "prepositioned"}
         and payload.get("qualityJudgement") == "not_evaluated"
     )
 
@@ -145,6 +192,10 @@ def observe_progress(
         root / "runtime-exchange-preflight-observation.json"
     )
     runner = _read_json(root / "runtime-exchange-runner-observation.json")
+    source_identity = _read_json(root / "kj-atlas-source-identity.json")
+    model_store_verification = _read_json(
+        root / "runtime-exchange-model-store-static-verification.json"
+    )
     identity = _read_json(root / "runtime-exchange-identity.json")
 
     preflight_blocked = (
@@ -183,9 +234,21 @@ def observe_progress(
             "readyな保存済みpreflightを確認できません",
         ),
         _milestone(
+            "model_store_static_identity_verified",
+            lambda: _model_store_verification_matches(model_store_verification, model),
+            "固定model storeのmanifest / blob静的identityをEvidenceから確認できます",
+            "固定model storeの静的identity Evidenceを確認できません",
+        ),
+        _milestone(
+            "kj_atlas_source_identity_verified",
+            lambda: _source_identity_matches(source_identity),
+            "verified KJ Atlas runtime source identityをEvidenceから確認できます",
+            "verified KJ Atlas runtime source identityを確認できません",
+        ),
+        _milestone(
             "fixed_identity_recorded",
-            lambda: _identity_matches(identity, manifest),
-            "runtime A/B・modelの固定identityがEvidenceへ記録されています",
+            lambda: _identity_matches(identity, manifest, source_identity),
+            "source・runtime A/B・modelの固定identityがEvidenceへ記録されています",
             "固定identity Evidenceを確認できません",
         ),
         _milestone(
@@ -278,30 +341,35 @@ def observe_progress(
         else None
     )
 
-    runner_completed = (
+    runner_present = runner is not None
+    runner_recognized = (
         runner is not None
         and runner.get("schema") == RUNNER_SCHEMA
+        and runner.get("qualityJudgement") == "not_evaluated"
+        and isinstance(runner.get("completed"), bool)
+        and isinstance(runner.get("exitCode"), int)
+        and not isinstance(runner.get("exitCode"), bool)
+    )
+    runner_completed = (
+        runner_recognized
         and runner.get("completed") is True
         and runner.get("exitCode") == 0
     )
     runner_failed = (
-        runner is not None
-        and runner.get("schema") == RUNNER_SCHEMA
+        runner_recognized
         and runner.get("completed") is False
-        and isinstance(runner.get("exitCode"), int)
-        and not isinstance(runner.get("exitCode"), bool)
         and runner.get("exitCode") != 0
     )
 
-    if preflight_blocked:
-        state = "preflight_blocked"
-        boundary = "strict entrypointは開始されていません"
-    elif not monotonic:
+    if not monotonic:
         state = "inconsistent_evidence_order"
         boundary = (
             "前段milestoneが未観測なのに後段milestoneが観測されています: "
             + ", ".join(later_observed)
         )
+    elif preflight_blocked:
+        state = "preflight_blocked"
+        boundary = "strict entrypointは開始されていません"
     elif next_unobserved is None and runner_completed:
         state = "all_observed_milestones_completed"
         boundary = "定義したA/B actual milestoneをすべて観測しました"
@@ -311,11 +379,11 @@ def observe_progress(
             f"last observed={last_observed!r}; next unobserved={next_unobserved!r}. "
             "この区間より細かいfailure原因は、このprogress観測だけから特定しません"
         )
-    elif runner is None:
-        state = "partial_without_runner_observation"
+    elif not runner_recognized:
+        state = "partial_without_valid_runner_observation"
         boundary = (
             f"last observed={last_observed!r}; next unobserved={next_unobserved!r}. "
-            "runner observationを確認できません"
+            "認識可能なrunner observationを確認できません"
         )
     else:
         state = "partial_or_unverified"
@@ -329,7 +397,8 @@ def observe_progress(
         "state": state,
         "preflightBlocked": preflight_blocked,
         "runner": {
-            "present": runner is not None,
+            "present": runner_present,
+            "recognized": runner_recognized,
             "completed": runner.get("completed") if runner is not None else None,
             "exitCode": runner.get("exitCode") if runner is not None else None,
         },
