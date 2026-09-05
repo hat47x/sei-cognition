@@ -29,11 +29,13 @@ same command name "go"
 必須引数は次です。
 
 - `--source-repo`: exact revision B checkout
-- `--reference-source-repo`: exact revision A checkout
+- `--reference-source-repo` **または** `--reference-evidence-bundle`: exact revision A fixed inputの取得元。mutually exclusiveでどちらか一方を指定する。
 - `--soza-repo-root`: current SOZA checkout
-- `--output-dir`: Evidence出力先。revision B / revision A / SOZA checkoutと相互包含しない、新しいnon-symlink pathを使う。
+- `--output-dir`: Evidence出力先。revision B / SOZA checkout、およびcheckout取得時のrevision A checkoutと相互包含しない、新しいnon-symlink pathを使う。historical bundle取得時はEvidence directoryが入力bundleを包含しない。
 - `--tei-go-executable`: E2用Go 1.23.2 executable
 - `--soza-go-executable`: E3用current SOZA Go executable
+
+A fixed inputの比較軸はどちらの取得経路でもexact revision Aへ固定します。checkout経路ではGit HEADとworking-tree purityを直接検証します。historical Evidence bundle経路では、bundle metadataのA source commit、historical binary / Provider Plan SHA-256、およびbundle内actual workspace / durable run / plugin lock bytesから再計算したGit object identityを固定既知値へ照合し、検証後のreference inputだけを一時領域へmaterializeします。historical bundleからA source checkoutを復元したとは扱いません。
 
 両Go executableはLinux上の`go`というbasenameを持つfileとして明示します。symlink `.../bin/go`も、actual targetを解決したうえで利用できます。
 
@@ -51,7 +53,7 @@ E3
 
 既存runnerのbuild条件、Provider Plan invocation、Adapter mapping semanticsは変更しません。
 
-actual process開始前にはEvidence出力pathも検査します。combined runnerは`--output-dir`自身または既存ancestorのsymlinkを拒否し、revision B checkout、revision A checkout、SOZA checkoutの配下へEvidence directoryを置くことも、Evidence directoryがそれらを包含することも拒否します。`mkdir`はこの検査後にだけ行います。
+actual process開始前にはEvidence出力pathも検査します。combined runnerは`--output-dir`自身または既存ancestorのsymlinkを拒否し、revision B checkout、SOZA checkout、checkout取得時のrevision A checkoutの配下へEvidence directoryを置くことも、Evidence directoryがそれらを包含することも拒否します。historical bundle取得時は入力bundleがEvidence directory配下に入る配置も拒否します。`mkdir`はこの検査後にだけ行います。
 
 standalone E2もfinal archive path / ancestor symlink、入力checkoutやSOZA repository配下への出力、既存archiveの暗黙上書きを拒否します。
 
@@ -130,6 +132,8 @@ PR #223では、さらに次のnegative controlをbranch testへ追加しまし�
 - combined runner: output directoryが入力checkoutを包含する配置を拒否する。
 - combined runner: symlink output directoryをrunner開始前に拒否する。
 
+PR #239では、historical A Evidence bundleをfixed input acquisitionとして扱う専用synthetic / unit testを追加しました。legacy bundleのexternal fixed identity binding、materialization境界、E2へのbundle取得経路、combined runnerのacquisition reporting、E3 source-surfaceへのhelper追加を対象にしています。
+
 これら追加testをcurrent ChatGPT execution environmentでfull suiteとして再実行したとは主張しません。HAT47Xがofflineであり、GitHub Actionsもcurrent baselineでは使用しません。
 
 これはorchestration / Evidence境界のsynthetic検査であり、actual TEI revision BのbuildやSOZA Adapter互換性を示すものではありません。
@@ -195,7 +199,9 @@ official archive SHA-256 verified
   != current SOZA Adapter live compatibility PASS
 ```
 
-actual実行では、2つのGo installationを別々に指定します。`EVIDENCE_DIR`は3つのcheckoutと相互包含しない別directoryを指定します。
+actual実行では、2つのGo installationを別々に指定します。A fixed inputの取得方式は次のどちらか一方を選びます。
+
+### exact A checkoutから取得する場合
 
 ```bash
 export TEI_B_REPO=/path/to/tei-revision-b
@@ -210,6 +216,29 @@ SOZA_HEAD="$(git -C "$SOZA_REPO" rev-parse HEAD)"
 python3 "$SOZA_REPO/runtime/integration/run_tei_version_exchange_evidence.py" \
   --source-repo "$TEI_B_REPO" \
   --reference-source-repo "$TEI_A_REPO" \
+  --soza-repo-root "$SOZA_REPO" \
+  --output-dir "$EVIDENCE_DIR" \
+  --tei-go-executable "$TEI_GO" \
+  --soza-go-executable "$SOZA_GO" \
+  --expected-soza-head "$SOZA_HEAD" \
+  --json
+```
+
+### verified historical A Evidence bundleから取得する場合
+
+```bash
+export TEI_B_REPO=/path/to/tei-revision-b
+export TEI_A_BUNDLE=/path/to/historical/tei-e3b-p2-linux-amd64.tar.gz
+export SOZA_REPO=/path/to/soza
+export EVIDENCE_DIR=/path/outside/checkouts/tei-version-exchange-evidence
+export TEI_GO="$HOME/.local/opt/soza-tei-go/go1.23.2/bin/go"
+export SOZA_GO="$HOME/.local/opt/soza-tei-go/go1.25.0/bin/go"
+
+SOZA_HEAD="$(git -C "$SOZA_REPO" rev-parse HEAD)"
+
+python3 "$SOZA_REPO/runtime/integration/run_tei_version_exchange_evidence.py" \
+  --source-repo "$TEI_B_REPO" \
+  --reference-evidence-bundle "$TEI_A_BUNDLE" \
   --soza-repo-root "$SOZA_REPO" \
   --output-dir "$EVIDENCE_DIR" \
   --tei-go-executable "$TEI_GO" \
@@ -238,6 +267,9 @@ Evidence output / checkout separation guard
 path-safety negative controls
   = committed; full suite not re-run in current environment
 
+historical A Evidence bundle fixed-input acquisition path
+  = implemented; dedicated tests committed; full suite not re-run in current environment
+
 revision B actual CLI build / execution
   = Not Yet Verified
 
@@ -253,6 +285,7 @@ revision B current SOZA Adapter live compatibility
 ```text
 toolchain split resolved in execution path
   + Evidence output path safety implemented
+  + historical A fixed-input acquisition path implemented
   != revision B build PASS
   != Provider Plan observed
   != current SOZA Adapter live compatibility PASS

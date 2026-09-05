@@ -47,7 +47,12 @@ reference/workspace/.tei/plugin-lock.json blob
   0fa63ad634c72395781eaaae5ee0132f73d03541
 ```
 
-AとBでは`reference/workspace` treeが異なります。そのため、B checkout内のreference inputをそのまま使うと、executable revisionだけでなくinput interpretationも同時に交換してしまいます。current runnerはexact B checkoutをbuild source、exact A checkoutをfixed reference sourceとして別々に受け取ります。
+AとBでは`reference/workspace` treeが異なります。そのため、B checkout内のreference inputをそのまま使うと、executable revisionだけでなくinput interpretationも同時に交換してしまいます。current runnerはexact B checkoutをbuild sourceとして必須にし、exact A fixed inputは次のどちらか一方から取得します。
+
+- exact revision A checkout
+- verified historical revision A Evidence bundle
+
+historical bundle経路ではA source checkoutを復元したとは扱いません。bundle metadataのA source commit、historical binary / Provider Plan SHA-256、およびbundle内actual workspace / durable run / plugin lock bytesから再計算したGit object identityを固定既知値へ照合し、そのreference inputだけを一時領域へmaterializeします。
 
 ```text
 exact B build source + exact A fixed input verified
@@ -87,9 +92,9 @@ Git object identity matched
   != revision B build PASS
 ```
 
-revision A fixed inputも、前節のworkspace / durable run / plugin lock identityを別のexpected object setとして検証し、working-tree側にignored entryを含む追加入力を混入させません。
+revision A fixed inputは、checkout取得時には前節のworkspace / durable run / plugin lock identityを別のexpected object setとして検証し、working-tree側にignored entryを含む追加入力を混入させません。historical bundle取得時には同じ3 object identityをactual bundle bytesから再計算して固定値へ照合します。
 
-この検査はsource identityです。binary bytesやruntime結果を導出しません。
+この検査はsource / fixed-input identityです。revision B binary bytesやruntime結果を導出しません。
 
 `runtime/TEI_PROVIDER_SURFACE_STATIC_COMPATIBILITY_2026-09-05.md`では、A / BのProvider Plan出力surfaceとその前段を分けて比較しています。
 
@@ -128,25 +133,25 @@ same Provider Plan output surface
 
 ### E2 — revision B bundle生成
 
-`runtime/integration/run_tei_revision_b_prepositioned.py`は、GitHub Actionsを使わず、prepositionedされた2つのcheckoutからEvidence bundleを生成します。
+`runtime/integration/run_tei_revision_b_prepositioned.py`は、GitHub Actionsを使わず、prepositionedされたexact B checkoutとexact A fixed inputからEvidence bundleを生成します。
 
 入力:
 
 - `--source-repo`: exact revision B。build sourceとしてのみ使用する。
-- `--reference-source-repo`: exact revision A。fixed reference inputとしてのみ使用する。
-- `--output-archive`: 生成するEvidence bundle。revision B / revision A / SOZA repository配下ではない、新しいnon-symlink pathを使う。
+- `--reference-source-repo` **または** `--reference-evidence-bundle`: exact revision A fixed inputの取得元。mutually exclusiveでどちらか一方を使う。
+- `--output-archive`: 生成するEvidence bundle。revision B / SOZA repository配下、およびcheckout取得時のrevision A checkout配下ではない、新しいnon-symlink pathを使う。
 
 主な処理:
 
 1. output archive path / ancestor symlink、入力checkoutやSOZA repository配下への配置、既存archiveの暗黙上書きを副作用前に拒否する。
 2. B execution-source Git identity、exact HEAD、tracked / untracked / ignored entryの不存在を確認する。
-3. A fixed reference input Git identity、exact HEAD、tracked / untracked / ignored entryの不存在を確認する。
+3. A fixed reference inputを取得方式ごとに検証する。checkout取得時はA Git identity / exact HEAD / working-tree purityを確認する。historical bundle取得時はA source commit、historical binary / Provider Plan SHA-256、actual reference bytesから再計算したworkspace / durable run / plugin lock Git object identityを固定値へ照合し、一時領域へmaterializeする。
 4. Linux / amd64とE2用Go `1.23.2`を確認する。
 5. historical Evidenceと同じbuild条件でB CLIをbuildする。
 6. B binaryへAのworkspace / durable run / plugin lockを与え、`deployment-provider-plan`を実行する。
 7. Provider Planの既知surfaceを確認する。
-8. B binary SHA-256、Provider Plan SHA-256、A reference identityをmetadataへ記録する。
-9. Evidence bundleを生成し、`verify_tei_evidence_bundle.py`で再検証してからfinal archiveへ配置する。
+8. B binary SHA-256、Provider Plan SHA-256、A reference identity、A input acquisition modeをmetadataへ記録する。historical bundle取得時は入力bundle SHA-256もProvenanceとして記録する。
+9. Evidence bundleを生成し、`verify_tei_evidence_bundle.py`でreference bytesを含めて再検証してからfinal archiveへ配置する。
 
 build時は`GOWORK=off`、`GOENV=off`とし、外部`GOFLAGS` / `GOOS` / `GOARCH`を持ち込みません。
 
@@ -160,7 +165,7 @@ build時は`GOWORK=off`、`GOENV=off`とし、外部`GOFLAGS` / `GOOS` / `GOARCH
 2. archive traversal、link / device、duplicate memberを拒否する。
 3. `bin/tei`とA fixed reference inputだけを一時領域へstageする。
 4. staged inputのtree / blob identityをactual bytesから再計算する。
-5. current SOZAの`runtime/go`と関連runner / verifierのsource identityを記録し、対象境界の未commit変更やuntracked fileを拒否する。
+5. current SOZAの`runtime/go`と関連runner / verifier / fixed-reference helperのsource identityを記録し、対象境界の未commit変更やuntracked / ignored entryを拒否する。
 6. `GOTOOLCHAIN=local`で指定されたE3用Goを使用し、検査中の暗黙toolchain downloadを行わない。
 7. 既存`runtime/go/teiintegration.TestLiveTEIProviderPlan`を実行する。
 
@@ -211,7 +216,9 @@ actual E2 → E3の標準入口は次の1本です。
 
 単一PATHの`go`をE2からE3へ使い回す旧orchestratorは削除済みで、actual handoffとして使用しません。
 
-実行例:
+A fixed inputの取得方式は次のどちらか一方を選びます。
+
+### exact A checkoutを使う場合
 
 ```bash
 export TEI_B_REPO=/path/to/tei-revision-b
@@ -234,7 +241,30 @@ python3 "$SOZA_REPO/runtime/integration/run_tei_version_exchange_evidence.py" \
   --json
 ```
 
-`EVIDENCE_DIR`はrevision B checkout、revision A checkout、SOZA checkoutの外側へ置き、いずれのcheckoutとも相互包含しないpathを使います。output path自身または既存ancestorがsymlinkの場合も開始前に拒否します。このconfiguration検査は`mkdir`より前に行います。
+### verified historical A Evidence bundleを使う場合
+
+```bash
+export TEI_B_REPO=/path/to/tei-revision-b
+export TEI_A_BUNDLE=/path/to/historical/tei-e3b-p2-linux-amd64.tar.gz
+export SOZA_REPO=/path/to/soza
+export EVIDENCE_DIR=/path/outside/checkouts/tei-version-exchange-evidence
+export TEI_GO="$HOME/.local/opt/soza-tei-go/go1.23.2/bin/go"
+export SOZA_GO="$HOME/.local/opt/soza-tei-go/go1.25.0/bin/go"
+
+SOZA_HEAD="$(git -C "$SOZA_REPO" rev-parse HEAD)"
+
+python3 "$SOZA_REPO/runtime/integration/run_tei_version_exchange_evidence.py" \
+  --source-repo "$TEI_B_REPO" \
+  --reference-evidence-bundle "$TEI_A_BUNDLE" \
+  --soza-repo-root "$SOZA_REPO" \
+  --output-dir "$EVIDENCE_DIR" \
+  --tei-go-executable "$TEI_GO" \
+  --soza-go-executable "$SOZA_GO" \
+  --expected-soza-head "$SOZA_HEAD" \
+  --json
+```
+
+`EVIDENCE_DIR`はrevision B checkoutとSOZA checkoutの外側へ置き、checkout取得時はrevision A checkoutとも相互包含しないpathを使います。historical bundle取得時は入力bundleをEvidence directory配下へ置きません。output path自身または既存ancestorがsymlinkの場合も開始前に拒否します。このconfiguration検査は`mkdir`より前に行います。
 
 既存Evidenceを暗黙に上書きしません。同じoutput directoryへ意図的に再実行するときだけ`--overwrite`を明示します。`--overwrite`時は旧bundle / reportを実行開始前に除去するため、新しいE2が失敗した後に旧bundleだけが残り、新runの成果に見える状態を作りません。
 
@@ -256,7 +286,7 @@ fixed_scope_e2_e3_verified
 
 `fixed_scope_e2_e3_verified`もISSUE解決やarbitrary TEI version compatibilityを意味しません。
 
-個別の`run_tei_revision_b_prepositioned.py` / `run_tei_bundle_adapter_compatibility.py`は、E2またはE3だけを切り分けて再実行・診断するときの下位入口として残します。通常のactual handoffではcombined runnerを使います。
+個別の`run_tei_revision_b_prepositioned.py` / `run_tei_bundle_adapter_compatibility.py`は、E2またはE3だけを切り分けて再実行・診断するときの下位入口として残します。`prepare_tei_fixed_reference_input.py`はhistorical A Evidence bundleをfixed input acquisitionへ使う場合の検証・materialize helperです。通常のactual handoffではcombined runnerを使います。
 
 ## 7. stage-aware failure Evidence
 
@@ -345,7 +375,10 @@ source working-tree purity
   = tracked changes / untracked / ignored entries rejected; PR #226 synthetic Git cases 5 passed
 
 revision A fixed reference input identity
-  = fixed and repository-local verifier implemented
+  = fixed; checkout verifier and historical-bundle external identity verifier implemented
+
+historical A Evidence bundle fixed-input acquisition path
+  = implemented; dedicated tests committed; full suite not re-run in current environment
 
 Provider Plan output surface A/B
   = strong static continuity observed
@@ -380,7 +413,7 @@ toolchain-split combined runner
 Evidence output / checkout separation guard
   = implemented; path-safety negative controls committed
 
-path-safety additions full suite in current environment
+path-safety / historical-bundle additions full suite in current environment
   = Not Re-run
 
 revision B actual CLI build / execution
@@ -399,7 +432,7 @@ credential lifecycle / Operational portability
   = Not Yet Verified
 ```
 
-expanded branch unit suitesの一部はcurrent ChatGPT containerでrepository全体を再実行できず、stage instrumentation / path-safety追加後のfull suiteをこの環境で再実行したと主張しません。PR #226のsource-identity synthetic Git 5ケース、focused stage-model checks、focused Go requirement check、それ以前に実行済みのbaseline testを区別して記録します。
+expanded branch unit suitesの一部はcurrent ChatGPT containerでrepository全体を再実行できず、stage instrumentation / path-safety / historical-bundle acquisition追加後のfull suiteをこの環境で再実行したと主張しません。PR #226のsource-identity synthetic Git 5ケース、focused stage-model checks、focused Go requirement check、それ以前に実行済みのbaseline testを区別して記録します。
 
 ## 9. actual後のRequirement / Scenario再照合
 
@@ -432,6 +465,9 @@ exact B source verified
 
 exact A fixed input verified
   != B accepts A input
+
+historical A fixed-input acquisition path implemented
+  != canonical B execution performed
 
 Evidence output path safety implemented
   != actual process started
