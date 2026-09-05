@@ -1,7 +1,7 @@
 # SOZA Product Milestones
 
-更新日: 2026-09-03  
-状態: **Current Deadline-free Product Milestone Baseline — v0.2.0 Release Evidence / E3b-P2 / E3b-M1b / historical reconstruction / quality-evaluation boundary reflected**
+更新日: 2026-09-05  
+状態: **Current Deadline-free Product Milestone Baseline — v0.2.0 Release Evidence / E3b-P2 / E3b-M1b / historical reconstruction / quality-evaluation boundary / PMS-06 version-exchange state reflected**
 
 ## 1. この文書の役割
 
@@ -244,7 +244,9 @@ synthetic fixtureだけでなく、実際のCognitive Method Realization、AI、
 
 ### Current state
 
-**Partial / E2 + E3a + E3b-P1 + E3b-P2 fixed-artifact + E3b-M1a + E3b-M1b + historical reconstruction + actual model artifact exchangeまでScoped Executable Evidence available / runtime version exchange・E4 pending.**
+**Partial / E2 + E3a + E3b-P1 + E3b-P2 revision A fixed-artifact + E3b-M1a + E3b-M1b + historical reconstruction + actual model artifact exchangeまでScoped Executable Evidence available / ISSUE-000070 Ollama runtime version exchange・ISSUE-000072 TEI executable version exchange・E4 pending.**
+
+current Open探索の短いsnapshotは`PMS06_CURRENT_STATE_2026-09-05.md`を参照します。ISSUE-000070とISSUE-000072は交換軸が異なり、片方のPASSをもう片方のEvidenceへ流用しません。
 
 Evidenceを次の段階に分けます。
 
@@ -263,11 +265,12 @@ E3b
   ├─ P1 public live Provider service
   ├─ P2 actual TEI process / service
   │    ├─ preparation: external TEI executable injection boundary
-  │    ├─ fixed-artifact actual TEI CLI execution [Scoped Evidence]
-  │    └─ private artifact acquisition / credential lifecycle / arbitrary version [pending]
+  │    ├─ revision A fixed-artifact actual TEI CLI execution [Scoped Evidence]
+  │    └─ revision B executable / Provider Plan / current Adapter version exchange [pending]
   └─ M1 live external Cognitive Method
        ├─ M1a live KJ Atlas process + deterministic model stub [Scoped Evidence]
-       └─ M1b live external model-backed KJ execution [Scoped Evidence]
+       ├─ M1b live external model-backed KJ execution [Scoped Evidence]
+       └─ fixed model artifact + Ollama runtime version exchange [pending]
 ```
 
 この区分はEvidenceの範囲を示すためのもので、新しいProduct ontologyではありません。
@@ -297,18 +300,45 @@ ISSUE-000061では、actual TEI CLI integrationの前段として、TEI source /
 
 ISSUE-000065の最初のcredential-aware Run `33589190828`では、`TEI_REPOSITORY_TOKEN`を利用できずactual TEI stepがskipされました。この記録は`runtime/ACTUAL_TEI_INTEGRATION_PROBE_EVIDENCE_2026-09-02.md`へそのまま保持しています。
 
-その後、TEI commit `48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67`を固定し、historical TEI-side Run `33589084290`でactual `cmd/tei`をbuildして`deployment-provider-plan`を実行しました。生成したEvidence artifactについて、current SOZA Adapterからactual `tei` binaryを別OS processとして起動し、strict decode、Capability Observation mapping / validation、Provider固有情報の非漏出を確認しています。actual Provider Plan bytesはdigest付きfixtureとしてrepository-local testから継続検査できます。
+その後、TEI commit `48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67`をrevision Aとして固定し、historical TEI-side Run `33589084290`でactual `cmd/tei`をbuildして`deployment-provider-plan`を実行しました。生成したEvidence artifactについて、current SOZA Adapterからactual `tei` binaryを別OS processとして起動し、strict decode、Capability Observation mapping / validation、Provider固有情報の非漏出を確認しています。actual Provider Plan bytesはdigest付きfixtureとしてrepository-local testから継続検査できます。
 
 ```text
-fixed source / artifact
+fixed revision A source / artifact
   + actual TEI process execution
   + current SOZA Adapter mapping
-  = E3b-P2 fixed-artifact Scoped Executable Evidence
+  = E3b-P2 revision A fixed-artifact Scoped Executable Evidence
 
   != private artifact credential lifecycle proven
   != arbitrary TEI version compatibility
+  != revision B compatibility proven
   != E4 Operational portability
 ```
+
+### TEI executable version exchange
+
+ISSUE-000072では、revision A historical Evidenceを保持したままTEI executable revision Bを追加してもProvider Observation境界を保てるかを検証します。
+
+revision Aとrevision Bでは`reference/workspace`が異なるため、version以外の入力差を避ける比較軸を次へ固定しています。
+
+```text
+build / executable source = exact revision B
+fixed reference input     = exact revision A
+```
+
+revision Bは`1a7028d444fcae60a1c4f2f2d247456f4c7c35be`へ固定しています。repository側では、revision A historical Evidence再検証、revision B source identity、revision A fixed input identity、E2 / E3 runner、E2 / E3別Go toolchain、canonical combined runner `runtime/integration/run_tei_version_exchange_evidence.py`、stage-aware failure Evidenceまで整備しています。
+
+actual結果を見る前に`runtime/TEI_VERSION_EXCHANGE_REQUIREMENT_PREAUDIT_2026-09-05.md`でREQ-0001 / 0007 / 0021、SCN-0014 / 0018の再照合基準を固定し、Provider-neutral Observationの隣接境界としてREQ-0022も監査対象候補にしています。
+
+```text
+exact-B + exact-A fixed-input execution path ready
+  != revision B actual CLI build / execution PASS
+  != revision B Provider Plan observed
+  != current SOZA Adapter compatibility PASS
+  != new Stable Requirement required
+  != ISSUE-000072 Resolved
+```
+
+revision B actual CLI / `deployment-provider-plan` / current SOZA Adapter live compatibilityは**Not Yet Verified**です。
 
 ### E3b-M1a — live KJ Atlas process + deterministic model stub
 
@@ -338,17 +368,20 @@ ISSUE-000067では、異なるlogical Realizationと同一Realization内のhisto
 
 ISSUE-000068ではKJ Atlas source、Method surface、runtime、入力を固定したままactual model artifactを交換し、後続Application追加後も先行ApplicationのRealization、Provenance、outputが変わらないことを確認しました。
 
-### runtime version exchange
+### Ollama runtime version exchange
 
 ISSUE-000070では交換軸をruntime versionだけへ狭め、model artifactを固定します。
 
 - revision A: Ollama `0.32.13`
 - revision B: Ollama `0.32.14`
 
-repository-local harness、固定runtime archive digest、fixed model digest、Exact Binding control、artifact guard、事前配置artifact経路、run専用Evidence directory、local preflightまで整備しています。
+repository-local harness、固定runtime archive metadata / digest、fixed model digest、Exact Binding control、artifact guard、事前配置artifact経路、run専用Evidence directory、side-effect-free preflight、canonical Evidence / Provenance verifier、partial / complete run progress observerまで整備しています。
 
 ```text
-runtime exchange harness / preflight implemented
+runtime exchange execution path / observer ready
+  != actual runtime A/B archive bytes verified
+  != actual binary versions verified
+  != actual A/B model identity verified
   != actual runtime A/B inference PASS
 ```
 
@@ -362,15 +395,16 @@ ISSUE-000071では、execution conformance、structural safety、human outcome r
 
 ### v0.2.0との関係
 
-v0.2.0のsupported release scopeはE3aまでです。release後に積み上がったE3b、historical reconstruction、model artifact exchange等のEvidenceを、既に公開済みのv0.2.0 supported scopeやRelease Evidenceへ遡及的に追加しません。
+v0.2.0のsupported release scopeはE3aまでです。release後に積み上がったE3b、historical reconstruction、model artifact exchange、version-exchange repository-side readiness等を、既に公開済みのv0.2.0 supported scopeやRelease Evidenceへ遡及的に追加しません。
 
 ### Open questions
 
 - private TEI / external artifactを取得するcredential lifecycleとdeployment境界
 - TEI executableの正式な取得・配布方式
-- fixed revision以外のTEI version交換
-- TEI CLI version交換時に必要なProvenance / Exact Bindingの水準
-- ISSUE-000070のactual Ollama runtime version交換
+- ISSUE-000072のrevision B actual CLI / Provider Plan / current SOZA Adapter compatibility
+- arbitrary TEI / model / runtime version compatibility
+- ISSUE-000070のactual Ollama runtime version exchange
+- version交換後のhistorical Exact Binding / Provenanceを長期運用でどこまで保持するか
 - 別model family / Provider / Realizationへ広げたportability
 - actual human reviewとKJ法としての成果品質
 - network degradation、rate limit、credential失効、artifact acquisition failure等のfailure behavior
@@ -445,12 +479,14 @@ Open Questionを直接Stable Requirementへ飛ばしません。
 
 ## 14. Natural Japanese review
 
-Product Value、Product Shape、Product Interaction、Packaging、Identity / Access / Collaboration、Realization / Provider Exchange、v0.2.0 Release Evidence、REQ-0001〜0022、SCN-0001〜0018、ISSUE-000053〜000071、current runtime / evaluation資産へ戻ってMilestone全体を再監査しました。
+2026-09-05時点のProduct Value、Product Shape、Product Interaction、Packaging、Identity / Access / Collaboration、Realization / Provider Exchange、PMS-06 current snapshot、v0.2.0 Release Evidence、REQ-0001〜0022、SCN-0001〜0018、ISSUE-000053〜000072、current runtime / evaluation資産へ戻ってMilestone全体を再監査しました。
 
 historical Actions Runは、当時actualに得たExecutable / Release Evidenceとして保持しています。一方、current Open Questionから`SOZA Actionsからcredentialを供給する`という実行面固有の表現を外し、private artifact acquisition / credential lifecycleという製品側の論点へ戻しました。current継続検査もGitHub Actionsではなくrepository-local testを前提とします。
 
-PMS-06にはE3b-P2、M1a、M1bだけでなく、ISSUE-000067のhistorical reconstruction、ISSUE-000068のactual model artifact交換、ISSUE-000070のruntime version交換基盤、ISSUE-000071の成果品質評価境界まで反映しました。runtime version交換のactual A/Bとhuman outcome reviewは未完了のままです。
+PMS-06にはE3b-P2 revision A、M1a、M1b、ISSUE-000067のhistorical reconstruction、ISSUE-000068のactual model artifact交換、ISSUE-000071の成果品質評価境界に加え、ISSUE-000070のOllama runtime version交換とISSUE-000072のTEI executable version交換を別のOpen探索軸として反映しました。両方ともrepository-side actual pathは整っていますが、actual version交換自体はNot Yet Verifiedです。
 
-PMS-07のv0.2.0 supported scopeはE3aまでに保ち、post-release EvidenceによってRelease Evidenceを遡及的に拡張していません。E4、production security / Storage、PMS-08のOperational / Adoption・Outcome Evidenceも未検証のままです。
+ISSUE-000072については、revision A historical Evidenceとrevision B actual compatibilityを分離し、exact-B executable + exact-A fixed inputという比較軸、E2 / E3別toolchain、stage-aware failure Evidence、actual前Requirement / Scenario pre-auditをMilestone上のcurrent stateへ同期しました。これらをrevision B actual PASSや新Stable Requirement成立へ読み替えていません。
+
+PMS-07のv0.2.0 supported scopeはE3aまでに保ち、post-release Evidenceやversion-exchange readinessによってRelease Evidenceを遡及的に拡張していません。E4、production security / Storage、PMS-08のOperational / Adoption・Outcome Evidenceも未検証のままです。
 
 意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語としてMilestoneの現在地を読み通せることを最重要視して全文を再ドラフトしました。
