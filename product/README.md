@@ -1,7 +1,7 @@
 # SOZA Product文書の読み方
 
 更新日: 2026-09-05  
-状態: **Current Product Documentation Baseline — v0.2.0 Release Evidence / E3b-P2 / E3b-M1a・M1b / historical reconstruction / Ollama runtime exchange / quality-evaluation boundary / PMS-06 current state reflected**
+状態: **Current Product Documentation Baseline — v0.2.0 Release Evidence / E3b-P2 / E3b-M1a・M1b / historical reconstruction / runtime-version exchange / quality-evaluation boundary / PMS-06 current state reflected**
 
 ## 1. この文書の役割
 
@@ -97,12 +97,12 @@ PMS-06では、現在までに次のScoped Executable Evidenceがあります。
 - actual model artifact交換後のhistorical Application保持
 - fixed model artifact下のOllama `0.32.13` / `0.32.14` runtime version交換後のhistorical Application保持
 
-version-exchangeは交換軸を分けて扱います。
+PMS-06のversion-exchange探索は現在、次の状態です。
 
-- ISSUE-000070 — fixed model artifact下でOllama `0.32.13` / `0.32.14`だけを交換し、same logical Realization / different Exact Binding、先行Application不変性、portable reconstructionまでactual Evidenceで確認済み。**Resolved**。
-- ISSUE-000072 — TEI executable revision A / Bを交換する。revision A historical Evidence再検証、exact-B executable + exact-A fixed reference input、E2 / E3 runner、toolchain-split combined runner、stage-aware diagnosticsまで実装済みだが、revision B actual CLI / Provider Plan / current SOZA Adapter compatibilityはNot Yet Verified。**Open**。
+- ISSUE-000070 — **Resolved**。fixed KJ Atlas source / Method input / model artifact / promptの下でOllama `0.32.13` / `0.32.14`をactualに交換し、same logical / different Exact Binding、historical Application不変性、portable reconstruction、Evidence + Provenance `ready-to-review`まで確認したfixed-scope Scoped Executable Evidenceがあります。
+- ISSUE-000072 — **Open**。TEI executable revision A / Bを交換する探索です。revision A historical Evidence再検証、exact-B executable + exact-A fixed reference input、E2 / E3 runner、separate toolchains、stage-aware diagnosticsまで実装済みですが、revision B actual CLI / Provider Plan / current SOZA Adapter compatibilityはNot Yet Verifiedです。
 
-この2本の最新位置は`roadmap/PMS06_CURRENT_STATE_2026-09-05.md`を参照します。ISSUE-000070のPASSをISSUE-000072のEvidenceへ流用しません。
+最新位置は`roadmap/PMS06_CURRENT_STATE_2026-09-05.md`を参照します。ISSUE-000070のPASSをISSUE-000072のEvidenceへ流用しません。
 
 また、ISSUE-000071ではCognitive Method成果品質の**評価境界**を確立しました。これはhuman reviewやKJ法としての成果品質がSatisfiedになったことを意味しません。
 
@@ -110,13 +110,19 @@ PMS-07はv0.2.0 Local Reference Product Baselineの範囲でRelease EvidenceがS
 
 ### `roadmap/PMS06_CURRENT_STATE_2026-09-05.md`
 
-PMS-06の広域Product基線を置き換えず、ISSUE-000070の成立済みactual Evidence、ISSUE-000072のcurrent Open探索、repository-side readiness、E4等の未検証範囲を短く確認するsnapshotです。
+PMS-06の広域Product基線を置き換えず、ISSUE-000070のfixed-scope ResolutionとISSUE-000072のOpen actual境界を短く確認するsnapshotです。
 
 ```text
 PMS-06 current snapshot
   != new Product Requirement
   != supported release scope expansion
-  != arbitrary version compatibility
+
+ISSUE-000070 Resolved
+  != arbitrary runtime portability
+  != outcome quality satisfied
+
+ISSUE-000072 repository-side ready
+  != revision B actual compatibility PASS
 ```
 
 ### `interaction/SOZA_PRODUCT_INTERACTION.md`
@@ -155,9 +161,11 @@ PMS-06に対応し、Cognitive Method RealizationやCapability Providerを交換
 
 E3b-P2では固定revisionの実TEI CLIをbuild・起動し、actual `deployment-provider-plan`をSOZA Adapterでstrictに読み、current Capability Observationへ戻す範囲まで確認しました。E3b-M1bではKJ Atlasの既存Method surfaceとpromptを保ったままactual model inferenceを通し、その結果を既存SOZA Method mapping boundaryへ戻せることを確認しました。
 
-その後のversion-exchangeでは、Cognitive Method側のOllama runtime version交換（ISSUE-000070）はfixed scopeでactualに成立し、Capability Provider側のTEI executable / Provider Plan revision交換（ISSUE-000072）は引き続き別軸のOpen explorationとして扱っています。
+その後のversion-exchange explorationでは、Cognitive Method側のOllama runtime version交換（ISSUE-000070）と、Capability Provider側のTEI executable / Provider Plan revision交換（ISSUE-000072）を別軸として扱っています。
 
-未検証なのは、特定automation providerでのcredential運用ではなく、より一般化した次の領域です。
+ISSUE-000070はfixed scopeでResolvedしました。runtime version、archive digest、model digest、prompt digestはRealization-local metadata / Provenance / Evidenceに留まり、新しいUniversal fieldは追加していません。
+
+未検証なのは、より一般化した次の領域です。
 
 - private artifact acquisition / credential lifecycle
 - arbitrary TEI / model / runtime version compatibility
@@ -205,7 +213,7 @@ current repositoryでは、少なくとも次の状態まで確認していま�
 - Local Reference Package: **release asset available for v0.2.0 Linux / amd64 reference profile**
 - Product Identity / Access / Collaboration: **Design baseline established / scoped Product Access separation Executable Evidence available**
 - Realization / Provider portability: **Partial — E2 / E3a / E3b-P1 / E3b-P2 / E3b-M1a / E3b-M1b / historical reconstruction / actual model artifact exchange / fixed-scope Ollama runtime version exchangeまでScoped Executable Evidenceあり**
-- Ollama runtime version exchange: **ISSUE-000070 Resolved — fixed model artifact下のactual A/Bとhistorical reconstructionをVerified**
+- Ollama runtime version exchange: **ISSUE-000070 Resolved — fixed-scope actual A/B exchange / historical reconstruction / canonical Evidence + Provenance verificationまで確認済み**
 - TEI executable version exchange: **ISSUE-000072 Open — exact-B + exact-A fixed-input E2/E3 path implemented, revision B actual Not Yet Verified**
 - Cognitive Method outcome quality: **evaluation boundary established / actual human review and quality judgement pending**
 - PMS-07: **Satisfied for v0.2.0 Local Reference Product Baseline**
@@ -218,20 +226,19 @@ v0.2.0は、semantic baselineにProduct Interaction、Local Single-Node Packagin
 
 actual releaseではtag、source commit、historical Release Candidate Gate、Local Reference Package、checksum、candidate report、release metadataを追跡できる状態で配布しました。
 
-repositoryにはrelease後に得られたE3b-P1、E3b-P2、E3b-M1a、E3b-M1b、historical reconstruction、model / runtime artifact exchange等のScoped Executable Evidenceも存在します。しかし、それらを理由にv0.2.0のsupported scopeを後から広げません。
+repositoryにはrelease後に得られたE3b-P1、E3b-P2、E3b-M1a、E3b-M1b、historical reconstruction、model artifact exchange、fixed-scope runtime version exchange等のScoped Executable Evidenceも存在します。しかし、それらを理由にv0.2.0のsupported scopeを後から広げません。
 
 ```text
 post-release scoped Evidence exists
   != v0.2.0 supported scope expanded
 ```
 
-E3b-M1bとISSUE-000070ではactual inferenceまで確認しましたが、execution成立と成果品質を分けます。
+E3b-M1bやISSUE-000070ではactual inferenceまで確認しましたが、execution成立と成果品質を分けます。
 
 ```text
 actual inference / runtime exchange PASS
   != external model quality proven
   != KJ-method outcome quality proven
-  != E4 Operational portability
 ```
 
 ## 7. Product Valueを変更するとき
@@ -284,10 +291,10 @@ Coreへ追加する前に、少なくとも次を検討します。
 
 旧文書に残っていた「SOZA Actionsからprivate TEIを取得するcredential運用」という実行面固有の表現は、private artifact acquisition / credential lifecycleというProduct側の未検証境界へ既に戻しています。GitHub Actionsは当面完全停止しており、その停止自体をProduct semanticsへ持ち込みません。
 
-ISSUE-000070では、固定model artifact下のOllama `0.32.13` / `0.32.14` actual交換、same logical Realization / different Exact Binding、先行Application不変性、portable reconstruction、current Requirement / Contract再照合まで成立し、Resolvedとなりました。これをarbitrary runtime portability、成果品質、E4へは昇格させません。
+ISSUE-000070は、回収済みactual A/B Evidenceとcurrent-contract Git object equivalence監査によりfixed scopeでResolvedしました。これによりCognitive Method側のruntime version交換について、actual bytes / binary version / model identity / same prompt / A/B inference / Exact Binding / historical Application不変性 / portable reconstructionまでScoped Executable Evidenceがあります。一方、成果品質、任意runtime portability、E4 Operational portabilityは未成立のままです。
 
-ISSUE-000072はCapability Provider側の別軸としてOpenのままです。revision A historical Evidence、revision B source / revision A fixed input identity、E2 / E3 runner、toolchain-split combined runner、stage-aware diagnosticsがあることと、revision B actual CLI / Provider Plan / current SOZA Adapter compatibilityを分離しています。
+Capability Provider側のTEI executable version交換（ISSUE-000072）は引き続きOpenです。revision B actual CLI / Provider Plan / current SOZA Adapter compatibilityはNot Yet Verifiedであり、ISSUE-000070のPASSをそのEvidenceへ流用しません。
 
 historical reconstruction、actual model artifact交換、ISSUE-000071の成果品質評価境界も現在地を維持しています。human outcome reviewは未完了のままであり、version交換PASSから成果品質へ自動昇格させません。
 
-v0.2.0のRelease EvidenceはLocal Reference Product Baselineに限定してSatisfiedとし、release後のEvidenceをsupported scopeへ遡及させません。意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語として現在地をたどれることを最重要視して全文を再監査しました。
+v0.2.0のRelease EvidenceはLocal Reference Product Baselineに限定してSatisfiedとし、release後のEvidenceをsupported scopeへ遡及させません。意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語として現在地をたどれることを最重要視して再監査しました。
