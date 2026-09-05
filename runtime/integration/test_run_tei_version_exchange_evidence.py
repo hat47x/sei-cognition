@@ -13,7 +13,15 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
     def make_go(self, root: Path, name: str) -> Path:
         path = root / name / "bin/go"
         path.parent.mkdir(parents=True)
-        path.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        version = "go1.23.2" if name == "go123" else "go1.25.0"
+        path.write_text(
+            "#!/bin/sh\n"
+            "if [ \"${1:-}\" = version ]; then\n"
+            f"  echo 'go version {version} linux/amd64'\n"
+            "fi\n"
+            "exit 0\n",
+            encoding="utf-8",
+        )
         path.chmod(0o755)
         return path
 
@@ -23,6 +31,12 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
         soza = root / "soza"
         for path in (source, reference, soza):
             path.mkdir()
+        go_root = soza / "runtime/go"
+        go_root.mkdir(parents=True)
+        (go_root / "go.mod").write_text(
+            "module example.invalid/soza-test\n\ngo 1.25\n",
+            encoding="utf-8",
+        )
         return source, reference, soza
 
     def build_success(self, archive: Path):
@@ -69,6 +83,11 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
             self.assertEqual("fixed_scope_e2_e3_verified", report["result"])
             self.assertEqual(str(tei_go.resolve()), report["comparisonAxis"]["teiGoExecutable"])
             self.assertEqual(str(soza_go.resolve()), report["comparisonAxis"]["sozaGoExecutable"])
+            self.assertEqual("1.25", report["comparisonAxis"]["sozaGoRequirement"])
+            self.assertEqual(
+                "go version go1.25.0 linux/amd64",
+                report["comparisonAxis"]["sozaGoObserved"],
+            )
 
     @mock.patch.object(subject.adapter_runner, "run_compatibility")
     @mock.patch.object(subject.build_runner, "produce_bundle")
