@@ -105,12 +105,20 @@ class TEIRevisionBReferenceBundleRunnerTest(unittest.TestCase):
         self.assertEqual(source_identity.REVISION_A, reference["sourceCommit"])
         self.assertNotIn("materializedRoot", reference)
         self.assertEqual(
+            source_identity.REVISION_B,
+            result["postExecutionIdentity"]["source"]["head"],
+        )
+        self.assertIsNone(result["postExecutionIdentity"]["referenceInput"])
+        self.assertEqual(
             "historical_evidence_bundle",
             metadata["reference_input_acquisition_mode"],
         )
         self.assertEqual("a" * 64, metadata["reference_input_bundle_archive_sha256"])
         self.assertEqual(
-            [mock.call(source.resolve(), expected_head=source_identity.REVISION_B)],
+            [
+                mock.call(source.resolve(), expected_head=source_identity.REVISION_B),
+                mock.call(source.resolve(), expected_head=source_identity.REVISION_B),
+            ],
             verify_source.call_args_list,
         )
         self.assertIn("fixed-reference-input", " ".join(self.provider_argv))
