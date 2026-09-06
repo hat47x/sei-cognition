@@ -7,6 +7,7 @@ import os
 import shutil
 import subprocess
 import tarfile
+import tempfile
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
@@ -72,12 +73,37 @@ def _go_on_path(executable: Path) -> Iterator[Path]:
 
 
 def _write_report(path: Path, value: dict[str, object]) -> None:
-    candidate = path.with_name(path.name + ".tmp")
-    candidate.write_text(
-        json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
+    path.parent.mkdir(parents=True, exist_ok=True)
+    reject_symlink_path_or_ancestors(
+        path,
+        "TEI version exchange Evidence report",
     )
-    os.replace(candidate, path)
+
+    candidate: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            candidate = Path(handle.name)
+            json.dump(value, handle, ensure_ascii=False, indent=2, sort_keys=True)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+
+        reject_symlink_path_or_ancestors(
+            path,
+            "TEI version exchange Evidence report",
+        )
+        os.replace(candidate, path)
+        candidate = None
+    finally:
+        if candidate is not None and candidate.exists() and not candidate.is_symlink():
+            candidate.unlink()
 
 
 def _failure(stage: str, exc: Exception) -> dict[str, object]:
