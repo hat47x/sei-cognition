@@ -23,6 +23,9 @@ FIXED_WORKSPACE = "reference/workspace"
 FIXED_PLUGIN_LOCK = "reference/workspace/.tei/plugin-lock.json"
 LIVE_TEST = "^TestLiveTEIProviderPlan$"
 MAX_STAGE_OUTPUT = 32 * 1024
+EXPECTED_GOOS = "linux"
+EXPECTED_GOARCH = "amd64"
+EXPECTED_GO_TARGET = f"{EXPECTED_GOOS}/{EXPECTED_GOARCH}"
 SOZA_EVIDENCE_PATHS = [
     "runtime/go",
     "runtime/integration/run_tei_version_exchange_evidence.py",
@@ -178,19 +181,29 @@ def _verify_soza_go_requirement(
 ) -> dict[str, str]:
     go_root = soza_repo_root / "runtime/go"
     requirement = _read_go_directive(go_root / "go.mod")
+    controlled = _go_toolchain_env() if env is None else env
     process = _run_stage(
         "soza_go_toolchain",
         ["go", "version"],
         cwd=go_root,
-        env=_go_toolchain_env() if env is None else env,
+        env=controlled,
         timeout=30,
     )
     observed = process.stdout.strip()
     fields = observed.split()
-    if len(fields) < 3 or fields[0:2] != ["go", "version"]:
+    if len(fields) < 4 or fields[0:2] != ["go", "version"]:
         raise TEIAdapterStageError(
             "soza_go_toolchain",
             f"go version出力を解釈できません: {observed!r}",
+            command=["go", "version"],
+            stdout=process.stdout,
+            stderr=process.stderr,
+        )
+    if fields[3] != EXPECTED_GO_TARGET:
+        raise TEIAdapterStageError(
+            "soza_go_toolchain",
+            "current SOZA live test用Go executable targetがLinux/amd64ではありません: "
+            f"expected={EXPECTED_GO_TARGET} actual={fields[3]}",
             command=["go", "version"],
             stdout=process.stdout,
             stderr=process.stderr,
@@ -215,9 +228,30 @@ def _verify_soza_go_requirement(
             stdout=process.stdout,
             stderr=process.stderr,
         )
+
+    target_process = _run_stage(
+        "soza_go_toolchain",
+        ["go", "env", "GOOS", "GOARCH"],
+        cwd=go_root,
+        env=controlled,
+        timeout=30,
+    )
+    target_fields = [line.strip() for line in target_process.stdout.splitlines()]
+    if target_fields != [EXPECTED_GOOS, EXPECTED_GOARCH]:
+        observed_target = "/".join(target_fields) if target_fields else "<empty>"
+        raise TEIAdapterStageError(
+            "soza_go_toolchain",
+            "current SOZA live testのcontrolled Go targetがLinux/amd64ではありません: "
+            f"expected={EXPECTED_GO_TARGET} actual={observed_target}",
+            command=["go", "env", "GOOS", "GOARCH"],
+            stdout=target_process.stdout,
+            stderr=target_process.stderr,
+        )
     return {
         "required": requirement,
         "observed": observed,
+        "requiredTarget": EXPECTED_GO_TARGET,
+        "observedTarget": EXPECTED_GO_TARGET,
     }
 
 

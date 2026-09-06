@@ -7,11 +7,28 @@ import preflight_tei_version_exchange_from_github as subject
 
 
 class TEIGitHubVersionExchangePreflightTest(unittest.TestCase):
-    def make_go(self, root: Path, version: str) -> Path:
+    def make_go(
+        self,
+        root: Path,
+        version: str,
+        *,
+        goos: str = "linux",
+        goarch: str = "amd64",
+    ) -> Path:
         executable = root / "go"
         executable.write_text(
             "#!/bin/sh\n"
-            f"echo 'go version {version} linux/amd64'\n",
+            "case \"$1\" in\n"
+            f"  version) echo 'go version {version} linux/amd64' ;;\n"
+            "  env)\n"
+            "    if [ \"$2\" = GOOS ] && [ \"$3\" = GOARCH ]; then\n"
+            f"      printf '{goos}\\n{goarch}\\n'\n"
+            "    else\n"
+            "      exit 2\n"
+            "    fi\n"
+            "    ;;\n"
+            "  *) exit 2 ;;\n"
+            "esac\n",
             encoding="utf-8",
         )
         executable.chmod(0o755)
@@ -44,7 +61,7 @@ class TEIGitHubVersionExchangePreflightTest(unittest.TestCase):
         )
         self.assertEqual("GH_TOKEN", observation["source"])
 
-    def test_e2_go_requires_exact_historical_version(self):
+    def test_e2_go_requires_exact_historical_version_and_target(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             good_dir = root / "good"
@@ -52,18 +69,31 @@ class TEIGitHubVersionExchangePreflightTest(unittest.TestCase):
             good = self.make_go(good_dir, subject.build_runner.EXPECTED_GO_VERSION)
             observation = subject._check_tei_go(good)
             self.assertTrue(observation["exactMatch"])
+            self.assertTrue(observation["targetMatch"])
             self.assertEqual(
                 subject.build_runner.EXPECTED_GO_VERSION,
                 observation["required"],
             )
+            self.assertEqual("linux/amd64", observation["requiredTarget"])
+            self.assertEqual("linux/amd64", observation["observedTarget"])
 
             bad_dir = root / "bad"
             bad_dir.mkdir()
             bad = self.make_go(bad_dir, "go1.23.3")
-            with self.assertRaisesRegex(ValueError, "version"):
+            with self.assertRaisesRegex(Exception, "go1.23.3"):
                 subject._check_tei_go(bad)
 
-    def test_e3_go_uses_current_soza_go_directive_as_minimum(self):
+            wrong_target_dir = root / "wrong-target"
+            wrong_target_dir.mkdir()
+            wrong_target = self.make_go(
+                wrong_target_dir,
+                subject.build_runner.EXPECTED_GO_VERSION,
+                goarch="arm64",
+            )
+            with self.assertRaisesRegex(Exception, "linux/arm64"):
+                subject._check_tei_go(wrong_target)
+
+    def test_e3_go_uses_current_soza_go_directive_and_linux_amd64_target(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             soza = self.make_soza_go_mod(root, "1.25")
@@ -74,12 +104,24 @@ class TEIGitHubVersionExchangePreflightTest(unittest.TestCase):
             observation = subject._check_soza_go(good, soza)
             self.assertEqual("1.25", observation["required"])
             self.assertTrue(observation["requirementSatisfied"])
+            self.assertTrue(observation["targetMatch"])
+            self.assertEqual("linux/amd64", observation["observedTarget"])
 
             bad_dir = root / "bad"
             bad_dir.mkdir()
             bad = self.make_go(bad_dir, "go1.24.9")
             with self.assertRaisesRegex(Exception, "required"):
                 subject._check_soza_go(bad, soza)
+
+            wrong_target_dir = root / "wrong-target"
+            wrong_target_dir.mkdir()
+            wrong_target = self.make_go(
+                wrong_target_dir,
+                "go1.25.1",
+                goarch="arm64",
+            )
+            with self.assertRaisesRegex(Exception, "linux/arm64"):
+                subject._check_soza_go(wrong_target, soza)
 
     def test_reference_checkout_reuses_canonical_git_identity_verifier(self):
         with tempfile.TemporaryDirectory() as tmp:

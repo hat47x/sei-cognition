@@ -8,12 +8,29 @@ import run_tei_version_exchange_evidence as subject
 
 
 class TEIE3GoRequirementStageTest(unittest.TestCase):
-    def make_go(self, root: Path, version: str) -> Path:
+    def make_go(
+        self,
+        root: Path,
+        version: str,
+        *,
+        goos: str = "linux",
+        goarch: str = "amd64",
+    ) -> Path:
         path = root / version / "bin/go"
         path.parent.mkdir(parents=True)
         path.write_text(
             "#!/bin/sh\n"
-            f"echo 'go version {version} linux/amd64'\n",
+            "case \"$1\" in\n"
+            f"  version) echo 'go version {version} linux/amd64' ;;\n"
+            "  env)\n"
+            "    if [ \"$2\" = GOOS ] && [ \"$3\" = GOARCH ]; then\n"
+            f"      printf '{goos}\\n{goarch}\\n'\n"
+            "    else\n"
+            "      exit 2\n"
+            "    fi\n"
+            "    ;;\n"
+            "  *) exit 2 ;;\n"
+            "esac\n",
             encoding="utf-8",
         )
         path.chmod(0o755)
@@ -28,7 +45,7 @@ class TEIE3GoRequirementStageTest(unittest.TestCase):
         )
         return root
 
-    def test_current_go_requirement_accepts_go125(self):
+    def test_current_go_requirement_accepts_go125_linux_amd64(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             soza = self.make_soza(root / "soza")
@@ -40,6 +57,8 @@ class TEIE3GoRequirementStageTest(unittest.TestCase):
             "go version go1.25.0 linux/amd64",
             observation["observed"],
         )
+        self.assertEqual("linux/amd64", observation["requiredTarget"])
+        self.assertEqual("linux/amd64", observation["observedTarget"])
 
     def test_older_go_is_rejected_as_soza_go_toolchain(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -53,6 +72,23 @@ class TEIE3GoRequirementStageTest(unittest.TestCase):
                     subject.adapter_runner._verify_soza_go_requirement(soza)
         self.assertEqual("soza_go_toolchain", raised.exception.stage)
         self.assertIn("required>=1.25", raised.exception.message)
+
+    def test_non_linux_amd64_controlled_target_is_rejected_as_soza_go_toolchain(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            soza = self.make_soza(root / "soza")
+            go = self.make_go(root, "go1.25.0", goarch="arm64")
+            with subject._go_on_path(go):
+                with self.assertRaises(
+                    subject.adapter_runner.TEIAdapterStageError
+                ) as raised:
+                    subject.adapter_runner._verify_soza_go_requirement(soza)
+        self.assertEqual("soza_go_toolchain", raised.exception.stage)
+        self.assertIn("linux/arm64", raised.exception.message)
+        self.assertEqual(
+            ["go", "env", "GOOS", "GOARCH"],
+            raised.exception.command,
+        )
 
     @mock.patch.object(subject.adapter_runner, "run_compatibility")
     @mock.patch.object(subject.build_runner, "produce_bundle")

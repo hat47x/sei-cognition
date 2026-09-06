@@ -221,6 +221,7 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
             subprocess.CompletedProcess(
                 [], 0, "go version go1.25.0 linux/amd64\n", ""
             ),
+            subprocess.CompletedProcess([], 0, "linux\namd64\n", ""),
             subprocess.CompletedProcess([], 0, "PASS\n", ""),
         ]
         with tempfile.TemporaryDirectory() as tmp:
@@ -234,7 +235,11 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
             "go version go1.25.0 linux/amd64", result["sozaGoVersion"]
         )
         self.assertIn("soza_teiintegration_live_test", result["completedStages"])
-        argv = run.call_args_list[1].args[0]
+        self.assertEqual(
+            ["go", "env", "GOOS", "GOARCH"],
+            run.call_args_list[1].args[0],
+        )
+        argv = run.call_args_list[2].args[0]
         self.assertEqual(
             [
                 "go",
@@ -247,7 +252,7 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
             ],
             argv,
         )
-        env = run.call_args_list[1].kwargs["env"]
+        env = run.call_args_list[2].kwargs["env"]
         self.assertEqual("1", env["SOZA_E3B_TEI_LIVE"])
         self.assertEqual("local", env["GOTOOLCHAIN"])
         self.assertEqual(
@@ -330,6 +335,7 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
             subprocess.CompletedProcess(
                 [], 0, "go version go1.25.0 linux/amd64\n", ""
             ),
+            subprocess.CompletedProcess([], 0, "linux\namd64\n", ""),
             subprocess.CompletedProcess(
                 [], 1, "FAIL\n", "strict decode / validator failure"
             ),

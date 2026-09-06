@@ -116,33 +116,18 @@ def _go_env_for_executable(executable: Path, base: dict[str, str]) -> tuple[Path
 
 def _check_tei_go(executable: Path) -> dict[str, object]:
     resolved, env = _go_env_for_executable(executable, build_runner._controlled_go_env())
-    env["GOTOOLCHAIN"] = "local"
-    process = subprocess.run(
-        ["go", "version"],
-        cwd=resolved.parent,
+    observation = build_runner._verify_tei_go_toolchain(
+        resolved.parent,
         env=env,
-        check=False,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        timeout=30,
     )
-    if process.returncode != 0:
-        raise ValueError(
-            "E2 Go version確認に失敗しました: "
-            + process.stderr.strip()
-        )
-    observed = process.stdout.strip()
-    if not observed.startswith(f"go version {build_runner.EXPECTED_GO_VERSION} "):
-        raise ValueError(
-            "historical E2 Go toolchain versionが一致しません: "
-            f"expected={build_runner.EXPECTED_GO_VERSION} actual={observed}"
-        )
     return {
         "executable": str(resolved),
-        "required": build_runner.EXPECTED_GO_VERSION,
-        "observed": observed,
+        "required": observation["requiredVersion"],
+        "observed": observation["observedVersion"],
+        "requiredTarget": observation["requiredTarget"],
+        "observedTarget": observation["observedTarget"],
         "exactMatch": True,
+        "targetMatch": True,
         "implicitToolchainDownloadAllowed": False,
     }
 
@@ -160,7 +145,10 @@ def _check_soza_go(executable: Path, soza_repo_root: Path) -> dict[str, object]:
         "executable": str(resolved),
         "required": observation["required"],
         "observed": observation["observed"],
+        "requiredTarget": observation["requiredTarget"],
+        "observedTarget": observation["observedTarget"],
         "requirementSatisfied": True,
+        "targetMatch": True,
         "implicitToolchainDownloadAllowed": False,
     }
 
