@@ -107,6 +107,8 @@ wrapperはE2/E3の判定ロジックを複製しません。source acquisition P
 
 credential値や一時source pathはwrapper reportへ保存しません。wrapper report publishはunique temporary file + flush/fsync + publish直前path再検査 + atomic replaceを使用します。
 
+PR #261では、wrapperの内側で正本となる`run_tei_version_exchange_evidence.py`のcanonical Evidence report publishにも同じ考え方を適用しました。固定`.tmp`名を使わず、同一directoryのunique temporary fileへwrite + flush/fsyncした後、final pathを再検査してatomic replaceします。E2/E3 stage semantics、bundle、comparison axisは変更していません。
+
 ## 4. actual開始前preflight
 
 PR #260 により、actual source取得を始める前に不足条件を一括確認する副作用なしpreflightを追加しました。
@@ -263,6 +265,9 @@ GitHub acquisition -> canonical E2/E3 wrapper
   = implemented
 
 wrapper report publish TOCTOU guard
+  = implemented
+
+canonical Evidence report publish TOCTOU guard
   = implemented
 
 actual-run preflight
