@@ -36,6 +36,8 @@ class TEIRevisionBPrepositionedRunnerTest(unittest.TestCase):
             return subprocess.CompletedProcess(
                 argv, 0, "go version go1.23.2 linux/amd64\n", ""
             )
+        if argv == ["go", "env", "GOOS", "GOARCH"]:
+            return subprocess.CompletedProcess(argv, 0, "linux\namd64\n", "")
         if len(argv) > 1 and argv[1] == "deployment-provider-plan":
             self.provider_argv = argv
             return subprocess.CompletedProcess(
@@ -259,6 +261,35 @@ class TEIRevisionBPrepositionedRunnerTest(unittest.TestCase):
     @mock.patch.object(subject, "_ensure_linux_amd64")
     @mock.patch.object(subject.source_identity, "verify_repository")
     @mock.patch.object(subject, "_run")
+    def test_go_controlled_target_mismatch_has_stage(
+        self, run, verify_source, ensure_platform
+    ):
+        verify_source.side_effect = self.verified_observations()
+
+        def wrong_target(argv, *, cwd, env):
+            if argv == ["go", "version"]:
+                return subprocess.CompletedProcess(
+                    argv, 0, "go version go1.23.2 linux/amd64\n", ""
+                )
+            if argv == ["go", "env", "GOOS", "GOARCH"]:
+                return subprocess.CompletedProcess(argv, 0, "linux\narm64\n", "")
+            raise AssertionError(argv)
+
+        run.side_effect = wrong_target
+        with tempfile.TemporaryDirectory() as tmp:
+            source_repo, reference_repo = self.make_pair(Path(tmp))
+            with self.assertRaises(subject.TEIEvidenceStageError) as raised:
+                subject.produce_bundle(source_repo, reference_repo, Path(tmp) / "out.tar.gz")
+        self.assertEqual("tei_go_toolchain", raised.exception.stage)
+        self.assertIn("linux/arm64", raised.exception.message)
+        self.assertEqual(
+            ["go", "env", "GOOS", "GOARCH"],
+            raised.exception.command,
+        )
+
+    @mock.patch.object(subject, "_ensure_linux_amd64")
+    @mock.patch.object(subject.source_identity, "verify_repository")
+    @mock.patch.object(subject, "_run")
     def test_build_failure_has_stage_and_process_detail(
         self, run, verify_source, ensure_platform
     ):
@@ -269,6 +300,8 @@ class TEIRevisionBPrepositionedRunnerTest(unittest.TestCase):
                 return subprocess.CompletedProcess(
                     argv, 0, "go version go1.23.2 linux/amd64\n", ""
                 )
+            if argv == ["go", "env", "GOOS", "GOARCH"]:
+                return subprocess.CompletedProcess(argv, 0, "linux\namd64\n", "")
             if argv[:2] == ["go", "build"]:
                 return subprocess.CompletedProcess(argv, 2, "", "compile failed")
             raise AssertionError(argv)
