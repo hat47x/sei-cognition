@@ -1,11 +1,11 @@
 # PMS-06 — Current State Snapshot
 
-更新日: 2026-09-05  
+更新日: 2026-09-06  
 対象: PMS-06 Realization / Provider Exchange
 
 ## この文書の役割
 
-この文書は、PMS-06の現在地を短く確認するためのsnapshotです。`SOZA_PRODUCT_MILESTONES.md`、`SOZA_REALIZATION_PROVIDER_EXCHANGE.md`、`SOZA_VALUE_TRACEABILITY.md`等のProduct基線を置き換えず、2026-09-05に進展したversion-exchange EvidenceとIssue状態を補完します。
+この文書は、PMS-06の現在地を短く確認するためのsnapshotです。`SOZA_PRODUCT_MILESTONES.md`、`SOZA_REALIZATION_PROVIDER_EXCHANGE.md`、`SOZA_VALUE_TRACEABILITY.md`等のProduct基線を置き換えず、2026-09-05以降に進展したversion-exchange EvidenceとIssue状態を補完します。
 
 Product Value、Milestone Outcome、Requirement、Acceptance Scenario、Universal Contractを新しく定義しません。意味上の正本は既存Product / Requirement / Issue本文であり、このsnapshotは現在のEvidence位置を読み違えないための補助資料です。
 
@@ -35,7 +35,7 @@ E1 Contract / in-process synthetic
 
 ## Current exploration status
 
-2026-09-05時点で、PMS-06のruntime / Provider version-exchange探索は次の状態です。
+2026-09-06時点で、PMS-06のruntime / Provider version-exchange探索は次の状態です。
 
 ```text
 ISSUE-000070
@@ -131,7 +131,11 @@ repository側では次まで整っています。
 - A/B Provider Plan source surface static comparison
 - exact-B + exact-A fixed-input prepositioned E2 runner
 - A fixed input acquisitionをexact A checkout / verified historical A Evidence bundleから選べるE2 / combined runner
+- E3未準備環境でもactual E2だけを先行回収できるGitHub acquisition E2 partial runner
+- E2 partial bundleをexact revision B source commit + exact revision A fixed reference identityへbindingするstrict verifier
 - verified bundle → current SOZA Adapter E3 runner
+- 保存済みE2 partialからrevision B source取得 / E2 build / Provider Planを再実行せずcurrent E3だけを後日実行するresume runner
+- resume後のcanonical report publishまでは成功しGitHub wrapper report publishだけが中断した場合にE2 / E3を再実行せずreport pairを復旧するreconcile runner
 - E2 / E3 separate Go toolchains
 - canonical combined runner: `runtime/integration/run_tei_version_exchange_evidence.py`
 - E2 / E3 stage-aware failure Evidence
@@ -139,6 +143,8 @@ repository側では次まで整っています。
 - combined runnerのGo path setup failureに対するmachine-readable toolchain stage
 - Evidence出力pathをrevision B / SOZA checkoutから分離し、checkout取得時はrevision A checkoutとも分離し、historical bundle取得時は入力bundleをEvidence directory内へ包含しない実行前guard
 - Requirement / Scenario pre-audit
+- GitHub / local post-run Resolution audit
+- E2 partial actual → strict re-verification → later E3 resume → 必要時reconcile → Resolution auditを一続きにしたoperator runbook
 
 E2 historical TEI buildとE3 current SOZA live testは別toolchainを使います。Go versionや配置方法はexecution EvidenceでありStable Requirement / Universal Contractではありません。
 
@@ -223,23 +229,23 @@ version exchange implementation exists
 
 ## Current execution prerequisite
 
-ISSUE-000072のactual E2 → E3は、特定端末や特定のRemote Desktop接続を成立条件にしません。
+ISSUE-000072のactual E2 / E3は、特定端末や特定のRemote Desktop接続を成立条件にしません。
 
-actual実行に必要なのは、canonical runnerが要求する固定identityとtoolchainを配置できる**適切なLinux / amd64実行環境**です。
+actual実行に必要なのは、各stageが要求する固定identityとtoolchainを配置できる**適切なLinux / amd64実行環境**です。
 
-最低限、次を用意します。
+E2を先行回収する最低条件は次です。
 
-- exact revision B TEI checkout
+- exact revision B TEI sourceを取得できること
 - exact revision A fixed reference input。取得元はexact A checkoutまたはverified historical A Evidence bundleのどちらか一方
-- current SOZA checkout
 - revision B execution boundaryがtracked / untracked / ignored entryを含まずcleanであること
 - exact A checkoutを使う場合はfixed-input execution boundaryもtracked / untracked / ignored entryを含まずcleanであること
 - historical A Evidence bundleを使う場合はA source commit、historical binary / Provider Plan digest、actual workspace / durable run / plugin lock Git object identityが固定値へ一致すること
 - E2 historical TEI build用Go `1.23.2`
-- current SOZA E3 live-test要件を満たすGo `1.25`系
-- revision B / SOZA checkoutから分離されたEvidence出力directory。A checkout利用時はA checkoutからも分離し、historical bundle利用時は入力bundleをそのEvidence directory配下に置かないこと
+- inputから分離されたsafe Evidence出力directory
 
-signed commit objectの独立再構成は、上記exact revision B checkoutの代替にはしません。commit object identity、source checkout materialization、working-tree purity、actual buildは別々のEvidence境界です。
+E3まで同じ機会に実行する場合は、上記に加えてcurrent SOZA checkoutとcurrent SOZA E3 live-test要件を満たすGo toolchainを用意します。E3 toolchainを後から用意する場合は、保存済みE2 partial report / bundleをstrictに再検証したうえでresume runnerからE3だけを実行できます。
+
+signed commit objectの独立再構成は、上記exact revision B source materializationの代替にはしません。commit object identity、source checkout materialization、working-tree purity、actual buildは別々のEvidence境界です。
 
 どの端末・runner・外部実行基盤を使うかはexecution mechanismであり、Product Requirement / Capability identity / Universal Contractではありません。
 
@@ -250,13 +256,27 @@ specific execution host not selected
   != ISSUE-000072 blocked by Product semantics
 ```
 
-したがって、今後は特定端末の復帰待ちをPMS-06のcurrent blockerとして扱わず、上記条件を満たす実行環境を用意できた時点でactual E2 → E3へ進みます。
+したがって、今後は特定端末の復帰待ちをPMS-06のcurrent blockerとして扱わず、E2条件を満たす実行環境を用意できた時点でactual E2を先行回収できます。E3は同時または後日のresumeで確認します。
 
 ## 次にEvidence強度が上がる条件
 
 現在のPMS-06で次にEvidence強度が上がる主対象はISSUE-000072です。
 
-exact revision B checkout、exact revision A fixed input（exact A checkoutまたはverified historical A Evidence bundle）、TEI historical build用Go、current SOZA live-test用Goを用意し、canonical `run_tei_version_exchange_evidence.py`からE2 → E3をactualに通します。
+operator向け手順は`runtime/TEI_E2_PARTIAL_ACTUAL_RUNBOOK_2026-09-06.md`を正とし、次の順で進めます。
+
+```text
+actual revision B E2 partial
+  ↓
+exact-B / exact-A strict bundle verification
+  ↓
+current SOZA E3 resume
+  ↓
+必要な場合だけ report-pair reconcile
+  ↓
+Resolution audit
+```
+
+E3 toolchainを同時に用意できる場合はcanonical `run_tei_version_exchange_evidence.py`でE2 → E3を一度に実行する経路も有効です。partial / resumeはfull one-shotの意味を弱める別基準ではなく、同じcomparison axisとcanonical reportへ戻る段階実行経路です。
 
 途中停止した場合は、保存されたmachine-readable stageまでをEvidenceとし、自然言語logから内部原因を推測してEvidence強度を上げません。path configurationやworking-tree purity / historical bundle identityの事前拒否はE2 / E3 process failureへ読み替えません。
 
