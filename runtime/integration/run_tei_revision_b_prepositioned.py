@@ -214,6 +214,43 @@ def _prepare_output_archive(
     return resolved
 
 
+def _publish_bundle_no_overwrite(candidate: Path, output_archive: Path) -> None:
+    reject_symlink_path_or_ancestors(output_archive, "TEI Evidence output archive")
+    temporary: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="wb",
+            dir=output_archive.parent,
+            prefix=f".{output_archive.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            temporary = Path(handle.name)
+            with candidate.open("rb") as source:
+                shutil.copyfileobj(source, handle)
+            handle.flush()
+            os.fsync(handle.fileno())
+
+        reject_symlink_path_or_ancestors(output_archive, "TEI Evidence output archive")
+        if os.path.lexists(output_archive):
+            raise ValueError(
+                "TEI Evidence output archiveがpublish前に作成されています。暗黙上書きしません: "
+                f"{output_archive}"
+            )
+        try:
+            os.link(temporary, output_archive)
+        except FileExistsError as exc:
+            raise ValueError(
+                "TEI Evidence output archiveがpublish競合で作成されました。暗黙上書きしません: "
+                f"{output_archive}"
+            ) from exc
+        temporary.unlink()
+        temporary = None
+    finally:
+        if temporary is not None and temporary.exists() and not temporary.is_symlink():
+            temporary.unlink()
+
+
 def _reverify_execution_inputs_after_provider(
     source_repo: Path,
     reference_source_repo: Path | None,
@@ -442,8 +479,8 @@ def produce_bundle(
             raise _wrap_stage("evidence_bundle_verification", exc) from exc
 
         try:
-            shutil.copy2(candidate, output_archive)
-        except OSError as exc:
+            _publish_bundle_no_overwrite(candidate, output_archive)
+        except (OSError, ValueError) as exc:
             raise _wrap_stage("evidence_bundle_publish", exc) from exc
 
     return {
