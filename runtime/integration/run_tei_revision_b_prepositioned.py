@@ -23,6 +23,9 @@ FIXED_PLUGIN_LOCK = "reference/workspace/.tei/plugin-lock.json"
 FIXED_SOLUTION = "order_rollout"
 FIXED_VERSION = "2026.8.27"
 EXPECTED_GO_VERSION = "go1.23.2"
+EXPECTED_GOOS = "linux"
+EXPECTED_GOARCH = "amd64"
+EXPECTED_GO_TARGET = f"{EXPECTED_GOOS}/{EXPECTED_GOARCH}"
 MAX_STAGE_OUTPUT = 16 * 1024
 SOZA_ROOT = Path(__file__).resolve().parents[2]
 STOP_LINE = (
@@ -140,6 +143,61 @@ def _run_stage(
             stderr=result.stderr,
         )
     return result
+
+
+def _verify_tei_go_toolchain(
+    cwd: Path,
+    *,
+    env: dict[str, str] | None = None,
+) -> dict[str, str]:
+    controlled = _controlled_go_env() if env is None else env
+    version_process = _run_stage(
+        "tei_go_toolchain",
+        ["go", "version"],
+        cwd=cwd,
+        env=controlled,
+    )
+    observed_version = version_process.stdout.strip()
+    fields = observed_version.split()
+    if (
+        len(fields) < 4
+        or fields[0:2] != ["go", "version"]
+        or fields[2] != EXPECTED_GO_VERSION
+        or fields[3] != EXPECTED_GO_TARGET
+    ):
+        raise TEIEvidenceStageError(
+            "tei_go_toolchain",
+            "historical EvidenceとGo toolchain identityが一致しません: "
+            f"expected={EXPECTED_GO_VERSION} {EXPECTED_GO_TARGET} actual={observed_version}",
+            command=["go", "version"],
+            stdout=version_process.stdout,
+            stderr=version_process.stderr,
+        )
+
+    target_process = _run_stage(
+        "tei_go_toolchain",
+        ["go", "env", "GOOS", "GOARCH"],
+        cwd=cwd,
+        env=controlled,
+    )
+    target_fields = [line.strip() for line in target_process.stdout.splitlines()]
+    if target_fields != [EXPECTED_GOOS, EXPECTED_GOARCH]:
+        observed_target = "/".join(target_fields) if target_fields else "<empty>"
+        raise TEIEvidenceStageError(
+            "tei_go_toolchain",
+            "historical Evidenceとcontrolled Go build targetが一致しません: "
+            f"expected={EXPECTED_GO_TARGET} actual={observed_target}",
+            command=["go", "env", "GOOS", "GOARCH"],
+            stdout=target_process.stdout,
+            stderr=target_process.stderr,
+        )
+
+    return {
+        "requiredVersion": EXPECTED_GO_VERSION,
+        "observedVersion": observed_version,
+        "requiredTarget": EXPECTED_GO_TARGET,
+        "observedTarget": EXPECTED_GO_TARGET,
+    }
 
 
 def _copy_reference_inputs(reference_input_root: Path, bundle_root: Path) -> None:
@@ -361,22 +419,8 @@ def produce_bundle(
             raise _wrap_stage("execution_platform", exc) from exc
 
         env = _controlled_go_env()
-        go_version_process = _run_stage(
-            "tei_go_toolchain",
-            ["go", "version"],
-            cwd=source_repo,
-            env=env,
-        )
-        go_version = go_version_process.stdout.strip()
-        if not go_version.startswith(f"go version {EXPECTED_GO_VERSION} "):
-            raise TEIEvidenceStageError(
-                "tei_go_toolchain",
-                "historical EvidenceとGo toolchain versionが一致しません: "
-                f"expected={EXPECTED_GO_VERSION} actual={go_version}",
-                command=["go", "version"],
-                stdout=go_version_process.stdout,
-                stderr=go_version_process.stderr,
-            )
+        go_toolchain = _verify_tei_go_toolchain(source_repo, env=env)
+        go_version = go_toolchain["observedVersion"]
 
         bundle_root = temp_root / "tei-e3b-p2"
         binary = bundle_root / "bin" / "tei"
