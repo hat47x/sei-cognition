@@ -77,6 +77,11 @@ GitHub-hosted job start failure
 - E2 / E3 failureを外部観測可能なstageへ分けて記録するstage-aware diagnostics
 - revision B / SOZA / revision A inputとEvidence outputを分離し、symlinkや暗黙上書きを拒否するpath-safety guard
 - GitHub / local取得経路別のpost-run Resolution audit
+- E3 Goをまだ用意できない環境でもGitHub acquisitionからactual E2だけを先行回収できるE2 partial runner
+- E2 bundleをexact revision B source commitとexact revision A fixed reference identityへbindingして再検証するstrict verifier
+- 保存済みE2 partial Evidenceからrevision B source取得 / E2 build / Provider Planを再実行せずcurrent E3だけを後日実行するresume runner
+- resume後のcanonical report publishまでは成功しGitHub wrapper report publishだけが中断した場合に、E3を再実行せずreport pairを復旧するreconcile runner
+- E2 partial actual → strict re-verification → later E3 resume → 必要時reconcile → Resolution auditを一続きにしたoperator runbook
 
 version交換の比較軸については、revision AとBの`reference/workspace` treeが異なることを確認したため、**B checkout内のreference inputを使わず、historical revision Aのfixed reference inputをexact A checkoutまたは検証済みhistorical A Evidence bundleから与える**形へ補正した。
 
@@ -280,6 +285,21 @@ canonical / wrapper report publish guards
 GitHub / local post-run Resolution audit
   = implemented
 
+E2 partial GitHub acquisition path
+  = implemented; actual E2 Not Yet Verified
+
+E2 exact-B / exact-A strict bundle verification
+  = implemented; actual E2 bundle not yet available
+
+E2 partial -> later E3 resume
+  = implemented; actual E3 Not Yet Verified
+
+interrupted resume report-pair reconciliation
+  = implemented; recovery path only, not Evidence promotion
+
+E2 partial actual operator runbook
+  = implemented through strict verification / resume / optional reconcile / Resolution audit
+
 Provider Plan output surface A/B
   = strong static continuity observed
 
@@ -302,19 +322,25 @@ revision B current SOZA Adapter live compatibility
   = Not Yet Verified
 ```
 
-repository-sideで、actual開始前のacquisition / identity / purity / preflight / orchestrationと、actual後のResolution auditまでは実装済みである。したがって次にEvidenceの高さを本質的に上げる作業は、synthetic hardeningの追加ではなくactual revision B E2 → E3である。
+repository-sideで、actual開始前のacquisition / identity / purity / preflight / orchestrationと、actual後のResolution auditまでは実装済みである。E2とE3を同じ機会に実行できない場合も、E2 partialを保存し、strict再検証後にE3だけを後日resumeして同じcanonical report / Resolution auditへ戻せる。したがって次にEvidenceの高さを本質的に上げる作業は、synthetic hardeningの追加ではなくactual revision B E2、その後のE3である。
 
 ```text
 repository-side actual path
-  = implemented through preflight / orchestration / post-run audit
+  = implemented through E2 partial / strict verification / E3 resume / optional reconcile / post-run audit
 
 next substantive Evidence
-  = actual revision B E2 / E3
+  = actual revision B E2, then current SOZA E3
 ```
+
+operator向けactual手順は次を正とする。
+
+- `runtime/TEI_E2_PARTIAL_ACTUAL_RUNBOOK_2026-09-06.md`
+- `runtime/TEI_VERSION_EXCHANGE_E2_PARTIAL_DELTA_2026-09-06.md`
 
 現在の主な実装・観測記録は次へ置く。
 
 - `runtime/integration/verify_tei_evidence_bundle.py`
+- `runtime/integration/verify_tei_version_exchange_e2_bundle.py`
 - `runtime/integration/verify_tei_execution_source_identity.py`
 - `runtime/integration/prepare_tei_fixed_reference_input.py`
 - `runtime/integration/prepare_tei_revision_b_checkout.py`
@@ -322,9 +348,12 @@ next substantive Evidence
 - `runtime/integration/preflight_tei_version_exchange_from_github.py`
 - `runtime/integration/preflight_tei_version_exchange_local.py`
 - `runtime/integration/run_tei_revision_b_prepositioned.py`
+- `runtime/integration/run_tei_revision_b_e2_from_github.py`
 - `runtime/integration/run_tei_bundle_adapter_compatibility.py`
 - `runtime/integration/run_tei_version_exchange_evidence.py`
 - `runtime/integration/run_tei_version_exchange_from_github.py`
+- `runtime/integration/run_tei_version_exchange_resume_from_e2_partial.py`
+- `runtime/integration/reconcile_tei_e2_partial_resume_reports.py`
 - `runtime/integration/audit_tei_version_exchange_resolution.py`
 - `runtime/integration/audit_tei_version_exchange_resolution_local.py`
 - `runtime/TEI_VERSION_EXCHANGE_EVIDENCE_2026-09-05.md`
@@ -333,6 +362,8 @@ next substantive Evidence
 - `runtime/TEI_VERSION_EXCHANGE_TOOLCHAIN_READINESS_2026-09-05.md`
 - `runtime/TEI_VERSION_EXCHANGE_FAILURE_STAGES_2026-09-05.md`
 - `runtime/TEI_VERSION_EXCHANGE_CURRENT_READINESS_2026-09-06.md`
+- `runtime/TEI_VERSION_EXCHANGE_E2_PARTIAL_DELTA_2026-09-06.md`
+- `runtime/TEI_E2_PARTIAL_ACTUAL_RUNBOOK_2026-09-06.md`
 - `runtime/TEI_VERSION_EXCHANGE_POST_RUN_AUDIT_2026-09-06.md`
 
 ## Deliverables
@@ -347,12 +378,17 @@ next substantive Evidence
 - local / GitHubのexact-B source acquisition / materialization helper
 - GitHub / local actual-run preflight
 - exact-B build source + exact-A fixed inputのprepositioned Evidence runner
+- E3未準備環境でactual E2だけを先行回収するE2 partial runner
+- E2 bundleをexact-B / exact-Aへbindingするstrict verifier
 - verified bundleからcurrent SOZA Adapter live testへ接続するrunner
 - E2 / E3を別toolchainで連続実行し段階別reportを残すcombined runner
+- 保存済みE2 partialからE3だけを後日実行するresume runner
+- interrupted wrapper publishをE3再実行なしで復旧するreconcile runner
 - GitHub acquisitionからcanonical E2 / E3へ接続するone-shot wrapper
 - Evidence output / input separation guard
 - E2 / E3 failure stage taxonomyとnegative control
 - GitHub / local post-run Resolution audit
+- E2 partial actual operator runbook
 - revision B actual artifactを取得できた場合のB verification report
 - A/B Adapter compatibility Evidence
 - Requirement / Contract再照合結果
@@ -393,9 +429,11 @@ Resolved後も次の場合は再開する。
 
 GitHub ActionsはこのIssueの意味上の成立条件にしない。
 
-TEI側Evidence workflowを利用できる場合はactual artifact生成の一経路として使うが、jobが開始されなかったrunをTEI compatibility failureへ数えない。取得済みartifactはrepository-local `verify_tei_evidence_bundle.py`へ戻して再検証する。
+TEI側Evidence workflowを利用できる場合はactual artifact生成の一経路として使うが、jobが開始されなかったrunをTEI compatibility failureへ数えない。取得済みartifactはrepository-local `verify_tei_evidence_bundle.py`へ戻して再検証する。ISSUE-000072のE2として評価する場合は、さらに`verify_tei_version_exchange_e2_bundle.py`でexact revision B source commitとexact revision A fixed reference identityへstrictにbindingする。
 
 actual Bのrepository-local経路では、exact revision B checkoutをbuild sourceとして`run_tei_revision_b_prepositioned.py`へ渡す。revision B sourceは、self-contained local cloneから独立exact-B checkoutを作るか、GitHub Git Data APIからcontent-addressedに再構成できる。GitHub acquisitionを使う場合は、one-shot runner自身がsource取得前に副作用なしpreflightを必須化する。
+
+E3 Goを同時に用意できない場合は、`TEI_E2_PARTIAL_ACTUAL_RUNBOOK_2026-09-06.md`をoperator手順の正本として`run_tei_revision_b_e2_from_github.py`でE2だけを先行回収する。取得したpartial bundleは`verify_tei_version_exchange_e2_bundle.py`でexact-B / exact-Aへstrict再検証し、後日`run_tei_version_exchange_resume_from_e2_partial.py`でE3だけを実行してcanonical reportへ戻す。resumeでcanonical report publish後のGitHub wrapper report publishだけが中断した限定状態では、`reconcile_tei_e2_partial_resume_reports.py`でE2 / E3を再実行せずreport pairを復旧する。
 
 exact revision A fixed inputは次のどちらか一方から取得する。
 
@@ -410,13 +448,13 @@ B Evidence bundleを得た後は、cleanなSOZA checkoutで`run_tei_bundle_adapt
 
 E2からE3までを一度に実行する場合は`run_tei_version_exchange_evidence.py`を使い、TEI historical build用にはexact `go1.23.2 linux/amd64`、current SOZA live-test用にはcurrent `runtime/go/go.mod`を満たすLinux / amd64 Go executableを別々に明示する。両toolchainともambient `GOOS` / `GOARCH`等を除外したcontrolled environmentで`go env GOOS GOARCH = linux / amd64`を再確認し、`GOTOOLCHAIN=local`を使う。A fixed input acquisition modeはcomparison axisへ記録する。failure reportは上位`E2` / `E3`とstage-aware `substage`を分離し、通常の例外文言からsubstageを捏造しない。
 
-actual後は取得経路に応じて`audit_tei_version_exchange_resolution.py`または`audit_tei_version_exchange_resolution_local.py`へ戻し、Resolution条件1〜6をmachine-readable Evidenceから再監査する。条件7〜8はmanual reviewとして残し、自動でIssueをResolvedへしない。
+actual後は取得経路に応じて`audit_tei_version_exchange_resolution.py`または`audit_tei_version_exchange_resolution_local.py`へ戻し、Resolution条件1〜6をmachine-readable Evidenceから再監査する。E2 partial → E3 resumeのGitHub acquisition経路も、reconcileが必要だった場合を含め、最終的に同じ`audit_tei_version_exchange_resolution.py`へ戻す。条件7〜8はmanual reviewとして残し、自動でIssueをResolvedへしない。
 
-特定hostやRemote Desktop接続の復帰を待つことは完了条件にしない。上記identity / purity / toolchain / path条件を満たせる適切なLinux / amd64実行環境を用意できた時点でactual E2 → E3へ進む。
+特定hostやRemote Desktop接続の復帰を待つことは完了条件にしない。上記identity / purity / toolchain / path条件を満たせる適切なLinux / amd64実行環境を用意できた時点でactual E2、その後E3へ進む。
 
 ## Natural Japanese review
 
-PMS-06、ISSUE-000061 / 000065、ADR-0013 / 0019 / 0021 / 0024、Actual TEI CLI Evidence、current `teiintegration`、revision A Evidence artifact、revision B Evidence workflow attempt 1 / 2、revision B Git object identity、A / B Provider Plan static compatibility、exact-A fixed reference input、historical A Evidence bundle fixed-input binding、local / GitHub exact-B acquisition、E2 prepositioned runner、E3 Adapter live runner、toolchain-split combined runner、GitHub one-shot / local preflight、E2 / E3 failure-stage instrumentation、Evidence output path safety、source temporary parent、source / checkout fixed-input working-tree purity、post-run Resolution auditを照合した。
+PMS-06、ISSUE-000061 / 000065、ADR-0013 / 0019 / 0021 / 0024、Actual TEI CLI Evidence、current `teiintegration`、revision A Evidence artifact、revision B Evidence workflow attempt 1 / 2、revision B Git object identity、A / B Provider Plan static compatibility、exact-A fixed reference input、historical A Evidence bundle fixed-input binding、local / GitHub exact-B acquisition、E2 prepositioned runner、E2 partial runner、exact-B / exact-A strict bundle verifier、E3 Adapter live runner、toolchain-split combined runner、E2 partialからのlater E3 resume、interrupted report-pair reconciliation、GitHub one-shot / local preflight、E2 / E3 failure-stage instrumentation、Evidence output path safety、source temporary parent、source / checkout fixed-input working-tree purity、actual operator runbook、post-run Resolution auditを照合した。
 
 取得方法、artifact identity、build source、fixed reference input、fixed input acquisition path、Provider固有surface、SOZAのCapability Observationを一つにまとめず、今回すでに観測できたことと、revision B actual executionが未検証であることを分離している。
 
@@ -432,6 +470,8 @@ actual failureの切り分けでは、stderr / stdoutの自然言語からTEI内
 
 また、特定host / CI provider / Remote DesktopをProduct semanticsへ持ち込まず、必要な固定identityとtoolchainを配置できる実行環境をexecution mechanismとして分離した。
 
-repository-sideでactual前後の経路が整った現在、追加のsynthetic hardeningだけを進捗として目的化しない。次に意味の高さを上げるのはactual revision B E2 / E3であり、その結果へ基づいてRequirement / Scenarioと最終意味監査へ戻る。
+E2とE3を同時に実行できない場合も、E2 partialを保存してstrictに再検証し、後日E3だけをresumeして同じResolution auditへ戻せる。report publishだけが中断した場合のreconcileもactual E2 / E3の再実行やEvidence昇格とは扱わない。
+
+repository-sideでactual前後の経路が整った現在、追加のsynthetic hardeningだけを進捗として目的化しない。次に意味の高さを上げるのはactual revision B E2、その後のcurrent SOZA E3であり、その結果へ基づいてRequirement / Scenarioと最終意味監査へ戻る。
 
 意味、要求強度、留保、Evidenceの高さを固定したうえで、自然な日本語となることを最重要視して全文を再監査した。
