@@ -4,7 +4,7 @@ Status: **Open**
 Priority: **1**  
 Related ADRs: **ADR-0013, ADR-0019, ADR-0021, ADR-0024**  
 Product Milestone: **PMS-06**  
-Updated: 2026-09-05
+Updated: 2026-09-06
 
 ## Goal
 
@@ -55,18 +55,28 @@ GitHub-hosted job start failure
 
 このため、revision B actual executionは現時点ではNot Yet Verifiedである。
 
-その後、GitHub-hosted executionとは独立してactual Bを検証できるよう、次のrepository-local経路を整備した。
+その後、GitHub-hosted executionとは独立してactual Bを検証できるよう、repository-local経路を段階的に整備した。2026-09-06時点では、少なくとも次が実装済みである。
 
 - revision B execution-source Git identity verifier
 - revision A fixed reference input identity verifier
 - historical A Evidence bundle内fixed reference bytesを外部固定Git object identityへ照合し、安全にmaterializeするhelper
 - tracked変更 / untracked / gitignored entryをexecution source / checkout fixed input境界から排除するworking-tree purity guard
 - A / B Provider Plan source surfaceの静的比較
+- self-contained local Git object databaseから独立exact-B checkoutを作るhelper
+- GitHub Git Data APIからexact-B sourceをcontent-addressedに再構成するacquisition helper
 - exact-B build source + exact-A fixed reference inputによるprepositioned Evidence runner
 - verified Evidence bundleからcurrent SOZA `teiintegration` live testへ接続するAdapter compatibility runner
-- E2用Go 1.23.2とE3用current SOZA Goを分離して連続実行するorchestrator
+- E2用GoとE3用current SOZA Goを別executableとして連続実行するcanonical orchestrator
+- GitHub acquisitionからcanonical E2 → E3へ接続するone-shot wrapper
+- GitHub / localのactual開始前preflight
+- GitHub one-shot自身によるsource acquisition前のautomatic preflight
+- source temporary parentの副作用なしpreflightとactual直前再検査
+- Git object / process-level Git config injectionをexecution source identityから分離するcontrolled Git environment
+- E2 / E3のprocess-level Go build/test overrideをambient environmentから分離するcontrolled Go environment
+- E2 exact Go `1.23.2` / Linux amd64、E3 current `runtime/go/go.mod` minimum / Linux amd64を、`go version`とcontrolled `go env GOOS GOARCH`の両方で確認するtoolchain identity guard
 - E2 / E3 failureを外部観測可能なstageへ分けて記録するstage-aware diagnostics
-- revision B / SOZA checkout、checkout取得時のrevision A checkoutとEvidence outputを副作用前に分離し、symlinkや暗黙上書きを拒否するpath-safety guard
+- revision B / SOZA / revision A inputとEvidence outputを分離し、symlinkや暗黙上書きを拒否するpath-safety guard
+- GitHub / local取得経路別のpost-run Resolution audit
 
 version交換の比較軸については、revision AとBの`reference/workspace` treeが異なることを確認したため、**B checkout内のreference inputを使わず、historical revision Aのfixed reference inputをexact A checkoutまたは検証済みhistorical A Evidence bundleから与える**形へ補正した。
 
@@ -86,7 +96,7 @@ historical bundle経路はA source checkoutを復元したものとは扱わな�
 
 これにより、runtime revision、reference input identity、reference input acquisition pathを混同しない。
 
-また、E2 historical buildはGo `1.23.2`、E3 current SOZA live testはcurrent `runtime/go/go.mod`と`GOTOOLCHAIN=local`を使うため、同じ`go` command名を同一toolchain identityとは扱わない。combined runnerでは2つのGo executableを別々に明示する。
+また、E2 historical buildはexact `go1.23.2 linux/amd64`、E3 current SOZA live testはcurrent `runtime/go/go.mod`を満たすLinux / amd64 Go executableを使う。両者とも`GOTOOLCHAIN=local`とし、ambient `GOOS` / `GOARCH`等を除外したcontrolled environmentで`go env GOOS GOARCH = linux / amd64`を再確認する。同じ`go` command名を同一toolchain identityとは扱わず、combined runnerでは2つのGo executableを別々に明示する。
 
 actual E2 → E3は特定hostや特定のRemote Desktop接続を成立条件にしない。exact revision B / exact revision A fixed input / current SOZA、必要toolchain、入力から分離したEvidence出力を配置できる適切なLinux / amd64実行環境で実行する。
 
@@ -156,6 +166,8 @@ actual E2 → E3は特定hostや特定のRemote Desktop接続を成立条件に�
 - A fixed input acquisitionはexact A checkoutまたは検証済みhistorical A Evidence bundleのどちらか一方とし、acquisition modeをProvenanceとして記録する。
 - Evidence出力を入力checkoutから分離したnon-symlink pathへ置き、historical bundle取得時は入力bundleをEvidence directory配下へ置かず、既存standalone archiveを暗黙上書きしない。
 - path configuration rejectionはactual E2 process開始前の入力拒否として扱う。
+- actual execution hostはLinux / amd64とする。
+- E2 Go executable identityはexact `go1.23.2 linux/amd64`とし、controlled environmentで`go env GOOS GOARCH = linux / amd64`を確認する。
 - actual `deployment-provider-plan`を実行する。
 - Bのactual binary / Provider Plan SHA-256を記録する。
 - job割当や取得failureをCLI互換性failureと区別する。
@@ -171,6 +183,7 @@ actual E2 → E3は特定hostや特定のRemote Desktop接続を成立条件に�
 - TEI固有fieldをUniversal Capability Observationへ漏らさない。
 - B source、A fixed reference input、bundle identityをMapping Provenanceから追跡できる。
 - どのSOZA source / local Go toolchainでlive検査したかを記録する。
+- E3 Go executableはcurrent `runtime/go/go.mod`のdirective以上かつLinux / amd64とし、controlled environmentで`go env GOOS GOARCH = linux / amd64`を確認する。
 - SOZA source identity / bundle verification / staging / fixed input identity / Go toolchain / existing `teiintegration` live-test processのどの外部stageまで成立したかを区別できる。
 - live-test内部のstrict decode / mapping / validator等は、machine-readable Evidenceが得られた場合だけ追加で細分化する。
 
@@ -198,92 +211,86 @@ Design Evidence
 
 ## Current Evidence
 
-2026-09-05時点では次まで確認済みである。
+2026-09-06時点のcurrent snapshotは次である。過去のsynthetic test件数は、その時点の実装検査記録として各PR / readiness文書へ残し、このIssueでは現在のactual-ready境界を正とする。
 
 ```text
 revision A fixed-artifact actual TEI execution
   = Scoped Executable Evidence available from ISSUE-000065
 
-revision A artifact re-acquisition
-  = observed
-
-revision A bundle identity re-verification
-  = verified
+revision A artifact re-acquisition / bundle identity re-verification
+  = observed / verified
 
 revision A fixed reference input artifact bytes
   = workspace tree / durable run blob / plugin-lock blob independently revalidated against fixed Git object identities
 
-acquisition-independent bundle verifier
-  = implemented
-
-bundle verifier synthetic tests
-  = 7 passed before later fixed-reference extensions
-
-historical A legacy bundle external fixed-input binding
-  = implemented; PR #239 dedicated tests committed; full suite not re-run in current container
-
-historical A fixed-input materialization helper
-  = implemented; canonical B execution through this path Not Yet Verified
-
 revision B source identity
   = fixed to 1a7028d444fcae60a1c4f2f2d247456f4c7c35be
-
-revision B execution-source Git identity
-  = fixed; repository-local verifier implemented
-
-source / checkout fixed-input working-tree purity
-  = tracked changes / untracked / ignored entries rejected; PR #226 synthetic Git cases 5 passed
-
-revision A fixed reference input identity
-  = workspace tree / durable run blob / plugin-lock blob fixed
-
-Provider Plan output surface A/B
-  = strong static continuity observed
-
-deployment / environment / releaseplan / plugin-runtime / core
-  = exact source-tree continuity observed
-
-workspace / validation / IR input interpretation
-  = changed; actual fixed-input execution required
 
 version-exchange comparison axis
   = exact-B build source + exact-A fixed reference input
 
-prepositioned B Evidence runner baseline
-  = implemented; earlier synthetic / fixed-input isolation checks passed
+local exact-B checkout preparation
+  = implemented
 
-A fixed-input acquisition modes in E2 / combined runner
-  = exact A checkout or verified historical A Evidence bundle; implementation merged in PR #239
+GitHub content-addressed exact-B source acquisition
+  = implemented
 
-E2 stage-aware diagnostics
-  = implemented; focused stage-model checks 4 passed; expanded branch tests added but full suite not re-run in current container
+GitHub / local actual-run preflight
+  = implemented
 
-bundle → current Adapter live runner baseline
-  = implemented; 8 synthetic tests passed before stage instrumentation
+GitHub one-shot automatic preflight before acquisition
+  = implemented
 
-E3 stage-aware diagnostics
-  = implemented; focused stage-model checks 4 passed; expanded branch tests added but full suite not re-run in current container
+GitHub source temporary parent preflight / actual recheck
+  = implemented; side-effect-free resolution uses TMPDIR -> TEMP -> TMP -> /tmp
 
-E2/E3 separate Go toolchains
-  = identified and explicit in combined runner
+source / fixed-input Git object identity and working-tree purity
+  = implemented; tracked / untracked / ignored entries are rejected in execution boundary
 
-toolchain-split combined runner baseline
-  = implemented; 7 synthetic tests passed before stage-instrumentation additions
+controlled Git environment
+  = implemented for canonical source verifier, local preparation/preflight, GitHub acquisition, and E3 SOZA source identity
 
-combined E2/E3 substage propagation
-  = implemented; branch negative controls added; full suite not re-run in current container
+A fixed-input acquisition modes
+  = exact A checkout or verified historical A Evidence bundle
 
-Evidence output / input separation guard
-  = implemented; PR #223 path-safety negative controls committed; PR #239 historical-bundle placement guard added; full suite not re-run in current container
+E2 / E3 separate toolchains
+  = implemented and explicit in canonical combined runner
+
+E2 Go identity
+  = exact go1.23.2 linux/amd64 + controlled target linux/amd64
+
+E3 Go identity
+  = current runtime/go/go.mod minimum + Linux/amd64 executable/controlled target
+
+E2 / E3 process-level Go build/test environment isolation
+  = implemented
+
+E2 / E3 stage-aware diagnostics
+  = implemented; outer stage and machine-readable substage boundary separated
+
+Evidence output / input separation and symlink guards
+  = implemented
+
+E2 Evidence bundle no-overwrite publish
+  = implemented
+
+canonical / wrapper report publish guards
+  = implemented
+
+GitHub / local post-run Resolution audit
+  = implemented
+
+Provider Plan output surface A/B
+  = strong static continuity observed
+
+workspace / validation / IR input interpretation
+  = changed; actual fixed-input execution required
 
 specific execution host
   = not selected; any suitable Linux / amd64 environment may be used
 
-revision B workflow attempt 1
-  = failure before any job step
-
-revision B workflow attempt 2
-  = failure before any job step
+revision B workflow attempt 1 / 2
+  = failure before any job step; not counted as Product failure
 
 revision B actual CLI build / execution
   = Not Yet Verified
@@ -295,22 +302,38 @@ revision B current SOZA Adapter live compatibility
   = Not Yet Verified
 ```
 
+repository-sideで、actual開始前のacquisition / identity / purity / preflight / orchestrationと、actual後のResolution auditまでは実装済みである。したがって次にEvidenceの高さを本質的に上げる作業は、synthetic hardeningの追加ではなくactual revision B E2 → E3である。
+
+```text
+repository-side actual path
+  = implemented through preflight / orchestration / post-run audit
+
+next substantive Evidence
+  = actual revision B E2 / E3
+```
+
 現在の主な実装・観測記録は次へ置く。
 
 - `runtime/integration/verify_tei_evidence_bundle.py`
-- `runtime/integration/test_verify_tei_evidence_bundle.py`
-- `runtime/integration/test_verify_tei_evidence_bundle_external_reference.py`
 - `runtime/integration/verify_tei_execution_source_identity.py`
 - `runtime/integration/prepare_tei_fixed_reference_input.py`
-- `runtime/integration/test_prepare_tei_fixed_reference_input.py`
+- `runtime/integration/prepare_tei_revision_b_checkout.py`
+- `runtime/integration/prepare_tei_revision_b_source.py`
+- `runtime/integration/preflight_tei_version_exchange_from_github.py`
+- `runtime/integration/preflight_tei_version_exchange_local.py`
 - `runtime/integration/run_tei_revision_b_prepositioned.py`
 - `runtime/integration/run_tei_bundle_adapter_compatibility.py`
 - `runtime/integration/run_tei_version_exchange_evidence.py`
+- `runtime/integration/run_tei_version_exchange_from_github.py`
+- `runtime/integration/audit_tei_version_exchange_resolution.py`
+- `runtime/integration/audit_tei_version_exchange_resolution_local.py`
 - `runtime/TEI_VERSION_EXCHANGE_EVIDENCE_2026-09-05.md`
 - `runtime/TEI_PROVIDER_SURFACE_STATIC_COMPATIBILITY_2026-09-05.md`
 - `runtime/TEI_VERSION_EXCHANGE_EXECUTION_READINESS_2026-09-05.md`
 - `runtime/TEI_VERSION_EXCHANGE_TOOLCHAIN_READINESS_2026-09-05.md`
 - `runtime/TEI_VERSION_EXCHANGE_FAILURE_STAGES_2026-09-05.md`
+- `runtime/TEI_VERSION_EXCHANGE_CURRENT_READINESS_2026-09-06.md`
+- `runtime/TEI_VERSION_EXCHANGE_POST_RUN_AUDIT_2026-09-06.md`
 
 ## Deliverables
 
@@ -321,11 +344,15 @@ revision B current SOZA Adapter live compatibility
 - source / checkout fixed input working-tree purity guard
 - revision A / B identityと取得経路を分けたEvidence report
 - Provider Plan source surface / input interpretation差分のStatic Evidence
+- local / GitHubのexact-B source acquisition / materialization helper
+- GitHub / local actual-run preflight
 - exact-B build source + exact-A fixed inputのprepositioned Evidence runner
 - verified bundleからcurrent SOZA Adapter live testへ接続するrunner
 - E2 / E3を別toolchainで連続実行し段階別reportを残すcombined runner
+- GitHub acquisitionからcanonical E2 / E3へ接続するone-shot wrapper
 - Evidence output / input separation guard
 - E2 / E3 failure stage taxonomyとnegative control
+- GitHub / local post-run Resolution audit
 - revision B actual artifactを取得できた場合のB verification report
 - A/B Adapter compatibility Evidence
 - Requirement / Contract再照合結果
@@ -368,24 +395,28 @@ GitHub ActionsはこのIssueの意味上の成立条件にしない。
 
 TEI側Evidence workflowを利用できる場合はactual artifact生成の一経路として使うが、jobが開始されなかったrunをTEI compatibility failureへ数えない。取得済みartifactはrepository-local `verify_tei_evidence_bundle.py`へ戻して再検証する。
 
-actual Bのrepository-local経路では、exact revision B checkoutをbuild sourceとして`run_tei_revision_b_prepositioned.py`へ渡す。exact revision A fixed inputは次のどちらか一方から取得する。
+actual Bのrepository-local経路では、exact revision B checkoutをbuild sourceとして`run_tei_revision_b_prepositioned.py`へ渡す。revision B sourceは、self-contained local cloneから独立exact-B checkoutを作るか、GitHub Git Data APIからcontent-addressedに再構成できる。GitHub acquisitionを使う場合は、one-shot runner自身がsource取得前に副作用なしpreflightを必須化する。
+
+exact revision A fixed inputは次のどちらか一方から取得する。
 
 - `--reference-source-repo`: exact revision A checkout。Git object identity、exact HEAD、対象境界のtracked / untracked / ignored entry不存在を確認する。
 - `--reference-evidence-bundle`: verified historical revision A Evidence bundle。bundle metadataのA source commit、historical binary / Provider Plan SHA-256、actual workspace / durable run / plugin lock bytesから再計算したGit object identityを固定値へ照合してから、一時領域へfixed inputだけをmaterializeする。
 
 両経路はmutually exclusiveとし、fixed input identityはどちらもexact revision Aへ固定する。historical bundle経路をA source checkout reconstructionへ昇格させない。
 
-Evidence archive / directoryはrevision B、SOZA checkoutから分離したnon-symlink pathへ置き、checkout取得時はrevision A checkoutからも分離する。historical bundle取得時は入力bundleをEvidence directory配下へ置かない。path configurationが不正な場合はactual processを開始せず、E2 / E3 failure stageへ読み替えない。standalone E2は既存archiveを暗黙上書きしない。
+Evidence archive / directoryはrevision B、SOZA checkoutから分離したnon-symlink pathへ置き、checkout取得時はrevision A checkoutからも分離する。historical bundle取得時は入力bundleをEvidence directory配下へ置かない。path configurationが不正な場合はactual processを開始せず、E2 / E3 failure stageへ読み替えない。standalone E2は既存archiveを暗黙上書きしない。GitHub source temporary parentもSOZA / revision A / Evidence境界から分離し、preflightとactual取得直前の両方で再検査する。
 
 B Evidence bundleを得た後は、cleanなSOZA checkoutで`run_tei_bundle_adapter_compatibility.py`を実行し、既存`runtime/go/teiintegration.TestLiveTEIProviderPlan`へ接続する。runnerのsynthetic testやStatic Evidenceはactual TEI process executionの代替ではない。
 
-E2からE3までを一度に実行する場合は`run_tei_version_exchange_evidence.py`を使い、TEI historical build用Go 1.23.2とcurrent SOZA live-test用Goを別々のexecutableとして明示する。A fixed input acquisition modeはcomparison axisへ記録する。failure reportは上位`E2` / `E3`とstage-aware `substage`を分離し、通常の例外文言からsubstageを捏造しない。
+E2からE3までを一度に実行する場合は`run_tei_version_exchange_evidence.py`を使い、TEI historical build用にはexact `go1.23.2 linux/amd64`、current SOZA live-test用にはcurrent `runtime/go/go.mod`を満たすLinux / amd64 Go executableを別々に明示する。両toolchainともambient `GOOS` / `GOARCH`等を除外したcontrolled environmentで`go env GOOS GOARCH = linux / amd64`を再確認し、`GOTOOLCHAIN=local`を使う。A fixed input acquisition modeはcomparison axisへ記録する。failure reportは上位`E2` / `E3`とstage-aware `substage`を分離し、通常の例外文言からsubstageを捏造しない。
+
+actual後は取得経路に応じて`audit_tei_version_exchange_resolution.py`または`audit_tei_version_exchange_resolution_local.py`へ戻し、Resolution条件1〜6をmachine-readable Evidenceから再監査する。条件7〜8はmanual reviewとして残し、自動でIssueをResolvedへしない。
 
 特定hostやRemote Desktop接続の復帰を待つことは完了条件にしない。上記identity / purity / toolchain / path条件を満たせる適切なLinux / amd64実行環境を用意できた時点でactual E2 → E3へ進む。
 
 ## Natural Japanese review
 
-PMS-06、ISSUE-000061 / 000065、ADR-0013 / 0019 / 0021 / 0024、Actual TEI CLI Evidence、current `teiintegration`、revision A Evidence artifact、revision B Evidence workflow attempt 1 / 2、revision B Git object identity、A / B Provider Plan static compatibility、exact-A fixed reference input、historical A Evidence bundle fixed-input binding、E2 prepositioned runner、E3 Adapter live runner、toolchain-split combined runner、E2 / E3 failure-stage instrumentation、Evidence output path safety、source / checkout fixed-input working-tree purityを照合した。
+PMS-06、ISSUE-000061 / 000065、ADR-0013 / 0019 / 0021 / 0024、Actual TEI CLI Evidence、current `teiintegration`、revision A Evidence artifact、revision B Evidence workflow attempt 1 / 2、revision B Git object identity、A / B Provider Plan static compatibility、exact-A fixed reference input、historical A Evidence bundle fixed-input binding、local / GitHub exact-B acquisition、E2 prepositioned runner、E3 Adapter live runner、toolchain-split combined runner、GitHub one-shot / local preflight、E2 / E3 failure-stage instrumentation、Evidence output path safety、source temporary parent、source / checkout fixed-input working-tree purity、post-run Resolution auditを照合した。
 
 取得方法、artifact identity、build source、fixed reference input、fixed input acquisition path、Provider固有surface、SOZAのCapability Observationを一つにまとめず、今回すでに観測できたことと、revision B actual executionが未検証であることを分離している。
 
@@ -393,10 +424,14 @@ PMS-06、ISSUE-000061 / 000065、ADR-0013 / 0019 / 0021 / 0024、Actual TEI CLI 
 
 また、Static EvidenceでProvider Plan出力surfaceに連続性がある一方、workspace / validation / IRが変化しているためactual検証が必要であることも明記した。
 
-さらに、Git object identityが一致していてもworking treeのignored entryがactual build / checkout fixed inputへ混入し得るため、tracked / untracked / ignoredをexecution boundaryのpurity対象へ含めた。Evidence出力についても、入力checkoutとのoverlap、historical input bundleの包含、symlink、暗黙上書きをactual process前に拒否し、そのconfiguration failureをProvider compatibilityの失敗へ昇格させない。
+さらに、Git object identityが一致していてもworking treeのignored entryがactual build / checkout fixed inputへ混入し得るため、tracked / untracked / ignoredをexecution boundaryのpurity対象へ含めた。Evidence出力についても、入力checkoutとのoverlap、historical input bundleの包含、symlink、暗黙上書きをactual process前に拒否し、そのconfiguration failureをProvider compatibilityの失敗へ昇格させない。GitHub取得のtemporary parentも同じく入力 / Evidence境界から分離し、preflightを副作用なしに保つ。
+
+Goについては、host platform、Go executable identity、controlled build/test target、Product semanticsを一つにまとめない。E2の`go1.23.2 linux/amd64`とE3のcurrent `go.mod` minimum / Linux amd64はactual Evidenceの再現条件であり、Capability identityではない。ambient `GOOS` / `GOARCH`等を除外したうえでcontrolled targetを再確認しても、それ自体をE2 / E3 PASSへ昇格させない。
 
 actual failureの切り分けでは、stderr / stdoutの自然言語からTEI内部stageやSOZA live-test内部stageを推定せず、repository-local runnerが直接観測できる外部境界だけをEvidence stageとして扱う。これにより、診断情報を保持しつつ、原因の高さをEvidence以上に引き上げない。
 
 また、特定host / CI provider / Remote DesktopをProduct semanticsへ持ち込まず、必要な固定identityとtoolchainを配置できる実行環境をexecution mechanismとして分離した。
+
+repository-sideでactual前後の経路が整った現在、追加のsynthetic hardeningだけを進捗として目的化しない。次に意味の高さを上げるのはactual revision B E2 / E3であり、その結果へ基づいてRequirement / Scenarioと最終意味監査へ戻る。
 
 意味、要求強度、留保、Evidenceの高さを固定したうえで、自然な日本語となることを最重要視して全文を再監査した。
