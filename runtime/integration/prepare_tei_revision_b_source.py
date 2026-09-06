@@ -24,12 +24,21 @@ GITHUB_REPOSITORY = "hat47x/tei-platform"
 REVISION_B_ROOT_TREE = "630d3e9e2acaea70312bee19cf8a0f7235655cd6"
 SOZA_ROOT = Path(__file__).resolve().parents[2]
 API_BASE = "https://api.github.com"
+API_REPOSITORY_BASE = f"{API_BASE}/repos/{GITHUB_REPOSITORY}/"
 STOP_LINE = (
     "exact revision B source materialized and canonical identity verified "
     "!= revision B build PASS != Provider Plan execution PASS "
     "!= SOZA Adapter compatibility PASS != ISSUE-000072 Resolved"
 )
 JsonRequester = Callable[[str, str], dict[str, object]]
+
+
+class _RejectRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise ValueError(
+            "GitHub API redirectをcredential付きrequestでは許可しません: "
+            f"status={code} from={req.full_url} to={newurl}"
+        )
 
 
 def _run_git(
@@ -98,8 +107,8 @@ def _prepare_report_path(path: Path, output_dir: Path) -> Path:
 
 
 def _github_json(url: str, token: str) -> dict[str, object]:
-    if not url.startswith(API_BASE + "/"):
-        raise ValueError(f"許可されていないGitHub API URLです: {url}")
+    if not url.startswith(API_REPOSITORY_BASE):
+        raise ValueError(f"許可されていないGitHub repository API URLです: {url}")
     request = urllib.request.Request(
         url,
         headers={
@@ -109,8 +118,9 @@ def _github_json(url: str, token: str) -> dict[str, object]:
             "X-GitHub-Api-Version": "2022-11-28",
         },
     )
+    opener = urllib.request.build_opener(_RejectRedirectHandler())
     try:
-        with urllib.request.urlopen(request, timeout=60) as response:
+        with opener.open(request, timeout=60) as response:
             raw = response.read()
     except urllib.error.HTTPError as exc:
         raise ValueError(
