@@ -6,6 +6,7 @@ import json
 import subprocess
 from pathlib import Path
 
+import git_object_environment
 import preflight_tei_version_exchange_from_github as common
 import prepare_tei_revision_b_checkout as checkout_prepare
 import run_tei_version_exchange_evidence as version_exchange
@@ -35,6 +36,7 @@ def _git(
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        env=git_object_environment.controlled_git_environment(),
     )
     if check and result.returncode != 0:
         raise ValueError(
@@ -67,6 +69,8 @@ def _check_source_clone(source_repo: Path) -> dict[str, object]:
         "revisionBExecutionSourceObjects": observed,
         "sourceObjectDatabaseSelfContained": True,
         "sourceState": state,
+        "gitObjectEnvironmentControlled": True,
+        "replaceObjectsDisabled": True,
         "networkAccessPerformed": False,
         "filesystemMutationPerformed": False,
     }
