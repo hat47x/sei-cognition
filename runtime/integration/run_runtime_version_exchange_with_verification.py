@@ -11,6 +11,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+from runtime_path_safety import reject_symlink_path_or_ancestors
+
 INTEGRATION_DIR = Path(__file__).resolve().parent
 SOZA_ROOT = INTEGRATION_DIR.parents[1]
 PREFLIGHT = INTEGRATION_DIR / "check_runtime_version_exchange_preflight.py"
@@ -75,6 +77,7 @@ def _canonical_path(path: Path) -> Path:
 
 
 def _prepare_new_path(path: Path, label: str) -> Path:
+    reject_symlink_path_or_ancestors(path, label)
     resolved = _canonical_path(path)
     if resolved.exists():
         raise ValueError(f"{label} already exists: {resolved}")
@@ -583,9 +586,9 @@ def main() -> int:
     if forwarded and forwarded[0] == "--":
         forwarded = forwarded[1:]
 
-    evidence_dir = _canonical_path(args.evidence_dir)
+    evidence_dir = args.evidence_dir
     verification_output = (
-        _canonical_path(args.verification_output)
+        args.verification_output
         if args.verification_output is not None
         else _default_verification_output(evidence_dir)
     )
