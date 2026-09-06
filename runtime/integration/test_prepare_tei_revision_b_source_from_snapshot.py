@@ -15,6 +15,8 @@ class RevisionBSnapshotTransportTest(unittest.TestCase):
             "repository": prepare.GITHUB_REPOSITORY,
             "sourceCommit": prepare.REVISION_B,
             "rootTree": prepare.REVISION_B_ROOT_TREE,
+            "sourceAcquisition": snapshot_prepare.CANONICAL_SOURCE_ACQUISITION,
+            "credentialSource": snapshot_prepare.CANONICAL_CREDENTIAL_SOURCE,
             "responses": {
                 f"git/commits/{prepare.REVISION_B}": {
                     "sha": prepare.REVISION_B,
@@ -39,6 +41,10 @@ class RevisionBSnapshotTransportTest(unittest.TestCase):
             self.assertEqual(snapshot_prepare.SNAPSHOT_SCHEMA, snapshot["schema"])
             self.assertEqual(64, len(sha256))
             self.assertEqual(
+                snapshot_prepare.CANONICAL_SOURCE_ACQUISITION,
+                snapshot["sourceAcquisition"],
+            )
+            self.assertEqual(
                 prepare.REVISION_B,
                 snapshot["responses"][f"git/commits/{prepare.REVISION_B}"]["sha"],
             )
@@ -61,8 +67,8 @@ class RevisionBSnapshotTransportTest(unittest.TestCase):
                 return {
                     "schema": "soza.tei-revision-b-source-acquisition/v1",
                     "result": "verified",
-                    "sourceAcquisition": "github-git-data-api-content-addressed",
-                    "credentialSource": "environment",
+                    "sourceAcquisition": snapshot_prepare.CANONICAL_SOURCE_ACQUISITION,
+                    "credentialSource": snapshot_prepare.CANONICAL_CREDENTIAL_SOURCE,
                     "sourceCommit": prepare.REVISION_B,
                     "rootTree": prepare.REVISION_B_ROOT_TREE,
                     "outputDirectory": str(output_dir),
@@ -95,16 +101,21 @@ class RevisionBSnapshotTransportTest(unittest.TestCase):
                 observed["expected_root_tree"],
             )
             self.assertEqual(
-                snapshot_prepare.SNAPSHOT_SOURCE_ACQUISITION,
+                snapshot_prepare.CANONICAL_SOURCE_ACQUISITION,
                 result["sourceAcquisition"],
             )
             self.assertEqual(
-                snapshot_prepare.SNAPSHOT_CREDENTIAL_SOURCE,
+                snapshot_prepare.CANONICAL_CREDENTIAL_SOURCE,
                 result["credentialSource"],
             )
-            self.assertEqual(1, result["transportSnapshot"]["responsesAvailable"])
-            self.assertEqual(1, result["transportSnapshot"]["responsesConsumed"])
-            self.assertTrue(result["transportSnapshot"]["allConsumedResponsesUnique"])
+            self.assertEqual(
+                snapshot_prepare.SNAPSHOT_TRANSPORT_MODE,
+                result["sourceTransport"]["mode"],
+            )
+            self.assertEqual(1, result["sourceTransport"]["responsesAvailable"])
+            self.assertEqual(1, result["sourceTransport"]["responsesConsumed"])
+            self.assertTrue(result["sourceTransport"]["allConsumedResponsesUnique"])
+            self.assertFalse(result["sourceTransport"]["runtimeCredentialUsed"])
             rendered = json.dumps(result, ensure_ascii=False)
             self.assertNotIn("GITHUB_TOKEN", rendered)
             self.assertNotIn("GH_TOKEN", rendered)
@@ -140,6 +151,22 @@ class RevisionBSnapshotTransportTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             path = self.write_snapshot(Path(temporary), payload)
             with self.assertRaisesRegex(ValueError, "sourceCommit"):
+                snapshot_prepare._load_snapshot(path)
+
+    def test_wrong_acquisition_provenance_is_rejected(self):
+        payload = self.snapshot_payload()
+        payload["sourceAcquisition"] = "other-acquisition"
+        with tempfile.TemporaryDirectory() as temporary:
+            path = self.write_snapshot(Path(temporary), payload)
+            with self.assertRaisesRegex(ValueError, "acquisition provenance"):
+                snapshot_prepare._load_snapshot(path)
+
+    def test_wrong_credential_provenance_is_rejected(self):
+        payload = self.snapshot_payload()
+        payload["credentialSource"] = "snapshot"
+        with tempfile.TemporaryDirectory() as temporary:
+            path = self.write_snapshot(Path(temporary), payload)
+            with self.assertRaisesRegex(ValueError, "credential provenance"):
                 snapshot_prepare._load_snapshot(path)
 
     def test_response_path_and_payload_sha_must_match(self):
