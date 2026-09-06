@@ -4,10 +4,12 @@
 
 本書は、ISSUE-000072のactual revision B E2→E3を実行した**後**に、得られたEvidenceをIssueのResolution条件へ戻して監査する標準手順を固定します。
 
-actual実行前の準備は次を正とします。
+actual実行前の準備とoperator手順は次を正とします。
 
+- `runtime/TEI_E2_PARTIAL_ACTUAL_RUNBOOK_2026-09-06.md`
+- `runtime/TEI_VERSION_EXCHANGE_E2_PARTIAL_DELTA_2026-09-06.md`
 - `runtime/TEI_VERSION_EXCHANGE_CURRENT_READINESS_2026-09-06.md`
-- `runtime/integration/preflight_tei_version_exchange_from_github.py`
+- full GitHub one-shotを使う場合: `runtime/integration/preflight_tei_version_exchange_from_github.py`
 
 actual結果を見る前のRequirement / Scenario判定基準は次を正とします。
 
@@ -16,7 +18,10 @@ actual結果を見る前のRequirement / Scenario判定基準は次を正とし�
 post-runのmachine-readable入口は、revision B取得経路に応じて次を使います。
 
 - GitHub Git Data API one-shot経路: `runtime/integration/audit_tei_version_exchange_resolution.py`
+- E2 partial → later E3 resume経路: 同じ `runtime/integration/audit_tei_version_exchange_resolution.py`
 - local prepositioned checkout経路: `runtime/integration/audit_tei_version_exchange_resolution_local.py`
+
+E2 partial → later E3 resumeでも、canonical `tei-version-exchange-evidence.json` とGitHub acquisition wrapper `tei-version-exchange-github-acquisition.json`へ戻した後は、GitHub one-shotと同じResolution auditへ接続する。wrapper publishだけが中断した限定ケースでは、actual runbookに従い`reconcile_tei_e2_partial_resume_reports.py`でE3を再実行せずreport pairを復旧してからauditへ進む。
 
 local wrapperは既存Resolution auditを正本として再利用し、criterion 6のacquisition境界だけをlocal checkout向けに差し替えます。Requirement判定やResolution条件そのものを複製しません。
 
@@ -62,15 +67,17 @@ manual_review
 
 adjacent RequirementとしてREQ-0022も確認します。ただしactual Product failureから独立した意味上の必要性がない限り、IssueのResolution条件やUniversal Contractへ追加しません。
 
-## 3. GitHub one-shot経路での標準手順
+## 3. GitHub取得経路での標準手順
 
-GitHub Git Data APIからrevision Bを取得してone-shot runnerを使った場合、Evidence directoryには少なくとも次が残ります。
+GitHub Git Data APIからrevision Bを取得してfull one-shotを使った場合、Evidence directoryには少なくとも次が残ります。
 
 ```text
 tei-e3b-p2-revision-b.tar.gz
 tei-version-exchange-evidence.json
 tei-version-exchange-github-acquisition.json
 ```
+
+E2 partial → later E3 resumeを使った場合も、E3 resume後は同じcanonical report / GitHub wrapper reportへ戻る。E2 partial bundle自体は別artifact名で保持し、post-run audit時にE2を再実行しない。
 
 historical revision A Evidence bundleをfixed inputとして使った例では、post-run auditを次のように実行します。
 
