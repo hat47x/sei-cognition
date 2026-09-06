@@ -2,16 +2,20 @@
 
 ## 位置づけ
 
-本書は `TEI_VERSION_EXCHANGE_CURRENT_READINESS_2026-09-06.md` の後に追加された、revision B E2 partial Evidence経路、E2からE3への後日resume経路、GitHub-hosted workflow attempt 3の観測をまとめるcurrent deltaである。
+本書は `TEI_VERSION_EXCHANGE_CURRENT_READINESS_2026-09-06.md` の後に追加された、revision B E2 partial Evidence経路、E2からE3への後日resume経路、interrupted report-pair reconciliation、exact-B / exact-A strict bundle verification、GitHub-hosted workflow attempt 3の観測をまとめるcurrent deltaである。
 
 Stable Requirement、Universal Contract、comparison axis、quality judgement、ISSUE-000072 Resolution条件は変更しない。
 
 ```text
-E2 partial / later E3 resume path available
+E2 partial / strict re-verification / later E3 resume path available
   != revision B E2 PASS
   != E3 SOZA Adapter compatibility PASS
   != ISSUE-000072 Resolved
 ```
+
+operator向けactual手順は次を正とする。
+
+`runtime/TEI_E2_PARTIAL_ACTUAL_RUNBOOK_2026-09-06.md`
 
 ## E2 partial Evidence入口
 
@@ -26,12 +30,12 @@ PR #289〜#292により、E3 Go toolchainがまだ用意できない環境でも
 E2 precondition:
 
 ```text
-host                   = Linux/amd64
-E2 Go executable       = exact go1.23.2 linux/amd64
-controlled Go target   = linux/amd64
-reference input        = exact revision A fixed input
-Evidence output        = inputから分離したsafe path
-source temporary parent= safe existing directory
+host                    = Linux/amd64
+E2 Go executable        = exact go1.23.2 linux/amd64
+controlled Go target    = linux/amd64
+reference input         = exact revision A fixed input
+Evidence output         = inputから分離したsafe path
+source temporary parent = safe existing directory
 ```
 
 PR #292以降は、exact revision A fixed inputのactual identityもrevision B source acquisitionより前に既存canonical checkで検証する。
@@ -55,6 +59,39 @@ E2 partial bundle
 E2 partial report
   = tei-revision-b-e2-github.json
 ```
+
+## E2 bundleをexact B + exact Aへstrict再検証する
+
+PR #301 / #302により、E2 partial成功後のacquisition-independent再検証を、revision B source commitだけでなくrevision A fixed reference inputの外部固定identityへもbindingする専用入口へ揃えた。
+
+入口:
+
+`runtime/integration/verify_tei_version_exchange_e2_bundle.py`
+
+この入口はgeneric bundle verifierの検証ロジックを複製せず、次を外部期待値として渡す。
+
+```text
+revision B source commit
+  = 1a7028d444fcae60a1c4f2f2d247456f4c7c35be
+
+revision A fixed reference input
+  source commit
+  workspace tree
+  durable-run blob
+  plugin-lock blob
+```
+
+revision A側の正本は既存`prepare_tei_fixed_reference_input.py`の`EXPECTED_REFERENCE`である。
+
+binary SHA-256 / Provider Plan SHA-256はactual E2で初めて観測する値なので事前固定しない。strict verifierはactual bytesから再計算し、bundle metadataとの一致を確認する。
+
+```text
+E2 partial report success
+  + exact-B / exact-A strict bundle verification success
+  = E2 actual Evidenceとして評価可能
+```
+
+ただし、この検証PASSだけをE3 Adapter compatibilityやISSUE-000072 Resolutionへ昇格させない。
 
 ## E2 partialからE3を後日resumeする経路
 
@@ -111,11 +148,42 @@ executionProvenance.mode = e2_partial_then_e3_resume
 
 ```text
 E2 partial Evidence
-  -> actual bundle identity re-verification
+  -> exact-B / exact-A bundle identity re-verification
   -> existing E3 Adapter live runner
   -> canonical version-exchange report
   -> GitHub acquisition wrapper report
   -> existing Resolution audit
+```
+
+## interrupted report-pairをE3再実行なしで復旧する
+
+PR #298〜#300により、resumeでE3 actualとcanonical report publishまでは完了したものの、後続GitHub wrapper reportのpublishだけが失敗した場合に、E3を再実行せずreport pairを復旧できるようにした。
+
+入口:
+
+`runtime/integration/reconcile_tei_e2_partial_resume_reports.py`
+
+対象は次の限定状態である。
+
+```text
+canonical report exists
+GitHub wrapper report missing
+E2 partial report preserved
+E2 bundle preserved
+```
+
+reconcileはpartial / bundle / canonical identityとresume provenanceを再照合し、欠落したwrapperだけを再構成する。revision B source acquisition、E2 build、Provider Plan、E3 Adapter live testは再実行しない。
+
+既存wrapperが期待値と一致する場合は`already_consistent`でno-opとし、不一致の既存wrapperは上書きしない。
+
+PR #300では、reconcileで再構成したwrapperが既存Resolution auditのcriterion 6へそのまま接続されることもfocused integration testで固定した。
+
+```text
+report pair reconciliation
+  = interrupted publish recovery
+  != E2 newly executed
+  != E3 newly executed
+  != Evidence promotion by itself
 ```
 
 ## GitHub-hosted workflow attempt 3
@@ -167,7 +235,7 @@ current containerにはhistorical E2用 `go1.23.2 linux/amd64` が存在する�
 
 ```text
 current container E2 Go ready
-  + E2 partial / later E3 resume runner implemented
+  + E2 partial / strict verification / later E3 resume path implemented
   + private source transport unavailable
   = E2 actual Not Yet Verified
 ```
@@ -176,10 +244,11 @@ current container E2 Go ready
 
 優先順位は次の通り。
 
-1. private source transportを持つLinux/amd64環境が利用可能になれば、E2 partialをactual実行する。
-2. E2 partial bundleが得られたらsource / binary / Provider Plan identityを固定し、ISSUE-000072 E2を評価する。
+1. private source transportを持つLinux/amd64環境が利用可能になれば、`TEI_E2_PARTIAL_ACTUAL_RUNBOOK_2026-09-06.md`に従いE2 partialをactual実行する。
+2. E2 partial bundleが得られたら`verify_tei_version_exchange_e2_bundle.py`でexact-B / exact-Aへstrict再検証し、actual binary / Provider Plan SHA-256を観測値として固定する。
 3. E3 Go >= current `runtime/go/go.mod`を持つ環境が同時に利用できる場合はfull one-shotでE3まで進む。
 4. E3 Goを後から用意する場合は、保存済みE2 partial report / bundleからresume runnerでE3だけを実行し、canonical report / GitHub wrapper reportへ戻す。
-5. canonical actual結果取得後にpost-run Resolution audit、Requirement / Scenario再照合、自然な日本語の最終意味監査を行う。
+5. wrapper publishだけが中断した限定ケースではreconcileを使い、E3を再実行せずreport pairを復旧する。
+6. canonical actual結果取得後にpost-run Resolution audit、Requirement / Scenario再照合、自然な日本語の最終意味監査を行う。
 
 追加synthetic hardeningをactual Evidenceの代替にしない。
