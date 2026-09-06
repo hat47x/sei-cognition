@@ -233,7 +233,7 @@ python3 "$SOZA_REPO/runtime/integration/audit_tei_version_exchange_resolution_lo
   --output "$AUDIT_DIR/tei-version-exchange-local-resolution-audit.json"
 ```
 
-`--checkout-preparation-report`は任意です。`prepare_tei_revision_b_checkout.py --json`の出力を保存して指定すると、current source identityに加えて次も照合します。
+`--checkout-preparation-report`は任意です。`prepare_tei_revision_b_checkout.py --report-output`で保存したJSONを指定すると、current source identityに加えて次も照合します。
 
 - preparation schema / result
 - exact revision B
@@ -249,7 +249,8 @@ python3 "$SOZA_REPO/runtime/integration/audit_tei_version_exchange_resolution_lo
 python3 "$SOZA_REPO/runtime/integration/prepare_tei_revision_b_checkout.py" \
   --source-repo "$TEI_SOURCE_CLONE" \
   --output-repo "$TEI_B_REPO" \
-  --json > "$CHECKOUT_PREPARATION_REPORT"
+  --report-output "$CHECKOUT_PREPARATION_REPORT" \
+  --json
 
 python3 "$SOZA_REPO/runtime/integration/audit_tei_version_exchange_resolution_local.py" \
   --canonical-report "$EVIDENCE_DIR/tei-version-exchange-evidence.json" \
@@ -260,6 +261,8 @@ python3 "$SOZA_REPO/runtime/integration/audit_tei_version_exchange_resolution_lo
   --expected-soza-head "$SOZA_HEAD" \
   --output "$AUDIT_DIR/tei-version-exchange-local-resolution-audit.json"
 ```
+
+`--report-output`はsource/output checkout外の新規non-symlink pathへno-overwriteでpublishします。report publishに失敗した場合、その呼び出しで作成したexact-B checkoutも撤去します。
 
 preparation reportを指定しなくてもcurrent exact-B checkoutは独立再検証します。ただしその場合、checkoutがどの過去操作で生成されたかという履歴までは主張せず、`checkoutPreparationProvenance.observed=false`として明示します。
 

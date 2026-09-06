@@ -41,6 +41,8 @@ PR #250 / #252 / #254 により、self-containedな既存TEI Git object database
 - fixed revision B commit objectがlocal object databaseに存在すればよい。
 - source clone / output cloneともGit alternates依存を許可しない。
 - detached exact-B checkout作成後、canonical source verifierでHEAD / fixed object set / boundary purityを確認する。
+- PR #269以降、optionalなcheckout preparation provenanceは`--report-output`でsource/output checkout外の新規pathへno-overwrite保存できる。
+- preparation report publishに失敗した場合は、その呼び出しで作成したB checkoutも撤去する。
 
 ```text
 local B commit object available
@@ -65,7 +67,7 @@ PR #253 / #257 により、local cloneへrevision B objectがない場合でも�
 6. exact root treeからdetached HEAD / index / working treeを展開する。
 7. canonical source verifierへ戻し、exact HEAD / execution-source objects / working-tree purityを確認する。
 
-credential付きrequestはfixed repository prefixへ限定し、redirectはfollowしません。
+credential付きrequestはfixed repository prefixへ限定し、redirectはfollowしません。PR #273以降、取得途中の`git init` / `hash-object -w` / `mktree` / checkout等も後述のcontrolled Git environmentを使い、ambient object directory等へread/writeを逸らしません。
 
 ```text
 GitHub API acquisition path
@@ -77,7 +79,50 @@ acquired bytes
   -> canonical exact-B checkout verification
 ```
 
-### 2.3 non-Git content directory verifier
+### 2.3 Git source identity / materialization共通のcontrolled environment
+
+PR #271 / #273 / #274 により、local checkout、local preflight、GitHub acquisition、canonical source verifierが、literal repository / Git object graphを変え得るprocess-level Git overrideから分離されました。
+
+共通helper:
+
+`runtime/integration/git_object_environment.py`
+
+除外する主なenvironment override:
+
+```text
+GIT_DIR
+GIT_WORK_TREE
+GIT_COMMON_DIR
+GIT_OBJECT_DIRECTORY
+GIT_ALTERNATE_OBJECT_DIRECTORIES
+GIT_INDEX_FILE
+GIT_NAMESPACE
+GIT_REPLACE_REF_BASE
+GIT_GRAFT_FILE
+GIT_CONFIG_COUNT
+GIT_CONFIG_PARAMETERS
+GIT_CONFIG_KEY_*
+GIT_CONFIG_VALUE_*
+```
+
+加えて、次を固定します。
+
+```text
+GIT_NO_REPLACE_OBJECTS=1
+GIT_DEFAULT_HASH=sha1
+```
+
+これはhost全体をfully hermeticにする主張ではありません。ISSUE-000072の固定SHA-1 Git object graph、source checkout identity、materialized source bytesへ直接影響するprocess-level overrideを対象にします。system / global / repository configそのものを一般に無効化するものでもありません。
+
+negative controlでは、通常Gitではambient `GIT_OBJECT_DIRECTORY`やreplace refによりobject解決が変わること、また`GIT_CONFIG_COUNT/KEY/VALUE`でrepositoryの`core.autocrlf=false`を`true`へ上書きできることを確認しました。controlled environmentではliteral repo object graphとrepository valueへ戻ることを確認しています。
+
+```text
+controlled Git source identity
+  != hostile host fully hermetic
+  != revision B actual build PASS
+```
+
+### 2.4 non-Git content directory verifier
 
 PR #251 の
 
@@ -268,14 +313,17 @@ python3 "$SOZA_REPO/runtime/integration/preflight_tei_version_exchange_local.py"
   --json
 ```
 
-`result=ready`を確認した後に、exact-B checkoutを準備します。post-run acquisition provenanceも残したい場合はJSONを保存します。
+`result=ready`を確認した後に、exact-B checkoutを準備します。post-run acquisition provenanceも残す場合はhelper自身のsafe report outputを使います。
 
 ```bash
 python3 "$SOZA_REPO/runtime/integration/prepare_tei_revision_b_checkout.py" \
   --source-repo "$TEI_SOURCE_CLONE" \
   --output-repo "$TEI_B_REPO" \
-  --json > "$CHECKOUT_PREPARATION_REPORT"
+  --report-output "$CHECKOUT_PREPARATION_REPORT" \
+  --json
 ```
+
+`--report-output`はsource/output checkout外の新規non-symlink pathを要求します。report publishに失敗した場合、その呼び出しで作成したB checkoutも撤去します。
 
 そのcheckoutをcanonical E2→E3 runnerへ渡します。
 
@@ -332,6 +380,9 @@ revision B source identity
 local exact-B checkout preparation
   = implemented
 
+local exact-B checkout preparation safe report output
+  = implemented
+
 local exact-B source preflight
   = implemented
 
@@ -343,6 +394,9 @@ GitHub acquisition credential redirect boundary
 
 GitHub acquisition -> canonical E2/E3 wrapper
   = implemented
+
+TEI source Git object / config environment isolation
+  = implemented for canonical verifier, local preflight/preparation, and GitHub acquisition
 
 wrapper report publish TOCTOU guard
   = implemented
