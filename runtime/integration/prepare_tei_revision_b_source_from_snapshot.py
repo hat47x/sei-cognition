@@ -14,16 +14,17 @@ from runtime_path_safety import reject_symlink_path_or_ancestors
 
 SNAPSHOT_SCHEMA = "soza.github-git-data-snapshot/v1"
 SNAPSHOT_TRANSPORT_TOKEN = "__preacquired_git_data_snapshot__"
-SNAPSHOT_SOURCE_ACQUISITION = (
-    "preacquired-github-git-data-snapshot-content-addressed"
-)
-SNAPSHOT_CREDENTIAL_SOURCE = "preacquired-snapshot-no-runtime-credential"
+CANONICAL_SOURCE_ACQUISITION = "github-git-data-api-content-addressed"
+CANONICAL_CREDENTIAL_SOURCE = "environment"
+SNAPSHOT_TRANSPORT_MODE = "preacquired-github-git-data-snapshot"
 _ALLOWED_RESPONSE_PATH = re.compile(r"git/(?:blobs|trees|commits)/[0-9a-f]{40}")
 _REQUIRED_TOP_LEVEL = {
     "schema",
     "repository",
     "sourceCommit",
     "rootTree",
+    "sourceAcquisition",
+    "credentialSource",
     "responses",
 }
 
@@ -70,6 +71,18 @@ def _load_snapshot(path: Path) -> tuple[dict[str, object], str]:
         raise ValueError(
             "TEI Git Data snapshot rootTreeがfixed revision Bと一致しません: "
             f"expected={prepare.REVISION_B_ROOT_TREE} actual={value.get('rootTree')}"
+        )
+    if value.get("sourceAcquisition") != CANONICAL_SOURCE_ACQUISITION:
+        raise ValueError(
+            "TEI Git Data snapshot source acquisition provenanceが固定経路と一致しません: "
+            f"expected={CANONICAL_SOURCE_ACQUISITION} "
+            f"actual={value.get('sourceAcquisition')}"
+        )
+    if value.get("credentialSource") != CANONICAL_CREDENTIAL_SOURCE:
+        raise ValueError(
+            "TEI Git Data snapshot credential provenanceが固定経路と一致しません: "
+            f"expected={CANONICAL_CREDENTIAL_SOURCE} "
+            f"actual={value.get('credentialSource')}"
         )
 
     responses = value.get("responses")
@@ -139,14 +152,20 @@ def materialize_revision_b_source_from_snapshot(
         expected_objects=prepare.EXPECTED_OBJECTS,
         request_json=requester,
     )
-    result["sourceAcquisition"] = SNAPSHOT_SOURCE_ACQUISITION
-    result["credentialSource"] = SNAPSHOT_CREDENTIAL_SOURCE
-    result["transportSnapshot"] = {
+
+    # Acquisition provenance describes how the Git Data bytes originally came
+    # from GitHub. Snapshot is only the cross-environment transport. Keeping
+    # those two facts separate preserves the existing E2/E3 resume contract.
+    result["sourceAcquisition"] = snapshot["sourceAcquisition"]
+    result["credentialSource"] = snapshot["credentialSource"]
+    result["sourceTransport"] = {
+        "mode": SNAPSHOT_TRANSPORT_MODE,
         "schema": SNAPSHOT_SCHEMA,
         "sha256": snapshot_sha256,
         "responsesAvailable": len(responses),
         "responsesConsumed": len(requester.calls),
         "allConsumedResponsesUnique": len(set(requester.calls)) == len(requester.calls),
+        "runtimeCredentialUsed": False,
     }
     return result
 
