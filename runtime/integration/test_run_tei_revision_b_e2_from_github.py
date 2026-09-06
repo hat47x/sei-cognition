@@ -8,6 +8,18 @@ import run_tei_revision_b_e2_from_github as subject
 
 
 class TEIRevisionBE2FromGitHubTest(unittest.TestCase):
+    def setUp(self):
+        self.reference_input_patch = mock.patch.object(
+            subject.github_preflight,
+            "_check_reference_input",
+            return_value={
+                "mode": "historical_evidence_bundle",
+                "sourceCommit": subject.e2_runner.source_identity.REVISION_A,
+            },
+        )
+        self.reference_input_patch.start()
+        self.addCleanup(self.reference_input_patch.stop)
+
     def _common_patches(self, root: Path):
         evidence = root / "evidence"
         go = root / "go123" / "go"
@@ -87,6 +99,39 @@ class TEIRevisionBE2FromGitHubTest(unittest.TestCase):
             self.assertTrue(result["comparisonAxis"]["e3IntentionallyNotRun"])
             written = write_report.call_args.args[1]
             self.assertEqual("e2_bundle_verified_e3_not_run", written["result"])
+
+    def test_invalid_reference_input_stops_before_go_and_source_acquisition(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            evidence, go, _ = self._common_patches(root)
+
+            with mock.patch.object(
+                subject,
+                "_prepare_output_dir_before_source",
+                return_value=evidence,
+            ), mock.patch.object(
+                subject.github_preflight,
+                "_check_reference_input",
+                side_effect=ValueError("invalid revision A fixed input"),
+            ), mock.patch.object(
+                subject,
+                "_verify_e2_prerequisites_before_source",
+            ) as go_check, mock.patch.object(
+                subject.source_acquisition,
+                "materialize_revision_b_source",
+            ) as acquisition:
+                with self.assertRaisesRegex(ValueError, "invalid revision A fixed input"):
+                    subject.run_e2_from_github(
+                        None,
+                        evidence,
+                        reference_evidence_bundle=root / "a.tar.gz",
+                        tei_go_executable=go,
+                        token="placeholder",
+                    )
+
+            go_check.assert_not_called()
+            acquisition.assert_not_called()
+            self.assertFalse(evidence.exists())
 
     def test_invalid_e2_toolchain_stops_before_source_acquisition(self):
         with tempfile.TemporaryDirectory() as temporary:
