@@ -161,7 +161,7 @@ def prepare_checkout(source_repo: Path, output_repo: Path) -> dict[str, object]:
         )
         _ensure_detached_head(staging_repo)
 
-        pre_publish = source_identity.verify_repository(
+        source_identity.verify_repository(
             staging_repo,
             expected_head=source_identity.REVISION_B,
         )
@@ -197,12 +197,13 @@ def prepare_checkout(source_repo: Path, output_repo: Path) -> dict[str, object]:
             "result": "prepared_verified",
             "sourceRepository": str(source_repo),
             "sourceStateBefore": source_before,
-            "sourceStateUnchanged": True,
+            "sourceStateAfter": source_after_publish,
+            "sourceHeadAndStatusUnchanged": True,
             "outputRepository": str(output_repo),
             "revision": source_identity.REVISION_B,
             "detachedHead": True,
             "cloneMode": "local_no_hardlinks_no_checkout",
-            "prePublishVerification": pre_publish,
+            "prePublishIdentityVerified": True,
             "verification": verification,
             "qualityJudgement": "not_evaluated",
             "stopLine": STOP_LINE,
