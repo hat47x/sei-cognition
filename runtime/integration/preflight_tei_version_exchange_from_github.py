@@ -338,6 +338,19 @@ def run_preflight(
                 overwrite=overwrite,
             ),
         ),
+        _capture(
+            "source_temp_parent",
+            lambda: {
+                "temporaryParent": str(
+                    github_runner._prepare_source_temp_parent(
+                        output_dir,
+                        soza_repo_root,
+                        reference_source_repo,
+                    )
+                ),
+                "filesystemMutationPerformed": False,
+            },
+        ),
     ]
     blocked = [str(check["name"]) for check in checks if check["status"] != "ready"]
     ready = not blocked
@@ -359,7 +372,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "GitHub acquisition→canonical E2/E3を開始する前に、credential、platform、"
-            "revision A fixed input、SOZA source、E2/E3 Go、output pathを副作用なしで一括検査します。"
+            "revision A fixed input、SOZA source、E2/E3 Go、output path、source temp parentを"
+            "副作用なしで一括検査します。"
         ),
         allow_abbrev=False,
     )
