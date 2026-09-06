@@ -9,6 +9,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+import git_object_environment
 import runtime_path_safety as path_safety
 import verify_tei_execution_source_identity as source_identity
 
@@ -30,6 +31,7 @@ def _git(
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        env=git_object_environment.controlled_git_environment(),
     )
 
 
@@ -40,6 +42,7 @@ def _run(argv: list[str]) -> subprocess.CompletedProcess[str]:
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        env=git_object_environment.controlled_git_environment(),
     )
 
 
@@ -317,6 +320,7 @@ def prepare_checkout(source_repo: Path, output_repo: Path) -> dict[str, object]:
             "cloneMode": "local_no_hardlinks_no_checkout",
             "outputObjectDatabaseSelfContained": True,
             "prePublishIdentityVerified": True,
+            "gitObjectEnvironmentControlled": True,
             "verification": verification,
             "qualityJudgement": "not_evaluated",
             "stopLine": STOP_LINE,
