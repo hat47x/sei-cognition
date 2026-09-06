@@ -84,6 +84,50 @@ class TEIRevisionBCheckoutPreparationTest(unittest.TestCase):
             self.assertFalse(output.exists())
 
     @mock.patch.object(subject.source_identity, "verify_repository")
+    def test_unreferenced_revision_object_can_be_materialized_without_fetch(
+        self, verify_repository
+    ):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source, target = self.make_source(root)
+            initial_branch = self.git(
+                source, "symbolic-ref", "--short", "HEAD"
+            ).stdout.strip()
+
+            self.git(source, "checkout", "--orphan", "current", "-q")
+            self.git(source, "rm", "-rf", ".", check=False)
+            (source / "current.txt").write_text("current\n", encoding="utf-8")
+            self.git(source, "add", ".")
+            self.git(source, "commit", "-qm", "current")
+            self.git(source, "branch", "-D", initial_branch)
+
+            refs = self.git(source, "show-ref").stdout
+            self.assertNotIn(target, refs)
+            self.assertEqual(
+                0,
+                self.git(
+                    source,
+                    "cat-file",
+                    "-e",
+                    f"{target}^{{commit}}",
+                    check=False,
+                ).returncode,
+            )
+
+            output = root / "tei-revision-b"
+            observation = {"result": "verified", "head": target}
+            verify_repository.side_effect = [observation, observation]
+            with mock.patch.object(subject.source_identity, "REVISION_B", target):
+                result = subject.prepare_checkout(source, output)
+
+            self.assertEqual("prepared_verified", result["result"])
+            self.assertEqual(
+                target,
+                self.git(output, "rev-parse", "HEAD").stdout.strip(),
+            )
+            self.assertEqual(2, verify_repository.call_count)
+
+    @mock.patch.object(subject.source_identity, "verify_repository")
     def test_output_under_source_is_rejected(self, verify_repository):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
