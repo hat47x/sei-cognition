@@ -15,7 +15,7 @@ from runtime_path_safety import reject_symlink_path_or_ancestors
 
 SCHEMA = "soza.tei-revision-b-e2-github-run/v1"
 REPORT_NAME = "tei-revision-b-e2-github.json"
-BUNDLE_NAME = version_exchange.BUNDLE_NAME
+BUNDLE_NAME = "tei-e3b-p2-revision-b-e2-partial.tar.gz"
 SOZA_ROOT = Path(__file__).resolve().parents[2]
 STOP_LINE = (
     "revision B GitHub acquisition + fixed-scope E2 verified != E3 SOZA Adapter compatibility "
