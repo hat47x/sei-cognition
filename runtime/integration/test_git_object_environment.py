@@ -46,6 +46,12 @@ class GitObjectEnvironmentTest(unittest.TestCase):
             "GIT_NAMESPACE": "other",
             "GIT_REPLACE_REF_BASE": "refs/other-replace/",
             "GIT_GRAFT_FILE": "/tmp/not-the-graft-file",
+            "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "core.autocrlf",
+            "GIT_CONFIG_VALUE_0": "true",
+            "GIT_CONFIG_KEY_99": "core.filemode",
+            "GIT_CONFIG_VALUE_99": "false",
+            "GIT_CONFIG_PARAMETERS": "'core.autocrlf=true'",
             "GIT_DEFAULT_HASH": "sha256",
         }
 
@@ -53,9 +59,36 @@ class GitObjectEnvironmentTest(unittest.TestCase):
 
         for key in git_env.UNTRUSTED_GIT_ENVIRONMENT:
             self.assertNotIn(key, env)
+        self.assertFalse(any(key.startswith("GIT_CONFIG_KEY_") for key in env))
+        self.assertFalse(any(key.startswith("GIT_CONFIG_VALUE_") for key in env))
         self.assertEqual("1", env["GIT_NO_REPLACE_OBJECTS"])
         self.assertEqual("sha1", env["GIT_DEFAULT_HASH"])
         self.assertEqual(base["PATH"], env["PATH"])
+
+    def test_controlled_environment_preserves_repository_config_over_env_injection(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            self.git(repo, "init", "-q")
+            self.git(repo, "config", "core.autocrlf", "false")
+
+            poisoned = dict(os.environ)
+            poisoned.update(
+                {
+                    "GIT_CONFIG_COUNT": "1",
+                    "GIT_CONFIG_KEY_0": "core.autocrlf",
+                    "GIT_CONFIG_VALUE_0": "true",
+                }
+            )
+            self.assertEqual(
+                "true",
+                self.git(repo, "config", "--get", "core.autocrlf", env=poisoned),
+            )
+
+            controlled = git_env.controlled_git_environment(poisoned)
+            self.assertEqual(
+                "false",
+                self.git(repo, "config", "--get", "core.autocrlf", env=controlled),
+            )
 
     def test_verifier_ignores_ambient_git_object_directory(self):
         with tempfile.TemporaryDirectory() as tmp:
