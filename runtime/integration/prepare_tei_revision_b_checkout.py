@@ -121,7 +121,7 @@ def _normalized_new_output(path: Path) -> Path:
         "revision B checkout output",
     )
     normalized = Path(os.path.abspath(str(requested)))
-    if normalized.exists():
+    if normalized.exists() or normalized.is_symlink():
         raise ValueError(f"revision B checkout outputは新規pathである必要があります: {normalized}")
     if not normalized.parent.is_dir():
         raise ValueError(
@@ -144,6 +144,79 @@ def _reject_source_output_overlap(source_repo: Path, output_repo: Path) -> None:
             "source cloneを包含するpathをrevision B checkout outputにはできません: "
             f"source={source_repo} output={output_repo}"
         )
+
+
+def _prepare_report_output(
+    report_output: Path,
+    *,
+    source_repo: Path,
+    output_repo: Path,
+) -> Path:
+    requested = path_safety.lexical_absolute_path(report_output)
+    path_safety.reject_symlink_path_or_ancestors(
+        requested,
+        "revision B checkout preparation report",
+    )
+    report = Path(os.path.abspath(str(requested)))
+    if os.path.lexists(report):
+        raise ValueError(
+            "checkout preparation reportは新規pathである必要があります: "
+            f"{report}"
+        )
+    if not report.parent.is_dir():
+        raise ValueError(
+            "checkout preparation reportのparent directoryが存在しません: "
+            f"{report.parent}"
+        )
+    for label, root in (
+        ("source clone", source_repo),
+        ("revision B checkout output", output_repo),
+    ):
+        if report == root or root in report.parents:
+            raise ValueError(
+                f"checkout preparation reportを{label}配下には置けません: "
+                f"report={report} root={root}"
+            )
+    return report
+
+
+def _write_json_no_overwrite(path: Path, value: dict[str, object]) -> None:
+    path_safety.reject_symlink_path_or_ancestors(
+        path,
+        "revision B checkout preparation report",
+    )
+    candidate: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            candidate = Path(handle.name)
+            json.dump(value, handle, ensure_ascii=False, sort_keys=True, indent=2)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+
+        path_safety.reject_symlink_path_or_ancestors(
+            path,
+            "revision B checkout preparation report",
+        )
+        try:
+            os.link(candidate, path)
+        except FileExistsError as exc:
+            raise ValueError(
+                "checkout preparation reportがpublish前に作成されています。暗黙上書きしません: "
+                f"{path}"
+            ) from exc
+        candidate.unlink()
+        candidate = None
+    finally:
+        if candidate is not None and candidate.exists() and not candidate.is_symlink():
+            candidate.unlink()
 
 
 def _ensure_detached_head(repo: Path) -> None:
@@ -209,7 +282,7 @@ def prepare_checkout(source_repo: Path, output_repo: Path) -> dict[str, object]:
                 "checkout preparation中にsource cloneのHEADまたはworking-tree statusが変化しました"
             )
 
-        if output_repo.exists():
+        if output_repo.exists() or output_repo.is_symlink():
             raise ValueError(
                 "publish直前にrevision B checkout output pathが作成されています: "
                 f"{output_repo}"
@@ -257,6 +330,30 @@ def prepare_checkout(source_repo: Path, output_repo: Path) -> dict[str, object]:
             shutil.rmtree(staging_root)
 
 
+def prepare_checkout_with_report(
+    source_repo: Path,
+    output_repo: Path,
+    report_output: Path,
+) -> dict[str, object]:
+    source = source_repo.expanduser().resolve(strict=True)
+    output = _normalized_new_output(output_repo)
+    _reject_source_output_overlap(source, output)
+    report = _prepare_report_output(
+        report_output,
+        source_repo=source,
+        output_repo=output,
+    )
+
+    result = prepare_checkout(source, output)
+    try:
+        _write_json_no_overwrite(report, result)
+    except (OSError, ValueError):
+        if output.exists() and output.is_dir() and not output.is_symlink():
+            shutil.rmtree(output)
+        raise
+    return result
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
@@ -268,6 +365,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--source-repo", required=True, type=Path)
     parser.add_argument("--output-repo", required=True, type=Path)
+    parser.add_argument(
+        "--report-output",
+        type=Path,
+        help=(
+            "checkout preparation provenance JSONを安全な新規pathへ保存する。"
+            "source / output checkout配下は拒否する。"
+        ),
+    )
     parser.add_argument("--json", action="store_true")
     return parser
 
@@ -275,7 +380,14 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
-        result = prepare_checkout(args.source_repo, args.output_repo)
+        if args.report_output is None:
+            result = prepare_checkout(args.source_repo, args.output_repo)
+        else:
+            result = prepare_checkout_with_report(
+                args.source_repo,
+                args.output_repo,
+                args.report_output,
+            )
     except (OSError, ValueError, subprocess.SubprocessError) as exc:
         print(f"TEI revision B checkout preparation failed: {exc}")
         return 1
@@ -287,6 +399,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"- source repository: {result['sourceRepository']}")
         print(f"- output repository: {result['outputRepository']}")
         print(f"- revision: {result['revision']}")
+        if args.report_output is not None:
+            print(f"- report: {args.report_output.expanduser().resolve()}")
         print(result["stopLine"])
     return 0
 
