@@ -65,9 +65,12 @@ class TEIRevisionBCheckoutPreparationTest(unittest.TestCase):
             self.assertEqual("prepared_verified", result["result"])
             self.assertEqual(result["sourceStateBefore"], result["sourceStateAfter"])
             self.assertTrue(result["sourceHeadAndStatusUnchanged"])
+            self.assertTrue(result["sourceObjectDatabaseSelfContained"])
+            self.assertTrue(result["outputObjectDatabaseSelfContained"])
             self.assertTrue(result["prePublishIdentityVerified"])
             self.assertTrue(result["detachedHead"])
             self.assertEqual("local_no_hardlinks_no_checkout", result["cloneMode"])
+            self.assertEqual([], subject._alternate_object_databases(output))
             self.assertEqual(2, verify_repository.call_count)
             self.assertEqual(head, verify_repository.call_args_list[0].kwargs["expected_head"])
             self.assertEqual(head, verify_repository.call_args_list[1].kwargs["expected_head"])
@@ -81,6 +84,28 @@ class TEIRevisionBCheckoutPreparationTest(unittest.TestCase):
             with mock.patch.object(subject.source_identity, "REVISION_B", "f" * 40):
                 with self.assertRaisesRegex(ValueError, "commit objectがありません"):
                     subject.prepare_checkout(source, output)
+            self.assertFalse(output.exists())
+
+    @mock.patch.object(subject.source_identity, "verify_repository")
+    def test_source_alternate_object_database_is_rejected_before_clone(
+        self, verify_repository
+    ):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            base, head = self.make_source(root)
+            shared = root / "shared-source"
+            subprocess.run(
+                ["git", "clone", "--shared", "-q", str(base), str(shared)],
+                check=True,
+            )
+            self.assertTrue(subject._alternate_object_databases(shared))
+            output = root / "tei-revision-b"
+
+            with mock.patch.object(subject.source_identity, "REVISION_B", head):
+                with self.assertRaisesRegex(ValueError, "alternate object database"):
+                    subject.prepare_checkout(shared, output)
+
+            verify_repository.assert_not_called()
             self.assertFalse(output.exists())
 
     @mock.patch.object(subject.source_identity, "verify_repository")
@@ -125,6 +150,7 @@ class TEIRevisionBCheckoutPreparationTest(unittest.TestCase):
                 target,
                 self.git(output, "rev-parse", "HEAD").stdout.strip(),
             )
+            self.assertEqual([], subject._alternate_object_databases(output))
             self.assertEqual(2, verify_repository.call_count)
 
     @mock.patch.object(subject.source_identity, "verify_repository")
