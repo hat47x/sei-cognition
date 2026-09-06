@@ -166,6 +166,10 @@ PR #278では、E2でactual build / Provider Plan / bundle verificationを終え
 
 PR #281では、canonical bundle / canonical report / GitHub wrapper reportの出力pathをactual開始前preflightでsymlink検査へ揃えました。dangling symlinkも`--overwrite`で削除して続行せず、canonical runnerとGitHub preflightの両方でactual開始前に拒否します。
 
+PR #283では、GitHub one-shotがrevision B sourceをmaterializeするtemporary parentもpreflight境界へ上げました。temporary parentがSOZA repository、revision A checkout、Evidence directoryの内部にある場合や、path自身またはancestorがsymlinkの場合はsource acquisition前に拒否します。preflight後もactual source acquisition直前に同じhelperを再実行し、検証済みparentを`TemporaryDirectory(dir=...)`へ明示します。
+
+PR #284では、temporary parentのpreflightで`tempfile.gettempdir()`を使わないよう修正しました。Pythonの`gettempdir()`は初回解決時にcandidate directoryへtemporary fileをcreate/write/deleteして利用可否をprobeするため、「副作用なしpreflight」と両立しません。現在はLinux actual scopeに合わせて`TMPDIR` → `TEMP` → `TMP` → `/tmp`の順で候補を選び、存在・directory・symlink境界・write/traverse accessをread-onlyで確認します。actual runで初めて検証済みparent配下へtemporary directoryを作成します。
+
 ## 4. actual開始前preflight
 
 actual source取得・checkout preparationを始める前に不足条件を一括確認する副作用なしpreflightは、取得経路ごとに分かれます。
@@ -188,10 +192,15 @@ PR #260 の入口:
 - E3 Goがcurrent `runtime/go/go.mod`のdirective以上であること
 - Evidence output pathのstatic safety / existing canonical outputs
 - canonical bundle / report / wrapper report pathがsymlinkまたはsymlink ancestor経由でないこと
+- revision B source temporary parentのstatic safety
+  - `TMPDIR` → `TEMP` → `TMP` → `/tmp`の順で候補を選ぶ
+  - SOZA repository / revision A checkout / Evidence directory配下を拒否する
+  - path自身またはancestorのsymlinkを拒否する
+  - existence / directory / write-traverse accessをfile createなしで確認する
 
-preflightはGitHub APIへ接続せず、revision B sourceをmaterializeせず、Evidence outputを作成しません。また最初のfailureで停止せず、全checkを実行して`blockedChecks`へ不足をまとめます。
+preflightはGitHub APIへ接続せず、revision B sourceをmaterializeせず、Evidence outputを作成しません。また最初のfailureで停止せず、全checkを実行して`blockedChecks`へ不足をまとめます。PR #284以降、`source_temp_parent` checkもcandidate directoryへprobe fileを作らないため、この副作用なし境界と一致します。
 
-PR #280以降は`run_tei_version_exchange_from_github.py`もこのpreflightをsource acquisition前に再利用します。したがってstandalone preflightを先に実行する標準手順はoperatorが不足条件を確認するために維持しますが、one-shot actual path自体も`ready`を要求します。
+PR #280以降は`run_tei_version_exchange_from_github.py`もこのpreflightをsource acquisition前に再利用します。したがってstandalone preflightを先に実行する標準手順はoperatorが不足条件を確認するために維持しますが、one-shot actual path自体も`ready`を要求します。PR #283以降はpreflightが`ready`でもsource acquisition直前にtemporary parentを再検査し、unsafeへ変化していればacquisitionを開始しません。
 
 ### 4.2 local prepositioned経路
 
@@ -315,6 +324,8 @@ SOZA_HEAD="$(git -C "$SOZA_REPO" rev-parse HEAD)"
 
 追加でprivate `hat47x/tei-platform`をread可能な`GITHUB_TOKEN`または`GH_TOKEN`を準備します。
 
+source temporary parentは`TMPDIR`、`TEMP`、`TMP`のうち最初に設定されたpath、いずれも未設定なら`/tmp`です。明示設定する場合はSOZA repository / revision A checkout / Evidence directoryの外側にあるexisting non-symlink directoryを使います。preflightで`source_temp_parent`がblockedになった場合は、この環境変数またはpath境界を確認します。
+
 historical revision A Evidence bundleを使う例:
 
 ```bash
@@ -341,7 +352,7 @@ python3 "$SOZA_REPO/runtime/integration/run_tei_version_exchange_from_github.py"
   --json
 ```
 
-one-shot runner自身も同じ副作用なしpreflightを再実行し、`ready`でなければsource acquisitionより前に停止します。したがって上段のstandalone preflightは事前確認・blockedChecksの把握用であり、actual runner側の安全性をoperator手順だけへ依存させません。
+one-shot runner自身も同じ副作用なしpreflightを再実行し、`ready`でなければsource acquisitionより前に停止します。したがって上段のstandalone preflightは事前確認・blockedChecksの把握用であり、actual runner側の安全性をoperator手順だけへ依存させません。source temporary parentもactual source取得直前に再検査します。
 
 ### 6.2 local prepositioned経路
 
@@ -446,6 +457,12 @@ GitHub acquisition -> canonical E2/E3 wrapper
 
 GitHub one-shot automatic preflight before acquisition
   = implemented
+
+GitHub source temporary parent preflight / actual recheck
+  = implemented
+
+GitHub source temporary parent side-effect-free resolution
+  = implemented; TMPDIR -> TEMP -> TMP -> /tmp, no gettempdir write probe
 
 TEI source Git object / config environment isolation
   = implemented for canonical verifier, local preflight/preparation, and GitHub acquisition
