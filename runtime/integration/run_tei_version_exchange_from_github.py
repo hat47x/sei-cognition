@@ -59,14 +59,61 @@ def _prepare_wrapper_report_path(output_dir: Path, *, overwrite: bool) -> Path:
     return report
 
 
-def _write_report(path: Path, value: dict[str, object]) -> None:
+def _write_report(
+    path: Path,
+    value: dict[str, object],
+    *,
+    overwrite: bool,
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    candidate = path.with_name(path.name + ".tmp")
-    candidate.write_text(
-        json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
-        encoding="utf-8",
+    reject_symlink_path_or_ancestors(
+        path,
+        "TEI GitHub-acquired version exchange report",
     )
-    os.replace(candidate, path)
+    if path.exists():
+        if not overwrite:
+            raise ValueError(
+                "GitHub acquisition reportが実行中に作成されました。暗黙上書きしません: "
+                f"{path}"
+            )
+        if not path.is_file():
+            raise ValueError(f"GitHub acquisition report出力先がfileではありません: {path}")
+
+    candidate: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            candidate = Path(handle.name)
+            json.dump(value, handle, ensure_ascii=False, sort_keys=True, indent=2)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+
+        reject_symlink_path_or_ancestors(
+            path,
+            "TEI GitHub-acquired version exchange report",
+        )
+        if path.exists():
+            if not overwrite:
+                raise ValueError(
+                    "GitHub acquisition reportがpublish直前に作成されました。"
+                    f"暗黙上書きしません: {path}"
+                )
+            if not path.is_file():
+                raise ValueError(
+                    f"GitHub acquisition report出力先がfileではありません: {path}"
+                )
+        os.replace(candidate, path)
+        candidate = None
+    finally:
+        if candidate is not None and candidate.exists() and not candidate.is_symlink():
+            candidate.unlink()
 
 
 def _source_provenance(acquisition: dict[str, object]) -> dict[str, object]:
@@ -149,7 +196,7 @@ def run_from_github(
                 "qualityJudgement": "not_evaluated",
                 "stopLine": STOP_LINE,
             }
-            _write_report(report_path, report)
+            _write_report(report_path, report, overwrite=overwrite)
             raise GitHubAcquiredVersionExchangeFailed(
                 exc.stage,
                 report_path,
@@ -172,7 +219,7 @@ def run_from_github(
         "qualityJudgement": "not_evaluated",
         "stopLine": STOP_LINE,
     }
-    _write_report(report_path, report)
+    _write_report(report_path, report, overwrite=overwrite)
     return report
 
 
