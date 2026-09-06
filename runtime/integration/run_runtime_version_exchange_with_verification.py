@@ -11,7 +11,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from runtime_path_safety import reject_symlink_path_or_ancestors
+from runtime_path_safety import lexical_absolute_path, reject_symlink_path_or_ancestors
 
 INTEGRATION_DIR = Path(__file__).resolve().parent
 SOZA_ROOT = INTEGRATION_DIR.parents[1]
@@ -176,7 +176,7 @@ def _effective_work_dir(evidence_dir: Path, requested_work_dir: Path | None) -> 
     """preflightとstrict entrypointが同じwork pathを診断・利用するよう一度だけ確定する。"""
 
     if requested_work_dir is not None:
-        return _canonical_path(requested_work_dir)
+        return lexical_absolute_path(requested_work_dir)
     return evidence_dir.parent / f"{evidence_dir.name}-work"
 
 
