@@ -13,6 +13,7 @@ import urllib.request
 from pathlib import Path
 from typing import Callable, Mapping
 
+import git_object_environment
 from runtime_path_safety import reject_symlink_path_or_ancestors
 from verify_tei_execution_source_identity import (
     EXPECTED_OBJECTS,
@@ -52,6 +53,7 @@ def _run_git(
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         check=False,
+        env=git_object_environment.controlled_git_environment(),
     )
 
 
@@ -467,6 +469,7 @@ def materialize_revision_b_source(
             "outputDirectory": str(output),
             "credentialSource": "environment",
             "objectAcquisition": acquirer.observation(),
+            "gitObjectEnvironmentControlled": True,
             "canonicalSourceVerification": verification,
             "revisionBBuildPass": False,
             "providerPlanExecutionPass": False,
