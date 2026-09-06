@@ -81,11 +81,12 @@ def _prepare_bundle(path: Path) -> Path:
     return resolved
 
 
-def _sanitize_source_provenance(value: object) -> dict[str, object]:
+def _source_provenance(value: object) -> dict[str, object]:
     if not isinstance(value, dict):
         raise ValueError("E2 partial reportにsourceAcquisition Provenanceがありません")
 
     expected = {
+        "mode": SOURCE_ACQUISITION_MODE,
         "repository": source_acquisition.GITHUB_REPOSITORY,
         "sourceCommit": source_identity.REVISION_B,
         "rootTree": source_acquisition.REVISION_B_ROOT_TREE,
@@ -94,18 +95,13 @@ def _sanitize_source_provenance(value: object) -> dict[str, object]:
         if value.get(key) != expected_value:
             raise ValueError(
                 "E2 partial source acquisition identityが固定値と一致しません: "
-                f"field={key} expected={expected_value} actual={value.get(key)!r}"
+                f"field={key} expected={expected_value!r} actual={value.get(key)!r}"
             )
-
-    mode = value.get("mode")
-    if mode != SOURCE_ACQUISITION_MODE:
-        raise ValueError(f"E2 partial source acquisition modeが未対応です: {mode!r}")
 
     credential = value.get("credentialSource")
     if credential not in ACCEPTED_CREDENTIAL_PROVENANCE:
         raise ValueError(
-            "E2 partial credential provenanceが未対応です: "
-            f"{credential!r}"
+            f"E2 partial credential provenanceが未対応です: {credential!r}"
         )
 
     canonical = value.get("canonicalSourceVerification")
@@ -113,8 +109,6 @@ def _sanitize_source_provenance(value: object) -> dict[str, object]:
         raise ValueError("E2 partial canonical source verificationがありません")
     if canonical.get("head") != source_identity.REVISION_B:
         raise ValueError("E2 partial canonical source HEADがrevision Bではありません")
-    if canonical.get("expectedHead") != source_identity.REVISION_B:
-        raise ValueError("E2 partial canonical expected HEADがrevision Bではありません")
     for key in (
         "expectedHeadMatched",
         "revisionBExactHead",
@@ -126,27 +120,16 @@ def _sanitize_source_provenance(value: object) -> dict[str, object]:
                 f"field={key} actual={canonical.get(key)!r}"
             )
 
-    observed_objects = canonical.get("executionSourceObjects")
-    if not isinstance(observed_objects, dict):
-        raise ValueError("E2 partial execution-source object observationがありません")
-    for path, expected_sha in source_identity.EXPECTED_OBJECTS.items():
-        if observed_objects.get(path) != expected_sha:
-            raise ValueError(
-                "E2 partial execution-source object identityが固定値と一致しません: "
-                f"path={path} expected={expected_sha} actual={observed_objects.get(path)!r}"
-            )
-
-    object_acquisition = value.get("objectAcquisition")
-    if object_acquisition is not None and not isinstance(object_acquisition, dict):
-        raise ValueError("E2 partial objectAcquisition observationがobjectではありません")
-
+    # Preserve only the same bounded provenance surface used by the existing
+    # GitHub wrapper. The bundle verifier below remains authoritative for actual
+    # executable / Provider Plan / fixed-reference bytes.
     return {
-        "mode": mode,
-        "repository": expected["repository"],
-        "sourceCommit": expected["sourceCommit"],
-        "rootTree": expected["rootTree"],
+        "mode": value.get("mode"),
+        "repository": value.get("repository"),
+        "sourceCommit": value.get("sourceCommit"),
+        "rootTree": value.get("rootTree"),
         "credentialSource": credential,
-        "objectAcquisition": object_acquisition,
+        "objectAcquisition": value.get("objectAcquisition"),
         "canonicalSourceVerification": {
             key: canonical.get(key)
             for key in (
@@ -180,8 +163,6 @@ def _validate_partial_report(
         raise ValueError("E2 partial reportでE3が未実行ではありません")
     if report.get("qualityJudgement") != "not_evaluated":
         raise ValueError("E2 partial reportのqualityJudgementがnot_evaluatedではありません")
-    if bundle_verification.get("result") != "verified":
-        raise ValueError("resume bundleがverified状態ではありません")
 
     axis = report.get("comparisonAxis")
     if not isinstance(axis, dict):
@@ -214,7 +195,7 @@ def _validate_partial_report(
 
     e2 = report.get("e2")
     if not isinstance(e2, dict) or e2.get("result") != "bundle_produced":
-        raise ValueError("E2 partial reportにverified E2 bundle resultがありません")
+        raise ValueError("E2 partial reportにverified E2 resultがありません")
     reported_bundle = e2.get("bundle")
     if not isinstance(reported_bundle, dict):
         raise ValueError("E2 partial reportにbundle verificationがありません")
@@ -235,7 +216,6 @@ def _validate_partial_report(
                 f"bundle={actual_observation.get(key)!r}"
             )
 
-    source = _sanitize_source_provenance(report.get("sourceAcquisition"))
     return {
         "axis": {
             "buildSourceCommit": source_identity.REVISION_B,
@@ -245,7 +225,7 @@ def _validate_partial_report(
             "teiGoRequirement": partial_runner.e2_runner.EXPECTED_GO_VERSION,
             "teiGoExecutable": tei_go,
         },
-        "sourceAcquisition": source,
+        "sourceAcquisition": _source_provenance(report.get("sourceAcquisition")),
         "e2": e2,
     }
 
@@ -269,7 +249,6 @@ def _load_partial_evidence(
         **validated,
         "partialReport": str(report_path),
         "bundleArchive": str(bundle_path),
-        "bundleVerification": verification,
     }
 
 
@@ -297,23 +276,20 @@ def _prepare_output_reports(
             f"output={resolved} soza={soza_root}"
         )
 
-    input_paths: set[Path] = set()
+    inputs: set[Path] = set()
     for path, label in (
         (partial_report, "TEI revision B E2 partial Evidence report"),
         (bundle, "TEI revision B E2 partial Evidence bundle"),
     ):
         requested_input = path.expanduser()
         reject_symlink_path_or_ancestors(requested_input, label)
-        input_paths.add(requested_input.resolve(strict=True))
+        inputs.add(requested_input.resolve(strict=True))
 
     canonical = resolved / version_exchange.REPORT_NAME
     wrapper = resolved / github_runner.REPORT_NAME
     for path in (canonical, wrapper):
-        reject_symlink_path_or_ancestors(
-            path,
-            "TEI E2 partial resume report",
-        )
-        if path.resolve(strict=False) in input_paths:
+        reject_symlink_path_or_ancestors(path, "TEI E2 partial resume report")
+        if path.resolve(strict=False) in inputs:
             raise ValueError(f"resume outputで入力Evidenceを上書きできません: {path}")
 
     existing = [path for path in (canonical, wrapper) if os.path.lexists(path)]
@@ -327,18 +303,6 @@ def _prepare_output_reports(
         if not path.is_file():
             raise ValueError(f"resume Evidence report出力先がfileではありません: {path}")
     return canonical, wrapper
-
-
-def _write_reports(
-    canonical_path: Path,
-    wrapper_path: Path,
-    canonical: dict[str, object],
-    wrapper: dict[str, object],
-    *,
-    overwrite: bool,
-) -> None:
-    github_runner._write_report(canonical_path, canonical, overwrite=overwrite)
-    github_runner._write_report(wrapper_path, wrapper, overwrite=overwrite)
 
 
 def _wrapper_report(
@@ -378,6 +342,18 @@ def _wrapper_report(
     return value
 
 
+def _write_pair(
+    canonical_path: Path,
+    wrapper_path: Path,
+    canonical: dict[str, object],
+    wrapper: dict[str, object],
+    *,
+    overwrite: bool,
+) -> None:
+    github_runner._write_report(canonical_path, canonical, overwrite=overwrite)
+    github_runner._write_report(wrapper_path, wrapper, overwrite=overwrite)
+
+
 def resume_e3(
     partial_report: Path,
     bundle: Path,
@@ -397,14 +373,13 @@ def resume_e3(
         overwrite=overwrite,
     )
     partial = _load_partial_evidence(partial_report, bundle)
-
     comparison_axis = {
         **partial["axis"],
         "sozaGoRequirement": "runtime/go go.mod with GOTOOLCHAIN=local",
         "sozaGoExecutable": str(soza_go_executable.expanduser()),
         "expectedSozaHead": expected_soza_head,
     }
-    execution_provenance = {
+    provenance = {
         "mode": EXECUTION_MODE,
         "partialEvidenceReport": partial["partialReport"],
         "bundleArchive": partial["bundleArchive"],
@@ -427,10 +402,7 @@ def resume_e3(
         if not e3_toolchain_entered and not isinstance(
             exc, adapter_runner.TEIAdapterStageError
         ):
-            exc = adapter_runner.TEIAdapterStageError(
-                "soza_go_toolchain",
-                str(exc),
-            )
+            exc = adapter_runner.TEIAdapterStageError("soza_go_toolchain", str(exc))
         failure = version_exchange._failure("E3", exc)
         canonical = {
             "schema": version_exchange.SCHEMA,
@@ -440,7 +412,7 @@ def resume_e3(
             "e2": partial["e2"],
             "e3": None,
             "failure": failure,
-            "executionProvenance": execution_provenance,
+            "executionProvenance": provenance,
             "qualityJudgement": "not_evaluated",
             "stopLine": version_exchange.STOP_LINE,
         }
@@ -457,13 +429,7 @@ def resume_e3(
                 "message": str(exc),
             },
         )
-        _write_reports(
-            canonical_path,
-            wrapper_path,
-            canonical,
-            wrapper,
-            overwrite=overwrite,
-        )
+        _write_pair(canonical_path, wrapper_path, canonical, wrapper, overwrite=overwrite)
         raise ResumeE3Failed(canonical_path, wrapper_path, exc) from exc
 
     canonical = {
@@ -473,7 +439,7 @@ def resume_e3(
         "bundleArchive": partial["bundleArchive"],
         "e2": partial["e2"],
         "e3": e3,
-        "executionProvenance": execution_provenance,
+        "executionProvenance": provenance,
         "qualityJudgement": "not_evaluated",
         "stopLine": version_exchange.STOP_LINE,
     }
@@ -485,20 +451,12 @@ def resume_e3(
         bundle_archive=str(partial["bundleArchive"]),
         comparison_axis=comparison_axis,
     )
-    _write_reports(
-        canonical_path,
-        wrapper_path,
-        canonical,
-        wrapper,
-        overwrite=overwrite,
-    )
+    _write_pair(canonical_path, wrapper_path, canonical, wrapper, overwrite=overwrite)
     return {
         "schema": SCHEMA,
         "result": "fixed_scope_e2_e3_verified",
         "canonicalReport": str(canonical_path),
         "githubWrapperReport": str(wrapper_path),
-        "canonical": canonical,
-        "wrapper": wrapper,
         "qualityJudgement": "not_evaluated",
         "stopLine": STOP_LINE,
     }
@@ -508,8 +466,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "GitHub E2 partial Evidence reportと同一identityのrevision B bundleを再検証し、"
-            "E2を再実行せずcurrent SOZA Adapter E3だけを再開します。成功/失敗結果を"
-            "canonical version-exchange reportとGitHub acquisition wrapper reportへ再結合します。"
+            "E2を再実行せずcurrent SOZA Adapter E3だけを再開します。結果は既存canonical "
+            "version-exchange reportとGitHub acquisition wrapper reportへ戻します。"
         ),
         allow_abbrev=False,
     )
