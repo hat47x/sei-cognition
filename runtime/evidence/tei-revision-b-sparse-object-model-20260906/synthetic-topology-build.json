@@ -1,0 +1,80 @@
+{
+  "schema": "soza.tei-revision-b-sparse-object-model/v1",
+  "observedDate": "2026-09-06",
+  "purpose": "Fix the synthetic Git/Go boundary for a future acquisition path that may possess exact execution-boundary bytes without a complete source clone. This is not actual revision B execution Evidence.",
+  "environment": {
+    "platform": "linux/amd64",
+    "goVersion": "go1.23.2 linux/amd64",
+    "gitVersion": "2.47.3"
+  },
+  "model": {
+    "executionBoundary": [
+      "cmd",
+      "internal",
+      "reference",
+      "go.mod",
+      "go.sum"
+    ],
+    "historicalBuildCommandShape": "go build -trimpath -ldflags=-s -w -o <binary> ./cmd/<fixture>",
+    "buildVcsDisabled": false
+  },
+  "negativeControl": {
+    "name": "exact-head-root-tree-with-missing-unrelated-subtree-objects",
+    "setup": [
+      "materialize execution-boundary file bytes",
+      "write execution-boundary Git blobs/trees",
+      "construct exact root tree using git mktree --missing",
+      "write exact commit object and set HEAD",
+      "leave unrelated subtree objects absent"
+    ],
+    "gitBoundaryStatusUsable": false,
+    "goBuildExitCode": 1,
+    "observedFailure": "error obtaining VCS status: exit status 128",
+    "interpretation": "An exact HEAD plus root tree and boundary bytes alone is insufficient for the ordinary historical Go build path because Go 1.23.2 asks Git for VCS status. Adding -buildvcs=false would change the historical build condition and was not adopted."
+  },
+  "positiveControl": {
+    "name": "complete-tree-topology-with-boundary-blobs-and-sparse-index",
+    "setup": [
+      "materialize execution-boundary file bytes",
+      "write execution-boundary Git blobs/trees",
+      "reconstruct every tree object in the source commit bottom-up with git mktree --missing",
+      "leave unrelated regular-file blob bytes absent",
+      "write exact commit object and set HEAD",
+      "populate index from HEAD",
+      "enable non-cone sparse checkout for cmd/internal/reference/go.mod/go.sum",
+      "materialize only execution-boundary files"
+    ],
+    "globalGitStatusClean": true,
+    "boundaryGitStatusClean": true,
+    "unrelatedBlobConfirmedMissing": true,
+    "goBuildExitCode": 0,
+    "builtProgramExecuted": true,
+    "builtProgramStdout": "ok",
+    "interpretation": "The historical Go 1.23.2 build can retain normal VCS stamping without unrelated blob bytes when the complete Git tree topology, exact commit object, full index metadata, and execution-boundary bytes are present."
+  },
+  "designConsequence": {
+    "minimalContentOnlyAcquisitionForCanonicalBuild": [
+      "complete tree topology for the fixed source commit",
+      "exact signed commit object",
+      "actual bytes and Git modes for cmd/internal/reference/go.mod/go.sum",
+      "a sparse index/worktree that is clean against the exact HEAD"
+    ],
+    "allRepositoryBlobBytesRequired": false,
+    "allRepositoryTreeObjectsRequiredForObservedModel": true,
+    "historicalBuildConditionCanRemainUnchanged": true,
+    "buildVcsFalseRequired": false
+  },
+  "currentEvidenceBoundary": {
+    "syntheticModelVerified": true,
+    "actualRevisionBSourceBytesFullyMaterialized": false,
+    "actualRevisionBTreeTopologyMaterializedInExecutionEnvironment": false,
+    "actualRevisionBCheckoutPrepared": false,
+    "actualRevisionBExecution": false,
+    "revisionBBuildPass": false,
+    "providerPlanExecutionPass": false,
+    "sozaAdapterCompatibilityPass": false,
+    "issue000072Resolved": false,
+    "qualityJudgement": "not_evaluated"
+  },
+  "stopLine": "synthetic sparse-object topology model verified != actual revision B tree/object materialization != exact revision B checkout prepared != revision B build PASS != Provider Plan execution PASS != SOZA Adapter compatibility PASS != ISSUE-000072 Resolved"
+}
