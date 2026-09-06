@@ -1,3 +1,4 @@
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -8,7 +9,7 @@ import run_tei_version_exchange_from_github as subject
 
 
 class TEIGitHubSourceTempParentTest(unittest.TestCase):
-    def test_common_parent_is_allowed_but_input_or_output_descendant_is_rejected(self):
+    def test_common_parent_is_allowed_without_tempfile_write_probe(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             soza = root / "soza"
@@ -17,11 +18,64 @@ class TEIGitHubSourceTempParentTest(unittest.TestCase):
             for path in (soza, reference, evidence):
                 path.mkdir()
 
-            with mock.patch.object(subject.tempfile, "gettempdir", return_value=str(root)):
+            before = sorted(path.name for path in root.iterdir())
+            with mock.patch.dict(
+                os.environ,
+                {"TMPDIR": str(root)},
+                clear=True,
+            ), mock.patch.object(
+                subject.tempfile,
+                "gettempdir",
+                side_effect=AssertionError("gettempdir must not be used by preflight"),
+            ):
                 self.assertEqual(
                     root.resolve(),
                     subject._prepare_source_temp_parent(evidence, soza, reference),
                 )
+            after = sorted(path.name for path in root.iterdir())
+            self.assertEqual(before, after)
+
+    def test_temp_environment_precedence_and_linux_fallback_are_deterministic(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            tmpdir = root / "tmpdir"
+            temp = root / "temp"
+            tmp = root / "tmp"
+            for path in (tmpdir, temp, tmp):
+                path.mkdir()
+
+            with mock.patch.dict(
+                os.environ,
+                {"TMPDIR": str(tmpdir), "TEMP": str(temp), "TMP": str(tmp)},
+                clear=True,
+            ):
+                self.assertEqual(tmpdir, subject._requested_source_temp_parent())
+            with mock.patch.dict(
+                os.environ,
+                {"TEMP": str(temp), "TMP": str(tmp)},
+                clear=True,
+            ):
+                self.assertEqual(temp, subject._requested_source_temp_parent())
+            with mock.patch.dict(
+                os.environ,
+                {"TMP": str(tmp)},
+                clear=True,
+            ):
+                self.assertEqual(tmp, subject._requested_source_temp_parent())
+            with mock.patch.dict(os.environ, {}, clear=True):
+                self.assertEqual(
+                    Path(subject.SOURCE_TEMP_FALLBACK),
+                    subject._requested_source_temp_parent(),
+                )
+
+    def test_input_or_output_descendant_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            soza = root / "soza"
+            reference = root / "reference-a"
+            evidence = root / "evidence"
+            for path in (soza, reference, evidence):
+                path.mkdir()
 
             for label, unsafe in (
                 ("SOZA repository", soza / "tmp"),
@@ -30,10 +84,10 @@ class TEIGitHubSourceTempParentTest(unittest.TestCase):
             ):
                 with self.subTest(label=label):
                     unsafe.mkdir()
-                    with mock.patch.object(
-                        subject.tempfile,
-                        "gettempdir",
-                        return_value=str(unsafe),
+                    with mock.patch.dict(
+                        os.environ,
+                        {"TMPDIR": str(unsafe)},
+                        clear=True,
                     ):
                         with self.assertRaisesRegex(ValueError, label):
                             subject._prepare_source_temp_parent(
@@ -49,6 +103,7 @@ class TEIGitHubSourceTempParentTest(unittest.TestCase):
             unsafe = soza / "tmp"
             unsafe.mkdir(parents=True)
             output = root / "evidence"
+            before = sorted(path.name for path in unsafe.iterdir())
 
             ready = {"ready": True}
             with mock.patch.object(preflight, "_check_platform", return_value=ready), mock.patch.object(
@@ -71,10 +126,14 @@ class TEIGitHubSourceTempParentTest(unittest.TestCase):
                 preflight,
                 "_check_output_path",
                 return_value=ready,
+            ), mock.patch.dict(
+                os.environ,
+                {"TMPDIR": str(unsafe)},
+                clear=True,
             ), mock.patch.object(
                 subject.tempfile,
                 "gettempdir",
-                return_value=str(unsafe),
+                side_effect=AssertionError("gettempdir must not be used by preflight"),
             ):
                 result = preflight.run_preflight(
                     None,
@@ -91,6 +150,7 @@ class TEIGitHubSourceTempParentTest(unittest.TestCase):
             self.assertFalse(output.exists())
             self.assertFalse(result["revisionBSourceMaterialized"])
             self.assertFalse(result["evidenceOutputCreated"])
+            self.assertEqual(before, sorted(path.name for path in unsafe.iterdir()))
 
     def test_one_shot_rechecks_temp_parent_before_source_acquisition(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -104,10 +164,10 @@ class TEIGitHubSourceTempParentTest(unittest.TestCase):
                 subject,
                 "_run_preflight",
                 return_value={"ready": True, "blockedChecks": []},
-            ), mock.patch.object(
-                subject.tempfile,
-                "gettempdir",
-                return_value=str(unsafe),
+            ), mock.patch.dict(
+                os.environ,
+                {"TMPDIR": str(unsafe)},
+                clear=True,
             ), mock.patch.object(
                 subject.source_acquisition,
                 "materialize_revision_b_source",
