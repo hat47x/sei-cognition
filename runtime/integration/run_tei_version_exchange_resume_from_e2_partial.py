@@ -21,6 +21,7 @@ from runtime_path_safety import reject_symlink_path_or_ancestors
 
 SCHEMA = "soza.tei-version-exchange-e2-partial-resume/v1"
 EXECUTION_MODE = "e2_partial_then_e3_resume"
+SOURCE_ACQUISITION_MODE = "github-git-data-api-content-addressed"
 ACCEPTED_CREDENTIAL_PROVENANCE = {"environment", "GITHUB_TOKEN", "GH_TOKEN"}
 STOP_LINE = (
     "persisted E2 partial Evidence + resumed E3 verified "
@@ -96,13 +97,8 @@ def _sanitize_source_provenance(value: object) -> dict[str, object]:
                 f"field={key} expected={expected_value} actual={value.get(key)!r}"
             )
 
-    if value.get("mode") != source_acquisition.STOP_LINE and False:
-        # Unreachable by design. Keep acquisition mode validation below explicit
-        # instead of coupling it to a human-readable stop line.
-        raise AssertionError("unreachable")
-
     mode = value.get("mode")
-    if mode != "github-git-data-api-content-addressed":
+    if mode != SOURCE_ACQUISITION_MODE:
         raise ValueError(f"E2 partial source acquisition modeが未対応です: {mode!r}")
 
     credential = value.get("credentialSource")
@@ -117,6 +113,8 @@ def _sanitize_source_provenance(value: object) -> dict[str, object]:
         raise ValueError("E2 partial canonical source verificationがありません")
     if canonical.get("head") != source_identity.REVISION_B:
         raise ValueError("E2 partial canonical source HEADがrevision Bではありません")
+    if canonical.get("expectedHead") != source_identity.REVISION_B:
+        raise ValueError("E2 partial canonical expected HEADがrevision Bではありません")
     for key in (
         "expectedHeadMatched",
         "revisionBExactHead",
@@ -182,6 +180,8 @@ def _validate_partial_report(
         raise ValueError("E2 partial reportでE3が未実行ではありません")
     if report.get("qualityJudgement") != "not_evaluated":
         raise ValueError("E2 partial reportのqualityJudgementがnot_evaluatedではありません")
+    if bundle_verification.get("result") != "verified":
+        raise ValueError("resume bundleがverified状態ではありません")
 
     axis = report.get("comparisonAxis")
     if not isinstance(axis, dict):
@@ -201,6 +201,16 @@ def _validate_partial_report(
     acquisition = axis.get("referenceInputAcquisition")
     if acquisition not in {"git_checkout", "historical_evidence_bundle"}:
         raise ValueError(f"referenceInputAcquisitionが未対応です: {acquisition!r}")
+    reference_bundle = axis.get("referenceInputBundle")
+    if acquisition == "historical_evidence_bundle":
+        if not isinstance(reference_bundle, str) or not reference_bundle:
+            raise ValueError("historical fixed input acquisitionにreferenceInputBundleがありません")
+    elif reference_bundle is not None:
+        raise ValueError("git checkout fixed input acquisitionでreferenceInputBundleが設定されています")
+
+    tei_go = axis.get("teiGoExecutable")
+    if not isinstance(tei_go, str) or not tei_go:
+        raise ValueError("E2 partial reportにTEI Go executable provenanceがありません")
 
     e2 = report.get("e2")
     if not isinstance(e2, dict) or e2.get("result") != "bundle_produced":
@@ -231,9 +241,9 @@ def _validate_partial_report(
             "buildSourceCommit": source_identity.REVISION_B,
             "referenceInputSourceCommit": source_identity.REVISION_A,
             "referenceInputAcquisition": acquisition,
-            "referenceInputBundle": axis.get("referenceInputBundle"),
+            "referenceInputBundle": reference_bundle,
             "teiGoRequirement": partial_runner.e2_runner.EXPECTED_GO_VERSION,
-            "teiGoExecutable": axis.get("teiGoExecutable"),
+            "teiGoExecutable": tei_go,
         },
         "sourceAcquisition": source,
         "e2": e2,
@@ -287,12 +297,17 @@ def _prepare_output_reports(
             f"output={resolved} soza={soza_root}"
         )
 
+    input_paths: set[Path] = set()
+    for path, label in (
+        (partial_report, "TEI revision B E2 partial Evidence report"),
+        (bundle, "TEI revision B E2 partial Evidence bundle"),
+    ):
+        requested_input = path.expanduser()
+        reject_symlink_path_or_ancestors(requested_input, label)
+        input_paths.add(requested_input.resolve(strict=True))
+
     canonical = resolved / version_exchange.REPORT_NAME
     wrapper = resolved / github_runner.REPORT_NAME
-    input_paths = {
-        partial_report.expanduser().resolve(strict=True),
-        bundle.expanduser().resolve(strict=True),
-    }
     for path in (canonical, wrapper):
         reject_symlink_path_or_ancestors(
             path,
