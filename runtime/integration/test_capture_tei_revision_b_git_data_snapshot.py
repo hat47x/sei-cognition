@@ -77,8 +77,8 @@ class RevisionBSnapshotCaptureTest(unittest.TestCase):
                 return {
                     "schema": "soza.tei-revision-b-source-acquisition/v1",
                     "result": "verified",
-                    "sourceAcquisition": "github-git-data-api-content-addressed",
-                    "credentialSource": "environment",
+                    "sourceAcquisition": snapshot_prepare.CANONICAL_SOURCE_ACQUISITION,
+                    "credentialSource": snapshot_prepare.CANONICAL_CREDENTIAL_SOURCE,
                     "sourceCommit": prepare.REVISION_B,
                     "rootTree": prepare.REVISION_B_ROOT_TREE,
                     "outputDirectory": str(output_dir),
@@ -109,6 +109,14 @@ class RevisionBSnapshotCaptureTest(unittest.TestCase):
             self.assertEqual(prepare.REVISION_B, loaded["sourceCommit"])
             self.assertEqual(prepare.REVISION_B_ROOT_TREE, loaded["rootTree"])
             self.assertEqual(
+                snapshot_prepare.CANONICAL_SOURCE_ACQUISITION,
+                loaded["sourceAcquisition"],
+            )
+            self.assertEqual(
+                snapshot_prepare.CANONICAL_CREDENTIAL_SOURCE,
+                loaded["credentialSource"],
+            )
+            self.assertEqual(
                 prepare.REVISION_B,
                 loaded["responses"][f"git/commits/{prepare.REVISION_B}"]["sha"],
             )
@@ -117,10 +125,44 @@ class RevisionBSnapshotCaptureTest(unittest.TestCase):
             self.assertFalse(
                 result["transportSnapshotExport"]["containsRuntimeCredential"]
             )
-            self.assertNotIn(
-                "secret-token",
-                snapshot.read_text(encoding="utf-8"),
+            self.assertTrue(
+                result["transportSnapshotExport"][
+                    "preservesSourceAcquisitionProvenance"
+                ]
             )
+            rendered_snapshot = snapshot.read_text(encoding="utf-8")
+            self.assertNotIn("secret-token", rendered_snapshot)
+            self.assertIn(
+                snapshot_prepare.CANONICAL_SOURCE_ACQUISITION,
+                rendered_snapshot,
+            )
+
+    def test_materializer_provenance_drift_prevents_snapshot_publish(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "tei-b"
+            snapshot = root / "snapshot.json"
+
+            def fake_materialize(output_dir, **kwargs):
+                Path(output_dir).mkdir()
+                return {
+                    "sourceAcquisition": "other-acquisition",
+                    "credentialSource": snapshot_prepare.CANONICAL_CREDENTIAL_SOURCE,
+                }
+
+            with mock.patch.object(
+                prepare,
+                "materialize_revision_b_source",
+                side_effect=fake_materialize,
+            ):
+                with self.assertRaisesRegex(ValueError, "acquisition provenance"):
+                    capture.capture_revision_b_source_and_snapshot(
+                        source,
+                        snapshot,
+                        token="secret-token",
+                        request_json=lambda url, token: self.commit_response(),
+                    )
+            self.assertFalse(snapshot.exists())
 
     def test_snapshot_output_collision_is_rejected_before_acquisition(self):
         with tempfile.TemporaryDirectory() as temporary:
