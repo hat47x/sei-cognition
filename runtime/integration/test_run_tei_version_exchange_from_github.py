@@ -11,6 +11,24 @@ TEST_CREDENTIAL = "placeholder"
 
 
 class GitHubAcquiredVersionExchangeRunnerTest(unittest.TestCase):
+    def setUp(self):
+        self.ready_preflight = {
+            "schema": "soza.tei-version-exchange-github-preflight/v1",
+            "result": "ready",
+            "ready": True,
+            "blockedChecks": [],
+            "networkAccessPerformed": False,
+            "revisionBSourceMaterialized": False,
+            "evidenceOutputCreated": False,
+        }
+        patcher = mock.patch.object(
+            subject,
+            "_run_preflight",
+            return_value=self.ready_preflight,
+        )
+        self.preflight_mock = patcher.start()
+        self.addCleanup(patcher.stop)
+
     def acquisition_result(self) -> dict[str, object]:
         return {
             "result": "verified",
@@ -95,6 +113,58 @@ class GitHubAcquiredVersionExchangeRunnerTest(unittest.TestCase):
                 (output / subject.REPORT_NAME).read_text(encoding="utf-8")
             )
             self.assertEqual(result, persisted)
+            self.preflight_mock.assert_called_once_with(
+                None,
+                root / "soza",
+                output,
+                reference_evidence_bundle=root / "a.tar.gz",
+                tei_go_executable=root / "go123" / "go",
+                soza_go_executable=root / "go125" / "go",
+                token=TEST_CREDENTIAL,
+                expected_soza_head=None,
+                overwrite=False,
+            )
+
+    def test_preflight_blocked_stops_before_acquisition_and_output_creation(self):
+        self.preflight_mock.return_value = {
+            "schema": "soza.tei-version-exchange-github-preflight/v1",
+            "result": "blocked",
+            "ready": False,
+            "blockedChecks": ["soza_go_toolchain", "output_path"],
+            "networkAccessPerformed": False,
+            "revisionBSourceMaterialized": False,
+            "evidenceOutputCreated": False,
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            output = root / "evidence"
+            with mock.patch.object(
+                subject.source_acquisition,
+                "materialize_revision_b_source",
+            ) as acquire_mock, mock.patch.object(
+                subject,
+                "_prepare_wrapper_report_path",
+            ) as report_path_mock:
+                with self.assertRaises(
+                    subject.GitHubAcquiredVersionExchangePreflightBlocked
+                ) as raised:
+                    subject.run_from_github(
+                        None,
+                        root / "soza",
+                        output,
+                        reference_evidence_bundle=root / "a.tar.gz",
+                        tei_go_executable=root / "go123" / "go",
+                        soza_go_executable=root / "go125" / "go",
+                        token=TEST_CREDENTIAL,
+                    )
+
+            self.assertEqual(
+                ["soza_go_toolchain", "output_path"],
+                raised.exception.blocked_checks,
+            )
+            self.assertFalse(output.exists())
+            acquire_mock.assert_not_called()
+            report_path_mock.assert_not_called()
 
     def test_acquisition_failure_does_not_start_canonical_runner(self):
         with tempfile.TemporaryDirectory() as tmp, mock.patch.object(
