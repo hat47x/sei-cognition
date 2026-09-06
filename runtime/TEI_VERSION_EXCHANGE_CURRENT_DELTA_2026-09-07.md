@@ -83,11 +83,14 @@ machine-readable Evidence:
 
 `bootstrap/materialize`には別の5-part payloadが存在し、`part-00`先頭はBase64/XZ形式として読める。しかしcurrent containerからconnectorが返すsigned raw URLへ直接接続する試行はDNS name resolution failureで停止した。
 
-そのためmaterialize payloadの全byte transport / decode / fixed-B identityは未検証であり、actual B inputへは昇格させない。
+さらにGit履歴を確認すると、`bootstrap/materialize`のlatest observed staging commitは`6edeb3a05eecac90ee340665a78c515e24eca2f6`（2026-08-30T01:21:09Z、`Stage compact TEI M0.22.1 source tail 2/3`）である。そこからfixed revision Bまではcompare上1,834 commits進んでおり、fixed-Bの`cmd/tei/main.go`はこの区間で1,152行のadded fileとして現れる。
+
+これはmaterialize payloadの個々のdecoded bytesがrevision Bと不一致であることを、未復号のまま証明するものではない。一方で、historical M0.22.1 staging payloadをfixed-Bのcanonical source acquisition候補として扱う根拠も与えない。したがってfull-byte transport / decodeを追加bootstrap探索の優先課題へ戻さず、actual B inputへは昇格させない。
 
 ```text
 materialize payload exists
-  != materialize bytes acquired
+  + historical M0.22.1 staging provenance observed
+  + fixed-B source evolved afterwards
   != materialize payload identity verified
   != revision B source acquired
 ```
@@ -141,7 +144,44 @@ current containerではhistorical E2用toolchainは成立している。
 ```text
 host            = Linux / x86_64
 E2 Go           = go1.23.2 linux/amd64
+controlled GOOS = linux
+controlled GOARCH = amd64
 ```
+
+また、historical revision A GitHub Actions artifact `9831112092` をcurrent containerへ取得し、repository-localに保存された期待identityへ再照合した。
+
+```text
+artifact ZIP SHA-256
+  expected = 1ee8bf4112d9ae97e1f66b3165f70278663951e9dd4bd6020b465471f563a287
+  observed = 1ee8bf4112d9ae97e1f66b3165f70278663951e9dd4bd6020b465471f563a287
+
+inner Evidence bundle SHA-256
+  expected = 6c1728abe75f9d3486dbe4676621c553d07e07e345cd09ec837e8d632f484f52
+  observed = 6c1728abe75f9d3486dbe4676621c553d07e07e345cd09ec837e8d632f484f52
+```
+
+bundle内にはexact-A固定比較に必要なhistorical reference bytesが存在する。
+
+- `reference/workspace`
+- `reference/order_rollout.durable-run.m0.21.start.json`
+- `reference/workspace/.tei/plugin-lock.json`
+
+同bundleのhistorical binaryをcurrent containerで再実行した。
+
+```text
+exit code                    = 0
+stderr bytes                 = 0
+stdout bytes                 = 8226
+binary SHA-256               = 31f0298b47f9caaa93cd4b2da538cda72e23e5b518f2d0ddad2cf98c46882154
+Provider Plan SHA-256        = 39eafb26cf189681e0bd2ff46fcaf000cbe2f860cf698765bbadac6dfbd2a950
+stdout == bundled plan bytes = true
+```
+
+よって、current containerではrevision A fixed reference inputのactual bytesとhistorical executableのportable re-executionを利用できる。
+
+machine-readable Evidence:
+
+`runtime/evidence/tei-revision-a-current-container-reexecution-20260907/observation.json`
 
 一方、private revision B source transportは成立していない。
 
@@ -151,23 +191,27 @@ E2 Go           = go1.23.2 linux/amd64
 - Remote Desktop Commanderには2026-09-07 current check時点で接続deviceがない。
 - GitHub-hosted attempt 4もstep 0 / runner未割当観測で終了した。
 
+さらにfixed-B `go.mod`は`github.com/lib/pq v1.12.3`を要求するが、current containerのGo module cacheにはこのmodule versionが存在しない。したがって、source bytesだけを手作業で移送しても、current network制約下ではcanonical E2 build前提がまだ完結しない。
+
 これらはexecution-environment blockerであり、Product failureではない。
 
 ```text
 E2 Go ready
+  + revision A fixed input ready and re-executed
   + repository-side E2 partial path ready
   + private exact-B source transport unavailable
+  + required B build dependency not cached locally
   = E2 actual Not Yet Verified
 ```
 
 ## 5. 次に行うactual作業
 
-適切なLinux/amd64 execution environmentまたはprivate source transportが利用可能になった時点では、追加bootstrap探索やsynthetic hardeningよりactual E2 partialを優先する。
+適切なLinux/amd64 execution environmentまたはprivate source/dependency transportが利用可能になった時点では、追加bootstrap探索やsynthetic hardeningよりactual E2 partialを優先する。
 
 標準順序:
 
 1. `TEI_E2_PARTIAL_ACTUAL_RUNBOOK_2026-09-06.md`に従い、GitHub Git Data APIまたはself-contained local sourceからexact revision Bを取得する。
-2. exact revision A fixed input + exact Go 1.23.2でE2 partialをactual実行する。
+2. current containerで取得・再実行済みのhistorical A Evidence bundleと同一identityのexact-A fixed input + exact Go 1.23.2でE2 partialをactual実行する。
 3. `verify_tei_version_exchange_e2_bundle.py`でexact-B / exact-Aへacquisition-independentにstrict再検証する。
 4. actual binary SHA-256 / Provider Plan SHA-256を観測値として固定する。
 5. current SOZA要件を満たすE3 Goが利用可能なら、保存済みE2 partialからE3だけをresumeする。
@@ -184,8 +228,13 @@ later E3 resume                                  = implemented
 report-pair reconcile                            = implemented
 
 bootstrap/final-source as B input                = rejected
+bootstrap/materialize as canonical B route       = not accepted
 current container E2 Go 1.23.2                   = available
-current container private source transport       = unavailable
+revision A historical artifact                   = acquired and identity-verified
+revision A fixed input bytes                      = available in current environment
+revision A portable re-execution                  = verified
+current container private B source transport      = unavailable
+current container B build dependency cache        = incomplete
 Remote Desktop execution                         = unavailable
 GitHub-hosted attempt 4 Product step             = not observed
 
@@ -199,7 +248,8 @@ ISSUE-000072                                     = Open
 ## 停止線
 
 ```text
-transport investigation completed
+revision A current-environment re-execution PASS
+  + transport investigation completed
   != revision B actual source acquired
   != revision B E2 PASS
   != Provider Plan PASS

@@ -1,0 +1,63 @@
+{
+  "schema": "soza.tei-revision-a-current-container-reexecution/v1",
+  "observedDate": "2026-09-07",
+  "purpose": "Record that the canonical historical revision A GitHub Actions artifact was acquired into the current Linux/amd64 execution environment, rehashed against repository-local expected identities, unpacked with its fixed reference input bytes intact, and portably re-executed to reproduce the historical Provider Plan byte-for-byte. This observation satisfies the revision A fixed-input availability/re-execution side of the next E2 attempt but does not provide revision B source, revision B build Evidence, or E3 compatibility Evidence.",
+  "subject": {
+    "repository": "hat47x/tei-platform",
+    "revisionACommit": "48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67",
+    "githubArtifactId": 9831112092,
+    "artifactZipFileName": "tei-revision-a-historical-artifact.zip",
+    "artifactZipSha256Expected": "1ee8bf4112d9ae97e1f66b3165f70278663951e9dd4bd6020b465471f563a287",
+    "artifactZipSha256Observed": "1ee8bf4112d9ae97e1f66b3165f70278663951e9dd4bd6020b465471f563a287",
+    "artifactZipIdentityMatch": true,
+    "innerEvidenceBundleFileName": "tei-e3b-p2-linux-amd64.tar.gz",
+    "innerEvidenceBundleSha256Expected": "6c1728abe75f9d3486dbe4676621c553d07e07e345cd09ec837e8d632f484f52",
+    "innerEvidenceBundleSha256Observed": "6c1728abe75f9d3486dbe4676621c553d07e07e345cd09ec837e8d632f484f52",
+    "innerEvidenceBundleIdentityMatch": true
+  },
+  "fixedReferenceInput": {
+    "presentInBundle": true,
+    "workspacePath": "reference/workspace",
+    "durableRunPath": "reference/order_rollout.durable-run.m0.21.start.json",
+    "pluginLockPath": "reference/workspace/.tei/plugin-lock.json",
+    "durableRunBytes": 7087,
+    "pluginLockBytes": 3283
+  },
+  "portableReexecution": {
+    "platform": "linux/amd64",
+    "binaryPathInBundle": "bin/tei",
+    "binarySha256Expected": "31f0298b47f9caaa93cd4b2da538cda72e23e5b518f2d0ddad2cf98c46882154",
+    "binarySha256Observed": "31f0298b47f9caaa93cd4b2da538cda72e23e5b518f2d0ddad2cf98c46882154",
+    "binaryIdentityMatch": true,
+    "arguments": [
+      "deployment-provider-plan",
+      "-workspace", "reference/workspace",
+      "-run", "reference/order_rollout.durable-run.m0.21.start.json",
+      "-solution", "order_rollout",
+      "-version", "2026.8.27",
+      "-plugin-lock", "reference/workspace/.tei/plugin-lock.json"
+    ],
+    "exitCode": 0,
+    "stderrBytes": 0,
+    "stdoutBytes": 8226,
+    "providerPlanSha256Expected": "39eafb26cf189681e0bd2ff46fcaf000cbe2f860cf698765bbadac6dfbd2a950",
+    "providerPlanSha256Observed": "39eafb26cf189681e0bd2ff46fcaf000cbe2f860cf698765bbadac6dfbd2a950",
+    "providerPlanIdentityMatch": true,
+    "stdoutMatchesBundledProviderPlanBytes": true,
+    "result": "verified"
+  },
+  "interpretation": {
+    "revisionAHistoricalArtifactAcquiredInCurrentEnvironment": true,
+    "revisionAFixedReferenceInputBytesAvailableInCurrentEnvironment": true,
+    "revisionAHistoricalBinaryPortableReexecutionVerified": true,
+    "revisionASourceRebuildPerformed": false,
+    "revisionBSourceAcquired": false,
+    "revisionBBuildPass": false,
+    "revisionBProviderPlanPass": false,
+    "sozaAdapterRevisionBCompatibilityPass": false,
+    "issue000072Resolved": false,
+    "qualityJudgement": "not_evaluated"
+  },
+  "nextBoundary": "Use this verified historical A bundle as --reference-evidence-bundle for the canonical E2 partial runner when exact revision B source transport becomes available; do not reacquire or mutate A merely to continue transport investigation.",
+  "stopLine": "revision A artifact acquisition + fixed-input availability + portable re-execution PASS != revision B source acquired != revision B build PASS != revision B Provider Plan execution PASS != SOZA Adapter revision B compatibility PASS != ISSUE-000072 Resolved"
+}
