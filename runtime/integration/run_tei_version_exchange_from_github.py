@@ -13,6 +13,8 @@ from runtime_path_safety import reject_symlink_path_or_ancestors
 
 SCHEMA = "soza.tei-version-exchange-github-acquisition-run/v1"
 REPORT_NAME = "tei-version-exchange-github-acquisition.json"
+SOURCE_TEMP_ENV_VARS = ("TMPDIR", "TEMP", "TMP")
+SOURCE_TEMP_FALLBACK = "/tmp"
 STOP_LINE = (
     "GitHub source acquisition + fixed-scope E2/E3 verified "
     "!= arbitrary TEI version compatibility != formal TEI distribution "
@@ -64,12 +66,26 @@ def _is_within(candidate: Path, root: Path) -> bool:
     return candidate == root or root in candidate.parents
 
 
+def _requested_source_temp_parent() -> Path:
+    for name in SOURCE_TEMP_ENV_VARS:
+        value = os.environ.get(name)
+        if value:
+            return Path(value).expanduser()
+    return Path(SOURCE_TEMP_FALLBACK)
+
+
 def _prepare_source_temp_parent(
     output_dir: Path,
     soza_repo_root: Path,
     reference_source_repo: Path | None,
 ) -> Path:
-    requested = Path(tempfile.gettempdir()).expanduser()
+    # tempfile.gettempdir() intentionally is not used here. Its first resolution
+    # probes candidate directories by creating and deleting a file, which would
+    # violate the side-effect-free preflight contract. Linux/amd64 is already an
+    # execution precondition, so use the documented environment preference and
+    # /tmp fallback without a write probe, then pass the verified path explicitly
+    # to TemporaryDirectory during the actual run.
+    requested = _requested_source_temp_parent()
     reject_symlink_path_or_ancestors(
         requested,
         "TEI GitHub source temporary parent",
@@ -78,6 +94,11 @@ def _prepare_source_temp_parent(
     if not resolved.is_dir():
         raise ValueError(
             f"TEI GitHub source temporary parentがdirectoryではありません: {resolved}"
+        )
+    if not os.access(resolved, os.W_OK | os.X_OK):
+        raise ValueError(
+            "TEI GitHub source temporary parentへwrite/traverseできません: "
+            f"{resolved}"
         )
 
     roots: list[tuple[str, Path]] = [
