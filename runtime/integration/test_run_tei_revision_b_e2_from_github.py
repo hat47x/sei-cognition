@@ -11,6 +11,7 @@ class TEIRevisionBE2FromGitHubTest(unittest.TestCase):
     def _common_patches(self, root: Path):
         evidence = root / "evidence"
         go = root / "go123" / "go"
+        (root / "a.tar.gz").write_bytes(b"placeholder")
         provenance = {
             "mode": "github-git-data-api-content-addressed",
             "sourceCommit": subject.e2_runner.source_identity.REVISION_B,
