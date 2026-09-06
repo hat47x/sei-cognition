@@ -159,9 +159,15 @@ def _go_toolchain_env() -> dict[str, str]:
     env["GOWORK"] = "off"
     env["GOENV"] = "off"
     env["GOTOOLCHAIN"] = "local"
-    env.pop("GOFLAGS", None)
-    env.pop("GOOS", None)
-    env.pop("GOARCH", None)
+    for key in (
+        "GOFLAGS",
+        "GOOS",
+        "GOARCH",
+        "GOAMD64",
+        "GOEXPERIMENT",
+        "CGO_ENABLED",
+    ):
+        env.pop(key, None)
     return env
 
 
