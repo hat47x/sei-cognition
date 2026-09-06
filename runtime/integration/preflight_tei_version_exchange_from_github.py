@@ -265,15 +265,17 @@ def _check_output_path(
             )
 
     wrapper_report = resolved / github_runner.REPORT_NAME
-    reject_symlink_path_or_ancestors(
-        wrapper_report,
-        "TEI GitHub-acquired version exchange report",
-    )
     canonical_paths = [
         resolved / version_exchange.BUNDLE_NAME,
         resolved / version_exchange.REPORT_NAME,
         wrapper_report,
     ]
+    for path in canonical_paths:
+        reject_symlink_path_or_ancestors(
+            path,
+            "TEI GitHub-acquired version exchange output",
+        )
+
     existing = [path for path in canonical_paths if path.exists()]
     if existing and not overwrite:
         raise ValueError(
@@ -282,10 +284,7 @@ def _check_output_path(
         )
     if overwrite:
         for path in existing:
-            if path == wrapper_report:
-                if not path.is_file():
-                    raise ValueError(f"wrapper report出力先がfileではありません: {path}")
-            elif not path.is_file() and not path.is_symlink():
+            if not path.is_file():
                 raise ValueError(f"Evidence出力先がfileではありません: {path}")
 
     return {
