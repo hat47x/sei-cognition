@@ -11,7 +11,11 @@ from pathlib import Path
 from typing import Callable
 
 import prepare_tei_revision_b_source as prepare
-from prepare_tei_revision_b_source_from_snapshot import SNAPSHOT_SCHEMA
+from prepare_tei_revision_b_source_from_snapshot import (
+    CANONICAL_CREDENTIAL_SOURCE,
+    CANONICAL_SOURCE_ACQUISITION,
+    SNAPSHOT_SCHEMA,
+)
 from runtime_path_safety import reject_symlink_path_or_ancestors
 
 JsonRequester = Callable[[str, str], dict[str, object]]
@@ -118,12 +122,24 @@ def capture_revision_b_source_and_snapshot(
         expected_objects=prepare.EXPECTED_OBJECTS,
         request_json=recorder,
     )
+    if result.get("sourceAcquisition") != CANONICAL_SOURCE_ACQUISITION:
+        raise ValueError(
+            "materialized source acquisition provenanceが固定経路と一致しません: "
+            f"actual={result.get('sourceAcquisition')}"
+        )
+    if result.get("credentialSource") != CANONICAL_CREDENTIAL_SOURCE:
+        raise ValueError(
+            "materialized source credential provenanceが固定経路と一致しません: "
+            f"actual={result.get('credentialSource')}"
+        )
 
     snapshot_value: dict[str, object] = {
         "schema": SNAPSHOT_SCHEMA,
         "repository": prepare.GITHUB_REPOSITORY,
         "sourceCommit": prepare.REVISION_B,
         "rootTree": prepare.REVISION_B_ROOT_TREE,
+        "sourceAcquisition": CANONICAL_SOURCE_ACQUISITION,
+        "credentialSource": CANONICAL_CREDENTIAL_SOURCE,
         "responses": recorder.responses,
     }
     snapshot_sha256, snapshot_bytes = _write_json_atomically(
@@ -137,6 +153,7 @@ def capture_revision_b_source_and_snapshot(
         "bytes": snapshot_bytes,
         "responses": len(recorder.responses),
         "containsRuntimeCredential": False,
+        "preservesSourceAcquisitionProvenance": True,
     }
     return result
 
@@ -149,8 +166,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "GitHub Git Data APIからexact TEI revision Bを既存content-addressed materializerで"
-            "検証・checkoutし、その取得responseだけをcredential-free snapshotとして別pathへ保存します。"
-            "snapshotはoffline環境でprepare_tei_revision_b_source_from_snapshot.pyへ渡せます。"
+            "検証・checkoutし、その取得responseとbounded acquisition provenanceだけを"
+            "credential-free snapshotとして別pathへ保存します。snapshotはoffline環境で"
+            "prepare_tei_revision_b_source_from_snapshot.pyへ渡せます。"
         )
     )
     parser.add_argument("--source-output", required=True, type=Path)
