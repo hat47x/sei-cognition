@@ -111,9 +111,11 @@ PR #261では、wrapperの内側で正本となる`run_tei_version_exchange_evid
 
 ## 4. actual開始前preflight
 
-PR #260 により、actual source取得を始める前に不足条件を一括確認する副作用なしpreflightを追加しました。
+actual source取得・checkout preparationを始める前に不足条件を一括確認する副作用なしpreflightは、取得経路ごとに分かれます。
 
-入口:
+### 4.1 GitHub acquisition経路
+
+PR #260 の入口:
 
 `runtime/integration/preflight_tei_version_exchange_from_github.py`
 
@@ -131,12 +133,36 @@ PR #260 により、actual source取得を始める前に不足条件を一括�
 
 preflightはGitHub APIへ接続せず、revision B sourceをmaterializeせず、Evidence outputを作成しません。また最初のfailureで停止せず、全checkを実行して`blockedChecks`へ不足をまとめます。
 
+### 4.2 local prepositioned経路
+
+local Git object databaseを使う場合は次を使います。
+
+`runtime/integration/preflight_tei_version_exchange_local.py`
+
+検査対象:
+
+- Linux / amd64
+- source cloneがGit worktreeであること
+- source cloneのGit object databaseがalternatesへ依存せずself-containedであること
+- fixed revision B commit objectが存在すること
+- revision B commitから見た`cmd` / `internal` / `reference` / `go.mod` / `go.sum` object identityが固定値へ一致すること
+- exact revision A fixed reference input identity
+- current SOZA source identity / boundary purity / optional expected HEAD
+- E2 Go `go1.23.2` exact match
+- E3 Goがcurrent `runtime/go/go.mod`のdirective以上であること
+- future exact-B checkout outputが新規pathであり、source clone / SOZA / A checkout / Evidence outputと重ならないこと
+- Evidence outputがsource clone / future B checkout / SOZA / A checkoutと重ならず、historical A bundleを包含しないこと
+
+local preflightはcredentialもnetwork accessも要求しません。source cloneを変更せず、B checkoutもEvidence outputも作成しません。
+
 ```text
-preflight ready
-  != source acquisition PASS
+local preflight ready
+  != revision B checkout prepared
   != E2 PASS
   != E3 PASS
 ```
+
+両preflightとも、execution mechanismの違いをCapability identityへ持ち込みません。
 
 ## 5. current execution environmentの実測
 
@@ -157,12 +183,16 @@ E3 Go 1.25 executable              = not present
 current SOZA runtime/go directive  = go 1.25
 ```
 
-したがって、このcontainerでactual runを開始できない理由は少なくとも次の2点です。
+このcontainerでGitHub acquisition経路のactual runを開始できない理由は少なくとも次の2点です。
 
 ```text
 private GitHub credential / private-source transport
 E3 Go 1.25 toolchain
 ```
+
+local prepositioned経路ならGitHub credentialは不要ですが、current containerにはrevision B commit objectを含むself-containedなTEI local source cloneも配置されていません。またE3 Go >=1.25不足はlocal経路でも共通です。
+
+したがってcurrent containerでは、どちらの取得経路でもactual E2→E3には進めません。
 
 これはProduct failureではありません。
 
@@ -173,7 +203,7 @@ environment prerequisite missing
 
 ## 6. 次回actual実行の標準手順
 
-actual実行環境には次を準備します。
+actual実行環境には共通して次を準備します。
 
 - current SOZA checkout
 - revision A fixed input
@@ -181,7 +211,6 @@ actual実行環境には次を準備します。
   - verified historical revision A Evidence bundle
 - E2用Go 1.23.2
 - E3用Go 1.25以上でcurrent `runtime/go/go.mod`を満たすexecutable
-- private `hat47x/tei-platform`をread可能な`GITHUB_TOKEN`または`GH_TOKEN`
 - SOZA / revision A checkout外のEvidence output directory
 
 まずcurrent SOZA HEADを固定します。
@@ -189,6 +218,10 @@ actual実行環境には次を準備します。
 ```bash
 SOZA_HEAD="$(git -C "$SOZA_REPO" rev-parse HEAD)"
 ```
+
+### 6.1 GitHub one-shot経路
+
+追加でprivate `hat47x/tei-platform`をread可能な`GITHUB_TOKEN`または`GH_TOKEN`を準備します。
 
 historical revision A Evidence bundleを使う例:
 
@@ -216,13 +249,57 @@ python3 "$SOZA_REPO/runtime/integration/run_tei_version_exchange_from_github.py"
   --json
 ```
 
-exact revision A checkoutを使う場合は、両commandで`--reference-evidence-bundle`を`--reference-source-repo "$TEI_A_REPO"`へ置き換えます。
+### 6.2 local prepositioned経路
+
+追加で、fixed revision B commit objectを含むself-containedなlocal TEI source cloneと、新規のB checkout output pathを準備します。
+
+まず副作用なしpreflightを実行します。
+
+```bash
+python3 "$SOZA_REPO/runtime/integration/preflight_tei_version_exchange_local.py" \
+  --source-repo "$TEI_SOURCE_CLONE" \
+  --checkout-output "$TEI_B_REPO" \
+  --reference-evidence-bundle "$TEI_A_BUNDLE" \
+  --soza-repo-root "$SOZA_REPO" \
+  --output-dir "$EVIDENCE_DIR" \
+  --tei-go-executable "$TEI_GO" \
+  --soza-go-executable "$SOZA_GO" \
+  --expected-soza-head "$SOZA_HEAD" \
+  --json
+```
+
+`result=ready`を確認した後に、exact-B checkoutを準備します。post-run acquisition provenanceも残したい場合はJSONを保存します。
+
+```bash
+python3 "$SOZA_REPO/runtime/integration/prepare_tei_revision_b_checkout.py" \
+  --source-repo "$TEI_SOURCE_CLONE" \
+  --output-repo "$TEI_B_REPO" \
+  --json > "$CHECKOUT_PREPARATION_REPORT"
+```
+
+そのcheckoutをcanonical E2→E3 runnerへ渡します。
+
+```bash
+python3 "$SOZA_REPO/runtime/integration/run_tei_version_exchange_evidence.py" \
+  --source-repo "$TEI_B_REPO" \
+  --reference-evidence-bundle "$TEI_A_BUNDLE" \
+  --soza-repo-root "$SOZA_REPO" \
+  --output-dir "$EVIDENCE_DIR" \
+  --tei-go-executable "$TEI_GO" \
+  --soza-go-executable "$SOZA_GO" \
+  --expected-soza-head "$SOZA_HEAD" \
+  --json
+```
+
+exact revision A checkoutを使う場合は、各commandの`--reference-evidence-bundle`を`--reference-source-repo "$TEI_A_REPO"`へ置き換えます。
+
+actual後のResolution auditは`TEI_VERSION_EXCHANGE_POST_RUN_AUDIT_2026-09-06.md`を正とします。GitHub経路とlocal経路で入口は異なりますが、Resolution条件1〜8の意味は変えません。
 
 ## 7. actual runで初めて上げられるEvidence
 
 preflight / source acquisition implementation / synthetic regressionだけでは、次を主張しません。
 
-actual one-shot runが成功した場合に初めて、fixed scopeについて次を観測できます。
+actual runが成功した場合に初めて、fixed scopeについて次を観測できます。
 
 ```text
 revision B actual CLI build PASS
@@ -255,6 +332,9 @@ revision B source identity
 local exact-B checkout preparation
   = implemented
 
+local exact-B source preflight
+  = implemented
+
 GitHub content-addressed exact-B acquisition
   = implemented
 
@@ -270,13 +350,22 @@ wrapper report publish TOCTOU guard
 canonical Evidence report publish TOCTOU guard
   = implemented
 
-actual-run preflight
+GitHub actual-run preflight
+  = implemented
+
+local actual-run preflight
+  = implemented
+
+GitHub/local post-run Resolution audit
   = implemented
 
 current container E2 Go 1.23.2
   = available
 
 current container private GitHub credential
+  = not available
+
+current container self-contained TEI source clone with revision B
   = not available
 
 current container E3 Go >=1.25
