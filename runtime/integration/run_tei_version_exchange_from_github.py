@@ -50,6 +50,16 @@ def _token_from_environment() -> str:
     return os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN") or ""
 
 
+def _credential_environment_for_preflight(token: str) -> dict[str, str]:
+    if token and os.environ.get("GITHUB_TOKEN") == token:
+        return {"GITHUB_TOKEN": token}
+    if token and os.environ.get("GH_TOKEN") == token:
+        return {"GH_TOKEN": token}
+    # Programmatic callers may pass the already-resolved token directly. The
+    # preflight only needs presence; the value is never included in its result.
+    return {"GITHUB_TOKEN": token}
+
+
 def _run_preflight(
     reference_source_repo: Path | None,
     soza_repo_root: Path,
@@ -76,9 +86,7 @@ def _run_preflight(
         soza_go_executable=soza_go_executable,
         expected_soza_head=expected_soza_head,
         overwrite=overwrite,
-        # run_from_github receives an already-resolved credential value. The
-        # preflight only observes presence/source and never reports the value.
-        env={"GITHUB_TOKEN": token},
+        env=_credential_environment_for_preflight(token),
     )
 
 
