@@ -60,6 +60,47 @@ def _credential_environment_for_preflight(token: str) -> dict[str, str]:
     return {"GITHUB_TOKEN": token}
 
 
+def _is_within(candidate: Path, root: Path) -> bool:
+    return candidate == root or root in candidate.parents
+
+
+def _prepare_source_temp_parent(
+    output_dir: Path,
+    soza_repo_root: Path,
+    reference_source_repo: Path | None,
+) -> Path:
+    requested = Path(tempfile.gettempdir()).expanduser()
+    reject_symlink_path_or_ancestors(
+        requested,
+        "TEI GitHub source temporary parent",
+    )
+    resolved = requested.resolve(strict=True)
+    if not resolved.is_dir():
+        raise ValueError(
+            f"TEI GitHub source temporary parentがdirectoryではありません: {resolved}"
+        )
+
+    roots: list[tuple[str, Path]] = [
+        ("SOZA repository", soza_repo_root.expanduser().resolve(strict=False)),
+        ("Evidence directory", output_dir.expanduser().resolve(strict=False)),
+    ]
+    if reference_source_repo is not None:
+        roots.append(
+            (
+                "revision A reference checkout",
+                reference_source_repo.expanduser().resolve(strict=False),
+            )
+        )
+
+    for label, root in roots:
+        if _is_within(resolved, root):
+            raise ValueError(
+                f"TEI GitHub source temporary parentを{label}配下には置けません: "
+                f"temporaryParent={resolved} root={root}"
+            )
+    return resolved
+
+
 def _run_preflight(
     reference_source_repo: Path | None,
     soza_repo_root: Path,
@@ -226,9 +267,17 @@ def run_from_github(
     if preflight_result.get("ready") is not True:
         raise GitHubAcquiredVersionExchangePreflightBlocked(preflight_result)
 
+    source_temp_parent = _prepare_source_temp_parent(
+        output_dir,
+        soza_repo_root,
+        reference_source_repo,
+    )
     requested_report = _prepare_wrapper_report_path(output_dir, overwrite=overwrite)
 
-    with tempfile.TemporaryDirectory(prefix="soza-tei-b-github-source-") as tmp:
+    with tempfile.TemporaryDirectory(
+        prefix="soza-tei-b-github-source-",
+        dir=source_temp_parent,
+    ) as tmp:
         source_repo = Path(tmp) / "tei-revision-b"
         acquisition = source_acquisition.materialize_revision_b_source(
             source_repo,
