@@ -15,7 +15,7 @@ E2 partial path available
 
 ## E2 partial Evidence入口
 
-PR #289〜#291により、E3 Go toolchainがまだ用意できない環境でも、GitHub acquisitionからrevision BのE2だけを先行回収できる入口を追加した。
+PR #289〜#292により、E3 Go toolchainがまだ用意できない環境でも、GitHub acquisitionからrevision BのE2だけを先行回収できる入口を追加した。
 
 入口:
 
@@ -33,6 +33,12 @@ reference input        = exact revision A fixed input
 Evidence output        = inputから分離したsafe path
 source temporary parent= safe existing directory
 ```
+
+PR #292以降は、exact revision A fixed inputのactual identityもrevision B source acquisitionより前に既存canonical checkで検証する。
+
+- exact A checkoutではHEAD / fixed Git object identity / working-tree purityを確認する。
+- historical A Evidence bundleではbundle metadataだけを信頼せず、actual reference bytesを既存fixed identityへ照合する。
+- A fixed input不整合時はE2 Go probe、B source acquisition、Evidence directory作成より前に停止する。
 
 成功時の停止線:
 
