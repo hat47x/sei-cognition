@@ -5,6 +5,8 @@ import subprocess
 from pathlib import Path
 from typing import Mapping
 
+import git_object_environment
+
 REVISION_A = "48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67"
 REVISION_B = "1a7028d444fcae60a1c4f2f2d247456f4c7c35be"
 EXPECTED_OBJECTS = {
@@ -32,6 +34,7 @@ def _git(repo: Path, *args: str, check: bool = True) -> subprocess.CompletedProc
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        env=git_object_environment.controlled_git_environment(),
     )
 
 
@@ -98,6 +101,8 @@ def verify_repository(
         "revisionBExactHead": head == REVISION_B,
         "executionSourceObjects": observed,
         "worktreeCleanWithinBoundary": True,
+        "gitObjectEnvironmentControlled": True,
+        "replaceObjectsDisabled": True,
         "qualityJudgement": "not_evaluated",
         "stopLine": STOP_LINE,
     }
