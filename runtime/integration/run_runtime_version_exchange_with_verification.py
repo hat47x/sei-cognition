@@ -323,12 +323,14 @@ def _run_and_capture(
 
 
 def _write_json_once(path: Path, payload: dict[str, object]) -> None:
-    if path.exists():
-        raise ValueError(f"Evidence path already exists: {path}")
-    path.write_text(
-        json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    try:
+        with path.open("x", encoding="utf-8") as handle:
+            json.dump(payload, handle, ensure_ascii=False, sort_keys=True, indent=2)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+    except FileExistsError as exc:
+        raise ValueError(f"Evidence path already exists: {path}") from exc
 
 
 def _prepare_evidence_directory_after_run(evidence_dir: Path, exit_code: int) -> str:
