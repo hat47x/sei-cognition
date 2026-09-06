@@ -49,6 +49,41 @@ def _ensure_git_worktree(repo: Path) -> None:
         raise ValueError(f"TEI Git worktreeではありません: {repo}")
 
 
+def _git_path(repo: Path, path: str) -> Path:
+    result = _git(repo, "rev-parse", "--git-path", path)
+    value = Path(result.stdout.strip())
+    if not value.is_absolute():
+        value = repo / value
+    return value
+
+
+def _alternate_object_databases(repo: Path) -> list[str]:
+    alternates = _git_path(repo, "objects/info/alternates")
+    if not alternates.exists():
+        return []
+    if not alternates.is_file():
+        raise ValueError(
+            "Git object alternates pathがregular fileではありません: "
+            f"{alternates}"
+        )
+    try:
+        lines = alternates.read_text(encoding="utf-8").splitlines()
+    except OSError as exc:
+        raise ValueError(
+            f"Git object alternatesを読み取れません: path={alternates} error={exc}"
+        ) from exc
+    return [line.strip() for line in lines if line.strip()]
+
+
+def _ensure_self_contained_object_database(repo: Path, label: str) -> None:
+    alternates = _alternate_object_databases(repo)
+    if alternates:
+        raise ValueError(
+            f"{label} Git object databaseがalternate object databaseへ依存しています: "
+            + " | ".join(alternates)
+        )
+
+
 def _source_state(repo: Path) -> dict[str, object]:
     head = _git(repo, "rev-parse", "HEAD").stdout.strip()
     status = _git(
@@ -123,6 +158,7 @@ def _ensure_detached_head(repo: Path) -> None:
 def prepare_checkout(source_repo: Path, output_repo: Path) -> dict[str, object]:
     source_repo = source_repo.expanduser().resolve(strict=True)
     _ensure_git_worktree(source_repo)
+    _ensure_self_contained_object_database(source_repo, "source clone")
     _ensure_revision_available(source_repo)
     source_before = _source_state(source_repo)
 
@@ -151,6 +187,7 @@ def prepare_checkout(source_repo: Path, output_repo: Path) -> dict[str, object]:
                 str(staging_repo),
             ]
         )
+        _ensure_self_contained_object_database(staging_repo, "staging checkout")
         _git(staging_repo, "config", "core.autocrlf", "false")
         _git(
             staging_repo,
@@ -180,6 +217,7 @@ def prepare_checkout(source_repo: Path, output_repo: Path) -> dict[str, object]:
         staging_repo.rename(output_repo)
         published = True
 
+        _ensure_self_contained_object_database(output_repo, "published checkout")
         verification = source_identity.verify_repository(
             output_repo,
             expected_head=source_identity.REVISION_B,
@@ -199,10 +237,12 @@ def prepare_checkout(source_repo: Path, output_repo: Path) -> dict[str, object]:
             "sourceStateBefore": source_before,
             "sourceStateAfter": source_after_publish,
             "sourceHeadAndStatusUnchanged": True,
+            "sourceObjectDatabaseSelfContained": True,
             "outputRepository": str(output_repo),
             "revision": source_identity.REVISION_B,
             "detachedHead": True,
             "cloneMode": "local_no_hardlinks_no_checkout",
+            "outputObjectDatabaseSelfContained": True,
             "prePublishIdentityVerified": True,
             "verification": verification,
             "qualityJudgement": "not_evaluated",
@@ -220,8 +260,9 @@ def prepare_checkout(source_repo: Path, output_repo: Path) -> dict[str, object]:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "既存TEI Git worktreeを変更せず、そのlocal Git object databaseから独立した"
-            "ISSUE-000072 exact revision B detached checkoutを作成し、canonical source identityを検証します。"
+            "既存TEI Git worktreeを変更せず、そのself-containedなlocal Git object databaseから"
+            "独立したISSUE-000072 exact revision B detached checkoutを作成し、"
+            "canonical source identityを検証します。"
         ),
         allow_abbrev=False,
     )
