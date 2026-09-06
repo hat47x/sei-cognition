@@ -112,6 +112,8 @@ GIT_NO_REPLACE_OBJECTS=1
 GIT_DEFAULT_HASH=sha1
 ```
 
+PR #277では、E3のcurrent SOZA source baselineも同じcontrolled Git environmentへ揃え、`git_object_environment.py`自身をSOZA Evidence source boundaryへ含めました。これにより、TEI source側だけでなくE3 live test前後のSOZA source identityもambient object directory / replace semantics / process-level Git config injectionから分離します。
+
 これはhost全体をfully hermeticにする主張ではありません。ISSUE-000072の固定SHA-1 Git object graph、source checkout identity、materialized source bytesへ直接影響するprocess-level overrideを対象にします。system / global / repository configそのものを一般に無効化するものでもありません。
 
 negative controlでは、通常Gitではambient `GIT_OBJECT_DIRECTORY`やreplace refによりobject解決が変わること、また`GIT_CONFIG_COUNT/KEY/VALUE`でrepositoryの`core.autocrlf=false`を`true`へ上書きできることを確認しました。controlled environmentではliteral repo object graphとrepository valueへ戻ることを確認しています。
@@ -140,19 +142,29 @@ PR #256 / #258 により、GitHub取得と既存canonical runnerを薄いwrapper
 
 `runtime/integration/run_tei_version_exchange_from_github.py`
 
+PR #280以降、one-shot wrapper自身も既存の副作用なしGitHub preflightを必ず先行させます。
+
 ```text
-GitHub Git Data API acquisition
+same side-effect-free preflight
+  -> ready
+  -> GitHub Git Data API acquisition
   -> exact-B detached checkout
   -> canonical source verification
   -> existing canonical E2
   -> existing canonical E3
 ```
 
+preflightが`blocked`の場合、wrapper report path準備、source用temporary directory作成、GitHub source acquisition、Evidence output作成より前に停止します。standalone preflightはoperatorがactual前に`blockedChecks`を確認する入口として残し、one-shotを直接起動しても同じpreflightを飛ばせない構成にしています。
+
 wrapperはE2/E3の判定ロジックを複製しません。source acquisition Provenanceだけを別reportへ保持し、canonical E2/E3のstage vocabulary / comparison axis / Evidence bundle / failure semanticsは既存runnerを正とします。
 
 credential値や一時source pathはwrapper reportへ保存しません。wrapper report publishはunique temporary file + flush/fsync + publish直前path再検査 + atomic replaceを使用します。
 
 PR #261では、wrapperの内側で正本となる`run_tei_version_exchange_evidence.py`のcanonical Evidence report publishにも同じ考え方を適用しました。固定`.tmp`名を使わず、同一directoryのunique temporary fileへwrite + flush/fsyncした後、final pathを再検査してatomic replaceします。E2/E3 stage semantics、bundle、comparison axisは変更していません。
+
+PR #278では、E2でactual build / Provider Plan / bundle verificationを終えた後の最終Evidence archive publishを、output filesystem上のunique temporary file + flush/fsync + publish直前path再検査 + `os.link()`によるno-overwrite publishへ変更しました。actual実行中に同名file / symlinkが現れても暗黙上書きやsymlink追随をしません。
+
+PR #281では、canonical bundle / canonical report / GitHub wrapper reportの出力pathをactual開始前preflightでsymlink検査へ揃えました。dangling symlinkも`--overwrite`で削除して続行せず、canonical runnerとGitHub preflightの両方でactual開始前に拒否します。
 
 ## 4. actual開始前preflight
 
@@ -175,8 +187,11 @@ PR #260 の入口:
 - E2 Go `go1.23.2` exact match
 - E3 Goがcurrent `runtime/go/go.mod`のdirective以上であること
 - Evidence output pathのstatic safety / existing canonical outputs
+- canonical bundle / report / wrapper report pathがsymlinkまたはsymlink ancestor経由でないこと
 
 preflightはGitHub APIへ接続せず、revision B sourceをmaterializeせず、Evidence outputを作成しません。また最初のfailureで停止せず、全checkを実行して`blockedChecks`へ不足をまとめます。
+
+PR #280以降は`run_tei_version_exchange_from_github.py`もこのpreflightをsource acquisition前に再利用します。したがってstandalone preflightを先に実行する標準手順はoperatorが不足条件を確認するために維持しますが、one-shot actual path自体も`ready`を要求します。
 
 ### 4.2 local prepositioned経路
 
@@ -208,6 +223,38 @@ local preflight ready
 ```
 
 両preflightとも、execution mechanismの違いをCapability identityへ持ち込みません。
+
+### 4.3 E2 / E3 Go process-level build surface
+
+PR #279では、同じsource / Go versionでも親processからbuild/test結果を変え得るprocess-level Go overrideを、E2 buildとE3 live testで対称に分離しました。
+
+固定:
+
+```text
+GOWORK=off
+GOENV=off
+GOTOOLCHAIN=local
+```
+
+親environmentから除外:
+
+```text
+GOFLAGS
+GOOS
+GOARCH
+GOAMD64
+GOEXPERIMENT
+CGO_ENABLED
+```
+
+`PATH`、`GOPROXY`、`GOMODCACHE`等のtool discovery / module acquisition設定はこの境界では維持します。したがってこれはmodule acquisitionやhost全体をhermeticにする主張ではありません。
+
+```text
+process-level Go build/test surface isolated
+  != module acquisition hermetic
+  != E2 PASS
+  != E3 PASS
+```
 
 ## 5. current execution environmentの実測
 
@@ -293,6 +340,8 @@ python3 "$SOZA_REPO/runtime/integration/run_tei_version_exchange_from_github.py"
   --expected-soza-head "$SOZA_HEAD" \
   --json
 ```
+
+one-shot runner自身も同じ副作用なしpreflightを再実行し、`ready`でなければsource acquisitionより前に停止します。したがって上段のstandalone preflightは事前確認・blockedChecksの把握用であり、actual runner側の安全性をoperator手順だけへ依存させません。
 
 ### 6.2 local prepositioned経路
 
@@ -395,8 +444,23 @@ GitHub acquisition credential redirect boundary
 GitHub acquisition -> canonical E2/E3 wrapper
   = implemented
 
+GitHub one-shot automatic preflight before acquisition
+  = implemented
+
 TEI source Git object / config environment isolation
   = implemented for canonical verifier, local preflight/preparation, and GitHub acquisition
+
+E3 SOZA source Git environment isolation
+  = implemented
+
+E2/E3 process-level Go build/test environment isolation
+  = implemented
+
+E2 Evidence bundle no-overwrite / symlink-safe publish
+  = implemented
+
+canonical bundle/report/wrapper output symlink preflight
+  = implemented
 
 wrapper report publish TOCTOU guard
   = implemented
