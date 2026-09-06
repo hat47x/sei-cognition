@@ -191,31 +191,70 @@ machine-readable Evidence:
 - Remote Desktop Commanderには2026-09-07 current check時点で接続deviceがない。
 - GitHub-hosted attempt 4もstep 0 / runner未割当観測で終了した。
 
-さらにfixed-B `go.mod`は`github.com/lib/pq v1.12.3`を要求するが、current containerのGo module cacheにはこのmodule versionが存在しない。したがって、source bytesだけを手作業で移送しても、current network制約下ではcanonical E2 build前提がまだ完結しない。
+### 4.1 `github.com/lib/pq`のmodule cache不在は、それだけではE2 blockerとしない
 
-これらはexecution-environment blockerであり、Product failureではない。
+fixed-B `go.mod`は`github.com/lib/pq v1.12.3`をdirect requireしており、current containerの観測したGo module cacheにはこのversionが存在しない。
+
+ただし、`go.mod`にrequireがあることと、`go build ./cmd/tei`のactual import closureがそのmodule downloadを必要とすることは同義ではない。
+
+fixed-Bの静的観測では、`cmd/tei/main.go`はrepository-internal package群をimportしており、`github.com/lib/pq`をdirect importしていない。また`internal/database/providers/postgres/sql_catalog.go`はstandard libraryの`database/sql`を使い、concrete driver選択はapplications/editor assembly側の責務と明記している。
+
+さらにcurrent Go 1.23.2でnegative controlを実行した。
+
+```text
+synthetic module direct require = github.com/lib/pq v1.12.3
+source import lib/pq             = false
+GOTOOLCHAIN                      = local
+GOPROXY                          = off
+GOSUMDB                          = off
+GOMODCACHE                       = fresh empty directory
+command                          = go build -x .
+exit code                        = 0
+module cache files after build   = 0
+```
+
+したがって、未使用direct requireはmodule cacheに存在しなくてもoffline buildを必ずしも妨げないことを、Go 1.23.2上で確認した。
+
+このnegative controlはfixed-Bの全import closureが`lib/pq`を使わないことを証明しない。actual B source取得後のbuildでdependency download要否を初めて確定する。
+
+```text
+lib/pq cache absent
+  != E2 build dependency missing proved
+  != E2 build blocker proved
+
+actual fixed-B import/build closure
+  = Not Yet Verified
+```
+
+machine-readable Evidence:
+
+`runtime/evidence/tei-go-unused-require-offline-probe-20260907/observation.json`
+
+したがってcurrent blockerの記述は、private exact-B source transportへ戻す。dependency cache不足を独立blockerとして数えない。
 
 ```text
 E2 Go ready
   + revision A fixed input ready and re-executed
   + repository-side E2 partial path ready
   + private exact-B source transport unavailable
-  + required B build dependency not cached locally
   = E2 actual Not Yet Verified
 ```
 
+これらのexecution-environment制約はProduct failureではない。
+
 ## 5. 次に行うactual作業
 
-適切なLinux/amd64 execution environmentまたはprivate source/dependency transportが利用可能になった時点では、追加bootstrap探索やsynthetic hardeningよりactual E2 partialを優先する。
+適切なLinux/amd64 execution environmentまたはprivate exact-B source transportが利用可能になった時点では、追加bootstrap探索やsynthetic hardeningよりactual E2 partialを優先する。
 
 標準順序:
 
 1. `TEI_E2_PARTIAL_ACTUAL_RUNBOOK_2026-09-06.md`に従い、GitHub Git Data APIまたはself-contained local sourceからexact revision Bを取得する。
 2. current containerで取得・再実行済みのhistorical A Evidence bundleと同一identityのexact-A fixed input + exact Go 1.23.2でE2 partialをactual実行する。
-3. `verify_tei_version_exchange_e2_bundle.py`でexact-B / exact-Aへacquisition-independentにstrict再検証する。
-4. actual binary SHA-256 / Provider Plan SHA-256を観測値として固定する。
-5. current SOZA要件を満たすE3 Goが利用可能なら、保存済みE2 partialからE3だけをresumeする。
-6. canonical report / GitHub wrapper reportをResolution auditへ接続する。
+3. actual build中にexternal module acquisitionが必要なら、その時点でrepository-local E2 substageとして観測・分類する。`go.mod`の未使用可能なrequireだけを事前blockerへ昇格させない。
+4. `verify_tei_version_exchange_e2_bundle.py`でexact-B / exact-Aへacquisition-independentにstrict再検証する。
+5. actual binary SHA-256 / Provider Plan SHA-256を観測値として固定する。
+6. current SOZA要件を満たすE3 Goが利用可能なら、保存済みE2 partialからE3だけをresumeする。
+7. canonical report / GitHub wrapper reportをResolution auditへ接続する。
 
 ## 6. Current state
 
@@ -234,7 +273,8 @@ revision A historical artifact                   = acquired and identity-verifie
 revision A fixed input bytes                      = available in current environment
 revision A portable re-execution                  = verified
 current container private B source transport      = unavailable
-current container B build dependency cache        = incomplete
+lib/pq module cache presence                      = absent
+lib/pq necessity for fixed-B E2 build             = Not Yet Determined
 Remote Desktop execution                         = unavailable
 GitHub-hosted attempt 4 Product step             = not observed
 
@@ -249,6 +289,7 @@ ISSUE-000072                                     = Open
 
 ```text
 revision A current-environment re-execution PASS
+  + unused-direct-require offline negative control PASS
   + transport investigation completed
   != revision B actual source acquired
   != revision B E2 PASS
