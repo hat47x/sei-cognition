@@ -258,9 +258,50 @@ failure.stage = E3
 
 E3 failureをE2の再実行理由にしません。
 
+### 9.1 canonicalだけ残りwrapper publishだけ失敗した場合
+
+resumeはcanonical reportを先にpublishし、その後GitHub wrapper reportをpublishします。E3 actualとcanonical publishが完了した後にwrapper publishだけが失敗した場合、**resumeをそのまま再実行しません**。単純再実行はE3も再度実行するため、元の同一実行Evidenceの復旧ではなくなります。
+
+次の状態だけをreconcile対象とします。
+
+```text
+CANONICAL_REPORT exists
+GITHUB_WRAPPER_REPORT missing
+E2_REPORT preserved
+E2_BUNDLE preserved
+```
+
+reconcile:
+
+```bash
+python3 "$SOZA_REPO/runtime/integration/reconcile_tei_e2_partial_resume_reports.py" \
+  --partial-report "$E2_REPORT" \
+  --bundle "$E2_BUNDLE" \
+  --canonical-report "$CANONICAL_REPORT" \
+  --json
+```
+
+reconcileは、partial/bundle identity、canonical E2、comparison axis、resume provenance、E3 success/failure stageを再照合し、欠落した標準wrapperだけを補完します。B source acquisition、E2 build、Provider Plan、E3 Adapter live testは再実行しません。
+
+期待結果:
+
+```text
+result = wrapper_reconstructed_without_e3_rerun
+```
+
+wrapperが既に存在してcanonical/partial Evidenceと一致する場合は`already_consistent`でno-opです。不一致の既存wrapperは上書きせず拒否します。canonical report自体も変更しません。
+
+```text
+report pair reconciliation
+  = interrupted publish recovery
+  != E2 newly executed
+  != E3 newly executed
+  != Evidence promotion by itself
+```
+
 ## 10. Resolution auditへ接続する
 
-canonical reportが得られたら、既存Resolution auditへ接続します。
+canonical reportが得られ、GitHub wrapper reportも存在して整合していることを確認したら、既存Resolution auditへ接続します。
 
 historical A bundleを利用可能なら、criteria 1 / 5のcurrent再検証も同時に行えます。
 
@@ -287,6 +328,7 @@ repository-side path
   = E2 partial acquisition/build/Provider Plan
   + independent bundle verification
   + later E3 resume
+  + interrupted report-pair reconciliation when needed
   + canonical Resolution audit
 
 actual successful execution
