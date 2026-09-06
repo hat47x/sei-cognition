@@ -12,6 +12,7 @@ import tempfile
 from pathlib import Path, PurePosixPath
 from typing import Mapping
 
+import git_object_environment
 import verify_tei_evidence_bundle as bundle_verifier
 import verify_tei_execution_source_identity as source_identity
 
@@ -29,6 +30,7 @@ SOZA_EVIDENCE_PATHS = [
     "runtime/integration/run_tei_bundle_adapter_compatibility.py",
     "runtime/integration/prepare_tei_fixed_reference_input.py",
     "runtime/integration/runtime_path_safety.py",
+    "runtime/integration/git_object_environment.py",
     "runtime/integration/verify_tei_evidence_bundle.py",
     "runtime/integration/verify_tei_execution_source_identity.py",
 ]
@@ -374,6 +376,7 @@ def _git(repo: Path, *args: str, check: bool = True) -> subprocess.CompletedProc
         text=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        env=git_object_environment.controlled_git_environment(),
     )
 
 
@@ -418,6 +421,8 @@ def _verify_soza_source_identity(
         "expectedHeadMatched": expected_head is None or head == expected_head,
         "objects": objects,
         "worktreeCleanWithinBoundary": True,
+        "gitObjectEnvironmentControlled": True,
+        "replaceObjectsDisabled": True,
     }
 
 
