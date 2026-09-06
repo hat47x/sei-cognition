@@ -43,6 +43,8 @@ class TEIRevisionBReferenceBundleRunnerTest(unittest.TestCase):
             return subprocess.CompletedProcess(
                 argv, 0, "go version go1.23.2 linux/amd64\n", ""
             )
+        if argv == ["go", "env", "GOOS", "GOARCH"]:
+            return subprocess.CompletedProcess(argv, 0, "linux\namd64\n", "")
         if argv[:2] == ["go", "build"]:
             output = Path(argv[argv.index("-o") + 1])
             output.write_bytes(b"fake-tei-binary")
