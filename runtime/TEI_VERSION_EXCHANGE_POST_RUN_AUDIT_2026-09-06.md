@@ -13,11 +13,14 @@ actual結果を見る前のRequirement / Scenario判定基準は次を正とし�
 
 - `runtime/TEI_VERSION_EXCHANGE_REQUIREMENT_PREAUDIT_2026-09-05.md`
 
-post-runのmachine-readable入口は次です。
+post-runのmachine-readable入口は、revision B取得経路に応じて次を使います。
 
-- `runtime/integration/audit_tei_version_exchange_resolution.py`
+- GitHub Git Data API one-shot経路: `runtime/integration/audit_tei_version_exchange_resolution.py`
+- local prepositioned checkout経路: `runtime/integration/audit_tei_version_exchange_resolution_local.py`
 
-このauditはIssueを自動closeしません。Stable RequirementやUniversal Contractも変更しません。
+local wrapperは既存Resolution auditを正本として再利用し、criterion 6のacquisition境界だけをlocal checkout向けに差し替えます。Requirement判定やResolution条件そのものを複製しません。
+
+どちらのauditもIssueを自動closeしません。Stable RequirementやUniversal Contractも変更しません。
 
 ```text
 resolution audit candidate
@@ -192,21 +195,80 @@ strict decode、mapping、validator等の内部原因は、machine-readable Evid
 
 `prepare_tei_revision_b_checkout.py`でlocal Git object databaseからexact-B checkoutを準備し、canonical `run_tei_version_exchange_evidence.py`を直接実行する経路も有効です。
 
-ただしPR #264時点のpost-run auditでは、criterion 6のGitHub acquisition Provenance自動確認はGitHub wrapper reportを入力にした場合に限定されています。
-
-そのためlocal prepositioned経路では、canonical reportとhistorical A bundleだけを与えるとcriterion 6は`manual_review`になります。
-
-これはlocal経路が不正という意味ではありません。
+この経路では、post-runに`audit_tei_version_exchange_resolution_local.py`を使います。local wrapperは既存`audit_tei_version_exchange_resolution.py`を実行した後、criterion 6だけを次の境界で再評価します。
 
 ```text
-local prepositioned acquisition
-  != GitHub acquisition
+source acquisition mode
+  = prepositioned_local_checkout
+
+credential requirement
+  = not_applicable
+
+artifact identity
+  = current checkoutをcanonical source verifierでexact revision Bへ再検証
+
+fixed input acquisition
+  = canonical reportのexact-A acquisition modeを保持
+```
+
+つまりlocal acquisitionにGitHub credentialが存在しないことを不足とは扱いません。
+
+```text
+credential not used
+  != credential verification failure
   != semantic identity difference
 ```
 
-local経路でcriterion 6を確認する場合は、exact-B checkoutのcanonical source verification、fixed input acquisition、credential非依存であること、Provider compatibility結果を人が同じ境界で照合します。
+historical revision A Evidence bundleをfixed inputとして使った例では、次のように実行します。
 
-今後、local acquisitionをactual標準経路として使う具体的必要性が出た場合だけ、criterion 6の自動化を追加します。
+```bash
+SOZA_HEAD="$(git -C "$SOZA_REPO" rev-parse HEAD)"
+
+python3 "$SOZA_REPO/runtime/integration/audit_tei_version_exchange_resolution_local.py" \
+  --canonical-report "$EVIDENCE_DIR/tei-version-exchange-evidence.json" \
+  --revision-b-source-repo "$TEI_B_REPO" \
+  --historical-a-bundle "$TEI_A_BUNDLE" \
+  --soza-repo-root "$SOZA_REPO" \
+  --expected-soza-head "$SOZA_HEAD" \
+  --output "$AUDIT_DIR/tei-version-exchange-local-resolution-audit.json"
+```
+
+`--checkout-preparation-report`は任意です。`prepare_tei_revision_b_checkout.py --json`の出力を保存して指定すると、current source identityに加えて次も照合します。
+
+- preparation schema / result
+- exact revision B
+- detached HEAD
+- source clone HEAD / status不変
+- source / output object databaseのself-contained性
+- pre-publish identity verification
+- reportの`outputRepository`とcurrent `--revision-b-source-repo`の一致
+
+例:
+
+```bash
+python3 "$SOZA_REPO/runtime/integration/prepare_tei_revision_b_checkout.py" \
+  --source-repo "$TEI_SOURCE_CLONE" \
+  --output-repo "$TEI_B_REPO" \
+  --json > "$CHECKOUT_PREPARATION_REPORT"
+
+python3 "$SOZA_REPO/runtime/integration/audit_tei_version_exchange_resolution_local.py" \
+  --canonical-report "$EVIDENCE_DIR/tei-version-exchange-evidence.json" \
+  --revision-b-source-repo "$TEI_B_REPO" \
+  --checkout-preparation-report "$CHECKOUT_PREPARATION_REPORT" \
+  --historical-a-bundle "$TEI_A_BUNDLE" \
+  --soza-repo-root "$SOZA_REPO" \
+  --expected-soza-head "$SOZA_HEAD" \
+  --output "$AUDIT_DIR/tei-version-exchange-local-resolution-audit.json"
+```
+
+preparation reportを指定しなくてもcurrent exact-B checkoutは独立再検証します。ただしその場合、checkoutがどの過去操作で生成されたかという履歴までは主張せず、`checkoutPreparationProvenance.observed=false`として明示します。
+
+```text
+current exact-B source identity verified
+  != checkout creation history reconstructed
+```
+
+GitHub one-shotとlocal prepositionedのどちらでも、Resolution条件1〜6の意味は同じです。acquisition mechanism固有の情報はcriterion 6内部のProvenanceへ閉じ、Capability identityやUniversal Contractへ昇格させません。
 
 ## 9. IssueをResolvedへ進める直前
 
