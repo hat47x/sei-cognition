@@ -33,8 +33,61 @@ class GitHubAcquiredVersionExchangeFailed(RuntimeError):
         self.cause = cause
 
 
+class GitHubAcquiredVersionExchangePreflightBlocked(ValueError):
+    def __init__(self, result: dict[str, object]) -> None:
+        blocked = result.get("blockedChecks")
+        blocked_checks = (
+            [str(value) for value in blocked]
+            if isinstance(blocked, list)
+            else ["unknown"]
+        )
+        super().__init__("preflight blocked: " + ", ".join(blocked_checks))
+        self.result = result
+        self.blocked_checks = blocked_checks
+
+
 def _token_from_environment() -> str:
     return os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN") or ""
+
+
+def _credential_environment_for_preflight(token: str) -> dict[str, str]:
+    if token and os.environ.get("GITHUB_TOKEN") == token:
+        return {"GITHUB_TOKEN": token}
+    if token and os.environ.get("GH_TOKEN") == token:
+        return {"GH_TOKEN": token}
+    # Programmatic callers may pass the already-resolved token directly. The
+    # preflight only needs presence; the value is never included in its result.
+    return {"GITHUB_TOKEN": token}
+
+
+def _run_preflight(
+    reference_source_repo: Path | None,
+    soza_repo_root: Path,
+    output_dir: Path,
+    *,
+    reference_evidence_bundle: Path | None,
+    tei_go_executable: Path,
+    soza_go_executable: Path,
+    token: str,
+    expected_soza_head: str | None,
+    overwrite: bool,
+) -> dict[str, object]:
+    # Lazy import keeps standalone preflight importable: that module references this
+    # wrapper only for REPORT_NAME, while the actual one-shot path reaches here only
+    # after this module has completed initialization.
+    import preflight_tei_version_exchange_from_github as preflight
+
+    return preflight.run_preflight(
+        reference_source_repo,
+        soza_repo_root,
+        output_dir,
+        reference_evidence_bundle=reference_evidence_bundle,
+        tei_go_executable=tei_go_executable,
+        soza_go_executable=soza_go_executable,
+        expected_soza_head=expected_soza_head,
+        overwrite=overwrite,
+        env=_credential_environment_for_preflight(token),
+    )
 
 
 def _prepare_wrapper_report_path(output_dir: Path, *, overwrite: bool) -> Path:
@@ -159,6 +212,20 @@ def run_from_github(
     if not token:
         raise ValueError("GitHub API tokenがありません")
 
+    preflight_result = _run_preflight(
+        reference_source_repo,
+        soza_repo_root,
+        output_dir,
+        reference_evidence_bundle=reference_evidence_bundle,
+        tei_go_executable=tei_go_executable,
+        soza_go_executable=soza_go_executable,
+        token=token,
+        expected_soza_head=expected_soza_head,
+        overwrite=overwrite,
+    )
+    if preflight_result.get("ready") is not True:
+        raise GitHubAcquiredVersionExchangePreflightBlocked(preflight_result)
+
     requested_report = _prepare_wrapper_report_path(output_dir, overwrite=overwrite)
 
     with tempfile.TemporaryDirectory(prefix="soza-tei-b-github-source-") as tmp:
@@ -227,8 +294,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "GitHub Git Data APIからexact revision B sourceをcontent-addressedに取得し、"
-            "取得済みexact-B checkoutを既存canonical E2→E3 runnerへそのまま渡します。"
-            "credentialはGITHUB_TOKEN/GH_TOKENからのみ取得し、reportへ保存しません。"
+            "副作用なしpreflightがreadyであることを確認してから、取得済みexact-B checkoutを"
+            "既存canonical E2→E3 runnerへそのまま渡します。credentialは"
+            "GITHUB_TOKEN/GH_TOKENからのみ取得し、reportへ保存しません。"
         ),
         allow_abbrev=False,
     )
@@ -268,6 +336,12 @@ def main(argv: list[str] | None = None) -> int:
             expected_soza_head=args.expected_soza_head,
             overwrite=args.overwrite,
         )
+    except GitHubAcquiredVersionExchangePreflightBlocked as exc:
+        print(
+            "TEI GitHub-acquired version exchange preflight blocked: "
+            + ", ".join(exc.blocked_checks)
+        )
+        return 1
     except GitHubAcquiredVersionExchangeFailed as exc:
         print(
             "TEI GitHub-acquired version exchange run failed at "
