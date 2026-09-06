@@ -1,0 +1,55 @@
+{
+  "schema": "soza.tei-version-exchange-toolchain-acquisition-observation/v1",
+  "observedAt": "2026-09-06T01:15:50Z",
+  "environment": {
+    "platform": "linux/amd64",
+    "currentGoExecutable": "/usr/local/go/bin/go",
+    "currentGoVersion": "go1.23.2",
+    "e2HistoricalRequirementSatisfied": true,
+    "cachedGo125ExecutableObserved": false,
+    "cachedGo125ArchiveObserved": false
+  },
+  "e3Requirement": {
+    "currentSozaGoDirective": "1.25",
+    "requiresPrepositionedLocalToolchainForActualE3": true
+  },
+  "acquisitionAttempts": [
+    {
+      "mechanism": "official_binary_archive",
+      "candidate": "go1.25.12.linux-amd64.tar.gz",
+      "source": "go.dev/dl",
+      "result": "blocked",
+      "failureBoundary": "current_container_public_network_transport"
+    },
+    {
+      "mechanism": "go_toolchain_module",
+      "command": "GOTOOLCHAIN=go1.25.0+auto /usr/local/go/bin/go version",
+      "candidate": "golang.org/toolchain@v0.0.1-go1.25.0.linux-amd64",
+      "result": "blocked",
+      "failureBoundary": "proxy.golang.org_transport_unavailable"
+    },
+    {
+      "mechanism": "go_toolchain_module",
+      "command": "GOTOOLCHAIN=go1.25.12+auto /usr/local/go/bin/go version",
+      "candidate": "golang.org/toolchain@v0.0.1-go1.25.12.linux-amd64",
+      "result": "blocked",
+      "failureBoundary": "proxy.golang.org_transport_unavailable"
+    }
+  ],
+  "interpretation": {
+    "e3ToolchainAvailableInCurrentContainer": false,
+    "implicitOrExplicitToolchainDownloadCanBeUsedAsCurrentFallback": false,
+    "repositorySideImplementationGapObserved": false,
+    "teiProductFailureObserved": false,
+    "sozaAdapterFailureObserved": false
+  },
+  "evidenceBoundary": {
+    "actualRevisionBSourceAcquired": false,
+    "revisionBBuildPass": false,
+    "providerPlanExecutionPass": false,
+    "sozaAdapterCompatibilityPass": false,
+    "issue000072Resolved": false,
+    "qualityJudgement": "not_evaluated"
+  },
+  "stopLine": "Go 1.25 acquisition blocked in current container != TEI version exchange incompatibility != SOZA Adapter failure != ISSUE-000072 Resolved"
+}
