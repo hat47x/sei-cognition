@@ -66,12 +66,6 @@ class TEIRevisionBCheckoutPreparationTest(unittest.TestCase):
             self.assertTrue(result["sourceStateUnchanged"])
             self.assertTrue(result["detachedHead"])
             self.assertEqual("local_no_hardlinks_no_checkout", result["cloneMode"])
-            self.assertEqual(
-                [
-                    mock.call(output.parent / f".{output.name}.prepare-placeholder", expected_head=head),
-                ],
-                [],
-            ) if False else None
             self.assertEqual(2, verify_repository.call_count)
             self.assertEqual(head, verify_repository.call_args_list[0].kwargs["expected_head"])
             self.assertEqual(head, verify_repository.call_args_list[1].kwargs["expected_head"])
