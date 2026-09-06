@@ -7,6 +7,7 @@ import os
 import tempfile
 from pathlib import Path
 
+import preflight_tei_version_exchange_from_github as github_preflight
 import prepare_tei_revision_b_source as source_acquisition
 import run_tei_revision_b_prepositioned as e2_runner
 import run_tei_version_exchange_evidence as version_exchange
@@ -175,6 +176,10 @@ def run_e2_from_github(
         reference_evidence_bundle,
     )
     _precheck_partial_output_paths(output_dir, overwrite=overwrite)
+    github_preflight._check_reference_input(
+        reference_source_repo,
+        reference_evidence_bundle,
+    )
 
     # E3 toolchain is deliberately not checked here. ISSUE-000072 defines E2 and E3
     # as separate experiments, and this entry point exists to preserve partial E2
