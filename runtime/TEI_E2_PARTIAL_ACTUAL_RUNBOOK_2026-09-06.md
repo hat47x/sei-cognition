@@ -144,29 +144,33 @@ revision B固定source commit:
 
 この時点でbinary SHA-256 / Provider Plan SHA-256は、事前期待値を置かずactual observationとして初めて固定します。
 
-## 6. bundleをacquisition-independentに再検証する
+## 6. bundleをacquisition-independentにstrict再検証する
 
-E2 runner成功後、同じbundle bytesを既存independent verifierへ戻します。
+E2 runner成功後、同じbundle bytesをISSUE-000072専用のstrict verifierへ戻します。この入口は既存generic bundle verifierを再利用し、revision B source commitだけでなく、revision A fixed reference inputもrepository-local正本の期待値へ固定します。
 
 ```bash
-python3 "$SOZA_REPO/runtime/integration/verify_tei_evidence_bundle.py" \
+python3 "$SOZA_REPO/runtime/integration/verify_tei_version_exchange_e2_bundle.py" \
   "$E2_BUNDLE" \
-  --expected-source-commit 1a7028d444fcae60a1c4f2f2d247456f4c7c35be \
   --json
 ```
 
 ここで再計算・再検証される主なidentity:
 
-- revision B source commit
+- revision B source commit = fixed revision B
 - executable bit
 - binary SHA-256
 - Provider Plan SHA-256
 - archive SHA-256
-- bundle内revision A fixed reference identity
+- revision A source commit = fixed revision A
+- revision A workspace tree
+- revision A durable-run blob
+- revision A plugin-lock blob
+
+binary SHA-256 / Provider Plan SHA-256は事前期待値として置きません。actual bundle bytesから再計算し、bundle metadataとの一致を確認した結果をE2 observationとして扱います。
 
 ```text
 partial report success
-  + independent bundle verification success
+  + exact-B / exact-A strict bundle verification success
   = E2 actual Evidenceとして評価可能
 ```
 
@@ -326,7 +330,7 @@ Resolution auditは1〜6を自動判定し、7〜8をmanual reviewとして残�
 ```text
 repository-side path
   = E2 partial acquisition/build/Provider Plan
-  + independent bundle verification
+  + exact-B / exact-A strict bundle verification
   + later E3 resume
   + interrupted report-pair reconciliation when needed
   + canonical Resolution audit
