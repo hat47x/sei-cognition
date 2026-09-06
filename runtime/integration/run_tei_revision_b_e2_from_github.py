@@ -85,6 +85,37 @@ def _prepare_output_dir_before_source(
     return resolved
 
 
+def _precheck_partial_output_paths(
+    output_dir: Path,
+    *,
+    overwrite: bool,
+) -> tuple[Path, Path]:
+    bundle_path = output_dir / BUNDLE_NAME
+    report_path = output_dir / REPORT_NAME
+    paths = (bundle_path, report_path)
+
+    for path in paths:
+        reject_symlink_path_or_ancestors(
+            path,
+            "TEI revision B E2 partial Evidence output",
+        )
+
+    existing = [path for path in paths if os.path.lexists(path)]
+    if existing and not overwrite:
+        raise ValueError(
+            "既存E2 partial Evidenceを無言で上書きしません。"
+            "--overwriteを明示してください: "
+            + ", ".join(str(path) for path in existing)
+        )
+    for path in existing:
+        if not path.is_file():
+            raise ValueError(f"E2 partial Evidence出力先がfileではありません: {path}")
+
+    # This is intentionally read-only. Actual overwrite/removal remains in the
+    # canonical output preparation after exact-B source acquisition.
+    return bundle_path, report_path
+
+
 def _comparison_axis(
     reference_source_repo: Path | None,
     reference_evidence_bundle: Path | None,
@@ -143,6 +174,7 @@ def run_e2_from_github(
         reference_source_repo,
         reference_evidence_bundle,
     )
+    _precheck_partial_output_paths(output_dir, overwrite=overwrite)
 
     # E3 toolchain is deliberately not checked here. ISSUE-000072 defines E2 and E3
     # as separate experiments, and this entry point exists to preserve partial E2
