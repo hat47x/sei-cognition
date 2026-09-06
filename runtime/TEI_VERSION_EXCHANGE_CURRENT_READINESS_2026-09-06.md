@@ -188,8 +188,10 @@ PR #260 の入口:
   - Git checkoutの場合はcanonical Git verifier
   - historical Evidence bundleの場合は既存bundle verifier
 - current SOZA source identity / boundary purity / optional expected HEAD
-- E2 Go `go1.23.2` exact match
-- E3 Goがcurrent `runtime/go/go.mod`のdirective以上であること
+- E2 Go executable identityがexact `go1.23.2 linux/amd64`であること
+- E2 controlled Go targetが`go env GOOS GOARCH = linux / amd64`であること
+- E3 Goがcurrent `runtime/go/go.mod`のdirective以上で、`go version`上もLinux/amd64であること
+- E3 controlled Go targetが`go env GOOS GOARCH = linux / amd64`であること
 - Evidence output pathのstatic safety / existing canonical outputs
 - canonical bundle / report / wrapper report pathがsymlinkまたはsymlink ancestor経由でないこと
 - revision B source temporary parentのstatic safety
@@ -217,8 +219,10 @@ local Git object databaseを使う場合は次を使います。
 - revision B commitから見た`cmd` / `internal` / `reference` / `go.mod` / `go.sum` object identityが固定値へ一致すること
 - exact revision A fixed reference input identity
 - current SOZA source identity / boundary purity / optional expected HEAD
-- E2 Go `go1.23.2` exact match
-- E3 Goがcurrent `runtime/go/go.mod`のdirective以上であること
+- E2 Go executable identityがexact `go1.23.2 linux/amd64`であること
+- E2 controlled Go targetが`go env GOOS GOARCH = linux / amd64`であること
+- E3 Goがcurrent `runtime/go/go.mod`のdirective以上で、`go version`上もLinux/amd64であること
+- E3 controlled Go targetが`go env GOOS GOARCH = linux / amd64`であること
 - future exact-B checkout outputが新規pathであり、source clone / SOZA / A checkout / Evidence outputと重ならないこと
 - Evidence outputがsource clone / future B checkout / SOZA / A checkoutと重ならず、historical A bundleを包含しないこと
 
@@ -233,7 +237,7 @@ local preflight ready
 
 両preflightとも、execution mechanismの違いをCapability identityへ持ち込みません。
 
-### 4.3 E2 / E3 Go process-level build surface
+### 4.3 E2 / E3 Go process-level build surface / target identity
 
 PR #279では、同じsource / Go versionでも親processからbuild/test結果を変え得るprocess-level Go overrideを、E2 buildとE3 live testで対称に分離しました。
 
@@ -256,10 +260,37 @@ GOEXPERIMENT
 CGO_ENABLED
 ```
 
+PR #286では、そのcontrolled environment上で実際に使うGo target identityもcanonical E2/E3 verifierへ固定しました。
+
+E2 historical条件:
+
+```text
+go version
+  = go1.23.2 linux/amd64
+
+go env GOOS GOARCH
+  = linux
+    amd64
+```
+
+E3 current条件:
+
+```text
+go version
+  = current runtime/go/go.mod directive以上
+  + linux/amd64
+
+go env GOOS GOARCH
+  = linux
+    amd64
+```
+
+E2 preflightはcanonical `_verify_tei_go_toolchain()`を再利用し、E3 preflightもcanonical Adapter側のGo requirement / target verifierを再利用します。local preflightはこれらのcommon helperをそのまま使うため、GitHub/localの取得経路でtoolchain判定を分岐させません。target mismatchは新しいstageへ昇格させず、既存の`tei_go_toolchain` / `soza_go_toolchain`として扱います。
+
 `PATH`、`GOPROXY`、`GOMODCACHE`等のtool discovery / module acquisition設定はこの境界では維持します。したがってこれはmodule acquisitionやhost全体をhermeticにする主張ではありません。
 
 ```text
-process-level Go build/test surface isolated
+process-level Go build/test surface + Linux/amd64 target identity fixed
   != module acquisition hermetic
   != E2 PASS
   != E3 PASS
@@ -310,8 +341,8 @@ actual実行環境には共通して次を準備します。
 - revision A fixed input
   - exact revision A checkout、または
   - verified historical revision A Evidence bundle
-- E2用Go 1.23.2
-- E3用Go 1.25以上でcurrent `runtime/go/go.mod`を満たすexecutable
+- E2用Go executable: exact `go1.23.2 linux/amd64`、controlled targetもLinux/amd64
+- E3用Go executable: current `runtime/go/go.mod`を満たすversionかつLinux/amd64、controlled targetもLinux/amd64
 - SOZA / revision A checkout外のEvidence output directory
 
 まずcurrent SOZA HEADを固定します。
@@ -472,6 +503,9 @@ E3 SOZA source Git environment isolation
 
 E2/E3 process-level Go build/test environment isolation
   = implemented
+
+E2/E3 Go executable + controlled target identity
+  = implemented; Linux/amd64, E2 exact go1.23.2, E3 current go.mod minimum
 
 E2 Evidence bundle no-overwrite / symlink-safe publish
   = implemented
