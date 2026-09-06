@@ -18,6 +18,8 @@ from runtime_path_safety import reject_symlink_path_or_ancestors
 SCHEMA = "soza.tei-version-exchange-resolution-audit/v1"
 CANONICAL_SCHEMA = "soza.tei-version-exchange-evidence-run/v1"
 WRAPPER_SCHEMA = "soza.tei-version-exchange-github-acquisition-run/v1"
+CURRENT_GITHUB_ACQUISITION_MODE = "github-git-data-api-content-addressed"
+ACCEPTED_CREDENTIAL_PROVENANCE = {"environment", "GITHUB_TOKEN", "GH_TOKEN"}
 BASELINE_PATHS = [
     "plan/issue/ISSUE-000072-verify-tei-executable-version-exchange.md",
     "runtime/TEI_VERSION_EXCHANGE_REQUIREMENT_PREAUDIT_2026-09-05.md",
@@ -405,12 +407,24 @@ def _boundary_criterion(
     for key, value in expected.items():
         if source.get(key) != value:
             mismatches[key] = {"expected": value, "actual": source.get(key)}
+
+    acquisition_mode = source.get("mode")
+    if acquisition_mode not in {
+        CURRENT_GITHUB_ACQUISITION_MODE,
+        "github_git_data_api",
+    }:
+        mismatches["sourceAcquisitionMode"] = {
+            "expected": CURRENT_GITHUB_ACQUISITION_MODE,
+            "actual": acquisition_mode,
+        }
+
     credential_source = source.get("credentialSource")
-    if credential_source not in {"GITHUB_TOKEN", "GH_TOKEN"}:
+    if credential_source not in ACCEPTED_CREDENTIAL_PROVENANCE:
         mismatches["credentialSource"] = {
-            "expected": "GITHUB_TOKEN or GH_TOKEN",
+            "expected": "environment provenance without credential value",
             "actual": credential_source,
         }
+
     canonical_source = source.get("canonicalSourceVerification")
     if not isinstance(canonical_source, dict):
         mismatches["canonicalSourceVerification"] = {
@@ -449,10 +463,10 @@ def _boundary_criterion(
     return _criterion(
         6,
         SATISFIED,
-        "GitHub acquisition / credential source / exact-B artifact identityとexact-A fixed input acquisitionを分離して追跡できます",
+        "GitHub acquisition / environment credential provenance / exact-B artifact identityとexact-A fixed input acquisitionを分離して追跡できます",
         wrapperReport=str(resolved),
         sourceAcquisition={
-            "mode": source.get("mode"),
+            "mode": acquisition_mode,
             "repository": source.get("repository"),
             "sourceCommit": source.get("sourceCommit"),
             "rootTree": source.get("rootTree"),
@@ -570,10 +584,7 @@ def audit_resolution(
         },
         "githubAcquisitionWrapperObserved": wrapper is not None,
         "sozaAuditBaseline": baseline,
-        "criteria": {
-            str(item["criterion"]): item
-            for item in criteria
-        },
+        "criteria": {str(item["criterion"]): item for item in criteria},
         "automatedCriteria": {
             "scope": [1, 2, 3, 4, 5, 6],
             "satisfied": [
@@ -690,9 +701,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2))
     else:
         print(f"TEI version exchange resolution audit: {result['result']}")
-        print(
-            f"- resolution candidate: {str(result['resolutionCandidate']).lower()}"
-        )
+        print(f"- resolution candidate: {str(result['resolutionCandidate']).lower()}")
         print(f"- output: {output}")
         print(result["stopLine"])
     return 0
