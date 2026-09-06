@@ -78,6 +78,44 @@ class RuntimeExchangeNewOutputPathSafetyTest(unittest.TestCase):
             self.assertTrue(call["evidence_dir"].is_symlink())
             self.assertTrue(call["verification_output"].is_symlink())
 
+    def test_requested_work_path_stays_lexical_for_preflight_and_strict(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            work_target = root / "work-target"
+            requested_work = root / "work-link"
+            requested_work.symlink_to(work_target)
+            evidence = root / "evidence"
+
+            effective = subject._effective_work_dir(evidence, requested_work)
+
+            self.assertEqual(requested_work, effective)
+            self.assertTrue(effective.is_symlink())
+            preflight = subject._build_preflight_command(
+                kj_atlas_dir=root / "kj-atlas",
+                kj_atlas_backend_bundle=None,
+                model_dir=None,
+                work_dir=effective,
+                evidence_dir=evidence,
+                forwarded=[],
+            )
+            strict, _ = subject._build_command(
+                kj_atlas_dir=root / "kj-atlas",
+                kj_atlas_backend_bundle=None,
+                model_dir=None,
+                prepare_model_dir=None,
+                work_dir=effective,
+                evidence_dir=evidence,
+                forwarded=[],
+            )
+            self.assertEqual(
+                requested_work,
+                Path(preflight[preflight.index("--work-dir") + 1]),
+            )
+            self.assertEqual(
+                requested_work,
+                Path(strict[strict.index("--work-dir") + 1]),
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
