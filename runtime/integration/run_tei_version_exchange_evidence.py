@@ -209,7 +209,14 @@ def _prepare_output_paths(
     *,
     overwrite: bool,
 ) -> None:
-    existing = [path for path in (bundle_path, report_path) if path.exists()]
+    paths = (bundle_path, report_path)
+    for path in paths:
+        reject_symlink_path_or_ancestors(
+            path,
+            "TEI version exchange Evidence output",
+        )
+
+    existing = [path for path in paths if path.exists()]
     if existing and not overwrite:
         raise ValueError(
             "既存Evidenceを無言で上書きしません。--overwriteを明示してください: "
@@ -217,7 +224,7 @@ def _prepare_output_paths(
         )
     if overwrite:
         for path in existing:
-            if not path.is_file() and not path.is_symlink():
+            if not path.is_file():
                 raise ValueError(f"Evidence出力先がfileではありません: {path}")
             path.unlink()
 
