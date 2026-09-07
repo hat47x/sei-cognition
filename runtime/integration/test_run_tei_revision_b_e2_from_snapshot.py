@@ -192,6 +192,17 @@ class TEIRevisionBE2FromSnapshotTest(unittest.TestCase):
                 returncode=2,
                 stderr="failure",
             )
+            materialized_sources: list[Path] = []
+
+            def materialize(source_repo: Path, *, snapshot_path: Path):
+                self.assertEqual(snapshot, snapshot_path)
+                source_repo.mkdir(parents=True)
+                (source_repo / "materialized-marker").write_text(
+                    "fixed-b",
+                    encoding="utf-8",
+                )
+                materialized_sources.append(source_repo)
+                return acquisition
 
             with mock.patch.object(
                 subject.github_e2,
@@ -211,8 +222,8 @@ class TEIRevisionBE2FromSnapshotTest(unittest.TestCase):
             ), mock.patch.object(
                 subject.snapshot_source,
                 "materialize_revision_b_source_from_snapshot",
-                return_value=acquisition,
-            ), mock.patch.object(
+                side_effect=materialize,
+            ) as materialize_mock, mock.patch.object(
                 subject.github_runner,
                 "_source_provenance",
                 return_value=base_provenance,
@@ -235,7 +246,7 @@ class TEIRevisionBE2FromSnapshotTest(unittest.TestCase):
                 subject.github_runner,
                 "_write_report",
             ) as write_report:
-                with self.assertRaises(subject.SnapshotE2RunFailed):
+                with self.assertRaises(subject.SnapshotE2RunFailed) as raised:
                     subject.run_e2_from_snapshot(
                         snapshot,
                         None,
@@ -244,11 +255,27 @@ class TEIRevisionBE2FromSnapshotTest(unittest.TestCase):
                         tei_go_executable=go,
                     )
 
+            expected_report = evidence / subject.REPORT_NAME
+            expected_bundle = evidence / subject.BUNDLE_NAME
+            self.assertEqual(expected_report, raised.exception.report_path)
+            materialize_mock.assert_called_once()
+            self.assertEqual(1, len(materialized_sources))
+            self.assertFalse(materialized_sources[0].exists())
+            write_report.assert_called_once()
+            self.assertEqual(expected_report, write_report.call_args.args[0])
             report = write_report.call_args.args[1]
             self.assertEqual("e2_failed", report["result"])
+            self.assertEqual(str(expected_bundle), report["bundleArchive"])
+            self.assertIsNone(report["e2"])
+            self.assertIsNone(report["e3"])
             self.assertEqual(
                 subject.snapshot_source.SNAPSHOT_TRANSPORT_MODE,
                 report["sourceAcquisition"]["sourceTransport"]["mode"],
+            )
+            self.assertFalse(
+                report["sourceAcquisition"]["sourceTransport"][
+                    "runtimeCredentialUsed"
+                ]
             )
             self.assertEqual("E2", report["failure"]["stage"])
             self.assertEqual(
