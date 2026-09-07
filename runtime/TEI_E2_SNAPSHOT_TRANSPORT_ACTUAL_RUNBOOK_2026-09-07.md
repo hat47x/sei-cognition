@@ -244,6 +244,54 @@ actual E2 substage failure observed
   != automatic Product incompatibility conclusion
 ```
 
+failure report は成功時と同じ固定名を使う。
+
+```bash
+E2_FAILURE_REPORT="$E2_DIR/tei-revision-b-e2-github.json"
+```
+
+`result=e2_failed` の partial report は full canonical report schema ではないため、成功用 `audit_tei_version_exchange_resolution.py` へ直接渡さない。PR #323 以降は failure-only adapter へ戻す。
+
+historical A bundle を使った場合の標準例:
+
+```bash
+SOZA_HEAD="$(git -C "$SOZA_REPO" rev-parse HEAD)"
+E2_FAILURE_AUDIT=/path/to/evidence/tei-e2-partial-failure-resolution-audit.json
+
+python3 "$SOZA_REPO/runtime/integration/audit_tei_version_exchange_e2_partial_failure_resolution.py" \
+  --partial-report "$E2_FAILURE_REPORT" \
+  --historical-a-bundle "$TEI_A_BUNDLE" \
+  --soza-repo-root "$SOZA_REPO" \
+  --expected-soza-head "$SOZA_HEAD" \
+  --output "$E2_FAILURE_AUDIT" \
+  --json
+```
+
+stage-aware E2 failureでhistorical A再検証も成立した場合、概ね次の状態になる。
+
+```text
+criterion 1 = satisfied
+criterion 2 = blocked
+criterion 3 = satisfied
+criterion 4 = blocked
+criterion 5 = satisfied
+criterion 6 = blocked
+criterion 7 = manual_review
+criterion 8 = manual_review
+resolutionCandidate = false
+```
+
+criterion 3はrepository-local E2 substageを観測できたことだけを表す。criterion 2はactual executable / bundle identityが成立していないため、criterion 4はE3未到達のため、criterion 6はactual artifact identity境界まで成立していないためblockedのままにする。
+
+exact-A checkoutを使った場合、historical A bundleを同時に与えなければcriterion 1 / 5はmanual reviewとして残り得る。これを理由に別のartifactやrevisionへ無言で差し替えない。
+
+```text
+actual E2 build failure
+  != revision B replacement
+  != SOZA Adapter incompatibility
+  != ISSUE-000072 Resolved
+```
+
 原因確認前に `--overwrite` で既存 Evidence を上書きしない。
 
 ## 10. E3 resume 以降
@@ -254,6 +302,8 @@ E2 partial 成功後は、既存の正本手順へ戻る。
 - 必要時 `reconcile_tei_e2_partial_resume_reports.py`
 - `audit_tei_version_exchange_resolution.py`
 
+E2 partial failureの場合はE3へ進まず、Section 9のfailure-only Resolution auditへ戻る。
+
 snapshot transport を使ったことを理由に E2 を再実行しない。
 
 ## 11. 2026-09-07 current execution surface
@@ -263,6 +313,7 @@ snapshot transport を使ったことを理由に E2 を再実行しない。
 ```text
 PR #312 snapshot producer / consumer       = merged
 PR #313 snapshot -> E2 partial one-shot    = merged
+PR #323 E2 partial failure Resolution audit = merged
 current container DNS to api.github.com    = unavailable
 Remote Desktop HAT47X                      = offline
 recent TEI GitHub-hosted workflow job      = steps=[]
@@ -271,11 +322,14 @@ actual exact-B snapshot                    = Not Yet Acquired
 
 recent hosted job の zero-step failure は TEI build / Provider Plan failure へ昇格させない。
 
+またfixed-B exact sourceではsource-level compile contradictionがStatic Evidenceとして観測済みだが、canonical actual E2 build failureへは昇格させない。actual E2がbuild stageで停止した場合はSection 9のfailure-only auditへ戻す。
+
 したがって current blocker は次のように表現する。
 
 ```text
 transport implementation ready
   + offline E2 execution path ready
+  + E2 failure audit path ready
   + actual online capture surface unavailable
   = actual snapshot Not Yet Acquired
   = E2 actual Not Yet Verified
@@ -286,8 +340,9 @@ transport implementation ready
 ```text
 snapshot transport implementation merged
   + snapshot -> E2 partial implementation merged
+  + partial failure -> Resolution audit implementation merged
   != actual snapshot generated
-  != revision B actual build PASS
+  != revision B actual build PASS / FAIL established
   != revision B Provider Plan PASS
   != current SOZA Adapter compatibility PASS
   != ISSUE-000072 Resolved
