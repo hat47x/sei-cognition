@@ -1,8 +1,21 @@
 # TEI revision B static CLI repair lineage — 2026-09-07
 
+## 正本参照
+
+このdirectoryは、別レーンで先にmerge済みだった次のEvidenceを**独立に再確認した記録**である。
+
+`runtime/evidence/tei-revision-b-postfix-repair-boundary-20260907/evidence.json`
+
+repair integration boundaryの正本参照は上記へ一本化する。このdirectoryは削除せず履歴として保持するが、**別個の独立Evidenceとして二重計上しない**。
+
+```text
+independent reconfirmation
+  != second independent Evidence count
+```
+
 ## 位置づけ
 
-このEvidenceは、`runtime/evidence/tei-revision-b-static-cli-compile-contradiction-20260907/`で観測したfixed revision Bの静的compile矛盾が、その後のTEI履歴でどこに収束したかを記録する。
+このEvidenceは、`runtime/evidence/tei-revision-b-static-cli-compile-contradiction-20260907/`で観測したfixed revision Bの静的compile矛盾が、その後のTEI履歴でどこに収束したかを再確認したものである。
 
 比較軸のrevision Bは変更しない。
 
@@ -38,7 +51,7 @@ cmd/tei/validation_output.go
   = 5bdd0bef621efafc4e1154099c4b8b76e8228a91
 ```
 
-この二系譜を最初にcurrent mainlineへ収束したmergeとして、次を確認した。
+この二系譜をcurrent mainlineへ収束したmergeとして、次を再確認した。
 
 ```text
 commit
@@ -59,7 +72,7 @@ parents
 
 また、current mainのcommit listingでこのmerge直前に観測した`9976e743de614191173db96cd344ef21f09836bf`はknown repairのancestorではなく、broken B CLI blobを保持していた。
 
-したがって今回の観測範囲では、`b371111b...`を**broken B lineageとrepair lineageの最初のmainline convergence boundary**として扱える。
+この観測は、先行する正本Evidence `tei-revision-b-postfix-repair-boundary-20260907` と一致した。
 
 ## Evidence境界
 
@@ -78,4 +91,4 @@ ISSUE-000072の比較軸は引き続きfixed revision Bである。`b371111b...`
 
 canonical exact-B actual buildは依然としてNot Yet Verifiedであり、Provider PlanはNot Yet Observed、current SOZA Adapter compatibilityはNot Yet Verified、`qualityJudgement = not_evaluated`、ISSUE-000072はOpenのままである。
 
-machine-readable Evidenceは`evidence.json`を参照する。
+machine-readable Evidenceは`evidence.json`を参照する。repair integration boundaryの正本は冒頭のcanonical Evidenceを参照する。

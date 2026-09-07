@@ -2,6 +2,9 @@
   "schema": "soza.tei-revision-b-static-cli-repair-lineage/v1",
   "observedAt": "2026-09-07",
   "repository": "hat47x/tei-platform",
+  "evidenceRole": "independent_reconfirmation_of_existing_canonical_observation",
+  "canonicalEvidence": "runtime/evidence/tei-revision-b-postfix-repair-boundary-20260907/evidence.json",
+  "countingPolicy": "do_not_count_as_independent_observation",
   "fixedRevisionB": {
     "commit": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be",
     "cmdMainBlob": "6a27b98b7f6dbe4e66d1261edfc847402cd608a5",
@@ -65,5 +68,5 @@
     "qualityJudgement": "not_evaluated",
     "issue000072": "open"
   },
-  "stopLine": "repair lineage observed != revision B replaced != canonical actual revision B build result != Provider Plan result != SOZA Adapter compatibility result != ISSUE-000072 Resolved"
+  "stopLine": "independent reconfirmation != second independent Evidence count; repair lineage observed != revision B replaced != canonical actual revision B build result != Provider Plan result != SOZA Adapter compatibility result != ISSUE-000072 Resolved"
 }
