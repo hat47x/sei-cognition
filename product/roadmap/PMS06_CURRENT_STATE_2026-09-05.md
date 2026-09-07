@@ -279,3 +279,69 @@ specific execution host not selected
 ```
 
 したがって、今後は特定端末の復帰待ちをPMS-06のcurrent blockerとして扱わず、GitHub private repository accessを持つonline capture surfaceが利用可能になればactual snapshotを生成し、Linux/amd64 E2環境へtransferしてactual E2を先行回収します。E2がfailureなら専用auditで停止し、E2が成功した場合だけstrict verification後にE3へ進みます。
+
+## 次にEvidence強度が上がる条件
+
+現在のPMS-06で次にEvidence強度が上がる主対象はISSUE-000072です。
+
+snapshot transportを使う場合のoperator向け手順は`runtime/TEI_E2_SNAPSHOT_TRANSPORT_ACTUAL_RUNBOOK_2026-09-07.md`を正とし、次の順で進めます。
+
+```text
+T1 online exact-B Git Data snapshot capture
+  ↓
+credential-free snapshot transfer
+  ↓
+T2 offline exact-B reconstruction
+  ↓
+actual revision B E2 partial
+  ↓
+E2 resultで分岐
+```
+
+E2成功時:
+
+```text
+exact-B / exact-A strict bundle verification
+  ↓
+current SOZA E3 resume
+  ↓
+必要な場合だけ report-pair reconcile
+  ↓
+canonical Resolution audit
+```
+
+E2 failure時:
+
+```text
+stage-aware E2 failure report
+  ↓
+E2 partial failure Resolution audit
+  ↓
+E3へ進まない
+  ↓
+resolutionCandidate=false / ISSUE-000072 Openを維持
+```
+
+E3 toolchainとdirect exact-B source acquisitionを同時に用意できる場合はcanonical `run_tei_version_exchange_evidence.py`でE2 → E3を一度に実行する経路も有効です。snapshot / partial / resumeはfull one-shotの意味を弱める別基準ではなく、同じcomparison axisとcanonical reportへ戻る段階実行経路です。
+
+途中停止した場合は、保存されたmachine-readable stageまでをEvidenceとし、自然言語logやStatic Evidenceからactual process結果を先取りしません。path configurationやworking-tree purity / historical bundle identityの事前拒否はE2 / E3 process failureへ読み替えません。fixed-Bのsource-level compile矛盾も、canonical actual buildを観測するまではactual build failureへ昇格させません。
+
+ISSUE-000070について再実行が必要になるのは、Reopen conditionに該当するEvidenceやContract driftが観測された場合です。Resolvedであることを理由に任意runtime portabilityや成果品質へ主張を広げません。
+
+## Stop line
+
+```text
+ISSUE-000070 fixed-scope runtime exchange Resolved
+  != arbitrary runtime portability
+  != outcome quality satisfied
+
+ISSUE-000072 snapshot / E2 / failure-audit path ready
+  != actual exact-B snapshot acquired
+  != canonical revision B actual build result
+  != Provider Plan PASS / FAIL observed
+  != current SOZA E3 result observed
+  != ISSUE-000072 Resolved
+  != E4 Operational portability
+  != v0.2.0 supported scope expanded
+  != Adoption / Outcome Evidence
+```
