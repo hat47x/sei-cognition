@@ -1,0 +1,58 @@
+{
+  "schema": "soza.tei-revision-b-bootstrap-materialize-shortcut-observation/v1",
+  "observedAt": "2026-09-07T10:18:00Z",
+  "repository": "hat47x/tei-platform",
+  "comparisonAxis": {
+    "targetRevisionB": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be",
+    "targetRootTree": "630d3e9e2acaea70312bee19cf8a0f7235655cd6"
+  },
+  "historicalMaterialize": {
+    "tree": "be0d3d1a728c8ed844b44909895c93f793b328a3",
+    "parts": [
+      {"path": "bootstrap/materialize/part-00", "blob": "940a33d70e097c8f66c4dd25793a7b68f91776a7", "size": 20023},
+      {"path": "bootstrap/materialize/part-01", "blob": "f49e423a2deade98a058250ca5510d737e764219", "size": 10000},
+      {"path": "bootstrap/materialize/part-02", "blob": "61e919ae956904349827ee1320c4c6407b7b0736", "size": 20023},
+      {"path": "bootstrap/materialize/part-03a", "blob": "0f43d195a5b6bcba8f40826452e282f087607da6", "size": 10000},
+      {"path": "bootstrap/materialize/part-03b", "blob": "d87504974d06bef439d66bf59f1beaa1c4492c17", "size": 16400}
+    ],
+    "totalStoredTextBytes": 76446,
+    "latestObservedStagingCommit": "6edeb3a05eecac90ee340665a78c515e24eca2f6",
+    "latestObservedStagingMessage": "Stage compact TEI M0.22.1 source tail 2/3",
+    "latestObservedStagingTime": "2026-08-30T01:21:09Z",
+    "directTreeMethodText": "TEI source normalization is switching to direct Git tree content construction."
+  },
+  "commitLevelDeltaProbe": {
+    "base": "6edeb3a05eecac90ee340665a78c515e24eca2f6",
+    "head": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be",
+    "status": "ahead",
+    "aheadBy": 1834,
+    "behindBy": 0,
+    "totalCommits": 1834,
+    "representativeFilesObservedAsAdded": [
+      "cmd/tei/main.go",
+      "cmd/tei/validation_output.go",
+      "go.mod",
+      "go.sum",
+      "internal/application/model.go",
+      "internal/core/id.go"
+    ]
+  },
+  "observation": {
+    "historicalPayloadIsCompact": true,
+    "historicalStagingCommitIsUsefulCanonicalDeltaBase": false,
+    "reason": "The historical materialize staging commit is 1834 commits behind fixed revision B and the commit-level comparison treats the current CLI and broad implementation surface as additions, so using that commit as a patch base does not materially shorten canonical exact-B acquisition.",
+    "payloadDecodedInCurrentExecutionSurface": false,
+    "payloadPromotedToRevisionB": false,
+    "canonicalSourceAcquisitionChanged": false,
+    "nextCanonicalAction": "Acquire the exact-B Git Data snapshot through the already-implemented online capture path when a suitable authenticated execution surface is available."
+  },
+  "stopLine": [
+    "compact historical materialize payload != exact revision B source",
+    "historical staging commit delta != canonical exact-B snapshot",
+    "shortcut rejection != canonical revision B build result",
+    "shortcut rejection != Provider Plan result",
+    "shortcut rejection != SOZA Adapter compatibility result",
+    "shortcut rejection != ISSUE-000072 Resolved"
+  ],
+  "qualityJudgement": "not_evaluated"
+}
