@@ -1,0 +1,55 @@
+{
+  "schema": "soza.tei-version-exchange-workflow-observation/v1",
+  "observedAt": "2026-09-07T00:26:32Z",
+  "repository": "hat47x/tei-platform",
+  "workflow": {
+    "name": "SOZA E3b-P2 TEI Evidence",
+    "path": ".github/workflows/soza-e3b-p2-evidence.yml",
+    "runId": 33913500170,
+    "runNumber": 2,
+    "runAttempt": 5,
+    "event": "push",
+    "headBranch": "evidence/soza-e3b-p2-version-exchange-2026-09-05",
+    "workflowHeadSha": "5e87cd18967b6d86001cc4d5229bd4886b94e30d",
+    "runStartedAt": "2026-09-07T00:26:26Z",
+    "updatedAt": "2026-09-07T00:26:32Z",
+    "status": "completed",
+    "conclusion": "failure"
+  },
+  "comparisonAxis": {
+    "targetRevisionB": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be",
+    "revisionAFixedReference": "48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67"
+  },
+  "job": {
+    "id": 101584981228,
+    "name": "actual-tei-cli",
+    "status": "completed",
+    "conclusion": "failure",
+    "createdAt": "2026-09-07T00:26:28Z",
+    "startedAt": "2026-09-07T00:26:28Z",
+    "completedAt": "2026-09-07T00:26:31Z",
+    "labels": [
+      "ubuntu-latest"
+    ],
+    "runnerId": 0,
+    "runnerName": "",
+    "runnerGroupId": 0,
+    "runnerGroupName": "",
+    "stepCount": 0,
+    "steps": [],
+    "jobLogAvailable": false
+  },
+  "artifacts": [],
+  "observation": {
+    "runnerAssignmentObserved": false,
+    "jobStepStarted": false,
+    "revisionBSourceCheckoutObserved": false,
+    "teiBuildProcessObserved": false,
+    "providerPlanProcessObserved": false,
+    "evidenceArtifactProduced": false,
+    "failureClass": "github_hosted_job_start_failure",
+    "productFailureObserved": false
+  },
+  "qualityJudgement": "not_evaluated",
+  "stopLine": "GitHub-hosted job start failure with no runner assignment observed != TEI build failure != Provider surface incompatibility != SOZA Adapter incompatibility != ISSUE-000072 Resolved"
+}
