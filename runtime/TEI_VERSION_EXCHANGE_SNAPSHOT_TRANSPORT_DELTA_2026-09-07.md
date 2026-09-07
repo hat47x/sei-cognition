@@ -57,12 +57,16 @@ snapshot producer / consumer を追加した。
 - `runtime/integration/prepare_tei_revision_b_source_from_snapshot.py`
 - associated boundary tests
 
+PR #312 は 2026-09-07 に `develop/v0.2.0` へ merge 済み。
+
 ### PR #313
 
 snapshotからexact-Bを再構成し、そのまま existing E2 partial contract へ接続する one-shot runner を追加した。
 
 - `runtime/integration/run_tei_revision_b_e2_from_snapshot.py`
 - associated boundary tests
+
+PR #313 は PR #312 merge 後に `develop/v0.2.0` へ retarget し、2026-09-07 に merge 済み。
 
 ### PR #323 / #324
 
@@ -93,7 +97,7 @@ cmd/tei/validation_output.go
 
 加えて `validation_output.go` は `workspace.DiagnosticFromLoadError` を参照する一方、fixed-B workspace側で観測したAPIは `SourceDiagnosticFromError` である。
 
-known build-fix `3b928502a5f5d8519335fb3dabed9512ebd6005a` はfixed-Bのancestorではなくdivergedしており、後続mainlineではrepair lineageがmerge `b371111b6103439a28acde4c8fbe3cb11b9c611c` で合流したことも別Evidenceで確認済みである。
+known build-fix `3b928502a5f5d8519335fb3dabed9512ebd6005a` はfixed-Bのancestorではなくdivergedしている。後続mainlineではrepair lineageがmerge `b371111b6103439a28acde4c8fbe3cb11b9c611c` でfixed-B lineageと合流したことも別Evidenceで確認済みである。
 
 ただし、このsource-level observationはcanonical exact-B checkoutをexact Go 1.23.2 / Linux amd64でbuildしたactual E2結果ではない。
 
@@ -118,24 +122,36 @@ repository-side implementation merge 後も、actual snapshot を生成できる
 
 ### current container
 
-current containerではE2 build用toolchainは利用できる。
+`api.github.com` へのDNS解決を再確認したが、引き続き失敗した。
+
+```text
+getent hosts api.github.com
+  = no result
+
+curl https://api.github.com
+  = DNS resolution timeout / failure
+```
+
+process environmentに `GITHUB_TOKEN` / `GH_TOKEN` も存在しない。
+
+一方、E2 buildに固定したGoは利用できる。
 
 ```text
 go version
   = go1.23.2 linux/amd64
 ```
 
-一方、private GitHub Git Data APIへonline captureを行うruntime credential / network surfaceは利用できない。
-
-したがって current container はE2 execution側としては利用可能だが、private GitHubからT1 online captureを行うsurfaceではない。
+したがって current container はE2 execution側としては利用可能だが、private GitHubからonline captureを行うsurfaceではない。
 
 ### Remote Desktop
 
-Remote Desktop execution surfaceはcurrent作業では利用できない。
+Remote Desktop Commander では device `HAT47X` は登録されているが current status は `offline` である。
+
+したがって current remote execution surface も利用できない。
 
 ### GitHub-hosted Actions
 
-TEI repository の別workflowでも、Product stepを開始しないzero-step failureを観測している。
+TEI repository の直近別workflow runも確認した。
 
 ```text
 run id   = 34025808221
@@ -146,7 +162,55 @@ steps    = []
 runner   = not assigned
 ```
 
-既存 actual workflow Run `33913500170` もattempt 7まで進んだが、最新attemptでもProduct step開始は観測されなかった。
+これは別workflowでも GitHub-hosted job が Product step を開始できていない観測である。
+
+既存 actual workflow Run `33913500170` の `actual-tei-cli` job は attempt 5 で次の状態だった。
+
+```text
+run attempt       = 5
+run started       = 2026-09-07T00:26:26Z
+run updated       = 2026-09-07T00:26:32Z
+job               = actual-tei-cli
+job id            = 101584981228
+job created       = 2026-09-07T00:26:28Z
+job started       = 2026-09-07T00:26:28Z
+job completed     = 2026-09-07T00:26:31Z
+label             = ubuntu-latest
+runner id         = 0
+runner name       = empty
+steps             = 0
+artifacts         = 0
+```
+
+machine-readable Evidence:
+
+`runtime/evidence/tei-version-exchange-workflow-attempt5-20260907/observation.json`
+
+その後のcurrent checkでは、同じRunが attempt 6 まで進んでいることを観測した。attempt 6を本作業で開始したとは扱わず、GitHub metadataから観測した事実だけを記録する。
+
+```text
+run attempt       = 6
+run started       = 2026-09-07T02:01:44Z
+run updated       = 2026-09-07T02:01:50Z
+job               = actual-tei-cli
+job id            = 101599002058
+job created       = 2026-09-07T02:01:46Z
+job started       = 2026-09-07T02:01:46Z
+job completed     = 2026-09-07T02:01:49Z
+label             = ubuntu-latest
+runner id         = 0
+runner name       = empty
+steps             = 0
+artifacts         = 0
+```
+
+attempt 6でもrunner assignment、revision B checkout、Go setup、TEI build、Provider Plan executionのstep開始を観測していない。したがってfailure分類は引き続き GitHub-hosted job-start 層に留める。
+
+machine-readable Evidence:
+
+`runtime/evidence/tei-version-exchange-workflow-attempt6-20260907/observation.json`
+
+その後さらに同じRunがattempt 7まで進んだことを観測した。attempt 7も本作業で開始したとは扱わず、GitHub metadataから観測した事実だけを記録する。
 
 ```text
 run attempt       = 7
@@ -164,9 +228,11 @@ steps             = 0
 artifacts         = 0
 ```
 
-attempt 7でもrunner assignment、revision B checkout、Go setup、TEI build、Provider Plan executionを観測していない。
+attempt 7でもrunner assignment、revision B checkout、Go setup、TEI build、Provider Plan executionのstep開始を観測していない。
 
-failure分類は引き続きGitHub-hosted job-start層に留める。
+machine-readable Evidence:
+
+`runtime/evidence/tei-version-exchange-workflow-attempt7-20260907/observation.json`
 
 ```text
 hosted attempt 7 zero-step observation
@@ -176,15 +242,15 @@ hosted attempt 7 zero-step observation
   != SOZA Adapter incompatibility
 ```
 
-machine-readable Evidence:
-
-`runtime/evidence/tei-version-exchange-workflow-attempt7-20260907/observation.json`
-
 同じjob-start surfaceの即時再試行をactual executionの代替にはしない。
 
 ### historical bootstrap payload の境界
 
-TEI repository内の `bootstrap/final-source` / `bootstrap/publish` 等はhistorical M0.22.1 bootstrapであり、fixed revision Bのcanonical source acquisitionには使用しない。
+TEI repository内の `bootstrap/final-source` / `bootstrap/publish` 等も再確認したが、これらは2026-08-30の `Complete verified TEI M0.22.1 source payload` 等で形成されたhistorical bootstrapである。
+
+固定revision Bは2026-09-04のcommit `1a7028d444fcae60a1c4f2f2d247456f4c7c35be` であり、root treeは `630d3e9e2acaea70312bee19cf8a0f7235655cd6` である。
+
+したがってhistorical bootstrap payloadを復元しただけでは、exact-B source acquisitionにもactual exact-B snapshot acquisitionにもならない。
 
 ```text
 historical M0.22.1 bootstrap restored
@@ -192,6 +258,8 @@ historical M0.22.1 bootstrap restored
   != exact-B Git Data snapshot acquired
   != revision B actual E2
 ```
+
+bootstrap内容をactual-B sourceとして扱うこと、またその復元完了をT1 online captureの代替として数えることは禁止する。何らかの復元ベースとして利用する場合でも、最終的にfixed-B Git object identityへ再構成・照合されない限りactual-B Evidenceには昇格させない。
 
 ## 5. operator path
 
@@ -218,7 +286,7 @@ actual E2の結果で分岐する。
 ### E2 success
 
 ```text
-strict exact-B / exact-A bundle verification
+exact-B / exact-A strict bundle verification
   ↓
 later E3 resume
   ↓
@@ -266,7 +334,8 @@ fixed-B source-level compile contradiction        = observed
 fixed-B canonical actual build                    = Not Yet Verified
 actual exact-B snapshot                           = Not Yet Acquired
 current online capture execution surface          = unavailable
-Remote Desktop execution surface                  = unavailable
+current container GitHub DNS                      = unavailable
+Remote Desktop HAT47X                             = offline
 latest TEI hosted actual attempt                  = 7
 latest TEI hosted Product step                    = not observed
 latest TEI hosted runner assignment               = not observed
@@ -302,6 +371,7 @@ transport implementation merged
   + E2 Go ready
   + fixed-B source-level contradiction observed
   + hosted attempt 7 zero-step observation
+  + historical bootstrap boundary clarified
   != actual exact-B snapshot acquired
   != canonical revision B actual build result
   != Provider Plan PASS / FAIL observed
