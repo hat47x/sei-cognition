@@ -68,7 +68,55 @@ snapshotからexact-Bを再構成し、そのまま existing E2 partial contract
 
 PR #313 は PR #312 merge 後に `develop/v0.2.0` へ retarget し、2026-09-07 に merge 済み。
 
-## 3. actual execution surface の再確認
+### PR #323 / #324
+
+fixed-B actual E2がbuild failureで停止した場合に、failureをfalse successへ変換せずResolution条件へ戻す経路を追加した。
+
+- `runtime/integration/audit_tei_version_exchange_e2_partial_failure_resolution.py`
+- snapshot actual runbookからE2 failure auditへ接続
+- E2 failureではE3へ進まない
+- normalなstage-aware build failureでも `resolutionCandidate=false` を維持する
+
+したがってrepository-side current pathは、E2成功時だけでなくE2 failure時も停止位置とEvidence高さを保存できる。
+
+## 3. fixed revision B のsource-level observation
+
+PR #316で、fixed revision Bのexact Git object identityへ束縛したsource bytesから、CLIに決定論的なcompile矛盾を観測した。
+
+```text
+cmd/tei/main.go
+  blob = 6a27b98b7f6dbe4e66d1261edfc847402cd608a5
+  func validateWorkspace(root string) bool
+
+cmd/tei/validation_output.go
+  blob = 2ca746592d325ec0f277cebc7c297e49d3022829
+  func validateWorkspace(out io.Writer, root string) (int, error)
+```
+
+両fileは同じ `package main` に属するため、Goのtop-level function overloadでは解消されない。
+
+加えて `validation_output.go` は `workspace.DiagnosticFromLoadError` を参照する一方、fixed-B workspace側で観測したAPIは `SourceDiagnosticFromError` である。
+
+known build-fix `3b928502a5f5d8519335fb3dabed9512ebd6005a` はfixed-Bのancestorではなくdivergedしている。後続mainlineではrepair lineageがmerge `b371111b6103439a28acde4c8fbe3cb11b9c611c` でfixed-B lineageと合流したことも別Evidenceで確認済みである。
+
+ただし、このsource-level observationはcanonical exact-B checkoutをexact Go 1.23.2 / Linux amd64でbuildしたactual E2結果ではない。
+
+```text
+deterministic source-level compile contradiction
+  != canonical actual revision B build FAIL
+  != Provider Plan failure
+  != SOZA Adapter incompatibility
+  != ISSUE-000072 Resolved
+```
+
+fixed Bをknown repairまたは後続revisionへ無言で差し替えない。
+
+machine-readable Evidence:
+
+- `runtime/evidence/tei-revision-b-static-cli-compile-contradiction-20260907/evidence.json`
+- `runtime/evidence/tei-revision-b-postfix-repair-boundary-20260907/evidence.json`
+
+## 4. actual execution surface の再確認
 
 repository-side implementation merge 後も、actual snapshot を生成できる execution surface は current check で得られていない。
 
@@ -94,12 +142,6 @@ go version
 ```
 
 したがって current container はE2 execution側としては利用可能だが、private GitHubからonline captureを行うsurfaceではない。
-
-### Remote Desktop
-
-Remote Desktop Commander では device `HAT47X` は登録されているが current status は `offline` である。
-
-したがって current remote execution surface も利用できない。
 
 ### GitHub-hosted Actions
 
@@ -162,8 +204,32 @@ machine-readable Evidence:
 
 `runtime/evidence/tei-version-exchange-workflow-attempt6-20260907/observation.json`
 
+その後さらに同じRunがattempt 7まで進んだことを観測した。attempt 7も本作業で開始したとは扱わず、GitHub metadataから観測した事実だけを記録する。
+
 ```text
-hosted attempt 6 zero-step observation
+run attempt       = 7
+run started       = 2026-09-07T05:35:10Z
+run updated       = 2026-09-07T05:35:15Z
+job               = actual-tei-cli
+job id            = 101633883362
+job created       = 2026-09-07T05:35:12Z
+job started       = 2026-09-07T05:35:12Z
+job completed     = 2026-09-07T05:35:15Z
+label             = ubuntu-latest
+runner id         = 0
+runner name       = empty
+steps             = 0
+artifacts         = 0
+```
+
+attempt 7でもrunner assignment、revision B checkout、Go setup、TEI build、Provider Plan executionのstep開始を観測していない。
+
+machine-readable Evidence:
+
+`runtime/evidence/tei-version-exchange-workflow-attempt7-20260907/observation.json`
+
+```text
+hosted attempt 7 zero-step observation
   != revision B checkout failure
   != TEI build failure
   != Provider Plan failure
@@ -189,7 +255,7 @@ historical M0.22.1 bootstrap restored
 
 bootstrap内容をactual-B sourceとして扱うこと、またその復元完了をT1 online captureの代替として数えることは禁止する。何らかの復元ベースとして利用する場合でも、最終的にfixed-B Git object identityへ再構成・照合されない限りactual-B Evidenceには昇格させない。
 
-## 4. operator path
+## 5. operator path
 
 snapshot transport 専用のactual手順は次を正本とする。
 
@@ -207,17 +273,39 @@ T2 offline exact-B reconstruction
 exact Go 1.23.2 + exact-A fixed input
   ↓
 actual E2 build / deployment-provider-plan
-  ↓
+```
+
+actual E2の結果で分岐する。
+
+### E2 success
+
+```text
 exact-B / exact-A strict bundle verification
   ↓
 later E3 resume
   ↓
-Resolution audit
+必要時 report-pair reconcile
+  ↓
+canonical Resolution audit
 ```
+
+### E2 failure
+
+```text
+stage-aware E2 failure reportを保存
+  ↓
+audit_tei_version_exchange_e2_partial_failure_resolution.py
+  ↓
+E3へ進まない
+  ↓
+ISSUE-000072 Open / resolutionCandidate=false を維持
+```
+
+source-level compile contradictionがactual buildで再現した場合も、それをSOZA Adapter incompatibilityへ読み替えない。
 
 T1 と T2 を同一hostで行う必要はない。
 
-## 5. Current state
+## 6. Current state
 
 ```text
 revision B Git object identity                    = fixed
@@ -226,58 +314,62 @@ repository-side snapshot capture                 = implemented + merged
 repository-side snapshot materialization         = implemented + merged
 snapshot -> E2 partial one-shot                   = implemented + merged
 repository-side E2 partial path                   = implemented
+E2 failure -> Resolution audit                    = implemented + merged
 exact-B / exact-A strict E2 bundle verification  = implemented
-later E3 resume                                  = implemented
-report-pair reconcile                            = implemented
+later E3 resume                                   = implemented
+report-pair reconcile                             = implemented
 
 revision A historical artifact                   = acquired and identity-verified
 revision A fixed input bytes                      = available in current container
 revision A portable re-execution                  = verified
 current container E2 Go 1.23.2                   = available
 
+fixed-B source-level compile contradiction        = observed
+fixed-B canonical actual build                    = Not Yet Verified
 actual exact-B snapshot                           = Not Yet Acquired
 current online capture execution surface          = unavailable
 current container GitHub DNS                      = unavailable
-Remote Desktop HAT47X                             = offline
-latest TEI hosted actual attempt                  = 6
+latest TEI hosted actual attempt                  = 7
 latest TEI hosted Product step                    = not observed
 latest TEI hosted runner assignment               = not observed
 historical M0.22.1 bootstrap as exact-B source    = rejected
 
-revision B actual build                           = Not Yet Verified
 revision B Provider Plan                          = Not Yet Observed
 current SOZA Adapter compatibility                = Not Yet Verified
 qualityJudgement                                  = not_evaluated
 ISSUE-000072                                      = Open
 ```
 
-## 6. 次に行うactual作業
+## 7. 次に行うactual作業
 
-次に GitHub private repository access を持つ online execution surface が利用可能になった時点では、追加の transport 設計を行わず、次の順序を優先する。
+次に GitHub private repository access を持つ online execution surface が利用可能になった時点では、追加の transport 設計やhosted retryを先行せず、次を優先する。
 
 1. `capture_tei_revision_b_git_data_snapshot.py` で actual snapshot を生成する。
 2. capture report の snapshot SHA-256 を記録する。
 3. snapshot を Linux/amd64 E2環境へ transfer する。
 4. `run_tei_revision_b_e2_from_snapshot.py` で actual E2 partial を実行する。
-5. `verify_tei_version_exchange_e2_bundle.py` で exact-B / exact-A strict verification を行う。
-6. binary SHA-256 / Provider Plan SHA-256 を actual observation として固定する。
-7. current SOZA E3要件が成立する環境で later E3 resume を行う。
-8. canonical report / wrapper report を Resolution audit へ接続する。
+5. E2がbuild failureならfailure reportを保存し、専用Resolution auditへ接続してE3へ進まない。
+6. E2が成功した場合だけ `verify_tei_version_exchange_e2_bundle.py` で exact-B / exact-A strict verification を行う。
+7. actual binary SHA-256 / Provider Plan SHA-256 を観測値として固定する。
+8. current SOZA E3要件が成立する環境で later E3 resume を行う。
+9. 必要時reconcileを行い、canonical reportをResolution auditへ接続する。
 
 ## 停止線
 
 ```text
 transport implementation merged
   + offline E2 path merged
+  + E2 failure audit path merged
   + A fixed input ready
   + E2 Go ready
-  + hosted attempt 6 zero-step observation
+  + fixed-B source-level contradiction observed
+  + hosted attempt 7 zero-step observation
   + historical bootstrap boundary clarified
   != actual exact-B snapshot acquired
-  != revision B actual E2 PASS
-  != Provider Plan PASS
+  != canonical revision B actual build result
+  != Provider Plan PASS / FAIL observed
   != E3 SOZA Adapter compatibility PASS
   != ISSUE-000072 Resolved
 ```
 
-追加bootstrap探索やsynthetic hardeningをactual executionの代替にしない。
+追加bootstrap探索、同一hosted surfaceの反復retry、synthetic hardeningをactual executionの代替にしない。
