@@ -1,6 +1,6 @@
 {
   "schema": "soza.tei-revision-b-bootstrap-materialize-shortcut-observation/v1",
-  "observedAt": "2026-09-07T10:18:00Z",
+  "observedAt": "2026-09-07T10:15:00Z",
   "repository": "hat47x/tei-platform",
   "comparisonAxis": {
     "targetRevisionB": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be",
