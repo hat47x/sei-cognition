@@ -1,0 +1,62 @@
+{
+  "schema": "soza.tei-revision-b-identical-tree-ci-shortcut-rejection/v1",
+  "observedAt": "2026-09-08T06:29:00+09:00",
+  "repository": "hat47x/tei-platform",
+  "fixedComparison": {
+    "revisionA": "48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67",
+    "revisionB": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be",
+    "revisionBRootTree": "630d3e9e2acaea70312bee19cf8a0f7235655cd6"
+  },
+  "revisionBCommit": {
+    "message": "Merge pull request #408 from hat47x/work/gate-b-final-runner-dsn-doc-sync",
+    "parents": [
+      "e3cc33d1d3f9180a8dc3c7735af6812baf8d1ac6",
+      "db8c556da2cd4fcf9f636df59bf60e5f2fad088d"
+    ]
+  },
+  "identicalTreeParent": {
+    "commit": "db8c556da2cd4fcf9f636df59bf60e5f2fad088d",
+    "rootTree": "630d3e9e2acaea70312bee19cf8a0f7235655cd6",
+    "rootTreeMatchesRevisionB": true,
+    "checkRuns": 0,
+    "workflowRuns": 0,
+    "actualBuildEvidenceAvailable": false
+  },
+  "firstParentBoundary": {
+    "commit": "e3cc33d1d3f9180a8dc3c7735af6812baf8d1ac6",
+    "differenceToRevisionB": [
+      "tools/reference-gate-b-final-evidence/README.md"
+    ],
+    "executionBoundaryChanged": false,
+    "checkRuns": 0,
+    "workflowRuns": 0,
+    "actualBuildEvidenceAvailable": false
+  },
+  "nearestObservedSuccessfulCi": {
+    "commit": "fc6e67ad70689ef2709ea05a5837b8618da16e30",
+    "runId": 33634239635,
+    "workflow": "CI",
+    "conclusion": "success",
+    "observedAt": "2026-09-02T13:11:23Z",
+    "usableAsRevisionBActualBuildEvidence": false,
+    "reason": "The commit-to-revision-B delta changes cmd/tei and broad internal execution-source content, so the successful CI did not execute revision-B-identical source bytes."
+  },
+  "interpretation": {
+    "revisionBTreeIdentityStrengthened": true,
+    "historicalActualBuildShortcutFound": false,
+    "canonicalRevisionBActualBuildVerified": false,
+    "providerPlanObserved": false,
+    "sozaAdapterCompatibilityVerified": false,
+    "qualityJudgement": "not_evaluated",
+    "issue000072Resolved": false
+  },
+  "stoppingLine": [
+    "revision-B identical parent tree observed",
+    "+ identical parent has no checks or workflow runs",
+    "+ nearest observed successful CI used different execution-source bytes",
+    "!= canonical revision B actual build result",
+    "!= Provider Plan result",
+    "!= SOZA Adapter compatibility result",
+    "!= ISSUE-000072 Resolved"
+  ]
+}
