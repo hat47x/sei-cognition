@@ -143,12 +143,6 @@ go version
 
 したがって current container はE2 execution側としては利用可能だが、private GitHubからonline captureを行うsurfaceではない。
 
-### Remote Desktop
-
-Remote Desktop Commander では device `HAT47X` は登録されているが current status は `offline` である。
-
-したがって current remote execution surface も利用できない。
-
 ### GitHub-hosted Actions
 
 TEI repository の直近別workflow runも確認した。
@@ -335,7 +329,6 @@ fixed-B canonical actual build                    = Not Yet Verified
 actual exact-B snapshot                           = Not Yet Acquired
 current online capture execution surface          = unavailable
 current container GitHub DNS                      = unavailable
-Remote Desktop HAT47X                             = offline
 latest TEI hosted actual attempt                  = 7
 latest TEI hosted Product step                    = not observed
 latest TEI hosted runner assignment               = not observed
