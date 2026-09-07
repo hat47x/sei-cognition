@@ -81,10 +81,19 @@ getent hosts api.github.com
   = no result
 
 curl https://api.github.com
-  = Could not resolve host
+  = DNS resolution timeout / failure
 ```
 
-したがって current container から online capture は実行できない。
+process environmentに `GITHUB_TOKEN` / `GH_TOKEN` も存在しない。
+
+一方、E2 buildに固定したGoは利用できる。
+
+```text
+go version
+  = go1.23.2 linux/amd64
+```
+
+したがって current container はE2 execution側としては利用可能だが、private GitHubからonline captureを行うsurfaceではない。
 
 ### Remote Desktop
 
@@ -102,11 +111,12 @@ job      = verify
 job id   = 101466442426
 result   = failure
 steps    = []
+runner   = not assigned
 ```
 
 これは別workflowでも GitHub-hosted job が Product step を開始できていない観測である。
 
-さらに、既存 actual workflow Run `33913500170` の `actual-tei-cli` job を 2026-09-07T00:26Z に attempt 5 として再実行した。再実行request自体は受理されたが、最新job metadataは次であった。
+既存 actual workflow Run `33913500170` の `actual-tei-cli` job は attempt 5 で次の状態だった。
 
 ```text
 run attempt       = 5
@@ -124,21 +134,60 @@ steps             = 0
 artifacts         = 0
 ```
 
-今回もrunner assignment、revision B checkout、Go setup、TEI build、Provider Plan executionのstep開始を観測していない。したがってattempt 5もfailure分類は GitHub-hosted job-start 層に留める。
-
 machine-readable Evidence:
 
 `runtime/evidence/tei-version-exchange-workflow-attempt5-20260907/observation.json`
 
+その後のcurrent checkでは、同じRunが attempt 6 まで進んでいることを観測した。attempt 6を本作業で開始したとは扱わず、GitHub metadataから観測した事実だけを記録する。
+
 ```text
-recent hosted zero-step observation
+run attempt       = 6
+run started       = 2026-09-07T02:01:44Z
+run updated       = 2026-09-07T02:01:50Z
+job               = actual-tei-cli
+job id            = 101599002058
+job created       = 2026-09-07T02:01:46Z
+job started       = 2026-09-07T02:01:46Z
+job completed     = 2026-09-07T02:01:49Z
+label             = ubuntu-latest
+runner id         = 0
+runner name       = empty
+steps             = 0
+artifacts         = 0
+```
+
+attempt 6でもrunner assignment、revision B checkout、Go setup、TEI build、Provider Plan executionのstep開始を観測していない。したがってfailure分類は引き続き GitHub-hosted job-start 層に留める。
+
+machine-readable Evidence:
+
+`runtime/evidence/tei-version-exchange-workflow-attempt6-20260907/observation.json`
+
+```text
+hosted attempt 6 zero-step observation
   != revision B checkout failure
   != TEI build failure
   != Provider Plan failure
   != SOZA Adapter incompatibility
 ```
 
-この状態で新しいactual workflowを追加して再試行することは、同じjob-start surfaceを繰り返す可能性が高いため優先しない。attempt 5を観測した直後に同じworkflowをさらに再実行することもしない。
+同じjob-start surfaceの即時再試行をactual executionの代替にはしない。
+
+### historical bootstrap payload の境界
+
+TEI repository内の `bootstrap/final-source` / `bootstrap/publish` 等も再確認したが、これらは2026-08-30の `Complete verified TEI M0.22.1 source payload` 等で形成されたhistorical bootstrapである。
+
+固定revision Bは2026-09-04のcommit `1a7028d444fcae60a1c4f2f2d247456f4c7c35be` であり、root treeは `630d3e9e2acaea70312bee19cf8a0f7235655cd6` である。
+
+したがってhistorical bootstrap payloadを復元しただけでは、exact-B source acquisitionにもactual exact-B snapshot acquisitionにもならない。
+
+```text
+historical M0.22.1 bootstrap restored
+  != exact revision B source acquired
+  != exact-B Git Data snapshot acquired
+  != revision B actual E2
+```
+
+bootstrap内容をactual-B sourceとして扱うこと、またその復元完了をT1 online captureの代替として数えることは禁止する。何らかの復元ベースとして利用する場合でも、最終的にfixed-B Git object identityへ再構成・照合されない限りactual-B Evidenceには昇格させない。
 
 ## 4. operator path
 
@@ -190,9 +239,10 @@ actual exact-B snapshot                           = Not Yet Acquired
 current online capture execution surface          = unavailable
 current container GitHub DNS                      = unavailable
 Remote Desktop HAT47X                             = offline
-latest TEI hosted actual attempt                  = 5
+latest TEI hosted actual attempt                  = 6
 latest TEI hosted Product step                    = not observed
 latest TEI hosted runner assignment               = not observed
+historical M0.22.1 bootstrap as exact-B source    = rejected
 
 revision B actual build                           = Not Yet Verified
 revision B Provider Plan                          = Not Yet Observed
@@ -221,7 +271,8 @@ transport implementation merged
   + offline E2 path merged
   + A fixed input ready
   + E2 Go ready
-  + hosted attempt 5 zero-step observation
+  + hosted attempt 6 zero-step observation
+  + historical bootstrap boundary clarified
   != actual exact-B snapshot acquired
   != revision B actual E2 PASS
   != Provider Plan PASS
