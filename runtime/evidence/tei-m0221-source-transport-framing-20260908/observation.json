@@ -1,0 +1,37 @@
+{
+  "schema": "soza.tei-historical-source-transport-observation/v1",
+  "observedAt": "2026-09-08T05:53:00+09:00",
+  "repository": "hat47x/tei-platform",
+  "targetComparisonAxis": {
+    "revisionA": "48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67",
+    "revisionB": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be"
+  },
+  "historicalTransport": {
+    "scope": "TEI M0.22.1 source normalization transport",
+    "workflowPath": ".github/workflows/normalize-source.yml",
+    "workflowBlobSha": "7542bab1be80f749be89f095f9ca80529589c299",
+    "finalSourceTreeSha": "36270e38c6f6256ec9fc3ad4bffedb8deee20b22",
+    "framing": {
+      "orderedInputs": "bootstrap/final-source/* in lexical order",
+      "concatenation": "cat bootstrap/final-source/* > /tmp/tei-source.b64",
+      "decode": "base64 -d /tmp/tei-source.b64 > /tmp/tei-source.tar.xz",
+      "archiveFormat": "tar.xz"
+    },
+    "expectedArchiveSha256": "6e0d22efaa4896c4fc44adf1c543d8950abfa910e2a6a0306ec84b3655acc801"
+  },
+  "observation": {
+    "framingSource": "repository workflow at exact revision B",
+    "framingVerified": true,
+    "archiveBytesReconstructedInCurrentExecutionEnvironment": false,
+    "exactRevisionBSourceMaterialized": false,
+    "revisionBActualBuildObserved": false,
+    "providerPlanObserved": false
+  },
+  "semanticBoundary": {
+    "historicalM0221TransportIsExactRevisionBSnapshot": false,
+    "transportFramingEvidenceIsRevisionBActualBuildEvidence": false,
+    "transportFramingEvidenceIsProviderCompatibilityEvidence": false,
+    "transportFramingEvidenceIsIssueResolutionEvidence": false
+  },
+  "stopLine": "historical M0.22.1 source transport framing VERIFIED != archive reconstructed in current environment != exact revision B source materialized != revision B actual build PASS != Provider Plan PASS != E3 compatibility PASS != ISSUE-000072 Resolved"
+}
