@@ -1,0 +1,124 @@
+{
+  "schema": "soza.tei-github-hosted-runner-boundary/v1",
+  "observedDate": "2026-09-07",
+  "repository": "hat47x/tei-platform",
+  "purpose": "Bound the observed GitHub-hosted runner-assignment transition using unrelated TEI workflows, without inferring a concrete infrastructure root cause or reclassifying zero-step failures as TEI Product failures.",
+  "lastObservedSuccessfulStandardCI": {
+    "runId": 33634239635,
+    "workflow": "CI",
+    "headSha": "fc6e67ad70689ef2709ea05a5837b8618da16e30",
+    "createdAt": "2026-09-02T13:11:23Z",
+    "updatedAt": "2026-09-02T13:12:21Z",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "id": 100260961812,
+        "name": "verify",
+        "labels": ["ubuntu-latest"],
+        "runnerId": 1000075811,
+        "runnerName": "GitHub Actions 1000075811",
+        "stepCountObserved": 18,
+        "conclusion": "success"
+      },
+      {
+        "id": 100260962264,
+        "name": "postgres-integration",
+        "labels": ["ubuntu-latest"],
+        "runnerId": 1000075812,
+        "runnerName": "GitHub Actions 1000075812",
+        "stepCountObserved": 11,
+        "conclusion": "success"
+      }
+    ]
+  },
+  "additionalSuccessfulHostedJob": {
+    "runId": 33634416735,
+    "workflow": "一時的にQuery result mapping Validationを共通入口へ接続",
+    "headSha": "e79a3c91fa7417c5d461093245f522b4c09a45ab",
+    "jobId": 100261564372,
+    "jobName": "connect",
+    "createdAt": "2026-09-02T13:13:14Z",
+    "startedAt": "2026-09-02T13:13:17Z",
+    "completedAt": "2026-09-02T13:13:23Z",
+    "labels": ["ubuntu-24.04"],
+    "runnerId": 1000075820,
+    "runnerName": "GitHub Actions 1000075820",
+    "stepCountObserved": 6,
+    "conclusion": "success"
+  },
+  "firstObservedStandardCIZeroStepAfterSuccess": {
+    "runId": 33635220666,
+    "workflow": "CI",
+    "headSha": "83a7eef2731284eed64a3b815374dccc4420c45f",
+    "runAttempt": 1,
+    "createdAt": "2026-09-02T13:21:24Z",
+    "jobs": [
+      {
+        "id": 100264290235,
+        "name": "verify",
+        "labels": ["ubuntu-latest"],
+        "runnerId": 0,
+        "runnerName": "",
+        "stepCount": 0,
+        "conclusion": "failure"
+      },
+      {
+        "id": 100264290641,
+        "name": "postgres-integration",
+        "labels": ["ubuntu-latest"],
+        "runnerId": 0,
+        "runnerName": "",
+        "stepCount": 0,
+        "conclusion": "failure"
+      }
+    ]
+  },
+  "laterUnrelatedZeroStepConfirmation": {
+    "runId": 34025808221,
+    "workflow": "Verify business-procedure cross-view reference",
+    "jobId": 101466442426,
+    "jobName": "verify",
+    "createdAt": "2026-09-06T09:51:20Z",
+    "completedAt": "2026-09-06T09:51:22Z",
+    "labels": ["ubuntu-latest"],
+    "runnerId": 0,
+    "runnerName": "",
+    "stepCount": 0,
+    "conclusion": "failure"
+  },
+  "issue72EvidenceWorkflowConfirmation": {
+    "runId": 33913500170,
+    "runAttempt": 7,
+    "jobId": 101633883362,
+    "jobName": "actual-tei-cli",
+    "labels": ["ubuntu-latest"],
+    "runnerId": 0,
+    "runnerName": "",
+    "stepCount": 0,
+    "conclusion": "failure",
+    "existingEvidence": "runtime/evidence/tei-version-exchange-workflow-attempt7-20260907/observation.json"
+  },
+  "boundary": {
+    "hostedRunnerAssignmentDefinitelyObservedThrough": "2026-09-02T13:13:23Z",
+    "standardCIZeroStepRunnerUnassignedObservedAt": "2026-09-02T13:21:25Z",
+    "maximumObservedTransitionWindowSeconds": 482,
+    "sameRepository": true,
+    "multipleUnrelatedWorkflowsAffected": true
+  },
+  "interpretation": {
+    "failureNotConfinedToIssue72WorkflowObserved": true,
+    "repositoryHostedExecutionSurfaceProblemSupported": true,
+    "concreteRootCauseIdentified": false,
+    "productFailureObserved": false,
+    "recommendedNextAction": "Do not spend the next ISSUE-000072 iteration editing or rerunning the evidence workflow solely to diagnose Product behavior. Prefer canonical exact-B execution through an execution environment where source acquisition and a Linux/amd64 runner are actually available."
+  },
+  "stopLine": [
+    "cross-workflow hosted runner-assignment failure observed",
+    "does not prove a billing, quota, GitHub service, policy, or runner-image root cause",
+    "does not prove revision B build failure",
+    "does not prove Provider Plan failure",
+    "does not prove SOZA Adapter incompatibility",
+    "does not resolve ISSUE-000072"
+  ],
+  "qualityJudgement": "not_evaluated"
+}
