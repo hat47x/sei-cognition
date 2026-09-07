@@ -106,6 +106,30 @@ steps    = []
 
 これは別workflowでも GitHub-hosted job が Product step を開始できていない観測である。
 
+さらに、既存 actual workflow Run `33913500170` の `actual-tei-cli` job を 2026-09-07T00:26Z に attempt 5 として再実行した。再実行request自体は受理されたが、最新job metadataは次であった。
+
+```text
+run attempt       = 5
+run started       = 2026-09-07T00:26:26Z
+run updated       = 2026-09-07T00:26:32Z
+job               = actual-tei-cli
+job id            = 101584981228
+job created       = 2026-09-07T00:26:28Z
+job started       = 2026-09-07T00:26:28Z
+job completed     = 2026-09-07T00:26:31Z
+label             = ubuntu-latest
+runner id         = 0
+runner name       = empty
+steps             = 0
+artifacts         = 0
+```
+
+今回もrunner assignment、revision B checkout、Go setup、TEI build、Provider Plan executionのstep開始を観測していない。したがってattempt 5もfailure分類は GitHub-hosted job-start 層に留める。
+
+machine-readable Evidence:
+
+`runtime/evidence/tei-version-exchange-workflow-attempt5-20260907/observation.json`
+
 ```text
 recent hosted zero-step observation
   != revision B checkout failure
@@ -114,7 +138,7 @@ recent hosted zero-step observation
   != SOZA Adapter incompatibility
 ```
 
-この状態で新しいactual workflowを追加して再試行することは、同じjob-start surfaceを繰り返す可能性が高いため優先しない。
+この状態で新しいactual workflowを追加して再試行することは、同じjob-start surfaceを繰り返す可能性が高いため優先しない。attempt 5を観測した直後に同じworkflowをさらに再実行することもしない。
 
 ## 4. operator path
 
@@ -166,13 +190,15 @@ actual exact-B snapshot                           = Not Yet Acquired
 current online capture execution surface          = unavailable
 current container GitHub DNS                      = unavailable
 Remote Desktop HAT47X                             = offline
-recent TEI hosted Product step                    = not observed
+latest TEI hosted actual attempt                  = 5
+latest TEI hosted Product step                    = not observed
+latest TEI hosted runner assignment               = not observed
 
-revision B actual build                          = Not Yet Verified
-revision B Provider Plan                         = Not Yet Observed
-current SOZA Adapter compatibility               = Not Yet Verified
-qualityJudgement                                 = not_evaluated
-ISSUE-000072                                     = Open
+revision B actual build                           = Not Yet Verified
+revision B Provider Plan                          = Not Yet Observed
+current SOZA Adapter compatibility                = Not Yet Verified
+qualityJudgement                                  = not_evaluated
+ISSUE-000072                                      = Open
 ```
 
 ## 6. 次に行うactual作業
@@ -195,6 +221,7 @@ transport implementation merged
   + offline E2 path merged
   + A fixed input ready
   + E2 Go ready
+  + hosted attempt 5 zero-step observation
   != actual exact-B snapshot acquired
   != revision B actual E2 PASS
   != Provider Plan PASS
