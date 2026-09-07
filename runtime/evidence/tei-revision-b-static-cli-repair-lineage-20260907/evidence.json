@@ -1,0 +1,69 @@
+{
+  "schema": "soza.tei-revision-b-static-cli-repair-lineage/v1",
+  "observedAt": "2026-09-07",
+  "repository": "hat47x/tei-platform",
+  "fixedRevisionB": {
+    "commit": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be",
+    "cmdMainBlob": "6a27b98b7f6dbe4e66d1261edfc847402cd608a5",
+    "validationOutputBlob": "2ca746592d325ec0f277cebc7c297e49d3022829",
+    "relationshipToKnownRepair": "diverged_not_ancestor"
+  },
+  "knownRepair": {
+    "commit": "3b928502a5f5d8519335fb3dabed9512ebd6005a",
+    "message": "fix: restore build after reference feature integration",
+    "mergeBaseWithFixedRevisionB": "0c48e5cae2dc9dc48641f17a32acba7d2a2d63de"
+  },
+  "repairIntegrationBoundary": {
+    "commit": "b371111b6103439a28acde4c8fbe3cb11b9c611c",
+    "committedAtUtc": "2026-09-06T02:53:02Z",
+    "committedAtJst": "2026-09-06T11:53:02+09:00",
+    "message": "Merge remote-tracking branch 'origin/main'",
+    "parents": [
+      "0f4164d31fb938f6ea2a219efb5fff492085f4e3",
+      "241c2c7d75a755678b4158f72f4d4e2826a3f29d"
+    ],
+    "ancestry": {
+      "fixedRevisionBIsAncestor": true,
+      "knownRepairIsAncestor": true
+    },
+    "correctedCliBlobs": {
+      "cmd/tei/main.go": "ef2e10faac836959caf46a6a16cef5486e13ca0b",
+      "cmd/tei/validation_output.go": "5bdd0bef621efafc4e1154099c4b8b76e8228a91"
+    }
+  },
+  "parentLineages": {
+    "repairSide": {
+      "commit": "0f4164d31fb938f6ea2a219efb5fff492085f4e3",
+      "knownRepairIsAncestor": true,
+      "fixedRevisionBIsAncestor": false,
+      "cmdMainBlob": "ef2e10faac836959caf46a6a16cef5486e13ca0b",
+      "validationOutputBlob": "5bdd0bef621efafc4e1154099c4b8b76e8228a91"
+    },
+    "revisionBSide": {
+      "commit": "241c2c7d75a755678b4158f72f4d4e2826a3f29d",
+      "fixedRevisionBIsAncestor": true,
+      "knownRepairIsAncestor": false,
+      "cmdMainBlob": "6a27b98b7f6dbe4e66d1261edfc847402cd608a5",
+      "validationOutputBlob": "2ca746592d325ec0f277cebc7c297e49d3022829"
+    }
+  },
+  "lastObservedMainlineBeforeIntegration": {
+    "commit": "9976e743de614191173db96cd344ef21f09836bf",
+    "committedAtUtc": "2026-09-06T01:49:31Z",
+    "knownRepairIsAncestor": false,
+    "cmdMainBlob": "6a27b98b7f6dbe4e66d1261edfc847402cd608a5",
+    "validationOutputBlob": "2ca746592d325ec0f277cebc7c297e49d3022829"
+  },
+  "interpretation": {
+    "fixedRevisionBRemainsComparisonAxis": true,
+    "repairIntegrationCommitIsInformativeFollowupOnly": true,
+    "repairIntegrationCommitSubstitutesForRevisionB": false,
+    "canonicalExactBActualBuildPerformed": false,
+    "actualRevisionBBuild": "not_yet_verified",
+    "revisionBProviderPlan": "not_yet_observed",
+    "currentSozaAdapterCompatibility": "not_yet_verified",
+    "qualityJudgement": "not_evaluated",
+    "issue000072": "open"
+  },
+  "stopLine": "repair lineage observed != revision B replaced != canonical actual revision B build result != Provider Plan result != SOZA Adapter compatibility result != ISSUE-000072 Resolved"
+}
