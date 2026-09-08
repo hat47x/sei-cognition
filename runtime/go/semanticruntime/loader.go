@@ -384,6 +384,8 @@ func validateBundleExactReferences(bundle *Bundle) error {
 			binding := exactRef.Binding
 			candidates := exactByLogical[binding.LogicalRef]
 			if len(candidates) == 0 {
+				// The reference may point outside this bundle. Payload acquisition and
+				// digest verification are handled by Payload Source / Verifier layers.
 				continue
 			}
 			matched := false
