@@ -224,6 +224,36 @@ def command_checks(commands: Iterable[str] = REQUIRED_COMMANDS) -> list[Check]:
     return checks
 
 
+def python_environment_check() -> Check:
+    """harnessが作成するvenv / pip bootstrapに必要な標準moduleを確認する。"""
+
+    python = shutil.which("python3")
+    if python is None:
+        return Check(
+            "python.venv",
+            "blocked",
+            "python3が見つからないためvenv / ensurepip capabilityを確認できません",
+        )
+    completed = subprocess.run(
+        [python, "-c", "import venv, ensurepip"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode != 0:
+        detail = completed.stderr.strip() or completed.stdout.strip() or "import failed"
+        return Check(
+            "python.venv",
+            "blocked",
+            "harnessが必要とするPython venv / ensurepipを利用できません: " + detail,
+        )
+    return Check(
+        "python.venv",
+        "ok",
+        "python3でvenv / ensurepipを利用できます。actual venv作成とKJ Atlas dependency installは実行時に別途確認します",
+    )
+
+
 def port_check(label: str, port: int) -> Check:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -477,6 +507,7 @@ def collect_checks(args: argparse.Namespace, soza_root: Path) -> list[Check]:
         )
     )
     checks.extend(command_checks())
+    checks.append(python_environment_check())
     checks.extend(repository_check("soza", soza_root))
 
     if args.kj_atlas_backend_bundle is not None:
