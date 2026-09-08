@@ -1,0 +1,98 @@
+{
+  "schema": "soza.tei-successor-build-fix-convergence/v1",
+  "observedDate": "2026-09-07",
+  "purpose": "Record a bounded static observation that a later TEI lineage contains both fixed revision B and the separately observed build-fix lineage, and that the previously observed fixed-B cmd/tei source-level compile contradiction is no longer present at the bounded convergence candidate. This is supplemental Static Evidence only; it does not replace revision B and does not satisfy any actual build, Provider Plan, SOZA Adapter, or ISSUE-000072 Resolution condition.",
+  "repository": "hat47x/tei-platform",
+  "fixedComparison": {
+    "revisionA": "48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67",
+    "revisionB": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be"
+  },
+  "knownBuildFixLineage": {
+    "commit": "3b928502a5f5d8519335fb3dabed9512ebd6005a",
+    "message": "fix: restore build after reference feature integration",
+    "relationToFixedRevisionB": "diverged_not_ancestor"
+  },
+  "boundedConvergence": {
+    "latestObservedBuildFixNonConvergedMainLineCommit": {
+      "commit": "b1250fedce4f87515be25e225575b2fccec2152b",
+      "observedAt": "2026-09-05T14:05:58Z",
+      "buildFixRelation": "diverged"
+    },
+    "candidate": {
+      "commit": "564da346c0bc0dfe461d9c381354330624bf760e",
+      "observedAt": "2026-09-06T08:59:59Z",
+      "message": "Gate B same-run artifact独立監査toolを追加する",
+      "revisionBRelation": {
+        "status": "ahead",
+        "mergeBase": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be",
+        "aheadBy": 274,
+        "fixedRevisionBIsAncestor": true
+      },
+      "buildFixRelation": {
+        "status": "ahead",
+        "mergeBase": "3b928502a5f5d8519335fb3dabed9512ebd6005a",
+        "aheadBy": 360,
+        "knownBuildFixIsAncestor": true
+      }
+    },
+    "earliestConvergenceCommitProved": false,
+    "interpretation": "The first convergence point is intentionally not promoted to a new research target. The bounded candidate is sufficient to show that a later lineage can preserve fixed-B ancestry while also containing the known build-fix lineage."
+  },
+  "fixedRevisionBStaticContradiction": {
+    "mainGo": {
+      "path": "cmd/tei/main.go",
+      "blob": "6a27b98b7f6dbe4e66d1261edfc847402cd608a5",
+      "observedFunction": "func validateWorkspace(root string) bool"
+    },
+    "validationOutputGo": {
+      "path": "cmd/tei/validation_output.go",
+      "blob": "2ca746592d325ec0f277cebc7c297e49d3022829",
+      "observedFunction": "func validateWorkspace(out io.Writer, root string) (int, error)",
+      "observedDiagnosticAPI": "workspace.DiagnosticFromLoadError"
+    },
+    "classification": "deterministic_source_level_compile_contradiction_candidate",
+    "actualBuildResult": "not_verified"
+  },
+  "candidateStaticSurface": {
+    "mainGo": {
+      "path": "cmd/tei/main.go",
+      "blob": "ef2e10faac836959caf46a6a16cef5486e13ca0b",
+      "duplicateValidateWorkspaceObservedInInspectedRegion": false
+    },
+    "validationOutputGo": {
+      "path": "cmd/tei/validation_output.go",
+      "blob": "5bdd0bef621efafc4e1154099c4b8b76e8228a91",
+      "observedFunction": "func validateWorkspace(out io.Writer, root string) (int, error)",
+      "observedDiagnosticAPI": "workspace.SourceDiagnosticFromError"
+    },
+    "previousContradictionObserved": false,
+    "classification": "static_source_surface_repaired",
+    "actualBuildResult": "not_verified"
+  },
+  "currentMainContext": {
+    "commit": "19995a9304a6218c50ed8245ffd44a6403a4cc55",
+    "candidateMainGoBlobMatchesCurrentMain": true,
+    "candidateValidationOutputBlobMatchesCurrentMain": true,
+    "usedAsFixedComparisonRevision": false
+  },
+  "interpretation": {
+    "fixedRevisionBReplaced": false,
+    "successorFixedAsRevisionC": false,
+    "successorActualBuildVerified": false,
+    "successorProviderPlanObserved": false,
+    "successorSozaAdapterCompatibilityVerified": false,
+    "revisionBActualBuildVerified": false,
+    "revisionBProviderPlanObserved": false,
+    "qualityJudgement": "not_evaluated",
+    "issue000072Resolved": false
+  },
+  "stoppingLine": [
+    "successor convergence observed",
+    "!= fixed revision B replacement",
+    "!= canonical actual revision B build PASS or FAIL",
+    "!= successor actual build PASS",
+    "!= successor Provider Plan compatibility PASS",
+    "!= current SOZA Adapter compatibility PASS",
+    "!= ISSUE-000072 Resolved"
+  ]
+}
