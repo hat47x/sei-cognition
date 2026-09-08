@@ -1,0 +1,257 @@
+name: External Method Model Integration E3b-M1b
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/external-method-model-integration-e3b-m1b.yml'
+      - 'runtime/go/livemethodintegration/**'
+      - 'runtime/EXTERNAL_METHOD_MODEL_INTEGRATION_EVIDENCE_*.md'
+      - 'plan/issue/ISSUE-000066-*.md'
+      - 'plan/registry.yaml'
+      - 'plan/document_review_registry.yaml'
+      - 'product/**'
+      - 'architecture/**'
+  push:
+    branches:
+      - develop/v0.2.0
+    paths:
+      - '.github/workflows/external-method-model-integration-e3b-m1b.yml'
+      - 'runtime/go/livemethodintegration/**'
+      - 'runtime/EXTERNAL_METHOD_MODEL_INTEGRATION_EVIDENCE_*.md'
+      - 'plan/issue/ISSUE-000066-*.md'
+      - 'plan/registry.yaml'
+      - 'plan/document_review_registry.yaml'
+      - 'product/**'
+      - 'architecture/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  actual-model-method:
+    name: actual KJ Atlas + Ollama Qwen2.5
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: SOZAをcheckoutする
+        uses: actions/checkout@v4
+
+      - name: 固定revisionのKJ Atlasをcheckoutする
+        uses: actions/checkout@v4
+        with:
+          repository: hat47x/kj-atlas
+          ref: 4f28c13abe4176503c6fed863383a2d1db2299e9
+          path: _external/kj-atlas
+
+      - name: Pythonを準備する
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Goを準備する
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+
+      - name: KJ Atlas backendを導入する
+        run: python -m pip install -e '_external/kj-atlas/03_Implement/backend'
+
+      - name: Ollamaと実modelを準備する
+        run: |
+          set -euo pipefail
+          curl -fsSL https://ollama.com/install.sh | sh
+
+          if ! curl --fail --silent http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
+            OLLAMA_HOST=127.0.0.1:11434 ollama serve >/tmp/ollama-m1b.log 2>&1 &
+            echo $! >/tmp/ollama-m1b.pid
+          fi
+
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:11434/api/tags >/dev/null; then
+              break
+            fi
+            if test "$attempt" = 60; then
+              echo 'Ollama did not become ready' >&2
+              cat /tmp/ollama-m1b.log >&2 || true
+              exit 1
+            fi
+            sleep 0.5
+          done
+
+          ollama pull qwen2.5:1.5b
+          curl --fail --silent http://127.0.0.1:11434/api/tags \
+            >/tmp/ollama-models-before.json
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          body = json.loads(Path('/tmp/ollama-models-before.json').read_text(encoding='utf-8'))
+          models = body.get('models', [])
+          model = next((item for item in models if item.get('name') == 'qwen2.5:1.5b'), None)
+          assert model is not None, body
+          digest = model.get('digest')
+          assert isinstance(digest, str) and len(digest) >= 12, model
+          Path('/tmp/ollama-model-digest.txt').write_text(digest + '\n', encoding='utf-8')
+          print(f'pulled_model=qwen2.5:1.5b digest={digest}')
+          PY
+
+      - name: KJ Atlas databaseを初期化する
+        working-directory: _external/kj-atlas/03_Implement/backend
+        env:
+          KJ_ATLAS_DATABASE_URL: sqlite:////tmp/kj-atlas-e3b-m1b.db
+          KJ_ATLAS_RUNTIME_PROFILE: local-dev
+          KJ_ATLAS_LLM_PROVIDER: deepseek
+          KJ_ATLAS_DEEPSEEK_BASE_URL: http://127.0.0.1:11434
+          KJ_ATLAS_DEEPSEEK_MODEL: qwen2.5:1.5b
+          KJ_ATLAS_DEEPSEEK_API_KEY: ollama-evidence-only
+          KJ_ATLAS_LLM_FALLBACK_TO_NONE: 'false'
+        run: alembic upgrade head
+
+      - name: 固定revisionのKJ Atlasを起動する
+        env:
+          KJ_ATLAS_DATABASE_URL: sqlite:////tmp/kj-atlas-e3b-m1b.db
+          KJ_ATLAS_RUNTIME_PROFILE: local-dev
+          KJ_ATLAS_LLM_PROVIDER: deepseek
+          KJ_ATLAS_DEEPSEEK_BASE_URL: http://127.0.0.1:11434
+          KJ_ATLAS_DEEPSEEK_MODEL: qwen2.5:1.5b
+          KJ_ATLAS_DEEPSEEK_API_KEY: ollama-evidence-only
+          KJ_ATLAS_LLM_FALLBACK_TO_NONE: 'false'
+        run: |
+          set -euo pipefail
+          PYTHONPATH=_external/kj-atlas/03_Implement/backend/src \
+            uvicorn kj_atlas_api.main:app --host 127.0.0.1 --port 8000 \
+            >/tmp/kj-atlas-m1b-backend.log 2>&1 &
+          echo $! >/tmp/kj-atlas-m1b-backend.pid
+
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8000/healthz >/dev/null; then
+              exit 0
+            fi
+            sleep 0.25
+          done
+
+          echo 'KJ Atlas did not become ready' >&2
+          cat /tmp/kj-atlas-m1b-backend.log >&2 || true
+          exit 1
+
+      - name: actual model呼び出し前の状態を記録する
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error \
+            http://127.0.0.1:8000/ai/provider-status \
+            >/tmp/kj-atlas-provider-status-before.json
+
+          # pullだけではmodel processはloadされないことを確認する。
+          if ollama ps | grep -F 'qwen2.5:1.5b'; then
+            echo 'qwen2.5:1.5b was already loaded before the Method request' >&2
+            exit 1
+          fi
+
+      - name: Ollamaの実modelを使ってKJ Atlasのgrouping methodを実行する
+        run: |
+          set -euo pipefail
+          cat >/tmp/kj-atlas-m1b-request.json <<'JSON'
+          {
+            "cards": [
+              {"id":"c-remote","text":"在宅勤務でも成果を出せると考えている","textReviewed":true},
+              {"id":"c-office","text":"対面でないと設計の議論が浅くなると感じている","textReviewed":true},
+              {"id":"c-held","text":"評価制度の見直しはまだ着手していない","textReviewed":true}
+            ],
+            "doc": {
+              "version": 1,
+              "id": "soza-e3b-m1b",
+              "createdAt": "2026-09-02T00:00:00Z",
+              "updatedAt": "2026-09-02T00:00:00Z",
+              "transform": {"panX":0,"panY":0,"zoom":1},
+              "cards": [
+                {"id":"c-remote","text":"在宅勤務でも成果を出せると考えている","x":0,"y":0,"textReviewed":true},
+                {"id":"c-office","text":"対面でないと設計の議論が浅くなると感じている","x":40,"y":0,"textReviewed":true},
+                {"id":"c-held","text":"評価制度の見直しはまだ着手していない","x":80,"y":0,"textReviewed":true,"holdState":"held"}
+              ],
+              "edges": [],
+              "islands": [],
+              "evidenceLinks": []
+            }
+          }
+          JSON
+
+          curl --fail-with-body --silent --show-error \
+            -H 'Content-Type: application/json' \
+            --data @/tmp/kj-atlas-m1b-request.json \
+            http://127.0.0.1:8000/ai/suggest-card-groups \
+            >/tmp/kj-atlas-m1b-result.json
+
+      - name: model実行とKJ Atlas出力境界を検証する
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error \
+            http://127.0.0.1:8000/ai/provider-status \
+            >/tmp/kj-atlas-provider-status-after.json
+          ollama ps >/tmp/ollama-ps-after.txt
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          before = json.loads(Path('/tmp/kj-atlas-provider-status-before.json').read_text(encoding='utf-8'))
+          after = json.loads(Path('/tmp/kj-atlas-provider-status-after.json').read_text(encoding='utf-8'))
+          result = json.loads(Path('/tmp/kj-atlas-m1b-result.json').read_text(encoding='utf-8'))
+          loaded = Path('/tmp/ollama-ps-after.txt').read_text(encoding='utf-8')
+          digest = Path('/tmp/ollama-model-digest.txt').read_text(encoding='utf-8').strip()
+
+          # `deepseek`は固定KJ Atlas内のOpenAI互換transport名であり、
+          # 実際のmodel runtimeはこのworkflowではOllamaである。
+          assert before.get('providerKind') == 'deepseek', before
+          assert after.get('providerKind') == 'deepseek', after
+          assert before.get('callCounts', {}).get('deepseek', 0) == 0, before
+          assert after.get('callCounts', {}).get('deepseek', 0) >= 1, after
+          assert after.get('callCounts', {}).get('total', 0) >= 1, after
+          assert 'qwen2.5:1.5b' in loaded, loaded
+
+          assert isinstance(result.get('groups'), list) and result['groups'], result
+          assert result.get('excludedCardIds') == ['c-held'], result
+          assert result.get('truncated') is False, result
+
+          print(json.dumps({
+              'actualModel': 'qwen2.5:1.5b',
+              'actualModelDigest': digest,
+              'providerStatusBefore': before,
+              'providerStatusAfter': after,
+              'resultShape': {
+                  'groupCount': len(result['groups']),
+                  'excludedCardIds': result['excludedCardIds'],
+                  'truncated': result['truncated'],
+              },
+          }, ensure_ascii=False, sort_keys=True))
+          PY
+
+      - name: SOZA method mappingの境界テストを実行する
+        working-directory: runtime/go
+        run: go test ./livemethodintegration
+
+      - name: actual model-backed Method結果をSOZA semantic recordsへ写像する
+        working-directory: runtime/go
+        env:
+          SOZA_E3B_METHOD_LIVE: '1'
+          SOZA_E3B_METHOD_RESULT: /tmp/kj-atlas-m1b-result.json
+          SOZA_E3B_METHOD_SOURCE_COMMIT: 4f28c13abe4176503c6fed863383a2d1db2299e9
+        run: go test ./livemethodintegration -run '^TestLiveKJAtlasMethodExecution$' -count=1 -v
+
+      - name: 失敗時に非secret logを表示する
+        if: failure()
+        run: |
+          cat /tmp/kj-atlas-provider-status-before.json || true
+          cat /tmp/kj-atlas-provider-status-after.json || true
+          cat /tmp/kj-atlas-m1b-result.json || true
+          cat /tmp/ollama-ps-after.txt || true
+          cat /tmp/kj-atlas-m1b-backend.log || true
+          cat /tmp/ollama-m1b.log || true
+
+      - name: probe processを停止する
+        if: always()
+        run: |
+          if test -f /tmp/kj-atlas-m1b-backend.pid; then kill "$(cat /tmp/kj-atlas-m1b-backend.pid)" 2>/dev/null || true; fi
+          if test -f /tmp/ollama-m1b.pid; then kill "$(cat /tmp/ollama-m1b.pid)" 2>/dev/null || true; fi
