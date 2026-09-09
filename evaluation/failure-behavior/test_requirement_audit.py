@@ -65,17 +65,33 @@ class FailureBehaviorRequirementAuditTest(unittest.TestCase):
         self.assertEqual(evidence["fullRepositoryGoRegression"], "not-yet-verified")
         self.assertEqual(evidence["go125Baseline"], "not-yet-verified")
 
-    def test_actual_and_operational_evidence_remain_unverified(self) -> None:
+    def test_actual_provider_service_observation_is_not_integration_evidence(self) -> None:
+        audit = load_audit()
+        claims = audit["evidenceClaims"]
+        evidence = audit["currentEvidence"]
+        self.assertTrue(claims["actualProviderServiceObservation"])
+        self.assertEqual(
+            evidence["actualProviderServiceMissingRevision"],
+            "observed-provider-rejection-connected-github-api",
+        )
+        self.assertFalse(claims["actualProviderIntegrationFailureEvidence"])
+        self.assertFalse(claims["credentialRejectionEvidence"])
+        self.assertEqual(
+            evidence["actualProviderIntegrationFailureProbe"],
+            "not-yet-executed",
+        )
+        self.assertEqual(evidence["credentialRejectionProbe"], "not-yet-executed")
+
+    def test_operational_and_adoption_evidence_remain_unverified(self) -> None:
         audit = load_audit()
         claims = audit["evidenceClaims"]
         self.assertTrue(claims["designEvidence"])
         self.assertTrue(claims["fixtureScopedExecutableEvidence"])
-        self.assertFalse(claims["actualProviderFailureEvidence"])
         self.assertFalse(claims["operationalEvidence"])
         self.assertFalse(claims["adoptionOutcomeEvidence"])
         self.assertEqual(
-            audit["currentEvidence"]["actualProviderFailureProbe"],
-            "not-yet-executed",
+            audit["currentEvidence"]["operationalEvidence"],
+            "not-yet-verified",
         )
 
     def test_no_change_has_explicit_revisit_triggers(self) -> None:
