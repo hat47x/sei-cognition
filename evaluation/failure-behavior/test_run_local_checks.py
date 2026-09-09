@@ -15,7 +15,7 @@ from run_local_checks import (
 
 
 class FailureBehaviorLocalCheckRunnerTest(unittest.TestCase):
-    def test_configured_checks_cover_python_and_provider_adapter_go_tests(self) -> None:
+    def test_configured_checks_cover_python_and_go_failure_boundaries(self) -> None:
         checks = configured_checks()
         self.assertEqual(
             [check.name for check in checks],
@@ -24,15 +24,19 @@ class FailureBehaviorLocalCheckRunnerTest(unittest.TestCase):
                 "deterministic-probe-tests",
                 "local-runner-tests",
                 "provider-adapter-go-tests",
+                "live-provider-integration-go-tests",
             ],
         )
-        self.assertEqual(checks[-1].command, ("go", "test", "./provideradapter"))
+        self.assertEqual(checks[-2].command, ("go", "test", "./provideradapter"))
+        self.assertEqual(checks[-1].command, ("go", "test", "./liveintegration"))
 
     def test_sanitized_environment_removes_live_probe_and_secret_inputs(self) -> None:
         environment = sanitized_environment(
             {
                 "PATH": "/bin",
                 "SOZA_E3B_LIVE": "1",
+                "SOZA_E3B_FAILURE_LIVE": "1",
+                "SOZA_LIVE_PROVIDER_TOKEN": "secret-token",
                 "KJ_ATLAS_DATABASE_URL": "secret-db",
                 "OLLAMA_HOST": "127.0.0.1:11434",
                 "OPENAI_API_KEY": "secret",
@@ -42,6 +46,8 @@ class FailureBehaviorLocalCheckRunnerTest(unittest.TestCase):
         self.assertEqual(environment["PATH"], "/bin")
         for removed in (
             "SOZA_E3B_LIVE",
+            "SOZA_E3B_FAILURE_LIVE",
+            "SOZA_LIVE_PROVIDER_TOKEN",
             "KJ_ATLAS_DATABASE_URL",
             "OLLAMA_HOST",
             "OPENAI_API_KEY",
