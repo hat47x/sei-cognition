@@ -56,6 +56,11 @@ def configured_checks() -> tuple[Check, ...]:
             cwd=EVALUATION_DIR,
         ),
         Check(
+            name="live-provider-runner-tests",
+            command=(sys.executable, "test_run_live_provider_failure_probe.py"),
+            cwd=EVALUATION_DIR,
+        ),
+        Check(
             name="provider-adapter-go-tests",
             command=("go", "test", "./provideradapter"),
             cwd=GO_RUNTIME_DIR,

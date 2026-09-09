@@ -23,9 +23,14 @@ class FailureBehaviorLocalCheckRunnerTest(unittest.TestCase):
                 "case-catalog-validator-tests",
                 "deterministic-probe-tests",
                 "local-runner-tests",
+                "live-provider-runner-tests",
                 "provider-adapter-go-tests",
                 "live-provider-integration-go-tests",
             ],
+        )
+        self.assertEqual(
+            checks[3].command,
+            (checks[3].command[0], "test_run_live_provider_failure_probe.py"),
         )
         self.assertEqual(checks[-2].command, ("go", "test", "./provideradapter"))
         self.assertEqual(checks[-1].command, ("go", "test", "./liveintegration"))
