@@ -3,7 +3,7 @@
   "issue": "ISSUE-000072",
   "reviewedAt": "2026-09-10",
   "status": "completed-no-change-at-current-evidence-height",
-  "evidenceHeight": "design-and-fixture-scoped-with-live-probe-defined-not-executed",
+  "evidenceHeight": "design-fixture-and-scoped-main-source-go-with-live-probe-not-executed",
   "reviewedRequirements": [
     "REQ-0002",
     "REQ-0006",
@@ -32,12 +32,15 @@
     "REQ-0007, REQ-0021 and REQ-0022 already require Provider neutrality, replaceable realization boundaries and Provider-neutral Capability Observation without copying Provider-internal error vocabulary into the Universal Core.",
     "REQ-0020 already forbids promoting fixture or executable evidence into Operational or Adoption / Outcome claims.",
     "SCN-0011 already covers degraded and unobserved Provider state without flattening it to available / unavailable, while SCN-0010 and SCN-0017 cover verification-state and evidence-height distinctions.",
-    "The current failure-stage catalog and retry distinctions are evaluation candidates. Actual Provider negative probes and Operational Evidence have not yet shown that any candidate stage or retry classification must become Stable Requirement or Universal Contract semantics."
+    "The current failure-stage catalog and retry distinctions are evaluation candidates. The scoped main-source Go execution strengthened executable evidence for the current failure path, but it used Go 1.23.2 rather than the repository Go 1.25 baseline and was not a full repository checkout. Actual Provider negative probes and Operational Evidence still have not shown that any candidate stage or retry classification must become Stable Requirement or Universal Contract semantics."
   ],
   "currentEvidence": {
     "deterministicFailureCatalog": "verified-fixture-scoped",
     "deterministicFailureProbe": "verified-fixture-scoped",
-    "providerAdapterFailureTests": "defined-on-current-runtime-path",
+    "providerAdapterFailureTests": "scoped-main-source-slice-pass-go1.23.2",
+    "liveProviderSecretSafeDeterministicTest": "scoped-main-source-slice-pass-go1.23.2",
+    "fullRepositoryGoRegression": "not-yet-verified",
+    "go125Baseline": "not-yet-verified",
     "liveProviderFailureTests": "defined-explicit-opt-in",
     "liveProviderFailureRunner": "defined-explicit-opt-in",
     "actualProviderFailureProbe": "not-yet-executed",
@@ -53,6 +56,9 @@
   "evidenceClaims": {
     "designEvidence": true,
     "fixtureScopedExecutableEvidence": true,
+    "scopedMainSourceGoEvidence": true,
+    "fullRepositoryRegression": false,
+    "go125BaselineVerified": false,
     "actualProviderFailureEvidence": false,
     "operationalEvidence": false,
     "adoptionOutcomeEvidence": false
