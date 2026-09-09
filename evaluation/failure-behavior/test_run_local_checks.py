@@ -24,14 +24,13 @@ class FailureBehaviorLocalCheckRunnerTest(unittest.TestCase):
                 "deterministic-probe-tests",
                 "local-runner-tests",
                 "live-provider-runner-tests",
+                "requirement-audit-tests",
                 "provider-adapter-go-tests",
                 "live-provider-integration-go-tests",
             ],
         )
-        self.assertEqual(
-            checks[3].command,
-            (checks[3].command[0], "test_run_live_provider_failure_probe.py"),
-        )
+        self.assertEqual(checks[3].command[-1], "test_run_live_provider_failure_probe.py")
+        self.assertEqual(checks[4].command[-1], "test_requirement_audit.py")
         self.assertEqual(checks[-2].command, ("go", "test", "./provideradapter"))
         self.assertEqual(checks[-1].command, ("go", "test", "./liveintegration"))
 
@@ -91,11 +90,7 @@ class FailureBehaviorLocalCheckRunnerTest(unittest.TestCase):
         self.assertEqual(result["executedCount"], result["selectedCount"])
 
     def test_stop_on_failure_does_not_claim_unexecuted_checks(self) -> None:
-        calls = 0
-
         def runner(command, *, cwd, env, timeout):
-            nonlocal calls
-            calls += 1
             return subprocess.CompletedProcess(command, 1)
 
         exit_code, result = run_checks(
