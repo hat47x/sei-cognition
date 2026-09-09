@@ -4,7 +4,7 @@ Status: **Open**
 Priority: **2**  
 Related ADRs: **ADR-0013, ADR-0019, ADR-0021, ADR-0024, ADR-0025**  
 Product Milestone: **PMS-06**  
-Updated: 2026-09-09
+Updated: 2026-09-10
 
 ## Goal
 
@@ -209,17 +209,32 @@ secretをredactした結果、診断に必要な区別まで失う場合は、Un
 - success-path Evidenceや成果品質とfailure Evidenceを分ける。
 - Provider固有error vocabularyをUniversal Contractへ先取りしない。
 
-### Executable Evidence — follow-up
+### Executable Evidence — current fixture-scoped state
 
-後続実装では、まずdeterministic fault injectionまたはsynthetic Provider / helper processで複数stageを再現し、少なくとも次を確認する。
+PR #336では、`evaluation/failure-behavior/case_catalog.json`とvalidatorを追加した。catalogは`evaluation-only` / `non-universal`として、transport、Provider admission、credential、artifact acquisition、artifact identity / integrity、runtime execution、semantic mapping、retryを比較可能なcaseへ分けている。Provider固有error code、retry schedule、credential / token / secret等をcatalogへ固定する変更はvalidatorで拒否する。
 
-- stageの取り違えを検出できる。
-- retryしても最初のfailure observationが残る。
-- secretがEvidenceへ漏れない。
-- historical semantic stateを不用意に書き換えない。
-- identity / integrity failureがfail closedになる。
+PR #337では、同catalogの9 caseを外部serviceなしで発火させるdeterministic probeを追加した。socket timeout、synthetic admission rejection、credential rejection、artifact unavailable、digest mismatch、process start failure、process開始後failure、semantic mapping rejection、retry successを同じreport shapeで観測し、reportの決定性、secret非保存、semantic state非変更、identity / integrity failureのfail closed、retry前failureの保持をfixture-scopedに検査する。PR記録上、catalog validatorを含む16 testはlocalでPASSしている。
 
-その後、必要なcaseだけactual Provider / actual executableで確認する。
+PR #338では、既存`runtime/go/provideradapter`の`Adapter.Observe(...)`と`ValidateObservation(...)`を直接使うfailure test fixtureを追加した。Provider固有payloadのdecode後にmappingが失敗した場合にpartial Capability Observationを返さないこと、mapping成功後のsemantic runtime validation failureを別段階として扱えること、retry成功時も初回mapping failureを別attemptとして保持できることをtestとして固定した。
+
+ただしPR #338ではrepository側のPR workflow runとcommit statusはいずれも0件であり、Go test自体は自動実行されていない。`gofmt`による構文検査と既存package境界との静的照合までを確認済みとし、Go test PASSへは昇格させない。
+
+したがってcurrent Evidenceは次の高さに留まる。
+
+```text
+Design Evidence
+  + deterministic fixture-scoped Executable Evidence
+  + actual Provider Adapter pathに接続した未実行test fixture
+  != actual Provider failure Evidence
+  != actual deployment failure Evidence
+  != Operational Evidence
+```
+
+### Next executable steps
+
+次は、repository-localまたは利用可能な外部runnerで`runtime/go/provideradapter`のfailure testを実行し、その結果をfixture-scoped Executable Evidenceとして確定する。
+
+その後、必要性が高いcaseだけactual Provider / actual executableへ進める。優先候補は、Provider admission / throttling、credential rejection、artifact acquisition failureである。actual実証でもProvider固有error codeをUniversal enumへ昇格させず、raw secretをrepository Evidenceへ保存しない。
 
 ### Operational Evidence — not yet
 
@@ -243,7 +258,7 @@ secretをredactした結果、診断に必要な区別まで失う場合は、Un
 8. provider response received but semantic mapping rejected
 9. retry後に成功したcaseで、初回failureとretry successの双方が保持されること
 
-actual service固有の再現方法は各Realization / Provider Adapter側で選ぶ。caseそのものをHTTPやOllama等へ固定しない。
+current deterministic probeでは1〜9をすべてfixture-scopedに発火させている。8と9については既存Provider Adapter経路へ接続したGo test fixtureも追加済みだが、そのGo test実行は未確認である。actual service固有の再現方法は各Realization / Provider Adapter側で選び、caseそのものをHTTPやOllama等へ固定しない。
 
 ## Constraints
 
@@ -270,6 +285,21 @@ actual service固有の再現方法は各Realization / Provider Adapter側で選
 - Requirement audit結果
 - `plan/registry.yaml`
 - `plan/document_review_registry.yaml`
+
+## Current verification state
+
+2026-09-10時点のcurrent stateは次のとおりである。
+
+- Design Evidence: 成立。failure stage、retry boundary、secret-safe Evidence、Evidence ladderを本Issueで固定した。
+- case catalog / validator: mainへ統合済み。evaluation-only / non-universal境界を機械検査する。
+- deterministic probe: mainへ統合済み。9 caseをfixture-scopedに発火し、PR記録上16 local tests PASS。
+- Provider Adapter path: mainへtest fixtureを統合済み。mapping failure、semantic validation failure、retry attempt separationを既存Adapter境界へ接続した。
+- Provider Adapter Go test execution: **Not Yet Verified**。PR workflow / commit statusは発生していない。
+- actual Provider / actual executable failure: **Not Yet Verified**。
+- Operational Evidence: **Not Yet Verified**。
+- Requirement audit: **Not Yet Completed**。現時点では新しいStable Requirement / Acceptance Scenario / Universal Contract fieldを追加していない。
+
+このためIssueはOpenを維持する。
 
 ## Resolution
 
