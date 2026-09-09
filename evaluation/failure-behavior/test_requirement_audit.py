@@ -47,6 +47,24 @@ class FailureBehaviorRequirementAuditTest(unittest.TestCase):
         ):
             self.assertIs(decision[key], False, key)
 
+    def test_scoped_go_execution_is_recorded_without_full_baseline_claim(self) -> None:
+        audit = load_audit()
+        claims = audit["evidenceClaims"]
+        evidence = audit["currentEvidence"]
+        self.assertTrue(claims["scopedMainSourceGoEvidence"])
+        self.assertEqual(
+            evidence["providerAdapterFailureTests"],
+            "scoped-main-source-slice-pass-go1.23.2",
+        )
+        self.assertEqual(
+            evidence["liveProviderSecretSafeDeterministicTest"],
+            "scoped-main-source-slice-pass-go1.23.2",
+        )
+        self.assertFalse(claims["fullRepositoryRegression"])
+        self.assertFalse(claims["go125BaselineVerified"])
+        self.assertEqual(evidence["fullRepositoryGoRegression"], "not-yet-verified")
+        self.assertEqual(evidence["go125Baseline"], "not-yet-verified")
+
     def test_actual_and_operational_evidence_remain_unverified(self) -> None:
         audit = load_audit()
         claims = audit["evidenceClaims"]
