@@ -1,0 +1,89 @@
+{
+  "schema": "soza.failure-behavior-case-catalog/v1",
+  "scope": "evaluation-only",
+  "authority": "non-universal",
+  "cases": [
+    {
+      "caseId": "FB-C01",
+      "title": "transport timeout before execution",
+      "failureStage": "reachability-transport",
+      "executionStarted": false,
+      "retryScenario": false,
+      "preserveInitialFailure": true,
+      "observes": ["failure-stage", "input-identity", "semantic-state-unchanged"]
+    },
+    {
+      "caseId": "FB-C02",
+      "title": "temporary provider admission rejection",
+      "failureStage": "provider-admission",
+      "executionStarted": false,
+      "retryScenario": false,
+      "preserveInitialFailure": true,
+      "observes": ["failure-stage", "provider-observation-redacted", "semantic-state-unchanged"]
+    },
+    {
+      "caseId": "FB-C03",
+      "title": "credential rejected before execution",
+      "failureStage": "credential",
+      "executionStarted": false,
+      "retryScenario": false,
+      "preserveInitialFailure": true,
+      "observes": ["failure-stage", "credential-result-without-secret", "semantic-state-unchanged"]
+    },
+    {
+      "caseId": "FB-C04",
+      "title": "requested artifact unavailable",
+      "failureStage": "artifact-acquisition",
+      "executionStarted": false,
+      "retryScenario": false,
+      "preserveInitialFailure": true,
+      "observes": ["failure-stage", "requested-artifact-identity", "semantic-state-unchanged"]
+    },
+    {
+      "caseId": "FB-C05",
+      "title": "acquired artifact digest mismatch",
+      "failureStage": "artifact-identity-integrity",
+      "executionStarted": false,
+      "retryScenario": false,
+      "preserveInitialFailure": true,
+      "observes": ["failure-stage", "expected-vs-observed-identity", "fail-closed"]
+    },
+    {
+      "caseId": "FB-C06",
+      "title": "runtime process start failure",
+      "failureStage": "runtime-execution",
+      "executionStarted": false,
+      "retryScenario": false,
+      "preserveInitialFailure": true,
+      "observes": ["failure-stage", "process-not-started", "semantic-state-unchanged"]
+    },
+    {
+      "caseId": "FB-C07",
+      "title": "runtime exits after execution starts",
+      "failureStage": "runtime-execution",
+      "executionStarted": true,
+      "retryScenario": false,
+      "preserveInitialFailure": true,
+      "observes": ["failure-stage", "execution-started", "failure-observation-preserved"]
+    },
+    {
+      "caseId": "FB-C08",
+      "title": "provider response rejected by semantic mapping",
+      "failureStage": "semantic-mapping",
+      "executionStarted": true,
+      "retryScenario": false,
+      "preserveInitialFailure": true,
+      "observes": ["failure-stage", "provider-response-received", "mapping-rejected"]
+    },
+    {
+      "caseId": "FB-C09",
+      "title": "retry succeeds after a temporary failure",
+      "failureStage": "provider-admission",
+      "executionStarted": false,
+      "retryScenario": true,
+      "preserveInitialFailure": true,
+      "retryOutcomeSeparate": true,
+      "observes": ["initial-failure-preserved", "retry-attempt-distinct", "retry-outcome-separate"]
+    }
+  ]
+}
