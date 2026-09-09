@@ -1,0 +1,60 @@
+{
+  "schema": "soza.failure-behavior-requirement-audit/v1",
+  "issue": "ISSUE-000072",
+  "reviewedAt": "2026-09-10",
+  "status": "completed-no-change-at-current-evidence-height",
+  "evidenceHeight": "design-and-fixture-scoped-with-live-probe-defined-not-executed",
+  "reviewedRequirements": [
+    "REQ-0002",
+    "REQ-0006",
+    "REQ-0007",
+    "REQ-0020",
+    "REQ-0021",
+    "REQ-0022"
+  ],
+  "reviewedScenarios": [
+    "SCN-0010",
+    "SCN-0011",
+    "SCN-0017",
+    "SCN-0018"
+  ],
+  "decision": {
+    "newStableRequirement": false,
+    "modifyExistingStableRequirement": false,
+    "newAcceptanceScenario": false,
+    "modifyExistingAcceptanceScenario": false,
+    "newUniversalContractField": false,
+    "conclusion": "no-change"
+  },
+  "rationale": [
+    "REQ-0002 already requires uncertainty and observation-state distinctions instead of flattening unknown or unobserved state into a boolean conclusion.",
+    "REQ-0006 already separates Provider Execution from Recommendation, Decision, Authority and Business Outcome, so an execution failure does not need a new semantic identity rule at the current evidence height.",
+    "REQ-0007, REQ-0021 and REQ-0022 already require Provider neutrality, replaceable realization boundaries and Provider-neutral Capability Observation without copying Provider-internal error vocabulary into the Universal Core.",
+    "REQ-0020 already forbids promoting fixture or executable evidence into Operational or Adoption / Outcome claims.",
+    "SCN-0011 already covers degraded and unobserved Provider state without flattening it to available / unavailable, while SCN-0010 and SCN-0017 cover verification-state and evidence-height distinctions.",
+    "The current failure-stage catalog and retry distinctions are evaluation candidates. Actual Provider negative probes and Operational Evidence have not yet shown that any candidate stage or retry classification must become Stable Requirement or Universal Contract semantics."
+  ],
+  "currentEvidence": {
+    "deterministicFailureCatalog": "verified-fixture-scoped",
+    "deterministicFailureProbe": "verified-fixture-scoped",
+    "providerAdapterFailureTests": "defined-on-current-runtime-path",
+    "liveProviderFailureTests": "defined-explicit-opt-in",
+    "liveProviderFailureRunner": "defined-explicit-opt-in",
+    "actualProviderFailureProbe": "not-yet-executed",
+    "operationalEvidence": "not-yet-verified"
+  },
+  "revisitTriggers": [
+    "An actual Provider or second Provider exposes a stable semantic distinction that cannot be expressed through existing Observation / uncertainty / provenance boundaries without copying Provider-specific error vocabulary.",
+    "Retry behavior changes historical meaning or overwrites the first failure observation in a way not covered by existing continuity, provenance or evidence requirements.",
+    "Artifact acquisition versus identity / integrity failure requires a durable cross-Provider semantic distinction beyond current Exact Binding and Verification Outcome semantics.",
+    "Operational Evidence shows a repeated failure mode whose safe handling cannot be stated through existing requirements without a new stable constraint.",
+    "Secret-safe diagnosis requires a durable semantic representation that cannot remain implementation- or deployment-local."
+  ],
+  "evidenceClaims": {
+    "designEvidence": true,
+    "fixtureScopedExecutableEvidence": true,
+    "actualProviderFailureEvidence": false,
+    "operationalEvidence": false,
+    "adoptionOutcomeEvidence": false
+  }
+}
