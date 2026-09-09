@@ -1,0 +1,43 @@
+{
+  "schema": "soza.actual-provider-service-failure-observation/v1",
+  "issue": "ISSUE-000072",
+  "observedAt": "2026-09-10",
+  "scope": "actual-provider-service-observation",
+  "authority": "non-universal",
+  "provider": "github-rest-api",
+  "observationMethod": "connected-github-api",
+  "target": {
+    "repository": "hat47x/cultural-substrate-weaving",
+    "endpointFamily": "commit-by-revision"
+  },
+  "controlObservation": {
+    "requestedRevision": "aa3651f3460a6db7dc70bd848f93b600f149ffe8",
+    "outcome": "success",
+    "observedRevision": "aa3651f3460a6db7dc70bd848f93b600f149ffe8"
+  },
+  "negativeObservation": {
+    "requestedRevision": "0000000000000000000000000000000000000000",
+    "outcome": "provider-rejection",
+    "providerLocalStatus": 422,
+    "providerLocalMessage": "No commit found for SHA: 0000000000000000000000000000000000000000",
+    "candidateEvaluationRelation": "artifact-acquisition-requested-revision-unavailable"
+  },
+  "secretHandling": {
+    "credentialMaterialPersisted": false,
+    "rawAuthorizationPersisted": false,
+    "note": "The observation used the connected GitHub API boundary. No credential material or authorization header was exposed or persisted in this Evidence."
+  },
+  "claims": {
+    "actualProviderServiceObservation": true,
+    "actualProviderServiceMissingRevisionEvidence": true,
+    "actualSozaGitHubCommitServiceExecution": false,
+    "actualSozaLiveFailureRunnerExecution": false,
+    "credentialRejectionEvidence": false,
+    "actualProviderIntegrationFailureEvidence": false,
+    "actualDeploymentFailureEvidence": false,
+    "operationalEvidence": false,
+    "adoptionOutcomeEvidence": false
+  },
+  "stopLine": "actual GitHub service missing-revision rejection observed != SOZA GitHubCommitService negative probe executed != credential rejection Evidence != Operational Evidence",
+  "providerVocabularyBoundary": "providerLocalStatus and providerLocalMessage are GitHub-specific observations and are not Universal failure semantics"
+}
