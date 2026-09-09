@@ -25,12 +25,16 @@ class FailureBehaviorLocalCheckRunnerTest(unittest.TestCase):
                 "local-runner-tests",
                 "live-provider-runner-tests",
                 "requirement-audit-tests",
+                "scoped-go-evidence-tests",
                 "provider-adapter-go-tests",
                 "live-provider-integration-go-tests",
             ],
         )
         self.assertEqual(checks[3].command[-1], "test_run_live_provider_failure_probe.py")
         self.assertEqual(checks[4].command[-1], "test_requirement_audit.py")
+        self.assertEqual(
+            checks[5].command[-1], "test_scoped_go_failure_execution_evidence.py"
+        )
         self.assertEqual(checks[-2].command, ("go", "test", "./provideradapter"))
         self.assertEqual(checks[-1].command, ("go", "test", "./liveintegration"))
 
