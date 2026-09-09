@@ -60,6 +60,11 @@ def configured_checks() -> tuple[Check, ...]:
             command=("go", "test", "./provideradapter"),
             cwd=GO_RUNTIME_DIR,
         ),
+        Check(
+            name="live-provider-integration-go-tests",
+            command=("go", "test", "./liveintegration"),
+            cwd=GO_RUNTIME_DIR,
+        ),
     )
 
 
