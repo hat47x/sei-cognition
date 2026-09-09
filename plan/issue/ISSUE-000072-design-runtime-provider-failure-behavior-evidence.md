@@ -209,7 +209,7 @@ secretをredactした結果、診断に必要な区別まで失う場合は、Un
 - success-path Evidenceや成果品質とfailure Evidenceを分ける。
 - Provider固有error vocabularyをUniversal Contractへ先取りしない。
 
-### Executable Evidence — current fixture-scoped state
+### Executable Evidence — current state
 
 PR #336では、`evaluation/failure-behavior/case_catalog.json`とvalidatorを追加した。catalogは`evaluation-only` / `non-universal`として、transport、Provider admission、credential、artifact acquisition、artifact identity / integrity、runtime execution、semantic mapping、retryを比較可能なcaseへ分けている。Provider固有error code、retry schedule、credential / token / secret等をcatalogへ固定する変更はvalidatorで拒否する。
 
@@ -217,24 +217,54 @@ PR #337では、同catalogの9 caseを外部serviceなしで発火させるdeter
 
 PR #338では、既存`runtime/go/provideradapter`の`Adapter.Observe(...)`と`ValidateObservation(...)`を直接使うfailure test fixtureを追加した。Provider固有payloadのdecode後にmappingが失敗した場合にpartial Capability Observationを返さないこと、mapping成功後のsemantic runtime validation failureを別段階として扱えること、retry成功時も初回mapping failureを別attemptとして保持できることをtestとして固定した。
 
-ただしPR #338ではrepository側のPR workflow runとcommit statusはいずれも0件であり、Go test自体は自動実行されていない。`gofmt`による構文検査と既存package境界との静的照合までを確認済みとし、Go test PASSへは昇格させない。
+PR #343では、GitHub Actionsを成立条件にしないrepository-local入口として`evaluation/failure-behavior/run_local_checks.py`を追加した。catalog validator、deterministic probe、runner自身のtest、Provider Adapter Go testを一つの実行境界へまとめ、timeout、起動不能、途中停止、未実行checkをPASSへ読み替えない。子processには`SOZA_*`、`KJ_ATLAS_*`、model runtimeや各種API key等のlive入力を暗黙継承しない。runner unit logicは6 test PASSを確認したが、`go test ./provideradapter`自体はこの作業環境では未実行である。
+
+PR #344では、既存`runtime/go/liveintegration`へfailure probe testを追加した。deterministic `httptest`ではProvider rejection時にCapability Observationを生成しないこととAuthorization tokenをerrorへ漏らさないことを検査し、明示的opt-inのactual GitHub negative probeとして、存在しないrevisionと固定invalid credentialの2 caseを定義した。通常のrepository-local checkではlive flagが環境浄化で除去されるため、actual通信を自動実行しない。
+
+PR #345では、actual negative probe専用の`run_live_provider_failure_probe.py`を追加した。`--allow-live`がなければ外部通信前に終了し、親環境のreal credentialを除去したうえで`SOZA_E3B_FAILURE_LIVE=1`だけを設定する。`go test -json`のprocess exit codeだけではなく、missing revision / invalid credentialのexact 2 testが双方`pass`したことを要求し、missing / skip / fail / malformed JSON / non-zero / timeout / launch errorをfail closedとする。専用runnerのunit testは10 test PASSを確認しているが、actual GitHub negative probeそのものはまだ実行していない。
+
+PR #346では、Product Requirements / Acceptance Scenariosを再監査し、`evaluation/failure-behavior/requirement_audit.json`へ`completed-no-change-at-current-evidence-height`を記録した。REQ-0002、REQ-0006、REQ-0007、REQ-0020、REQ-0021、REQ-0022と、SCN-0010、SCN-0011、SCN-0017、SCN-0018を対象に、現Evidence高さでは新Stable Requirement、既存Stable Requirement変更、Acceptance Scenario追加・変更、Universal Contract field追加のいずれも行わない判断を固定した。audit testは5 test PASSを確認した。
 
 したがってcurrent Evidenceは次の高さに留まる。
 
 ```text
 Design Evidence
   + deterministic fixture-scoped Executable Evidence
-  + actual Provider Adapter pathに接続した未実行test fixture
+  + current Provider Adapter / liveintegration pathに接続したfailure test定義
+  + repository-local regression runner
+  + explicit opt-in actual failure runner
+  + Requirement audit = No Change at current evidence height
+  != Provider Adapter Go testの実行済みEvidence
   != actual Provider failure Evidence
   != actual deployment failure Evidence
   != Operational Evidence
 ```
 
+### Requirement audit
+
+current auditの結論は次である。
+
+```text
+new Stable Requirement = no
+modify existing Stable Requirement = no
+new / modified Acceptance Scenario = no
+new Universal Contract field = no
+```
+
+既存のREQ-0002はUnknown / unobserved等の認識状態を平坦化しないこと、REQ-0006はRecommendation / Decision / Authority / Provider Execution等を分離すること、REQ-0007 / REQ-0021 / REQ-0022はProvider中立性・交換可能性・Provider-neutral Observationを要求している。REQ-0020はfixture / Executable EvidenceをOperational / Adoption / Outcomeへ昇格させない境界を既に持つ。SCN-0011もdegraded / 未観測Providerを単純なavailable / unavailableへ潰さない。
+
+このため、failure stage enumやretry eligibility / schedule等を現時点でStable semanticsへ昇格させる根拠はない。actual Providerまたは第二Provider、あるいはOperational Evidenceから既存境界で表現できない持続的な意味差が現れた場合に再監査する。
+
 ### Next executable steps
 
-次は、repository-localまたは利用可能な外部runnerで`runtime/go/provideradapter`のfailure testを実行し、その結果をfixture-scoped Executable Evidenceとして確定する。
+次の優先順位は次とする。
 
-その後、必要性が高いcaseだけactual Provider / actual executableへ進める。優先候補は、Provider admission / throttling、credential rejection、artifact acquisition failureである。actual実証でもProvider固有error codeをUniversal enumへ昇格させず、raw secretをrepository Evidenceへ保存しない。
+1. 完全なrepository checkoutとGo実行環境で`python evaluation/failure-behavior/run_local_checks.py`を実行し、`provideradapter`と`liveintegration`を含むcurrent local regressionを確定する。
+2. その結果が成立した後、`python evaluation/failure-behavior/run_live_provider_failure_probe.py --allow-live`を明示的に実行し、missing revision / invalid credentialのactual GitHub negative probeを確認する。
+3. actual probe結果をfixture Evidenceと分離して記録し、Provider固有HTTP statusやerror vocabularyをUniversal semanticsへ昇格させない。
+4. 必要性が残る場合のみ、Provider admission / throttlingやartifact acquisition failureを別のactual Provider / actual executableへ広げる。
+
+actual probe runnerはreal credentialを親環境から継承しない。missing revisionは匿名GitHub API、credential rejectionはtest内の固定invalid tokenだけを利用する。
 
 ### Operational Evidence — not yet
 
@@ -246,7 +276,7 @@ Design Evidence
 
 ## Required scenarios / experiments
 
-後続作業では、少なくとも次のcaseを同じ観測形式で比較する。
+少なくとも次のcaseを同じ観測形式で比較する。
 
 1. transport timeout
 2. temporary provider rejection / throttling
@@ -258,7 +288,7 @@ Design Evidence
 8. provider response received but semantic mapping rejected
 9. retry後に成功したcaseで、初回failureとretry successの双方が保持されること
 
-current deterministic probeでは1〜9をすべてfixture-scopedに発火させている。8と9については既存Provider Adapter経路へ接続したGo test fixtureも追加済みだが、そのGo test実行は未確認である。actual service固有の再現方法は各Realization / Provider Adapter側で選び、caseそのものをHTTPやOllama等へ固定しない。
+current deterministic probeでは1〜9をすべてfixture-scopedに発火させている。8と9は既存Provider Adapter経路へ接続したGo test fixtureもmainへ統合済みである。actual GitHub negative probeでは3のcredential rejectionと、4に相当するmissing revisionを明示的opt-in testとして定義したが、そのactual実行は未確認である。actual service固有の再現方法は各Realization / Provider Adapter側で選び、caseそのものをHTTPやGitHub等へ固定しない。
 
 ## Constraints
 
@@ -271,6 +301,7 @@ current deterministic probeでは1〜9をすべてfixture-scopedに発火させ�
 - identity / integrity不一致を一時的transport failureへ読み替えない。
 - fixtureのPASSをactual ProviderやOperational Evidenceへ昇格させない。
 - GitHub Actionsや特定runnerを意味上の成立条件にしない。
+- actual live probeを通常のlocal regressionから暗黙に起動しない。
 - 現時点では新しいStable Requirement / Acceptance Scenario / Universal Contract fieldを追加しない。
 
 ## Deliverables
@@ -281,25 +312,32 @@ current deterministic probeでは1〜9をすべてfixture-scopedに発火させ�
 - deterministic failure fixture / helperまたは同等のfault-injection手段
 - secret-safe failure Evidenceの検査
 - failure stageを跨ぐ比較可能なfixture / case catalog
+- repository-local failure regression runner
+- explicit opt-in actual Provider failure runner
 - 必要に応じたactual Provider / actual executable failure Evidence
 - Requirement audit結果
 - `plan/registry.yaml`
 - `plan/document_review_registry.yaml`
 
+`plan/registry.yaml`では本Issueは引き続きOpen / Priority 2として登録済みであり、今回status、priority、related ADRに変更はない。`plan/document_review_registry.yaml`も`ISSUE-000001..ISSUE-000072`を監査対象として既に包含しているため、台帳を形式的に書き換えることはしない。
+
 ## Current verification state
 
 2026-09-10時点のcurrent stateは次のとおりである。
 
-- Design Evidence: 成立。failure stage、retry boundary、secret-safe Evidence、Evidence ladderを本Issueで固定した。
-- case catalog / validator: mainへ統合済み。evaluation-only / non-universal境界を機械検査する。
-- deterministic probe: mainへ統合済み。9 caseをfixture-scopedに発火し、PR記録上16 local tests PASS。
-- Provider Adapter path: mainへtest fixtureを統合済み。mapping failure、semantic validation failure、retry attempt separationを既存Adapter境界へ接続した。
-- Provider Adapter Go test execution: **Not Yet Verified**。PR workflow / commit statusは発生していない。
-- actual Provider / actual executable failure: **Not Yet Verified**。
+- Design Evidence: **Established**。failure stage、retry boundary、secret-safe Evidence、Evidence ladderを本Issueで固定した。
+- case catalog / validator: **Verified fixture-scoped**。mainへ統合済み。
+- deterministic probe: **Verified fixture-scoped**。9 caseを発火し、PR記録上catalog validatorを含む16 local tests PASS。
+- Provider Adapter failure tests: **Defined on current runtime path**。mapping failure、semantic validation failure、retry attempt separationを既存Adapter境界へ接続済み。
+- repository-local failure runner: **Defined / unit-tested**。runner unit logic 6 test PASS。Provider Adapter Go test実行は未確認。
+- live Provider failure tests: **Defined explicit opt-in**。missing revision / invalid credential、secret-safe deterministic rejectionを追加済み。
+- explicit live failure runner: **Defined / unit-tested**。runner unit test 10 test PASS。actual GitHub negative probeは未実行。
+- Requirement audit: **Completed — No Change at current evidence height**。audit test 5 test PASS。
+- actual Provider failure Evidence: **Not Yet Verified**。
+- actual deployment failure Evidence: **Not Yet Verified**。
 - Operational Evidence: **Not Yet Verified**。
-- Requirement audit: **Not Yet Completed**。現時点では新しいStable Requirement / Acceptance Scenario / Universal Contract fieldを追加していない。
 
-このためIssueはOpenを維持する。
+このためIssueはOpenを維持する。fixtureとrunnerの設計・回帰境界は整ったが、current Go pathとactual Provider negative probeの実行済みEvidenceがまだない。
 
 ## Resolution
 
@@ -314,6 +352,8 @@ current deterministic probeでは1〜9をすべてfixture-scopedに発火させ�
 7. fixture Evidence、actual executable / Provider Evidence、Operational Evidenceを別の高さとして記録した。
 8. Product Valueと既存REQ / SCNを再監査し、新しいStable Requirementが必要か、既存Requirementへ統合できるか、No Changeかを明示した。
 9. 新しいUniversal Contract fieldが必要な場合は、current Provider固有実装を一般化しただけではなく、複数caseから意味差の必要性を説明できるようにした。
+
+項目8はPR #346のRequirement auditにより完了した。1〜6についてfixture-scopedな比較境界は整っているが、current Go pathとactual Providerの実行済みEvidenceが不足しているため、Resolution全体はまだ満たしていない。
 
 ## Reopen conditions
 
