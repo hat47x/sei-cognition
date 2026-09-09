@@ -27,21 +27,13 @@ func failureObservationContext(id, revision string) provideradapter.ObservationC
 	return context
 }
 
-func assertNoCapabilityObservation(t *testing.T, document interface{ GetContract() string }) {
-	t.Helper()
-	if document.GetContract() != "" {
-		t.Fatalf("failure probe emitted a Capability Observation contract: %q", document.GetContract())
-	}
-}
-
 // TestGitHubCommitServiceHTTPFailureDoesNotLeakToken is deterministic. It
 // verifies the secret-safe failure boundary without making a live request.
 func TestGitHubCommitServiceHTTPFailureDoesNotLeakToken(t *testing.T) {
 	const token = "evaluation-only-sensitive-token"
+	authorization := make(chan string, 1)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if got := r.Header.Get("Authorization"); got != "Bearer "+token {
-			t.Fatalf("Authorization header = %q, want bearer test token", got)
-		}
+		authorization <- r.Header.Get("Authorization")
 		http.Error(w, "bad credentials", http.StatusUnauthorized)
 	}))
 	defer server.Close()
@@ -54,6 +46,9 @@ func TestGitHubCommitServiceHTTPFailureDoesNotLeakToken(t *testing.T) {
 	)
 	if err == nil {
 		t.Fatal("ObserveCommit() error = nil, want Provider rejection")
+	}
+	if got := <-authorization; got != "Bearer "+token {
+		t.Fatalf("Authorization header = %q, want bearer test token", got)
 	}
 	if document.Contract != "" || document.Observation.Ref.ID != "" {
 		t.Fatalf("Provider rejection emitted a Capability Observation: %#v", document)
