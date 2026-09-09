@@ -1,0 +1,84 @@
+{
+  "schema": "soza.failure-behavior-scoped-go-execution-evidence/v1",
+  "issue": "ISSUE-000072",
+  "recordedAt": "2026-09-10",
+  "sourceMainCommit": "fc9c7b41d8c6cae60ff1549ebb679a9888efc2a1",
+  "scope": "scoped-main-source-slice",
+  "reconstruction": {
+    "fullRepositoryCheckout": false,
+    "connectorFetchedMainSource": true,
+    "semanticRuntimeRelevantSliceReconstructedFromMain": true,
+    "sourceFiles": [
+      {
+        "path": "runtime/go/provideradapter/adapter.go",
+        "blobSha": "614d3978db1fd008828f137ac9fec1823bf254a3"
+      },
+      {
+        "path": "runtime/go/provideradapter/synthetic.go",
+        "blobSha": "ccdfcdfefcd8a37bea5d546bcd75938d856fbe42"
+      },
+      {
+        "path": "runtime/go/provideradapter/failure_behavior_test.go",
+        "blobSha": "38f7f89c38b6efc3655cc43d93f552c2081d2886"
+      },
+      {
+        "path": "runtime/go/liveintegration/github_service.go",
+        "blobSha": "9ed3c2d95a9ee87836218c5056c4c421071561fc"
+      },
+      {
+        "path": "runtime/go/liveintegration/github_failure_probe_test.go",
+        "blobSha": "7ab829873fb189763eb2c71cbc0954733fe8a0b7"
+      },
+      {
+        "path": "runtime/go/semanticruntime/model.go",
+        "blobSha": "0e99f14febc4c7b650053269ccde19ae200d65c2"
+      },
+      {
+        "path": "runtime/go/semanticruntime/loader.go",
+        "blobSha": "ee2c08dd48cd031eb70bea099668b6164897d1e8"
+      }
+    ]
+  },
+  "executionEnvironment": {
+    "goVersion": "go1.23.2",
+    "repositoryBaselineGo": "1.25",
+    "baselineToolchainVerified": false,
+    "outboundNetworkAvailable": false
+  },
+  "results": {
+    "providerAdapterFailureSlice": {
+      "status": "pass",
+      "packageDuration": "0.002s",
+      "tests": [
+        "TestFailureBehaviorMappingFailureDoesNotEmitPartialObservation",
+        "TestFailureBehaviorSemanticValidationRejectsInvalidMappedObservation",
+        "TestFailureBehaviorRetryKeepsInitialMappingFailureDistinct"
+      ]
+    },
+    "liveIntegrationSecretSafeDeterministic": {
+      "status": "pass",
+      "packageDuration": "0.005s",
+      "tests": [
+        "TestGitHubCommitServiceHTTPFailureDoesNotLeakToken"
+      ]
+    },
+    "actualLiveProviderTests": {
+      "status": "not-executed",
+      "tests": [
+        "TestLiveGitHubCommitServiceMissingRevisionFailure",
+        "TestLiveGitHubCommitServiceInvalidCredentialFailure"
+      ],
+      "reason": "explicit live opt-in was disabled and the execution environment had no outbound network"
+    }
+  },
+  "claims": {
+    "scopedExecutableEvidence": true,
+    "fullRepositoryRegression": false,
+    "go125BaselineVerified": false,
+    "actualProviderFailureEvidence": false,
+    "actualDeploymentFailureEvidence": false,
+    "operationalEvidence": false,
+    "adoptionOutcomeEvidence": false
+  },
+  "stopLine": "scoped main-source failure slice PASS != full repository regression PASS != Go 1.25 baseline verification != actual Provider failure Evidence != Operational Evidence"
+}
