@@ -62,8 +62,14 @@ func TestFailureBehaviorSemanticValidationRejectsInvalidMappedObservation(t *tes
 }
 
 func TestFailureBehaviorRetryKeepsInitialMappingFailureDistinct(t *testing.T) {
+	type attempt struct {
+		outcome     string
+		observation string
+	}
+
 	adapter := ProviderAAdapter{}
 	context := testContext("failure-retry", "synthetic-a://snapshot/retry")
+	attempts := make([]attempt, 0, 2)
 
 	firstDocument, firstErr := adapter.Observe(
 		context,
@@ -75,7 +81,7 @@ func TestFailureBehaviorRetryKeepsInitialMappingFailureDistinct(t *testing.T) {
 	if firstDocument.Contract != "" {
 		t.Fatalf("first failed attempt emitted a document: %#v", firstDocument)
 	}
-	firstObservation := firstErr.Error()
+	attempts = append(attempts, attempt{outcome: "failure", observation: firstErr.Error()})
 
 	secondDocument, secondErr := adapter.Observe(
 		context,
@@ -87,18 +93,15 @@ func TestFailureBehaviorRetryKeepsInitialMappingFailureDistinct(t *testing.T) {
 	if _, err := ValidateObservation(secondDocument); err != nil {
 		t.Fatalf("second attempt semantic validation failed: %v", err)
 	}
+	attempts = append(attempts, attempt{outcome: "success"})
 
-	if !strings.Contains(firstObservation, `unsupported Provider A health "blue"`) {
-		t.Fatalf("initial failure observation was lost or replaced: %q", firstObservation)
+	if len(attempts) != 2 || attempts[0].outcome != "failure" || attempts[1].outcome != "success" {
+		t.Fatalf("retry attempts were not kept distinct: %#v", attempts)
 	}
-	if firstObservation == secondErrString(secondErr) {
-		t.Fatalf("retry outcome overwrote the initial failure observation: %q", firstObservation)
+	if !strings.Contains(attempts[0].observation, `unsupported Provider A health "blue"`) {
+		t.Fatalf("initial failure observation was lost or replaced: %#v", attempts)
 	}
-}
-
-func secondErrString(err error) string {
-	if err == nil {
-		return "success"
+	if attempts[1].observation != "" {
+		t.Fatalf("successful retry inherited the first failure observation: %#v", attempts)
 	}
-	return err.Error()
 }
