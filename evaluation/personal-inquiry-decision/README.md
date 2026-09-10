@@ -1,267 +1,352 @@
-# SOZA Personal Inquiry / Decision Prototype
+# Personal Inquiry Continuity — Evaluation Entry Point
 
 更新日: 2026-09-10  
-状態: **Evaluation-only Product Hypothesis / Prototype Boundary**
+状態: **Evaluation-only Product Hypothesis / Root Concept Entry**  
+関連: Issue #367 / Issue #362 / Issue #365
 
-## 1. 目的
+## 1. このディレクトリで確かめたいこと
 
-SOZAのProduct Valueを、組織導入や複雑なProvider連携より先に、**一人の利用者が自分のために使って価値を感じられる最小領域**で検証する。
+このディレクトリの目的は、SOZAのProduct Valueを、組織導入や複雑なProvider連携より先に、**一人の利用者が自分の長期的な問いを中断・再開する場面で本当に役立つか**という小さな領域で確かめることである。
 
-最初の対象は、数分で終わる単発質問ではない。一方、組織的な承認、監査、複数人協働がなければ成立しない仕事にも置かない。
+ここで最初に守りたいのは、情報量でも検索精度でもAIの回答品質でもない。
 
-対象を次のように絞る。
+> **時間が空き、AIや資料や作業環境が変わっても、そのInquiryについて「当時どこまで知っていたか、何がまだ分からなかったか、何をどう考え、何を決め、その後何が変わったか」を壊さずに保ち、そこから続きを始められること。**
 
-> **AI、Web、ファイル、手元のメモを行き来しながら、数日から数か月かけて比較・検討する個人の判断について、後から「何を考えていたか」「何を根拠に決めたか」「何がまだ分からないか」「何が変われば見直すか」へ短時間で戻れるようにする。**
+この中心仮説を **Personal Inquiry Continuity** と呼ぶ。
 
-仮称を **Personal Inquiry / Decision Workspace** とする。これは製品名の決定ではない。
-
-## 2. なぜこの領域から始めるか
-
-SOZAのcurrent Product Valueには、個人利用だけでも必要になる価値が多い。
-
-- V1 Historical Reconstruction — 過去の判断時点へ戻る。
-- V2 Semantic Separation — Observation、Recommendation、Decision等を混ぜない。
-- V3 Revision Integrity — 後から得た知識で過去を上書きしない。
-- V5 Uncertainty Preservation — 分からなかったことや食い違いを残す。
-- V6 Human / AI Readability — 人間とAIの双方が同じ意味を読める。
-- V7 Progressive Explicitness — 軽く始め、必要なときだけ詳しくする。
-- V8 Execution Independence — AIや会話環境が変わっても判断記憶を残す。
-
-V4 Provider Independenceも関係するが、最初の価値検証では複数Provider交換そのものを主目的にしない。
-
-個人利用ではResponsibility holderは多くの場合一人であり、enterprise IdP、RBAC、複数組織のSelective Disclosure等を初期価値検証から外せる。そのためSOZAの認知・判断部分そのものが役に立つかを確認しやすい。
-
-## 3. Target Job
-
-利用者が行いたいことを次の一文に絞る。
-
-> **以前の調査やAI会話を読み直し直すことなく、判断の現在地と当時の根拠へ戻り、新しい情報が来たらそこから再検討したい。**
-
-### 適する題材
-
-最初のdogfoodingでは、低〜中程度の影響で、複数回の検討が自然に発生する題材を使う。
-
-- 個人プロジェクトの技術・ツール選択
-- 学習方法や教材の比較
-- 日用品・サービス・機器等の比較検討
-- 旅行や趣味の計画上の選択
-- 自宅環境や個人作業環境の改善判断
-
-### first sliceから外す題材
-
-最初のProduct Value検証では、次を主対象にしない。
-
-- 医療、法律、重大な資産判断等のhigh-stakes decision
-- 多人数の承認や職務権限が中心となる業務
-- 一度きりで後から読み直す必要がほぼない質問
-- deterministicな変換だけで完結する処理
-- 汎用タスク管理、日記、全文書管理そのもの
-
-除外はSOZAが将来扱えないことを意味しない。個人レベルの中核価値を先に分離して測るためのprototype scopeである。
-
-## 4. 先鋭化したCandidate Product Requirements
-
-以下はこのprototypeのCandidate Requirementであり、current Stable Requirementへ自動昇格させない。
-
-### P-C1 — 一つの問いだけで始められる
-
-最初の必須入力は、原則として「何を考えたいか」という問いだけでよい。
-
-Goal、Constraint、Source、Responsibility、Exact Binding等を開始時に一律要求しない。必要になった意味は後から追加できる。
-
-### P-C2 — 情報追加を分類作業にしない
-
-利用者は文章、URL由来の要点、ファイル由来の要点、AIから得た情報等を自然な形で追加できる。
-
-SOZA側は必要に応じてObservation、Interpretation、Unknown、Conflict等の候補を支援できるが、利用者にContract型名の選択を常時要求しない。
-
-AIによる自動分類をcanonical truthにはしない。
-
-### P-C3 — 「まだ分からない」を一級の現在地として残す
-
-Unknown、Conflict、保留事項を、未入力やエラーとして消さない。
-
-Decisionを記録しても、それらを自動的にresolvedへ変更しない。
-
-### P-C4 — AIの提案と自分の判断を別に残せる
-
-Recommendationが存在しても、利用者自身のDecisionがまだ無い状態を自然に扱える。
-
-Decisionを記録するとき、RecommendationをそのままDecision identityへ流用しない。
-
-### P-C5 — Decisionの最小記録は「何を決めたか」だけではない
-
-個人利用のlightweight Decisionでも、後日の再読に必要な範囲で次へ戻れる必要がある。
-
-- 何を決めたか。
-- 主なbasisは何だったか。
-- 何が未解決のままだったか。
-- 何が起きたら見直すか。
-
-詳細な監査情報を常時表示することは要求しない。
-
-### P-C6 — 再度開いたとき、5つの問いへすぐ戻れる
-
-light viewから、少なくとも次を読み取れることを目標とする。
-
-1. 今回、何を考えていたのか。
-2. 現在重要なObservationは何か。
-3. 何がまだ分からない、または食い違っているのか。
-4. RecommendationとDecisionはそれぞれ何か。
-5. 何が変われば再検討するのか。
-
-この5項目をUIの固定field layoutとはしない。個人利用での再定位に必要な意味上の質問である。
-
-### P-C7 — 後から来た情報で過去Decisionを書き換えない
-
-Decision後のObservationは新しい情報として追加する。
-
-過去Decisionのbasisへ遡って混入させず、必要ならreview / reopen候補として扱う。
-
-### P-C8 — AIが変わっても、無くても、判断記憶は読める
-
-特定LLM、Prompt、chat threadが利用不能になっても、保存済みのInquiry、Observation、Unknown / Conflict、Recommendation、Decision、basis、reopen informationを人間が読めることを目標とする。
-
-AIは入力整理、Cognitive Method、Recommendation、説明等を補助できるが、保存済み判断記憶の読解に必須としない。
-
-### P-C9 — 最初はsingle-user localで成立できる
-
-first prototypeはlogin、team workspace、enterprise directoryを必須にしない。
-
-current Local Single-Node Packagingの方向と整合する形で、一人が自分の判断記憶を保存・再開できることを優先する。
-
-### P-C10 — 人間向け再読と機械向け再利用を両立する
-
-人間向けlight viewだけでなく、AIやtoolが後から同じcanonical meaningを構造化して読めることを維持する。
-
-ただし、prototypeでAPI / MCP等のsupported protocolを先に固定しない。
-
-## 5. first prototypeで意図的に削るもの
-
-価値検証をぼかさないため、次は初期画面・初期workflowの中心に置かない。
-
-- Capability Provider選択UI
-- Authorization / delegation UI
-- multi-user collaboration
-- workflow automation
-- agent orchestration
-- 汎用document repository
-- 万能knowledge graph
-- dashboard / BI
-- 複雑なontology editor
-- sparse associative cognitionを含む高度な自動想起
-
-Sparse Associative Cognitive Substrateは、後から関連Inquiry / Artifactを想起する補助層として評価できる。ただし、Personal Inquiry / Decision WorkspaceのProduct Valueは、この認知層が無くても成立する必要がある。
-
-## 6. 最小の利用体験
-
-### Session A — 始める
-
-利用者は問いを一つ入力する。
-
-その後、調べながらObservation、気になる点、分からない点を追加する。AIを使ってもよいし、人間だけで入力してもよい。
-
-### Session B — 比較して決める
-
-AIまたは人間のRecommendationがあればDecisionとは別に保持する。
-
-利用者が決める場合、Decisionと主要basis、未解決点、reopen conditionを必要な範囲で残す。
-
-### Session C — 後から戻る
-
-元の長い会話や資料を最初から読み直さず、light viewで5つの再定位質問へ答える。
-
-必要な場合だけsource、provenance、revision等のdetailへ降りる。
-
-### Session D — 新しいEvidenceが来る
-
-Decision後に新しいObservationを追加する。
-
-過去Decisionは書き換えず、新しいObservationがreopen conditionに関係する場合は再検討できる。
-
-## 7. Product Valueをどう確認するか
-
-このprototypeでは、構造が正しいだけでは価値が確認できたとは扱わない。
-
-### 比較対象
-
-最低限、同じ題材について次を比較する。
-
-1. **chat-only** — AIとの会話履歴だけを残す。
-2. **final-note** — 最終結論と短いメモだけを残す。
-3. **SOZA prototype** — 問い、主要Observation、Unknown / Conflict、Recommendation、Decision、basis、reopen informationを意味上分けて残す。
-
-### 再定位タスク
-
-一定時間を空けて再開し、次を確認する。
-
-- 5つの再定位質問へ答えられるか。
-- 元のchat / sourceをどれだけ読み直す必要があったか。
-- Decision時に未解決だった点を取り落とさないか。
-- 後から得た情報を、当時から知っていた情報と混同しないか。
-- 新しいEvidenceから再検討を始められるか。
-
-### 利用負担
-
-価値があっても記録負担が大きければ個人では継続されない。
-
-そのため、少なくとも次を別軸で観察する。
-
-- Inquiry開始時に要求された入力数
-- 情報一件を追加するときの明示操作数
-- Decision記録時に強制された項目数
-- sourceやchatを再読した時間 / 回数
-- light viewだけで再定位できたか
-- 利用者が「次の題材にも使いたい」と自発的に判断するか
-
-単一の総合scoreへ潰さない。
-
-## 8. prototype-level value gate
-
-以下を満たした場合に、**個人向けProduct Hypothesisを次段階へ進める根拠が得られた**と扱う。
-
-1. 複数の低〜中影響な題材で、SOZA prototypeから5つの再定位質問を再構成できる。
-2. 新しいEvidence追加後も、過去Decisionのbasisを当時の状態として読める。
-3. chat-only / final-noteと比べ、未解決点や判断理由を回収するための再読が明確に減るケースが確認できる。
-4. その改善のために、利用者が毎回監査帳票のような入力を強制されない。
-5. 特定LLMや元chat threadを失っても、保存した判断記憶だけで現在地を読める。
-6. 利用者が別の題材でも再利用したいと判断する。
-
-1〜5はProduct Valueのmechanicsとusable interaction、6は個人レベルのAdoption兆候を見る。
-
-一件の成功だけで一般的なAdoption / Outcome Evidenceへ昇格させない。
-
-## 9. falsification / pivot条件
-
-次の結果が繰り返される場合、Product Shapeを見直す。
-
-- chatの要約だけで同程度に再定位でき、SOZAの意味分離が実質的な追加価値を生まない。
-- Unknown / Conflict / basis / reopen conditionを残しても、後日の行動や再検討に使われない。
-- 記録負担が高く、利用者が継続利用を避ける。
-- Decision Memoryより単なる検索・全文履歴の方が主要価値になる。
-- AIなしでは保存済み情報の意味を読み取れない。
-- 個人利用では再構成よりもtask execution / reminder等の方が支配的ニーズとなる。
-
-この場合、SOZAのProduct Value自体を直ちに否定するのではなく、個人向けfirst wedgeが不適切だった可能性と、Universal Coreの意味分離が過剰だった可能性を分けて検討する。
-
-## 10. current判断
-
-current Product Value、Product Interaction、Local Single-Node Packaging、既存Requirementを照合すると、この個人向けprototypeを作るために新しいUniversal semantic conceptは必要ない。
-
-特に既存REQ-0001、0002、0005、0006、0010、0011、0014、0015、0019、0021で中核を説明できる。
-
-一方、**個人が実際に継続利用するか、chatや通常のnoteより再定位負担が下がるかは未実証**である。
-
-したがって現時点の主張は次に限定する。
+Decisionは重要な一部だが、InquiryはDecisionへ到達しなくても成立する。
 
 ```text
-personal product wedge is coherent with current SOZA value
-  + candidate requirements can be stated without new Universal semantics
-  + value can be falsified by a small single-user experiment
-
-!= personal Adoption / Outcome Evidence available
-!= production UX validated
-!= SOZA is proven useful for every personal decision
+Personal Inquiry Continuity
+  contains Decision Memory when Decision exists
+  != Decision tracker only
+  != chat archive
+  != note-taking app
+  != task manager
 ```
 
-次の実装課題は、既存canonical meaningからこの5-question light viewを生成し、Decision後のObservationをhistorical basisへ混入させない最小single-user prototypeを作ることである。
+ここにある文書・prototypeは、現時点ではStable Product RequirementやUniversal Contractではない。
+
+## 2. 根幹の問題
+
+個人が数日から数か月以上にわたり何かを考えるとき、情報は一つの場所に閉じない。
+
+- AI conversation
+- Web page
+- PDF / document
+- code / repository
+- personal note
+- later observation
+- 別のAIやtoolで行った追加検討
+
+このとき単に「情報を保存できる」だけでは、次の問題が残る。
+
+### 2.1 内容を覚えていても、認識状態は失われる
+
+過去の文章や会話を検索できても、次が分からなくなることがある。
+
+- その時点で何を事実として見ていたか
+- 何が解釈や仮説だったか
+- 何がまだUnknownだったか
+- Conflictがどこに残っていたか
+- AIのRecommendationと本人のDecisionのどちらだったか
+- Decision時点で何をbasisとしていたか
+- その後初めて知った情報は何か
+
+したがって、ここで扱う問題は単なるcontent memoryではない。
+
+```text
+content memory
+  != epistemic state memory
+  != historical decision memory
+  != cognitive resumption support
+```
+
+### 2.2 正確な記録だけでも、人間はすぐ再開できない
+
+逆に、canonical dataを細かく完全に保存しても、それをすべて読み直さなければ作業へ戻れないなら、個人Productとしての価値は弱い。
+
+必要なのは、正確な記録と、人間が続きを始めるための再開支援を分けることである。
+
+```text
+Durable Inquiry Memory
+  = precise / historical / inspectable / portable meaning
+
+Resumption Projection
+  = compact / selective / regenerable cue
+
+Resumption Projection != canonical authority
+```
+
+### 2.3 速く戻れたように見えるだけでは成功ではない
+
+再開を高速化しても、later evidenceをpast basisと誤認したり、RecommendationをDecisionと取り違えたりすれば、かえって危険である。
+
+この状態をこのevaluationでは **False Continuity** と呼ぶ。
+
+```text
+fast resume
++ wrong historical state
+= failure
+```
+
+SOZA Personal Profileの価値は、単に再開時間を短くすることではなく、**認識状態を壊さずに再開負担を下げられるか**で判断する。
+
+## 3. Product Hypothesis
+
+個人向けSOZAを、既存のChat、PKM、document repository、Web research toolを置き換える製品として始めない。
+
+それらをSourceとして利用し、その上に薄い意味・再開層を置く。
+
+```text
+Source Plane
+  external chat / web / document / note / code
+        ↓
+Meaning Plane
+  durable Inquiry semantics
+        ↓
+Resume Plane
+  Orientation / Delta / Anchor / Handoff
+```
+
+設計上の仮称として、SOZAがこの範囲で担う役割を **Epistemic Resume Layer** と表現する。
+
+これは製品名ではなく、Product Boundaryを考えるための説明である。
+
+### Source Plane
+
+元情報を保持・参照する場所。
+
+SOZA自身が汎用全文書repositoryになることを要求しない。
+
+### Meaning Plane
+
+時間を越えて持ち運びたい意味を保持する。
+
+中心となるのはcurrent SOZA semanticsの範囲である。
+
+- Inquiry
+- Observation / source claim
+- Interpretation / Hypothesis
+- Unknown / Conflict
+- Recommendation
+- Decision
+- basis
+- Constraint / material premise
+- residual / reopen information
+- provenance / revision / lineage
+
+### Resume Plane
+
+人間または別AIが続きを始めるためのProjectionを生成する。
+
+- Orientation
+- change since Decision / last review
+- Resume Anchor
+- detail trail
+- AI/tool handoff
+
+Resume PlaneはMeaning Planeを読むが、過去の意味を権威的に書き換えない。
+
+## 4. 誰のどんな場面から始めるか
+
+first value validationでは、一人の利用者が数日から数か月以上かけて扱う、低〜中影響のInquiryを主対象とする。
+
+例:
+
+- 個人プロジェクトの技術・方式選定
+- 学習テーマや教材の比較
+- 機器、サービス、作業環境の比較
+- 趣味、旅行、創作、調査の計画
+- 長期的な設計課題や個人研究
+
+一度きりで終わる質問より、**一度中断し、後から状況や情報が変わった状態で再開する問い**が適している。
+
+first profileでは、医療・法務・重大な金融判断等のhigh-stakes用途、多人数承認、enterprise IdP / RBAC、汎用task management、常時agent orchestration等を中心に置かない。
+
+## 5. 根幹から導かれる能力
+
+個別Requirementへ入る前に、上の趣旨から最低限どの能力が必要になるかを整理する。
+
+### Capability A — Faithful State Preservation
+
+当時のObservation、Unknown、Conflict、Recommendation、Decision、basis等を意味上区別し、後から得た知識で過去を黙って書き換えない。
+
+### Capability B — Low-friction Capture
+
+利用者がContract型を逐一操作しなくても、問いや材料を軽く追加でき、必要なsemantic commitmentは後から深められる。
+
+### Capability C — Queryless Reorientation
+
+Inquiryを開いたとき、正しい検索語やAIへの質問を思い出さなくても、現在地へ戻るためのcueを得られる。
+
+### Capability D — Epistemic Delta
+
+Decisionまたは前回review以後に何が変わったかを、past stateを壊さずに確認できる。
+
+### Capability E — Detail and Provenance Descent
+
+light Orientationだけを権威化せず、必要なときsource、basis、time、revision、provenanceへ降りられる。
+
+### Capability F — Independence and Handoff
+
+元chat、特定LLM、特定providerがなくても保存済みInquiryを読み、別AI / tool / environmentへ意味を渡せる。
+
+これらはまだStable Requirementの新設を意味しない。多くはcurrent SOZA Requirementの組合せを個人Profileへ具体化したものである。
+
+## 6. 能力から個別課題へ降りる
+
+詳細な設計・要件は、上位のProduct Intentから導出できることを前提とする。
+
+```text
+Root Intent
+  認識状態を壊さず、中断したInquiryを再開できる
+    ↓
+Problem
+  content保存だけではstate of knowingとmental contextが失われる
+    ↓
+Product Hypothesis
+  Sourceの上にMeaning + Resume layerを置く
+    ↓
+Capabilities
+  preservation / capture / orientation / delta / detail / handoff
+    ↓
+Candidate Requirements
+  PIC-*
+    ↓
+Acceptance / Falsification
+  queryless resume / generic summary comparison / late evidence / false continuity ...
+    ↓
+Prototype
+  local evaluation CLI
+    ↓
+Evidence
+  mechanics → real dogfood → Adoption / Outcome
+```
+
+個別のfield、CLI command、timestamp rule、UI state等から上位趣旨を逆算するのではなく、原則としてこの方向へ降りる。
+
+具体的な対応関係は `CONCEPT_TO_REQUIREMENT_DERIVATION.md` を参照する。
+
+## 7. 推奨Reading Order
+
+このディレクトリを理解するときは、filename順ではなく次の順に読む。
+
+### Stage 1 — 趣旨とProduct Boundary
+
+1. `README.md` — 根幹の趣旨、問題、Product Hypothesis、必要能力
+2. `EXTERNAL_RESEARCH_SYNTHESIS.md` — なぜこの問題が既存研究・製品でどのように現れるか
+3. `COGNITIVE_RESUMPTION_MODEL.md` — Durable MemoryとCognitive Resumptionをどう分けるか
+
+### Stage 2 — 趣旨から要件への導出
+
+4. `CONCEPT_TO_REQUIREMENT_DERIVATION.md` — 根幹→能力→候補要件→検証の対応
+5. `PRODUCT_PROFILE_REQUIREMENTS_CANDIDATE.md` — PIC-* の詳細
+6. `REQUIREMENT_GAP_AUDIT.md` — current REQとの重複・gap
+7. `RESEARCH_DERIVED_REQUIREMENT_REVIEW.md` — external researchを受けた優先度・表現再検討
+
+### Stage 3 — Product Interactionと検証
+
+8. `INTERACTION_STATE_MODEL.md` — Product-local stateとdurable semanticsの境界
+9. `VALUE_VALIDATION_PROTOCOL.md` — Product Valueをどう反証可能に検証するか
+10. `RESEARCH_DERIVED_VALIDATION_AMENDMENTS.md` — queryless resume、late evidence、False Continuity等の追加検証
+
+### Stage 4 — 実装・Evidence
+
+11. `DOGFOOD_SURFACE.md` — evaluation CLIの役割と使い方
+12. `dogfood_core.py` / `dogfood_cli.py` / focused tests — executable mechanics
+13. `REQUIREMENTS_FORMALIZATION_PLAN.md` — Evidenceからactual requirementsへ進む条件
+
+この順序は「必ず全て読む」という意味ではない。上流の判断に疑問がある場合、下流detailへ進む前に上流へ戻れることを重視する。
+
+## 8. 今後の文書整備順
+
+新しい課題を発見した場合、原則として次の順序で文書化する。
+
+1. **Root Intentとの関係** — 何を守るための課題か。
+2. **Problem** — どの失敗・不便・意味損失を防ぐのか。
+3. **Evidence / Observation** — research、dogfood、actual repositoryのどこから問題が見えたか。
+4. **Design Principle / Capability** — 問題を解くために何が必要か。
+5. **Existing Coverage** — current Product Value / REQ / Contractで既に表現されていないか。
+6. **Candidate Requirement / Acceptance** — 独立規範が必要な場合だけ具体化する。
+7. **Realization** — UI、CLI、schema、algorithm、storage等を選ぶ。
+8. **Evidence** — 実装が何を確認でき、何をまだ確認していないかを分ける。
+
+次の進め方は避ける。
+
+```text
+implementation idea
+  -> field / command / typeを追加
+  -> 後から理由を探す
+```
+
+代わりに、
+
+```text
+root purpose
+  -> observed problem
+  -> required capability
+  -> minimum normative difference
+  -> realization
+```
+
+の順を優先する。
+
+新しい詳細を追加するとき、既存の上位文書で説明できない場合は、詳細を先に正本化せず、上位仮説自体の不足またはscope creepを先に検討する。
+
+## 9. 現時点のEvidence
+
+現時点では次まで進んでいる。
+
+- Product hypothesis / candidate requirementのDesign Evidence
+- external researchによるproblem validityの補強
+- Source / Meaning / Resume modelのDesign Evidence
+- local evaluation CLIによるscoped executable mechanics
+- focused testsによる一部semantic boundaryの確認
+
+まだ確認していないもの:
+
+- 複数real Inquiryでの継続dogfood
+- Generic SummaryよりSOZA Orientationが有用であること
+- capture burdenが継続利用可能であること
+- False Continuityが実際に減ること
+- voluntary reuse
+- Adoption / Outcome Evidence
+- production UX / packaging
+
+したがって、prototypeが動くことをProduct Value成立と同一視しない。
+
+## 10. 次に進める順序
+
+次段階では、新しい機能を増やすより先にreal dogfoodを行う。
+
+1. actualな低〜中影響Inquiryを複数扱う。
+2. 中断後にqueryless Orientationで再開する。
+3. Generic Summaryとの比較を行う。
+4. late-arriving Evidence / premise change / since-review deltaを踏む。
+5. First Useful Action、Source Reopen Count、False Continuity、capture burdenを記録する。
+6. 有効でなかったCapability / cue / candidate requirementを削る。
+7. その結果からAcceptance Scenarioを先にformalizeする。
+8. current REQで表現できない独立必要性が残る場合だけStable Requirement追加を検討する。
+
+```text
+working prototype
+  != Product Value proven
+  != Stable Requirement justified
+```
+
+## 11. この評価で守るstop lines
+
+```text
+content retrieved != inquiry resumed
+summary != historical authority
+later evidence != past decision basis
+recommendation != decision
+unknown != missing field
+retrieval rank != truth
+resume cue != canonical meaning
+prototype mechanics != adoption evidence
+personal profile convenience != universal semantic requirement
+```
+
+この境界を保ちながら、個人にとってSOZAが本当に必要な部分だけを残す。
