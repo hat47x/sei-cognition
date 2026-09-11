@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hat47x/soza/runtime/go/interactionprobe"
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/interactionprobe"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 type modelArtifactExchangeEvidence struct {

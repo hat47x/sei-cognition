@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 // Manifest describes one evaluation-only Product Journey over existing SEI

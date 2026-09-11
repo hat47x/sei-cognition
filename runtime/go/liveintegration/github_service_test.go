@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hat47x/soza/runtime/go/provideradapter"
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/provideradapter"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 const testCommitSHA = "aa3651f3460a6db7dc70bd848f93b600f149ffe8"

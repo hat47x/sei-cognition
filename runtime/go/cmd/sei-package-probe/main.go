@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/hat47x/soza/runtime/go/packagingprobe"
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/packagingprobe"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 var (

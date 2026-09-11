@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/hat47x/soza/runtime/go/externalartifact"
-	"github.com/hat47x/soza/runtime/go/provideradapter"
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/externalartifact"
+	"github.com/hat47x/sei-cognition/runtime/go/provideradapter"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 func ref(value semanticruntime.LogicalReference) semanticruntime.Reference {

@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hat47x/soza/runtime/go/provideradapter"
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/provideradapter"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 // TestLiveTEIProviderPlan は、外部から用意された実TEI CLIを使うE3b-P2専用検査です。

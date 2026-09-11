@@ -53,7 +53,7 @@ Release Evidence Satisfied
 - tag: `v0.2.0`
 - source commit: `c3640bdfcc43652b63a5b9941fd6b472312ec28f`
 - GitHub Release ID: `380902898`
-- GitHub Release URL: `https://github.com/hat47x/soza/releases/tag/v0.2.0`
+- GitHub Release URL: `https://github.com/hat47x/sei-cognition/releases/tag/v0.2.0`
 - published: `2026-09-02T00:21:59Z`
 - draft: `false`
 - prerelease: `false`

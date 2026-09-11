@@ -167,8 +167,8 @@ Provider固有field leakage hardening追加後の確認:
 後者では、Contract checker 17 fixtureと次のGo packageが連続してPASSした。
 
 ```text
-ok  github.com/hat47x/soza/runtime/go/provideradapter
-ok  github.com/hat47x/soza/runtime/go/semanticruntime
+ok  github.com/hat47x/sei-cognition/runtime/go/provideradapter
+ok  github.com/hat47x/sei-cognition/runtime/go/semanticruntime
 ```
 
 詳細なExecutable Evidenceは次に記録した。

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 // ObservationContext contains the SEI-side context supplied to a Provider

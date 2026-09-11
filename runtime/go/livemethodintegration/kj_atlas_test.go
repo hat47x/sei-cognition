@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hat47x/soza/runtime/go/interactionprobe"
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/interactionprobe"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 const pinnedKJAtlasCommit = "4f28c13abe4176503c6fed863383a2d1db2299e9"
