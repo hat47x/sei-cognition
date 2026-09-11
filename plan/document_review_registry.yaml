@@ -1,5 +1,5 @@
 schema: soza.document-review-registry/v1
-updated: 2026-09-05
+updated: 2026-09-11
 
 purpose: >-
   ISSUE-000015で行った既存開発文書の自然な日本語監査について、current branch上の
@@ -50,7 +50,8 @@ reviewed:
     status: revised
     coverage:
       - SOZA_PRODUCT_INTERACTION.md
-    note: first usable Product Interactionをhuman / AIの異なるSurfaceから同じcanonical sourceへ戻す操作境界として定義し、reference probe Evidenceを同期済み。
+      - SOZA_FIRST_USABLE_PRODUCT_SLICE.md
+    note: first usable Product Interactionのcanonical操作境界に加え、ISSUE-000073のresume-first single-user Product Sliceを全文監査した。Resume Brief / working set / provisional AI suggestionをProduct / Projection上の概念に留め、Stable RequirementやUniversal Contractへ先取りせず、prototype / human review待ちのDesign Evidenceとして整理している。
   - scope: product/packaging/*.md
     status: revised
     coverage:
@@ -68,8 +69,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、自然な日本語全文再ドラフトと最終意味監査を実施済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000072
-    note: ISSUE-000001〜000072をcurrent履歴として監査済み。ISSUE-000069はGitHub Actions常設時に得たtrigger選択とrunner allocation Evidenceをhistoricalに保持しつつcurrent baselineからActionsを外した。ISSUE-000070は固定KJ Atlas source / Method input / model artifact / promptの下でOllama `0.32.13` / `0.32.14`をactualに交換し、same logical / different Exact Binding、historical Application保持、portable reconstruction、canonical Evidence + Provenance verificationを確認してResolvedとした。成果品質やarbitrary portabilityへは昇格させない。ISSUE-000071はexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeを分離してResolvedとしたがhuman reviewと成果品質判定は未完了。ISSUE-000072はrevision A historical Evidenceを保持し、exact revision B executable source + exact revision A fixed input、E2 / E3別toolchain、stage-aware diagnostics、Requirement / Scenario pre-auditまで整えたがrevision B actual CLI / Provider Plan / current Adapter compatibilityは未検証のためOpenを維持する。
+    coverage: ISSUE-000001..ISSUE-000073
+    note: ISSUE-000001〜000073をcurrent履歴として監査済み。ISSUE-000072はexact revision B actualがNot Yet VerifiedのままOpenを維持する。ISSUE-000073はPMS-03をresume-firstな最初の実用Product Sliceへ進める新しいOpen探索で、canonical-only resume、AI correction / degradation、partial commit / stale write、external AI context、human reviewをCandidate Requirementとして実証し、Design文書完成だけではResolvedにしない。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -84,7 +85,7 @@ reviewed:
       - requirements/PRODUCT_REQUIREMENTS.md
       - requirements/ACCEPTANCE_SCENARIOS.md
       - requirements/PRODUCT_JOURNEY_COMPOSITION.md
-    note: Requirement / Scenario / Testの境界を維持したまま監査済み。M1a / M1b固有のKJ Atlas、FastAPI、HTTP、model stub、Ollama、特定model tag等をStable Requirementへ先取りしない。
+    note: Requirement / Scenario / Testの境界を維持したまま監査済み。ISSUE-000073のCR-73.1〜10はprototype / human review前のCandidate Requirementであり、current Stable REQ / SCNへ未反映のまま意図的に保持する。
   - scope: requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md
     status: revised
 
@@ -93,11 +94,12 @@ reviewed:
     coverage:
       - architecture/README.md
       - architecture/SOZA_REFERENCE_ARCHITECTURE.md
+      - architecture/SOZA_INTERACTION_WORKING_SET_ARCHITECTURE.md
       - architecture/SOZA_DEPLOYMENT_ARCHITECTURE.md
       - architecture/SOZA_PRODUCT_ACCESS_ARCHITECTURE.md
       - architecture/IMPLEMENTATION_LANGUAGE_POLICY.md
       - architecture/TRACEABILITY.md
-    note: Go runtime、Product Interaction、Local Single-Node Deployment、Product Accessの責務分離をcurrent Architectureとして監査済み。
+    note: Go runtime、Product Interaction、Local Single-Node Deployment、Product Accessの責務分離に加え、ISSUE-000073のcanonical / derived / transient / external state authority、working set、semantic change plan、stale-write / partial-commit failure boundaryをcurrent Architecture Designとして監査済み。prototype mechanismをUniversal semanticsへ昇格させていない。
   - scope: architecture/history/HISTORICAL_ARCHITECTURE_MAPPING.md
     status: revised
 
@@ -262,7 +264,7 @@ reviewed:
     note: Product Milestoneと上流探索・Requirement化の配置規則をcurrent planning入口へ反映済み。
   - scope: plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md
     status: revised
-    note: v0.2.0 Release Evidenceと既存E3b / historical reconstructionを維持しつつ、PMS-06のversion交換軸をISSUE-000070 Ollama runtime version交換とISSUE-000072 TEI executable version交換として分離する。各Issueのcurrent statusとEvidence強度はIssue本文とPMS-06 current snapshotを正とし、repository-side readinessをactual compatibilityや新Stable Requirementへ昇格させない。
+    note: 上流計画をProduct Value→current priority→Requirement化→停止線の順へ再構成した。ISSUE-000073のresume-first Product SliceをPriority B1、外部execution surface待ちのISSUE-000072 TEI exact-B actualをPriority B2として独立lane化し、Candidate Requirementをprototype / human review前にStable化しない方針を明示した。
   - scope: plan/DEVELOPMENT_WORKFLOW.md
     status: revised
     note: Product Valueと未定領域の探索をRequirement / Architectureより上流へ置く原則を維持したうえで、PR #70後のActions停止状態へ全文を再整理した。GitHub Actions、local test、repository checker、external runnerを検証手段として意味上の正本から分離し、failureがpushを止めないことと、merge / release / Evidence gateが別責務であることを自然な日本語で明示した。
