@@ -124,7 +124,7 @@ adr:
     related_issues: [ISSUE-000047, ISSUE-000056]
   - id: ADR-0031
     file: plan/adr/ADR-0031-product-rename-sei-cognition-identifier-boundary.md
-    status: Proposed
+    status: Accepted
     related_issues: [ISSUE-000073]
 
 issue:

@@ -1,6 +1,6 @@
 # ADR-0031: 製品名をSEI Cognitionへ改め、identifier改名の境界を定める
 
-Status: **Proposed**  
+Status: **Accepted**  
 Related Issue: **ISSUE-000073**  
 Updated: 2026-09-11
 
@@ -176,7 +176,7 @@ ADRは過去に判断した記録であると同時に、ADR-0021が定めると
 設計判断・要求・Contract定義を述べる文書     → 改名する (4-c)
 ```
 
-本ADR自身は例外です。mapping tableが旧identityと新identityの両方を保持する必要があるため、`soza.*`の記述を残します。
+本ADR自身とISSUE-000073は例外です。どちらも改名そのものを主題とし、旧identityと新identityの両方を保持する必要があります。この二つで`soza`を一律に置換すると、mapping tableが片側を失い、Issueの「旧identityも受け付ける」という記述が「新identityを受け付ける」という無意味な文へ変わります。実際、最初の一括改名でISSUE-000073の本文がこの形で壊れ、改名前の内容へ戻しました。
 
 ### 5. repositoryとGo module pathを改める
 

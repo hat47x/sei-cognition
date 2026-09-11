@@ -202,6 +202,9 @@ reviewed:
       - runtime/package/reference/README.md
     note: Local Reference PackageをProduct Releaseや正式Product Interactionと混同しない評価用配布物として説明済み。
 
+  - scope: evaluation/HISTORICAL_SCHEMA_IDENTITY_MAPPING.md
+    status: revised
+    note: ADR-0031の改名について、evaluation/配下の記録済みEvidenceに残る旧schema identityをcurrentへ読み替えるための対応表。historical/配下をbyte単位で不変とする境界と、reader側双方向受理が恒久措置であることを分離して監査済み。
   - scope: evaluation/v6-v7/*.md
     status: revised
     coverage:
