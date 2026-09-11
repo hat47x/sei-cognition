@@ -1,13 +1,13 @@
 # SOZA Product Interaction
 
-更新日: 2026-09-01  
-状態: **Current Product Interaction Baseline / Scoped Executable Evidence Available**
+更新日: 2026-09-11  
+状態: **Current Product Interaction Baseline / Resume-first first usable slice defined / Scoped prior Executable Evidence available**
 
 ## 1. この文書の役割
 
-この文書は、SOZAを最初に利用可能な製品として人間とAIが扱うとき、**どのような仕事を、どの意味境界を保ったまま、一続きに行える必要があるか**を定めます。
+この文書は、SOZAを人間とAIが製品として扱うとき、**どの仕事を、どの意味境界を保ったまま行える必要があるか**を定めます。
 
-ここで定めるのは、特定のWeb画面、desktop framework、CLI構文、HTTP endpoint、MCP tool名ではありません。UIやprotocolより先に、利用者が何をできる必要があるかと、その操作がどのcanonical meaningへ接続するかを定めます。
+ここで定めるのはWeb画面、desktop framework、CLI構文、HTTP endpoint、MCP tool名ではありません。UIやprotocolより先に、利用者が何をできる必要があるかと、その操作がどのcanonical meaningへ接続するかを定めます。
 
 ```text
 Product Interaction
@@ -18,11 +18,11 @@ Product Interaction
   != agent orchestration
 ```
 
-SOZAのProduct Interactionは、`SOZA_PRODUCT_SHAPE.md`のWork / Interaction Surfaceを具体化するProduct-level baselineです。portable semantic agreementが必要になった場合だけContractへ、重要なArchitecture判断はADRへ、実装方式はRuntime / Adapterへ落とします。
+詳細な最初のProduct Sliceは`SOZA_FIRST_USABLE_PRODUCT_SLICE.md`、そのArchitectureは`../../architecture/SOZA_INTERACTION_WORKING_SET_ARCHITECTURE.md`を正とします。
 
-## 2. first usable interactionで守る中心
+## 2. Interactionで守る中心
 
-最初のInteractionで重要なのは、人間とAIに同じ見た目を与えることではありません。入口や表現が異なっても、**同じcanonicalな判断文脈へ戻れること**です。
+人間とAIに同じ見た目を与えることは要求しません。入口や表現が異なっても、**同じcanonicalな判断文脈へ戻れること**を要求します。
 
 ```text
 human view != AI view
@@ -30,7 +30,7 @@ human view -> canonical meaning
 AI view    -> canonical meaning
 ```
 
-画面、会話、prompt、worklist、canvas、CLI出力などはProjectionになり得ますが、それ自体を唯一の意味上の正本にはしません。
+画面、会話、prompt、worklist、canvas、CLI出力等はProjectionになり得ますが、意味上の唯一の正本にはしません。
 
 特に次を守ります。
 
@@ -38,96 +38,114 @@ AI view    -> canonical meaning
 - AI向けpromptやconversation historyだけにObservationやRecommendationの意味を閉じ込めない。
 - Projectionを作り直してもcanonical artifactを失わない。
 - AIのprivate chain-of-thoughtをInteraction成立条件にしない。
-- actorが人間かAIかという種別だけからAuthority、Responsibility、信頼度を推定しない。
-- 低影響な仕事へ最大詳細を強制せず、必要なときだけ詳細へ降りられるようにする。
+- actorが人間かAIかだけからAuthority / Responsibilityを推定しない。
+- 低影響な仕事へ最大詳細を強制せず、必要なときだけ詳細へ降りる。
+- AI suggestionを明示的なsemantic commitなしにDecision / canonical factへ昇格させない。
+- current informationをhistorical Decision basisへ遡及混入させない。
 
 ## 3. 新しいUniversalな「作業単位」は追加しない
 
-最初のInteractionを実装するためだけに、`Case`、`Session`、`Workspace`、`Thread`などをUniversal Coreへ追加しません。
+最初のInteractionを実装するためだけに、`Case`、`Session`、`Workspace`、`Thread`等をUniversal Coreへ追加しません。
 
-利用者が画面上で一つの「案件」や「作業」を開くことはあり得ますが、そのまとまりはProduct / Projection上のworking setとして扱えます。耐久的な意味は、既存のInquiry、Observation、Unknown / Conflict、Cognitive Method Application、Recommendation、Decision、Responsibility、Reference、Lineage等へ置きます。
+利用者が画面上で一件の「案件」や「作業」を開くことはありますが、そのまとまりはProduct / Projection上のworking setとして扱えます。耐久的意味は既存のInquiry、Observation、Unknown / Conflict、Cognitive Method Application、Recommendation、Decision、Responsibility、Reference、Lineage等へ置きます。
 
 ```text
-workspace / session / thread
+workspace / session / thread / working set
   = interaction convenience
   != automatically a Universal semantic entity
 ```
 
-複数domainで独立した意味上の必要性が実証された場合だけ、別途Requirement / ADRを通して再検討します。
+複数domainで独立したsemantic necessityが実証された場合だけ、Requirement / ADRを通して再検討します。
 
 ## 4. 利用者が行う最小の仕事
 
-first usable interactionでは、少なくとも次の仕事を自然につなげられる必要があります。これは固定workflowではなく、利用可能な操作のまとまりです。
+first usable interactionでは、少なくとも次を自然につなげられる必要があります。これは固定workflowではなく利用可能な操作分類です。
 
 ### 4.1 始める・開く
 
-利用者は、問い、目的、短い文脈など、現在分かっている最小限からInquiryを始められます。
+問い、目的、短い文脈など、現在分かっている最小限からInquiryを始めます。
 
-既存のInquiryやDecisionを開き直し、当時のbasis、Unknown / Conflict、残差、reopen condition等から続きを始めることもできます。
+既存の判断仕事を開き直し、当時basis、Unknown / Conflict、残差、reopen condition等から続きを始められます。
 
-最初から最大field setを入力させません。
+最初から最大field setを要求しません。
 
 ### 4.2 情報を加える
 
 人間、AI、外部Provider等から得たObservationやEvidenceを追加できます。
 
-出所、発見経路、Interpretation、EvidenceUse等を区別する必要がある場合は、後から追える形で明示できます。単純な案件では不要な詳細を一律必須にしません。
+Source、discovery route、Interpretation、EvidenceUse等を区別する必要がある場合は後から詳細化できます。
 
 ### 4.3 分からないこと・食い違いを残す
 
-Unknown、Conflict、保留事項を「入力不足のエラー」として消さず、そのまま判断文脈へ残せます。
+Unknown、Conflict、保留事項を「入力不足」として消しません。
 
-Decisionを行っても、未解決事項が自動的にresolvedへ変わることはありません。
+Decisionが作成されても、未解決事項を自動的にresolvedへしません。
 
-### 4.4 方法を適用した記録を残す
+### 4.4 方法を適用する
 
 必要な場合、調査、比較、統合、検査等に用いたCognitive Method Applicationを記録できます。
 
-Interaction SurfaceはMethodの実行UIを一種類に固定しません。Prompt、人間手順、外部tool等のRealizationが変わっても、必要なinput / output / residualをcanonical meaningへ戻せることを優先します。
+Prompt、人間手順、外部tool等のRealizationが変わっても、必要なinput / output / residualをcanonical meaningへ戻せることを優先します。
 
 ### 4.5 提案する
 
 人間またはAIはRecommendationを追加できます。
 
-Recommendationを追加したことだけでDecision、Authority、Executionが成立したことにはしません。
+Recommendationの存在だけでDecision、Authority、Executionが成立したことにはしません。
 
 ### 4.6 決める
 
 必要な主体はDecisionを記録できます。
 
-その際、案件の影響度に応じて、basis、主要なConstraint、未解決事項、Responsibility等を必要な粒度で残せます。高影響な判断で必要な意味をlight viewの都合だけで削りません。
+案件に応じてbasis、主要Constraint、未解決事項、Responsibility等を必要な粒度で残します。高影響な判断で必要な意味をlight viewの都合だけで削りません。
 
 ### 4.7 実行後の結果を戻す
 
 外部Capability / Providerで実行した結果を、新しいObservationとして判断文脈へ戻せます。
 
-実行成功を過去Decisionの正しさへ自動変換しません。また、実行後に得たObservationを過去Decisionのbasisへ遡って混入させません。
+実行成功をDecisionの正しさへ自動変換せず、実行後のObservationを過去Decisionのbasisへ混ぜません。
 
 ### 4.8 読み直す・再開する
 
-利用者はlight viewから現在の主要点を把握し、必要になったときだけaudit detailへ降りられます。
+lightなResume Projectionから現在地を把握し、必要なときだけaudit detailへ降ります。
 
-後日、新しいEvidenceや環境変化が生じた場合は、過去Decisionを削除せず、残差や新しいObservationからInquiry / reviewを再開できます。
+後日、新しいEvidenceや環境変化が生じた場合は過去Decisionを削除せず、残差や新しいObservationからreview / Inquiryを再開します。
 
-## 5. light viewとaudit detail
+## 5. Resume-first first usable slice
 
-日常利用では、canonical recordの全fieldを常時表示しません。
+2026-09-11時点では、PMS-03を次へ進める最初のProduct Sliceとして**resume-first decision work**を採用します。
 
-### light viewで優先するもの
+中心価値は「semantic recordを作れること」ではなく、時間・AI session・画面stateをまたいだ後でも次へ戻れることです。
 
-案件に応じて、たとえば次を簡潔に見せます。
+- 何を考えていたか。
+- 何をDecisionしたか。
+- なぜそうDecisionしたか。
+- 何がまだUnknown / Conflictとして残るか。
+- 何がDecision後に変わったか。
+- どの条件でreview / reopenすべきか。
 
-- 何を考えているのか。
-- 現在重要なObservationやRecommendationは何か。
-- Decisionがある場合、何を決めたのか。
-- まだ分からないこと、食い違っていることは何か。
-- 後から見直す必要がある条件や残差は何か。
+再開時のResume BriefはProjectionであり、新しいcanonical summary Contractではありません。
 
-これは固定field listではありません。低影響な利用へ過剰な表示・入力を強制しないためのProjection方針です。
+AIを利用する場合、responseはまずprovisional suggestionとして扱い、意味変更previewを経てcanonicalへcommitします。AIが停止してもopen / read / manual add / Decision / review / reopenは継続できることを目標とします。
 
-### audit detailで確認できるもの
+詳細なCandidate Requirement、prototype scenario、human reviewはISSUE-000073と`SOZA_FIRST_USABLE_PRODUCT_SLICE.md`で扱います。
 
-必要な場合、少なくとも次へ降りられる余地を持たせます。
+## 6. light viewとaudit detail
+
+日常利用ではcanonical recordの全fieldを常時表示しません。
+
+light / resume viewでは、案件に応じて次を優先します。
+
+- 現在の問い / goal。
+- current Decision。
+- 主要なbasis。
+- Unknown / Conflict / residual。
+- Decision後に変わったこと。
+- review / reopen候補。
+
+これは固定Contract field listではありません。
+
+必要な場合、audit detailから次へ降りられる余地を持たせます。
 
 - Decision basis
 - Provenance / discovery / derivation
@@ -138,58 +156,57 @@ Recommendationを追加したことだけでDecision、Authority、Executionが�
 - Cognitive Method Applicationの主要input / output / residual
 
 ```text
-light view
+light / resume view
   != incomplete canonical storage
 
 audit detail
   != separate source of truth
 ```
 
-light / auditは同じcanonical meaningから作るProjectionとして扱います。
+## 7. 人間向け入口
 
-## 6. 人間向け入口
+人間向けSurfaceではsemantic modelの型名を覚えなければ使えない製品にしません。
 
-人間向けSurfaceでは、semantic modelの型名を覚えなければ使えない製品にしません。
+「問いを始める」「情報を加える」「分からない点を残す」「提案を見る」「決める」「後で読み直す」といった自然な仕事を前面に出し、裏側でcanonical artifactへ接続します。
 
-利用者の自然な仕事として「問いを始める」「情報を加える」「分からない点を残す」「提案を見る」「決める」「後で読み直す」といった操作を前面に出し、必要な意味明示性を裏側でcanonical artifactへ接続します。
+分かりやすさのためにRecommendationとDecisionを一つの「回答」へ潰したり、Unknownを空欄として捨てたりしません。
 
-ただし、分かりやすさのために意味差を消してはいけません。たとえばRecommendationとDecisionを一つの「回答」へ潰したり、Unknownを空欄として捨てたりしません。
+## 8. AI向け入口とprovisional boundary
 
-## 7. AI向け入口
+AI向けSurfaceは、人間向け画面を画面操作させることを必須にしません。必要なcanonical contextを構造化して読み、許可された操作を通してObservation候補、Method Application、Recommendation候補等を作れます。
 
-AI向けSurfaceでは、人間向け画面を画面操作させることを必須にしません。AIが必要なcanonical contextを構造化して読み、許可された操作を通してObservation、Method Application、Recommendation等を追加できる境界を持てます。
+AI向けSurfaceは次を守ります。
 
-AI向けSurfaceは、次を満たす必要があります。
+- Projectionからcanonical referenceへ戻れる。
+- 何をObservation / Recommendation / Decision等として記録するか明示する。
+- private chain-of-thoughtを要求しない。
+- AIであることだけからAuthorityを付与しない。
+- human UIだけにある隠れた意味へ依存しない。
+- AI response受信だけではcanonical writeを完了しない。
 
-- 取得したProjectionからcanonical referenceへ戻れる。
-- 書き込み時に、何をObservation、Recommendation、Decision等として記録するかを明示できる。
-- private chain-of-thoughtの提出を要求しない。
-- AIであることだけを理由にDecision権やAuthorityを付与しない。
-- human-facing UIだけに存在する隠れた意味へ依存しない。
+first sliceではAI responseをprovisional suggestionとして受け、Semantic Change Plan相当のpreviewを通してcommitする方向を検証します。
 
 protocolはHTTP API、MCP、local process、SDK等を候補としますが、本baselineでは固定しません。
 
-## 8. Human / AI parityの意味
+## 9. Human / AI parity
 
-Human / AI parityは、両者へ同じUIを提供することではありません。
-
-次の性質を満たすことを指します。
+Human / AI parityは同一UIではなく、次を意味します。
 
 1. 同じcanonical artifactを参照できる。
 2. 同じ意味上の区別を失わない。
-3. 一方が追加した耐久的意味を、他方が別Projectionから再読できる。
-4. 一方だけにしか存在しない会話履歴や画面状態を、判断再構成の必須条件にしない。
+3. 一方がcommitした耐久的意味を他方が再読できる。
+4. 一方にしか存在しないconversation / screen stateをhistorical reconstructionの必須条件にしない。
 5. actor kindからAuthority / Responsibilityを自動推定しない。
 
-人間とAIで入力支援や表示形式が異なることは許容します。
+入力支援や表示形式が異なることは許容します。
 
-## 9. first interactionの論理操作境界
+## 10. 論理操作境界
 
-protocol名やfunction名を固定せず、実装が少なくとも次の論理操作を提供できることを求めます。
+protocol名やfunction名を固定せず、実装が少なくとも次の仕事を表現できることを求めます。
 
 ```text
 start / open
-read light projection
+read resume / light projection
 read audit / structured projection
 add observation / evidence
 record unknown / conflict
@@ -200,37 +217,26 @@ return resulting observation
 review history / reopen
 ```
 
-これらはUniversal workflow stateではありません。必要な操作が存在することを示すProduct Interaction上の分類です。
+これらはUniversal workflow stateではありません。
 
-一つの汎用`append anything` APIだけでも内部実装は可能ですが、利用者やAIが意味種別を誤って混同しないよう、Surface上では意味差を確認できることを優先します。
+first sliceではさらに、AI suggestionの`review / edit / dismiss / commit`と、stale draft / commit failureの明示的なfailure behaviorをProduct Operationとして検証します。
 
-## 10. protocolとUIの扱い
+## 11. protocolとUI
 
-現時点では、Web UI、desktop UI、CLI、HTTP API、MCPのいずれもProduct標準として確定しません。
+Web UI、desktop UI、CLI、HTTP API、MCPのいずれも恒久的Product標準として確定していません。
 
-ISSUE-000053では、Interaction boundaryを実証するreference probeとして、次の二つの入口をGoで実体化しました。
-
-- **human-oriented probe** — 最小入力から開始し、light / auditを往復する操作をGo APIとして表現。
-- **machine-oriented probe** — typed recordの追加とstructured viewをGo APIとして表現。
-
-両者は同じevaluation-onlyの`CanonicalStore`へ接続します。typed recordは既存`semanticruntime`のvalidatorを通し、Surface-local stateやProjectionはcanonical authorityにしません。
-
-このprobeは製品UI選定ではありません。
+ISSUE-000053ではGoのreference probeとしてhuman-oriented入口とmachine-oriented入口を同じevaluation-only CanonicalStoreへ接続し、Surface間の意味共有をScoped Executable Evidenceとして確認しました。
 
 ```text
 reference probe surface
   != supported production surface decision
 ```
 
-追加negative testを含むSemantic Runtime Conformance Run `33504002579`では、current Contract fixture再検査と`runtime/go`全体の`go test ./...`がsuccessしました。
+ISSUE-000073ではhuman usabilityをactualに観測するため、Local Single-Node Go runtimeにlocal browser UIを組み合わせる構成をfirst prototype候補とします。これはhuman reviewを速く回すためのRealization選択であり、Web UIをUniversal Requirementにしません。
 
-productionで最初にsupportedとするSurfaceは、human usability、AI integration、Packaging / Deploymentとの整合を見て別途判断します。
+## 12. Requirement / Acceptance監査
 
-## 11. Requirement / Acceptance監査
-
-今回のInteraction boundaryとreference probeから、現時点で新しいProduct Requirementを追加する必要性は確認されていません。
-
-主な根拠は既存Requirementで表現されています。
+Interactionの主要境界はcurrent Requirementで表現できます。
 
 - REQ-0001 — 技術やUIが変わっても意味を引き継ぐ。
 - REQ-0005 — Decisionを後から再構成する。
@@ -241,77 +247,74 @@ productionで最初にsupportedとするSurfaceは、human usability、AI integr
 - REQ-0015 — private chain-of-thoughtへ依存しない。
 - REQ-0019 — 人間とAIの双方が意味を読める。
 
-Acceptanceについても、SCN-0013「簡略UIとcanonical meaningを両立する」とSCN-0018「Inquiryから実行後の再検討までを一続きに扱う」を組み合わせることで、今回確認したDesign / Executable境界を表現できます。
+SCN-0003、0013、0016、0018もresume-first sliceの主要Scenarioです。
 
-したがって、Interaction probeの実装都合だけで新しいREQ / SCN IDを追加しません。production usabilityやPackaging等の実証で既存Scenarioでは表現できない独立した失敗が見つかった場合だけ、追加を再検討します。
+ISSUE-000073では、canonical-only resume、meaning-preserving multi-record commit、stale-write protection、external AI context boundary等をCandidate Requirementとして検証します。prototype / human review前にStable REQ IDを追加しません。
 
-## 12. reference probeで得たExecutable Evidence
+## 13. 既存Executable Evidenceと新しいEvidence gap
 
-`runtime/go/interactionprobe`では、少なくとも次をactual testとして確認しました。
+`runtime/go/interactionprobe`では、HumanSurface / MachineSurfaceの同一canonical source利用、minimal start、Recommendation / Decision分離、Unknown / Conflict保持、light / audit Projection、post-decision Observationによるhistorical basis非改変、Surface-local state非権威性等をactual testとして確認済みです。
 
-1. HumanSurfaceとMachineSurfaceが同じcanonical sourceを利用する。
-2. Inquiryだけの最小状態から開始し、後から詳細化できる。
-3. machine側が追加したCapability Observation / Recommendationをhuman側が再読できる。
-4. human側が記録したDecisionをmachine側がDecisionとして再読できる。
-5. RecommendationとDecisionを同一recordへ平坦化しない。
-6. Unknown / Conflictをopaqueな`not_verified` recordとして失わず保持する。
-7. light / audit / structured Projectionを生成してもcanonical sourceを変更しない。
-8. audit viewからDecision basis、Responsibility、unresolved refsへ降りられる。
-9. private chain-of-thoughtを要求せずRecommendationを記録できる。
-10. post-decision Observationを追加してもhistorical Decision basisを改変しない。
-11. machine SurfaceであることからResponsibilityを自動付与しない。
-12. Surface-local stateを破棄してもcanonical artifactを失わない。
-13. 会話履歴だけのRecommendation相当文字列や画面状態だけのDecision相当文字列をcanonical recordとして扱わない。
-14. opaque recordを`validated`と偽って追加する操作を拒否する。
+これは重要なScoped Executable Evidenceですが、次は未検証です。
 
-詳細は`../../runtime/INTERACTION_PROBE_EVIDENCE_2026-09-01.md`を参照してください。
-
-このprobeのPASSは、production UIの使いやすさやPMS-03全体のOperational / Adoption Evidenceを意味しません。
+- context loss後のactual human orientation。
+- canonical-only resumeのProduct Experience。
+- AI suggestion correction / dismissalの操作負担。
+- AI unavailable時のgraceful degradation。
+- multi-record commit fault injection。
+- stale draft conflict。
+- external AI context egressのinspection。
 
 ```text
 interaction probe PASS
+  != resume-first Product Slice proven
   != production UX proven
-  != supported protocol finalized
-  != packaged product proven
-  != user-value outcome proven
+  != Adoption / Outcome proven
 ```
 
-## 13. 現時点で決めないこと
+## 14. 現時点で決めないこと
 
-このbaselineでは、次をまだ固定しません。
+- Web / desktop / CLIの正式human-facing surface。
+- HTTP / MCP / SDKの正式machine-facing surface。
+- team / tenant / workspaceのformal model。
+- production Storage / concurrency mechanism。
+- semantic change planのportable Contract化。
+- production impact-level policy。
+- autonomous agent orchestration / workflow engine。
+- external AI vendor / model。
 
-- Web / desktop / CLIのどれを最初の主要human-facing surfaceにするか。
-- HTTP API / MCP / SDKのどれを最初の主要AI-facing surfaceにするか。
-- login / workspace / tenant等のIdentity / Collaboration設計。
-- production Storage。
-- process restart後のresume方式。
-- UI visual design。
-- impact levelを判定するproduction Policy / Profile。
-- agent orchestrationやworkflow engine。
+これらはISSUE-000073等のactual Evidenceから必要性を再評価します。
 
-Packaging / DeploymentはISSUE-000046、Identity / Authorization / CollaborationはISSUE-000047で別途扱います。
-
-## 14. Evidence状態
+## 15. Evidence状態
 
 - Product Interaction Design Evidence: **Established**
-- Executable Evidence: **Scoped Evidence available** — `runtime/go/interactionprobe`とSemantic Runtime Conformance Run `33504002579`。
-- Release Evidence: **Not Yet Verified**
+- Existing reference-probe Executable Evidence: **Scoped Evidence available**
+- Resume-first Product Slice Design: **Established**
+- Resume-first prototype Executable Evidence: **Not Yet Verified**
+- Human usability Evidence: **Not Yet Verified**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
 
-current reference probeは、異なるSurfaceが同じcanonical sourceへ接続できることを限定的に確認したものです。production supported Surface、production persistence、実AI integration、human usabilityはまだ確認していません。
+## 16. 関連文書
 
-## 15. 関連文書
-
+- `SOZA_FIRST_USABLE_PRODUCT_SLICE.md`
 - `../definition/SOZA_PRODUCT_SHAPE.md`
 - `../roadmap/SOZA_PRODUCT_MILESTONES.md`
+- `../../architecture/SOZA_INTERACTION_WORKING_SET_ARCHITECTURE.md`
 - `../../requirements/PRODUCT_REQUIREMENTS.md`
 - `../../requirements/ACCEPTANCE_SCENARIOS.md`
 - `../../runtime/INTERACTION_PROBE_EVIDENCE_2026-09-01.md`
 - `../../plan/issue/ISSUE-000045-define-first-usable-product-interaction-boundary.md`
 - `../../plan/adr/ADR-0028-product-interaction-canonical-operation-boundary.md`
 - `../../plan/issue/ISSUE-000053-materialize-first-product-interaction-reference-probe.md`
+- `../../plan/issue/ISSUE-000073-define-first-usable-resume-first-product-slice.md`
 
-## 16. Natural Japanese review
+## 17. Natural Japanese review
 
-Product Value、Product Shape、PMS-03、REQ-0001 / 0005 / 0006 / 0010 / 0011 / 0014 / 0015 / 0019、SCN-0013 / 0018、ADR-0028、`runtime/go/interactionprobe`、Semantic Runtime Conformance Run `33504002579`を照合し、利用者の仕事とcanonical meaningの関係からInteraction boundaryを再監査しました。reference probeで確認できたSurface間の意味共有、Projection非権威性、Recommendation / Decision分離等をExecutable Evidenceとして反映する一方、production UI、protocol、Storage、Identity、Operational / Adoptionは未検証のまま明確に残しています。UI、conversation、session等を意味上の正本へ昇格させず、新しいRequirementやUniversal概念も不要に追加していません。そのうえで、意味、要求強度、未決事項、Evidenceの高さを変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Value、Product Shape、PMS-03、current Requirements / Scenarios、ADR-0028、Interaction reference probe、ISSUE-000073のProduct / Architecture Designを照合し、Interaction baselineを2026-09-11時点へ再構成した。
+
+従来の「複数Surfaceから同じcanonical meaningへ戻れる」という基礎を維持しながら、次のProduct Valueとして「文脈を失った利用者が判断仕事へ戻れる」resume-first sliceを加えた。Resume Briefやworking setを重要なProduct構造として扱いつつ、新しいUniversal authorityにはしていない。
+
+AIについてはprivate reasoningの保存や自動Decision化ではなく、provisional suggestion、修正可能性、meaning preview、graceful degradationを重視した。既存probeのPASSをhuman usabilityへ拡大解釈せず、partial / stale write等の新しい候補境界をStable Requirementへ先取りしない停止線も維持した。
+
+意味、要求強度、Evidenceの高さ、未決事項を固定したうえで全文を自然な日本語として再ドラフトし、最終意味監査を実施した。
