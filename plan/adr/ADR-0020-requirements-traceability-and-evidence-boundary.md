@@ -6,7 +6,7 @@ Updated: 2026-08-31
 
 ## Context
 
-SOZAでは、Product ValueからRequirement、ADR、Architecture、Contract、Implementation / Evidenceへ追跡できることが重要である。
+SEIでは、Product ValueからRequirement、ADR、Architecture、Contract、Implementation / Evidenceへ追跡できることが重要である。
 
 historical candidateにもRequirementsやAcceptance Scenariosは存在したが、旧Milestone構造、旧Product Boundary、当時のEvidence状態をそのままcurrent正本へ継承すると、現在のProduct Valueとの対応関係が不明瞭になる。
 

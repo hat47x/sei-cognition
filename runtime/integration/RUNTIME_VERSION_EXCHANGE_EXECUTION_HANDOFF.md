@@ -13,9 +13,9 @@
 
 ## 1. 前提
 
-actual runtime archiveはLinux / amd64固定です。SOZAとKJ AtlasはcleanなGit checkoutを利用し、KJ Atlas checkoutには固定commit object `4f28c13abe4176503c6fed863383a2d1db2299e9` が存在する必要があります。
+actual runtime archiveはLinux / amd64固定です。SEIとKJ AtlasはcleanなGit checkoutを利用し、KJ Atlas checkoutには固定commit object `4f28c13abe4176503c6fed863383a2d1db2299e9` が存在する必要があります。
 
-artifact、Evidence、workはSOZA / KJ Atlas repository外へ置きます。
+artifact、Evidence、workはSEI / KJ Atlas repository外へ置きます。
 
 以下では例として同じ外部parentを利用します。
 

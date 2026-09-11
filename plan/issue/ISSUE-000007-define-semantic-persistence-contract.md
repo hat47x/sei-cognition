@@ -7,7 +7,7 @@ Updated: 2026-08-31
 
 ## Goal
 
-Git、RDB、object store、event sourcing等の特定実装をSOZA Coreへ固定せず、DecisionやMethod Application、Provenance、Semantic Lineageを長期に保持するための意味上の永続化契約を定める。
+Git、RDB、object store、event sourcing等の特定実装をSEI Coreへ固定せず、DecisionやMethod Application、Provenance、Semantic Lineageを長期に保持するための意味上の永続化契約を定める。
 
 ## Investigation
 
@@ -15,7 +15,7 @@ logical identity、exact content binding、lineage、provenance、schema migrati
 
 ## Resolution
 
-SOZAはstorage-neutralなsemantic persistence obligationsを定め、物理layout、transaction方式、MVCC、replication、backup等はProviderへ委ねる。
+SEIはstorage-neutralなsemantic persistence obligationsを定め、物理layout、transaction方式、MVCC、replication、backup等はProviderへ委ねる。
 
 物理deleteとsemantic withdrawal、schema migrationとsemantic revision、storage sequenceとSemantic Lineageを同一視しない。
 

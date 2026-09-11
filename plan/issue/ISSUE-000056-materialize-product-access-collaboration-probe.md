@@ -133,7 +133,7 @@ probeによって、Product accessをsemantic Responsibility / Authorityやactor
 
 次をCandidate Requirementとして保持する。
 
-> SOZAの製品アクセス権は、semantic Responsibility / Authorityやactor kindから自動導出せず、認証identityとの対応を含むProduct Access Policyで独立に評価できる必要がある。
+> SEIの製品アクセス権は、semantic Responsibility / Authorityやactor kindから自動導出せず、認証identityとの対応を含むProduct Access Policyで独立に評価できる必要がある。
 
 production IdP、実team deployment、またはexternal collaborationの次段階で、この規範を既存REQ-0012 / 0013 / 0017だけでは十分に表現できないことが確認された場合、新しいStable Requirement / Scenarioを再検討する。
 

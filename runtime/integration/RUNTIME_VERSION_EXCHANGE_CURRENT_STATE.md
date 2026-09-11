@@ -57,7 +57,7 @@ raw Evidenceは次に保存しています。
 
 ## actual executionの主要観測
 
-actual runはSOZA commit `ae9f631b7d570a6c3853bb71b794d501761fdf63`で実行されました。
+actual runはSEI commit `ae9f631b7d570a6c3853bb71b794d501761fdf63`で実行されました。
 
 runner observation:
 

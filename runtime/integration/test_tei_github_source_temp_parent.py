@@ -78,7 +78,7 @@ class TEIGitHubSourceTempParentTest(unittest.TestCase):
                 path.mkdir()
 
             for label, unsafe in (
-                ("SOZA repository", soza / "tmp"),
+                ("SEI repository", soza / "tmp"),
                 ("revision A reference checkout", reference / "tmp"),
                 ("Evidence directory", evidence / "tmp"),
             ):
@@ -172,7 +172,7 @@ class TEIGitHubSourceTempParentTest(unittest.TestCase):
                 subject.source_acquisition,
                 "materialize_revision_b_source",
             ) as acquisition:
-                with self.assertRaisesRegex(ValueError, "SOZA repository"):
+                with self.assertRaisesRegex(ValueError, "SEI repository"):
                     subject.run_from_github(
                         None,
                         soza,

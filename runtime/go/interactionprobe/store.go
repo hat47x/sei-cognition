@@ -85,7 +85,7 @@ func (s *CanonicalStore) Find(ref semanticruntime.LogicalReference) (semanticrun
 }
 
 // Digest はProjection生成やSurface-local stateの変更がcanonical stateを書き換えていないことを
-// probeで比較するための指標です。SOZAのRepresentation ProfileやExact Bindingではありません。
+// probeで比較するための指標です。SEIのRepresentation ProfileやExact Bindingではありません。
 func (s *CanonicalStore) Digest() (string, error) {
 	records, err := s.Records()
 	if err != nil {

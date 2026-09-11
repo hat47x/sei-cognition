@@ -19,7 +19,7 @@ REPORT_NAME = "tei-revision-b-e2-github.json"
 BUNDLE_NAME = "tei-e3b-p2-revision-b-e2-partial.tar.gz"
 SOZA_ROOT = Path(__file__).resolve().parents[2]
 STOP_LINE = (
-    "revision B GitHub acquisition + fixed-scope E2 verified != E3 SOZA Adapter compatibility "
+    "revision B GitHub acquisition + fixed-scope E2 verified != E3 SEI Adapter compatibility "
     "!= arbitrary TEI version compatibility != Operational Evidence != ISSUE-000072 Resolved"
 )
 
@@ -56,7 +56,7 @@ def _prepare_output_dir_before_source(
             f"{resolved}"
         )
 
-    roots: list[tuple[str, Path]] = [("SOZA repository", SOZA_ROOT)]
+    roots: list[tuple[str, Path]] = [("SEI repository", SOZA_ROOT)]
     if reference_source_repo is not None:
         roots.append(
             (
@@ -279,7 +279,7 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "GitHub Git Data APIからexact revision B sourceを取得し、E3 toolchainの有無とは"
             "独立してISSUE-000072 E2（actual build / deployment-provider-plan / Evidence bundle）"
-            "までを回収します。E3 SOZA Adapter live testは意図的に実行しません。"
+            "までを回収します。E3 SEI Adapter live testは意図的に実行しません。"
         ),
         allow_abbrev=False,
     )

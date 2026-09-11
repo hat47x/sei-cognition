@@ -12,7 +12,7 @@ Updated: 2026-08-31
 
 ## Decision
 
-SOZA Coreが所有するのは、**Exact Bindingを再検証できるための意味上の条件**までとする。
+SEI Coreが所有するのは、**Exact Bindingを再検証できるための意味上の条件**までとする。
 
 canonicalization、digest algorithm、対象bytesまたはsemantic representationの定義は、明示された`Representation Profile`が所有する。
 

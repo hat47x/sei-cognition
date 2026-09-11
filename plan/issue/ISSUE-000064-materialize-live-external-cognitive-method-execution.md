@@ -7,9 +7,9 @@ Updated: 2026-09-02
 
 ## Goal
 
-PMS-06のE3bについて、SOZAとは別repositoryで開発されているCognitive Method実装を別processとして実際に起動し、その処理結果をSOZAの既存Cognitive Method Applicationへ戻せることを確認する。
+PMS-06のE3bについて、SEIとは別repositoryで開発されているCognitive Method実装を別processとして実際に起動し、その処理結果をSEIの既存Cognitive Method Applicationへ戻せることを確認する。
 
-最初の対象にはpublic repository `hat47x/kj-atlas`を用いる。KJ Atlasが既に提供している`POST /ai/suggest-card-groups`をSOZA専用interfaceへ変更せず利用し、固定revisionのKJ Atlas backendをHTTP processとして起動する。
+最初の対象にはpublic repository `hat47x/kj-atlas`を用いる。KJ Atlasが既に提供している`POST /ai/suggest-card-groups`をSEI専用interfaceへ変更せず利用し、固定revisionのKJ Atlas backendをHTTP processとして起動する。
 
 CIで利用する生成器はKJ Atlas repositoryに含まれる決定的model stubである。このため、KJ Atlas本体の実処理経路をliveに通したことと、実外部AI modelを利用したことを分ける。
 
@@ -18,7 +18,7 @@ E3b-M1a live KJ Atlas process + deterministic model stub
   → E3b-M1b live external model-backed KJ execution
 ```
 
-M1a / M1bはEvidence範囲を区別するための作業上の名称であり、SOZAの新しいProduct ontologyやUniversal Contractではない。
+M1a / M1bはEvidence範囲を区別するための作業上の名称であり、SEIの新しいProduct ontologyやUniversal Contractではない。
 
 ## Issue番号の整理
 
@@ -46,7 +46,7 @@ Release Evidence系列の成果を上書きせず、本IssueをCognitive Method�
 
 E3b-M1aの範囲について、**Scoped Executable Evidence available**と判断する。
 
-専用GitHub ActionsからKJ Atlasを固定commitで取得し、KJ Atlas FastAPI backendとKJ Atlas同梱のdeterministic model stubをSOZAとは別processとして実際に起動する。そのうえで、KJ Atlas自身の`POST /ai/suggest-card-groups`をHTTP経由で呼び、actual responseをSOZAのreference Adapterへ戻す。
+専用GitHub ActionsからKJ Atlasを固定commitで取得し、KJ Atlas FastAPI backendとKJ Atlas同梱のdeterministic model stubをSEIとは別processとして実際に起動する。そのうえで、KJ Atlas自身の`POST /ai/suggest-card-groups`をHTTP経由で呼び、actual responseをSEIのreference Adapterへ戻す。
 
 実行元は次へ固定する。
 
@@ -56,7 +56,7 @@ E3b-M1aの範囲について、**Scoped Executable Evidence available**と判断
 
 この経路では、KJ Atlasのrequest model、LLM input IR、SafeMode、local model routing、response filteringを実際に通す。`doc.cards`で`holdState = held`としたカードが`excludedCardIds`へ除外されることも検査する。
 
-KJ Atlas固有responseはSOZAのUniversal Contractへ昇格させない。JSONの意味内容をopaqueな`not_verified` Method outputとして保持し、source repository、commit、entry point、result digestはopaqueなProvenanceとして残す。既存Cognitive Method Applicationは`realization_ref`、`output_refs`、`provenance_refs`からそれらを参照する。
+KJ Atlas固有responseはSEIのUniversal Contractへ昇格させない。JSONの意味内容をopaqueな`not_verified` Method outputとして保持し、source repository、commit、entry point、result digestはopaqueなProvenanceとして残す。既存Cognitive Method Applicationは`realization_ref`、`output_refs`、`provenance_refs`からそれらを参照する。
 
 また、KJ Atlasのgrouping候補をRecommendationやDecisionへ自動昇格させない。
 
@@ -68,7 +68,7 @@ KJ Atlas grouping suggestion
 
 ## 実装
 
-### SOZA reference Adapter
+### SEI reference Adapter
 
 `runtime/go/livemethodintegration`に、KJ Atlas grouping responseをcurrent semantic boundaryへ戻すreference Adapterとtestを置く。
 
@@ -87,7 +87,7 @@ KJ Atlas grouping suggestion
 
 `.github/workflows/external-method-integration-e3b.yml`では次を実行する。
 
-1. SOZAをcheckoutする。
+1. SEIをcheckoutする。
 2. KJ Atlasを固定commitでcheckoutする。
 3. KJ Atlas backendをinstallする。
 4. SQLiteへAlembic migrationを適用する。
@@ -95,7 +95,7 @@ KJ Atlas grouping suggestion
 6. KJ Atlas FastAPI backendを別processとして起動する。
 7. `POST /ai/suggest-card-groups`をactual HTTPで呼ぶ。
 8. held cardの除外とgrouping responseを確認する。
-9. SOZA側のmapping boundary testを実行する。
+9. SEI側のmapping boundary testを実行する。
 10. actual external resultをCognitive Method Applicationへmappingする。
 
 ## 実証中に得た補正
@@ -104,11 +104,11 @@ KJ Atlas grouping suggestion
 
 初回live runでは、KJ Atlasの起動後にactual grouping requestがHTTP 422で拒否された。原因は、top-level `cards`の要素へ`holdState`を渡していたことだった。
 
-current KJ Atlasでは`holdState`を`doc.cards`側で表現するため、top-level cardから取り除き、`doc.cards`には残した。これはKJ Atlas側のSafeModeやIR契約を弱める変更ではなく、SOZA reference probeをcurrent contractへ合わせた補正である。
+current KJ Atlasでは`holdState`を`doc.cards`側で表現するため、top-level cardから取り除き、`doc.cards`には残した。これはKJ Atlas側のSafeModeやIR契約を弱める変更ではなく、SEI reference probeをcurrent contractへ合わせた補正である。
 
 ### opaque JSONの意味保存
 
-次の実行ではactual HTTP groupingが成功した一方、SOZA側testがCanonicalStoreから再読したJSONについて空白や改行までbyte-for-byte一致することを要求していた。
+次の実行ではactual HTTP groupingが成功した一方、SEI側testがCanonicalStoreから再読したJSONについて空白や改行までbyte-for-byte一致することを要求していた。
 
 今回守るべき境界は、外部responseをUniversal意味として推測せず`not_verified`として保持し、JSONの意味内容を失わないことである。空白まで同一のsource bytesをSemantic Interchangeへ保存することではない。
 
@@ -118,7 +118,7 @@ current KJ Atlasでは`holdState`を`doc.cards`側で表現するため、top-le
 
 ### 再基線化前のlive Evidence
 
-再基線化前のPR #41でも、KJ Atlas取得、install、migration、model/backend process起動、actual grouping、SOZA mapping boundary test、actual result mappingまでを専用workflowで実行し、成功した。
+再基線化前のPR #41でも、KJ Atlas取得、install、migration、model/backend process起動、actual grouping、SEI mapping boundary test、actual result mappingまでを専用workflowで実行し、成功した。
 
 代表的な成功Runは次のとおり。
 
@@ -140,7 +140,7 @@ current KJ Atlasでは`holdState`を`doc.cards`側で表現するため、top-le
 - V6 V7 Projection Evaluation Run `33587455441`
 - Release Candidate Gate Run `33587455459`
 
-専用M1a Run `33587455439`では、KJ Atlas checkout、backend install、Alembic migration、model/backend process起動、actual grouping、SOZA mapping boundary test、actual result mappingまでの主要stepがすべてsuccessした。
+専用M1a Run `33587455439`では、KJ Atlas checkout、backend install、Alembic migration、model/backend process起動、actual grouping、SEI mapping boundary test、actual result mappingまでの主要stepがすべてsuccessした。
 
 Release Candidate Gate Run `33587455459`ではGate 1〜9がsuccessし、公開済みv0.2.0に対する`prepare-v0-2-0-release`と`publish-v0-2-0`はともにskipされた。したがって、M1aの回帰検査によって既存v0.2.0を再publicationしていない。
 
@@ -172,7 +172,7 @@ E3b-M1a PASS
   != Adoption / Outcome Evidence
 ```
 
-model stubはKJ Atlasの実処理経路を決定的に通すためのfixtureであり、その生成内容の認知的品質をSOZAのEvidenceへ昇格させない。
+model stubはKJ Atlasの実処理経路を決定的に通すためのfixtureであり、その生成内容の認知的品質をSEIのEvidenceへ昇格させない。
 
 ## Requirement / Scenario再監査
 
@@ -197,7 +197,7 @@ KJ Atlas、FastAPI、HTTP、SQLite、deterministic model stubという現在の�
 - [x] invalid result / duplicate targetでcanonical stateを壊さないnegative testを追加する。
 - [x] KJ Atlasを固定commitから取得して別processとして起動する専用CIを追加する。
 - [x] 専用CIでKJ Atlas FastAPIからactual grouping resultを取得する。
-- [x] actual resultをSOZA Method Applicationへmappingする。
+- [x] actual resultをSEI Method Applicationへmappingする。
 - [x] Stable Requirement / Scenario追加の要否を再監査する。今回は追加しない。
 - [x] ISSUE-000061〜000063の並行成果を保持し、M1aをISSUE-000064として再構成する。
 - [x] v0.2.0 Release EvidenceとM1a Evidenceを分離する。
@@ -226,7 +226,7 @@ KJ Atlas、FastAPI、HTTP、SQLite、deterministic model stubという現在の�
 - KJ Atlasのlive responseをopaque output + current Method Applicationでは意味を失わず保持できないことが判明する。
 - KJ Atlas固有schemaをUniversal Contractへ持ち込まないと実用上成立しないことが確認される。
 - grouping候補とRecommendation / Decisionを分離すると必要な追跡性が失われる。
-- external Method failureとSOZAのUnknown / Conflictとの関係に新しいProduct-level規範が必要になる。
+- external Method failureとSEIのUnknown / Conflictとの関係に新しいProduct-level規範が必要になる。
 - 実外部modelを使うM1bで、M1aとは異なる恒久的な意味境界が必要と判明する。
 
 ## Natural Japanese review

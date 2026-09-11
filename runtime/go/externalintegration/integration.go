@@ -31,7 +31,7 @@ func BindMethodRealization(artifact externalartifact.VerifiedArtifact, methodRef
 		MethodRealization: &semanticruntime.MethodRealization{
 			Ref:                realizationRef,
 			MethodRef:          ref(methodRef),
-			Description:        "SOZA外でversion管理されるCognitive Method artifactを検証して結び付けたreference Realization",
+			Description:        "SEI外でversion管理されるCognitive Method artifactを検証して結び付けたreference Realization",
 			ImplementationRefs: []semanticruntime.Reference{ref(provenance)},
 		},
 	}
@@ -106,7 +106,7 @@ func rawValue(value any) (json.RawMessage, error) {
 
 // ObserveTEIDeploymentState maps one verified TEI observed-state artifact into
 // the current Capability Observation. TEI's field names remain inside this
-// adapter; they do not become a SOZA Universal Provider State schema.
+// adapter; they do not become a SEI Universal Provider State schema.
 func ObserveTEIDeploymentState(artifact externalartifact.VerifiedArtifact, context provideradapter.ObservationContext) (semanticruntime.CapabilityObservationDocument, error) {
 	if context.ObservationID == "" || context.CapabilityRef.Kind == "" || context.CapabilityRef.ID == "" {
 		return semanticruntime.CapabilityObservationDocument{}, errors.New("observation ID and capability reference are required")

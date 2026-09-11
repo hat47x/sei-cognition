@@ -7,7 +7,7 @@ Updated: 2026-09-01
 
 ## Goal
 
-SOZAのV6 Human / AI ReadabilityとV7 Progressive Explicitnessについて、特定のUI技術や製品画面へ早期固定せず、**同じcanonical meaningを人間向けProjectionとmachine-readable representationの双方から回収できること**、および**案件の影響度に応じて明示量を変えても必要な意味を失わないこと**を、再現可能な評価系で検証する。
+SEIのV6 Human / AI ReadabilityとV7 Progressive Explicitnessについて、特定のUI技術や製品画面へ早期固定せず、**同じcanonical meaningを人間向けProjectionとmachine-readable representationの双方から回収できること**、および**案件の影響度に応じて明示量を変えても必要な意味を失わないこと**を、再現可能な評価系で検証する。
 
 このIssueの目的は「UIを完成させること」ではない。
 

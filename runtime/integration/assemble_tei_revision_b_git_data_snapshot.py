@@ -28,7 +28,7 @@ def _prepare_output_path(path: Path, fragment_paths: Iterable[Path]) -> Path:
         )
     if output == prepare.SOZA_ROOT or prepare.SOZA_ROOT in output.parents:
         raise ValueError(
-            f"TEI Git Data assembled snapshotをSOZA repository配下には置けません: {output}"
+            f"TEI Git Data assembled snapshotをSEI repository配下には置けません: {output}"
         )
     for fragment_path in fragment_paths:
         fragment = fragment_path.expanduser().resolve(strict=False)

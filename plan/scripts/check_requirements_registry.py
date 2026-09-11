@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SOZA current Requirements / Acceptance Scenario registry checker.
+"""SEI current Requirements / Acceptance Scenario registry checker.
 
 This checker validates the current Markdown registries without treating Markdown
 or this script as semantic authority. The normative rules come from ADR-0020
@@ -24,7 +24,7 @@ REQ_TABLE_RE = re.compile(r"^\|\s*(REQ-\d{4})\s*\|", re.MULTILINE)
 SCN_TABLE_ROW_RE = re.compile(
     r"^\|\s*(SCN-\d{4})\s*\|([^\n]*)$", re.MULTILINE
 )
-HISTORICAL_ID_RE = re.compile(r"SOZA-(?:PR|NFR|AS)-\d+")
+HISTORICAL_ID_RE = re.compile(r"SEI-(?:PR|NFR|AS)-\d+")
 MILESTONE_ID_RE = re.compile(r"(?:M\d+[-_/])?(?:REQ|SCN)-\d{4}")
 
 ALLOWED_REQUIREMENT_STATUS = {
@@ -214,7 +214,7 @@ def _default_repo_root() -> Path:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Check SOZA current Requirements / Scenario registry consistency")
+    parser = argparse.ArgumentParser(description="Check SEI current Requirements / Scenario registry consistency")
     parser.add_argument("--requirements", type=Path, help="Path to PRODUCT_REQUIREMENTS.md")
     parser.add_argument("--scenarios", type=Path, help="Path to ACCEPTANCE_SCENARIOS.md")
     parser.add_argument("--json-out", type=Path, help="Optional path for a JSON report")

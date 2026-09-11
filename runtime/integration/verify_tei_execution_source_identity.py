@@ -23,7 +23,7 @@ REVISION_A_REFERENCE_OBJECTS = {
 }
 STOP_LINE = (
     "TEI execution-source Git identity verified != actual TEI binary built "
-    "!= Provider Plan observed != SOZA Adapter compatibility verified"
+    "!= Provider Plan observed != SEI Adapter compatibility verified"
 )
 
 

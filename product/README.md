@@ -1,15 +1,15 @@
-# SOZA Product文書の読み方
+# SEI Product文書の読み方
 
 更新日: 2026-09-05  
 状態: **Current Product Documentation Baseline — v0.2.0 Release Evidence / E3b-P2 / E3b-M1a・M1b / historical reconstruction / runtime-version exchange / quality-evaluation boundary / PMS-06 current state reflected**
 
 ## 1. この文書の役割
 
-`product/`は、SOZAが**なぜ存在するのか、何を失ってはならないのか、どのような製品状態を目指し、どこまで成立したら次の段階へ進めるのか**を定める上位文書の入口です。
+`product/`は、SEIが**なぜ存在するのか、何を失ってはならないのか、どのような製品状態を目指し、どこまで成立したら次の段階へ進めるのか**を定める上位文書の入口です。
 
 個別の実装方式や特定Providerの都合をProduct定義へ持ち込む場所ではありません。期限やcalendar scheduleもここでは固定せず、Product MilestoneはOutcomeとEvidenceの成立条件で表します。
 
-SOZAでは、概ね次の依存方向を維持します。
+SEIでは、概ね次の依存方向を維持します。
 
 ```text
 Product Value / Value Proposition
@@ -34,15 +34,15 @@ GitHub Actionsは当面完全に停止しています。Product Value、Requirem
 
 ## 2. Product文書の正本関係
 
-### `value/SOZA_PRODUCT_VALUE.md`
+### `value/SEI_PRODUCT_VALUE.md`
 
-SOZAが存在する理由と、最も上位で守る価値を定めます。Product Valueから個別RequirementやUniversal型を機械的に生成しません。
+SEIが存在する理由と、最も上位で守る価値を定めます。Product Valueから個別RequirementやUniversal型を機械的に生成しません。
 
-### `value/SOZA_VALUE_PROPOSITION.md`
+### `value/SEI_VALUE_PROPOSITION.md`
 
 Product Valueを、利用者がどのような問題を解き、どのような価値を受け取る製品なのかという観点から表します。
 
-### `value/SOZA_VALUE_MODEL.md`
+### `value/SEI_VALUE_MODEL.md`
 
 Product Valueを設計判断へ落とせる粒度に精緻化します。現在はV1〜V8を用います。
 
@@ -57,7 +57,7 @@ Product Valueを設計判断へ落とせる粒度に精緻化します。現在�
 
 V1〜V8は総合点を作るための採点項目ではありません。一つの軸の強さで、別の重大な欠損を相殺しません。
 
-### `value/SOZA_VALUE_ACCEPTANCE.md`
+### `value/SEI_VALUE_ACCEPTANCE.md`
 
 V1〜V8を「満たした」と主張するとき、どの高さのEvidenceが必要かを定めます。
 
@@ -69,21 +69,21 @@ Design Evidence
   != Adoption / Outcome Evidence
 ```
 
-### `value/SOZA_VALUE_TRACEABILITY.md`
+### `value/SEI_VALUE_TRACEABILITY.md`
 
 Product Valueからcurrent Requirements、Acceptance Scenarios、ADR、Architecture、Contract、Representation Profile、runtime、probe、Release Evidence、Evidence gapへ戻るための索引です。
 
-### `definition/SOZA_PRODUCT_SHAPE.md`
+### `definition/SEI_PRODUCT_SHAPE.md`
 
-SOZAを製品として見たときの主要な仕事、論理Surface、SOZA内外の境界、Minimum Usable Product Shapeを定めます。
+SEIを製品として見たときの主要な仕事、論理Surface、SEI内外の境界、Minimum Usable Product Shapeを定めます。
 
-### `vision/SOZA_PRODUCT_VISION.md` / `principles/SOZA_PRODUCT_PRINCIPLES.md`
+### `vision/SEI_PRODUCT_VISION.md` / `principles/SEI_PRODUCT_PRINCIPLES.md`
 
 長期的な到達方向と、繰り返し現れる設計判断の原則を定めます。未定領域ではOpen Question、実証、Candidate Requirement、Stable Requirementを分離します。
 
-### `roadmap/SOZA_PRODUCT_MILESTONES.md`
+### `roadmap/SEI_PRODUCT_MILESTONES.md`
 
-SOZAをどの順序で製品として成立させるかを、期限ではなくOutcomeとEvidenceで示します。
+SEIをどの順序で製品として成立させるかを、期限ではなくOutcomeとEvidenceで示します。
 
 PMS-06では、現在までに次のScoped Executable Evidenceがあります。
 
@@ -100,7 +100,7 @@ PMS-06では、現在までに次のScoped Executable Evidenceがあります。
 PMS-06のversion-exchange探索は現在、次の状態です。
 
 - ISSUE-000070 — **Resolved**。fixed KJ Atlas source / Method input / model artifact / promptの下でOllama `0.32.13` / `0.32.14`をactualに交換し、same logical / different Exact Binding、historical Application不変性、portable reconstruction、Evidence + Provenance `ready-to-review`まで確認したfixed-scope Scoped Executable Evidenceがあります。
-- ISSUE-000072 — **Open**。TEI executable revision A / Bを交換する探索です。revision A historical Evidence再検証、exact-B executable + exact-A fixed reference input、E2 / E3 runner、separate toolchains、stage-aware diagnosticsまで実装済みですが、revision B actual CLI / Provider Plan / current SOZA Adapter compatibilityはNot Yet Verifiedです。
+- ISSUE-000072 — **Open**。TEI executable revision A / Bを交換する探索です。revision A historical Evidence再検証、exact-B executable + exact-A fixed reference input、E2 / E3 runner、separate toolchains、stage-aware diagnosticsまで実装済みですが、revision B actual CLI / Provider Plan / current SEI Adapter compatibilityはNot Yet Verifiedです。
 
 最新位置は`roadmap/PMS06_CURRENT_STATE_2026-09-05.md`を参照します。ISSUE-000070のPASSをISSUE-000072のEvidenceへ流用しません。
 
@@ -125,13 +125,13 @@ ISSUE-000072 repository-side ready
   != revision B actual compatibility PASS
 ```
 
-### `interaction/SOZA_PRODUCT_INTERACTION.md`
+### `interaction/SEI_PRODUCT_INTERACTION.md`
 
 PMS-03に対応するfirst usable Product Interactionについて、人間とAIがどのcanonical meaningへ接続し、どの操作を行える必要があるかを定めます。
 
 Web UI、desktop UI、CLI、HTTP API、MCP等を先に標準化せず、利用者向け操作境界とcanonical authorityの関係を正本化します。
 
-### `packaging/SOZA_PRODUCT_PACKAGING.md`
+### `packaging/SEI_PRODUCT_PACKAGING.md`
 
 PMS-04に対応する最初のPackaging / Deployment boundaryを定めます。最初のprofileはLocal Single-Node Packageです。
 
@@ -144,7 +144,7 @@ Go runtime executable
 
 Linux / amd64のLocal Reference Packageはv0.2.0 release assetとして配布済みです。ただし、formal platform support matrix、production installer、signing、crash durability、production Storage migrationの成立を意味しません。
 
-### `security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`
+### `security/SEI_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`
 
 PMS-05に対応するIdentity / Access / Collaboration boundaryを定めます。
 
@@ -155,11 +155,11 @@ authentication identity
   != semantic Responsibility / Authority
 ```
 
-### `definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`
+### `definition/SEI_REALIZATION_PROVIDER_EXCHANGE.md`
 
 PMS-06に対応し、Cognitive Method RealizationやCapability Providerを交換するときに、何を交換可能とし、何を判断記憶として保つかを定めます。
 
-E3b-P2では固定revisionの実TEI CLIをbuild・起動し、actual `deployment-provider-plan`をSOZA Adapterでstrictに読み、current Capability Observationへ戻す範囲まで確認しました。E3b-M1bではKJ Atlasの既存Method surfaceとpromptを保ったままactual model inferenceを通し、その結果を既存SOZA Method mapping boundaryへ戻せることを確認しました。
+E3b-P2では固定revisionの実TEI CLIをbuild・起動し、actual `deployment-provider-plan`をSEI Adapterでstrictに読み、current Capability Observationへ戻す範囲まで確認しました。E3b-M1bではKJ Atlasの既存Method surfaceとpromptを保ったままactual model inferenceを通し、その結果を既存SEI Method mapping boundaryへ戻せることを確認しました。
 
 その後のversion-exchange explorationでは、Cognitive Method側のOllama runtime version交換（ISSUE-000070）と、Capability Provider側のTEI executable / Provider Plan revision交換（ISSUE-000072）を別軸として扱っています。
 
@@ -169,7 +169,7 @@ ISSUE-000070はfixed scopeでResolvedしました。runtime version、archive di
 
 - private artifact acquisition / credential lifecycle
 - arbitrary TEI / model / runtime version compatibility
-- revision B TEI executable / Provider Plan / current SOZA Adapter live compatibility
+- revision B TEI executable / Provider Plan / current SEI Adapter live compatibility
 - model出力品質
 - KJ法としての成果品質
 - E4 Operational portability
@@ -263,20 +263,20 @@ Coreへ追加する前に、少なくとも次を検討します。
 
 ## 9. 推奨する読む順序
 
-1. `value/SOZA_PRODUCT_VALUE.md`
-2. `value/SOZA_VALUE_PROPOSITION.md`
-3. `value/SOZA_VALUE_MODEL.md`
-4. `value/SOZA_VALUE_ACCEPTANCE.md`
-5. `definition/SOZA_PRODUCT_SHAPE.md`
-6. `vision/SOZA_PRODUCT_VISION.md`
-7. `principles/SOZA_PRODUCT_PRINCIPLES.md`
-8. `roadmap/SOZA_PRODUCT_MILESTONES.md`
+1. `value/SEI_PRODUCT_VALUE.md`
+2. `value/SEI_VALUE_PROPOSITION.md`
+3. `value/SEI_VALUE_MODEL.md`
+4. `value/SEI_VALUE_ACCEPTANCE.md`
+5. `definition/SEI_PRODUCT_SHAPE.md`
+6. `vision/SEI_PRODUCT_VISION.md`
+7. `principles/SEI_PRODUCT_PRINCIPLES.md`
+8. `roadmap/SEI_PRODUCT_MILESTONES.md`
 9. `roadmap/PMS06_CURRENT_STATE_2026-09-05.md`
-10. `interaction/SOZA_PRODUCT_INTERACTION.md`
-11. `packaging/SOZA_PRODUCT_PACKAGING.md`
-12. `security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`
-13. `definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`
-14. `value/SOZA_VALUE_TRACEABILITY.md`
+10. `interaction/SEI_PRODUCT_INTERACTION.md`
+11. `packaging/SEI_PRODUCT_PACKAGING.md`
+12. `security/SEI_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`
+13. `definition/SEI_REALIZATION_PROVIDER_EXCHANGE.md`
+14. `value/SEI_VALUE_TRACEABILITY.md`
 15. `../release/v0.2.0/RELEASE_ACCEPTANCE.md`
 16. `../release/v0.2.0/RELEASE_EVIDENCE.md`
 17. `../plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`
@@ -289,11 +289,11 @@ Coreへ追加する前に、少なくとも次を検討します。
 
 2026-09-05時点のProduct Value、Value Proposition、Value Model / Acceptance、Product Shape、Vision / Principles、Product Milestones、PMS-06 current snapshot、Interaction、Packaging、Identity / Access / Collaboration、Realization / Provider Exchange、v0.2.0 Release Evidence、E3b-P2、E3b-M1a / M1b、ISSUE-000067〜000072へ戻ってProduct文書の入口を再監査しました。
 
-旧文書に残っていた「SOZA Actionsからprivate TEIを取得するcredential運用」という実行面固有の表現は、private artifact acquisition / credential lifecycleというProduct側の未検証境界へ既に戻しています。GitHub Actionsは当面完全停止しており、その停止自体をProduct semanticsへ持ち込みません。
+旧文書に残っていた「SEI Actionsからprivate TEIを取得するcredential運用」という実行面固有の表現は、private artifact acquisition / credential lifecycleというProduct側の未検証境界へ既に戻しています。GitHub Actionsは当面完全停止しており、その停止自体をProduct semanticsへ持ち込みません。
 
 ISSUE-000070は、回収済みactual A/B Evidenceとcurrent-contract Git object equivalence監査によりfixed scopeでResolvedしました。これによりCognitive Method側のruntime version交換について、actual bytes / binary version / model identity / same prompt / A/B inference / Exact Binding / historical Application不変性 / portable reconstructionまでScoped Executable Evidenceがあります。一方、成果品質、任意runtime portability、E4 Operational portabilityは未成立のままです。
 
-Capability Provider側のTEI executable version交換（ISSUE-000072）は引き続きOpenです。revision B actual CLI / Provider Plan / current SOZA Adapter compatibilityはNot Yet Verifiedであり、ISSUE-000070のPASSをそのEvidenceへ流用しません。
+Capability Provider側のTEI executable version交換（ISSUE-000072）は引き続きOpenです。revision B actual CLI / Provider Plan / current SEI Adapter compatibilityはNot Yet Verifiedであり、ISSUE-000070のPASSをそのEvidenceへ流用しません。
 
 historical reconstruction、actual model artifact交換、ISSUE-000071の成果品質評価境界も現在地を維持しています。human outcome reviewは未完了のままであり、version交換PASSから成果品質へ自動昇格させません。
 

@@ -161,7 +161,7 @@ class RuntimeVersionExchangeArchivePreparationTest(unittest.TestCase):
                 prepare.load_manifest(path)
 
     def test_output_dir_inside_soza_repository_is_rejected(self):
-        with self.assertRaisesRegex(ValueError, "SOZA repository"):
+        with self.assertRaisesRegex(ValueError, "SEI repository"):
             prepare.validate_output_dir(prepare.SOZA_ROOT / "runtime-archives")
 
     def test_external_new_output_dir_is_accepted(self):

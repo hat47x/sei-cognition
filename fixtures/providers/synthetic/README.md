@@ -21,7 +21,7 @@ Provider B
   endpoint
 ```
 
-これらのfieldをSOZA Universal Coreのfieldとして採用する意図はありません。Provider固有stateの違いを保ったまま、Capability判断に必要なObservationだけを外在化する境界を検査します。
+これらのfieldをSEI Universal Coreのfieldとして採用する意図はありません。Provider固有stateの違いを保ったまま、Capability判断に必要なObservationだけを外在化する境界を検査します。
 
 ```text
 Provider-specific input schema != Universal Contract
@@ -42,7 +42,7 @@ fixtureはProvider実装の標準Schemaではありません。synthetic test in
 2. 同じCapabilityへ異なるProviderからObservationを作れる。
 3. unit conversionやstatus interpretationをmappingとして扱う。
 4. `mapping_provenance`と`source_state_ref`を失わない。
-5. Provider-specific targetをSOZA Universal field setへ展開しない。
+5. Provider-specific targetをSEI Universal field setへ展開しない。
 6. missing値をnegative / default値へ変換しない。
 7. Adapter outputからRecommendation、Decision、Authority、Executionを生成しない。
 8. 生成結果をcurrent Capability Observation runtime validationへ通す。

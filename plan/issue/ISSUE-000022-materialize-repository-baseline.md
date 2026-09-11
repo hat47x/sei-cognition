@@ -1,4 +1,4 @@
-# ISSUE-000022: SOZA repositoryのcurrent baselineを実体化し、Evidence claimを再整合する
+# ISSUE-000022: SEI repositoryのcurrent baselineを実体化し、Evidence claimを再整合する
 
 Status: **Resolved**  
 Priority: **2**  
@@ -69,7 +69,7 @@ actual repositoryへ次を実体化した。
 ```text
 architecture/
   README.md
-  SOZA_REFERENCE_ARCHITECTURE.md
+  SEI_REFERENCE_ARCHITECTURE.md
   TRACEABILITY.md
   history/
     HISTORICAL_ARCHITECTURE_MAPPING.md

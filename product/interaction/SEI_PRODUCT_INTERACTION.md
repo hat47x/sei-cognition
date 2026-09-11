@@ -1,11 +1,11 @@
-# SOZA Product Interaction
+# SEI Product Interaction
 
 更新日: 2026-09-01  
 状態: **Current Product Interaction Baseline / Scoped Executable Evidence Available**
 
 ## 1. この文書の役割
 
-この文書は、SOZAを最初に利用可能な製品として人間とAIが扱うとき、**どのような仕事を、どの意味境界を保ったまま、一続きに行える必要があるか**を定めます。
+この文書は、SEIを最初に利用可能な製品として人間とAIが扱うとき、**どのような仕事を、どの意味境界を保ったまま、一続きに行える必要があるか**を定めます。
 
 ここで定めるのは、特定のWeb画面、desktop framework、CLI構文、HTTP endpoint、MCP tool名ではありません。UIやprotocolより先に、利用者が何をできる必要があるかと、その操作がどのcanonical meaningへ接続するかを定めます。
 
@@ -18,7 +18,7 @@ Product Interaction
   != agent orchestration
 ```
 
-SOZAのProduct Interactionは、`SOZA_PRODUCT_SHAPE.md`のWork / Interaction Surfaceを具体化するProduct-level baselineです。portable semantic agreementが必要になった場合だけContractへ、重要なArchitecture判断はADRへ、実装方式はRuntime / Adapterへ落とします。
+SEIのProduct Interactionは、`SEI_PRODUCT_SHAPE.md`のWork / Interaction Surfaceを具体化するProduct-level baselineです。portable semantic agreementが必要になった場合だけContractへ、重要なArchitecture判断はADRへ、実装方式はRuntime / Adapterへ落とします。
 
 ## 2. first usable interactionで守る中心
 
@@ -303,8 +303,8 @@ current reference probeは、異なるSurfaceが同じcanonical sourceへ接続�
 
 ## 15. 関連文書
 
-- `../definition/SOZA_PRODUCT_SHAPE.md`
-- `../roadmap/SOZA_PRODUCT_MILESTONES.md`
+- `../definition/SEI_PRODUCT_SHAPE.md`
+- `../roadmap/SEI_PRODUCT_MILESTONES.md`
 - `../../requirements/PRODUCT_REQUIREMENTS.md`
 - `../../requirements/ACCEPTANCE_SCENARIOS.md`
 - `../../runtime/INTERACTION_PROBE_EVIDENCE_2026-09-01.md`

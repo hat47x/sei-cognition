@@ -177,7 +177,7 @@ def runtime_bundle_check(path: Path, soza_root: Path) -> list[Check]:
             Check(
                 "kj-atlas.bundle.path",
                 "blocked",
-                f"KJ Atlas runtime source bundleをSOZA repository配下には置けません: {resolved}",
+                f"KJ Atlas runtime source bundleをSEI repository配下には置けません: {resolved}",
             )
         ]
     if not resolved.is_dir():

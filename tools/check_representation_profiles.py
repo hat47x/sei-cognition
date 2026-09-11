@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SOZA Representation ProfileのDefinitionと固定fixtureを検査する。"""
+"""SEI Representation ProfileのDefinitionと固定fixtureを検査する。"""
 
 from __future__ import annotations
 
@@ -13,8 +13,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PROFILE_DOCS = {
-    "sei.jcs+sha256/v1alpha1": ROOT / "contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md",
-    "sei.raw-bytes+sha256/v1alpha1": ROOT / "contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md",
+    "sei.jcs+sha256/v1alpha1": ROOT / "contracts/profiles/SEI_JCS_SHA256_PROFILE_v1alpha1.md",
+    "sei.raw-bytes+sha256/v1alpha1": ROOT / "contracts/profiles/SEI_RAW_BYTES_SHA256_PROFILE_v1alpha1.md",
 }
 JCS_FIXTURE = ROOT / "fixtures/representation-profiles/jcs-v1alpha1.json"
 RAW_FIXTURE = ROOT / "fixtures/representation-profiles/raw-bytes-v1alpha1.json"

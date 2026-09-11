@@ -101,7 +101,7 @@ def _protect_verification_output(
     work_dir: Path | None,
 ) -> None:
     protected: list[tuple[str, Path]] = [
-        ("SOZA repository", SOZA_ROOT),
+        ("SEI repository", SOZA_ROOT),
         ("Evidence directory", evidence_dir),
     ]
     for label, path in (
@@ -134,7 +134,7 @@ def _protect_runner_output_paths(
 ) -> None:
     """preflight失敗時も含め、runnerが入力資産をEvidence等で変更しないようにする。"""
 
-    inputs: list[tuple[str, Path]] = [("SOZA repository", SOZA_ROOT)]
+    inputs: list[tuple[str, Path]] = [("SEI repository", SOZA_ROOT)]
     for label, path in (
         ("KJ Atlas checkout", kj_atlas_dir),
         ("KJ Atlas verified runtime bundle", kj_atlas_backend_bundle),
@@ -574,7 +574,7 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         help=(
             "Evidence検証結果を保存する新規JSON path。省略時はEvidence directoryの隣へ保存します。"
-            "SOZA/KJ Atlas source、model、work、Evidenceとは重ならないpathが必要です。"
+            "SEI/KJ Atlas source、model、work、Evidenceとは重ならないpathが必要です。"
         ),
     )
     return parser

@@ -26,11 +26,11 @@ ISSUE-000062のPASSだけでは、E3b-P2のPASSにはならない。
 
 ## 背景
 
-ISSUE-000061では、TEI source / binary acquisition、credential resolution、external process invocation、Provider固有JSON解釈、SOZA Capability Observation mappingを分離した。
+ISSUE-000061では、TEI source / binary acquisition、credential resolution、external process invocation、Provider固有JSON解釈、SEI Capability Observation mappingを分離した。
 
 一方、actual E3b-P2を後から検証するには、「何を実行したか」を曖昧にしない必要がある。単に`tei`というfilenameやdeclared commitを記録するだけでは、実際に実行されたbytesとsource revisionの関係を追跡できない。
 
-現時点の`hat47x/tei-platform`には、SOZAがそのまま利用できるActions artifact uploadやGoReleaser等の既存binary配布経路は確認できていない。また、TEI repositoryはprivateであり、SOZAの標準`GITHUB_TOKEN`が別private repositoryを取得できるとは仮定しない。
+現時点の`hat47x/tei-platform`には、SEIがそのまま利用できるActions artifact uploadやGoReleaser等の既存binary配布経路は確認できていない。また、TEI repositoryはprivateであり、SEIの標準`GITHUB_TOKEN`が別private repositoryを取得できるとは仮定しない。
 
 そのため、Evidence採取側では取得方式を問わず、供給されたbinaryについて観測可能なidentityを記録する。
 
@@ -50,7 +50,7 @@ manifest match
 
 新しいUniversal Contractは追加しない。
 
-Evidence reportは`soza.e3b-tei-probe/v1`という**derived probe artifact**として扱う。SOZAのsemantic authorityではなく、E3b-P2を評価するときの実行証跡である。
+Evidence reportは`soza.e3b-tei-probe/v1`という**derived probe artifact**として扱う。SEIのsemantic authorityではなく、E3b-P2を評価するときの実行証跡である。
 
 reportには少なくとも次を記録する。
 
@@ -128,7 +128,7 @@ binary digestやbuild manifestはEvidence / provenanceの実現手段であり�
 
 ## Non-goals / 未検証範囲
 
-- SOZA CIからTEI private repositoryを自動cloneすること
+- SEI CIからTEI private repositoryを自動cloneすること
 - GitHub PAT等のcredential方式を標準化すること
 - TEI binary distributionを新設すること
 - build manifestの署名方式を決めること
@@ -175,4 +175,4 @@ binary digestやbuild manifestはEvidence / provenanceの実現手段であり�
 
 ## Natural Japanese review
 
-PMS-06、ISSUE-000060 / 000061、current Capability Observation Contract、Provider Adapter、`runtime/go/teiintegration`、`hat47x/tei-platform`のGo CLI・reference artifacts・CI構成を照合した。TEIには実行可能なCLI sourceがある一方、現時点ではSOZAがそのまま利用できるbinary配布artifactがなく、private repositoryの取得方式をSOZA側へ暗黙に持ち込むべきでもない。そのため、取得方式そのものを先に固定せず、実際に供給されたbinary bytesのSHA-256とsource declaration、任意manifestとの一致状態をderived Evidenceとして記録する境界を先に定めた。`manifest_matched`もmanifest真正性の検証とは区別し、Evidenceの高さを過大評価していない。意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+PMS-06、ISSUE-000060 / 000061、current Capability Observation Contract、Provider Adapter、`runtime/go/teiintegration`、`hat47x/tei-platform`のGo CLI・reference artifacts・CI構成を照合した。TEIには実行可能なCLI sourceがある一方、現時点ではSEIがそのまま利用できるbinary配布artifactがなく、private repositoryの取得方式をSEI側へ暗黙に持ち込むべきでもない。そのため、取得方式そのものを先に固定せず、実際に供給されたbinary bytesのSHA-256とsource declaration、任意manifestとの一致状態をderived Evidenceとして記録する境界を先に定めた。`manifest_matched`もmanifest真正性の検証とは区別し、Evidenceの高さを過大評価していない。意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。

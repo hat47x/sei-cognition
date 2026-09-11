@@ -1,4 +1,4 @@
-# SOZA Contract Catalog
+# SEI Contract Catalog
 
 更新日: 2026-09-01  
 状態: **Current Contract Catalog**
@@ -197,7 +197,7 @@ Federationはoptional Profileです。Request / Offer / Commitment / Result等�
 
 ### Authority Provider
 
-credential、authorization token、revocation mechanism等はProvider-ownedです。SOZA Contractは必要に応じてAuthority evidenceへのReferenceを保持できますが、認証・認可protocolそのものをUniversal Contractとして所有しません。
+credential、authorization token、revocation mechanism等はProvider-ownedです。SEI Contractは必要に応じてAuthority evidenceへのReferenceを保持できますが、認証・認可protocolそのものをUniversal Contractとして所有しません。
 
 ### Provider-specific Adapter input
 

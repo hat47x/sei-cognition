@@ -1,11 +1,11 @@
-# SOZA Architecture
+# SEI Architecture
 
 更新日: 2026-09-01  
 状態: **Current Architecture Baseline**
 
 ## 1. このディレクトリの役割
 
-`architecture/`は、current Product Value、Requirements、Accepted ADRを、SOZAの現在の構造・境界・関係として説明します。
+`architecture/`は、current Product Value、Requirements、Accepted ADRを、SEIの現在の構造・境界・関係として説明します。
 
 Architectureは新しい設計判断を本文だけで確定する場所ではありません。重要な判断が必要になった場合はIssue / ADRへ戻します。
 
@@ -29,18 +29,18 @@ Deployment component != semantic concern
 ```text
 architecture/
   README.md
-  SOZA_REFERENCE_ARCHITECTURE.md
-  SOZA_DEPLOYMENT_ARCHITECTURE.md
-  SOZA_PRODUCT_ACCESS_ARCHITECTURE.md
+  SEI_REFERENCE_ARCHITECTURE.md
+  SEI_DEPLOYMENT_ARCHITECTURE.md
+  SEI_PRODUCT_ACCESS_ARCHITECTURE.md
   IMPLEMENTATION_LANGUAGE_POLICY.md
   TRACEABILITY.md
   history/
     HISTORICAL_ARCHITECTURE_MAPPING.md
 ```
 
-- `SOZA_REFERENCE_ARCHITECTURE.md` — current SOZA全体のReference Architecture
-- `SOZA_DEPLOYMENT_ARCHITECTURE.md` — ADR-0029に基づくLocal Single-Node Packageのcomponent配置、Persistence、save / resume、export / import境界
-- `SOZA_PRODUCT_ACCESS_ARCHITECTURE.md` — ADR-0030に基づくAuthentication、Identity Binding、Product Access Policy、Guarded Canonical Access、Selective Disclosureの配置
+- `SEI_REFERENCE_ARCHITECTURE.md` — current SEI全体のReference Architecture
+- `SEI_DEPLOYMENT_ARCHITECTURE.md` — ADR-0029に基づくLocal Single-Node Packageのcomponent配置、Persistence、save / resume、export / import境界
+- `SEI_PRODUCT_ACCESS_ARCHITECTURE.md` — ADR-0030に基づくAuthentication、Identity Binding、Product Access Policy、Guarded Canonical Access、Selective Disclosureの配置
 - `IMPLEMENTATION_LANGUAGE_POLICY.md` — ADR-0027に基づくproduction runtimeと研究・外部Realizationの実装言語境界
 - `TRACEABILITY.md` — Product Value / REQ / ADR / architecture concern / current executable materialの追跡
 - `history/HISTORICAL_ARCHITECTURE_MAPPING.md` — historical M48 / M49 / M50等からcurrent Architectureへの対応
@@ -49,7 +49,7 @@ architecture/
 
 ## 3. Architectureの読み方
 
-SOZAのArchitectureは、固定された処理順序やservice topologyとしてではなく、**意味を失わないための関心領域と境界の網**として読みます。
+SEIのArchitectureは、固定された処理順序やservice topologyとしてではなく、**意味を失わないための関心領域と境界の網**として読みます。
 
 たとえばDecision Memory、Capability、Cognitive Method、Persistence、Product Accessは重要な関心領域ですが、それぞれを独立microserviceやGo packageにすることを意味しません。
 
@@ -85,7 +85,7 @@ Storage migration != Semantic Revision
 authentication identity != Bounded Subject
 Bounded Subject != product access permission
 product access permission != semantic Responsibility / Authority
-SOZA product access authorization != external execution authorization
+SEI product access authorization != external execution authorization
 withheld != unknown
 ```
 
@@ -108,11 +108,11 @@ withheld != unknown
 
 これらはArchitectureの一部境界を再現可能に確認するExecutable Evidenceです。Architecture concernをruntime componentへ一対一で固定したことも、Architecture全体を実装済みとしたことも意味しません。
 
-ADR-0027により、SOZA自身が所有するproduction runtimeの標準実装言語はGoとします。一方、これはSemantic Contractや外部Cognitive Method / Capability Providerの言語をGoへ固定する意味ではありません。詳細は`IMPLEMENTATION_LANGUAGE_POLICY.md`を参照します。
+ADR-0027により、SEI自身が所有するproduction runtimeの標準実装言語はGoとします。一方、これはSemantic Contractや外部Cognitive Method / Capability Providerの言語をGoへ固定する意味ではありません。詳細は`IMPLEMENTATION_LANGUAGE_POLICY.md`を参照します。
 
-ADR-0029では、最初のPackaging / Deployment ProfileをLocal Single-Node Packageとしました。Goの単一バイナリ化とfilesystemは初期Realizationの利点として利用しますが、runtime executableやfile layoutをsemantic authorityにはしません。詳細は`SOZA_DEPLOYMENT_ARCHITECTURE.md`を参照します。
+ADR-0029では、最初のPackaging / Deployment ProfileをLocal Single-Node Packageとしました。Goの単一バイナリ化とfilesystemは初期Realizationの利点として利用しますが、runtime executableやfile layoutをsemantic authorityにはしません。詳細は`SEI_DEPLOYMENT_ARCHITECTURE.md`を参照します。
 
-ADR-0030では、Authentication Identity、Bounded Subject、Product Access Permission、semantic Responsibility / Authorityを分離しました。Product Access Scope、Identity Binding、Policy、Disclosure ProjectionはProduct security componentとして配置し、tenant / workspaceやpermission vocabularyをUniversal Coreへ昇格させません。詳細は`SOZA_PRODUCT_ACCESS_ARCHITECTURE.md`を参照します。
+ADR-0030では、Authentication Identity、Bounded Subject、Product Access Permission、semantic Responsibility / Authorityを分離しました。Product Access Scope、Identity Binding、Policy、Disclosure ProjectionはProduct security componentとして配置し、tenant / workspaceやpermission vocabularyをUniversal Coreへ昇格させません。詳細は`SEI_PRODUCT_ACCESS_ARCHITECTURE.md`を参照します。
 
 ## 6. Evidenceの扱い
 
@@ -145,7 +145,7 @@ Product Access probeが通ったことも、production OIDC / IAM、formal RBAC 
 
 Go runtimeにExecutable Evidenceがあることも、Goがあらゆる将来要件で恒久的に最適であることを意味しません。言語方針の妥当性はPackaging / Deployment / Operational Evidenceを通じて継続的に検証します。
 
-詳細は`../product/value/SOZA_VALUE_ACCEPTANCE.md`と`TRACEABILITY.md`を参照します。
+詳細は`../product/value/SEI_VALUE_ACCEPTANCE.md`と`TRACEABILITY.md`を参照します。
 
 ## 7. historical candidateの扱い
 
@@ -201,16 +201,16 @@ Architecture文書は、内容と構造を作成した後、意味、規範強�
 
 ## 10. 関連文書
 
-- `../product/value/SOZA_PRODUCT_VALUE.md`
-- `../product/value/SOZA_VALUE_MODEL.md`
-- `../product/value/SOZA_VALUE_ACCEPTANCE.md`
-- `../product/value/SOZA_VALUE_TRACEABILITY.md`
-- `../product/packaging/SOZA_PRODUCT_PACKAGING.md`
-- `../product/security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`
+- `../product/value/SEI_PRODUCT_VALUE.md`
+- `../product/value/SEI_VALUE_MODEL.md`
+- `../product/value/SEI_VALUE_ACCEPTANCE.md`
+- `../product/value/SEI_VALUE_TRACEABILITY.md`
+- `../product/packaging/SEI_PRODUCT_PACKAGING.md`
+- `../product/security/SEI_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`
 - `../requirements/PRODUCT_REQUIREMENTS.md`
 - `../requirements/ACCEPTANCE_SCENARIOS.md`
-- `SOZA_DEPLOYMENT_ARCHITECTURE.md`
-- `SOZA_PRODUCT_ACCESS_ARCHITECTURE.md`
+- `SEI_DEPLOYMENT_ARCHITECTURE.md`
+- `SEI_PRODUCT_ACCESS_ARCHITECTURE.md`
 - `TRACEABILITY.md`
 - `IMPLEMENTATION_LANGUAGE_POLICY.md`
 - `../plan/adr/ADR-0021-architecture-contract-authority-and-versioning.md`

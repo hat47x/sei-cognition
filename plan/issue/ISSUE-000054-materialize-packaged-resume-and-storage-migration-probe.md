@@ -7,7 +7,7 @@ Updated: 2026-09-01
 
 ## Goal
 
-PMS-04と`product/packaging/SOZA_PRODUCT_PACKAGING.md`で定めたLocal Single-Node Packageについて、**portable semantic dataを保存し、実行中の状態を失った後でもdurable dataだけから再開できること**をreference probeで検証する。
+PMS-04と`product/packaging/SEI_PRODUCT_PACKAGING.md`で定めたLocal Single-Node Packageについて、**portable semantic dataを保存し、実行中の状態を失った後でもdurable dataだけから再開できること**をreference probeで検証する。
 
 あわせて、filesystem Persistenceと別Realizationであるmemory Persistenceの間でportable Semantic Interchangeを移し、physical Storage implementationがsemantic identityになっていないことを限定的に確認する。
 

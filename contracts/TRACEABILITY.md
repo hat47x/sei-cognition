@@ -1,4 +1,4 @@
-# SOZA Contract Traceability
+# SEI Contract Traceability
 
 更新日: 2026-09-05  
 状態: **Current Contract / Evidence Traceability Baseline**
@@ -119,7 +119,7 @@ current/future Exact Binding向けProfile:
 - `sei.jcs+sha256/v1alpha1`
 - `sei.raw-bytes+sha256/v1alpha1`
 
-JCS ProfileのauthorityはRFC 8785とSOZA Profile Definitionです。current Go libraryは交換可能な実装であり、Profile authorityではありません。
+JCS ProfileのauthorityはRFC 8785とSEI Profile Definitionです。current Go libraryは交換可能な実装であり、Profile authorityではありません。
 
 historical M47 digest mappingはISSUE-000034のResolved方針どおりcurrent Profileから推定せず、回収不能な範囲を`not_verified`として保持します。
 
@@ -251,7 +251,7 @@ Provider-specific input schemaそのものはUniversal Contractにしません�
 
 これらのactual Realization / Provider固有fieldをUniversal Contractへ逆輸入しません。
 
-ISSUE-000072ではTEI revision Bをexact revision A fixed inputで比較するrepository-side pathがありますが、revision B actual CLI / Provider Plan / current SOZA Adapter compatibilityはNot Yet Verifiedです。
+ISSUE-000072ではTEI revision Bをexact revision A fixed inputで比較するrepository-side pathがありますが、revision B actual CLI / Provider Plan / current SEI Adapter compatibilityはNot Yet Verifiedです。
 
 ## 11. Evidence状態
 
@@ -283,7 +283,7 @@ v0.2.0 Local Reference Product Baselineについてactual Release Evidenceがあ
 - Contract全意味領域の完全coverage
 - arbitrary external payload / Provider / model / runtime interoperability
 - Cognitive Method outcome quality / conclusion truth / Assurance
-- TEI revision B actual CLI / Provider Plan / current SOZA Adapter compatibility — ISSUE-000072 Open
+- TEI revision B actual CLI / Provider Plan / current SEI Adapter compatibility — ISSUE-000072 Open
 - production Storage migration / long-running operation
 - E4 Operational portability
 - actual human outcome review

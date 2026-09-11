@@ -317,7 +317,7 @@ class TEIVersionExchangeResolutionAuditTest(unittest.TestCase):
             root = Path(tmp)
             soza = root / "soza"
             soza.mkdir()
-            with self.assertRaisesRegex(ValueError, "SOZA repository配下"):
+            with self.assertRaisesRegex(ValueError, "SEI repository配下"):
                 subject._prepare_output(soza / "audit.json", soza)
 
 

@@ -2,7 +2,7 @@
 
 更新日: 2026-09-05
 
-このディレクトリには、SOZAと外部Cognitive Method / model runtimeの接続を実際に確かめるためのintegration資産を置きます。
+このディレクトリには、SEIと外部Cognitive Method / model runtimeの接続を実際に確かめるためのintegration資産を置きます。
 
 current `develop/v0.2.0`ではGitHub Actionsを停止しています。workflowの作成・復元・再実行・runner監視は行わず、必要なtest、checker、probeをrepository-localに実行します。過去のActions Runはhistorical Evidenceとして保持しますが、現在の成立条件にはしません。
 
@@ -138,7 +138,7 @@ preflightやstrict executionが途中で失敗した場合も、作成可能な�
 
 ## Runtime archiveの準備
 
-runtime archiveはSOZA repositoryの外に置きます。計画表示の段階から同じ出力先境界を適用します。
+runtime archiveはSEI repositoryの外に置きます。計画表示の段階から同じ出力先境界を適用します。
 
 取得前の計画確認:
 
@@ -165,7 +165,7 @@ python3 runtime/integration/prepare_runtime_version_exchange_archives.py \
 
 準備toolは次を停止線にします。
 
-- `--output-dir`をSOZA repository配下へ置かない。
+- `--output-dir`をSEI repository配下へ置かない。
 - output directory自身がsymlinkなら拒否する。
 - 既存output pathが通常directoryでなければ拒否する。
 - 既存archive targetがsymlinkなら拒否する。
@@ -297,7 +297,7 @@ strict入口は次を行います。
 
 1. checkout指定時は固定commit objectからverified bundleをexportする。
 2. bundle指定時は固定Git object identityを再検証する。
-3. 事前配置runtime archiveのsymlink、不存在、source/SOZA/modelとのoverlap、A/B同一pathを拒否する。
+3. 事前配置runtime archiveのsymlink、不存在、source/SEI/modelとのoverlap、A/B同一pathを拒否する。
 4. 事前配置runtime archiveのactual size / SHA-256を固定manifestへ照合する。
 5. 既存model storeはmanifest / blob bytesを静的再検証する。
 6. model新規準備時は固定registryから取得し、完成storeを再検証する。
@@ -401,7 +401,7 @@ low-level harnessは次を一続きに確認します。
 ## Pathとprocessの安全境界
 
 - source、runtime archive、model store、work、Evidence、verification outputを意図しない形で重ねない。
-- runtime archive準備先はSOZA repository外とする。
+- runtime archive準備先はSEI repository外とする。
 - 事前配置runtime archiveはpreflightとstrict入口でsource treeとの分離とactual bytesを再確認する。
 - model storeとsourceは双方向の包含を拒否する。
 - work / Evidence / verification outputには新しいpathを使う。
@@ -497,7 +497,7 @@ strictがEvidence directory作成前に失敗しても、verified runnerが失�
 
 少なくとも次へ戻れることが必要です。
 
-- execution ID / SOZA repository commit
+- execution ID / SEI repository commit
 - verified KJ Atlas source identity / source acquisition Provenance
 - runtime A / B actual version / archive SHA-256
 - model name / expected digest / storage mode / A/B `/api/tags`

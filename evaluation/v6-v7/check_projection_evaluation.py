@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Reproducible V6/V7 projection evaluation for ISSUE-000039.
 
-The harness checks a projection boundary; it does not define a new SOZA Contract.
+The harness checks a projection boundary; it does not define a new SEI Contract.
 A PASS is evaluation-harness scoped Executable Evidence only.
 """
 

@@ -23,7 +23,7 @@ execution conformance
 
 ## Background
 
-ISSUE-000066では、固定revisionのKJ AtlasをOllama上のactual modelへ接続し、actual inferenceからSOZA Cognitive Method ApplicationへのmappingまでをScoped Executable Evidenceとして確認した。
+ISSUE-000066では、固定revisionのKJ AtlasをOllama上のactual modelへ接続し、actual inferenceからSEI Cognitive Method ApplicationへのmappingまでをScoped Executable Evidenceとして確認した。
 
 ISSUE-000067ではMethod RealizationとExact Bindingによるhistorical reconstruction境界を整理し、ISSUE-000068では同じKJ Atlas / Method input / Ollama runtimeの下でactual model artifactを交換しても、先行ApplicationのRealization、Provenance、outputを保持できることを実証した。
 

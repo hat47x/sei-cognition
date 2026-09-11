@@ -1,4 +1,4 @@
-# SOZA Semantic Reference Contract v1alpha1
+# SEI Semantic Reference Contract v1alpha1
 
 contract_id: `sei.semantic-reference`  
 version: `v1alpha1`  
@@ -7,7 +7,7 @@ version: `v1alpha1`
 
 ## 1. 目的
 
-このContractは、SOZAのArtifactをStorageやrepresentationから独立して参照し、必要な場合に**当時の正確な内容**へ結び付け、semantic revisionの来歴を失わず交換するための意味契約を定めます。
+このContractは、SEIのArtifactをStorageやrepresentationから独立して参照し、必要な場合に**当時の正確な内容**へ結び付け、semantic revisionの来歴を失わず交換するための意味契約を定めます。
 
 主な対象はREQ-0001、REQ-0003、REQ-0005、REQ-0008、REQ-0009、REQ-0018です。
 
@@ -178,7 +178,7 @@ fixture / runtime PASS
 
 - REQ-0001, REQ-0003, REQ-0005, REQ-0008, REQ-0009, REQ-0018
 - ADR-0003, ADR-0007, ADR-0008, ADR-0009, ADR-0021, ADR-0022, ADR-0023
-- `architecture/SOZA_REFERENCE_ARCHITECTURE.md`
+- `architecture/SEI_REFERENCE_ARCHITECTURE.md`
 - `contracts/profiles/README.md`
 
 ## 12. Natural Japanese review

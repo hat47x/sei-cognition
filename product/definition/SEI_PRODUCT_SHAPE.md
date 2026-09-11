@@ -1,24 +1,24 @@
-# SOZA Product Shape
+# SEI Product Shape
 
 更新日: 2026-09-01  
 状態: **Current Product Shape Baseline**
 
 ## 1. この文書の役割
 
-この文書は、SOZAを一つの製品として見たときに、**誰が何のために使い、どこからどこまでをSOZAが担い、どこを外部のCapability Providerへ委ねるか**という外形を定めます。
+この文書は、SEIを一つの製品として見たときに、**誰が何のために使い、どこからどこまでをSEIが担い、どこを外部のCapability Providerへ委ねるか**という外形を定めます。
 
-`SOZA_PRODUCT_VALUE.md`や`SOZA_VALUE_PROPOSITION.md`が価値を定めるのに対し、本書は、その価値が製品としてどのような利用面と境界を持つべきかを整理します。
+`SEI_PRODUCT_VALUE.md`や`SEI_VALUE_PROPOSITION.md`が価値を定めるのに対し、本書は、その価値が製品としてどのような利用面と境界を持つべきかを整理します。
 
 特定のUI framework、API protocol、Storage、deployment方式、AI modelをここで固定しません。また、この文書だけを根拠に新しいUniversal Core概念を追加しません。必要な意味差はRequirement、Scenario、ADRを通して検討します。
 
-## 2. 一文で表すSOZA
+## 2. 一文で表すSEI
 
-SOZAは、人間・AI・外部システムが関わる判断仕事について、**問い、Observation、Evidence、Unknown / Conflict、Cognitive Method、Recommendation、Decision、Responsibility、Capability、Provenance、残差を、実行手段から独立した意味として残し、後から読み直し、続きから再開できるようにする認知・意思決定基盤**です。
+SEIは、人間・AI・外部システムが関わる判断仕事について、**問い、Observation、Evidence、Unknown / Conflict、Cognitive Method、Recommendation、Decision、Responsibility、Capability、Provenance、残差を、実行手段から独立した意味として残し、後から読み直し、続きから再開できるようにする認知・意思決定基盤**です。
 
-SOZAの中心は「何でも自ら実行すること」ではありません。
+SEIの中心は「何でも自ら実行すること」ではありません。
 
 ```text
-SOZA
+SEI
   = durable cognitive / decision meaning
   != workflow engine
   != agent runtime
@@ -27,7 +27,7 @@ SOZA
 
 ## 3. 製品として支える主要な仕事
 
-SOZAの利用は固定workflowへ閉じませんが、製品として少なくとも次の仕事を自然につなげられることを目指します。
+SEIの利用は固定workflowへ閉じませんが、製品として少なくとも次の仕事を自然につなげられることを目指します。
 
 ### 3.1 問いを始める・再開する
 
@@ -55,13 +55,13 @@ AIや人間がRecommendationを作成し、必要な主体がDecisionを行い�
 
 ### 3.5 Capability / Providerを選び、外部実行へつなぐ
 
-SOZAは、必要なCapabilityを人間、AI、SaaS、TEI、workflow engine、custom code等へ委ねられます。
+SEIは、必要なCapabilityを人間、AI、SaaS、TEI、workflow engine、custom code等へ委ねられます。
 
-Provider selectionやAction Intentを意味として扱えても、SOZA自身がすべての実行runtimeを所有することは要求しません。
+Provider selectionやAction Intentを意味として扱えても、SEI自身がすべての実行runtimeを所有することは要求しません。
 
 ### 3.6 実行後のObservationを戻す
 
-外部実行のreceipt、状態変化、Business Outcome等を必要に応じてSOZAへ戻し、新しいObservationとして次のInquiryやDecision reviewへ利用できます。
+外部実行のreceipt、状態変化、Business Outcome等を必要に応じてSEIへ戻し、新しいObservationとして次のInquiryやDecision reviewへ利用できます。
 
 ```text
 Execution success
@@ -89,7 +89,7 @@ Execution success
 
 ### 4.2 Canonical Semantic Access Surface
 
-SOZAが耐久的に保持する意味を、機械から読み書きできる境界です。
+SEIが耐久的に保持する意味を、機械から読み書きできる境界です。
 
 Semantic Contract、Reference、Representation Profile等との整合を保ち、人間向け画面やAI向けProjectionから同じcanonical meaningへ戻れることを目指します。
 
@@ -113,11 +113,11 @@ Product Value、Requirement、Decision、変更来歴、Evidenceの高さ等を�
 
 これは「すべての利用者が開発用Plan文書を読む」ことを意味しません。製品内部・運用上必要なEvidence traceabilityを、実装や利用形態に応じて適切に露出させます。
 
-## 5. SOZAの内側と外側
+## 5. SEIの内側と外側
 
-### SOZAが所有する意味
+### SEIが所有する意味
 
-少なくとも次のような耐久的意味と、その相互関係をSOZAの中心に置きます。
+少なくとも次のような耐久的意味と、その相互関係をSEIの中心に置きます。
 
 - Inquiry / Questionに必要な文脈
 - Observation / Evidence / Unknown / Conflict
@@ -132,7 +132,7 @@ Product Value、Requirement、Decision、変更来歴、Evidenceの高さ等を�
 
 ### 原則として外部へ委ねるもの
 
-次は必要であっても、SOZAが恒久的に一体所有することを前提にしません。
+次は必要であっても、SEIが恒久的に一体所有することを前提にしません。
 
 - workflow scheduling
 - queue / retry / worker management
@@ -145,7 +145,7 @@ Product Value、Requirement、Decision、変更来歴、Evidenceの高さ等を�
 - BI / dashboard engine
 - domain-specific Pattern catalog
 
-SOZAはこれらと統合できますが、それらを内包しなければ成立しない製品にはしません。
+SEIはこれらと統合できますが、それらを内包しなければ成立しない製品にはしません。
 
 ## 6. Minimum Usable Product Shape
 
@@ -158,7 +158,7 @@ SOZAはこれらと統合できますが、それらを内包しなければ成�
 3. Observation / Evidenceに加え、UnknownやConflictを失わずに保持できる。
 4. Cognitive Method Application、Recommendation、Decisionを必要に応じて区別できる。
 5. Decisionのbasis、主要なResponsibility、未解決残差を後から辿れる。
-6. 外部Providerへ処理を委ねても、SOZAのDecision identityをProvider run IDへ従属させない。
+6. 外部Providerへ処理を委ねても、SEIのDecision identityをProvider run IDへ従属させない。
 7. 実行結果をObservationとして戻し、次のreviewやInquiryへ接続できる。
 8. Provider、AI model、実行runtime等を交換した後でも、canonical recordを再読できる。
 9. 低影響案件では最大詳細を強制せず、必要になったときに詳細化できる。
@@ -185,7 +185,7 @@ SOZAはこれらと統合できますが、それらを内包しなければ成�
 
 ### 7.3 Identity / Authorization / Collaboration
 
-SOZAのsemanticなResponsibility / Authorityと、製品へのlogin、access control、tenant / workspace等は別問題です。
+SEIのsemanticなResponsibility / Authorityと、製品へのlogin、access control、tenant / workspace等は別問題です。
 
 外部IdP、組織境界、共有、Selective Disclosureを含め、製品security boundaryとして別途定義する必要があります。
 
@@ -242,17 +242,17 @@ Product ShapeからRequirement IDを機械的に増やしません。
 
 ## 10. 関連文書
 
-- `../value/SOZA_PRODUCT_VALUE.md`
-- `../value/SOZA_VALUE_PROPOSITION.md`
-- `../value/SOZA_VALUE_MODEL.md`
-- `../value/SOZA_VALUE_ACCEPTANCE.md`
-- `../vision/SOZA_PRODUCT_VISION.md`
+- `../value/SEI_PRODUCT_VALUE.md`
+- `../value/SEI_VALUE_PROPOSITION.md`
+- `../value/SEI_VALUE_MODEL.md`
+- `../value/SEI_VALUE_ACCEPTANCE.md`
+- `../vision/SEI_PRODUCT_VISION.md`
 - `../../requirements/PRODUCT_REQUIREMENTS.md`
 - `../../requirements/ACCEPTANCE_SCENARIOS.md`
-- `../../plan/adr/ADR-0014-soza-tei-product-boundary.md`
+- `../../plan/adr/ADR-0014-sei-tei-product-boundary.md`
 - `../../plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md`
 - `../../plan/adr/ADR-0021-architecture-contract-authority-and-versioning.md`
 
 ## 11. Natural Japanese review
 
-current Product Value、Value Proposition、Vision、REQ-0001〜0022、SCN-0001〜0017、SOZA / TEI境界、Provider Independence、Progressive Explicitness、現在のContract / runtime Evidenceへ戻り、製品としての主要な仕事、論理Surface、内外境界、Minimum Usable Product Shapeを整理した。既存semantic ontologyを拡張せず、未決のInteraction、Packaging、Identity / Authorization、golden journey、非機能要件は別Issueへ送る形とした。その後、意味、規範強度、Evidenceの高さを変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+current Product Value、Value Proposition、Vision、REQ-0001〜0022、SCN-0001〜0017、SEI / TEI境界、Provider Independence、Progressive Explicitness、現在のContract / runtime Evidenceへ戻り、製品としての主要な仕事、論理Surface、内外境界、Minimum Usable Product Shapeを整理した。既存semantic ontologyを拡張せず、未決のInteraction、Packaging、Identity / Authorization、golden journey、非機能要件は別Issueへ送る形とした。その後、意味、規範強度、Evidenceの高さを変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

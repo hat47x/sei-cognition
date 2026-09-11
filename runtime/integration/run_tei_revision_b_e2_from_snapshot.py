@@ -43,7 +43,7 @@ def _prepare_snapshot_input(snapshot: Path, output_dir: Path) -> Path:
     soza = SOZA_ROOT.expanduser().resolve(strict=False)
     if github_e2._is_within(resolved, soza):
         raise ValueError(
-            "TEI Git Data snapshotをSOZA repository配下から実行入力にできません: "
+            "TEI Git Data snapshotをSEI repository配下から実行入力にできません: "
             f"snapshot={resolved} soza={soza}"
         )
     return resolved

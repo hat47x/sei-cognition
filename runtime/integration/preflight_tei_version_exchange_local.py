@@ -17,7 +17,7 @@ SCHEMA = "soza.tei-version-exchange-local-preflight/v1"
 STOP_LINE = (
     "local preflight ready != revision B checkout prepared "
     "!= revision B build PASS != Provider Plan execution PASS "
-    "!= SOZA Adapter compatibility PASS != ISSUE-000072 Resolved"
+    "!= SEI Adapter compatibility PASS != ISSUE-000072 Resolved"
 )
 
 
@@ -117,7 +117,7 @@ def _check_checkout_output_path(
     evidence = evidence_output_dir.expanduser().resolve(strict=False)
     roots: list[tuple[str, Path]] = [
         ("source clone", source),
-        ("SOZA repository", soza),
+        ("SEI repository", soza),
         ("Evidence directory", evidence),
     ]
     if reference_source_repo is not None:
@@ -171,7 +171,7 @@ def _check_evidence_output_path(
     roots: list[tuple[str, Path]] = [
         ("source clone", source),
         ("revision B checkout output", checkout),
-        ("SOZA repository", soza),
+        ("SEI repository", soza),
     ]
     if reference_source_repo is not None:
         roots.append(
@@ -301,7 +301,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "local source cloneからexact revision B checkoutをprepareしてcanonical E2/E3へ進む前に、"
-            "source object DB、fixed A input、SOZA source、E2/E3 Go、checkout/evidence pathを"
+            "source object DB、fixed A input、SEI source、E2/E3 Go、checkout/evidence pathを"
             "副作用なしで一括検査します。credentialやnetwork accessは要求しません。"
         ),
         allow_abbrev=False,

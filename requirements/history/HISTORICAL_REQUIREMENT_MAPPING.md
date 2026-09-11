@@ -5,7 +5,7 @@
 
 ## 1. この文書の役割
 
-この文書は、2026-08-30前後のSOZA Phase 0 / Phase 1 candidateで使われていた`SOZA-PR-*`、`SOZA-NFR-*`、`SOZA-AS-*`と、current `REQ-*` / `SCN-*`の関係を記録します。
+この文書は、2026-08-30前後のSEI Phase 0 / Phase 1 candidateで使われていた`SEI-PR-*`、`SEI-NFR-*`、`SEI-AS-*`と、current `REQ-*` / `SCN-*`の関係を記録します。
 
 historical IDをcurrent IDへ機械的にrenameしたものではありません。
 
@@ -27,24 +27,24 @@ historical evidenceは再検証候補として保持しますが、current actua
 
 | Historical ID | Historical meaning | Current mapping | 処理 |
 |---|---|---|---|
-| SOZA-PR-001 | 意味の連続性 | REQ-0001, REQ-0018, REQ-0021 | 意味連続性をStorage / Realization交換と分けて精緻化 |
-| SOZA-PR-002 | 認識状態の明示 | REQ-0002 | 継承・精緻化 |
-| SOZA-PR-003 | 出所・発見経路・派生の分離 | REQ-0003 | 継承・精緻化 |
-| SOZA-PR-004 | Cognitive Methodの独立性 | REQ-0004, REQ-0021 | Method意味とRealization交換を分離 |
-| SOZA-PR-005 | 判断理由の再構成 | REQ-0005 | Decision Memory ADR群を反映して精緻化 |
-| SOZA-PR-006 | DecisionとAuthorityの分離 | REQ-0006, REQ-0013, REQ-0017 | semantic separation、kind推定禁止、Responsibilityへ分解 |
-| SOZA-PR-007 | Capabilityの中立性 | REQ-0007, REQ-0022 | Capability / Provider中立性とObservation境界へ分離 |
-| SOZA-PR-008 | 経路の保存 | REQ-0008 | Responsibility / Decision routeを明確化 |
-| SOZA-PR-009 | Revision / Supersession | REQ-0009 | Exact Binding / Verification Outcome境界も反映 |
-| SOZA-PR-010 | 必要な意味境界の段階化 | REQ-0010 | Progressive Semantic Explicitnessとして継承 |
-| SOZA-PR-011 | Projection非権威 | REQ-0011 | 継承。current ArchitectureではProjectionをDurable Semantic Coreから分離済み |
-| SOZA-PR-012 | Bounded Principal / Selective Disclosure | REQ-0012, REQ-0022 | federationとProvider ObservationのSelective Disclosureへ展開 |
-| SOZA-PR-013 | Actor種別からの権限推定禁止 | REQ-0013 | 継承・精緻化 |
-| SOZA-PR-014 | 残差の外在化 | REQ-0014 | Decision後のresidual / reopenを明示 |
-| SOZA-PR-015 | private chain-of-thought非依存 | REQ-0015 | 継承・精緻化 |
-| SOZA-PR-016 | Claim / Interpretation境界の検証可能性 | REQ-0016 | Universal Claim型を要求せず、Observation / Interpretation再構成可能性へ整理 |
-| SOZA-PR-017 | Responsibilityの文脈性 | REQ-0017 | 継承・精緻化 |
-| SOZA-PR-018 | Storage実装からの意味独立 | REQ-0018, REQ-0021 | Storage independenceと広いRealization交換を分離 |
+| SEI-PR-001 | 意味の連続性 | REQ-0001, REQ-0018, REQ-0021 | 意味連続性をStorage / Realization交換と分けて精緻化 |
+| SEI-PR-002 | 認識状態の明示 | REQ-0002 | 継承・精緻化 |
+| SEI-PR-003 | 出所・発見経路・派生の分離 | REQ-0003 | 継承・精緻化 |
+| SEI-PR-004 | Cognitive Methodの独立性 | REQ-0004, REQ-0021 | Method意味とRealization交換を分離 |
+| SEI-PR-005 | 判断理由の再構成 | REQ-0005 | Decision Memory ADR群を反映して精緻化 |
+| SEI-PR-006 | DecisionとAuthorityの分離 | REQ-0006, REQ-0013, REQ-0017 | semantic separation、kind推定禁止、Responsibilityへ分解 |
+| SEI-PR-007 | Capabilityの中立性 | REQ-0007, REQ-0022 | Capability / Provider中立性とObservation境界へ分離 |
+| SEI-PR-008 | 経路の保存 | REQ-0008 | Responsibility / Decision routeを明確化 |
+| SEI-PR-009 | Revision / Supersession | REQ-0009 | Exact Binding / Verification Outcome境界も反映 |
+| SEI-PR-010 | 必要な意味境界の段階化 | REQ-0010 | Progressive Semantic Explicitnessとして継承 |
+| SEI-PR-011 | Projection非権威 | REQ-0011 | 継承。current ArchitectureではProjectionをDurable Semantic Coreから分離済み |
+| SEI-PR-012 | Bounded Principal / Selective Disclosure | REQ-0012, REQ-0022 | federationとProvider ObservationのSelective Disclosureへ展開 |
+| SEI-PR-013 | Actor種別からの権限推定禁止 | REQ-0013 | 継承・精緻化 |
+| SEI-PR-014 | 残差の外在化 | REQ-0014 | Decision後のresidual / reopenを明示 |
+| SEI-PR-015 | private chain-of-thought非依存 | REQ-0015 | 継承・精緻化 |
+| SEI-PR-016 | Claim / Interpretation境界の検証可能性 | REQ-0016 | Universal Claim型を要求せず、Observation / Interpretation再構成可能性へ整理 |
+| SEI-PR-017 | Responsibilityの文脈性 | REQ-0017 | 継承・精緻化 |
+| SEI-PR-018 | Storage実装からの意味独立 | REQ-0018, REQ-0021 | Storage independenceと広いRealization交換を分離 |
 
 ## 4. Historical NFR mapping
 
@@ -52,18 +52,18 @@ historical evidenceは再検証候補として保持しますが、current actua
 
 | Historical ID | Historical meaning | Current mapping | 処理 |
 |---|---|---|---|
-| SOZA-NFR-001 | Human-readable | REQ-0019 | Human / AI Readabilityへ拡張 |
-| SOZA-NFR-002 | Model-neutral | REQ-0001, REQ-0021 | semantic continuity / replaceable realizationへ統合 |
-| SOZA-NFR-003 | Provider-neutral | REQ-0007, REQ-0022 | Capability / Provider neutralityとObservationへ統合 |
-| SOZA-NFR-004 | Partial Knowledge Tolerance | REQ-0002, REQ-0014 | uncertainty preservationとresidualへ統合 |
-| SOZA-NFR-005 | Selective Disclosure Readiness | REQ-0012, REQ-0022 | collaboration / Provider Observationへ統合 |
-| SOZA-NFR-006 | Local Complexity | REQ-0010 | Progressive Semantic Explicitnessへ統合 |
-| SOZA-NFR-007 | Schema Evolution | REQ-0009, REQ-0018 | semantic revision / storage independenceへ統合 |
-| SOZA-NFR-008 | Evidence-based Release Claims | REQ-0020 | 5段階Evidenceへ拡張 |
-| SOZA-NFR-009 | Moving Future Horizon | Product Principle / ADR-0001 | Requirementではなく設計評価規則として上位へ配置 |
-| SOZA-NFR-010 | Replaceable Realization | REQ-0021, REQ-0007 | Realization / Provider交換要求へ統合 |
+| SEI-NFR-001 | Human-readable | REQ-0019 | Human / AI Readabilityへ拡張 |
+| SEI-NFR-002 | Model-neutral | REQ-0001, REQ-0021 | semantic continuity / replaceable realizationへ統合 |
+| SEI-NFR-003 | Provider-neutral | REQ-0007, REQ-0022 | Capability / Provider neutralityとObservationへ統合 |
+| SEI-NFR-004 | Partial Knowledge Tolerance | REQ-0002, REQ-0014 | uncertainty preservationとresidualへ統合 |
+| SEI-NFR-005 | Selective Disclosure Readiness | REQ-0012, REQ-0022 | collaboration / Provider Observationへ統合 |
+| SEI-NFR-006 | Local Complexity | REQ-0010 | Progressive Semantic Explicitnessへ統合 |
+| SEI-NFR-007 | Schema Evolution | REQ-0009, REQ-0018 | semantic revision / storage independenceへ統合 |
+| SEI-NFR-008 | Evidence-based Release Claims | REQ-0020 | 5段階Evidenceへ拡張 |
+| SEI-NFR-009 | Moving Future Horizon | Product Principle / ADR-0001 | Requirementではなく設計評価規則として上位へ配置 |
+| SEI-NFR-010 | Replaceable Realization | REQ-0021, REQ-0007 | Realization / Provider交換要求へ統合 |
 
-### SOZA-NFR-009をcurrent REQにしない理由
+### SEI-NFR-009をcurrent REQにしない理由
 
 10〜50倍程度先を見るMoving Future Horizonは、利用者世界の機能・意味要求というより、Core候補やArchitectureを評価するときの**設計上の移動基準**です。
 
@@ -73,14 +73,14 @@ historical evidenceは再検証候補として保持しますが、current actua
 
 | Historical ID | Current ID | 主な変更 |
 |---|---|---|
-| SOZA-AS-001 | SCN-0001 | Conflict / Unknown / residual / reopenをcurrent Decision Memoryへ照合 |
-| SOZA-AS-002 | SCN-0002 | Capability Definition / Observation / Provider / Choice境界を追加 |
-| SOZA-AS-003 | SCN-0003 | Exact historical reconstructionとDecision revisionを精緻化 |
-| SOZA-AS-004 | SCN-0004 | Progressive Explicitnessとcanonical meaning保持を明確化 |
-| SOZA-AS-005 | SCN-0005 | Pattern / Method、Method Application / Assurance境界を反映 |
-| SOZA-AS-006 | SCN-0006 | Human / AI ReadabilityとProjection non-authorityを反映 |
-| SOZA-AS-007 | SCN-0007 | Withheld contextとAuthority分離を反映 |
-| SOZA-AS-008 | SCN-0008 | Exact Binding / semantic revision / Storage independenceを精緻化 |
+| SEI-AS-001 | SCN-0001 | Conflict / Unknown / residual / reopenをcurrent Decision Memoryへ照合 |
+| SEI-AS-002 | SCN-0002 | Capability Definition / Observation / Provider / Choice境界を追加 |
+| SEI-AS-003 | SCN-0003 | Exact historical reconstructionとDecision revisionを精緻化 |
+| SEI-AS-004 | SCN-0004 | Progressive Explicitnessとcanonical meaning保持を明確化 |
+| SEI-AS-005 | SCN-0005 | Pattern / Method、Method Application / Assurance境界を反映 |
+| SEI-AS-006 | SCN-0006 | Human / AI ReadabilityとProjection non-authorityを反映 |
+| SEI-AS-007 | SCN-0007 | Withheld contextとAuthority分離を反映 |
+| SEI-AS-008 | SCN-0008 | Exact Binding / semantic revision / Storage independenceを精緻化 |
 
 current baselineでは後発ADRとValue Acceptanceに必要な意味差を検証するため、SCN-0009〜SCN-0017を追加しています。
 

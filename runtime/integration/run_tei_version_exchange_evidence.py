@@ -176,7 +176,7 @@ def _prepare_output_dir(
 
     roots: list[tuple[str, Path]] = [
         ("revision B source checkout", source_repo),
-        ("SOZA repository", soza_repo_root),
+        ("SEI repository", soza_repo_root),
     ]
     if reference_source_repo is not None:
         roots.insert(1, ("revision A reference checkout", reference_source_repo))
@@ -380,9 +380,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "exact revision B build sourceとexact revision A fixed reference inputを使い、"
-            "E2 Evidence bundle生成からE3 current SOZA Adapter live testまでを連続実行します。"
+            "E2 Evidence bundle生成からE3 current SEI Adapter live testまでを連続実行します。"
             "A fixed inputはexact Git checkoutまたはverified historical Evidence bundleから取得し、"
-            "TEI build用Go 1.23.2とSOZA検査用Go 1.25系は別executableとして明示します。"
+            "TEI build用Go 1.23.2とSEI検査用Go 1.25系は別executableとして明示します。"
         ),
         allow_abbrev=False,
     )

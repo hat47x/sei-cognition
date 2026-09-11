@@ -367,7 +367,7 @@ class RuntimeVersionExchangePreflightTest(unittest.TestCase):
             bundle.mkdir(parents=True)
             checks = preflight.runtime_bundle_check(bundle, soza)
             self.assertEqual("blocked", checks[0].status)
-            self.assertIn("SOZA repository配下", checks[0].detail)
+            self.assertIn("SEI repository配下", checks[0].detail)
 
     def test_runtime_bundle_check_rejects_deep_symlink_ancestor_before_identity_verification(self):
         with tempfile.TemporaryDirectory() as temp:

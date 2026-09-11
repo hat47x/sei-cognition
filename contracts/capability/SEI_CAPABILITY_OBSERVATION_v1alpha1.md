@@ -1,4 +1,4 @@
-# SOZA Capability Observation Contract v1alpha1
+# SEI Capability Observation Contract v1alpha1
 
 contract_id: `sei.capability-observation`  
 version: `v1alpha1`  
@@ -40,7 +40,7 @@ Capability Observationは、少なくとも何を観測した情報かを識別�
 
 本Contractは、すべてを一つのUniversal `CapabilityRealization`型へ正規化することを要求しません。
 
-Provider-specific targetを参照する場合は、Provider内部の完全SchemaをSOZAへ複製するのではなく、必要なReferenceと解釈可能なcontextを保持します。
+Provider-specific targetを参照する場合は、Provider内部の完全SchemaをSEIへ複製するのではなく、必要なReferenceと解釈可能なcontextを保持します。
 
 ## 4. Observationの最小意味
 
@@ -92,11 +92,11 @@ Withheld != false
 
 ## 7. Provider-neutrality
 
-Provider kindやSOZAとの関係の近さから、Observationの信頼度、優先順位、Authority、採用可否を推定してはなりません。
+Provider kindやSEIとの関係の近さから、Observationの信頼度、優先順位、Authority、採用可否を推定してはなりません。
 
 human、AI service、SaaS、外部組織、TEI、custom codeは、異質なProvider候補になり得ます。
 
-TEIのApplication / Database / Release / Deployment等の内部概念を、そのままSOZA Universal Coreのfieldへ昇格させません。
+TEIのApplication / Database / Release / Deployment等の内部概念を、そのままSEI Universal Coreのfieldへ昇格させません。
 
 ## 8. Adapter / Mapping provenance
 
@@ -197,8 +197,8 @@ ISSUE-000024とISSUE-000036はcurrent fixture / synthetic Adapter sliceの設計
 
 - REQ-0002, REQ-0007, REQ-0013, REQ-0016, REQ-0021, REQ-0022
 - ADR-0012, ADR-0013, ADR-0014, ADR-0019, ADR-0021, ADR-0024
-- `contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md`
-- `contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md`
+- `contracts/decision-memory/SEI_DECISION_MEMORY_v1alpha1.md`
+- `contracts/semantic-reference/SEI_SEMANTIC_REFERENCE_v1alpha1.md`
 
 ## 15. Natural Japanese review
 

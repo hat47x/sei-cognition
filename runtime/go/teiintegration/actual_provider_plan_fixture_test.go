@@ -18,7 +18,7 @@ const (
 )
 
 // TestActualTEIProviderPlanFixtureMapsThroughCurrentBoundary は、固定した実TEIが
-// deployment-provider-planで生成した出力をcurrent SOZA runtimeで読み、Provider固有の
+// deployment-provider-planで生成した出力をcurrent SEI runtimeで読み、Provider固有の
 // 情報をUniversal Capability Observationへ持ち込まずにmappingできることを確認します。
 // fixtureのSHA-256を固定することで、別の出力へ知らないうちに置き換わることも防ぎます。
 // Evidence artifactを同梱binaryで再生したときにも、このfixtureと同一bytesのProvider Planが

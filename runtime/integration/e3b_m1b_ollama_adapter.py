@@ -2,7 +2,7 @@
 """E3b-M1b専用の薄いOllama接続Adapter。
 
 KJ Atlasの既存local LLM境界（POST /generate）をOllamaのactual model inferenceへ
-変換するためだけに使う。SOZAのUniversal Contractや正式なProvider protocolではない。
+変換するためだけに使う。SEIのUniversal Contractや正式なProvider protocolではない。
 """
 
 from __future__ import annotations

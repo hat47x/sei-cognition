@@ -107,7 +107,7 @@ Pythonファイル一覧にも`run_m47_cognitive_method_conformance.py`はなか
 
 2026-08-28〜2026-08-30のZIP archiveを時系列で確認した。
 
-SOZA / Semantic Platform系では次が連続して残っている。
+SEI / Semantic Platform系では次が連続して残っている。
 
 ```text
 semantic_platform_starter_m44_v1.zip
@@ -222,7 +222,7 @@ unrecoverable historical verification
 
 Resolved後も、次のいずれかが新たに発見された場合はこのIssueを再開してよい。
 
-- historical SOZA M47 repository snapshot / archive
+- historical SEI M47 repository snapshot / archive
 - actual `runtime/go/cognitivemethod/` source
 - actual `tools/run_m47_cognitive_method_conformance.py`
 - actual `CURRENT_EVIDENCE_M47.yaml`

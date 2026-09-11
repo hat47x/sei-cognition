@@ -1,11 +1,11 @@
-# SOZA Product Access Architecture
+# SEI Product Access Architecture
 
 更新日: 2026-09-01  
 状態: **Current Product Access Architecture Baseline**
 
 ## 1. この文書の役割
 
-この文書は、Product Identity / Access / Collaboration baselineとADR-0030を、current SOZA Architectureへ配置します。
+この文書は、Product Identity / Access / Collaboration baselineとADR-0030を、current SEI Architectureへ配置します。
 
 ここで扱うIdentity Binding、Product Access Scope、Policy Evaluator、Disclosure ProjectionはProduct security / collaboration componentであり、Universal semantic entityではありません。
 
@@ -25,7 +25,7 @@ Authentication Provider
 Canonical Access   Disclosure Projection
         │              │
         ▼              ▼
-SOZA canonical     visible / withheld
+SEI canonical     visible / withheld
 semantic source       view
 ```
 
@@ -124,12 +124,12 @@ Authentication、identity resolution、Product Access Policy evaluation、Disclo
 
 ## 10. Execution Authorizationとの境界
 
-Product Access Architectureは「SOZAのrecordやoperationへアクセスできるか」を扱います。
+Product Access Architectureは「SEIのrecordやoperationへアクセスできるか」を扱います。
 
 TEI、SaaS、外部resource等への実行AuthorizationはADR-0016のProvider boundaryへ残します。
 
 ```text
-SOZA append allowed
+SEI append allowed
   != external execution authorized
 ```
 
@@ -162,9 +162,9 @@ Product Access Controlをsemantic Responsibility / Authorityやactor kindから�
 
 ## 14. 関連文書
 
-- `SOZA_REFERENCE_ARCHITECTURE.md`
-- `SOZA_DEPLOYMENT_ARCHITECTURE.md`
-- `../product/security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`
+- `SEI_REFERENCE_ARCHITECTURE.md`
+- `SEI_DEPLOYMENT_ARCHITECTURE.md`
+- `../product/security/SEI_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`
 - `../plan/adr/ADR-0004-responsibility-without-global-identity.md`
 - `../plan/adr/ADR-0016-authorization-evidence-provider-boundary.md`
 - `../plan/adr/ADR-0030-product-access-control-separation.md`

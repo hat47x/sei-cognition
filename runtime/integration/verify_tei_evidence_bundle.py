@@ -384,7 +384,7 @@ def verify_bundle(
         "metadata": metadata,
         "qualityJudgement": "not_evaluated",
         "stopLine": (
-            "TEI Evidence bundle identity verified != SOZA Adapter compatibility verified "
+            "TEI Evidence bundle identity verified != SEI Adapter compatibility verified "
             "!= TEI version exchange PASS != Operational Evidence"
         ),
     }

@@ -1,4 +1,4 @@
-# SOZA Semantic Interchange Contract v1alpha1
+# SEI Semantic Interchange Contract v1alpha1
 
 contract_id: `sei.semantic-interchange`  
 version: `v1alpha1`  
@@ -7,9 +7,9 @@ version: `v1alpha1`
 
 ## 1. 目的
 
-このContractは、SOZAの耐久的意味資産を、特定Storage、runtime、UI、Providerへ依存せずに交換するための**薄いportable envelope**を定めます。
+このContractは、SEIの耐久的意味資産を、特定Storage、runtime、UI、Providerへ依存せずに交換するための**薄いportable envelope**を定めます。
 
-このEnvelopeは、すべてのSOZA概念を一つの巨大Schemaへ閉じ込めるためのものではありません。
+このEnvelopeは、すべてのSEI概念を一つの巨大Schemaへ閉じ込めるためのものではありません。
 
 Semantic Reference、Decision Memory、Capability Observation等の個別Contractを組み合わせ、受信側が「どのContractで何を解釈すべきか」を失わないことを目的とします。
 
@@ -184,9 +184,9 @@ fixture / runtime reconstruction PASS
 
 - REQ-0001, REQ-0002, REQ-0003, REQ-0018, REQ-0019, REQ-0020
 - ADR-0007, ADR-0008, ADR-0009, ADR-0014, ADR-0021, ADR-0022
-- `contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md`
-- `contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md`
-- `contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md`
+- `contracts/semantic-reference/SEI_SEMANTIC_REFERENCE_v1alpha1.md`
+- `contracts/decision-memory/SEI_DECISION_MEMORY_v1alpha1.md`
+- `contracts/capability/SEI_CAPABILITY_OBSERVATION_v1alpha1.md`
 
 ## 18. Natural Japanese review
 

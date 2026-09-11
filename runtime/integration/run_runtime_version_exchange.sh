@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # GitHub Actionsに依存せず、同一のKJ Atlas / model artifact / Method inputで
-# Ollama runtimeだけを0.32.13から0.32.14へ交換し、SOZAの履歴再構成境界を検証します。
+# Ollama runtimeだけを0.32.13から0.32.14へ交換し、SEIの履歴再構成境界を検証します。
 # 実験結果の意味はISSUE-000070を正とし、このscriptの成功を成果品質やE4へ昇格させません。
 # strict Evidenceのsourceはverified runtime bundleだけを受け付けます。KJ Atlas checkoutを
 # 起点にする場合はrun_runtime_version_exchange_strict.pyで固定commit objectからexportします。
@@ -45,11 +45,11 @@ Options:
   git, python3, go, curl, zstd, tar, sha256sum, uname, mktemp, cp
 
 現在の固定runtime artifactはLinux / amd64用です。
-SOZAはcleanなGit checkoutである必要があります。
+SEIはcleanなGit checkoutである必要があります。
 このlow-level harnessはverified KJ Atlas backend bundleだけを実行sourceとして受け付けます。
 KJ Atlas checkoutを起点にする場合は、run_runtime_version_exchange_strict.pyを利用し、
 固定commit objectからverified runtime bundleへ変換してから本harnessへ委譲してください。
-work / Evidence / external model directoryをSOZAまたはKJ Atlas source配下には置けません。
+work / Evidence / external model directoryをSEIまたはKJ Atlas source配下には置けません。
 
 runtime archiveを指定しない場合だけ、repository-localのarchive preparation helperを通して
 Ollama公式GitHub Releaseから取得します。事前配置したarchiveも同じ固定SHA-256を必ず
@@ -166,7 +166,7 @@ require_safe_output_path() {
   local label="$1"
   local candidate="$2"
   if is_within_path "${candidate}" "${SOZA_ROOT}"; then
-    echo "${label} must not be inside the SOZA repository: ${candidate}" >&2
+    echo "${label} must not be inside the SEI repository: ${candidate}" >&2
     exit 1
   fi
   if is_within_path "${candidate}" "${KJ_ATLAS_SOURCE_ROOT}"; then
@@ -193,7 +193,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
 PY
 }
 
-require_clean_repository "SOZA" "${SOZA_ROOT}"
+require_clean_repository "SEI" "${SOZA_ROOT}"
 SOZA_COMMIT="$(git -C "${SOZA_ROOT}" rev-parse HEAD)"
 
 if [[ -z "${KJ_ATLAS_BACKEND_BUNDLE}" ]]; then
@@ -204,7 +204,7 @@ fi
 
 KJ_ATLAS_BACKEND_BUNDLE="$(canonical_path "${KJ_ATLAS_BACKEND_BUNDLE}")"
 if is_within_path "${KJ_ATLAS_BACKEND_BUNDLE}" "${SOZA_ROOT}"; then
-  echo "KJ Atlas backend bundle must not be inside the SOZA repository: ${KJ_ATLAS_BACKEND_BUNDLE}" >&2
+  echo "KJ Atlas backend bundle must not be inside the SEI repository: ${KJ_ATLAS_BACKEND_BUNDLE}" >&2
   exit 1
 fi
 [[ -d "${KJ_ATLAS_BACKEND_BUNDLE}" ]] || {
@@ -581,7 +581,7 @@ run_probe() {
 
   cleanup_processes
   ensure_tcp_port_available "Ollama" 11434
-  ensure_tcp_port_available "SOZA model adapter" 8001
+  ensure_tcp_port_available "SEI model adapter" 8001
   ensure_tcp_port_available "KJ Atlas" 8101
 
   echo "=== Ollama ${version}: verify pinned runtime artifact ==="

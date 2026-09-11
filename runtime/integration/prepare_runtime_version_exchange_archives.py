@@ -42,7 +42,7 @@ def validate_output_dir(output_dir: Path) -> Path:
     resolved = requested.resolve(strict=False)
     if _is_within(resolved, SOZA_ROOT):
         raise ValueError(
-            "runtime archiveをSOZA repository配下には配置できません: "
+            "runtime archiveをSEI repository配下には配置できません: "
             f"{resolved}"
         )
     if resolved.exists() and not resolved.is_dir():
@@ -268,7 +268,7 @@ def build_parser() -> argparse.ArgumentParser:
         )
     )
     parser.add_argument(
-        "--output-dir", type=Path, required=True, help="SOZA repository外でarchiveを置くdirectory。"
+        "--output-dir", type=Path, required=True, help="SEI repository外でarchiveを置くdirectory。"
     )
     parser.add_argument(
         "--runtime",

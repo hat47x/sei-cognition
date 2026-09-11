@@ -127,7 +127,7 @@ class TEIRevisionBPrepositionedRunnerTest(unittest.TestCase):
             soza_root.mkdir()
             output = soza_root / "evidence/out.tar.gz"
             with mock.patch.object(subject, "SOZA_ROOT", soza_root.resolve()):
-                with self.assertRaisesRegex(ValueError, "SOZA repository"):
+                with self.assertRaisesRegex(ValueError, "SEI repository"):
                     subject.produce_bundle(source_repo, reference_repo, output)
             self.assertFalse(output.parent.exists())
             verify_source.assert_not_called()

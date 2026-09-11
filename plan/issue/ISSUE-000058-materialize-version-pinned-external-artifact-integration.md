@@ -7,7 +7,7 @@ Updated: 2026-09-02
 
 ## Goal
 
-PMS-06のE3「real external integration」へ進む前段として、SOZA repository内で作ったreference processではなく、**別repositoryで独立にversion管理されている実Cognitive Method / Provider artifactを取得・検証し、取得元のidentityとProvenanceを失わずにcurrent SOZA semanticsへ結び付けられること**を確認する。
+PMS-06のE3「real external integration」へ進む前段として、SEI repository内で作ったreference processではなく、**別repositoryで独立にversion管理されている実Cognitive Method / Provider artifactを取得・検証し、取得元のidentityとProvenanceを失わずにcurrent SEI semanticsへ結び付けられること**を確認する。
 
 この段階をE3aと呼ぶ。
 
@@ -30,9 +30,9 @@ E3aでは、外部artifactの取得・identity検証と、live process / service
 
 ## なぜartifact段階を分けたか
 
-E2では別OS processを実際に起動したが、そのprocess自体はSOZA repository内で作ったreference Realizationだった。
+E2では別OS processを実際に起動したが、そのprocess自体はSEI repository内で作ったreference Realizationだった。
 
-次の段階ではSOZAとは独立して変更されるsourceを扱う必要がある。一方、production AI API、private repository credential、TEI live process、rate limit、SLA等を一つのtestへ同時に混ぜると、semantic portabilityとnetwork / authentication上の問題を切り分けにくい。
+次の段階ではSEIとは独立して変更されるsourceを扱う必要がある。一方、production AI API、private repository credential、TEI live process、rate limit、SLA等を一つのtestへ同時に混ぜると、semantic portabilityとnetwork / authentication上の問題を切り分けにくい。
 
 そこでE3aでは、まず次を独立に確認した。
 
@@ -53,7 +53,7 @@ E2では別OS processを実際に起動したが、そのprocess自体はSOZA re
 
 これは別repositoryで実際に配布されている日本語版`weave` Skill artifactである。
 
-public repositoryであるため、External Integration E3a workflowではcommit固定のraw artifactをGitHub Actionsから実際に取得した。そのうえで、Git blob identityとSOZA側のpinned snapshotがbyte-for-byteで一致することを確認した。
+public repositoryであるため、External Integration E3a workflowではcommit固定のraw artifactをGitHub Actionsから実際に取得した。そのうえで、Git blob identityとSEI側のpinned snapshotがbyte-for-byteで一致することを確認した。
 
 verified artifactはexisting `MethodRealization`へ結び付けた。repository / commit / path等の取得情報はCognitive Method Contractへ直接埋め込まず、opaqueなexternal artifact provenanceを`implementation_ref`から参照する形にした。
 
@@ -68,11 +68,11 @@ verified artifactはexisting `MethodRealization`へ結び付けた。repository 
 - source path: `reference/observed/production.deployment-state.json`
 - Git blob SHA-1: `ff3c60a8d9873f6aeb38549104ef6bb484404d17`
 
-TEI自身が保持するobserved deployment stateを使った。TEI固有の`activeApplications`、`databases`、`dataReadiness`等はSOZA Universal schemaにはしていない。
+TEI自身が保持するobserved deployment stateを使った。TEI固有の`activeApplications`、`databases`、`dataReadiness`等はSEI Universal schemaにはしていない。
 
 reference AdapterはTEI固有schemaを内部で読み、必要な観測だけをcurrent Capability Observationへ変換する。Provider identityは`tei-platform`として残し、source artifact provenanceとmapping provenanceも保持する。
 
-TEI repositoryはprivateである。SOZA CIの標準`GITHUB_TOKEN`へ別private repositoryのread権限を暗黙に要求しないため、E3aの必須CIではlive private fetchを行わない。取得時にsource artifactと同じGit blob identityであることを確認したpinned snapshotを用いてmappingを検査した。
+TEI repositoryはprivateである。SEI CIの標準`GITHUB_TOKEN`へ別private repositoryのread権限を暗黙に要求しないため、E3aの必須CIではlive private fetchを行わない。取得時にsource artifactと同じGit blob identityであることを確認したpinned snapshotを用いてmappingを検査した。
 
 したがって、TEI側のE3a PASSはlive TEI integrationを意味しない。private repository acquisitionやTEI CLI / serviceのlive invocationはE3b以降で扱う。
 
@@ -86,7 +86,7 @@ TEI repositoryはprivateである。SOZA CIの標準`GITHUB_TOKEN`へ別private 
 - source metadataをopaqueな`external-artifact-provenance` recordとして保持する。
 - Git / GitHub固有概念をUniversal semantic entityにはしない。
 
-Git blob identityを再現するためにSHA-1を使うが、SOZAの新しいRepresentation Profileや一般用途のdigest方式としてSHA-1を採用したわけではない。検証済みbytesには別途SHA-256も保持する。
+Git blob identityを再現するためにSHA-1を使うが、SEIの新しいRepresentation Profileや一般用途のdigest方式としてSHA-1を採用したわけではない。検証済みbytesには別途SHA-256も保持する。
 
 ### `runtime/go/externalintegration`
 
@@ -221,4 +221,4 @@ E3a PASS
 
 ## Natural Japanese review
 
-PMS-06、`product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`、ISSUE-000057、REQ-0001 / 0004 / 0005 / 0007 / 0021、SCN-0005 / 0014 / 0018、ADR-0013 / 0017 / 0019 / 0021 / 0024 / 0025、current Cognitive Method Contract、Capability Observation Contract、`runtime/go/externalartifact`、`runtime/go/externalintegration`、`cultural-substrate-weaving`とTEIの実source artifact、初期E3a Runとclosure headの4系統CIへ戻り、E2から実外部integrationへ進む際の意味境界とEvidenceを再監査した。外部artifactの取得・identity検証とlive process / service invocationを分けることで、semantic portabilityとrepository認証・network条件を混同していない。cultural-substrate-weavingとTEIを同じ外部artifact境界に置き、TEIだけを特別なProvider ontologyへ昇格させない構造も維持した。また、並行して`develop/v0.2.0`へ統合されたExact Bindingの変更を失わず、planning registryもactual treeと整合する状態へ戻した。外部sourceのbytesそのものはEvidenceとして改稿せず、SOZAが作成する本文について、目的、検査結果、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+PMS-06、`product/definition/SEI_REALIZATION_PROVIDER_EXCHANGE.md`、ISSUE-000057、REQ-0001 / 0004 / 0005 / 0007 / 0021、SCN-0005 / 0014 / 0018、ADR-0013 / 0017 / 0019 / 0021 / 0024 / 0025、current Cognitive Method Contract、Capability Observation Contract、`runtime/go/externalartifact`、`runtime/go/externalintegration`、`cultural-substrate-weaving`とTEIの実source artifact、初期E3a Runとclosure headの4系統CIへ戻り、E2から実外部integrationへ進む際の意味境界とEvidenceを再監査した。外部artifactの取得・identity検証とlive process / service invocationを分けることで、semantic portabilityとrepository認証・network条件を混同していない。cultural-substrate-weavingとTEIを同じ外部artifact境界に置き、TEIだけを特別なProvider ontologyへ昇格させない構造も維持した。また、並行して`develop/v0.2.0`へ統合されたExact Bindingの変更を失わず、planning registryもactual treeと整合する状態へ戻した。外部sourceのbytesそのものはEvidenceとして改稿せず、SEIが作成する本文について、目的、検査結果、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。

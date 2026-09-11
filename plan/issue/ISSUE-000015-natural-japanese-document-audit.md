@@ -7,7 +7,7 @@ Updated: 2026-09-01
 
 ## 目的
 
-SOZAの既存開発文書を、技術的な意味、仕様、留保、Evidence強度を変えず、**自然な日本語となることを最重要視して全文をドラフトし直す工程**へ通す。
+SEIの既存開発文書を、技術的な意味、仕様、留保、Evidence強度を変えず、**自然な日本語となることを最重要視して全文をドラフトし直す工程**へ通す。
 
 このIssueは一度限りの校正作業ではなく、今後の新規・更新文書にも同じ工程を組み込むための品質基線を確立することを目的とした。
 
@@ -110,7 +110,7 @@ KJの生カード、束ね、核融合法、残差、当時のDecision preparati
 
 - [x] 固定100倍基準をcurrent Product正本から除去し、10〜50×のmoving horizonへ統一した。
 - [x] X-TEAをcurrent Product名として扱わない。
-- [x] TEIをSOZA内部Runtimeと誤読させないProduct / Architecture境界を整備した。
+- [x] TEIをSEI内部Runtimeと誤読させないProduct / Architecture境界を整備した。
 - [x] 5段階Evidenceをcurrent上位文書とPlanning規約へ反映した。
 - [x] REQ / SCNのcurrent正本とhistorical mappingを分離した。
 - [x] ADR-0001〜ADR-0024をcurrent baselineから全件再監査した。

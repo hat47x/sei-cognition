@@ -473,7 +473,7 @@ print('incorrect success without Evidence')
                 )
 
     def test_verification_output_inside_soza_repository_is_rejected(self):
-        with self.assertRaisesRegex(ValueError, "SOZA repository"):
+        with self.assertRaisesRegex(ValueError, "SEI repository"):
             MODULE._protect_verification_output(
                 MODULE.SOZA_ROOT / ".tmp-runtime-exchange-verification.json",
                 evidence_dir=Path("/tmp/soza-evidence-outside-repository"),

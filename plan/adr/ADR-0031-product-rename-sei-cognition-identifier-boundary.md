@@ -87,6 +87,22 @@ ADR-0031 mapping table
   != 移行完了後に不要になる作業memo
 ```
 
+#### 文書filename mapping
+
+`SOZA_`で始まる文書23件を`SEI_`へ改めました。prefix以降は変更していません。
+
+| 旧 | 新 |
+|---|---|
+| `architecture/SOZA_*.md` | `architecture/SEI_*.md` (3件) |
+| `contracts/**/SOZA_*_v1alpha1.md` | `contracts/**/SEI_*_v1alpha1.md` (7件) |
+| `product/**/SOZA_*.md` | `product/**/SEI_*.md` (13件) |
+| `plan/adr/ADR-0014-soza-tei-product-boundary.md` | `plan/adr/ADR-0014-sei-tei-product-boundary.md` |
+| `plan/issue/ISSUE-000016-formalize-soza-tei-product-boundary.md` | `plan/issue/ISSUE-000016-formalize-sei-tei-product-boundary.md` |
+
+4-aと4-bの凍結文書8件は、これらの旧filenameを参照したままです。`release/README.md`、`release/v0.1.0/RELEASE_ACCEPTANCE.md`、`release/v0.2.0/RELEASE_ACCEPTANCE.md`、両`release-candidate.json`、`runtime/ACCESS_COLLABORATION_PROBE_EVIDENCE_2026-09-01.md`、`runtime/INTERACTION_PROBE_EVIDENCE_2026-09-01.md`、`runtime/LIVE_EXTERNAL_PROVIDER_EVIDENCE_2026-09-02.md`が該当します。
+
+これらのlinkはcurrent treeでは解決しません。当時のcommitでは解決しました。凍結文書のlinkを現在のpathへ書き換えるより、当時参照していたpathを残してこのtableで橋渡しするほうが、記録として正確です。
+
 ### 3. 内部record schema identityは、新規emit分のみ改める
 
 `soza.tei-*`、`soza.runtime-version-exchange-*`、`soza.method-quality-*`、`soza.release-*`、`soza.plan-registry/v1`等の内部record schema identityは80件あります。これを二つに分けます。

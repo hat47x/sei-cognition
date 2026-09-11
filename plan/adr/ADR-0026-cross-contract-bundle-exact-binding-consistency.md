@@ -6,7 +6,7 @@ Updated: 2026-09-01
 
 ## Context
 
-SOZAのExact Bindingは、可変Artifactについて「どのlogical objectか」だけでなく、判断・認知・検証の時点で参照した**特定内容**を後から識別するために使う。
+SEIのExact Bindingは、可変Artifactについて「どのlogical objectか」だけでなく、判断・認知・検証の時点で参照した**特定内容**を後から識別するために使う。
 
 current runtimeでは、Semantic Interchangeのbundle内にexact-bound recordが含まれ、そのrecordとDecisionの`basis_refs`が同じlogical identityを指す場合、両者のExact Bindingが一致するかを検査している。
 

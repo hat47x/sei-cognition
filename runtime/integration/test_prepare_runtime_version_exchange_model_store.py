@@ -250,7 +250,7 @@ class RuntimeVersionExchangeModelStorePreparationTest(unittest.TestCase):
         acquisition, payloads, _config_digest, _model_digest = self.fixture()
         opener = FakeOpener(payloads)
         target = prepare.SOZA_ROOT / ".tmp-runtime-exchange-model-store-test"
-        with self.assertRaisesRegex(ValueError, "SOZA repository配下"):
+        with self.assertRaisesRegex(ValueError, "SEI repository配下"):
             prepare.prepare_model_store(
                 target,
                 opener=opener,

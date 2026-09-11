@@ -13,7 +13,7 @@ import verify_tei_execution_source_identity as source_identity
 SCHEMA = "soza.tei-version-exchange-e2-bundle-verification/v1"
 STOP_LINE = (
     "exact-B + exact-A E2 bundle identity verified "
-    "!= E3 SOZA Adapter compatibility verified "
+    "!= E3 SEI Adapter compatibility verified "
     "!= arbitrary TEI version compatibility != ISSUE-000072 Resolved"
 )
 

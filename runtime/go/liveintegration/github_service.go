@@ -24,7 +24,7 @@ const (
 
 // GitHubCommitService is a reference E3b client for one live Provider service.
 // GitHub's HTTP protocol and response shape remain local to this realization;
-// they are not SOZA Universal Contracts.
+// they are not SEI Universal Contracts.
 type GitHubCommitService struct {
 	BaseURL string
 	Token   string

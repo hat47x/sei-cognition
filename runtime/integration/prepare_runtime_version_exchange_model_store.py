@@ -197,7 +197,7 @@ def prepare_model_store(
     reject_symlink_path_or_ancestors(requested, "model store target")
     target = requested.resolve(strict=False)
     if _is_within(target, SOZA_ROOT):
-        raise ValueError(f"model storeをSOZA repository配下には作成できません: {target}")
+        raise ValueError(f"model storeをSEI repository配下には作成できません: {target}")
     if target.exists():
         raise ValueError(f"target model storeは新規pathである必要があります: {target}")
 

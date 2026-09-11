@@ -1,11 +1,11 @@
-# SOZA Architecture Traceability
+# SEI Architecture Traceability
 
 更新日: 2026-09-05  
 状態: **Current Design / Evidence Traceability Baseline**
 
 ## 1. 目的
 
-この文書は、Product Value V1〜V8、current Product Requirement、Accepted ADR、`SOZA_REFERENCE_ARCHITECTURE.md`のarchitecture concernがどのようにつながり、どこまでExecutable / Release Evidenceへ到達しているかを示します。
+この文書は、Product Value V1〜V8、current Product Requirement、Accepted ADR、`SEI_REFERENCE_ARCHITECTURE.md`のarchitecture concernがどのようにつながり、どこまでExecutable / Release Evidenceへ到達しているかを示します。
 
 追跡表は設計理由とEvidenceの高さを見失わないための索引です。Product Value、Requirement、ADR、Architecture、Contract、Issue、Evidence本文より強い意味上の正本ではありません。
 
@@ -94,7 +94,7 @@ Adapter / Mapping
 Capability Observation
 ```
 
-Provider-specific input schemaをSOZA Universal ontologyへ統合しません。field mapping、unit conversion、status interpretation等の解釈をmapping provenanceとして追跡可能にし、missing / unknownをnegative factへ変換しない境界を維持します。
+Provider-specific input schemaをSEI Universal ontologyへ統合しません。field mapping、unit conversion、status interpretation等の解釈をmapping provenanceとして追跡可能にし、missing / unknownをnegative factへ変換しない境界を維持します。
 
 AdapterはMatching / Recommendation / Decision / Authority / Executionを所有しません。
 
@@ -115,7 +115,7 @@ known ContractをまたぐExact Referenceについてはbundle-local consistency
 
 ### ADR-0027〜ADR-0030 — production runtime / Product surface
 
-- ADR-0027: SOZA自身が所有するproduction runtimeの標準実装言語をGoとする。
+- ADR-0027: SEI自身が所有するproduction runtimeの標準実装言語をGoとする。
 - ADR-0028: Product Interactionをcanonical meaning上の操作境界として分離する。
 - ADR-0029: Local Single-Node Packageを最初のPackaging / Deployment Profileとする。
 - ADR-0030: authentication identity、Product Access、semantic Responsibility / Authorityを分離する。
@@ -218,7 +218,7 @@ v0.2.0 Local Reference Product Baselineについてactual Release Evidenceが成
 ### Historical / unresolved boundary
 
 - historical M47 digest profile: ISSUE-000034はResolved。保持されている直接Evidenceから旧digest規則を権威的に復元できないため、historical実装をcurrent authorityへ自動継承しない。
-- TEI revision B executable / Provider Plan / current SOZA Adapter compatibility: **Not Yet Verified — ISSUE-000072 Open**
+- TEI revision B executable / Provider Plan / current SEI Adapter compatibility: **Not Yet Verified — ISSUE-000072 Open**
 - arbitrary Provider / model / runtime version portability: **Not Established**
 
 ### Operational / Adoption・Outcome
@@ -238,7 +238,7 @@ ISSUE-000070のactual runtime version exchangeから新しいStable Requirement 
 
 この確認は「すべてのRequirementがproduction implementation済み」「任意のProvider / Realization / versionを交換できる」「Operational / Outcomeが成立した」という意味ではありません。
 
-Product Value側の横断索引は`../product/value/SOZA_VALUE_TRACEABILITY.md`、PMS-06のcurrent version-exchange位置は`../product/roadmap/PMS06_CURRENT_STATE_2026-09-05.md`を参照してください。
+Product Value側の横断索引は`../product/value/SEI_VALUE_TRACEABILITY.md`、PMS-06のcurrent version-exchange位置は`../product/roadmap/PMS06_CURRENT_STATE_2026-09-05.md`を参照してください。
 
 ## 9. Natural Japanese review
 

@@ -6,7 +6,7 @@ Updated: 2026-08-31
 
 ## Context
 
-SOZAでは、Product ValueをRequirements、ADR、Architecture、Implementationより上位に置いている。
+SEIでは、Product ValueをRequirements、ADR、Architecture、Implementationより上位に置いている。
 
 一方、設計が具体化するにつれて、性能、操作性、Provider統合、実装容易性などの局所最適が、判断の意味、不確実性、責任、来歴といった上位価値と衝突する可能性がある。
 
@@ -94,13 +94,13 @@ Operational Success != Adoption / Outcome
 
 実行が成功していても、判断の根拠や責任線が失われていればProduct Value上は失敗し得る。
 
-また、SOZAが本番で安定して動作していても、利用者が必要な情報を実際に読み直せない、再判断に活用できない、記録負担が大きく利用されない、といった状態であればProduct Valueが十分に届いたとは言えない。
+また、SEIが本番で安定して動作していても、利用者が必要な情報を実際に読み直せない、再判断に活用できない、記録負担が大きく利用されない、といった状態であればProduct Valueが十分に届いたとは言えない。
 
 Outcomeは単一KPIへ固定しない。対象Scenarioに応じて、質的Evidence、具体事例、再判断結果、説明可能性、移行可能性、誤判断の回避等を組み合わせて評価できる。
 
 ### 6. Coreへの昇格はProduct Valueへの必要性で判断する
 
-概念や型をSOZA Universal Coreへ追加する場合、少なくとも次を確認する。
+概念や型をSEI Universal Coreへ追加する場合、少なくとも次を確認する。
 
 - Providerが変わっても意味が残るか。
 - 複数domainで同じ意味境界を持つか。
@@ -139,7 +139,7 @@ V1〜V8
 
 この追跡は一対一対応を要求しない。また、coverage表を完成率やProduct Value scoreとして扱わない。
 
-Product側の現行索引は`product/value/SOZA_VALUE_TRACEABILITY.md`を用いる。
+Product側の現行索引は`product/value/SEI_VALUE_TRACEABILITY.md`を用いる。
 
 ## Consequences
 
@@ -149,8 +149,8 @@ Product側の現行索引は`product/value/SOZA_VALUE_TRACEABILITY.md`を用い�
 - 性能や実装容易性を理由に意味境界が黙って削られることを防ぎやすい。
 - Design文書やfixtureの存在だけでProduct Valueを実証済みと誤認しにくくなる。
 - 本番稼働と実際の利用者価値を分けて検証できる。
-- SOZA Universal Coreの膨張を抑えられる。
-- TEIや将来のProviderと密接に連携しても、SOZAの製品境界を保ちやすい。
+- SEI Universal Coreの膨張を抑えられる。
+- TEIや将来のProviderと密接に連携しても、SEIの製品境界を保ちやすい。
 - Acceptance ScenarioやTestをProduct Valueへ遡って設計しやすくなる。
 
 ### Costs
@@ -172,15 +172,15 @@ Product側の現行索引は`product/value/SOZA_VALUE_TRACEABILITY.md`を用い�
 
 ## Evidence
 
-- `product/value/SOZA_PRODUCT_VALUE.md`
-- `product/value/SOZA_VALUE_MODEL.md`
-- `product/value/SOZA_VALUE_ACCEPTANCE.md`
-- `product/value/SOZA_VALUE_TRACEABILITY.md`
+- `product/value/SEI_PRODUCT_VALUE.md`
+- `product/value/SEI_VALUE_MODEL.md`
+- `product/value/SEI_VALUE_ACCEPTANCE.md`
+- `product/value/SEI_VALUE_TRACEABILITY.md`
 - `requirements/PRODUCT_REQUIREMENTS.md`
 - `requirements/ACCEPTANCE_SCENARIOS.md`
 - ADR-0001: Moving Future Horizon
 - ADR-0012 / ADR-0013: Capability / Provider境界
-- ADR-0014: SOZA / TEI Product境界
+- ADR-0014: SEI / TEI Product境界
 - ADR-0017: Reference Model / Cognitive Method境界
 - ADR-0020: Requirements traceability / Evidence境界
 - ADR-0021: Architecture / Contract権威境界

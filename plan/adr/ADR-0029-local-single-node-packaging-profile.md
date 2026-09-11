@@ -6,7 +6,7 @@ Updated: 2026-09-01
 
 ## Context
 
-SOZAにはGo runtime、Semantic Contract、Interaction reference probe、Provider Adapter等があるが、実行物を終了した後にcanonical dataを保存・再読する最小製品単位はまだ定義していない。
+SEIにはGo runtime、Semantic Contract、Interaction reference probe、Provider Adapter等があるが、実行物を終了した後にcanonical dataを保存・再読する最小製品単位はまだ定義していない。
 
 最初のPackagingを考える際には、次を同時に満たす必要がある。
 

@@ -17,7 +17,7 @@ ADR-0019で確定したProvider-neutralなCapability Observation境界を、actu
 
 次をcurrent Contractとして実体化した。
 
-- `contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md`
+- `contracts/capability/SEI_CAPABILITY_OBSERVATION_v1alpha1.md`
 - `contracts/schemas/v1alpha1/capability-observation.schema.json`
 
 Contractでは次を分離している。
@@ -32,7 +32,7 @@ Capability Definition
   != Execution
 ```
 
-Provider internal stateをSOZA Universal Coreへ直接コピーせず、Provider-specific target referenceとmapping / adapter provenanceを保持できる。
+Provider internal stateをSEI Universal Coreへ直接コピーせず、Provider-specific target referenceとmapping / adapter provenanceを保持できる。
 
 ### 2. F1〜F7をactual fixtureとして実体化した
 
@@ -83,7 +83,7 @@ Contract fixture PASS
 ## Acceptance criteria
 
 - [x] ADR-0019の意味境界をContract / schemaで表現できる。
-- [x] TEI固有型がSOZA Universal Coreへ漏れていない。
+- [x] TEI固有型がSEI Universal Coreへ漏れていない。
 - [x] F1〜F7のfixtureが存在する。
 - [x] fixtureごとにV1〜V8との関係を説明できる。
 - [x] normalized / interpreted conditionからprovenanceまたはProvider-specific referenceへ戻れる。
@@ -103,7 +103,7 @@ Contract fixture PASS
 - actual multi-Provider production adapter interoperability: **Not Yet Verified**
 - Release / Operational Evidence: **Not Yet Verified**
 
-本IssueのResolvedはCapability Observation境界とF1〜F7のcurrent conformanceを意味する。production Provider接続やSOZA全体のrelease readinessを意味しない。
+本IssueのResolvedはCapability Observation境界とF1〜F7のcurrent conformanceを意味する。production Provider接続やSEI全体のrelease readinessを意味しない。
 
 ## Follow-up
 

@@ -1,11 +1,15 @@
-# 綜座 / SOZA
+# 井 / SEI Cognition
 
 更新日: 2026-09-05  
 状態: **v0.2.0 Local Reference Product Baseline released / development continues**
 
-SOZAは、人間・AI・組織・既存システム・外部サービスが入れ替わっても、**何を見て、何を問い、何を根拠とし、何を決め、何を未解決として残したか**を失わないための、可搬な認知・意思決定基盤です。
+SEIは、人間・AI・組織・既存システム・外部サービスが入れ替わっても、**何を見て、何を問い、何を根拠とし、何を決め、何を未解決として残したか**を失わないための、可搬な認知・意思決定基盤です。
 
-SOZAの中心は、workflowやAI agent runtimeを自前で囲い込むことではありません。実行手段が変わっても残る意味、不確実性、判断、責任、Capability、Provenance、Semantic Lineageを扱います。
+SEIの中心は、workflowやAI agent runtimeを自前で囲い込むことではありません。実行手段が変わっても残る意味、不確実性、判断、責任、Capability、Provenance、Semantic Lineageを扱います。
+
+名前は易経の卦「井」から採っています。井は、汲んでも尽きず、誰が汲みに来ても同じ水を返す共有の泉です。町が移っても井戸は動かせないという卦の像が、実行手段・人・組織が入れ替わっても残るものを扱うという本製品の立場と対応します。
+
+本製品は2026-09-11にSOZA / 綜座から改名しました。改名でどのidentifierをどう扱ったかは`plan/adr/ADR-0031-product-rename-sei-cognition-identifier-boundary.md`を参照してください。v0.2.0以前のArtifactは、そのADRのmapping tableで現在のidentityへ解決できます。
 
 ## 1. 現在の開発branchとrelease
 
@@ -76,7 +80,7 @@ Release Candidate / Release Evidence
 
 ## 3. Evidenceの読み方
 
-SOZAでは、Evidenceの高さを次の5段階で分けます。
+SEIでは、Evidenceの高さを次の5段階で分けます。
 
 ```text
 Design Evidence
@@ -102,13 +106,13 @@ GitHub Actions停止中も検証を省略するわけではありません。ロ
 ### Product
 
 1. `product/README.md`
-2. `product/value/SOZA_PRODUCT_VALUE.md`
-3. `product/value/SOZA_VALUE_PROPOSITION.md`
-4. `product/value/SOZA_VALUE_MODEL.md`
-5. `product/value/SOZA_VALUE_ACCEPTANCE.md`
-6. `product/value/SOZA_VALUE_TRACEABILITY.md`
-7. `product/definition/SOZA_PRODUCT_SHAPE.md`
-8. `product/roadmap/SOZA_PRODUCT_MILESTONES.md`
+2. `product/value/SEI_PRODUCT_VALUE.md`
+3. `product/value/SEI_VALUE_PROPOSITION.md`
+4. `product/value/SEI_VALUE_MODEL.md`
+5. `product/value/SEI_VALUE_ACCEPTANCE.md`
+6. `product/value/SEI_VALUE_TRACEABILITY.md`
+7. `product/definition/SEI_PRODUCT_SHAPE.md`
+8. `product/roadmap/SEI_PRODUCT_MILESTONES.md`
 9. `product/roadmap/PMS06_CURRENT_STATE_2026-09-05.md`
 
 ### Requirements
@@ -121,7 +125,7 @@ GitHub Actions停止中も検証を省略するわけではありません。ロ
 ### Architecture
 
 14. `architecture/README.md`
-15. `architecture/SOZA_REFERENCE_ARCHITECTURE.md`
+15. `architecture/SEI_REFERENCE_ARCHITECTURE.md`
 16. `architecture/TRACEABILITY.md`
 
 ### Contracts / Representation Profiles
@@ -129,11 +133,11 @@ GitHub Actions停止中も検証を省略するわけではありません。ロ
 17. `contracts/README.md`
 18. `contracts/CONTRACT_CATALOG.md`
 19. `contracts/TRACEABILITY.md`
-20. `contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md`
-21. `contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md`
-22. `contracts/capability/SOZA_CAPABILITY_OBSERVATION_v1alpha1.md`
-23. `contracts/cognitive-method/SOZA_COGNITIVE_METHOD_v1alpha1.md`
-24. `contracts/interchange/SOZA_SEMANTIC_INTERCHANGE_v1alpha1.md`
+20. `contracts/semantic-reference/SEI_SEMANTIC_REFERENCE_v1alpha1.md`
+21. `contracts/decision-memory/SEI_DECISION_MEMORY_v1alpha1.md`
+22. `contracts/capability/SEI_CAPABILITY_OBSERVATION_v1alpha1.md`
+23. `contracts/cognitive-method/SEI_COGNITIVE_METHOD_v1alpha1.md`
+24. `contracts/interchange/SEI_SEMANTIC_INTERCHANGE_v1alpha1.md`
 25. `contracts/profiles/README.md`
 
 ### Release / Planning
@@ -150,7 +154,7 @@ Statusの正本は、各ADR / Issue本文と`plan/registry.yaml`です。
 
 ## 5. 守る意味境界
 
-SOZAでは、少なくとも次を同一視しません。
+SEIでは、少なくとも次を同一視しません。
 
 ```text
 Observation
@@ -193,7 +197,7 @@ Product Valueは単一スコアへ還元せず、8軸で確認します。
 - V7 — Progressive Explicitness
 - V8 — Execution Independence
 
-受入れ境界は`product/value/SOZA_VALUE_ACCEPTANCE.md`、現在の追跡状態は`SOZA_VALUE_TRACEABILITY.md`を正とします。
+受入れ境界は`product/value/SEI_VALUE_ACCEPTANCE.md`、現在の追跡状態は`SEI_VALUE_TRACEABILITY.md`を正とします。
 
 ## 7. current semantic baseline
 
@@ -242,7 +246,7 @@ historical M47 digest規則は、現在保持されている直接Evidenceから
 
 このうち、v0.2.0の**supported release scopeはE3aまで**です。release後に得られたE3b-P2、M1a / M1b、runtime version exchange等のEvidenceを理由に、公開済みv0.2.0のsupport範囲を後から広げません。
 
-ISSUE-000070の固定model artifact下のOllama `0.32.13` / `0.32.14` actual交換はhistorical execution `local-20260904T193531Z-7855`の回収・検証によりResolvedです。一方、revision B TEI executableのactual build / Provider Plan / current SOZA Adapter compatibilityはまだ完了していません。
+ISSUE-000070の固定model artifact下のOllama `0.32.13` / `0.32.14` actual交換はhistorical execution `local-20260904T193531Z-7855`の回収・検証によりResolvedです。一方、revision B TEI executableのactual build / Provider Plan / current SEI Adapter compatibilityはまだ完了していません。
 
 ## 9. v0.2.0 Release Evidence
 
@@ -265,16 +269,16 @@ release preparationで得たdigestと、GitHub Release上のpackage asset digest
 
 このrelease Evidenceはhistoricalに確定しています。後続develop commitの検証は、必要なローカルchecker、test、probeを別途実行して判断します。
 
-## 10. SOZAとTEI
+## 10. SEIとTEI
 
-鼎（TEI）はSOZAそのものではなく、SOZAから利用し得るCapability Providerの一つです。
+鼎（TEI）はSEIそのものではなく、SEIから利用し得るCapability Providerの一つです。
 
 ```text
-SOZA = 何を見るか、何を問うか、何を残すか、何を判断するか
+SEI = 何を見るか、何を問うか、何を残すか、何を判断するか
 TEI  = 実行可能な業務Capabilityを実現する一つの手段
 ```
 
-関連製品であることだけを理由にTEIへPriority / Trust / Authorityを付与しません。TEI固有のApplication、Database、Release、Deployment schemaをSOZA Universal Coreへ複製しません。
+関連製品であることだけを理由にTEIへPriority / Trust / Authorityを付与しません。TEI固有のApplication、Database、Release、Deployment schemaをSEI Universal Coreへ複製しません。
 
 ## 11. current Plan
 
@@ -297,7 +301,7 @@ Resolvedは、対象作業の完了を示します。Release / Operational / Ado
 現時点では、PMS-06の主要Open version-exchange実証はISSUE-000072です。ISSUE-000070の固定scope PASSをTEI側のEvidenceへ流用しません。
 
 1. ISSUE-000072で、exact revision B executable + exact revision A fixed inputによりactual `deployment-provider-plan`を実行する。
-2. ISSUE-000072で、revision Bをcurrent SOZA Adapterからactualに起動し、Capability Observation mapping成立可否を確認する。
+2. ISSUE-000072で、revision Bをcurrent SEI Adapterからactualに起動し、Capability Observation mapping成立可否を確認する。
 3. ISSUE-000072のactual結果をREQ-0001 / 0007 / 0021、SCN-0014 / 0018へ戻し、必要なら隣接REQ-0022も監査する。
 4. ISSUE-000070 fixed-scope Evidenceを必要に応じて独立reproductionし、別runtime / model familyへの一般化可能性を探索する。
 5. ISSUE-000071で整えたreview bundleを使い、必要に応じてactual human reviewを行う。

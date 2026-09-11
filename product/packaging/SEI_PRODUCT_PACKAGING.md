@@ -1,11 +1,11 @@
-# SOZA Product Packaging / Deployment
+# SEI Product Packaging / Deployment
 
 更新日: 2026-09-01  
 状態: **Current Product Packaging / Deployment Baseline**
 
 ## 1. この文書の役割
 
-この文書は、SOZAを実際に起動し、保存し、終了後に再開できる最小製品単位を、Product Valueと既存のsemantic boundaryから定めます。
+この文書は、SEIを実際に起動し、保存し、終了後に再開できる最小製品単位を、Product Valueと既存のsemantic boundaryから定めます。
 
 ここで定めるのは、最初に成立させるdeployment profileと、将来StorageやSurfaceが変わっても失ってはならない境界です。特定cloud、Kubernetes、特定DB、Web framework等をProduct ontologyへ固定しません。
 
@@ -23,7 +23,7 @@ Product Packaging
 
 ### 2.1 実行物と耐久データを分ける
 
-SOZAの実行物を削除・更新・再配布しても、判断記憶や来歴が失われない構成を基本とします。
+SEIの実行物を削除・更新・再配布しても、判断記憶や来歴が失われない構成を基本とします。
 
 ```text
 runtime executable
@@ -86,7 +86,7 @@ archive名やbinary versionをLogical Reference、Decision identity、Semantic C
 
 ```text
 ┌─────────────────────────────────────┐
-│ SOZA local runtime                  │
+│ SEI local runtime                  │
 │                                     │
 │ Interaction / machine adapters      │
 │ Canonical semantic runtime          │
@@ -208,7 +208,7 @@ package lifecycle control
   != human / AI Product Interaction
 ```
 
-`soza-local-reference`の`version` / `save` / `inspect`はPackaging acceptance用の管理操作です。Inquiry、Observation、Recommendation、Decision等を扱う正式なSOZA CLIではありません。
+`soza-local-reference`の`version` / `save` / `inspect`はPackaging acceptance用の管理操作です。Inquiry、Observation、Recommendation、Decision等を扱う正式なSEI CLIではありません。
 
 正式なhuman-facing / AI-facing Surfaceは、引き続きPMS-03側のOpen Questionとして扱います。
 
@@ -264,10 +264,10 @@ Release / Operational / Adoption: not yet verified
 
 ## 14. 関連文書
 
-- `../definition/SOZA_PRODUCT_SHAPE.md`
-- `../roadmap/SOZA_PRODUCT_MILESTONES.md`
-- `../interaction/SOZA_PRODUCT_INTERACTION.md`
-- `../../architecture/SOZA_DEPLOYMENT_ARCHITECTURE.md`
+- `../definition/SEI_PRODUCT_SHAPE.md`
+- `../roadmap/SEI_PRODUCT_MILESTONES.md`
+- `../interaction/SEI_PRODUCT_INTERACTION.md`
+- `../../architecture/SEI_DEPLOYMENT_ARCHITECTURE.md`
 - `../../requirements/PRODUCT_REQUIREMENTS.md`
 - `../../requirements/ACCEPTANCE_SCENARIOS.md`
 - `../../plan/adr/ADR-0007-canonical-persistence-boundary.md`

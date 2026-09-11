@@ -324,8 +324,8 @@ def verify_evidence_directory(
             "identity.repository-commit",
             isinstance(repository_commit, str)
             and re.fullmatch(r"[0-9a-f]{40}", repository_commit) is not None,
-            "SOZA repository commitをEvidenceへ保持しています",
-            f"SOZA repository commitが不正です: {repository_commit!r}",
+            "SEI repository commitをEvidenceへ保持しています",
+            f"SEI repository commitが不正です: {repository_commit!r}",
         )
         host = identity.get("executionHost")
         verification.require(

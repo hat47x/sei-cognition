@@ -1,17 +1,17 @@
-# SOZA Implementation Language Policy
+# SEI Implementation Language Policy
 
 更新日: 2026-09-01  
 状態: **Current Architecture Policy**
 
 ## 1. この文書の役割
 
-この文書は、ADR-0027で決定したSOZAの実装言語方針を、current Architectureから読める形に整理します。
+この文書は、ADR-0027で決定したSEIの実装言語方針を、current Architectureから読める形に整理します。
 
-言語選択はSOZAのUniversal Semantic Contractではありません。Product Value、Requirement、Contractの意味はGoへ依存せず、外部のCognitive MethodやCapability Providerへ同じ言語を要求しません。
+言語選択はSEIのUniversal Semantic Contractではありません。Product Value、Requirement、Contractの意味はGoへ依存せず、外部のCognitive MethodやCapability Providerへ同じ言語を要求しません。
 
 ## 2. 標準production runtime
 
-SOZA自身が所有・配布するproduction runtimeとfirst-party reference implementationでは、Goを標準実装言語とします。
+SEI自身が所有・配布するproduction runtimeとfirst-party reference implementationでは、Goを標準実装言語とします。
 
 主な対象は次です。
 
@@ -21,13 +21,13 @@ SOZA自身が所有・配布するproduction runtimeとfirst-party reference imp
 - service / daemon
 - CLI
 - Product backend
-- SOZA / TEI間で必要となるfirst-party integration component
+- SEI / TEI間で必要となるfirst-party integration component
 
 current repositoryでも、`runtime/go/`の`semanticruntime`、`provideradapter`、`journeyharness`がこの方向を先行して実体化しています。
 
 ## 3. Goをsemantic requirementにしない
 
-SOZAが持ち運びたいのは実装言語ではなく、判断・不確実性・責任・来歴等の意味です。
+SEIが持ち運びたいのは実装言語ではなく、判断・不確実性・責任・来歴等の意味です。
 
 ```text
 Semantic Contract
@@ -56,7 +56,7 @@ currentのV6 / V7 Projection Evaluation checkerは、この種の開発・評価
 
 ## 5. production化するときの境界
 
-Python等で作成したprototypeがproduction利用へ進む場合、直ちにGoへ書き直すことも、直ちにSOZA Coreへ埋め込むこともしません。
+Python等で作成したprototypeがproduction利用へ進む場合、直ちにGoへ書き直すことも、直ちにSEI Coreへ埋め込むこともしません。
 
 次の順序で検討します。
 
@@ -82,7 +82,7 @@ same implementation language
   != privileged Provider relationship
 ```
 
-SOZAはTEIをCapability Providerの一つとして扱うというADR-0014の境界を維持します。
+SEIはTEIをCapability Providerの一つとして扱うというADR-0014の境界を維持します。
 
 ## 7. Packaging / Interactionへの含意
 
@@ -125,13 +125,13 @@ Go runtime exists
 
 - `../plan/adr/ADR-0027-go-as-standard-production-runtime-language.md`
 - `../plan/issue/ISSUE-000052-formalize-production-runtime-language-policy.md`
-- `SOZA_REFERENCE_ARCHITECTURE.md`
-- `../product/principles/SOZA_PRODUCT_PRINCIPLES.md`
-- `../plan/adr/ADR-0014-soza-tei-product-boundary.md`
+- `SEI_REFERENCE_ARCHITECTURE.md`
+- `../product/principles/SEI_PRODUCT_PRINCIPLES.md`
+- `../plan/adr/ADR-0014-sei-tei-product-boundary.md`
 - `../plan/adr/ADR-0025-cognitive-method-portable-contract-boundary.md`
 - `../plan/issue/ISSUE-000045-define-first-usable-product-interaction-boundary.md`
 - `../plan/issue/ISSUE-000046-define-v0-2-0-product-packaging-and-deployment-boundary.md`
 
 ## 11. Natural Japanese review
 
-ADR-0027、current Go runtime、Python evaluation tooling、SOZA / TEI Product Boundary、Cognitive Method Realization分離を照合した。Goをproduction runtimeの標準Realizationとしつつ、Semantic Contract、外部Method / Provider、研究・評価へ言語制約を広げない構造を維持した。そのうえで、意味、例外、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+ADR-0027、current Go runtime、Python evaluation tooling、SEI / TEI Product Boundary、Cognitive Method Realization分離を照合した。Goをproduction runtimeの標準Realizationとしつつ、Semantic Contract、外部Method / Provider、研究・評価へ言語制約を広げない構造を維持した。そのうえで、意味、例外、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

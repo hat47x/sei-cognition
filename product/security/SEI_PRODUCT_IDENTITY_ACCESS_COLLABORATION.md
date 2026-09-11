@@ -1,13 +1,13 @@
-# SOZA Product Identity / Access / Collaboration
+# SEI Product Identity / Access / Collaboration
 
 更新日: 2026-09-01  
 状態: **Current Product Identity / Access / Collaboration Design Baseline**
 
 ## 1. この文書の役割
 
-この文書は、SOZAをsingle-userの利用からteam・外部協働へ広げるときに、**誰を認証し、誰に製品操作を許し、誰が意味上のResponsibility / Authorityを持つのか**を混同しないためのProduct boundaryを定めます。
+この文書は、SEIをsingle-userの利用からteam・外部協働へ広げるときに、**誰を認証し、誰に製品操作を許し、誰が意味上のResponsibility / Authorityを持つのか**を混同しないためのProduct boundaryを定めます。
 
-ここで定めるのは、特定のIdP、IAM製品、RBAC製品、tenant製品、暗号方式ではありません。SOZAのsemantic meaningを保ったまま、実際の製品アクセス制御と協働を成立させるための責務分離を定めます。
+ここで定めるのは、特定のIdP、IAM製品、RBAC製品、tenant製品、暗号方式ではありません。SEIのsemantic meaningを保ったまま、実際の製品アクセス制御と協働を成立させるための責務分離を定めます。
 
 ## 2. 最上位の分離
 
@@ -40,7 +40,7 @@ BoundedSubjectRef
 
 ### product access permission
 
-SOZA製品のrecordやoperationに対して、現在の利用者がread、append、review、share、administer等を行ってよいかという、**製品利用上のpermission**です。
+SEI製品のrecordやoperationに対して、現在の利用者がread、append、review、share、administer等を行ってよいかという、**製品利用上のpermission**です。
 
 このpermissionはProduct Access Policyが評価します。
 
@@ -70,7 +70,7 @@ Product Access Scope
   != Universal semantic entity
 ```
 
-実装ではtenant、workspace、project、repository等の名前を使う可能性がありますが、その名称や階層をSOZA Universal Coreへ自動的に昇格させません。
+実装ではtenant、workspace、project、repository等の名前を使う可能性がありますが、その名称や階層をSEI Universal Coreへ自動的に昇格させません。
 
 Product Access ScopeのIDをDecision、Responsibility、Logical Referenceのsemantic identityへ流用することも要求しません。
 
@@ -185,7 +185,7 @@ withheld
 
 最小local packageでは、一つのlocal identityを一つのProduct Access Scopeへ対応付ける簡素なProfileを許容します。
 
-この簡素化を「SOZAにはidentity boundaryが不要」という意味にはしません。
+この簡素化を「SEIにはidentity boundaryが不要」という意味にはしません。
 
 ### team
 
@@ -201,18 +201,18 @@ withheld
 
 ## 8. Authentication / Authorization Providerとの境界
 
-SOZAは独自IdPの実装をProduct成立条件にしません。
+SEIは独自IdPの実装をProduct成立条件にしません。
 
 Authenticationはlocal adapter、OIDC、enterprise directory等へ委ねられます。
 
-また、SOZA Product Access Controlと、ADR-0016で扱う**外部Execution ProviderのAuthorization**も分けます。
+また、SEI Product Access Controlと、ADR-0016で扱う**外部Execution ProviderのAuthorization**も分けます。
 
 ```text
-SOZA product access authorization
+SEI product access authorization
   != external execution authorization
 ```
 
-SOZAへrecordを書き込めることは、TEIやSaaSでoperationを実行できることを意味しません。
+SEIへrecordを書き込めることは、TEIやSaaSでoperationを実行できることを意味しません。
 
 ## 9. Product Access audit
 
@@ -234,7 +234,7 @@ Product Access Controlをsemantic Responsibility / Authorityやactor kindから�
 
 そのため、現時点では次を**Candidate Requirement**として保持します。
 
-> SOZAの製品アクセス権は、semantic Responsibility / Authorityやactor kindから自動導出せず、認証identityとの対応を含むProduct Access Policyで独立に評価できる必要がある。
+> SEIの製品アクセス権は、semantic Responsibility / Authorityやactor kindから自動導出せず、認証identityとの対応を含むProduct Access Policyで独立に評価できる必要がある。
 
 ISSUE-000056のprobe結果から、既存REQ-0012 / 0013 / 0017へ統合できるか、新しいStable Requirement / Acceptance Scenarioが必要かを再監査します。
 
@@ -284,9 +284,9 @@ probeのPASSをproduction securityやOIDC integrationの成立へ昇格させま
 
 ## 14. 関連文書
 
-- `../roadmap/SOZA_PRODUCT_MILESTONES.md`
-- `../interaction/SOZA_PRODUCT_INTERACTION.md`
-- `../../architecture/SOZA_PRODUCT_ACCESS_ARCHITECTURE.md`
+- `../roadmap/SEI_PRODUCT_MILESTONES.md`
+- `../interaction/SEI_PRODUCT_INTERACTION.md`
+- `../../architecture/SEI_PRODUCT_ACCESS_ARCHITECTURE.md`
 - `../../requirements/PRODUCT_REQUIREMENTS.md`
 - `../../requirements/ACCEPTANCE_SCENARIOS.md`
 - `../../plan/adr/ADR-0004-responsibility-without-global-identity.md`

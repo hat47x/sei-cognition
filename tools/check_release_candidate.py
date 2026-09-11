@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SOZAのversion別Release Candidate policyを検査し、候補commitへ結び付いたreportを生成する。
+"""SEIのversion別Release Candidate policyを検査し、候補commitへ結び付いたreportを生成する。
 
 このcheckerが確認するのはrelease candidateの準備条件であり、actual Release Evidenceではない。
 versionごとのsupported scope、required path、Plan snapshot、required gate、非主張範囲は独立policyとして扱い、
@@ -66,14 +66,14 @@ VERSION_POLICIES: dict[str, VersionPolicy] = {
         required_gates=COMMON_GATES,
         required_path_anchors=frozenset({
             "README.md",
-            "product/value/SOZA_PRODUCT_VALUE.md",
-            "product/value/SOZA_VALUE_ACCEPTANCE.md",
+            "product/value/SEI_PRODUCT_VALUE.md",
+            "product/value/SEI_VALUE_ACCEPTANCE.md",
             "requirements/PRODUCT_REQUIREMENTS.md",
             "requirements/ACCEPTANCE_SCENARIOS.md",
-            "architecture/SOZA_REFERENCE_ARCHITECTURE.md",
+            "architecture/SEI_REFERENCE_ARCHITECTURE.md",
             "contracts/CONTRACT_CATALOG.md",
-            "contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md",
-            "contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md",
+            "contracts/profiles/SEI_JCS_SHA256_PROFILE_v1alpha1.md",
+            "contracts/profiles/SEI_RAW_BYTES_SHA256_PROFILE_v1alpha1.md",
             "contracts/schemas/v1alpha1",
             "fixtures/contracts/v1alpha1",
             "runtime/go",
@@ -88,23 +88,23 @@ VERSION_POLICIES: dict[str, VersionPolicy] = {
         required_gates=COMMON_GATES | {"local-reference-package"},
         required_path_anchors=frozenset({
             "README.md",
-            "product/value/SOZA_PRODUCT_VALUE.md",
-            "product/value/SOZA_VALUE_ACCEPTANCE.md",
-            "product/value/SOZA_VALUE_TRACEABILITY.md",
-            "product/definition/SOZA_PRODUCT_SHAPE.md",
-            "product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md",
-            "product/interaction/SOZA_PRODUCT_INTERACTION.md",
-            "product/packaging/SOZA_PRODUCT_PACKAGING.md",
-            "product/security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md",
-            "product/roadmap/SOZA_PRODUCT_MILESTONES.md",
+            "product/value/SEI_PRODUCT_VALUE.md",
+            "product/value/SEI_VALUE_ACCEPTANCE.md",
+            "product/value/SEI_VALUE_TRACEABILITY.md",
+            "product/definition/SEI_PRODUCT_SHAPE.md",
+            "product/definition/SEI_REALIZATION_PROVIDER_EXCHANGE.md",
+            "product/interaction/SEI_PRODUCT_INTERACTION.md",
+            "product/packaging/SEI_PRODUCT_PACKAGING.md",
+            "product/security/SEI_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md",
+            "product/roadmap/SEI_PRODUCT_MILESTONES.md",
             "requirements/PRODUCT_REQUIREMENTS.md",
             "requirements/ACCEPTANCE_SCENARIOS.md",
             "requirements/PRODUCT_JOURNEY_COMPOSITION.md",
-            "architecture/SOZA_REFERENCE_ARCHITECTURE.md",
-            "architecture/SOZA_DEPLOYMENT_ARCHITECTURE.md",
-            "architecture/SOZA_PRODUCT_ACCESS_ARCHITECTURE.md",
+            "architecture/SEI_REFERENCE_ARCHITECTURE.md",
+            "architecture/SEI_DEPLOYMENT_ARCHITECTURE.md",
+            "architecture/SEI_PRODUCT_ACCESS_ARCHITECTURE.md",
             "contracts/CONTRACT_CATALOG.md",
-            "contracts/cognitive-method/SOZA_COGNITIVE_METHOD_v1alpha1.md",
+            "contracts/cognitive-method/SEI_COGNITIVE_METHOD_v1alpha1.md",
             "contracts/schemas/v1alpha1",
             "fixtures/contracts/v1alpha1",
             "fixtures/external/e3a",
@@ -367,7 +367,7 @@ def main() -> int:
             print(f"release candidate report: {report_path}")
 
         print(
-            f"PASS: SOZA v{version} release candidate policy; "
+            f"PASS: SEI v{version} release candidate policy; "
             f"commit={report['source_commit_sha']} tree={report['source_tree_sha']} "
             f"plan_scope<={plan_issue_scope_max} deferred={deferred}"
         )

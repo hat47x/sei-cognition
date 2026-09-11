@@ -1,11 +1,11 @@
-# SOZA Product Journey Requirement Composition
+# SEI Product Journey Requirement Composition
 
 更新日: 2026-09-01  
 状態: **Current Product Integration Requirement Analysis**
 
 ## 1. この文書の役割
 
-この文書は、`product/definition/SOZA_PRODUCT_SHAPE.md`で定めたMinimum Usable Product Shapeを、current REQ-0001〜REQ-0022とSCN-0001〜SCN-0017へ照合し、**新しいRequirementが本当に必要か、それとも既存Requirementを横断するAcceptanceが不足しているのか**を整理するための分析文書です。
+この文書は、`product/definition/SEI_PRODUCT_SHAPE.md`で定めたMinimum Usable Product Shapeを、current REQ-0001〜REQ-0022とSCN-0001〜SCN-0017へ照合し、**新しいRequirementが本当に必要か、それとも既存Requirementを横断するAcceptanceが不足しているのか**を整理するための分析文書です。
 
 新しいRequirementやAcceptance Scenarioの意味上の正本を、この文書だけで追加しません。
 
@@ -118,7 +118,7 @@ Product Journey用に新しいDecision概念は不要です。
 - SCN-0011
 - SCN-0014
 
-SOZA自身がworkflow / agent runtimeを所有しないことと両立します。
+SEI自身がworkflow / agent runtimeを所有しないことと両立します。
 
 ### 3.6 実行結果を次の認知・判断へ戻す
 
@@ -245,7 +245,7 @@ AIがMethod Application / Recommendationを担い、人間または明示的に�
 
 ### no-execution path
 
-Decisionまでで完結し外部実行を行わない。SOZAの価値がExecutionの存在に依存しないことを確認する。
+Decisionまでで完結し外部実行を行わない。SEIの価値がExecutionの存在に依存しないことを確認する。
 
 ## 7. semantic end-to-end harnessの最小仕様
 

@@ -105,7 +105,7 @@ extracted artifact process B
 
 reference executableの`version` / `save` / `inspect`はPackaging acceptance用の管理入口である。
 
-これらをInquiry、Observation、Recommendation、Decision等を扱う正式なSOZA CLIへ昇格させない。
+これらをInquiry、Observation、Recommendation、Decision等を扱う正式なSEI CLIへ昇格させない。
 
 `runtime/package/reference/README.md`でもこの境界を明示した。
 

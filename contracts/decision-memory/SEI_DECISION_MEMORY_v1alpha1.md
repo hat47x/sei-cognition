@@ -1,4 +1,4 @@
-# SOZA Decision Memory Contract v1alpha1
+# SEI Decision Memory Contract v1alpha1
 
 contract_id: `sei.decision-memory`  
 version: `v1alpha1`  
@@ -190,7 +190,7 @@ Decision fixture PASS
 
 - REQ-0005, REQ-0006, REQ-0008, REQ-0014, REQ-0015, REQ-0017
 - ADR-0010, ADR-0011, ADR-0015, ADR-0016, ADR-0021, ADR-0022
-- `contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md`
+- `contracts/semantic-reference/SEI_SEMANTIC_REFERENCE_v1alpha1.md`
 
 ## 15. Natural Japanese review
 

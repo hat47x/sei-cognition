@@ -92,7 +92,7 @@ def sanitized_environment() -> dict[str, str]:
 
 
 def repository_observation_environment() -> dict[str, str]:
-    """SOZA repository観測を親shellのGit内部指定から分離する。"""
+    """SEI repository観測を親shellのGit内部指定から分離する。"""
 
     environment = os.environ.copy()
     for key in tuple(environment):
@@ -124,7 +124,7 @@ def prepare_result_output(path: Path) -> Path:
     resolved = canonical_path(requested)
     if is_within(resolved, SOZA_ROOT):
         raise ValueError(
-            "focused check result outputはSOZA repository外へ保存してください: "
+            "focused check result outputはSEI repository外へ保存してください: "
             f"{resolved}"
         )
     if resolved.exists():
@@ -386,7 +386,7 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         help=(
             "focused regression結果を保存する新規JSON path。"
-            "SOZA repository外の既存parent directory配下を指定します。"
+            "SEI repository外の既存parent directory配下を指定します。"
         ),
     )
     return parser

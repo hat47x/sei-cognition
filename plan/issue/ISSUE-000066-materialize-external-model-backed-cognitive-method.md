@@ -8,25 +8,25 @@ Updated: 2026-09-02
 
 ## 背景
 
-ISSUE-000064では、固定revisionのKJ AtlasをSOZAとは別processとして起動し、`POST /ai/suggest-card-groups`を実行した結果を、SOZAのCognitive Method Applicationと`not_verified`なMethod outputへ写像するE3b-M1aを実証しました。
+ISSUE-000064では、固定revisionのKJ AtlasをSEIとは別processとして起動し、`POST /ai/suggest-card-groups`を実行した結果を、SEIのCognitive Method Applicationと`not_verified`なMethod outputへ写像するE3b-M1aを実証しました。
 
 ただし、M1aでKJ Atlasが接続したmodel endpointはdeterministic model stubです。外部Cognitive Methodのprocess境界は実在化できていますが、実際の生成modelを介したMethod実行まではEvidence化していません。
 
 本IssueではM1aの境界を保ったままmodel transportだけを実modelへ交換し、E3b-M1bとして次の経路を最小範囲で実証します。
 
 ```text
-SOZAのsynthetic input
+SEIのsynthetic input
   → 固定revisionのKJ Atlas process
   → KJ AtlasのLLM provider boundary
   → 別processのactual model inference
   → KJ AtlasのMethod output
-  → SOZA Cognitive Method Application
+  → SEI Cognitive Method Application
   → opaque / not_verified Method output
 ```
 
 ## 目的
 
-固定revisionのKJ Atlasがactual model inferenceを伴って実行され、その結果を既存のSOZA Method境界を壊さずに取り込めることをScoped Executable Evidenceとして残します。
+固定revisionのKJ Atlasがactual model inferenceを伴って実行され、その結果を既存のSEI Method境界を壊さずに取り込めることをScoped Executable Evidenceとして残します。
 
 ここで確認するのは「実modelを含む外部Method executionの接続性」です。model出力の品質、KJ法としての妥当性、RecommendationやDecisionの正しさは評価対象にしません。
 
@@ -63,8 +63,8 @@ modelをpullしただけでは実推論のEvidenceとしません。Method reque
 - [ ] request後のKJ Atlas provider call countが増加する。
 - [ ] request後には対象modelがOllamaでload済みである。
 - [ ] held cardがKJ AtlasのMethod outputで`excludedCardIds`へ保持される。
-- [ ] actual Method outputを既存のSOZA `livemethodintegration`境界へ入力できる。
-- [ ] SOZA側では結果をopaque / `not_verified` outputとして保持し、Recommendation / Decisionへ自動昇格させない。
+- [ ] actual Method outputを既存のSEI `livemethodintegration`境界へ入力できる。
+- [ ] SEI側では結果をopaque / `not_verified` outputとして保持し、Recommendation / Decisionへ自動昇格させない。
 - [ ] source repository / commit / entry point / result digestのProvenance境界を維持する。
 - [ ] 対象CIがsuccessする。
 
@@ -86,7 +86,7 @@ M1bでexternal model invocationが成立しても、次は主張しません。
 - Method outputがRecommendationであること
 - RecommendationやDecisionが正しいこと
 - production向けmodel runtime / credential運用が成立したこと
-- OllamaまたはQwen2.5がSOZAやKJ Atlasの標準Provider / 標準modelであること
+- OllamaまたはQwen2.5がSEIやKJ Atlasの標準Provider / 標準modelであること
 - 固定KJ Atlas内の`deepseek`というtransport名が実際のProvider主体を意味すること
 - v0.2.0のsupported scopeがE3b-M1bまで拡張されたこと
 - Release / Operational / Adoption / Outcome Evidence
@@ -95,10 +95,10 @@ M1bでexternal model invocationが成立しても、次は主張しません。
 
 本Issueでは新しいStable Requirement / Scenarioを追加しません。
 
-REQ-0001、REQ-0004、REQ-0005、REQ-0021、およびSCN-0005、SCN-0014、SCN-0018が保持している既存境界の上で、M1aより一段だけ実在性の高いEvidenceを追加します。実model接続のための特定runtime、model ID、transport実装をSOZA Universal Coreの要件へ昇格させません。
+REQ-0001、REQ-0004、REQ-0005、REQ-0021、およびSCN-0005、SCN-0014、SCN-0018が保持している既存境界の上で、M1aより一段だけ実在性の高いEvidenceを追加します。実model接続のための特定runtime、model ID、transport実装をSEI Universal Coreの要件へ昇格させません。
 
 ## 完了条件
 
-固定revisionのKJ Atlasから別processのactual model inferenceを一度以上実行し、そのactual Method outputを既存SOZA Method mappingへ通したことをCI Evidenceで確認できた時点でResolvedとします。
+固定revisionのKJ Atlasから別processのactual model inferenceを一度以上実行し、そのactual Method outputを既存SEI Method mappingへ通したことをCI Evidenceで確認できた時点でResolvedとします。
 
 model processの起動やmodelのpullだけでは完了としません。actual Method requestがmodel推論を経て成功しない場合は、Not Yet Verifiedの事実をそのまま残します。

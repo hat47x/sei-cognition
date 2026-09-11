@@ -16,7 +16,7 @@ import verify_tei_execution_source_identity as source_identity
 STOP_LINE = (
     "independent exact revision B checkout prepared and source identity verified "
     "!= revision B build PASS != Provider Plan execution PASS "
-    "!= SOZA Adapter compatibility PASS != ISSUE-000072 Resolved"
+    "!= SEI Adapter compatibility PASS != ISSUE-000072 Resolved"
 )
 
 

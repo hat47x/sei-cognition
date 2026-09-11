@@ -7,7 +7,7 @@ Updated: 2026-08-31
 
 ## Goal
 
-Capability DefinitionとProviderの間に、SOZA共通の`CapabilityRealization`または`CapabilityOffering`を置く必要があるかを判断する。
+Capability DefinitionとProviderの間に、SEI共通の`CapabilityRealization`または`CapabilityOffering`を置く必要があるかを判断する。
 
 ## Background
 
@@ -30,7 +30,7 @@ Provider固有の実現形はPlugin、Provider Binding、external process、SaaS
 
 ## Resolution
 
-ADR-0013で、**Universal `CapabilityRealization` / `CapabilityOffering`を現時点ではSOZA Coreへ追加しない**と決定した。
+ADR-0013で、**Universal `CapabilityRealization` / `CapabilityOffering`を現時点ではSEI Coreへ追加しない**と決定した。
 
 Provider固有のOffering、deployment、contract、availability等はProvider / Profile側で扱い、Capability Definitionへ混ぜない。
 

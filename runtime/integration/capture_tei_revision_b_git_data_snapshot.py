@@ -56,7 +56,7 @@ def _prepare_snapshot_output(path: Path, source_output: Path) -> Path:
         )
     if output == prepare.SOZA_ROOT or prepare.SOZA_ROOT in output.parents:
         raise ValueError(
-            f"TEI Git Data snapshotをSOZA repository配下には置けません: {output}"
+            f"TEI Git Data snapshotをSEI repository配下には置けません: {output}"
         )
     return output
 

@@ -7,7 +7,7 @@ import (
 	"github.com/hat47x/soza/runtime/go/semanticruntime"
 )
 
-// Manifest describes one evaluation-only Product Journey over existing SOZA
+// Manifest describes one evaluation-only Product Journey over existing SEI
 // Contracts. It is not a Universal Contract and does not become canonical
 // product state. The durable meaning remains in the referenced records.
 type Manifest struct {

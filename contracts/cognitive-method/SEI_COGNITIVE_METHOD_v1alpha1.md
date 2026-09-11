@@ -1,4 +1,4 @@
-# SOZA Cognitive Method Contract v1alpha1
+# SEI Cognitive Method Contract v1alpha1
 
 contract_id: `sei.cognitive-method`  
 version: `v1alpha1`  
@@ -7,7 +7,7 @@ version: `v1alpha1`
 
 ## 1. 目的
 
-このContractは、SOZAで用いるCognitive Methodについて、**方法そのもの、現在の実現方法、特定場面での適用記録を分けたまま交換・再構成するための意味契約**を定めます。
+このContractは、SEIで用いるCognitive Methodについて、**方法そのもの、現在の実現方法、特定場面での適用記録を分けたまま交換・再構成するための意味契約**を定めます。
 
 主な対象はREQ-0003、REQ-0004、REQ-0015、REQ-0016、REQ-0021、SCN-0005、SCN-0015です。
 
@@ -283,8 +283,8 @@ Method fixture PASS
 - REQ-0003, REQ-0004, REQ-0015, REQ-0016, REQ-0021
 - SCN-0005, SCN-0015
 - ADR-0008, ADR-0009, ADR-0017, ADR-0021, ADR-0022, ADR-0025
-- `contracts/semantic-reference/SOZA_SEMANTIC_REFERENCE_v1alpha1.md`
-- `contracts/decision-memory/SOZA_DECISION_MEMORY_v1alpha1.md`
+- `contracts/semantic-reference/SEI_SEMANTIC_REFERENCE_v1alpha1.md`
+- `contracts/decision-memory/SEI_DECISION_MEMORY_v1alpha1.md`
 - `contracts/CONTRACT_CATALOG.md`
 - `contracts/TRACEABILITY.md`
 - `contracts/CONFORMANCE_EVIDENCE_2026-08-31.md`

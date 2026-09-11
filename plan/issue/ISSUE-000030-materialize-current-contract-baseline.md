@@ -1,4 +1,4 @@
-# ISSUE-000030: current SOZA Contract baselineをactual repositoryへ実体化する
+# ISSUE-000030: current SEI Contract baselineをactual repositoryへ実体化する
 
 Status: **Resolved**  
 Priority: **2**  

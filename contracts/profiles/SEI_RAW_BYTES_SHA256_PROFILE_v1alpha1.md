@@ -1,4 +1,4 @@
-# SOZA Raw Bytes + SHA-256 Representation Profile v1alpha1
+# SEI Raw Bytes + SHA-256 Representation Profile v1alpha1
 
 Profile ID: `sei.raw-bytes+sha256/v1alpha1`  
 Status: **Current v1alpha1 — Fixture-scoped Executable Conformance PASS**  

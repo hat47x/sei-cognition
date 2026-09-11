@@ -7,7 +7,7 @@ Updated: 2026-09-01
 
 ## Goal
 
-SOZA v0.1.0について、current Executable Evidenceを「release済み」と誤認せず、**どのcommit / artifact / gate結果が揃えばrelease candidateと呼べるか、さらに何が起きた後にだけRelease Evidenceへ昇格できるか**を具体化する。
+SEI v0.1.0について、current Executable Evidenceを「release済み」と誤認せず、**どのcommit / artifact / gate結果が揃えばrelease candidateと呼べるか、さらに何が起きた後にだけRelease Evidenceへ昇格できるか**を具体化する。
 
 ```text
 release candidate gate PASS

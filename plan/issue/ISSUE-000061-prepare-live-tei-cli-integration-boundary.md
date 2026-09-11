@@ -7,9 +7,9 @@ Updated: 2026-09-02
 
 ## Goal
 
-PMS-06のE3b-P2「live TEI process / service integration」へ進む前段として、**SOZAがTEIの取得方法やprivate repositoryのcredential方式を意味契約へ取り込まず、外部から与えられた`tei` executableを別OS processとして呼び、そのProvider固有JSONをcurrent Capability Observationへ戻せる境界**を実体化する。
+PMS-06のE3b-P2「live TEI process / service integration」へ進む前段として、**SEIがTEIの取得方法やprivate repositoryのcredential方式を意味契約へ取り込まず、外部から与えられた`tei` executableを別OS processとして呼び、そのProvider固有JSONをcurrent Capability Observationへ戻せる境界**を実体化する。
 
-このIssueでは、実TEIをSOZA CIから取得・実行できたことまでは完了条件にしない。TEI repositoryはprivateであり、SOZAの標準`GITHUB_TOKEN`に別repositoryのread権限があるとは仮定できないためである。
+このIssueでは、実TEIをSEI CIから取得・実行できたことまでは完了条件にしない。TEI repositoryはprivateであり、SEIの標準`GITHUB_TOKEN`に別repositoryのread権限があるとは仮定できないためである。
 
 ```text
 E3b-P1 public live Provider service
@@ -32,9 +32,9 @@ ISSUE-000060では、public GitHub REST APIを実際に呼び、live responseか
 - `deployment-reconcile`
 - `deployment-simulate`
 
-とくに`deployment-provider-plan`は、durable deployment runとenvironmentからExecutor / Observation / Evidence Providerのroutingを導出し、JSONで返す既存面である。SOZA向けに新しいTEI protocolを作らず、Provider固有の実行面として扱える。
+とくに`deployment-provider-plan`は、durable deployment runとenvironmentからExecutor / Observation / Evidence Providerのroutingを導出し、JSONで返す既存面である。SEI向けに新しいTEI protocolを作らず、Provider固有の実行面として扱える。
 
-一方、`hat47x/tei-platform`はprivate repositoryである。SOZA CIから暗黙にcloneできることを前提にすると、credential方式がintegration semanticsへ混入し、再現性も利用環境依存になる。
+一方、`hat47x/tei-platform`はprivate repositoryである。SEI CIから暗黙にcloneできることを前提にすると、credential方式がintegration semanticsへ混入し、再現性も利用環境依存になる。
 
 そのため、このIssueでは次を分離する。
 
@@ -42,16 +42,16 @@ ISSUE-000060では、public GitHub REST APIを実際に呼び、live responseか
 TEI executable acquisition / credential
   != TEI process invocation
   != Provider-specific JSON interpretation
-  != SOZA Capability Observation
+  != SEI Capability Observation
 ```
 
 ## 対象surface
 
 最初の境界ではTEI CLIの`deployment-provider-plan`を対象にする。
 
-SOZA側は、TEI executableのpathとTEI固有入力pathを明示的に受け取る。repository clone、GitHub token、binary distributionはAdapterの外側に置く。
+SEI側は、TEI executableのpathとTEI固有入力pathを明示的に受け取る。repository clone、GitHub token、binary distributionはAdapterの外側に置く。
 
-TEIから受け取るJSONはProvider固有DTOとして閉じ、SOZA Universal Contractへそのfield setを追加しない。
+TEIから受け取るJSONはProvider固有DTOとして閉じ、SEI Universal Contractへそのfield setを追加しない。
 
 最初のmappingでは、少なくとも次を観測できる。
 
@@ -144,11 +144,11 @@ Release Candidate Gate Run `33572094580`はGate 1〜8がsuccessし、Openだっ�
 
 ## Non-goals / 未検証範囲
 
-- SOZA CIからprivate TEI repositoryを自動cloneすること
+- SEI CIからprivate TEI repositoryを自動cloneすること
 - cross-repository credential方式を標準化すること
 - TEI binaryの配布・署名方式を決めること
-- TEI CLI schemaをSOZA Universal Contractにすること
-- TEIをSOZAの特別扱いされたProvider ontologyにすること
+- TEI CLI schemaをSEI Universal Contractにすること
+- TEIをSEIの特別扱いされたProvider ontologyにすること
 - actual TEI CLI executionのEvidenceをこのIssueだけで成立させること
 - E3b-P2全体の完了
 - external Cognitive Methodのlive実行
@@ -190,4 +190,4 @@ Release Candidate Gate Run `33572094580`はGate 1〜8がsuccessし、Openだっ�
 
 ## Natural Japanese review
 
-PMS-06、ISSUE-000057 / 000058 / 000060、current Capability Observation Contract、Provider Adapter、`hat47x/tei-platform`の`cmd/tei`とReference Workspace、TEI CIで実行されている既存CLI面、今回のhelper subprocess testを照合した。TEIには実際に呼び出せるJSON CLI面がある一方、private repository取得をSOZAの意味契約や必須CIへ暗黙に持ち込むべきではないため、executable acquisition、credential、process invocation、Provider固有JSON解釈、SOZA mappingを分離した。今回成立したのは外部実行ファイルを受け入れる境界のScoped Executable Evidenceであり、helper processをactual TEI executionへ読み替えていない。E3b-P2は明示的に未検証のまま残す。意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+PMS-06、ISSUE-000057 / 000058 / 000060、current Capability Observation Contract、Provider Adapter、`hat47x/tei-platform`の`cmd/tei`とReference Workspace、TEI CIで実行されている既存CLI面、今回のhelper subprocess testを照合した。TEIには実際に呼び出せるJSON CLI面がある一方、private repository取得をSEIの意味契約や必須CIへ暗黙に持ち込むべきではないため、executable acquisition、credential、process invocation、Provider固有JSON解釈、SEI mappingを分離した。今回成立したのは外部実行ファイルを受け入れる境界のScoped Executable Evidenceであり、helper processをactual TEI executionへ読み替えていない。E3b-P2は明示的に未検証のまま残す。意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。

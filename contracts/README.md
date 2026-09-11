@@ -1,11 +1,11 @@
-# SOZA Contracts
+# SEI Contracts
 
 更新日: 2026-09-05  
 状態: **Current Contract Baseline / Scoped Executable Evidence Available / v0.2.0 Release Evidence Reflected**
 
 ## 1. このディレクトリの役割
 
-`contracts/`は、SOZAのArchitectureで定めた意味境界のうち、複数の実装、Provider、Storage、version、componentをまたいで、**同じ意味として交換・検証する必要がある境界**を規範化します。
+`contracts/`は、SEIのArchitectureで定めた意味境界のうち、複数の実装、Provider、Storage、version、componentをまたいで、**同じ意味として交換・検証する必要がある境界**を規範化します。
 
 ContractはArchitectureの説明文書でも、runtime実装そのものでもありません。
 
@@ -58,7 +58,7 @@ ADR-0023により、current/future Exact Binding向けの`v1alpha1`基線とし�
 - `sei.jcs+sha256/v1alpha1`
 - `sei.raw-bytes+sha256/v1alpha1`
 
-これらはcurrent Profileであり、SOZA Universal Core唯一のrepresentationではありません。historical M47 digest規則についてはISSUE-000034で、保持されている直接Evidenceから権威的に復元できないと整理しています。current Profile conformanceから旧方式を推定しません。
+これらはcurrent Profileであり、SEI Universal Core唯一のrepresentationではありません。historical M47 digest規則についてはISSUE-000034で、保持されている直接Evidenceから権威的に復元できないと整理しています。current Profile conformanceから旧方式を推定しません。
 
 ## 5. current Executable Evidence
 
@@ -128,7 +128,7 @@ Adapter output != Decision != Authority != Execution
 
 synthetic Adapterに加え、E3b-P1 public live ProviderとE3b-P2 revision A fixed-artifact actual TEI CLIで、Provider固有情報をCapability Observation境界へ戻すScoped Executable Evidenceがあります。
 
-一方、ISSUE-000072のTEI revision B actual CLI / Provider Plan / current SOZA Adapter compatibilityはNot Yet Verifiedです。revision Aやrepository-side runnerの存在だけから任意TEI version互換性を主張しません。
+一方、ISSUE-000072のTEI revision B actual CLI / Provider Plan / current SEI Adapter compatibilityはNot Yet Verifiedです。revision Aやrepository-side runnerの存在だけから任意TEI version互換性を主張しません。
 
 ## 8. historical Contract
 

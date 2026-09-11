@@ -118,7 +118,7 @@ class RuntimeVersionExchangeLocalChecksTest(unittest.TestCase):
             outside = root / "focused-result.json"
             with patch.object(local_checks, "SOZA_ROOT", soza):
                 self.assertEqual(outside, local_checks.prepare_result_output(outside))
-                with self.assertRaisesRegex(ValueError, "SOZA repository外"):
+                with self.assertRaisesRegex(ValueError, "SEI repository外"):
                     local_checks.prepare_result_output(soza / "focused-result.json")
 
                 outside.write_text("existing\n", encoding="utf-8")

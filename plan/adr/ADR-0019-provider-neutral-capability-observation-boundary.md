@@ -6,17 +6,17 @@ Updated: 2026-08-31
 
 ## Context
 
-ADR-0012ではCapability DefinitionとCapability Observationを分離し、ADR-0013ではProvider固有のOffering / Binding / DeploymentをUniversal `CapabilityRealization`へ統合しないことを決めた。ADR-0014では、SOZAとTEIを別Product Boundaryとして維持することを定めた。
+ADR-0012ではCapability DefinitionとCapability Observationを分離し、ADR-0013ではProvider固有のOffering / Binding / DeploymentをUniversal `CapabilityRealization`へ統合しないことを決めた。ADR-0014では、SEIとTEIを別Product Boundaryとして維持することを定めた。
 
-SOZAがTEI、SaaS、人間、AI、外部組織等をCapability Providerとして扱うには、Provider内部の状態をすべて共通化しなくても、現在の利用可能性、条件、未確認点、Evidence等を読める必要がある。
+SEIがTEI、SaaS、人間、AI、外部組織等をCapability Providerとして扱うには、Provider内部の状態をすべて共通化しなくても、現在の利用可能性、条件、未確認点、Evidence等を読める必要がある。
 
-Provider固有SchemaをSOZAへ持ち込むとProvider Independenceを失う。逆に、Provider状態を単純な`available / unavailable`だけへ圧縮すると、Unknown、degraded state、部分的制約、Evidence、historical basisを失う。
+Provider固有SchemaをSEIへ持ち込むとProvider Independenceを失う。逆に、Provider状態を単純な`available / unavailable`だけへ圧縮すると、Unknown、degraded state、部分的制約、Evidence、historical basisを失う。
 
 ## Decision
 
-### 1. SOZAはProvider-neutralなObservation envelopeを所有する
+### 1. SEIはProvider-neutralなObservation envelopeを所有する
 
-SOZAが所有するのはProvider内部Schemaそのものではなく、Capability判断に必要な観測結果を外在化するための意味境界である。
+SEIが所有するのはProvider内部Schemaそのものではなく、Capability判断に必要な観測結果を外在化するための意味境界である。
 
 Observationは、必要に応じて次を参照できるようにする。
 
@@ -33,17 +33,17 @@ Observationは、必要に応じて次を参照できるようにする。
 
 Provider固有のApplication、Database、Environment、Release、Plugin、契約、API response等は、それぞれのProvider側の正本として維持する。
 
-SOZAは、それらを必要に応じてReference、Observation、Evidenceとして読む。
+SEIは、それらを必要に応じてReference、Observation、Evidenceとして読む。
 
 ```text
 Provider internal state
     ↓ Adapter / Mapping
-SOZA Capability Observation
+SEI Capability Observation
     ↓ matching / inquiry / review
 Recommendation or Decision
 ```
 
-Provider内部の構造をSOZA Universal Coreへ複製しない。
+Provider内部の構造をSEI Universal Coreへ複製しない。
 
 ### 3. Adapterは単なるformat変換ではなく解釈境界として扱う
 
@@ -97,7 +97,7 @@ Providerが内部topologyや契約情報を全量開示できない場合でも�
 
 内部詳細を開示しないこと自体を、信頼不足やCapability不存在へ自動変換しない。
 
-### 8. SOZAはProvider runtime authorityを取得しない
+### 8. SEIはProvider runtime authorityを取得しない
 
 Capability Observationを読めることは、Providerを操作するAuthorityを持つことを意味しない。
 
@@ -108,7 +108,7 @@ Observation access
   != Provider Execution
 ```
 
-SOZA DecisionからProvider実行へ進む場合は、それぞれのAuthorization / Policy / Provider境界を別途通る。
+SEI DecisionからProvider実行へ進む場合は、それぞれのAuthorization / Policy / Provider境界を別途通る。
 
 ## Current realization
 
@@ -136,7 +136,7 @@ synthetic Provider Adapterでは、異なるProvider-specific input schemaから
 
 ### Positive
 
-- Provider固有SchemaをSOZA Coreへ持ち込まず、Capability判断に必要な情報を扱える。
+- Provider固有SchemaをSEI Coreへ持ち込まず、Capability判断に必要な情報を扱える。
 - TEI、SaaS、人間、AI等を同じ意味境界へ接続しやすい。
 - Provider固有のUnknownや部分状態を失いにくい。
 - Adapterの解釈変更後も過去Decisionを再構成しやすい。

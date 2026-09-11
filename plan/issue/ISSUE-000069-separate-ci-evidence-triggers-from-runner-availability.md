@@ -8,9 +8,9 @@ Updated: 2026-09-03
 
 ## Goal
 
-GitHub Actionsのrunner割当など、repositoryの外側にある実行環境の問題と、SOZA repository内の検査設計上の問題を分けて扱えるようにする。
+GitHub Actionsのrunner割当など、repositoryの外側にある実行環境の問題と、SEI repository内の検査設計上の問題を分けて扱えるようにする。
 
-このIssueを開始した時点では、actual external Providerやactual modelを動かすworkflowを自動起動していた。そのため、PR差分の意味に応じて必要な実証だけを選び、runner未割当をSOZAのtest failureやProduct Evidence failureへ読み替えないことが中心課題だった。
+このIssueを開始した時点では、actual external Providerやactual modelを動かすworkflowを自動起動していた。そのため、PR差分の意味に応じて必要な実証だけを選び、runner未割当をSEIのtest failureやProduct Evidence failureへ読み替えないことが中心課題だった。
 
 現在はPR #70でGitHub Actions workflow群を`develop/v0.2.0`から外している。したがって、本Issueの最終状態では「current workflowを常時運用すること」ではなく、**実証責務と外部実行基盤の可用性を分離する原則を正本へ残し、将来Actions等を再導入するときの条件を明確にすること**を完了条件とする。
 
@@ -18,7 +18,7 @@ GitHub Actionsのrunner割当など、repositoryの外側にある実行環境�
 
 PR #60統合後、複数のGitHub Actions jobがほぼ同時にfailureした。通常のtest failureと異なり、問題になったjobの多くはcheckoutやtestへ到達せず、`runner_id = 0`、`steps = []`のまま終了していた。
 
-同じ時刻帯には`hat47x/tei-platform`でも類似の現象が見られた。そのため、SOZAのtest本文が失敗したとは判断しなかった。
+同じ時刻帯には`hat47x/tei-platform`でも類似の現象が見られた。そのため、SEIのtest本文が失敗したとは判断しなかった。
 
 一方、調査を進めるとrepository側にも改善点があった。外部実証workflowの`pull_request.paths`が責務より広く、scenario-localなtest変更だけでも複数の重い実証を選ぶ場合があった。また、Local Package Artifactも実際のbuild依存より広い範囲を監視していた。
 
@@ -149,7 +149,7 @@ Run `33700247624`では3 jobすべてがassignment前に終了した。
 - Windows Job `100477777950`: `runner_id = 0`, `steps = []`
 - macOS Job `100477777990`: `runner_id = 0`, `steps = []`
 
-これにより、当時の現象をLinux固有、Ollama固有、SOZA test本文固有とする説明は弱くなった。ただし、billing、quota、repository policy、GitHub service-side condition等の具体原因は確定していない。
+これにより、当時の現象をLinux固有、Ollama固有、SEI test本文固有とする説明は弱くなった。ただし、billing、quota、repository policy、GitHub service-side condition等の具体原因は確定していない。
 
 PR #68は診断目的だけで使用し、workflowを`develop/v0.2.0`へ統合していない。
 
@@ -185,7 +185,7 @@ old workflow set removed from current baseline
 5. docs-only独立PRではactual external executionを選ばないことをPR #64で確認した。**完了**
 6. Local Package Artifactを実際のbuild依存へ寄せ、正側・負側の選択を確認した。**完了**
 7. `semanticruntime`共有依存の正側選択をPR #65で確認した。**完了**
-8. runner未割当をSOZA Product / Evidence failureとして誤記しない境界を確立した。**完了**
+8. runner未割当をSEI Product / Evidence failureとして誤記しない境界を確立した。**完了**
 9. cross-OS probeにより、当時のfailureが3 OS共通でrunner assignment前に発生していたことを確認した。**完了**
 10. PR #61由来のworkflow群をrunner上で全面回帰する条件は、PR #70で当該workflow群をcurrent baselineから外したため**現行方針では非適用**とする。未実行だった回帰をPASSへ読み替えない。
 

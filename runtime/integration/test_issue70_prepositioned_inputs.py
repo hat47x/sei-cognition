@@ -146,7 +146,7 @@ class RuntimeExchangePrepositionedInputPreparationTest(unittest.TestCase):
                 patch.object(subject, "download_archive") as download,
                 patch.object(subject, "prepare_model_store") as prepare_model,
             ):
-                with self.assertRaisesRegex(ValueError, "SOZA repository配下"):
+                with self.assertRaisesRegex(ValueError, "SEI repository配下"):
                     subject.prepare_prepositioned_inputs(soza_root / "inputs")
             download.assert_not_called()
             prepare_model.assert_not_called()

@@ -7,7 +7,7 @@ Updated: 2026-08-31
 
 ## Goal
 
-Portable Exact Bindingを、Go固有の実装やSOZA独自canonicalizationだけに依存せず、複数言語・複数representationで検証可能な仕組みへ安定化する。
+Portable Exact Bindingを、Go固有の実装やSEI独自canonicalizationだけに依存せず、複数言語・複数representationで検証可能な仕組みへ安定化する。
 
 本Issueでは、**current / future bindingに使用するRepresentation Profile**を対象とする。
 
@@ -26,10 +26,10 @@ sei.jcs+sha256/v1alpha1
 Definition:
 
 ```text
-contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md
+contracts/profiles/SEI_JCS_SHA256_PROFILE_v1alpha1.md
 ```
 
-canonicalizationの正本はRFC 8785 JCSとし、SOZA独自canonical JSON algorithmをstable authorityにはしない。
+canonicalizationの正本はRFC 8785 JCSとし、SEI独自canonical JSON algorithmをstable authorityにはしない。
 
 SHA-256は本Profile versionが所有し、Universal Coreの唯一のhash algorithmにはしない。
 
@@ -44,7 +44,7 @@ sei.raw-bytes+sha256/v1alpha1
 Definition:
 
 ```text
-contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md
+contracts/profiles/SEI_RAW_BYTES_SHA256_PROFILE_v1alpha1.md
 ```
 
 このProfileは、明示されたbytesへcanonicalizationを行わず直接SHA-256を適用する。
@@ -78,7 +78,7 @@ current Go probeでは`github.com/gowebpki/jcs`を使用するが、Profileの�
 GitHub Actionsではcommit SHA `1a4242a66e1a8e03d7458324d0bc95c327527cbb`を固定し、Go module resolver上では`github.com/gowebpki/jcs v1.0.1`へ解決された。
 
 ```text
-RFC 8785 + SOZA Profile Definition
+RFC 8785 + SEI Profile Definition
   = Profile authority
 
 Go library

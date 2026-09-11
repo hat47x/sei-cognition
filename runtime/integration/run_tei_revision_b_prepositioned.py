@@ -30,7 +30,7 @@ MAX_STAGE_OUTPUT = 16 * 1024
 SOZA_ROOT = Path(__file__).resolve().parents[2]
 STOP_LINE = (
     "prepositioned exact-B bundle produced with exact-A reference input "
-    "!= SOZA Adapter compatibility verified != TEI version exchange PASS "
+    "!= SEI Adapter compatibility verified != TEI version exchange PASS "
     "!= Operational Evidence"
 )
 
@@ -266,7 +266,7 @@ def _prepare_output_archive(
         )
     roots: list[tuple[str, Path]] = [
         ("revision B source checkout", source_repo),
-        ("SOZA repository", SOZA_ROOT),
+        ("SEI repository", SOZA_ROOT),
     ]
     if reference_source_repo is not None:
         roots.insert(1, ("revision A reference checkout", reference_source_repo))

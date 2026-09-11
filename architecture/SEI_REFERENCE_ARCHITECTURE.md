@@ -1,21 +1,21 @@
-# SOZA Reference Architecture
+# SEI Reference Architecture
 
 更新日: 2026-09-05  
 状態: **Current Reference Architecture Baseline — current Product / Contract / scoped Evidence reflected**
 
 ## 1. 目的
 
-この文書は、SOZAがProduct Valueを満たすために、どの意味を自ら保持し、どの境界をProfile、Provider、Adapter、Projection、Persistence等へ委ねるかを、current RequirementsとAccepted ADRから整理したReference Architectureです。
+この文書は、SEIがProduct Valueを満たすために、どの意味を自ら保持し、どの境界をProfile、Provider、Adapter、Projection、Persistence等へ委ねるかを、current RequirementsとAccepted ADRから整理したReference Architectureです。
 
 これはdeployment topology、microservice構成、Go package構成、database schema、固定workflowを定義する文書ではありません。
 
-SOZAのArchitectureを、**認知・判断・責任・来歴を失わないための意味境界の網**として記述します。
+SEIのArchitectureを、**認知・判断・責任・来歴を失わないための意味境界の網**として記述します。
 
 ## 2. Architectureを支配する原則
 
 ### 2.1 耐久的な意味を実現方式より先に置く
 
-現在のAI、Prompt、workflow、DB、UI、Providerの都合を、SOZAの恒久的な意味構造へ直接持ち込みません。
+現在のAI、Prompt、workflow、DB、UI、Providerの都合を、SEIの恒久的な意味構造へ直接持ち込みません。
 
 Coreへ置く候補は、少なくとも次を満たす必要があります。
 
@@ -54,7 +54,7 @@ Architecture concern != service != package != database
 
 ## 3. 全体像
 
-概念的には、SOZAを次の関係として読みます。
+概念的には、SEIを次の関係として読みます。
 
 ```text
 External Sources / Humans / AI / Organizations / Systems
@@ -86,7 +86,7 @@ External Sources / Humans / AI / Organizations / Systems
 
 ## 4. Durable Semantic Core concern
 
-SOZA自身が長期に守る中心は、特定の型名よりも**意味上の区別**です。
+SEI自身が長期に守る中心は、特定の型名よりも**意味上の区別**です。
 
 current Requirementsから、少なくとも次を失わない必要があります。
 
@@ -260,11 +260,11 @@ Capability Observationは、Providerや実現候補について観測した現�
 - Unknown / Conflict / Withheld context
 - mapping / adapter provenance
 
-TEI ApplicationやDatabase等の内部SchemaをSOZA Coreへコピーしません。
+TEI ApplicationやDatabase等の内部SchemaをSEI Coreへコピーしません。
 
 ### 8.3 Adapterは解釈境界でもある
 
-Provider internal stateからSOZA Capability Observationへのmappingは、単純なformat変換とは限りません。
+Provider internal stateからSEI Capability Observationへのmappingは、単純なformat変換とは限りません。
 
 ```text
 Provider state != Capability interpretation != Decision
@@ -274,7 +274,7 @@ mappingが重要なDecision basisになった場合、当時利用したmapping 
 
 current synthetic Provider Adapterは、この境界の限定的なExecutable Evidenceです。Provider A / B固有fieldをUniversal Capability Observationへ漏らさず、missing値を`false`や`0`へ捏造せず、mapping provenanceとsource state referenceを保持することを検査しています。
 
-さらに、E3b-P1ではpublic live Provider serviceをactualに呼び、E3b-P2 revision Aではfixed-artifact actual TEI CLIをSOZA Adapter境界へ接続するScoped Executable Evidenceがあります。ただし、これらはarbitrary Provider互換性やTEI revision B互換性を意味しません。ISSUE-000072のrevision B actual CLI / Provider Plan / current SOZA Adapter compatibilityはNot Yet Verifiedです。
+さらに、E3b-P1ではpublic live Provider serviceをactualに呼び、E3b-P2 revision Aではfixed-artifact actual TEI CLIをSEI Adapter境界へ接続するScoped Executable Evidenceがあります。ただし、これらはarbitrary Provider互換性やTEI revision B互換性を意味しません。ISSUE-000072のrevision B actual CLI / Provider Plan / current SEI Adapter compatibilityはNot Yet Verifiedです。
 
 ### 8.4 Matching
 
@@ -294,7 +294,7 @@ Choice専用のUniversal lifecycleを作らず、既存Decision Memoryを再利�
 
 ### 9.1 Responsibilityは文脈に結び付ける
 
-SOZA全体でGlobal Identity ontologyを要求せず、Decision、Requirement、Capability、Action、Review等の具体文脈で、誰または何が何を担ったかを参照します。
+SEI全体でGlobal Identity ontologyを要求せず、Decision、Requirement、Capability、Action、Review等の具体文脈で、誰または何が何を担ったかを参照します。
 
 ### 9.2 actor kindからAuthorityを推定しない
 
@@ -392,13 +392,13 @@ Result != Business Outcome != Assurance
 
 TLS / mTLS、OAuth / OIDC、message signing、encryption、replay protection、broker等のmechanicsはProvider-ownedとします。
 
-SOZAは必要に応じてverification / assurance / signature referenceを保持できます。
+SEIは必要に応じてverification / assurance / signature referenceを保持できます。
 
 ## 13. Provider / Adapter
 
 Providerは、Capability、Persistence、Authority、Transport、AI inference、workflow等の実現を担い得ます。
 
-SOZAはProviderを交換可能な境界として扱い、Provider-specific SDK stateやsession lifecycleをUniversal Coreへ持ち込みません。
+SEIはProviderを交換可能な境界として扱い、Provider-specific SDK stateやsession lifecycleをUniversal Coreへ持ち込みません。
 
 Adapterは、次を担い得ます。
 
@@ -414,7 +414,7 @@ current synthetic Adapter sliceは、異なるProvider-specific input shapeか�
 
 ## 14. Projection
 
-Projectionは、人間やAIがSOZAの意味資産を目的に応じて読むための表示・作業面です。
+Projectionは、人間やAIがSEIの意味資産を目的に応じて読むための表示・作業面です。
 
 例:
 
@@ -436,7 +436,7 @@ Projectionを削除・再構築しても、Decision、Provenance、Revision等�
 
 ## 15. Persistence
 
-SOZAはGit、RDB、object store、document DB、event sourcing等の一つをCoreへ固定しません。
+SEIはGit、RDB、object store、document DB、event sourcing等の一つをCoreへ固定しません。
 
 Persistence Providerが変わっても、少なくとも次のsemantic obligationsを守れることを求めます。
 
@@ -456,7 +456,7 @@ large binaryや外部Sourceをすべてinlineすることも要求しません�
 
 Evidenceが存在すること、Evidenceを特定Decisionのbasisとして用いたこと、Assuranceを付与したこと、世界のTruthであることを分けます。
 
-SOZA自身の開発Evidenceについても、Product Valueに従って次の5段階を分けます。
+SEI自身の開発Evidenceについても、Product Valueに従って次の5段階を分けます。
 
 - Design Evidence
 - Executable Evidence
@@ -517,7 +517,7 @@ Provider Execution
       ↓
 Result / Receipt
       ↓ imported as observation
-SOZA Inquiry / Decision review
+SEI Inquiry / Decision review
 ```
 
 Execution ResultをBusiness Outcomeへ自動昇格させません。
@@ -550,7 +550,7 @@ current Architectureから、独立versioningと相互運用上の合意が必�
 | Exact Binding Representation | `sei.jcs+sha256/v1alpha1` | Representation Profile fixture / Go probe |
 | Exact Binding Representation | `sei.raw-bytes+sha256/v1alpha1` | Representation Profile fixture / external artifact bindingで限定検証 |
 
-これらはcurrent baselineでAcceptedされた相互運用境界です。ただし、5 Contract familyや2 ProfileがSOZAの全意味領域を覆うとは主張しません。
+これらはcurrent baselineでAcceptedされた相互運用境界です。ただし、5 Contract familyや2 ProfileがSEIの全意味領域を覆うとは主張しません。
 
 Projection、Federation、Product Access Policy、Packaging layout等について、独立したportable semantic agreementが必要だと確認される前にUniversal Contractを先回りして追加しません。
 
@@ -589,7 +589,7 @@ Scoped Executable Evidence available
   != Adoption / Outcome Evidence
 ```
 
-ISSUE-000072のrevision B actual CLI / Provider Plan / current SOZA Adapter compatibilityはNot Yet Verifiedです。repository-side runner、identity verifier、toolchain分離、stage-aware diagnostics、Evidence output path guardが存在しても、それ自体をrevision B compatibility PASSへ読み替えません。
+ISSUE-000072のrevision B actual CLI / Provider Plan / current SEI Adapter compatibilityはNot Yet Verifiedです。repository-side runner、identity verifier、toolchain分離、stage-aware diagnostics、Evidence output path guardが存在しても、それ自体をrevision B compatibility PASSへ読み替えません。
 
 historical M47 digest mappingについてはISSUE-000034で、保持されている直接Evidenceから旧digest規則を権威的に復元できないと整理しています。current Profile conformanceから過去方式を推定しません。
 
@@ -626,10 +626,10 @@ AIや実行基盤が大幅に高度化しても、提案したこと、判断し
 
 ## 22. 関連文書
 
-- `../product/value/SOZA_PRODUCT_VALUE.md`
-- `../product/value/SOZA_VALUE_MODEL.md`
-- `../product/value/SOZA_VALUE_ACCEPTANCE.md`
-- `../product/value/SOZA_VALUE_TRACEABILITY.md`
+- `../product/value/SEI_PRODUCT_VALUE.md`
+- `../product/value/SEI_VALUE_MODEL.md`
+- `../product/value/SEI_VALUE_ACCEPTANCE.md`
+- `../product/value/SEI_VALUE_TRACEABILITY.md`
 - `../product/roadmap/PMS06_CURRENT_STATE_2026-09-05.md`
 - `../requirements/PRODUCT_REQUIREMENTS.md`
 - `../requirements/ACCEPTANCE_SCENARIOS.md`

@@ -7,13 +7,13 @@ Updated: 2026-09-01
 
 ## Goal
 
-SOZAの開発で、Product Value、期限を持たないProduct Milestone、未定領域の探索、Requirement化、Architecture / Implementationの順序を明確にし、上流文書をcurrent repositoryの正本として整備する。
+SEIの開発で、Product Value、期限を持たないProduct Milestone、未定領域の探索、Requirement化、Architecture / Implementationの順序を明確にし、上流文書をcurrent repositoryの正本として整備する。
 
 特に、まだ意味境界が十分に分かっていない領域を、実装都合だけでRequirementへ早期固定しない運用を明文化する。
 
 ## Background
 
-SOZAはProduct Value / Value Model / Product Shapeと、SCN-0018のend-to-end Product Journeyまで具体化し、fixture-scoped Executable Evidenceも得ている。
+SEIはProduct Value / Value Model / Product Shapeと、SCN-0018のend-to-end Product Journeyまで具体化し、fixture-scoped Executable Evidenceも得ている。
 
 一方、first usable Interaction、Packaging / Deployment、Identity / Authorization / Collaboration、実Realization / Providerをまたぐportability等は、まだ議論・実証を通して要件を精緻化する余地が大きい。
 
@@ -23,7 +23,7 @@ historical M48 / M49等の実装Milestoneだけでは、製品として次に何
 
 次をcurrent baselineとして整備した。
 
-1. `product/roadmap/SOZA_PRODUCT_MILESTONES.md`を追加し、Product ValueからOperational / Adoption Outcomeまでの製品成立段階を、期限なしのOutcome / Evidence基準で定義した。
+1. `product/roadmap/SEI_PRODUCT_MILESTONES.md`を追加し、Product ValueからOperational / Adoption Outcomeまでの製品成立段階を、期限なしのOutcome / Evidence基準で定義した。
 2. `plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`を追加し、Open Question → discussion / research / experiment → Candidate Requirement → stable Requirementの標準フローを定義した。
 3. Milestoneの箇条書きをそのままRequirementへ変換しないことを明示した。
 4. チャット上の議論は探索・統合に利用できるが、current正本はrepository文書へ戻すことを明示した。

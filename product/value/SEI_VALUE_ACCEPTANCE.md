@@ -1,15 +1,15 @@
-# SOZA Value Acceptance
+# SEI Value Acceptance
 
 更新日: 2026-08-31  
 状態: **Product Value Acceptance Baseline**
 
 ## 1. この文書の役割
 
-この文書は、`SOZA_VALUE_MODEL.md`で定義したV1〜V8を、Requirements、ADR、Architecture、Contract、Implementation、Test、Evidenceへ落とすときの受入れ境界を定めます。
+この文書は、`SEI_VALUE_MODEL.md`で定義したV1〜V8を、Requirements、ADR、Architecture、Contract、Implementation、Test、Evidenceへ落とすときの受入れ境界を定めます。
 
 Product Valueを単一の点数へ変換する文書ではありません。また、個別機能のtest caseをすべて列挙する文書でもありません。
 
-目的は、**「この設計・実装・運用はSOZAの価値を満たしている」と主張するとき、何を確認し、どの高さのEvidenceまで得られている必要があるか**を共通化することです。
+目的は、**「この設計・実装・運用はSEIの価値を満たしている」と主張するとき、何を確認し、どの高さのEvidenceまで得られている必要があるか**を共通化することです。
 
 ## 2. Acceptanceの基本原則
 
@@ -66,7 +66,7 @@ Design Evidence
 
 ### 2.4 運用成功と利用者価値を分ける
 
-SOZAが本番環境で安定して動作し、Contractに沿って記録を保存できたとしても、それだけでProduct Valueが利用者に届いたとは判断しません。
+SEIが本番環境で安定して動作し、Contractに沿って記録を保存できたとしても、それだけでProduct Valueが利用者に届いたとは判断しません。
 
 たとえば、次は別の問いです。
 
@@ -298,11 +298,11 @@ Unknown、Conflict、Hypothesis、observation gap等を、便宜上の確定値�
 
 ### 価値
 
-workflow、agent runtime、TEI等の実行基盤が置き換わっても、SOZAの判断記憶と意味構造が存続すること。
+workflow、agent runtime、TEI等の実行基盤が置き換わっても、SEIの判断記憶と意味構造が存続すること。
 
 ### Design Acceptance
 
-- execution lifecycleをSOZAのUniversal ontologyへ過剰に固定しない。
+- execution lifecycleをSEIのUniversal ontologyへ過剰に固定しない。
 - Execution ProviderとDecision Memoryの正本を分ける。
 - provider-specific runtime detailをReference / Profile / Adapter等へ隔離できる。
 
@@ -313,13 +313,13 @@ workflow、agent runtime、TEI等の実行基盤が置き換わっても、SOZA�
 
 ### Operational / Outcomeで確認したいこと
 
-- 実行基盤の更新・交換・廃止が、SOZAの意味資産を巻き込んで破壊しない。
+- 実行基盤の更新・交換・廃止が、SEIの意味資産を巻き込んで破壊しない。
 - 実行基盤から独立していることが、長期保守、移行、再利用、ロックイン回避に実際に寄与する。
 
 ### Failure examples
 
 - workflow engineのrun IDがDecision identityの唯一の根拠になる。
-- TEI deployment schemaがSOZAを利用するための必須Universal schemaになる。
+- TEI deployment schemaがSEIを利用するための必須Universal schemaになる。
 - Provider廃止によりDecision historyが読めなくなる。
 
 ## 11. Cross-value acceptance
@@ -370,17 +370,17 @@ Requirementsを作るときは、Product Valueの文章をそのまま機能要�
 
 current repositoryには、Product / Requirements / Architecture / ContractのDesign baselineがあります。また、Contract v1alpha1の一部についてはschema、fixture、semantic validator、GitHub Actionsによるfixture-scoped Executable Evidenceがあります。
 
-これはSOZA全体のExecutable Acceptanceが完了したことを意味しません。Contract以外のRequirement、runtime integration、stable Representation Profile等には未検証領域が残ります。
+これはSEI全体のExecutable Acceptanceが完了したことを意味しません。Contract以外のRequirement、runtime integration、stable Representation Profile等には未検証領域が残ります。
 
 さらに、current release、実運用、利用者・組織へのOutcomeについては、それぞれ別のEvidenceが必要です。
 
 ## 15. 関連文書
 
-- `product/value/SOZA_PRODUCT_VALUE.md`
-- `product/value/SOZA_VALUE_MODEL.md`
-- `product/value/SOZA_VALUE_TRACEABILITY.md`
-- `product/vision/SOZA_PRODUCT_VISION.md`
-- `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
+- `product/value/SEI_PRODUCT_VALUE.md`
+- `product/value/SEI_VALUE_MODEL.md`
+- `product/value/SEI_VALUE_TRACEABILITY.md`
+- `product/vision/SEI_PRODUCT_VISION.md`
+- `product/principles/SEI_PRODUCT_PRINCIPLES.md`
 - `requirements/PRODUCT_REQUIREMENTS.md`
 - `requirements/ACCEPTANCE_SCENARIOS.md`
 - `architecture/TRACEABILITY.md`

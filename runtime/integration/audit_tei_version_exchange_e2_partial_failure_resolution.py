@@ -202,7 +202,7 @@ def audit_partial_failure(
     c4 = base_audit._criterion(
         4,
         base_audit.BLOCKED,
-        "revision B actual E2が成立していないためE3 SOZA Adapter compatibilityへ到達していません",
+        "revision B actual E2が成立していないためE3 SEI Adapter compatibilityへ到達していません",
         e3IntentionallyNotRun=axis.get("e3IntentionallyNotRun"),
     )
     c5 = base_audit._a_unchanged(historical)
@@ -270,7 +270,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "actual revision B E2 partial failure reportをISSUE-000072 Resolution 1〜8へ対応付けます。"
-            "build failureをResolved候補やSOZA Adapter incompatibilityへ昇格させません。"
+            "build failureをResolved候補やSEI Adapter incompatibilityへ昇格させません。"
         ),
         allow_abbrev=False,
     )

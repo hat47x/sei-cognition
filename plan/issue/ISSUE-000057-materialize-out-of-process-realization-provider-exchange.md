@@ -7,7 +7,7 @@ Updated: 2026-09-01
 
 ## Goal
 
-PMS-06について、同一process内のsynthetic Adapterやtyped Contractの検査から一段進み、**SOZA runtimeとは別のOS processとして動くCognitive Method RealizationとProvider state sourceを交換しても、同じcanonicalな判断記憶を保てること**をreference probeで確認する。
+PMS-06について、同一process内のsynthetic Adapterやtyped Contractの検査から一段進み、**SEI runtimeとは別のOS processとして動くCognitive Method RealizationとProvider state sourceを交換しても、同じcanonicalな判断記憶を保てること**をreference probeで確認する。
 
 production AI、外部SaaS、TEIをCI必須依存にはせず、まずprocess boundaryそのものを実証する。
 
@@ -16,7 +16,7 @@ production AI、外部SaaS、TEIをCI必須依存にはせず、まずprocess bo
 `runtime/go/realizationprobe`と二つのreference executableを実体化した。
 
 ```text
-SOZA canonical runtime
+SEI canonical runtime
         │
         ├─ process call ─> Method Realization A / B
         │                    │
@@ -115,7 +115,7 @@ E1 Contract / in-process synthetic
 
 今回のprobeによりE2にはScoped Executable Evidenceが成立した。
 
-一方、reference executableはSOZA repository内でbuildする評価用Realizationであり、実AI、実SaaS、TEI production instanceではない。したがってE3 / E4は引き続き未検証である。
+一方、reference executableはSEI repository内でbuildする評価用Realizationであり、実AI、実SaaS、TEI production instanceではない。したがってE3 / E4は引き続き未検証である。
 
 ## Non-goals / 未検証範囲
 
@@ -163,4 +163,4 @@ E1 Contract / in-process synthetic
 
 ## Natural Japanese review
 
-PMS-06、`product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`、REQ-0001 / 0004 / 0005 / 0007 / 0021、SCN-0005 / 0014 / 0018、ADR-0013 / 0017 / 0019 / 0024 / 0025、current Cognitive Method runtime、Provider Adapter、`runtime/go/realizationprobe`のactual test、Semantic Runtime Conformance Run `33516101445`、closure準備head `b102e6193d9b04648ae0b7fb5f30a89be9d5293f`の3系統CIを照合した。同一process内のsynthetic交換から別OS processのreference exchangeへEvidenceを一段進めつつ、reference executableの成功を実AI / SaaS / TEI連携やOperational portabilityへ広げていない。RecommendationとDecision、ProviderとCapability、Method DefinitionとRealization、current Observationとhistorical basisの境界も維持した。そのうえで、目的、検査結果、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+PMS-06、`product/definition/SEI_REALIZATION_PROVIDER_EXCHANGE.md`、REQ-0001 / 0004 / 0005 / 0007 / 0021、SCN-0005 / 0014 / 0018、ADR-0013 / 0017 / 0019 / 0024 / 0025、current Cognitive Method runtime、Provider Adapter、`runtime/go/realizationprobe`のactual test、Semantic Runtime Conformance Run `33516101445`、closure準備head `b102e6193d9b04648ae0b7fb5f30a89be9d5293f`の3系統CIを照合した。同一process内のsynthetic交換から別OS processのreference exchangeへEvidenceを一段進めつつ、reference executableの成功を実AI / SaaS / TEI連携やOperational portabilityへ広げていない。RecommendationとDecision、ProviderとCapability、Method DefinitionとRealization、current Observationとhistorical basisの境界も維持した。そのうえで、目的、検査結果、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

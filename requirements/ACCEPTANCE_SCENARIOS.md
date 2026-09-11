@@ -1,11 +1,11 @@
-# SOZA Acceptance Scenarios
+# SEI Acceptance Scenarios
 
 更新日: 2026-09-01  
 状態: **Current Acceptance Scenario Baseline**
 
 ## 1. この文書の役割
 
-この文書は、SOZAが守る意味差を具体的な利用状況から検証するためのAcceptance Scenarioの正本入口です。
+この文書は、SEIが守る意味差を具体的な利用状況から検証するためのAcceptance Scenarioの正本入口です。
 
 ScenarioはRequirementそのものでも、実装済みTest Caseでもありません。
 
@@ -93,7 +93,7 @@ Design
 
 - Capability DefinitionとProviderを分けて扱える。
 - availability、condition、cost、latency、auditability等を必要な範囲で比較できる。
-- SOZA関連技術であることだけを理由にTEIを優先しない。
+- SEI関連技術であることだけを理由にTEIを優先しない。
 - Matchingは候補説明であり、Recommendation、Decision、Authorization、Executionへ自動昇格しない。
 - Providerを未確定のままCapabilityを選ぶ、複数Capabilityを組み合わせる、Choiceを保留する状態を扱える。
 - 最終Outcomeが同じでも、どのCapability / Provider経路を通ったか確認できる。
@@ -358,7 +358,7 @@ Providerは、内部topologyや契約情報を全量開示できないが、Capa
 
 ### 期待
 
-- Provider内部SchemaをSOZA Universal Coreへコピーせず、必要なObservation / Evidenceだけを共有できる。
+- Provider内部SchemaをSEI Universal Coreへコピーせず、必要なObservation / Evidenceだけを共有できる。
 - Withheld contextとUnknownを必要に応じて区別できる。
 - 非開示を理由にCapability不存在・incompatible・低信頼を自動推定しない。
 - raw internal topologyを持たなくても、共有されたEvidenceのprovenanceを保持できる。
@@ -413,11 +413,11 @@ Providerは、内部topologyや契約情報を全量開示できないが、Capa
 - Execution Providerを交換してもIntent / Decisionのlogical meaningを維持できる。
 - Provider固有run IDをDecision identityの唯一の根拠にしない。
 - Provider廃止後もhistorical Decisionを読める。
-- SOZAが特定Providerのruntime lifecycleをUniversal Coreとして所有しない。
+- SEIが特定Providerのruntime lifecycleをUniversal Coreとして所有しない。
 
 ### 失敗例
 
-- Camunda process instance IDがSOZA Decisionのcanonical IDになる。
+- Camunda process instance IDがSEI Decisionのcanonical IDになる。
 - TEI deployment schemaなしでは過去Decisionを読めない。
 
 ### Current Evidence
@@ -440,7 +440,7 @@ TEI Design KnowledgeのPattern Cardを、AIがCognitive Methodの探索対象と
 - Pattern matchをRecommendationやDecisionへ自動昇格させない。
 - Method Applicationを結論の正しさやAssuranceへ自動昇格させない。
 - historical Pattern版がDecision basisとして重要なら当時版を特定できる。
-- domain-specific PatternをSOZA Universal Coreへ取り込まない。
+- domain-specific PatternをSEI Universal Coreへ取り込まない。
 
 ### 失敗例
 
@@ -520,7 +520,7 @@ TEI Design KnowledgeのPattern Cardを、AIがCognitive Methodの探索対象と
 
 時間が経過した後、利用者または別のAIが、当時のDecision basis、残っていたUnknown / Conflict、適用したMethod、利用したProvider、実行後に得られたObservationを読み直し、必要ならInquiryを再開する。
 
-このScenarioは、すべてのSOZA利用が同じ順序で進むことを要求するものではない。SCN-0001〜SCN-0016で個別に定めた意味境界が、一つの代表的なProduct Journeyの中でも同時に失われないことを検査する統合Scenarioである。
+このScenarioは、すべてのSEI利用が同じ順序で進むことを要求するものではない。SCN-0001〜SCN-0016で個別に定めた意味境界が、一つの代表的なProduct Journeyの中でも同時に失われないことを検査する統合Scenarioである。
 
 ### 期待
 
@@ -534,7 +534,7 @@ TEI Design KnowledgeのPattern Cardを、AIがCognitive Methodの探索対象と
 - 実行後に得たObservationを、過去Decisionを作成した時点ですでに存在したEvidenceとして扱わない。
 - Decision時に残したresidual / reopen informationを保持し、新しいObservationからInquiry / Decision reviewを再開できる。
 - ProjectionやProviderを交換しても、canonical meaningとhistorical basisを再読できる。
-- external executionを行わずDecisionまでで終了する場合でも、SOZA上のDecision recordとhistorical valueが成立する。
+- external executionを行わずDecisionまでで終了する場合でも、SEI上のDecision recordとhistorical valueが成立する。
 
 ### 必須variant
 
@@ -622,7 +622,7 @@ SCN-0018では、既存のcomponent-level PASSを合算してend-to-end PASSと�
 
 ## 5. Historical Scenarioとの関係
 
-2026-08-30 candidateの`SOZA-AS-001`〜`SOZA-AS-008`は、意味核をSCN-0001〜SCN-0008へ継承しました。
+2026-08-30 candidateの`SEI-AS-001`〜`SEI-AS-008`は、意味核をSCN-0001〜SCN-0008へ継承しました。
 
 旧IDはhistorical provenanceとして`history/HISTORICAL_REQUIREMENT_MAPPING.md`に残し、current SCN identityには用いません。
 

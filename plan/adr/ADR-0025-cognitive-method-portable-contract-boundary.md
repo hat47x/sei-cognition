@@ -6,7 +6,7 @@ Updated: 2026-09-01
 
 ## Context
 
-SOZAのReference ArchitectureとADR-0017では、Cognitive Methodについて次の意味差をすでにAcceptedしている。
+SEIのReference ArchitectureとADR-0017では、Cognitive Methodについて次の意味差をすでにAcceptedしている。
 
 ```text
 Method Definition

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SOZA v0.2.0のrelease publication bundleを検査・準備する。
+"""SEI v0.2.0のrelease publication bundleを検査・準備する。
 
 このスクリプトはGitHub Releaseを作成しない。Release Candidate Gateが生成した
 candidate reportとLocal Reference Packageを照合し、actual publicationへ渡せる

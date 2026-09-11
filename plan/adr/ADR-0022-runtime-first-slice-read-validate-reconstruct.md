@@ -6,7 +6,7 @@ Updated: 2026-08-31
 
 ## Context
 
-SOZAでは、Product Value、REQ / SCN、Reference Architecture、Contract Definition、Schema / Fixtureまでを上位の意味基線として持ち、その下にruntime実装を置く。
+SEIでは、Product Value、REQ / SCN、Reference Architecture、Contract Definition、Schema / Fixtureまでを上位の意味基線として持ち、その下にruntime実装を置く。
 
 historical candidateには複数のGo packageやProvider bridge等が存在したが、それらを一括コピーすると、当時のMilestone順やpackage layoutがcurrent Architectureへ逆流する危険がある。
 
@@ -54,7 +54,7 @@ read
 - deployment lifecycle
 - automatic best-candidate selection
 
-これらは重要でないから外すのではない。SOZAが最初にExecutable Evidence化すべき中心が「実行制御」ではなく「意味と判断の再構成」であるため、実装順を分ける。
+これらは重要でないから外すのではない。SEIが最初にExecutable Evidence化すべき中心が「実行制御」ではなく「意味と判断の再構成」であるため、実装順を分ける。
 
 Executionを将来追加する場合も、DecisionやAuthorityと別境界として行う。
 
@@ -75,7 +75,7 @@ current runtime implementationはGoを基本とする。
 ただし、
 
 ```text
-Go implementation != SOZA semantic identity
+Go implementation != SEI semantic identity
 ```
 
 である。
@@ -90,7 +90,7 @@ packageを再編してもContract conformanceが保たれることを優先す�
 
 ### 6. Provider AdapterはProvider固有stateとCapability Observationの間に置く
 
-Provider Adapterの役割は、Provider内部SchemaをSOZA Coreへコピーすることではない。
+Provider Adapterの役割は、Provider内部SchemaをSEI Coreへコピーすることではない。
 
 ```text
 Provider state
@@ -185,7 +185,7 @@ ISSUE-000033とISSUE-000036はResolvedである。
 
 ### Positive
 
-- SOZAの中心をExecution engineではなく意味再構成へ保てる。
+- SEIの中心をExecution engineではなく意味再構成へ保てる。
 - current Contractからruntimeへ一方向に設計を降ろせる。
 - historical Go codeを参照しても、旧Milestone構造を継承せずに済む。
 - Representation Profileを尊重しつつ、Profile実装をRuntime semantic authorityへ昇格させずに済む。

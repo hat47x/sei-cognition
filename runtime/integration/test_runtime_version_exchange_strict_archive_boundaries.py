@@ -156,7 +156,7 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
                 ENTRYPOINT,
                 "verify_runtime_bundle",
             ) as source_verifier, patch.object(ENTRYPOINT.subprocess, "run") as runner:
-                with self.assertRaisesRegex(ValueError, "KJ Atlas verified runtime bundle.*SOZA repository"):
+                with self.assertRaisesRegex(ValueError, "KJ Atlas verified runtime bundle.*SEI repository"):
                     ENTRYPOINT.run_strict_probe(
                         checkout_dir=None,
                         backend_bundle=bundle,
@@ -185,7 +185,7 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
                 ENTRYPOINT.subprocess,
                 "run",
             ) as runner:
-                with self.assertRaisesRegex(ValueError, "model directory.*SOZA repository"):
+                with self.assertRaisesRegex(ValueError, "model directory.*SEI repository"):
                     ENTRYPOINT.run_strict_probe(
                         checkout_dir=None,
                         backend_bundle=bundle,
@@ -210,7 +210,7 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
                 ENTRYPOINT,
                 "verify_runtime_bundle",
             ) as source_verifier, patch.object(ENTRYPOINT.subprocess, "run") as runner:
-                with self.assertRaisesRegex(ValueError, "Evidence directory.*SOZA repository"):
+                with self.assertRaisesRegex(ValueError, "Evidence directory.*SEI repository"):
                     ENTRYPOINT.run_strict_probe(
                         checkout_dir=None,
                         backend_bundle=bundle,
@@ -234,7 +234,7 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
                 ENTRYPOINT,
                 "verify_runtime_bundle",
             ) as source_verifier, patch.object(ENTRYPOINT.subprocess, "run") as runner:
-                with self.assertRaisesRegex(ValueError, "Work directory.*SOZA repository"):
+                with self.assertRaisesRegex(ValueError, "Work directory.*SEI repository"):
                     ENTRYPOINT.run_strict_probe(
                         checkout_dir=None,
                         backend_bundle=bundle,

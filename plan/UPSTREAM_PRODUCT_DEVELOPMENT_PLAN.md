@@ -1,11 +1,11 @@
-# SOZA 上流プロダクト開発計画
+# SEI 上流プロダクト開発計画
 
 更新日: 2026-09-05  
 状態: **Current Upstream Planning Baseline — v0.2.0 Release Evidence / E3b fixed-artifact Evidence / historical reconstruction / fixed-scope Ollama runtime exchange / method-quality evaluation boundary / PMS-06 current state reflected**
 
 ## 1. この文書の役割
 
-この文書は、SOZAのProduct Value、Milestone、Open Question、Requirement、ADR、Architecture、Implementation、Evidenceを、どの順序で具体化するかを定めます。
+この文書は、SEIのProduct Value、Milestone、Open Question、Requirement、ADR、Architecture、Implementation、Evidenceを、どの順序で具体化するかを定めます。
 
 目的は、未定の領域を実装都合で早く固定することではありません。上位価値へ戻りながら、議論、調査、実証、人間レビューを通して必要な意味差を見つけ、必要性を確認できたものだけをRequirementやContractへ正本化します。
 
@@ -49,16 +49,16 @@ Implementation / Fixture / Test / Tool
 
 最優先で、次の文書間に矛盾がない状態を保ちます。
 
-- `product/value/SOZA_PRODUCT_VALUE.md`
-- `product/value/SOZA_VALUE_PROPOSITION.md`
-- `product/value/SOZA_VALUE_MODEL.md`
-- `product/value/SOZA_VALUE_ACCEPTANCE.md`
-- `product/value/SOZA_VALUE_TRACEABILITY.md`
-- `product/definition/SOZA_PRODUCT_SHAPE.md`
-- `product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`
-- `product/vision/SOZA_PRODUCT_VISION.md`
-- `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
-- `product/roadmap/SOZA_PRODUCT_MILESTONES.md`
+- `product/value/SEI_PRODUCT_VALUE.md`
+- `product/value/SEI_VALUE_PROPOSITION.md`
+- `product/value/SEI_VALUE_MODEL.md`
+- `product/value/SEI_VALUE_ACCEPTANCE.md`
+- `product/value/SEI_VALUE_TRACEABILITY.md`
+- `product/definition/SEI_PRODUCT_SHAPE.md`
+- `product/definition/SEI_REALIZATION_PROVIDER_EXCHANGE.md`
+- `product/vision/SEI_PRODUCT_VISION.md`
+- `product/principles/SEI_PRODUCT_PRINCIPLES.md`
+- `product/roadmap/SEI_PRODUCT_MILESTONES.md`
 - `product/roadmap/PMS06_CURRENT_STATE_2026-09-05.md`
 
 下位作業がこの層と矛盾した場合、実装を先に温存しません。Product Value側の誤りを示すEvidenceがあるなら上位を再基線化し、そうでなければ下位設計を修正します。
@@ -84,7 +84,7 @@ ISSUE-000069では、GitHub-hosted runnerの割当問題とrepository内の実�
 PMS-06ではversion exchangeを二つの独立した軸として扱いますが、現在のEvidence状態は同じではありません。
 
 - **Ollama runtime version交換 — ISSUE-000070**: KJ Atlas source、Method input、model artifact、promptを固定し、Ollama `0.32.13` / `0.32.14`だけをactualに交換しました。execution `local-20260904T193531Z-7855` でA/B actual bytes / binary version、fixed model identity、same prompt、actual inference、same logical / different Exact Binding、historical Application不変性、portable reconstructionを確認し、canonical Evidence + Provenance verificationは`ready-to-review` / `107 ok / 0 blocked`です。current Requirement / Contractも再照合し、**Resolved**としました。
-- **TEI executable version交換 — ISSUE-000072**: historical revision Aを保持したまま、exact revision B executable source + exact revision A fixed reference inputで`deployment-provider-plan`とcurrent SOZA Adapter compatibilityを検証します。source / fixed-input identity verifier、E2 / E3 runner、E2 / E3別Go toolchain、canonical combined runner、stage-aware failure Evidence、actual前Requirement / Scenario pre-auditまで整っていますが、revision B actualは**Not Yet Verified**です。
+- **TEI executable version交換 — ISSUE-000072**: historical revision Aを保持したまま、exact revision B executable source + exact revision A fixed reference inputで`deployment-provider-plan`とcurrent SEI Adapter compatibilityを検証します。source / fixed-input identity verifier、E2 / E3 runner、E2 / E3別Go toolchain、canonical combined runner、stage-aware failure Evidence、actual前Requirement / Scenario pre-auditまで整っていますが、revision B actualは**Not Yet Verified**です。
 
 この二つは交換軸が異なります。ISSUE-000070のPASSをISSUE-000072のEvidenceへ流用しません。
 
@@ -101,14 +101,14 @@ ISSUE-000072 repository-side ready
 
 現在の主要な未定領域は次です。
 
-- **TEI executable version交換**: ISSUE-000072。exact revision B executable + exact revision A fixed inputでactual Provider Planを得て、current SOZA AdapterのProvider-neutral Observation境界へ戻せるか。
+- **TEI executable version交換**: ISSUE-000072。exact revision B executable + exact revision A fixed inputでactual Provider Planを得て、current SEI AdapterのProvider-neutral Observation境界へ戻せるか。
 - **actual human review**: ISSUE-000071で確立した評価基盤を使い、actual outputを人間がどのように評価するか。
 - **broader portability**: ISSUE-000070で成立した固定scope、二つのQwen artifact、固定TEI revisionを越え、別model family、別Provider、別Realization、arbitrary runtime / Provider versionでも同じ意味境界を保てるか。
 - **private artifact acquisition / credential lifecycle**: version compatibilityとは分け、artifact取得・配布・更新をどのdeployment / acquisition policyへ閉じ込めるか。
 - **failure behavior**: network degradation、rate limit、credential失効、model acquisition failure、artifact acquisition failure等をどのEvidence段階で扱うか。
 - **formal integration protocol**: 標準化する必要が本当にあるか。必要ならどこまでをUniversal semanticsへ含めるか。
 - **E4 Operational portability**: 実環境でRealization / Provider / model / runtime交換後も判断記憶を継続利用できるか。
-- **Adoption / Outcome**: 実際の利用者や組織にとって、SOZAがどの価値を届けたかをどう測るか。
+- **Adoption / Outcome**: 実際の利用者や組織にとって、SEIがどの価値を届けたかをどう測るか。
 
 actual v0.2.0 Releaseそのものは未定領域ではありません。既に成立したRelease Evidenceを維持し、post-releaseのExecutable Evidenceを公開済みv0.2.0のsupported scopeへ遡及的に追加しません。
 
@@ -149,7 +149,7 @@ pre-audit completed
 - external Cognitive Methodをactual modelで動かした後、実行成立と生成品質をどの評価境界で分けるか。
 - fixed-scope runtime version交換で成立したhistorical reconstructionを、別runtime version / implementationへ一般化するには何を追加で観測する必要があるか。
 - TEI revision B executableをrevision A fixed inputで動かしたとき、failureが起きた場合に不足しているのはDurable Semantic Coreの意味か、Provider / Adapter-local compatibilityか、execution environmentか。
-- external executableを取得するためのcredential方式を、SOZAのsemantic identityからどこまで分離できるか。
+- external executableを取得するためのcredential方式を、SEIのsemantic identityからどこまで分離できるか。
 
 この段階では選択肢をRequirementへ固定しません。
 
@@ -267,7 +267,7 @@ identity providerやpermission vocabularyをUniversal semanticsへ固定しま�
 
 E3a / E3b-P1では、synthetic・version固定artifact・public live serviceを段階的に接続しました。
 
-E3b-P2ではTEI revision A `48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67`からactual `cmd/tei`をbuild・実行し、そのartifactをSOZA Adapterから別processとして呼び出し、Capability Observationへ戻す範囲までScoped Executable Evidenceがあります。
+E3b-P2ではTEI revision A `48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67`からactual `cmd/tei`をbuild・実行し、そのartifactをSEI Adapterから別processとして呼び出し、Capability Observationへ戻す範囲までScoped Executable Evidenceがあります。
 
 最初のcredential-aware probeでprivate TEI取得がskipされた事実は、そのまま履歴として保持しています。その後、別経路でrevision Aのactual executable実行を確認したからといって、credential運用自体が解決したとは扱いません。
 
@@ -280,18 +280,18 @@ ISSUE-000072では、TEI executable version交換の一変数比較を成立さ�
 
 repository側ではrevision A historical Evidence再検証、revision B source identity、revision A fixed-input identity、E2 / E3 runner、E2 / E3別Go toolchain、canonical combined runner、stage-aware failure Evidenceまで整っています。
 
-current SOZA E3 live testでは`runtime/go/go.mod`のGo directiveとactual E3 `go version`をlive test開始前に比較し、要件未満のtoolchainを`soza_go_toolchain` stageとして停止できるようにしています。このprecheckのPASSもAdapter compatibility PASSではありません。
+current SEI E3 live testでは`runtime/go/go.mod`のGo directiveとactual E3 `go version`をlive test開始前に比較し、要件未満のtoolchainを`soza_go_toolchain` stageとして停止できるようにしています。このprecheckのPASSもAdapter compatibility PASSではありません。
 
 ```text
 E3 Go requirement precheck PASS
-  != current SOZA Adapter live compatibility PASS
+  != current SEI Adapter live compatibility PASS
 ```
 
-revision B actual CLI / `deployment-provider-plan` / current SOZA Adapter compatibilityは**Not Yet Verified**です。
+revision B actual CLI / `deployment-provider-plan` / current SEI Adapter compatibilityは**Not Yet Verified**です。
 
 #### 6.4.2 actual model-backed Method
 
-ISSUE-000064では、固定KJ Atlas revisionとdeterministic model stubを別processとして実行し、actual Method surfaceをSOZA Cognitive Method Applicationへ戻しました。
+ISSUE-000064では、固定KJ Atlas revisionとdeterministic model stubを別processとして実行し、actual Method surfaceをSEI Cognitive Method Applicationへ戻しました。
 
 ISSUE-000066では同じMethod surfaceのmodel processをOllama `0.32.14`上の`qwen2.5:0.5b`へ交換し、actual inferenceを確認しました。
 
@@ -365,9 +365,9 @@ build / executable source = exact revision B
 fixed reference input     = exact revision A
 ```
 
-actual E2 / E3を実行するcanonical entrypointは`runtime/integration/run_tei_version_exchange_evidence.py`です。E2 historical TEI build用GoとE3 current SOZA live-test用Goを別executableとして明示し、current `go.mod`の要件もactual E3 process前に確認します。
+actual E2 / E3を実行するcanonical entrypointは`runtime/integration/run_tei_version_exchange_evidence.py`です。E2 historical TEI build用GoとE3 current SEI live-test用Goを別executableとして明示し、current `go.mod`の要件もactual E3 process前に確認します。
 
-失敗時はrepository-local machine-readable stageまでをEvidenceとし、TEI内部のworkspace load / validation / durable run / plugin lockや、SOZA内部のstrict decode / mapping / validatorをstderr等の自然言語から推定しません。
+失敗時はrepository-local machine-readable stageまでをEvidenceとし、TEI内部のworkspace load / validation / durable run / plugin lockや、SEI内部のstrict decode / mapping / validatorをstderr等の自然言語から推定しません。
 
 actual結果を見る前にRequirement / Scenario pre-auditを固定しています。一次再照合対象はREQ-0001 / 0007 / 0021、SCN-0014 / 0018で、Provider-neutral Observationの隣接境界としてREQ-0022も確認対象候補です。
 
@@ -460,7 +460,7 @@ ISSUE-000071については「品質評価が完了した」と誤読されな�
 
 ISSUE-000070については、historical actual A/B Evidenceの回収だけでなく、canonical Evidence + Provenance verification、historical Application不変性、portable reconstruction、actual run時とcurrent developのResolution Criteria / verifier / manifest / Requirement / Scenario / relevant Contractのobject equivalenceまで再監査しました。その固定scopeでResolvedとし、arbitrary runtime portability、成果品質、E4へは拡張していません。
 
-ISSUE-000072については、revision A historical fixed-artifact Evidenceとrevision B actual compatibilityを分離しました。exact-B executable + exact-A fixed inputの比較軸、E2 / E3別toolchain、current Go directiveのprecheck、stage-aware failure Evidence、actual前Requirement / Scenario pre-auditまでを上流計画へ同期していますが、revision B actual CLI / Provider Plan / current SOZA Adapter compatibilityはNot Yet Verifiedです。
+ISSUE-000072については、revision A historical fixed-artifact Evidenceとrevision B actual compatibilityを分離しました。exact-B executable + exact-A fixed inputの比較軸、E2 / E3別toolchain、current Go directiveのprecheck、stage-aware failure Evidence、actual前Requirement / Scenario pre-auditまでを上流計画へ同期していますが、revision B actual CLI / Provider Plan / current SEI Adapter compatibilityはNot Yet Verifiedです。
 
 既存REQ / SCNで現在必要な意味を表現できているため、新しいStable RequirementやUniversal Contract fieldを追加していません。現在の主要Open version-exchange探索はISSUE-000072であり、ISSUE-000070は独立reproductionやbroader portabilityへ進む場合の既存Evidence基線として扱います。
 

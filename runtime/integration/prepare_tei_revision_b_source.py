@@ -29,7 +29,7 @@ API_REPOSITORY_BASE = f"{API_BASE}/repos/{GITHUB_REPOSITORY}/"
 STOP_LINE = (
     "exact revision B source materialized and canonical identity verified "
     "!= revision B build PASS != Provider Plan execution PASS "
-    "!= SOZA Adapter compatibility PASS != ISSUE-000072 Resolved"
+    "!= SEI Adapter compatibility PASS != ISSUE-000072 Resolved"
 )
 JsonRequester = Callable[[str, str], dict[str, object]]
 
@@ -83,7 +83,7 @@ def _prepare_output_path(output_dir: Path) -> Path:
         )
     if output == SOZA_ROOT or SOZA_ROOT in output.parents:
         raise ValueError(
-            f"TEI revision B source出力をSOZA repository配下には置けません: {output}"
+            f"TEI revision B source出力をSEI repository配下には置けません: {output}"
         )
     return output
 
@@ -103,7 +103,7 @@ def _prepare_report_path(path: Path, output_dir: Path) -> Path:
         )
     if report == SOZA_ROOT or SOZA_ROOT in report.parents:
         raise ValueError(
-            f"TEI source acquisition reportをSOZA repository配下には置けません: {report}"
+            f"TEI source acquisition reportをSEI repository配下には置けません: {report}"
         )
     return report
 

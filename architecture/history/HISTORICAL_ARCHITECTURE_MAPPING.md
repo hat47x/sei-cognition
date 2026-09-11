@@ -5,7 +5,7 @@
 
 ## 1. この文書の役割
 
-この文書は、Phase 1 candidateで作成されたM48 / M49 / M50周辺のArchitecture文書を、current `SOZA_REFERENCE_ARCHITECTURE.md`へどのように統合・分離・保留したかを記録します。
+この文書は、Phase 1 candidateで作成されたM48 / M49 / M50周辺のArchitecture文書を、current `SEI_REFERENCE_ARCHITECTURE.md`へどのように統合・分離・保留したかを記録します。
 
 historical文書をcurrent正本へrenameしたものではありません。
 
@@ -215,7 +215,7 @@ Executable Evidenceが増えたことを、historical candidateの正当化やpr
 historical candidate以降、current baselineでは特に次が強化されています。
 
 1. Product Value V1〜V8からArchitectureまでの明示的traceability。
-2. SOZA / TEI Product Boundaryの固定。
+2. SEI / TEI Product Boundaryの固定。
 3. Reference Model / PatternとCognitive Methodの分離。
 4. Provider-neutral Capability ObservationとAdapter mapping provenance。
 5. Product Value / Requirement / Architecture / Contract / Representation Profileの権威関係。

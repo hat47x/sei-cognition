@@ -6,7 +6,7 @@ Updated: 2026-08-31
 
 ## Context
 
-SOZAでは、人間、AI、SaaS、外部組織、TEI、custom code等を、同じIntentに対する異質なCapability候補として扱える必要がある。
+SEIでは、人間、AI、SaaS、外部組織、TEI、custom code等を、同じIntentに対する異質なCapability候補として扱える必要がある。
 
 このとき、Capabilityの定義、現在の状態、適合評価、選択判断、Authority、Executionを一つへまとめると、現在利用できない手段を「存在しない」ものとして扱ったり、Matching結果を自動実行へ昇格させたりする危険がある。
 
@@ -54,7 +54,7 @@ Capability != Provider
 
 Capabilityは「何を可能にするか」、Providerは「誰／何がそれを実現するか」を表す。Decision時点でCapabilityだけを選び、Providerを未確定のまま残してもよい。
 
-TEI、AI、人間、SaaS等のkindだけから優先度、信頼、Authorityを推定しない。SOZAとの関連が深いことを理由にTEIを優遇しない。
+TEI、AI、人間、SaaS等のkindだけから優先度、信頼、Authorityを推定しない。SEIとの関連が深いことを理由にTEIを優遇しない。
 
 ### Unknownをincompatibleへ潰さない
 
@@ -119,4 +119,4 @@ Provider realization / offeringのUniversal型要否はADR-0013で別途判断�
 
 ## Natural Japanese review
 
-current Capability Observation Contract、Provider Adapter、Decision Memory、SOZA / TEI境界へ戻ってDecisionを照合した。その後、旧Milestone名と未実体化時点の表現をcurrent Evidenceへ更新し、Capability Definition / Observation / Matching / Choice / Authority / Executionの意味差を変えず、自然な日本語となることを最重要視して全文を再ドラフトした。最後にEvidence強度を含めて意味監査を実施済みである。
+current Capability Observation Contract、Provider Adapter、Decision Memory、SEI / TEI境界へ戻ってDecisionを照合した。その後、旧Milestone名と未実体化時点の表現をcurrent Evidenceへ更新し、Capability Definition / Observation / Matching / Choice / Authority / Executionの意味差を変えず、自然な日本語となることを最重要視して全文を再ドラフトした。最後にEvidence強度を含めて意味監査を実施済みである。

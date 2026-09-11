@@ -113,7 +113,7 @@ class TEIE3GoRequirementStageTest(unittest.TestCase):
             build.side_effect = build_success
             adapter.side_effect = subject.adapter_runner.TEIAdapterStageError(
                 "soza_go_toolchain",
-                "current SOZA go.modのGo要件を満たしません: required>=1.25 actual=go1.24.9",
+                "current SEI go.modのGo要件を満たしません: required>=1.25 actual=go1.24.9",
                 command=["go", "version"],
                 stdout="go version go1.24.9 linux/amd64\n",
             )

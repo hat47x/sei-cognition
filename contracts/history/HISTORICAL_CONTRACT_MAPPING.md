@@ -19,7 +19,7 @@ historical fileの存在、local PASS、`VERIFIED`等をcurrent Executable Evide
 | `PORTABLE_EXACT_BINDING_REPRESENTATION_v1alpha1.md` | **Split** | exact binding semanticsは`sei.semantic-reference`へ、representation規則はProfile境界へ分離。historical custom canonicalizationはcurrent authorityではない。 |
 | `JCS_SHA256_REPRESENTATION_PROFILE_candidate.md` | **Historical candidate; current independently accepted** | historical候補を自動継承せず、ADR-0023で`sei.jcs+sha256/v1alpha1`をcurrent Profileとして再判断し、actual fixture / Go probeでEvidenceを取り直した。 |
 | `RAW_BYTES_SHA256_REPRESENTATION_PROFILE_candidate.md` | **Historical candidate; current independently accepted** | historical候補を自動継承せず、ADR-0023で`sei.raw-bytes+sha256/v1alpha1`をcurrent Profileとして再判断し、actual fixtureでEvidenceを取り直した。 |
-| `SOZA_SEMANTIC_INTERCHANGE_v1alpha1.json` | **Historical schema only** | semantic vocabularyの参考にしたが、current Contract Definitionからcurrent schemaを再導出した。旧field set / enumは自動継承していない。 |
+| `SEI_SEMANTIC_INTERCHANGE_v1alpha1.json` | **Historical schema only** | semantic vocabularyの参考にしたが、current Contract Definitionからcurrent schemaを再導出した。旧field set / enumは自動継承していない。 |
 | M49 Decision Memory acceptance / architecture candidate | **Integrated semantically** | `sei.decision-memory`へMilestone名なしで再構成。historical fixture PASSは継承せず、current schema / fixture / runtimeでEvidenceを取り直した。 |
 | M50 Capability Choice / Observation candidate | **Integrated semantically** | `sei.capability-observation`とArchitectureへ再構成。Matching / Choice / ProviderをObservationへ統合せず、current F1〜F7 / runtime / synthetic Adapterで一部境界を検証した。 |
 

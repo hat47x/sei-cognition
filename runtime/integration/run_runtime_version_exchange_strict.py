@@ -163,7 +163,7 @@ def _validate_runtime_archives(
     source_input: Path,
     source_label: str,
 ) -> dict[str, Path]:
-    roots = (("SOZA repository", SOZA_ROOT), (source_label, source_input))
+    roots = (("SEI repository", SOZA_ROOT), (source_label, source_input))
     validated: dict[str, Path] = {}
     for option, requested in _forwarded_runtime_archives(arguments).items():
         expanded = requested.expanduser()
@@ -282,10 +282,10 @@ def run_strict_probe(
     _reject_overlap(
         source_input,
         source_label,
-        (("SOZA repository", SOZA_ROOT),),
+        (("SEI repository", SOZA_ROOT),),
     )
     strict_input_roots = (
-        ("SOZA repository", SOZA_ROOT),
+        ("SEI repository", SOZA_ROOT),
         (source_label, source_input),
     )
 

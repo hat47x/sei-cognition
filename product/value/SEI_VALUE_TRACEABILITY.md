@@ -1,25 +1,25 @@
-# SOZA Value Traceability
+# SEI Value Traceability
 
 更新日: 2026-09-05  
 状態: **Current Product Value Traceability Baseline — v0.2.0 Release Evidence / E3b / historical reconstruction / model exchange / fixed-scope Ollama runtime exchange reflected, TEI executable version exchange actual pending**
 
 ## 1. この文書の役割
 
-この文書は、SOZAのProduct Valueを、current Requirements、Acceptance Scenarios、ADR、Reference Architecture、Semantic Contract、Representation Profile、runtime、各種probe、Release Candidate、actual Release Evidenceまで上位から追跡するための索引です。
+この文書は、SEIのProduct Valueを、current Requirements、Acceptance Scenarios、ADR、Reference Architecture、Semantic Contract、Representation Profile、runtime、各種probe、Release Candidate、actual Release Evidenceまで上位から追跡するための索引です。
 
 この文書自体を新しい意味上の正本にはしません。詳細は次の文書を正とします。
 
-- Product Value / V1〜V8: `SOZA_PRODUCT_VALUE.md`, `SOZA_VALUE_MODEL.md`
-- Value Proposition: `SOZA_VALUE_PROPOSITION.md`
-- Product Shape: `../definition/SOZA_PRODUCT_SHAPE.md`
-- Realization / Provider Exchange: `../definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`
-- Product Milestone: `../roadmap/SOZA_PRODUCT_MILESTONES.md`
+- Product Value / V1〜V8: `SEI_PRODUCT_VALUE.md`, `SEI_VALUE_MODEL.md`
+- Value Proposition: `SEI_VALUE_PROPOSITION.md`
+- Product Shape: `../definition/SEI_PRODUCT_SHAPE.md`
+- Realization / Provider Exchange: `../definition/SEI_REALIZATION_PROVIDER_EXCHANGE.md`
+- Product Milestone: `../roadmap/SEI_PRODUCT_MILESTONES.md`
 - PMS-06 current state: `../roadmap/PMS06_CURRENT_STATE_2026-09-05.md`
-- Evidence受入れ境界: `SOZA_VALUE_ACCEPTANCE.md`
+- Evidence受入れ境界: `SEI_VALUE_ACCEPTANCE.md`
 - Requirement: `../../requirements/PRODUCT_REQUIREMENTS.md`
 - Acceptance Scenario: `../../requirements/ACCEPTANCE_SCENARIOS.md`
 - Product Journey composition: `../../requirements/PRODUCT_JOURNEY_COMPOSITION.md`
-- Architecture: `../../architecture/SOZA_REFERENCE_ARCHITECTURE.md`, `../../architecture/TRACEABILITY.md`
+- Architecture: `../../architecture/SEI_REFERENCE_ARCHITECTURE.md`, `../../architecture/TRACEABILITY.md`
 - Contract: `../../contracts/TRACEABILITY.md`, `../../contracts/CONTRACT_CATALOG.md`
 - Representation Profile: `../../contracts/profiles/`
 - runtime / probe Evidence: `../../runtime/`
@@ -169,7 +169,7 @@ build / executable source = exact revision B
 fixed reference input     = exact revision A
 ```
 
-revision B source identity、revision A fixed input identity、E2 / E3 runner、toolchain-split combined runner、stage-aware diagnosticsはrepository-sideにありますが、revision B actual CLI / Provider Plan / current SOZA Adapter compatibilityは**Not Yet Verified**です。
+revision B source identity、revision A fixed input identity、E2 / E3 runner、toolchain-split combined runner、stage-aware diagnosticsはrepository-sideにありますが、revision B actual CLI / Provider Plan / current SEI Adapter compatibilityは**Not Yet Verified**です。
 
 ```text
 exact-B + exact-A fixed-input execution path ready
@@ -180,7 +180,7 @@ exact-B + exact-A fixed-input execution path ready
 
 ## 7. semantic runtime / Provider / Storage / Method
 
-semantic runtimeはread / validate / reconstructを中核にし、SOZA自身をworkflow / agent execution engineへしません。
+semantic runtimeはread / validate / reconstructを中核にし、SEI自身をworkflow / agent execution engineへしません。
 
 current scoped materialには次があります。
 
@@ -246,9 +246,9 @@ E3bは、現在次の範囲へ分けています。
 - E3b-M1b: live external model-backed KJ execution — **Scoped Executable Evidence available**
 - fixed-model Ollama `0.32.13` / `0.32.14` runtime version exchange — **Scoped Executable Evidence available**
 
-ISSUE-000064のM1aでは、固定revisionのKJ Atlas FastAPI backendとrepository同梱model stubをSOZAとは別processとして実行し、actual grouping responseを既存Cognitive Method Applicationへ戻しました。
+ISSUE-000064のM1aでは、固定revisionのKJ Atlas FastAPI backendとrepository同梱model stubをSEIとは別processとして実行し、actual grouping responseを既存Cognitive Method Applicationへ戻しました。
 
-ISSUE-000066のM1bでは、同じKJ Atlas revisionとMethod surfaceを保ったまま、model processを実際に推論するartifactへ置き換えました。historical Run `33596839607`ではactual model取得、actual inference、KJ Atlasによるresponse受理、既存SOZA Method mappingまでをskipなしで確認しています。
+ISSUE-000066のM1bでは、同じKJ Atlas revisionとMethod surfaceを保ったまま、model processを実際に推論するartifactへ置き換えました。historical Run `33596839607`ではactual model取得、actual inference、KJ Atlasによるresponse受理、既存SEI Method mappingまでをskipなしで確認しています。
 
 ```text
 KJ Atlas grouping suggestion
@@ -368,7 +368,7 @@ Plan / Requirements / Contract conformance、semantic runtime、Representation P
 
 ISSUE-000070のOllama runtime version exchangeについては、execution `local-20260904T193531Z-7855`のactual A/B Evidence、canonical `ready-to-review` verification、historical reconstruction、current-contract object equivalence監査があり、固定scopeのScoped Executable Evidenceはavailableです。
 
-ISSUE-000072のTEI executable version exchangeについては、revision A historical fixed-artifact Evidenceとrepository-side identity / E2 / E3 / toolchain-split execution pathはありますが、revision B actual CLI / Provider Plan / current SOZA Adapter compatibilityのScoped Executable Evidenceはまだありません。
+ISSUE-000072のTEI executable version exchangeについては、revision A historical fixed-artifact Evidenceとrepository-side identity / E2 / E3 / toolchain-split execution pathはありますが、revision B actual CLI / Provider Plan / current SEI Adapter compatibilityのScoped Executable Evidenceはまだありません。
 
 ISSUE-000071のoutcome-quality評価境界は成立していますが、human outcome reviewは未完了です。
 
@@ -453,7 +453,7 @@ Requirement数、Scenario数、fixture数、Issue数、自動検査数、release
 v0.2.0 release後に深める主要な領域は次です。
 
 - ISSUE-000072のexact revision B executable + exact revision A fixed inputによるactual `deployment-provider-plan` Evidence
-- ISSUE-000072のrevision Bをcurrent SOZA Adapterからactualに起動し、Capability Observation mapping成立可否を確認するEvidence
+- ISSUE-000072のrevision Bをcurrent SEI Adapterからactualに起動し、Capability Observation mapping成立可否を確認するEvidence
 - ISSUE-000072 actual後のREQ-0001 / 0007 / 0021、SCN-0014 / 0018再照合。必要なら隣接REQ-0022も監査
 - ISSUE-000070 fixed-scope Evidenceの独立reproductionや、別runtime / model familyへ広げた一般化Evidence
 - private artifact acquisition / credential lifecycle
@@ -475,7 +475,7 @@ v0.2.0 Release Evidenceの成立範囲をLocal Reference Product Baselineへ限�
 
 ISSUE-000070ではhistorical execution `local-20260904T193531Z-7855`のactual A/B Evidenceを回収し、canonical Evidence + Provenance verificationの`ready-to-review`、historical Application不変性、portable reconstructionに加え、actual run時とcurrent developのResolution Criteria / verifier / manifest / Requirement / Scenario / relevant Contractのobject equivalenceまで再監査しました。その固定scopeでResolvedとしつつ、arbitrary runtime portability、成果品質、E4へは拡張していません。
 
-ISSUE-000072ではrevision A historical Evidence、revision B source / revision A fixed input identity、E2 / E3 runner、toolchain-split combined runner、stage-aware diagnosticsがあることと、revision B actual CLI / Provider Plan / current SOZA Adapter compatibilityを分けています。後者はまだNot Yet Verifiedです。actual結果を見る前にRequirement / Scenario pre-auditを固定し、Adapter-local failureやtoolchain failureだけを理由にUniversal Requirementを増やさない境界も明示しました。
+ISSUE-000072ではrevision A historical Evidence、revision B source / revision A fixed input identity、E2 / E3 runner、toolchain-split combined runner、stage-aware diagnosticsがあることと、revision B actual CLI / Provider Plan / current SEI Adapter compatibilityを分けています。後者はまだNot Yet Verifiedです。actual結果を見る前にRequirement / Scenario pre-auditを固定し、Adapter-local failureやtoolchain failureだけを理由にUniversal Requirementを増やさない境界も明示しました。
 
 成果品質についても、actual model inferenceの成立、構造検査、人間によるoutcome review、Product Value / Adoption outcomeを分離しました。ISSUE-000071の評価境界成立をhuman review完了やKJ法としての成果品質Satisfiedへ読み替えていません。
 

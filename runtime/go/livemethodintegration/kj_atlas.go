@@ -72,7 +72,7 @@ type provenancePayload struct {
 
 // ParseKJAtlasGroupingResultは、version固定したKJ Atlasのresponseを
 // reference Adapterの境界で最小限だけ検査します。ここで扱うresponse shapeを
-// SOZAのUniversal Contractへ一般化しません。
+// SEIのUniversal Contractへ一般化しません。
 func ParseKJAtlasGroupingResult(raw []byte) (KJAtlasGroupingResult, error) {
 	if len(raw) == 0 {
 		return KJAtlasGroupingResult{}, errors.New("KJ Atlas result is empty")

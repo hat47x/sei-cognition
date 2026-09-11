@@ -272,7 +272,7 @@ def _prepare_output_reports(
     soza_root = soza_repo_root.expanduser().resolve(strict=True)
     if _is_within(resolved, soza_root) or _is_within(soza_root, resolved):
         raise ValueError(
-            "resume Evidence directoryをSOZA repositoryと重ねられません: "
+            "resume Evidence directoryをSEI repositoryと重ねられません: "
             f"output={resolved} soza={soza_root}"
         )
 
@@ -466,7 +466,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "GitHub E2 partial Evidence reportと同一identityのrevision B bundleを再検証し、"
-            "E2を再実行せずcurrent SOZA Adapter E3だけを再開します。結果は既存canonical "
+            "E2を再実行せずcurrent SEI Adapter E3だけを再開します。結果は既存canonical "
             "version-exchange reportとGitHub acquisition wrapper reportへ戻します。"
         ),
         allow_abbrev=False,

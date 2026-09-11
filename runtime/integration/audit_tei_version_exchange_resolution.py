@@ -69,11 +69,11 @@ def _verify_soza_baseline(repo: Path, expected_head: str | None) -> dict[str, An
     repo = repo.expanduser().resolve(strict=True)
     inside = _git(repo, "rev-parse", "--is-inside-work-tree", check=False)
     if inside.returncode != 0 or inside.stdout.strip() != "true":
-        raise ValueError(f"SOZA Git repositoryではありません: {repo}")
+        raise ValueError(f"SEI Git repositoryではありません: {repo}")
     head = _git(repo, "rev-parse", "HEAD").stdout.strip()
     if expected_head is not None and head != expected_head:
         raise ValueError(
-            f"SOZA HEADが期待値と一致しません: expected={expected_head} actual={head}"
+            f"SEI HEADが期待値と一致しません: expected={expected_head} actual={head}"
         )
     dirty = _git(
         repo,
@@ -303,7 +303,7 @@ def _e3_criterion(report: dict[str, Any]) -> dict[str, Any]:
         return _criterion(
             4,
             SATISFIED,
-            "current SOZA Adapterでrevision Bのlive compatibilityをactualに確認しました",
+            "current SEI Adapterでrevision Bのlive compatibilityをactualに確認しました",
             outcome="verified",
             result=e3.get("result"),
             sozaSource=e3.get("sozaSource"),
@@ -610,7 +610,7 @@ def _prepare_output(output: Path, soza_repo_root: Path) -> Path:
     soza_root = soza_repo_root.expanduser().resolve(strict=True)
     if resolved == soza_root or soza_root in resolved.parents:
         raise ValueError(
-            "Resolution audit outputをSOZA repository配下へ置けません: "
+            "Resolution audit outputをSEI repository配下へ置けません: "
             f"output={resolved} soza={soza_root}"
         )
     if resolved.exists():

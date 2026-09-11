@@ -102,7 +102,7 @@ def _prepare_source_temp_parent(
         )
 
     roots: list[tuple[str, Path]] = [
-        ("SOZA repository", soza_repo_root.expanduser().resolve(strict=False)),
+        ("SEI repository", soza_repo_root.expanduser().resolve(strict=False)),
         ("Evidence directory", output_dir.expanduser().resolve(strict=False)),
     ]
     if reference_source_repo is not None:

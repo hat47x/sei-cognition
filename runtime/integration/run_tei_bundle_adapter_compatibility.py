@@ -39,7 +39,7 @@ SOZA_EVIDENCE_PATHS = [
 ]
 REFERENCE_OBJECTS = source_identity.REVISION_A_REFERENCE_OBJECTS
 STOP_LINE = (
-    "current SOZA Adapter compatibility verified for exact-B executable + exact-A fixed input bundle "
+    "current SEI Adapter compatibility verified for exact-B executable + exact-A fixed input bundle "
     "!= arbitrary TEI version compatibility != Release Evidence "
     "!= Operational Evidence != ISSUE-000072 Resolved"
 )
@@ -138,7 +138,7 @@ def _read_go_directive(go_mod: Path) -> str:
     except OSError as exc:
         raise TEIAdapterStageError(
             "soza_go_toolchain",
-            f"current SOZA go.modを読めません: {exc}",
+            f"current SEI go.modを読めません: {exc}",
         ) from exc
     for line in lines:
         fields = line.strip().split()
@@ -148,12 +148,12 @@ def _read_go_directive(go_mod: Path) -> str:
             except ValueError as exc:
                 raise TEIAdapterStageError(
                     "soza_go_toolchain",
-                    f"current SOZA go.modのGo directiveを解釈できません: {fields[1]!r}",
+                    f"current SEI go.modのGo directiveを解釈できません: {fields[1]!r}",
                 ) from exc
             return fields[1]
     raise TEIAdapterStageError(
         "soza_go_toolchain",
-        "current SOZA go.modにGo directiveがありません",
+        "current SEI go.modにGo directiveがありません",
     )
 
 
@@ -202,7 +202,7 @@ def _verify_soza_go_requirement(
     if fields[3] != EXPECTED_GO_TARGET:
         raise TEIAdapterStageError(
             "soza_go_toolchain",
-            "current SOZA live test用Go executable targetがLinux/amd64ではありません: "
+            "current SEI live test用Go executable targetがLinux/amd64ではありません: "
             f"expected={EXPECTED_GO_TARGET} actual={fields[3]}",
             command=["go", "version"],
             stdout=process.stdout,
@@ -222,7 +222,7 @@ def _verify_soza_go_requirement(
     if actual < required:
         raise TEIAdapterStageError(
             "soza_go_toolchain",
-            "current SOZA go.modのGo要件を満たしません: "
+            "current SEI go.modのGo要件を満たしません: "
             f"required>={requirement} actual={fields[2]}",
             command=["go", "version"],
             stdout=process.stdout,
@@ -241,7 +241,7 @@ def _verify_soza_go_requirement(
         observed_target = "/".join(target_fields) if target_fields else "<empty>"
         raise TEIAdapterStageError(
             "soza_go_toolchain",
-            "current SOZA live testのcontrolled Go targetがLinux/amd64ではありません: "
+            "current SEI live testのcontrolled Go targetがLinux/amd64ではありません: "
             f"expected={EXPECTED_GO_TARGET} actual={observed_target}",
             command=["go", "env", "GOOS", "GOARCH"],
             stdout=target_process.stdout,
@@ -428,7 +428,7 @@ def _verify_soza_source_identity(
 ) -> dict[str, object]:
     inside = _git(repo, "rev-parse", "--is-inside-work-tree", check=False)
     if inside.returncode != 0 or inside.stdout.strip() != "true":
-        raise ValueError(f"SOZA Git repositoryではありません: {repo}")
+        raise ValueError(f"SEI Git repositoryではありません: {repo}")
     dirty = _git(
         repo,
         "status",
@@ -441,19 +441,19 @@ def _verify_soza_source_identity(
     dirty = [line for line in dirty if line.strip()]
     if dirty:
         raise ValueError(
-            "SOZA Adapter / Evidence runner境界に未commit変更、untracked file、またはignored entryがあります: "
+            "SEI Adapter / Evidence runner境界に未commit変更、untracked file、またはignored entryがあります: "
             + " | ".join(dirty)
         )
     head = _git(repo, "rev-parse", "HEAD").stdout.strip()
     if expected_head is not None and head != expected_head:
         raise ValueError(
-            f"SOZA HEADが期待値と一致しません: expected={expected_head} actual={head}"
+            f"SEI HEADが期待値と一致しません: expected={expected_head} actual={head}"
         )
     objects: dict[str, str] = {}
     for path in paths:
         result = _git(repo, "rev-parse", f"HEAD:{path}", check=False)
         if result.returncode != 0:
-            raise ValueError(f"SOZA Git objectを取得できません: {path}")
+            raise ValueError(f"SEI Git objectを取得できません: {path}")
         objects[path] = result.stdout.strip()
     return {
         "head": head,
@@ -494,7 +494,7 @@ def run_compatibility(
 
     try:
         if not (go_root / "go.mod").is_file():
-            raise ValueError(f"SOZA runtime/go moduleを確認できません: {go_root}")
+            raise ValueError(f"SEI runtime/go moduleを確認できません: {go_root}")
         if not (go_root / "teiintegration/tei_live_test.go").is_file():
             raise ValueError("current teiintegration live testを確認できません")
     except ValueError as exc:
@@ -566,7 +566,7 @@ def run_compatibility(
             )
         except (OSError, ValueError, subprocess.SubprocessError) as exc:
             detail = ValueError(
-                "SOZA Adapter live test実行後のsource identity再検証に失敗しました: "
+                "SEI Adapter live test実行後のsource identity再検証に失敗しました: "
                 f"{exc}"
             )
             raise _wrap_stage("soza_source_identity", detail) from exc
@@ -604,7 +604,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "exact-B executable + exact-A fixed reference inputを含む検証済みTEI Evidence "
-            "bundleを一時領域へ安全にstageし、current SOZA teiintegration live testで"
+            "bundleを一時領域へ安全にstageし、current SEI teiintegration live testで"
             "actual CLI process / strict decode / Capability Observation mappingを確認します。"
         ),
         allow_abbrev=False,
@@ -654,9 +654,9 @@ def main(argv: list[str] | None = None) -> int:
             f"- reference input source commit: "
             f"{result['referenceInput']['sourceCommit']}"
         )
-        print(f"- SOZA source commit: {result['sozaSource']['head']}")
-        print(f"- SOZA Go requirement: {result['sozaGoRequirement']}")
-        print(f"- SOZA Go: {result['sozaGoVersion']}")
+        print(f"- SEI source commit: {result['sozaSource']['head']}")
+        print(f"- SEI Go requirement: {result['sozaGoRequirement']}")
+        print(f"- SEI Go: {result['sozaGoVersion']}")
         print(f"- binary SHA-256: {result['binarySha256']}")
         print(f"- Provider Plan SHA-256: {result['providerPlanSha256']}")
         print(result["stopLine"])

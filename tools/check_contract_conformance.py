@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check current SOZA Contract v1alpha1 schemas, fixtures, and semantic invariants.
+"""Check current SEI Contract v1alpha1 schemas, fixtures, and semantic invariants.
 
 This checker deliberately separates JSON Schema checks, semantic invariants, and
 boundary cases that remain intentionally not_verified. A PASS is fixture-scoped

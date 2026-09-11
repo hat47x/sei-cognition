@@ -217,7 +217,7 @@ class TEIGitHubVersionExchangePreflightTest(unittest.TestCase):
             soza = self.make_soza_go_mod(root)
             output = soza / "runtime/evidence/new-run"
 
-            with self.assertRaisesRegex(ValueError, "SOZA repository"):
+            with self.assertRaisesRegex(ValueError, "SEI repository"):
                 subject._check_output_path(
                     output,
                     soza_repo_root=soza,

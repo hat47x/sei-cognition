@@ -40,7 +40,7 @@ def validate_preparation_root(root: Path) -> Path:
     resolved = requested.resolve(strict=False)
     if _is_within(resolved, SOZA_ROOT):
         raise ValueError(
-            "prepositioned input rootをSOZA repository配下には配置できません: "
+            "prepositioned input rootをSEI repository配下には配置できません: "
             f"{resolved}"
         )
     if resolved.exists() and not resolved.is_dir():
@@ -179,7 +179,7 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
         type=Path,
         help=(
-            "SOZA repository外のartifact root。runtime-archives/とollama-models/を利用します。"
+            "SEI repository外のartifact root。runtime-archives/とollama-models/を利用します。"
             "既存rootは固定artifactの再利用に使えます。"
         ),
     )

@@ -9,7 +9,7 @@ Updated: 2026-09-01
 
 ADR-0025に基づき、`sei.cognitive-method/v1alpha1`のContract Definition、machine-readable schema、fixture、semantic validator、Go runtime read / validate / reconstructをactual repositoryへ実体化し、SCN-0005 / SCN-0015に最初のExecutable Evidenceを与える。
 
-このIssueではCognitive Methodを実行するengineは作らない。SOZAが耐久的に保持すべき**Method Definition / Realization / Applicationの意味と来歴**を、特定Promptやprivate chain-of-thoughtへ依存せずportableに読み直せることをfirst sliceとする。
+このIssueではCognitive Methodを実行するengineは作らない。SEIが耐久的に保持すべき**Method Definition / Realization / Applicationの意味と来歴**を、特定Promptやprivate chain-of-thoughtへ依存せずportableに読み直せることをfirst sliceとする。
 
 ## Resolution
 

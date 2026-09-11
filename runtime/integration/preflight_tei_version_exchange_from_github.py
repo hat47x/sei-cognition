@@ -22,7 +22,7 @@ from runtime_path_safety import reject_symlink_path_or_ancestors
 SCHEMA = "soza.tei-version-exchange-github-preflight/v1"
 STOP_LINE = (
     "preflight ready != revision B source acquired != revision B build PASS "
-    "!= Provider Plan execution PASS != SOZA Adapter compatibility PASS "
+    "!= Provider Plan execution PASS != SEI Adapter compatibility PASS "
     "!= ISSUE-000072 Resolved"
 )
 EXPECTED_ERRORS = (
@@ -195,7 +195,7 @@ def _check_soza_source(
 ) -> dict[str, object]:
     root = soza_repo_root.expanduser().resolve(strict=True)
     if not (root / "runtime/go/go.mod").is_file():
-        raise ValueError(f"SOZA runtime/go moduleを確認できません: {root / 'runtime/go'}")
+        raise ValueError(f"SEI runtime/go moduleを確認できません: {root / 'runtime/go'}")
     verification = adapter_runner._verify_soza_source_identity(
         root,
         expected_head=expected_soza_head,
@@ -229,7 +229,7 @@ def _check_output_path(
         )
 
     soza_root = soza_repo_root.expanduser().resolve(strict=True)
-    roots: list[tuple[str, Path]] = [("SOZA repository", soza_root)]
+    roots: list[tuple[str, Path]] = [("SEI repository", soza_root)]
     if reference_source_repo is not None:
         reference_root = reference_source_repo.expanduser().resolve(strict=True)
         roots.append(("revision A reference checkout", reference_root))
@@ -360,7 +360,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "GitHub acquisition→canonical E2/E3を開始する前に、credential、platform、"
-            "revision A fixed input、SOZA source、E2/E3 Go、output path、source temp parentを"
+            "revision A fixed input、SEI source、E2/E3 Go、output path、source temp parentを"
             "副作用なしで一括検査します。"
         ),
         allow_abbrev=False,

@@ -1,19 +1,19 @@
-# SOZA Value Proposition
+# SEI Value Proposition
 
 更新日: 2026-09-01  
 状態: **Current Product Value Proposition Baseline**
 
 ## 1. この文書の役割
 
-この文書は、SOZAのProduct Valueを**利用者がどのような問題を解くために使い、どのような価値を受け取る製品なのか**という観点から表現します。
+この文書は、SEIのProduct Valueを**利用者がどのような問題を解くために使い、どのような価値を受け取る製品なのか**という観点から表現します。
 
-`SOZA_PRODUCT_VALUE.md`が長期的に失ってはならない価値を定め、`SOZA_VALUE_MODEL.md`がV1〜V8として評価軸を定めるのに対し、本書はそれらを利用場面へ接続します。
+`SEI_PRODUCT_VALUE.md`が長期的に失ってはならない価値を定め、`SEI_VALUE_MODEL.md`がV1〜V8として評価軸を定めるのに対し、本書はそれらを利用場面へ接続します。
 
 新しいValue AxisやUniversal Core概念を追加する文書ではありません。Value Axisの意味、優先関係、Acceptanceの正本は既存文書を維持します。
 
 ## 2. 主に解く問題
 
-SOZAが主に対象とするのは、**複数の人間、AI、外部サービス、既存システムが関与し、途中で情報・手段・前提が変化し得る判断仕事**です。
+SEIが主に対象とするのは、**複数の人間、AI、外部サービス、既存システムが関与し、途中で情報・手段・前提が変化し得る判断仕事**です。
 
 この種の仕事では、結果だけを保存しても、後から次の問いに答えられなくなることがあります。
 
@@ -27,7 +27,7 @@ SOZAが主に対象とするのは、**複数の人間、AI、外部サービス
 
 通常のログ、チャット履歴、ワークフロー履歴、ドキュメント置き場は、それぞれ重要です。ただし、それらだけでは「判断の意味」を実行方式や会話の流れから独立して残しにくい場合があります。
 
-SOZAは、その隙間を埋めます。
+SEIは、その隙間を埋めます。
 
 ## 3. 中核となる価値提案
 
@@ -39,7 +39,7 @@ SOZAは、その隙間を埋めます。
 
 ### 3.2 分からないことを消さずに進める
 
-SOZAは、UnknownやConflictが残っていること自体を失敗とみなしません。
+SEIは、UnknownやConflictが残っていること自体を失敗とみなしません。
 
 期限や外部条件のために不確実なままDecisionする場合でも、何が未解決だったかを残し、後から新しいEvidenceを加えて再開できます。
 
@@ -53,7 +53,7 @@ AIの能力が高まるほど、調査、比較、要約、Recommendation、場�
 
 Prompt、AIモデル、Skill、workflow engine、SaaS、TEI、custom code、Storage等は変わり得ます。
 
-SOZAは、これらのRealizationやProviderを交換しても、Intent、Observation、Decision、Responsibility、Provenance等の耐久的な意味を持ち運べることを価値とします。
+SEIは、これらのRealizationやProviderを交換しても、Intent、Observation、Decision、Responsibility、Provenance等の耐久的な意味を持ち運べることを価値とします。
 
 ### 3.5 軽く始め、必要な場面だけ深くできる
 
@@ -65,7 +65,7 @@ SOZAは、これらのRealizationやProviderを交換しても、Intent、Observ
 
 ## 4. 主な利用者・関与者
 
-SOZAでは、利用者種別を固定的な権限モデルへ直結させません。ただし、製品設計上は少なくとも次の関与者を想定します。
+SEIでは、利用者種別を固定的な権限モデルへ直結させません。ただし、製品設計上は少なくとも次の関与者を想定します。
 
 ### 判断を担う人・組織
 
@@ -85,11 +85,11 @@ Evidenceを集め、問いを深め、Cognitive Methodを適用し、Recommendat
 
 ### 外部システム・Capability Provider
 
-情報取得、計算、業務処理、実行等を担います。SOZA自身の内部構造へ同化させるのではなく、必要な境界から接続します。
+情報取得、計算、業務処理、実行等を担います。SEI自身の内部構造へ同化させるのではなく、必要な境界から接続します。
 
 ## 5. 価値が特に大きくなりやすい場面
 
-SOZAは、次の条件が複数重なるほど価値を出しやすいと考えます。
+SEIは、次の条件が複数重なるほど価値を出しやすいと考えます。
 
 - AIや外部サービスを複数利用する。
 - 数か月から数年後にDecisionを読み直す必要がある。
@@ -99,20 +99,20 @@ SOZAは、次の条件が複数重なるほど価値を出しやすいと考え�
 - 監査、説明責任、再検討、引継ぎが重要である。
 - 実行結果を受けて、前提や判断を更新する循環がある。
 
-## 6. SOZAを第一選択にしなくてもよい場面
+## 6. SEIを第一選択にしなくてもよい場面
 
-次のような仕事では、SOZAを導入する価値が小さい可能性があります。
+次のような仕事では、SEIを導入する価値が小さい可能性があります。
 
 - 単純で短命な処理で、後から判断理由を読み直す必要がほぼない。
 - deterministicな変換処理だけで完結し、判断や不確実性が存在しない。
 - 既存システムの監査ログだけで必要な説明が十分に成立する。
 - 主目的がworkflow throughputやjob schedulingの最大化である。
 
-SOZAは、すべての処理を自らの中へ取り込むことを価値としません。
+SEIは、すべての処理を自らの中へ取り込むことを価値としません。
 
 ## 7. 利用者に約束したいこと
 
-製品としてのSOZAは、長期的に少なくとも次を約束できる状態を目指します。
+製品としてのSEIは、長期的に少なくとも次を約束できる状態を目指します。
 
 1. **判断の文脈を失いにくいこと。**
 2. **不確実性や異論を都合よく消さないこと。**
@@ -138,13 +138,13 @@ Adoption / Outcome Evidenceを収集できる段階では、たとえば次を�
 
 ## 9. 関連文書
 
-- `SOZA_PRODUCT_VALUE.md`
-- `SOZA_VALUE_MODEL.md`
-- `SOZA_VALUE_ACCEPTANCE.md`
-- `SOZA_VALUE_TRACEABILITY.md`
-- `../definition/SOZA_PRODUCT_SHAPE.md`
-- `../vision/SOZA_PRODUCT_VISION.md`
-- `../principles/SOZA_PRODUCT_PRINCIPLES.md`
+- `SEI_PRODUCT_VALUE.md`
+- `SEI_VALUE_MODEL.md`
+- `SEI_VALUE_ACCEPTANCE.md`
+- `SEI_VALUE_TRACEABILITY.md`
+- `../definition/SEI_PRODUCT_SHAPE.md`
+- `../vision/SEI_PRODUCT_VISION.md`
+- `../principles/SEI_PRODUCT_PRINCIPLES.md`
 
 ## 10. Natural Japanese review
 

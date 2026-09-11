@@ -1,11 +1,11 @@
-# SOZA Requirements
+# SEI Requirements
 
 更新日: 2026-09-01  
 状態: **Current Requirements Baseline**
 
 ## 1. このディレクトリの役割
 
-`requirements/`は、SOZAのProduct Valueを満たすために**何が必要か**を定めます。
+`requirements/`は、SEIのProduct Valueを満たすために**何が必要か**を定めます。
 
 Product Valueそのものや長期Visionを定義する場所ではなく、具体的なArchitectureや実装方式を先に固定する場所でもありません。
 
@@ -82,7 +82,7 @@ SCN-0018のような統合Scenarioは、既存Scenarioを置き換えるもの�
 
 ## 5. Product Valueとの追跡
 
-current Requirementは、原則として`SOZA_VALUE_MODEL.md`のV1〜V8、または明示的なProduct Principle / external constraintへ追跡します。
+current Requirementは、原則として`SEI_VALUE_MODEL.md`のV1〜V8、または明示的なProduct Principle / external constraintへ追跡します。
 
 - V1 Historical Reconstruction
 - V2 Semantic Separation
@@ -95,7 +95,7 @@ current Requirementは、原則として`SOZA_VALUE_MODEL.md`のV1〜V8、また
 
 8軸すべてを形式的に付けず、実際に関係する軸だけを示します。
 
-上位からの横断的な索引は`product/value/SOZA_VALUE_TRACEABILITY.md`を参照します。
+上位からの横断的な索引は`product/value/SEI_VALUE_TRACEABILITY.md`を参照します。
 
 Product ShapeからRequirementへ降りるときは、製品上の操作や画面構造をそのままUniversal Requirementへ昇格させません。まず既存REQとの重複を確認し、既存の規範で表現できない独立した必要性がある場合だけ新しいREQを追加します。
 
@@ -157,7 +157,7 @@ Release、Operational、Adoption / Outcome Evidenceは現時点では主張し�
 
 ## 8. Historical candidateの扱い
 
-2026-08-30前後のcandidateには`SOZA-PR-*`、`SOZA-NFR-*`、`SOZA-AS-*`が存在しました。
+2026-08-30前後のcandidateには`SEI-PR-*`、`SEI-NFR-*`、`SEI-AS-*`が存在しました。
 
 これらから次をcurrent baselineへ自動継承しません。
 
@@ -187,14 +187,14 @@ CI failureを検出した場合は、原因を解消してsuccessを確認する
 ## 10. 関連文書
 
 - `product/README.md`
-- `product/value/SOZA_PRODUCT_VALUE.md`
-- `product/value/SOZA_VALUE_PROPOSITION.md`
-- `product/definition/SOZA_PRODUCT_SHAPE.md`
-- `product/value/SOZA_VALUE_MODEL.md`
-- `product/value/SOZA_VALUE_ACCEPTANCE.md`
-- `product/value/SOZA_VALUE_TRACEABILITY.md`
-- `product/vision/SOZA_PRODUCT_VISION.md`
-- `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
+- `product/value/SEI_PRODUCT_VALUE.md`
+- `product/value/SEI_VALUE_PROPOSITION.md`
+- `product/definition/SEI_PRODUCT_SHAPE.md`
+- `product/value/SEI_VALUE_MODEL.md`
+- `product/value/SEI_VALUE_ACCEPTANCE.md`
+- `product/value/SEI_VALUE_TRACEABILITY.md`
+- `product/vision/SEI_PRODUCT_VISION.md`
+- `product/principles/SEI_PRODUCT_PRINCIPLES.md`
 - `plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md`
 - `plan/adr/ADR-0020-requirements-traceability-and-evidence-boundary.md`
 - `plan/issue/ISSUE-000048-define-end-to-end-golden-journey-acceptance.md`
