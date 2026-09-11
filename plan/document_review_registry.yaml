@@ -1,5 +1,5 @@
 schema: soza.document-review-registry/v1
-updated: 2026-09-05
+updated: 2026-09-11
 
 purpose: >-
   ISSUE-000015で行った既存開発文書の自然な日本語監査について、current branch上の
@@ -68,8 +68,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、自然な日本語全文再ドラフトと最終意味監査を実施済み。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000072
-    note: ISSUE-000001〜000072をcurrent履歴として監査済み。ISSUE-000069はGitHub Actions常設時に得たtrigger選択とrunner allocation Evidenceをhistoricalに保持しつつcurrent baselineからActionsを外した。ISSUE-000070は固定KJ Atlas source / Method input / model artifact / promptの下でOllama `0.32.13` / `0.32.14`をactualに交換し、same logical / different Exact Binding、historical Application保持、portable reconstruction、canonical Evidence + Provenance verificationを確認してResolvedとした。成果品質やarbitrary portabilityへは昇格させない。ISSUE-000071はexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeを分離してResolvedとしたがhuman reviewと成果品質判定は未完了。ISSUE-000072はrevision A historical Evidenceを保持し、exact revision B executable source + exact revision A fixed input、E2 / E3別toolchain、stage-aware diagnostics、Requirement / Scenario pre-auditまで整えたがrevision B actual CLI / Provider Plan / current Adapter compatibilityは未検証のためOpenを維持する。
+    coverage: ISSUE-000001..ISSUE-000072, ISSUE-000074
+    note: ISSUE-000001〜000072をcurrent履歴として監査済み。ISSUE-000069はGitHub Actions常設時に得たtrigger選択とrunner allocation Evidenceをhistoricalに保持しつつcurrent baselineからActionsを外した。ISSUE-000070は固定KJ Atlas source / Method input / model artifact / promptの下でOllama `0.32.13` / `0.32.14`をactualに交換し、same logical / different Exact Binding、historical Application保持、portable reconstruction、canonical Evidence + Provenance verificationを確認してResolvedとした。成果品質やarbitrary portabilityへは昇格させない。ISSUE-000071はexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeを分離してResolvedとしたがhuman reviewと成果品質判定は未完了。ISSUE-000072はrevision A historical Evidenceを保持し、exact revision B executable source + exact revision A fixed input、E2 / E3別toolchain、stage-aware diagnostics、Requirement / Scenario pre-auditまで整えたがrevision B actual CLI / Provider Plan / current Adapter compatibilityは未検証のためOpenを維持する。 ISSUE-000074はbranch統合時のID衝突により当初のISSUE-000062から再採番したもので、actual TEI binaryのEvidence採取プロトコルを扱うOpen Issueとして登録した。同じ統合で重複していたexternal model-backed Cognitive Methodの草稿は、正本であるISSUE-000066へ撤回済みGitHub Models probeの記録だけを移したうえで削除した。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -184,6 +184,45 @@ reviewed:
   - scope: runtime/TEI_VERSION_EXCHANGE_TOOLCHAIN_READINESS_2026-09-05.md
     status: revised
     note: historical TEI E2用Goとcurrent SOZA E3用Goを別executableとして扱うtoolchain境界を監査済み。toolchain readinessをactual Provider / Adapter compatibility Evidenceへ昇格させていない。
+  - scope: runtime/TEI_VERSION_EXCHANGE_CURRENT_READINESS_2026-09-06.md
+    status: reviewed-no-change
+    note: ISSUE-000072のrevision B source取得経路、controlled Git / Go environment、副作用なしpreflight、current container実測をcurrent deltaとして全文確認した。repository-side実装の完了をactual build / Provider Plan / Adapter compatibilityへ昇格させない停止線が保たれているため現状の本文を保つ。
+  - scope: runtime/TEI_VERSION_EXCHANGE_E2_PARTIAL_DELTA_2026-09-06.md
+    status: reviewed-no-change
+    note: E2 partial Evidence経路、exact-B / exact-A strict bundle verification、later E3 resume、interrupted report-pair reconciliationを全文確認した。E2 partial成立をE3やISSUE-000072 Resolutionへ昇格させない境界が明示されているため現状の本文を保つ。
+  - scope: runtime/TEI_E2_PARTIAL_ACTUAL_RUNBOOK_2026-09-06.md
+    status: reviewed-no-change
+    note: operator向けE2 partial actual手順として全文確認した。credential値を記録しない扱い、pre-source rejectionとE2 stage failureの分離、Resolution auditが1〜6のみ自動判定である点が保たれているため現状の本文を保つ。
+  - scope: runtime/TEI_VERSION_EXCHANGE_POST_RUN_AUDIT_2026-09-06.md
+    status: reviewed-no-change
+    note: actual実行後のResolution条件1〜8監査手順として全文確認した。条件7 / 8を必ず人の意味確認として残し、resolutionCandidateをResolvedと書かない自然な日本語監査観点も明示されているため現状の本文を保つ。
+  - scope: runtime/TEI_GITHUB_HOSTED_JOB_START_DELTA_2026-09-06.md
+    status: reviewed-no-change
+    note: GitHub-hosted jobのzero-step failureをcross-workflowとhistorical positive controlで照合したExecution Environment Evidenceとして全文確認した。root causeをunobservedのまま保持し、Product failureへ読み替えていないため現状の本文を保つ。
+  - scope: runtime/TEI_VERSION_EXCHANGE_CURRENT_DELTA_2026-09-07.md
+    status: reviewed-no-change
+    note: bootstrap payloadのreject、revision A current-container再実行、lib/pq未使用requireのoffline negative control、hosted attempt 4観測を全文確認した。transport制約をProduct failureへ読み替えない境界が保たれているため現状の本文を保つ。
+  - scope: runtime/TEI_BOOTSTRAP_SOURCE_IDENTITY_REJECTION_2026-09-07.md
+    status: reviewed-no-change
+    note: bootstrap/final-sourceのbyte transport integrity成立と、fixed revision B source identityとの不一致によるrejectを全文確認した。transport PASSをrevision B取得やbuild PASSへ昇格させていないため現状の本文を保つ。
+  - scope: runtime/TEI_SUCCESSOR_BUILD_FIX_STATIC_DELTA_2026-09-07.md
+    status: reviewed-no-change
+    note: 後継lineageでのbounded convergenceを補助Static Evidenceとして全文確認した。fixed revision Bを後継commitへ差し替えず、比較軸とactual E2優先順位を維持しているため現状の本文を保つ。
+  - scope: runtime/TEI_VERSION_EXCHANGE_SNAPSHOT_TRANSPORT_DELTA_2026-09-07.md
+    status: reviewed-no-change
+    note: snapshot transport実装のmergeと、actual snapshot未取得・hosted attempt 7までのzero-step観測を全文確認した。acquisition identityとtransport mechanismを分離したままactual E2をNot Yet Verifiedに保っているため現状の本文を保つ。
+  - scope: runtime/TEI_E2_SNAPSHOT_TRANSPORT_ACTUAL_RUNBOOK_2026-09-07.md
+    status: reviewed-no-change
+    note: online capture (T1) とoffline exact-B再構成 + E2 partial (T2) を分離したoperator手順として全文確認した。snapshotを信頼境界にせずGit object identityを再計算する扱いと、E2 failure時にE3へ進まない経路が保たれているため現状の本文を保つ。
+  - scope: runtime/evidence/tei-revision-b-static-cli-compile-contradiction-20260907/README.md
+    status: reviewed-no-change
+    note: fixed revision Bのsource bytesから観測したCLI compile矛盾の固定Evidence記録として全文確認した。static observationをcanonical actual build FAILへ昇格させない停止線が明示され、machine-readable正本をevidence.jsonとしているため現状の本文を保つ。
+  - scope: runtime/evidence/tei-revision-b-postfix-repair-boundary-20260907/README.md
+    status: reviewed-no-change
+    note: fixed-B lineageとrepair lineageの合流境界を記録した固定Evidenceとして全文確認した。merge観測をrevision B差し替えやISSUE-000072 Resolutionへ昇格させていないため現状の本文を保つ。
+  - scope: runtime/evidence/tei-revision-b-static-cli-repair-lineage-20260907/README.md
+    status: reviewed-no-change
+    note: 上記repair boundary Evidenceの独立再確認記録として全文確認した。正本参照を一本化し、独立Evidenceとして二重計上しない旨が冒頭で明示されているため現状の本文を保つ。
   - scope: runtime/integration/README.md
     status: revised
     note: external Cognitive Method / model runtime / TEI version exchangeのrepository-local integration入口として監査済み。GitHub Actionsや特定runnerを成立条件にせず、ISSUE-000070では保存済みactual Evidenceと再現経路、ISSUE-000072ではactual前の固定identity / stage-aware実行境界を分離している。
@@ -256,6 +295,9 @@ reviewed:
   - scope: plan/kj/2026-08-31_TEI設計系列_ラウンドKJ統合.md
     status: reviewed-no-change
     note: 広域統合時点の生カード・束ね・核融合・残差を原記録として保全する。
+  - scope: plan/kj/2026-09-03_KJAtlas統合意味論_横断影響監査.md
+    status: reviewed-no-change
+    note: KJ Atlasの統合意味論がSOZA Universal Contractへ波及するかを判断したcross-repository working recordとして全文確認した。KJ Atlas固有語彙をUniversal fieldへ昇格させず、lossが観測された場合の起票条件と再監査条件を残しているため現状の本文を保つ。
 
   - scope: plan/README.md
     status: revised
