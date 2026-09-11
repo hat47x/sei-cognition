@@ -1,6 +1,6 @@
 # SOZA Semantic Reference Contract v1alpha1
 
-contract_id: `soza.semantic-reference`  
+contract_id: `sei.semantic-reference`  
 version: `v1alpha1`  
 状態: **Current pre-stable Design Baseline / Scoped Executable Evidence**  
 更新日: 2026-08-31
@@ -84,7 +84,7 @@ Semantic Reference Contract != Representation Profile != verifier implementation
 
 Exact Bindingが利用するRepresentation Profileは明示的に識別します。
 
-current/future baselineではADR-0023により、`soza.jcs+sha256/v1alpha1`と`soza.raw-bytes+sha256/v1alpha1`を利用できます。ただし、この2 Profileを唯一の永久的representationにはしません。
+current/future baselineではADR-0023により、`sei.jcs+sha256/v1alpha1`と`sei.raw-bytes+sha256/v1alpha1`を利用できます。ただし、この2 Profileを唯一の永久的representationにはしません。
 
 unknownなProfile、失われたverifier、取得不能なpayloadがある場合、検証済みとして扱ってはなりません。
 

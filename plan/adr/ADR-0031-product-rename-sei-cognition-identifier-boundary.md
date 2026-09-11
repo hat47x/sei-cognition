@@ -33,7 +33,7 @@ ADR-0021は、Contractがfilenameとは別のlogical identityとexplicit version
 - `evaluation/method-quality/historical/M1B-RUN-33596839607/` — manifestが`request.json`や`structure-report.json`のsha256を記録しており、これらのfileは`soza`文字列を含みます。内容を書き換えるとdigestが一致しなくなり、Evidence自体が自壊します。
 - `runtime/evidence/`配下の日付付きbundle 37file — 当時のrunで実際に出力されたrecordです。
 - `release/v0.2.0/` — releaseのsource commitをpinしています。
-- 日付を持つEvidence / audit / runbook / delta文書 22件 — 当時のrun ID、head SHA、対象Contract identity、実際に実行したcommandと環境変数を記述しています。
+- 日付を持つEvidence / audit / runbook / delta文書 30件 — 当時のrun ID、head SHA、対象Contract identity、実際に実行したcommandと環境変数を記述しています。
 
 `architecture/history/HISTORICAL_ARCHITECTURE_MAPPING.md`は、すでに「historical文書をcurrent正本へrenameしたものではない」という原則を持っています。今回の改名も同じ原則の下に置きます。
 
@@ -131,16 +131,12 @@ release/
 
 #### 4-b. 過去の観測記述として`soza`を残すもの
 
-日付を持つEvidence / audit / runbook / delta文書 **22件**では、`soza`を含む記述を変更しません。
+日付を持つEvidence / audit / runbook / delta文書 **30件**では、`soza`を含む記述を変更しません。
 
 ```text
 contracts/CONFORMANCE_EVIDENCE_2026-08-31.md
 contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md
-runtime/*_EVIDENCE_2026-*.md
-runtime/*_AUDIT_2026-*.md
-runtime/*_PREAUDIT_2026-*.md
-runtime/*_RUNBOOK_2026-*.md
-runtime/*_DELTA_2026-*.md
+runtime/*_2026-*.md
 runtime/integration/RUNTIME_VERSION_EXCHANGE_RECOVERED_EVIDENCE_2026-09-05.md
 ```
 
@@ -152,6 +148,19 @@ runtime/integration/RUNTIME_VERSION_EXCHANGE_RECOVERED_EVIDENCE_2026-09-05.md
 当時のrunは`soza.*`を対象として実行され、`SOZA_REPO`を読んで動きました。これを`sei.*`へ書き換えると、実行されなかったcommandを実行したことにし、検証されなかったidentityを検証したことにします。
 
 4-aと異なり、これらの文書はcurrent維持対象から外れるわけではありません。禁じるのは、過去の観測記述としての`soza`を現在の名前へ置き換えることだけです。
+
+#### 4-c. ADRとIssueは凍結しない
+
+`plan/adr/`と`plan/issue/`は改名対象です。
+
+ADRは過去に判断した記録であると同時に、ADR-0021が定めるとおりcurrent Contractの権威そのものです。たとえばADR-0023は「current Representation Profile baseline」を定義しています。この文書が現行と異なるidentityを示したままでは、ADRが現在の状態について誤った記述をすることになります。Issueも、Resolvedであっても参照しているのは現行のContractです。
+
+```text
+過去のrunが何を実行し何を観測したかの記録   → 凍結する (4-a, 4-b)
+設計判断・要求・Contract定義を述べる文書     → 改名する (4-c)
+```
+
+本ADR自身は例外です。mapping tableが旧identityと新identityの両方を保持する必要があるため、`soza.*`の記述を残します。
 
 ### 5. repositoryとGo module pathを改める
 
@@ -224,7 +233,7 @@ Design Evidence
 
 本ADRを支えるのは、現時点では**Design Evidenceのみ**です。
 
-確認済みの事実として、current tree上のidentifier実測値（`soza`を含むfile 428、distinct identifier 105、内部record schema 80のうちlive参照58 / 記録済みEvidence内のみ22、4-b対象の日付付き文書22）、`fixtures/representation-profiles/*.json`の実digestが`soza`文字列を含まないこと、`sei`および`井`がcurrent tree上で衝突0件であること、`.github/workflows`が存在せずCI追随作業が発生しないことを記録します。
+確認済みの事実として、current tree上のidentifier実測値（`soza`を含むfile 428、distinct identifier 105、内部record schema 80のうちlive参照58 / 記録済みEvidence内のみ22、4-b対象の日付付き文書30）、`fixtures/representation-profiles/*.json`の実digestが`soza`文字列を含まないこと、`sei`および`井`がcurrent tree上で衝突0件であること、`.github/workflows`が存在せずCI追随作業が発生しないことを記録します。
 
 なお`evaluation/method-quality/historical/`と`runtime/evidence/`に加えて日付付きEvidence文書22件を4-bとして分離したのは、本ADR起草後にtreeを再走査して判明した範囲です。当初の凍結範囲は`runtime/`配下のdated documentを取りこぼしていました。
 

@@ -334,8 +334,8 @@ Semantic Contract
 
 current baselineではADR-0023により次のProfileをAcceptedしています。
 
-- `soza.jcs+sha256/v1alpha1`
-- `soza.raw-bytes+sha256/v1alpha1`
+- `sei.jcs+sha256/v1alpha1`
+- `sei.raw-bytes+sha256/v1alpha1`
 
 これらはUniversal Core唯一のrepresentationではありません。Representation Profileやverifierが利用不能な場合の`not_verified`と、内容不一致を確認した`failed`も分けます。
 
@@ -542,13 +542,13 @@ current Architectureから、独立versioningと相互運用上の合意が必�
 
 | Concern | current Contract / Profile | current Evidence |
 |---|---|---|
-| Semantic Reference / Revision / Exact Binding | `soza.semantic-reference/v1alpha1` | Contract fixture / runtime / historical reconstructionで限定検証 |
-| Decision Memory | `soza.decision-memory/v1alpha1` | Contract fixture / runtime / Product Journeyで限定検証 |
-| Capability Observation | `soza.capability-observation/v1alpha1` | runtime / synthetic Adapter / E3b Provider integrationで限定検証 |
-| Cognitive Method Definition / Realization / Application | `soza.cognitive-method/v1alpha1` | runtime / M1a / M1b / historical reconstruction / model・runtime exchangeで限定検証 |
-| Portable Semantic Interchange | `soza.semantic-interchange/v1alpha1` | Contract fixture / runtime / Product Journeyで限定検証 |
-| Exact Binding Representation | `soza.jcs+sha256/v1alpha1` | Representation Profile fixture / Go probe |
-| Exact Binding Representation | `soza.raw-bytes+sha256/v1alpha1` | Representation Profile fixture / external artifact bindingで限定検証 |
+| Semantic Reference / Revision / Exact Binding | `sei.semantic-reference/v1alpha1` | Contract fixture / runtime / historical reconstructionで限定検証 |
+| Decision Memory | `sei.decision-memory/v1alpha1` | Contract fixture / runtime / Product Journeyで限定検証 |
+| Capability Observation | `sei.capability-observation/v1alpha1` | runtime / synthetic Adapter / E3b Provider integrationで限定検証 |
+| Cognitive Method Definition / Realization / Application | `sei.cognitive-method/v1alpha1` | runtime / M1a / M1b / historical reconstruction / model・runtime exchangeで限定検証 |
+| Portable Semantic Interchange | `sei.semantic-interchange/v1alpha1` | Contract fixture / runtime / Product Journeyで限定検証 |
+| Exact Binding Representation | `sei.jcs+sha256/v1alpha1` | Representation Profile fixture / Go probe |
+| Exact Binding Representation | `sei.raw-bytes+sha256/v1alpha1` | Representation Profile fixture / external artifact bindingで限定検証 |
 
 これらはcurrent baselineでAcceptedされた相互運用境界です。ただし、5 Contract familyや2 ProfileがSOZAの全意味領域を覆うとは主張しません。
 

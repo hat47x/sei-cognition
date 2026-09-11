@@ -189,7 +189,7 @@ Aは可逆で低影響な内部作業、Bは不可逆性が高く外部影響や
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Partially Satisfied** — `soza.cognitive-method/v1alpha1`のC1〜C8、negative / unknown-version fixture、standalone / Semantic Interchange双方のtyped runtimeで、Method Definition / Realization / Applicationを分離し、input / output / residual、Exact-bound Method / Realization Reference、Realization省略を意味を変えずに保持できることを確認した。Contract Conformance Run `33467838961`とSemantic Runtime Conformance Run `33467838941`はsuccess。異なるMethodやRealizationをproductionで実際に差し替えて運用する経路は未検証。
+- Executable: **Partially Satisfied** — `sei.cognitive-method/v1alpha1`のC1〜C8、negative / unknown-version fixture、standalone / Semantic Interchange双方のtyped runtimeで、Method Definition / Realization / Applicationを分離し、input / output / residual、Exact-bound Method / Realization Reference、Realization省略を意味を変えずに保持できることを確認した。Contract Conformance Run `33467838961`とSemantic Runtime Conformance Run `33467838941`はsuccess。異なるMethodやRealizationをproductionで実際に差し替えて運用する経路は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**

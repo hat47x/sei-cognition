@@ -1,5 +1,5 @@
 {
-  "contract": "soza.decision-memory/v1alpha1",
+  "contract": "sei.decision-memory/v1alpha1",
   "record_type": "decision",
   "decision": {
     "ref": {"kind": "decision", "id": "D-V6V7-low"},

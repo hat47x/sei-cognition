@@ -14,12 +14,12 @@ import (
 )
 
 const (
-	ProfileIDJCSSHA256      = "soza.jcs+sha256"
-	ProfileIDRawBytesSHA256 = "soza.raw-bytes+sha256"
+	ProfileIDJCSSHA256      = "sei.jcs+sha256"
+	ProfileIDRawBytesSHA256 = "sei.raw-bytes+sha256"
 	ProfileVersionV1Alpha1  = "v1alpha1"
 
-	VerifierRefJCSSHA256V1Alpha1      = "soza.runtime.verifier/jcs+sha256/v1alpha1"
-	VerifierRefRawBytesSHA256V1Alpha1 = "soza.runtime.verifier/raw-bytes+sha256/v1alpha1"
+	VerifierRefJCSSHA256V1Alpha1      = "sei.runtime.verifier/jcs+sha256/v1alpha1"
+	VerifierRefRawBytesSHA256V1Alpha1 = "sei.runtime.verifier/raw-bytes+sha256/v1alpha1"
 
 	jcsSafeIntegerMax = "9007199254740991"
 )

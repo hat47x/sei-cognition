@@ -54,4 +54,4 @@ SemanticLineageRecord
 
 ## Natural Japanese review
 
-current `soza.semantic-reference/v1alpha1`、Architecture、Exact Binding境界へ戻ってDecisionを照合した。その後、logical identity、exact content、semantic lineage、storage / representation revisionの四分離とrelation vocabularyを変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+current `sei.semantic-reference/v1alpha1`、Architecture、Exact Binding境界へ戻ってDecisionを照合した。その後、logical identity、exact content、semantic lineage、storage / representation revisionの四分離とrelation vocabularyを変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

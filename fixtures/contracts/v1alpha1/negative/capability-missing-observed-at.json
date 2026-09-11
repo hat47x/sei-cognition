@@ -1,5 +1,5 @@
 {
-  "contract": "soza.capability-observation/v1alpha1",
+  "contract": "sei.capability-observation/v1alpha1",
   "observation": {
     "ref": {"kind": "capability-observation", "id": "invalid-missing-observed-at"},
     "target": {

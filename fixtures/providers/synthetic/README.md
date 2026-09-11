@@ -5,7 +5,7 @@
 
 ## 1. 目的
 
-このfixture群は、異なるProvider固有stateを一つのUniversal `ProviderState`へ統合せず、Provider Adapterを通してcurrent `soza.capability-observation/v1alpha1`へ写像できることを検証するための固定入力です。
+このfixture群は、異なるProvider固有stateを一つのUniversal `ProviderState`へ統合せず、Provider Adapterを通してcurrent `sei.capability-observation/v1alpha1`へ写像できることを検証するための固定入力です。
 
 Provider AとProvider Bは、意図的に異なるfield名と単位を使います。
 

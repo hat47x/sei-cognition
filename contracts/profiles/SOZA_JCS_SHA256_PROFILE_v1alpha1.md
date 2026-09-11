@@ -1,6 +1,6 @@
 # SOZA JCS + SHA-256 Representation Profile v1alpha1
 
-Profile ID: `soza.jcs+sha256/v1alpha1`  
+Profile ID: `sei.jcs+sha256/v1alpha1`  
 Status: **Current v1alpha1 — Fixture-scoped Executable Conformance PASS**  
 Updated: 2026-08-31
 
@@ -170,7 +170,7 @@ historical M47 digest規則も本Profileへ遡及適用せず、ISSUE-000034で�
 
 ## 12. Versioning
 
-`soza.jcs+sha256/v1alpha1`のcanonicalization、digest algorithm、input制約を互換性なく変更する場合、同じProfile ID / versionを再利用しません。
+`sei.jcs+sha256/v1alpha1`のcanonicalization、digest algorithm、input制約を互換性なく変更する場合、同じProfile ID / versionを再利用しません。
 
 Semantic Contract versionとRepresentation Profile versionは独立です。
 

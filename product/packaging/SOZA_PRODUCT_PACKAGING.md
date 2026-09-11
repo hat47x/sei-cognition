@@ -106,7 +106,7 @@ runtime外には明示的なdurable data rootを置きます。最初のfilesyst
 
 ## 4. portable semantic data
 
-current baselineでは、新しいpackage専用Universal Contractを追加せず、`soza.semantic-interchange/v1alpha1`をportable semantic export / importの中心として再利用します。
+current baselineでは、新しいpackage専用Universal Contractを追加せず、`sei.semantic-interchange/v1alpha1`をportable semantic export / importの中心として再利用します。
 
 ```text
 Persistence internal form

@@ -86,7 +86,7 @@ Inquiry
 - SCN-0005
 - SCN-0015
 
-current `soza.cognitive-method/v1alpha1`は、この意味境界をContractへ実体化し始めています。
+current `sei.cognitive-method/v1alpha1`は、この意味境界をContractへ実体化し始めています。
 
 ### 3.4 Recommendation / Decision / Responsibilityを分ける
 

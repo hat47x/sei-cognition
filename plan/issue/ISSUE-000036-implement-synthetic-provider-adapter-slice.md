@@ -26,7 +26,7 @@ runtime/go/provideradapter/
 
 `Adapter` interfaceやGo package名はcurrent implementationであり、semantic authorityではない。
 
-Adapter outputの意味はADR-0024と`soza.capability-observation/v1alpha1`を正とする。
+Adapter outputの意味はADR-0024と`sei.capability-observation/v1alpha1`を正とする。
 
 ### 2. 異なるinput shapeを持つProvider A / Bを実装した
 

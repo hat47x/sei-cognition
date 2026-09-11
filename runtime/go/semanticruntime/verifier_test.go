@@ -55,7 +55,7 @@ func TestJCSVerifierReusesProfileFixture(t *testing.T) {
 	if err := json.Unmarshal(representationFixture(t, "jcs-v1alpha1.json"), &fixture); err != nil {
 		t.Fatal(err)
 	}
-	if fixture.ProfileID != "soza.jcs+sha256/v1alpha1" {
+	if fixture.ProfileID != "sei.jcs+sha256/v1alpha1" {
 		t.Fatalf("unexpected fixture profile %q", fixture.ProfileID)
 	}
 	profile := RepresentationProfile{ProfileID: ProfileIDJCSSHA256, Version: ProfileVersionV1Alpha1}
@@ -96,7 +96,7 @@ func TestRawBytesVerifierReusesProfileFixture(t *testing.T) {
 	if err := json.Unmarshal(representationFixture(t, "raw-bytes-v1alpha1.json"), &fixture); err != nil {
 		t.Fatal(err)
 	}
-	if fixture.ProfileID != "soza.raw-bytes+sha256/v1alpha1" {
+	if fixture.ProfileID != "sei.raw-bytes+sha256/v1alpha1" {
 		t.Fatalf("unexpected fixture profile %q", fixture.ProfileID)
 	}
 	profile := RepresentationProfile{ProfileID: ProfileIDRawBytesSHA256, Version: ProfileVersionV1Alpha1}

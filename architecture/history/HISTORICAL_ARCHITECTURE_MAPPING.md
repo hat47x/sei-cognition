@@ -109,7 +109,7 @@ M49系列から、次をcurrent Decision Memoryへ統合しました。
 - D1を後知恵で書き換えずD2とのlineageを残すこと
 - Progressive ExplicitnessをProfile / Policyへ置くこと
 
-currentでは、これらの一部を`soza.decision-memory/v1alpha1`、Semantic Reference / Interchange、fixture、first semantic runtimeで限定的に検証しています。
+currentでは、これらの一部を`sei.decision-memory/v1alpha1`、Semantic Reference / Interchange、fixture、first semantic runtimeで限定的に検証しています。
 
 一方、M49専用workflow、status machine、schema version lifecycleはcurrent Architectureへ導入していません。
 
@@ -129,7 +129,7 @@ Capability Definition
 
 さらにADR-0019 / ADR-0024を反映し、Provider internal state→Adapter / Mapping→Capability Observationという境界をcurrent Architectureへ追加しています。
 
-currentでは`soza.capability-observation/v1alpha1`、F1〜F7 fixture、Go first runtime、synthetic Provider A / B Adapterにより、この境界の一部をExecutable Evidenceとして確認しています。
+currentでは`sei.capability-observation/v1alpha1`、F1〜F7 fixture、Go first runtime、synthetic Provider A / B Adapterにより、この境界の一部をExecutable Evidenceとして確認しています。
 
 旧M50で未決だった次は、current Architectureでも無理に固定していません。
 

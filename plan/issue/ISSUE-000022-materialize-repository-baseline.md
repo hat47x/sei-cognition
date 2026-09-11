@@ -83,10 +83,10 @@ REQ-0001〜REQ-0022をArchitecture concernへ追跡できる。
 
 current Contract family:
 
-- `soza.semantic-reference/v1alpha1`
-- `soza.decision-memory/v1alpha1`
-- `soza.capability-observation/v1alpha1`
-- `soza.semantic-interchange/v1alpha1`
+- `sei.semantic-reference/v1alpha1`
+- `sei.decision-memory/v1alpha1`
+- `sei.capability-observation/v1alpha1`
+- `sei.semantic-interchange/v1alpha1`
 
 加えて、次をactual treeへ実体化した。
 
@@ -105,8 +105,8 @@ Contract Definitionをsemantic authorityとし、Schema / validatorをその実�
 ADR-0023で、current/future Exact Binding向けに次をAcceptedした。
 
 ```text
-soza.jcs+sha256/v1alpha1
-soza.raw-bytes+sha256/v1alpha1
+sei.jcs+sha256/v1alpha1
+sei.raw-bytes+sha256/v1alpha1
 ```
 
 RFC 8785 JCS、raw bytes、high-precision boundary、Unicode non-normalization、`verified / failed / not_verified`等をfixtureとGo probeで検証した。

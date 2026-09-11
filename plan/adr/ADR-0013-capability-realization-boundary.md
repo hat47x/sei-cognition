@@ -64,7 +64,7 @@ Capabilityにも同じ構造が必要になった場合は、Capability側の具
 
 ## Current realization
 
-current `soza.capability-observation/v1alpha1`では、ObservationのtargetとしてCapability referenceに加え、必要に応じてProvider referenceとProvider-specific target referenceを保持できる。
+current `sei.capability-observation/v1alpha1`では、ObservationのtargetとしてCapability referenceに加え、必要に応じてProvider referenceとProvider-specific target referenceを保持できる。
 
 また、synthetic Provider Adapter sliceでは、Provider A / Bの異なる入力SchemaをUniversal `CapabilityRealization`へ変換せず、それぞれのAdapterから同じCapability Observation境界へmappingできることを確認している。
 

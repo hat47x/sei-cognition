@@ -16,7 +16,7 @@ important concept
 
 ## 2. current Contract一覧
 
-### `soza.semantic-reference/v1alpha1`
+### `sei.semantic-reference/v1alpha1`
 
 対象:
 
@@ -42,7 +42,7 @@ current Executable material:
 - Go semantic runtime
 - Representation Verifier Registry
 
-### `soza.decision-memory/v1alpha1`
+### `sei.decision-memory/v1alpha1`
 
 対象:
 
@@ -68,7 +68,7 @@ current Executable material:
 - Exact Binding mismatch検査
 - Go semantic runtime
 
-### `soza.capability-observation/v1alpha1`
+### `sei.capability-observation/v1alpha1`
 
 対象:
 
@@ -94,7 +94,7 @@ current Executable material:
 - semantic validator / Go runtime
 - synthetic Provider A / B Adapter slice
 
-### `soza.cognitive-method/v1alpha1`
+### `sei.cognitive-method/v1alpha1`
 
 対象:
 
@@ -141,7 +141,7 @@ Pattern != Cognitive Method
 
 Realizationが記録されていないMethod Applicationを、Realization不存在やMethod未適用へ読み替えません。
 
-### `soza.semantic-interchange/v1alpha1`
+### `sei.semantic-interchange/v1alpha1`
 
 対象:
 
@@ -184,7 +184,7 @@ Question、Observation、Hypothesis、Unknown、Conflict、EvidenceUse、Assuran
 
 Pattern、Reference Model、典型業務構造等はdomain-specific Design Knowledgeです。
 
-Cognitive Methodがこれらをinput / contextとして参照しても、Patternそのものを`soza.cognitive-method`へ取り込みません。
+Cognitive Methodがこれらをinput / contextとして参照しても、Patternそのものを`sei.cognitive-method`へ取り込みません。
 
 ```text
 Pattern reference in Method Application
@@ -207,7 +207,7 @@ Adapterは必要な意味だけをCapability Observationへ写像し、mapping p
 
 ### Method executor
 
-`soza.cognitive-method`はMethodのportable meaningを扱いますが、Prompt runner、agent loop、model invocation、人間手順engine等の実行機構をUniversal Contractにしません。
+`sei.cognitive-method`はMethodのportable meaningを扱いますが、Prompt runner、agent loop、model invocation、人間手順engine等の実行機構をUniversal Contractにしません。
 
 ```text
 Cognitive Method Contract
@@ -220,8 +220,8 @@ Representation ProfileはSemantic Contractと別のversion空間を持ちます�
 
 ADR-0023に基づくcurrent `v1alpha1`基線:
 
-- `soza.jcs+sha256/v1alpha1`
-- `soza.raw-bytes+sha256/v1alpha1`
+- `sei.jcs+sha256/v1alpha1`
+- `sei.raw-bytes+sha256/v1alpha1`
 
 ```text
 Semantic Contract

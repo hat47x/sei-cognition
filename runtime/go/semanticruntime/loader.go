@@ -9,13 +9,13 @@ import (
 )
 
 const (
-	ContractSemanticInterchange     = "soza.semantic-interchange/v1alpha1"
-	ContractSemanticReference       = "soza.semantic-reference/v1alpha1"
-	ContractDecisionMemory          = "soza.decision-memory/v1alpha1"
-	ContractCapabilityObservation   = "soza.capability-observation/v1alpha1"
-	ContractIDSemanticReference     = "soza.semantic-reference"
-	ContractIDDecisionMemory        = "soza.decision-memory"
-	ContractIDCapabilityObservation = "soza.capability-observation"
+	ContractSemanticInterchange     = "sei.semantic-interchange/v1alpha1"
+	ContractSemanticReference       = "sei.semantic-reference/v1alpha1"
+	ContractDecisionMemory          = "sei.decision-memory/v1alpha1"
+	ContractCapabilityObservation   = "sei.capability-observation/v1alpha1"
+	ContractIDSemanticReference     = "sei.semantic-reference"
+	ContractIDDecisionMemory        = "sei.decision-memory"
+	ContractIDCapabilityObservation = "sei.capability-observation"
 	ContractVersionV1Alpha1         = "v1alpha1"
 )
 

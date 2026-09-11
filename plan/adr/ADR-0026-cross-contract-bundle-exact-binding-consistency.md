@@ -10,7 +10,7 @@ SOZAのExact Bindingは、可変Artifactについて「どのlogical objectか�
 
 current runtimeでは、Semantic Interchangeのbundle内にexact-bound recordが含まれ、そのrecordとDecisionの`basis_refs`が同じlogical identityを指す場合、両者のExact Bindingが一致するかを検査している。
 
-この検査は、過去Decisionのbasisをbundle内の別内容へ読み替えないために有効である。一方、ADR-0025で`soza.cognitive-method/v1alpha1`を追加したことで、Exact BindingはDecision basis以外にも現れる。
+この検査は、過去Decisionのbasisをbundle内の別内容へ読み替えないために有効である。一方、ADR-0025で`sei.cognitive-method/v1alpha1`を追加したことで、Exact BindingはDecision basis以外にも現れる。
 
 たとえばMethod Applicationは、次をExact Bindingで参照できる。
 

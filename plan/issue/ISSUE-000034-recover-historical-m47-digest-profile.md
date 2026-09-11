@@ -35,7 +35,7 @@ Method Application
 また、historical KJ Method Definition payloadも回収できた。
 
 ```text
-schema = soza.cognitive-method-definition/v1
+schema = sei.cognitive-method-definition/v1
 id = kj
 version = 1
 ```

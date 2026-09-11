@@ -10,7 +10,7 @@ func testExact(kind, id, digest, profileVersion string) ExactBinding {
 		LogicalRef:    LogicalReference{Kind: kind, ID: id},
 		ContentDigest: digest,
 		RepresentationProfile: RepresentationProfile{
-			ProfileID: "soza.jcs+sha256",
+			ProfileID: "sei.jcs+sha256",
 			Version:   profileVersion,
 		},
 	}

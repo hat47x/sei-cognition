@@ -1,5 +1,5 @@
 {
-  "contract": "soza.cognitive-method/v1alpha1",
+  "contract": "sei.cognitive-method/v1alpha1",
   "record_type": "method_application",
   "method_application": {
     "ref": {"kind": "method_application", "id": "review-2026-09-01-a"},

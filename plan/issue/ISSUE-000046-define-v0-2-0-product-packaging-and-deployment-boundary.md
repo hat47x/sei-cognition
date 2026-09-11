@@ -52,7 +52,7 @@ Persistenceは交換可能なRealizationとする。filesystemから将来RDB / 
 
 ## import / export / migration
 
-package専用の新しいUniversal Contractは追加せず、current `soza.semantic-interchange/v1alpha1`をportable semantic export / importの中心として再利用する。
+package専用の新しいUniversal Contractは追加せず、current `sei.semantic-interchange/v1alpha1`をportable semantic export / importの中心として再利用する。
 
 ```text
 Persistence A

@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	runtimeExchangeRawProfile = "soza.raw-bytes+sha256"
+	runtimeExchangeRawProfile = "sei.raw-bytes+sha256"
 	runtimeExchangeVersionA   = "0.32.13"
 	runtimeExchangeVersionB   = "0.32.14"
 	runtimeExchangeArtifactA  = "0fd1dece38a1c6242e8013ce20b597345c5de072ae6b320160edb0e729ef1de1"

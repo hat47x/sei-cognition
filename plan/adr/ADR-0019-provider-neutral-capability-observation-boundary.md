@@ -114,7 +114,7 @@ SOZA DecisionからProvider実行へ進む場合は、それぞれのAuthorizati
 
 current repositoryでは、次がactual treeへ実体化されている。
 
-- `soza.capability-observation/v1alpha1` Contract Definition
+- `sei.capability-observation/v1alpha1` Contract Definition
 - machine-readable schema
 - F1〜F7を含むContract fixture
 - Contract conformance checker

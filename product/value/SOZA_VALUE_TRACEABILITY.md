@@ -97,16 +97,16 @@ ISSUE-000071で成果品質の評価境界を確立したこと自体も、新�
 
 current Semantic Contractは5 familyです。
 
-- `soza.semantic-reference/v1alpha1`
-- `soza.decision-memory/v1alpha1`
-- `soza.capability-observation/v1alpha1`
-- `soza.cognitive-method/v1alpha1`
-- `soza.semantic-interchange/v1alpha1`
+- `sei.semantic-reference/v1alpha1`
+- `sei.decision-memory/v1alpha1`
+- `sei.capability-observation/v1alpha1`
+- `sei.cognitive-method/v1alpha1`
+- `sei.semantic-interchange/v1alpha1`
 
 Representation ProfileはSemantic Contractと別のversion空間を持ちます。
 
-- `soza.jcs+sha256/v1alpha1`
-- `soza.raw-bytes+sha256/v1alpha1`
+- `sei.jcs+sha256/v1alpha1`
+- `sei.raw-bytes+sha256/v1alpha1`
 
 ```text
 Semantic Contract

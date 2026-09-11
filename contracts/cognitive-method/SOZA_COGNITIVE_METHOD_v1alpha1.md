@@ -1,6 +1,6 @@
 # SOZA Cognitive Method Contract v1alpha1
 
-contract_id: `soza.cognitive-method`  
+contract_id: `sei.cognitive-method`  
 version: `v1alpha1`  
 状態: **Current pre-stable Design Baseline / Fixture-scoped Executable Evidence Available**  
 更新日: 2026-09-01
@@ -236,7 +236,7 @@ optional情報が欠けていることを否定事実へ変換してはなりま
 
 ## 13. unknown version
 
-Semantic Interchange内に未知の`soza.cognitive-method` versionが含まれる場合、受信runtimeはcurrent v1alpha1として推測解釈してはなりません。
+Semantic Interchange内に未知の`sei.cognitive-method` versionが含まれる場合、受信runtimeはcurrent v1alpha1として推測解釈してはなりません。
 
 payloadをopaqueに保持し、意味検証状態を`not_verified`とします。
 

@@ -82,7 +82,7 @@ Capabilityを提供、管理、選定、監督する責任は、必要に応じ�
 
 ## Current realization
 
-current repositoryでは、`soza.capability-observation/v1alpha1`、F1〜F7 fixture、first semantic runtime、synthetic Provider Adapter sliceまで実体化している。
+current repositoryでは、`sei.capability-observation/v1alpha1`、F1〜F7 fixture、first semantic runtime、synthetic Provider Adapter sliceまで実体化している。
 
 これにより、少なくとも次をExecutable Evidenceとして確認している。
 

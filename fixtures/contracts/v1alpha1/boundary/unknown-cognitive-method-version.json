@@ -1,17 +1,17 @@
 {
-  "contract": "soza.semantic-interchange/v1alpha1",
+  "contract": "sei.semantic-interchange/v1alpha1",
   "bundle_id": "bundle-unknown-cognitive-method-version",
   "records": [
     {
       "record_id": "record-unknown-method-v1alpha2",
       "contract": {
-        "contract_id": "soza.cognitive-method",
+        "contract_id": "sei.cognitive-method",
         "version": "v1alpha2"
       },
       "kind": "method_application",
       "logical_ref": {"kind": "method_application", "id": "future-method-app"},
       "payload": {
-        "contract": "soza.cognitive-method/v1alpha2",
+        "contract": "sei.cognitive-method/v1alpha2",
         "record_type": "method_application",
         "method_application": {
           "ref": {"kind": "method_application", "id": "future-method-app"},

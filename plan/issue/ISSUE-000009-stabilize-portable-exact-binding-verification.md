@@ -20,7 +20,7 @@ historical M47 digestの規則回収はISSUE-000034へ分離した。historical 
 current JSON Representation Profileとして次を実体化した。
 
 ```text
-soza.jcs+sha256/v1alpha1
+sei.jcs+sha256/v1alpha1
 ```
 
 Definition:
@@ -38,7 +38,7 @@ SHA-256は本Profile versionが所有し、Universal Coreの唯一のhash algori
 non-JSON / binary / raw file content向けに次を実体化した。
 
 ```text
-soza.raw-bytes+sha256/v1alpha1
+sei.raw-bytes+sha256/v1alpha1
 ```
 
 Definition:

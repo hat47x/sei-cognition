@@ -8,7 +8,7 @@ Updated: 2026-08-31
 
 SOZAのcurrent baselineでは、ProviderとCapabilityを分離し、Provider内部状態をそのままCapabilityの意味へ昇格させない。
 
-ADR-0019と`soza.capability-observation/v1alpha1`では、Provider固有の状態からProvider-neutralなCapability Observationへ変換するとき、field mapping、unit conversion、status interpretation、aggregation等が単なるformat変換ではなく、意味上の解釈を含み得ることを定めた。
+ADR-0019と`sei.capability-observation/v1alpha1`では、Provider固有の状態からProvider-neutralなCapability Observationへ変換するとき、field mapping、unit conversion、status interpretation、aggregation等が単なるformat変換ではなく、意味上の解釈を含み得ることを定めた。
 
 ```text
 Provider state != Capability interpretation != Decision
@@ -53,7 +53,7 @@ Adapter runtime APIがraw bytes、typed object、API response等のいずれを�
 
 ### 3. Adapterの出力はCapability Observation Contractで検証する
 
-Adapterが生成した結果は、少なくともcurrent `soza.capability-observation/v1alpha1`の意味境界を満たさなければならない。
+Adapterが生成した結果は、少なくともcurrent `sei.capability-observation/v1alpha1`の意味境界を満たさなければならない。
 
 ```text
 Adapter produced output

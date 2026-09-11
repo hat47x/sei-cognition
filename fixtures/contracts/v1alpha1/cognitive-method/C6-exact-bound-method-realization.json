@@ -1,17 +1,17 @@
 {
-  "contract": "soza.cognitive-method/v1alpha1",
+  "contract": "sei.cognitive-method/v1alpha1",
   "record_type": "method_application",
   "method_application": {
     "ref": {"kind": "method_application", "id": "exact-method-application-a"},
     "method_ref": {
       "logical_ref": {"kind": "cognitive_method", "id": "contrastive-review"},
       "content_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-      "representation_profile": {"profile_id": "soza.jcs+sha256", "version": "v1alpha1"}
+      "representation_profile": {"profile_id": "sei.jcs+sha256", "version": "v1alpha1"}
     },
     "realization_ref": {
       "logical_ref": {"kind": "method_realization", "id": "contrastive-review-assisted-v1"},
       "content_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
-      "representation_profile": {"profile_id": "soza.jcs+sha256", "version": "v1alpha1"}
+      "representation_profile": {"profile_id": "sei.jcs+sha256", "version": "v1alpha1"}
     },
     "summary": "MethodとRealizationの当時版をExact Bindingで参照する。"
   }

@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://soza.example/contracts/v1alpha1/semantic-interchange.schema.json",
+  "$id": "https://sei-cognition.example/contracts/v1alpha1/semantic-interchange.schema.json",
   "title": "SOZA Semantic Interchange v1alpha1",
   "description": "Portable envelope for typed SOZA semantic records. Record payload validation is delegated to the declared record contract and semantic validator.",
   "type": "object",
   "required": ["contract", "bundle_id", "records"],
   "properties": {
     "contract": {
-      "const": "soza.semantic-interchange/v1alpha1"
+      "const": "sei.semantic-interchange/v1alpha1"
     },
     "bundle_id": {
       "type": "string",

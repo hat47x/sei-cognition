@@ -1,14 +1,14 @@
 {
-  "contract": "soza.semantic-interchange/v1alpha1",
+  "contract": "sei.semantic-interchange/v1alpha1",
   "bundle_id": "F5-cross-provider-comparison",
   "created_at": "2026-08-31T00:20:00Z",
   "records": [
     {
       "record_id": "tei-observation",
-      "contract": {"contract_id": "soza.capability-observation", "version": "v1alpha1"},
+      "contract": {"contract_id": "sei.capability-observation", "version": "v1alpha1"},
       "kind": "capability-observation",
       "payload": {
-        "contract": "soza.capability-observation/v1alpha1",
+        "contract": "sei.capability-observation/v1alpha1",
         "observation": {
           "ref": {"kind": "capability-observation", "id": "F5-tei"},
           "target": {
@@ -29,10 +29,10 @@
     },
     {
       "record_id": "saas-observation",
-      "contract": {"contract_id": "soza.capability-observation", "version": "v1alpha1"},
+      "contract": {"contract_id": "sei.capability-observation", "version": "v1alpha1"},
       "kind": "capability-observation",
       "payload": {
-        "contract": "soza.capability-observation/v1alpha1",
+        "contract": "sei.capability-observation/v1alpha1",
         "observation": {
           "ref": {"kind": "capability-observation", "id": "F5-saas"},
           "target": {

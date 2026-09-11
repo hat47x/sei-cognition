@@ -98,7 +98,7 @@ Contractにはfilenameとは別にlogical identityとversionを明示する。
 例:
 
 ```text
-contract_id: soza.semantic-interchange
+contract_id: sei.semantic-interchange
 version: v1alpha1
 ```
 

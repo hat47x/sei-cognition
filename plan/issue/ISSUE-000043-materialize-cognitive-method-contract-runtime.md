@@ -7,7 +7,7 @@ Updated: 2026-09-01
 
 ## Goal
 
-ADR-0025に基づき、`soza.cognitive-method/v1alpha1`のContract Definition、machine-readable schema、fixture、semantic validator、Go runtime read / validate / reconstructをactual repositoryへ実体化し、SCN-0005 / SCN-0015に最初のExecutable Evidenceを与える。
+ADR-0025に基づき、`sei.cognitive-method/v1alpha1`のContract Definition、machine-readable schema、fixture、semantic validator、Go runtime read / validate / reconstructをactual repositoryへ実体化し、SCN-0005 / SCN-0015に最初のExecutable Evidenceを与える。
 
 このIssueではCognitive Methodを実行するengineは作らない。SOZAが耐久的に保持すべき**Method Definition / Realization / Applicationの意味と来歴**を、特定Promptやprivate chain-of-thoughtへ依存せずportableに読み直せることをfirst sliceとする。
 
@@ -18,7 +18,7 @@ Cognitive Methodを5番目のcurrent Semantic Contract familyとして実体化�
 current Contract:
 
 ```text
-soza.cognitive-method/v1alpha1
+sei.cognitive-method/v1alpha1
 ```
 
 record type:
@@ -52,7 +52,7 @@ current Contract Catalog / Traceabilityでは、Cognitive Methodについて次�
 - C1〜C8 positive / boundary fixture
 - Method ApplicationへのDecision / Assurance / Pattern固有field混入を拒否するnegative fixture
 - Method / Application required-reference欠落を拒否するfixture
-- unknown `soza.cognitive-method/v1alpha2`をknown versionへ昇格させず、Interchangeでopaque + `not_verified`として保持するfixture
+- unknown `sei.cognitive-method/v1alpha2`をknown versionへ昇格させず、Interchangeでopaque + `not_verified`として保持するfixture
 
 Contract Conformance:
 

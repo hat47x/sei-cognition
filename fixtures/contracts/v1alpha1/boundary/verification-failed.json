@@ -1,5 +1,5 @@
 {
-  "contract": "soza.semantic-reference/v1alpha1",
+  "contract": "sei.semantic-reference/v1alpha1",
   "record_type": "verification_outcome",
   "verification_outcome": {
     "binding": {

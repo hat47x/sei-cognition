@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://soza.example/contracts/v1alpha1/semantic-reference.schema.json",
+  "$id": "https://sei-cognition.example/contracts/v1alpha1/semantic-reference.schema.json",
   "title": "SOZA Semantic Reference v1alpha1",
-  "description": "Machine-readable representation of soza.semantic-reference/v1alpha1. The Markdown Contract Definition remains the semantic normative source.",
+  "description": "Machine-readable representation of sei.semantic-reference/v1alpha1. The Markdown Contract Definition remains the semantic normative source.",
   "type": "object",
   "required": ["contract", "record_type"],
   "properties": {
     "contract": {
-      "const": "soza.semantic-reference/v1alpha1"
+      "const": "sei.semantic-reference/v1alpha1"
     },
     "record_type": {
       "enum": ["logical_reference", "exact_binding", "semantic_lineage", "verification_outcome"]

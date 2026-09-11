@@ -34,7 +34,7 @@ historical mappingの不明点によってcurrent / future bindingのProfile利�
 current JSON Exact Bindingの第一Profileを次とする。
 
 ```text
-soza.jcs+sha256/v1alpha1
+sei.jcs+sha256/v1alpha1
 ```
 
 Profile Definition:
@@ -52,7 +52,7 @@ SOZA独自canonical JSON algorithmをstable authorityにはしない。
 明示されたbytesそのものをExact Binding対象にするProfileとして、次を置く。
 
 ```text
-soza.raw-bytes+sha256/v1alpha1
+sei.raw-bytes+sha256/v1alpha1
 ```
 
 Profile Definition:

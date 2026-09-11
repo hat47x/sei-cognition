@@ -31,7 +31,7 @@ read
 
 少なくとも次を扱えるようにする。
 
-1. `soza.semantic-interchange/v1alpha1`を読み込む。
+1. `sei.semantic-interchange/v1alpha1`を読み込む。
 2. nested recordのContract identity / versionを識別する。
 3. Logical ReferenceとExact Binding metadataを保持する。
 4. Decision Memoryをbasis / unresolved / Recommendation relationとともに読み込む。

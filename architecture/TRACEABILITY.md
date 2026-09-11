@@ -128,16 +128,16 @@ current Architectureから、独立versioningと相互運用境界が必要な�
 
 | Architecture concern | current Contract |
 |---|---|
-| Semantic Reference / Revision / Exact Binding | `soza.semantic-reference/v1alpha1` |
-| Decision Memory | `soza.decision-memory/v1alpha1` |
-| Capability Observation / Provider boundary | `soza.capability-observation/v1alpha1` |
-| Cognitive Method Definition / Realization / Application | `soza.cognitive-method/v1alpha1` |
-| portable semantic interchange | `soza.semantic-interchange/v1alpha1` |
+| Semantic Reference / Revision / Exact Binding | `sei.semantic-reference/v1alpha1` |
+| Decision Memory | `sei.decision-memory/v1alpha1` |
+| Capability Observation / Provider boundary | `sei.capability-observation/v1alpha1` |
+| Cognitive Method Definition / Realization / Application | `sei.cognitive-method/v1alpha1` |
+| portable semantic interchange | `sei.semantic-interchange/v1alpha1` |
 
 Exact BindingのrepresentationはContract本体ではなく、次のProfileへ分離しています。
 
-- `soza.jcs+sha256/v1alpha1`
-- `soza.raw-bytes+sha256/v1alpha1`
+- `sei.jcs+sha256/v1alpha1`
+- `sei.raw-bytes+sha256/v1alpha1`
 
 Provider Adapterの出力はcurrent Capability Observation Contractで検証しますが、Provider固有入力自体のUniversal Contractを新設しません。
 

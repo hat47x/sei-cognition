@@ -1,6 +1,6 @@
 # SOZA Capability Observation Contract v1alpha1
 
-contract_id: `soza.capability-observation`  
+contract_id: `sei.capability-observation`  
 version: `v1alpha1`  
 状態: **Current pre-stable Design Baseline / Scoped Executable Evidence**  
 更新日: 2026-08-31

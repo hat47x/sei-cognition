@@ -1,6 +1,6 @@
 # SOZA Raw Bytes + SHA-256 Representation Profile v1alpha1
 
-Profile ID: `soza.raw-bytes+sha256/v1alpha1`  
+Profile ID: `sei.raw-bytes+sha256/v1alpha1`  
 Status: **Current v1alpha1 — Fixture-scoped Executable Conformance PASS**  
 Updated: 2026-08-31
 
@@ -67,7 +67,7 @@ URL、object key、file path、ETag等をcontent digestの代わりにしては�
 
 ## 7. Relation to JCS Profile
 
-JSON Artifactについて「semantic JSON representationとして相互運用したい」場合は`soza.jcs+sha256/v1alpha1`を優先候補とします。
+JSON Artifactについて「semantic JSON representationとして相互運用したい」場合は`sei.jcs+sha256/v1alpha1`を優先候補とします。
 
 一方、「そのJSON fileのraw bytesそのもの」を固定したい場合は本Profileを使えます。
 

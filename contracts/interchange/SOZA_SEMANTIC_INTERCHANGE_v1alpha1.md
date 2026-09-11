@@ -1,6 +1,6 @@
 # SOZA Semantic Interchange Contract v1alpha1
 
-contract_id: `soza.semantic-interchange`  
+contract_id: `sei.semantic-interchange`  
 version: `v1alpha1`  
 状態: **Current pre-stable Design Baseline / Scoped Executable Evidence**  
 更新日: 2026-08-31
@@ -101,13 +101,13 @@ recordがこれらを利用する場合、それぞれの意味差を保持で�
 
 ## 9. Decision Memory
 
-Decision recordを交換する場合、`soza.decision-memory`の意味境界を満たさなければなりません。
+Decision recordを交換する場合、`sei.decision-memory`の意味境界を満たさなければなりません。
 
 EnvelopeはRecommendation、Decision、Authority、Executionを一つのgeneric `action`へ統合しません。
 
 ## 10. Capability Observation
 
-Capability Observationを交換する場合、`soza.capability-observation`の意味境界を満たさなければなりません。
+Capability Observationを交換する場合、`sei.capability-observation`の意味境界を満たさなければなりません。
 
 Provider internal SchemaをそのままUniversal interchange fieldへ昇格させず、必要なProvider-specific contextはReference / extensionとして扱います。
 

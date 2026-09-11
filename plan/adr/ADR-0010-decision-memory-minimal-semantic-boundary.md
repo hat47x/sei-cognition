@@ -64,7 +64,7 @@ Decision != Authority != Action Intent != Provider Execution
 
 current repositoryでは、次が実体化されている。
 
-- `soza.decision-memory/v1alpha1` Contract Definition
+- `sei.decision-memory/v1alpha1` Contract Definition
 - machine-readable schema
 - positive / negative boundary fixture
 - Contract conformance checker

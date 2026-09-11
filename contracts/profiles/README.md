@@ -34,7 +34,7 @@ ADR-0023により、current/future `v1alpha1`基線として次の2 ProfileをAc
 ### JSON semantic representation
 
 ```text
-soza.jcs+sha256/v1alpha1
+sei.jcs+sha256/v1alpha1
 ```
 
 Definition:
@@ -52,7 +52,7 @@ SOZA独自canonical JSONをstable authorityにはしません。Go verifier impl
 ### Raw bytes representation
 
 ```text
-soza.raw-bytes+sha256/v1alpha1
+sei.raw-bytes+sha256/v1alpha1
 ```
 
 Definition:
@@ -124,8 +124,8 @@ runtime/go/semanticruntime/verifier_test.go
 current Registryは次を解決します。
 
 ```text
-soza.jcs+sha256/v1alpha1
-soza.raw-bytes+sha256/v1alpha1
+sei.jcs+sha256/v1alpha1
+sei.raw-bytes+sha256/v1alpha1
 ```
 
 Profile authorityはProfile Definitionと参照外部標準にあり、Go interfaceやlibrary APIを正本にはしません。

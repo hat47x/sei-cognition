@@ -74,7 +74,7 @@ Recommendation / Decision / Authority / Execution、Capability / Provider、Unkn
 
 ### Representation Profile
 
-`soza.jcs+sha256/v1alpha1`と`soza.raw-bytes+sha256/v1alpha1`がADR-0023でAccepted済みであることへ文書を揃えた。
+`sei.jcs+sha256/v1alpha1`と`sei.raw-bytes+sha256/v1alpha1`がADR-0023でAccepted済みであることへ文書を揃えた。
 
 Profile Evidenceに残っていたhistorical M47追跡先`ISSUE-000032`の誤記を、正しい`ISSUE-000034`へ訂正した。
 

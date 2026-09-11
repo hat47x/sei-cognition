@@ -154,7 +154,7 @@ SOZAが保持すべきなのは特定のPromptや実装ではなく、どの方�
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Partially Satisfied** — `soza.cognitive-method/v1alpha1`、C1〜C8 fixture、negative / unknown-version boundary、Go typed runtimeによりMethod Definition / Realization / Applicationを分離してread / validate / reconstructできる。SCN-0018 harnessでもMethod ApplicationをRecommendation / Decisionとは別recordとして接続する。Method executorやproduction Realization交換は未検証。
+- Executable: **Partially Satisfied** — `sei.cognitive-method/v1alpha1`、C1〜C8 fixture、negative / unknown-version boundary、Go typed runtimeによりMethod Definition / Realization / Applicationを分離してread / validate / reconstructできる。SCN-0018 harnessでもMethod ApplicationをRecommendation / Decisionとは別recordとして接続する。Method executorやproduction Realization交換は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**

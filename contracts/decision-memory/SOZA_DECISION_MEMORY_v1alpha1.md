@@ -1,6 +1,6 @@
 # SOZA Decision Memory Contract v1alpha1
 
-contract_id: `soza.decision-memory`  
+contract_id: `sei.decision-memory`  
 version: `v1alpha1`  
 状態: **Current pre-stable Design Baseline / Scoped Executable Evidence**  
 更新日: 2026-08-31
