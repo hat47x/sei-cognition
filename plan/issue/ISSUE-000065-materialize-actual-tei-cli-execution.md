@@ -60,7 +60,7 @@ SEI側のcredential-aware workflowは、`TEI_REPOSITORY_TOKEN`を利用できる
 
 `runtime/go/teiintegration/tei_live_test.go`には、actual TEI専用のintegration testがある。
 
-通常の`go test ./...`ではこのtestをskipし、`SOZA_E3B_TEI_LIVE=1`と必要な外部pathを明示した場合だけ実行する。
+通常の`go test ./...`ではこのtestをskipし、`SEI_E3B_TEI_LIVE=1`と必要な外部pathを明示した場合だけ実行する。
 
 実行時には、少なくとも次を確認する。
 
@@ -117,7 +117,7 @@ PR #45でE3b-P2専用workflowを`develop/v0.2.0`へのpushでも起動するよ�
 - Job: `actual-tei-cli`
 - Result: **success**
 - Evidence artifact ID: `9831112092`
-- Artifact name: `tei-soza-e3b-p2-linux-amd64`
+- Artifact name: `tei-sei-e3b-p2-linux-amd64`
 - Artifact digest: `sha256:1ee8bf4112d9ae97e1f66b3165f70278663951e9dd4bd6020b465471f563a287`
 
 actual artifactの主要identityは次のとおりである。

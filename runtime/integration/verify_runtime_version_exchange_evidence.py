@@ -18,9 +18,9 @@ EXPECTED_PARENT_BACKEND_TREE = "7d71ac2b4d32bef90f3a481ade1b4c92ddddd084"
 EXPECTED_RUNTIME_SURFACE_TREE = "208bea71eef4afed3ddfd3fabb36b0969d167a90"
 EXPECTED_SOURCE_MODE = "verified-runtime-bundle"
 EXPECTED_SOURCE_VERIFICATION_BASIS = "pinned-git-object-identities"
-EXPECTED_ADAPTER_SCHEMA = "soza.e3b-m1b-model-call/v1"
-EXPECTED_IDENTITY_SCHEMA = "soza.runtime-version-exchange-evidence-identity/v1"
-EXPECTED_RUNNER_SCHEMA = "soza.runtime-version-exchange-runner-observation/v1"
+EXPECTED_ADAPTER_SCHEMA = "sei.e3b-m1b-model-call/v1"
+EXPECTED_IDENTITY_SCHEMA = "sei.runtime-version-exchange-evidence-identity/v1"
+EXPECTED_RUNNER_SCHEMA = "sei.runtime-version-exchange-runner-observation/v1"
 EXPECTED_TASK = "suggest_card_groups"
 EXPECTED_HELD_CARD = "c-held"
 EXPECTED_CARD_IDS = ("c-remote-time", "c-remote-load", EXPECTED_HELD_CARD)
@@ -69,7 +69,7 @@ class Verification:
 
 def _load_manifest(path: Path = ARTIFACT_MANIFEST) -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="utf-8"))
-    if payload.get("schema") != "soza.runtime-version-exchange-artifact-manifest/v1":
+    if payload.get("schema") != "sei.runtime-version-exchange-artifact-manifest/v1":
         raise ValueError(f"artifact manifest schema mismatch: {payload.get('schema')!r}")
     return payload
 
@@ -372,7 +372,7 @@ def verify_evidence_directory(
     if source is not None:
         verification.require(
             "source.schema",
-            source.get("schema") == "soza.kj-atlas-runtime-source-identity/v1",
+            source.get("schema") == "sei.kj-atlas-runtime-source-identity/v1",
             "KJ Atlas source identity schemaを確認しました",
             f"KJ Atlas source identity schemaが一致しません: {source.get('schema')!r}",
         )
@@ -590,7 +590,7 @@ def verify_evidence_directory(
 def _report(evidence_dir: Path, verification: Verification) -> dict[str, Any]:
     blockers = [check.id for check in verification.checks if check.status != "ok"]
     return {
-        "schema": "soza.runtime-version-exchange-evidence-verification/v1",
+        "schema": "sei.runtime-version-exchange-evidence-verification/v1",
         "evidenceDirectory": str(evidence_dir),
         "result": "ready-to-review" if verification.ready else "not-sufficient",
         "blockers": blockers,

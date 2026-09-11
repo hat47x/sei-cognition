@@ -46,8 +46,8 @@ func observationContext() provideradapter.ObservationContext {
 }
 
 func TestObserveProviderPlanMapsOnlyProviderNeutralMeaning(t *testing.T) {
-	t.Setenv("SOZA_TEI_HELPER_PROCESS", "1")
-	t.Setenv("SOZA_TEI_HELPER_MODE", "success")
+	t.Setenv("SEI_TEI_HELPER_PROCESS", "1")
+	t.Setenv("SEI_TEI_HELPER_MODE", "success")
 
 	document, err := helperCLI().ObserveProviderPlan(context.Background(), providerPlanRequest(), observationContext())
 	if err != nil {
@@ -96,8 +96,8 @@ func TestObserveProviderPlanMapsOnlyProviderNeutralMeaning(t *testing.T) {
 }
 
 func TestObserveProviderPlanRejectsUnknownTopLevelField(t *testing.T) {
-	t.Setenv("SOZA_TEI_HELPER_PROCESS", "1")
-	t.Setenv("SOZA_TEI_HELPER_MODE", "unknown-field")
+	t.Setenv("SEI_TEI_HELPER_PROCESS", "1")
+	t.Setenv("SEI_TEI_HELPER_MODE", "unknown-field")
 
 	document, err := helperCLI().ObserveProviderPlan(context.Background(), providerPlanRequest(), observationContext())
 	if err == nil || !strings.Contains(err.Error(), "unknown field") {
@@ -109,8 +109,8 @@ func TestObserveProviderPlanRejectsUnknownTopLevelField(t *testing.T) {
 }
 
 func TestObserveProviderPlanRejectsMalformedJSON(t *testing.T) {
-	t.Setenv("SOZA_TEI_HELPER_PROCESS", "1")
-	t.Setenv("SOZA_TEI_HELPER_MODE", "malformed")
+	t.Setenv("SEI_TEI_HELPER_PROCESS", "1")
+	t.Setenv("SEI_TEI_HELPER_MODE", "malformed")
 
 	document, err := helperCLI().ObserveProviderPlan(context.Background(), providerPlanRequest(), observationContext())
 	if err == nil {
@@ -122,8 +122,8 @@ func TestObserveProviderPlanRejectsMalformedJSON(t *testing.T) {
 }
 
 func TestObserveProviderPlanRejectsMultipleJSONValues(t *testing.T) {
-	t.Setenv("SOZA_TEI_HELPER_PROCESS", "1")
-	t.Setenv("SOZA_TEI_HELPER_MODE", "multiple-json")
+	t.Setenv("SEI_TEI_HELPER_PROCESS", "1")
+	t.Setenv("SEI_TEI_HELPER_MODE", "multiple-json")
 
 	document, err := helperCLI().ObserveProviderPlan(context.Background(), providerPlanRequest(), observationContext())
 	if err == nil || !strings.Contains(err.Error(), "複数のJSON値") {
@@ -135,8 +135,8 @@ func TestObserveProviderPlanRejectsMultipleJSONValues(t *testing.T) {
 }
 
 func TestObserveProviderPlanRejectsEmptyRecognizedContent(t *testing.T) {
-	t.Setenv("SOZA_TEI_HELPER_PROCESS", "1")
-	t.Setenv("SOZA_TEI_HELPER_MODE", "empty")
+	t.Setenv("SEI_TEI_HELPER_PROCESS", "1")
+	t.Setenv("SEI_TEI_HELPER_MODE", "empty")
 
 	document, err := helperCLI().ObserveProviderPlan(context.Background(), providerPlanRequest(), observationContext())
 	if err == nil || !strings.Contains(err.Error(), "recognized provider-plan information") {
@@ -148,8 +148,8 @@ func TestObserveProviderPlanRejectsEmptyRecognizedContent(t *testing.T) {
 }
 
 func TestObserveProviderPlanRejectsProcessFailure(t *testing.T) {
-	t.Setenv("SOZA_TEI_HELPER_PROCESS", "1")
-	t.Setenv("SOZA_TEI_HELPER_MODE", "failure")
+	t.Setenv("SEI_TEI_HELPER_PROCESS", "1")
+	t.Setenv("SEI_TEI_HELPER_MODE", "failure")
 
 	document, err := helperCLI().ObserveProviderPlan(context.Background(), providerPlanRequest(), observationContext())
 	if err == nil || !strings.Contains(err.Error(), "TEI reference process failure") {
@@ -161,8 +161,8 @@ func TestObserveProviderPlanRejectsProcessFailure(t *testing.T) {
 }
 
 func TestObserveProviderPlanRejectsTimeout(t *testing.T) {
-	t.Setenv("SOZA_TEI_HELPER_PROCESS", "1")
-	t.Setenv("SOZA_TEI_HELPER_MODE", "slow")
+	t.Setenv("SEI_TEI_HELPER_PROCESS", "1")
+	t.Setenv("SEI_TEI_HELPER_MODE", "slow")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
@@ -185,7 +185,7 @@ func TestProviderPlanRequestRequiresExternalInputs(t *testing.T) {
 }
 
 func TestTEIHelperProcess(t *testing.T) {
-	if os.Getenv("SOZA_TEI_HELPER_PROCESS") != "1" {
+	if os.Getenv("SEI_TEI_HELPER_PROCESS") != "1" {
 		return
 	}
 
@@ -212,7 +212,7 @@ func TestTEIHelperProcess(t *testing.T) {
 		}
 	}
 
-	switch os.Getenv("SOZA_TEI_HELPER_MODE") {
+	switch os.Getenv("SEI_TEI_HELPER_MODE") {
 	case "success":
 		fmt.Print(`{"executors":[{"provider":"tei.internal.executor"}],"observations":[{"kind":"deployment-state","provider":"tei.internal.observation-provider"}],"evidence":[{"kind":"deployment-evidence","provider":"tei.internal.evidence-provider","actionId":"action-1"}],"pluginRuntime":{"provider":"tei.internal.runtime"}}`)
 	case "unknown-field":

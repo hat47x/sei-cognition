@@ -31,7 +31,7 @@ def _write_evidence(path: Path, payload: dict) -> None:
 
 
 class AdapterHandler(BaseHTTPRequestHandler):
-    server_version = "soza-e3b-m1b-adapter/1"
+    server_version = "sei-e3b-m1b-adapter/1"
 
     def log_message(self, format: str, *args) -> None:  # noqa: A003
         print(f"[e3b-m1b-adapter] {self.address_string()} - {format % args}")
@@ -145,7 +145,7 @@ class AdapterHandler(BaseHTTPRequestHandler):
             return
 
         evidence = {
-            "schema": "soza.e3b-m1b-model-call/v1",
+            "schema": "sei.e3b-m1b-model-call/v1",
             "adapter_role": "integration-only",
             "task": task,
             "model": self.server.model_name,
@@ -167,16 +167,16 @@ def main() -> int:
     parser.add_argument("--port", type=int, default=8001)
     parser.add_argument(
         "--ollama-base-url",
-        default=os.environ.get("SOZA_M1B_OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
+        default=os.environ.get("SEI_M1B_OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
     )
     parser.add_argument(
         "--model",
-        default=os.environ.get("SOZA_M1B_MODEL", "qwen2.5:0.5b"),
+        default=os.environ.get("SEI_M1B_MODEL", "qwen2.5:0.5b"),
     )
     parser.add_argument(
         "--evidence",
         default=os.environ.get(
-            "SOZA_M1B_MODEL_EVIDENCE", "/tmp/soza-e3b-m1b-model-call.json"
+            "SEI_M1B_MODEL_EVIDENCE", "/tmp/sei-e3b-m1b-model-call.json"
         ),
     )
     args = parser.parse_args()

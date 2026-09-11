@@ -103,18 +103,18 @@ class RuntimeVersionExchangeHarnessTest(unittest.TestCase):
 
     def test_harness_passes_every_live_guard_path_explicitly(self):
         required_names = {
-            "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_MODE",
-            "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_DIR",
-            "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_VERIFIER",
-            "SOZA_E3B_RUNTIME_EXCHANGE_ARCHIVE_A",
-            "SOZA_E3B_RUNTIME_EXCHANGE_ARCHIVE_B",
-            "SOZA_E3B_RUNTIME_EXCHANGE_VERSION_LOG_A",
-            "SOZA_E3B_RUNTIME_EXCHANGE_VERSION_LOG_B",
+            "SEI_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_MODE",
+            "SEI_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_DIR",
+            "SEI_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_VERIFIER",
+            "SEI_E3B_RUNTIME_EXCHANGE_ARCHIVE_A",
+            "SEI_E3B_RUNTIME_EXCHANGE_ARCHIVE_B",
+            "SEI_E3B_RUNTIME_EXCHANGE_VERSION_LOG_A",
+            "SEI_E3B_RUNTIME_EXCHANGE_VERSION_LOG_B",
         }
         for name in required_names:
             with self.subTest(environment=name):
                 self.assertIn(f'export {name}=', self.script_text)
-        self.assertNotIn("SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_DIR", self.script_text)
+        self.assertNotIn("SEI_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_DIR", self.script_text)
 
     def test_go_live_guard_has_no_github_workspace_or_tmp_fallback(self):
         self.assertNotIn("GITHUB_WORKSPACE", self.go_guard_text)
@@ -170,7 +170,7 @@ class RuntimeVersionExchangeHarnessTest(unittest.TestCase):
 
     def test_downloaded_runtime_archives_use_the_canonical_preparation_helper(self):
         self.assertIn(
-            'RUNTIME_ARCHIVE_PREPARER="${SOZA_ROOT}/runtime/integration/prepare_runtime_version_exchange_archives.py"',
+            'RUNTIME_ARCHIVE_PREPARER="${SEI_ROOT}/runtime/integration/prepare_runtime_version_exchange_archives.py"',
             self.script_text,
         )
         self.assertIn('prepare_downloaded_runtime_archive()', self.script_text)
@@ -199,7 +199,7 @@ class RuntimeVersionExchangeHarnessTest(unittest.TestCase):
 
     def test_work_local_model_store_is_prepared_before_runtime_and_never_pulled(self):
         self.assertIn(
-            'MODEL_STORE_PREPARER="${SOZA_ROOT}/runtime/integration/prepare_runtime_version_exchange_model_store.py"',
+            'MODEL_STORE_PREPARER="${SEI_ROOT}/runtime/integration/prepare_runtime_version_exchange_model_store.py"',
             self.script_text,
         )
         self.assertIn('MODEL_STORE_MODE="work-local"', self.script_text)

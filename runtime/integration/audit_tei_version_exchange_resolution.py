@@ -15,9 +15,9 @@ import verify_tei_evidence_bundle as bundle_verifier
 import verify_tei_execution_source_identity as source_identity
 from runtime_path_safety import reject_symlink_path_or_ancestors
 
-SCHEMA = "soza.tei-version-exchange-resolution-audit/v1"
-CANONICAL_SCHEMA = "soza.tei-version-exchange-evidence-run/v1"
-WRAPPER_SCHEMA = "soza.tei-version-exchange-github-acquisition-run/v1"
+SCHEMA = "sei.tei-version-exchange-resolution-audit/v1"
+CANONICAL_SCHEMA = "sei.tei-version-exchange-evidence-run/v1"
+WRAPPER_SCHEMA = "sei.tei-version-exchange-github-acquisition-run/v1"
 CURRENT_GITHUB_ACQUISITION_MODE = "github-git-data-api-content-addressed"
 ACCEPTED_CREDENTIAL_PROVENANCE = {"environment", "GITHUB_TOKEN", "GH_TOKEN"}
 BASELINE_PATHS = [
@@ -65,7 +65,7 @@ def _git(repo: Path, *args: str, check: bool = True) -> subprocess.CompletedProc
     return result
 
 
-def _verify_soza_baseline(repo: Path, expected_head: str | None) -> dict[str, Any]:
+def _verify_sei_baseline(repo: Path, expected_head: str | None) -> dict[str, Any]:
     repo = repo.expanduser().resolve(strict=True)
     inside = _git(repo, "rev-parse", "--is-inside-work-tree", check=False)
     if inside.returncode != 0 or inside.stdout.strip() != "true":
@@ -143,8 +143,8 @@ def _validate_canonical(report: dict[str, Any]) -> dict[str, Any]:
         "referenceInputSourceCommit": axis["referenceInputSourceCommit"],
         "referenceInputAcquisition": acquisition,
         "teiGoRequirement": axis.get("teiGoRequirement"),
-        "sozaGoRequirement": axis.get("sozaGoRequirement"),
-        "expectedSozaHead": axis.get("expectedSozaHead"),
+        "seiGoRequirement": axis.get("seiGoRequirement"),
+        "expectedSeiHead": axis.get("expectedSeiHead"),
     }
 
 
@@ -306,8 +306,8 @@ def _e3_criterion(report: dict[str, Any]) -> dict[str, Any]:
             "current SEI Adapterでrevision Bのlive compatibilityをactualに確認しました",
             outcome="verified",
             result=e3.get("result"),
-            sozaSource=e3.get("sozaSource"),
-            postLiveTestSozaSource=e3.get("postLiveTestSozaSource"),
+            seiSource=e3.get("seiSource"),
+            postLiveTestSeiSource=e3.get("postLiveTestSeiSource"),
         )
     if result == "e2_verified_e3_failed":
         failure = report.get("failure")
@@ -522,19 +522,19 @@ def _reaudit_hint(report: dict[str, Any]) -> dict[str, Any]:
 def audit_resolution(
     canonical_report: Path,
     *,
-    soza_repo_root: Path,
+    sei_repo_root: Path,
     historical_a_bundle: Path | None = None,
     github_wrapper_report: Path | None = None,
-    expected_soza_head: str | None = None,
+    expected_sei_head: str | None = None,
 ) -> dict[str, Any]:
     canonical_path, canonical = _read_json(
         canonical_report,
         "TEI canonical version exchange report",
     )
     axis = _validate_canonical(canonical)
-    if expected_soza_head is None and isinstance(axis.get("expectedSozaHead"), str):
-        expected_soza_head = axis["expectedSozaHead"]
-    baseline = _verify_soza_baseline(soza_repo_root, expected_soza_head)
+    if expected_sei_head is None and isinstance(axis.get("expectedSeiHead"), str):
+        expected_sei_head = axis["expectedSeiHead"]
+    baseline = _verify_sei_baseline(sei_repo_root, expected_sei_head)
 
     c1, historical = _historical_a(historical_a_bundle)
     c2, b_bundle = _revision_b_bundle(canonical)
@@ -583,7 +583,7 @@ def audit_resolution(
             "referenceInput": b_bundle.get("referenceInput"),
         },
         "githubAcquisitionWrapperObserved": wrapper is not None,
-        "sozaAuditBaseline": baseline,
+        "seiAuditBaseline": baseline,
         "criteria": {str(item["criterion"]): item for item in criteria},
         "automatedCriteria": {
             "scope": [1, 2, 3, 4, 5, 6],
@@ -600,18 +600,18 @@ def audit_resolution(
     }
 
 
-def _prepare_output(output: Path, soza_repo_root: Path) -> Path:
+def _prepare_output(output: Path, sei_repo_root: Path) -> Path:
     requested = output.expanduser()
     reject_symlink_path_or_ancestors(
         requested,
         "TEI version exchange resolution audit output",
     )
     resolved = requested.resolve(strict=False)
-    soza_root = soza_repo_root.expanduser().resolve(strict=True)
-    if resolved == soza_root or soza_root in resolved.parents:
+    sei_root = sei_repo_root.expanduser().resolve(strict=True)
+    if resolved == sei_root or sei_root in resolved.parents:
         raise ValueError(
             "Resolution audit outputをSEI repository配下へ置けません: "
-            f"output={resolved} soza={soza_root}"
+            f"output={resolved} sei={sei_root}"
         )
     if resolved.exists():
         raise ValueError(
@@ -670,11 +670,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--historical-a-bundle", type=Path)
     parser.add_argument("--github-wrapper-report", type=Path)
     parser.add_argument(
-        "--soza-repo-root",
+        "--sei-repo-root",
         type=Path,
         default=Path(__file__).resolve().parents[2],
     )
-    parser.add_argument("--expected-soza-head")
+    parser.add_argument("--expected-sei-head")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--json", action="store_true")
     return parser
@@ -685,14 +685,14 @@ def main(argv: list[str] | None = None) -> int:
     try:
         result = audit_resolution(
             args.canonical_report,
-            soza_repo_root=args.soza_repo_root,
+            sei_repo_root=args.sei_repo_root,
             historical_a_bundle=args.historical_a_bundle,
             github_wrapper_report=args.github_wrapper_report,
-            expected_soza_head=args.expected_soza_head,
+            expected_sei_head=args.expected_sei_head,
         )
         output = None
         if args.output is not None:
-            output = _prepare_output(args.output, args.soza_repo_root)
+            output = _prepare_output(args.output, args.sei_repo_root)
             _write_json_atomic(output, result)
     except (OSError, ValueError, subprocess.SubprocessError) as exc:
         print(f"TEI version exchange resolution audit rejected: {exc}")

@@ -50,7 +50,7 @@ def verify_fixed_reference_input_bundle(archive: Path) -> dict[str, object]:
         expected_reference_input=EXPECTED_REFERENCE,
     )
     return {
-        "schema": "soza.tei-fixed-reference-input-bundle/v1",
+        "schema": "sei.tei-fixed-reference-input-bundle/v1",
         "result": "verified",
         "acquisitionMode": "historical_evidence_bundle",
         "sourceCommit": source_identity.REVISION_A,

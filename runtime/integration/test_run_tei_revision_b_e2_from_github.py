@@ -30,7 +30,7 @@ class TEIRevisionBE2FromGitHubTest(unittest.TestCase):
         }
         return evidence, go, provenance
 
-    def test_success_collects_e2_without_e3_preflight_or_soza_go(self):
+    def test_success_collects_e2_without_e3_preflight_or_sei_go(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             evidence, go, provenance = self._common_patches(root)

@@ -205,7 +205,7 @@ def main() -> int:
         actual, details = classify_fixture(expectation, schemas, registry); ok = actual == expectation.expected
         results.append({"fixture": expectation.path, "expected": expectation.expected, "actual": actual, "pass": ok, "details": details})
         if not ok: failures.append(f"{expectation.path}: expected {expectation.expected}, got {actual}: " + "; ".join(details))
-    summary = {"schema":"soza.contract-conformance-summary/v1","contract_versions":["sei.semantic-reference/v1alpha1","sei.decision-memory/v1alpha1","sei.capability-observation/v1alpha1","sei.cognitive-method/v1alpha1","sei.semantic-interchange/v1alpha1"],"fixture_count":len(results),"passed":not failures,"results":results,"claims":{"design":"current Contract schemas and fixtures checked","executable":"fixture-scoped only when this command completes successfully","release":False,"operational":False,"adoption_outcome":False}}
+    summary = {"schema":"sei.contract-conformance-summary/v1","contract_versions":["sei.semantic-reference/v1alpha1","sei.decision-memory/v1alpha1","sei.capability-observation/v1alpha1","sei.cognitive-method/v1alpha1","sei.semantic-interchange/v1alpha1"],"fixture_count":len(results),"passed":not failures,"results":results,"claims":{"design":"current Contract schemas and fixtures checked","executable":"fixture-scoped only when this command completes successfully","release":False,"operational":False,"adoption_outcome":False}}
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     if failures:
         print("\nContract conformance failures:", file=sys.stderr)

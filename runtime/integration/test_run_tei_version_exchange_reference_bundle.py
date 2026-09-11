@@ -25,18 +25,18 @@ class TEIVersionExchangeReferenceBundleTest(unittest.TestCase):
 
     def make_inputs(self, root: Path):
         source = root / "tei-b"
-        soza = root / "soza"
+        sei = root / "sei"
         source.mkdir()
-        soza.mkdir()
-        go_root = soza / "runtime/go"
+        sei.mkdir()
+        go_root = sei / "runtime/go"
         go_root.mkdir(parents=True)
         (go_root / "go.mod").write_text(
-            "module example.invalid/soza-test\n\ngo 1.25\n",
+            "module example.invalid/sei-test\n\ngo 1.25\n",
             encoding="utf-8",
         )
         reference_bundle = root / "revision-a.tar.gz"
         reference_bundle.write_bytes(b"historical-bundle")
-        return source, soza, reference_bundle
+        return source, sei, reference_bundle
 
     @mock.patch.object(subject.adapter_runner, "run_compatibility")
     @mock.patch.object(subject.build_runner, "produce_bundle")
@@ -45,9 +45,9 @@ class TEIVersionExchangeReferenceBundleTest(unittest.TestCase):
     ):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            source, soza, reference_bundle = self.make_inputs(root)
+            source, sei, reference_bundle = self.make_inputs(root)
             tei_go = self.make_go(root, "go123", "go1.23.2")
-            soza_go = self.make_go(root, "go125", "go1.25.0")
+            sei_go = self.make_go(root, "go125", "go1.25.0")
             output = root / "evidence"
             observed = {}
 
@@ -68,8 +68,8 @@ class TEIVersionExchangeReferenceBundleTest(unittest.TestCase):
                 observed["e3_go"] = Path(shutil.which("go")).resolve()
                 return {
                     "result": "adapter_compatible",
-                    "sozaGoRequirement": "1.25",
-                    "sozaGoVersion": "go version go1.25.0 linux/amd64",
+                    "seiGoRequirement": "1.25",
+                    "seiGoVersion": "go version go1.25.0 linux/amd64",
                 }
 
             build.side_effect = build_side_effect
@@ -78,16 +78,16 @@ class TEIVersionExchangeReferenceBundleTest(unittest.TestCase):
             result = subject.run_version_exchange(
                 source,
                 None,
-                soza,
+                sei,
                 output,
                 reference_evidence_bundle=reference_bundle,
                 tei_go_executable=tei_go,
-                soza_go_executable=soza_go,
-                expected_soza_head="f" * 40,
+                sei_go_executable=sei_go,
+                expected_sei_head="f" * 40,
             )
 
             self.assertEqual(tei_go.resolve(), observed["e2_go"])
-            self.assertEqual(soza_go.resolve(), observed["e3_go"])
+            self.assertEqual(sei_go.resolve(), observed["e3_go"])
             self.assertEqual(original_path, os.environ.get("PATH"))
             self.assertEqual(source.resolve(), observed["source_repo"])
             self.assertIsNone(observed["reference_repo"])
@@ -110,23 +110,23 @@ class TEIVersionExchangeReferenceBundleTest(unittest.TestCase):
             output = root / "evidence"
             output.mkdir()
             source = root / "tei-b"
-            soza = root / "soza"
+            sei = root / "sei"
             source.mkdir()
-            soza.mkdir()
+            sei.mkdir()
             reference_bundle = output / "revision-a.tar.gz"
             reference_bundle.write_bytes(b"historical-bundle")
             tei_go = self.make_go(root, "go123", "go1.23.2")
-            soza_go = self.make_go(root, "go125", "go1.25.0")
+            sei_go = self.make_go(root, "go125", "go1.25.0")
 
             with self.assertRaisesRegex(ValueError, "reference bundle"):
                 subject.run_version_exchange(
                     source,
                     None,
-                    soza,
+                    sei,
                     output,
                     reference_evidence_bundle=reference_bundle,
                     tei_go_executable=tei_go,
-                    soza_go_executable=soza_go,
+                    sei_go_executable=sei_go,
                 )
             build.assert_not_called()
             adapter.assert_not_called()
@@ -135,10 +135,10 @@ class TEIVersionExchangeReferenceBundleTest(unittest.TestCase):
         parser = subject.build_parser()
         common = [
             "--source-repo", "/b",
-            "--soza-repo-root", "/soza",
+            "--sei-repo-root", "/sei",
             "--output-dir", "/out",
             "--tei-go-executable", "/go123/bin/go",
-            "--soza-go-executable", "/go125/bin/go",
+            "--sei-go-executable", "/go125/bin/go",
         ]
         with self.assertRaises(SystemExit):
             parser.parse_args(

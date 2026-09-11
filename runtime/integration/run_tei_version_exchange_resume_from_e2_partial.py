@@ -19,7 +19,7 @@ import verify_tei_evidence_bundle as bundle_verifier
 import verify_tei_execution_source_identity as source_identity
 from runtime_path_safety import reject_symlink_path_or_ancestors
 
-SCHEMA = "soza.tei-version-exchange-e2-partial-resume/v1"
+SCHEMA = "sei.tei-version-exchange-e2-partial-resume/v1"
 EXECUTION_MODE = "e2_partial_then_e3_resume"
 SOURCE_ACQUISITION_MODE = "github-git-data-api-content-addressed"
 ACCEPTED_CREDENTIAL_PROVENANCE = {"environment", "GITHUB_TOKEN", "GH_TOKEN"}
@@ -255,7 +255,7 @@ def _load_partial_evidence(
 def _prepare_output_reports(
     output_dir: Path,
     *,
-    soza_repo_root: Path,
+    sei_repo_root: Path,
     partial_report: Path,
     bundle: Path,
     overwrite: bool,
@@ -269,11 +269,11 @@ def _prepare_output_reports(
     if resolved.exists() and not resolved.is_dir():
         raise ValueError(f"resume Evidence出力先がdirectoryではありません: {resolved}")
 
-    soza_root = soza_repo_root.expanduser().resolve(strict=True)
-    if _is_within(resolved, soza_root) or _is_within(soza_root, resolved):
+    sei_root = sei_repo_root.expanduser().resolve(strict=True)
+    if _is_within(resolved, sei_root) or _is_within(sei_root, resolved):
         raise ValueError(
             "resume Evidence directoryをSEI repositoryと重ねられません: "
-            f"output={resolved} soza={soza_root}"
+            f"output={resolved} sei={sei_root}"
         )
 
     inputs: set[Path] = set()
@@ -357,17 +357,17 @@ def _write_pair(
 def resume_e3(
     partial_report: Path,
     bundle: Path,
-    soza_repo_root: Path,
+    sei_repo_root: Path,
     output_dir: Path,
     *,
-    soza_go_executable: Path,
-    expected_soza_head: str | None = None,
+    sei_go_executable: Path,
+    expected_sei_head: str | None = None,
     overwrite: bool = False,
 ) -> dict[str, object]:
-    soza_repo_root = soza_repo_root.expanduser().resolve(strict=True)
+    sei_repo_root = sei_repo_root.expanduser().resolve(strict=True)
     canonical_path, wrapper_path = _prepare_output_reports(
         output_dir,
-        soza_repo_root=soza_repo_root,
+        sei_repo_root=sei_repo_root,
         partial_report=partial_report,
         bundle=bundle,
         overwrite=overwrite,
@@ -375,9 +375,9 @@ def resume_e3(
     partial = _load_partial_evidence(partial_report, bundle)
     comparison_axis = {
         **partial["axis"],
-        "sozaGoRequirement": "runtime/go go.mod with GOTOOLCHAIN=local",
-        "sozaGoExecutable": str(soza_go_executable.expanduser()),
-        "expectedSozaHead": expected_soza_head,
+        "seiGoRequirement": "runtime/go go.mod with GOTOOLCHAIN=local",
+        "seiGoExecutable": str(sei_go_executable.expanduser()),
+        "expectedSeiHead": expected_sei_head,
     }
     provenance = {
         "mode": EXECUTION_MODE,
@@ -387,22 +387,22 @@ def resume_e3(
 
     e3_toolchain_entered = False
     try:
-        with version_exchange._go_on_path(soza_go_executable) as soza_go:
+        with version_exchange._go_on_path(sei_go_executable) as sei_go:
             e3_toolchain_entered = True
-            comparison_axis["sozaGoExecutable"] = str(soza_go)
+            comparison_axis["seiGoExecutable"] = str(sei_go)
             e3 = adapter_runner.run_compatibility(
                 Path(str(partial["bundleArchive"])),
-                soza_repo_root=soza_repo_root,
+                sei_repo_root=sei_repo_root,
                 expected_source_commit=source_identity.REVISION_B,
-                expected_soza_head=expected_soza_head,
+                expected_sei_head=expected_sei_head,
             )
-            comparison_axis["sozaGoRequirement"] = e3["sozaGoRequirement"]
-            comparison_axis["sozaGoObserved"] = e3["sozaGoVersion"]
+            comparison_axis["seiGoRequirement"] = e3["seiGoRequirement"]
+            comparison_axis["seiGoObserved"] = e3["seiGoVersion"]
     except EXPECTED_ERRORS as exc:
         if not e3_toolchain_entered and not isinstance(
             exc, adapter_runner.TEIAdapterStageError
         ):
-            exc = adapter_runner.TEIAdapterStageError("soza_go_toolchain", str(exc))
+            exc = adapter_runner.TEIAdapterStageError("sei_go_toolchain", str(exc))
         failure = version_exchange._failure("E3", exc)
         canonical = {
             "schema": version_exchange.SCHEMA,
@@ -474,13 +474,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--partial-report", required=True, type=Path)
     parser.add_argument("--bundle", required=True, type=Path)
     parser.add_argument(
-        "--soza-repo-root",
+        "--sei-repo-root",
         type=Path,
         default=Path(__file__).resolve().parents[2],
     )
     parser.add_argument("--output-dir", required=True, type=Path)
-    parser.add_argument("--soza-go-executable", required=True, type=Path)
-    parser.add_argument("--expected-soza-head")
+    parser.add_argument("--sei-go-executable", required=True, type=Path)
+    parser.add_argument("--expected-sei-head")
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--json", action="store_true")
     return parser
@@ -492,10 +492,10 @@ def main(argv: list[str] | None = None) -> int:
         result = resume_e3(
             args.partial_report,
             args.bundle,
-            args.soza_repo_root,
+            args.sei_repo_root,
             args.output_dir,
-            soza_go_executable=args.soza_go_executable,
-            expected_soza_head=args.expected_soza_head,
+            sei_go_executable=args.sei_go_executable,
+            expected_sei_head=args.expected_sei_head,
             overwrite=args.overwrite,
         )
     except ResumeE3Failed as exc:

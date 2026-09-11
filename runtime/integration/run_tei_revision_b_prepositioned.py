@@ -27,7 +27,7 @@ EXPECTED_GOOS = "linux"
 EXPECTED_GOARCH = "amd64"
 EXPECTED_GO_TARGET = f"{EXPECTED_GOOS}/{EXPECTED_GOARCH}"
 MAX_STAGE_OUTPUT = 16 * 1024
-SOZA_ROOT = Path(__file__).resolve().parents[2]
+SEI_ROOT = Path(__file__).resolve().parents[2]
 STOP_LINE = (
     "prepositioned exact-B bundle produced with exact-A reference input "
     "!= SEI Adapter compatibility verified != TEI version exchange PASS "
@@ -266,7 +266,7 @@ def _prepare_output_archive(
         )
     roots: list[tuple[str, Path]] = [
         ("revision B source checkout", source_repo),
-        ("SEI repository", SOZA_ROOT),
+        ("SEI repository", SEI_ROOT),
     ]
     if reference_source_repo is not None:
         roots.insert(1, ("revision A reference checkout", reference_source_repo))
@@ -380,7 +380,7 @@ def produce_bundle(
     except (OSError, ValueError, subprocess.SubprocessError) as exc:
         raise _wrap_stage("revision_b_source_identity", exc) from exc
 
-    with tempfile.TemporaryDirectory(prefix="soza-tei-b-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="sei-tei-b-") as tmp:
         temp_root = Path(tmp)
         if reference_source_repo is not None:
             try:
@@ -535,7 +535,7 @@ def produce_bundle(
             raise _wrap_stage("evidence_bundle_publish", exc) from exc
 
     return {
-        "schema": "soza.tei-revision-b-prepositioned-run/v1",
+        "schema": "sei.tei-revision-b-prepositioned-run/v1",
         "result": "bundle_produced",
         "source": source_observation,
         "referenceInput": reference_observation,

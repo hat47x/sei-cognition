@@ -75,7 +75,7 @@ class RevisionBSnapshotCaptureTest(unittest.TestCase):
                 self.assertEqual(prepare.REVISION_B, actual["sha"])
                 Path(output_dir).mkdir()
                 return {
-                    "schema": "soza.tei-revision-b-source-acquisition/v1",
+                    "schema": "sei.tei-revision-b-source-acquisition/v1",
                     "result": "verified",
                     "sourceAcquisition": snapshot_prepare.CANONICAL_SOURCE_ACQUISITION,
                     "credentialSource": snapshot_prepare.CANONICAL_CREDENTIAL_SOURCE,
@@ -84,7 +84,7 @@ class RevisionBSnapshotCaptureTest(unittest.TestCase):
                     "outputDirectory": str(output_dir),
                     "revisionBBuildPass": False,
                     "providerPlanExecutionPass": False,
-                    "sozaAdapterCompatibilityPass": False,
+                    "seiAdapterCompatibilityPass": False,
                     "issue000072Resolved": False,
                     "qualityJudgement": "not_evaluated",
                     "stopLine": prepare.STOP_LINE,

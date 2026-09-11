@@ -92,7 +92,7 @@ def verify_repository(
             )
 
     return {
-        "schema": "soza.tei-execution-source-identity/v1",
+        "schema": "sei.tei-execution-source-identity/v1",
         "result": "verified",
         "repositoryRoot": str(repo),
         "head": head,

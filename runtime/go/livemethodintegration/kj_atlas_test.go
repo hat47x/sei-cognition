@@ -177,24 +177,24 @@ func TestDuplicateTargetDoesNotPartiallyApplyExternalMethodResult(t *testing.T) 
 }
 
 func TestLiveKJAtlasMethodExecution(t *testing.T) {
-	if os.Getenv("SOZA_E3B_METHOD_LIVE") != "1" {
+	if os.Getenv("SEI_E3B_METHOD_LIVE") != "1" {
 		t.Skip("live KJ Atlas process probe is enabled only by the dedicated E3b workflow")
 	}
-	path := os.Getenv("SOZA_E3B_METHOD_RESULT")
+	path := os.Getenv("SEI_E3B_METHOD_RESULT")
 	if path == "" {
-		t.Fatal("SOZA_E3B_METHOD_RESULT is required")
+		t.Fatal("SEI_E3B_METHOD_RESULT is required")
 	}
-	commit := os.Getenv("SOZA_E3B_METHOD_SOURCE_COMMIT")
+	commit := os.Getenv("SEI_E3B_METHOD_SOURCE_COMMIT")
 	if commit != pinnedKJAtlasCommit {
 		t.Fatalf("KJ Atlas source commit = %q, want pinned %q", commit, pinnedKJAtlasCommit)
 	}
-	realizationID := os.Getenv("SOZA_E3B_METHOD_REALIZATION_ID")
+	realizationID := os.Getenv("SEI_E3B_METHOD_REALIZATION_ID")
 	if realizationID == "" {
-		t.Fatal("SOZA_E3B_METHOD_REALIZATION_ID is required")
+		t.Fatal("SEI_E3B_METHOD_REALIZATION_ID is required")
 	}
-	executionProfile := os.Getenv("SOZA_E3B_METHOD_EXECUTION_PROFILE")
+	executionProfile := os.Getenv("SEI_E3B_METHOD_EXECUTION_PROFILE")
 	if executionProfile == "" {
-		t.Fatal("SOZA_E3B_METHOD_EXECUTION_PROFILE is required")
+		t.Fatal("SEI_E3B_METHOD_EXECUTION_PROFILE is required")
 	}
 	result, err := os.ReadFile(path)
 	if err != nil {
@@ -216,10 +216,10 @@ func TestLiveKJAtlasMethodExecution(t *testing.T) {
 	input.RealizationRef = logical("method-realization", realizationID)
 	input.Execution = ExecutionIdentity{
 		Profile:        executionProfile,
-		Runtime:        os.Getenv("SOZA_E3B_METHOD_RUNTIME"),
-		RuntimeVersion: os.Getenv("SOZA_E3B_METHOD_RUNTIME_VERSION"),
-		Model:          os.Getenv("SOZA_E3B_METHOD_MODEL"),
-		ModelID:        os.Getenv("SOZA_E3B_METHOD_MODEL_ID"),
+		Runtime:        os.Getenv("SEI_E3B_METHOD_RUNTIME"),
+		RuntimeVersion: os.Getenv("SEI_E3B_METHOD_RUNTIME_VERSION"),
+		Model:          os.Getenv("SEI_E3B_METHOD_MODEL"),
+		ModelID:        os.Getenv("SEI_E3B_METHOD_MODEL_ID"),
 	}
 	input.ApplicationRef = logical("method-application", "MA-KJ-ATLAS-LIVE")
 	input.OutputRef = logical("cognitive-method-output", "MO-KJ-ATLAS-LIVE")

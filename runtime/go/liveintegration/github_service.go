@@ -132,7 +132,7 @@ func (service GitHubCommitService) ObserveCommit(ctx context.Context, repository
 	}
 	req.Header.Set("Accept", "application/vnd.github+json")
 	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
-	req.Header.Set("User-Agent", "soza-e3b-live-provider-probe")
+	req.Header.Set("User-Agent", "sei-e3b-live-provider-probe")
 	if strings.TrimSpace(service.Token) != "" {
 		req.Header.Set("Authorization", "Bearer "+service.Token)
 	}

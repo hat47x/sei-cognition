@@ -54,7 +54,7 @@ def _prepare_snapshot_output(path: Path, source_output: Path) -> Path:
             "TEI Git Data snapshotとmaterialized source pathを分離してください: "
             f"snapshot={output} source={source_output}"
         )
-    if output == prepare.SOZA_ROOT or prepare.SOZA_ROOT in output.parents:
+    if output == prepare.SEI_ROOT or prepare.SEI_ROOT in output.parents:
         raise ValueError(
             f"TEI Git Data snapshotをSEI repository配下には置けません: {output}"
         )

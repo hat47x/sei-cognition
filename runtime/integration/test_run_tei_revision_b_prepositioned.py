@@ -119,14 +119,14 @@ class TEIRevisionBPrepositionedRunnerTest(unittest.TestCase):
 
     @mock.patch.object(subject.source_identity, "verify_repository")
     @mock.patch.object(subject, "_run")
-    def test_output_inside_soza_repository_is_rejected(self, run, verify_source):
+    def test_output_inside_sei_repository_is_rejected(self, run, verify_source):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             source_repo, reference_repo = self.make_pair(root)
-            soza_root = root / "soza"
-            soza_root.mkdir()
-            output = soza_root / "evidence/out.tar.gz"
-            with mock.patch.object(subject, "SOZA_ROOT", soza_root.resolve()):
+            sei_root = root / "sei"
+            sei_root.mkdir()
+            output = sei_root / "evidence/out.tar.gz"
+            with mock.patch.object(subject, "SEI_ROOT", sei_root.resolve()):
                 with self.assertRaisesRegex(ValueError, "SEI repository"):
                     subject.produce_bundle(source_repo, reference_repo, output)
             self.assertFalse(output.parent.exists())

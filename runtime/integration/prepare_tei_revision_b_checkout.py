@@ -307,7 +307,7 @@ def prepare_checkout(source_repo: Path, output_repo: Path) -> dict[str, object]:
             )
 
         return {
-            "schema": "soza.tei-revision-b-checkout-preparation/v1",
+            "schema": "sei.tei-revision-b-checkout-preparation/v1",
             "result": "prepared_verified",
             "sourceRepository": str(source_repo),
             "sourceStateBefore": source_before,

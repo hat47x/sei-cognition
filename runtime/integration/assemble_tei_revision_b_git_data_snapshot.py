@@ -15,7 +15,7 @@ import prepare_tei_revision_b_source_from_snapshot as snapshot
 from runtime_path_safety import reject_symlink_path_or_ancestors
 
 
-ASSEMBLY_REPORT_SCHEMA = "soza.github-git-data-snapshot-assembly-report/v1"
+ASSEMBLY_REPORT_SCHEMA = "sei.github-git-data-snapshot-assembly-report/v1"
 
 
 def _prepare_output_path(path: Path, fragment_paths: Iterable[Path]) -> Path:
@@ -26,7 +26,7 @@ def _prepare_output_path(path: Path, fragment_paths: Iterable[Path]) -> Path:
         raise ValueError(
             f"TEI Git Data assembled snapshot出力は新規pathを指定してください: {output}"
         )
-    if output == prepare.SOZA_ROOT or prepare.SOZA_ROOT in output.parents:
+    if output == prepare.SEI_ROOT or prepare.SEI_ROOT in output.parents:
         raise ValueError(
             f"TEI Git Data assembled snapshotをSEI repository配下には置けません: {output}"
         )
@@ -148,7 +148,7 @@ def assemble_snapshot_fragments(
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "同じsoza.github-git-data-snapshot/v1 metadataを持つcredential-free partial snapshotを"
+            "同じsei.github-git-data-snapshot/v1 metadataを持つcredential-free partial snapshotを"
             "mergeし、既存snapshot consumerへそのまま渡せるcanonical snapshot JSONを生成します。"
             "assemblerはresponse completenessを判定せず、exact-B materializationとGit identity検証は"
             "prepare_tei_revision_b_source_from_snapshot.pyへ委ねます。"

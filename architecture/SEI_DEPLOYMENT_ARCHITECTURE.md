@@ -139,7 +139,7 @@ Local Package Artifact Run `33509521544`では、同一inputからの二重build
 
 保存されたworkflow artifact:
 
-- name: `soza-local-reference-linux-amd64`
+- name: `sei-local-reference-linux-amd64`
 - artifact ID: `9801021136`
 - workflow artifact digest: `sha256:6282a2fe0b58dd023090d363e3323ce963a9f29c097f869ebab79b73aab2ba85`
 

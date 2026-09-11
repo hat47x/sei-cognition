@@ -34,8 +34,8 @@ class TEICanonicalOutputSymlinkPreflightTest(unittest.TestCase):
     def test_github_preflight_rejects_dangling_canonical_output_symlinks(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            soza = root / "soza"
-            soza.mkdir()
+            sei = root / "sei"
+            sei.mkdir()
 
             for name in (canonical.BUNDLE_NAME, canonical.REPORT_NAME):
                 for overwrite in (False, True):
@@ -49,7 +49,7 @@ class TEICanonicalOutputSymlinkPreflightTest(unittest.TestCase):
                         with self.assertRaisesRegex(ValueError, "symlink"):
                             github_preflight._check_output_path(
                                 output_dir,
-                                soza_repo_root=soza,
+                                sei_repo_root=sei,
                                 reference_source_repo=None,
                                 reference_evidence_bundle=None,
                                 overwrite=overwrite,

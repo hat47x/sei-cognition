@@ -26,10 +26,10 @@ current reference distribution profileは次に限定する。
 
 - target: `linux-amd64`
 - artifact version: `0.2.0-reference`
-- archive: `soza-local-reference-linux-amd64.tar.gz`
-- checksum: `soza-local-reference-linux-amd64.tar.gz.sha256`
-- executable name: `soza-local-reference`
-- artifact format metadata: `soza.local-reference/v1`
+- archive: `sei-local-reference-linux-amd64.tar.gz`
+- checksum: `sei-local-reference-linux-amd64.tar.gz.sha256`
+- executable name: `sei-local-reference`
+- artifact format metadata: `sei.local-reference/v1`
 
 これはPMS-04のMinimum Executable Evidenceを得るためのreference profileであり、Product Releaseや恒久的platform supportを意味しない。
 
@@ -68,7 +68,7 @@ archiveにはSHA-256 checksum fileを付ける。さらにGitHub Actionsのworkf
 
 Run `33509521544`で保存されたartifactは次のとおり。
 
-- name: `soza-local-reference-linux-amd64`
+- name: `sei-local-reference-linux-amd64`
 - artifact ID: `9801021136`
 - size: `993955` bytes
 - workflow artifact digest: `sha256:6282a2fe0b58dd023090d363e3323ce963a9f29c097f869ebab79b73aab2ba85`
@@ -80,7 +80,7 @@ retention期限はcurrent CI Evidenceの保存期間であり、正式Release re
 
 workflowではsource tree内のbinaryだけでacceptanceを完了させない。
 
-生成したtar.gzを別directoryへ展開し、展開物に含まれる`soza-local-reference`を独立したprocessとして起動する。
+生成したtar.gzを別directoryへ展開し、展開物に含まれる`sei-local-reference`を独立したprocessとして起動する。
 
 ```text
 extracted artifact process A

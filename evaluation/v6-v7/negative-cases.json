@@ -1,5 +1,5 @@
 {
-  "schema": "soza.v6-v7-negative-cases/v1",
+  "schema": "sei.v6-v7-negative-cases/v1",
   "cases": [
     {
       "id": "N1-hide-unresolved",

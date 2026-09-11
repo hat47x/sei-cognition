@@ -17,7 +17,7 @@ from verify_runtime_version_exchange_model_store import verify_model_store
 
 
 INTEGRATION_DIR = Path(__file__).resolve().parent
-SOZA_ROOT = INTEGRATION_DIR.parents[1]
+SEI_ROOT = INTEGRATION_DIR.parents[1]
 ARTIFACT_MANIFEST = INTEGRATION_DIR / "runtime_version_exchange_artifacts.json"
 CHUNK_SIZE = 1024 * 1024
 REGISTRY_HOST = "registry.ollama.ai"
@@ -196,7 +196,7 @@ def prepare_model_store(
     requested = target_dir.expanduser()
     reject_symlink_path_or_ancestors(requested, "model store target")
     target = requested.resolve(strict=False)
-    if _is_within(target, SOZA_ROOT):
+    if _is_within(target, SEI_ROOT):
         raise ValueError(f"model storeをSEI repository配下には作成できません: {target}")
     if target.exists():
         raise ValueError(f"target model storeは新規pathである必要があります: {target}")
@@ -260,7 +260,7 @@ def prepare_model_store(
         os.replace(staging, target)
         completed = True
         return {
-            "schema": "soza.runtime-version-exchange-model-store-preparation/v1",
+            "schema": "sei.runtime-version-exchange-model-store-preparation/v1",
             "prepared": True,
             "target": str(target),
             "model": fixed["name"],

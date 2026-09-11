@@ -29,7 +29,7 @@ historical M47 Cognitive MethodのDefinition / Realization / Application境界�
 
 historical M48をProduct Rebaselineへ**意味上整合させる作業**は、current Product Value、Requirements、Accepted ADR、Reference Architecture、Contractへ分解・再統合できたためResolvedとする。
 
-当初のblockerだったactual `soza` repository不在は解消済みである。さらにISSUE-000022でcurrent repository baselineを実体化し、Product / Requirements / Architecture / Contracts / Fixtures / Representation Profiles / first Runtime / Toolsまでactual treeへ配置した。
+当初のblockerだったactual `sei` repository不在は解消済みである。さらにISSUE-000022でcurrent repository baselineを実体化し、Product / Requirements / Architecture / Contracts / Fixtures / Representation Profiles / first Runtime / Toolsまでactual treeへ配置した。
 
 したがって、旧文書にあった「runtime、contracts、fixtures、tools等がまだ揃っていない」という前提はcurrent状態では採用しない。
 

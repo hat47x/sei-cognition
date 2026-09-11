@@ -415,7 +415,7 @@ def main() -> int:
             failures.append(f"{case_id}: expected {expected}, got {actual_errors}")
 
     summary = {
-        "schema": "soza.v6-v7-projection-evaluation/v1",
+        "schema": "sei.v6-v7-projection-evaluation/v1",
         "canonical_sources": 2,
         "projection_profiles": ["light", "audit"],
         "semantic_questions": 6,

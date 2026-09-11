@@ -12,7 +12,7 @@ from pathlib import Path
 CHECKER_PATH = Path(__file__).with_name("check_plan_registry.py")
 CHECKER_SOURCE = CHECKER_PATH.read_text(encoding="utf-8")
 
-VALID_REGISTRY = """schema: soza.plan-registry/v1
+VALID_REGISTRY = """schema: sei.plan-registry/v1
 updated: 2026-09-09
 
 adr:

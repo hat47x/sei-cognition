@@ -9,10 +9,10 @@ Updated: 2026-09-11
 
 ADR-0031で定めたclass別の規則に従って改名を実施し、完了時に次を判別可能な状態にします。
 
-- current tree上のlive codeとlive文書に、Contract identity・repository path・環境変数・CLI flagとしての`soza`が残っていない。
+- current tree上のlive codeとlive文書に、Contract identity・repository path・環境変数・CLI flagとしての`sei`が残っていない。
 - 記録済みEvidence（`evaluation/method-quality/historical/`、`runtime/evidence/`、`release/`、`contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md`）が、内容・digestともに改名前と一致する。
-- 記録済みEvidenceを読むcheckerが、旧identity `soza.*`を受け付けたまま成功する。
-- `soza.*/v1alpha1`をbasisとするv0.2.0時点のArtifactが、ADR-0031のmapping tableによって新identityへ解決できる。
+- 記録済みEvidenceを読むcheckerが、旧identity `sei.*`を受け付けたまま成功する。
+- `sei.*/v1alpha1`をbasisとするv0.2.0時点のArtifactが、ADR-0031のmapping tableによって新identityへ解決できる。
 
 「置換した」だけでは完了としません。上の4点が同時に成立して初めて完了です。
 
@@ -23,8 +23,8 @@ ADR-0031で定めたclass別の規則に従って改名を実施し、完了時�
 current tree上の実測値です。
 
 ```text
-soza を含むfile                        428
-soza. で始まるdistinct identifier      105
+sei を含むfile                        428
+sei. で始まるdistinct identifier      105
   うち portable Contract / Profile       7
   うち runtime verifier reference        2
   うち negative / boundary fixture       3
@@ -32,17 +32,17 @@ soza. で始まるdistinct identifier      105
       live codeからも参照               58
       記録済みEvidence内のみ            22
 環境変数・CLI flag                    約50種
-SOZA_*.md 文書                          22
-runtime/go/cmd/soza-*                    3
+SEI_*.md 文書                          22
+runtime/go/cmd/sei-*                    3
 ```
 
-`fixtures/representation-profiles/*.json`の実digest 6件は合成payloadに対するもので`soza`文字列を含まないため、Representation Profile conformanceは改名の影響を受けません。
+`fixtures/representation-profiles/*.json`の実digest 6件は合成payloadに対するもので`sei`文字列を含まないため、Representation Profile conformanceは改名の影響を受けません。
 
 `sei`および`井`は、current tree上で衝突0件です。
 
 `.github/workflows`は存在しません。`plan/DEVELOPMENT_WORKFLOW.md`のとおりGitHub Actionsは完全停止中であり、CI定義の追随作業は発生しません。検証はlocalでのcheckerとtest実行によります。
 
-`evaluation/method-quality/historical/M1B-RUN-33596839607/review-manifest.json`は、`request.json`・`structure-report.json`を含む6fileのsha256を記録しています。これらのfileは`soza`文字列を含みます。
+`evaluation/method-quality/historical/M1B-RUN-33596839607/review-manifest.json`は、`request.json`・`structure-report.json`を含む6fileのsha256を記録しています。これらのfileは`sei`文字列を含みます。
 
 ### 現時点の推論・仮説
 
@@ -56,9 +56,9 @@ runtime/go/cmd/soza-*                    3
 
 ## Questions
 
-1. 内部record schemaのreader側で`soza.*`を受け付ける実装を、checkerごとに個別に書くか、共通のidentity正規化関数へ集約するか。
+1. 内部record schemaのreader側で`sei.*`を受け付ける実装を、checkerごとに個別に書くか、共通のidentity正規化関数へ集約するか。
 2. 記録済みEvidence文書中の旧repository URLについて、別fileの注記を置くか、ADR-0031への参照のみで足りるとするか。
-3. `SOZA_TEI_*`系の環境変数は、関連製品TEIとの境界に位置する。TEI側が同名の変数を読んでいないことを、改名前に確認する必要があるか。
+3. `SEI_TEI_*`系の環境変数は、関連製品TEIとの境界に位置する。TEI側が同名の変数を読んでいないことを、改名前に確認する必要があるか。
 
 1と2は意味上の未決事項です。3は事実確認であり、Phase 3の着手条件です。
 
@@ -89,7 +89,7 @@ Go toolchainの所在確認をこのPhaseの前提とします。
 
 ### Phase 3 — 環境変数 / CLI flag
 
-- PASS: `runtime/integration/`のtestが成功し、tree内に`SOZA_`で始まる環境変数参照と`--soza-`で始まるflagがlive code上へ残っていない。
+- PASS: `runtime/integration/`のtestが成功し、tree内に`SEI_`で始まる環境変数参照と`--sei-`で始まるflagがlive code上へ残っていない。
 - FAIL: testが失敗する、または残存がある。
 
 Question 3の事実確認をこのPhaseの着手条件とします。
@@ -104,7 +104,7 @@ Question 3の事実確認をこのPhaseの着手条件とします。
 各Phaseの完了時に実行します。ADR-0031の4-aと4-bへ対応して、二つの検査を行います。
 
 - PASS (4-a): `evaluation/method-quality/historical/`、`runtime/evidence/`、`release/`配下の全fileについて、改名前のsha256と一致する。さらに`review-manifest.json`が記録するdigestが、対応fileの実digestと一致する。
-- PASS (4-b): ADR-0031の4-bが挙げる日付付き文書22件について、`soza`を含む行が改名前と一致する。
+- PASS (4-b): ADR-0031の4-bが挙げる日付付き文書22件について、`sei`を含む行が改名前と一致する。
 - FAIL: いずれかが不一致。
 
 改名前のbaselineは、Phase 1着手前に取得して`plan/`配下の作業記録ではなく一時領域へ置き、各Phase完了時に照合します。
@@ -145,7 +145,7 @@ ResolvedはRelease / Operational / Adoption / Outcomeの成立を意味しませ
 
 ## Reopen conditions
 
-- 外部実装が`soza.*` identityを参照している事例が確認され、双方向受理だけでは不足することが判明した。
+- 外部実装が`sei.*` identityを参照している事例が確認され、双方向受理だけでは不足することが判明した。
 - 記録済みEvidenceの不変性が、改名後のcommitで破られたことが判明した。
 - ADR-0031のmapping tableでは解決できないhistorical reconstruction要求が確認された。
 - `sei.` prefixが他のContract名前空間と衝突した。
@@ -155,7 +155,7 @@ ResolvedはRelease / Operational / Adoption / Outcomeの成立を意味しませ
 GitHub Actionsは停止中のため、すべてlocalで個別に実行します。このmachineではPythonの実体がWSL2側にのみ存在するため、Python製checkerは次の形で実行します。
 
 ```bash
-wsl -e bash -lc "cd /mnt/d/GIT/soza && python3 plan/scripts/check_plan_registry.py"
+wsl -e bash -lc "cd /mnt/d/GIT/sei && python3 plan/scripts/check_plan_registry.py"
 ```
 
 実行対象:

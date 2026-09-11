@@ -29,8 +29,8 @@ type methodResponse struct {
 }
 
 func TestOutOfProcessProviderAndMethodRealizationExchangePreservesDecisionMemory(t *testing.T) {
-	providerBinary := buildReferenceCommand(t, "./cmd/soza-reference-provider")
-	methodBinary := buildReferenceCommand(t, "./cmd/soza-reference-method")
+	providerBinary := buildReferenceCommand(t, "./cmd/sei-reference-provider")
+	methodBinary := buildReferenceCommand(t, "./cmd/sei-reference-method")
 
 	store := interactionprobe.NewCanonicalStore()
 	human := interactionprobe.NewHumanSurface(store)

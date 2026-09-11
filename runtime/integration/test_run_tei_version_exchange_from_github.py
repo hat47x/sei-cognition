@@ -13,7 +13,7 @@ TEST_CREDENTIAL = "placeholder"
 class GitHubAcquiredVersionExchangeRunnerTest(unittest.TestCase):
     def setUp(self):
         self.ready_preflight = {
-            "schema": "soza.tei-version-exchange-github-preflight/v1",
+            "schema": "sei.tei-version-exchange-github-preflight/v1",
             "result": "ready",
             "ready": True,
             "blockedChecks": [],
@@ -90,11 +90,11 @@ class GitHubAcquiredVersionExchangeRunnerTest(unittest.TestCase):
             ):
                 result = subject.run_from_github(
                     None,
-                    root / "soza",
+                    root / "sei",
                     output,
                     reference_evidence_bundle=root / "a.tar.gz",
                     tei_go_executable=root / "go123" / "go",
-                    soza_go_executable=root / "go125" / "go",
+                    sei_go_executable=root / "go125" / "go",
                     token=TEST_CREDENTIAL,
                 )
 
@@ -115,22 +115,22 @@ class GitHubAcquiredVersionExchangeRunnerTest(unittest.TestCase):
             self.assertEqual(result, persisted)
             self.preflight_mock.assert_called_once_with(
                 None,
-                root / "soza",
+                root / "sei",
                 output,
                 reference_evidence_bundle=root / "a.tar.gz",
                 tei_go_executable=root / "go123" / "go",
-                soza_go_executable=root / "go125" / "go",
+                sei_go_executable=root / "go125" / "go",
                 token=TEST_CREDENTIAL,
-                expected_soza_head=None,
+                expected_sei_head=None,
                 overwrite=False,
             )
 
     def test_preflight_blocked_stops_before_acquisition_and_output_creation(self):
         self.preflight_mock.return_value = {
-            "schema": "soza.tei-version-exchange-github-preflight/v1",
+            "schema": "sei.tei-version-exchange-github-preflight/v1",
             "result": "blocked",
             "ready": False,
-            "blockedChecks": ["soza_go_toolchain", "output_path"],
+            "blockedChecks": ["sei_go_toolchain", "output_path"],
             "networkAccessPerformed": False,
             "revisionBSourceMaterialized": False,
             "evidenceOutputCreated": False,
@@ -150,16 +150,16 @@ class GitHubAcquiredVersionExchangeRunnerTest(unittest.TestCase):
                 ) as raised:
                     subject.run_from_github(
                         None,
-                        root / "soza",
+                        root / "sei",
                         output,
                         reference_evidence_bundle=root / "a.tar.gz",
                         tei_go_executable=root / "go123" / "go",
-                        soza_go_executable=root / "go125" / "go",
+                        sei_go_executable=root / "go125" / "go",
                         token=TEST_CREDENTIAL,
                     )
 
             self.assertEqual(
-                ["soza_go_toolchain", "output_path"],
+                ["sei_go_toolchain", "output_path"],
                 raised.exception.blocked_checks,
             )
             self.assertFalse(output.exists())
@@ -178,11 +178,11 @@ class GitHubAcquiredVersionExchangeRunnerTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "acquisition failed"):
                 subject.run_from_github(
                     None,
-                    Path(tmp) / "soza",
+                    Path(tmp) / "sei",
                     Path(tmp) / "evidence",
                     reference_evidence_bundle=Path(tmp) / "a.tar.gz",
                     tei_go_executable=Path(tmp) / "go123" / "go",
-                    soza_go_executable=Path(tmp) / "go125" / "go",
+                    sei_go_executable=Path(tmp) / "go125" / "go",
                     token=TEST_CREDENTIAL,
                 )
         exchange_mock.assert_not_called()
@@ -214,11 +214,11 @@ class GitHubAcquiredVersionExchangeRunnerTest(unittest.TestCase):
                 with self.assertRaises(subject.GitHubAcquiredVersionExchangeFailed):
                     subject.run_from_github(
                         None,
-                        root / "soza",
+                        root / "sei",
                         output,
                         reference_evidence_bundle=root / "a.tar.gz",
                         tei_go_executable=root / "go123" / "go",
-                        soza_go_executable=root / "go125" / "go",
+                        sei_go_executable=root / "go125" / "go",
                         token=TEST_CREDENTIAL,
                     )
 
@@ -245,11 +245,11 @@ class GitHubAcquiredVersionExchangeRunnerTest(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "--overwrite"):
                     subject.run_from_github(
                         None,
-                        root / "soza",
+                        root / "sei",
                         output,
                         reference_evidence_bundle=root / "a.tar.gz",
                         tei_go_executable=root / "go123" / "go",
-                        soza_go_executable=root / "go125" / "go",
+                        sei_go_executable=root / "go125" / "go",
                         token=TEST_CREDENTIAL,
                     )
             acquire_mock.assert_not_called()

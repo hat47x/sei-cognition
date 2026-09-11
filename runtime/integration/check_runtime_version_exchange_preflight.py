@@ -39,7 +39,7 @@ REQUIRED_COMMANDS = (
     "mktemp",
     "cp",
 )
-REQUIRED_PORTS = (("ollama", 11434), ("soza-model-adapter", 8001), ("kj-atlas", 8101))
+REQUIRED_PORTS = (("ollama", 11434), ("sei-model-adapter", 8001), ("kj-atlas", 8101))
 
 
 @dataclass(frozen=True)
@@ -162,7 +162,7 @@ def repository_commit_object_check(label: str, path: Path, expected_commit: str)
     return checks
 
 
-def runtime_bundle_check(path: Path, soza_root: Path) -> list[Check]:
+def runtime_bundle_check(path: Path, sei_root: Path) -> list[Check]:
     blocker = symlink_path_blocker(
         "kj-atlas.bundle.path",
         path,
@@ -172,7 +172,7 @@ def runtime_bundle_check(path: Path, soza_root: Path) -> list[Check]:
         return [blocker]
 
     resolved = canonical_path(path)
-    if is_within(resolved, soza_root):
+    if is_within(resolved, sei_root):
         return [
             Check(
                 "kj-atlas.bundle.path",
@@ -488,7 +488,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def collect_checks(args: argparse.Namespace, soza_root: Path) -> list[Check]:
+def collect_checks(args: argparse.Namespace, sei_root: Path) -> list[Check]:
     checks: list[Check] = []
     host_os = platform.system()
     host_arch = platform.machine()
@@ -508,14 +508,14 @@ def collect_checks(args: argparse.Namespace, soza_root: Path) -> list[Check]:
     )
     checks.extend(command_checks())
     checks.append(python_environment_check())
-    checks.extend(repository_check("soza", soza_root))
+    checks.extend(repository_check("sei", sei_root))
 
     if args.kj_atlas_backend_bundle is not None:
         source_root = args.kj_atlas_backend_bundle.expanduser()
         checks.append(Check("kj-atlas.source-mode", "ok", "source mode: verified-runtime-bundle"))
-        checks.extend(runtime_bundle_check(source_root, soza_root))
+        checks.extend(runtime_bundle_check(source_root, sei_root))
     else:
-        source_root = (args.kj_atlas_dir or (soza_root / "_external" / "kj-atlas")).expanduser()
+        source_root = (args.kj_atlas_dir or (sei_root / "_external" / "kj-atlas")).expanduser()
         checks.append(
             Check(
                 "kj-atlas.source-mode",
@@ -525,7 +525,7 @@ def collect_checks(args: argparse.Namespace, soza_root: Path) -> list[Check]:
         )
         checks.extend(repository_commit_object_check("kj-atlas", source_root, KJ_ATLAS_COMMIT))
 
-    source_roots = (soza_root, source_root)
+    source_roots = (sei_root, source_root)
     checks.extend(output_path_check("work", args.work_dir, source_roots, must_be_new=True))
     checks.extend(output_path_check("evidence", args.evidence_dir, source_roots, must_be_new=True))
     work_target = canonical_path(args.work_dir or Path(os.environ.get("TMPDIR", "/tmp")))
@@ -588,7 +588,7 @@ def pinned_source_identity_report() -> dict[str, object]:
 def report(checks: list[Check]) -> dict[str, object]:
     blockers = [check.id for check in checks if check.status == "blocked"]
     return {
-        "schema": "soza.runtime-version-exchange-preflight/v1",
+        "schema": "sei.runtime-version-exchange-preflight/v1",
         "result": "blocked" if blockers else "ready",
         "blockers": blockers,
         "fixedArtifacts": fixed_artifact_report(),
@@ -600,8 +600,8 @@ def report(checks: list[Check]) -> dict[str, object]:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    soza_root = canonical_path(Path(__file__).resolve().parents[2])
-    result = report(collect_checks(args, soza_root))
+    sei_root = canonical_path(Path(__file__).resolve().parents[2])
+    result = report(collect_checks(args, sei_root))
     if args.json:
         print(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2))
     else:

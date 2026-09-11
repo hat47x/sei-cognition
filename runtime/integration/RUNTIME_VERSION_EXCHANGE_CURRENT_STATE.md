@@ -112,17 +112,17 @@ Requirement / Contract再照合と自然な日本語最終監査も完了し、�
 
 ```bash
 python3 runtime/integration/prepare_runtime_version_exchange_inputs.py \
-  --root "$SOZA_RUNTIME_EXCHANGE_INPUTS"
+  --root "$SEI_RUNTIME_EXCHANGE_INPUTS"
 ```
 
 actual A/B実行:
 
 ```bash
 python3 runtime/integration/run_runtime_version_exchange_prepositioned.py \
-  --artifact-root "$SOZA_RUNTIME_EXCHANGE_INPUTS" \
+  --artifact-root "$SEI_RUNTIME_EXCHANGE_INPUTS" \
   --kj-atlas-dir /path/to/kj-atlas \
-  --evidence-dir "$SOZA_RUNTIME_EXCHANGE_EVIDENCE" \
-  --verification-output "$SOZA_RUNTIME_EXCHANGE_VERIFY"
+  --evidence-dir "$SEI_RUNTIME_EXCHANGE_EVIDENCE" \
+  --verification-output "$SEI_RUNTIME_EXCHANGE_VERIFY"
 ```
 
 保存済みEvidenceの標準再検証:

@@ -41,7 +41,7 @@ ISSUE-000065では、次の固定revisionについてactual CLI build / executio
 同時に、2026-09-05時点のTEI current mainをrevision B候補として固定した。
 
 - source commit: `1a7028d444fcae60a1c4f2f2d247456f4c7c35be`
-- evidence branch: `evidence/soza-e3b-p2-version-exchange-2026-09-05`
+- evidence branch: `evidence/sei-e3b-p2-version-exchange-2026-09-05`
 - workflow commit: `5e87cd18967b6d86001cc4d5229bd4886b94e30d`
 
 revision Bを旧revisionと同じ`deployment-provider-plan`条件で実行するEvidence workflow Run `33913500170`を起動したが、attempt 1 / 2ともjob stepが一つも開始される前にfailureとなった。

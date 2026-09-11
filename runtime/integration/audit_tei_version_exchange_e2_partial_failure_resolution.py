@@ -11,7 +11,7 @@ import prepare_tei_revision_b_source_from_snapshot as snapshot_source
 import run_tei_revision_b_e2_from_github as e2_partial
 import verify_tei_execution_source_identity as source_identity
 
-SCHEMA = "soza.tei-version-exchange-e2-partial-failure-resolution-audit/v1"
+SCHEMA = "sei.tei-version-exchange-e2-partial-failure-resolution-audit/v1"
 STOP_LINE = (
     "E2 partial failure resolution audit != ISSUE-000072 Resolved "
     "!= revision B replacement != Stable Requirement change != Universal Contract change"
@@ -164,16 +164,16 @@ def _source_boundary_criterion(
 def audit_partial_failure(
     partial_report: Path,
     *,
-    soza_repo_root: Path,
+    sei_repo_root: Path,
     historical_a_bundle: Path | None = None,
-    expected_soza_head: str | None = None,
+    expected_sei_head: str | None = None,
 ) -> dict[str, Any]:
     report_path, report = base_audit._read_json(
         partial_report,
         "TEI revision B E2 partial failure report",
     )
     axis, failure = _validate_partial_failure(report)
-    baseline = base_audit._verify_soza_baseline(soza_repo_root, expected_soza_head)
+    baseline = base_audit._verify_sei_baseline(sei_repo_root, expected_sei_head)
 
     c1, historical = base_audit._historical_a(historical_a_bundle)
     c2 = base_audit._criterion(
@@ -249,7 +249,7 @@ def audit_partial_failure(
             "archiveSha256": historical.get("archiveSha256"),
             "referenceInput": historical.get("referenceInput"),
         },
-        "sozaAuditBaseline": baseline,
+        "seiAuditBaseline": baseline,
         "criteria": {str(item["criterion"]): item for item in criteria},
         "automatedCriteria": {
             "scope": [1, 2, 3, 4, 5, 6],
@@ -277,11 +277,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--partial-report", required=True, type=Path)
     parser.add_argument("--historical-a-bundle", type=Path)
     parser.add_argument(
-        "--soza-repo-root",
+        "--sei-repo-root",
         type=Path,
         default=Path(__file__).resolve().parents[2],
     )
-    parser.add_argument("--expected-soza-head")
+    parser.add_argument("--expected-sei-head")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--json", action="store_true")
     return parser
@@ -292,12 +292,12 @@ def main(argv: list[str] | None = None) -> int:
     try:
         result = audit_partial_failure(
             args.partial_report,
-            soza_repo_root=args.soza_repo_root,
+            sei_repo_root=args.sei_repo_root,
             historical_a_bundle=args.historical_a_bundle,
-            expected_soza_head=args.expected_soza_head,
+            expected_sei_head=args.expected_sei_head,
         )
         if args.output is not None:
-            output = base_audit._prepare_output(args.output, args.soza_repo_root)
+            output = base_audit._prepare_output(args.output, args.sei_repo_root)
             base_audit._write_json_atomic(output, result)
     except (OSError, ValueError) as exc:
         print(f"TEI E2 partial failure Resolution audit failed: {exc}")

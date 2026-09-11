@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 
-SCHEMA = "soza.method-quality-case-catalog/v1"
+SCHEMA = "sei.method-quality-case-catalog/v1"
 FORBIDDEN_GOLDEN_KEYS = {
     "expectedGroups",
     "expectedGrouping",
@@ -114,7 +114,7 @@ def main(argv: list[str]) -> int:
     print(
         json.dumps(
             {
-                "schema": "soza.method-quality-case-catalog-validation/v1",
+                "schema": "sei.method-quality-case-catalog-validation/v1",
                 "catalog": str(path),
                 "caseCount": len(catalog["cases"]),
                 "qualityJudgement": "not_evaluated",

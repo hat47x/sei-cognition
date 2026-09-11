@@ -226,7 +226,7 @@ class RevisionBSourceAcquisitionTest(unittest.TestCase):
             self.assertNotIn("secret-token", json.dumps(result, ensure_ascii=False))
             self.assertFalse(result["revisionBBuildPass"])
             self.assertFalse(result["providerPlanExecutionPass"])
-            self.assertFalse(result["sozaAdapterCompatibilityPass"])
+            self.assertFalse(result["seiAdapterCompatibilityPass"])
             self.assertFalse(result["issue000072Resolved"])
 
     def test_signed_commit_reconstruction_preserves_multiline_gpgsig(self):

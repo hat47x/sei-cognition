@@ -144,15 +144,15 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
             source_verifier.assert_not_called()
             runner.assert_not_called()
 
-    def test_source_bundle_inside_soza_repository_is_rejected_before_verification(self):
+    def test_source_bundle_inside_sei_repository_is_rejected_before_verification(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            soza = root / "soza"
-            bundle = soza / "bundle"
-            soza.mkdir()
+            sei = root / "sei"
+            bundle = sei / "bundle"
+            sei.mkdir()
             bundle.mkdir()
 
-            with patch.object(ENTRYPOINT, "SOZA_ROOT", soza), patch.object(
+            with patch.object(ENTRYPOINT, "SEI_ROOT", sei), patch.object(
                 ENTRYPOINT,
                 "verify_runtime_bundle",
             ) as source_verifier, patch.object(ENTRYPOINT.subprocess, "run") as runner:
@@ -168,17 +168,17 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
             source_verifier.assert_not_called()
             runner.assert_not_called()
 
-    def test_model_store_inside_soza_repository_is_rejected_before_verification(self):
+    def test_model_store_inside_sei_repository_is_rejected_before_verification(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            soza = root / "soza"
+            sei = root / "sei"
             bundle = root / "bundle"
-            model = soza / "models"
-            soza.mkdir()
+            model = sei / "models"
+            sei.mkdir()
             bundle.mkdir()
             model.mkdir()
 
-            with patch.object(ENTRYPOINT, "SOZA_ROOT", soza), patch.object(
+            with patch.object(ENTRYPOINT, "SEI_ROOT", sei), patch.object(
                 ENTRYPOINT,
                 "verify_model_store",
             ) as model_verifier, patch.object(ENTRYPOINT, "verify_runtime_bundle") as source_verifier, patch.object(
@@ -198,15 +198,15 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
             source_verifier.assert_not_called()
             runner.assert_not_called()
 
-    def test_evidence_inside_soza_repository_is_rejected_before_verification(self):
+    def test_evidence_inside_sei_repository_is_rejected_before_verification(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            soza = root / "soza"
+            sei = root / "sei"
             bundle = root / "bundle"
-            soza.mkdir()
+            sei.mkdir()
             bundle.mkdir()
 
-            with patch.object(ENTRYPOINT, "SOZA_ROOT", soza), patch.object(
+            with patch.object(ENTRYPOINT, "SEI_ROOT", sei), patch.object(
                 ENTRYPOINT,
                 "verify_runtime_bundle",
             ) as source_verifier, patch.object(ENTRYPOINT.subprocess, "run") as runner:
@@ -215,22 +215,22 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
                         checkout_dir=None,
                         backend_bundle=bundle,
                         model_dir=None,
-                        evidence_dir=soza / "evidence",
+                        evidence_dir=sei / "evidence",
                         harness_arguments=[],
                     )
 
             source_verifier.assert_not_called()
             runner.assert_not_called()
 
-    def test_work_inside_soza_repository_is_rejected_before_verification(self):
+    def test_work_inside_sei_repository_is_rejected_before_verification(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            soza = root / "soza"
+            sei = root / "sei"
             bundle = root / "bundle"
-            soza.mkdir()
+            sei.mkdir()
             bundle.mkdir()
 
-            with patch.object(ENTRYPOINT, "SOZA_ROOT", soza), patch.object(
+            with patch.object(ENTRYPOINT, "SEI_ROOT", sei), patch.object(
                 ENTRYPOINT,
                 "verify_runtime_bundle",
             ) as source_verifier, patch.object(ENTRYPOINT.subprocess, "run") as runner:
@@ -241,7 +241,7 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
                         model_dir=None,
                         evidence_dir=root / "evidence",
                         harness_arguments=[],
-                        work_dir=soza / "work",
+                        work_dir=sei / "work",
                     )
 
             source_verifier.assert_not_called()
@@ -300,7 +300,7 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
                 observed_outputs.append(output.resolve())
                 output.mkdir(parents=True)
                 return {
-                    "schema": "soza.kj-atlas-runtime-source-export/v1",
+                    "schema": "sei.kj-atlas-runtime-source-export/v1",
                     "sourceAcquisition": "git-archive-from-pinned-commit",
                 }
 

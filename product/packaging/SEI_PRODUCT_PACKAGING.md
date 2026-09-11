@@ -180,9 +180,9 @@ current reference profileは次です。
 
 - version: `0.2.0-reference`
 - target: `linux-amd64`
-- archive: `soza-local-reference-linux-amd64.tar.gz`
-- executable: `soza-local-reference`
-- build metadata format: `soza.local-reference/v1`
+- archive: `sei-local-reference-linux-amd64.tar.gz`
+- executable: `sei-local-reference`
+- build metadata format: `sei.local-reference/v1`
 
 Local Package Artifact workflowでは、同一inputからbinaryを2回buildし、byte-for-byte一致を確認します。さらにbuild identityを検査し、決定的なarchiveとSHA-256 checksumを作成します。
 
@@ -208,7 +208,7 @@ package lifecycle control
   != human / AI Product Interaction
 ```
 
-`soza-local-reference`の`version` / `save` / `inspect`はPackaging acceptance用の管理操作です。Inquiry、Observation、Recommendation、Decision等を扱う正式なSEI CLIではありません。
+`sei-local-reference`の`version` / `save` / `inspect`はPackaging acceptance用の管理操作です。Inquiry、Observation、Recommendation、Decision等を扱う正式なSEI CLIではありません。
 
 正式なhuman-facing / AI-facing Surfaceは、引き続きPMS-03側のOpen Questionとして扱います。
 

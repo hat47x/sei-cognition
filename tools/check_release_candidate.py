@@ -20,8 +20,8 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = ROOT / "release" / "v0.1.0" / "release-candidate.json"
-EXPECTED_SCHEMA = "soza.release-candidate/v1"
-EXPECTED_REPOSITORY = "hat47x/soza"
+EXPECTED_SCHEMA = "sei.release-candidate/v1"
+EXPECTED_REPOSITORY = "hat47x/sei"
 EXPECTED_PROHIBITED_STATUSES = {"Open", "In Progress", "Blocked"}
 
 ISSUE_ROW = re.compile(
@@ -307,7 +307,7 @@ def build_report(
     non_claims: dict[str, bool],
 ) -> dict[str, Any]:
     return {
-        "schema": "soza.release-candidate-report/v1",
+        "schema": "sei.release-candidate-report/v1",
         "version": version,
         "repository": EXPECTED_REPOSITORY,
         "release_scope": policy.release_scope,

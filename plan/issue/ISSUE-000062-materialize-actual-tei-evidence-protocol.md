@@ -50,7 +50,7 @@ manifest match
 
 新しいUniversal Contractは追加しない。
 
-Evidence reportは`soza.e3b-tei-probe/v1`という**derived probe artifact**として扱う。SEIのsemantic authorityではなく、E3b-P2を評価するときの実行証跡である。
+Evidence reportは`sei.e3b-tei-probe/v1`という**derived probe artifact**として扱う。SEIのsemantic authorityではなく、E3b-P2を評価するときの実行証跡である。
 
 reportには少なくとも次を記録する。
 

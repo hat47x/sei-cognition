@@ -11,8 +11,8 @@ class TEIE3PostLiveSourceRevalidationTest(unittest.TestCase):
     def make_layout(self, root: Path) -> tuple[Path, Path]:
         archive = root / "bundle.tar.gz"
         archive.write_bytes(b"fixture")
-        soza = root / "soza"
-        go_root = soza / "runtime/go"
+        sei = root / "sei"
+        go_root = sei / "runtime/go"
         (go_root / "teiintegration").mkdir(parents=True)
         (go_root / "go.mod").write_text(
             "module test\n\ngo 1.25\n", encoding="utf-8"
@@ -20,7 +20,7 @@ class TEIE3PostLiveSourceRevalidationTest(unittest.TestCase):
         (go_root / "teiintegration/tei_live_test.go").write_text(
             "package teiintegration\n", encoding="utf-8"
         )
-        return archive, soza
+        return archive, sei
 
     def verified_bundle(self):
         return {
@@ -42,15 +42,15 @@ class TEIE3PostLiveSourceRevalidationTest(unittest.TestCase):
         }
 
     @mock.patch.object(subject, "_run_stage")
-    @mock.patch.object(subject, "_verify_soza_go_requirement")
+    @mock.patch.object(subject, "_verify_sei_go_requirement")
     @mock.patch.object(subject, "_verify_reference_input_identity")
     @mock.patch.object(subject, "_stage_bundle")
     @mock.patch.object(subject, "_ensure_linux_amd64")
     @mock.patch.object(subject.bundle_verifier, "verify_bundle")
-    @mock.patch.object(subject, "_verify_soza_source_identity")
-    def test_success_records_pre_and_post_live_soza_source(
+    @mock.patch.object(subject, "_verify_sei_source_identity")
+    def test_success_records_pre_and_post_live_sei_source(
         self,
-        verify_soza,
+        verify_sei,
         verify_bundle,
         ensure_platform,
         stage_bundle,
@@ -60,7 +60,7 @@ class TEIE3PostLiveSourceRevalidationTest(unittest.TestCase):
     ):
         pre = {"head": "e" * 40, "objects": {"runtime/go": "1" * 40}}
         post = {"head": "e" * 40, "objects": {"runtime/go": "1" * 40}}
-        verify_soza.side_effect = [pre, post]
+        verify_sei.side_effect = [pre, post]
         verify_bundle.return_value = self.verified_bundle()
         verify_reference.return_value = {
             "sourceCommit": subject.REVISION_A,
@@ -74,34 +74,34 @@ class TEIE3PostLiveSourceRevalidationTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            archive, soza = self.make_layout(root)
+            archive, sei = self.make_layout(root)
             stage_bundle.return_value = self.staged_paths(root / "stage")
             result = subject.run_compatibility(
                 archive,
-                soza_repo_root=soza,
-                expected_soza_head="e" * 40,
+                sei_repo_root=sei,
+                expected_sei_head="e" * 40,
             )
 
-        self.assertEqual(pre, result["sozaSource"])
-        self.assertEqual(post, result["postLiveTestSozaSource"])
+        self.assertEqual(pre, result["seiSource"])
+        self.assertEqual(post, result["postLiveTestSeiSource"])
         self.assertEqual(
             [
-                mock.call(soza.resolve(), expected_head="e" * 40),
-                mock.call(soza.resolve(), expected_head="e" * 40),
+                mock.call(sei.resolve(), expected_head="e" * 40),
+                mock.call(sei.resolve(), expected_head="e" * 40),
             ],
-            verify_soza.call_args_list,
+            verify_sei.call_args_list,
         )
 
     @mock.patch.object(subject, "_run_stage")
-    @mock.patch.object(subject, "_verify_soza_go_requirement")
+    @mock.patch.object(subject, "_verify_sei_go_requirement")
     @mock.patch.object(subject, "_verify_reference_input_identity")
     @mock.patch.object(subject, "_stage_bundle")
     @mock.patch.object(subject, "_ensure_linux_amd64")
     @mock.patch.object(subject.bundle_verifier, "verify_bundle")
-    @mock.patch.object(subject, "_verify_soza_source_identity")
+    @mock.patch.object(subject, "_verify_sei_source_identity")
     def test_post_live_source_drift_reuses_existing_identity_stage(
         self,
-        verify_soza,
+        verify_sei,
         verify_bundle,
         ensure_platform,
         stage_bundle,
@@ -109,7 +109,7 @@ class TEIE3PostLiveSourceRevalidationTest(unittest.TestCase):
         verify_go,
         run_stage,
     ):
-        verify_soza.side_effect = [
+        verify_sei.side_effect = [
             {"head": "e" * 40, "objects": {}},
             ValueError("runtime/go changed during live test"),
         ]
@@ -126,19 +126,19 @@ class TEIE3PostLiveSourceRevalidationTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            archive, soza = self.make_layout(root)
+            archive, sei = self.make_layout(root)
             stage_bundle.return_value = self.staged_paths(root / "stage")
             with self.assertRaises(subject.TEIAdapterStageError) as raised:
                 subject.run_compatibility(
                     archive,
-                    soza_repo_root=soza,
-                    expected_soza_head="e" * 40,
+                    sei_repo_root=sei,
+                    expected_sei_head="e" * 40,
                 )
 
-        self.assertEqual("soza_source_identity", raised.exception.stage)
+        self.assertEqual("sei_source_identity", raised.exception.stage)
         self.assertIn("live test実行後", raised.exception.message)
         self.assertIn("runtime/go changed", raised.exception.message)
-        self.assertEqual(2, verify_soza.call_count)
+        self.assertEqual(2, verify_sei.call_count)
 
 
 if __name__ == "__main__":

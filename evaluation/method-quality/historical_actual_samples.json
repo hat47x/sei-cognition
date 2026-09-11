@@ -1,5 +1,5 @@
 {
-  "schema": "soza.method-quality-historical-actual-samples/v1",
+  "schema": "sei.method-quality-historical-actual-samples/v1",
   "rules": {
     "goldenGrouping": false,
     "machineScoring": false,
@@ -40,7 +40,7 @@
         ],
         "doc": {
           "version": 1,
-          "id": "soza-e3b-m1b",
+          "id": "sei-e3b-m1b",
           "createdAt": "2026-09-02T00:00:00Z",
           "updatedAt": "2026-09-02T00:00:00Z",
           "transform": {
@@ -127,7 +127,7 @@
         ],
         "doc": {
           "version": 1,
-          "id": "soza-e3b-m1b",
+          "id": "sei-e3b-m1b",
           "createdAt": "2026-09-02T00:00:00Z",
           "updatedAt": "2026-09-02T00:00:00Z",
           "transform": {

@@ -33,7 +33,7 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
                 extra(tar)
         return archive
 
-    def make_soza(self, root: Path):
+    def make_sei(self, root: Path):
         go_root = root / "runtime/go"
         (go_root / "teiintegration").mkdir(parents=True)
         (go_root / "go.mod").write_text(
@@ -138,9 +138,9 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
                     paths, metadata, expected_objects=expected
                 )
 
-    def test_soza_source_identity_rejects_dirty_runtime_boundary(self):
+    def test_sei_source_identity_rejects_dirty_runtime_boundary(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "soza"
+            root = Path(tmp) / "sei"
             (root / "runtime/go").mkdir(parents=True)
             (root / "runtime/go/file.go").write_text(
                 "package x\n", encoding="utf-8"
@@ -170,53 +170,53 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
                 "package changed\n", encoding="utf-8"
             )
             with self.assertRaisesRegex(ValueError, "未commit変更"):
-                subject._verify_soza_source_identity(root, paths=["runtime/go"])
+                subject._verify_sei_source_identity(root, paths=["runtime/go"])
 
-    @mock.patch.object(subject, "_verify_soza_source_identity")
+    @mock.patch.object(subject, "_verify_sei_source_identity")
     @mock.patch.object(subject.bundle_verifier, "verify_bundle")
-    def test_bundle_verifier_failure_has_identity_stage(self, verify, verify_soza):
-        verify_soza.return_value = {"head": "e" * 40, "objects": {}}
+    def test_bundle_verifier_failure_has_identity_stage(self, verify, verify_sei):
+        verify_sei.return_value = {"head": "e" * 40, "objects": {}}
         verify.side_effect = ValueError("binary SHA mismatch")
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             archive = self.make_bundle(root)
-            soza = self.make_soza(root / "soza")
+            sei = self.make_sei(root / "sei")
             with self.assertRaises(subject.TEIAdapterStageError) as raised:
-                subject.run_compatibility(archive, soza_repo_root=soza)
+                subject.run_compatibility(archive, sei_repo_root=sei)
         self.assertEqual("bundle_identity_verification", raised.exception.stage)
 
-    @mock.patch.object(subject, "_verify_soza_source_identity")
+    @mock.patch.object(subject, "_verify_sei_source_identity")
     @mock.patch.object(subject, "_verify_reference_input_identity")
     @mock.patch.object(subject, "_ensure_linux_amd64")
     @mock.patch.object(subject.bundle_verifier, "verify_bundle")
     def test_reference_failure_has_reference_stage(
-        self, verify, ensure, verify_reference, verify_soza
+        self, verify, ensure, verify_reference, verify_sei
     ):
         verify.return_value = self.verified_bundle()
-        verify_soza.return_value = {"head": "e" * 40, "objects": {}}
+        verify_sei.return_value = {"head": "e" * 40, "objects": {}}
         verify_reference.side_effect = ValueError("reference input mismatch")
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             archive = self.make_bundle(root)
-            soza = self.make_soza(root / "soza")
+            sei = self.make_sei(root / "sei")
             with self.assertRaises(subject.TEIAdapterStageError) as raised:
-                subject.run_compatibility(archive, soza_repo_root=soza)
+                subject.run_compatibility(archive, sei_repo_root=sei)
         self.assertEqual("reference_input_identity", raised.exception.stage)
 
-    @mock.patch.object(subject, "_verify_soza_source_identity")
+    @mock.patch.object(subject, "_verify_sei_source_identity")
     @mock.patch.object(subject, "_verify_reference_input_identity")
     @mock.patch.object(subject, "_ensure_linux_amd64")
     @mock.patch.object(subject.subprocess, "run")
     @mock.patch.object(subject.bundle_verifier, "verify_bundle")
     def test_verified_bundle_runs_existing_live_test_with_provenance(
-        self, verify, run, ensure, verify_reference, verify_soza
+        self, verify, run, ensure, verify_reference, verify_sei
     ):
         verify.return_value = self.verified_bundle()
         verify_reference.return_value = {
             "sourceCommit": subject.REVISION_A,
             "objects": {},
         }
-        verify_soza.return_value = {"head": "e" * 40, "objects": {}}
+        verify_sei.return_value = {"head": "e" * 40, "objects": {}}
         run.side_effect = [
             subprocess.CompletedProcess(
                 [], 0, "go version go1.25.0 linux/amd64\n", ""
@@ -227,14 +227,14 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             archive = self.make_bundle(root)
-            soza = self.make_soza(root / "soza")
-            result = subject.run_compatibility(archive, soza_repo_root=soza)
+            sei = self.make_sei(root / "sei")
+            result = subject.run_compatibility(archive, sei_repo_root=sei)
         self.assertEqual("adapter_compatible", result["result"])
-        self.assertEqual("1.25", result["sozaGoRequirement"])
+        self.assertEqual("1.25", result["seiGoRequirement"])
         self.assertEqual(
-            "go version go1.25.0 linux/amd64", result["sozaGoVersion"]
+            "go version go1.25.0 linux/amd64", result["seiGoVersion"]
         )
-        self.assertIn("soza_teiintegration_live_test", result["completedStages"])
+        self.assertIn("sei_teiintegration_live_test", result["completedStages"])
         self.assertEqual(
             ["go", "env", "GOOS", "GOARCH"],
             run.call_args_list[1].args[0],
@@ -253,84 +253,84 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
             argv,
         )
         env = run.call_args_list[2].kwargs["env"]
-        self.assertEqual("1", env["SOZA_E3B_TEI_LIVE"])
+        self.assertEqual("1", env["SEI_E3B_TEI_LIVE"])
         self.assertEqual("local", env["GOTOOLCHAIN"])
         self.assertEqual(
             f"tei-cli:{subject.REVISION_B}:reference:{subject.REVISION_A}:"
             f"bundle-sha256:{'d' * 64}",
-            env["SOZA_TEI_SOURCE_STATE_REF"],
+            env["SEI_TEI_SOURCE_STATE_REF"],
         )
 
-    @mock.patch.object(subject, "_verify_soza_source_identity")
+    @mock.patch.object(subject, "_verify_sei_source_identity")
     @mock.patch.object(subject, "_verify_reference_input_identity")
     @mock.patch.object(subject, "_ensure_linux_amd64")
     @mock.patch.object(subject.subprocess, "run")
     @mock.patch.object(subject.bundle_verifier, "verify_bundle")
     def test_go_toolchain_failure_has_stage(
-        self, verify, run, ensure, verify_reference, verify_soza
+        self, verify, run, ensure, verify_reference, verify_sei
     ):
         verify.return_value = self.verified_bundle()
         verify_reference.return_value = {
             "sourceCommit": subject.REVISION_A,
             "objects": {},
         }
-        verify_soza.return_value = {"head": "e" * 40, "objects": {}}
+        verify_sei.return_value = {"head": "e" * 40, "objects": {}}
         run.return_value = subprocess.CompletedProcess(
             ["go", "version"], 1, "", "go unavailable"
         )
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             archive = self.make_bundle(root)
-            soza = self.make_soza(root / "soza")
+            sei = self.make_sei(root / "sei")
             with self.assertRaises(subject.TEIAdapterStageError) as raised:
-                subject.run_compatibility(archive, soza_repo_root=soza)
+                subject.run_compatibility(archive, sei_repo_root=sei)
         exc = raised.exception
-        self.assertEqual("soza_go_toolchain", exc.stage)
+        self.assertEqual("sei_go_toolchain", exc.stage)
         self.assertEqual(1, exc.returncode)
         self.assertEqual("go unavailable", exc.stderr)
 
-    @mock.patch.object(subject, "_verify_soza_source_identity")
+    @mock.patch.object(subject, "_verify_sei_source_identity")
     @mock.patch.object(subject, "_verify_reference_input_identity")
     @mock.patch.object(subject, "_ensure_linux_amd64")
     @mock.patch.object(subject.subprocess, "run")
     @mock.patch.object(subject.bundle_verifier, "verify_bundle")
     def test_old_go_is_rejected_before_live_test(
-        self, verify, run, ensure, verify_reference, verify_soza
+        self, verify, run, ensure, verify_reference, verify_sei
     ):
         verify.return_value = self.verified_bundle()
         verify_reference.return_value = {
             "sourceCommit": subject.REVISION_A,
             "objects": {},
         }
-        verify_soza.return_value = {"head": "e" * 40, "objects": {}}
+        verify_sei.return_value = {"head": "e" * 40, "objects": {}}
         run.return_value = subprocess.CompletedProcess(
             [], 0, "go version go1.24.9 linux/amd64\n", ""
         )
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             archive = self.make_bundle(root)
-            soza = self.make_soza(root / "soza")
+            sei = self.make_sei(root / "sei")
             with self.assertRaises(subject.TEIAdapterStageError) as raised:
-                subject.run_compatibility(archive, soza_repo_root=soza)
+                subject.run_compatibility(archive, sei_repo_root=sei)
         exc = raised.exception
-        self.assertEqual("soza_go_toolchain", exc.stage)
+        self.assertEqual("sei_go_toolchain", exc.stage)
         self.assertIn("required>=1.25", exc.message)
         self.assertEqual(1, run.call_count)
 
-    @mock.patch.object(subject, "_verify_soza_source_identity")
+    @mock.patch.object(subject, "_verify_sei_source_identity")
     @mock.patch.object(subject, "_verify_reference_input_identity")
     @mock.patch.object(subject, "_ensure_linux_amd64")
     @mock.patch.object(subject.subprocess, "run")
     @mock.patch.object(subject.bundle_verifier, "verify_bundle")
     def test_live_test_failure_keeps_process_stage_without_text_inference(
-        self, verify, run, ensure, verify_reference, verify_soza
+        self, verify, run, ensure, verify_reference, verify_sei
     ):
         verify.return_value = self.verified_bundle()
         verify_reference.return_value = {
             "sourceCommit": subject.REVISION_A,
             "objects": {},
         }
-        verify_soza.return_value = {"head": "e" * 40, "objects": {}}
+        verify_sei.return_value = {"head": "e" * 40, "objects": {}}
         run.side_effect = [
             subprocess.CompletedProcess(
                 [], 0, "go version go1.25.0 linux/amd64\n", ""
@@ -343,18 +343,18 @@ class TEIBundleAdapterCompatibilityRunnerTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             archive = self.make_bundle(root)
-            soza = self.make_soza(root / "soza")
+            sei = self.make_sei(root / "sei")
             with self.assertRaises(subject.TEIAdapterStageError) as raised:
-                subject.run_compatibility(archive, soza_repo_root=soza)
+                subject.run_compatibility(archive, sei_repo_root=sei)
         exc = raised.exception
-        self.assertEqual("soza_teiintegration_live_test", exc.stage)
+        self.assertEqual("sei_teiintegration_live_test", exc.stage)
         self.assertIn("validator", exc.stderr)
         self.assertNotEqual("validator", exc.stage)
         self.assertNotEqual("strict_decode", exc.stage)
 
     def test_stage_error_detail_is_bounded(self):
         exc = subject.TEIAdapterStageError(
-            "soza_teiintegration_live_test",
+            "sei_teiintegration_live_test",
             "failed",
             command=["go", "test"],
             returncode=1,

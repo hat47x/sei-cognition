@@ -6,7 +6,7 @@
 
 ## 含まれるもの
 
-- `soza-local-reference` — package lifecycleの検証用binary
+- `sei-local-reference` — package lifecycleの検証用binary
 - `build-metadata.json` — artifactのbuild identity
 - このREADME
 

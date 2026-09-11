@@ -137,11 +137,11 @@ func TestGitHubCommitServiceRejectsInvalidRepository(t *testing.T) {
 }
 
 func TestLiveGitHubCommitService(t *testing.T) {
-	if os.Getenv("SOZA_E3B_LIVE") != "1" {
-		t.Skip("set SOZA_E3B_LIVE=1 to call the public live Provider service")
+	if os.Getenv("SEI_E3B_LIVE") != "1" {
+		t.Skip("set SEI_E3B_LIVE=1 to call the public live Provider service")
 	}
 
-	service := GitHubCommitService{Token: os.Getenv("SOZA_LIVE_PROVIDER_TOKEN")}
+	service := GitHubCommitService{Token: os.Getenv("SEI_LIVE_PROVIDER_TOKEN")}
 	document, err := service.ObserveCommit(
 		context.Background(),
 		"hat47x/cultural-substrate-weaving",

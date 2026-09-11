@@ -201,7 +201,7 @@ def validate(requirements_text: str, scenarios_text: str) -> Report:
             findings.append(Finding("historical-id-in-current-scenario-table", f"Historical ID appears in current Scenario table: {line.strip()}"))
 
     return Report(
-        schema="soza.requirements-registry-conformance/v1",
+        schema="sei.requirements-registry-conformance/v1",
         passed=not findings,
         requirement_count=len(req_ids),
         scenario_count=len(scn_ids),

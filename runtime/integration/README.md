@@ -144,7 +144,7 @@ runtime archiveはSEI repositoryの外に置きます。計画表示の段階か
 
 ```bash
 python3 runtime/integration/prepare_runtime_version_exchange_archives.py \
-  --output-dir /path/outside/soza/runtime-archives \
+  --output-dir /path/outside/sei/runtime-archives \
   --plan
 ```
 
@@ -152,14 +152,14 @@ python3 runtime/integration/prepare_runtime_version_exchange_archives.py \
 
 ```bash
 python3 runtime/integration/prepare_runtime_version_exchange_archives.py \
-  --output-dir /path/outside/soza/runtime-archives
+  --output-dir /path/outside/sei/runtime-archives
 ```
 
 既存fileだけをnetworkなしで再検証する場合:
 
 ```bash
 python3 runtime/integration/prepare_runtime_version_exchange_archives.py \
-  --output-dir /path/outside/soza/runtime-archives \
+  --output-dir /path/outside/sei/runtime-archives \
   --verify-only
 ```
 
@@ -448,14 +448,14 @@ python3 runtime/integration/run_runtime_version_exchange_local_checks.py \
 
 ```bash
 python3 runtime/integration/run_runtime_version_exchange_local_checks.py \
-  --result-output /path/outside/soza/runtime-exchange-focused-result.json
+  --result-output /path/outside/sei/runtime-exchange-focused-result.json
 ```
 
 各testの既定timeoutは120秒です。必要なら`--timeout-seconds`で変更できます。timeoutはexit code `124`、child起動自体の失敗はexit code `127`相当としてmachine-readable resultへ残します。`--stop-on-failure`はnon-zero、timeout、launch errorのいずれでも停止できます。
 
 runnerは明示allowlistとcandidate discoveryを照合し、runtime version exchangeに関係するtestが未登録のまま増えることを検出します。runner自身のself-testもfocused checkへ含めます。
 
-親shellの`SOZA_RUNTIME_EXCHANGE_*`、`SOZA_E3B_RUNTIME_EXCHANGE_*`、`OLLAMA_HOST`、`OLLAMA_MODELS`はfocused regressionへ暗黙継承しません。
+親shellの`SEI_RUNTIME_EXCHANGE_*`、`SEI_E3B_RUNTIME_EXCHANGE_*`、`OLLAMA_HOST`、`OLLAMA_MODELS`はfocused regressionへ暗黙継承しません。
 
 結果JSONはrepository commit / cleanlinessの観測とtest resultを分けます。Git観測に失敗しても、その失敗をtest PASSへ偽装せず診断情報として保持します。結果には次の停止線を明示します。
 

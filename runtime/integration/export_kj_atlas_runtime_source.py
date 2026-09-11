@@ -152,7 +152,7 @@ def export_runtime_bundle(
         extraction_parent = output_dir.parent
         extraction_parent.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(
-            prefix="soza-kj-atlas-source-export-",
+            prefix="sei-kj-atlas-source-export-",
             dir=extraction_parent,
         ) as temporary:
             extraction_root = Path(temporary)
@@ -176,7 +176,7 @@ def export_runtime_bundle(
         raise
 
     return {
-        "schema": "soza.kj-atlas-runtime-source-export/v1",
+        "schema": "sei.kj-atlas-runtime-source-export/v1",
         "sourceAcquisition": "git-archive-from-pinned-commit",
         "checkoutRepository": str(checkout_dir),
         "sourceCommit": identity.source_commit,

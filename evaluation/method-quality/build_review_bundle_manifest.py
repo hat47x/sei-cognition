@@ -14,7 +14,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-MANIFEST_SCHEMA = "soza.method-quality-review-bundle/v1"
+MANIFEST_SCHEMA = "sei.method-quality-review-bundle/v1"
 
 
 def _file_record(path: Path) -> dict[str, Any]:

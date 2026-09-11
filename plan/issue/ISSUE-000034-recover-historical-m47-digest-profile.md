@@ -50,7 +50,7 @@ Resolution条件2を評価するため、単純なsemantic searchだけでなく
 
 ### 1. current GitHub reachable history
 
-`hat47x/soza`について、`develop/v0.1.0`と`main`の到達可能履歴から次のpathを検索した。
+`hat47x/sei`について、`develop/v0.1.0`と`main`の到達可能履歴から次のpathを検索した。
 
 ```text
 runtime/go/cognitivemethod/method.go
@@ -118,11 +118,11 @@ semantic_platform_starter_m46_v1.zip
 その後は、
 
 ```text
-soza_architecture_transition_v1.zip
-soza_architecture_delegation_2026-08-30.zip
-soza_rebaseline_phase0_2026-08-30.zip
-soza_rebaseline_phase0_final_2026-08-30.zip
-soza_phase1_m48_integration_candidate_*.zip
+sei_architecture_transition_v1.zip
+sei_architecture_delegation_2026-08-30.zip
+sei_rebaseline_phase0_2026-08-30.zip
+sei_rebaseline_phase0_final_2026-08-30.zip
+sei_phase1_m48_integration_candidate_*.zip
 ```
 
 へ移っている。

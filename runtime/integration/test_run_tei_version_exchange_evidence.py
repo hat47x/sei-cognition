@@ -28,16 +28,16 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
     def make_inputs(self, root: Path):
         source = root / "tei-b"
         reference = root / "tei-a"
-        soza = root / "soza"
-        for path in (source, reference, soza):
+        sei = root / "sei"
+        for path in (source, reference, sei):
             path.mkdir()
-        go_root = soza / "runtime/go"
+        go_root = sei / "runtime/go"
         go_root.mkdir(parents=True)
         (go_root / "go.mod").write_text(
-            "module example.invalid/soza-test\n\ngo 1.25\n",
+            "module example.invalid/sei-test\n\ngo 1.25\n",
             encoding="utf-8",
         )
-        return source, reference, soza
+        return source, reference, sei
 
     def build_success(self, archive: Path):
         archive.write_bytes(b"bundle")
@@ -50,20 +50,20 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
     ):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            source, reference, soza = self.make_inputs(root)
+            source, reference, sei = self.make_inputs(root)
             tei_go = self.make_go(root, "go123")
-            soza_go = self.make_go(root, "go125")
-            for input_repo in (source, reference, soza):
+            sei_go = self.make_go(root, "go125")
+            for input_repo in (source, reference, sei):
                 with self.subTest(input_repo=input_repo.name):
                     output = input_repo / "nested/evidence"
                     with self.assertRaisesRegex(ValueError, "配下には置けません"):
                         subject.run_version_exchange(
                             source,
                             reference,
-                            soza,
+                            sei,
                             output,
                             tei_go_executable=tei_go,
-                            soza_go_executable=soza_go,
+                            sei_go_executable=sei_go,
                         )
                     self.assertFalse(output.exists())
             build.assert_not_called()
@@ -76,17 +76,17 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
             root = Path(tmp)
             workspace = root / "workspace"
             workspace.mkdir()
-            source, reference, soza = self.make_inputs(workspace)
+            source, reference, sei = self.make_inputs(workspace)
             tei_go = self.make_go(root, "go123")
-            soza_go = self.make_go(root, "go125")
+            sei_go = self.make_go(root, "go125")
             with self.assertRaisesRegex(ValueError, "包含できません"):
                 subject.run_version_exchange(
                     source,
                     reference,
-                    soza,
+                    sei,
                     workspace,
                     tei_go_executable=tei_go,
-                    soza_go_executable=soza_go,
+                    sei_go_executable=sei_go,
                 )
             build.assert_not_called()
             adapter.assert_not_called()
@@ -96,9 +96,9 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
     def test_symlink_output_dir_is_rejected_before_runner_start(self, build, adapter):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            source, reference, soza = self.make_inputs(root)
+            source, reference, sei = self.make_inputs(root)
             tei_go = self.make_go(root, "go123")
-            soza_go = self.make_go(root, "go125")
+            sei_go = self.make_go(root, "go125")
             actual = root / "actual-evidence"
             actual.mkdir()
             output = root / "evidence-link"
@@ -107,10 +107,10 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
                 subject.run_version_exchange(
                     source,
                     reference,
-                    soza,
+                    sei,
                     output,
                     tei_go_executable=tei_go,
-                    soza_go_executable=soza_go,
+                    sei_go_executable=sei_go,
                 )
             self.assertEqual([], list(actual.iterdir()))
             build.assert_not_called()
@@ -121,9 +121,9 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
     def test_distinct_go_toolchains_are_used_for_e2_and_e3(self, build, adapter):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            source, reference, soza = self.make_inputs(root)
+            source, reference, sei = self.make_inputs(root)
             tei_go = self.make_go(root, "go123")
-            soza_go = self.make_go(root, "go125")
+            sei_go = self.make_go(root, "go125")
             output = root / "evidence"
             observed = {}
 
@@ -135,8 +135,8 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
                 observed["e3_go"] = Path(shutil.which("go")).resolve()
                 return {
                     "result": "adapter_compatible",
-                    "sozaGoRequirement": "1.25",
-                    "sozaGoVersion": "go version go1.25.0 linux/amd64",
+                    "seiGoRequirement": "1.25",
+                    "seiGoVersion": "go version go1.25.0 linux/amd64",
                 }
 
             build.side_effect = build_side_effect
@@ -145,25 +145,25 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
             result = subject.run_version_exchange(
                 source,
                 reference,
-                soza,
+                sei,
                 output,
                 tei_go_executable=tei_go,
-                soza_go_executable=soza_go,
-                expected_soza_head="f" * 40,
+                sei_go_executable=sei_go,
+                expected_sei_head="f" * 40,
             )
 
             self.assertEqual(tei_go.resolve(), observed["e2_go"])
-            self.assertEqual(soza_go.resolve(), observed["e3_go"])
+            self.assertEqual(sei_go.resolve(), observed["e3_go"])
             self.assertEqual(original_path, os.environ.get("PATH"))
             self.assertEqual("fixed_scope_e2_e3_verified", result["result"])
             report = json.loads((output / subject.REPORT_NAME).read_text(encoding="utf-8"))
             self.assertEqual("fixed_scope_e2_e3_verified", report["result"])
             self.assertEqual(str(tei_go.resolve()), report["comparisonAxis"]["teiGoExecutable"])
-            self.assertEqual(str(soza_go.resolve()), report["comparisonAxis"]["sozaGoExecutable"])
-            self.assertEqual("1.25", report["comparisonAxis"]["sozaGoRequirement"])
+            self.assertEqual(str(sei_go.resolve()), report["comparisonAxis"]["seiGoExecutable"])
+            self.assertEqual("1.25", report["comparisonAxis"]["seiGoRequirement"])
             self.assertEqual(
                 "go version go1.25.0 linux/amd64",
-                report["comparisonAxis"]["sozaGoObserved"],
+                report["comparisonAxis"]["seiGoObserved"],
             )
 
     @mock.patch.object(subject.adapter_runner, "run_compatibility")
@@ -172,18 +172,18 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
         build.side_effect = ValueError("TEI Go version mismatch")
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            source, reference, soza = self.make_inputs(root)
+            source, reference, sei = self.make_inputs(root)
             tei_go = self.make_go(root, "go123")
-            soza_go = self.make_go(root, "go125")
+            sei_go = self.make_go(root, "go125")
             output = root / "evidence"
             with self.assertRaises(subject.VersionExchangeRunFailed) as raised:
                 subject.run_version_exchange(
                     source,
                     reference,
-                    soza,
+                    sei,
                     output,
                     tei_go_executable=tei_go,
-                    soza_go_executable=soza_go,
+                    sei_go_executable=sei_go,
                 )
             self.assertEqual("E2", raised.exception.stage)
             adapter.assert_not_called()
@@ -197,18 +197,18 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
     def test_missing_e2_go_is_recorded_as_tei_go_toolchain(self, build, adapter):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            source, reference, soza = self.make_inputs(root)
+            source, reference, sei = self.make_inputs(root)
             missing_tei_go = root / "missing-e2/bin/go"
-            soza_go = self.make_go(root, "go125")
+            sei_go = self.make_go(root, "go125")
             output = root / "evidence"
             with self.assertRaises(subject.VersionExchangeRunFailed) as raised:
                 subject.run_version_exchange(
                     source,
                     reference,
-                    soza,
+                    sei,
                     output,
                     tei_go_executable=missing_tei_go,
-                    soza_go_executable=soza_go,
+                    sei_go_executable=sei_go,
                 )
             self.assertEqual("E2", raised.exception.stage)
             build.assert_not_called()
@@ -231,18 +231,18 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
         )
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            source, reference, soza = self.make_inputs(root)
+            source, reference, sei = self.make_inputs(root)
             tei_go = self.make_go(root, "go123")
-            soza_go = self.make_go(root, "go125")
+            sei_go = self.make_go(root, "go125")
             output = root / "evidence"
             with self.assertRaises(subject.VersionExchangeRunFailed):
                 subject.run_version_exchange(
                     source,
                     reference,
-                    soza,
+                    sei,
                     output,
                     tei_go_executable=tei_go,
-                    soza_go_executable=soza_go,
+                    sei_go_executable=sei_go,
                 )
             report = json.loads((output / subject.REPORT_NAME).read_text(encoding="utf-8"))
             failure = report["failure"]
@@ -258,9 +258,9 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
     def test_e3_failure_preserves_e2_bundle_and_report(self, build, adapter):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            source, reference, soza = self.make_inputs(root)
+            source, reference, sei = self.make_inputs(root)
             tei_go = self.make_go(root, "go123")
-            soza_go = self.make_go(root, "go125")
+            sei_go = self.make_go(root, "go125")
             output = root / "evidence"
 
             build.side_effect = lambda source_repo, reference_repo, archive: self.build_success(archive)
@@ -269,10 +269,10 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
                 subject.run_version_exchange(
                     source,
                     reference,
-                    soza,
+                    sei,
                     output,
                     tei_go_executable=tei_go,
-                    soza_go_executable=soza_go,
+                    sei_go_executable=sei_go,
                 )
             self.assertEqual("E3", raised.exception.stage)
             self.assertTrue((output / subject.BUNDLE_NAME).is_file())
@@ -284,22 +284,22 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
 
     @mock.patch.object(subject.adapter_runner, "run_compatibility")
     @mock.patch.object(subject.build_runner, "produce_bundle")
-    def test_missing_e3_go_is_recorded_as_soza_go_toolchain(self, build, adapter):
+    def test_missing_e3_go_is_recorded_as_sei_go_toolchain(self, build, adapter):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            source, reference, soza = self.make_inputs(root)
+            source, reference, sei = self.make_inputs(root)
             tei_go = self.make_go(root, "go123")
-            missing_soza_go = root / "missing-e3/bin/go"
+            missing_sei_go = root / "missing-e3/bin/go"
             output = root / "evidence"
             build.side_effect = lambda source_repo, reference_repo, archive: self.build_success(archive)
             with self.assertRaises(subject.VersionExchangeRunFailed) as raised:
                 subject.run_version_exchange(
                     source,
                     reference,
-                    soza,
+                    sei,
                     output,
                     tei_go_executable=tei_go,
-                    soza_go_executable=missing_soza_go,
+                    sei_go_executable=missing_sei_go,
                 )
             self.assertEqual("E3", raised.exception.stage)
             adapter.assert_not_called()
@@ -308,21 +308,21 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
             failure = report["failure"]
             self.assertEqual("e2_verified_e3_failed", report["result"])
             self.assertEqual("E3", failure["stage"])
-            self.assertEqual("soza_go_toolchain", failure["substage"])
-            self.assertEqual("soza_go_toolchain", failure["detail"]["stage"])
+            self.assertEqual("sei_go_toolchain", failure["substage"])
+            self.assertEqual("sei_go_toolchain", failure["detail"]["stage"])
 
     @mock.patch.object(subject.adapter_runner, "run_compatibility")
     @mock.patch.object(subject.build_runner, "produce_bundle")
     def test_staged_e3_failure_propagates_substage_detail(self, build, adapter):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            source, reference, soza = self.make_inputs(root)
+            source, reference, sei = self.make_inputs(root)
             tei_go = self.make_go(root, "go123")
-            soza_go = self.make_go(root, "go125")
+            sei_go = self.make_go(root, "go125")
             output = root / "evidence"
             build.side_effect = lambda source_repo, reference_repo, archive: self.build_success(archive)
             adapter.side_effect = subject.adapter_runner.TEIAdapterStageError(
-                "soza_teiintegration_live_test",
+                "sei_teiintegration_live_test",
                 "external process returned non-zero status",
                 command=["go", "test", "./teiintegration"],
                 returncode=1,
@@ -332,17 +332,17 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
                 subject.run_version_exchange(
                     source,
                     reference,
-                    soza,
+                    sei,
                     output,
                     tei_go_executable=tei_go,
-                    soza_go_executable=soza_go,
+                    sei_go_executable=sei_go,
                 )
             report = json.loads((output / subject.REPORT_NAME).read_text(encoding="utf-8"))
             failure = report["failure"]
             self.assertEqual("E3", failure["stage"])
-            self.assertEqual("soza_teiintegration_live_test", failure["substage"])
+            self.assertEqual("sei_teiintegration_live_test", failure["substage"])
             self.assertEqual(
-                "soza_teiintegration_live_test", failure["detail"]["stage"]
+                "sei_teiintegration_live_test", failure["detail"]["stage"]
             )
             self.assertEqual(1, failure["detail"]["returnCode"])
             self.assertIn("validator", failure["detail"]["stderrTail"])
@@ -352,9 +352,9 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
     def test_existing_evidence_is_not_overwritten_without_opt_in(self, build, adapter):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            source, reference, soza = self.make_inputs(root)
+            source, reference, sei = self.make_inputs(root)
             tei_go = self.make_go(root, "go123")
-            soza_go = self.make_go(root, "go125")
+            sei_go = self.make_go(root, "go125")
             output = root / "evidence"
             output.mkdir()
             (output / subject.REPORT_NAME).write_text("old\n", encoding="utf-8")
@@ -362,10 +362,10 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
                 subject.run_version_exchange(
                     source,
                     reference,
-                    soza,
+                    sei,
                     output,
                     tei_go_executable=tei_go,
-                    soza_go_executable=soza_go,
+                    sei_go_executable=sei_go,
                 )
             build.assert_not_called()
             adapter.assert_not_called()
@@ -376,9 +376,9 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
         build.side_effect = ValueError("build failed")
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            source, reference, soza = self.make_inputs(root)
+            source, reference, sei = self.make_inputs(root)
             tei_go = self.make_go(root, "go123")
-            soza_go = self.make_go(root, "go125")
+            sei_go = self.make_go(root, "go125")
             output = root / "evidence"
             output.mkdir()
             stale_bundle = output / subject.BUNDLE_NAME
@@ -388,10 +388,10 @@ class TEIVersionExchangeEvidenceRunnerTest(unittest.TestCase):
                 subject.run_version_exchange(
                     source,
                     reference,
-                    soza,
+                    sei,
                     output,
                     tei_go_executable=tei_go,
-                    soza_go_executable=soza_go,
+                    sei_go_executable=sei_go,
                     overwrite=True,
                 )
             self.assertFalse(stale_bundle.exists())

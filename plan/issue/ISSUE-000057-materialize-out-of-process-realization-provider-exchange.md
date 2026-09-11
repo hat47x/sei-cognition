@@ -37,10 +37,10 @@ process間のJSON入出力はreference probeのRealization-local protocolであ�
 
 ## 実装した要素
 
-- `runtime/go/cmd/soza-reference-provider`
+- `runtime/go/cmd/sei-reference-provider`
   - profile A / Bを別OS processとして実行する。
   - A / Bは異なるProvider固有state shapeを返す。
-- `runtime/go/cmd/soza-reference-method`
+- `runtime/go/cmd/sei-reference-method`
   - `evidence-first` / `cautious`の二つのMethod Realizationを別OS processとして実行する。
   - 同じMethod Definitionに対し、異なるRecommendation候補を返す。
 - `runtime/go/realizationprobe`

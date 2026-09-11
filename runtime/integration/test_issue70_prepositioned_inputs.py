@@ -43,8 +43,8 @@ class RuntimeExchangePrepositionedInputPreparationTest(unittest.TestCase):
     def test_new_root_prepares_both_archives_and_model_store(self):
         with tempfile.TemporaryDirectory() as temporary:
             parent = Path(temporary)
-            soza_root = parent / "soza-repository"
-            soza_root.mkdir()
+            sei_root = parent / "sei-repository"
+            sei_root.mkdir()
             root = parent / "inputs"
 
             def download(_url, target, size, sha256, opener=None):
@@ -57,7 +57,7 @@ class RuntimeExchangePrepositionedInputPreparationTest(unittest.TestCase):
                 model_dir.mkdir(parents=True)
 
             with (
-                patch.object(subject, "SOZA_ROOT", soza_root),
+                patch.object(subject, "SEI_ROOT", sei_root),
                 patch.object(subject, "load_runtime_manifest", return_value=RUNTIME_MANIFEST),
                 patch.object(subject, "download_archive", side_effect=download),
                 patch.object(subject, "prepare_model_store", side_effect=prepare_model),
@@ -79,8 +79,8 @@ class RuntimeExchangePrepositionedInputPreparationTest(unittest.TestCase):
     def test_existing_model_store_is_reverified_without_preparation(self):
         with tempfile.TemporaryDirectory() as temporary:
             parent = Path(temporary)
-            soza_root = parent / "soza-repository"
-            soza_root.mkdir()
+            sei_root = parent / "sei-repository"
+            sei_root.mkdir()
             root = parent / "inputs"
             model_dir = root / "ollama-models"
             model_dir.mkdir(parents=True)
@@ -92,7 +92,7 @@ class RuntimeExchangePrepositionedInputPreparationTest(unittest.TestCase):
                 return Verification(target.resolve(strict=True), size, sha256)
 
             with (
-                patch.object(subject, "SOZA_ROOT", soza_root),
+                patch.object(subject, "SEI_ROOT", sei_root),
                 patch.object(subject, "load_runtime_manifest", return_value=RUNTIME_MANIFEST),
                 patch.object(subject, "download_archive", side_effect=download),
                 patch.object(subject, "prepare_model_store") as prepare_model,
@@ -106,8 +106,8 @@ class RuntimeExchangePrepositionedInputPreparationTest(unittest.TestCase):
     def test_verify_only_does_not_download_or_prepare(self):
         with tempfile.TemporaryDirectory() as temporary:
             parent = Path(temporary)
-            soza_root = parent / "soza-repository"
-            soza_root.mkdir()
+            sei_root = parent / "sei-repository"
+            sei_root.mkdir()
             root = parent / "inputs"
             archive_dir = root / "runtime-archives"
             archive_dir.mkdir(parents=True)
@@ -120,7 +120,7 @@ class RuntimeExchangePrepositionedInputPreparationTest(unittest.TestCase):
                 return Verification(target.resolve(strict=True), size, sha256)
 
             with (
-                patch.object(subject, "SOZA_ROOT", soza_root),
+                patch.object(subject, "SEI_ROOT", sei_root),
                 patch.object(subject, "load_runtime_manifest", return_value=RUNTIME_MANIFEST),
                 patch.object(subject, "verify_archive", side_effect=verify_archive),
                 patch.object(subject, "download_archive") as download,
@@ -137,17 +137,17 @@ class RuntimeExchangePrepositionedInputPreparationTest(unittest.TestCase):
             )
             self.assertEqual("verified-existing", result["model"]["acquisition"])
 
-    def test_root_inside_soza_repository_is_rejected_before_acquisition(self):
+    def test_root_inside_sei_repository_is_rejected_before_acquisition(self):
         with tempfile.TemporaryDirectory() as temporary:
-            soza_root = Path(temporary) / "soza-repository"
-            soza_root.mkdir()
+            sei_root = Path(temporary) / "sei-repository"
+            sei_root.mkdir()
             with (
-                patch.object(subject, "SOZA_ROOT", soza_root),
+                patch.object(subject, "SEI_ROOT", sei_root),
                 patch.object(subject, "download_archive") as download,
                 patch.object(subject, "prepare_model_store") as prepare_model,
             ):
                 with self.assertRaisesRegex(ValueError, "SEI repository配下"):
-                    subject.prepare_prepositioned_inputs(soza_root / "inputs")
+                    subject.prepare_prepositioned_inputs(sei_root / "inputs")
             download.assert_not_called()
             prepare_model.assert_not_called()
 

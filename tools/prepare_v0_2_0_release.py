@@ -16,11 +16,11 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-EXPECTED_REQUEST_SCHEMA = "soza.release-request/v1"
-EXPECTED_REPORT_SCHEMA = "soza.release-candidate-report/v1"
+EXPECTED_REQUEST_SCHEMA = "sei.release-request/v1"
+EXPECTED_REPORT_SCHEMA = "sei.release-candidate-report/v1"
 EXPECTED_VERSION = "0.2.0"
 EXPECTED_TAG = "v0.2.0"
-EXPECTED_REPOSITORY = "hat47x/soza"
+EXPECTED_REPOSITORY = "hat47x/sei"
 EXPECTED_BRANCH = "develop/v0.2.0"
 EXPECTED_SCOPE = "local-reference-product-baseline"
 EXPECTED_TARGET = "linux-amd64"
@@ -175,7 +175,7 @@ def main() -> int:
             shutil.rmtree(output)
         output.mkdir(parents=True)
 
-        package_name = "soza-local-reference-linux-amd64.tar.gz"
+        package_name = "sei-local-reference-linux-amd64.tar.gz"
         checksum_name = package_name + ".sha256"
         report_name = "v0.2.0-candidate-report.json"
         metadata_name = "release-metadata.json"
@@ -185,7 +185,7 @@ def main() -> int:
         shutil.copyfile(args.candidate_report, output / report_name)
 
         metadata = {
-            "schema": "soza.release-publication-bundle/v1",
+            "schema": "sei.release-publication-bundle/v1",
             "version": EXPECTED_VERSION,
             "tag": EXPECTED_TAG,
             "repository": EXPECTED_REPOSITORY,

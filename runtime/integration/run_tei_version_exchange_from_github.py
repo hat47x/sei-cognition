@@ -11,7 +11,7 @@ import prepare_tei_revision_b_source as source_acquisition
 import run_tei_version_exchange_evidence as version_exchange
 from runtime_path_safety import reject_symlink_path_or_ancestors
 
-SCHEMA = "soza.tei-version-exchange-github-acquisition-run/v1"
+SCHEMA = "sei.tei-version-exchange-github-acquisition-run/v1"
 REPORT_NAME = "tei-version-exchange-github-acquisition.json"
 SOURCE_TEMP_ENV_VARS = ("TMPDIR", "TEMP", "TMP")
 SOURCE_TEMP_FALLBACK = "/tmp"
@@ -76,7 +76,7 @@ def _requested_source_temp_parent() -> Path:
 
 def _prepare_source_temp_parent(
     output_dir: Path,
-    soza_repo_root: Path,
+    sei_repo_root: Path,
     reference_source_repo: Path | None,
 ) -> Path:
     # tempfile.gettempdir() intentionally is not used here. Its first resolution
@@ -102,7 +102,7 @@ def _prepare_source_temp_parent(
         )
 
     roots: list[tuple[str, Path]] = [
-        ("SEI repository", soza_repo_root.expanduser().resolve(strict=False)),
+        ("SEI repository", sei_repo_root.expanduser().resolve(strict=False)),
         ("Evidence directory", output_dir.expanduser().resolve(strict=False)),
     ]
     if reference_source_repo is not None:
@@ -124,14 +124,14 @@ def _prepare_source_temp_parent(
 
 def _run_preflight(
     reference_source_repo: Path | None,
-    soza_repo_root: Path,
+    sei_repo_root: Path,
     output_dir: Path,
     *,
     reference_evidence_bundle: Path | None,
     tei_go_executable: Path,
-    soza_go_executable: Path,
+    sei_go_executable: Path,
     token: str,
-    expected_soza_head: str | None,
+    expected_sei_head: str | None,
     overwrite: bool,
 ) -> dict[str, object]:
     # Lazy import keeps standalone preflight importable: that module references this
@@ -141,12 +141,12 @@ def _run_preflight(
 
     return preflight.run_preflight(
         reference_source_repo,
-        soza_repo_root,
+        sei_repo_root,
         output_dir,
         reference_evidence_bundle=reference_evidence_bundle,
         tei_go_executable=tei_go_executable,
-        soza_go_executable=soza_go_executable,
-        expected_soza_head=expected_soza_head,
+        sei_go_executable=sei_go_executable,
+        expected_sei_head=expected_sei_head,
         overwrite=overwrite,
         env=_credential_environment_for_preflight(token),
     )
@@ -261,14 +261,14 @@ def _source_provenance(acquisition: dict[str, object]) -> dict[str, object]:
 
 def run_from_github(
     reference_source_repo: Path | None,
-    soza_repo_root: Path,
+    sei_repo_root: Path,
     output_dir: Path,
     *,
     reference_evidence_bundle: Path | None = None,
     tei_go_executable: Path,
-    soza_go_executable: Path,
+    sei_go_executable: Path,
     token: str,
-    expected_soza_head: str | None = None,
+    expected_sei_head: str | None = None,
     overwrite: bool = False,
 ) -> dict[str, object]:
     if not token:
@@ -276,13 +276,13 @@ def run_from_github(
 
     preflight_result = _run_preflight(
         reference_source_repo,
-        soza_repo_root,
+        sei_repo_root,
         output_dir,
         reference_evidence_bundle=reference_evidence_bundle,
         tei_go_executable=tei_go_executable,
-        soza_go_executable=soza_go_executable,
+        sei_go_executable=sei_go_executable,
         token=token,
-        expected_soza_head=expected_soza_head,
+        expected_sei_head=expected_sei_head,
         overwrite=overwrite,
     )
     if preflight_result.get("ready") is not True:
@@ -290,13 +290,13 @@ def run_from_github(
 
     source_temp_parent = _prepare_source_temp_parent(
         output_dir,
-        soza_repo_root,
+        sei_repo_root,
         reference_source_repo,
     )
     requested_report = _prepare_wrapper_report_path(output_dir, overwrite=overwrite)
 
     with tempfile.TemporaryDirectory(
-        prefix="soza-tei-b-github-source-",
+        prefix="sei-tei-b-github-source-",
         dir=source_temp_parent,
     ) as tmp:
         source_repo = Path(tmp) / "tei-revision-b"
@@ -310,12 +310,12 @@ def run_from_github(
             exchange = version_exchange.run_version_exchange(
                 source_repo,
                 reference_source_repo,
-                soza_repo_root,
+                sei_repo_root,
                 output_dir,
                 reference_evidence_bundle=reference_evidence_bundle,
                 tei_go_executable=tei_go_executable,
-                soza_go_executable=soza_go_executable,
-                expected_soza_head=expected_soza_head,
+                sei_go_executable=sei_go_executable,
+                expected_sei_head=expected_sei_head,
                 overwrite=overwrite,
             )
         except version_exchange.VersionExchangeRunFailed as exc:
@@ -374,14 +374,14 @@ def build_parser() -> argparse.ArgumentParser:
     reference_group.add_argument("--reference-source-repo", type=Path)
     reference_group.add_argument("--reference-evidence-bundle", type=Path)
     parser.add_argument(
-        "--soza-repo-root",
+        "--sei-repo-root",
         type=Path,
         default=Path(__file__).resolve().parents[2],
     )
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--tei-go-executable", required=True, type=Path)
-    parser.add_argument("--soza-go-executable", required=True, type=Path)
-    parser.add_argument("--expected-soza-head")
+    parser.add_argument("--sei-go-executable", required=True, type=Path)
+    parser.add_argument("--expected-sei-head")
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--json", action="store_true")
     return parser
@@ -397,13 +397,13 @@ def main(argv: list[str] | None = None) -> int:
             )
         result = run_from_github(
             args.reference_source_repo,
-            args.soza_repo_root,
+            args.sei_repo_root,
             args.output_dir,
             reference_evidence_bundle=args.reference_evidence_bundle,
             tei_go_executable=args.tei_go_executable,
-            soza_go_executable=args.soza_go_executable,
+            sei_go_executable=args.sei_go_executable,
             token=token,
-            expected_soza_head=args.expected_soza_head,
+            expected_sei_head=args.expected_sei_head,
             overwrite=args.overwrite,
         )
     except GitHubAcquiredVersionExchangePreflightBlocked as exc:

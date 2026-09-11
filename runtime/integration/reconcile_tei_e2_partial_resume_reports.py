@@ -11,7 +11,7 @@ import run_tei_version_exchange_from_github as github_runner
 import run_tei_version_exchange_resume_from_e2_partial as resume_runner
 from runtime_path_safety import reject_symlink_path_or_ancestors
 
-SCHEMA = "soza.tei-version-exchange-e2-partial-resume-reconcile/v1"
+SCHEMA = "sei.tei-version-exchange-e2-partial-resume-reconcile/v1"
 STOP_LINE = (
     "resume report pair reconciled without E3 rerun "
     "!= revision B actual E2 newly executed != E3 newly executed "

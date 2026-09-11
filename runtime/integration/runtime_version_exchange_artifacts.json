@@ -1,5 +1,5 @@
 {
-  "schema": "soza.runtime-version-exchange-artifact-manifest/v1",
+  "schema": "sei.runtime-version-exchange-artifact-manifest/v1",
   "methodSource": {
     "repository": "hat47x/kj-atlas",
     "commit": "4f28c13abe4176503c6fed863383a2d1db2299e9",

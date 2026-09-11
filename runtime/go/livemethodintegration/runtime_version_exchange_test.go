@@ -33,17 +33,17 @@ type runtimeExchangeRealizationRevision struct {
 // Method Applicationの来歴が後続実行によって書き換わらないことを検査します。
 //
 // このtestはrepository-local harness等の実行器からactual Evidence pathと
-// SOZA_E3B_RUNTIME_EXCHANGE_LIVE=1を明示した場合だけ有効化します。通常のunit testでは
+// SEI_E3B_RUNTIME_EXCHANGE_LIVE=1を明示した場合だけ有効化します。通常のunit testでは
 // actual runtimeを必須にせず、runtime名やversionをUniversal Contractへ昇格させません。
 func TestLiveKJAtlasRuntimeVersionExchangePreservesHistoricalApplication(t *testing.T) {
-	if os.Getenv("SOZA_E3B_RUNTIME_EXCHANGE_LIVE") != "1" {
+	if os.Getenv("SEI_E3B_RUNTIME_EXCHANGE_LIVE") != "1" {
 		t.Skip("actual runtime version exchange probeは明示的なlive実行時だけ有効です")
 	}
 
-	resultA := readExchangeFile(t, "SOZA_E3B_RUNTIME_EXCHANGE_RESULT_A")
-	resultB := readExchangeFile(t, "SOZA_E3B_RUNTIME_EXCHANGE_RESULT_B")
-	evidenceA := readExchangeModelEvidence(t, "SOZA_E3B_RUNTIME_EXCHANGE_EVIDENCE_A")
-	evidenceB := readExchangeModelEvidence(t, "SOZA_E3B_RUNTIME_EXCHANGE_EVIDENCE_B")
+	resultA := readExchangeFile(t, "SEI_E3B_RUNTIME_EXCHANGE_RESULT_A")
+	resultB := readExchangeFile(t, "SEI_E3B_RUNTIME_EXCHANGE_RESULT_B")
+	evidenceA := readExchangeModelEvidence(t, "SEI_E3B_RUNTIME_EXCHANGE_EVIDENCE_A")
+	evidenceB := readExchangeModelEvidence(t, "SEI_E3B_RUNTIME_EXCHANGE_EVIDENCE_B")
 
 	if evidenceA.Model == "" || evidenceA.Model != evidenceB.Model {
 		t.Fatalf("runtime exchange did not keep the same model: A=%q B=%q", evidenceA.Model, evidenceB.Model)
@@ -64,14 +64,14 @@ func TestLiveKJAtlasRuntimeVersionExchangePreservesHistoricalApplication(t *test
 		t.Fatalf("result B was rejected by the KJ Atlas response boundary: %v", err)
 	}
 
-	runtimeVersionA := exchangeRequiredEnv(t, "SOZA_E3B_RUNTIME_EXCHANGE_RUNTIME_VERSION_A")
-	runtimeVersionB := exchangeRequiredEnv(t, "SOZA_E3B_RUNTIME_EXCHANGE_RUNTIME_VERSION_B")
+	runtimeVersionA := exchangeRequiredEnv(t, "SEI_E3B_RUNTIME_EXCHANGE_RUNTIME_VERSION_A")
+	runtimeVersionB := exchangeRequiredEnv(t, "SEI_E3B_RUNTIME_EXCHANGE_RUNTIME_VERSION_B")
 	if runtimeVersionA != runtimeExchangeVersionA || runtimeVersionB != runtimeExchangeVersionB {
 		t.Fatalf("runtime exchange versions changed: A=%q B=%q want A=%q B=%q", runtimeVersionA, runtimeVersionB, runtimeExchangeVersionA, runtimeExchangeVersionB)
 	}
 
-	modelIDA := exchangeRequiredEnv(t, "SOZA_E3B_RUNTIME_EXCHANGE_MODEL_ID_A")
-	modelIDB := exchangeRequiredEnv(t, "SOZA_E3B_RUNTIME_EXCHANGE_MODEL_ID_B")
+	modelIDA := exchangeRequiredEnv(t, "SEI_E3B_RUNTIME_EXCHANGE_MODEL_ID_A")
+	modelIDB := exchangeRequiredEnv(t, "SEI_E3B_RUNTIME_EXCHANGE_MODEL_ID_B")
 	if modelIDA != modelIDB {
 		t.Fatalf("runtime exchange changed the model artifact: A=%s B=%s", modelIDA, modelIDB)
 	}

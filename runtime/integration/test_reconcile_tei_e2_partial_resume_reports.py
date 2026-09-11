@@ -55,10 +55,10 @@ class TEIE2PartialResumeReportReconcileTest(unittest.TestCase):
             "result": result,
             "comparisonAxis": {
                 **partial["axis"],
-                "sozaGoRequirement": "1.25",
-                "sozaGoExecutable": "/opt/go1.25/bin/go",
-                "sozaGoObserved": "go version go1.25.0 linux/amd64",
-                "expectedSozaHead": "c" * 40,
+                "seiGoRequirement": "1.25",
+                "seiGoExecutable": "/opt/go1.25/bin/go",
+                "seiGoObserved": "go version go1.25.0 linux/amd64",
+                "expectedSeiHead": "c" * 40,
             },
             "bundleArchive": partial["bundleArchive"],
             "e2": partial["e2"],
@@ -78,7 +78,7 @@ class TEIE2PartialResumeReportReconcileTest(unittest.TestCase):
                 "stage": "E3",
                 "type": "TEIAdapterStageError",
                 "message": "live test failed",
-                "substage": "soza_teiintegration_live_test",
+                "substage": "sei_teiintegration_live_test",
             }
         return value
 

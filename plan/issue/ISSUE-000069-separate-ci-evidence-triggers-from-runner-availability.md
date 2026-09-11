@@ -83,10 +83,10 @@ scenario-localな変更だけなら、その実証だけを対象にする。一
 
 ### 4. Local Package Artifactは実際のbuild依存を見る
 
-当時の`cmd/soza-package-probe`は、主に次へ依存していた。
+当時の`cmd/sei-package-probe`は、主に次へ依存していた。
 
 ```text
-cmd/soza-package-probe
+cmd/sei-package-probe
   → packagingprobe
   → semanticruntime
 ```

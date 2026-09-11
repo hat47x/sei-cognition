@@ -9,7 +9,7 @@ from validate_case_catalog import validate_catalog
 class ValidateCaseCatalogTest(unittest.TestCase):
     def valid_catalog(self):
         return {
-            "schema": "soza.method-quality-case-catalog/v1",
+            "schema": "sei.method-quality-case-catalog/v1",
             "rules": {
                 "goldenGrouping": False,
                 "machineScoring": False,

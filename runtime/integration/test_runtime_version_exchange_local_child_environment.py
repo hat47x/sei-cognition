@@ -16,8 +16,8 @@ class RuntimeVersionExchangeLocalChildEnvironmentTest(unittest.TestCase):
             "PATH": "/usr/bin",
             "HOME": "/home/example",
             "UNRELATED": "keep",
-            "SOZA_RUNTIME_EXCHANGE_MODEL_DIR": "/tmp/model",
-            "SOZA_E3B_RUNTIME_EXCHANGE_LIVE": "1",
+            "SEI_RUNTIME_EXCHANGE_MODEL_DIR": "/tmp/model",
+            "SEI_E3B_RUNTIME_EXCHANGE_LIVE": "1",
             "OLLAMA_HOST": "127.0.0.1:11434",
             "OLLAMA_MODELS": "/tmp/ollama-models",
             "PYTHONPATH": "/tmp/injected-pythonpath",
@@ -43,8 +43,8 @@ class RuntimeVersionExchangeLocalChildEnvironmentTest(unittest.TestCase):
         self.assertEqual("keep", actual["UNRELATED"])
 
         for key in (
-            "SOZA_RUNTIME_EXCHANGE_MODEL_DIR",
-            "SOZA_E3B_RUNTIME_EXCHANGE_LIVE",
+            "SEI_RUNTIME_EXCHANGE_MODEL_DIR",
+            "SEI_E3B_RUNTIME_EXCHANGE_LIVE",
             "OLLAMA_HOST",
             "OLLAMA_MODELS",
             "PYTHONPATH",
@@ -88,7 +88,7 @@ class RuntimeVersionExchangeLocalChildEnvironmentTest(unittest.TestCase):
         self.assertIsNone(error)
         self.assertIs(observed, completed)
         command = runner.call_args.args[0]
-        self.assertEqual(["git", "-C", str(local_checks.SOZA_ROOT)], command[:3])
+        self.assertEqual(["git", "-C", str(local_checks.SEI_ROOT)], command[:3])
         environment = runner.call_args.kwargs["env"]
         self.assertEqual("/usr/bin", environment["PATH"])
         self.assertEqual("keep", environment["UNRELATED"])

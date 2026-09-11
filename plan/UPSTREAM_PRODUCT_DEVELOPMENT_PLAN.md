@@ -280,7 +280,7 @@ ISSUE-000072では、TEI executable version交換の一変数比較を成立さ�
 
 repository側ではrevision A historical Evidence再検証、revision B source identity、revision A fixed-input identity、E2 / E3 runner、E2 / E3別Go toolchain、canonical combined runner、stage-aware failure Evidenceまで整っています。
 
-current SEI E3 live testでは`runtime/go/go.mod`のGo directiveとactual E3 `go version`をlive test開始前に比較し、要件未満のtoolchainを`soza_go_toolchain` stageとして停止できるようにしています。このprecheckのPASSもAdapter compatibility PASSではありません。
+current SEI E3 live testでは`runtime/go/go.mod`のGo directiveとactual E3 `go version`をlive test開始前に比較し、要件未満のtoolchainを`sei_go_toolchain` stageとして停止できるようにしています。このprecheckのPASSもAdapter compatibility PASSではありません。
 
 ```text
 E3 Go requirement precheck PASS
