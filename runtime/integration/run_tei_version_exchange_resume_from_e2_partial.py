@@ -37,6 +37,15 @@ EXPECTED_ERRORS = (
 )
 
 
+def legacy_schema(schema: str) -> str:
+    """ADR-0031の3。改名前に記録されたEvidenceが持つ旧identityを返す。
+
+    emit側は常に`sei.*`だけを書く。読み取り側だけが双方を受け付ける。
+    記録済みEvidenceが存在する限り必要な恒久措置であり、期限は切らない。
+    """
+    return "soza." + schema[len("sei."):] if schema.startswith("sei.") else schema
+
+
 class ResumeE3Failed(RuntimeError):
     def __init__(
         self,
@@ -149,7 +158,7 @@ def _validate_partial_report(
     report: dict[str, Any],
     bundle_verification: dict[str, object],
 ) -> dict[str, object]:
-    if report.get("schema") != partial_runner.SCHEMA:
+    if report.get("schema") not in (partial_runner.SCHEMA, legacy_schema(partial_runner.SCHEMA)):
         raise ValueError(
             "E2 partial report schemaが期待値と一致しません: "
             f"expected={partial_runner.SCHEMA} actual={report.get('schema')!r}"

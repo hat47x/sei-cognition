@@ -21,7 +21,12 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = ROOT / "release" / "v0.1.0" / "release-candidate.json"
 EXPECTED_SCHEMA = "sei.release-candidate/v1"
-EXPECTED_REPOSITORY = "hat47x/sei"
+EXPECTED_REPOSITORY = "hat47x/sei-cognition"
+# ADR-0031の3および5。改名前に記録されたEvidenceは旧identityと旧repository名を
+# 持つため、読み取り側は双方を受け付ける。emit側は常に新しい名前だけを書く。
+# これは暫定措置ではなく、記録済みEvidenceが存在する限り必要な恒久措置である。
+LEGACY_SCHEMA = "soza.release-candidate/v1"
+LEGACY_REPOSITORY = "hat47x/soza"
 EXPECTED_PROHIBITED_STATUSES = {"Open", "In Progress", "Blocked"}
 
 ISSUE_ROW = re.compile(
@@ -153,6 +158,13 @@ def require_exact_string(config: dict[str, Any], key: str, expected: str) -> Non
         fail(f"{key} = {value!r}, want {expected!r}")
 
 
+def require_renamed_string(config: dict[str, Any], key: str, expected: str, legacy: str) -> None:
+    """ADR-0031の改名を跨いで読む。新旧どちらのidentityでも受け付ける。"""
+    value = config.get(key)
+    if value not in (expected, legacy):
+        fail(f"{key} = {value!r}, want {expected!r} (or pre-rename {legacy!r})")
+
+
 def require_string_list(config: dict[str, Any], key: str) -> list[str]:
     value = config.get(key)
     if not isinstance(value, list) or not value or not all(isinstance(x, str) and x.strip() for x in value):
@@ -171,13 +183,46 @@ def version_policy(config: dict[str, Any]) -> tuple[str, VersionPolicy]:
     return version, policy
 
 
+def _swap_filename_prefix(path: str, before: str, after: str) -> str:
+    head, _, tail = path.rpartition("/")
+    if not tail.startswith(before):
+        return path
+    renamed = f"{after}{tail[len(before):]}"
+    return f"{head}/{renamed}" if head else renamed
+
+
+def pre_rename_path(path: str) -> str:
+    """ADR-0031の文書filename mappingを逆向きにたどる。
+
+    改名前に記録されたrelease candidateは`SOZA_`接頭辞のpathを宣言している。
+    当時のrecordを書き換えないため、読み取り側で当時のpathへ戻して照合する。
+    """
+    return _swap_filename_prefix(path, "SEI_", "SOZA_")
+
+
+def post_rename_path(path: str) -> str:
+    """ADR-0031の文書filename mappingを順方向にたどる。
+
+    改名前のrecordが宣言するpathを、current treeに実在するpathへ解決する。
+    """
+    return _swap_filename_prefix(path, "SOZA_", "SEI_")
+
+
 def check_required_paths(paths: list[str], policy: VersionPolicy) -> None:
     declared = set(paths)
-    missing_anchors = sorted(policy.required_path_anchors - declared)
+    missing_anchors = sorted(
+        anchor
+        for anchor in policy.required_path_anchors
+        if anchor not in declared and pre_rename_path(anchor) not in declared
+    )
     if missing_anchors:
         fail(f"required_paths dropped mandatory anchors: {missing_anchors}")
 
-    missing_on_disk = [path for path in paths if not (ROOT / path).exists()]
+    missing_on_disk = [
+        path
+        for path in paths
+        if not (ROOT / path).exists() and not (ROOT / post_rename_path(path)).exists()
+    ]
     if missing_on_disk:
         fail(f"required_paths do not exist in candidate tree: {missing_on_disk}")
 
@@ -333,8 +378,8 @@ def main() -> int:
 
     try:
         config = load_json(args.config)
-        require_exact_string(config, "schema", EXPECTED_SCHEMA)
-        require_exact_string(config, "repository", EXPECTED_REPOSITORY)
+        require_renamed_string(config, "schema", EXPECTED_SCHEMA, LEGACY_SCHEMA)
+        require_renamed_string(config, "repository", EXPECTED_REPOSITORY, LEGACY_REPOSITORY)
         version, policy = version_policy(config)
 
         github_repo = os.environ.get("GITHUB_REPOSITORY")

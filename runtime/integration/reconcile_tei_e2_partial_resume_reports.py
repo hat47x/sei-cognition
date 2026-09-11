@@ -19,6 +19,15 @@ STOP_LINE = (
 )
 
 
+def legacy_schema(schema: str) -> str:
+    """ADR-0031の3。改名前に記録されたEvidenceが持つ旧identityを返す。
+
+    emit側は常に`sei.*`だけを書く。読み取り側だけが双方を受け付ける。
+    記録済みEvidenceが存在する限り必要な恒久措置であり、期限は切らない。
+    """
+    return "soza." + schema[len("sei."):] if schema.startswith("sei.") else schema
+
+
 def _read_json(path: Path, label: str) -> tuple[Path, dict[str, Any]]:
     requested = path.expanduser()
     reject_symlink_path_or_ancestors(requested, label)
@@ -52,7 +61,7 @@ def _validate_canonical(
     canonical_path: Path,
     partial: dict[str, object],
 ) -> tuple[str, dict[str, object] | None]:
-    if canonical.get("schema") != version_exchange.SCHEMA:
+    if canonical.get("schema") not in (version_exchange.SCHEMA, legacy_schema(version_exchange.SCHEMA)):
         raise ValueError(
             "canonical report schemaが期待値と一致しません: "
             f"expected={version_exchange.SCHEMA} actual={canonical.get('schema')!r}"

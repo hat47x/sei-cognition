@@ -20,7 +20,12 @@ EXPECTED_REQUEST_SCHEMA = "sei.release-request/v1"
 EXPECTED_REPORT_SCHEMA = "sei.release-candidate-report/v1"
 EXPECTED_VERSION = "0.2.0"
 EXPECTED_TAG = "v0.2.0"
-EXPECTED_REPOSITORY = "hat47x/sei"
+EXPECTED_REPOSITORY = "hat47x/sei-cognition"
+# ADR-0031の3および5。改名前に記録されたEvidenceは旧identityと旧repository名を
+# 持つため、読み取り側は双方を受け付ける。emit側は常に新しい名前だけを書く。
+LEGACY_REQUEST_SCHEMA = "soza.release-request/v1"
+LEGACY_REPORT_SCHEMA = "soza.release-candidate-report/v1"
+LEGACY_REPOSITORY = "hat47x/soza"
 EXPECTED_BRANCH = "develop/v0.2.0"
 EXPECTED_SCOPE = "local-reference-product-baseline"
 EXPECTED_TARGET = "linux-amd64"
@@ -50,6 +55,13 @@ def require_equal(obj: dict[str, Any], key: str, expected: Any, label: str) -> N
         fail(f"{label}.{key} = {actual!r}, expected {expected!r}")
 
 
+def require_renamed_equal(obj: dict[str, Any], key: str, expected: Any, legacy: Any, label: str) -> None:
+    """ADR-0031の改名を跨いで読む。新旧どちらのidentityでも受け付ける。"""
+    actual = obj.get(key)
+    if actual not in (expected, legacy):
+        fail(f"{label}.{key} = {actual!r}, expected {expected!r} (or pre-rename {legacy!r})")
+
+
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as stream:
@@ -72,10 +84,10 @@ def read_expected_checksum(path: Path) -> str:
 
 
 def validate_request(request: dict[str, Any]) -> None:
-    require_equal(request, "schema", EXPECTED_REQUEST_SCHEMA, "release request")
+    require_renamed_equal(request, "schema", EXPECTED_REQUEST_SCHEMA, LEGACY_REQUEST_SCHEMA, "release request")
     require_equal(request, "version", EXPECTED_VERSION, "release request")
     require_equal(request, "tag", EXPECTED_TAG, "release request")
-    require_equal(request, "repository", EXPECTED_REPOSITORY, "release request")
+    require_renamed_equal(request, "repository", EXPECTED_REPOSITORY, LEGACY_REPOSITORY, "release request")
     require_equal(request, "target_branch", EXPECTED_BRANCH, "release request")
     require_equal(request, "release_scope", EXPECTED_SCOPE, "release request")
     require_equal(request, "artifact_target", EXPECTED_TARGET, "release request")
@@ -86,9 +98,9 @@ def validate_request(request: dict[str, Any]) -> None:
 
 
 def validate_report(report: dict[str, Any], expected_commit: str) -> None:
-    require_equal(report, "schema", EXPECTED_REPORT_SCHEMA, "candidate report")
+    require_renamed_equal(report, "schema", EXPECTED_REPORT_SCHEMA, LEGACY_REPORT_SCHEMA, "candidate report")
     require_equal(report, "version", EXPECTED_VERSION, "candidate report")
-    require_equal(report, "repository", EXPECTED_REPOSITORY, "candidate report")
+    require_renamed_equal(report, "repository", EXPECTED_REPOSITORY, LEGACY_REPOSITORY, "candidate report")
     require_equal(report, "release_scope", EXPECTED_SCOPE, "candidate report")
     require_equal(report, "source_commit_sha", expected_commit, "candidate report")
     require_equal(report, "candidate_gate_passed", True, "candidate report")

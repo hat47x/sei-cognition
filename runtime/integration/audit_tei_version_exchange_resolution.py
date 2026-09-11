@@ -35,6 +35,15 @@ BLOCKED = "blocked"
 MANUAL = "manual_review"
 
 
+def legacy_schema(schema: str) -> str:
+    """ADR-0031の3。改名前に記録されたEvidenceが持つ旧identityを返す。
+
+    emit側は常に`sei.*`だけを書く。読み取り側だけが双方を受け付ける。
+    記録済みEvidenceが存在する限り必要な恒久措置であり、期限は切らない。
+    """
+    return "soza." + schema[len("sei."):] if schema.startswith("sei.") else schema
+
+
 def _read_json(path: Path, label: str) -> tuple[Path, dict[str, Any]]:
     requested = path.expanduser()
     reject_symlink_path_or_ancestors(requested, label)
@@ -108,7 +117,7 @@ def _verify_sei_baseline(repo: Path, expected_head: str | None) -> dict[str, Any
 
 
 def _validate_canonical(report: dict[str, Any]) -> dict[str, Any]:
-    if report.get("schema") != CANONICAL_SCHEMA:
+    if report.get("schema") not in (CANONICAL_SCHEMA, legacy_schema(CANONICAL_SCHEMA)):
         raise ValueError(
             "canonical report schemaが期待値と一致しません: "
             f"expected={CANONICAL_SCHEMA} actual={report.get('schema')!r}"
@@ -383,7 +392,7 @@ def _boundary_criterion(
             "GitHub acquisition wrapper reportを検証できません",
             error=str(exc),
         ), None
-    if wrapper.get("schema") != WRAPPER_SCHEMA:
+    if wrapper.get("schema") not in (WRAPPER_SCHEMA, legacy_schema(WRAPPER_SCHEMA)):
         return _criterion(
             6,
             BLOCKED,

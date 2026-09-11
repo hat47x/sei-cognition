@@ -7,7 +7,7 @@ Updated: 2026-08-31
 
 ## Goal
 
-GitHub上の`hat47x/sei`へ、Product Valueから追跡可能なRequirements、Architecture、Contracts、Fixtures、Runtime、Toolsをcurrent Product Boundaryに沿って実体化する。
+GitHub上の`hat47x/sei-cognition`へ、Product Valueから追跡可能なRequirements、Architecture、Contracts、Fixtures、Runtime、Toolsをcurrent Product Boundaryに沿って実体化する。
 
 同時に、historical candidate / Library資産と、actual repositoryで再現したcurrent Evidenceを分け、README、Requirements、Plan上の達成主張をactual treeへ一致させる。
 

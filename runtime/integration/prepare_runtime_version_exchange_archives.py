@@ -22,6 +22,15 @@ VERSION_PATTERN = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
 HEX_SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 
 
+def legacy_schema(schema: str) -> str:
+    """ADR-0031の3。改名前に記録されたEvidenceが持つ旧identityを返す。
+
+    emit側は常に`sei.*`だけを書く。読み取り側だけが双方を受け付ける。
+    記録済みEvidenceが存在する限り必要な恒久措置であり、期限は切らない。
+    """
+    return "soza." + schema[len("sei."):] if schema.startswith("sei.") else schema
+
+
 @dataclass(frozen=True)
 class Verification:
     path: Path
@@ -52,7 +61,7 @@ def validate_output_dir(output_dir: Path) -> Path:
 
 def load_manifest(path: Path = MANIFEST_PATH) -> dict[str, object]:
     payload = json.loads(path.read_text(encoding="utf-8"))
-    if payload.get("schema") != MANIFEST_SCHEMA:
+    if payload.get("schema") not in (MANIFEST_SCHEMA, legacy_schema(MANIFEST_SCHEMA)):
         raise ValueError(f"manifest schemaが未対応です: {payload.get('schema')!r}")
     archives = payload.get("runtimeArchives")
     if not isinstance(archives, dict) or set(archives) != {"a", "b"}:

@@ -50,7 +50,7 @@ Resolution条件2を評価するため、単純なsemantic searchだけでなく
 
 ### 1. current GitHub reachable history
 
-`hat47x/sei`について、`develop/v0.1.0`と`main`の到達可能履歴から次のpathを検索した。
+`hat47x/sei-cognition`について、`develop/v0.1.0`と`main`の到達可能履歴から次のpathを検索した。
 
 ```text
 runtime/go/cognitivemethod/method.go
