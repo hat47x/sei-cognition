@@ -1,7 +1,7 @@
 # SOZA Value Acceptance
 
-更新日: 2026-08-31  
-状態: **Product Value Acceptance Baseline**
+更新日: 2026-09-11  
+状態: **Product Value Acceptance Baseline — Decision Continuity cross-axis acceptance reflected**
 
 ## 1. この文書の役割
 
@@ -10,6 +10,8 @@
 Product Valueを単一の点数へ変換する文書ではありません。また、個別機能のtest caseをすべて列挙する文書でもありません。
 
 目的は、**「この設計・実装・運用はSOZAの価値を満たしている」と主張するとき、何を確認し、どの高さのEvidenceまで得られている必要があるか**を共通化することです。
+
+Decision ContinuityはV1〜V8とは別のValue Axisではありません。本書では、複数Value Axisが一つの利用者仕事で同時に成立したかを確認するcross-axis Product Outcomeとして受け入れます。
 
 ## 2. Acceptanceの基本原則
 
@@ -85,6 +87,19 @@ Operational success != user-value realization
 
 Outcomeは単一のKPIへ固定しません。対象Scenarioに応じて、質的Evidence、具体事例、再判断結果、利用継続上の改善、障害・誤判断の回避等を組み合わせて評価できます。
 
+### 2.5 Cross-axis Outcomeを新しい総合scoreにしない
+
+Decision Continuityのような横断Outcomeは、V1〜V8を利用者の仕事へ接続するために使います。
+
+ただし、一つのcontinuity scoreで軸ごとのFAILを平均化しません。
+
+```text
+Decision Continuity observed
+  requires relevant V-axis failures to remain visible
+```
+
+resumeが速くてもhistorical basisを誤っていればV1 / V3の失敗です。入力が少なくてもUnknownを消していればV5の失敗です。
+
 ## 3. V1 Historical Reconstruction
 
 ### 価値
@@ -112,6 +127,7 @@ Outcomeは単一のKPIへ固定しません。対象Scenarioに応じて、質�
 
 - 実運用のDecision historyを、必要な時点で破綻なく再構成できる。
 - 再構成した情報が、監査、説明、再判断、引継ぎ等で実際に役立つ。
+- 中断後の利用者が、現在知っている情報を過去Decisionのbasisへ誤帰属しない。
 
 ### Failure examples
 
@@ -143,6 +159,7 @@ negative fixtureを含め、少なくとも次を確認する。
 
 - 実運用で提案、判断、権限、実行の責任線を必要な場面で追える。
 - 意味差を残したことで、誤承認、誤帰属、説明上の混同を減らせる。
+- AI suggestionを利用者自身のDecisionとして誤想起・誤表示しない。
 
 ### Failure examples
 
@@ -172,6 +189,7 @@ negative fixtureを含め、少なくとも次を確認する。
 
 - 長期間の更新を経ても、過去の意味と現在の意味を取り違えない。
 - 「なぜ判断が変わったか」を実際の再検討や説明に利用できる。
+- resume時に「Decision当時」と「その後の変化」を短い距離で区別できる。
 
 ### Failure examples
 
@@ -201,6 +219,7 @@ Providerを交換しても、Capability、Intent、Decision、Responsibility等�
 
 - Provider変更や廃止が起きても、意味資産とDecision historyを維持できる。
 - Provider中立性が、実際の選択肢、継続性、再交渉、移行可能性等に寄与する。
+- Provider交換後も、利用者が同じ判断仕事の続きを実務上再開できる。
 
 ### Failure examples
 
@@ -230,6 +249,7 @@ Unknown、Conflict、Hypothesis、observation gap等を、便宜上の確定値�
 
 - 実運用でも未確認事項を無理に埋めず、必要な不確実性を保持できる。
 - 不確実性を保持したことが、誤った断定、不要な自動化、後日の説明困難を減らすことにつながる。
+- 中断後の利用者が、何がまだ未解決かを再発見するためにraw履歴全体を読み直さなくてよい。
 
 ### Failure examples
 
@@ -253,18 +273,20 @@ Unknown、Conflict、Hypothesis、observation gap等を、便宜上の確定値�
 
 - representative Artifactを人間向けProjectionとmachine-readable representationの双方で確認する。
 - 同一Decisionについて、両表示からbasis、未解決点、responsibilityを辿れる。
+- transient chat / UI stateを削除しても、canonical stateから必要なProjectionを再生成できる。
 
 ### Operational / Outcomeで確認したいこと
 
 - 人間が実務上必要な時間・負担で意味を読める。
 - AIが構造を利用しても、人間向け説明との意味差が蓄積しない。
-- 可読性がレビュー、引継ぎ、再判断の実効性につながる。
+- 可読性がレビュー、引継ぎ、再判断、task resumptionの実効性につながる。
 
 ### Failure examples
 
 - machine-readableだが、人間が意味を確認するには実装コードを読むしかない。
 - human summaryがcanonical dataと異なる結論を表示する。
 - AI向けPromptにしか重要な判断理由が残らない。
+- canonical dataは正しいが、再開には長大なraw historyを読み直す必要がある。
 
 ## 9. V7 Progressive Explicitness
 
@@ -287,12 +309,14 @@ Unknown、Conflict、Hypothesis、observation gap等を、便宜上の確定値�
 
 - 軽量利用では過剰な記録負担を生まず、高影響利用では必要な意味を取り戻せる。
 - 明示量の調整が、利用放棄や形骸化を防ぎつつ、重要場面の説明可能性を維持する。
+- SOZAのcapture / review overheadが、再開・再判断で得られる価値を継続的に上回らない。
 
 ### Failure examples
 
 - 全Scenarioで最大詳細を必須化する。
 - simple UIのためにcanonical meaning自体を削除する。
 - AI confidenceだけで必要記録を減らす。
+- audit可能性を理由に入力負担を増やし、利用者がraw noteへ戻る。
 
 ## 10. V8 Execution Independence
 
@@ -315,6 +339,7 @@ workflow、agent runtime、TEI等の実行基盤が置き換わっても、SOZA�
 
 - 実行基盤の更新・交換・廃止が、SOZAの意味資産を巻き込んで破壊しない。
 - 実行基盤から独立していることが、長期保守、移行、再利用、ロックイン回避に実際に寄与する。
+- AI / runtime変更後も利用者が同じ判断文脈を再開できる。
 
 ### Failure examples
 
@@ -335,6 +360,54 @@ V1〜V8は独立に監査しますが、実際のScenarioでは複数軸を同�
 - **V1 + V4 + V5** — Provider Observationが後から変わっても、当時のUnknownを含むChoice basisを再現できるか。
 
 Cross-value ScenarioのPASSも、V1〜V8を一つの総合点へまとめる根拠にはしません。
+
+### 11.1 Decision Continuity acceptance
+
+Decision Continuityは、主にV1 / V2 / V3 / V5 / V6 / V7を、V4 / V8の交換可能性と合わせて利用者仕事へ接続します。
+
+#### Design Acceptance
+
+- canonical stateとtransient Surface / chat / AI contextが分離されている。
+- resume時にcurrent question、Decision、historical basis、unresolved、post-decision changeへ戻る設計がある。
+- AI suggestionをprovisionalに扱い、訂正・却下できる境界がある。
+- capture burdenを下げてもcanonical meaningを黙って削らない。
+
+#### Executable Acceptance
+
+少なくともfirst sliceでは次を再現可能に確認します。
+
+1. transient UI state、chat history、Projection cacheを除去する。
+2. canonical stateだけからresume Projectionを再構成する。
+3. Decision当時basisとDecision後のObservationを区別する。
+4. AI suggestionを修正・却下し、uncommitted suggestionをcanonical Decisionへ昇格させない。
+5. AI unavailableでもmanualなread / add / Decision / review / reopenを継続する。
+6. stale / partial semantic changeを正常成功として見せない。
+
+これらはISSUE-000073のprototype Evidenceで検証します。
+
+#### Adoption / Outcome Acceptance
+
+Decision Continuityを利用者価値として主張するには、技術的resumeだけでは不十分です。
+
+妥当な代替手段、たとえばraw chat / chronological note等と比べて、少なくとも次を観測します。
+
+- current question / Decision / unresolvedを正しく再構成できるか。
+- post-decision情報をhistorical basisへ誤帰属しないか。
+- RecommendationとDecisionを誤認しないか。
+- 再開までの時間・操作・mental effortがどう変わるか。
+- AI correction / dismissalの負担がどう変わるか。
+- first useful saveまでのcapture burdenがどう変わるか。
+- 利用者が継続利用したいと判断するか。その理由は何か。
+
+初期段階では一つの固定thresholdをStable Requirementへしません。
+
+```text
+faster resume
+  + worse historical accuracy
+  = not accepted as Decision Continuity improvement
+```
+
+また、raw chat / simple noteで十分で追加構造に実質的な価値差がなければ、Product hypothesisの反証Evidenceとして扱います。
 
 ## 12. ADR / Issueへの適用
 
@@ -365,28 +438,39 @@ Requirementsを作るときは、Product Valueの文章をそのまま機能要�
 5. Release / Operational / Outcomeまで必要な主張か。
 6. Provider / Profile固有の要求をUniversal Requirementへ誤昇格させていないか。
 7. 未実装・未検証の場合、そのEvidence状態を正直に記録しているか。
+8. cross-axis Product Outcomeの都合だけで既存Value Axisを重複Requirement化していないか。
 
 ## 14. 現在のEvidence読み取り規則
 
-current repositoryには、Product / Requirements / Architecture / ContractのDesign baselineがあります。また、Contract v1alpha1の一部についてはschema、fixture、semantic validator、GitHub Actionsによるfixture-scoped Executable Evidenceがあります。
+current repositoryには、Product / Requirements / Architecture / ContractのDesign baselineがあります。また、Contract、semantic runtime、Product Interaction、Packaging、Product Access、Realization / Provider交換等には対象を限定したScoped Executable Evidenceがあります。
 
-これはSOZA全体のExecutable Acceptanceが完了したことを意味しません。Contract以外のRequirement、runtime integration、stable Representation Profile等には未検証領域が残ります。
+v0.2.0 Local Reference Product BaselineにはRelease Evidenceがありますが、release後のExecutable Evidenceを既存releaseのsupported scopeへ遡及的に追加しません。
 
-さらに、current release、実運用、利用者・組織へのOutcomeについては、それぞれ別のEvidenceが必要です。
+Decision Continuityについては、Product Value synthesisとresume-first first sliceのDesign Evidenceがありますが、prototype Executable Evidence、human comparative Evidence、Operational / Adoption・Outcome Evidenceは`Not Yet Verified`です。
+
+GitHub Actions等の特定実行基盤をEvidenceの意味上の成立条件にはしません。必要なtest、checker、probe、保存Evidence、human reviewを実際に実行できた範囲だけ記録します。
 
 ## 15. 関連文書
 
 - `product/value/SOZA_PRODUCT_VALUE.md`
 - `product/value/SOZA_VALUE_MODEL.md`
+- `product/value/SOZA_VALUE_PROPOSITION.md`
 - `product/value/SOZA_VALUE_TRACEABILITY.md`
+- `product/value/SOZA_DECISION_CONTINUITY.md`
+- `product/interaction/SOZA_FIRST_USABLE_PRODUCT_SLICE.md`
 - `product/vision/SOZA_PRODUCT_VISION.md`
 - `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
 - `requirements/PRODUCT_REQUIREMENTS.md`
 - `requirements/ACCEPTANCE_SCENARIOS.md`
 - `architecture/TRACEABILITY.md`
 - `contracts/TRACEABILITY.md`
+- `plan/issue/ISSUE-000073-define-first-usable-resume-first-product-slice.md`
 - `plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md`
 
 ## 16. 自然な日本語ドラフト
 
-V1〜V8の意味をValue Modelへ戻って照合し、Design / Executable / Release / Operational / Adoption・Outcomeの各Evidenceを混同しないよう全体を再構成しました。その後、技術的意味、条件、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施しています。
+V1〜V8の意味をValue Modelへ戻って照合し、Design / Executable / Release / Operational / Adoption・Outcomeの各Evidenceを混同しないよう全体を再構成した。
+
+今回、Decision Continuityをcross-axis Product Outcomeとして追加し、V1〜V8を別の総合scoreへ畳み込まずに利用者成果へ接続した。技術的にresumeできることと、実際に正しく・低負担で再開できることを分け、raw chat / simple note等の妥当な代替との比較までAdoption / Outcome Acceptanceへ置いた。
+
+また、current Evidence記述を特定CI基盤から分離し、resume-first Product SliceのDesign Evidenceと未検証のprototype / human reviewを明確に分けた。技術的意味、条件、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施している。

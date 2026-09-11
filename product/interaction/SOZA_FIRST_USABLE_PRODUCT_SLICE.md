@@ -1,13 +1,15 @@
 # SOZA First Usable Product Slice — Resume-first Decision Work
 
 更新日: 2026-09-11  
-状態: **Product Design Baseline / Candidate Requirements — Executable & Human Evidence Pending**
+状態: **Product Design Baseline / Decision Continuity Validation Slice — Executable & Human Evidence Pending**
 
 ## 1. この文書の役割
 
 この文書は、`SOZA_PRODUCT_INTERACTION.md`で定義したcanonical meaning上の操作境界を、**最初に実用価値を確かめる一つのProduct Slice**へ絞り込みます。
 
 対象は、Local Single-Node Package上で一人の利用者が一つの判断仕事を始め、中断し、後から戻り、AIの支援も受けながらDecisionと未解決事項を失わずに続けられる体験です。
+
+Product Value側では、この体験が目指す横断的な成果を**Decision Continuity（判断継続性）**と定義します。Decision ContinuityはV9ではなく、V1〜V8が一つの利用者仕事で同時に成立した結果です。本Product Sliceは、その価値仮説を最小条件でactualに検証するためのinstrumentでもあります。
 
 この文書は新しいUniversal Contractを定義しません。また、Web、desktop、CLI、HTTP、MCP、特定AI model等を恒久的なProduct Requirementとして固定しません。最初のprototypeでは具体的なRealizationを選べますが、ここで固定するのは**利用者が得るべき体験と、失ってはならない意味境界**です。
 
@@ -16,6 +18,7 @@ First usable Product Slice
   = resume a decision context with meaning intact
   + correct / dismiss AI assistance
   + deepen detail only when needed
+  + test Decision Continuity against simpler alternatives
   != semantic schema editor
   != chat transcript archive
   != autonomous agent shell
@@ -35,9 +38,11 @@ SOZAはすでに、Decisionのhistorical reconstruction、Unknown / Conflict、R
 - その後、何が変わったのか。
 - いま見直す必要があるのか。
 
-この「戻れること」はV1 Historical Reconstructionを人間のProduct Experienceへ翻訳するだけでなく、V6 Human / AI ReadabilityとV7 Progressive Explicitnessを同時に試す場になります。
+この「戻れること」はV1 Historical Reconstructionを人間のProduct Experienceへ翻訳するだけでなく、V2 / V3 / V5 / V6 / V7を一つのtaskで統合し、V4 / V8による手段交換可能性まで含めて試す場になります。
 
 SOZAの最初の製品価値を、情報入力の豊富さやAIの自律性ではなく、**文脈喪失に耐える判断継続性**へ置きます。
+
+ただし、resume-firstを自己目的化しません。raw chatやsimple noteで同程度に正しく再開でき、SOZAだけ入力負担が増えるなら、このProduct Sliceの価値仮説は弱まります。
 
 ## 3. 対象利用者と最初の利用場面
 
@@ -51,7 +56,7 @@ SOZAの最初の製品価値を、情報入力の豊富さやAIの自律性で�
 - 一度決めた後、新しい情報が出たため再検討する。
 - 数週間後に「なぜこの方針にしたか」を自分自身で読み直す。
 
-最初から組織workflow、approval chain、team workspace、hosted SaaSを必須にしません。それらは重要ですが、まず**SOZAの意味保存が実際の一人の認知負荷を下げるか**を検証します。
+最初から組織workflow、approval chain、team workspace、hosted SaaSを必須にしません。それらは重要ですが、まず**SOZAの意味保存が実際の一人の認知負荷と誤再構成を減らすか**を検証します。
 
 ## 4. Product experienceの中心ループ
 
@@ -155,7 +160,7 @@ what changed since D1
   != rewrite basis of D1
 ```
 
-この差がSOZAのresume experienceで特に重要です。
+この差がSOZAのresume experienceで特に重要です。resumeが速くてもこの境界を壊すならProduct Value上の改善とは扱いません。
 
 ### 6.6 What may need review next
 
@@ -178,8 +183,6 @@ provisional suggestionはProduct-localなdraft状態であり、SOZA Universal C
 ### 7.2 Semantic change preview
 
 canonicalへcommitする前に、利用者または許可されたmachine clientが「何を何として残すか」を確認できるようにします。
-
-例:
 
 ```text
 AI text
@@ -231,7 +234,7 @@ first sliceでは、各操作で**必要な意味だけを前面に出し、な�
 
 - 最初のInquiry: 短い問いだけで開始可能。
 - Recommendationを採る: basisの確認を促せる。
-- Decisionを記録する:案件に応じてunresolved / Responsibility等を確認できる。
+- Decisionを記録する: 案件に応じてunresolved / Responsibility等を確認できる。
 - audit / export: Exact BindingやProvenanceへ降りられる。
 
 high-impactかどうかを一つのUniversal risk scoreへ固定しません。Product / Policy側で詳細化条件を決められる余地を残します。
@@ -348,9 +351,47 @@ AI / external Providerが停止しても、判断記憶の基本操作が利用�
 
 利用者がcommitした意味とcanonical stateが一致し、partial / stale changeが黙って成功していないか。
 
+### Q7 — Net continuity value
+
+SOZAによる再構成・誤帰属防止・AI correctionの価値が、capture / review / explicitnessの追加負担を上回るか。
+
+単に機能が多い、記録が詳しい、Resume Briefがきれい、という理由ではSatisfiedにしません。
+
 初期human reviewでは固定SLAや数値thresholdを先取りしません。time-to-orientation、first useful saveまでの必須入力、AI correctionの操作数、audit detailへ降りる頻度等を観測し、どこにProduct Value上の失敗が生じるかを先に確認します。
 
-## 14. Candidate Requirementとexisting Requirementの関係
+## 14. Counterfactual Product Value review
+
+first sliceを自己完結的に評価しません。ISSUE-000073では、可能な範囲で次のcounterfactualを持ちます。
+
+```text
+A: raw chat / chronological note等の単純baselineから再開
+B: SOZA canonical meaning + Resume Briefから再開
+```
+
+比較対象は製品競争の勝敗を決めるためではなく、SOZA固有の意味構造が実際にどのfailureを減らすかを確認するために置きます。
+
+### 観測するもの
+
+- current questionを正しく説明できるか。
+- DecisionをRecommendationと混同しないか。
+- unresolvedを発見できるか。
+- Decision後のObservationを当時basisへ誤帰属しないか。
+- resumeまでの時間、操作、主観的mental effort。
+- AI suggestionの修正・却下負担。
+- first useful saveまでのcapture burden。
+- 継続利用したいか。その理由は何か。
+
+### 解釈
+
+```text
+faster resume
+  + worse historical accuracy
+  = Decision Continuity improvementではない
+```
+
+raw chat / simple noteで十分である、あるいはSOZAのcapture overheadが大きすぎるという結果も正当なProduct Evidenceです。その場合はUIを正当化するためにValue definitionを緩めず、Product hypothesisや対象領域を狭めます。
+
+## 15. Candidate Requirementとexisting Requirementの関係
 
 本書の設計は、多くの部分をcurrent Requirementの組み合わせとして説明できます。
 
@@ -372,9 +413,9 @@ AI / external Providerが停止しても、判断記憶の基本操作が利用�
 - external AI context selection / egress visibility。
 - canonical-only resumeに必要な最小Product guarantee。
 
-これらは現在、ISSUE-000073のCandidate Requirementとして扱います。
+Decision Continuityやcounterfactual valueそのものを新しいStable Requirementへ機械的に変換しません。これらは現在、ISSUE-000073のCandidate Requirement / Product Outcome評価として扱います。
 
-## 15. 非目標
+## 16. 非目標
 
 first sliceでは次を完成条件にしません。
 
@@ -391,23 +432,27 @@ first sliceでは次を完成条件にしません。
 
 これらを後回しにするのは価値が低いからではなく、**PMS-03の利用者体験を最小の条件で検証し、意味基盤だけ強いが使い続けられない製品になることを避けるため**です。
 
-## 16. Evidence状態
+## 17. Evidence状態
 
 ```text
 Product Design: established by this baseline
+Decision Continuity mapping: Design Evidence available
 Candidate Requirements: defined, not yet Stable
 Prototype Executable Evidence: Not Yet Verified
 Human usability Evidence: Not Yet Verified
+Counterfactual Product Value Evidence: Not Yet Verified
 Release Evidence: Not Yet Verified for this slice
 Operational Evidence: Not Yet Verified
 Adoption / Outcome Evidence: Not Yet Verified
 ```
 
-既存Interaction probeのPASSをfirst sliceのhuman usabilityへ昇格させません。
+既存Interaction probeのPASSをfirst sliceのhuman usabilityやDecision ContinuityのOutcomeへ昇格させません。
 
-## 17. 関連文書
+## 18. 関連文書
 
 - `SOZA_PRODUCT_INTERACTION.md`
+- `../value/SOZA_DECISION_CONTINUITY.md`
+- `../value/SOZA_PRODUCT_VALUE.md`
 - `../definition/SOZA_PRODUCT_SHAPE.md`
 - `../roadmap/SOZA_PRODUCT_MILESTONES.md`
 - `../../requirements/PRODUCT_REQUIREMENTS.md`
@@ -419,10 +464,12 @@ Adoption / Outcome Evidence: Not Yet Verified
 - `../../plan/adr/ADR-0029-local-single-node-packaging-profile.md`
 - `../../plan/issue/ISSUE-000073-define-first-usable-resume-first-product-slice.md`
 
-## 18. Natural Japanese review
+## 19. Natural Japanese review
 
-Product Value、V1〜V8、Product Shape、Product Interaction、Local Single-Node Packaging、current Requirement / Scenario、ADR-0005 / 0010 / 0028 / 0029へ戻り、first sliceを「構造化recordを作れる製品」ではなく「文脈を失ったあとに判断へ戻れる製品」として組み直した。
+Product Value、Decision Continuity synthesis、V1〜V8、Product Shape、Product Interaction、Local Single-Node Packaging、current Requirement / Scenario、ADR-0005 / 0010 / 0028 / 0029へ戻り、first sliceを「構造化recordを作れる製品」ではなく「文脈を失ったあとに正しく判断へ戻れる製品」として再監査した。
 
 Resume Brief、working set、provisional suggestion、semantic change plan、snapshot tokenは、Product Experienceとprototypeを説明するための概念であり、Universal semantic entityへ昇格させていない。AIは価値を増幅するが、AI availabilityをSOZAの基本的なopen / read / Decision / review成立条件にはしていない。
 
-また、最新情報をhistorical basisへ混ぜないこと、AI suggestionを黙ってcanonicalへ入れないこと、partial / stale writeを正常完了として見せないことを、単なるUI detailではなくDecision integrityと利用者の信頼に関わる品質境界として整理した。Design Evidenceをprototype / human reviewへ拡大解釈せず、Candidate RequirementをStable化しない停止線を維持したうえで、自然な日本語として全文を再監査した。
+さらに、SOZAだけを使ったusability reviewではProduct Valueを自己証明する危険があるため、raw chat / simple note等とのcounterfactual reviewを追加した。semantic integrity、resume負担、historical誤帰属、AI correction、capture taxを同時に観測し、追加構造に価値差がない結果もProduct hypothesisを修正するEvidenceとして受け取る。
+
+Design Evidenceをprototype / human reviewへ拡大解釈せず、Candidate RequirementをStable化しない停止線を維持したうえで、自然な日本語として全文を再監査した。
