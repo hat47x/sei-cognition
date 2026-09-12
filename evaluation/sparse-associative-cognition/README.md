@@ -22,7 +22,9 @@
   ↓
 それでも不足する場合だけ、より重いlocal encoder
   ↓
-生成・高度な言語化が本当に必要な場合だけLLM
+生成・高度なreasoningが必要な場合だけbounded local SLM
+  ↓
+high novelty / high stakes / broader synthesisだけstronger model / human review
 ```
 
 「非LLMで置き換えること」自体を目的にせず、軽い方式で十分な認知機能は軽い方式へ移し、LLMを本当に必要な処理へ限定する。
@@ -89,9 +91,29 @@ Coreは`Feature{Channel, Key, Weight}`だけを受け取る。これにより、
 - **sparse associative**: 近傍想起、競合選択、small-set bundle、新奇性
 - **static semantic**: Model2Vec / StaticEmbedding / fastText等の非生成・attention-free表現を必要に応じてadapterとして追加
 - **heavier local encoder**: static semanticで要求水準へ届かない場合だけ比較
-- **LLM**: 新規文章生成、高度な意味説明、未構造入力の解釈等に限定
+- **bounded local SLM**: 少数候補を使ったcompare / synthesize / interpret / contradiction analysis / hypothesis / plan
+- **stronger model / human review**: high novelty、high stakes、current external evidence、local SLM capacity超過時のみ
 
 static semantic表現を採用する場合も、coreはmodelを直接知る必要がない。adapterがdense vectorから上位dimension等を`Feature`へ変換するか、独立channelとして候補統合する。
+
+### 4.1 lightweight local SLMとの組み合わせ
+
+local SLMをSACSの代替memoryにはしない。
+
+```text
+SOZA durable meaning
+  -> sparse associative candidate narrowing
+  -> bounded Working Set
+  -> lightweight local SLM
+  -> proposal / hypothesis / explanation
+  -> deterministic validation / human action
+```
+
+Working Setには、Inquiry、少数candidate meaning、Unknown / Conflict、Constraint、historical boundaryを含める。local SLMのoutputはcanonical write authorityを持たない。
+
+特に、Evidenceが少ないほどmodelを呼ぶ構成にはしない。noveltyが高くbounded Working Setを作れない場合は、推測ではなくevidence expansion / abstentionへ戻す。
+
+詳細は`HYBRID_LOCAL_REASONING.md`、実行境界は`prototype-go/hybridreasoning/`を参照する。
 
 ## 5. 意味上の停止線
 
@@ -106,6 +128,8 @@ candidate refs != Recommendation
 candidate refs != Decision
 candidate refs != Authority
 candidate refs != Assurance
+local SLM output != canonical truth
+local SLM output != user Decision
 ```
 
 SUI Sensemakingで利用する場合も、近接候補から島・表札・relationを自動確定しない。
@@ -123,8 +147,11 @@ SUI Sensemakingで利用する場合も、近接候補から島・表札・relat
 - small-set bundle
 - novelty signal
 - contiguous exact-scan top-k index
+- local-SLM routing / bounded Working Set boundary
 
 ANN indexはまだ導入しない。数千〜数万件では、compact signatureのlinear scanが単純で低memoryであり、まず実測してから追加indexの必要性を判断する。
+
+actual local model runtimeもまだcore dependencyへ入れない。model比較はprocess boundaryで行い、SACS substrateとorchestrationを分離して評価する。
 
 ## 7. Evidenceの読み方
 
@@ -134,6 +161,7 @@ prototypeのunit testやsynthetic benchmarkは、アルゴリズム実装が動�
 
 - SUI Sensemakingの親和図法で深層意味近接が十分であること
 - Fly-inspired方式がstatic semantic encoderより優れること
+- lightweight local SLMとのhybridが大型modelに近いreasoning qualityへ届くこと
 - production runtimeとして採用できること
 - Product Value / Operational / Adoption / Outcome Evidence
 
