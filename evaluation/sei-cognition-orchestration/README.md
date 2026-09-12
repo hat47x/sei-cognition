@@ -2,7 +2,7 @@
 
 更新日: 2026-09-12  
 状態: **Evaluation-only Product / Architecture Hypothesis**  
-関連: Issue #376 / Issue #371 / Issue #375
+関連: Issue #376 / Issue #378 / Issue #371 / Issue #375
 
 ## 1. 根幹の趣旨
 
@@ -63,7 +63,7 @@ Cognitive Router
   ├─ specialized cognitive method
   ├─ static semantic / local encoder
   ├─ local SLM
-  ├─ organization cognitive fabric
+  ├─ organization cognitive capacity
   ├─ general-purpose LLM
   └─ fresh external retrieval / tool
   ↓
@@ -72,13 +72,13 @@ Validation / Human Authority / Action Boundary
 
 この順序は固定workflowではなく、costと能力を考えるための基本形である。
 
+ここで`organization cognitive capacity`を実際の端末・GPU・serverへ配置する実行面は、SEI Cognition固有のschedulerとして持たず、TEI / SUIとも共有し得る`Distributed Execution Fabric`へ分離する。
+
 ## 4. 問題の種類でrouteを変える
 
 ### Routine
 
 既知schema、既知pattern、定常的な入力。
-
-原則:
 
 ```text
 exact / symbolic
@@ -167,7 +167,7 @@ raw streamを上位へ送り続けるのではなく、必要なeventやfeature�
 - stable long-running cognitive services
 - source integration
 
-### Tier 4 — Organization Cognitive Fabric
+### Tier 4 — Organization Cognitive Capacity
 
 社内の遊休CPU / GPU / workstation / serverを、policyの範囲内でopportunisticに利用する。
 
@@ -181,6 +181,8 @@ raw streamを上位へ送り続けるのではなく、必要なeventやfeature�
 - index / representation rebuild
 
 同期必須処理の前提にはしない。
+
+このTierはSEI Cognitionがcluster schedulerを所有する意味ではない。実際のplacement / preemption / retry / resource matchingは、`../distributed-execution-fabric/README.md`で評価する共通実行基盤へ委ねる。
 
 ### Tier 5 — Cloud / General-purpose LLM
 
@@ -277,7 +279,46 @@ local SLM
 
 これにより、汎用LLMは「全履歴を理解して何とかする」よりも、狭く明示された高価値問題へ集中できる。
 
-## 10. Personal Inquiry Continuityとの関係
+## 10. Distributed Execution Fabricとの関係
+
+認知jobを実際のCPU / GPU / endpointへ配置する問題は、SEI Cognition固有ではない。
+
+TEIやSUIでも、batch analysis、parallel worker、AI-assisted processing等で同じ実行基盤を利用する可能性がある。
+
+したがって、SEI Cognitionが所有するのは、たとえば次である。
+
+```text
+Cognitive Job semantics
+  objective
+  required cognitive capability
+  bounded inputs
+  data sensitivity
+  expected output role
+```
+
+共通Execution Fabricが扱うのは次である。
+
+```text
+execution constraints
+  CPU / GPU / memory
+  locality
+  trust zone
+  latency class
+  priority
+  preemptibility
+  retry / resumability
+```
+
+```text
+cognitive semantics
+  != distributed scheduler semantics
+```
+
+既存OSSを優先し、社内遊休端末にはHTCondor、AI/application fan-outにはRay等を第一評価候補とする。新しいscheduler OSSは作らない。
+
+詳細は`../distributed-execution-fabric/README.md`を参照する。
+
+## 11. Personal Inquiry Continuityとの関係
 
 Personal Inquiry ContinuityはSEI Cognitionの一利用形態である。
 
@@ -285,7 +326,7 @@ Meaning Planeで保持されたObservation / Unknown / Conflict / Recommendation
 
 重要なのは、どの認知手段を使ってもdurable historical meaningを勝手に書き換えないことである。
 
-## 11. 命名移行
+## 12. 命名移行
 
 planned product nameは `SEI Cognition` とする。
 
@@ -303,16 +344,16 @@ renameは別Issue / ADRで、少なくとも次を一緒に扱う。
 - package / module / repository naming
 - historical references
 
-## 12. 非目標
+## 13. 非目標
 
 - 汎用LLMを排除すること
 - すべての認知をSACSで行うこと
 - wearableへ常時生成modelを載せること
 - device topologyをUniversal Semantic Contractへすること
-- scheduler implementationをProduct semanticsへすること
+- distributed schedulerをSEI Cognition固有実装にすること
 - cognitive outputを自動Decisionへすること
 
-## 13. 次に検証すること
+## 14. 次に検証すること
 
 1. routine / exception / novelでroutingが正しく分かれるか
 2. local SLMで十分なproblem割合はどの程度か
@@ -321,3 +362,4 @@ renameは別Issue / ADRで、少なくとも次を一緒に扱う。
 5. organization idle computeを使うjobのpreemption / privacy / benefit
 6. distributed cognitionがsingle strong modelより有利なproblem class
 7. cognitive routing自体の失敗をどう検出するか
+8. HTCondor / Ray等の既存基盤でTEI / SUI / SEIの共通Execution Boundaryを満たせるか
