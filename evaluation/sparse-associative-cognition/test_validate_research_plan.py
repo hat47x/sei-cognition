@@ -40,6 +40,13 @@ class SparseAssociativeCognitionResearchPlanTests(unittest.TestCase):
         plan["architectural_position"]["is_mandatory_pipeline"] = True
         self.assert_has_error(plan, "is_mandatory_pipeline must remain false")
 
+    def test_ownership_does_not_force_deployment(self) -> None:
+        for key in ("ownership_is_deployment", "network_service_required"):
+            with self.subTest(key=key):
+                plan = copy.deepcopy(self.plan)
+                plan["placement_policy"][key] = True
+                self.assert_has_error(plan, f"placement_policy.{key} must remain false")
+
     def test_llm_is_not_required_or_default_fallback(self) -> None:
         for key in ("llm_required", "llm_is_fallback_by_default"):
             with self.subTest(key=key):
@@ -68,7 +75,7 @@ class SparseAssociativeCognitionResearchPlanTests(unittest.TestCase):
         ]
         self.assert_has_error(plan, "must retain exact-deterministic")
 
-    def test_flyhash_style_candidate_is_not_the_only_allowed_baseline(self) -> None:
+    def test_sparse_expansion_candidate_is_required(self) -> None:
         plan = copy.deepcopy(self.plan)
         plan["comparison_baselines"] = [
             item
@@ -90,10 +97,15 @@ class SparseAssociativeCognitionResearchPlanTests(unittest.TestCase):
         self.assertTrue(any("gpu_required" in error for error in errors), errors)
         self.assertTrue(any("offline_capable_target" in error for error in errors), errors)
 
-    def test_design_evidence_is_not_executable_evidence(self) -> None:
+    def test_executable_evaluation_is_not_promoted_to_production_evidence(self) -> None:
         plan = copy.deepcopy(self.plan)
-        plan["current_evidence"]["level"] = "executable"
-        self.assert_has_error(plan, "current_evidence.level must remain design-only")
+        plan["current_evidence"]["level"] = "production"
+        self.assert_has_error(plan, "current_evidence.level must remain executable-evaluation")
+
+    def test_execution_evidence_file_is_required(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["current_evidence"].pop("evidence_file", None)
+        self.assert_has_error(plan, "current_evidence.evidence_file must be declared")
 
 
 if __name__ == "__main__":

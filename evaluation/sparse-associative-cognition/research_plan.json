@@ -1,8 +1,11 @@
 {
   "schema": "soza.sparse-associative-cognition-research/v1alpha1",
   "status": "evaluation-only",
-  "date": "2026-09-10",
-  "purpose": "LLMとは異なる軽量な認知実行基質として、疎な高次元表現、競合選択、連想想起、新奇性検出を組み合わせた方式がSOZAのCognitive Method Realizationを補助できるかを評価する。",
+  "date": "2026-09-12",
+  "root_intent": {
+    "statement": "生成モデルを常時呼び出さなくても、候補想起、注意配分、近似照合、新奇性検出の一部をCPU上で高速・低メモリ・再現可能に実行し、LLMを本当に必要な処理へ限定する。",
+    "non_goal": "非LLM化それ自体、特定の生物模倣方式の採用、または上位Cognitive Methodや人間判断の置換を目的にしない。"
+  },
   "architectural_position": {
     "classification": "cognitive-realization-support-substrate",
     "is_cognitive_method_definition": false,
@@ -12,21 +15,56 @@
     "is_mandatory_pipeline": false,
     "notes": [
       "この基質はMethodそのものではなく、複数のMethod Realizationから利用し得る実装上の認知プリミティブ群として扱う。",
-      "実装方式が有用でも、その方式名や内部状態をSOZAの耐久的意味へ自動昇格させない。"
+      "実装方式が有用でも、その方式名や内部状態を耐久的意味へ自動昇格させない。"
     ]
   },
+  "placement_policy": {
+    "semantic_owner": "SEI Cognition direction / current SOZA repository owns reusable sparse-associative primitives and their evaluation boundary.",
+    "caller_owner": "SUI Sensemaking owns affinity-diagram-specific feature projection, candidate interpretation, preservation rules, benchmark and human-review boundary.",
+    "ownership_is_deployment": false,
+    "network_service_required": false,
+    "preferred_first_deployment": "in-process or same-host local execution; avoid a mandatory network hop",
+    "reason": "Reusable cognition and product-specific meaning should not be duplicated, while latency-sensitive execution must remain colocatable with the caller."
+  },
   "research_hypothesis": {
-    "statement": "生成モデルを常時呼び出さなくても、構造化特徴を疎な高次元表現へ展開し、局所競合と連想記憶を用いることで、候補想起、注意配分、近似照合、新奇性検出の一部をCPU上で低遅延に実現できる可能性がある。",
+    "statement": "構造化特徴を疎な高次元表現へ展開し、局所競合と連想記憶を用いることで候補想起・新奇性検出を低遅延で実現し、不足する意味近接だけをstatic semantic representation等で補完できる可能性がある。",
     "inspiration": [
       "FlyHash: sparse high-dimensional locality-sensitive hashing inspired by the Drosophila olfactory circuit",
       "BioHash: data-driven sparse high-dimensional hashing derived from the FlyHash line of work"
     ],
     "not_assumed": [
-      "FlyHashまたはBioHashがSOZAに最適であること",
+      "FlyHashまたはBioHashが最適であること",
       "生物学的忠実性が性能やProduct Valueを保証すること",
       "非LLM方式だけで高水準の自然言語理解や新規文章生成を代替できること"
     ]
   },
+  "non_llm_stack": [
+    {
+      "tier": "deterministic-symbolic",
+      "role": "schema、grammar、constraint、Exact Binding等、決定論で判定できる正しさ",
+      "default": true
+    },
+    {
+      "tier": "lexical-sparse",
+      "role": "char n-gram、token、BM25系、feature hashing等の低負荷な表層・局所検索",
+      "default": true
+    },
+    {
+      "tier": "sparse-associative",
+      "role": "疎展開、k-WTA、連想想起、small-set bundle、新奇性検出",
+      "default": true
+    },
+    {
+      "tier": "static-semantic",
+      "role": "Model2Vec / StaticEmbedding / fastText等の非生成・attention-free意味表現をadapterとして利用する候補",
+      "default": false
+    },
+    {
+      "tier": "heavier-local-encoder",
+      "role": "static semanticでも意味品質が不足する場合だけ比較する非生成local encoder",
+      "default": false
+    }
+  ],
   "candidate_primitives": [
     {
       "id": "feature-encoding",
@@ -34,7 +72,7 @@
     },
     {
       "id": "sparse-expansion",
-      "role": "入力特徴をより高次元で疎な内部表現へ展開する。最初の候補は固定seedの疎ランダム射影とする。"
+      "role": "入力特徴をより高次元で疎な内部表現へ展開する。first sliceは固定seedの疎ランダム射影とする。"
     },
     {
       "id": "competitive-selection",
@@ -42,15 +80,19 @@
     },
     {
       "id": "associative-recall",
-      "role": "過去に結び付いたMethod、Artifact、template、構造motif等をactive patternから想起する。"
+      "role": "active patternから関連候補を低負荷に想起する。"
     },
     {
       "id": "novelty-detection",
-      "role": "既存記憶との十分な一致がない入力を、無理に既知候補へ割り当てず新規性候補として扱う。"
+      "role": "十分な一致がない入力を既知候補へ強制せず、新規性候補として扱う。"
+    },
+    {
+      "id": "small-set-bundle",
+      "role": "2〜3入力で共有されるactivationを保持し、pairwise近傍だけではない集合候補の実験に使う。"
     },
     {
       "id": "temporal-modulation",
-      "role": "必要なケースで活性の持続、減衰、habituation相当を評価し、同一候補への固定化を避けられるかを検証する。",
+      "role": "必要なケースで活性の持続、減衰、habituation相当を評価する。",
       "required_in_first_slice": false
     }
   ],
@@ -76,7 +118,7 @@
     "llm_required": false,
     "llm_is_fallback_by_default": false,
     "possible_downstream_roles": [
-      "入力が非構造的で特徴抽出に高度な意味理解が必要な場合の補助",
+      "未構造入力の特徴抽出に高度な意味理解が必要な場合の補助",
       "新しい仮説や文章を生成する必要がある場合の生成",
       "基質が返した候補を人間向けに説明する場合の言語化"
     ],
@@ -94,25 +136,25 @@
     {
       "id": "SAC-01-soza-artifact-method-recall",
       "domain": "soza-native",
-      "goal": "Inquiry文脈の構造化特徴から、関連するCognitive Method Definition、過去Application、Artifact候補を想起する。",
+      "goal": "Inquiry文脈の構造化特徴から関連Method、過去Application、Artifact候補を想起する。",
       "focus": ["candidate recall", "novelty abstention", "small perturbation stability"]
     },
     {
       "id": "SAC-02-grammar-constrained-code-completion",
       "domain": "structured-code",
-      "goal": "局所contextから既知templateや構文motifを高速想起し、最終的な構文妥当性はgrammar/AST側で検証する。",
+      "goal": "局所contextから既知templateや構文motifを高速想起し、最終構文妥当性はgrammar/AST側で検証する。",
       "focus": ["retrieval latency", "recall@k", "grammar separation"]
     },
     {
       "id": "SAC-03-spreadsheet-format-recognition",
       "domain": "two-dimensional-structure",
-      "goal": "規則的なExcel設計書のセル位置、罫線、見出し、反復ブロック等から書式候補を想起し、小さな位置ずれや欠損への耐性を評価する。",
+      "goal": "Excel設計書のセル位置、罫線、見出し、反復ブロック等から書式候補を想起し、小さな位置ずれや欠損への耐性を評価する。",
       "focus": ["perturbation stability", "false activation", "deterministic parser handoff"]
     },
     {
       "id": "SAC-04-functional-dependency-testdata",
       "domain": "constraint-structure",
-      "goal": "項目間の関数従属性や制約clusterから既知の生成motifを想起し、具体値の生成・充足判定はsymbolic/deterministic処理へ委ねる。",
+      "goal": "項目間の関数従属性や制約clusterから既知生成motifを想起し、具体値生成・充足判定はsymbolic/deterministic処理へ委ねる。",
       "focus": ["motif recall", "constraint separation", "novel combination detection"]
     }
   ],
@@ -122,12 +164,21 @@
       "role": "完全一致、明示index、規則ベースlookupで解ける範囲の下限・対照"
     },
     {
+      "id": "lexical-sparse",
+      "role": "char n-gram / token / BM25系の低負荷baseline"
+    },
+    {
       "id": "sparse-random-expansion-kwta",
-      "role": "FlyHash系の固定seed疎展開とk-WTAを用いる最小候補"
+      "role": "固定seed疎展開とk-WTAを用いるfirst executable candidate"
+    },
+    {
+      "id": "static-semantic",
+      "role": "非生成・attention-free static embeddingsによる意味補完候補",
+      "required_in_first_slice": false
     },
     {
       "id": "learned-sparse-expansion",
-      "role": "必要なEvidenceが得られた場合にBioHash系のdata-driven局所学習を比較する後続候補",
+      "role": "必要なEvidenceが得られた場合にdata-driven局所学習を比較する後続候補",
       "required_in_first_slice": false
     }
   ],
@@ -152,21 +203,25 @@
     ]
   },
   "implementation_policy": {
-    "first_slice": "Python等によるresearch/evaluation prototypeを許容する。",
-    "production": "有効性と配置境界が確認された後に、外部Cognitive Method/Provider境界の維持、別process化、Go移植を比較する。",
+    "first_slice": "evaluation/sparse-associative-cognition/prototype-go に依存ゼロのGo prototypeを置く。",
+    "production": "有効性と配置境界が確認された後に、versioned package、同一process組込み、same-host helper、別process化を比較する。network serviceを必須にしない。",
+    "feature_contract": "coreはcaller-owned Feature{Channel, Key, Weight}だけを受け取り、tokenizer、embedding model、domain ontologyを依存にしない。",
     "gpu_required": false,
     "offline_capable_target": true
   },
   "current_evidence": {
-    "level": "design-only",
+    "level": "executable-evaluation",
     "claims": [
-      "SOZAのcurrent Cognitive Method境界と矛盾せずに非LLM認知基質を研究できる設計候補を外在化した。"
+      "依存ゼロGo prototypeでfixed-seed encoding、k-WTA、bundle、similarity、novelty、top-k retrievalのunit testを実行した。",
+      "synthetic benchmarkで20-feature encode約5.6 microseconds/op、10,000 signature top-8 query約0.85 milliseconds/opを観測した。",
+      "active=64ではsignature active payloadは128 bytesである。"
     ],
+    "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
       "SOZA-native taskでのretrieval品質",
-      "FlyHash系がexact/deterministic baselineを補完する実益",
-      "BioHash等の学習方式が必要かどうか",
-      "実データ規模でのlatency / memory特性",
+      "SUI Sensemaking親和図法での深層意味候補品質",
+      "static semantic補完が必要かどうか",
+      "10万件以上でのindex方式",
       "LLM呼び出し削減量",
       "production配置方式",
       "Product Value / Operational / Adoption / Outcome Evidence"
