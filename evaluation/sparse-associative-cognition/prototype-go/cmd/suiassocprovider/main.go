@@ -14,7 +14,10 @@ import (
 	"github.com/hat47x/soza/evaluation/sparse-associative-cognition/prototype-go/suiassocprovider"
 )
 
-const implementationVersion = "sacs-go-eval-v1-d4096-f8-a64-s47-t0.10"
+const (
+	implementationVersion = "sacs-go-eval-v1-d4096-f8-a64-s47-t0.10"
+	maxRequestBytes       = 4 << 20
+)
 
 func newProvider() (*suiassocprovider.Provider, error) {
 	return suiassocprovider.New(suiassocprovider.Config{
@@ -31,12 +34,14 @@ func newProvider() (*suiassocprovider.Provider, error) {
 }
 
 func run(in io.Reader, out io.Writer, errOut io.Writer) int {
-	data, err := io.ReadAll(io.LimitReader(in, 4<<20))
+	// Read one byte beyond the inclusive transport limit so exactly 4 MiB is
+	// distinguishable from an oversized request without accepting truncation.
+	data, err := io.ReadAll(io.LimitReader(in, maxRequestBytes+1))
 	if err != nil {
 		fmt.Fprintf(errOut, "read request: %v\n", err)
 		return 2
 	}
-	if len(data) == 4<<20 {
+	if len(data) > maxRequestBytes {
 		fmt.Fprintln(errOut, "request exceeds 4 MiB transport limit")
 		return 2
 	}
