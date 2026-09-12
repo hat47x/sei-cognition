@@ -1,6 +1,9 @@
 name: temporary cognitiveeval focused test
 
 on:
+  push:
+    branches:
+      - 'evaluation/cognitive-workspace-comparison-20260912'
   pull_request:
     paths:
       - 'evaluation/sparse-associative-cognition/prototype-go/**'
