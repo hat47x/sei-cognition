@@ -27,15 +27,16 @@ const (
 )
 
 type Plan struct {
-	FixtureID                    string `json:"fixture_id"`
-	Mode                         Mode   `json:"mode"`
-	ShouldInvokeModel            bool   `json:"should_invoke_model"`
-	Reason                       string `json:"reason"`
-	BoundaryBypassedForBaseline  bool   `json:"boundary_bypassed_for_baseline"`
-	Route                        string `json:"route"`
-	SystemPrompt                 string `json:"system_prompt,omitempty"`
-	UserPrompt                   string `json:"user_prompt,omitempty"`
-	RequestChars                 int    `json:"request_chars"`
+	FixtureID                   string            `json:"fixture_id"`
+	Mode                        Mode              `json:"mode"`
+	ShouldInvokeModel           bool              `json:"should_invoke_model"`
+	Reason                      string            `json:"reason"`
+	BoundaryBypassedForBaseline bool              `json:"boundary_bypassed_for_baseline"`
+	Route                       string            `json:"route"`
+	SystemPrompt                string            `json:"system_prompt,omitempty"`
+	UserPrompt                  string            `json:"user_prompt,omitempty"`
+	RequestChars                int               `json:"request_chars"`
+	RefAliases                  map[string]string `json:"-"`
 }
 
 type Config struct {
@@ -109,7 +110,24 @@ func BuildPlan(f cognitiveeval.Fixture, mode Mode) (Plan, error) {
 		plan.ShouldInvokeModel = true
 		plan.Reason = "raw-context baseline intentionally bypasses staged routing"
 		plan.BoundaryBypassedForBaseline = !bundle.Staged.Routing.LocalModelAllowed
-		material = "OBJECTIVE:\n" + bundle.Raw.Objective + "\n\nRAW CONTEXT:\n" + bundle.Raw.Context
+		plan.RefAliases = map[string]string{}
+		flat := make([]string, 0, len(f.Records))
+		for i, record := range f.Records {
+			alias := fmt.Sprintf("R%03d", i+1)
+			plan.RefAliases[alias] = record.Ref
+			line := fmt.Sprintf("[%s] %s", alias, record.Summary)
+			if record.CapturedAt != "" {
+				line += " | captured_at=" + record.CapturedAt
+			}
+			if record.SubjectAt != "" {
+				line += " | subject_at=" + record.SubjectAt
+			}
+			flat = append(flat, line)
+		}
+		material = "OBJECTIVE:\n" + bundle.Raw.Objective +
+			"\n\nRAW CONTEXT:\n" + bundle.Raw.Context +
+			"\n\nREFERENCE MATERIAL (opaque IDs; semantic role labels intentionally omitted):\n" +
+			strings.Join(flat, "\n")
 	case ModeWorkspace:
 		plan.ShouldInvokeModel = true
 		plan.Reason = "workspace comparison intentionally holds model constant"
@@ -245,6 +263,9 @@ func Run(ctx context.Context, cfg Config, f cognitiveeval.Fixture, mode Mode) (R
 	if err != nil {
 		return result, err
 	}
+	if len(plan.RefAliases) > 0 {
+		out = translateAliases(out, plan.RefAliases)
+	}
 	report, err := cognitiveeval.EvaluateOutput(f, out)
 	if err != nil {
 		return result, fmt.Errorf("evaluate model output: %w", err)
@@ -272,4 +293,31 @@ func DecodeModelOutput(content string) (cognitiveeval.ModelOutput, error) {
 		return cognitiveeval.ModelOutput{}, fmt.Errorf("model output requires proposal or need_more_evidence=true")
 	}
 	return out, nil
+}
+
+func translateAliases(out cognitiveeval.ModelOutput, aliases map[string]string) cognitiveeval.ModelOutput {
+	translate := func(ref string) string {
+		if actual, ok := aliases[ref]; ok {
+			return actual
+		}
+		return ref
+	}
+	translateSlice := func(refs []string) []string {
+		translated := make([]string, len(refs))
+		for i, ref := range refs {
+			translated[i] = translate(ref)
+		}
+		return translated
+	}
+
+	out.SupportingRefs = translateSlice(out.SupportingRefs)
+	out.DecisionBasisRefs = translateSlice(out.DecisionBasisRefs)
+	out.PreservedUnknownRefs = translateSlice(out.PreservedUnknownRefs)
+	out.PreservedConflictRefs = translateSlice(out.PreservedConflictRefs)
+	out.RecommendationRef = translate(out.RecommendationRef)
+	out.DecisionRef = translate(out.DecisionRef)
+	for i := range out.Claims {
+		out.Claims[i].SupportingRefs = translateSlice(out.Claims[i].SupportingRefs)
+	}
+	return out
 }
