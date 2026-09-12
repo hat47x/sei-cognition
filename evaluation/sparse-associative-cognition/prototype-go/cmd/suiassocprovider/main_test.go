@@ -102,10 +102,35 @@ func TestRunRejectsTrailingSecondJSONValue(t *testing.T) {
 	}
 }
 
-func TestRunRejectsOversizedTransportPayload(t *testing.T) {
+func TestRunAcceptsExactlyTransportLimit(t *testing.T) {
+	base := validRequestJSON(t)
+	if len(base) >= maxRequestBytes {
+		t.Fatalf("fixture unexpectedly large: %d", len(base))
+	}
+	payload := append(append([]byte{}, base...), bytes.Repeat([]byte(" "), maxRequestBytes-len(base))...)
+	if len(payload) != maxRequestBytes {
+		t.Fatalf("bad boundary fixture: %d", len(payload))
+	}
+
 	var stdout, stderr bytes.Buffer
-	payload := strings.Repeat("x", 4<<20)
-	code := run(strings.NewReader(payload), &stdout, &stderr)
+	code := run(bytes.NewReader(payload), &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exact limit should be accepted: exit=%d stderr=%q", code, stderr.String())
+	}
+	if stdout.Len() == 0 {
+		t.Fatal("expected formal response")
+	}
+}
+
+func TestRunRejectsOneByteOverTransportLimit(t *testing.T) {
+	base := validRequestJSON(t)
+	payload := append(append([]byte{}, base...), bytes.Repeat([]byte(" "), maxRequestBytes+1-len(base))...)
+	if len(payload) != maxRequestBytes+1 {
+		t.Fatalf("bad oversized fixture: %d", len(payload))
+	}
+
+	var stdout, stderr bytes.Buffer
+	code := run(bytes.NewReader(payload), &stdout, &stderr)
 	if code == 0 {
 		t.Fatal("expected non-zero exit")
 	}
