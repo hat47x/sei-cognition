@@ -72,7 +72,7 @@ SOZAのAccepted Development Conventionに従い、GitHub Actionsは使用して�
 
 一方、この作業環境から `github.com` を直接cloneする経路はDNS解決できなかったため、full repository checkout上のtestは実行できなかった。
 
-代わりに、GitHub connectorから取得したcurrent `main` の `prototype-go/sparseassoc/sparseassoc.go` と、branchへcommitした `suiassocprovider/provider.go` / `provider_test.go` を一時local moduleへ配置し、adapter境界を独立に検証した。
+代わりに、GitHub connectorから取得したcurrent `main` の `prototype-go/sparseassoc/sparseassoc.go` と、branch上のadapterが持つ**同じ型・validation・candidate narrowing・response縮退の契約ロジックを再現したローカル検証版**を一時moduleへ配置し、接続境界を独立に確認した。これはbranch上のファイルをbyte-for-byte checkoutして実行したものではない。
 
 ローカル環境はGo 1.23.2であったため、一時moduleの`go` directiveだけを1.23とした。repositoryの`prototype-go/go.mod` (`go 1.25`) は変更していない。今回のadapterが利用する言語機能はこのローカルtoolchainで実行可能な範囲にある。
 
@@ -90,7 +90,7 @@ go test ./...
 ok   github.com/hat47x/soza/evaluation/sparse-associative-cognition/prototype-go/suiassocprovider   0.004s
 ```
 
-確認したadapter境界:
+ローカル再現版で確認したadapter境界:
 
 - formal responseから内部similarity等が漏れない
 - candidateはanchorを含まない
@@ -104,7 +104,7 @@ ok   github.com/hat47x/soza/evaluation/sparse-associative-cognition/prototype-go
 - unsupported schema / intentを拒否する
 - provider/version traceを明示する
 
-この結果は**full checkout testの代替ではない**。current-mainから取得したSACS sourceと今回のadapterの接続面が、手元のGo環境で実行可能だったことを示す限定的なExecutable Evidenceである。
+この結果は**full checkout testでも、branch上のexact source testでもない**。current-mainから取得したSACS sourceと、今回adapterの契約ロジックを同じ境界で再現したコードが手元のGo環境で実行可能だったことを示す限定的なExecutable Evidenceである。branch上のexact sourceによる検証は、repository checkoutが可能な環境で改めて行う余地を残す。
 
 ## 5. このEvidenceが意味しないこと
 
@@ -119,6 +119,7 @@ ok   github.com/hat47x/soza/evaluation/sparse-associative-cognition/prototype-go
 - 10万〜100万件規模でANN indexが必要になる境界
 - SUIへの実transportを含むend-to-end latency
 - full repository checkout上での今回adapter test
+- branch上のexact adapter sourceの実行
 - production runtimeとしての採用可否
 - Operational / Adoption / Outcome Evidence
 
