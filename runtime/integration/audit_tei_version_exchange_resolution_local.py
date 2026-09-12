@@ -10,8 +10,8 @@ from typing import Any
 import audit_tei_version_exchange_resolution as base_audit
 import verify_tei_execution_source_identity as source_identity
 
-SCHEMA = "soza.tei-version-exchange-local-resolution-audit/v1"
-CHECKOUT_PREPARATION_SCHEMA = "soza.tei-revision-b-checkout-preparation/v1"
+SCHEMA = "sei.tei-version-exchange-local-resolution-audit/v1"
+CHECKOUT_PREPARATION_SCHEMA = "sei.tei-revision-b-checkout-preparation/v1"
 LOCAL_ACQUISITION_MODE = "prepositioned_local_checkout"
 STOP_LINE = (
     "local acquisition boundary verified + resolution audit candidate "
@@ -207,17 +207,17 @@ def audit_local_resolution(
     canonical_report: Path,
     *,
     revision_b_source_repo: Path,
-    soza_repo_root: Path,
+    sei_repo_root: Path,
     historical_a_bundle: Path | None = None,
     checkout_preparation_report: Path | None = None,
-    expected_soza_head: str | None = None,
+    expected_sei_head: str | None = None,
 ) -> dict[str, Any]:
     result = base_audit.audit_resolution(
         canonical_report,
-        soza_repo_root=soza_repo_root,
+        sei_repo_root=sei_repo_root,
         historical_a_bundle=historical_a_bundle,
         github_wrapper_report=None,
-        expected_soza_head=expected_soza_head,
+        expected_sei_head=expected_sei_head,
     )
 
     canonical = result.get("canonicalReport")
@@ -263,11 +263,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--historical-a-bundle", type=Path)
     parser.add_argument("--checkout-preparation-report", type=Path)
     parser.add_argument(
-        "--soza-repo-root",
+        "--sei-repo-root",
         type=Path,
         default=Path(__file__).resolve().parents[2],
     )
-    parser.add_argument("--expected-soza-head")
+    parser.add_argument("--expected-sei-head")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--json", action="store_true")
     return parser
@@ -279,14 +279,14 @@ def main(argv: list[str] | None = None) -> int:
         result = audit_local_resolution(
             args.canonical_report,
             revision_b_source_repo=args.revision_b_source_repo,
-            soza_repo_root=args.soza_repo_root,
+            sei_repo_root=args.sei_repo_root,
             historical_a_bundle=args.historical_a_bundle,
             checkout_preparation_report=args.checkout_preparation_report,
-            expected_soza_head=args.expected_soza_head,
+            expected_sei_head=args.expected_sei_head,
         )
         output = None
         if args.output is not None:
-            output = base_audit._prepare_output(args.output, args.soza_repo_root)
+            output = base_audit._prepare_output(args.output, args.sei_repo_root)
             base_audit._write_json_atomic(output, result)
     except (OSError, ValueError, subprocess.SubprocessError) as exc:
         print(f"TEI local version exchange resolution audit rejected: {exc}")

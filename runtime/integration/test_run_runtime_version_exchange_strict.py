@@ -254,7 +254,7 @@ class StrictRuntimeVersionExchangeTest(unittest.TestCase):
                 calls.append(("export", checkout_dir, output_dir))
                 output_dir.mkdir(parents=True)
                 return {
-                    "schema": "soza.kj-atlas-runtime-source-export/v1",
+                    "schema": "sei.kj-atlas-runtime-source-export/v1",
                     "sourceAcquisition": "git-archive-from-pinned-commit",
                 }
 

@@ -32,7 +32,7 @@ Application B added
 
 ## 背景
 
-ISSUE-000066では、Ollama `0.32.14`上の`qwen2.5:0.5b`を使い、actual inferenceからKJ Atlas response受理、SOZA Cognitive Method Applicationへのmappingまでを確認した。
+ISSUE-000066では、Ollama `0.32.14`上の`qwen2.5:0.5b`を使い、actual inferenceからKJ Atlas response受理、SEI Cognitive Method Applicationへのmappingまでを確認した。
 
 ISSUE-000067では、historical reconstructionについて次の境界を確認した。
 
@@ -66,7 +66,7 @@ model artifactだけを次の二つへ交換した。
 
 model tagだけを同一性の根拠とせず、Ollamaが返すmodel digestも実行Evidenceとして取得した。また、二回の実行でmodelへ渡されたpromptが同一であることを、prompt SHA-256の一致で確認した。
 
-SOZA側では二つの実行を別のprobe-local Realization / Applicationとして記録した。これは「model artifactが異なれば常に別Realizationにする」というUniversal ruleではない。今回の実交換で二つの実行条件を取り違えないためのprobe-localな表現である。
+SEI側では二つの実行を別のprobe-local Realization / Applicationとして記録した。これは「model artifactが異なれば常に別Realizationにする」というUniversal ruleではない。今回の実交換で二つの実行条件を取り違えないためのprobe-localな表現である。
 
 同一Realization内のrevisionとして扱うべきScenarioについては、ISSUE-000067 H1で確認したExact Bindingを引き続き利用できる。
 

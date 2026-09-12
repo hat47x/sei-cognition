@@ -1,5 +1,5 @@
 {
-  "profile_id": "soza.raw-bytes+sha256/v1alpha1",
+  "profile_id": "sei.raw-bytes+sha256/v1alpha1",
   "digest_algorithm": "sha256",
   "cases": [
     {

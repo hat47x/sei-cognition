@@ -27,7 +27,7 @@ EXPECTED_REFERENCE = {
 STOP_LINE = (
     "revision A fixed reference input verified from historical Evidence bundle "
     "!= revision A source checkout reconstructed != revision B build PASS "
-    "!= SOZA Adapter compatibility verified != ISSUE-000072 Resolved"
+    "!= SEI Adapter compatibility verified != ISSUE-000072 Resolved"
 )
 
 
@@ -50,7 +50,7 @@ def verify_fixed_reference_input_bundle(archive: Path) -> dict[str, object]:
         expected_reference_input=EXPECTED_REFERENCE,
     )
     return {
-        "schema": "soza.tei-fixed-reference-input-bundle/v1",
+        "schema": "sei.tei-fixed-reference-input-bundle/v1",
         "result": "verified",
         "acquisitionMode": "historical_evidence_bundle",
         "sourceCommit": source_identity.REVISION_A,

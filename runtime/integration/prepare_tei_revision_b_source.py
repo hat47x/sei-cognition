@@ -23,13 +23,13 @@ from verify_tei_execution_source_identity import (
 
 GITHUB_REPOSITORY = "hat47x/tei-platform"
 REVISION_B_ROOT_TREE = "630d3e9e2acaea70312bee19cf8a0f7235655cd6"
-SOZA_ROOT = Path(__file__).resolve().parents[2]
+SEI_ROOT = Path(__file__).resolve().parents[2]
 API_BASE = "https://api.github.com"
 API_REPOSITORY_BASE = f"{API_BASE}/repos/{GITHUB_REPOSITORY}/"
 STOP_LINE = (
     "exact revision B source materialized and canonical identity verified "
     "!= revision B build PASS != Provider Plan execution PASS "
-    "!= SOZA Adapter compatibility PASS != ISSUE-000072 Resolved"
+    "!= SEI Adapter compatibility PASS != ISSUE-000072 Resolved"
 )
 JsonRequester = Callable[[str, str], dict[str, object]]
 
@@ -81,9 +81,9 @@ def _prepare_output_path(output_dir: Path) -> Path:
         raise ValueError(
             f"TEI revision B source出力は新規pathを指定してください: {output}"
         )
-    if output == SOZA_ROOT or SOZA_ROOT in output.parents:
+    if output == SEI_ROOT or SEI_ROOT in output.parents:
         raise ValueError(
-            f"TEI revision B source出力をSOZA repository配下には置けません: {output}"
+            f"TEI revision B source出力をSEI repository配下には置けません: {output}"
         )
     return output
 
@@ -101,9 +101,9 @@ def _prepare_report_path(path: Path, output_dir: Path) -> Path:
             "TEI source acquisition reportはmaterialized sourceから分離してください: "
             f"report={report} source={output_dir}"
         )
-    if report == SOZA_ROOT or SOZA_ROOT in report.parents:
+    if report == SEI_ROOT or SEI_ROOT in report.parents:
         raise ValueError(
-            f"TEI source acquisition reportをSOZA repository配下には置けません: {report}"
+            f"TEI source acquisition reportをSEI repository配下には置けません: {report}"
         )
     return report
 
@@ -116,7 +116,7 @@ def _github_json(url: str, token: str) -> dict[str, object]:
         headers={
             "Accept": "application/vnd.github+json",
             "Authorization": f"Bearer {token}",
-            "User-Agent": "soza-tei-revision-b-source-acquisition",
+            "User-Agent": "sei-tei-revision-b-source-acquisition",
             "X-GitHub-Api-Version": "2022-11-28",
         },
     )
@@ -460,7 +460,7 @@ def materialize_revision_b_source(
             expected_head=expected_commit,
         )
         return {
-            "schema": "soza.tei-revision-b-source-acquisition/v1",
+            "schema": "sei.tei-revision-b-source-acquisition/v1",
             "result": "verified",
             "sourceAcquisition": "github-git-data-api-content-addressed",
             "repository": repository,
@@ -473,7 +473,7 @@ def materialize_revision_b_source(
             "canonicalSourceVerification": verification,
             "revisionBBuildPass": False,
             "providerPlanExecutionPass": False,
-            "sozaAdapterCompatibilityPass": False,
+            "seiAdapterCompatibilityPass": False,
             "issue000072Resolved": False,
             "qualityJudgement": "not_evaluated",
             "stopLine": STOP_LINE,

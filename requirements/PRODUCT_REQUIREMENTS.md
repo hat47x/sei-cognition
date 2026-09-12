@@ -1,13 +1,13 @@
-# SOZA Product Requirements
+# SEI Product Requirements
 
 更新日: 2026-09-01  
 状態: **Current Product Requirements Baseline**
 
 ## 1. この文書の位置づけ
 
-この文書は、現在のSOZA Product Valueを満たすために必要なProduct Requirementの正本入口です。
+この文書は、現在のSEI Product Valueを満たすために必要なProduct Requirementの正本入口です。
 
-過去candidateの`SOZA-PR-*`や`SOZA-NFR-*`をそのまま復元したものではありません。旧文書の意味核を参照しつつ、`SOZA_VALUE_MODEL.md`のV1〜V8、現在のProduct Principles、Accepted ADRへ戻って再構成しています。
+過去candidateの`SEI-PR-*`や`SEI-NFR-*`をそのまま復元したものではありません。旧文書の意味核を参照しつつ、`SEI_VALUE_MODEL.md`のV1〜V8、現在のProduct Principles、Accepted ADRへ戻って再構成しています。
 
 Requirementの意味上の採用状態とEvidenceの高さは分けます。
 
@@ -65,11 +65,11 @@ actual repositoryには現在、Product / Plan / Requirementsだけでなく、R
 
 ### Requirement
 
-AIモデル、Prompt、Skill、実装言語、UI、Storage、Capability Provider、Execution Providerが変わっても、SOZAが耐久的意味として保持するIntent、Observation、Decision、Responsibility、Provenance等を、別の意味へ黙って読み替えることなく引き継げなければならない。
+AIモデル、Prompt、Skill、実装言語、UI、Storage、Capability Provider、Execution Providerが変わっても、SEIが耐久的意味として保持するIntent、Observation、Decision、Responsibility、Provenance等を、別の意味へ黙って読み替えることなく引き継げなければならない。
 
 ### Rationale
 
-SOZAの価値は現在の実装方式ではなく、技術が入れ替わっても判断の意味と来歴を読み直せることにあるため。
+SEIの価値は現在の実装方式ではなく、技術が入れ替わっても判断の意味と来歴を読み直せることにあるため。
 
 ### Scope / Non-goals
 
@@ -149,12 +149,12 @@ Method Applicationの意味は、後からRealizationが変更されても当時
 
 ### Rationale
 
-SOZAが保持すべきなのは特定のPromptや実装ではなく、どの方法で資料を探索・比較・統合・検査したかという意味だからである。
+SEIが保持すべきなのは特定のPromptや実装ではなく、どの方法で資料を探索・比較・統合・検査したかという意味だからである。
 
 ### Current Evidence
 
 - Design: **Satisfied**
-- Executable: **Partially Satisfied** — `soza.cognitive-method/v1alpha1`、C1〜C8 fixture、negative / unknown-version boundary、Go typed runtimeによりMethod Definition / Realization / Applicationを分離してread / validate / reconstructできる。SCN-0018 harnessでもMethod ApplicationをRecommendation / Decisionとは別recordとして接続する。Method executorやproduction Realization交換は未検証。
+- Executable: **Partially Satisfied** — `sei.cognitive-method/v1alpha1`、C1〜C8 fixture、negative / unknown-version boundary、Go typed runtimeによりMethod Definition / Realization / Applicationを分離してread / validate / reconstructできる。SCN-0018 harnessでもMethod ApplicationをRecommendation / Decisionとは別recordとして接続する。Method executorやproduction Realization交換は未検証。
 - Release: **Not Yet Verified**
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
@@ -227,11 +227,11 @@ AIの提案能力や自動化率が高まっても、責任線と統制可能性
 
 Capabilityと、そのCapabilityを提供するProviderを区別し、人間、AI、SaaS、外部組織、TEI、custom code等を同じIntentに対する異質な候補として扱えなければならない。
 
-SOZAとの関係が近いこと、Provider kind、実装上の接続容易性だけを理由に、優先度、信頼、Authorityを自動付与してはならない。
+SEIとの関係が近いこと、Provider kind、実装上の接続容易性だけを理由に、優先度、信頼、Authorityを自動付与してはならない。
 
 ### Rationale
 
-特定Providerへ意味が固定されると、Provider交換時にIntentやDecisionまで壊れ、SOZAの長期価値を失うため。
+特定Providerへ意味が固定されると、Provider交換時にIntentやDecisionまで壊れ、SEIの長期価値を失うため。
 
 ### Current Evidence
 
@@ -329,7 +329,7 @@ storage revision、representation change、content digest changeを、それだ�
 
 ### Requirement
 
-Workspace、canvas、chat sequence、dashboard、matrix、worklist、特定UI layout等のProjectionを、SOZAのCanonical Semantic Authorityとしてはならない。
+Workspace、canvas、chat sequence、dashboard、matrix、worklist、特定UI layout等のProjectionを、SEIのCanonical Semantic Authorityとしてはならない。
 
 一つのProjectionを変更・削除しても、耐久的な意味資産を失わない構造を維持しなければならない。
 
@@ -433,7 +433,7 @@ Decisionが行われたことは、すべての不確実性が解消したこと
 
 ### Requirement
 
-SOZAの耐久的意味、Decisionの再構成、Cognitive Method Applicationの検証を、AIモデルの非公開private chain-of-thoughtの保存・復元へ依存させてはならない。
+SEIの耐久的意味、Decisionの再構成、Cognitive Method Applicationの検証を、AIモデルの非公開private chain-of-thoughtの保存・復元へ依存させてはならない。
 
 共有すべきなのは、Observation、Question、Evidence、Recommendation、Rationale、Decision、Method Application等として外在化できる情報でなければならない。
 
@@ -511,13 +511,13 @@ Responsibilityの記録からAuthorization、Credential、Trust、actor hierarch
 
 ### Requirement
 
-SOZAの意味契約は、特定DB、event sourcing、Git、object store、filesystem等のStorage実装を存在条件としてはならない。
+SEIの意味契約は、特定DB、event sourcing、Git、object store、filesystem等のStorage実装を存在条件としてはならない。
 
 一方で、Storageを交換してもlogical identity、semantic revision、provenance、必要なexact binding、reference integrityを失わない契約を定義できなければならない。
 
 ### Rationale
 
-Storage技術の寿命より、SOZAが保持すべき判断・来歴の寿命を長くするため。
+Storage技術の寿命より、SEIが保持すべき判断・来歴の寿命を長くするため。
 
 ### Current Evidence
 
@@ -537,7 +537,7 @@ Storage技術の寿命より、SOZAが保持すべき判断・来歴の寿命を
 
 ### Requirement
 
-SOZAの重要なArtifact、Requirement、Decision、Evidence関係は、AIが構造として処理できるだけでなく、人間が意味、理由、未解決点、責任線を確認できなければならない。
+SEIの重要なArtifact、Requirement、Decision、Evidence関係は、AIが構造として処理できるだけでなく、人間が意味、理由、未解決点、責任線を確認できなければならない。
 
 人間向けProjectionとmachine-readable representationが異なる場合でも、両者が同じcanonical meaningへ戻れるようにしなければならない。
 
@@ -569,7 +569,7 @@ Design、Executable、Release、Operational、Adoption / Outcome Evidenceを区�
 
 ### Rationale
 
-SOZA自身がEvidenceと判断を扱う基盤である以上、自身の開発状態についてEvidenceを過大主張するとProduct Valueと矛盾するため。
+SEI自身がEvidenceと判断を扱う基盤である以上、自身の開発状態についてEvidenceを過大主張するとProduct Valueと矛盾するため。
 
 ### Current Evidence
 
@@ -595,7 +595,7 @@ Cognitive Method Realization、Capability Provider、Execution Provider、Projec
 
 ### Rationale
 
-将来、現在のPrompt、agent runtime、workflow、Provider実装が中抜きされてもSOZAが残るため。
+将来、現在のPrompt、agent runtime、workflow、Provider実装が中抜きされてもSEIが残るため。
 
 ### Current Evidence
 
@@ -615,7 +615,7 @@ Cognitive Method Realization、Capability Provider、Execution Provider、Projec
 
 ### Requirement
 
-SOZAは、TEI、SaaS、人間、AI、外部組織等のProvider内部SchemaをUniversal Coreへコピーせず、Capability判断に必要な観測結果をProvider-neutralな意味境界から読めなければならない。
+SEIは、TEI、SaaS、人間、AI、外部組織等のProvider内部SchemaをUniversal Coreへコピーせず、Capability判断に必要な観測結果をProvider-neutralな意味境界から読めなければならない。
 
 少なくとも、対象Capability、Provider、必要なProvider-specific contextへの参照、観測時点、condition、Evidence / provenance、Unknown / Conflict / Withheld等を必要に応じて扱えなければならない。
 
@@ -747,7 +747,7 @@ release artifact verified
 
 ## 5. Historical candidateとの関係
 
-旧`SOZA-PR-001`〜`SOZA-PR-018`と`SOZA-NFR-001`〜`010`の意味核は、必要なものをcurrent REQへ統合しています。
+旧`SEI-PR-001`〜`SEI-PR-018`と`SEI-NFR-001`〜`010`の意味核は、必要なものをcurrent REQへ統合しています。
 
 旧番号や旧Evidence状態はcurrent正本ではありません。詳細な対応は`history/HISTORICAL_REQUIREMENT_MAPPING.md`を参照します。
 

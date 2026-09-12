@@ -23,7 +23,7 @@ REVISION_A_REFERENCE_OBJECTS = {
 }
 STOP_LINE = (
     "TEI execution-source Git identity verified != actual TEI binary built "
-    "!= Provider Plan observed != SOZA Adapter compatibility verified"
+    "!= Provider Plan observed != SEI Adapter compatibility verified"
 )
 
 
@@ -92,7 +92,7 @@ def verify_repository(
             )
 
     return {
-        "schema": "soza.tei-execution-source-identity/v1",
+        "schema": "sei.tei-execution-source-identity/v1",
         "result": "verified",
         "repositoryRoot": str(repo),
         "head": head,

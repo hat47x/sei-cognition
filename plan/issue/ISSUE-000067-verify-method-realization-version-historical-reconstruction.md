@@ -9,7 +9,7 @@ Updated: 2026-09-02
 
 E3b-M1a / M1bで得られた実行Evidenceを入力として、**同じCognitive Method Definitionを異なるMethod Realizationで実行した履歴を、後から取り違えずに再構成できるか**を検証する。
 
-中心となる問いは、model名やruntime名をSOZA Universal Contractへ追加すべきかではない。
+中心となる問いは、model名やruntime名をSEI Universal Contractへ追加すべきかではない。
 
 ```text
 実行時にRealizationの違いを観測できること
@@ -146,13 +146,13 @@ behavior-complete head `711b31cccdcd4644ab47554322455e4219f910b6`では、次を
 - External Method Integration E3b Run `33630741545`: **success**
   - M1a actual KJ Atlas grouping: success
   - mapping boundary tests: success
-  - `MR-KJ-ATLAS-M1A` + deterministic stub execution identityでのSOZA mapping: success
+  - `MR-KJ-ATLAS-M1A` + deterministic stub execution identityでのSEI mapping: success
 - External Model-backed Method E3b M1b Run `33630741559`: **success**
   - digest-pinned Ollama runtime install: success
   - model identity `a8b0c5157701`確認: success
   - actual inference: success
   - mapping boundary tests: success
-  - `MR-KJ-ATLAS-M1B` + Ollama / qwen execution identityでのSOZA mapping: success
+  - `MR-KJ-ATLAS-M1B` + Ollama / qwen execution identityでのSEI mapping: success
 - Semantic Runtime Conformance Run `33630741581`: **success**
 - Plan integrity Run `33630741593`: **success**
 - Release Candidate Gate Run `33630741555`: **success**

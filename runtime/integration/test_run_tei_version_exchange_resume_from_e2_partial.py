@@ -138,19 +138,19 @@ class TEIVersionExchangeResumeFromE2PartialTest(unittest.TestCase):
             root = Path(temporary)
             partial_report = root / "partial.json"
             bundle = root / "bundle.tar.gz"
-            soza = root / "soza"
+            sei = root / "sei"
             output = root / "evidence"
             go = root / "go125" / "go"
             partial_report.write_text("{}", encoding="utf-8")
             bundle.write_bytes(b"placeholder")
-            soza.mkdir()
+            sei.mkdir()
             loaded = self._loaded_partial(partial_report, bundle)
             e3 = {
                 "result": "adapter_compatible",
-                "sozaGoRequirement": "go1.25.0",
-                "sozaGoVersion": "go version go1.25.1 linux/amd64",
-                "sozaSource": {"head": "soza-head"},
-                "postLiveTestSozaSource": {"head": "soza-head"},
+                "seiGoRequirement": "go1.25.0",
+                "seiGoVersion": "go version go1.25.1 linux/amd64",
+                "seiSource": {"head": "sei-head"},
+                "postLiveTestSeiSource": {"head": "sei-head"},
             }
 
             with mock.patch.object(
@@ -180,17 +180,17 @@ class TEIVersionExchangeResumeFromE2PartialTest(unittest.TestCase):
                 result = subject.resume_e3(
                     partial_report,
                     bundle,
-                    soza,
+                    sei,
                     output,
-                    soza_go_executable=go,
-                    expected_soza_head="soza-head",
+                    sei_go_executable=go,
+                    expected_sei_head="sei-head",
                 )
 
             adapter.assert_called_once_with(
                 bundle.resolve(),
-                soza_repo_root=soza.resolve(),
+                sei_repo_root=sei.resolve(),
                 expected_source_commit=subject.source_identity.REVISION_B,
-                expected_soza_head="soza-head",
+                expected_sei_head="sei-head",
             )
             self.assertEqual("fixed_scope_e2_e3_verified", result["result"])
             self.assertEqual(2, writer.call_count)
@@ -203,7 +203,7 @@ class TEIVersionExchangeResumeFromE2PartialTest(unittest.TestCase):
             self.assertEqual(subject.EXECUTION_MODE, canonical["executionProvenance"]["mode"])
             self.assertEqual(
                 "go version go1.25.1 linux/amd64",
-                canonical["comparisonAxis"]["sozaGoObserved"],
+                canonical["comparisonAxis"]["seiGoObserved"],
             )
             self.assertEqual(subject.github_runner.SCHEMA, wrapper["schema"])
             self.assertEqual("fixed_scope_e2_e3_verified", wrapper["result"])
@@ -215,15 +215,15 @@ class TEIVersionExchangeResumeFromE2PartialTest(unittest.TestCase):
             root = Path(temporary)
             partial_report = root / "partial.json"
             bundle = root / "bundle.tar.gz"
-            soza = root / "soza"
+            sei = root / "sei"
             output = root / "evidence"
             go = root / "go125" / "go"
             partial_report.write_text("{}", encoding="utf-8")
             bundle.write_bytes(b"placeholder")
-            soza.mkdir()
+            sei.mkdir()
             loaded = self._loaded_partial(partial_report, bundle)
             failure = subject.adapter_runner.TEIAdapterStageError(
-                "soza_teiintegration_live_test",
+                "sei_teiintegration_live_test",
                 "live test failed",
             )
 
@@ -247,9 +247,9 @@ class TEIVersionExchangeResumeFromE2PartialTest(unittest.TestCase):
                     subject.resume_e3(
                         partial_report,
                         bundle,
-                        soza,
+                        sei,
                         output,
-                        soza_go_executable=go,
+                        sei_go_executable=go,
                     )
 
             self.assertEqual(2, writer.call_count)
@@ -260,7 +260,7 @@ class TEIVersionExchangeResumeFromE2PartialTest(unittest.TestCase):
             self.assertIsNone(canonical["e3"])
             self.assertEqual("E3", canonical["failure"]["stage"])
             self.assertEqual(
-                "soza_teiintegration_live_test",
+                "sei_teiintegration_live_test",
                 canonical["failure"]["substage"],
             )
             self.assertEqual("version_exchange_failed", wrapper["result"])
@@ -278,11 +278,11 @@ class TEIVersionExchangeResumeFromE2PartialTest(unittest.TestCase):
             root = Path(temporary)
             partial_report = root / "partial.json"
             bundle = root / "bundle.tar.gz"
-            soza = root / "soza"
+            sei = root / "sei"
             output = root / "evidence"
             partial_report.write_text("{}", encoding="utf-8")
             bundle.write_bytes(b"placeholder")
-            soza.mkdir()
+            sei.mkdir()
             output.mkdir()
             existing = output / subject.version_exchange.REPORT_NAME
             existing.write_text("existing", encoding="utf-8")
@@ -290,7 +290,7 @@ class TEIVersionExchangeResumeFromE2PartialTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "--overwrite"):
                 subject._prepare_output_reports(
                     output,
-                    soza_repo_root=soza,
+                    sei_repo_root=sei,
                     partial_report=partial_report,
                     bundle=bundle,
                     overwrite=False,

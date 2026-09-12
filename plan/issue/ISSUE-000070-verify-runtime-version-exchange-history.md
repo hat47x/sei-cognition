@@ -8,7 +8,7 @@ Updated: 2026-09-05
 
 ## Goal
 
-同じCognitive Method、同じKJ Atlas source、同じMethod input、同じactual model artifact、同じmodel promptを使い、Ollama runtime versionだけを交換したときに、SOZAが先行Method Applicationの履歴を失わず保持できるかを実証する。
+同じCognitive Method、同じKJ Atlas source、同じMethod input、同じactual model artifact、同じmodel promptを使い、Ollama runtime versionだけを交換したときに、SEIが先行Method Applicationの履歴を失わず保持できるかを実証する。
 
 runtime version差は別のlogical Method Realizationへ分けず、同じ実現機構に属するhistorical revisionとしてExact Bindingで区別する。
 
@@ -82,7 +82,7 @@ ISSUE-000071は成果品質の評価境界を確立したIssueであり、human 
 - model artifact digest: `a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67`
 - Method input: repository-local harness内の固定3-card input
 - held card: `c-held`
-- SOZA Method mapping: current `livemethodintegration`
+- SEI Method mapping: current `livemethodintegration`
 
 model artifact digestはActual Model Artifact Exchange E3b Run `33670697154`でOllama `0.32.14`からactualに観測したidentityである。A / Bのdigestが互いに等しいだけでは成立とせず、両方がこの期待full digestへ一致することを要求する。
 
@@ -115,9 +115,9 @@ artifact identity
   = actual bytes / fixed SHA-256
 ```
 
-`prepare_runtime_version_exchange_archives.py`はdownload / verify-only / prepositioned再利用を同じsize / SHA-256境界へ戻す。準備先はSOZA repository外とし、output directory、archive target、`.part`のsymlinkや不正な既存pathを大容量download前に拒否する。
+`prepare_runtime_version_exchange_archives.py`はdownload / verify-only / prepositioned再利用を同じsize / SHA-256境界へ戻す。準備先はSEI repository外とし、output directory、archive target、`.part`のsymlinkや不正な既存pathを大容量download前に拒否する。
 
-Linux / amd64は本probeの実行条件であり、SOZA全体のplatform supportを限定する意味ではない。
+Linux / amd64は本probeの実行条件であり、SEI全体のplatform supportを限定する意味ではない。
 
 ## KJ Atlas source identity
 
@@ -193,7 +193,7 @@ A / Bのactual実行では、両runtimeの`/api/tags`から同じ期待full dige
 ## Current execution path
 
 ```text
-fixed runtime archive preparation outside SOZA repository
+fixed runtime archive preparation outside SEI repository
   ↓
 fixed KJ Atlas commit object available | verified source bundle
   ↓
@@ -238,7 +238,7 @@ focused local checks PASS
 
 - Linux / amd64
 - required command
-- SOZA Git working tree / cleanliness
+- SEI Git working tree / cleanliness
 - KJ Atlas固定commit objectの取得可能性、またはverified bundle identity
 - work / Evidence / runtime archive / model path境界
 - 事前配置runtime archiveのsource分離、symlink、official size / actual SHA-256
@@ -274,7 +274,7 @@ preflight observationにはpreflight exit code、blocker、`strictStarted=false`
 
 1. checkout指定時は固定commit objectからverified runtime bundleをexportする。
 2. bundle指定時は固定Git object identityを再検証する。
-3. 事前配置runtime archiveのsymlink、不存在、SOZA/source/modelとのoverlap、A/B同一pathを拒否する。
+3. 事前配置runtime archiveのsymlink、不存在、SEI/source/modelとのoverlap、A/B同一pathを拒否する。
 4. 事前配置runtime archiveのactual size / SHA-256を、source exportやmodel準備より前に固定manifestへ照合する。
 5. `--model-dir`指定時は既存storeを静的検証する。
 6. `--prepare-model-dir`指定時は固定registryから新しいstoreを準備し、静的再検証する。
@@ -342,7 +342,7 @@ Evidence + Provenance verification ready-to-review
 
 ## Acquisition boundary
 
-runtime archiveはdownload / prepositionedを許可し、どちらもactual bytesの固定SHA-256へ戻す。新規downloadの入口は対応versionのOllama公式GitHub Release assetへ固定する。準備先はSOZA repository外とする。
+runtime archiveはdownload / prepositionedを許可し、どちらもactual bytesの固定SHA-256へ戻す。新規downloadの入口は対応versionのOllama公式GitHub Release assetへ固定する。準備先はSEI repository外とする。
 
 model storeは次の3経路を許可する。
 
@@ -367,17 +367,17 @@ acquisition path
 
 次を停止線とする。
 
-- SOZAに未commit変更があればactual harnessを開始しない。
+- SEIに未commit変更があればactual harnessを開始しない。
 - KJ Atlas sourceはfixed commit objectからverified bundleへ再構成するか、既存verified bundleを再検証する。
 - low-level harnessへworking treeを直接渡さない。
 - source exportの一時展開とstrict一時bundleを親`TMPDIR`へ置かない。
 - source export失敗時にpartial bundleを残さない。
-- runtime archive準備先をSOZA repository配下へ置かない。
+- runtime archive準備先をSEI repository配下へ置かない。
 - 事前配置runtime archiveはsource配下、symlink、A/B同一path、model storeとのoverlapを拒否し、actual bytesを再検証する。
 - work / Evidence / prepared model target / verification outputは新しいpathだけを受け付ける。
 - `--work-dir`省略時もstrict入口が明示work pathを決定する。
 - source、model store、Evidence、work、verification outputを相互に分離する。
-- model storeとSOZA/KJ Atlas sourceの双方向包含を拒否する。
+- model storeとSEI/KJ Atlas sourceの双方向包含を拒否する。
 - Evidenceをmodel store配下へ置かない。
 - source/model verifierの結果fileを入力資産内部へ書かない。
 - fixed local port `11434` / `8001` / `8101`が使用中ならactual processを開始しない。
@@ -395,7 +395,7 @@ actual runtimeを起動しないrepository-local regressionの標準入口は`ru
 python3 runtime/integration/run_runtime_version_exchange_local_checks.py
 ```
 
-`--stop-on-failure`、`--list`、`--only TEST_FILE`を利用できる。`--result-output`を指定するとSOZA repository外の新規JSONへmachine-readable resultを保存する。各testの既定timeoutは120秒で、`--timeout-seconds`で変更できる。
+`--stop-on-failure`、`--list`、`--only TEST_FILE`を利用できる。`--result-output`を指定するとSEI repository外の新規JSONへmachine-readable resultを保存する。各testの既定timeoutは120秒で、`--timeout-seconds`で変更できる。
 
 timeoutはexit code `124`、child起動失敗はexit code `127`相当として結果へ残す。runnerはGit commit / cleanlinessの観測とtest resultを分け、Git観測に失敗してもtest resultを捏造しない。
 
@@ -414,7 +414,7 @@ focused local checks PASS
 
 current focused allowlistには、source exporterとstrict archive boundaryのtestも含まれている。
 
-本セッションではSOZA private repository一式を実行containerへ取得する経路がなく、focused runnerの全testを実ファイルで一括実行した新しい結果は得ていない。また、公開KJ Atlasのraw取得もweb/container側の到達制約で成立しなかった。これらは環境固有の観測でありSOZAのProduct failureとは扱わず、実行済みとも推定しない。
+本セッションではSEI private repository一式を実行containerへ取得する経路がなく、focused runnerの全testを実ファイルで一括実行した新しい結果は得ていない。また、公開KJ Atlasのraw取得もweb/container側の到達制約で成立しなかった。これらは環境固有の観測でありSEIのProduct failureとは扱わず、実行済みとも推定しない。
 
 ## Required experiments
 
@@ -510,7 +510,7 @@ strict開始後に失敗した場合:
 complete runではさらに次へ戻れることを要求する。
 
 - execution ID
-- SOZA commit
+- SEI commit
 - KJ Atlas source identity / source export Provenance
 - model store preparation / static verification
 - host OS / architecture
@@ -690,7 +690,7 @@ Resolved後も次の場合は再開する。
 - source export失敗後にpartial / 未検証bundleを完成artifactとして残す。
 - strict入口がworkまたは一時source bundleの配置を親`TMPDIR`へ委ねる。
 - source、model store、Evidence、work、verification outputを重ねて入力やEvidenceを検証副作用で変更できる。
-- runtime archive準備先をSOZA repository配下へ置ける。
+- runtime archive準備先をSEI repository配下へ置ける。
 - 事前配置runtime archiveのsource配下配置、symlink、A/B同一path、model overlapをpreflight / strict入口で受理する。
 - 事前配置archiveをpathやsizeだけで信用し、strict入口でactual SHA-256を再検証しない。
 - runtime archive manifestが非公式取得URL、platform drift、invalid size / digestを受理する。

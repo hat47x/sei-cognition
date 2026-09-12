@@ -14,13 +14,13 @@ import (
 )
 
 const (
-	runtimeExchangeKJAtlasSourceModeEnv     = "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_MODE"
-	runtimeExchangeKJAtlasBackendDirEnv     = "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_DIR"
-	runtimeExchangeKJAtlasSourceVerifierEnv = "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_VERIFIER"
-	runtimeExchangeAVersionLogEnv           = "SOZA_E3B_RUNTIME_EXCHANGE_VERSION_LOG_A"
-	runtimeExchangeBVersionLogEnv           = "SOZA_E3B_RUNTIME_EXCHANGE_VERSION_LOG_B"
-	runtimeExchangeAArchiveEnv              = "SOZA_E3B_RUNTIME_EXCHANGE_ARCHIVE_A"
-	runtimeExchangeBArchiveEnv              = "SOZA_E3B_RUNTIME_EXCHANGE_ARCHIVE_B"
+	runtimeExchangeKJAtlasSourceModeEnv     = "SEI_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_MODE"
+	runtimeExchangeKJAtlasBackendDirEnv     = "SEI_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_DIR"
+	runtimeExchangeKJAtlasSourceVerifierEnv = "SEI_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_VERIFIER"
+	runtimeExchangeAVersionLogEnv           = "SEI_E3B_RUNTIME_EXCHANGE_VERSION_LOG_A"
+	runtimeExchangeBVersionLogEnv           = "SEI_E3B_RUNTIME_EXCHANGE_VERSION_LOG_B"
+	runtimeExchangeAArchiveEnv              = "SEI_E3B_RUNTIME_EXCHANGE_ARCHIVE_A"
+	runtimeExchangeBArchiveEnv              = "SEI_E3B_RUNTIME_EXCHANGE_ARCHIVE_B"
 
 	runtimeExchangeKJAtlasSourceModeGitCheckout = "git-checkout"
 	runtimeExchangeKJAtlasSourceModeBundle      = "verified-runtime-bundle"
@@ -38,7 +38,7 @@ const (
 // 実行条件へ混入し得るためです。live Evidenceでは、固定commit objectからexportした
 // runtime surfaceか、同じGit object identityを持つ外部bundleを必ずverifierへ通します。
 func TestMain(m *testing.M) {
-	if os.Getenv("SOZA_E3B_RUNTIME_EXCHANGE_LIVE") == "1" {
+	if os.Getenv("SEI_E3B_RUNTIME_EXCHANGE_LIVE") == "1" {
 		if err := verifyRuntimeExchangeKJAtlasSource(); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)

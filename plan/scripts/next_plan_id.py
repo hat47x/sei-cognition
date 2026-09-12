@@ -24,7 +24,7 @@ def next_number(directory: Path, pattern: re.Pattern[str]) -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="次のSOZA plan ID候補を表示する")
+    parser = argparse.ArgumentParser(description="次のSEI plan ID候補を表示する")
     parser.add_argument("kind", choices=("adr", "issue", "all"), nargs="?", default="all")
     args = parser.parse_args()
 

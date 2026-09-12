@@ -7,7 +7,7 @@ Updated: 2026-09-01
 
 ## Goal
 
-個別Contract、fixture、runtime sliceの成立だけでなく、利用者から見た一続きの判断仕事としてSOZAの価値を確認できる**代表的なend-to-end Acceptance Scenario**を定義する。
+個別Contract、fixture、runtime sliceの成立だけでなく、利用者から見た一続きの判断仕事としてSEIの価値を確認できる**代表的なend-to-end Acceptance Scenario**を定義する。
 
 このScenarioを固定workflow ontologyにはせず、Product Shapeと既存REQ / SCNを横断してMinimum Usable Product Shapeを検査するためのgolden journeyとして扱う。
 
@@ -55,7 +55,7 @@ Product Journeyの順序、Workspace、Session、画面遷移等をそのままU
 - **uncertain path** — Unknown / Conflictを残したままDecisionし、後日得たObservationから再開する。
 - **collaborative path** — AIがMethod Application / Recommendationを担い、人間または明示的に委任された主体がDecisionする。actor種別だけからAuthorityを推定しない。
 - **provider replacement path** — 後続実行でProviderを交換しても、以前のDecision identityとbasisを読み直せる。
-- **no-execution path** — Decisionまでで完結し、外部実行がなくてもSOZA上の記録価値が成立する。
+- **no-execution path** — Decisionまでで完結し、外部実行がなくてもSEI上の記録価値が成立する。
 
 ## SCN-0018で守る意味境界
 

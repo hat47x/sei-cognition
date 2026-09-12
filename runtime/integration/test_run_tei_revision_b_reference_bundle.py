@@ -26,7 +26,7 @@ class TEIRevisionBReferenceBundleRunnerTest(unittest.TestCase):
         run.parent.mkdir(parents=True, exist_ok=True)
         run.write_text("{}\n", encoding="utf-8")
         return {
-            "schema": "soza.tei-fixed-reference-input-bundle/v1",
+            "schema": "sei.tei-fixed-reference-input-bundle/v1",
             "result": "verified",
             "acquisitionMode": "historical_evidence_bundle",
             "archive": str(archive),

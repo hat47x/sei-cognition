@@ -6,7 +6,7 @@ Updated: 2026-09-01
 
 ## Context
 
-SOZAはADR-0004でBounded SubjectとResponsibilityを、ADR-0016で外部Execution ProviderのAuthorizationを分離しています。一方、実際の製品では、loginした主体がSOZAのrecordをread / append / review / share / administerしてよいかを評価するProduct Access Controlが必要になります。
+SEIはADR-0004でBounded SubjectとResponsibilityを、ADR-0016で外部Execution ProviderのAuthorizationを分離しています。一方、実際の製品では、loginした主体がSEIのrecordをread / append / review / share / administerしてよいかを評価するProduct Access Controlが必要になります。
 
 semantic ResponsibilityやAuthorityをそのままProduct roleへ変換すると、過去Decisionの意味と現在の製品permissionが混ざります。逆に、Product administratorやworkspace owner等の製品roleからDecision Authorityを推定すると、製品運用上の権限が判断責任へ誤って昇格します。
 

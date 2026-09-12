@@ -1,4 +1,4 @@
-# SOZA KJ working documents
+# SEI KJ working documents
 
 更新日: 2026-09-01  
 状態: **Current guidance for KJ working records**
@@ -24,7 +24,7 @@ KJ文書とcurrent判断の関係は次のとおりです。
 
 | KJ文書 | 主な検討 | current landing |
 |---|---|---|
-| `2026-08-31_TEI設計系列_ラウンドKJ統合.md` | SOZA / TEI境界、Capability / Provider、Inquiry、Authorization、Reference Model等の広域統合 | ADR-0014〜0017、ADR-0019、および後続のArchitecture / Contract / Runtimeへ分岐して反映 |
+| `2026-08-31_TEI設計系列_ラウンドKJ統合.md` | SEI / TEI境界、Capability / Provider、Inquiry、Authorization、Reference Model等の広域統合 | ADR-0014〜0017、ADR-0019、および後続のArchitecture / Contract / Runtimeへ分岐して反映 |
 | `2026-08-31_RequirementInquiry_AuthorizationEvidence_ラウンドKJ.md` | Requirement Inquiry、Question identity、Decision Memory、Authorization Evidence | Requirement InquiryはADR-0015、Authorization EvidenceはADR-0016でAccepted |
 | `2026-08-31_ReferenceModel_CapabilityObservation_ラウンドKJ.md` | Reference Model / Cognitive Method、TEI Capability Observation surface | Reference Model / Cognitive MethodはADR-0017、Provider-neutral Capability ObservationはADR-0019、実装上のAdapter境界はADR-0024でAccepted |
 

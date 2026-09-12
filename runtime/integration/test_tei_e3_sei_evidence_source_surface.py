@@ -18,15 +18,15 @@ EXPECTED_EXECUTION_PATHS = {
 }
 
 
-class TEIE3SOZAEvidenceSourceSurfaceTest(unittest.TestCase):
+class TEIE3SEIEvidenceSourceSurfaceTest(unittest.TestCase):
     def make_repo(self, root: Path) -> Path:
-        repo = root / "soza"
+        repo = root / "sei"
         for relative in EXPECTED_EXECUTION_PATHS:
             path = repo / relative
             if relative == "runtime/go":
                 path.mkdir(parents=True)
                 (path / "go.mod").write_text(
-                    "module example.invalid/soza\n\ngo 1.25\n", encoding="utf-8"
+                    "module example.invalid/sei\n\ngo 1.25\n", encoding="utf-8"
                 )
             else:
                 path.parent.mkdir(parents=True, exist_ok=True)
@@ -46,12 +46,12 @@ class TEIE3SOZAEvidenceSourceSurfaceTest(unittest.TestCase):
         return repo
 
     def test_actual_handoff_paths_are_in_source_identity_boundary(self):
-        self.assertTrue(EXPECTED_EXECUTION_PATHS.issubset(set(subject.SOZA_EVIDENCE_PATHS)))
+        self.assertTrue(EXPECTED_EXECUTION_PATHS.issubset(set(subject.SEI_EVIDENCE_PATHS)))
 
     def test_clean_full_execution_surface_is_verified(self):
         with tempfile.TemporaryDirectory() as tmp:
             repo = self.make_repo(Path(tmp))
-            result = subject._verify_soza_source_identity(repo)
+            result = subject._verify_sei_source_identity(repo)
         self.assertTrue(result["worktreeCleanWithinBoundary"])
         self.assertEqual(EXPECTED_EXECUTION_PATHS, set(result["objects"]))
 
@@ -68,7 +68,7 @@ class TEIE3SOZAEvidenceSourceSurfaceTest(unittest.TestCase):
             helper.write_text("# ignored replacement\n", encoding="utf-8")
 
             with self.assertRaisesRegex(ValueError, "ignored"):
-                subject._verify_soza_source_identity(repo)
+                subject._verify_sei_source_identity(repo)
 
     def test_ignored_path_safety_helper_is_rejected(self):
         self.assert_ignored_helper_is_rejected(

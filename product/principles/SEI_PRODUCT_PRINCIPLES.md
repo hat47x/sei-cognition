@@ -1,23 +1,23 @@
-# SOZA Product Principles
+# SEI Product Principles
 
 更新日: 2026-09-01  
 状態: **Product Principles Baseline**
 
 ## 1. この文書の役割
 
-この文書は、`SOZA_PRODUCT_VALUE.md`と`SOZA_VALUE_MODEL.md`で定めた価値を、Milestone、Requirements、ADR、Architecture、Implementationへ落とすときに繰り返し適用する設計原則をまとめます。
+この文書は、`SEI_PRODUCT_VALUE.md`と`SEI_VALUE_MODEL.md`で定めた価値を、Milestone、Requirements、ADR、Architecture、Implementationへ落とすときに繰り返し適用する設計原則をまとめます。
 
-個別の型やAPIを直接決める文書ではありません。下位設計で迷ったときに、どちらの方向がSOZAのProduct Valueへ近いかを判断するために使います。
+個別の型やAPIを直接決める文書ではありません。下位設計で迷ったときに、どちらの方向がSEIのProduct Valueへ近いかを判断するために使います。
 
 ## 2. 意味を実装より先に置く
 
-SOZAでは、現在のコード、データベース、Prompt、workflow、agent runtimeを製品の恒久的な中心とはみなしません。
+SEIでは、現在のコード、データベース、Prompt、workflow、agent runtimeを製品の恒久的な中心とはみなしません。
 
 まず守るべき意味の違いを定め、その後で実現手段を選びます。実装が便利だからという理由だけで意味構造を決めません。
 
 ## 3. 観測・解釈・提案・判断を混ぜない
 
-SOZAでは、見えたもの、そこから読み取ったこと、採るべきだと考えた案、実際に採用したDecisionを必要な範囲で分けます。
+SEIでは、見えたもの、そこから読み取ったこと、採るべきだと考えた案、実際に採用したDecisionを必要な範囲で分けます。
 
 ```text
 Observation
@@ -70,7 +70,7 @@ Capability != Provider
 
 ## 9. Providerを交換可能にする
 
-SOZAの意味構造は、特定のAIモデル、SaaS、workflow engine、BPM、TEI、DB等を交換しても保てることを目指します。
+SEIの意味構造は、特定のAIモデル、SaaS、workflow engine、BPM、TEI、DB等を交換しても保てることを目指します。
 
 Provider固有の情報が必要な場合は、Coreへ一般化する前にProvider / Profile側へ置けないかを検討します。
 
@@ -120,13 +120,13 @@ M48、M49等のhistorical Milestoneは開発上の順序です。
 
 ## 15. code shedding / prompt sheddingを前提とする
 
-より優れたAIや標準技術が現れ、SOZA内部のコードやPromptが不要になった場合は、無理に維持しません。
+より優れたAIや標準技術が現れ、SEI内部のコードやPromptが不要になった場合は、無理に維持しません。
 
 削れる実装は削り、意味契約と検証可能な境界を残します。
 
 ## 16. human-readableを設計品質として扱う
 
-SOZAの重要な文書・Artifactは、機械が処理できるだけでなく、人間が読んで意味を確認できることを重視します。
+SEIの重要な文書・Artifactは、機械が処理できるだけでなく、人間が読んで意味を確認できることを重視します。
 
 開発文書については、内容と構造を作成した後に、意味や仕様を変えず、**自然な日本語となることを最重要視して全文をドラフトし直す工程**を必ず設けます。
 
@@ -147,15 +147,15 @@ Method Application != Assurance
 
 ## 18. Product Valueを単一スコアへ潰さない
 
-SOZAの価値は、単一の総合点やUniversal Scoreへ還元しません。
+SEIの価値は、単一の総合点やUniversal Scoreへ還元しません。
 
-`SOZA_VALUE_MODEL.md`のV1〜V8をはじめとする複数の観点から、何を満たし、どこにtrade-offや未充足が残るかを個別に確認します。
+`SEI_VALUE_MODEL.md`のV1〜V8をはじめとする複数の観点から、何を満たし、どこにtrade-offや未充足が残るかを個別に確認します。
 
 一つの評価軸で優れていることを理由に、別の重大な価値欠損を相殺したことにはしません。
 
 ## 19. 関連製品を特権化しない
 
-TEIを含む関連製品・技術を、SOZAとの関係が近いという理由で自動的に優先しません。
+TEIを含む関連製品・技術を、SEIとの関係が近いという理由で自動的に優先しません。
 
 同じIntent、Constraint、Evidence、Decision境界のもとで、他のCapability Providerと比較可能であることを原則とします。
 
@@ -186,10 +186,10 @@ Product Valueの変更後は、影響するMilestone、Requirements、ADR、Arch
 
 ## 22. 関連文書
 
-- `product/value/SOZA_PRODUCT_VALUE.md`
-- `product/value/SOZA_VALUE_MODEL.md`
-- `product/vision/SOZA_PRODUCT_VISION.md`
-- `product/roadmap/SOZA_PRODUCT_MILESTONES.md`
+- `product/value/SEI_PRODUCT_VALUE.md`
+- `product/value/SEI_VALUE_MODEL.md`
+- `product/vision/SEI_PRODUCT_VISION.md`
+- `product/roadmap/SEI_PRODUCT_MILESTONES.md`
 - `plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`
 - `plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md`
 

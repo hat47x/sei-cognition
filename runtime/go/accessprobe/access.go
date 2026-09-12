@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/hat47x/soza/runtime/go/interactionprobe"
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/interactionprobe"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 // BoundedSubjectRef はADR-0004の主体境界をreference probeで扱うための最小表現です。

@@ -13,27 +13,27 @@
 
 ## 1. 前提
 
-actual runtime archiveはLinux / amd64固定です。SOZAとKJ AtlasはcleanなGit checkoutを利用し、KJ Atlas checkoutには固定commit object `4f28c13abe4176503c6fed863383a2d1db2299e9` が存在する必要があります。
+actual runtime archiveはLinux / amd64固定です。SEIとKJ AtlasはcleanなGit checkoutを利用し、KJ Atlas checkoutには固定commit object `4f28c13abe4176503c6fed863383a2d1db2299e9` が存在する必要があります。
 
-artifact、Evidence、workはSOZA / KJ Atlas repository外へ置きます。
+artifact、Evidence、workはSEI / KJ Atlas repository外へ置きます。
 
 以下では例として同じ外部parentを利用します。
 
 ```bash
-export SOZA_RUNTIME_EXCHANGE_ROOT="$HOME/soza-runtime-exchange"
-export SOZA_RUNTIME_EXCHANGE_INPUTS="$SOZA_RUNTIME_EXCHANGE_ROOT/inputs"
-export SOZA_RUNTIME_EXCHANGE_EVIDENCE="$SOZA_RUNTIME_EXCHANGE_ROOT/evidence-$(date -u +%Y%m%dT%H%M%SZ)"
-export SOZA_RUNTIME_EXCHANGE_VERIFY="$SOZA_RUNTIME_EXCHANGE_EVIDENCE-verification.json"
-export SOZA_RUNTIME_EXCHANGE_PROGRESS="$SOZA_RUNTIME_EXCHANGE_EVIDENCE-progress.json"
+export SEI_RUNTIME_EXCHANGE_ROOT="$HOME/sei-runtime-exchange"
+export SEI_RUNTIME_EXCHANGE_INPUTS="$SEI_RUNTIME_EXCHANGE_ROOT/inputs"
+export SEI_RUNTIME_EXCHANGE_EVIDENCE="$SEI_RUNTIME_EXCHANGE_ROOT/evidence-$(date -u +%Y%m%dT%H%M%SZ)"
+export SEI_RUNTIME_EXCHANGE_VERIFY="$SEI_RUNTIME_EXCHANGE_EVIDENCE-verification.json"
+export SEI_RUNTIME_EXCHANGE_PROGRESS="$SEI_RUNTIME_EXCHANGE_EVIDENCE-progress.json"
 ```
 
-`$SOZA_RUNTIME_EXCHANGE_INPUTS`は再利用可能な固定artifact置き場です。Evidence、verification output、progress outputはrunごとに新しいpathを使います。verification / progress outputはEvidence directoryの外へ置きます。
+`$SEI_RUNTIME_EXCHANGE_INPUTS`は再利用可能な固定artifact置き場です。Evidence、verification output、progress outputはrunごとに新しいpathを使います。verification / progress outputはEvidence directoryの外へ置きます。
 
 ## 2. 固定runtime A/B archiveとmodel storeを先に準備する
 
 ```bash
 python3 runtime/integration/prepare_runtime_version_exchange_inputs.py \
-  --root "$SOZA_RUNTIME_EXCHANGE_INPUTS"
+  --root "$SEI_RUNTIME_EXCHANGE_INPUTS"
 ```
 
 この入口は既存helperを順に利用します。
@@ -56,7 +56,7 @@ requirePrepositionedArtifacts
 
 ```bash
 python3 runtime/integration/prepare_runtime_version_exchange_inputs.py \
-  --root "$SOZA_RUNTIME_EXCHANGE_INPUTS" \
+  --root "$SEI_RUNTIME_EXCHANGE_INPUTS" \
   --verify-only
 ```
 
@@ -66,10 +66,10 @@ python3 runtime/integration/prepare_runtime_version_exchange_inputs.py \
 
 ```bash
 python3 runtime/integration/run_runtime_version_exchange_prepositioned.py \
-  --artifact-root "$SOZA_RUNTIME_EXCHANGE_INPUTS" \
+  --artifact-root "$SEI_RUNTIME_EXCHANGE_INPUTS" \
   --kj-atlas-dir /path/to/kj-atlas \
-  --evidence-dir "$SOZA_RUNTIME_EXCHANGE_EVIDENCE" \
-  --verification-output "$SOZA_RUNTIME_EXCHANGE_VERIFY"
+  --evidence-dir "$SEI_RUNTIME_EXCHANGE_EVIDENCE" \
+  --verification-output "$SEI_RUNTIME_EXCHANGE_VERIFY"
 ```
 
 この入口はactual processを開始する前に、`prepare_runtime_version_exchange_inputs.py --verify-only`と同じ固定artifact再検証を行います。その結果からmodel store、runtime A、runtime Bのpathを取得し、`--require-prepositioned-artifacts`を付けて標準verified runnerへ委譲します。
@@ -97,10 +97,10 @@ prepositioned root
 ```bash
 python3 runtime/integration/check_runtime_version_exchange_preflight.py \
   --kj-atlas-dir /path/to/kj-atlas \
-  --runtime-a-archive "$SOZA_RUNTIME_EXCHANGE_INPUTS/runtime-archives/ollama-0.32.13-linux-amd64.tar.zst" \
-  --runtime-b-archive "$SOZA_RUNTIME_EXCHANGE_INPUTS/runtime-archives/ollama-0.32.14-linux-amd64.tar.zst" \
-  --model-dir "$SOZA_RUNTIME_EXCHANGE_INPUTS/ollama-models" \
-  --evidence-dir "$SOZA_RUNTIME_EXCHANGE_EVIDENCE" \
+  --runtime-a-archive "$SEI_RUNTIME_EXCHANGE_INPUTS/runtime-archives/ollama-0.32.13-linux-amd64.tar.zst" \
+  --runtime-b-archive "$SEI_RUNTIME_EXCHANGE_INPUTS/runtime-archives/ollama-0.32.14-linux-amd64.tar.zst" \
+  --model-dir "$SEI_RUNTIME_EXCHANGE_INPUTS/ollama-models" \
+  --evidence-dir "$SEI_RUNTIME_EXCHANGE_EVIDENCE" \
   --require-prepositioned-artifacts \
   --json
 ```
@@ -112,13 +112,13 @@ python3 runtime/integration/check_runtime_version_exchange_preflight.py \
 ```bash
 python3 runtime/integration/run_runtime_version_exchange_with_verification.py \
   --kj-atlas-dir /path/to/kj-atlas \
-  --model-dir "$SOZA_RUNTIME_EXCHANGE_INPUTS/ollama-models" \
-  --evidence-dir "$SOZA_RUNTIME_EXCHANGE_EVIDENCE" \
-  --verification-output "$SOZA_RUNTIME_EXCHANGE_VERIFY" \
+  --model-dir "$SEI_RUNTIME_EXCHANGE_INPUTS/ollama-models" \
+  --evidence-dir "$SEI_RUNTIME_EXCHANGE_EVIDENCE" \
+  --verification-output "$SEI_RUNTIME_EXCHANGE_VERIFY" \
   --require-prepositioned-artifacts \
   -- \
-  --runtime-a-archive "$SOZA_RUNTIME_EXCHANGE_INPUTS/runtime-archives/ollama-0.32.13-linux-amd64.tar.zst" \
-  --runtime-b-archive "$SOZA_RUNTIME_EXCHANGE_INPUTS/runtime-archives/ollama-0.32.14-linux-amd64.tar.zst"
+  --runtime-a-archive "$SEI_RUNTIME_EXCHANGE_INPUTS/runtime-archives/ollama-0.32.13-linux-amd64.tar.zst" \
+  --runtime-b-archive "$SEI_RUNTIME_EXCHANGE_INPUTS/runtime-archives/ollama-0.32.14-linux-amd64.tar.zst"
 ```
 
 標準verified runnerは実行直前にもpreflightを再実行します。したがって手動preflightとactual runの間で状態が変化した場合も、そのままstrict実行へ進めません。
@@ -129,8 +129,8 @@ actual run後、保存済みEvidenceから「どこまで観測できたか」�
 
 ```bash
 python3 runtime/integration/observe_runtime_version_exchange_progress.py \
-  --evidence-dir "$SOZA_RUNTIME_EXCHANGE_EVIDENCE" \
-  --output "$SOZA_RUNTIME_EXCHANGE_PROGRESS"
+  --evidence-dir "$SEI_RUNTIME_EXCHANGE_EVIDENCE" \
+  --output "$SEI_RUNTIME_EXCHANGE_PROGRESS"
 ```
 
 このobserverはEvidence directoryをread-only入力として扱い、stderr / stdoutの自然言語からfailure原因を推測しません。固定model store、KJ Atlas source、runtime A/B archive SHA-256、固定Method input、A/B version / model digest / inference、prompt identityなど、Evidenceから直接確認できるmilestoneだけを順に評価します。

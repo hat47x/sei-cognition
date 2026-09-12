@@ -47,7 +47,7 @@ class LocalResolutionAuditTest(unittest.TestCase):
 
     def source_verification(self, repo: Path):
         return {
-            "schema": "soza.tei-execution-source-identity/v1",
+            "schema": "sei.tei-execution-source-identity/v1",
             "result": "verified",
             "repositoryRoot": str(repo),
             "head": subject.source_identity.REVISION_B,
@@ -71,7 +71,7 @@ class LocalResolutionAuditTest(unittest.TestCase):
             result = subject.audit_local_resolution(
                 root / "canonical.json",
                 revision_b_source_repo=source_repo,
-                soza_repo_root=root / "soza",
+                sei_repo_root=root / "sei",
             )
 
         self.assertEqual(subject.SCHEMA, result["schema"])
@@ -105,7 +105,7 @@ class LocalResolutionAuditTest(unittest.TestCase):
             result = subject.audit_local_resolution(
                 root / "canonical.json",
                 revision_b_source_repo=source_repo,
-                soza_repo_root=root / "soza",
+                sei_repo_root=root / "sei",
             )
 
         self.assertFalse(result["resolutionCandidate"])
@@ -156,7 +156,7 @@ class LocalResolutionAuditTest(unittest.TestCase):
             result = subject.audit_local_resolution(
                 root / "canonical.json",
                 revision_b_source_repo=source_repo,
-                soza_repo_root=root / "soza",
+                sei_repo_root=root / "sei",
                 checkout_preparation_report=report,
             )
 
@@ -205,7 +205,7 @@ class LocalResolutionAuditTest(unittest.TestCase):
             result = subject.audit_local_resolution(
                 root / "canonical.json",
                 revision_b_source_repo=source_repo,
-                soza_repo_root=root / "soza",
+                sei_repo_root=root / "sei",
                 checkout_preparation_report=report,
             )
 
@@ -232,7 +232,7 @@ class LocalResolutionAuditTest(unittest.TestCase):
             result = subject.audit_local_resolution(
                 root / "canonical.json",
                 revision_b_source_repo=source_repo,
-                soza_repo_root=root / "soza",
+                sei_repo_root=root / "sei",
             )
 
         self.assertFalse(result["resolutionCandidate"])

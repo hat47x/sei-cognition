@@ -11,7 +11,7 @@ from pathlib import Path
 
 INTEGRATION_DIR = Path(__file__).resolve().parent
 ARTIFACT_MANIFEST = INTEGRATION_DIR / "runtime_version_exchange_artifacts.json"
-RESULT_SCHEMA = "soza.runtime-version-exchange-model-store-verification/v1"
+RESULT_SCHEMA = "sei.runtime-version-exchange-model-store-verification/v1"
 DIGEST_PATTERN = re.compile(r"^sha256:([0-9a-f]{64})$")
 
 

@@ -9,12 +9,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
-// Descriptor identifies one version-pinned artifact owned outside SOZA.
+// Descriptor identifies one version-pinned artifact owned outside SEI.
 // Repository, commit, path, and Git blob identity are acquisition/provenance
-// metadata for this reference probe. They are not SOZA Universal semantic fields.
+// metadata for this reference probe. They are not SEI Universal semantic fields.
 type Descriptor struct {
 	ID          string `json:"id"`
 	Repository  string `json:"repository"`
@@ -87,7 +87,7 @@ type provenancePayload struct {
 }
 
 // ProvenanceRecord keeps external source identity as an opaque not_verified
-// record. SOZA preserves the provenance without pretending that repository or
+// record. SEI preserves the provenance without pretending that repository or
 // Git concepts are a Universal semantic Contract.
 func ProvenanceRecord(artifact VerifiedArtifact) (semanticruntime.RuntimeRecord, error) {
 	if err := artifact.Descriptor.Validate(); err != nil {

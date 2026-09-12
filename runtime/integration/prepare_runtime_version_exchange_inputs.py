@@ -20,8 +20,8 @@ from verify_runtime_version_exchange_model_store import verify_model_store
 
 
 INTEGRATION_DIR = Path(__file__).resolve().parent
-SOZA_ROOT = INTEGRATION_DIR.parents[1]
-RESULT_SCHEMA = "soza.runtime-version-exchange-prepositioned-input-preparation/v1"
+SEI_ROOT = INTEGRATION_DIR.parents[1]
+RESULT_SCHEMA = "sei.runtime-version-exchange-prepositioned-input-preparation/v1"
 STOP_LINE = (
     "prepositioned input preparation PASS != actual Ollama /api/tags observation PASS "
     "!= actual runtime A/B inference PASS != runtime-version-exchange Scoped Executable Evidence"
@@ -38,9 +38,9 @@ def validate_preparation_root(root: Path) -> Path:
     requested = root.expanduser()
     reject_symlink_path_or_ancestors(requested, "prepositioned input root")
     resolved = requested.resolve(strict=False)
-    if _is_within(resolved, SOZA_ROOT):
+    if _is_within(resolved, SEI_ROOT):
         raise ValueError(
-            "prepositioned input rootをSOZA repository配下には配置できません: "
+            "prepositioned input rootをSEI repository配下には配置できません: "
             f"{resolved}"
         )
     if resolved.exists() and not resolved.is_dir():
@@ -179,7 +179,7 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
         type=Path,
         help=(
-            "SOZA repository外のartifact root。runtime-archives/とollama-models/を利用します。"
+            "SEI repository外のartifact root。runtime-archives/とollama-models/を利用します。"
             "既存rootは固定artifactの再利用に使えます。"
         ),
     )

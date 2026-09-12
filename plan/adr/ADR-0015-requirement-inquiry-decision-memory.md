@@ -8,7 +8,7 @@ Updated: 2026-08-31
 
 業務システムの設計支援では、変更履歴、1:N関係、部分処理、承認、取消後履歴、時点依存等、意味に影響する曖昧性についてだけ控えめに確認し、一度回答した質問を同じ前提のまま無条件に繰り返さないUXが求められる。
 
-この履歴をAuthoring clientのchat sessionだけへ置くと、sessionやUIが変わった時点で判断の来歴を失いやすい。一方で、質問dialog、表示文、dismiss状態までSOZA Coreへ持ち込むと、現在のUI実装が意味モデルへ固定されてしまう。
+この履歴をAuthoring clientのchat sessionだけへ置くと、sessionやUIが変わった時点で判断の来歴を失いやすい。一方で、質問dialog、表示文、dismiss状態までSEI Coreへ持ち込むと、現在のUI実装が意味モデルへ固定されてしまう。
 
 そこで、Questionの意味、AI等による回答候補、利用者・組織等のDecision、後日の再審査を分けて扱う。
 
@@ -64,7 +64,7 @@ AI answer proposal != Requirement Decision
 
 典型業務でどの問いを候補提示するか、どの条件で確認modeへ入るか、どの日本語で表示するかは、Cognitive Method、domain-specific Design Knowledge、Authoring Profile等が所有できる。
 
-SOZA Coreは、質問catalogやUI session lifecycleを所有しない。
+SEI Coreは、質問catalogやUI session lifecycleを所有しない。
 
 ## Current realization
 

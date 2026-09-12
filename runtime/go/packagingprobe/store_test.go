@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 func fixture(t *testing.T, name string) []byte {
@@ -156,7 +156,7 @@ func TestInvalidCanonicalFileIsRejected(t *testing.T) {
 
 func TestTemporaryFileAloneIsNotACompletedPackage(t *testing.T) {
 	root := t.TempDir()
-	if err := os.WriteFile(filepath.Join(root, ".soza-package-interrupted.tmp"), []byte(`partial`), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(root, ".sei-package-interrupted.tmp"), []byte(`partial`), 0o600); err != nil {
 		t.Fatalf("write temporary file: %v", err)
 	}
 	_, err := LoadBundle(context.Background(), FilePersistence{DataRoot: root})

@@ -33,11 +33,11 @@ class TEIE2PartialResumeResolutionAuditTest(unittest.TestCase):
             "referenceInputAcquisition": "historical_evidence_bundle",
             "referenceInputBundle": "/historical/a.tar.gz",
             "teiGoRequirement": subject.partial_runner.e2_runner.EXPECTED_GO_VERSION,
-            "sozaGoRequirement": "go1.25.0",
+            "seiGoRequirement": "go1.25.0",
             "teiGoExecutable": "/toolchains/go1.23.2/bin/go",
-            "sozaGoExecutable": "/toolchains/go1.25/bin/go",
-            "expectedSozaHead": "soza-head",
-            "sozaGoObserved": "go version go1.25.1 linux/amd64",
+            "seiGoExecutable": "/toolchains/go1.25/bin/go",
+            "expectedSeiHead": "sei-head",
+            "seiGoObserved": "go version go1.25.1 linux/amd64",
         }
 
     def test_resumed_success_is_accepted_by_existing_resolution_audit_boundaries(self):
@@ -48,8 +48,8 @@ class TEIE2PartialResumeResolutionAuditTest(unittest.TestCase):
         }
         e3 = {
             "result": "adapter_compatible",
-            "sozaSource": {"head": "soza-head"},
-            "postLiveTestSozaSource": {"head": "soza-head"},
+            "seiSource": {"head": "sei-head"},
+            "postLiveTestSeiSource": {"head": "sei-head"},
         }
         canonical = {
             "schema": subject.version_exchange.SCHEMA,
@@ -110,7 +110,7 @@ class TEIE2PartialResumeResolutionAuditTest(unittest.TestCase):
             "e3": None,
             "failure": {
                 "stage": "E3",
-                "substage": "soza_teiintegration_live_test",
+                "substage": "sei_teiintegration_live_test",
                 "type": "TEIAdapterStageError",
                 "message": "failure",
             },
@@ -124,7 +124,7 @@ class TEIE2PartialResumeResolutionAuditTest(unittest.TestCase):
         self.assertEqual("satisfied", e3_criterion["status"])
         self.assertEqual("failed", e3_criterion["detail"]["outcome"])
         self.assertEqual(
-            "soza_teiintegration_live_test",
+            "sei_teiintegration_live_test",
             e3_criterion["detail"]["substage"],
         )
 

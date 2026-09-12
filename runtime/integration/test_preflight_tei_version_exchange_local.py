@@ -11,9 +11,9 @@ class LocalPreflightTest(unittest.TestCase):
         patches = [
             mock.patch.object(subject.common, "_check_platform", return_value={"linuxAmd64": True}),
             mock.patch.object(subject.common, "_check_reference_input", return_value={"mode": "historical_evidence_bundle"}),
-            mock.patch.object(subject.common, "_check_soza_source", return_value={"head": "s" * 40}),
+            mock.patch.object(subject.common, "_check_sei_source", return_value={"head": "s" * 40}),
             mock.patch.object(subject.common, "_check_tei_go", return_value={"exactMatch": True}),
-            mock.patch.object(subject.common, "_check_soza_go", return_value={"requirementSatisfied": True}),
+            mock.patch.object(subject.common, "_check_sei_go", return_value={"requirementSatisfied": True}),
         ]
         return patches
 
@@ -35,11 +35,11 @@ class LocalPreflightTest(unittest.TestCase):
             Path("/src"),
             Path("/checkout"),
             None,
-            Path("/soza"),
+            Path("/sei"),
             Path("/evidence"),
             reference_evidence_bundle=Path("/a.tar.gz"),
             tei_go_executable=Path("/go123/bin/go"),
-            soza_go_executable=Path("/go125/bin/go"),
+            sei_go_executable=Path("/go125/bin/go"),
         )
 
         self.assertTrue(result["ready"])
@@ -65,11 +65,11 @@ class LocalPreflightTest(unittest.TestCase):
             Path("/src"),
             Path("/checkout"),
             None,
-            Path("/soza"),
+            Path("/sei"),
             Path("/evidence"),
             reference_evidence_bundle=Path("/a.tar.gz"),
             tei_go_executable=Path("/go123/bin/go"),
-            soza_go_executable=Path("/go125/bin/go"),
+            sei_go_executable=Path("/go125/bin/go"),
         )
 
         self.assertFalse(result["ready"])
@@ -131,9 +131,9 @@ class LocalPreflightTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             source = root / "source"
-            soza = root / "soza"
+            sei = root / "sei"
             source.mkdir()
-            soza.mkdir()
+            sei.mkdir()
             evidence = root / "workspace"
             checkout = evidence / "tei-b"
             evidence.mkdir()
@@ -141,7 +141,7 @@ class LocalPreflightTest(unittest.TestCase):
                 subject._check_checkout_output_path(
                     checkout,
                     source_repo=source,
-                    soza_repo_root=soza,
+                    sei_repo_root=sei,
                     reference_source_repo=None,
                     reference_evidence_bundle=None,
                     evidence_output_dir=evidence,

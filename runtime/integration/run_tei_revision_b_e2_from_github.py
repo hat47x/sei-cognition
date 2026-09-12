@@ -14,12 +14,12 @@ import run_tei_version_exchange_evidence as version_exchange
 import run_tei_version_exchange_from_github as github_runner
 from runtime_path_safety import reject_symlink_path_or_ancestors
 
-SCHEMA = "soza.tei-revision-b-e2-github-run/v1"
+SCHEMA = "sei.tei-revision-b-e2-github-run/v1"
 REPORT_NAME = "tei-revision-b-e2-github.json"
 BUNDLE_NAME = "tei-e3b-p2-revision-b-e2-partial.tar.gz"
-SOZA_ROOT = Path(__file__).resolve().parents[2]
+SEI_ROOT = Path(__file__).resolve().parents[2]
 STOP_LINE = (
-    "revision B GitHub acquisition + fixed-scope E2 verified != E3 SOZA Adapter compatibility "
+    "revision B GitHub acquisition + fixed-scope E2 verified != E3 SEI Adapter compatibility "
     "!= arbitrary TEI version compatibility != Operational Evidence != ISSUE-000072 Resolved"
 )
 
@@ -56,7 +56,7 @@ def _prepare_output_dir_before_source(
             f"{resolved}"
         )
 
-    roots: list[tuple[str, Path]] = [("SOZA repository", SOZA_ROOT)]
+    roots: list[tuple[str, Path]] = [("SEI repository", SEI_ROOT)]
     if reference_source_repo is not None:
         roots.append(
             (
@@ -147,7 +147,7 @@ def _verify_e2_prerequisites_before_source(
     e2_runner._ensure_linux_amd64()
     with version_exchange._go_on_path(tei_go_executable) as resolved_go:
         env = e2_runner._controlled_go_env()
-        observation = e2_runner._verify_tei_go_toolchain(SOZA_ROOT, env=env)
+        observation = e2_runner._verify_tei_go_toolchain(SEI_ROOT, env=env)
         observation["executable"] = str(resolved_go)
         return observation
 
@@ -193,12 +193,12 @@ def run_e2_from_github(
 
     source_temp_parent = github_runner._prepare_source_temp_parent(
         output_dir,
-        SOZA_ROOT,
+        SEI_ROOT,
         reference_source_repo,
     )
 
     with tempfile.TemporaryDirectory(
-        prefix="soza-tei-b-e2-github-source-",
+        prefix="sei-tei-b-e2-github-source-",
         dir=source_temp_parent,
     ) as tmp:
         source_repo = Path(tmp) / "tei-revision-b"
@@ -213,7 +213,7 @@ def run_e2_from_github(
             source_repo=source_repo,
             reference_source_repo=reference_source_repo,
             reference_evidence_bundle=reference_evidence_bundle,
-            soza_repo_root=SOZA_ROOT,
+            sei_repo_root=SEI_ROOT,
         )
         verified_output_dir.mkdir(parents=True, exist_ok=True)
         bundle_path = verified_output_dir / BUNDLE_NAME
@@ -279,7 +279,7 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "GitHub Git Data APIからexact revision B sourceを取得し、E3 toolchainの有無とは"
             "独立してISSUE-000072 E2（actual build / deployment-provider-plan / Evidence bundle）"
-            "までを回収します。E3 SOZA Adapter live testは意図的に実行しません。"
+            "までを回収します。E3 SEI Adapter live testは意図的に実行しません。"
         ),
         allow_abbrev=False,
     )

@@ -1,4 +1,4 @@
-# SOZA Realization / Provider Exchange
+# SEI Realization / Provider Exchange
 
 更新日: 2026-09-05  
 状態: **Current Realization / Provider Exchange Design Baseline — E3b-P2 / M1b / historical reconstruction / Ollama runtime exchange reflected, TEI executable revision B actual pending**
@@ -7,7 +7,7 @@
 
 この文書は、PMS-06「実際のMethod / Providerを交換しても判断記憶が保たれる」を進めるために、**何を交換可能とみなし、交換後にも何をcanonicalな判断記憶として守るか**をProduct levelで定めます。
 
-SOZAにとって重要なのは、特定のAI、Prompt、process、SaaS、TEI、custom codeを長く使い続けることではありません。それらが入れ替わった後にも、当時のIntent、Observation、Method Application、Recommendation、Decision、Responsibility、Provenance、Unknown / Conflictを、その時点の意味を壊さず読み直せることです。
+SEIにとって重要なのは、特定のAI、Prompt、process、SaaS、TEI、custom codeを長く使い続けることではありません。それらが入れ替わった後にも、当時のIntent、Observation、Method Application、Recommendation、Decision、Responsibility、Provenance、Unknown / Conflictを、その時点の意味を壊さず読み直せることです。
 
 交換可能性は「別実装でも動いた」という一点では判断しません。実行手段を交換したあとも、どの実現を使い、何が起き、何が未検証で、過去の判断がどのbasisに基づいていたかへ戻れることを重視します。
 
@@ -94,11 +94,11 @@ Capability
    └─ Provider B
 ```
 
-Provider固有stateは、そのままSOZA Universal Provider Stateへ統合しません。Provider Adapterを介し、その判断文脈で必要な観測だけをCapability Observationへmappingします。
+Provider固有stateは、そのままSEI Universal Provider Stateへ統合しません。Provider Adapterを介し、その判断文脈で必要な観測だけをCapability Observationへmappingします。
 
 ProviderをAからBへ変えても、Capability identityを自動的に変更しません。また、新しいProvider Observationが得られても、過去Decisionがbasisとして使ったAのObservationをBへ差し替えません。
 
-TEIもこの原則の例外ではありません。TEI固有のExecutor、Observation route、Evidence route、Plugin Runtime、deployment state、executable version、Provider Plan固有field等はTEI側の表現として扱い、SOZAのUniversal Provider schemaへ昇格させません。
+TEIもこの原則の例外ではありません。TEI固有のExecutor、Observation route、Evidence route、Plugin Runtime、deployment state、executable version、Provider Plan固有field等はTEI側の表現として扱い、SEIのUniversal Provider schemaへ昇格させません。
 
 ```text
 TEI executable revision
@@ -141,7 +141,7 @@ current baselineではGitHub Actionsを常設していません。過去のActio
 
 ### E2 — out-of-process reference exchange
 
-ISSUE-000057では、Method RealizationとProvider state sourceをSOZA runtimeとは別のOS processとして実行し、出力をcurrent Contract / Adapterへ戻しました。
+ISSUE-000057では、Method RealizationとProvider state sourceをSEI runtimeとは別のOS processとして実行し、出力をcurrent Contract / Adapterへ戻しました。
 
 Provider / Methodを交換してもhistorical Decisionを変更しないこと、異なるRecommendationをDecisionへ自動昇格しないこと等を確認しています。
 
@@ -149,7 +149,7 @@ Provider / Methodを交換してもhistorical Decisionを変更しないこと�
 
 ### E3a — version固定した実外部artifact integration
 
-ISSUE-000058では、SOZAとは別repositoryで独立にversion管理される実artifactを扱いました。
+ISSUE-000058では、SEIとは別repositoryで独立にversion管理される実artifactを扱いました。
 
 #### Cognitive Method artifact
 
@@ -167,7 +167,7 @@ private repositoryへのlive accessを常設の検証条件へ暗黙に要求せ
 
 ## 6. E3b — live external process / service integration
 
-E3bでは、version固定artifactを読むだけでなく、SOZAとは独立した外部process / serviceを実際に呼びます。
+E3bでは、version固定artifactを読むだけでなく、SEIとは独立した外部process / serviceを実際に呼びます。
 
 一度にproduction integrationまで固定せず、現在はEvidenceを次へ分けています。
 
@@ -178,7 +178,7 @@ E3b-M1a live KJ Atlas process + deterministic model stub
 E3b-M1b live external model-backed KJ execution
 ```
 
-P1 / P2 / M1a / M1bはEvidence範囲を明らかにするための作業上の名称であり、SOZAのUniversal ontologyではありません。
+P1 / P2 / M1a / M1bはEvidence範囲を明らかにするための作業上の名称であり、SEIのUniversal ontologyではありません。
 
 ### 6.1 E3b-P1 — public live Provider service
 
@@ -199,14 +199,14 @@ TEI source / binary acquisition
   != credential resolution
   != external process invocation
   != Provider-specific JSON decoding
-  != SOZA Capability Observation mapping
+  != SEI Capability Observation mapping
 ```
 
 `runtime/go/teiintegration`では、外部から明示的に与えられたexecutableを呼べるAdapter境界を実装しています。
 
 helper subprocessによるdeterministic testにはScoped Executable Evidenceがありますが、**helper subprocessのPASSだけをactual TEI CLI executionのEvidenceとは扱いません**。
 
-ISSUE-000065では、TEI commit `48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67`をrevision Aとして固定しました。historical TEI-side Workflow Run `33589084290`ではactual `cmd/tei`をbuildして`deployment-provider-plan`を実行し、得られたactual artifactをcurrent SOZA Adapterから別OS processとして起動しました。その範囲でstrict decode、Capability Observation mapping / validation、Provider固有情報の非漏出を確認しています。
+ISSUE-000065では、TEI commit `48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67`をrevision Aとして固定しました。historical TEI-side Workflow Run `33589084290`ではactual `cmd/tei`をbuildして`deployment-provider-plan`を実行し、得られたactual artifactをcurrent SEI Adapterから別OS processとして起動しました。その範囲でstrict decode、Capability Observation mapping / validation、Provider固有情報の非漏出を確認しています。
 
 したがって、E3b-P2は**revision A fixed-artifact scopeでScoped Executable Evidence available**です。
 
@@ -226,12 +226,12 @@ revision A fixed-artifact Evidence available
   + revision B repository-side execution path ready
   != revision B actual CLI build / execution PASS
   != revision B Provider Plan observed
-  != current SOZA Adapter compatibility PASS
+  != current SEI Adapter compatibility PASS
   != arbitrary TEI version compatibility
   != ISSUE-000072 Resolved
 ```
 
-revision B actual CLI / `deployment-provider-plan` / current SOZA Adapter live compatibilityは**Not Yet Verified**です。
+revision B actual CLI / `deployment-provider-plan` / current SEI Adapter live compatibilityは**Not Yet Verified**です。
 
 未検証として残るのは、特定automation providerからprivate repositoryを取得できるかではなく、より一般に次の領域です。
 
@@ -246,15 +246,15 @@ historical RunがGitHub Actions上で成立したことはEvidenceとして保�
 
 ### 6.3 E3b-M1a — live KJ Atlas process + deterministic model stub
 
-ISSUE-000064では、public repository `hat47x/kj-atlas`を固定commitで取得し、KJ Atlas FastAPI backendとKJ Atlas同梱のdeterministic model stubをSOZAとは別processとして実際に起動しました。
+ISSUE-000064では、public repository `hat47x/kj-atlas`を固定commitで取得し、KJ Atlas FastAPI backendとKJ Atlas同梱のdeterministic model stubをSEIとは別processとして実際に起動しました。
 
 - repository: `hat47x/kj-atlas`
 - commit: `4f28c13abe4176503c6fed863383a2d1db2299e9`
 - entry point: `POST /ai/suggest-card-groups`
 
-KJ Atlas自身のHTTP endpointからactual grouping responseを取得し、SOZAのreference Adapterへ戻します。
+KJ Atlas自身のHTTP endpointからactual grouping responseを取得し、SEIのreference Adapterへ戻します。
 
-KJ Atlas固有responseはSOZA Universal Cognitive Method Contractへ昇格させません。JSONの意味内容をopaqueな`not_verified` Method outputとして保持し、source repository、commit、entry point、result digestをopaque Provenanceとして残します。
+KJ Atlas固有responseはSEI Universal Cognitive Method Contractへ昇格させません。JSONの意味内容をopaqueな`not_verified` Method outputとして保持し、source repository、commit、entry point、result digestをopaque Provenanceとして残します。
 
 既存Cognitive Method Applicationは、Realization / output / Provenanceを参照します。また、grouping候補をRecommendationやDecisionへ自動昇格させません。
 
@@ -264,7 +264,7 @@ KJ Atlas grouping suggestion
   != Decision
 ```
 
-historical PR #41では、KJ Atlas checkout、backend install、migration、model/backend process起動、actual grouping、SOZA mapping boundary、actual result mappingまでを専用workflowで実行し、成功しています。
+historical PR #41では、KJ Atlas checkout、backend install、migration、model/backend process起動、actual grouping、SEI mapping boundary、actual result mappingまでを専用workflowで実行し、成功しています。
 
 **Scoped Executable Evidence available for M1a scope.**
 
@@ -282,9 +282,9 @@ ISSUE-000066では、M1aと同じKJ Atlas revisionとMethod surfaceを保ち、m
 
 integration-only AdapterはKJ Atlasのpromptを変更せず、Ollamaのtransportへ変換するだけに限定しています。group labelやcard ID等の意味内容をAdapter側で生成・補正しません。
 
-historical Workflow Run `33596839607`では、actual model取得、KJ Atlas backend起動、actual `POST /ai/suggest-card-groups`、SOZA Method mappingまでをskipなしで実行しました。Ollamaからは`prompt_eval_count = 196`、`eval_count = 78`が記録され、process起動だけでなくprompt評価とtoken生成を伴うactual inferenceが確認できました。
+historical Workflow Run `33596839607`では、actual model取得、KJ Atlas backend起動、actual `POST /ai/suggest-card-groups`、SEI Method mappingまでをskipなしで実行しました。Ollamaからは`prompt_eval_count = 196`、`eval_count = 78`が記録され、process起動だけでなくprompt評価とtoken生成を伴うactual inferenceが確認できました。
 
-KJ Atlasはactual model outputを受理し、二つの対象cardを一つのgroup候補として返し、held cardを`excludedCardIds`へ分離しました。そのresultはM1aと同じSOZA mapping boundaryからCognitive Method Applicationへ戻しています。
+KJ Atlasはactual model outputを受理し、二つの対象cardを一つのgroup候補として返し、held cardを`excludedCardIds`へ分離しました。そのresultはM1aと同じSEI mapping boundaryからCognitive Method Applicationへ戻しています。
 
 ```text
 actual model inference succeeded
@@ -392,7 +392,7 @@ TEI revision B version-exchange path ready
 
 外部integrationでは、repository、commit、path、blob identity、result digest、service revision、executable path、inference runtime、model tag、artifact digest等を追跡に使うことがあります。
 
-しかし、それらはSOZAのsemantic identityそのものではありません。
+しかし、それらはSEIのsemantic identityそのものではありません。
 
 ```text
 repository / commit / path / blob identity
@@ -462,7 +462,7 @@ failureを一つのgeneric errorへ潰さない一方、外部system固有のerr
 
 KJ Atlas M1a / M1bのreference mappingでは、invalid responseやduplicate targetでcanonical stateを部分更新しないことを検査します。これはsingle-thread reference probeの安全策であり、production transaction semanticsを定義するものではありません。
 
-TEI revision Bのactualではrepository-local E2 / E3 stageをmachine-readable Evidenceとして残します。ただし、TEI内部のworkspace load / validation / durable run / plugin lockや、SOZA teiintegration内部のstrict decode / mapping / validatorを、自然言語logの語句だけからsubstageとして推定しません。formal machine-readable contractがある範囲だけをEvidenceとして扱います。
+TEI revision Bのactualではrepository-local E2 / E3 stageをmachine-readable Evidenceとして残します。ただし、TEI内部のworkspace load / validation / durable run / plugin lockや、SEI teiintegration内部のstrict decode / mapping / validatorを、自然言語logの語句だけからsubstageとして推定しません。formal machine-readable contractがある範囲だけをEvidenceとして扱います。
 
 また、`not_verified`と`failed`を同一視しません。
 
@@ -517,7 +517,7 @@ ISSUE-000070がResolvedであることやISSUE-000072が将来Resolvedになる�
 次に固定せず調べる領域は次です。
 
 - ISSUE-000072のexact revision B executable + exact revision A fixed inputでactual `deployment-provider-plan`を得られるか
-- ISSUE-000072のrevision Bをcurrent SOZA Adapterからactualに起動し、Capability Observation mapping境界を保てるか
+- ISSUE-000072のrevision Bをcurrent SEI Adapterからactualに起動し、Capability Observation mapping境界を保てるか
 - 000072 actual後もhistorical revision A Evidenceを不変に保持できるか
 - ISSUE-000070のfixed-scope runtime exchangeで確認した境界を、arbitrary runtime version / other runtime implementationへどこまで一般化できるか
 - fixed-artifact Evidenceを維持しながら、private artifact credential lifecycleをacquisition / deployment policyへどう閉じ込めるか

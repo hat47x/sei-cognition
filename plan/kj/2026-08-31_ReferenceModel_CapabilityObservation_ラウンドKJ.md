@@ -5,10 +5,10 @@
 
 ## 0. 目的
 
-TEI設計系列から残った次の二論点を、SOZA / TEIのProduct Boundaryを壊さずに整理する。
+TEI設計系列から残った次の二論点を、SEI / TEIのProduct Boundaryを壊さずに整理する。
 
 - ISSUE-000019: Reference Model / Pattern Card / Cognitive Methodの所有境界
-- ISSUE-000020: TEIのApplication / Database等をSOZA Capability Observationから読む境界
+- ISSUE-000020: TEIのApplication / Database等をSEI Capability Observationから読む境界
 
 ---
 
@@ -36,7 +36,7 @@ Cognitive Methodは、どの資料を見て、どの問いを立て、どのよ�
 
 ### R006
 
-Reference Modelの特定Table / Screen / Workflow構造をSOZA Universal Coreへ移すと、domain-specific設計が認知基盤へ逆流する。
+Reference Modelの特定Table / Screen / Workflow構造をSEI Universal Coreへ移すと、domain-specific設計が認知基盤へ逆流する。
 
 ### R007
 
@@ -48,11 +48,11 @@ Reference Modelが後で改訂されても、過去Decisionでどの版・どの
 
 ### O001
 
-SOZAから見たTEIはCapability Providerであり、TEI内部のApplication / Database lifecycleをSOZA Coreへコピーする必要はない。
+SEIから見たTEIはCapability Providerであり、TEI内部のApplication / Database lifecycleをSEI Coreへコピーする必要はない。
 
 ### O002
 
-SOZAのCapability Choiceには、Capability Definitionとcurrent Observationを分離する境界がある。
+SEIのCapability Choiceには、Capability Definitionとcurrent Observationを分離する境界がある。
 
 ### O003
 
@@ -68,7 +68,7 @@ Applicationがreadyでも依存Databaseがread-only、migration未採用、Envir
 
 ### O006
 
-SOZAに必要なのはTEI内部topologyそのものではなく、Intent / Constraintとの比較に必要な状態、Unknown、Evidence、Assuranceである。
+SEIに必要なのはTEI内部topologyそのものではなく、Intent / Constraintとの比較に必要な状態、Unknown、Evidence、Assuranceである。
 
 ### O007
 
@@ -92,13 +92,13 @@ Patternそのものと、それをどう探索・検査するMethodを分ける�
 
 - R006-R008
 
-domain固有PatternをSOZA Coreへ入れず、利用履歴は必要に応じてexact referenceで残す。
+domain固有PatternをSEI Coreへ入れず、利用履歴は必要に応じてexact referenceで残す。
 
-## B03 TEI内部状態とSOZA Capability Observationを分ける
+## B03 TEI内部状態とSEI Capability Observationを分ける
 
 - O001-O004
 
-Provider内部modelをSOZAへ複製せず、adapter境界でObservationへ変換する。
+Provider内部modelをSEIへ複製せず、adapter境界でObservationへ変換する。
 
 ## B04 Capability判断に必要な状態と監査用snapshotを二層で扱う
 
@@ -123,11 +123,11 @@ Provider内部modelをSOZAへ複製せず、adapter境界でObservationへ変換
 
 Patternを正解テンプレートへしないこと、Reference Model改訂後も過去参照版へ戻れることを保持する。
 
-## N02　SOZAはProvider-neutralなCapability Observationを読み、必要なときだけTEI固有Evidenceへ降りる
+## N02　SEIはProvider-neutralなCapability Observationを読み、必要なときだけTEI固有Evidenceへ降りる
 
 - Capability DefinitionとObservationは分離
 - TEI internal stateはprovider-specific source
-- AdapterがSOZA側のObservation / Unknown / Conflict / Assuranceへ接続
+- AdapterがSEI側のObservation / Unknown / Conflict / Assuranceへ接続
 - historical / audit useではexact provider snapshotへ降りられる
 - internal topologyの全開示を要求しない
 
@@ -152,7 +152,7 @@ TEI Design Knowledge
   Reference Model / Pattern Cards
        │ candidate / comparison input
        ▼
-SOZA Cognitive Method
+SEI Cognitive Method
   exploration / comparison / synthesis / validation
        │ Method Application
        ▼
@@ -164,7 +164,7 @@ TEI Provider internal state
   Application / Database / Environment / Release / Plugin / Observation
        │ provider adapter
        ▼
-SOZA Capability Observation
+SEI Capability Observation
   observed properties
   Unknown / Conflict
   provenance / assurance / evidence refs
@@ -178,7 +178,7 @@ SOZA Capability Observation
 Reference Model != Cognitive Method != Decision
 Pattern match != Pattern adoption
 Method Application != conclusion truth
-TEI internal state != SOZA Capability Observation schema
+TEI internal state != SEI Capability Observation schema
 Application ready != Capability universally available
 provider snapshot != Capability Definition
 ```
@@ -189,13 +189,13 @@ provider snapshot != Capability Definition
 
 Reference Modelは、初期X-TEAでは強い設計の出発点だったが、設計が進むにつれて、その扱いは変わった。重要なのは典型構造を捨てることではなく、対象へ正解として押し付けないことである。履歴管理、Subsystem、Data-first、組織・認可等のPatternは、候補探索を助ける設計知として価値がある。一方、どのPatternをどう探し、何と比較し、どの反例を確認するかという手続きはCognitive Methodの側に置ける。
 
-この分離により、TEIはdomain-specificなPattern CardやReference Modelを豊かに持てる一方、SOZAは特定業務SchemaをUniversal Coreへ取り込まずに済む。AIがPatternを提示したことはRecommendationになり得るが、Patternが対象へ適合することや採用が決まったことを意味しない。Methodを適用した事実も、結論が正しいというAssuranceにはならない。重要なDecisionでReference Modelの版やPatternが根拠になったなら、そのhistorical contentを後から辿れるようにする。
+この分離により、TEIはdomain-specificなPattern CardやReference Modelを豊かに持てる一方、SEIは特定業務SchemaをUniversal Coreへ取り込まずに済む。AIがPatternを提示したことはRecommendationになり得るが、Patternが対象へ適合することや採用が決まったことを意味しない。Methodを適用した事実も、結論が正しいというAssuranceにはならない。重要なDecisionでReference Modelの版やPatternが根拠になったなら、そのhistorical contentを後から辿れるようにする。
 
-TEIのCapabilityをSOZAから読む場合も、同じ分離が必要になる。TEI内部にはApplication、Database、Environment、Release、Plugin等の具体的な状態があるが、SOZAがそれらのlifecycleをUniversal modelとして理解する必要はない。SOZAが必要とするのは、IntentやConstraintとの比較に必要なObservation、Unknown、Conflict、Evidence、Assuranceである。
+TEIのCapabilityをSEIから読む場合も、同じ分離が必要になる。TEI内部にはApplication、Database、Environment、Release、Plugin等の具体的な状態があるが、SEIがそれらのlifecycleをUniversal modelとして理解する必要はない。SEIが必要とするのは、IntentやConstraintとの比較に必要なObservation、Unknown、Conflict、Evidence、Assuranceである。
 
-たとえばApplicationがreadyでも、依存Databaseがread-onlyかもしれない。Migration Proposalが存在しても未採用かもしれない。EnvironmentへまだBindingされていないかもしれない。したがって一つのinternal statusを`available=true`へ機械的に変換しない。Provider adapterは、何が観察でき、何が未確認で、どのEvidenceに基づくかをSOZA側へ渡す。
+たとえばApplicationがreadyでも、依存Databaseがread-onlyかもしれない。Migration Proposalが存在しても未採用かもしれない。EnvironmentへまだBindingされていないかもしれない。したがって一つのinternal statusを`available=true`へ機械的に変換しない。Provider adapterは、何が観察でき、何が未確認で、どのEvidenceに基づくかをSEI側へ渡す。
 
-通常のCapability ChoiceではTEI内部topologyをすべて開示する必要はない。一方、重要なDecisionを後から監査するときは、当時のTEI Release、Binding、Database Contract等へexact referenceで降りられる方がよい。この二層構造により、SOZAはProvider-neutralでありながら、必要な場合には具体的な実装Evidenceまで追跡できる。
+通常のCapability ChoiceではTEI内部topologyをすべて開示する必要はない。一方、重要なDecisionを後から監査するときは、当時のTEI Release、Binding、Database Contract等へexact referenceで降りられる方がよい。この二層構造により、SEIはProvider-neutralでありながら、必要な場合には具体的な実装Evidenceまで追跡できる。
 
 ---
 
@@ -206,8 +206,8 @@ TEIのCapabilityをSOZAから読む場合も、同じ分離が必要になる。
 ADR候補:
 
 - Reference Model / Pattern Cardは原則としてTEI Design Knowledgeまたはdomain-specific knowledge assetへ置く。
-- Cognitive Methodは探索・比較・統合・検査の手続きをSOZA側で表し得る。
-- PatternそのものをSOZA Universal Coreへ移さない。
+- Cognitive Methodは探索・比較・統合・検査の手続きをSEI側で表し得る。
+- PatternそのものをSEI Universal Coreへ移さない。
 - Method ApplicationやPattern matchからDecision / Assuranceを自動推定しない。
 - 重要なDecisionで利用したPattern / Reference versionは必要に応じてexact historical referenceへ結ぶ。
 
@@ -215,7 +215,7 @@ ADR候補:
 
 ADR候補:
 
-- SOZAはTEI内部schemaを複製せず、Provider adapterを介したCapability Observationを受ける。
+- SEIはTEI内部schemaを複製せず、Provider adapterを介したCapability Observationを受ける。
 - UniversalなTEI-specific status vocabularyを作らない。
 - AdapterはObservation / Unknown / Conflict / provenance / assuranceを保持できる。
 - Capability availabilityを単一internal statusから自動推定しない。

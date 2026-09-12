@@ -105,9 +105,9 @@ historical candidateを再採用する場合はcurrent Product Valueへ再評価
 
 ## Dependencies
 
-- `product/value/SOZA_PRODUCT_VALUE.md`
-- `product/value/SOZA_VALUE_MODEL.md`
-- `product/value/SOZA_VALUE_ACCEPTANCE.md`
+- `product/value/SEI_PRODUCT_VALUE.md`
+- `product/value/SEI_VALUE_MODEL.md`
+- `product/value/SEI_VALUE_ACCEPTANCE.md`
 - ADR-0018
 - ADR-0020
 - ISSUE-000022

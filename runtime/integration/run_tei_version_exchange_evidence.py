@@ -17,7 +17,7 @@ import run_tei_revision_b_prepositioned as build_runner
 import verify_tei_execution_source_identity as source_identity
 from runtime_path_safety import reject_symlink_path_or_ancestors
 
-SCHEMA = "soza.tei-version-exchange-evidence-run/v1"
+SCHEMA = "sei.tei-version-exchange-evidence-run/v1"
 BUNDLE_NAME = "tei-e3b-p2-revision-b.tar.gz"
 REPORT_NAME = "tei-version-exchange-evidence.json"
 EXPECTED_RUN_ERRORS = (
@@ -160,7 +160,7 @@ def _prepare_output_dir(
     source_repo: Path,
     reference_source_repo: Path | None,
     reference_evidence_bundle: Path | None,
-    soza_repo_root: Path,
+    sei_repo_root: Path,
 ) -> Path:
     requested = output_dir.expanduser()
     reject_symlink_path_or_ancestors(
@@ -176,7 +176,7 @@ def _prepare_output_dir(
 
     roots: list[tuple[str, Path]] = [
         ("revision B source checkout", source_repo),
-        ("SOZA repository", soza_repo_root),
+        ("SEI repository", sei_repo_root),
     ]
     if reference_source_repo is not None:
         roots.insert(1, ("revision A reference checkout", reference_source_repo))
@@ -232,13 +232,13 @@ def _prepare_output_paths(
 def run_version_exchange(
     source_repo: Path,
     reference_source_repo: Path | None,
-    soza_repo_root: Path,
+    sei_repo_root: Path,
     output_dir: Path,
     *,
     reference_evidence_bundle: Path | None = None,
     tei_go_executable: Path,
-    soza_go_executable: Path,
-    expected_soza_head: str | None = None,
+    sei_go_executable: Path,
+    expected_sei_head: str | None = None,
     overwrite: bool = False,
 ) -> dict[str, object]:
     source_repo = source_repo.expanduser().resolve(strict=True)
@@ -246,13 +246,13 @@ def run_version_exchange(
         reference_source_repo,
         reference_evidence_bundle,
     )
-    soza_repo_root = soza_repo_root.expanduser().resolve(strict=True)
+    sei_repo_root = sei_repo_root.expanduser().resolve(strict=True)
     output_dir = _prepare_output_dir(
         output_dir,
         source_repo=source_repo,
         reference_source_repo=reference_source_repo,
         reference_evidence_bundle=reference_evidence_bundle,
-        soza_repo_root=soza_repo_root,
+        sei_repo_root=sei_repo_root,
     )
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -273,10 +273,10 @@ def run_version_exchange(
             else None
         ),
         "teiGoRequirement": build_runner.EXPECTED_GO_VERSION,
-        "sozaGoRequirement": "runtime/go go.mod with GOTOOLCHAIN=local",
+        "seiGoRequirement": "runtime/go go.mod with GOTOOLCHAIN=local",
         "teiGoExecutable": str(tei_go_executable.expanduser()),
-        "sozaGoExecutable": str(soza_go_executable.expanduser()),
-        "expectedSozaHead": expected_soza_head,
+        "seiGoExecutable": str(sei_go_executable.expanduser()),
+        "expectedSeiHead": expected_sei_head,
     }
 
     e2_runner_started = False
@@ -334,23 +334,23 @@ def run_version_exchange(
 
     e3_toolchain_entered = False
     try:
-        with _go_on_path(soza_go_executable) as soza_go:
+        with _go_on_path(sei_go_executable) as sei_go:
             e3_toolchain_entered = True
-            comparison_axis["sozaGoExecutable"] = str(soza_go)
+            comparison_axis["seiGoExecutable"] = str(sei_go)
             e3 = adapter_runner.run_compatibility(
                 bundle_path,
-                soza_repo_root=soza_repo_root,
+                sei_repo_root=sei_repo_root,
                 expected_source_commit=source_identity.REVISION_B,
-                expected_soza_head=expected_soza_head,
+                expected_sei_head=expected_sei_head,
             )
-            comparison_axis["sozaGoRequirement"] = e3["sozaGoRequirement"]
-            comparison_axis["sozaGoObserved"] = e3["sozaGoVersion"]
+            comparison_axis["seiGoRequirement"] = e3["seiGoRequirement"]
+            comparison_axis["seiGoObserved"] = e3["seiGoVersion"]
     except EXPECTED_RUN_ERRORS as exc:
         if not e3_toolchain_entered and not isinstance(
             exc, adapter_runner.TEIAdapterStageError
         ):
             exc = adapter_runner.TEIAdapterStageError(
-                "soza_go_toolchain",
+                "sei_go_toolchain",
                 str(exc),
             )
         report = {
@@ -380,9 +380,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "exact revision B build sourceとexact revision A fixed reference inputを使い、"
-            "E2 Evidence bundle生成からE3 current SOZA Adapter live testまでを連続実行します。"
+            "E2 Evidence bundle生成からE3 current SEI Adapter live testまでを連続実行します。"
             "A fixed inputはexact Git checkoutまたはverified historical Evidence bundleから取得し、"
-            "TEI build用Go 1.23.2とSOZA検査用Go 1.25系は別executableとして明示します。"
+            "TEI build用Go 1.23.2とSEI検査用Go 1.25系は別executableとして明示します。"
         ),
         allow_abbrev=False,
     )
@@ -391,14 +391,14 @@ def build_parser() -> argparse.ArgumentParser:
     reference_group.add_argument("--reference-source-repo", type=Path)
     reference_group.add_argument("--reference-evidence-bundle", type=Path)
     parser.add_argument(
-        "--soza-repo-root",
+        "--sei-repo-root",
         type=Path,
         default=Path(__file__).resolve().parents[2],
     )
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--tei-go-executable", required=True, type=Path)
-    parser.add_argument("--soza-go-executable", required=True, type=Path)
-    parser.add_argument("--expected-soza-head")
+    parser.add_argument("--sei-go-executable", required=True, type=Path)
+    parser.add_argument("--expected-sei-head")
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--json", action="store_true")
     return parser
@@ -410,12 +410,12 @@ def main(argv: list[str] | None = None) -> int:
         result = run_version_exchange(
             args.source_repo,
             args.reference_source_repo,
-            args.soza_repo_root,
+            args.sei_repo_root,
             args.output_dir,
             reference_evidence_bundle=args.reference_evidence_bundle,
             tei_go_executable=args.tei_go_executable,
-            soza_go_executable=args.soza_go_executable,
-            expected_soza_head=args.expected_soza_head,
+            sei_go_executable=args.sei_go_executable,
+            expected_sei_head=args.expected_sei_head,
             overwrite=args.overwrite,
         )
     except VersionExchangeRunFailed as exc:

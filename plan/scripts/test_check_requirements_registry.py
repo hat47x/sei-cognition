@@ -129,7 +129,7 @@ def main() -> int:
         "historical-id-in-current-requirement-table",
         req=VALID_REQUIREMENTS.replace(
             "| REQ-0001 | A | V1, V3 | Accepted | Satisfied |",
-            "| REQ-0001 / SOZA-PR-001 | A | V1, V3 | Accepted | Satisfied |",
+            "| REQ-0001 / SEI-PR-001 | A | V1, V3 | Accepted | Satisfied |",
         ),
     )
 

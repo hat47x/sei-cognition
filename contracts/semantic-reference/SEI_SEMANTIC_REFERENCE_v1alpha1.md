@@ -1,13 +1,13 @@
-# SOZA Semantic Reference Contract v1alpha1
+# SEI Semantic Reference Contract v1alpha1
 
-contract_id: `soza.semantic-reference`  
+contract_id: `sei.semantic-reference`  
 version: `v1alpha1`  
 状態: **Current pre-stable Design Baseline / Scoped Executable Evidence**  
 更新日: 2026-08-31
 
 ## 1. 目的
 
-このContractは、SOZAのArtifactをStorageやrepresentationから独立して参照し、必要な場合に**当時の正確な内容**へ結び付け、semantic revisionの来歴を失わず交換するための意味契約を定めます。
+このContractは、SEIのArtifactをStorageやrepresentationから独立して参照し、必要な場合に**当時の正確な内容**へ結び付け、semantic revisionの来歴を失わず交換するための意味契約を定めます。
 
 主な対象はREQ-0001、REQ-0003、REQ-0005、REQ-0008、REQ-0009、REQ-0018です。
 
@@ -84,7 +84,7 @@ Semantic Reference Contract != Representation Profile != verifier implementation
 
 Exact Bindingが利用するRepresentation Profileは明示的に識別します。
 
-current/future baselineではADR-0023により、`soza.jcs+sha256/v1alpha1`と`soza.raw-bytes+sha256/v1alpha1`を利用できます。ただし、この2 Profileを唯一の永久的representationにはしません。
+current/future baselineではADR-0023により、`sei.jcs+sha256/v1alpha1`と`sei.raw-bytes+sha256/v1alpha1`を利用できます。ただし、この2 Profileを唯一の永久的representationにはしません。
 
 unknownなProfile、失われたverifier、取得不能なpayloadがある場合、検証済みとして扱ってはなりません。
 
@@ -178,7 +178,7 @@ fixture / runtime PASS
 
 - REQ-0001, REQ-0003, REQ-0005, REQ-0008, REQ-0009, REQ-0018
 - ADR-0003, ADR-0007, ADR-0008, ADR-0009, ADR-0021, ADR-0022, ADR-0023
-- `architecture/SOZA_REFERENCE_ARCHITECTURE.md`
+- `architecture/SEI_REFERENCE_ARCHITECTURE.md`
 - `contracts/profiles/README.md`
 
 ## 12. Natural Japanese review

@@ -26,7 +26,7 @@ runtime/go/provideradapter/
 
 `Adapter` interfaceやGo package名はcurrent implementationであり、semantic authorityではない。
 
-Adapter outputの意味はADR-0024と`soza.capability-observation/v1alpha1`を正とする。
+Adapter outputの意味はADR-0024と`sei.capability-observation/v1alpha1`を正とする。
 
 ### 2. 異なるinput shapeを持つProvider A / Bを実装した
 
@@ -71,7 +71,7 @@ not observed != unavailable
 
 ### 5. Provider-specific referenceを保持し、固有field setは外へ漏らさない
 
-Provider Aの`service_ref`、Provider Bの`endpoint`が指す対象は、SOZA Universal fieldへ展開せず`provider_target_ref`として保持する。
+Provider Aの`service_ref`、Provider Bの`endpoint`が指す対象は、SEI Universal fieldへ展開せず`provider_target_ref`として保持する。
 
 Provider A / Bのinput schema identityは`extensions.provider_context`へ置き、Universal Capability Observation field setへ昇格させていない。
 
@@ -89,7 +89,7 @@ Provider B:
   endpoint
 ```
 
-Provider固有情報をopaque referenceやextensionとして保持すること自体は禁止しない。禁止しているのは、Provider固有SchemaをSOZAのUniversal field setへ昇格させることである。
+Provider固有情報をopaque referenceやextensionとして保持すること自体は禁止しない。禁止しているのは、Provider固有SchemaをSEIのUniversal field setへ昇格させることである。
 
 ### 6. mapping provenanceとsource state referenceを保持した
 
@@ -136,7 +136,7 @@ fixtures/providers/synthetic/
   provider-b-missing.json
 ```
 
-fixture READMEでは、Provider固有fieldがSOZA Universal Contractの候補ではなく、異質なProvider inputを検査するためのsynthetic stateであることを明示した。
+fixture READMEでは、Provider固有fieldがSEI Universal Contractの候補ではなく、異質なProvider inputを検査するためのsynthetic stateであることを明示した。
 
 ### 10. Runtime CIへProvider Adapter testを統合した
 
@@ -167,8 +167,8 @@ Provider固有field leakage hardening追加後の確認:
 後者では、Contract checker 17 fixtureと次のGo packageが連続してPASSした。
 
 ```text
-ok  github.com/hat47x/soza/runtime/go/provideradapter
-ok  github.com/hat47x/soza/runtime/go/semanticruntime
+ok  github.com/hat47x/sei-cognition/runtime/go/provideradapter
+ok  github.com/hat47x/sei-cognition/runtime/go/semanticruntime
 ```
 
 詳細なExecutable Evidenceは次に記録した。
@@ -205,13 +205,13 @@ synthetic Adapter CI PASS
   != release readiness
 ```
 
-Provider A / Bのfield名やmappingはfixture用であり、SOZAのUniversal Provider ontologyではない。
+Provider A / Bのfield名やmappingはfixture用であり、SEIのUniversal Provider ontologyではない。
 
 ## Follow-up
 
 production Provider adapterが必要になった場合は、ADR-0024の境界を維持し、対象Providerごとに独立したIssueで扱う。
 
-TEIを最初のproduction Providerとして採用する場合も、SOZA関連製品であるという理由だけで特権化せず、同じCapability Observation Contract / mapping provenance / Evidence境界を適用する。
+TEIを最初のproduction Providerとして採用する場合も、SEI関連製品であるという理由だけで特権化せず、同じCapability Observation Contract / mapping provenance / Evidence境界を適用する。
 
 ## CI handling
 

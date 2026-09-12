@@ -5,10 +5,10 @@
 
 ## 0. 目的
 
-TEI設計系列のKJ統合で残った次の二つの空白を、SOZA既存ADRへ戻しながら検討する。
+TEI設計系列のKJ統合で残った次の二つの空白を、SEI既存ADRへ戻しながら検討する。
 
 - G01: Stable Question ID、Requirement Decision、Decision Impactをどこが所有するか。
-- G04: TEI等のProviderが行ったAuthorization評価をSOZAのDecision Memoryからどう参照するか。
+- G04: TEI等のProviderが行ったAuthorization評価をSEIのDecision Memoryからどう参照するか。
 
 文化的体系は、今回も分類軸には用いない。問い・境界・時間差・再帰関係の見落としを探す補助線としてのみ用いる。
 
@@ -52,7 +52,7 @@ AIが回答候補を推定したことと、利用者・組織が回答をDecisi
 
 ### Q009
 
-TEI Editor固有の「このダイアログを出した」「このsessionではdismissした」という状態をSOZA CoreのDecision Memoryへ持ち込む必要はない。
+TEI Editor固有の「このダイアログを出した」「このsessionではdismissした」という状態をSEI CoreのDecision Memoryへ持ち込む必要はない。
 
 ### Q010
 
@@ -60,11 +60,11 @@ Requirementに関するDecisionも、Recommendation / Decision / Responsibility 
 
 ### A001
 
-SOZAのDecisionが存在しても、TEIやSaaS等で実行権限が成立したことにはならない。
+SEIのDecisionが存在しても、TEIやSaaS等で実行権限が成立したことにはならない。
 
 ### A002
 
-ProviderがAuthorizationを`allowed`と判定しても、それだけでSOZA側のDecisionが存在したことにはならない。
+ProviderがAuthorizationを`allowed`と判定しても、それだけでSEI側のDecisionが存在したことにはならない。
 
 ### A003
 
@@ -72,7 +72,7 @@ ProviderがAuthorizationを`allowed`と判定しても、それだけでSOZA側�
 
 ### A004
 
-認証・認可方式はProviderごとに異なり、legacy password、OIDC、RBAC、ABAC、resource-specific policy等をSOZA Coreへ統一Schemaとして持ち込むべきではない。
+認証・認可方式はProviderごとに異なり、legacy password、OIDC、RBAC、ABAC、resource-specific policy等をSEI Coreへ統一Schemaとして持ち込むべきではない。
 
 ### A005
 
@@ -96,7 +96,7 @@ Authorization Providerが一時的に利用不能な場合、`not evaluated / un
 
 ### A010
 
-SOZAが必要とするのはAuthorization engineそのものではなく、Decision / Executionの監査に必要な外部評価結果を参照し、来歴を辿れることだと考えられる。
+SEIが必要とするのはAuthorization engineそのものではなく、Decision / Executionの監査に必要な外部評価結果を参照し、来歴を辿れることだと考えられる。
 
 ---
 
@@ -136,7 +136,7 @@ AIの候補はRecommendation、採用・不採用・保留はDecisionとして�
 
 - A004,A006,A010
 
-SOZAは認可方式を所有せず、必要な外部評価結果を参照する。
+SEIは認可方式を所有せず、必要な外部評価結果を参照する。
 
 ## B07　認可の多段性と時間差を保つ
 
@@ -166,10 +166,10 @@ acknowledgementを十分なEvidenceとせず、未評価を拒否と混同しな
 - from: B02,B03
 - residual: AI推定はRecommendationでありDecisionではない。
 
-## N03　AuthorizationはProviderが評価し、SOZAはDecision / Responsibilityから独立した外部Evidenceとして必要な来歴を参照する
+## N03　AuthorizationはProviderが評価し、SEIはDecision / Responsibilityから独立した外部Evidenceとして必要な来歴を参照する
 
 - from: B05,B06
-- residual: SOZAはAuthorization engineを所有しない。
+- residual: SEIはAuthorization engineを所有しない。
 
 ## N04　認可結果は対象・scope・時点・評価状態を失わない
 
@@ -188,11 +188,11 @@ N01へ「presentation revision != question semantic revision」、N04へ「ackno
 
 # 第4ラウンド　本質追及
 
-問い: **SOZAが所有すべきものと、TEI / Providerへ残すものをどう分けるか。**
+問い: **SEIが所有すべきものと、TEI / Providerへ残すものをどう分けるか。**
 
-## I1　Question / Decisionの意味履歴はSOZA側で耐久化する
+## I1　Question / Decisionの意味履歴はSEI側で耐久化する
 
-SOZAは、Questionのlogical identity、関連Recommendation / Decision、basis、unresolved、Responsibility、Semantic Lineageを再利用する。
+SEIは、Questionのlogical identity、関連Recommendation / Decision、basis、unresolved、Responsibility、Semantic Lineageを再利用する。
 
 新しいUniversal `RequirementDecision`型を作らなくても、通常DecisionがQuestionを対象・contextとして参照できれば意味を保てる可能性が高い。
 
@@ -200,17 +200,17 @@ SOZAは、Questionのlogical identity、関連Recommendation / Decision、basis�
 
 どの問いをいつ候補提示するかはCognitive MethodやTEI Design Knowledge / Authoring Profileが担える。
 
-質問文、表示タイミング、dismiss状態、chat turnはSOZA Decision Memoryの正本にしない。
+質問文、表示タイミング、dismiss状態、chat turnはSEI Decision Memoryの正本にしない。
 
-## I3　AuthorizationはSOZAのDecisionから独立したProvider boundaryで成立する
+## I3　AuthorizationはSEIのDecisionから独立したProvider boundaryで成立する
 
-SOZA Decisionは実行の意味上の採用判断であって、Provider Authorizationではない。
+SEI Decisionは実行の意味上の採用判断であって、Provider Authorizationではない。
 
 Authorization Providerは自らのauthoritative policy / credential / resource stateを使って評価する。
 
-## I4　SOZAが保持するのはAuthorization評価の監査可能な参照である
+## I4　SEIが保持するのはAuthorization評価の監査可能な参照である
 
-SOZAは認可方式を統一せず、必要な場合に、誰／何が、いつ、どのscope / resourceに対して、どのProvider評価を参照したかをObservation / Assurance / EvidenceUse等から辿れるようにする。
+SEIは認可方式を統一せず、必要な場合に、誰／何が、いつ、どのscope / resourceに対して、どのProvider評価を参照したかをObservation / Assurance / EvidenceUse等から辿れるようにする。
 
 ---
 
@@ -263,17 +263,17 @@ past authorization != current authorization
 
 # 第6ラウンド　B型文章化
 
-設計時にAIが確認質問をする仕組みを、単なるEditorの便利機能として扱うと、一度答えた内容がchat履歴の消失とともに失われる。逆に、質問ダイアログやsession状態をSOZA Coreへ持ち込むと、現在のUI実装が耐久的な意味モデルへ入り込む。
+設計時にAIが確認質問をする仕組みを、単なるEditorの便利機能として扱うと、一度答えた内容がchat履歴の消失とともに失われる。逆に、質問ダイアログやsession状態をSEI Coreへ持ち込むと、現在のUI実装が耐久的な意味モデルへ入り込む。
 
 必要なのは、問いの意味と表示方法を分けることである。たとえば「変更履歴を残すか」という問いは、文言を自然に直しても同じ問いであり得る。一方、対象や前提が変わり問いの意味が変わったなら、別Questionまたは明示的なrevisionとして扱う。AIが回答候補を作った場合はRecommendationであり、利用者や組織が採用・不採用・保留を決めたときにDecisionになる。
 
-この整理を採ると、「一度した質問を聞き返さない」というUXも、永久的な質問禁止ではなく、同じ前提のもとでは過去Decisionを再利用するという意味になる。新しいEvidenceやConstraintが現れたときは、過去回答を削除したり黙って上書きしたりせず、何が変わったかをbasisとして後継Decisionを作れる。質問catalogや表示タイミングはCognitive MethodやTEI Authoring側で改善してよく、SOZAのDecision Memoryとは分離できる。
+この整理を採ると、「一度した質問を聞き返さない」というUXも、永久的な質問禁止ではなく、同じ前提のもとでは過去Decisionを再利用するという意味になる。新しいEvidenceやConstraintが現れたときは、過去回答を削除したり黙って上書きしたりせず、何が変わったかをbasisとして後継Decisionを作れる。質問catalogや表示タイミングはCognitive MethodやTEI Authoring側で改善してよく、SEIのDecision Memoryとは分離できる。
 
-Authorizationも同様に、判断と実行の間にある独立境界として扱う。SOZAでCapabilityを選ぶDecisionがあっても、TEIやSaaSで実行するAuthorityは成立しない。逆にProviderがある操作を許可できる状態でも、その操作を行うDecisionが存在するとは限らない。
+Authorizationも同様に、判断と実行の間にある独立境界として扱う。SEIでCapabilityを選ぶDecisionがあっても、TEIやSaaSで実行するAuthorityは成立しない。逆にProviderがある操作を許可できる状態でも、その操作を行うDecisionが存在するとは限らない。
 
-認可方式そのものはProviderへ残す。legacy password、OIDC、RBAC、ABAC、resource policy等をSOZAへ統一Schemaとして持ち込まない。一方、後から監査するときには、実行時点でどのProviderがどのscopeやresourceについて何を評価したかを辿れる必要がある。Entry AuthorizationとResource Authorizationは別評価になり得て、現在のpolicyと過去のpolicyも異なり得る。評価できなかったことを拒否へ、Providerのsuccess acknowledgementを十分な認可Evidenceへ自動変換してはならない。
+認可方式そのものはProviderへ残す。legacy password、OIDC、RBAC、ABAC、resource policy等をSEIへ統一Schemaとして持ち込まない。一方、後から監査するときには、実行時点でどのProviderがどのscopeやresourceについて何を評価したかを辿れる必要がある。Entry AuthorizationとResource Authorizationは別評価になり得て、現在のpolicyと過去のpolicyも異なり得る。評価できなかったことを拒否へ、Providerのsuccess acknowledgementを十分な認可Evidenceへ自動変換してはならない。
 
-したがってSOZAが所有すべき中心はAuthorization engineではなく、外部評価をObservation / Assurance / EvidenceUse等として必要な文脈から参照し、Decision / Executionの来歴へ結べることにある。
+したがってSEIが所有すべき中心はAuthorization engineではなく、外部評価をObservation / Assurance / EvidenceUse等として必要な文脈から参照し、Decision / Executionの来歴へ結べることにある。
 
 ---
 
@@ -295,7 +295,7 @@ Authorizationも同様に、判断と実行の間にある独立境界として�
 
 次をADR候補とする。
 
-- Authorization engine / policy ontologyをSOZA Coreへ追加しない。
+- Authorization engine / policy ontologyをSEI Coreへ追加しない。
 - Decision / Responsibility / Authorization / Executionを分離する。
 - ProviderのAuthorization evaluationは、必要に応じてObservation / Assurance / EvidenceUseとして参照する。
 - Universal `AuthorizationResult` Artifactは現時点では追加しない。

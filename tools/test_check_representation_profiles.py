@@ -16,8 +16,8 @@ assert SPEC is not None and SPEC.loader is not None
 checker = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(checker)
 
-JCS_PROFILE = "soza.jcs+sha256/v1alpha1"
-RAW_PROFILE = "soza.raw-bytes+sha256/v1alpha1"
+JCS_PROFILE = "sei.jcs+sha256/v1alpha1"
+RAW_PROFILE = "sei.raw-bytes+sha256/v1alpha1"
 UNKNOWN_PROFILE = "example.unknown/v1"
 
 

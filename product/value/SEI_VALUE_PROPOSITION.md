@@ -1,27 +1,27 @@
-# SOZA Value Proposition
+# SEI Value Proposition
 
 更新日: 2026-09-11  
 状態: **Current Product Value Proposition Baseline — Decision Continuity reflected**
 
 ## 1. この文書の役割
 
-この文書は、SOZAのProduct Valueを**利用者がどのような問題を解くために使い、どのような価値を受け取る製品なのか**という観点から表現します。
+この文書は、SEIのProduct Valueを**利用者がどのような問題を解くために使い、どのような価値を受け取る製品なのか**という観点から表現します。
 
-`SOZA_PRODUCT_VALUE.md`が長期的に失ってはならない価値を定め、`SOZA_VALUE_MODEL.md`がV1〜V8として評価軸を定めるのに対し、本書はそれらを利用場面へ接続します。
+`SEI_PRODUCT_VALUE.md`が長期的に失ってはならない価値を定め、`SEI_VALUE_MODEL.md`がV1〜V8として評価軸を定めるのに対し、本書はそれらを利用場面へ接続します。
 
-Decision Continuityは新しいValue Axisではなく、V1〜V8が実際の利用者の一つの判断仕事で成立したときに現れるcross-axis Product Outcomeです。詳細は`SOZA_DECISION_CONTINUITY.md`を参照します。
+Decision Continuityは新しいValue Axisではなく、V1〜V8が実際の利用者の一つの判断仕事で成立したときに現れるcross-axis Product Outcomeです。詳細は`SEI_DECISION_CONTINUITY.md`を参照します。
 
 ## 2. 一言でいう価値
 
-SOZAが利用者へ届けたい最も短い約束は、次です。
+SEIが利用者へ届けたい最も短い約束は、次です。
 
 > **あとで戻っても、別のAIを使っても、情報が変わっても、過去を捏造せず判断の続きを始められる。**
 
-そのためにSOZAは、単なる会話履歴やログではなく、問い、Observation、Unknown / Conflict、Recommendation、Decision、basis、Responsibility、Provenance、Revision等の耐久的な意味を外在化します。
+そのためにSEIは、単なる会話履歴やログではなく、問い、Observation、Unknown / Conflict、Recommendation、Decision、basis、Responsibility、Provenance、Revision等の耐久的な意味を外在化します。
 
 ## 3. 主に解く問題
 
-SOZAが主に対象とするのは、**複数の人間、AI、外部サービス、既存システムが関与し、途中で情報・手段・前提が変化し得る判断仕事**です。
+SEIが主に対象とするのは、**複数の人間、AI、外部サービス、既存システムが関与し、途中で情報・手段・前提が変化し得る判断仕事**です。
 
 この種の仕事では、結果だけを保存しても、後から次の問いに答えられなくなることがあります。
 
@@ -37,7 +37,7 @@ SOZAが主に対象とするのは、**複数の人間、AI、外部サービス
 
 通常のログ、チャット履歴、ワークフロー履歴、ドキュメント置き場は、それぞれ重要です。ただし、それらだけでは「判断の意味」を実行方式や会話の流れから独立して残しにくい場合があります。
 
-SOZAは、その隙間を埋めます。
+SEIは、その隙間を埋めます。
 
 ## 4. 中核となる価値提案
 
@@ -51,7 +51,7 @@ SOZAは、その隙間を埋めます。
 
 ### 4.2 分からないことを消さずに進める
 
-SOZAは、UnknownやConflictが残っていること自体を失敗とみなしません。
+SEIは、UnknownやConflictが残っていること自体を失敗とみなしません。
 
 期限や外部条件のために不確実なままDecisionする場合でも、何が未解決だったかを残し、後から新しいEvidenceを加えて再開できます。
 
@@ -69,7 +69,7 @@ AIが誤った場合は、suggestionを修正・再分類・却下できるこ�
 
 Prompt、AIモデル、Skill、workflow engine、SaaS、TEI、custom code、Storage等は変わり得ます。
 
-SOZAは、これらのRealizationやProviderを交換しても、Intent、Observation、Decision、Responsibility、Provenance等の耐久的な意味を持ち運べることを価値とします。
+SEIは、これらのRealizationやProviderを交換しても、Intent、Observation、Decision、Responsibility、Provenance等の耐久的な意味を持ち運べることを価値とします。
 
 Provider交換可能性は技術的な美しさのためだけではありません。利用者が一つのAIや実行基盤へ判断文脈ごと閉じ込められず、仕事を続けられるためにあります。
 
@@ -83,9 +83,9 @@ Provider交換可能性は技術的な美しさのためだけではありませ
 
 重要なのは、detailを増やせることだけではありません。**detailを増やさないと価値が出ない製品にしないこと**です。
 
-## 5. SOZAの差別化仮説
+## 5. SEIの差別化仮説
 
-SOZAはchat、note、wiki、issue tracker、workflow、audit logを置き換えることを価値としません。それらはSOZAが参照・接続する重要なArtifact / Surface / Providerになり得ます。
+SEIはchat、note、wiki、issue tracker、workflow、audit logを置き換えることを価値としません。それらはSEIが参照・接続する重要なArtifact / Surface / Providerになり得ます。
 
 差別化仮説は、これらに対して別のProduct guaranteeを置くことです。
 
@@ -99,13 +99,13 @@ raw history / documents / logs
 
 たとえばraw chatは会話の流れを豊かに残せますが、後日RecommendationとDecisionを分けたり、Decision後の情報を当時basisから分離したりする責務が利用者側へ残る場合があります。
 
-SOZAはその再構成責務の一部をProductとして引き受けます。
+SEIはその再構成責務の一部をProductとして引き受けます。
 
 ただし、この差別化は仮説です。raw chatやsimple noteと比べて再開負担・誤帰属・修正負担を実質的に減らせないなら、追加構造そのものを価値とはみなしません。
 
 ## 6. 主な利用者・関与者
 
-SOZAでは、利用者種別を固定的な権限モデルへ直結させません。ただし、製品設計上は少なくとも次の関与者を想定します。
+SEIでは、利用者種別を固定的な権限モデルへ直結させません。ただし、製品設計上は少なくとも次の関与者を想定します。
 
 ### 判断を担う人・組織
 
@@ -131,11 +131,11 @@ Decision Continuityのfirst Product Sliceでは、数日後・数週間後の同
 
 ### 外部システム・Capability Provider
 
-情報取得、計算、業務処理、実行等を担います。SOZA自身の内部構造へ同化させるのではなく、必要な境界から接続します。
+情報取得、計算、業務処理、実行等を担います。SEI自身の内部構造へ同化させるのではなく、必要な境界から接続します。
 
 ## 7. 価値が特に大きくなりやすい場面
 
-SOZAは、次の条件が複数重なるほど価値を出しやすいと考えます。
+SEIは、次の条件が複数重なるほど価値を出しやすいと考えます。
 
 - AIや外部サービスを複数利用する。
 - 数日から数年後にDecisionを読み直す必要がある。
@@ -147,23 +147,23 @@ SOZAは、次の条件が複数重なるほど価値を出しやすいと考え�
 - 実行結果を受けて、前提や判断を更新する循環がある。
 - 「現在は知っているが、当時は知らなかった」ことを取り違えるコストが高い。
 
-言い換えると、SOZAは**判断寿命・文脈変動・再訪頻度・不確実性・誤再構成コスト**が高いほど価値を出しやすい製品です。
+言い換えると、SEIは**判断寿命・文脈変動・再訪頻度・不確実性・誤再構成コスト**が高いほど価値を出しやすい製品です。
 
-## 8. SOZAを第一選択にしなくてもよい場面
+## 8. SEIを第一選択にしなくてもよい場面
 
-次のような仕事では、SOZAを導入する価値が小さい可能性があります。
+次のような仕事では、SEIを導入する価値が小さい可能性があります。
 
 - 単純で短命な処理で、後から判断理由を読み直す必要がほぼない。
 - deterministicな変換処理だけで完結し、判断や不確実性が存在しない。
 - 既存システムの監査ログだけで必要な説明が十分に成立する。
 - 主目的がworkflow throughputやjob schedulingの最大化である。
-- raw note / chatだけで十分に再開でき、SOZAの意味構造が追加負担にしかならない。
+- raw note / chatだけで十分に再開でき、SEIの意味構造が追加負担にしかならない。
 
-SOZAは、すべての処理を自らの中へ取り込むことを価値としません。
+SEIは、すべての処理を自らの中へ取り込むことを価値としません。
 
 ## 9. 利用者に約束したいこと
 
-製品としてのSOZAは、長期的に少なくとも次を約束できる状態を目指します。
+製品としてのSEIは、長期的に少なくとも次を約束できる状態を目指します。
 
 1. **中断や環境変化の後でも、判断の続きを取り戻せること。**
 2. **判断の文脈を失いにくく、過去と現在を取り違えにくいこと。**
@@ -190,7 +190,7 @@ Adoption / Outcome Evidenceを収集できる段階では、たとえば次を�
 - 人間とAIが同じcanonical dataから、必要な意味を読み取れたか。
 - 利用者が過剰な入力負担なしに、必要なときだけ詳細化できたか。
 - AI suggestionの修正・却下に必要な負担。
-- raw chat / simple note等の妥当な代替と比べ、SOZAの追加構造に実質的な価値差があるか。
+- raw chat / simple note等の妥当な代替と比べ、SEIの追加構造に実質的な価値差があるか。
 - その価値差がcapture / review overheadを上回るか。
 
 初期評価では固定KPI thresholdを先取りしません。量的観測と質的な再開失敗例を組み合わせ、Product hypothesisのどこが成立し、どこが反証されたかを見ます。
@@ -199,15 +199,15 @@ Adoption / Outcome Evidenceを収集できる段階では、たとえば次を�
 
 ## 11. 関連文書
 
-- `SOZA_PRODUCT_VALUE.md`
-- `SOZA_VALUE_MODEL.md`
-- `SOZA_VALUE_ACCEPTANCE.md`
-- `SOZA_VALUE_TRACEABILITY.md`
-- `SOZA_DECISION_CONTINUITY.md`
-- `../interaction/SOZA_FIRST_USABLE_PRODUCT_SLICE.md`
-- `../definition/SOZA_PRODUCT_SHAPE.md`
-- `../vision/SOZA_PRODUCT_VISION.md`
-- `../principles/SOZA_PRODUCT_PRINCIPLES.md`
+- `SEI_PRODUCT_VALUE.md`
+- `SEI_VALUE_MODEL.md`
+- `SEI_VALUE_ACCEPTANCE.md`
+- `SEI_VALUE_TRACEABILITY.md`
+- `SEI_DECISION_CONTINUITY.md`
+- `../interaction/SEI_FIRST_USABLE_PRODUCT_SLICE.md`
+- `../definition/SEI_PRODUCT_SHAPE.md`
+- `../vision/SEI_PRODUCT_VISION.md`
+- `../principles/SEI_PRODUCT_PRINCIPLES.md`
 
 ## 12. Natural Japanese review
 

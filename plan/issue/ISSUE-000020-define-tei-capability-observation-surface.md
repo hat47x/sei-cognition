@@ -1,4 +1,4 @@
-# ISSUE-000020: TEIのApplication / Database情報をSOZAから読む境界を定める
+# ISSUE-000020: TEIのApplication / Database情報をSEIから読む境界を定める
 
 Status: **Resolved**  
 Priority: **5**  
@@ -7,9 +7,9 @@ Updated: 2026-08-31
 
 ## Goal
 
-SOZAがCapability discovery / matching / choiceを行う際に、TEIのApplication、Database、Environment、Release、Observation等をどの粒度で参照すべきかを定める。
+SEIがCapability discovery / matching / choiceを行う際に、TEIのApplication、Database、Environment、Release、Observation等をどの粒度で参照すべきかを定める。
 
-TEI固有SchemaをSOZA Coreへコピーせず、Capability判断に必要な情報だけをProvider-neutralに読める境界を設計する。
+TEI固有SchemaをSEI Coreへコピーせず、Capability判断に必要な情報だけをProvider-neutralに読める境界を設計する。
 
 ## Background
 
@@ -17,9 +17,9 @@ TEIでは、ApplicationとDatabaseを独立対象とし、一つのApplication�
 
 DatabaseにはDesired / Actual / Diff / Migration / Release / Contractがあり、DeploymentではcommandとObservation / Evidenceを分離する。
 
-SOZA側では、Capability Definition、Capability Observation、Matching、Decisionを分ける。
+SEI側では、Capability Definition、Capability Observation、Matching、Decisionを分ける。
 
-SOZAがTEIをCapability Providerとして扱うためには、TEI内部の詳細をすべて知らなくても、次のような判断材料を読める必要がある。
+SEIがTEIをCapability Providerとして扱うためには、TEI内部の詳細をすべて知らなくても、次のような判断材料を読める必要がある。
 
 - このCapabilityは何を提供できるか。
 - 現在どの条件で利用できるか。
@@ -32,23 +32,23 @@ SOZAがTEIをCapability Providerとして扱うためには、TEI内部の詳細
 
 ADR-0019で、Provider-neutralなCapability Observation境界をAcceptedとした。
 
-### 1. SOZAはProvider内部SchemaではなくObservation envelopeを所有する
+### 1. SEIはProvider内部SchemaではなくObservation envelopeを所有する
 
 TEIのApplication、Database、Environment、Release、Plugin Lock、Migration、Deployment等はTEI側の正本として維持する。
 
-SOZAは、Capability判断に必要な範囲で、Capability Definition、Provider、Provider-specific context、観測時点、condition、Evidence、provenance、Unknown / Conflict / Withheld等を参照できるObservation境界を持つ。
+SEIは、Capability判断に必要な範囲で、Capability Definition、Provider、Provider-specific context、観測時点、condition、Evidence、provenance、Unknown / Conflict / Withheld等を参照できるObservation境界を持つ。
 
 ### 2. TEI状態からCapability解釈への写像はadapter / mapping境界へ置く
 
 ```text
 TEI internal state
   ↓ adapter / mapping
-SOZA Capability Observation
+SEI Capability Observation
   ↓ matching / inquiry / review
 Recommendation / Decision
 ```
 
-TEI内部状態とSOZA上のCapability解釈を同一視しない。
+TEI内部状態とSEI上のCapability解釈を同一視しない。
 
 ### 3. `not observed`を`unavailable`へ潰さない
 
@@ -72,7 +72,7 @@ TEI内部topologyを全量開示せず、Capability判断に必要なEvidenceだ
 Observation access != Authorization != Action Intent != Provider Execution
 ```
 
-SOZAがTEIの状態を読めても、TEIを操作するAuthorityを自動取得しない。
+SEIがTEIの状態を読めても、TEIを操作するAuthorityを自動取得しない。
 
 ## Required scenariosへの回答
 
@@ -112,7 +112,7 @@ F1〜F7には、partial degradation、proposed / actual separation、Environment
 
 ## Acceptance
 
-- [x] TEI→SOZA Capability Observation adapter boundaryを定義した。
+- [x] TEI→SEI Capability Observation adapter boundaryを定義した。
 - [x] Provider-neutralに必要な意味項目を定義した。
 - [x] exact historical binding ruleを定義した。
 - [x] selective disclosure ruleを定義した。
@@ -137,7 +137,7 @@ production TEI adapterを実装する場合も、TEI固有SchemaをUniversal Cor
 - `plan/adr/ADR-0024-provider-adapter-observation-mapping-boundary.md`
 - `plan/issue/ISSUE-000024-materialize-capability-observation-fixtures.md`
 - `plan/issue/ISSUE-000036-implement-synthetic-provider-adapter-slice.md`
-- `product/value/SOZA_VALUE_MODEL.md`
+- `product/value/SEI_VALUE_MODEL.md`
 
 ## Natural Japanese review
 

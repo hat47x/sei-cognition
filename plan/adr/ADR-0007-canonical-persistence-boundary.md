@@ -6,13 +6,13 @@ Updated: 2026-08-31
 
 ## Context
 
-SOZAでは、長期にわたって、何を見て、何を根拠とし、何を判断し、その後に何が変わったかを失わないことが重要である。
+SEIでは、長期にわたって、何を見て、何を根拠とし、何を判断し、その後に何が変わったかを失わないことが重要である。
 
 この目的のためにGit、RDB、object store、document DB、event sourcing等の特定方式をCoreへ固定すると、物理的な保存方式が意味の正本になってしまう。
 
 ## Decision
 
-SOZAが規定するのは、**storageを交換しても保たれる意味上の永続化契約**とする。
+SEIが規定するのは、**storageを交換しても保たれる意味上の永続化契約**とする。
 
 少なくとも、次の条件を満たさなければならない。
 
@@ -41,7 +41,7 @@ large binaryや外部Sourceをすべてinline保存することも要求しな�
 
 ## Revisit conditions
 
-storage-neutralな契約では実際のproduction要件を満たせず、特定の永続化mechanismをSOZA Coreが意味上所有しなければならない事例が繰り返し確認された場合に再検討する。
+storage-neutralな契約では実際のproduction要件を満たせず、特定の永続化mechanismをSEI Coreが意味上所有しなければならない事例が繰り返し確認された場合に再検討する。
 
 ## Natural Japanese review
 

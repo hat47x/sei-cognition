@@ -18,7 +18,7 @@ ARTIFACT_MANIFEST = INTEGRATION_DIR / "runtime_version_exchange_artifacts.json"
 OFFICIAL_RELEASE_SNAPSHOT = (
     INTEGRATION_DIR / "runtime_version_exchange_official_release_snapshot.json"
 )
-RELEASE_SNAPSHOT_SCHEMA = "soza.runtime-version-exchange-official-release-snapshot/v1"
+RELEASE_SNAPSHOT_SCHEMA = "sei.runtime-version-exchange-official-release-snapshot/v1"
 
 
 @dataclass(frozen=True)
@@ -210,7 +210,7 @@ def report(
     checks = collect_checks(manifest_path, release_snapshot_path)
     blockers = [check.id for check in checks if check.status == "blocked"]
     return {
-        "schema": "soza.runtime-version-exchange-manifest-consistency/v1",
+        "schema": "sei.runtime-version-exchange-manifest-consistency/v1",
         "result": "blocked" if blockers else "consistent",
         "manifest": str(manifest_path.expanduser().resolve(strict=False)),
         "officialReleaseSnapshot": str(

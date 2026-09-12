@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/hat47x/soza/runtime/go/interactionprobe"
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/interactionprobe"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 func logical(kind, id, scope string) semanticruntime.LogicalReference {

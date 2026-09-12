@@ -1,4 +1,4 @@
-# SOZA Deployment Architecture
+# SEI Deployment Architecture
 
 更新日: 2026-09-01  
 状態: **Current Local Single-Node Deployment Baseline**
@@ -24,7 +24,7 @@ Human / Machine Surface
           │
           ▼
 ┌──────────────────────────────────────┐
-│           SOZA Go process            │
+│           SEI Go process            │
 │                                      │
 │ Interaction Adapter                  │
 │ Canonical Semantic Runtime           │
@@ -77,7 +77,7 @@ data root/
   [optional runtime-local / payload area]
 ```
 
-このlayoutはfilesystem Realizationのprofileであり、SOZA Universal ontologyではありません。
+このlayoutはfilesystem Realizationのprofileであり、SEI Universal ontologyではありません。
 
 ## 5. 保存境界
 
@@ -139,7 +139,7 @@ Local Package Artifact Run `33509521544`では、同一inputからの二重build
 
 保存されたworkflow artifact:
 
-- name: `soza-local-reference-linux-amd64`
+- name: `sei-local-reference-linux-amd64`
 - artifact ID: `9801021136`
 - workflow artifact digest: `sha256:6282a2fe0b58dd023090d363e3323ce963a9f29c097f869ebab79b73aab2ba85`
 
@@ -161,7 +161,7 @@ package lifecycle control
   != Product Interaction Surface
 ```
 
-このcommandを正式なSOZA CLI、human-facing UI、AI-facing protocolへ昇格させません。判断仕事のSurfaceはPMS-03の別境界として扱います。
+このcommandを正式なSEI CLI、human-facing UI、AI-facing protocolへ昇格させません。判断仕事のSurfaceはPMS-03の別境界として扱います。
 
 ## 9. export / import
 
@@ -258,9 +258,9 @@ reference artifact PASS
 
 ## 15. 関連文書
 
-- `SOZA_REFERENCE_ARCHITECTURE.md`
+- `SEI_REFERENCE_ARCHITECTURE.md`
 - `IMPLEMENTATION_LANGUAGE_POLICY.md`
-- `../product/packaging/SOZA_PRODUCT_PACKAGING.md`
+- `../product/packaging/SEI_PRODUCT_PACKAGING.md`
 - `../plan/adr/ADR-0007-canonical-persistence-boundary.md`
 - `../plan/adr/ADR-0029-local-single-node-packaging-profile.md`
 - `../plan/issue/ISSUE-000054-materialize-packaged-resume-and-storage-migration-probe.md`

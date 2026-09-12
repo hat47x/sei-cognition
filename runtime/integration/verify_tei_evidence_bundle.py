@@ -10,7 +10,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path, PurePosixPath
 from typing import Mapping
 
-SCHEMA = "tei.soza-e3b-p2-evidence/v1"
+SCHEMA = "tei.sei-e3b-p2-evidence/v1"
 REPOSITORY = "hat47x/tei-platform"
 ENTRY_POINT = "cmd/tei deployment-provider-plan"
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
@@ -377,14 +377,14 @@ def verify_bundle(
         raise ValueError("bin/teiにexecutable bitがありません")
 
     result: dict[str, object] = {
-        "schema": "soza.tei-evidence-bundle-verification/v1",
+        "schema": "sei.tei-evidence-bundle-verification/v1",
         "result": "verified",
         "archive": str(archive),
         "observation": asdict(observation),
         "metadata": metadata,
         "qualityJudgement": "not_evaluated",
         "stopLine": (
-            "TEI Evidence bundle identity verified != SOZA Adapter compatibility verified "
+            "TEI Evidence bundle identity verified != SEI Adapter compatibility verified "
             "!= TEI version exchange PASS != Operational Evidence"
         ),
     }

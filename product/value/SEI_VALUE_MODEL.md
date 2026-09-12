@@ -1,21 +1,21 @@
-# SOZA Value Model
+# SEI Value Model
 
 更新日: 2026-09-11  
 状態: **Product Value Baseline — Decision Continuity cross-axis outcome reflected**
 
 ## 1. この文書の役割
 
-この文書は、`SOZA_PRODUCT_VALUE.md`で定めた価値を、設計判断へ落とせる粒度まで精緻化するための基準です。
+この文書は、`SEI_PRODUCT_VALUE.md`で定めた価値を、設計判断へ落とせる粒度まで精緻化するための基準です。
 
 個々の機能や実装方式を決める文書ではありません。Requirements、ADR、Architecture、Contract、ImplementationがProduct Valueと整合しているかを判断するために、価値の優先関係、境界、成立条件、失敗条件を定めます。
 
-V1〜V8を具体的にどのEvidenceで確認するかは`SOZA_VALUE_ACCEPTANCE.md`、current下位文書への追跡は`SOZA_VALUE_TRACEABILITY.md`で扱います。
+V1〜V8を具体的にどのEvidenceで確認するかは`SEI_VALUE_ACCEPTANCE.md`、current下位文書への追跡は`SEI_VALUE_TRACEABILITY.md`で扱います。
 
-また、V1〜V8が利用者の一つの判断仕事で同時に働いたときに現れる横断的なProduct Outcomeを`SOZA_DECISION_CONTINUITY.md`で扱います。
+また、V1〜V8が利用者の一つの判断仕事で同時に働いたときに現れる横断的なProduct Outcomeを`SEI_DECISION_CONTINUITY.md`で扱います。
 
-## 2. SOZAが守る価値の階層
+## 2. SEIが守る価値の階層
 
-SOZAでは、価値を次の三層に分けます。
+SEIでは、価値を次の三層に分けます。
 
 ### 2.1 第一層: 失ってはならない意味
 
@@ -33,7 +33,7 @@ SOZAでは、価値を次の三層に分けます。
 
 ### 2.2 第二層: 選び直せること
 
-第一層の意味を保持したうえで、SOZAは次を可能にします。
+第一層の意味を保持したうえで、SEIは次を可能にします。
 
 - 根拠を読み直す。
 - 過去の判断を当時の状態として復元する。
@@ -42,19 +42,19 @@ SOZAでは、価値を次の三層に分けます。
 - Recommendationを採用・不採用・修正する。
 - 実行結果を次の問いや判断へ戻す。
 
-SOZAにとって、履歴を残すことは保存そのものが目的ではありません。将来の主体が、過去を消さずに選び直せることに価値があります。
+SEIにとって、履歴を残すことは保存そのものが目的ではありません。将来の主体が、過去を消さずに選び直せることに価値があります。
 
 ### 2.3 第三層: 利用し続けられること
 
 意味が正しくても、利用が著しく難しければ実務上の価値は失われます。
 
-そのためSOZAは、次も重要な製品価値として扱います。
+そのためSEIは、次も重要な製品価値として扱います。
 
 - 人間が読んで意味を追えること。
 - AIが構造として利用できること。
 - 必要な意味だけを段階的に明示できること。
 - 小さな利用から始め、必要に応じて厳密化できること。
-- 外部システムと接続しても、SOZA側の意味境界が崩れないこと。
+- 外部システムと接続しても、SEI側の意味境界が崩れないこと。
 - 中断や環境変化の後でも、実務上許容できる負担で判断の続きを取り戻せること。
 
 ただし、使いやすさのために第一層の意味を黙って捨てることは認めません。意味の省略が必要な場合は、簡略表示とcanonicalな意味保持を分けます。
@@ -80,9 +80,9 @@ SOZAにとって、履歴を残すことは保存そのものが目的ではあ�
 
 また、一つの価値軸で高い成果が得られても、別の重大な価値欠損を相殺したことにはしません。Product Valueの受入れは、V1〜V8を必要な範囲で個別に確認します。
 
-## 4. SOZAへ含めるための価値境界
+## 4. SEIへ含めるための価値境界
 
-ある概念・機能・データをSOZAの中核へ含めるかは、次の問いで判断します。
+ある概念・機能・データをSEIの中核へ含めるかは、次の問いで判断します。
 
 ### 4.1 Coreへ置く可能性が高いもの
 
@@ -135,7 +135,7 @@ Unknown、Conflict、Hypothesisを、便宜上の確定値へ黙って変換し�
 
 ### V8. Execution Independence
 
-外部のworkflow、agent runtime、TEI等が置き換わっても、SOZAの判断記憶と意味構造が存続するか。
+外部のworkflow、agent runtime、TEI等が置き換わっても、SEIの判断記憶と意味構造が存続するか。
 
 これらの軸に対するEvidenceは、少なくとも次の高さを分離して扱います。
 
@@ -147,7 +147,7 @@ Design
   != Adoption / Outcome
 ```
 
-具体的な受入れ条件は`SOZA_VALUE_ACCEPTANCE.md`を正とします。
+具体的な受入れ条件は`SEI_VALUE_ACCEPTANCE.md`を正とします。
 
 ## 6. Cross-axis Product Outcome — Decision Continuity
 
@@ -196,9 +196,9 @@ Decision ContinuityをV9にすると、V1 / V3 / V6等の成果を別名で二�
 - 実行成功を、そのDecisionが妥当だった証明として扱う。
 - Cognitive Methodを適用した事実を、結論の正しさの保証として扱う。
 - UIの簡略化のためにcanonicalな意味を失う。
-- 特定製品との密接な関係だけを理由に、その製品をSOZAの一部として特別扱いする。
+- 特定製品との密接な関係だけを理由に、その製品をSEIの一部として特別扱いする。
 - Design Evidenceしかない状態を、actual repositoryやproductionで実証済みと表現する。
-- fixtureがPASSしたことを、SOZA全体のExecutable Acceptanceとして扱う。
+- fixtureがPASSしたことを、SEI全体のExecutable Acceptanceとして扱う。
 - productionで正常稼働したことを、利用者や組織への価値が実現した証明として扱う。
 - canonical dataは保持しているが、利用者が再開するにはraw historyを長時間読み直すしかない。
 - time-to-resumeだけを短縮し、historical誤帰属やRecommendation / Decision混同を増やす。
@@ -206,7 +206,7 @@ Decision ContinuityをV9にすると、V1 / V3 / V6等の成果を別名で二�
 
 ## 8. 実装規模と価値の関係
 
-SOZAの価値は、Coreの型やコードが増えるほど高まるわけではありません。
+SEIの価値は、Coreの型やコードが増えるほど高まるわけではありません。
 
 新しい概念をCoreへ追加する場合は、既存概念の組合せ、Reference、Extension、Capability Provider、domain-specific knowledgeで表現できないかを先に確認します。
 
@@ -231,9 +231,9 @@ Decision Continuityも、現在のchat UIやLLM context windowに依存する概
 この文書の価値境界は、次の順に具体化します。
 
 ```text
-SOZA Product Value
-  → SOZA Value Model
-  → SOZA Value Acceptance
+SEI Product Value
+  → SEI Value Model
+  → SEI Value Acceptance
   → Product Vision / Principles
   → Requirements / Acceptance Scenarios
   → Issue / ADR
@@ -246,21 +246,21 @@ Vision / Principlesは価値の方向と反復原則を示し、Value Acceptance
 
 Decision Continuityはこの流れへ別の階層を追加しません。Value Modelを利用者成果へ横断して読むためのsynthesisです。
 
-current下位文書との対応は`SOZA_VALUE_TRACEABILITY.md`で索引化します。
+current下位文書との対応は`SEI_VALUE_TRACEABILITY.md`で索引化します。
 
 下位の都合からこの価値境界を変更する必要が生じた場合は、実装を正当化するために直接書き換えず、Product Value変更として明示的に再審査します。
 
 ## 11. 関連文書
 
 - `product/README.md`
-- `product/value/SOZA_PRODUCT_VALUE.md`
-- `product/value/SOZA_VALUE_PROPOSITION.md`
-- `product/value/SOZA_VALUE_ACCEPTANCE.md`
-- `product/value/SOZA_VALUE_TRACEABILITY.md`
-- `product/value/SOZA_DECISION_CONTINUITY.md`
-- `product/interaction/SOZA_FIRST_USABLE_PRODUCT_SLICE.md`
-- `product/vision/SOZA_PRODUCT_VISION.md`
-- `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
+- `product/value/SEI_PRODUCT_VALUE.md`
+- `product/value/SEI_VALUE_PROPOSITION.md`
+- `product/value/SEI_VALUE_ACCEPTANCE.md`
+- `product/value/SEI_VALUE_TRACEABILITY.md`
+- `product/value/SEI_DECISION_CONTINUITY.md`
+- `product/interaction/SEI_FIRST_USABLE_PRODUCT_SLICE.md`
+- `product/vision/SEI_PRODUCT_VISION.md`
+- `product/principles/SEI_PRODUCT_PRINCIPLES.md`
 - `requirements/PRODUCT_REQUIREMENTS.md`
 - `requirements/ACCEPTANCE_SCENARIOS.md`
 - `plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md`

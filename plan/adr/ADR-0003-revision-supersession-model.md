@@ -6,7 +6,7 @@ Updated: 2026-08-31
 
 ## Context
 
-SOZAでは、ある時点で何を知り、何を判断していたかを、後から再構成できなければならない。
+SEIでは、ある時点で何を知り、何を判断していたかを、後から再構成できなければならない。
 
 そのため、単一の`version`番号やGit commit、DB row version、MVCC等を手掛かりにして、「意味がどのように変わったか」を推測する設計は採らない。
 
@@ -54,4 +54,4 @@ SemanticLineageRecord
 
 ## Natural Japanese review
 
-current `soza.semantic-reference/v1alpha1`、Architecture、Exact Binding境界へ戻ってDecisionを照合した。その後、logical identity、exact content、semantic lineage、storage / representation revisionの四分離とrelation vocabularyを変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+current `sei.semantic-reference/v1alpha1`、Architecture、Exact Binding境界へ戻ってDecisionを照合した。その後、logical identity、exact content、semantic lineage、storage / representation revisionの四分離とrelation vocabularyを変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

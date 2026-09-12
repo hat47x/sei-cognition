@@ -5,7 +5,7 @@
 
 ## この文書の役割
 
-この文書は、PMS-06の現在地を短く確認するためのsnapshotです。`SOZA_PRODUCT_MILESTONES.md`、`SOZA_REALIZATION_PROVIDER_EXCHANGE.md`、`SOZA_VALUE_TRACEABILITY.md`等のProduct基線を置き換えず、2026-09-05以降に進展したversion-exchange EvidenceとIssue状態を補完します。
+この文書は、PMS-06の現在地を短く確認するためのsnapshotです。`SEI_PRODUCT_MILESTONES.md`、`SEI_REALIZATION_PROVIDER_EXCHANGE.md`、`SEI_VALUE_TRACEABILITY.md`等のProduct基線を置き換えず、2026-09-05以降に進展したversion-exchange EvidenceとIssue状態を補完します。
 
 Product Value、Milestone Outcome、Requirement、Acceptance Scenario、Universal Contractを新しく定義しません。意味上の正本は既存Product / Requirement / Issue本文であり、このsnapshotは現在のEvidence位置を読み違えないための補助資料です。
 
@@ -134,7 +134,7 @@ repository側では次まで整っています。
 - A fixed input acquisitionをexact A checkout / verified historical A Evidence bundleから選べるE2 / combined runner
 - E3未準備環境でもactual E2だけを先行回収できるGitHub acquisition E2 partial runner
 - E2 partial bundleをexact revision B source commit + exact revision A fixed reference identityへbindingするstrict verifier
-- verified bundle → current SOZA Adapter E3 runner
+- verified bundle → current SEI Adapter E3 runner
 - 保存済みE2 partialからrevision B source取得 / E2 build / Provider Planを再実行せずcurrent E3だけを後日実行するresume runner
 - resume後のcanonical report publishまでは成功しGitHub wrapper report publishだけが中断した場合にE2 / E3を再実行せずreport pairを復旧するreconcile runner
 - E2 / E3 separate Go toolchains
@@ -142,7 +142,7 @@ repository側では次まで整っています。
 - E2 / E3 stage-aware failure Evidence
 - E3 Go requirement判定のstandalone runner側への集約
 - combined runnerのGo path setup failureに対するmachine-readable toolchain stage
-- Evidence出力pathをrevision B / SOZA checkoutから分離し、checkout取得時はrevision A checkoutとも分離し、historical bundle取得時は入力bundleをEvidence directory内へ包含しない実行前guard
+- Evidence出力pathをrevision B / SEI checkoutから分離し、checkout取得時はrevision A checkoutとも分離し、historical bundle取得時は入力bundleをEvidence directory内へ包含しない実行前guard
 - Requirement / Scenario pre-audit
 - GitHub / local post-run Resolution audit
 - E2 partial actual → strict re-verification → later E3 resume → 必要時reconcile → Resolution auditを一続きにしたoperator runbook
@@ -152,7 +152,7 @@ repository側では次まで整っています。
 - actual E2 partialがstage-aware failureで停止した場合にResolution Criteriaへ戻し、false successやE3到達扱いを作らないE2 failure専用audit
 - snapshot transport success / failure双方を分岐として固定した2026-09-07 operator runbook
 
-E2 historical TEI buildとE3 current SOZA live testは別toolchainを使います。Go versionや配置方法はexecution EvidenceでありStable Requirement / Universal Contractではありません。
+E2 historical TEI buildとE3 current SEI live testは別toolchainを使います。Go versionや配置方法はexecution EvidenceでありStable Requirement / Universal Contractではありません。
 
 Git object identityが一致するだけではactual source / checkout fixed inputのpurity成立とは扱いません。execution boundary内にtracked変更、untracked entry、gitignored entryがあればE2開始前に拒否します。historical bundle経路ではworking treeの代わりに、bundle metadataのA source commit、historical binary / Provider Plan digest、およびactual reference bytesから再計算したGit object identityを固定値へ照合します。
 
@@ -178,7 +178,7 @@ exact revision B signed commit object reconstructed
 deterministic fixed-B source-level compile contradiction observed
   != canonical actual revision B build FAIL
   != Provider Plan failure
-  != SOZA Adapter incompatibility
+  != SEI Adapter incompatibility
 ```
 
 GitHub-hosted actual workflowはattempt 7まで観測されていますが、latest attemptもrunner assignment / Product step / artifactを観測していません。したがってfailure分類はGitHub-hosted job-start層に留め、TEI build failureやProvider Plan failureへ昇格させません。
@@ -191,12 +191,12 @@ snapshot transport実装は成立していますが、credential-free **actual e
 actual exact-B Git Data snapshot acquisition
 revision B canonical actual CLI build / execution
 revision B actual deployment-provider-plan
-revision B current SOZA Adapter live compatibility
+revision B current SEI Adapter live compatibility
 ```
 
 したがってISSUE-000072は**Open**です。
 
-actual E2がbuild failureで停止した場合は、stage-aware failure reportを保存し、専用Resolution auditへ接続してE3へ進みません。`resolutionCandidate=false`を維持し、Bのexact binding / failure Evidenceを保持します。actual E2が成功した場合だけstrict bundle verificationを行い、current SOZA E3へ進みます。
+actual E2がbuild failureで停止した場合は、stage-aware failure reportを保存し、専用Resolution auditへ接続してE3へ進みません。`resolutionCandidate=false`を維持し、Bのexact binding / failure Evidenceを保持します。actual E2が成功した場合だけstrict bundle verificationを行い、current SEI E3へ進みます。
 
 ## ISSUE-000071との関係
 
@@ -265,7 +265,7 @@ E2を先行回収する最低条件は次です。
 
 snapshot transportを使う場合、online T1 captureとoffline T2 E2を同一hostで行う必要はありません。T1ではruntime credentialをsnapshotへ保存せず、T2ではruntime GitHub credentialを要求しません。snapshotはsource acquisition identityではなくcross-environment transport Provenanceとして扱います。
 
-E3まで同じ機会に実行する場合は、上記に加えてcurrent SOZA checkoutとcurrent SOZA E3 live-test要件を満たすGo toolchainを用意します。E3 toolchainを後から用意する場合は、保存済みE2 partial report / bundleをstrictに再検証したうえでresume runnerからE3だけを実行できます。
+E3まで同じ機会に実行する場合は、上記に加えてcurrent SEI checkoutとcurrent SEI E3 live-test要件を満たすGo toolchainを用意します。E3 toolchainを後から用意する場合は、保存済みE2 partial report / bundleをstrictに再検証したうえでresume runnerからE3だけを実行できます。
 
 signed commit objectの独立再構成やhistorical bootstrap payloadは、上記exact revision B source materializationの代替にはしません。commit object identity、source checkout / snapshot materialization、working-tree purity、actual buildは別々のEvidence境界です。
 
@@ -274,7 +274,7 @@ signed commit objectの独立再構成やhistorical bootstrap payloadは、上�
 ```text
 specific execution host not selected
   != TEI incompatibility
-  != SOZA Adapter failure
+  != SEI Adapter failure
   != ISSUE-000072 blocked by Product semantics
 ```
 
@@ -303,7 +303,7 @@ E2成功時:
 ```text
 exact-B / exact-A strict bundle verification
   ↓
-current SOZA E3 resume
+current SEI E3 resume
   ↓
 必要な場合だけ report-pair reconcile
   ↓
@@ -339,7 +339,7 @@ ISSUE-000072 snapshot / E2 / failure-audit path ready
   != actual exact-B snapshot acquired
   != canonical revision B actual build result
   != Provider Plan PASS / FAIL observed
-  != current SOZA E3 result observed
+  != current SEI E3 result observed
   != ISSUE-000072 Resolved
   != E4 Operational portability
   != v0.2.0 supported scope expanded

@@ -64,7 +64,7 @@ class CheckoutPreparationReportTest(unittest.TestCase):
             root = Path(tmp)
             report = root / "report.json"
             value = {
-                "schema": "soza.tei-revision-b-checkout-preparation/v1",
+                "schema": "sei.tei-revision-b-checkout-preparation/v1",
                 "result": "prepared_verified",
                 "qualityJudgement": "not_evaluated",
             }
@@ -102,7 +102,7 @@ class CheckoutPreparationReportTest(unittest.TestCase):
                 output_repo.mkdir()
                 (output_repo / "marker").write_text("owned\n", encoding="utf-8")
                 return {
-                    "schema": "soza.tei-revision-b-checkout-preparation/v1",
+                    "schema": "sei.tei-revision-b-checkout-preparation/v1",
                     "result": "prepared_verified",
                     "sourceRepository": str(source_repo),
                     "outputRepository": str(output_repo),

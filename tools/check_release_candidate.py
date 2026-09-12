@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SOZAのversion別Release Candidate policyを検査し、候補commitへ結び付いたreportを生成する。
+"""SEIのversion別Release Candidate policyを検査し、候補commitへ結び付いたreportを生成する。
 
 このcheckerが確認するのはrelease candidateの準備条件であり、actual Release Evidenceではない。
 versionごとのsupported scope、required path、Plan snapshot、required gate、非主張範囲は独立policyとして扱い、
@@ -20,8 +20,13 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = ROOT / "release" / "v0.1.0" / "release-candidate.json"
-EXPECTED_SCHEMA = "soza.release-candidate/v1"
-EXPECTED_REPOSITORY = "hat47x/soza"
+EXPECTED_SCHEMA = "sei.release-candidate/v1"
+EXPECTED_REPOSITORY = "hat47x/sei-cognition"
+# ADR-0031の3および5。改名前に記録されたEvidenceは旧identityと旧repository名を
+# 持つため、読み取り側は双方を受け付ける。emit側は常に新しい名前だけを書く。
+# これは暫定措置ではなく、記録済みEvidenceが存在する限り必要な恒久措置である。
+LEGACY_SCHEMA = "soza.release-candidate/v1"
+LEGACY_REPOSITORY = "hat47x/soza"
 EXPECTED_PROHIBITED_STATUSES = {"Open", "In Progress", "Blocked"}
 
 ISSUE_ROW = re.compile(
@@ -66,14 +71,14 @@ VERSION_POLICIES: dict[str, VersionPolicy] = {
         required_gates=COMMON_GATES,
         required_path_anchors=frozenset({
             "README.md",
-            "product/value/SOZA_PRODUCT_VALUE.md",
-            "product/value/SOZA_VALUE_ACCEPTANCE.md",
+            "product/value/SEI_PRODUCT_VALUE.md",
+            "product/value/SEI_VALUE_ACCEPTANCE.md",
             "requirements/PRODUCT_REQUIREMENTS.md",
             "requirements/ACCEPTANCE_SCENARIOS.md",
-            "architecture/SOZA_REFERENCE_ARCHITECTURE.md",
+            "architecture/SEI_REFERENCE_ARCHITECTURE.md",
             "contracts/CONTRACT_CATALOG.md",
-            "contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md",
-            "contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md",
+            "contracts/profiles/SEI_JCS_SHA256_PROFILE_v1alpha1.md",
+            "contracts/profiles/SEI_RAW_BYTES_SHA256_PROFILE_v1alpha1.md",
             "contracts/schemas/v1alpha1",
             "fixtures/contracts/v1alpha1",
             "runtime/go",
@@ -88,23 +93,23 @@ VERSION_POLICIES: dict[str, VersionPolicy] = {
         required_gates=COMMON_GATES | {"local-reference-package"},
         required_path_anchors=frozenset({
             "README.md",
-            "product/value/SOZA_PRODUCT_VALUE.md",
-            "product/value/SOZA_VALUE_ACCEPTANCE.md",
-            "product/value/SOZA_VALUE_TRACEABILITY.md",
-            "product/definition/SOZA_PRODUCT_SHAPE.md",
-            "product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md",
-            "product/interaction/SOZA_PRODUCT_INTERACTION.md",
-            "product/packaging/SOZA_PRODUCT_PACKAGING.md",
-            "product/security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md",
-            "product/roadmap/SOZA_PRODUCT_MILESTONES.md",
+            "product/value/SEI_PRODUCT_VALUE.md",
+            "product/value/SEI_VALUE_ACCEPTANCE.md",
+            "product/value/SEI_VALUE_TRACEABILITY.md",
+            "product/definition/SEI_PRODUCT_SHAPE.md",
+            "product/definition/SEI_REALIZATION_PROVIDER_EXCHANGE.md",
+            "product/interaction/SEI_PRODUCT_INTERACTION.md",
+            "product/packaging/SEI_PRODUCT_PACKAGING.md",
+            "product/security/SEI_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md",
+            "product/roadmap/SEI_PRODUCT_MILESTONES.md",
             "requirements/PRODUCT_REQUIREMENTS.md",
             "requirements/ACCEPTANCE_SCENARIOS.md",
             "requirements/PRODUCT_JOURNEY_COMPOSITION.md",
-            "architecture/SOZA_REFERENCE_ARCHITECTURE.md",
-            "architecture/SOZA_DEPLOYMENT_ARCHITECTURE.md",
-            "architecture/SOZA_PRODUCT_ACCESS_ARCHITECTURE.md",
+            "architecture/SEI_REFERENCE_ARCHITECTURE.md",
+            "architecture/SEI_DEPLOYMENT_ARCHITECTURE.md",
+            "architecture/SEI_PRODUCT_ACCESS_ARCHITECTURE.md",
             "contracts/CONTRACT_CATALOG.md",
-            "contracts/cognitive-method/SOZA_COGNITIVE_METHOD_v1alpha1.md",
+            "contracts/cognitive-method/SEI_COGNITIVE_METHOD_v1alpha1.md",
             "contracts/schemas/v1alpha1",
             "fixtures/contracts/v1alpha1",
             "fixtures/external/e3a",
@@ -153,6 +158,13 @@ def require_exact_string(config: dict[str, Any], key: str, expected: str) -> Non
         fail(f"{key} = {value!r}, want {expected!r}")
 
 
+def require_renamed_string(config: dict[str, Any], key: str, expected: str, legacy: str) -> None:
+    """ADR-0031の改名を跨いで読む。新旧どちらのidentityでも受け付ける。"""
+    value = config.get(key)
+    if value not in (expected, legacy):
+        fail(f"{key} = {value!r}, want {expected!r} (or pre-rename {legacy!r})")
+
+
 def require_string_list(config: dict[str, Any], key: str) -> list[str]:
     value = config.get(key)
     if not isinstance(value, list) or not value or not all(isinstance(x, str) and x.strip() for x in value):
@@ -171,13 +183,46 @@ def version_policy(config: dict[str, Any]) -> tuple[str, VersionPolicy]:
     return version, policy
 
 
+def _swap_filename_prefix(path: str, before: str, after: str) -> str:
+    head, _, tail = path.rpartition("/")
+    if not tail.startswith(before):
+        return path
+    renamed = f"{after}{tail[len(before):]}"
+    return f"{head}/{renamed}" if head else renamed
+
+
+def pre_rename_path(path: str) -> str:
+    """ADR-0031の文書filename mappingを逆向きにたどる。
+
+    改名前に記録されたrelease candidateは`SOZA_`接頭辞のpathを宣言している。
+    当時のrecordを書き換えないため、読み取り側で当時のpathへ戻して照合する。
+    """
+    return _swap_filename_prefix(path, "SEI_", "SOZA_")
+
+
+def post_rename_path(path: str) -> str:
+    """ADR-0031の文書filename mappingを順方向にたどる。
+
+    改名前のrecordが宣言するpathを、current treeに実在するpathへ解決する。
+    """
+    return _swap_filename_prefix(path, "SOZA_", "SEI_")
+
+
 def check_required_paths(paths: list[str], policy: VersionPolicy) -> None:
     declared = set(paths)
-    missing_anchors = sorted(policy.required_path_anchors - declared)
+    missing_anchors = sorted(
+        anchor
+        for anchor in policy.required_path_anchors
+        if anchor not in declared and pre_rename_path(anchor) not in declared
+    )
     if missing_anchors:
         fail(f"required_paths dropped mandatory anchors: {missing_anchors}")
 
-    missing_on_disk = [path for path in paths if not (ROOT / path).exists()]
+    missing_on_disk = [
+        path
+        for path in paths
+        if not (ROOT / path).exists() and not (ROOT / post_rename_path(path)).exists()
+    ]
     if missing_on_disk:
         fail(f"required_paths do not exist in candidate tree: {missing_on_disk}")
 
@@ -307,7 +352,7 @@ def build_report(
     non_claims: dict[str, bool],
 ) -> dict[str, Any]:
     return {
-        "schema": "soza.release-candidate-report/v1",
+        "schema": "sei.release-candidate-report/v1",
         "version": version,
         "repository": EXPECTED_REPOSITORY,
         "release_scope": policy.release_scope,
@@ -333,8 +378,8 @@ def main() -> int:
 
     try:
         config = load_json(args.config)
-        require_exact_string(config, "schema", EXPECTED_SCHEMA)
-        require_exact_string(config, "repository", EXPECTED_REPOSITORY)
+        require_renamed_string(config, "schema", EXPECTED_SCHEMA, LEGACY_SCHEMA)
+        require_renamed_string(config, "repository", EXPECTED_REPOSITORY, LEGACY_REPOSITORY)
         version, policy = version_policy(config)
 
         github_repo = os.environ.get("GITHUB_REPOSITORY")
@@ -367,7 +412,7 @@ def main() -> int:
             print(f"release candidate report: {report_path}")
 
         print(
-            f"PASS: SOZA v{version} release candidate policy; "
+            f"PASS: SEI v{version} release candidate policy; "
             f"commit={report['source_commit_sha']} tree={report['source_tree_sha']} "
             f"plan_scope<={plan_issue_scope_max} deferred={deferred}"
         )

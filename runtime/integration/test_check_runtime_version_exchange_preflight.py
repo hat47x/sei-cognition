@@ -330,9 +330,9 @@ class RuntimeVersionExchangePreflightTest(unittest.TestCase):
     def test_runtime_bundle_check_accepts_verified_identity(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            soza = root / "soza"
+            sei = root / "sei"
             bundle = root / "bundle"
-            soza.mkdir()
+            sei.mkdir()
             bundle.mkdir()
             payload = {
                 "sourceCommit": preflight.PINNED_IDENTITY.source_commit,
@@ -340,42 +340,42 @@ class RuntimeVersionExchangePreflightTest(unittest.TestCase):
                 "runtimeSurfaceTree": preflight.PINNED_IDENTITY.runtime_surface_tree,
             }
             with patch.object(preflight, "verify_runtime_bundle", return_value=payload):
-                checks = preflight.runtime_bundle_check(bundle, soza)
+                checks = preflight.runtime_bundle_check(bundle, sei)
             self.assertEqual(["ok", "ok"], [check.status for check in checks])
             self.assertIn(preflight.PINNED_IDENTITY.runtime_surface_tree, checks[1].detail)
 
     def test_runtime_bundle_check_rejects_identity_mismatch(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            soza = root / "soza"
+            sei = root / "sei"
             bundle = root / "bundle"
-            soza.mkdir()
+            sei.mkdir()
             bundle.mkdir()
             with patch.object(
                 preflight,
                 "verify_runtime_bundle",
                 side_effect=ValueError("runtime source bundle identity mismatch"),
             ):
-                checks = preflight.runtime_bundle_check(bundle, soza)
+                checks = preflight.runtime_bundle_check(bundle, sei)
             self.assertEqual("blocked", checks[0].status)
             self.assertIn("identity", checks[0].detail)
 
-    def test_runtime_bundle_check_rejects_bundle_inside_soza(self):
+    def test_runtime_bundle_check_rejects_bundle_inside_sei(self):
         with tempfile.TemporaryDirectory() as temp:
-            soza = Path(temp) / "soza"
-            bundle = soza / "bundle"
+            sei = Path(temp) / "sei"
+            bundle = sei / "bundle"
             bundle.mkdir(parents=True)
-            checks = preflight.runtime_bundle_check(bundle, soza)
+            checks = preflight.runtime_bundle_check(bundle, sei)
             self.assertEqual("blocked", checks[0].status)
-            self.assertIn("SOZA repository配下", checks[0].detail)
+            self.assertIn("SEI repository配下", checks[0].detail)
 
     def test_runtime_bundle_check_rejects_deep_symlink_ancestor_before_identity_verification(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            soza = root / "soza"
+            sei = root / "sei"
             actual_root = root / "actual"
             bundle = actual_root / "nested" / "bundle"
-            soza.mkdir()
+            sei.mkdir()
             bundle.mkdir(parents=True)
             linked_root = root / "linked-root"
             try:
@@ -386,7 +386,7 @@ class RuntimeVersionExchangePreflightTest(unittest.TestCase):
             with patch.object(preflight, "verify_runtime_bundle") as verifier:
                 checks = preflight.runtime_bundle_check(
                     linked_root / "nested" / "bundle",
-                    soza,
+                    sei,
                 )
 
             verifier.assert_not_called()

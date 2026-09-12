@@ -14,7 +14,7 @@ Capability != Provider
 
 実際にCapabilityを提供する形には、Plugin、Provider Binding、external process、SaaS、人間作業、Database Provider等、Providerごとに異なる構造が現れる。
 
-一方で、これらをすべてSOZA共通の`CapabilityRealization`へ統一しなければ意味を保てない、というEvidenceは得られていない。
+一方で、これらをすべてSEI共通の`CapabilityRealization`へ統一しなければ意味を保てない、というEvidenceは得られていない。
 
 Cognitive MethodではDefinition / Realizationを分離する意味があるが、あるdomainで有効な構造を類推だけでCapabilityへ一般化すると、Provider固有のdeployment、contract、offer、session、pricing等をUniversal Coreへ引き込みやすい。
 
@@ -22,7 +22,7 @@ Cognitive MethodではDefinition / Realizationを分離する意味があるが�
 
 ### 1. Universal `CapabilityRealization`を現時点では追加しない
 
-SOZA Coreでは、Capability DefinitionとProvider / Provider-specific contextを分離したまま扱う。
+SEI Coreでは、Capability DefinitionとProvider / Provider-specific contextを分離したまま扱う。
 
 必要な場合は、Capabilityを提供する具体的な条件や状態を、Provider / Profile側のArtifact、reference、Observation等として表す。
 
@@ -64,7 +64,7 @@ Capabilityにも同じ構造が必要になった場合は、Capability側の具
 
 ## Current realization
 
-current `soza.capability-observation/v1alpha1`では、ObservationのtargetとしてCapability referenceに加え、必要に応じてProvider referenceとProvider-specific target referenceを保持できる。
+current `sei.capability-observation/v1alpha1`では、ObservationのtargetとしてCapability referenceに加え、必要に応じてProvider referenceとProvider-specific target referenceを保持できる。
 
 また、synthetic Provider Adapter sliceでは、Provider A / Bの異なる入力SchemaをUniversal `CapabilityRealization`へ変換せず、それぞれのAdapterから同じCapability Observation境界へmappingできることを確認している。
 

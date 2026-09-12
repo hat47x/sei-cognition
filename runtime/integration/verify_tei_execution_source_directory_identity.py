@@ -16,7 +16,7 @@ EXPECTED_OBJECTS = source_identity.EXPECTED_OBJECTS
 STOP_LINE = (
     "TEI execution-source directory bytes matched fixed revision-B Git object set "
     "!= exact revision B Git checkout HEAD/purity verified != revision B build PASS "
-    "!= Provider Plan execution PASS != SOZA Adapter compatibility PASS "
+    "!= Provider Plan execution PASS != SEI Adapter compatibility PASS "
     "!= ISSUE-000072 Resolved"
 )
 
@@ -165,7 +165,7 @@ def verify_directory(
 
     fixed_revision_b_set = dict(expected_objects) == dict(EXPECTED_OBJECTS)
     return {
-        "schema": "soza.tei-execution-source-directory-identity/v1",
+        "schema": "sei.tei-execution-source-directory-identity/v1",
         "result": "verified",
         "sourceRoot": str(resolved),
         "acquisitionMode": "content_directory",

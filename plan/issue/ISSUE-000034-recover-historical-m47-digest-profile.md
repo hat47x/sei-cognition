@@ -35,7 +35,7 @@ Method Application
 また、historical KJ Method Definition payloadも回収できた。
 
 ```text
-schema = soza.cognitive-method-definition/v1
+schema = sei.cognitive-method-definition/v1
 id = kj
 version = 1
 ```
@@ -50,7 +50,7 @@ Resolution条件2を評価するため、単純なsemantic searchだけでなく
 
 ### 1. current GitHub reachable history
 
-`hat47x/soza`について、`develop/v0.1.0`と`main`の到達可能履歴から次のpathを検索した。
+`hat47x/sei-cognition`について、`develop/v0.1.0`と`main`の到達可能履歴から次のpathを検索した。
 
 ```text
 runtime/go/cognitivemethod/method.go
@@ -107,7 +107,7 @@ Pythonファイル一覧にも`run_m47_cognitive_method_conformance.py`はなか
 
 2026-08-28〜2026-08-30のZIP archiveを時系列で確認した。
 
-SOZA / Semantic Platform系では次が連続して残っている。
+SEI / Semantic Platform系では次が連続して残っている。
 
 ```text
 semantic_platform_starter_m44_v1.zip
@@ -118,11 +118,11 @@ semantic_platform_starter_m46_v1.zip
 その後は、
 
 ```text
-soza_architecture_transition_v1.zip
-soza_architecture_delegation_2026-08-30.zip
-soza_rebaseline_phase0_2026-08-30.zip
-soza_rebaseline_phase0_final_2026-08-30.zip
-soza_phase1_m48_integration_candidate_*.zip
+sei_architecture_transition_v1.zip
+sei_architecture_delegation_2026-08-30.zip
+sei_rebaseline_phase0_2026-08-30.zip
+sei_rebaseline_phase0_final_2026-08-30.zip
+sei_phase1_m48_integration_candidate_*.zip
 ```
 
 へ移っている。
@@ -222,7 +222,7 @@ unrecoverable historical verification
 
 Resolved後も、次のいずれかが新たに発見された場合はこのIssueを再開してよい。
 
-- historical SOZA M47 repository snapshot / archive
+- historical SEI M47 repository snapshot / archive
 - actual `runtime/go/cognitivemethod/` source
 - actual `tools/run_m47_cognitive_method_conformance.py`
 - actual `CURRENT_EVIDENCE_M47.yaml`

@@ -15,11 +15,20 @@ from typing import BinaryIO, Callable
 from runtime_path_safety import reject_symlink_path_or_ancestors
 
 INTEGRATION_DIR = Path(__file__).resolve().parent
-SOZA_ROOT = INTEGRATION_DIR.parents[1]
+SEI_ROOT = INTEGRATION_DIR.parents[1]
 MANIFEST_PATH = INTEGRATION_DIR / "runtime_version_exchange_artifacts.json"
-MANIFEST_SCHEMA = "soza.runtime-version-exchange-artifact-manifest/v1"
+MANIFEST_SCHEMA = "sei.runtime-version-exchange-artifact-manifest/v1"
 VERSION_PATTERN = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
 HEX_SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+
+
+def legacy_schema(schema: str) -> str:
+    """ADR-0031の3。改名前に記録されたEvidenceが持つ旧identityを返す。
+
+    emit側は常に`sei.*`だけを書く。読み取り側だけが双方を受け付ける。
+    記録済みEvidenceが存在する限り必要な恒久措置であり、期限は切らない。
+    """
+    return "soza." + schema[len("sei."):] if schema.startswith("sei.") else schema
 
 
 @dataclass(frozen=True)
@@ -40,9 +49,9 @@ def validate_output_dir(output_dir: Path) -> Path:
     reject_symlink_path_or_ancestors(requested, "runtime archive output directory")
 
     resolved = requested.resolve(strict=False)
-    if _is_within(resolved, SOZA_ROOT):
+    if _is_within(resolved, SEI_ROOT):
         raise ValueError(
-            "runtime archiveをSOZA repository配下には配置できません: "
+            "runtime archiveをSEI repository配下には配置できません: "
             f"{resolved}"
         )
     if resolved.exists() and not resolved.is_dir():
@@ -52,7 +61,7 @@ def validate_output_dir(output_dir: Path) -> Path:
 
 def load_manifest(path: Path = MANIFEST_PATH) -> dict[str, object]:
     payload = json.loads(path.read_text(encoding="utf-8"))
-    if payload.get("schema") != MANIFEST_SCHEMA:
+    if payload.get("schema") not in (MANIFEST_SCHEMA, legacy_schema(MANIFEST_SCHEMA)):
         raise ValueError(f"manifest schemaが未対応です: {payload.get('schema')!r}")
     archives = payload.get("runtimeArchives")
     if not isinstance(archives, dict) or set(archives) != {"a", "b"}:
@@ -248,7 +257,7 @@ def build_plan(
             }
         )
     return {
-        "schema": "soza.runtime-version-exchange-artifact-preparation-plan/v1",
+        "schema": "sei.runtime-version-exchange-artifact-preparation-plan/v1",
         "selection": selection,
         "outputDir": str(output_dir.resolve(strict=False)),
         "compressedBytesTotal": total,
@@ -268,7 +277,7 @@ def build_parser() -> argparse.ArgumentParser:
         )
     )
     parser.add_argument(
-        "--output-dir", type=Path, required=True, help="SOZA repository外でarchiveを置くdirectory。"
+        "--output-dir", type=Path, required=True, help="SEI repository外でarchiveを置くdirectory。"
     )
     parser.add_argument(
         "--runtime",
@@ -357,7 +366,7 @@ def main(argv: list[str] | None = None) -> int:
             break
 
     payload = {
-        "schema": "soza.runtime-version-exchange-artifact-preparation-result/v1",
+        "schema": "sei.runtime-version-exchange-artifact-preparation-result/v1",
         "result": (
             "ok"
             if results and all(item["status"] == "ok" for item in results)

@@ -1,12 +1,12 @@
-# SOZA JCS + SHA-256 Representation Profile v1alpha1
+# SEI JCS + SHA-256 Representation Profile v1alpha1
 
-Profile ID: `soza.jcs+sha256/v1alpha1`  
+Profile ID: `sei.jcs+sha256/v1alpha1`  
 Status: **Current v1alpha1 — Fixture-scoped Executable Conformance PASS**  
 Updated: 2026-08-31
 
 ## 1. Purpose
 
-このProfileは、JSONで表現されたSOZA Artifactについて、異なる実装・言語・保存方式の間でも同一contentを再検証できるようにするためのRepresentation Profileです。
+このProfileは、JSONで表現されたSEI Artifactについて、異なる実装・言語・保存方式の間でも同一contentを再検証できるようにするためのRepresentation Profileです。
 
 このProfileはSemantic Contractの意味を定義しません。
 
@@ -42,7 +42,7 @@ canonical bytesはRFC 8785 JSON Canonicalization Schemeに従って生成しま�
 - 出力はUTF-8 bytesとする。
 - insignificant whitespaceを除去する。
 
-SOZA独自のcanonical JSON algorithmを本Profileの正本にはしません。
+SEI独自のcanonical JSON algorithmを本Profileの正本にはしません。
 
 ## 4. Unicode boundary
 
@@ -62,7 +62,7 @@ ApplicationがUnicode normalizationを必要とする場合は、JCSへ渡す前
 
 RFC 8785 / I-JSONのnumber interoperabilityはIEEE 754 binary64を前提とします。
 
-そのため、SOZAのsemantic valueがbinary64で安全に保持できない場合、JSON numberへ暗黙変換してからdigestを計算してはなりません。
+そのため、SEIのsemantic valueがbinary64で安全に保持できない場合、JSON numberへ暗黙変換してからdigestを計算してはなりません。
 
 ```text
 high-precision semantic value
@@ -91,7 +91,7 @@ sha256:<64 lowercase hexadecimal characters>
 sha256:cc31fc728ab32ccfd6543dd8cce686b9633b3c47fbec82c88a466688f3a8cb81
 ```
 
-SHA-256をSOZA Universal Coreの唯一のhash algorithmとして固定するものではありません。このProfile versionがSHA-256を所有します。
+SHA-256をSEI Universal Coreの唯一のhash algorithmとして固定するものではありません。このProfile versionがSHA-256を所有します。
 
 ## 7. Verification outcomes
 
@@ -118,8 +118,8 @@ current probeはcommit SHA `1a4242a66e1a8e03d7458324d0bc95c327527cbb`へ固定�
 採用条件:
 
 - dependency revisionを明示的に固定する。
-- RFC 8785 representative vectorをSOZA側fixtureで検査する。
-- duplicate key、numeric boundary、Unicode non-normalization等をSOZA側でも検査する。
+- RFC 8785 representative vectorをSEI側fixtureで検査する。
+- duplicate key、numeric boundary、Unicode non-normalization等をSEI側でも検査する。
 - libraryを差し替えてもProfile ID / canonical result / digest contractを変更しない。
 
 Verifier implementationの更新だけを理由に、同じProfile ID / versionの意味を変更してはなりません。
@@ -170,10 +170,10 @@ historical M47 digest規則も本Profileへ遡及適用せず、ISSUE-000034で�
 
 ## 12. Versioning
 
-`soza.jcs+sha256/v1alpha1`のcanonicalization、digest algorithm、input制約を互換性なく変更する場合、同じProfile ID / versionを再利用しません。
+`sei.jcs+sha256/v1alpha1`のcanonicalization、digest algorithm、input制約を互換性なく変更する場合、同じProfile ID / versionを再利用しません。
 
 Semantic Contract versionとRepresentation Profile versionは独立です。
 
 ## 13. Natural Japanese review
 
-RFC 8785、actual Profile Conformance、SOZAのExact Binding / Verification Outcome、first runtimeとの境界、historical M47分離を再照合しました。Profileが所有する規則、上位semantic precision責務、実装差替え境界を維持したまま、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+RFC 8785、actual Profile Conformance、SEIのExact Binding / Verification Outcome、first runtimeとの境界、historical M47分離を再照合しました。Profileが所有する規則、上位semantic precision責務、実装差替え境界を維持したまま、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。

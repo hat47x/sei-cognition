@@ -20,8 +20,8 @@ class TEIVersionExchangeResolutionAuditTest(unittest.TestCase):
                 "referenceInputSourceCommit": subject.source_identity.REVISION_A,
                 "referenceInputAcquisition": "historical_evidence_bundle",
                 "teiGoRequirement": "go1.23.2",
-                "sozaGoRequirement": "1.25",
-                "expectedSozaHead": "f" * 40,
+                "seiGoRequirement": "1.25",
+                "expectedSeiHead": "f" * 40,
             },
             "bundleArchive": str(bundle),
             "e2": None,
@@ -43,8 +43,8 @@ class TEIVersionExchangeResolutionAuditTest(unittest.TestCase):
         if result == "fixed_scope_e2_e3_verified":
             report["e3"] = {
                 "result": "adapter_compatible",
-                "sozaSource": {"head": "f" * 40},
-                "postLiveTestSozaSource": {"head": "f" * 40},
+                "seiSource": {"head": "f" * 40},
+                "postLiveTestSeiSource": {"head": "f" * 40},
             }
         elif result == "e2_failed":
             report["failure"] = {"stage": "E2", "type": "StageError"}
@@ -53,7 +53,7 @@ class TEIVersionExchangeResolutionAuditTest(unittest.TestCase):
         elif result == "e2_verified_e3_failed":
             report["failure"] = {"stage": "E3", "type": "StageError"}
             if staged:
-                report["failure"]["substage"] = "soza_teiintegration_live_test"
+                report["failure"]["substage"] = "sei_teiintegration_live_test"
         path = root / "canonical.json"
         path.write_text(json.dumps(report), encoding="utf-8")
         return path
@@ -143,7 +143,7 @@ class TEIVersionExchangeResolutionAuditTest(unittest.TestCase):
         with (
             mock.patch.object(
                 subject,
-                "_verify_soza_baseline",
+                "_verify_sei_baseline",
                 return_value=self.baseline(),
             ),
             mock.patch.object(
@@ -159,7 +159,7 @@ class TEIVersionExchangeResolutionAuditTest(unittest.TestCase):
         ):
             return subject.audit_resolution(
                 canonical,
-                soza_repo_root=root,
+                sei_repo_root=root,
                 historical_a_bundle=historical_path,
                 github_wrapper_report=wrapper_path,
             )
@@ -222,7 +222,7 @@ class TEIVersionExchangeResolutionAuditTest(unittest.TestCase):
             with (
                 mock.patch.object(
                     subject,
-                    "_verify_soza_baseline",
+                    "_verify_sei_baseline",
                     return_value=self.baseline(),
                 ),
                 mock.patch.object(
@@ -238,7 +238,7 @@ class TEIVersionExchangeResolutionAuditTest(unittest.TestCase):
             ):
                 result = subject.audit_resolution(
                     canonical,
-                    soza_repo_root=root,
+                    sei_repo_root=root,
                     historical_a_bundle=historical,
                     github_wrapper_report=wrapper,
                 )
@@ -264,11 +264,11 @@ class TEIVersionExchangeResolutionAuditTest(unittest.TestCase):
             value["comparisonAxis"]["buildSourceCommit"] = "0" * 40
             path.write_text(json.dumps(value), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "comparison axis"):
-                subject.audit_resolution(path, soza_repo_root=root)
+                subject.audit_resolution(path, sei_repo_root=root)
 
-    def test_soza_baseline_records_committed_requirement_objects(self):
+    def test_sei_baseline_records_committed_requirement_objects(self):
         with tempfile.TemporaryDirectory() as tmp:
-            repo = Path(tmp) / "soza"
+            repo = Path(tmp) / "sei"
             repo.mkdir()
             for relative in subject.BASELINE_PATHS:
                 path = repo / relative
@@ -307,18 +307,18 @@ class TEIVersionExchangeResolutionAuditTest(unittest.TestCase):
                 stdout=subprocess.PIPE,
                 check=True,
             ).stdout.strip()
-            result = subject._verify_soza_baseline(repo, head)
+            result = subject._verify_sei_baseline(repo, head)
         self.assertEqual(head, result["head"])
         self.assertEqual(set(subject.BASELINE_PATHS), set(result["objects"]))
         self.assertTrue(result["worktreeCleanWithinBoundary"])
 
-    def test_output_inside_soza_repo_is_rejected(self):
+    def test_output_inside_sei_repo_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            soza = root / "soza"
-            soza.mkdir()
-            with self.assertRaisesRegex(ValueError, "SOZA repository配下"):
-                subject._prepare_output(soza / "audit.json", soza)
+            sei = root / "sei"
+            sei.mkdir()
+            with self.assertRaisesRegex(ValueError, "SEI repository配下"):
+                subject._prepare_output(sei / "audit.json", sei)
 
 
 if __name__ == "__main__":

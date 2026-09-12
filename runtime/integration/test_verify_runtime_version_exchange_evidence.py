@@ -24,7 +24,7 @@ PROMPT_SHA = "1" * 64
 class EvidenceVerifierTest(unittest.TestCase):
     def make_evidence(self, root: Path) -> None:
         source = {
-            "schema": "soza.kj-atlas-runtime-source-identity/v1",
+            "schema": "sei.kj-atlas-runtime-source-identity/v1",
             "verified": True,
             "sourceMode": "verified-runtime-bundle",
             "repository": "hat47x/kj-atlas",

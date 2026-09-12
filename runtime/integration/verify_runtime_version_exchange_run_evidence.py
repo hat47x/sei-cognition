@@ -9,7 +9,7 @@ from typing import Any
 
 import verify_runtime_version_exchange_evidence as base
 
-EXPECTED_PREFLIGHT_SCHEMA = "soza.runtime-version-exchange-preflight/v1"
+EXPECTED_PREFLIGHT_SCHEMA = "sei.runtime-version-exchange-preflight/v1"
 PREFLIGHT_FILE = "runtime-exchange-preflight.json"
 RUNNER_FILE = "runtime-exchange-runner-observation.json"
 

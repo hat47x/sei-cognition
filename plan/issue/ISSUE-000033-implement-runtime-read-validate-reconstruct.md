@@ -9,7 +9,7 @@ Updated: 2026-08-31
 
 ADR-0022で確定したfirst runtime sliceをGoでactual repositoryへ実装し、current Contract fixtureをruntimeへ読み込むend-to-end conformanceを構築する。
 
-外部Action実行を先行せず、Semantic Interchange、Decision Memory、Capability Observation、Semantic Referenceの読み込み・意味検査・historical reconstructionを、SOZA current baselineで最初のExecutable runtime Evidenceとする。
+外部Action実行を先行せず、Semantic Interchange、Decision Memory、Capability Observation、Semantic Referenceの読み込み・意味検査・historical reconstructionを、SEI current baselineで最初のExecutable runtime Evidenceとする。
 
 ## Resolution
 
@@ -87,7 +87,7 @@ Contract checkerでは17 fixtureすべてが期待結果と一致し、Go semant
 
 ```text
 runtime CI PASS
-  != all SOZA runtime requirements complete
+  != all SEI runtime requirements complete
   != Provider production integration
   != Authorization / Action execution complete
   != release readiness

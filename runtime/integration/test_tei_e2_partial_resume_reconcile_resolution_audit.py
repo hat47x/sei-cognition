@@ -62,10 +62,10 @@ class TEIE2PartialResumeReconcileResolutionAuditTest(unittest.TestCase):
             }
             canonical_axis = {
                 **partial_axis,
-                "sozaGoRequirement": "go1.25.0",
-                "sozaGoExecutable": "/toolchains/go1.25/bin/go",
-                "expectedSozaHead": "soza-head",
-                "sozaGoObserved": "go version go1.25.1 linux/amd64",
+                "seiGoRequirement": "go1.25.0",
+                "seiGoExecutable": "/toolchains/go1.25/bin/go",
+                "expectedSeiHead": "sei-head",
+                "seiGoObserved": "go version go1.25.1 linux/amd64",
             }
             canonical = {
                 "schema": reconcile.version_exchange.SCHEMA,
@@ -75,8 +75,8 @@ class TEIE2PartialResumeReconcileResolutionAuditTest(unittest.TestCase):
                 "e2": e2,
                 "e3": {
                     "result": "adapter_compatible",
-                    "sozaSource": {"head": "soza-head"},
-                    "postLiveTestSozaSource": {"head": "soza-head"},
+                    "seiSource": {"head": "sei-head"},
+                    "postLiveTestSeiSource": {"head": "sei-head"},
                 },
                 "executionProvenance": {
                     "mode": resume.EXECUTION_MODE,

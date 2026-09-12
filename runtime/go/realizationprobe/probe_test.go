@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/hat47x/soza/runtime/go/interactionprobe"
-	"github.com/hat47x/soza/runtime/go/provideradapter"
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/interactionprobe"
+	"github.com/hat47x/sei-cognition/runtime/go/provideradapter"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 type providerRequest struct {
@@ -29,8 +29,8 @@ type methodResponse struct {
 }
 
 func TestOutOfProcessProviderAndMethodRealizationExchangePreservesDecisionMemory(t *testing.T) {
-	providerBinary := buildReferenceCommand(t, "./cmd/soza-reference-provider")
-	methodBinary := buildReferenceCommand(t, "./cmd/soza-reference-method")
+	providerBinary := buildReferenceCommand(t, "./cmd/sei-reference-provider")
+	methodBinary := buildReferenceCommand(t, "./cmd/sei-reference-method")
 
 	store := interactionprobe.NewCanonicalStore()
 	human := interactionprobe.NewHumanSurface(store)

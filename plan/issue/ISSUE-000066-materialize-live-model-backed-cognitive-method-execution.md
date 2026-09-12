@@ -7,7 +7,7 @@ Updated: 2026-09-02
 
 ## Goal
 
-PMS-06のE3b-M1bとして、E3b-M1aで確認したKJ Atlasのlive Cognitive Method経路を、決定的model stubではなく**実際に推論するmodel artifact**へ接続し、同じSOZAの意味境界へ戻せることをScoped Executable Evidenceとして確認する。
+PMS-06のE3b-M1bとして、E3b-M1aで確認したKJ Atlasのlive Cognitive Method経路を、決定的model stubではなく**実際に推論するmodel artifact**へ接続し、同じSEIの意味境界へ戻せることをScoped Executable Evidenceとして確認する。
 
 今回の中心はmodel品質の評価ではない。次を明確に分ける。
 
@@ -47,7 +47,7 @@ M1bではKJ AtlasのMethod surfaceを変えない。
 
 Ollamaのinstallerはversion付き公式release assetから取得し、上記SHA-256の一致を確認してから実行する。model artifactについても、取得後のmodel IDを照合する。
 
-このmodel選択はM1bの最初の実証条件であり、SOZAの標準model、推奨model、品質基準ではない。
+このmodel選択はM1bの最初の実証条件であり、SEIの標準model、推奨model、品質基準ではない。
 
 小型modelを選んだ理由は、GitHub Actions上で資格情報なしにactual inferenceを再現しやすくし、model接続成立とmodel品質を分離するためである。
 
@@ -79,8 +79,8 @@ Adapterは次を行わない。
 - KJ Atlasのprompt内容を書き換える。
 - grouping候補をAdapter側で生成する。
 - modelが返したgroup labelやcard IDを補正する。
-- SOZAのRecommendation / Decisionを生成する。
-- Ollama固有fieldをSOZA Universal Contractへ追加する。
+- SEIのRecommendation / Decisionを生成する。
+- Ollama固有fieldをSEI Universal Contractへ追加する。
 
 Ollama側では`format = json`を用いてJSONとしての出力形式を拘束する。ただし、groupingの意味内容はactual modelが生成する。
 
@@ -118,7 +118,7 @@ M1bでは、`prompt_eval_count > 0`かつ`eval_count > 0`をactual inference成�
 
 したがって、model processの起動だけではなく、prompt評価とtoken生成を伴うactual inferenceが、PR上だけでなく統合後のdevelop基線でも成立したと判断する。
 
-`eval_count`やdurationの一致は要件にしない。これらは実行時の観測値であり、同一値の再現をCognitive Methodの意味契約には含めないためである。これらのOllama固有fieldはintegration Evidenceであって、SOZA Universal Cognitive Method Contractではない。
+`eval_count`やdurationの一致は要件にしない。これらは実行時の観測値であり、同一値の再現をCognitive Methodの意味契約には含めないためである。これらのOllama固有fieldはintegration Evidenceであって、SEI Universal Cognitive Method Contractではない。
 
 ## 実行結果
 
@@ -132,7 +132,7 @@ PR #48の先行Run `33596839607`、PR #50の再実証Run `33608342203`、統合�
 6. actual `POST /ai/suggest-card-groups`を呼んだ。
 7. actual model inference countersが成立条件を満たすことを確認した。
 8. KJ Atlasがactual model outputを受理し、grouping responseを生成した。
-9. existing SOZA Method mapping boundary testを再実行した。
+9. existing SEI Method mapping boundary testを再実行した。
 10. actual model-backed resultを既存Cognitive Method Applicationへ戻した。
 
 三つのrunとも、二つの在宅勤務カードを一つのgroup候補として扱い、`holdState = held`のカードを`excludedCardIds`へ分離した。一方、統合後Run `33609470323`では、同じprompt digestであってもgroup labelやrationaleが先行runと同一ではなかった。
@@ -170,7 +170,7 @@ M1bでは、KJ Atlas source identityとactual model identityの双方をEvidence
 - inference runtime: Ollama version / installer digest
 - model artifact: model tag / observed model ID
 - actual invocation: prompt digestとinference counters
-- SOZA baseline: 実行対象のcommit / branch
+- SEI baseline: 実行対象のcommit / branch
 
 ただし、今回だけを根拠にmodel repository、Ollama tag、Ollama model ID等をUniversal Provenance fieldへ昇格させない。
 
@@ -181,8 +181,8 @@ model / runtime version交換をまたぐhistorical reconstructionに必要な�
 - `qwen2.5:0.5b`の生成品質を評価すること
 - KJ法としてのgrouping品質をSatisfiedとすること
 - 同一promptから同一生成文が再現されることを保証すること
-- OllamaをSOZAまたはKJ Atlasの標準runtimeへ固定すること
-- `POST /generate`をSOZAのUniversal integration protocolへ昇格させること
+- OllamaをSEIまたはKJ Atlasの標準runtimeへ固定すること
+- `POST /generate`をSEIのUniversal integration protocolへ昇格させること
 - model provider固有fieldをUniversal Contractへ追加すること
 - E4 Operational portabilityを検証すること
 - production credential / model distribution policyを決めること
@@ -204,7 +204,7 @@ E3b-P2 actual TEI CLIについては、別Issue / Evidence trackでfixed-artifac
 - [x] actual inferenceで`prompt_eval_count > 0`を確認する。
 - [x] actual inferenceで`eval_count > 0`を確認する。
 - [x] KJ Atlas `POST /ai/suggest-card-groups`がactual model outputを受理する。
-- [x] actual resultをSOZAの既存Cognitive Method Applicationへ戻す。
+- [x] actual resultをSEIの既存Cognitive Method Applicationへ戻す。
 - [x] M1b Evidence文書をactual runへ同期する。
 - [x] Product Milestone / Product入口 / Realization / Provider Exchange / Value Traceability / 上流計画 / Plan台帳を同期する。
 - [x] 自然な日本語を最重要視した全文再ドラフトと最終意味監査を行う。
@@ -212,7 +212,7 @@ E3b-P2 actual TEI CLIについては、別Issue / Evidence trackでfixed-artifac
 
 ## Resolution
 
-PR #50を`develop/v0.2.0`へ統合した後、merge commit `51ec4502bf0a34097f975a5445069c26ea831f32`を対象とするRun `33609470323`で、digest-pinned Ollama取得、model identity確認、actual inference、KJ Atlasによるresponse受理、SOZA Method mappingまでをskipなしで再確認した。
+PR #50を`develop/v0.2.0`へ統合した後、merge commit `51ec4502bf0a34097f975a5445069c26ea831f32`を対象とするRun `33609470323`で、digest-pinned Ollama取得、model identity確認、actual inference、KJ Atlasによるresponse受理、SEI Method mappingまでをskipなしで再確認した。
 
 同じmerge commitに対するRelease Candidate Gate Run `33609470278`もGate 1〜9がすべてsuccessし、既存v0.2.0のprepare / publishは意図どおりskipされた。したがって、M1b追加によって既存release境界を変更していないことも確認した。
 
@@ -244,7 +244,7 @@ PR #50を`develop/v0.2.0`へ統合した後、merge commit `51ec4502bf0a34097f97
 
 PMS-06、ISSUE-000064 / 000065、current Cognitive Method Contract、KJ Atlas固定commitの`local` Provider / `POST /generate`境界、M1a workflow、M1b workflow、integration-only Ollama Adapter、Runs `33596839607` / `33608342203` / `33609470323`の実行ログ、Product Milestone、Product入口、Realization / Provider Exchange、Value Traceability、上流計画を照合した。
 
-実証前に置いた成功条件とactual runを一つずつ対応させ、actual model取得、actual inference、KJ Atlasによるresponse受理、SOZAへのmappingが成立した範囲だけをScoped Executable Evidenceへ更新した。一方、実際に生成されたgroup labelやrationaleの妥当性を含むmodel品質、KJ法としての成果品質は評価しておらず、Recommendation / Decisionにも昇格させていない。
+実証前に置いた成功条件とactual runを一つずつ対応させ、actual model取得、actual inference、KJ Atlasによるresponse受理、SEIへのmappingが成立した範囲だけをScoped Executable Evidenceへ更新した。一方、実際に生成されたgroup labelやrationaleの妥当性を含むmodel品質、KJ法としての成果品質は評価しておらず、Recommendation / Decisionにも昇格させていない。
 
 統合後Runでは同一prompt digestでも生成文に差が生じたため、実行成立と生成内容の決定性・品質を分離する停止線を明示した。E3b-P2統合後およびPR #50統合後のdevelop基線でも意味境界が保たれたことは確認したが、この結果を任意version互換性やOperational portabilityへは拡張しない。
 

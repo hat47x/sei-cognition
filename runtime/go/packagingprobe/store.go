@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 const DefaultBundleFile = "semantic.bundle.json"
@@ -107,7 +107,7 @@ func (p FilePersistence) Save(ctx context.Context, data []byte) error {
 		return err
 	}
 
-	tmp, err := os.CreateTemp(filepath.Dir(path), ".soza-package-*.tmp")
+	tmp, err := os.CreateTemp(filepath.Dir(path), ".sei-package-*.tmp")
 	if err != nil {
 		return err
 	}

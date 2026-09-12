@@ -7,7 +7,7 @@ Updated: 2026-08-31
 
 ## Goal
 
-人間、SaaS、外部組織、AI、TEI、custom code等の異質な手段を、SOZAが中立に比較・選択するための意味境界をpressure testする。
+人間、SaaS、外部組織、AI、TEI、custom code等の異質な手段を、SEIが中立に比較・選択するための意味境界をpressure testする。
 
 historical M50で検討した内容をcurrent Product / Requirementsへ再統合し、Milestone label自体はcurrent Architectureの正本にしない。
 

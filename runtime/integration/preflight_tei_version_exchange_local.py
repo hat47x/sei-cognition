@@ -13,11 +13,11 @@ import run_tei_version_exchange_evidence as version_exchange
 import verify_tei_execution_source_identity as source_identity
 from runtime_path_safety import reject_symlink_path_or_ancestors
 
-SCHEMA = "soza.tei-version-exchange-local-preflight/v1"
+SCHEMA = "sei.tei-version-exchange-local-preflight/v1"
 STOP_LINE = (
     "local preflight ready != revision B checkout prepared "
     "!= revision B build PASS != Provider Plan execution PASS "
-    "!= SOZA Adapter compatibility PASS != ISSUE-000072 Resolved"
+    "!= SEI Adapter compatibility PASS != ISSUE-000072 Resolved"
 )
 
 
@@ -103,7 +103,7 @@ def _check_checkout_output_path(
     checkout_output: Path,
     *,
     source_repo: Path,
-    soza_repo_root: Path,
+    sei_repo_root: Path,
     reference_source_repo: Path | None,
     reference_evidence_bundle: Path | None,
     evidence_output_dir: Path,
@@ -113,11 +113,11 @@ def _check_checkout_output_path(
         "revision B checkout output",
     )
     source = source_repo.expanduser().resolve(strict=True)
-    soza = soza_repo_root.expanduser().resolve(strict=True)
+    sei = sei_repo_root.expanduser().resolve(strict=True)
     evidence = evidence_output_dir.expanduser().resolve(strict=False)
     roots: list[tuple[str, Path]] = [
         ("source clone", source),
-        ("SOZA repository", soza),
+        ("SEI repository", sei),
         ("Evidence directory", evidence),
     ]
     if reference_source_repo is not None:
@@ -151,7 +151,7 @@ def _check_evidence_output_path(
     *,
     source_repo: Path,
     checkout_output: Path,
-    soza_repo_root: Path,
+    sei_repo_root: Path,
     reference_source_repo: Path | None,
     reference_evidence_bundle: Path | None,
     overwrite: bool,
@@ -167,11 +167,11 @@ def _check_evidence_output_path(
 
     source = source_repo.expanduser().resolve(strict=True)
     checkout = checkout_output.expanduser().resolve(strict=False)
-    soza = soza_repo_root.expanduser().resolve(strict=True)
+    sei = sei_repo_root.expanduser().resolve(strict=True)
     roots: list[tuple[str, Path]] = [
         ("source clone", source),
         ("revision B checkout output", checkout),
-        ("SOZA repository", soza),
+        ("SEI repository", sei),
     ]
     if reference_source_repo is not None:
         roots.append(
@@ -222,13 +222,13 @@ def run_preflight(
     source_repo: Path,
     checkout_output: Path,
     reference_source_repo: Path | None,
-    soza_repo_root: Path,
+    sei_repo_root: Path,
     output_dir: Path,
     *,
     reference_evidence_bundle: Path | None = None,
     tei_go_executable: Path,
-    soza_go_executable: Path,
-    expected_soza_head: str | None = None,
+    sei_go_executable: Path,
+    expected_sei_head: str | None = None,
     overwrite: bool = False,
 ) -> dict[str, object]:
     checks = [
@@ -245,23 +245,23 @@ def run_preflight(
             ),
         ),
         common._capture(
-            "soza_source_identity",
-            lambda: common._check_soza_source(soza_repo_root, expected_soza_head),
+            "sei_source_identity",
+            lambda: common._check_sei_source(sei_repo_root, expected_sei_head),
         ),
         common._capture(
             "tei_go_toolchain",
             lambda: common._check_tei_go(tei_go_executable),
         ),
         common._capture(
-            "soza_go_toolchain",
-            lambda: common._check_soza_go(soza_go_executable, soza_repo_root),
+            "sei_go_toolchain",
+            lambda: common._check_sei_go(sei_go_executable, sei_repo_root),
         ),
         common._capture(
             "revision_b_checkout_output_path",
             lambda: _check_checkout_output_path(
                 checkout_output,
                 source_repo=source_repo,
-                soza_repo_root=soza_repo_root,
+                sei_repo_root=sei_repo_root,
                 reference_source_repo=reference_source_repo,
                 reference_evidence_bundle=reference_evidence_bundle,
                 evidence_output_dir=output_dir,
@@ -273,7 +273,7 @@ def run_preflight(
                 output_dir,
                 source_repo=source_repo,
                 checkout_output=checkout_output,
-                soza_repo_root=soza_repo_root,
+                sei_repo_root=sei_repo_root,
                 reference_source_repo=reference_source_repo,
                 reference_evidence_bundle=reference_evidence_bundle,
                 overwrite=overwrite,
@@ -301,7 +301,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "local source cloneからexact revision B checkoutをprepareしてcanonical E2/E3へ進む前に、"
-            "source object DB、fixed A input、SOZA source、E2/E3 Go、checkout/evidence pathを"
+            "source object DB、fixed A input、SEI source、E2/E3 Go、checkout/evidence pathを"
             "副作用なしで一括検査します。credentialやnetwork accessは要求しません。"
         ),
         allow_abbrev=False,
@@ -312,14 +312,14 @@ def build_parser() -> argparse.ArgumentParser:
     reference_group.add_argument("--reference-source-repo", type=Path)
     reference_group.add_argument("--reference-evidence-bundle", type=Path)
     parser.add_argument(
-        "--soza-repo-root",
+        "--sei-repo-root",
         type=Path,
         default=Path(__file__).resolve().parents[2],
     )
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--tei-go-executable", required=True, type=Path)
-    parser.add_argument("--soza-go-executable", required=True, type=Path)
-    parser.add_argument("--expected-soza-head")
+    parser.add_argument("--sei-go-executable", required=True, type=Path)
+    parser.add_argument("--expected-sei-head")
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--json", action="store_true")
     return parser
@@ -331,12 +331,12 @@ def main(argv: list[str] | None = None) -> int:
         args.source_repo,
         args.checkout_output,
         args.reference_source_repo,
-        args.soza_repo_root,
+        args.sei_repo_root,
         args.output_dir,
         reference_evidence_bundle=args.reference_evidence_bundle,
         tei_go_executable=args.tei_go_executable,
-        soza_go_executable=args.soza_go_executable,
-        expected_soza_head=args.expected_soza_head,
+        sei_go_executable=args.sei_go_executable,
+        expected_sei_head=args.expected_sei_head,
         overwrite=args.overwrite,
     )
     if args.json:

@@ -34,7 +34,7 @@ ExactArtifactBinding
 
 ## Current realization
 
-current `soza.semantic-reference/v1alpha1`では、Verification OutcomeをExact Bindingとは別のrecordとして表現できる。
+current `sei.semantic-reference/v1alpha1`では、Verification OutcomeをExact Bindingとは別のrecordとして表現できる。
 
 これにより、bindingのidentityを変えずに、検証結果を外在化できる。
 

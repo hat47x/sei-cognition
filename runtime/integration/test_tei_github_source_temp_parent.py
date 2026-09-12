@@ -12,10 +12,10 @@ class TEIGitHubSourceTempParentTest(unittest.TestCase):
     def test_common_parent_is_allowed_without_tempfile_write_probe(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            soza = root / "soza"
+            sei = root / "sei"
             reference = root / "reference-a"
             evidence = root / "evidence"
-            for path in (soza, reference, evidence):
+            for path in (sei, reference, evidence):
                 path.mkdir()
 
             before = sorted(path.name for path in root.iterdir())
@@ -30,7 +30,7 @@ class TEIGitHubSourceTempParentTest(unittest.TestCase):
             ):
                 self.assertEqual(
                     root.resolve(),
-                    subject._prepare_source_temp_parent(evidence, soza, reference),
+                    subject._prepare_source_temp_parent(evidence, sei, reference),
                 )
             after = sorted(path.name for path in root.iterdir())
             self.assertEqual(before, after)
@@ -71,14 +71,14 @@ class TEIGitHubSourceTempParentTest(unittest.TestCase):
     def test_input_or_output_descendant_is_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            soza = root / "soza"
+            sei = root / "sei"
             reference = root / "reference-a"
             evidence = root / "evidence"
-            for path in (soza, reference, evidence):
+            for path in (sei, reference, evidence):
                 path.mkdir()
 
             for label, unsafe in (
-                ("SOZA repository", soza / "tmp"),
+                ("SEI repository", sei / "tmp"),
                 ("revision A reference checkout", reference / "tmp"),
                 ("Evidence directory", evidence / "tmp"),
             ):
@@ -92,15 +92,15 @@ class TEIGitHubSourceTempParentTest(unittest.TestCase):
                         with self.assertRaisesRegex(ValueError, label):
                             subject._prepare_source_temp_parent(
                                 evidence,
-                                soza,
+                                sei,
                                 reference,
                             )
 
     def test_preflight_reports_source_temp_parent_blocker_without_mutation(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            soza = root / "soza"
-            unsafe = soza / "tmp"
+            sei = root / "sei"
+            unsafe = sei / "tmp"
             unsafe.mkdir(parents=True)
             output = root / "evidence"
             before = sorted(path.name for path in unsafe.iterdir())
@@ -112,7 +112,7 @@ class TEIGitHubSourceTempParentTest(unittest.TestCase):
                 return_value=ready,
             ), mock.patch.object(
                 preflight,
-                "_check_soza_source",
+                "_check_sei_source",
                 return_value=ready,
             ), mock.patch.object(
                 preflight,
@@ -120,7 +120,7 @@ class TEIGitHubSourceTempParentTest(unittest.TestCase):
                 return_value=ready,
             ), mock.patch.object(
                 preflight,
-                "_check_soza_go",
+                "_check_sei_go",
                 return_value=ready,
             ), mock.patch.object(
                 preflight,
@@ -137,11 +137,11 @@ class TEIGitHubSourceTempParentTest(unittest.TestCase):
             ):
                 result = preflight.run_preflight(
                     None,
-                    soza,
+                    sei,
                     output,
                     reference_evidence_bundle=root / "a.tar.gz",
                     tei_go_executable=root / "go123/go",
-                    soza_go_executable=root / "go125/go",
+                    sei_go_executable=root / "go125/go",
                     env={"GITHUB_TOKEN": "placeholder"},
                 )
 
@@ -155,8 +155,8 @@ class TEIGitHubSourceTempParentTest(unittest.TestCase):
     def test_one_shot_rechecks_temp_parent_before_source_acquisition(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            soza = root / "soza"
-            unsafe = soza / "tmp"
+            sei = root / "sei"
+            unsafe = sei / "tmp"
             unsafe.mkdir(parents=True)
             output = root / "evidence"
 
@@ -172,14 +172,14 @@ class TEIGitHubSourceTempParentTest(unittest.TestCase):
                 subject.source_acquisition,
                 "materialize_revision_b_source",
             ) as acquisition:
-                with self.assertRaisesRegex(ValueError, "SOZA repository"):
+                with self.assertRaisesRegex(ValueError, "SEI repository"):
                     subject.run_from_github(
                         None,
-                        soza,
+                        sei,
                         output,
                         reference_evidence_bundle=root / "a.tar.gz",
                         tei_go_executable=root / "go123/go",
-                        soza_go_executable=root / "go125/go",
+                        sei_go_executable=root / "go125/go",
                         token="placeholder",
                     )
 

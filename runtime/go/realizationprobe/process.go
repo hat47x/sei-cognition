@@ -10,7 +10,7 @@ import (
 )
 
 // RunJSON はreference probeで外部Realizationを別OS processとして起動し、
-// JSON入出力を受け渡します。このJSON形式はprobe-localであり、SOZAの
+// JSON入出力を受け渡します。このJSON形式はprobe-localであり、SEIの
 // Universal Semantic Contractや正式なProvider protocolではありません。
 func RunJSON(binary string, args []string, input any, output any) error {
 	payload, err := json.Marshal(input)

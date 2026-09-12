@@ -61,8 +61,8 @@ class TEIE2PartialFailureResolutionAuditTest(unittest.TestCase):
             }
             with mock.patch.object(
                 subject.base_audit,
-                "_verify_soza_baseline",
-                return_value={"head": "soza-head", "worktreeCleanWithinBoundary": True},
+                "_verify_sei_baseline",
+                return_value={"head": "sei-head", "worktreeCleanWithinBoundary": True},
             ), mock.patch.object(
                 subject.base_audit,
                 "_historical_a",
@@ -70,7 +70,7 @@ class TEIE2PartialFailureResolutionAuditTest(unittest.TestCase):
             ):
                 return subject.audit_partial_failure(
                     report_path,
-                    soza_repo_root=root,
+                    sei_repo_root=root,
                     historical_a_bundle=root / "a.tar.gz",
                 )
 

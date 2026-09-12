@@ -6,7 +6,7 @@
 
 ## 1. 目的
 
-この評価系は、SOZAの次のProduct Valueを、特定のUI技術へ固定せず再現可能に検査するためのものです。
+この評価系は、SEIの次のProduct Valueを、特定のUI技術へ固定せず再現可能に検査するためのものです。
 
 - V6 — Human / AI Readability
 - V7 — Progressive Explicitness
@@ -22,7 +22,7 @@ Projection evaluation
   != Adoption / Outcome Evidence
 ```
 
-Projectionは評価用の派生表示です。新しいUniversal Contract familyやSOZA Core型ではありません。
+Projectionは評価用の派生表示です。新しいUniversal Contract familyやSEI Core型ではありません。
 
 ## 2. Traceability
 

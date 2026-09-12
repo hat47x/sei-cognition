@@ -1,12 +1,12 @@
-# SOZA Local Reference Package
+# SEI Local Reference Package
 
-このpackageは、SOZAのLocal Single-Node Packaging / Deployment境界を実行可能に検証するための**reference distribution artifact**です。
+このpackageは、SEIのLocal Single-Node Packaging / Deployment境界を実行可能に検証するための**reference distribution artifact**です。
 
 現時点ではLinux / amd64を対象とし、Product Releaseや恒久的なplatform supportを意味しません。人間やAIが判断仕事を行うための正式なProduct Interaction CLIでもありません。
 
 ## 含まれるもの
 
-- `soza-local-reference` — package lifecycleの検証用binary
+- `sei-local-reference` — package lifecycleの検証用binary
 - `build-metadata.json` — artifactのbuild identity
 - このREADME
 
@@ -16,7 +16,7 @@ binaryには次の管理操作があります。
 - `save --data-root <dir> --input <file>` — Semantic Interchangeを検証し、local durable data rootへ保存します。
 - `inspect --data-root <dir>` — 保存済みbundleを読み直し、current runtimeで再構成できたrecord数をJSONで表示します。
 
-`save`と`inspect`はPackaging acceptanceのための管理入口です。これらをSOZAの正式なhuman-facing / AI-facing Product Interaction Surfaceとして扱いません。
+`save`と`inspect`はPackaging acceptanceのための管理入口です。これらをSEIの正式なhuman-facing / AI-facing Product Interaction Surfaceとして扱いません。
 
 ## semantic dataとの境界
 

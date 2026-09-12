@@ -34,12 +34,12 @@ class TEIGitHubVersionExchangePreflightTest(unittest.TestCase):
         executable.chmod(0o755)
         return executable
 
-    def make_soza_go_mod(self, root: Path, requirement: str = "1.25") -> Path:
-        repo = root / "soza"
+    def make_sei_go_mod(self, root: Path, requirement: str = "1.25") -> Path:
+        repo = root / "sei"
         go_root = repo / "runtime/go"
         go_root.mkdir(parents=True)
         (go_root / "go.mod").write_text(
-            f"module example.invalid/soza\n\ngo {requirement}\n",
+            f"module example.invalid/sei\n\ngo {requirement}\n",
             encoding="utf-8",
         )
         return repo
@@ -93,15 +93,15 @@ class TEIGitHubVersionExchangePreflightTest(unittest.TestCase):
             with self.assertRaisesRegex(Exception, "linux/arm64"):
                 subject._check_tei_go(wrong_target)
 
-    def test_e3_go_uses_current_soza_go_directive_and_linux_amd64_target(self):
+    def test_e3_go_uses_current_sei_go_directive_and_linux_amd64_target(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            soza = self.make_soza_go_mod(root, "1.25")
+            sei = self.make_sei_go_mod(root, "1.25")
 
             good_dir = root / "good"
             good_dir.mkdir()
             good = self.make_go(good_dir, "go1.25.1")
-            observation = subject._check_soza_go(good, soza)
+            observation = subject._check_sei_go(good, sei)
             self.assertEqual("1.25", observation["required"])
             self.assertTrue(observation["requirementSatisfied"])
             self.assertTrue(observation["targetMatch"])
@@ -111,7 +111,7 @@ class TEIGitHubVersionExchangePreflightTest(unittest.TestCase):
             bad_dir.mkdir()
             bad = self.make_go(bad_dir, "go1.24.9")
             with self.assertRaisesRegex(Exception, "required"):
-                subject._check_soza_go(bad, soza)
+                subject._check_sei_go(bad, sei)
 
             wrong_target_dir = root / "wrong-target"
             wrong_target_dir.mkdir()
@@ -121,7 +121,7 @@ class TEIGitHubVersionExchangePreflightTest(unittest.TestCase):
                 goarch="arm64",
             )
             with self.assertRaisesRegex(Exception, "linux/arm64"):
-                subject._check_soza_go(wrong_target, soza)
+                subject._check_sei_go(wrong_target, sei)
 
     def test_reference_checkout_reuses_canonical_git_identity_verifier(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -169,7 +169,7 @@ class TEIGitHubVersionExchangePreflightTest(unittest.TestCase):
     def test_multiple_missing_prerequisites_are_aggregated(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            soza = self.make_soza_go_mod(root)
+            sei = self.make_sei_go_mod(root)
             reference = root / "reference-a"
             reference.mkdir()
             output = root / "evidence"
@@ -185,7 +185,7 @@ class TEIGitHubVersionExchangePreflightTest(unittest.TestCase):
                 return_value={"mode": "git_checkout"},
             ), mock.patch.object(
                 subject,
-                "_check_soza_source",
+                "_check_sei_source",
                 return_value={"head": "fixture"},
             ), mock.patch.object(
                 subject,
@@ -194,10 +194,10 @@ class TEIGitHubVersionExchangePreflightTest(unittest.TestCase):
             ):
                 result = subject.run_preflight(
                     reference,
-                    soza,
+                    sei,
                     output,
                     tei_go_executable=missing_go,
-                    soza_go_executable=missing_go,
+                    sei_go_executable=missing_go,
                     env={},
                 )
 
@@ -206,21 +206,21 @@ class TEIGitHubVersionExchangePreflightTest(unittest.TestCase):
             self.assertIn("execution_platform", result["blockedChecks"])
             self.assertIn("github_credential", result["blockedChecks"])
             self.assertIn("tei_go_toolchain", result["blockedChecks"])
-            self.assertIn("soza_go_toolchain", result["blockedChecks"])
+            self.assertIn("sei_go_toolchain", result["blockedChecks"])
             self.assertFalse(result["networkAccessPerformed"])
             self.assertFalse(result["revisionBSourceMaterialized"])
             self.assertFalse(result["evidenceOutputCreated"])
 
-    def test_output_inside_soza_repository_is_rejected_without_mutation(self):
+    def test_output_inside_sei_repository_is_rejected_without_mutation(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            soza = self.make_soza_go_mod(root)
-            output = soza / "runtime/evidence/new-run"
+            sei = self.make_sei_go_mod(root)
+            output = sei / "runtime/evidence/new-run"
 
-            with self.assertRaisesRegex(ValueError, "SOZA repository"):
+            with self.assertRaisesRegex(ValueError, "SEI repository"):
                 subject._check_output_path(
                     output,
-                    soza_repo_root=soza,
+                    sei_repo_root=sei,
                     reference_source_repo=None,
                     reference_evidence_bundle=None,
                     overwrite=False,
@@ -231,7 +231,7 @@ class TEIGitHubVersionExchangePreflightTest(unittest.TestCase):
     def test_existing_outputs_are_reported_without_overwrite(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            soza = self.make_soza_go_mod(root)
+            sei = self.make_sei_go_mod(root)
             output = root / "evidence"
             output.mkdir()
             canonical = output / subject.version_exchange.REPORT_NAME
@@ -240,7 +240,7 @@ class TEIGitHubVersionExchangePreflightTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "--overwrite"):
                 subject._check_output_path(
                     output,
-                    soza_repo_root=soza,
+                    sei_repo_root=sei,
                     reference_source_repo=None,
                     reference_evidence_bundle=None,
                     overwrite=False,

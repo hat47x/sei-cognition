@@ -19,7 +19,7 @@ from verify_runtime_version_exchange_model_store import verify_model_store
 
 
 INTEGRATION_DIR = Path(__file__).resolve().parent
-SOZA_ROOT = INTEGRATION_DIR.parents[1]
+SEI_ROOT = INTEGRATION_DIR.parents[1]
 HARNESS = INTEGRATION_DIR / "run_runtime_version_exchange.sh"
 RUNTIME_ARCHIVE_OPTIONS = ("--runtime-a-archive", "--runtime-b-archive")
 RUNTIME_ARCHIVE_MANIFEST_LABELS = {
@@ -27,12 +27,12 @@ RUNTIME_ARCHIVE_MANIFEST_LABELS = {
     "--runtime-b-archive": "b",
 }
 STRICT_CHILD_ENVIRONMENT_KEYS = (
-    "SOZA_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_BUNDLE",
-    "SOZA_RUNTIME_EXCHANGE_WORK_DIR",
-    "SOZA_RUNTIME_EXCHANGE_EVIDENCE_DIR",
-    "SOZA_RUNTIME_EXCHANGE_PREPOSITIONED_ARCHIVE_A",
-    "SOZA_RUNTIME_EXCHANGE_PREPOSITIONED_ARCHIVE_B",
-    "SOZA_RUNTIME_EXCHANGE_MODEL_DIR",
+    "SEI_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_BUNDLE",
+    "SEI_RUNTIME_EXCHANGE_WORK_DIR",
+    "SEI_RUNTIME_EXCHANGE_EVIDENCE_DIR",
+    "SEI_RUNTIME_EXCHANGE_PREPOSITIONED_ARCHIVE_A",
+    "SEI_RUNTIME_EXCHANGE_PREPOSITIONED_ARCHIVE_B",
+    "SEI_RUNTIME_EXCHANGE_MODEL_DIR",
 )
 STRICT_CHILD_PYTHON_ENVIRONMENT_KEYS = (
     "PYTHONPATH",
@@ -163,7 +163,7 @@ def _validate_runtime_archives(
     source_input: Path,
     source_label: str,
 ) -> dict[str, Path]:
-    roots = (("SOZA repository", SOZA_ROOT), (source_label, source_input))
+    roots = (("SEI repository", SEI_ROOT), (source_label, source_input))
     validated: dict[str, Path] = {}
     for option, requested in _forwarded_runtime_archives(arguments).items():
         expanded = requested.expanduser()
@@ -282,10 +282,10 @@ def run_strict_probe(
     _reject_overlap(
         source_input,
         source_label,
-        (("SOZA repository", SOZA_ROOT),),
+        (("SEI repository", SEI_ROOT),),
     )
     strict_input_roots = (
-        ("SOZA repository", SOZA_ROOT),
+        ("SEI repository", SEI_ROOT),
         (source_label, source_input),
     )
 

@@ -6,9 +6,9 @@ Updated: 2026-08-31
 
 ## Context
 
-SOZAのcurrent baselineでは、ProviderとCapabilityを分離し、Provider内部状態をそのままCapabilityの意味へ昇格させない。
+SEIのcurrent baselineでは、ProviderとCapabilityを分離し、Provider内部状態をそのままCapabilityの意味へ昇格させない。
 
-ADR-0019と`soza.capability-observation/v1alpha1`では、Provider固有の状態からProvider-neutralなCapability Observationへ変換するとき、field mapping、unit conversion、status interpretation、aggregation等が単なるformat変換ではなく、意味上の解釈を含み得ることを定めた。
+ADR-0019と`sei.capability-observation/v1alpha1`では、Provider固有の状態からProvider-neutralなCapability Observationへ変換するとき、field mapping、unit conversion、status interpretation、aggregation等が単なるformat変換ではなく、意味上の解釈を含み得ることを定めた。
 
 ```text
 Provider state != Capability interpretation != Decision
@@ -35,7 +35,7 @@ Capability Observation
 Matching / Decision may consume
 ```
 
-AdapterはProvider内部SchemaをSOZA Coreへ移植する場所ではない。
+AdapterはProvider内部SchemaをSEI Coreへ移植する場所ではない。
 
 Provider固有stateを読み取り、current Capability Observation Contractで必要な意味だけを外在化する。
 
@@ -43,17 +43,17 @@ Provider固有stateを読み取り、current Capability Observation Contractで�
 
 人間、SaaS、AI service、TEI、custom code、外部組織等は、内部状態の表現が大きく異なり得る。
 
-SOZAは、それらを一つのUniversal `ProviderState` field setへ正規化することを要求しない。
+SEIは、それらを一つのUniversal `ProviderState` field setへ正規化することを要求しない。
 
 ```text
-Provider-specific input schema != SOZA Universal ontology
+Provider-specific input schema != SEI Universal ontology
 ```
 
 Adapter runtime APIがraw bytes、typed object、API response等のいずれを受け取るかは実装上の選択であり、semantic authorityではない。
 
 ### 3. Adapterの出力はCapability Observation Contractで検証する
 
-Adapterが生成した結果は、少なくともcurrent `soza.capability-observation/v1alpha1`の意味境界を満たさなければならない。
+Adapterが生成した結果は、少なくともcurrent `sei.capability-observation/v1alpha1`の意味境界を満たさなければならない。
 
 ```text
 Adapter produced output
@@ -96,7 +96,7 @@ same Provider state
 
 ### 6. source stateへの戻り道を失わない
 
-SOZA Universal CoreへProvider state全量を複製することは要求しない。
+SEI Universal CoreへProvider state全量を複製することは要求しない。
 
 一方、Capability ObservationがどのProvider stateを材料にしたかを、必要な範囲で追跡できるようにする。
 
@@ -213,11 +213,11 @@ runtime/CONFORMANCE_EVIDENCE_2026-08-31.md
 
 ### Positive
 
-- Provider固有SchemaがSOZA Universal Coreへ漏れにくい。
+- Provider固有SchemaがSEI Universal Coreへ漏れにくい。
 - Adapterによる解釈をraw Provider factと区別できる。
 - mapping変更後も過去Decision basisを再構成しやすい。
 - 異なるProviderを同じCapability候補として扱いつつ、内部Schemaを無理に統一せずに済む。
-- Provider integrationを進めてもSOZAの中心をExecution engineへ移さずに済む。
+- Provider integrationを進めてもSEIの中心をExecution engineへ移さずに済む。
 
 ### Costs
 

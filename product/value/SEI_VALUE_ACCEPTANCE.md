@@ -1,15 +1,15 @@
-# SOZA Value Acceptance
+# SEI Value Acceptance
 
 更新日: 2026-09-11  
 状態: **Product Value Acceptance Baseline — Decision Continuity cross-axis acceptance reflected**
 
 ## 1. この文書の役割
 
-この文書は、`SOZA_VALUE_MODEL.md`で定義したV1〜V8を、Requirements、ADR、Architecture、Contract、Implementation、Test、Evidenceへ落とすときの受入れ境界を定めます。
+この文書は、`SEI_VALUE_MODEL.md`で定義したV1〜V8を、Requirements、ADR、Architecture、Contract、Implementation、Test、Evidenceへ落とすときの受入れ境界を定めます。
 
 Product Valueを単一の点数へ変換する文書ではありません。また、個別機能のtest caseをすべて列挙する文書でもありません。
 
-目的は、**「この設計・実装・運用はSOZAの価値を満たしている」と主張するとき、何を確認し、どの高さのEvidenceまで得られている必要があるか**を共通化することです。
+目的は、**「この設計・実装・運用はSEIの価値を満たしている」と主張するとき、何を確認し、どの高さのEvidenceまで得られている必要があるか**を共通化することです。
 
 Decision ContinuityはV1〜V8とは別のValue Axisではありません。本書では、複数Value Axisが一つの利用者仕事で同時に成立したかを確認するcross-axis Product Outcomeとして受け入れます。
 
@@ -68,7 +68,7 @@ Design Evidence
 
 ### 2.4 運用成功と利用者価値を分ける
 
-SOZAが本番環境で安定して動作し、Contractに沿って記録を保存できたとしても、それだけでProduct Valueが利用者に届いたとは判断しません。
+SEIが本番環境で安定して動作し、Contractに沿って記録を保存できたとしても、それだけでProduct Valueが利用者に届いたとは判断しません。
 
 たとえば、次は別の問いです。
 
@@ -309,7 +309,7 @@ Unknown、Conflict、Hypothesis、observation gap等を、便宜上の確定値�
 
 - 軽量利用では過剰な記録負担を生まず、高影響利用では必要な意味を取り戻せる。
 - 明示量の調整が、利用放棄や形骸化を防ぎつつ、重要場面の説明可能性を維持する。
-- SOZAのcapture / review overheadが、再開・再判断で得られる価値を継続的に上回らない。
+- SEIのcapture / review overheadが、再開・再判断で得られる価値を継続的に上回らない。
 
 ### Failure examples
 
@@ -322,11 +322,11 @@ Unknown、Conflict、Hypothesis、observation gap等を、便宜上の確定値�
 
 ### 価値
 
-workflow、agent runtime、TEI等の実行基盤が置き換わっても、SOZAの判断記憶と意味構造が存続すること。
+workflow、agent runtime、TEI等の実行基盤が置き換わっても、SEIの判断記憶と意味構造が存続すること。
 
 ### Design Acceptance
 
-- execution lifecycleをSOZAのUniversal ontologyへ過剰に固定しない。
+- execution lifecycleをSEIのUniversal ontologyへ過剰に固定しない。
 - Execution ProviderとDecision Memoryの正本を分ける。
 - provider-specific runtime detailをReference / Profile / Adapter等へ隔離できる。
 
@@ -337,14 +337,14 @@ workflow、agent runtime、TEI等の実行基盤が置き換わっても、SOZA�
 
 ### Operational / Outcomeで確認したいこと
 
-- 実行基盤の更新・交換・廃止が、SOZAの意味資産を巻き込んで破壊しない。
+- 実行基盤の更新・交換・廃止が、SEIの意味資産を巻き込んで破壊しない。
 - 実行基盤から独立していることが、長期保守、移行、再利用、ロックイン回避に実際に寄与する。
 - AI / runtime変更後も利用者が同じ判断文脈を再開できる。
 
 ### Failure examples
 
 - workflow engineのrun IDがDecision identityの唯一の根拠になる。
-- TEI deployment schemaがSOZAを利用するための必須Universal schemaになる。
+- TEI deployment schemaがSEIを利用するための必須Universal schemaになる。
 - Provider廃止によりDecision historyが読めなくなる。
 
 ## 11. Cross-value acceptance
@@ -444,6 +444,8 @@ Requirementsを作るときは、Product Valueの文章をそのまま機能要�
 
 current repositoryには、Product / Requirements / Architecture / ContractのDesign baselineがあります。また、Contract、semantic runtime、Product Interaction、Packaging、Product Access、Realization / Provider交換等には対象を限定したScoped Executable Evidenceがあります。
 
+これはSEI全体のExecutable Acceptanceが完了したことを意味しません。Contract以外のRequirement、runtime integration、stable Representation Profile等には未検証領域が残ります。
+
 v0.2.0 Local Reference Product BaselineにはRelease Evidenceがありますが、release後のExecutable Evidenceを既存releaseのsupported scopeへ遡及的に追加しません。
 
 Decision Continuityについては、Product Value synthesisとresume-first first sliceのDesign Evidenceがありますが、prototype Executable Evidence、human comparative Evidence、Operational / Adoption・Outcome Evidenceは`Not Yet Verified`です。
@@ -452,14 +454,14 @@ GitHub Actions等の特定実行基盤をEvidenceの意味上の成立条件に�
 
 ## 15. 関連文書
 
-- `product/value/SOZA_PRODUCT_VALUE.md`
-- `product/value/SOZA_VALUE_MODEL.md`
-- `product/value/SOZA_VALUE_PROPOSITION.md`
-- `product/value/SOZA_VALUE_TRACEABILITY.md`
-- `product/value/SOZA_DECISION_CONTINUITY.md`
-- `product/interaction/SOZA_FIRST_USABLE_PRODUCT_SLICE.md`
-- `product/vision/SOZA_PRODUCT_VISION.md`
-- `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
+- `product/value/SEI_PRODUCT_VALUE.md`
+- `product/value/SEI_VALUE_MODEL.md`
+- `product/value/SEI_VALUE_PROPOSITION.md`
+- `product/value/SEI_VALUE_TRACEABILITY.md`
+- `product/value/SEI_DECISION_CONTINUITY.md`
+- `product/interaction/SEI_FIRST_USABLE_PRODUCT_SLICE.md`
+- `product/vision/SEI_PRODUCT_VISION.md`
+- `product/principles/SEI_PRODUCT_PRINCIPLES.md`
 - `requirements/PRODUCT_REQUIREMENTS.md`
 - `requirements/ACCEPTANCE_SCENARIOS.md`
 - `architecture/TRACEABILITY.md`

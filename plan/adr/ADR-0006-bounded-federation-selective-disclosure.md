@@ -14,7 +14,7 @@ Updated: 2026-08-31
 
 FederationはUniversal Core ontologyではなく、**既存のCore semanticsを、境界を持つ主体間で交換するためのoptional Profile**として設計する。
 
-SOZAは、参加者それぞれのworld model全量を一つへ統合しない。
+SEIは、参加者それぞれのworld model全量を一つへ統合しない。
 
 少なくとも、次の意味境界を守る。
 

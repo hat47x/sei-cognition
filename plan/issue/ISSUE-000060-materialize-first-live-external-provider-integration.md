@@ -7,7 +7,7 @@ Updated: 2026-09-02
 
 ## Goal
 
-PMS-06のE3b「live external process / service integration」について、version固定したartifactを読む段階から一歩進み、**SOZAとは独立した外部serviceをネットワーク越しに実際に呼び出し、その結果をProvider固有の表現のままUniversal Contractへ持ち込まず、current Capability Observationへ戻せること**を確認する。
+PMS-06のE3b「live external process / service integration」について、version固定したartifactを読む段階から一歩進み、**SEIとは独立した外部serviceをネットワーク越しに実際に呼び出し、その結果をProvider固有の表現のままUniversal Contractへ持ち込まず、current Capability Observationへ戻せること**を確認する。
 
 E3bを一度に完成させることは目的としない。最初のスライスでは、追加credentialを必要としないpublic serviceを使い、live invocationとsemantic mapping、通信失敗時のcanonical非改変を切り分けて検証する。
 
@@ -36,7 +36,7 @@ live responseのcommit SHAが期待値と一致した場合だけ、外部servic
 
 ```text
 GitHub REST response
-  != SOZA Universal Provider State
+  != SEI Universal Provider State
 
 HTTP success
   != semantic authority
@@ -157,4 +157,4 @@ v0.2.0 Release Candidateのsupported scopeはE3aまでであり、本Issueを理
 
 ## Natural Japanese review
 
-PMS-06、`product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`、v0.2.0 Release Acceptance、ISSUE-000057 / 000058 / 000059、REQ-0001 / 0007 / 0021、SCN-0014 / 0018、ADR-0013 / 0019 / 0021 / 0024、current Provider Adapter、Capability Observation Contract、`runtime/go/liveintegration`のactual test、PR #37のclosure Evidence点を照合した。E3bを一度にproduction integrationへ広げず、最初のpublic live Provider serviceを独立した実証単位として完了させた。GitHub REST APIはreference serviceに限定し、GitHub固有概念をUniversal Coreへ持ち込まない境界、通信失敗とsemantic meaningの分離、E3b-P1から上位Evidenceへの非昇格を維持した。また、v0.2.0 Release Candidateのsupported scopeをE3aから暗黙に広げていない。そのうえで、目的、実装結果、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+PMS-06、`product/definition/SEI_REALIZATION_PROVIDER_EXCHANGE.md`、v0.2.0 Release Acceptance、ISSUE-000057 / 000058 / 000059、REQ-0001 / 0007 / 0021、SCN-0014 / 0018、ADR-0013 / 0019 / 0021 / 0024、current Provider Adapter、Capability Observation Contract、`runtime/go/liveintegration`のactual test、PR #37のclosure Evidence点を照合した。E3bを一度にproduction integrationへ広げず、最初のpublic live Provider serviceを独立した実証単位として完了させた。GitHub REST APIはreference serviceに限定し、GitHub固有概念をUniversal Coreへ持ち込まない境界、通信失敗とsemantic meaningの分離、E3b-P1から上位Evidenceへの非昇格を維持した。また、v0.2.0 Release Candidateのsupported scopeをE3aから暗黙に広げていない。そのうえで、目的、実装結果、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。

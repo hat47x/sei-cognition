@@ -1,11 +1,11 @@
-# SOZA 上流プロダクト開発計画
+# SEI 上流プロダクト開発計画
 
 更新日: 2026-09-11  
 状態: **Current Upstream Planning Baseline — resume-first Product Slice / TEI version exchangeを並行優先**
 
 ## 1. この文書の役割
 
-この文書は、SOZAのProduct Valueから、Open Question、Requirement、ADR、Architecture、Implementation、Evidenceへ降りる順序と、**現在どの未知を優先して減らすか**を定めます。
+この文書は、SEIのProduct Valueから、Open Question、Requirement、ADR、Architecture、Implementation、Evidenceへ降りる順序と、**現在どの未知を優先して減らすか**を定めます。
 
 ここは実証履歴の詳細台帳ではありません。run ID、artifact digest、revisionごとの詳細な停止点は各Issue / Evidence文書を正とし、本書では現在のProduct判断に必要な粒度へ要約します。
 
@@ -45,7 +45,7 @@ calendar deadlineではなく、次の順で優先度を判断します。
 4. 外部環境待ちではなく、現在進められるか。
 5. 既存の意味境界を深める仕事か、単なる実装量の追加か。
 
-一つの探索が外部条件で止まっても、SOZA全体を同じ待ち状態へしません。意味上独立した高優先課題は並行して進めます。
+一つの探索が外部条件で止まっても、SEI全体を同じ待ち状態へしません。意味上独立した高優先課題は並行して進めます。
 
 ## 3. Current Product baseline
 
@@ -80,7 +80,7 @@ Design
 
 Product仮説は次です。
 
-> SOZAの最初の強い利用者価値は、recordを多く作れることではなく、時間・AI session・画面stateをまたいで文脈を失った後でも、何を考え、何を決め、何が未解決で、何がその後変わったかへ戻れることにある。
+> SEIの最初の強い利用者価値は、recordを多く作れることではなく、時間・AI session・画面stateをまたいで文脈を失った後でも、何を考え、何を決め、何が未解決で、何がその後変わったかへ戻れることにある。
 
 この仮説を**resume-first decision work**として検証します。
 
@@ -100,8 +100,8 @@ Product仮説は次です。
 
 最初のDesign正本は次です。
 
-- `product/interaction/SOZA_FIRST_USABLE_PRODUCT_SLICE.md`
-- `architecture/SOZA_INTERACTION_WORKING_SET_ARCHITECTURE.md`
+- `product/interaction/SEI_FIRST_USABLE_PRODUCT_SLICE.md`
+- `architecture/SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md`
 - `plan/issue/ISSUE-000073-define-first-usable-resume-first-product-slice.md`
 
 次の高情報量Evidenceは、canonical-only resume、AI correction、AI unavailable、working-set rebuild、commit fault injection、stale draft、AI context egress、human resume reviewです。
@@ -110,7 +110,7 @@ Product仮説は次です。
 
 **ISSUE-000072**は引き続きPriority 1です。
 
-historical revision Aを保持し、exact revision B executable sourceとexact revision A fixed reference inputを用いて、actual `deployment-provider-plan`とcurrent SOZA Adapter compatibilityを検証します。
+historical revision Aを保持し、exact revision B executable sourceとexact revision A fixed reference inputを用いて、actual `deployment-provider-plan`とcurrent SEI Adapter compatibilityを検証します。
 
 ```text
 build / executable source = exact revision B
@@ -119,7 +119,7 @@ fixed reference input     = exact revision A
 
 repository-sideのidentity verifier、E2 / E3 runner、別toolchain、stage-aware diagnostics等は整っていますが、revision B actual CLI / Provider Plan / Adapter compatibilityはNot Yet Verifiedです。
 
-外部runner等がactual stepを開始できない状態を、TEI Product failureやAdapter failureへ昇格させません。同時に、execution pathが復旧するまでSOZA全体のProduct Interaction設計を止めません。
+外部runner等がactual stepを開始できない状態を、TEI Product failureやAdapter failureへ昇格させません。同時に、execution pathが復旧するまでSEI全体のProduct Interaction設計を止めません。
 
 ISSUE-000072でactual Bが独立したProduct failureを示すまでは、新しいStable Requirement / Universal Contract fieldを追加しません。
 

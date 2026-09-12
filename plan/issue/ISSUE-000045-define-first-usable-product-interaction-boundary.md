@@ -7,7 +7,7 @@ Updated: 2026-09-01
 
 ## Goal
 
-`SOZA_PRODUCT_SHAPE.md`で定めたWork / Interaction Surfaceについて、最初に利用可能な製品として**人間とAIがどの入口から同じcanonical meaningへ触れ、どの仕事を一続きに行える必要があるか**を定義する。
+`SEI_PRODUCT_SHAPE.md`で定めたWork / Interaction Surfaceについて、最初に利用可能な製品として**人間とAIがどの入口から同じcanonical meaningへ触れ、どの仕事を一続きに行える必要があるか**を定義する。
 
 UI frameworkやprotocolを先に選ぶのではなく、Product Value、Requirement、Acceptance ScenarioからInteraction boundaryを定める。
 
@@ -15,7 +15,7 @@ UI frameworkやprotocolを先に選ぶのではなく、Product Value、Requirem
 
 first usable Product Interactionを、**既存のcanonical meaningへ対する利用者向けの論理操作境界**として定義した。
 
-正本は`product/interaction/SOZA_PRODUCT_INTERACTION.md`とADR-0028である。
+正本は`product/interaction/SEI_PRODUCT_INTERACTION.md`とADR-0028である。
 
 ```text
 Product Interaction

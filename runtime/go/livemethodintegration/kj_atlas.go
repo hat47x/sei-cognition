@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/hat47x/soza/runtime/go/interactionprobe"
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/interactionprobe"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 var fullCommitSHA = regexp.MustCompile(`^[0-9a-f]{40}$`)
@@ -72,7 +72,7 @@ type provenancePayload struct {
 
 // ParseKJAtlasGroupingResultは、version固定したKJ Atlasのresponseを
 // reference Adapterの境界で最小限だけ検査します。ここで扱うresponse shapeを
-// SOZAのUniversal Contractへ一般化しません。
+// SEIのUniversal Contractへ一般化しません。
 func ParseKJAtlasGroupingResult(raw []byte) (KJAtlasGroupingResult, error) {
 	if len(raw) == 0 {
 		return KJAtlasGroupingResult{}, errors.New("KJ Atlas result is empty")

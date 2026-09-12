@@ -6,7 +6,7 @@ Updated: 2026-08-31
 
 ## Context
 
-SOZAでは、Product Value、Requirements、ADR、Architecture、Contract、Implementation / Evidenceの間で、何がどの判断を所有するかを明確にする必要がある。
+SEIでは、Product Value、Requirements、ADR、Architecture、Contract、Implementation / Evidenceの間で、何がどの判断を所有するかを明確にする必要がある。
 
 historical candidateでは、Architectureの説明、Contractの意味定義、machine-readable schema、実装review、Milestone planning等が近い階層へ混在していた。その意味核には再利用価値がある一方、当時のMilestone順、field候補、package構成、algorithm、Evidence状態をそのままcurrent正本へ戻すと、Product Valueから下位設計へ流れる権威関係を逆転させる危険がある。
 
@@ -52,7 +52,7 @@ current canonical entry pointは次とする。
 ```text
 architecture/
   README.md
-  SOZA_REFERENCE_ARCHITECTURE.md
+  SEI_REFERENCE_ARCHITECTURE.md
   TRACEABILITY.md
   history/
     HISTORICAL_ARCHITECTURE_MAPPING.md
@@ -98,7 +98,7 @@ Contractにはfilenameとは別にlogical identityとversionを明示する。
 例:
 
 ```text
-contract_id: soza.semantic-interchange
+contract_id: sei.semantic-interchange
 version: v1alpha1
 ```
 

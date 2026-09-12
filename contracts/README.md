@@ -1,11 +1,11 @@
-# SOZA Contracts
+# SEI Contracts
 
 更新日: 2026-09-05  
 状態: **Current Contract Baseline / Scoped Executable Evidence Available / v0.2.0 Release Evidence Reflected**
 
 ## 1. このディレクトリの役割
 
-`contracts/`は、SOZAのArchitectureで定めた意味境界のうち、複数の実装、Provider、Storage、version、componentをまたいで、**同じ意味として交換・検証する必要がある境界**を規範化します。
+`contracts/`は、SEIのArchitectureで定めた意味境界のうち、複数の実装、Provider、Storage、version、componentをまたいで、**同じ意味として交換・検証する必要がある境界**を規範化します。
 
 ContractはArchitectureの説明文書でも、runtime実装そのものでもありません。
 
@@ -39,11 +39,11 @@ schemaだけに新しいsemantic requirementを追加しません。Markdownとs
 
 | Contract | contract_id | version | current state |
 |---|---|---|---|
-| Semantic Reference | `soza.semantic-reference` | `v1alpha1` | Design baseline + scoped Executable Evidence |
-| Decision Memory | `soza.decision-memory` | `v1alpha1` | Design baseline + scoped Executable Evidence |
-| Capability Observation | `soza.capability-observation` | `v1alpha1` | Design baseline + scoped Executable Evidence |
-| Cognitive Method | `soza.cognitive-method` | `v1alpha1` | Design baseline + scoped Executable Evidence |
-| Semantic Interchange | `soza.semantic-interchange` | `v1alpha1` | Design baseline + scoped Executable Evidence |
+| Semantic Reference | `sei.semantic-reference` | `v1alpha1` | Design baseline + scoped Executable Evidence |
+| Decision Memory | `sei.decision-memory` | `v1alpha1` | Design baseline + scoped Executable Evidence |
+| Capability Observation | `sei.capability-observation` | `v1alpha1` | Design baseline + scoped Executable Evidence |
+| Cognitive Method | `sei.cognitive-method` | `v1alpha1` | Design baseline + scoped Executable Evidence |
+| Semantic Interchange | `sei.semantic-interchange` | `v1alpha1` | Design baseline + scoped Executable Evidence |
 
 5 Contract familyの意味境界は各Definitionを正本とします。対応Requirement、ADR、Architecture、fixture、runtimeとの関係は`CONTRACT_CATALOG.md`と`TRACEABILITY.md`を参照します。
 
@@ -55,10 +55,10 @@ Exact Artifact Bindingで「どのbytesをどうcanonicalizeし、どのdigest�
 
 ADR-0023により、current/future Exact Binding向けの`v1alpha1`基線として次をAcceptedしています。
 
-- `soza.jcs+sha256/v1alpha1`
-- `soza.raw-bytes+sha256/v1alpha1`
+- `sei.jcs+sha256/v1alpha1`
+- `sei.raw-bytes+sha256/v1alpha1`
 
-これらはcurrent Profileであり、SOZA Universal Core唯一のrepresentationではありません。historical M47 digest規則についてはISSUE-000034で、保持されている直接Evidenceから権威的に復元できないと整理しています。current Profile conformanceから旧方式を推定しません。
+これらはcurrent Profileであり、SEI Universal Core唯一のrepresentationではありません。historical M47 digest規則についてはISSUE-000034で、保持されている直接Evidenceから権威的に復元できないと整理しています。current Profile conformanceから旧方式を推定しません。
 
 ## 5. current Executable Evidence
 
@@ -119,7 +119,7 @@ Contract conformance / scoped integration PASS
 
 RuntimeやProvider AdapterはContractの利用者・実装です。Go structやAdapter input schemaを、Contract Definitionより上位の意味上の正本にはしません。
 
-特にProvider Adapterでは、Provider A / B固有inputを共通Universal schemaへ押し込めず、Adapter出力を`soza.capability-observation/v1alpha1`へ適合させます。
+特にProvider Adapterでは、Provider A / B固有inputを共通Universal schemaへ押し込めず、Adapter出力を`sei.capability-observation/v1alpha1`へ適合させます。
 
 ```text
 Provider-specific input != Universal Contract
@@ -128,7 +128,7 @@ Adapter output != Decision != Authority != Execution
 
 synthetic Adapterに加え、E3b-P1 public live ProviderとE3b-P2 revision A fixed-artifact actual TEI CLIで、Provider固有情報をCapability Observation境界へ戻すScoped Executable Evidenceがあります。
 
-一方、ISSUE-000072のTEI revision B actual CLI / Provider Plan / current SOZA Adapter compatibilityはNot Yet Verifiedです。revision Aやrepository-side runnerの存在だけから任意TEI version互換性を主張しません。
+一方、ISSUE-000072のTEI revision B actual CLI / Provider Plan / current SEI Adapter compatibilityはNot Yet Verifiedです。revision Aやrepository-side runnerの存在だけから任意TEI version互換性を主張しません。
 
 ## 8. historical Contract
 

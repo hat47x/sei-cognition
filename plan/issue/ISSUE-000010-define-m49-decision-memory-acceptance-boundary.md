@@ -23,7 +23,7 @@ Decisionはcontext / basisを参照でき、Decision時点に残っていたUnkn
 
 RecommendationなしのDecision、Decisionへ至らないRecommendationも正常な状態として扱う。
 
-この意味境界はADR-0010へ確定し、current `soza.decision-memory/v1alpha1`へ引き継いだ。
+この意味境界はADR-0010へ確定し、current `sei.decision-memory/v1alpha1`へ引き継いだ。
 
 ## Current evidence state
 

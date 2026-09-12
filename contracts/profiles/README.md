@@ -1,4 +1,4 @@
-# SOZA Representation Profiles
+# SEI Representation Profiles
 
 更新日: 2026-09-01  
 状態: **Current v1alpha1 Profile Baseline / Fixture-scoped Executable Conformance PASS**
@@ -34,31 +34,31 @@ ADR-0023により、current/future `v1alpha1`基線として次の2 ProfileをAc
 ### JSON semantic representation
 
 ```text
-soza.jcs+sha256/v1alpha1
+sei.jcs+sha256/v1alpha1
 ```
 
 Definition:
 
 ```text
-contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md
+contracts/profiles/SEI_JCS_SHA256_PROFILE_v1alpha1.md
 ```
 
 RFC 8785 JCSをcanonicalizationの正本とし、SHA-256でdigestを生成します。
 
-SOZA独自canonical JSONをstable authorityにはしません。Go verifier implementationは交換可能な実装であり、Profile identityを特定libraryへ固定しません。
+SEI独自canonical JSONをstable authorityにはしません。Go verifier implementationは交換可能な実装であり、Profile identityを特定libraryへ固定しません。
 
 高精度semantic valueをbinary64へ暗黙丸めしないこと、Unicode normalizationを勝手に行わないことを明示的な境界とします。
 
 ### Raw bytes representation
 
 ```text
-soza.raw-bytes+sha256/v1alpha1
+sei.raw-bytes+sha256/v1alpha1
 ```
 
 Definition:
 
 ```text
-contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md
+contracts/profiles/SEI_RAW_BYTES_SHA256_PROFILE_v1alpha1.md
 ```
 
 明示されたbytesそのものへSHA-256を適用します。改行変換、Unicode normalization、再encode等のcanonicalizationは行いません。
@@ -124,8 +124,8 @@ runtime/go/semanticruntime/verifier_test.go
 current Registryは次を解決します。
 
 ```text
-soza.jcs+sha256/v1alpha1
-soza.raw-bytes+sha256/v1alpha1
+sei.jcs+sha256/v1alpha1
+sei.raw-bytes+sha256/v1alpha1
 ```
 
 Profile authorityはProfile Definitionと参照外部標準にあり、Go interfaceやlibrary APIを正本にはしません。
@@ -175,7 +175,7 @@ Payload acquisition boundary:
 
 ## 8. historical candidateとの関係
 
-historical candidateには、SOZA独自のcustom canonical JSON + SHA-256や、JCS / raw-bytesの検討資産がありました。
+historical candidateには、SEI独自のcustom canonical JSON + SHA-256や、JCS / raw-bytesの検討資産がありました。
 
 それらはpressure testや設計入力として価値がありますが、current Profileへ自動昇格したものではありません。
 

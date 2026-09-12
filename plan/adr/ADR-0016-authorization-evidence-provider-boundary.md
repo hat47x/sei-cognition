@@ -1,4 +1,4 @@
-# ADR-0016: AuthorizationをProviderへ残し、SOZAは評価Evidenceを参照する
+# ADR-0016: AuthorizationをProviderへ残し、SEIは評価Evidenceを参照する
 
 Status: **Accepted**  
 Related Issue: **ISSUE-000018**  
@@ -6,15 +6,15 @@ Updated: 2026-08-31
 
 ## Context
 
-SOZAはDecision、Responsibility、Capability Choiceを扱うが、実行時のAuthorizationは、対象Providerのcredential、policy、resource state等に依存する。
+SEIはDecision、Responsibility、Capability Choiceを扱うが、実行時のAuthorizationは、対象Providerのcredential、policy、resource state等に依存する。
 
-Authorization方式には、IAM、RBAC、ABAC、legacy auth、外部IdP、Provider固有policy等、多様な形があり得る。SOZAがAuthorization engineを所有すると、これらの固有モデルがCoreへ流入しやすい。
+Authorization方式には、IAM、RBAC、ABAC、legacy auth、外部IdP、Provider固有policy等、多様な形があり得る。SEIがAuthorization engineを所有すると、これらの固有モデルがCoreへ流入しやすい。
 
 一方で、認可評価の来歴をまったく残さなければ、DecisionからExecutionまでの監査線を後から辿れない。
 
 ## Decision
 
-### 1. Authorization engine / policy ontologyをSOZA Coreへ追加しない
+### 1. Authorization engine / policy ontologyをSEI Coreへ追加しない
 
 Authorizationは、実行対象を所有するProviderまたはauthoritative Authorization Providerが評価する。
 
@@ -22,13 +22,13 @@ Authorizationは、実行対象を所有するProviderまたはauthoritative Aut
 Decision != Responsibility != Authorization != Execution
 ```
 
-SOZAにDecisionが存在しても、それだけでAuthorityは成立しない。逆に、Providerが実行を許可できる状態であることも、SOZA Decisionが存在したことを意味しない。
+SEIにDecisionが存在しても、それだけでAuthorityは成立しない。逆に、Providerが実行を許可できる状態であることも、SEI Decisionが存在したことを意味しない。
 
 ### 2. Authorization評価は必要に応じてEvidenceとして参照する
 
 後からDecision / Executionを監査する必要がある場合、Providerが行ったAuthorization evaluationを、Observation、Assurance、EvidenceUse、Provider-specific reference等から辿れるようにする。
 
-SOZAは認可方式そのものを一つに共通化するのではなく、**どの評価を、どの文脈で利用したか**を保持する。
+SEIは認可方式そのものを一つに共通化するのではなく、**どの評価を、どの文脈で利用したか**を保持する。
 
 ### 3. Universal `AuthorizationResult` Artifactを現時点では追加しない
 
@@ -84,7 +84,7 @@ Provider AdapterのExecutable Evidenceでも、Observation mappingからRecommen
 
 ### Positive
 
-- SOZAがIAM / RBAC / legacy auth engineへ肥大化しにくい。
+- SEIがIAM / RBAC / legacy auth engineへ肥大化しにくい。
 - TEI、SaaS、外部組織等の異なる認可方式を、同じDecision Memoryから参照できる余地を保てる。
 - 過去Decisionと過去Authorizationを別々に再構成できる。
 - ResponsibilityからAuthorityを推定する誤りを避けやすい。
@@ -100,10 +100,10 @@ Provider AdapterのExecutable Evidenceでも、Observation mappingからRecommen
 
 次のような不足が、複数Provider / domainで繰り返し確認された場合にUniversal Authorization Artifactを再検討する。
 
-- Authorization evaluation自体にSOZA共通のstable logical identityが必要になる。
+- Authorization evaluation自体にSEI共通のstable logical identityが必要になる。
 - Provider-specific referenceではDecision / Execution監査に必要な意味を保持できない。
 - 共通のrevision / Responsibility / Assurance relationが、独立Artifactなしでは表現できない。
 
 ## Natural Japanese review
 
-current Decision / Responsibility / Provider boundary、first semantic runtime、Provider Adapter Evidenceへ戻ってDecisionを照合した。その後、特定製品の認可実装を根拠の中心に置かず、AuthorizationをProviderへ残す理由とSOZAが保持するEvidence境界へ焦点を戻した。意味、未評価と拒否の差、Production未検証の留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+current Decision / Responsibility / Provider boundary、first semantic runtime、Provider Adapter Evidenceへ戻ってDecisionを照合した。その後、特定製品の認可実装を根拠の中心に置かず、AuthorizationをProviderへ残す理由とSEIが保持するEvidence境界へ焦点を戻した。意味、未評価と拒否の差、Production未検証の留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

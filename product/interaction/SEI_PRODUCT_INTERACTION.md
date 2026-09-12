@@ -1,11 +1,11 @@
-# SOZA Product Interaction
+# SEI Product Interaction
 
 更新日: 2026-09-11  
 状態: **Current Product Interaction Baseline / Resume-first first usable slice defined / Scoped prior Executable Evidence available**
 
 ## 1. この文書の役割
 
-この文書は、SOZAを人間とAIが製品として扱うとき、**どの仕事を、どの意味境界を保ったまま行える必要があるか**を定めます。
+この文書は、SEIを人間とAIが製品として扱うとき、**どの仕事を、どの意味境界を保ったまま行える必要があるか**を定めます。
 
 ここで定めるのはWeb画面、desktop framework、CLI構文、HTTP endpoint、MCP tool名ではありません。UIやprotocolより先に、利用者が何をできる必要があるかと、その操作がどのcanonical meaningへ接続するかを定めます。
 
@@ -18,7 +18,9 @@ Product Interaction
   != agent orchestration
 ```
 
-詳細な最初のProduct Sliceは`SOZA_FIRST_USABLE_PRODUCT_SLICE.md`、そのArchitectureは`../../architecture/SOZA_INTERACTION_WORKING_SET_ARCHITECTURE.md`を正とします。
+SEIのProduct Interactionは、`SEI_PRODUCT_SHAPE.md`のWork / Interaction Surfaceを具体化するProduct-level baselineです。portable semantic agreementが必要になった場合だけContractへ、重要なArchitecture判断はADRへ、実装方式はRuntime / Adapterへ落とします。
+
+詳細な最初のProduct Sliceは`SEI_FIRST_USABLE_PRODUCT_SLICE.md`、そのArchitectureは`../../architecture/SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md`を正とします。
 
 ## 2. Interactionで守る中心
 
@@ -128,7 +130,7 @@ lightなResume Projectionから現在地を把握し、必要なときだけaudi
 
 AIを利用する場合、responseはまずprovisional suggestionとして扱い、意味変更previewを経てcanonicalへcommitします。AIが停止してもopen / read / manual add / Decision / review / reopenは継続できることを目標とします。
 
-詳細なCandidate Requirement、prototype scenario、human reviewはISSUE-000073と`SOZA_FIRST_USABLE_PRODUCT_SLICE.md`で扱います。
+詳細なCandidate Requirement、prototype scenario、human reviewはISSUE-000073と`SEI_FIRST_USABLE_PRODUCT_SLICE.md`で扱います。
 
 ## 6. light viewとaudit detail
 
@@ -297,10 +299,10 @@ interaction probe PASS
 
 ## 16. 関連文書
 
-- `SOZA_FIRST_USABLE_PRODUCT_SLICE.md`
-- `../definition/SOZA_PRODUCT_SHAPE.md`
-- `../roadmap/SOZA_PRODUCT_MILESTONES.md`
-- `../../architecture/SOZA_INTERACTION_WORKING_SET_ARCHITECTURE.md`
+- `SEI_FIRST_USABLE_PRODUCT_SLICE.md`
+- `../definition/SEI_PRODUCT_SHAPE.md`
+- `../roadmap/SEI_PRODUCT_MILESTONES.md`
+- `../../architecture/SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md`
 - `../../requirements/PRODUCT_REQUIREMENTS.md`
 - `../../requirements/ACCEPTANCE_SCENARIOS.md`
 - `../../runtime/INTERACTION_PROBE_EVIDENCE_2026-09-01.md`

@@ -10,10 +10,10 @@ import prepare_tei_fixed_reference_input as fixed_reference
 import verify_tei_evidence_bundle as bundle_verifier
 import verify_tei_execution_source_identity as source_identity
 
-SCHEMA = "soza.tei-version-exchange-e2-bundle-verification/v1"
+SCHEMA = "sei.tei-version-exchange-e2-bundle-verification/v1"
 STOP_LINE = (
     "exact-B + exact-A E2 bundle identity verified "
-    "!= E3 SOZA Adapter compatibility verified "
+    "!= E3 SEI Adapter compatibility verified "
     "!= arbitrary TEI version compatibility != ISSUE-000072 Resolved"
 )
 

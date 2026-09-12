@@ -7,13 +7,13 @@ Updated: 2026-09-01
 
 ## Goal
 
-SOZAのsemantic boundaryだけでなく、製品として**誰のどの問題を解き、どの一連の仕事を支え、何をSOZAの外へ委ねるか**を上位Product文書で明確にする。
+SEIのsemantic boundaryだけでなく、製品として**誰のどの問題を解き、どの一連の仕事を支え、何をSEIの外へ委ねるか**を上位Product文書で明確にする。
 
 既存のProduct Value / V1〜V8を変更したり、新しいUniversal Core概念を増やしたりせず、現在の意味設計を利用者視点のValue PropositionとProduct Shapeへ接続する。
 
 ## 背景
 
-current Product Value、Vision、Requirements、Architecture、Contractは、SOZAが長期に守る意味境界をかなり具体化している。
+current Product Value、Vision、Requirements、Architecture、Contractは、SEIが長期に守る意味境界をかなり具体化している。
 
 一方、actual repositoryを製品として読むと、次は相対的に明示が弱かった。
 
@@ -21,7 +21,7 @@ current Product Value、Vision、Requirements、Architecture、Contractは、SOZ
 - 利用者・AI・外部Providerがどのように関わるか。
 - 問いからDecision、外部実行、再検討までをどのような仕事として支えるか。
 - UI / API / Integration / Projection等を、意味上どのようなSurfaceとして考えるか。
-- SOZA自身が所有しない実行・Identity・Storage等をどこへ置くか。
+- SEI自身が所有しない実行・Identity・Storage等をどこへ置くか。
 - 最初のusable productとして最低限何が一続きに成立すべきか。
 
 この曖昧さを残すと、RuntimeやContractの実装が進んでも「何を完成させれば製品になるのか」が見えにくい。
@@ -30,7 +30,7 @@ current Product Value、Vision、Requirements、Architecture、Contractは、SOZ
 
 ### 1. Value Proposition
 
-`product/value/SOZA_VALUE_PROPOSITION.md`を新設した。
+`product/value/SEI_VALUE_PROPOSITION.md`を新設した。
 
 利用者から見た主な価値を次へ整理した。
 
@@ -40,17 +40,17 @@ current Product Value、Vision、Requirements、Architecture、Contractは、SOZ
 - ProviderやRealizationを交換しても判断の意味を持ち運べる。
 - 軽く始め、必要な場面だけ詳細化できる。
 
-また、SOZAの価値が大きくなりやすい場面と、SOZAを第一選択にしなくてもよい場面を明示した。
+また、SEIの価値が大きくなりやすい場面と、SEIを第一選択にしなくてもよい場面を明示した。
 
 ### 2. Product Shape
 
-`product/definition/SOZA_PRODUCT_SHAPE.md`を新設した。
+`product/definition/SEI_PRODUCT_SHAPE.md`を新設した。
 
 次をProduct Shapeとして整理した。
 
 - 主要な仕事: Inquiry開始 / Observation・Evidence / Method Application / Recommendation / Decision / external execution / resulting Observation / historical review
 - 論理Surface: Work / Interaction、Canonical Semantic Access、Integration、Projection / Review、Evidence / Governance
-- SOZAが所有する意味と、原則として外部へ委ねる機能
+- SEIが所有する意味と、原則として外部へ委ねる機能
 - Minimum Usable Product Shape
 - Interaction、Packaging、Identity / Authorization、golden journey、非機能要件という未決境界
 
@@ -94,7 +94,7 @@ current Product Value、Vision、Requirements、Architecture、Contractは、SOZ
 
 - 実利用調査により、想定した利用者問題と価値提案が大きく外れていることが分かる。
 - Product Surface間の責務が実装上成立せず、上位のProduct Shape自体を変える必要がある。
-- SOZAが外部委譲するとした領域をCoreとして所有しなければProduct Valueを満たせないEvidenceが得られる。
+- SEIが外部委譲するとした領域をCoreとして所有しなければProduct Valueを満たせないEvidenceが得られる。
 
 ## Natural Japanese review
 

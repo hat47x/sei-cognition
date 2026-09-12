@@ -1,13 +1,13 @@
-# SOZA Product Milestones
+# SEI Product Milestones
 
 更新日: 2026-09-05  
 状態: **Current Deadline-free Product Milestone Baseline — v0.2.0 Release Evidence / E3b-P2 / E3b-M1b / historical reconstruction / quality-evaluation boundary / PMS-06 version-exchange state reflected**
 
 ## 1. この文書の役割
 
-この文書は、SOZAをどの順序で製品として成立させていくかを、日付や期限ではなく**成立条件とEvidenceの高さ**で示します。
+この文書は、SEIをどの順序で製品として成立させていくかを、日付や期限ではなく**成立条件とEvidenceの高さ**で示します。
 
-Milestoneは開発管理上の目印です。SOZAのUniversal ontologyでも、利用者の業務workflowでも、特定versionへ固定されたrelease scheduleでもありません。
+Milestoneは開発管理上の目印です。SEIのUniversal ontologyでも、利用者の業務workflowでも、特定versionへ固定されたrelease scheduleでもありません。
 
 ```text
 Product Value
@@ -38,9 +38,9 @@ Milestoneには依存関係がありますが、すべてを直列に完了さ�
 
 ### Outcome
 
-SOZAが何のために存在し、何を価値として守り、何を自らの恒久的中心にしないかを説明できます。
+SEIが何のために存在し、何を価値として守り、何を自らの恒久的中心にしないかを説明できます。
 
-少なくともProduct Value、Value Proposition、Value Model / Acceptance、Vision、Principles、Product Shape、SOZA / TEI / external Providerの境界が相互に矛盾せず読める状態を求めます。
+少なくともProduct Value、Value Proposition、Value Model / Acceptance、Vision、Principles、Product Shape、SEI / TEI / external Providerの境界が相互に矛盾せず読める状態を求めます。
 
 ### Minimum Evidence
 
@@ -123,7 +123,7 @@ Interaction boundaryのDesign Evidenceと、最小prototypeまたはconformance�
 
 **Design baseline established / scoped Executable Evidence available.**
 
-`product/interaction/SOZA_PRODUCT_INTERACTION.md`とADR-0028で、first usable Product Interactionをcanonical meaning上の操作境界として正本化しています。
+`product/interaction/SEI_PRODUCT_INTERACTION.md`とADR-0028で、first usable Product Interactionをcanonical meaning上の操作境界として正本化しています。
 
 ISSUE-000053のreference probeでは、人間向け・machine向けSurfaceが同じcanonical sourceを扱うこと、Recommendation / Decision分離、Unknown / Conflict保持、Projection非権威性、historical Decision basis非改変等を確認しました。
 
@@ -147,7 +147,7 @@ reference interaction probe PASS
 
 ### Outcome
 
-SOZAを実際に起動・配布し、canonical stateを保存し、後から再び開ける最小packageが成立します。
+SEIを実際に起動・配布し、canonical stateを保存し、後から再び開ける最小packageが成立します。
 
 semantic boundaryとdeployable unitを混同せず、StorageやProviderを後から交換できる余地を保ちます。
 
@@ -159,7 +159,7 @@ Packaging / DeploymentのDesign Evidenceと、最小packageのExecutable Evidenc
 
 **Design baseline established / Minimum scoped Executable Evidence available.**
 
-`product/packaging/SOZA_PRODUCT_PACKAGING.md`とADR-0029で、Local Single-Node Packageを最初のPackaging Profileとして正本化しています。
+`product/packaging/SEI_PRODUCT_PACKAGING.md`とADR-0029で、Local Single-Node Packageを最初のPackaging Profileとして正本化しています。
 
 ```text
 Go runtime executable
@@ -213,11 +213,11 @@ security / collaboration boundaryのDesign Evidenceと、対象範囲のExecutab
 
 **Design baseline established / scoped Product Access separation Executable Evidence available / production IdP・team security pending.**
 
-`product/security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`とADR-0030で境界を正本化し、ISSUE-000056のreference probeではidentity交換後のResponsibility continuity、Product accessとsemantic Responsibilityの分離、`not_evaluated` / `denied`、Selective Disclosure等を限定範囲で確認しています。
+`product/security/SEI_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`とADR-0030で境界を正本化し、ISSUE-000056のreference probeではidentity交換後のResponsibility continuity、Product accessとsemantic Responsibilityの分離、`not_evaluated` / `denied`、Selective Disclosure等を限定範囲で確認しています。
 
 ### Candidate Requirement
 
-> SOZAの製品アクセス権は、semantic Responsibility / Authorityやactor kindから自動導出せず、認証identityとの対応を含むProduct Access Policyで独立に評価できる必要がある。
+> SEIの製品アクセス権は、semantic Responsibility / Authorityやactor kindから自動導出せず、認証identityとの対応を含むProduct Access Policyで独立に評価できる必要がある。
 
 reference probe固有のpermission vocabularyやscope粒度はRealization依存であるため、Stable Requirementへ先取りしません。
 
@@ -277,11 +277,11 @@ E3b
 
 ### E2 — out-of-process reference exchange
 
-ISSUE-000057では、SOZA runtimeとは別のOS processとしてreference Provider A / Bとreference Method Realization A / Bを実際にbuild・起動し、Provider / Method交換後もhistorical Decisionを変更しないこと、異なるRecommendationをDecisionへ自動昇格しないこと等を確認しました。
+ISSUE-000057では、SEI runtimeとは別のOS processとしてreference Provider A / Bとreference Method Realization A / Bを実際にbuild・起動し、Provider / Method交換後もhistorical Decisionを変更しないこと、異なるRecommendationをDecisionへ自動昇格しないこと等を確認しました。
 
 ### E3a — version固定した実外部artifact integration
 
-ISSUE-000058では、SOZAとは別repositoryで独立にversion管理されるartifactを扱いました。
+ISSUE-000058では、SEIとは別repositoryで独立にversion管理されるartifactを扱いました。
 
 - Cognitive Method側: `hat47x/cultural-substrate-weaving`のversion固定artifact
 - Capability Provider側: `hat47x/tei-platform`のversion固定observed deployment state
@@ -290,22 +290,22 @@ source identityを確認し、Provider / repository固有情報をUniversal Cont
 
 ### E3b-P1 — public live Provider service
 
-ISSUE-000060では、SOZAとは独立したpublic serviceをネットワーク越しに実際に呼びました。reference ProviderにはGitHub REST APIの固定commit取得面を利用し、期待revisionと一致する場合だけCapability Observationへmappingしています。
+ISSUE-000060では、SEIとは独立したpublic serviceをネットワーク越しに実際に呼びました。reference ProviderにはGitHub REST APIの固定commit取得面を利用し、期待revisionと一致する場合だけCapability Observationへmappingしています。
 
 revision mismatch、HTTP failure、timeout / cancellation、Provider固有fieldの非漏出も検査しました。
 
 ### E3b-P2 — actual TEI process / service
 
-ISSUE-000061では、actual TEI CLI integrationの前段として、TEI source / binary acquisition、credential resolution、external process invocation、Provider-specific JSON decoding、SOZA Capability Observation mappingを分離しました。
+ISSUE-000061では、actual TEI CLI integrationの前段として、TEI source / binary acquisition、credential resolution、external process invocation、Provider-specific JSON decoding、SEI Capability Observation mappingを分離しました。
 
 ISSUE-000065の最初のcredential-aware Run `33589190828`では、`TEI_REPOSITORY_TOKEN`を利用できずactual TEI stepがskipされました。この記録は`runtime/ACTUAL_TEI_INTEGRATION_PROBE_EVIDENCE_2026-09-02.md`へそのまま保持しています。
 
-その後、TEI commit `48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67`をrevision Aとして固定し、historical TEI-side Run `33589084290`でactual `cmd/tei`をbuildして`deployment-provider-plan`を実行しました。生成したEvidence artifactについて、current SOZA Adapterからactual `tei` binaryを別OS processとして起動し、strict decode、Capability Observation mapping / validation、Provider固有情報の非漏出を確認しています。actual Provider Plan bytesはdigest付きfixtureとしてrepository-local testから継続検査できます。
+その後、TEI commit `48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67`をrevision Aとして固定し、historical TEI-side Run `33589084290`でactual `cmd/tei`をbuildして`deployment-provider-plan`を実行しました。生成したEvidence artifactについて、current SEI Adapterからactual `tei` binaryを別OS processとして起動し、strict decode、Capability Observation mapping / validation、Provider固有情報の非漏出を確認しています。actual Provider Plan bytesはdigest付きfixtureとしてrepository-local testから継続検査できます。
 
 ```text
 fixed revision A source / artifact
   + actual TEI process execution
-  + current SOZA Adapter mapping
+  + current SEI Adapter mapping
   = E3b-P2 revision A fixed-artifact Scoped Executable Evidence
 
   != private artifact credential lifecycle proven
@@ -333,18 +333,18 @@ actual結果を見る前に`runtime/TEI_VERSION_EXCHANGE_REQUIREMENT_PREAUDIT_20
 exact-B + exact-A fixed-input execution path ready
   != revision B actual CLI build / execution PASS
   != revision B Provider Plan observed
-  != current SOZA Adapter compatibility PASS
+  != current SEI Adapter compatibility PASS
   != new Stable Requirement required
   != ISSUE-000072 Resolved
 ```
 
-revision B actual CLI / `deployment-provider-plan` / current SOZA Adapter live compatibilityは**Not Yet Verified**です。
+revision B actual CLI / `deployment-provider-plan` / current SEI Adapter live compatibilityは**Not Yet Verified**です。
 
 ### E3b-M1a — live KJ Atlas process + deterministic model stub
 
-ISSUE-000064では、public repository `hat47x/kj-atlas`の固定commit `4f28c13abe4176503c6fed863383a2d1db2299e9`を取得し、KJ Atlas FastAPI backendと同repositoryのdeterministic model stubをSOZAとは別processとして実際に起動しました。
+ISSUE-000064では、public repository `hat47x/kj-atlas`の固定commit `4f28c13abe4176503c6fed863383a2d1db2299e9`を取得し、KJ Atlas FastAPI backendと同repositoryのdeterministic model stubをSEIとは別processとして実際に起動しました。
 
-`POST /ai/suggest-card-groups`をactual HTTPで呼び、KJ Atlasのrequest model、LLM input IR、SafeMode、local model routing、response filteringを通したうえで、grouping responseをSOZAのCognitive Method Applicationへ戻しています。
+`POST /ai/suggest-card-groups`をactual HTTPで呼び、KJ Atlasのrequest model、LLM input IR、SafeMode、local model routing、response filteringを通したうえで、grouping responseをSEIのCognitive Method Applicationへ戻しています。
 
 KJ Atlas固有responseはopaqueな`not_verified` Method outputとして保持し、grouping候補をRecommendation / Decisionへ自動昇格させません。
 
@@ -352,7 +352,7 @@ KJ Atlas固有responseはopaqueな`not_verified` Method outputとして保持し
 
 ISSUE-000066ではM1aと同じKJ Atlas revisionを使い、KJ AtlasのMethod surfaceを変えずにdeterministic model stubだけを実際に推論するmodel artifactへ置き換えました。
 
-historical Run `33596839607`では、Ollama `0.32.14`と`qwen2.5:0.5b`を使い、KJ Atlasの`POST /generate`境界をintegration-only AdapterからOllamaへ接続しました。actual inferenceでは`prompt_eval_count = 196`、`eval_count = 78`を観測し、そのresultを既存SOZA Method mapping boundaryへ通しています。
+historical Run `33596839607`では、Ollama `0.32.14`と`qwen2.5:0.5b`を使い、KJ Atlasの`POST /generate`境界をintegration-only AdapterからOllamaへ接続しました。actual inferenceでは`prompt_eval_count = 196`、`eval_count = 78`を観測し、そのresultを既存SEI Method mapping boundaryへ通しています。
 
 ```text
 actual model inference succeeded
@@ -404,7 +404,7 @@ v0.2.0のsupported release scopeはE3aまでです。release後に積み上が�
 
 - private TEI / external artifactを取得するcredential lifecycleとdeployment境界
 - TEI executableの正式な取得・配布方式
-- ISSUE-000072のrevision B actual CLI / Provider Plan / current SOZA Adapter compatibility
+- ISSUE-000072のrevision B actual CLI / Provider Plan / current SEI Adapter compatibility
 - arbitrary TEI / model / runtime version compatibility
 - version交換後のhistorical Exact Binding / Provenanceを長期運用でどこまで保持するか
 - 別model family / Provider / Realizationへ広げたportability
@@ -451,7 +451,7 @@ GitHub Actionsは現在停止していますが、actual v0.2.0 publication時�
 
 ### Outcome
 
-実際の利用環境で、SOZAが単に動作しただけでなく、判断の再構成、引継ぎ、再検討、Provider交換、不確実性保持等に役立ったかを検証できます。
+実際の利用環境で、SEIが単に動作しただけでなく、判断の再構成、引継ぎ、再検討、Provider交換、不確実性保持等に役立ったかを検証できます。
 
 ### Minimum Evidence
 
@@ -483,7 +483,7 @@ Open Questionを直接Stable Requirementへ飛ばしません。
 
 2026-09-05時点のProduct Value、Product Shape、Product Interaction、Packaging、Identity / Access / Collaboration、Realization / Provider Exchange、PMS-06 current snapshot、v0.2.0 Release Evidence、REQ-0001〜0022、SCN-0001〜0018、ISSUE-000053〜000072、current runtime / evaluation資産へ戻ってMilestone全体を再監査しました。
 
-historical Actions Runは、当時actualに得たExecutable / Release Evidenceとして保持しています。一方、current Open Questionから`SOZA Actionsからcredentialを供給する`という実行面固有の表現を外し、private artifact acquisition / credential lifecycleという製品側の論点へ戻しました。current継続検査もGitHub Actionsではなくrepository-local testを前提とします。
+historical Actions Runは、当時actualに得たExecutable / Release Evidenceとして保持しています。一方、current Open Questionから`SEI Actionsからcredentialを供給する`という実行面固有の表現を外し、private artifact acquisition / credential lifecycleという製品側の論点へ戻しました。current継続検査もGitHub Actionsではなくrepository-local testを前提とします。
 
 PMS-06にはE3b-P2 revision A、M1a、M1b、ISSUE-000067のhistorical reconstruction、ISSUE-000068のactual model artifact交換、ISSUE-000071の成果品質評価境界に加え、ISSUE-000070のfixed-model Ollama runtime version交換をScoped Executable Evidenceとして反映しました。ISSUE-000072のTEI executable version交換は引き続きOpenで、actual revision BはNot Yet Verifiedです。
 

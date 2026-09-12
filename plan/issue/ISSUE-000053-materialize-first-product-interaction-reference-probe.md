@@ -7,7 +7,7 @@ Updated: 2026-09-01
 
 ## Goal
 
-`product/interaction/SOZA_PRODUCT_INTERACTION.md`とADR-0028で定めたfirst usable Product Interaction boundaryについて、human-oriented入口とmachine-oriented入口が**同じcanonical meaningを失わずに扱えること**をreference probeで検証する。
+`product/interaction/SEI_PRODUCT_INTERACTION.md`とADR-0028で定めたfirst usable Product Interaction boundaryについて、human-oriented入口とmachine-oriented入口が**同じcanonical meaningを失わずに扱えること**をreference probeで検証する。
 
 このprobeはproduction UIやsupported protocolを決定するものではない。PMS-03をDesign EvidenceからExecutable Evidenceへ進めるための限定実験として扱う。
 
@@ -197,7 +197,7 @@ Interaction probeの実装都合だけでREQ / SCNを追加しない。
 - actual Provider / TEI integration
 - Operational / Adoption / Outcome Evidence
 
-特に`CanonicalStore`は単一Inquiry向けのin-memory evaluation storeであり、その制約をSOZA Productの仕様へ一般化しない。
+特に`CanonicalStore`は単一Inquiry向けのin-memory evaluation storeであり、その制約をSEI Productの仕様へ一般化しない。
 
 ## 完了条件
 

@@ -7,7 +7,7 @@
 
 このディレクトリは、Cognitive Methodを「実行できた」ことと、その出力が人間の探索やKJ法の実践にとって「よい成果だった」ことを分けて扱うための評価基線です。
 
-E3b-M1bでは、actual model inferenceを含むKJ Atlasの実行結果をSOZA Cognitive Method Applicationへ戻せることまで確認しました。しかし、実行経路が成立しただけでは、groupingや表札の意味的品質は分かりません。
+E3b-M1bでは、actual model inferenceを含むKJ Atlasの実行結果をSEI Cognitive Method Applicationへ戻せることまで確認しました。しかし、実行経路が成立しただけでは、groupingや表札の意味的品質は分かりません。
 
 そこで、評価を少なくとも次の四層に分けます。
 

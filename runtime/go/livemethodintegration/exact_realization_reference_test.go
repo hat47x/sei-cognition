@@ -3,8 +3,8 @@ package livemethodintegration
 import (
 	"testing"
 
-	"github.com/hat47x/soza/runtime/go/interactionprobe"
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/interactionprobe"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 func TestApplyKJAtlasGroupingResultPreservesExactRealizationReference(t *testing.T) {
@@ -13,7 +13,7 @@ func TestApplyKJAtlasGroupingResultPreservesExactRealizationReference(t *testing
 	input.RealizationRef = semanticruntime.LogicalReference{Kind: "method-realization", ID: "MR-KJ-ATLAS-EXACT"}
 
 	logical := input.RealizationRef
-	profile := semanticruntime.RepresentationProfile{ProfileID: "soza.raw-bytes+sha256", Version: "v1alpha1"}
+	profile := semanticruntime.RepresentationProfile{ProfileID: "sei.raw-bytes+sha256", Version: "v1alpha1"}
 	exact := semanticruntime.Reference{
 		LogicalRef:            &logical,
 		ContentDigest:         "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
@@ -52,7 +52,7 @@ func TestApplyKJAtlasGroupingResultRejectsMismatchedRealizationIdentitiesWithout
 	input := referenceInput(store, sampleGroupingResult)
 	input.RealizationRef = semanticruntime.LogicalReference{Kind: "method-realization", ID: "MR-KJ-ATLAS-A"}
 	logical := semanticruntime.LogicalReference{Kind: "method-realization", ID: "MR-KJ-ATLAS-B"}
-	profile := semanticruntime.RepresentationProfile{ProfileID: "soza.raw-bytes+sha256", Version: "v1alpha1"}
+	profile := semanticruntime.RepresentationProfile{ProfileID: "sei.raw-bytes+sha256", Version: "v1alpha1"}
 	input.RealizationReference = &semanticruntime.Reference{
 		LogicalRef:            &logical,
 		ContentDigest:         "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",

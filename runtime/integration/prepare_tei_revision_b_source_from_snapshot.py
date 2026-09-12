@@ -12,7 +12,7 @@ from typing import Mapping
 import prepare_tei_revision_b_source as prepare
 from runtime_path_safety import reject_symlink_path_or_ancestors
 
-SNAPSHOT_SCHEMA = "soza.github-git-data-snapshot/v1"
+SNAPSHOT_SCHEMA = "sei.github-git-data-snapshot/v1"
 SNAPSHOT_TRANSPORT_TOKEN = "__preacquired_git_data_snapshot__"
 CANONICAL_SOURCE_ACQUISITION = "github-git-data-api-content-addressed"
 CANONICAL_CREDENTIAL_SOURCE = "environment"

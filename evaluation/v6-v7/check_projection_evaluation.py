@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Reproducible V6/V7 projection evaluation for ISSUE-000039.
 
-The harness checks a projection boundary; it does not define a new SOZA Contract.
+The harness checks a projection boundary; it does not define a new SEI Contract.
 A PASS is evaluation-harness scoped Executable Evidence only.
 """
 
@@ -57,7 +57,7 @@ def extract_semantics(document: dict[str, Any]) -> dict[str, Any]:
     decision_doc: dict[str, Any] | None = None
     observations: dict[str, dict[str, Any]] = {}
 
-    if document.get("contract") == "soza.semantic-interchange/v1alpha1":
+    if document.get("contract") == "sei.semantic-interchange/v1alpha1":
         for record in document.get("records", []):
             if not isinstance(record, dict):
                 continue
@@ -66,13 +66,13 @@ def extract_semantics(document: dict[str, Any]) -> dict[str, Any]:
             if not isinstance(contract, dict) or not isinstance(payload, dict):
                 continue
             contract_id = contract.get("contract_id")
-            if contract_id == "soza.decision-memory" and payload.get("record_type") == "decision":
+            if contract_id == "sei.decision-memory" and payload.get("record_type") == "decision":
                 decision_doc = payload
-            elif contract_id == "soza.capability-observation":
+            elif contract_id == "sei.capability-observation":
                 observation = payload.get("observation")
                 if isinstance(observation, dict) and isinstance(observation.get("ref"), dict):
                     observations[ref_key(observation["ref"])] = observation
-    elif document.get("contract") == "soza.decision-memory/v1alpha1":
+    elif document.get("contract") == "sei.decision-memory/v1alpha1":
         decision_doc = document
 
     if not isinstance(decision_doc, dict):
@@ -332,7 +332,7 @@ def negative_case_errors(
         mutated = copy.deepcopy(rich_document)
         for record in mutated["records"]:
             contract = record.get("contract", {})
-            if contract.get("contract_id") == "soza.decision-memory":
+            if contract.get("contract_id") == "sei.decision-memory":
                 record["payload"]["decision"]["statement"] = "Projection由来の書換え"
         return ["E_CANONICAL_MUTATED"] if structural_digest(mutated) != original else []
     if case_id == "N6-high-impact-light-only":
@@ -415,7 +415,7 @@ def main() -> int:
             failures.append(f"{case_id}: expected {expected}, got {actual_errors}")
 
     summary = {
-        "schema": "soza.v6-v7-projection-evaluation/v1",
+        "schema": "sei.v6-v7-projection-evaluation/v1",
         "canonical_sources": 2,
         "projection_profiles": ["light", "audit"],
         "semantic_questions": 6,

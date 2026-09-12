@@ -8,7 +8,7 @@ from unittest import mock
 import run_tei_bundle_adapter_compatibility as subject
 
 
-class TEISozaSourceGitEnvironmentTest(unittest.TestCase):
+class TEISeiSourceGitEnvironmentTest(unittest.TestCase):
     def git(self, repo: Path, *args: str) -> str:
         process = subprocess.run(
             ["git", "-C", str(repo), *args],
@@ -20,7 +20,7 @@ class TEISozaSourceGitEnvironmentTest(unittest.TestCase):
         return process.stdout.strip()
 
     def make_repo(self, root: Path) -> tuple[Path, str]:
-        repo = root / "soza"
+        repo = root / "sei"
         helper = repo / "runtime/integration/git_object_environment.py"
         helper.parent.mkdir(parents=True)
         helper.write_text("VALUE = 'fixed'\n", encoding="utf-8")
@@ -31,13 +31,13 @@ class TEISozaSourceGitEnvironmentTest(unittest.TestCase):
         self.git(repo, "commit", "-qm", "fixture")
         return repo, self.git(repo, "rev-parse", "HEAD")
 
-    def test_git_environment_helper_is_in_default_soza_evidence_boundary(self):
+    def test_git_environment_helper_is_in_default_sei_evidence_boundary(self):
         self.assertIn(
             "runtime/integration/git_object_environment.py",
-            subject.SOZA_EVIDENCE_PATHS,
+            subject.SEI_EVIDENCE_PATHS,
         )
 
-    def test_soza_source_identity_ignores_ambient_object_directory(self):
+    def test_sei_source_identity_ignores_ambient_object_directory(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             repo, head = self.make_repo(root)
@@ -49,7 +49,7 @@ class TEISozaSourceGitEnvironmentTest(unittest.TestCase):
                 {"GIT_OBJECT_DIRECTORY": str(empty_objects)},
                 clear=False,
             ):
-                observation = subject._verify_soza_source_identity(
+                observation = subject._verify_sei_source_identity(
                     repo,
                     paths=["runtime/integration/git_object_environment.py"],
                     expected_head=head,
@@ -67,7 +67,7 @@ class TEISozaSourceGitEnvironmentTest(unittest.TestCase):
             helper.write_text("VALUE = 'changed'\n", encoding="utf-8")
 
             with self.assertRaisesRegex(ValueError, "未commit変更"):
-                subject._verify_soza_source_identity(
+                subject._verify_sei_source_identity(
                     repo,
                     paths=["runtime/integration/git_object_environment.py"],
                 )

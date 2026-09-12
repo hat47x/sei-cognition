@@ -2,7 +2,7 @@
 
 更新日: 2026-09-05
 
-このディレクトリには、SOZAと外部Cognitive Method / model runtimeの接続を実際に確かめるためのintegration資産を置きます。
+このディレクトリには、SEIと外部Cognitive Method / model runtimeの接続を実際に確かめるためのintegration資産を置きます。
 
 current `develop/v0.2.0`ではGitHub Actionsを停止しています。workflowの作成・復元・再実行・runner監視は行わず、必要なtest、checker、probeをrepository-localに実行します。過去のActions Runはhistorical Evidenceとして保持しますが、現在の成立条件にはしません。
 
@@ -138,13 +138,13 @@ preflightやstrict executionが途中で失敗した場合も、作成可能な�
 
 ## Runtime archiveの準備
 
-runtime archiveはSOZA repositoryの外に置きます。計画表示の段階から同じ出力先境界を適用します。
+runtime archiveはSEI repositoryの外に置きます。計画表示の段階から同じ出力先境界を適用します。
 
 取得前の計画確認:
 
 ```bash
 python3 runtime/integration/prepare_runtime_version_exchange_archives.py \
-  --output-dir /path/outside/soza/runtime-archives \
+  --output-dir /path/outside/sei/runtime-archives \
   --plan
 ```
 
@@ -152,20 +152,20 @@ python3 runtime/integration/prepare_runtime_version_exchange_archives.py \
 
 ```bash
 python3 runtime/integration/prepare_runtime_version_exchange_archives.py \
-  --output-dir /path/outside/soza/runtime-archives
+  --output-dir /path/outside/sei/runtime-archives
 ```
 
 既存fileだけをnetworkなしで再検証する場合:
 
 ```bash
 python3 runtime/integration/prepare_runtime_version_exchange_archives.py \
-  --output-dir /path/outside/soza/runtime-archives \
+  --output-dir /path/outside/sei/runtime-archives \
   --verify-only
 ```
 
 準備toolは次を停止線にします。
 
-- `--output-dir`をSOZA repository配下へ置かない。
+- `--output-dir`をSEI repository配下へ置かない。
 - output directory自身がsymlinkなら拒否する。
 - 既存output pathが通常directoryでなければ拒否する。
 - 既存archive targetがsymlinkなら拒否する。
@@ -297,7 +297,7 @@ strict入口は次を行います。
 
 1. checkout指定時は固定commit objectからverified bundleをexportする。
 2. bundle指定時は固定Git object identityを再検証する。
-3. 事前配置runtime archiveのsymlink、不存在、source/SOZA/modelとのoverlap、A/B同一pathを拒否する。
+3. 事前配置runtime archiveのsymlink、不存在、source/SEI/modelとのoverlap、A/B同一pathを拒否する。
 4. 事前配置runtime archiveのactual size / SHA-256を固定manifestへ照合する。
 5. 既存model storeはmanifest / blob bytesを静的再検証する。
 6. model新規準備時は固定registryから取得し、完成storeを再検証する。
@@ -401,7 +401,7 @@ low-level harnessは次を一続きに確認します。
 ## Pathとprocessの安全境界
 
 - source、runtime archive、model store、work、Evidence、verification outputを意図しない形で重ねない。
-- runtime archive準備先はSOZA repository外とする。
+- runtime archive準備先はSEI repository外とする。
 - 事前配置runtime archiveはpreflightとstrict入口でsource treeとの分離とactual bytesを再確認する。
 - model storeとsourceは双方向の包含を拒否する。
 - work / Evidence / verification outputには新しいpathを使う。
@@ -448,14 +448,14 @@ python3 runtime/integration/run_runtime_version_exchange_local_checks.py \
 
 ```bash
 python3 runtime/integration/run_runtime_version_exchange_local_checks.py \
-  --result-output /path/outside/soza/runtime-exchange-focused-result.json
+  --result-output /path/outside/sei/runtime-exchange-focused-result.json
 ```
 
 各testの既定timeoutは120秒です。必要なら`--timeout-seconds`で変更できます。timeoutはexit code `124`、child起動自体の失敗はexit code `127`相当としてmachine-readable resultへ残します。`--stop-on-failure`はnon-zero、timeout、launch errorのいずれでも停止できます。
 
 runnerは明示allowlistとcandidate discoveryを照合し、runtime version exchangeに関係するtestが未登録のまま増えることを検出します。runner自身のself-testもfocused checkへ含めます。
 
-親shellの`SOZA_RUNTIME_EXCHANGE_*`、`SOZA_E3B_RUNTIME_EXCHANGE_*`、`OLLAMA_HOST`、`OLLAMA_MODELS`はfocused regressionへ暗黙継承しません。
+親shellの`SEI_RUNTIME_EXCHANGE_*`、`SEI_E3B_RUNTIME_EXCHANGE_*`、`OLLAMA_HOST`、`OLLAMA_MODELS`はfocused regressionへ暗黙継承しません。
 
 結果JSONはrepository commit / cleanlinessの観測とtest resultを分けます。Git観測に失敗しても、その失敗をtest PASSへ偽装せず診断情報として保持します。結果には次の停止線を明示します。
 
@@ -497,7 +497,7 @@ strictがEvidence directory作成前に失敗しても、verified runnerが失�
 
 少なくとも次へ戻れることが必要です。
 
-- execution ID / SOZA repository commit
+- execution ID / SEI repository commit
 - verified KJ Atlas source identity / source acquisition Provenance
 - runtime A / B actual version / archive SHA-256
 - model name / expected digest / storage mode / A/B `/api/tags`

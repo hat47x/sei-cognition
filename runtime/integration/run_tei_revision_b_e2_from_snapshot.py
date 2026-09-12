@@ -17,7 +17,7 @@ SCHEMA = github_e2.SCHEMA
 REPORT_NAME = github_e2.REPORT_NAME
 BUNDLE_NAME = github_e2.BUNDLE_NAME
 STOP_LINE = github_e2.STOP_LINE
-SOZA_ROOT = github_e2.SOZA_ROOT
+SEI_ROOT = github_e2.SEI_ROOT
 
 
 class SnapshotE2RunFailed(RuntimeError):
@@ -40,11 +40,11 @@ def _prepare_snapshot_input(snapshot: Path, output_dir: Path) -> Path:
             "E2 partial Evidence directoryでGit Data snapshot入力を包含できません: "
             f"output={output} snapshot={resolved}"
         )
-    soza = SOZA_ROOT.expanduser().resolve(strict=False)
-    if github_e2._is_within(resolved, soza):
+    sei = SEI_ROOT.expanduser().resolve(strict=False)
+    if github_e2._is_within(resolved, sei):
         raise ValueError(
-            "TEI Git Data snapshotをSOZA repository配下から実行入力にできません: "
-            f"snapshot={resolved} soza={soza}"
+            "TEI Git Data snapshotをSEI repository配下から実行入力にできません: "
+            f"snapshot={resolved} sei={sei}"
         )
     return resolved
 
@@ -120,12 +120,12 @@ def run_e2_from_snapshot(
 
     source_temp_parent = github_runner._prepare_source_temp_parent(
         output_dir,
-        SOZA_ROOT,
+        SEI_ROOT,
         reference_source_repo,
     )
 
     with tempfile.TemporaryDirectory(
-        prefix="soza-tei-b-e2-snapshot-source-",
+        prefix="sei-tei-b-e2-snapshot-source-",
         dir=source_temp_parent,
     ) as tmp:
         source_repo = Path(tmp) / "tei-revision-b"
@@ -140,7 +140,7 @@ def run_e2_from_snapshot(
             source_repo=source_repo,
             reference_source_repo=reference_source_repo,
             reference_evidence_bundle=reference_evidence_bundle,
-            soza_repo_root=SOZA_ROOT,
+            sei_repo_root=SEI_ROOT,
         )
         verified_output_dir.mkdir(parents=True, exist_ok=True)
         bundle_path = verified_output_dir / BUNDLE_NAME

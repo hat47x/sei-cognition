@@ -38,7 +38,7 @@ checkerはPython標準ライブラリだけで動作し、Markdownを新しいse
 5. V1〜V8以外のValue Axis
 6. Requirement status
 7. Acceptance state
-8. historical `SOZA-PR-*` / `SOZA-NFR-*` / `SOZA-AS-*`のcurrent table混入
+8. historical `SEI-PR-*` / `SEI-NFR-*` / `SEI-AS-*`のcurrent table混入
 9. Milestone接頭辞付きID等によるcanonical table/body不整合
 10. summary tableと本文registryの不一致
 
@@ -54,7 +54,7 @@ self-testでは少なくとも次を期待どおり検出する。
 - 不正Scenario Value Axis
 - 不正Requirement status
 - 不正Acceptance state
-- historical `SOZA-PR-*`のcurrent table混入
+- historical `SEI-PR-*`のcurrent table混入
 - `M49-REQ-0001`のようなMilestone接頭辞付きIDによるcanonical registry不整合
 
 negative caseは、Requirementsの内容が「悪い」と自動判定するものではなく、ADR-0020で固定したregistry規約への不適合を検出する。

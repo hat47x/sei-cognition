@@ -246,11 +246,11 @@ class RuntimeVersionExchangeModelStorePreparationTest(unittest.TestCase):
         model_url = f"{acquisition['registryBlobBaseUrl']}/sha256:{model_digest}"
         self.assertEqual(1, opener.calls.count(model_url))
 
-    def test_target_inside_soza_repository_is_rejected(self):
+    def test_target_inside_sei_repository_is_rejected(self):
         acquisition, payloads, _config_digest, _model_digest = self.fixture()
         opener = FakeOpener(payloads)
-        target = prepare.SOZA_ROOT / ".tmp-runtime-exchange-model-store-test"
-        with self.assertRaisesRegex(ValueError, "SOZA repository配下"):
+        target = prepare.SEI_ROOT / ".tmp-runtime-exchange-model-store-test"
+        with self.assertRaisesRegex(ValueError, "SEI repository配下"):
             prepare.prepare_model_store(
                 target,
                 opener=opener,

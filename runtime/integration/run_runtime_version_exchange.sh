@@ -2,12 +2,12 @@
 set -euo pipefail
 
 # GitHub Actionsに依存せず、同一のKJ Atlas / model artifact / Method inputで
-# Ollama runtimeだけを0.32.13から0.32.14へ交換し、SOZAの履歴再構成境界を検証します。
+# Ollama runtimeだけを0.32.13から0.32.14へ交換し、SEIの履歴再構成境界を検証します。
 # 実験結果の意味はISSUE-000070を正とし、このscriptの成功を成果品質やE4へ昇格させません。
 # strict Evidenceのsourceはverified runtime bundleだけを受け付けます。KJ Atlas checkoutを
 # 起点にする場合はrun_runtime_version_exchange_strict.pyで固定commit objectからexportします。
 
-SOZA_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
+SEI_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 KJ_ATLAS_COMMIT="4f28c13abe4176503c6fed863383a2d1db2299e9"
 MODEL_NAME="qwen2.5:0.5b"
 MODEL_SHA256="a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67"
@@ -16,16 +16,16 @@ RUNTIME_VERSION_B="0.32.14"
 RUNTIME_SHA256_A="0fd1dece38a1c6242e8013ce20b597345c5de072ae6b320160edb0e729ef1de1"
 RUNTIME_SHA256_B="c620917a71e146ab3a7f893084f066069c4c65d144ef8379a91c3cbe8b27de8f"
 
-KJ_ATLAS_BACKEND_BUNDLE="${SOZA_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_BUNDLE:-}"
-KJ_ATLAS_SOURCE_VERIFIER="${SOZA_ROOT}/runtime/integration/verify_kj_atlas_runtime_source.py"
-RUNTIME_ARCHIVE_PREPARER="${SOZA_ROOT}/runtime/integration/prepare_runtime_version_exchange_archives.py"
-MODEL_STORE_PREPARER="${SOZA_ROOT}/runtime/integration/prepare_runtime_version_exchange_model_store.py"
-WORK_DIR="${SOZA_RUNTIME_EXCHANGE_WORK_DIR:-}"
-EVIDENCE_DIR="${SOZA_RUNTIME_EXCHANGE_EVIDENCE_DIR:-}"
-PREPOSITIONED_RUNTIME_ARCHIVE_A="${SOZA_RUNTIME_EXCHANGE_PREPOSITIONED_ARCHIVE_A:-}"
-PREPOSITIONED_RUNTIME_ARCHIVE_B="${SOZA_RUNTIME_EXCHANGE_PREPOSITIONED_ARCHIVE_B:-}"
-EXTERNAL_MODEL_STORE="${SOZA_RUNTIME_EXCHANGE_MODEL_DIR:-}"
-KEEP_WORK="${SOZA_RUNTIME_EXCHANGE_KEEP_WORK:-0}"
+KJ_ATLAS_BACKEND_BUNDLE="${SEI_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_BUNDLE:-}"
+KJ_ATLAS_SOURCE_VERIFIER="${SEI_ROOT}/runtime/integration/verify_kj_atlas_runtime_source.py"
+RUNTIME_ARCHIVE_PREPARER="${SEI_ROOT}/runtime/integration/prepare_runtime_version_exchange_archives.py"
+MODEL_STORE_PREPARER="${SEI_ROOT}/runtime/integration/prepare_runtime_version_exchange_model_store.py"
+WORK_DIR="${SEI_RUNTIME_EXCHANGE_WORK_DIR:-}"
+EVIDENCE_DIR="${SEI_RUNTIME_EXCHANGE_EVIDENCE_DIR:-}"
+PREPOSITIONED_RUNTIME_ARCHIVE_A="${SEI_RUNTIME_EXCHANGE_PREPOSITIONED_ARCHIVE_A:-}"
+PREPOSITIONED_RUNTIME_ARCHIVE_B="${SEI_RUNTIME_EXCHANGE_PREPOSITIONED_ARCHIVE_B:-}"
+EXTERNAL_MODEL_STORE="${SEI_RUNTIME_EXCHANGE_MODEL_DIR:-}"
+KEEP_WORK="${SEI_RUNTIME_EXCHANGE_KEEP_WORK:-0}"
 
 usage() {
   cat <<'USAGE'
@@ -45,11 +45,11 @@ Options:
   git, python3, go, curl, zstd, tar, sha256sum, uname, mktemp, cp
 
 現在の固定runtime artifactはLinux / amd64用です。
-SOZAはcleanなGit checkoutである必要があります。
+SEIはcleanなGit checkoutである必要があります。
 このlow-level harnessはverified KJ Atlas backend bundleだけを実行sourceとして受け付けます。
 KJ Atlas checkoutを起点にする場合は、run_runtime_version_exchange_strict.pyを利用し、
 固定commit objectからverified runtime bundleへ変換してから本harnessへ委譲してください。
-work / Evidence / external model directoryをSOZAまたはKJ Atlas source配下には置けません。
+work / Evidence / external model directoryをSEIまたはKJ Atlas source配下には置けません。
 
 runtime archiveを指定しない場合だけ、repository-localのarchive preparation helperを通して
 Ollama公式GitHub Releaseから取得します。事前配置したarchiveも同じ固定SHA-256を必ず
@@ -165,8 +165,8 @@ require_clean_repository() {
 require_safe_output_path() {
   local label="$1"
   local candidate="$2"
-  if is_within_path "${candidate}" "${SOZA_ROOT}"; then
-    echo "${label} must not be inside the SOZA repository: ${candidate}" >&2
+  if is_within_path "${candidate}" "${SEI_ROOT}"; then
+    echo "${label} must not be inside the SEI repository: ${candidate}" >&2
     exit 1
   fi
   if is_within_path "${candidate}" "${KJ_ATLAS_SOURCE_ROOT}"; then
@@ -193,8 +193,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
 PY
 }
 
-require_clean_repository "SOZA" "${SOZA_ROOT}"
-SOZA_COMMIT="$(git -C "${SOZA_ROOT}" rev-parse HEAD)"
+require_clean_repository "SEI" "${SEI_ROOT}"
+SEI_COMMIT="$(git -C "${SEI_ROOT}" rev-parse HEAD)"
 
 if [[ -z "${KJ_ATLAS_BACKEND_BUNDLE}" ]]; then
   echo "verified KJ Atlas backend bundle is required; use --kj-atlas-backend-bundle PATH." >&2
@@ -203,8 +203,8 @@ if [[ -z "${KJ_ATLAS_BACKEND_BUNDLE}" ]]; then
 fi
 
 KJ_ATLAS_BACKEND_BUNDLE="$(canonical_path "${KJ_ATLAS_BACKEND_BUNDLE}")"
-if is_within_path "${KJ_ATLAS_BACKEND_BUNDLE}" "${SOZA_ROOT}"; then
-  echo "KJ Atlas backend bundle must not be inside the SOZA repository: ${KJ_ATLAS_BACKEND_BUNDLE}" >&2
+if is_within_path "${KJ_ATLAS_BACKEND_BUNDLE}" "${SEI_ROOT}"; then
+  echo "KJ Atlas backend bundle must not be inside the SEI repository: ${KJ_ATLAS_BACKEND_BUNDLE}" >&2
   exit 1
 fi
 [[ -d "${KJ_ATLAS_BACKEND_BUNDLE}" ]] || {
@@ -218,9 +218,9 @@ KJ_ATLAS_BACKEND_DIR=""
 KJ_ATLAS_INSTALL_DIR=""
 ACTUAL_KJ_COMMIT="${KJ_ATLAS_COMMIT}"
 
-EXECUTION_ID="${SOZA_RUNTIME_EXCHANGE_EXECUTION_ID:-local-$(date -u +%Y%m%dT%H%M%SZ)-$$}"
+EXECUTION_ID="${SEI_RUNTIME_EXCHANGE_EXECUTION_ID:-local-$(date -u +%Y%m%dT%H%M%SZ)-$$}"
 if [[ ! "${EXECUTION_ID}" =~ ^[A-Za-z0-9._-]+$ ]]; then
-  echo "SOZA_RUNTIME_EXCHANGE_EXECUTION_ID contains unsupported characters: ${EXECUTION_ID}" >&2
+  echo "SEI_RUNTIME_EXCHANGE_EXECUTION_ID contains unsupported characters: ${EXECUTION_ID}" >&2
   exit 1
 fi
 
@@ -228,7 +228,7 @@ TMP_ROOT="$(canonical_path "${TMPDIR:-/tmp}")"
 require_safe_output_path "temporary root" "${TMP_ROOT}"
 
 if [[ -z "${WORK_DIR}" ]]; then
-  WORK_DIR="$(mktemp -d "${TMP_ROOT}/soza-runtime-version-exchange.XXXXXX")"
+  WORK_DIR="$(mktemp -d "${TMP_ROOT}/sei-runtime-version-exchange.XXXXXX")"
 else
   WORK_DIR="$(canonical_path "${WORK_DIR}")"
   require_safe_output_path "work directory" "${WORK_DIR}"
@@ -242,7 +242,7 @@ WORK_DIR="$(canonical_path "${WORK_DIR}")"
 require_safe_output_path "work directory" "${WORK_DIR}"
 
 if [[ -z "${EVIDENCE_DIR}" ]]; then
-  EVIDENCE_DIR="${TMP_ROOT}/soza-runtime-version-exchange-evidence-${EXECUTION_ID}"
+  EVIDENCE_DIR="${TMP_ROOT}/sei-runtime-version-exchange-evidence-${EXECUTION_ID}"
 fi
 EVIDENCE_DIR="$(canonical_path "${EVIDENCE_DIR}")"
 require_safe_output_path "Evidence directory" "${EVIDENCE_DIR}"
@@ -431,7 +431,7 @@ if [[ "${MODEL_STORE_NEEDS_PREPARATION}" == "1" ]]; then
   printf '%s\n' "${MODEL_STORE_PREPARATION_JSON}" >"${MODEL_STORE_PREPARATION_FILE}"
 fi
 
-SOZA_COMMIT="${SOZA_COMMIT}" \
+SEI_COMMIT="${SEI_COMMIT}" \
 KJ_ATLAS_COMMIT="${ACTUAL_KJ_COMMIT}" \
 KJ_ATLAS_SOURCE_IDENTITY_FILE="${KJ_ATLAS_SOURCE_IDENTITY_FILE}" \
 EXECUTION_ID="${EXECUTION_ID}" \
@@ -456,10 +456,10 @@ method_source = json.loads(
     Path(os.environ["KJ_ATLAS_SOURCE_IDENTITY_FILE"]).read_text(encoding="utf-8")
 )
 payload = {
-    "schema": "soza.runtime-version-exchange-evidence-identity/v1",
+    "schema": "sei.runtime-version-exchange-evidence-identity/v1",
     "executionId": os.environ["EXECUTION_ID"],
     "executionSurface": "repository-local-harness",
-    "repositoryCommit": os.environ["SOZA_COMMIT"],
+    "repositoryCommit": os.environ["SEI_COMMIT"],
     "methodSourceCommit": os.environ["KJ_ATLAS_COMMIT"],
     "methodSource": method_source,
     "executionHost": {
@@ -531,7 +531,7 @@ cat >"${REQUEST_FILE}" <<'JSON'
   ],
   "doc": {
     "version": 1,
-    "id": "soza-e3b-runtime-exchange",
+    "id": "sei-e3b-runtime-exchange",
     "createdAt": "2026-09-02T00:00:00Z",
     "updatedAt": "2026-09-02T00:00:00Z",
     "transform": {"panX":0,"panY":0,"zoom":1},
@@ -549,7 +549,7 @@ JSON
 
 export OLLAMA_HOST="127.0.0.1:11434"
 export OLLAMA_MODELS="${MODEL_STORE}"
-export SOZA_E3B_RUNTIME_EXCHANGE_MODEL_SHA256="${MODEL_SHA256}"
+export SEI_E3B_RUNTIME_EXCHANGE_MODEL_SHA256="${MODEL_SHA256}"
 
 model_store_has_pinned_artifact() {
   local tags="$1"
@@ -581,7 +581,7 @@ run_probe() {
 
   cleanup_processes
   ensure_tcp_port_available "Ollama" 11434
-  ensure_tcp_port_available "SOZA model adapter" 8001
+  ensure_tcp_port_available "SEI model adapter" 8001
   ensure_tcp_port_available "KJ Atlas" 8101
 
   echo "=== Ollama ${version}: verify pinned runtime artifact ==="
@@ -644,9 +644,9 @@ PY
       "${VENV_DIR}/bin/alembic" upgrade head
   )
 
-  SOZA_M1B_MODEL="${MODEL_NAME}" \
-  SOZA_M1B_MODEL_EVIDENCE="${evidence}" \
-    "${VENV_DIR}/bin/python" "${SOZA_ROOT}/runtime/integration/e3b_m1b_ollama_adapter.py" \
+  SEI_M1B_MODEL="${MODEL_NAME}" \
+  SEI_M1B_MODEL_EVIDENCE="${evidence}" \
+    "${VENV_DIR}/bin/python" "${SEI_ROOT}/runtime/integration/e3b_m1b_ollama_adapter.py" \
       --host 127.0.0.1 --port 8001 >"${adapter_log}" 2>&1 &
   ADAPTER_PID=$!
 
@@ -746,29 +746,29 @@ print(json.dumps({"promptSHA256": a.get("prompt_sha256")}, sort_keys=True))
 PY
 
 (
-  cd "${SOZA_ROOT}/runtime/go"
-  env -u SOZA_E3B_RUNTIME_EXCHANGE_LIVE go test ./livemethodintegration -count=1
+  cd "${SEI_ROOT}/runtime/go"
+  env -u SEI_E3B_RUNTIME_EXCHANGE_LIVE go test ./livemethodintegration -count=1
 )
 
-export SOZA_E3B_RUNTIME_EXCHANGE_LIVE=1
-export SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_MODE="${KJ_ATLAS_SOURCE_MODE}"
-export SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_DIR="${KJ_ATLAS_BACKEND_DIR}"
-export SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_VERIFIER="${KJ_ATLAS_SOURCE_VERIFIER}"
-export SOZA_E3B_RUNTIME_EXCHANGE_RUNTIME_VERSION_A="${RUNTIME_VERSION_A}"
-export SOZA_E3B_RUNTIME_EXCHANGE_RUNTIME_VERSION_B="${RUNTIME_VERSION_B}"
-export SOZA_E3B_RUNTIME_EXCHANGE_MODEL_ID_A="${MODEL_ID_A}"
-export SOZA_E3B_RUNTIME_EXCHANGE_MODEL_ID_B="${MODEL_ID_B}"
-export SOZA_E3B_RUNTIME_EXCHANGE_RESULT_A="${WORK_DIR}/runtime-exchange-a-result.json"
-export SOZA_E3B_RUNTIME_EXCHANGE_RESULT_B="${WORK_DIR}/runtime-exchange-b-result.json"
-export SOZA_E3B_RUNTIME_EXCHANGE_EVIDENCE_A="${WORK_DIR}/runtime-exchange-a-evidence.json"
-export SOZA_E3B_RUNTIME_EXCHANGE_EVIDENCE_B="${WORK_DIR}/runtime-exchange-b-evidence.json"
-export SOZA_E3B_RUNTIME_EXCHANGE_ARCHIVE_A="${RUNTIME_ARCHIVE_A}"
-export SOZA_E3B_RUNTIME_EXCHANGE_ARCHIVE_B="${RUNTIME_ARCHIVE_B}"
-export SOZA_E3B_RUNTIME_EXCHANGE_VERSION_LOG_A="${WORK_DIR}/runtime-exchange-a-version.txt"
-export SOZA_E3B_RUNTIME_EXCHANGE_VERSION_LOG_B="${WORK_DIR}/runtime-exchange-b-version.txt"
+export SEI_E3B_RUNTIME_EXCHANGE_LIVE=1
+export SEI_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_MODE="${KJ_ATLAS_SOURCE_MODE}"
+export SEI_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_DIR="${KJ_ATLAS_BACKEND_DIR}"
+export SEI_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_VERIFIER="${KJ_ATLAS_SOURCE_VERIFIER}"
+export SEI_E3B_RUNTIME_EXCHANGE_RUNTIME_VERSION_A="${RUNTIME_VERSION_A}"
+export SEI_E3B_RUNTIME_EXCHANGE_RUNTIME_VERSION_B="${RUNTIME_VERSION_B}"
+export SEI_E3B_RUNTIME_EXCHANGE_MODEL_ID_A="${MODEL_ID_A}"
+export SEI_E3B_RUNTIME_EXCHANGE_MODEL_ID_B="${MODEL_ID_B}"
+export SEI_E3B_RUNTIME_EXCHANGE_RESULT_A="${WORK_DIR}/runtime-exchange-a-result.json"
+export SEI_E3B_RUNTIME_EXCHANGE_RESULT_B="${WORK_DIR}/runtime-exchange-b-result.json"
+export SEI_E3B_RUNTIME_EXCHANGE_EVIDENCE_A="${WORK_DIR}/runtime-exchange-a-evidence.json"
+export SEI_E3B_RUNTIME_EXCHANGE_EVIDENCE_B="${WORK_DIR}/runtime-exchange-b-evidence.json"
+export SEI_E3B_RUNTIME_EXCHANGE_ARCHIVE_A="${RUNTIME_ARCHIVE_A}"
+export SEI_E3B_RUNTIME_EXCHANGE_ARCHIVE_B="${RUNTIME_ARCHIVE_B}"
+export SEI_E3B_RUNTIME_EXCHANGE_VERSION_LOG_A="${WORK_DIR}/runtime-exchange-a-version.txt"
+export SEI_E3B_RUNTIME_EXCHANGE_VERSION_LOG_B="${WORK_DIR}/runtime-exchange-b-version.txt"
 
 (
-  cd "${SOZA_ROOT}/runtime/go"
+  cd "${SEI_ROOT}/runtime/go"
   go test ./livemethodintegration \
     -run '^TestLiveKJAtlasRuntimeVersionExchangePreservesHistoricalApplication$' \
     -count=1 -v

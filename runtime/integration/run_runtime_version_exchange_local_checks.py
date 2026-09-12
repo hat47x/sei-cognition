@@ -10,8 +10,8 @@ from pathlib import Path
 
 
 INTEGRATION_DIR = Path(__file__).resolve().parent
-SOZA_ROOT = INTEGRATION_DIR.parents[1]
-RESULT_SCHEMA = "soza.runtime-version-exchange-focused-local-check-result/v1"
+SEI_ROOT = INTEGRATION_DIR.parents[1]
+RESULT_SCHEMA = "sei.runtime-version-exchange-focused-local-check-result/v1"
 DEFAULT_TEST_TIMEOUT_SECONDS = 120
 LAUNCH_ERROR_EXIT_CODE = 127
 TIMEOUT_EXIT_CODE = 124
@@ -64,8 +64,8 @@ def sanitized_environment() -> dict[str, str]:
 
     environment = os.environ.copy()
     for key in tuple(environment):
-        if key.startswith("SOZA_RUNTIME_EXCHANGE_") or key.startswith(
-            "SOZA_E3B_RUNTIME_EXCHANGE_"
+        if key.startswith("SEI_RUNTIME_EXCHANGE_") or key.startswith(
+            "SEI_E3B_RUNTIME_EXCHANGE_"
         ):
             environment.pop(key, None)
         elif key.startswith("GIT_"):
@@ -92,7 +92,7 @@ def sanitized_environment() -> dict[str, str]:
 
 
 def repository_observation_environment() -> dict[str, str]:
-    """SOZA repository観測を親shellのGit内部指定から分離する。"""
+    """SEI repository観測を親shellのGit内部指定から分離する。"""
 
     environment = os.environ.copy()
     for key in tuple(environment):
@@ -122,9 +122,9 @@ def prepare_result_output(path: Path) -> Path:
         )
 
     resolved = canonical_path(requested)
-    if is_within(resolved, SOZA_ROOT):
+    if is_within(resolved, SEI_ROOT):
         raise ValueError(
-            "focused check result outputはSOZA repository外へ保存してください: "
+            "focused check result outputはSEI repository外へ保存してください: "
             f"{resolved}"
         )
     if resolved.exists():
@@ -141,7 +141,7 @@ def prepare_result_output(path: Path) -> Path:
 def _run_git_observation(*args: str) -> tuple[subprocess.CompletedProcess[str] | None, str | None]:
     try:
         completed = subprocess.run(
-            ["git", "-C", str(SOZA_ROOT), *args],
+            ["git", "-C", str(SEI_ROOT), *args],
             check=False,
             capture_output=True,
             text=True,
@@ -386,7 +386,7 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         help=(
             "focused regression結果を保存する新規JSON path。"
-            "SOZA repository外の既存parent directory配下を指定します。"
+            "SEI repository外の既存parent directory配下を指定します。"
         ),
     )
     return parser

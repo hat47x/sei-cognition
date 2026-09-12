@@ -1,2 +1,6 @@
-# 外部リポジトリの一時checkout。SOZAの管理対象には含めない。
+# 外部リポジトリの一時checkout。SEIの管理対象には含めない。
 _external/
+
+# Python実行時の生成物。repositoryの管理対象には含めない。
+__pycache__/
+.pytest_cache/

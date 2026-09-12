@@ -11,13 +11,13 @@ from typing import Any, Callable
 
 import verify_runtime_version_exchange_evidence as core
 
-SCHEMA = "soza.runtime-version-exchange-progress/v1"
-RUNNER_SCHEMA = "soza.runtime-version-exchange-runner-observation/v1"
-PREFLIGHT_SCHEMA = "soza.runtime-version-exchange-preflight/v1"
-PREFLIGHT_OBSERVATION_SCHEMA = "soza.runtime-version-exchange-preflight-observation/v1"
-IDENTITY_SCHEMA = "soza.runtime-version-exchange-evidence-identity/v1"
-SOURCE_IDENTITY_SCHEMA = "soza.kj-atlas-runtime-source-identity/v1"
-MODEL_STORE_VERIFICATION_SCHEMA = "soza.runtime-version-exchange-model-store-verification/v1"
+SCHEMA = "sei.runtime-version-exchange-progress/v1"
+RUNNER_SCHEMA = "sei.runtime-version-exchange-runner-observation/v1"
+PREFLIGHT_SCHEMA = "sei.runtime-version-exchange-preflight/v1"
+PREFLIGHT_OBSERVATION_SCHEMA = "sei.runtime-version-exchange-preflight-observation/v1"
+IDENTITY_SCHEMA = "sei.runtime-version-exchange-evidence-identity/v1"
+SOURCE_IDENTITY_SCHEMA = "sei.kj-atlas-runtime-source-identity/v1"
+MODEL_STORE_VERIFICATION_SCHEMA = "sei.runtime-version-exchange-model-store-verification/v1"
 STOP_LINE = (
     "observed Evidence milestone boundary != exact failing command or internal root cause "
     "!= canonical Evidence + Provenance verification PASS "

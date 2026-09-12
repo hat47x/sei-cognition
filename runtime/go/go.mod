@@ -1,4 +1,4 @@
-module github.com/hat47x/soza/runtime/go
+module github.com/hat47x/sei-cognition/runtime/go
 
 go 1.25
 

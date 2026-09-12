@@ -7,7 +7,7 @@ Updated: 2026-09-01
 
 ## Goal
 
-SOZA v0.1.0について、current Executable Evidenceを「release済み」と誤認せず、**どのcommit / artifact / gate結果が揃えばrelease candidateと呼べるか、さらに何が起きた後にだけRelease Evidenceへ昇格できるか**を具体化する。
+SEI v0.1.0について、current Executable Evidenceを「release済み」と誤認せず、**どのcommit / artifact / gate結果が揃えばrelease candidateと呼べるか、さらに何が起きた後にだけRelease Evidenceへ昇格できるか**を具体化する。
 
 ```text
 release candidate gate PASS
@@ -181,7 +181,7 @@ Release Candidate Gateを追加したclosure commitそのものについて、ac
 - job: `99716406410` — **success**
 - Plan integrity Run: `33462821772` — **success**
 - candidate report artifact ID: `9783773779`
-- artifact name: `soza-v0.1.0-release-candidate-4ee3f75753972e56fff8ab9f88b977cfe3d7b67b`
+- artifact name: `sei-v0.1.0-release-candidate-4ee3f75753972e56fff8ab9f88b977cfe3d7b67b`
 - artifact digest: `sha256:3efef517ffdcc1c5588f9ab5893059ae1c4239354e58c79036b0e4c244697113`
 
 Release Candidate Gateでは、Plan、Requirements、Contract、Representation Profile、commit-pinned JCS probe、semantic runtime、V6/V7 Projection、candidate policy / reportの各gateが同一checkoutでsuccessした。
@@ -222,4 +222,4 @@ closure commitのactual Evidence:
 
 ## Natural Japanese review
 
-SOZA_VALUE_ACCEPTANCE、ADR-0018、ADR-0020、ADR-0021、DEVELOPMENT_WORKFLOW、current CI、current Plan、実装したrelease policy / checker / workflow、actual closure CIを相互照合した。そのうえで、v0.1.0をpre-operationalなsemantic source baselineとして扱い、candidate gateとactual releaseを分離した。最後に、意味、Evidence強度、非主張範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+SEI_VALUE_ACCEPTANCE、ADR-0018、ADR-0020、ADR-0021、DEVELOPMENT_WORKFLOW、current CI、current Plan、実装したrelease policy / checker / workflow、actual closure CIを相互照合した。そのうえで、v0.1.0をpre-operationalなsemantic source baselineとして扱い、candidate gateとactual releaseを分離した。最後に、意味、Evidence強度、非主張範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

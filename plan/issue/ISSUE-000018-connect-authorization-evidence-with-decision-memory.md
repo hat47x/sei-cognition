@@ -7,17 +7,17 @@ Updated: 2026-08-31
 
 ## Goal
 
-TEIや他Capability Providerが行う認証・認可評価を、SOZAのDecision Memoryからどのように監査可能に参照するかを定める。
+TEIや他Capability Providerが行う認証・認可評価を、SEIのDecision Memoryからどのように監査可能に参照するかを定める。
 
 ## Investigation
 
-Entry Authorization / Resource Authorization、legacy auth、Provider固有policy、past / current authorization、Provider unavailable等を、SOZAのDecision / Responsibility / Observation / Assurance境界へ戻してラウンドKJ法で検討した。
+Entry Authorization / Resource Authorization、legacy auth、Provider固有policy、past / current authorization、Provider unavailable等を、SEIのDecision / Responsibility / Observation / Assurance境界へ戻してラウンドKJ法で検討した。
 
 ## Resolution
 
 ADR-0016をAcceptedとし、本IssueをResolvedとする。
 
-SOZAはAuthorization engine / policy ontologyを所有しない。Provider側の評価は必要に応じてObservation、AssuranceRecord、EvidenceUse、Provider-specific reference等から参照する。
+SEIはAuthorization engine / policy ontologyを所有しない。Provider側の評価は必要に応じてObservation、AssuranceRecord、EvidenceUse、Provider-specific reference等から参照する。
 
 次を同一視しない。
 

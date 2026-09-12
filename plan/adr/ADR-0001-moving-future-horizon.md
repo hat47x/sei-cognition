@@ -6,7 +6,7 @@ Updated: 2026-08-31
 
 ## Context
 
-SOZAでは、現在のAIや実装技術の弱点を補うためだけの仕組みを、恒久的なCoreへ固定しないことが重要である。一方で、遠い未来を想像するあまり、現在の実務で必要な意味まで削ってしまえば、Productとしての実用性を失う。
+SEIでは、現在のAIや実装技術の弱点を補うためだけの仕組みを、恒久的なCoreへ固定しないことが重要である。一方で、遠い未来を想像するあまり、現在の実務で必要な意味まで削ってしまえば、Productとしての実用性を失う。
 
 そこで将来耐性の確認を、一度きりの未来予測ではなく、**評価時点の現実を起点として繰り返し見直す設計規律**として定める。
 
@@ -55,7 +55,7 @@ Coreへ残す候補は、少なくとも次の条件を満たす必要がある�
 ## Evidence
 
 - ISSUE-000001で、Architecture reviewへ組み込む運用方法を整理済みである。
-- `SOZA_PRODUCT_VALUE.md`、Product Vision、Product Principlesでも、固定された未来予測ではなく、現在地とともに動く将来基準を採用している。
+- `SEI_PRODUCT_VALUE.md`、Product Vision、Product Principlesでも、固定された未来予測ではなく、現在地とともに動く将来基準を採用している。
 - current Architectureでは、実装技術より長く残る意味と、Provider / Profile / Realization等へ移譲できる仕組みを分離している。
 
 ## Natural Japanese review

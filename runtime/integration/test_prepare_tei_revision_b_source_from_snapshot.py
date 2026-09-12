@@ -65,7 +65,7 @@ class RevisionBSnapshotTransportTest(unittest.TestCase):
                 )
                 self.assertEqual(prepare.REVISION_B, payload["sha"])
                 return {
-                    "schema": "soza.tei-revision-b-source-acquisition/v1",
+                    "schema": "sei.tei-revision-b-source-acquisition/v1",
                     "result": "verified",
                     "sourceAcquisition": snapshot_prepare.CANONICAL_SOURCE_ACQUISITION,
                     "credentialSource": snapshot_prepare.CANONICAL_CREDENTIAL_SOURCE,
@@ -75,7 +75,7 @@ class RevisionBSnapshotTransportTest(unittest.TestCase):
                     "objectAcquisition": {"apiRequests": 1},
                     "revisionBBuildPass": False,
                     "providerPlanExecutionPass": False,
-                    "sozaAdapterCompatibilityPass": False,
+                    "seiAdapterCompatibilityPass": False,
                     "issue000072Resolved": False,
                     "qualityJudgement": "not_evaluated",
                     "stopLine": prepare.STOP_LINE,

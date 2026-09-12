@@ -6,12 +6,12 @@ from pathlib import Path
 import run_tei_bundle_adapter_compatibility as subject
 
 
-class TEIE3SOZASourcePurityTest(unittest.TestCase):
+class TEIE3SEISourcePurityTest(unittest.TestCase):
     def make_repo(self, root: Path) -> Path:
-        repo = root / "soza"
+        repo = root / "sei"
         go_root = repo / "runtime/go"
         go_root.mkdir(parents=True)
-        (go_root / "go.mod").write_text("module example.invalid/soza\n\ngo 1.25\n", encoding="utf-8")
+        (go_root / "go.mod").write_text("module example.invalid/sei\n\ngo 1.25\n", encoding="utf-8")
         subprocess.run(["git", "-C", str(repo), "init", "-q"], check=True)
         subprocess.run(
             ["git", "-C", str(repo), "config", "user.email", "test@example.invalid"],
@@ -28,7 +28,7 @@ class TEIE3SOZASourcePurityTest(unittest.TestCase):
     def test_clean_runtime_boundary_is_verified(self):
         with tempfile.TemporaryDirectory() as tmp:
             repo = self.make_repo(Path(tmp))
-            result = subject._verify_soza_source_identity(repo, paths=["runtime/go"])
+            result = subject._verify_sei_source_identity(repo, paths=["runtime/go"])
         self.assertTrue(result["worktreeCleanWithinBoundary"])
 
     def test_ignored_runtime_file_is_rejected(self):
@@ -57,7 +57,7 @@ class TEIE3SOZASourcePurityTest(unittest.TestCase):
             self.assertEqual("", without_ignored)
 
             with self.assertRaisesRegex(ValueError, "ignored"):
-                subject._verify_soza_source_identity(repo, paths=["runtime/go"])
+                subject._verify_sei_source_identity(repo, paths=["runtime/go"])
 
 
 if __name__ == "__main__":

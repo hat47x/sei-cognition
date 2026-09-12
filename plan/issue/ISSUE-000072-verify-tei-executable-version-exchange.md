@@ -8,7 +8,7 @@ Updated: 2026-09-07
 
 ## Goal
 
-ISSUE-000065で成立したfixed-artifact actual TEI CLI executionを一つのrevisionへ固定された成功例にとどめず、**TEI executableのsource revisionや取得経路を交換した後も、SOZAがProvider固有の実行面とcurrent Capability Observationの意味境界を混同せず扱えるか**を検証する。
+ISSUE-000065で成立したfixed-artifact actual TEI CLI executionを一つのrevisionへ固定された成功例にとどめず、**TEI executableのsource revisionや取得経路を交換した後も、SEIがProvider固有の実行面とcurrent Capability Observationの意味境界を混同せず扱えるか**を検証する。
 
 少なくとも次を判別できる状態にする。
 
@@ -16,16 +16,16 @@ ISSUE-000065で成立したfixed-artifact actual TEI CLI executionを一つのre
 artifact acquisition path
   != artifact identity
   != TEI Provider surface compatibility
-  != SOZA Capability Observation identity
+  != SEI Capability Observation identity
 ```
 
 version交換後のbinaryやProvider Plan bytesが旧revisionと一致することは要求しない。一方、historical revision Aのsource / binary / output identityを保持したままrevision Bを別の外部実現として観測し、current Adapterで意味を壊さず解釈できるかを確認する。
 
 ## Background
 
-ISSUE-000061では、private repositoryの取得・credentialと、TEI executableのprocess invocation、Provider固有JSONの解釈、SOZA Capability Observationへのmappingを分離した。
+ISSUE-000061では、private repositoryの取得・credentialと、TEI executableのprocess invocation、Provider固有JSONの解釈、SEI Capability Observationへのmappingを分離した。
 
-ISSUE-000065では、次の固定revisionについてactual CLI build / executionとSOZA Adapter接続までScoped Executable Evidenceが成立した。
+ISSUE-000065では、次の固定revisionについてactual CLI build / executionとSEI Adapter接続までScoped Executable Evidenceが成立した。
 
 - Repository: `hat47x/tei-platform`
 - Source commit: `48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67`
@@ -41,7 +41,7 @@ ISSUE-000065では、次の固定revisionについてactual CLI build / executio
 同時に、2026-09-05時点のTEI current mainをrevision B候補として固定した。
 
 - source commit: `1a7028d444fcae60a1c4f2f2d247456f4c7c35be`
-- evidence branch: `evidence/soza-e3b-p2-version-exchange-2026-09-05`
+- evidence branch: `evidence/sei-e3b-p2-version-exchange-2026-09-05`
 - workflow commit: `5e87cd18967b6d86001cc4d5229bd4886b94e30d`
 
 revision Bを旧revisionと同じ`deployment-provider-plan`条件で実行するEvidence workflow Run `33913500170`を起動したが、attempt 1 / 2ともjob stepが一つも開始される前にfailureとなった。
@@ -50,7 +50,7 @@ revision Bを旧revisionと同じ`deployment-provider-plan`条件で実行する
 GitHub-hosted job start failure
   != TEI build failure
   != Provider surface incompatibility
-  != SOZA Adapter incompatibility
+  != SEI Adapter incompatibility
 ```
 
 このため、revision B actual executionは現時点ではNot Yet Verifiedである。
@@ -63,7 +63,7 @@ GitHub-hosted job start failure
 deterministic source-level compile contradiction
   != canonical actual revision B build FAIL
   != Provider Plan failure
-  != SOZA Adapter incompatibility
+  != SEI Adapter incompatibility
 ```
 
 したがって比較軸は変更せず、actual E2でfixed-Bをそのまま検証する。
@@ -78,8 +78,8 @@ deterministic source-level compile contradiction
 - self-contained local Git object databaseから独立exact-B checkoutを作るhelper
 - GitHub Git Data APIからexact-B sourceをcontent-addressedに再構成するacquisition helper
 - exact-B build source + exact-A fixed reference inputによるprepositioned Evidence runner
-- verified Evidence bundleからcurrent SOZA `teiintegration` live testへ接続するAdapter compatibility runner
-- E2用GoとE3用current SOZA Goを別executableとして連続実行するcanonical orchestrator
+- verified Evidence bundleからcurrent SEI `teiintegration` live testへ接続するAdapter compatibility runner
+- E2用GoとE3用current SEI Goを別executableとして連続実行するcanonical orchestrator
 - GitHub acquisitionからcanonical E2 → E3へ接続するone-shot wrapper
 - GitHub / localのactual開始前preflight
 - GitHub one-shot自身によるsource acquisition前のautomatic preflight
@@ -88,7 +88,7 @@ deterministic source-level compile contradiction
 - E2 / E3のprocess-level Go build/test overrideをambient environmentから分離するcontrolled Go environment
 - E2 exact Go `1.23.2` / Linux amd64、E3 current `runtime/go/go.mod` minimum / Linux amd64を、`go version`とcontrolled `go env GOOS GOARCH`の両方で確認するtoolchain identity guard
 - E2 / E3 failureを外部観測可能なstageへ分けて記録するstage-aware diagnostics
-- revision B / SOZA / revision A inputとEvidence outputを分離し、symlinkや暗黙上書きを拒否するpath-safety guard
+- revision B / SEI / revision A inputとEvidence outputを分離し、symlinkや暗黙上書きを拒否するpath-safety guard
 - GitHub / local取得経路別のpost-run Resolution audit
 - E3 Goをまだ用意できない環境でもGitHub acquisitionからactual E2だけを先行回収できるE2 partial runner
 - E2 bundleをexact revision B source commitとexact revision A fixed reference identityへbindingして再検証するstrict verifier
@@ -114,9 +114,9 @@ historical bundle経路はA source checkoutを復元したものとは扱わな�
 
 これにより、runtime revision、reference input identity、reference input acquisition pathを混同しない。
 
-また、E2 historical buildはexact `go1.23.2 linux/amd64`、E3 current SOZA live testはcurrent `runtime/go/go.mod`を満たすLinux / amd64 Go executableを使う。両者とも`GOTOOLCHAIN=local`とし、ambient `GOOS` / `GOARCH`等を除外したcontrolled environmentで`go env GOOS GOARCH = linux / amd64`を再確認する。同じ`go` command名を同一toolchain identityとは扱わず、combined runnerでは2つのGo executableを別々に明示する。
+また、E2 historical buildはexact `go1.23.2 linux/amd64`、E3 current SEI live testはcurrent `runtime/go/go.mod`を満たすLinux / amd64 Go executableを使う。両者とも`GOTOOLCHAIN=local`とし、ambient `GOOS` / `GOARCH`等を除外したcontrolled environmentで`go env GOOS GOARCH = linux / amd64`を再確認する。同じ`go` command名を同一toolchain identityとは扱わず、combined runnerでは2つのGo executableを別々に明示する。
 
-actual E2 → E3は特定hostや特定のRemote Desktop接続を成立条件にしない。exact revision B / exact revision A fixed input / current SOZA、必要toolchain、入力から分離したEvidence出力を配置できる適切なLinux / amd64実行環境で実行する。
+actual E2 → E3は特定hostや特定のRemote Desktop接続を成立条件にしない。exact revision B / exact revision A fixed input / current SEI、必要toolchain、入力から分離したEvidence出力を配置できる適切なLinux / amd64実行環境で実行する。
 
 また、2026-09-05時点で`hat47x/tei-platform`のGitHub Releasesは0件であり、正式なTEI executable distribution surfaceはまだ確認できない。
 
@@ -127,31 +127,31 @@ actual E2 → E3は特定hostや特定のRemote Desktop接続を成立条件に�
 3. executable取得経路がsource build、GitHub Actions artifact、将来のRelease asset等へ変わっても、同じartifact identity検証へ戻せるか。
 4. Provider Plan surfaceがversion間で変化した場合、Adapter-local compatibility changeとして扱えるか、それとも既存Requirement / Contractでは表現できないProduct failureがあるか。
 5. historical revision Aを後から再取得・再検証できなくなった場合、どのEvidenceをdurableに保存する必要があるか。
-6. 正式な配布・署名・更新channelをSOZA側で標準化する必要が本当にあるか。それともTEI側またはdeployment policyへ残すべきか。
+6. 正式な配布・署名・更新channelをSEI側で標準化する必要が本当にあるか。それともTEI側またはdeployment policyへ残すべきか。
 7. executable revisionだけを交換したい検証で、workspace / durable run / plugin lock等のreference input identityをどこまで固定すべきか。
 
 ## Constraints
 
 - TEIをUniversal Provider ontologyへ昇格させない。
-- TEI CLIのfield setをSOZA Universal Contractへ複製しない。
+- TEI CLIのfield setをSEI Universal Contractへ複製しない。
 - repository URL、GitHub Actions、credential名、artifact store、Release方式をsemantic identityへ含めない。
 - acquisition pathとactual artifact identityを分離する。
 - historical revision Aのsource / binary / Provider Plan identityをrevision B追加で書き換えない。
 - binary SHA-256やProvider Plan SHA-256が異なることだけをcompatibility failureにしない。
 - Provider Planの意味的差分を、byte比較だけで良否判定しない。
 - GitHub-hosted runner failureをTEI Product failureへ昇格させない。
-- artifact bundle検証PASSをSOZA Adapter互換、Operational Evidence、Release Evidenceへ昇格させない。
+- artifact bundle検証PASSをSEI Adapter互換、Operational Evidence、Release Evidenceへ昇格させない。
 - 静的なProvider Plan source continuityをactual revision B execution PASSへ昇格させない。
-- source-level compile矛盾を、canonical actual revision B build failureやSOZA Adapter incompatibilityへ昇格させない。
+- source-level compile矛盾を、canonical actual revision B build failureやSEI Adapter incompatibilityへ昇格させない。
 - fixed revision Bを、build-fixを含む後続revisionへ無言で差し替えない。後継revisionを検証対象へ加える場合は、Bのexact bindingとEvidenceを保持したまま別revisionとして明示的に固定する。
 - B executableの検証で、B checkout内の変化したreference workspaceをhistorical fixed inputへ無言で置き換えない。
 - Git object identityが一致していても、execution boundary内のtracked変更、untracked entry、gitignored entryをactual source / checkout fixed inputへ混入させない。
 - historical bundle取得時は、bundle metadataだけをfixed input identityとして信頼せず、actual reference bytesからGit object identityを再計算して固定値へ照合する。
 - historical bundleからfixed inputを取得しても、A source checkoutを再構成したEvidenceへ昇格させない。
-- Evidence outputをrevision B / SOZA checkout配下へ置かず、checkout取得時はrevision A checkout配下にも置かない。Evidence directoryがそれらcheckoutを包含する配置もしない。
+- Evidence outputをrevision B / SEI checkout配下へ置かず、checkout取得時はrevision A checkout配下にも置かない。Evidence directoryがそれらcheckoutを包含する配置もしない。
 - historical bundle取得時は入力bundleをEvidence directory配下に置かない。
 - Evidence output path / ancestor symlinkやstandalone E2 archiveの暗黙上書きを許可しない。
-- Evidence path configuration rejectionをE2 build failure、Provider Plan failure、SOZA Adapter failureへ昇格させない。
+- Evidence path configuration rejectionをE2 build failure、Provider Plan failure、SEI Adapter failureへ昇格させない。
 - stderr / stdoutの文言だけからTEI内部のworkspace load / validation / plugin lock等のsubstageを推定しない。
 - Go live testの文言だけからstrict decode / Capability Observation validator等のsubstageを推定しない。
 - 特定host / runner / Remote Desktop接続をProduct semantics上の成立条件にしない。
@@ -194,7 +194,7 @@ actual E2 → E3は特定hostや特定のRemote Desktop接続を成立条件に�
 - source identity / fixed input identity / platform / Go toolchain / build / Provider Plan process / output validation / Evidence packagingのどの外部stageまで成立したかを区別できる。
 - `deployment-provider-plan` process内部のworkspace load / validation / durable run / plugin lock等は、machine-readable Evidenceが得られた場合だけ追加で細分化する。
 
-### E3 — current SOZA Adapter compatibility
+### E3 — current SEI Adapter compatibility
 
 - revision B actual binaryをcurrent `runtime/go/teiintegration`から別OS processとして起動する。
 - Provider Planをcurrent Adapter-local DTOでstrictにdecodeする。
@@ -202,9 +202,9 @@ actual E2 → E3は特定hostや特定のRemote Desktop接続を成立条件に�
 - `availability = true`と`provider_plan_resolved = true`を観測できる。
 - TEI固有fieldをUniversal Capability Observationへ漏らさない。
 - B source、A fixed reference input、bundle identityをMapping Provenanceから追跡できる。
-- どのSOZA source / local Go toolchainでlive検査したかを記録する。
+- どのSEI source / local Go toolchainでlive検査したかを記録する。
 - E3 Go executableはcurrent `runtime/go/go.mod`のdirective以上かつLinux / amd64とし、controlled environmentで`go env GOOS GOARCH = linux / amd64`を確認する。
-- SOZA source identity / bundle verification / staging / fixed input identity / Go toolchain / existing `teiintegration` live-test processのどの外部stageまで成立したかを区別できる。
+- SEI source identity / bundle verification / staging / fixed input identity / Go toolchain / existing `teiintegration` live-test processのどの外部stageまで成立したかを区別できる。
 - live-test内部のstrict decode / mapping / validator等は、machine-readable Evidenceが得られた場合だけ追加で細分化する。
 
 ### E4 — A/B historical separation
@@ -268,7 +268,7 @@ source / fixed-input Git object identity and working-tree purity
   = implemented; tracked / untracked / ignored entries are rejected in execution boundary
 
 controlled Git environment
-  = implemented for canonical source verifier, local preparation/preflight, GitHub acquisition, and E3 SOZA source identity
+  = implemented for canonical source verifier, local preparation/preflight, GitHub acquisition, and E3 SEI source identity
 
 A fixed-input acquisition modes
   = exact A checkout or verified historical A Evidence bundle
@@ -339,7 +339,7 @@ revision B actual CLI build / execution
 revision B Provider Plan
   = Not Yet Observed
 
-revision B current SOZA Adapter live compatibility
+revision B current SEI Adapter live compatibility
   = Not Yet Verified
 ```
 
@@ -355,7 +355,7 @@ next substantive Evidence
   = actual revision B E2
 
 actual B E2 PASS
-  -> current SOZA E3へ進む
+  -> current SEI E3へ進む
 
 actual B E2 confirms build failure
   -> Bのexact binding / failure Evidenceを保持する
@@ -415,7 +415,7 @@ operator向けactual手順は次を正とする。
 - exact-B build source + exact-A fixed inputのprepositioned Evidence runner
 - E3未準備環境でactual E2だけを先行回収するE2 partial runner
 - E2 bundleをexact-B / exact-Aへbindingするstrict verifier
-- verified bundleからcurrent SOZA Adapter live testへ接続するrunner
+- verified bundleからcurrent SEI Adapter live testへ接続するrunner
 - E2 / E3を別toolchainで連続実行し段階別reportを残すcombined runner
 - 保存済みE2 partialからE3だけを後日実行するresume runner
 - interrupted wrapper publishをE3再実行なしで復旧するreconcile runner
@@ -436,13 +436,13 @@ operator向けactual手順は次を正とする。
 1. revision A historical artifactを現在のverifierで再検証できる。
 2. revision Bのactual executableまたは固定Evidence bundleを取得し、そのsource / binary / Provider Plan identityを記録できる。
 3. revision B actual `deployment-provider-plan`がexact-A fixed reference inputで成立するか、不成立ならrepository-local E2 stageのどこで停止したかを判別できる。TEI内部substageはmachine-readable Evidenceがある場合だけ追加で特定する。
-4. current SOZA Adapterでrevision Bを実行し、Capability Observationへのmapping成立可否を確認する。不成立ならrepository-local E3 stageのどこで停止したかを判別し、live-test内部原因はmachine-readable Evidenceがある場合だけ追加で特定する。
+4. current SEI Adapterでrevision Bを実行し、Capability Observationへのmapping成立可否を確認する。不成立ならrepository-local E3 stageのどこで停止したかを判別し、live-test内部原因はmachine-readable Evidenceがある場合だけ追加で特定する。
 5. revision B追加後もrevision A Evidenceを不変に保持する。
 6. acquisition / credential / artifact identity / fixed input identity / Provider compatibilityの境界をEvidenceで確認する。
 7. REQ-0001、REQ-0007、REQ-0021、SCN-0014、SCN-0018へ再照合し、新しいStable Requirementが必要かを監査する。
 8. 自然な日本語を最重要視した最終意味監査を行う。
 
-#316のStatic EvidenceだけではResolution条件2〜4を満たさない。actual E2でfixed-Bのbuild failureが確認された場合も、そのfailureはBのExecution Evidenceとして保存するが、BをSOZA Adapter incompatibilityへ読み替えず、条件4を満たしたことにも数えない。ISSUE-000072はOpenを維持し、Adapter version-exchangeの問いを継続する場合はBのexact bindingを変更せず、後続revisionを別の検証対象として明示的に固定する。
+#316のStatic EvidenceだけではResolution条件2〜4を満たさない。actual E2でfixed-Bのbuild failureが確認された場合も、そのfailureはBのExecution Evidenceとして保存するが、BをSEI Adapter incompatibilityへ読み替えず、条件4を満たしたことにも数えない。ISSUE-000072はOpenを維持し、Adapter version-exchangeの問いを継続する場合はBのexact bindingを変更せず、後続revisionを別の検証対象として明示的に固定する。
 
 working-tree purity、Evidence output分離、toolchain固定はactual E2 / E3 Evidenceを信頼するためのexecution preconditionであり、新しいProduct outcomeをResolution Criteriaへ追加するものではない。
 
@@ -479,11 +479,11 @@ exact revision A fixed inputは次のどちらか一方から取得する。
 
 両経路はmutually exclusiveとし、fixed input identityはどちらもexact revision Aへ固定する。historical bundle経路をA source checkout reconstructionへ昇格させない。
 
-Evidence archive / directoryはrevision B、SOZA checkoutから分離したnon-symlink pathへ置き、checkout取得時はrevision A checkoutからも分離する。historical bundle取得時は入力bundleをEvidence directory配下に置かない。path configurationが不正な場合はactual processを開始せず、E2 / E3 failure stageへ読み替えない。standalone E2は既存archiveを暗黙上書きしない。GitHub source temporary parentもSOZA / revision A / Evidence境界から分離し、preflightとactual取得直前の両方で再検査する。
+Evidence archive / directoryはrevision B、SEI checkoutから分離したnon-symlink pathへ置き、checkout取得時はrevision A checkoutからも分離する。historical bundle取得時は入力bundleをEvidence directory配下に置かない。path configurationが不正な場合はactual processを開始せず、E2 / E3 failure stageへ読み替えない。standalone E2は既存archiveを暗黙上書きしない。GitHub source temporary parentもSEI / revision A / Evidence境界から分離し、preflightとactual取得直前の両方で再検査する。
 
-B Evidence bundleを得た後は、cleanなSOZA checkoutで`run_tei_bundle_adapter_compatibility.py`を実行し、既存`runtime/go/teiintegration.TestLiveTEIProviderPlan`へ接続する。Bがactual E2 build stageで停止して有効なEvidence bundle / executableを得られない場合、このE3経路はBについて未到達であり、Adapter incompatibilityとは扱わない。runnerのsynthetic testやStatic Evidenceはactual TEI process executionの代替ではない。
+B Evidence bundleを得た後は、cleanなSEI checkoutで`run_tei_bundle_adapter_compatibility.py`を実行し、既存`runtime/go/teiintegration.TestLiveTEIProviderPlan`へ接続する。Bがactual E2 build stageで停止して有効なEvidence bundle / executableを得られない場合、このE3経路はBについて未到達であり、Adapter incompatibilityとは扱わない。runnerのsynthetic testやStatic Evidenceはactual TEI process executionの代替ではない。
 
-E2からE3までを一度に実行する場合は`run_tei_version_exchange_evidence.py`を使い、TEI historical build用にはexact `go1.23.2 linux/amd64`、current SOZA live-test用にはcurrent `runtime/go/go.mod`を満たすLinux / amd64 Go executableを別々に明示する。両toolchainともambient `GOOS` / `GOARCH`等を除外したcontrolled environmentで`go env GOOS GOARCH = linux / amd64`を再確認し、`GOTOOLCHAIN=local`を使う。A fixed input acquisition modeはcomparison axisへ記録する。failure reportは上位`E2` / `E3`とstage-aware `substage`を分離し、通常の例外文言からsubstageを捏造しない。
+E2からE3までを一度に実行する場合は`run_tei_version_exchange_evidence.py`を使い、TEI historical build用にはexact `go1.23.2 linux/amd64`、current SEI live-test用にはcurrent `runtime/go/go.mod`を満たすLinux / amd64 Go executableを別々に明示する。両toolchainともambient `GOOS` / `GOARCH`等を除外したcontrolled environmentで`go env GOOS GOARCH = linux / amd64`を再確認し、`GOTOOLCHAIN=local`を使う。A fixed input acquisition modeはcomparison axisへ記録する。failure reportは上位`E2` / `E3`とstage-aware `substage`を分離し、通常の例外文言からsubstageを捏造しない。
 
 actual後は取得経路に応じて`audit_tei_version_exchange_resolution.py`または`audit_tei_version_exchange_resolution_local.py`へ戻し、Resolution条件1〜6をmachine-readable Evidenceから再監査する。E2 partial → E3 resumeのGitHub acquisition経路も、reconcileが必要だった場合を含め、最終的に同じ`audit_tei_version_exchange_resolution.py`へ戻す。条件7〜8はmanual reviewとして残し、自動でIssueをResolvedへしない。
 
@@ -493,7 +493,7 @@ actual後は取得経路に応じて`audit_tei_version_exchange_resolution.py`�
 
 PMS-06、ISSUE-000061 / 000065、ADR-0013 / 0019 / 0021 / 0024、Actual TEI CLI Evidence、current `teiintegration`、revision A Evidence artifact、revision B Evidence workflow attempt 1 / 2、revision B Git object identity、A / B Provider Plan static compatibility、exact-A fixed reference input、historical A Evidence bundle fixed-input binding、local / GitHub exact-B acquisition、E2 prepositioned runner、E2 partial runner、exact-B / exact-A strict bundle verifier、E3 Adapter live runner、toolchain-split combined runner、E2 partialからのlater E3 resume、interrupted report-pair reconciliation、GitHub one-shot / local preflight、E2 / E3 failure-stage instrumentation、Evidence output path safety、source temporary parent、source / checkout fixed-input working-tree purity、actual operator runbook、post-run Resolution audit、fixed-B source-level CLI compile contradictionを照合した。
 
-取得方法、artifact identity、build source、fixed reference input、fixed input acquisition path、Provider固有surface、SOZAのCapability Observationを一つにまとめず、今回すでに観測できたことと、revision B actual executionが未検証であることを分離している。
+取得方法、artifact identity、build source、fixed reference input、fixed input acquisition path、Provider固有surface、SEIのCapability Observationを一つにまとめず、今回すでに観測できたことと、revision B actual executionが未検証であることを分離している。
 
 特に、A / Bでworkspace treeが異なることから「B checkout内のsame pathを使えば同じinput」という早合点を修正し、version交換ではB executableへhistorical A inputを与える比較軸へ固定した。さらに、historical A artifactに保存されたactual reference bytesを固定Git object identityへ再照合できることから、A checkoutの有無とA fixed input identityを分離し、checkoutまたはverified historical bundleの二経路へした。ただし後者をA source checkout復元とは扱わない。
 
@@ -503,12 +503,12 @@ PMS-06、ISSUE-000061 / 000065、ADR-0013 / 0019 / 0021 / 0024、Actual TEI CLI 
 
 Goについては、host platform、Go executable identity、controlled build/test target、Product semanticsを一つにまとめない。E2の`go1.23.2 linux/amd64`とE3のcurrent `go.mod` minimum / Linux amd64はactual Evidenceの再現条件であり、Capability identityではない。ambient `GOOS` / `GOARCH`等を除外したうえでcontrolled targetを再確認しても、それ自体をE2 / E3 PASSへ昇格させない。
 
-actual failureの切り分けでは、stderr / stdoutの自然言語からTEI内部stageやSOZA live-test内部stageを推定せず、repository-local runnerが直接観測できる外部境界だけをEvidence stageとして扱う。これにより、診断情報を保持しつつ、原因の高さをEvidence以上に引き上げない。
+actual failureの切り分けでは、stderr / stdoutの自然言語からTEI内部stageやSEI live-test内部stageを推定せず、repository-local runnerが直接観測できる外部境界だけをEvidence stageとして扱う。これにより、診断情報を保持しつつ、原因の高さをEvidence以上に引き上げない。
 
 また、特定host / CI provider / Remote DesktopをProduct semanticsへ持ち込まず、必要な固定identityとtoolchainを配置できる実行環境をexecution mechanismとして分離した。
 
 E2とE3を同時に実行できない場合も、E2 partialを保存してstrictに再検証し、後日E3だけをresumeして同じResolution auditへ戻せる。report publishだけが中断した場合のreconcileもactual E2 / E3の再実行やEvidence昇格とは扱わない。
 
-repository-sideでactual前後の経路が整った現在、追加のsynthetic hardeningだけを進捗として目的化しない。次に意味の高さを上げるのはactual revision B E2である。Bがactual buildを通過した場合はcurrent SOZA E3へ進み、buildで停止した場合はBのEvidenceを保持したうえで、必要なら後続revisionを別の検証対象として明示的に固定する。
+repository-sideでactual前後の経路が整った現在、追加のsynthetic hardeningだけを進捗として目的化しない。次に意味の高さを上げるのはactual revision B E2である。Bがactual buildを通過した場合はcurrent SEI E3へ進み、buildで停止した場合はBのEvidenceを保持したうえで、必要なら後続revisionを別の検証対象として明示的に固定する。
 
 意味、要求強度、留保、Evidenceの高さを固定したうえで、自然な日本語となることを最重要視して全文を再監査した。

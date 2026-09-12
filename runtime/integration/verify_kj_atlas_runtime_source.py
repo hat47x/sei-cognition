@@ -141,7 +141,7 @@ def verify_runtime_bundle(
         )
 
     return {
-        "schema": "soza.kj-atlas-runtime-source-identity/v1",
+        "schema": "sei.kj-atlas-runtime-source-identity/v1",
         "verified": True,
         "sourceMode": "verified-runtime-bundle",
         "repository": identity.repository,
