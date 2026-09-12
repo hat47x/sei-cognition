@@ -1,9 +1,17 @@
-# ISSUE-000062: actual TEI実行のEvidence採取プロトコルを実体化する
+# ISSUE-000074: actual TEI実行のEvidence採取プロトコルを実体化する
 
 Status: **Open**  
 Priority: **1**  
 Related ADRs: **ADR-0013, ADR-0019, ADR-0020, ADR-0021, ADR-0024**  
-Updated: 2026-09-02
+Updated: 2026-09-11
+
+## ID再採番の経緯
+
+本Issueは当初ISSUE-000062として起票されたが、branch統合（commit `d993fb5`のintegrate/all-branches-20260908）の際に、別系統で採番されたISSUE-000062「v0.2.0 actual release publication workflowを実体化する」とID衝突を起こした。registryへ登録済みだったrelease publication側を既存のISSUE-000062として維持し、本Issueを未使用のISSUE-000074へ再採番した。
+
+2026-09-11時点でISSUE-000073はSEI Cognition改名作業が使用中のため、`plan/scripts/next_plan_id.py`の提示値ではなくISSUE-000074を採った。
+
+再採番はID衝突の解消だけを目的とする。本Issueの課題範囲、Evidence強度、未検証範囲は変更していない。
 
 ## Goal
 
@@ -15,14 +23,14 @@ E3b-P2「actual TEI process / service integration」を実際に評価できる�
 ISSUE-000061
   external executable injection boundary
         ↓
-ISSUE-000062
+ISSUE-000074
   actual-binary Evidence collection protocol
         ↓
 future actual TEI run
   E3b-P2 Scoped Executable Evidence
 ```
 
-ISSUE-000062のPASSだけでは、E3b-P2のPASSにはならない。
+ISSUE-000074のPASSだけでは、E3b-P2のPASSにはならない。
 
 ## 背景
 
@@ -156,15 +164,21 @@ binary digestやbuild manifestはEvidence / provenanceの実現手段であり�
 
 ## Evidence state
 
+起票時点（2026-09-02）の記載を、current `develop/v0.2.0`で成立している事実へ同期する。
+
 - E3b-P1 public live Provider service: **Scoped Executable Evidence available**
 - external TEI executable injection boundary: **Scoped Executable Evidence available with helper subprocess**
-- actual TEI Evidence collection protocol: **In Progress**
-- E3b-P2 actual TEI CLI execution: **Not Yet Verified**
+- actual TEI Evidence collection protocol: **Not Yet Verified**
+- E3b-P2 actual TEI CLI execution: **Scoped Executable Evidence available（ISSUE-000065 / revision A fixed-artifact）**
+- TEI executable version交換後のProvider Observation境界: **Not Yet Verified（ISSUE-000072 Open）**
 - source-to-binary authenticity: **Not Yet Verified**
-- E3b-M1 live external Cognitive Method execution: **Not Yet Verified**
+- E3b-M1a live external Cognitive Method execution: **Scoped Executable Evidence available（ISSUE-000064）**
+- E3b-M1b actual model-backed Cognitive Method execution: **Scoped Executable Evidence available（ISSUE-000066）**
 - E4 Operational portability: **Not Yet Verified**
-- Release Evidence: **Not Yet Verified**
+- Release Evidence: **available（ISSUE-000063 / v0.2.0、supported scopeはE3aまで）**
 - Adoption / Outcome Evidence: **Not Yet Verified**
+
+ISSUE-000065はrevision Aのfixed-artifactについてactual binary SHA-256とProvider Plan SHA-256を個別のEvidence文書へ記録したが、`runtime/go/teiprobe` / `tei-e3b-probe` / `soza.e3b-tei-probe/v1`として再利用可能なEvidence採取プロトコルと、build manifestによるsource-to-binary bindingは実装していない。本Issueが未完了として残るのはこの範囲である。
 
 ## Reopen / escalation条件
 
