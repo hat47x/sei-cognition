@@ -45,7 +45,68 @@
 
 同じsynthetic benchmarkでは、変更前の20-feature Encode約17 µs/opから約5.6 µs/op、10,000件Query約1.0 ms/opから約0.85 ms/opへ低下した。ただし異なる実装revision間の参考比較であり、製品性能保証ではない。
 
-## 4. このEvidenceが意味しないこと
+## 4. SUI Associative Cognition Provider adapter
+
+SUI Sensemaking側で確定した `sui.associative-recall-request/v1alpha1` / `sui.associative-recall-response/v1alpha1` 境界へ、current Go `sparseassoc`を接続するevaluation adapterを `prototype-go/suiassocprovider/` に追加した。
+
+adapterは次を行う。
+
+- SUIが渡したboundedな `text / graph / provenance / grouping` channelをcaller-owned sparse featureへ変換する
+- anchor群をbundleし、anchor以外のitemだけを候補indexへ入れる
+- `sparseassoc.Candidate.Similarity`をProvider内部の候補絞り込みにだけ使う
+- SUI responseではcandidate refをstable ref順へ戻し、内部rankingを外へ出さない
+- `activation / similarity / confidence / importance / rank / score / novelty_signal`をresponse schemaへ持ち込まない
+- 十分な候補がない場合は数値noveltyではなく `outcome=abstain`, `noveltyCue=abstain` へ縮退する
+- 外在化できる説明は、双方に実在する入力channel provenanceだけに限定する
+- requestの未知field、上限超過、重複ref、scope外anchorをfail-closedする
+
+v1alpha1の境界上限はSUI側と合わせ、次を固定した。
+
+- items: 512以下
+- anchorRefs: 32以下
+- candidateLimit: 64以下
+
+### 4.1 ローカル検証
+
+SOZAのAccepted Development Conventionに従い、GitHub Actionsは使用していない。
+
+一方、この作業環境から `github.com` を直接cloneする経路はDNS解決できなかったため、full repository checkout上のtestは実行できなかった。
+
+代わりに、GitHub connectorから取得したcurrent `main` の `prototype-go/sparseassoc/sparseassoc.go` と、branchへcommitした `suiassocprovider/provider.go` / `provider_test.go` を一時local moduleへ配置し、adapter境界を独立に検証した。
+
+ローカル環境はGo 1.23.2であったため、一時moduleの`go` directiveだけを1.23とした。repositoryの`prototype-go/go.mod` (`go 1.25`) は変更していない。今回のadapterが利用する言語機能はこのローカルtoolchainで実行可能な範囲にある。
+
+実行:
+
+```text
+gofmt -w sparseassoc/sparseassoc.go suiassocprovider/provider.go suiassocprovider/provider_test.go
+go test ./...
+```
+
+結果:
+
+```text
+?    github.com/hat47x/soza/evaluation/sparse-associative-cognition/prototype-go/sparseassoc         [no test files]
+ok   github.com/hat47x/soza/evaluation/sparse-associative-cognition/prototype-go/suiassocprovider   0.004s
+```
+
+確認したadapter境界:
+
+- formal responseから内部similarity等が漏れない
+- candidateはanchorを含まない
+- Provider内部順位ではなくstable ref順で返す
+- explainableなchannel provenanceだけを返す
+- high thresholdでは空candidate + abstainになる
+- JSON requestはclosed-world
+- items / anchors / candidateLimitの上限をfail-closedする
+- duplicate item / scope外anchorを拒否する
+- requestを変更しない
+- unsupported schema / intentを拒否する
+- provider/version traceを明示する
+
+この結果は**full checkout testの代替ではない**。current-mainから取得したSACS sourceと今回のadapterの接続面が、手元のGo環境で実行可能だったことを示す限定的なExecutable Evidenceである。
+
+## 5. このEvidenceが意味しないこと
 
 この結果は、親和図法で要求する深層意味近接の品質を証明しない。
 
@@ -56,8 +117,9 @@
 - static semantic adapterを追加した場合の品質とmemory
 - Model2Vec / fastText / local sentence encoderとの比較
 - 10万〜100万件規模でANN indexが必要になる境界
-- SUIへのin-process統合時のend-to-end latency
+- SUIへの実transportを含むend-to-end latency
+- full repository checkout上での今回adapter test
 - production runtimeとしての採用可否
 - Operational / Adoption / Outcome Evidence
 
-SUI Sensemaking側のCOGNITIVE-ASSOC-01では、事前登録済みhuman adjudicationが完了するまでsemantic resultを生成しない。このprototypeの存在を理由に、そのgateを開かない。
+SUI Sensemaking側のCOGNITIVE-ASSOC-01では、事前登録済みhuman adjudicationが完了するまでsemantic resultを生成しない。このadapterの存在を理由に、そのgateを開かない。
