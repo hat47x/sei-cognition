@@ -1,5 +1,5 @@
 schema: sei.plan-registry/v1
-updated: 2026-09-11
+updated: 2026-09-12
 
 adr:
   - id: ADR-0001
@@ -53,7 +53,7 @@ adr:
   - id: ADR-0013
     file: plan/adr/ADR-0013-capability-realization-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000014, ISSUE-000020, ISSUE-000024, ISSUE-000065, ISSUE-000072, ISSUE-000074]
+    related_issues: [ISSUE-000014, ISSUE-000020, ISSUE-000024, ISSUE-000065, ISSUE-000072, ISSUE-000074, ISSUE-000076]
   - id: ADR-0014
     file: plan/adr/ADR-0014-sei-tei-product-boundary.md
     status: Accepted
@@ -77,7 +77,7 @@ adr:
   - id: ADR-0019
     file: plan/adr/ADR-0019-provider-neutral-capability-observation-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000020, ISSUE-000024, ISSUE-000029, ISSUE-000030, ISSUE-000031, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000036, ISSUE-000065, ISSUE-000072, ISSUE-000074]
+    related_issues: [ISSUE-000020, ISSUE-000024, ISSUE-000029, ISSUE-000030, ISSUE-000031, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000036, ISSUE-000065, ISSUE-000072, ISSUE-000074, ISSUE-000076]
   - id: ADR-0020
     file: plan/adr/ADR-0020-requirements-traceability-and-evidence-boundary.md
     status: Accepted
@@ -85,7 +85,7 @@ adr:
   - id: ADR-0021
     file: plan/adr/ADR-0021-architecture-contract-authority-and-versioning.md
     status: Accepted
-    related_issues: [ISSUE-000022, ISSUE-000028, ISSUE-000029, ISSUE-000030, ISSUE-000031, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000038, ISSUE-000039, ISSUE-000041, ISSUE-000043, ISSUE-000044, ISSUE-000045, ISSUE-000046, ISSUE-000047, ISSUE-000048, ISSUE-000049, ISSUE-000050, ISSUE-000051, ISSUE-000053, ISSUE-000054, ISSUE-000056, ISSUE-000062, ISSUE-000063, ISSUE-000064, ISSUE-000065, ISSUE-000066, ISSUE-000067, ISSUE-000068, ISSUE-000069, ISSUE-000070, ISSUE-000071, ISSUE-000072, ISSUE-000074]
+    related_issues: [ISSUE-000022, ISSUE-000028, ISSUE-000029, ISSUE-000030, ISSUE-000031, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000038, ISSUE-000039, ISSUE-000041, ISSUE-000043, ISSUE-000044, ISSUE-000045, ISSUE-000046, ISSUE-000047, ISSUE-000048, ISSUE-000049, ISSUE-000050, ISSUE-000051, ISSUE-000053, ISSUE-000054, ISSUE-000056, ISSUE-000062, ISSUE-000063, ISSUE-000064, ISSUE-000065, ISSUE-000066, ISSUE-000067, ISSUE-000068, ISSUE-000069, ISSUE-000070, ISSUE-000071, ISSUE-000072, ISSUE-000074, ISSUE-000075, ISSUE-000076]
   - id: ADR-0022
     file: plan/adr/ADR-0022-runtime-first-slice-read-validate-reconstruct.md
     status: Accepted
@@ -97,11 +97,11 @@ adr:
   - id: ADR-0024
     file: plan/adr/ADR-0024-provider-adapter-observation-mapping-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000035, ISSUE-000036, ISSUE-000065, ISSUE-000072, ISSUE-000074]
+    related_issues: [ISSUE-000035, ISSUE-000036, ISSUE-000065, ISSUE-000072, ISSUE-000074, ISSUE-000076]
   - id: ADR-0025
     file: plan/adr/ADR-0025-cognitive-method-portable-contract-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000043, ISSUE-000048, ISSUE-000049, ISSUE-000050, ISSUE-000064, ISSUE-000066, ISSUE-000067, ISSUE-000068, ISSUE-000070, ISSUE-000071]
+    related_issues: [ISSUE-000043, ISSUE-000048, ISSUE-000049, ISSUE-000050, ISSUE-000064, ISSUE-000066, ISSUE-000067, ISSUE-000068, ISSUE-000070, ISSUE-000071, ISSUE-000072, ISSUE-000076]
   - id: ADR-0026
     file: plan/adr/ADR-0026-cross-contract-bundle-exact-binding-consistency.md
     status: Accepted
@@ -203,3 +203,4 @@ issue:
   - {id: ISSUE-000073, file: plan/issue/ISSUE-000073-define-first-usable-resume-first-product-slice.md, status: Open, priority: 1, related_adrs: [ADR-0005, ADR-0010, ADR-0028, ADR-0029]}
   - {id: ISSUE-000074, file: plan/issue/ISSUE-000074-materialize-actual-tei-evidence-protocol.md, status: Open, priority: 1, related_adrs: [ADR-0013, ADR-0019, ADR-0020, ADR-0021, ADR-0024]}
   - {id: ISSUE-000075, file: plan/issue/ISSUE-000075-execute-sei-cognition-rename-identifier-migration.md, status: Open, priority: 1, related_adrs: [ADR-0003, ADR-0021, ADR-0031]}
+  - {id: ISSUE-000076, file: plan/issue/ISSUE-000076-design-runtime-provider-failure-behavior-evidence.md, status: Open, priority: 2, related_adrs: [ADR-0013, ADR-0019, ADR-0021, ADR-0024, ADR-0025]}

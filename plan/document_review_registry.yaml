@@ -1,5 +1,5 @@
 schema: sei.document-review-registry/v1
-updated: 2026-09-11
+updated: 2026-09-12
 
 purpose: >-
   ISSUE-000015で行った既存開発文書の自然な日本語監査について、current branch上の
@@ -69,8 +69,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、自然な日本語全文再ドラフトと最終意味監査を実施済み。ADR-0031はSEIからSEI Cognitionへの改名について、portable Contract identityをversionを進めずprefixのみ改める判断、内部record schemaのemit側改名とreader側双方向受理、記録済みEvidenceを不変とする境界を分離して監査した。Statusは実装前のProposedである。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000075
-    note: ISSUE-000001〜000075をcurrent履歴として監査済み。ISSUE-000069はGitHub Actions常設時に得たtrigger選択とrunner allocation Evidenceをhistoricalに保持しつつcurrent baselineからActionsを外した。ISSUE-000070は固定KJ Atlas source / Method input / model artifact / promptの下でOllama `0.32.13` / `0.32.14`をactualに交換し、same logical / different Exact Binding、historical Application保持、portable reconstruction、canonical Evidence + Provenance verificationを確認してResolvedとした。成果品質やarbitrary portabilityへは昇格させない。ISSUE-000071はexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeを分離してResolvedとしたがhuman reviewと成果品質判定は未完了。ISSUE-000072はrevision A historical Evidenceを保持し、exact revision B executable source + exact revision A fixed input、E2 / E3別toolchain、stage-aware diagnostics、Requirement / Scenario pre-auditまで整えたがrevision B actual CLI / Provider Plan / current Adapter compatibilityは未検証のためOpenを維持する。ISSUE-000073はPMS-03をresume-firstな最初の実用Product Sliceへ進める新しいOpen探索で、canonical-only resume、AI correction / degradation、partial commit / stale write、external AI context、human reviewをCandidate Requirementとして実証し、Design文書完成だけではResolvedにしない。ISSUE-000074はbranch統合時のID衝突により当初のISSUE-000062から再採番したもので、actual TEI binaryのEvidence採取プロトコルを扱うOpen Issueとして登録した。同じ統合で重複していたexternal model-backed Cognitive Methodの草稿は、正本であるISSUE-000066へ撤回済みGitHub Models probeの記録だけを移したうえで削除した。ISSUE-000075はADR-0031に基づく改名移行をPhase 1〜4へ分け、記録済みEvidence不変性検査を他のPASSに優先させる完了条件として監査した。branch統合時にISSUE-000073番号がすでに別Issueで使われていたため000075へ再採番した。未着手のためOpenである。
+    coverage: ISSUE-000001..ISSUE-000076
+    note: ISSUE-000001〜000076をcurrent履歴として監査済み。ISSUE-000069はGitHub Actions常設時に得たtrigger選択とrunner allocation Evidenceをhistoricalに保持しつつcurrent baselineからActionsを外した。ISSUE-000070は固定KJ Atlas source / Method input / model artifact / promptの下でOllama `0.32.13` / `0.32.14`をactualに交換し、same logical / different Exact Binding、historical Application保持、portable reconstruction、canonical Evidence + Provenance verificationを確認してResolvedとした。成果品質やarbitrary portabilityへは昇格させない。ISSUE-000071はexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeを分離してResolvedとしたがhuman reviewと成果品質判定は未完了。ISSUE-000072はrevision A historical Evidenceを保持し、exact revision B executable source + exact revision A fixed input、E2 / E3別toolchain、stage-aware diagnostics、Requirement / Scenario pre-auditまで整えたがrevision B actual CLI / Provider Plan / current Adapter compatibilityは未検証のためOpenを維持する。ISSUE-000073はPMS-03をresume-firstな最初の実用Product Sliceへ進める新しいOpen探索で、canonical-only resume、AI correction / degradation、partial commit / stale write、external AI context、human reviewをCandidate Requirementとして実証し、Design文書完成だけではResolvedにしない。ISSUE-000074はbranch統合時のID衝突により当初のISSUE-000062から再採番したもので、actual TEI binaryのEvidence採取プロトコルを扱うOpen Issueとして登録した。同じ統合で重複していたexternal model-backed Cognitive Methodの草稿は、正本であるISSUE-000066へ撤回済みGitHub Models probeの記録だけを移したうえで削除した。ISSUE-000075はADR-0031に基づく改名移行をPhase 1〜4へ分け、記録済みEvidence不変性検査を他のPASSに優先させる完了条件として監査した。branch統合時にISSUE-000073番号がすでに別Issueで使われていたため000075へ再採番した。未着手のためOpenである。ISSUE-000076はnetwork / Provider受付 / credential / artifact取得 / identity・integrity / runtime executionのfailure stageを分離し、retry policy、secret-safe Evidence、Evidence高さを別軸として設計するOpen Issueである。current Provider固有error vocabularyをUniversal Contractへ先取りせず、後続のfault injectionとactual failure EvidenceからRequirement化の要否を判断する停止線を置いている。main branch統合時にISSUE-000072番号がすでに別Issue(TEI executable version exchange)で使われていたため000076へ再採番した。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -264,7 +264,21 @@ reviewed:
       - evaluation/method-quality/README.md
       - evaluation/method-quality/HUMAN_REVIEW_TEMPLATE.md
     note: Cognitive Method成果品質をexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeから分離する評価資料として監査済み。PR #72のactual historical review bundleとPR #73のAI補助観測は機械可読資産として別保存し、human review完了や成果品質Satisfiedへ昇格させていない。README / templateはgolden answerや単一スコアを正解化せず、構造検査とhuman reviewの責務を自然な日本語で分けている。
-
+  - scope: evaluation/personal-inquiry-decision/*.md
+    status: reviewed-no-change
+    coverage:
+      - README.md
+      - EXTERNAL_RESEARCH_SYNTHESIS.md
+      - COGNITIVE_RESUMPTION_MODEL.md
+      - INTERACTION_STATE_MODEL.md
+      - PRODUCT_PROFILE_REQUIREMENTS_CANDIDATE.md
+      - REQUIREMENT_GAP_AUDIT.md
+      - REQUIREMENTS_FORMALIZATION_PLAN.md
+      - RESEARCH_DERIVED_REQUIREMENT_REVIEW.md
+      - RESEARCH_DERIVED_VALIDATION_AMENDMENTS.md
+      - VALUE_VALIDATION_PROTOCOL.md
+      - DOGFOOD_SURFACE.md
+    note: main branchからdevelop/v0.2.0へのmergeで合流したPersonal Inquiry Continuity探索群。各文書自身がEvaluation-only / Not Stable Requirementの境界を明記しており、Stable RequirementやUniversal Contractへは未先取りである。本台帳では現状の本文を保つ扱いとし、SOZA→SEI改名(ISSUE-000075)はこのmergeの時点では未反映のため別途の改名作業が必要である。
   - scope: release/README.md
     status: revised
     note: actual v0.2.0 release成立後の入口として、release planning、candidate、actual Release Evidence、Operational / Adoption Outcomeの境界を再整理し、tag・commit・artifact・gate resultの追跡関係を自然な日本語で同期済み。

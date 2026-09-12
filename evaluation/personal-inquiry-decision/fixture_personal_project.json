@@ -1,0 +1,54 @@
+{
+  "schema": "soza.personal-inquiry-decision-prototype/v0",
+  "status": "evaluation-only",
+  "inquiry": {
+    "id": "inq-personal-notes",
+    "question": "個人プロジェクトの設計メモを、ローカルMarkdown中心にするか、クラウドノート中心にするか"
+  },
+  "observations": [
+    {
+      "id": "obs-local-portability",
+      "summary": "ローカルMarkdownはファイルとして保持でき、特定サービスから独立して持ち運びやすい。",
+      "observed_at": "2026-09-01T10:00:00+09:00",
+      "added_at": "2026-09-01T10:05:00+09:00"
+    },
+    {
+      "id": "obs-cloud-mobile",
+      "summary": "クラウドノートは外出先のスマートフォンから編集しやすい。",
+      "observed_at": "2026-09-01T10:20:00+09:00",
+      "added_at": "2026-09-01T10:21:00+09:00"
+    }
+  ],
+  "unknowns": [
+    {
+      "id": "unk-mobile-frequency",
+      "summary": "外出先で設計メモを実際に編集する頻度がどの程度になるかはまだ分からない。",
+      "status": "open"
+    }
+  ],
+  "conflicts": [],
+  "recommendations": [
+    {
+      "id": "rec-hybrid",
+      "summary": "ローカルMarkdownを正本とし、必要に応じてクラウド側へ参照用の要約を置く案がよい。",
+      "actor": "ai-assistant"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "dec-local-primary",
+      "statement": "当面はローカルMarkdownを正本にし、クラウドノートは補助的に使う。",
+      "decided_at": "2026-09-01T11:00:00+09:00",
+      "basis_refs": [
+        "obs-local-portability",
+        "obs-cloud-mobile"
+      ],
+      "unresolved_refs": [
+        "unk-mobile-frequency"
+      ],
+      "revisit_when": [
+        "外出先で設計メモを編集する必要が継続的に増えたとき"
+      ]
+    }
+  ]
+}
