@@ -1,0 +1,39 @@
+{
+  "schema": "soza.sui-associative-conformance-evidence/v1alpha1",
+  "date": "2026-09-12",
+  "status": "limited-local-executable-evidence",
+  "fixtureId": "sui-sei-associative-conformance-v1",
+  "requestCanonicalSha256": "a9a627e3ce3580dab010608efd30d11e84de2c66a39dcb6ff508d793c00260d2",
+  "canonicalization": "utf8-json-sort-keys-no-whitespace",
+  "localVerification": {
+    "toolchain": "go1.23.2 linux/amd64",
+    "repositoryGoDirective": "1.25",
+    "repositoryGoDirectiveChanged": false,
+    "githubActionsUsed": false,
+    "fullRepositoryCheckout": false,
+    "reasonFullCheckoutUnavailable": "The working container could not resolve github.com. Current-main sparseassoc/provider/CLI contract logic and the exact conformance fixture were reconstructed in a temporary local module.",
+    "observed": [
+      "the Go canonical JSON digest equals a9a627e3ce3580dab010608efd30d11e84de2c66a39dcb6ff508d793c00260d2",
+      "DecodeRequest accepts the frozen SUI request",
+      "the current SACS provider handles the decoded request without contract error",
+      "the provider response remains candidates-or-abstain and does not expose provider-internal numeric ranking signals",
+      "go test ./... passed in the reconstructed local module; suiassocprovider conformance-inclusive package observed 0.014s"
+    ]
+  },
+  "verifiedBoundaries": [
+    "Python/SUI and Go/SEI canonicalization produce the same frozen request digest",
+    "the versioned request uses the formal SUI associative provider surface",
+    "Go strict request decoding accepts the fixture",
+    "SACS provider execution accepts the fixture",
+    "response JSON does not contain similarity, activation, confidence, importance, rank, score, or numeric novelty signal"
+  ],
+  "notVerified": [
+    "exact branch source test from a full repository checkout",
+    "actual SUI subprocess client invoking the built SEI binary in one environment",
+    "semantic quality of the returned candidates",
+    "production process supervision or remote transport",
+    "operational evidence",
+    "adoption or outcome evidence"
+  ],
+  "benchmarkStopLine": "Do not run the fixed COGNITIVE-ASSOC-01 meaning-quality benchmark before the SUI human adjudication artifact is frozen."
+}
