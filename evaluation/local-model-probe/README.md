@@ -19,6 +19,8 @@ Durable Semantic State
 
 このprobeは、そのためのtransportとmeasurement entry pointである。
 
+実際に比較するmodel tierと実験順は[`MODEL_MATRIX.md`](./MODEL_MATRIX.md)で整理する。
+
 ## 2. 比較する3 mode
 
 ### raw
@@ -172,6 +174,8 @@ Issue #375では少なくとも次を比較する。
 7–8B級または外部general-purpose modelを必要時だけ比較する。
 
 重要なのはmodel familyではなく、同じfixture / mode / evaluatorで比較することである。
+
+具体的なfirst candidatesは[`MODEL_MATRIX.md`](./MODEL_MATRIX.md)を参照する。
 
 ## 8. 現在取得するmeasurement
 
