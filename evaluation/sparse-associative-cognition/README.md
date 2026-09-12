@@ -29,17 +29,52 @@ high novelty / high stakes / broader synthesisだけstronger model / human revie
 
 「非LLMで置き換えること」自体を目的にせず、軽い方式で十分な認知機能は軽い方式へ移し、LLMを本当に必要な処理へ限定する。
 
-## 2. 所有と配置を分ける
+## 2. SEI CognitionとSUI Sensemakingの役割を分ける
 
 再利用可能な疎連想・新奇性・近傍想起の基質は、**SEI Cognition方向の共通認知基盤（現在のSOZA repository）で所有する**。
 
-一方、呼び出し側のSUI Sensemakingは、親和図法に固有の次を所有する。
+SEIは認知場と簡易記憶を持ち、現在の目的に応じて注意、想起、仮説、再探索を制御する。
 
-- どのcard / graph / layout / history情報を特徴として渡すか
-- 「一緒に読んでみる価値がある」候補をどう解釈するか
-- singleton / hold / critique / residualをどう保護するか
-- 人間レビューとproposal-onlyの境界
-- 親和図法のbenchmarkと受入条件
+SUI SensemakingはSEIの「呼び出し側」ではない。**人間、生成AI、SEI、外部collaboratorが同じ情報ネットワークへ参加し、それぞれ異なる関心・役割・interfaceを持ちながら、共有可能な認知状態を形成する外在化されたsensemaking環境**として扱う。
+
+SUIは特に次を所有する。
+
+- 長期的・共有可能な情報ネットワーク
+- card / relation / layout / history / provenance
+- neighborhood / contrast / bridge / residual / temporal / provenance等のQuery
+- subgraph / spatial / table / card stack / narrative等へのProjection
+- 人間、生成AI、SEI、外部主体ごとのContext Projection
+- proposal / review / patch / approvalの協働境界
+- singleton / hold / critique / residualの保護
+- 親和図法固有のbenchmarkと受入条件
+
+SEIはSUIから必要な情報を都度queryして認知場へ取り込み、SUIはSEIの内部思考状態そのものを永続正本として所有しない。
+
+```text
+SEI inquiry / current interest
+          │
+          ▼
+SUI information network
+  selection / qualitative analysis /
+  actor-aware context projection
+          │
+          ▼
+SEI cognitive field
+  recall / local reasoning / hypothesis
+          │
+          ▼
+proposal / question / review request
+          │
+          ▼
+SUI collaboration / consensus space
+          │
+          ├─ human response
+          ├─ generative AI response
+          ├─ external collaborator response
+          └─ approved shared state
+```
+
+ここでいうconsensusは全面一致を意味しない。異論、保留、少数意見、未解決を残したまま、どこまで共有・承認できたかを扱う。
 
 重要なのは、**ownership != deployment** である。
 
@@ -101,17 +136,18 @@ static semantic表現を採用する場合も、coreはmodelを直接知る必�
 local SLMをSACSの代替memoryにはしない。
 
 ```text
-SOZA durable meaning
+SEI current inquiry
+  -> SUI query / context projection
   -> sparse associative candidate narrowing
   -> bounded Working Set
   -> lightweight local SLM
   -> proposal / hypothesis / explanation
-  -> deterministic validation / human action
+  -> deterministic validation / SUI collaboration / human action
 ```
 
 Working Setには、Inquiry、少数candidate meaning、Unknown / Conflict、Constraint、historical boundaryを含める。local SLMのoutputはcanonical write authorityを持たない。
 
-特に、Evidenceが少ないほどmodelを呼ぶ構成にはしない。noveltyが高くbounded Working Setを作れない場合は、推測ではなくevidence expansion / abstentionへ戻す。
+特に、Evidenceが少ないほどmodelを呼ぶ構成にはしない。noveltyが高くbounded Working Setを作れない場合は、推測ではなくSUIへのevidence expansion query / abstentionへ戻す。
 
 詳細は`HYBRID_LOCAL_REASONING.md`、実行境界は`prototype-go/hybridreasoning/`を参照する。
 
@@ -162,6 +198,7 @@ prototypeのunit testやsynthetic benchmarkは、アルゴリズム実装が動�
 - SUI Sensemakingの親和図法で深層意味近接が十分であること
 - Fly-inspired方式がstatic semantic encoderより優れること
 - lightweight local SLMとのhybridが大型modelに近いreasoning qualityへ届くこと
+- SUIの多主体query / consensus形成が実利用で認知増分を生むこと
 - production runtimeとして採用できること
 - Product Value / Operational / Adoption / Outcome Evidence
 
