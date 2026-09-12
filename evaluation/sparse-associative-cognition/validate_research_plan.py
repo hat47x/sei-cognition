@@ -65,6 +65,15 @@ def validate_research_plan(plan: dict) -> list[str]:
                 "architectural_position.classification must remain cognitive-realization-support-substrate"
             )
 
+    placement = plan.get("placement_policy")
+    if not isinstance(placement, dict):
+        errors.append("placement_policy must be an object")
+    else:
+        if placement.get("ownership_is_deployment") is not False:
+            errors.append("placement_policy.ownership_is_deployment must remain false")
+        if placement.get("network_service_required") is not False:
+            errors.append("placement_policy.network_service_required must remain false")
+
     llm_boundary = plan.get("llm_boundary")
     if not isinstance(llm_boundary, dict):
         errors.append("llm_boundary must be an object")
@@ -139,8 +148,10 @@ def validate_research_plan(plan: dict) -> list[str]:
             errors.append("implementation_policy.offline_capable_target must remain true")
 
     evidence = plan.get("current_evidence")
-    if not isinstance(evidence, dict) or evidence.get("level") != "design-only":
-        errors.append("current_evidence.level must remain design-only")
+    if not isinstance(evidence, dict) or evidence.get("level") != "executable-evaluation":
+        errors.append("current_evidence.level must remain executable-evaluation")
+    elif not evidence.get("evidence_file"):
+        errors.append("current_evidence.evidence_file must be declared")
 
     return errors
 
