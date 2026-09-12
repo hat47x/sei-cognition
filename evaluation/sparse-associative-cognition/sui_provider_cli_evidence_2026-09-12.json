@@ -1,0 +1,47 @@
+{
+  "schema": "soza.sui-associative-provider-cli-evidence/v1alpha1",
+  "date": "2026-09-12",
+  "status": "limited-local-executable-evidence",
+  "subject": "evaluation/sparse-associative-cognition/prototype-go/cmd/suiassocprovider",
+  "transport": {
+    "request": "one JSON value on stdin",
+    "response": "one JSON value on stdout",
+    "diagnostics": "stderr only",
+    "maxRequestBytes": 4194304
+  },
+  "provider": {
+    "providerId": "sei-sacs-go-eval",
+    "implementationVersion": "sacs-go-eval-v1-d4096-f8-a64-s47-t0.10"
+  },
+  "localVerification": {
+    "toolchain": "go1.23.2 linux/amd64",
+    "repositoryGoDirective": "1.25",
+    "repositoryGoDirectiveChanged": false,
+    "fullRepositoryCheckout": false,
+    "reasonFullCheckoutUnavailable": "The working container could not resolve github.com. Current-main sparseassoc source and the same adapter/CLI contract logic were reconstructed in a temporary local module.",
+    "command": "gofmt -w cmd/suiassocprovider/*.go && go test ./...",
+    "observed": [
+      "sparseassoc: no test files",
+      "suiassocprovider: ok (cached after prior local adapter verification)",
+      "cmd/suiassocprovider: ok 0.026s"
+    ]
+  },
+  "verifiedBoundaries": [
+    "valid request produces one formal response on stdout",
+    "diagnostics do not contaminate stdout",
+    "trailing second JSON value is rejected",
+    "4 MiB transport bound is fail-closed",
+    "provider trace includes fixed implementation configuration",
+    "response does not expose similarity, activation, confidence, importance, rank, score, or numeric novelty signal"
+  ],
+  "notVerified": [
+    "exact branch source test from a full repository checkout",
+    "cross-repository execution initiated by SUI Sensemaking",
+    "production process supervision",
+    "network or distributed transport",
+    "affinity grouping semantic quality",
+    "operational evidence",
+    "adoption or outcome evidence"
+  ],
+  "benchmarkStopLine": "Do not run the fixed COGNITIVE-ASSOC-01 meaning-quality benchmark before SUI human adjudication is frozen."
+}
