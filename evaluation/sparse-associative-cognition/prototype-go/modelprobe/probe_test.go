@@ -38,6 +38,23 @@ func TestBuildPlanRawAndWorkspaceInvokeModel(t *testing.T) {
 	}
 }
 
+func TestRawPlanUsesOpaqueReferenceAliases(t *testing.T) {
+	f := fixtureByID(t, "current-external-fact")
+	plan, err := BuildPlan(f, ModeRaw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(plan.UserPrompt, "[R001]") || !strings.Contains(plan.UserPrompt, "[R002]") {
+		t.Fatal("raw prompt should expose opaque aliases for evidence citation")
+	}
+	if strings.Contains(plan.UserPrompt, "obs-5") || strings.Contains(plan.UserPrompt, "unk-5") {
+		t.Fatal("raw prompt must not leak semantic-role-bearing internal refs")
+	}
+	if plan.RefAliases["R001"] != "obs-5" || plan.RefAliases["R002"] != "unk-5" {
+		t.Fatalf("unexpected alias map: %+v", plan.RefAliases)
+	}
+}
+
 func TestBuildPlanStagedSkipsExternalEvidenceCase(t *testing.T) {
 	f := fixtureByID(t, "current-external-fact")
 	plan, err := BuildPlan(f, ModeStaged)
@@ -132,6 +149,39 @@ func TestRunCallsOpenAICompatibleEndpointAndEvaluates(t *testing.T) {
 	}
 	if result.Usage.TotalTokens != 140 {
 		t.Fatalf("usage=%+v", result.Usage)
+	}
+}
+
+func TestRunRawTranslatesOpaqueAliasesBeforeEvaluation(t *testing.T) {
+	f := fixtureByID(t, "decisionless-inquiry")
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{
+			"choices": []any{map[string]any{
+				"message": map[string]any{
+					"content": `{"proposal":"Offline export exists, but reopen effort remains unresolved.","supporting_refs":["R001","R002"],"preserved_unknown_refs":["R002"],"need_more_evidence":false,"claims":[{"text":"Plain-file export is available.","supporting_refs":["R001"]}]}`,
+				},
+			}},
+		})
+	}))
+	defer server.Close()
+
+	result, err := Run(context.Background(), Config{
+		Endpoint: server.URL,
+		Model: "tiny-local",
+		HTTPClient: server.Client(),
+	}, f, ModeRaw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Output == nil || len(result.Output.SupportingRefs) != 2 {
+		t.Fatal("expected translated model output")
+	}
+	if result.Output.SupportingRefs[0] != "obs-1" || result.Output.SupportingRefs[1] != "unk-1" {
+		t.Fatalf("refs were not translated: %+v", result.Output.SupportingRefs)
+	}
+	if result.Evaluation == nil || result.Evaluation.UnknownPreservationRate != 1.0 {
+		t.Fatalf("unknown preservation after alias translation: %+v", result.Evaluation)
 	}
 }
 
