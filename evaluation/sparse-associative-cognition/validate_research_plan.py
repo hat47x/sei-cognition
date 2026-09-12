@@ -36,6 +36,25 @@ REQUIRED_DIMENSIONS = {
     "memory_footprint",
     "deterministic_reproducibility",
 }
+REQUIRED_BIO_ABSTRACTIONS = {
+    "input-normalization",
+    "sparse-expansion-wta",
+    "localized-inhibition",
+    "biased-sparse-projection",
+    "temporal-familiarity",
+    "homeostatic-sparsity",
+    "compartmental-outcome-learning",
+}
+REQUIRED_FOLLOW_ON_STAGES = {
+    "SAC-B0",
+    "SAC-B1",
+    "SAC-B2",
+    "SAC-B3",
+    "SAC-B4",
+    "SAC-B5",
+    "SAC-B6",
+    "SEI-B7",
+}
 
 
 def validate_research_plan(plan: dict) -> list[str]:
@@ -74,6 +93,50 @@ def validate_research_plan(plan: dict) -> list[str]:
         if placement.get("network_service_required") is not False:
             errors.append("placement_policy.network_service_required must remain false")
 
+    bio_policy = plan.get("bio_inspired_design_policy")
+    if not isinstance(bio_policy, dict):
+        errors.append("bio_inspired_design_policy must be an object")
+    else:
+        for key in (
+            "biological_fidelity_required",
+            "whole_connectome_simulation_required",
+            "biology_is_authority",
+        ):
+            if bio_policy.get(key) is not False:
+                errors.append(f"bio_inspired_design_policy.{key} must remain false")
+        if not bio_policy.get("translation_rule"):
+            errors.append("bio_inspired_design_policy.translation_rule must be declared")
+        if not bio_policy.get("adoption_rule"):
+            errors.append("bio_inspired_design_policy.adoption_rule must be declared")
+
+    abstractions = plan.get("biological_abstraction_map")
+    if not isinstance(abstractions, list):
+        errors.append("biological_abstraction_map must be a list")
+    else:
+        ids = [item.get("id") for item in abstractions if isinstance(item, dict)]
+        if len(ids) != len(abstractions) or len(ids) != len(set(ids)):
+            errors.append("biological_abstraction_map ids must be present and unique")
+        missing = REQUIRED_BIO_ABSTRACTIONS.difference(ids)
+        if missing:
+            errors.append(
+                "biological_abstraction_map is missing required abstractions: "
+                + ", ".join(sorted(missing))
+            )
+        for item in abstractions:
+            if not isinstance(item, dict):
+                continue
+            for key in (
+                "biological_observation",
+                "engineering_abstraction",
+                "sei_role",
+                "adoption_state",
+                "risk",
+            ):
+                if not item.get(key):
+                    errors.append(
+                        f"biological_abstraction_map.{item.get('id', '<unknown>')}.{key} must be declared"
+                    )
+
     llm_boundary = plan.get("llm_boundary")
     if not isinstance(llm_boundary, dict):
         errors.append("llm_boundary must be an object")
@@ -106,6 +169,43 @@ def validate_research_plan(plan: dict) -> list[str]:
             isinstance(case, dict) and case.get("domain") == "soza-native" for case in cases
         ):
             errors.append("initial_evaluation_cases must retain a SOZA-native case")
+
+    follow_on = plan.get("follow_on_experiments")
+    if not isinstance(follow_on, list):
+        errors.append("follow_on_experiments must be a list")
+    else:
+        stages = [item.get("stage") for item in follow_on if isinstance(item, dict)]
+        if len(stages) != len(follow_on) or len(stages) != len(set(stages)):
+            errors.append("follow_on_experiments stages must be present and unique")
+        missing = REQUIRED_FOLLOW_ON_STAGES.difference(stages)
+        if missing:
+            errors.append(
+                "follow_on_experiments is missing required stages: "
+                + ", ".join(sorted(missing))
+            )
+
+    stage_gate = plan.get("stage_gate_policy")
+    if not isinstance(stage_gate, dict):
+        errors.append("stage_gate_policy must be an object")
+    else:
+        if stage_gate.get("no_single_score") is not True:
+            errors.append("stage_gate_policy.no_single_score must remain true")
+        if stage_gate.get("rejection_is_valid_completion") is not True:
+            errors.append("stage_gate_policy.rejection_is_valid_completion must remain true")
+
+    deferred = plan.get("deferred_directions")
+    if not isinstance(deferred, list):
+        errors.append("deferred_directions must be a list")
+    else:
+        deferred_ids = {
+            item.get("id") for item in deferred if isinstance(item, dict) and item.get("id")
+        }
+        if "whole-connectome-simulation" not in deferred_ids:
+            errors.append("deferred_directions must retain whole-connectome-simulation")
+        if "autonomous-semantic-salience-learning" not in deferred_ids:
+            errors.append(
+                "deferred_directions must retain autonomous-semantic-salience-learning"
+            )
 
     baselines = plan.get("comparison_baselines")
     if not isinstance(baselines, list):
