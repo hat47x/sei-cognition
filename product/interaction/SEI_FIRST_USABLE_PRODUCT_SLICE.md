@@ -1,11 +1,11 @@
-# SOZA First Usable Product Slice — Resume-first Decision Work
+# SEI First Usable Product Slice — Resume-first Decision Work
 
 更新日: 2026-09-11  
 状態: **Product Design Baseline / Decision Continuity Validation Slice — Executable & Human Evidence Pending**
 
 ## 1. この文書の役割
 
-この文書は、`SOZA_PRODUCT_INTERACTION.md`で定義したcanonical meaning上の操作境界を、**最初に実用価値を確かめる一つのProduct Slice**へ絞り込みます。
+この文書は、`SEI_PRODUCT_INTERACTION.md`で定義したcanonical meaning上の操作境界を、**最初に実用価値を確かめる一つのProduct Slice**へ絞り込みます。
 
 対象は、Local Single-Node Package上で一人の利用者が一つの判断仕事を始め、中断し、後から戻り、AIの支援も受けながらDecisionと未解決事項を失わずに続けられる体験です。
 
@@ -26,7 +26,7 @@ First usable Product Slice
 
 ## 2. なぜresume-firstか
 
-SOZAはすでに、Decisionのhistorical reconstruction、Unknown / Conflict、Recommendation / Decision分離、Provider independence、Progressive Explicitnessを意味として定義しています。
+SEIはすでに、Decisionのhistorical reconstruction、Unknown / Conflict、Recommendation / Decision分離、Provider independence、Progressive Explicitnessを意味として定義しています。
 
 しかし、利用者にとっての価値は「後から再構成可能なrecordが存在する」だけでは完結しません。実際には、数日後や数週間後、別のAI session、別の端末・画面stateから戻ったとき、利用者自身が次の問いに答えられる必要があります。
 
@@ -40,9 +40,9 @@ SOZAはすでに、Decisionのhistorical reconstruction、Unknown / Conflict、R
 
 この「戻れること」はV1 Historical Reconstructionを人間のProduct Experienceへ翻訳するだけでなく、V2 / V3 / V5 / V6 / V7を一つのtaskで統合し、V4 / V8による手段交換可能性まで含めて試す場になります。
 
-SOZAの最初の製品価値を、情報入力の豊富さやAIの自律性ではなく、**文脈喪失に耐える判断継続性**へ置きます。
+SEIの最初の製品価値を、情報入力の豊富さやAIの自律性ではなく、**文脈喪失に耐える判断継続性**へ置きます。
 
-ただし、resume-firstを自己目的化しません。raw chatやsimple noteで同程度に正しく再開でき、SOZAだけ入力負担が増えるなら、このProduct Sliceの価値仮説は弱まります。
+ただし、resume-firstを自己目的化しません。raw chatやsimple noteで同程度に正しく再開でき、SEIだけ入力負担が増えるなら、このProduct Sliceの価値仮説は弱まります。
 
 ## 3. 対象利用者と最初の利用場面
 
@@ -56,7 +56,7 @@ SOZAの最初の製品価値を、情報入力の豊富さやAIの自律性で�
 - 一度決めた後、新しい情報が出たため再検討する。
 - 数週間後に「なぜこの方針にしたか」を自分自身で読み直す。
 
-最初から組織workflow、approval chain、team workspace、hosted SaaSを必須にしません。それらは重要ですが、まず**SOZAの意味保存が実際の一人の認知負荷と誤再構成を減らすか**を検証します。
+最初から組織workflow、approval chain、team workspace、hosted SaaSを必須にしません。それらは重要ですが、まず**SEIの意味保存が実際の一人の認知負荷と誤再構成を減らすか**を検証します。
 
 ## 4. Product experienceの中心ループ
 
@@ -160,7 +160,7 @@ what changed since D1
   != rewrite basis of D1
 ```
 
-この差がSOZAのresume experienceで特に重要です。resumeが速くてもこの境界を壊すならProduct Value上の改善とは扱いません。
+この差がSEIのresume experienceで特に重要です。resumeが速くてもこの境界を壊すならProduct Value上の改善とは扱いません。
 
 ### 6.6 What may need review next
 
@@ -178,7 +178,7 @@ AIは、調査、要約、比較、Method Application、Recommendation候補、�
 
 AI outputはまず`provisional suggestion`としてSurface上へ現れます。
 
-provisional suggestionはProduct-localなdraft状態であり、SOZA Universal Contractへ新しいDraft型を要求しません。
+provisional suggestionはProduct-localなdraft状態であり、SEI Universal Contractへ新しいDraft型を要求しません。
 
 ### 7.2 Semantic change preview
 
@@ -209,7 +209,7 @@ UIは「AIが生成したので変更しにくい」という心理・操作コ�
 
 ## 8. AIがなくても成立する
 
-SOZAの中核価値はAI service availabilityへ依存させません。
+SEIの中核価値はAI service availabilityへ依存させません。
 
 AIが利用不能な場合でも、少なくとも次は可能であるべきです。
 
@@ -241,7 +241,7 @@ high-impactかどうかを一つのUniversal risk scoreへ固定しません。P
 
 ## 10. Canonical commitの体験
 
-利用者が「保存」したと思った状態と、canonical semantic stateがずれると、SOZAの信頼性を損ないます。
+利用者が「保存」したと思った状態と、canonical semantic stateがずれると、SEIの信頼性を損ないます。
 
 そのためfirst sliceでは、semantic changeを次のように扱う方向を採ります。
 
@@ -353,7 +353,7 @@ AI / external Providerが停止しても、判断記憶の基本操作が利用�
 
 ### Q7 — Net continuity value
 
-SOZAによる再構成・誤帰属防止・AI correctionの価値が、capture / review / explicitnessの追加負担を上回るか。
+SEIによる再構成・誤帰属防止・AI correctionの価値が、capture / review / explicitnessの追加負担を上回るか。
 
 単に機能が多い、記録が詳しい、Resume Briefがきれい、という理由ではSatisfiedにしません。
 
@@ -365,10 +365,10 @@ first sliceを自己完結的に評価しません。ISSUE-000073では、可能
 
 ```text
 A: raw chat / chronological note等の単純baselineから再開
-B: SOZA canonical meaning + Resume Briefから再開
+B: SEI canonical meaning + Resume Briefから再開
 ```
 
-比較対象は製品競争の勝敗を決めるためではなく、SOZA固有の意味構造が実際にどのfailureを減らすかを確認するために置きます。
+比較対象は製品競争の勝敗を決めるためではなく、SEI固有の意味構造が実際にどのfailureを減らすかを確認するために置きます。
 
 ### 観測するもの
 
@@ -389,7 +389,7 @@ faster resume
   = Decision Continuity improvementではない
 ```
 
-raw chat / simple noteで十分である、あるいはSOZAのcapture overheadが大きすぎるという結果も正当なProduct Evidenceです。その場合はUIを正当化するためにValue definitionを緩めず、Product hypothesisや対象領域を狭めます。
+raw chat / simple noteで十分である、あるいはSEIのcapture overheadが大きすぎるという結果も正当なProduct Evidenceです。その場合はUIを正当化するためにValue definitionを緩めず、Product hypothesisや対象領域を狭めます。
 
 ## 15. Candidate Requirementとexisting Requirementの関係
 
@@ -450,14 +450,14 @@ Adoption / Outcome Evidence: Not Yet Verified
 
 ## 18. 関連文書
 
-- `SOZA_PRODUCT_INTERACTION.md`
-- `../value/SOZA_DECISION_CONTINUITY.md`
-- `../value/SOZA_PRODUCT_VALUE.md`
-- `../definition/SOZA_PRODUCT_SHAPE.md`
-- `../roadmap/SOZA_PRODUCT_MILESTONES.md`
+- `SEI_PRODUCT_INTERACTION.md`
+- `../value/SEI_DECISION_CONTINUITY.md`
+- `../value/SEI_PRODUCT_VALUE.md`
+- `../definition/SEI_PRODUCT_SHAPE.md`
+- `../roadmap/SEI_PRODUCT_MILESTONES.md`
 - `../../requirements/PRODUCT_REQUIREMENTS.md`
 - `../../requirements/ACCEPTANCE_SCENARIOS.md`
-- `../../architecture/SOZA_INTERACTION_WORKING_SET_ARCHITECTURE.md`
+- `../../architecture/SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md`
 - `../../plan/adr/ADR-0005-progressive-semantic-explicitness.md`
 - `../../plan/adr/ADR-0010-decision-memory-minimal-semantic-boundary.md`
 - `../../plan/adr/ADR-0028-product-interaction-canonical-operation-boundary.md`
@@ -468,8 +468,8 @@ Adoption / Outcome Evidence: Not Yet Verified
 
 Product Value、Decision Continuity synthesis、V1〜V8、Product Shape、Product Interaction、Local Single-Node Packaging、current Requirement / Scenario、ADR-0005 / 0010 / 0028 / 0029へ戻り、first sliceを「構造化recordを作れる製品」ではなく「文脈を失ったあとに正しく判断へ戻れる製品」として再監査した。
 
-Resume Brief、working set、provisional suggestion、semantic change plan、snapshot tokenは、Product Experienceとprototypeを説明するための概念であり、Universal semantic entityへ昇格させていない。AIは価値を増幅するが、AI availabilityをSOZAの基本的なopen / read / Decision / review成立条件にはしていない。
+Resume Brief、working set、provisional suggestion、semantic change plan、snapshot tokenは、Product Experienceとprototypeを説明するための概念であり、Universal semantic entityへ昇格させていない。AIは価値を増幅するが、AI availabilityをSEIの基本的なopen / read / Decision / review成立条件にはしていない。
 
-さらに、SOZAだけを使ったusability reviewではProduct Valueを自己証明する危険があるため、raw chat / simple note等とのcounterfactual reviewを追加した。semantic integrity、resume負担、historical誤帰属、AI correction、capture taxを同時に観測し、追加構造に価値差がない結果もProduct hypothesisを修正するEvidenceとして受け取る。
+さらに、SEIだけを使ったusability reviewではProduct Valueを自己証明する危険があるため、raw chat / simple note等とのcounterfactual reviewを追加した。semantic integrity、resume負担、historical誤帰属、AI correction、capture taxを同時に観測し、追加構造に価値差がない結果もProduct hypothesisを修正するEvidenceとして受け取る。
 
 Design Evidenceをprototype / human reviewへ拡大解釈せず、Candidate RequirementをStable化しない停止線を維持したうえで、自然な日本語として全文を再監査した。

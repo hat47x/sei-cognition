@@ -1,4 +1,4 @@
-# ISSUE-000073: SEI Cognitionへの改名とidentifier移行を実施する
+# ISSUE-000075: SEI Cognitionへの改名とidentifier移行を実施する
 
 Status: **Open**  
 Priority: **1**  

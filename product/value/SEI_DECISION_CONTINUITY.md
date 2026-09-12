@@ -1,11 +1,11 @@
-# SOZA Decision Continuity — Product Value Synthesis
+# SEI Decision Continuity — Product Value Synthesis
 
 更新日: 2026-09-11  
 状態: **Cross-axis Product Value Synthesis — Design Baseline / Outcome Evidence Pending**
 
 ## 1. この文書の役割
 
-この文書は、SOZAのProduct Value、V1〜V8、resume-first Product Sliceを、利用者が最終的に受け取る一つの横断的な成果へ接続します。
+この文書は、SEIのProduct Value、V1〜V8、resume-first Product Sliceを、利用者が最終的に受け取る一つの横断的な成果へ接続します。
 
 その成果を本書では**Decision Continuity（判断継続性）**と呼びます。
 
@@ -24,7 +24,7 @@ Decision Continuityは新しいUniversal Core概念ではありません。ま�
 
 ## 2. なぜ「保存」だけでは足りないか
 
-SOZAはこれまで、判断時点のbasis、Unknown / Conflict、Recommendation / Decision、Revision、Provider Independence等を耐久的な意味として守ってきました。
+SEIはこれまで、判断時点のbasis、Unknown / Conflict、Recommendation / Decision、Revision、Provider Independence等を耐久的な意味として守ってきました。
 
 しかし、意味が保存されていることと、利用者が仕事を再開できることは同じではありません。
 
@@ -41,23 +41,23 @@ SOZAはこれまで、判断時点のbasis、Unknown / Conflict、Recommendation
 
 この再構成に大きな負荷がかかれば、canonical recordが正しくても利用者価値は弱いままです。
 
-SOZAは、判断記憶を単に保管するのではなく、**判断文脈を壊れにくい外部認知基盤として外在化し、必要なときに再び思考へ戻せる状態にすること**を価値とします。
+SEIは、判断記憶を単に保管するのではなく、**判断文脈を壊れにくい外部認知基盤として外在化し、必要なときに再び思考へ戻せる状態にすること**を価値とします。
 
 ## 3. 外部研究から得られる示唆
 
-本節の研究はSOZAの規範上の正本ではありません。Product hypothesisを反証可能にし、prototype / human reviewで観測すべき点を選ぶための参考です。
+本節の研究はSEIの規範上の正本ではありません。Product hypothesisを反証可能にし、prototype / human reviewで観測すべき点を選ぶための参考です。
 
 ### 3.1 中断後の再開には文脈の再構成が必要である
 
 中断研究では、task goalの再活性化や文脈手掛かりが再開を助けることが報告されています。長い中断では、working memoryだけでなく外部環境からのcontext reconstructionが重要になります。
 
-これはSOZAに対し、「すべてを保存する」よりも、**再開時に正しいcontext cueを出せること**を評価すべきことを示唆します。
+これはSEIに対し、「すべてを保存する」よりも、**再開時に正しいcontext cueを出せること**を評価すべきことを示唆します。
 
 ### 3.2 外部記憶は有効だが、壊れやすい外部記憶への依存にはコストがある
 
 cognitive offloading研究では、メモ等の外部記憶が内部記憶負荷を下げ、task performanceを助ける一方、offload先を突然失うと性能が悪化し得ることも整理されています。
 
-SOZAがchat historyや一時UIを外部記憶として使うだけなら、同じ脆弱性を抱えます。
+SEIがchat historyや一時UIを外部記憶として使うだけなら、同じ脆弱性を抱えます。
 
 したがって価値は、単に「外へ覚えさせる」ことではなく、**transient surfaceを失ってもcanonical meaningから再構成できる耐久的なoffloading**にあります。
 
@@ -65,7 +65,7 @@ SOZAがchat historyや一時UIを外部記憶として使うだけなら、同�
 
 programming taskの研究では、開発者が中断後の再開にnote-takingを多用しており、自動生成されたcontextual cueがnoteだけより再開を助けた実験結果があります。
 
-SOZAにとって重要なのは「大量の履歴を見せること」ではなく、Current question、Decision、basis、unresolved、post-decision change等の**意味のある再開手掛かり**をcanonical dataから作れるかです。
+SEIにとって重要なのは「大量の履歴を見せること」ではなく、Current question、Decision、basis、unresolved、post-decision change等の**意味のある再開手掛かり**をcanonical dataから作れるかです。
 
 ### 3.4 AIは訂正可能でなければ判断継続性を弱める
 
@@ -73,7 +73,7 @@ Human-AI Interaction研究では、AIの誤りを容易にdismiss / correctで�
 
 AIのsuggestionが直接canonical authorityになる設計は、Decision Continuityと逆方向です。
 
-SOZAではAIをprovisionalな共同作業者として扱い、利用者または許可された主体が意味変更を確認・訂正・却下できることを重視します。
+SEIではAIをprovisionalな共同作業者として扱い、利用者または許可された主体が意味変更を確認・訂正・却下できることを重視します。
 
 ## 4. Decision Continuityの五つの側面
 
@@ -128,9 +128,9 @@ Decision Continuity
 
 V9を追加すると、既存軸の受入れと同じ内容を別名で再採点し、重大な欠損を総合scoreで隠す危険があります。
 
-## 6. SOZAが生む価値の構造
+## 6. SEIが生む価値の構造
 
-SOZAのProduct Valueは、概念的には次の差分として考えられます。
+SEIのProduct Valueは、概念的には次の差分として考えられます。
 
 ```text
 Decision Continuity value
@@ -143,7 +143,7 @@ Decision Continuity value
 
 これは金額換算式やUniversal KPIではありません。
 
-重要なのは、SOZA自身が記録負担を増やすだけなら価値が成立しない、という停止線です。
+重要なのは、SEI自身が記録負担を増やすだけなら価値が成立しない、という停止線です。
 
 ### 価値が大きくなりやすい仕事
 
@@ -162,11 +162,11 @@ Decision Continuity value
 - raw outputだけ残せば十分である。
 - capture overheadの方が再構成コストより大きい。
 
-SOZAをあらゆるtaskへ広げるのではなく、**Decision Continuityの損失が現実の問題になる領域からProduct fitを探す**べきです。
+SEIをあらゆるtaskへ広げるのではなく、**Decision Continuityの損失が現実の問題になる領域からProduct fitを探す**べきです。
 
 ## 7. 他の記録手段との差は「形式」ではなくcontinuity guaranteeで見る
 
-SOZAはchat、note、wiki、audit log、workflow、issue tracker等を価値の低いものとして否定しません。それらは有効なArtifact / Surface / Providerになり得ます。
+SEIはchat、note、wiki、audit log、workflow、issue tracker等を価値の低いものとして否定しません。それらは有効なArtifact / Surface / Providerになり得ます。
 
 違いは、何をProduct guaranteeとして引き受けるかです。
 
@@ -182,11 +182,11 @@ SOZAはchat、note、wiki、audit log、workflow、issue tracker等を価値の�
 
 state transitionやeventは強く残せますが、なぜその判断をしたか、何が不明だったか、Recommendationをどう扱ったかは別途必要になることがあります。
 
-SOZAの差別化仮説は、これらを置き換えることではありません。
+SEIの差別化仮説は、これらを置き換えることではありません。
 
 ```text
 existing tools
-  + SOZA canonical meaning / continuity layer
+  + SEI canonical meaning / continuity layer
   → durable decision context
 ```
 
@@ -194,7 +194,7 @@ existing tools
 
 ## 8. Product Value hypothesisを反証可能にする
 
-Decision ContinuityをProduct Valueへ置くなら、「SOZAの方がよいはず」という主張だけでは不十分です。
+Decision ContinuityをProduct Valueへ置くなら、「SEIの方がよいはず」という主張だけでは不十分です。
 
 ISSUE-000073のhuman reviewでは、可能な範囲で単純な代替手段とのcounterfactualを持ちます。
 
@@ -202,7 +202,7 @@ ISSUE-000073のhuman reviewでは、可能な範囲で単純な代替手段と�
 
 ```text
 A: raw chat / chronological notesだけから再開
-B: SOZA canonical stateからResume Briefで再開
+B: SEI canonical stateからResume Briefで再開
 ```
 
 比較で見るのはspeedだけではありません。
@@ -247,7 +247,7 @@ first sliceが技術的にPASSしても、次が確認できなければDecision
 - 明確な価値差がある。
 - 特定種類の判断だけ価値差がある。
 - semantic integrityは高いが操作負担が大きすぎる。
-- raw note / chatで十分で、SOZAの追加構造に価値差がない。
+- raw note / chatで十分で、SEIの追加構造に価値差がない。
 
 最後の結果であればProduct hypothesisを修正します。
 
@@ -283,15 +283,15 @@ Adoption / Outcome Evidence: Not Yet Verified
 - Richmond, L. L., & Taylor, R. G. (2025). *The benefits and potential costs of cognitive offloading for retrospective information*. Nature Reviews Psychology, 4, 312–321. DOI: `10.1038/s44159-025-00432-2`.
 - Amershi, S., et al. (2019). *Guidelines for Human-AI Interaction*. CHI 2019. DOI: `10.1145/3290605.3300233`.
 
-これらの研究結果をSOZAのRequirementへ直接輸入しません。Research EvidenceとSOZA Product Evidenceを分離し、実際のprototype / human reviewで再検証します。
+これらの研究結果をSEIのRequirementへ直接輸入しません。Research EvidenceとSEI Product Evidenceを分離し、実際のprototype / human reviewで再検証します。
 
 ## 13. 関連文書
 
-- `SOZA_PRODUCT_VALUE.md`
-- `SOZA_VALUE_PROPOSITION.md`
-- `SOZA_VALUE_MODEL.md`
-- `SOZA_VALUE_ACCEPTANCE.md`
-- `../interaction/SOZA_FIRST_USABLE_PRODUCT_SLICE.md`
+- `SEI_PRODUCT_VALUE.md`
+- `SEI_VALUE_PROPOSITION.md`
+- `SEI_VALUE_MODEL.md`
+- `SEI_VALUE_ACCEPTANCE.md`
+- `../interaction/SEI_FIRST_USABLE_PRODUCT_SLICE.md`
 - `../../plan/issue/ISSUE-000073-define-first-usable-resume-first-product-slice.md`
 
 ## 14. Natural Japanese review

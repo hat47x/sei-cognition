@@ -1,4 +1,4 @@
-# SOZA Interaction Working-Set Architecture
+# SEI Interaction Working-Set Architecture
 
 更新日: 2026-09-11  
 状態: **Reference Architecture Design Baseline — ISSUE-000073**
@@ -7,7 +7,7 @@
 
 この文書は、resume-firstな最初のProduct Sliceを実装・検証するとき、**canonical semantic authorityと、利用者向けworking set、Projection、AI draft、external Provider stateを混同しないためのArchitecture boundary**を定めます。
 
-`SOZA_REFERENCE_ARCHITECTURE.md`がSOZA全体の意味境界を扱うのに対し、本書はPMS-03 / ADR-0028を具体化するInteraction Application層のReference Architectureです。
+`SEI_REFERENCE_ARCHITECTURE.md`がSEI全体の意味境界を扱うのに対し、本書はPMS-03 / ADR-0028を具体化するInteraction Application層のReference Architectureです。
 
 ここでいう`working set`、`Resume Brief`、`semantic change plan`、`snapshot token`等はProduct / Application / Persistence上の設計語彙であり、Universal Semantic Contractの新しいrecord typeではありません。
 
@@ -115,7 +115,7 @@ canonical stateから導出できるProduct-local stateです。
 
 ### D. External Realization State
 
-SOZA外の実現状態です。
+SEI外の実現状態です。
 
 例:
 
@@ -124,7 +124,7 @@ SOZA外の実現状態です。
 - TEI / SaaS / external Provider state
 - remote request ID
 
-必要な部分をObservation / Provenance / ReferenceとしてSOZAへ戻せますが、external stateそのものをcanonical authorityにはしません。
+必要な部分をObservation / Provenance / ReferenceとしてSEIへ戻せますが、external stateそのものをcanonical authorityにはしません。
 
 ```text
 A Canonical
@@ -475,7 +475,7 @@ first prototypeの有力配置は次です。
 
 ```text
 ┌──────────────────────────────────────────────┐
-│ Local SOZA Go Runtime                        │
+│ Local SEI Go Runtime                        │
 │                                              │
 │  Human browser adapter                       │
 │  Machine / AI adapter                        │
@@ -555,11 +555,11 @@ Operational / Adoption Evidence: Not Yet Verified
 
 ## 18. 関連文書
 
-- `SOZA_REFERENCE_ARCHITECTURE.md`
-- `SOZA_DEPLOYMENT_ARCHITECTURE.md`
-- `SOZA_PRODUCT_ACCESS_ARCHITECTURE.md`
-- `../product/interaction/SOZA_PRODUCT_INTERACTION.md`
-- `../product/interaction/SOZA_FIRST_USABLE_PRODUCT_SLICE.md`
+- `SEI_REFERENCE_ARCHITECTURE.md`
+- `SEI_DEPLOYMENT_ARCHITECTURE.md`
+- `SEI_PRODUCT_ACCESS_ARCHITECTURE.md`
+- `../product/interaction/SEI_PRODUCT_INTERACTION.md`
+- `../product/interaction/SEI_FIRST_USABLE_PRODUCT_SLICE.md`
 - `../plan/adr/ADR-0005-progressive-semantic-explicitness.md`
 - `../plan/adr/ADR-0010-decision-memory-minimal-semantic-boundary.md`
 - `../plan/adr/ADR-0028-product-interaction-canonical-operation-boundary.md`

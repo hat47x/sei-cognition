@@ -1,7 +1,7 @@
 # ADR-0031: 製品名をSEI Cognitionへ改め、identifier改名の境界を定める
 
 Status: **Accepted**  
-Related Issue: **ISSUE-000073**  
+Related Issue: **ISSUE-000075**  
 Updated: 2026-09-11
 
 ## Context
@@ -39,7 +39,7 @@ ADR-0021は、Contractがfilenameとは別のlogical identityとexplicit version
 
 一方、確認できた幸運な事実もあります。`fixtures/representation-profiles/*.json`に記録された実digest 6件は、`{"z":1,"a":[true,null,"x"]}`のような合成payloadに対するものであり、`soza`文字列を含みません。Representation Profileのconformanceは改名によって壊れません。
 
-今回判断するのは、**どのidentifier classをどの規則で改名し、どのclassを不変として残すか**です。改名作業そのものの手順と完了条件はISSUE-000073で扱います。
+今回判断するのは、**どのidentifier classをどの規則で改名し、どのclassを不変として残すか**です。改名作業そのものの手順と完了条件はISSUE-000075で扱います。
 
 ## Decision
 
@@ -176,7 +176,7 @@ ADRは過去に判断した記録であると同時に、ADR-0021が定めると
 設計判断・要求・Contract定義を述べる文書     → 改名する (4-c)
 ```
 
-本ADR自身とISSUE-000073は例外です。どちらも改名そのものを主題とし、旧identityと新identityの両方を保持する必要があります。この二つで`soza`を一律に置換すると、mapping tableが片側を失い、Issueの「旧identityも受け付ける」という記述が「新identityを受け付ける」という無意味な文へ変わります。実際、最初の一括改名でISSUE-000073の本文がこの形で壊れ、改名前の内容へ戻しました。
+本ADR自身とISSUE-000075は例外です。どちらも改名そのものを主題とし、旧identityと新identityの両方を保持する必要があります。この二つで`soza`を一律に置換すると、mapping tableが片側を失い、Issueの「旧identityも受け付ける」という記述が「新identityを受け付ける」という無意味な文へ変わります。実際、最初の一括改名でISSUE-000075の本文がこの形で壊れ、改名前の内容へ戻しました。
 
 ### 5. repositoryとGo module pathを改める
 
@@ -253,12 +253,12 @@ Design Evidence
 
 なお`evaluation/method-quality/historical/`と`runtime/evidence/`に加えて日付付きEvidence文書22件を4-bとして分離したのは、本ADR起草後にtreeを再走査して判明した範囲です。当初の凍結範囲は`runtime/`配下のdated documentを取りこぼしていました。
 
-Executable Evidenceは、ISSUE-000073の各Phaseでchecker・test・fixtureを実行した時点で成立します。本ADRをAcceptedにすることは、改名作業の完了を意味しません。
+Executable Evidenceは、ISSUE-000075の各Phaseでchecker・test・fixtureを実行した時点で成立します。本ADRをAcceptedにすることは、改名作業の完了を意味しません。
 
 ## Follow-up
 
-- ISSUE-000073で改名作業をPhase 1〜4に分けて実施する。
-- `plan/registry.yaml`、`plan/document_review_registry.yaml`へ本ADRとISSUE-000073を登録する。
+- ISSUE-000075で改名作業をPhase 1〜4に分けて実施する。
+- `plan/registry.yaml`、`plan/document_review_registry.yaml`へ本ADRとISSUE-000075を登録する。
 - `architecture/TRACEABILITY.md`、`contracts/TRACEABILITY.md`、`contracts/CONTRACT_CATALOG.md`を新identityへ同期する。
 - `evaluation/`配下へ、Architecture領域の`HISTORICAL_ARCHITECTURE_MAPPING.md`と同趣旨の名称mapping注記を置く。
 
