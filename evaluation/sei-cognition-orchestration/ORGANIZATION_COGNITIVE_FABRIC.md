@@ -2,7 +2,7 @@
 
 更新日: 2026-09-12  
 状態: **Evaluation-only Distributed Cognition Design**  
-関連: Issue #376 / `README.md`
+関連: Issue #376 / Issue #378 / `README.md` / `../distributed-execution-fabric/README.md`
 
 ## 1. 根幹の趣旨
 
@@ -16,230 +16,86 @@
 - edge server
 - on-prem compute node
 
-SEI Cognitionでは、これらを単なる余剰capacityとしてではなく、**policyの範囲内で一時的に借りられる認知capacity**として利用できる可能性を評価する。
+SEI Cognitionでは、これらを単なる余剰capacityではなく、**policyの範囲内で一時的に利用できる認知capacity**として扱える可能性を評価する。
 
-ただし、業務端末や遊休資源はavailabilityが不安定である。
+ただし、この文書はdistributed schedulerを設計するものではない。
 
-したがって、Organization Cognitive Fabricはproduction critical pathを支える固定clusterではなく、**preemptible / opportunistic / capability-awareな認知job pool**として設計する。
+```text
+Organization Cognitive Fabric
+  = how cognition uses organizational capacity
 
-## 2. 何を分散するか
+Distributed Execution Fabric
+  = how jobs are placed / run / retried / preempted
+```
 
-最初に「modelを分散する」と考えない。
+実行面はTEI / SUIとも共有し得る別境界へ分離し、既存OSSを優先する。
 
-分散単位は Cognitive Job とする。
+## 2. Cognitive Fabricが所有するもの
+
+SEI Cognition側で扱うのは、認知上のjob意味である。
 
 ```text
 Cognitive Job
-  ├─ objective
-  ├─ input references / bounded payload
-  ├─ required capability
-  ├─ data classification
-  ├─ locality constraint
-  ├─ expected cost
-  ├─ latency class
-  ├─ preemptibility
-  ├─ resumability
-  └─ output contract
+  objective
+  bounded evidence / context refs
+  cognitive method / capability need
+  epistemic constraints
+  expected proposal role
+  data sensitivity
+  acceptable latency
+  whether parallel exploration is useful
 ```
 
-これにより、一つの巨大modelを複数不安定端末へ跨がせる以外の選択ができる。
+一方、worker discoveryやGPU scheduling、retry、preemptionは共通Execution Fabricへ渡す。
 
-## 3. 向くjob
+## 3. 何を分散するか
 
-### 3.1 Embarrassingly Parallelな認知
+最初に「modelを分散する」と考えない。
 
-- 10個の仮説を独立評価する
-- 複数planを別model / Methodで評価する
-- 多数documentを独立pre-analyzeする
-- test case / counterexample候補を大量生成する
-- code / log / incident片を別々に分類する
+第一候補は、問題を独立性の高いCognitive Jobへ分けることである。
 
-この種のjobはworker lossに強い。
+### 3.1 Hypothesis fan-out
 
-### 3.2 Background Cognition
+- 仮説Aを評価する
+- 仮説Bを評価する
+- counterexampleを探す
+- riskを探す
+- analogous caseを探す
 
-- overnight document enrichment
-- repository change analysis
+### 3.2 Source pre-analysis
+
+- document単位の要点候補
+- log partition単位のanomaly候補
+- repository area単位のchange analysis
+- evidence候補のrole extraction
+
+### 3.3 Multi-model / Multi-method cross-check
+
+- local SLM A
+- local SLM B
+- deterministic method
+- specialized cognitive method
+- general LLM critique
+
+### 3.4 Background Cognition
+
+- overnight re-analysis
 - semantic index rebuild
-- long-running comparison
-- historical re-evaluation
-- stale Inquiryのreorientation material更新候補
+- stale Inquiryの再点検
+- alternative plan exploration
+- historical consistency check
 
-interactive latencyを要求しないため、遊休資源と相性がよい。
-
-### 3.3 Ensemble / Cross-check
-
-- 同一Working Setを複数modelへ送る
-- specialized MethodとLLMを並行実行する
-- independent critiqueを作る
-- minority hypothesisを保持する
-
-単一model出力へ収束しすぎるのを防ぐ用途がある。
-
-### 3.4 Search / Exploration
-
-- candidate method exploration
-- architecture alternatives
-- counterfactual search
-- parameter / scenario sweep
-
-探索幅を計算資源へ交換できるproblemに向く。
+この種のjobは、interactive latencyを要求しないため遊休資源と相性がよい。
 
 ## 4. 向かないjob
 
 - hard real-time control
-- 利用者操作へ直結する低latency必須処理
-- 途中worker lossで全体が無効になる巨大同期job
-- raw confidential dataを端末横断させる必要がある処理
-- endpointへ長時間高負荷を強いる処理
+- worker lossで全体が無効になる巨大同期処理
+- foreground userへ継続的負荷を与える処理
+- raw confidential dataを広範囲の端末へ複製する処理
 - canonical stateをworker local memoryだけへ置く処理
 
-## 5. Placementの基本形
-
-```text
-Cognitive Job
-  ↓
-Capability Requirements
-  ↓
-Policy Filter
-  ↓
-Eligible Resource Set
-  ↓
-Cost / Latency / Locality / Energy ranking
-  ↓
-Placement
-  ↓
-Execution
-  ↓
-Validated Result / Proposal
-```
-
-### Capability Requirements例
-
-- CPU architecture
-- RAM
-- VRAM
-- supported model runtime
-- static semantic encoder
-- SACS
-- local SLM class
-- larger model class
-- network bandwidth
-- confidential-compute capability
-
-### Policy Filter例
-
-- data classification
-- user / department boundary
-- allowed device class
-- offline-only
-- no raw source export
-- geographical / network segment locality
-- working-hours prohibition
-
-## 6. Resource advertisement
-
-workerは「私はGPUです」とだけ通知しない。
-
-候補:
-
-```text
-Resource Advertisement
-  device_class
-  trust_zone
-  cpu_capacity
-  memory_available
-  accelerator_type
-  accelerator_memory_available
-  supported_runtimes
-  cached_models
-  current_load
-  thermal_state
-  power_state
-  foreground_priority
-  expected_idle_window
-  preemption_latency
-```
-
-これらはoperational dataであり、Universal semantic meaningではない。
-
-## 7. Foreground First
-
-業務端末ではforeground利用を常に優先する。
-
-```text
-employee workload
-  > cognitive background job
-```
-
-worker条件候補:
-
-- CPU loadが一定以下
-- GPU foreground processなし
-- AC power接続時のみ
-- battery threshold以上
-- thermal headroomあり
-- user active時はheavy job停止
-- business-hour policyに従う
-
-jobはpreemptibleを基本とし、checkpointまたはsmall independent unitへ分割する。
-
-## 8. 分散推論の二方式を分ける
-
-### A. Job-level Distribution
-
-複数workerが独立jobを実行する。
-
-```text
-hypothesis A -> worker 1
-hypothesis B -> worker 2
-critique     -> worker 3
-source scan  -> worker 4
-```
-
-first choiceはこちらとする。
-
-理由:
-- heterogeneous resourceへ載せやすい
-- preemptionしやすい
-- network latencyへ強い
-- worker churnへ強い
-
-### B. Model-level Distribution
-
-一つのmodel inferenceを複数GPU / nodeへ分割する。
-
-- tensor parallel
-- pipeline parallel
-- expert parallel
-- prefill / decode disaggregation
-
-これはstable GPU nodeやorganization edgeに向く。
-
-randomなemployee workstation群へ安易に適用しない。
-
-## 9. Locality-first Data Handling
-
-可能な限り、dataをcomputeへ動かすよりcomputeをdataへ寄せる。
-
-例:
-
-```text
-confidential repository
-  stays in department zone
-      ↓
-local worker computes features / proposal
-      ↓
-only bounded result crosses zone if policy permits
-```
-
-raw sourceを中央へ集めることを前提にしない。
-
-wearable / home deviceでも同じ原則を利用できる。
-
-## 10. Cognitive Fan-out / Fan-in
-
-高度な認知演算では、一つの長い推論を強くするだけでなく、探索幅を増やす方法がある。
+## 5. Job-level Distributionを第一候補にする
 
 ```text
 Problem
@@ -247,43 +103,97 @@ Problem
 Decompose
   ↓
 Fan-out
+  ├─ hypothesis A
+  ├─ hypothesis B
   ├─ factual check
-  ├─ alternative hypothesis
   ├─ counterexample
   ├─ risk analysis
-  ├─ analogy search
-  └─ plan candidate
+  └─ alternative plan
   ↓
 Fan-in
   ↓
-Conflict / Agreement / Residual
+Agreement / Conflict / Residual
   ↓
 stronger reasoner only if needed
 ```
 
-SEI Cognitionのdurable semanticsがあることで、fan-out結果を単なる文章群ではなく、role付き候補として再統合できる可能性がある。
+この方式は、heterogeneousな遊休端末へ載せやすく、worker churnにも比較的強い。
 
-## 11. 汎用LLMとの協調
+## 6. Model-level Distributionは別問題
 
-Organization Cognitive Fabricは汎用LLMの代替ではない。
+一つのmodel inferenceを複数GPU / nodeへ分散する場合には、次のような技術がある。
 
-むしろ、汎用LLMへ渡す前に次を行う。
+- tensor parallel
+- pipeline parallel
+- expert parallel
+- prefill / decode disaggregation
 
-- source pre-reading
-- candidate fact extraction
-- contradiction detection
-- related historical case retrieval
-- alternative generation
-- relevant context selection
-- missing evidence detection
+これはstable GPU serverやorganization edgeで有効になり得る。
 
-汎用LLMへは、可能な限りboundedな問題と整理済み材料を渡す。
+randomなemployee workstation群を使う第一方式にはしない。
 
-逆に、汎用LLMの出力を複数local workerでfact-check / policy-check / consistency-checkする後処理も考えられる。
+```text
+job-level distributed cognition
+  != distributed model inference
+```
 
-## 12. Failure Model
+## 7. Foreground First
 
-遊休資源は消えることを正常系として扱う。
+業務端末では、利用者の作業を常に優先する。
+
+```text
+employee workload
+  > background cognitive job
+```
+
+SEI CognitionからExecution Fabricへ渡したいconstraint候補:
+
+- low priority
+- preemptible
+- resumable where practical
+- battery / thermal restrictions
+- acceptable execution window
+- locality / trust constraints
+
+実際にuser activityやresource loadをどう検知してjobを退避するかは、HTCondor等のbackend capabilityへ委ねる。
+
+## 8. Locality-first
+
+可能な限り、dataをcomputeへ動かすよりcomputeをdataへ寄せる。
+
+```text
+confidential source
+  stays in authorized zone
+      ↓
+eligible worker runs locally
+      ↓
+bounded result only crosses boundary if allowed
+```
+
+これはwearable / home device / department serverでも共通する。
+
+## 9. Security Boundary
+
+```text
+device can compute
+  != device may see all data
+```
+
+少なくとも次を分ける。
+
+- device identity
+- device trust level
+- user / organization identity
+- data classification
+- job execution permission
+- model / tool permission
+- result disclosure permission
+
+Execution Fabricのresource registrationだけでdata accessを与えない。
+
+## 10. Failure Model
+
+遊休workerは消えることを正常系として扱う。
 
 ```text
 worker disappeared
@@ -291,113 +201,122 @@ worker disappeared
   != historical state rewritten
 ```
 
-必要な性質:
+Product側のdurable stateはworkerへ預けない。
 
-- idempotent job
+必要なexecution特性は共通Fabricへ要求する。
+
+- idempotent where possible
 - bounded retry
-- checkpoint where useful
-- duplicate result detection
-- worker lease / heartbeat
-- result provenance
-- no canonical state only on worker
+- checkpoint hint
+- duplicate result handling
+- provenance envelope
 
-## 13. Security Boundary
+## 11. Cognitive Fan-in
 
-遊休計算資源利用は、単純なcluster enrollmentでは危険である。
-
-最低限分けるもの:
-
-- device identity
-- device trust level
-- user identity
-- data classification
-- job permission
-- model / tool permission
-- network zone
-- result disclosure permission
+分散結果は多数決でTruthにしない。
 
 ```text
-device can compute
-  != device may see all data
+5 workers agree
+  != Truth
+  != Decision
 ```
 
-## 14. Scheduling objective
+fan-inでは、次を分けて保持する。
 
-単一scoreへ潰さない。
+- agreement
+- disagreement
+- unsupported claim
+- unresolved conflict
+- missing evidence
+- method / model provenance
 
-独立に見る候補:
+必要なら、その整理済み結果だけをより強いgeneral-purpose LLMへ渡す。
 
-- latency
-- energy
-- marginal cost
-- privacy locality
-- reliability
-- model quality
-- queue time
-- interruption risk
-- thermal impact
+## 12. 汎用LLMとの協調
 
-routine jobとdeep exploration jobでは最適配置が異なる。
+遊休資源は、汎用LLMを排除するためではなく、**汎用LLMを高価値な推論へ集中させる前後処理**に使える。
 
-## 15. 現行技術との関係
+前処理:
+- source pre-reading
+- related case recall
+- contradiction candidate detection
+- context selection
+- hypothesis generation
+- missing evidence detection
 
-Ray Serve / Ray Serve LLM等は、multi-node、multi-model、custom routing、accelerator-aware placement、autoscalingを提供しているため、Organization Cognitive Fabricの一Realization候補になり得る。
+後処理:
+- claim consistency check
+- policy check
+- independent critique
+- source linkage verification
 
-vLLM / SGLang等のmodel-serving engineも候補である。
+## 13. TEI / SUIとの共通化境界
 
-ただしSEI Cognitionの上位設計では、これらをContractへ昇格させない。
+TEIやSUIでもparallel / background executionは利用し得る。
 
-```text
-Cognitive Job / Capability / Placement semantics
-  != Ray
-  != vLLM
-  != specific cluster manager
-```
+したがって、次はSEI Cognition固有にしない。
 
-## 16. 最初の評価slice
+- worker registry
+- queue
+- resource matching
+- CPU/GPU placement
+- preemption
+- retry
+- artifact transfer
+- job status
 
-いきなり社内PCをcluster化しない。
+SEI Cognition固有なのは、何をCognitive Jobとして分解し、結果をどのsemantic roleで扱うかである。
 
-第1段階:
+## 14. Existing Component First
 
-1. fixed 2–3 local worker fixture
-2. worker capability advertisement
-3. low-priority batch job
-4. synthetic preemption
-5. restart / retry
-6. sensitive / non-sensitive placement test
-7. fan-out / fan-in result comparison
+社内遊休端末にはHTCondorを第一評価候補とする。
 
-第2段階:
+理由:
+- idle workstation harvestingを明示的に扱う
+- foreground activityでmachine availabilityが変わる環境に適する
+- job matching / migration / data transferの蓄積がある
+- Apache-2.0
 
-- one real idle workstation
-- one stable local server
-- model cache aware routing
-- overnight cognition
+AI application fan-outやmodel worker coordinationにはRayを第一評価候補とする。
 
-第3段階で初めて複数department / heterogeneous endpointを検討する。
+一つに統一することを目的にしない。
 
-## 17. 成否を見る指標
+詳細比較は`../distributed-execution-fabric/README.md`へ置く。
+
+## 15. 最初の評価slice
+
+SEI Cognition側ではschedulerを作らず、Cognitive Jobの利用価値だけを見る。
+
+候補:
+
+1. 一つの問題を3〜5 independent jobsへ分解
+2. local adapterでbaseline実行
+3. HTCondor adapterでidle-worker simulation
+4. Ray adapterでfan-out simulation
+5. worker interruptionを発生させる
+6. fan-inでConflict / Agreement / Residualを再構成
+7. stronger LLMへ渡すcontext量とqualityを比較
+
+## 16. 成否を見る指標
 
 - foreground interference
-- successful preemption rate
-- job completion under worker churn
+- worker churn下のjob completion
 - useful compute-hours recovered
-- energy per completed cognitive job
 - cloud / external LLM call reduction
+- context size reduction before general LLM
 - end-to-end reasoning quality
 - fan-out diversity
 - unsupported claim rate
 - privacy policy violation count
 
-重要なのは、idle compute利用率そのものをKPIにしないことである。
+idle compute利用率そのものはKPIにしない。
 
 ```text
 more utilized compute
   != better cognition
 ```
 
-## 18. 停止線
+## 17. 停止線
 
 - idle resource != free authority
 - candidate result != Truth
@@ -407,3 +326,4 @@ more utilized compute
 - cluster scheduler != cognitive policy authority
 - device enrollment != data access permission
 - distributed trace != required private chain-of-thought
+- SEI Cognition != distributed scheduler product
