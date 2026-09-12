@@ -47,6 +47,56 @@ class SparseAssociativeCognitionResearchPlanTests(unittest.TestCase):
                 plan["placement_policy"][key] = True
                 self.assert_has_error(plan, f"placement_policy.{key} must remain false")
 
+    def test_biology_cannot_become_architectural_authority(self) -> None:
+        for key in (
+            "biological_fidelity_required",
+            "whole_connectome_simulation_required",
+            "biology_is_authority",
+        ):
+            with self.subTest(key=key):
+                plan = copy.deepcopy(self.plan)
+                plan["bio_inspired_design_policy"][key] = True
+                self.assert_has_error(plan, f"bio_inspired_design_policy.{key} must remain false")
+
+    def test_required_bio_abstractions_cannot_disappear_silently(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["biological_abstraction_map"] = [
+            item
+            for item in plan["biological_abstraction_map"]
+            if item["id"] != "localized-inhibition"
+        ]
+        self.assert_has_error(plan, "missing required abstractions")
+
+    def test_whole_connectome_simulation_remains_deferred(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["deferred_directions"] = [
+            item
+            for item in plan["deferred_directions"]
+            if item["id"] != "whole-connectome-simulation"
+        ]
+        self.assert_has_error(plan, "must retain whole-connectome-simulation")
+
+    def test_autonomous_semantic_salience_learning_remains_deferred(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["deferred_directions"] = [
+            item
+            for item in plan["deferred_directions"]
+            if item["id"] != "autonomous-semantic-salience-learning"
+        ]
+        self.assert_has_error(plan, "must retain autonomous-semantic-salience-learning")
+
+    def test_follow_on_experiment_stages_cannot_disappear_silently(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["follow_on_experiments"] = [
+            item for item in plan["follow_on_experiments"] if item["stage"] != "SAC-B4"
+        ]
+        self.assert_has_error(plan, "missing required stages")
+
+    def test_rejection_remains_valid_research_completion(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["stage_gate_policy"]["rejection_is_valid_completion"] = False
+        self.assert_has_error(plan, "rejection_is_valid_completion must remain true")
+
     def test_llm_is_not_required_or_default_fallback(self) -> None:
         for key in ("llm_required", "llm_is_fallback_by_default"):
             with self.subTest(key=key):
