@@ -113,6 +113,10 @@ class DogfoodEvaluationTests(unittest.TestCase):
                 },
             )
 
+    def test_invalid_timestamp_is_rejected(self) -> None:
+        with self.assertRaisesRegex(EvaluationRecordError, "invalid timestamp"):
+            new_evaluation("case-bad", "local://bad", "P1-sei", "not-a-time")
+
     def test_round_trip(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "evaluation.json"
