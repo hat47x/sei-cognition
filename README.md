@@ -1,58 +1,98 @@
 # 井 / SEI Cognition
 
-更新日: 2026-09-05  
+更新日: 2026-09-13  
 状態: **v0.2.0 Local Reference Product Baseline released / development continues**
 
-SEIは、人間・AI・組織・既存システム・外部サービスが入れ替わっても、**何を見て、何を問い、何を根拠とし、何を決め、何を未解決として残したか**を失わないための、可搬な認知・意思決定基盤です。
+SEI Cognitionは、人間・AI・組織・既存システム・外部サービスが入れ替わっても、**何を見て、何を問い、何を根拠とし、何を決め、何を未解決として残したか**を失わないための、可搬な認知・意思決定基盤です。
 
-SEIの中心は、workflowやAI agent runtimeを自前で囲い込むことではありません。実行手段が変わっても残る意味、不確実性、判断、責任、Capability、Provenance、Semantic Lineageを扱います。
+中心にあるのは、workflowやAI agent runtimeを自前で囲い込むことではありません。実行手段が変わっても残るもの、すなわち意味、不確実性、判断、責任、Capability、Provenance、Semantic Lineageを扱います。
 
-名前は易経の卦「井」から採っています。井は、汲んでも尽きず、誰が汲みに来ても同じ水を返す共有の泉です。町が移っても井戸は動かせないという卦の像が、実行手段・人・組織が入れ替わっても残るものを扱うという本製品の立場と対応します。
+名前は易経の卦「井」から採っています。井は、汲んでも尽きず、誰が汲みに来ても同じ水を返す共有の泉です。町が移っても井戸は動かせないという卦の像が、実行手段も人も組織も入れ替わるなかで何を動かさずに残すのか、という本製品の立場に重なります。
 
-本製品は2026-09-11にSOZA / 綜座から改名しました。改名でどのidentifierをどう扱ったかは`plan/adr/ADR-0031-product-rename-sei-cognition-identifier-boundary.md`を参照してください。v0.2.0以前のArtifactは、そのADRのmapping tableで現在のidentityへ解決できます。
+## 1. 守る意味境界
 
-## 1. 現在の開発branchとrelease
-
-通常の開発は`develop/vX.Y.Z`形式のbranchで進めます。現在の開発branchは`develop/v0.2.0`です。
-
-v0.2.0は、開発者・評価者が現在のProduct ValueとSemantic Contractを実際に確かめられる **Local Reference Product Baseline** としてrelease済みです。
-
-- tag: `v0.2.0`
-- source commit: `c3640bdfcc43652b63a5b9941fd6b472312ec28f`
-- historical Release Candidate Gate: Run `33574947445` — **success**
-- Release Evidence: **Satisfied for v0.2.0 Local Reference Product Baseline**
-
-これはproduction完成版を意味しません。
+この製品が最も避けたいのは、性質の違うものを同じ一つの記録へ潰してしまうことです。少なくとも次を同一視しません。
 
 ```text
-v0.2.0 Release Evidence Satisfied
-  != production readiness
-  != Operational Evidence
-  != Adoption / Outcome Evidence
+Observation
+  != Interpretation / Hypothesis
+  != Recommendation
+  != Decision
+  != Authority
+  != Action Intent
+  != Execution
+  != Business Outcome
 ```
 
-Releaseの詳細は`release/v0.2.0/RELEASE_ACCEPTANCE.md`、`RELEASE_NOTES.md`、`RELEASE_EVIDENCE.md`を参照してください。
+観測したことと、そこから立てた解釈は違います。誰かが薦めたことと、実際に決めたことも違います。決めたことと、決める権限があったことも、実行したことも、業務上の結果が出たことも、それぞれ別です。これらが混ざると、後から「なぜそう決めたのか」へ戻れなくなります。
 
-## 2. repositoryの現在地
+さらに、次の非同一性を守ります。
 
-current treeには、少なくとも次の領域があります。
+- `Unknown != No` — まだ分からないことを、否定として記録しません。
+- `Conflict != latest-wins` — 食い違いを、新しい方の採用で消しません。
+- `not observed != unavailable` — 観測していないことは、存在しないことではありません。
+- `not_verified != failed` — 検証していないことは、失敗ではありません。
+- `Capability != Provider` — 能力そのものと、それを提供する手段は別です。
+- `Capability Definition != Capability Observation` — 定義と、実際に観測された状態は別です。
+- `Matching != Decision` — 候補が合致したことは、決めたことではありません。
+- `Pattern != Cognitive Method` — 見出したパターンと、手順として定めた方法は別です。
+- `Method Application != Assurance` — 方法を適用したことは、品質の保証ではありません。
+- `Logical Reference != Exact Historical Binding` — 論理的な参照と、当時の実体への束縛は別です。
+- `Projection != Canonical Semantic Authority` — 読みやすく射影した表現は、正本ではありません。
+- `Requirement != Acceptance Scenario != Test Case` — 要求と、受入シナリオと、テストは別の層です。
+- `Semantic Contract != Representation Profile` — 意味の契約と、その表現形式は別のversion空間を持ちます。
+- `Product access permission != semantic Responsibility / Authority` — 製品上の操作権限は、意味上の責任や権限ではありません。
+
+## 2. Product Valueの見方
+
+価値を単一のスコアへ還元しません。次の8軸で別々に確認します。
+
+- V1 — Historical Reconstruction: 当時の根拠へ戻れること
+- V2 — Semantic Separation: RecommendationとDecision等を取り違えないこと
+- V3 — Revision Integrity: 後から得た情報で過去を書き換えないこと
+- V4 — Provider Independence: 特定の提供者に意味を縛られないこと
+- V5 — Uncertainty Preservation: 未解決を未解決のまま次へ渡せること
+- V6 — Human / AI Readability: 人とAIの双方が同じ正本を読めること
+- V7 — Progressive Explicitness: 必要な分だけ明示度を上げられること
+- V8 — Execution Independence: 実行手段が変わっても意味が残ること
+
+受入れの境界は`product/value/SEI_VALUE_ACCEPTANCE.md`、現在の追跡状態は`product/value/SEI_VALUE_TRACEABILITY.md`を正本とします。
+
+## 3. Semantic ContractとRepresentation Profile
+
+実装、Provider、Storage、versionをまたいで同じ意味として交換・検証する必要がある境界だけを、独立したContractとして固定しています。現在は5つです。
+
+- `sei.semantic-reference/v1alpha1`
+- `sei.decision-memory/v1alpha1`
+- `sei.capability-observation/v1alpha1`
+- `sei.cognitive-method/v1alpha1`
+- `sei.semantic-interchange/v1alpha1`
+
+意味をどう表現し、どう同一性を検証するかは、Contractとは別のversion空間で扱います。
+
+- `sei.jcs+sha256/v1alpha1`
+- `sei.raw-bytes+sha256/v1alpha1`
+
+重要な概念であることが、そのままContract化の理由にはなりません。Contractを増やすこと自体は目的ではなく、実装やProviderをまたいで意味を固定する必要がある場合にだけ作ります。詳細は`contracts/CONTRACT_CATALOG.md`にあります。
+
+現在のRequirementは`REQ-0001`〜`REQ-0022`、Acceptance Scenarioは`SCN-0001`〜`SCN-0018`です。
+
+## 4. repositoryの構成
 
 ```text
-product/
-requirements/
-architecture/
-contracts/
-evaluation/
-fixtures/
-plan/
-release/
-runtime/
-tools/
+product/       なぜ存在し、何を失ってはならないのか
+requirements/  満たすべき要求と受入シナリオ
+architecture/  現在の構造と境界
+contracts/     実装をまたいで固定する意味の契約
+fixtures/      契約を検証するための固定入力
+runtime/       Go実装、Provider Adapter、probe、実行記録
+evaluation/    評価と探索。まだ要求へ昇格していない領域
+tools/         checkerと検証script
+plan/          ADR、Issue、開発workflow
+release/       release受入れとEvidence
 ```
 
-GitHub Actionsは当面完全に停止しており、current `develop/v0.2.0`には`.github/workflows`を置いていません。必要なchecker、test、probeは変更範囲に応じてローカルで個別に実行します。
-
-正本関係は概ね次のとおりです。
+正本の関係は上から下へ流れます。
 
 ```text
 Product Value / Value Proposition / Product Shape
@@ -76,11 +116,11 @@ Executable Evidence
 Release Candidate / Release Evidence
 ```
 
-下位の実装や検証手段が上位の意味を自動的に決めることはありません。上位文書に戻って、何を証明したEvidenceなのかを確認します。
+下位の実装や検証手段が、上位の意味を自動的に決めることはありません。実装の都合で意味を動かしたくなったときは、上位文書へ戻って、それが何を証明したEvidenceなのかを確認します。
 
-## 3. Evidenceの読み方
+## 5. Evidenceの読み方
 
-SEIでは、Evidenceの高さを次の5段階で分けます。
+達成状態を、次の5段階で区別します。
 
 ```text
 Design Evidence
@@ -90,169 +130,44 @@ Design Evidence
   != Adoption / Outcome Evidence
 ```
 
-現在、v0.2.0 Local Reference Product BaselineについてRelease Evidenceまで成立しています。一方、production運用の継続性や、実利用によってProduct Valueが届いたことを示すEvidenceはまだありません。
+設計として筋が通っていることと、実際に動いたことは別です。動いたことと、releaseできる状態であることも別です。さらに、継続的に運用できることと、利用者に価値が届いたことも、それぞれ別に確かめます。
 
-また、過去のPASSを現在のPASSとして扱いません。
+現在は、v0.2.0 Local Reference Product BaselineについてRelease Evidenceまで成立しています。運用の継続性や、実利用で価値が届いたことを示すEvidenceはまだありません。
+
+過去のPASSを現在のPASSとしても扱いません。
 
 ```text
 historical PASS != current PASS
 not_verified != failed
 ```
 
-GitHub Actions停止中も検証を省略するわけではありません。ローカルで実行したchecker、test、probeの結果だけをその高さのEvidenceとして扱い、実行できない検証は`Not Yet Verified`のまま残します。
+検証できなかった項目は`Not Yet Verified`のまま残します。GitHub Actionsは当面停止しており、必要なchecker、test、probeは変更範囲に応じてローカルで個別に実行します。実行方針は`plan/DEVELOPMENT_WORKFLOW.md`を正本とします。
 
-## 4. 最初に読む文書
+## 6. 現在動かせるもの
 
-### Product
+限定されたExecutable Evidence、またはそれを再実行するための資産として、次があります。
 
-1. `product/README.md`
-2. `product/value/SEI_PRODUCT_VALUE.md`
-3. `product/value/SEI_VALUE_PROPOSITION.md`
-4. `product/value/SEI_VALUE_MODEL.md`
-5. `product/value/SEI_VALUE_ACCEPTANCE.md`
-6. `product/value/SEI_VALUE_TRACEABILITY.md`
-7. `product/definition/SEI_PRODUCT_SHAPE.md`
-8. `product/roadmap/SEI_PRODUCT_MILESTONES.md`
-9. `product/roadmap/PMS06_CURRENT_STATE_2026-09-05.md`
+**意味の読み取りと検証** — Go実装のsemantic runtime、Representation Verifier Registry、JSON Schemaとfixtureに対する検証器、Contract横断でbundle内のExact Bindingが整合しているかの確認。
 
-### Requirements
+**Providerとの接続** — 合成Providerに対するAdapter、別プロセスとして起動するRealization / Provider交換、versionを固定した外部artifactとの連携、公開Providerに対する実接続、固定artifactを用いた実TEI CLIとの連携。
 
-10. `requirements/README.md`
-11. `requirements/PRODUCT_REQUIREMENTS.md`
-12. `requirements/ACCEPTANCE_SCENARIOS.md`
-13. `requirements/PRODUCT_JOURNEY_COMPOSITION.md`
+**Cognitive Method** — 型付きruntime、決定論的なmodel stubを用いた連携、Ollamaを用いた実modelによる実行、成果品質を評価するための境界定義。
 
-### Architecture
+**製品としての通し確認** — end-to-endのSemantic Product Journey harness、人と機械の双方から同じ正本へ戻るProduct Interaction probe、単一node向けpackagingとresumeおよびStorage移行のprobe、Product AccessとCollaborationの責任分離probe。
 
-14. `architecture/README.md`
-15. `architecture/SEI_REFERENCE_ARCHITECTURE.md`
-16. `architecture/TRACEABILITY.md`
+**historical reconstruction** — model artifactを交換しても当時のApplicationを保持できること、Method Realizationのrevisionを可搬に再構成できること、固定modelの下でruntime versionを交換したときのScoped Executable Evidence。
 
-### Contracts / Representation Profiles
+これらはいずれも限定された範囲での実行結果です。release後に得たEvidenceを理由に、公開済みv0.2.0のsupport範囲を後から広げることはしません。v0.2.0がどこまでをsupported scopeとしたかは`release/v0.2.0/RELEASE_ACCEPTANCE.md`を正本とします。
 
-17. `contracts/README.md`
-18. `contracts/CONTRACT_CATALOG.md`
-19. `contracts/TRACEABILITY.md`
-20. `contracts/semantic-reference/SEI_SEMANTIC_REFERENCE_v1alpha1.md`
-21. `contracts/decision-memory/SEI_DECISION_MEMORY_v1alpha1.md`
-22. `contracts/capability/SEI_CAPABILITY_OBSERVATION_v1alpha1.md`
-23. `contracts/cognitive-method/SEI_COGNITIVE_METHOD_v1alpha1.md`
-24. `contracts/interchange/SEI_SEMANTIC_INTERCHANGE_v1alpha1.md`
-25. `contracts/profiles/README.md`
+## 7. v0.2.0 release
 
-### Release / Planning
+v0.2.0は、開発者と評価者が現在のProduct ValueとSemantic Contractを実際に確かめられる**Local Reference Product Baseline**としてreleaseしています。
 
-26. `release/README.md`
-27. `release/v0.2.0/RELEASE_ACCEPTANCE.md`
-28. `release/v0.2.0/RELEASE_EVIDENCE.md`
-29. `plan/README.md`
-30. `plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`
-31. `plan/DEVELOPMENT_WORKFLOW.md`
-32. `plan/registry.yaml`
+- tag: `v0.2.0`
+- source commit: `c3640bdfcc43652b63a5b9941fd6b472312ec28f`
+- Local Reference PackageのSHA-256: `37f34d3ae4885df655e889f2799b9aea1d8c7c8c060c207df83f50459431ef17`
 
-Statusの正本は、各ADR / Issue本文と`plan/registry.yaml`です。
-
-## 5. 守る意味境界
-
-SEIでは、少なくとも次を同一視しません。
-
-```text
-Observation
-  != Interpretation / Hypothesis
-  != Recommendation
-  != Decision
-  != Authority
-  != Action Intent
-  != Execution
-  != Business Outcome
-```
-
-さらに、次の境界を守ります。
-
-- `Unknown != No`
-- `Conflict != latest-wins`
-- `not observed != unavailable`
-- `not_verified != failed`
-- Capability != Provider
-- Capability Definition != Capability Observation
-- Matching != Decision
-- Pattern != Cognitive Method
-- Method Application != Assurance
-- Logical Reference != Exact Historical Binding
-- Projection != Canonical Semantic Authority
-- Requirement != Acceptance Scenario != Test Case
-- Semantic Contract != Representation Profile
-- Product access permission != semantic Responsibility / Authority
-
-## 6. Product Value
-
-Product Valueは単一スコアへ還元せず、8軸で確認します。
-
-- V1 — Historical Reconstruction
-- V2 — Semantic Separation
-- V3 — Revision Integrity
-- V4 — Provider Independence
-- V5 — Uncertainty Preservation
-- V6 — Human / AI Readability
-- V7 — Progressive Explicitness
-- V8 — Execution Independence
-
-受入れ境界は`product/value/SEI_VALUE_ACCEPTANCE.md`、現在の追跡状態は`SEI_VALUE_TRACEABILITY.md`を正とします。
-
-## 7. current semantic baseline
-
-current Product Requirementsは`REQ-0001`〜`REQ-0022`、Acceptance Scenariosは`SCN-0001`〜`SCN-0018`です。
-
-current Semantic Contractは5 familyです。
-
-- `sei.semantic-reference/v1alpha1`
-- `sei.decision-memory/v1alpha1`
-- `sei.capability-observation/v1alpha1`
-- `sei.cognitive-method/v1alpha1`
-- `sei.semantic-interchange/v1alpha1`
-
-Representation ProfileはSemantic Contractと別のversion空間を持ちます。
-
-- `sei.jcs+sha256/v1alpha1`
-- `sei.raw-bytes+sha256/v1alpha1`
-
-historical M47 digest規則は、現在保持されている直接Evidenceから回収できないため、ISSUE-000034の方針どおり`not_verified`を維持します。
-
-## 8. current executable material
-
-現在のrepositoryには、限定されたExecutable Evidenceまたはその再実行資産として、少なくとも次があります。
-
-- semantic runtime
-- Representation Verifier Registry
-- synthetic Payload Source / Provider Adapter
-- Cognitive Method typed runtime
-- known Contract横断bundle-local Exact Binding consistency
-- V6 / V7 Projection evaluation
-- end-to-end Semantic Product Journey harness
-- human / machine Product Interaction reference probe
-- Local Single-Node Packaging / resume / Storage migration probe
-- Product Access / Collaboration responsibility separation probe
-- out-of-process Realization / Provider exchange
-- E3a version-pinned external artifact integration
-- E3b-P1 public live Provider integration
-- E3b-P2 fixed-artifact actual TEI CLI integration
-- E3b-M1a fixed KJ Atlas + deterministic model-stub integration
-- E3b-M1b Ollama actual model-backed Cognitive Method integration
-- actual model artifact交換のhistorical Application保持
-- Method Realization historical revision / portable reconstruction
-- fixed-model Ollama `0.32.13` / `0.32.14` runtime version exchangeのScoped Executable Evidence
-- Cognitive Method outcome-quality evaluation boundary
-- TEI executable version交換用source / fixed-input identity verifier、E2 / E3 runner、toolchain-split combined runner、stage-aware diagnostics
-
-このうち、v0.2.0の**supported release scopeはE3aまで**です。release後に得られたE3b-P2、M1a / M1b、runtime version exchange等のEvidenceを理由に、公開済みv0.2.0のsupport範囲を後から広げません。
-
-ISSUE-000070の固定model artifact下のOllama `0.32.13` / `0.32.14` actual交換はhistorical execution `local-20260904T193531Z-7855`の回収・検証によりResolvedです。一方、revision B TEI executableのactual build / Provider Plan / current SEI Adapter compatibilityはまだ完了していません。
-
-## 9. v0.2.0 Release Evidence
-
-v0.2.0のactual release時には、同じsource commitに対してPlan、Requirements、Contract、Representation Profile、JCS probe、semantic runtime、Projection evaluation、Local Reference Package、release policyをまとめて再検査しました。
-
-actual releaseでは、tag、source commit、GitHub Release、release asset、package digestを相互に照合しています。
+releaseにあたっては、同じsource commitに対してPlan、Requirements、Contract、Representation Profile、semantic runtime、Projection評価、Local Reference Package、release policyをまとめて再検査しました。そのうえで、tag、source commit、GitHub Release、release asset、package digestを相互に照合しています。
 
 ```text
 candidate PASS
@@ -261,86 +176,46 @@ candidate PASS
   → scoped Release Evidence Satisfied
 ```
 
-Local Reference PackageのSHA-256は次です。
-
-`37f34d3ae4885df655e889f2799b9aea1d8c7c8c060c207df83f50459431ef17`
-
-release preparationで得たdigestと、GitHub Release上のpackage asset digestが一致しています。
-
-このrelease Evidenceはhistoricalに確定しています。後続develop commitの検証は、必要なローカルchecker、test、probeを別途実行して判断します。
-
-## 10. SEIとTEI
-
-鼎（TEI）はSEIそのものではなく、SEIから利用し得るCapability Providerの一つです。
+これはproduction完成版を意味しません。
 
 ```text
-SEI = 何を見るか、何を問うか、何を残すか、何を判断するか
-TEI  = 実行可能な業務Capabilityを実現する一つの手段
+v0.2.0 Release Evidence Satisfied
+  != production readiness
+  != Operational Evidence
+  != Adoption / Outcome Evidence
 ```
 
-関連製品であることだけを理由にTEIへPriority / Trust / Authorityを付与しません。TEI固有のApplication、Database、Release、Deployment schemaをSEI Universal Coreへ複製しません。
+このRelease Evidenceは当時のものとして確定しています。以降のcommitについては、必要なローカル検証を別途実行して判断します。詳細は`release/v0.2.0/`の受入れ、notes、Evidenceにあります。
 
-## 11. current Plan
+## 8. SEI CognitionとTEI
 
-current registryはADR-0001〜ADR-0030、ISSUE-000001〜ISSUE-000072を管理します。
-
-現在の未解決Issueは次です。
-
-- ISSUE-000072: **Open** — TEI executable revision交換後もProvider Observation境界を保てるかのactual実証
-
-また、次は意図的にDeferredです。
-
-- ISSUE-000021: **Deferred** — historical design provenanceの逐語監査
-
-ISSUE-000069はGitHub Actions / runner availabilityと検証責務の分離としてResolvedです。ISSUE-000070はfixed-model Ollama runtime version交換のScoped Executable Evidenceに基づきResolvedです。ISSUE-000071はCognitive Method成果品質の**評価境界の確立**としてResolvedですが、actual human reviewや成果品質そのものがSatisfiedになったことを意味しません。
-
-Resolvedは、対象作業の完了を示します。Release / Operational / Adoption・Outcome Evidenceまで自動的にVerifiedになったことを意味しません。
-
-## 12. 次に深める領域
-
-現時点では、PMS-06の主要Open version-exchange実証はISSUE-000072です。ISSUE-000070の固定scope PASSをTEI側のEvidenceへ流用しません。
-
-1. ISSUE-000072で、exact revision B executable + exact revision A fixed inputによりactual `deployment-provider-plan`を実行する。
-2. ISSUE-000072で、revision Bをcurrent SEI Adapterからactualに起動し、Capability Observation mapping成立可否を確認する。
-3. ISSUE-000072のactual結果をREQ-0001 / 0007 / 0021、SCN-0014 / 0018へ戻し、必要なら隣接REQ-0022も監査する。
-4. ISSUE-000070 fixed-scope Evidenceを必要に応じて独立reproductionし、別runtime / model familyへの一般化可能性を探索する。
-5. ISSUE-000071で整えたreview bundleを使い、必要に応じてactual human reviewを行う。
-6. 別model family、別Provider、別Realizationへbroader portabilityを広げる。
-7. network degradation、credential失効、artifact acquisition failure等のfailure behaviorを探索する。
-8. E4 Operational portabilityとAdoption / Outcome Evidenceへ進む。
-
-実装量やIssue数を増やすこと自体は目的にしません。既存RequirementとContractで表現できる場合は、実証のためだけにUniversal semanticsを増やしません。
-
-## 13. 検証の実行方針
-
-GitHub Actionsは当面完全に停止しています。workflowの追加・復元、historical runの再実行、runner監視は行いません。
-
-変更内容に応じて、repository同梱のchecker、test、fixture、probeをローカルで個別に実行します。
+鼎（TEI）はSEI Cognitionそのものではなく、SEI Cognitionから利用し得るCapability Providerの一つです。
 
 ```text
-change scope
-  → relevant local check
-  → observed result
-  → fix if needed
-  → Evidence update
+SEI Cognition = 何を見るか、何を問うか、何を残すか、何を判断するか
+TEI           = 実行可能な業務Capabilityを実現する一つの手段
 ```
 
-検証できなかった項目は`Not Yet Verified`として残します。GitHub Actionsが停止していることを、検証済みの代替にはしません。
+関連製品であることだけを理由に、TEIへ優先度や信頼や権限を与えることはしません。TEI固有のApplication、Database、Release、Deploymentの構造を、SEI Cognitionの普遍的な意味核へ複製することもしません。
 
-## 14. 文書品質
+## 9. 読み進める順序
 
-開発文書は、内容・構造・技術的一貫性を整えた後、**意味・仕様・留保・Evidenceの強さを変えず、自然な日本語となることを最重要視して全文をドラフトし直す工程**を通し、その後に最終意味監査を行います。
+はじめて読む場合は、上位から下りるのが確実です。
 
-詳細は`plan/DOCUMENT_AUTHORING_STANDARD.md`を参照してください。
+1. `product/README.md` — なぜ存在し、何を失ってはならないのか
+2. `requirements/README.md` — 何を満たすべきか
+3. `architecture/README.md` — 現在どういう構造になっているか
+4. `contracts/README.md` — 実装をまたいで何を固定しているか
+5. `release/README.md` — どこまでreleaseとして成立しているか
 
-## 15. 自然な日本語レビュー
+現在進めている判断と作業は`plan/`にあります。ADRとIssueの現況は`plan/registry.yaml`、進め方は`plan/DEVELOPMENT_WORKFLOW.md`が正本です。各文書のStatusは、台帳ではなくその文書本文を正とします。
 
-2026-09-05時点のProduct Value、Product Milestone、PMS-06 current snapshot、REQ-0001〜0022、SCN-0001〜0018、ADR-0001〜0030、ISSUE-000001〜000072、5 Semantic Contract family、2 Representation Profile、current runtime / probe / evaluation資産、v0.2.0 historical Release Evidence、ISSUE-000067〜000072へ戻って現在地を再監査しました。
+開発文書は、内容と構造を整えた後に、意味・仕様・留保・Evidenceの強さを変えないまま、自然な日本語となることを最重要視して全文をドラフトし直す工程を通します。詳細は`plan/DOCUMENT_AUTHORING_STANDARD.md`にあります。
 
-v0.2.0のRelease EvidenceはLocal Reference Product Baselineに限定してSatisfiedとし、後続E3b Evidenceをrelease scopeへ遡及させません。ISSUE-000070のactual Ollama runtime version交換は固定scopeのScoped Executable Evidenceとして成立し、current-contract object equivalenceまで監査したうえでResolvedです。
+## 10. Natural Japanese review
 
-一方、ISSUE-000072のactual TEI executable revision B交換、human outcome review、E4、Operational / Adoption Evidenceはいずれも未検証範囲を維持しています。ISSUE-000070のResolvedをそれらへ拡張しません。
+入口文書として何が必要かを問い直し、構成を作り直した。製品が何であるか、何を混同しないか、何をどこまで証明できているかを先に置き、個別のIssue進捗やADR採番範囲のような進行管理情報は`plan/`の正本へ委ねて本文から外した。過去の名称に関する記述も、改名の判断を記録したADRが正本であるため入口からは外している。
 
-GitHub Actionsのhistorical Evidenceは保存しながら、現在の検証はローカル個別実行へ切り替えています。
+そのうえで、識別子を名詞として長く連結していた箇所と、milestone codeだけで内容を示していた箇所を、意味を落とさずに日本語の説明へ置き換えた。特に守る意味境界とEvidenceの5段階については、式だけに頼らず本文でも読めるようにした。
 
-意味、規範強度、Evidence強度を混同せず、入口文書として自然な日本語で現在地をたどれることを最重要視して全文を再監査しました。
+再ドラフトの前後で、非同一性の主張、v0.2.0のsupported scopeを後から広げないという留保、Release Evidenceが運用や利用者価値のEvidenceを意味しないこと、未検証を`Not Yet Verified`のまま残すという方針が変わっていないことを確認した。
