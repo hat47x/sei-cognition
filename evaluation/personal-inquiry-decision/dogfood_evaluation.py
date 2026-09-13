@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import copy
 import json
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -30,6 +31,13 @@ class EvaluationRecordError(ValueError):
     pass
 
 
+def parse_time(value: str) -> datetime:
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except (AttributeError, TypeError, ValueError) as exc:
+        raise EvaluationRecordError(f"invalid timestamp: {value!r}") from exc
+
+
 def new_evaluation(
     case_id: str,
     inquiry_ref: str,
@@ -42,8 +50,7 @@ def new_evaluation(
         raise EvaluationRecordError("inquiry_ref must not be empty")
     if profile not in PROFILES:
         raise EvaluationRecordError(f"invalid profile: {profile!r}")
-    if not created_at.strip():
-        raise EvaluationRecordError("created_at must not be empty")
+    parse_time(created_at)
     return {
         "schema": SCHEMA,
         "status": "evaluation-only",
@@ -77,6 +84,7 @@ def validate_evaluation(record: dict[str, Any]) -> None:
         raise EvaluationRecordError(f"invalid profile: {record.get('profile')!r}")
     if not record.get("case_id") or not record.get("inquiry_ref") or not record.get("created_at"):
         raise EvaluationRecordError("case_id, inquiry_ref, and created_at are required")
+    parse_time(record["created_at"])
 
     ids: set[str] = set()
     for section in ("capture_observations", "resume_observations"):
@@ -92,6 +100,7 @@ def validate_evaluation(record: dict[str, Any]) -> None:
             ids.add(item_id)
             if not item.get("observed_at"):
                 raise EvaluationRecordError(f"{item_id} requires observed_at")
+            parse_time(item["observed_at"])
 
     for item in record.get("capture_observations", []):
         _require_nonnegative_int(item, "semantic_corrections")
