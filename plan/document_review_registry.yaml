@@ -15,7 +15,7 @@ status_vocabulary:
 reviewed:
   - scope: README.md
     status: revised
-    note: v0.2.0 Local Reference Product Baselineのactual Release Evidence、current develop branch、5 Contract family、current Plan範囲へ同期し、PMS-06のversion交換探索をISSUE-000070 / ISSUE-000072の別軸として整理済み。
+    note: 入口文書として再構成した。製品が何であるか、何を混同しないか、どこまで証明できているかを先に置き、Issue進捗やADR採番範囲のような進行管理情報はplan/の正本へ委ねて本文から外した。旧名称に関する記述も、改名判断を記録したADR-0031が正本であるため入口からは外している。識別子の長い連結とmilestone codeだけの記述を日本語の説明へ置き換え、守る意味境界とEvidenceの5段階を式だけに頼らず読めるようにしたうえで、留保とEvidence強度が変わっていないことを再監査した。
 
   - scope: product/README.md
     status: revised
