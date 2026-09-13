@@ -18,13 +18,13 @@ from typing import Callable, Sequence
 
 
 EVALUATION_DIR = Path(__file__).resolve().parent
-SOZA_ROOT = EVALUATION_DIR.parents[1]
-GO_RUNTIME_DIR = SOZA_ROOT / "runtime" / "go"
-RESULT_SCHEMA = "soza.live-provider-failure-probe-result/v1"
+SEI_ROOT = EVALUATION_DIR.parents[1]
+GO_RUNTIME_DIR = SEI_ROOT / "runtime" / "go"
+RESULT_SCHEMA = "sei.live-provider-failure-probe-result/v1"
 DEFAULT_TIMEOUT_SECONDS = 120
 TIMEOUT_EXIT_CODE = 124
 LAUNCH_ERROR_EXIT_CODE = 127
-LIVE_FLAG = "SOZA_E3B_FAILURE_LIVE"
+LIVE_FLAG = "SEI_E3B_FAILURE_LIVE"
 EXPECTED_TESTS = (
     "TestLiveGitHubCommitServiceMissingRevisionFailure",
     "TestLiveGitHubCommitServiceInvalidCredentialFailure",
@@ -38,7 +38,7 @@ def sanitized_live_environment(source: dict[str, str] | None = None) -> dict[str
 
     environment = dict(os.environ if source is None else source)
     for key in tuple(environment):
-        if key.startswith("SOZA_") or key.startswith("KJ_ATLAS_"):
+        if key.startswith("SEI_") or key.startswith("KJ_ATLAS_"):
             environment.pop(key, None)
 
     for key in (
@@ -215,9 +215,9 @@ def prepare_result_output(path: Path) -> Path:
     if not parent.is_dir():
         raise ValueError(f"result output parent does not exist: {parent}")
     resolved = requested.resolve(strict=False)
-    repository = SOZA_ROOT.resolve(strict=False)
+    repository = SEI_ROOT.resolve(strict=False)
     if resolved == repository or repository in resolved.parents:
-        raise ValueError("result output must be outside the SOZA repository")
+        raise ValueError("result output must be outside the SEI repository")
     return resolved
 
 

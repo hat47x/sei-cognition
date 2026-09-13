@@ -21,6 +21,11 @@
 
 ```text
 evaluation/method-quality/historical/
+evaluation/failure-behavior/actual_provider_missing_revision_observation_20260910.json
+evaluation/failure-behavior/scoped_go_failure_execution_20260910.json
+evaluation/sparse-associative-cognition/sui_provider_cli_evidence_2026-09-12.json
+evaluation/sparse-associative-cognition/sui_associative_conformance_evidence_2026-09-12.json
+evaluation/sparse-associative-cognition/EXECUTION_EVIDENCE_2026-09-12.md
 ```
 
 `evaluation/method-quality/historical/M1B-RUN-33596839607/review-manifest.json`は、`request.json`、`structure-report.json`、`model-evidence.json`等 6fileのsha256を記録しています。これらのfileは`soza`文字列を含みます。内容を書き換えるとmanifestのdigestと一致しなくなり、Evidence自体が自壊します。
@@ -43,6 +48,32 @@ evaluation/method-quality/historical/
 | `soza.e3b-m1b-model-call/v1` | `sei.e3b-m1b-model-call/v1` |
 | `soza.v6-v7-projection-evaluation/v1` | `sei.v6-v7-projection-evaluation/v1` |
 | `soza.v6-v7-negative-cases/v1` | `sei.v6-v7-negative-cases/v1` |
+
+2026-09-12にmain branchから合流した領域にも同じ規則を適用します。
+
+| 記録済みEvidence上のidentity | currentのidentity |
+|---|---|
+| `soza.failure-behavior-case-catalog/v1` | `sei.failure-behavior-case-catalog/v1` |
+| `soza.failure-behavior-requirement-audit/v1` | `sei.failure-behavior-requirement-audit/v1` |
+| `soza.failure-behavior-probe-report/v1` | `sei.failure-behavior-probe-report/v1` |
+| `soza.failure-behavior-local-check-result/v1` | `sei.failure-behavior-local-check-result/v1` |
+| `soza.failure-behavior-scoped-go-execution-evidence/v1` | `sei.failure-behavior-scoped-go-execution-evidence/v1` |
+| `soza.live-provider-failure-probe-result/v1` | `sei.live-provider-failure-probe-result/v1` |
+| `soza.actual-provider-service-failure-observation/v1` | `sei.actual-provider-service-failure-observation/v1` |
+| `soza.personal-inquiry-continuity-dogfood/v0` | `sei.personal-inquiry-continuity-dogfood/v0` |
+| `soza.personal-inquiry-decision-prototype/v0` | `sei.personal-inquiry-decision-prototype/v0` |
+| `soza.sparse-associative-cognition-research/v1alpha1` | `sei.sparse-associative-cognition-research/v1alpha1` |
+| `soza.sui-associative-provider-cli-evidence/v1alpha1` | `sei.sui-associative-provider-cli-evidence/v1alpha1` |
+| `soza.sui-associative-conformance-evidence/v1alpha1` | `sei.sui-associative-conformance-evidence/v1alpha1` |
+| `soza.local-reasoning-working-set/v0` | `sei.local-reasoning-working-set/v0` |
+
+`actual_provider_missing_revision_observation_20260910.json`が持つclaim keyとstop lineにも当時の名前が残ります。読み取り側は`evaluation/failure-behavior/test_actual_provider_missing_revision_observation.py`の`legacy_name()`で双方を受け付けます。
+
+| 記録済みEvidence上の名前 | currentの名前 |
+|---|---|
+| `actualSozaGitHubCommitServiceExecution` | `actualSeiGitHubCommitServiceExecution` |
+| `actualSozaLiveFailureRunnerExecution` | `actualSeiLiveFailureRunnerExecution` |
+| `SOZA GitHubCommitService negative probe executed` | `SEI GitHubCommitService negative probe executed` |
 
 versionは`v1`のまま進めていません。改名はidentifierの綴りの変更であり、schemaの意味、field、invariantは変わっていません。
 

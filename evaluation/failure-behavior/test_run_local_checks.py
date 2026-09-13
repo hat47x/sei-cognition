@@ -46,9 +46,11 @@ class FailureBehaviorLocalCheckRunnerTest(unittest.TestCase):
         environment = sanitized_environment(
             {
                 "PATH": "/bin",
-                "SOZA_E3B_LIVE": "1",
-                "SOZA_E3B_FAILURE_LIVE": "1",
-                "SOZA_LIVE_PROVIDER_TOKEN": "secret-token",
+                "SEI_E3B_LIVE": "1",
+                "SEI_E3B_FAILURE_LIVE": "1",
+                "SEI_LIVE_PROVIDER_TOKEN": "secret-token",
+                # ADR-0031の改名前に手元へ残った旧名も漏らさない。
+                "SOZA_LIVE_PROVIDER_TOKEN": "legacy-secret-token",
                 "KJ_ATLAS_DATABASE_URL": "secret-db",
                 "OLLAMA_HOST": "127.0.0.1:11434",
                 "OPENAI_API_KEY": "secret",
@@ -57,8 +59,9 @@ class FailureBehaviorLocalCheckRunnerTest(unittest.TestCase):
         )
         self.assertEqual(environment["PATH"], "/bin")
         for removed in (
-            "SOZA_E3B_LIVE",
-            "SOZA_E3B_FAILURE_LIVE",
+            "SEI_E3B_LIVE",
+            "SEI_E3B_FAILURE_LIVE",
+            "SEI_LIVE_PROVIDER_TOKEN",
             "SOZA_LIVE_PROVIDER_TOKEN",
             "KJ_ATLAS_DATABASE_URL",
             "OLLAMA_HOST",

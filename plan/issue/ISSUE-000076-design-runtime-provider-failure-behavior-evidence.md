@@ -8,7 +8,7 @@ Updated: 2026-09-10
 
 ## Goal
 
-外部Runtime、Provider、model / executable artifactの取得・実行で起きる失敗を、SOZAのsemantic identityやCognitive Methodの成果品質と混同せず、比較可能なEvidenceとして観測するための境界を設計する。
+外部Runtime、Provider、model / executable artifactの取得・実行で起きる失敗を、SEIのsemantic identityやCognitive Methodの成果品質と混同せず、比較可能なEvidenceとして観測するための境界を設計する。
 
 最初の対象は、少なくとも次の失敗である。
 
@@ -217,11 +217,11 @@ PR #337では、同catalogの9 caseを外部serviceなしで発火させるdeter
 
 PR #338では、既存`runtime/go/provideradapter`の`Adapter.Observe(...)`と`ValidateObservation(...)`を直接使うfailure test fixtureを追加した。Provider固有payloadのdecode後にmappingが失敗した場合にpartial Capability Observationを返さないこと、mapping成功後のsemantic runtime validation failureを別段階として扱えること、retry成功時も初回mapping failureを別attemptとして保持できることをtestとして固定した。
 
-PR #343では、GitHub Actionsを成立条件にしないrepository-local入口として`evaluation/failure-behavior/run_local_checks.py`を追加した。catalog validator、deterministic probe、runner自身のtest、Provider Adapter Go testを一つの実行境界へまとめ、timeout、起動不能、途中停止、未実行checkをPASSへ読み替えない。子processには`SOZA_*`、`KJ_ATLAS_*`、model runtimeや各種API key等のlive入力を暗黙継承しない。runner unit logicは6 test PASSを確認したが、`go test ./provideradapter`自体はこの作業環境では未実行である。
+PR #343では、GitHub Actionsを成立条件にしないrepository-local入口として`evaluation/failure-behavior/run_local_checks.py`を追加した。catalog validator、deterministic probe、runner自身のtest、Provider Adapter Go testを一つの実行境界へまとめ、timeout、起動不能、途中停止、未実行checkをPASSへ読み替えない。子processには`SEI_*`、`KJ_ATLAS_*`、model runtimeや各種API key等のlive入力を暗黙継承しない。runner unit logicは6 test PASSを確認したが、`go test ./provideradapter`自体はこの作業環境では未実行である。
 
 PR #344では、既存`runtime/go/liveintegration`へfailure probe testを追加した。deterministic `httptest`ではProvider rejection時にCapability Observationを生成しないこととAuthorization tokenをerrorへ漏らさないことを検査し、明示的opt-inのactual GitHub negative probeとして、存在しないrevisionと固定invalid credentialの2 caseを定義した。通常のrepository-local checkではlive flagが環境浄化で除去されるため、actual通信を自動実行しない。
 
-PR #345では、actual negative probe専用の`run_live_provider_failure_probe.py`を追加した。`--allow-live`がなければ外部通信前に終了し、親環境のreal credentialを除去したうえで`SOZA_E3B_FAILURE_LIVE=1`だけを設定する。`go test -json`のprocess exit codeだけではなく、missing revision / invalid credentialのexact 2 testが双方`pass`したことを要求し、missing / skip / fail / malformed JSON / non-zero / timeout / launch errorをfail closedとする。専用runnerのunit testは10 test PASSを確認しているが、actual GitHub negative probeそのものはまだ実行していない。
+PR #345では、actual negative probe専用の`run_live_provider_failure_probe.py`を追加した。`--allow-live`がなければ外部通信前に終了し、親環境のreal credentialを除去したうえで`SEI_E3B_FAILURE_LIVE=1`だけを設定する。`go test -json`のprocess exit codeだけではなく、missing revision / invalid credentialのexact 2 testが双方`pass`したことを要求し、missing / skip / fail / malformed JSON / non-zero / timeout / launch errorをfail closedとする。専用runnerのunit testは10 test PASSを確認しているが、actual GitHub negative probeそのものはまだ実行していない。
 
 PR #346では、Product Requirements / Acceptance Scenariosを再監査し、`evaluation/failure-behavior/requirement_audit.json`へ`completed-no-change-at-current-evidence-height`を記録した。REQ-0002、REQ-0006、REQ-0007、REQ-0020、REQ-0021、REQ-0022と、SCN-0010、SCN-0011、SCN-0017、SCN-0018を対象に、現Evidence高さでは新Stable Requirement、既存Stable Requirement変更、Acceptance Scenario追加・変更、Universal Contract field追加のいずれも行わない判断を固定した。audit testは5 test PASSを確認した。
 

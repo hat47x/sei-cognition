@@ -129,7 +129,7 @@ REQ-0001 / 0002 / 0010 / 0014 / 0019 / 0021
 
 #### 状況
 
-外部AIとの長いconversationを後からSOZAへsourceとして取り込み、AIまたはheuristic RealizationがObservation、Unknown、Recommendation等の候補を抽出する。
+外部AIとの長いconversationを後からSEIへsourceとして取り込み、AIまたはheuristic RealizationがObservation、Unknown、Recommendation等の候補を抽出する。
 
 一つの候補は誤分類されている。
 
@@ -165,7 +165,7 @@ REQ-0005 / 0008 / 0009 / 0014
 
 #### 状況
 
-Provider Aのchat threadまたはmodelが利用不能になる。利用者はSOZAに保存されたInquiryからhandoff Projectionを作り、Provider Bまたは別toolで続きを行う。
+Provider Aのchat threadまたはmodelが利用不能になる。利用者はSEIに保存されたInquiryからhandoff Projectionを作り、Provider Bまたは別toolで続きを行う。
 
 #### 期待
 
@@ -216,7 +216,7 @@ REQ-0001 / 0005 / 0018 / 0021
 
 候補文:
 
-> SOZAは、Inquiryの保存、再読、継続をDecisionの存在へ依存させてはならず、未解決のObservation、Unknown、Conflict、Hypothesis、residual等を保持したまま再開できなければならない。
+> SEIは、Inquiryの保存、再読、継続をDecisionの存在へ依存させてはならず、未解決のObservation、Unknown、Conflict、Hypothesis、residual等を保持したまま再開できなければならない。
 
 #### 採用に慎重な理由
 
@@ -232,7 +232,7 @@ REQ-0001 / 0002 / 0014の組合せとProduct Interaction baselineから既に導
 
 候補文:
 
-> SOZAは、surviving semantic recordのhistorical integrityと、権限ある利用者がProduct dataの保持・削除を明示的に制御することを区別しなければならない。
+> SEIは、surviving semantic recordのhistorical integrityと、権限ある利用者がProduct dataの保持・削除を明示的に制御することを区別しなければならない。
 
 #### 独立性
 
@@ -325,7 +325,7 @@ actual `requirements/`へ変更を入れる前に、少なくとも次を満た�
 
 ## 9. 現時点の推奨Formalization
 
-最も保守的かつSOZAのcurrent governanceに整合する順序は次である。
+最も保守的かつSEIのcurrent governanceに整合する順序は次である。
 
 ```text
 current evaluation design

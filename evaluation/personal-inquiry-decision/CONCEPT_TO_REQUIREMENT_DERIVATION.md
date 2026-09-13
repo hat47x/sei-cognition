@@ -85,7 +85,7 @@ Observation、Interpretation、Unknown、Conflict、Recommendation、Decision等
 
 ### F7 — Product Scope Expansion
 
-再開価値を実現するためにSOZA自身がchat、document repository、task manager、general PKMまで所有し始め、Product Value検証がぼやける。
+再開価値を実現するためにSEI自身がchat、document repository、task manager、general PKMまで所有し始め、Product Value検証がぼやける。
 
 ## 4. FailureからCapabilityを導く
 
@@ -264,7 +264,7 @@ Inquiryが一つのAI conversationより長く生きるなら、元conversation�
 
 Source / Meaning / Resumeの三planeはarchitectureありきで決めたものではない。
 
-Root Intentから考えると、SOZAが自ら保持すべきなのは「Inquiry continuityに必要な耐久的意味」であり、元資料そのものをすべて複製する必要はない。
+Root Intentから考えると、SEIが自ら保持すべきなのは「Inquiry continuityに必要な耐久的意味」であり、元資料そのものをすべて複製する必要はない。
 
 そのため、first prototypeでは次を意図的に外す。
 
@@ -299,7 +299,7 @@ Personal Inquiry Continuityのどの部分を守るのか。
 
 扱えない場合、新Capabilityが本当に必要か、単なるRealization detailかを検討する。
 
-### Step 4 — Existing SOZA Coverage
+### Step 4 — Existing SEI Coverage
 
 current Product Value、REQ、Contractですでに規範化されていないか確認する。
 
@@ -375,4 +375,4 @@ Realization:
   最後に、実装候補を置く
 ```
 
-この順序を守ることで、詳細設計が増えてもSOZAの根幹の趣旨から離れにくくする。
+この順序を守ることで、詳細設計が増えてもSEIの根幹の趣旨から離れにくくする。

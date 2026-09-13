@@ -6,7 +6,7 @@
 
 ## 1. 目的
 
-この文書は、Personal Inquiry Continuity Profileを、SOZA内部の概念整合だけでなく、外部の研究・製品・標準と照合して再評価する。
+この文書は、Personal Inquiry Continuity Profileを、SEI内部の概念整合だけでなく、外部の研究・製品・標準と照合して再評価する。
 
 対象は次の7系統である。
 
@@ -23,7 +23,7 @@
 ```text
 external precedent
   -> evidence for product problem / failure mode / design pressure
-  != automatic SOZA Requirement
+  != automatic SEI Requirement
   != automatic Universal Contract concept
 ```
 
@@ -31,7 +31,7 @@ external precedent
 
 外部リサーチから、Personal Inquiry Continuityの最初のProduct Valueは次へ絞るのがよい。
 
-> **SOZAは「より多くの内容を覚える」製品ではなく、「何を・いつ・どの状態で知っていたかを壊さず、少ない再読で思考へ戻れるようにする」製品として個人価値を検証する。**
+> **SEIは「より多くの内容を覚える」製品ではなく、「何を・いつ・どの状態で知っていたかを壊さず、少ない再読で思考へ戻れるようにする」製品として個人価値を検証する。**
 
 この差は重要である。
 
@@ -44,7 +44,7 @@ content memory
 
 current PKM / AI workspaceは、保存、検索、source-grounded Q&A、引用、AI要約、connected knowledge、local/offline等を既に強く提供している。
 
-したがって、次はSOZAの差別化中心に置かない。
+したがって、次はSEIの差別化中心に置かない。
 
 - file / note storageそのもの
 - semantic searchそのもの
@@ -54,7 +54,7 @@ current PKM / AI workspaceは、保存、検索、source-grounded Q&A、引用�
 - local/offlineであることだけ
 - research report generation
 
-一方、次の組合せはSOZAの既存Product Valueと強く整合し、競争軸として比較的明瞭である。
+一方、次の組合せはSEIの既存Product Valueと強く整合し、競争軸として比較的明瞭である。
 
 - current stateとhistorical stateを分ける
 - source claimとinterpretationを分ける
@@ -80,7 +80,7 @@ LongMemEval（ICLR 2025）は、長期chat memoryを次の5能力で評価して
 
 長い会話履歴に対してcommercial assistant / long-context modelにも大きな性能低下があると報告し、session decomposition、time-aware query expansion等を検討している。
 
-SOZAへの示唆は、単純な「過去turnを検索できる」では不足することである。
+SEIへの示唆は、単純な「過去turnを検索できる」では不足することである。
 
 特にPersonal Inquiry Continuityでは次を独立に検査すべきである。
 
@@ -103,7 +103,7 @@ LongMemEval-V2（2026）はagent memoryを、単なるdialog historyではなく
 
 このうちPersonal Inquiry Continuityへ特に重要なのは`dynamic state tracking`と`premise awareness`である。
 
-SOZAでは、ObservationやDecisionを永久に同じ意味で有効なfactとして扱うのではなく、成立時点、basis、前提、変更後の状態を読める必要がある。
+SEIでは、ObservationやDecisionを永久に同じ意味で有効なfactとして扱うのではなく、成立時点、basis、前提、変更後の状態を読める必要がある。
 
 したがって、`Change-since-*`だけでなく、**その知識・判断がどの前提のもとで成立していたか**をdetailへ辿れることが重要になる。
 
@@ -111,17 +111,17 @@ SOZAでは、ObservationやDecisionを永久に同じ意味で有効なfactと�
 
 Mem0は、長期会話からsalient informationを抽出・統合・検索するmemory-centric architectureを提示している。
 
-この方向はSOZAにとって競合というより、異なるproblem framingである。
+この方向はSEIにとって競合というより、異なるproblem framingである。
 
 ```text
 AI memory layer:
   optimize what context to retrieve for the model
 
-SOZA Personal Inquiry Continuity:
+SEI Personal Inquiry Continuity:
   preserve durable meaning so human and AI can reconstruct the inquiry state
 ```
 
-SOZAがmemory extraction精度だけで競争すると、専用memory systemと同じ土俵になる。
+SEIがmemory extraction精度だけで競争すると、専用memory systemと同じ土俵になる。
 
 ### 3.4 LOCOMO-CONV
 
@@ -155,7 +155,7 @@ Altmann & Trafton (2007)も、中断後に失われたmental contextを段階的
 
 Trafton et al. (2003)や関連研究では、中断直前に再開準備の時間があるとtask resumptionが改善する。
 
-SOZAへそのまま実装概念を移す必要はないが、Product Interactionとして次が有力である。
+SEIへそのまま実装概念を移す必要はないが、Product Interactionとして次が有力である。
 
 > Inquiryを離れるとき、「次に何を見ようとしていたか」「今どこで詰まっているか」を短いResume Anchorとして残せる。
 
@@ -193,7 +193,7 @@ but
 capture must not become a filing chore
 ```
 
-SOZAでは、保存時に厳密な分類を全部要求するのではなく、後の再定位に効く最低限のcontextを落とさない設計が必要である。
+SEIでは、保存時に厳密な分類を全部要求するのではなく、後の再定位に効く最低限のcontextを落とさない設計が必要である。
 
 特に重要なのは、sourceのタイトルだけでなく必要に応じて次を保持できること。
 
@@ -210,7 +210,7 @@ IBIS系およびDRedは、issue、option、pro / con argument等を明示して�
 
 DRedの産業導入研究では、routine useにはsimplicityが重要であると報告されている。
 
-SOZAへの示唆は二つある。
+SEIへの示唆は二つある。
 
 第一に、Decisionの理由・alternative・argumentを構造化する価値自体は新しくない。
 
@@ -229,18 +229,18 @@ PIC-003、PIC-008、PIC-011の優先度はこの観点から高い。
 
 W3C PROVは、entity、activity、agent、derivation、responsibility等を扱い、異種system間でprovenanceを表現・交換するための標準的な枠組みを提供する。
 
-SOZAはprovenanceを独自に全部再発明する必要はない。
+SEIはprovenanceを独自に全部再発明する必要はない。
 
-一方、PROVの存在だけではSOZAのProduct Valueは成立しない。
+一方、PROVの存在だけではSEIのProduct Valueは成立しない。
 
-SOZAが扱うのはprovenanceに加えて、Unknown / Conflict、Recommendation / Decision、historical basis、reopen residual等の判断意味である。
+SEIが扱うのはprovenanceに加えて、Unknown / Conflict、Recommendation / Decision、historical basis、reopen residual等の判断意味である。
 
 したがって今後は、
 
 ```text
-SOZA provenance semantics
+SEI provenance semantics
   may map to / interoperate with W3C PROV where useful
-  != adopt PROV wholesale as SOZA Universal Contract
+  != adopt PROV wholesale as SEI Universal Contract
 ```
 
 とするのがよい。
@@ -267,7 +267,7 @@ ChatGPT Projectsは、特定のwork bodyについてchat、file、instruction、
 
 これは「長期project context」自体が既に一般的product capabilityになっていることを示す。
 
-SOZAは「project contextを持つ」だけでは差別化できない。
+SEIは「project contextを持つ」だけでは差別化できない。
 
 ### 9.2 Gemini Notebook
 
@@ -275,13 +275,13 @@ SOZAは「project contextを持つ」だけでは差別化できない。
 
 source-grounded answerとcitationは既に強い競争領域である。
 
-SOZAのSource / Claim Separationは重要だが、citation UIだけを価値中心にしない。
+SEIのSource / Claim Separationは重要だが、citation UIだけを価値中心にしない。
 
 ### 9.3 Notion AI
 
 Notion Enterprise Search / Researchはworkspaceやconnected appを横断し、source citationを伴うAI回答やresearchを提供する。
 
-横断検索・調査生成もSOZA独自性にはしにくい。
+横断検索・調査生成もSEI独自性にはしにくい。
 
 ### 9.4 Heptabase
 
@@ -289,19 +289,19 @@ Heptabaseはcards / whiteboards / PDF / journal等をconnected knowledge baseと
 
 特に、外部AIがknowledge baseをMCP経由でread / create / editできるため、単なる「AI handoff可能」は差別化として弱い。
 
-SOZAのAI Handoffは、access protocolではなく**epistemic roleとhistorical stateを壊さず渡すこと**で価値を定義する必要がある。
+SEIのAI Handoffは、access protocolではなく**epistemic roleとhistorical stateを壊さず渡すこと**で価値を定義する必要がある。
 
 ### 9.5 Obsidian / Capacities
 
 local data、offline、structured properties、search、object model等は成熟している。
 
-SOZAはgeneric PKMへの機能拡張競争へ入らない。
+SEIはgeneric PKMへの機能拡張競争へ入らない。
 
 ## 10. Product wedgeの再定義
 
 外部リサーチを踏まえ、Personal Inquiry Continuityのwedgeを次の一文へ更新する候補を推奨する。
 
-> **SOZAは、長く続く個人のInquiryについて、情報をただ保存・要約するのではなく、「何をその時点で知り、何が未解決で、何を根拠にどう判断し、その後何が変わったか」を壊さず保持し、再開時には最小の手掛かりでそこへ戻れるようにする。**
+> **SEIは、長く続く個人のInquiryについて、情報をただ保存・要約するのではなく、「何をその時点で知り、何が未解決で、何を根拠にどう判断し、その後何が変わったか」を壊さず保持し、再開時には最小の手掛かりでそこへ戻れるようにする。**
 
 さらに短くすると、内部設計上は次が核になる。
 
@@ -467,7 +467,7 @@ DRed等のrationale-capture研究の教訓から、記録完全性だけでな�
 
 この調査だけを根拠に`requirements/PRODUCT_REQUIREMENTS.md`へStable Requirementを追加しない。
 
-外部研究はproblem validityを強めたが、SOZA固有のnormative necessityを確定するAdoption / Outcome Evidenceではない。
+外部研究はproblem validityを強めたが、SEI固有のnormative necessityを確定するAdoption / Outcome Evidenceではない。
 
 現時点の変更対象はevaluation-level Product Hypothesisとdogfood protocolである。
 

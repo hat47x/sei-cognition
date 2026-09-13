@@ -6,7 +6,7 @@
 
 ## 1. このディレクトリで確かめたいこと
 
-このディレクトリの目的は、SOZAのProduct Valueを、組織導入や複雑なProvider連携より先に、**一人の利用者が自分の長期的な問いを中断・再開する場面で本当に役立つか**という小さな領域で確かめることである。
+このディレクトリの目的は、SEIのProduct Valueを、組織導入や複雑なProvider連携より先に、**一人の利用者が自分の長期的な問いを中断・再開する場面で本当に役立つか**という小さな領域で確かめることである。
 
 ここで最初に守りたいのは、情報量でも検索精度でもAIの回答品質でもない。
 
@@ -90,11 +90,11 @@ fast resume
 = failure
 ```
 
-SOZA Personal Profileの価値は、単に再開時間を短くすることではなく、**認識状態を壊さずに再開負担を下げられるか**で判断する。
+SEI Personal Profileの価値は、単に再開時間を短くすることではなく、**認識状態を壊さずに再開負担を下げられるか**で判断する。
 
 ## 3. Product Hypothesis
 
-個人向けSOZAを、既存のChat、PKM、document repository、Web research toolを置き換える製品として始めない。
+個人向けSEIを、既存のChat、PKM、document repository、Web research toolを置き換える製品として始めない。
 
 それらをSourceとして利用し、その上に薄い意味・再開層を置く。
 
@@ -109,7 +109,7 @@ Resume Plane
   Orientation / Delta / Anchor / Handoff
 ```
 
-設計上の仮称として、SOZAがこの範囲で担う役割を **Epistemic Resume Layer** と表現する。
+設計上の仮称として、SEIがこの範囲で担う役割を **Epistemic Resume Layer** と表現する。
 
 これは製品名ではなく、Product Boundaryを考えるための説明である。
 
@@ -117,13 +117,13 @@ Resume Plane
 
 元情報を保持・参照する場所。
 
-SOZA自身が汎用全文書repositoryになることを要求しない。
+SEI自身が汎用全文書repositoryになることを要求しない。
 
 ### Meaning Plane
 
 時間を越えて持ち運びたい意味を保持する。
 
-中心となるのはcurrent SOZA semanticsの範囲である。
+中心となるのはcurrent SEI semanticsの範囲である。
 
 - Inquiry
 - Observation / source claim
@@ -192,7 +192,7 @@ light Orientationだけを権威化せず、必要なときsource、basis、time
 
 元chat、特定LLM、特定providerがなくても保存済みInquiryを読み、別AI / tool / environmentへ意味を渡せる。
 
-これらはまだStable Requirementの新設を意味しない。多くはcurrent SOZA Requirementの組合せを個人Profileへ具体化したものである。
+これらはまだStable Requirementの新設を意味しない。多くはcurrent SEI Requirementの組合せを個人Profileへ具体化したものである。
 
 ## 6. 能力から個別課題へ降りる
 
@@ -307,7 +307,7 @@ root purpose
 まだ確認していないもの:
 
 - 複数real Inquiryでの継続dogfood
-- Generic SummaryよりSOZA Orientationが有用であること
+- Generic SummaryよりSEI Orientationが有用であること
 - capture burdenが継続利用可能であること
 - False Continuityが実際に減ること
 - voluntary reuse
@@ -349,4 +349,4 @@ prototype mechanics != adoption evidence
 personal profile convenience != universal semantic requirement
 ```
 
-この境界を保ちながら、個人にとってSOZAが本当に必要な部分だけを残す。
+この境界を保ちながら、個人にとってSEIが本当に必要な部分だけを残す。

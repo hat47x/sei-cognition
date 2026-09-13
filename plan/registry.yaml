@@ -1,5 +1,5 @@
 schema: sei.plan-registry/v1
-updated: 2026-09-12
+updated: 2026-09-13
 
 adr:
   - id: ADR-0001
@@ -202,5 +202,5 @@ issue:
   - {id: ISSUE-000072, file: plan/issue/ISSUE-000072-verify-tei-executable-version-exchange.md, status: Open, priority: 1, related_adrs: [ADR-0013, ADR-0019, ADR-0021, ADR-0024]}
   - {id: ISSUE-000073, file: plan/issue/ISSUE-000073-define-first-usable-resume-first-product-slice.md, status: Open, priority: 1, related_adrs: [ADR-0005, ADR-0010, ADR-0028, ADR-0029]}
   - {id: ISSUE-000074, file: plan/issue/ISSUE-000074-materialize-actual-tei-evidence-protocol.md, status: Open, priority: 1, related_adrs: [ADR-0013, ADR-0019, ADR-0020, ADR-0021, ADR-0024]}
-  - {id: ISSUE-000075, file: plan/issue/ISSUE-000075-execute-sei-cognition-rename-identifier-migration.md, status: Open, priority: 1, related_adrs: [ADR-0003, ADR-0021, ADR-0031]}
+  - {id: ISSUE-000075, file: plan/issue/ISSUE-000075-execute-sei-cognition-rename-identifier-migration.md, status: Resolved, priority: 1, related_adrs: [ADR-0003, ADR-0021, ADR-0031]}
   - {id: ISSUE-000076, file: plan/issue/ISSUE-000076-design-runtime-provider-failure-behavior-evidence.md, status: Open, priority: 2, related_adrs: [ADR-0013, ADR-0019, ADR-0021, ADR-0024, ADR-0025]}

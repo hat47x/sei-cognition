@@ -6,7 +6,7 @@
 
 ## 1. 目的
 
-Personal Inquiry Continuity Profileの候補要件を、current SOZA Product Requirement（REQ-0001〜REQ-0022）と照合し、次を区別する。
+Personal Inquiry Continuity Profileの候補要件を、current SEI Product Requirement（REQ-0001〜REQ-0022）と照合し、次を区別する。
 
 ```text
 existing semantic requirement coverage
@@ -77,7 +77,7 @@ REQ-0010 / 0011 / 0015 / 0019により、Progressive Explicitness、Projection�
 
 Stable Requirementが既存で足りることと、個人向け製品要件書が不要であることは同じではない。
 
-current `PRODUCT_REQUIREMENTS.md` はSOZA全体が守るsemantic / interoperability requirementを中心にしており、次のようなProfile固有の組合せは一箇所にまとまっていない。
+current `PRODUCT_REQUIREMENTS.md` はSEI全体が守るsemantic / interoperability requirementを中心にしており、次のようなProfile固有の組合せは一箇所にまとまっていない。
 
 - 問い一つから開始する。
 - Decisionを要求しない。
@@ -108,7 +108,7 @@ Profile文書はStable REQを再定義しない。既存REQを参照しながら
 提案する権威関係は次の通り。
 
 ```text
-SOZA Product Value
+SEI Product Value
   → Stable Product Requirements (REQ-*)
   → Product Profile Requirements
   → Profile Acceptance Scenarios / Tests
@@ -156,7 +156,7 @@ Profileの都合だけでUniversal meaningを変更しない。
 
 ### 問い
 
-current SOZA文書はInquiry、Unknown、residual、reopenを扱うため、意味上はDecision非必須と読める。
+current SEI文書はInquiry、Unknown、residual、reopenを扱うため、意味上はDecision非必須と読める。
 
 しかしStable Requirement一覧には、
 
@@ -184,7 +184,7 @@ current SOZA文書はInquiry、Unknown、residual、reopenを扱うため、意�
 
 ### 問い
 
-current SOZAはsemantic historyを消さずに保持することを重視するが、個人Productとしては利用者自身が保存データを削除できる必要性がある。
+current SEIはsemantic historyを消さずに保持することを重視するが、個人Productとしては利用者自身が保存データを削除できる必要性がある。
 
 これはsemantic supersessionとは異なるProduct data lifecycle問題である。
 
@@ -200,7 +200,7 @@ current SOZAはsemantic historyを消さずに保持することを重視する�
 
 候補表現:
 
-> SOZAは、semantic historyをsurviving record内で黙って改変しないことと、権限ある利用者がProduct dataを明示的に削除・保持管理することを区別しなければならない。
+> SEIは、semantic historyをsurviving record内で黙って改変しないことと、権限ある利用者がProduct dataを明示的に削除・保持管理することを区別しなければならない。
 
 ## 11. Potential Stable Gap 3 — Explicit AI-generated semantic suggestion boundary
 
@@ -231,7 +231,7 @@ ObservationとUnknownだけを記録したInquiryを閉じ、後日再開する�
 
 ### PAS-C02 — Resume without Original Chat
 
-元AI conversationを利用不能にした状態で、保存済みSOZA dataだけからcurrent orientationを再構成する。
+元AI conversationを利用不能にした状態で、保存済みSEI dataだけからcurrent orientationを再構成する。
 
 ### PAS-C03 — Bulk Chat Import with Correction
 
@@ -243,7 +243,7 @@ Decision後にEvidenceを追加し、historical basisを変えずに`new since d
 
 ### PAS-C05 — AI Provider Handoff
 
-Provider Aの会話を失った状態で、canonical SOZA contextからhandoff Projectionを生成し、Provider Bまたは別toolがInquiryの意味差を読める。
+Provider Aの会話を失った状態で、canonical SEI contextからhandoff Projectionを生成し、Provider Bまたは別toolがInquiryの意味差を読める。
 
 ### PAS-C06 — Offline Personal Continuity
 
@@ -285,7 +285,7 @@ local dataをexportし、別data rootまたはclean instanceへimportして、De
 
 ```text
 Personal Inquiry Continuity profile is product-distinct
-  + current stable SOZA semantics cover most durable meaning
+  + current stable SEI semantics cover most durable meaning
   + several new acceptance scenarios are justified
   + profile-specific operational requirements are needed
 

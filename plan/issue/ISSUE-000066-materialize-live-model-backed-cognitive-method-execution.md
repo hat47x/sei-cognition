@@ -143,7 +143,7 @@ PR #48の先行Run `33596839607`、PR #50の再実証Run `33608342203`、統合�
 
 上記のOllama経路を採る前に、GitHub Actionsの短命`GITHUB_TOKEN`とGitHub Modelsを使う案を実装し、Run `33608892506`でprobeした記録が並行branchの草稿として残っていた。KJ Atlasの起動、`models: read`権限、provider設定までは成立した一方、推論APIはHTTP 410を返したとされている。
 
-この草稿では、GitHub Modelsが2026年7月30日にサービス終了しており推論APIも利用できないことをGitHub公式文書で確認した、と記録されている。SOZA側ではこの確認を追検証していないため、上記は当時の調査結果の引用として保持する。
+この草稿では、GitHub Modelsが2026年7月30日にサービス終了しており推論APIも利用できないことをGitHub公式文書で確認した、と記録されている。SEI側ではこの確認を追検証していないため、上記は当時の調査結果の引用として保持する。
 
 いずれにせよ、このHTTP 410をmodel品質やKJ AtlasのMethod失敗とは解釈しない。成立しない外部依存として撤回した経路であり、M1bのactual Evidenceは本文書のOllama経路を正とする。
 

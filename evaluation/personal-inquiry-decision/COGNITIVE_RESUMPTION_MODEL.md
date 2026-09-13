@@ -70,7 +70,7 @@ Layer Bの誤りは修正可能であり、Layer Aへ戻れることを必須と
 
 ## 3. Durable Inquiry Memory
 
-Personal ProfileでLayer Aが保持する中心は、current SOZA semanticsの範囲を使う。
+Personal ProfileでLayer Aが保持する中心は、current SEI semanticsの範囲を使う。
 
 - Inquiry / question context
 - Observation / source claim
@@ -175,7 +175,7 @@ Observation、外部条件、Decision等が対象世界・利用者文脈で成�
 
 ### T2 — Capture / Knowledge-entry Time
 
-その情報がSOZAへ追加された時点。
+その情報がSEIへ追加された時点。
 
 例:
 
@@ -207,7 +207,7 @@ T3をUniversal semanticsへ追加する必要はない。Profile-local metadata�
 
 bitemporal databaseでは、`valid time`と`transaction time`を分け、現実でfactが成立していた時点とdatabaseがそれを保持していた時点を別に扱う。
 
-SOZA Personal Profileはtemporal databaseそのものではないが、次のfailureを避けるために同じ区別が有効である。
+SEI Personal Profileはtemporal databaseそのものではないが、次のfailureを避けるために同じ区別が有効である。
 
 ```text
 observed later
@@ -217,7 +217,7 @@ corrected now
   != always believed corrected value
 ```
 
-ただし、SOZAでいうObservation / Hypothesis / Decisionは単純な真偽factではないため、bitemporal schemaをそのままUniversal Contractへ移植しない。
+ただし、SEIでいうObservation / Hypothesis / Decisionは単純な真偽factではないため、bitemporal schemaをそのままUniversal Contractへ移植しない。
 
 ## 8. Premise / Validity Context
 
@@ -229,7 +229,7 @@ Personal Inquiryでmaterialな場合、次へ戻れることが望ましい。
 - DecisionはどのConstraintのもとで行われたか
 - 後からその前提が変わったか
 
-ただしSOZAは自動的に`valid / invalid`をTruth判定しない。
+ただしSEIは自動的に`valid / invalid`をTruth判定しない。
 
 ```text
 premise changed
@@ -398,4 +398,4 @@ Premise change != automatic invalidation
 AI-generated orientation != authoritative memory
 ```
 
-これらを守る限り、再開UXを積極的に最適化してもSOZAのdurable semantic valueを壊しにくい。
+これらを守る限り、再開UXを積極的に最適化してもSEIのdurable semantic valueを壊しにくい。
