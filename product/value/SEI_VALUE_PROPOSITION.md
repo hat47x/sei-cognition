@@ -1,7 +1,7 @@
 # SEI Value Proposition
 
-更新日: 2026-09-11  
-状態: **Current Product Value Proposition Baseline — Decision Continuity reflected**
+更新日: 2026-09-14  
+状態: **Current Product Value Proposition Baseline — Decision Continuity / Brand-world discovery reflected**
 
 ## 1. この文書の役割
 
@@ -11,11 +11,13 @@
 
 Decision Continuityは新しいValue Axisではなく、V1〜V8が実際の利用者の一つの判断仕事で成立したときに現れるcross-axis Product Outcomeです。詳細は`SEI_DECISION_CONTINUITY.md`を参照します。
 
+また、「井」のブランド世界から得た洞察は`SEI_BRAND_WORLD_DISCOVERY_SOURCE.md`を非規範sourceとして保存し、`SEI_BRAND_WORLD_PRODUCT_VALUE_REVIEW.md`で既存Valueとの重複・独立性・trade-offを確認しています。本書へ採用するのは象徴そのものではなく、利用者に届く価値として説明できる部分だけです。
+
 ## 2. 一言でいう価値
 
 SEIが利用者へ届けたい最も短い約束は、次です。
 
-> **あとで戻っても、別のAIを使っても、情報が変わっても、過去を捏造せず判断の続きを始められる。**
+> **まだ答えになっていない問いから始められ、あとで戻っても、別のAIを使っても、情報が変わっても、過去を捏造せず判断の続きを始められる。**
 
 そのためにSEIは、単なる会話履歴やログではなく、問い、Observation、Unknown / Conflict、Recommendation、Decision、basis、Responsibility、Provenance、Revision等の耐久的な意味を外在化します。
 
@@ -34,6 +36,8 @@ SEIが主に対象とするのは、**複数の人間、AI、外部サービス�
 - 後から何が変わり、判断を見直す必要が生じたのか。
 - 数日後に戻ったとき、どこまで進んでいたのか。
 - 今知っていることを、当時から知っていたかのように記憶していないか。
+- まだ説明できない違和感や弱いsignalを、どこへ置けばよいか。
+- 一人の担当者や一つのAI sessionで得た認知成果を、別の主体へどう引き継ぐか。
 
 通常のログ、チャット履歴、ワークフロー履歴、ドキュメント置き場は、それぞれ重要です。ただし、それらだけでは「判断の意味」を実行方式や会話の流れから独立して残しにくい場合があります。
 
@@ -83,6 +87,34 @@ Provider交換可能性は技術的な美しさのためだけではありませ
 
 重要なのは、detailを増やせることだけではありません。**detailを増やさないと価値が出ない製品にしないこと**です。
 
+### 4.6 まだ答えになっていないものから始められる
+
+利用者が持つものは、最初から明確なQuestionやEvidenceであるとは限りません。「何かがおかしい」「この二つは関係しているかもしれない」「まだ説明できないが気になる」という状態から始まることがあります。
+
+SEIは、そうした認知材料を、無理にfactやRecommendationへ整形することなく、問い直せる形へ外在化できることを目指します。
+
+```text
+not yet articulated
+  → inspectable / revisitable
+  != automatically true
+```
+
+これにより、Knowledgeが完成してから記録するだけでなく、**考え始める入口から継続できる製品**を目指します。
+
+### 4.7 認知成果を、一人・一AI・一Providerの中だけに閉じない
+
+人やAIが変わるたびに、過去の調査、問い、未解決、判断理由をゼロから再構成する状態を避けます。
+
+許された範囲では、別の人間やAIが同じcanonical meaningへ戻り、ProvenanceやResponsibilityを失わずに続きを扱えることを目指します。
+
+ただし、共有可能であることと無制限公開は別です。Selective Disclosure、Product Access、Responsibility、Authorityを保ちます。
+
+```text
+shareable cognition
+  != unrestricted data access
+  != shared Decision Authority
+```
+
 ## 5. SEIの差別化仮説
 
 SEIはchat、note、wiki、issue tracker、workflow、audit logを置き換えることを価値としません。それらはSEIが参照・接続する重要なArtifact / Surface / Providerになり得ます。
@@ -94,14 +126,15 @@ raw history / documents / logs
   + canonical semantic distinction
   + historical integrity
   + resumable projection
-  → durable decision context
+  + bounded shared cognition
+  → durable cognitive context
 ```
 
-たとえばraw chatは会話の流れを豊かに残せますが、後日RecommendationとDecisionを分けたり、Decision後の情報を当時basisから分離したりする責務が利用者側へ残る場合があります。
+たとえばraw chatは会話の流れを豊かに残せますが、後日RecommendationとDecisionを分けたり、Decision後の情報を当時basisから分離したり、別の主体へ必要な意味だけを渡したりする責務が利用者側へ残る場合があります。
 
-SEIはその再構成責務の一部をProductとして引き受けます。
+SEIはその再構成・継承責務の一部をProductとして引き受けます。
 
-ただし、この差別化は仮説です。raw chatやsimple noteと比べて再開負担・誤帰属・修正負担を実質的に減らせないなら、追加構造そのものを価値とはみなしません。
+ただし、この差別化は仮説です。raw chatやsimple noteと比べて再開負担・誤帰属・修正負担を実質的に減らせず、あるいは共有のためのcapture / review負担が大きすぎるなら、追加構造そのものを価値とはみなしません。
 
 ## 6. 主な利用者・関与者
 
@@ -125,6 +158,12 @@ Decision Continuityのfirst Product Sliceでは、数日後・数週間後の同
 
 当時のworking memoryやAI conversationへ依存せず、過去の自分が何を知り、何を決め、何を残したかへ戻れることを重視します。
 
+### 後から参加する人・AI
+
+引継ぎやmodel交換の後に参加し、許された範囲の過去認知を読み直して、同じ問いへ別の観点を加えます。
+
+accessできることだけからResponsibilityやAuthorityを引き継いだとは扱いません。
+
 ### AI
 
 調査、整理、比較、Method Application、Recommendation、委任された範囲のDecision等を担い得ます。actor種別だけからAuthorityや信頼を推定しません。
@@ -146,8 +185,10 @@ SEIは、次の条件が複数重なるほど価値を出しやすいと考え�
 - 監査、説明責任、再検討、引継ぎが重要である。
 - 実行結果を受けて、前提や判断を更新する循環がある。
 - 「現在は知っているが、当時は知らなかった」ことを取り違えるコストが高い。
+- 弱いsignalや未整理な問いを、後から別のEvidenceと結び付ける価値がある。
+- 一人や一AI sessionで得た認知を、boundedに組織へ引き継ぐ必要がある。
 
-言い換えると、SEIは**判断寿命・文脈変動・再訪頻度・不確実性・誤再構成コスト**が高いほど価値を出しやすい製品です。
+言い換えると、SEIは**判断寿命・文脈変動・再訪頻度・不確実性・誤再構成コスト・認知継承の必要性**が高いほど価値を出しやすい製品です。
 
 ## 8. SEIを第一選択にしなくてもよい場面
 
@@ -158,6 +199,7 @@ SEIは、次の条件が複数重なるほど価値を出しやすいと考え�
 - 既存システムの監査ログだけで必要な説明が十分に成立する。
 - 主目的がworkflow throughputやjob schedulingの最大化である。
 - raw note / chatだけで十分に再開でき、SEIの意味構造が追加負担にしかならない。
+- 弱いsignalを大量に残すことでnoiseが増え、benefitより管理負担が大きくなる。
 
 SEIは、すべての処理を自らの中へ取り込むことを価値としません。
 
@@ -168,12 +210,15 @@ SEIは、すべての処理を自らの中へ取り込むことを価値とし�
 1. **中断や環境変化の後でも、判断の続きを取り戻せること。**
 2. **判断の文脈を失いにくく、過去と現在を取り違えにくいこと。**
 3. **不確実性や異論を都合よく消さないこと。**
-4. **AI・人間・Providerの役割を必要な粒度で読み分けられること。**
-5. **手段を交換しても耐久的な意味を持ち運べること。**
-6. **軽い利用から監査可能な厳密利用へ連続的に深められること。**
-7. **AIが誤ったり利用不能でも、利用者が修正・継続できること。**
+4. **まだ答えになっていない問いや弱いObservationから始められること。**
+5. **AI・人間・Providerの役割を必要な粒度で読み分けられること。**
+6. **手段を交換しても耐久的な意味を持ち運べること。**
+7. **許された範囲で、認知成果を別の人間・AIへ引き継げること。**
+8. **軽い利用から監査可能な厳密利用へ連続的に深められること。**
+9. **AIが誤ったり利用不能でも、利用者が修正・継続できること。**
+10. **支援基盤そのものが、必要以上に利用者の認知帯域を奪わないこと。**
 
-この約束は、単一のUI、API、Storage、AIモデル、workflow engineへ依存させません。
+この約束は、単一のUI、API、Storage、AIモデル、workflow engineへ依存させません。10については現時点でDesign方向であり、actual human reviewによるOutcome Evidenceは未取得です。
 
 ## 10. 価値の測定
 
@@ -187,15 +232,18 @@ Adoption / Outcome Evidenceを収集できる段階では、たとえば次を�
 - RecommendationをDecisionとして誤読する割合・事例。
 - ProviderやAI実装を交換した後も、重要な意味を引き継げたか。
 - Unknown / Conflict / residualを保持したことが、後日の再検討に役立ったか。
+- 弱いObservation / Inquiryを早期に外在化したことが、後日の発見や再判断に役立ったか、それともnoiseを増やしただけか。
 - 人間とAIが同じcanonical dataから、必要な意味を読み取れたか。
+- access boundaryを越えず、別の主体へ必要な認知成果を引き継げたか。
 - 利用者が過剰な入力負担なしに、必要なときだけ詳細化できたか。
 - AI suggestionの修正・却下に必要な負担。
+- suggestion / notification / review UIがtask focusへ与えるattention burden。
 - raw chat / simple note等の妥当な代替と比べ、SEIの追加構造に実質的な価値差があるか。
 - その価値差がcapture / review overheadを上回るか。
 
 初期評価では固定KPI thresholdを先取りしません。量的観測と質的な再開失敗例を組み合わせ、Product hypothesisのどこが成立し、どこが反証されたかを見ます。
 
-ただし、これらを現時点で実証済みとは扱いません。現在はProduct Value / Design baselineであり、実利用者を通したDecision ContinuityのAdoption / Outcome Evidenceは`Not Yet Verified`です。
+ただし、これらを現時点で実証済みとは扱いません。現在はProduct Value / Design baselineであり、実利用者を通したDecision Continuity、latent observation、Quiet Infrastructure、bounded sharingのAdoption / Outcome Evidenceは`Not Yet Verified`です。
 
 ## 11. 関連文書
 
@@ -204,6 +252,8 @@ Adoption / Outcome Evidenceを収集できる段階では、たとえば次を�
 - `SEI_VALUE_ACCEPTANCE.md`
 - `SEI_VALUE_TRACEABILITY.md`
 - `SEI_DECISION_CONTINUITY.md`
+- `SEI_BRAND_WORLD_DISCOVERY_SOURCE.md`
+- `SEI_BRAND_WORLD_PRODUCT_VALUE_REVIEW.md`
 - `../interaction/SEI_FIRST_USABLE_PRODUCT_SLICE.md`
 - `../definition/SEI_PRODUCT_SHAPE.md`
 - `../vision/SEI_PRODUCT_VISION.md`
@@ -211,8 +261,10 @@ Adoption / Outcome Evidenceを収集できる段階では、たとえば次を�
 
 ## 12. Natural Japanese review
 
-current Product Value、V1〜V8、resume-first Product Slice、Decision Continuity synthesis、Product Vision、Progressive Explicitness、Decision / Authority / Execution境界、Provider Independenceへ戻り、既存の意味を利用者から見た価値へ再接続した。
+current Product Value、V1〜V8、resume-first Product Slice、Decision Continuity、ブランド世界のdiscovery source / review、Product Vision、Progressive Explicitness、Decision / Authority / Execution境界、Provider Independenceへ戻り、既存の意味を利用者から見た価値へ再接続した。
 
-従来の「後から判断へ戻れる」を、単なるhistorical reconstructionではなく「中断やAI / Surface変更後にも判断の続きを始められる」価値へ深めた。同時に、速いresumeだけを成功とせず、historical誤帰属、Recommendation / Decision混同、capture overhead、AI correction / degradationまでProduct Value評価へ含めた。
+従来の「後から判断へ戻れる」を維持したまま、SEIをKnowledge完成後の記録基盤に限定せず、「まだ答えになっていない問いや弱いObservationから始められること」と「認知成果を一人・一AI・一Providerの一時状態へ閉じずboundedに引き継げること」を利用者向け価値として追加した。
 
-Decision Continuityを新しいValue AxisやUniversal概念へ追加せず、既存V1〜V8のcross-axis Outcomeとして扱う境界を維持している。自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+また、Quiet Infrastructureを「常に静かなUI」という仕様にはせず、支援が利用者の認知帯域を不用意に奪わないというProduct hypothesisとして明示した。これはまだOutcome Evidenceを持たないため、actual human reviewを待つ。
+
+新しいValue AxisやUniversal概念を追加せず、既存V1〜V8の利用世界として自然な日本語へ統合し、最終意味監査を実施済みである。
