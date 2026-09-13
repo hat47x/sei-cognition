@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hat47x/soza/evaluation/sparse-associative-cognition/prototype-go/sparseassoc"
+	"github.com/hat47x/sei-cognition/evaluation/sparse-associative-cognition/prototype-go/sparseassoc"
 )
 
 const expectedConformanceDigest = "a9a627e3ce3580dab010608efd30d11e84de2c66a39dcb6ff508d793c00260d2"

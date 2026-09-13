@@ -1,5 +1,5 @@
 {
-  "schema": "soza.failure-behavior-case-catalog/v1",
+  "schema": "sei.failure-behavior-case-catalog/v1",
   "scope": "evaluation-only",
   "authority": "non-universal",
   "cases": [

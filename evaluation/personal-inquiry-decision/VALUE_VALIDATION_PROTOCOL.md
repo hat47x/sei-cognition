@@ -23,7 +23,7 @@ PrototypeがContract上正しくても、通常のchat、note、bookmark等よ�
 
 ### H1 — Reorientation Value
 
-数日〜数週間以上空いたInquiryでも、SOZA Profileを使うと、元chatや全sourceを大量に再読せずに現在地へ戻れる。
+数日〜数週間以上空いたInquiryでも、SEI Profileを使うと、元chatや全sourceを大量に再読せずに現在地へ戻れる。
 
 ### H2 — Historical Integrity Value
 
@@ -35,7 +35,7 @@ Decisionへ到達していないopen Inquiryでも、途中状態を保持して
 
 ### H4 — AI Portability Value
 
-特定AI conversationを失っても、canonical SOZA contextから別AI / toolへ続きを渡せる。
+特定AI conversationを失っても、canonical SEI contextから別AI / toolへ続きを渡せる。
 
 ### H5 — Friction Sustainability
 
@@ -53,11 +53,11 @@ AI conversation history、browser history、元資料等だけを残し、別途
 
 利用終了時に、結論または短い自由形式メモだけを残す。
 
-### P1 — SOZA Personal Profile
+### P1 — SEI Personal Profile
 
 Inquiry、重要なObservation / Evidence、Unknown / Conflict、Hypothesis / Recommendation、Decisionがあればそのbasis / unresolved / reopen情報を意味上区別して保持する。
 
-比較の目的は「SOZAが必ず勝つ」ことを証明することではない。
+比較の目的は「SEIが必ず勝つ」ことを証明することではない。
 
 B0/B1で十分な領域を明らかにすることも成果とする。
 
@@ -104,7 +104,7 @@ B0 / B1 / P1で類似した題材を扱い、再開時の負担とsemantic integ
 
 ### Stage E3 — Cross-AI / Cross-session Handoff
 
-元conversationを参照できない条件で、SOZA Handoff Projectionだけを別AI / sessionへ渡す。
+元conversationを参照できない条件で、SEI Handoff Projectionだけを別AI / sessionへ渡す。
 
 そのAIが少なくとも次を区別して読み取れるかを確認する。
 
@@ -117,7 +117,7 @@ B0 / B1 / P1で類似した題材を扱い、再開時の負担とsemantic integ
 - later evidence
 - reopen condition
 
-回答品質そのものをSOZAのsemantic correctnessと同一視しない。
+回答品質そのものをSEIのsemantic correctnessと同一視しない。
 
 ### Stage E4 — Voluntary Reuse Signal
 
@@ -229,7 +229,7 @@ Hard Failureがあっても即Product Hypothesis全体を棄却するとは限�
 
 少なくとも一部のreal Inquiryで、B0/B1よりも元chat/sourceの再読が明確に少なく、かつ重要なUnknown / basisをより確実に回収できる。
 
-「全ケースで勝つ」は要求しない。SOZAを使う価値が高い問題領域を発見することを重視する。
+「全ケースで勝つ」は要求しない。SEIを使う価値が高い問題領域を発見することを重視する。
 
 ### Gate G4 — Sustainable Capture
 
@@ -249,7 +249,7 @@ G1〜G5を満たしてもG6が無ければ、semantic technologyとして成立�
 
 ### F1 — Chat summary is enough
 
-B0のbuilt-in chat summary / searchだけで同等以上に再定位でき、SOZA固有semantic separationが実用上ほぼ使われない。
+B0のbuilt-in chat summary / searchだけで同等以上に再定位でき、SEI固有semantic separationが実用上ほぼ使われない。
 
 **Pivot候補:** workspaceを主製品にせず、AI間handoff / historical decision snapshotの薄いlayerへ縮小する。
 
@@ -257,7 +257,7 @@ B0のbuilt-in chat summary / searchだけで同等以上に再定位でき、SOZ
 
 自由形式の短いnoteだけで多くのInquiryが十分再開できる。
 
-**Pivot候補:** SOZAは全Inquiryではなく、Unknown / Conflict / revisionが多い高複雑度Inquiryに対象をさらに絞る。
+**Pivot候補:** SEIは全Inquiryではなく、Unknown / Conflict / revisionが多い高複雑度Inquiryに対象をさらに絞る。
 
 ### F3 — Structured capture is too expensive
 
@@ -298,7 +298,7 @@ local packaging維持が利用負担を増やし、実際にはhosted accessの�
 ```yaml
 inquiry_id: local-eval-id
 category: technical-choice | learning | purchase | planning | research | other
-profile: B0-chat-only | B1-final-note | P1-soza
+profile: B0-chat-only | B1-final-note | P1-sei
 started_at: ...
 reopened_at: ...
 decision_present: true | false

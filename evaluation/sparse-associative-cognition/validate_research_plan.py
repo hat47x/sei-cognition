@@ -9,9 +9,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 PLAN_PATH = ROOT / "evaluation" / "sparse-associative-cognition" / "research_plan.json"
-EXPECTED_SCHEMA = "soza.sparse-associative-cognition-research/v1alpha1"
+EXPECTED_SCHEMA = "sei.sparse-associative-cognition-research/v1alpha1"
 REQUIRED_CASES = {
-    "SAC-01-soza-artifact-method-recall",
+    "SAC-01-sei-artifact-method-recall",
     "SAC-02-grammar-constrained-code-completion",
     "SAC-03-spreadsheet-format-recognition",
     "SAC-04-functional-dependency-testdata",
@@ -19,8 +19,8 @@ REQUIRED_CASES = {
 FORBIDDEN_SEMANTIC_PROMOTIONS = {
     "truth",
     "confidence",
-    "SOZA Unknown",
-    "SOZA Conflict",
+    "SEI Unknown",
+    "SEI Conflict",
     "Recommendation",
     "Decision",
     "Authority",
@@ -166,9 +166,9 @@ def validate_research_plan(plan: dict) -> list[str]:
         if len(ids) != len(cases) or set(ids) != REQUIRED_CASES:
             errors.append("initial_evaluation_cases must contain exactly SAC-01 through SAC-04")
         if not any(
-            isinstance(case, dict) and case.get("domain") == "soza-native" for case in cases
+            isinstance(case, dict) and case.get("domain") == "sei-native" for case in cases
         ):
-            errors.append("initial_evaluation_cases must retain a SOZA-native case")
+            errors.append("initial_evaluation_cases must retain a SEI-native case")
 
     follow_on = plan.get("follow_on_experiments")
     if not isinstance(follow_on, list):

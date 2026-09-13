@@ -1,9 +1,9 @@
 {
-  "schema": "soza.failure-behavior-requirement-audit/v1",
+  "schema": "sei.failure-behavior-requirement-audit/v1",
   "issue": "ISSUE-000072",
   "reviewedAt": "2026-09-10",
   "status": "completed-no-change-at-current-evidence-height",
-  "evidenceHeight": "design-fixture-scoped-go-and-actual-provider-service-observation-with-soza-live-probe-not-executed",
+  "evidenceHeight": "design-fixture-scoped-go-and-actual-provider-service-observation-with-sei-live-probe-not-executed",
   "reviewedRequirements": [
     "REQ-0002",
     "REQ-0006",
@@ -33,7 +33,7 @@
     "REQ-0020 already forbids promoting fixture or executable evidence into Operational or Adoption / Outcome claims.",
     "SCN-0011 already covers degraded and unobserved Provider state without flattening it to available / unavailable, while SCN-0010 and SCN-0017 cover verification-state and evidence-height distinctions.",
     "The scoped main-source Go execution strengthened executable evidence for the current failure path, but it used Go 1.23.2 rather than the repository Go 1.25 baseline and was not a full repository checkout.",
-    "An actual GitHub service observation now confirms that the same commit-by-revision endpoint accepts the fixed known revision and rejects a nonexistent revision. The observed GitHub-local status and message remain Provider-local evidence; the SOZA GitHubCommitService negative probe, credential rejection probe and Operational Evidence are still unexecuted. This additional observation does not establish a new Stable Requirement or Universal failure vocabulary."
+    "An actual GitHub service observation now confirms that the same commit-by-revision endpoint accepts the fixed known revision and rejects a nonexistent revision. The observed GitHub-local status and message remain Provider-local evidence; the SEI GitHubCommitService negative probe, credential rejection probe and Operational Evidence are still unexecuted. This additional observation does not establish a new Stable Requirement or Universal failure vocabulary."
   ],
   "currentEvidence": {
     "deterministicFailureCatalog": "verified-fixture-scoped",

@@ -19,9 +19,9 @@ from typing import Callable, Sequence
 
 
 EVALUATION_DIR = Path(__file__).resolve().parent
-SOZA_ROOT = EVALUATION_DIR.parents[1]
-GO_RUNTIME_DIR = SOZA_ROOT / "runtime" / "go"
-RESULT_SCHEMA = "soza.failure-behavior-local-check-result/v1"
+SEI_ROOT = EVALUATION_DIR.parents[1]
+GO_RUNTIME_DIR = SEI_ROOT / "runtime" / "go"
+RESULT_SCHEMA = "sei.failure-behavior-local-check-result/v1"
 DEFAULT_TIMEOUT_SECONDS = 120
 TIMEOUT_EXIT_CODE = 124
 LAUNCH_ERROR_EXIT_CODE = 127
@@ -90,8 +90,10 @@ def configured_checks() -> tuple[Check, ...]:
 
 def sanitized_environment(source: dict[str, str] | None = None) -> dict[str, str]:
     environment = dict(os.environ if source is None else source)
+    # `SOZA_`はADR-0031による改名前の接頭辞である。互換のためではなく、
+    # 手元に残った旧名の秘匿値がchild processへ漏れないよう除去する。
     for key in tuple(environment):
-        if key.startswith("SOZA_") or key.startswith("KJ_ATLAS_"):
+        if key.startswith(("SEI_", "SOZA_", "KJ_ATLAS_")):
             environment.pop(key, None)
 
     for key in (

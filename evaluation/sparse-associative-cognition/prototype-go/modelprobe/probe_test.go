@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hat47x/soza/evaluation/sparse-associative-cognition/prototype-go/cognitiveeval"
+	"github.com/hat47x/sei-cognition/evaluation/sparse-associative-cognition/prototype-go/cognitiveeval"
 )
 
 func fixtureByID(t *testing.T, id string) cognitiveeval.Fixture {

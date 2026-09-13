@@ -21,6 +21,16 @@ FORBIDDEN_SECRET_KEYS = {
 }
 
 
+def legacy_name(name: str) -> str:
+    """ADR-0031の3。改名前に記録されたEvidenceが持つ旧名を返す。
+
+    このEvidenceはADR-0031の4-aによりbyte単位で不変である。当時のprobeは
+    `Soza` / `SOZA`のままclaim keyとstop lineを書いた。読み取り側だけが
+    新旧双方を受け付ける。記録が存在する限り必要な恒久措置である。
+    """
+    return name.replace("Sei", "Soza").replace("SEI", "SOZA")
+
+
 def load_evidence() -> dict:
     return json.loads(EVIDENCE_PATH.read_text(encoding="utf-8"))
 
@@ -74,25 +84,31 @@ class ActualProviderMissingRevisionObservationTest(unittest.TestCase):
         self.assertFalse(evidence["secretHandling"]["credentialMaterialPersisted"])
         self.assertFalse(evidence["secretHandling"]["rawAuthorizationPersisted"])
 
-    def test_provider_service_observation_does_not_claim_soza_integration(self) -> None:
+    def test_provider_service_observation_does_not_claim_sei_integration(self) -> None:
         claims = load_evidence()["claims"]
         self.assertTrue(claims["actualProviderServiceObservation"])
         self.assertTrue(claims["actualProviderServiceMissingRevisionEvidence"])
         for key in (
-            "actualSozaGitHubCommitServiceExecution",
-            "actualSozaLiveFailureRunnerExecution",
+            "actualSeiGitHubCommitServiceExecution",
+            "actualSeiLiveFailureRunnerExecution",
             "credentialRejectionEvidence",
             "actualProviderIntegrationFailureEvidence",
             "actualDeploymentFailureEvidence",
             "operationalEvidence",
             "adoptionOutcomeEvidence",
         ):
-            self.assertFalse(claims[key], key)
+            recorded = key if key in claims else legacy_name(key)
+            self.assertIn(recorded, claims, key)
+            self.assertFalse(claims[recorded], key)
 
     def test_stop_line_keeps_higher_evidence_separate(self) -> None:
         stop_line = load_evidence()["stopLine"]
         self.assertIn("missing-revision rejection observed", stop_line)
-        self.assertIn("SOZA GitHubCommitService negative probe executed", stop_line)
+        probe_claim = "SEI GitHubCommitService negative probe executed"
+        self.assertTrue(
+            probe_claim in stop_line or legacy_name(probe_claim) in stop_line,
+            stop_line,
+        )
         self.assertIn("Operational Evidence", stop_line)
 
 

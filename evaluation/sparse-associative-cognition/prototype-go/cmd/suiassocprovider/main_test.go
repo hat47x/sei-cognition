@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hat47x/soza/evaluation/sparse-associative-cognition/prototype-go/suiassocprovider"
+	"github.com/hat47x/sei-cognition/evaluation/sparse-associative-cognition/prototype-go/suiassocprovider"
 )
 
 func validRequestJSON(t *testing.T) []byte {

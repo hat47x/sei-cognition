@@ -19,7 +19,7 @@ from typing import Callable
 
 from validate_failure_behavior_case_catalog import validate_catalog
 
-REPORT_SCHEMA = "soza.failure-behavior-probe-report/v1"
+REPORT_SCHEMA = "sei.failure-behavior-probe-report/v1"
 CATALOG_PATH = Path(__file__).with_name("case_catalog.json")
 TEST_SECRET = "EVALUATION_ONLY_TEST_SECRET"
 
@@ -214,7 +214,7 @@ def run_probe() -> dict:
     catalog = _load_catalog()
     catalog_by_id = {case["caseId"]: case for case in catalog["cases"]}
 
-    with tempfile.TemporaryDirectory(prefix="soza-failure-probe-") as temp_dir:
+    with tempfile.TemporaryDirectory(prefix="sei-failure-probe-") as temp_dir:
         workdir = Path(temp_dir)
         probes: list[Callable[[], dict]] = [
             probe_transport_timeout,

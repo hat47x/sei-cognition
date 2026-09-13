@@ -178,7 +178,7 @@ binary digestやbuild manifestはEvidence / provenanceの実現手段であり�
 - Release Evidence: **available（ISSUE-000063 / v0.2.0、supported scopeはE3aまで）**
 - Adoption / Outcome Evidence: **Not Yet Verified**
 
-ISSUE-000065はrevision Aのfixed-artifactについてactual binary SHA-256とProvider Plan SHA-256を個別のEvidence文書へ記録したが、`runtime/go/teiprobe` / `tei-e3b-probe` / `soza.e3b-tei-probe/v1`として再利用可能なEvidence採取プロトコルと、build manifestによるsource-to-binary bindingは実装していない。本Issueが未完了として残るのはこの範囲である。
+ISSUE-000065はrevision Aのfixed-artifactについてactual binary SHA-256とProvider Plan SHA-256を個別のEvidence文書へ記録したが、`runtime/go/teiprobe` / `tei-e3b-probe` / `sei.e3b-tei-probe/v1`として再利用可能なEvidence採取プロトコルと、build manifestによるsource-to-binary bindingは実装していない。本Issueが未完了として残るのはこの範囲である。
 
 ## Reopen / escalation条件
 

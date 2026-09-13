@@ -1,5 +1,5 @@
 {
-  "schema": "soza.sparse-associative-cognition-research/v1alpha1",
+  "schema": "sei.sparse-associative-cognition-research/v1alpha1",
   "status": "evaluation-only",
   "date": "2026-09-12",
   "root_intent": {
@@ -19,7 +19,7 @@
     ]
   },
   "placement_policy": {
-    "semantic_owner": "SEI Cognition direction / current SOZA repository owns reusable sparse-associative primitives and their evaluation boundary.",
+    "semantic_owner": "SEI Cognition direction / current SEI repository owns reusable sparse-associative primitives and their evaluation boundary.",
     "caller_owner": "SUI Sensemaking owns affinity-diagram-specific feature projection, candidate interpretation, preservation rules, benchmark and human-review boundary.",
     "ownership_is_deployment": false,
     "network_service_required": false,
@@ -176,8 +176,8 @@
   "semantic_stop_lines": [
     "candidate_activation != truth",
     "candidate_activation != confidence",
-    "novelty_signal != SOZA Unknown",
-    "competition_state != SOZA Conflict",
+    "novelty_signal != SEI Unknown",
+    "competition_state != SEI Conflict",
     "candidate_refs != Recommendation",
     "candidate_refs != Decision",
     "candidate_refs != Authority",
@@ -204,8 +204,8 @@
   },
   "initial_evaluation_cases": [
     {
-      "id": "SAC-01-soza-artifact-method-recall",
-      "domain": "soza-native",
+      "id": "SAC-01-sei-artifact-method-recall",
+      "domain": "sei-native",
       "goal": "Inquiry文脈の構造化特徴から関連Method、過去Application、Artifact候補を想起する。",
       "focus": ["candidate recall", "novelty abstention", "small perturbation stability"]
     },
@@ -385,7 +385,7 @@
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
-      "SOZA-native taskでのretrieval品質",
+      "SEI-native taskでのretrieval品質",
       "SUI Sensemaking親和図法での深層意味候補品質",
       "input normalizationの有効性",
       "localized competitionの有効性",

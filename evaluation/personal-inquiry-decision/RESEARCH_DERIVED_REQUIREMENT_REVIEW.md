@@ -10,9 +10,9 @@
 
 目的は`PIC-*`を増やすことではなく、次を明確にすることである。
 
-- 何がSOZAの差別化価値に直接効くか
+- 何がSEIの差別化価値に直接効くか
 - 何が既存製品でも一般化しておりtable stakesか
-- 何がSOZAの既存Stable Requirementで既に守られているか
+- 何がSEIの既存Stable Requirementで既に守られているか
 - 何をfirst dogfoodで反証可能にすべきか
 - 何をまだStable Requirementへ昇格しないか
 
@@ -27,7 +27,7 @@ first product hypothesisは次とする。
 `Epistemic Resume Layer`は仮称であり、Product NameやUniversal Semantic Conceptではない。
 
 ```text
-SOZA personal wedge
+SEI personal wedge
   != generic note store
   != generic semantic search
   != generic chat memory
@@ -50,13 +50,13 @@ SOZA personal wedge
 - note / Markdown
 - external PKM
 
-SOZAがsource本体を複製・所有しなければ成立しない設計にしない。
+SEIがsource本体を複製・所有しなければ成立しない設計にしない。
 
 必要な場合はraw source snapshotやportable copyを保持できるが、first prototypeをgeneral-purpose document repositoryへしない。
 
 ### 3.2 Meaning Plane
 
-SOZAがdurableに守る対象。
+SEIがdurableに守る対象。
 
 - Inquiry context
 - Observation / Evidence / Interpretation
@@ -68,7 +68,7 @@ SOZAがdurableに守る対象。
 - residual / reopen information
 - provenance / temporal lineage
 
-ここがSOZA Product Valueの中心である。
+ここがSEI Product Valueの中心である。
 
 ### 3.3 Resume Plane
 
@@ -99,7 +99,7 @@ Source availability != semantic truth
 
 ### 4.1 保存容量・文書管理
 
-成熟したPKM / workspace製品が強い。SOZAが全文書管理を再実装する理由は弱い。
+成熟したPKM / workspace製品が強い。SEIが全文書管理を再実装する理由は弱い。
 
 ### 4.2 generic semantic search
 
@@ -111,7 +111,7 @@ Source availability != semantic truth
 
 ### 4.4 generic long-term AI memory
 
-モデルへ次のconversation contextを供給するmemory最適化と、SOZAのdurable semantic historyは目的が異なる。
+モデルへ次のconversation contextを供給するmemory最適化と、SEIのdurable semantic historyは目的が異なる。
 
 ### 4.5 local/offlineそのもの
 
@@ -271,7 +271,7 @@ current REQ-0002 / REQ-0014等から意味上は導けるため、まずAcceptan
 
 local-first / user ownership研究から重要性は支持される。
 
-しかしこれはPersonal ProfileだけでなくSOZA Product Security / Privacy全体の問題である。別IssueでProduct-level Requirementとして扱うべきである。
+しかしこれはPersonal ProfileだけでなくSEI Product Security / Privacy全体の問題である。別IssueでProduct-level Requirementとして扱うべきである。
 
 ### Gap C — AI semantic candidate boundary
 

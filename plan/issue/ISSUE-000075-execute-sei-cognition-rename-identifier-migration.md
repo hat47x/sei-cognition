@@ -1,9 +1,9 @@
 # ISSUE-000075: SEI Cognitionへの改名とidentifier移行を実施する
 
-Status: **Open**  
+Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0003, ADR-0021, ADR-0031**  
-Updated: 2026-09-11
+Updated: 2026-09-13
 
 ## Goal
 
@@ -68,7 +68,14 @@ runtime/go/cmd/soza-*                    3
 
 **2: ADR-0031への参照で足りるとし、READMEからその参照を張る。** 旧repository URLはGitHubのrepository renameによるredirectで解決します。別fileの注記を置くとADR-0031のmapping tableと二重の正本ができます。ただし`evaluation/`については、`historical/`配下をbyte単位で不変とする境界を領域内で明示する価値があるため、`evaluation/HISTORICAL_SCHEMA_IDENTITY_MAPPING.md`を置きました。ADR-0031の適用範囲を具体化するものであり、権威はADR-0031にあります。
 
-**3: 未確認。** `hat47x/tei-platform`はcurrent treeに存在せず、このrepositoryからは確認できません。ADR-0014が定めるとおりSEIとTEIはProduct Boundaryを分離しており、`SOZA_TEI_*`はSEI側がTEIを呼ぶときに読む変数であってTEI自身の設定面ではない、という前提で改名しました。この前提が誤りであれば、TEI連携のlive testが環境変数を受け取れなくなります。本IssueをResolvedにする前にTEI側での確認が必要です。
+**3: 確認済み。前提は正しい。** 2026-09-13に`hat47x/tei-platform`をlocalで参照できるようになったため実測しました。TEI側のtreeには`SOZA_`で始まる環境変数の参照が1件もありません。`SOZA_TEI_*`はSEI側がTEIを呼ぶときに読む変数であり、TEI自身の設定面ではないという前提は成立しています。したがって`SEI_TEI_*`への改名でTEI側が壊れることはありません。
+
+TEI側に残る`soza`は次の2件で、いずれも環境変数ではなくTEIが所有する記述です。SEI側の改名では扱いません。
+
+- `.github/workflows/soza-e3b-p2-evidence.yml` — 当時のE3b-P2 Evidence採取workflow。`tei.soza-e3b-p2-evidence/v1`というTEI名前空間のschemaと、`evidence/soza-e3b-p2-version-exchange-2026-09-05`というhistorical tag triggerを持ちます。
+- `plan/DERIVED_COGNITIVE_REQUIREMENT_DRAFT_2026-09.md` — 「SOZA系の認知・判断境界から取り込むもの」という散文。
+
+これらの改名可否はTEI側のADR / Issueで判断します。ADR-0031のmapping tableは、TEI側がSEI Cognitionのidentityを参照するときの解決手段として利用できます。
 
 ### 本Issue自身の扱い
 
@@ -154,6 +161,38 @@ Design Evidence
 - Questions 1〜3に結論が出ており、その結論が成果物へ反映されている。
 
 ResolvedはRelease / Operational / Adoption / Outcomeの成立を意味しません。
+
+### 成立した結論 (2026-09-13)
+
+Phase 1〜4を完了しました。改名はcurrent tree全体へ適用され、記録済みEvidenceは不変のまま残っています。
+
+実際に成立した内容:
+
+- portable Semantic Contract 5件、Representation Profile 2件、runtime verifier reference 2件を`v1alpha1`のまま`sei.*`へ改めた。
+- Go moduleを2つとも`github.com/hat47x/sei-cognition/...`へ改め、`runtime/go/cmd/sei-*`へ追随させた。
+- 環境変数約52種とCLI flagを`SEI_*` / `--sei-*`へ一斉に切り替えた。互換aliasは設けていない。
+- 製品名の散文表記、日本語名`井`、`SEI_`接頭辞の文書23件へ反映した。
+- 記録済みEvidenceを読む側へ双方向受理を実装した。`tools/check_release_candidate.py`、`tools/prepare_v0_2_0_release.py`、`evaluation/method-quality/validate_case_catalog.py`、`evaluation/failure-behavior/test_actual_provider_missing_revision_observation.py`、`runtime/integration/`の5件が対象。
+- 2026-09-12にmain branchから合流した`evaluation/failure-behavior/`、`evaluation/personal-inquiry-decision/`、`evaluation/sparse-associative-cognition/`、`evaluation/sei-cognition-orchestration/`等へも同じ規則を適用した。
+
+確認できたEvidenceの高さ:
+
+```text
+Executable Evidence (fixture / test / checker scoped)
+  != Release Evidence
+  != Operational Evidence
+  != Adoption / Outcome Evidence
+```
+
+- `go build ./...`が2 moduleとも成功。`go test ./...`の失敗集合はdevelop/v0.2.0およびmainと一致し、改名由来の新規failureはない。
+- python test 736件で改名前後の失敗集合を比較し、新規failureなし。
+- `check_plan_registry` / `check_document_review_registry` / `check_requirements_registry` / `check_github_actions_disabled` / `check_contract_conformance` / `check_representation_profiles` / `check_release_candidate` (v0.1.0, v0.2.0) がすべてPASS。
+- ADR-0031の4-a対象118 fileがdigest一致。4-b対象の`soza`記述も一致。
+
+意図的に残した未完了事項:
+
+- `runtime/go`の既存failure 3件（`externalintegration`のGit blob SHA-1 pin不一致2件、`teiintegration`のProvider Plan SHA-256不一致、`livemethodintegration`の`runtimeExchangeKJAtlasDirEnv`未定義によるtest build不能）は改名前から存在し、本Issueの範囲外です。
+- TEI側の`.github/workflows/soza-e3b-p2-evidence.yml`と`plan/DERIVED_COGNITIVE_REQUIREMENT_DRAFT_2026-09.md`に残る`soza`は、TEIが所有する記述のためTEI側で判断します。
 
 ## Reopen conditions
 

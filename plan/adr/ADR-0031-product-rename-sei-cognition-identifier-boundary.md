@@ -2,7 +2,7 @@
 
 Status: **Accepted**  
 Related Issue: **ISSUE-000075**  
-Updated: 2026-09-11
+Updated: 2026-09-13
 
 ## Context
 
@@ -141,20 +141,29 @@ readerが受け付けるidentity  = sei.* および soza.*
 evaluation/method-quality/historical/
 runtime/evidence/
 release/
+evaluation/failure-behavior/actual_provider_missing_revision_observation_20260910.json
+evaluation/failure-behavior/scoped_go_failure_execution_20260910.json
+evaluation/sparse-associative-cognition/sui_provider_cli_evidence_2026-09-12.json
+evaluation/sparse-associative-cognition/sui_associative_conformance_evidence_2026-09-12.json
 ```
 
 これらは、過去のrunが実際に出力したmachine-readable recordか、その内容をdigestで拘束したmanifestです。`evaluation/method-quality/historical/M1B-RUN-33596839607/review-manifest.json`は、`soza`文字列を含むfileのsha256を記録しているため、内容を書き換えた瞬間にEvidenceが自壊します。
 
+後半4件は、2026-09-12にmain branchから合流した`evaluation/`配下の記録です。いずれも`observedAt` / `recordedAt` / `date`と、当時のcommitやcanonical digestを持ちます。schema identityは当時のまま`soza.*`で残ります。これらを読むtoolは、3の規則に従って新旧双方を受け付けます。
+
 #### 4-b. 過去の観測記述として`soza`を残すもの
 
-日付を持つEvidence / audit / runbook / delta文書 **30件**では、`soza`を含む記述を変更しません。
+日付を持つEvidence / audit / runbook / delta文書 **31件**では、`soza`を含む記述を変更しません。
 
 ```text
 contracts/CONFORMANCE_EVIDENCE_2026-08-31.md
 contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md
 runtime/*_2026-*.md
 runtime/integration/RUNTIME_VERSION_EXCHANGE_RECOVERED_EVIDENCE_2026-09-05.md
+evaluation/sparse-associative-cognition/EXECUTION_EVIDENCE_2026-09-12.md
 ```
+
+最後の1件は2026-09-12にmain branchから合流した実行記録で、当時の`go test`出力をそのまま貼り付けています。出力中のmodule pathは当時の`github.com/hat47x/soza/...`です。
 
 これらの文書に現れる`soza`は二種類あり、いずれも過去の事実です。
 
@@ -186,6 +195,13 @@ github.com/hat47x/soza/runtime/go → github.com/hat47x/sei-cognition/runtime/go
 ```
 
 `runtime/go/cmd/soza-package-probe`、`soza-reference-method`、`soza-reference-provider`も追随します。
+
+2026-09-12にmain branchから合流した2つ目のGo moduleも同じ規則で改めます。
+
+```text
+github.com/hat47x/soza/evaluation/sparse-associative-cognition/prototype-go
+  → github.com/hat47x/sei-cognition/evaluation/sparse-associative-cognition/prototype-go
+```
 
 記録済みEvidence文書に書かれた旧repository URLは、上記4の規則により変更しません。GitHubのrepository renameによるredirectと、本ADRのmapping tableで解決します。
 

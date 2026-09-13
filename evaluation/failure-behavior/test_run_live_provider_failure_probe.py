@@ -25,7 +25,7 @@ def go_event(action: str, test: str) -> str:
         {
             "Time": "2026-09-10T00:00:00Z",
             "Action": action,
-            "Package": "github.com/hat47x/soza/runtime/go/liveintegration",
+            "Package": "github.com/hat47x/sei-cognition/runtime/go/liveintegration",
             "Test": test,
         }
     )
@@ -49,8 +49,8 @@ class LiveProviderFailureRunnerTest(unittest.TestCase):
         environment = sanitized_live_environment(
             {
                 "PATH": "/bin",
-                "SOZA_E3B_FAILURE_LIVE": "old",
-                "SOZA_LIVE_PROVIDER_TOKEN": "real-secret-token",
+                "SEI_E3B_FAILURE_LIVE": "old",
+                "SEI_LIVE_PROVIDER_TOKEN": "real-secret-token",
                 "GITHUB_TOKEN": "github-secret",
                 "GH_TOKEN": "gh-secret",
                 "KJ_ATLAS_DATABASE_URL": "secret-db",
@@ -60,7 +60,7 @@ class LiveProviderFailureRunnerTest(unittest.TestCase):
         self.assertEqual(environment["PATH"], "/bin")
         self.assertEqual(environment[LIVE_FLAG], "1")
         for removed in (
-            "SOZA_LIVE_PROVIDER_TOKEN",
+            "SEI_LIVE_PROVIDER_TOKEN",
             "GITHUB_TOKEN",
             "GH_TOKEN",
             "KJ_ATLAS_DATABASE_URL",
@@ -120,7 +120,7 @@ class LiveProviderFailureRunnerTest(unittest.TestCase):
     def test_run_live_probe_accepts_only_complete_go_test_evidence(self) -> None:
         def runner(command, *, cwd, env, timeout):
             self.assertEqual(env[LIVE_FLAG], "1")
-            self.assertNotIn("SOZA_LIVE_PROVIDER_TOKEN", env)
+            self.assertNotIn("SEI_LIVE_PROVIDER_TOKEN", env)
             return subprocess.CompletedProcess(
                 command,
                 0,

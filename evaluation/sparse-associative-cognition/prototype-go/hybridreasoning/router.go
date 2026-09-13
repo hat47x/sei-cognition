@@ -1,7 +1,7 @@
 // Package hybridreasoning defines evaluation-only routing and bounded working
 // sets for combining sparse-associative recall with a lightweight local SLM.
 // It does not invoke a model and does not grant generated output canonical
-// SOZA authority.
+// SEI authority.
 package hybridreasoning
 
 import (
@@ -166,7 +166,7 @@ func BuildWorkingSet(inquiry, task string, candidates []Candidate, unresolved []
 	}
 
 	return WorkingSet{
-		Schema: "soza.local-reasoning-working-set/v0", Status: "evaluation-only",
+		Schema: "sei.local-reasoning-working-set/v0", Status: "evaluation-only",
 		Task: task, Inquiry: clipString(inquiry, maxTextChars),
 		SemanticBoundary: SemanticBoundary{
 			OutputIsProposalOnly: true,

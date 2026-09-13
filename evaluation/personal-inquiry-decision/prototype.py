@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Evaluation-only prototype for the Personal Inquiry / Decision Workspace.
 
-This module is not a Universal SOZA Contract and does not define a production
+This module is not a Universal SEI Contract and does not define a production
 workflow. It exercises a minimal individual reorientation value slice using
-concepts already present in the current SOZA semantics.
+concepts already present in the current SEI semantics.
 """
 
 from __future__ import annotations

@@ -2,7 +2,7 @@
 """Evaluation-only Personal Inquiry Continuity dogfood core.
 
 This module exercises a local Source / Meaning / Resume slice. It is not a
-Universal SOZA Contract, a supported production storage format, or a workflow
+Universal SEI Contract, a supported production storage format, or a workflow
 state machine.
 """
 
@@ -14,7 +14,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-SCHEMA = "soza.personal-inquiry-continuity-dogfood/v0"
+SCHEMA = "sei.personal-inquiry-continuity-dogfood/v0"
 RECORD_KINDS = {"observation", "unknown", "conflict", "hypothesis", "recommendation"}
 
 
@@ -274,7 +274,7 @@ def orientation_projection(state: dict[str, Any]) -> dict[str, Any]:
     decision_time = None if decision is None else decision["decided_at"]
 
     return {
-        "projection": "soza-orientation/v0",
+        "projection": "sei-orientation/v0",
         "inquiry": copy.deepcopy(state["inquiry"]),
         "current_observations_and_hypotheses": current,
         "current_unresolved": unresolved,
@@ -321,7 +321,7 @@ def handoff_projection(state: dict[str, Any]) -> dict[str, Any]:
     """Generate a structured portable AI/tool handoff projection."""
     orientation = orientation_projection(state)
     return {
-        "projection": "soza-handoff/v0",
+        "projection": "sei-handoff/v0",
         "inquiry": orientation["inquiry"],
         "observations_and_hypotheses": orientation[
             "current_observations_and_hypotheses"

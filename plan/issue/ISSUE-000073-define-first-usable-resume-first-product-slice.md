@@ -21,11 +21,11 @@ PMS-03の「first usable Product Interaction」を、意味境界のreference pr
 - どの条件でreview / reopenすべきか。
 - 次に確認する価値が高いものは何か。
 
-Design baselineを整えただけではResolvedにしない。canonical-only resume、AI suggestionのprovisional境界、意味変更preview、AI unavailable時のgraceful degradation、stale write / partial commitのfailure behaviorをprototypeで検査する。さらにhuman reviewでは、SOZAだけを評価するのではなく、raw chat / chronological note等の単純な代替手段との比較を行い、**SOZAの追加構造が本当に再構成負担・誤帰属・AI correction負担を減らし、その価値がcapture / review overheadを上回るか**を確認する。
+Design baselineを整えただけではResolvedにしない。canonical-only resume、AI suggestionのprovisional境界、意味変更preview、AI unavailable時のgraceful degradation、stale write / partial commitのfailure behaviorをprototypeで検査する。さらにhuman reviewでは、SEIだけを評価するのではなく、raw chat / chronological note等の単純な代替手段との比較を行い、**SEIの追加構造が本当に再構成負担・誤帰属・AI correction負担を減らし、その価値がcapture / review overheadを上回るか**を確認する。
 
 ## Background
 
-SOZAはV1 Historical Reconstruction、V2 Semantic Separation、V3 Revision Integrity、V5 Uncertainty Preservation、V6 Human / AI Readability、V7 Progressive Explicitnessを持ち、V4 Provider IndependenceとV8 Execution Independenceによって、技術・Providerが変わっても意味を継続できる方向を定めている。
+SEIはV1 Historical Reconstruction、V2 Semantic Separation、V3 Revision Integrity、V5 Uncertainty Preservation、V6 Human / AI Readability、V7 Progressive Explicitnessを持ち、V4 Provider IndependenceとV8 Execution Independenceによって、技術・Providerが変わっても意味を継続できる方向を定めている。
 
 REQ-0001 / 0005 / 0006 / 0010 / 0011 / 0014 / 0019、SCN-0003 / 0013 / 0016 / 0018は、判断の再構成、Projection非権威性、残差からの再開、人間とAIの同一canonical meaning利用を既に要求している。
 
@@ -35,7 +35,7 @@ ADR-0028ではProduct Interactionをcanonical meaning上の論理操作境界と
 
 ### Product Value上の追加整理
 
-resume-firstを単なるUI方針として扱うと、SOZAの価値を狭める。Product Value側では、次をDecision Continuityとして整理した。
+resume-firstを単なるUI方針として扱うと、SEIの価値を狭める。Product Value側では、次をDecision Continuityとして整理した。
 
 ```text
 Decision Continuity
@@ -52,11 +52,11 @@ Decision ContinuityはV9ではない。V1〜V8が利用者の一つの仕事で�
 
 中断・task resumption研究では、再開時にtask goalやcontext cueを再活性化すること、長い中断ではworking memoryだけでなくcontext reconstructionが重要になることが報告されている。またcognitive offloading研究では、外部記憶が認知負荷を下げる一方、offload先を失うと性能低下が起こり得ることが整理されている。Human-AI Interaction研究では、AIの誤りを容易にdismiss / correctできること、uncertain時にgracefully degradeすることが重要とされる。
 
-これらをSOZA Requirementへ直接輸入しない。SOZAでは次のProduct hypothesisを選ぶためのResearch Evidenceとして扱い、actual prototype / human reviewで再検証する。
+これらをSEI Requirementへ直接輸入しない。SEIでは次のProduct hypothesisを選ぶためのResearch Evidenceとして扱い、actual prototype / human reviewで再検証する。
 
 ```text
 Research Evidence
-  != SOZA Product Evidence
+  != SEI Product Evidence
 ```
 
 ### 現状のまま実装した場合の主要failure
@@ -72,14 +72,14 @@ Research Evidence
 9. semantic integrityは高いが入力・review負担が大きく、利用者が継続利用しない。
 10. raw chat / simple noteと比べても再開品質に実質的な差がなく、追加構造だけが増える。
 
-9と10もProduct failure候補として扱う。SOZAのsemantic structure自体をProduct Valueの証明にしない。
+9と10もProduct failure候補として扱う。SEIのsemantic structure自体をProduct Valueの証明にしない。
 
 ## Product hypothesis
 
-SOZAの最初の強いProduct Experienceは「たくさんの構造化recordを作れること」ではなく、**文脈を失った後でも、判断仕事の現在地と変化を正しく再構成し、必要な次の一手へ戻れること**に置く。
+SEIの最初の強いProduct Experienceは「たくさんの構造化recordを作れること」ではなく、**文脈を失った後でも、判断仕事の現在地と変化を正しく再構成し、必要な次の一手へ戻れること**に置く。
 
 ```text
-SOZA first useful value
+SEI first useful value
   = Decision Continuity
   = resume a decision context with meaning intact
   != semantic schema editor
@@ -89,7 +89,7 @@ SOZA first useful value
 
 最初のsliceはLocal Single-Node Package上のsingle-user利用を想定する。これは将来のteam / hosted利用を否定するものではなく、PMS-03の体験品質を最小deployment条件で切り出すためのProduct Sliceである。
 
-Product Valueとして成立するには、SOZA内でresumeできるだけでは不十分である。妥当な単純代替に対して、少なくとも重要な誤り・負担の一つを実質的に減らし、その効果がcapture / review overheadを相殺する必要がある。
+Product Valueとして成立するには、SEI内でresumeできるだけでは不十分である。妥当な単純代替に対して、少なくとも重要な誤り・負担の一つを実質的に減らし、その効果がcapture / review overheadを相殺する必要がある。
 
 ## Candidate requirements
 
@@ -159,7 +159,7 @@ external AIへ渡すcanonical contextは、Interaction側が選択した必要�
 7. AIが使えない状態でも成立すべき最低限のProduct Interactionはどこまでか。
 8. first human-facing prototypeをlocal browser UI等で実装する場合、その選択をProduct Requirementへ焼き付けずにhuman reviewを行えるか。
 9. existing REQ / SCNの組み合わせでCandidate Requirementを十分表現できるか。独立したProduct failureが見つかるのはどこか。
-10. raw chat / chronological note等の単純な外部記憶と比較したとき、SOZA固有の価値差はどこにあり、その差はcapture / review負担を上回るか。
+10. raw chat / chronological note等の単純な外部記憶と比較したとき、SEI固有の価値差はどこにあり、その差はcapture / review負担を上回るか。
 
 ## Constraints
 
@@ -175,7 +175,7 @@ external AIへ渡すcanonical contextは、Interaction側が選択した必要�
 - stale-write対策のruntime revisionをSemantic Revisionへ流用しない。
 - local browser、HTTP、MCP、特定AI model等のprototype方式をStable Requirementへ昇格させない。
 - prototype PASSをproduction UX、Operational Evidence、Adoption / Outcome Evidenceへ昇格させない。
-- Research EvidenceをSOZA Product Evidenceへ読み替えない。
+- Research EvidenceをSEI Product Evidenceへ読み替えない。
 - ISSUE-000072のTEI version-exchange Evidenceとは独立して扱う。
 
 ## Required scenarios / experiments
@@ -277,7 +277,7 @@ prototypeを用いて、人間がchat historyや内部schemaの知識なしに�
 
 ```text
 A: raw chat / chronological note等の単純baselineだけから再開
-B: SOZA canonical state + Resume Projectionから再開
+B: SEI canonical state + Resume Projectionから再開
 ```
 
 厳密な被験者実験や統計有意差をfirst iterationの必須条件にはしない。まずpilot比較として、同一または同等の判断素材を使い、どのfailureが実際に減るかを観測する。
@@ -301,13 +301,13 @@ faster resume
   = Product Value improvementではない
 ```
 
-SOZA側で明確な価値差が観測されなくてもFAILを隠さない。raw chat / simple noteで十分である、またはcapture overheadが利益を上回る場合は、Decision Continuity Product hypothesisを弱める・scopeを狭めるEvidenceとして記録する。
+SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw chat / simple noteで十分である、またはcapture overheadが利益を上回る場合は、Decision Continuity Product hypothesisを弱める・scopeを狭めるEvidenceとして記録する。
 
 ## Deliverables
 
-- `product/value/SOZA_DECISION_CONTINUITY.md` — V1〜V8をDecision Continuityへ接続するProduct Value synthesis。
-- `product/interaction/SOZA_FIRST_USABLE_PRODUCT_SLICE.md` — first sliceのProduct Design baseline。
-- `architecture/SOZA_INTERACTION_WORKING_SET_ARCHITECTURE.md` — state authority、resume Projection、semantic commit、AI境界のReference Architecture。
+- `product/value/SEI_DECISION_CONTINUITY.md` — V1〜V8をDecision Continuityへ接続するProduct Value synthesis。
+- `product/interaction/SEI_FIRST_USABLE_PRODUCT_SLICE.md` — first sliceのProduct Design baseline。
+- `architecture/SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md` — state authority、resume Projection、semantic commit、AI境界のReference Architecture。
 - prototype / probe — Local Single-Node上でE1〜E8を再現できる最小実装。
 - human review record — H1のresume usability観測結果。
 - comparative Product Value review — H2のbaseline比較、capture tax、誤帰属、correction負担の観測結果。
@@ -354,8 +354,8 @@ GitHub Actionsを成立条件にしない。repository同梱test、local probe�
 
 Product Value、Decision Continuity synthesis、Value Model V1〜V8、Product Shape、PMS-03、Product Interaction、Packaging、REQ-0001 / 0005 / 0006 / 0010 / 0011 / 0014 / 0019、SCN-0003 / 0013 / 0016 / 0018、ADR-0005 / 0010 / 0028 / 0029を照合した。
 
-従来のIssueは「再開できるUI / prototype」を中心に十分深く設計されていたが、そのままではSOZA自身の仕組みだけを評価する自己完結的な検証になり得た。そこでDecision Continuityをcross-axis Product Outcomeとして上位価値へ接続し、raw chat / chronological note等の単純baselineとのcounterfactual reviewをResolution条件へ追加した。
+従来のIssueは「再開できるUI / prototype」を中心に十分深く設計されていたが、そのままではSEI自身の仕組みだけを評価する自己完結的な検証になり得た。そこでDecision Continuityをcross-axis Product Outcomeとして上位価値へ接続し、raw chat / chronological note等の単純baselineとのcounterfactual reviewをResolution条件へ追加した。
 
-SOZAのsemantic integrityが高いだけではProduct Valueとせず、historical誤帰属、Recommendation / Decision混同、再構成負担を実際に減らし、その利益がcapture / review overheadを上回るかまでを見る。価値差がない結果もProduct hypothesisを修正する正当なEvidenceとして扱う。
+SEIのsemantic integrityが高いだけではProduct Valueとせず、historical誤帰属、Recommendation / Decision混同、再構成負担を実際に減らし、その利益がcapture / review overheadを上回るかまでを見る。価値差がない結果もProduct hypothesisを修正する正当なEvidenceとして扱う。
 
 Candidate Requirementはprototype / human review前にStable化せず、Research EvidenceもProduct Evidenceへ読み替えない。意味、要求強度、留保、Evidenceの高さを固定したうえで自然な日本語として読み直し、最終意味監査を実施した。

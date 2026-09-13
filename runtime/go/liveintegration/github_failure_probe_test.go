@@ -8,15 +8,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hat47x/soza/runtime/go/provideradapter"
+	"github.com/hat47x/sei-cognition/runtime/go/provideradapter"
 )
 
-const failureLiveEnvironment = "SOZA_E3B_FAILURE_LIVE"
+const failureLiveEnvironment = "SEI_E3B_FAILURE_LIVE"
 
 func requireFailureLive(t *testing.T) {
 	t.Helper()
 	if os.Getenv(failureLiveEnvironment) != "1" {
-		t.Skip("set SOZA_E3B_FAILURE_LIVE=1 to call live Provider failure probes")
+		t.Skip("set SEI_E3B_FAILURE_LIVE=1 to call live Provider failure probes")
 	}
 }
 
@@ -66,7 +66,7 @@ func TestLiveGitHubCommitServiceMissingRevisionFailure(t *testing.T) {
 	requireFailureLive(t)
 
 	missingRevision := strings.Repeat("0", 40)
-	service := GitHubCommitService{Token: os.Getenv("SOZA_LIVE_PROVIDER_TOKEN")}
+	service := GitHubCommitService{Token: os.Getenv("SEI_LIVE_PROVIDER_TOKEN")}
 	document, err := service.ObserveCommit(
 		context.Background(),
 		"hat47x/cultural-substrate-weaving",
@@ -89,7 +89,7 @@ func TestLiveGitHubCommitServiceMissingRevisionFailure(t *testing.T) {
 func TestLiveGitHubCommitServiceInvalidCredentialFailure(t *testing.T) {
 	requireFailureLive(t)
 
-	const invalidToken = "soza-intentionally-invalid-credential"
+	const invalidToken = "sei-intentionally-invalid-credential"
 	service := GitHubCommitService{Token: invalidToken}
 	document, err := service.ObserveCommit(
 		context.Background(),
