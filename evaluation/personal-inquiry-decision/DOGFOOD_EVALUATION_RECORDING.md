@@ -70,6 +70,8 @@ sei.personal-inquiry-continuity-evaluation/v0
 
 これはevaluation artifactを見分けるためだけの名前です。
 
+実装言語がPythonであるのは、既存Personal Inquiry Continuity dogfood surfaceと同じevaluation-only prototypeだからです。ADR-0027のproduction runtime language policyを変更しません。
+
 ## 4. 最小の開始方法
 
 P1 SEI caseの例です。
@@ -228,7 +230,7 @@ real Inquiryの本文をrepositoryへcommitする必要はありません。
 - caseを識別できないlocal ID
 - category
 - profile / surface
--中断期間の粗い区分
+- 中断期間の粗い区分
 - 評価観測
 - failureの性質
 - Product判断へ必要な匿名化memo
@@ -259,7 +261,8 @@ ISSUE-000078で必要なのは、新しいschemaを増やすことではなく�
 
 2026-09-14に、repository外のisolated source executionとして次を確認しました。
 
-- `test_dogfood_evaluation.py`相当の5件がPASS。
+- `test_dogfood_evaluation.py`相当の6件がPASS。
+- malformed timestampを拒否することを確認。
 - `init → resume-add → compare`のCLI smoke pathがexit code 0で完走。
 - `compare`がwinnerや単一scoreを生成せず、surface別raw countだけを返すことを確認。
 
