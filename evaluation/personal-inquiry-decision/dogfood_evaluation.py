@@ -25,6 +25,14 @@ SURFACES = {
 }
 TRISTATE = {"pass", "fail", "not-applicable", "not-observed"}
 ATTENTION_LOAD = {"low", "medium", "high", "not-observed"}
+EVIDENCE_ROLES = {"calibration", "resumption", "not-observed"}
+CONTEXT_GAPS = {
+    "same-session",
+    "same-day",
+    "multi-day",
+    "multi-week",
+    "not-observed",
+}
 
 
 class EvaluationRecordError(ValueError):
@@ -112,6 +120,14 @@ def validate_evaluation(record: dict[str, Any]) -> None:
     for item in record.get("resume_observations", []):
         if item.get("surface") not in SURFACES:
             raise EvaluationRecordError(f"invalid surface: {item.get('surface')!r}")
+        if item.get("evidence_role", "not-observed") not in EVIDENCE_ROLES:
+            raise EvaluationRecordError(
+                f"invalid evidence_role: {item.get('evidence_role')!r}"
+            )
+        if item.get("context_gap", "not-observed") not in CONTEXT_GAPS:
+            raise EvaluationRecordError(
+                f"invalid context_gap: {item.get('context_gap')!r}"
+            )
         for field in ("source_reopens", "chat_reopens", "detail_descents"):
             _require_nonnegative_int(item, field)
         for field in (
@@ -148,6 +164,8 @@ def add_resume_observation(
 ) -> dict[str, Any]:
     updated = copy.deepcopy(record)
     item = copy.deepcopy(observation)
+    item.setdefault("evidence_role", "not-observed")
+    item.setdefault("context_gap", "not-observed")
     item.setdefault("source_reopens", 0)
     item.setdefault("chat_reopens", 0)
     item.setdefault("detail_descents", 0)
@@ -167,25 +185,33 @@ def add_resume_observation(
     return updated
 
 
+def _empty_surface_summary() -> dict[str, Any]:
+    return {
+        "attempts": 0,
+        "context_gap_counts": {},
+        "source_reopens": 0,
+        "chat_reopens": 0,
+        "detail_descents": 0,
+        "false_continuity_count": 0,
+        "historical_integrity_failures": 0,
+        "original_concern_loss_count": 0,
+    }
+
+
 def comparison_projection(record: dict[str, Any]) -> dict[str, Any]:
-    """Return a non-scored comparison view; raw observations remain authoritative."""
+    """Return a non-scored comparison view without mixing evidence heights."""
     validate_evaluation(record)
-    by_surface: dict[str, dict[str, Any]] = {}
+    by_evidence_role: dict[str, dict[str, dict[str, Any]]] = {}
     for item in record["resume_observations"]:
+        evidence_role = item.get("evidence_role", "not-observed")
         surface = item["surface"]
-        summary = by_surface.setdefault(
-            surface,
-            {
-                "attempts": 0,
-                "source_reopens": 0,
-                "chat_reopens": 0,
-                "detail_descents": 0,
-                "false_continuity_count": 0,
-                "historical_integrity_failures": 0,
-                "original_concern_loss_count": 0,
-            },
-        )
+        role_group = by_evidence_role.setdefault(evidence_role, {})
+        summary = role_group.setdefault(surface, _empty_surface_summary())
         summary["attempts"] += 1
+        context_gap = item.get("context_gap", "not-observed")
+        summary["context_gap_counts"][context_gap] = (
+            summary["context_gap_counts"].get(context_gap, 0) + 1
+        )
         summary["source_reopens"] += item["source_reopens"]
         summary["chat_reopens"] += item["chat_reopens"]
         summary["detail_descents"] += item["detail_descents"]
@@ -201,10 +227,12 @@ def comparison_projection(record: dict[str, Any]) -> dict[str, Any]:
         "projection": "sei-personal-inquiry-evaluation-comparison/v0",
         "case_id": record["case_id"],
         "profile": record["profile"],
-        "by_surface": by_surface,
+        "by_evidence_role": by_evidence_role,
         "notes": [
+            "calibration and resumption observations are never aggregated together",
+            "context gap remains visible inside each surface summary",
             "no aggregate winner or score is computed",
-            "short-cycle observations are not Adoption / Outcome Evidence",
+            "short-cycle calibration is not long-gap resumption evidence",
             "quiet-first and proactive-first are both falsifiable hypotheses",
         ],
     }

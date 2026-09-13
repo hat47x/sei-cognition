@@ -67,6 +67,22 @@ def build_parser() -> argparse.ArgumentParser:
             "sei-proactive",
         ],
     )
+    p.add_argument(
+        "--evidence-role",
+        default="not-observed",
+        choices=["calibration", "resumption", "not-observed"],
+    )
+    p.add_argument(
+        "--context-gap",
+        default="not-observed",
+        choices=[
+            "same-session",
+            "same-day",
+            "multi-day",
+            "multi-week",
+            "not-observed",
+        ],
+    )
     p.add_argument("--source-reopens", type=int, default=0)
     p.add_argument("--chat-reopens", type=int, default=0)
     p.add_argument("--detail-descents", type=int, default=0)
@@ -134,6 +150,8 @@ def main(argv: list[str] | None = None) -> int:
             "id": args.id,
             "observed_at": args.observed_at,
             "surface": args.surface,
+            "evidence_role": args.evidence_role,
+            "context_gap": args.context_gap,
             "source_reopens": args.source_reopens,
             "chat_reopens": args.chat_reopens,
             "detail_descents": args.detail_descents,

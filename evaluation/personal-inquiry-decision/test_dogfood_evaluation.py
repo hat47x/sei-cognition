@@ -34,8 +34,10 @@ class DogfoodEvaluationTests(unittest.TestCase):
             self.record,
             {
                 "id": "resume-quiet",
-                "observed_at": "2026-09-14T03:40:00+09:00",
+                "observed_at": "2026-09-21T03:40:00+09:00",
                 "surface": "sei-quiet",
+                "evidence_role": "resumption",
+                "context_gap": "multi-day",
                 "original_concern_retention": "pass",
                 "temporal_integrity": "pass",
                 "source_reopens": 1,
@@ -45,8 +47,10 @@ class DogfoodEvaluationTests(unittest.TestCase):
             record,
             {
                 "id": "resume-proactive",
-                "observed_at": "2026-09-14T03:50:00+09:00",
+                "observed_at": "2026-09-21T03:50:00+09:00",
                 "surface": "sei-proactive",
+                "evidence_role": "resumption",
+                "context_gap": "multi-day",
                 "original_concern_retention": "fail",
                 "temporal_integrity": "pass",
                 "source_reopens": 0,
@@ -54,31 +58,91 @@ class DogfoodEvaluationTests(unittest.TestCase):
             },
         )
         view = comparison_projection(record)
-        self.assertEqual(view["by_surface"]["sei-quiet"]["attempts"], 1)
+        resumption = view["by_evidence_role"]["resumption"]
+        self.assertEqual(resumption["sei-quiet"]["attempts"], 1)
         self.assertEqual(
-            view["by_surface"]["sei-proactive"]["original_concern_loss_count"], 1
+            resumption["sei-proactive"]["original_concern_loss_count"], 1
         )
         self.assertNotIn("winner", view)
+
+    def test_calibration_and_resumption_are_not_aggregated(self) -> None:
+        record = add_resume_observation(
+            self.record,
+            {
+                "id": "calibration-1",
+                "observed_at": "2026-09-14T03:40:00+09:00",
+                "surface": "sei-orientation",
+                "evidence_role": "calibration",
+                "context_gap": "same-session",
+                "source_reopens": 0,
+            },
+        )
+        record = add_resume_observation(
+            record,
+            {
+                "id": "resumption-1",
+                "observed_at": "2026-09-21T03:40:00+09:00",
+                "surface": "sei-orientation",
+                "evidence_role": "resumption",
+                "context_gap": "multi-day",
+                "source_reopens": 2,
+            },
+        )
+
+        view = comparison_projection(record)
+        self.assertEqual(
+            view["by_evidence_role"]["calibration"]["sei-orientation"]["attempts"],
+            1,
+        )
+        self.assertEqual(
+            view["by_evidence_role"]["resumption"]["sei-orientation"]["attempts"],
+            1,
+        )
+        self.assertEqual(
+            view["by_evidence_role"]["calibration"]["sei-orientation"][
+                "source_reopens"
+            ],
+            0,
+        )
+        self.assertEqual(
+            view["by_evidence_role"]["resumption"]["sei-orientation"][
+                "source_reopens"
+            ],
+            2,
+        )
+
+    def test_context_gap_remains_visible_in_comparison(self) -> None:
+        record = add_resume_observation(
+            self.record,
+            {
+                "id": "resume-week",
+                "observed_at": "2026-09-28T03:40:00+09:00",
+                "surface": "generic-summary",
+                "evidence_role": "resumption",
+                "context_gap": "multi-week",
+            },
+        )
+        view = comparison_projection(record)
+        summary = view["by_evidence_role"]["resumption"]["generic-summary"]
+        self.assertEqual(summary["context_gap_counts"], {"multi-week": 1})
 
     def test_false_continuity_is_counted_without_score(self) -> None:
         record = add_resume_observation(
             self.record,
             {
                 "id": "resume-1",
-                "observed_at": "2026-09-14T03:40:00+09:00",
+                "observed_at": "2026-09-21T03:40:00+09:00",
                 "surface": "generic-summary",
+                "evidence_role": "resumption",
+                "context_gap": "multi-day",
                 "false_continuity": True,
                 "temporal_integrity": "fail",
             },
         )
         view = comparison_projection(record)
-        self.assertEqual(
-            view["by_surface"]["generic-summary"]["false_continuity_count"], 1
-        )
-        self.assertEqual(
-            view["by_surface"]["generic-summary"]["historical_integrity_failures"],
-            1,
-        )
+        summary = view["by_evidence_role"]["resumption"]["generic-summary"]
+        self.assertEqual(summary["false_continuity_count"], 1)
+        self.assertEqual(summary["historical_integrity_failures"], 1)
 
     def test_capture_burden_is_sidecar_only(self) -> None:
         record = add_capture_observation(
@@ -110,6 +174,28 @@ class DogfoodEvaluationTests(unittest.TestCase):
                     "id": "obs-1",
                     "observed_at": "2026-09-14T03:40:00+09:00",
                     "surface": "sei-orientation",
+                },
+            )
+
+    def test_invalid_evidence_role_and_context_gap_are_rejected(self) -> None:
+        with self.assertRaisesRegex(EvaluationRecordError, "invalid evidence_role"):
+            add_resume_observation(
+                self.record,
+                {
+                    "id": "bad-role",
+                    "observed_at": "2026-09-14T03:40:00+09:00",
+                    "surface": "sei-orientation",
+                    "evidence_role": "outcome",
+                },
+            )
+        with self.assertRaisesRegex(EvaluationRecordError, "invalid context_gap"):
+            add_resume_observation(
+                self.record,
+                {
+                    "id": "bad-gap",
+                    "observed_at": "2026-09-14T03:40:00+09:00",
+                    "surface": "sei-orientation",
+                    "context_gap": "long-enough",
                 },
             )
 
