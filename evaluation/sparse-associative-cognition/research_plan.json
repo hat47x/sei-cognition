@@ -1,8 +1,11 @@
 {
   "schema": "soza.sparse-associative-cognition-research/v1alpha1",
   "status": "evaluation-only",
-  "date": "2026-09-10",
-  "purpose": "LLMとは異なる軽量な認知実行基質として、疎な高次元表現、競合選択、連想想起、新奇性検出を組み合わせた方式がSOZAのCognitive Method Realizationを補助できるかを評価する。",
+  "date": "2026-09-12",
+  "root_intent": {
+    "statement": "生成モデルを常時呼び出さなくても、候補想起、注意配分、近似照合、新奇性検出の一部をCPU上で高速・低メモリ・再現可能に実行し、LLMを本当に必要な処理へ限定する。",
+    "non_goal": "非LLM化それ自体、特定の生物模倣方式の採用、または上位Cognitive Methodや人間判断の置換を目的にしない。"
+  },
   "architectural_position": {
     "classification": "cognitive-realization-support-substrate",
     "is_cognitive_method_definition": false,
@@ -12,21 +15,126 @@
     "is_mandatory_pipeline": false,
     "notes": [
       "この基質はMethodそのものではなく、複数のMethod Realizationから利用し得る実装上の認知プリミティブ群として扱う。",
-      "実装方式が有用でも、その方式名や内部状態をSOZAの耐久的意味へ自動昇格させない。"
+      "実装方式が有用でも、その方式名や内部状態を耐久的意味へ自動昇格させない。"
     ]
   },
+  "placement_policy": {
+    "semantic_owner": "SEI Cognition direction / current SOZA repository owns reusable sparse-associative primitives and their evaluation boundary.",
+    "caller_owner": "SUI Sensemaking owns affinity-diagram-specific feature projection, candidate interpretation, preservation rules, benchmark and human-review boundary.",
+    "ownership_is_deployment": false,
+    "network_service_required": false,
+    "preferred_first_deployment": "in-process or same-host local execution; avoid a mandatory network hop",
+    "reason": "Reusable cognition and product-specific meaning should not be duplicated, while latency-sensitive execution must remain colocatable with the caller."
+  },
   "research_hypothesis": {
-    "statement": "生成モデルを常時呼び出さなくても、構造化特徴を疎な高次元表現へ展開し、局所競合と連想記憶を用いることで、候補想起、注意配分、近似照合、新奇性検出の一部をCPU上で低遅延に実現できる可能性がある。",
+    "statement": "構造化特徴を疎な高次元表現へ展開し、局所競合と連想記憶を用いることで候補想起・新奇性検出を低遅延で実現し、不足する意味近接だけをstatic semantic representation等で補完できる可能性がある。",
     "inspiration": [
       "FlyHash: sparse high-dimensional locality-sensitive hashing inspired by the Drosophila olfactory circuit",
-      "BioHash: data-driven sparse high-dimensional hashing derived from the FlyHash line of work"
+      "BioHash: data-driven sparse high-dimensional hashing derived from the FlyHash line of work",
+      "Drosophila olfactory normalization and mushroom-body inhibitory circuits as engineering references for stable sparse coding",
+      "novelty/familiarity plasticity and compartmental learning as references for temporal attention and outcome-informed adaptation"
     ],
     "not_assumed": [
-      "FlyHashまたはBioHashがSOZAに最適であること",
+      "FlyHashまたはBioHashが最適であること",
       "生物学的忠実性が性能やProduct Valueを保証すること",
+      "ハエの神経回路を再現すれば汎用認知が得られること",
       "非LLM方式だけで高水準の自然言語理解や新規文章生成を代替できること"
     ]
   },
+  "bio_inspired_design_policy": {
+    "principle": "ハエ脳由来という語は、生物学的構造をそのまま模倣することではなく、計算上の役割を抽出して通常の工学baselineと比較可能な仮説へ変換することを意味する。",
+    "biological_fidelity_required": false,
+    "whole_connectome_simulation_required": false,
+    "biology_is_authority": false,
+    "adoption_rule": "生物学的に観測された仕組みであっても、SEI Cognitionの課題に対して既存の単純な方式より品質、計算量、堅牢性、運用性のいずれかを改善するEvidenceが得られなければ採用しない。",
+    "translation_rule": "neural mechanism -> computational role -> minimal engineering candidate -> baseline comparison -> falsification -> adoption or rejection",
+    "evidence_rule": "査読済み研究を主要根拠とし、preprintやconnectomeからの新しい示唆は探索候補として区別する。"
+  },
+  "biological_abstraction_map": [
+    {
+      "id": "input-normalization",
+      "biological_observation": "嗅覚入力では、総入力活動に応じたdivisive normalizationが投射ニューロン応答を調整し、刺激間の応答規模を均す働きが報告されている。",
+      "engineering_abstraction": "疎展開の前に、入力全体またはfeature channelごとの強度差をbounded normalizationし、単純なfeature量や反復数だけでactivationが支配されることを抑える。",
+      "sei_role": "always-on feature preparation / pre-attentive stabilization",
+      "adoption_state": "next-experiment",
+      "risk": "有意な絶対強度まで消してしまう可能性があるため、raw magnitudeを別featureとして保持できる構造にする。"
+    },
+    {
+      "id": "sparse-expansion-wta",
+      "biological_observation": "FlyHash研究では、疎な二値射影、高次元への拡張、winner-take-all型の疎化が類似検索アルゴリズムとして抽象化された。",
+      "engineering_abstraction": "固定seedの疎ランダム展開とk-WTAでcompact sparse signatureを生成する。",
+      "sei_role": "candidate recall / cheap pre-attentive association",
+      "adoption_state": "implemented-evaluation-baseline",
+      "risk": "高次元疎表現だけで深い意味近接を担えるとは仮定しない。"
+    },
+    {
+      "id": "localized-inhibition",
+      "biological_observation": "APLによる抑制はキノコ体全体で一様ではなく局所性を持ち、Kenyon cellの疎な応答形成に寄与することが報告されている。",
+      "engineering_abstraction": "全featureを一つのglobal k-WTAで競わせるだけでなく、lexical、graph、spatial、history等のchannel内またはchannel group内で局所競合させ、最後に少数候補を統合する。",
+      "sei_role": "attention allocation / feature-family competition",
+      "adoption_state": "planned",
+      "risk": "channel分割をdomain ontologyへ固定すると汎用基質を壊すため、channel定義はcaller-ownedのまま保つ。"
+    },
+    {
+      "id": "biased-sparse-projection",
+      "biological_observation": "PN-KC結合は大部分が疎くランダムな一方、食物など生態上重要な入力channelが過剰表現される偏りも観測されている。",
+      "engineering_abstraction": "uniform random projectionを既定値としつつ、callerまたは明示policyが指定したsalience priorだけ、fanoutまたはsampling probabilityを限定的に調整する比較方式を用意する。",
+      "sei_role": "policy-bounded attention prior",
+      "adoption_state": "planned-after-local-inhibition",
+      "risk": "substrate自身が重要性や真偽を学習・決定してはならない。biasはprovenance付きの外部policyとして扱う。"
+    },
+    {
+      "id": "temporal-familiarity",
+      "biological_observation": "新奇な匂いへの強い応答が反復曝露で急速に抑制されるnovelty/familiarity表現が、dopamine依存の可塑性とともに報告されている。",
+      "engineering_abstraction": "内容が安定した反復eventのattention priorityを一時的に減衰させ、意味のある変化、長時間経過、high-stakes条件では即座に復帰させるreversible habituationを評価する。",
+      "sei_role": "always-on event triage / notification suppression / novelty routing",
+      "adoption_state": "planned",
+      "risk": "馴化が変化見逃しを生むことが最大の失敗であり、missed-change rateを独立指標として測る。"
+    },
+    {
+      "id": "homeostatic-sparsity",
+      "biological_observation": "複数connectome比較では、キノコ体の細胞数や絶対入力量が変わっても興奮・抑制比が保たれるfunctional homeostasisのEvidenceが報告されている。",
+      "engineering_abstraction": "dimensionsやdevice capacityが異なっても、固定個数ではなくtarget active fraction、candidate load、latency budget等の不変量を保つadaptive sparsityを比較する。",
+      "sei_role": "wearable / home / workstation間のcapacity scaling",
+      "adoption_state": "deferred-until-multi-profile-evaluation",
+      "risk": "生物学上の比率そのものを設定値として輸入しない。工学的なtargetは実測から決める。"
+    },
+    {
+      "id": "compartmental-outcome-learning",
+      "biological_observation": "キノコ体では区画ごとにdopamineが局所的な可塑性を調節し、短期・長期の記憶単位も相互作用する。",
+      "engineering_abstraction": "成果feedbackはdurable semantic truthを書き換えるのではなく、problem classごとのroute、Method、model、adapter weightの有効性を局所的かつversionedに更新する。",
+      "sei_role": "Cognitive Policy Learning / outcome-informed routing",
+      "adoption_state": "later-sei-orchestration-research",
+      "risk": "意味内容の正しさとroute efficacyを混同すると自己強化的な誤りを生むため、SACS coreではなく上位policy学習へ配置する。"
+    }
+  ],
+  "non_llm_stack": [
+    {
+      "tier": "deterministic-symbolic",
+      "role": "schema、grammar、constraint、Exact Binding等、決定論で判定できる正しさ",
+      "default": true
+    },
+    {
+      "tier": "lexical-sparse",
+      "role": "char n-gram、token、BM25系、feature hashing等の低負荷な表層・局所検索",
+      "default": true
+    },
+    {
+      "tier": "sparse-associative",
+      "role": "疎展開、k-WTA、連想想起、small-set bundle、新奇性検出",
+      "default": true
+    },
+    {
+      "tier": "static-semantic",
+      "role": "Model2Vec / StaticEmbedding / fastText等の非生成・attention-free意味表現をadapterとして利用する候補",
+      "default": false
+    },
+    {
+      "tier": "heavier-local-encoder",
+      "role": "static semanticでも意味品質が不足する場合だけ比較する非生成local encoder",
+      "default": false
+    }
+  ],
   "candidate_primitives": [
     {
       "id": "feature-encoding",
@@ -34,7 +142,7 @@
     },
     {
       "id": "sparse-expansion",
-      "role": "入力特徴をより高次元で疎な内部表現へ展開する。最初の候補は固定seedの疎ランダム射影とする。"
+      "role": "入力特徴をより高次元で疎な内部表現へ展開する。first sliceは固定seedの疎ランダム射影とする。"
     },
     {
       "id": "competitive-selection",
@@ -42,15 +150,19 @@
     },
     {
       "id": "associative-recall",
-      "role": "過去に結び付いたMethod、Artifact、template、構造motif等をactive patternから想起する。"
+      "role": "active patternから関連候補を低負荷に想起する。"
     },
     {
       "id": "novelty-detection",
-      "role": "既存記憶との十分な一致がない入力を、無理に既知候補へ割り当てず新規性候補として扱う。"
+      "role": "十分な一致がない入力を既知候補へ強制せず、新規性候補として扱う。"
+    },
+    {
+      "id": "small-set-bundle",
+      "role": "2〜3入力で共有されるactivationを保持し、pairwise近傍だけではない集合候補の実験に使う。"
     },
     {
       "id": "temporal-modulation",
-      "role": "必要なケースで活性の持続、減衰、habituation相当を評価し、同一候補への固定化を避けられるかを検証する。",
+      "role": "必要なケースで活性の持続、減衰、habituation相当を評価する。",
       "required_in_first_slice": false
     }
   ],
@@ -76,7 +188,7 @@
     "llm_required": false,
     "llm_is_fallback_by_default": false,
     "possible_downstream_roles": [
-      "入力が非構造的で特徴抽出に高度な意味理解が必要な場合の補助",
+      "未構造入力の特徴抽出に高度な意味理解が必要な場合の補助",
       "新しい仮説や文章を生成する必要がある場合の生成",
       "基質が返した候補を人間向けに説明する場合の言語化"
     ],
@@ -94,26 +206,122 @@
     {
       "id": "SAC-01-soza-artifact-method-recall",
       "domain": "soza-native",
-      "goal": "Inquiry文脈の構造化特徴から、関連するCognitive Method Definition、過去Application、Artifact候補を想起する。",
+      "goal": "Inquiry文脈の構造化特徴から関連Method、過去Application、Artifact候補を想起する。",
       "focus": ["candidate recall", "novelty abstention", "small perturbation stability"]
     },
     {
       "id": "SAC-02-grammar-constrained-code-completion",
       "domain": "structured-code",
-      "goal": "局所contextから既知templateや構文motifを高速想起し、最終的な構文妥当性はgrammar/AST側で検証する。",
+      "goal": "局所contextから既知templateや構文motifを高速想起し、最終構文妥当性はgrammar/AST側で検証する。",
       "focus": ["retrieval latency", "recall@k", "grammar separation"]
     },
     {
       "id": "SAC-03-spreadsheet-format-recognition",
       "domain": "two-dimensional-structure",
-      "goal": "規則的なExcel設計書のセル位置、罫線、見出し、反復ブロック等から書式候補を想起し、小さな位置ずれや欠損への耐性を評価する。",
+      "goal": "Excel設計書のセル位置、罫線、見出し、反復ブロック等から書式候補を想起し、小さな位置ずれや欠損への耐性を評価する。",
       "focus": ["perturbation stability", "false activation", "deterministic parser handoff"]
     },
     {
       "id": "SAC-04-functional-dependency-testdata",
       "domain": "constraint-structure",
-      "goal": "項目間の関数従属性や制約clusterから既知の生成motifを想起し、具体値の生成・充足判定はsymbolic/deterministic処理へ委ねる。",
+      "goal": "項目間の関数従属性や制約clusterから既知生成motifを想起し、具体値生成・充足判定はsymbolic/deterministic処理へ委ねる。",
       "focus": ["motif recall", "constraint separation", "novel combination detection"]
+    }
+  ],
+  "follow_on_experiments": [
+    {
+      "stage": "SAC-B0",
+      "name": "current sparse baseline",
+      "depends_on": [],
+      "change": "現行のuniform sparse random expansion + global k-WTAを変更せずbaselineとして固定する。",
+      "primary_question": "後続の生物由来抽象が、単純baselineに対して本当に増分を持つか。",
+      "measures": ["recall_at_k", "false_activation_rate", "p50_latency", "p95_latency", "memory_footprint"]
+    },
+    {
+      "stage": "SAC-B1",
+      "name": "input normalization",
+      "depends_on": ["SAC-B0"],
+      "change": "none / global / per-channel normalizationを同一fixtureで比較する。",
+      "primary_question": "feature数や入力強度の差に対する安定性を改善しつつ、有意な強度情報を失わないか。",
+      "measures": ["amplitude_perturbation_stability", "recall_at_k", "false_activation_rate", "latency_delta"]
+    },
+    {
+      "stage": "SAC-B2",
+      "name": "localized competition",
+      "depends_on": ["SAC-B1"],
+      "change": "global k-WTAとcaller-owned channel単位のlocal k-WTA + mergeを比較する。",
+      "primary_question": "lexical等の一つのfeature familyが他channelを押し流す現象を減らせるか。",
+      "measures": ["channel_domination_rate", "recall_at_k", "false_activation_rate", "memory_footprint", "latency_delta"]
+    },
+    {
+      "stage": "SAC-B3",
+      "name": "policy-bounded biased projection",
+      "depends_on": ["SAC-B2"],
+      "change": "uniform projectionとprovenance付きstatic salience priorによるbounded biasを比較する。",
+      "primary_question": "希少だが重要なfeatureを拾いやすくしつつ、汎用容量と新規性検出を壊さないか。",
+      "measures": ["rare_critical_recall", "common_noise_false_activation", "novelty_abstention_behavior", "capacity_tradeoff"]
+    },
+    {
+      "stage": "SAC-B4",
+      "name": "reversible familiarity modulation",
+      "depends_on": ["SAC-B1"],
+      "change": "stable repeated eventだけattention priorityを減衰させ、content delta / expiry / stakesで即時復帰するtemporal modulationを追加する。",
+      "primary_question": "常時認知における重複escalationを減らしつつ、意味のある変化を見逃さないか。",
+      "measures": ["duplicate_escalation_reduction", "missed_change_rate", "recovery_latency", "state_memory_cost"]
+    },
+    {
+      "stage": "SAC-B5",
+      "name": "learned sparse projection comparison",
+      "depends_on": ["SAC-B2", "SAC-B3"],
+      "change": "uniform random / policy-biased random / BioHash系data-driven projectionを比較する。",
+      "primary_question": "学習型射影の追加複雑性が、静的・ランダム方式では得られない品質増分を生むか。",
+      "entry_gate": "SAC-B0〜B3で意味品質不足が観測され、static semantic adapterだけでは要求を満たせない場合に限る。",
+      "measures": ["recall_at_k", "false_activation_rate", "training_cost", "incremental_update_cost", "drift_sensitivity", "reproducibility"]
+    },
+    {
+      "stage": "SAC-B6",
+      "name": "capacity-homeostatic profiles",
+      "depends_on": ["SAC-B1", "SAC-B2"],
+      "change": "wearable / home / workstation相当のmemory・CPU budgetごとにdimensionsとactive fractionを調整する。",
+      "primary_question": "同一アルゴリズムの固定parameterではなく、認知品質を保つ不変量として疎性を運用できるか。",
+      "measures": ["quality_per_memory", "quality_per_latency", "active_fraction_stability", "profile_degradation_curve"]
+    },
+    {
+      "stage": "SEI-B7",
+      "name": "outcome-informed cognitive policy",
+      "depends_on": ["SAC-B0"],
+      "change": "SACS内部のsemantic stateではなく、上位SEI routerがproblem class別のMethod / model / route efficacyをversionedに更新する。",
+      "primary_question": "結果から学ぶ対象をtruthではなくroute efficacyへ限定することで、安全に認知配分を改善できるか。",
+      "placement": "evaluation/sei-cognition-orchestration side, not SACS core",
+      "measures": ["route_success_rate", "unnecessary_escalation_rate", "regret_against_static_policy", "rollback_reproducibility"]
+    }
+  ],
+  "stage_gate_policy": {
+    "rule": "各段階は前段baselineを置き換える前に、少なくとも一つの対象品質指標で明確な改善を示し、かつ意味上の停止線、latency、memory、再現性の許容範囲を破らないことを確認する。",
+    "no_single_score": true,
+    "rejection_is_valid_completion": true,
+    "production_promotion": "この研究系列だけではproduction採用を決定しない。Product Value、Operational、Adoption / Outcome Evidenceは別途必要とする。"
+  },
+  "deferred_directions": [
+    {
+      "id": "whole-connectome-simulation",
+      "reason": "神経回路全体の生物学的忠実再現は、現在のSEI Cognition課題に対する最小解ではなく、計算量と検証面が過大である。connectome研究は抽象候補を得る資料として利用する。"
+    },
+    {
+      "id": "spiking-neuron-runtime",
+      "reason": "spiking dynamics自体の採用価値は未立証であり、まず通常の疎配列・整数演算で同じ工学目的を検証する。"
+    },
+    {
+      "id": "autonomous-semantic-salience-learning",
+      "reason": "substrateが自律的に重要性・真偽・権威を学ぶとSEIの意味境界を侵食する。salience priorはcaller / policy側が所有する。"
+    },
+    {
+      "id": "mandatory-ann-index",
+      "reason": "現行10,000件規模ではlinear scanが十分低遅延であり、ANNは10万〜100万件級の実測で必要性が現れてから比較する。"
+    },
+    {
+      "id": "direct-biological-parameter-copy",
+      "reason": "Kenyon cell数、fan-in、発火率、興奮抑制比等の生物学的数値を製品parameterへ直接転写しない。工学的budgetとEvidenceから決める。"
     }
   ],
   "comparison_baselines": [
@@ -122,12 +330,21 @@
       "role": "完全一致、明示index、規則ベースlookupで解ける範囲の下限・対照"
     },
     {
+      "id": "lexical-sparse",
+      "role": "char n-gram / token / BM25系の低負荷baseline"
+    },
+    {
       "id": "sparse-random-expansion-kwta",
-      "role": "FlyHash系の固定seed疎展開とk-WTAを用いる最小候補"
+      "role": "固定seed疎展開とk-WTAを用いるfirst executable candidate"
+    },
+    {
+      "id": "static-semantic",
+      "role": "非生成・attention-free static embeddingsによる意味補完候補",
+      "required_in_first_slice": false
     },
     {
       "id": "learned-sparse-expansion",
-      "role": "必要なEvidenceが得られた場合にBioHash系のdata-driven局所学習を比較する後続候補",
+      "role": "必要なEvidenceが得られた場合にdata-driven局所学習を比較する後続候補",
       "required_in_first_slice": false
     }
   ],
@@ -148,26 +365,38 @@
     "human_quality_judgement_automated": false,
     "notes": [
       "高速だが必要候補を落とす方式と、再現率は高いが誤活性が多い方式を一つのscoreへ潰さない。",
-      "候補想起の性能と、その候補を使って得られた最終成果物の品質を分ける。"
+      "候補想起の性能と、その候補を使って得られた最終成果物の品質を分ける。",
+      "生物由来方式は通常の工学baselineより優先されない。増分Evidenceがなければ棄却する。"
     ]
   },
   "implementation_policy": {
-    "first_slice": "Python等によるresearch/evaluation prototypeを許容する。",
-    "production": "有効性と配置境界が確認された後に、外部Cognitive Method/Provider境界の維持、別process化、Go移植を比較する。",
+    "first_slice": "evaluation/sparse-associative-cognition/prototype-go に依存ゼロのGo prototypeを置く。",
+    "production": "有効性と配置境界が確認された後に、versioned package、同一process組込み、same-host helper、別process化を比較する。network serviceを必須にしない。",
+    "feature_contract": "coreはcaller-owned Feature{Channel, Key, Weight}だけを受け取り、tokenizer、embedding model、domain ontologyを依存にしない。",
     "gpu_required": false,
     "offline_capable_target": true
   },
   "current_evidence": {
-    "level": "design-only",
+    "level": "executable-evaluation",
     "claims": [
-      "SOZAのcurrent Cognitive Method境界と矛盾せずに非LLM認知基質を研究できる設計候補を外在化した。"
+      "依存ゼロGo prototypeでfixed-seed encoding、k-WTA、bundle、similarity、novelty、top-k retrievalのunit testを実行した。",
+      "synthetic benchmarkで20-feature encode約5.6 microseconds/op、10,000 signature top-8 query約0.85 milliseconds/opを観測した。",
+      "active=64ではsignature active payloadは128 bytesである。"
     ],
+    "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
       "SOZA-native taskでのretrieval品質",
-      "FlyHash系がexact/deterministic baselineを補完する実益",
-      "BioHash等の学習方式が必要かどうか",
-      "実データ規模でのlatency / memory特性",
+      "SUI Sensemaking親和図法での深層意味候補品質",
+      "input normalizationの有効性",
+      "localized competitionの有効性",
+      "policy-bounded biased projectionの有効性",
+      "reversible familiarity modulationの見逃し率",
+      "static semantic補完が必要かどうか",
+      "learned sparse projectionがrandom / static方式を上回るか",
+      "10万件以上でのindex方式",
       "LLM呼び出し削減量",
+      "wearable / home / workstation profileでの品質維持",
+      "outcome-informed routingの有効性",
       "production配置方式",
       "Product Value / Operational / Adoption / Outcome Evidence"
     ]
@@ -175,10 +404,45 @@
   "references": [
     {
       "citation": "Dasgupta, Stevens, Navlakha (2017), A neural algorithm for a fundamental computing problem, Science 358(6364):793-796",
-      "doi": "10.1126/science.aam9868"
+      "doi": "10.1126/science.aam9868",
+      "evidence_role": "sparse high-dimensional expansion and winner-take-all similarity-search abstraction"
     },
     {
-      "citation": "Ryali, Hopfield, Grinberg, Krotov (2020), Bio-Inspired Hashing for Unsupervised Similarity Search, PMLR 119:8295-8306"
+      "citation": "Ryali, Hopfield, Grinberg, Krotov (2020), Bio-Inspired Hashing for Unsupervised Similarity Search, PMLR 119:8295-8306",
+      "evidence_role": "data-driven learned sparse hashing comparison candidate"
+    },
+    {
+      "citation": "Olsen, Bhandawat, Wilson (2010), Divisive normalization in olfactory population codes, Neuron 66(2):287-299",
+      "doi": "10.1016/j.neuron.2010.04.009",
+      "evidence_role": "input normalization abstraction"
+    },
+    {
+      "citation": "Amin et al. (2020), Localized inhibition in the Drosophila mushroom body, eLife 9:e56954",
+      "doi": "10.7554/eLife.56954",
+      "evidence_role": "localized inhibition / compartment-aware competition abstraction"
+    },
+    {
+      "citation": "Zheng et al. (2022), Structured sampling of olfactory input by the fly mushroom body, Current Biology",
+      "evidence_role": "random-but-biased sparse connectivity abstraction"
+    },
+    {
+      "citation": "Hattori et al. (2017), Representations of Novelty and Familiarity in a Mushroom Body Compartment, Cell 169(5):956-969.e17",
+      "evidence_role": "repetition suppression / novelty-familiarity abstraction"
+    },
+    {
+      "citation": "Li et al. (2021), The connectome of the adult Drosophila mushroom body provides insights into function, eLife 10:e62576",
+      "doi": "10.7554/eLife.62576",
+      "evidence_role": "compartmental learning and feedback architecture reference"
+    },
+    {
+      "citation": "Schlegel et al. (2024), Whole-brain annotation and multi-connectome cell typing of Drosophila, Nature",
+      "doi": "10.1038/s41586-024-07686-5",
+      "evidence_role": "multi-connectome functional-homeostasis reference"
+    },
+    {
+      "citation": "Huang et al. (2024), Dopamine-mediated interactions between short- and long-term memory dynamics, Nature 634:1141-1149",
+      "doi": "10.1038/s41586-024-07819-w",
+      "evidence_role": "multi-timescale compartmental outcome-learning inspiration"
     }
   ]
 }
