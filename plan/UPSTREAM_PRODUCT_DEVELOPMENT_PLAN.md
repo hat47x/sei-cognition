@@ -1,7 +1,7 @@
 # SEI 上流プロダクト開発計画
 
-更新日: 2026-09-11  
-状態: **Current Upstream Planning Baseline — resume-first Product Slice / TEI version exchangeを並行優先**
+更新日: 2026-09-13  
+状態: **Current Upstream Planning Baseline — Product Value discovery / resume-first Product Slice / TEI version exchangeを並行優先**
 
 ## 1. この文書の役割
 
@@ -47,6 +47,16 @@ calendar deadlineではなく、次の順で優先度を判断します。
 
 一つの探索が外部条件で止まっても、SEI全体を同じ待ち状態へしません。意味上独立した高優先課題は並行して進めます。
 
+また、Product Valueの根に関わる探索は、直ちにRequirementや実装へ降ろす必要はありません。ブランド世界、実利用上の違和感、KJ的な統合、外部研究等が新しい価値仮説を照らす場合は、まず**Product Value discovery source**として扱い、既存Value ModelやScenarioへ逆照合します。
+
+```text
+rich source / metaphor / observation
+  != Product Value authority
+  != Requirement authority
+```
+
+象徴や比喩が豊かであること自体を規範上の根拠にはせず、そこから利用者benefit、failure、counterexample、既存coverageを取り出して初めてProduct文書へ反映します。
+
 ## 3. Current Product baseline
 
 現在までに、少なくとも次がDesign baselineとして成立しています。
@@ -72,7 +82,36 @@ Design
 
 この5段階を今後も混同しません。
 
-## 4. 現在の最優先探索 — 二本柱
+## 4. 現在の最優先探索 — 三本柱
+
+### Priority A — ブランド世界をProduct Value discoveryへ接続する
+
+**ISSUE-000077**を、SEI Cognitionの「井」を中心に形成されたブランド世界から、Product Valueの未発見部分や弱い部分を探索する上流laneとして扱います。
+
+このIssueでは、井戸、水、深層、中央の空白、静けさ、四方向性、共有財産といった象徴をProduct Requirementへ直接変換しません。まず、それらが何を利用者・組織の価値として照らしているのかを、十分に豊かな文章として保存し、current Product Value / Value Model / Vision / Principlesへ逆照合します。
+
+主要なProduct hypothesisは次です。
+
+- **Cognitive Commons** — 認知成果を一個人・一AI session・一Providerの私有状態へ閉じず、適切なaccess / responsibility boundaryのもとで組織の共有資産として持続させる価値。
+- **Surface / Depth Interface** — まだ十分に言語化・構造化されていない観察や違和感を、Truthへ早まって昇格させず、扱える認知対象へ持ち上げる価値。
+- **Deliberate Non-closure** — Unknown / Conflict / Hypothesisを必要な期間保ち、未解決を消さずに責任あるDecisionへ進める価値。
+- **Durable Cognitive Aperture** — 時間・人・AI・Surfaceが変わっても、問いを置き直し、認識へ戻り、新しいObservationを加えられる入口を持続させる価値。
+- **Quiet Infrastructure** — 常時AI suggestionを押し付けるのではなく、必要時に深い認知へ到達でき、通常時のattention burdenを増やしすぎない基盤としての価値。
+- **Shared but not Unbounded** — 共有可能性とSelective Disclosure / Responsibility / Access Controlを両立させる価値。
+
+これらは新しいValue Axisとして確定していません。V1〜V8やDecision Continuityの別表現で十分なら統合し、新しいProduct Valueを増やさない結論を正当な成果とします。
+
+探索では、ブランド世界をKJの外部分類枠として用いません。象徴は問いを増やすcueとして使い、最終的な価値構造はSEIのcurrent Product material、実利用Scenario、failure、counterexampleから立ち上げます。
+
+最初の成果物は次を想定します。
+
+- ブランド世界をProduct Value探索源として保存する非規範source文書。
+- Product Value Discovery Review。
+- 必要性が確認できたProduct Value / Value Model / Vision / Proposition / Principles等の改稿または新規起票。
+- Product文書へ採用しなかった洞察についてのNo Change理由。
+- actual human reviewやprototypeが必要な価値仮説のFollow-up Issue。
+
+このlaneはProduct Valueの根を見直すため、実装laneより上流に置きます。ただし、検討中であることを理由にISSUE-000073やISSUE-000072の独立したEvidence取得を止めません。
 
 ### Priority B1 — first usable resume-first Product Slice
 
@@ -165,11 +204,15 @@ resume-first sliceは、PMS-08へ向けた最初のAdoption / Outcome観測に�
 - Decision後の情報でhistorical basisが書き換わる。
 - staleな画面が新しいcanonical changeを上書きする。
 
+ブランド世界から来た価値候補についても、最初に「井に対応するfieldは何か」と考えません。たとえば「静けさ」が重要に見えるなら、AI suggestionの過剰提示、attention burden、早すぎる収束等、利用者世界で何が壊れるのかを先に言葉にします。
+
 ### Step 2 — 既存REQ / SCNへ戻る
 
 既存Requirementの組み合わせで表せるなら、新IDを増やさない。
 
 ISSUE-000073では少なくともREQ-0001 / 0005 / 0006 / 0010 / 0011 / 0014 / 0015 / 0019、SCN-0003 / 0013 / 0016 / 0018を先に使う。
+
+ISSUE-000077から生じる価値候補は、Requirement以前にProduct Value / Value Model / Principleの既存coverageへ戻る。象徴との対応が美しいことだけではRequirement化の理由になりません。
 
 ### Step 3 — Candidate Requirementとして仮置きする
 
@@ -216,6 +259,8 @@ Product requirement
 
 `semantic change plan`、snapshot token、atomic commit mechanismも同様に、prototypeで必要性を確かめる前にContract化しません。
 
+同様に、ISSUE-000077の`well`、`depth`、`aperture`、`commons`、`quiet`等はProduct Value探索の語彙であり、Contract fieldやruntime entityの候補ではありません。独立した規範上の必要性が別途確認されない限り、象徴語彙を下位設計へ持ち込みません。
+
 ## 8. 実証設計の原則
 
 実験では「動かすこと」より「何が判別できるか」を優先します。
@@ -242,8 +287,10 @@ human reviewでは最初から恣意的なscore thresholdをStable Requirement�
 - DecisionとRecommendationを誤読しないか。
 - historical basisとpost-decision changeを区別できるか。
 - AI誤りを修正・却下できるか。
--最初の有用saveまでの入力負担が大きすぎないか。
+- 最初の有用saveまでの入力負担が大きすぎないか。
 - audit detailが必要な場面で到達できるか。
+
+ISSUE-000077由来の価値仮説をhuman reviewへ進める場合は、ブランド語に共感するかではなく、実務上のbenefit / burden / failureを観測します。「静かな感じがする」「井の比喩が分かりやすい」ことだけをProduct Value Evidenceにしません。
 
 ### 8.2 Fault injection
 
@@ -257,6 +304,7 @@ Product confidenceを高めるため、happy pathだけでなくpartial commit�
 
 | Lane | Issue / area | State | Next high-information step |
 |---|---|---|---|
+| Product Value discovery | ISSUE-000077 | Open / upstream hypothesis | brand-world source + Value Discovery Review + document placement audit |
 | Product Interaction | ISSUE-000073 | Open / Design baseline | prototype E1〜E8 + human review |
 | TEI Provider portability | ISSUE-000072 | Open / execution blocked externally | exact-B actual E2 when execution surface is available |
 | Method outcome quality | ISSUE-000071 follow-up | evaluation boundary established | actual human outcome review |
@@ -265,6 +313,9 @@ Product confidenceを高めるため、happy pathだけでなくpartial commit�
 lane間でEvidenceを流用しません。
 
 ```text
+brand-world coherence
+  != Product Value validated
+
 interaction prototype PASS
   != TEI compatibility PASS
 
@@ -281,6 +332,9 @@ human usability review
 
 - 何のProduct Valueを改善するか説明できない。
 - 新しい型を作る理由がUI convenienceだけである。
+- ブランド象徴や比喩からfield、Universal型、workflowを直接演繹しようとしている。
+- 「井」「水」「深層」「静けさ」等の美しい整合だけをProduct Value成立のEvidenceにしようとしている。
+- `cognitive commons`を全情報の無制限共有やAccess Control不要という意味へ読み替えようとしている。
 - Workspace / Session / Thread等をProduct navigationからUniversal ontologyへ昇格させようとしている。
 - AI responseをcanonical fact / Decisionへ黙って保存しようとしている。
 - private chain-of-thoughtを再構成条件にしようとしている。
@@ -299,6 +353,7 @@ human usability review
 上流判断が変わった場合、必要な範囲で次を同じ作業単位に同期します。
 
 - Product Interaction / Product Shape / Milestone文書
+- Product Value / Value Model / Vision / Proposition / Principles
 - Issue / ADR
 - Requirement / Acceptance Scenario
 - Architecture / Contract
@@ -310,14 +365,16 @@ human usability review
 
 新しいMarkdownを追加した場合はDocument Review Registryのscopeを確認し、自然な日本語として再ドラフトした後、意味・要求強度・留保・Evidence強度が変わっていないか最終監査します。
 
+特にProduct Value discoveryでは、短い標語や箇条書きだけを追加して完了としません。価値が生まれる背景、利用者世界での意味、反対側のtrade-off、既存Valueとの関係まで十分な文脈として書き、別の人間や将来のAIがその判断を再構成できる状態を目指します。
+
 ## 12. Natural Japanese review
 
-2026-09-11時点で、上流計画を実証履歴の長い時系列説明から、Product Valueから現在の行動へ降りる計画書として再構成した。
+2026-09-13時点で、従来の二本柱に加え、ISSUE-000077のBrand-world-informed Product Value discoveryを上流laneとして追加した。
 
-Provider / Method portabilityのEvidenceは重要だが、意味境界の実証が進んだ一方で、人間が「使い続けられること」のactual Evidenceが相対的に弱い。このためPMS-03を再び主探索へ上げ、ISSUE-000073のresume-first Product SliceをPriority B1とした。
+SEI Cognitionへの改名とブランド設計を深める過程で、「井」は単なる名称・ロゴモチーフではなく、地表とまだ十分に形を得ていない認知領域の間にあるgateway、中央の空白を問いと可能性のために保つ構造、共有されながら無制限公開ではないCognitive Commons、早すぎる収束を強制しないQuiet InfrastructureといったProduct上の問いを照らしている。
 
-同時にISSUE-000072のTEI executable version exchangeはPriority 1のまま維持する。これは重要度を下げたのではなく、外部execution surface待ちの探索と、repository内で進められるProduct Interaction探索を独立laneとして扱うためである。
+ただし、この豊かなブランド世界をそのままProduct Valueの正本にはしない。ISSUE-000077では、象徴を探索sourceに留め、利用者benefit、failure、counterexample、既存V1〜V8 / Decision Continuityとの重複を通して、必要な上位文書へだけ反映する停止線を置いた。新しいValue AxisやRequirementを増やさない結論も正当な成果とする。
 
-Candidate RequirementをStable化せず、working set、Resume Brief、semantic change plan、snapshot token等をProduct / Architecture上の設計語彙に留めた。今後はprototype、fault injection、human reviewから、既存REQ / SCNで不足する独立したProduct failureだけをRequirement化する。
+Provider / Method portabilityのEvidenceは引き続き重要であり、人間が「使い続けられること」のactual Evidenceを深めるISSUE-000073も並行して進める。ISSUE-000072のTEI executable version exchangeもPriority 1のまま維持する。三つのlaneは互いのEvidenceを代用せず、上流価値、Product Interaction、Provider portabilityという異なる未知を減らす。
 
-意味、規範強度、current Evidence、未検証範囲を維持しながら、根幹の趣旨から個別作業へ自然に読める構造へ全文を再ドラフトし、最終意味監査を実施した。
+今回の更新では、ブランド世界の詩的な豊かさと、SEIのProduct governanceが要求するauthority / Evidenceの厳密さをどちらも削らないことを重視した。背景から価値仮説、下位設計へ降ろさない停止線、現在のwork laneまでが自然につながるように全文を再構成し、**自然な日本語となることを最重要視して再ドラフトしたうえで、意味、規範強度、current Evidence、未検証範囲が変わっていないことを最終監査した。**
