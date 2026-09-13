@@ -1,7 +1,7 @@
 # SEI Product Principles
 
-更新日: 2026-09-01  
-状態: **Product Principles Baseline**
+更新日: 2026-09-14  
+状態: **Product Principles Baseline — Brand-world discovery synthesis reflected**
 
 ## 1. この文書の役割
 
@@ -36,7 +36,20 @@ Observation
 
 `not observed`を`unavailable`や`false`へ暗黙変換しません。
 
-## 5. Recommendation・Decision・Authority・Executionを分離する
+## 5. 早すぎる収束を強制しないが、必要なDecisionを避けない
+
+AIや組織が一つの説明を流暢に生成できることを、十分に検討された結論と同一視しません。
+
+弱いObservation、alternate interpretation、Conflict、Unknown、Hypothesisが残っている場合は、それらを必要な期間保持し、何が未解決かを読み取れる状態を優先します。
+
+一方で、非収束性そのものを価値化してDecisionを無期限に先送りしません。期限、影響、Responsibility、Authority等から判断が必要であれば、未解決を消さずにDecisionへ進みます。
+
+```text
+not forcing premature closure
+  != refusing necessary decisions
+```
+
+## 6. Recommendation・Decision・Authority・Executionを分離する
 
 ```text
 Recommendation != Decision != Authority != Action Intent != Execution
@@ -46,19 +59,19 @@ Recommendation != Decision != Authority != Action Intent != Execution
 
 AIの能力向上や自動化率の上昇を理由に、この境界を暗黙化しません。
 
-## 6. ProvenanceとSemantic Lineageを失わない
+## 7. ProvenanceとSemantic Lineageを失わない
 
 どこから得た情報か、どの経路で発見したか、何をもとに派生したか、どの意味変更が何を置き換えたかを区別します。
 
 storage revision、Git commit、DB version等を、そのままsemantic identityやsemantic revisionと同一視しません。
 
-## 7. 過去を現在の知識で上書きしない
+## 8. 過去を現在の知識で上書きしない
 
 現在の理解が変わっても、過去のDecisionが当時どのEvidence、Observation、Unknown、Constraint等を参照していたかを再構成できるようにします。
 
 最新状態だけを残して履歴を消す設計を避けます。
 
-## 8. CapabilityとProviderを分ける
+## 9. CapabilityとProviderを分ける
 
 Capabilityは「何を可能にするか」、Providerは「誰／何がそのCapabilityを提供するか」です。
 
@@ -68,7 +81,7 @@ Capability != Provider
 
 人間、AI、SaaS、外部組織、TEI、custom code等を、その種類だけから信頼、優先度、Authorityへ結び付けません。
 
-## 9. Providerを交換可能にする
+## 10. Providerを交換可能にする
 
 SEIの意味構造は、特定のAIモデル、SaaS、workflow engine、BPM、TEI、DB等を交換しても保てることを目指します。
 
@@ -76,7 +89,7 @@ Provider固有の情報が必要な場合は、Coreへ一般化する前にProvi
 
 Providerの変更によってIntent、Decision、Responsibilityの意味まで変わる設計を避けます。
 
-## 10. Coreは小さく保つが、必要な意味境界まで薄くしない
+## 11. Coreは小さく保つが、必要な意味境界まで薄くしない
 
 Coreを小さくすること自体を目的にはしません。
 
@@ -84,7 +97,7 @@ Coreを小さくすること自体を目的にはしません。
 
 既存概念の組合せ、Reference、Extension、Profile、Capability Provider、domain-specific knowledgeで十分に表現できる場合は、Universal型を増やさないことを優先します。
 
-## 11. 簡略表示とcanonicalな意味保持を分ける
+## 12. 簡略表示とcanonicalな意味保持を分ける
 
 利用者にすべての意味境界を常時見せる必要はありません。
 
@@ -96,7 +109,7 @@ Simple View != Lossy Canonical Model
 
 読みやすさや操作性のために意味を省略する場合は、表示上の省略と意味上の削除を区別します。
 
-## 12. Progressive Semantic Explicitnessを認める
+## 13. Progressive Semantic Explicitnessを認める
 
 すべての作業へ同じ重い記録手続きを要求しません。
 
@@ -104,7 +117,38 @@ Simple View != Lossy Canonical Model
 
 ただし、AI自身のconfidenceだけを理由に重要な境界を省略しません。必要な明示性はProfile / Policy等として外在化します。
 
-## 13. 評価時点から10〜50倍程度先を見る
+## 14. 認知帯域を不用意に占有しない
+
+AIが大量のsuggestionを生成できること、常時notificationできること、あらゆるdetailを表示できることを、そのままProduct Valueとはみなしません。
+
+利用者のattentionは有限の認知資源です。SEIによる介入、通知、Recommendation、detail提示は、benefit、urgency、materiality、user controlによって正当化できる強さにします。
+
+```text
+more assistance
+  != better assistance
+
+quiet
+  != passive
+  != hiding material change
+```
+
+安全上重要なsignal、materialなConflict、reopen condition等まで静けさを理由に隠してはなりません。通常時の低い認知pressureと、必要時の適切なproactive assistanceを両立させます。
+
+## 15. shared cognitionとAccess boundaryを同時に設計する
+
+認知成果を一人、一AI session、一Providerの一時状態へ閉じ込めないことを重視します。同時に、共有可能であることを無制限公開や共同Authorityと同一視しません。
+
+```text
+shared cognition
+  != unrestricted disclosure
+  != shared Decision Authority
+```
+
+別の主体がcanonical meaningへ戻れる設計では、Selective Disclosure、Product Access、Responsibility、Authority、Provenance、context egressを同時に考えます。
+
+Access boundaryが必要であることを理由に認知成果を各sessionへ分断せず、共有価値を理由に必要な境界を取り払わないことを原則とします。
+
+## 16. 評価時点から10〜50倍程度先を見る
 
 将来耐性は、固定された「100倍未来」の想定ではなく、評価時点の現実からおおむね10〜50倍程度先を見渡す移動基準として扱います。
 
@@ -112,19 +156,19 @@ Simple View != Lossy Canonical Model
 
 主要なArchitecture Rebaselineや技術環境の変化に応じて、新しい現在地から設計候補を再評価します。
 
-## 14. 実装順序と世界の意味構造を混同しない
+## 17. 実装順序と世界の意味構造を混同しない
 
 M48、M49等のhistorical Milestoneは開発上の順序です。
 
 実装の順番を、そのまま利用者世界の必須workflowやontologyへ変換しません。Product Milestoneも同様に、製品成立の確認点であってUniversal ontologyではありません。
 
-## 15. code shedding / prompt sheddingを前提とする
+## 18. code shedding / prompt sheddingを前提とする
 
 より優れたAIや標準技術が現れ、SEI内部のコードやPromptが不要になった場合は、無理に維持しません。
 
 削れる実装は削り、意味契約と検証可能な境界を残します。
 
-## 16. human-readableを設計品質として扱う
+## 19. human-readableを設計品質として扱う
 
 SEIの重要な文書・Artifactは、機械が処理できるだけでなく、人間が読んで意味を確認できることを重視します。
 
@@ -132,7 +176,7 @@ SEIの重要な文書・Artifactは、機械が処理できるだけでなく、
 
 新規文書だけでなく、既存のactiveな開発文書もすべてこの工程を通します。historical evidence等、原文保存が必要な資料は本文を改変せず、除外理由と日本語の案内を別途残します。
 
-## 17. Evidenceを超える主張をしない
+## 20. Evidenceを超える主張をしない
 
 local fixture、synthetic test、design review、production operationを区別します。
 
@@ -145,7 +189,7 @@ Method Application != Assurance
 
 実行に成功したことやMethodを適用したことだけから、判断や結論が正しかったと主張しません。
 
-## 18. Product Valueを単一スコアへ潰さない
+## 21. Product Valueを単一スコアへ潰さない
 
 SEIの価値は、単一の総合点やUniversal Scoreへ還元しません。
 
@@ -153,13 +197,15 @@ SEIの価値は、単一の総合点やUniversal Scoreへ還元しません。
 
 一つの評価軸で優れていることを理由に、別の重大な価値欠損を相殺したことにはしません。
 
-## 19. 関連製品を特権化しない
+## 22. 関連製品を特権化しない
 
-TEIを含む関連製品・技術を、SEIとの関係が近いという理由で自動的に優先しません。
+TEIやSUIを含む関連製品・技術を、SEIとの関係が近いという理由で自動的に優先しません。
 
-同じIntent、Constraint、Evidence、Decision境界のもとで、他のCapability Providerと比較可能であることを原則とします。
+同じIntent、Constraint、Evidence、Decision境界のもとで、他のCognitive Method / Capability Providerと比較可能であることを原則とします。
 
-## 20. 仮説・実証・Requirementを分離する
+ブランド上の象徴的な親和性を、必須依存、固定pipeline、Provider優先の理由にしません。
+
+## 23. 仮説・実証・Requirementを分離する
 
 まだ製品として何を要求すべきか十分に分からない領域を、早い段階でstable Requirementへ固定しません。
 
@@ -176,7 +222,9 @@ stable Requirementへ進める前に、Product Valueとの関係、具体Scenari
 
 調査の結果、既存Requirementで十分である、または新しいRequirementは不要であるという結論も正当です。
 
-## 21. Product Valueの変更は明示的に再基線化する
+ブランド世界や比喩も同様です。象徴的な整合性だけからRequirementやUniversal ontologyを演繹しません。
+
+## 24. Product Valueの変更は明示的に再基線化する
 
 下位実装の都合だけでProduct ValueやValue Modelを書き換えません。
 
@@ -184,15 +232,21 @@ stable Requirementへ進める前に、Product Valueとの関係、具体Scenari
 
 Product Valueの変更後は、影響するMilestone、Requirements、ADR、Architecture、Implementationを上位から再監査します。
 
-## 22. 関連文書
+## 25. 関連文書
 
 - `product/value/SEI_PRODUCT_VALUE.md`
 - `product/value/SEI_VALUE_MODEL.md`
+- `product/value/SEI_BRAND_WORLD_DISCOVERY_SOURCE.md`
+- `product/value/SEI_BRAND_WORLD_PRODUCT_VALUE_REVIEW.md`
 - `product/vision/SEI_PRODUCT_VISION.md`
 - `product/roadmap/SEI_PRODUCT_MILESTONES.md`
 - `plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`
 - `plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md`
 
-## 23. 自然な日本語ドラフト
+## 26. 自然な日本語ドラフト
 
-Value Model、Product Vision、Product Shape、期限を持たないProduct Milestoneと上流開発計画へ戻って意味整合を確認し、未定領域を早期にRequirementへ固定しない原則を追加した。その後、既存の意味、仕様、強度、留保を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+Value Model、Product Vision、Decision Continuity、ISSUE-000077のBrand World Product Value Discovery Reviewへ戻って意味整合を確認した。
+
+ブランド世界から得た洞察のうち、既存V1〜V8で意味上coverageできるものは新しいValue Axisへ増やさず、下位設計で繰り返し必要となる判断姿勢だけをPrincipleとして補強した。具体的には、早すぎる収束を強制しない一方で必要なDecisionを避けないこと、attentionを有限な認知資源として扱うこと、shared cognitionとAccess boundaryを同時に設計することを追加した。
+
+これらはquiet-by-default UI、`Depth`型、共有workflow等を要求するものではない。意味、規範強度、Evidence境界を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
