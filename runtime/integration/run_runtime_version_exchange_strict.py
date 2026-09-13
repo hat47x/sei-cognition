@@ -13,12 +13,13 @@ from export_kj_atlas_runtime_source import export_runtime_bundle
 from prepare_runtime_version_exchange_archives import load_manifest as load_artifact_manifest
 from prepare_runtime_version_exchange_archives import verify_archive
 from prepare_runtime_version_exchange_model_store import prepare_model_store
+from runtime_path_safety import reject_symlink_path_or_ancestors
 from verify_kj_atlas_runtime_source import verify_runtime_bundle
 from verify_runtime_version_exchange_model_store import verify_model_store
 
 
 INTEGRATION_DIR = Path(__file__).resolve().parent
-SOZA_ROOT = INTEGRATION_DIR.parents[1]
+SEI_ROOT = INTEGRATION_DIR.parents[1]
 HARNESS = INTEGRATION_DIR / "run_runtime_version_exchange.sh"
 RUNTIME_ARCHIVE_OPTIONS = ("--runtime-a-archive", "--runtime-b-archive")
 RUNTIME_ARCHIVE_MANIFEST_LABELS = {
@@ -26,12 +27,12 @@ RUNTIME_ARCHIVE_MANIFEST_LABELS = {
     "--runtime-b-archive": "b",
 }
 STRICT_CHILD_ENVIRONMENT_KEYS = (
-    "SOZA_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_BUNDLE",
-    "SOZA_RUNTIME_EXCHANGE_WORK_DIR",
-    "SOZA_RUNTIME_EXCHANGE_EVIDENCE_DIR",
-    "SOZA_RUNTIME_EXCHANGE_PREPOSITIONED_ARCHIVE_A",
-    "SOZA_RUNTIME_EXCHANGE_PREPOSITIONED_ARCHIVE_B",
-    "SOZA_RUNTIME_EXCHANGE_MODEL_DIR",
+    "SEI_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_BUNDLE",
+    "SEI_RUNTIME_EXCHANGE_WORK_DIR",
+    "SEI_RUNTIME_EXCHANGE_EVIDENCE_DIR",
+    "SEI_RUNTIME_EXCHANGE_PREPOSITIONED_ARCHIVE_A",
+    "SEI_RUNTIME_EXCHANGE_PREPOSITIONED_ARCHIVE_B",
+    "SEI_RUNTIME_EXCHANGE_MODEL_DIR",
 )
 STRICT_CHILD_PYTHON_ENVIRONMENT_KEYS = (
     "PYTHONPATH",
@@ -52,7 +53,9 @@ def _reject_forwarded_identity_options(arguments: list[str]) -> None:
         "--work-dir",
     }
     for argument in arguments:
-        if argument in forbidden or any(argument.startswith(name + "=") for name in forbidden):
+        if argument in forbidden or any(
+            argument.startswith(name + "=") for name in forbidden
+        ):
             raise ValueError(
                 "strict Evidenceのidentity / safety optionはこのentrypoint側で確定します。"
                 f"harnessへ直接渡せません: {argument}"
@@ -84,7 +87,9 @@ def _forwarded_runtime_archives(arguments: list[str]) -> dict[str, Path]:
                 if not value:
                     raise ValueError(f"{option} requires PATH")
                 if option in selected:
-                    raise ValueError(f"runtime archive optionを重複指定できません: {option}")
+                    raise ValueError(
+                        f"runtime archive optionを重複指定できません: {option}"
+                    )
                 selected[option] = Path(value)
                 break
 
@@ -94,9 +99,27 @@ def _forwarded_runtime_archives(arguments: list[str]) -> dict[str, Path]:
 
 
 def _new_path(path: Path, label: str) -> Path:
-    resolved = path.expanduser().resolve(strict=False)
+    """新規出力pathを、symlink解決前の要求pathから検証する。"""
+
+    requested = path.expanduser()
+    reject_symlink_path_or_ancestors(requested, label)
+    resolved = requested.resolve(strict=False)
     if resolved.exists():
         raise ValueError(f"{label}は新しいpathを指定してください: {resolved}")
+    return resolved
+
+
+def _existing_directory(path: Path, label: str) -> Path:
+    """既存directory inputを、symlink解決前の要求pathから検証する。"""
+
+    requested = path.expanduser()
+    reject_symlink_path_or_ancestors(requested, label)
+    try:
+        resolved = requested.resolve(strict=True)
+    except FileNotFoundError as exc:
+        raise ValueError(f"{label}が存在しません: {requested}") from exc
+    if not resolved.is_dir():
+        raise ValueError(f"{label}はdirectoryを指定してください: {resolved}")
     return resolved
 
 
@@ -116,7 +139,11 @@ def _is_within(candidate: Path, root: Path) -> bool:
     return candidate == root or root in candidate.parents
 
 
-def _reject_overlap(candidate: Path, candidate_label: str, roots: tuple[tuple[str, Path], ...]) -> None:
+def _reject_overlap(
+    candidate: Path,
+    candidate_label: str,
+    roots: tuple[tuple[str, Path], ...],
+) -> None:
     for root_label, root in roots:
         if _is_within(candidate, root):
             raise ValueError(
@@ -136,16 +163,17 @@ def _validate_runtime_archives(
     source_input: Path,
     source_label: str,
 ) -> dict[str, Path]:
-    roots = (("SOZA repository", SOZA_ROOT), (source_label, source_input))
+    roots = (("SEI repository", SEI_ROOT), (source_label, source_input))
     validated: dict[str, Path] = {}
     for option, requested in _forwarded_runtime_archives(arguments).items():
         expanded = requested.expanduser()
-        if expanded.is_symlink():
-            raise ValueError(f"{option}にsymlinkは利用できません: {expanded}")
+        reject_symlink_path_or_ancestors(expanded, option)
         try:
             resolved = expanded.resolve(strict=True)
         except FileNotFoundError as exc:
-            raise ValueError(f"{option}のarchive fileが存在しません: {expanded}") from exc
+            raise ValueError(
+                f"{option}のarchive fileが存在しません: {expanded}"
+            ) from exc
         if not resolved.is_file():
             raise ValueError(f"{option}はregular fileを指定してください: {resolved}")
         _reject_overlap(resolved, f"{option} runtime archive", roots)
@@ -173,7 +201,9 @@ def _verify_runtime_archive_identities(runtime_archives: dict[str, Path]) -> Non
         label = RUNTIME_ARCHIVE_MANIFEST_LABELS[option]
         metadata = archives.get(label)
         if not isinstance(metadata, dict):
-            raise ValueError(f"runtime artifact manifestにruntimeArchives.{label}がありません")
+            raise ValueError(
+                f"runtime artifact manifestにruntimeArchives.{label}がありません"
+            )
         expected_size = metadata.get("sizeBytes")
         expected_sha256 = metadata.get("sha256")
         if not isinstance(expected_size, int) or isinstance(expected_size, bool):
@@ -209,10 +239,14 @@ def _strict_child_environment(work_dir: Path | None = None) -> dict[str, str]:
 
 
 def _write_json(path: Path, payload: dict[str, object]) -> None:
-    path.write_text(
-        json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    try:
+        with path.open("x", encoding="utf-8") as handle:
+            json.dump(payload, handle, ensure_ascii=False, sort_keys=True, indent=2)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+    except FileExistsError as exc:
+        raise ValueError(f"Evidence path already exists: {path}") from exc
 
 
 def run_strict_probe(
@@ -228,25 +262,30 @@ def run_strict_probe(
     _reject_forwarded_identity_options(harness_arguments)
 
     if (checkout_dir is None) == (backend_bundle is None):
-        raise ValueError("--kj-atlas-dirまたは--kj-atlas-backend-bundleのどちらか一方を指定してください")
+        raise ValueError(
+            "--kj-atlas-dirまたは--kj-atlas-backend-bundleのどちらか一方を指定してください"
+        )
     if model_dir is not None and prepare_model_dir is not None:
         raise ValueError("--model-dirと--prepare-model-dirは同時に指定できません")
 
     if checkout_dir is not None:
-        source_input = checkout_dir.expanduser().resolve(strict=True)
+        source_input = _existing_directory(checkout_dir, "KJ Atlas checkout")
         source_label = "KJ Atlas checkout"
     else:
         assert backend_bundle is not None
-        source_input = backend_bundle.expanduser().resolve(strict=True)
+        source_input = _existing_directory(
+            backend_bundle,
+            "KJ Atlas verified runtime bundle",
+        )
         source_label = "KJ Atlas verified runtime bundle"
 
     _reject_overlap(
         source_input,
         source_label,
-        (("SOZA repository", SOZA_ROOT),),
+        (("SEI repository", SEI_ROOT),),
     )
     strict_input_roots = (
-        ("SOZA repository", SOZA_ROOT),
+        ("SEI repository", SEI_ROOT),
         (source_label, source_input),
     )
 
@@ -260,9 +299,12 @@ def run_strict_probe(
     resolved_model_dir: Path | None = None
     model_will_be_prepared = prepare_model_dir is not None
     if model_dir is not None:
-        resolved_model_dir = model_dir.expanduser().resolve(strict=True)
+        resolved_model_dir = _existing_directory(model_dir, "Model directory")
     elif prepare_model_dir is not None:
-        resolved_model_dir = _new_path(prepare_model_dir, "Prepared model directory")
+        resolved_model_dir = _new_path(
+            prepare_model_dir,
+            "Prepared model directory",
+        )
     if resolved_model_dir is not None:
         _reject_overlap(resolved_model_dir, "model directory", strict_input_roots)
         for option, archive in runtime_archives.items():
@@ -278,7 +320,9 @@ def run_strict_probe(
         evidence_roots.append(("model directory", resolved_model_dir))
     _reject_overlap(evidence_dir, "Evidence directory", tuple(evidence_roots))
 
-    requested_work_dir = work_dir if work_dir is not None else _default_work_path(evidence_dir)
+    requested_work_dir = (
+        work_dir if work_dir is not None else _default_work_path(evidence_dir)
+    )
     resolved_work_dir = _new_path(requested_work_dir, "Work directory")
     work_roots = list(evidence_roots)
     work_roots.append(("Evidence directory", evidence_dir))

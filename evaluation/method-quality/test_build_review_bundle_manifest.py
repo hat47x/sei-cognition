@@ -61,7 +61,7 @@ class ReviewBundleManifestTest(unittest.TestCase):
 
     def test_manifest_records_run_identity_and_exact_file_digests(self) -> None:
         manifest = self.build()
-        self.assertEqual("soza.method-quality-review-bundle/v1", manifest["schema"])
+        self.assertEqual("sei.method-quality-review-bundle/v1", manifest["schema"])
         self.assertEqual("123", manifest["workflowRunId"])
         self.assertEqual("2", manifest["workflowRunAttempt"])
         self.assertEqual("repo-sha", manifest["repositoryCommit"])

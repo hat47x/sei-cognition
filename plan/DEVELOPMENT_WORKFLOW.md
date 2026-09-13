@@ -1,17 +1,17 @@
-# SOZA 開発ワークフロー
+# SEI 開発ワークフロー
 
 更新日: 2026-09-03  
 状態: **Accepted Development Convention**
 
 ## 1. 目的
 
-この文書は、SOZAの開発をどのbranchで進め、Product Value、探索、Requirement、設計、実装、検証をどの順序で扱うかを定めます。
+この文書は、SEIの開発をどのbranchで進め、Product Value、探索、Requirement、設計、実装、検証をどの順序で扱うかを定めます。
 
 実装を早く積み上げること自体を目的にはしません。まず「何を価値として守るか」を確認し、まだ要求が定まっていない領域は、議論や実証を通して必要性を確かめてからRequirementへ進めます。
 
 検証手段と意味上の正本も分けます。Product Value、Requirement、Contract、Evidenceの意味を、特定のCIやrunnerへ依存させません。
 
-当面、SOZAでは **GitHub Actionsを完全に停止**します。current baselineには`.github/workflows`を置かず、workflowの新設・再導入・過去runの再実行も行いません。必要な検証は、ローカル環境でtest、checker、fixture、probeを個別に実行します。
+当面、SEIでは **GitHub Actionsを完全に停止**します。current baselineには`.github/workflows`を置かず、workflowの新設・再導入・過去runの再実行も行いません。必要な検証は、ローカル環境でtest、checker、fixture、probeを個別に実行します。
 
 ```text
 what must be verified
@@ -39,7 +39,7 @@ develop/vX.Y.Z
 開発では、原則として次の順序を優先します。
 
 1. `product/value`、`product/definition`、`product/vision`、`product/principles`
-2. `product/roadmap/SOZA_PRODUCT_MILESTONES.md`
+2. `product/roadmap/SEI_PRODUCT_MILESTONES.md`
 3. `plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`、`plan/issue`、`plan/adr`
 4. discussion / research / experimentによる未定領域の探索
 5. `requirements`
@@ -73,7 +73,7 @@ Requirement化の詳細なgateは`plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`を�
 
 ## 5. Product Milestoneの扱い
 
-`product/roadmap/SOZA_PRODUCT_MILESTONES.md`は、期限ではなくOutcomeとEvidenceで製品成立段階を示します。
+`product/roadmap/SEI_PRODUCT_MILESTONES.md`は、期限ではなくOutcomeとEvidenceで製品成立段階を示します。
 
 Milestoneは次の作業の優先順位を考える入力にはなりますが、その内容をそのままRequirementやworkflowへ変換しません。
 
@@ -88,7 +88,7 @@ historicalなM48 / M49等の実装順序とも区別します。
 
 ## 6. Production runtimeの実装言語
 
-ADR-0027に従い、SOZA自身が所有・配布するproduction runtimeとfirst-party reference implementationはGoを標準とします。
+ADR-0027に従い、SEI自身が所有・配布するproduction runtimeとfirst-party reference implementationはGoを標準とします。
 
 一方、次にはGoを一律に強制しません。
 
@@ -102,7 +102,7 @@ ADR-0027に従い、SOZA自身が所有・配布するproduction runtimeとfirst
 Python等で作ったprototypeをproductionへ進める場合は、次の順序で扱います。
 
 1. 外部Method / Providerとして明示的な境界に残せるか確認する。
-2. SOZA first-party runtimeへ含める必要性を確認する。
+2. SEI first-party runtimeへ含める必要性を確認する。
 3. 含める必要がある場合は、Go移植と多言語runtime維持のコストを比較する。
 4. Go以外をfirst-party production runtimeへ採用する場合は、ADR-0027との整合またはRevisit理由を明示する。
 
@@ -205,7 +205,7 @@ Issue、Requirement、Milestone、README等の状態は、実際に確認でき�
 
 `M48`、`M49`、`M50`等はhistoricalな開発Milestoneです。
 
-その順序を利用者の業務workflowやSOZAのUniversal ontologyとして固定しません。Product Milestoneも、製品成熟を確認するための上位計画であり、利用者の必須操作順序ではありません。
+その順序を利用者の業務workflowやSEIのUniversal ontologyとして固定しません。Product Milestoneも、製品成熟を確認するための上位計画であり、利用者の必須操作順序ではありません。
 
 意味上の前提が変わった場合は、旧実装を守ることよりProduct Value / Requirement / ADRへ戻って再検討することを優先します。
 

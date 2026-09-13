@@ -131,7 +131,7 @@ class KJAtlasRuntimeSourceVerifierTest(unittest.TestCase):
             root.mkdir()
             self.make_bundle(root)
 
-            with self.assertRaisesRegex(ValueError, "outside the verified runtime source bundle"):
+            with self.assertRaisesRegex(ValueError, "bundle外"):
                 VERIFIER._prepare_output_path(root / "verification.json", root)
 
     def test_existing_output_is_rejected(self):
@@ -143,8 +143,43 @@ class KJAtlasRuntimeSourceVerifierTest(unittest.TestCase):
             output = base / "verification.json"
             output.write_text("existing\n", encoding="utf-8")
 
-            with self.assertRaisesRegex(ValueError, "already exists"):
+            with self.assertRaisesRegex(ValueError, "新規path"):
                 VERIFIER._prepare_output_path(output, root)
+
+    def test_output_symlink_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            root = base / "bundle"
+            root.mkdir()
+            self.make_bundle(root)
+            output = base / "verification.json"
+            try:
+                output.symlink_to(base / "missing-verification-target.json")
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            with self.assertRaisesRegex(ValueError, "verification output.*symlink"):
+                VERIFIER._prepare_output_path(output, root)
+
+    def test_output_with_symlink_parent_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            root = base / "bundle"
+            root.mkdir()
+            self.make_bundle(root)
+            actual_parent = base / "actual-output-parent"
+            actual_parent.mkdir()
+            link_parent = base / "output-parent-link"
+            try:
+                link_parent.symlink_to(actual_parent, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            with self.assertRaisesRegex(ValueError, "outputのparent.*symlink"):
+                VERIFIER._prepare_output_path(
+                    link_parent / "verification.json",
+                    root,
+                )
 
     def test_external_new_output_is_accepted(self):
         with tempfile.TemporaryDirectory() as temporary:

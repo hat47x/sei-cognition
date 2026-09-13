@@ -1,17 +1,17 @@
-# `plan/scripts/` — planning管理補助
+# `plan/scripts/` — Planning管理補助
 
-更新日: 2026-09-03  
+更新日: 2026-09-10  
 状態: **Current Planning Tooling Baseline**
 
 ## 1. 役割
 
-このディレクトリには、SOZAのPlanning運用で起きやすい機械的な不整合を早く検出するための、小さな検査・採番ツールを置きます。
+このディレクトリには、SEIのPlanning運用で起きやすい機械的な不整合を早く検出するための、小さな検査・採番ツールを置きます。
 
 ツールはPlanning文書や開発文書の意味上の正本ではありません。判断理由は各ADR / Issue本文を正とし、`plan/registry.yaml`は状態と関連を管理する台帳です。自然な日本語監査の状態は`plan/document_review_registry.yaml`で管理します。
 
-checkerは、これらの意味を評価するのではなく、actual treeと台帳の間に生じる機械的な取りこぼしを検出します。
+checkerは、これらの意味を評価するのではなく、actual treeと台帳・開発規約の間に生じる機械的な取りこぼしを検出します。
 
-GitHub Actionsは当面完全に停止しているため、これらのcheckerは必要に応じて**ローカルで個別に実行**します。自動CIへ常設することを現在の前提にはしません。
+GitHub Actionsは当面完全に停止しているため、checkerは必要に応じて**ローカルで個別に実行**します。自動CIへ常設することをcurrent baselineの前提にはしません。
 
 ## 2. ADR / Issue registry integrity
 
@@ -32,6 +32,14 @@ python3 plan/scripts/check_plan_registry.py
 
 ADR側とIssue側の関連配列が完全に対称であることまでは要求しません。両者は関連を記録する観点が異なる場合があるためです。
 
+self-test:
+
+```bash
+python3 -m unittest plan/scripts/test_check_plan_registry.py
+```
+
+正常系に加え、ID重複、file binding重複、actual treeとのずれ、Status不一致、存在しない関連ADR、未登録の同一ID prefixファイル等を回帰検査します。
+
 ## 3. Document Review Registry coverage
 
 ```bash
@@ -48,13 +56,13 @@ python3 plan/scripts/check_document_review_registry.py
 - reviewed scopeがactual Markdownへ少なくとも1件一致すること。
 - reviewed scopeの重複がないこと。
 
-self-testは次で実行します。
+self-test:
 
 ```bash
 python3 -m unittest plan/scripts/test_check_document_review_registry.py
 ```
 
-self-testには、正常系に加えて少なくとも次のnegative caseを含めます。
+正常系に加え、少なくとも次をnegative caseとして確認します。
 
 - 未登録Markdownを追加するとFAILする。
 - `pending`を残すとFAILする。
@@ -70,7 +78,7 @@ python3 plan/scripts/check_requirements_registry.py
 
 Requirement / Acceptance ScenarioのID、本文、registry上の参照関係に機械的な不整合がないかを確認します。
 
-self-testは次で実行します。
+self-test:
 
 ```bash
 python3 -m unittest plan/scripts/test_check_requirements_registry.py
@@ -78,7 +86,28 @@ python3 -m unittest plan/scripts/test_check_requirements_registry.py
 
 Requirementの意味上の妥当性や、新しいRequirementを追加すべきかどうかは、このcheckerでは判断しません。
 
-## 5. 次番号の候補
+## 5. GitHub Actions停止基線
+
+```bash
+python3 plan/scripts/check_github_actions_disabled.py
+```
+
+Accepted Development Conventionでは、current baselineに`.github/workflows`を置かず、必要な検証をローカルのtest / checker / probeとして個別実行します。このcheckerは、その停止基線がactual treeから逸脱していないかだけを確認します。
+
+- `.github/workflows`以下にtracked fileが1件でも存在すればFAILする。
+- workflowの内容やProduct semanticsを評価しない。
+- GitHub-hosted runnerの可用性をProduct成立条件へ昇格させない。
+- 将来Actionsを再採用する場合は、先にAccepted Development Conventionを明示的に変更する。
+
+self-test:
+
+```bash
+python3 -m unittest plan/scripts/test_check_github_actions_disabled.py
+```
+
+このchecker自身をGitHub Actionsから実行して停止基線を守る、という循環した運用にはしません。
+
+## 6. 次番号の候補
 
 ```bash
 python3 plan/scripts/next_plan_id.py
@@ -88,7 +117,15 @@ python3 plan/scripts/next_plan_id.py issue
 
 actual treeの最大番号から次の候補IDを表示します。
 
-このコマンドは**番号を予約しません**。複数branchや複数作業者が同時に実行すれば、同じ候補番号を得ることがあります。
+このコマンドは**番号を予約しません**。複数branchや複数作業者が同時に実行すれば、同じ候補番号を得ることがあります。また欠番を再利用せず、actual treeで観測した最大番号の次を候補とします。
+
+self-test:
+
+```bash
+python3 -m unittest plan/scripts/test_next_plan_id.py
+```
+
+空tree、最大値+1、gap非再利用、templateや無関係fileの除外、ADR / Issueの独立算出、ID空間枯渇を回帰検査します。
 
 新しいADR / Issueを作るときは次を基本とします。
 
@@ -101,61 +138,71 @@ actual treeの最大番号から次の候補IDを表示します。
 
 番号競合が起きた場合は、恒久IDの意味を後から入れ替えません。成立順序と意味上の連続性からどちらを維持するか判断し、必要なら後発側を別IDへ移すか、重複内容を統合します。
 
-## 6. ローカル検証の使い分け
+## 7. ローカル検証の使い分け
 
 GitHub Actions停止中は、変更内容に応じて必要なcheckerだけをローカルで個別実行します。
 
-Planning文書やregistryを変更した場合の代表的な組み合わせは次です。
+Planning文書やregistryを変更した場合の代表例:
 
 ```bash
 python3 plan/scripts/check_plan_registry.py
 python3 plan/scripts/check_document_review_registry.py
 ```
 
-Requirement / Acceptance Scenarioを変更した場合は、必要に応じて次も実行します。
+Requirement / Acceptance Scenarioを変更した場合:
 
 ```bash
 python3 plan/scripts/check_requirements_registry.py
 ```
 
-checker自身を変更した場合は、対応するself-testも実行します。
+repository baselineやworkflow配置に触れた場合:
 
 ```bash
-python3 -m unittest plan/scripts/test_check_document_review_registry.py
-python3 -m unittest plan/scripts/test_check_requirements_registry.py
+python3 plan/scripts/check_github_actions_disabled.py
 ```
 
-すべての変更で全checkerを機械的に実行する必要はありません。変更した責務と影響範囲に応じて、必要な検査を選びます。
+checkerや採番helper自身を変更した場合は、対応するself-testも実行します。
+
+```bash
+python3 -m unittest plan/scripts/test_check_plan_registry.py
+python3 -m unittest plan/scripts/test_check_document_review_registry.py
+python3 -m unittest plan/scripts/test_check_requirements_registry.py
+python3 -m unittest plan/scripts/test_check_github_actions_disabled.py
+python3 -m unittest plan/scripts/test_next_plan_id.py
+```
+
+すべての変更で全checkerを機械的に実行する必要はありません。変更した責務と影響範囲に応じて必要な検査を選びます。
 
 ```text
 change scope
-  → relevant local checker
+  → relevant local checker / test / probe
   != monolithic CI required
 ```
 
-ローカル環境の制約で検査を実行できなかった場合は、未実行範囲を明記します。実行していないcheckerをPASS扱いにはしません。
+ローカル環境の制約で検査を実行できなかった場合は未実行範囲を明記します。実行していないcheckerやself-testをPASS扱いにはしません。
 
-## 7. checker failureの扱い
+## 8. checker failureの扱い
 
 Planning checkerが失敗した場合は、検出された不整合を確認し、該当する層を修正します。
 
-たとえば次を、単なるノイズとして無視しません。
+たとえば次を単なるノイズとして無視しません。
 
 - 本文を更新したのにregistryだけが旧Statusのまま残っている。
 - 新しいADR / Issueを追加したのに`plan/registry.yaml`へ登録していない。
 - 新しいMarkdown文書を追加したのにDocument Review Registryのscopeへ含まれていない。
 - 文書監査を`pending`のまま残している。
+- current conventionがActions停止中なのに`.github/workflows`へtracked workflowが戻っている。
 
-一方、checkerの設計自体が誤って正当な文書を拒否している場合は、文書をcheckerへ無理に合わせるのではなく、checkerの責務を見直します。
+一方、checkerの設計自体が誤って正当な文書やtreeを拒否している場合は、対象をcheckerへ無理に合わせるのではなく、checkerの責務またはAccepted Conventionを見直します。
 
 checker failureは修正対象ですが、GitHub Actions停止中の現在はCI statusやrequired checkとして扱いません。修正commitは通常どおりpushし、必要なローカル検証を再実行します。
 
-## 8. Evidence境界
+## 9. Evidence境界
 
-Planning checkerがPASSすることは、Planning metadataと文書監査台帳の構造整合を示すだけです。
+Planning checkerがPASSすることは、Planning metadata、文書監査台帳、またはcurrent開発規約との構造整合を示すだけです。
 
 ```text
-Plan integrity PASS
+Plan / repository integrity PASS
   != document meaning correct
   != Product Value satisfied
   != Architecture correct
@@ -167,12 +214,12 @@ Plan integrity PASS
 
 機械的整合を意味上の妥当性、実装Evidence、利用者価値へ昇格させません。
 
-## 9. Natural Japanese review
+## 10. Natural Japanese review
 
 current Planning規約、ISSUE-000015の完了条件、`document_review_registry.yaml`、実際に発生した本文 / registry不整合、5段階Evidenceへ戻って説明を整理しました。
 
-以前の本文には、削除済みの`.github/workflows/plan-integrity.yml`をcurrent実行面として扱う記述が残っていました。GitHub Actionsを当面完全に停止する現在方針に合わせ、Planning checkerはローカルで変更範囲に応じて個別実行する形へ書き直しました。
+GitHub Actionsを当面完全に停止する現在方針に合わせ、Planning checkerはローカルで変更範囲に応じて個別実行する形を維持しています。2026-09-10時点のactual toolingへ同期し、ADR / Issue registry、Document Review Registry、Requirements Registry、Actions停止基線、次ID候補算出の各責務とself-testを一つのrunbookから追えるようにしました。
 
-checkerの保証範囲は従来どおり機械的整合に限定しています。ローカル実行へ切り替えたことを、文書の意味やEvidence強度を弱める理由にはしていません。また、実行できなかった検査をPASSへ読み替えない停止線も明示しました。
+checkerの保証範囲は機械的整合に限定しています。ローカル実行へ切り替えたことを、文書の意味やEvidence強度を弱める理由にはしていません。また、実行できなかった検査をPASSへ読み替えない停止線も維持します。
 
-意味やEvidence強度を変えず、現在の運用として自然な日本語で読み通せることを最重要視して全文を再ドラフトし、最終意味監査を実施しました。
+意味やEvidence強度を変えず、current運用として自然な日本語で読み通せることを最重要視して最終意味監査を実施しました。

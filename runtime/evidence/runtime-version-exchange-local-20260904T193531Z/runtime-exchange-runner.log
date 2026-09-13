@@ -1,0 +1,191 @@
+Processing /work/evidence-20260904T193500Z-work/kj-atlas-backend-install
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Collecting alembic
+  Downloading alembic-1.19.2-py3-none-any.whl (267 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 267.4/267.4 kB 1.7 MB/s eta 0:00:00
+Collecting cryptography
+  Downloading cryptography-50.0.1-cp311-abi3-manylinux_2_34_x86_64.whl (4.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.7/4.7 MB 3.5 MB/s eta 0:00:00
+Collecting fastapi<0.137
+  Downloading fastapi-0.136.3-py3-none-any.whl (117 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 117.5/117.5 kB 2.6 MB/s eta 0:00:00
+Collecting httpx
+  Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 73.5/73.5 kB 3.0 MB/s eta 0:00:00
+Collecting pydantic
+  Downloading pydantic-2.13.5-py3-none-any.whl (472 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 472.6/472.6 kB 3.7 MB/s eta 0:00:00
+Collecting pydantic-settings
+  Downloading pydantic_settings-2.15.0-py3-none-any.whl (69 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 69.4/69.4 kB 2.5 MB/s eta 0:00:00
+Collecting pyjwt
+  Downloading pyjwt-2.13.0-py3-none-any.whl (31 kB)
+Collecting sqlalchemy
+  Downloading sqlalchemy-2.0.52-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (3.4 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.4/3.4 MB 3.9 MB/s eta 0:00:00
+Collecting uvicorn
+  Downloading uvicorn-0.52.4-py3-none-any.whl (79 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 79.9/79.9 kB 2.2 MB/s eta 0:00:00
+Collecting starlette>=0.46.0
+  Downloading starlette-1.6.0-py3-none-any.whl (75 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 76.0/76.0 kB 2.7 MB/s eta 0:00:00
+Collecting typing-extensions>=4.8.0
+  Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 45.6/45.6 kB 1.5 MB/s eta 0:00:00
+Collecting typing-inspection>=0.4.2
+  Downloading typing_inspection-0.4.4-py3-none-any.whl (14 kB)
+Collecting annotated-doc>=0.0.2
+  Downloading annotated_doc-0.0.5-py3-none-any.whl (5.3 kB)
+Collecting annotated-types>=0.6.0
+  Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+Collecting pydantic-core==2.46.5
+  Downloading pydantic_core-2.46.5-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 4.1 MB/s eta 0:00:00
+Collecting Mako
+  Downloading mako-1.4.1-py3-none-any.whl (80 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 80.0/80.0 kB 1.4 MB/s eta 0:00:00
+Collecting greenlet>=1
+  Downloading greenlet-3.5.5-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (624 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 624.6/624.6 kB 3.1 MB/s eta 0:00:00
+Collecting cffi>=2.0.0
+  Downloading cffi-2.1.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (217 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 217.8/217.8 kB 3.3 MB/s eta 0:00:00
+Collecting anyio
+  Downloading anyio-4.15.0-py3-none-any.whl (131 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 131.9/131.9 kB 2.5 MB/s eta 0:00:00
+Collecting certifi
+  Downloading certifi-2026.7.22-py3-none-any.whl (136 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 137.0/137.0 kB 2.4 MB/s eta 0:00:00
+Collecting httpcore==1.*
+  Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.8/78.8 kB 2.5 MB/s eta 0:00:00
+Collecting idna
+  Downloading idna-3.19-py3-none-any.whl (68 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 68.5/68.5 kB 5.7 MB/s eta 0:00:00
+Collecting h11>=0.16
+  Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+Collecting python-dotenv>=0.21.0
+  Downloading python_dotenv-1.2.3-py3-none-any.whl (22 kB)
+Collecting click>=7.0
+  Downloading click-8.5.0-py3-none-any.whl (125 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 125.3/125.3 kB 2.6 MB/s eta 0:00:00
+Collecting pycparser
+  Downloading pycparser-3.0-py3-none-any.whl (48 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 48.2/48.2 kB 2.4 MB/s eta 0:00:00
+Collecting MarkupSafe>=2.0
+  Downloading markupsafe-3.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
+Building wheels for collected packages: kj-atlas-backend
+  Building wheel for kj-atlas-backend (pyproject.toml): started
+  Building wheel for kj-atlas-backend (pyproject.toml): finished with status 'done'
+  Created wheel for kj-atlas-backend: filename=kj_atlas_backend-0.1.0-py3-none-any.whl size=226220 sha256=d3f5bbcf0735466b8d4be547136a29fefe7e883a891811c113ab32be8afd429d
+  Stored in directory: /root/.cache/pip/wheels/68/ba/01/b6e9bc6f1e29d92bb8847887217ed96bc56e12f4dcf78565ea
+Successfully built kj-atlas-backend
+Installing collected packages: typing-extensions, python-dotenv, pyjwt, pycparser, MarkupSafe, idna, h11, greenlet, click, certifi, annotated-types, annotated-doc, uvicorn, typing-inspection, sqlalchemy, pydantic-core, Mako, httpcore, cffi, anyio, starlette, pydantic, httpx, cryptography, alembic, pydantic-settings, fastapi, kj-atlas-backend
+Successfully installed Mako-1.4.1 MarkupSafe-3.0.3 alembic-1.19.2 annotated-doc-0.0.5 annotated-types-0.8.0 anyio-4.15.0 certifi-2026.7.22 cffi-2.1.1 click-8.5.0 cryptography-50.0.1 fastapi-0.136.3 greenlet-3.5.5 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 idna-3.19 kj-atlas-backend-0.1.0 pycparser-3.0 pydantic-2.13.5 pydantic-core-2.46.5 pydantic-settings-2.15.0 pyjwt-2.13.0 python-dotenv-1.2.3 sqlalchemy-2.0.52 starlette-1.6.0 typing-extensions-4.16.0 typing-inspection-0.4.4 uvicorn-0.52.4
+=== Ollama 0.32.13: verify pinned runtime artifact ===
+Warning: could not connect to a running Ollama instance
+Warning: client version is 0.32.13
+{"digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67", "model": "qwen2.5:0.5b"}
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 20260211_0001, create documents table
+INFO  [alembic.runtime.migration] Running upgrade 20260211_0001 -> 20260303_0002, create users and user_identities tables
+INFO  [alembic.runtime.migration] Running upgrade 20260303_0002 -> 20260313_0003, create merge_decision_logs table
+INFO  [alembic.runtime.migration] Running upgrade 20260313_0003 -> 20260313_0004, add indexes for merge decision log lookup paths
+INFO  [alembic.runtime.migration] Running upgrade 20260313_0004 -> 20260314_0005, enforce case-insensitive identity lookup uniqueness
+INFO  [alembic.runtime.migration] Running upgrade 20260314_0005 -> 20260716_0006, add the single-tenant-compatible tenant foundation
+INFO  [alembic.runtime.migration] Running upgrade 20260716_0006 -> 20260717_0007, expand user identities with identity provider binding
+/work/evidence-20260904T193500Z-work/kj-atlas-backend-execution/alembic/versions/20260717_0007_add_identity_provider_binding.py:36: SAWarning: Skipped unsupported reflection of expression-based index uq_user_identities_provider_lower_external_uid
+  constraints = inspector.get_unique_constraints(table_name)
+/work/evidence-20260904T193500Z-work/kj-atlas-backend-execution/alembic/versions/20260717_0007_add_identity_provider_binding.py:31: SAWarning: Skipped unsupported reflection of expression-based index uq_user_identities_provider_lower_external_uid
+  return {index["name"] for index in inspector.get_indexes(table_name)}
+INFO  [alembic.runtime.migration] Running upgrade 20260717_0007 -> 20260717_0008, use tenant-scoped document keys
+INFO  [alembic.runtime.migration] Running upgrade 20260717_0008 -> 20260717_0009, enable PostgreSQL tenant row-level security
+INFO  [alembic.runtime.migration] Running upgrade 20260717_0009 -> 20260717_0010, add tenant-scoped document access metadata
+INFO  [alembic.runtime.migration] Running upgrade 20260717_0010 -> 20260717_0011, add tenant-scoped document access administration audit
+INFO  [alembic.runtime.migration] Running upgrade 20260717_0011 -> 20260720_0012, add tenant-document foreign key to document access admin audit
+INFO  [alembic.runtime.migration] Running upgrade 20260720_0012 -> 20260720_0013, add index on tenant_memberships.user_id
+INFO  [alembic.runtime.migration] Running upgrade 20260720_0013 -> 20260806_0014, add tenant-scoped opaque inquiry bundle storage
+INFO  [alembic.runtime.migration] Running upgrade 20260806_0014 -> 20260807_0014, ADR-0063 D9-1: add protocol/jwks_uri to identity_providers,
+external_tenant_ref to tenant_identity_providers.
+INFO  [alembic.runtime.migration] Running upgrade 20260807_0014 -> 20260809_0015, add content object reference metadata
+INFO  [alembic.runtime.migration] Running upgrade 20260809_0015 -> 20260809_0016, add canvas revision DAG and content blobs
+INFO  [alembic.runtime.migration] Running upgrade 20260809_0016 -> 20260810_0017, add canvas revision retention pins
+INFO  [alembic.runtime.migration] Running upgrade 20260810_0017 -> 20260810_0018, add privacy-minimal AI generation run lineage
+INFO  [alembic.runtime.migration] Running upgrade 20260810_0018 -> 20260810_0019, add content-free generation deletion audit
+INFO  [alembic.runtime.migration] Running upgrade 20260810_0019 -> 20260810_0020, bound identifier and descriptive text columns for portable indexes
+/usr/lib/python3.11/contextlib.py:144: SAWarning: Skipped unsupported reflection of expression-based index uq_user_identities_provider_lower_external_uid
+  next(self.gen)
+INFO  [alembic.runtime.migration] Running upgrade 20260810_0020 -> 20260811_0021, add recoverable inline content blob payload
+INFO  [alembic.runtime.migration] Running upgrade 20260811_0021 -> 20260811_0022, retire superseded content object reference metadata
+INFO  [alembic.runtime.migration] Running upgrade 20260811_0022 -> 20260811_0023, add tenant-scoped AI proposal decision audit events
+INFO  [alembic.runtime.migration] Running upgrade 20260811_0023 -> 20260811_0024, add external proposal provenance to the shared proposal audit ledger
+INFO  [alembic.runtime.migration] Running upgrade 20260811_0024 -> 20260811_0025, add shared SaaS tenant-session state
+INFO  [alembic.runtime.migration] Running upgrade 20260811_0025 -> 20260813_0026, add server-owned revision to inquiry_bundles
+INFO  [alembic.runtime.migration] Running upgrade 20260813_0026 -> 20260813_0027, add server-owned saas_auth_sessions table (ADR-0074 expand step)
+INFO  [alembic.runtime.migration] Running upgrade 20260813_0027 -> 20260815_0028, add document creator and lifecycle state (ADR-0073 D1=C / D2=A / D3=A)
+INFO  [alembic.runtime.migration] Running upgrade 20260815_0028 -> 20260815_0029, add server-verified roles to users (SEC-AUTH-ATTRIB-01)
+INFO  [alembic.runtime.migration] Running upgrade 20260815_0029 -> 20260815_0030, add control-plane admin audit trail (SEC-ADMIN-PLANE-03)
+INFO  [alembic.runtime.migration] Running upgrade 20260815_0030 -> 20260815_0031, add model governance registry (AI-MODEL-GOVERNANCE-01 R1/R3)
+INFO  [alembic.runtime.migration] Running upgrade 20260815_0031 -> 20260822_0032, add inquiry bundle creator (SEC-INQUIRY-BOUND-01)
+{"evidence": {"adapter_role": "integration-only", "eval_count": 78, "load_duration": 2555581433, "model": "qwen2.5:0.5b", "ollama_done": true, "ollama_done_reason": "stop", "prompt_eval_count": 196, "prompt_sha256": "cd3d5eeb64cddfbdce63d80b0451b19703f43bcd2d1b09d7188f6bd4d7de2d33", "schema": "soza.e3b-m1b-model-call/v1", "task": "suggest_card_groups", "total_duration": 8908153391}, "result": {"excludedCardIds": ["c-held"], "groups": [{"cardIds": ["c-remote-time", "c-remote-load"], "label": "生活習慣", "rationale": "在宅勤務では通勤に使う時間を減らせると、移動による負担を減らすための生活習慣の一つです。"}], "truncated": false}}
+=== Ollama 0.32.14: verify pinned runtime artifact ===
+Warning: could not connect to a running Ollama instance
+Warning: client version is 0.32.14
+{"digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67", "model": "qwen2.5:0.5b"}
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 20260211_0001, create documents table
+INFO  [alembic.runtime.migration] Running upgrade 20260211_0001 -> 20260303_0002, create users and user_identities tables
+INFO  [alembic.runtime.migration] Running upgrade 20260303_0002 -> 20260313_0003, create merge_decision_logs table
+INFO  [alembic.runtime.migration] Running upgrade 20260313_0003 -> 20260313_0004, add indexes for merge decision log lookup paths
+INFO  [alembic.runtime.migration] Running upgrade 20260313_0004 -> 20260314_0005, enforce case-insensitive identity lookup uniqueness
+INFO  [alembic.runtime.migration] Running upgrade 20260314_0005 -> 20260716_0006, add the single-tenant-compatible tenant foundation
+INFO  [alembic.runtime.migration] Running upgrade 20260716_0006 -> 20260717_0007, expand user identities with identity provider binding
+/work/evidence-20260904T193500Z-work/kj-atlas-backend-execution/alembic/versions/20260717_0007_add_identity_provider_binding.py:36: SAWarning: Skipped unsupported reflection of expression-based index uq_user_identities_provider_lower_external_uid
+  constraints = inspector.get_unique_constraints(table_name)
+/work/evidence-20260904T193500Z-work/kj-atlas-backend-execution/alembic/versions/20260717_0007_add_identity_provider_binding.py:31: SAWarning: Skipped unsupported reflection of expression-based index uq_user_identities_provider_lower_external_uid
+  return {index["name"] for index in inspector.get_indexes(table_name)}
+INFO  [alembic.runtime.migration] Running upgrade 20260717_0007 -> 20260717_0008, use tenant-scoped document keys
+INFO  [alembic.runtime.migration] Running upgrade 20260717_0008 -> 20260717_0009, enable PostgreSQL tenant row-level security
+INFO  [alembic.runtime.migration] Running upgrade 20260717_0009 -> 20260717_0010, add tenant-scoped document access metadata
+INFO  [alembic.runtime.migration] Running upgrade 20260717_0010 -> 20260717_0011, add tenant-scoped document access administration audit
+INFO  [alembic.runtime.migration] Running upgrade 20260717_0011 -> 20260720_0012, add tenant-document foreign key to document access admin audit
+INFO  [alembic.runtime.migration] Running upgrade 20260720_0012 -> 20260720_0013, add index on tenant_memberships.user_id
+INFO  [alembic.runtime.migration] Running upgrade 20260720_0013 -> 20260806_0014, add tenant-scoped opaque inquiry bundle storage
+INFO  [alembic.runtime.migration] Running upgrade 20260806_0014 -> 20260807_0014, ADR-0063 D9-1: add protocol/jwks_uri to identity_providers,
+external_tenant_ref to tenant_identity_providers.
+INFO  [alembic.runtime.migration] Running upgrade 20260807_0014 -> 20260809_0015, add content object reference metadata
+INFO  [alembic.runtime.migration] Running upgrade 20260809_0015 -> 20260809_0016, add canvas revision DAG and content blobs
+INFO  [alembic.runtime.migration] Running upgrade 20260809_0016 -> 20260810_0017, add canvas revision retention pins
+INFO  [alembic.runtime.migration] Running upgrade 20260810_0017 -> 20260810_0018, add privacy-minimal AI generation run lineage
+INFO  [alembic.runtime.migration] Running upgrade 20260810_0018 -> 20260810_0019, add content-free generation deletion audit
+INFO  [alembic.runtime.migration] Running upgrade 20260810_0019 -> 20260810_0020, bound identifier and descriptive text columns for portable indexes
+/usr/lib/python3.11/contextlib.py:144: SAWarning: Skipped unsupported reflection of expression-based index uq_user_identities_provider_lower_external_uid
+  next(self.gen)
+INFO  [alembic.runtime.migration] Running upgrade 20260810_0020 -> 20260811_0021, add recoverable inline content blob payload
+INFO  [alembic.runtime.migration] Running upgrade 20260811_0021 -> 20260811_0022, retire superseded content object reference metadata
+INFO  [alembic.runtime.migration] Running upgrade 20260811_0022 -> 20260811_0023, add tenant-scoped AI proposal decision audit events
+INFO  [alembic.runtime.migration] Running upgrade 20260811_0023 -> 20260811_0024, add external proposal provenance to the shared proposal audit ledger
+INFO  [alembic.runtime.migration] Running upgrade 20260811_0024 -> 20260811_0025, add shared SaaS tenant-session state
+INFO  [alembic.runtime.migration] Running upgrade 20260811_0025 -> 20260813_0026, add server-owned revision to inquiry_bundles
+INFO  [alembic.runtime.migration] Running upgrade 20260813_0026 -> 20260813_0027, add server-owned saas_auth_sessions table (ADR-0074 expand step)
+INFO  [alembic.runtime.migration] Running upgrade 20260813_0027 -> 20260815_0028, add document creator and lifecycle state (ADR-0073 D1=C / D2=A / D3=A)
+INFO  [alembic.runtime.migration] Running upgrade 20260815_0028 -> 20260815_0029, add server-verified roles to users (SEC-AUTH-ATTRIB-01)
+INFO  [alembic.runtime.migration] Running upgrade 20260815_0029 -> 20260815_0030, add control-plane admin audit trail (SEC-ADMIN-PLANE-03)
+INFO  [alembic.runtime.migration] Running upgrade 20260815_0030 -> 20260815_0031, add model governance registry (AI-MODEL-GOVERNANCE-01 R1/R3)
+INFO  [alembic.runtime.migration] Running upgrade 20260815_0031 -> 20260822_0032, add inquiry bundle creator (SEC-INQUIRY-BOUND-01)
+{"evidence": {"adapter_role": "integration-only", "eval_count": 78, "load_duration": 1801241256, "model": "qwen2.5:0.5b", "ollama_done": true, "ollama_done_reason": "stop", "prompt_eval_count": 196, "prompt_sha256": "cd3d5eeb64cddfbdce63d80b0451b19703f43bcd2d1b09d7188f6bd4d7de2d33", "schema": "soza.e3b-m1b-model-call/v1", "task": "suggest_card_groups", "total_duration": 7125363617}, "result": {"excludedCardIds": ["c-held"], "groups": [{"cardIds": ["c-remote-time", "c-remote-load"], "label": "生活習慣", "rationale": "在宅勤務では通勤に使う時間を減らせると、移動による負担を減らすための生活習慣の一つです。"}], "truncated": false}}
+{"promptSHA256": "cd3d5eeb64cddfbdce63d80b0451b19703f43bcd2d1b09d7188f6bd4d7de2d33"}
+ok  	github.com/hat47x/soza/runtime/go/livemethodintegration	0.063s
+=== RUN   TestLiveKJAtlasRuntimeVersionExchangePreservesHistoricalApplication
+--- PASS: TestLiveKJAtlasRuntimeVersionExchangePreservesHistoricalApplication (0.00s)
+PASS
+ok  	github.com/hat47x/soza/runtime/go/livemethodintegration	3.312s
+Runtime version exchange probe completed successfully.
+Evidence directory: /work/evidence-20260904T193500Z

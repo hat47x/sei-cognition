@@ -31,7 +31,7 @@ high novelty / high stakes / broader synthesisだけstronger model / human revie
 
 ## 2. SEI CognitionとSUI Sensemakingの役割を分ける
 
-再利用可能な疎連想・新奇性・近傍想起の基質は、**SEI Cognition方向の共通認知基盤（現在のSOZA repository）で所有する**。
+再利用可能な疎連想・新奇性・近傍想起の基質は、**SEI Cognition方向の共通認知基盤（現在のSEI repository）で所有する**。
 
 SEIは認知場と簡易記憶を持ち、現在の目的に応じて注意、想起、仮説、再探索を制御する。
 

@@ -13,6 +13,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Iterable
 
+from runtime_path_safety import reject_symlink_path_or_ancestors
 from verify_kj_atlas_runtime_source import PINNED_IDENTITY, verify_runtime_bundle
 from verify_runtime_version_exchange_model_store import verify_model_store
 
@@ -38,7 +39,7 @@ REQUIRED_COMMANDS = (
     "mktemp",
     "cp",
 )
-REQUIRED_PORTS = (("ollama", 11434), ("soza-model-adapter", 8001), ("kj-atlas", 8101))
+REQUIRED_PORTS = (("ollama", 11434), ("sei-model-adapter", 8001), ("kj-atlas", 8101))
 
 
 @dataclass(frozen=True)
@@ -56,6 +57,14 @@ def is_within(candidate: Path, parent: Path) -> bool:
     candidate = canonical_path(candidate)
     parent = canonical_path(parent)
     return candidate == parent or parent in candidate.parents
+
+
+def symlink_path_blocker(check_id: str, path: Path, label: str) -> Check | None:
+    try:
+        reject_symlink_path_or_ancestors(path, label)
+    except ValueError as exc:
+        return Check(check_id, "blocked", str(exc))
+    return None
 
 
 def sha256_file(path: Path) -> str:
@@ -119,6 +128,14 @@ def repository_commit_object_check(label: str, path: Path, expected_commit: str)
     runtime source identityではなく、ここでcleanlinessやHEAD一致を要求しない。
     """
 
+    blocker = symlink_path_blocker(
+        f"{label}.path",
+        path,
+        "KJ Atlas checkout",
+    )
+    if blocker is not None:
+        return [blocker]
+
     inside = run_git(path, "rev-parse", "--is-inside-work-tree")
     if inside.returncode != 0 or inside.stdout.strip() != "true":
         return [Check(f"{label}.git", "blocked", f"Git working treeではありません: {path}")]
@@ -145,14 +162,22 @@ def repository_commit_object_check(label: str, path: Path, expected_commit: str)
     return checks
 
 
-def runtime_bundle_check(path: Path, soza_root: Path) -> list[Check]:
+def runtime_bundle_check(path: Path, sei_root: Path) -> list[Check]:
+    blocker = symlink_path_blocker(
+        "kj-atlas.bundle.path",
+        path,
+        "KJ Atlas verified runtime bundle",
+    )
+    if blocker is not None:
+        return [blocker]
+
     resolved = canonical_path(path)
-    if is_within(resolved, soza_root):
+    if is_within(resolved, sei_root):
         return [
             Check(
                 "kj-atlas.bundle.path",
                 "blocked",
-                f"KJ Atlas runtime source bundleをSOZA repository配下には置けません: {resolved}",
+                f"KJ Atlas runtime source bundleをSEI repository配下には置けません: {resolved}",
             )
         ]
     if not resolved.is_dir():
@@ -199,6 +224,36 @@ def command_checks(commands: Iterable[str] = REQUIRED_COMMANDS) -> list[Check]:
     return checks
 
 
+def python_environment_check() -> Check:
+    """harnessが作成するvenv / pip bootstrapに必要な標準moduleを確認する。"""
+
+    python = shutil.which("python3")
+    if python is None:
+        return Check(
+            "python.venv",
+            "blocked",
+            "python3が見つからないためvenv / ensurepip capabilityを確認できません",
+        )
+    completed = subprocess.run(
+        [python, "-c", "import venv, ensurepip"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode != 0:
+        detail = completed.stderr.strip() or completed.stdout.strip() or "import failed"
+        return Check(
+            "python.venv",
+            "blocked",
+            "harnessが必要とするPython venv / ensurepipを利用できません: " + detail,
+        )
+    return Check(
+        "python.venv",
+        "ok",
+        "python3でvenv / ensurepipを利用できます。actual venv作成とKJ Atlas dependency installは実行時に別途確認します",
+    )
+
+
 def port_check(label: str, port: int) -> Check:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -217,6 +272,15 @@ def output_path_check(
 ) -> list[Check]:
     if path is None:
         return [Check(f"path.{label}", "deferred", "pathはharnessの既定値を使用します")]
+
+    blocker = symlink_path_blocker(
+        f"path.{label}",
+        path,
+        f"{label} path",
+    )
+    if blocker is not None:
+        return [blocker]
+
     resolved = canonical_path(path)
     for root in source_roots:
         if is_within(resolved, root):
@@ -247,14 +311,13 @@ def archive_check(
         return [Check(f"archive.{label}", status, detail)]
 
     requested = path.expanduser()
-    if requested.is_symlink():
-        return [
-            Check(
-                f"archive.{label}.path",
-                "blocked",
-                f"runtime archiveにsymlinkは利用できません: {requested}",
-            )
-        ]
+    blocker = symlink_path_blocker(
+        f"archive.{label}.path",
+        requested,
+        "runtime archive",
+    )
+    if blocker is not None:
+        return [blocker]
 
     resolved = canonical_path(requested)
     for root in source_roots:
@@ -309,7 +372,17 @@ def model_store_check(
             else "work-local model storageを利用します。固定model digestはOllama起動後にAPIで確認します"
         )
         return [Check("model.store", status, detail)]
-    resolved = canonical_path(path)
+
+    requested = path.expanduser()
+    blocker = symlink_path_blocker(
+        "model.store.path",
+        requested,
+        "model storage root",
+    )
+    if blocker is not None:
+        return [blocker]
+
+    resolved = canonical_path(requested)
     for root in source_roots:
         canonical_root = canonical_path(root)
         if is_within(resolved, canonical_root):
@@ -415,7 +488,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def collect_checks(args: argparse.Namespace, soza_root: Path) -> list[Check]:
+def collect_checks(args: argparse.Namespace, sei_root: Path) -> list[Check]:
     checks: list[Check] = []
     host_os = platform.system()
     host_arch = platform.machine()
@@ -434,14 +507,15 @@ def collect_checks(args: argparse.Namespace, soza_root: Path) -> list[Check]:
         )
     )
     checks.extend(command_checks())
-    checks.extend(repository_check("soza", soza_root))
+    checks.append(python_environment_check())
+    checks.extend(repository_check("sei", sei_root))
 
     if args.kj_atlas_backend_bundle is not None:
-        source_root = canonical_path(args.kj_atlas_backend_bundle)
+        source_root = args.kj_atlas_backend_bundle.expanduser()
         checks.append(Check("kj-atlas.source-mode", "ok", "source mode: verified-runtime-bundle"))
-        checks.extend(runtime_bundle_check(source_root, soza_root))
+        checks.extend(runtime_bundle_check(source_root, sei_root))
     else:
-        source_root = canonical_path(args.kj_atlas_dir or (soza_root / "_external" / "kj-atlas"))
+        source_root = (args.kj_atlas_dir or (sei_root / "_external" / "kj-atlas")).expanduser()
         checks.append(
             Check(
                 "kj-atlas.source-mode",
@@ -451,7 +525,7 @@ def collect_checks(args: argparse.Namespace, soza_root: Path) -> list[Check]:
         )
         checks.extend(repository_commit_object_check("kj-atlas", source_root, KJ_ATLAS_COMMIT))
 
-    source_roots = (soza_root, source_root)
+    source_roots = (sei_root, source_root)
     checks.extend(output_path_check("work", args.work_dir, source_roots, must_be_new=True))
     checks.extend(output_path_check("evidence", args.evidence_dir, source_roots, must_be_new=True))
     work_target = canonical_path(args.work_dir or Path(os.environ.get("TMPDIR", "/tmp")))
@@ -514,7 +588,7 @@ def pinned_source_identity_report() -> dict[str, object]:
 def report(checks: list[Check]) -> dict[str, object]:
     blockers = [check.id for check in checks if check.status == "blocked"]
     return {
-        "schema": "soza.runtime-version-exchange-preflight/v1",
+        "schema": "sei.runtime-version-exchange-preflight/v1",
         "result": "blocked" if blockers else "ready",
         "blockers": blockers,
         "fixedArtifacts": fixed_artifact_report(),
@@ -526,8 +600,8 @@ def report(checks: list[Check]) -> dict[str, object]:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    soza_root = canonical_path(Path(__file__).resolve().parents[2])
-    result = report(collect_checks(args, soza_root))
+    sei_root = canonical_path(Path(__file__).resolve().parents[2])
+    result = report(collect_checks(args, sei_root))
     if args.json:
         print(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2))
     else:

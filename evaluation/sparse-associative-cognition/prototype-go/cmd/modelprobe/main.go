@@ -8,8 +8,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/hat47x/soza/evaluation/sparse-associative-cognition/prototype-go/cognitiveeval"
-	"github.com/hat47x/soza/evaluation/sparse-associative-cognition/prototype-go/modelprobe"
+	"github.com/hat47x/sei-cognition/evaluation/sparse-associative-cognition/prototype-go/cognitiveeval"
+	"github.com/hat47x/sei-cognition/evaluation/sparse-associative-cognition/prototype-go/modelprobe"
 )
 
 func main() {

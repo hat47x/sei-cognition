@@ -92,9 +92,9 @@ class RuntimeVersionExchangeLocalChecksTest(unittest.TestCase):
     def test_parent_live_probe_environment_is_removed(self):
         environment = {
             "PATH": "/usr/bin",
-            "SOZA_E3B_RUNTIME_EXCHANGE_LIVE": "1",
-            "SOZA_E3B_RUNTIME_EXCHANGE_ARCHIVE_A": "/tmp/a",
-            "SOZA_RUNTIME_EXCHANGE_MODEL_DIR": "/tmp/models",
+            "SEI_E3B_RUNTIME_EXCHANGE_LIVE": "1",
+            "SEI_E3B_RUNTIME_EXCHANGE_ARCHIVE_A": "/tmp/a",
+            "SEI_RUNTIME_EXCHANGE_MODEL_DIR": "/tmp/models",
             "OLLAMA_HOST": "127.0.0.1:11434",
             "OLLAMA_MODELS": "/tmp/models",
             "UNRELATED": "keep",
@@ -104,22 +104,22 @@ class RuntimeVersionExchangeLocalChecksTest(unittest.TestCase):
 
         self.assertEqual("/usr/bin", actual["PATH"])
         self.assertEqual("keep", actual["UNRELATED"])
-        self.assertNotIn("SOZA_E3B_RUNTIME_EXCHANGE_LIVE", actual)
-        self.assertNotIn("SOZA_E3B_RUNTIME_EXCHANGE_ARCHIVE_A", actual)
-        self.assertNotIn("SOZA_RUNTIME_EXCHANGE_MODEL_DIR", actual)
+        self.assertNotIn("SEI_E3B_RUNTIME_EXCHANGE_LIVE", actual)
+        self.assertNotIn("SEI_E3B_RUNTIME_EXCHANGE_ARCHIVE_A", actual)
+        self.assertNotIn("SEI_RUNTIME_EXCHANGE_MODEL_DIR", actual)
         self.assertNotIn("OLLAMA_HOST", actual)
         self.assertNotIn("OLLAMA_MODELS", actual)
 
-    def test_result_output_must_be_new_and_outside_soza_repository(self):
+    def test_result_output_must_be_new_and_outside_sei_repository(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            soza = root / "soza"
-            soza.mkdir()
+            sei = root / "sei"
+            sei.mkdir()
             outside = root / "focused-result.json"
-            with patch.object(local_checks, "SOZA_ROOT", soza):
+            with patch.object(local_checks, "SEI_ROOT", sei):
                 self.assertEqual(outside, local_checks.prepare_result_output(outside))
-                with self.assertRaisesRegex(ValueError, "SOZA repository外"):
-                    local_checks.prepare_result_output(soza / "focused-result.json")
+                with self.assertRaisesRegex(ValueError, "SEI repository外"):
+                    local_checks.prepare_result_output(sei / "focused-result.json")
 
                 outside.write_text("existing\n", encoding="utf-8")
                 with self.assertRaisesRegex(ValueError, "新規path"):
@@ -128,26 +128,26 @@ class RuntimeVersionExchangeLocalChecksTest(unittest.TestCase):
     def test_result_output_rejects_symlink_path(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            soza = root / "soza"
-            soza.mkdir()
+            sei = root / "sei"
+            sei.mkdir()
             actual = root / "actual.json"
             actual.write_text("existing\n", encoding="utf-8")
             linked = root / "linked.json"
             linked.symlink_to(actual)
-            with patch.object(local_checks, "SOZA_ROOT", soza):
+            with patch.object(local_checks, "SEI_ROOT", sei):
                 with self.assertRaisesRegex(ValueError, "symlink"):
                     local_checks.prepare_result_output(linked)
 
     def test_result_output_rejects_symlink_parent(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            soza = root / "soza"
-            soza.mkdir()
+            sei = root / "sei"
+            sei.mkdir()
             actual_parent = root / "actual-parent"
             actual_parent.mkdir()
             linked_parent = root / "linked-parent"
             linked_parent.symlink_to(actual_parent, target_is_directory=True)
-            with patch.object(local_checks, "SOZA_ROOT", soza):
+            with patch.object(local_checks, "SEI_ROOT", sei):
                 with self.assertRaisesRegex(ValueError, "parentにsymlink"):
                     local_checks.prepare_result_output(linked_parent / "result.json")
 

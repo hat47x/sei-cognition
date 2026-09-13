@@ -49,7 +49,7 @@ Decision Memoryが当時の判断を再構成すると主張する場合、当�
 
 ## Current realization
 
-current `soza.decision-memory/v1alpha1`では、`context_refs`、`basis_refs`、`recommendation_refs`、`unresolved_refs`を別の参照集合として表現できる。
+current `sei.decision-memory/v1alpha1`では、`context_refs`、`basis_refs`、`recommendation_refs`、`unresolved_refs`を別の参照集合として表現できる。
 
 first semantic runtimeもこの区別を保ったまま読み込む。current fixtureでは、Recommendationだけが存在してDecisionへ至らない状態と、unresolved refを残したDecisionの双方を正常な状態として扱えることを確認している。
 

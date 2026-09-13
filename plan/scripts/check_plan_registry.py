@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SOZA plan/ のADR / Issue / registry整合を検査する。
+"""SEI plan/ のADR / Issue / registry整合を検査する。
 
 外部YAMLライブラリへ依存せず、plan/registry.yaml の現在の制約された書式を読む。
 このcheckerは関連の完全対称性までは要求しない。ADR側とIssue側では関連を記録する

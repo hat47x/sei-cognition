@@ -103,18 +103,18 @@ class RuntimeVersionExchangeHarnessTest(unittest.TestCase):
 
     def test_harness_passes_every_live_guard_path_explicitly(self):
         required_names = {
-            "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_MODE",
-            "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_DIR",
-            "SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_VERIFIER",
-            "SOZA_E3B_RUNTIME_EXCHANGE_ARCHIVE_A",
-            "SOZA_E3B_RUNTIME_EXCHANGE_ARCHIVE_B",
-            "SOZA_E3B_RUNTIME_EXCHANGE_VERSION_LOG_A",
-            "SOZA_E3B_RUNTIME_EXCHANGE_VERSION_LOG_B",
+            "SEI_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_MODE",
+            "SEI_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_BACKEND_DIR",
+            "SEI_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_SOURCE_VERIFIER",
+            "SEI_E3B_RUNTIME_EXCHANGE_ARCHIVE_A",
+            "SEI_E3B_RUNTIME_EXCHANGE_ARCHIVE_B",
+            "SEI_E3B_RUNTIME_EXCHANGE_VERSION_LOG_A",
+            "SEI_E3B_RUNTIME_EXCHANGE_VERSION_LOG_B",
         }
         for name in required_names:
             with self.subTest(environment=name):
                 self.assertIn(f'export {name}=', self.script_text)
-        self.assertNotIn("SOZA_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_DIR", self.script_text)
+        self.assertNotIn("SEI_E3B_RUNTIME_EXCHANGE_KJ_ATLAS_DIR", self.script_text)
 
     def test_go_live_guard_has_no_github_workspace_or_tmp_fallback(self):
         self.assertNotIn("GITHUB_WORKSPACE", self.go_guard_text)
@@ -168,13 +168,57 @@ class RuntimeVersionExchangeHarnessTest(unittest.TestCase):
         self.assertIn('read -r actual_sha remainder < <(sha256sum "${archive}")', self.script_text)
         self.assertIn('if [[ "${actual_sha}" != "${expected_sha}" ]]', self.script_text)
 
-    def test_prepositioned_model_store_is_not_auto_pulled_when_pinned_model_is_missing(self):
-        marker = 'if [[ "${MODEL_STORE_MODE}" == "prepositioned" ]]'
-        start = self.script_text.index(marker)
-        end = self.script_text.index('"${ollama}" pull "${MODEL_NAME}"', start)
-        prepositioned_branch = self.script_text[start:end]
-        self.assertIn("prepositioned model directory does not contain the pinned artifact", prepositioned_branch)
-        self.assertIn("return 1", prepositioned_branch)
+    def test_downloaded_runtime_archives_use_the_canonical_preparation_helper(self):
+        self.assertIn(
+            'RUNTIME_ARCHIVE_PREPARER="${SEI_ROOT}/runtime/integration/prepare_runtime_version_exchange_archives.py"',
+            self.script_text,
+        )
+        self.assertIn('prepare_downloaded_runtime_archive()', self.script_text)
+        self.assertIn('python3 "${RUNTIME_ARCHIVE_PREPARER}" \\', self.script_text)
+        self.assertIn('--output-dir "${RUNTIME_ARCHIVE_PREPARATION_DIR}"', self.script_text)
+        self.assertIn('--runtime "${label}"', self.script_text)
+        self.assertIn('--json >"${result_file}"', self.script_text)
+        self.assertIn('RUNTIME_ARCHIVE_A="$(prepare_downloaded_runtime_archive a)"', self.script_text)
+        self.assertIn('RUNTIME_ARCHIVE_B="$(prepare_downloaded_runtime_archive b)"', self.script_text)
+        self.assertNotIn(
+            'https://github.com/ollama/ollama/releases/download/v${version}/ollama-linux-amd64.tar.zst',
+            self.script_text,
+        )
+
+    def test_runtime_archive_preparation_observation_is_preserved_when_available(self):
+        self.assertIn(
+            '"${WORK_DIR}/runtime-exchange-a-archive-preparation.json" \\',
+            self.script_text,
+        )
+        self.assertIn(
+            '"${WORK_DIR}/runtime-exchange-b-archive-preparation.json" \\',
+            self.script_text,
+        )
+        self.assertIn('payload.get("result") != "ok"', self.script_text)
+        self.assertIn('archive.get("status") != "ok"', self.script_text)
+
+    def test_work_local_model_store_is_prepared_before_runtime_and_never_pulled(self):
+        self.assertIn(
+            'MODEL_STORE_PREPARER="${SEI_ROOT}/runtime/integration/prepare_runtime_version_exchange_model_store.py"',
+            self.script_text,
+        )
+        self.assertIn('MODEL_STORE_MODE="work-local"', self.script_text)
+        self.assertIn('MODEL_STORE_NEEDS_PREPARATION=1', self.script_text)
+        self.assertIn('python3 "${MODEL_STORE_PREPARER}" --target-dir "${MODEL_STORE}"', self.script_text)
+        self.assertIn('"${MODEL_STORE_PREPARATION_FILE}" \\', self.script_text)
+        self.assertNotIn('"${ollama}" pull "${MODEL_NAME}"', self.script_text)
+
+    def test_missing_pinned_model_stops_runtime_without_mutating_store(self):
+        self.assertIn(
+            'if ! model_store_has_pinned_artifact "${tags}"; then',
+            self.script_text,
+        )
+        self.assertIn(
+            'model directory does not contain the pinned artifact',
+            self.script_text,
+        )
+        self.assertIn("return 1", self.script_text)
+        self.assertNotIn("prepositioned model directory does not contain", self.script_text)
 
     def test_acquisition_path_is_recorded_without_replacing_artifact_identity(self):
         self.assertIn('"archiveAcquisition": os.environ["RUNTIME_ACQUISITION_A"]', self.script_text)

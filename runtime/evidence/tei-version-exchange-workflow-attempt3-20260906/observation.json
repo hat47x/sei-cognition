@@ -1,0 +1,44 @@
+{
+  "schema": "soza.tei-version-exchange-workflow-observation/v1",
+  "observedAt": "2026-09-06T10:01:21Z",
+  "repository": "hat47x/tei-platform",
+  "workflow": {
+    "name": "SOZA E3b-P2 TEI Evidence",
+    "path": ".github/workflows/soza-e3b-p2-evidence.yml",
+    "runId": 33913500170,
+    "runNumber": 2,
+    "runAttempt": 3,
+    "event": "push",
+    "headBranch": "evidence/soza-e3b-p2-version-exchange-2026-09-05",
+    "workflowHeadSha": "5e87cd18967b6d86001cc4d5229bd4886b94e30d",
+    "runStartedAt": "2026-09-06T10:01:06Z",
+    "updatedAt": "2026-09-06T10:01:10Z",
+    "status": "completed",
+    "conclusion": "failure"
+  },
+  "comparisonAxis": {
+    "targetRevisionB": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be",
+    "revisionAFixedReference": "48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67"
+  },
+  "job": {
+    "id": 101467596158,
+    "name": "actual-tei-cli",
+    "status": "completed",
+    "conclusion": "failure",
+    "stepCount": 0,
+    "steps": [],
+    "jobLogAvailable": false
+  },
+  "artifacts": [],
+  "observation": {
+    "jobStepStarted": false,
+    "revisionBSourceCheckoutObserved": false,
+    "teiBuildProcessObserved": false,
+    "providerPlanProcessObserved": false,
+    "evidenceArtifactProduced": false,
+    "failureClass": "github_hosted_job_start_failure",
+    "productFailureObserved": false
+  },
+  "qualityJudgement": "not_evaluated",
+  "stopLine": "GitHub-hosted job start failure != TEI build failure != Provider surface incompatibility != SOZA Adapter incompatibility != ISSUE-000072 Resolved"
+}

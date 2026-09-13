@@ -11,7 +11,7 @@ from pathlib import Path
 
 INTEGRATION_DIR = Path(__file__).resolve().parent
 ARTIFACT_MANIFEST = INTEGRATION_DIR / "runtime_version_exchange_artifacts.json"
-RESULT_SCHEMA = "soza.runtime-version-exchange-model-store-verification/v1"
+RESULT_SCHEMA = "sei.runtime-version-exchange-model-store-verification/v1"
 DIGEST_PATTERN = re.compile(r"^sha256:([0-9a-f]{64})$")
 
 
@@ -39,6 +39,24 @@ def _is_within(candidate: Path, root: Path) -> bool:
     candidate = candidate.expanduser().resolve(strict=False)
     root = root.expanduser().resolve(strict=True)
     return candidate == root or root in candidate.parents
+
+
+def _prepare_output_path(path: Path, model_store: Path) -> Path:
+    requested = path.expanduser()
+    if requested.is_symlink():
+        raise ValueError(f"verification outputにsymlinkは利用できません: {requested}")
+    if requested.parent.is_symlink():
+        raise ValueError(
+            "verification outputのparentにsymlinkは利用できません: "
+            f"{requested.parent}"
+        )
+
+    output = requested.resolve(strict=False)
+    if _is_within(output, model_store):
+        raise ValueError(f"verification outputはmodel store外へ保存してください: {output}")
+    if output.exists():
+        raise ValueError(f"verification outputは新規pathを指定してください: {output}")
+    return output
 
 
 def _require_regular_file_without_symlink(path: Path, root: Path, label: str) -> Path:
@@ -70,7 +88,9 @@ def _load_fixed_model_identity() -> dict[str, str]:
         if not isinstance(value, str) or not value:
             raise ValueError(f"runtime artifact manifestのmodel.{key}が不正です")
 
-    if len(model["sha256"]) != 64 or any(ch not in "0123456789abcdef" for ch in model["sha256"]):
+    if len(model["sha256"]) != 64 or any(
+        ch not in "0123456789abcdef" for ch in model["sha256"]
+    ):
         raise ValueError("runtime artifact manifestのmodel.sha256が不正です")
     if model["digestBasis"] != "ollama-manifest-raw-bytes-sha256":
         raise ValueError(f"未対応のmodel digest basisです: {model['digestBasis']}")
@@ -113,7 +133,17 @@ def verify_model_store(
     manifest_sha256 = expected_manifest_sha256 or fixed["sha256"]
     relative_path = manifest_relative_path or fixed["storeManifestPath"]
 
-    model_dir = model_dir.expanduser().resolve(strict=True)
+    requested_model_dir = model_dir.expanduser()
+    if requested_model_dir.is_symlink():
+        raise ValueError(
+            f"Ollama model store rootにsymlinkは利用できません: {requested_model_dir}"
+        )
+    if requested_model_dir.parent.is_symlink():
+        raise ValueError(
+            "Ollama model store rootのparentにsymlinkは利用できません: "
+            f"{requested_model_dir.parent}"
+        )
+    model_dir = requested_model_dir.resolve(strict=True)
     if not model_dir.is_dir():
         raise ValueError(f"Ollama model storeがdirectoryではありません: {model_dir}")
 
@@ -214,17 +244,19 @@ def main() -> int:
 
     try:
         payload = verify_model_store(args.model_dir)
+        output = (
+            _prepare_output_path(
+                args.output,
+                Path(str(payload["modelStore"])),
+            )
+            if args.output is not None
+            else None
+        )
     except (OSError, ValueError) as exc:
         parser.exit(1, f"runtime exchange model store verification failed: {exc}\n")
 
     rendered = json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
-    if args.output is not None:
-        output = args.output.expanduser().resolve(strict=False)
-        model_store = Path(str(payload["modelStore"]))
-        if _is_within(output, model_store):
-            parser.exit(1, f"output path must be outside model store: {output}\n")
-        if output.exists():
-            parser.exit(1, f"output file already exists: {output}\n")
+    if output is not None:
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(rendered, encoding="utf-8")
     print(rendered, end="")

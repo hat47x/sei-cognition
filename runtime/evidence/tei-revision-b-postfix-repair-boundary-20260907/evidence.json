@@ -1,0 +1,64 @@
+{
+  "schema": "soza.tei-revision-b-postfix-repair-boundary-observation/v1",
+  "observedDate": "2026-09-07",
+  "repository": "hat47x/tei-platform",
+  "evidenceNature": "static_git_history_observation",
+  "fixedRevisionB": {
+    "commit": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be",
+    "cmdTeiMainBlob": "6a27b98b7f6dbe4e66d1261edfc847402cd608a5",
+    "cmdTeiValidationOutputBlob": "2ca746592d325ec0f277cebc7c297e49d3022829",
+    "sourceLevelContradictionEvidence": "runtime/evidence/tei-revision-b-static-cli-compile-contradiction-20260907/evidence.json"
+  },
+  "knownRepairLineage": {
+    "repairCommit": "3b928502a5f5d8519335fb3dabed9512ebd6005a",
+    "repairMessage": "fix: restore build after reference feature integration",
+    "postRepairCommit": "0f4164d31fb938f6ea2a219efb5fff492085f4e3",
+    "cmdTeiMainBlob": "ef2e10faac836959caf46a6a16cef5486e13ca0b",
+    "cmdTeiValidationOutputBlob": "5bdd0bef621efafc4e1154099c4b8b76e8228a91",
+    "relationToFixedRevisionBBeforeIntegration": "diverged"
+  },
+  "fixedBLineageImmediatelyBeforeIntegration": {
+    "commit": "241c2c7d75a755678b4158f72f4d4e2826a3f29d",
+    "relationFromFixedRevisionB": "ahead",
+    "fixedRevisionBIsAncestor": true,
+    "relationFromKnownRepairCommit": "diverged",
+    "cmdTeiMainBlob": "6a27b98b7f6dbe4e66d1261edfc847402cd608a5",
+    "cmdTeiValidationOutputBlob": "2ca746592d325ec0f277cebc7c297e49d3022829",
+    "validationLoadErrorSymbol": "workspace.DiagnosticFromLoadError",
+    "duplicateValidateWorkspaceStillPresentInMain": true
+  },
+  "repairIntegrationBoundary": {
+    "commit": "b371111b6103439a28acde4c8fbe3cb11b9c611c",
+    "commitDate": "2026-09-06T02:53:02Z",
+    "message": "Merge remote-tracking branch 'origin/main'",
+    "parents": [
+      "0f4164d31fb938f6ea2a219efb5fff492085f4e3",
+      "241c2c7d75a755678b4158f72f4d4e2826a3f29d"
+    ],
+    "fixedRevisionBIsAncestor": true,
+    "knownRepairCommitIsAncestor": true,
+    "cmdTeiMainBlob": "ef2e10faac836959caf46a6a16cef5486e13ca0b",
+    "cmdTeiValidationOutputBlob": "5bdd0bef621efafc4e1154099c4b8b76e8228a91",
+    "validationLoadErrorSymbol": "workspace.SourceDiagnosticFromError",
+    "duplicateValidateWorkspacePresentInMain": false,
+    "classification": "minimal_common_descendant_merge_of_observed_fixed_b_and_repair_parent_lineages"
+  },
+  "topologyChecks": {
+    "fixedB_to_repairPostCommit": "diverged",
+    "repairCommit_to_fixedBParentBeforeIntegration": "diverged",
+    "fixedB_to_integrationBoundary": "ahead",
+    "repairCommit_to_integrationBoundary": "ahead",
+    "interpretation": "neither immediate parent lineage contained both histories before the merge; the merge commit contains both"
+  },
+  "scope": {
+    "fixedRevisionBReplaced": false,
+    "successorRevisionSelected": false,
+    "canonicalActualE2Executed": false,
+    "revisionBBuildFailureEstablished": false,
+    "providerPlanCompatibilityEvaluated": false,
+    "sozaAdapterCompatibilityEvaluated": false,
+    "qualityJudgement": "not_evaluated",
+    "issue000072": "Open"
+  },
+  "stopLine": "post-B repair integration boundary observed != revision B replaced != successor revision selected != canonical actual revision B E2 executed != Provider Plan compatibility verified != SOZA Adapter compatibility verified != ISSUE-000072 Resolved"
+}

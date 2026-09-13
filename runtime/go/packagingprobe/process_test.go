@@ -19,12 +19,12 @@ type processInspectResult struct {
 
 func TestBuiltProbeExecutableReloadsFromNewProcess(t *testing.T) {
 	temp := t.TempDir()
-	binary := filepath.Join(temp, "soza-package-probe")
+	binary := filepath.Join(temp, "sei-package-probe")
 	if runtime.GOOS == "windows" {
 		binary += ".exe"
 	}
 
-	build := exec.Command("go", "build", "-o", binary, "../cmd/soza-package-probe")
+	build := exec.Command("go", "build", "-o", binary, "../cmd/sei-package-probe")
 	buildOutput, err := build.CombinedOutput()
 	if err != nil {
 		t.Fatalf("build probe executable: %v\n%s", err, buildOutput)
@@ -73,12 +73,12 @@ func TestBuiltProbeExecutableReloadsFromNewProcess(t *testing.T) {
 
 func TestBuiltProbeExecutablePreservesUnknownContractAcrossProcesses(t *testing.T) {
 	temp := t.TempDir()
-	binary := filepath.Join(temp, "soza-package-probe")
+	binary := filepath.Join(temp, "sei-package-probe")
 	if runtime.GOOS == "windows" {
 		binary += ".exe"
 	}
 
-	build := exec.Command("go", "build", "-o", binary, "../cmd/soza-package-probe")
+	build := exec.Command("go", "build", "-o", binary, "../cmd/sei-package-probe")
 	if output, err := build.CombinedOutput(); err != nil {
 		t.Fatalf("build probe executable: %v\n%s", err, output)
 	}

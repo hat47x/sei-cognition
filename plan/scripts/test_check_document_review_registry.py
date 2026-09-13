@@ -30,7 +30,7 @@ class DocumentReviewRegistryTest(unittest.TestCase):
 
     def test_registered_markdown_and_empty_pending_pass(self) -> None:
         root = self.make_repo(
-            """schema: soza.document-review-registry/v1
+            """schema: sei.document-review-registry/v1
 reviewed:
   - scope: README.md
     status: revised
@@ -46,7 +46,7 @@ closure_rule: done
 
     def test_unregistered_markdown_fails(self) -> None:
         root = self.make_repo(
-            """schema: soza.document-review-registry/v1
+            """schema: sei.document-review-registry/v1
 reviewed:
   - scope: README.md
     status: revised
@@ -61,7 +61,7 @@ closure_rule: done
 
     def test_nonempty_pending_fails(self) -> None:
         root = self.make_repo(
-            """schema: soza.document-review-registry/v1
+            """schema: sei.document-review-registry/v1
 reviewed:
   - scope: README.md
     status: revised
@@ -78,7 +78,7 @@ closure_rule: done
 
     def test_historical_markdown_exclusion_passes(self) -> None:
         root = self.make_repo(
-            """schema: soza.document-review-registry/v1
+            """schema: sei.document-review-registry/v1
 reviewed:
   - scope: README.md
     status: revised
@@ -95,7 +95,7 @@ closure_rule: done
 
     def test_stale_reviewed_scope_fails(self) -> None:
         root = self.make_repo(
-            """schema: soza.document-review-registry/v1
+            """schema: sei.document-review-registry/v1
 reviewed:
   - scope: README.md
     status: revised

@@ -328,21 +328,13 @@ Meaning Planeで保持されたObservation / Unknown / Conflict / Recommendation
 
 ## 12. 命名移行
 
-planned product nameは `SEI Cognition` とする。
+product nameは `SEI Cognition` である。
 
-ただしcurrent repositoryにはSOZA名称のcanonical Requirement / Architecture / Contract / file pathが多数存在する。
+この文書を書いた2026-09-12時点では、repository全体はまだ旧名 `SOZA` を用いており、このevaluationでは概念名だけ先行してSEI Cognitionを使っていた。
 
-このevaluationでは概念名だけ先行してSEI Cognitionを利用し、repository-wide renameは行わない。
+その後ADR-0031がAcceptedとなり、repository-wide renameは実施済みである。Product Value、Requirements、ADR、Architecture filename、Traceability、package / module / repository namingを一括して扱った。
 
-renameは別Issue / ADRで、少なくとも次を一緒に扱う。
-
-- Product Value
-- Requirements
-- ADR
-- Architecture filenames
-- Traceability
-- package / module / repository naming
-- historical references
+renameの規則と、記録済みEvidenceを不変として残す境界は`plan/adr/ADR-0031-product-rename-sei-cognition-identifier-boundary.md`を正とする。改名前のArtifactは同ADRのmapping tableで現在のidentityへ解決できる。
 
 ## 13. 非目標
 

@@ -14,7 +14,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-REPORT_SCHEMA = "soza.method-quality-structure-report/v1"
+REPORT_SCHEMA = "sei.method-quality-structure-report/v1"
 
 
 def _sha256(data: bytes) -> str:

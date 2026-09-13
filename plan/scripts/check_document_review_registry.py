@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SOZAのDocument Review Registry coverageを検査する。
+"""SEIのDocument Review Registry coverageを検査する。
 
 このcheckerは文書内容の意味品質を評価しない。actual tree上のMarkdown開発文書が
 plan/document_review_registry.yaml のreviewed scopeまたは明示的なexclusionに

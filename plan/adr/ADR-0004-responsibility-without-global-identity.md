@@ -6,13 +6,13 @@ Updated: 2026-08-31
 
 ## Context
 
-SOZAでは、人間、AI、service、job、organization、committee、external provider等の主体を参照する必要がある。
+SEIでは、人間、AI、service、job、organization、committee、external provider等の主体を参照する必要がある。
 
 これらを一つのGlobal Principal ontologyへ統合すると、組織階層、IAM、HR directory、agent registry等に固有のモデルをCoreへ取り込みやすくなる。また、actor kindだけを根拠として権限や信頼を推定する危険も生じる。
 
 ## Decision
 
-SOZA Coreでは、Global Principal ontologyを作らない。
+SEI Coreでは、Global Principal ontologyを作らない。
 
 限定された文脈の中で主体を安定して参照するため、次の最小参照を基本とする。
 

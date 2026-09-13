@@ -11,8 +11,10 @@ import sys
 import tempfile
 from pathlib import Path
 
+from runtime_path_safety import lexical_absolute_path, reject_symlink_path_or_ancestors
+
 INTEGRATION_DIR = Path(__file__).resolve().parent
-SOZA_ROOT = INTEGRATION_DIR.parents[1]
+SEI_ROOT = INTEGRATION_DIR.parents[1]
 PREFLIGHT = INTEGRATION_DIR / "check_runtime_version_exchange_preflight.py"
 STRICT_ENTRYPOINT = INTEGRATION_DIR / "run_runtime_version_exchange_strict.py"
 EVIDENCE_VERIFIER = INTEGRATION_DIR / "verify_runtime_version_exchange_provenance.py"
@@ -75,6 +77,7 @@ def _canonical_path(path: Path) -> Path:
 
 
 def _prepare_new_path(path: Path, label: str) -> Path:
+    reject_symlink_path_or_ancestors(path, label)
     resolved = _canonical_path(path)
     if resolved.exists():
         raise ValueError(f"{label} already exists: {resolved}")
@@ -98,7 +101,7 @@ def _protect_verification_output(
     work_dir: Path | None,
 ) -> None:
     protected: list[tuple[str, Path]] = [
-        ("SOZA repository", SOZA_ROOT),
+        ("SEI repository", SEI_ROOT),
         ("Evidence directory", evidence_dir),
     ]
     for label, path in (
@@ -131,7 +134,7 @@ def _protect_runner_output_paths(
 ) -> None:
     """preflight失敗時も含め、runnerが入力資産をEvidence等で変更しないようにする。"""
 
-    inputs: list[tuple[str, Path]] = [("SOZA repository", SOZA_ROOT)]
+    inputs: list[tuple[str, Path]] = [("SEI repository", SEI_ROOT)]
     for label, path in (
         ("KJ Atlas checkout", kj_atlas_dir),
         ("KJ Atlas verified runtime bundle", kj_atlas_backend_bundle),
@@ -173,7 +176,7 @@ def _effective_work_dir(evidence_dir: Path, requested_work_dir: Path | None) -> 
     """preflightとstrict entrypointが同じwork pathを診断・利用するよう一度だけ確定する。"""
 
     if requested_work_dir is not None:
-        return _canonical_path(requested_work_dir)
+        return lexical_absolute_path(requested_work_dir)
     return evidence_dir.parent / f"{evidence_dir.name}-work"
 
 
@@ -288,7 +291,7 @@ def _run_and_capture(
     log_dir: Path,
 ) -> tuple[int, Path, str, int]:
     temporary = tempfile.NamedTemporaryFile(
-        prefix="soza-runtime-exchange-runner-",
+        prefix="sei-runtime-exchange-runner-",
         suffix=".log",
         dir=log_dir,
         delete=False,
@@ -323,12 +326,14 @@ def _run_and_capture(
 
 
 def _write_json_once(path: Path, payload: dict[str, object]) -> None:
-    if path.exists():
-        raise ValueError(f"Evidence path already exists: {path}")
-    path.write_text(
-        json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    try:
+        with path.open("x", encoding="utf-8") as handle:
+            json.dump(payload, handle, ensure_ascii=False, sort_keys=True, indent=2)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+    except FileExistsError as exc:
+        raise ValueError(f"Evidence path already exists: {path}") from exc
 
 
 def _prepare_evidence_directory_after_run(evidence_dir: Path, exit_code: int) -> str:
@@ -385,7 +390,7 @@ def _preserve_blocked_preflight(
     _write_json_once(
         evidence_dir / "runtime-exchange-preflight-observation.json",
         {
-            "schema": "soza.runtime-version-exchange-preflight-observation/v1",
+            "schema": "sei.runtime-version-exchange-preflight-observation/v1",
             "completed": True,
             "exitCode": blocked.returncode,
             "preflightResult": blocked.report.get("result"),
@@ -419,7 +424,7 @@ def _preserve_runner_observation(
 
     os.replace(log_path, target_log)
     observation = {
-        "schema": "soza.runtime-version-exchange-runner-observation/v1",
+        "schema": "sei.runtime-version-exchange-runner-observation/v1",
         "completed": exit_code == 0,
         "exitCode": exit_code,
         "sourcePreparation": source_preparation,
@@ -569,7 +574,7 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         help=(
             "Evidence検証結果を保存する新規JSON path。省略時はEvidence directoryの隣へ保存します。"
-            "SOZA/KJ Atlas source、model、work、Evidenceとは重ならないpathが必要です。"
+            "SEI/KJ Atlas source、model、work、Evidenceとは重ならないpathが必要です。"
         ),
     )
     return parser
@@ -581,9 +586,9 @@ def main() -> int:
     if forwarded and forwarded[0] == "--":
         forwarded = forwarded[1:]
 
-    evidence_dir = _canonical_path(args.evidence_dir)
+    evidence_dir = args.evidence_dir
     verification_output = (
-        _canonical_path(args.verification_output)
+        args.verification_output
         if args.verification_output is not None
         else _default_verification_output(evidence_dir)
     )

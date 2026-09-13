@@ -12,7 +12,7 @@ Updated: 2026-08-31
 
 ## Decision
 
-SOZA Coreが所有するのは、**Exact Bindingを再検証できるための意味上の条件**までとする。
+SEI Coreが所有するのは、**Exact Bindingを再検証できるための意味上の条件**までとする。
 
 canonicalization、digest algorithm、対象bytesまたはsemantic representationの定義は、明示された`Representation Profile`が所有する。
 
@@ -41,8 +41,8 @@ unknownなRepresentation Profileは検証済みとして扱わない。また、
 current / future Exact Binding向けのProfile基線はADR-0023で定めている。
 
 ```text
-soza.jcs+sha256/v1alpha1
-soza.raw-bytes+sha256/v1alpha1
+sei.jcs+sha256/v1alpha1
+sei.raw-bytes+sha256/v1alpha1
 ```
 
 JSONではRFC 8785 JCSをcanonicalizationの外部仕様として用い、non-JSONや明示されたbinary contentではraw bytesを対象とするProfileを分けている。

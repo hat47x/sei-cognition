@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	ContractCognitiveMethod   = "soza.cognitive-method/v1alpha1"
-	ContractIDCognitiveMethod = "soza.cognitive-method"
+	ContractCognitiveMethod   = "sei.cognitive-method/v1alpha1"
+	ContractIDCognitiveMethod = "sei.cognitive-method"
 )
 
 type MethodDefinition struct {

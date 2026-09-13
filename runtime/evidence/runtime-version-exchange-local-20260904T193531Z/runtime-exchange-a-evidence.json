@@ -1,0 +1,13 @@
+{
+  "adapter_role": "integration-only",
+  "eval_count": 78,
+  "load_duration": 2555581433,
+  "model": "qwen2.5:0.5b",
+  "ollama_done": true,
+  "ollama_done_reason": "stop",
+  "prompt_eval_count": 196,
+  "prompt_sha256": "cd3d5eeb64cddfbdce63d80b0451b19703f43bcd2d1b09d7188f6bd4d7de2d33",
+  "schema": "soza.e3b-m1b-model-call/v1",
+  "task": "suggest_card_groups",
+  "total_duration": 8908153391
+}

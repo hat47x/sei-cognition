@@ -11,8 +11,8 @@ from typing import Any
 import verify_runtime_version_exchange_evidence as core
 
 
-EXPECTED_PREFLIGHT_SCHEMA = "soza.runtime-version-exchange-preflight/v1"
-EXPECTED_SOURCE_EXPORT_SCHEMA = "soza.kj-atlas-runtime-source-export/v1"
+EXPECTED_PREFLIGHT_SCHEMA = "sei.runtime-version-exchange-preflight/v1"
+EXPECTED_SOURCE_EXPORT_SCHEMA = "sei.kj-atlas-runtime-source-export/v1"
 EXPECTED_SOURCE_EXPORT_ACQUISITION = "git-archive-from-pinned-commit"
 SOURCE_PREPARATION_DIRECT = "verified-runtime-bundle"
 SOURCE_PREPARATION_CHECKOUT = "checkout-to-verified-runtime-bundle"
@@ -326,7 +326,7 @@ def _report(
     checks = list(core_report.get("checks", []))
     checks.extend(asdict(check) for check in verification.checks)
     return {
-        "schema": "soza.runtime-version-exchange-provenance-verification/v1",
+        "schema": "sei.runtime-version-exchange-provenance-verification/v1",
         "evidenceDirectory": str(evidence_dir),
         "coreEvidenceResult": core_report.get("result"),
         "result": "ready-to-review" if core_ready and verification.ready else "not-sufficient",

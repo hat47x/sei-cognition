@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
-// ObservationContext contains the SOZA-side context supplied to a Provider
+// ObservationContext contains the SEI-side context supplied to a Provider
 // Adapter. Provider-specific input remains outside this type.
 type ObservationContext struct {
 	ObservationID  string

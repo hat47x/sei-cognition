@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SOZA Representation ProfileのDefinitionと固定fixtureを検査する。"""
+"""SEI Representation ProfileのDefinitionと固定fixtureを検査する。"""
 
 from __future__ import annotations
 
@@ -13,8 +13,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PROFILE_DOCS = {
-    "soza.jcs+sha256/v1alpha1": ROOT / "contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md",
-    "soza.raw-bytes+sha256/v1alpha1": ROOT / "contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md",
+    "sei.jcs+sha256/v1alpha1": ROOT / "contracts/profiles/SEI_JCS_SHA256_PROFILE_v1alpha1.md",
+    "sei.raw-bytes+sha256/v1alpha1": ROOT / "contracts/profiles/SEI_RAW_BYTES_SHA256_PROFILE_v1alpha1.md",
 }
 JCS_FIXTURE = ROOT / "fixtures/representation-profiles/jcs-v1alpha1.json"
 RAW_FIXTURE = ROOT / "fixtures/representation-profiles/raw-bytes-v1alpha1.json"
@@ -46,7 +46,7 @@ def check_profile_docs(errors: list[str]) -> None:
 
 def check_jcs(errors: list[str]) -> int:
     data = load(JCS_FIXTURE)
-    require(data.get("profile_id") == "soza.jcs+sha256/v1alpha1", "JCS fixtureのprofile_idが不正です。", errors)
+    require(data.get("profile_id") == "sei.jcs+sha256/v1alpha1", "JCS fixtureのprofile_idが不正です。", errors)
     require(data.get("digest_algorithm") == "sha256", "JCS fixtureのdigest_algorithmが不正です。", errors)
 
     cases = data.get("cases") or []
@@ -96,7 +96,7 @@ def check_jcs(errors: list[str]) -> int:
 
 def check_raw(errors: list[str]) -> int:
     data = load(RAW_FIXTURE)
-    require(data.get("profile_id") == "soza.raw-bytes+sha256/v1alpha1", "raw-bytes fixtureのprofile_idが不正です。", errors)
+    require(data.get("profile_id") == "sei.raw-bytes+sha256/v1alpha1", "raw-bytes fixtureのprofile_idが不正です。", errors)
     require(data.get("digest_algorithm") == "sha256", "raw-bytes fixtureのdigest_algorithmが不正です。", errors)
 
     cases = data.get("cases") or []
@@ -123,7 +123,7 @@ def resolve_raw_outcome(profile_id: str, payload: bytes, content_digest: str) ->
     """Profile availabilityとdigest一致を混同せず三状態へ分類する。"""
     if profile_id not in PROFILE_DOCS:
         return "not_verified"
-    if profile_id != "soza.raw-bytes+sha256/v1alpha1":
+    if profile_id != "sei.raw-bytes+sha256/v1alpha1":
         # この軽量checkerはJCS canonicalizationを担当しない。Go probeが別経路で検証する。
         return "not_verified"
     return "verified" if digest(payload) == content_digest else "failed"

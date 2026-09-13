@@ -8,17 +8,17 @@
 
 目的はLLM利用率をゼロへ近づけることではない。
 
-SOZAが保持する耐久的意味と責任境界を壊さず、**単純な想起・近接・選別は非LLMで極小costに処理し、高度な推論が必要な局面だけ小型local language modelへ狭いWorking Setを渡す**ことで、local / offlineでも実用的なreasoning capabilityを得られるかを評価する。
+SEIが保持する耐久的意味と責任境界を壊さず、**単純な想起・近接・選別は非LLMで極小costに処理し、高度な推論が必要な局面だけ小型local language modelへ狭いWorking Setを渡す**ことで、local / offlineでも実用的なreasoning capabilityを得られるかを評価する。
 
 ```text
 maximize useful reasoning per memory / latency
-while preserving SOZA semantic boundaries
+while preserving SEI semantic boundaries
 ```
 
 狙う構造は、
 
 ```text
-SOZA durable meaning
+SEI durable meaning
   -> exact / symbolic
   -> sparse associative recall / narrowing
   -> bounded working set
@@ -32,7 +32,7 @@ SOZA durable meaning
 
 小型language modelは大型modelよりknowledge capacityとgeneral reasoning robustnessが弱い。
 
-一方、SOZAでは推論前に次を構造化できる。
+一方、SEIでは推論前に次を構造化できる。
 
 - Inquiry / current question
 - Observation / source claim
@@ -47,7 +47,7 @@ SOZA durable meaning
 
 小型modelが主に行うのは、**選ばれた少数のmeaningful recordsを組み合わせるreasoning**である。
 
-この分業により、parameter countが小さいことによるknowledge capacity不足を、SOZAのexternalized memory / retrieval / semantic structureで補える可能性がある。
+この分業により、parameter countが小さいことによるknowledge capacity不足を、SEIのexternalized memory / retrieval / semantic structureで補える可能性がある。
 
 ## 3. Cognitive Cascade
 
@@ -182,7 +182,7 @@ first personal prototypeではautonomous local reasoning routeへ送らない。
 
 小型model単体で大型model相当を期待しない。
 
-SOZA側で推論問題を変形する。
+SEI側で推論問題を変形する。
 
 ### 7.1 Retrieval compression
 
@@ -240,7 +240,7 @@ model familyは固定Requirementにしない。
 - hypothesis / planning
 - code / structured reasoningの一部
 
-SOZA hybridで最初に狙う中心帯。
+SEI hybridで最初に狙う中心帯。
 
 ### stronger local: ~7–8B+
 
@@ -253,14 +253,14 @@ SOZA hybridで最初に狙う中心帯。
 first integration candidateはlocal OpenAI-compatible endpoint等のprocess boundaryとする。
 
 ```text
-SOZA process
+SEI process
   -> LocalReasoningRequest
   -> localhost model server
   -> structured proposal
   -> validator / human review
 ```
 
-model runtimeをSOZA Coreへ直接埋め込むことを初期Requirementにしない。
+model runtimeをSEI Coreへ直接埋め込むことを初期Requirementにしない。
 
 候補runtimeとしてGGUF quantizationとCPU / Metal / GPU等を扱える`llama.cpp`型のlocal serverを評価できる。
 

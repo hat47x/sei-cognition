@@ -111,10 +111,10 @@ class SparseAssociativeCognitionResearchPlanTests(unittest.TestCase):
         ]
         self.assert_has_error(plan, "semantic stop line missing for Decision")
 
-    def test_soza_native_case_is_required(self) -> None:
+    def test_sei_native_case_is_required(self) -> None:
         plan = copy.deepcopy(self.plan)
         plan["initial_evaluation_cases"][0]["domain"] = "generic-retrieval"
-        self.assert_has_error(plan, "must retain a SOZA-native case")
+        self.assert_has_error(plan, "must retain a SEI-native case")
 
     def test_exact_deterministic_baseline_is_required(self) -> None:
         plan = copy.deepcopy(self.plan)

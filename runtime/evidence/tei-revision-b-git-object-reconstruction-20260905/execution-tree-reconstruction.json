@@ -1,0 +1,55 @@
+{
+  "schema": "soza.tei-revision-b-execution-tree-reconstruction/v1",
+  "repository": "hat47x/tei-platform",
+  "revisionB": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be",
+  "method": {
+    "source": "GitHub Git Tree API for the fixed revision-B content-addressed trees",
+    "localGitOperation": "git mktree --missing",
+    "note": "Tree entries were reconstructed from exact mode/type/name/object-SHA tuples. --missing permits referenced child/blob objects to remain absent while still independently recomputing the parent tree object identity."
+  },
+  "observed": {
+    "rootTree": {
+      "expected": "630d3e9e2acaea70312bee19cf8a0f7235655cd6",
+      "reconstructed": "630d3e9e2acaea70312bee19cf8a0f7235655cd6",
+      "matched": true
+    },
+    "cmdTree": {
+      "expected": "ac4d4406dfa590a2078cf91217c4fe30797e7f8e",
+      "reconstructed": "ac4d4406dfa590a2078cf91217c4fe30797e7f8e",
+      "matched": true
+    },
+    "cmdTeiTree": {
+      "expected": "f2e8703ebc154efb8d8f960ebba2f91efd19ea31",
+      "reconstructed": "f2e8703ebc154efb8d8f960ebba2f91efd19ea31",
+      "matched": true,
+      "productionBlobReferences": {
+        "main.go": "6a27b98b7f6dbe4e66d1261edfc847402cd608a5",
+        "source_index.go": "19ac0589e8ff761865d51cfc5cd65cf8d2a650ba",
+        "validation_output.go": "2ca746592d325ec0f277cebc7c297e49d3022829"
+      }
+    },
+    "internalTree": {
+      "expected": "10d2bfea4932c308fa6537e3b081bc6ea5501205",
+      "reconstructed": "10d2bfea4932c308fa6537e3b081bc6ea5501205",
+      "matched": true
+    },
+    "referenceTree": {
+      "expected": "57fafb742988ecb936b9ab261fa8a991e37ed5c7",
+      "reconstructed": "57fafb742988ecb936b9ab261fa8a991e37ed5c7",
+      "matched": true
+    }
+  },
+  "currentEvidenceBoundary": {
+    "exactSignedCommitObjectReconstructed": true,
+    "executionTreeObjectsReconstructed": true,
+    "productionSourceBlobBytesMaterialized": false,
+    "exactRevisionBCheckoutMaterialized": false,
+    "revisionBExecutionSourceVerified": false,
+    "revisionBBuildPass": false,
+    "providerPlanExecutionPass": false,
+    "sozaAdapterCompatibilityPass": false,
+    "issue000072Resolved": false,
+    "qualityJudgement": "not_evaluated"
+  },
+  "stopLine": "exact signed commit + execution tree object identities reconstructed != production source blob bytes materialized != exact revision B checkout verified != revision B build PASS != Provider Plan execution PASS != SOZA Adapter compatibility PASS != ISSUE-000072 Resolved"
+}

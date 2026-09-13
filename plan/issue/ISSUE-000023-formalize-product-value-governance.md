@@ -7,16 +7,16 @@ Updated: 2026-08-31
 
 ## 背景
 
-SOZAのProduct Valueは、判断の意味、不確実性、責任、来歴、CapabilityとProviderの分離、実行基盤からの独立性を中核として定義している。
+SEIのProduct Valueは、判断の意味、不確実性、責任、来歴、CapabilityとProviderの分離、実行基盤からの独立性を中核として定義している。
 
 下位設計が増えるにつれ、次の問いを個別ADRだけで処理すると、設計判断や達成主張の基準が揺れる可能性がある。
 
 - 意味保存、操作性、性能、実装容易性が衝突したとき、何を優先するか。
-- 新しい概念をSOZA Universal Coreへ含める基準は何か。
+- 新しい概念をSEI Universal Coreへ含める基準は何か。
 - Product Valueを満たしたと判断するには、どの観点で検証するか。
 - Design、Executable、Release、Operationalの各Evidenceをどこまで区別するか。
 - 本番で正常に動いたことと、利用者や組織へ価値が届いたことをどう分けるか。
-- 特定ProviderやTEIとの密接な関係が、SOZA Coreへの昇格理由になり得るか。
+- 特定ProviderやTEIとの密接な関係が、SEI Coreへの昇格理由になり得るか。
 - 将来技術が変わったときにも残すべき価値は何か。
 
 これらをProduct Value層で明示し、Requirements以下から参照できる状態にする必要がある。
@@ -37,16 +37,16 @@ SOZAのProduct Valueは、判断の意味、不確実性、責任、来歴、Cap
 
 Product Value governanceは、次の文書群をcurrent baselineとして確定した。
 
-- `product/value/SOZA_PRODUCT_VALUE.md`
-- `product/value/SOZA_VALUE_MODEL.md`
-- `product/value/SOZA_VALUE_ACCEPTANCE.md`
-- `product/value/SOZA_VALUE_TRACEABILITY.md`
-- `product/vision/SOZA_PRODUCT_VISION.md`
-- `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
+- `product/value/SEI_PRODUCT_VALUE.md`
+- `product/value/SEI_VALUE_MODEL.md`
+- `product/value/SEI_VALUE_ACCEPTANCE.md`
+- `product/value/SEI_VALUE_TRACEABILITY.md`
+- `product/vision/SEI_PRODUCT_VISION.md`
+- `product/principles/SEI_PRODUCT_PRINCIPLES.md`
 
-`SOZA_VALUE_MODEL.md`は価値の階層・優先関係・V1〜V8を定める。
+`SEI_VALUE_MODEL.md`は価値の階層・優先関係・V1〜V8を定める。
 
-`SOZA_VALUE_ACCEPTANCE.md`は、V1〜V8をどの高さのEvidenceで確認するかを定める。Evidenceは次を分ける。
+`SEI_VALUE_ACCEPTANCE.md`は、V1〜V8をどの高さのEvidenceで確認するかを定める。Evidenceは次を分ける。
 
 ```text
 Design
@@ -56,7 +56,7 @@ Design
   != Adoption / Outcome
 ```
 
-`SOZA_VALUE_TRACEABILITY.md`は、Product Valueからcurrent REQ / SCN / ADR / Architecture / Contract / Evidence gapへ戻るための索引とする。
+`SEI_VALUE_TRACEABILITY.md`は、Product Valueからcurrent REQ / SCN / ADR / Architecture / Contract / Evidence gapへ戻るための索引とする。
 
 これらの権威関係と変更規則はADR-0018で固定する。
 
@@ -85,10 +85,10 @@ Release、Operational、Adoption / Outcome Evidenceは、それぞれ対象Scena
 ## 関連
 
 - `product/README.md`
-- `product/value/SOZA_PRODUCT_VALUE.md`
-- `product/value/SOZA_VALUE_MODEL.md`
-- `product/value/SOZA_VALUE_ACCEPTANCE.md`
-- `product/value/SOZA_VALUE_TRACEABILITY.md`
+- `product/value/SEI_PRODUCT_VALUE.md`
+- `product/value/SEI_VALUE_MODEL.md`
+- `product/value/SEI_VALUE_ACCEPTANCE.md`
+- `product/value/SEI_VALUE_TRACEABILITY.md`
 - `requirements/PRODUCT_REQUIREMENTS.md`
 - `requirements/ACCEPTANCE_SCENARIOS.md`
 - `architecture/TRACEABILITY.md`

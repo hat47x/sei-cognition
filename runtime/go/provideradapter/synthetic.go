@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 const (
@@ -19,7 +19,7 @@ const (
 	referenceMappingBID  = "reference-process-provider-b-to-capability-observation/v1"
 )
 
-// ProviderAState deliberately uses a Provider-specific shape. It is not a SOZA
+// ProviderAState deliberately uses a Provider-specific shape. It is not a SEI
 // Universal ProviderState contract.
 type ProviderAState struct {
 	Health     *string `json:"health,omitempty"`

@@ -1,14 +1,14 @@
 {
-  "contract": "soza.semantic-interchange/v1alpha1",
+  "contract": "sei.semantic-interchange/v1alpha1",
   "bundle_id": "v6-v7-rich-decision",
   "created_at": "2026-09-01T00:00:00Z",
   "records": [
     {
       "record_id": "provider-route-health",
-      "contract": {"contract_id": "soza.capability-observation", "version": "v1alpha1"},
+      "contract": {"contract_id": "sei.capability-observation", "version": "v1alpha1"},
       "kind": "capability-observation",
       "payload": {
-        "contract": "soza.capability-observation/v1alpha1",
+        "contract": "sei.capability-observation/v1alpha1",
         "observation": {
           "ref": {"kind": "capability-observation", "id": "provider-route-health-at-D-V6V7"},
           "target": {
@@ -33,10 +33,10 @@
     },
     {
       "record_id": "decision-v6-v7-rich",
-      "contract": {"contract_id": "soza.decision-memory", "version": "v1alpha1"},
+      "contract": {"contract_id": "sei.decision-memory", "version": "v1alpha1"},
       "kind": "decision",
       "payload": {
-        "contract": "soza.decision-memory/v1alpha1",
+        "contract": "sei.decision-memory/v1alpha1",
         "record_type": "decision",
         "decision": {
           "ref": {"kind": "decision", "id": "D-V6V7-rich"},

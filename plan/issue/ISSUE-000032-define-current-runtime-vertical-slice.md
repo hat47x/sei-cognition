@@ -55,7 +55,7 @@ current JCS / raw-bytes Profile基線そのものはADR-0023 / ISSUE-000009で�
 
 ```text
 Runtime type != Contract semantic authority
-Go implementation != SOZA semantic identity
+Go implementation != SEI semantic identity
 ```
 
 runtime structやpackage layoutをsemantic authorityにせず、実装とContractが矛盾した場合はProduct Value、REQ、ADR、Contractへ戻る。
@@ -85,7 +85,7 @@ historical codeはcurrent Contractへ照合して必要部分だけ再利用し�
 - [x] Provider AdapterがUniversal CoreへProvider Schemaを漏らさない境界を定めた。
 - [x] current Representation Profile基線とRuntime統合Evidenceを分離した。
 - [x] unknown Profile / verifierを`not_verified`として保持する境界を維持した。
-- [x] Go implementationとSOZA semantic identityを分離した。
+- [x] Go implementationとSEI semantic identityを分離した。
 - [x] historical candidate再利用規則を定めた。
 - [x] 自然な日本語全文再ドラフトと最終意味監査を完了した。
 

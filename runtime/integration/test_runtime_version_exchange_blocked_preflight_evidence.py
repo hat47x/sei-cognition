@@ -19,7 +19,7 @@ sys.modules[SPEC.name] = MODULE
 SPEC.loader.exec_module(MODULE)
 
 BLOCKED_PREFLIGHT = {
-    "schema": "soza.runtime-version-exchange-preflight/v1",
+    "schema": "sei.runtime-version-exchange-preflight/v1",
     "result": "blocked",
     "blockers": ["port.ollama"],
     "checks": [

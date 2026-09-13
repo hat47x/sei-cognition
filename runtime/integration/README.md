@@ -1,8 +1,8 @@
 # runtime integration probes
 
-更新日: 2026-09-04
+更新日: 2026-09-05
 
-このディレクトリには、SOZAと外部Cognitive Method / model runtimeの接続を実際に確かめるためのintegration資産を置きます。
+このディレクトリには、SEIと外部Cognitive Method / model runtimeの接続を実際に確かめるためのintegration資産を置きます。
 
 current `develop/v0.2.0`ではGitHub Actionsを停止しています。workflowの作成・復元・再実行・runner監視は行わず、必要なtest、checker、probeをrepository-localに実行します。過去のActions Runはhistorical Evidenceとして保持しますが、現在の成立条件にはしません。
 
@@ -13,7 +13,7 @@ what must be verified
 
 ## Runtime version exchange
 
-ISSUE-000070では、同じCognitive Method、同じKJ Atlas source、同じMethod input、同じmodel artifact、同じmodel promptを使い、Ollama runtime versionだけを交換します。
+ISSUE-000070では、同じCognitive Method、同じKJ Atlas source、同じMethod input、同じmodel artifact、同じmodel promptを使い、Ollama runtime versionだけを交換しました。
 
 固定条件は次のとおりです。
 
@@ -38,12 +38,28 @@ same model prompt
 runtime revision A != runtime revision B
 ```
 
-確認したい中心命題は、runtime versionを交換しても先行Method ApplicationのExact Reference、Provenance、outputを変更せず保持できることです。
+中心命題は、runtime versionを交換しても先行Method ApplicationのExact Reference、Provenance、outputを変更せず保持できることです。
 
 ```text
 runtime version exchange
   → new exact Realization revision
   != historical Application rewrite
+```
+
+historical execution `local-20260904T193531Z-7855`では、A/B actual archive bytes / binary version、fixed model full digest、same prompt、actual inference、same logical Realization / different Exact Binding、historical Application Aの不変性、portable reconstruction、negative controlを確認しました。
+
+保存済みcanonical Evidence + Provenance verificationは`ready-to-review`、`107 ok / 0 blocked`です。actual run時とcurrent developのResolution Criteria、canonical verifier、fixed artifact manifest、Requirement / Scenario、relevant Contract baselineもGit object identityで再照合し、ISSUE-000070はfixed scopeで**Resolved**です。
+
+このREADMEの実行経路は、既存Resolved Evidenceの独立reproduction、Reopen conditionの監査、broader portabilityへ進む追加Evidenceの取得にも利用します。
+
+```text
+ISSUE-000070 Resolved
+  = fixed-scope runtime-version-exchange Scoped Executable Evidence available
+  != arbitrary runtime version portability
+  != other runtime implementation portability
+  != model output quality satisfied
+  != KJ-method outcome quality satisfied
+  != E4 Operational portability
 ```
 
 ## 判定を分離する
@@ -61,10 +77,12 @@ strict execution PASS
   != Evidence + Provenance verification PASS
 
 Evidence + Provenance verification PASS
-  != ISSUE-000070 Resolved
+  != automatic Issue Resolution
   != model output quality satisfied
   != KJ-method outcome quality satisfied
 ```
+
+ISSUE-000070がResolvedであるのは、単一runのmechanical PASSだけではなく、fixed-scope actual Evidence、historical reconstruction、Requirement / Contract再照合、current-contract object-equivalence監査までResolution Criteriaへ対応したためです。
 
 失敗情報を保存できたことも、runtime交換の成立とは別です。
 
@@ -99,7 +117,7 @@ artifact identity
 
 ## 標準実行経路
 
-actual runtime交換へ進む標準入口は`run_runtime_version_exchange_with_verification.py`です。
+runtime交換を独立reproductionする標準入口は`run_runtime_version_exchange_with_verification.py`です。
 
 ```text
 1. fixed runtime archiveをrepository外へ準備・再検証する
@@ -120,13 +138,13 @@ preflightやstrict executionが途中で失敗した場合も、作成可能な�
 
 ## Runtime archiveの準備
 
-runtime archiveはSOZA repositoryの外に置きます。計画表示の段階から同じ出力先境界を適用します。
+runtime archiveはSEI repositoryの外に置きます。計画表示の段階から同じ出力先境界を適用します。
 
 取得前の計画確認:
 
 ```bash
 python3 runtime/integration/prepare_runtime_version_exchange_archives.py \
-  --output-dir /path/outside/soza/runtime-archives \
+  --output-dir /path/outside/sei/runtime-archives \
   --plan
 ```
 
@@ -134,20 +152,20 @@ python3 runtime/integration/prepare_runtime_version_exchange_archives.py \
 
 ```bash
 python3 runtime/integration/prepare_runtime_version_exchange_archives.py \
-  --output-dir /path/outside/soza/runtime-archives
+  --output-dir /path/outside/sei/runtime-archives
 ```
 
 既存fileだけをnetworkなしで再検証する場合:
 
 ```bash
 python3 runtime/integration/prepare_runtime_version_exchange_archives.py \
-  --output-dir /path/outside/soza/runtime-archives \
+  --output-dir /path/outside/sei/runtime-archives \
   --verify-only
 ```
 
 準備toolは次を停止線にします。
 
-- `--output-dir`をSOZA repository配下へ置かない。
+- `--output-dir`をSEI repository配下へ置かない。
 - output directory自身がsymlinkなら拒否する。
 - 既存output pathが通常directoryでなければ拒否する。
 - 既存archive targetがsymlinkなら拒否する。
@@ -279,7 +297,7 @@ strict入口は次を行います。
 
 1. checkout指定時は固定commit objectからverified bundleをexportする。
 2. bundle指定時は固定Git object identityを再検証する。
-3. 事前配置runtime archiveのsymlink、不存在、source/SOZA/modelとのoverlap、A/B同一pathを拒否する。
+3. 事前配置runtime archiveのsymlink、不存在、source/SEI/modelとのoverlap、A/B同一pathを拒否する。
 4. 事前配置runtime archiveのactual size / SHA-256を固定manifestへ照合する。
 5. 既存model storeはmanifest / blob bytesを静的再検証する。
 6. model新規準備時は固定registryから取得し、完成storeを再検証する。
@@ -383,7 +401,7 @@ low-level harnessは次を一続きに確認します。
 ## Pathとprocessの安全境界
 
 - source、runtime archive、model store、work、Evidence、verification outputを意図しない形で重ねない。
-- runtime archive準備先はSOZA repository外とする。
+- runtime archive準備先はSEI repository外とする。
 - 事前配置runtime archiveはpreflightとstrict入口でsource treeとの分離とactual bytesを再確認する。
 - model storeとsourceは双方向の包含を拒否する。
 - work / Evidence / verification outputには新しいpathを使う。
@@ -430,14 +448,14 @@ python3 runtime/integration/run_runtime_version_exchange_local_checks.py \
 
 ```bash
 python3 runtime/integration/run_runtime_version_exchange_local_checks.py \
-  --result-output /path/outside/soza/runtime-exchange-focused-result.json
+  --result-output /path/outside/sei/runtime-exchange-focused-result.json
 ```
 
 各testの既定timeoutは120秒です。必要なら`--timeout-seconds`で変更できます。timeoutはexit code `124`、child起動自体の失敗はexit code `127`相当としてmachine-readable resultへ残します。`--stop-on-failure`はnon-zero、timeout、launch errorのいずれでも停止できます。
 
 runnerは明示allowlistとcandidate discoveryを照合し、runtime version exchangeに関係するtestが未登録のまま増えることを検出します。runner自身のself-testもfocused checkへ含めます。
 
-親shellの`SOZA_RUNTIME_EXCHANGE_*`、`SOZA_E3B_RUNTIME_EXCHANGE_*`、`OLLAMA_HOST`、`OLLAMA_MODELS`はfocused regressionへ暗黙継承しません。
+親shellの`SEI_RUNTIME_EXCHANGE_*`、`SEI_E3B_RUNTIME_EXCHANGE_*`、`OLLAMA_HOST`、`OLLAMA_MODELS`はfocused regressionへ暗黙継承しません。
 
 結果JSONはrepository commit / cleanlinessの観測とtest resultを分けます。Git観測に失敗しても、その失敗をtest PASSへ偽装せず診断情報として保持します。結果には次の停止線を明示します。
 
@@ -449,6 +467,8 @@ focused local checks PASS
   != actual Ollama A/B inference PASS
   != runtime-version-exchange Scoped Executable Evidence
 ```
+
+この停止線はfocused regression自身のEvidence強度を示します。ISSUE-000070に既存actual Scoped Executable Evidenceがあることを否定するものではありません。
 
 ## Evidenceの読み方
 
@@ -477,7 +497,7 @@ strictがEvidence directory作成前に失敗しても、verified runnerが失�
 
 少なくとも次へ戻れることが必要です。
 
-- execution ID / SOZA repository commit
+- execution ID / SEI repository commit
 - verified KJ Atlas source identity / source acquisition Provenance
 - runtime A / B actual version / archive SHA-256
 - model name / expected digest / storage mode / A/B `/api/tags`
@@ -507,7 +527,7 @@ runtime exchange PASS
 
 ## 自然な日本語レビュー
 
-current no-Actions baseline、固定runtime / source / model identity、artifact manifest横断整合、公式Release snapshot、runtime archiveのrepository外準備、source export、model store、preflight、strict entrypoint、failure Evidence、core / Provenance verifier、focused local runnerへ戻って全文を再監査しました。
+current no-Actions baseline、固定runtime / source / model identity、artifact manifest横断整合、公式Release snapshot、runtime archiveのrepository外準備、source export、model store、preflight、strict entrypoint、failure Evidence、core / Provenance verifier、focused local runner、回収済みactual Evidence、current-contract revalidationへ戻って全文を再監査しました。
 
 現在は、取得元、actual bytes、実行source、作業path、Evidence、成果品質を別の概念として扱っています。artifactの取得経路や配置場所をidentityの代わりにはせず、固定bytes / Git objectへ戻って検証します。
 
@@ -515,4 +535,6 @@ source acquisitionではworking treeを直接実行せず、固定commit object�
 
 GitHub Actionsを使わない現在の開発では、actual A/Bを起動しないfocused regressionを専用runnerへ集約し、timeout、launch error、Git観測、machine-readable resultまで保存できるようにしています。ただし、そのPASSをactual runtime exchange Evidenceへ昇格しません。
 
-actual Ollama `0.32.13` / `0.32.14`交換は引き続きNot Yet Verifiedです。実装済みの準備・安全策・failure Evidence・focused regressionと、未完了のactual A/B実行を明確に読み分けられることを最重要視しています。
+ISSUE-000070ではhistorical execution `local-20260904T193531Z-7855`のactual Ollama `0.32.13` / `0.32.14`交換を回収し、canonical `ready-to-review`、historical Application不変性、portable reconstruction、current-contract object-equivalence監査までResolution Criteriaへ再照合してResolvedとしました。
+
+このResolvedはfixed scopeに限ります。独立reproductionは再現性の追加Evidence、別runtime version / implementationへの展開はbroader portabilityの新しい探索です。model出力品質、KJ法としての成果品質、E4 Operational portabilityは未成立のままです。

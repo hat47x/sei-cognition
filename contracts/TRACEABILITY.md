@@ -1,11 +1,11 @@
-# SOZA Contract Traceability
+# SEI Contract Traceability
 
-更新日: 2026-09-02  
-状態: **Current Contract Traceability Baseline**
+更新日: 2026-09-05  
+状態: **Current Contract / Evidence Traceability Baseline**
 
 ## 1. 目的
 
-この文書は、current Semantic ContractがProduct Requirement、Acceptance Scenario、ADR、Reference Architectureのどの境界を規範化し、どこまでactual Executable Evidenceを得ているかを追跡します。
+この文書は、current Semantic ContractがProduct Requirement、Acceptance Scenario、ADR、Reference Architectureのどの境界を規範化し、どこまでactual Executable / Release Evidenceを得ているかを追跡します。
 
 ```text
 Contract exists
@@ -19,11 +19,11 @@ Contract exists
 
 | Contract | 主なRequirement | 主なScenario | 主なADR | Architecture concern |
 |---|---|---|---|---|
-| `soza.semantic-reference/v1alpha1` | REQ-0001, 0003, 0005, 0008, 0009, 0018 | SCN-0003, 0008, 0010 | ADR-0003, 0007, 0008, 0009, 0021, 0023 | Reference / Revision / Exact Binding; Persistence |
-| `soza.decision-memory/v1alpha1` | REQ-0005, 0006, 0008, 0014, 0015, 0017 | SCN-0001, 0003, 0009, 0016 | ADR-0010, 0011, 0015, 0016, 0021 | Decision Memory; Responsibility / Authority boundary |
-| `soza.capability-observation/v1alpha1` | REQ-0002, 0007, 0013, 0016, 0021, 0022 | SCN-0002, 0010, 0011, 0012 | ADR-0012, 0013, 0014, 0019, 0021, 0024 | Capability Understanding; Provider / Adapter |
-| `soza.cognitive-method/v1alpha1` | REQ-0003, 0004, 0015, 0016, 0021 | SCN-0005, 0015 | ADR-0017, 0021, 0022, 0025 | Cognitive Method; Reference / Provenance |
-| `soza.semantic-interchange/v1alpha1` | REQ-0001, 0002, 0003, 0018, 0019, 0020 | SCN-0001, 0003, 0005, 0006, 0008, 0010, 0015 | ADR-0007, 0008, 0009, 0014, 0021, 0026 | Durable Semantic Core; portable interchange; bundle-local consistency |
+| `sei.semantic-reference/v1alpha1` | REQ-0001, 0003, 0005, 0008, 0009, 0018 | SCN-0003, 0008, 0010 | ADR-0003, 0007, 0008, 0009, 0021, 0023 | Reference / Revision / Exact Binding; Persistence |
+| `sei.decision-memory/v1alpha1` | REQ-0005, 0006, 0008, 0014, 0015, 0017 | SCN-0001, 0003, 0009, 0016 | ADR-0010, 0011, 0015, 0016, 0021 | Decision Memory; Responsibility / Authority boundary |
+| `sei.capability-observation/v1alpha1` | REQ-0002, 0007, 0013, 0016, 0021, 0022 | SCN-0002, 0010, 0011, 0012 | ADR-0012, 0013, 0014, 0019, 0021, 0024 | Capability Understanding; Provider / Adapter |
+| `sei.cognitive-method/v1alpha1` | REQ-0003, 0004, 0015, 0016, 0021 | SCN-0005, 0015 | ADR-0017, 0021, 0022, 0025 | Cognitive Method; Reference / Provenance |
+| `sei.semantic-interchange/v1alpha1` | REQ-0001, 0002, 0003, 0018, 0019, 0020 | SCN-0001, 0003, 0005, 0006, 0008, 0010, 0015 | ADR-0007, 0008, 0009, 0014, 0021, 0026 | Durable Semantic Core; portable interchange; bundle-local consistency |
 
 Architecture concernをすべて独立Contractへ変換しません。Contract化の有無は意味の重要度ではなく、portable version boundaryを独立して持つ必要性で判断します。
 
@@ -116,10 +116,10 @@ Semantic Contract != Representation Profile != verifier implementation
 
 current/future Exact Binding向けProfile:
 
-- `soza.jcs+sha256/v1alpha1`
-- `soza.raw-bytes+sha256/v1alpha1`
+- `sei.jcs+sha256/v1alpha1`
+- `sei.raw-bytes+sha256/v1alpha1`
 
-JCS ProfileのauthorityはRFC 8785とSOZA Profile Definitionです。current Go libraryは交換可能な実装であり、Profile authorityではありません。
+JCS ProfileのauthorityはRFC 8785とSEI Profile Definitionです。current Go libraryは交換可能な実装であり、Profile authorityではありません。
 
 historical M47 digest mappingはISSUE-000034のResolved方針どおりcurrent Profileから推定せず、回収不能な範囲を`not_verified`として保持します。
 
@@ -139,6 +139,9 @@ historical M47 digest mappingはISSUE-000034のResolved方針どおりcurrent Pr
 | SCN-0012 Selective Disclosure | Capability ObservationがWithheld / provider-specific contextを保持する |
 | SCN-0015 PatternとCognitive Methodを分離する | PatternをMethod input Referenceとして保持し、Method / Decisionへ自動昇格させない |
 | SCN-0016 Decision後も残差を渡す | Decision unresolved refs / Method residual refsを保持できる |
+| SCN-0018 end-to-end Product Journey | 複数Contractを同時に扱ってもRecommendation / Decision、Provider / Capability、historical basis / later Observation等の境界を失わない |
+
+SCN-0018全体がSatisfiedであることを、個別Contract conformanceや一つのintegration PASSから自動導出しません。
 
 ## 6. machine-readable representation
 
@@ -161,7 +164,7 @@ Contract Definitionがsemantic normative sourceです。Schema、checker、Go st
 
 current Contract checkerは39 fixtureを検査します。
 
-代表CI:
+historical representative Actions Run:
 
 - Contract Conformance Run `33527512045`: **success**
 - Semantic Runtime Conformance Run `33527512016`: **success**
@@ -181,7 +184,7 @@ current Contract checkerは39 fixtureを検査します。
 - logical-only Referenceの非昇格
 - unknown Contractのexact風fieldを非推測解析
 
-fixture PASSはContract全意味領域の完全coverageではありません。
+fixture PASSはContract全意味領域の完全coverageではありません。historical Actions Runは当時のEvidenceとして保持しますが、current Contract成立条件をGitHub Actionsへ依存させません。
 
 ## 8. semantic runtimeとの接続
 
@@ -216,21 +219,39 @@ bundle-local consistency
   != Verification Outcome
 ```
 
-- Verifier Registry代表Run `33452115728`: **success**
-- Payload Source代表Run `33457416359`: **success**
+historical representative Actions Run:
+
+- Verifier Registry Run `33452115728`: **success**
+- Payload Source Run `33457416359`: **success**
 
 bundle-local検査がPASSしても、参照先bytesを実際に取得・再hashできたとは主張しません。
 
-## 10. Provider Adapterとの接続
+## 10. Provider Adapter / external Realizationとの接続
 
 synthetic Provider A / B AdapterはCapability Observationを出力境界として利用します。
 
-代表Run:
+historical representative Actions Run:
 
 - `33349604842`: **success**
 - `33349801993`: **success**
 
 Provider-specific input schemaそのものはUniversal Contractにしません。
+
+その後、Contractを利用する下流のScoped Executable Evidenceとして、少なくとも次が成立しています。
+
+- E2 out-of-process Realization / Provider exchange
+- E3a version-pinned external artifact integration
+- E3b-P1 public live Provider integration
+- E3b-P2 revision A fixed-artifact actual TEI CLI integration
+- E3b-M1a live external Cognitive Method + deterministic model stub
+- E3b-M1b live external Cognitive Method + actual inference model
+- Method Realization historical revision / portable reconstruction
+- actual model artifact exchange後のhistorical Application保持
+- fixed-model Ollama runtime version exchange後のhistorical Application保持 — ISSUE-000070 Resolved
+
+これらのactual Realization / Provider固有fieldをUniversal Contractへ逆輸入しません。
+
+ISSUE-000072ではTEI revision Bをexact revision A fixed inputで比較するrepository-side pathがありますが、revision B actual CLI / Provider Plan / current SEI Adapter compatibilityはNot Yet Verifiedです。
 
 ## 11. Evidence状態
 
@@ -252,17 +273,20 @@ Design Evidence
 - Cognitive Method typed runtime slice
 - current Representation Profiles / in-process verifier
 - synthetic Provider Adapter
+- Product Journey / external Realization / Provider integrationでのContract利用
+- historical reconstruction / model artifact exchange / fixed-scope runtime version exchangeでのExact Binding / Provenance保持
+
+v0.2.0 Local Reference Product Baselineについてactual Release Evidenceがあります。ただし、supported release scopeはE3aまでです。post-release E3bやversion-exchange Evidenceをrelease scopeへ遡及させません。
 
 ### Not Yet Verified / intentionally outside this scope
 
 - Contract全意味領域の完全coverage
-- external payload acquisitionを含むcross-bundle verification
-- Method executor / Prompt / agent / human procedure execution
-- Cognitive Method quality / conclusion truth / Assurance
-- production Provider / TEI interoperability
-- production Storage migration
-- Release Evidence
-- Operational Evidence
+- arbitrary external payload / Provider / model / runtime interoperability
+- Cognitive Method outcome quality / conclusion truth / Assurance
+- TEI revision B actual CLI / Provider Plan / current SEI Adapter compatibility — ISSUE-000072 Open
+- production Storage migration / long-running operation
+- E4 Operational portability
+- actual human outcome review
 - Adoption / Outcome Evidence
 
 ## 12. Coverageの読み方
@@ -273,4 +297,8 @@ Contract family数、fixture数、Requirement link数、CI件数をProduct Value
 
 ## 13. 自然な日本語レビュー
 
-REQ / SCN、ADR-0001〜0026、Reference Architecture、5 Contract Definition、current 39 fixture、2 Representation Profile、Go semantic runtime、Payload Source、Verifier Registry、actual CIへ戻って追跡を再確認しました。ISSUE-000049で実装したcross-Contract consistencyをExecutable Evidenceへ反映する一方、bundle-local整合をpayload verificationやproduction成立へ読み替えないよう境界を明示しています。そのうえで、意味とEvidence強度を変えず、自然な日本語となることを重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+REQ-0001〜0022、SCN-0001〜0018、ADR-0001〜0030、current Reference Architecture、5 Contract Definition、39 fixture、2 Representation Profile、Go semantic runtime、Payload Source、Verifier Registry、Product Journey、E2 / E3a / E3b integration、historical reconstruction、model / runtime exchange、v0.2.0 Release Evidenceへ戻って追跡を再確認しました。
+
+旧版に残っていた「Method executor未検証」「production Provider / TEI interoperability未検証」「Release Evidence未成立」という2026-09-02時点の記述を、現在成立している限定EvidenceとISSUE-000072の未検証範囲へ分解しました。
+
+そのうえで、bundle-local整合をpayload verificationへ、fixed-scope integrationをarbitrary interoperabilityへ、v0.2.0 Release EvidenceをOperational / Outcomeへ読み替えない境界を維持しています。意味とEvidence強度を変えず、自然な日本語となることを重要視して最終意味監査を行いました。

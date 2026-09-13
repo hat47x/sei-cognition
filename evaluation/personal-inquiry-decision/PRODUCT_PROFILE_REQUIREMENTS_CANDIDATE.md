@@ -8,7 +8,7 @@
 
 この文書は、PR #358で導入した `Personal Inquiry / Decision Workspace` 仮説を、将来 `requirements/` 配下の正式なProduct Requirementへ反映できる粒度まで分解するための候補要件書である。
 
-現時点では、ここに記載した `PIC-*` をSOZA全体のStable Requirementとは扱わない。
+現時点では、ここに記載した `PIC-*` をSEI全体のStable Requirementとは扱わない。
 
 ```text
 Candidate Product Profile Requirement
@@ -18,7 +18,7 @@ Candidate Product Profile Requirement
   != implementation decision
 ```
 
-この文書の目的は、個人レベルでSOZAのProduct Valueを実際に確認できる最小の製品像を明確化し、そのために既存REQ-0001〜REQ-0022で十分な部分と、独立した追加Requirementが必要になり得る部分を切り分けることである。
+この文書の目的は、個人レベルでSEIのProduct Valueを実際に確認できる最小の製品像を明確化し、そのために既存REQ-0001〜REQ-0022で十分な部分と、独立した追加Requirementが必要になり得る部分を切り分けることである。
 
 ## 2. 中心仮説の更新
 
@@ -165,7 +165,7 @@ InquiryはDecisionが一度も記録されていなくても、Observation、Unk
 
 **Priority:** MUST-PROFILE
 
-利用者は、文章、URL参照、ファイル由来の要点、AI会話からの要点等を、追加のたびにSOZA Contract型名を選択せず投入できなければならない。
+利用者は、文章、URL参照、ファイル由来の要点、AI会話からの要点等を、追加のたびにSEI Contract型名を選択せず投入できなければならない。
 
 意味分類が必要な場合、Surfaceまたは支援機構は候補を提示できるが、分類負担を利用者へ全面的に転嫁しない。
 
@@ -183,7 +183,7 @@ AIまたはheuristic処理が自然文やchat transcriptからObservation、Unkn
 
 **Priority:** MUST-PROFILE
 
-外部資料、AI回答、利用者メモ等を取り込むとき、必要な場合に「資料が何を述べたか」と「SOZA利用者またはAIがそれをどう解釈したか」を区別して後から辿れること。
+外部資料、AI回答、利用者メモ等を取り込むとき、必要な場合に「資料が何を述べたか」と「SEI利用者またはAIがそれをどう解釈したか」を区別して後から辿れること。
 
 sourceの存在だけを、その内容のTruthやAssuranceとみなしてはならない。
 
@@ -315,7 +315,7 @@ AIが利用不能な場合でも、raw source参照を保存し、後から手�
 
 first personal profileは、外部AI、外部SaaS、常時network接続なしでも、保存済みInquiryを開き、読取り、手動でObservation / Unknown / Decision等を追加し、再保存できること。
 
-このProfile要件はSOZA全体をlocal-only製品へ固定するものではない。
+このProfile要件はSEI全体をlocal-only製品へ固定するものではない。
 
 ### PIC-019 — Portable Export / Import
 
@@ -341,15 +341,15 @@ explicit data deletion
   != silent historical rewrite
 ```
 
-retention / deletionをSOZA全体のStable Requirementへ昇格させるかはsecurity / privacy要件と合わせて別途審査する。
+retention / deletionをSEI全体のStable Requirementへ昇格させるかはsecurity / privacy要件と合わせて別途審査する。
 
 ### PIC-021 — Capture Time / Subject Time Separation
 
 **Priority:** SHOULD-PROFILE
 
-過去chatや資料を後から取り込む場合、「SOZAへ記録した時刻」と「Observation / Decision等が実際に成立した時点」を同一視しないこと。
+過去chatや資料を後から取り込む場合、「SEIへ記録した時刻」と「Observation / Decision等が実際に成立した時点」を同一視しないこと。
 
-後日importした資料を、当時からSOZAが認識していたかのように扱ってはならない。
+後日importした資料を、当時からSEIが認識していたかのように扱ってはならない。
 
 ### PIC-022 — Reversible Assistance
 
@@ -479,7 +479,7 @@ first profileでは、画面数ではなくProjectionの役割を分ける。
 
 ```text
 recall activation != relevance truth
-novelty signal != SOZA Unknown
+novelty signal != SEI Unknown
 retrieval rank != Recommendation != Decision
 ```
 
@@ -499,7 +499,7 @@ crash consistency / fsync保証等はPackaging / Persistenceの正式NFRで別�
 
 ### PIC-NF-003 — Inspectability
 
-保存内容は、製品内部のopaque embeddingやmodel stateだけに依存せず、少なくともSOZAのportable semantic dataとして検査可能であること。
+保存内容は、製品内部のopaque embeddingやmodel stateだけに依存せず、少なくともSEIのportable semantic dataとして検査可能であること。
 
 ### PIC-NF-004 — Dependency proportionality
 
@@ -516,7 +516,7 @@ first personal profileを利用するために、enterprise infrastructureやGPU
 - later evidenceをpast basisへ混ぜる。
 - sourceとInterpretationを分けられない。
 - すべての入力でsemantic type選択を強制する。
-- SOZAを使うために特定LLM subscriptionを必須にする。
+- SEIを使うために特定LLM subscriptionを必須にする。
 - local personal useなのにteam / IdP setupを開始条件にする。
 - retrieval similarityをTruthまたはConfidenceとして表示する。
 - portable exportがなく、local databaseだけが唯一の意味上の正本になる。
@@ -538,9 +538,9 @@ Product Value検証を明瞭にするため、少なくとも初期版では次�
 - calendar / task management suite
 - built-in chat productの完全代替
 
-特に、SOZA自身がAI chat UIを所有しなければならないとは要求しない。
+特に、SEI自身がAI chat UIを所有しなければならないとは要求しない。
 
-むしろ外部chatをsource / providerとして利用し、SOZAを**conversationより長く生きるInquiry memory**として成立させられるかを優先して検証する。
+むしろ外部chatをsource / providerとして利用し、SEIを**conversationより長く生きるInquiry memory**として成立させられるかを優先して検証する。
 
 ## 13. Requirement昇格時の候補構造
 
@@ -571,7 +571,7 @@ PIC-014 / 015 / 018 / 019 / 020 / 023
 1. `Inquiry Resumability`はREQ-0014等の組合せで十分か、それともProduct Requirementとして独立させるべきか。
 2. `Friction-bounded Capture`はpure UX requirementか、Product Value成立条件としてstable化すべきか。
 3. AI Handoff ProjectionをREQ-0019 Human / AI ReadabilityのAcceptanceだけで扱うか、独立Requirementにするか。
-4. Personal Retention ControlをSOZA全体のprivacy / security Requirementへ昇格させるか。
+4. Personal Retention ControlをSEI全体のprivacy / security Requirementへ昇格させるか。
 5. bulk transcript intakeでraw sourceをどの程度保持するか。copyright、privacy、storage costとどう折り合うか。
 6. `important current observations`の選択をmanual / deterministic / LLM / sparse recallのどこへ置くか。
 7. 「前回review時点」のidentityをProduct-local stateとするか、durable semantic eventとして必要か。

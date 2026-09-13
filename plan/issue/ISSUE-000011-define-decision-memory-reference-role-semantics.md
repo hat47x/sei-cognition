@@ -26,7 +26,7 @@ Decision周辺の参照を単一`refs[]`へ潰さず、後から「何が文脈�
 
 ## Current representation
 
-本Issueの作成時点では専用DecisionReference型、field配置、wire enum等をDeferredとしていた。その後current `soza.decision-memory/v1alpha1`では、v1alpha1 representationとして次を採用した。
+本Issueの作成時点では専用DecisionReference型、field配置、wire enum等をDeferredとしていた。その後current `sei.decision-memory/v1alpha1`では、v1alpha1 representationとして次を採用した。
 
 ```text
 context_refs[]

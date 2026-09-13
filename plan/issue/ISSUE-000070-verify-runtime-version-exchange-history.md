@@ -1,14 +1,14 @@
 # ISSUE-000070: model artifactを固定したruntime version交換後もMethod Applicationの履歴を保てるか検証する
 
-Status: **Open**  
+Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0008, ADR-0009, ADR-0017, ADR-0021, ADR-0025, ADR-0026**  
 Product Milestone: **PMS-06**  
-Updated: 2026-09-04
+Updated: 2026-09-05
 
 ## Goal
 
-同じCognitive Method、同じKJ Atlas source、同じMethod input、同じactual model artifact、同じmodel promptを使い、Ollama runtime versionだけを交換したときに、SOZAが先行Method Applicationの履歴を失わず保持できるかを実証する。
+同じCognitive Method、同じKJ Atlas source、同じMethod input、同じactual model artifact、同じmodel promptを使い、Ollama runtime versionだけを交換したときに、SEIが先行Method Applicationの履歴を失わず保持できるかを実証する。
 
 runtime version差は別のlogical Method Realizationへ分けず、同じ実現機構に属するhistorical revisionとしてExact Bindingで区別する。
 
@@ -82,7 +82,7 @@ ISSUE-000071は成果品質の評価境界を確立したIssueであり、human 
 - model artifact digest: `a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67`
 - Method input: repository-local harness内の固定3-card input
 - held card: `c-held`
-- SOZA Method mapping: current `livemethodintegration`
+- SEI Method mapping: current `livemethodintegration`
 
 model artifact digestはActual Model Artifact Exchange E3b Run `33670697154`でOllama `0.32.14`からactualに観測したidentityである。A / Bのdigestが互いに等しいだけでは成立とせず、両方がこの期待full digestへ一致することを要求する。
 
@@ -115,9 +115,9 @@ artifact identity
   = actual bytes / fixed SHA-256
 ```
 
-`prepare_runtime_version_exchange_archives.py`はdownload / verify-only / prepositioned再利用を同じsize / SHA-256境界へ戻す。準備先はSOZA repository外とし、output directory、archive target、`.part`のsymlinkや不正な既存pathを大容量download前に拒否する。
+`prepare_runtime_version_exchange_archives.py`はdownload / verify-only / prepositioned再利用を同じsize / SHA-256境界へ戻す。準備先はSEI repository外とし、output directory、archive target、`.part`のsymlinkや不正な既存pathを大容量download前に拒否する。
 
-Linux / amd64は本probeの実行条件であり、SOZA全体のplatform supportを限定する意味ではない。
+Linux / amd64は本probeの実行条件であり、SEI全体のplatform supportを限定する意味ではない。
 
 ## KJ Atlas source identity
 
@@ -193,7 +193,7 @@ A / Bのactual実行では、両runtimeの`/api/tags`から同じ期待full dige
 ## Current execution path
 
 ```text
-fixed runtime archive preparation outside SOZA repository
+fixed runtime archive preparation outside SEI repository
   ↓
 fixed KJ Atlas commit object available | verified source bundle
   ↓
@@ -238,7 +238,7 @@ focused local checks PASS
 
 - Linux / amd64
 - required command
-- SOZA Git working tree / cleanliness
+- SEI Git working tree / cleanliness
 - KJ Atlas固定commit objectの取得可能性、またはverified bundle identity
 - work / Evidence / runtime archive / model path境界
 - 事前配置runtime archiveのsource分離、symlink、official size / actual SHA-256
@@ -274,10 +274,10 @@ preflight observationにはpreflight exit code、blocker、`strictStarted=false`
 
 1. checkout指定時は固定commit objectからverified runtime bundleをexportする。
 2. bundle指定時は固定Git object identityを再検証する。
-3. 事前配置runtime archiveのsymlink、不存在、SOZA/source/modelとのoverlap、A/B同一pathを拒否する。
+3. 事前配置runtime archiveのsymlink、不存在、SEI/source/modelとのoverlap、A/B同一pathを拒否する。
 4. 事前配置runtime archiveのactual size / SHA-256を、source exportやmodel準備より前に固定manifestへ照合する。
 5. `--model-dir`指定時は既存storeを静的検証する。
-6. `--prepare-model-dir`指定時は固定registryから新規storeを準備し、静的再検証する。
+6. `--prepare-model-dir`指定時は固定registryから新しいstoreを準備し、静的再検証する。
 7. source、model store、Evidence、work directoryの双方向overlapを拒否する。
 8. identity / safety optionをlow-level harnessへ迂回上書きできないようにする。
 9. verified bundleだけをlow-level harnessへ渡す。
@@ -342,7 +342,7 @@ Evidence + Provenance verification ready-to-review
 
 ## Acquisition boundary
 
-runtime archiveはdownload / prepositionedを許可し、どちらもactual bytesの固定SHA-256へ戻す。新規downloadの入口は対応versionのOllama公式GitHub Release assetへ固定する。準備先はSOZA repository外とする。
+runtime archiveはdownload / prepositionedを許可し、どちらもactual bytesの固定SHA-256へ戻す。新規downloadの入口は対応versionのOllama公式GitHub Release assetへ固定する。準備先はSEI repository外とする。
 
 model storeは次の3経路を許可する。
 
@@ -367,17 +367,17 @@ acquisition path
 
 次を停止線とする。
 
-- SOZAに未commit変更があればactual harnessを開始しない。
+- SEIに未commit変更があればactual harnessを開始しない。
 - KJ Atlas sourceはfixed commit objectからverified bundleへ再構成するか、既存verified bundleを再検証する。
 - low-level harnessへworking treeを直接渡さない。
 - source exportの一時展開とstrict一時bundleを親`TMPDIR`へ置かない。
 - source export失敗時にpartial bundleを残さない。
-- runtime archive準備先をSOZA repository配下へ置かない。
+- runtime archive準備先をSEI repository配下へ置かない。
 - 事前配置runtime archiveはsource配下、symlink、A/B同一path、model storeとのoverlapを拒否し、actual bytesを再検証する。
 - work / Evidence / prepared model target / verification outputは新しいpathだけを受け付ける。
 - `--work-dir`省略時もstrict入口が明示work pathを決定する。
 - source、model store、Evidence、work、verification outputを相互に分離する。
-- model storeとSOZA/KJ Atlas sourceの双方向包含を拒否する。
+- model storeとSEI/KJ Atlas sourceの双方向包含を拒否する。
 - Evidenceをmodel store配下へ置かない。
 - source/model verifierの結果fileを入力資産内部へ書かない。
 - fixed local port `11434` / `8001` / `8101`が使用中ならactual processを開始しない。
@@ -395,7 +395,7 @@ actual runtimeを起動しないrepository-local regressionの標準入口は`ru
 python3 runtime/integration/run_runtime_version_exchange_local_checks.py
 ```
 
-`--stop-on-failure`、`--list`、`--only TEST_FILE`を利用できる。`--result-output`を指定するとSOZA repository外の新規JSONへmachine-readable resultを保存する。各testの既定timeoutは120秒で、`--timeout-seconds`で変更できる。
+`--stop-on-failure`、`--list`、`--only TEST_FILE`を利用できる。`--result-output`を指定するとSEI repository外の新規JSONへmachine-readable resultを保存する。各testの既定timeoutは120秒で、`--timeout-seconds`で変更できる。
 
 timeoutはexit code `124`、child起動失敗はexit code `127`相当として結果へ残す。runnerはGit commit / cleanlinessの観測とtest resultを分け、Git観測に失敗してもtest resultを捏造しない。
 
@@ -414,7 +414,7 @@ focused local checks PASS
 
 current focused allowlistには、source exporterとstrict archive boundaryのtestも含まれている。
 
-本セッションではSOZA private repository一式を実行containerへ取得する経路がなく、focused runnerの全testを実ファイルで一括実行した新しい結果は得ていない。また、公開KJ Atlasのraw取得もweb/container側の到達制約で成立しなかった。これらは環境固有の観測でありSOZAのProduct failureとは扱わず、実行済みとも推定しない。
+本セッションではSEI private repository一式を実行containerへ取得する経路がなく、focused runnerの全testを実ファイルで一括実行した新しい結果は得ていない。また、公開KJ Atlasのraw取得もweb/container側の到達制約で成立しなかった。これらは環境固有の観測でありSEIのProduct failureとは扱わず、実行済みとも推定しない。
 
 ## Required experiments
 
@@ -510,7 +510,7 @@ strict開始後に失敗した場合:
 complete runではさらに次へ戻れることを要求する。
 
 - execution ID
-- SOZA commit
+- SEI commit
 - KJ Atlas source identity / source export Provenance
 - model store preparation / static verification
 - host OS / architecture
@@ -549,9 +549,11 @@ Actual Model Artifact Exchange E3b Run `33670697154`はactualに完走し、mode
 
 過去のruntime交換workflow試作ではGitHub-hosted runnerの割当前終了を観測した。current baselineではGitHub Actionsを撤去済みであり、runner復旧やActions再導入は本IssueのResolution条件ではない。
 
-2026-09-03から2026-09-04の現作業環境ではLinux / amd64、主要Python依存、Go、約30GB前後のローカル空き容量を観測した。一方、actual実証に必要な固定Ollama runtime / model artifactを実行containerへ取得する通常の外部DNS / raw download経路は利用できなかった。historical Actions Run `33670697154`にも再利用可能なworkflow artifactは残っていなかった。2026-09-04の再確認でも公開KJ Atlas raw取得とcurrent registry tag再観測はこの実行環境から成立しなかった。
+2026-09-05に、execution `local-20260904T193531Z-7855` のactual Evidenceをcurrent developへ回収した。固定KJ Atlas runtime surface、Ollama `0.32.13` / `0.32.14` actual archive bytes / binary version、固定model full digest、同一prompt digest、A/B actual inference、Exact Binding、historical Application不変性、portable reconstruction、negative controlを確認し、Evidence + Provenance verifierは`ready-to-review` / `107 ok / 0 blocked`を記録している。
 
-これらは環境固有の観測でありSOZAのProduct failureではない。
+raw Evidenceは`runtime/evidence/runtime-version-exchange-local-20260904T193531Z/`、要約は`runtime/RUNTIME_VERSION_EXCHANGE_EVIDENCE_2026-09-05.md`へ保存した。
+
+さらに`runtime/RUNTIME_VERSION_EXCHANGE_CURRENT_CONTRACT_REVALIDATION_2026-09-05.md`でactual run commitとcurrent developをGit object identityで再監査し、ISSUE-000070本文、core / Provenance verifier、fixed artifact manifest、Product Requirements、Acceptance Scenarios、relevant Semantic Contract baselineが同一objectであることを確認した。
 
 ## Current implementation state
 
@@ -597,49 +599,52 @@ current developには次がある。
 - focused machine-readable result / Git observation分離
 - per-test timeout / launch-error preservation
 - live Go guard / negative control
+- recovered actual A/B Evidence archive / current-contract equivalence audit
 
-actual Ollama `0.32.13` / `0.32.14`交換はまだ完走確認していない。
+actual Ollama `0.32.13` / `0.32.14`交換は固定scopeで完走確認済みである。
 
 ## Current Evidence state
 
 ```text
 fixed source identity
-  = verifier / exporter available
+  = Verified
 
-fixed runtime metadata / acquisition boundary
-  = repository-local checker / tests / official Release snapshot available
+fixed runtime A/B actual bytes / binary version
+  = Verified
 
-fixed model expected digest
-  = actual historical observation available
+fixed model static identity + A/B actual /api/tags identity
+  = Verified
 
-model store preparation / static verification
-  = helpers available
+same Method input / prompt
+  = Verified
 
-preflight / strict entrypoint / verified-bundle-only low-level harness
-  = implemented
+actual runtime A/B inference
+  = Verified
 
-focused local check runner
-  = implemented; new full run in this session not observed
+same logical Realization / different Exact Binding
+  = Verified
 
-failure Evidence preservation
-  = structured preflight blocked / strict failure paths implemented
+historical Application A immutability
+  = Verified
+
+portable historical reconstruction / negative control
+  = Verified
 
 core Evidence + Provenance verification
-  = implemented
+  = ready-to-review; 107 ok / 0 blocked
 
-actual runtime A/B binary / archive digest / model / prompt / inference
-  = Not Yet Verified
-
-portable reconstruction using actual runtime A/B evidence
-  = implemented, Not Yet Verified
+Requirement / Contract / natural Japanese audit
+  = completed; current baseline object equivalence confirmed
 
 runtime-version-exchange Scoped Executable Evidence
-  = not available yet
+  = available
 ```
 
 ## Requirement / Contract assessment
 
-現時点では新しいStable Requirement / Acceptance Scenario / Universal Contract fieldを追加しない。actual実証後に少なくともREQ-0001、REQ-0004、REQ-0021、SCN-0005、SCN-0015へ再照合する。既存Requirement / Contractで十分に表せる場合はNo Changeとする。
+REQ-0001、REQ-0004、REQ-0021、SCN-0005、SCN-0015へ再照合した。既存Cognitive Method Contract、Semantic Reference、Semantic Interchange、Raw Bytes SHA-256 Profileで今回必要な意味を表現でき、新しいStable Requirement / Acceptance Scenario / Universal Contract fieldは不要と判断した。
+
+runtime version、archive digest、model digest、prompt digestはRealization-local metadata / Provenance / Evidenceに留める。Method outputをRecommendation / Decisionへ自動昇格しない。
 
 ## Resolution
 
@@ -658,6 +663,17 @@ runtime-version-exchange Scoped Executable Evidence
 11. complete runの保存済みEvidenceを独立Evidence + Provenance verifierへ通し、固定された機械条件とProvenance条件について`ready-to-review`を得る。
 12. Requirement / Contract再照合と自然な日本語最終監査を行う。
 
+2026-09-05のactual Evidence回収とcurrent-contract object equivalence監査により、上記1〜12をすべて満たしたことを確認した。したがって本Issueを**Resolved**とする。
+
+```text
+ISSUE-000070 Resolved
+  = fixed KJ Atlas + fixed model artifact下のOllama 0.32.13 / 0.32.14 runtime version exchangeについてScoped Executable Evidence available
+  != arbitrary runtime version portability
+  != model output quality satisfied
+  != KJ-method outcome quality satisfied
+  != E4 Operational portability
+```
+
 archive preparation、model store preparation、static model verification、preflight ready、failure Evidence保存、strict entrypoint verification、source export成功、focused local checks、helper / synthetic test、manifest consistency、official Release snapshot、disk free-space、GitHub Actions再導入、artifactの実行時download可否は、それ単独ではResolution条件にしない。
 
 ## Reopen conditions
@@ -674,7 +690,7 @@ Resolved後も次の場合は再開する。
 - source export失敗後にpartial / 未検証bundleを完成artifactとして残す。
 - strict入口がworkまたは一時source bundleの配置を親`TMPDIR`へ委ねる。
 - source、model store、Evidence、work、verification outputを重ねて入力やEvidenceを検証副作用で変更できる。
-- runtime archive準備先をSOZA repository配下へ置ける。
+- runtime archive準備先をSEI repository配下へ置ける。
 - 事前配置runtime archiveのsource配下配置、symlink、A/B同一path、model overlapをpreflight / strict入口で受理する。
 - 事前配置archiveをpathやsizeだけで信用し、strict入口でactual SHA-256を再検証しない。
 - runtime archive manifestが非公式取得URL、platform drift、invalid size / digestを受理する。
@@ -717,16 +733,14 @@ runtime 0.32.13 / 0.32.14 exchange PASS
 
 ## 自然な日本語レビュー
 
-ISSUE-000067 / 000068 / 000071、Cognitive Method Contract、Exact Binding、current KJ Atlas mapping、no-Actions baseline、repository-local runtime資産へ戻って全文を再監査した。
+ISSUE-000067 / 000068 / 000071、Cognitive Method Contract、Exact Binding、current KJ Atlas mapping、no-Actions baseline、repository-local runtime資産、actual Evidence、current-contract equivalence auditへ戻って全文を再監査した。
 
 現在の実行経路を、runtime artifactの固定条件と公式取得境界、fixed commit objectまたはverified bundleによるsource準備、model store検証または新規準備、focused local regression、preflight、strict entrypoint、verified-bundle-only low-level harness、actual API / inference、run専用Evidence保存、runner observation、Evidence + Provenance独立検証、Requirement / Contract再照合の順に整理した。
 
 取得元・配置path・artifact identityを混同しない。runtime archiveは公式Releaseを取得入口としても最終identityをactual bytesのSHA-256へ戻す。KJ Atlas checkoutはfixed commit objectの取得元であり、working treeそのものをstrict runtime sourceにはしない。sourceの一時展開やstrict内部bundleも親`TMPDIR`から分離し、失敗時のpartial bundleを残さない。model storeもstatic manifest / blob identityとactual `/api/tags`観測を分離する。
 
-preflightやfocused regressionで明白な問題を早く止めても、それはactual A / B実行の成立を意味しない。focused resultには`actualRuntimeExchangeEvidence=false`と`qualityJudgement=not_evaluated`を残し、timeoutやlaunch errorも成功へ丸めない。
+preflightやfocused regressionで明白な問題を早く止めても、それはactual A / B実行の成立を意味しない。今回のResolved判断は、回収済みactual A/B Evidenceと`ready-to-review` verification、historical reconstruction、Requirement / Contract再照合に基づく。
 
-失敗時のEvidenceは、成功を補強するためではなく、どこで何が成立しなかったかを失わないために保存する。partial Evidenceを`ready-to-review`やruntime exchange PASSへ昇格しない。
+GitHub Actionsは完全停止を維持する。成果品質、任意runtime portability、E4 Operational portabilityは未成立のままとし、本IssueのScoped Executable Evidenceをそれらへ拡張しない。
 
-GitHub Actionsは完全停止を維持する。actual Ollama `0.32.13` / `0.32.14`交換はNot Yet Verifiedであり、本IssueはOpenのままとする。
-
-意味、規範強度、Resolution条件、Evidence強度、未検証範囲を変えず、自然な日本語となることを最重要視して再ドラフトした。
+意味、規範強度、Resolution条件、Evidence強度、未検証範囲を混同せず、自然な日本語となることを最重要視して最終監査した。

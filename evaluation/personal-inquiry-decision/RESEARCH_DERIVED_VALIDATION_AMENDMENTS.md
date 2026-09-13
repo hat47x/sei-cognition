@@ -17,16 +17,16 @@
 ```text
 B0 chat-only
 B1 final-note
-P1 SOZA Personal Profile
+P1 SEI Personal Profile
 ```
 
-に加えて、同じSOZA source stateから二種類の再開支援を比較する。
+に加えて、同じSEI source stateから二種類の再開支援を比較する。
 
 ```text
 S0 Generic Summary
   = source / current notesから一般的な要約を生成
 
-S1 SOZA Orientation
+S1 SEI Orientation
   = semantic roles + historical state + unresolved + deltaを用いたresumption cue
 ```
 
@@ -61,7 +61,7 @@ queryを作らなければ意味のある再開ができない場合、PIC-010�
 同じInquiry snapshotについて、次を別々に作る。
 
 - S0: semantic roleを特に指定しないgeneric summary
-- S1: SOZA Orientation
+- S1: SEI Orientation
 
 可能なら順序を入れ替え、記憶汚染を減らす。
 
@@ -79,7 +79,7 @@ queryを作らなければ意味のある再開ができない場合、PIC-010�
 
 S1がより長いだけなら成功ではない。
 
-SOZA固有のsemantic separationが、再開の正確さまたは再読削減へ寄与したかを見る。
+SEI固有のsemantic separationが、再開の正確さまたは再読削減へ寄与したかを見る。
 
 ## 5. Test R3 — Late-arriving Evidence
 
@@ -87,7 +87,7 @@ SOZA固有のsemantic separationが、再開の正確さまたは再読削減へ
 
 1. Subject time T1で成立した外部事実を用意する。
 2. T1より後にDecision Dを記録するが、その時点ではその事実を知らない状態にする。
-3. Dより後のCapture time T2で、その事実を初めてSOZAへ追加する。
+3. Dより後のCapture time T2で、その事実を初めてSEIへ追加する。
 
 ### Expected
 
@@ -186,7 +186,7 @@ Review timeはProduct Interaction metadataとしてまず扱い、Universal sema
 
 ### Setup
 
-元AI conversationを利用不能にし、SOZA Handoff Projectionだけを別AI / sessionへ渡す。
+元AI conversationを利用不能にし、SEI Handoff Projectionだけを別AI / sessionへ渡す。
 
 ### Ask
 
@@ -291,7 +291,7 @@ real Inquiryのprivacyを守るため、repositoryには内容でなくevaluatio
 
 S0 Generic SummaryがS1 Orientationと同程度にUnknown / temporal integrityを保ち、同等以下の再読で再開できる。
 
-**Implication:** Orientation-specific structureを減らし、SOZAはhistorical snapshot / handoff layerへ薄くする。
+**Implication:** Orientation-specific structureを減らし、SEIはhistorical snapshot / handoff layerへ薄くする。
 
 ### F-B — Delta has no value
 
@@ -313,9 +313,9 @@ Anchorが頻繁に古くなり、むしろ誤誘導する。
 
 ### F-E — Source plane duplication dominates
 
-SOZAへsourceを複製・整理する作業が中心になり、既存PKMとの二重管理が発生する。
+SEIへsourceを複製・整理する作業が中心になり、既存PKMとの二重管理が発生する。
 
-**Implication:** source reference中心へ縮小し、SOZAをMeaning / Resume layerへ戻す。
+**Implication:** source reference中心へ縮小し、SEIをMeaning / Resume layerへ戻す。
 
 ## 16. Advancement condition
 

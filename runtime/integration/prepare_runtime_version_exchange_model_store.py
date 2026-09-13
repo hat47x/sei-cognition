@@ -12,11 +12,12 @@ from pathlib import Path
 from typing import BinaryIO, Callable, Mapping
 from urllib.parse import urlparse
 
+from runtime_path_safety import reject_symlink_path_or_ancestors
 from verify_runtime_version_exchange_model_store import verify_model_store
 
 
 INTEGRATION_DIR = Path(__file__).resolve().parent
-SOZA_ROOT = INTEGRATION_DIR.parents[1]
+SEI_ROOT = INTEGRATION_DIR.parents[1]
 ARTIFACT_MANIFEST = INTEGRATION_DIR / "runtime_version_exchange_artifacts.json"
 CHUNK_SIZE = 1024 * 1024
 REGISTRY_HOST = "registry.ollama.ai"
@@ -193,16 +194,10 @@ def prepare_model_store(
 ) -> dict[str, object]:
     fixed = _validate_model_acquisition(acquisition) if acquisition is not None else _load_model_acquisition()
     requested = target_dir.expanduser()
-    if requested.is_symlink():
-        raise ValueError(f"model store targetにsymlinkは利用できません: {requested}")
-    if requested.parent.is_symlink():
-        raise ValueError(
-            "model store targetのparentにsymlinkは利用できません: "
-            f"{requested.parent}"
-        )
+    reject_symlink_path_or_ancestors(requested, "model store target")
     target = requested.resolve(strict=False)
-    if _is_within(target, SOZA_ROOT):
-        raise ValueError(f"model storeをSOZA repository配下には作成できません: {target}")
+    if _is_within(target, SEI_ROOT):
+        raise ValueError(f"model storeをSEI repository配下には作成できません: {target}")
     if target.exists():
         raise ValueError(f"target model storeは新規pathである必要があります: {target}")
 
@@ -265,7 +260,7 @@ def prepare_model_store(
         os.replace(staging, target)
         completed = True
         return {
-            "schema": "soza.runtime-version-exchange-model-store-preparation/v1",
+            "schema": "sei.runtime-version-exchange-model-store-preparation/v1",
             "prepared": True,
             "target": str(target),
             "model": fixed["name"],

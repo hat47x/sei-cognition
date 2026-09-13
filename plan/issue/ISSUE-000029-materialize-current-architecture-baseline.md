@@ -1,4 +1,4 @@
-# ISSUE-000029: current SOZA Reference Architectureをactual repositoryへ実体化する
+# ISSUE-000029: current SEI Reference Architectureをactual repositoryへ実体化する
 
 Status: **Resolved**  
 Priority: **1**  
@@ -7,7 +7,7 @@ Updated: 2026-08-31
 
 ## Goal
 
-ADR-0021に従い、current Product Value、REQ-0001〜REQ-0022、SCN-0001〜SCN-0017、Accepted ADRからcurrent SOZA Reference Architectureをactual repositoryへ実体化する。
+ADR-0021に従い、current Product Value、REQ-0001〜REQ-0022、SCN-0001〜SCN-0017、Accepted ADRからcurrent SEI Reference Architectureをactual repositoryへ実体化する。
 
 historical M48 / M49 / M50 Architectureの意味核を再評価するが、Milestone identity、field set、package layout、algorithm、Evidence stateをcurrent正本へ自動継承しない。
 
@@ -18,7 +18,7 @@ historical M48 / M49 / M50 Architectureの意味核を再評価するが、Miles
 ```text
 architecture/
   README.md
-  SOZA_REFERENCE_ARCHITECTURE.md
+  SEI_REFERENCE_ARCHITECTURE.md
   TRACEABILITY.md
   history/
     HISTORICAL_ARCHITECTURE_MAPPING.md
@@ -34,7 +34,7 @@ historical M48 / M49 / M50で分かれていた設計を、Durable Semantic Core
 
 Unknown / Conflict、Recommendation / Decision / Authority / Execution、Decisionとuncertainty、Pattern / Cognitive Method、Capability Definition / Observation / Matching / Decision / Provider、logical identity / exact binding / semantic revision / storage revision等の意味差をcurrent構造へ反映した。
 
-あわせてSOZA / TEI Product Boundary、Provider-neutral Capability Observation、adapter / mapping provenance、V1〜V8 traceability、Contract / Representation Profile、Evidence階層を追加・強化した。
+あわせてSEI / TEI Product Boundary、Provider-neutral Capability Observation、adapter / mapping provenance、V1〜V8 traceability、Contract / Representation Profile、Evidence階層を追加・強化した。
 
 ### 4. REQ-0001〜REQ-0022のArchitecture追跡を確認した
 

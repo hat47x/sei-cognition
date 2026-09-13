@@ -6,7 +6,7 @@
 
 ## 1. 目的
 
-Personal Inquiry Continuity Profileを実装するとき、利用者に必要な「現在地」とSOZAが耐久的に保持するsemantic stateを混同しないための境界を定める。
+Personal Inquiry Continuity Profileを実装するとき、利用者に必要な「現在地」とSEIが耐久的に保持するsemantic stateを混同しないための境界を定める。
 
 この文書はworkflow state machineをUniversal Coreへ追加しない。
 
@@ -391,7 +391,7 @@ prototypeで少なくとも次を試す。
 2. Recommendationだけ存在し、Decisionはない。
 3. Decision後にcontradictory Evidenceを追加する。
 4. bulk importのAI分類を利用者が訂正する。
-5. 元chatを削除してSOZAだけで再開する。
+5. 元chatを削除してSEIだけで再開する。
 6. networkを切りmanual updateする。
 7. old chatを後日importし、capture timeを過去時点と誤認しない。
 8. similarity retrievalが無関係なInquiryを上位表示してもTruthへ昇格しない。

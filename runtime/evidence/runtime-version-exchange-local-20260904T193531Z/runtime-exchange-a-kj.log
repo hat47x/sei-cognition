@@ -1,0 +1,12 @@
+{"timestamp": "2026-09-04T19:36:32+0000", "level": "INFO", "logger": "uvicorn.error", "message": "Started server process [8023]", "color_message": "Started server process [\u001b[36m%d\u001b[0m]"}
+{"timestamp": "2026-09-04T19:36:32+0000", "level": "INFO", "logger": "uvicorn.error", "message": "Waiting for application startup."}
+{"timestamp": "2026-09-04T19:36:32+0000", "level": "INFO", "logger": "uvicorn.error", "message": "Application startup complete."}
+{"timestamp": "2026-09-04T19:36:32+0000", "level": "INFO", "logger": "uvicorn.error", "message": "Uvicorn running on http://127.0.0.1:8101 (Press CTRL+C to quit)", "color_message": "Uvicorn running on \u001b[1m%s://%s:%d\u001b[0m (Press CTRL+C to quit)"}
+{"timestamp": "2026-09-04T19:36:32+0000", "level": "INFO", "logger": "uvicorn.access", "message": "127.0.0.1:57292 - \"GET /healthz HTTP/1.1\" 200"}
+{"timestamp": "2026-09-04T19:36:32+0000", "level": "WARNING", "logger": "kj_atlas_api.auth_context", "message": "TRUSTED_PROXIES is not configured. All forwarded auth headers (X-Forwarded-User etc.) are accepted from any origin. Set KJ_ATLAS_TRUSTED_PROXIES to a comma-separated list of trusted proxy CIDRs for production use.", "requestId": "22ff17dcef3348ed877d128ae749c592"}
+{"timestamp": "2026-09-04T19:36:44+0000", "level": "INFO", "logger": "kj_atlas_api.routes.ai", "message": "llm_generate", "requestId": "22ff17dcef3348ed877d128ae749c592", "task": "suggest_card_groups", "routingStage": "intermediate", "provider": "local", "provider_kind": "local", "model_id": "qwen2.5:0.5b", "transport": "http", "requested_at": "2026-09-04T19:36:32.801234+00:00", "fallback_to_none": false, "execution_path": "primary", "trace_id": "llm-45b3d7a8-2943-4747-8e9c-b4dff2e660c3"}
+{"timestamp": "2026-09-04T19:36:44+0000", "level": "INFO", "logger": "uvicorn.access", "message": "127.0.0.1:57296 - \"POST /ai/suggest-card-groups HTTP/1.1\" 200"}
+{"timestamp": "2026-09-04T19:36:44+0000", "level": "INFO", "logger": "uvicorn.error", "message": "Shutting down"}
+{"timestamp": "2026-09-04T19:36:44+0000", "level": "INFO", "logger": "uvicorn.error", "message": "Waiting for application shutdown."}
+{"timestamp": "2026-09-04T19:36:44+0000", "level": "INFO", "logger": "uvicorn.error", "message": "Application shutdown complete."}
+{"timestamp": "2026-09-04T19:36:44+0000", "level": "INFO", "logger": "uvicorn.error", "message": "Finished server process [8023]", "color_message": "Finished server process [\u001b[36m%d\u001b[0m]"}

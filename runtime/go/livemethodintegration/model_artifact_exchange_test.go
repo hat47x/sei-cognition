@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hat47x/soza/runtime/go/interactionprobe"
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/interactionprobe"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 type modelArtifactExchangeEvidence struct {
@@ -19,14 +19,14 @@ type modelArtifactExchangeEvidence struct {
 }
 
 func TestLiveKJAtlasActualModelArtifactExchangePreservesHistoricalApplication(t *testing.T) {
-	if os.Getenv("SOZA_E3B_MODEL_EXCHANGE_LIVE") != "1" {
+	if os.Getenv("SEI_E3B_MODEL_EXCHANGE_LIVE") != "1" {
 		t.Skip("actual model artifact exchange probe is enabled only by the dedicated E3b workflow")
 	}
 
-	resultA := readExchangeFile(t, "SOZA_E3B_MODEL_EXCHANGE_RESULT_A")
-	resultB := readExchangeFile(t, "SOZA_E3B_MODEL_EXCHANGE_RESULT_B")
-	evidenceA := readExchangeModelEvidence(t, "SOZA_E3B_MODEL_EXCHANGE_EVIDENCE_A")
-	evidenceB := readExchangeModelEvidence(t, "SOZA_E3B_MODEL_EXCHANGE_EVIDENCE_B")
+	resultA := readExchangeFile(t, "SEI_E3B_MODEL_EXCHANGE_RESULT_A")
+	resultB := readExchangeFile(t, "SEI_E3B_MODEL_EXCHANGE_RESULT_B")
+	evidenceA := readExchangeModelEvidence(t, "SEI_E3B_MODEL_EXCHANGE_EVIDENCE_A")
+	evidenceB := readExchangeModelEvidence(t, "SEI_E3B_MODEL_EXCHANGE_EVIDENCE_B")
 
 	if evidenceA.Model == evidenceB.Model {
 		t.Fatalf("model artifact exchange used the same model twice: %q", evidenceA.Model)
@@ -47,9 +47,9 @@ func TestLiveKJAtlasActualModelArtifactExchangePreservesHistoricalApplication(t 
 		t.Fatalf("result B was rejected by the KJ Atlas response boundary: %v", err)
 	}
 
-	runtimeVersion := exchangeRequiredEnv(t, "SOZA_E3B_MODEL_EXCHANGE_RUNTIME_VERSION")
-	modelIDA := exchangeRequiredEnv(t, "SOZA_E3B_MODEL_EXCHANGE_MODEL_ID_A")
-	modelIDB := exchangeRequiredEnv(t, "SOZA_E3B_MODEL_EXCHANGE_MODEL_ID_B")
+	runtimeVersion := exchangeRequiredEnv(t, "SEI_E3B_MODEL_EXCHANGE_RUNTIME_VERSION")
+	modelIDA := exchangeRequiredEnv(t, "SEI_E3B_MODEL_EXCHANGE_MODEL_ID_A")
+	modelIDB := exchangeRequiredEnv(t, "SEI_E3B_MODEL_EXCHANGE_MODEL_ID_B")
 	if modelIDA == modelIDB {
 		t.Fatalf("observed model digests are equal: %s", modelIDA)
 	}

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hat47x/soza/evaluation/sparse-associative-cognition/prototype-go/hybridreasoning"
+	"github.com/hat47x/sei-cognition/evaluation/sparse-associative-cognition/prototype-go/hybridreasoning"
 )
 
 // Record is the minimal semantic material needed by this evaluation harness.

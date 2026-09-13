@@ -1,0 +1,16 @@
+*.sh text eol=lf
+
+# Preserve post-run Evidence bytes so recorded log digests survive checkout EOL policy.
+runtime/evidence/runtime-version-exchange-local-20260904T193531Z/** -text
+
+# ADR-0031の4-aが不変とする記録済みEvidenceと、digestやGit blob SHA-1を固定した
+# fixture。checkout時のEOL変換でbytesが変わると記録側のdigestと一致しなくなるため、
+# 変換対象から外す。
+evaluation/method-quality/historical/** -text
+evaluation/failure-behavior/actual_provider_missing_revision_observation_20260910.json -text
+evaluation/failure-behavior/scoped_go_failure_execution_20260910.json -text
+evaluation/sparse-associative-cognition/sui_provider_cli_evidence_2026-09-12.json -text
+evaluation/sparse-associative-cognition/sui_associative_conformance_evidence_2026-09-12.json -text
+evaluation/sparse-associative-cognition/prototype-go/suiassocprovider/testdata/** -text
+fixtures/external/** -text
+runtime/go/teiintegration/testdata/** -text

@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 // CanonicalStore は、reference probe だけで使う単一Inquiry向けの共有ストアです。
@@ -85,7 +85,7 @@ func (s *CanonicalStore) Find(ref semanticruntime.LogicalReference) (semanticrun
 }
 
 // Digest はProjection生成やSurface-local stateの変更がcanonical stateを書き換えていないことを
-// probeで比較するための指標です。SOZAのRepresentation ProfileやExact Bindingではありません。
+// probeで比較するための指標です。SEIのRepresentation ProfileやExact Bindingではありません。
 func (s *CanonicalStore) Digest() (string, error) {
 	records, err := s.Records()
 	if err != nil {

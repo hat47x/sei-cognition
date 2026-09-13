@@ -1,0 +1,64 @@
+{
+  "schema": "soza.tei-github-hosted-job-start-cross-workflow/v1",
+  "repository": "hat47x/tei-platform",
+  "observationDate": "2026-09-06",
+  "latestSuccessfulHostedRunObserved": {
+    "runId": 33634416735,
+    "workflowName": "一時的にQuery result mapping Validationを共通入口へ接続",
+    "workflowPath": ".github/workflows/tmp-connect-query-result-validation.yml",
+    "createdAt": "2026-09-02T13:13:13Z",
+    "updatedAt": "2026-09-02T13:13:24Z",
+    "conclusion": "success",
+    "job": {
+      "id": 100261564372,
+      "name": "connect",
+      "conclusion": "success",
+      "completedStepCountObserved": 6
+    }
+  },
+  "teiEvidenceWorkflowAttempt3": {
+    "runId": 33913500170,
+    "runAttempt": 3,
+    "workflowName": "SOZA E3b-P2 TEI Evidence",
+    "workflowPath": ".github/workflows/soza-e3b-p2-evidence.yml",
+    "workflowHeadSha": "5e87cd18967b6d86001cc4d5229bd4886b94e30d",
+    "runStartedAt": "2026-09-06T10:01:06Z",
+    "updatedAt": "2026-09-06T10:01:10Z",
+    "runnerLabel": "ubuntu-latest",
+    "job": {
+      "id": 101467596158,
+      "name": "actual-tei-cli",
+      "conclusion": "failure",
+      "stepCount": 0
+    }
+  },
+  "independentWorkflowFailure": {
+    "runId": 34025808221,
+    "workflowName": "Verify business-procedure cross-view reference",
+    "workflowPath": ".github/workflows/business-procedure-cross-view-reference.yml",
+    "headSha": "403945d2c02195feaa41875cb37b859ec767cff7",
+    "createdAt": "2026-09-06T09:51:19Z",
+    "updatedAt": "2026-09-06T09:51:23Z",
+    "runnerLabel": "ubuntu-latest",
+    "job": {
+      "id": 101466442426,
+      "name": "verify",
+      "conclusion": "failure",
+      "stepCount": 0
+    }
+  },
+  "classification": {
+    "crossWorkflowZeroStepFailureObserved": true,
+    "teiEvidenceWorkflowSpecificFailureSufficientToExplainObservation": false,
+    "githubHostedJobStartCommonSurfaceImplicated": true,
+    "rootCauseObserved": false,
+    "rootCause": "unobserved",
+    "billingOrPolicyCauseObserved": false,
+    "teiBuildProcessObserved": false,
+    "providerPlanProcessObserved": false,
+    "sozaAdapterProcessObserved": false,
+    "productFailureObserved": false
+  },
+  "qualityJudgement": "not_evaluated",
+  "stopLine": "cross-workflow GitHub-hosted zero-step failure observed != root cause identified != TEI build failure != Provider surface incompatibility != SOZA Adapter incompatibility != ISSUE-000072 Resolved"
+}

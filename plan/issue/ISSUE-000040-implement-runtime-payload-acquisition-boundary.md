@@ -9,7 +9,7 @@ Updated: 2026-09-01
 
 `ISSUE-000038`で実装したRepresentation Verifier Registryへ、filesystem、object store、remote artifact service等から取得したpayloadを安全に渡せるよう、**payload acquisitionとcontent verificationを分離したruntime境界**を実装する。
 
-このIssueでは特定Storageやobject storeをSOZA Coreへ固定しない。
+このIssueでは特定Storageやobject storeをSEI Coreへ固定しない。
 
 ```text
 Payload acquisition

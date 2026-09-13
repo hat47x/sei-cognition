@@ -210,6 +210,29 @@ class RuntimeVersionExchangeModelStorePreparationTest(unittest.TestCase):
             self.assertFalse((actual_parent / "models").exists())
         self.assertEqual([], opener.calls)
 
+    def test_target_deep_symlink_ancestor_is_rejected_before_network_access(self):
+        acquisition, payloads, _config_digest, _model_digest = self.fixture()
+        opener = FakeOpener(payloads)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            actual_root = root / "actual-root"
+            (actual_root / "nested").mkdir(parents=True)
+            linked_root = root / "linked-root"
+            try:
+                linked_root.symlink_to(actual_root, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+            target = linked_root / "nested" / "models"
+            with self.assertRaisesRegex(ValueError, "ancestorにsymlink"):
+                prepare.prepare_model_store(
+                    target,
+                    opener=opener,
+                    acquisition=acquisition,
+                )
+            self.assertFalse((actual_root / "nested" / "models").exists())
+            self.assertEqual([], list((actual_root / "nested").glob(".models.partial-*")))
+        self.assertEqual([], opener.calls)
+
     def test_duplicate_blob_digest_is_downloaded_once(self):
         acquisition, payloads, _config_digest, model_digest = self.fixture(duplicate=True)
         opener = FakeOpener(payloads)
@@ -223,11 +246,11 @@ class RuntimeVersionExchangeModelStorePreparationTest(unittest.TestCase):
         model_url = f"{acquisition['registryBlobBaseUrl']}/sha256:{model_digest}"
         self.assertEqual(1, opener.calls.count(model_url))
 
-    def test_target_inside_soza_repository_is_rejected(self):
+    def test_target_inside_sei_repository_is_rejected(self):
         acquisition, payloads, _config_digest, _model_digest = self.fixture()
         opener = FakeOpener(payloads)
-        target = prepare.SOZA_ROOT / ".tmp-runtime-exchange-model-store-test"
-        with self.assertRaisesRegex(ValueError, "SOZA repository配下"):
+        target = prepare.SEI_ROOT / ".tmp-runtime-exchange-model-store-test"
+        with self.assertRaisesRegex(ValueError, "SEI repository配下"):
             prepare.prepare_model_store(
                 target,
                 opener=opener,

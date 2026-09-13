@@ -7,13 +7,13 @@ Updated: 2026-09-01
 
 ## Goal
 
-PMS-04と`product/packaging/SOZA_PRODUCT_PACKAGING.md`で定めたLocal Single-Node Packageについて、**portable semantic dataを保存し、実行中の状態を失った後でもdurable dataだけから再開できること**をreference probeで検証する。
+PMS-04と`product/packaging/SEI_PRODUCT_PACKAGING.md`で定めたLocal Single-Node Packageについて、**portable semantic dataを保存し、実行中の状態を失った後でもdurable dataだけから再開できること**をreference probeで検証する。
 
 あわせて、filesystem Persistenceと別Realizationであるmemory Persistenceの間でportable Semantic Interchangeを移し、physical Storage implementationがsemantic identityになっていないことを限定的に確認する。
 
 ## Resolution
 
-`runtime/go/packagingprobe`にruntime-levelのPersistence境界とfilesystem / memoryの二つのprobe Realizationを実装し、さらに`runtime/go/cmd/soza-package-probe`に検証専用のbuild可能なGo executableを追加した。
+`runtime/go/packagingprobe`にruntime-levelのPersistence境界とfilesystem / memoryの二つのprobe Realizationを実装し、さらに`runtime/go/cmd/sei-package-probe`に検証専用のbuild可能なGo executableを追加した。
 
 ```text
 process A
@@ -57,7 +57,7 @@ Persistence交換境界を検査する第二Realizationとしてmemory Persisten
 
 ### process probe executable
 
-`soza-package-probe`は、`save`と`inspect`の二つの検証用subcommandだけを持つ。
+`sei-package-probe`は、`save`と`inspect`の二つの検証用subcommandだけを持つ。
 
 - `save` — Semantic Interchange fileを読み、current semantic runtimeで検証したうえでfilesystem Persistenceへ保存する。
 - `inspect` — durable data rootからbundleを読み直し、bundle ID、record数、`validated` / `not_verified`数をJSONで出力する。
@@ -76,7 +76,7 @@ Persistence交換境界を検査する第二Realizationとしてmemory Persisten
 
 ### 3. literalな別OS processからの再開
 
-process probe testでは、まず`go build`で`soza-package-probe` executableを実際に生成する。
+process probe testでは、まず`go build`で`sei-package-probe` executableを実際に生成する。
 
 その後、独立したprocess Aで`save`を実行して終了させ、process Bとして同じbinaryの`inspect`を新たに起動する。process Bはprocess Aのheapやin-memory objectへアクセスできず、durable data rootだけからbundleを再構成する。
 
@@ -178,7 +178,7 @@ literal process probeを含むhead `9d28d2f04d5e31a7ca766a1a6d05eedc6c00d4d8`で
 - Semantic Runtime Conformance Run `33508376230`
   - current Contract fixture再検査
   - `runtime/go`全体の`go test ./...`
-  - `soza-package-probe` executable build
+  - `sei-package-probe` executable build
   - independent save / inspect process test
 - Plan integrity Run `33508376256`
 
@@ -231,4 +231,4 @@ literal process probeを含むhead `9d28d2f04d5e31a7ca766a1a6d05eedc6c00d4d8`で
 
 ## Natural Japanese review
 
-PMS-04、Product Packaging baseline、Deployment Architecture、ADR-0029、REQ-0001 / 0005 / 0009 / 0011 / 0018 / 0020 / 0021、SCN-0008 / 0010、current Semantic Interchange runtime、`runtime/go/packagingprobe`、build可能な`soza-package-probe`、Semantic Runtime Conformance Run `33508376230`、Plan integrity Run `33508376256`を照合した。runtime object破棄後の再構成とliteralな別OS processからの再開を分けたうえで、今回新たに確認できたsame-version process restartだけをExecutable Evidenceへ加えている。process restartの成功をversion upgrade、release artifact、crash durability、production Storage migration、Release / Operational Evidenceへ広げず、probe commandやPersistence interfaceもProduct InteractionやUniversal Contractへ昇格させていない。そのうえで、意味、要求強度、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+PMS-04、Product Packaging baseline、Deployment Architecture、ADR-0029、REQ-0001 / 0005 / 0009 / 0011 / 0018 / 0020 / 0021、SCN-0008 / 0010、current Semantic Interchange runtime、`runtime/go/packagingprobe`、build可能な`sei-package-probe`、Semantic Runtime Conformance Run `33508376230`、Plan integrity Run `33508376256`を照合した。runtime object破棄後の再構成とliteralな別OS processからの再開を分けたうえで、今回新たに確認できたsame-version process restartだけをExecutable Evidenceへ加えている。process restartの成功をversion upgrade、release artifact、crash durability、production Storage migration、Release / Operational Evidenceへ広げず、probe commandやPersistence interfaceもProduct InteractionやUniversal Contractへ昇格させていない。そのうえで、意味、要求強度、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

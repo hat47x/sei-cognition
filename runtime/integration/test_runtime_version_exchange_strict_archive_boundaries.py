@@ -144,19 +144,19 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
             source_verifier.assert_not_called()
             runner.assert_not_called()
 
-    def test_source_bundle_inside_soza_repository_is_rejected_before_verification(self):
+    def test_source_bundle_inside_sei_repository_is_rejected_before_verification(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            soza = root / "soza"
-            bundle = soza / "bundle"
-            soza.mkdir()
+            sei = root / "sei"
+            bundle = sei / "bundle"
+            sei.mkdir()
             bundle.mkdir()
 
-            with patch.object(ENTRYPOINT, "SOZA_ROOT", soza), patch.object(
+            with patch.object(ENTRYPOINT, "SEI_ROOT", sei), patch.object(
                 ENTRYPOINT,
                 "verify_runtime_bundle",
             ) as source_verifier, patch.object(ENTRYPOINT.subprocess, "run") as runner:
-                with self.assertRaisesRegex(ValueError, "KJ Atlas verified runtime bundle.*SOZA repository"):
+                with self.assertRaisesRegex(ValueError, "KJ Atlas verified runtime bundle.*SEI repository"):
                     ENTRYPOINT.run_strict_probe(
                         checkout_dir=None,
                         backend_bundle=bundle,
@@ -168,24 +168,24 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
             source_verifier.assert_not_called()
             runner.assert_not_called()
 
-    def test_model_store_inside_soza_repository_is_rejected_before_verification(self):
+    def test_model_store_inside_sei_repository_is_rejected_before_verification(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            soza = root / "soza"
+            sei = root / "sei"
             bundle = root / "bundle"
-            model = soza / "models"
-            soza.mkdir()
+            model = sei / "models"
+            sei.mkdir()
             bundle.mkdir()
             model.mkdir()
 
-            with patch.object(ENTRYPOINT, "SOZA_ROOT", soza), patch.object(
+            with patch.object(ENTRYPOINT, "SEI_ROOT", sei), patch.object(
                 ENTRYPOINT,
                 "verify_model_store",
             ) as model_verifier, patch.object(ENTRYPOINT, "verify_runtime_bundle") as source_verifier, patch.object(
                 ENTRYPOINT.subprocess,
                 "run",
             ) as runner:
-                with self.assertRaisesRegex(ValueError, "model directory.*SOZA repository"):
+                with self.assertRaisesRegex(ValueError, "model directory.*SEI repository"):
                     ENTRYPOINT.run_strict_probe(
                         checkout_dir=None,
                         backend_bundle=bundle,
@@ -198,50 +198,50 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
             source_verifier.assert_not_called()
             runner.assert_not_called()
 
-    def test_evidence_inside_soza_repository_is_rejected_before_verification(self):
+    def test_evidence_inside_sei_repository_is_rejected_before_verification(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            soza = root / "soza"
+            sei = root / "sei"
             bundle = root / "bundle"
-            soza.mkdir()
+            sei.mkdir()
             bundle.mkdir()
 
-            with patch.object(ENTRYPOINT, "SOZA_ROOT", soza), patch.object(
+            with patch.object(ENTRYPOINT, "SEI_ROOT", sei), patch.object(
                 ENTRYPOINT,
                 "verify_runtime_bundle",
             ) as source_verifier, patch.object(ENTRYPOINT.subprocess, "run") as runner:
-                with self.assertRaisesRegex(ValueError, "Evidence directory.*SOZA repository"):
+                with self.assertRaisesRegex(ValueError, "Evidence directory.*SEI repository"):
                     ENTRYPOINT.run_strict_probe(
                         checkout_dir=None,
                         backend_bundle=bundle,
                         model_dir=None,
-                        evidence_dir=soza / "evidence",
+                        evidence_dir=sei / "evidence",
                         harness_arguments=[],
                     )
 
             source_verifier.assert_not_called()
             runner.assert_not_called()
 
-    def test_work_inside_soza_repository_is_rejected_before_verification(self):
+    def test_work_inside_sei_repository_is_rejected_before_verification(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            soza = root / "soza"
+            sei = root / "sei"
             bundle = root / "bundle"
-            soza.mkdir()
+            sei.mkdir()
             bundle.mkdir()
 
-            with patch.object(ENTRYPOINT, "SOZA_ROOT", soza), patch.object(
+            with patch.object(ENTRYPOINT, "SEI_ROOT", sei), patch.object(
                 ENTRYPOINT,
                 "verify_runtime_bundle",
             ) as source_verifier, patch.object(ENTRYPOINT.subprocess, "run") as runner:
-                with self.assertRaisesRegex(ValueError, "Work directory.*SOZA repository"):
+                with self.assertRaisesRegex(ValueError, "Work directory.*SEI repository"):
                     ENTRYPOINT.run_strict_probe(
                         checkout_dir=None,
                         backend_bundle=bundle,
                         model_dir=None,
                         evidence_dir=root / "evidence",
                         harness_arguments=[],
-                        work_dir=soza / "work",
+                        work_dir=sei / "work",
                     )
 
             source_verifier.assert_not_called()
@@ -300,7 +300,7 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
                 observed_outputs.append(output.resolve())
                 output.mkdir(parents=True)
                 return {
-                    "schema": "soza.kj-atlas-runtime-source-export/v1",
+                    "schema": "sei.kj-atlas-runtime-source-export/v1",
                     "sourceAcquisition": "git-archive-from-pinned-commit",
                 }
 
@@ -334,6 +334,170 @@ class StrictRuntimeArchiveBoundaryTest(unittest.TestCase):
             )
             self.assertFalse(expected_source_root.exists())
             self.assertTrue((evidence / "runtime-exchange-source-export.json").is_file())
+
+    def test_dangling_evidence_symlink_is_rejected_before_source_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bundle = root / "bundle"
+            bundle.mkdir()
+            evidence = root / "evidence"
+            evidence.symlink_to(root / "missing-evidence-target")
+
+            with patch.object(ENTRYPOINT, "verify_runtime_bundle") as source_verifier, patch.object(
+                ENTRYPOINT.subprocess,
+                "run",
+            ) as runner:
+                with self.assertRaisesRegex(ValueError, "Evidence directory.*symlink"):
+                    ENTRYPOINT.run_strict_probe(
+                        checkout_dir=None,
+                        backend_bundle=bundle,
+                        model_dir=None,
+                        evidence_dir=evidence,
+                        harness_arguments=[],
+                    )
+
+            source_verifier.assert_not_called()
+            runner.assert_not_called()
+
+    def test_work_path_with_symlink_parent_is_rejected_before_source_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bundle = root / "bundle"
+            actual_parent = root / "actual-work-parent"
+            link_parent = root / "work-parent-link"
+            bundle.mkdir()
+            actual_parent.mkdir()
+            link_parent.symlink_to(actual_parent, target_is_directory=True)
+
+            with patch.object(ENTRYPOINT, "verify_runtime_bundle") as source_verifier, patch.object(
+                ENTRYPOINT.subprocess,
+                "run",
+            ) as runner:
+                with self.assertRaisesRegex(ValueError, "Work directory.*parent.*symlink"):
+                    ENTRYPOINT.run_strict_probe(
+                        checkout_dir=None,
+                        backend_bundle=bundle,
+                        model_dir=None,
+                        evidence_dir=root / "evidence",
+                        harness_arguments=[],
+                        work_dir=link_parent / "work",
+                    )
+
+            source_verifier.assert_not_called()
+            runner.assert_not_called()
+
+    def test_dangling_prepared_model_symlink_is_rejected_before_preparation(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bundle = root / "bundle"
+            bundle.mkdir()
+            prepared = root / "prepared-model"
+            prepared.symlink_to(root / "missing-model-target")
+
+            with patch.object(ENTRYPOINT, "prepare_model_store") as preparer, patch.object(
+                ENTRYPOINT,
+                "verify_runtime_bundle",
+            ) as source_verifier, patch.object(ENTRYPOINT.subprocess, "run") as runner:
+                with self.assertRaisesRegex(ValueError, "Prepared model directory.*symlink"):
+                    ENTRYPOINT.run_strict_probe(
+                        checkout_dir=None,
+                        backend_bundle=bundle,
+                        model_dir=None,
+                        prepare_model_dir=prepared,
+                        evidence_dir=root / "evidence",
+                        harness_arguments=[],
+                    )
+
+            preparer.assert_not_called()
+            source_verifier.assert_not_called()
+            runner.assert_not_called()
+
+    def test_prepositioned_model_store_root_symlink_is_rejected_before_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bundle = root / "bundle"
+            actual_model = root / "actual-model"
+            model_link = root / "model-link"
+            bundle.mkdir()
+            actual_model.mkdir()
+            model_link.symlink_to(actual_model, target_is_directory=True)
+
+            with patch.object(ENTRYPOINT, "verify_model_store") as model_verifier, patch.object(
+                ENTRYPOINT,
+                "verify_runtime_bundle",
+            ) as source_verifier, patch.object(ENTRYPOINT.subprocess, "run") as runner:
+                with self.assertRaisesRegex(ValueError, "Model directory.*symlink"):
+                    ENTRYPOINT.run_strict_probe(
+                        checkout_dir=None,
+                        backend_bundle=bundle,
+                        model_dir=model_link,
+                        evidence_dir=root / "evidence",
+                        harness_arguments=[],
+                    )
+
+            model_verifier.assert_not_called()
+            source_verifier.assert_not_called()
+            runner.assert_not_called()
+
+    def test_new_path_rejects_deep_symlink_ancestor(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            actual_root = root / "actual"
+            (actual_root / "nested").mkdir(parents=True)
+            link_root = root / "linked-root"
+            try:
+                link_root.symlink_to(actual_root, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            requested = link_root / "nested" / "new-output"
+            with self.assertRaisesRegex(ValueError, "ancestorにsymlink"):
+                ENTRYPOINT._new_path(requested, "Work directory")
+            self.assertFalse((actual_root / "nested" / "new-output").exists())
+
+    def test_existing_directory_rejects_deep_symlink_ancestor(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            actual_root = root / "actual"
+            existing = actual_root / "nested" / "bundle"
+            existing.mkdir(parents=True)
+            link_root = root / "linked-root"
+            try:
+                link_root.symlink_to(actual_root, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            requested = link_root / "nested" / "bundle"
+            with self.assertRaisesRegex(ValueError, "ancestorにsymlink"):
+                ENTRYPOINT._existing_directory(
+                    requested,
+                    "KJ Atlas verified runtime bundle",
+                )
+
+    def test_runtime_archive_rejects_deep_symlink_ancestor_before_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bundle = root / "bundle"
+            bundle.mkdir()
+            actual_root = root / "actual"
+            (actual_root / "nested").mkdir(parents=True)
+            archive = actual_root / "nested" / "runtime-a.tar.zst"
+            archive.write_bytes(b"runtime")
+            link_root = root / "linked-root"
+            try:
+                link_root.symlink_to(actual_root, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinkを作成できない環境です")
+
+            requested = link_root / "nested" / "runtime-a.tar.zst"
+            with patch.object(ENTRYPOINT, "verify_archive") as archive_verifier:
+                with self.assertRaisesRegex(ValueError, "ancestorにsymlink"):
+                    ENTRYPOINT._validate_runtime_archives(
+                        ["--runtime-a-archive", str(requested)],
+                        source_input=bundle,
+                        source_label="KJ Atlas verified runtime bundle",
+                    )
+            archive_verifier.assert_not_called()
 
 
 if __name__ == "__main__":

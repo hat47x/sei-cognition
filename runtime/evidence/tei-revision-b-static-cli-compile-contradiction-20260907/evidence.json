@@ -1,0 +1,81 @@
+{
+  "schema": "soza.tei-revision-b-static-cli-compile-contradiction/v1",
+  "observedAt": "2026-09-07",
+  "target": {
+    "repository": "hat47x/tei-platform",
+    "revision": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be",
+    "rootTree": "630d3e9e2acaea70312bee19cf8a0f7235655cd6",
+    "cmdTree": "ac4d4406dfa590a2078cf91217c4fe30797e7f8e",
+    "internalTree": "10d2bfea4932c308fa6537e3b081bc6ea5501205"
+  },
+  "exactBlobIdentities": {
+    "cmd/tei/main.go": "6a27b98b7f6dbe4e66d1261edfc847402cd608a5",
+    "cmd/tei/source_index.go": "19ac0589e8ff761865d51cfc5cd65cf8d2a650ba",
+    "cmd/tei/validation_output.go": "2ca746592d325ec0f277cebc7c297e49d3022829",
+    "internal/workspace/source_diagnostic.go": "59fd57685e44edba62e538c31b6db51b62d4e651",
+    "internal/workspace/diagnostic_projection.go": "137d139fc7e51c10af3b5cb3082a12a2c37e7410",
+    "go.mod": "f8763f8fb2d64d73f1b40b905f62b5e09c44493b",
+    "go.sum": "c7cd14781271dca2b014daf2f53d49d95b8e8826"
+  },
+  "observations": [
+    {
+      "kind": "duplicate_top_level_function",
+      "classification": "deterministic_source_level_compile_contradiction",
+      "symbol": "validateWorkspace",
+      "locations": [
+        {
+          "path": "cmd/tei/main.go",
+          "line": 939,
+          "signature": "func validateWorkspace(root string) bool"
+        },
+        {
+          "path": "cmd/tei/validation_output.go",
+          "line": 11,
+          "signature": "func validateWorkspace(out io.Writer, root string) (int, error)"
+        }
+      ],
+      "note": "Both files belong to package main. Go does not overload top-level functions by signature."
+    },
+    {
+      "kind": "workspace_api_reference_mismatch",
+      "classification": "deterministic_source_level_compile_contradiction",
+      "caller": {
+        "path": "cmd/tei/validation_output.go",
+        "symbol": "workspace.DiagnosticFromLoadError"
+      },
+      "fixedRevisionBWorkspaceObservation": {
+        "availableSymbol": "workspace.SourceDiagnosticFromError",
+        "availableSymbolPath": "internal/workspace/source_diagnostic.go",
+        "projectedDiagnosticPath": "internal/workspace/diagnostic_projection.go",
+        "referencedSymbolObserved": false
+      }
+    }
+  ],
+  "history": {
+    "validationOutputIntroducedBy": {
+      "commit": "e619ef58ffcc7c17645e3e24e8974f56f6cf18b7",
+      "message": "Workspace validateのsource-aware表示境界を追加する"
+    },
+    "mainSourceDiagnosticChange": {
+      "commit": "c804931c2480bd45ee5831455f123f5bf8a3bd71",
+      "message": "M0.23 Parse errorをsource-direct diagnosticとしてCLIへ表示する"
+    },
+    "knownBuildFix": {
+      "commit": "3b928502a5f5d8519335fb3dabed9512ebd6005a",
+      "message": "fix: restore build after reference feature integration",
+      "relationshipToFixedRevisionB": "diverged_not_ancestor",
+      "compareMergeBase": "0c48e5cae2dc9dc48641f17a32acba7d2a2d63de"
+    }
+  },
+  "executionBoundary": {
+    "canonicalExactBCheckoutBuildPerformed": false,
+    "auxiliaryMixedClosureProbePerformed": true,
+    "auxiliaryProbeObservedDuplicateDiagnostic": true,
+    "actualRevisionBBuild": "not_yet_verified",
+    "revisionBProviderPlan": "not_yet_observed",
+    "currentSozaAdapterCompatibility": "not_yet_verified",
+    "qualityJudgement": "not_evaluated",
+    "issue000072": "open"
+  },
+  "stopLine": "deterministic source-level compile contradiction != canonical actual revision B build FAIL != Provider Plan failure != SOZA Adapter incompatibility != ISSUE-000072 Resolved"
+}

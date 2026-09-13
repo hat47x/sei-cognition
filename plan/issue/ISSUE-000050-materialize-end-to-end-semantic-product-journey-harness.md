@@ -87,7 +87,7 @@ manifestは、次のrecord identityと評価条件を束ねる。
 - reopen / unresolved carryを要求するか
 - collaborative pathでResponsibility分離を要求するか
 
-manifestは**評価用の検査構成**であり、SOZAの新しいsemantic authorityにはしない。
+manifestは**評価用の検査構成**であり、SEIの新しいsemantic authorityにはしない。
 
 ## 検査できる意味境界
 

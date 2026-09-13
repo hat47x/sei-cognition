@@ -7,7 +7,7 @@ Updated: 2026-09-02
 
 ## Goal
 
-PMS-07「release可能な製品として成立する」へ進むため、SOZA v0.2.0で実際にsupportする範囲と、release candidateとして同一source commitを再検査する統合gateを定義・実装する。
+PMS-07「release可能な製品として成立する」へ進むため、SEI v0.2.0で実際にsupportする範囲と、release candidateとして同一source commitを再検査する統合gateを定義・実装する。
 
 v0.2.0はproduction完成版として扱わない。現在Executable Evidenceが揃っている範囲を、開発者・評価者が再現可能な **Local Reference Product Baseline** として固定する。
 

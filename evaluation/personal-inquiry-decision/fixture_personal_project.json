@@ -1,5 +1,5 @@
 {
-  "schema": "soza.personal-inquiry-decision-prototype/v0",
+  "schema": "sei.personal-inquiry-decision-prototype/v0",
   "status": "evaluation-only",
   "inquiry": {
     "id": "inq-personal-notes",

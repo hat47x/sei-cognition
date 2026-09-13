@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 
-SCHEMA = "soza.method-quality-case-catalog/v1"
+SCHEMA = "sei.method-quality-case-catalog/v1"
 FORBIDDEN_GOLDEN_KEYS = {
     "expectedGroups",
     "expectedGrouping",
@@ -26,6 +26,15 @@ FORBIDDEN_GOLDEN_KEYS = {
 }
 
 
+def legacy_schema(schema: str) -> str:
+    """ADR-0031の3。改名前に記録されたEvidenceが持つ旧identityを返す。
+
+    emit側は常に`sei.*`だけを書く。読み取り側だけが双方を受け付ける。
+    記録済みEvidenceが存在する限り必要な恒久措置であり、期限は切らない。
+    """
+    return "soza." + schema[len("sei."):] if schema.startswith("sei.") else schema
+
+
 def _require_non_empty_string(value: Any, field: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"{field} must be a non-empty string")
@@ -33,7 +42,7 @@ def _require_non_empty_string(value: Any, field: str) -> str:
 
 
 def validate_catalog(catalog: dict[str, Any]) -> None:
-    if catalog.get("schema") != SCHEMA:
+    if catalog.get("schema") not in (SCHEMA, legacy_schema(SCHEMA)):
         raise ValueError(f"schema must be {SCHEMA!r}")
 
     rules = catalog.get("rules")
@@ -114,7 +123,7 @@ def main(argv: list[str]) -> int:
     print(
         json.dumps(
             {
-                "schema": "soza.method-quality-case-catalog-validation/v1",
+                "schema": "sei.method-quality-case-catalog-validation/v1",
                 "catalog": str(path),
                 "caseCount": len(catalog["cases"]),
                 "qualityJudgement": "not_evaluated",

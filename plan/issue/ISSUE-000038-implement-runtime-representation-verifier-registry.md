@@ -12,8 +12,8 @@ Accepted済みのRepresentation ProfileをSemantic Runtimeへ接続し、Exact B
 対象Profile:
 
 ```text
-soza.jcs+sha256/v1alpha1
-soza.raw-bytes+sha256/v1alpha1
+sei.jcs+sha256/v1alpha1
+sei.raw-bytes+sha256/v1alpha1
 ```
 
 新しいSemantic ContractやUniversal Core型は追加せず、ADR-0008 / ADR-0009 / ADR-0023で決定済みの検証境界をExecutable Evidenceへ落とす。
@@ -33,8 +33,8 @@ runtime/go/semanticruntime/verifier_test.go
 
 current default Registryは次の2 Profileを登録する。
 
-- `soza.jcs+sha256/v1alpha1`
-- `soza.raw-bytes+sha256/v1alpha1`
+- `sei.jcs+sha256/v1alpha1`
+- `sei.raw-bytes+sha256/v1alpha1`
 
 Profile authorityはProfile Definition / RFC 8785側に残し、RegistryやGo libraryをsemantic authorityへ昇格させていない。
 

@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://soza.example/contracts/v1alpha1/decision-memory.schema.json",
-  "title": "SOZA Decision Memory v1alpha1",
-  "description": "Machine-readable representation of soza.decision-memory/v1alpha1. Decision and Recommendation remain distinct records; neither encodes authorization or execution state.",
+  "$id": "https://sei-cognition.example/contracts/v1alpha1/decision-memory.schema.json",
+  "title": "SEI Decision Memory v1alpha1",
+  "description": "Machine-readable representation of sei.decision-memory/v1alpha1. Decision and Recommendation remain distinct records; neither encodes authorization or execution state.",
   "type": "object",
   "required": ["contract", "record_type"],
   "properties": {
     "contract": {
-      "const": "soza.decision-memory/v1alpha1"
+      "const": "sei.decision-memory/v1alpha1"
     },
     "record_type": {
       "enum": ["decision", "recommendation"]

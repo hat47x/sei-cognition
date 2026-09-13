@@ -1,0 +1,51 @@
+{
+  "schema": "soza.tei-go-unused-require-offline-probe/v1",
+  "observedDate": "2026-09-07",
+  "purpose": "Determine whether absence of github.com/lib/pq v1.12.3 from the current Go module cache is, by itself, sufficient evidence that the fixed revision B E2 build cannot proceed offline.",
+  "fixedRevisionB": {
+    "commit": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be",
+    "goMod": {
+      "module": "tei",
+      "go": "1.23.2",
+      "directRequire": "github.com/lib/pq v1.12.3"
+    },
+    "staticObservations": {
+      "cmdTeiMainDirectLibPQImportObserved": false,
+      "cmdTeiMainImportsRepositoryInternalPackages": true,
+      "postgresSqlCatalogDirectLibPQImportObserved": false,
+      "postgresSqlCatalogUsesDatabaseSQL": true,
+      "postgresSqlCatalogDriverSelectionOwnedByApplicationAssembly": true
+    }
+  },
+  "currentContainer": {
+    "platform": "linux/amd64",
+    "goVersion": "go1.23.2 linux/amd64",
+    "libPQVersionPresentInObservedModuleCache": false
+  },
+  "negativeControl": {
+    "module": "example.com/offline-unused",
+    "goModDirectRequire": "github.com/lib/pq v1.12.3",
+    "sourceImportsLibPQ": false,
+    "environment": {
+      "GOTOOLCHAIN": "local",
+      "GOPROXY": "off",
+      "GOSUMDB": "off",
+      "GOMODCACHE": "fresh-empty-directory"
+    },
+    "command": "go build -x .",
+    "exitCode": 0,
+    "moduleCacheFilesAfterBuild": 0,
+    "networkDownloadRequired": false,
+    "result": "unused_direct_require_did_not_block_offline_build"
+  },
+  "interpretation": {
+    "missingLibPQCacheAloneIsE2Blocker": false,
+    "fixedRevisionBFullImportClosureProvedLibPQFree": false,
+    "fixedRevisionBActualBuildPerformed": false,
+    "fixedRevisionBActualDependencyDownloadNeed": "not_yet_determined",
+    "primaryCurrentE2Blocker": "private_exact_revision_b_source_transport_unavailable",
+    "productFailureObserved": false,
+    "qualityJudgement": "not_evaluated"
+  },
+  "stopLine": "unused direct require offline negative control PASS != fixed revision B import closure proved != revision B actual build PASS != Provider Plan PASS != SOZA Adapter compatibility PASS != ISSUE-000072 Resolved"
+}

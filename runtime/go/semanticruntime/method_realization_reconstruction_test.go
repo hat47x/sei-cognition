@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-const reconstructionRawProfile = "soza.raw-bytes+sha256"
+const reconstructionRawProfile = "sei.raw-bytes+sha256"
 
 func TestMethodRealizationVersionHistoricalReconstruction(t *testing.T) {
 	methodRef := LogicalReference{Kind: "method", ID: "M-KJ-ATLAS-GROUPING"}

@@ -7,7 +7,7 @@ Updated: 2026-09-01
 
 ## Goal
 
-SOZAのsemantic boundaryを保ったまま実際に利用可能な製品へ近づけるため、**何を最初の配布・実行単位とし、耐久データ、Persistence、Interaction Surface、外部Providerをどの境界から接続するか**を定義する。
+SEIのsemantic boundaryを保ったまま実際に利用可能な製品へ近づけるため、**何を最初の配布・実行単位とし、耐久データ、Persistence、Interaction Surface、外部Providerをどの境界から接続するか**を定義する。
 
 library、service、CLI、reference UI、embedded storage等を、現在の実装都合だけでProduct ontologyへ固定しない。
 
@@ -15,7 +15,7 @@ library、service、CLI、reference UI、embedded storage等を、現在の実�
 
 最初のPackaging / Deployment Profileを**Local Single-Node Package**とする。
 
-正本は`product/packaging/SOZA_PRODUCT_PACKAGING.md`、Deployment Architectureは`architecture/SOZA_DEPLOYMENT_ARCHITECTURE.md`、技術判断はADR-0029とする。
+正本は`product/packaging/SEI_PRODUCT_PACKAGING.md`、Deployment Architectureは`architecture/SEI_DEPLOYMENT_ARCHITECTURE.md`、技術判断はADR-0029とする。
 
 ```text
 Go runtime executable
@@ -52,7 +52,7 @@ Persistenceは交換可能なRealizationとする。filesystemから将来RDB / 
 
 ## import / export / migration
 
-package専用の新しいUniversal Contractは追加せず、current `soza.semantic-interchange/v1alpha1`をportable semantic export / importの中心として再利用する。
+package専用の新しいUniversal Contractは追加せず、current `sei.semantic-interchange/v1alpha1`をportable semantic export / importの中心として再利用する。
 
 ```text
 Persistence A

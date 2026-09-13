@@ -21,7 +21,7 @@ failed
 not_verified
 ```
 
-historical candidateではSOZA独自canonical JSON + SHA-256をpressure testへ用いたが、current baselineでは、外部標準に基づくJSON Profileとraw bytes Profileを明示的に分ける。
+historical candidateではSEI独自canonical JSON + SHA-256をpressure testへ用いたが、current baselineでは、外部標準に基づくJSON Profileとraw bytes Profileを明示的に分ける。
 
 一方、historical M47ではcontent digestを用いていたことは確認できるものの、そのdigestをどのbytes / canonicalization / hash規則から生成したかは一次source未回収のため確認できていない。
 
@@ -34,31 +34,31 @@ historical mappingの不明点によってcurrent / future bindingのProfile利�
 current JSON Exact Bindingの第一Profileを次とする。
 
 ```text
-soza.jcs+sha256/v1alpha1
+sei.jcs+sha256/v1alpha1
 ```
 
 Profile Definition:
 
 ```text
-contracts/profiles/SOZA_JCS_SHA256_PROFILE_v1alpha1.md
+contracts/profiles/SEI_JCS_SHA256_PROFILE_v1alpha1.md
 ```
 
 canonicalizationの規範的な外部仕様はRFC 8785とする。
 
-SOZA独自canonical JSON algorithmをstable authorityにはしない。
+SEI独自canonical JSON algorithmをstable authorityにはしない。
 
 ### 2. non-JSON / raw content向けProfileを別に持つ
 
 明示されたbytesそのものをExact Binding対象にするProfileとして、次を置く。
 
 ```text
-soza.raw-bytes+sha256/v1alpha1
+sei.raw-bytes+sha256/v1alpha1
 ```
 
 Profile Definition:
 
 ```text
-contracts/profiles/SOZA_RAW_BYTES_SHA256_PROFILE_v1alpha1.md
+contracts/profiles/SEI_RAW_BYTES_SHA256_PROFILE_v1alpha1.md
 ```
 
 このProfileではcanonicalizationを行わず、対象bytesへ直接SHA-256を適用する。
@@ -71,7 +71,7 @@ JCS Profileとraw-bytes Profileを、一つの曖昧な「SHA-256 binding」へ�
 
 ### 3. SHA-256はUniversal CoreではなくProfile versionが所有する
 
-current v1alpha1 ProfileではSHA-256を用いるが、SOZA Coreの唯一のhash algorithmとして固定しない。
+current v1alpha1 ProfileではSHA-256を用いるが、SEI Coreの唯一のhash algorithmとして固定しない。
 
 将来別algorithmが必要になった場合は、新しいRepresentation Profileまたは新versionとして扱う。
 
@@ -79,7 +79,7 @@ current v1alpha1 ProfileではSHA-256を用いるが、SOZA Coreの唯一のhash
 
 RFC 8785 / I-JSONはJSON numberの相互運用でIEEE 754 binary64を前提とする。
 
-SOZAでは、binary64で安全に保持できないsemantic valueを、値を失うJSON numberへ暗黙変換してからdigestしない。
+SEIでは、binary64で安全に保持できないsemantic valueを、値を失うJSON numberへ暗黙変換してからdigestしない。
 
 最低限、safe integer範囲を越える整数はcurrent JCS verifier境界で拒否する。
 
@@ -108,7 +108,7 @@ current Go probeでは`github.com/gowebpki/jcs`を用いる。
 ただし、次を区別する。
 
 ```text
-RFC 8785 + SOZA Profile Definition
+RFC 8785 + SEI Profile Definition
   = Profile authority
 
 Go library
@@ -119,9 +119,9 @@ actual CIではcommit SHA `1a4242a66e1a8e03d7458324d0bc95c327527cbb`へ固定し
 
 依存libraryを将来差し替えても、同じProfile ID / versionを名乗る限りcanonical resultとdigest contractを変えてはならない。
 
-### 7. SOZA自身のfixtureをProfile conformance境界として保持する
+### 7. SEI自身のfixtureをProfile conformance境界として保持する
 
-外部libraryのtestだけに依存せず、SOZA repositoryに次を保持する。
+外部libraryのtestだけに依存せず、SEI repositoryに次を保持する。
 
 ```text
 fixtures/representation-profiles/jcs-v1alpha1.json
@@ -168,11 +168,11 @@ Profile fixture PASS
 
 ## Alternatives considered
 
-### A. SOZA独自canonical JSONをstable化する
+### A. SEI独自canonical JSONをstable化する
 
 不採用。
 
-historical pressure testとしては有用だが、JSON canonicalizationという一般問題をSOZA独自標準として長期保守する必要性が弱い。
+historical pressure testとしては有用だが、JSON canonicalizationという一般問題をSEI独自標準として長期保守する必要性が弱い。
 
 ### B. raw JSON bytesだけをSHA-256する
 
@@ -198,7 +198,7 @@ library更新・置換がsemantic interoperabilityへ影響するため、RFC / 
 
 ### Positive
 
-- SOZA独自canonicalizationをstable authorityとして抱えずに済む。
+- SEI独自canonicalizationをstable authorityとして抱えずに済む。
 - JSONとraw binaryのExact Binding対象を明確に分けられる。
 - high-precision valueの暗黙損失をProfile境界で防ぎやすい。
 - verifier libraryを交換可能に保てる。

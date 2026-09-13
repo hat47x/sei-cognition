@@ -6,9 +6,9 @@ Updated: 2026-09-01
 
 ## Context
 
-SOZAはProduct ShapeとしてWork / Interaction Surfaceを持ち、人間とAIが同じcanonical meaningへ触れられることを目指しています。一方、具体的なWeb UI、desktop UI、CLI、HTTP API、MCP等はまだ確定していません。
+SEIはProduct ShapeとしてWork / Interaction Surfaceを持ち、人間とAIが同じcanonical meaningへ触れられることを目指しています。一方、具体的なWeb UI、desktop UI、CLI、HTTP API、MCP等はまだ確定していません。
 
-この段階で画面、会話、workspace、session等を先に正本化すると、現在のUIやAI integrationの都合がSOZAの耐久的意味へ入り込みます。逆に、Interactionを「Semantic Contractを直接編集するだけ」と捉えると、利用者が型名やfield setを理解しなければ使えない製品になり、V6 Human / AI ReadabilityとV7 Progressive Explicitnessを損ないます。
+この段階で画面、会話、workspace、session等を先に正本化すると、現在のUIやAI integrationの都合がSEIの耐久的意味へ入り込みます。逆に、Interactionを「Semantic Contractを直接編集するだけ」と捉えると、利用者が型名やfield setを理解しなければ使えない製品になり、V6 Human / AI ReadabilityとV7 Progressive Explicitnessを損ないます。
 
 必要なのは、UIやprotocolを交換しても残るProduct Interaction上の仕事を定義し、それらを既存のcanonical artifactへ接続する境界です。
 
@@ -134,13 +134,13 @@ UI実装は整理しやすくなりますが、現時点ではそれらが判断
 
 ### Design Evidence
 
-- SOZA Product Value / Product Shape
+- SEI Product Value / Product Shape
 - PMS-03 first usable Product Interaction
 - REQ-0001 / 0005 / 0006 / 0010 / 0011 / 0014 / 0015 / 0019
 - SCN-0013 / SCN-0018
 - V6 / V7 Projection evaluation
 - end-to-end Semantic Product Journey harness
-- `product/interaction/SOZA_PRODUCT_INTERACTION.md`
+- `product/interaction/SEI_PRODUCT_INTERACTION.md`
 
 ### Executable Evidence
 

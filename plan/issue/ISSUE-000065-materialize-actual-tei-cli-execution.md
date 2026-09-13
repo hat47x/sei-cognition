@@ -1,4 +1,4 @@
-# ISSUE-000065: 実TEI CLIをSOZAのProvider Adapterから実行する
+# ISSUE-000065: 実TEI CLIをSEIのProvider Adapterから実行する
 
 Status: **Resolved**  
 Priority: **1**  
@@ -7,7 +7,7 @@ Updated: 2026-09-02
 
 ## Goal
 
-PMS-06のE3b-P2として、`hat47x/tei-platform`の固定revisionから実際に作成したTEI CLIを別OS processとして起動し、TEIの`deployment-provider-plan`応答をSOZAのcurrent Capability Observationへ戻せることを、再現可能なScoped Executable Evidenceとして確認する。
+PMS-06のE3b-P2として、`hat47x/tei-platform`の固定revisionから実際に作成したTEI CLIを別OS processとして起動し、TEIの`deployment-provider-plan`応答をSEIのcurrent Capability Observationへ戻せることを、再現可能なScoped Executable Evidenceとして確認する。
 
 このIssueで確認するのは、ISSUE-000061で準備した外部実行ファイルの受け入れ境界が、helper subprocessだけでなく**実際のTEI CLIでも成立するか**である。
 
@@ -21,7 +21,7 @@ ISSUE-000065 / E3b-P2
 current Capability Observation
 ```
 
-この成立を、TEIそのものをSOZAのUniversal Contractへ取り込む根拠にはしない。
+この成立を、TEIそのものをSEIのUniversal Contractへ取り込む根拠にはしない。
 
 ## 固定した外部revision
 
@@ -37,7 +37,7 @@ current Capability Observation
 - Version: `2026.8.27`
 - Plugin Lock: `reference/workspace/.tei/plugin-lock.json`
 
-固定revisionは実証対象を再現可能にするためのEvidence条件であり、SOZAがTEIのversioning方式を支配するという意味ではない。
+固定revisionは実証対象を再現可能にするためのEvidence条件であり、SEIがTEIのversioning方式を支配するという意味ではない。
 
 ## 取得・資格情報と意味契約を分離する
 
@@ -49,18 +49,18 @@ TEI repositoryはprivateであるため、sourceを取得する環境によっ�
 private repositoryを取得する方法
   != TEI executableを起動する方法
   != TEI固有JSONを解釈する方法
-  != SOZA Capability Observationの意味
+  != SEI Capability Observationの意味
 ```
 
-SOZA側のcredential-aware workflowは、`TEI_REPOSITORY_TOKEN`を利用できる場合だけprivate repositoryをcheckoutする。資格情報がないrunではactual TEI stepを実行せず、そのrunをE3b-P2の成功へ読み替えない。
+SEI側のcredential-aware workflowは、`TEI_REPOSITORY_TOKEN`を利用できる場合だけprivate repositoryをcheckoutする。資格情報がないrunではactual TEI stepを実行せず、そのrunをE3b-P2の成功へ読み替えない。
 
-一方、E3b-P2のProduct上の問いは「GitHub Actionsからprivate repositoryを取得できるか」ではなく、**固定した実TEI CLIをSOZAのProvider Adapter境界へ渡したときにも意味の分離が保たれるか**である。このため、取得経路とactual execution Evidenceを分離して評価する。
+一方、E3b-P2のProduct上の問いは「GitHub Actionsからprivate repositoryを取得できるか」ではなく、**固定した実TEI CLIをSEIのProvider Adapter境界へ渡したときにも意味の分離が保たれるか**である。このため、取得経路とactual execution Evidenceを分離して評価する。
 
 ## 実装した検査境界
 
 `runtime/go/teiintegration/tei_live_test.go`には、actual TEI専用のintegration testがある。
 
-通常の`go test ./...`ではこのtestをskipし、`SOZA_E3B_TEI_LIVE=1`と必要な外部pathを明示した場合だけ実行する。
+通常の`go test ./...`ではこのtestをskipし、`SEI_E3B_TEI_LIVE=1`と必要な外部pathを明示した場合だけ実行する。
 
 実行時には、少なくとも次を確認する。
 
@@ -89,7 +89,7 @@ PR #44のProbe commit `348bdfa5d3cac97af3e0d12d2959d948922e7ceb`に対するWork
 - pinned TEI revisionのcheckout
 - actual `cmd/tei` build
 - TEI Reference Workspace validation
-- SOZA Adapter経由のactual `deployment-provider-plan`実行
+- SEI Adapter経由のactual `deployment-provider-plan`実行
 
 したがって、このrunはE3b-P2のScoped Executable Evidenceには数えない。
 
@@ -112,12 +112,12 @@ PR #45でE3b-P2専用workflowを`develop/v0.2.0`へのpushでも起動するよ�
 
 先行probeとは別に、TEI側で固定source commitを改めてcheckoutし、actual `cmd/tei`をbuild・実行してEvidence artifactを作成した。
 
-- TEI Workflow: `SOZA E3b-P2 TEI Evidence`
+- TEI Workflow: `SEI E3b-P2 TEI Evidence`
 - Workflow Run: `33589084290`
 - Job: `actual-tei-cli`
 - Result: **success**
 - Evidence artifact ID: `9831112092`
-- Artifact name: `tei-soza-e3b-p2-linux-amd64`
+- Artifact name: `tei-sei-e3b-p2-linux-amd64`
 - Artifact digest: `sha256:1ee8bf4112d9ae97e1f66b3165f70278663951e9dd4bd6020b465471f563a287`
 
 actual artifactの主要identityは次のとおりである。
@@ -153,12 +153,12 @@ Run `33589084290`では、固定source identityの確認、actual `cmd/tei` buil
 
 ## Resolution
 
-このIssueの目的である「固定revisionから得た実TEI CLIをSOZAのProvider Adapter境界で実行し、current Capability Observationへ戻せるか」について、fixed-artifact範囲のScoped Executable Evidenceが成立した。
+このIssueの目的である「固定revisionから得た実TEI CLIをSEIのProvider Adapter境界で実行し、current Capability Observationへ戻せるか」について、fixed-artifact範囲のScoped Executable Evidenceが成立した。
 
 ```text
 fixed TEI source / artifact
   + actual CLI build / validation / replay
-  + SOZA Adapterからのactual process起動
+  + SEI Adapterからのactual process起動
   + strict decode / current validation
   + Provider固有情報の非漏出
   = E3b-P2 fixed-artifact Scoped Executable Evidence
@@ -168,7 +168,7 @@ fixed TEI source / artifact
 
 ```text
 E3b-P2 fixed-artifact PASS
-  != SOZA Actions private-repository credential operation proven
+  != SEI Actions private-repository credential operation proven
   != arbitrary / future TEI version compatibility
   != production TEI integration
   != E4 Operational portability
@@ -192,11 +192,11 @@ private repositoryの継続取得、credential運用、正式なbinary配布・�
 
 ## Non-goals / 未検証範囲
 
-- SOZA Actionsからprivate TEI repositoryを継続取得するcredential運用
-- `TEI_REPOSITORY_TOKEN`という名前や特定Secret製品をSOZA標準へ固定すること
+- SEI Actionsからprivate TEI repositoryを継続取得するcredential運用
+- `TEI_REPOSITORY_TOKEN`という名前や特定Secret製品をSEI標準へ固定すること
 - arbitrary / future TEI versionとの互換性
 - TEI binaryの正式な配布方式、署名方式、更新方式
-- TEI CLI schemaをSOZA Universal Contractへ昇格させること
+- TEI CLI schemaをSEI Universal Contractへ昇格させること
 - TEIを唯一または特別なExecution Providerとして扱うこと
 - production execution authorization
 - E3b-M1b external model-backed Cognitive Method
@@ -209,7 +209,7 @@ private repositoryの継続取得、credential運用、正式なbinary配布・�
 
 - [x] actual TEI専用integration testを追加する。
 - [x] fixed TEI revisionを明示する。
-- [x] private repository取得とSOZAの意味契約を分離する。
+- [x] private repository取得とSEIの意味契約を分離する。
 - [x] 資格情報が無いrunをactual TEI成功として扱わない。
 - [x] 最初のcredential-aware probe結果をEvidence文書へ記録する。
 - [x] merge後の`develop/v0.2.0`でE3b-P2専用workflowの回帰起動を確認する。
@@ -217,7 +217,7 @@ private repositoryの継続取得、credential運用、正式なbinary配布・�
 - [x] actual `cmd/tei` buildを成功させる。
 - [x] TEI Reference Workspace validationを成功させる。
 - [x] actual `deployment-provider-plan`を実行する。
-- [x] actual artifactをSOZA Adapter経由で別OS processとして実行する。
+- [x] actual artifactをSEI Adapter経由で別OS processとして実行する。
 - [x] actual mapping結果をcurrent Capability Observation validatorへ通す。
 - [x] Provider固有情報がUniversal Capability Observationへ漏れないことを確認する。
 - [x] actual Provider Plan bytesをdigest付きfixtureとして通常CIへ追加する。
@@ -241,7 +241,7 @@ Resolutionと台帳同期を含むPR head `afd34174ba17c8459c3546272ac8a37593b80
 
 Release Candidate GateはGate 1〜9がsuccessし、既に公開済みのv0.2.0に対するrelease preparation / publicationは意図どおりskipされた。
 
-External TEI Integration E3b P2のsuccessは、SOZA Actionsでprivate repository credential経路のactual stepが実行されたという意味ではない。fixed-artifact actual execution Evidenceは、TEI側Run `33589084290`と取得済みartifactを用いたSOZA Adapter実証として別に記録する。
+External TEI Integration E3b P2のsuccessは、SEI Actionsでprivate repository credential経路のactual stepが実行されたという意味ではない。fixed-artifact actual execution Evidenceは、TEI側Run `33589084290`と取得済みartifactを用いたSEI Adapter実証として別に記録する。
 
 ## Evidence state
 
@@ -250,7 +250,7 @@ External TEI Integration E3b P2のsuccessは、SOZA Actionsでprivate repository
 - Initial credential-aware probe: **Executed / actual TEI steps skipped in Run 33589190828**
 - Post-merge E3b-P2 workflow regression: **Satisfied in Run 33590170686 / actual TEI steps skipped**
 - E3b-P2 fixed-artifact actual TEI CLI execution: **Scoped Executable Evidence available**
-- SOZA Actions private-repository acquisition / credential operation: **Not Yet Verified**
+- SEI Actions private-repository acquisition / credential operation: **Not Yet Verified**
 - arbitrary / future TEI version compatibility: **Not Yet Verified**
 - E3b-M1a live KJ Atlas + deterministic model stub: **Scoped Executable Evidence available**
 - E3b-M1b external model-backed Cognitive Method: **Not Yet Verified**
@@ -268,8 +268,8 @@ External TEI Integration E3b P2のsuccessは、SOZA Actionsでprivate repository
 
 ## Natural Japanese review
 
-ISSUE-000061、PMS-06、current Capability Observation Contract、`runtime/go/teiintegration`、固定した`hat47x/tei-platform` source、PR #44のRun `33589190828`、PR #45統合後のRun `33590170686`、TEI側Run `33589084290`、Evidence artifact、actual Provider Plan、actual SOZA Adapter実行結果を照合した。
+ISSUE-000061、PMS-06、current Capability Observation Contract、`runtime/go/teiintegration`、固定した`hat47x/tei-platform` source、PR #44のRun `33589190828`、PR #45統合後のRun `33590170686`、TEI側Run `33589084290`、Evidence artifact、actual Provider Plan、actual SEI Adapter実行結果を照合した。
 
-最初のcredential-aware probeと統合後のSOZA workflowではactual TEI stepがskipされた事実を残し、その成功をactual executionへ読み替えていない。一方、その後に別経路で固定sourceからactual binaryを生成し、Reference Workspace validation、Provider Plan再実行、SOZA Adapter経由のactual process実行まで確認できたため、fixed-artifact範囲だけをScoped Executable Evidenceへ進めた。
+最初のcredential-aware probeと統合後のSEI workflowではactual TEI stepがskipされた事実を残し、その成功をactual executionへ読み替えていない。一方、その後に別経路で固定sourceからactual binaryを生成し、Reference Workspace validation、Provider Plan再実行、SEI Adapter経由のactual process実行まで確認できたため、fixed-artifact範囲だけをScoped Executable Evidenceへ進めた。
 
 credential運用、任意version互換性、production integration、E4、Release、Adoption / Outcome Evidenceは未検証のまま分離している。意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。

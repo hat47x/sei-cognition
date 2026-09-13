@@ -26,7 +26,7 @@ def load_audit() -> dict:
 class FailureBehaviorRequirementAuditTest(unittest.TestCase):
     def test_audit_is_completed_no_change_for_issue_000072(self) -> None:
         audit = load_audit()
-        self.assertEqual(audit["schema"], "soza.failure-behavior-requirement-audit/v1")
+        self.assertEqual(audit["schema"], "sei.failure-behavior-requirement-audit/v1")
         self.assertEqual(audit["issue"], "ISSUE-000072")
         self.assertEqual(audit["status"], "completed-no-change-at-current-evidence-height")
         self.assertEqual(audit["decision"]["conclusion"], "no-change")

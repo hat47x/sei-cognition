@@ -1,5 +1,5 @@
 {
-  "schema": "soza.method-quality-case-catalog/v1",
+  "schema": "sei.method-quality-case-catalog/v1",
   "updated": "2026-09-03",
   "purpose": "Cognitive Method成果品質を人間が読むための入力ケース集。golden groupingや正解表札は定義せず、観測したい意味上の難所だけを記録する。",
   "rules": {

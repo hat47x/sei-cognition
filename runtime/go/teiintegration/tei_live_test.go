@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hat47x/soza/runtime/go/provideradapter"
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/provideradapter"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 // TestLiveTEIProviderPlan は、外部から用意された実TEI CLIを使うE3b-P2専用検査です。
@@ -17,15 +17,15 @@ import (
 // 明示的に与えた場合だけ実行します。資格情報やTEIの取得方法そのものは、このテストの
 // 意味契約には含めません。
 func TestLiveTEIProviderPlan(t *testing.T) {
-	if os.Getenv("SOZA_E3B_TEI_LIVE") != "1" {
-		t.Skip("SOZA_E3B_TEI_LIVE=1 の場合だけ実TEI検査を実行します")
+	if os.Getenv("SEI_E3B_TEI_LIVE") != "1" {
+		t.Skip("SEI_E3B_TEI_LIVE=1 の場合だけ実TEI検査を実行します")
 	}
 
-	executable := requireLiveTEIEnv(t, "SOZA_TEI_EXECUTABLE")
-	workspace := requireLiveTEIEnv(t, "SOZA_TEI_WORKSPACE")
-	run := requireLiveTEIEnv(t, "SOZA_TEI_RUN")
-	pluginLock := requireLiveTEIEnv(t, "SOZA_TEI_PLUGIN_LOCK")
-	sourceStateRef := requireLiveTEIEnv(t, "SOZA_TEI_SOURCE_STATE_REF")
+	executable := requireLiveTEIEnv(t, "SEI_TEI_EXECUTABLE")
+	workspace := requireLiveTEIEnv(t, "SEI_TEI_WORKSPACE")
+	run := requireLiveTEIEnv(t, "SEI_TEI_RUN")
+	pluginLock := requireLiveTEIEnv(t, "SEI_TEI_PLUGIN_LOCK")
+	sourceStateRef := requireLiveTEIEnv(t, "SEI_TEI_SOURCE_STATE_REF")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()

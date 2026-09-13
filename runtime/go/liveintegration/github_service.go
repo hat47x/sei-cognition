@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hat47x/soza/runtime/go/provideradapter"
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/provideradapter"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 const (
@@ -24,7 +24,7 @@ const (
 
 // GitHubCommitService is a reference E3b client for one live Provider service.
 // GitHub's HTTP protocol and response shape remain local to this realization;
-// they are not SOZA Universal Contracts.
+// they are not SEI Universal Contracts.
 type GitHubCommitService struct {
 	BaseURL string
 	Token   string
@@ -132,7 +132,7 @@ func (service GitHubCommitService) ObserveCommit(ctx context.Context, repository
 	}
 	req.Header.Set("Accept", "application/vnd.github+json")
 	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
-	req.Header.Set("User-Agent", "soza-e3b-live-provider-probe")
+	req.Header.Set("User-Agent", "sei-e3b-live-provider-probe")
 	if strings.TrimSpace(service.Token) != "" {
 		req.Header.Set("Authorization", "Bearer "+service.Token)
 	}

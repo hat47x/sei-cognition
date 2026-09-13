@@ -1,0 +1,60 @@
+{
+  "schema": "soza.tei-version-exchange-current-container-readiness/v1",
+  "observedAt": "2026-09-06",
+  "environmentRole": "current ChatGPT execution container used for repository-side verification work; not a Product-semantic required host",
+  "platform": {
+    "system": "Linux",
+    "machine": "x86_64",
+    "requiredE2PlatformMatched": true
+  },
+  "git": {
+    "observedVersion": "git version 2.47.3",
+    "available": true
+  },
+  "e2Go": {
+    "requiredVersion": "go1.23.2 linux/amd64",
+    "observedExecutable": "/usr/local/go/bin/go",
+    "observedVersion": "go version go1.23.2 linux/amd64",
+    "available": true,
+    "exactRequirementMatched": true
+  },
+  "e3Go": {
+    "sozaGoDirective": "1.25",
+    "observedGo25Executable": null,
+    "available": false,
+    "officialCandidateObserved": {
+      "source": "https://go.dev/dl/?mode=json",
+      "filename": "go1.25.12.linux-amd64.tar.gz",
+      "sha256": "234828b7a89e0e303d2556310ee549fbcf253d28de937bac3da13d6294262ac1",
+      "size": 59856753
+    },
+    "currentContainerDownloadAttempt": {
+      "url": "https://go.dev/dl/go1.25.12.linux-amd64.tar.gz",
+      "succeeded": false,
+      "classification": "execution-environment public-network transport unavailable; not SOZA or TEI Product failure"
+    }
+  },
+  "privateSourceAcquisitionCredential": {
+    "githubTokenPresent": false,
+    "ghTokenPresent": false,
+    "githubApiAcquisitionRunnableInCurrentContainer": false,
+    "classification": "current execution-environment credential/transport prerequisite not satisfied"
+  },
+  "repositorySideReadiness": {
+    "localExistingCloneAcquisitionPathImplemented": true,
+    "githubGitDataApiAcquisitionPathImplemented": true,
+    "githubAcquisitionToCanonicalE2E3WrapperImplemented": true,
+    "e2ToolchainAvailableInCurrentContainer": true,
+    "e3ToolchainAvailableInCurrentContainer": false
+  },
+  "currentEvidenceBoundary": {
+    "realRevisionBSourceAcquiredInCurrentContainer": false,
+    "exactRevisionBCheckoutPreparedInCurrentContainer": false,
+    "revisionBBuildPass": false,
+    "providerPlanExecutionPass": false,
+    "sozaAdapterCompatibilityPass": false,
+    "issue000072Resolved": false,
+    "qualityJudgement": "not_evaluated"
+  },
+  "stopLine": "current container E2 platform/toolchain ready + repository-side acquisition/orchestration implemented != private source credential/transport ready != E3 Go 1.25 toolchain ready != real revision B source acquired != revision B build PASS != Provider Plan execution PASS != SOZA Adapter compatibility PASS != ISSUE-000072 Resolved"
+}

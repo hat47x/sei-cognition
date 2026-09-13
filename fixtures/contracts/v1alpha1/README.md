@@ -1,4 +1,4 @@
-# SOZA Contract v1alpha1 Fixtures
+# SEI Contract v1alpha1 Fixtures
 
 更新日: 2026-09-02  
 状態: **Fixture-scoped Executable Evidence Baseline**

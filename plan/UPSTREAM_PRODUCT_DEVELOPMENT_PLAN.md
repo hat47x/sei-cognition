@@ -1,30 +1,22 @@
-# SOZA 上流プロダクト開発計画
+# SEI 上流プロダクト開発計画
 
-更新日: 2026-09-03  
-状態: **Current Upstream Planning Baseline — v0.2.0 Release Evidence / E3b fixed-artifact Evidence / historical reconstruction / method-quality evaluation boundary reflected**
+更新日: 2026-09-11  
+状態: **Current Upstream Planning Baseline — resume-first Product Slice / TEI version exchangeを並行優先**
 
 ## 1. この文書の役割
 
-この文書は、SOZAのProduct Value、Milestone、Open Question、Requirement、ADR、Architecture、Implementation、Evidenceを、どの順序で具体化するかを定めます。
+この文書は、SEIのProduct Valueから、Open Question、Requirement、ADR、Architecture、Implementation、Evidenceへ降りる順序と、**現在どの未知を優先して減らすか**を定めます。
 
-目的は、未定の領域を実装都合で早く固定することではありません。上位価値へ戻りながら、議論、調査、実証、人間レビューを通して必要な意味差を見つけ、必要性を確認できたものだけをRequirementやContractへ正本化します。
+ここは実証履歴の詳細台帳ではありません。run ID、artifact digest、revisionごとの詳細な停止点は各Issue / Evidence文書を正とし、本書では現在のProduct判断に必要な粒度へ要約します。
 
-期限やcalendar scheduleは扱いません。優先順位は、Product Valueへの影響、未確定部分が下位設計を拘束する度合い、次の実証を可能にする依存関係によって決めます。
-
-## 2. 上位から下位への基本順序
-
-原則として、次の順序で進めます。
+目的は、実装を増やすことではなく、次の循環を保つことです。
 
 ```text
-Product Value / Value Proposition
+Product Value
   ↓
-Product Vision / Principles / Product Shape
+Product hypothesis / Open Question
   ↓
-Deadline-free Product Milestones
-  ↓
-Open Question / Product Hypothesis
-  ↓
-Discussion / Research / Experiment / Human Review
+Research / Design / Experiment / Human Review
   ↓
 Evidence
   ↓
@@ -32,230 +24,112 @@ Candidate Requirement
   ↓
 Requirement audit
   ↓
-Stable Requirement / existing Requirement integration / No Change
+Stable Requirement / existing integration / No Change
   ↓
 ADR / Architecture / Contract
   ↓
-Implementation / Fixture / Test / Tool
+Implementation / Test / Probe
   ↓
-必要なら上位へ戻って再基線化
+必要なら上位へ戻る
 ```
 
-コードやcurrent schemaを上位概念の根拠として逆輸入しません。一方、実装や実験から得た反証Evidenceは、Product仮説やRequirementを見直す正当な入力とします。
+実装しやすさ、current Provider、UI framework、AI model、CI環境等を上位概念の根拠として逆輸入しません。一方、actual実装・利用で得た反証はProduct仮説を見直す正当なEvidenceです。
 
-## 3. 現在の優先順位
+## 2. 優先順位を決める原則
 
-### Priority A — Product ValueとMilestoneの正本維持
+calendar deadlineではなく、次の順で優先度を判断します。
 
-最優先で、次の文書間に矛盾がない状態を保ちます。
+1. Product Valueへの影響が大きいか。
+2. 未決のままだと後続設計を広く拘束するか。
+3. 次の高情報量Evidenceを得られるか。
+4. 外部環境待ちではなく、現在進められるか。
+5. 既存の意味境界を深める仕事か、単なる実装量の追加か。
 
-- `product/value/SOZA_PRODUCT_VALUE.md`
-- `product/value/SOZA_VALUE_PROPOSITION.md`
-- `product/value/SOZA_VALUE_MODEL.md`
-- `product/value/SOZA_VALUE_ACCEPTANCE.md`
-- `product/definition/SOZA_PRODUCT_SHAPE.md`
-- `product/definition/SOZA_REALIZATION_PROVIDER_EXCHANGE.md`
-- `product/vision/SOZA_PRODUCT_VISION.md`
-- `product/principles/SOZA_PRODUCT_PRINCIPLES.md`
-- `product/roadmap/SOZA_PRODUCT_MILESTONES.md`
+一つの探索が外部条件で止まっても、SEI全体を同じ待ち状態へしません。意味上独立した高優先課題は並行して進めます。
 
-下位作業がこの層と矛盾した場合、実装を先に温存しません。Product Value側の誤りを示すEvidenceがあるなら上位を再基線化し、そうでなければ下位設計を修正します。
+## 3. Current Product baseline
 
-### Priority B — 未定領域の探索
+現在までに、少なくとも次がDesign baselineとして成立しています。
 
-Product Interaction、Local Single-Node Packaging、Product Access責務分離は、Design baselineと限定されたExecutable Evidenceまで進んでいます。v0.2.0 Local Reference Product Baselineについてはactual Release Evidenceも成立しています。
+- Product Value / Value Proposition / V1〜V8。
+- Decision Memory、Unknown / Conflict、Revision / Exact Binding等のDurable Semantic boundary。
+- Human / AIが異なるSurfaceから同じcanonical meaningへ戻るProduct Interaction boundary。
+- Local Single-Node Package。
+- Product Accessとsemantic Responsibility / Authorityの分離。
+- Cognitive Method / Capability ProviderをUniversal semanticsへ同化させない交換境界。
 
-Real Method / Provider Portabilityでは、E2、E3a、E3b-P1、E3b-P2 fixed-artifact、E3b-M1a、E3b-M1b、historical reconstruction H1 / H2、actual model artifact交換まで段階的に実証しました。
+Scoped Executable Evidenceも、Semantic Runtime、Interaction probe、Packaging、Product Access、external Provider / Method、historical reconstruction等で蓄積しています。
 
-ISSUE-000067では、実現機構が異なるM1a / M1bを別のlogical Method Realizationとして保持し、同一Realization内のhistorical revisionを固定する必要がある場合はExact Bindingを利用できることを確認しました。
-
-ISSUE-000068では、KJ Atlas source、Method surface、入力、Ollama `0.32.14`を固定したまま、`qwen2.5:0.5b`と`qwen2.5:1.5b`のactual model artifactを交換しました。両方でactual inferenceを確認し、後続Application追加後も先行ApplicationのRealization、Provenance、outputが変わらないことを実証しています。
-
-一方、生成内容と言語は同一ではありませんでした。構造上受理できるresponseでも、label / rationaleの言語や意味上の品質が変わり得ます。このため、execution成立と成果品質を同じEvidenceへまとめないことが重要になりました。
-
-ISSUE-000071では、この問題に対する評価境界を確立しました。structure checker、review bundle manifest、non-golden case catalog、historical actual sample、structured human review templateを整備し、成功済みactual M1b履歴からreview-ready bundleを再構成できることまで確認しています。
-
-ただし、ISSUE-000071のResolvedは「KJ法として成果品質がよい」と判定したことを意味しません。actual human review、複数caseでの比較、実利用時の価値評価は後続Evidenceです。
-
-ISSUE-000069では、GitHub-hosted runnerの割当問題とrepository内の実証責務を分けました。その後PR #70でGitHub Actions workflow群をcurrent baselineから外したため、現在はActionsの成否をProduct / Plan / Evidenceの意味上の成立条件にしていません。
-
-現在の主要な未定領域は次です。
-
-- **runtime version交換**: ISSUE-000070。model artifactを固定したままOllama `0.32.13` / `0.32.14`を交換し、historical reconstructionを保てるか。
-- **actual human review**: ISSUE-000071で確立した評価基盤を使い、actual outputを人間がどのように評価するか。
-- **broader portability**: 二つのQwen artifactを越え、別model family、別Provider、別Realizationでも同じ意味境界を保てるか。
-- **TEI acquisition / version exchange**: fixed revision以外のTEI executable交換や、private artifact取得をどのdeployment / acquisition境界で扱うか。
-- **failure behavior**: network degradation、rate limit、credential失効、model acquisition failure等をどのEvidence段階で扱うか。
-- **formal integration protocol**: 標準化する必要が本当にあるか。必要ならどこまでをUniversal semanticsへ含めるか。
-- **E4 Operational portability**: 実環境でRealization / Provider / model / runtime交換後も判断記憶を継続利用できるか。
-- **Adoption / Outcome**: 実際の利用者や組織にとって、SOZAがどの価値を届けたかをどう測るか。
-
-actual v0.2.0 Releaseそのものは未定領域ではありません。既に成立したRelease Evidenceを維持し、post-releaseのExecutable Evidenceを公開済みv0.2.0のsupported scopeへ遡及的に追加しません。
-
-### Priority C — RequirementとAcceptanceの精緻化
-
-議論・実証から必要性が確認できたものだけをRequirementへ反映します。
-
-既存REQ / SCNで表現できる場合は新しいIDを増やさず、横断AcceptanceやEvidenceの不足として扱います。
-
-ISSUE-000067 / 000068 / 000071では、current RequirementとContract境界で必要な意味を表現できたため、新しいStable RequirementやUniversal Contract fieldを追加していません。
-
-### Priority D — Architecture / Contract / Implementation
-
-上位RequirementとAcceptanceが十分に定まった範囲から、Architecture、Contract、runtime、Provider Adapter、fixture、test、toolへ降ろします。
-
-実装可能であることと、Requirementとして必要であることを混同しません。
-
-## 4. 未定領域を要件化するまでの標準フロー
-
-### Step 1 — Open Questionを明文化する
-
-最初に「何を決めるか」ではなく、何がまだ分かっていないかを明確にします。
-
-例:
-
-- external Cognitive Methodをactual modelで動かした後、実行成立と生成品質をどの評価境界で分けるか。
-- runtime versionだけを交換したとき、過去Applicationを同じrevisionへ戻すために何を残す必要があるか。
-- external executableを取得するためのcredential方式を、SOZAのsemantic identityからどこまで分離できるか。
-
-この段階では選択肢をRequirementへ固定しません。
-
-### Step 2 — 議論・資料調査を行う
-
-設計上の論点、利用場面、失敗例、既存技術、代替案を広く検討します。
-
-チャットは探索と統合の作業空間として利用できますが、チャット上の結論そのものをcurrent正本にはしません。必要な内容はIssue、Product文書、Requirement、ADR等へ戻します。
-
-外部Projectを候補にする場合は、名称や想像上のAPIだけで判断せず、実際のrepository、CLI、artifact、service surface、versioning、credential条件まで確認します。
-
-### Step 3 — 実証実験を設計する
-
-議論だけで判断しにくい場合は、小さなprototype、fixture、comparison harness、human review、provider接続試験等を作ります。
-
-実験では、実装候補を完成させることより、次の問いに答えることを優先します。
-
-- 意味境界が本当に必要か。
-- 既存Requirementで十分か。
-- ProviderやRealizationを交換しても意味が残るか。
-- Method outputとRecommendation / Decisionを分離できるか。
-- 失敗時に何が失われるか。
-- artifact取得、credential、process invocation、semantic mappingを分けられるか。
-- live processが動いたことと、modelやMethodの品質を分けて評価できるか。
-- model / runtimeを交換したとき、過去Applicationを再構成するためのProvenanceが不足しないか。
-
-### Step 4 — Evidenceの高さを記録する
-
-少なくとも次を区別します。
+v0.2.0 Local Reference Product BaselineにはRelease Evidenceがあります。ただし、post-releaseのExecutable Evidenceを理由に、公開済みv0.2.0のsupported scopeを遡及的に拡張しません。
 
 ```text
-Design Evidence
-  != Executable Evidence
-  != Release Evidence
-  != Operational Evidence
-  != Adoption / Outcome Evidence
+Design
+  != Executable
+  != Release
+  != Operational
+  != Adoption / Outcome
 ```
 
-Release Candidateの検査記録は、5段階Evidenceへ別の普遍段階を増やすものではありません。特定candidateについて必要なExecutable Evidenceをまとめて確認するgateとして扱います。
+この5段階を今後も混同しません。
 
-synthetic fixture、helper process、deterministic model stub、actual inference、actual model artifact交換、構造検査のPASSを、それぞれが確認していない生成品質、実運用品質、利用者価値へ自動昇格させません。
+## 4. 現在の最優先探索 — 二本柱
 
-### Step 5 — Candidate Requirementを作る
+### Priority B1 — first usable resume-first Product Slice
 
-実証結果から「製品として必ず守る必要がある意味差」が見えた場合だけCandidate Requirementを作ります。
+**ISSUE-000073**を、PMS-03を「意味境界のprobe」から「利用者が継続利用できる製品体験」へ進める最優先探索とします。
 
-この時点ではStable REQ IDを付けなくても構いません。
+Product仮説は次です。
 
-### Step 6 — Requirement化の監査を行う
+> SEIの最初の強い利用者価値は、recordを多く作れることではなく、時間・AI session・画面stateをまたいで文脈を失った後でも、何を考え、何を決め、何が未解決で、何がその後変わったかへ戻れることにある。
 
-Stable Requirementへ昇格する前に、少なくとも次を確認します。
+この仮説を**resume-first decision work**として検証します。
 
-1. Product Valueのどの価値を守るために必要か。
-2. 具体的な利用Scenarioまたは失敗例で必要性を説明できるか。
-3. 既存REQ / SCNの組み合わせで既に表現できないか。
-4. 現在のUI、AI、DB、workflow等の弱点を補うだけの一時的要求ではないか。
-5. Provider / Profile / Projection / Adapter / deployment policyへ置く方が自然ではないか。
-6. 評価時点から10〜50倍程度先を見ても意味上の必要性が残るか。
-7. Acceptanceを観測可能な形で定義できるか。
+最初のsliceはLocal Single-Node上のsingle-userを基本条件とします。これはteam / hosted利用を否定するものではなく、人間側のProduct Valueを最小条件でactualに評価するためのscopeです。
 
-### Step 7 — 結果を三つに分ける
+設計上は次を中心にします。
 
-監査結果は次のいずれでも正当です。
+- canonical stateだけから有用なResume Briefを再構成する。
+- working set / recent / chat / form stateをProjection-local convenienceへ留める。
+- AI outputをprovisional suggestionとして受け、明示的なsemantic change previewを経てcommitする。
+- Decision当時のbasisと、Decision後に増えた情報を分けて見せる。
+- AI unavailable時もopen / read / manual write / Decision / review / reopenを継続する。
+- partial commitとstale writeを「成功した意味変更」として黙って見せない。
+- external AIへ出すcontextを選択・確認できる方向を保つ。
 
-- **Stable Requirementへ昇格する。**
-- **既存Requirement / Scenarioへ統合する。**
-- **Requirement化せずDeferredまたはNo Changeとする。**
+この段階では新しいStable Requirementを追加しません。ISSUE-000073のCR-73.1〜10をCandidate Requirementとして、prototypeとhuman reviewから独立したProduct failureが確認された場合だけ昇格を検討します。
 
-「調べた結果、新しいRequirementは不要だった」ことを失敗とみなしません。
+最初のDesign正本は次です。
 
-## 5. Product MilestoneとRequirementの関係
+- `product/interaction/SEI_FIRST_USABLE_PRODUCT_SLICE.md`
+- `architecture/SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md`
+- `plan/issue/ISSUE-000073-define-first-usable-resume-first-product-slice.md`
 
-Milestoneは、製品として成立させたい状態を示します。
+次の高情報量Evidenceは、canonical-only resume、AI correction、AI unavailable、working-set rebuild、commit fault injection、stale draft、AI context egress、human resume reviewです。
 
-Requirementは、その状態を成立させるために必ず守るべき規範を示します。
+### Priority B2 — TEI executable version exchange
 
-したがって、Milestoneの箇条書きをそのままRequirementへ変換しません。
+**ISSUE-000072**は引き続きPriority 1です。
 
-たとえばPMS-06でactual TEIやactual model-backed Methodとの接続を観測しても、GitHub token、private clone、CLI配布方式、Ollama、特定model tag、HTTP / gRPC / MCP等を直ちにStable Requirementへしません。
+historical revision Aを保持し、exact revision B executable sourceとexact revision A fixed reference inputを用いて、actual `deployment-provider-plan`とcurrent SEI Adapter compatibilityを検証します。
 
 ```text
-Milestone outcome
-  != implementation choice
-  != acquisition mechanism
-  != Universal Requirement field list
+build / executable source = exact revision B
+fixed reference input     = exact revision A
 ```
 
-## 6. 現在の主要探索系列
+repository-sideのidentity verifier、E2 / E3 runner、別toolchain、stage-aware diagnostics等は整っていますが、revision B actual CLI / Provider Plan / Adapter compatibilityはNot Yet Verifiedです。
 
-### 6.1 Product Interaction
+外部runner等がactual stepを開始できない状態を、TEI Product failureやAdapter failureへ昇格させません。同時に、execution pathが復旧するまでSEI全体のProduct Interaction設計を止めません。
 
-ISSUE-000045 / 000053で、human-oriented Surfaceとmachine-oriented Surfaceが同じcanonical sourceへ戻る境界について、Design baselineと限定されたExecutable Evidenceがあります。
+ISSUE-000072でactual Bが独立したProduct failureを示すまでは、新しいStable Requirement / Universal Contract fieldを追加しません。
 
-productionで最初にsupportするWeb / desktop / CLI / API / MCP等は引き続きOpen Questionですが、現時点の主探索系列ではありません。実利用やPackaging要件から必要性が現れた時点で再開します。
+## 5. 次順位の探索
 
-### 6.2 Packaging / Deployment
+### 5.1 actual human outcome review
 
-ISSUE-000046 / 000054 / 000055では、Local Single-Node Package、durable data root、save / reload、deterministic reference artifactについて限定されたExecutable Evidenceを得ました。
+ISSUE-000071でCognitive Method成果品質の評価境界は確立しましたが、actual human reviewとquality judgementは別です。
 
-v0.2.0 Local Reference Product Baselineはactual release済みです。release後の実証を理由に、既存releaseのsupported scopeを遡及的に広げません。
-
-### 6.3 Product Access / Collaboration
-
-ISSUE-000047 / 000056では、login identity、Product access permission、semantic Responsibility / Authorityを分離したProduct baselineとreference probeがあります。
-
-identity providerやpermission vocabularyをUniversal semanticsへ固定しません。
-
-### 6.4 Real Method / Provider Portability
-
-#### 6.4.1 Provider / TEI execution
-
-E3a / E3b-P1では、synthetic・version固定artifact・public live serviceを段階的に接続しました。
-
-E3b-P2では固定TEI sourceからactual `cmd/tei`をbuild・実行し、そのartifactをSOZA Adapterから別processとして呼び出し、Capability Observationへ戻す範囲までScoped Executable Evidenceがあります。
-
-最初のcredential-aware probeでprivate TEI取得がskipされた事実は、そのまま履歴として保持しています。その後、別経路で固定revisionのactual executable実行を確認したからといって、credential運用自体が解決したとは扱いません。
-
-#### 6.4.2 actual model-backed Method
-
-ISSUE-000064では、固定KJ Atlas revisionとdeterministic model stubを別processとして実行し、actual Method surfaceをSOZA Cognitive Method Applicationへ戻しました。
-
-ISSUE-000066では同じMethod surfaceのmodel processをOllama `0.32.14`上の`qwen2.5:0.5b`へ交換し、actual inferenceを確認しました。
-
-ISSUE-000068では`qwen2.5:1.5b`を加え、同じKJ Atlas source / Method input / runtimeの下でmodel artifactだけを交換しました。後続Application追加後も先行Applicationの履歴を保持できています。
-
-```text
-actual inference succeeded
-  + response shape accepted
-  + historical Application preserved
-  != model output quality satisfied
-  != language suitability satisfied
-  != KJ-method outcome quality satisfied
-```
-
-#### 6.4.3 成果品質の評価境界
-
-ISSUE-000071はResolvedです。
-
-ここで確立したのは成果品質そのものではなく、成果品質を評価するための境界です。
+今後も次を分離します。
 
 ```text
 execution conformance
@@ -264,100 +138,186 @@ execution conformance
   != Product Value / Adoption outcome
 ```
 
-structure checkerはcard identity、held / excluded、重複、digest等だけを確認し、意味的品質を採点しません。non-golden case catalogは期待groupや期待表札を持たず、historical actual sampleにもwinnerやpreferred outputを付けません。
+resume-first sliceのhuman reviewと、KJ等のMethod成果品質reviewも同じ評価ではありません。前者はProduct Interaction / orientation / correction burden、後者はMethod output qualityを見ます。
 
-PR #72ではRun `33596839607` / Job `100141890796`のactual履歴からreview-ready bundleを再構成しました。元workflow artifactは存在しなかったため、再構成物であることをProvenanceへ明示しています。
+### 5.2 broader portability
 
-PR #73では2つのactual resultの差をAI補助観測として保存しましたが、`humanReviewCompleted = false`、`qualityJudgement = not_evaluated`を維持しています。
+fixed-scope runtime version、model artifact、TEI revision等の実証から、arbitrary portabilityを推定しません。
 
-次の段階は、Human Review Templateを使ったactual human reviewと、より難しいcaseでの比較です。
+別model family、別Provider、別runtime implementation等へ広げる場合は、一変数比較とhistorical reconstructionを維持しながら別Evidenceとして進めます。
 
-#### 6.4.4 runtime version交換とhistorical reconstruction
+### 5.3 Operational / Adoption / Outcome
 
-ISSUE-000070はOpenです。
+Release済みであることと、実際の利用者が価値を得たことを分けます。
 
-固定条件は、KJ Atlas source、Method input、`qwen2.5:0.5b`のactual model artifactです。交換するのはOllama runtime versionだけとします。
+resume-first sliceは、PMS-08へ向けた最初のAdoption / Outcome観測にもつながります。ただしprototype usability reviewを直ちにAdoption Evidenceへ昇格させません。
 
-- revision A: `0.32.13`
-- revision B: `0.32.14`
+## 6. Requirementを深める手順
 
-runtime archiveは固定SHA-256で識別し、Method Realization payloadとExact Bindingが実際に一致すること、同じidentityなら同じBindingになること、runtime version / runtime artifact / model artifact identityが変わればBindingも変わることをpure-Go testで補強しています。
+### Step 1 — Product failureを言葉にする
 
-ただし、actual Ollama `0.32.13` / `0.32.14`交換実験そのものはまだNot Yet Verifiedです。
+最初に「どのfieldが必要か」ではなく、利用者または意味上何が壊れるかを書く。
 
-GitHub Actionsをcurrent baselineへ戻すことを、この実証の意味上の条件にはしません。利用可能な実行環境でactual A/Bを実行し、固定条件と結果を再構成できるEvidenceを得た時点で評価します。
+例:
 
-### 6.5 Release / Operational / Adoption Outcome
+- chat historyを失うと判断へ戻れない。
+- AI suggestionがDecisionへ黙って昇格する。
+- Decision後の情報でhistorical basisが書き換わる。
+- staleな画面が新しいcanonical changeを上書きする。
 
-v0.2.0 Local Reference Product Baselineはactual release済みで、Release Evidenceが成立しています。
+### Step 2 — 既存REQ / SCNへ戻る
+
+既存Requirementの組み合わせで表せるなら、新IDを増やさない。
+
+ISSUE-000073では少なくともREQ-0001 / 0005 / 0006 / 0010 / 0011 / 0014 / 0015 / 0019、SCN-0003 / 0013 / 0016 / 0018を先に使う。
+
+### Step 3 — Candidate Requirementとして仮置きする
+
+意味上重要に見えても、current implementation固有の問題である可能性がある間はCandidateに留める。
+
+prototype、fault injection、human reviewで再現性を確認する。
+
+### Step 4 — Requirement audit
+
+Stable化前に次を確認する。
+
+1. Product Valueのどれを守るのか。
+2. 具体的なScenario / failureで必要性を説明できるか。
+3. 既存REQ / SCNで十分ではないか。
+4. UI / Provider / Storage / runtimeの実装詳細ではないか。
+5. Profile / Adapter / Projection / Persistenceへ置く方が自然ではないか。
+6. 10〜50倍先の技術環境でも意味が残るか。
+7. Acceptanceをactualに観測できるか。
+
+結果は次のどれでも正当です。
 
 ```text
-v0.2.0 Release Evidence Satisfied
-  != Operational Evidence
-  != Adoption / Outcome Evidence
+Stable Requirement
+or existing Requirement integration
+or No Change / Deferred
 ```
 
-post-releaseのE3b-P1、E3b-P2 fixed-artifact、E3b-M1a、E3b-M1b、H1 / H2、actual二モデル交換、成果品質評価基盤は、新しいDesign / Executable Evidenceとして扱います。これらを公開済みv0.2.0のsupported scopeへ遡及的に含めません。
+新Requirementを作らない結論を失敗とみなしません。
 
-今後はE4として、実環境でRealization / Provider / model / runtime等を交換した後も判断記憶を継続利用できるかを観測します。同時に、利用者にとっての価値をOperational / Adoption / Outcome Evidenceとして別に測ります。
+## 7. Architecture / Contractへ降ろす基準
 
-## 7. 検証手段の扱い
+Architectureへ降ろすのは、意味境界やProduct responsibilityとして説明できるものです。
 
-current `develop/v0.2.0`では、PR #70によりGitHub Actions workflow群を常設していません。
-
-これは検証を不要とする方針ではありません。
+Contractへ降ろすのは、複数implementation / Provider / process間でportableかつverifiableな合意が必要なものです。
 
 ```text
-what must be verified
-  != where it is executed
+Product requirement
+  != Architecture component
+  != portable Contract
+  != runtime mechanism
 ```
 
-repository同梱test、checker、fixture、保存Evidence、手動実行、外部runner、将来のCI等から、その検証に適した手段を使います。
+たとえばISSUE-000073の`working set`や`Resume Brief`はProduct / Projection概念として重要ですが、現時点でUniversal Contractではありません。
 
-GitHub Actions等を再導入する場合はISSUE-000069のReopen条件へ戻り、scenario-local責務、共有依存、runner availability、push / merge / release / Evidence gateを再監査します。
+`semantic change plan`、snapshot token、atomic commit mechanismも同様に、prototypeで必要性を確かめる前にContract化しません。
 
-検証手段が利用不能な場合も、未実行をPASSへ読み替えません。一方、外部基盤の利用不能をrepository testのFAILやProduct Evidence failureとしても扱いません。
+## 8. 実証設計の原則
 
-## 8. 作業の停止線
+実験では「動かすこと」より「何が判別できるか」を優先します。
 
-次の場合は、実装へ急いで進まず上流へ戻ります。
+少なくとも次を事前に分けます。
 
-- 何を価値として守るか説明できない。
-- RequirementがProduct Valueとつながらない。
-- 既存REQが同じ意味を既に包含している可能性が高い。
-- UIやProvider / Method固有schemaをUniversal Coreへ持ち込もうとしている。
-- repository取得方式やcredential方式をsemantic identityへ混ぜようとしている。
-- model名、runtime名、repository名、model digest、prompt digest等の実装・実験固有情報を、必要性が確認されていないUniversal fieldへ昇格させようとしている。
-- actual inferenceのPASSだけでmodel品質やKJ法としての成果品質を主張しようとしている。
-- structure checkのPASSだけでhuman outcome qualityをSatisfiedとしようとしている。
-- AI補助観測をhuman reviewとして扱おうとしている。
-- 二モデル交換のPASSだけでarbitrary model portability、runtime version portability、E4 Operational portabilityまで成立したと扱おうとしている。
-- 未実行の検証を、実行基盤がなくなったことを理由にPASSへ読み替えようとしている。
-- post-releaseのExecutable Evidenceを既存releaseのsupported scopeへ遡及的に追加しようとしている。
-- 未定事項を「実装しやすいから」という理由だけで確定しようとしている。
+- PASS
+- expected rejection / conflict
+- NOT_VERIFIED
+- environment failure
+- Product failure
 
-## 9. 計画文書の更新単位
+external runner、network、credential、model availability等の失敗を、semantic failureへ昇格させません。
 
-上流作業では、必要に応じて次を同じ変更単位で更新します。
+一方で、UIが正常表示されたことだけからcanonical integrityやhuman usabilityを推定しません。
 
-- Product文書
-- Product Milestone
+### 8.1 Human review
+
+human reviewでは最初から恣意的なscore thresholdをStable Requirementにしません。
+
+まず次を観測します。
+
+- context loss後に現在地へ戻れるか。
+- DecisionとRecommendationを誤読しないか。
+- historical basisとpost-decision changeを区別できるか。
+- AI誤りを修正・却下できるか。
+-最初の有用saveまでの入力負担が大きすぎないか。
+- audit detailが必要な場面で到達できるか。
+
+### 8.2 Fault injection
+
+Product confidenceを高めるため、happy pathだけでなくpartial commit、stale write、AI unavailable、Projection cache loss等をactualに壊します。
+
+「失敗したとき何を守るか」を先に設計します。
+
+## 9. Current work lanes
+
+現在の主要laneを次のように扱います。
+
+| Lane | Issue / area | State | Next high-information step |
+|---|---|---|---|
+| Product Interaction | ISSUE-000073 | Open / Design baseline | prototype E1〜E8 + human review |
+| TEI Provider portability | ISSUE-000072 | Open / execution blocked externally | exact-B actual E2 when execution surface is available |
+| Method outcome quality | ISSUE-000071 follow-up | evaluation boundary established | actual human outcome review |
+| Operational / Adoption | PMS-08 | Not Yet Verified | first real use after usable slice exists |
+
+lane間でEvidenceを流用しません。
+
+```text
+interaction prototype PASS
+  != TEI compatibility PASS
+
+TEI compatibility PASS
+  != human usability PASS
+
+human usability review
+  != Adoption / Outcome Satisfied
+```
+
+## 10. 作業の停止線
+
+次の場合は実装へ急がず上流へ戻ります。
+
+- 何のProduct Valueを改善するか説明できない。
+- 新しい型を作る理由がUI convenienceだけである。
+- Workspace / Session / Thread等をProduct navigationからUniversal ontologyへ昇格させようとしている。
+- AI responseをcanonical fact / Decisionへ黙って保存しようとしている。
+- private chain-of-thoughtを再構成条件にしようとしている。
+- current informationをhistorical Decision basisへ混ぜようとしている。
+- Unknown / Conflict / unavailableをfalse / Noへ変換しようとしている。
+- concurrency tokenをSemantic Revisionへ流用しようとしている。
+- browser / HTTP / MCP / specific modelをprototype採用だけでStable Requirementへしようとしている。
+- partial commitやstale writeを「実装詳細」として放置し、利用者へ誤ったcanonical成功状態を見せる可能性がある。
+- Design Evidenceだけでproduction usabilityを主張しようとしている。
+- ISSUE-000070の固定scope PASSをISSUE-000072やarbitrary portabilityへ流用しようとしている。
+- runner未割当等のenvironment failureをProduct failureへ昇格させようとしている。
+- post-release Evidenceをv0.2.0 supported scopeへ遡及追加しようとしている。
+
+## 11. 計画文書の更新単位
+
+上流判断が変わった場合、必要な範囲で次を同じ作業単位に同期します。
+
+- Product Interaction / Product Shape / Milestone文書
 - Issue / ADR
 - Requirement / Acceptance Scenario
+- Architecture / Contract
 - Evidence文書
 - `plan/registry.yaml`
 - `plan/document_review_registry.yaml`
 
-文書追加・更新後は、自然な日本語となることを最重要視して全文を再ドラフトします。その後、意味、規範強度、留保、Evidence強度が変わっていないかを最終監査します。
+「全部を毎回更新する」ことは目的にしません。正本関係に矛盾が生じる箇所だけを更新します。
 
-## 10. Natural Japanese review
+新しいMarkdownを追加した場合はDocument Review Registryのscopeを確認し、自然な日本語として再ドラフトした後、意味・要求強度・留保・Evidence強度が変わっていないか最終監査します。
 
-Product Value、Product Shape、Product Milestone、v0.2.0 Release Evidence、E3b-P2 fixed-artifact、E3b-M1a、E3b-M1b、historical reconstruction H1 / H2、actual二モデル交換、ISSUE-000069〜000071へ戻り、上流探索の現在地を再構成しました。
+## 12. Natural Japanese review
 
-以前の文書では、GitHub Actions上の実証と今後の探索が一部で強く結び付いていました。PR #70でActionsをcurrent baselineから外したため、検証内容と実行場所を分離しました。検証を弱めるのではなく、利用可能なtest、checker、保存Evidence、外部実行で実際に確認できた高さだけを記録する方針です。
+2026-09-11時点で、上流計画を実証履歴の長い時系列説明から、Product Valueから現在の行動へ降りる計画書として再構成した。
 
-ISSUE-000071については「品質評価が完了した」と誤読されないよう、評価境界の確立とactual human reviewを分けました。ISSUE-000070についてはpure-GoのExact Binding補強が進んでいても、actual runtime A/B交換が未実証であることを明確に残しています。
+Provider / Method portabilityのEvidenceは重要だが、意味境界の実証が進んだ一方で、人間が「使い続けられること」のactual Evidenceが相対的に弱い。このためPMS-03を再び主探索へ上げ、ISSUE-000073のresume-first Product SliceをPriority B1とした。
 
-既存REQ / SCNで現在必要な意味を表現できているため、新しいStable RequirementやUniversal Contract fieldを追加していません。次の主探索をruntime version交換、actual human review、broader portability、E4 Operational portabilityへ整理しました。
+同時にISSUE-000072のTEI executable version exchangeはPriority 1のまま維持する。これは重要度を下げたのではなく、外部execution surface待ちの探索と、repository内で進められるProduct Interaction探索を独立laneとして扱うためである。
 
-意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語として一続きに読めることを最重要視して全文を再ドラフトしました。
+Candidate RequirementをStable化せず、working set、Resume Brief、semantic change plan、snapshot token等をProduct / Architecture上の設計語彙に留めた。今後はprototype、fault injection、human reviewから、既存REQ / SCNで不足する独立したProduct failureだけをRequirement化する。
+
+意味、規範強度、current Evidence、未検証範囲を維持しながら、根幹の趣旨から個別作業へ自然に読める構造へ全文を再ドラフトし、最終意味監査を実施した。

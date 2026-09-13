@@ -19,7 +19,7 @@ Resume Plane
   orientation / baseline material / handoff
 ```
 
-この実装はSOZAのUniversal Contract、production storage format、supported CLI、固定workflowを定義しない。
+この実装はSEIのUniversal Contract、production storage format、supported CLI、固定workflowを定義しない。
 
 ## 2. 何を検証するか
 
@@ -40,7 +40,7 @@ first dogfoodで直接触る境界を次に限定する。
 - `dogfood_cli.py` — local JSONを操作するCLI
 - `test_dogfood_surface.py` — focused semantic / temporal boundary tests
 
-保存JSONのschema名は `soza.personal-inquiry-continuity-dogfood/v0` とする。この名前はevaluation artifact識別用であり、portable Universal Contractではない。
+保存JSONのschema名は `sei.personal-inquiry-continuity-dogfood/v0` とする。この名前はevaluation artifact識別用であり、portable Universal Contractではない。
 
 ## 4. Source Plane
 
@@ -65,7 +65,7 @@ source reference
   != imported semantic meaning
 ```
 
-SOZAをgeneric document repositoryへ広げないことを優先する。
+SEIをgeneric document repositoryへ広げないことを優先する。
 
 ## 5. Meaning Plane
 
@@ -110,7 +110,7 @@ python dogfood_cli.py record-add inquiry.json \
   --captured-at '2026-09-10T19:20:00+09:00'
 ```
 
-historical Decision basisの検査では`subject_at`ではなく、その意味を利用者 / SOZAが知った時点としての`captured_at`を用いる。
+historical Decision basisの検査では`subject_at`ではなく、その意味を利用者 / SEIが知った時点としての`captured_at`を用いる。
 
 ```text
 subject_at < decision time
@@ -147,7 +147,7 @@ python dogfood_cli.py review inquiry.json \
 
 ## 7. Resume Plane
 
-### SOZA Orientation
+### SEI Orientation
 
 ```bash
 python dogfood_cli.py orient inquiry.json
@@ -171,14 +171,14 @@ Orientationはcanonical authorityではなく再生成可能なProjectionであ�
 python dogfood_cli.py baseline-material inquiry.json
 ```
 
-このcommandはGeneric Summaryそのものを生成しない。同じstateから、semantic roleやSOZA固有のresume構造を外した時系列text materialを生成する。
+このcommandはGeneric Summaryそのものを生成しない。同じstateから、semantic roleやSEI固有のresume構造を外した時系列text materialを生成する。
 
-これを人間または外部AIへ渡して通常のsummaryを作り、SOZA Orientationと比較する。
+これを人間または外部AIへ渡して通常のsummaryを作り、SEI Orientationと比較する。
 
 ```text
 same underlying inquiry state
   → S0 generic summarizer receives flat material
-  → S1 SOZA receives semantic / temporal structure
+  → S1 SEI receives semantic / temporal structure
 ```
 
 S0を意図的に弱く実装してS1の優位を作らない。

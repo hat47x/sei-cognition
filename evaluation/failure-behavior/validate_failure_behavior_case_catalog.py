@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-SCHEMA = "soza.failure-behavior-case-catalog/v1"
+SCHEMA = "sei.failure-behavior-case-catalog/v1"
 ALLOWED_STAGES = {
     "reachability-transport",
     "provider-admission",

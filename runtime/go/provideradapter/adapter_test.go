@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 func repositoryRoot(t *testing.T) string {

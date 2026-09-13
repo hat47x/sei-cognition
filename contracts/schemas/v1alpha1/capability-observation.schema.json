@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://soza.example/contracts/v1alpha1/capability-observation.schema.json",
-  "title": "SOZA Capability Observation v1alpha1",
-  "description": "Machine-readable representation of soza.capability-observation/v1alpha1. Provider state, matching, decision, authority, and execution remain distinct semantics.",
+  "$id": "https://sei-cognition.example/contracts/v1alpha1/capability-observation.schema.json",
+  "title": "SEI Capability Observation v1alpha1",
+  "description": "Machine-readable representation of sei.capability-observation/v1alpha1. Provider state, matching, decision, authority, and execution remain distinct semantics.",
   "type": "object",
   "required": ["contract", "observation"],
   "properties": {
     "contract": {
-      "const": "soza.capability-observation/v1alpha1"
+      "const": "sei.capability-observation/v1alpha1"
     },
     "observation": {
       "$ref": "#/$defs/capabilityObservation"

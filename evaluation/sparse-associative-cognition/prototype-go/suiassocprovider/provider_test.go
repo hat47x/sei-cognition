@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hat47x/soza/evaluation/sparse-associative-cognition/prototype-go/sparseassoc"
+	"github.com/hat47x/sei-cognition/evaluation/sparse-associative-cognition/prototype-go/sparseassoc"
 )
 
 func testProvider(t *testing.T, minSimilarity float32) *Provider {

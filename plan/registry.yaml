@@ -1,5 +1,5 @@
-schema: soza.plan-registry/v1
-updated: 2026-09-09
+schema: sei.plan-registry/v1
+updated: 2026-09-13
 
 adr:
   - id: ADR-0001
@@ -53,9 +53,9 @@ adr:
   - id: ADR-0013
     file: plan/adr/ADR-0013-capability-realization-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000014, ISSUE-000020, ISSUE-000024, ISSUE-000065, ISSUE-000072]
+    related_issues: [ISSUE-000014, ISSUE-000020, ISSUE-000024, ISSUE-000065, ISSUE-000072, ISSUE-000074, ISSUE-000076]
   - id: ADR-0014
-    file: plan/adr/ADR-0014-soza-tei-product-boundary.md
+    file: plan/adr/ADR-0014-sei-tei-product-boundary.md
     status: Accepted
     related_issues: [ISSUE-000016, ISSUE-000017, ISSUE-000018, ISSUE-000019, ISSUE-000020, ISSUE-000021, ISSUE-000022, ISSUE-000024, ISSUE-000028, ISSUE-000029, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000044, ISSUE-000046]
   - id: ADR-0015
@@ -77,15 +77,15 @@ adr:
   - id: ADR-0019
     file: plan/adr/ADR-0019-provider-neutral-capability-observation-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000020, ISSUE-000024, ISSUE-000029, ISSUE-000030, ISSUE-000031, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000036, ISSUE-000065, ISSUE-000072]
+    related_issues: [ISSUE-000020, ISSUE-000024, ISSUE-000029, ISSUE-000030, ISSUE-000031, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000036, ISSUE-000065, ISSUE-000072, ISSUE-000074, ISSUE-000076]
   - id: ADR-0020
     file: plan/adr/ADR-0020-requirements-traceability-and-evidence-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000025, ISSUE-000026, ISSUE-000027, ISSUE-000028, ISSUE-000029, ISSUE-000031, ISSUE-000037, ISSUE-000039, ISSUE-000041, ISSUE-000044, ISSUE-000045, ISSUE-000048, ISSUE-000050, ISSUE-000051, ISSUE-000053, ISSUE-000062, ISSUE-000063, ISSUE-000069, ISSUE-000071]
+    related_issues: [ISSUE-000025, ISSUE-000026, ISSUE-000027, ISSUE-000028, ISSUE-000029, ISSUE-000031, ISSUE-000037, ISSUE-000039, ISSUE-000041, ISSUE-000044, ISSUE-000045, ISSUE-000048, ISSUE-000050, ISSUE-000051, ISSUE-000053, ISSUE-000062, ISSUE-000063, ISSUE-000069, ISSUE-000071, ISSUE-000074]
   - id: ADR-0021
     file: plan/adr/ADR-0021-architecture-contract-authority-and-versioning.md
     status: Accepted
-    related_issues: [ISSUE-000022, ISSUE-000028, ISSUE-000029, ISSUE-000030, ISSUE-000031, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000038, ISSUE-000039, ISSUE-000041, ISSUE-000043, ISSUE-000044, ISSUE-000045, ISSUE-000046, ISSUE-000047, ISSUE-000048, ISSUE-000049, ISSUE-000050, ISSUE-000051, ISSUE-000053, ISSUE-000054, ISSUE-000056, ISSUE-000062, ISSUE-000063, ISSUE-000064, ISSUE-000065, ISSUE-000066, ISSUE-000067, ISSUE-000068, ISSUE-000069, ISSUE-000070, ISSUE-000071, ISSUE-000072]
+    related_issues: [ISSUE-000022, ISSUE-000028, ISSUE-000029, ISSUE-000030, ISSUE-000031, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000038, ISSUE-000039, ISSUE-000041, ISSUE-000043, ISSUE-000044, ISSUE-000045, ISSUE-000046, ISSUE-000047, ISSUE-000048, ISSUE-000049, ISSUE-000050, ISSUE-000051, ISSUE-000053, ISSUE-000054, ISSUE-000056, ISSUE-000062, ISSUE-000063, ISSUE-000064, ISSUE-000065, ISSUE-000066, ISSUE-000067, ISSUE-000068, ISSUE-000069, ISSUE-000070, ISSUE-000071, ISSUE-000072, ISSUE-000074, ISSUE-000075, ISSUE-000076]
   - id: ADR-0022
     file: plan/adr/ADR-0022-runtime-first-slice-read-validate-reconstruct.md
     status: Accepted
@@ -97,11 +97,11 @@ adr:
   - id: ADR-0024
     file: plan/adr/ADR-0024-provider-adapter-observation-mapping-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000035, ISSUE-000036, ISSUE-000065, ISSUE-000072]
+    related_issues: [ISSUE-000035, ISSUE-000036, ISSUE-000065, ISSUE-000072, ISSUE-000074, ISSUE-000076]
   - id: ADR-0025
     file: plan/adr/ADR-0025-cognitive-method-portable-contract-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000043, ISSUE-000048, ISSUE-000049, ISSUE-000050, ISSUE-000064, ISSUE-000066, ISSUE-000067, ISSUE-000068, ISSUE-000070, ISSUE-000071, ISSUE-000072]
+    related_issues: [ISSUE-000043, ISSUE-000048, ISSUE-000049, ISSUE-000050, ISSUE-000064, ISSUE-000066, ISSUE-000067, ISSUE-000068, ISSUE-000070, ISSUE-000071, ISSUE-000072, ISSUE-000076]
   - id: ADR-0026
     file: plan/adr/ADR-0026-cross-contract-bundle-exact-binding-consistency.md
     status: Accepted
@@ -122,6 +122,10 @@ adr:
     file: plan/adr/ADR-0030-product-access-control-separation.md
     status: Accepted
     related_issues: [ISSUE-000047, ISSUE-000056]
+  - id: ADR-0031
+    file: plan/adr/ADR-0031-product-rename-sei-cognition-identifier-boundary.md
+    status: Accepted
+    related_issues: [ISSUE-000075]
 
 issue:
   - {id: ISSUE-000001, file: plan/issue/ISSUE-000001-operationalize-moving-future-horizon.md, status: Resolved, priority: 4, related_adrs: [ADR-0001]}
@@ -139,7 +143,7 @@ issue:
   - {id: ISSUE-000013, file: plan/issue/ISSUE-000013-define-capability-choice-acceptance-boundary.md, status: Resolved, priority: 3, related_adrs: [ADR-0012, ADR-0013]}
   - {id: ISSUE-000014, file: plan/issue/ISSUE-000014-investigate-capability-realization-offering-boundary.md, status: Resolved, priority: 5, related_adrs: [ADR-0012, ADR-0013]}
   - {id: ISSUE-000015, file: plan/issue/ISSUE-000015-natural-japanese-document-audit.md, status: Resolved, priority: 1, related_adrs: []}
-  - {id: ISSUE-000016, file: plan/issue/ISSUE-000016-formalize-soza-tei-product-boundary.md, status: Resolved, priority: 1, related_adrs: [ADR-0014]}
+  - {id: ISSUE-000016, file: plan/issue/ISSUE-000016-formalize-sei-tei-product-boundary.md, status: Resolved, priority: 1, related_adrs: [ADR-0014]}
   - {id: ISSUE-000017, file: plan/issue/ISSUE-000017-define-requirement-inquiry-memory-boundary.md, status: Resolved, priority: 2, related_adrs: [ADR-0005, ADR-0010, ADR-0011, ADR-0014, ADR-0015]}
   - {id: ISSUE-000018, file: plan/issue/ISSUE-000018-connect-authorization-evidence-with-decision-memory.md, status: Resolved, priority: 3, related_adrs: [ADR-0004, ADR-0010, ADR-0011, ADR-0014, ADR-0016]}
   - {id: ISSUE-000019, file: plan/issue/ISSUE-000019-clarify-reference-model-and-cognitive-method-boundary.md, status: Resolved, priority: 4, related_adrs: [ADR-0014, ADR-0017]}
@@ -193,6 +197,10 @@ issue:
   - {id: ISSUE-000067, file: plan/issue/ISSUE-000067-verify-method-realization-version-historical-reconstruction.md, status: Resolved, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0017, ADR-0021, ADR-0025, ADR-0026]}
   - {id: ISSUE-000068, file: plan/issue/ISSUE-000068-verify-actual-model-artifact-exchange-history.md, status: Resolved, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0017, ADR-0021, ADR-0025, ADR-0026]}
   - {id: ISSUE-000069, file: plan/issue/ISSUE-000069-separate-ci-evidence-triggers-from-runner-availability.md, status: Resolved, priority: 1, related_adrs: [ADR-0018, ADR-0020, ADR-0021]}
-  - {id: ISSUE-000070, file: plan/issue/ISSUE-000070-verify-runtime-version-exchange-history.md, status: Open, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0017, ADR-0021, ADR-0025, ADR-0026]}
+  - {id: ISSUE-000070, file: plan/issue/ISSUE-000070-verify-runtime-version-exchange-history.md, status: Resolved, priority: 1, related_adrs: [ADR-0008, ADR-0009, ADR-0017, ADR-0021, ADR-0025, ADR-0026]}
   - {id: ISSUE-000071, file: plan/issue/ISSUE-000071-establish-cognitive-method-outcome-quality-evaluation-boundary.md, status: Resolved, priority: 1, related_adrs: [ADR-0017, ADR-0018, ADR-0020, ADR-0021, ADR-0025]}
-  - {id: ISSUE-000072, file: plan/issue/ISSUE-000072-design-runtime-provider-failure-behavior-evidence.md, status: Open, priority: 2, related_adrs: [ADR-0013, ADR-0019, ADR-0021, ADR-0024, ADR-0025]}
+  - {id: ISSUE-000072, file: plan/issue/ISSUE-000072-verify-tei-executable-version-exchange.md, status: Open, priority: 1, related_adrs: [ADR-0013, ADR-0019, ADR-0021, ADR-0024]}
+  - {id: ISSUE-000073, file: plan/issue/ISSUE-000073-define-first-usable-resume-first-product-slice.md, status: Open, priority: 1, related_adrs: [ADR-0005, ADR-0010, ADR-0028, ADR-0029]}
+  - {id: ISSUE-000074, file: plan/issue/ISSUE-000074-materialize-actual-tei-evidence-protocol.md, status: Open, priority: 1, related_adrs: [ADR-0013, ADR-0019, ADR-0020, ADR-0021, ADR-0024]}
+  - {id: ISSUE-000075, file: plan/issue/ISSUE-000075-execute-sei-cognition-rename-identifier-migration.md, status: Resolved, priority: 1, related_adrs: [ADR-0003, ADR-0021, ADR-0031]}
+  - {id: ISSUE-000076, file: plan/issue/ISSUE-000076-design-runtime-provider-failure-behavior-evidence.md, status: Open, priority: 2, related_adrs: [ADR-0013, ADR-0019, ADR-0021, ADR-0024, ADR-0025]}

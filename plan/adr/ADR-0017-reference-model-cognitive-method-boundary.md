@@ -10,7 +10,7 @@ Updated: 2026-08-31
 
 これらを正解テンプレートとして対象へ一律適用すると、実際の業務や制約との差を見落としやすい。一方で、候補を探索・比較するためのDesign Knowledgeとして扱えば、設計支援に利用できる。
 
-SOZAのCognitive Methodは、資料や候補をどのように探索し、比較し、統合し、検査するかという認知上の手続きを扱う。
+SEIのCognitive Methodは、資料や候補をどのように探索し、比較し、統合し、検査するかという認知上の手続きを扱う。
 
 Reference Model / PatternとCognitive Methodを混ぜると、domain-specificな設計PatternがUniversal Coreへ流入したり、Methodを適用しただけで特定Patternの採用が決まったように見えたりする。
 
@@ -20,11 +20,11 @@ Reference Model / PatternとCognitive Methodを混ぜると、domain-specificな
 
 業務domain固有のReference Model、Pattern Card、典型的なData / Workflow / Authorization構造等は、原則としてdomain-specificなDesign Knowledgeへ置く。
 
-特定の製品がそれらを管理することはできるが、SOZA Universal Coreの型体系へ自動的に移さない。
+特定の製品がそれらを管理することはできるが、SEI Universal Coreの型体系へ自動的に移さない。
 
 ### 2. Cognitive Methodは探索・比較・統合・検査の手続きを表す
 
-SOZAのCognitive Methodは、たとえば次のような手続きを表し得る。
+SEIのCognitive Methodは、たとえば次のような手続きを表し得る。
 
 - どの資料やPattern候補を探索するか。
 - 何を比較するか。
@@ -65,9 +65,9 @@ Method Applicationは来歴として保持し、Assuranceは別のEvidence / rev
 
 ## Current realization
 
-current SOZAでは、Cognitive MethodのDefinition / Realization / Applicationという意味境界を保持し、Method ApplicationをRecommendation、Decision、Authority、Executionとは分離している。
+current SEIでは、Cognitive MethodのDefinition / Realization / Applicationという意味境界を保持し、Method ApplicationをRecommendation、Decision、Authority、Executionとは分離している。
 
-一方、domain-specificなPattern catalogをSOZA Universal Coreへ実体化してはいない。この非対称性は意図的であり、Patternの内容と、それを探索・利用するMethodの手続きを別の責務として保つためである。
+一方、domain-specificなPattern catalogをSEI Universal Coreへ実体化してはいない。この非対称性は意図的であり、Patternの内容と、それを探索・利用するMethodの手続きを別の責務として保つためである。
 
 historical Cognitive Methodのdigest規則について未確認の部分はISSUE-000034で扱うが、これは本ADRのPattern / Method分離を変更するものではない。
 
@@ -75,7 +75,7 @@ historical Cognitive Methodのdigest規則について未確認の部分はISSUE
 
 ### Positive
 
-- domain-specificなDesign Knowledgeを豊かにしても、SOZA Coreを特定業務Schemaへ依存させずに済む。
+- domain-specificなDesign Knowledgeを豊かにしても、SEI Coreを特定業務Schemaへ依存させずに済む。
 - Reference Modelを答えとして押し付けず、探索・比較の候補資産として利用できる。
 - Pattern採用のDecisionと、Patternを参照したMethod Applicationの来歴を分けられる。
 - Reference Model改訂後も過去Decisionを再構成しやすい。
@@ -88,7 +88,7 @@ historical Cognitive Methodのdigest規則について未確認の部分はISSUE
 
 ## Revisit conditions
 
-複数domainでPatternそのものにSOZA共通のstable identity、revision、Responsibility等が必要となり、domain-specificなknowledge assetでは意味を保てないことが実証された場合に、Universal Pattern Artifactを再検討する。
+複数domainでPatternそのものにSEI共通のstable identity、revision、Responsibility等が必要となり、domain-specificなknowledge assetでは意味を保てないことが実証された場合に、Universal Pattern Artifactを再検討する。
 
 ## Natural Japanese review
 

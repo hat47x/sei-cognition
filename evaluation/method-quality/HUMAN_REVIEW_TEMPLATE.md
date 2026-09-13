@@ -28,7 +28,7 @@
 
 workflow artifactを使う場合は、request、result、model call Evidence、structure reportが同じrunに属することを確認し、そのrunまたはartifactを上欄へ記録します。artifactの存在自体を品質判定の根拠にはしません。
 
-model名やruntime名は評価結果の意味を再構成するために必要な範囲で記録します。特定modelをSOZAの標準として扱うための欄ではありません。
+model名やruntime名は評価結果の意味を再構成するために必要な範囲で記録します。特定modelをSEIの標準として扱うための欄ではありません。
 
 ## 3. 元データの確認
 

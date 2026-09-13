@@ -7,11 +7,11 @@ Updated: 2026-09-01
 
 ## Goal
 
-SOZAのsemanticなResponsibility / Authorityと、製品利用時のauthentication identity、access control、Product Access Scope、共有、Selective Disclosureを混同せず、single-userからteam・外部協働へ広げられるProduct security / collaboration boundaryを定義する。
+SEIのsemanticなResponsibility / Authorityと、製品利用時のauthentication identity、access control、Product Access Scope、共有、Selective Disclosureを混同せず、single-userからteam・外部協働へ広げられるProduct security / collaboration boundaryを定義する。
 
 ## Resolution
 
-Product Identity / Access / Collaborationの正本を`product/security/SOZA_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`、Architecture上の配置を`architecture/SOZA_PRODUCT_ACCESS_ARCHITECTURE.md`、主要DecisionをADR-0030として定義した。
+Product Identity / Access / Collaborationの正本を`product/security/SEI_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`、Architecture上の配置を`architecture/SEI_PRODUCT_ACCESS_ARCHITECTURE.md`、主要DecisionをADR-0030として定義した。
 
 中心となる分離は次である。
 
@@ -22,10 +22,10 @@ authentication identity
   != semantic Responsibility / Authority
 ```
 
-また、SOZA内部のProduct access authorizationと、ADR-0016で扱う外部Execution ProviderのAuthorizationも別の責務とする。
+また、SEI内部のProduct access authorizationと、ADR-0016で扱う外部Execution ProviderのAuthorizationも別の責務とする。
 
 ```text
-SOZA product access authorization
+SEI product access authorization
   != external execution authorization
 ```
 
@@ -114,7 +114,7 @@ Product accessをsemantic Responsibility / Authorityやactor kindから分離す
 
 次をCandidate Requirementとして保持する。
 
-> SOZAの製品アクセス権は、semantic Responsibility / Authorityやactor kindから自動導出せず、認証identityとの対応を含むProduct Access Policyで独立に評価できる必要がある。
+> SEIの製品アクセス権は、semantic Responsibility / Authorityやactor kindから自動導出せず、認証identityとの対応を含むProduct Access Policyで独立に評価できる必要がある。
 
 production IdP / team deployment / external collaborationの実証で、既存REQ-0012 / 0013 / 0017ではこのProduct failureを十分に表現できないことが確認された場合にStable Requirement化を再検討する。
 

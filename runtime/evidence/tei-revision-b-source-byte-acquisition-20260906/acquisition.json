@@ -1,0 +1,80 @@
+{
+  "schema": "soza.tei-revision-b-source-byte-acquisition/v1",
+  "repository": "hat47x/tei-platform",
+  "revisionB": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be",
+  "rootTree": "630d3e9e2acaea70312bee19cf8a0f7235655cd6",
+  "acquisition": {
+    "surface": "GitHub Contents API pinned to exact revision B",
+    "semanticRole": "補助的なsource-byte acquisition Evidence。artifact acquisition pathをCapability identityへ昇格させない。",
+    "exactRevisionPinned": true
+  },
+  "observations": [
+    {
+      "path": "go.mod",
+      "expectedBlobSha1": "f8763f8fb2d64d73f1b40b905f62b5e09c44493b",
+      "contentsApiBlobSha1": "f8763f8fb2d64d73f1b40b905f62b5e09c44493b",
+      "byteLength": 57,
+      "contentSha256": "17e474a9b90e3242f3692361ad4e7f258ec5d7f236293c645c300e8bd8638bb7",
+      "independentGitBlobRehashSha1": "f8763f8fb2d64d73f1b40b905f62b5e09c44493b",
+      "independentGitBlobRehashMatched": true
+    },
+    {
+      "path": "go.sum",
+      "expectedBlobSha1": "c7cd14781271dca2b014daf2f53d49d95b8e8826",
+      "contentsApiBlobSha1": "c7cd14781271dca2b014daf2f53d49d95b8e8826",
+      "byteLength": 155,
+      "contentSha256": "c53dd01640f9a6190b5f09402f13d0ec5f199b2a6a3f673bb885ed308593e955",
+      "independentGitBlobRehashSha1": "c7cd14781271dca2b014daf2f53d49d95b8e8826",
+      "independentGitBlobRehashMatched": true
+    },
+    {
+      "path": "cmd/tei/main.go",
+      "expectedBlobSha1": "6a27b98b7f6dbe4e66d1261edfc847402cd608a5",
+      "contentsApiBlobSha1": "6a27b98b7f6dbe4e66d1261edfc847402cd608a5",
+      "byteLength": 39029,
+      "contentReadViaExactCommitContentsApi": true,
+      "independentGitBlobRehashPerformed": false,
+      "note": "exact commitのContents APIでsource bytesとblob identityを取得した。今回の補助Evidenceではmain.go全bytesの独立再ハッシュを成立扱いにしない。"
+    },
+    {
+      "path": "cmd/tei/source_index.go",
+      "expectedBlobSha1": "19ac0589e8ff761865d51cfc5cd65cf8d2a650ba",
+      "contentsApiBlobSha1": "19ac0589e8ff761865d51cfc5cd65cf8d2a650ba",
+      "byteLength": 1438,
+      "contentSha256": "ab98b499fc7b35a049048aeb6f1494028c90495018924ff1d04aac2956249838",
+      "independentGitBlobRehashSha1": "19ac0589e8ff761865d51cfc5cd65cf8d2a650ba",
+      "independentGitBlobRehashMatched": true
+    },
+    {
+      "path": "cmd/tei/validation_output.go",
+      "expectedBlobSha1": "2ca746592d325ec0f277cebc7c297e49d3022829",
+      "contentsApiBlobSha1": "2ca746592d325ec0f277cebc7c297e49d3022829",
+      "byteLength": 1557,
+      "contentSha256": "81af899c28fe796f5d64576a1d4cc0c293201d1575f4e56ec63abaa83845058d",
+      "independentGitBlobRehashSha1": "2ca746592d325ec0f277cebc7c297e49d3022829",
+      "independentGitBlobRehashMatched": true
+    }
+  ],
+  "summary": {
+    "moduleBoundaryBytesAcquired": true,
+    "cliProductionBlobBytesObserved": true,
+    "independentlyRehashedBlobCount": 4,
+    "observedBlobCount": 5,
+    "treeReferenceAndContentsApiIdentityMatchedForAllObservedBlobs": true
+  },
+  "currentEvidenceBoundary": {
+    "exactRevisionBSignedCommitObjectReconstructed": true,
+    "executionTreeIdentitiesReconstructed": true,
+    "selectedSourceBytesAcquired": true,
+    "fullRevisionBSourceMaterialized": false,
+    "exactRevisionBCheckoutMaterialized": false,
+    "workingTreePurityVerified": false,
+    "revisionBExecutionSourceVerified": false,
+    "revisionBBuildPass": false,
+    "providerPlanExecutionPass": false,
+    "sozaAdapterCompatibilityPass": false,
+    "issue000072Resolved": false,
+    "qualityJudgement": "not_evaluated"
+  },
+  "stopLine": "selected exact-B source bytes acquired and bound to fixed Git objects != full source materialization != exact revision B checkout verified != working-tree purity verified != revision B build PASS != Provider Plan execution PASS != SOZA Adapter compatibility PASS != ISSUE-000072 Resolved"
+}

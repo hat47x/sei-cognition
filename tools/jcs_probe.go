@@ -95,7 +95,7 @@ func main() {
 	if err := json.Unmarshal(raw, &f); err != nil {
 		panic(err)
 	}
-	if f.ProfileID != "soza.jcs+sha256/v1alpha1" {
+	if f.ProfileID != "sei.jcs+sha256/v1alpha1" {
 		panic("unexpected profile_id: " + f.ProfileID)
 	}
 

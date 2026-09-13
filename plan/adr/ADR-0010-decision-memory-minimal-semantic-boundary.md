@@ -6,7 +6,7 @@ Updated: 2026-08-31
 
 ## Context
 
-SOZAでは、最終結果だけでなく、あるDecisionが何を根拠とし、何を未解決のまま残していたかを、後から再構成できる必要がある。
+SEIでは、最終結果だけでなく、あるDecisionが何を根拠とし、何を未解決のまま残していたかを、後から再構成できる必要がある。
 
 Observation、Unknown、Conflict、Hypothesis、EvidenceUse、Derivation、Responsibility、Semantic Lineage等の認識・来歴の境界があっても、Decision Memoryを実装都合から設計すると、RecommendationをDecisionへ自動昇格させたり、DecisionをAuthorizationやExecution triggerへ変えたりする危険がある。
 
@@ -64,7 +64,7 @@ Decision != Authority != Action Intent != Provider Execution
 
 current repositoryでは、次が実体化されている。
 
-- `soza.decision-memory/v1alpha1` Contract Definition
+- `sei.decision-memory/v1alpha1` Contract Definition
 - machine-readable schema
 - positive / negative boundary fixture
 - Contract conformance checker

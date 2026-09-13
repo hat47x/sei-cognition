@@ -6,7 +6,7 @@ Updated: 2026-09-01
 
 ## Context
 
-SOZAのReference ArchitectureとADR-0017では、Cognitive Methodについて次の意味差をすでにAcceptedしている。
+SEIのReference ArchitectureとADR-0017では、Cognitive Methodについて次の意味差をすでにAcceptedしている。
 
 ```text
 Method Definition
@@ -27,12 +27,12 @@ v0.2.0では、current Product Value / Requirements / ArchitectureからCognitiv
 
 ## Decision
 
-### 1. `soza.cognitive-method/v1alpha1`を独立Contract familyとする
+### 1. `sei.cognitive-method/v1alpha1`を独立Contract familyとする
 
 Cognitive MethodのDefinition、Realization、Applicationを実装間で交換し、historicalに再構成する必要があるため、次をcurrent pre-stable Contract familyとして独立させる。
 
 ```text
-soza.cognitive-method/v1alpha1
+sei.cognitive-method/v1alpha1
 ```
 
 これはhistorical M47 Contractの復元ではない。current Requirementsから新たに定義するContractである。
@@ -172,7 +172,7 @@ Contract version
 
 ### 9. unknown Contract versionは従来どおりopaqueに保持する
 
-Semantic Interchange内に未知の`soza.cognitive-method` versionが存在する場合、runtimeは既知versionとして解釈せず、payloadをopaqueに保持して`not_verified`とする。
+Semantic Interchange内に未知の`sei.cognitive-method` versionが存在する場合、runtimeは既知versionとして解釈せず、payloadをopaqueに保持して`not_verified`とする。
 
 既存のforward-compatible Interchange境界を弱めない。
 

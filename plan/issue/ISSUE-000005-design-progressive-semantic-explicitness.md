@@ -19,7 +19,7 @@ Updated: 2026-08-31
 
 Universal Coreは意味境界を定義し、案件ごとの必須Artifact / relationはProfile + Policy + Profile Resolutionで決める。ProfileはCoreの意味を緩和せず、DecisionやAuthorityを自動昇格させない。
 
-この判断は、historical M49で検討していたDecision Memoryにも適用され、current `soza.decision-memory/v1alpha1`の意味境界へ引き継がれている。current Contractではcontext / basis / recommendation / unresolved / rationale / responsibility等を必要に応じて保持できるが、すべての案件へ最大量の記録を強制しない。
+この判断は、historical M49で検討していたDecision Memoryにも適用され、current `sei.decision-memory/v1alpha1`の意味境界へ引き継がれている。current Contractではcontext / basis / recommendation / unresolved / rationale / responsibility等を必要に応じて保持できるが、すべての案件へ最大量の記録を強制しない。
 
 本IssueがResolvedであることは、このProgressive Semantic Explicitnessの設計原則が確定したことを意味する。Profile / Policy obligation resolutionをproduction runtimeで全面実装済みであることは意味しない。
 

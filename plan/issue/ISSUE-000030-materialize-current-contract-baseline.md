@@ -1,4 +1,4 @@
-# ISSUE-000030: current SOZA Contract baselineをactual repositoryへ実体化する
+# ISSUE-000030: current SEI Contract baselineをactual repositoryへ実体化する
 
 Status: **Resolved**  
 Priority: **2**  
@@ -17,16 +17,16 @@ historical Contract候補を一括復元せず、current REQ / ADR / Architectur
 
 current Contract familyは次の4つである。
 
-- `soza.semantic-reference/v1alpha1`
-- `soza.decision-memory/v1alpha1`
-- `soza.capability-observation/v1alpha1`
-- `soza.semantic-interchange/v1alpha1`
+- `sei.semantic-reference/v1alpha1`
+- `sei.decision-memory/v1alpha1`
+- `sei.capability-observation/v1alpha1`
+- `sei.semantic-interchange/v1alpha1`
 
 Architecture上の関心領域を一つずつContractへ変換せず、独立versioningと相互運用境界が必要な範囲へ絞った。
 
 ### 2. Semantic ContractとRepresentation Profileを分離した
 
-Exact Bindingの意味は`soza.semantic-reference`が所有し、canonicalization、digest algorithm、対象bytes等のmechanicsはRepresentation Profileへ分離した。
+Exact Bindingの意味は`sei.semantic-reference`が所有し、canonicalization、digest algorithm、対象bytes等のmechanicsはRepresentation Profileへ分離した。
 
 ```text
 Semantic Contract != Representation Profile
@@ -35,8 +35,8 @@ Semantic Contract != Representation Profile
 本Issueの作成時点ではstable Profileを未確定としていたが、その後ADR-0023 / ISSUE-000009で次をcurrent / future基線としてAcceptedし、fixture-scoped Executable Evidenceまで得た。
 
 ```text
-soza.jcs+sha256/v1alpha1
-soza.raw-bytes+sha256/v1alpha1
+sei.jcs+sha256/v1alpha1
+sei.raw-bytes+sha256/v1alpha1
 ```
 
 historical M47 digest mappingはISSUE-000034へ分離している。

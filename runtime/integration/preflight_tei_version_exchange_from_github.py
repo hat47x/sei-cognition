@@ -1,0 +1,410 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import platform
+import shutil
+import subprocess
+import tarfile
+from pathlib import Path
+from typing import Callable
+
+import prepare_tei_fixed_reference_input as fixed_reference
+import run_tei_bundle_adapter_compatibility as adapter_runner
+import run_tei_revision_b_prepositioned as build_runner
+import run_tei_version_exchange_evidence as version_exchange
+import run_tei_version_exchange_from_github as github_runner
+import verify_tei_execution_source_identity as source_identity
+from runtime_path_safety import reject_symlink_path_or_ancestors
+
+SCHEMA = "sei.tei-version-exchange-github-preflight/v1"
+STOP_LINE = (
+    "preflight ready != revision B source acquired != revision B build PASS "
+    "!= Provider Plan execution PASS != SEI Adapter compatibility PASS "
+    "!= ISSUE-000072 Resolved"
+)
+EXPECTED_ERRORS = (
+    OSError,
+    ValueError,
+    RuntimeError,
+    subprocess.SubprocessError,
+    tarfile.TarError,
+)
+
+
+def _is_within(candidate: Path, root: Path) -> bool:
+    return candidate == root or root in candidate.parents
+
+
+def _capture(name: str, action: Callable[[], dict[str, object]]) -> dict[str, object]:
+    try:
+        observation = action()
+    except EXPECTED_ERRORS as exc:
+        return {
+            "name": name,
+            "status": "blocked",
+            "error": {
+                "type": type(exc).__name__,
+                "message": str(exc),
+            },
+        }
+    return {
+        "name": name,
+        "status": "ready",
+        "observation": observation,
+    }
+
+
+def _check_platform() -> dict[str, object]:
+    system = platform.system().lower()
+    machine = platform.machine().lower()
+    if system != "linux" or machine not in {"x86_64", "amd64"}:
+        raise ValueError(
+            "TEI version exchange actual EvidenceはLinux/amd64を要求します: "
+            f"system={system} machine={machine}"
+        )
+    return {
+        "system": system,
+        "machine": machine,
+        "linuxAmd64": True,
+    }
+
+
+def _check_github_credential(env: dict[str, str] | None = None) -> dict[str, object]:
+    values = os.environ if env is None else env
+    if values.get("GITHUB_TOKEN"):
+        source = "GITHUB_TOKEN"
+    elif values.get("GH_TOKEN"):
+        source = "GH_TOKEN"
+    else:
+        raise ValueError("GITHUB_TOKEN/GH_TOKENがありません")
+    return {
+        "present": True,
+        "source": source,
+        "valueReported": False,
+        "networkAccessPerformed": False,
+    }
+
+
+def _resolve_go(executable: Path) -> Path:
+    requested = executable.expanduser()
+    if requested.name != "go":
+        raise ValueError(
+            "Linux actual EvidenceではGo executableのbasenameを'go'に固定します: "
+            f"{requested}"
+        )
+    resolved = requested.resolve(strict=True)
+    if not resolved.is_file() or not os.access(resolved, os.X_OK):
+        raise ValueError(f"Go executableではありません: {resolved}")
+    return resolved
+
+
+def _go_env_for_executable(executable: Path, base: dict[str, str]) -> tuple[Path, dict[str, str]]:
+    resolved = _resolve_go(executable)
+    env = dict(base)
+    env["PATH"] = str(resolved.parent) + os.pathsep + env.get("PATH", "")
+    discovered = shutil.which("go", path=env["PATH"])
+    if discovered is None or Path(discovered).resolve() != resolved:
+        raise ValueError(
+            "指定Go executableをpreflight PATH先頭へ固定できません: "
+            f"expected={resolved} actual={discovered}"
+        )
+    return resolved, env
+
+
+def _check_tei_go(executable: Path) -> dict[str, object]:
+    resolved, env = _go_env_for_executable(executable, build_runner._controlled_go_env())
+    observation = build_runner._verify_tei_go_toolchain(
+        resolved.parent,
+        env=env,
+    )
+    return {
+        "executable": str(resolved),
+        "required": observation["requiredVersion"],
+        "observed": observation["observedVersion"],
+        "requiredTarget": observation["requiredTarget"],
+        "observedTarget": observation["observedTarget"],
+        "exactMatch": True,
+        "targetMatch": True,
+        "implicitToolchainDownloadAllowed": False,
+    }
+
+
+def _check_sei_go(executable: Path, sei_repo_root: Path) -> dict[str, object]:
+    resolved, env = _go_env_for_executable(
+        executable,
+        adapter_runner._go_toolchain_env(),
+    )
+    observation = adapter_runner._verify_sei_go_requirement(
+        sei_repo_root,
+        env=env,
+    )
+    return {
+        "executable": str(resolved),
+        "required": observation["required"],
+        "observed": observation["observed"],
+        "requiredTarget": observation["requiredTarget"],
+        "observedTarget": observation["observedTarget"],
+        "requirementSatisfied": True,
+        "targetMatch": True,
+        "implicitToolchainDownloadAllowed": False,
+    }
+
+
+def _check_reference_input(
+    reference_source_repo: Path | None,
+    reference_evidence_bundle: Path | None,
+) -> dict[str, object]:
+    if (reference_source_repo is None) == (reference_evidence_bundle is None):
+        raise ValueError(
+            "exact revision A fixed inputはreference source repoまたは"
+            "historical Evidence bundleのどちらか一方が必要です"
+        )
+    if reference_source_repo is not None:
+        repo = reference_source_repo.expanduser().resolve(strict=True)
+        verification = source_identity.verify_repository(
+            repo,
+            expected_objects=source_identity.REVISION_A_REFERENCE_OBJECTS,
+            expected_head=source_identity.REVISION_A,
+        )
+        return {
+            "mode": "git_checkout",
+            "sourceCommit": source_identity.REVISION_A,
+            "path": str(repo),
+            "head": verification["head"],
+            "worktreeCleanWithinBoundary": verification["worktreeCleanWithinBoundary"],
+        }
+
+    assert reference_evidence_bundle is not None
+    verification = fixed_reference.verify_fixed_reference_input_bundle(
+        reference_evidence_bundle
+    )
+    return {
+        "mode": "historical_evidence_bundle",
+        "sourceCommit": verification["sourceCommit"],
+        "path": verification["archive"],
+        "archiveSha256": verification["archiveSha256"],
+    }
+
+
+def _check_sei_source(
+    sei_repo_root: Path,
+    expected_sei_head: str | None,
+) -> dict[str, object]:
+    root = sei_repo_root.expanduser().resolve(strict=True)
+    if not (root / "runtime/go/go.mod").is_file():
+        raise ValueError(f"SEI runtime/go moduleを確認できません: {root / 'runtime/go'}")
+    verification = adapter_runner._verify_sei_source_identity(
+        root,
+        expected_head=expected_sei_head,
+    )
+    return {
+        "repositoryRoot": str(root),
+        "head": verification["head"],
+        "expectedHead": expected_sei_head,
+        "expectedHeadMatched": verification["expectedHeadMatched"],
+        "worktreeCleanWithinBoundary": verification["worktreeCleanWithinBoundary"],
+    }
+
+
+def _check_output_path(
+    output_dir: Path,
+    *,
+    sei_repo_root: Path,
+    reference_source_repo: Path | None,
+    reference_evidence_bundle: Path | None,
+    overwrite: bool,
+) -> dict[str, object]:
+    requested = output_dir.expanduser()
+    reject_symlink_path_or_ancestors(
+        requested,
+        "TEI version exchange preflight Evidence directory",
+    )
+    resolved = requested.resolve(strict=False)
+    if resolved.exists() and not resolved.is_dir():
+        raise ValueError(
+            f"TEI version exchange Evidence出力先がdirectoryではありません: {resolved}"
+        )
+
+    sei_root = sei_repo_root.expanduser().resolve(strict=True)
+    roots: list[tuple[str, Path]] = [("SEI repository", sei_root)]
+    if reference_source_repo is not None:
+        reference_root = reference_source_repo.expanduser().resolve(strict=True)
+        roots.append(("revision A reference checkout", reference_root))
+    for label, root in roots:
+        if _is_within(resolved, root):
+            raise ValueError(
+                f"Evidence directoryを{label}配下には置けません: output={resolved} root={root}"
+            )
+        if _is_within(root, resolved):
+            raise ValueError(
+                f"Evidence directoryで{label}を包含できません: output={resolved} root={root}"
+            )
+
+    bundle = None
+    if reference_evidence_bundle is not None:
+        bundle = reference_evidence_bundle.expanduser().resolve(strict=True)
+        if _is_within(bundle, resolved):
+            raise ValueError(
+                "Evidence directoryでhistorical reference bundleを包含できません: "
+                f"output={resolved} bundle={bundle}"
+            )
+
+    wrapper_report = resolved / github_runner.REPORT_NAME
+    canonical_paths = [
+        resolved / version_exchange.BUNDLE_NAME,
+        resolved / version_exchange.REPORT_NAME,
+        wrapper_report,
+    ]
+    for path in canonical_paths:
+        reject_symlink_path_or_ancestors(
+            path,
+            "TEI GitHub-acquired version exchange output",
+        )
+
+    existing = [path for path in canonical_paths if path.exists()]
+    if existing and not overwrite:
+        raise ValueError(
+            "既存Evidenceを無言で上書きしません。--overwriteを明示してください: "
+            + ", ".join(str(path) for path in existing)
+        )
+    if overwrite:
+        for path in existing:
+            if not path.is_file():
+                raise ValueError(f"Evidence出力先がfileではありません: {path}")
+
+    return {
+        "outputDirectory": str(resolved),
+        "overwrite": overwrite,
+        "existingCanonicalOutputs": [str(path) for path in existing],
+        "staticPathSafetyVerified": True,
+        "revisionBTemporarySourceRelationship": "deferred_until_materialization",
+        "filesystemMutationPerformed": False,
+    }
+
+
+def run_preflight(
+    reference_source_repo: Path | None,
+    sei_repo_root: Path,
+    output_dir: Path,
+    *,
+    reference_evidence_bundle: Path | None = None,
+    tei_go_executable: Path,
+    sei_go_executable: Path,
+    expected_sei_head: str | None = None,
+    overwrite: bool = False,
+    env: dict[str, str] | None = None,
+) -> dict[str, object]:
+    checks = [
+        _capture("execution_platform", _check_platform),
+        _capture("github_credential", lambda: _check_github_credential(env)),
+        _capture(
+            "revision_a_fixed_reference_identity",
+            lambda: _check_reference_input(
+                reference_source_repo,
+                reference_evidence_bundle,
+            ),
+        ),
+        _capture(
+            "sei_source_identity",
+            lambda: _check_sei_source(sei_repo_root, expected_sei_head),
+        ),
+        _capture("tei_go_toolchain", lambda: _check_tei_go(tei_go_executable)),
+        _capture(
+            "sei_go_toolchain",
+            lambda: _check_sei_go(sei_go_executable, sei_repo_root),
+        ),
+        _capture(
+            "output_path",
+            lambda: _check_output_path(
+                output_dir,
+                sei_repo_root=sei_repo_root,
+                reference_source_repo=reference_source_repo,
+                reference_evidence_bundle=reference_evidence_bundle,
+                overwrite=overwrite,
+            ),
+        ),
+        _capture(
+            "source_temp_parent",
+            lambda: {
+                "temporaryParent": str(
+                    github_runner._prepare_source_temp_parent(
+                        output_dir,
+                        sei_repo_root,
+                        reference_source_repo,
+                    )
+                ),
+                "filesystemMutationPerformed": False,
+            },
+        ),
+    ]
+    blocked = [str(check["name"]) for check in checks if check["status"] != "ready"]
+    ready = not blocked
+    return {
+        "schema": SCHEMA,
+        "result": "ready" if ready else "blocked",
+        "ready": ready,
+        "blockedChecks": blocked,
+        "checks": checks,
+        "networkAccessPerformed": False,
+        "revisionBSourceMaterialized": False,
+        "evidenceOutputCreated": False,
+        "qualityJudgement": "not_evaluated",
+        "stopLine": STOP_LINE,
+    }
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description=(
+            "GitHub acquisition→canonical E2/E3を開始する前に、credential、platform、"
+            "revision A fixed input、SEI source、E2/E3 Go、output path、source temp parentを"
+            "副作用なしで一括検査します。"
+        ),
+        allow_abbrev=False,
+    )
+    reference_group = parser.add_mutually_exclusive_group(required=True)
+    reference_group.add_argument("--reference-source-repo", type=Path)
+    reference_group.add_argument("--reference-evidence-bundle", type=Path)
+    parser.add_argument(
+        "--sei-repo-root",
+        type=Path,
+        default=Path(__file__).resolve().parents[2],
+    )
+    parser.add_argument("--output-dir", required=True, type=Path)
+    parser.add_argument("--tei-go-executable", required=True, type=Path)
+    parser.add_argument("--sei-go-executable", required=True, type=Path)
+    parser.add_argument("--expected-sei-head")
+    parser.add_argument("--overwrite", action="store_true")
+    parser.add_argument("--json", action="store_true")
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
+    result = run_preflight(
+        args.reference_source_repo,
+        args.sei_repo_root,
+        args.output_dir,
+        reference_evidence_bundle=args.reference_evidence_bundle,
+        tei_go_executable=args.tei_go_executable,
+        sei_go_executable=args.sei_go_executable,
+        expected_sei_head=args.expected_sei_head,
+        overwrite=args.overwrite,
+    )
+    if args.json:
+        print(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2))
+    else:
+        print(f"TEI version exchange GitHub preflight: {result['result']}")
+        for check in result["checks"]:
+            print(f"- {check['name']}: {check['status']}")
+            if check["status"] != "ready":
+                print(f"  {check['error']['message']}")
+        print(result["stopLine"])
+    return 0 if result["ready"] else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

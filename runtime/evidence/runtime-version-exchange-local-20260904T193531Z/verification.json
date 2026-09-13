@@ -1,0 +1,545 @@
+{
+  "blockers": [],
+  "checks": [
+    {
+      "detail": "Evidence directoryを確認しました: /work/evidence-20260904T193500Z",
+      "id": "evidence.directory",
+      "status": "ok"
+    },
+    {
+      "detail": "固定artifact manifestを確認しました",
+      "id": "artifact-manifest",
+      "status": "ok"
+    },
+    {
+      "detail": "Evidence fileを確認しました: runtime-exchange-identity.json",
+      "id": "file.runtime-exchange-identity.json",
+      "status": "ok"
+    },
+    {
+      "detail": "JSON objectを確認しました: runtime-exchange-identity.json",
+      "id": "json.runtime-exchange-identity.json",
+      "status": "ok"
+    },
+    {
+      "detail": "Evidence fileを確認しました: kj-atlas-source-identity.json",
+      "id": "file.kj-atlas-source-identity.json",
+      "status": "ok"
+    },
+    {
+      "detail": "JSON objectを確認しました: kj-atlas-source-identity.json",
+      "id": "json.kj-atlas-source-identity.json",
+      "status": "ok"
+    },
+    {
+      "detail": "Evidence fileを確認しました: kj-atlas-runtime-exchange-request.json",
+      "id": "file.kj-atlas-runtime-exchange-request.json",
+      "status": "ok"
+    },
+    {
+      "detail": "JSON objectを確認しました: kj-atlas-runtime-exchange-request.json",
+      "id": "json.kj-atlas-runtime-exchange-request.json",
+      "status": "ok"
+    },
+    {
+      "detail": "Evidence fileを確認しました: runtime-exchange-runner-observation.json",
+      "id": "file.runtime-exchange-runner-observation.json",
+      "status": "ok"
+    },
+    {
+      "detail": "JSON objectを確認しました: runtime-exchange-runner-observation.json",
+      "id": "json.runtime-exchange-runner-observation.json",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime exchange identity schemaを確認しました",
+      "id": "identity.schema",
+      "status": "ok"
+    },
+    {
+      "detail": "SOZA repository commitをEvidenceへ保持しています",
+      "id": "identity.repository-commit",
+      "status": "ok"
+    },
+    {
+      "detail": "固定runtime artifactに対応するLinux / amd64 hostを確認しました",
+      "id": "identity.host",
+      "status": "ok"
+    },
+    {
+      "detail": "qualityJudgement=not_evaluatedを保持しています",
+      "id": "identity.quality-boundary",
+      "status": "ok"
+    },
+    {
+      "detail": "runtimeA固定identityを確認しました",
+      "id": "identity.runtimeA",
+      "status": "ok"
+    },
+    {
+      "detail": "runtimeB固定identityを確認しました",
+      "id": "identity.runtimeB",
+      "status": "ok"
+    },
+    {
+      "detail": "固定model identityを確認しました",
+      "id": "identity.model",
+      "status": "ok"
+    },
+    {
+      "detail": "KJ Atlas source identity schemaを確認しました",
+      "id": "source.schema",
+      "status": "ok"
+    },
+    {
+      "detail": "KJ Atlas verified source identityを確認しました",
+      "id": "source.verified",
+      "status": "ok"
+    },
+    {
+      "detail": "strict verified-runtime-bundle sourceを確認しました",
+      "id": "source.mode",
+      "status": "ok"
+    },
+    {
+      "detail": "source sourceCommitを固定値へ一致させました",
+      "id": "source.sourceCommit",
+      "status": "ok"
+    },
+    {
+      "detail": "source pinnedBackendTreeを固定値へ一致させました",
+      "id": "source.pinnedBackendTree",
+      "status": "ok"
+    },
+    {
+      "detail": "source runtimeSurfaceTreeを固定値へ一致させました",
+      "id": "source.runtimeSurfaceTree",
+      "status": "ok"
+    },
+    {
+      "detail": "source verificationBasisを固定値へ一致させました",
+      "id": "source.verificationBasis",
+      "status": "ok"
+    },
+    {
+      "detail": "identity fileとsource identity fileが一致します",
+      "id": "source.identity-copy",
+      "status": "ok"
+    },
+    {
+      "detail": "固定3-card Method inputを確認しました",
+      "id": "request.cards",
+      "status": "ok"
+    },
+    {
+      "detail": "固定3-card Method inputの本文を確認しました",
+      "id": "request.card-text",
+      "status": "ok"
+    },
+    {
+      "detail": "固定held cardを確認しました",
+      "id": "request.held-card",
+      "status": "ok"
+    },
+    {
+      "detail": "runner observation schemaを確認しました",
+      "id": "runner.schema",
+      "status": "ok"
+    },
+    {
+      "detail": "runner observationでもqualityJudgement=not_evaluatedを保持しています",
+      "id": "runner.quality-boundary",
+      "status": "ok"
+    },
+    {
+      "detail": "repository-local harnessのexit code 0を観測しています",
+      "id": "runner.exit-code",
+      "status": "ok"
+    },
+    {
+      "detail": "harness combined output SHA-256を確認しました",
+      "id": "runner.output-sha256",
+      "status": "ok"
+    },
+    {
+      "detail": "Evidence fileを確認しました: runtime-exchange-runner.log",
+      "id": "file.runtime-exchange-runner.log",
+      "status": "ok"
+    },
+    {
+      "detail": "runner observationとcombined output logのSHA-256が一致します",
+      "id": "runner.log-sha256",
+      "status": "ok"
+    },
+    {
+      "detail": "runner combined output bytesを確認しました: 20320",
+      "id": "runner.log-size",
+      "status": "ok"
+    },
+    {
+      "detail": "harness最終completion markerを確認しました",
+      "id": "runner.completion-marker",
+      "status": "ok"
+    },
+    {
+      "detail": "Evidence fileを確認しました: runtime-exchange-a-version.txt",
+      "id": "file.runtime-exchange-a-version.txt",
+      "status": "ok"
+    },
+    {
+      "detail": "UTF-8 textを確認しました: runtime-exchange-a-version.txt",
+      "id": "text.runtime-exchange-a-version.txt",
+      "status": "ok"
+    },
+    {
+      "detail": "Evidence fileを確認しました: runtime-exchange-b-version.txt",
+      "id": "file.runtime-exchange-b-version.txt",
+      "status": "ok"
+    },
+    {
+      "detail": "UTF-8 textを確認しました: runtime-exchange-b-version.txt",
+      "id": "text.runtime-exchange-b-version.txt",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime A actual version 0.32.13を確認しました",
+      "id": "runtime.a.version",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime B actual version 0.32.14を確認しました",
+      "id": "runtime.b.version",
+      "status": "ok"
+    },
+    {
+      "detail": "Evidence fileを確認しました: runtime-exchange-a-archive-sha256.txt",
+      "id": "file.runtime-exchange-a-archive-sha256.txt",
+      "status": "ok"
+    },
+    {
+      "detail": "UTF-8 textを確認しました: runtime-exchange-a-archive-sha256.txt",
+      "id": "text.runtime-exchange-a-archive-sha256.txt",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime A actual archive SHA-256を確認しました",
+      "id": "runtime.a.archive-sha256",
+      "status": "ok"
+    },
+    {
+      "detail": "Evidence fileを確認しました: runtime-exchange-b-archive-sha256.txt",
+      "id": "file.runtime-exchange-b-archive-sha256.txt",
+      "status": "ok"
+    },
+    {
+      "detail": "UTF-8 textを確認しました: runtime-exchange-b-archive-sha256.txt",
+      "id": "text.runtime-exchange-b-archive-sha256.txt",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime B actual archive SHA-256を確認しました",
+      "id": "runtime.b.archive-sha256",
+      "status": "ok"
+    },
+    {
+      "detail": "Evidence fileを確認しました: runtime-exchange-a-model-id.txt",
+      "id": "file.runtime-exchange-a-model-id.txt",
+      "status": "ok"
+    },
+    {
+      "detail": "UTF-8 textを確認しました: runtime-exchange-a-model-id.txt",
+      "id": "text.runtime-exchange-a-model-id.txt",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime A fixed model full digestを確認しました",
+      "id": "model.a.id",
+      "status": "ok"
+    },
+    {
+      "detail": "Evidence fileを確認しました: runtime-exchange-a-tags.json",
+      "id": "file.runtime-exchange-a-tags.json",
+      "status": "ok"
+    },
+    {
+      "detail": "JSON objectを確認しました: runtime-exchange-a-tags.json",
+      "id": "json.runtime-exchange-a-tags.json",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime A /api/tagsで固定model digestを確認しました",
+      "id": "model.a.tags",
+      "status": "ok"
+    },
+    {
+      "detail": "Evidence fileを確認しました: runtime-exchange-a-evidence.json",
+      "id": "file.runtime-exchange-a-evidence.json",
+      "status": "ok"
+    },
+    {
+      "detail": "JSON objectを確認しました: runtime-exchange-a-evidence.json",
+      "id": "json.runtime-exchange-a-evidence.json",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime a model Evidence schemaを確認しました",
+      "id": "inference.a.schema",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime a model名を確認しました: qwen2.5:0.5b",
+      "id": "inference.a.model",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime a taskを確認しました",
+      "id": "inference.a.task",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime a actual inference完了を確認しました",
+      "id": "inference.a.done",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime a prompt_eval_count>0を確認しました: 196",
+      "id": "inference.a.prompt_eval_count",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime a eval_count>0を確認しました: 78",
+      "id": "inference.a.eval_count",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime a prompt SHA-256を確認しました",
+      "id": "inference.a.prompt-sha256",
+      "status": "ok"
+    },
+    {
+      "detail": "Evidence fileを確認しました: runtime-exchange-a-result.json",
+      "id": "file.runtime-exchange-a-result.json",
+      "status": "ok"
+    },
+    {
+      "detail": "JSON objectを確認しました: runtime-exchange-a-result.json",
+      "id": "json.runtime-exchange-a-result.json",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime a KJ Atlas groupsを確認しました",
+      "id": "result.a.groups",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime a held card除外を確認しました",
+      "id": "result.a.excluded",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime a resultがtruncatedではないことを確認しました",
+      "id": "result.a.truncated",
+      "status": "ok"
+    },
+    {
+      "detail": "Evidence fileを確認しました: runtime-exchange-b-model-id.txt",
+      "id": "file.runtime-exchange-b-model-id.txt",
+      "status": "ok"
+    },
+    {
+      "detail": "UTF-8 textを確認しました: runtime-exchange-b-model-id.txt",
+      "id": "text.runtime-exchange-b-model-id.txt",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime B fixed model full digestを確認しました",
+      "id": "model.b.id",
+      "status": "ok"
+    },
+    {
+      "detail": "Evidence fileを確認しました: runtime-exchange-b-tags.json",
+      "id": "file.runtime-exchange-b-tags.json",
+      "status": "ok"
+    },
+    {
+      "detail": "JSON objectを確認しました: runtime-exchange-b-tags.json",
+      "id": "json.runtime-exchange-b-tags.json",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime B /api/tagsで固定model digestを確認しました",
+      "id": "model.b.tags",
+      "status": "ok"
+    },
+    {
+      "detail": "Evidence fileを確認しました: runtime-exchange-b-evidence.json",
+      "id": "file.runtime-exchange-b-evidence.json",
+      "status": "ok"
+    },
+    {
+      "detail": "JSON objectを確認しました: runtime-exchange-b-evidence.json",
+      "id": "json.runtime-exchange-b-evidence.json",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime b model Evidence schemaを確認しました",
+      "id": "inference.b.schema",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime b model名を確認しました: qwen2.5:0.5b",
+      "id": "inference.b.model",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime b taskを確認しました",
+      "id": "inference.b.task",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime b actual inference完了を確認しました",
+      "id": "inference.b.done",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime b prompt_eval_count>0を確認しました: 196",
+      "id": "inference.b.prompt_eval_count",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime b eval_count>0を確認しました: 78",
+      "id": "inference.b.eval_count",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime b prompt SHA-256を確認しました",
+      "id": "inference.b.prompt-sha256",
+      "status": "ok"
+    },
+    {
+      "detail": "Evidence fileを確認しました: runtime-exchange-b-result.json",
+      "id": "file.runtime-exchange-b-result.json",
+      "status": "ok"
+    },
+    {
+      "detail": "JSON objectを確認しました: runtime-exchange-b-result.json",
+      "id": "json.runtime-exchange-b-result.json",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime b KJ Atlas groupsを確認しました",
+      "id": "result.b.groups",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime b held card除外を確認しました",
+      "id": "result.b.excluded",
+      "status": "ok"
+    },
+    {
+      "detail": "runtime b resultがtruncatedではないことを確認しました",
+      "id": "result.b.truncated",
+      "status": "ok"
+    },
+    {
+      "detail": "A / Bが同じ固定model artifactを使ったことを確認しました",
+      "id": "model.same-artifact",
+      "status": "ok"
+    },
+    {
+      "detail": "A / Bの/api/tags観測が同じ固定model artifactへ一致します",
+      "id": "model.tags-same-artifact",
+      "status": "ok"
+    },
+    {
+      "detail": "A / Bのprompt SHA-256が一致します: cd3d5eeb64cddfbdce63d80b0451b19703f43bcd2d1b09d7188f6bd4d7de2d33",
+      "id": "inference.same-prompt",
+      "status": "ok"
+    },
+    {
+      "detail": "JSON objectを確認しました: runtime-exchange-preflight.json",
+      "id": "provenance.json.runtime-exchange-preflight.json",
+      "status": "ok"
+    },
+    {
+      "detail": "JSON objectを確認しました: runtime-exchange-runner-observation.json",
+      "id": "provenance.json.runtime-exchange-runner-observation.json",
+      "status": "ok"
+    },
+    {
+      "detail": "JSON objectを確認しました: kj-atlas-source-identity.json",
+      "id": "provenance.json.kj-atlas-source-identity.json",
+      "status": "ok"
+    },
+    {
+      "detail": "preflight schemaを確認しました",
+      "id": "provenance.preflight.schema",
+      "status": "ok"
+    },
+    {
+      "detail": "保存済みpreflightがready / blockers=[]であることを確認しました",
+      "id": "provenance.preflight.result",
+      "status": "ok"
+    },
+    {
+      "detail": "preflightの固定runtime / model artifact条件をcurrent manifestへ一致させました",
+      "id": "provenance.preflight.fixed-artifacts",
+      "status": "ok"
+    },
+    {
+      "detail": "preflightの固定KJ Atlas source identityを確認しました",
+      "id": "provenance.preflight.source-identity",
+      "status": "ok"
+    },
+    {
+      "detail": "runner observationと保存済みpreflight resultがreadyで一致します",
+      "id": "provenance.runner.preflight-result",
+      "status": "ok"
+    },
+    {
+      "detail": "Evidence directory作成主体を確認しました: strict-entrypoint",
+      "id": "provenance.runner.evidence-directory-created-by",
+      "status": "ok"
+    },
+    {
+      "detail": "complete runのEvidence directoryがstrict entrypoint由来であることを確認しました",
+      "id": "provenance.runner.complete-run-directory-creator",
+      "status": "ok"
+    },
+    {
+      "detail": "runner source preparationを確認しました: checkout-to-verified-runtime-bundle",
+      "id": "provenance.runner.source-preparation",
+      "status": "ok"
+    },
+    {
+      "detail": "JSON objectを確認しました: runtime-exchange-source-export.json",
+      "id": "provenance.json.runtime-exchange-source-export.json",
+      "status": "ok"
+    },
+    {
+      "detail": "checkout source export schemaを確認しました",
+      "id": "provenance.source-export.schema",
+      "status": "ok"
+    },
+    {
+      "detail": "固定commit objectからgit archiveでsourceを取得したことを確認しました",
+      "id": "provenance.source-export.acquisition",
+      "status": "ok"
+    },
+    {
+      "detail": "checkout source exportの固定commitを確認しました",
+      "id": "provenance.source-export.commit",
+      "status": "ok"
+    },
+    {
+      "detail": "checkout source exportのverificationがactual source identity fileと一致します",
+      "id": "provenance.source-export.verification-copy",
+      "status": "ok"
+    }
+  ],
+  "coreEvidenceResult": "ready-to-review",
+  "evidenceDirectory": "/work/evidence-20260904T193500Z",
+  "result": "ready-to-review",
+  "schema": "soza.runtime-version-exchange-provenance-verification/v1",
+  "stopLine": "mechanical Evidence + Provenance verification PASS != Requirement / Contract assessment complete != outcome quality satisfied != ISSUE-000070 Resolved"
+}

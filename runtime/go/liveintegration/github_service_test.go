@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hat47x/soza/runtime/go/provideradapter"
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/provideradapter"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 const testCommitSHA = "aa3651f3460a6db7dc70bd848f93b600f149ffe8"
@@ -137,11 +137,11 @@ func TestGitHubCommitServiceRejectsInvalidRepository(t *testing.T) {
 }
 
 func TestLiveGitHubCommitService(t *testing.T) {
-	if os.Getenv("SOZA_E3B_LIVE") != "1" {
-		t.Skip("set SOZA_E3B_LIVE=1 to call the public live Provider service")
+	if os.Getenv("SEI_E3B_LIVE") != "1" {
+		t.Skip("set SEI_E3B_LIVE=1 to call the public live Provider service")
 	}
 
-	service := GitHubCommitService{Token: os.Getenv("SOZA_LIVE_PROVIDER_TOKEN")}
+	service := GitHubCommitService{Token: os.Getenv("SEI_LIVE_PROVIDER_TOKEN")}
 	document, err := service.ObserveCommit(
 		context.Background(),
 		"hat47x/cultural-substrate-weaving",

@@ -5,7 +5,7 @@
 
 ## 1. この文書の役割
 
-この文書は、Phase 1 candidateで作成されたM48 / M49 / M50周辺のArchitecture文書を、current `SOZA_REFERENCE_ARCHITECTURE.md`へどのように統合・分離・保留したかを記録します。
+この文書は、Phase 1 candidateで作成されたM48 / M49 / M50周辺のArchitecture文書を、current `SEI_REFERENCE_ARCHITECTURE.md`へどのように統合・分離・保留したかを記録します。
 
 historical文書をcurrent正本へrenameしたものではありません。
 
@@ -109,7 +109,7 @@ M49系列から、次をcurrent Decision Memoryへ統合しました。
 - D1を後知恵で書き換えずD2とのlineageを残すこと
 - Progressive ExplicitnessをProfile / Policyへ置くこと
 
-currentでは、これらの一部を`soza.decision-memory/v1alpha1`、Semantic Reference / Interchange、fixture、first semantic runtimeで限定的に検証しています。
+currentでは、これらの一部を`sei.decision-memory/v1alpha1`、Semantic Reference / Interchange、fixture、first semantic runtimeで限定的に検証しています。
 
 一方、M49専用workflow、status machine、schema version lifecycleはcurrent Architectureへ導入していません。
 
@@ -129,7 +129,7 @@ Capability Definition
 
 さらにADR-0019 / ADR-0024を反映し、Provider internal state→Adapter / Mapping→Capability Observationという境界をcurrent Architectureへ追加しています。
 
-currentでは`soza.capability-observation/v1alpha1`、F1〜F7 fixture、Go first runtime、synthetic Provider A / B Adapterにより、この境界の一部をExecutable Evidenceとして確認しています。
+currentでは`sei.capability-observation/v1alpha1`、F1〜F7 fixture、Go first runtime、synthetic Provider A / B Adapterにより、この境界の一部をExecutable Evidenceとして確認しています。
 
 旧M50で未決だった次は、current Architectureでも無理に固定していません。
 
@@ -215,7 +215,7 @@ Executable Evidenceが増えたことを、historical candidateの正当化やpr
 historical candidate以降、current baselineでは特に次が強化されています。
 
 1. Product Value V1〜V8からArchitectureまでの明示的traceability。
-2. SOZA / TEI Product Boundaryの固定。
+2. SEI / TEI Product Boundaryの固定。
 3. Reference Model / PatternとCognitive Methodの分離。
 4. Provider-neutral Capability ObservationとAdapter mapping provenance。
 5. Product Value / Requirement / Architecture / Contract / Representation Profileの権威関係。

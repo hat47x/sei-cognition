@@ -11,8 +11,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hat47x/soza/runtime/go/provideradapter"
-	"github.com/hat47x/soza/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/provideradapter"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 const (
@@ -23,7 +23,7 @@ const (
 )
 
 // CLI は外部から与えられたTEI executableを呼ぶreference integration境界です。
-// ExecutableやPrefixArgsは取得方法・配布方式を表すだけであり、SOZAのUniversal
+// ExecutableやPrefixArgsは取得方法・配布方式を表すだけであり、SEIのUniversal
 // ContractやTEIの正式なintegration protocolではありません。
 type CLI struct {
 	Executable string
@@ -31,7 +31,7 @@ type CLI struct {
 }
 
 // ProviderPlanRequest はTEIのdeployment-provider-planを呼ぶためのProvider固有設定です。
-// field setをSOZA Universal Contractへ昇格させる意図はありません。
+// field setをSEI Universal Contractへ昇格させる意図はありません。
 type ProviderPlanRequest struct {
 	Workspace        string
 	Run              string

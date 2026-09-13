@@ -1,4 +1,4 @@
-# ISSUE-000022: SOZA repositoryのcurrent baselineを実体化し、Evidence claimを再整合する
+# ISSUE-000022: SEI repositoryのcurrent baselineを実体化し、Evidence claimを再整合する
 
 Status: **Resolved**  
 Priority: **2**  
@@ -7,7 +7,7 @@ Updated: 2026-08-31
 
 ## Goal
 
-GitHub上の`hat47x/soza`へ、Product Valueから追跡可能なRequirements、Architecture、Contracts、Fixtures、Runtime、Toolsをcurrent Product Boundaryに沿って実体化する。
+GitHub上の`hat47x/sei-cognition`へ、Product Valueから追跡可能なRequirements、Architecture、Contracts、Fixtures、Runtime、Toolsをcurrent Product Boundaryに沿って実体化する。
 
 同時に、historical candidate / Library資産と、actual repositoryで再現したcurrent Evidenceを分け、README、Requirements、Plan上の達成主張をactual treeへ一致させる。
 
@@ -69,7 +69,7 @@ actual repositoryへ次を実体化した。
 ```text
 architecture/
   README.md
-  SOZA_REFERENCE_ARCHITECTURE.md
+  SEI_REFERENCE_ARCHITECTURE.md
   TRACEABILITY.md
   history/
     HISTORICAL_ARCHITECTURE_MAPPING.md
@@ -83,10 +83,10 @@ REQ-0001〜REQ-0022をArchitecture concernへ追跡できる。
 
 current Contract family:
 
-- `soza.semantic-reference/v1alpha1`
-- `soza.decision-memory/v1alpha1`
-- `soza.capability-observation/v1alpha1`
-- `soza.semantic-interchange/v1alpha1`
+- `sei.semantic-reference/v1alpha1`
+- `sei.decision-memory/v1alpha1`
+- `sei.capability-observation/v1alpha1`
+- `sei.semantic-interchange/v1alpha1`
 
 加えて、次をactual treeへ実体化した。
 
@@ -105,8 +105,8 @@ Contract Definitionをsemantic authorityとし、Schema / validatorをその実�
 ADR-0023で、current/future Exact Binding向けに次をAcceptedした。
 
 ```text
-soza.jcs+sha256/v1alpha1
-soza.raw-bytes+sha256/v1alpha1
+sei.jcs+sha256/v1alpha1
+sei.raw-bytes+sha256/v1alpha1
 ```
 
 RFC 8785 JCS、raw bytes、high-precision boundary、Unicode non-normalization、`verified / failed / not_verified`等をfixtureとGo probeで検証した。
