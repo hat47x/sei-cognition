@@ -1,6 +1,6 @@
 # Personal Inquiry Continuity — Dogfood Evaluation Recording
 
-更新日: 2026-09-14  
+更新日: 2026-09-16  
 状態: **Evaluation-only Observation Sidecar / Not Product Requirement**  
 関連: `VALUE_VALIDATION_PROTOCOL.md` / `RESEARCH_DERIVED_VALIDATION_AMENDMENTS.md` / `BRAND_WORLD_VALIDATION_AMENDMENT_QUIET_INFRASTRUCTURE_2026-09-14.md` / ISSUE-000078
 
@@ -141,6 +141,8 @@ not-observed
 
 これは「何日ならProduct Valueが成立する」というRequirementではない。短期記憶が残る条件と、実際にmental contextを再構成する条件を後から区別するための評価metadataである。
 
+暦上のgapだけでは認知的context lossを保証しない。resume対象のInquiry state、元chat、source、評価設計等へ直前にmaterialな再露出があった場合は、その事実をhuman reviewのnotesへ残し、Evidenceを保守的に読む。
+
 ## 7. 観測する意味上の失敗
 
 主な観測項目は次である。
@@ -276,7 +278,7 @@ ISSUE-000078の目的は新しいschemaを増やすことではなく、既存Pe
 
 ## 14. current actual case
 
-最初のactual open Inquiryとして、次をmainへ初期化済みである。
+最初のactual open Inquiryとして、次をstable baselineである`main`へ初期化し、その後`develop/v0.2.0`へ同期済みである。
 
 - `ACTUAL_DOGFOOD_CASE_QUIET_INFRASTRUCTURE_2026-09-14.md`
 - `actual_dogfood_quiet_infrastructure_2026-09-14.inquiry.json`
@@ -284,12 +286,35 @@ ISSUE-000078の目的は新しいschemaを増やすことではなく、既存Pe
 
 開始時点ではDecision 0件、Review 0件であり、evaluation sidecarにもhuman observationを入れていない。
 
-次の高情報量stepは文書追加ではなく、十分なcontext gap後のactual resumptionである。同日calibrationを実施しても`evidence_role=calibration`としてのみ扱う。
+2026-09-16にはmulti-dayの暦条件へ到達したが、上流計画・branch整理の説明中にcurrent Inquiry stateへ再露出したため、その直後の再開はcleanなcontext-loss条件として扱わない。sidecarの`resume_observations`は引き続き空のまま保つ。
 
-## 15. Natural Japanese review
+次の高情報量stepは文書追加ではなく、最後のmaterial exposureから十分なcontext gapを置いた後のactual resumptionである。同日calibrationを実施しても`evidence_role=calibration`としてのみ扱う。
+
+## 15. Pre-orientation exposureの扱い
+
+human resumptionの前に、元chat、source、canonical Inquiry state、評価設計の説明等から、current concernやUnknown / Hypothesisを実質的に思い出せる情報へ再露出した場合、その回をclean resumptionとして数えない。
+
+```text
+calendar gap
+  != cognitive gap
+
+pre-orientation material exposure
+  + no actual surface use
+  != resume observation
+```
+
+この場合は、必要に応じてcheckpointやhuman review memoへprotocol observationとして残すが、実際に比較対象Surfaceを使って再開を試みていない限り、sidecarへ架空の`resume_observation`を追加しない。
+
+一方、軽微な関連情報を偶然見たからといってcase全体を自動破棄しない。何へ再露出したか、どの程度current stateを再活性化し得たかを記録し、その後に十分なgapを置く。
+
+現時点では`last_material_exposure`等を新しいschema fieldへ追加しない。複数caseで同じfailureが再現し、machine-readable比較に必要だと確認された場合にだけschema変更を検討する。
+
+## 16. Natural Japanese review
 
 本sidecarは、「評価したいもの」をProduct semanticsへ逆輸入しないことに加え、**異なるEvidence高さを一つの数字へ混ぜないこと**を重視する。
 
-actual caseを作ったことで、文書上は分けていたsame-day calibrationとlong-gap resumptionが、machine-readableな比較では混ざり得ることが分かった。そこで、後から人が注意して読み分けるだけではなく、sidecar自体にEvidence roleとcontext gapを持たせ、comparison Projectionもその境界を越えて集計しない形へ改めた。
+actual caseを作ったことで、文書上は分けていたsame-day calibrationとlong-gap resumptionが、machine-readableな比較では混ざり得ることが分かった。さらに2026-09-16の継続作業では、暦上のmulti-day gapがあっても、再開前にmaterialなstate説明へ再露出すればcleanなresumption条件が崩れることをactualに確認した。
+
+そこで、後から人が注意して読み分けるだけではなく、sidecar自体では実際に行ったresume observationだけを記録し、pre-orientation exposureは別のprotocol observationとして扱う停止線を追加した。schema fieldの追加はまだ行わず、まず複数caseで必要性を確かめる。
 
 自然な日本語として全文を再読し、Product Value、Evaluation、Stable Requirement、Universal Contract、およびEvidence高さの境界が曖昧になっていないことを最終監査済みである。
