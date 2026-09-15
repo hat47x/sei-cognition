@@ -1,7 +1,7 @@
 # SEI 上流プロダクト開発計画
 
 更新日: 2026-09-16  
-状態: **Current Upstream Planning Baseline — Product Value discovery / Inquiry Continuity actual dogfood / resume-first Product Slice / TEI version exchangeを並行優先**
+状態: **Current Upstream Planning Baseline — Brand-world Product Value discovery完了 / Inquiry Continuity actual dogfood / resume-first Product Slice / TEI version exchangeを並行優先**
 
 ## 1. この文書の役割
 
@@ -84,13 +84,13 @@ Design
 
 ## 4. 現在の最優先探索 — 三本柱
 
-### Priority A — ブランド世界をProduct Value discoveryへ接続する
+### Priority A foundation — ブランド世界をProduct Value discoveryへ接続する（ISSUE-000077 Resolved）
 
-**ISSUE-000077**を、SEI Cognitionの「井」を中心に形成されたブランド世界から、Product Valueの未発見部分や弱い部分を探索する上流laneとして扱います。
+**ISSUE-000077**では、SEI Cognitionの「井」を中心に形成されたブランド世界を、Product Valueの未発見部分や弱い部分を探索する上流sourceとして整備し、2026-09-16にResolution条件を満たしたと判断しました。
 
-このIssueでは、井戸、水、深層、中央の空白、静けさ、四方向性、共有財産といった象徴をProduct Requirementへ直接変換しません。まず、それらが何を利用者・組織の価値として照らしているのかを、十分に豊かな文章として保存し、current Product Value / Value Model / Vision / Principlesへ逆照合します。
+このIssueでは、井戸、水、深層、中央の空白、静けさ、四方向性、共有財産といった象徴をProduct Requirementへ直接変換せず、それらが何を利用者・組織の価値として照らしているのかを十分に豊かな文章として保存し、current Product Value / Value Model / Vision / Principlesへ逆照合しました。
 
-この最初の探索単位では、次を実施済みです。
+完了した探索単位は次です。
 
 - `product/value/SEI_BRAND_WORLD_DISCOVERY_SOURCE.md`に、井、中央の空白、水、静けさ、四方向性、Cognitive Commons、SEI / SUI / TEIの象徴関係を**非規範のProduct Value discovery source**として保存した。
 - `product/value/SEI_BRAND_WORLD_PRODUCT_VALUE_REVIEW.md`で、Cognitive Commons、Surface / Depth Interface、Deliberate Non-closure、Durable Cognitive Aperture、Quiet Infrastructure、Shared but not Unboundedをcurrent V1〜V8 / Decision Continuityへ逆照合した。
@@ -109,9 +109,7 @@ Shared but not Unbounded    → Cognitive Commons成立条件
 Inquiry Continuity          → follow-up Product hypothesis
 ```
 
-したがって、Priority Aの次の高情報量stepは、ブランド文書をさらに増やすことではありません。
-
-**ISSUE-000078で、Decisionがまだ存在しない長期Inquiryについて、raw chat / chronological note / SEI canonical meaningを比較し、SEI固有の継続価値が本当に存在するかを反証可能にすること**です。
+したがって、ISSUE-000077の完了後にブランド文書を増やし続けることはPriority Aの目的ではありません。activeな高情報量探索は**ISSUE-000078**へ引き継ぎ、Decisionがまだ存在しない長期Inquiryについて、raw chat / chronological note / SEI canonical meaningを比較し、SEI固有の継続価値が本当に存在するかを反証可能にします。
 
 この比較では、resume speedだけでなく、historical attribution error、Observation / Hypothesis混同、unresolved omission、original concern drift、capture burden、AI summary correction burden等を観測します。
 
@@ -141,7 +139,7 @@ or SEIに実質的な価値差なし
 
 探索では、ブランド世界をKJの外部分類枠として用いません。象徴は問いを増やすcueとして使い、最終的な価値構造はSEIのcurrent Product material、実利用Scenario、failure、counterexampleから立ち上げます。
 
-このlaneはProduct Valueの根を見直すため、実装laneより上流に置きます。ただし、検討中であることを理由にISSUE-000073やISSUE-000072の独立したEvidence取得を止めません。
+ISSUE-000077はProduct Value discovery sourceの確立として完了しましたが、その成果は引き続き上流へ戻るためのsourceとして維持します。ISSUE-000078、ISSUE-000073、ISSUE-000072はそれぞれ異なる未知を扱う独立laneであり、相互のEvidenceを代用しません。
 
 ### Priority B1 — first usable resume-first Product Slice
 
@@ -364,7 +362,7 @@ Product confidenceを高めるため、happy pathだけでなくpartial commit�
 
 | Lane | Issue / area | State | Next high-information step |
 |---|---|---|---|
-| Product Value discovery | ISSUE-000077 | Open / source + review + Vision integration complete | document placement / No Change audit, then closure review |
+| Product Value discovery | ISSUE-000077 | Resolved / source + review + Vision integration complete | ISSUE-000078等のactual Evidenceでreopen conditionが生じた場合のみ再監査 |
 | Inquiry Continuity validation | ISSUE-000078 | Open / actual Inquiry seeded / clean context gap reset after material exposure | last material exposureから十分なgap後のSEI Orientation actual human resumption、次いでraw chat / note counterfactual |
 | Product Interaction | ISSUE-000073 | Open / Design baseline | prototype E1〜E8 + human review |
 | TEI Provider portability | ISSUE-000072 | Open / execution blocked externally | exact-B actual E2 when execution surface is available |
@@ -434,7 +432,7 @@ human usability review
 
 ## 12. Natural Japanese review
 
-2026-09-16時点で、ISSUE-000077のBrand World Discovery SourceとProduct Value Reviewは`product/value`へ一本化され、Product Visionへ必要な範囲だけを反映しています。旧`product/vision/SEI_BRAND_WORLD_SOURCE.md`および旧`SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md`という配置・名称はcurrent正本ではありません。
+2026-09-16時点で、ISSUE-000077のBrand World Discovery SourceとProduct Value Reviewは`product/value`へ一本化され、Product Visionへ必要な範囲だけを反映しています。旧`product/vision/SEI_BRAND_WORLD_SOURCE.md`および旧`SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md`という配置・名称はcurrent正本ではありません。H77.1〜H77.6の逆照合、No Change判断、上位文書への配置、後続Issue切り出しまで完了したため、ISSUE-000077はResolvedとしました。
 
 Reviewの結果、Cognitive Commons、Surface / Depth Interface、Deliberate Non-closure、Quiet Infrastructure、Shared but not Unboundedは、新しいValue Axisを増やすより、既存V1〜V8、Decision Continuity、Product Vision、Product Interactionの説明を深める方が自然と判断しました。
 
@@ -444,4 +442,4 @@ first actual caseは2026-09-14にseed済みで、2026-09-16にはcase作成か�
 
 Provider / Method portabilityのEvidenceは引き続き重要であり、人間が「使い続けられること」のactual Evidenceを深めるISSUE-000073も並行して進めます。ISSUE-000072のTEI executable version exchangeもPriority 1のまま維持します。各laneは互いのEvidenceを代用せず、上流価値、Inquiry Continuity、Decision-centered Product Interaction、Provider portabilityという異なる未知を減らします。
 
-今回の更新では、branch統合後の正本配置、実際に得られたEvidenceの高さ、次のhuman observationの順序を現在地へ合わせました。ブランド世界の詩的な豊かさと、SEIのProduct governanceが要求するauthority / Evidenceの厳密さをどちらも削らず、背景から価値仮説、Discovery Reviewの結論、follow-up実証、下位設計へ降ろさない停止線、現在のwork laneまでが自然につながるように再読し、**自然な日本語となることを最重要視したうえで、意味、規範強度、current Evidence、未検証範囲が変わっていないことを最終監査しました。**
+今回の更新では、ISSUE-000077のResolutionとactiveなfollow-up探索の分離を現在地へ合わせました。ブランド世界の詩的な豊かさと、SEIのProduct governanceが要求するauthority / Evidenceの厳密さをどちらも削らず、背景から価値仮説、Discovery Reviewの結論、follow-up実証、下位設計へ降ろさない停止線、現在のwork laneまでが自然につながるように再読し、**自然な日本語となることを最重要視したうえで、意味、規範強度、current Evidence、未検証範囲が変わっていないことを最終監査しました。**
