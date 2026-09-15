@@ -187,9 +187,29 @@ branch名やPR番号そのものをProduct ontologyやEvidence authorityとし�
 - Value Axisを追加する。
 - actual failureがないままUI機能を増やす。
 
-## 10. 次の高情報量Evidence
+## 10. 2026-09-16の事前露出とclean resumption境界
 
-現在もっとも価値が高い次のEvidenceは、**利用者が元chat / sourceを先に開かず、multi-day gap後にOrientationから実際に再開したhuman observation**である。
+2026-09-16の作業では、branch統合、registry、上流計画を整理する過程で、利用者へcurrent Inquiryの問い、未解決点、Quiet / Proactive比較、次の評価手順を再度説明した。
+
+そのため、この直後にOrientationを提示してhuman resumptionを実施しても、**multi-dayという暦上のgapはあっても、cleanなcontext-loss条件ではない**。この状態をP1のresumption成功または失敗としてsidecarへ記録しない。
+
+```text
+multi-day elapsed
++ recent pre-orientation exposure
+!= clean multi-day resumption
+```
+
+これは実験設計上のprotocol observationとして扱う。evaluation sidecarの`resume_observations`は、実際に比較対象Surfaceを用いて再開を試みたhuman observationだけを記録するため、今回の事前露出だけでは追加しない。
+
+first case自体は破棄しない。2026-09-16の最後の事前露出後から、再び十分なcontext gapを置き、その間に元chat / source /本checkpoint /Inquiry stateを読み返さなかった条件でP1 Orientationから再開する。
+
+次回の実施時には、暦上の経過時間だけでなく、直前の関連情報への露出があったかをnotesへ残す。強い再露出があった場合は、`context_gap=multi-day`であってもEvidence強度を保守的に読む。
+
+この観測により、今後のdogfood protocolでは、単にcase作成時刻からの経過時間だけではなく、**last material exposureからの認知的gap**もhuman review時に確認する必要があることが分かった。ただし、この時点では新しいschema fieldやStable Requirementを追加しない。
+
+## 11. 次の高情報量Evidence
+
+現在もっとも価値が高い次のEvidenceは、**利用者が元chat / sourceを先に開かず、最後のmaterial exposureから十分なgapを置いた後に、Orientationから実際に再開したhuman observation**である。
 
 その観測が得られた後に初めて、
 
@@ -202,10 +222,12 @@ branch名やPR番号そのものをProduct ontologyやEvidence authorityとし�
 
 それまでは、Product Value成立を保留する。
 
-## 11. 自然な日本語とEvidence監査
+## 12. 自然な日本語とEvidence監査
 
 本checkpointは、実行可能になったことと実行済みであることを混同しないために起票した。
 
-「数日経ったので再開価値が証明された」という近道を避け、時間条件、human observation、counterfactual comparison、Product判断を分離している。SEI Cognitionのブランド世界から得たQuiet Infrastructureの着想は、引き続き評価仮説の源泉として利用するが、結果を先取りする規範としては扱わない。
+2026-09-16には、さらに「時間が経過したこと」と「直前に関連情報を再提示されていないこと」も分ける必要がactual作業から確認された。clean resumptionを急いで成立させず、事前露出があった回をhuman outcomeへ数えない停止線を追加した。
+
+「数日経ったので再開価値が証明された」という近道を避け、時間条件、material exposure、human observation、counterfactual comparison、Product判断を分離している。SEI Cognitionのブランド世界から得たQuiet Infrastructureの着想は、引き続き評価仮説の源泉として利用するが、結果を先取りする規範としては扱わない。
 
 本文を自然な日本語として再読し、Design / Evaluation / Human Evidence / Product Value / Stable Requirementの高さが混在していないことを最終確認した。
