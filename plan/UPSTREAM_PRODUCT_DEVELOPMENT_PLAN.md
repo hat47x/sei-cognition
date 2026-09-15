@@ -115,17 +115,19 @@ Inquiry Continuity          → follow-up Product hypothesis
 
 この比較では、resume speedだけでなく、historical attribution error、Observation / Hypothesis混同、unresolved omission、original concern drift、capture burden、AI summary correction burden等を観測します。
 
-2026-09-14にはfirst actual caseをseedし、2026-09-16にはmulti-day resumptionを実行できる時間条件へ到達しました。ただし、これはhuman resumptionが成功したEvidenceではありません。現在の境界は次です。
+2026-09-14にはfirst actual caseをseedし、2026-09-16にはcase作成からの暦上のmulti-day gapへ一度到達しました。ただし、同日の上流計画・branch整理でcurrent Inquiry stateへmaterialな事前露出が生じたため、cleanな認知的gapはそこで再設定しています。現在の境界は次です。
 
 ```text
 actual Inquiry seeded
-+ multi-day context gap elapsed
++ calendar multi-day gap reached once
 + resumption procedure prepared
++ pre-orientation material exposure observed
++ clean context gap reset
 != human resumption observed
 != Inquiry Continuity value established
 ```
 
-したがって、現在もっとも高情報量なのは、元chat / sourceを先に開かず、SEI Orientationだけから実際に再開し、historical correctness、unresolved preservation、source reopen、attention burden、first useful actionを観測することです。
+したがって、現在もっとも高情報量なのは、最後のmaterial exposureから十分なgapを置き、元chat / sourceを先に開かず、SEI Orientationだけから実際に再開し、historical correctness、unresolved preservation、source reopen、attention burden、first useful actionを観測することです。
 
 ISSUE-000078の結果は、次のいずれでも正当です。
 
@@ -222,7 +224,7 @@ ISSUE-000078では、Decision成立前のInquiryを対象に、raw chat、chrono
 - next useful stepへ戻る負担が減るか。
 - capture / review overheadが価値を相殺しないか。
 
-first actual caseでは、まずSEI Orientation単独のmulti-day resumptionを観測します。Generic Summary / chronological noteとのcounterfactual比較は、その観測後に行い、比較自体が最初の再開時working memoryへ干渉しないようにします。
+first actual caseでは、最後のmaterial exposureから十分なgapを置いた後、まずSEI Orientation単独のcleanなresumptionを観測します。Generic Summary / chronological noteとのcounterfactual比較は、その観測後に行い、比較自体が最初の再開時working memoryへ干渉しないようにします。
 
 Quiet-first / Proactive-firstの比較も、同じfirst caseで同時提示して結論を出しません。別caseまたは条件順序を入れ替えた比較を用い、順序効果を分離します。
 
@@ -363,7 +365,7 @@ Product confidenceを高めるため、happy pathだけでなくpartial commit�
 | Lane | Issue / area | State | Next high-information step |
 |---|---|---|---|
 | Product Value discovery | ISSUE-000077 | Open / source + review + Vision integration complete | document placement / No Change audit, then closure review |
-| Inquiry Continuity validation | ISSUE-000078 | Open / actual Inquiry seeded / multi-day resumption ready | SEI Orientationからのactual human resumption、次いでraw chat / note counterfactual |
+| Inquiry Continuity validation | ISSUE-000078 | Open / actual Inquiry seeded / clean context gap reset after material exposure | last material exposureから十分なgap後のSEI Orientation actual human resumption、次いでraw chat / note counterfactual |
 | Product Interaction | ISSUE-000073 | Open / Design baseline | prototype E1〜E8 + human review |
 | TEI Provider portability | ISSUE-000072 | Open / execution blocked externally | exact-B actual E2 when execution surface is available |
 | Method outcome quality | ISSUE-000071 follow-up | evaluation boundary established | actual human outcome review |
@@ -438,7 +440,7 @@ Reviewの結果、Cognitive Commons、Surface / Depth Interface、Deliberate Non
 
 一方、Durable Cognitive Apertureの検討から、Decisionが成立する前のInquiryについて、時間・AI session・担当者をまたいで元のconcern、Observation、Unknown、Hypothesisへ戻れるかがcurrent Product Valueで十分に反証されていないことを確認しました。そのためISSUE-000078を起票し、ブランド比喩ではなくraw chat / noteとのcounterfactual comparisonでProduct Valueの有無を確認します。
 
-first actual caseは2026-09-14にseed済みで、2026-09-16にはmulti-day resumptionの時間条件へ到達しました。ただしhuman observationはまだ記録していません。この差を維持し、次はOrientationからのactual resumptionを先に観測し、その後にGeneric Summary / chronological noteおよびQuiet / Proactive条件を比較します。
+first actual caseは2026-09-14にseed済みで、2026-09-16にはcase作成からの暦上のmulti-day gapへ一度到達しました。ただし同日の上流整理でmaterialな事前露出が生じたため、clean context gapはその時点から再設定し、human observationはまだ記録していません。この差を維持し、次は最後のmaterial exposureから十分なgapを置いた後にOrientationからのactual resumptionを先に観測し、その後にGeneric Summary / chronological noteおよびQuiet / Proactive条件を比較します。
 
 Provider / Method portabilityのEvidenceは引き続き重要であり、人間が「使い続けられること」のactual Evidenceを深めるISSUE-000073も並行して進めます。ISSUE-000072のTEI executable version exchangeもPriority 1のまま維持します。各laneは互いのEvidenceを代用せず、上流価値、Inquiry Continuity、Decision-centered Product Interaction、Provider portabilityという異なる未知を減らします。
 
