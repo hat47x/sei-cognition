@@ -1,12 +1,12 @@
 # Personal Inquiry Continuity — Actual Dogfood Checkpoint 2026-09-16
 
 更新日: 2026-09-16  
-状態: **Actual Dogfood In Progress / Multi-day Resumption Ready / Human Observation Not Yet Recorded**  
+状態: **Actual Dogfood In Progress / Context Gap Reset After Material Exposure / Human Observation Not Yet Recorded**  
 関連: `ACTUAL_DOGFOOD_CASE_QUIET_INFRASTRUCTURE_2026-09-14.md` / `actual_dogfood_quiet_infrastructure_2026-09-14.inquiry.json` / `actual_dogfood_quiet_infrastructure_2026-09-14.evaluation.json` / ISSUE-000078
 
 ## 1. このcheckpointの目的
 
-2026-09-14に開始した最初のactual dogfood caseについて、same-session / same-day calibrationから分離された**multi-day resumptionを実行できる時間条件に到達したこと**を記録する。
+2026-09-14に開始した最初のactual dogfood caseについて、same-session / same-day calibrationから分離された**multi-day resumptionを実行できる時間条件へ一度到達したこと**と、その後2026-09-16の上流整理でmaterialな事前露出が生じたため、cleanな認知的gapを改めて置く必要が生じたことを記録する。
 
 この文書は再開結果そのものではない。利用者が実際に何を覚えていたか、SEI Orientationだけでどこまで元のconcernへ戻れたか、どの程度sourceを開き直したかは、まだ観測していない。
 
@@ -14,15 +14,17 @@
 
 ```text
 actual Inquiry seeded
-+ multi-day context gap elapsed
++ calendar multi-day gap reached once
 + resumption procedure prepared
++ pre-orientation material exposure observed
++ clean context gap reset
 != human resumption observed
 != Inquiry Continuity value established
 != Quiet-first validated
 != Proactive-first validated
 ```
 
-時間が経過したことだけをProduct Value Evidenceへ昇格させない。
+時間が経過したことや、実験条件上の汚染を発見できたことだけをProduct Value Evidenceへ昇格させない。
 
 ## 2. current Inquiry state
 
@@ -58,16 +60,18 @@ seed時点ではDecisionを置いていない。
 
 case作成時刻は `2026-09-14T03:19:05+09:00` である。
 
-2026-09-16時点ではsame-dayではなく複数日にまたがるため、sidecar上は次の区分を利用できる。
+2026-09-16には、case作成からの**暦上のmulti-day gap**へ一度到達した。ただし、その後のbranch統合・上流計画整理の過程でcurrent Inquiry stateへmaterialな再露出が生じたため、現在はcleanなresumptionを実行できる状態とは扱わない。
+
+次回、最後のmaterial exposureから改めて十分なgapが成立し、実際にhuman resumptionを行った場合にのみ、sidecarへ次のような分類を記録する。
 
 ```text
 evidence_role = resumption
-context_gap   = multi-day
+context_gap   = multi-day  # 実際の経過条件に応じる
 ```
 
-ただし、`multi-day`は時間条件の分類であり、十分な認知的忘却が実際に生じたことを保証しない。
+`multi-day`は時間条件の分類であり、十分な認知的忘却が実際に生じたことを保証しない。
 
-特に、評価対象を直前まで読み返していた場合、形式上は2日以上経過していても強いcontext lossが生じていない可能性がある。この場合はその事実をnotesへ残し、結果を過大評価しない。
+特に、評価対象を直前まで読み返していた場合、形式上は数日経過していても強いcontext lossが生じていない可能性がある。この場合はその事実をnotesへ残し、結果を過大評価しない。
 
 ## 4. human resumptionで守る順序
 
@@ -122,7 +126,7 @@ Decisionが存在しないcurrent caseでは、`recommendation_decision_integrit
 
 ## 6. Quiet / Proactive比較を急がない
 
-最初のmulti-day resumptionでは、まずP1 SEI OrientationがInquiry Continuityとして成立するかを見る。
+最初のcleanなmulti-day resumptionでは、まずP1 SEI OrientationがInquiry Continuityとして成立するかを見る。
 
 Quiet-firstとProactive-firstを同時に大量提示すると、比較そのものが再開時のworking memoryへ干渉する。そのため、最初の観測から二Surfaceの優劣を確定しない。
 
@@ -140,7 +144,7 @@ later counterfactual comparison
 
 ## 7. Generic Summary / B1との比較
 
-P1のmulti-day resumptionを一件観測できた後に、Generic SummaryまたはB1 Final-note相当との比較へ進む。
+P1のcleanなmulti-day resumptionを一件観測できた後に、Generic SummaryまたはB1 Final-note相当との比較へ進む。
 
 ここでもP1を有利にするため比較対象を意図的に弱くしない。
 
@@ -181,7 +185,7 @@ branch名やPR番号そのものをProduct ontologyやEvidence authorityとし�
 このcheckpointでは次を行わない。
 
 - sidecarへ架空のhuman observationを書く。
-- 2日経過したことだけをInquiry Continuity成功とみなす。
+- 暦上のmulti-day gapだけをInquiry Continuity成功とみなす。
 - Quiet-firstをProduct PrincipleやStable Requirementへ昇格する。
 - `Inquiry`をUniversal semantic entityとして固定する。
 - Value Axisを追加する。
