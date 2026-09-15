@@ -7,13 +7,16 @@ import (
 	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
+var errStaleProvisionalRecommendation = errors.New("provisional recommendation was based on a stale canonical snapshot")
+
 // ProvisionalRecommendation は、AI等が生成したRecommendation候補をcanonical commit前に
 // 保持するProduct-localなdraftです。Universal Contractやcanonical historyではありません。
 type ProvisionalRecommendation struct {
-	surface   *MachineSurface
-	input     RecommendationInput
-	dismissed bool
-	committed bool
+	surface             *MachineSurface
+	input               RecommendationInput
+	baseCanonicalDigest string
+	dismissed           bool
+	committed           bool
 }
 
 // RecommendationChangePreview は、provisional Recommendationをcanonicalへcommitした場合に
@@ -29,6 +32,7 @@ type RecommendationChangePreview struct {
 
 // ProposeRecommendation はcanonical storeを書き換えず、Recommendation候補をdraftとして返します。
 // MachineSurface.RecordRecommendationは明示的なcanonical write APIとして別に残します。
+// draft作成時のcanonical digestはprobe-localなsnapshot preconditionとして保持します。
 func (s *MachineSurface) ProposeRecommendation(input RecommendationInput) (*ProvisionalRecommendation, error) {
 	if s == nil || s.store == nil {
 		return nil, errors.New("machine surface requires a canonical store")
@@ -36,7 +40,15 @@ func (s *MachineSurface) ProposeRecommendation(input RecommendationInput) (*Prov
 	if err := validateProvisionalRecommendationInput(input); err != nil {
 		return nil, err
 	}
-	return &ProvisionalRecommendation{surface: s, input: cloneRecommendationInput(input)}, nil
+	digest, err := s.store.Digest()
+	if err != nil {
+		return nil, err
+	}
+	return &ProvisionalRecommendation{
+		surface:             s,
+		input:               cloneRecommendationInput(input),
+		baseCanonicalDigest: digest,
+	}, nil
 }
 
 // Preview はcanonical stateを変更せず、現在のdraftが意味上どのRecommendationを追加するかを返します。
@@ -56,6 +68,7 @@ func (d *ProvisionalRecommendation) Preview() (RecommendationChangePreview, erro
 }
 
 // Revise はdraftだけを置き換えます。canonical stateには書き込みません。
+// revisionはsnapshot preconditionを更新しないため、stale draftを暗黙にrebaseしません。
 func (d *ProvisionalRecommendation) Revise(input RecommendationInput) error {
 	if err := d.ensurePending(); err != nil {
 		return err
@@ -77,13 +90,21 @@ func (d *ProvisionalRecommendation) Dismiss() error {
 }
 
 // Commit は現在のdraftを既存の明示canonical write境界へ渡します。
-// validationやduplicate rejectionに失敗した場合、draftをcommitted扱いにはしません。
+// draft作成後にcanonical stateが変化していた場合はstaleとして拒否し、last-write-winsを行いません。
+// semantic validation等で失敗した場合もdraftをcommitted扱いにはしません。
 func (d *ProvisionalRecommendation) Commit() error {
 	if err := d.ensurePending(); err != nil {
 		return err
 	}
 	if d.surface == nil || d.surface.store == nil {
 		return errors.New("provisional recommendation requires a machine surface")
+	}
+	currentDigest, err := d.surface.store.Digest()
+	if err != nil {
+		return err
+	}
+	if currentDigest != d.baseCanonicalDigest {
+		return errStaleProvisionalRecommendation
 	}
 	if err := d.surface.RecordRecommendation(cloneRecommendationInput(d.input)); err != nil {
 		return err
