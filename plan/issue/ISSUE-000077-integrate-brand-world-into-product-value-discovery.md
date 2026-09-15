@@ -1,9 +1,9 @@
 # ISSUE-000077: ブランド世界をProduct Value探索の源泉として検証し、上位価値文書へ最適に反映する
 
-Status: **Open**  
+Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0018**  
-Updated: 2026-09-13
+Updated: 2026-09-16
 
 ## Goal
 
@@ -454,6 +454,18 @@ Step 1〜6を経て必要性が確認できたものだけを、適切な上位�
 - `plan/registry.yaml`、`plan/document_review_registry.yaml`、必要な上流計画との整合を確認した。
 
 このIssueがResolvedであることは、追加したProduct hypothesisがAdoption / Outcome Evidenceまで実証されたことを意味しない。Product文書としての統合と、実利用での成立確認を分離する。
+
+### Resolution result — 2026-09-16
+
+Resolution条件をcurrent正本へ再照合し、本IssueはResolvedと判断する。
+
+- ブランド世界は`product/value/SEI_BRAND_WORLD_DISCOVERY_SOURCE.md`へ、非規範のProduct Value discovery sourceとして保存した。
+- `product/value/SEI_BRAND_WORLD_PRODUCT_VALUE_REVIEW.md`でH77.1〜H77.6をcurrent V1〜V8 / Decision Continuityへ逆照合し、benefit、failure、counterexample、既存coverage、文書配置を比較した。
+- Product Visionには、ブランド比喩そのものではなく、判断前のInquiryを失わないこと、boundedな共有認知基盤、Human / AI / Methodが利用するInfrastructure、過剰なattentionを要求しない将来像だけを反映した。
+- 新しいValue Axis、Stable Requirement、Universal型は追加しなかった。Cognitive Commons、Surface / Depth Interface、Deliberate Non-closure、Quiet Infrastructure、Shared but not Unboundedは、既存Value / Vision / Interactionの説明または成立条件として扱う方が自然と判断した。
+- 最も独立性が高く残ったDecision成立前のInquiry Continuityは、実利用上の価値差を別途反証するためISSUE-000078へ引き継いだ。
+
+したがって、本Issueの完了は**ブランド世界からProduct Valueを探索し、適切な上位文書へ配置する仕事の完了**を意味する。Inquiry Continuity、Quiet / Proactive assistance等のactual Product Value成立はISSUE-000078等のEvidenceを待ち、本IssueのResolved状態からは推定しない。
 
 ## Reopen conditions
 
