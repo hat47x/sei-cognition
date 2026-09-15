@@ -1,0 +1,109 @@
+{
+  "schema": "sei.personal-inquiry-continuity-dogfood/v0",
+  "status": "evaluation-only",
+  "inquiry": {
+    "id": "inquiry",
+    "question": "SEIのInquiry再開Surfaceでは、Quiet-firstとProactive-firstのどちらがoriginal concernを保ちつつmaterial change discoveryとnext useful actionを改善するか",
+    "created_at": "2026-09-14T03:19:05+09:00"
+  },
+  "sources": [
+    {
+      "id": "src-value-validation",
+      "kind": "repository-document",
+      "locator": "repo://evaluation/personal-inquiry-decision/VALUE_VALIDATION_PROTOCOL.md",
+      "title": "Personal Inquiry Continuity — Value Validation Protocol",
+      "captured_at": "2026-09-14T03:19:05+09:00"
+    },
+    {
+      "id": "src-quiet-amendment",
+      "kind": "repository-document",
+      "locator": "repo://evaluation/personal-inquiry-decision/BRAND_WORLD_VALIDATION_AMENDMENT_QUIET_INFRASTRUCTURE_2026-09-14.md",
+      "title": "Brand World Validation Amendment — Quiet Infrastructure",
+      "captured_at": "2026-09-14T03:19:05+09:00"
+    },
+    {
+      "id": "src-rebaseline",
+      "kind": "repository-document",
+      "locator": "repo://evaluation/personal-inquiry-decision/BRAND_WORLD_DISCOVERY_REBASELINE_2026-09-14.md",
+      "title": "Brand World Discovery Rebaseline",
+      "captured_at": "2026-09-14T03:19:05+09:00"
+    },
+    {
+      "id": "src-product-vision",
+      "kind": "repository-document",
+      "locator": "repo://product/vision/SEI_PRODUCT_VISION.md",
+      "title": "SEI Product Vision",
+      "captured_at": "2026-09-14T03:19:05+09:00"
+    }
+  ],
+  "records": [
+    {
+      "id": "obs-existing-coverage",
+      "kind": "observation",
+      "summary": "既存Personal Inquiry Continuity protocolはreorientation、historical integrity、capture burden、False Continuity、AI handoffをすでに評価対象としている。",
+      "captured_at": "2026-09-14T03:19:05+09:00",
+      "source_refs": ["src-value-validation", "src-rebaseline"]
+    },
+    {
+      "id": "obs-attention-gap",
+      "kind": "observation",
+      "summary": "Brand World Discoveryで、AI-generated recommendationやnext-questionを前面へ大量提示すること自体がoriginal concernを奪う可能性は既存protocolで独立には測っていなかったと整理された。",
+      "captured_at": "2026-09-14T03:19:05+09:00",
+      "source_refs": ["src-quiet-amendment", "src-rebaseline"]
+    },
+    {
+      "id": "obs-quiet-stopline",
+      "kind": "observation",
+      "summary": "Quiet InfrastructureはmaterialなConflictやchanged premiseを隠すことではなく、progressive disclosureとsemantic omissionを区別する必要がある。",
+      "captured_at": "2026-09-14T03:19:05+09:00",
+      "source_refs": ["src-quiet-amendment", "src-product-vision"]
+    },
+    {
+      "id": "unk-concern-drift",
+      "kind": "unknown",
+      "summary": "realなlong-gap Inquiryで、Proactive-first SurfaceがQuiet-firstよりoriginal concern driftを増やすかはまだ分からない。",
+      "captured_at": "2026-09-14T03:19:05+09:00",
+      "status": "open",
+      "source_refs": []
+    },
+    {
+      "id": "unk-material-discovery",
+      "kind": "unknown",
+      "summary": "Quiet-first Surfaceが重要なmaterial changeの発見を遅らせるかはまだ分からない。",
+      "captured_at": "2026-09-14T03:19:05+09:00",
+      "status": "open",
+      "source_refs": []
+    },
+    {
+      "id": "unk-inquiry-dependence",
+      "kind": "unknown",
+      "summary": "Quiet / Proactiveの適否がInquiryの複雑性、成熟度、risk、利用者状態によって変わるかはまだ分からない。",
+      "captured_at": "2026-09-14T03:19:05+09:00",
+      "status": "open",
+      "source_refs": []
+    },
+    {
+      "id": "hyp-quiet-retention",
+      "kind": "hypothesis",
+      "summary": "Quiet-firstはoriginal concernとunresolvedの保持を助け、attention loadを下げる可能性がある。",
+      "captured_at": "2026-09-14T03:19:05+09:00",
+      "source_refs": ["src-quiet-amendment"]
+    },
+    {
+      "id": "hyp-proactive-discovery",
+      "kind": "hypothesis",
+      "summary": "Proactive-firstはattention loadを増やす一方、見落としていたmaterial changeやnext useful questionの発見を助ける可能性がある。",
+      "captured_at": "2026-09-14T03:19:05+09:00",
+      "source_refs": ["src-quiet-amendment"]
+    },
+    {
+      "id": "hyp-adaptive-surface",
+      "kind": "hypothesis",
+      "summary": "固定的なQuiet / Proactive二択より、materialityと利用者の要求に応じて段階的に候補へ降りるadaptive progressive disclosureの方が良い可能性がある。",
+      "captured_at": "2026-09-14T03:19:05+09:00",
+      "source_refs": ["src-quiet-amendment", "src-product-vision"]
+    }
+  ],
+  "decisions": [],
+  "reviews": []
+}
