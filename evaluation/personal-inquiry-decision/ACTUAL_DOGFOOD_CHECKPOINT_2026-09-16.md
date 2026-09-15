@@ -158,17 +158,23 @@ P1のmulti-day resumptionを一件観測できた後に、Generic Summaryまた�
 
 ## 8. branch運用上の現在地
 
-本checkpoint以降のISSUE-000078作業は、Accepted Development Conventionに従い、`develop/v0.2.0`から切った次の継続branchへ集約する。
+ISSUE-000078のcheckpointとregistry同期は、`evaluation/issue-000078-dogfood`に集約したDraft PR #408として`develop/v0.2.0`へ統合済みである。
+
+現在は、同じIssueのために新しい継続topic branchを作り直さない。Accepted Development Conventionどおり、通常開発の集約先である`develop/v0.2.0`上で、actual human resumption、counterfactual comparison、sidecar更新、planning同期を**まとまりのよいEvidence単位まで継続**する。
 
 ```text
-evaluation/issue-000078-dogfood
+main
+  = stable baseline
+
+develop/v0.2.0
+  = current ISSUE-000078 continuation lane
 ```
 
-同一Issueのsidecar、case、checkpoint、比較Evidence、planning同期のためにmicro-branchを追加しない。
+独立した責務や並行作業が実際に必要になった場合だけtopic branchを使う。同じIssueの細かな作業単位ごとにbranchを増やさない。
 
-まとまりのよいEvidence bundleができた時点で`develop/v0.2.0`へ統合し、その後にstable baselineである`main`へ進める。
+`main`へは開発途中の小変更を直接積まず、Evidence bundleと上流判断がまとまった段階で統合する。
 
-branch名自体をProduct ontologyやEvidence authorityとして扱わない。
+branch名やPR番号そのものをProduct ontologyやEvidence authorityとして扱わない。
 
 ## 9. 現時点で行わないこと
 
