@@ -27,10 +27,11 @@ reviewed:
       - SEI_VALUE_PROPOSITION.md
       - SEI_VALUE_MODEL.md
       - SEI_DECISION_CONTINUITY.md
-      - SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md
+      - SEI_BRAND_WORLD_DISCOVERY_SOURCE.md
+      - SEI_BRAND_WORLD_PRODUCT_VALUE_REVIEW.md
       - SEI_VALUE_ACCEPTANCE.md
       - SEI_VALUE_TRACEABILITY.md
-    note: current V1〜V8とDecision Continuityを維持しつつ、ISSUE-000077のBrand World Discovery ReviewでCognitive Commons、Surface / Depth Interface、Deliberate Non-closure、Durable Cognitive Aperture、Quiet Infrastructure、Shared but not Unboundedを既存Valueへ逆照合した。新Value Axisは追加せず、Decision成立前のInquiry Continuityだけを独立Product hypothesisとしてISSUE-000078へ切り出した。Value Traceabilityの既存Evidence高さとv0.2.0 supported scopeは変更していない。2026-09-16のdevelop / main統合では、両branchが独立に作成していた同一主旨のBrand World文書をmain側の命名へ一本化し、develop側にしかなかった採る方向と反対側の停止線の表、および5段階Evidence状態の明示ブロックをValue Discovery Reviewへ取り込んだ。判断内容は変更していない。
+    note: current V1〜V8とDecision Continuityを維持しつつ、ISSUE-000077のBrand World Product Value ReviewでCognitive Commons、Surface / Depth Interface、Deliberate Non-closure、Durable Cognitive Aperture、Quiet Infrastructure、Shared but not Unboundedを既存Valueへ逆照合した。新Value Axisは追加せず、Decision成立前のInquiry Continuityだけを独立Product hypothesisとしてISSUE-000078へ切り出した。Value Traceabilityの既存Evidence高さとv0.2.0 supported scopeは変更していない。2026-09-16のdevelop / main統合では、両branchが独立に作成していた同一主旨のBrand World文書を`SEI_BRAND_WORLD_DISCOVERY_SOURCE.md`と`SEI_BRAND_WORLD_PRODUCT_VALUE_REVIEW.md`へ一本化し、develop側にしかなかった採る方向と反対側の停止線の表、および5段階Evidence状態の明示ブロックを取り込んだ。判断内容は変更していない。
   - scope: product/definition/*.md
     status: revised
     coverage:
@@ -41,8 +42,7 @@ reviewed:
     status: revised
     coverage:
       - SEI_PRODUCT_VISION.md
-      - SEI_BRAND_WORLD_SOURCE.md
-    note: Brand World Sourceは「井」、中央の空白、水、静けさ、四方向性、Cognitive Commons、SEI / SUI / TEIの象徴関係を非規範のProduct Value discovery sourceとして豊かに保存した。Product Visionには比喩をそのまま持ち込まず、判断前のInquiryを失わないこと、boundedな共有認知基盤、人間・AI・Methodが利用するInfrastructure、過剰なattentionを要求しない将来像だけを反映した。Inquiry Continuityは未検証Product hypothesisのまま維持している。2026-09-16のdevelop / main統合では、Brand World Sourceへdevelop側にしかなかった対立する読みの表とauthority / Evidenceブロックを追加した。Product Visionはmain側の節構成を土台とし、develop側にしかなかったshared cognitionの非同一式、静けさとproactive assistanceのtrade-offを明示する記述、SUIを含むProvider関係、収束強制を目指さない旨、thin infrastructureとshallow cognitionの非同一性を統合した。新Value Axisを追加しないという留保は両側とも保持している。
+    note: Brand World Discovery Sourceは2026-09-16の統合で`product/value/SEI_BRAND_WORLD_DISCOVERY_SOURCE.md`へ一本化した。Product Visionには比喩をそのまま持ち込まず、判断前のInquiryを失わないこと、boundedな共有認知基盤、人間・AI・Methodが利用するInfrastructure、過剰なattentionを要求しない将来像を反映した。Inquiry Continuityは未検証Product hypothesisのまま維持している。Product Visionはmain側の節構成を土台とし、develop側にしかなかったshared cognitionの非同一式、静けさとproactive assistanceのtrade-offを明示する記述、SUIを含むProvider関係、収束強制を目指さない旨、thin infrastructureとshallow cognitionの非同一性を統合した。新Value Axisを追加しないという留保は保持している。
   - scope: product/principles/SEI_PRODUCT_PRINCIPLES.md
     status: revised
     note: Open Question、議論・実証、Candidate Requirement、Stable Requirementを分離する上流原則を追加し、既存原則との意味整合を監査済み。
@@ -76,7 +76,7 @@ reviewed:
   - scope: plan/issue/ISSUE-*.md
     status: revised
     coverage: ISSUE-000001..ISSUE-000078
-    note: ISSUE-000001〜000078をcurrent履歴として監査済み。ISSUE-000069はGitHub Actions常設時に得たtrigger選択とrunner allocation Evidenceをhistoricalに保持しつつcurrent baselineからActionsを外した。ISSUE-000070は固定KJ Atlas source / Method input / model artifact / promptの下でOllama `0.32.13` / `0.32.14`をactualに交換し、same logical / different Exact Binding、historical Application保持、portable reconstruction、canonical Evidence + Provenance verificationを確認してResolvedとした。成果品質やarbitrary portabilityへは昇格させない。ISSUE-000071はexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeを分離してResolvedとしたがhuman reviewと成果品質判定は未完了。ISSUE-000072はrevision A historical Evidenceを保持し、exact revision B executable source + exact revision A fixed input、E2 / E3別toolchain、stage-aware diagnostics、Requirement / Scenario pre-auditまで整えたがrevision B actual CLI / Provider Plan / current Adapter compatibilityは未検証のためOpenを維持する。ISSUE-000073はPMS-03をresume-firstな最初の実用Product Sliceへ進めるOpen探索で、canonical-only resume、AI correction / degradation、partial commit / stale write、external AI context、human reviewをCandidate Requirementとして実証し、Design文書完成だけではResolvedにしない。ISSUE-000074はactual TEI binaryのEvidence採取プロトコルを扱うOpen Issueである。ISSUE-000075はADR-0031に基づく改名移行をPhase 1〜4へ分け、記録済みEvidence不変性検査を他のPASSに優先させる完了条件として監査した。ISSUE-000076はnetwork / Provider受付 / credential / artifact取得 / identity・integrity / runtime executionのfailure stageを分離し、retry policy、secret-safe Evidence、Evidence高さを別軸として設計するOpen Issueである。ISSUE-000077はSEI Cognitionの「井」を中心とするブランド世界をProduct Value探索の非規範sourceとして保存し、価値仮説を既存V1〜V8 / Decision Continuityへ逆照合したうえで、Brand World Source、Product Value Discovery Review、Product Vision改稿へ進めた。ISSUE-000078はそのReviewで最も独立性が高く残ったDecision成立前のInquiry Continuityを、raw chat / chronological note等とのcounterfactual comparisonとhuman reviewで反証可能にするOpen Issueとして起票した。新Value AxisやUniversal entityは先取りしない。
+    note: ISSUE-000001〜000078をcurrent履歴として監査済み。ISSUE-000069はGitHub Actions常設時に得たtrigger選択とrunner allocation Evidenceをhistoricalに保持しつつcurrent baselineからActionsを外した。ISSUE-000070は固定KJ Atlas source / Method input / model artifact / promptの下でOllama `0.32.13` / `0.32.14`をactualに交換し、same logical / different Exact Binding、historical Application保持、portable reconstruction、canonical Evidence + Provenance verificationを確認してResolvedとした。成果品質やarbitrary portabilityへは昇格させない。ISSUE-000071はexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeを分離してResolvedとしたがhuman reviewと成果品質判定は未完了。ISSUE-000072はrevision A historical Evidenceを保持し、exact revision B executable source + exact revision A fixed input、E2 / E3別toolchain、stage-aware diagnostics、Requirement / Scenario pre-auditまで整えたがrevision B actual CLI / Provider Plan / current Adapter compatibilityは未検証のためOpenを維持する。ISSUE-000073はPMS-03をresume-firstな最初の実用Product Sliceへ進めるOpen探索で、canonical-only resume、AI correction / degradation、partial commit / stale write、external AI context、human reviewをCandidate Requirementとして実証し、Design文書完成だけではResolvedにしない。ISSUE-000074はactual TEI binaryのEvidence採取プロトコルを扱うOpen Issueである。ISSUE-000075はADR-0031に基づく改名移行をPhase 1〜4へ分け、記録済みEvidence不変性検査を他のPASSに優先させる完了条件として監査した。ISSUE-000076はnetwork / Provider受付 / credential / artifact取得 / identity・integrity / runtime executionのfailure stageを分離し、retry policy、secret-safe Evidence、Evidence高さを別軸として設計するOpen Issueである。ISSUE-000077はSEI Cognitionの「井」を中心とするブランド世界をProduct Value探索の非規範sourceとして保存し、価値仮説を既存V1〜V8 / Decision Continuityへ逆照合したうえで、Discovery Source、Product Value Review、Product Vision改稿へ進めた。ISSUE-000078はそのReviewで最も独立性が高く残ったDecision成立前のInquiry Continuityを、raw chat / chronological note等とのcounterfactual comparisonとhuman reviewで反証可能にするOpen Issueとして起票した。2026-09-14にfirst actual caseをseedし、2026-09-16にはmulti-day条件へ到達したが、同日の上流整理でmaterialな事前露出が生じたためclean resumptionは未観測のまま維持している。新Value AxisやUniversal entityは先取りしない。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -271,7 +271,7 @@ reviewed:
       - evaluation/method-quality/HUMAN_REVIEW_TEMPLATE.md
     note: Cognitive Method成果品質をexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeから分離する評価資料として監査済み。PR #72のactual historical review bundleとPR #73のAI補助観測は機械可読資産として別保存し、human review完了や成果品質Satisfiedへ昇格させていない。README / templateはgolden answerや単一スコアを正解化せず、構造検査とhuman reviewの責務を自然な日本語で分けている。
   - scope: evaluation/personal-inquiry-decision/*.md
-    status: reviewed-no-change
+    status: revised
     coverage:
       - README.md
       - EXTERNAL_RESEARCH_SYNTHESIS.md
@@ -280,11 +280,17 @@ reviewed:
       - PRODUCT_PROFILE_REQUIREMENTS_CANDIDATE.md
       - REQUIREMENT_GAP_AUDIT.md
       - REQUIREMENTS_FORMALIZATION_PLAN.md
+      - CONCEPT_TO_REQUIREMENT_DERIVATION.md
       - RESEARCH_DERIVED_REQUIREMENT_REVIEW.md
       - RESEARCH_DERIVED_VALIDATION_AMENDMENTS.md
       - VALUE_VALIDATION_PROTOCOL.md
       - DOGFOOD_SURFACE.md
-    note: main branchからdevelop/v0.2.0へのmergeで合流したPersonal Inquiry Continuity探索群。各文書自身がEvaluation-only / Not Stable Requirementの境界を明記しており、Stable RequirementやUniversal Contractへは未先取りである。本台帳では現状の本文を保つ扱いとする。ADR-0031によるSOZA→SEI改名は2026-09-13の統合commitで適用済みである。
+      - DOGFOOD_EVALUATION_RECORDING.md
+      - BRAND_WORLD_DISCOVERY_REBASELINE_2026-09-14.md
+      - BRAND_WORLD_VALIDATION_AMENDMENT_QUIET_INFRASTRUCTURE_2026-09-14.md
+      - ACTUAL_DOGFOOD_CASE_QUIET_INFRASTRUCTURE_2026-09-14.md
+      - ACTUAL_DOGFOOD_CHECKPOINT_2026-09-16.md
+    note: Personal Inquiry Continuity探索群とISSUE-000078 actual dogfood文書をcurrent scopeとして監査した。各文書はEvaluation-only / Not Stable Requirementの境界を維持している。2026-09-16にはfirst actual caseがmulti-day条件へ到達した一方、上流整理中にmaterialな事前露出が生じたためclean human resumptionは未観測とした。`DOGFOOD_EVALUATION_RECORDING.md`とcheckpointでは、暦上のgapと認知的gapを分け、pre-orientation exposureだけを架空のresume observationへ数えない停止線を追加した。Stable RequirementやUniversal Contractへは未先取りである。
 
   - scope: evaluation/cognitive-workspace-comparison/*.md
     status: reviewed-no-change
@@ -364,7 +370,7 @@ reviewed:
     note: Product Milestoneと上流探索・Requirement化の配置規則をcurrent planning入口へ反映済み。
   - scope: plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md
     status: revised
-    note: Product Value discoveryをPriority Aとして追加し、ISSUE-000077のBrand World Source / Discovery Review / Product Vision統合と、後続ISSUE-000078のInquiry Continuity比較実証を上流laneへ位置づけた。ISSUE-000073のresume-first Product SliceはPriority B1、ISSUE-000072のTEI exact-B actualはPriority B2として独立laneを維持し、各laneのEvidenceを相互流用しない停止線を明示している。
+    note: Product Value discoveryをPriority Aとして維持し、ISSUE-000077のcurrent Discovery Source / Product Value Review / Product Vision統合と、ISSUE-000078のactual Inquiry seed、multi-day条件、事前露出によるclean resumption未観測を上流laneへ同期した。ISSUE-000073のresume-first Product SliceはPriority B1、ISSUE-000072のTEI exact-B actualはPriority B2として独立laneを維持し、各laneのEvidenceを相互流用しない停止線を明示している。
   - scope: plan/DEVELOPMENT_WORKFLOW.md
     status: revised
     note: Product Valueと未定領域の探索をRequirement / Architectureより上流へ置く原則を維持したうえで、PR #70後のActions停止状態へ全文を再整理した。GitHub Actions、local test、repository checker、external runnerを検証手段として意味上の正本から分離し、failureがpushを止めないことと、merge / release / Evidence gateが別責務であることを自然な日本語で明示した。
