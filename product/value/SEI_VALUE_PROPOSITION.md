@@ -11,7 +11,7 @@
 
 Decision Continuityは新しいValue Axisではなく、V1〜V8が実際の利用者の一つの判断仕事で成立したときに現れるcross-axis Product Outcomeです。詳細は`SEI_DECISION_CONTINUITY.md`を参照します。
 
-また、「井」のブランド世界から得た洞察は`SEI_BRAND_WORLD_DISCOVERY_SOURCE.md`を非規範sourceとして保存し、`SEI_BRAND_WORLD_PRODUCT_VALUE_REVIEW.md`で既存Valueとの重複・独立性・trade-offを確認しています。本書へ採用するのは象徴そのものではなく、利用者に届く価値として説明できる部分だけです。
+また、「井」のブランド世界から得た洞察は`../vision/SEI_BRAND_WORLD_SOURCE.md`を非規範sourceとして保存し、`SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md`で既存Valueとの重複・独立性・trade-offを確認しています。本書へ採用するのは象徴そのものではなく、利用者に届く価値として説明できる部分だけです。
 
 ## 2. 一言でいう価値
 
@@ -252,8 +252,8 @@ Adoption / Outcome Evidenceを収集できる段階では、たとえば次を�
 - `SEI_VALUE_ACCEPTANCE.md`
 - `SEI_VALUE_TRACEABILITY.md`
 - `SEI_DECISION_CONTINUITY.md`
-- `SEI_BRAND_WORLD_DISCOVERY_SOURCE.md`
-- `SEI_BRAND_WORLD_PRODUCT_VALUE_REVIEW.md`
+- `../vision/SEI_BRAND_WORLD_SOURCE.md`
+- `SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md`
 - `../interaction/SEI_FIRST_USABLE_PRODUCT_SLICE.md`
 - `../definition/SEI_PRODUCT_SHAPE.md`
 - `../vision/SEI_PRODUCT_VISION.md`

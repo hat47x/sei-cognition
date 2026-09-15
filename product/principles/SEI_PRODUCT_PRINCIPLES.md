@@ -236,8 +236,8 @@ Product Valueの変更後は、影響するMilestone、Requirements、ADR、Arch
 
 - `product/value/SEI_PRODUCT_VALUE.md`
 - `product/value/SEI_VALUE_MODEL.md`
-- `product/value/SEI_BRAND_WORLD_DISCOVERY_SOURCE.md`
-- `product/value/SEI_BRAND_WORLD_PRODUCT_VALUE_REVIEW.md`
+- `product/vision/SEI_BRAND_WORLD_SOURCE.md`
+- `product/value/SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md`
 - `product/vision/SEI_PRODUCT_VISION.md`
 - `product/roadmap/SEI_PRODUCT_MILESTONES.md`
 - `plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`

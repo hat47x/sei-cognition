@@ -15,7 +15,7 @@ SEIは、すでに形になったKnowledgeやDecisionだけを保管する基盤
 
 また、その認知成果を一人のworking memory、一つのAI session、一つのProviderへ閉じ込めないことを目指します。ただし共有可能性は無制限公開を意味しません。Product Access、Selective Disclosure、Responsibility、Authority等の境界を保ったまま、許された主体が必要な認知状態へ戻れることを価値とします。
 
-この文書は「SEIがなぜ存在するか」と「何を価値として守るか」を定めます。価値同士が衝突したときの優先関係、Universal Coreへ含める基準、Product Valueを満たしたと判断するための検証観点は`SEI_VALUE_MODEL.md`で、実際にどのEvidenceをもって満たしたと判断するかは`SEI_VALUE_ACCEPTANCE.md`で具体化します。Decision Continuityの横断的な価値仮説と反証条件は`SEI_DECISION_CONTINUITY.md`で扱います。ブランド世界から得た洞察のsourceと採否判断は`SEI_BRAND_WORLD_DISCOVERY_SOURCE.md`と`SEI_BRAND_WORLD_PRODUCT_VALUE_REVIEW.md`に分離して記録します。
+この文書は「SEIがなぜ存在するか」と「何を価値として守るか」を定めます。価値同士が衝突したときの優先関係、Universal Coreへ含める基準、Product Valueを満たしたと判断するための検証観点は`SEI_VALUE_MODEL.md`で、実際にどのEvidenceをもって満たしたと判断するかは`SEI_VALUE_ACCEPTANCE.md`で具体化します。Decision Continuityの横断的な価値仮説と反証条件は`SEI_DECISION_CONTINUITY.md`で扱います。ブランド世界から得た洞察のsourceと採否判断は`../vision/SEI_BRAND_WORLD_SOURCE.md`と`SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md`に分離して記録します。
 
 ## 2. 解こうとする問題
 
@@ -220,8 +220,8 @@ SEIが守るべき中心は、それらの仕組みではなく、**認識、問
 - `product/value/SEI_VALUE_ACCEPTANCE.md` — V1〜V8を満たしたと判断するためのEvidence境界
 - `product/value/SEI_VALUE_PROPOSITION.md` — 利用者から見た価値提案
 - `product/value/SEI_DECISION_CONTINUITY.md` — V1〜V8を判断継続性というcross-axis Product Outcomeへ接続する価値仮説
-- `product/value/SEI_BRAND_WORLD_DISCOVERY_SOURCE.md` — 「井」のブランド世界をProduct探索へ利用する非規範source
-- `product/value/SEI_BRAND_WORLD_PRODUCT_VALUE_REVIEW.md` — ブランド世界から得たProduct hypothesisの採否・配置判断
+- `product/vision/SEI_BRAND_WORLD_SOURCE.md` — 「井」のブランド世界をProduct探索へ利用する非規範source
+- `product/value/SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md` — ブランド世界から得たProduct hypothesisの採否・配置判断
 - `product/definition/SEI_PRODUCT_SHAPE.md` — 製品としての外形
 - `product/vision/SEI_PRODUCT_VISION.md` — 長期的に目指す利用状態
 - `product/principles/SEI_PRODUCT_PRINCIPLES.md` — 下位設計で反復して適用する原則

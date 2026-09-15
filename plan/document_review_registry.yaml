@@ -1,5 +1,5 @@
 schema: sei.document-review-registry/v1
-updated: 2026-09-13
+updated: 2026-09-16
 
 purpose: >-
   ISSUE-000015で行った既存開発文書の自然な日本語監査について、current branch上の
@@ -26,17 +26,23 @@ reviewed:
       - SEI_PRODUCT_VALUE.md
       - SEI_VALUE_PROPOSITION.md
       - SEI_VALUE_MODEL.md
+      - SEI_DECISION_CONTINUITY.md
+      - SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md
       - SEI_VALUE_ACCEPTANCE.md
       - SEI_VALUE_TRACEABILITY.md
-    note: Value Traceabilityはactual v0.2.0 Release EvidenceをLocal Reference Product Baselineへ限定したまま、post-releaseのE3b-P2 revision A fixed-artifact、M1a、M1b、historical reconstruction、model artifact交換、runtime version交換を別のEvidence層として追跡する。Stable Requirementやv0.2.0 supported scopeへ先取りしない境界を維持する。
+    note: current V1〜V8とDecision Continuityを維持しつつ、ISSUE-000077のBrand World Discovery ReviewでCognitive Commons、Surface / Depth Interface、Deliberate Non-closure、Durable Cognitive Aperture、Quiet Infrastructure、Shared but not Unboundedを既存Valueへ逆照合した。新Value Axisは追加せず、Decision成立前のInquiry Continuityだけを独立Product hypothesisとしてISSUE-000078へ切り出した。Value Traceabilityの既存Evidence高さとv0.2.0 supported scopeは変更していない。2026-09-16のdevelop / main統合では、両branchが独立に作成していた同一主旨のBrand World文書をmain側の命名へ一本化し、develop側にしかなかった採る方向と反対側の停止線の表、および5段階Evidence状態の明示ブロックをValue Discovery Reviewへ取り込んだ。判断内容は変更していない。
   - scope: product/definition/*.md
     status: revised
     coverage:
       - SEI_PRODUCT_SHAPE.md
       - SEI_REALIZATION_PROVIDER_EXCHANGE.md
     note: Product ShapeとRealization / Provider Exchangeを全文監査し、E2、E3a、E3b-P1、TEI executable注入境界、E3b-P2 revision A fixed-artifact、E3b-M1a、E3b-M1bを同じEvidence ladder上で分離した。ISSUE-000070 / 000072のversion交換を別軸として扱い、TEI / KJ Atlas / Ollama固有response、revision、toolchainをUniversal semanticsへ持ち込まない境界を維持している。
-  - scope: product/vision/SEI_PRODUCT_VISION.md
+  - scope: product/vision/*.md
     status: revised
+    coverage:
+      - SEI_PRODUCT_VISION.md
+      - SEI_BRAND_WORLD_SOURCE.md
+    note: Brand World Sourceは「井」、中央の空白、水、静けさ、四方向性、Cognitive Commons、SEI / SUI / TEIの象徴関係を非規範のProduct Value discovery sourceとして豊かに保存した。Product Visionには比喩をそのまま持ち込まず、判断前のInquiryを失わないこと、boundedな共有認知基盤、人間・AI・Methodが利用するInfrastructure、過剰なattentionを要求しない将来像だけを反映した。Inquiry Continuityは未検証Product hypothesisのまま維持している。2026-09-16のdevelop / main統合では、Brand World Sourceへdevelop側にしかなかった対立する読みの表とauthority / Evidenceブロックを追加した。Product Visionはmain側の節構成を土台とし、develop側にしかなかったshared cognitionの非同一式、静けさとproactive assistanceのtrade-offを明示する記述、SUIを含むProvider関係、収束強制を目指さない旨、thin infrastructureとshallow cognitionの非同一性を統合した。新Value Axisを追加しないという留保は両側とも保持している。
   - scope: product/principles/SEI_PRODUCT_PRINCIPLES.md
     status: revised
     note: Open Question、議論・実証、Candidate Requirement、Stable Requirementを分離する上流原則を追加し、既存原則との意味整合を監査済み。
@@ -69,8 +75,8 @@ reviewed:
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、自然な日本語全文再ドラフトと最終意味監査を実施済み。ADR-0031はSOZAからSEI Cognitionへの改名について、portable Contract identityをversionを進めずprefixのみ改める判断、内部record schemaのemit側改名とreader側双方向受理、記録済みEvidenceを不変とする境界を分離して監査した。Statusは実装完了に伴いAcceptedである。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000077
-    note: ISSUE-000001〜000077をcurrent履歴として監査済み。ISSUE-000069はGitHub Actions常設時に得たtrigger選択とrunner allocation Evidenceをhistoricalに保持しつつcurrent baselineからActionsを外した。ISSUE-000070は固定KJ Atlas source / Method input / model artifact / promptの下でOllama `0.32.13` / `0.32.14`をactualに交換し、same logical / different Exact Binding、historical Application保持、portable reconstruction、canonical Evidence + Provenance verificationを確認してResolvedとした。成果品質やarbitrary portabilityへは昇格させない。ISSUE-000071はexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeを分離してResolvedとしたがhuman reviewと成果品質判定は未完了。ISSUE-000072はrevision A historical Evidenceを保持し、exact revision B executable source + exact revision A fixed input、E2 / E3別toolchain、stage-aware diagnostics、Requirement / Scenario pre-auditまで整えたがrevision B actual CLI / Provider Plan / current Adapter compatibilityは未検証のためOpenを維持する。ISSUE-000073はPMS-03をresume-firstな最初の実用Product Sliceへ進める新しいOpen探索で、canonical-only resume、AI correction / degradation、partial commit / stale write、external AI context、human reviewをCandidate Requirementとして実証し、Design文書完成だけではResolvedにしない。ISSUE-000074はbranch統合時のID衝突により当初のISSUE-000062から再採番したもので、actual TEI binaryのEvidence採取プロトコルを扱うOpen Issueとして登録した。同じ統合で重複していたexternal model-backed Cognitive Methodの草稿は、正本であるISSUE-000066へ撤回済みGitHub Models probeの記録だけを移したうえで削除した。ISSUE-000075はADR-0031に基づく改名移行をPhase 1〜4へ分け、記録済みEvidence不変性検査を他のPASSに優先させる完了条件として監査した。branch統合時にISSUE-000073番号がすでに別Issueで使われていたため000075へ再採番した。Phase 1〜4は2026-09-13の統合で完了しているが、TEI側での`SEI_TEI_*`確認が未了のためOpenを維持する。ISSUE-000076はnetwork / Provider受付 / credential / artifact取得 / identity・integrity / runtime executionのfailure stageを分離し、retry policy、secret-safe Evidence、Evidence高さを別軸として設計するOpen Issueである。current Provider固有error vocabularyをUniversal Contractへ先取りせず、後続のfault injectionとactual failure EvidenceからRequirement化の要否を判断する停止線を置いている。main branch統合時にISSUE-000072番号がすでに別Issue(TEI executable version exchange)で使われていたため000076へ再採番した。ISSUE-000077はSEI Cognitionの「井」を中心とするブランド世界をProduct Value探索の非規範sourceとして保存し、cognitive commons、surface / depth interface、deliberate non-closure、durable cognitive aperture、quiet infrastructure等の価値仮説を既存V1〜V8 / Decision Continuityへ逆照合したうえで、必要な上位Product文書へ最適に反映するOpen Issueとして起票した。象徴からRequirementやUniversal ontologyを直接演繹しない停止線と、自然で豊かな日本語によるsynthesisを完了条件へ含めている。
+    coverage: ISSUE-000001..ISSUE-000078
+    note: ISSUE-000001〜000078をcurrent履歴として監査済み。ISSUE-000069はGitHub Actions常設時に得たtrigger選択とrunner allocation Evidenceをhistoricalに保持しつつcurrent baselineからActionsを外した。ISSUE-000070は固定KJ Atlas source / Method input / model artifact / promptの下でOllama `0.32.13` / `0.32.14`をactualに交換し、same logical / different Exact Binding、historical Application保持、portable reconstruction、canonical Evidence + Provenance verificationを確認してResolvedとした。成果品質やarbitrary portabilityへは昇格させない。ISSUE-000071はexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeを分離してResolvedとしたがhuman reviewと成果品質判定は未完了。ISSUE-000072はrevision A historical Evidenceを保持し、exact revision B executable source + exact revision A fixed input、E2 / E3別toolchain、stage-aware diagnostics、Requirement / Scenario pre-auditまで整えたがrevision B actual CLI / Provider Plan / current Adapter compatibilityは未検証のためOpenを維持する。ISSUE-000073はPMS-03をresume-firstな最初の実用Product Sliceへ進めるOpen探索で、canonical-only resume、AI correction / degradation、partial commit / stale write、external AI context、human reviewをCandidate Requirementとして実証し、Design文書完成だけではResolvedにしない。ISSUE-000074はactual TEI binaryのEvidence採取プロトコルを扱うOpen Issueである。ISSUE-000075はADR-0031に基づく改名移行をPhase 1〜4へ分け、記録済みEvidence不変性検査を他のPASSに優先させる完了条件として監査した。ISSUE-000076はnetwork / Provider受付 / credential / artifact取得 / identity・integrity / runtime executionのfailure stageを分離し、retry policy、secret-safe Evidence、Evidence高さを別軸として設計するOpen Issueである。ISSUE-000077はSEI Cognitionの「井」を中心とするブランド世界をProduct Value探索の非規範sourceとして保存し、価値仮説を既存V1〜V8 / Decision Continuityへ逆照合したうえで、Brand World Source、Product Value Discovery Review、Product Vision改稿へ進めた。ISSUE-000078はそのReviewで最も独立性が高く残ったDecision成立前のInquiry Continuityを、raw chat / chronological note等とのcounterfactual comparisonとhuman reviewで反証可能にするOpen Issueとして起票した。新Value AxisやUniversal entityは先取りしない。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -85,7 +91,7 @@ reviewed:
       - requirements/PRODUCT_REQUIREMENTS.md
       - requirements/ACCEPTANCE_SCENARIOS.md
       - requirements/PRODUCT_JOURNEY_COMPOSITION.md
-    note: Requirement / Scenario / Testの境界を維持したまま監査済み。ISSUE-000073のCR-73.1〜10はprototype / human review前のCandidate Requirementであり、current Stable REQ / SCNへ未反映のまま意図的に保持する。
+    note: Requirement / Scenario / Testの境界を維持したまま監査済み。ISSUE-000073のCR-73.1〜10はprototype / human review前のCandidate Requirementであり、current Stable REQ / SCNへ未反映のまま意図的に保持する。ISSUE-000078もProduct hypothesis段階であり、Stable Requirementへ未反映である。
   - scope: requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md
     status: revised
 
@@ -99,7 +105,7 @@ reviewed:
       - architecture/SEI_PRODUCT_ACCESS_ARCHITECTURE.md
       - architecture/IMPLEMENTATION_LANGUAGE_POLICY.md
       - architecture/TRACEABILITY.md
-    note: Go runtime、Product Interaction、Local Single-Node Deployment、Product Accessの責務分離に加え、ISSUE-000073のcanonical / derived / transient / external state authority、working set、semantic change plan、stale-write / partial-commit failure boundaryをcurrent Architecture Designとして監査済み。prototype mechanismをUniversal semanticsへ昇格させていない。
+    note: Go runtime、Product Interaction、Local Single-Node Deployment、Product Accessの責務分離に加え、ISSUE-000073のcanonical / derived / transient / external state authority、working set、semantic change plan、stale-write / partial-commit failure boundaryをcurrent Architecture Designとして監査済み。ISSUE-000078から新Architectureを先取りしていない。
   - scope: architecture/history/HISTORICAL_ARCHITECTURE_MAPPING.md
     status: revised
 
@@ -283,32 +289,32 @@ reviewed:
   - scope: evaluation/cognitive-workspace-comparison/*.md
     status: reviewed-no-change
     coverage:
-      - evaluation/cognitive-workspace-comparison/README.md
+      - README.md
     note: 2026-09-12にmainから合流したCognitive Workspace比較harness。Evaluation-only境界と反証条件を明示しており、ADR-0031の改名も正しく適用されているため現状の本文を保つ。
   - scope: evaluation/distributed-execution-fabric/*.md
     status: reviewed-no-change
     coverage:
-      - evaluation/distributed-execution-fabric/README.md
+      - README.md
     note: 2026-09-12にmainから合流した共通Execution Fabric境界の整理。既存OSS優先の方針とProduct semanticsを持ち込まない停止線を明示しており、現状の本文を保つ。
   - scope: evaluation/local-model-probe/*.md
     status: reviewed-no-change
     coverage:
-      - evaluation/local-model-probe/README.md
-      - evaluation/local-model-probe/MODEL_MATRIX.md
-      - evaluation/local-model-probe/RUN_MANIFEST.md
+      - README.md
+      - MODEL_MATRIX.md
+      - RUN_MANIFEST.md
     note: 2026-09-12にmainから合流したlocal model actual probeのtransport / model matrix / run manifest。runtime未導入によりactual inference Evidence未取得であることを明記しており、model leaderboardではなく認知routing境界探索として位置づけている。現状の本文を保つ。
   - scope: evaluation/sei-cognition-orchestration/*.md
     status: reviewed-no-change
     coverage:
-      - evaluation/sei-cognition-orchestration/README.md
-      - evaluation/sei-cognition-orchestration/EMERGENT_COGNITIVE_ARCHITECTURE.md
-      - evaluation/sei-cognition-orchestration/ORGANIZATION_COGNITIVE_FABRIC.md
+      - README.md
+      - EMERGENT_COGNITIVE_ARCHITECTURE.md
+      - ORGANIZATION_COGNITIVE_FABRIC.md
     note: 2026-09-12にmainから合流した常時認知オーケストレーション構想。Evaluation-onlyであり、Stable RequirementやUniversal Contractへは未先取りである。READMEの命名移行章はADR-0031の実施結果へ同期した。他は現状の本文を保つ。
   - scope: evaluation/sparse-associative-cognition/*.md
     status: reviewed-no-change
     coverage:
-      - evaluation/sparse-associative-cognition/README.md
-      - evaluation/sparse-associative-cognition/HYBRID_LOCAL_REASONING.md
+      - README.md
+      - HYBRID_LOCAL_REASONING.md
     note: 2026-09-12にmainから合流した疎連想認知基質の研究記録。current実装はprototype-goであり、ADR-0027に従いPython prototypeはGoへ置き換え済みである。Evidenceの読み方と停止線を明示しており現状の本文を保つ。
   - scope: evaluation/sparse-associative-cognition/EXECUTION_EVIDENCE_2026-09-12.md
     status: excluded-historical
@@ -358,7 +364,7 @@ reviewed:
     note: Product Milestoneと上流探索・Requirement化の配置規則をcurrent planning入口へ反映済み。
   - scope: plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md
     status: revised
-    note: 上流計画をProduct Value→current priority→Requirement化→停止線の順へ再構成した。ISSUE-000073のresume-first Product SliceをPriority B1、外部execution surface待ちのISSUE-000072 TEI exact-B actualをPriority B2として独立lane化し、Candidate Requirementをprototype / human review前にStable化しない方針を明示した。
+    note: Product Value discoveryをPriority Aとして追加し、ISSUE-000077のBrand World Source / Discovery Review / Product Vision統合と、後続ISSUE-000078のInquiry Continuity比較実証を上流laneへ位置づけた。ISSUE-000073のresume-first Product SliceはPriority B1、ISSUE-000072のTEI exact-B actualはPriority B2として独立laneを維持し、各laneのEvidenceを相互流用しない停止線を明示している。
   - scope: plan/DEVELOPMENT_WORKFLOW.md
     status: revised
     note: Product Valueと未定領域の探索をRequirement / Architectureより上流へ置く原則を維持したうえで、PR #70後のActions停止状態へ全文を再整理した。GitHub Actions、local test、repository checker、external runnerを検証手段として意味上の正本から分離し、failureがpushを止めないことと、merge / release / Evidence gateが別責務であることを自然な日本語で明示した。

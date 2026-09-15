@@ -1,7 +1,7 @@
 # SEI Product Vision
 
-更新日: 2026-09-14  
-状態: **Product Vision Baseline — shared cognitive aperture / quiet infrastructure reflected**
+更新日: 2026-09-16  
+状態: **Product Vision Baseline — Brand World Discovery reflected**
 
 ## 1. この文書の役割
 
@@ -11,6 +11,8 @@
 
 特定の型、API、画面、AIモデル、実行方式を将来像として固定する文書ではありません。
 
+また、`SEI_BRAND_WORLD_SOURCE.md`で記録した「井」のブランド世界は、本書を考えるための探索源の一つですが、Product Visionのauthorityではありません。象徴から仕様を直接導くのではなく、利用者や組織にとって意味のある状態として説明できるものだけを本書へ反映します。
+
 ## 2. 目指す状態
 
 SEIが目指すのは、AIが高度化した世界で、組織や個人が「自動化できること」を増やすだけでなく、**何を見て、何を問い、何を根拠に、どこまでをAIや外部システムへ委ね、何を自ら判断したのか**を失わずに扱える状態です。
@@ -19,11 +21,56 @@ SEIが目指すのは、AIが高度化した世界で、組織や個人が「自
 
 その結果、利用者は過去の判断を単なるログとして眺めるのではなく、当時の前提へ戻り、新しいEvidenceを加え、必要であれば別の手段や判断を選び直せます。
 
-さらにSEIを、完成済みKnowledgeやDecisionだけを置く場所にはしません。まだ言葉になりきらないObservation、問い、違和感、Hypothesis候補を、早まってTruthへ変えず、後から別の人間やAIが問い直せる**耐久的な認知の入口**として利用できる状態を目指します。
+同時に、すべての認知活動が最初からDecisionへ到達するわけではありません。
 
-この入口は中央集権的な「AI脳」ではありません。人間、AI、Cognitive Method、Document、System等がそれぞれのResponsibilityとAccess boundaryを保ちながら近づける共有基盤です。
+実務では、まだ何を問うべきか十分に定まっていない段階、確証のない違和感だけがある段階、複数のObservationが集まり始めているがRecommendationへ進むには早い段階があります。
 
-## 3. AIが強くなるほど、薄くできる層と残す層を分ける
+SEIは、そのような途中状態をすぐに「答え」へ変えることを目指しません。Question、Observation、Unknown、Conflict、Hypothesis等として外在化できたものを、意味差と来歴を失わず扱い、後から別の人間やAIが問い直せる状態を目指します。
+
+## 3. 判断の前から、認知の続きを失わない
+
+current Product Valueでは、Decision Continuityを、時間・Surface・AI・情報が変わっても、過去を捏造せず判断仕事の続きを始められることとして重視しています。
+
+このVisionでは、そのさらに手前も視野に入れます。
+
+まだDecisionが存在しないInquiryでも、時間が空いたり、担当者やAI sessionが変わったりすると、次のものが失われることがあります。
+
+- そもそも何が気になっていたのか。
+- どのObservationが最初の問いにつながったのか。
+- 何がまだ分からなかったのか。
+- どのHypothesisは未検証のままだったのか。
+- 何を次に確かめようとしていたのか。
+
+SEIは、あらゆる思考断片を保存することを目指しません。private chain-of-thoughtや一時的なworking memoryを正本へ変えることもしません。
+
+目指すのは、主体が共有・再利用する価値があると判断して外在化した認知対象について、**Decisionになる前であっても、後から文脈を失わず探索を再開できる可能性を保つこと**です。
+
+この状態を独立したProduct Valueとみなすべきか、Decision Continuityを含むより広いCognitive Continuityとして整理すべきかは、actual Scenarioとhuman reviewを通して今後検証します。本書では、長期的な利用世界としてこの方向を明示するに留めます。
+
+## 4. 個人や一つのAI sessionへ閉じない共有認知基盤
+
+SEIは、一人の利用者だけのsecond brainや、一つのAI modelのmemoryとして完結することを長期像にはしません。
+
+組織の認知活動では、問い、Observation、Decision basis、Unknown、reopen condition等が、特定の担当者や一つのAI sessionに閉じると、引継ぎや再検討のたびに大きな再構成負担が生じます。
+
+SEIは、これらを適切なboundaryのもとで、人間とAIが後から利用できる**共有認知資産**として持続させることを目指します。
+
+ただし、共有することと無制限に公開することは同じではありません。
+
+Selective Disclosure、Product Access、Responsibility、Authority、Provenance等を保ち、必要な主体が必要な範囲へ到達できることを重視します。
+
+```text
+shared cognition
+  != everybody sees everything
+  != open to everyone
+  != shared Authority
+```
+
+共有できることは、全員へ開くことでも、権限を共有することでもありません。一人の利用者や一つのAI sessionで得た認知成果が、そのsessionの寿命だけで消えず、許された別の人間やAIへ引き継げる。そのときもProvenance、historical context、Responsibility、Access boundaryを失わない。この状態を目指します。
+
+この意味でSEIが目指すのは、中央の巨大な知識庫でも組織の「中央の頭脳」でもなく、**異なる主体がそれぞれの責任を保ったまま同じ認知資産へ近づける、境界を失わないCognitive Infrastructure**です。
+
+## 5. AIが強くなるほど、薄くできる層と残す層を分ける
 
 SEIは、現在の技術制約を恒久的な製品構造へ固定しません。
 
@@ -43,20 +90,11 @@ Core / Profile / Provider / Realization等へ配置する
 技術進歩後、新しい現在地から再評価する
 ```
 
-将来も残すべきなのは、現在の型名そのものではありません。認識、問い、不確実性、根拠、提案、判断、責任、能力、来歴など、主体が自らの判断を再構成するために必要な**意味上の区別**です。
+将来も残すべきなのは、現在の型名そのものではありません。認識、問い、不確実性、根拠、提案、判断、責任、能力、来歴など、主体が自らの判断や探索を再構成するために必要な**意味上の区別**です。
 
 具体的な型をUniversal Coreへ置くかどうかは、Product Visionから直接決めず、Value Model、Scenario、Requirement、ADRを通じて判断します。
 
-ここで「薄い」は「浅い」を意味しません。
-
-```text
-thin infrastructure
-  != shallow cognition
-```
-
-Provider固有実装や現在のAI都合は薄く交換可能に保ちながら、その上で利用者が扱えるInquiry、historical context、uncertainty、shared cognitionは深くなり得ます。
-
-## 4. 交換可能にしていくもの
+## 6. 交換可能にしていくもの
 
 次のような仕組みは、必要であってもSEIの恒久的中心にしないことを基本とします。
 
@@ -73,35 +111,35 @@ Provider固有実装や現在のAI都合は薄く交換可能に保ちながら�
 
 これらは、外部Provider、Profile、Projection、交換可能なRealizationへ置くことを優先します。
 
-重要なのは、これらを捨てることではなく、**交換したときにSEIの判断記憶や問いの継続性まで壊れないこと**です。
+重要なのは、これらを捨てることではなく、**交換したときにSEIの判断記憶や探索文脈まで壊れないこと**です。
 
-## 5. 到達したい八つの利用状態
+## 7. 到達したい五つの利用状態
 
-### 5.1 判断が時間を越えて読める
+### 7.1 判断が時間を越えて読める
 
 過去のDecisionについて、当時のEvidence、Unknown、Constraint、Authority、参照Artifactを後から辿れます。
 
 現在の知識で過去を書き換えるのではなく、「当時はなぜその判断が合理的だったのか、あるいは何が不足していたのか」を再構成できます。
 
-### 5.2 AIへ広く委ねても責任線を失わない
+### 7.2 AIへ広く委ねても責任線を失わない
 
 SEIは、人間を形式的な承認ボタンへ縮小することも、AIを常に補助者へ固定することも目指しません。
 
 AIへの委任範囲は広がって構いません。ただし、Recommendation、Decision、Authority、Action Intent、Execution等の意味差を、能力向上を理由に無自覚に潰しません。
 
-### 5.3 手段を交換してもIntentとDecisionが残る
+### 7.3 手段を交換してもIntentとDecisionが残る
 
 人間、AI、SaaS、外部組織、TEI、custom codeなど、Capability Providerは交換・併用できます。
 
 Providerを変更した結果、過去のIntentやDecisionまで別の意味へ読み替えられる状態を避けます。
 
-### 5.4 不確実なままでも安全に前へ進める
+### 7.4 不確実なままでも安全に前へ進める
 
 Unknown、Conflict、Hypothesisが存在するからといって、すべての判断を停止する必要はありません。
 
 不確実性を残したまま必要なDecisionを行い、何を未解決のまま受け入れたのかを後から確認できる状態を目指します。
 
-### 5.5 軽い利用から厳密な利用へ連続的に移れる
+### 7.5 軽い利用から厳密な利用へ連続的に移れる
 
 利用者は、SEIを使うために巨大なontologyを最初から設計する必要がありません。
 
@@ -109,37 +147,31 @@ Unknown、Conflict、Hypothesisが存在するからといって、すべての�
 
 簡略な表示や入力を採用しても、必要な場合にcanonicalな意味へ戻れることを重視します。
 
-### 5.6 問いが形になる前から使える
+## 8. 静かなInfrastructureとして利用できる
 
-利用者が最初に持っているものは、明確なQuestionやEvidenceではなく、「何かが違う」という弱いsignalや、まだ比較軸を言えない違和感である場合があります。
+SEIは、利用者のattentionを常に占有する製品を目指しません。
 
-SEIは、その状態をすぐに整った結論へ変えるのではなく、Observation、Inquiry、Hypothesis、Unknown等の適切な意味へ徐々に外在化し、後から問い直せる状態を目指します。
+高度なAIが多数のRecommendation、summary、alertを生成できるようになっても、出力量やproactiveさそのものをProduct Valueにはしません。
 
-「深いところに答えがある」と仮定するのではなく、**まだ形を得ていないものへ、安全に近づける入口を保つ**ことを重視します。
+必要なときには、問い、Unknown、Decision basis、audit detailへ深く降りられる。一方、通常時には、本来の仕事よりSEIの入力・確認・通知が前面に出ない。そのような利用状態を目指します。
 
-### 5.7 認知成果をboundedに共有できる
+ここでいう「静か」は、重要なwarningを隠すことや、next actionを示さないことではありません。
 
-一人の利用者や一つのAI sessionで得た認知成果が、そのsessionの寿命だけで消えず、許された別の人間やAIへ引き継げます。
+むしろ、
 
-共有時にもProvenance、historical context、Responsibility、Access boundaryを失いません。
+- 不要なrecommendation pressureを増やさない。
+- semantic detailを最初からすべて要求しない。
+- AI suggestionをDecisionのように押し付けない。
+- 必要なreview conditionは適切に見える。
+- 利用者が自分で問い直す余地を保つ。
 
-```text
-shared cognition
-  != open to everyone
-  != shared Authority
-```
+という、認知負荷と統制可能性の両立を意味します。
 
-SEIを組織の「中央の頭脳」にするのではなく、異なる主体がそれぞれの責任を保ったまま同じ認知資産へ近づける基盤を目指します。
+一方で、安全上重要なsignalや重大な変化まで「静けさ」のために隠してはなりません。静けさを設計上の既定値にするのではなく、attention burdenとproactive assistanceの価値を場面ごとに明示的に比較します。
 
-### 5.8 必要以上に認知帯域を奪わない
+このProduct qualityは、V7 Progressive ExplicitnessやProduct Interactionのhuman reviewを通して具体化します。独立したValue Axisとしては扱いません。
 
-AIが大量のsuggestionを生成できること、常時notificationできること、あらゆるdetailを表示できることを、そのまま良いProduct Experienceとはみなしません。
-
-通常時には利用者が本来の問いや仕事へ集中でき、必要なときにはbasis、Conflict、reopen condition、materialな変化へ深く降りられる状態を目指します。
-
-一方で、安全上重要なsignalや重大な変化まで「静けさ」のために隠してはなりません。proactive assistanceの価値とattention burdenを明示的に比較します。
-
-## 6. 人間・AI・外部システムの関係
+## 9. 人間・AI・外部システムの関係
 
 案件ごとに、主体と役割の組み合わせは変化して構いません。
 
@@ -150,19 +182,20 @@ AIが大量のsuggestionを生成できること、常時notificationできる�
 - Policyにより一定範囲のDecisionをAIへ委任する。
 - 外部ProviderがExecutionを担う。
 - 実行結果をObservationとしてSEIへ戻す。
-- 一人が残したInquiryを、別の人間やAIが許可された範囲で引き継ぐ。
 
 SEIが固定したいのは役割分担そのものではなく、**その案件で実際にどの境界が採用されたかを後から読み取れること**です。
 
-人間、AI、Method、Systemのどれか一つをSEIそのものと同一視しません。SEIは、異質な主体が同じcanonical meaningへ接続するための基盤です。
+また、人間、AI、Cognitive Method、Document、外部Systemは、SEIを利用する主体・入力源・Providerになり得ますが、そのいずれか一つをSEIそのものと同一視しません。
 
-## 7. 実行基盤との関係
+SEIはcentral AI brainではなく、それらが意味を失わず出会い、後から読み直せる共有基盤を目指します。
+
+## 10. 実行基盤との関係
 
 SEIから見れば、Camunda等のworkflow/BPM、AI agent runtime、TEI、SaaS、人間作業、外部組織は、必要に応じて利用できるCapability Providerです。
 
 SEI自身が実行安定化の全領域を所有する必要はありません。生成AIが十分に賢くなり、現在のオーケストレーターの多くが不要になった場合でも残る認知・判断の意味構造を主に扱います。
 
-## 8. TEI・SUIとの関係
+## 11. TEI・SUIとの関係
 
 鼎（TEI）は、SEIから利用し得るCapability Providerの一つです。萃（SUI Sensemaking）は、認知素材を集め、関係や構造を立ち上げる隣接Product / Method familyとして接続し得ます。
 
@@ -172,13 +205,13 @@ SUI = 集めた素材から関係・まとまり・emergenceを扱う一つの�
 TEI = 実行可能な業務Capabilityを実現する一つの手段
 ```
 
-この関係を固定pipelineにはしません。SEIはSUI / TEIを使わなくても成立し、SUI / TEIもSEI専用Providerとして特権化しません。
+SEIは、関連製品であるという理由だけでTEIやSUIを優先しません。Intent、Constraint、Observation、Evidence等に基づき、他のMethod / Providerと同じ判断面で扱えることを目指します。
 
-Intent、Constraint、Observation、Evidence等に基づき、他のMethod / Providerと同じ判断面で扱えることを目指します。
+この関係を固定pipelineにはしません。SEIはSUI / TEIを使わなくても成立し、SUI / TEIもSEI専用Providerとして特権化しません。象徴的な親和性は、必須依存やProvider優先の根拠にはしません。
 
 また、SUI / TEIの内部構造をSEI Universal Coreへコピーせず、必要なCognitive Method、Capability、Observation、Evidence、Artifact referenceを明示的な境界から読み取ります。
 
-## 9. SEIが目指さない将来像
+## 12. SEIが目指さない将来像
 
 SEIは、次の状態を長期目標にはしません。
 
@@ -188,36 +221,53 @@ SEIは、次の状態を長期目標にはしません。
 - 特定AIモデルや特定Providerを中心に世界を表現する基盤
 - 利用者に最初から完全なontology入力を要求するシステム
 - 過去の判断を最新状態へ常に上書きする「現在だけ」の記録基盤
+- すべての認知断片を保存し続けるlife-log基盤
+- 共有を理由にprivacy、Selective Disclosure、Responsibilityを弱める情報集約基盤
 - まだ未確定な認知材料を、AIによって常に一つの結論へ収束させる基盤
-- 「共有」の名のもとにAccess / Responsibilityを消す基盤
-- 利用者のattentionを常時占有するAI command center
+- AI suggestionやnotificationを大量に提示すること自体を価値とするattention-consumingなProduct
 
-## 10. 長期像
+## 13. 長期像
 
-SEIの長期像は「最大の実行基盤」でも「中央のAI脳」でもありません。
+SEIの長期像は「最大の実行基盤」でも「最も賢い中央AI」でもありません。
 
-**実行方法が何度入れ替わっても、主体が自分たちの認識と判断を失わず、まだ答えになっていない問いへ戻り、過去を検証し、現在を問い直し、許された別の主体と認知成果を引き継ぎ、次の手段を選び直せるための、薄く耐久的な意味基盤**であることを目指します。
+**実行方法やAIが何度入れ替わっても、主体が自分たちの認識、問い、不確実性、判断を失わず、過去を検証し、現在を問い直し、次の手段を選び直せるための、薄く耐久的な共有認知基盤**であることを目指します。
 
-基盤自体は薄く交換可能に保ちながら、そこから利用者が近づける認知の深さは制限しません。SEIは答えを置く中心ではなく、問いと認知状態へ繰り返し戻れるdurable cognitive apertureとして働きます。
+その基盤では、すでにDecisionになったものだけでなく、外在化されたQuestion、Observation、Unknown等も、必要な範囲で時間や主体を越えて読み直せます。
 
-この長期像が実現しているかは、`SEI_VALUE_MODEL.md`のV1〜V8を用いて、単一スコアではなく複数の観点から継続的に検証します。今回のVision拡張によって新しいValue Axisを追加しません。
+ここで「薄い」は「浅い」を意味しません。
 
-## 11. 関連文書
+```text
+thin infrastructure
+  != shallow cognition
+```
+
+薄く交換可能に保つべきなのは、Provider固有実装、現在のAI都合、不要なUniversal ontologyです。その上で利用者が扱えるInquiry、historical context、uncertainty、共有可能性は深くなり得ます。SEIは答えを置く中心ではなく、問いと認知状態へ繰り返し戻れる入口として働きます。
+
+同時に、すべてを一か所へ集めたり、すべてを全員へ見せたり、すべてを永続化したりすることは目指しません。意味を持続させることと、境界を保つことを両立させます。
+
+この長期像が実現しているかは、`SEI_VALUE_MODEL.md`のV1〜V8を用いて、単一スコアではなく複数の観点から継続的に検証します。
+
+Decision以前のInquiry Continuityについては、現時点では独立したValue Axisを追加せず、Product hypothesisとしてactual Scenarioとhuman reviewから必要性を確かめます。
+
+## 14. 関連文書
 
 - `product/value/SEI_PRODUCT_VALUE.md`
 - `product/value/SEI_VALUE_MODEL.md`
-- `product/value/SEI_VALUE_PROPOSITION.md`
-- `product/value/SEI_BRAND_WORLD_DISCOVERY_SOURCE.md`
-- `product/value/SEI_BRAND_WORLD_PRODUCT_VALUE_REVIEW.md`
+- `product/value/SEI_DECISION_CONTINUITY.md`
+- `product/value/SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md`
+- `product/vision/SEI_BRAND_WORLD_SOURCE.md`
 - `product/principles/SEI_PRODUCT_PRINCIPLES.md`
+- `plan/issue/ISSUE-000077-integrate-brand-world-into-product-value-discovery.md`
 - `plan/adr/ADR-0001-moving-future-horizon.md`
 - `plan/adr/ADR-0014-sei-tei-product-boundary.md`
 - `plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md`
 
-## 12. 自然な日本語ドラフト
+## 15. 自然な日本語ドラフト
 
-Value Model、Product Value、Decision Continuity、ブランド世界のdiscovery source / Product Value Review、Product Principles、Product Shapeへ戻り、Product Visionとして何を利用世界の将来像へ置くべきかを再検討した。
+Brand World SourceとProduct Value Discovery Reviewを通じて、ブランド上の比喩とProduct Visionへ反映すべき利用状態を分離しました。
 
-従来の「薄く耐久的な意味基盤」を維持しながら、「薄い基盤」と「深い認知」を対立させない構造へ拡張した。SEI自身のUniversal CoreやProvider固有実装は薄く保ちつつ、利用者がまだ形になっていない問いへ近づき、boundedに認知成果を共有し、必要以上にattentionを奪われずに思考を継続できる世界を追加した。
+その結果、井戸、水、中央の空白といった象徴語そのものを本書の規範へ持ち込むのではなく、判断前のInquiryを失わないこと、個人や一AI sessionへ閉じない共有認知基盤であること、共有とSelective Disclosureを両立すること、人間・AI・Methodが利用するInfrastructureであること、過剰なattentionを要求しないことを将来像として反映しました。
 
-井、深層、静けさ等のブランド比喩をそのままRequirementへ持ち込まず、利用世界として説明できる部分だけをVisionへ翻訳した。V1〜V8の意味やEvidence状態を変更せず、自然な日本語として全文を再監査した。
+V1〜V8やDecision Continuityの意味を変えず、Inquiry Continuityについては未検証Product hypothesisのまま残しています。
+
+内容と構造を整えた後、意味、強度、留保、技術的境界を変えず、**自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済み**とします。
