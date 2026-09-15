@@ -1,0 +1,205 @@
+# Personal Inquiry Continuity — Actual Dogfood Checkpoint 2026-09-16
+
+更新日: 2026-09-16  
+状態: **Actual Dogfood In Progress / Multi-day Resumption Ready / Human Observation Not Yet Recorded**  
+関連: `ACTUAL_DOGFOOD_CASE_QUIET_INFRASTRUCTURE_2026-09-14.md` / `actual_dogfood_quiet_infrastructure_2026-09-14.inquiry.json` / `actual_dogfood_quiet_infrastructure_2026-09-14.evaluation.json` / ISSUE-000078
+
+## 1. このcheckpointの目的
+
+2026-09-14に開始した最初のactual dogfood caseについて、same-session / same-day calibrationから分離された**multi-day resumptionを実行できる時間条件に到達したこと**を記録する。
+
+この文書は再開結果そのものではない。利用者が実際に何を覚えていたか、SEI Orientationだけでどこまで元のconcernへ戻れたか、どの程度sourceを開き直したかは、まだ観測していない。
+
+したがって、現在のEvidenceは次の高さに留める。
+
+```text
+actual Inquiry seeded
++ multi-day context gap elapsed
++ resumption procedure prepared
+!= human resumption observed
+!= Inquiry Continuity value established
+!= Quiet-first validated
+!= Proactive-first validated
+```
+
+時間が経過したことだけをProduct Value Evidenceへ昇格させない。
+
+## 2. current Inquiry state
+
+現在の問いは次である。
+
+> SEIのInquiry再開Surfaceでは、Quiet-firstとProactive-firstのどちらがoriginal concernを保ちつつmaterial change discoveryとnext useful actionを改善するか。
+
+seed時点ではDecisionを置いていない。
+
+保持している中心状態は次である。
+
+### Observation
+
+- 既存Personal Inquiry Continuity protocolは、reorientation、historical integrity、capture burden、False Continuity、AI handoffをすでに評価対象としている。
+- AI-generated recommendationやnext-questionを前面へ大量提示すること自体がoriginal concernを奪う可能性は、既存protocolで独立には測っていなかった。
+- Quiet Infrastructureは、materialなConflictやchanged premiseを隠すことではない。progressive disclosureとsemantic omissionを分ける必要がある。
+
+### Unknown
+
+- realなlong-gap Inquiryで、Proactive-firstがQuiet-firstよりoriginal concern driftを増やすか。
+- Quiet-firstが重要なmaterial changeの発見を遅らせるか。
+- Quiet / Proactiveの適否がInquiryの複雑性、成熟度、risk、利用者状態によって変わるか。
+
+### Hypothesis
+
+- Quiet-firstはoriginal concernとunresolvedの保持を助け、attention loadを下げる可能性がある。
+- Proactive-firstはattention loadを増やす一方、material changeやnext useful questionの発見を助ける可能性がある。
+- 固定的な二択ではなく、materialityと利用者の要求に応じたadaptive progressive disclosureが優れる可能性がある。
+
+これらは2026-09-14時点のexternalized stateであり、2026-09-16時点の新しい結論ではない。
+
+## 3. 今回の時間条件
+
+case作成時刻は `2026-09-14T03:19:05+09:00` である。
+
+2026-09-16時点ではsame-dayではなく複数日にまたがるため、sidecar上は次の区分を利用できる。
+
+```text
+evidence_role = resumption
+context_gap   = multi-day
+```
+
+ただし、`multi-day`は時間条件の分類であり、十分な認知的忘却が実際に生じたことを保証しない。
+
+特に、評価対象を直前まで読み返していた場合、形式上は2日以上経過していても強いcontext lossが生じていない可能性がある。この場合はその事実をnotesへ残し、結果を過大評価しない。
+
+## 4. human resumptionで守る順序
+
+次回のhuman observationでは、元chatやsourceを先に開いてはいけない。
+
+最初に利用してよいのは、SEIのcanonical Inquiry stateから生成されたOrientationだけとする。
+
+推奨順序は次である。
+
+1. 元chat / source /今回の設計議論を開かない。
+2. `dogfood_cli.py orient actual_dogfood_quiet_infrastructure_2026-09-14.inquiry.json` 相当のOrientationだけを見る。
+3. Orientationを読んだ時点で、次を言語化する。
+   - 元々何を気にしていたか。
+   - 現在の問いは何か。
+   - 何がObservationで、何がまだUnknownか。
+   - どのHypothesisが残っているか。
+   - 次に何を調べる／比較するのが有用か。
+4. その後に必要なdetailへ降りる。
+5. source / chatを開き直した回数と理由を記録する。
+6. 読み返した結果、Orientationだけでは誤って理解していた点があればFalse Continuityとして扱う。
+
+重要なのは「少ない再読で済んだ」ことだけではない。
+
+```text
+fast resume
++ wrong historical understanding
+= failure
+```
+
+である。
+
+## 5. sidecarへ記録する項目
+
+human resumptionを実施した場合、少なくとも次をactual observationとして残す。
+
+- `evidence_role = resumption`
+- `context_gap = multi-day`
+- `surface = sei-orientation` または比較対象Surface
+- `original_concern_retention`
+- `unresolved_preservation`
+- `temporal_integrity`
+- `false_continuity`
+- `source_reopens`
+- `chat_reopens`
+- `detail_descents`
+- `attention_load`
+- `first_useful_action`
+
+Decisionが存在しないcurrent caseでは、`recommendation_decision_integrity`は無理に評価せず `not-applicable` としてよい。
+
+判断できない項目を推測で`pass`へしない。
+
+## 6. Quiet / Proactive比較を急がない
+
+最初のmulti-day resumptionでは、まずP1 SEI OrientationがInquiry Continuityとして成立するかを見る。
+
+Quiet-firstとProactive-firstを同時に大量提示すると、比較そのものが再開時のworking memoryへ干渉する。そのため、最初の観測から二Surfaceの優劣を確定しない。
+
+順序効果を避けるには、今後の複数caseで条件を入れ替えるか、同程度の別Inquiryを使う。
+
+```text
+first actual resumption
+  -> resumption mechanics / meaning preservation
+
+later counterfactual comparison
+  -> Quiet vs Proactive trade-off
+```
+
+と段階を分ける。
+
+## 7. Generic Summary / B1との比較
+
+P1のmulti-day resumptionを一件観測できた後に、Generic SummaryまたはB1 Final-note相当との比較へ進む。
+
+ここでもP1を有利にするため比較対象を意図的に弱くしない。
+
+比較対象が十分に機能する場合は、SEI固有の構造を減らすEvidenceとして扱う。
+
+特に確認するのは、
+
+- Unknownが落ちないか。
+- ObservationとHypothesisが融合しないか。
+- original concernが現在の推測へ置換されないか。
+- first useful actionまでに必要な再読がどう異なるか。
+- structured capture burdenが差分価値を上回らないか。
+
+である。
+
+## 8. branch運用上の現在地
+
+本checkpoint以降のISSUE-000078作業は、Accepted Development Conventionに従い、`develop/v0.2.0`から切った次の継続branchへ集約する。
+
+```text
+evaluation/issue-000078-dogfood
+```
+
+同一Issueのsidecar、case、checkpoint、比較Evidence、planning同期のためにmicro-branchを追加しない。
+
+まとまりのよいEvidence bundleができた時点で`develop/v0.2.0`へ統合し、その後にstable baselineである`main`へ進める。
+
+branch名自体をProduct ontologyやEvidence authorityとして扱わない。
+
+## 9. 現時点で行わないこと
+
+このcheckpointでは次を行わない。
+
+- sidecarへ架空のhuman observationを書く。
+- 2日経過したことだけをInquiry Continuity成功とみなす。
+- Quiet-firstをProduct PrincipleやStable Requirementへ昇格する。
+- `Inquiry`をUniversal semantic entityとして固定する。
+- Value Axisを追加する。
+- actual failureがないままUI機能を増やす。
+
+## 10. 次の高情報量Evidence
+
+現在もっとも価値が高い次のEvidenceは、**利用者が元chat / sourceを先に開かず、multi-day gap後にOrientationから実際に再開したhuman observation**である。
+
+その観測が得られた後に初めて、
+
+- current Personal Inquiry Continuityで十分か。
+- Orientationが過剰／不足か。
+- Quiet / Proactive比較をどう組むか。
+- Generic Summary / Final-noteとの差が意味を持つか。
+
+を再評価する。
+
+それまでは、Product Value成立を保留する。
+
+## 11. 自然な日本語とEvidence監査
+
+本checkpointは、実行可能になったことと実行済みであることを混同しないために起票した。
+
+「数日経ったので再開価値が証明された」という近道を避け、時間条件、human observation、counterfactual comparison、Product判断を分離している。SEI Cognitionのブランド世界から得たQuiet Infrastructureの着想は、引き続き評価仮説の源泉として利用するが、結果を先取りする規範としては扱わない。
+
+本文を自然な日本語として再読し、Design / Evaluation / Human Evidence / Product Value / Stable Requirementの高さが混在していないことを最終確認した。
