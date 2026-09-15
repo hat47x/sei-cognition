@@ -1,6 +1,7 @@
 package interactionprobe
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
@@ -118,50 +119,65 @@ func TestDismissedProvisionalRecommendationLeavesCanonicalStateUntouched(t *test
 	}
 }
 
-func TestFailedDraftCommitRemainsCorrectable(t *testing.T) {
+func TestStaleDraftCommitRequiresFreshProposal(t *testing.T) {
 	store := NewCanonicalStore()
 	human := NewHumanSurface(store)
 	machine := NewMachineSurface(store)
-	inquiry, err := human.StartInquiry("I-CONFLICT", "commit failure後もdraftを修正できる")
+	inquiry, err := human.StartInquiry("I-STALE", "canonical change後の古いAI draftを黙ってcommitしない")
 	if err != nil {
 		t.Fatalf("StartInquiry() error = %v", err)
 	}
-	ref := lr("recommendation", "R-CONFLICT")
+	ref := lr("recommendation", "R-STALE")
 
 	draft, err := machine.ProposeRecommendation(RecommendationInput{
 		Ref:         ref,
-		Statement:   "draft recommendation",
+		Statement:   "古いsnapshotを前提にしたAI提案",
 		ContextRefs: []semanticruntime.LogicalReference{inquiry},
 	})
 	if err != nil {
 		t.Fatalf("ProposeRecommendation() error = %v", err)
 	}
-	if err := machine.RecordRecommendation(RecommendationInput{
-		Ref:         ref,
-		Statement:   "canonical recommendation written first",
-		ContextRefs: []semanticruntime.LogicalReference{inquiry},
-	}); err != nil {
-		t.Fatalf("RecordRecommendation() setup error = %v", err)
+
+	if _, err := human.RecordUnknown("U-AFTER-DRAFT", "draft作成後に追加で判明した未解決事項"); err != nil {
+		t.Fatalf("RecordUnknown() error = %v", err)
 	}
 
-	if err := draft.Commit(); err == nil {
-		t.Fatal("Commit() unexpectedly succeeded with duplicate canonical ref")
+	if err := draft.Commit(); !errors.Is(err, errStaleProvisionalRecommendation) {
+		t.Fatalf("Commit() error = %v, want stale snapshot error", err)
 	}
+	if _, err := machine.ReadRecommendation(ref); err == nil {
+		t.Fatal("stale draft appeared in canonical state")
+	}
+
+	// 文言の修正だけではsnapshot preconditionを暗黙更新しない。
 	if err := draft.Revise(RecommendationInput{
-		Ref:         lr("recommendation", "R-CORRECTED"),
-		Statement:   "duplicateを解消した修正版",
+		Ref:         ref,
+		Statement:   "文言だけ修正したがsnapshotは古いまま",
 		ContextRefs: []semanticruntime.LogicalReference{inquiry},
 	}); err != nil {
-		t.Fatalf("Revise() after failed commit error = %v", err)
+		t.Fatalf("Revise() stale draft error = %v", err)
 	}
-	if err := draft.Commit(); err != nil {
-		t.Fatalf("Commit() after correction error = %v", err)
+	if err := draft.Commit(); !errors.Is(err, errStaleProvisionalRecommendation) {
+		t.Fatalf("Commit() after revise error = %v, want stale snapshot error", err)
 	}
-	got, err := machine.ReadRecommendation(lr("recommendation", "R-CORRECTED"))
+
+	// canonical changeを確認した後は、fresh proposalを明示的に作り直す。
+	fresh, err := machine.ProposeRecommendation(RecommendationInput{
+		Ref:         ref,
+		Statement:   "追加のUnknownを確認したうえで改めて提案する",
+		ContextRefs: []semanticruntime.LogicalReference{inquiry},
+	})
 	if err != nil {
-		t.Fatalf("ReadRecommendation() corrected error = %v", err)
+		t.Fatalf("fresh ProposeRecommendation() error = %v", err)
 	}
-	if got.Statement != "duplicateを解消した修正版" {
-		t.Fatalf("corrected canonical statement = %q", got.Statement)
+	if err := fresh.Commit(); err != nil {
+		t.Fatalf("fresh Commit() error = %v", err)
+	}
+	got, err := machine.ReadRecommendation(ref)
+	if err != nil {
+		t.Fatalf("ReadRecommendation() fresh error = %v", err)
+	}
+	if got.Statement != "追加のUnknownを確認したうえで改めて提案する" {
+		t.Fatalf("fresh canonical statement = %q", got.Statement)
 	}
 }
