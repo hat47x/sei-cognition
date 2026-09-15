@@ -1,7 +1,7 @@
 # SEI 上流プロダクト開発計画
 
-更新日: 2026-09-14  
-状態: **Current Upstream Planning Baseline — Product Value discovery / resume-first Product Slice / TEI version exchangeを並行優先**
+更新日: 2026-09-16  
+状態: **Current Upstream Planning Baseline — Product Value discovery / Inquiry Continuity actual dogfood / resume-first Product Slice / TEI version exchangeを並行優先**
 
 ## 1. この文書の役割
 
@@ -92,9 +92,9 @@ Design
 
 この最初の探索単位では、次を実施済みです。
 
-- `product/vision/SEI_BRAND_WORLD_SOURCE.md`に、井、中央の空白、水、静けさ、四方向性、Cognitive Commons、SEI / SUI / TEIの象徴関係を**非規範のProduct Value discovery source**として保存した。
-- `product/value/SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md`で、Cognitive Commons、Surface / Depth Interface、Deliberate Non-closure、Durable Cognitive Aperture、Quiet Infrastructure、Shared but not Unboundedをcurrent V1〜V8 / Decision Continuityへ逆照合した。
-- `SEI_PRODUCT_VISION.md`へ、判断前のInquiryを失わないこと、boundedな共有認知基盤、人間・AI・Methodが利用するInfrastructure、過剰なattentionを要求しない将来像を反映した。
+- `product/value/SEI_BRAND_WORLD_DISCOVERY_SOURCE.md`に、井、中央の空白、水、静けさ、四方向性、Cognitive Commons、SEI / SUI / TEIの象徴関係を**非規範のProduct Value discovery source**として保存した。
+- `product/value/SEI_BRAND_WORLD_PRODUCT_VALUE_REVIEW.md`で、Cognitive Commons、Surface / Depth Interface、Deliberate Non-closure、Durable Cognitive Aperture、Quiet Infrastructure、Shared but not Unboundedをcurrent V1〜V8 / Decision Continuityへ逆照合した。
+- `product/vision/SEI_PRODUCT_VISION.md`へ、判断前のInquiryを失わないこと、boundedな共有認知基盤、人間・AI・Methodが利用するInfrastructure、過剰なattentionを要求しない将来像を反映した。
 - 新しいValue Axisを追加しないと判断した。
 - Reviewで最も独立性が高く残った**Decision成立前のInquiry Continuity**を、ISSUE-000078としてactual comparisonへ切り出した。
 
@@ -114,6 +114,18 @@ Inquiry Continuity          → follow-up Product hypothesis
 **ISSUE-000078で、Decisionがまだ存在しない長期Inquiryについて、raw chat / chronological note / SEI canonical meaningを比較し、SEI固有の継続価値が本当に存在するかを反証可能にすること**です。
 
 この比較では、resume speedだけでなく、historical attribution error、Observation / Hypothesis混同、unresolved omission、original concern drift、capture burden、AI summary correction burden等を観測します。
+
+2026-09-14にはfirst actual caseをseedし、2026-09-16にはmulti-day resumptionを実行できる時間条件へ到達しました。ただし、これはhuman resumptionが成功したEvidenceではありません。現在の境界は次です。
+
+```text
+actual Inquiry seeded
++ multi-day context gap elapsed
++ resumption procedure prepared
+!= human resumption observed
+!= Inquiry Continuity value established
+```
+
+したがって、現在もっとも高情報量なのは、元chat / sourceを先に開かず、SEI Orientationだけから実際に再開し、historical correctness、unresolved preservation、source reopen、attention burden、first useful actionを観測することです。
 
 ISSUE-000078の結果は、次のいずれでも正当です。
 
@@ -209,6 +221,10 @@ ISSUE-000078では、Decision成立前のInquiryを対象に、raw chat、chrono
 - later informationをhistorical contextへ誤帰属しないか。
 - next useful stepへ戻る負担が減るか。
 - capture / review overheadが価値を相殺しないか。
+
+first actual caseでは、まずSEI Orientation単独のmulti-day resumptionを観測します。Generic Summary / chronological noteとのcounterfactual比較は、その観測後に行い、比較自体が最初の再開時working memoryへ干渉しないようにします。
+
+Quiet-first / Proactive-firstの比較も、同じfirst caseで同時提示して結論を出しません。別caseまたは条件順序を入れ替えた比較を用い、順序効果を分離します。
 
 この探索はISSUE-000073のDecision-centered resumeと近接しますが、Decisionが存在しない条件を意図的に分離して検証します。
 
@@ -347,7 +363,7 @@ Product confidenceを高めるため、happy pathだけでなくpartial commit�
 | Lane | Issue / area | State | Next high-information step |
 |---|---|---|---|
 | Product Value discovery | ISSUE-000077 | Open / source + review + Vision integration complete | document placement / No Change audit, then closure review |
-| Inquiry Continuity validation | ISSUE-000078 | Open / Design hypothesis | raw chat / note / SEI counterfactual design + human review |
+| Inquiry Continuity validation | ISSUE-000078 | Open / actual Inquiry seeded / multi-day resumption ready | SEI Orientationからのactual human resumption、次いでraw chat / note counterfactual |
 | Product Interaction | ISSUE-000073 | Open / Design baseline | prototype E1〜E8 + human review |
 | TEI Provider portability | ISSUE-000072 | Open / execution blocked externally | exact-B actual E2 when execution surface is available |
 | Method outcome quality | ISSUE-000071 follow-up | evaluation boundary established | actual human outcome review |
@@ -416,12 +432,14 @@ human usability review
 
 ## 12. Natural Japanese review
 
-2026-09-14時点で、ISSUE-000077のBrand World SourceとProduct Value Discovery Reviewを作成し、Product Visionへ必要な範囲だけを反映した。
+2026-09-16時点で、ISSUE-000077のBrand World Discovery SourceとProduct Value Reviewは`product/value`へ一本化され、Product Visionへ必要な範囲だけを反映しています。旧`product/vision/SEI_BRAND_WORLD_SOURCE.md`および旧`SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md`という配置・名称はcurrent正本ではありません。
 
-Reviewの結果、Cognitive Commons、Surface / Depth Interface、Deliberate Non-closure、Quiet Infrastructure、Shared but not Unboundedは、新しいValue Axisを増やすより、既存V1〜V8、Decision Continuity、Product Vision、Product Interactionの説明を深める方が自然と判断した。
+Reviewの結果、Cognitive Commons、Surface / Depth Interface、Deliberate Non-closure、Quiet Infrastructure、Shared but not Unboundedは、新しいValue Axisを増やすより、既存V1〜V8、Decision Continuity、Product Vision、Product Interactionの説明を深める方が自然と判断しました。
 
-一方、Durable Cognitive Apertureの検討から、Decisionが成立する前のInquiryについて、時間・AI session・担当者をまたいで元のconcern、Observation、Unknown、Hypothesisへ戻れるかがcurrent Product Valueで十分に反証されていないことを確認した。そのためISSUE-000078を起票し、ブランド比喩ではなくraw chat / noteとのcounterfactual comparisonでProduct Valueの有無を確認する。
+一方、Durable Cognitive Apertureの検討から、Decisionが成立する前のInquiryについて、時間・AI session・担当者をまたいで元のconcern、Observation、Unknown、Hypothesisへ戻れるかがcurrent Product Valueで十分に反証されていないことを確認しました。そのためISSUE-000078を起票し、ブランド比喩ではなくraw chat / noteとのcounterfactual comparisonでProduct Valueの有無を確認します。
 
-Provider / Method portabilityのEvidenceは引き続き重要であり、人間が「使い続けられること」のactual Evidenceを深めるISSUE-000073も並行して進める。ISSUE-000072のTEI executable version exchangeもPriority 1のまま維持する。各laneは互いのEvidenceを代用せず、上流価値、Inquiry continuity、Decision-centered Product Interaction、Provider portabilityという異なる未知を減らす。
+first actual caseは2026-09-14にseed済みで、2026-09-16にはmulti-day resumptionの時間条件へ到達しました。ただしhuman observationはまだ記録していません。この差を維持し、次はOrientationからのactual resumptionを先に観測し、その後にGeneric Summary / chronological noteおよびQuiet / Proactive条件を比較します。
 
-今回の更新では、ブランド世界の詩的な豊かさと、SEIのProduct governanceが要求するauthority / Evidenceの厳密さをどちらも削らないことを重視した。背景から価値仮説、Discovery Reviewの結論、follow-up実証、下位設計へ降ろさない停止線、現在のwork laneまでが自然につながるように全文を再構成し、**自然な日本語となることを最重要視して再ドラフトしたうえで、意味、規範強度、current Evidence、未検証範囲が変わっていないことを最終監査した。**
+Provider / Method portabilityのEvidenceは引き続き重要であり、人間が「使い続けられること」のactual Evidenceを深めるISSUE-000073も並行して進めます。ISSUE-000072のTEI executable version exchangeもPriority 1のまま維持します。各laneは互いのEvidenceを代用せず、上流価値、Inquiry Continuity、Decision-centered Product Interaction、Provider portabilityという異なる未知を減らします。
+
+今回の更新では、branch統合後の正本配置、実際に得られたEvidenceの高さ、次のhuman observationの順序を現在地へ合わせました。ブランド世界の詩的な豊かさと、SEIのProduct governanceが要求するauthority / Evidenceの厳密さをどちらも削らず、背景から価値仮説、Discovery Reviewの結論、follow-up実証、下位設計へ降ろさない停止線、現在のwork laneまでが自然につながるように再読し、**自然な日本語となることを最重要視したうえで、意味、規範強度、current Evidence、未検証範囲が変わっていないことを最終監査しました。**
