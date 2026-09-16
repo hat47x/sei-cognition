@@ -1,8 +1,8 @@
 # Personal Inquiry Continuity — Evaluation Entry Point
 
-更新日: 2026-09-10  
-状態: **Evaluation-only Product Hypothesis / Root Concept Entry**  
-関連: Issue #367 / Issue #362 / Issue #365
+更新日: 2026-09-17  
+状態: **Evaluation-only Product Hypothesis / Root Concept and Execution Entry**  
+関連: ISSUE-000073 / ISSUE-000078
 
 ## 1. このディレクトリで確かめたいこと
 
@@ -25,7 +25,7 @@ Personal Inquiry Continuity
   != task manager
 ```
 
-ここにある文書・prototypeは、現時点ではStable Product RequirementやUniversal Contractではない。
+ここにある文書・prototypeは、原則としてStable Product RequirementやUniversal Contractそのものではない。current Stable Requirementへ昇格した意味は`requirements/`を正本とし、このディレクトリには、そこへ至った評価・監査・実証準備と、まだProduct hypothesisのまま残る領域を置く。
 
 ## 2. 根幹の問題
 
@@ -80,7 +80,7 @@ Resumption Projection != canonical authority
 
 ### 2.3 速く戻れたように見えるだけでは成功ではない
 
-再開を高速化しても、later evidenceをpast basisと誤認したり、RecommendationをDecisionと取り違えたりすれば、かえって危険である。
+再開を高速化しても、later Evidenceをpast basisと誤認したり、RecommendationをDecisionと取り違えたりすれば、かえって危険である。
 
 この状態をこのevaluationでは **False Continuity** と呼ぶ。
 
@@ -190,9 +190,9 @@ light Orientationだけを権威化せず、必要なときsource、basis、time
 
 ### Capability F — Independence and Handoff
 
-元chat、特定LLM、特定providerがなくても保存済みInquiryを読み、別AI / tool / environmentへ意味を渡せる。
+元chat、特定LLM、特定Providerがなくても保存済みInquiryを読み、別AI / tool / environmentへ意味を渡せる。
 
-これらはまだStable Requirementの新設を意味しない。多くはcurrent SEI Requirementの組合せを個人Profileへ具体化したものである。
+これらはStable Requirementの新設を自動的に意味しない。多くはcurrent SEI Requirementの組合せを個人Profileへ具体化したものである。
 
 ## 6. 能力から個別課題へ降りる
 
@@ -212,23 +212,47 @@ Capabilities
   preservation / capture / orientation / delta / detail / handoff
     ↓
 Candidate Requirements
-  PIC-*
+  PIC-* / ISSUE-local CR-*
     ↓
 Acceptance / Falsification
-  queryless resume / generic summary comparison / late evidence / false continuity ...
+  queryless resume / generic summary comparison /
+  late evidence / false continuity / commit integrity ...
     ↓
-Prototype
-  local evaluation CLI
+Prototype / review tooling
+  local evaluation CLI / interaction probe / matched review
     ↓
 Evidence
-  mechanics → real dogfood → Adoption / Outcome
+  mechanics → actual resumption → comparison → Adoption / Outcome
 ```
 
 個別のfield、CLI command、timestamp rule、UI state等から上位趣旨を逆算するのではなく、原則としてこの方向へ降りる。
 
-具体的な対応関係は `CONCEPT_TO_REQUIREMENT_DERIVATION.md` を参照する。
+具体的な対応関係は`CONCEPT_TO_REQUIREMENT_DERIVATION.md`を参照する。
 
-## 7. 推奨Reading Order
+## 7. 二つのcurrent検証レーン
+
+2026-09-17時点では、同じPersonal Inquiry Continuity基盤上で二つのIssueが異なる問いを扱っている。
+
+### ISSUE-000073 — Decision Continuity / first usable resume-first slice
+
+Decisionを含む判断仕事について、canonical-only resume、AI provisional boundary、partial commit / stale write、external AI context、H1 actual resume、H2 counterfactual reviewを扱う。
+
+CR-73.1〜10のRequirement auditは完了しており、既存REQでは直接禁止できなかったpartial commitとstale writeだけを一つの意味境界へ統合した。
+
+- `REQ-0023 — Canonical commitの整合性`
+- `SCN-0019 — 途中失敗・stale draftを含むcanonical commit`
+
+これはDesign / Requirement formalizationであり、E1〜E8 actual PASSやhuman Product Valueを意味しない。
+
+### ISSUE-000078 — Decision成立前を含むInquiry Continuity
+
+Brand World Product Value Reviewから残った、Decision成立前のopen Inquiryを時間を越えて保てるかをactual dogfoodで検証する。
+
+first actual caseは開始済みでmulti-dayの暦条件へ到達したが、2026-09-16の上流整理でmaterialな事前露出が生じたため、clean resumptionはまだ観測していない。
+
+両Issueのために別々の評価ontologyやsession基盤を作らない。共有できるdogfood state、evaluation sidecar、matched review stage gateは共有し、Issue固有の意味監査だけを分ける。
+
+## 8. 推奨Reading Order
 
 このディレクトリを理解するときは、filename順ではなく次の順に読む。
 
@@ -244,22 +268,38 @@ Evidence
 5. `PRODUCT_PROFILE_REQUIREMENTS_CANDIDATE.md` — PIC-* の詳細
 6. `REQUIREMENT_GAP_AUDIT.md` — current REQとの重複・gap
 7. `RESEARCH_DERIVED_REQUIREMENT_REVIEW.md` — external researchを受けた優先度・表現再検討
+8. `DECISION_CONTINUITY_REQUIREMENT_AUDIT_2026-09-16.md` — ISSUE-000073のCR-73.1〜10をcurrent REQ / SCNへ再照合した監査記録
 
-### Stage 3 — Product Interactionと検証
+`DECISION_CONTINUITY_REQUIREMENT_AUDIT_2026-09-16.md`は監査時点のDesign Evidenceである。formalization後のcurrent baselineは`requirements/PRODUCT_REQUIREMENTS.md`と`requirements/ACCEPTANCE_SCENARIOS.md`を正とする。
 
-8. `INTERACTION_STATE_MODEL.md` — Product-local stateとdurable semanticsの境界
-9. `VALUE_VALIDATION_PROTOCOL.md` — Product Valueをどう反証可能に検証するか
-10. `RESEARCH_DERIVED_VALIDATION_AMENDMENTS.md` — queryless resume、late evidence、False Continuity等の追加検証
+### Stage 3 — Product Interactionと検証原則
 
-### Stage 4 — 実装・Evidence
+9. `INTERACTION_STATE_MODEL.md` — Product-local stateとdurable semanticsの境界
+10. `VALUE_VALIDATION_PROTOCOL.md` — Product Valueをどう反証可能に検証するか
+11. `RESEARCH_DERIVED_VALIDATION_AMENDMENTS.md` — queryless resume、late evidence、False Continuity等の追加検証
+12. `BRAND_WORLD_DISCOVERY_REBASELINE_2026-09-14.md` — Brand World Discoveryを既存Personal Inquiry Continuityへ再統合した判断
+13. `BRAND_WORLD_VALIDATION_AMENDMENT_QUIET_INFRASTRUCTURE_2026-09-14.md` — quiet / proactive surfaceのtrade-off検証
 
-11. `DOGFOOD_SURFACE.md` — evaluation CLIの役割と使い方
-12. `dogfood_core.py` / `dogfood_cli.py` / focused tests — executable mechanics
-13. `REQUIREMENTS_FORMALIZATION_PLAN.md` — Evidenceからactual requirementsへ進む条件
+### Stage 4 — actual dogfood
+
+14. `DOGFOOD_SURFACE.md` — evaluation CLIとSource / Meaning / Resume Plane
+15. `DOGFOOD_EVALUATION_RECORDING.md` — capture burden、resumption、context gap、False Continuity等をProduct semanticsと分離して記録するsidecar
+16. `ACTUAL_DOGFOOD_CASE_QUIET_INFRASTRUCTURE_2026-09-14.md` — first actual open Inquiryの開始記録
+17. `ACTUAL_DOGFOOD_CHECKPOINT_2026-09-16.md` — multi-day条件とpre-orientation exposureを分離したcurrent checkpoint
+
+### Stage 5 — ISSUE-000073の実行・human review
+
+18. `DECISION_CONTINUITY_EXECUTION_READINESS_2026-09-16.md` — REQ-0023 / SCN-0019、E1〜E8 runner / verifier、H1 / H2のcurrent実行準備状態
+19. `DECISION_CONTINUITY_HUMAN_REVIEW.md` — H1 actual resumptionとH2 matched counterfactual reviewの共通実行入口
+20. `decision_continuity_counterfactual_matched_set_v1.json`と関連script — H2のrotation、stage gate、validation、非採点comparison
+
+### Stage 6 — EvidenceからRequirementへ戻る
+
+21. `REQUIREMENTS_FORMALIZATION_PLAN.md` — Evidenceからactual Requirementへ進む条件
 
 この順序は「必ず全て読む」という意味ではない。上流の判断に疑問がある場合、下流detailへ進む前に上流へ戻れることを重視する。
 
-## 8. 今後の文書整備順
+## 9. 今後の文書整備順
 
 新しい課題を発見した場合、原則として次の順序で文書化する。
 
@@ -294,48 +334,62 @@ root purpose
 
 新しい詳細を追加するとき、既存の上位文書で説明できない場合は、詳細を先に正本化せず、上位仮説自体の不足またはscope creepを先に検討する。
 
-## 9. 現時点のEvidence
+## 10. 現時点のEvidence
 
-現時点では次まで進んでいる。
+### Design / Requirement
 
-- Product hypothesis / candidate requirementのDesign Evidence
+- Personal Inquiry ContinuityのProduct hypothesis / candidate requirement
 - external researchによるproblem validityの補強
-- Source / Meaning / Resume modelのDesign Evidence
+- Source / Meaning / Resume model
+- ISSUE-000073 Candidate Requirement audit
+- CR-73.8 / CR-73.9を`REQ-0023 / SCN-0019`へformalizeしたcurrent Design baseline
+
+### Executable mechanics / readiness
+
 - local evaluation CLIによるscoped executable mechanics
-- focused testsによる一部semantic boundaryの確認
+- dogfood evaluation sidecarとfocused tests
+- ISSUE-000073 E1〜E8 interaction probe source
+- clean committed HEADとsource blobを固定するEvidence runner
+- recorded tested commitへ戻って検証するEvidence verifier
+- H2 matched reviewのblinded packet、global stage gate、Decision固有validation、evidence export
 
-まだ確認していないもの:
+ただし、sourceやrunnerが存在することをactual E1〜E8 Executable PASSへ読み替えない。ISSUE-000073のGo 1.25.x actual runはまだNot Yet Verifiedである。
 
-- 複数real Inquiryでの継続dogfood
-- Generic SummaryよりSEI Orientationが有用であること
-- capture burdenが継続利用可能であること
-- False Continuityが実際に減ること
-- voluntary reuse
-- Adoption / Outcome Evidence
-- production UX / packaging
+### Human / Product Value
 
-したがって、prototypeが動くことをProduct Value成立と同一視しない。
+- ISSUE-000078 first actual Inquiryは開始済み
+- clean long-gap resumption: **Not Yet Observed**
+- ISSUE-000073 H1 actual resume usability: **Not Yet Observed**
+- ISSUE-000073 H2 counterfactual human pilot: **Not Yet Observed**
+- capture burdenが継続利用可能であること: **Not Yet Established**
+- Generic Summary / raw chat / chronological noteに対する価値差: **Not Yet Established**
+- voluntary reuse: **Not Yet Observed**
+- Adoption / Outcome Evidence: **Not Yet Verified**
 
-## 10. 次に進める順序
+したがって、prototypeやreview toolingが整ったことをProduct Value成立と同一視しない。
 
-次段階では、新しい機能を増やすより先にreal dogfoodを行う。
+## 11. 次に進める順序
 
-1. actualな低〜中影響Inquiryを複数扱う。
-2. 中断後にqueryless Orientationで再開する。
-3. Generic Summaryとの比較を行う。
-4. late-arriving Evidence / premise change / since-review deltaを踏む。
-5. First Useful Action、Source Reopen Count、False Continuity、capture burdenを記録する。
+文書や機能を増やすことより、既に準備した経路からactual Evidenceを得ることを優先する。
+
+1. Go 1.25.xを使えるclean checkoutでISSUE-000073 E1〜E8 runnerをactual実行し、verifierでrecorded tested commit / source blob / test結果を再検証する。
+2. materialなpre-orientation exposureのないreal InquiryでH1 actual resumptionを実施し、既存sidecarへ`evidence_role=resumption`として記録する。
+3. H2 matched counterfactual reviewをhuman readerで少なくとも一rotation実施し、synthetic pilotとして保存する。
+4. ISSUE-000078 actual Inquiryについて十分なcognitive gapが得られた時点でclean resumptionを観測する。
+5. Generic Summary / B0 / B1 / P1との比較、capture burden、False Continuity、First Useful Actionを横断して読む。
 6. 有効でなかったCapability / cue / candidate requirementを削る。
-7. その結果からAcceptance Scenarioを先にformalizeする。
-8. current REQで表現できない独立必要性が残る場合だけStable Requirement追加を検討する。
+7. current REQで表現できない独立必要性がactual Evidenceから残った場合だけ、Stable Requirement追加を再検討する。
+
+実行環境が足りないことを理由にEvidence条件を弱めない。Go 1.25.xを要求したE1〜E8を低いtoolchainのPASSで代替せず、clean resumptionに必要な認知的gapを暦上のgapだけで代用しない。
 
 ```text
 working prototype
+  != actual Evidence
   != Product Value proven
   != Stable Requirement justified
 ```
 
-## 11. この評価で守るstop lines
+## 12. この評価で守るstop lines
 
 ```text
 content retrieved != inquiry resumed
@@ -345,8 +399,20 @@ recommendation != decision
 unknown != missing field
 retrieval rank != truth
 resume cue != canonical meaning
+calendar gap != cognitive gap
+synthetic human review != actual resumption
 prototype mechanics != adoption evidence
 personal profile convenience != universal semantic requirement
 ```
 
 この境界を保ちながら、個人にとってSEIが本当に必要な部分だけを残す。
+
+## 13. Natural Japanese review
+
+2026-09-17の更新では、9月10日時点のRoot Concept文書としての役割を維持しながら、その後に増えたDecision Continuity Requirement audit、execution readiness、H1 / H2 human review、Brand WorldからのInquiry Continuity再統合、actual dogfood checkpointをReading Orderへ接続した。
+
+ISSUE-000073とISSUE-000078を別々の評価体系として並立させず、同じPersonal Inquiry Continuity基盤上で、前者はDecisionを含むfirst usable sliceとcommit integrity、後者はDecision成立前を含むopen Inquiryの継続性を検証するレーンとして整理した。dogfood state、evaluation sidecar、matched review stage gateは共有し、意味上必要な監査だけをIssueごとに分ける。
+
+また、REQ-0023 / SCN-0019のformalizationをactual Executable Evidenceへ昇格させず、E1〜E8 actual、H1、H2、clean Inquiry resumption、capture burden、比較上の価値差を未観測のまま明示した。
+
+自然な日本語として全文を再ドラフトし、Root Intent、Product hypothesis、Stable Requirement、evaluation tooling、actual Evidence、Adoption / Outcome Evidenceの境界が変わっていないことを最終監査した。
