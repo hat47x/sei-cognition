@@ -12,11 +12,15 @@ from inquiry_continuity_packet import load_manifest_fixtures
 from inquiry_continuity_review_analysis import FINDING_FIELDS
 from inquiry_continuity_review_runner import (
     InquiryReviewRunnerError,
+    attach_review_provenance,
     evidence_bundle,
     load_context,
     main,
+    new_review_provenance,
+    provenance_projection,
     record_checked_response,
     reviewer_bundle,
+    validate_review_provenance,
 )
 from matched_review_session import current_stage, new_session, save_session
 
@@ -133,12 +137,18 @@ class InquiryContinuityReviewRunnerTest(unittest.TestCase):
             self.manifest_path,
             self.root,
         )
-        self.session = new_session(
+        base = new_session(
             self.manifest,
             self.fixtures,
             "R1",
             "runner-test-session",
             "2026-09-16T21:00:00+09:00",
+        )
+        self.session = attach_review_provenance(
+            base,
+            "reviewer-test-1",
+            "none-declared",
+            "human-direct",
         )
 
     def tearDown(self):
@@ -165,6 +175,11 @@ class InquiryContinuityReviewRunnerTest(unittest.TestCase):
         bundle = reviewer_bundle(self.session, self.manifest, self.fixtures)
         self.assertEqual(bundle["stage"], "phase1")
         self.assertEqual(len(bundle["items"]), 3)
+        self.assertTrue(bundle["review_context"]["clean_blinded_candidate"])
+        self.assertEqual(
+            bundle["review_context"]["prior_exposure"],
+            "none-declared",
+        )
         for item in bundle["items"]:
             packet = item["packet"]
             self.assertNotIn("condition", packet)
@@ -172,6 +187,53 @@ class InquiryContinuityReviewRunnerTest(unittest.TestCase):
             self.assertNotIn("post_interruption_evidence", packet)
             self.assertNotIn("reference_state", packet)
             self.assertEqual(item["response_template"]["answers"], [""])
+
+    def test_missing_provenance_cannot_open_reviewer_bundle(self):
+        missing = copy.deepcopy(self.session)
+        del missing["review_provenance"]
+        with self.assertRaises(InquiryReviewRunnerError):
+            reviewer_bundle(missing, self.manifest, self.fixtures)
+
+    def test_known_exposure_is_preserved_but_not_clean_blinded(self):
+        base = new_session(
+            self.manifest,
+            self.fixtures,
+            "R1",
+            "known-exposure-session",
+            "2026-09-16T21:00:00+09:00",
+        )
+        session = attach_review_provenance(
+            base,
+            "reviewer-known-1",
+            "known-material-exposure",
+            "human-direct",
+            "Reviewer previously saw case material.",
+        )
+        projection = provenance_projection(session)
+        self.assertFalse(projection["clean_blinded_candidate"])
+        self.assertEqual(
+            projection["prior_exposure"],
+            "known-material-exposure",
+        )
+        bundle = reviewer_bundle(session, self.manifest, self.fixtures)
+        self.assertFalse(bundle["review_context"]["clean_blinded_candidate"])
+
+    def test_invalid_provenance_authorship_is_rejected(self):
+        with self.assertRaises(InquiryReviewRunnerError):
+            new_review_provenance(
+                "reviewer-test-1",
+                "none-declared",
+                "ai-generated",
+            )
+
+    def test_provenance_cannot_be_replaced_in_place(self):
+        with self.assertRaises(InquiryReviewRunnerError):
+            attach_review_provenance(
+                self.session,
+                "other-reviewer",
+                "unknown",
+                "human-direct",
+            )
 
     def test_empty_phase1_response_cannot_advance_stage(self):
         response = phase1_response()
@@ -229,12 +291,13 @@ class InquiryContinuityReviewRunnerTest(unittest.TestCase):
         bundle = reviewer_bundle(self.session, self.manifest, self.fixtures)
         self.assertEqual(bundle["stage"], "complete")
         self.assertEqual(bundle["items"], [])
+        validate_review_provenance(self.session)
 
     def test_evidence_export_rejects_incomplete_session(self):
         with self.assertRaises(InquiryReviewRunnerError):
             evidence_bundle(self.session, self.manifest, self.fixtures)
 
-    def test_evidence_export_separates_observations_from_audit(self):
+    def test_evidence_export_preserves_review_provenance(self):
         self._complete_session()
         bundle = evidence_bundle(self.session, self.manifest, self.fixtures)
         self.assertEqual(len(bundle["human_review_observations"]), 3)
@@ -242,8 +305,37 @@ class InquiryContinuityReviewRunnerTest(unittest.TestCase):
         self.assertNotIn("audit", bundle["human_review_observations"][0])
         self.assertNotIn("phase1", bundle["semantic_audits"][0])
         self.assertEqual(
+            bundle["review_provenance"]["reviewer_id"],
+            "reviewer-test-1",
+        )
+        self.assertEqual(
+            bundle["evidence_boundaries"]["clean_blinded_review"],
+            "declared-no-prior-material-exposure",
+        )
+        self.assertEqual(
             bundle["evidence_boundaries"]["product_value"],
             "not-established-by-this-artifact",
+        )
+
+    def test_known_exposure_export_is_not_clean_blinded(self):
+        base = new_session(
+            self.manifest,
+            self.fixtures,
+            "R1",
+            "known-export-session",
+            "2026-09-16T21:00:00+09:00",
+        )
+        self.session = attach_review_provenance(
+            base,
+            "reviewer-known-2",
+            "known-material-exposure",
+            "human-direct",
+        )
+        self._complete_session()
+        bundle = evidence_bundle(self.session, self.manifest, self.fixtures)
+        self.assertEqual(
+            bundle["evidence_boundaries"]["clean_blinded_review"],
+            "not-clean-blinded",
         )
 
     def test_export_evidence_command_writes_completed_bundle(self):
@@ -268,12 +360,16 @@ class InquiryContinuityReviewRunnerTest(unittest.TestCase):
         self.assertEqual(code, 0)
         result = json.loads(stdout.getvalue())
         self.assertTrue(result["exported"])
+        self.assertTrue(result["review_context"]["clean_blinded_candidate"])
         exported = json.loads(output_path.read_text(encoding="utf-8"))
         self.assertEqual(
             exported["schema"],
             "sei.inquiry-continuity-review-evidence-bundle/v0",
         )
-        self.assertEqual(exported["provenance"]["session_id"], "runner-test-session")
+        self.assertEqual(
+            exported["review_provenance"]["reviewer_id"],
+            "reviewer-test-1",
+        )
 
     def test_non_inquiry_manifest_is_rejected(self):
         bad = json.loads(self.manifest_path.read_text(encoding="utf-8"))
