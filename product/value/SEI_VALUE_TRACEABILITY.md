@@ -1,7 +1,7 @@
 # SEI Value Traceability
 
-更新日: 2026-09-05  
-状態: **Current Product Value Traceability Baseline — v0.2.0 Release Evidence / E3b / historical reconstruction / model exchange / fixed-scope Ollama runtime exchange reflected, TEI executable version exchange actual pending**
+更新日: 2026-09-16  
+状態: **Current Product Value Traceability Baseline — v0.2.0 Release Evidence / E3b / historical reconstruction / model exchange / fixed-scope Ollama runtime exchange / Decision Continuity commit-integrity formalization reflected, TEI executable version exchange actual pending**
 
 ## 1. この文書の役割
 
@@ -23,6 +23,7 @@
 - Contract: `../../contracts/TRACEABILITY.md`, `../../contracts/CONTRACT_CATALOG.md`
 - Representation Profile: `../../contracts/profiles/`
 - runtime / probe Evidence: `../../runtime/`
+- Decision Continuity Requirement audit: `../../evaluation/personal-inquiry-decision/DECISION_CONTINUITY_REQUIREMENT_AUDIT_2026-09-16.md`
 - TEI version-exchange Requirement pre-audit: `../../runtime/TEI_VERSION_EXCHANGE_REQUIREMENT_PREAUDIT_2026-09-05.md`
 - V6 / V7 evaluation: `../../evaluation/v6-v7/`
 - Cognitive Method outcome-quality evaluation: `../../evaluation/method-quality/`
@@ -57,20 +58,20 @@ Product Value / Value Proposition / Product Shape
 
 | Value Axis | 主なREQ | 主なSCN | current executable / release material |
 |---|---|---|---|
-| **V1 Historical Reconstruction** | REQ-0001, 0003, 0005, 0008, 0009, 0014, 0017, 0018, 0020, 0022 | SCN-0001, 0003, 0005, 0008, 0009, 0010, 0014, 0016, 0018 | Semantic Reference / Decision Memory / Interchange、Exact Binding、Cognitive Method、historical basis非改変、bundle-local consistency、ISSUE-000067 historical reconstruction、ISSUE-000068 model artifact exchange後の先行Application保持、ISSUE-000070 runtime version exchange後のhistorical Application保持 |
+| **V1 Historical Reconstruction** | REQ-0001, 0003, 0005, 0008, 0009, 0014, 0017, 0018, 0020, 0022, 0023 | SCN-0001, 0003, 0005, 0008, 0009, 0010, 0014, 0016, 0018, 0019 | Semantic Reference / Decision Memory / Interchange、Exact Binding、Cognitive Method、historical basis非改変、bundle-local consistency、canonical commit integrity Design boundary、ISSUE-000067 historical reconstruction、ISSUE-000068 model artifact exchange後の先行Application保持、ISSUE-000070 runtime version exchange後のhistorical Application保持 |
 | **V2 Semantic Separation** | REQ-0002, 0003, 0006, 0008, 0013, 0015, 0016, 0017, 0022 | SCN-0001, 0002, 0004, 0009, 0011, 0015, 0016, 0018 | Recommendation / Decision / Authority分離、Unknown / Withheld、Cognitive Method分離、Responsibility分離、unknown Contract非推測解析、actual model-backed KJ grouping候補の非自動昇格、execution conformanceとoutcome qualityの分離 |
-| **V3 Revision Integrity** | REQ-0001, 0003, 0004, 0005, 0008, 0009, 0014, 0018 | SCN-0003, 0005, 0008, 0010, 0015, 0016, 0018 | lineage / Exact Binding invariant、Representation Profile、Cognitive Method exact refs、複数exact revision保持、same logical Realization / different historical revisionの区別、historical basis非改変、fixed-model runtime revision exchange |
+| **V3 Revision Integrity** | REQ-0001, 0003, 0004, 0005, 0008, 0009, 0014, 0018, 0023 | SCN-0003, 0005, 0008, 0010, 0015, 0016, 0018, 0019 | lineage / Exact Binding invariant、Representation Profile、Cognitive Method exact refs、複数exact revision保持、same logical Realization / different historical revisionの区別、historical basis非改変、stale draftをSemantic Revisionへ混同しないDesign boundary、fixed-model runtime revision exchange |
 | **V4 Provider Independence** | REQ-0001, 0007, 0012, 0013, 0021, 0022 | SCN-0002, 0007, 0010, 0011, 0012, 0014, 0018 | Capability Observation、Provider replacement journey、out-of-process exchange、E3a external artifact、E3b-P1 public live Provider、E3b-P2 fixed-artifact actual TEI、E3b-M1a / M1b live external Method、ISSUE-000072 exact-B + exact-A fixed-input E2/E3 repository-side path（actual B pending） |
 | **V5 Uncertainty Preservation** | REQ-0002, 0005, 0012, 0014, 0016, 0022 | SCN-0001, 0003, 0007, 0011, 0012, 0016, 0018 | Unknown / Conflict / Withheld / partial knowledge、missing→unknown、Decision residual→reopen path、opaque `not_verified` external Method output、outcome quality未評価の明示 |
 | **V6 Human / AI Readability** | REQ-0010, 0011, 0019, 0020 | SCN-0004, 0006, 0013, 0017 | human-readable Contract、machine-readable schema、light / audit Projection、first Product Interaction reference probe、human outcome review template |
 | **V7 Progressive Explicitness** | REQ-0010 | SCN-0004, 0013 | low-impact / high-impact Projection evaluation、canonical operationとInteractionの分離、構造検査と人間評価の責務分離 |
-| **V8 Execution Independence** | REQ-0001, 0004, 0007, 0011, 0012, 0015, 0018, 0021, 0022 | SCN-0002, 0005, 0006, 0007, 0008, 0012, 0014, 0015, 0018 | provider-neutral Contract、Cognitive Method、Payload Source、local package、out-of-process exchange、E3b-P2 actual TEI process、E3b-M1a / M1b external Method process、model artifact exchange、ISSUE-000070 fixed-scope actual runtime version exchange、ISSUE-000072 TEI version-exchange repository-side path（actual B pending） |
+| **V8 Execution Independence** | REQ-0001, 0004, 0007, 0011, 0012, 0015, 0018, 0021, 0022, 0023 | SCN-0002, 0005, 0006, 0007, 0008, 0012, 0014, 0015, 0018, 0019 | provider-neutral Contract、Cognitive Method、Payload Source、local package、Product-local commit coordinator boundary、out-of-process exchange、E3b-P2 actual TEI process、E3b-M1a / M1b external Method process、model artifact exchange、ISSUE-000070 fixed-scope actual runtime version exchange、ISSUE-000072 TEI version-exchange repository-side path（actual B pending） |
 
-表中のmaterialが存在しても、そのValue Axis全体がOperational / OutcomeまでSatisfiedになったとは読みません。ISSUE-000072のrepository-side pathもactual revision B Executable Evidenceへ読み替えません。
+表中のmaterialが存在しても、そのValue Axis全体がOperational / OutcomeまでSatisfiedになったとは読みません。REQ-0023 / SCN-0019についてもDesign boundaryとprobe sourceの存在をactual Executable PASSへ読み替えません。ISSUE-000072のrepository-side pathもactual revision B Executable Evidenceへ読み替えません。
 
 ## 4. Requirement / Scenario baseline
 
-current Product Requirementsは`REQ-0001`〜`REQ-0022`、Acceptance Scenariosは`SCN-0001`〜`SCN-0018`です。
+current Product Requirementsは`REQ-0001`〜`REQ-0023`、Acceptance Scenariosは`SCN-0001`〜`SCN-0019`です。
 
 ```text
 Requirement != Acceptance Scenario != Test Case
@@ -78,18 +79,24 @@ Requirement != Acceptance Scenario != Test Case
 
 SCN-0018は個別Scenarioを置き換えません。InquiryからDecision、外部実行、実行後Observation、historical review / reopenまでを代表的なProduct Journeyとして接続し、複数の意味境界が同時に失われないことを検査します。
 
+SCN-0019は、Product Interactionからcanonical stateへ意味変更を公開する境界で、partial semantic stateやstale draftをsuccessful commitとして扱わないことを検査します。transaction、atomic replace、ETag、digest、snapshot token等をUniversal ontologyへ昇格させません。
+
 E3b-M1a / M1b、ISSUE-000067のhistorical reconstruction、ISSUE-000068のactual model artifact exchangeでは、新しいStable Requirement / Scenarioを追加していません。KJ Atlas、FastAPI、HTTP、SQLite、Ollama、特定model tag等の実装方式だけを理由にUniversalな要求を増やさず、既存のCognitive Method交換可能性、historical reconstruction、Realization / Execution交換の要求へ戻して評価します。
 
 ISSUE-000070のactual runtime version交換後もREQ-0001、REQ-0004、REQ-0021、SCN-0005、SCN-0015へ再照合し、既存Cognitive Method Contract、Semantic Reference、Semantic Interchange、Raw Bytes SHA-256 Profileで必要な意味を表現できると判断しました。新しいStable Requirement / Acceptance Scenario / Universal Contract fieldは追加していません。
 
 ISSUE-000072についても、actual revision Bの結果を見る前に`TEI_VERSION_EXCHANGE_REQUIREMENT_PREAUDIT_2026-09-05.md`でREQ-0001 / REQ-0007 / REQ-0021、SCN-0014 / SCN-0018の判定基準を固定しました。Provider-neutral Capability Observationの隣接境界としてREQ-0022も監査しますが、このpre-auditだけでResolution CriteriaやStable Requirementを増やしません。
 
-```text
-build / toolchain / Provider Plan / Adapter-local DTO failure
-  != new Stable Requirement required
-```
+ISSUE-000073では、CR-73.1〜10をcurrent REQ / SCNへ再照合した結果、resume、AI provisional boundary、Progressive Explicitness、working-set non-authority等は既存Requirementまたはhuman Outcome評価へ戻した。一方、CR-73.8 / CR-73.9は、partial commitとstale writeという異なるmechanismが同じ「successful canonical commitの意味整合性」を壊す独立failureであると判断し、REQ-0023 / SCN-0019へ一件としてformalizeした。
 
-actual Bで、historical Aを保持するためにProvider revisionをCapability identityへ昇格させる必要がある、TEI version固有fieldをUniversal Coreへ入れないと意味を保持できない、などの独立したProduct failureが確認された場合にだけCandidate Requirement / Contract changeを再検討します。
+```text
+implementation mechanism exists
+  != new Stable Requirement required
+
+independent semantic / product failure
+  + existing REQでは直接禁止できない
+  → Stable Requirement候補を再検討
+```
 
 ISSUE-000071で成果品質の評価境界を確立したこと自体も、新しいStable Requirementの成立を意味しません。
 
@@ -119,6 +126,8 @@ KJ Atlasのresponse shapeやOllama固有のinference fieldも、新しいUnivers
 runtime version、runtime archive digest、model artifact digest等もMethod Definitionのsemantic identityではありません。同じlogical Realizationのhistorical revisionを再構成する必要がある場合は、ProvenanceとExact Bindingで区別します。
 
 TEI executable version、binary digest、Provider Plan version固有field、artifact acquisition方式も、現在の時点ではUniversal Capability semanticsではありません。ISSUE-000072ではProvider-local Evidence / ProvenanceとCapability Observationの意味境界を分け、actual BでProvider-specific fieldをUniversal fieldへ漏らさず扱えるかを検証します。
+
+REQ-0023 / SCN-0019も新しいSemantic Contract familyを要求しません。commit coordinationとconcurrency preconditionはProduct / Persistence realizationであり、Semantic RevisionやLogical Referenceのportable meaningとは分離します。
 
 ## 6. Exact Bindingとhistorical reconstruction
 
@@ -192,6 +201,7 @@ current scoped materialには次があります。
 - out-of-process Realization / Provider exchange
 - packaged resume / Persistence exchange probe
 - Product Interaction / Access probe
+- Product Interaction commit / stale-draft probe source
 - E3a version-pinned external artifact integration
 - E3b-P1 public live Provider integration
 - external TEI executable injection boundary
@@ -204,7 +214,7 @@ current scoped materialには次があります。
 - ISSUE-000072 execution-source / fixed-input identity verifier、E2 / E3 runner、toolchain-split combined runner、stage-aware diagnostics
 - Cognitive Method structural / outcome-quality evaluation boundary
 
-これらのPASSはproduction Provider / Storage / external executionの運用成立、あるいはmodel出力・KJ法としての成果品質を意味しません。ISSUE-000072のversion-exchange helper / runner自体の成立もactual B互換性を意味しません。
+これらのPASSはproduction Provider / Storage / external executionの運用成立、あるいはmodel出力・KJ法としての成果品質を意味しません。REQ-0023 / SCN-0019のcommit / stale-draft probe sourceもactual runを確認するまではExecutable PASSではありません。ISSUE-000072のversion-exchange helper / runner自体の成立もactual B互換性を意味しません。
 
 ## 8. Product Interaction / Access / Packaging
 
@@ -217,12 +227,16 @@ current Product baselineでは、次の境界とreference probeが成立して�
 - authentication identityとBounded Subjectの分離
 - Product access permissionとsemantic Responsibility / Authorityの分離
 - Selective Disclosureにおける`withheld`保持
+- meaning-preserving commit / stale-write protectionのDesign boundary
 
 ```text
 reference probe PASS
   != production UX validated
   != production authorization validated
   != operational deployment validated
+
+commit probe source exists
+  != REQ-0023 / SCN-0019 Executable Evidence verified
 ```
 
 ## 9. Realization / Provider exchangeの現在地
@@ -325,6 +339,8 @@ fixture-scoped Product Journey PASS
   != human interaction validated
 ```
 
+SCN-0019は同じProduct Journey harnessへ無理に統合せず、Interaction commit / stale-draft probeで別のfailure boundaryとして扱います。source存在だけではExecutable Evidenceを成立させません。
+
 ## 13. v0.2.0 Release Evidence
 
 v0.2.0はLocal Reference Product Baselineとしてactual release済みです。
@@ -360,7 +376,9 @@ current developの再検証はGitHub Actionsを成立条件にせず、repositor
 
 ### Design Evidence
 
-Product Value、Value Proposition、Product Shape、Product Milestone、REQ-0001〜0022、SCN-0001〜0018、current ADR群、Reference Architecture、5 Contract family、2 Representation Profile、Interaction / Access / Packaging / Provider exchange boundary等があります。
+Product Value、Value Proposition、Product Shape、Product Milestone、REQ-0001〜0023、SCN-0001〜0019、current ADR群、Reference Architecture、5 Contract family、2 Representation Profile、Interaction / Access / Packaging / Provider exchange boundary等があります。
+
+REQ-0023 / SCN-0019については、ISSUE-000073 Candidate Requirement監査、first usable Product Slice、Interaction Working-Set ArchitectureによりDesign traceがあります。
 
 ### Executable Evidence — scoped
 
@@ -369,6 +387,8 @@ Plan / Requirements / Contract conformance、semantic runtime、Representation P
 ISSUE-000070のOllama runtime version exchangeについては、execution `local-20260904T193531Z-7855`のactual A/B Evidence、canonical `ready-to-review` verification、historical reconstruction、current-contract object equivalence監査があり、固定scopeのScoped Executable Evidenceはavailableです。
 
 ISSUE-000072のTEI executable version exchangeについては、revision A historical fixed-artifact Evidenceとrepository-side identity / E2 / E3 / toolchain-split execution pathはありますが、revision B actual CLI / Provider Plan / current SEI Adapter compatibilityのScoped Executable Evidenceはまだありません。
+
+REQ-0023 / SCN-0019についてはinteraction probe / test sourceが存在しますが、本baseline更新時点ではactual runをcurrent Requirement Evidenceとして確認していないため**Not Yet Verified**です。
 
 ISSUE-000071のoutcome-quality評価境界は成立していますが、human outcome reviewは未完了です。
 
@@ -390,7 +410,7 @@ supported scopeはE3aまでです。後続Evidenceをv0.2.0 release scopeへ自�
 
 ### V1 Historical Reconstruction
 
-bundle-local Exact Binding整合、historical basis非改変、Payload Source / Verifier境界、historical Method revision再構成、model artifact交換後の先行Application保持に加え、ISSUE-000070のfixed-model runtime version交換後もApplication Aを不変に再構成できることまでscopedに検査済みです。ISSUE-000072でrevision B追加後もrevision A historical Evidenceを不変に保持できるか、production Storage、長期間のProvider / representation変更をまたぐ再構成、実際の再判断への寄与は未検証です。
+bundle-local Exact Binding整合、historical basis非改変、Payload Source / Verifier境界、historical Method revision再構成、model artifact交換後の先行Application保持に加え、ISSUE-000070のfixed-model runtime version交換後もApplication Aを不変に再構成できることまでscopedに検査済みです。REQ-0023のpartial / stale commit integrityはDesign上追加したがactual probe runは未確認です。ISSUE-000072でrevision B追加後もrevision A historical Evidenceを不変に保持できるか、production Storage、長期間のProvider / representation変更をまたぐ再構成、実際の再判断への寄与は未検証です。
 
 ### V2 Semantic Separation
 
@@ -398,7 +418,7 @@ bundle-local Exact Binding整合、historical basis非改変、Payload Source / 
 
 ### V3 Revision Integrity
 
-同一logical identityの複数Exact Bindingを保持し、参照先revisionをlatest-winsで潰さない境界を検査しています。model artifact交換とfixed-model runtime version交換でも先行Applicationのexact reference保持を確認しました。ISSUE-000072のactual TEI executable revision B追加後のhistorical A不変性、長期Storage revisionは未検証です。
+同一logical identityの複数Exact Bindingを保持し、参照先revisionをlatest-winsで潰さない境界を検査しています。model artifact交換とfixed-model runtime version交換でも先行Applicationのexact reference保持を確認しました。REQ-0023ではconcurrency tokenをSemantic Revisionへ読み替えずstale successful writeを禁止するDesign boundaryを追加しましたが、actual SCN-0019 runは未確認です。ISSUE-000072のactual TEI executable revision B追加後のhistorical A不変性、長期Storage revisionは未検証です。
 
 ### V4 Provider Independence
 
@@ -418,11 +438,11 @@ low-impact / high-impactのsynthetic evaluationはあります。実運用での
 
 ### V8 Execution Independence
 
-Provider / Persistence / Realization交換、fixed-artifact actual TEI revision A、M1a external Method process、M1b actual model-backed execution、actual model artifact exchange、fixed-model Ollama `0.32.13` / `0.32.14` runtime exchangeまでscopedなExecutable Evidenceがあります。ISSUE-000072のrevision B actual TEI CLI / Provider Plan / current Adapter、production環境で長期的に意味を維持するOperational Evidenceは未検証です。
+Provider / Persistence / Realization交換、fixed-artifact actual TEI revision A、M1a external Method process、M1b actual model-backed execution、actual model artifact exchange、fixed-model Ollama `0.32.13` / `0.32.14` runtime exchangeまでscopedなExecutable Evidenceがあります。REQ-0023はcommit implementationをUniversal semanticsから分離するDesign boundaryを追加していますがactual runは未確認です。ISSUE-000072のrevision B actual TEI CLI / Provider Plan / current Adapter、production環境で長期的に意味を維持するOperational Evidenceは未検証です。
 
 ## 16. current Planとの関係
 
-current registryはADR-0001〜ADR-0030、ISSUE-000001〜ISSUE-000072を管理します。
+この節はPlan registry全件の一覧ではなく、本traceabilityで直接参照する主要Issueを示します。
 
 主要状態は次です。
 
@@ -437,10 +457,9 @@ current registryはADR-0001〜ADR-0030、ISSUE-000001〜ISSUE-000072を管理し
 - ISSUE-000070: **Resolved** — fixed model artifact下でのactual Ollama `0.32.13` / `0.32.14` runtime version exchange
 - ISSUE-000071: **Resolved** — Cognitive Method outcome-quality evaluation boundary
 - ISSUE-000072: **Open** — exact-B executable + exact-A fixed inputによるactual TEI executable version exchange
+- ISSUE-000073: **Open** — resume-first Product Slice / Decision Continuity。CR-73.8 / 73.9はREQ-0023 / SCN-0019へformalize済み。H1 / H2 human observationとProduct Outcomeは未成立
 
-currentの主要Open version-exchange explorationはISSUE-000072です。ISSUE-000070の固定scope PASSをISSUE-000072のEvidenceへ流用しません。
-
-IssueがResolvedであることは、その対象についてOperational / Adoption・Outcome EvidenceまでVerifiedであることを意味しません。ISSUE-000070もarbitrary runtime portabilityや成果品質、E4の成立を意味しません。ISSUE-000071もhuman review完了やKJ-method outcome qualityのSatisfiedを意味しません。
+IssueがResolvedであることは、その対象についてOperational / Adoption・Outcome EvidenceまでVerifiedであることを意味しません。ISSUE-000070もarbitrary runtime portabilityや成果品質、E4の成立を意味しません。ISSUE-000071もhuman review完了やKJ-method outcome qualityのSatisfiedを意味しません。ISSUE-000073もRequirement formalizationだけではResolvedになりません。
 
 ## 17. CoverageをKPIにしない
 
@@ -452,6 +471,9 @@ Requirement数、Scenario数、fixture数、Issue数、自動検査数、release
 
 v0.2.0 release後に深める主要な領域は次です。
 
+- REQ-0023 / SCN-0019のmid-commit fault / later validation failure / stale snapshot behaviorをactualに実行し、source存在をExecutable Evidenceへ引き上げられるか確認する
+- ISSUE-000073 H1 actual resume usability review
+- ISSUE-000073 H2 counterfactual human pilotとcapture / review overheadの観測
 - ISSUE-000072のexact revision B executable + exact revision A fixed inputによるactual `deployment-provider-plan` Evidence
 - ISSUE-000072のrevision Bをcurrent SEI Adapterからactualに起動し、Capability Observation mapping成立可否を確認するEvidence
 - ISSUE-000072 actual後のREQ-0001 / 0007 / 0021、SCN-0014 / 0018再照合。必要なら隣接REQ-0022も監査
@@ -469,16 +491,16 @@ v0.2.0 release後に深める主要な領域は次です。
 
 ## 19. 自然な日本語レビュー
 
-2026-09-05時点のProduct Value、Value Proposition、Product Shape、Product Milestone、PMS-06 current snapshot、REQ-0001〜0022、SCN-0001〜0018、ADR-0001〜0030、5 Semantic Contract family、2 Representation Profile、current runtime / probe、E3a / E3b-P1 / E3b-P2 fixed-artifact / E3b-M1a / E3b-M1b、ISSUE-000067〜000072、v0.2.0 Release Acceptance / Release Evidenceへ戻って全体を再監査しました。
+2026-09-16時点のProduct Value、Value Proposition、Product Shape、Product Milestone、PMS-06 current snapshot、REQ-0001〜0023、SCN-0001〜0019、ADR-0001〜0030、5 Semantic Contract family、2 Representation Profile、current runtime / probe、ISSUE-000073 Candidate Requirement監査、E3a / E3b-P1 / E3b-P2 fixed-artifact / E3b-M1a / E3b-M1b、ISSUE-000067〜000073、v0.2.0 Release Acceptance / Release Evidenceへ戻って全体を再監査した。
 
-v0.2.0 Release Evidenceの成立範囲をLocal Reference Product Baselineへ限定したまま、release後に得られたE3b-P2 fixed-artifact actual TEI revision A execution、M1a、M1b、historical Method reconstruction、actual model artifact exchange、fixed-model Ollama runtime version exchangeをScoped Executable Evidenceとして追跡しています。
+v0.2.0 Release Evidenceの成立範囲をLocal Reference Product Baselineへ限定したまま、release後に得られたE3b-P2 fixed-artifact actual TEI revision A execution、M1a、M1b、historical Method reconstruction、actual model artifact exchange、fixed-model Ollama runtime version exchangeをScoped Executable Evidenceとして追跡している。
 
-ISSUE-000070ではhistorical execution `local-20260904T193531Z-7855`のactual A/B Evidenceを回収し、canonical Evidence + Provenance verificationの`ready-to-review`、historical Application不変性、portable reconstructionに加え、actual run時とcurrent developのResolution Criteria / verifier / manifest / Requirement / Scenario / relevant Contractのobject equivalenceまで再監査しました。その固定scopeでResolvedとしつつ、arbitrary runtime portability、成果品質、E4へは拡張していません。
+ISSUE-000073では10件のCandidate Requirementを機械的にStable化せず、既存REQで表現できない独立failureだけを抽出した。partial semantic commitとstale writeを別々のontologyにせず、successful canonical commitの整合性という一つのREQ-0023へ統合し、SCN-0019でfault / stale variantをAcceptance化した。transaction、ETag、digest、snapshot token等の実現方式やconcurrency versionをUniversal semantics / Semantic Revisionへ昇格させていない。probe sourceの存在もactual Executable PASSへは読み替えていない。
 
-ISSUE-000072ではrevision A historical Evidence、revision B source / revision A fixed input identity、E2 / E3 runner、toolchain-split combined runner、stage-aware diagnosticsがあることと、revision B actual CLI / Provider Plan / current SEI Adapter compatibilityを分けています。後者はまだNot Yet Verifiedです。actual結果を見る前にRequirement / Scenario pre-auditを固定し、Adapter-local failureやtoolchain failureだけを理由にUniversal Requirementを増やさない境界も明示しました。
+ISSUE-000070ではhistorical execution `local-20260904T193531Z-7855`のactual A/B Evidenceを回収し、canonical Evidence + Provenance verificationの`ready-to-review`、historical Application不変性、portable reconstructionに加え、actual run時とcurrent developのResolution Criteria / verifier / manifest / Requirement / Scenario / relevant Contractのobject equivalenceまで再監査した。その固定scopeでResolvedとしつつ、arbitrary runtime portability、成果品質、E4へは拡張していない。
 
-成果品質についても、actual model inferenceの成立、構造検査、人間によるoutcome review、Product Value / Adoption outcomeを分離しました。ISSUE-000071の評価境界成立をhuman review完了やKJ法としての成果品質Satisfiedへ読み替えていません。
+ISSUE-000072ではrevision A historical Evidence、revision B source / revision A fixed input identity、E2 / E3 runner、toolchain-split combined runner、stage-aware diagnosticsがあることと、revision B actual CLI / Provider Plan / current SEI Adapter compatibilityを分けている。後者はまだNot Yet Verifiedである。actual結果を見る前にRequirement / Scenario pre-auditを固定し、Adapter-local failureやtoolchain failureだけを理由にUniversal Requirementを増やさない境界も維持した。
 
-GitHub Actionsのhistorical Runは過去のEvidenceとして保持しつつ、current検証の成立条件からは切り離しています。private repositoryに関する未検証論点も、特定automation providerのcredential問題ではなく、private artifact acquisition / credential lifecycleという一般的な運用境界へ戻しました。
+成果品質についても、actual model inferenceの成立、構造検査、人間によるoutcome review、Product Value / Adoption outcomeを分離している。GitHub Actionsのhistorical Runは過去のEvidenceとして保持しつつ、current検証の成立条件からは切り離している。
 
-意味、規範強度、未決事項、supported scope、Evidence強度を混同せず、自然な日本語となることを最重要視して全文を再監査しました。
+意味、規範強度、未決事項、supported scope、Evidence強度を混同せず、自然な日本語となることを最重要視して全文を再監査した。

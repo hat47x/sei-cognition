@@ -1,6 +1,6 @@
 # SEI Acceptance Scenarios
 
-更新日: 2026-09-01  
+更新日: 2026-09-16  
 状態: **Current Acceptance Scenario Baseline**
 
 ## 1. この文書の役割
@@ -51,6 +51,7 @@ Design
 | SCN-0016 | Decision後も残差を次のInquiryへ渡す | V1, V3, V5 | REQ-0002, REQ-0003, REQ-0005, REQ-0014 |
 | SCN-0017 | Evidenceが低い段階で達成主張を監査する | V1, V6 | REQ-0020 |
 | SCN-0018 | Inquiryから実行後の再検討までを一続きに扱う | V1, V2, V3, V4, V5, V8 | REQ-0001, REQ-0002, REQ-0004, REQ-0005, REQ-0007, REQ-0014, REQ-0017, REQ-0021, REQ-0022 |
+| SCN-0019 | 途中失敗・stale draftを含むcanonical commit | V1, V3, V8 | REQ-0009, REQ-0018, REQ-0020, REQ-0023 |
 
 ---
 
@@ -561,6 +562,51 @@ TEI Design KnowledgeのPattern Cardを、AIがCognitive Methodの探索対象と
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
 
+## SCN-0019 — 途中失敗・stale draftを含むcanonical commit
+
+### 状況
+
+利用者またはmachine clientがcanonical state S0を読み、そのstateを前提として複数recordを含むsemantic change planを作る。
+
+一つのvariantでは、commit途中にfailureが発生するか、先行changeをstagingした後のchangeがvalidationに失敗する。別のvariantでは、plan作成後に別操作がcanonical stateをS1へ変更し、その後S0由来の古いdraft / planをcommitしようとする。
+
+このScenarioは、特定DB transactionやsnapshot token方式を要求するものではない。Product Interactionが「commit成功」として公開する意味がcanonical stateと矛盾しないことを検査する。
+
+### 期待
+
+- 正常完了として読めるcanonical stateは、操作前のvalid stateまたは全変更反映後のvalid stateのいずれかである。
+- commit途中までstagingされた一部changeをsuccessful canonical stateとして露出しない。
+- 後続validation failureが起きた場合、先行changeだけを正常完了として公開しない。
+- S0由来のstale draft / planが、S1で追加・変更された意味を黙って無視または上書きしない。
+- stale writeはreject、explicit conflict、明示的なre-plan / rebase等として観測できる。
+- wording等のdraft編集だけでsnapshot preconditionを暗黙更新したことにしない。
+- concurrency token、generation、digest、ETag等をSemantic Revision、Logical Reference、Decision revisionへ読み替えない。
+- Persistence transaction、atomic replace、append protocol、compensation等の具体方式をUniversal Coreへ固定しない。
+- commit failureやstale conflictを、案件上のnegative fact、Decision failure、`No`へ自動変換しない。
+
+### 必須variant
+
+- **multi-record success** — 複数changeがすべてvalidで、全体が一貫したafter-stateとして公開される。
+- **mid-commit fault** — 一部changeをstagingした後にfailureを注入し、before-stateのcanonical meaningが維持される。
+- **later validation failure** — 後続changeが拒否されても、先行changeだけがsuccessful stateとして残らない。
+- **stale snapshot** — draft作成後のcanonical changeを検知し、古いdraftを黙ってcommitしない。必要ならfresh planを明示的に作り直す。
+
+### 失敗例
+
+- 2件のchangeのうち1件目だけ保存された状態を「保存しました」と表示する。
+- validationに失敗した後続changeだけを捨て、先行changeを正常完了として残す。
+- 古いAI draftが、draft作成後に追加されたUnknownやObservationを無視してlast-write-winsでcommitされる。
+- storage generationが増えたことをSemantic Revisionが起きた証拠として保存する。
+- stale conflictを案件上の`unavailable`やDecision rejectionへ変換する。
+
+### Current Evidence
+
+- Design: **Satisfied** — REQ-0023、`SEI_FIRST_USABLE_PRODUCT_SLICE.md`のmeaning-preserving commit / stale-write境界、`SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md`のCommit Coordinator / snapshot precondition、ISSUE-000073 Candidate Requirement監査でScenario上の意味差を固定した。
+- Executable: **Not Yet Verified** — `runtime/go/interactionprobe/commit.go` / `commit_test.go`にはmulti-record staging、fault injection、後続validation failureを扱うprobe sourceがあり、`provisional.go` / `provisional_test.go`にはstale snapshot拒否とfresh proposalを扱うprobe sourceがある。ただしSCN-0019採用時点では、このScenarioに対するactual test runをcurrent Evidenceとして確認していない。
+- Release: **Not Yet Verified**
+- Operational: **Not Yet Verified**
+- Adoption / Outcome: **Not Yet Verified**
+
 ---
 
 ## 3. Core概念を追加するときのScenario規則
@@ -581,6 +627,8 @@ TEI Design KnowledgeのPattern Cardを、AIがCognitive Methodの探索対象と
 Scenarioが存在することだけでCore化を決定するものではありません。Product Value、複数domainでの意味安定性、Provider Independence等を合わせてADRで判断します。
 
 SCN-0018のような統合Scenarioも、Journeyの途中に登場する概念を自動的にUniversal Coreへ昇格させる根拠にはしません。Product Interaction上のSession、Workspace、Step等が必要になっても、semantic Coreへ必要かは別途ScenarioとADRで判断します。
+
+SCN-0019も同様に、canonical commit integrityを要求することからUniversal Transaction、Snapshot、ETag、Generation等のsemantic entityを導かない。Scenarioが要求するのはsuccessful canonical stateの意味整合性であり、実現方式はProduct / Persistence Architectureへ委ねる。
 
 ## 4. Executable fixtureとの関係
 
@@ -610,6 +658,10 @@ SCN-0012
 SCN-0018
   → end-to-end semantic Product Journey harness
   → Partially Satisfied (fixture-scoped; Run 33478127484)
+
+SCN-0019
+  → interactionprobe Commit Coordinator / provisional stale-draft source
+  → Executable Not Yet Verified until an actual run is pinned to this Scenario
 ```
 
 SCN IDはsemantic scenario identityとして保ち、fixture / test IDとは分けます。fixtureのPASS / FAILによってSCNそのものの意味を変更しません。
@@ -620,6 +672,8 @@ SCN-0005 / SCN-0015では、portable Cognitive Method Contractとtyped runtime�
 
 SCN-0018では、既存のcomponent-level PASSを合算してend-to-end PASSとみなしません。今回のEvidenceは、Cognitive Method、Recommendation、Decision、Provider / execution result、historical review / reopen、Projection非権威を一つの検査経路として接続したfixture-scoped Evidenceです。production Product Journeyや利用者成果への昇格は行いません。
 
+SCN-0019では、probe sourceやtest sourceの存在をactual Executable Evidenceへ読み替えない。fault injectionとstale snapshot behaviorを実際に実行し、その結果をcurrent Evidenceとして固定した後にだけExecutable statusを更新する。
+
 ## 5. Historical Scenarioとの関係
 
 2026-08-30 candidateの`SEI-AS-001`〜`SEI-AS-008`は、意味核をSCN-0001〜SCN-0008へ継承しました。
@@ -628,6 +682,12 @@ SCN-0018では、既存のcomponent-level PASSを合算してend-to-end PASSと�
 
 SCN-0018は、historical Scenarioの単純な再採番ではなく、current Product ShapeとREQ-0001〜REQ-0022を横断して定義したcurrent統合Scenarioです。
 
+SCN-0019もhistorical Scenarioの再採番ではない。ISSUE-000073のresume-first Product Sliceでpartial semantic commitとstale draftをfaultとして具体化した結果、successful canonical commitの整合性を独立して検査する必要が確認されたため追加したcurrent Scenarioです。
+
 ## 6. Natural Japanese review
 
-SCN-0001〜0018をcurrent Product Value、Product Shape、`PRODUCT_JOURNEY_COMPOSITION.md`、5 Contract family、Representation Profile、semantic runtime、synthetic Provider Adapter、V6/V7 Projection evaluation、end-to-end Product Journey harnessへ照合した。SCN-0005 / SCN-0015は、Cognitive Method Contractとtyped runtimeで実際に確認できた範囲だけExecutable Evidenceを`Partially Satisfied`へ更新し、Method実行、production Realization交換、Pattern matching、Method品質やAssuranceは未検証のまま維持した。SCN-0018は既存Scenarioを置き換えるのではなく、個別の意味境界が一つのProduct Journeyでも同時に保たれることを確認する統合Scenarioとして扱っている。component-level / fixture-scoped Evidenceをproductionのend-to-end Product Acceptanceへ昇格させず、Release / Operational / Adoption / Outcomeも`Not Yet Verified`のまま維持した。その後、Scenarioの意味、期待、失敗条件、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+SCN-0001〜0019をcurrent Product Value、Product Shape、`PRODUCT_JOURNEY_COMPOSITION.md`、5 Contract family、Representation Profile、semantic runtime、synthetic Provider Adapter、V6/V7 Projection evaluation、end-to-end Product Journey harness、ISSUE-000073 Candidate Requirement監査とinteraction probe sourceへ照合した。
+
+SCN-0019はStorage transaction方式を固定するScenarioではなく、Product Interactionがsuccessful commitとして公開するcanonical meaningがpartial / stale stateにならないことだけを要求する。concurrency versionとSemantic Revisionの境界、commit failureとbusiness negative factの境界も維持した。probe / test sourceの存在はactual Executable PASSへ昇格させず、採用時点のExecutable Evidenceは`Not Yet Verified`に留めている。
+
+既存Scenarioについてもcomponent-level / fixture-scoped Evidenceをproductionのend-to-end Product Acceptanceへ昇格させず、Release / Operational / Adoption / Outcomeを必要以上に引き上げていない。その後、Scenarioの意味、期待、失敗条件、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再監査した。

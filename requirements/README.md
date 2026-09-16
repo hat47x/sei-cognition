@@ -1,6 +1,6 @@
 # SEI Requirements
 
-更新日: 2026-09-01  
+更新日: 2026-09-16  
 状態: **Current Requirements Baseline**
 
 ## 1. このディレクトリの役割
@@ -80,6 +80,8 @@ Requirement != Acceptance Scenario != Test Case
 
 SCN-0018のような統合Scenarioは、既存Scenarioを置き換えるものではありません。個別の意味境界が一つのProduct Journeyでも同時に保たれることを検査します。
 
+SCN-0019のようにProduct Interactionで見つかったfailureをStable化する場合も、transaction、snapshot token、ETag等の実装方式をそのままUniversal Requirementへ昇格させません。Requirementには失ってはならない意味だけを残します。
+
 ## 5. Product Valueとの追跡
 
 current Requirementは、原則として`SEI_VALUE_MODEL.md`のV1〜V8、または明示的なProduct Principle / external constraintへ追跡します。
@@ -137,7 +139,7 @@ Requirement Accepted
 
 ## 7. current actual repositoryのEvidence
 
-現在のactual repositoryには、Product / Plan / Requirementsに加えて、Reference Architecture、5 Contract family、JSON Schema、Contract fixture、Representation Profile、Go first semantic runtime、synthetic Provider Adapter、各checker / CIが存在します。
+現在のactual repositoryには、Product / Plan / Requirementsに加えて、Reference Architecture、5 Contract family、JSON Schema、Contract fixture、Representation Profile、Go first semantic runtime、synthetic Provider Adapter、end-to-end Product Journey harness、Product Interaction probe、各checker / CIが存在します。
 
 主なscoped Executable Evidence:
 
@@ -148,12 +150,15 @@ Requirement Accepted
 - first Semantic Runtime Conformance
 - synthetic Provider Adapter Conformance
 - V6 / V7 Projection Evaluation
+- end-to-end Semantic Product Journey harness
 
 これらのPASSをすべてのRequirementへ一律に継承しません。Requirement / Scenarioごとに実際に触れている意味境界だけを`Partially Satisfied`等へ更新します。
 
-SCN-0018のend-to-end Product Journeyについては、component-level Evidenceは存在しますが、一続きのExecutable harnessは現時点で`Not Yet Verified`です。
+SCN-0018のend-to-end Product Journeyにはfixture-scoped harness Evidenceがあり、Scenario全体は`Partially Satisfied`として扱います。production Product Journeyや利用者成果へは昇格させません。
 
-Release、Operational、Adoption / Outcome Evidenceは現時点では主張しません。
+REQ-0023 / SCN-0019についてはinteraction probeとtest sourceが存在しますが、Stable化時点でcurrent Requirement / Scenarioへ結び付けたactual test runを確認していないため、Executable Evidenceは`Not Yet Verified`のままです。
+
+Release、Operational、Adoption / Outcome Evidenceは、個別にactual evidenceが確認された高さだけを主張します。
 
 ## 8. Historical candidateの扱い
 
@@ -168,6 +173,8 @@ Release、Operational、Adoption / Outcome Evidenceは現時点では主張し�
 - old Product Boundaryに依存する型・Architecture
 
 意味核はcurrent Product Valueへ戻って再評価し、必要なものをcurrent REQ / SCNへ統合しています。
+
+REQ-0023 / SCN-0019はhistorical candidateの再採番ではなく、ISSUE-000073でpartial semantic commitとstale writeを具体的failureとして検討した後に追加したcurrent baselineです。
 
 ## 9. Requirement作成・更新の必須工程
 
@@ -198,7 +205,12 @@ CI failureを検出した場合は、原因を解消してsuccessを確認する
 - `plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md`
 - `plan/adr/ADR-0020-requirements-traceability-and-evidence-boundary.md`
 - `plan/issue/ISSUE-000048-define-end-to-end-golden-journey-acceptance.md`
+- `plan/issue/ISSUE-000073-define-first-usable-resume-first-product-slice.md`
 
 ## 11. Natural Japanese review
 
-current Product Value、Product Shape、5段階Evidence、REQ-0001〜REQ-0022、SCN-0001〜SCN-0018、Architecture / Contract / Runtime / Provider Adapterのactual Evidenceへ戻って運用規則を再確認した。Product Journeyの分析文書を第二の正本にせず、製品上の操作をそのままUniversal Requirementへ昇格させない境界を追加した。その後、RequirementとScenarioとTestの関係、stable ID、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+current Product Value、Product Shape、5段階Evidence、REQ-0001〜REQ-0023、SCN-0001〜SCN-0019、Architecture / Contract / Runtime / Provider Adapter / Product Interactionのactual Evidenceへ戻って運用規則を再確認した。
+
+ISSUE-000073のCandidate Requirement監査では、既存REQで表現できるresume、AI provisional boundary、Progressive Explicitness等を重複してStable化せず、既存Requirement本文で直接禁止できなかったpartial / stale successful commitだけをREQ-0023へ統合した。SCN-0019もtransaction方式をCore化せず、その意味差だけをAcceptanceへ固定している。
+
+RequirementとScenarioとTestの関係、stable ID、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再監査した。
