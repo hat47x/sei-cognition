@@ -3,7 +3,7 @@
 Status: **Open**  
 Priority: **1**  
 Related ADRs: **ADR-0005, ADR-0010, ADR-0028, ADR-0029**  
-Updated: 2026-09-11
+Updated: 2026-09-16
 
 ## Goal
 
@@ -91,9 +91,11 @@ SEI first useful value
 
 Product Valueとして成立するには、SEI内でresumeできるだけでは不十分である。妥当な単純代替に対して、少なくとも重要な誤り・負担の一つを実質的に減らし、その効果がcapture / review overheadを相殺する必要がある。
 
-## Candidate requirements
+## Candidate requirementsと監査結果
 
-以下は本Issueで検証するCandidate Requirementであり、現時点ではStable REQ IDを付けない。
+以下10件は、本Issueで検証を開始したCandidate Requirementである。2026-09-16のRequirement auditでは、これらを機械的にStable Requirementへ昇格させず、current REQ / SCNへ一件ずつ再照合した。
+
+この節には検討時の意味核を残す。currentの規範上の正本は`requirements/PRODUCT_REQUIREMENTS.md`と`requirements/ACCEPTANCE_SCENARIOS.md`であり、Candidateの記述がStable Requirementより優先することはない。
 
 ### CR-73.1 — Canonical-only resume
 
@@ -148,6 +150,16 @@ snapshot token / revision token等はProduct / Persistence-local mechanism候補
 
 external AIへ渡すcanonical contextは、Interaction側が選択した必要範囲に限定し、何を外へ渡すか利用者またはpolicyから確認可能な方向を保つこと。外部AIを呼び出せることからcanonical write権やDecision Authorityを推定しない。
 
+### Requirement audit result — 2026-09-16
+
+CR-73.1〜73.10を既存REQ / SCN、Product / Projection境界、human Outcome評価へ再照合した結果は次のとおりである。
+
+- **CR-73.1〜73.7、CR-73.10** — 既存Requirement / Scenario、Product / Projection-localな設計境界、またはH1 / H2で観測すべきProduct Outcomeへ戻せるため、このIssueから新しいStable REQを追加しない。
+- **CR-73.8 + CR-73.9** — partial commitとstale writeはmechanismこそ異なるが、どちらも「successful canonical commitが実際のcanonical meaningと食い違う」という同一の独立failureを生む。既存REQではこのfailureを直接禁止できなかったため、**REQ-0023 — Canonical commitの整合性**へ一件として統合し、**SCN-0019**でfault / stale variantをAcceptance化した。
+- transaction、atomic replace、snapshot token、ETag、generation、digest等はProduct / Persistence-localな実現手段のままとし、Universal semantic entityやSemantic Revisionへ昇格させない。
+
+このformalizationはDesign Evidenceである。REQ-0023 / SCN-0019がAcceptedであることやprobe sourceが存在することを、actual Executable PASSへ読み替えない。
+
 ## Questions
 
 1. resume時に最初に見せる情報は何であれば、semantic completenessを失わず認知負荷を最も下げられるか。
@@ -160,6 +172,12 @@ external AIへ渡すcanonical contextは、Interaction側が選択した必要�
 8. first human-facing prototypeをlocal browser UI等で実装する場合、その選択をProduct Requirementへ焼き付けずにhuman reviewを行えるか。
 9. existing REQ / SCNの組み合わせでCandidate Requirementを十分表現できるか。独立したProduct failureが見つかるのはどこか。
 10. raw chat / chronological note等の単純な外部記憶と比較したとき、SEI固有の価値差はどこにあり、その差はcapture / review負担を上回るか。
+
+### 2026-09-16時点の問いの整理
+
+Question 5、6、9については、Requirement auditとREQ-0023 / SCN-0019のformalizationにより、current design-levelの回答を得た。atomicityやconcurrency controlの具体方式はPersistence / Product realizationへ委ね、semantic revisionとは分離する。
+
+一方、Question 1〜4、7、8、10は、source codeやRequirement文書だけでは閉じない。E1〜E8のactual実行、H1 / H2 human review、capture / review burdenの観測を通して検証する。
 
 ## Constraints
 
@@ -177,6 +195,23 @@ external AIへ渡すcanonical contextは、Interaction側が選択した必要�
 - prototype PASSをproduction UX、Operational Evidence、Adoption / Outcome Evidenceへ昇格させない。
 - Research EvidenceをSEI Product Evidenceへ読み替えない。
 - ISSUE-000072のTEI version-exchange Evidenceとは独立して扱う。
+
+## Current implementation / Evidence status — 2026-09-16
+
+現在はDesign baselineだけの段階から、E1〜E8を再現するGo interaction probeとEvidence runnerを持つ段階へ進んでいる。ただし、sourceの存在とactual実行結果は分ける。
+
+- Decision Continuity synthesis、first usable Product Slice、Interaction Working-Set Architecture: **Design Evidence available**
+- CR-73.8 / CR-73.9: **REQ-0023 / SCN-0019へformalize済み**
+- `runtime/go/interactionprobe`: E1〜E8に対応するprobe / test sourceあり
+- `tools/run_issue_000073_resume_first_evidence.py`: E1〜E8を一つのmachine-readable recordへ束ねるrunnerあり
+- `tools/test_run_issue_000073_resume_first_evidence.py`: dirty checkout、required source欠落、Go 1.25未満をfail-closedにするpreflight self-testあり
+- E1〜E8 actual execution: **Not Yet Verified**
+- H1 resume usability review: **Not Yet Verified**
+- H2 counterfactual Decision Continuity review: **Not Yet Verified**
+- Operational Evidence: **Not Yet Verified**
+- Adoption / Outcome Evidence: **Not Yet Verified**
+
+Evidence runnerはclean committed HEAD、required sourceとHEAD blobの一致、Go 1.25.xを要求する。条件を満たせずblockedになった実行や、sourceが存在することだけをPASSへ読み替えない。
 
 ## Required scenarios / experiments
 
@@ -305,13 +340,13 @@ SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw 
 
 ## Deliverables
 
-- `product/value/SEI_DECISION_CONTINUITY.md` — V1〜V8をDecision Continuityへ接続するProduct Value synthesis。
-- `product/interaction/SEI_FIRST_USABLE_PRODUCT_SLICE.md` — first sliceのProduct Design baseline。
-- `architecture/SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md` — state authority、resume Projection、semantic commit、AI境界のReference Architecture。
-- prototype / probe — Local Single-Node上でE1〜E8を再現できる最小実装。
-- human review record — H1のresume usability観測結果。
-- comparative Product Value review — H2のbaseline比較、capture tax、誤帰属、correction負担の観測結果。
-- Requirement audit — CR-73.1〜10をexisting REQ / SCNへ統合するか、新Stable Requirementへ昇格するか、No Changeとするかを記録する。
+- `product/value/SEI_DECISION_CONTINUITY.md` — V1〜V8をDecision Continuityへ接続するProduct Value synthesis。**Design Evidence available**。
+- `product/interaction/SEI_FIRST_USABLE_PRODUCT_SLICE.md` — first sliceのProduct Design baseline。**Design Evidence available**。
+- `architecture/SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md` — state authority、resume Projection、semantic commit、AI境界のReference Architecture。**Design Evidence available**。
+- prototype / probe — Local Single-Node上でE1〜E8を再現する`runtime/go/interactionprobe`とEvidence runnerを実体化済み。**actual E1〜E8 executionはNot Yet Verified**。
+- human review record — H1のresume usability観測結果。**未取得**。
+- comparative Product Value review — H2のbaseline比較、capture tax、誤帰属、correction負担の観測結果。**未取得**。
+- Requirement audit — CR-73.1〜10を再照合済み。CR-73.8 / CR-73.9だけを一つのfailure boundaryとしてREQ-0023 / SCN-0019へformalizeし、それ以外はexisting REQ / Product-local設計 / human Outcome評価へ戻した。
 
 ## Resolution
 
@@ -328,7 +363,13 @@ SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw 
 9. Candidate Requirementをexisting REQ / SCNへ再照合し、Stable Requirement追加の要否を決定する。
 10. 実装方式固有のlocal browser / protocol / AI model等をUniversal semanticsへ持ち込んでいない。
 
-Design文書が完成しただけではResolvedにしない。prototypeが技術的にPASSしただけでも、Decision ContinuityのAdoption / Outcome Evidenceが成立したことにはしない。
+### Current resolution status — 2026-09-16
+
+- 条件1、2、9、10: **Design / Requirement auditの範囲では成立**。
+- 条件3〜5: E1〜E8のprobe / test sourceとEvidence runnerはあるが、**actual実行結果はNot Yet Verified**。source存在だけで成立扱いにしない。
+- 条件6〜8: H1 / H2とProduct Valueのcounterfactual observationが未取得であり、**未成立**。
+
+したがってStatusは**Open**を維持する。Design文書が完成したこと、REQ-0023 / SCN-0019をformalizeしたこと、probe sourceを実装したことだけではResolvedにしない。prototypeが技術的にPASSした場合も、それだけでDecision ContinuityのAdoption / Outcome Evidenceが成立したことにはしない。
 
 ## Reopen conditions
 
@@ -346,16 +387,34 @@ Resolved後でも、次の場合は再開する。
 
 GitHub Actionsを成立条件にしない。repository同梱test、local probe、fault injection、保存Evidence、human reviewを使う。
 
-設計文書段階では`plan/scripts/check_plan_registry.py`と`plan/scripts/check_document_review_registry.py`の対象整合を確認する。prototype実装後は責務に応じたGo test / probeを追加する。
+Plan / document整合は、変更範囲に応じて`plan/scripts/check_plan_registry.py`と`plan/scripts/check_document_review_registry.py`で確認する。E1〜E8のcurrent Executable Evidenceを取得するときは、次を入口とする。
+
+```text
+python3 tools/test_run_issue_000073_resume_first_evidence.py
+python3 tools/run_issue_000073_resume_first_evidence.py --output <evidence-record.json>
+```
+
+Evidence runnerは、clean committed HEAD、required sourceとHEAD blobの一致、Go 1.25.xをpreconditionとする。preconditionを満たせずblockedとなった場合は、repository test failureともPASSとも扱わない。runnerがE1〜E8の全required testをactualにpassとして観測した場合だけ、その実行範囲をScoped Executable Evidence候補として扱う。
+
+```text
+runner / test source exists
+  != E1-E8 actual PASS
+
+E1-E8 actual PASS
+  != H1 / H2 human review
+  != Decision Continuity Product Value established
+```
 
 未実行の実験をPASSと扱わず、Design EvidenceをExecutable / Operational / Adoption Evidenceへ昇格させない。
 
 ## Natural Japanese review
 
-Product Value、Decision Continuity synthesis、Value Model V1〜V8、Product Shape、PMS-03、Product Interaction、Packaging、REQ-0001 / 0005 / 0006 / 0010 / 0011 / 0014 / 0019、SCN-0003 / 0013 / 0016 / 0018、ADR-0005 / 0010 / 0028 / 0029を照合した。
+Product Value、Decision Continuity synthesis、Value Model V1〜V8、Product Shape、PMS-03、Product Interaction、Packaging、REQ-0001 / 0005 / 0006 / 0010 / 0011 / 0014 / 0019 / 0023、SCN-0003 / 0013 / 0016 / 0018 / 0019、ADR-0005 / 0010 / 0028 / 0029、Interaction probe、ISSUE-000073 Evidence runnerを照合した。
 
 従来のIssueは「再開できるUI / prototype」を中心に十分深く設計されていたが、そのままではSEI自身の仕組みだけを評価する自己完結的な検証になり得た。そこでDecision Continuityをcross-axis Product Outcomeとして上位価値へ接続し、raw chat / chronological note等の単純baselineとのcounterfactual reviewをResolution条件へ追加した。
 
-SEIのsemantic integrityが高いだけではProduct Valueとせず、historical誤帰属、Recommendation / Decision混同、再構成負担を実際に減らし、その利益がcapture / review overheadを上回るかまでを見る。価値差がない結果もProduct hypothesisを修正する正当なEvidenceとして扱う。
+2026-09-16の追加監査では、CR-73.1〜10を機械的にStable化せずcurrent REQ / SCNへ再照合した。resume、AI provisional boundary、Progressive Explicitness、working-set non-authority等は既存Requirement、Product-local設計またはhuman Outcome評価へ戻し、既存REQでは直接禁止できなかったpartial commitとstale writeだけを「successful canonical commitの整合性」という一つのREQ-0023へ統合し、SCN-0019でAcceptance化した。transaction、ETag、digest、snapshot token等の実現方式をUniversal semanticsへ昇格させていない。
 
-Candidate Requirementはprototype / human review前にStable化せず、Research EvidenceもProduct Evidenceへ読み替えない。意味、要求強度、留保、Evidenceの高さを固定したうえで自然な日本語として読み直し、最終意味監査を実施した。
+同時に、E1〜E8を再現するinteraction probeとEvidence runnerが存在する現在地を本文へ反映した。ただしactual runはまだcurrent Executable Evidenceとして確認しておらず、H1 / H2も未取得である。Requirement formalizationやsource存在をEvidenceの高さ以上に評価せず、IssueはOpenのまま維持した。
+
+SEIのsemantic integrityが高いだけではProduct Valueとせず、historical誤帰属、Recommendation / Decision混同、再構成負担を実際に減らし、その利益がcapture / review overheadを上回るかまでを見る。価値差がない結果もProduct hypothesisを修正する正当なEvidenceとして扱う。意味、要求強度、留保、Evidenceの高さを固定したうえで自然な日本語として読み直し、最終意味監査を実施した。
