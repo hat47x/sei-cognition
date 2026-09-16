@@ -1,0 +1,70 @@
+{
+  "schema": "sei.decision-continuity-comparison-fixture/v0",
+  "status": "evaluation-only",
+  "issue": "ISSUE-000073",
+  "fixture_id": "e73-decision-continuity-002-ticket-routing",
+  "title": "問い合わせ自動分類を即時自動化せずshadow modeに留めた判断へ戻る",
+  "purpose": [
+    "H2: simple external memoryとSEI Resume Projectionの再開品質を比較する",
+    "RecommendationとDecisionを混同しないか確認する",
+    "後から得た精度情報をDecision当時のbasisへ混ぜないか確認する"
+  ],
+  "scenario": {
+    "initial_question": "問い合わせ分類AIを人手確認なしの自動振分けへ進めてよいか。",
+    "phase_1": [
+      {"role":"observation","id":"obs-sample-30","text":"30件の手動サンプルでは24件が担当者分類と一致した。"},
+      {"role":"observation","id":"obs-billing-low-confidence","text":"請求関連ではconfidenceが低い例が複数あった。"},
+      {"role":"recommendation","id":"rec-auto-high-confidence","text":"AIは高confidence案件だけ自動振分けする案を提案した。"},
+      {"role":"unknown","id":"unk-multilingual","text":"多言語問い合わせの精度は未確認。"},
+      {"role":"unknown","id":"unk-high-impact-rare","text":"件数の少ない高影響問い合わせでの誤分類率は未確認。"},
+      {"role":"decision","id":"dec-shadow","text":"自動振分けは開始せずshadow modeを継続し、追加100件を人手照合する。","basis_refs":["obs-sample-30","obs-billing-low-confidence"],"recommendation_refs":["rec-auto-high-confidence"],"unresolved_refs":["unk-multilingual","unk-high-impact-rare"]}
+    ],
+    "interruption_point": "shadow mode継続Decision記録後",
+    "post_decision_evidence": [
+      {"role":"observation","id":"obs-sample-100","text":"追加100件では全体94件が一致したが、高影響カテゴリで1件の誤振分け候補が見つかった。"},
+      {"role":"observation","id":"obs-model-new-version","text":"Decisionの5日後にclassification modelの新versionが公開された。Decision時点では存在しなかった。"}
+    ]
+  },
+  "conditions": {
+    "A_raw_chat": {
+      "surface_text": [
+        "利用者: 問い合わせ分類AIを試しています。30件中24件は担当者分類と一致しました。",
+        "AI: 高confidenceだけ自動振分けにしてもよさそうです。",
+        "利用者: 請求関連でconfidenceが低い例があります。多言語と、少ないけれど影響の大きい問い合わせもまだ見ていません。",
+        "AI: 高confidenceだけなら自動化できますか。",
+        "利用者: まだ自動化しません。shadow modeのまま追加100件を人手照合します。"
+      ]
+    },
+    "B_chronological_note": {
+      "surface_text": [
+        "初回30件: 24件一致。請求関連でlow confidence例あり。",
+        "提案: 高confidence案件のみ自動振分け。",
+        "未確認: 多言語、高影響だが低頻度の問い合わせ。",
+        "判断: 自動振分けは開始せずshadow mode継続。追加100件を人手照合する。"
+      ]
+    },
+    "C_sei_resume": {
+      "surface_text": {
+        "question":"問い合わせ分類AIを人手確認なしの自動振分けへ進めてよいか。",
+        "recommendation":{"id":"rec-auto-high-confidence","text":"高confidence案件だけ自動振分けする。"},
+        "decision":{"id":"dec-shadow","text":"自動振分けせずshadow modeを継続し、追加100件を人手照合する。"},
+        "historical_basis":["初回30件中24件が担当者分類と一致。","請求関連でlow confidence例が複数。"],
+        "unresolved":["多言語精度。","低頻度・高影響問い合わせでの誤分類率。"],
+        "changes_since_decision":[]
+      }
+    }
+  },
+  "reference_state": {
+    "decision":"自動振分けせずshadow mode継続。追加100件を人手照合。",
+    "recommendation":"高confidence案件のみ自動振分け。",
+    "historical_basis_ids":["obs-sample-30","obs-billing-low-confidence"],
+    "unresolved_ids":["unk-multilingual","unk-high-impact-rare"],
+    "post_decision_ids":["obs-sample-100","obs-model-new-version"],
+    "temporal_stopline":"追加100件の結果と新model versionを、dec-shadow当時のbasisだったと答えてはいけない。"
+  },
+  "human_review_template": {
+    "before_post_decision_evidence":["何を決めたか。","提案とDecisionはどう違ったか。","Decisionのbasisは何か。","何が未解決か。","次の確認は何か。"],
+    "after_post_decision_evidence":["新情報は何か。","Decisionを見直す材料は何か。","新情報のうちhistorical basisではないものは何か。","reopen時に残るUnknownは何か。"],
+    "operator_metrics":["time_to_orientation","source_reopen_count","mental_effort_1_to_5","historical_misattribution_count","recommendation_decision_confusion","correction_burden"]
+  }
+}
