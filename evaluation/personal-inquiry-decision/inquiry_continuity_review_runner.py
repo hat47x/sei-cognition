@@ -5,10 +5,16 @@ This wrapper keeps the generic matched-review session reusable while enforcing
 Inquiry Continuity response semantics before a stage can advance. Reviewer
 bundles intentionally hide condition labels and never expose later-stage
 material before the shared stage gate opens it.
+
+Human-review provenance is evaluation-only metadata. It records an opaque
+reviewer id, declared prior material exposure, and human response authorship so
+known or uncertain exposure cannot silently become "clean blinded" evidence.
 """
+
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 from pathlib import Path
 from typing import Any
@@ -45,10 +51,123 @@ DEFAULT_MANIFEST = (
     "evaluation/personal-inquiry-decision/"
     "inquiry_continuity_counterfactual_matched_set_v1.json"
 )
+PROVENANCE_SCHEMA = "sei.inquiry-continuity-review-provenance/v0"
+PRIOR_EXPOSURE_VALUES = (
+    "none-declared",
+    "known-material-exposure",
+    "unknown",
+)
+RESPONSE_AUTHORSHIP_VALUES = (
+    "human-direct",
+    "human-transcribed",
+)
 
 
 class InquiryReviewRunnerError(ValueError):
     """Raised when the Issue 78 review runner cannot safely continue."""
+
+
+def new_review_provenance(
+    reviewer_id: str,
+    prior_exposure: str,
+    response_authorship: str,
+    note: str = "",
+) -> dict[str, Any]:
+    """Build privacy-minimal provenance for one human review session."""
+    value = {
+        "schema": PROVENANCE_SCHEMA,
+        "status": "evaluation-only",
+        "reviewer_id": reviewer_id.strip() if isinstance(reviewer_id, str) else "",
+        "prior_exposure": prior_exposure,
+        "response_authorship": response_authorship,
+        "note": note,
+    }
+    _validate_provenance_value(value)
+    return value
+
+
+def _validate_provenance_value(value: Any) -> None:
+    if not isinstance(value, dict):
+        raise InquiryReviewRunnerError("review_provenance must be an object")
+    required = {
+        "schema",
+        "status",
+        "reviewer_id",
+        "prior_exposure",
+        "response_authorship",
+        "note",
+    }
+    if set(value) != required:
+        raise InquiryReviewRunnerError(
+            "review_provenance must contain schema/status/reviewer_id/"
+            "prior_exposure/response_authorship/note exactly"
+        )
+    if value["schema"] != PROVENANCE_SCHEMA:
+        raise InquiryReviewRunnerError(
+            f"review_provenance schema must be {PROVENANCE_SCHEMA}"
+        )
+    if value["status"] != "evaluation-only":
+        raise InquiryReviewRunnerError(
+            "review_provenance status must remain evaluation-only"
+        )
+    reviewer_id = value["reviewer_id"]
+    if not isinstance(reviewer_id, str) or not reviewer_id.strip():
+        raise InquiryReviewRunnerError("reviewer_id must be a non-empty opaque id")
+    if value["prior_exposure"] not in PRIOR_EXPOSURE_VALUES:
+        raise InquiryReviewRunnerError("prior_exposure has invalid value")
+    if value["response_authorship"] not in RESPONSE_AUTHORSHIP_VALUES:
+        raise InquiryReviewRunnerError("response_authorship has invalid value")
+    if not isinstance(value["note"], str):
+        raise InquiryReviewRunnerError("review_provenance note must be a string")
+
+
+def attach_review_provenance(
+    session: dict[str, Any],
+    reviewer_id: str,
+    prior_exposure: str,
+    response_authorship: str,
+    note: str = "",
+) -> dict[str, Any]:
+    """Attach immutable-at-review-start provenance to a fresh session."""
+    if "review_provenance" in session:
+        raise InquiryReviewRunnerError(
+            "review_provenance is already fixed for this session"
+        )
+    updated = copy.deepcopy(session)
+    updated["review_provenance"] = new_review_provenance(
+        reviewer_id,
+        prior_exposure,
+        response_authorship,
+        note,
+    )
+    return updated
+
+
+def validate_review_provenance(session: dict[str, Any]) -> None:
+    """Require provenance before any reviewer packet or response is accepted."""
+    if "review_provenance" not in session:
+        raise InquiryReviewRunnerError(
+            "review_provenance is required; initialize human review via "
+            "inquiry_continuity_review_runner.py"
+        )
+    _validate_provenance_value(session["review_provenance"])
+
+
+def provenance_projection(session: dict[str, Any]) -> dict[str, Any]:
+    validate_review_provenance(session)
+    value = session["review_provenance"]
+    clean = value["prior_exposure"] == "none-declared"
+    return {
+        "reviewer_id": value["reviewer_id"],
+        "prior_exposure": value["prior_exposure"],
+        "response_authorship": value["response_authorship"],
+        "clean_blinded_candidate": clean,
+        "evidence_stopline": (
+            "declared no prior material exposure; still not Product Value evidence"
+            if clean
+            else "not eligible to be described as clean blinded review"
+        ),
+    }
 
 
 def load_context(
@@ -79,24 +198,45 @@ def _reviewer_packet(packet: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _validate_safe_session(
+    session: dict[str, Any],
+    manifest: dict[str, Any],
+    fixtures_by_id: dict[str, dict[str, Any]],
+    *,
+    require_complete: bool = False,
+) -> None:
+    try:
+        validate_inquiry_session(
+            session,
+            manifest,
+            fixtures_by_id,
+            require_complete=require_complete,
+        )
+    except InquiryReviewError as exc:
+        raise InquiryReviewRunnerError(str(exc)) from exc
+    validate_review_provenance(session)
+
+
 def reviewer_bundle(
     session: dict[str, Any],
     manifest: dict[str, Any],
     fixtures_by_id: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
     """Return only the material a reviewer may see at the current stage."""
+    _validate_safe_session(session, manifest, fixtures_by_id)
     try:
-        validate_inquiry_session(session, manifest, fixtures_by_id)
         stage = current_stage(session)
-    except (InquiryReviewError, ReviewSessionError) as exc:
+    except ReviewSessionError as exc:
         raise InquiryReviewRunnerError(str(exc)) from exc
 
+    review_context = provenance_projection(session)
     if stage == COMPLETE:
         return {
             "schema": "sei.inquiry-continuity-reviewer-bundle/v0",
             "status": "evaluation-only",
             "session_id": session["session_id"],
             "stage": COMPLETE,
+            "review_context": review_context,
             "items": [],
             "reviewer_stoplines": [
                 "The review session is complete; do not reopen hidden conditions in-place.",
@@ -128,11 +268,14 @@ def reviewer_bundle(
         "status": "evaluation-only",
         "session_id": session["session_id"],
         "stage": stage,
+        "review_context": review_context,
         "items": items,
         "reviewer_stoplines": [
+            "Use only an opaque local reviewer_id; do not store personal name, email, or account identifiers here.",
             "Do not inspect the manifest, unassigned condition surfaces, reference state, or audit key beyond what this bundle exposes.",
-            "Responses must be authored from the presented material; AI/operator may transcribe but must not invent human observations.",
+            "Responses must be authored by the human reviewer; AI/operator may transcribe but must not invent human observations.",
             "Condition labels remain operator-only during review and are intentionally absent from this bundle.",
+            "Known or uncertain prior exposure may still be recorded as pilot observation but must not be called clean blinded review.",
             "A response is not Evidence merely because it is syntactically valid.",
         ],
     }
@@ -147,11 +290,8 @@ def record_checked_response(
     recorded_at: str,
     response: Any,
 ) -> dict[str, Any]:
-    """Validate Issue 78 semantics before allowing the generic stage gate to move."""
-    try:
-        validate_inquiry_session(session, manifest, fixtures_by_id)
-    except InquiryReviewError as exc:
-        raise InquiryReviewRunnerError(str(exc)) from exc
+    """Validate provenance and Issue 78 semantics before the stage gate moves."""
+    _validate_safe_session(session, manifest, fixtures_by_id)
 
     if fixture_id not in fixtures_by_id:
         raise InquiryReviewRunnerError(
@@ -181,7 +321,7 @@ def record_checked_response(
             recorded_at,
             response,
         )
-        validate_inquiry_session(updated, manifest, fixtures_by_id)
+        _validate_safe_session(updated, manifest, fixtures_by_id)
     except (InquiryReviewError, ReviewSessionError) as exc:
         raise InquiryReviewRunnerError(str(exc)) from exc
     return updated
@@ -192,11 +332,28 @@ def evidence_bundle(
     manifest: dict[str, Any],
     fixtures_by_id: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
-    """Export only a completed review and preserve its evidence-layer stoplines."""
+    """Export a completed review together with its fixed human-review provenance."""
+    _validate_safe_session(
+        session,
+        manifest,
+        fixtures_by_id,
+        require_complete=True,
+    )
     try:
-        return build_evidence_bundle(session, manifest, fixtures_by_id)
+        bundle = build_evidence_bundle(session, manifest, fixtures_by_id)
     except InquiryEvidenceBundleError as exc:
         raise InquiryReviewRunnerError(str(exc)) from exc
+
+    exported = copy.deepcopy(bundle)
+    exported["review_provenance"] = copy.deepcopy(session["review_provenance"])
+    exported.setdefault("evidence_boundaries", {})[
+        "clean_blinded_review"
+    ] = (
+        "declared-no-prior-material-exposure"
+        if session["review_provenance"]["prior_exposure"] == "none-declared"
+        else "not-clean-blinded"
+    )
+    return exported
 
 
 def _load_response(path: str | Path) -> Any:
@@ -221,6 +378,18 @@ def build_parser() -> argparse.ArgumentParser:
     init.add_argument("--rotation", required=True)
     init.add_argument("--session-id", required=True)
     init.add_argument("--created-at", required=True)
+    init.add_argument("--reviewer-id", required=True)
+    init.add_argument(
+        "--prior-exposure",
+        choices=PRIOR_EXPOSURE_VALUES,
+        required=True,
+    )
+    init.add_argument(
+        "--response-authorship",
+        choices=RESPONSE_AUTHORSHIP_VALUES,
+        required=True,
+    )
+    init.add_argument("--provenance-note", default="")
 
     bundle = sub.add_parser("bundle")
     bundle.add_argument("session_path")
@@ -255,7 +424,14 @@ def main(argv: list[str] | None = None) -> int:
                 args.session_id,
                 args.created_at,
             )
-            validate_inquiry_session(session, manifest, fixtures)
+            session = attach_review_provenance(
+                session,
+                args.reviewer_id,
+                args.prior_exposure,
+                args.response_authorship,
+                args.provenance_note,
+            )
+            _validate_safe_session(session, manifest, fixtures)
         except (InquiryReviewError, ReviewSessionError) as exc:
             raise InquiryReviewRunnerError(str(exc)) from exc
         save_session(args.session_path, session)
@@ -280,21 +456,20 @@ def main(argv: list[str] | None = None) -> int:
             "recorded": True,
             "session_id": updated["session_id"],
             "next_stage": current_stage(updated),
+            "review_context": provenance_projection(updated),
         }
     elif args.command == "validate":
-        try:
-            validate_inquiry_session(
-                session,
-                manifest,
-                fixtures,
-                require_complete=args.require_complete,
-            )
-        except InquiryReviewError as exc:
-            raise InquiryReviewRunnerError(str(exc)) from exc
+        _validate_safe_session(
+            session,
+            manifest,
+            fixtures,
+            require_complete=args.require_complete,
+        )
         result = {
             "valid": True,
             "session_id": session["session_id"],
             "stage": current_stage(session),
+            "review_context": provenance_projection(session),
             "evidence": (
                 "evaluation observation only; actual long-gap/Product Value "
                 "not established"
@@ -309,9 +484,11 @@ def main(argv: list[str] | None = None) -> int:
                 "session_id": session["session_id"],
                 "schema": bundle["schema"],
                 "output": str(args.output),
+                "review_context": provenance_projection(session),
                 "evidence": (
-                    "human-review observations and semantic audit remain separate; "
-                    "actual long-gap/Product Value not established"
+                    "human-review observations, semantic audit, and declared "
+                    "review provenance remain separate; actual long-gap/Product "
+                    "Value not established"
                 ),
             }
         else:
