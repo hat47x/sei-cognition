@@ -106,6 +106,8 @@ def test_lower_go_version_blocks() -> None:
         root = Path(tmp)
         init_repo(root)
         go = fake_go(root, "go1.24.9")
+        run(["git", "add", "fake-go"], root)
+        run(["git", "commit", "-qm", "fake go"], root)
 
         code, payload = invoke(root, ["--go", str(go)])
         assert code == 2, payload
