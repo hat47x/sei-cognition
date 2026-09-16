@@ -94,16 +94,11 @@ def main() -> int:
     evidence.parent.mkdir(parents=True, exist_ok=True)
     verification.parent.mkdir(parents=True, exist_ok=True)
 
-    temp_dir = evidence.parent
-    evidence_fd, evidence_temp_name = tempfile.mkstemp(prefix=".e1-e8.", suffix=".json.tmp", dir=temp_dir)
-    os.close(evidence_fd)
-    evidence_temp = Path(evidence_temp_name)
-    verification_fd, verification_temp_name = tempfile.mkstemp(
-        prefix=".e1-e8-verification.", suffix=".json.tmp", dir=verification.parent
-    )
-    os.close(verification_fd)
-    verification_temp = Path(verification_temp_name)
-    verification_temp.unlink(missing_ok=True)
+    # Keep temporary artifacts outside the repository. The runner requires a clean working tree,
+    # so creating an untracked temp JSON under the checkout before it starts would self-block.
+    temp_root = tempfile.TemporaryDirectory(prefix="issue-000073-evidence-")
+    evidence_temp = Path(temp_root.name) / "e1-e8.json"
+    verification_temp = Path(temp_root.name) / "e1-e8-verification.json"
 
     try:
         runner_cmd = [sys.executable, str(runner), "--output", str(evidence_temp)]
@@ -120,7 +115,6 @@ def main() -> int:
         # A blocked or failing actual run is still useful diagnostic evidence, but is never verified/prompted as PASS.
         if runner_proc.returncode != 0:
             publish(evidence_temp, evidence)
-            verification_temp.unlink(missing_ok=True)
             if args.replace:
                 verification.unlink(missing_ok=True)
             status = "blocked" if runner_proc.returncode == 2 else "fail"
@@ -178,8 +172,7 @@ def main() -> int:
         ))
         return 0
     finally:
-        evidence_temp.unlink(missing_ok=True)
-        verification_temp.unlink(missing_ok=True)
+        temp_root.cleanup()
 
 
 if __name__ == "__main__":
