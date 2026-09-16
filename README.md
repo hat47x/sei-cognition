@@ -1,6 +1,6 @@
 # 井 / SEI Cognition
 
-更新日: 2026-09-13  
+更新日: 2026-09-16  
 状態: **v0.2.0 Local Reference Product Baseline released / development continues**
 
 SEI Cognitionは、人間・AI・組織・既存システム・外部サービスが入れ替わっても、**何を見て、何を問い、何を根拠とし、何を決め、何を未解決として残したか**を失わないための、可搬な認知・意思決定基盤です。
@@ -75,7 +75,7 @@ Observation
 
 重要な概念であることが、そのままContract化の理由にはなりません。Contractを増やすこと自体は目的ではなく、実装やProviderをまたいで意味を固定する必要がある場合にだけ作ります。詳細は`contracts/CONTRACT_CATALOG.md`にあります。
 
-現在のRequirementは`REQ-0001`〜`REQ-0022`、Acceptance Scenarioは`SCN-0001`〜`SCN-0018`です。
+現在のRequirementは`REQ-0001`〜`REQ-0023`、Acceptance Scenarioは`SCN-0001`〜`SCN-0019`です。
 
 ## 4. repositoryの構成
 
