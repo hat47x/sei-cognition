@@ -1,28 +1,35 @@
-# Decision Continuity — H2 Human Review Execution
+# Decision Continuity — H1 / H2 Human Review Execution
 
-更新日: 2026-09-16  
+更新日: 2026-09-17  
 状態: **Evaluation-only / Human Review Execution Guide / Not Product Requirement**  
-関連: ISSUE-000073 / `decision_continuity_counterfactual_matched_set_v1.json` / `matched_review_session.py` / `decision_continuity_review_analysis.py`
+関連: ISSUE-000073 / `DOGFOOD_SURFACE.md` / `DOGFOOD_EVALUATION_RECORDING.md` / `decision_continuity_counterfactual_matched_set_v1.json` / `matched_review_session.py` / `decision_continuity_review_analysis.py`
 
 ## 1. この文書の役割
 
-ISSUE-000073のH2では、同等の判断素材について、raw chat、chronological note、SEI Resume Projectionから再開したときの差をhuman reviewで観測する。
+ISSUE-000073のhuman reviewは、性質の異なる二つの観測を分けて扱う。
 
-fixture、rotation、blinded packet、Decision-specific semantic preflightは既に存在する。本手順では、それらを実際のhuman reviewへ接続する際に、**後から知った情報を先に見せないこと**と、**synthetic reviewをH1やProduct Valueへ過大解釈しないこと**を固定する。
+- **H1 — actual resume usability**: actual prototypeとreal Inquiryを使い、時間が空いた後に人間が実際の判断仕事へ戻れるかを見る。
+- **H2 — counterfactual Decision Continuity review**: 同等の判断素材について、raw chat、chronological note、SEI Resume Projectionから再開したときの差をsynthetic human reviewで比較する。
+
+H1とH2は相互に代用しない。H1ではreal Inquiryとactual capture burdenを観測し、H2では比較条件を統制してhistorical integrityとorientation負担の差を見やすくする。
 
 ```text
-matched synthetic human review
-  = H2 pilotの観測手段
+H1 actual resumption
+  != H2 matched synthetic review
 
-matched synthetic human review
+H2 matched synthetic review
   != H1 actual resume usability
   != actual capture burden
   != Product Value established
 ```
 
-## 2. 責務分離
+H2についてはfixture、rotation、blinded packet、Decision-specific semantic preflightが既に存在する。本手順では、それらを実際のhuman reviewへ接続する際に、**後から知った情報を先に見せないこと**と、**synthetic reviewをH1やProduct Valueへ過大解釈しないこと**を固定する。
 
-実行系を一つに寄せる。
+H1については新しいsession managerや保存schemaを作らない。既存のPersonal Inquiry Continuity dogfood surfaceとevaluation sidecarを再利用し、actual resumptionに必要な手順だけを本書後半で固定する。
+
+## 2. H2の責務分離
+
+H2の実行系を一つに寄せる。
 
 ```text
 decision_continuity_counterfactual_*.json
@@ -48,7 +55,7 @@ decision_continuity_review_analysis.py
 
 Decision Continuity専用のsession managerは作らない。Inquiry Continuityと共有できるstage gateは共有し、意味監査だけをDecision側へ残す。
 
-## 3. なぜglobal stage gateにするか
+## 3. H2でglobal stage gateを使う理由
 
 一つのfixtureで`phase1 → post → audit`を終えてから次のfixtureへ移ると、最初のcaseで「後発Evidenceを見る観点」や「auditで何を正解とするか」を学習し、その知識が次のcaseへ持ち込まれる。
 
@@ -66,7 +73,7 @@ complete
 
 `matched_review_session.py`はこの順序を強制し、session開始時のmanifest / fixture SHA-256も固定する。途中で評価素材が変更された場合は同じsessionを継続しない。
 
-## 4. session開始
+## 4. H2 session開始
 
 例:
 
@@ -77,7 +84,7 @@ python evaluation/personal-inquiry-decision/matched_review_session.py init \
   --repo-root . \
   --rotation R1 \
   --session-id e73-r1-reader-001 \
-  --created-at '2026-09-16T12:00:00+09:00'
+  --created-at '2026-09-17T10:00:00+09:00'
 ```
 
 現在提示してよいpacketだけを確認する。
@@ -91,7 +98,7 @@ python evaluation/personal-inquiry-decision/matched_review_session.py packets \
 
 初期状態では3件とも`phase1`だけが返る。`post_decision_evidence`や`reference_state`は返らない。
 
-## 5. phase1 response
+## 5. H2 phase1 response
 
 各caseの質問へ回答し、同じresponse JSONにorientation時の観測を残す。
 
@@ -121,13 +128,13 @@ python evaluation/personal-inquiry-decision/matched_review_session.py record \
   /tmp/e73-r1-session.json \
   --fixture-id e73-decision-continuity-001-provider-pilot \
   --stage phase1 \
-  --recorded-at '2026-09-16T12:05:00+09:00' \
+  --recorded-at '2026-09-17T10:05:00+09:00' \
   --response /tmp/e73-f1-phase1.json
 ```
 
 3caseすべてのphase1を固定するまでpost packetは開かない。
 
-## 6. post response
+## 6. H2 post response
 
 global gateが`post`へ進んだ後、各caseの`post_decision_evidence`だけを追加で読み、質問へ回答する。
 
@@ -144,7 +151,7 @@ global gateが`post`へ進んだ後、各caseの`post_decision_evidence`だけ�
 
 この時点でも`reference_state`は開かない。
 
-## 7. audit response
+## 7. H2 audit response
 
 3caseすべてのpost回答が固定された後にだけreference stateを開く。
 
@@ -175,7 +182,7 @@ findingは`pass | fail | not-observed`、correction burdenは`low | medium | hig
 
 H2用のprepared Surfaceを読んだだけでは、actual workで「継続利用したいか」を十分に判断できない場合がある。その場合は`continued_use = not-observed`のままにする。
 
-## 8. Decision固有validation
+## 8. H2 Decision固有validation
 
 sessionを保存しただけでは、response内容がDecision Continuityの評価形式に沿っているとは限らない。
 
@@ -196,7 +203,7 @@ python evaluation/personal-inquiry-decision/decision_continuity_review_analysis.
 - post-decision temporal integrityを独立findingとして記録する。
 - 判断不能値を`not-observed`として保持できる。
 
-## 9. counterbalanced comparison
+## 9. H2 counterbalanced comparison
 
 R1だけでもH2 pilotの一観測にはなるが、conditionとscenarioがまだ交絡する。
 
@@ -226,7 +233,7 @@ python evaluation/personal-inquiry-decision/decision_continuity_review_analysis.
 - continued-use intent
 - fixture × condition coverage
 
-## 10. Evidence境界
+## 10. H2のEvidence境界
 
 一つのhuman readerが一rotationを完了した場合、少なくとも「H2 pilotのhuman observationが一件存在する」と読める。ただし、tool自身はresponseが本当にhumanによるものかを認証しない。operator provenanceは別途必要である。
 
@@ -249,10 +256,156 @@ faster orientation
 
 chronological noteがSEIと同等以上なら、それをSEI固有構造を減らすEvidenceとして扱う。SEIに有利な結果だけを成功条件にしない。
 
-## 11. H1への接続
+## 11. H1 actual resume usability
 
-ISSUE-000073のResolutionにはH1が別途必要である。
+H1ではsynthetic fixtureではなく、`DOGFOOD_SURFACE.md`で扱う**real Inquiryのactual prototype state**を人間が再開する。
 
-H1ではactual prototypeを人間が使い、chat historyや内部schemaの知識なしで、実際の判断仕事へ戻れるかを観測する。synthetic fixtureの内容を読んで正答できたことでは代替しない。
+目的は、Orientation Projectionに必要な意味が表示されることを再確認することではない。時間が空き、元chatや作業中のmental contextが失われた状態で、内部schemaを読み直さずに次へ戻れるかを観測する。
 
-H2 toolingが整った後も、H1、actual capture/review overhead、Candidate Requirement auditが未観測ならIssueをResolved扱いしない。
+- 何を考えていたか。
+- 何をDecisionしたか。Decisionがなければ、その不在を正しく認識できるか。
+- Decisionがある場合、なぜそうDecisionしたか。
+- 何がまだ分からないか、またはConflictとして残っているか。
+- Decisionまたは前回review以後に何が変わったか。
+- 次に何を確認・再検討すべきか。
+
+H1のために新しいProduct field、review schema、session managerを作らない。actual Inquiry stateは`dogfood_core.py` / `dogfood_cli.py`、評価観測は`dogfood_evaluation.py` / `dogfood_evaluation_cli.py`へ置く。
+
+```text
+actual Inquiry state
+  != evaluation observation
+
+human H1 answer
+  != canonical semantic fact
+```
+
+### 11.1 H1として数えてよい条件
+
+H1を`resumption`として扱う前に、少なくとも次を確認する。
+
+1. synthetic fixtureではなくreal Inquiryである。
+2. Inquiry作業を中断してからcontext gapがある。
+3. 再開直前に元chat、source、canonical stateの詳細、評価設計の説明等へmaterialな再露出をしていない。
+4. 再開前にreference answerやaudit結果を見ていない。
+5. Orientationを見る前の状態を、後から都合よく再構成しない。
+
+暦上multi-dayでも、直前にcurrent concernやUnknown / Decision basisを思い出せる説明へ再露出した場合はclean H1として数えない。その場合はprotocol observationとして残し、actual `resume_observation`を架空に追加しない。
+
+```text
+calendar gap
+  != cognitive gap
+
+pre-orientation material exposure
+  != H1 resumption observation
+```
+
+### 11.2 H1実行順序
+
+H1は次の順序で実施する。
+
+1. 元chat、元source、Inquiry JSON本文を開く前に開始時刻を記録する。
+2. `dogfood_cli.py orient`だけを実行し、Orientationを読む。
+3. 上の6問へ回答し、回答を一度固定する。
+4. 「次の作業を始められる」と判断した時点とFirst Useful Actionを記録する。
+5. 必要になった場合だけdetail、元source、元chatへ降り、その回数を数える。
+6. 回答を固定した後にcanonical state / sourceへ戻り、historical misattribution、Recommendation / Decision混同、Unknown / Conflictの欠落、post-decision情報の遡及混入がなかったかをauditする。
+7. `dogfood_evaluation_cli.py resume-add`でactual observationをsidecarへ記録する。
+
+Orientationの例:
+
+```bash
+cd evaluation/personal-inquiry-decision
+python dogfood_cli.py orient /path/to/inquiry.json
+```
+
+H1回答はlocal-onlyのreview memoでよい。現時点ではmachine-readableな新schemaを設けない。最低限、6問への回答、開始時刻、first useful action到達時刻または経過、material pre-exposureの有無を残す。
+
+### 11.3 H1 observationの記録
+
+H1がclean resumption条件を満たした場合、既存sidecarへ`evidence_role=resumption`として記録する。
+
+```bash
+python dogfood_evaluation_cli.py resume-add /path/to/evaluation.json \
+  --id resume-h1-001 \
+  --observed-at '2026-09-24T10:00:00+09:00' \
+  --surface sei-orientation \
+  --evidence-role resumption \
+  --context-gap multi-day \
+  --source-reopens 1 \
+  --chat-reopens 0 \
+  --detail-descents 2 \
+  --original-concern-retention pass \
+  --unresolved-preservation pass \
+  --temporal-integrity pass \
+  --recommendation-decision-integrity pass \
+  --attention-load low \
+  --first-useful-action '次に確認すべき条件を一つ調べる'
+```
+
+`context-gap`はactual条件に合わせる。判断できない項目は推測せず`not-observed`または`not-applicable`を用いる。
+
+H1の回答が速くても、historical basisを誤認した場合は成功へ丸めない。
+
+```text
+fast orientation
+  + historical misattribution
+  = H1 failure observation
+```
+
+### 11.4 capture / review overheadとの接続
+
+ISSUE-000073のResolutionではresume時の使いやすさだけでなく、capture / review overheadも必要である。
+
+そのため、H1対象Inquiryについて作業中の負担を観測できる場合は、既存sidecarの`capture-add`を使う。
+
+```bash
+python dogfood_evaluation_cli.py capture-add /path/to/evaluation.json \
+  --id capture-001 \
+  --observed-at '2026-09-20T20:00:00+09:00' \
+  --semantic-corrections 1 \
+  --burden low \
+  --notes 'Unknownの意味種別を一度だけ修正した'
+```
+
+resume後に記憶だけでcapture burdenを精密に捏造しない。未観測なら`not-observed`のまま残し、次のreal Inquiryで前向きに観測する。
+
+## 12. H1とH2を合わせたEvidenceの読み方
+
+H1とH2は、同じDecision Continuity仮説を異なる角度から反証する。
+
+```text
+H1
+  = real Inquiry
+  + actual prototype
+  + actual capture / resumption context
+
+H2
+  = matched material
+  + controlled Surface comparison
+  + historical-integrity audit
+```
+
+H1が良くH2でSEIの比較差が弱い場合、単純baselineでも十分な可能性を残す。H2で差が出てもH1のcapture burdenが高い場合、Product Value成立とは扱わない。
+
+一つのH1と一つのH2 pilotが存在しても、広いAdoption / Outcome Evidenceには昇格しない。
+
+```text
+H1 observed
+  + H2 pilot observed
+  != generalizable user evidence
+  != Operational Evidence
+  != Adoption / Outcome Evidence
+  != ISSUE-000073 automatically Resolved
+```
+
+ISSUE-000073のResolution判断では、E1〜E8のScoped Executable Evidence、H1 actual resume usability、H2 counterfactual review、capture / review overheadを別々に確認し、そのうえでCandidate RequirementとDecision Continuity Product hypothesisを再評価する。
+
+## 13. Natural Japanese review
+
+H2用に既に成立していたmatched review手順を維持したまま、ISSUE-000073で未接続だったH1 actual resume usabilityを既存Personal Inquiry Continuity dogfood surfaceへ接続した。
+
+H1のために新しい評価schemaやsession managerを増やさず、Inquiry stateは既存dogfood state、評価観測は既存sidecarを使う。これによりH1 / H2を別々の評価基盤として断片化させず、real Inquiryのresumptionとcontrolled counterfactual reviewだけを意味上分離した。
+
+また、暦上のgapと認知的context lossを同一視せず、pre-orientationのmaterial exposureがあった回を架空のH1 Evidenceへ数えない停止線を明示した。速い再開をhistorical correctnessより優先せず、capture burdenが未観測なら後知恵で埋めない。
+
+自然な日本語として全文を再読し、H1 / H2、canonical Inquiry state / evaluation observation、synthetic pilot / actual resumption、Executable / Adoption・Outcome Evidenceの境界が変わっていないことを最終監査した。
