@@ -1,71 +1,258 @@
 {
   "schema": "sei.decision-continuity-comparison-fixture/v0",
-  "status": "evaluation-only",
+  "status": "prepared-not-executed",
   "issue": "ISSUE-000073",
-  "fixture_id": "e73-decision-continuity-001-provider-pilot",
-  "title": "外部通知Providerを全面切替せず限定pilotする判断へ戻る",
-  "purpose": [
-    "H2: simple external memoryとSEI Resume Projectionの再開品質を比較する",
-    "RecommendationとDecisionを混同しないか確認する",
-    "post-decision Observationをhistorical basisへ遡及混入しないか確認する"
+  "fixture_id": "e73-counterfactual-001-search-migration",
+  "title": "検索基盤移行の段階決定を、後発情報で過去改変せず再開する",
+  "purpose": {
+    "primary": [
+      "H1: SEI Resume Projectionだけから、現在の問い・Decision・historical basis・unresolved・Decision後の変化へ正しく戻れるか観測する",
+      "H2: chronological noteとSEI canonical meaning + Resume Projectionを公平に比較し、追加構造が再構成負担や誤帰属を実際に減らすか観測する",
+      "RecommendationとDecisionを混同せず、post-decision informationをhistorical basisへ遡及混入しないか確認する",
+      "resume benefitとcapture / review overheadを同時に記録する"
+    ],
+    "not_for": [
+      "Stable Requirementの成立証明",
+      "Product Value / Adoption Evidenceの先取り",
+      "SEI条件を有利にするためのbaseline弱体化",
+      "Universal Case / Workspace / Session型の定義",
+      "未実施human reviewのPASS扱い"
+    ]
+  },
+  "evidence_boundary": {
+    "fixture_preparation": "Design Evidence only",
+    "human_review": "not_yet_observed",
+    "counterfactual_result": "not_yet_observed",
+    "product_value_conclusion": "not_established",
+    "rule": "結果欄は実際のhuman review後にのみ記録し、fixture作成時点ではpass/failを推測しない"
+  },
+  "use_rules": [
+    "AとBには同じmaterial factsを含め、chronological noteを意図的に弱くしない。",
+    "review開始前にreference_state、review_key、observation_templateをreaderへ見せない。",
+    "同一readerへ同じcaseのA/Bを連続提示する場合は記憶汚染を記録し、clean counterfactual Evidenceとは扱わない。",
+    "各conditionではまず提示Surfaceだけで回答を固定し、その後に必要ならsource / chat / audit detailを開く。",
+    "orientationの速さだけでなく、Recommendation / Decision分離、historical basis accuracy、unresolved発見、post-decision誤帰属を独立して観測する。",
+    "faster resume + worse historical accuracy はProduct Value improvementとして扱わない。",
+    "capture burdenとreview burdenが得られた便益を上回る場合、その結果をFAIL側Evidenceとして隠さない。"
   ],
   "scenario": {
-    "initial_question": "通知Provider Aのtimeoutが増えたためProvider Bへ移行すべきか。",
-    "phase_1": [
-      {"role":"observation","id":"obs-a-timeout","text":"直近7日でProvider Aの送信timeoutが3回発生した。"},
-      {"role":"observation","id":"obs-b-synthetic","text":"Provider Bのsynthetic testは20/20成功したが、本番相当負荷は未確認。"},
-      {"role":"recommendation","id":"rec-full-switch","text":"AIはProvider Bへ全面切替する案を提案した。"},
-      {"role":"unknown","id":"unk-b-rate-limit","text":"Provider Bの本番負荷時rate-limit挙動は未確認。"},
-      {"role":"unknown","id":"unk-rollback","text":"全面切替後のrollback所要時間は未確認。"},
-      {"role":"decision","id":"dec-pilot","text":"全面切替はせず、送信量10%だけProvider Bへpilotし、Provider Aをfallbackとして維持する。","basis_refs":["obs-a-timeout","obs-b-synthetic"],"recommendation_refs":["rec-full-switch"],"unresolved_refs":["unk-b-rate-limit","unk-rollback"]}
+    "context": "架空の社内検索基盤 Project Cedar。自社運用の検索clusterからmanaged search serviceへの移行を検討している。保守負担は下げたいが、互換性・再index時間・rollback可能性を確認しながら段階的に判断する必要がある。",
+    "current_question": "20% read trafficのcanary結果と再index・rollback上の新情報を踏まえ、full migrationへ進む条件をどう見直すべきか。",
+    "pre_decision_events": [
+      {
+        "at": "2031-06-02T10:00:00+09:00",
+        "role": "observation",
+        "id": "O1-maintenance",
+        "text": "現行clusterでは月次upgrade、node障害対応、capacity調整に継続的な運用工数がかかっている。"
+      },
+      {
+        "at": "2031-06-02T11:20:00+09:00",
+        "role": "observation",
+        "id": "O2-latency-poc",
+        "text": "代表的な検索queryを用いたPoCでは、managed serviceがp95 latency目標を満たした。"
+      },
+      {
+        "at": "2031-06-03T09:40:00+09:00",
+        "role": "observation",
+        "id": "O3-analyzer-compat",
+        "text": "独自analyzer互換のworkaroundは限定データで動作したが、full-loadと全index patternでは未確認である。"
+      },
+      {
+        "at": "2031-06-03T10:10:00+09:00",
+        "role": "unknown",
+        "id": "U1-reindex-window",
+        "text": "本番全量の再indexが夜間maintenance window内に完了するかは未確認である。"
+      },
+      {
+        "at": "2031-06-03T13:00:00+09:00",
+        "role": "recommendation",
+        "id": "R1-full-migration",
+        "text": "運用負担削減効果が大きいため、次回maintenanceでfull migrationを実施する案を推奨する。"
+      }
     ],
-    "interruption_point": "Decision記録直後",
-    "post_decision_evidence": [
-      {"role":"observation","id":"obs-b-429","text":"pilot開始2日後、高負荷帯でProvider Bから429が観測された。"},
-      {"role":"observation","id":"obs-a-maintenance","text":"Decisionの3日後、Provider Aが翌月のmaintenance予定を公表した。Decision時点では未公表だった。"}
+    "decision": {
+      "at": "2031-06-03T15:30:00+09:00",
+      "id": "D1-canary",
+      "statement": "直ちにfull migrationは行わず、30日間、read trafficの20%をmanaged serviceへ流すcanaryを実施する。現行clusterはrollback pathとして維持する。",
+      "basis_refs": [
+        "O1-maintenance",
+        "O2-latency-poc",
+        "O3-analyzer-compat"
+      ],
+      "recommendation_refs": [
+        "R1-full-migration"
+      ],
+      "unresolved_refs": [
+        "U1-reindex-window",
+        "O3-analyzer-compat"
+      ],
+      "rationale": "運用負担削減とPoC性能は移行を支持するが、full-load互換性と全量再index時間が未確認であり、即時full migrationのriskを受け入れる根拠が不足している。"
+    },
+    "post_decision_events": [
+      {
+        "at": "2031-06-17T10:20:00+09:00",
+        "role": "observation",
+        "id": "O4-canary-stable",
+        "text": "canary開始後14日間、通常負荷ではerror rateとp95 latencyに重大な悪化は見られなかった。"
+      },
+      {
+        "at": "2031-06-18T14:00:00+09:00",
+        "role": "observation",
+        "id": "O5-reindex-cost",
+        "text": "本番相当データでの再index試験は当初見積りの約2.4倍の時間を要し、現在の夜間maintenance windowを超えた。"
+      },
+      {
+        "at": "2031-06-19T09:30:00+09:00",
+        "role": "conflict",
+        "id": "C1-rollback-retention",
+        "text": "rollbackに使う現行cluster snapshotの保持期限が、想定した移行判断時期より先に到来する可能性がある。"
+      },
+      {
+        "at": "2031-06-19T11:00:00+09:00",
+        "role": "recommendation",
+        "id": "R2-extend-canary",
+        "text": "full migrationはまだDecisionせず、canaryを延長し、再index方式とrollback retentionを再設計してから再評価する案を推奨する。"
+      }
+    ],
+    "important_distinctions": [
+      "R1はfull migrationのRecommendationであり、D1ではない。",
+      "D1は限定canaryの実施Decisionである。",
+      "O4 / O5 / C1 / R2はD1後にcanonicalへ追加された情報であり、D1のhistorical basisではない。",
+      "R2は現在のRecommendationであり、新しいDecisionではない。"
     ]
   },
   "conditions": {
-    "A_raw_chat": {
+    "A_chronological_note": {
+      "label": "strong chronological note baseline",
       "surface_text": [
-        "利用者: Provider Aで直近7日にtimeoutが3回ありました。Bも試したいです。",
-        "AI: Bへ全面切替するのがよさそうです。synthetic testはどうでしたか。",
-        "利用者: 20回中20回成功しました。ただ本番相当負荷は未確認で、rate limitもrollback時間も分かりません。",
-        "AI: ではBへの切替を進めますか。",
-        "利用者: 全面切替はしません。まず10%だけpilotし、Aはfallbackとして残します。"
+        "6/2 検討開始。現行検索clusterはupgrade、node障害対応、capacity調整の運用負担が継続している。managed serviceの代表query PoCはp95 latency目標を満たした。",
+        "6/3 独自analyzer互換workaroundは限定データでは動作。ただしfull-load・全index patternは未確認。本番全量再indexが夜間maintenance window内に終わるかも未確認。",
+        "6/3 提案: 運用負担削減効果が大きいため、次回maintenanceでfull migrationを実施する案。",
+        "6/3 決定: 直ちにfull migrationは行わない。30日間、read trafficの20%をmanaged serviceへ流すcanaryを実施し、現行clusterをrollback pathとして維持する。決定時の根拠は、現行運用負担、PoC latency達成、限定条件でのanalyzer workaround動作。未解決は全量再index時間とfull-load互換性。",
+        "6/17 追加情報: canary開始後14日、通常負荷ではerror rateとp95 latencyに重大な悪化なし。",
+        "6/18 追加情報: 本番相当再indexは見積り約2.4倍で、現在の夜間maintenance windowを超過。",
+        "6/19 Conflict: rollback用snapshotの保持期限が、想定した移行判断時期より先に来る可能性。",
+        "6/19 提案: full migrationはまだ決めず、canary延長と再index方式・rollback retention再設計後に再評価する。"
       ]
     },
-    "B_chronological_note": {
-      "surface_text": [
-        "Provider A: 直近7日でtimeout 3回。",
-        "Provider B: synthetic test 20/20成功。本番相当負荷、rate-limit挙動は未確認。",
-        "提案: Bへ全面切替。",
-        "判断: 全面切替せず10% pilot。Aをfallbackとして維持。",
-        "未解決: Bの本番rate-limit、rollback所要時間。"
-      ]
-    },
-    "C_sei_resume": {
+    "B_sei_resume": {
+      "label": "SEI canonical meaning + Resume / Change Review Projection",
       "surface_text": {
-        "question":"Provider Aのtimeout増加に対しBへどの範囲で移行するか。",
-        "recommendation":{"id":"rec-full-switch","text":"Provider Bへ全面切替する。"},
-        "decision":{"id":"dec-pilot","text":"10% pilotに限定しProvider Aをfallbackとして維持する。"},
-        "historical_basis":["Provider Aで直近7日にtimeout 3回。","Provider B synthetic test 20/20成功。本番相当負荷は未確認。"],
-        "unresolved":["Provider Bの本番rate-limit挙動。","rollback所要時間。"],
-        "changes_since_decision":[]
+        "current_question": "canary結果と再index・rollback上の新情報を踏まえ、full migrationへ進む条件をどう見直すべきか。",
+        "current_decision": {
+          "ref": "D1-canary",
+          "statement": "直ちにfull migrationは行わず、30日間の20% read-traffic canaryを実施し、現行clusterをrollback pathとして維持する。"
+        },
+        "historical_basis_at_D1": [
+          "O1: 現行clusterの継続的な運用負担。",
+          "O2: 代表query PoCでp95 latency目標を達成。",
+          "O3: analyzer workaroundが限定データでは動作。ただしfull-load未確認。"
+        ],
+        "unresolved_at_D1": [
+          "U1: 本番全量再indexが夜間maintenance window内に完了するか。",
+          "O3に残る未確認点: full-load・全index patternでの互換性。"
+        ],
+        "recommendation_considered_at_D1": [
+          "R1: 次回maintenanceでfull migrationを実施する案。D1では採用されず、Recommendationとして保持。"
+        ],
+        "changes_since_D1": [
+          "O4: 通常負荷の14日canaryでは重大な性能・error悪化なし。",
+          "O5: 本番相当再indexは見積り約2.4倍で夜間window超過。",
+          "C1: rollback snapshot保持期限と判断時期が衝突する可能性。",
+          "R2: canary延長と再index・rollback再設計後の再評価を推奨。まだDecisionではない。"
+        ],
+        "review_candidate": "full migrationの可否を即断せず、再index windowとrollback retentionを解消する条件、およびfull-load互換性の確認計画を見直す。"
       }
     }
   },
   "reference_state": {
-    "decision":"全面切替ではなく10% pilot。Aをfallbackとして維持。",
-    "recommendation":"Bへの全面切替。",
-    "historical_basis_ids":["obs-a-timeout","obs-b-synthetic"],
-    "unresolved_ids":["unk-b-rate-limit","unk-rollback"],
-    "post_decision_ids":["obs-b-429","obs-a-maintenance"],
-    "temporal_stopline":"429観測とAのmaintenance公表を、dec-pilot当時のbasisだったと答えてはいけない。"
+    "current_question": "20% canary結果と再index・rollback上の新情報を踏まえ、full migrationへ進む条件をどう見直すべきか。",
+    "decision": "D1-canary: 直ちにfull migrationせず、30日間の20% canaryを行い、現行clusterをrollback pathとして維持する。",
+    "recommendation_not_decision": [
+      "R1-full-migration",
+      "R2-extend-canary"
+    ],
+    "historical_basis_refs": [
+      "O1-maintenance",
+      "O2-latency-poc",
+      "O3-analyzer-compat"
+    ],
+    "unresolved_at_decision_refs": [
+      "U1-reindex-window",
+      "O3-analyzer-compat"
+    ],
+    "post_decision_refs": [
+      "O4-canary-stable",
+      "O5-reindex-cost",
+      "C1-rollback-retention",
+      "R2-extend-canary"
+    ],
+    "must_not_be_historical_basis": [
+      "O4-canary-stable",
+      "O5-reindex-cost",
+      "C1-rollback-retention",
+      "R2-extend-canary"
+    ]
   },
-  "human_review_template": {
-    "before_post_decision_evidence":["何を決めたか。","AI/他者の提案とDecisionは同じだったか。","Decisionのbasisは何か。","何が未解決か。","次に何を確認すべきか。"],
-    "after_post_decision_evidence":["新情報は何か。","どの新情報がDecision見直しに関係するか。","新情報のうちDecision当時のbasisではなかったものは何か。","Decisionをreopenするなら何を再評価するか。"],
-    "operator_metrics":["time_to_orientation","source_reopen_count","mental_effort_1_to_5","historical_misattribution_count","recommendation_decision_confusion","correction_burden"]
-  }
+  "review_tasks": [
+    {
+      "id": "Q1",
+      "prompt": "現在、何を判断しようとしているか。"
+    },
+    {
+      "id": "Q2",
+      "prompt": "すでに何をDecisionしたか。"
+    },
+    {
+      "id": "Q3",
+      "prompt": "『次回maintenanceでfull migrationする』はRecommendationだったか、Decisionだったか。"
+    },
+    {
+      "id": "Q4",
+      "prompt": "D1を行った時点で使われていたbasisを挙げる。"
+    },
+    {
+      "id": "Q5",
+      "prompt": "D1時点で何が未解決だったか。"
+    },
+    {
+      "id": "Q6",
+      "prompt": "D1後に何が変わったか。"
+    },
+    {
+      "id": "Q7",
+      "prompt": "D1のhistorical basisとして扱ってはいけない後発情報を挙げる。"
+    },
+    {
+      "id": "Q8",
+      "prompt": "現在、次にreviewする価値が高い論点は何か。R2をDecisionへ読み替えずに答える。"
+    }
+  ],
+  "observation_template": {
+    "condition": null,
+    "reviewed_at": null,
+    "evidence_role": "human-review",
+    "context_gap": null,
+    "current_question_correct": null,
+    "decision_correct": null,
+    "recommendation_decision_confusion": null,
+    "historical_basis_accuracy": null,
+    "unresolved_found": null,
+    "post_decision_misattribution_count": null,
+    "orientation_seconds": null,
+    "source_reopens": null,
+    "chat_reopens": null,
+    "detail_descents": null,
+    "mental_effort_1_7": null,
+    "capture_burden_note": null,
+    "would_continue": null,
+    "notes": null
+  },
+  "interpretation_rules": [
+    "未観測値を0、pass、false等で補完しない。",
+    "RecommendationをDecisionと誤認した場合は、速度が速くてもDecision Continuity成功とは扱わない。",
+    "post-decision eventをD1 basisへ含めた場合はhistorical attribution failureとして記録する。",
+    "chronological noteが同等以上に機能した場合、その結果をSEI構造削減またはscope縮小のEvidenceとして利用できる。",
+    "H1/H2の一回のpilotだけでStable RequirementやProduct Value成立を確定しない。"
+  ]
 }
