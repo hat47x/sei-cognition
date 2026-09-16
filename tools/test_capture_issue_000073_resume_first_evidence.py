@@ -20,12 +20,17 @@ def setup_repo(root: Path, *, runner_exit: int = 0, verifier_exit: int = 0, veri
     tools.mkdir(parents=True, exist_ok=True)
     write_tool(
         tools / "run_issue_000073_resume_first_evidence.py",
-        f'''import argparse, json\nfrom pathlib import Path\np=argparse.ArgumentParser(); p.add_argument("--output", type=Path); p.add_argument("--go"); a=p.parse_args()\nrecord={{"status": {repr('pass' if runner_exit == 0 else ('blocked' if runner_exit == 2 else 'fail'))}, "repository": {{"head": "0123456789abcdef0123456789abcdef01234567"}}}}\na.output.write_text(json.dumps(record), encoding="utf-8")\nraise SystemExit({runner_exit})\n''',
+        f'''import argparse, json, subprocess\nfrom pathlib import Path\np=argparse.ArgumentParser(); p.add_argument("--output", type=Path); p.add_argument("--go"); a=p.parse_args()\ndirty = bool(subprocess.run(["git", "status", "--porcelain=v1"], text=True, stdout=subprocess.PIPE, check=True).stdout.strip())\nexit_code = 2 if dirty else {runner_exit}\nstatus = "blocked" if exit_code == 2 else ("pass" if exit_code == 0 else "fail")\nrecord={{"status": status, "repository": {{"head": "0123456789abcdef0123456789abcdef01234567"}}}}\na.output.write_text(json.dumps(record), encoding="utf-8")\nraise SystemExit(exit_code)\n''',
     )
     write_tool(
         tools / "verify_issue_000073_resume_first_evidence.py",
         f'''import argparse, json\nfrom pathlib import Path\np=argparse.ArgumentParser(); p.add_argument("evidence", type=Path); p.add_argument("--repo"); p.add_argument("--json-out", type=Path); a=p.parse_args()\na.json_out.write_text(json.dumps({{"passed": {repr(verifier_passed)}}}), encoding="utf-8")\nraise SystemExit({verifier_exit})\n''',
     )
+    subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+    subprocess.run(["git", "config", "user.email", "test@example.invalid"], cwd=root, check=True)
+    subprocess.run(["git", "config", "user.name", "SEI test"], cwd=root, check=True)
+    subprocess.run(["git", "add", "."], cwd=root, check=True)
+    subprocess.run(["git", "commit", "-qm", "fixture"], cwd=root, check=True)
 
 
 def invoke(root: Path, *extra: str) -> tuple[int, dict]:
@@ -83,6 +88,8 @@ def test_existing_outputs_require_replace() -> None:
         evidence = root / "evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8.json"
         evidence.parent.mkdir(parents=True, exist_ok=True)
         evidence.write_text("old", encoding="utf-8")
+        subprocess.run(["git", "add", "."], cwd=root, check=True)
+        subprocess.run(["git", "commit", "-qm", "existing evidence"], cwd=root, check=True)
         code, out = invoke(root)
         assert code == 2, out
         assert out["status"] == "blocked", out
