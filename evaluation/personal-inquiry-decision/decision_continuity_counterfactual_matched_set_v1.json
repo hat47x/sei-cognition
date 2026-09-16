@@ -1,0 +1,72 @@
+{
+  "schema": "sei.decision-continuity-matched-set/v0",
+  "status": "evaluation-only",
+  "issue": "ISSUE-000073",
+  "set_id": "e73-decision-continuity-matched-set-v1",
+  "purpose": "同一readerが同じcaseの複数Surfaceを読むことによる記憶汚染を避けながら、raw chat / chronological note / SEI resumeをDecisionありのmatched synthetic casesで比較する。",
+  "fixtures": [
+    {"id":"e73-decision-continuity-001-provider-pilot","path":"evaluation/personal-inquiry-decision/decision_continuity_counterfactual_001.json","domain":"provider-migration"},
+    {"id":"e73-decision-continuity-002-ticket-routing","path":"evaluation/personal-inquiry-decision/decision_continuity_counterfactual_002.json","domain":"human-ai-routing"},
+    {"id":"e73-decision-continuity-003-import-dedupe","path":"evaluation/personal-inquiry-decision/decision_continuity_counterfactual_003.json","domain":"data-integration"}
+  ],
+  "matching_constraints": [
+    "各caseはRecommendationと、それとは異なる人間のDecisionを含む。",
+    "各Decisionは少なくとも2件のhistorical basisと2件のunresolvedを持つ。",
+    "各caseはDecision後Evidenceを2件含み、そのうち少なくとも1件はDecision時点に存在しなかったためhistorical basisへ遡及適用してはいけない。",
+    "各conditionは同じcase内でmaterial factsを揃え、表現形式だけを主な差とする。",
+    "simple baselineを意図的に弱くせず、chronological noteにもDecision / Recommendation / basis / unresolvedを明示する。"
+  ],
+  "condition_codes": {
+    "A_raw_chat":"raw chat / transcript",
+    "B_chronological_note":"chronological note",
+    "C_sei_resume":"SEI canonical meaning + derived Resume Projection"
+  },
+  "assignment_rotations": {
+    "R1":[
+      {"fixture":"e73-decision-continuity-001-provider-pilot","condition":"A_raw_chat"},
+      {"fixture":"e73-decision-continuity-002-ticket-routing","condition":"B_chronological_note"},
+      {"fixture":"e73-decision-continuity-003-import-dedupe","condition":"C_sei_resume"}
+    ],
+    "R2":[
+      {"fixture":"e73-decision-continuity-001-provider-pilot","condition":"B_chronological_note"},
+      {"fixture":"e73-decision-continuity-002-ticket-routing","condition":"C_sei_resume"},
+      {"fixture":"e73-decision-continuity-003-import-dedupe","condition":"A_raw_chat"}
+    ],
+    "R3":[
+      {"fixture":"e73-decision-continuity-001-provider-pilot","condition":"C_sei_resume"},
+      {"fixture":"e73-decision-continuity-002-ticket-routing","condition":"A_raw_chat"},
+      {"fixture":"e73-decision-continuity-003-import-dedupe","condition":"B_chronological_note"}
+    ]
+  },
+  "single_reader_rule": "一人のreaderにはR1〜R3のいずれか一つだけを割り当て、同一fixtureの未割当conditionをhuman review完了前に提示しない。",
+  "execution_order": [
+    "operatorがrotationを一つ選ぶ。",
+    "各fixtureから割当conditionのsurface_textだけをreaderへ提示する。",
+    "before_post_decision_evidenceへ回答し、その回答を固定する。",
+    "同fixtureのpost_decision_evidenceだけを追加提示する。",
+    "after_post_decision_evidenceへ回答する。",
+    "reference_stateを開き、historical correctness、Recommendation / Decision混同、false continuityを監査する。",
+    "3case完了後にのみcross-condition比較を行う。"
+  ],
+  "comparison_dimensions": [
+    "current question reconstruction",
+    "Recommendation / Decision separation",
+    "historical basis reconstruction",
+    "unresolved preservation",
+    "post-decision temporal integrity",
+    "time to orientation",
+    "source reopen burden",
+    "mental effort",
+    "correction burden",
+    "capture / review overhead"
+  ],
+  "interpretation_stoplines": [
+    "単一のoverall scoreやwinnerを作らない。",
+    "速いがhistorical stateを誤るconditionを成功としない。",
+    "chronological noteがSEIと同等以上なら、SEI固有構造を減らすEvidenceとして扱う。",
+    "scenario差をSurface差と断定しない。",
+    "synthetic matched comparisonをactual long-gap dogfoodの代替にしない。",
+    "human reviewを実際に行うまではDesign Evidenceに留める。",
+    "fixture作成をH1/H2実施済みとは扱わない。"
+  ]
+}
