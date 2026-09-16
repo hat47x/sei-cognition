@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import contextlib
 import copy
+import io
 import json
 import tempfile
 import unittest
@@ -10,11 +12,13 @@ from inquiry_continuity_packet import load_manifest_fixtures
 from inquiry_continuity_review_analysis import FINDING_FIELDS
 from inquiry_continuity_review_runner import (
     InquiryReviewRunnerError,
+    evidence_bundle,
     load_context,
+    main,
     record_checked_response,
     reviewer_bundle,
 )
-from matched_review_session import current_stage, new_session
+from matched_review_session import current_stage, new_session, save_session
 
 
 CONDITIONS = ("A_raw_chat", "B_chronological_note", "C_sei_resume")
@@ -152,6 +156,11 @@ class InquiryContinuityReviewRunnerTest(unittest.TestCase):
                 response,
             )
 
+    def _complete_session(self) -> None:
+        self._record_all("phase1", phase1_response())
+        self._record_all("post", post_response())
+        self._record_all("audit", audit_response())
+
     def test_phase1_bundle_hides_condition_and_later_material(self):
         bundle = reviewer_bundle(self.session, self.manifest, self.fixtures)
         self.assertEqual(bundle["stage"], "phase1")
@@ -216,12 +225,55 @@ class InquiryContinuityReviewRunnerTest(unittest.TestCase):
         self.assertEqual(current_stage(self.session), "audit")
 
     def test_complete_bundle_is_empty(self):
-        self._record_all("phase1", phase1_response())
-        self._record_all("post", post_response())
-        self._record_all("audit", audit_response())
+        self._complete_session()
         bundle = reviewer_bundle(self.session, self.manifest, self.fixtures)
         self.assertEqual(bundle["stage"], "complete")
         self.assertEqual(bundle["items"], [])
+
+    def test_evidence_export_rejects_incomplete_session(self):
+        with self.assertRaises(InquiryReviewRunnerError):
+            evidence_bundle(self.session, self.manifest, self.fixtures)
+
+    def test_evidence_export_separates_observations_from_audit(self):
+        self._complete_session()
+        bundle = evidence_bundle(self.session, self.manifest, self.fixtures)
+        self.assertEqual(len(bundle["human_review_observations"]), 3)
+        self.assertEqual(len(bundle["semantic_audits"]), 3)
+        self.assertNotIn("audit", bundle["human_review_observations"][0])
+        self.assertNotIn("phase1", bundle["semantic_audits"][0])
+        self.assertEqual(
+            bundle["evidence_boundaries"]["product_value"],
+            "not-established-by-this-artifact",
+        )
+
+    def test_export_evidence_command_writes_completed_bundle(self):
+        self._complete_session()
+        session_path = self.root / "session.json"
+        output_path = self.root / "evidence.json"
+        save_session(session_path, self.session)
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            code = main(
+                [
+                    "--manifest",
+                    str(self.manifest_path),
+                    "--repo-root",
+                    str(self.root),
+                    "export-evidence",
+                    str(session_path),
+                    "--output",
+                    str(output_path),
+                ]
+            )
+        self.assertEqual(code, 0)
+        result = json.loads(stdout.getvalue())
+        self.assertTrue(result["exported"])
+        exported = json.loads(output_path.read_text(encoding="utf-8"))
+        self.assertEqual(
+            exported["schema"],
+            "sei.inquiry-continuity-review-evidence-bundle/v0",
+        )
+        self.assertEqual(exported["provenance"]["session_id"], "runner-test-session")
 
     def test_non_inquiry_manifest_is_rejected(self):
         bad = json.loads(self.manifest_path.read_text(encoding="utf-8"))

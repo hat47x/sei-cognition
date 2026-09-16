@@ -24,6 +24,11 @@ from inquiry_continuity_review_analysis import (
     validate_inquiry_response,
     validate_inquiry_session,
 )
+from inquiry_continuity_review_evidence import (
+    InquiryEvidenceBundleError,
+    build_evidence_bundle,
+    save_bundle,
+)
 from matched_review_session import (
     COMPLETE,
     REVIEW_STAGES,
@@ -182,6 +187,18 @@ def record_checked_response(
     return updated
 
 
+def evidence_bundle(
+    session: dict[str, Any],
+    manifest: dict[str, Any],
+    fixtures_by_id: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    """Export only a completed review and preserve its evidence-layer stoplines."""
+    try:
+        return build_evidence_bundle(session, manifest, fixtures_by_id)
+    except InquiryEvidenceBundleError as exc:
+        raise InquiryReviewRunnerError(str(exc)) from exc
+
+
 def _load_response(path: str | Path) -> Any:
     try:
         return json.loads(Path(path).read_text(encoding="utf-8"))
@@ -218,6 +235,10 @@ def build_parser() -> argparse.ArgumentParser:
     validate = sub.add_parser("validate")
     validate.add_argument("session_path")
     validate.add_argument("--require-complete", action="store_true")
+
+    export = sub.add_parser("export-evidence")
+    export.add_argument("session_path")
+    export.add_argument("--output")
     return parser
 
 
@@ -279,6 +300,22 @@ def main(argv: list[str] | None = None) -> int:
                 "not established"
             ),
         }
+    elif args.command == "export-evidence":
+        bundle = evidence_bundle(session, manifest, fixtures)
+        if args.output:
+            save_bundle(args.output, bundle)
+            result = {
+                "exported": True,
+                "session_id": session["session_id"],
+                "schema": bundle["schema"],
+                "output": str(args.output),
+                "evidence": (
+                    "human-review observations and semantic audit remain separate; "
+                    "actual long-gap/Product Value not established"
+                ),
+            }
+        else:
+            result = bundle
     else:
         raise AssertionError(f"unhandled command: {args.command}")
 

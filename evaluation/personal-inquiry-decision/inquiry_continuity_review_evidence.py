@@ -3,8 +3,8 @@
 
 The matched-review session intentionally stores reviewer/operator observations and
 post-review semantic audit in one immutable session so the stage gate can protect
-their order.  This module projects that completed session into two explicitly
-separate collections for durable recording.  It never invents missing responses,
+their order. This module projects that completed session into two explicitly
+separate collections for durable recording. It never invents missing responses,
 computes a score/winner, or upgrades synthetic review to Product Value evidence.
 """
 from __future__ import annotations
@@ -15,18 +15,44 @@ import json
 from pathlib import Path
 from typing import Any
 
+from inquiry_continuity_packet import (
+    INQUIRY_MANIFEST_SCHEMA,
+    PacketError,
+    load_manifest_fixtures,
+)
 from inquiry_continuity_review_analysis import (
     InquiryReviewError,
     validate_inquiry_session,
 )
-from inquiry_continuity_review_runner import DEFAULT_MANIFEST, load_context
 from matched_review_session import load_session
 
 SCHEMA = "sei.inquiry-continuity-review-evidence-bundle/v0"
+DEFAULT_MANIFEST = (
+    "evaluation/personal-inquiry-decision/"
+    "inquiry_continuity_counterfactual_matched_set_v1.json"
+)
 
 
 class InquiryEvidenceBundleError(ValueError):
     """Raised when a review cannot be exported without weakening its boundary."""
+
+
+def _load_context(
+    manifest_path: str | Path,
+    repo_root: str | Path,
+) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
+    try:
+        manifest, fixtures = load_manifest_fixtures(
+            Path(manifest_path),
+            Path(repo_root),
+        )
+    except PacketError as exc:
+        raise InquiryEvidenceBundleError(str(exc)) from exc
+    if manifest.get("schema") != INQUIRY_MANIFEST_SCHEMA:
+        raise InquiryEvidenceBundleError(
+            "manifest is not an Inquiry Continuity matched set"
+        )
+    return manifest, fixtures
 
 
 def build_evidence_bundle(
@@ -128,7 +154,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    manifest, fixtures = load_context(args.manifest, args.repo_root)
+    manifest, fixtures = _load_context(args.manifest, args.repo_root)
     session = load_session(args.session)
     result = build_evidence_bundle(session, manifest, fixtures)
     if args.output:
