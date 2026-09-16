@@ -3,7 +3,7 @@
 Status: **Open**  
 Priority: **2**  
 Related ADRs: **ADR-0005, ADR-0018, ADR-0020, ADR-0028**  
-Updated: 2026-09-14
+Updated: 2026-09-16
 
 ## Goal
 
@@ -285,6 +285,90 @@ AIが多数のnext question / relation候補を生成できる状況で、
 - Stable Requirement化の要否判断。
 - Product Value / Value Model / Decision Continuity / Product Visionの再編が必要かどうかのDecision record。
 
+## Execution readiness checkpoint — 2026-09-16
+
+本Issueは、比較設計そのものを考える段階から、human reviewを安全に実施できる評価基盤を揃える段階まで進んだ。ただし、ここで成立しているのは主として**Design / Executable scaffold**であり、Inquiry ContinuityのProduct Valueを示すHuman / Adoption / Outcome Evidenceではない。
+
+### E78.1 — Long interruption without Decision
+
+actual dogfood caseは初期化済みであり、calendar上はmulti-day条件にも到達した。しかし、2026-09-16の上流整理と継続作業でcurrent Inquiry stateへmaterialに再露出しているため、その時点をclean resumptionとして扱わない。
+
+```text
+calendar gap reached
+  + material state re-exposed
+  != clean cognitive resumption
+```
+
+したがって、E78.1のactual long-gap resumptionは**Not Yet Observed**のままとする。再開品質、負担、継続利用価値を推測で埋めない。
+
+### E78.2 / E78.4 / E78.5 — matched comparison / handoff / later evidence
+
+3件のmatched synthetic caseと、raw chat / chronological note / SEI resumeの3条件をR1〜R3でcounterbalanceするfixture setを用意した。`matched_review_session.py`では、session開始時のfixture内容を固定し、全phase 1回答が確定するまで中断後Evidenceを開かず、全post回答が確定するまでreference state / audit materialを開かない。
+
+さらに、`inquiry_continuity_review_analysis.py`でhuman responseの形式、historical correctness、Observation / Hypothesis / Unknownのrole separation、unresolved preservation、temporal integrity、false continuity、first useful action、source reopen、attention / correction burdenを互いに潰さず記録・比較できるようにした。総合score、ranking、winnerは生成しない。
+
+synthetic handoffは`reader_context`として記録できるが、actual team handoffとは分ける。
+
+現時点のEvidence高さは次のとおりである。
+
+```text
+matched fixture / stage gate / analysis scaffold
+  = executable evaluation scaffold
+
+human review result
+  = Not Yet Observed
+
+actual team handoff
+  = Not Yet Observed
+```
+
+### E78.3 — AI summary distortion
+
+certainty inflation、alternate hypothesisの脱落、later informationの遡及混入を意図的に含むevaluation-only probeを用意した。AI suggestionをcanonical factへ昇格させず、human responseを固定した後にだけaudit materialを開く境界も実装済みである。
+
+probeとfocused testが存在することは、利用者が実際に誤りを発見・修正・却下できたEvidenceではない。E78.3のhuman correction / rejection Evidenceは**Not Yet Observed**とする。
+
+### E78.6 — Quiet vs proactive assistance
+
+既存3 synthetic caseへ、次の3条件をrotationするevaluation-only probeを用意した。
+
+- Proactive-first: AI候補を初期表示からすべて見せる。
+- Quiet-first: canonical orientationを保ちつつAI候補は必要時まで前面に出さない。
+- Adaptive progressive disclosure: 最も直接的な候補だけを初期表示し、残りへ段階的に降りる。
+
+初期回答を固定する前に全候補を見せないこと、AI候補をcanonical meaningとみなさないこと、Quiet表示でもoriginal concern / current Question / material Observation / Unknown / Hypothesis / next useful investigationを隠さないことを停止線としている。
+
+これも比較実行のscaffoldが成立した段階であり、Quiet / Proactive / Adaptiveのどれかを採用する根拠はまだない。human reviewは**Not Yet Observed**である。
+
+### E78.7 — Closure / dormancy
+
+active / dormant / closed without Decision / later Decision connectionを比較するlifecycle probeを用意した。これらはUniversal Inquiry statusではなく、Product-localなattention projectionとして扱う。
+
+dormantやclosedにしても元InquiryへDecisionを自動生成せず、unresolved meaningを消さず、後日のDecisionは別recordへの文脈linkとして扱う境界を固定している。ここでもhuman reviewは**Not Yet Observed**であり、Universal status typeを提案しない。
+
+### V1〜V8 / Decision Continuity coverage audit
+
+`inquiry_continuity_coverage_audit_2026-09-16.json`でcurrent V1〜V8 / Decision Continuityを再照合した。現段階の読みは、Observation / Hypothesis / Unknown等の既存semantic axisにはDecision前にも利用できるcoverageが広く存在する一方、Decisionが一度も成立していないInquiryのresumeをcross-axis Product Acceptanceとしてどこまで保証すべきか、またその価値をhuman comparisonで裏付けられるかが未確定、というものである。
+
+したがって、このauditだけを理由に新Value Axis、Stable Requirement、Universal entity、Product Vision再編へ進まない。
+
+### current Evidence stopline
+
+現時点では次を維持する。
+
+```text
+Design / executable evaluation scaffold
+  != human review result
+  != actual long-gap Evidence
+  != Product Value decision
+  != Stable Requirement authorization
+  != Adoption / Outcome Evidence
+```
+
+focused testによって各評価器の停止線や入力検証は確認しているが、それ自体をhuman reviewやProduct Value Evidenceへ読み替えない。GitHub Actionsは使用せず、current repository方針どおりlocal verificationを前提とする。
+
+ISSUE-000078の継続作業は`develop/v0.2.0`を元ブランチとして集約する。同一Issueの小さな継続作業ごとにtopic branchを増やさず、独立した責務や並行作業が実際に必要になった場合だけ分岐を検討する。
+
 ## Resolution
 
 次を満たしたときResolvedとする。
@@ -339,4 +423,6 @@ AI summary is fluent
 
 Decision Continuityとの違いを明確にしつつ、最終的にはDecision Continuityの拡張で十分、より広いCognitive Continuityが必要、独立したInquiry Continuityが必要、あるいはSEIの追加構造に価値差がない、という複数の結論を同じ強さで許容している。
 
-意味、仮説強度、未検証範囲を固定した後、**自然な日本語として背景・failure・実験・停止線が連続して読めることを最重要視して全文を再ドラフトし、最終意味監査を実施済み**とする。
+2026-09-16の実行準備同期では、各experimentについて「評価器やfixtureを実行できること」と「人間が実際に価値を得たこと」を分け、actual long-gap、actual handoff、capture burden、Product Value、Stable Requirement判断を未観測・未決定のまま保持した。また、同一Issueの継続作業を`develop/v0.2.0`へ集約するbranch運用を明記し、評価作業のためにbranch構造そのものを細分化しない方針を確認した。
+
+意味、仮説強度、未検証範囲を固定した後、**自然な日本語として背景・failure・実験・停止線が連続して読めることを最重要視して全文を再読し、Design / Executable scaffoldとHuman / Outcome Evidenceを混同していないことを最終監査済み**とする。
