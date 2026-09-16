@@ -1,0 +1,70 @@
+{
+  "schema": "sei.decision-continuity-comparison-fixture/v0",
+  "status": "evaluation-only",
+  "issue": "ISSUE-000073",
+  "fixture_id": "e73-decision-continuity-003-import-dedupe",
+  "title": "CSV重複候補を自動削除せずdry-run確認に留めた判断へ戻る",
+  "purpose": [
+    "H2: simple external memoryとSEI Resume Projectionの再開品質を比較する",
+    "RecommendationとDecisionを混同しないか確認する",
+    "Decision後のsource仕様変更をhistorical basisへ遡及混入しないか確認する"
+  ],
+  "scenario": {
+    "initial_question": "CSV import時の重複を自動的に除去してよいか。",
+    "phase_1": [
+      {"role":"observation","id":"obs-missing-external-id","text":"調査した重複候補の多くでsource側external IDが空だった。"},
+      {"role":"observation","id":"obs-shared-email","text":"同一emailでも別人物である実例があり、email一致だけでは安全にmergeできない。"},
+      {"role":"recommendation","id":"rec-email-dedupe","text":"AIはemail一致を主キーに自動dedupeする案を提案した。"},
+      {"role":"unknown","id":"unk-source-id-quality","text":"source側external IDが今後安定して付与されるか不明。"},
+      {"role":"unknown","id":"unk-existing-duplicates","text":"既存データに同一人物の真のduplicateが何件あるか未確認。"},
+      {"role":"decision","id":"dec-dry-run","text":"自動削除・自動mergeは行わず、source row hash等で候補をdry-run抽出し、人が確認してから反映する。","basis_refs":["obs-missing-external-id","obs-shared-email"],"recommendation_refs":["rec-email-dedupe"],"unresolved_refs":["unk-source-id-quality","unk-existing-duplicates"]}
+    ],
+    "interruption_point": "dry-run Decision記録後",
+    "post_decision_evidence": [
+      {"role":"observation","id":"obs-distinct-shared-email","text":"Decision後の確認で、同一emailを共有する別人物がさらに2組見つかった。"},
+      {"role":"observation","id":"obs-source-stable-id","text":"Decisionの1週間後、source systemが新規rowにはstable external IDを必須化した。過去rowには遡及付与されない。"}
+    ]
+  },
+  "conditions": {
+    "A_raw_chat": {
+      "surface_text": [
+        "利用者: CSV importの重複を減らしたいです。重複候補の多くはsource external IDが空です。",
+        "AI: emailが同じものを自動dedupeする方法があります。",
+        "利用者: 同じemailを使っている別人物が実際にいるので、それだけでmergeするのは危険です。既存duplicate数も分かりません。",
+        "AI: では候補だけ出して確認しますか。",
+        "利用者: はい。自動削除やmergeはせず、row hash等でdry-run候補を出して人が確認してから反映します。"
+      ]
+    },
+    "B_chronological_note": {
+      "surface_text": [
+        "調査: 重複候補の多くでsource external IDが空。同一emailの別人物実例あり。",
+        "提案: email一致を主キーに自動dedupe。",
+        "未確認: external IDの将来品質、既存の真duplicate件数。",
+        "判断: 自動削除・自動mergeはしない。row hash等でdry-run候補を抽出し、人が確認後に反映。"
+      ]
+    },
+    "C_sei_resume": {
+      "surface_text": {
+        "question":"CSV import時の重複をどこまで自動処理してよいか。",
+        "recommendation":{"id":"rec-email-dedupe","text":"email一致を主キーに自動dedupeする。"},
+        "decision":{"id":"dec-dry-run","text":"自動削除・mergeはせずdry-run候補を人が確認してから反映する。"},
+        "historical_basis":["重複候補の多くでsource external IDが空。","同一emailでも別人物である実例がある。"],
+        "unresolved":["source external IDが今後安定するか。","既存の真duplicate件数。"],
+        "changes_since_decision":[]
+      }
+    }
+  },
+  "reference_state": {
+    "decision":"自動削除・mergeはせず、dry-run候補を人が確認後に反映。",
+    "recommendation":"email一致を主キーに自動dedupe。",
+    "historical_basis_ids":["obs-missing-external-id","obs-shared-email"],
+    "unresolved_ids":["unk-source-id-quality","unk-existing-duplicates"],
+    "post_decision_ids":["obs-distinct-shared-email","obs-source-stable-id"],
+    "temporal_stopline":"追加の共有email実例とsourceのstable ID必須化を、dec-dry-run当時のbasisだったと答えてはいけない。"
+  },
+  "human_review_template": {
+    "before_post_decision_evidence":["何を決めたか。","提案とDecisionはどう違ったか。","Decisionのbasisは何か。","何が未解決か。","次に確認すべきものは何か。"],
+    "after_post_decision_evidence":["新情報は何か。","どの情報がDecisionを支持または見直す材料になるか。","historical basisではない新情報は何か。","新しいsource ID方針で解消しない課題は何か。"],
+    "operator_metrics":["time_to_orientation","source_reopen_count","mental_effort_1_to_5","historical_misattribution_count","recommendation_decision_confusion","correction_burden"]
+  }
+}
