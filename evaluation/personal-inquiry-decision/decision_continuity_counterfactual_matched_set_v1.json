@@ -5,9 +5,21 @@
   "set_id": "e73-decision-continuity-matched-set-v1",
   "purpose": "同一readerが同じcaseの複数Surfaceを読むことによる記憶汚染を避けながら、raw chat / chronological note / SEI resumeをDecisionありのmatched synthetic casesで比較する。",
   "fixtures": [
-    {"id":"e73-decision-continuity-001-provider-pilot","path":"evaluation/personal-inquiry-decision/decision_continuity_counterfactual_001.json","domain":"provider-migration"},
-    {"id":"e73-decision-continuity-002-ticket-routing","path":"evaluation/personal-inquiry-decision/decision_continuity_counterfactual_002.json","domain":"human-ai-routing"},
-    {"id":"e73-decision-continuity-003-import-dedupe","path":"evaluation/personal-inquiry-decision/decision_continuity_counterfactual_003.json","domain":"data-integration"}
+    {
+      "id": "e73-decision-continuity-001-provider-pilot",
+      "path": "evaluation/personal-inquiry-decision/decision_continuity_counterfactual_001.json",
+      "domain": "provider-migration"
+    },
+    {
+      "id": "e73-decision-continuity-002-ticket-routing",
+      "path": "evaluation/personal-inquiry-decision/decision_continuity_counterfactual_002.json",
+      "domain": "human-ai-routing"
+    },
+    {
+      "id": "e73-decision-continuity-003-import-dedupe",
+      "path": "evaluation/personal-inquiry-decision/decision_continuity_counterfactual_003.json",
+      "domain": "data-integration"
+    }
   ],
   "matching_constraints": [
     "各caseはRecommendationと、それとは異なる人間のDecisionを含む。",
@@ -17,36 +29,72 @@
     "simple baselineを意図的に弱くせず、chronological noteにもDecision / Recommendation / basis / unresolvedを明示する。"
   ],
   "condition_codes": {
-    "A_raw_chat":"raw chat / transcript",
-    "B_chronological_note":"chronological note",
-    "C_sei_resume":"SEI canonical meaning + derived Resume Projection"
+    "A_raw_chat": "raw chat / transcript",
+    "B_chronological_note": "chronological note",
+    "C_sei_resume": "SEI canonical meaning + derived Resume Projection"
   },
   "assignment_rotations": {
-    "R1":[
-      {"fixture":"e73-decision-continuity-001-provider-pilot","condition":"A_raw_chat"},
-      {"fixture":"e73-decision-continuity-002-ticket-routing","condition":"B_chronological_note"},
-      {"fixture":"e73-decision-continuity-003-import-dedupe","condition":"C_sei_resume"}
+    "R1": [
+      {
+        "fixture": "e73-decision-continuity-001-provider-pilot",
+        "condition": "A_raw_chat"
+      },
+      {
+        "fixture": "e73-decision-continuity-002-ticket-routing",
+        "condition": "B_chronological_note"
+      },
+      {
+        "fixture": "e73-decision-continuity-003-import-dedupe",
+        "condition": "C_sei_resume"
+      }
     ],
-    "R2":[
-      {"fixture":"e73-decision-continuity-001-provider-pilot","condition":"B_chronological_note"},
-      {"fixture":"e73-decision-continuity-002-ticket-routing","condition":"C_sei_resume"},
-      {"fixture":"e73-decision-continuity-003-import-dedupe","condition":"A_raw_chat"}
+    "R2": [
+      {
+        "fixture": "e73-decision-continuity-001-provider-pilot",
+        "condition": "B_chronological_note"
+      },
+      {
+        "fixture": "e73-decision-continuity-002-ticket-routing",
+        "condition": "C_sei_resume"
+      },
+      {
+        "fixture": "e73-decision-continuity-003-import-dedupe",
+        "condition": "A_raw_chat"
+      }
     ],
-    "R3":[
-      {"fixture":"e73-decision-continuity-001-provider-pilot","condition":"C_sei_resume"},
-      {"fixture":"e73-decision-continuity-002-ticket-routing","condition":"A_raw_chat"},
-      {"fixture":"e73-decision-continuity-003-import-dedupe","condition":"B_chronological_note"}
+    "R3": [
+      {
+        "fixture": "e73-decision-continuity-001-provider-pilot",
+        "condition": "C_sei_resume"
+      },
+      {
+        "fixture": "e73-decision-continuity-002-ticket-routing",
+        "condition": "A_raw_chat"
+      },
+      {
+        "fixture": "e73-decision-continuity-003-import-dedupe",
+        "condition": "B_chronological_note"
+      }
     ]
   },
   "single_reader_rule": "一人のreaderにはR1〜R3のいずれか一つだけを割り当て、同一fixtureの未割当conditionをhuman review完了前に提示しない。",
+  "session_gate": {
+    "tool": "evaluation/personal-inquiry-decision/matched_review_session.py",
+    "decision_analysis": "evaluation/personal-inquiry-decision/decision_continuity_review_analysis.py",
+    "source_freeze": "session開始時にmanifestと全fixtureのcanonical JSON SHA-256を固定し、途中変更を検出した場合はpacket生成を停止する。",
+    "phase1_gate": "3caseすべてのphase1回答が固定されるまで、どのcaseのpost_decision_evidenceも提示しない。",
+    "post_gate": "3caseすべてのpost回答が固定されるまで、reference_stateを提示しない。",
+    "immutability": "固定済みresponseは同一session内で上書きしない。修正が必要な場合は元回答を保持した別sessionとして扱う。",
+    "completion": "3caseすべてのaudit記録後にsessionをcompleteとし、それ以前はcross-condition比較を作らない。"
+  },
   "execution_order": [
-    "operatorがrotationを一つ選ぶ。",
-    "各fixtureから割当conditionのsurface_textだけをreaderへ提示する。",
-    "before_post_decision_evidenceへ回答し、その回答を固定する。",
-    "同fixtureのpost_decision_evidenceだけを追加提示する。",
-    "after_post_decision_evidenceへ回答する。",
-    "reference_stateを開き、historical correctness、Recommendation / Decision混同、false continuityを監査する。",
-    "3case完了後にのみcross-condition比較を行う。"
+    "operatorがrotationを一つ選び、matched_review_session.pyでsessionを初期化してmanifest / fixture snapshotを固定する。",
+    "割当conditionのphase1 Surfaceだけを3case分提示し、before_post_decision_evidenceへの回答を3caseすべて固定する。",
+    "3caseすべてのphase1回答固定後にのみ、各fixtureのpost_decision_evidenceを提示する。",
+    "after_post_decision_evidenceへの回答を3caseすべて固定する。",
+    "3caseすべてのpost回答固定後にのみreference_stateを開き、Decision Continuity固有の意味監査を記録する。",
+    "decision_continuity_review_analysis.pyでresponse形式と意味監査記録を検証する。",
+    "3caseすべてのaudit記録後にsessionをcompleteにし、complete sessionだけを非採点comparisonへ含める。"
   ],
   "comparison_dimensions": [
     "current question reconstruction",
@@ -67,6 +115,7 @@
     "scenario差をSurface差と断定しない。",
     "synthetic matched comparisonをactual long-gap dogfoodの代替にしない。",
     "human reviewを実際に行うまではDesign Evidenceに留める。",
-    "fixture作成をH1/H2実施済みとは扱わない。"
+    "fixture作成やsession tooling整備をH1/H2実施済みとは扱わない。",
+    "prepared synthetic fixtureからactual capture burdenを推定しない。"
   ]
 }
