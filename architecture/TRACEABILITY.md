@@ -1,6 +1,6 @@
 # SEI Architecture Traceability
 
-更新日: 2026-09-05  
+更新日: 2026-09-16  
 状態: **Current Design / Evidence Traceability Baseline**
 
 ## 1. 目的
@@ -21,14 +21,14 @@ traceability coverage
 
 | Value Axis | 主なREQ | 主なArchitecture concern |
 |---|---|---|
-| V1 Historical Reconstruction | REQ-0001, 0003, 0005, 0008, 0009, 0014, 0017, 0018, 0020, 0022 | Decision Memory; Reference / Revision / Exact Binding; Provenance; Persistence; Evidence boundary |
+| V1 Historical Reconstruction | REQ-0001, 0003, 0005, 0008, 0009, 0014, 0017, 0018, 0020, 0022, 0023 | Decision Memory; Reference / Revision / Exact Binding; Provenance; Persistence; Canonical commit integrity; Evidence boundary |
 | V2 Semantic Separation | REQ-0002, 0003, 0006, 0008, 0013, 0015, 0016, 0017, 0022 | Inquiry / Epistemics; Decision Memory; Responsibility / Authority; Capability Observation; Cognitive Method |
-| V3 Revision Integrity | REQ-0001, 0003, 0004, 0005, 0008, 0009, 0014, 0018 | Semantic Revision; Exact Binding; Decision Memory; Cognitive Method provenance; Persistence |
+| V3 Revision Integrity | REQ-0001, 0003, 0004, 0005, 0008, 0009, 0014, 0018, 0023 | Semantic Revision; Exact Binding; Decision Memory; Cognitive Method provenance; Persistence; stale-write boundary |
 | V4 Provider Independence | REQ-0001, 0007, 0012, 0013, 0021, 0022 | Capability; Provider / Adapter; Federation; Persistence; Execution boundary |
 | V5 Uncertainty Preservation | REQ-0002, 0005, 0012, 0014, 0016, 0022 | Inquiry / Epistemics; Decision unresolved state; Capability Observation; Federation / Withheld context |
 | V6 Human / AI Readability | REQ-0010, 0011, 0019, 0020 | Projection; Profile / Policy; Evidence boundary; human-readable Contract boundary |
 | V7 Progressive Explicitness | REQ-0010 | Profile / Policy; Projection; context-sensitive Decision requirements |
-| V8 Execution Independence | REQ-0001, 0004, 0007, 0011, 0012, 0015, 0018, 0021, 0022 | Provider / Adapter; Cognitive Method Realization; Projection; Persistence; Capability; Federation |
+| V8 Execution Independence | REQ-0001, 0004, 0007, 0011, 0012, 0015, 0018, 0021, 0022, 0023 | Provider / Adapter; Cognitive Method Realization; Projection; Persistence; Capability; Federation; Product-local commit coordination |
 
 ## 3. RequirementからArchitectureへの追跡
 
@@ -56,6 +56,7 @@ traceability coverage
 | REQ-0020 | ADR-0009, 0018, 0020, 0021 | Evidence / Assurance boundary | Covered |
 | REQ-0021 | ADR-0013, 0014, 0017, 0022, 0024 | Provider / Adapter; Method Realization; runtime boundary | Covered |
 | REQ-0022 | ADR-0006, 0008, 0012, 0013, 0014, 0019, 0024 | Capability Observation; Provider / Adapter; Exact Binding; Federation | Covered |
+| REQ-0023 | ADR-0028 | Product Interaction commit boundary; Commit Coordinator; Persistence publication boundary; snapshot precondition | Covered — implementation mechanism remains Product / Persistence-local |
 
 ## 4. ADRからArchitectureへの追加境界
 
@@ -122,6 +123,8 @@ known ContractをまたぐExact Referenceについてはbundle-local consistency
 
 これらのRealizationをUniversal semanticsへ昇格させません。
 
+REQ-0023はADR-0028で分離したProduct Interaction境界に対し、successful commitとしてcanonicalへ公開するstateの意味整合性を要求します。Commit Coordinator、staging clone、digest / generation等はArchitecture上のrealizationであり、新しいUniversal Transaction / Snapshot Contractを導きません。
+
 ## 5. ArchitectureからContract / Profileへの追跡
 
 current Architectureから、独立versioningと相互運用境界が必要な部分を5 Contract familyへ落としています。
@@ -143,6 +146,8 @@ Provider Adapterの出力はcurrent Capability Observation Contractで検証し�
 
 Projection、Federation、Product Access Policy、Packaging layout等も、独立したportable semantic agreementが必要だと確認される前にUniversal Contractを先回りして追加しません。
 
+REQ-0023 / SCN-0019もcurrent 5 Contract familyを増やしません。commit atomicityやconcurrency preconditionはportable semantic payloadではなく、Product / Persistence境界のcorrectness responsibilityとして保持します。
+
 ## 6. runtime / Product sliceとの関係
 
 actual repositoryには、Architectureの複数境界を限定範囲で検査するGo runtime / probe / integration materialがあります。
@@ -154,11 +159,14 @@ actual repositoryには、Architectureの複数境界を限定範囲で検査す
 - Cognitive Method typed runtime / live method integration
 - Product Journey harness
 - Product Interaction reference probe
+- Product Interaction Commit Coordinator / stale-draft guard probe source
 - Packaging / Persistence probe
 - Product Access / Collaboration probe
 - external artifact / Provider / TEI integration
 
 package名やGo interfaceはcurrent implementationであり、ArchitectureのUniversal ontologyではありません。
+
+`interactionprobe`のcommit / provisional sourceはREQ-0023 / SCN-0019の実装候補を具体化しますが、sourceが存在することだけではExecutable Evidenceを成立させません。
 
 ## 7. Evidence状態
 
@@ -179,6 +187,7 @@ Design Evidence
 - Architecture → Representation Profile boundary: **Design trace established**
 - Architecture → semantic runtime / Provider Adapter / Cognitive Method boundary: **Design trace established**
 - Architecture → Product Interaction / Packaging / Product Access boundary: **Design trace established**
+- REQ-0023 / SCN-0019 → Product-local commit / stale-write boundary: **Design trace established**
 
 ### Scoped Executable Evidence
 
@@ -200,6 +209,8 @@ Design Evidence
 - actual model artifact exchange後のhistorical Application保持
 - fixed-model Ollama `0.32.13` / `0.32.14` runtime version exchange後のhistorical Application保持 — ISSUE-000070 Resolved
 
+REQ-0023 / SCN-0019についてはcommit / stale-draft probeとtest sourceが存在しますが、本baseline更新時点でactual runをcurrent Requirement / Scenario Evidenceとして確認していないため、**Executable EvidenceはNot Yet Verified**です。
+
 ```text
 scoped Executable Evidence
   != Architecture implementation complete
@@ -215,10 +226,13 @@ v0.2.0 Local Reference Product Baselineについてactual Release Evidenceが成
 
 ただしsupported release scopeはE3aまでです。release後に得たE3b-P1 / P2、M1a / M1b、historical reconstruction、model / runtime version exchange Evidenceを、公開済みv0.2.0のsupport範囲へ遡及させません。
 
+REQ-0023 / SCN-0019はv0.2.0 release後のcurrent develop baselineで追加されたため、v0.2.0 Release Evidenceへ遡及的に含めません。
+
 ### Historical / unresolved boundary
 
 - historical M47 digest profile: ISSUE-000034はResolved。保持されている直接Evidenceから旧digest規則を権威的に復元できないため、historical実装をcurrent authorityへ自動継承しない。
 - TEI revision B executable / Provider Plan / current SEI Adapter compatibility: **Not Yet Verified — ISSUE-000072 Open**
+- REQ-0023 / SCN-0019 actual commit fault / stale-write run: **Not Yet Verified — ISSUE-000073 Open**
 - arbitrary Provider / model / runtime version portability: **Not Established**
 
 ### Operational / Adoption・Outcome
@@ -230,9 +244,11 @@ v0.2.0 Local Reference Product Baselineについてactual Release Evidenceが成
 
 ## 8. 監査結果
 
-REQ-0001〜REQ-0022について、current Reference Architecture上で少なくとも一つの主要concernへ追跡できることを確認しています。
+REQ-0001〜REQ-0023について、current Reference ArchitectureまたはProduct Interaction Architecture上で少なくとも一つの主要concernへ追跡できることを確認しています。
 
 current Architectureから必要性が収束した5 Contract family、Representation Profile、semantic runtime、Provider Adapter、Cognitive Method、Product Interaction、Packaging / Persistence、Product Accessには、対象を限定したDesign / Executable Evidenceがあります。v0.2.0 Local Reference Product BaselineにはRelease Evidenceもあります。
+
+ISSUE-000073ではCR-73.8 / 73.9を別々のUniversal mechanismへせず、successful canonical commitの整合性というREQ-0023とSCN-0019へ統合しました。Architecture上はCommit Coordinator / snapshot precondition / Persistence publication boundaryへ配置し、新しいContract familyやtransaction ontologyを作っていません。
 
 ISSUE-000070のactual runtime version exchangeから新しいStable Requirement / Acceptance Scenario / Universal Contract fieldは必要と判断されませんでした。ISSUE-000072のactual revision B結果も、既存REQ / SCNで表現できない独立Product failureが確認されるまではUniversal semanticsへ先取りしません。
 
@@ -242,8 +258,8 @@ Product Value側の横断索引は`../product/value/SEI_VALUE_TRACEABILITY.md`�
 
 ## 9. Natural Japanese review
 
-V1〜V8、REQ-0001〜0022、ADR-0001〜0030、current 5 Contract family、2 Representation Profile、semantic runtime、Provider Adapter、Cognitive Method、Product Journey、Product Interaction、Packaging / Persistence、Product Access、v0.2.0 Release Evidence、PMS-06のE3b / historical reconstruction / model・runtime version exchangeへ戻って追跡を再確認しました。
+V1〜V8、REQ-0001〜0023、SCN-0019を含むcurrent Acceptance baseline、ADR-0001〜0030、current 5 Contract family、2 Representation Profile、semantic runtime、Provider Adapter、Cognitive Method、Product Journey、Product Interaction、Packaging / Persistence、Product Access、ISSUE-000073 Candidate Requirement監査、v0.2.0 Release Evidence、PMS-06のE3b / historical reconstruction / model・runtime version exchangeへ戻って追跡を再確認した。
 
-旧版に残っていた「4 Contract family」「Cognitive Method Contract未成立」「historical M47 digest mapping未検証」「Release Evidence未検証」という2026-08-31時点の記述をcurrent stateへ更新しました。
+REQ-0023はtransaction / snapshot方式そのものではなく、Product Interactionがsuccessful commitとして公開するcanonical meaningの整合性を規範化した。SCN-0019のpartial / stale failureはCommit Coordinator、Persistence publication boundary、snapshot preconditionへ追跡し、concurrency tokenとSemantic Revisionの意味差を維持している。probe / test sourceの存在はactual Executable Evidenceへ昇格させていない。
 
-そのうえで、ISSUE-000070のfixed-scope Scoped Executable Evidenceをarbitrary portabilityや成果品質へ拡張せず、ISSUE-000072のrevision B actual、E4、Operational / Adoption・Outcomeを未検証として残しています。意味、権威関係、Evidence強度を変えず、自然な日本語となることを最重要視して最終意味監査を行いました。
+そのうえで、ISSUE-000070のfixed-scope Scoped Executable Evidenceをarbitrary portabilityや成果品質へ拡張せず、ISSUE-000072 revision B、ISSUE-000073 H1 / H2とSCN-0019 actual run、E4、Operational / Adoption・Outcomeを未検証として残した。意味、権威関係、Evidence強度を変えず、自然な日本語となることを最重要視して最終意味監査を行った。

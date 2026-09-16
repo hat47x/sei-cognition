@@ -1,6 +1,6 @@
 # SEI Product Requirements
 
-更新日: 2026-09-01  
+更新日: 2026-09-16  
 状態: **Current Product Requirements Baseline**
 
 ## 1. この文書の位置づけ
@@ -50,6 +50,7 @@ actual repositoryには現在、Product / Plan / Requirementsだけでなく、R
 | REQ-0020 | Evidenceを超える達成主張をしない | V1, V6 | Accepted | Satisfied |
 | REQ-0021 | Realization / Executionを交換可能にする | V4, V8 | Accepted | Satisfied |
 | REQ-0022 | Provider-neutralなCapability Observation | V1, V2, V4, V5, V8 | Accepted | Satisfied |
+| REQ-0023 | Canonical commitの整合性 | V1, V3, V8 | Accepted | Satisfied |
 
 `Partially Satisfied`はRequirement自体が未確定という意味ではありません。意味境界は採用済みですが、Projectionの実利用、再開条件の具体化、人間向け可読性の実利用Evidence等、Design上まだ厚くできる部分が残っていることを示します。
 
@@ -270,7 +271,7 @@ Outcomeだけを保存すると、同じ結果へ至った異なる責任線・�
 **Status:** Accepted  
 **Type:** Semantic  
 **Value:** V1, V3  
-**Related Scenarios:** SCN-0003, SCN-0010  
+**Related Scenarios:** SCN-0003, SCN-0010, SCN-0019  
 **Related ADRs:** ADR-0003, ADR-0008, ADR-0009
 
 ### Requirement
@@ -506,7 +507,7 @@ Responsibilityの記録からAuthorization、Credential、Trust、actor hierarch
 **Status:** Accepted  
 **Type:** Interoperability / Non-functional  
 **Value:** V1, V3, V8  
-**Related Scenarios:** SCN-0008, SCN-0010  
+**Related Scenarios:** SCN-0008, SCN-0010, SCN-0019  
 **Related ADRs:** ADR-0007, ADR-0008, ADR-0009
 
 ### Requirement
@@ -558,7 +559,7 @@ SEIの重要なArtifact、Requirement、Decision、Evidence関係は、AIが構�
 **Status:** Accepted  
 **Type:** Constraint / Non-functional  
 **Value:** V1, V6  
-**Related Scenarios:** SCN-0010, SCN-0017, SCN-0018  
+**Related Scenarios:** SCN-0010, SCN-0017, SCN-0018, SCN-0019  
 **Related ADRs:** ADR-0009, ADR-0018, ADR-0020
 
 ### Requirement
@@ -633,6 +634,38 @@ Provider Independenceを守りつつ、実際のCapability Choiceに必要な状
 - Operational: **Not Yet Verified**
 - Adoption / Outcome: **Not Yet Verified**
 
+## REQ-0023 — Canonical commitの整合性
+
+**Status:** Accepted  
+**Type:** Constraint / Non-functional  
+**Value:** V1, V3, V8  
+**Related Scenarios:** SCN-0019  
+**Related ADRs:** ADR-0028
+
+### Requirement
+
+一つのProduct Interactionが一つの意味変更としてcanonicalへcommitされる場合、successful commitとして公開されるcanonical stateは、操作前のvalid stateまたは全変更反映後のvalid stateのいずれかでなければならない。途中失敗や後続validation failureによる意味上半端なstateを、正常完了として露出してはならない。
+
+また、canonical snapshotを前提に作られたdraft / semantic change planについて、その後に関連するcanonical stateが変化した場合、古いplanが新しい意味を黙って無視・上書きしてsuccessful commitとなってはならない。reject、explicit conflict、明示的なre-plan / rebase等として扱えなければならない。
+
+Persistence transaction、atomic replace、append protocol、ETag、generation、digest、snapshot token等の実現方式をUniversal semanticsとして固定してはならない。また、それらのconcurrency versionからSemantic Revision、Logical Reference、Decision revisionを自動推定してはならない。
+
+### Rationale
+
+SEIでは、利用者が「保存した」「commitした」と認識する意味とcanonical stateが食い違うと、historical reconstruction、revision integrity、AI correction可能性への信頼そのものが失われるため。partial writeとstale writeはmechanismこそ異なるが、どちらもsuccessful commitがcanonical meaningを誤って表す同じfailure boundaryを破る。
+
+### Scope / Non-goals
+
+Universal transaction ontologyや特定Storageのatomicity primitiveを要求しない。single-processのatomic replace、RDB transaction、append protocol、compensation等、実現方法はProduct / Persistence Architectureに委ねる。
+
+### Current Evidence
+
+- Design: **Satisfied** — `SEI_FIRST_USABLE_PRODUCT_SLICE.md`のmeaning-preserving commit / stale-write境界と、`SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md`のCommit Coordinator / snapshot preconditionで責務と非目標を定義済み。ISSUE-000073のCandidate Requirement再照合ではCR-73.8 / CR-73.9を同一commit-integrity obligationへ統合した。
+- Executable: **Not Yet Verified** — `runtime/go/interactionprobe/commit.go` / `commit_test.go`にmulti-record staging、fault injection、後続validation failureを扱うprobe sourceがあり、`provisional.go` / `provisional_test.go`にstale snapshot拒否のprobe sourceがある。ただし本Requirement採用時点では、これらをcurrent Requirement Evidenceとして昇格できるactual test runを確認していない。
+- Release: **Not Yet Verified**
+- Operational: **Not Yet Verified**
+- Adoption / Outcome: **Not Yet Verified**
+
 ---
 
 ## 3. Requirement間の重要な関係
@@ -671,6 +704,16 @@ REQ-0010 Progressive explicitness
   + REQ-0011 Projection non-authority
   + REQ-0019 Human / AI readability
 ```
+
+### Canonical commit integrity
+
+```text
+REQ-0009 Revision integrity
+  + REQ-0018 Storage independence
+  + REQ-0023 Canonical commit integrity
+```
+
+REQ-0023はtransactionやconcurrency tokenをsemantic entityへ昇格させず、Product Interactionからcanonical meaningを公開する境界でpartial / stale successful stateを禁止します。
 
 ### Product Journey統合
 
@@ -719,7 +762,7 @@ current SCN-0018正本Evidence更新後の代表Run:
 
 Journey harness自体ではRun `33478127484`でnormal / uncertain / collaborative / provider replacement / no-execution、temporal integrity、historical Decision非改変、unsupported record、Projection非権威をfixture-scopedに確認しています。
 
-ただし、これらのExecutable Evidenceは各fixture / runtime / evaluation sliceの確認範囲に限定されます。
+ただし、これらのExecutable Evidenceは各fixture / runtime / evaluation sliceの確認範囲に限定されます。REQ-0023 / SCN-0019については、probe sourceが存在しても本Requirement採用時点でactual runを確認していないため、Executable Evidenceへ自動継承しません。
 
 ```text
 fixture / runtime / journey CI PASS
@@ -735,7 +778,7 @@ Requirementごとの`Current Evidence`は、この境界を前提として更新
 
 ### Release / Operational / Adoption・Outcome
 
-2026-09-01時点では、Release、Operational、Adoption / Outcomeのいずれもcurrent Requirement全体についてSatisfiedとは主張しません。
+2026-09-16時点では、Release、Operational、Adoption / Outcomeのいずれもcurrent Requirement全体についてSatisfiedとは主張しません。
 
 ```text
 release artifact verified
@@ -751,6 +794,12 @@ release artifact verified
 
 旧番号や旧Evidence状態はcurrent正本ではありません。詳細な対応は`history/HISTORICAL_REQUIREMENT_MAPPING.md`を参照します。
 
+REQ-0023はhistorical candidateの再採番ではなく、ISSUE-000073のresume-first Product Sliceをprototype設計へ落とした際に、multi-record partial commitとstale draftが同じcanonical commit境界を壊す独立failureとして確認されたため追加したcurrent Requirementです。
+
 ## 6. Natural Japanese review
 
-Product Value、Value Proposition、Product Shape、Value Model、Value Acceptance、Accepted ADR、current Architecture、5 Semantic Contract family、31 fixture、Representation Profile、semantic runtime、Cognitive Method typed runtime、synthetic Provider Adapter、V6/V7 Projection evaluation、SCN-0018 end-to-end Product Journey harness、actual CI Evidence、およびhistorical candidateの意味核を照合し、Requirement本文の意味や要求強度を変えずにEvidence欄をcurrent状態へ再基線化しました。とくにCognitive Method、historical Decision非改変、Projection非権威、残差からreopenへの引継ぎは、実際に検査できたsynthetic範囲だけ`Partially Satisfied`へ反映しています。そのうえで、Design / Executable / Release / Operational / Adoption・Outcomeの区別、未検証事項、production境界を変えない範囲で、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+Product Value、Value Proposition、Product Shape、Value Model、Value Acceptance、Accepted ADR、current Architecture、5 Semantic Contract family、31 fixture、Representation Profile、semantic runtime、Cognitive Method typed runtime、synthetic Provider Adapter、V6/V7 Projection evaluation、SCN-0018 end-to-end Product Journey harness、ISSUE-000073 Candidate Requirement監査、actual CI Evidence、およびhistorical candidateの意味核を照合した。
+
+REQ-0001〜REQ-0022で既に表現できるresume、AI provisional boundary、Projection非権威、Progressive Explicitness等を重複してRequirement化せず、既存Requirementで直接禁止されていなかったpartial / stale successful commitだけをREQ-0023へ統合した。transaction、ETag、digest、snapshot token等の実装方式をUniversal semanticsへ昇格させず、Semantic Revisionとの境界も維持している。
+
+そのうえで、Design / Executable / Release / Operational / Adoption・Outcomeの区別、未検証事項、production境界を変えない範囲で、自然な日本語となることを最重要視して全文を再監査した。
