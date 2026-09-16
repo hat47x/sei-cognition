@@ -264,7 +264,7 @@ func (s *HumanSurface) LightView() (LightView, error) {
 		switch kind {
 		case "inquiry":
 			view.Inquiry = item
-		case "capability_observation":
+		case "capability_observation", "observation":
 			view.Observations = append(view.Observations, item)
 		case "unknown":
 			view.Unknowns = append(view.Unknowns, item)
