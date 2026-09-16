@@ -11,6 +11,7 @@ from inquiry_continuity_review_analysis import (
     validate_inquiry_response,
     validate_inquiry_session,
 )
+from matched_review_session import new_session, record_response
 
 CONDITIONS = ("A_raw_chat", "B_chronological_note", "C_sei_resume")
 FIXTURES = ("f1", "f2", "f3")
@@ -21,6 +22,18 @@ def fixture(fid: str) -> dict:
         "schema": "sei.inquiry-continuity-comparison-fixture/v0",
         "status": "evaluation-only",
         "fixture_id": fid,
+        "title": fid,
+        "scenario": {
+            "post_interruption_evidence": [
+                {"at": "2031-01-02T00:00:00+00:00", "text": "later evidence"}
+            ],
+        },
+        "conditions": {
+            "A_raw_chat": {"surface_text": ["raw"]},
+            "B_chronological_note": {"surface_text": ["note"]},
+            "C_sei_resume": {"surface_text": {"orientation": "resume"}},
+        },
+        "reference_state": {"unresolved": ["still open"]},
         "human_review_template": {
             "before_post_interruption_evidence": [
                 {"id": "R1"}, {"id": "R2"}
@@ -29,14 +42,37 @@ def fixture(fid: str) -> dict:
                 {"id": "R3"}
             ],
         },
+        "review_key": {"hard_failures": ["false continuity"]},
     }
 
 
 def manifest() -> dict:
     return {
         "schema": "sei.inquiry-continuity-matched-set/v0",
+        "status": "evaluation-only",
         "set_id": "set-1",
+        "fixtures": [
+            {"id": fid, "path": f"{fid}.json"}
+            for fid in FIXTURES
+        ],
         "condition_codes": {name: name for name in CONDITIONS},
+        "assignment_rotations": {
+            "R1": [
+                {"fixture": "f1", "condition": CONDITIONS[0]},
+                {"fixture": "f2", "condition": CONDITIONS[1]},
+                {"fixture": "f3", "condition": CONDITIONS[2]},
+            ],
+            "R2": [
+                {"fixture": "f1", "condition": CONDITIONS[1]},
+                {"fixture": "f2", "condition": CONDITIONS[2]},
+                {"fixture": "f3", "condition": CONDITIONS[0]},
+            ],
+            "R3": [
+                {"fixture": "f1", "condition": CONDITIONS[2]},
+                {"fixture": "f2", "condition": CONDITIONS[0]},
+                {"fixture": "f3", "condition": CONDITIONS[1]},
+            ],
+        },
     }
 
 
@@ -70,47 +106,68 @@ def audit_response() -> dict:
     }
 
 
-def session(session_id: str, rotation: str, offset: int, handoff: bool = False) -> dict:
-    assignments = []
-    for i, fid in enumerate(FIXTURES):
-        condition = CONDITIONS[(i + offset) % len(CONDITIONS)]
-        assignments.append({
-            "fixture_id": fid,
-            "condition": condition,
-            "records": {
-                "phase1": {
-                    "recorded_at": "2031-01-01T00:00:00+00:00",
-                    "response": phase1_response(
-                        "handoff" if handoff and i == 0 else "original"
-                    ),
-                },
-                "post": {
-                    "recorded_at": "2031-01-01T00:01:00+00:00",
-                    "response": post_response(),
-                },
-                "audit": {
-                    "recorded_at": "2031-01-01T00:02:00+00:00",
-                    "response": audit_response(),
-                },
-            },
-        })
-    return {
-        "schema": "sei.matched-review-session/v0",
-        "status": "evaluation-only",
-        "session_id": session_id,
-        "manifest_schema": "sei.inquiry-continuity-matched-set/v0",
-        "set_id": "set-1",
-        "rotation": rotation,
-        "created_at": "2031-01-01T00:00:00+00:00",
-        "source_snapshot": {},
-        "assignments": assignments,
-    }
+def completed_session(
+    manifest_value: dict,
+    fixtures: dict[str, dict],
+    session_id: str,
+    rotation: str,
+    *,
+    handoff: bool = False,
+) -> dict:
+    value = new_session(
+        manifest_value,
+        fixtures,
+        rotation,
+        session_id,
+        "2031-01-01T00:00:00+00:00",
+    )
+    fixture_ids = [item["fixture_id"] for item in value["assignments"]]
+    for index, fid in enumerate(fixture_ids):
+        value = record_response(
+            value,
+            fid,
+            "phase1",
+            f"2031-01-01T00:00:{index + 1:02d}+00:00",
+            phase1_response("handoff" if handoff and index == 0 else "original"),
+        )
+    for index, fid in enumerate(fixture_ids):
+        value = record_response(
+            value,
+            fid,
+            "post",
+            f"2031-01-01T00:01:{index + 1:02d}+00:00",
+            post_response(),
+        )
+    for index, fid in enumerate(fixture_ids):
+        value = record_response(
+            value,
+            fid,
+            "audit",
+            f"2031-01-01T00:02:{index + 1:02d}+00:00",
+            audit_response(),
+        )
+    return value
 
 
 class InquiryContinuityReviewAnalysisTest(unittest.TestCase):
     def setUp(self):
         self.manifest = manifest()
         self.fixtures = {fid: fixture(fid) for fid in FIXTURES}
+
+    def make_session(
+        self,
+        session_id: str,
+        rotation: str,
+        *,
+        handoff: bool = False,
+    ) -> dict:
+        return completed_session(
+            self.manifest,
+            self.fixtures,
+            session_id,
+            rotation,
+            handoff=handoff,
+        )
 
     def test_response_templates_do_not_fabricate_answers(self):
         phase1 = response_template("phase1", self.fixtures["f1"])
@@ -144,9 +201,9 @@ class InquiryContinuityReviewAnalysisTest(unittest.TestCase):
 
     def test_complete_three_rotation_projection_has_full_pair_coverage(self):
         sessions = [
-            session("s1", "R1", 0, handoff=True),
-            session("s2", "R2", 1),
-            session("s3", "R3", 2),
+            self.make_session("s1", "R1", handoff=True),
+            self.make_session("s2", "R2"),
+            self.make_session("s3", "R3"),
         ]
         projection = comparison_projection(
             sessions,
@@ -169,7 +226,7 @@ class InquiryContinuityReviewAnalysisTest(unittest.TestCase):
 
     def test_single_rotation_remains_incomplete_coverage(self):
         projection = comparison_projection(
-            [session("s1", "R1", 0)],
+            [self.make_session("s1", "R1")],
             self.manifest,
             self.fixtures,
         )
@@ -180,14 +237,14 @@ class InquiryContinuityReviewAnalysisTest(unittest.TestCase):
 
     def test_duplicate_session_id_is_rejected(self):
         sessions = [
-            session("same", "R1", 0),
-            session("same", "R2", 1),
+            self.make_session("same", "R1"),
+            self.make_session("same", "R2"),
         ]
         with self.assertRaises(InquiryReviewError):
             comparison_projection(sessions, self.manifest, self.fixtures)
 
     def test_invalid_nested_response_is_attributed_to_fixture_and_stage(self):
-        broken = session("s1", "R1", 0)
+        broken = self.make_session("s1", "R1")
         broken["assignments"][0]["records"]["phase1"]["response"]["answers"] = [""]
         with self.assertRaisesRegex(
             InquiryReviewError, "f1/phase1"
