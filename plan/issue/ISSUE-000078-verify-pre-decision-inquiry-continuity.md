@@ -3,7 +3,7 @@
 Status: **Open**  
 Priority: **2**  
 Related ADRs: **ADR-0005, ADR-0018, ADR-0020, ADR-0028**  
-Updated: 2026-09-16
+Updated: 2026-09-17
 
 ## Goal
 
@@ -352,6 +352,64 @@ dormantやclosedにしても元InquiryへDecisionを自動生成せず、unresol
 
 したがって、このauditだけを理由に新Value Axis、Stable Requirement、Universal entity、Product Vision再編へ進まない。
 
+### Human review execution path — 2026-09-17
+
+E78.2 / E78.4 / E78.5のmatched human reviewは、`inquiry_continuity_review_runner.py`を唯一の実行入口とする。generic `matched_review_session.py`を直接操作してhuman reviewを開始せず、session開始時にreview provenanceを固定してからstage gateへ入る。
+
+repo rootからの基本経路は次である。
+
+```text
+RUNNER=evaluation/personal-inquiry-decision/inquiry_continuity_review_runner.py
+SESSION=<checkout外または意図的に管理するsession.json>
+EVIDENCE=<checkout外または意図的に管理するevidence.json>
+
+python3 "$RUNNER" init "$SESSION" \
+  --rotation R1 \
+  --session-id <opaque-session-id> \
+  --created-at <ISO-8601> \
+  --reviewer-id <opaque-reviewer-id> \
+  --prior-exposure <none-declared|known-material-exposure|unknown> \
+  --response-authorship <human-direct|human-transcribed>
+
+python3 "$RUNNER" bundle "$SESSION"
+
+# bundleが示すcurrent stageとresponse_templateに従ってhuman responseを作成する。
+# phase1を全fixtureで固定してからpostへ進み、postを全fixtureで固定してからauditへ進む。
+python3 "$RUNNER" record "$SESSION" \
+  --fixture-id <fixture-id> \
+  --stage <phase1|post|audit> \
+  --recorded-at <ISO-8601> \
+  --response <human-response.json>
+
+python3 "$RUNNER" validate "$SESSION" --require-complete
+python3 "$RUNNER" export-evidence "$SESSION" --output "$EVIDENCE"
+```
+
+`reviewer-id`には氏名、email、account id等を保存せず、その評価内だけで一貫するopaque idを使う。`response-authorship=human-transcribed`は、humanが作成した回答をAIまたはoperatorが転記した場合を表す。AIが回答内容そのものを生成したsessionをhuman reviewとして記録してはならない。
+
+`prior-exposure`はreviewerの既知の事前露出を隠さないための申告である。
+
+```text
+none-declared
+  = reviewerがmaterialな事前露出なしと申告した
+  = clean blinded review candidate
+  != blindingが客観的に証明された
+
+known-material-exposure / unknown
+  = pilot observationとしては保存可能
+  != clean blinded review
+```
+
+review中はcondition labelをreviewer bundleへ出さず、全phase1回答が固定されるまでpost-interruption materialを開かず、全post回答が固定されるまでreference state / audit keyを開かない。完了済みsessionを同じsession内で巻き戻して再回答しない。
+
+`export-evidence`はcomplete sessionだけを受理し、少なくとも次を分離したまま保存する。
+
+- `human_review_observations` — human回答とoperator observation。
+- `semantic_audits` — reference materialを開いた後の意味監査。
+- `review_provenance` — opaque reviewer id、declared prior exposure、response authorship。
+
+このexportはoverall score、ranking、winner、preferred conditionを生成しない。また、synthetic matched reviewをactual long-gap resumptionやactual team handoffへ読み替えず、reviewが完了したことだけでProduct ValueやStable Requirement変更を承認しない。
+
 ### current Evidence stopline
 
 現時点では次を維持する。
@@ -424,5 +482,7 @@ AI summary is fluent
 Decision Continuityとの違いを明確にしつつ、最終的にはDecision Continuityの拡張で十分、より広いCognitive Continuityが必要、独立したInquiry Continuityが必要、あるいはSEIの追加構造に価値差がない、という複数の結論を同じ強さで許容している。
 
 2026-09-16の実行準備同期では、各experimentについて「評価器やfixtureを実行できること」と「人間が実際に価値を得たこと」を分け、actual long-gap、actual handoff、capture burden、Product Value、Stable Requirement判断を未観測・未決定のまま保持した。また、同一Issueの継続作業を`develop/v0.2.0`へ集約するbranch運用を明記し、評価作業のためにbranch構造そのものを細分化しない方針を確認した。
+
+2026-09-17の同期では、human review runnerを実行の正規入口として固定し、reviewerの事前露出とresponse authorshipをsession開始時に保存する経路、stage gate、complete sessionだけを受理するEvidence exportを本文へ接続した。`none-declared`は盲検の客観的証明ではなく申告に基づくclean blinded candidateに留め、known / unknown exposureも隠さずpilot observationとして保持する。
 
 意味、仮説強度、未検証範囲を固定した後、**自然な日本語として背景・failure・実験・停止線が連続して読めることを最重要視して全文を再読し、Design / Executable scaffoldとHuman / Outcome Evidenceを混同していないことを最終監査済み**とする。
