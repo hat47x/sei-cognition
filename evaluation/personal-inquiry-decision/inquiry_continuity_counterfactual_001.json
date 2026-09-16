@@ -1,0 +1,247 @@
+{
+  "schema": "sei.inquiry-continuity-comparison-fixture/v0",
+  "status": "evaluation-only",
+  "issue": "ISSUE-000078",
+  "fixture_id": "e78-counterfactual-001-nightly-batch",
+  "title": "夜間バッチ遅延の原因を決めつけずに調べ続ける",
+  "purpose": {
+    "primary": [
+      "E78.2: raw chat / chronological note / SEI canonical meaning + resume Projectionを公平に比較する",
+      "E78.4: 元のworking memoryを持たないreaderが探索状態を引き継げるか確認する",
+      "E78.5: 中断後の新しいObservationが過去の認識状態へ遡及混入しないか確認する"
+    ],
+    "not_for": [
+      "Stable Requirementの成立証明",
+      "Quiet-first / Proactive-firstの優劣判定",
+      "Product Valueの総合score化",
+      "Universal Inquiry schemaの定義"
+    ]
+  },
+  "use_rules": [
+    "一人のreaderへ同一caseの複数conditionを連続提示しない。condition間の記憶汚染を避ける。",
+    "conditionを提示する前にreference_state、review_key、post_interruption_evidenceを見せない。",
+    "まずphase_1のconditionだけでorientation reviewを行い、その回答を固定してからpost_interruption_evidenceを提示する。",
+    "比較対象を意図的に弱くしない。raw chatとchronological noteにも同じmaterial factsを含める。",
+    "速さだけでなく、Observation / Hypothesis / Unknownの区別、original concern、temporal integrity、false continuityを独立して観察する。",
+    "このfixtureの実行結果はhuman reviewを実際に行った場合だけEvidenceとする。fixture作成自体はDesign Evidenceに留める。"
+  ],
+  "scenario": {
+    "context": "架空の小規模業務システム Project Lantern。毎晩01:00に開始する集計バッチの終了時刻が週によって大きく揺れ始めた。障害ではないが、朝の後続処理に近づく日があり、原因を決めつけずに調査を続けている。",
+    "initial_concern": "終了が遅い日が増えているが、DB、外部API、worker待ちのどれが主因か分からない。早い段階で一つの原因へ決め打ちせず、次に何を観測すれば切り分けられるかを整理したい。",
+    "phase_1_events": [
+      {
+        "at": "2031-04-03T09:10:00+09:00",
+        "role": "observation",
+        "id": "obs-duration-variance",
+        "text": "直近10回の終了時刻は01:38〜02:17に分布し、遅い回が固定曜日に偏っているようには見えない。"
+      },
+      {
+        "at": "2031-04-03T09:16:00+09:00",
+        "role": "observation",
+        "id": "obs-db-stable-sample",
+        "text": "02:14に終了した1回について、主要DB queryのp95は通常範囲内だった。全slow runを確認したわけではない。"
+      },
+      {
+        "at": "2031-04-03T09:25:00+09:00",
+        "role": "observation",
+        "id": "obs-api-slow-sample",
+        "text": "同じ02:14終了回では、外部API呼び出しの一部に通常より長い応答があった。ただし取得済みlogは全呼び出しを覆っていない。"
+      },
+      {
+        "at": "2031-04-03T09:31:00+09:00",
+        "role": "unknown",
+        "id": "unk-queue-wait",
+        "text": "workerが実処理を始めるまでのqueue waitは当時記録しておらず、遅延への寄与は分からない。"
+      },
+      {
+        "at": "2031-04-03T09:36:00+09:00",
+        "role": "hypothesis",
+        "id": "hyp-api",
+        "text": "外部API遅延がslow runの一因である可能性がある。現時点では主因とは確定できない。"
+      },
+      {
+        "at": "2031-04-03T09:39:00+09:00",
+        "role": "hypothesis",
+        "id": "hyp-queue",
+        "text": "worker競合またはqueue waitが見えていない遅延を説明する可能性がある。"
+      },
+      {
+        "at": "2031-04-04T10:05:00+09:00",
+        "role": "observation",
+        "id": "obs-queue-added",
+        "text": "追加計測を入れ、翌日のslow runではqueue waitが通常より長かった。"
+      },
+      {
+        "at": "2031-04-04T10:08:00+09:00",
+        "role": "observation",
+        "id": "obs-api-normal-second-slow",
+        "text": "そのslow runでは、取得できた外部API latencyは通常範囲だった。"
+      },
+      {
+        "at": "2031-04-04T10:13:00+09:00",
+        "role": "unknown",
+        "id": "unk-common-cause",
+        "text": "API latencyが高かったslow runとqueue waitが高かったslow runに共通原因があるか、別々の要因かは分からない。"
+      },
+      {
+        "at": "2031-04-04T10:18:00+09:00",
+        "role": "hypothesis",
+        "id": "hyp-multiple-causes",
+        "text": "単一原因ではなく、複数のボトルネックがrunごとに異なる可能性がある。"
+      }
+    ],
+    "interruption_point": "2031-04-04T10:20:00+09:00",
+    "decision_present": false,
+    "recommendation_present": false,
+    "post_interruption_evidence": [
+      {
+        "at": "2031-04-11T09:20:00+09:00",
+        "role": "observation",
+        "id": "obs-worker-cap",
+        "text": "中断後に確認したところ、slow runのうち2回では同時刻に別jobが走り、対象worker poolが上限近くまで使われていた。"
+      },
+      {
+        "at": "2031-04-11T09:24:00+09:00",
+        "role": "observation",
+        "id": "obs-api-provider-change",
+        "text": "外部API側では4月8日にrate-limit設定変更があったが、これはphase_1のslow runより後の出来事である。"
+      }
+    ]
+  },
+  "conditions": {
+    "A_raw_chat": {
+      "label": "raw chat / transcript",
+      "surface_text": [
+        "利用者: 夜間バッチが最近遅いです。01:38で終わる日もあれば02:17までかかる日もあります。曜日固定には見えません。DBか外部APIかもしれませんが、まだ決めつけたくありません。",
+        "AI: まずDBと外部APIのどちらが遅いか比較するとよさそうです。遅かった回のDB query latencyは分かりますか。",
+        "利用者: 02:14に終わった回だけ見ました。主要queryのp95は普段の範囲でした。ただ全部の遅い回ではありません。",
+        "AI: その回ではDB以外が怪しそうです。外部APIはどうでしたか。",
+        "利用者: 外部APIの一部が普段より遅かったです。ただlogが全呼び出しを覆っていません。",
+        "AI: APIが原因の可能性はありますね。",
+        "利用者: 可能性はありますが、まだ主因とは言えません。workerが実処理を始めるまでの待ち時間を取っていないことにも気づきました。",
+        "AI: queue waitやworker競合も候補ですね。",
+        "利用者: 翌日、queue waitを追加計測しました。次のslow runではqueue waitが長かった一方、見えているAPI latencyは普通でした。",
+        "AI: ではworker側が原因でしょうか。",
+        "利用者: それもまだ決めません。前回はAPIが遅かったので、同じ原因なのか別々なのか分かりません。単一原因ではなく、runごとに違うボトルネックかもしれません。",
+        "AI: 次は複数runでqueue wait、API latency、DB latencyを同時に揃えて比較すると切り分けやすそうです。"
+      ]
+    },
+    "B_chronological_note": {
+      "label": "chronological note",
+      "surface_text": [
+        "4/3: 夜間バッチの終了は01:38〜02:17。固定曜日への偏りは見えない。02:14終了の回では主要DB query p95は通常範囲。ただし全slow run未確認。同じ回で外部APIの一部応答が通常より長かったが、log coverageは不完全。queue waitは未計測。API遅延とworker/queue待ちの両方を候補として残す。",
+        "4/4: queue wait計測を追加。次のslow runではqueue waitが通常より長かった。一方、取得済みAPI latencyは通常範囲。4/3と4/4のslow runに共通原因があるか、別要因かは未確定。単一原因ではなくrunごとにボトルネックが違う可能性も残す。",
+        "次に見ること: 複数slow runについてqueue wait、API latency、DB latencyを同じ時間軸で揃える。原因はまだ決めない。"
+      ]
+    },
+    "C_sei_resume": {
+      "label": "SEI canonical meaning + derived resume Projection",
+      "surface_text": {
+        "orientation": {
+          "original_concern": "夜間バッチの終了時刻が大きく揺れている。DB・外部API・worker待ちのいずれかへ早期に決め打ちせず、次に必要な観測を整理したい。",
+          "current_question": "slow runごとに異なる遅延要因があるのか、それともAPI latencyとqueue waitを生む共通原因があるのか。",
+          "material_observations": [
+            "直近10回の終了時刻は01:38〜02:17。固定曜日への明確な偏りは未確認。",
+            "02:14終了の1回では主要DB query p95は通常範囲だったが、全slow runを覆わない。",
+            "同じ回では外部APIの一部応答が通常より長かったが、log coverageは不完全。",
+            "翌日の別slow runではqueue waitが通常より長く、取得済み外部API latencyは通常範囲だった。"
+          ],
+          "open_unknowns": [
+            "queue waitがslow run全体へどの程度寄与するか。",
+            "API latencyが高かったrunとqueue waitが高かったrunに共通原因があるか。",
+            "複数のボトルネックがrunごとに異なるか。"
+          ],
+          "hypotheses": [
+            "外部API遅延が一部slow runへ寄与する可能性がある。",
+            "worker競合またはqueue waitが一部slow runへ寄与する可能性がある。",
+            "単一原因ではなく、runごとに異なる複数要因がある可能性がある。"
+          ],
+          "decision": null,
+          "next_useful_investigation": "複数slow runについてqueue wait、API latency、DB latencyを同じ時間軸で揃え、run単位で比較する。"
+        },
+        "audit_note": "Orientationはphase_1時点のcanonical recordsから導出したProjectionであり、後日のObservationを含めない。"
+      }
+    }
+  },
+  "reference_state": {
+    "original_concern": "遅延原因を早期に一つへ決め打ちせず、何を観測すれば切り分けられるかを整理する。",
+    "current_question": "runごとに異なるボトルネックか、複数の兆候を生む共通原因か。",
+    "observations": [
+      "終了時刻は01:38〜02:17に分布し、固定曜日への明確な偏りは未確認。",
+      "1件のslow runでは主要DB query p95は通常範囲だったが標本は限定的。",
+      "同じslow runでは外部APIの一部応答が遅かったがlog coverageは不完全。",
+      "別のslow runではqueue waitが長く、取得済みAPI latencyは通常範囲だった。"
+    ],
+    "hypotheses": [
+      "外部API遅延が一因である可能性。",
+      "worker競合またはqueue waitが一因である可能性。",
+      "複数要因がrunごとに異なる可能性。"
+    ],
+    "unknowns": [
+      "queue waitの寄与度。",
+      "slow run間の共通原因の有無。",
+      "API観測の不足部分。",
+      "複数runを同一指標で比較したときの再現性。"
+    ],
+    "acceptable_next_actions": [
+      "複数slow runのqueue wait / API latency / DB latencyを同じ時間軸で比較する。",
+      "worker pool使用率や同時job実行を、上記指標と同じrun単位で追加観測する。"
+    ],
+    "must_not_infer": [
+      "DBは原因ではない。",
+      "外部APIが主因である。",
+      "queue waitが主因である。",
+      "複数原因であることが確定した。",
+      "4月8日のrate-limit変更がphase_1のslow runを説明する。"
+    ]
+  },
+  "human_review_template": {
+    "before_post_interruption_evidence": [
+      {"id": "R1", "prompt": "最初に何を気にしていたInquiryか、自分の言葉で説明してください。"},
+      {"id": "R2", "prompt": "中断時点のcurrent Questionは何ですか。"},
+      {"id": "R3", "prompt": "Observationとして扱える内容を列挙してください。"},
+      {"id": "R4", "prompt": "Hypothesisとして残っている内容を列挙してください。"},
+      {"id": "R5", "prompt": "まだ分からないことを列挙してください。"},
+      {"id": "R6", "prompt": "次に行うと有用な調査を一つ以上挙げてください。"},
+      {"id": "R7", "prompt": "追加detail/sourceを開かないと判断できない点があれば明示してください。"},
+      {"id": "R8", "prompt": "このSurfaceを読む負担を low / medium / high とし、理由を短く記してください。"}
+    ],
+    "after_post_interruption_evidence": [
+      {"id": "R9", "prompt": "新しいObservationを受け、現在の探索状態はどう変わりましたか。"},
+      {"id": "R10", "prompt": "phase_1時点のObservationやHypothesisのうち、後から書き換えてはいけないものを明示してください。"},
+      {"id": "R11", "prompt": "4月8日のrate-limit設定変更を、phase_1のslow runの原因として扱えますか。理由も記してください。"},
+      {"id": "R12", "prompt": "現時点でDecisionを作るべきか、Inquiryを継続すべきか。根拠と不確実性を記してください。"}
+    ],
+    "observer_metadata": [
+      "condition",
+      "evidence_role",
+      "context_gap",
+      "source_reopens",
+      "chat_reopens",
+      "detail_descents",
+      "original_concern_retention",
+      "unresolved_preservation",
+      "temporal_integrity",
+      "false_continuity",
+      "attention_load",
+      "first_useful_action",
+      "notes"
+    ]
+  },
+  "review_key": {
+    "hard_failures": [
+      "ObservationとHypothesisを同一視して原因を確定する。",
+      "Unknownを回答不能としてではなく存在しないものとして落とす。",
+      "post_interruption_evidenceをphase_1から既知だった情報として語る。",
+      "4月8日のrate-limit変更で4月3〜4日のslow runを説明する。",
+      "速く答えられたことだけを成功根拠にする。"
+    ],
+    "interpretation": [
+      "A/B/Cのwinnerを一回の試行から決めない。",
+      "再開速度とhistorical correctnessを別に読む。",
+      "B0/B1が十分に機能した場合、それをSEI構造縮小のEvidenceとして扱う。",
+      "一人のreaderが複数conditionを見た場合、その後のconditionは汚染ありとしてEvidence強度を下げる。",
+      "このfixtureで得られるのはcounterfactual human-review Evidenceであり、actual long-gap dogfoodの代替ではない。"
+    ]
+  }
+}
