@@ -1,11 +1,16 @@
 # ISSUE-000073 — Decision Continuity 実行準備状態
 
-更新日: 2026-09-16  
-状態: **Current Execution Readiness / Executable Evidence Pending**
+更新日: 2026-09-17  
+状態: **Current Execution Readiness / Executable and Human Evidence Pending**
 
 ## 1. この文書の役割
 
 この文書は、ISSUE-000073で進めているresume-first Product Sliceについて、Candidate Requirement監査、Stable Requirementへのformalization、E1〜E8 prototype、Evidence runner / verifier、H1 / H2 human reviewの現在位置を一つにまとめるcurrent-state文書です。
+
+実行手順の詳細は、機械実行とhuman reviewで入口を分けます。
+
+- E1〜E8: 本書のrunner / verifier手順
+- H1 / H2: `DECISION_CONTINUITY_HUMAN_REVIEW.md`
 
 既存の`DECISION_CONTINUITY_REQUIREMENT_AUDIT_2026-09-16.md`は、formalization前に行った監査時点のDesign Evidenceとして保持します。後から得た結論でその監査記録を書き換えません。
 
@@ -120,7 +125,7 @@ tools/test_verify_issue_000073_resume_first_evidence.py
 - repositoryに存在しないtested HEADを拒否する。
 - Go 1.24.xを拒否する。
 
-このself-testはこの作業セッションで実際に実行し、PASSを確認しています。
+このself-testは実際に実行し、PASSを確認しています。
 
 ```text
 PASS: ISSUE-000073 evidence verifier self-tests
@@ -178,9 +183,46 @@ H1 actual resume usability reviewとH2 counterfactual Decision Continuity review
 
 現時点ではいずれも**Not Yet Observed**です。
 
-H1では、chat historyや内部schemaの知識なしに、人間がcurrent question、Decision、historical basis、unresolved、post-decision changes、next review pointへ戻れるかを見ます。
+具体的な実行手順は`DECISION_CONTINUITY_HUMAN_REVIEW.md`へ一本化しています。
 
-H2では、raw chat / chronological note等の単純baselineとSEI canonical meaning + Resume Projectionを比較します。
+### H1 — real Inquiryのactual resumption
+
+H1では、`DOGFOOD_SURFACE.md`のactual Inquiry stateと`DOGFOOD_EVALUATION_RECORDING.md`のevaluation sidecarを再利用します。別のH1専用schemaやsession managerは作りません。
+
+chat historyや内部schemaの知識へ戻らず、Orientationからcurrent question、Decision、historical basis、unresolved、post-decision changes、next review pointへ戻れるかを観測します。
+
+暦上のgapだけではH1にしません。再開直前にcurrent concernやDecision basisへmaterialな再露出があった場合はclean resumptionとして数えず、架空の`resume_observation`を追加しません。
+
+```text
+calendar gap
+  != cognitive gap
+
+pre-orientation material exposure
+  != H1 resumption Evidence
+```
+
+### H2 — matched counterfactual review
+
+H2では、raw chat、chronological note、SEI Resume Projectionを同等素材で比較します。blinded packet、global stage gate、Decision固有validationを用い、reference stateを先に見ないようにします。
+
+completed reviewのEvidence exportは、既存Inquiry Continuity review runnerの`export-evidence`へ統合されています。別のoperational pathを増やしません。
+
+例:
+
+```text
+python evaluation/personal-inquiry-decision/inquiry_continuity_review_runner.py \
+  export-evidence /tmp/review-session.json \
+  --output /tmp/review-evidence.json
+```
+
+exportはcompleted sessionだけを受理し、human-review observationとsemantic auditを別collectionとして保持します。synthetic reviewをactual long-gap resumptionやProduct Valueへ昇格させません。
+
+```text
+H2 evidence bundle
+  != H1 actual resumption
+  != actual capture burden
+  != Product Value established
+```
 
 synthetic fixtureやAI生成回答をhuman observationとして代用しません。また、同じ人がreference stateを事前に見たcaseをblind reviewとして扱いません。
 
@@ -198,20 +240,33 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 | REQ-0023 / SCN-0019 Executable Evidence | **Not Yet Verified** |
 | H1 actual human review | **Not Yet Observed** |
 | H2 counterfactual human review | **Not Yet Observed** |
+| H2 review / evidence-export tooling | Available; actual human session pending |
 | Decision Continuity Product Value | **Not Established** |
 | Operational Evidence | **Not Yet Verified** |
 | Adoption / Outcome Evidence | **Not Yet Verified** |
 
 ## 10. 次の停止線
 
-次に必要なのは文書量を増やすことではありません。
+次に必要なのは文書量を増やすことではありません。既存の実行経路からactual Evidenceを得ることを優先します。
 
 優先順位は次です。
 
 1. clean checkout + Go 1.25.xでrunnerをactual実行する。
 2. validatorでrecorded tested commit / source blobs / E1〜E8結果を再検証する。
 3. actual Evidenceを保存し、REQ-0023 / SCN-0019を含むEvidence状態を再監査する。
-4. H1 / H2を実際の人間で実施する。
-5. human observationを踏まえて、残るCandidate RequirementとProduct hypothesisを再評価する。
+4. materialなpre-orientation exposureのないreal InquiryでH1 actual resumptionを実施する。
+5. H2 matched reviewをhuman readerで少なくとも一rotation実施し、completed sessionからevidence bundleをexportする。
+6. capture / review overheadをH1のreal Inquiryと合わせて読む。
+7. human observationを踏まえて、残るCandidate RequirementとDecision Continuity Product hypothesisを再評価する。
 
-実行環境がないことを理由に、Go 1.23.x等の低いtoolchainで代替PASSを作らないことを優先します。
+実行環境がないことを理由に、Go 1.23.x等の低いtoolchainで代替PASSを作らないことを優先します。human reviewについても、synthetic回答や事前露出済みの記憶をactual resumptionへ読み替えません。
+
+## 11. Natural Japanese review
+
+2026-09-17の更新では、E1〜E8 runner / verifierの既存停止線を変えず、H1 / H2の実行入口を`DECISION_CONTINUITY_HUMAN_REVIEW.md`へ一本化しました。
+
+H1は既存dogfood stateとevaluation sidecarを利用し、real Inquiryのactual resumptionだけを観測します。H1専用のschemaやsession managerは増やしていません。H2は既存matched review基盤を利用し、completed sessionのEvidence exportも既存Inquiry Continuity review runnerへ統合された経路を使います。
+
+これにより、実行準備文書からH1 / H2へ進む経路は一本化しつつ、real Inquiryとsynthetic matched review、human observationとsemantic audit、mechanicsとProduct Valueの意味差は維持しました。
+
+自然な日本語として全文を再読し、REQ-0023 / SCN-0019のDesign Evidence、E1〜E8 Executable Evidence、H1 / H2 human observation、Adoption / Outcome Evidenceの高さを混同していないことを最終監査しました。
