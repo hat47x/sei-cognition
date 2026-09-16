@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Build blinded human-review packets for ISSUE-000078 matched comparisons.
+"""Build blinded human-review packets for SEI matched comparisons.
 
-This is evaluation-only tooling. It never mutates canonical Inquiry state and it
-does not turn a synthetic comparison into Product Value evidence.
+This is evaluation-only tooling. It supports both ISSUE-000078 Inquiry Continuity
+and ISSUE-000073 Decision Continuity fixtures without merging their evaluation
+semantics. It never mutates canonical state and it does not turn a synthetic
+comparison into Product Value evidence.
 """
 
 from __future__ import annotations
@@ -12,11 +14,40 @@ import json
 from pathlib import Path
 from typing import Any
 
-MANIFEST_SCHEMA = "sei.inquiry-continuity-matched-set/v0"
-FIXTURE_SCHEMA = "sei.inquiry-continuity-comparison-fixture/v0"
-PACKET_SCHEMA = "sei.inquiry-continuity-review-packet/v0"
+INQUIRY_MANIFEST_SCHEMA = "sei.inquiry-continuity-matched-set/v0"
+INQUIRY_FIXTURE_SCHEMA = "sei.inquiry-continuity-comparison-fixture/v0"
+INQUIRY_PACKET_SCHEMA = "sei.inquiry-continuity-review-packet/v0"
+
+DECISION_MANIFEST_SCHEMA = "sei.decision-continuity-matched-set/v0"
+DECISION_FIXTURE_SCHEMA = "sei.decision-continuity-comparison-fixture/v0"
+DECISION_PACKET_SCHEMA = "sei.decision-continuity-review-packet/v0"
+
+# Backward-compatible names used by the original ISSUE-000078 tests/importers.
+MANIFEST_SCHEMA = INQUIRY_MANIFEST_SCHEMA
+FIXTURE_SCHEMA = INQUIRY_FIXTURE_SCHEMA
+PACKET_SCHEMA = INQUIRY_PACKET_SCHEMA
+
 CONDITIONS = {"A_raw_chat", "B_chronological_note", "C_sei_resume"}
 STAGES = {"phase1", "post", "audit"}
+
+_SCHEMA_PROFILES: dict[str, dict[str, Any]] = {
+    INQUIRY_MANIFEST_SCHEMA: {
+        "fixture_schema": INQUIRY_FIXTURE_SCHEMA,
+        "packet_schema": INQUIRY_PACKET_SCHEMA,
+        "post_evidence_key": "post_interruption_evidence",
+        "before_questions_key": "before_post_interruption_evidence",
+        "after_questions_key": "after_post_interruption_evidence",
+        "require_review_key": True,
+    },
+    DECISION_MANIFEST_SCHEMA: {
+        "fixture_schema": DECISION_FIXTURE_SCHEMA,
+        "packet_schema": DECISION_PACKET_SCHEMA,
+        "post_evidence_key": "post_decision_evidence",
+        "before_questions_key": "before_post_decision_evidence",
+        "after_questions_key": "after_post_decision_evidence",
+        "require_review_key": False,
+    },
+}
 
 
 class PacketError(ValueError):
@@ -39,25 +70,49 @@ def _require_keys(value: dict[str, Any], *keys: str) -> None:
         raise PacketError(f"missing required keys: {', '.join(missing)}")
 
 
-def validate_fixture(fixture: dict[str, Any]) -> None:
-    if fixture.get("schema") != FIXTURE_SCHEMA:
+def _profile_for_manifest(manifest: dict[str, Any]) -> dict[str, Any]:
+    schema = manifest.get("schema")
+    try:
+        return _SCHEMA_PROFILES[schema]
+    except KeyError as exc:
+        raise PacketError(f"invalid manifest schema: {schema!r}") from exc
+
+
+def _profile_for_fixture(fixture: dict[str, Any]) -> dict[str, Any]:
+    schema = fixture.get("schema")
+    for profile in _SCHEMA_PROFILES.values():
+        if profile["fixture_schema"] == schema:
+            return profile
+    raise PacketError(f"invalid fixture schema: {schema!r}")
+
+
+def validate_fixture(
+    fixture: dict[str, Any],
+    profile: dict[str, Any] | None = None,
+) -> None:
+    profile = profile or _profile_for_fixture(fixture)
+    if fixture.get("schema") != profile["fixture_schema"]:
         raise PacketError(f"invalid fixture schema: {fixture.get('schema')!r}")
     if fixture.get("status") != "evaluation-only":
         raise PacketError("fixture status must remain evaluation-only")
-    _require_keys(
-        fixture,
+
+    required = [
         "fixture_id",
         "title",
         "scenario",
         "conditions",
         "reference_state",
         "human_review_template",
-        "review_key",
-    )
+    ]
+    if profile["require_review_key"]:
+        required.append("review_key")
+    _require_keys(fixture, *required)
+
     scenario = fixture["scenario"]
     if not isinstance(scenario, dict):
         raise PacketError("scenario must be an object")
-    _require_keys(scenario, "post_interruption_evidence")
+    _require_keys(scenario, profile["post_evidence_key"])
+
     conditions = fixture["conditions"]
     if not isinstance(conditions, dict) or set(conditions) != CONDITIONS:
         raise PacketError("fixture must contain exactly A/B/C conditions")
@@ -65,13 +120,14 @@ def validate_fixture(fixture: dict[str, Any]) -> None:
         condition = conditions[name]
         if not isinstance(condition, dict) or "surface_text" not in condition:
             raise PacketError(f"{name} requires surface_text")
+
     review = fixture["human_review_template"]
     if not isinstance(review, dict):
         raise PacketError("human_review_template must be an object")
     _require_keys(
         review,
-        "before_post_interruption_evidence",
-        "after_post_interruption_evidence",
+        profile["before_questions_key"],
+        profile["after_questions_key"],
     )
 
 
@@ -79,16 +135,15 @@ def validate_matched_set(
     manifest: dict[str, Any],
     fixtures_by_id: dict[str, dict[str, Any]],
 ) -> None:
-    if manifest.get("schema") != MANIFEST_SCHEMA:
-        raise PacketError(f"invalid manifest schema: {manifest.get('schema')!r}")
+    profile = _profile_for_manifest(manifest)
     if manifest.get("status") != "evaluation-only":
         raise PacketError("manifest status must remain evaluation-only")
     _require_keys(manifest, "set_id", "fixtures", "assignment_rotations")
 
     expected_ids: list[str] = []
     for item in manifest["fixtures"]:
-        if not isinstance(item, dict) or not item.get("id"):
-            raise PacketError("each manifest fixture requires id")
+        if not isinstance(item, dict) or not item.get("id") or not item.get("path"):
+            raise PacketError("each manifest fixture requires id and path")
         expected_ids.append(item["id"])
     if len(expected_ids) != len(set(expected_ids)):
         raise PacketError("duplicate fixture id in manifest")
@@ -96,7 +151,7 @@ def validate_matched_set(
     if set(expected_ids) != set(fixtures_by_id):
         raise PacketError("loaded fixture set does not match manifest")
     for fixture_id, fixture in fixtures_by_id.items():
-        validate_fixture(fixture)
+        validate_fixture(fixture, profile)
         if fixture["fixture_id"] != fixture_id:
             raise PacketError(f"fixture id mismatch: {fixture_id}")
 
@@ -144,10 +199,12 @@ def build_packet(
         raise PacketError(f"invalid condition: {condition}")
     if stage not in STAGES:
         raise PacketError(f"invalid stage: {stage}")
-    validate_fixture(fixture)
+
+    profile = _profile_for_manifest(manifest)
+    validate_fixture(fixture, profile)
 
     packet: dict[str, Any] = {
-        "schema": PACKET_SCHEMA,
+        "schema": profile["packet_schema"],
         "status": "evaluation-only",
         "set_id": manifest["set_id"],
         "fixture_id": fixture["fixture_id"],
@@ -156,21 +213,20 @@ def build_packet(
         "stage": stage,
     }
 
+    review = fixture["human_review_template"]
     if stage == "phase1":
         packet["surface"] = fixture["conditions"][condition]["surface_text"]
-        packet["questions"] = fixture["human_review_template"][
-            "before_post_interruption_evidence"
-        ]
+        packet["questions"] = review[profile["before_questions_key"]]
     elif stage == "post":
-        packet["post_interruption_evidence"] = fixture["scenario"][
-            "post_interruption_evidence"
-        ]
-        packet["questions"] = fixture["human_review_template"][
-            "after_post_interruption_evidence"
-        ]
+        evidence_key = profile["post_evidence_key"]
+        packet[evidence_key] = fixture["scenario"][evidence_key]
+        packet["questions"] = review[profile["after_questions_key"]]
     else:
         packet["reference_state"] = fixture["reference_state"]
-        packet["review_key"] = fixture["review_key"]
+        if "review_key" in fixture:
+            packet["review_key"] = fixture["review_key"]
+        if "operator_metrics" in review:
+            packet["operator_metrics"] = review["operator_metrics"]
 
     return packet
 
@@ -204,6 +260,8 @@ def load_manifest_fixtures(
     manifest = load_json(manifest_path)
     fixtures: dict[str, dict[str, Any]] = {}
     for item in manifest.get("fixtures", []):
+        if not isinstance(item, dict) or "id" not in item or "path" not in item:
+            raise PacketError("each manifest fixture requires id and path")
         path = repo_root / item["path"]
         fixtures[item["id"]] = load_json(path)
     validate_matched_set(manifest, fixtures)
@@ -212,7 +270,7 @@ def load_manifest_fixtures(
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Build blinded ISSUE-000078 matched-comparison packets"
+        description="Build blinded SEI matched-comparison review packets"
     )
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--repo-root", default=".")
@@ -232,6 +290,7 @@ def main(argv: list[str] | None = None) -> int:
             json.dumps(
                 {
                     "valid": True,
+                    "schema": manifest["schema"],
                     "set_id": manifest["set_id"],
                     "fixtures": len(fixtures),
                     "rotations": len(manifest["assignment_rotations"]),
