@@ -45,7 +45,9 @@ EXPERIMENTS: dict[str, list[str]] = {
 }
 
 SOURCE_FILES = [
+    "tools/run_issue_000073_resume_first_evidence.py",
     "runtime/go/go.mod",
+    "runtime/go/go.sum",
     "runtime/go/interactionprobe/resume_test.go",
     "runtime/go/interactionprobe/review_test.go",
     "runtime/go/interactionprobe/provisional_test.go",
@@ -74,9 +76,14 @@ def source_binding(repo: Path, relative: str) -> dict[str, Any]:
         return result
     data = path.read_bytes()
     result["sha256"] = hashlib.sha256(data).hexdigest()
-    blob = git_text(repo, "hash-object", "--", relative)
-    if blob:
-        result["git_blob"] = blob
+    working_blob = git_text(repo, "hash-object", "--", relative)
+    head_blob = git_text(repo, "rev-parse", f"HEAD:{relative}")
+    if working_blob:
+        result["working_tree_blob"] = working_blob
+    if head_blob:
+        result["head_blob"] = head_blob
+    if working_blob and head_blob:
+        result["matches_head"] = working_blob == head_blob
     return result
 
 
@@ -95,6 +102,12 @@ def write_evidence(record: dict[str, Any], output: str | None) -> None:
         sys.stdout.write(text)
 
 
+def block(record: dict[str, Any], reason: str, output: str | None) -> int:
+    record.update({"status": "blocked", "blocked_reason": reason})
+    write_evidence(record, output)
+    return 2
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Capture ISSUE-000073 E1-E8 executable evidence.")
     parser.add_argument("--output", help="Write the JSON evidence record to this path; stdout when omitted.")
@@ -105,7 +118,9 @@ def main() -> int:
     runtime_go = repo / "runtime" / "go"
     go = args.go_executable or shutil.which("go")
     head = git_text(repo, "rev-parse", "HEAD")
+    head_tree = git_text(repo, "rev-parse", "HEAD^{tree}")
     status = git_text(repo, "status", "--porcelain=v1")
+    source_bindings = [source_binding(repo, p) for p in SOURCE_FILES]
 
     record: dict[str, Any] = {
         "format": "issue-000073-resume-first-execution-record/v1",
@@ -114,34 +129,54 @@ def main() -> int:
         "scope": "Executable Evidence for E1-E8 only; H1/H2 and Product Outcome are out of scope.",
         "repository": {
             "head": head,
+            "head_tree": head_tree,
+            "git_checkout_detected": head is not None and status is not None,
+            "clean_required": True,
             "dirty": bool(status),
             "status_porcelain": status.splitlines() if status else [],
         },
         "required_toolchain": "go1.25.x",
-        "source_bindings": [source_binding(repo, p) for p in SOURCE_FILES],
+        "source_bindings": source_bindings,
         "experiments": {key: {"required_tests": tests, "status": "not_run"} for key, tests in EXPERIMENTS.items()},
         "stop_line": "Executable E1-E8 PASS != H1/H2 human review != Decision Continuity Product Value established.",
     }
 
+    if head is None or status is None:
+        return block(record, "runner must execute inside a Git checkout with a readable HEAD and working-tree status", args.output)
+    if status:
+        return block(
+            record,
+            "working tree is dirty; executable evidence must be bound to a clean committed HEAD before E1-E8 can PASS",
+            args.output,
+        )
+
+    missing_bindings = [item["path"] for item in source_bindings if not item.get("exists")]
+    mismatched_bindings = [
+        item["path"]
+        for item in source_bindings
+        if item.get("exists") and item.get("matches_head") is not True
+    ]
+    if missing_bindings:
+        record["missing_source_bindings"] = missing_bindings
+        return block(record, "one or more required evidence source files are missing", args.output)
+    if mismatched_bindings:
+        record["mismatched_source_bindings"] = mismatched_bindings
+        return block(record, "one or more required evidence source files do not match HEAD", args.output)
+
     if not runtime_go.is_dir():
-        record.update({"status": "blocked", "blocked_reason": "runtime/go directory not found"})
-        write_evidence(record, args.output)
-        return 2
+        return block(record, "runtime/go directory not found", args.output)
     if not go:
-        record.update({"status": "blocked", "blocked_reason": "go executable not found"})
-        write_evidence(record, args.output)
-        return 2
+        return block(record, "go executable not found", args.output)
 
     version_proc = run([go, "version"], repo)
     version_text = (version_proc.stdout or version_proc.stderr).strip()
     record["go"] = {"executable": go, "version_output": version_text}
     if version_proc.returncode != 0 or not re.search(r"\bgo1\.25(?:\.\d+)?\b", version_text):
-        record.update({
-            "status": "blocked",
-            "blocked_reason": "declared Go 1.25.x toolchain is not active; lower-version execution is not accepted as ISSUE-000073 PASS",
-        })
-        write_evidence(record, args.output)
-        return 2
+        return block(
+            record,
+            "declared Go 1.25.x toolchain is not active; lower-version execution is not accepted as ISSUE-000073 PASS",
+            args.output,
+        )
 
     env = os.environ.copy()
     env["GOTOOLCHAIN"] = "local"
