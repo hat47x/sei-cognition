@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -8,8 +9,10 @@ from inquiry_continuity_review_analysis import response_template
 from inquiry_continuity_review_evidence import (
     InquiryEvidenceBundleError,
     build_evidence_bundle,
+    save_bundle,
 )
 from inquiry_continuity_review_runner import (
+    attach_review_provenance,
     load_context,
     record_checked_response,
 )
@@ -31,6 +34,12 @@ def completed_session() -> tuple[dict, dict, dict[str, dict]]:
         "R1",
         "evidence-bundle-unit-test",
         "2031-01-01T00:00:00+00:00",
+    )
+    session = attach_review_provenance(
+        session,
+        "evidence-bundle-reviewer",
+        "none-declared",
+        "human-direct",
     )
     for stage, minute in (("phase1", 0), ("post", 1), ("audit", 2)):
         fixture_ids = [item["fixture_id"] for item in session["assignments"]]
@@ -96,6 +105,12 @@ class InquiryContinuityReviewEvidenceTest(unittest.TestCase):
             "incomplete-evidence-bundle-unit-test",
             "2031-01-01T00:00:00+00:00",
         )
+        session = attach_review_provenance(
+            session,
+            "incomplete-evidence-reviewer",
+            "none-declared",
+            "human-direct",
+        )
         with self.assertRaises(InquiryEvidenceBundleError):
             build_evidence_bundle(session, manifest, fixtures)
 
@@ -109,6 +124,17 @@ class InquiryContinuityReviewEvidenceTest(unittest.TestCase):
         serialized = repr(bundle).lower()
         self.assertNotIn("overall_score", serialized)
         self.assertNotIn("preferred_condition", serialized)
+
+    def test_save_bundle_refuses_to_overwrite_existing_evidence(self):
+        session, manifest, fixtures = completed_session()
+        bundle = build_evidence_bundle(session, manifest, fixtures)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "review-evidence.json"
+            save_bundle(path, bundle)
+            original = path.read_text(encoding="utf-8")
+            with self.assertRaises(InquiryEvidenceBundleError):
+                save_bundle(path, {"schema": "replacement-must-not-win"})
+            self.assertEqual(path.read_text(encoding="utf-8"), original)
 
 
 if __name__ == "__main__":

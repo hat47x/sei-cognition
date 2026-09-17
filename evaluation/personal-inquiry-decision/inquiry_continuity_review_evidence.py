@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -132,10 +133,18 @@ def build_evidence_bundle(
 
 
 def save_bundle(path: str | Path, bundle: dict[str, Any]) -> None:
-    Path(path).write_text(
-        json.dumps(bundle, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    """Persist one completed review bundle without replacing prior Evidence."""
+    target = Path(path)
+    payload = json.dumps(bundle, ensure_ascii=False, indent=2) + "\n"
+    try:
+        with target.open("x", encoding="utf-8") as handle:
+            handle.write(payload)
+            handle.flush()
+            os.fsync(handle.fileno())
+    except FileExistsError as exc:
+        raise InquiryEvidenceBundleError(
+            f"refusing to overwrite existing evidence bundle: {target}"
+        ) from exc
 
 
 def build_parser() -> argparse.ArgumentParser:
