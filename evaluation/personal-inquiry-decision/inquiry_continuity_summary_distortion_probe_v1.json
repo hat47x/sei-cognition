@@ -4,8 +4,16 @@
   "issue": "ISSUE-000078",
   "probe_id": "e78-summary-distortion-v1",
   "purpose": [
-    "E78.3: AI summaryがObservation / Hypothesis / Unknownの境界を崩したとき、人間が発見・修正・却下できるかを観察する",
+    "E78.3: AI summary / next-question suggestionがObservation / Hypothesis / Unknownの境界を崩したとき、人間が発見・修正・却下できるかを観察する",
     "later informationをinitial contextへ混ぜるFalse Continuityを、単なる要約品質とは分けて観察する"
+  ],
+  "presentation_rules": [
+    "同じreaderがE78.2のmatched comparisonも行う場合、このprobeはmatched review完了後に提示する。歪んだsummary / next-question suggestionを先に見せてclean comparisonを汚染しない。",
+    "別readerで実施する場合も、対象fixtureのreview materialを読んだhuman responseを先に固定してからaudit materialを開く。",
+    "provisional AI summary / next-question suggestionは意図的に誤りを含むevaluation stimulusであり、canonical meaning、Evidence report、Recommendation、Decisionへ自動昇格させない。",
+    "human responseを固定するまでdistortion_key、reference_state、post-interruption audit materialを提示しない。",
+    "流暢に修正できたことだけをInquiry Continuity成立の証明としない。検出できなかった歪みも反証Evidenceとして残す。",
+    "actual human reviewが行われるまではDesign / Executable Evidenceを超えて扱わない。"
   ],
   "semantic_stopline": {
     "distorted_summary_is_canonical": false,
@@ -20,12 +28,13 @@
       "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_001.json",
       "blob_sha1": "52335589c72ab3548a29053a0acd4c287fbee85d",
       "distorted_summary": "夜間バッチ遅延は外部APIの遅さが主因と考えられる。4月8日のrate-limit設定変更もこの見方を裏づけている。DBは正常であり、次はAPI providerへの対策を優先して検討する。",
+      "distorted_next_question": "worker poolを圧迫した同時実行jobを特定し、worker割当をどう変更するか検討しますか。",
       "distortion_key": [
         {"kind": "hypothesis_to_certainty", "detail": "一部slow runで見えたAPI遅延を主因へ確定している"},
         {"kind": "alternate_hypothesis_omission", "detail": "queue wait / worker競合と複数要因仮説を落としている"},
         {"kind": "temporal_backfill", "detail": "phase_1より後の4月8日rate-limit変更を当初の遅延説明へ混ぜている"},
         {"kind": "overgeneralization", "detail": "限定標本のDB p95からDB全体を正常と断定している"},
-        {"kind": "premature_next_action", "detail": "比較観測より先にAPI対策を優先している"}
+        {"kind": "premature_next_action", "detail": "比較観測より先に特定対策へ探索を収束させている"}
       ]
     },
     {
@@ -33,6 +42,7 @@
       "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_002.json",
       "blob_sha1": "0c3f7caac753e1642e3ff3e8e40425bd7b0e0976",
       "distorted_summary": "問い合わせ一次回答の遅れはroutingの問題でほぼ説明できる。5月10日のrouting rule変更からもroutingが原因だったことが分かる。担当者数や問い合わせカテゴリの影響は小さいため、routing待ちの改善を次の施策とする。",
+      "distorted_next_question": "遅延を生んだrouting ruleのどの条件を修正すべきか確認しますか。",
       "distortion_key": [
         {"kind": "hypothesis_to_certainty", "detail": "一部遅延日のrouting待ちを全体原因へ確定している"},
         {"kind": "alternate_hypothesis_omission", "detail": "人員不足、カテゴリ複雑化、複数要因仮説を実質的に閉じている"},
@@ -46,21 +56,22 @@
       "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_003.json",
       "blob_sha1": "645519e1a502e844ca640ab0d61dfa438a46e8d2",
       "distorted_summary": "CSV取込の重複は上流CSV生成側の重複が原因だった。6月7日のCSV生成方式変更は、この問題への修正とみなせる。retryや手動再実行の可能性は低いため、上流側の再発防止確認を中心に進める。",
+      "distorted_next_question": "retryと手動再実行を冪等化し、上流CSVの重複も弾く二重対策へ進みますか。",
       "distortion_key": [
         {"kind": "hypothesis_to_certainty", "detail": "上流重複の可能性を確定原因へ変えている"},
         {"kind": "alternate_hypothesis_omission", "detail": "retry、手動再実行、複数経路の可能性を閉じている"},
         {"kind": "temporal_backfill", "detail": "phase_1の重複発生日より後の6月7日変更を過去事象の修正根拠へ混ぜている"},
         {"kind": "unsupported_dismissal", "detail": "対象範囲が不完全なままretry / manual rerunを低可能性としている"},
-        {"kind": "premature_next_action", "detail": "発生日ごとの経路比較より上流対策へ先に収束している"}
+        {"kind": "premature_next_action", "detail": "発生日ごとの経路比較より対策へ先に収束している"}
       ]
     }
   ],
   "review_questions": [
-    {"id": "D1", "prompt": "このAI summaryのうち、元の記録からそのまま支持できない箇所を挙げてください。"},
+    {"id": "D1", "prompt": "このAI summary / next-question suggestionのうち、元の記録からそのまま支持できない箇所を挙げてください。"},
     {"id": "D2", "prompt": "Observation、Hypothesis、Unknownの境界が変わっている箇所があれば説明してください。"},
     {"id": "D3", "prompt": "中断後に初めて得た情報が、当初から分かっていた情報のように混ざっていないか確認してください。"},
     {"id": "D4", "prompt": "落とされたalternate hypothesisまたはUnknownがあれば挙げてください。"},
-    {"id": "D5", "prompt": "このsummaryを採用・部分修正・却下のどれとして扱うか、その理由を記録してください。"},
+    {"id": "D5", "prompt": "このsummary / next-question suggestionを採用・部分修正・却下のどれとして扱うか、その理由を記録してください。"},
     {"id": "D6", "prompt": "修正後も追加sourceを開かないと判断できない点があれば明示してください。"}
   ],
   "audit_dimensions": [
@@ -71,6 +82,13 @@
     "premature_action_detection",
     "correction_burden",
     "summary_authority_rejection"
+  ],
+  "interpretation_stoplines": [
+    "検出できたdistortionの数を単一scoreへ集約しない。",
+    "文章が読みやすい／不快という印象をsemantic correctnessの代理にしない。",
+    "correctionできたことをSEI固有価値と直ちにみなさず、raw chat / note上でも同程度に修正できる可能性を残す。",
+    "AI suggestionを見た後の回答を、suggestion提示前のclean resumption Evidenceへ混ぜない。",
+    "human review未実施の段階ではProduct Value結論へ進まない。"
   ],
   "evidence_boundary": {
     "current": "design-fixture-only",

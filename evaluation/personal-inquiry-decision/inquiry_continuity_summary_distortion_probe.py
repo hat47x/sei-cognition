@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Build stage-gated ISSUE-000078 E78.3 AI-summary-distortion packets.
+"""Build the canonical stage-gated ISSUE-000078 E78.3 distortion packets.
 
-The distorted summary is deliberately provisional evaluation material. The source
-fixture remains authoritative for the historical comparison; neither a distorted
-summary nor a human correction mutates canonical Inquiry meaning.
+The provisional AI summary and next-question suggestion are deliberately fallible
+evaluation material. Source fixtures remain authoritative for historical
+comparison; neither the stimulus nor a human correction mutates canonical Inquiry
+meaning. This module is the single maintained E78.3 probe path.
 """
 from __future__ import annotations
 
@@ -16,7 +17,11 @@ from typing import Any
 SCHEMA = "sei.inquiry-continuity-summary-distortion-probe/v0"
 FIXTURE_SCHEMA = "sei.inquiry-continuity-comparison-fixture/v0"
 PACKET_SCHEMA = "sei.inquiry-continuity-summary-distortion-packet/v0"
-REQUIRED_KINDS = {"hypothesis_to_certainty", "alternate_hypothesis_omission", "temporal_backfill"}
+REQUIRED_KINDS = {
+    "hypothesis_to_certainty",
+    "alternate_hypothesis_omission",
+    "temporal_backfill",
+}
 
 
 class SummaryDistortionProbeError(ValueError):
@@ -47,17 +52,44 @@ def response_sha256(path: str | Path) -> str:
     try:
         value = json.loads(raw.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise SummaryDistortionProbeError("human response must be valid UTF-8 JSON") from exc
+        raise SummaryDistortionProbeError(
+            "human response must be valid UTF-8 JSON"
+        ) from exc
     if not isinstance(value, dict) or not value:
-        raise SummaryDistortionProbeError("human response must be a non-empty object")
+        raise SummaryDistortionProbeError(
+            "human response must be a non-empty object"
+        )
     return hashlib.sha256(raw).hexdigest()
+
+
+def _validate_string_list(value: Any, label: str) -> None:
+    if (
+        not isinstance(value, list)
+        or not value
+        or any(not isinstance(item, str) or not item.strip() for item in value)
+    ):
+        raise SummaryDistortionProbeError(
+            f"{label} must be a non-empty list of non-empty strings"
+        )
 
 
 def validate_probe(probe: dict[str, Any]) -> None:
     if probe.get("schema") != SCHEMA:
         raise SummaryDistortionProbeError(f"schema must be {SCHEMA}")
-    if probe.get("status") != "evaluation-only" or probe.get("issue") != "ISSUE-000078":
-        raise SummaryDistortionProbeError("probe must remain evaluation-only for ISSUE-000078")
+    if (
+        probe.get("status") != "evaluation-only"
+        or probe.get("issue") != "ISSUE-000078"
+    ):
+        raise SummaryDistortionProbeError(
+            "probe must remain evaluation-only for ISSUE-000078"
+        )
+
+    _validate_string_list(probe.get("presentation_rules"), "presentation_rules")
+    _validate_string_list(
+        probe.get("interpretation_stoplines"),
+        "interpretation_stoplines",
+    )
+
     stop = probe.get("semantic_stopline")
     expected_false = (
         "distorted_summary_is_canonical",
@@ -66,20 +98,35 @@ def validate_probe(probe: dict[str, Any]) -> None:
         "overall_score_or_winner_allowed",
         "stable_requirement_change_authorized",
     )
-    if not isinstance(stop, dict) or any(stop.get(key) is not False for key in expected_false):
+    if not isinstance(stop, dict) or any(
+        stop.get(key) is not False for key in expected_false
+    ):
         raise SummaryDistortionProbeError("semantic stopline is incomplete")
 
     cases = probe.get("cases")
     if not isinstance(cases, list) or len(cases) != 3:
-        raise SummaryDistortionProbeError("exactly three distortion cases are required")
+        raise SummaryDistortionProbeError(
+            "exactly three distortion cases are required"
+        )
     ids: list[str] = []
     for case in cases:
         if not isinstance(case, dict):
             raise SummaryDistortionProbeError("case must be an object")
-        for key in ("fixture_id", "path", "blob_sha1", "distorted_summary", "distortion_key"):
+        for key in (
+            "fixture_id",
+            "path",
+            "blob_sha1",
+            "distorted_summary",
+            "distorted_next_question",
+            "distortion_key",
+        ):
             if not case.get(key):
                 raise SummaryDistortionProbeError(f"case missing {key}")
-        kinds = {item.get("kind") for item in case["distortion_key"] if isinstance(item, dict)}
+        kinds = {
+            item.get("kind")
+            for item in case["distortion_key"]
+            if isinstance(item, dict)
+        }
         if not REQUIRED_KINDS.issubset(kinds):
             raise SummaryDistortionProbeError(
                 f"{case['fixture_id']} must cover certainty, omission, and temporal backfill"
@@ -87,6 +134,7 @@ def validate_probe(probe: dict[str, Any]) -> None:
         ids.append(case["fixture_id"])
     if len(ids) != len(set(ids)):
         raise SummaryDistortionProbeError("fixture ids must be unique")
+
     questions = probe.get("review_questions")
     if not isinstance(questions, list) or len(questions) < 5:
         raise SummaryDistortionProbeError("review questions are incomplete")
@@ -94,7 +142,10 @@ def validate_probe(probe: dict[str, Any]) -> None:
         raise SummaryDistortionProbeError("audit dimensions are required")
 
 
-def load_sources(probe: dict[str, Any], repo_root: str | Path) -> dict[str, dict[str, Any]]:
+def load_sources(
+    probe: dict[str, Any],
+    repo_root: str | Path,
+) -> dict[str, dict[str, Any]]:
     validate_probe(probe)
     root = Path(repo_root)
     result: dict[str, dict[str, Any]] = {}
@@ -103,18 +154,29 @@ def load_sources(probe: dict[str, Any], repo_root: str | Path) -> dict[str, dict
         try:
             raw = path.read_bytes()
         except OSError as exc:
-            raise SummaryDistortionProbeError(f"cannot load source fixture: {path}") from exc
+            raise SummaryDistortionProbeError(
+                f"cannot load source fixture: {path}"
+            ) from exc
         if git_blob_sha1(raw) != case["blob_sha1"]:
             raise SummaryDistortionProbeError(
                 f"source fixture changed after probe design: {case['fixture_id']}"
             )
         fixture = load_json(path)
-        if fixture.get("schema") != FIXTURE_SCHEMA or fixture.get("status") != "evaluation-only":
-            raise SummaryDistortionProbeError(f"invalid source fixture: {case['fixture_id']}")
+        if (
+            fixture.get("schema") != FIXTURE_SCHEMA
+            or fixture.get("status") != "evaluation-only"
+        ):
+            raise SummaryDistortionProbeError(
+                f"invalid source fixture: {case['fixture_id']}"
+            )
         if fixture.get("fixture_id") != case["fixture_id"]:
-            raise SummaryDistortionProbeError(f"fixture id mismatch: {case['fixture_id']}")
+            raise SummaryDistortionProbeError(
+                f"fixture id mismatch: {case['fixture_id']}"
+            )
         if fixture.get("scenario", {}).get("decision_present") is not False:
-            raise SummaryDistortionProbeError("E78.3 source fixture must remain Decisionless")
+            raise SummaryDistortionProbeError(
+                "E78.3 source fixture must remain Decisionless"
+            )
         result[case["fixture_id"]] = fixture
     return result
 
@@ -127,10 +189,14 @@ def _case(probe: dict[str, Any], fixture_id: str) -> dict[str, Any]:
 
 
 def build_review_packet(
-    probe: dict[str, Any], fixtures: dict[str, dict[str, Any]], fixture_id: str
+    probe: dict[str, Any],
+    fixtures: dict[str, dict[str, Any]],
+    fixture_id: str,
 ) -> dict[str, Any]:
     case, fixture = _case(probe, fixture_id), fixtures[fixture_id]
-    orientation = fixture["conditions"]["C_sei_resume"]["surface_text"]["orientation"]
+    orientation = fixture["conditions"]["C_sei_resume"]["surface_text"][
+        "orientation"
+    ]
     return {
         "schema": PACKET_SCHEMA,
         "status": "evaluation-only",
@@ -139,14 +205,23 @@ def build_review_packet(
         "stage": "review",
         "canonical_orientation": orientation,
         "provisional_ai_summary": case["distorted_summary"],
-        "summary_provenance": "deliberately fallible evaluation-only AI summary; not canonical meaning",
+        "provisional_ai_next_question": case["distorted_next_question"],
+        "ai_stimulus_provenance": (
+            "deliberately fallible evaluation-only AI summary / next-question "
+            "suggestion; not canonical meaning"
+        ),
         "questions": probe["review_questions"],
+        "presentation_rules": probe["presentation_rules"],
+        "interpretation_stoplines": probe["interpretation_stoplines"],
         "semantic_stopline": probe["semantic_stopline"],
     }
 
 
 def build_audit_packet(
-    probe: dict[str, Any], fixtures: dict[str, dict[str, Any]], fixture_id: str, response: str | Path
+    probe: dict[str, Any],
+    fixtures: dict[str, dict[str, Any]],
+    fixture_id: str,
+    response: str | Path,
 ) -> dict[str, Any]:
     fixed = response_sha256(response)
     case, fixture = _case(probe, fixture_id), fixtures[fixture_id]
@@ -159,15 +234,20 @@ def build_audit_packet(
         "fixed_human_response_sha256": fixed,
         "distortion_key": case["distortion_key"],
         "reference_state": fixture["reference_state"],
-        "post_interruption_evidence": fixture["scenario"]["post_interruption_evidence"],
+        "post_interruption_evidence": fixture["scenario"][
+            "post_interruption_evidence"
+        ],
         "audit_dimensions": probe["audit_dimensions"],
         "evidence_boundary": probe["evidence_boundary"],
+        "interpretation_stoplines": probe["interpretation_stoplines"],
         "semantic_stopline": probe["semantic_stopline"],
     }
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Build ISSUE-000078 E78.3 summary-distortion packets")
+    parser = argparse.ArgumentParser(
+        description="Build canonical ISSUE-000078 E78.3 summary-distortion packets"
+    )
     parser.add_argument("--probe", required=True)
     parser.add_argument("--repo-root", default=".")
     parser.add_argument("--fixture-id")
@@ -184,16 +264,29 @@ def main(argv: list[str] | None = None) -> int:
     probe = load_json(args.probe)
     fixtures = load_sources(probe, args.repo_root)
     if args.command == "validate":
-        result = {"valid": True, "probe_id": probe["probe_id"], "cases": len(fixtures)}
+        result = {
+            "valid": True,
+            "probe_id": probe["probe_id"],
+            "cases": len(fixtures),
+        }
     else:
         if not args.fixture_id:
-            raise SummaryDistortionProbeError("--fixture-id is required for review/audit")
+            raise SummaryDistortionProbeError(
+                "--fixture-id is required for review/audit"
+            )
         if args.fixture_id not in fixtures:
-            raise SummaryDistortionProbeError(f"unknown fixture: {args.fixture_id}")
+            raise SummaryDistortionProbeError(
+                f"unknown fixture: {args.fixture_id}"
+            )
         if args.command == "review":
             result = build_review_packet(probe, fixtures, args.fixture_id)
         elif args.command == "audit":
-            result = build_audit_packet(probe, fixtures, args.fixture_id, args.response)
+            result = build_audit_packet(
+                probe,
+                fixtures,
+                args.fixture_id,
+                args.response,
+            )
         else:
             raise AssertionError(f"unhandled command: {args.command}")
     print(json.dumps(result, ensure_ascii=False, indent=2))

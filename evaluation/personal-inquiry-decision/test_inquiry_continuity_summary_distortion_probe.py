@@ -31,7 +31,9 @@ class SummaryDistortionProbeTest(unittest.TestCase):
             "fixture_id": self.fixture_id,
             "scenario": {
                 "decision_present": False,
-                "post_interruption_evidence": [{"role": "observation", "text": "later"}],
+                "post_interruption_evidence": [
+                    {"role": "observation", "text": "later"}
+                ],
             },
             "conditions": {
                 "C_sei_resume": {
@@ -54,6 +56,10 @@ class SummaryDistortionProbeTest(unittest.TestCase):
             "status": "evaluation-only",
             "issue": "ISSUE-000078",
             "probe_id": "test-probe",
+            "presentation_rules": [
+                "matched review first when the same reader is used",
+                "fix the human response before audit material is revealed",
+            ],
             "semantic_stopline": {
                 "distorted_summary_is_canonical": False,
                 "ai_summary_may_overwrite_source": False,
@@ -67,6 +73,7 @@ class SummaryDistortionProbeTest(unittest.TestCase):
                     "path": "fixture.json",
                     "blob_sha1": git_blob_sha1(raw),
                     "distorted_summary": "wrong summary",
+                    "distorted_next_question": "wrong next question?",
                     "distortion_key": [
                         {"kind": "hypothesis_to_certainty", "detail": "x"},
                         {"kind": "alternate_hypothesis_omission", "detail": "x"},
@@ -78,6 +85,7 @@ class SummaryDistortionProbeTest(unittest.TestCase):
                     "path": "fixture.json",
                     "blob_sha1": git_blob_sha1(raw),
                     "distorted_summary": "wrong summary 2",
+                    "distorted_next_question": "wrong next question 2?",
                     "distortion_key": [
                         {"kind": "hypothesis_to_certainty", "detail": "x"},
                         {"kind": "alternate_hypothesis_omission", "detail": "x"},
@@ -89,6 +97,7 @@ class SummaryDistortionProbeTest(unittest.TestCase):
                     "path": "fixture.json",
                     "blob_sha1": git_blob_sha1(raw),
                     "distorted_summary": "wrong summary 3",
+                    "distorted_next_question": "wrong next question 3?",
                     "distortion_key": [
                         {"kind": "hypothesis_to_certainty", "detail": "x"},
                         {"kind": "alternate_hypothesis_omission", "detail": "x"},
@@ -96,8 +105,14 @@ class SummaryDistortionProbeTest(unittest.TestCase):
                     ],
                 },
             ],
-            "review_questions": [{"id": f"D{i}", "prompt": "q"} for i in range(1, 6)],
+            "review_questions": [
+                {"id": f"D{i}", "prompt": "q"} for i in range(1, 6)
+            ],
             "audit_dimensions": ["temporal_backfill_detection"],
+            "interpretation_stoplines": [
+                "do not collapse detections into one score",
+                "human review is not yet Product Value evidence",
+            ],
             "evidence_boundary": {"human_review": "not-yet-observed"},
         }
 
@@ -106,8 +121,22 @@ class SummaryDistortionProbeTest(unittest.TestCase):
 
     def test_probe_requires_three_core_distortion_types(self):
         validate_probe(self.probe)
-        kinds = {item["kind"] for item in self.probe["cases"][0]["distortion_key"]}
+        kinds = {
+            item["kind"]
+            for item in self.probe["cases"][0]["distortion_key"]
+        }
         self.assertTrue(REQUIRED_KINDS.issubset(kinds))
+
+    def test_probe_requires_next_question_and_presentation_rules(self):
+        no_question = copy.deepcopy(self.probe)
+        del no_question["cases"][0]["distorted_next_question"]
+        with self.assertRaises(SummaryDistortionProbeError):
+            validate_probe(no_question)
+
+        no_rules = copy.deepcopy(self.probe)
+        no_rules["presentation_rules"] = []
+        with self.assertRaises(SummaryDistortionProbeError):
+            validate_probe(no_rules)
 
     def test_semantic_stopline_cannot_make_summary_canonical(self):
         bad = copy.deepcopy(self.probe)
@@ -119,30 +148,54 @@ class SummaryDistortionProbeTest(unittest.TestCase):
         single = copy.deepcopy(self.probe)
         for idx, case in enumerate(single["cases"]):
             case["fixture_id"] = f"x{idx}"
-        # Validation is independent from source loading; changed bytes must fail before use.
         self.fixture_path.write_text("{}", encoding="utf-8")
         with self.assertRaises(SummaryDistortionProbeError):
             load_sources(single, self.root)
 
-    def test_review_packet_hides_audit_key_and_later_evidence(self):
-        fixture = json.loads(self.fixture_path.read_text(encoding="utf-8"))
-        packet = build_review_packet(self.probe, {self.fixture_id: fixture}, self.fixture_id)
+    def test_review_packet_exposes_stimulus_but_hides_audit_material(self):
+        fixture = json.loads(
+            self.fixture_path.read_text(encoding="utf-8")
+        )
+        packet = build_review_packet(
+            self.probe,
+            {self.fixture_id: fixture},
+            self.fixture_id,
+        )
         self.assertEqual(packet["stage"], "review")
         self.assertIn("canonical_orientation", packet)
         self.assertIn("provisional_ai_summary", packet)
+        self.assertIn("provisional_ai_next_question", packet)
+        self.assertEqual(
+            packet["presentation_rules"],
+            self.probe["presentation_rules"],
+        )
+        self.assertIn("interpretation_stoplines", packet)
         self.assertNotIn("distortion_key", packet)
         self.assertNotIn("reference_state", packet)
         self.assertNotIn("post_interruption_evidence", packet)
 
     def test_audit_requires_fixed_nonempty_human_response(self):
-        fixture = json.loads(self.fixture_path.read_text(encoding="utf-8"))
+        fixture = json.loads(
+            self.fixture_path.read_text(encoding="utf-8")
+        )
         response = self.root / "response.json"
         response.write_text("{}", encoding="utf-8")
         with self.assertRaises(SummaryDistortionProbeError):
-            build_audit_packet(self.probe, {self.fixture_id: fixture}, self.fixture_id, response)
-        response.write_text(json.dumps({"answers": ["human"]}), encoding="utf-8")
+            build_audit_packet(
+                self.probe,
+                {self.fixture_id: fixture},
+                self.fixture_id,
+                response,
+            )
+        response.write_text(
+            json.dumps({"answers": ["human"]}),
+            encoding="utf-8",
+        )
         packet = build_audit_packet(
-            self.probe, {self.fixture_id: fixture}, self.fixture_id, response
+            self.probe,
+            {self.fixture_id: fixture},
+            self.fixture_id,
+            response,
         )
         self.assertEqual(packet["stage"], "audit")
         self.assertEqual(
@@ -151,6 +204,7 @@ class SummaryDistortionProbeTest(unittest.TestCase):
         )
         self.assertIn("distortion_key", packet)
         self.assertIn("reference_state", packet)
+        self.assertIn("interpretation_stoplines", packet)
 
     def test_response_hash_rejects_non_object(self):
         response = self.root / "response.json"
