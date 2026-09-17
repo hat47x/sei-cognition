@@ -330,28 +330,52 @@ E78.3の正規経路は、`inquiry_continuity_summary_distortion_probe_v1.json`�
 
 同一reviewerがE78.2 / E78.4 / E78.5のmatched reviewにも参加する場合は、**matched reviewを先に完了・固定してからE78.3を提示する**。意図的に歪めたsummaryやnext questionを先に見せると、その後のbase comparisonへ学習・期待・語彙を持ち込み、cleanな比較条件を汚染するためである。別reviewerを使う場合でも、元sourceに対する初期回答を固定する前に歪んだsuggestionを見せない。
 
-repo rootからの基本経路は次である。
+repo rootからの正規経路は次である。
 
 ```text
 PROBE=evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe.py
 PROBE_SET=evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe_v1.json
+EVIDENCE_TOOL=evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_evidence.py
+RESPONSE=<checkout外または意図的に管理するhuman-response.json>
+AUDIT_RESPONSE=<checkout外または意図的に管理するsemantic-audit-response.json>
+EVIDENCE=<checkout外または意図的に管理するe78-3-evidence.json>
 
 python3 "$PROBE" --probe "$PROBE_SET" --repo-root . validate
 
 python3 "$PROBE" --probe "$PROBE_SET" --repo-root . \
   --fixture-id <fixture-id> review > <review-packet.json>
 
-# reviewerがreview packetを読み、自身の回答を固定する。
+# review packetのresponse_templateを起点にhuman responseを作成する。
+# answers、opaque reviewer id、prior exposure、human-direct / human-transcribed、
+# review burden等を埋め、audit materialを開く前にRESPONSEを固定する。
 python3 "$PROBE" --probe "$PROBE_SET" --repo-root . \
   --fixture-id <fixture-id> audit \
-  --response <human-response.json> > <audit-packet.json>
+  --response "$RESPONSE" > <audit-packet.json>
+
+# audit-packetでreference materialを開いた後にだけsemantic auditを作る。
+# audit-templateは固定済みRESPONSEのSHA-256へ結びつく。
+python3 "$EVIDENCE_TOOL" --probe "$PROBE_SET" --repo-root . \
+  --fixture-id <fixture-id> audit-template \
+  --response "$RESPONSE" > "$AUDIT_RESPONSE"
+
+# AUDIT_RESPONSEのfindings、opaque auditor id、human authorship、completed_at等を
+# post-revealに記録してからEvidenceをexportする。
+python3 "$EVIDENCE_TOOL" --probe "$PROBE_SET" --repo-root . \
+  --fixture-id <fixture-id> export-evidence \
+  --response "$RESPONSE" \
+  --audit-response "$AUDIT_RESPONSE" \
+  --output "$EVIDENCE"
 ```
 
-review packetに含まれる`provisional_ai_summary`と`provisional_next_question`は、意図的に誤りを含む**evaluation-only stimulus**であり、canonical Question / Observation / Unknown / Hypothesis、Recommendation、Decision、Evidence reportへ自動昇格させない。audit packetがhuman responseのSHA-256を固定していることも、その回答が実際にhuman-generatedであることや、Inquiry ContinuityのProduct Valueが成立したことを単独では証明しない。
+review packetに含まれる`provisional_ai_summary`と`provisional_ai_next_question`は、意図的に誤りを含む**evaluation-only stimulus**であり、canonical Question / Observation / Unknown / Hypothesis、Recommendation、Decision、Evidence reportへ自動昇格させない。
+
+`audit`はhuman responseのSHA-256を固定してからreference materialを開く。`audit-template`以後に記録するsemantic auditは、**post-revealなoperator / auditor Evidence**であり、開示前のhuman responseへ混ぜ戻さない。Evidence exporterはhuman review observation、review provenance、semantic auditを別layerとして保存し、existing Evidence outputの上書きを拒否する。
+
+reviewer / auditorのopaque id、prior exposure、response authorship等は評価上の申告metadataであり、それだけで盲検やhuman authorshipを独立に証明するものではない。`human-direct` / `human-transcribed`以外をhuman reviewとして受理しないが、その機械検証自体をHuman Evidenceと読み替えない。
 
 歪みを流暢に修正できたことだけをSEI固有価値の証明にせず、検出できなかった歪みも反証Evidenceとして残す。検出数を単一scoreへ畳まず、raw chat / noteでも同程度に訂正できる可能性を比較対象として維持する。
 
-probeとfocused testが存在することは、利用者が実際に誤りを発見・修正・却下できたEvidenceではない。E78.3のhuman correction / rejection Evidenceは**Not Yet Observed**とする。
+probe、Evidence exporter、focused testが存在することは、利用者が実際に誤りを発見・修正・却下できたEvidenceではない。E78.3のhuman correction / rejection Evidenceは**Not Yet Observed**とする。
 
 ### E78.6 — Quiet vs proactive assistance
 
@@ -511,5 +535,7 @@ Decision Continuityとの違いを明確にしつつ、最終的にはDecision C
 2026-09-17の同期では、human review runnerを実行の正規入口として固定し、reviewerの事前露出とresponse authorshipをsession開始時に保存する経路、stage gate、complete sessionだけを受理するEvidence exportを本文へ接続した。`none-declared`は盲検の客観的証明ではなく申告に基づくclean blinded candidateに留め、known / unknown exposureも隠さずpilot observationとして保持する。
 
 さらにE78.3について、重複していたdistortion probeを`inquiry_continuity_summary_distortion_*`へ一本化し、source fixture固定、review→auditの開示順、歪んだsummary / next questionによるmatched comparison汚染の防止、human response固定後のauditという一続きの実行経路へ整理した。これは評価手順の明確化であり、human correction EvidenceやProduct Valueを新たに成立させる変更ではない。
+
+同日の追加同期では、E78.3のpost-reveal semantic auditとdurable Evidence exportまで正規経路へ接続した。固定済みhuman responseとsemantic auditをSHA-256で結びつけながら別Evidence layerとして保存し、既存Evidenceを上書きしない。reviewer / auditor provenanceは申告metadataに留め、actual human correction / rejection、clean resumption、SEI固有のProduct Valueを未観測のまま保持した。
 
 意味、仮説強度、未検証範囲を固定した後、**自然な日本語として背景・failure・実験・停止線が連続して読めることを最重要視して全文を再読し、Design / Executable scaffoldとHuman / Outcome Evidenceを混同していないことを最終監査済み**とする。
