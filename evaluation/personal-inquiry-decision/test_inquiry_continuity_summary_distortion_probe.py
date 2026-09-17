@@ -9,12 +9,15 @@ from pathlib import Path
 
 from inquiry_continuity_summary_distortion_probe import (
     REQUIRED_KINDS,
+    RESPONSE_SCHEMA,
     SummaryDistortionProbeError,
     build_audit_packet,
     build_review_packet,
     git_blob_sha1,
     load_sources,
     response_sha256,
+    response_template,
+    validate_human_response,
     validate_probe,
 )
 
@@ -108,7 +111,10 @@ class SummaryDistortionProbeTest(unittest.TestCase):
             "review_questions": [
                 {"id": f"D{i}", "prompt": "q"} for i in range(1, 6)
             ],
-            "audit_dimensions": ["temporal_backfill_detection"],
+            "audit_dimensions": [
+                "temporal_backfill_detection",
+                "correction_burden",
+            ],
             "interpretation_stoplines": [
                 "do not collapse detections into one score",
                 "human review is not yet Product Value evidence",
@@ -118,6 +124,23 @@ class SummaryDistortionProbeTest(unittest.TestCase):
 
     def tearDown(self):
         self.tmp.cleanup()
+
+    def valid_response(self) -> dict:
+        response = response_template(self.probe)
+        response["answers"] = [f"answer-{i}" for i in range(1, 6)]
+        response["review_provenance"] = {
+            "reviewer_id": "reviewer-opaque-1",
+            "prior_exposure": "known-material-exposure",
+            "response_authorship": "human-direct",
+            "note": "pilot",
+        }
+        response["operator_observation"] = {
+            "review_completion_seconds": 42.5,
+            "source_reopen_count": 1,
+            "correction_burden": "medium",
+        }
+        response["notes"] = "reviewed without treating the stimulus as canonical"
+        return response
 
     def test_probe_requires_three_core_distortion_types(self):
         validate_probe(self.probe)
@@ -152,7 +175,7 @@ class SummaryDistortionProbeTest(unittest.TestCase):
         with self.assertRaises(SummaryDistortionProbeError):
             load_sources(single, self.root)
 
-    def test_review_packet_exposes_stimulus_but_hides_audit_material(self):
+    def test_review_packet_exposes_stimulus_template_but_hides_audit_material(self):
         fixture = json.loads(
             self.fixture_path.read_text(encoding="utf-8")
         )
@@ -170,16 +193,59 @@ class SummaryDistortionProbeTest(unittest.TestCase):
             self.probe["presentation_rules"],
         )
         self.assertIn("interpretation_stoplines", packet)
+        self.assertEqual(packet["response_template"]["schema"], RESPONSE_SCHEMA)
+        self.assertEqual(len(packet["response_template"]["answers"]), 5)
         self.assertNotIn("distortion_key", packet)
         self.assertNotIn("reference_state", packet)
         self.assertNotIn("post_interruption_evidence", packet)
 
-    def test_audit_requires_fixed_nonempty_human_response(self):
+    def test_response_template_is_intentionally_invalid_until_human_fields_are_filled(self):
+        template = response_template(self.probe)
+        with self.assertRaises(SummaryDistortionProbeError):
+            validate_human_response(template, self.probe)
+
+    def test_response_requires_one_nonempty_answer_per_question(self):
+        response = self.valid_response()
+        response["answers"] = response["answers"][:-1]
+        with self.assertRaises(SummaryDistortionProbeError):
+            validate_human_response(response, self.probe)
+
+        response = self.valid_response()
+        response["answers"][2] = ""
+        with self.assertRaises(SummaryDistortionProbeError):
+            validate_human_response(response, self.probe)
+
+    def test_response_requires_declared_human_provenance(self):
+        response = self.valid_response()
+        response["review_provenance"]["response_authorship"] = "ai-generated"
+        with self.assertRaises(SummaryDistortionProbeError):
+            validate_human_response(response, self.probe)
+
+        response = self.valid_response()
+        response["review_provenance"]["reviewer_id"] = ""
+        with self.assertRaises(SummaryDistortionProbeError):
+            validate_human_response(response, self.probe)
+
+    def test_response_validates_correction_burden_observations(self):
+        response = self.valid_response()
+        response["operator_observation"]["source_reopen_count"] = -1
+        with self.assertRaises(SummaryDistortionProbeError):
+            validate_human_response(response, self.probe)
+
+        response = self.valid_response()
+        response["operator_observation"]["correction_burden"] = "tiny"
+        with self.assertRaises(SummaryDistortionProbeError):
+            validate_human_response(response, self.probe)
+
+    def test_audit_requires_fixed_structured_human_response(self):
         fixture = json.loads(
             self.fixture_path.read_text(encoding="utf-8")
         )
         response = self.root / "response.json"
-        response.write_text("{}", encoding="utf-8")
+        response.write_text(
+            json.dumps({"answers": ["human"]}),
+            encoding="utf-8",
+        )
         with self.assertRaises(SummaryDistortionProbeError):
             build_audit_packet(
                 self.probe,
@@ -187,10 +253,9 @@ class SummaryDistortionProbeTest(unittest.TestCase):
                 self.fixture_id,
                 response,
             )
-        response.write_text(
-            json.dumps({"answers": ["human"]}),
-            encoding="utf-8",
-        )
+
+        value = self.valid_response()
+        response.write_text(json.dumps(value), encoding="utf-8")
         packet = build_audit_packet(
             self.probe,
             {self.fixture_id: fixture},
@@ -202,6 +267,15 @@ class SummaryDistortionProbeTest(unittest.TestCase):
             packet["fixed_human_response_sha256"],
             hashlib.sha256(response.read_bytes()).hexdigest(),
         )
+        self.assertEqual(
+            packet["review_provenance"]["reviewer_id"],
+            "reviewer-opaque-1",
+        )
+        self.assertEqual(
+            packet["operator_observation"]["correction_burden"],
+            "medium",
+        )
+        self.assertIn("not independent proof", packet["provenance_stopline"])
         self.assertIn("distortion_key", packet)
         self.assertIn("reference_state", packet)
         self.assertIn("interpretation_stoplines", packet)
@@ -210,7 +284,7 @@ class SummaryDistortionProbeTest(unittest.TestCase):
         response = self.root / "response.json"
         response.write_text("[]", encoding="utf-8")
         with self.assertRaises(SummaryDistortionProbeError):
-            response_sha256(response)
+            response_sha256(response, self.probe)
 
 
 if __name__ == "__main__":

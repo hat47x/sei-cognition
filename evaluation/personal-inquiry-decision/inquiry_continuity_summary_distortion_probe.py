@@ -17,11 +17,22 @@ from typing import Any
 SCHEMA = "sei.inquiry-continuity-summary-distortion-probe/v0"
 FIXTURE_SCHEMA = "sei.inquiry-continuity-comparison-fixture/v0"
 PACKET_SCHEMA = "sei.inquiry-continuity-summary-distortion-packet/v0"
+RESPONSE_SCHEMA = "sei.inquiry-continuity-summary-distortion-response/v0"
 REQUIRED_KINDS = {
     "hypothesis_to_certainty",
     "alternate_hypothesis_omission",
     "temporal_backfill",
 }
+PRIOR_EXPOSURE_VALUES = {
+    "none-declared",
+    "known-material-exposure",
+    "unknown",
+}
+RESPONSE_AUTHORSHIP_VALUES = {
+    "human-direct",
+    "human-transcribed",
+}
+BURDEN_VALUES = {"low", "medium", "high", "not-observed"}
 
 
 class SummaryDistortionProbeError(ValueError):
@@ -42,26 +53,6 @@ def git_blob_sha1(raw: bytes) -> str:
     return hashlib.sha1(f"blob {len(raw)}\0".encode("ascii") + raw).hexdigest()
 
 
-def response_sha256(path: str | Path) -> str:
-    try:
-        raw = Path(path).read_bytes()
-    except OSError as exc:
-        raise SummaryDistortionProbeError(f"cannot load response: {path}") from exc
-    if not raw.strip():
-        raise SummaryDistortionProbeError("human response must not be empty")
-    try:
-        value = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise SummaryDistortionProbeError(
-            "human response must be valid UTF-8 JSON"
-        ) from exc
-    if not isinstance(value, dict) or not value:
-        raise SummaryDistortionProbeError(
-            "human response must be a non-empty object"
-        )
-    return hashlib.sha256(raw).hexdigest()
-
-
 def _validate_string_list(value: Any, label: str) -> None:
     if (
         not isinstance(value, list)
@@ -71,6 +62,24 @@ def _validate_string_list(value: Any, label: str) -> None:
         raise SummaryDistortionProbeError(
             f"{label} must be a non-empty list of non-empty strings"
         )
+
+
+def _validate_questions(value: Any) -> None:
+    if not isinstance(value, list) or len(value) < 5:
+        raise SummaryDistortionProbeError("review questions are incomplete")
+    ids: list[str] = []
+    for question in value:
+        if not isinstance(question, dict):
+            raise SummaryDistortionProbeError("review question must be an object")
+        qid = question.get("id")
+        prompt = question.get("prompt")
+        if not isinstance(qid, str) or not qid.strip():
+            raise SummaryDistortionProbeError("review question id must be non-empty")
+        if not isinstance(prompt, str) or not prompt.strip():
+            raise SummaryDistortionProbeError("review question prompt must be non-empty")
+        ids.append(qid)
+    if len(ids) != len(set(ids)):
+        raise SummaryDistortionProbeError("review question ids must be unique")
 
 
 def validate_probe(probe: dict[str, Any]) -> None:
@@ -135,9 +144,7 @@ def validate_probe(probe: dict[str, Any]) -> None:
     if len(ids) != len(set(ids)):
         raise SummaryDistortionProbeError("fixture ids must be unique")
 
-    questions = probe.get("review_questions")
-    if not isinstance(questions, list) or len(questions) < 5:
-        raise SummaryDistortionProbeError("review questions are incomplete")
+    _validate_questions(probe.get("review_questions"))
     if not probe.get("audit_dimensions"):
         raise SummaryDistortionProbeError("audit dimensions are required")
 
@@ -188,6 +195,153 @@ def _case(probe: dict[str, Any], fixture_id: str) -> dict[str, Any]:
     raise SummaryDistortionProbeError(f"unknown fixture: {fixture_id}")
 
 
+def response_template(probe: dict[str, Any]) -> dict[str, Any]:
+    """Return an intentionally incomplete human-response template."""
+    _validate_questions(probe.get("review_questions"))
+    return {
+        "schema": RESPONSE_SCHEMA,
+        "answers": ["" for _ in probe["review_questions"]],
+        "review_provenance": {
+            "reviewer_id": "",
+            "prior_exposure": "",
+            "response_authorship": "",
+            "note": "",
+        },
+        "operator_observation": {
+            "review_completion_seconds": "not-observed",
+            "source_reopen_count": "not-observed",
+            "correction_burden": "not-observed",
+        },
+        "notes": "",
+    }
+
+
+def _non_negative_number_or_not_observed(value: Any, field: str) -> None:
+    if value == "not-observed":
+        return
+    if (
+        not isinstance(value, (int, float))
+        or isinstance(value, bool)
+        or value < 0
+    ):
+        raise SummaryDistortionProbeError(
+            f"{field} must be a non-negative number or 'not-observed'"
+        )
+
+
+def _non_negative_int_or_not_observed(value: Any, field: str) -> None:
+    if value == "not-observed":
+        return
+    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+        raise SummaryDistortionProbeError(
+            f"{field} must be a non-negative integer or 'not-observed'"
+        )
+
+
+def validate_human_response(response: Any, probe: dict[str, Any]) -> None:
+    """Fail closed unless a response is structurally usable as human-review input."""
+    required = {
+        "schema",
+        "answers",
+        "review_provenance",
+        "operator_observation",
+        "notes",
+    }
+    if not isinstance(response, dict) or set(response) != required:
+        raise SummaryDistortionProbeError(
+            "human response must contain schema/answers/review_provenance/"
+            "operator_observation/notes exactly"
+        )
+    if response["schema"] != RESPONSE_SCHEMA:
+        raise SummaryDistortionProbeError(
+            f"human response schema must be {RESPONSE_SCHEMA}"
+        )
+
+    questions = probe.get("review_questions")
+    _validate_questions(questions)
+    answers = response["answers"]
+    if not isinstance(answers, list) or len(answers) != len(questions):
+        raise SummaryDistortionProbeError(
+            f"human response requires exactly one answer per question "
+            f"({len(questions)} expected)"
+        )
+    if any(not isinstance(value, str) or not value.strip() for value in answers):
+        raise SummaryDistortionProbeError(
+            "human response answers must be non-empty strings"
+        )
+
+    provenance = response["review_provenance"]
+    provenance_keys = {
+        "reviewer_id",
+        "prior_exposure",
+        "response_authorship",
+        "note",
+    }
+    if not isinstance(provenance, dict) or set(provenance) != provenance_keys:
+        raise SummaryDistortionProbeError("review_provenance has invalid shape")
+    if (
+        not isinstance(provenance["reviewer_id"], str)
+        or not provenance["reviewer_id"].strip()
+    ):
+        raise SummaryDistortionProbeError(
+            "reviewer_id must be a non-empty opaque id"
+        )
+    if provenance["prior_exposure"] not in PRIOR_EXPOSURE_VALUES:
+        raise SummaryDistortionProbeError("prior_exposure has invalid value")
+    if provenance["response_authorship"] not in RESPONSE_AUTHORSHIP_VALUES:
+        raise SummaryDistortionProbeError(
+            "response_authorship must declare human-direct or human-transcribed"
+        )
+    if not isinstance(provenance["note"], str):
+        raise SummaryDistortionProbeError("review_provenance note must be a string")
+
+    observation = response["operator_observation"]
+    observation_keys = {
+        "review_completion_seconds",
+        "source_reopen_count",
+        "correction_burden",
+    }
+    if not isinstance(observation, dict) or set(observation) != observation_keys:
+        raise SummaryDistortionProbeError("operator_observation has invalid shape")
+    _non_negative_number_or_not_observed(
+        observation["review_completion_seconds"],
+        "review_completion_seconds",
+    )
+    _non_negative_int_or_not_observed(
+        observation["source_reopen_count"],
+        "source_reopen_count",
+    )
+    if observation["correction_burden"] not in BURDEN_VALUES:
+        raise SummaryDistortionProbeError("correction_burden has invalid value")
+    if not isinstance(response["notes"], str):
+        raise SummaryDistortionProbeError("human response notes must be a string")
+
+
+def load_human_response(
+    path: str | Path,
+    probe: dict[str, Any],
+) -> tuple[dict[str, Any], bytes]:
+    try:
+        raw = Path(path).read_bytes()
+    except OSError as exc:
+        raise SummaryDistortionProbeError(f"cannot load response: {path}") from exc
+    if not raw.strip():
+        raise SummaryDistortionProbeError("human response must not be empty")
+    try:
+        value = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise SummaryDistortionProbeError(
+            "human response must be valid UTF-8 JSON"
+        ) from exc
+    validate_human_response(value, probe)
+    return value, raw
+
+
+def response_sha256(path: str | Path, probe: dict[str, Any]) -> str:
+    _, raw = load_human_response(path, probe)
+    return hashlib.sha256(raw).hexdigest()
+
+
 def build_review_packet(
     probe: dict[str, Any],
     fixtures: dict[str, dict[str, Any]],
@@ -211,6 +365,7 @@ def build_review_packet(
             "suggestion; not canonical meaning"
         ),
         "questions": probe["review_questions"],
+        "response_template": response_template(probe),
         "presentation_rules": probe["presentation_rules"],
         "interpretation_stoplines": probe["interpretation_stoplines"],
         "semantic_stopline": probe["semantic_stopline"],
@@ -223,7 +378,8 @@ def build_audit_packet(
     fixture_id: str,
     response: str | Path,
 ) -> dict[str, Any]:
-    fixed = response_sha256(response)
+    response_value, raw = load_human_response(response, probe)
+    fixed = hashlib.sha256(raw).hexdigest()
     case, fixture = _case(probe, fixture_id), fixtures[fixture_id]
     return {
         "schema": PACKET_SCHEMA,
@@ -232,6 +388,13 @@ def build_audit_packet(
         "fixture_id": fixture_id,
         "stage": "audit",
         "fixed_human_response_sha256": fixed,
+        "review_provenance": dict(response_value["review_provenance"]),
+        "operator_observation": dict(response_value["operator_observation"]),
+        "provenance_stopline": (
+            "reviewer id, prior exposure, and response authorship are declared "
+            "evaluation metadata; they are not independent proof of blinding "
+            "or human authorship"
+        ),
         "distortion_key": case["distortion_key"],
         "reference_state": fixture["reference_state"],
         "post_interruption_evidence": fixture["scenario"][
@@ -268,6 +431,7 @@ def main(argv: list[str] | None = None) -> int:
             "valid": True,
             "probe_id": probe["probe_id"],
             "cases": len(fixtures),
+            "human_response_schema": RESPONSE_SCHEMA,
         }
     else:
         if not args.fixture_id:
