@@ -5,11 +5,11 @@
 
 ## 1. この文書の役割
 
-この文書は、ISSUE-000073で進めているresume-first Product Sliceについて、Candidate Requirement監査、Stable Requirementへのformalization、E1〜E8 prototype、Evidence runner / verifier、H1 / H2 human reviewの現在位置を一つにまとめるcurrent-state文書です。
+この文書は、ISSUE-000073で進めているresume-first Product Sliceについて、Candidate Requirement監査、Stable Requirementへのformalization、E1〜E8 prototype、Evidence runner / verifier / capture、H1 / H2 human reviewの現在位置を一つにまとめるcurrent-state文書です。
 
 実行手順の詳細は、機械実行とhuman reviewで入口を分けます。
 
-- E1〜E8: 本書のrunner / verifier手順
+- E1〜E8: 本書のcapture / runner / verifier手順
 - H1 / H2: `DECISION_CONTINUITY_HUMAN_REVIEW.md`
 
 既存の`DECISION_CONTINUITY_REQUIREMENT_AUDIT_2026-09-16.md`は、formalization前に行った監査時点のDesign Evidenceとして保持します。後から得た結論でその監査記録を書き換えません。
@@ -107,7 +107,7 @@ commit T+1: Evidence JSONを保存
 Git object T + source blobsを再検証
 ```
 
-## 5. verifier self-test
+## 5. verifier / capture workflow self-test
 
 validatorについてはstdlibだけでsynthetic Git repositoryを作るself-testを追加しています。
 
@@ -131,33 +131,84 @@ tools/test_verify_issue_000073_resume_first_evidence.py
 PASS: ISSUE-000073 evidence verifier self-tests
 ```
 
-これはE1〜E8自体のGo Executable Evidenceではありません。
+また、runner → verifier → Evidence保存を一命令でfail-closedに連結するcapture入口を追加しています。
+
+```text
+tools/capture_issue_000073_resume_first_evidence.py
+```
+
+captureは次を守ります。
+
+- runnerがblocked / failならverifierへ進まず、raw診断Evidenceだけを保存する。
+- verifier failureをPASSへ昇格させない。
+- 既存Evidenceを暗黙に上書きせず、意図的な再実行では`--replace`を要求する。
+- 一時artifactをcheckout外へ置き、capture自身がrunnerのclean-tree preconditionを壊さない。
+- verified E1〜E8をH1 / H2 / Product Valueへ自動昇格しない。
+
+capture workflowのself-testも実際に実行し、PASSを確認しています。
+
+```text
+PASS: ISSUE-000073 capture workflow self-tests
+```
+
+これらのself-testはEvidence受入れ経路の検証であり、E1〜E8自体のGo Executable Evidenceではありません。
 
 ## 6. actual E1〜E8実行手順
 
-Go 1.25.xが利用可能なclean checkoutで、対象commitを固定して実行します。
-
-例:
+Go 1.25.xが利用可能なclean checkoutでは、通常はcapture入口を使います。
 
 ```text
 git status --porcelain=v1
-python tools/run_issue_000073_resume_first_evidence.py \
-  --output evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8.json
+python tools/capture_issue_000073_resume_first_evidence.py
 ```
 
-runnerが`pass`を返した後、保存前または保存後にvalidatorを実行します。
+既定では次へ保存します。
 
 ```text
+evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8.json
+evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8-verification.json
+```
+
+意図的に既存Evidenceを置き換える場合だけ`--replace`を指定します。captureが`pass`になった場合でも、tested commitはEvidence JSON内の`repository.head`で固定し、後のEvidence保存commitと混同しません。
+
+runner / verifierを個別に診断したい場合は、次を使えます。
+
+```text
+python tools/run_issue_000073_resume_first_evidence.py \
+  --output evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8.json
+
 python tools/verify_issue_000073_resume_first_evidence.py \
   evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8.json \
   --json-out evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8-verification.json
 ```
 
-Evidenceをrepositoryへ保存する場合、その保存commitによってcurrent HEADがtested HEADから進むこと自体は問題にしません。validatorはJSON内に記録されたtested HEADを再検証します。
+### 2026-09-17時点の実行環境blocker
+
+この作業セッションの実行環境では、host toolchainは次でした。
+
+```text
+go version go1.23.2 linux/amd64
+```
+
+Go自身のtoolchain自動取得でGo 1.25.0を起動できるかもactualに確認しました。
+
+```text
+GOTOOLCHAIN=go1.25.0+auto go version
+```
+
+しかし`proxy.golang.org`への名前解決 / 外向き通信が実行環境側で拒否され、Go 1.25.0 toolchainを取得できませんでした。この結果はrepository test failureではなく、**actual E1〜E8実行に必要なtoolchainを現在の実行環境で用意できないenvironment blocker**として扱います。
+
+したがって、Go 1.23.2で代替PASSを作らず、E1〜E8 actual runは引き続き**Not Yet Verified**とします。
+
+```text
+current environment cannot acquire Go 1.25.x
+  != interactionprobe FAIL
+  != E1-E8 PASS
+```
 
 ## 7. PASS後に更新してよいEvidence
 
-runnerとvalidatorがともにPASSした場合、E1〜E8については対象commitに限定したScoped Executable Evidenceとして扱えます。
+capture内のrunnerとvalidatorがともにPASSした場合、E1〜E8については対象commitに限定したScoped Executable Evidenceとして扱えます。
 
 特にE6 / E7については、REQ-0023 / SCN-0019が求める次のfailure behaviorに対するExecutable Evidence候補になります。
 
@@ -236,7 +287,9 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 | E1〜E8 test source | Available |
 | Evidence runner preflight self-test | PASS |
 | Evidence verifier self-test | PASS |
+| One-command capture workflow self-test | PASS |
 | E1〜E8 actual Go 1.25.x run | **Not Yet Verified** |
+| Current session Go 1.25.x availability | **Blocked by execution-environment DNS / network; not a repository test failure** |
 | REQ-0023 / SCN-0019 Executable Evidence | **Not Yet Verified** |
 | H1 actual human review | **Not Yet Observed** |
 | H2 counterfactual human review | **Not Yet Observed** |
@@ -251,8 +304,8 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 
 優先順位は次です。
 
-1. clean checkout + Go 1.25.xでrunnerをactual実行する。
-2. validatorでrecorded tested commit / source blobs / E1〜E8結果を再検証する。
+1. Go 1.25.xを利用できるclean checkoutで`capture_issue_000073_resume_first_evidence.py`をactual実行する。
+2. captureが保存したrunner / verification recordについて、recorded tested commit / source blobs / E1〜E8結果を確認する。
 3. actual Evidenceを保存し、REQ-0023 / SCN-0019を含むEvidence状態を再監査する。
 4. materialなpre-orientation exposureのないreal InquiryでH1 actual resumptionを実施する。
 5. H2 matched reviewをhuman readerで少なくとも一rotation実施し、completed sessionからevidence bundleをexportする。
@@ -263,10 +316,12 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 
 ## 11. Natural Japanese review
 
-2026-09-17の更新では、E1〜E8 runner / verifierの既存停止線を変えず、H1 / H2の実行入口を`DECISION_CONTINUITY_HUMAN_REVIEW.md`へ一本化しました。
+2026-09-17の更新では、E1〜E8の入口をrunner / verifierの個別手順だけでなく、fail-closedなone-command captureへ一本化しました。個別runner / verifierは診断用として残し、Evidence保存の標準経路を増やしていません。
+
+同日の実行環境確認では、host Goが1.23.2であることに加え、`GOTOOLCHAIN=go1.25.0+auto`によるGo 1.25.0取得も外向きDNS / network制限で成立しないことをactualに確認しました。このblockerをinteractionprobeのFAILとは扱わず、低いGoで代替PASSを作らない停止線を維持しています。
 
 H1は既存dogfood stateとevaluation sidecarを利用し、real Inquiryのactual resumptionだけを観測します。H1専用のschemaやsession managerは増やしていません。H2は既存matched review基盤を利用し、completed sessionのEvidence exportも既存Inquiry Continuity review runnerへ統合された経路を使います。
 
-これにより、実行準備文書からH1 / H2へ進む経路は一本化しつつ、real Inquiryとsynthetic matched review、human observationとsemantic audit、mechanicsとProduct Valueの意味差は維持しました。
+これにより、実行準備文書からmachine EvidenceとH1 / H2へ進む経路は一本化しつつ、environment blockerとrepository failure、real Inquiryとsynthetic matched review、human observationとsemantic audit、mechanicsとProduct Valueの意味差を維持しました。
 
 自然な日本語として全文を再読し、REQ-0023 / SCN-0019のDesign Evidence、E1〜E8 Executable Evidence、H1 / H2 human observation、Adoption / Outcome Evidenceの高さを混同していないことを最終監査しました。
