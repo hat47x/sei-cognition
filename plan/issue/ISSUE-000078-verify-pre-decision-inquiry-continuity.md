@@ -324,7 +324,32 @@ actual team handoff
 
 ### E78.3 — AI summary distortion
 
-certainty inflation、alternate hypothesisの脱落、later informationの遡及混入を意図的に含むevaluation-only probeを用意した。AI suggestionをcanonical factへ昇格させず、human responseを固定した後にだけaudit materialを開く境界も実装済みである。
+E78.3の正規経路は、`inquiry_continuity_summary_distortion_probe_v1.json`と`inquiry_continuity_summary_distortion_probe.py`へ一本化した。以前並存していた`inquiry_continuity_distortion_*`系は、同じexperimentに二つのoperational pathを持たせないため廃止した。
+
+正規probeは、certainty inflation、alternate hypothesisの脱落、later informationの遡及混入に加え、探索を早く収束させる`distorted_next_question`をevaluation stimulusとして保持する。各source fixtureはGit blob SHA-1で固定し、review packetではaudit key、reference state、post-interruption evidenceを開示しない。human responseを固定した後のaudit packetでのみ、それらを照合できる。
+
+同一reviewerがE78.2 / E78.4 / E78.5のmatched reviewにも参加する場合は、**matched reviewを先に完了・固定してからE78.3を提示する**。意図的に歪めたsummaryやnext questionを先に見せると、その後のbase comparisonへ学習・期待・語彙を持ち込み、cleanな比較条件を汚染するためである。別reviewerを使う場合でも、元sourceに対する初期回答を固定する前に歪んだsuggestionを見せない。
+
+repo rootからの基本経路は次である。
+
+```text
+PROBE=evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe.py
+PROBE_SET=evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe_v1.json
+
+python3 "$PROBE" --probe "$PROBE_SET" --repo-root . validate
+
+python3 "$PROBE" --probe "$PROBE_SET" --repo-root . \
+  --fixture-id <fixture-id> review > <review-packet.json>
+
+# reviewerがreview packetを読み、自身の回答を固定する。
+python3 "$PROBE" --probe "$PROBE_SET" --repo-root . \
+  --fixture-id <fixture-id> audit \
+  --response <human-response.json> > <audit-packet.json>
+```
+
+review packetに含まれる`provisional_ai_summary`と`provisional_next_question`は、意図的に誤りを含む**evaluation-only stimulus**であり、canonical Question / Observation / Unknown / Hypothesis、Recommendation、Decision、Evidence reportへ自動昇格させない。audit packetがhuman responseのSHA-256を固定していることも、その回答が実際にhuman-generatedであることや、Inquiry ContinuityのProduct Valueが成立したことを単独では証明しない。
+
+歪みを流暢に修正できたことだけをSEI固有価値の証明にせず、検出できなかった歪みも反証Evidenceとして残す。検出数を単一scoreへ畳まず、raw chat / noteでも同程度に訂正できる可能性を比較対象として維持する。
 
 probeとfocused testが存在することは、利用者が実際に誤りを発見・修正・却下できたEvidenceではない。E78.3のhuman correction / rejection Evidenceは**Not Yet Observed**とする。
 
@@ -484,5 +509,7 @@ Decision Continuityとの違いを明確にしつつ、最終的にはDecision C
 2026-09-16の実行準備同期では、各experimentについて「評価器やfixtureを実行できること」と「人間が実際に価値を得たこと」を分け、actual long-gap、actual handoff、capture burden、Product Value、Stable Requirement判断を未観測・未決定のまま保持した。また、同一Issueの継続作業を`develop/v0.2.0`へ集約するbranch運用を明記し、評価作業のためにbranch構造そのものを細分化しない方針を確認した。
 
 2026-09-17の同期では、human review runnerを実行の正規入口として固定し、reviewerの事前露出とresponse authorshipをsession開始時に保存する経路、stage gate、complete sessionだけを受理するEvidence exportを本文へ接続した。`none-declared`は盲検の客観的証明ではなく申告に基づくclean blinded candidateに留め、known / unknown exposureも隠さずpilot observationとして保持する。
+
+さらにE78.3について、重複していたdistortion probeを`inquiry_continuity_summary_distortion_*`へ一本化し、source fixture固定、review→auditの開示順、歪んだsummary / next questionによるmatched comparison汚染の防止、human response固定後のauditという一続きの実行経路へ整理した。これは評価手順の明確化であり、human correction EvidenceやProduct Valueを新たに成立させる変更ではない。
 
 意味、仮説強度、未検証範囲を固定した後、**自然な日本語として背景・failure・実験・停止線が連続して読めることを最重要視して全文を再読し、Design / Executable scaffoldとHuman / Outcome Evidenceを混同していないことを最終監査済み**とする。
