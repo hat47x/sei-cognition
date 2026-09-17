@@ -1,7 +1,7 @@
 # SEI First Usable Product Slice — Resume-first Decision Work
 
-更新日: 2026-09-11  
-状態: **Product Design Baseline / Decision Continuity Validation Slice — Executable & Human Evidence Pending**
+更新日: 2026-09-17  
+状態: **Product Design Baseline / Decision Continuity Validation Slice — Requirement Formalization Reflected / Executable & Human Evidence Pending**
 
 ## 1. この文書の役割
 
@@ -267,7 +267,9 @@ projection rebuild
 
 一操作で複数recordを追加・更新する場合、途中失敗で意味上半端な状態を「保存しました」と見せません。
 
-actual mechanismはPersistence-local transaction、atomic replace、append protocol、compensation等を比較し、必要性をprototypeで確認します。
+このfailure boundaryは、CR-73.8 / CR-73.9のRequirement auditを経て、**REQ-0023 — Canonical commitの整合性**と**SCN-0019 — 途中失敗・stale draftを含むcanonical commit**へformalize済みです。
+
+ただし、transaction、atomic replace、append protocol、compensation等のactual mechanismはProduct / Persistence-localな実現方式のままです。REQ-0023 / SCN-0019はUniversal transaction ontologyを要求せず、actual E6 / E7 executionが未検証である間はDesign EvidenceをExecutable Evidenceへ昇格させません。
 
 ### 10.2 Stale draftを黙って上書きしない
 
@@ -403,17 +405,21 @@ raw chat / simple noteで十分である、あるいはSEIのcapture overheadが
 - REQ-0014 — residual / reopen conditionを後続reviewへ渡す。
 - REQ-0015 — private chain-of-thoughtを必要としない。
 - REQ-0019 — human / AIが同じcanonical meaningへ戻る。
+- REQ-0023 — one Product Interactionとしてcommitするcanonical meaningの整合性を保ち、partial / staleなsuccessful commitを許さない。
 
-したがって、Design段階でStable REQを増やしません。
+2026-09-16のRequirement auditでは、Candidate Requirementを一律にStable化しませんでした。
 
-一方、次はprototypeで独立したProduct failureが確認された場合、Stable Requirement候補になり得ます。
+- **CR-73.1〜73.7、CR-73.10** — existing Requirement / Scenario、Product / Projection-local設計、またはH1 / H2で観測するhuman Outcomeへ戻せるため、新しいStable Requirementは追加しない。
+- **CR-73.8 + CR-73.9** — partial commitとstale writeはmechanismは異なるものの、どちらもsuccessful canonical commitの意味整合性を壊す独立failureであるため、**REQ-0023**へ統合し、**SCN-0019**でAcceptance化した。
 
-- multi-record semantic changeのmeaning-preserving atomicity。
-- stale-write protection。
-- external AI context selection / egress visibility。
-- canonical-only resumeに必要な最小Product guarantee。
+```text
+REQ-0023 / SCN-0019
+  != Universal Transaction entity
+  != Universal Snapshot entity
+  != Semantic Revision = concurrency version
+```
 
-Decision Continuityやcounterfactual valueそのものを新しいStable Requirementへ機械的に変換しません。これらは現在、ISSUE-000073のCandidate Requirement / Product Outcome評価として扱います。
+external AI context selection / egress visibilityやcanonical-only resumeのProduct experienceについても、current Contractへmechanismを先取りしません。Decision Continuityやcounterfactual valueそのものを新しいStable Requirementへ機械的に変換せず、actual E1〜E8とH1 / H2から残る独立failureだけを再監査します。
 
 ## 16. 非目標
 
@@ -437,16 +443,23 @@ first sliceでは次を完成条件にしません。
 ```text
 Product Design: established by this baseline
 Decision Continuity mapping: Design Evidence available
-Candidate Requirements: defined, not yet Stable
-Prototype Executable Evidence: Not Yet Verified
-Human usability Evidence: Not Yet Verified
-Counterfactual Product Value Evidence: Not Yet Verified
+Candidate Requirement audit: completed as Design Evidence
+REQ-0023 / SCN-0019 formalization: Accepted / Design Satisfied
+E1-E8 prototype / test source: Available
+Evidence runner / verifier / one-command capture: Available
+E1-E8 actual Go 1.25.x execution: Not Yet Verified
+REQ-0023 / SCN-0019 Executable Evidence: Not Yet Verified
+H1 human usability Evidence: Not Yet Observed
+H2 counterfactual Product Value Evidence: Not Yet Observed
+Decision Continuity Product Value: Not Established
 Release Evidence: Not Yet Verified for this slice
 Operational Evidence: Not Yet Verified
 Adoption / Outcome Evidence: Not Yet Verified
 ```
 
-既存Interaction probeのPASSをfirst sliceのhuman usabilityやDecision ContinuityのOutcomeへ昇格させません。
+sourceや受入れtoolingが存在することをactual Executable PASSへ読み替えません。また、E1〜E8がPASSした場合でもH1 / H2のhuman observationやDecision Continuity Product Valueへ自動昇格させません。
+
+currentの実行入口とtoolchain blockerは`../../evaluation/personal-inquiry-decision/DECISION_CONTINUITY_EXECUTION_READINESS_2026-09-16.md`を参照します。
 
 ## 18. 関連文書
 
@@ -458,6 +471,7 @@ Adoption / Outcome Evidence: Not Yet Verified
 - `../../requirements/PRODUCT_REQUIREMENTS.md`
 - `../../requirements/ACCEPTANCE_SCENARIOS.md`
 - `../../architecture/SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md`
+- `../../evaluation/personal-inquiry-decision/DECISION_CONTINUITY_EXECUTION_READINESS_2026-09-16.md`
 - `../../plan/adr/ADR-0005-progressive-semantic-explicitness.md`
 - `../../plan/adr/ADR-0010-decision-memory-minimal-semantic-boundary.md`
 - `../../plan/adr/ADR-0028-product-interaction-canonical-operation-boundary.md`
@@ -470,6 +484,8 @@ Product Value、Decision Continuity synthesis、V1〜V8、Product Shape、Produc
 
 Resume Brief、working set、provisional suggestion、semantic change plan、snapshot tokenは、Product Experienceとprototypeを説明するための概念であり、Universal semantic entityへ昇格させていない。AIは価値を増幅するが、AI availabilityをSEIの基本的なopen / read / Decision / review成立条件にはしていない。
 
-さらに、SEIだけを使ったusability reviewではProduct Valueを自己証明する危険があるため、raw chat / simple note等とのcounterfactual reviewを追加した。semantic integrity、resume負担、historical誤帰属、AI correction、capture taxを同時に観測し、追加構造に価値差がない結果もProduct hypothesisを修正するEvidenceとして受け取る。
+2026-09-16のRequirement auditでは、Candidate Requirementを一律にStable化せず、既存REQでは直接禁止できなかったpartial commitとstale writeだけを「successful canonical commitの整合性」という一つのREQ-0023へ統合し、SCN-0019でAcceptance化した。transaction、ETag、digest、snapshot token等の実現方式はProduct / Persistence-localのままとし、Semantic Revisionへ流用していない。
 
-Design Evidenceをprototype / human reviewへ拡大解釈せず、Candidate RequirementをStable化しない停止線を維持したうえで、自然な日本語として全文を再監査した。
+さらに、SEIだけを使ったusability reviewではProduct Valueを自己証明する危険があるため、raw chat / simple note等とのcounterfactual reviewを維持した。semantic integrity、resume負担、historical誤帰属、AI correction、capture taxを同時に観測し、追加構造に価値差がない結果もProduct hypothesisを修正するEvidenceとして受け取る。
+
+E1〜E8のprototype / test sourceとrunner / verifier / captureが実装済みである現在地を反映したが、actual Go 1.25.x runは未検証、H1 / H2は未観測、Decision Continuity Product Valueは未成立のまま保持した。Design EvidenceをExecutable / human / Adoption Evidenceへ拡大解釈しない停止線を維持したうえで、自然な日本語として全文を再監査した。
