@@ -1,5 +1,5 @@
 schema: sei.document-review-registry/v1
-updated: 2026-09-16
+updated: 2026-09-17
 
 purpose: >-
   ISSUE-000015で行った既存開発文書の自然な日本語監査について、current branch上の
@@ -76,7 +76,7 @@ reviewed:
   - scope: plan/issue/ISSUE-*.md
     status: revised
     coverage: ISSUE-000001..ISSUE-000078
-    note: ISSUE-000001〜000078をcurrent履歴として監査済み。ISSUE-000069はGitHub Actions常設時に得たtrigger選択とrunner allocation Evidenceをhistoricalに保持しつつcurrent baselineからActionsを外した。ISSUE-000070は固定KJ Atlas source / Method input / model artifact / promptの下でOllama `0.32.13` / `0.32.14`をactualに交換し、same logical / different Exact Binding、historical Application保持、portable reconstruction、canonical Evidence + Provenance verificationを確認してResolvedとした。成果品質やarbitrary portabilityへは昇格させない。ISSUE-000071はexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeを分離してResolvedとしたがhuman reviewと成果品質判定は未完了。ISSUE-000072はrevision A historical Evidenceを保持し、exact revision B executable source + exact revision A fixed input、E2 / E3別toolchain、stage-aware diagnostics、Requirement / Scenario pre-auditまで整えたがrevision B actual CLI / Provider Plan / current Adapter compatibilityは未検証のためOpenを維持する。ISSUE-000073はPMS-03をresume-firstな最初の実用Product Sliceへ進めるOpen探索で、canonical-only resume、AI correction / degradation、partial commit / stale write、external AI context、human reviewをCandidate Requirementとして実証し、Design文書完成だけではResolvedにしない。ISSUE-000074はactual TEI binaryのEvidence採取プロトコルを扱うOpen Issueである。ISSUE-000075はADR-0031に基づく改名移行をPhase 1〜4へ分け、記録済みEvidence不変性検査を他のPASSに優先させる完了条件として監査した。ISSUE-000076はnetwork / Provider受付 / credential / artifact取得 / identity・integrity / runtime executionのfailure stageを分離し、retry policy、secret-safe Evidence、Evidence高さを別軸として設計するOpen Issueである。ISSUE-000077はSEI Cognitionの「井」を中心とするブランド世界をProduct Value探索の非規範sourceとして保存し、価値仮説を既存V1〜V8 / Decision Continuityへ逆照合したうえで、Discovery Source、Product Value Review、Product Vision改稿へ進めた。ISSUE-000078はそのReviewで最も独立性が高く残ったDecision成立前のInquiry Continuityを、raw chat / chronological note等とのcounterfactual comparisonとhuman reviewで反証可能にするOpen Issueとして起票した。2026-09-14にfirst actual caseをseedし、2026-09-16にはmulti-day条件へ到達したが、同日の上流整理でmaterialな事前露出が生じたためclean resumptionは未観測のまま維持している。新Value AxisやUniversal entityは先取りしない。
+    note: ISSUE-000001〜000078をcurrent履歴として監査済み。ISSUE-000069はGitHub Actions常設時に得たtrigger選択とrunner allocation Evidenceをhistoricalに保持しつつcurrent baselineからActionsを外した。ISSUE-000070は固定KJ Atlas source / Method input / model artifact / promptの下でOllama `0.32.13` / `0.32.14`をactualに交換し、same logical / different Exact Binding、historical Application保持、portable reconstruction、canonical Evidence + Provenance verificationを確認してResolvedとした。成果品質やarbitrary portabilityへは昇格させない。ISSUE-000071はexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeを分離してResolvedとしたがhuman reviewと成果品質判定は未完了。ISSUE-000072はrevision A historical Evidenceを保持し、exact revision B executable source + exact revision A fixed input、E2 / E3別toolchain、stage-aware diagnostics、Requirement / Scenario pre-auditまで整えたがrevision B actual CLI / Provider Plan / current Adapter compatibilityは未検証のためOpenを維持する。ISSUE-000073はPMS-03をresume-firstな最初の実用Product Sliceへ進めるOpen探索で、CR-73.8 / 73.9をREQ-0023 / SCN-0019へformalizeしつつ、他のCandidate Requirement、E1〜E8 actual実行、H1 / H2 human reviewを引き続き検証対象として保持している。runner / verifier / captureの受入れtoolingがあってもactual Executable EvidenceやProduct Valueへは昇格させずOpenを維持する。ISSUE-000074はactual TEI binaryのEvidence採取プロトコルを扱うOpen Issueである。ISSUE-000075はADR-0031に基づく改名移行をPhase 1〜4へ分け、記録済みEvidence不変性検査を他のPASSに優先させる完了条件として監査した。ISSUE-000076はnetwork / Provider受付 / credential / artifact取得 / identity・integrity / runtime executionのfailure stageを分離し、retry policy、secret-safe Evidence、Evidence高さを別軸として設計するOpen Issueである。ISSUE-000077はSEI Cognitionの「井」を中心とするブランド世界をProduct Value探索の非規範sourceとして保存し、価値仮説を既存V1〜V8 / Decision Continuityへ逆照合したうえで、Discovery Source、Product Value Review、Product Vision改稿へ進めた。ISSUE-000078はそのReviewで最も独立性が高く残ったDecision成立前のInquiry Continuityを、raw chat / chronological note等とのcounterfactual comparisonとhuman reviewで反証可能にするOpen Issueとして起票した。2026-09-14にfirst actual caseをseedし、2026-09-16にはmulti-day条件へ到達したが、同日の上流整理でmaterialな事前露出が生じたためclean resumptionは未観測のまま維持している。新Value AxisやUniversal entityは先取りしない。
   - scope: plan/adr/ADR_TEMPLATE.md
     status: revised
     note: Product Value、5段階Evidence、Revisit条件、Follow-up、自然な日本語全文再ドラフトをcurrent標準へ同期済み。
@@ -91,7 +91,7 @@ reviewed:
       - requirements/PRODUCT_REQUIREMENTS.md
       - requirements/ACCEPTANCE_SCENARIOS.md
       - requirements/PRODUCT_JOURNEY_COMPOSITION.md
-    note: Requirement / Scenario / Testの境界を維持したまま監査済み。ISSUE-000073のCR-73.1〜10はprototype / human review前のCandidate Requirementであり、current Stable REQ / SCNへ未反映のまま意図的に保持する。ISSUE-000078もProduct hypothesis段階であり、Stable Requirementへ未反映である。
+    note: Requirement / Scenario / Testの境界を維持したまま監査済み。ISSUE-000073ではCR-73.8 / CR-73.9を一つのfailure boundaryとしてREQ-0023 / SCN-0019へformalize済みで、CR-73.1〜73.7 / 73.10はexisting REQ / Product-local設計 / human Outcome評価へ戻して新規Stable Requirementへは昇格していない。historicalな`PRODUCT_JOURNEY_COMPOSITION.md`は当時の判断を後知恵で書き換えない。ISSUE-000078はProduct hypothesis段階であり、Stable Requirementへ未反映である。
   - scope: requirements/history/HISTORICAL_REQUIREMENT_MAPPING.md
     status: revised
 
@@ -137,7 +137,6 @@ reviewed:
       - contracts/profiles/CONFORMANCE_EVIDENCE_2026-08-31.md
   - scope: contracts/history/HISTORICAL_CONTRACT_MAPPING.md
     status: revised
-
   - scope: runtime/CONFORMANCE_EVIDENCE_2026-08-31.md
     status: revised
     note: semantic runtime、Verifier Registry、Payload Source、Provider Adapter、Cognitive Methodの限定Executable Evidenceを5段階Evidenceへ再整理済み。
