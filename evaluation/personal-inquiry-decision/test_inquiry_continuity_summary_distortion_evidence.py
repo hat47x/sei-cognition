@@ -1,0 +1,205 @@
+from __future__ import annotations
+
+import hashlib
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+from inquiry_continuity_summary_distortion_evidence import (
+    AUDIT_RESPONSE_SCHEMA,
+    EVIDENCE_SCHEMA,
+    SummaryDistortionEvidenceError,
+    audit_response_template,
+    build_evidence_bundle,
+    save_bundle,
+    validate_audit_response,
+)
+
+
+class SummaryDistortionEvidenceTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+        self.fixture_id = "f1"
+        self.probe = {
+            "schema": "sei.inquiry-continuity-summary-distortion-probe/v0",
+            "status": "evaluation-only",
+            "issue": "ISSUE-000078",
+            "probe_id": "probe-1",
+            "cases": [
+                {
+                    "fixture_id": self.fixture_id,
+                    "path": "fixture.json",
+                    "blob_sha1": "a" * 40,
+                    "distortion_key": [
+                        {"kind": "hypothesis_to_certainty", "detail": "x"},
+                        {"kind": "alternate_hypothesis_omission", "detail": "y"},
+                        {"kind": "temporal_backfill", "detail": "z"},
+                    ],
+                }
+            ],
+            "audit_dimensions": [
+                "hypothesis_to_certainty_detection",
+                "alternate_hypothesis_preservation",
+                "correction_burden",
+            ],
+        }
+        self.fixtures = {
+            self.fixture_id: {
+                "reference_state": {"must_not_infer": ["certainty"]},
+                "scenario": {
+                    "post_interruption_evidence": [
+                        {"role": "observation", "text": "later"}
+                    ]
+                },
+            }
+        }
+        self.human_response = {
+            "schema": "sei.inquiry-continuity-summary-distortion-response/v0",
+            "answers": ["a1", "a2", "a3"],
+            "review_provenance": {
+                "reviewer_id": "reviewer-opaque-1",
+                "prior_exposure": "known-material-exposure",
+                "response_authorship": "human-direct",
+                "note": "pilot",
+            },
+            "operator_observation": {
+                "review_completion_seconds": 10,
+                "source_reopen_count": 1,
+                "correction_burden": "medium",
+            },
+            "notes": "initial review",
+        }
+        self.human_path = self.root / "human.json"
+        self.human_path.write_text(
+            json.dumps(self.human_response, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        self.human_sha = hashlib.sha256(self.human_path.read_bytes()).hexdigest()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def valid_audit(self) -> dict:
+        value = audit_response_template(
+            self.probe, self.fixture_id, self.human_sha
+        )
+        value["findings"] = {
+            "hypothesis_to_certainty_detection": "pass",
+            "alternate_hypothesis_preservation": "fail",
+            "correction_burden": "not-observed",
+        }
+        value["audit_provenance"] = {
+            "auditor_id": "auditor-opaque-1",
+            "response_authorship": "human-direct",
+            "completed_at": "2026-09-17T09:30:00Z",
+            "note": "post-reveal semantic audit",
+        }
+        value["notes"] = "one omission remained"
+        return value
+
+    def test_audit_template_is_bound_to_fixed_human_response(self):
+        value = audit_response_template(
+            self.probe, self.fixture_id, self.human_sha
+        )
+        self.assertEqual(value["schema"], AUDIT_RESPONSE_SCHEMA)
+        self.assertEqual(
+            value["fixed_human_response_sha256"], self.human_sha
+        )
+        self.assertEqual(
+            set(value["findings"]), set(self.probe["audit_dimensions"])
+        )
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_audit_response(
+                value, self.probe, self.fixture_id, self.human_sha
+            )
+
+    def test_audit_rejects_wrong_response_binding(self):
+        value = self.valid_audit()
+        value["fixed_human_response_sha256"] = "b" * 64
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_audit_response(
+                value, self.probe, self.fixture_id, self.human_sha
+            )
+
+    def test_audit_requires_exact_dimensions_and_human_authorship(self):
+        value = self.valid_audit()
+        del value["findings"]["correction_burden"]
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_audit_response(
+                value, self.probe, self.fixture_id, self.human_sha
+            )
+
+        value = self.valid_audit()
+        value["audit_provenance"]["response_authorship"] = "ai-generated"
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_audit_response(
+                value, self.probe, self.fixture_id, self.human_sha
+            )
+
+    def test_bundle_separates_review_observation_and_semantic_audit(self):
+        audit = self.valid_audit()
+        audit_path = self.root / "audit.json"
+        audit_path.write_text(
+            json.dumps(audit, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        bundle = build_evidence_bundle(
+            self.probe,
+            self.fixtures,
+            self.fixture_id,
+            self.human_path,
+            audit_path,
+        )
+        self.assertEqual(bundle["schema"], EVIDENCE_SCHEMA)
+        self.assertEqual(
+            bundle["human_review_observation"]["response_sha256"],
+            self.human_sha,
+        )
+        self.assertEqual(
+            bundle["review_provenance"]["reviewer_id"],
+            "reviewer-opaque-1",
+        )
+        self.assertEqual(
+            bundle["semantic_audit"]["findings"][
+                "alternate_hypothesis_preservation"
+            ],
+            "fail",
+        )
+        self.assertIn("distortion_key", bundle["semantic_audit"])
+        self.assertNotIn("distortion_key", bundle["human_review_observation"])
+        rendered = json.dumps(bundle)
+        self.assertNotIn('"winner"', rendered)
+        self.assertNotIn('"score"', rendered)
+        self.assertEqual(
+            bundle["evidence_boundaries"]["product_value"],
+            "not-established-by-this-artifact",
+        )
+
+    def test_bundle_rejects_audit_for_different_human_response(self):
+        audit = self.valid_audit()
+        audit["fixed_human_response_sha256"] = "c" * 64
+        audit_path = self.root / "audit.json"
+        audit_path.write_text(json.dumps(audit), encoding="utf-8")
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            build_evidence_bundle(
+                self.probe,
+                self.fixtures,
+                self.fixture_id,
+                self.human_path,
+                audit_path,
+            )
+
+    def test_save_bundle_never_overwrites_existing_evidence(self):
+        target = self.root / "evidence.json"
+        bundle = {"schema": EVIDENCE_SCHEMA}
+        save_bundle(target, bundle)
+        original = target.read_text(encoding="utf-8")
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            save_bundle(target, {"schema": "changed"})
+        self.assertEqual(target.read_text(encoding="utf-8"), original)
+
+
+if __name__ == "__main__":
+    unittest.main()
