@@ -293,9 +293,21 @@ first actual caseは開始済みでmulti-dayの暦条件へ到達したが、202
 19. `DECISION_CONTINUITY_HUMAN_REVIEW.md` — H1 actual resumptionとH2 matched counterfactual reviewの共通実行入口
 20. `decision_continuity_counterfactual_matched_set_v1.json`と関連script — H2のrotation、stage gate、validation、非採点comparison
 
-### Stage 6 — EvidenceからRequirementへ戻る
+### Stage 6 — ISSUE-000078の比較・human review
 
-21. `REQUIREMENTS_FORMALIZATION_PLAN.md` — Evidenceからactual Requirementへ進む条件
+21. `inquiry_continuity_counterfactual_matched_set_v1.json` — raw chat / chronological note / SEI resumeをR1〜R3でcounterbalanceするE78.2 / E78.4 / E78.5のmatched set
+22. `inquiry_continuity_review_runner.py` — reviewer provenanceを固定し、phase1 → post → auditを一方向に進めるhuman reviewの正規入口
+23. `inquiry_continuity_review_analysis.py` — historical correctness、role separation、unresolved、temporal integrity、burden等をscoreへ潰さず監査するvalidation / projection
+24. `inquiry_continuity_review_evidence.py` — complete sessionからhuman observation、semantic audit、review provenanceを分離してexportするEvidence境界
+25. `inquiry_continuity_summary_distortion_probe_v1.json` / `inquiry_continuity_summary_distortion_probe.py` — E78.3の正規AI-summary-distortion経路。歪んだsummary / next questionはhuman response固定前にaudit keyを開かず、matched reviewを同一reviewerで行う場合はその完了後に提示する
+26. `inquiry_continuity_assistance_probe_v1.json` / `inquiry_continuity_assistance_probe.py` — E78.6 quiet / proactive / adaptiveの比較scaffold
+27. `inquiry_continuity_lifecycle_probe_v1.json` / `inquiry_continuity_lifecycle_probe.py` — E78.7 closure / dormancyのProduct-local比較scaffold
+
+E78.3では以前の`inquiry_continuity_distortion_*`並行経路を廃止しており、`inquiry_continuity_summary_distortion_*`を唯一の維持対象とする。どのprobeも、実行可能であること自体をhuman review resultやProduct Valueへ昇格させない。
+
+### Stage 7 — EvidenceからRequirementへ戻る
+
+28. `REQUIREMENTS_FORMALIZATION_PLAN.md` — Evidenceからactual Requirementへ進む条件
 
 この順序は「必ず全て読む」という意味ではない。上流の判断に疑問がある場合、下流detailへ進む前に上流へ戻れることを重視する。
 
@@ -352,13 +364,19 @@ root purpose
 - clean committed HEADとsource blobを固定するEvidence runner
 - recorded tested commitへ戻って検証するEvidence verifier
 - H2 matched reviewのblinded packet、global stage gate、Decision固有validation、evidence export
+- ISSUE-000078 matched reviewのreviewer provenance、phase1 / post / audit stage gate、非採点analysis、complete-session Evidence export
+- ISSUE-000078 E78.3のsource-fixture blob固定、provisional summary / next question、human response固定後だけのaudit reveal
+- E78.6 assistance probeとE78.7 lifecycle probeのevaluation-only scaffold
 
-ただし、sourceやrunnerが存在することをactual E1〜E8 Executable PASSへ読み替えない。ISSUE-000073のGo 1.25.x actual runはまだNot Yet Verifiedである。
+ただし、sourceやrunnerが存在することをactual E1〜E8 Executable PASSやhuman review resultへ読み替えない。ISSUE-000073のGo 1.25.x actual runはまだNot Yet Verifiedであり、ISSUE-000078の各human reviewも未実施である。
 
 ### Human / Product Value
 
 - ISSUE-000078 first actual Inquiryは開始済み
 - clean long-gap resumption: **Not Yet Observed**
+- ISSUE-000078 matched comparison human review: **Not Yet Observed**
+- ISSUE-000078 E78.3 human correction / rejection: **Not Yet Observed**
+- actual team handoff: **Not Yet Observed**
 - ISSUE-000073 H1 actual resume usability: **Not Yet Observed**
 - ISSUE-000073 H2 counterfactual human pilot: **Not Yet Observed**
 - capture burdenが継続利用可能であること: **Not Yet Established**
@@ -374,13 +392,15 @@ root purpose
 
 1. Go 1.25.xを使えるclean checkoutでISSUE-000073 E1〜E8 runnerをactual実行し、verifierでrecorded tested commit / source blob / test結果を再検証する。
 2. materialなpre-orientation exposureのないreal InquiryでH1 actual resumptionを実施し、既存sidecarへ`evidence_role=resumption`として記録する。
-3. H2 matched counterfactual reviewをhuman readerで少なくとも一rotation実施し、synthetic pilotとして保存する。
-4. ISSUE-000078 actual Inquiryについて十分なcognitive gapが得られた時点でclean resumptionを観測する。
-5. Generic Summary / B0 / B1 / P1との比較、capture burden、False Continuity、First Useful Actionを横断して読む。
-6. 有効でなかったCapability / cue / candidate requirementを削る。
-7. current REQで表現できない独立必要性がactual Evidenceから残った場合だけ、Stable Requirement追加を再検討する。
+3. ISSUE-000073 H2 matched counterfactual reviewをhuman readerで少なくとも一rotation実施し、synthetic pilotとして保存する。
+4. ISSUE-000078 E78.2 / E78.4 / E78.5 matched reviewを`inquiry_continuity_review_runner.py`からhuman readerで少なくとも一rotation実施し、review provenanceを保持したcomplete sessionからEvidenceをexportする。
+5. 同一reviewerでE78.3も行う場合は4を完了・固定した後、`inquiry_continuity_summary_distortion_probe.py`で歪んだsummary / next questionを提示し、human response固定後にauditへ進む。
+6. ISSUE-000078 actual Inquiryについて十分なcognitive gapが得られた時点でclean resumptionを観測する。
+7. Generic Summary / B0 / B1 / P1との比較、capture burden、False Continuity、First Useful Actionを横断して読む。
+8. 有効でなかったCapability / cue / candidate requirementを削る。
+9. current REQで表現できない独立必要性がactual Evidenceから残った場合だけ、Stable Requirement追加を再検討する。
 
-実行環境が足りないことを理由にEvidence条件を弱めない。Go 1.25.xを要求したE1〜E8を低いtoolchainのPASSで代替せず、clean resumptionに必要な認知的gapを暦上のgapだけで代用しない。
+実行環境が足りないことを理由にEvidence条件を弱めない。Go 1.25.xを要求したE1〜E8を低いtoolchainのPASSで代替せず、clean resumptionに必要な認知的gapを暦上のgapだけで代用しない。E78.3の意図的な歪みを先に見たreviewerの回答を、suggestion提示前のclean matched comparisonやclean resumption Evidenceへ混ぜない。
 
 ```text
 working prototype
@@ -414,5 +434,7 @@ personal profile convenience != universal semantic requirement
 ISSUE-000073とISSUE-000078を別々の評価体系として並立させず、同じPersonal Inquiry Continuity基盤上で、前者はDecisionを含むfirst usable sliceとcommit integrity、後者はDecision成立前を含むopen Inquiryの継続性を検証するレーンとして整理した。dogfood state、evaluation sidecar、matched review stage gateは共有し、意味上必要な監査だけをIssueごとに分ける。
 
 また、REQ-0023 / SCN-0019のformalizationをactual Executable Evidenceへ昇格させず、E1〜E8 actual、H1、H2、clean Inquiry resumption、capture burden、比較上の価値差を未観測のまま明示した。
+
+同日の追加同期では、ISSUE-000078についてmatched human review、Evidence export、E78.3 summary distortion、E78.6 assistance、E78.7 lifecycleまでをReading Orderへ接続した。E78.3は重複していた旧distortion pathを廃止し、source fixture固定とreview→audit順序を持つ`inquiry_continuity_summary_distortion_*`だけを正規入口としたが、これらはすべて実証準備でありhuman / Product Value Evidenceではない。
 
 自然な日本語として全文を再ドラフトし、Root Intent、Product hypothesis、Stable Requirement、evaluation tooling、actual Evidence、Adoption / Outcome Evidenceの境界が変わっていないことを最終監査した。
