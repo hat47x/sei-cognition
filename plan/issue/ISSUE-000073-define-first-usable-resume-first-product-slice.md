@@ -3,7 +3,7 @@
 Status: **Open**  
 Priority: **1**  
 Related ADRs: **ADR-0005, ADR-0010, ADR-0028, ADR-0029**  
-Updated: 2026-09-16
+Updated: 2026-09-17
 
 ## Goal
 
@@ -196,22 +196,30 @@ Question 5、6、9については、Requirement auditとREQ-0023 / SCN-0019のfo
 - Research EvidenceをSEI Product Evidenceへ読み替えない。
 - ISSUE-000072のTEI version-exchange Evidenceとは独立して扱う。
 
-## Current implementation / Evidence status — 2026-09-16
+## Current implementation / Evidence status — 2026-09-17
 
-現在はDesign baselineだけの段階から、E1〜E8を再現するGo interaction probeとEvidence runnerを持つ段階へ進んでいる。ただし、sourceの存在とactual実行結果は分ける。
+現在はDesign baselineだけの段階から、E1〜E8を再現するGo interaction probeと、runner・verifier・one-command captureを持つ段階へ進んでいる。ただし、sourceや受入れtoolingの存在とactual E1〜E8実行結果は分ける。
 
 - Decision Continuity synthesis、first usable Product Slice、Interaction Working-Set Architecture: **Design Evidence available**
 - CR-73.8 / CR-73.9: **REQ-0023 / SCN-0019へformalize済み**
 - `runtime/go/interactionprobe`: E1〜E8に対応するprobe / test sourceあり
-- `tools/run_issue_000073_resume_first_evidence.py`: E1〜E8を一つのmachine-readable recordへ束ねるrunnerあり
-- `tools/test_run_issue_000073_resume_first_evidence.py`: dirty checkout、required source欠落、Go 1.25未満をfail-closedにするpreflight self-testあり
-- E1〜E8 actual execution: **Not Yet Verified**
-- H1 resume usability review: **Not Yet Verified**
-- H2 counterfactual Decision Continuity review: **Not Yet Verified**
+- `tools/run_issue_000073_resume_first_evidence.py`: E1〜E8をmachine-readable recordへ束ねるrunnerあり
+- `tools/verify_issue_000073_resume_first_evidence.py`: recorded tested commit、source blob / SHA-256、Go version、E1〜E8個別test結果を再検証するverifierあり
+- `tools/capture_issue_000073_resume_first_evidence.py`: runner → verifier → Evidence保存を一命令でfail-closedに連結する標準入口あり
+- runner preflight self-test: **PASS**
+- verifier self-test: **PASS**
+- capture workflow self-test: **PASS**
+- E1〜E8 actual Go 1.25.x execution: **Not Yet Verified**
+- REQ-0023 / SCN-0019 Executable Evidence: **Not Yet Verified**
+- H1 resume usability review: **Not Yet Observed**
+- H2 counterfactual Decision Continuity review: **Not Yet Observed**
+- Decision Continuity Product Value: **Not Established**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
 
-Evidence runnerはclean committed HEAD、required sourceとHEAD blobの一致、Go 1.25.xを要求する。条件を満たせずblockedになった実行や、sourceが存在することだけをPASSへ読み替えない。
+runner / captureはclean committed HEAD、required sourceとHEAD blobの一致、Go 1.25.xを要求する。2026-09-17のcurrent execution environmentではhost Goは1.23.2で、`GOTOOLCHAIN=go1.25.0+auto go version`によるtoolchain取得も`proxy.golang.org`へのDNS / 外向き通信制限でblockedとなった。これはinteractionprobe FAILではなくenvironment blockerであり、低いGoで代替PASSを作らない。
+
+currentの実行手順とblocker詳細は`evaluation/personal-inquiry-decision/DECISION_CONTINUITY_EXECUTION_READINESS_2026-09-16.md`をcurrent-state正本として参照する。
 
 ## Required scenarios / experiments
 
@@ -343,9 +351,9 @@ SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw 
 - `product/value/SEI_DECISION_CONTINUITY.md` — V1〜V8をDecision Continuityへ接続するProduct Value synthesis。**Design Evidence available**。
 - `product/interaction/SEI_FIRST_USABLE_PRODUCT_SLICE.md` — first sliceのProduct Design baseline。**Design Evidence available**。
 - `architecture/SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md` — state authority、resume Projection、semantic commit、AI境界のReference Architecture。**Design Evidence available**。
-- prototype / probe — Local Single-Node上でE1〜E8を再現する`runtime/go/interactionprobe`とEvidence runnerを実体化済み。**actual E1〜E8 executionはNot Yet Verified**。
-- human review record — H1のresume usability観測結果。**未取得**。
-- comparative Product Value review — H2のbaseline比較、capture tax、誤帰属、correction負担の観測結果。**未取得**。
+- prototype / probe — Local Single-Node上でE1〜E8を再現する`runtime/go/interactionprobe`とrunner / verifier / captureを実体化済み。**actual E1〜E8 executionはNot Yet Verified**。
+- human review record — H1のresume usability観測結果。**Not Yet Observed**。
+- comparative Product Value review — H2のbaseline比較、capture tax、誤帰属、correction負担の観測結果。**Not Yet Observed**。
 - Requirement audit — CR-73.1〜10を再照合済み。CR-73.8 / CR-73.9だけを一つのfailure boundaryとしてREQ-0023 / SCN-0019へformalizeし、それ以外はexisting REQ / Product-local設計 / human Outcome評価へ戻した。
 
 ## Resolution
@@ -363,13 +371,13 @@ SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw 
 9. Candidate Requirementをexisting REQ / SCNへ再照合し、Stable Requirement追加の要否を決定する。
 10. 実装方式固有のlocal browser / protocol / AI model等をUniversal semanticsへ持ち込んでいない。
 
-### Current resolution status — 2026-09-16
+### Current resolution status — 2026-09-17
 
 - 条件1、2、9、10: **Design / Requirement auditの範囲では成立**。
-- 条件3〜5: E1〜E8のprobe / test sourceとEvidence runnerはあるが、**actual実行結果はNot Yet Verified**。source存在だけで成立扱いにしない。
-- 条件6〜8: H1 / H2とProduct Valueのcounterfactual observationが未取得であり、**未成立**。
+- 条件3〜5: E1〜E8のprobe / test sourceとrunner / verifier / captureはあるが、**actual Go 1.25.x実行結果はNot Yet Verified**。受入れtoolingのself-test PASSやsource存在だけで成立扱いにしない。
+- 条件6〜8: H1 / H2とProduct Valueのcounterfactual observationは**Not Yet Observed**であり、未成立。
 
-したがってStatusは**Open**を維持する。Design文書が完成したこと、REQ-0023 / SCN-0019をformalizeしたこと、probe sourceを実装したことだけではResolvedにしない。prototypeが技術的にPASSした場合も、それだけでDecision ContinuityのAdoption / Outcome Evidenceが成立したことにはしない。
+したがってStatusは**Open**を維持する。Design文書が完成したこと、REQ-0023 / SCN-0019をformalizeしたこと、probe sourceやEvidence受入れtoolingを実装したことだけではResolvedにしない。prototypeが技術的にPASSした場合も、それだけでDecision ContinuityのAdoption / Outcome Evidenceが成立したことにはしない。
 
 ## Reopen conditions
 
@@ -387,18 +395,33 @@ Resolved後でも、次の場合は再開する。
 
 GitHub Actionsを成立条件にしない。repository同梱test、local probe、fault injection、保存Evidence、human reviewを使う。
 
-Plan / document整合は、変更範囲に応じて`plan/scripts/check_plan_registry.py`と`plan/scripts/check_document_review_registry.py`で確認する。E1〜E8のcurrent Executable Evidenceを取得するときは、次を入口とする。
+Plan / document整合は、変更範囲に応じて`plan/scripts/check_plan_registry.py`と`plan/scripts/check_document_review_registry.py`で確認する。E1〜E8のcurrent Executable Evidenceを取得するときの標準入口は、one-command captureとする。
 
 ```text
 python3 tools/test_run_issue_000073_resume_first_evidence.py
-python3 tools/run_issue_000073_resume_first_evidence.py --output <evidence-record.json>
+python3 tools/test_verify_issue_000073_resume_first_evidence.py
+python3 tools/test_capture_issue_000073_resume_first_evidence.py
+python3 tools/capture_issue_000073_resume_first_evidence.py
 ```
 
-Evidence runnerは、clean committed HEAD、required sourceとHEAD blobの一致、Go 1.25.xをpreconditionとする。preconditionを満たせずblockedとなった場合は、repository test failureともPASSとも扱わない。runnerがE1〜E8の全required testをactualにpassとして観測した場合だけ、その実行範囲をScoped Executable Evidence候補として扱う。
+captureはrunner → verifier → Evidence保存をfail-closedに連結する。runnerがblocked / failならverifierへ進まずraw診断を保存し、verifier failureをPASSへ昇格させない。既存Evidenceの置換は明示的な`--replace`を要求し、一時artifactはcheckout外へ置いてclean-tree preconditionを自ら壊さない。
+
+個別診断が必要な場合だけrunner / verifierを直接使う。
 
 ```text
-runner / test source exists
+python3 tools/run_issue_000073_resume_first_evidence.py --output <evidence-record.json>
+python3 tools/verify_issue_000073_resume_first_evidence.py <evidence-record.json> --json-out <verification-record.json>
+```
+
+runner / captureはclean committed HEAD、required sourceとHEAD blobの一致、Go 1.25.xをpreconditionとする。preconditionを満たせずblockedとなった場合はrepository test failureともPASSとも扱わない。2026-09-17のcurrent execution environmentではhost Go 1.23.2であり、Go自身のtoolchain自動取得もnetwork / DNS制限でblockedだったため、actual E1〜E8 runはNot Yet Verifiedのまま保持する。
+
+```text
+runner / verifier / capture exists
   != E1-E8 actual PASS
+
+environment cannot acquire Go 1.25.x
+  != interactionprobe FAIL
+  != E1-E8 PASS
 
 E1-E8 actual PASS
   != H1 / H2 human review
@@ -409,12 +432,12 @@ E1-E8 actual PASS
 
 ## Natural Japanese review
 
-Product Value、Decision Continuity synthesis、Value Model V1〜V8、Product Shape、PMS-03、Product Interaction、Packaging、REQ-0001 / 0005 / 0006 / 0010 / 0011 / 0014 / 0019 / 0023、SCN-0003 / 0013 / 0016 / 0018 / 0019、ADR-0005 / 0010 / 0028 / 0029、Interaction probe、ISSUE-000073 Evidence runnerを照合した。
+Product Value、Decision Continuity synthesis、Value Model V1〜V8、Product Shape、PMS-03、Product Interaction、Packaging、REQ-0001 / 0005 / 0006 / 0010 / 0011 / 0014 / 0019 / 0023、SCN-0003 / 0013 / 0016 / 0018 / 0019、ADR-0005 / 0010 / 0028 / 0029、Interaction probe、ISSUE-000073 Evidence runner / verifier / captureを照合した。
 
 従来のIssueは「再開できるUI / prototype」を中心に十分深く設計されていたが、そのままではSEI自身の仕組みだけを評価する自己完結的な検証になり得た。そこでDecision Continuityをcross-axis Product Outcomeとして上位価値へ接続し、raw chat / chronological note等の単純baselineとのcounterfactual reviewをResolution条件へ追加した。
 
 2026-09-16の追加監査では、CR-73.1〜10を機械的にStable化せずcurrent REQ / SCNへ再照合した。resume、AI provisional boundary、Progressive Explicitness、working-set non-authority等は既存Requirement、Product-local設計またはhuman Outcome評価へ戻し、既存REQでは直接禁止できなかったpartial commitとstale writeだけを「successful canonical commitの整合性」という一つのREQ-0023へ統合し、SCN-0019でAcceptance化した。transaction、ETag、digest、snapshot token等の実現方式をUniversal semanticsへ昇格させていない。
 
-同時に、E1〜E8を再現するinteraction probeとEvidence runnerが存在する現在地を本文へ反映した。ただしactual runはまだcurrent Executable Evidenceとして確認しておらず、H1 / H2も未取得である。Requirement formalizationやsource存在をEvidenceの高さ以上に評価せず、IssueはOpenのまま維持した。
+2026-09-17には、E1〜E8の実行入口をrunner単体からrunner / verifier / one-command captureのcurrent implementationへ同期した。runner preflight、verifier、capture workflowのself-testはPASSしているが、Go 1.25.xを用いたactual E1〜E8 runはenvironment blockerにより未取得である。H1 / H2もactual human observationがないためNot Yet Observedのまま保持する。
 
 SEIのsemantic integrityが高いだけではProduct Valueとせず、historical誤帰属、Recommendation / Decision混同、再構成負担を実際に減らし、その利益がcapture / review overheadを上回るかまでを見る。価値差がない結果もProduct hypothesisを修正する正当なEvidenceとして扱う。意味、要求強度、留保、Evidenceの高さを固定したうえで自然な日本語として読み直し、最終意味監査を実施した。
