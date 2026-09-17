@@ -22,28 +22,53 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
         self.fixture_id = "f1"
+        core_key = [
+            {"kind": "hypothesis_to_certainty", "detail": "x"},
+            {"kind": "alternate_hypothesis_omission", "detail": "y"},
+            {"kind": "temporal_backfill", "detail": "z"},
+        ]
         self.probe = {
             "schema": "sei.inquiry-continuity-summary-distortion-probe/v0",
             "status": "evaluation-only",
             "issue": "ISSUE-000078",
             "probe_id": "probe-1",
+            "presentation_rules": [
+                "fix the human response before audit material is revealed"
+            ],
+            "interpretation_stoplines": [
+                "human review is not Product Value evidence"
+            ],
+            "semantic_stopline": {
+                "distorted_summary_is_canonical": False,
+                "ai_summary_may_overwrite_source": False,
+                "correction_may_mutate_historical_state": False,
+                "overall_score_or_winner_allowed": False,
+                "stable_requirement_change_authorized": False,
+            },
             "cases": [
                 {
-                    "fixture_id": self.fixture_id,
-                    "path": "fixture.json",
-                    "blob_sha1": "a" * 40,
-                    "distortion_key": [
-                        {"kind": "hypothesis_to_certainty", "detail": "x"},
-                        {"kind": "alternate_hypothesis_omission", "detail": "y"},
-                        {"kind": "temporal_backfill", "detail": "z"},
-                    ],
+                    "fixture_id": f"f{i}",
+                    "path": f"fixture-{i}.json",
+                    "blob_sha1": chr(96 + i) * 40,
+                    "distorted_summary": f"wrong summary {i}",
+                    "distorted_next_question": f"wrong next question {i}?",
+                    "distortion_key": core_key,
                 }
+                for i in range(1, 4)
+            ],
+            "review_questions": [
+                {"id": f"D{i}", "prompt": f"question {i}"}
+                for i in range(1, 6)
             ],
             "audit_dimensions": [
                 "hypothesis_to_certainty_detection",
                 "alternate_hypothesis_preservation",
                 "correction_burden",
             ],
+            "evidence_boundary": {
+                "human_review": "not-yet-observed",
+                "product_value": "not-established",
+            },
         }
         self.fixtures = {
             self.fixture_id: {
@@ -57,7 +82,7 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
         }
         self.human_response = {
             "schema": "sei.inquiry-continuity-summary-distortion-response/v0",
-            "answers": ["a1", "a2", "a3"],
+            "answers": [f"answer-{i}" for i in range(1, 6)],
             "review_provenance": {
                 "reviewer_id": "reviewer-opaque-1",
                 "prior_exposure": "known-material-exposure",
