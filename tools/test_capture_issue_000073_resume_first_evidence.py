@@ -105,6 +105,25 @@ def test_runner_block_code_without_record_is_not_accepted_as_blocked() -> None:
         assert not verification.exists()
 
 
+def test_replace_runner_without_record_removes_stale_outputs() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        setup_repo(root, runner_exit=0, runner_writes_record=False)
+        evidence = root / "evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8.json"
+        verification = root / "evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8-verification.json"
+        evidence.parent.mkdir(parents=True, exist_ok=True)
+        evidence.write_text('{"status":"pass"}', encoding="utf-8")
+        verification.write_text('{"passed":true}', encoding="utf-8")
+        subprocess.run(["git", "add", "."], cwd=root, check=True)
+        subprocess.run(["git", "commit", "-qm", "prior evidence"], cwd=root, check=True)
+
+        code, out = invoke(root, "--replace")
+        assert code == 1, out
+        assert out["status"] == "fail", out
+        assert not evidence.exists()
+        assert not verification.exists()
+
+
 def test_verifier_failure_is_not_pass() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
@@ -153,6 +172,7 @@ def main() -> int:
     test_runner_blocked_keeps_raw_only()
     test_runner_zero_without_record_is_fail_closed()
     test_runner_block_code_without_record_is_not_accepted_as_blocked()
+    test_replace_runner_without_record_removes_stale_outputs()
     test_verifier_failure_is_not_pass()
     test_existing_outputs_require_replace()
     test_same_output_path_is_rejected()
