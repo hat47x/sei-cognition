@@ -451,7 +451,9 @@ source fixture単体だけでなく、元となるmatched-set manifest自体もG
 
 初期回答を固定する前に全候補を見せないこと、AI候補をcanonical meaningとみなさないこと、Quiet表示でもoriginal concern / current Question / material Observation / Unknown / Hypothesis / next useful investigationを隠さないことを停止線としている。
 
-ただし、現時点で成立したのはcondition-blinded executable scaffoldとstructured response contractまでである。review-start / reveal / auditのdurable receipt chainはE78.3ほど強くなく、human reviewも**Not Yet Observed**である。したがってQuiet / Proactive / Adaptiveのどれかを採用する根拠やStable Requirement変更には使わない。
+さらに、initial response固定後に全候補を開く前にexclusive-createのreveal receipt v1を保存し、canonical probe / rotation / fixed initial response SHA-256 / exact reveal material SHA-256 / reveal timestampへ結ぶ。reveal response固定後にcondition mapping / reference state / audit keyを開く前にはaudit receipt v1を保存し、reveal receipt SHA-256 / fixed initial・reveal response SHA-256 / exact audit material SHA-256 / audit timestampへ結ぶ。audit timestampがreveal timestampより前の場合、responseがreceipt固定後に変更された場合、receiptのsemantic valueとraw bytesが一致しない場合を拒否する。CLIはreceiptをexclusive-createできた後にだけpacketをstdoutへ出す。
+
+現時点で成立したのはcondition-blinded executable scaffold、structured response contract、reveal / audit stage receipt chainまでである。pre-stimulus reviewer provenanceを固定するreview-start receiptと、reveal response自身をreveal receipt SHA-256へ直接結ぶ契約はE78.3ほど強くなく、human reviewも**Not Yet Observed**である。したがってQuiet / Proactive / Adaptiveのどれかを採用する根拠やStable Requirement変更には使わない。
 
 ### E78.7 — Closure / dormancy
 
