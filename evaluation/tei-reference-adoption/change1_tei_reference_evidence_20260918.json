@@ -1,0 +1,62 @@
+{
+  "schema": "sei.tei-reference-adoption-change1-evidence-link/v1",
+  "recorded_at": "2026-09-18",
+  "issue": "ISSUE-000079",
+  "authority": "evaluation-only-cross-repository-reference",
+  "sei": {
+    "repository": "hat47x/sei-cognition",
+    "branch": "develop/v0.2.0",
+    "head_at_recording": "e866367f687f88ee7b6f365daa6221343f3ab248",
+    "source_fixture": {
+      "path": "evaluation/personal-inquiry-decision/decision_continuity_counterfactual_001.json",
+      "git_blob_sha1": "6354fce0a01093cb5545ed6bb9730aceb3b20023"
+    },
+    "native_change_review": {
+      "implementation_path": "runtime/go/interactionprobe/review.go",
+      "implementation_blob_sha1": "7da9ae682ed1fe00809576762a9923b64c18a266",
+      "test_path": "runtime/go/interactionprobe/review_test.go",
+      "test_blob_sha1": "1d7768400b22ffbfbe15030d07dd0f21e3e39af1",
+      "actual_reexecution_in_this_artifact": "not-run"
+    }
+  },
+  "tei": {
+    "repository": "hat47x/tei-platform",
+    "main_head": "981c93bc5f3455476885f1c34ec0f9af8b2667c3",
+    "merged_reference_adoption_commit": "981c93bc5f3455476885f1c34ec0f9af8b2667c3",
+    "evidence_path": "reference/sei-adoption/change1-execution-20260918.json",
+    "evidence_git_blob_sha1": "1b68634a7d21f2a9e912ba3899847c9ba6985d84",
+    "implementation_blob_sha1": "a62c0a10ac32d3c84156b74cec57b83f12866dfb",
+    "test_blob_sha1": "7e06b9e289fa00bb19345240146844abad8a5989",
+    "fixture_blob_sha1": "6354fce0a01093cb5545ed6bb9730aceb3b20023"
+  },
+  "observed": {
+    "exact_blob_reconstruction": true,
+    "go_version": "go1.23.2 linux/amd64",
+    "gofmt_diff_bytes": 0,
+    "tei_reference_tests_passed": 9,
+    "tei_reference_tests_failed": 0,
+    "go_vet": "pass",
+    "go_run_semantic_audit_all_true": true,
+    "change1_implementation_file_changes_required": 0,
+    "new_semantic_kind_required": 0,
+    "new_application_pattern_kind_required": 0,
+    "stage0_snapshot_sync_overhead": "present",
+    "semantic_compatibility": "observed",
+    "tei_change_amplification_reduction_vs_native_sei": "not-observed",
+    "tei_product_leverage": "not-established"
+  },
+  "current_classification": {
+    "existing_tei_or_reference_local": "sufficient-for-change1",
+    "reusable_extension": "not-required-by-change1",
+    "native_sei": "still-authoritative",
+    "tei_product_gap_candidate": "not-observed"
+  },
+  "next_probe": "Change 2 — Projection-only ordering/presentation change without canonical semantic mutation",
+  "stop_lines": [
+    "TEI Reference-local exact-blob PASS is not full TEI repository verification",
+    "native SEI source comparison was not re-executed in this receipt",
+    "semantic compatibility is not evidence that TEI lowers development burden",
+    "Stage 0 snapshot synchronization remains additional evaluation overhead",
+    "no Stable Requirement, Universal Contract field, TEI Core kind, or new Application Pattern kind is authorized"
+  ]
+}

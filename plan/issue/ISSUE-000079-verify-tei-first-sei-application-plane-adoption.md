@@ -268,7 +268,9 @@ TEI Application Pattern / Target adoption
   = Not Yet Verified
 
 native vs TEI change-amplification comparison
-  = Not Yet Observed
+  = Change 1 observed
+  = semantic compatibility observed / TEI reduction not observed
+  = Stage 0 snapshot sync overhead remains
 ```
 ## 2026-09-18 source-freeze execution boundary
 
@@ -329,13 +331,41 @@ source-freeze validation PASS
 
 PR merge後、TEIの継続branch `research/sei-reference-adoption`はcurrent `main`へ戻し、同一workstreamの派生branchを増やしていない。
 
-## Initial next step
+## 2026-09-18 Change 1 exact-blob Evidence
 
-最初の実装はWeb UI完成ではなく、**Challenge Aのread-only Resume / Review Reference**とする。
+TEI側のChange 1結果は、`hat47x/tei-platform` mainへ統合済みである。
 
-入力は既存SEI canonical / evaluation fixtureからのdeterministic handoff projectionを優先し、TEI移管専用の第三schemaを先に発明しない。
+- TEI main merge: `981c93bc5f3455476885f1c34ec0f9af8b2667c3`
+- TEI Evidence: `reference/sei-adoption/change1-execution-20260918.json`
+- Evidence blob: `1b68634a7d21f2a9e912ba3899847c9ba6985d84`
+- Reference implementation blob: `a62c0a10ac32d3c84156b74cec57b83f12866dfb`
+- test blob: `7e06b9e289fa00bb19345240146844abad8a5989`
+- frozen fixture blob: `6354fce0a01093cb5545ed6bb9730aceb3b20023`
 
-最初に確認するのは「同じ画面を作れたか」ではなく、**一つの意味変更が、SEI native実装より少ないowner / layer / manual synchronizationでApplication Surfaceへ反映できるか**である。
+exact blobをGo 1.23.2隔離環境へ再構成し、`gofmt` 0差分、9/9 test PASS、`go vet` PASS、tool実行時semantic audit全項目trueを確認した。Change 1ではproduction mapping code変更は0、新semantic kind / Application Pattern kind追加も0だった。
+
+一方、native SEIの`ChangeReviewProjection`も同型changeを既存設計で扱えるため、TEIによるchange-amplification reductionは観測されていない。またStage 0 frozen snapshotのcross-repo同期は追加負担として残る。
+
+```text
+semantic compatibility
+  = observed
+
+TEI leverage over native SEI
+  = not observed
+
+TEI Core / new Pattern need
+  = not observed
+```
+
+SEI側のcross-repository receiptは`evaluation/tei-reference-adoption/change1_tei_reference_evidence_20260918.json`へ固定する。
+
+## Next step
+
+Challenge A / Change 1はReference-local semantic compatibilityまで確認できたが、native SEI比のleverageはまだ観測されていない。
+
+次は**Change 2 — canonical meaningを変えず、Resumeの表示順・段階的詳細化だけを変えるProjection-only challenge**を優先する。ここではSEI canonical source、historical refs、Decision / Recommendation / unresolvedの意味を変更せず、Application Planeだけの変更で完結できるかをPressureする。
+
+Change 2でもTEI固有のowner / config / manual syncが増える場合はTEI-first適用範囲を狭めるEvidenceとして扱う。新Pattern KindやCore fieldは先取りしない。
 
 ## Natural Japanese review
 

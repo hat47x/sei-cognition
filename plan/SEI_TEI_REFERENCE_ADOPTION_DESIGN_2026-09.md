@@ -460,17 +460,57 @@ targeted Go 1.23.2実行では`go test ./tools/sei-resume-reference`と`go vet .
 
 ただし、Reference-local checkerはTEI Application / Projection機構そのものではない。したがって次に必要なのは新しいPattern実装ではなく、Change 1を用いたnative / TEI Referenceのchange amplification比較である。
 
+## 14.2 Change 1 exact-blob Evidenceと現在の分類
+
+2026-09-18、TEI Reference AdoptionのChange 1 follow-upはTEI main `981c93bc5f3455476885f1c34ec0f9af8b2667c3`へ統合された。
+
+machine-readable EvidenceはTEI `reference/sei-adoption/change1-execution-20260918.json`、SEI側link receiptは`evaluation/tei-reference-adoption/change1_tei_reference_evidence_20260918.json`に置く。
+
+current Git blobと一致するReference implementation / test / fixtureをGo 1.23.2隔離環境へ再構成し、
+
+- `gofmt`: 0差分
+- `go test -v ./tools/sei-resume-reference`: 9/9 PASS
+- `go vet ./tools/sei-resume-reference`: PASS
+- `go run ./tools/sei-resume-reference`: semantic audit全項目true
+
+を確認した。
+
+Change 1の比較では、TEI Reference側のproduction mapping code変更は0だった。しかしnative SEIの`ChangeReviewProjection`も既存generic logicで同型changeを扱うため、TEIのchange-amplification reductionは観測されていない。さらにStage 0ではfrozen cross-repo snapshot同期が追加負担として残る。
+
+現時点の分類は次です。
+
+```text
+Existing TEI / Reference-local
+  = Change 1には十分
+
+reusable extension
+  = Change 1からは不要
+
+Native SEI
+  = semantic authorityとして継続
+
+TEI Product gap candidate
+  = 未観測
+
+TEI Product leverage
+  = 未成立
+```
+
+この結果はTEI-firstを否定しないが、Change 1だけで広い移管を正当化もしない。次はProjection-onlyなChange 2でApplication Plane固有のleverageをPressureする。
+
 ## 15. 次の具体作業
 
 次の作業単位は次です。
 
-1. TEI側で、既存SEI fixture 001をread-onlyに読むReference toolの置き場所を選ぶ。
+1. **完了:** TEI側の隔離Reference toolを既存workstreamで実装しmainへ統合する。
 2. **完了:** fixture bytes、SEI source revision、input / oracle selectorをStage 0 source-freeze manifestへ固定する。
-3. `scenario`からResume concernを決定論的に導出する。
-4. `C_sei_resume.surface_text`と`reference_state`をoracleとして意味差を検査する。
-5. N1〜N4 negative casesをfixture-local testにする。
-6. Change 1〜3のうち少なくとも一つをnative / TEI Referenceで比較する。
-7. 結果をExisting / reusable extension / Native SEI / TEI Product gap candidateへ分類する。
+3. **完了:** `scenario`からResume concernを決定論的に導出する。
+4. **完了:** `C_sei_resume.surface_text`と`reference_state`をoracleとして意味差を検査する。
+5. **完了:** N1〜N4を含むfail-closed境界をfixture-local testにする。
+6. **完了:** Change 1をnative / TEI Referenceで比較し、semantic compatibilityは確認したがTEI leverageは未観測と記録する。
+7. **現在:** Change 1をExisting / Reference-localで十分、reusable extension不要、Native SEI authority継続、TEI Product gap未観測と分類する。
+8. **次:** Change 2のProjection-only変更でApplication Plane固有のleverageとmanual synchronizationを比較する。
+9. その後、Challenge BのEvidence / Governance Surfaceへ進むかをGate readinessと合わせて再判断する。
 
 ## 16. Natural Japanese review
 
