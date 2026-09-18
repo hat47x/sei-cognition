@@ -819,7 +819,8 @@
       "cross-stage freeze kitをdraft manifest群として実装し、branch source再現のPython 3.13.5環境でfreeze-kit 18 testsとpreregistration 19 testsがPASSした。空のcurrent datasetはfreeze不可で、synthetic complete bundleのみdeterministic digest付きでfreezeできることを確認した。",
       "cross-stage evaluation-run artifactをdraft / locked templateとして実装し、authorization validatorと20本のsynthetic / fail-closed回帰テストを定義した。current freeze bundleはdraftのためchecked-in runはauthorizeされず、executor / result artifact / B5 gate / production defaultは変更していない。",
       "cross-stage evaluation-run validatorをGitHub正本とGit blob SHA一致の一時再構成環境でPython 3.13.5実行し、run 20 tests、freeze 18 tests、preregistration 23 testsの計61 testsがPASSした。3 validatorもPASSし、current run / freeze bundle / preregistrationは引き続きdraft / lockedのままである。",
-      "cross-stage result artifactをdraft / empty templateとして実装し、authorized runへのexact digest binding、requested metric完全性、metric role、unavailable明示、raw Evidence digest、canonical result digestの境界をvalidator/testで固定した。実human-adjudicated benchmark resultは未生成。"
+      "cross-stage result artifactをdraft / empty templateとして実装し、authorized runへのexact digest binding、requested metric完全性、metric role、unavailable明示、raw Evidence digest、canonical result digestの境界をvalidator/testで固定した。実human-adjudicated benchmark resultは未生成。",
+      "cross-stage result validatorをGitHub正本とGit blob SHA一致の一時再構成環境でPython 3.13.5実行し、result 24 tests、run 20 tests、freeze 18 tests、preregistration 27 testsの計89 testsがPASSした。4 validatorもPASSし、current result / run / freeze bundle / preregistrationは引き続きdraft / lockedのままである。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -856,7 +857,8 @@
       "cross-stage-freeze/freeze_kit_evidence_2026-09-18.json",
       "cross-stage-run/evaluation_run_evidence_2026-09-18.json",
       "cross-stage-run/evaluation_run_runtime_evidence_2026-09-18.json",
-      "cross-stage-result/result_contract_evidence_2026-09-18.json"
+      "cross-stage-result/result_contract_evidence_2026-09-18.json",
+      "cross-stage-result/result_runtime_evidence_2026-09-18.json"
     ]
   },
   "references": [
@@ -955,7 +957,12 @@
       "current_result_completed": false,
       "semantic_interpretation_generated": false,
       "b5_entry_gate_changed": false,
-      "production_default_changed": false
+      "production_default_changed": false,
+      "runtime_evidence_ref": "cross-stage-result/result_runtime_evidence_2026-09-18.json",
+      "runtime_validation_state": "passed-current-draft-and-synthetic-regression",
+      "runtime_tests_passed": 24,
+      "integration_tests_passed": 65,
+      "total_tests_passed": 89
     }
   }
 }
