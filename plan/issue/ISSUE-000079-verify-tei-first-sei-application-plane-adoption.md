@@ -359,13 +359,35 @@ TEI Core / new Pattern need
 
 SEI側のcross-repository receiptは`evaluation/tei-reference-adoption/change1_tei_reference_evidence_20260918.json`へ固定する。
 
+## 2026-09-18 Change 2 Gate boundary
+
+Projection-onlyなChange 2についてTEI current Gateを再監査した結果、Product behaviorとしての実装はdeferする。
+
+TEI current stateはGate B Not Ready、Gate C Blocked、First Web Target未実装で、complete Target-neutral Presentation IRも未成立である。この状態でSEI Reference専用のordering / Presentation helperを追加すると、既存TEI能力のleverageではなく、比較のために発明したsurrogate layerを測ることになる。
+
+TEI側ではこの停止線を `reference/sei-adoption/change2-presentation-gate-boundary-20260918.json` としてmain `1683182b730a41120f56da00e396220c6d5f7a13`へ統合した。SEI側link receiptは `evaluation/tei-reference-adoption/change2_presentation_gate_boundary_20260918.json` に置く。
+
+```text
+Change 2 Product behavior
+  = deferred by current Gate
+
+TEI failure
+  = not observed
+
+TEI Presentation leverage
+  = not observed
+
+new Pattern / Core gap
+  = not observed
+```
+
+再開条件は、Gate B Ready + Handover Baseline固定 + First Web Target着手、またはSEIと独立した根拠でtarget-neutral Presentation機構が成立することとする。
+
 ## Next step
 
-Challenge A / Change 1はReference-local semantic compatibilityまで確認できたが、native SEI比のleverageはまだ観測されていない。
+現在安全に進められるのは、Target behaviorを必要としない**Challenge B — Evidence / Governance Surfaceのmapping-only監査**である。ここではEvidenceの高さ、human observation / semantic audit分離、provenance / digest、secret-safe境界を既存TEI capabilityへ対応付ける。
 
-次は**Change 2 — canonical meaningを変えず、Resumeの表示順・段階的詳細化だけを変えるProjection-only challenge**を優先する。ここではSEI canonical source、historical refs、Decision / Recommendation / unresolvedの意味を変更せず、Application Planeだけの変更で完結できるかをPressureする。
-
-Change 2でもTEI固有のowner / config / manual syncが増える場合はTEI-first適用範囲を狭めるEvidenceとして扱う。新Pattern KindやCore fieldは先取りしない。
+新しいUI、Presentation IR、Pattern Kind、Stable Requirementは先取りしない。
 
 ## Natural Japanese review
 

@@ -498,6 +498,22 @@ TEI Product leverage
 
 この結果はTEI-firstを否定しないが、Change 1だけで広い移管を正当化もしない。次はProjection-onlyなChange 2でApplication Plane固有のleverageをPressureする。
 
+## 14.3 Change 2 Gate boundary
+
+Change 2のProjection-only変更は、current TEI Gateでは有効なProduct leverage比較にならないと判断した。
+
+Gate BがNot Ready、Gate CがBlockedで、First Web Target / complete Target-neutral Presentation IRが未成立のため、SEI Reference専用のordering schemaやPresentation helperを追加すると、既存TEI capabilityではなく評価用surrogateを新設することになる。
+
+そのためProduct behavior probeをdeferし、TEI側boundary artifactをmainへ統合した。
+
+- TEI main: `1683182b730a41120f56da00e396220c6d5f7a13`
+- TEI boundary: `reference/sei-adoption/change2-presentation-gate-boundary-20260918.json`
+- SEI link receipt: `evaluation/tei-reference-adoption/change2_presentation_gate_boundary_20260918.json`
+
+これはTEI failureではない。一方、Presentation leverageが成立したEvidenceでもない。
+
+Change 2はGate B Ready + Handover Baseline固定 + First Web Target着手、または独立してtarget-neutral Presentation機構が成立した時点で再開する。
+
 ## 15. 次の具体作業
 
 次の作業単位は次です。
@@ -508,9 +524,10 @@ TEI Product leverage
 4. **完了:** `C_sei_resume.surface_text`と`reference_state`をoracleとして意味差を検査する。
 5. **完了:** N1〜N4を含むfail-closed境界をfixture-local testにする。
 6. **完了:** Change 1をnative / TEI Referenceで比較し、semantic compatibilityは確認したがTEI leverageは未観測と記録する。
-7. **現在:** Change 1をExisting / Reference-localで十分、reusable extension不要、Native SEI authority継続、TEI Product gap未観測と分類する。
-8. **次:** Change 2のProjection-only変更でApplication Plane固有のleverageとmanual synchronizationを比較する。
-9. その後、Challenge BのEvidence / Governance Surfaceへ進むかをGate readinessと合わせて再判断する。
+7. **完了:** Change 1をExisting / Reference-localで十分、reusable extension不要、Native SEI authority継続、TEI Product gap未観測と分類する。
+8. **deferred:** Change 2はcurrent Gateではsurrogate Presentationを発明する危険があるため、Gate B / C再開条件を固定する。
+9. **現在:** Challenge BのEvidence / Governance SurfaceをTarget behaviorなしのmapping-onlyで監査する。
+10. Gate B / Cが進展した後、Change 2を実Application / Target能力で再開する。
 
 ## 16. Natural Japanese review
 

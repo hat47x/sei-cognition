@@ -1,0 +1,38 @@
+{
+  "schema": "sei.tei-reference-adoption-change2-gate-boundary-link/v1",
+  "recorded_at": "2026-09-18",
+  "issue": "ISSUE-000079",
+  "authority": "evaluation-only-cross-repository-reference",
+  "sei": {
+    "repository": "hat47x/sei-cognition",
+    "branch": "develop/v0.2.0",
+    "head_at_recording": "814fb5deafa3bc6723d03eb1d7506b28b5ecd17e"
+  },
+  "tei": {
+    "repository": "hat47x/tei-platform",
+    "main_head": "1683182b730a41120f56da00e396220c6d5f7a13",
+    "boundary_path": "reference/sei-adoption/change2-presentation-gate-boundary-20260918.json",
+    "boundary_git_blob_sha1": "750d4ea95155edbf1e2535fe2b3fb8c6ab25dbf4"
+  },
+  "conclusion": {
+    "change2_product_behavior_probe": "deferred-by-current-tei-gate",
+    "reason": "A SEI-specific Reference-local ordering/presentation abstraction would test invented surrogate infrastructure rather than current TEI Product capability.",
+    "tei_failure_observed": false,
+    "tei_presentation_leverage_observed": false,
+    "new_tei_core_gap_observed": false,
+    "new_pattern_kind_authorized": false,
+    "new_stable_requirement_authorized": false
+  },
+  "reentry_conditions": [
+    "TEI Gate B Ready, Handover Baseline B/revision R fixed, and First Web Target work authorized",
+    "or an independently justified target-neutral Presentation mechanism becomes available before Gate C"
+  ],
+  "current_adoption_posture": "TEI-first remains a candidate; keep SEI authority native and do not broaden migration beyond Reference-local evidence yet",
+  "next_safe_work": "Challenge B Evidence/Governance mapping-only analysis that does not require Target behavior",
+  "stop_lines": [
+    "deferred Change 2 is not evidence of TEI failure",
+    "a custom Reference-only display ordering helper would not establish TEI Product leverage",
+    "Gate B/C must not be bypassed to satisfy SEI evaluation",
+    "no new Universal field, Stable Requirement, TEI Core kind, or Application Pattern kind is authorized"
+  ]
+}
