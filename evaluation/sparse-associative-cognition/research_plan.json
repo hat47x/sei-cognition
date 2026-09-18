@@ -107,10 +107,11 @@
     {
       "id": "compartmental-outcome-learning",
       "biological_observation": "キノコ体では区画ごとにdopamineが局所的な可塑性を調節し、短期・長期の記憶単位も相互作用する。",
-      "engineering_abstraction": "成果feedbackはdurable semantic truthを書き換えるのではなく、problem classごとのroute、Method、model、adapter weightの有効性を局所的かつversionedに更新する。",
+      "engineering_abstraction": "成果feedbackはdurable semantic truthを書き換えるのではなく、caller-owned problem classごとのroute / Method / model efficacyをprovenance付きOutcomeから集計し、immutable candidate policy snapshotとしてversionedに更新する。candidate生成とactivationを分離し、caller-owned allowed route / minimum escalation floor / Authority / permissionは学習対象にしない。",
       "sei_role": "Cognitive Policy Learning / outcome-informed routing",
-      "adoption_state": "later-sei-orchestration-research",
-      "risk": "意味内容の正しさとroute efficacyを混同すると自己強化的な誤りを生むため、SACS coreではなく上位policy学習へ配置する。"
+      "adoption_state": "synthetic-executable-evaluation",
+      "risk": "route efficacyは観測policyによるselection biasとdistribution shiftを受ける。aggregate sufficient rateをsemantic confidenceへ変換せず、execution outcomeとも分離する。過去に有効だったlower routeでもholdoutでstatic routeに対するregretを生み得るため、rollback可能性を保つ。",
+      "evidence_note": "B7 synthetic evaluationで、local routeが9/10 sufficientならcandidateへ下げられる一方、candidateは明示activationまでactiveにならないことを確認した。positive replayではsuccess rateを1.0に保ったままunnecessary escalation rateを1.0→0へ下げたが、distribution-shift replayではadapted success rate 0.5 / regret-against-static 0.5を観測した。high-stakes相当のminimum escalation floorはlower routeが10/10 sufficientでも越えられない。"
     }
   ],
   "non_llm_stack": [
@@ -467,15 +468,44 @@
       "depends_on": [
         "SAC-B0"
       ],
-      "change": "SACS内部のsemantic stateではなく、上位SEI routerがproblem class別のMethod / model / route efficacyをversionedに更新する。",
-      "primary_question": "結果から学ぶ対象をtruthではなくroute efficacyへ限定することで、安全に認知配分を改善できるか。",
+      "change": "SACS内部のsemantic stateではなく、上位SEI Cognitive Control Planeがcaller-owned problem class別のroute efficacyをprovenance付きOutcomeから集計し、immutable candidate policy snapshotとしてversionedに生成する。candidate生成とexplicit activation / rollbackを分離し、allowed route・minimum escalation floor・Authority・permissionは学習で変更しない。",
+      "primary_question": "結果から学ぶ対象をtruthではなくroute efficacyへ限定し、static fallback・safety floor・明示activation・rollbackを保ちながら、不要なescalationを減らせるか。またdistribution shift時のregretを独立指標として可視化できるか。",
       "placement": "evaluation/sei-cognition-orchestration side, not SACS core",
       "measures": [
         "route_success_rate",
         "unnecessary_escalation_rate",
         "regret_against_static_policy",
-        "rollback_reproducibility"
-      ]
+        "rollback_reproducibility",
+        "minimum_escalation_floor_preservation",
+        "execution_cognitive_outcome_separation",
+        "policy_version_provenance_trace"
+      ],
+      "current_result": {
+        "state": "limited-synthetic-executable-evidence",
+        "evidence_file": "../sei-cognition-orchestration/outcome_informed_routing_evidence_2026-09-18.json",
+        "findings": [
+          "routine-summaryのlocal-slmが9/10 sufficientでrequired floor 0.8 / minimum observations 5を満たすfixtureではcandidate v1がlocal-slmを選んだが、BuildCandidateだけではactive v0のgeneral-llmは変更されなかった。",
+          "novel-analysisのlocal-slmが3/5 sufficientでfloorを下回るfixtureではstatic general-llmを維持した。",
+          "execution failed 3件をcognitive not-assessedとして記録したfixtureでは、execution failureをcognitive insufficiencyへ変換せず、assessed=4のためminimum observations未達としてstatic routeを維持した。",
+          "minimum escalation level=2のhigh-stakes-reviewではlevel 1 local-slmが10/10 sufficientでもcandidateはhuman-or-stronger-reviewを維持し、replayでもfloor未満routeをunnecessary escalation候補に数えなかった。",
+          "positive replayではadapted/static双方success rate 1.0のままunnecessary escalation rateが1.0→0となった。",
+          "distribution-shift replayではadapted success rate 0.5、static success rate 1.0、regret-against-static rate 0.5を観測し、past efficacy != future guaranteeを固定した。",
+          "v0→v1 activation→v0 rollbackでroutine-summary routeがgeneral-llm→local-slm→general-llmと再現した。"
+        ],
+        "implementation_boundary": {
+          "placement": "evaluation/sei-cognition-orchestration/prototype-go/cognitivepolicy",
+          "candidate_auto_activation": false,
+          "immutable_snapshots": true,
+          "rollback_supported": true,
+          "allowed_routes_learned": false,
+          "minimum_escalation_floor_learned": false,
+          "authority_or_permission_learned": false,
+          "execution_outcome_conflated_with_cognitive_outcome": false,
+          "calibrated_confidence_claimed": false,
+          "online_counterfactual_estimation_claimed": false
+        },
+        "stop_line": "synthetic route efficacyを、semantic truth、Recommendation / Decision correctness、new permission、Authority、future success guarantee、production routing policyへ昇格させない。"
+      }
     }
   ],
   "stage_gate_policy": {
@@ -554,7 +584,11 @@
     "fingerprint_missed_change_behavior",
     "b2_partition_representability",
     "winner_share_upper_bound",
-    "competition_saturation_behavior"
+    "competition_saturation_behavior",
+    "minimum_escalation_floor_preservation",
+    "execution_cognitive_outcome_separation",
+    "policy_version_provenance_trace",
+    "distribution_shift_regret"
   ],
   "evaluation_policy": {
     "single_composite_score": false,
@@ -592,7 +626,10 @@
       "B4 familiarity stateはMaxEntriesでboundedにし、capacity超過時のoldest / lexical tie-break deterministic evictionを確認した。",
       "SAC-B6のsynthetic capacity evaluationで、2048/32・4096/64・8192/128の同一active fraction profileがB1 family normalization + B2 soft-local fixtureのdesired candidate順位を維持することを確認した。",
       "同じB6評価で、Active=4では4 family + half global residualのB2比を表現できないcapacity floorを確認し、黙ったpolicy歪曲ではなくfail-closedとした。",
-      "32768/512ではActive/Dimensions=1/64を保ってもconfigured winnersが入力projection upper-boundへ接近し候補順が逆転する反例を観測し、active fraction単独ではhomeostatic invariantとして不十分と確認した。"
+      "32768/512ではActive/Dimensions=1/64を保ってもconfigured winnersが入力projection upper-boundへ接近し候補順が逆転する反例を観測し、active fraction単独ではhomeostatic invariantとして不十分と確認した。",
+      "SEI-B7のsynthetic evaluationで、provenance付きcognitive outcomeから生成したcandidate policyが明示activationまでactive routingを変更せず、immutable versionへのrollbackで以前のrouteを再現することを確認した。",
+      "同じB7評価で、execution failureをcognitive insufficiencyへ自動変換せず、caller-owned minimum escalation floorをlower routeの高いsynthetic efficacyでも越えないことを確認した。",
+      "B7 positive replayではsynthetic success rateを維持したままunnecessary escalationを減らすケースを観測した一方、distribution-shift replayではstatic routeに対するregretが発生する反例を同時に固定した。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -607,7 +644,7 @@
       "10万件以上でのindex方式",
       "LLM呼び出し削減量",
       "実hardware / real workloadにおけるcapacity profile品質、selection-pressure invariant、adaptive Active、power / latency / memory trade-off",
-      "outcome-informed routingの有効性",
+      "実problem class / real Outcome評価におけるoutcome-informed routingの一般化、selection-bias補正、statistical confidence、drift / expiry / rollback criteria",
       "production配置方式",
       "Product Value / Operational / Adoption / Outcome Evidence"
     ],
@@ -616,7 +653,8 @@
       "localized_competition_evidence_2026-09-18.json",
       "projection_bias_evidence_2026-09-18.json",
       "familiarity_modulation_evidence_2026-09-18.json",
-      "capacity_homeostasis_evidence_2026-09-18.json"
+      "capacity_homeostasis_evidence_2026-09-18.json",
+      "../sei-cognition-orchestration/outcome_informed_routing_evidence_2026-09-18.json"
     ]
   },
   "references": [
