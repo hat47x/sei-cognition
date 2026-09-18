@@ -168,6 +168,17 @@ class CrossStageFreezeManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "must be empty while draft"):
             freeze_documents(docs, "2026-09-18T00:00:00Z")
 
+    def test_freeze_rejects_non_utc_second_timestamp(self) -> None:
+        for value in (
+            "2026-09-18",
+            "2026-09-18T00:00:00+09:00",
+            "2026-09-18T00:00:00.123Z",
+            "not-a-timestamp",
+        ):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(ValueError, "UTC second format"):
+                    freeze_documents(synthetic_draft(), value)
+
     def test_dataset_digest_detects_post_freeze_mutation(self) -> None:
         frozen = freeze_documents(synthetic_draft(), "2026-09-18T00:00:00Z")
         frozen["dataset"]["items"][0]["source_ref"] = "fixture:mutated"
