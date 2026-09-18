@@ -1,0 +1,121 @@
+{
+  "schema": "sei.sacs-input-normalization-evidence/v1alpha1",
+  "date": "2026-09-18",
+  "status": "limited-local-executable-evidence",
+  "subject": "SAC-B1b SUI feature-family normalization",
+  "branch": "topic/sac-b1b-feature-family-normalization",
+  "comparison": {
+    "modes": [
+      "none",
+      "exact-channel",
+      "caller-owned-feature-family"
+    ],
+    "familyMapping": {
+      "kind": "kind",
+      "text": "text",
+      "graph:*": "graph",
+      "provenance:*": "provenance",
+      "grouping:*": "grouping"
+    },
+    "invariant": "Normalization changes only Feature.Weight; original Feature.Channel and Feature.Key remain unchanged."
+  },
+  "syntheticFixtures": [
+    {
+      "id": "B1B-TEXT-CARDINALITY-01",
+      "purpose": "Observe whether many text n-grams can dominate a structurally matching candidate.",
+      "config": {
+        "dimensions": 32768,
+        "fanout": 4,
+        "active": 16,
+        "seed": 47,
+        "normalizationFloor": 1
+      },
+      "similarity": {
+        "none": {
+          "desired": 0.125,
+          "distractor": 0.625
+        },
+        "exactChannel": {
+          "desired": 0.9375,
+          "distractor": 0.0625
+        },
+        "featureFamily": {
+          "desired": 0.9375,
+          "distractor": 0.25
+        }
+      },
+      "observation": "The unnormalized condition preferred the text-similar distractor. Both bounded normalization modes restored the structurally aligned candidate in this fixture."
+    },
+    {
+      "id": "B1B-SUBCHANNEL-OVERCORRECTION-01",
+      "purpose": "Observe whether exact-channel normalization can over-amplify a singleton structural subchannel.",
+      "config": {
+        "dimensions": 32768,
+        "fanout": 4,
+        "active": 10,
+        "seed": 47,
+        "normalizationFloor": 1
+      },
+      "similarity": {
+        "none": {
+          "desired": 0.2,
+          "distractor": 0
+        },
+        "exactChannel": {
+          "desired": 0.4,
+          "distractor": 0.7
+        },
+        "featureFamily": {
+          "desired": 0.7,
+          "distractor": 0.4
+        }
+      },
+      "observation": "Exact-channel normalization reversed the baseline ordering toward a singleton-neighbor match. Feature-family normalization avoided that reversal in this fixture."
+    }
+  ],
+  "structuralObservations": [
+    "Exact-channel normalization gives graph:relationType and graph:neighborKind independent unit-mass budgets when both are present.",
+    "Feature-family normalization shares one bounded graph-family mass across those subchannels while preserving their original channel identities.",
+    "The same distinction applies to provenance and grouping subchannels."
+  ],
+  "localVerification": {
+    "toolchain": "go1.23.2 linux/amd64",
+    "repositoryGoDirective": "1.25",
+    "exactRepositoryCheckout": false,
+    "method": "A standalone deterministic reconstruction of current SACS hashing, sparse expansion, k-WTA, SUI n-gram projection, exact-channel normalization, and the branch's feature-family normalization logic was formatted and executed with go test.",
+    "command": "gofmt -w eval_test.go && go test -v ./...",
+    "result": "PASS",
+    "benchmark": {
+      "subject": "feature-family reweighting on a representative SUI-shaped feature set",
+      "observations": [
+        "3.52 us/op, 3072 B/op, 1 alloc/op",
+        "3.62 us/op, 3072 B/op, 1 alloc/op",
+        "3.76 us/op, 3072 B/op, 1 alloc/op"
+      ],
+      "comparisonExactChannel": [
+        "3.16 us/op, 3072 B/op, 1 alloc/op",
+        "3.30 us/op, 3072 B/op, 1 alloc/op",
+        "3.17 us/op, 3072 B/op, 1 alloc/op"
+      ],
+      "note": "These are reconstruction-only microbenchmarks on the current container, not repository or production performance evidence."
+    }
+  },
+  "stopLines": [
+    "synthetic fixture improvement != general semantic quality",
+    "feature-family normalization != localized competition",
+    "normalization weight != importance",
+    "similarity != confidence or truth",
+    "this evidence != production default",
+    "this evidence != SUI affinity benchmark result"
+  ],
+  "notVerified": [
+    "exact branch source test from a full repository checkout",
+    "repository-wide regression",
+    "actual SUI card distribution",
+    "SUI fixed meaning-quality benchmark",
+    "recall@k and false-activation behavior on human-adjudicated data",
+    "production latency and memory",
+    "Product Value, Operational, Adoption, or Outcome Evidence"
+  ],
+  "issue": 430
+}
