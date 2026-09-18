@@ -179,7 +179,8 @@
   "derivedResearchInsight": {
     "insufficientInvariant": "Active / Dimensions alone",
     "additionalCandidateInvariant": "configured or effective winners relative to available/touched input projections (competition selection pressure)",
-    "futureQuestion": "Whether effective Active should be clamped or adapted from observed feature/touched cardinality without making input size a semantic importance signal."
+    "futureQuestion": "Whether effective Active should be clamped or adapted from observed feature/touched cardinality without making input size a semantic importance signal.",
+    "observedFollowUp": "Use path-specific selected/post-hash-touched diagnostics before considering any adaptive Active or local-budget rule."
   },
   "stopLines": [
     "biological E/I ratio != SACS active fraction",
@@ -195,10 +196,15 @@
     "exact branch source execution from a full repository checkout on Go 1.25",
     "actual wearable/home/workstation hardware latency and power",
     "real SUI/SEI feature-cardinality distributions",
-    "observed touched-dimension saturation rather than projection upper-bound proxy",
-    "optimal selection-pressure invariant or adaptive Active rule",
+    "optimal path-specific selection-pressure ceiling or adaptive Active/local-budget rule",
     "quality across a human-adjudicated benchmark",
     "index/query scaling across profile sizes",
     "Production, Operational, Adoption, or Outcome Evidence"
-  ]
+  ],
+  "followUp": {
+    "issue": 451,
+    "evidenceFile": "observed_selection_pressure_evidence_2026-09-18.json",
+    "result": "post-hash touched dimensions are now observable per B2 path; the prior total-active upper-bound proxy is retained only as a coarse pre-collision comparison.",
+    "keyObservation": "oversized global residual observed winner share is 256/574≈0.446 while graph/provenance/grouping local paths reach 1.0; local low-cardinality saturation is therefore visible separately from global pressure."
+  }
 }

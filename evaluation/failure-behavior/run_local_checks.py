@@ -81,6 +81,16 @@ def configured_checks() -> tuple[Check, ...]:
             cwd=EVALUATION_DIR,
         ),
         Check(
+            name="go-toolchain-preflight-tests",
+            command=(sys.executable, "test_check_go_toolchain.py"),
+            cwd=EVALUATION_DIR,
+        ),
+        Check(
+            name="go-toolchain-preflight",
+            command=(sys.executable, "check_go_toolchain.py"),
+            cwd=EVALUATION_DIR,
+        ),
+        Check(
             name="provider-adapter-go-tests",
             command=("go", "test", "./provideradapter"),
             cwd=GO_RUNTIME_DIR,
@@ -110,6 +120,19 @@ def sanitized_environment(source: dict[str, str] | None = None) -> dict[str, str
         "PYTHONHOME",
         "PYTHONSTARTUP",
         "PYTHONUSERBASE",
+    ):
+        environment.pop(key, None)
+
+    environment["GOWORK"] = "off"
+    environment["GOENV"] = "off"
+    environment["GOTOOLCHAIN"] = "local"
+    for key in (
+        "GOFLAGS",
+        "GOOS",
+        "GOARCH",
+        "GOAMD64",
+        "GOEXPERIMENT",
+        "CGO_ENABLED",
     ):
         environment.pop(key, None)
 
@@ -208,7 +231,9 @@ def run_checks(
             }
 
         executions.append(execution)
-        if execution["exitCode"] != 0 and stop_on_failure:
+        if execution["exitCode"] != 0 and (
+            stop_on_failure or check.name == "go-toolchain-preflight"
+        ):
             stopped_early = index < len(checks)
             break
 

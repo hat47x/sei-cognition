@@ -1,0 +1,126 @@
+{
+  "schema": "sei.sacs-local-residual-containment-evidence/v1alpha1",
+  "date": "2026-09-18",
+  "status": "limited-local-executable-evidence",
+  "subject": "SAC-B6c family-local contribution outside global residual",
+  "issue": 453,
+  "branch": "topic/sac-b6c-local-residual-containment",
+  "intent": "Measure whether B2 family-local competition still contributes dimensions outside the global residual as capacity scales, before changing any adaptive budget policy.",
+  "instrumentationBoundary": {
+    "providerResponseContractChanged": false,
+    "normalEncodeChanged": false,
+    "diagnosticFields": [
+      "family unique dimensions beyond global residual",
+      "local incremental dimensions in merged signature",
+      "merged selected dimensions"
+    ],
+    "stopLines": [
+      "dimension containment != semantic redundancy",
+      "unique dimension != semantic value",
+      "local incremental zero in one fixture != local competition is generally unnecessary",
+      "containment correlation != causal explanation of retrieval quality",
+      "diagnostics != adaptive budget policy"
+    ]
+  },
+  "fixture": {
+    "source": "B6/B6b capacityEvalItems anchor with B1 family normalization and B2 equal-local half-global residual policy",
+    "profiles": [
+      {
+        "id": "small",
+        "dimensions": 2048,
+        "active": 32,
+        "globalResidualSelected": 16,
+        "mergedSelected": 27,
+        "localIncrementalDimensions": 11,
+        "localIncrementalShare": 0.4074074074074074,
+        "familyUniqueBeyondResidual": {
+          "text": 4,
+          "graph": 4,
+          "provenance": 3,
+          "grouping": 0
+        },
+        "existingB6Margin": 0.391277194
+      },
+      {
+        "id": "medium",
+        "dimensions": 4096,
+        "active": 64,
+        "globalResidualSelected": 32,
+        "mergedSelected": 52,
+        "localIncrementalDimensions": 20,
+        "localIncrementalShare": 0.38461538461538464,
+        "familyUniqueBeyondResidual": {
+          "text": 8,
+          "graph": 6,
+          "provenance": 6,
+          "grouping": 0
+        },
+        "existingB6Margin": 0.549086273
+      },
+      {
+        "id": "large",
+        "dimensions": 8192,
+        "active": 128,
+        "globalResidualSelected": 64,
+        "mergedSelected": 80,
+        "localIncrementalDimensions": 16,
+        "localIncrementalShare": 0.2,
+        "familyUniqueBeyondResidual": {
+          "text": 16,
+          "graph": 0,
+          "provenance": 0,
+          "grouping": 0
+        },
+        "existingB6Margin": 0.616209984
+      },
+      {
+        "id": "oversized",
+        "dimensions": 32768,
+        "active": 512,
+        "globalResidualSelected": 256,
+        "mergedSelected": 256,
+        "localIncrementalDimensions": 0,
+        "localIncrementalShare": 0,
+        "familyUniqueBeyondResidual": {
+          "text": 0,
+          "graph": 0,
+          "provenance": 0,
+          "grouping": 0
+        },
+        "existingB6Margin": -0.15625
+      }
+    ]
+  },
+  "findings": [
+    "The merged signature retains local dimensions outside the residual for small, medium, and large profiles, but the incremental count falls to zero in the oversized profile.",
+    "Grouping contributes no dimensions outside the residual in this anchor at any evaluated profile; graph and provenance cease adding dimensions by the large profile; text remains the only incremental family at large and is fully contained at oversized.",
+    "At oversized capacity every family-local winner is already present in the 256-dimension global residual, so B2 local+global merge becomes identical to the residual signature for this anchor.",
+    "The existing B6 fixture keeps positive desired-minus-distractor margins through large and fails only at oversized, but containment is not treated as a causal or sufficient failure criterion.",
+    "Scaling the global residual with total Active can progressively absorb the dimensions that made localized competition distinct, so future capacity policy evaluation should vary residual scaling separately from local scaling rather than assuming a fixed 50/50 ratio remains meaningful."
+  ],
+  "independentReconstruction": {
+    "toolchain": "Python 3.13.5 on Linux x86_64",
+    "method": "Independent deterministic reconstruction of the current feature hashing, B1 family normalization, B2 family-local selection, global residual selection, and signature union.",
+    "result": "matched family unique-beyond-residual counts 4/4/3/0, 8/6/6/0, 16/0/0/0, and 0/0/0/0 across the four profiles.",
+    "limitation": "Not an exact repository Go 1.25 execution."
+  },
+  "implementationState": {
+    "adaptiveActiveRuleImplemented": false,
+    "adaptiveLocalBudgetImplemented": false,
+    "residualRatioChanged": false,
+    "providerDefaultChanged": false,
+    "b5EntryGateChanged": false
+  },
+  "derivedResearchInsight": {
+    "degradationMode": "global residual containment can erase the incremental effect of localized competition as capacity grows",
+    "nextQuestion": "Whether global residual scaling should be varied independently from local budgets, using static evaluation policies first, before considering input-adaptive local ceilings."
+  },
+  "notVerified": [
+    "exact branch source execution on repository Go 1.25",
+    "containment behavior across real SUI/SEI feature distributions",
+    "human-adjudicated quality relationship to local incremental dimensions",
+    "optimal local/global residual scaling across capacities",
+    "whether a static residual ceiling outperforms input-adaptive local ceilings",
+    "Production, Operational, Adoption, or Outcome Evidence"
+  ]
+}

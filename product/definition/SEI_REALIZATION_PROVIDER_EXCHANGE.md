@@ -1,7 +1,7 @@
 # SEI Realization / Provider Exchange
 
-更新日: 2026-09-05  
-状態: **Current Realization / Provider Exchange Design Baseline — E3b-P2 / M1b / historical reconstruction / Ollama runtime exchange reflected, TEI executable revision B actual pending**
+更新日: 2026-09-18  
+状態: **Current Realization / Provider Exchange Design Baseline — E3b-P2 / M1b / historical reconstruction / Ollama runtime exchange reflected, reusable TEI Evidence protocol source available, revision B actual pending**
 
 ## 1. この文書の役割
 
@@ -232,6 +232,21 @@ revision A fixed-artifact Evidence available
 ```
 
 revision B actual CLI / `deployment-provider-plan` / current SEI Adapter live compatibilityは**Not Yet Verified**です。
+
+ISSUE-000074では、actual TEI binaryを実行した際のEvidenceを後から再利用・監査できるよう、`runtime/go/teiprobe`と`runtime/go/cmd/tei-e3b-probe`を追加しました。direct executable fileのSHA-256、declared source repository / commit、任意manifestとの一致状態、実行対象solution / version、current Capability Observationを`sei.e3b-tei-probe/v1`というderived reportへ束ねます。
+
+```text
+actual executable file
+  + observed SHA-256
+  + declared source
+  + optional manifest match
+  + deployment-provider-plan execution
+  + current Capability Observation validation
+        ↓
+derived TEI Evidence report
+```
+
+このreportはUniversal Contractではありません。manifest一致も署名・真正性・reproducible buildを意味しません。probe source / fixture-scoped test source / CLIは実装済みですが、current Go 1.25環境でのtest実行とactual TEI binaryによるreport生成は**Not Yet Verified**です。したがってISSUE-000074実装の存在を、ISSUE-000072 revision B PASSやE3b-P2の追加actual Evidenceへは昇格させません。
 
 未検証として残るのは、特定automation providerからprivate repositoryを取得できるかではなく、より一般に次の領域です。
 

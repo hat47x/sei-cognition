@@ -35,6 +35,65 @@ func TestEncodeDeterministic(t *testing.T) {
 	}
 }
 
+func TestEncodeWithStatsMatchesEncodeAndCountsObservedTouches(t *testing.T) {
+	features := []Feature{
+		{Channel: "lex", Key: "制度", Weight: 1},
+		{Channel: "lex", Key: "責任", Weight: 1},
+		{Channel: "ignored", Key: "", Weight: 1},
+		{Channel: "ignored", Key: "zero", Weight: 0},
+	}
+	plainEncoder := newTestEncoder(t)
+	observedEncoder := newTestEncoder(t)
+
+	plain := plainEncoder.Encode(features)
+	observed, stats := observedEncoder.EncodeWithStats(features)
+	if len(plain.Active) != len(observed.Active) {
+		t.Fatalf("signature lengths differ: plain=%d observed=%d", len(plain.Active), len(observed.Active))
+	}
+	for i := range plain.Active {
+		if plain.Active[i] != observed.Active[i] {
+			t.Fatalf("signature differs at %d: plain=%d observed=%d", i, plain.Active[i], observed.Active[i])
+		}
+	}
+	if stats.PositiveFeatures != 2 {
+		t.Fatalf("positive features=%d want 2", stats.PositiveFeatures)
+	}
+	if stats.ProjectionAttempts != 16 {
+		t.Fatalf("projection attempts=%d want 16", stats.ProjectionAttempts)
+	}
+	if stats.TouchedDimensions <= 0 || stats.TouchedDimensions > stats.ProjectionAttempts {
+		t.Fatalf("invalid touched dimensions: %#v", stats)
+	}
+	if stats.SelectedDimensions != len(observed.Active) {
+		t.Fatalf("selected dimensions=%d signature=%d", stats.SelectedDimensions, len(observed.Active))
+	}
+	if stats.SelectedDimensions > stats.TouchedDimensions {
+		t.Fatalf("selected exceeds touched: %#v", stats)
+	}
+}
+
+func TestEncodeWithStatsDeterministic(t *testing.T) {
+	e := newTestEncoder(t)
+	features := []Feature{
+		{Channel: "lex", Key: "制度", Weight: 1},
+		{Channel: "lex", Key: "責任", Weight: 1},
+		{Channel: "graph", Key: "causal", Weight: .5},
+	}
+	a, sa := e.EncodeWithStats(features)
+	b, sb := e.EncodeWithStats(features)
+	if sa != sb {
+		t.Fatalf("stats are not deterministic: %#v != %#v", sa, sb)
+	}
+	if len(a.Active) != len(b.Active) {
+		t.Fatalf("signature lengths differ: %d %d", len(a.Active), len(b.Active))
+	}
+	for i := range a.Active {
+		if a.Active[i] != b.Active[i] {
+			t.Fatalf("signature differs at %d", i)
+		}
+	}
+}
+
 func TestSimilarInputMoreSimilarThanDisjoint(t *testing.T) {
 	e := newTestEncoder(t)
 	a := e.Encode([]Feature{{"lex", "制度", 1}, {"lex", "責任", 1}, {"lex", "現場", 1}})

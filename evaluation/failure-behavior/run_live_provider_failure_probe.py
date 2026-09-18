@@ -16,6 +16,8 @@ import sys
 from pathlib import Path
 from typing import Callable, Sequence
 
+from check_go_toolchain import run_preflight as run_go_toolchain_preflight
+
 
 EVALUATION_DIR = Path(__file__).resolve().parent
 SEI_ROOT = EVALUATION_DIR.parents[1]
@@ -58,6 +60,19 @@ def sanitized_live_environment(source: dict[str, str] | None = None) -> dict[str
     # The live failure tests use an unauthenticated missing-revision request and
     # one fixed intentionally-invalid token. No real Provider credential is
     # required or inherited from the parent shell.
+    environment["GOWORK"] = "off"
+    environment["GOENV"] = "off"
+    environment["GOTOOLCHAIN"] = "local"
+    for key in (
+        "GOFLAGS",
+        "GOOS",
+        "GOARCH",
+        "GOAMD64",
+        "GOEXPERIMENT",
+        "CGO_ENABLED",
+    ):
+        environment.pop(key, None)
+
     environment[LIVE_FLAG] = "1"
     environment["PYTHONDONTWRITEBYTECODE"] = "1"
     environment["PYTHONNOUSERSITE"] = "1"
@@ -150,7 +165,29 @@ def run_live_probe(
     *,
     timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
     runner: Callable[..., subprocess.CompletedProcess[str]] = _default_runner,
+    toolchain_preflight: Callable[[], tuple[int, dict[str, object]]] = run_go_toolchain_preflight,
 ) -> tuple[int, dict[str, object]]:
+    preflight_exit, preflight_result = toolchain_preflight()
+    if preflight_exit != 0:
+        result = {
+            "schema": RESULT_SCHEMA,
+            "result": "failed",
+            "commandExecuted": False,
+            "commandExitCode": None,
+            "timedOut": False,
+            "timeoutSeconds": timeout_seconds,
+            "expectedTests": list(EXPECTED_TESTS),
+            "observedTerminalActions": {},
+            "missingTests": list(EXPECTED_TESTS),
+            "nonPassTests": {},
+            "parseErrors": [],
+            "toolchainPreflight": preflight_result,
+            "actualProviderFailureEvidence": False,
+            "operationalEvidence": False,
+            "stopLine": STOP_LINE,
+        }
+        return 1, result
+
     command = live_command()
     environment = sanitized_live_environment()
     try:
@@ -164,6 +201,7 @@ def run_live_probe(
         result = {
             "schema": RESULT_SCHEMA,
             "result": "failed",
+            "commandExecuted": True,
             "commandExitCode": TIMEOUT_EXIT_CODE,
             "timedOut": True,
             "timeoutSeconds": timeout_seconds,
@@ -172,6 +210,7 @@ def run_live_probe(
             "missingTests": list(EXPECTED_TESTS),
             "nonPassTests": {},
             "parseErrors": [],
+            "toolchainPreflight": preflight_result,
             "actualProviderFailureEvidence": False,
             "operationalEvidence": False,
             "stopLine": STOP_LINE,
@@ -181,6 +220,7 @@ def run_live_probe(
         result = {
             "schema": RESULT_SCHEMA,
             "result": "failed",
+            "commandExecuted": True,
             "commandExitCode": LAUNCH_ERROR_EXIT_CODE,
             "timedOut": False,
             "timeoutSeconds": timeout_seconds,
@@ -190,6 +230,7 @@ def run_live_probe(
             "missingTests": list(EXPECTED_TESTS),
             "nonPassTests": {},
             "parseErrors": [],
+            "toolchainPreflight": preflight_result,
             "actualProviderFailureEvidence": False,
             "operationalEvidence": False,
             "stopLine": STOP_LINE,
@@ -197,6 +238,8 @@ def run_live_probe(
         return 1, result
 
     result = evaluate_execution(completed.returncode, completed.stdout)
+    result["commandExecuted"] = True
+    result["toolchainPreflight"] = preflight_result
     result["timedOut"] = False
     result["timeoutSeconds"] = timeout_seconds
     if completed.returncode != 0 and completed.stderr.strip():

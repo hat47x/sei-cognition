@@ -22,6 +22,7 @@ from inquiry_continuity_summary_distortion_probe import (
     git_blob_sha1,
     load_sources,
     probe_content_sha256,
+    probe_contract_summary,
     response_sha256,
     response_template,
     review_start_receipt_bytes,
@@ -230,6 +231,53 @@ class SummaryDistortionProbeTest(unittest.TestCase):
         self.fixture_path.write_text("{}", encoding="utf-8")
         with self.assertRaises(SummaryDistortionProbeError):
             load_sources(single, self.root)
+
+    def test_validate_contract_exposes_current_schema_and_typed_dimensions(self):
+        fixture = json.loads(
+            self.fixture_path.read_text(encoding="utf-8")
+        )
+        summary = probe_contract_summary(
+            self.probe,
+            {
+                case["fixture_id"]: fixture
+                for case in self.probe["cases"]
+            },
+        )
+        self.assertTrue(summary["valid"])
+        self.assertEqual(
+            summary["probe_schema"],
+            "sei.inquiry-continuity-summary-distortion-probe/v1",
+        )
+        self.assertEqual(
+            summary["human_response_schema"],
+            RESPONSE_SCHEMA,
+        )
+        self.assertEqual(
+            summary["audit_reveal_receipt_schema"],
+            AUDIT_REVEAL_RECEIPT_SCHEMA,
+        )
+        self.assertEqual(len(summary["source_fixtures"]), 3)
+        self.assertEqual(
+            summary["source_fixtures"][0]["blob_sha1"],
+            self.probe["cases"][0]["blob_sha1"],
+        )
+        self.assertEqual(
+            {dimension["id"] for dimension in summary["audit_dimensions"]},
+            {
+                "temporal_backfill_detection",
+                "correction_burden",
+            },
+        )
+
+    def test_contract_summary_rejects_partial_fixture_set(self):
+        fixture = json.loads(
+            self.fixture_path.read_text(encoding="utf-8")
+        )
+        with self.assertRaises(SummaryDistortionProbeError):
+            probe_contract_summary(
+                self.probe,
+                {self.fixture_id: fixture},
+            )
 
     def test_review_packet_exposes_stimulus_template_but_hides_audit_material(self):
         fixture = json.loads(

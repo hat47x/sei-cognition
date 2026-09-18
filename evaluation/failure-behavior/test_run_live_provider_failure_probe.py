@@ -36,8 +36,22 @@ def passing_output() -> str:
     return "\n".join(go_event("pass", test) for test in EXPECTED_TESTS) + "\n"
 
 
+def passing_preflight() -> tuple[int, dict[str, object]]:
+    return 0, {
+        "required": "1.25",
+        "observed": "go1.25.1",
+        "result": "ok",
+        "automaticToolchainSwitching": False,
+    }
+
+
 class LiveProviderFailureRunnerTest(unittest.TestCase):
-    def test_parser_labels_current_issue(self) -> None:\n        parser = build_parser()\n        self.assertIn("ISSUE-000076", parser.description or "")\n        self.assertNotIn("ISSUE-000072", parser.description or "")\n\n    def test_live_command_targets_only_expected_negative_probes(self) -> None:
+    def test_parser_labels_current_issue(self) -> None:
+        parser = build_parser()
+        self.assertIn("ISSUE-000076", parser.description or "")
+        self.assertNotIn("ISSUE-000072", parser.description or "")
+
+    def test_live_command_targets_only_expected_negative_probes(self) -> None:
         command = live_command()
         self.assertEqual(command[:3], ("go", "test", "./liveintegration"))
         pattern = command[command.index("-run") + 1]
@@ -57,6 +71,13 @@ class LiveProviderFailureRunnerTest(unittest.TestCase):
                 "GH_TOKEN": "gh-secret",
                 "KJ_ATLAS_DATABASE_URL": "secret-db",
                 "OPENAI_API_KEY": "openai-secret",
+                "GOTOOLCHAIN": "auto",
+                "GOWORK": "/tmp/injected.work",
+                "GOENV": "/tmp/injected-goenv",
+                "GOFLAGS": "-mod=mod",
+                "GOOS": "windows",
+                "GOARCH": "arm64",
+                "CGO_ENABLED": "1",
             }
         )
         self.assertEqual(environment["PATH"], "/bin")
@@ -68,8 +89,15 @@ class LiveProviderFailureRunnerTest(unittest.TestCase):
             "GH_TOKEN",
             "KJ_ATLAS_DATABASE_URL",
             "OPENAI_API_KEY",
+            "GOFLAGS",
+            "GOOS",
+            "GOARCH",
+            "CGO_ENABLED",
         ):
             self.assertNotIn(removed, environment)
+        self.assertEqual(environment["GOTOOLCHAIN"], "local")
+        self.assertEqual(environment["GOWORK"], "off")
+        self.assertEqual(environment["GOENV"], "off")
         serialized = json.dumps(environment, sort_keys=True)
         self.assertNotIn("real-secret-token", serialized)
         self.assertNotIn("legacy-secret-token", serialized)
@@ -112,11 +140,37 @@ class LiveProviderFailureRunnerTest(unittest.TestCase):
         self.assertEqual(result["result"], "failed")
         self.assertTrue(result["parseErrors"])
 
+    def test_run_live_probe_stops_before_provider_when_toolchain_fails(self) -> None:
+        def runner(command, *, cwd, env, timeout):
+            self.fail("go test must not run after toolchain preflight failure")
+
+        def failed_preflight():
+            return 1, {
+                "required": "1.25",
+                "observed": "go1.23.2",
+                "result": "failed",
+                "automaticToolchainSwitching": False,
+            }
+
+        exit_code, result = run_live_probe(
+            runner=runner,
+            toolchain_preflight=failed_preflight,
+        )
+        self.assertEqual(exit_code, 1)
+        self.assertFalse(result["commandExecuted"])
+        self.assertIsNone(result["commandExitCode"])
+        self.assertEqual(result["toolchainPreflight"]["observed"], "go1.23.2")
+        self.assertFalse(result["actualProviderFailureEvidence"])
+
     def test_run_live_probe_marks_timeout_as_failure(self) -> None:
         def runner(command, *, cwd, env, timeout):
             raise subprocess.TimeoutExpired(command, timeout)
 
-        exit_code, result = run_live_probe(timeout_seconds=3, runner=runner)
+        exit_code, result = run_live_probe(
+            timeout_seconds=3,
+            runner=runner,
+            toolchain_preflight=passing_preflight,
+        )
         self.assertEqual(exit_code, 1)
         self.assertEqual(result["commandExitCode"], 124)
         self.assertTrue(result["timedOut"])
@@ -134,8 +188,13 @@ class LiveProviderFailureRunnerTest(unittest.TestCase):
                 stderr="",
             )
 
-        exit_code, result = run_live_probe(runner=runner)
+        exit_code, result = run_live_probe(
+            runner=runner,
+            toolchain_preflight=passing_preflight,
+        )
         self.assertEqual(exit_code, 0)
+        self.assertTrue(result["commandExecuted"])
+        self.assertEqual(result["toolchainPreflight"]["result"], "ok")
         self.assertTrue(result["actualProviderFailureEvidence"])
 
     def test_main_requires_explicit_allow_live_before_execution(self) -> None:

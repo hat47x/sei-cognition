@@ -129,3 +129,26 @@ func WinnerShareUpperBound(profile Profile, positiveFeatureCount int) float64 {
 	}
 	return float64(profile.Sparse.Active) / float64(upper)
 }
+
+// ObservedWinnerShare reports selected dimensions relative to unique dimensions
+// actually touched after hash collisions. It is an execution diagnostic only;
+// a high or low value is not semantic importance or retrieval quality.
+func ObservedWinnerShare(stats sparseassoc.EncodeStats) float64 {
+	if stats.TouchedDimensions <= 0 {
+		return 0
+	}
+	return float64(stats.SelectedDimensions) / float64(stats.TouchedDimensions)
+}
+
+// ProjectionCollisionFraction reports how much pre-collision projection
+// cardinality collapsed into already-touched dimensions.
+func ProjectionCollisionFraction(stats sparseassoc.EncodeStats) float64 {
+	if stats.ProjectionAttempts <= 0 {
+		return 0
+	}
+	collisions := stats.ProjectionAttempts - stats.TouchedDimensions
+	if collisions <= 0 {
+		return 0
+	}
+	return float64(collisions) / float64(stats.ProjectionAttempts)
+}

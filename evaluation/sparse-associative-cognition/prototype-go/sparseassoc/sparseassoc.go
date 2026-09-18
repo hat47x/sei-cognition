@@ -36,6 +36,16 @@ type Candidate struct {
 	Similarity float32
 }
 
+// EncodeStats is evaluation-only instrumentation for one explicit encode call.
+// TouchedDimensions counts unique post-hash dimensions before k-WTA selection.
+// These counts are execution diagnostics, not semantic importance or quality.
+type EncodeStats struct {
+	PositiveFeatures   int
+	ProjectionAttempts int
+	TouchedDimensions  int
+	SelectedDimensions int
+}
+
 type entry struct {
 	id  string
 	sig Signature
@@ -126,6 +136,26 @@ func (e *Encoder) Encode(features []Feature) Signature {
 	copy(active, e.touched[:n])
 	sort.Slice(active, func(i, j int) bool { return active[i] < active[j] })
 	return Signature{Active: active}
+}
+
+// EncodeWithStats explicitly opts into diagnostic counting after Encode has
+// completed. Normal Encode remains unchanged and does not pay per-feature
+// instrumentation cost. Encoder is already single-goroutine only, so reading
+// the current touched length immediately after Encode preserves its invariant.
+func (e *Encoder) EncodeWithStats(features []Feature) (Signature, EncodeStats) {
+	signature := e.Encode(features)
+	positive := 0
+	for _, feature := range features {
+		if feature.Weight > 0 && feature.Key != "" {
+			positive++
+		}
+	}
+	return signature, EncodeStats{
+		PositiveFeatures:   positive,
+		ProjectionAttempts: positive * int(e.cfg.Fanout),
+		TouchedDimensions:  len(e.touched),
+		SelectedDimensions: len(signature.Active),
+	}
 }
 
 func (e *Encoder) begin() {

@@ -24,6 +24,7 @@ from inquiry_continuity_summary_distortion_evidence import (
     SummaryDistortionEvidenceError,
     audit_response_template,
     build_evidence_bundle,
+    evidence_contract_summary,
     save_bundle,
     validate_audit_response,
 )
@@ -201,6 +202,36 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
         }
         value["notes"] = "one omission remained"
         return value
+
+    def test_preflight_exposes_v1_artifact_contract_without_review_artifacts(self):
+        summary = evidence_contract_summary(
+            self.probe,
+            self.fixtures,
+            self.fixture_id,
+        )
+        self.assertTrue(summary["valid"])
+        self.assertEqual(
+            summary["audit_response_schema"],
+            AUDIT_RESPONSE_SCHEMA,
+        )
+        self.assertEqual(
+            summary["evidence_schema"],
+            EVIDENCE_SCHEMA,
+        )
+        self.assertIn("pre-v1", summary["compatibility"])
+        self.assertEqual(
+            summary["source_fixture"]["blob_sha1"],
+            self.probe["cases"][0]["blob_sha1"],
+        )
+        burden = next(
+            dimension
+            for dimension in summary["audit_dimensions"]
+            if dimension["id"] == "correction_burden"
+        )
+        self.assertEqual(
+            burden["allowed_values"],
+            ["low", "medium", "high", "not-observed"],
+        )
 
     def test_audit_template_is_bound_to_fixed_human_response(self):
         value = audit_response_template(

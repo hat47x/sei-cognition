@@ -1,0 +1,255 @@
+{
+  "schema": "sei.sacs-observed-selection-pressure-evidence/v1alpha1",
+  "date": "2026-09-18",
+  "status": "limited-local-executable-evidence",
+  "subject": "SAC-B6b observed touched-dimension selection pressure",
+  "issue": 451,
+  "branch": "topic/sac-b6b-observed-selection-pressure",
+  "intent": "Replace the B6 pre-collision projection upper-bound proxy with explicit post-hash unique touched-dimension diagnostics before considering any adaptive Active rule.",
+  "instrumentationBoundary": {
+    "sparsePath": "Encoder.EncodeWithStats is explicit opt-in; normal Encode semantics and per-feature instrumentation cost remain unchanged.",
+    "providerPath": "B2 family-local and global-residual stats are internal evaluation instrumentation and are not added to the provider-neutral response contract.",
+    "stats": [
+      "positive keyed feature count",
+      "projection attempts",
+      "unique touched dimensions",
+      "selected dimensions"
+    ],
+    "observedWinnerShare": "selected_dimensions / touched_dimensions",
+    "collisionFraction": "(projection_attempts - touched_dimensions) / projection_attempts",
+    "stopLines": [
+      "touched dimensions != semantic importance",
+      "input cardinality != priority",
+      "observed winner share != semantic quality",
+      "path saturation != sufficient proof of retrieval failure",
+      "diagnostics != adaptive Active rule",
+      "diagnostics != production telemetry contract"
+    ]
+  },
+  "fixture": {
+    "source": "existing B6 capacityEvalItems anchor with B1 family normalization and B2 equal-local half-global residual policy",
+    "positiveFeatures": 72,
+    "fanout": 8,
+    "globalProjectionAttempts": 576,
+    "profiles": [
+      {
+        "id": "small",
+        "dimensions": 2048,
+        "active": 32,
+        "mergedSelectedDimensions": 27,
+        "paths": {
+          "text": {
+            "attempts": 488,
+            "touched": 433,
+            "selected": 4,
+            "observedWinnerShare": 0.009237875288683603,
+            "collisionFraction": 0.11270491803278689
+          },
+          "graph": {
+            "attempts": 32,
+            "touched": 32,
+            "selected": 4,
+            "observedWinnerShare": 0.125,
+            "collisionFraction": 0
+          },
+          "provenance": {
+            "attempts": 32,
+            "touched": 32,
+            "selected": 4,
+            "observedWinnerShare": 0.125,
+            "collisionFraction": 0
+          },
+          "grouping": {
+            "attempts": 16,
+            "touched": 16,
+            "selected": 4,
+            "observedWinnerShare": 0.25,
+            "collisionFraction": 0
+          },
+          "globalResidual": {
+            "attempts": 576,
+            "touched": 495,
+            "selected": 16,
+            "observedWinnerShare": 0.03232323232323232,
+            "collisionFraction": 0.140625
+          }
+        }
+      },
+      {
+        "id": "medium",
+        "dimensions": 4096,
+        "active": 64,
+        "mergedSelectedDimensions": 52,
+        "paths": {
+          "text": {
+            "attempts": 488,
+            "touched": 463,
+            "selected": 8,
+            "observedWinnerShare": 0.017278617710583154,
+            "collisionFraction": 0.05122950819672131
+          },
+          "graph": {
+            "attempts": 32,
+            "touched": 32,
+            "selected": 8,
+            "observedWinnerShare": 0.25,
+            "collisionFraction": 0
+          },
+          "provenance": {
+            "attempts": 32,
+            "touched": 32,
+            "selected": 8,
+            "observedWinnerShare": 0.25,
+            "collisionFraction": 0
+          },
+          "grouping": {
+            "attempts": 16,
+            "touched": 16,
+            "selected": 8,
+            "observedWinnerShare": 0.5,
+            "collisionFraction": 0
+          },
+          "globalResidual": {
+            "attempts": 576,
+            "touched": 539,
+            "selected": 32,
+            "observedWinnerShare": 0.059369202226345084,
+            "collisionFraction": 0.0642361111111111
+          }
+        }
+      },
+      {
+        "id": "large",
+        "dimensions": 8192,
+        "active": 128,
+        "mergedSelectedDimensions": 80,
+        "paths": {
+          "text": {
+            "attempts": 488,
+            "touched": 477,
+            "selected": 16,
+            "observedWinnerShare": 0.033542976939203356,
+            "collisionFraction": 0.022540983606557378
+          },
+          "graph": {
+            "attempts": 32,
+            "touched": 32,
+            "selected": 16,
+            "observedWinnerShare": 0.5,
+            "collisionFraction": 0
+          },
+          "provenance": {
+            "attempts": 32,
+            "touched": 32,
+            "selected": 16,
+            "observedWinnerShare": 0.5,
+            "collisionFraction": 0
+          },
+          "grouping": {
+            "attempts": 16,
+            "touched": 16,
+            "selected": 16,
+            "observedWinnerShare": 1,
+            "collisionFraction": 0
+          },
+          "globalResidual": {
+            "attempts": 576,
+            "touched": 560,
+            "selected": 64,
+            "observedWinnerShare": 0.11428571428571428,
+            "collisionFraction": 0.027777777777777776
+          }
+        }
+      },
+      {
+        "id": "oversized",
+        "dimensions": 32768,
+        "active": 512,
+        "mergedSelectedDimensions": 256,
+        "paths": {
+          "text": {
+            "attempts": 488,
+            "touched": 487,
+            "selected": 64,
+            "observedWinnerShare": 0.13141683778234087,
+            "collisionFraction": 0.0020491803278688526
+          },
+          "graph": {
+            "attempts": 32,
+            "touched": 32,
+            "selected": 32,
+            "observedWinnerShare": 1,
+            "collisionFraction": 0
+          },
+          "provenance": {
+            "attempts": 32,
+            "touched": 32,
+            "selected": 32,
+            "observedWinnerShare": 1,
+            "collisionFraction": 0
+          },
+          "grouping": {
+            "attempts": 16,
+            "touched": 16,
+            "selected": 16,
+            "observedWinnerShare": 1,
+            "collisionFraction": 0
+          },
+          "globalResidual": {
+            "attempts": 576,
+            "touched": 574,
+            "selected": 256,
+            "observedWinnerShare": 0.445993031358885,
+            "collisionFraction": 0.003472222222222222
+          }
+        },
+        "priorB6UpperBoundProxy": 0.8888888888888888,
+        "priorB6Quality": {
+          "desired": 0.34765625,
+          "distractor": 0.50390625,
+          "margin": -0.15625
+        }
+      }
+    ]
+  },
+  "findings": [
+    "The B6 pre-collision total-active proxy 512/576≈0.889 substantially overstates the oversized global-residual path, whose observed winner share is 256/574≈0.446.",
+    "The oversized graph, provenance, and grouping local paths are fully saturated at selected/touched=1.0, while text remains selective at about 0.131.",
+    "Grouping already reaches 1.0 in the large profile where the existing B6 fixture still preserves desired ordering, so saturation of one path alone is not a sufficient failure criterion.",
+    "Global-residual collision fraction falls monotonically from 0.140625 to about 0.00347 as dimensions grow, while observed winner share rises from about 0.0323 to about 0.446. The selection-pressure loss therefore cannot be attributed to hash collision growth.",
+    "Merged selected dimensions are below the configured total Active because family-local and global-residual winners overlap; in the oversized fixture the merged signature has 256 dimensions despite a configured total budget of 512."
+  ],
+  "independentReconstruction": {
+    "toolchain": "Python 3.13.5 on Linux x86_64",
+    "method": "Independent deterministic reconstruction of Go byte-wise feature hashing, splitmix64 projection, SUI-shaped feature extraction, family grouping, B1 family normalization, and B2 local/global selection.",
+    "result": "matched the expected touched/selected counts encoded in the new Go regression fixtures",
+    "limitation": "This is not an exact repository Go test run and does not replace Go 1.25 verification."
+  },
+  "implementationState": {
+    "adaptiveActiveRuleImplemented": false,
+    "localBudgetAdaptationImplemented": false,
+    "providerDefaultChanged": false,
+    "providerResponseContractChanged": false,
+    "b5EntryGateChanged": false
+  },
+  "derivedResearchInsight": {
+    "oldProxy": "total configured Active / pre-collision projection upper bound",
+    "improvedObservation": "path-specific selected / post-collision unique touched dimensions",
+    "nextQuestion": "Compare local/global residual scaling policies as static evaluation conditions first, because oversized capacity can let the global residual absorb all local winners; do not jump directly from path saturation to input-adaptive local ceilings."
+  },
+  "notVerified": [
+    "exact branch source execution on repository Go 1.25",
+    "human-adjudicated SUI/SEI quality under observed path saturation",
+    "real workload feature-cardinality distributions",
+    "optimal local/global residual scaling before any adaptive path-specific ceiling",
+    "whether an adaptive Active or local-budget rule improves quality without introducing instability",
+    "hardware latency, power, and memory trade-offs",
+    "Production, Operational, Adoption, or Outcome Evidence"
+  ],
+  "followUp": {
+    "issue": 453,
+    "evidenceFile": "local_residual_containment_evidence_2026-09-18.json",
+    "result": "B6c measures each family-local signature's dimensions outside the global residual and the local incremental dimensions added to the merged signature.",
+    "keyObservation": "local incremental dimensions are 11/20/16/0 across small/medium/large/oversized; the oversized merged signature is fully contained by the global residual for the evaluated anchor."
+  }
+}

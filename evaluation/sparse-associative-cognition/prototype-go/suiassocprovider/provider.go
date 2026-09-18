@@ -512,6 +512,21 @@ type providerEncoder struct {
 	local  *localizedCompetitionEncoder
 }
 
+// providerEncodeStats is internal evaluation instrumentation. It is deliberately
+// not part of the provider-neutral response contract.
+type providerEncodeStats struct {
+	Global *sparseassoc.EncodeStats
+	Local  *localizedCompetitionEncodeStats
+}
+
+type localizedCompetitionEncodeStats struct {
+	Families                   map[string]sparseassoc.EncodeStats
+	GlobalResidual             *sparseassoc.EncodeStats
+	FamilyUniqueBeyondResidual map[string]int
+	LocalIncrementalDimensions int
+	MergedSelectedDimensions   int
+}
+
 func newProviderEncoder(cfg Config) (*providerEncoder, error) {
 	if cfg.LocalCompetition == nil {
 		encoder, err := sparseassoc.NewEncoder(cfg.Sparse)
@@ -532,6 +547,21 @@ func (e *providerEncoder) Encode(features []sparseassoc.Feature) (sparseassoc.Si
 		return e.local.Encode(features), nil
 	}
 	return e.global.Encode(features), nil
+}
+
+// EncodeWithStats is an explicit evaluation-only diagnostic path. Normal
+// provider handling continues to use Encode and exposes no internal counts.
+func (e *providerEncoder) EncodeWithStats(features []sparseassoc.Feature) (
+	sparseassoc.Signature,
+	providerEncodeStats,
+	error,
+) {
+	if e.local != nil {
+		signature, stats := e.local.EncodeWithStats(features)
+		return signature, providerEncodeStats{Local: &stats}, nil
+	}
+	signature, stats := e.global.EncodeWithStats(features)
+	return signature, providerEncodeStats{Global: &stats}, nil
 }
 
 type localizedCompetitionEncoder struct {
@@ -592,6 +622,77 @@ func (e *localizedCompetitionEncoder) Encode(features []sparseassoc.Feature) spa
 		parts = append(parts, e.encoders[e.policy.GlobalResidualActive].Encode(features))
 	}
 	return mergeSparseSignatures(parts)
+}
+
+// EncodeWithStats mirrors the B2 competition paths only when explicitly
+// requested for evaluation. Family and residual counts remain internal.
+func (e *localizedCompetitionEncoder) EncodeWithStats(features []sparseassoc.Feature) (
+	sparseassoc.Signature,
+	localizedCompetitionEncodeStats,
+) {
+	groups := make(map[string][]sparseassoc.Feature)
+	for _, feature := range features {
+		family := featureFamily(feature.Channel)
+		groups[family] = append(groups[family], feature)
+	}
+
+	stats := localizedCompetitionEncodeStats{
+		Families:                   make(map[string]sparseassoc.EncodeStats, len(e.families)),
+		FamilyUniqueBeyondResidual: make(map[string]int, len(e.families)),
+	}
+	familySignatures := make(map[string]sparseassoc.Signature, len(e.families))
+	parts := make([]sparseassoc.Signature, 0, len(e.families)+1)
+	for _, family := range e.families {
+		familyFeatures := groups[family]
+		if len(familyFeatures) == 0 {
+			continue
+		}
+		active := e.policy.FamilyActive[family]
+		signature, familyStats := e.encoders[active].EncodeWithStats(familyFeatures)
+		parts = append(parts, signature)
+		familySignatures[family] = signature
+		stats.Families[family] = familyStats
+	}
+
+	var residualSignature sparseassoc.Signature
+	if e.policy.GlobalResidualActive > 0 {
+		signature, residualStats := e.encoders[e.policy.GlobalResidualActive].EncodeWithStats(features)
+		parts = append(parts, signature)
+		residualSignature = signature
+		stats.GlobalResidual = &residualStats
+	}
+
+	merged := mergeSparseSignatures(parts)
+	stats.MergedSelectedDimensions = len(merged.Active)
+	if stats.GlobalResidual != nil {
+		stats.LocalIncrementalDimensions = len(merged.Active) - len(residualSignature.Active)
+		for family, signature := range familySignatures {
+			stats.FamilyUniqueBeyondResidual[family] = countSignatureDifference(signature, residualSignature)
+		}
+	} else {
+		stats.LocalIncrementalDimensions = len(merged.Active)
+		for family, signature := range familySignatures {
+			stats.FamilyUniqueBeyondResidual[family] = len(signature.Active)
+		}
+	}
+	return merged, stats
+}
+
+func countSignatureDifference(
+	left sparseassoc.Signature,
+	right sparseassoc.Signature,
+) int {
+	i, j, unique := 0, 0, 0
+	for i < len(left.Active) {
+		for j < len(right.Active) && right.Active[j] < left.Active[i] {
+			j++
+		}
+		if j >= len(right.Active) || right.Active[j] != left.Active[i] {
+			unique++
+		}
+		i++
+	}
+	return unique
 }
 
 func mergeSparseSignatures(signatures []sparseassoc.Signature) sparseassoc.Signature {

@@ -1,7 +1,7 @@
 # SEI 上流プロダクト開発計画
 
-更新日: 2026-09-16  
-状態: **Current Upstream Planning Baseline — Brand-world Product Value discovery完了 / Inquiry Continuity actual dogfood / resume-first Product Slice / TEI version exchangeを並行優先**
+更新日: 2026-09-18  
+状態: **Current Upstream Planning Baseline — Brand-world Product Value discovery完了 / Inquiry Continuity actual dogfood / resume-first Product Slice / TEI version exchange + actual-binary Evidence protocolを並行優先**
 
 ## 1. この文書の役割
 
@@ -163,7 +163,9 @@ Product仮説は次です。
 - partial commitとstale writeを「成功した意味変更」として黙って見せない。
 - external AIへ出すcontextを選択・確認できる方向を保つ。
 
-この段階では新しいStable Requirementを追加しません。ISSUE-000073のCR-73.1〜10をCandidate Requirementとして、prototypeとhuman reviewから独立したProduct failureが確認された場合だけ昇格を検討します。
+ISSUE-000073のCandidate Requirement監査では、CR-73.8 / CR-73.9を一つのfailure boundaryとして統合し、**REQ-0023 / SCN-0019 Canonical commit integrity**へformalizeしました。これはpartial commitとstale writeが利用者へ誤ったcanonical成功状態を見せる独立failureとして残ったためです。
+
+一方、CR-73.1〜73.7 / 73.10は既存Requirement、Product-local設計、またはH1 / H2 human Outcome評価へ戻し、新しいStable Requirementへは昇格していません。prototype sourceやrunnerの存在だけをRequirement成立理由にはしません。
 
 最初のDesign正本は次です。
 
@@ -171,7 +173,9 @@ Product仮説は次です。
 - `architecture/SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md`
 - `plan/issue/ISSUE-000073-define-first-usable-resume-first-product-slice.md`
 
-次の高情報量Evidenceは、canonical-only resume、AI correction、AI unavailable、working-set rebuild、commit fault injection、stale draft、AI context egress、human resume reviewです。
+canonical-only resume、AI correction、AI unavailable、working-set rebuild、commit fault injection、stale draft、AI context egressについてはProduct-localなprobe / test sourceが一通り揃っています。E1〜E8 actual実行はGo 1.25.x環境待ちで**Not Yet Verified**、H1 / H2 human reviewは**Not Yet Observed**です。H2は073/078共通のprovenance-first review runnerへ統合し、known exposureをclean blinded reviewへ読み替えない境界を固定しています。
+
+したがって次の高情報量Evidenceは、(1) clean Go 1.25.x環境でのE1〜E8 actual実行、(2) real InquiryでのH1 actual resume、(3) provenance条件を満たすH2 human matched reviewです。
 
 ### Priority B2 — TEI executable version exchange
 
@@ -189,6 +193,10 @@ repository-sideのidentity verifier、E2 / E3 runner、別toolchain、stage-awar
 外部runner等がactual stepを開始できない状態を、TEI Product failureやAdapter failureへ昇格させません。同時に、execution pathが復旧するまでSEI全体のProduct Interaction設計を止めません。
 
 ISSUE-000072でactual Bが独立したProduct failureを示すまでは、新しいStable Requirement / Universal Contract fieldを追加しません。
+
+隣接する**ISSUE-000074**では、actual TEI binaryを実行した際のEvidence採取を再利用可能にするため、`runtime/go/teiprobe`、`runtime/go/cmd/tei-e3b-probe`、`runtime/ACTUAL_TEI_EVIDENCE_PROTOCOL.md`を2026-09-18に実体化しました。direct executableのSHA-256、declared source、optional manifest match、Provider Plan実行、current Capability Observationをderived reportへ束ねます。
+
+このprotocol sourceの実装は、ISSUE-000072のrevision B actual executionを代替しません。fixture-scoped test sourceもactual TEI Evidenceではなく、current Go 1.25環境でのtest実行とactual binary report生成は**Not Yet Verified**です。
 
 ## 5. 次順位の探索
 
@@ -364,8 +372,9 @@ Product confidenceを高めるため、happy pathだけでなくpartial commit�
 |---|---|---|---|
 | Product Value discovery | ISSUE-000077 | Resolved / source + review + Vision integration complete | ISSUE-000078等のactual Evidenceでreopen conditionが生じた場合のみ再監査 |
 | Inquiry Continuity validation | ISSUE-000078 | Open / actual Inquiry seeded / clean context gap reset after material exposure | last material exposureから十分なgap後のSEI Orientation actual human resumption、次いでraw chat / note counterfactual |
-| Product Interaction | ISSUE-000073 | Open / Design baseline | prototype E1〜E8 + human review |
+| Product Interaction | ISSUE-000073 | Open / prototype + Requirement audit progressed / E1〜E8 actual・H1/H2 pending | Go 1.25 actual E1〜E8、H1 actual resume、H2 provenance-first human review |
 | TEI Provider portability | ISSUE-000072 | Open / execution blocked externally | exact-B actual E2 when execution surface is available |
+| TEI actual Evidence protocol | ISSUE-000074 | Open / teiprobe + CLI + protocol source implemented / tests + actual run Not Yet Verified | current Go環境でfixture-scoped tests、次いでactual TEI binary report |
 | Method outcome quality | ISSUE-000071 follow-up | evaluation boundary established | actual human outcome review |
 | Operational / Adoption | PMS-08 | Not Yet Verified | first real use after usable slice exists |
 

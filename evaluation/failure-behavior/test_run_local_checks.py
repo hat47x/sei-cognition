@@ -28,6 +28,8 @@ class FailureBehaviorLocalCheckRunnerTest(unittest.TestCase):
                 "scoped-go-evidence-tests",
                 "scoped-go-source-delta-audit-tests",
                 "actual-provider-service-observation-tests",
+                "go-toolchain-preflight-tests",
+                "go-toolchain-preflight",
                 "provider-adapter-go-tests",
                 "live-provider-integration-go-tests",
             ],
@@ -43,6 +45,8 @@ class FailureBehaviorLocalCheckRunnerTest(unittest.TestCase):
         self.assertEqual(
             checks[7].command[-1], "test_actual_provider_missing_revision_observation.py"
         )
+        self.assertEqual(checks[8].command[-1], "test_check_go_toolchain.py")
+        self.assertEqual(checks[9].command[-1], "check_go_toolchain.py")
         self.assertEqual(checks[-2].command, ("go", "test", "./provideradapter"))
         self.assertEqual(checks[-1].command, ("go", "test", "./liveintegration"))
 
@@ -59,6 +63,13 @@ class FailureBehaviorLocalCheckRunnerTest(unittest.TestCase):
                 "OLLAMA_HOST": "127.0.0.1:11434",
                 "OPENAI_API_KEY": "secret",
                 "PYTHONPATH": "/tmp/injected",
+                "GOTOOLCHAIN": "auto",
+                "GOWORK": "/tmp/injected.work",
+                "GOENV": "/tmp/injected-goenv",
+                "GOFLAGS": "-mod=mod",
+                "GOOS": "windows",
+                "GOARCH": "arm64",
+                "CGO_ENABLED": "1",
             }
         )
         self.assertEqual(environment["PATH"], "/bin")
@@ -71,8 +82,15 @@ class FailureBehaviorLocalCheckRunnerTest(unittest.TestCase):
             "OLLAMA_HOST",
             "OPENAI_API_KEY",
             "PYTHONPATH",
+            "GOFLAGS",
+            "GOOS",
+            "GOARCH",
+            "CGO_ENABLED",
         ):
             self.assertNotIn(removed, environment)
+        self.assertEqual(environment["GOTOOLCHAIN"], "local")
+        self.assertEqual(environment["GOWORK"], "off")
+        self.assertEqual(environment["GOENV"], "off")
         self.assertEqual(environment["PYTHONDONTWRITEBYTECODE"], "1")
         self.assertEqual(environment["PYTHONNOUSERSITE"], "1")
 
@@ -103,6 +121,21 @@ class FailureBehaviorLocalCheckRunnerTest(unittest.TestCase):
         self.assertEqual(result["failedCount"], 1)
         self.assertEqual(result["executed"][1]["exitCode"], 7)
         self.assertEqual(result["executedCount"], result["selectedCount"])
+
+    def test_go_toolchain_preflight_failure_stops_before_go_tests(self) -> None:
+        calls: list[tuple[str, ...]] = []
+
+        def runner(command, *, cwd, env, timeout):
+            calls.append(tuple(command))
+            exit_code = 1 if command[-1] == "check_go_toolchain.py" else 0
+            return subprocess.CompletedProcess(command, exit_code)
+
+        exit_code, result = run_checks(configured_checks(), runner=runner)
+        self.assertEqual(exit_code, 1)
+        self.assertTrue(result["stoppedEarly"])
+        self.assertEqual(result["executed"][-1]["name"], "go-toolchain-preflight")
+        self.assertNotIn(("go", "test", "./provideradapter"), calls)
+        self.assertNotIn(("go", "test", "./liveintegration"), calls)
 
     def test_stop_on_failure_does_not_claim_unexecuted_checks(self) -> None:
         def runner(command, *, cwd, env, timeout):

@@ -1,0 +1,76 @@
+{
+  "schema": "sei.failure-behavior-go-toolchain-guard-execution/v1",
+  "issue": "ISSUE-000076",
+  "recordedAt": "2026-09-18",
+  "scope": "exact-current-evaluation-blob-execution",
+  "authority": "evaluation-only",
+  "currentBranchHeadAtVerification": "3c40a1800b26d96ee839ed74a8407bc0e0312911",
+  "reconstruction": {
+    "fullRepositoryCheckout": false,
+    "exactGitBlobIdentityVerifiedBeforeExecution": true,
+    "sourceFiles": [
+      {
+        "path": "evaluation/failure-behavior/check_go_toolchain.py",
+        "blobSha": "5f1f33046b8bbbf8595bbf682ae90a5613abcb72"
+      },
+      {
+        "path": "evaluation/failure-behavior/test_check_go_toolchain.py",
+        "blobSha": "3a79ad9d05848ecfd1e949d6a1e947ffe80d50ba"
+      },
+      {
+        "path": "evaluation/failure-behavior/run_live_provider_failure_probe.py",
+        "blobSha": "c6480577d644552f4b61f66d001272094b34fbc4"
+      },
+      {
+        "path": "evaluation/failure-behavior/test_run_live_provider_failure_probe.py",
+        "blobSha": "0e96e4317e9f7990e64b9d94586f916c4d82dac4"
+      },
+      {
+        "path": "evaluation/failure-behavior/run_local_checks.py",
+        "blobSha": "8ecb81e0d17c005b2bf7a1f2efb8f50b14ed306f"
+      },
+      {
+        "path": "evaluation/failure-behavior/test_run_local_checks.py",
+        "blobSha": "90f090a3d5ca1bedceb8bda4feb2dc81d81fedf0"
+      }
+    ]
+  },
+  "unitExecution": {
+    "status": "pass",
+    "passed": 25,
+    "failed": 0,
+    "groups": [
+      {
+        "name": "go-toolchain-preflight-and-live-runner",
+        "passed": 18,
+        "failed": 0
+      },
+      {
+        "name": "repository-local-runner",
+        "passed": 7,
+        "failed": 0
+      }
+    ]
+  },
+  "actualToolchainPreflight": {
+    "requiredGoDirective": "1.25",
+    "observedGoVersion": "go1.23.2",
+    "observedTarget": "linux/amd64",
+    "GOTOOLCHAIN": "local",
+    "result": "failed",
+    "failureMeaning": "the available Go executable does not satisfy runtime/go/go.mod; Provider Adapter and liveintegration Go tests were not promoted to current execution Evidence"
+  },
+  "claims": {
+    "toolchainGuardExecutableEvidence": true,
+    "exactCurrentEvaluationBlobUnitExecution": true,
+    "currentProviderAdapterGoExecutionVerified": false,
+    "currentLiveIntegrationGoExecutionVerified": false,
+    "fullRepositoryRegressionVerified": false,
+    "go125BaselineVerified": false,
+    "actualProviderFailureEvidenceEstablishedByThisArtifact": false,
+    "actualDeploymentFailureEvidence": false,
+    "operationalEvidence": false,
+    "adoptionOutcomeEvidence": false
+  },
+  "stopLine": "exact current evaluation-blob unit PASS and correct Go 1.23.2 rejection != current Go package PASS != full repository regression PASS != Go 1.25 baseline verification != actual Provider failure Evidence != Operational Evidence"
+}
