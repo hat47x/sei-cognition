@@ -3,7 +3,7 @@
 Status: **Open**  
 Priority: **2**  
 Related ADRs: **ADR-0005, ADR-0018, ADR-0020, ADR-0028**  
-Updated: 2026-09-18
+Updated: 2026-09-19
 
 ## Goal
 
@@ -455,7 +455,11 @@ source fixture単体だけでなく、元となるmatched-set manifest自体もG
 
 pre-stimulus reviewer provenanceもreview-start receipt v1へ固定する。initial packetを出力する前にopaque reviewer id、declared prior exposure、response authorship、started_at、canonical probe / rotationをexclusive-createし、そのexact raw bytes SHA-256をpacket v2、response v3、reveal receipt v2、audit receipt v2へ一貫して伝播する。response schema v3ではinitial / revealの双方が同じreview-start receiptへ結ばれ、initial responseはprior-stage gateを持たず、reveal responseはさらにvalidated reveal receiptのexact raw bytes SHA-256を`stage_gate_sha256`として必須で保持する。audit receipt作成時・検証時にも両receipt bindingを再検証するため、別reviewer provenanceや別reveal receiptへ結ばれたresponseを後から同じaudit chainへ差し込めない。
 
-現時点で成立したのはcondition-blinded executable scaffold、pre-stimulus provenance receipt、structured response v3、reveal / audit stage receipt chainまでである。human reviewは依然**Not Yet Observed**であり、次のgapはaudit後のhuman findingをtypedに保存し、このchainをdurable Evidenceとしてexportする経路である。したがってQuiet / Proactive / Adaptiveのどれかを採用する根拠やStable Requirement変更には使わない。
+post-audit経路も`inquiry_continuity_assistance_evidence.py`へ一本化した。audit response schema v2では、AI suggestionのcanonical昇格、Quiet-firstでcanonical orientationを隠す、候補数だけでProduct Value / discovery改善を断定する、といった**presentation単位のsemantic hard failure**と、「同一readerへ回答固定前に同一fixtureの複数conditionを提示する」という**session単位のprotocol hard failure**を分離して記録する。session failureを各conditionへ三重に帰属させない。
+
+durable Evidence schema v3はreview-start receipt → initial response → reveal receipt → reveal response → audit receipt → semantic auditの各artifactについて、semantic valueだけでなくexact UTF-8 JSON text、raw SHA-256、canonical semantic SHA-256を保持する。保存時にはraw JSONを再parseしてsemantic valueとの一致を確認し、bundle validatorではembedded raw textからSHA-256を再計算するため、stage hash chainをEvidence artifact単体で再検証できる。保存はexclusive-createであり、overall score、ranking、winner、preferred condition、Product Value成立、Stable Requirement変更を生成しない。
+
+ここまででE78.6はhuman reviewを安全に実行し、結果をdurable Evidenceへ保存するmechanicsまで揃った。ただしhuman reviewは依然**Not Yet Observed**であり、actual long-gap comparisonやProduct Valueも未成立である。Quiet / Proactive / Adaptiveのどれかを採用する根拠やStable Requirement変更には使わない。次の実装gapは、E78.3と同様にこのmechanicsをrepository-localで一括検証する正規check runnerである。
 
 ### E78.7 — Closure / dormancy
 
