@@ -37,8 +37,8 @@ from inquiry_continuity_assistance_probe import (
 )
 
 
-AUDIT_RESPONSE_SCHEMA = "sei.inquiry-continuity-assistance-audit-response/v1"
-EVIDENCE_SCHEMA = "sei.inquiry-continuity-assistance-evidence/v2"
+AUDIT_RESPONSE_SCHEMA = "sei.inquiry-continuity-assistance-audit-response/v2"
+EVIDENCE_SCHEMA = "sei.inquiry-continuity-assistance-evidence/v3"
 FINDING_VALUES = {"observed", "not-observed", "not-applicable"}
 
 
@@ -147,7 +147,12 @@ def audit_response_template(
             "audit receipt SHA-256 is required"
         )
     assignments = _assignments(probe, rotation)
-    failures = probe["audit_key"]["semantic_hard_failures"]
+    presentation_failures = probe["audit_key"][
+        "presentation_hard_failures"
+    ]
+    session_failures = probe["audit_key"][
+        "session_hard_failures"
+    ]
     return {
         "schema": AUDIT_RESPONSE_SCHEMA,
         "probe_sha256": probe_content_sha256(probe),
@@ -167,11 +172,19 @@ def audit_response_template(
                         "finding": "",
                         "note": "",
                     }
-                    for failure in failures
+                    for failure in presentation_failures
                 ],
                 "notes": "",
             }
             for index, assignment in enumerate(assignments)
+        ],
+        "session_hard_failure_findings": [
+            {
+                "failure": failure,
+                "finding": "",
+                "note": "",
+            }
+            for failure in session_failures
         ],
         "audit_provenance": {
             "auditor_id": "",
@@ -197,6 +210,7 @@ def validate_audit_response(
         "rotation",
         "audit_receipt_sha256",
         "presentations",
+        "session_hard_failure_findings",
         "audit_provenance",
         "notes",
     }
@@ -238,7 +252,12 @@ def validate_audit_response(
         raise AssistanceEvidenceError(
             "audit response requires one presentation per assignment"
         )
-    failures = probe["audit_key"]["semantic_hard_failures"]
+    presentation_failures = probe["audit_key"][
+        "presentation_hard_failures"
+    ]
+    session_failures = probe["audit_key"][
+        "session_hard_failures"
+    ]
     for index, (presentation, assignment) in enumerate(
         zip(presentations, assignments)
     ):
@@ -270,12 +289,15 @@ def validate_audit_response(
         findings = presentation["hard_failure_findings"]
         if (
             not isinstance(findings, list)
-            or len(findings) != len(failures)
+            or len(findings) != len(presentation_failures)
         ):
             raise AssistanceEvidenceError(
-                "audit hard-failure findings are incomplete"
+                "audit presentation hard-failure findings are incomplete"
             )
-        for finding, failure in zip(findings, failures):
+        for finding, failure in zip(
+            findings,
+            presentation_failures,
+        ):
             if not isinstance(finding, dict) or set(finding) != {
                 "failure",
                 "finding",
@@ -299,6 +321,39 @@ def validate_audit_response(
         if not isinstance(presentation["notes"], str):
             raise AssistanceEvidenceError(
                 "audit presentation notes must be a string"
+            )
+
+    session_findings = value["session_hard_failure_findings"]
+    if (
+        not isinstance(session_findings, list)
+        or len(session_findings) != len(session_failures)
+    ):
+        raise AssistanceEvidenceError(
+            "audit session hard-failure findings are incomplete"
+        )
+    for finding, failure in zip(
+        session_findings,
+        session_failures,
+    ):
+        if not isinstance(finding, dict) or set(finding) != {
+            "failure",
+            "finding",
+            "note",
+        }:
+            raise AssistanceEvidenceError(
+                "session hard-failure finding has invalid shape"
+            )
+        if finding["failure"] != failure:
+            raise AssistanceEvidenceError(
+                "session hard-failure finding order/content mismatch"
+            )
+        if finding["finding"] not in FINDING_VALUES:
+            raise AssistanceEvidenceError(
+                "session hard-failure finding has invalid value"
+            )
+        if not isinstance(finding["note"], str):
+            raise AssistanceEvidenceError(
+                "session hard-failure note must be a string"
             )
 
     provenance = value["audit_provenance"]
@@ -559,8 +614,9 @@ def build_evidence_bundle(
                 "human authorship declaration are metadata, not independent proof"
             ),
             "condition_comparison": (
-                "preserve per-presentation observations and semantic findings; "
-                "do not compute a winner, ranking, or preferred condition"
+                "preserve per-presentation observations separately from "
+                "session-level protocol findings; do not compute a winner, "
+                "ranking, or preferred condition"
             ),
             "actual_long_gap_resumption": (
                 "not-established-by-this-artifact"
@@ -577,6 +633,7 @@ def build_evidence_bundle(
         },
         "interpretation_stoplines": [
             "initial/reveal human observations remain distinct from post-reveal semantic audit",
+            "presentation-level semantic findings remain distinct from session-level protocol findings",
             "declared reviewer provenance does not independently prove blinding or human authorship",
             "no overall score, ranking, winner, or preferred assistance condition is computed",
             "synthetic assistance comparison is not actual long-gap resumption",

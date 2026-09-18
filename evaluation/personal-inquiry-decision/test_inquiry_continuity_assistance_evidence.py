@@ -152,6 +152,10 @@ class AssistanceEvidenceTest(unittest.TestCase):
                 "hard_failure_findings"
             ]:
                 finding["finding"] = "not-observed"
+        for finding in self.audit_response[
+            "session_hard_failure_findings"
+        ]:
+            finding["finding"] = "not-observed"
         self.audit_response["audit_provenance"] = {
             "auditor_id": "auditor-test-fixture",
             "response_authorship": "human-transcribed",
@@ -206,6 +210,10 @@ class AssistanceEvidenceTest(unittest.TestCase):
         rendered = json.dumps(template)
         self.assertNotIn('"winner"', rendered)
         self.assertNotIn('"score"', rendered)
+        self.assertEqual(
+            len(template["session_hard_failure_findings"]),
+            len(self.probe["audit_key"]["session_hard_failures"]),
+        )
         self.assertEqual(
             [
                 item["condition"]
@@ -341,6 +349,16 @@ class AssistanceEvidenceTest(unittest.TestCase):
         ][0]["hard_failure_findings"][0][
             "finding"
         ] = "pass"
+        self._refresh_semantic_digest(
+            changed["semantic_audit"]
+        )
+        with self.assertRaises(AssistanceEvidenceError):
+            validate_evidence_bundle(changed)
+
+        changed = copy.deepcopy(bundle)
+        changed["semantic_audit"]["value"][
+            "session_hard_failure_findings"
+        ][0]["finding"] = "pass"
         self._refresh_semantic_digest(
             changed["semantic_audit"]
         )

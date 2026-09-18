@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any
 
 
-SCHEMA = "sei.inquiry-continuity-assistance-probe/v1"
+SCHEMA = "sei.inquiry-continuity-assistance-probe/v2"
 FIXTURE_SCHEMA = "sei.inquiry-continuity-comparison-fixture/v0"
 PACKET_SCHEMA = "sei.inquiry-continuity-assistance-packet/v2"
 RESPONSE_SCHEMA = "sei.inquiry-continuity-assistance-response/v3"
@@ -268,12 +268,46 @@ def validate_probe(probe: dict[str, Any]) -> None:
         _validate_questions(questions[stage], stage)
 
     audit = probe.get("audit_key")
+    if not isinstance(audit, dict):
+        raise AssistanceProbeError(
+            "audit_key must be an object"
+        )
+    presentation_failures = audit.get(
+        "presentation_hard_failures"
+    )
+    session_failures = audit.get(
+        "session_hard_failures"
+    )
+    for field, values in (
+        ("presentation_hard_failures", presentation_failures),
+        ("session_hard_failures", session_failures),
+    ):
+        if (
+            not isinstance(values, list)
+            or not values
+            or any(
+                not isinstance(value, str) or not value.strip()
+                for value in values
+            )
+            or len(values) != len(set(values))
+        ):
+            raise AssistanceProbeError(
+                f"audit_key {field} must be a non-empty unique string list"
+            )
+    if set(presentation_failures) & set(session_failures):
+        raise AssistanceProbeError(
+            "presentation/session hard failures must not overlap"
+        )
+    dimensions = audit.get("comparison_dimensions")
+    stoplines = audit.get("interpretation_stoplines")
     if (
-        not isinstance(audit, dict)
-        or not audit.get("semantic_hard_failures")
+        not isinstance(dimensions, list)
+        or not dimensions
+        or not isinstance(stoplines, list)
+        or not stoplines
     ):
         raise AssistanceProbeError(
-            "audit_key with semantic hard failures is required"
+            "audit_key comparison dimensions and interpretation stoplines are required"
         )
     boundary = probe.get("evidence_boundary")
     if not isinstance(boundary, dict):
