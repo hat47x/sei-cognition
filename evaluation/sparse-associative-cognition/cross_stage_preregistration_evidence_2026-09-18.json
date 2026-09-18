@@ -13,7 +13,9 @@
     "retrieval_split_state": "not-yet-frozen",
     "familiarity_split_state": "not-yet-frozen",
     "routing_split_state": "not-yet-frozen",
-    "b5_gate": "closed"
+    "b5_gate": "closed",
+    "freeze_kit_state": "draft",
+    "freeze_bundle_frozen": false
   },
   "frozen_design": {
     "variants": [
@@ -87,8 +89,8 @@
     "validator_result": "PASS: Cross-stage preregistration validated; evaluation remains locked",
     "unittest_command": "python -m unittest -v evaluation/sparse-associative-cognition/test_validate_cross_stage_preregistration.py",
     "unittest_result": "PASS",
-    "tests_passed": 15,
-    "elapsed_seconds": 0.002,
+    "tests_passed": 19,
+    "elapsed_seconds": 0.004,
     "covered_fail_closed_boundaries": [
       "result generation cannot be enabled by preregistration",
       "pending adjudication cannot unlock evaluation",
@@ -103,7 +105,11 @@
       "B5 gate remains closed",
       "fully frozen synthetic manifest can satisfy unlock validator",
       "B6d/B6e stress track cannot define production default",
-      "feature cardinality cannot become semantic priority"
+      "feature cardinality cannot become semantic priority",
+      "draft freeze kit keeps unlock closed",
+      "freeze kit cannot enable results after freeze",
+      "freeze kit cannot open B5",
+      "freeze kit state/current_bundle_is_frozen mismatch is rejected"
     ]
   },
   "stop_lines": [
@@ -123,6 +129,14 @@
     "real B7 Outcome training and holdout replay split",
     "human-adjudicated semantic benchmark quality",
     "cross-stage latency/memory on target hardware",
-    "Product Value, Operational, Adoption, or Outcome Evidence"
-  ]
+    "Product Value, Operational, Adoption, or Outcome Evidence",
+    "actual frozen cross-stage freeze bundle"
+  ],
+  "follow_up": {
+    "issue": 465,
+    "freeze_kit_directory": "cross-stage-freeze",
+    "freeze_kit_evidence": "cross-stage-freeze/freeze_kit_evidence_2026-09-18.json",
+    "state": "draft",
+    "semantic_results_generated": false
+  }
 }
