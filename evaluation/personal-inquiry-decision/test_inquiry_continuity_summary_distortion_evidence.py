@@ -324,6 +324,7 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
                 self.fixtures,
                 self.fixture_id,
                 self.human_path,
+                self.receipt_path,
                 audit_path,
             )
 
