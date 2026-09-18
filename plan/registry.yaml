@@ -206,4 +206,4 @@ issue:
   - {id: ISSUE-000076, file: plan/issue/ISSUE-000076-design-runtime-provider-failure-behavior-evidence.md, status: Open, priority: 2, related_adrs: [ADR-0013, ADR-0019, ADR-0021, ADR-0024, ADR-0025]}
   - {id: ISSUE-000077, file: plan/issue/ISSUE-000077-integrate-brand-world-into-product-value-discovery.md, status: Resolved, priority: 1, related_adrs: [ADR-0018]}
   - {id: ISSUE-000078, file: plan/issue/ISSUE-000078-verify-pre-decision-inquiry-continuity.md, status: Open, priority: 2, related_adrs: [ADR-0005, ADR-0018, ADR-0020, ADR-0028]}
-  - {id: ISSUE-000079, file: plan/issue/ISSUE-000079-verify-tei-first-sei-application-plane-adoption.md, status: Open, priority: 1, related_adrs: [ADR-0014, ADR-0021, ADR-0028]}
+  - {id: ISSUE-000079, file: plan/issue/ISSUE-000079-verify-tei-first-sei-application-plane-adoption.md, status: Resolved, priority: 1, related_adrs: [ADR-0014, ADR-0021, ADR-0028]}

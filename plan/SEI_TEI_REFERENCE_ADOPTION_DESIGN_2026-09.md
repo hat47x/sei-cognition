@@ -1,7 +1,7 @@
 # SEI → TEI Reference Adoption 設計基線 — Resume / Review Stage 0
 
 更新日: 2026-09-18  
-状態: **Stage 0 Reference Adoption Baseline — source freeze + TEI Reference checker Scoped Executable Evidence available / Application leverage未検証**  
+状態: **Stage 0 Resolved — limited / Reference-local。broader Application Plane adoptionはvalid Target Evidenceまでdeferred**  
 親Issue: **ISSUE-000079**
 
 ## 1. この文書の役割
@@ -527,7 +527,7 @@ Change 2はGate B Ready + Handover Baseline固定 + First Web Target着手、ま
 7. **完了:** Change 1をExisting / Reference-localで十分、reusable extension不要、Native SEI authority継続、TEI Product gap未観測と分類する。
 8. **deferred:** Change 2はcurrent Gateではsurrogate Presentationを発明する危険があるため、Gate B / C再開条件を固定する。
 9. **完了:** Challenge BのEvidence / Governance SurfaceをTarget behaviorなしのmapping-onlyで監査する。
-10. **現在:** Stage 0のadoption postureをlimited / Reference-localとし、広い移管をdeferする。
+10. **完了:** Stage 0のadoption postureをlimited / Reference-localとし、広い移管をdeferする。
 11. Gate B / Cが進展した後、Change 2を実Application / Target能力で再開する。
 
 ## 15.1 Challenge B mappingと暫定adoption posture

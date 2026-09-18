@@ -1,6 +1,6 @@
 # ISSUE-000079: SEI Application PlaneのTEI-first Reference Adoptionを検証する
 
-Status: **Open**  
+Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0014, ADR-0021, ADR-0028**  
 Updated: 2026-09-18
@@ -441,6 +441,30 @@ broader SEI Application Plane migration
 理由は、Change 1でsemantic compatibilityは確認できたもののnative SEI比の負荷低減は観測されず、frozen snapshot同期負担が残り、Change 2はcurrent Gateでは正当なPresentation比較を実行できないためである。
 
 この判断から新Stable Requirement、Universal Contract field、Application Pattern kind、TEI Core gapは追加しない。
+
+## Resolution — 2026-09-18
+
+Stage 0で必要だったReference Adoptionの判断材料が揃ったため、本IssueはResolvedとする。
+
+```text
+current adoption
+  = limited / Reference-local
+
+generic Evidence mechanics
+  = Existing TEIを利用可能
+
+SEI semantic / governance authority
+  = Native SEIに維持
+
+broader Application Plane migration
+  = deferred until valid Target evidence
+```
+
+Change 1ではsemantic compatibilityを確認したがnative SEI比のchange-amplification reductionは観測されず、frozen snapshot同期負担も残った。Change 2はcurrent Gateで正当なPresentation leverage比較にならないためdeferし、Challenge Bではgeneric Evidence mechanicsとSEI固有Governanceの境界を分離した。
+
+したがって、新Stable Requirement、Universal Contract field、Application Pattern kind、TEI Core gapを追加しない。TEI-firstは候補方針として維持するが、実適用範囲はEvidence高さに合わせて限定する。
+
+再開はGate B Ready + Handover Baseline固定 + First Target着手、またはSEIとは独立したtarget-neutral Presentation / Review機構が成立した時点の後続Evidenceとして扱う。
 
 ## Next step
 
