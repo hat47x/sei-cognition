@@ -94,6 +94,33 @@ def validate_preregistration(doc: dict) -> list[str]:
         if freeze_kit.get("b5_entry_gate_changed") is not False:
             errors.append("freeze kit must not change B5 entry gate")
 
+    evaluation_run = doc.get("evaluation_run")
+    if not isinstance(evaluation_run, dict):
+        errors.append("evaluation_run must be an object")
+    else:
+        if evaluation_run.get("state") not in {"draft", "authorized"}:
+            errors.append("evaluation_run.state must be draft or authorized")
+        required_refs = {
+            "directory": "cross-stage-run",
+            "run_ref": "cross-stage-run/evaluation_run.json",
+            "validator_ref": "cross-stage-run/validate_evaluation_run.py",
+            "evidence_ref": "cross-stage-run/evaluation_run_evidence_2026-09-18.json",
+        }
+        for key, expected in required_refs.items():
+            if evaluation_run.get(key) != expected:
+                errors.append(f"evaluation_run.{key} must remain {expected}")
+        authorized = evaluation_run.get("state") == "authorized"
+        if evaluation_run.get("current_run_authorized") is not authorized:
+            errors.append("evaluation_run.current_run_authorized must match evaluation_run.state")
+        if evaluation_run.get("executor_implemented") is not False:
+            errors.append("evaluation_run.executor_implemented must remain false in this slice")
+        if evaluation_run.get("result_artifact_generated") is not False:
+            errors.append("evaluation_run.result_artifact_generated must remain false in this slice")
+        if evaluation_run.get("b5_entry_gate_changed") is not False:
+            errors.append("evaluation_run must not change B5 entry gate")
+        if evaluation_run.get("production_default_changed") is not False:
+            errors.append("evaluation_run must not change production default")
+
     variants = doc.get("variants")
     if not isinstance(variants, list):
         errors.append("variants must be a list")
@@ -244,42 +271,56 @@ def validate_preregistration(doc: dict) -> list[str]:
     return errors
 
 
-def validate_unlock(doc: dict) -> list[str]:
+def validate_pre_run_prerequisites(doc: dict) -> list[str]:
     errors = validate_preregistration(doc)
     if errors:
         return errors
 
     freeze_kit = doc["freeze_kit"]
     if freeze_kit.get("state") != "frozen" or freeze_kit.get("current_bundle_is_frozen") is not True:
-        errors.append("unlock requires frozen freeze-kit bundle")
+        errors.append("pre-run requires frozen freeze-kit bundle")
 
     adjudication = doc["adjudication"]
     if adjudication.get("state") != "frozen":
-        errors.append("unlock requires human adjudication state=frozen")
+        errors.append("pre-run requires human adjudication state=frozen")
     if not adjudication.get("dataset_digest"):
-        errors.append("unlock requires frozen dataset digest")
+        errors.append("pre-run requires frozen dataset digest")
     if not adjudication.get("adjudication_manifest_ref"):
-        errors.append("unlock requires adjudication manifest ref")
+        errors.append("pre-run requires adjudication manifest ref")
 
     prior = doc["b3_prior_manifest"]
     if prior.get("state") != "frozen":
-        errors.append("unlock requires frozen B3 prior manifest")
+        errors.append("pre-run requires frozen B3 prior manifest")
     if not prior.get("manifest_ref"):
-        errors.append("unlock requires B3 prior manifest ref")
+        errors.append("pre-run requires B3 prior manifest ref")
 
     for track_name in ("retrieval", "familiarity"):
         split = doc["tracks"][track_name]["split_manifest"]
         if split.get("state") != "frozen":
-            errors.append(f"unlock requires frozen {track_name} split manifest")
+            errors.append(f"pre-run requires frozen {track_name} split manifest")
         if not split.get("calibration_ids") or not split.get("evaluation_ids"):
-            errors.append(f"unlock requires non-empty {track_name} calibration/evaluation ids")
+            errors.append(f"pre-run requires non-empty {track_name} calibration/evaluation ids")
 
     routing = doc["tracks"]["routing"]["split_manifest"]
     if routing.get("state") != "frozen":
-        errors.append("unlock requires frozen routing split manifest")
+        errors.append("pre-run requires frozen routing split manifest")
     if not routing.get("training_outcome_ids") or not routing.get("holdout_replay_ids"):
-        errors.append("unlock requires non-empty B7 training/holdout ids")
+        errors.append("pre-run requires non-empty B7 training/holdout ids")
 
+    return errors
+
+
+def validate_unlock(doc: dict) -> list[str]:
+    errors = validate_pre_run_prerequisites(doc)
+    if errors:
+        return errors
+
+    evaluation_run = doc["evaluation_run"]
+    if (
+        evaluation_run.get("state") != "authorized"
+        or evaluation_run.get("current_run_authorized") is not True
+    ):
+        errors.append("unlock requires authorized explicit evaluation-run artifact")
     return errors
 
 

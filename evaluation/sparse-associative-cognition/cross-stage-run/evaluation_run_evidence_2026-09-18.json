@@ -1,0 +1,65 @@
+{
+  "schema": "sei.sacs-cross-stage-evaluation-run-evidence/v1alpha1",
+  "date": "2026-09-18",
+  "issue": 468,
+  "branch": "topic/sacs-cross-stage-evaluation-run",
+  "base_branch": "develop/v0.2.0",
+  "artifact": {
+    "run_ref": "evaluation_run.json",
+    "validator_ref": "validate_evaluation_run.py",
+    "test_ref": "test_validate_evaluation_run.py",
+    "preregistration_ref": "../cross_stage_benchmark_preregistration.json",
+    "freeze_bundle_ref": "../cross-stage-freeze/freeze_bundle.json"
+  },
+  "current_state": {
+    "run_state": "draft",
+    "execution_authorized": false,
+    "current_freeze_bundle_frozen": false,
+    "executor_implemented": false,
+    "result_artifact_generated": false,
+    "b5_entry_gate_changed": false,
+    "production_default_changed": false
+  },
+  "source_inspection": {
+    "status": "pass",
+    "validator_functions": [
+      "canonical_run_digest",
+      "validate_run_structure",
+      "validate_authorized_run"
+    ],
+    "regression_tests_defined": 20,
+    "verified_contracts": [
+      "current draft run is structurally valid",
+      "current draft freeze bundle cannot authorize a run",
+      "synthetic frozen primary retrieval path is covered",
+      "synthetic oversized stress path is covered",
+      "unknown retrieval variant is rejected",
+      "unknown metric is rejected",
+      "primary capacity profile cannot carry stress policy",
+      "oversized stress requires preregistered residual policy",
+      "freeze bundle digest is exact-bound",
+      "authorized run is SHA-256 self-bound",
+      "implementation commit requires 40-char lowercase Git SHA",
+      "authorization requires all verification flags",
+      "run artifact cannot contain benchmark results",
+      "run artifact cannot open B5 or change production default"
+    ]
+  },
+  "execution_observation": {
+    "validator_runtime_execution": "not-observed-in-this-artifact-update",
+    "unittest_runtime_execution": "not-observed-in-this-artifact-update",
+    "github_actions_used": false,
+    "note": "This Evidence records repository-source inspection and implemented regression coverage only; it does not claim an executed test PASS."
+  },
+  "stop_lines": [
+    "draft run != authorized run",
+    "authorized run != benchmark success",
+    "authorized run != result artifact",
+    "synthetic authorization path != human-adjudicated benchmark unlock",
+    "frozen bundle != semantic correctness",
+    "implementation commit != production release",
+    "requested diagnostics != semantic score",
+    "authorized run != B5 gate open",
+    "authorized run != production adoption"
+  ]
+}

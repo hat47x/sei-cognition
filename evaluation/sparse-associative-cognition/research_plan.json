@@ -816,7 +816,8 @@
       "B6eではtext-dominantなcontrolとtext-heavyでstatic residual capが負のbaseline marginを正へ回復した一方、structure-heavyではbaseline marginが最も大きく、capが無条件改善ではない反例を確認した。",
       "3 fixtureすべてでcap64はcap128よりlocal incremental dimensionsを多く回復する一方marginは小さく、local distinctnessをqualityの単調proxyにできない性質が複数fixtureでも残った。",
       "cross-stage preregistration専用validatorをlocal Python 3.13.5で実行し15 tests PASSを確認し、B6d/B6e stress trackのproduction default化とfeature cardinalityのsemantic昇格もfail-closedにした。一方、unlock validatorはadjudication / dataset / split / B3 prior未freezeのため意図どおりlockedを維持した。semantic benchmark resultは未生成。",
-      "cross-stage freeze kitをdraft manifest群として実装し、branch source再現のPython 3.13.5環境でfreeze-kit 18 testsとpreregistration 19 testsがPASSした。空のcurrent datasetはfreeze不可で、synthetic complete bundleのみdeterministic digest付きでfreezeできることを確認した。"
+      "cross-stage freeze kitをdraft manifest群として実装し、branch source再現のPython 3.13.5環境でfreeze-kit 18 testsとpreregistration 19 testsがPASSした。空のcurrent datasetはfreeze不可で、synthetic complete bundleのみdeterministic digest付きでfreezeできることを確認した。",
+      "cross-stage evaluation-run artifactをdraft / locked templateとして実装し、authorization validatorと20本のsynthetic / fail-closed回帰テストを定義した。current freeze bundleはdraftのためchecked-in runはauthorizeされず、executor / result artifact / B5 gate / production defaultは変更していない。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -835,7 +836,7 @@
       "production配置方式",
       "Product Value / Operational / Adoption / Outcome Evidence",
       "cross-stage human-adjudicated evaluationはpreregistration済みだが、adjudication / dataset / split / B3 prior manifest未freezeのためlocked。semantic benchmark resultは未生成。",
-      "実SUI/SEI human-adjudicated dataset、review process、split、B3 prior provenanceが未提供のためcross-stage freeze kitはdraftのまま。frozen bundleおよびevaluation-run artifactは未生成。"
+      "実SUI/SEI human-adjudicated dataset、review process、split、B3 prior provenanceが未提供のためcross-stage freeze kitはdraftのまま。frozen bundleおよびauthorized evaluation-runは未生成。checked-in evaluation_run.jsonはdraft / locked templateのみ。"
     ],
     "supporting_evidence_files": [
       "input_normalization_evidence_2026-09-18.json",
@@ -849,7 +850,8 @@
       "static_residual_scaling_evidence_2026-09-18.json",
       "multi_fixture_residual_scaling_evidence_2026-09-18.json",
       "cross_stage_preregistration_evidence_2026-09-18.json",
-      "cross-stage-freeze/freeze_kit_evidence_2026-09-18.json"
+      "cross-stage-freeze/freeze_kit_evidence_2026-09-18.json",
+      "cross-stage-run/evaluation_run_evidence_2026-09-18.json"
     ]
   },
   "references": [
@@ -922,6 +924,18 @@
       "current_bundle_is_frozen": false,
       "result_generation_enabled_after_freeze": false,
       "b5_entry_gate_changed": false
+    },
+    "evaluation_run": {
+      "state": "draft",
+      "directory": "cross-stage-run",
+      "run_ref": "cross-stage-run/evaluation_run.json",
+      "validator_ref": "cross-stage-run/validate_evaluation_run.py",
+      "evidence_ref": "cross-stage-run/evaluation_run_evidence_2026-09-18.json",
+      "current_run_authorized": false,
+      "executor_implemented": false,
+      "result_artifact_generated": false,
+      "b5_entry_gate_changed": false,
+      "production_default_changed": false
     }
   }
 }

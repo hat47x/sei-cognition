@@ -239,5 +239,17 @@
     "current_bundle_is_frozen": false,
     "result_generation_enabled_after_freeze": false,
     "b5_entry_gate_changed": false
+  },
+  "evaluation_run": {
+    "state": "draft",
+    "directory": "cross-stage-run",
+    "run_ref": "cross-stage-run/evaluation_run.json",
+    "validator_ref": "cross-stage-run/validate_evaluation_run.py",
+    "evidence_ref": "cross-stage-run/evaluation_run_evidence_2026-09-18.json",
+    "current_run_authorized": false,
+    "executor_implemented": false,
+    "result_artifact_generated": false,
+    "b5_entry_gate_changed": false,
+    "production_default_changed": false
   }
 }
