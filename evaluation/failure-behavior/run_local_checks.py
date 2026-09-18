@@ -123,6 +123,19 @@ def sanitized_environment(source: dict[str, str] | None = None) -> dict[str, str
     ):
         environment.pop(key, None)
 
+    environment["GOWORK"] = "off"
+    environment["GOENV"] = "off"
+    environment["GOTOOLCHAIN"] = "local"
+    for key in (
+        "GOFLAGS",
+        "GOOS",
+        "GOARCH",
+        "GOAMD64",
+        "GOEXPERIMENT",
+        "CGO_ENABLED",
+    ):
+        environment.pop(key, None)
+
     environment["PYTHONDONTWRITEBYTECODE"] = "1"
     environment["PYTHONNOUSERSITE"] = "1"
     return environment
@@ -218,7 +231,9 @@ def run_checks(
             }
 
         executions.append(execution)
-        if execution["exitCode"] != 0 and stop_on_failure:
+        if execution["exitCode"] != 0 and (
+            stop_on_failure or check.name == "go-toolchain-preflight"
+        ):
             stopped_early = index < len(checks)
             break
 
