@@ -45,7 +45,9 @@ run artifactがauthorizedになれるのは、次が同時に成立する場合�
 - preregistration unlock条件が成立
 - track / variant / capacity profile / stress policy / metricが事前登録済み
 - implementation refと40桁lowercase Git commit SHAが明示
+- opaqueなauthorization refが明示
 - environment descriptorが明示
+- canonical run digestがrun内容と一致
 - evaluation tuningを行わない
 - single composite scoreを使わない
 - B5 gateを変更しない
@@ -127,7 +129,24 @@ authorized runは、
 
 commit bindingはproduction releaseを意味しない。
 
-## 7. Resultとの分離
+## 7. Authorized runのimmutability
+
+authorized runは自身の `run_digest` を持つ。
+
+canonicalizationはfreeze kitと同じく、
+
+- UTF-8 JSON
+- sorted keys
+- compact separators
+- `run_digest` fieldだけ除外
+
+としてSHA-256を計算する。
+
+authorization後にvariant、metric、output ref、environment等を変更すればdigest mismatchとなる。
+
+`authorization_ref` は実名を格納する場所ではなく、承認記録へのopaque provenance refとして扱う。
+
+## 8. Resultとの分離
 
 run artifactは結果を所有しない。
 
@@ -144,7 +163,7 @@ run artifactは結果を所有しない。
 
 run artifactを実行後に書き換えて結果を埋め込まない。
 
-## 8. 検証
+## 9. 検証
 
 current draft:
 
@@ -169,7 +188,7 @@ unit testsではsynthetic frozen bundleをmemory上で作り、
 
 synthetic authorizationは実human benchmarkのunlockではない。
 
-## 9. 停止線
+## 10. 停止線
 
 ```text
 authorized run != benchmark success
