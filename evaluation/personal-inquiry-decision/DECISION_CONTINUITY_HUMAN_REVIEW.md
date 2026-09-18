@@ -111,6 +111,8 @@ exclusive-create
   != manual file tamperingを暗号学的に排除
 ```
 
+provenance付きsessionについては、低レベルの`matched_review_session.py` CLIから`packets`または`record`を直接実行しない。低レベルCLI側もこの迂回を拒否する。human reviewでは必ず共有runnerの`bundle` / `record`を使い、Issue固有response validationとreview provenance確認をstage gateの前提にする。`matched_review_session.py`は共有内部基盤であり、provenance付きhuman reviewのoperational entry pointではない。
+
 現在提示してよいpacketだけを確認する。
 
 ```bash
@@ -452,7 +454,7 @@ ISSUE-000073のResolution判断では、E1〜E8のScoped Executable Evidence、H
 
 ## 13. Natural Japanese review
 
-H2用に既に成立していたmatched review手順を維持しながら、073/078で同じreview runnerを共有する形へ整理した。H2ではreviewer provenanceを最初のstimulus提示前に固定し、その初期sessionをexclusive-createして同じpathへの再initを拒否する。condition labelを伏せたbundle、Decision固有response validation、complete後のEvidence exportまでを同じ入口へ集約した。また、ISSUE-000073で未接続だったH1 actual resume usabilityを既存Personal Inquiry Continuity dogfood surfaceへ接続した。
+H2用に既に成立していたmatched review手順を維持しながら、073/078で同じreview runnerを共有する形へ整理した。H2ではreviewer provenanceを最初のstimulus提示前に固定し、その初期sessionをexclusive-createして同じpathへの再initを拒否する。provenance付きsessionを低レベルstage-gate CLIから直接提示・記録する迂回も拒否し、condition labelを伏せたbundle、Issue固有response validation、complete後のEvidence exportまでを同じ入口へ集約した。また、ISSUE-000073で未接続だったH1 actual resume usabilityを既存Personal Inquiry Continuity dogfood surfaceへ接続した。
 
 H1のために新しい評価schemaやsession managerを増やさず、Inquiry stateは既存dogfood state、評価観測は既存sidecarを使う。これによりH1 / H2を別々の評価基盤として断片化させず、real Inquiryのresumptionとcontrolled counterfactual reviewだけを意味上分離した。
 
