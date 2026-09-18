@@ -296,6 +296,17 @@ def validate_probe(
             "all lifecycle presentation rules must remain enabled"
         )
     _validate_rotations(probe)
+    reader_rules = probe.get("reader_assignment_rules")
+    expected_reader_rules = {
+        "one_rotation_per_reviewer": True,
+        "multi_reader_balance_rotations": True,
+        "repeated_rotation_same_reviewer_allowed": False,
+        "single_reader_separates_order_from_condition": False,
+    }
+    if reader_rules != expected_reader_rules:
+        raise LifecycleProbeError(
+            "reader_assignment_rules must preserve rotation/order safeguards"
+        )
 
     scenario = probe.get("scenario")
     if (

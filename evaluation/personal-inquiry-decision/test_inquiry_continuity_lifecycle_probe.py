@@ -67,6 +67,12 @@ def make_probe() -> dict:
             "response_fixed_before_audit": True,
             "audit_reveals_condition_mapping": True,
         },
+        "reader_assignment_rules": {
+            "one_rotation_per_reviewer": True,
+            "multi_reader_balance_rotations": True,
+            "repeated_rotation_same_reviewer_allowed": False,
+            "single_reader_separates_order_from_condition": False,
+        },
         "assignment_rotations": {
             "R1": [
                 "A_always_open",
@@ -201,6 +207,15 @@ class LifecycleProbeTest(unittest.TestCase):
                 "R1",
                 self.review_sha,
             )
+
+    def test_reader_assignment_rules_prevent_repeat_rotation_claims(self):
+        validate_probe(self.probe)
+        changed = copy.deepcopy(self.probe)
+        changed["reader_assignment_rules"][
+            "repeated_rotation_same_reviewer_allowed"
+        ] = True
+        with self.assertRaises(LifecycleProbeError):
+            validate_probe(changed)
 
     def test_rotation_counterbalances_positions(self):
         validate_probe(self.probe)

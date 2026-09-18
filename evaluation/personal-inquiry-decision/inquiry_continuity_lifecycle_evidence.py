@@ -550,6 +550,7 @@ def build_evidence_bundle(
             "Product-local attention state is not canonical Inquiry status",
             "closed without Decision is not resolution, Decision, or truth",
             "acceptable outcome notes are not a ranking or selected winner",
+            "a single reviewer cannot separate presentation-order effects from condition effects",
             "this synthetic lifecycle comparison is not actual long-gap resumption",
             "this artifact does not establish Product Value",
             "this artifact does not authorize Stable Requirement or Universal status changes",
