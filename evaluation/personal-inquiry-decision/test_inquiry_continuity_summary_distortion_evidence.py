@@ -11,8 +11,11 @@ from inquiry_continuity_summary_distortion_probe import (
     audit_material_sha256,
     build_audit_material,
     build_audit_reveal_receipt,
+    build_review_start_receipt,
     probe_content_sha256,
+    response_template,
     save_audit_reveal_receipt,
+    save_review_start_receipt,
 )
 
 from inquiry_continuity_summary_distortion_evidence import (
@@ -89,22 +92,38 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
                 },
             }
         }
-        self.human_response = {
-            "schema": "sei.inquiry-continuity-summary-distortion-response/v0",
-            "answers": [f"answer-{i}" for i in range(1, 6)],
-            "review_provenance": {
-                "reviewer_id": "reviewer-opaque-1",
-                "prior_exposure": "known-material-exposure",
-                "response_authorship": "human-direct",
-                "note": "pilot",
-            },
-            "operator_observation": {
-                "review_completion_seconds": 10,
-                "source_reopen_count": 1,
-                "correction_burden": "medium",
-            },
-            "notes": "initial review",
+        self.review_receipt_path = self.root / "review-start.json"
+        self.review_receipt = build_review_start_receipt(
+            self.probe,
+            self.fixture_id,
+            "reviewer-opaque-1",
+            "known-material-exposure",
+            "human-direct",
+            "2026-09-17T09:28:00Z",
+        )
+        save_review_start_receipt(
+            self.review_receipt_path,
+            self.review_receipt,
+        )
+        self.review_receipt_raw = self.review_receipt_path.read_bytes()
+        self.review_receipt_sha = hashlib.sha256(
+            self.review_receipt_raw
+        ).hexdigest()
+        self.human_response = response_template(
+            self.probe,
+            self.review_receipt,
+            self.review_receipt_raw,
+        )
+        self.human_response["answers"] = [
+            f"answer-{i}" for i in range(1, 6)
+        ]
+        self.human_response["review_provenance"]["note"] = "pilot"
+        self.human_response["operator_observation"] = {
+            "review_completion_seconds": 10,
+            "source_reopen_count": 1,
+            "correction_burden": "medium",
         }
+        self.human_response["notes"] = "initial review"
         self.human_path = self.root / "human.json"
         self.human_path.write_text(
             json.dumps(self.human_response, ensure_ascii=False),
@@ -261,6 +280,7 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
             self.fixtures,
             self.fixture_id,
             self.human_path,
+            self.review_receipt_path,
             self.receipt_path,
             audit_path,
         )
@@ -276,6 +296,14 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
         self.assertEqual(
             bundle["probe_snapshot"]["review_questions"],
             self.probe["review_questions"],
+        )
+        self.assertEqual(
+            bundle["review_start"]["receipt_sha256"],
+            self.review_receipt_sha,
+        )
+        self.assertEqual(
+            bundle["review_start"]["prior_exposure"],
+            "known-material-exposure",
         )
         self.assertEqual(
             bundle["human_review_observation"]["response_sha256"],
@@ -324,6 +352,7 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
                 self.fixtures,
                 self.fixture_id,
                 self.human_path,
+                self.review_receipt_path,
                 self.receipt_path,
                 audit_path,
             )
@@ -340,6 +369,26 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
                 changed,
                 self.fixture_id,
                 self.human_path,
+                self.review_receipt_path,
+                self.receipt_path,
+                audit_path,
+            )
+
+    def test_bundle_rejects_response_provenance_changed_after_review_start(self):
+        audit = self.valid_audit()
+        audit_path = self.root / "audit.json"
+        audit_path.write_text(json.dumps(audit), encoding="utf-8")
+        changed_response = copy.deepcopy(self.human_response)
+        changed_response["review_provenance"]["prior_exposure"] = "none-declared"
+        changed_path = self.root / "changed-human.json"
+        changed_path.write_text(json.dumps(changed_response), encoding="utf-8")
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            build_evidence_bundle(
+                self.probe,
+                self.fixtures,
+                self.fixture_id,
+                changed_path,
+                self.review_receipt_path,
                 self.receipt_path,
                 audit_path,
             )

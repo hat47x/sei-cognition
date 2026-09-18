@@ -19,7 +19,10 @@ from typing import Any
 SCHEMA = "sei.inquiry-continuity-summary-distortion-probe/v0"
 FIXTURE_SCHEMA = "sei.inquiry-continuity-comparison-fixture/v0"
 PACKET_SCHEMA = "sei.inquiry-continuity-summary-distortion-packet/v0"
-RESPONSE_SCHEMA = "sei.inquiry-continuity-summary-distortion-response/v0"
+RESPONSE_SCHEMA = "sei.inquiry-continuity-summary-distortion-response/v1"
+REVIEW_START_RECEIPT_SCHEMA = (
+    "sei.inquiry-continuity-summary-distortion-review-start-receipt/v0"
+)
 AUDIT_REVEAL_RECEIPT_SCHEMA = (
     "sei.inquiry-continuity-summary-distortion-audit-reveal-receipt/v0"
 )
@@ -211,17 +214,29 @@ def _case(probe: dict[str, Any], fixture_id: str) -> dict[str, Any]:
     raise SummaryDistortionProbeError(f"unknown fixture: {fixture_id}")
 
 
-def response_template(probe: dict[str, Any]) -> dict[str, Any]:
-    """Return an intentionally incomplete human-response template."""
+def response_template(
+    probe: dict[str, Any],
+    review_receipt_value: dict[str, Any],
+    review_receipt_raw: bytes,
+) -> dict[str, Any]:
+    """Return an intentionally incomplete response bound to pre-stimulus provenance."""
     _validate_questions(probe.get("review_questions"))
+    validate_review_start_receipt(
+        review_receipt_value,
+        probe,
+        review_receipt_value.get("fixture_id"),
+    )
     return {
         "schema": RESPONSE_SCHEMA,
         "probe_sha256": probe_content_sha256(probe),
+        "review_start_receipt_sha256": hashlib.sha256(
+            review_receipt_raw
+        ).hexdigest(),
         "answers": ["" for _ in probe["review_questions"]],
         "review_provenance": {
-            "reviewer_id": "",
-            "prior_exposure": "",
-            "response_authorship": "",
+            "reviewer_id": review_receipt_value["reviewer_id"],
+            "prior_exposure": review_receipt_value["prior_exposure"],
+            "response_authorship": review_receipt_value["response_authorship"],
             "note": "",
         },
         "operator_observation": {
@@ -260,6 +275,7 @@ def validate_human_response(response: Any, probe: dict[str, Any]) -> None:
     required = {
         "schema",
         "probe_sha256",
+        "review_start_receipt_sha256",
         "answers",
         "review_provenance",
         "operator_observation",
@@ -277,6 +293,15 @@ def validate_human_response(response: Any, probe: dict[str, Any]) -> None:
     if response["probe_sha256"] != probe_content_sha256(probe):
         raise SummaryDistortionProbeError(
             "human response is bound to a different probe content"
+        )
+    review_receipt_sha = response["review_start_receipt_sha256"]
+    if (
+        not isinstance(review_receipt_sha, str)
+        or len(review_receipt_sha) != 64
+        or any(c not in "0123456789abcdef" for c in review_receipt_sha)
+    ):
+        raise SummaryDistortionProbeError(
+            "review_start_receipt_sha256 must be a lowercase SHA-256 hex digest"
         )
 
     questions = probe.get("review_questions")
@@ -381,6 +406,164 @@ def _parse_timestamp(value: Any, field: str) -> datetime:
             f"{field} must include a timezone offset"
         )
     return parsed.astimezone(timezone.utc)
+
+
+def review_start_receipt_bytes(receipt: dict[str, Any]) -> bytes:
+    return (
+        json.dumps(receipt, ensure_ascii=False, indent=2) + "\n"
+    ).encode("utf-8")
+
+
+def build_review_start_receipt(
+    probe: dict[str, Any],
+    fixture_id: str,
+    reviewer_id: str,
+    prior_exposure: str,
+    response_authorship: str,
+    started_at: str,
+) -> dict[str, Any]:
+    validate_probe(probe)
+    _case(probe, fixture_id)
+    if not isinstance(reviewer_id, str) or not reviewer_id.strip():
+        raise SummaryDistortionProbeError(
+            "reviewer_id must be a non-empty opaque id"
+        )
+    if prior_exposure not in PRIOR_EXPOSURE_VALUES:
+        raise SummaryDistortionProbeError("prior_exposure has invalid value")
+    if response_authorship not in RESPONSE_AUTHORSHIP_VALUES:
+        raise SummaryDistortionProbeError(
+            "response_authorship must declare human-direct or human-transcribed"
+        )
+    _parse_timestamp(started_at, "started_at")
+    return {
+        "schema": REVIEW_START_RECEIPT_SCHEMA,
+        "status": "evaluation-only",
+        "probe_id": probe["probe_id"],
+        "fixture_id": fixture_id,
+        "probe_sha256": probe_content_sha256(probe),
+        "reviewer_id": reviewer_id,
+        "prior_exposure": prior_exposure,
+        "response_authorship": response_authorship,
+        "started_at": started_at,
+    }
+
+
+def save_review_start_receipt(
+    path: str | Path,
+    receipt: dict[str, Any],
+) -> None:
+    target = Path(path)
+    payload = review_start_receipt_bytes(receipt)
+    try:
+        with target.open("xb") as handle:
+            handle.write(payload)
+            handle.flush()
+            os.fsync(handle.fileno())
+    except FileExistsError as exc:
+        raise SummaryDistortionProbeError(
+            f"refusing to overwrite existing review-start receipt: {target}"
+        ) from exc
+
+
+def validate_review_start_receipt(
+    value: Any,
+    probe: dict[str, Any],
+    fixture_id: str,
+) -> None:
+    required = {
+        "schema",
+        "status",
+        "probe_id",
+        "fixture_id",
+        "probe_sha256",
+        "reviewer_id",
+        "prior_exposure",
+        "response_authorship",
+        "started_at",
+    }
+    if not isinstance(value, dict) or set(value) != required:
+        raise SummaryDistortionProbeError("review-start receipt has invalid shape")
+    if value["schema"] != REVIEW_START_RECEIPT_SCHEMA:
+        raise SummaryDistortionProbeError(
+            f"review-start receipt schema must be {REVIEW_START_RECEIPT_SCHEMA}"
+        )
+    if value["status"] != "evaluation-only":
+        raise SummaryDistortionProbeError(
+            "review-start receipt must remain evaluation-only"
+        )
+    if value["probe_id"] != probe["probe_id"]:
+        raise SummaryDistortionProbeError("review-start receipt probe_id mismatch")
+    if value["fixture_id"] != fixture_id:
+        raise SummaryDistortionProbeError("review-start receipt fixture_id mismatch")
+    if value["probe_sha256"] != probe_content_sha256(probe):
+        raise SummaryDistortionProbeError(
+            "review-start receipt is bound to different probe content"
+        )
+    if (
+        not isinstance(value["reviewer_id"], str)
+        or not value["reviewer_id"].strip()
+    ):
+        raise SummaryDistortionProbeError(
+            "review-start reviewer_id must be a non-empty opaque id"
+        )
+    if value["prior_exposure"] not in PRIOR_EXPOSURE_VALUES:
+        raise SummaryDistortionProbeError(
+            "review-start prior_exposure has invalid value"
+        )
+    if value["response_authorship"] not in RESPONSE_AUTHORSHIP_VALUES:
+        raise SummaryDistortionProbeError(
+            "review-start response_authorship has invalid value"
+        )
+    _parse_timestamp(value["started_at"], "started_at")
+
+
+def load_review_start_receipt(
+    path: str | Path,
+    probe: dict[str, Any],
+    fixture_id: str,
+) -> tuple[dict[str, Any], bytes]:
+    try:
+        raw = Path(path).read_bytes()
+    except OSError as exc:
+        raise SummaryDistortionProbeError(
+            f"cannot load review-start receipt: {path}"
+        ) from exc
+    if not raw.strip():
+        raise SummaryDistortionProbeError("review-start receipt must not be empty")
+    try:
+        value = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise SummaryDistortionProbeError(
+            "review-start receipt must be valid UTF-8 JSON"
+        ) from exc
+    validate_review_start_receipt(value, probe, fixture_id)
+    return value, raw
+
+
+def validate_human_response_against_review_start(
+    response: dict[str, Any],
+    probe: dict[str, Any],
+    fixture_id: str,
+    review_receipt_value: dict[str, Any],
+    review_receipt_raw: bytes,
+) -> None:
+    validate_human_response(response, probe)
+    validate_review_start_receipt(
+        review_receipt_value,
+        probe,
+        fixture_id,
+    )
+    receipt_sha = hashlib.sha256(review_receipt_raw).hexdigest()
+    if response["review_start_receipt_sha256"] != receipt_sha:
+        raise SummaryDistortionProbeError(
+            "human response is bound to a different review-start receipt"
+        )
+    provenance = response["review_provenance"]
+    for field in ("reviewer_id", "prior_exposure", "response_authorship"):
+        if provenance[field] != review_receipt_value[field]:
+            raise SummaryDistortionProbeError(
+                f"human response {field} differs from pre-stimulus declaration"
+            )
 
 
 def build_audit_material(
@@ -548,15 +731,23 @@ def load_audit_reveal_receipt(
     return value, raw
 
 
-def build_review_packet(
+def build_review_packet_from_receipt(
     probe: dict[str, Any],
     fixtures: dict[str, dict[str, Any]],
     fixture_id: str,
+    review_receipt_value: dict[str, Any],
+    review_receipt_raw: bytes,
 ) -> dict[str, Any]:
+    validate_review_start_receipt(
+        review_receipt_value,
+        probe,
+        fixture_id,
+    )
     case, fixture = _case(probe, fixture_id), fixtures[fixture_id]
     orientation = fixture["conditions"]["C_sei_resume"]["surface_text"][
         "orientation"
     ]
+    receipt_sha = hashlib.sha256(review_receipt_raw).hexdigest()
     return {
         "schema": PACKET_SCHEMA,
         "status": "evaluation-only",
@@ -564,6 +755,13 @@ def build_review_packet(
         "fixture_id": fixture_id,
         "probe_sha256": probe_content_sha256(probe),
         "stage": "review",
+        "review_start_receipt_sha256": receipt_sha,
+        "review_started_at": review_receipt_value["started_at"],
+        "review_provenance_declaration": {
+            "reviewer_id": review_receipt_value["reviewer_id"],
+            "prior_exposure": review_receipt_value["prior_exposure"],
+            "response_authorship": review_receipt_value["response_authorship"],
+        },
         "canonical_orientation": orientation,
         "provisional_ai_summary": case["distorted_summary"],
         "provisional_ai_next_question": case["distorted_next_question"],
@@ -572,11 +770,35 @@ def build_review_packet(
             "suggestion; not canonical meaning"
         ),
         "questions": probe["review_questions"],
-        "response_template": response_template(probe),
+        "response_template": response_template(
+            probe,
+            review_receipt_value,
+            review_receipt_raw,
+        ),
         "presentation_rules": probe["presentation_rules"],
         "interpretation_stoplines": probe["interpretation_stoplines"],
         "semantic_stopline": probe["semantic_stopline"],
     }
+
+
+def build_review_packet(
+    probe: dict[str, Any],
+    fixtures: dict[str, dict[str, Any]],
+    fixture_id: str,
+    review_receipt: str | Path,
+) -> dict[str, Any]:
+    review_receipt_value, review_receipt_raw = load_review_start_receipt(
+        review_receipt,
+        probe,
+        fixture_id,
+    )
+    return build_review_packet_from_receipt(
+        probe,
+        fixtures,
+        fixture_id,
+        review_receipt_value,
+        review_receipt_raw,
+    )
 
 
 def build_audit_packet_from_receipt(
@@ -584,10 +806,19 @@ def build_audit_packet_from_receipt(
     fixtures: dict[str, dict[str, Any]],
     fixture_id: str,
     response: str | Path,
+    review_receipt_value: dict[str, Any],
+    review_receipt_raw: bytes,
     receipt_value: dict[str, Any],
     receipt_raw: bytes,
 ) -> dict[str, Any]:
     response_value, raw = load_human_response(response, probe)
+    validate_human_response_against_review_start(
+        response_value,
+        probe,
+        fixture_id,
+        review_receipt_value,
+        review_receipt_raw,
+    )
     fixed = hashlib.sha256(raw).hexdigest()
     material = build_audit_material(probe, fixtures, fixture_id)
     material_digest = audit_material_sha256(material)
@@ -605,6 +836,10 @@ def build_audit_packet_from_receipt(
         "fixture_id": fixture_id,
         "probe_sha256": probe_content_sha256(probe),
         "stage": "audit",
+        "review_start_receipt_sha256": hashlib.sha256(
+            review_receipt_raw
+        ).hexdigest(),
+        "review_started_at": review_receipt_value["started_at"],
         "fixed_human_response_sha256": fixed,
         "audit_material_sha256": material_digest,
         "audit_reveal_receipt_sha256": hashlib.sha256(receipt_raw).hexdigest(),
@@ -625,9 +860,22 @@ def build_audit_packet(
     fixtures: dict[str, dict[str, Any]],
     fixture_id: str,
     response: str | Path,
+    review_receipt: str | Path,
     receipt: str | Path,
 ) -> dict[str, Any]:
-    _, raw = load_human_response(response, probe)
+    response_value, raw = load_human_response(response, probe)
+    review_receipt_value, review_receipt_raw = load_review_start_receipt(
+        review_receipt,
+        probe,
+        fixture_id,
+    )
+    validate_human_response_against_review_start(
+        response_value,
+        probe,
+        fixture_id,
+        review_receipt_value,
+        review_receipt_raw,
+    )
     fixed = hashlib.sha256(raw).hexdigest()
     material = build_audit_material(probe, fixtures, fixture_id)
     material_digest = audit_material_sha256(material)
@@ -643,6 +891,8 @@ def build_audit_packet(
         fixtures,
         fixture_id,
         response,
+        review_receipt_value,
+        review_receipt_raw,
         receipt_value,
         receipt_raw,
     )
@@ -657,9 +907,22 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fixture-id")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("validate")
-    sub.add_parser("review")
+    review = sub.add_parser("review")
+    review.add_argument("--review-receipt", required=True)
+    review.add_argument("--reviewer-id", required=True)
+    review.add_argument(
+        "--prior-exposure",
+        required=True,
+        choices=sorted(PRIOR_EXPOSURE_VALUES),
+    )
+    review.add_argument(
+        "--response-authorship",
+        required=True,
+        choices=sorted(RESPONSE_AUTHORSHIP_VALUES),
+    )
     audit = sub.add_parser("audit")
     audit.add_argument("--response", required=True)
+    audit.add_argument("--review-receipt", required=True)
     audit.add_argument("--receipt", required=True)
     return parser
 
@@ -675,6 +938,7 @@ def main(argv: list[str] | None = None) -> int:
             "probe_sha256": probe_content_sha256(probe),
             "cases": len(fixtures),
             "human_response_schema": RESPONSE_SCHEMA,
+            "review_start_receipt_schema": REVIEW_START_RECEIPT_SCHEMA,
         }
     else:
         if not args.fixture_id:
@@ -686,8 +950,43 @@ def main(argv: list[str] | None = None) -> int:
                 f"unknown fixture: {args.fixture_id}"
             )
         if args.command == "review":
-            result = build_review_packet(probe, fixtures, args.fixture_id)
+            started_at = datetime.now(timezone.utc).isoformat().replace(
+                "+00:00", "Z"
+            )
+            review_receipt = build_review_start_receipt(
+                probe,
+                args.fixture_id,
+                args.reviewer_id,
+                args.prior_exposure,
+                args.response_authorship,
+                started_at,
+            )
+            review_receipt_raw = review_start_receipt_bytes(review_receipt)
+            result = build_review_packet_from_receipt(
+                probe,
+                fixtures,
+                args.fixture_id,
+                review_receipt,
+                review_receipt_raw,
+            )
+            save_review_start_receipt(
+                args.review_receipt,
+                review_receipt,
+            )
         elif args.command == "audit":
+            response_value, _ = load_human_response(args.response, probe)
+            review_receipt_value, review_receipt_raw = load_review_start_receipt(
+                args.review_receipt,
+                probe,
+                args.fixture_id,
+            )
+            validate_human_response_against_review_start(
+                response_value,
+                probe,
+                args.fixture_id,
+                review_receipt_value,
+                review_receipt_raw,
+            )
             material = build_audit_material(
                 probe,
                 fixtures,
@@ -710,6 +1009,8 @@ def main(argv: list[str] | None = None) -> int:
                 fixtures,
                 args.fixture_id,
                 args.response,
+                review_receipt_value,
+                review_receipt_raw,
                 receipt,
                 receipt_raw,
             )

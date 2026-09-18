@@ -9,6 +9,7 @@ from pathlib import Path
 
 from inquiry_continuity_summary_distortion_probe import (
     AUDIT_REVEAL_RECEIPT_SCHEMA,
+    REVIEW_START_RECEIPT_SCHEMA,
     REQUIRED_KINDS,
     RESPONSE_SCHEMA,
     SummaryDistortionProbeError,
@@ -17,13 +18,17 @@ from inquiry_continuity_summary_distortion_probe import (
     build_audit_packet,
     build_audit_reveal_receipt,
     build_review_packet,
+    build_review_start_receipt,
     git_blob_sha1,
     load_sources,
     probe_content_sha256,
     response_sha256,
     response_template,
+    review_start_receipt_bytes,
     save_audit_reveal_receipt,
+    save_review_start_receipt,
     validate_human_response,
+    validate_human_response_against_review_start,
     validate_probe,
 )
 
@@ -127,19 +132,35 @@ class SummaryDistortionProbeTest(unittest.TestCase):
             ],
             "evidence_boundary": {"human_review": "not-yet-observed"},
         }
+        self.review_receipt_path = self.root / "review-start.json"
+        self.review_receipt = build_review_start_receipt(
+            self.probe,
+            self.fixture_id,
+            "reviewer-opaque-1",
+            "known-material-exposure",
+            "human-direct",
+            "2026-09-18T02:50:00Z",
+        )
+        save_review_start_receipt(
+            self.review_receipt_path,
+            self.review_receipt,
+        )
+        self.review_receipt_raw = self.review_receipt_path.read_bytes()
+        self.review_receipt_sha = hashlib.sha256(
+            self.review_receipt_raw
+        ).hexdigest()
 
     def tearDown(self):
         self.tmp.cleanup()
 
     def valid_response(self) -> dict:
-        response = response_template(self.probe)
+        response = response_template(
+            self.probe,
+            self.review_receipt,
+            self.review_receipt_raw,
+        )
         response["answers"] = [f"answer-{i}" for i in range(1, 6)]
-        response["review_provenance"] = {
-            "reviewer_id": "reviewer-opaque-1",
-            "prior_exposure": "known-material-exposure",
-            "response_authorship": "human-direct",
-            "note": "pilot",
-        }
+        response["review_provenance"]["note"] = "pilot"
         response["operator_observation"] = {
             "review_completion_seconds": 42.5,
             "source_reopen_count": 1,
@@ -189,8 +210,17 @@ class SummaryDistortionProbeTest(unittest.TestCase):
             self.probe,
             {self.fixture_id: fixture},
             self.fixture_id,
+            self.review_receipt_path,
         )
         self.assertEqual(packet["stage"], "review")
+        self.assertEqual(
+            packet["review_start_receipt_sha256"],
+            self.review_receipt_sha,
+        )
+        self.assertEqual(
+            packet["review_provenance_declaration"]["prior_exposure"],
+            "known-material-exposure",
+        )
         self.assertIn("canonical_orientation", packet)
         self.assertIn("provisional_ai_summary", packet)
         self.assertIn("provisional_ai_next_question", packet)
@@ -214,7 +244,11 @@ class SummaryDistortionProbeTest(unittest.TestCase):
         self.assertNotIn("post_interruption_evidence", packet)
 
     def test_response_template_is_intentionally_invalid_until_human_fields_are_filled(self):
-        template = response_template(self.probe)
+        template = response_template(
+            self.probe,
+            self.review_receipt,
+            self.review_receipt_raw,
+        )
         with self.assertRaises(SummaryDistortionProbeError):
             validate_human_response(template, self.probe)
 
@@ -273,6 +307,7 @@ class SummaryDistortionProbeTest(unittest.TestCase):
                 {self.fixture_id: fixture},
                 self.fixture_id,
                 response,
+                self.review_receipt_path,
                 self.root / "missing-receipt.json",
             )
 
@@ -297,6 +332,7 @@ class SummaryDistortionProbeTest(unittest.TestCase):
             {self.fixture_id: fixture},
             self.fixture_id,
             response,
+            self.review_receipt_path,
             receipt_path,
         )
         self.assertEqual(packet["stage"], "audit")
@@ -387,7 +423,28 @@ class SummaryDistortionProbeTest(unittest.TestCase):
                 {self.fixture_id: changed},
                 self.fixture_id,
                 response,
+                self.review_receipt_path,
                 target,
+            )
+
+    def test_review_start_receipt_never_overwrites(self):
+        target = self.root / "other-review-start.json"
+        save_review_start_receipt(target, self.review_receipt)
+        original = target.read_bytes()
+        with self.assertRaises(SummaryDistortionProbeError):
+            save_review_start_receipt(target, self.review_receipt)
+        self.assertEqual(target.read_bytes(), original)
+
+    def test_response_rejects_post_stimulus_provenance_rewrite(self):
+        response = self.valid_response()
+        response["review_provenance"]["prior_exposure"] = "none-declared"
+        with self.assertRaises(SummaryDistortionProbeError):
+            validate_human_response_against_review_start(
+                response,
+                self.probe,
+                self.fixture_id,
+                self.review_receipt,
+                self.review_receipt_raw,
             )
 
     def test_response_hash_rejects_non_object(self):

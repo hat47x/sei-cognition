@@ -25,9 +25,11 @@ from inquiry_continuity_summary_distortion_probe import (
     build_audit_material,
     load_audit_reveal_receipt,
     load_human_response,
+    load_review_start_receipt,
     load_json,
     load_sources,
     probe_content_sha256,
+    validate_human_response_against_review_start,
     validate_probe,
 )
 
@@ -240,6 +242,7 @@ def build_evidence_bundle(
     fixtures: dict[str, dict[str, Any]],
     fixture_id: str,
     human_response_path: str | Path,
+    review_start_receipt_path: str | Path,
     audit_reveal_receipt_path: str | Path,
     audit_response_path: str | Path,
 ) -> dict[str, Any]:
@@ -255,6 +258,24 @@ def build_evidence_bundle(
     except SummaryDistortionProbeError as exc:
         raise SummaryDistortionEvidenceError(str(exc)) from exc
     fixed_human_response_sha256 = hashlib.sha256(human_raw).hexdigest()
+    try:
+        review_receipt_value, review_receipt_raw = load_review_start_receipt(
+            review_start_receipt_path,
+            probe,
+            fixture_id,
+        )
+        validate_human_response_against_review_start(
+            human_response,
+            probe,
+            fixture_id,
+            review_receipt_value,
+            review_receipt_raw,
+        )
+    except SummaryDistortionProbeError as exc:
+        raise SummaryDistortionEvidenceError(str(exc)) from exc
+    review_start_receipt_sha256 = hashlib.sha256(
+        review_receipt_raw
+    ).hexdigest()
     material = build_audit_material(probe, fixtures, fixture_id)
     material_digest = audit_material_sha256(material)
     try:
@@ -292,6 +313,17 @@ def build_evidence_bundle(
         "source_snapshot": {
             "path": case["path"],
             "blob_sha1": case["blob_sha1"],
+        },
+        "review_start": {
+            "receipt_sha256": review_start_receipt_sha256,
+            "started_at": review_receipt_value["started_at"],
+            "reviewer_id": review_receipt_value["reviewer_id"],
+            "prior_exposure": review_receipt_value["prior_exposure"],
+            "response_authorship": review_receipt_value["response_authorship"],
+            "boundary": (
+                "declared reviewer conditions persisted before review stimulus "
+                "was emitted; declarations are not independent proof"
+            ),
         },
         "human_review_observation": {
             "response_sha256": fixed_human_response_sha256,
@@ -343,7 +375,8 @@ def build_evidence_bundle(
             "stable_requirement_change": "not-authorized-by-this-artifact",
         },
         "interpretation_stoplines": [
-            "review observation, audit reveal, and semantic audit remain separate evidence layers",
+            "review start, review observation, audit reveal, and semantic audit remain separate evidence layers",
+            "review-start receipt fixes declared reviewer conditions before stimulus output",
             "audit-reveal receipt binds the fixed response before reference material is emitted",
             "probe content digest binds the review and audit to the exact evaluation stimulus",
             "no overall score, ranking, winner, or preferred condition is computed",
@@ -383,10 +416,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     template = sub.add_parser("audit-template")
     template.add_argument("--response", required=True)
+    template.add_argument("--review-receipt", required=True)
     template.add_argument("--receipt", required=True)
 
     export = sub.add_parser("export-evidence")
     export.add_argument("--response", required=True)
+    export.add_argument("--review-receipt", required=True)
     export.add_argument("--receipt", required=True)
     export.add_argument("--audit-response", required=True)
     export.add_argument("--output")
@@ -410,6 +445,21 @@ def main(argv: list[str] | None = None) -> int:
     except SummaryDistortionProbeError as exc:
         raise SummaryDistortionEvidenceError(str(exc)) from exc
     fixed_human_response_sha256 = hashlib.sha256(human_raw).hexdigest()
+    try:
+        review_receipt_value, review_receipt_raw = load_review_start_receipt(
+            args.review_receipt,
+            probe,
+            args.fixture_id,
+        )
+        validate_human_response_against_review_start(
+            json.loads(human_raw.decode("utf-8")),
+            probe,
+            args.fixture_id,
+            review_receipt_value,
+            review_receipt_raw,
+        )
+    except SummaryDistortionProbeError as exc:
+        raise SummaryDistortionEvidenceError(str(exc)) from exc
     material = build_audit_material(probe, fixtures, args.fixture_id)
     material_digest = audit_material_sha256(material)
     try:
@@ -437,6 +487,7 @@ def main(argv: list[str] | None = None) -> int:
             fixtures,
             args.fixture_id,
             args.response,
+            args.review_receipt,
             args.receipt,
             args.audit_response,
         )
