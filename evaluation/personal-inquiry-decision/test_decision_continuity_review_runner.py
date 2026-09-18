@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import unittest
 
-from inquiry_continuity_packet import CONDITIONS
 from inquiry_continuity_review_runner import (
     InquiryReviewRunnerError,
     attach_review_provenance,
@@ -77,19 +76,19 @@ def matched_set() -> tuple[dict, dict[str, dict]]:
         },
         "assignment_rotations": {
             "R1": [
-                {"fixture": "f1", "condition": CONDITIONS[0]},
-                {"fixture": "f2", "condition": CONDITIONS[1]},
-                {"fixture": "f3", "condition": CONDITIONS[2]},
+                {"fixture": "f1", "condition": "A_raw_chat"},
+                {"fixture": "f2", "condition": "B_chronological_note"},
+                {"fixture": "f3", "condition": "C_sei_resume"},
             ],
             "R2": [
-                {"fixture": "f1", "condition": CONDITIONS[1]},
-                {"fixture": "f2", "condition": CONDITIONS[2]},
-                {"fixture": "f3", "condition": CONDITIONS[0]},
+                {"fixture": "f1", "condition": "B_chronological_note"},
+                {"fixture": "f2", "condition": "C_sei_resume"},
+                {"fixture": "f3", "condition": "A_raw_chat"},
             ],
             "R3": [
-                {"fixture": "f1", "condition": CONDITIONS[2]},
-                {"fixture": "f2", "condition": CONDITIONS[0]},
-                {"fixture": "f3", "condition": CONDITIONS[1]},
+                {"fixture": "f1", "condition": "C_sei_resume"},
+                {"fixture": "f2", "condition": "A_raw_chat"},
+                {"fixture": "f3", "condition": "B_chronological_note"},
             ],
         },
     }
@@ -224,6 +223,20 @@ class DecisionContinuityReviewRunnerTest(unittest.TestCase):
         bundle = reviewer_bundle(self.session, self.manifest, self.fixtures)
         for item in bundle["items"]:
             self.assertIn("reference_state", item["packet"])
+
+    def test_invalid_decision_response_is_wrapped_by_shared_runner(self) -> None:
+        bad = phase1_response()
+        bad["operator_observation"]["mental_effort_1_to_5"] = 9
+        with self.assertRaises(InquiryReviewRunnerError):
+            record_checked_response(
+                self.session,
+                self.manifest,
+                self.fixtures,
+                "f1",
+                "phase1",
+                "2026-09-18T13:31:00+09:00",
+                bad,
+            )
 
     def test_complete_decision_review_exports_separate_evidence_layers(self) -> None:
         self._record_all("phase1", phase1_response())
