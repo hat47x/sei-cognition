@@ -1,7 +1,7 @@
 # SEI Product Milestones
 
-更新日: 2026-09-05  
-状態: **Current Deadline-free Product Milestone Baseline — v0.2.0 Release Evidence / E3b-P2 / E3b-M1b / historical reconstruction / quality-evaluation boundary / PMS-06 version-exchange state reflected**
+更新日: 2026-09-18  
+状態: **Current Deadline-free Product Milestone Baseline — v0.2.0 Release Evidence / E3b-P2 / E3b-M1b / historical reconstruction / quality-evaluation boundary / PMS-06 version-exchange + TEI Evidence protocol state reflected**
 
 ## 1. この文書の役割
 
@@ -244,7 +244,7 @@ synthetic fixtureだけでなく、実際のCognitive Method Realization、AI、
 
 ### Current state
 
-**Partial / E2 + E3a + E3b-P1 + E3b-P2 revision A fixed-artifact + E3b-M1a + E3b-M1b + historical reconstruction + actual model artifact exchange + fixed-model Ollama runtime version exchangeまでScoped Executable Evidence available / ISSUE-000072 TEI executable version exchange・E4 pending.**
+**Partial / E2 + E3a + E3b-P1 + E3b-P2 revision A fixed-artifact + E3b-M1a + E3b-M1b + historical reconstruction + actual model artifact exchange + fixed-model Ollama runtime version exchangeまでScoped Executable Evidence available / ISSUE-000074 reusable TEI Evidence protocol source available but unverified / ISSUE-000072 TEI executable version exchange・E4 pending.**
 
 current stateの短いsnapshotは`PMS06_CURRENT_STATE_2026-09-05.md`を参照します。ISSUE-000070の固定scope runtime version exchangeはResolved、ISSUE-000072はOpenです。交換軸が異なるため、片方のPASSをもう片方のEvidenceへ流用しません。
 
@@ -265,6 +265,7 @@ E3b
   ├─ P1 public live Provider service
   ├─ P2 actual TEI process / service
   │    ├─ preparation: external TEI executable injection boundary
+  │    ├─ reusable actual-binary Evidence protocol source [implemented / tests + actual run Not Yet Verified]
   │    ├─ revision A fixed-artifact actual TEI CLI execution [Scoped Evidence]
   │    └─ revision B executable / Provider Plan / current Adapter version exchange [pending]
   └─ M1 live external Cognitive Method
