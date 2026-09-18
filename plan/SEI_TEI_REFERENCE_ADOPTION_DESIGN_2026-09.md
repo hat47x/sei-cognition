@@ -1,7 +1,7 @@
 # SEI → TEI Reference Adoption 設計基線 — Resume / Review Stage 0
 
 更新日: 2026-09-18  
-状態: **Stage 0 Reference Adoption Baseline — source freeze検証済み / TEI Reference実装・Executable Evidence未取得**  
+状態: **Stage 0 Reference Adoption Baseline — source freeze + TEI Reference checker Scoped Executable Evidence available / Application leverage未検証**  
 親Issue: **ISSUE-000079**
 
 ## 1. この文書の役割
@@ -438,6 +438,27 @@ Reference codeへ進む条件は次です。
 - Reference codeは判断後に削除可能な形で置ける。
 
 この条件を満たすため、最初の実装はTEI repository側のReference tool / testとして置くのが自然です。ただし、TEI repositoryのbranch / Gate運用はTEI側の開発規則に従い、本SEI Issueから勝手にTEI mainへproduction contractを追加しません。
+
+## 14.1 TEI側Stage 0実装結果
+
+TEI側ではISSUE-000054としてReference-local checkerを実装し、PR #686で`main`へ統合した。merged commitは`0d1c068d6fc9e9faf444c1a47eaa071eee61b272`である。
+
+checkerはTEI Core、Application Pattern Kind、Universal schemaを追加していない。固定SEI snapshotをread-onlyに読み、既存fixtureの参照を決定論的に解決する。
+
+targeted Go 1.23.2実行では`go test ./tools/sei-resume-reference`と`go vet ./tools/sei-resume-reference`がPASSした。
+
+これにより、Stage 0の最小意味分解については、
+
+- Recommendation / Decision分離
+- historical basisのObservation role境界
+- unresolved保持
+- post-decision Evidenceの時間分離
+- missing ref / unknown role / temporal ID collisionのfail closed
+- oracleをinputへ逆流させない境界
+
+をScoped Executable Evidenceとして確認した。
+
+ただし、Reference-local checkerはTEI Application / Projection機構そのものではない。したがって次に必要なのは新しいPattern実装ではなく、Change 1を用いたnative / TEI Referenceのchange amplification比較である。
 
 ## 15. 次の具体作業
 
