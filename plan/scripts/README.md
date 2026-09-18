@@ -1,6 +1,6 @@
 # `plan/scripts/` — Planning管理補助
 
-更新日: 2026-09-10  
+更新日: 2026-09-18  
 状態: **Current Planning Tooling Baseline**
 
 ## 1. 役割
@@ -103,11 +103,37 @@ self-test:
 
 ```bash
 python3 -m unittest plan/scripts/test_check_github_actions_disabled.py
+python3 -m unittest plan/scripts/test_check_sei_operator_identity.py
 ```
 
 このchecker自身をGitHub Actionsから実行して停止基線を守る、という循環した運用にはしません。
 
-## 6. 次番号の候補
+## 6. SEI operator identity regression guard
+
+```bash
+python3 plan/scripts/check_sei_operator_identity.py
+```
+
+SOZA→SEI Cognition改名後のcurrent operator surfaceについて、後続mergeで旧CLIや旧stage名が再流入して実行手順と実装がずれることを検出します。
+
+対象はISSUE-000072のTEI version-exchangeに関するcurrent runtime文書とproduction integration scriptです。主に次のobsolete operational tokenを検査します。
+
+- `SOZA_REPO / SOZA_GO / SOZA_HEAD`
+- `--soza-repo-root / --soza-go-executable / --expected-soza-head`
+- `soza_runtime_layout / soza_source_identity / soza_go_toolchain / soza_teiintegration_live_test`
+- `sozaGoRequirement / sozaGoVersion / sozaSource / postLiveTestSozaSource`
+
+これは旧名称一般を禁止するcheckerではありません。実在するhistorical workflow名、artifact / branch名、記録済みEvidenceの`soza.*` schema、ADR-0031に基づくreader側legacy identity受理は対象外です。`runtime/evidence/`とtest sourceもcurrent operator surfaceには数えません。
+
+self-test:
+
+```bash
+python3 -m unittest plan/scripts/test_check_sei_operator_identity.py
+```
+
+2026-09-18にはchecker / testのGit blob SHA-1一致を確認した再構成環境で6/6 PASSを確認し、current branchの対象24 fileをGitHub treeから別途実査してobsolete operational token 0件を確認しました。これはoperator identityの限定的な回帰検査であり、改名作業全体の再証明やhistorical Evidence不変性検査の代替ではありません。
+
+## 7. 次番号の候補
 
 ```bash
 python3 plan/scripts/next_plan_id.py
@@ -138,7 +164,7 @@ python3 -m unittest plan/scripts/test_next_plan_id.py
 
 番号競合が起きた場合は、恒久IDの意味を後から入れ替えません。成立順序と意味上の連続性からどちらを維持するか判断し、必要なら後発側を別IDへ移すか、重複内容を統合します。
 
-## 7. ローカル検証の使い分け
+## 8. ローカル検証の使い分け
 
 GitHub Actions停止中は、変更内容に応じて必要なcheckerだけをローカルで個別実行します。
 
@@ -161,6 +187,12 @@ repository baselineやworkflow配置に触れた場合:
 python3 plan/scripts/check_github_actions_disabled.py
 ```
 
+TEI version-exchangeのoperator手順、CLI名、stage / result keyを変更した場合:
+
+```bash
+python3 plan/scripts/check_sei_operator_identity.py
+```
+
 checkerや採番helper自身を変更した場合は、対応するself-testも実行します。
 
 ```bash
@@ -181,7 +213,7 @@ change scope
 
 ローカル環境の制約で検査を実行できなかった場合は未実行範囲を明記します。実行していないcheckerやself-testをPASS扱いにはしません。
 
-## 8. checker failureの扱い
+## 9. checker failureの扱い
 
 Planning checkerが失敗した場合は、検出された不整合を確認し、該当する層を修正します。
 
@@ -192,12 +224,13 @@ Planning checkerが失敗した場合は、検出された不整合を確認し�
 - 新しいMarkdown文書を追加したのにDocument Review Registryのscopeへ含まれていない。
 - 文書監査を`pending`のまま残している。
 - current conventionがActions停止中なのに`.github/workflows`へtracked workflowが戻っている。
+- current codeがSEI名へ移行済みなのに、TEI version-exchangeのoperator文書やproduction scriptへ旧 `--soza-*` / `SOZA_*` / `soza_*` tokenが戻っている。
 
 一方、checkerの設計自体が誤って正当な文書やtreeを拒否している場合は、対象をcheckerへ無理に合わせるのではなく、checkerの責務またはAccepted Conventionを見直します。
 
 checker failureは修正対象ですが、GitHub Actions停止中の現在はCI statusやrequired checkとして扱いません。修正commitは通常どおりpushし、必要なローカル検証を再実行します。
 
-## 9. Evidence境界
+## 10. Evidence境界
 
 Planning checkerがPASSすることは、Planning metadata、文書監査台帳、またはcurrent開発規約との構造整合を示すだけです。
 
@@ -214,11 +247,11 @@ Plan / repository integrity PASS
 
 機械的整合を意味上の妥当性、実装Evidence、利用者価値へ昇格させません。
 
-## 10. Natural Japanese review
+## 11. Natural Japanese review
 
 current Planning規約、ISSUE-000015の完了条件、`document_review_registry.yaml`、実際に発生した本文 / registry不整合、5段階Evidenceへ戻って説明を整理しました。
 
-GitHub Actionsを当面完全に停止する現在方針に合わせ、Planning checkerはローカルで変更範囲に応じて個別実行する形を維持しています。2026-09-10時点のactual toolingへ同期し、ADR / Issue registry、Document Review Registry、Requirements Registry、Actions停止基線、次ID候補算出の各責務とself-testを一つのrunbookから追えるようにしました。
+GitHub Actionsを当面完全に停止する現在方針に合わせ、Planning checkerはローカルで変更範囲に応じて個別実行する形を維持しています。2026-09-18時点のactual toolingへ同期し、ADR / Issue registry、Document Review Registry、Requirements Registry、Actions停止基線、SEI operator identity regression guard、次ID候補算出の各責務とself-testを一つのrunbookから追えるようにしました。
 
 checkerの保証範囲は機械的整合に限定しています。ローカル実行へ切り替えたことを、文書の意味やEvidence強度を弱める理由にはしていません。また、実行できなかった検査をPASSへ読み替えない停止線も維持します。
 

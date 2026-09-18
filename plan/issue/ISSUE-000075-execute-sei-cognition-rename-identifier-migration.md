@@ -194,6 +194,28 @@ Executable Evidence (fixture / test / checker scoped)
 - `runtime/go`の既存failure 3件（`externalintegration`のGit blob SHA-1 pin不一致2件、`teiintegration`のProvider Plan SHA-256不一致、`livemethodintegration`の`runtimeExchangeKJAtlasDirEnv`未定義によるtest build不能）は改名前から存在し、本Issueの範囲外です。
 - TEI側の`.github/workflows/soza-e3b-p2-evidence.yml`と`plan/DERIVED_COGNITIVE_REQUIREMENT_DRAFT_2026-09.md`に残る`soza`は、TEIが所有する記述のためTEI側で判断します。
 
+### Post-resolution regression guard (2026-09-18)
+
+後続のISSUE-000072作業を再監査したところ、改名前に作成したcurrent operator文書の一部へ、旧`SOZA_REPO / SOZA_GO / SOZA_HEAD`、旧`--soza-*` CLI、旧`soza_* / sozaGo*` stage / result keyの説明が残っていることを確認した。current runtime codeはすでにSEI名へ移行済みであったため、これはhistorical Evidence互換ではなく、operator手順がcurrent CLIとずれるpost-resolution regressionとして扱った。
+
+2026-09-18に次を実施した。
+
+- ISSUE-000072のcurrent version-exchange runbook / readiness / failure-stage文書を、current `SEI_REPO / SEI_GO / SEI_HEAD`、`--sei-*`、`sei_* / seiGo*`へ同期した。
+- 実在するhistorical workflow名 `SOZA E3b-P2 TEI Evidence`、historical artifact / branch名、記録済みEvidenceの`soza.*` schemaは観測事実として変更していない。
+- reader側の`legacy_schema()`等、ADR-0031が要求するhistorical `soza.*`受理も変更していない。
+- `plan/scripts/check_sei_operator_identity.py`を追加し、ISSUE-000072のcurrent operator surfaceへobsolete operational tokenが再流入した場合だけfailする境界を固定した。
+- checker self-testはGit blob一致を確認した再構成環境で6/6 PASS。current `develop/v0.2.0`の対象operator surface 24 fileをGitHub treeから実査し、obsolete operational tokenは0件だった。
+
+このguardは改名前の全記録を書き換えるcheckerではない。
+
+```text
+current operator identity guard PASS
+  != historical Evidence rewritten
+  != all uses of the word SOZA prohibited
+  != rename migration re-executed from scratch
+  != Release / Operational / Adoption Evidence
+```
+
 ## Reopen conditions
 
 - 外部実装が`soza.*` identityを参照している事例が確認され、双方向受理だけでは不足することが判明した。
@@ -206,7 +228,7 @@ Executable Evidence (fixture / test / checker scoped)
 GitHub Actionsは停止中のため、すべてlocalで個別に実行します。このmachineではPythonの実体がWSL2側にのみ存在するため、Python製checkerは次の形で実行します。
 
 ```bash
-wsl -e bash -lc "cd /mnt/d/GIT/soza && python3 plan/scripts/check_plan_registry.py"
+wsl -e bash -lc "cd /mnt/d/GIT/sei-cognition && python3 plan/scripts/check_plan_registry.py"
 ```
 
 実行対象:
@@ -217,6 +239,8 @@ wsl -e bash -lc "cd /mnt/d/GIT/soza && python3 plan/scripts/check_plan_registry.
 - `plan/scripts/check_document_review_registry.py`
 - `plan/scripts/check_requirements_registry.py`
 - `plan/scripts/check_github_actions_disabled.py`
+- `plan/scripts/check_sei_operator_identity.py`
+- `python3 -m unittest plan/scripts/test_check_sei_operator_identity.py`
 - `runtime/go/`の`go build ./...` / `go test ./...`
 - `runtime/integration/`のtest
 
