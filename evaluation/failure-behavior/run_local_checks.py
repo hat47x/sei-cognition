@@ -71,6 +71,11 @@ def configured_checks() -> tuple[Check, ...]:
             cwd=EVALUATION_DIR,
         ),
         Check(
+            name="scoped-go-source-delta-audit-tests",
+            command=(sys.executable, "test_scoped_go_failure_source_delta_audit.py"),
+            cwd=EVALUATION_DIR,
+        ),
+        Check(
             name="actual-provider-service-observation-tests",
             command=(sys.executable, "test_actual_provider_missing_revision_observation.py"),
             cwd=EVALUATION_DIR,
