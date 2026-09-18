@@ -9,7 +9,7 @@ Stable Requirement、Universal Contract、comparison axis、quality judgement、
 ```text
 E2 partial / strict re-verification / later E3 resume path available
   != revision B E2 PASS
-  != E3 SOZA Adapter compatibility PASS
+  != E3 SEI Adapter compatibility PASS
   != ISSUE-000072 Resolved
 ```
 
@@ -25,7 +25,7 @@ PR #289〜#292により、E3 Go toolchainがまだ用意できない環境でも
 
 `runtime/integration/run_tei_revision_b_e2_from_github.py`
 
-この経路はfull E2→E3 one-shotを弱めない。E2に必要な条件だけをsource acquisition前に確認し、E3 Go / current SOZA Adapter preflightは意図的に実行しない。
+この経路はfull E2→E3 one-shotを弱めない。E2に必要な条件だけをsource acquisition前に確認し、E3 Go / current SEI Adapter preflightは意図的に実行しない。
 
 E2 precondition:
 
@@ -95,7 +95,7 @@ E2 partial report success
 
 ## E2 partialからE3を後日resumeする経路
 
-PR #295により、E2 partial Evidenceを一度保存した後、revision B source acquisitionやE2 build / Provider Plan executionを再実行せず、current SOZA AdapterのE3だけを後日実行してcanonical Evidenceへ戻せるようになった。
+PR #295により、E2 partial Evidenceを一度保存した後、revision B source acquisitionやE2 build / Provider Plan executionを再実行せず、current SEI AdapterのE3だけを後日実行してcanonical Evidenceへ戻せるようになった。
 
 入口:
 
@@ -125,7 +125,7 @@ E3は既存`run_tei_bundle_adapter_compatibility.py`をそのまま使用する�
 E3成功時は既存canonical schemaへ戻る。
 
 ```text
-schema = soza.tei-version-exchange-evidence-run/v1
+schema = sei.tei-version-exchange-evidence-run/v1
 result = fixed_scope_e2_e3_verified
 ```
 
@@ -211,7 +211,7 @@ GitHub-hosted job start failure
   != revision B source checkout observed
   != TEI build failure
   != Provider Plan failure
-  != SOZA Adapter incompatibility
+  != SEI Adapter incompatibility
 ```
 
 machine-readable observation:
