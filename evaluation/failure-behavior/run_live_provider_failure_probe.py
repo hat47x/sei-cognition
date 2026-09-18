@@ -224,7 +224,7 @@ def prepare_result_output(path: Path) -> Path:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "ISSUE-000072のactual GitHub Provider failure probeを明示的opt-inで実行します。"
+            "ISSUE-000076のactual GitHub Provider failure probeを明示的opt-inで実行します。"
         ),
         allow_abbrev=False,
     )
