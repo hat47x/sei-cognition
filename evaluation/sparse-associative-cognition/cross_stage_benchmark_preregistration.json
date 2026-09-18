@@ -262,5 +262,19 @@
     "semantic_interpretation_generated": false,
     "b5_entry_gate_changed": false,
     "production_default_changed": false
+  },
+  "interpretation_artifact": {
+    "state": "draft",
+    "directory": "cross-stage-interpretation",
+    "interpretation_ref": "cross-stage-interpretation/interpretation.json",
+    "validator_ref": "cross-stage-interpretation/validate_interpretation.py",
+    "evidence_ref": "cross-stage-interpretation/interpretation_contract_evidence_2026-09-19.json",
+    "current_interpretation_generated": false,
+    "requires_completed_result": true,
+    "semantic_truth_claimed": false,
+    "variant_winner_declared": false,
+    "recommendation_generated": false,
+    "b5_decision_generated": false,
+    "production_default_changed": false
   }
 }
