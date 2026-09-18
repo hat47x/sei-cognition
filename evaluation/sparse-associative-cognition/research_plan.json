@@ -324,14 +324,29 @@
       "depends_on": [
         "SAC-B2"
       ],
-      "change": "uniform projectionとprovenance付きstatic salience priorによるbounded biasを比較する。",
-      "primary_question": "希少だが重要なfeatureを拾いやすくしつつ、汎用容量と新規性検出を壊さないか。",
+      "change": "uniform projectionと、caller-owned provenance付きexact-feature static priorをhard cap内でprojection weightへ反映するbounded biasを比較する。B1 normalization後・B2 localized competition前に適用する。",
+      "primary_question": "希少だがcallerが明示的に重要としたfeatureを固定sparse capacity内で拾いやすくしつつ、common featureの誤bias、汎用容量、新規性・abstentionを壊さないか。",
       "measures": [
         "rare_critical_recall",
         "common_noise_false_activation",
         "novelty_abstention_behavior",
-        "capacity_tradeoff"
-      ]
+        "capacity_tradeoff",
+        "deterministic_reproducibility",
+        "latency_delta",
+        "allocation_delta"
+      ],
+      "current_result": {
+        "state": "limited-synthetic-executable-evidence",
+        "evidence_file": "projection_bias_evidence_2026-09-18.json",
+        "findings": [
+          "SUI-shaped synthetic fixtureで、uniform projectionではrare critical candidateのsimilarity 0.0625がtext distractor 0.125を下回ったが、provenance:source=critical:s1への2x exact-feature biasでは0.25へ上がり、distractor 0.125を上回った。",
+          "同じrare-critical policyではunrelated candidateは0.0625のままであり、このfixtureではexact selector外への直接的な増幅は観測しなかった。",
+          "negative controlとしてcommonなkind=cardを2x biasするとunrelated similarityが0.0625から0.25へ上昇した。provenanceとhard capは監査可能性・封じ込めを与えるが、caller policy自体の意味的妥当性は保証しない。",
+          "standalone deterministic Go reconstructionではprepared-features pathがuniform 9791-9875 ns/op、biased 10364-10798 ns/opで、双方52 allocs/opだった。in-place適用により追加allocation countは観測しなかったが、exact repository checkout / Go 1.25 benchmarkではない。",
+          "一時GitHub Actions run 35309896228はstep開始前にrunner側でfailureとなりjob logも生成されなかったため、exact branch execution evidenceには数えていない。"
+        ],
+        "stop_line": "synthetic rare-feature recoveryを一般意味品質・最適multiplier・production defaultへ昇格させず、common-feature negative controlが示すcaller-policy hazardを同時に保持する。"
+      }
     },
     {
       "stage": "SAC-B4",
@@ -465,7 +480,9 @@
     "subchannel_overcorrection_behavior",
     "hard_isolation_overreservation_behavior",
     "global_residual_recovery_behavior",
-    "signature_collision_loss"
+    "signature_collision_loss",
+    "projection_bias_common_feature_false_activation_behavior",
+    "projection_bias_capacity_tradeoff"
   ],
   "evaluation_policy": {
     "single_composite_score": false,
@@ -494,7 +511,10 @@
       "同じB1b評価で、exact-channel normalizationがsingleton structural subchannelを過補正してbaseline順位を逆転させる失敗モードと、caller-owned feature-family normalizationがその逆転を抑えるケースを観測した。",
       "SAC-B2のSUI-shaped synthetic fixtureで、family-local winner枠がglobal k-WTAのtext cardinality支配を補正するケースを観測した。",
       "同じB2評価で、hard equal family reservationがbaselineで正しかった候補順を逆転させる失敗モードと、bounded global residualがその逆転を緩和するケースを観測した。",
-      "B2 local competitionのrequest-scoped Encoder再利用はnaiveなper-family生成より大幅に軽量化したが、standalone reconstructionではglobal baselineより高いlatency / allocationが残った。"
+      "B2 local competitionのrequest-scoped Encoder再利用はnaiveなper-family生成より大幅に軽量化したが、standalone reconstructionではglobal baselineより高いlatency / allocationが残った。",
+      "SAC-B3のSUI-shaped synthetic fixtureで、provenance付きexact-feature 2x biasがuniform projectionで落ちたrare critical candidateを固定sparse capacity内で回復するケースを観測した。",
+      "同じB3評価のnegative controlで、commonなkind featureをbiasするとunrelated similarityが0.0625から0.25へ増える失敗モードを観測した。provenanceとhard capはpolicy correctnessを保証しない。",
+      "B3 standalone reconstructionではin-place exact-selector biasによる追加allocation countは観測しなかった一方、prepared-features latencyには小さい増分があった。exact repository checkout / Go 1.25実測ではない。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -502,7 +522,7 @@
       "SUI Sensemaking親和図法での深層意味候補品質",
       "実SUI / SEIデータとhuman-adjudicated benchmarkに対するinput normalizationの一般化可能性",
       "実SUI / SEIデータでのlocalized competition一般化、最適family budget / residual比、およびalways-on運用に十分なallocation特性",
-      "policy-bounded biased projectionの有効性",
+      "実SUI / SEIデータでのbounded projection bias一般化、caller policyの意味的妥当性、最適multiplier、およびexact repository / Go 1.25での性能",
       "reversible familiarity modulationの見逃し率",
       "static semantic補完が必要かどうか",
       "learned sparse projectionがrandom / static方式を上回るか",
@@ -515,7 +535,8 @@
     ],
     "supporting_evidence_files": [
       "input_normalization_evidence_2026-09-18.json",
-      "localized_competition_evidence_2026-09-18.json"
+      "localized_competition_evidence_2026-09-18.json",
+      "projection_bias_evidence_2026-09-18.json"
     ]
   },
   "references": [
