@@ -251,5 +251,16 @@
     "result_artifact_generated": false,
     "b5_entry_gate_changed": false,
     "production_default_changed": false
+  },
+  "result_artifact": {
+    "state": "draft",
+    "directory": "cross-stage-result",
+    "result_ref": "cross-stage-result/result.json",
+    "validator_ref": "cross-stage-result/validate_result.py",
+    "evidence_ref": "cross-stage-result/result_contract_evidence_2026-09-18.json",
+    "current_result_completed": false,
+    "semantic_interpretation_generated": false,
+    "b5_entry_gate_changed": false,
+    "production_default_changed": false
   }
 }
