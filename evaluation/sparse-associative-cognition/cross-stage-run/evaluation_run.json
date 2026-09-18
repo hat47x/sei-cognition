@@ -1,0 +1,39 @@
+{
+  "schema": "sei.sacs-cross-stage-evaluation-run/v1alpha1",
+  "issue": 468,
+  "state": "draft",
+  "run_id": "cross-stage-run-template",
+  "authorized_at": null,
+  "freeze_bundle": {
+    "ref": "../cross-stage-freeze/freeze_bundle.json",
+    "digest": ""
+  },
+  "implementation": {
+    "ref": "",
+    "commit": ""
+  },
+  "track": "",
+  "variant": "",
+  "capacity_profile": null,
+  "stress_policy": null,
+  "requested_metrics": [],
+  "output_ref": "",
+  "environment": {
+    "os": "",
+    "arch": "",
+    "runtime": ""
+  },
+  "authorization": {
+    "execution_authorized": false,
+    "freeze_bundle_verified": false,
+    "preregistration_verified": false,
+    "split_boundary_verified": false,
+    "prior_boundary_verified": false,
+    "no_evaluation_tuning": true,
+    "no_composite_score": true,
+    "b5_gate_unchanged": true,
+    "production_default_unchanged": true
+  },
+  "results_generated": false,
+  "result_artifact_ref": ""
+}
