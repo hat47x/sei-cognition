@@ -4,7 +4,7 @@
 
 この文書は、PMS-06 / ISSUE-000072で進めているTEI executable version交換について、actual revision B実行の前に整備した検証経路と、まだ観測していない範囲を整理したものです。
 
-ここでいう「ready」はactual Evidenceを得たという意味ではありません。exact revision Bのsource checkout、historical revision Aのfixed reference input、E2用Go、E3用Go、current SOZA checkoutを実行可能なLinux / amd64環境へ用意できたとき、build、Provider Plan実行、Evidence bundle検証、current SOZA Adapter live検査までをrepository-localに再現できる状態を指します。
+ここでいう「ready」はactual Evidenceを得たという意味ではありません。exact revision Bのsource checkout、historical revision Aのfixed reference input、E2用Go、E3用Go、current SEI checkoutを実行可能なLinux / amd64環境へ用意できたとき、build、Provider Plan実行、Evidence bundle検証、current SEI Adapter live検査までをrepository-localに再現できる状態を指します。
 
 関連文書の役割は次のように分けます。
 
@@ -21,7 +21,7 @@
 execution path ready
   != revision B build PASS
   != revision B Provider Plan observed
-  != current SOZA Adapter live compatibility PASS
+  != current SEI Adapter live compatibility PASS
   != ISSUE-000072 Resolved
 ```
 
@@ -139,11 +139,11 @@ same Provider Plan output surface
 
 - `--source-repo`: exact revision B。build sourceとしてのみ使用する。
 - `--reference-source-repo` **または** `--reference-evidence-bundle`: exact revision A fixed inputの取得元。mutually exclusiveでどちらか一方を使う。
-- `--output-archive`: 生成するEvidence bundle。revision B / SOZA repository配下、およびcheckout取得時のrevision A checkout配下ではない、新しいnon-symlink pathを使う。
+- `--output-archive`: 生成するEvidence bundle。revision B / SEI repository配下、およびcheckout取得時のrevision A checkout配下ではない、新しいnon-symlink pathを使う。
 
 主な処理:
 
-1. output archive path / ancestor symlink、入力checkoutやSOZA repository配下への配置、既存archiveの暗黙上書きを副作用前に拒否する。
+1. output archive path / ancestor symlink、入力checkoutやSEI repository配下への配置、既存archiveの暗黙上書きを副作用前に拒否する。
 2. B execution-source Git identity、exact HEAD、tracked / untracked / ignored entryの不存在を確認する。
 3. A fixed reference inputを取得方式ごとに検証する。checkout取得時はA Git identity / exact HEAD / working-tree purityを確認する。historical bundle取得時はA source commit、historical binary / Provider Plan SHA-256、actual reference bytesから再計算したworkspace / durable run / plugin lock Git object identityを固定値へ照合し、一時領域へmaterializeする。
 4. Linux / amd64とE2用Go `1.23.2`を確認する。
@@ -155,9 +155,9 @@ same Provider Plan output surface
 
 build時は`GOWORK=off`、`GOENV=off`とし、外部`GOFLAGS` / `GOOS` / `GOARCH`を持ち込みません。
 
-### E3 — current SOZA Adapter live検査
+### E3 — current SEI Adapter live検査
 
-`runtime/integration/run_tei_bundle_adapter_compatibility.py`は、E2で得たEvidence bundleをcurrent SOZA Adapterへ接続します。
+`runtime/integration/run_tei_bundle_adapter_compatibility.py`は、E2で得たEvidence bundleをcurrent SEI Adapterへ接続します。
 
 主な処理:
 
@@ -165,7 +165,7 @@ build時は`GOWORK=off`、`GOENV=off`とし、外部`GOFLAGS` / `GOOS` / `GOARCH
 2. archive traversal、link / device、duplicate memberを拒否する。
 3. `bin/tei`とA fixed reference inputだけを一時領域へstageする。
 4. staged inputのtree / blob identityをactual bytesから再計算する。
-5. current SOZAの`runtime/go`と関連runner / verifier / fixed-reference helperのsource identityを記録し、対象境界の未commit変更やuntracked / ignored entryを拒否する。
+5. current SEIの`runtime/go`と関連runner / verifier / fixed-reference helperのsource identityを記録し、対象境界の未commit変更やuntracked / ignored entryを拒否する。
 6. `GOTOOLCHAIN=local`で指定されたE3用Goを使用し、検査中の暗黙toolchain downloadを行わない。
 7. 既存`runtime/go/teiintegration.TestLiveTEIProviderPlan`を実行する。
 
@@ -183,20 +183,20 @@ revision B actual互換性はまだNot Yet Verifiedです。
 
 ## 5. E2 / E3は別Go toolchainで実行する
 
-E2 historical TEI buildとE3 current SOZA live testは、同じcommand名`go`でも同じtoolchain identityを前提にしません。
+E2 historical TEI buildとE3 current SEI live testは、同じcommand名`go`でも同じtoolchain identityを前提にしません。
 
 ```text
 E2 historical TEI build
   = Go 1.23.2
 
-E3 current SOZA live test
+E3 current SEI live test
   = current runtime/go/go.modを満たすGo 1.25系
   + GOTOOLCHAIN=local
 ```
 
 actual実行では、E2用とE3用の`go` executableを別々に指定します。root権限やsystem packageを必須にせずuser-localへ準備する方法と固定archive SHA-256は`TEI_VERSION_EXCHANGE_TOOLCHAIN_READINESS_2026-09-05.md`を正とします。
 
-canonical combined runnerはE3 live testへ進む前に、current `runtime/go/go.mod`の`go` directiveと、指定されたE3 Go executableのactual `go version`を直接比較します。observed versionがrequirement未満なら`soza_go_toolchain` stageで停止し、`soza_teiintegration_live_test`を開始しません。必要versionと観測versionはcomparison axisへ記録します。
+canonical combined runnerはE3 live testへ進む前に、current `runtime/go/go.mod`の`go` directiveと、指定されたE3 Go executableのactual `go version`を直接比較します。observed versionがrequirement未満なら`sei_go_toolchain` stageで停止し、`sei_teiintegration_live_test`を開始しません。必要versionと観測versionはcomparison axisへ記録します。
 
 したがって、後続`go test`のstderrにversion関連の文字列が出たことを根拠にtoolchain原因を推測しません。toolchain不成立はlive test開始前のmachine-readable stageで止めます。
 
@@ -223,21 +223,21 @@ A fixed inputの取得方式は次のどちらか一方を選びます。
 ```bash
 export TEI_B_REPO=/path/to/tei-revision-b
 export TEI_A_REPO=/path/to/tei-revision-a
-export SOZA_REPO=/path/to/soza
+export SEI_REPO=/path/to/sei-cognition
 export EVIDENCE_DIR=/path/outside/checkouts/tei-version-exchange-evidence
-export TEI_GO="$HOME/.local/opt/soza-tei-go/go1.23.2/bin/go"
-export SOZA_GO="$HOME/.local/opt/soza-tei-go/go1.25.0/bin/go"
+export TEI_GO="$HOME/.local/opt/sei-tei-go/go1.23.2/bin/go"
+export SEI_GO="$HOME/.local/opt/sei-tei-go/go1.25.0/bin/go"
 
-SOZA_HEAD="$(git -C "$SOZA_REPO" rev-parse HEAD)"
+SEI_HEAD="$(git -C "$SEI_REPO" rev-parse HEAD)"
 
-python3 "$SOZA_REPO/runtime/integration/run_tei_version_exchange_evidence.py" \
+python3 "$SEI_REPO/runtime/integration/run_tei_version_exchange_evidence.py" \
   --source-repo "$TEI_B_REPO" \
   --reference-source-repo "$TEI_A_REPO" \
-  --soza-repo-root "$SOZA_REPO" \
+  --sei-repo-root "$SEI_REPO" \
   --output-dir "$EVIDENCE_DIR" \
   --tei-go-executable "$TEI_GO" \
-  --soza-go-executable "$SOZA_GO" \
-  --expected-soza-head "$SOZA_HEAD" \
+  --sei-go-executable "$SEI_GO" \
+  --expected-sei-head "$SEI_HEAD" \
   --json
 ```
 
@@ -246,25 +246,25 @@ python3 "$SOZA_REPO/runtime/integration/run_tei_version_exchange_evidence.py" \
 ```bash
 export TEI_B_REPO=/path/to/tei-revision-b
 export TEI_A_BUNDLE=/path/to/historical/tei-e3b-p2-linux-amd64.tar.gz
-export SOZA_REPO=/path/to/soza
+export SEI_REPO=/path/to/sei-cognition
 export EVIDENCE_DIR=/path/outside/checkouts/tei-version-exchange-evidence
-export TEI_GO="$HOME/.local/opt/soza-tei-go/go1.23.2/bin/go"
-export SOZA_GO="$HOME/.local/opt/soza-tei-go/go1.25.0/bin/go"
+export TEI_GO="$HOME/.local/opt/sei-tei-go/go1.23.2/bin/go"
+export SEI_GO="$HOME/.local/opt/sei-tei-go/go1.25.0/bin/go"
 
-SOZA_HEAD="$(git -C "$SOZA_REPO" rev-parse HEAD)"
+SEI_HEAD="$(git -C "$SEI_REPO" rev-parse HEAD)"
 
-python3 "$SOZA_REPO/runtime/integration/run_tei_version_exchange_evidence.py" \
+python3 "$SEI_REPO/runtime/integration/run_tei_version_exchange_evidence.py" \
   --source-repo "$TEI_B_REPO" \
   --reference-evidence-bundle "$TEI_A_BUNDLE" \
-  --soza-repo-root "$SOZA_REPO" \
+  --sei-repo-root "$SEI_REPO" \
   --output-dir "$EVIDENCE_DIR" \
   --tei-go-executable "$TEI_GO" \
-  --soza-go-executable "$SOZA_GO" \
-  --expected-soza-head "$SOZA_HEAD" \
+  --sei-go-executable "$SEI_GO" \
+  --expected-sei-head "$SEI_HEAD" \
   --json
 ```
 
-`EVIDENCE_DIR`はrevision B checkoutとSOZA checkoutの外側へ置き、checkout取得時はrevision A checkoutとも相互包含しないpathを使います。historical bundle取得時は入力bundleをEvidence directory配下へ置きません。output path自身または既存ancestorがsymlinkの場合も開始前に拒否します。このconfiguration検査は`mkdir`より前に行います。
+`EVIDENCE_DIR`はrevision B checkoutとSEI checkoutの外側へ置き、checkout取得時はrevision A checkoutとも相互包含しないpathを使います。historical bundle取得時は入力bundleをEvidence directory配下へ置きません。output path自身または既存ancestorがsymlinkの場合も開始前に拒否します。このconfiguration検査は`mkdir`より前に行います。
 
 既存Evidenceを暗黙に上書きしません。同じoutput directoryへ意図的に再実行するときだけ`--overwrite`を明示します。`--overwrite`時は旧bundle / reportを実行開始前に除去するため、新しいE2が失敗した後に旧bundleだけが残り、新runの成果に見える状態を作りません。
 
@@ -281,7 +281,7 @@ e2_verified_e3_failed
   = E2 bundleは成立したがE3 current Adapter live検査は不成立
 
 fixed_scope_e2_e3_verified
-  = exact-B executable + exact-A fixed input + 記録されたSOZA sourceについてE2/E3が成立
+  = exact-B executable + exact-A fixed input + 記録されたSEI sourceについてE2/E3が成立
 ```
 
 `fixed_scope_e2_e3_verified`もISSUE解決やarbitrary TEI version compatibilityを意味しません。
@@ -321,14 +321,14 @@ evidence_bundle_publish
 E3で記録できる主なstage:
 
 ```text
-soza_runtime_layout
-soza_source_identity
+sei_runtime_layout
+sei_source_identity
 bundle_identity_verification
 execution_platform
 bundle_staging
 reference_input_identity
-soza_go_toolchain
-soza_teiintegration_live_test
+sei_go_toolchain
+sei_teiintegration_live_test
 ```
 
 外部process failureではcommand、return code、stdout / stderr tailをboundedに保存します。ただし、出力に`validation`、`plugin lock`、`strict decode`、`validator`等の語が含まれていても、それだけでmachine-readable substageへ昇格しません。
@@ -342,7 +342,7 @@ E2 deployment_provider_plan_execution
   != durable run
   != plugin lock
 
-E3 soza_teiintegration_live_test
+E3 sei_teiintegration_live_test
   != strict decode
   != mapping
   != Capability Observation validator
@@ -422,7 +422,7 @@ revision B actual CLI build / execution
 revision B Provider Plan
   = Not Yet Observed
 
-revision B current SOZA Adapter live compatibility
+revision B current SEI Adapter live compatibility
   = Not Yet Verified
 
 formal TEI executable distribution
@@ -477,7 +477,7 @@ Go toolchains prepared
   != E2/E3 PASS
 
 B Evidence bundle produced
-  != current SOZA Adapter compatibility verified
+  != current SEI Adapter compatibility verified
 
 fixed_scope_e2_e3_verified
   != arbitrary TEI version compatibility
@@ -536,18 +536,18 @@ pre-execution source identity verified
 
 ### E3のpre/post live source identity
 
-PR #248以降、E3もcurrent SOZA Evidence source surfaceをlive test前後の二点で観測します。
+PR #248以降、E3もcurrent SEI Evidence source surfaceをlive test前後の二点で観測します。
 
-- pre-live: existing `sozaSource`
-- post-live: `postLiveTestSozaSource`
+- pre-live: existing `seiSource`
+- post-live: `postLiveTestSeiSource`
 - 対象は`runtime/go`、combined runner、E2/E3 runner、fixed-reference helper、path-safety helper、bundle/source verifierを含むcurrent 8-path boundary
-- post-live driftは新stageを追加せず、既存`soza_source_identity`で停止する
+- post-live driftは新stageを追加せず、既存`sei_source_identity`で停止する
 
 ```text
-pre-live SOZA source identity verified
+pre-live SEI source identity verified
   + current Adapter live test completed
-  + post-live SOZA source identity reverified
-  != immutable SOZA source snapshot proven
+  + post-live SEI source identity reverified
+  != immutable SEI source snapshot proven
 ```
 
 ### current Evidence stateの追記
@@ -562,7 +562,7 @@ revision B complete verifier-boundary leaf addressability
 E2 post-execution source/fixed-input revalidation
   = implemented; dedicated tests committed; full repository suite not re-run in current environment
 
-E3 post-live SOZA source revalidation
+E3 post-live SEI source revalidation
   = implemented; dedicated tests committed; full repository suite not re-run in current environment
 
 revision B actual CLI build / execution
@@ -571,7 +571,7 @@ revision B actual CLI build / execution
 revision B Provider Plan
   = Not Yet Observed
 
-revision B current SOZA Adapter live compatibility
+revision B current SEI Adapter live compatibility
   = Not Yet Verified
 
 ISSUE-000072

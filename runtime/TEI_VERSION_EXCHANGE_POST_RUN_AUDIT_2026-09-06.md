@@ -82,18 +82,18 @@ E2 partial → later E3 resumeを使った場合も、E3 resume後は同じcanon
 historical revision A Evidence bundleをfixed inputとして使った例では、post-run auditを次のように実行します。
 
 ```bash
-SOZA_HEAD="$(git -C "$SOZA_REPO" rev-parse HEAD)"
+SEI_HEAD="$(git -C "$SEI_REPO" rev-parse HEAD)"
 
-python3 "$SOZA_REPO/runtime/integration/audit_tei_version_exchange_resolution.py" \
+python3 "$SEI_REPO/runtime/integration/audit_tei_version_exchange_resolution.py" \
   --canonical-report "$EVIDENCE_DIR/tei-version-exchange-evidence.json" \
   --github-wrapper-report "$EVIDENCE_DIR/tei-version-exchange-github-acquisition.json" \
   --historical-a-bundle "$TEI_A_BUNDLE" \
-  --soza-repo-root "$SOZA_REPO" \
-  --expected-soza-head "$SOZA_HEAD" \
+  --sei-repo-root "$SEI_REPO" \
+  --expected-sei-head "$SEI_HEAD" \
   --output "$AUDIT_DIR/tei-version-exchange-resolution-audit.json"
 ```
 
-`AUDIT_DIR`はSOZA repository外の新規pathを使います。audit outputをSOZA checkoutへ直接書き込んでsource baselineを汚しません。
+`AUDIT_DIR`はSEI repository外の新規pathを使います。audit outputをSEI checkoutへ直接書き込んでsource baselineを汚しません。
 
 `--output`を省略した場合はJSONを標準出力へ返します。
 
@@ -190,7 +190,7 @@ strict decode、mapping、validator等の内部原因は、machine-readable Evid
 
 - 「取得できた」と「互換性が成立した」を混同していないか。
 - 「buildできた」と「Provider Planが成立した」を混同していないか。
-- 「Provider Planが成立した」と「SOZA Adapter mappingが成立した」を混同していないか。
+- 「Provider Planが成立した」と「SEI Adapter mappingが成立した」を混同していないか。
 - `resolutionCandidate`を`Resolved`と書いていないか。
 - E3 failureを直ちにProduct Requirement failureと書いていないか。
 - byte driftをsemantic incompatibilityと書いていないか。
@@ -229,14 +229,14 @@ credential not used
 historical revision A Evidence bundleをfixed inputとして使った例では、次のように実行します。
 
 ```bash
-SOZA_HEAD="$(git -C "$SOZA_REPO" rev-parse HEAD)"
+SEI_HEAD="$(git -C "$SEI_REPO" rev-parse HEAD)"
 
-python3 "$SOZA_REPO/runtime/integration/audit_tei_version_exchange_resolution_local.py" \
+python3 "$SEI_REPO/runtime/integration/audit_tei_version_exchange_resolution_local.py" \
   --canonical-report "$EVIDENCE_DIR/tei-version-exchange-evidence.json" \
   --revision-b-source-repo "$TEI_B_REPO" \
   --historical-a-bundle "$TEI_A_BUNDLE" \
-  --soza-repo-root "$SOZA_REPO" \
-  --expected-soza-head "$SOZA_HEAD" \
+  --sei-repo-root "$SEI_REPO" \
+  --expected-sei-head "$SEI_HEAD" \
   --output "$AUDIT_DIR/tei-version-exchange-local-resolution-audit.json"
 ```
 
@@ -253,19 +253,19 @@ python3 "$SOZA_REPO/runtime/integration/audit_tei_version_exchange_resolution_lo
 例:
 
 ```bash
-python3 "$SOZA_REPO/runtime/integration/prepare_tei_revision_b_checkout.py" \
+python3 "$SEI_REPO/runtime/integration/prepare_tei_revision_b_checkout.py" \
   --source-repo "$TEI_SOURCE_CLONE" \
   --output-repo "$TEI_B_REPO" \
   --report-output "$CHECKOUT_PREPARATION_REPORT" \
   --json
 
-python3 "$SOZA_REPO/runtime/integration/audit_tei_version_exchange_resolution_local.py" \
+python3 "$SEI_REPO/runtime/integration/audit_tei_version_exchange_resolution_local.py" \
   --canonical-report "$EVIDENCE_DIR/tei-version-exchange-evidence.json" \
   --revision-b-source-repo "$TEI_B_REPO" \
   --checkout-preparation-report "$CHECKOUT_PREPARATION_REPORT" \
   --historical-a-bundle "$TEI_A_BUNDLE" \
-  --soza-repo-root "$SOZA_REPO" \
-  --expected-soza-head "$SOZA_HEAD" \
+  --sei-repo-root "$SEI_REPO" \
+  --expected-sei-head "$SEI_HEAD" \
   --output "$AUDIT_DIR/tei-version-exchange-local-resolution-audit.json"
 ```
 

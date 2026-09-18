@@ -11,7 +11,7 @@
 
 GitHub compareではBはAより1748 commits aheadです。この差の大きさからrepository全体の同一性は前提にしません。一方、今回のfixed invocationで直接利用するProvider Plan surfaceについては、content-addressedなGit object identityを比較できます。
 
-この確認はDesign / Static Evidenceです。revision Bのactual binary、actual Provider Plan output、current SOZA Adapterのlive互換性を証明するものではありません。
+この確認はDesign / Static Evidenceです。revision Bのactual binary、actual Provider Plan output、current SEI Adapterのlive互換性を証明するものではありません。
 
 ## 2. `deployment-provider-plan`入口のsource identity
 
@@ -48,7 +48,7 @@ type providerRoute struct {
 
 ## 3. 埋め込まれる主要型のsource identity
 
-Provider Planの内部型についても、current SOZA Adapterとの境界に直接関係する主要fileをA / Bで比較しました。
+Provider Planの内部型についても、current SEI Adapterとの境界に直接関係する主要fileをA / Bで比較しました。
 
 ```text
 internal/deployment/routing/executor.go
@@ -198,9 +198,9 @@ plugin model accepted capability set
 
 これは重要な停止線です。**top-level JSON surfaceが同じことから、fixed reference inputがrevision Bでも必ず同じ経路を通って成功すると推定しません。**
 
-## 5. current SOZA Adapterとの静的な整合
+## 5. current SEI Adapterとの静的な整合
 
-current SOZA `runtime/go/teiintegration/tei_cli.go`のblob SHAは次です。
+current SEI `runtime/go/teiintegration/tei_cli.go`のblob SHAは次です。
 
 ```text
 62025ae7eeae388d29e9602957b6f3833251e671
@@ -217,9 +217,9 @@ type providerPlan struct {
 }
 ```
 
-decoderは`DisallowUnknownFields()`を使うため、未知のtop-level fieldが追加されれば互換性failureとして停止します。一方、`executors`と`pluginRuntime`の内部は`json.RawMessage`として保持し、SOZA Universal ContractへTEI固有fieldを複製しません。
+decoderは`DisallowUnknownFields()`を使うため、未知のtop-level fieldが追加されれば互換性failureとして停止します。一方、`executors`と`pluginRuntime`の内部は`json.RawMessage`として保持し、SEI Universal ContractへTEI固有fieldを複製しません。
 
-`observations` / `evidence`についてSOZAが直接解釈するProvider固有fieldは`kind`、`provider`、任意の`actionId`です。正常なProvider Planを受理した後、current Capability Observationへmappingする観測値は次の2点に限定されています。
+`observations` / `evidence`についてSEIが直接解釈するProvider固有fieldは`kind`、`provider`、任意の`actionId`です。正常なProvider Planを受理した後、current Capability Observationへmappingする観測値は次の2点に限定されています。
 
 ```text
 availability = true
@@ -252,7 +252,7 @@ plugin runtime
 workspace / validation / IR
   = changed
 
-current SOZA Adapter top-level DTO
+current SEI Adapter top-level DTO
   = executors / observations / evidence / pluginRuntime
 ```
 
@@ -272,7 +272,7 @@ current SOZA Adapter top-level DTO
 - fixed reference inputで`deployment-provider-plan` processが成功すること
 - revision Bが実際に出力するProvider Plan JSONとそのSHA-256
 - routeやplugin runtimeに入るactual値の互換性
-- current SOZA Adapterによるrevision B processのlive strict decode
+- current SEI Adapterによるrevision B processのlive strict decode
 - current Capability Observation validatorまでのend-to-end成立
 
 したがって、停止線は次です。
@@ -284,7 +284,7 @@ same Provider Plan output surface
   != same executable bytes
   != revision B build PASS
   != revision B Provider Plan execution PASS
-  != current SOZA Adapter live compatibility PASS
+  != current SEI Adapter live compatibility PASS
   != ISSUE-000072 Resolved
 ```
 
@@ -360,6 +360,6 @@ explicit fixed-input path flow observed
   != cwd-independence proven for arbitrary TEI command
   != revision B build PASS
   != revision B Provider Plan execution PASS
-  != current SOZA Adapter live compatibility PASS
+  != current SEI Adapter live compatibility PASS
   != ISSUE-000072 Resolved
 ```

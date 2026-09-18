@@ -12,7 +12,7 @@
 artifact acquisition path
   != artifact identity
   != Provider surface compatibility
-  != SOZA Capability Observation identity
+  != SEI Capability Observation identity
 ```
 
 また、GitHub Actionsのjobが開始できなかったことをTEI CLI互換性の失敗へ読み替えません。
@@ -72,7 +72,7 @@ verifierは`.tar.gz`を展開せずread-onlyに読み、少なくとも次を確
 
 ```text
 TEI Evidence bundle identity verified
-  != SOZA Adapter compatibility verified
+  != SEI Adapter compatibility verified
   != TEI version exchange PASS
   != Operational Evidence
 ```
@@ -114,7 +114,7 @@ same fixed reference invocation
 
 → B actual CLI build / execution
 → B Provider Plan identity
-→ SOZA Adapter compatibility
+→ SEI Adapter compatibility
 ```
 
 ## 5. Revision B workflowの観測
@@ -159,7 +159,7 @@ attempt 1 / 2ともstepが一つも開始していないため、次は今回の
 workflow run failure before job steps
   != TEI build failure
   != deployment-provider-plan incompatibility
-  != SOZA Adapter incompatibility
+  != SEI Adapter incompatibility
 ```
 
 同じ停止点が2回観測されたため、少なくとも今回のGitHub-hosted実行面ではjob開始前に継続して停止する状態として扱います。ただし、その原因をTEI Product側へ帰属させません。
@@ -243,7 +243,7 @@ same cmd/internal/reference/go.mod/go.sum Git object identity
   != same repository commit
   != actual executable bytes
   != revision B Provider Plan execution
-  != SOZA Adapter compatibility
+  != SEI Adapter compatibility
 ```
 
 この同一性からhistorical artifactの`metadata.source_commit`を書き換えることもしません。artifactが別commitから生成されたなら、そのprovenanceは別commitのまま保持します。
@@ -291,7 +291,7 @@ revision B Provider Plan
 bootstrap M0.22.1 payload
   = reconstruction method and fixed digest observed; not revision B Evidence
 
-A/B SOZA Adapter compatibility comparison
+A/B SEI Adapter compatibility comparison
   = Not Yet Verified
 
 formal TEI executable distribution
@@ -305,7 +305,7 @@ credential lifecycle / Operational portability
 
 次にEvidence強度が上がるのは、revision Bについて実際のEvidence bundleを取得できた時です。
 
-取得経路はGitHub Actionsに限定しません。どの経路で取得しても、まず`verify_tei_evidence_bundle.py`へ戻してsource / binary / Provider Plan identityを確認します。その後、SOZAのcurrent `teiintegration` Adapterでactual B binaryを起動し、current Capability Observationへmappingできるかを確認します。
+取得経路はGitHub Actionsに限定しません。どの経路で取得しても、まず`verify_tei_evidence_bundle.py`へ戻してsource / binary / Provider Plan identityを確認します。その後、SEIのcurrent `teiintegration` Adapterでactual B binaryを起動し、current Capability Observationへmappingできるかを確認します。
 
 今回固定したGit object identityは、取得したsource treeが意図したBの実行sourceと一致するかを確認する補助線として利用できます。ただし、Git object identityだけからbinary digestやProvider Planを推定しません。
 
@@ -319,6 +319,6 @@ PMS-06、ISSUE-000061 / 000065 / 000072、既存Actual TEI CLI Evidence、curren
 
 今回前進したのは、過去artifactを再取得してactual bytesを再検証できたこと、そのidentity検証をGitHub Actionsやcredentialから独立したrepository-local toolへ分離したこと、bootstrap payloadをrevision B sourceと誤認しない境界を明示できたことに加え、revision Bの`cmd` / `internal` / `reference` / module filesについてcontent-addressed identityを固定できたことです。
 
-一方、この静的identityはactual binaryを取得した証拠ではありません。revision Bのworkflowは2回ともjob step開始前に停止し、B-equivalent source区間にも再利用可能なactual executable artifactは観測できなかったため、BのCLI実行、Provider Plan、SOZA Adapter互換性について結果を推定していません。
+一方、この静的identityはactual binaryを取得した証拠ではありません。revision Bのworkflowは2回ともjob step開始前に停止し、B-equivalent source区間にも再利用可能なactual executable artifactは観測できなかったため、BのCLI実行、Provider Plan、SEI Adapter互換性について結果を推定していません。
 
 Evidenceの高さと未検証範囲を変えず、自然な日本語となることを最重要視して記録しています。

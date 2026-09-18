@@ -96,7 +96,7 @@ cross-workflow zero-step failure observed
   != revision B actual executable observed
   != revision B build failure
   != Provider Plan incompatibility
-  != current SOZA Adapter incompatibility
+  != current SEI Adapter incompatibility
 ```
 
 したがって、repository-local / E2 partial経路を維持し、private revision B sourceを取得できる適切なLinux/amd64環境が利用可能になった時点でactual E2を優先する方針は変えない。

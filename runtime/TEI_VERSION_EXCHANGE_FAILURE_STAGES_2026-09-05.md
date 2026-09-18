@@ -2,7 +2,7 @@
 
 ## 1. この文書の位置づけ
 
-PMS-06 / ISSUE-000072のactual revision B実行では、失敗を「TEI version交換 failure」という一語へまとめると、source取得・toolchain・build・Provider Plan process・output validation・SOZA Adapter compatibilityの境界を失います。
+PMS-06 / ISSUE-000072のactual revision B実行では、失敗を「TEI version交換 failure」という一語へまとめると、source取得・toolchain・build・Provider Plan process・output validation・SEI Adapter compatibilityの境界を失います。
 
 そこで、repository-local E2 / E3 runnerが**外部から確実に観測できる境界だけ**をmachine-readable stageとして返すよう整理しました。
 
@@ -12,7 +12,7 @@ PMS-06 / ISSUE-000072のactual revision B実行では、失敗を「TEI version�
 failure stage instrumentation ready
   != revision B failure observed
   != TEI incompatibility observed
-  != SOZA Adapter incompatibility observed
+  != SEI Adapter incompatibility observed
 ```
 
 ## 2. stage開始前のconfiguration rejection
@@ -24,7 +24,7 @@ combined runner `runtime/integration/run_tei_version_exchange_evidence.py`は、
 - output path自身または既存ancestorがsymlinkである。
 - output directoryがrevision B source checkout配下にある。
 - exact A checkout取得時、output directoryがrevision A fixed-reference checkout配下にある。
-- output directoryがSOZA checkout配下にある。
+- output directoryがSEI checkout配下にある。
 - output directoryがこれらinput checkoutを包含する。
 - historical A Evidence bundle取得時、入力bundleがoutput directory配下に含まれる。
 - 既存pathがdirectoryではない。
@@ -32,11 +32,11 @@ combined runner `runtime/integration/run_tei_version_exchange_evidence.py`は、
 standalone E2 `run_tei_revision_b_prepositioned.py`も、final archiveについて次を副作用前に拒否します。
 
 - output path自身または既存ancestorがsymlinkである。
-- output archiveがrevision B source / SOZA repository配下にある。
+- output archiveがrevision B source / SEI repository配下にある。
 - exact A checkout取得時、output archiveがrevision A reference checkout配下にある。
 - output archiveが既に存在し、暗黙上書きになる。
 
-これらはTEI processやSOZA Adapterを開始した結果ではないため、`TEIEvidenceStageError` / `TEIAdapterStageError`へ昇格させません。
+これらはTEI processやSEI Adapterを開始した結果ではないため、`TEIEvidenceStageError` / `TEIAdapterStageError`へ昇格させません。
 
 ```text
 Evidence output path rejected
@@ -44,7 +44,7 @@ Evidence output path rejected
   != revision_b_source_identity failure
   != tei_cli_build failure
   != deployment_provider_plan_execution failure
-  != soza_teiintegration_live_test failure
+  != sei_teiintegration_live_test failure
 ```
 
 configuration rejection時にmachine-readable E2 / E3 substageを作らないこと自体が、root causeを過大に推定しないための境界です。
@@ -129,26 +129,26 @@ archive作成・再検証・final配置は、それぞれ`evidence_bundle_packag
 
 ## 4. E3 stage taxonomy
 
-`runtime/integration/run_tei_bundle_adapter_compatibility.py`の`TEIAdapterStageError`は、current SOZA Adapter live検査を次の外部境界へ分けます。
+`runtime/integration/run_tei_bundle_adapter_compatibility.py`の`TEIAdapterStageError`は、current SEI Adapter live検査を次の外部境界へ分けます。
 
 ```text
-soza_runtime_layout
-soza_source_identity
+sei_runtime_layout
+sei_source_identity
 bundle_identity_verification
 execution_platform
 bundle_staging
 reference_input_identity
-soza_go_toolchain
-soza_teiintegration_live_test
+sei_go_toolchain
+sei_teiintegration_live_test
 ```
 
 成功時はこの順序を`completedStages`へ記録します。
 
-### SOZA source / bundle / fixed input
+### SEI source / bundle / fixed input
 
-`soza_runtime_layout`は、current `runtime/go` moduleと既存`teiintegration` live testの存在境界です。
+`sei_runtime_layout`は、current `runtime/go` moduleと既存`teiintegration` live testの存在境界です。
 
-`soza_source_identity`は、検査対象SOZA checkoutのHEAD / Git object identity / worktree cleanlinessです。canonical E2→E3でactual Provider Plan実行前に使うfixed-reference helperもこのSOZA Evidence source surfaceへ含めます。
+`sei_source_identity`は、検査対象SEI checkoutのHEAD / Git object identity / worktree cleanlinessです。canonical E2→E3でactual Provider Plan実行前に使うfixed-reference helperもこのSEI Evidence source surfaceへ含めます。
 
 `bundle_identity_verification`は、B source / binary / Provider Plan identityを既存bundle verifierで再確認する境界です。
 
@@ -158,19 +158,19 @@ soza_teiintegration_live_test
 
 これにより、bundle identity failure、safe staging failure、fixed input driftをAdapter incompatibilityへまとめません。
 
-### SOZA toolchain / live test
+### SEI toolchain / live test
 
-`soza_go_toolchain`は、`GOTOOLCHAIN=local`のcurrent SOZA test environmentで`go version`を起動できるだけでなく、current `runtime/go/go.mod`の`go` directiveをactual toolchainが満たすことまで確認する境界です。directiveを読めない、`go version`を解釈できない、またはactual Goがdirective未満の場合は、`go test`を開始せずこのstageで停止します。
+`sei_go_toolchain`は、`GOTOOLCHAIN=local`のcurrent SEI test environmentで`go version`を起動できるだけでなく、current `runtime/go/go.mod`の`go` directiveをactual toolchainが満たすことまで確認する境界です。directiveを読めない、`go version`を解釈できない、またはactual Goがdirective未満の場合は、`go test`を開始せずこのstageで停止します。
 
-この判定はstandalone E3 runner `run_tei_bundle_adapter_compatibility.py`を正本とします。combined runner `run_tei_version_exchange_evidence.py`も同じE3 runnerを呼び、成功時はそこで観測した`sozaGoRequirement` / `sozaGoVersion`をcomparison axisへ戻します。
+この判定はstandalone E3 runner `run_tei_bundle_adapter_compatibility.py`を正本とします。combined runner `run_tei_version_exchange_evidence.py`も同じE3 runnerを呼び、成功時はそこで観測した`seiGoRequirement` / `seiGoVersion`をcomparison axisへ戻します。
 
 ```text
 actual Go < current go.mod requirement
-  = soza_go_toolchain failure
-  != soza_teiintegration_live_test failure
+  = sei_go_toolchain failure
+  != sei_teiintegration_live_test failure
 ```
 
-`soza_teiintegration_live_test`は、既存`runtime/go/teiintegration.TestLiveTEIProviderPlan`を実行する**Go test process全体の境界**です。
+`sei_teiintegration_live_test`は、既存`runtime/go/teiintegration.TestLiveTEIProviderPlan`を実行する**Go test process全体の境界**です。
 
 既存live testの内部では、actual TEI CLI process、strict Provider Plan decode、Capability Observation mapping / validation、TEI固有field非漏出等を検査します。しかし、Go testのstdout / stderrに現れた文言だけから、repository-local runnerが次のような新しいsubstageを作ることはしません。
 
@@ -182,11 +182,11 @@ validator
 provider field leakage check
 ```
 
-たとえば出力に`strict decode`や`validator failure`とあっても、machine-readable stageは`soza_teiintegration_live_test`のままです。
+たとえば出力に`strict decode`や`validator failure`とあっても、machine-readable stageは`sei_teiintegration_live_test`のままです。
 
 ```text
 Go test output contains "validator"
-  != machine-readable SOZA validator-stage Evidence
+  != machine-readable SEI validator-stage Evidence
 ```
 
 将来、`teiintegration`側がmachine-readable test result / error stageを正式に出力する場合だけ、そのactual contractを確認して細分化を再評価します。
@@ -219,7 +219,7 @@ substage = tei_cli_build
 
 ```text
 stage = E3
-substage = soza_teiintegration_live_test
+substage = sei_teiintegration_live_test
 ```
 
 のように記録します。
@@ -254,9 +254,9 @@ E3側には次のnegative controlを追加しています。
 
 - bundle verifier failure → `bundle_identity_verification`
 - A fixed input failure → `reference_input_identity`
-- SOZA Go process failure → `soza_go_toolchain`
-- current `go.mod`より古いSOZA Go → `soza_go_toolchain`、live test未開始
-- live test non-zero → `soza_teiintegration_live_test`
+- SEI Go process failure → `sei_go_toolchain`
+- current `go.mod`より古いSEI Go → `sei_go_toolchain`、live test未開始
+- live test non-zero → `sei_teiintegration_live_test`
 - live test出力に`strict decode` / `validator`があっても、その内部stageへ昇格しない
 - process detail tailを32 KiBへ制限する
 - success pathではcurrent Go requirement / observed versionと既存live testの成立を得る
@@ -265,7 +265,7 @@ combined reportについても、E2 / E3の上位stageとstage-aware substageを
 
 PR #223では、stage開始前のpath-safety negative controlも追加しました。
 
-- standalone E2 input checkout / SOZA repository内出力を拒否し、source verifier / processを開始しない。
+- standalone E2 input checkout / SEI repository内出力を拒否し、source verifier / processを開始しない。
 - standalone E2 existing archive / symlink archiveを拒否し、既存bytesを変更しない。
 - combined runner input checkout内output、input checkoutを包含するoutput、symlink outputを拒否し、E2 / E3 runnerを開始しない。
 
@@ -276,7 +276,7 @@ PR #239では、historical A Evidence bundleをfixed input acquisitionとして�
 - fixed input materializationのlink / overwrite境界を拒否する。
 - E2のhistorical bundle取得経路を既存`revision_a_fixed_reference_identity` stageへ収束させる。
 - combined runnerがacquisition modeをcomparison axisへ記録する。
-- fixed-reference helperをE3 SOZA source identity boundaryへ含める。
+- fixed-reference helperをE3 SEI source identity boundaryへ含める。
 
 current work containerではbranch上のunittest suite全体を再現してはいません。E2 stage error、combined substage伝播、stderr非推測、output tail上限の中核ロジックについてfocused local check 4件を以前に実行しPASSしました。E3側も同じ原則のstage modelとして実装し、branch testへnegative controlを追加しています。PR #223 / #239で追加したpath-safety / historical-bundle testをcurrent environmentでfull suiteとして再実行したとは主張しません。
 

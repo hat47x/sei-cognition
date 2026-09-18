@@ -128,7 +128,7 @@ artifacts          = 0
 zero-step hosted job failure
   != TEI build failure
   != Provider Plan failure
-  != SOZA Adapter incompatibility
+  != SEI Adapter incompatibility
 ```
 
 machine-readable Evidence:
@@ -253,7 +253,7 @@ E2 Go ready
 3. actual build中にexternal module acquisitionが必要なら、その時点でrepository-local E2 substageとして観測・分類する。`go.mod`の未使用可能なrequireだけを事前blockerへ昇格させない。
 4. `verify_tei_version_exchange_e2_bundle.py`でexact-B / exact-Aへacquisition-independentにstrict再検証する。
 5. actual binary SHA-256 / Provider Plan SHA-256を観測値として固定する。
-6. current SOZA要件を満たすE3 Goが利用可能なら、保存済みE2 partialからE3だけをresumeする。
+6. current SEI要件を満たすE3 Goが利用可能なら、保存済みE2 partialからE3だけをresumeする。
 7. canonical report / GitHub wrapper reportをResolution auditへ接続する。
 
 ## 6. Current state
@@ -280,7 +280,7 @@ GitHub-hosted attempt 4 Product step             = not observed
 
 revision B actual build                          = Not Yet Verified
 revision B Provider Plan                         = Not Yet Observed
-current SOZA Adapter compatibility               = Not Yet Verified
+current SEI Adapter compatibility               = Not Yet Verified
 qualityJudgement                                 = not_evaluated
 ISSUE-000072                                     = Open
 ```
@@ -294,7 +294,7 @@ revision A current-environment re-execution PASS
   != revision B actual source acquired
   != revision B E2 PASS
   != Provider Plan PASS
-  != E3 SOZA Adapter compatibility PASS
+  != E3 SEI Adapter compatibility PASS
   != ISSUE-000072 Resolved
 ```
 

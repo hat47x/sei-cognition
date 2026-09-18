@@ -178,25 +178,25 @@ reviewed:
     note: ISSUE-000074の再利用可能なactual-binary Evidence採取境界として全文監査した。direct executableのpre/post SHA-256、declared source、optional strict manifest、既存teiintegrationによるProvider Plan mapping、derived reportを分離し、manifest matchを真正性検証へ昇格させず、fixture test sourceとactual TEI Evidence、Operational / Product Valueを別の高さとして保持している。
   - scope: runtime/TEI_PROVIDER_SURFACE_STATIC_COMPATIBILITY_2026-09-05.md
     status: revised
-    note: revision A / BのProvider surfaceを静的比較し、静的互換性観測をactual revision B build / Provider Plan / Adapter compatibilityへ昇格させない境界を監査済み。
+    note: revision A / BのProvider surfaceを静的比較し、静的互換性観測をactual revision B build / Provider Plan / Adapter compatibilityへ昇格させない境界を監査済み。2026-09-18にcurrent Adapter / Universal Contractの表記をSEIへ同期し、意味とEvidence強度は変更していない。
   - scope: runtime/TEI_VERSION_EXCHANGE_EVIDENCE_2026-09-05.md
     status: revised
-    note: PMS-06のTEI executable version交換について、revision A historical Evidence、revision B source固定、fixed reference input、実行環境上の未完了を分離して記録している。workflow / runner failureをTEI compatibility failureへ昇格させず、revision B actual CLI / Provider Plan / current Adapter compatibilityを未検証として保持している。
+    note: PMS-06のTEI executable version交換について、revision A historical Evidence、revision B source固定、fixed reference input、実行環境上の未完了を分離して記録している。2026-09-18にcurrent SEI Capability Observation / Adapter表記へ同期し、historical artifact名とEvidence branch名だけは実在する旧名称として保持した。workflow / runner failureをTEI compatibility failureへ昇格させず、revision B actual CLI / Provider Plan / current Adapter compatibilityを未検証として維持している。
   - scope: runtime/TEI_VERSION_EXCHANGE_EXECUTION_READINESS_2026-09-05.md
     status: revised
-    note: actual E2→E3のcanonical入口、exact-B executable + exact-A fixed input、E2 / E3別Go toolchain、machine-readable external stage、actual未検証範囲をcurrent実行handoffとして監査済み。
+    note: actual E2→E3のcanonical入口、exact-B executable + exact-A fixed input、E2 / E3別Go toolchain、machine-readable external stage、actual未検証範囲をcurrent実行handoffとして再監査した。2026-09-18にcurrent codeと不一致だったSOZA_REPO / SOZA_GO / --soza-* / expected-soza等をSEI_REPO / SEI_GO / --sei-* / expected-seiへ同期した。
   - scope: runtime/TEI_VERSION_EXCHANGE_FAILURE_STAGES_2026-09-05.md
     status: revised
-    note: E2 / E3 failureをrepository-local machine-readable stageで観測し、stderr等の自然言語だけからTEI内部またはSEI内部substageを推定しない停止線を監査済み。
+    note: E2 / E3 failureをrepository-local machine-readable stageで観測し、stderr等の自然言語だけからTEI内部またはSEI内部substageを推定しない停止線を再監査した。2026-09-18にcurrent runnerがemitする sei_runtime_layout / sei_source_identity / sei_go_toolchain / sei_teiintegration_live_test と seiGo* fieldへ文書を同期した。
   - scope: runtime/TEI_VERSION_EXCHANGE_REQUIREMENT_PREAUDIT_2026-09-05.md
     status: revised
     note: revision B actual前にREQ-0001 / 0007 / 0021、SCN-0014 / 0018と隣接REQ-0022の再照合基準を固定し、build / toolchain / Adapter-local failureだけでStable Requirementを増やさない境界を監査済み。
   - scope: runtime/TEI_VERSION_EXCHANGE_TOOLCHAIN_READINESS_2026-09-05.md
     status: revised
-    note: historical TEI E2用Goとcurrent SEI E3用Goを別executableとして扱うtoolchain境界を監査済み。toolchain readinessをactual Provider / Adapter compatibility Evidenceへ昇格させていない。
+    note: historical TEI E2用Goとcurrent SEI E3用Goを別executableとして扱うtoolchain境界を再監査した。2026-09-18にoperator例の旧SOZA変数・旧 --soza-* CLIをcurrent SEI名へ同期し、toolchain readinessをactual Provider / Adapter compatibility Evidenceへ昇格させない停止線は維持している。
   - scope: runtime/TEI_VERSION_EXCHANGE_CURRENT_READINESS_2026-09-06.md
-    status: reviewed-no-change
-    note: ISSUE-000072のrevision B source取得経路、controlled Git / Go environment、副作用なしpreflight、current container実測をcurrent deltaとして全文確認した。repository-side実装の完了をactual build / Provider Plan / Adapter compatibilityへ昇格させない停止線が保たれているため現状の本文を保つ。
+    status: revised
+    note: ISSUE-000072のrevision B source取得経路、controlled Git / Go environment、副作用なしpreflight、current container実測をcurrent deltaとして全文再確認した。2026-09-18にcurrent codeと不一致だったSOZA_REPO / SOZA_GO / --soza-* / expected-soza等をSEI名へ改訂し、repository-side実装の完了をactual build / Provider Plan / Adapter compatibilityへ昇格させない停止線を維持した。
   - scope: runtime/TEI_VERSION_EXCHANGE_E2_PARTIAL_DELTA_2026-09-06.md
     status: revised
     note: E2 partial Evidence経路、exact-B / exact-A strict bundle verification、later E3 resume、interrupted report-pair reconciliationを全文再確認した。2026-09-18にcurrent実装がSEI identityへ移行済みであることへ合わせ、current SEI Adapter表記とcanonical sei.* schema例へ改訂した。historical soza.* Evidenceをreader側で受理するADR-0031の互換境界は変更せず、E2 partial成立をE3やISSUE-000072 Resolutionへ昇格させない停止線も維持した。
@@ -204,14 +204,14 @@ reviewed:
     status: revised
     note: operator向けE2 partial actual手順をcurrent実装と照合し、2026-09-18に旧SOZA表記、旧 --soza-* CLI、旧soza.* current schema例をSEI_REPO / SEI_GO / SEI_HEAD、--sei-*、sei.*へ改訂した。credential値を記録しない扱い、pre-source rejectionとE2 stage failureの分離、Resolution auditが1〜6のみ自動判定である点は維持している。
   - scope: runtime/TEI_VERSION_EXCHANGE_POST_RUN_AUDIT_2026-09-06.md
-    status: reviewed-no-change
-    note: actual実行後のResolution条件1〜8監査手順として全文確認した。条件7 / 8を必ず人の意味確認として残し、resolutionCandidateをResolvedと書かない自然な日本語監査観点も明示されているため現状の本文を保つ。
+    status: revised
+    note: actual実行後のResolution条件1〜8監査手順をcurrent codeと再照合した。2026-09-18にoperator例のSOZA_REPO / --soza-* / expected-sozaをSEI名へ改訂した。条件7 / 8を必ず人の意味確認として残し、resolutionCandidateをResolvedと書かない監査境界は維持している。
   - scope: runtime/TEI_GITHUB_HOSTED_JOB_START_DELTA_2026-09-06.md
-    status: reviewed-no-change
-    note: GitHub-hosted jobのzero-step failureをcross-workflowとhistorical positive controlで照合したExecution Environment Evidenceとして全文確認した。root causeをunobservedのまま保持し、Product failureへ読み替えていないため現状の本文を保つ。
+    status: revised
+    note: GitHub-hosted jobのzero-step failureをcross-workflowとhistorical positive controlで照合したExecution Environment Evidenceとして再確認した。2026-09-18にcurrent Adapter表記だけをSEIへ同期し、実在するhistorical workflow名 `SOZA E3b-P2 TEI Evidence` は観測事実として保持した。root causeをunobservedのまま保ち、Product failureへ読み替えていない。
   - scope: runtime/TEI_VERSION_EXCHANGE_CURRENT_DELTA_2026-09-07.md
-    status: reviewed-no-change
-    note: bootstrap payloadのreject、revision A current-container再実行、lib/pq未使用requireのoffline negative control、hosted attempt 4観測を全文確認した。transport制約をProduct failureへ読み替えない境界が保たれているため現状の本文を保つ。
+    status: revised
+    note: bootstrap payloadのreject、revision A current-container再実行、lib/pq未使用requireのoffline negative control、hosted attempt観測を全文再確認した。2026-09-18にcurrent Adapter / current SEI要件の表記をSEI identityへ同期し、transport制約をProduct failureへ読み替えない境界を維持した。
   - scope: runtime/TEI_BOOTSTRAP_SOURCE_IDENTITY_REJECTION_2026-09-07.md
     status: reviewed-no-change
     note: bootstrap/final-sourceのbyte transport integrity成立と、fixed revision B source identityとの不一致によるrejectを全文確認した。transport PASSをrevision B取得やbuild PASSへ昇格させていないため現状の本文を保つ。

@@ -4,14 +4,14 @@
 
 本書は、`TEI_VERSION_EXCHANGE_EXECUTION_READINESS_2026-09-05.md` の後に追加された revision B source acquisition / actual orchestration / environment preflight の現在地をまとめる current delta です。
 
-historical Evidence、Stable Requirement、Universal Contract、supported scope、quality judgementを更新する文書ではありません。actual revision Bのbuild / Provider Plan / current SOZA Adapter live testがまだ成立していないことを維持します。
+historical Evidence、Stable Requirement、Universal Contract、supported scope、quality judgementを更新する文書ではありません。actual revision Bのbuild / Provider Plan / current SEI Adapter live testがまだ成立していないことを維持します。
 
 ```text
 repository-side actual path implemented
   != revision B source acquired in an actual run
   != revision B build PASS
   != Provider Plan execution PASS
-  != SOZA Adapter compatibility PASS
+  != SEI Adapter compatibility PASS
   != ISSUE-000072 Resolved
 ```
 
@@ -112,7 +112,7 @@ GIT_NO_REPLACE_OBJECTS=1
 GIT_DEFAULT_HASH=sha1
 ```
 
-PR #277では、E3のcurrent SOZA source baselineも同じcontrolled Git environmentへ揃え、`git_object_environment.py`自身をSOZA Evidence source boundaryへ含めました。これにより、TEI source側だけでなくE3 live test前後のSOZA source identityもambient object directory / replace semantics / process-level Git config injectionから分離します。
+PR #277では、E3のcurrent SEI source baselineも同じcontrolled Git environmentへ揃え、`git_object_environment.py`自身をSEI Evidence source boundaryへ含めました。これにより、TEI source側だけでなくE3 live test前後のSEI source identityもambient object directory / replace semantics / process-level Git config injectionから分離します。
 
 これはhost全体をfully hermeticにする主張ではありません。ISSUE-000072の固定SHA-1 Git object graph、source checkout identity、materialized source bytesへ直接影響するprocess-level overrideを対象にします。system / global / repository configそのものを一般に無効化するものでもありません。
 
@@ -166,7 +166,7 @@ PR #278では、E2でactual build / Provider Plan / bundle verificationを終え
 
 PR #281では、canonical bundle / canonical report / GitHub wrapper reportの出力pathをactual開始前preflightでsymlink検査へ揃えました。dangling symlinkも`--overwrite`で削除して続行せず、canonical runnerとGitHub preflightの両方でactual開始前に拒否します。
 
-PR #283では、GitHub one-shotがrevision B sourceをmaterializeするtemporary parentもpreflight境界へ上げました。temporary parentがSOZA repository、revision A checkout、Evidence directoryの内部にある場合や、path自身またはancestorがsymlinkの場合はsource acquisition前に拒否します。preflight後もactual source acquisition直前に同じhelperを再実行し、検証済みparentを`TemporaryDirectory(dir=...)`へ明示します。
+PR #283では、GitHub one-shotがrevision B sourceをmaterializeするtemporary parentもpreflight境界へ上げました。temporary parentがSEI repository、revision A checkout、Evidence directoryの内部にある場合や、path自身またはancestorがsymlinkの場合はsource acquisition前に拒否します。preflight後もactual source acquisition直前に同じhelperを再実行し、検証済みparentを`TemporaryDirectory(dir=...)`へ明示します。
 
 PR #284では、temporary parentのpreflightで`tempfile.gettempdir()`を使わないよう修正しました。Pythonの`gettempdir()`は初回解決時にcandidate directoryへtemporary fileをcreate/write/deleteして利用可否をprobeするため、「副作用なしpreflight」と両立しません。現在はLinux actual scopeに合わせて`TMPDIR` → `TEMP` → `TMP` → `/tmp`の順で候補を選び、存在・directory・symlink境界・write/traverse accessをread-onlyで確認します。actual runで初めて検証済みparent配下へtemporary directoryを作成します。
 
@@ -187,7 +187,7 @@ PR #260 の入口:
 - exact revision A fixed reference input identity
   - Git checkoutの場合はcanonical Git verifier
   - historical Evidence bundleの場合は既存bundle verifier
-- current SOZA source identity / boundary purity / optional expected HEAD
+- current SEI source identity / boundary purity / optional expected HEAD
 - E2 Go executable identityがexact `go1.23.2 linux/amd64`であること
 - E2 controlled Go targetが`go env GOOS GOARCH = linux / amd64`であること
 - E3 Goがcurrent `runtime/go/go.mod`のdirective以上で、`go version`上もLinux/amd64であること
@@ -196,7 +196,7 @@ PR #260 の入口:
 - canonical bundle / report / wrapper report pathがsymlinkまたはsymlink ancestor経由でないこと
 - revision B source temporary parentのstatic safety
   - `TMPDIR` → `TEMP` → `TMP` → `/tmp`の順で候補を選ぶ
-  - SOZA repository / revision A checkout / Evidence directory配下を拒否する
+  - SEI repository / revision A checkout / Evidence directory配下を拒否する
   - path自身またはancestorのsymlinkを拒否する
   - existence / directory / write-traverse accessをfile createなしで確認する
 
@@ -218,13 +218,13 @@ local Git object databaseを使う場合は次を使います。
 - fixed revision B commit objectが存在すること
 - revision B commitから見た`cmd` / `internal` / `reference` / `go.mod` / `go.sum` object identityが固定値へ一致すること
 - exact revision A fixed reference input identity
-- current SOZA source identity / boundary purity / optional expected HEAD
+- current SEI source identity / boundary purity / optional expected HEAD
 - E2 Go executable identityがexact `go1.23.2 linux/amd64`であること
 - E2 controlled Go targetが`go env GOOS GOARCH = linux / amd64`であること
 - E3 Goがcurrent `runtime/go/go.mod`のdirective以上で、`go version`上もLinux/amd64であること
 - E3 controlled Go targetが`go env GOOS GOARCH = linux / amd64`であること
-- future exact-B checkout outputが新規pathであり、source clone / SOZA / A checkout / Evidence outputと重ならないこと
-- Evidence outputがsource clone / future B checkout / SOZA / A checkoutと重ならず、historical A bundleを包含しないこと
+- future exact-B checkout outputが新規pathであり、source clone / SEI / A checkout / Evidence outputと重ならないこと
+- Evidence outputがsource clone / future B checkout / SEI / A checkoutと重ならず、historical A bundleを包含しないこと
 
 local preflightはcredentialもnetwork accessも要求しません。source cloneを変更せず、B checkoutもEvidence outputも作成しません。
 
@@ -285,7 +285,7 @@ go env GOOS GOARCH
     amd64
 ```
 
-E2 preflightはcanonical `_verify_tei_go_toolchain()`を再利用し、E3 preflightもcanonical Adapter側のGo requirement / target verifierを再利用します。local preflightはこれらのcommon helperをそのまま使うため、GitHub/localの取得経路でtoolchain判定を分岐させません。target mismatchは新しいstageへ昇格させず、既存の`tei_go_toolchain` / `soza_go_toolchain`として扱います。
+E2 preflightはcanonical `_verify_tei_go_toolchain()`を再利用し、E3 preflightもcanonical Adapter側のGo requirement / target verifierを再利用します。local preflightはこれらのcommon helperをそのまま使うため、GitHub/localの取得経路でtoolchain判定を分岐させません。target mismatchは新しいstageへ昇格させず、既存の`tei_go_toolchain` / `sei_go_toolchain`として扱います。
 
 `PATH`、`GOPROXY`、`GOMODCACHE`等のtool discovery / module acquisition設定はこの境界では維持します。したがってこれはmodule acquisitionやhost全体をhermeticにする主張ではありません。
 
@@ -312,7 +312,7 @@ E2 historical requirement         = satisfied
 GITHUB_TOKEN                       = unset
 GH_TOKEN                           = unset
 E3 Go 1.25 executable              = not present
-current SOZA runtime/go directive  = go 1.25
+current SEI runtime/go directive  = go 1.25
 ```
 
 このcontainerでGitHub acquisition経路のactual runを開始できない理由は少なくとも次の2点です。
@@ -337,49 +337,49 @@ environment prerequisite missing
 
 actual実行環境には共通して次を準備します。
 
-- current SOZA checkout
+- current SEI checkout
 - revision A fixed input
   - exact revision A checkout、または
   - verified historical revision A Evidence bundle
 - E2用Go executable: exact `go1.23.2 linux/amd64`、controlled targetもLinux/amd64
 - E3用Go executable: current `runtime/go/go.mod`を満たすversionかつLinux/amd64、controlled targetもLinux/amd64
-- SOZA / revision A checkout外のEvidence output directory
+- SEI / revision A checkout外のEvidence output directory
 
-まずcurrent SOZA HEADを固定します。
+まずcurrent SEI HEADを固定します。
 
 ```bash
-SOZA_HEAD="$(git -C "$SOZA_REPO" rev-parse HEAD)"
+SEI_HEAD="$(git -C "$SEI_REPO" rev-parse HEAD)"
 ```
 
 ### 6.1 GitHub one-shot経路
 
 追加でprivate `hat47x/tei-platform`をread可能な`GITHUB_TOKEN`または`GH_TOKEN`を準備します。
 
-source temporary parentは`TMPDIR`、`TEMP`、`TMP`のうち最初に設定されたpath、いずれも未設定なら`/tmp`です。明示設定する場合はSOZA repository / revision A checkout / Evidence directoryの外側にあるexisting non-symlink directoryを使います。preflightで`source_temp_parent`がblockedになった場合は、この環境変数またはpath境界を確認します。
+source temporary parentは`TMPDIR`、`TEMP`、`TMP`のうち最初に設定されたpath、いずれも未設定なら`/tmp`です。明示設定する場合はSEI repository / revision A checkout / Evidence directoryの外側にあるexisting non-symlink directoryを使います。preflightで`source_temp_parent`がblockedになった場合は、この環境変数またはpath境界を確認します。
 
 historical revision A Evidence bundleを使う例:
 
 ```bash
-python3 "$SOZA_REPO/runtime/integration/preflight_tei_version_exchange_from_github.py" \
+python3 "$SEI_REPO/runtime/integration/preflight_tei_version_exchange_from_github.py" \
   --reference-evidence-bundle "$TEI_A_BUNDLE" \
-  --soza-repo-root "$SOZA_REPO" \
+  --sei-repo-root "$SEI_REPO" \
   --output-dir "$EVIDENCE_DIR" \
   --tei-go-executable "$TEI_GO" \
-  --soza-go-executable "$SOZA_GO" \
-  --expected-soza-head "$SOZA_HEAD" \
+  --sei-go-executable "$SEI_GO" \
+  --expected-sei-head "$SEI_HEAD" \
   --json
 ```
 
 `result=ready`を確認した後、同じaxisでactual one-shot runnerを実行します。
 
 ```bash
-python3 "$SOZA_REPO/runtime/integration/run_tei_version_exchange_from_github.py" \
+python3 "$SEI_REPO/runtime/integration/run_tei_version_exchange_from_github.py" \
   --reference-evidence-bundle "$TEI_A_BUNDLE" \
-  --soza-repo-root "$SOZA_REPO" \
+  --sei-repo-root "$SEI_REPO" \
   --output-dir "$EVIDENCE_DIR" \
   --tei-go-executable "$TEI_GO" \
-  --soza-go-executable "$SOZA_GO" \
-  --expected-soza-head "$SOZA_HEAD" \
+  --sei-go-executable "$SEI_GO" \
+  --expected-sei-head "$SEI_HEAD" \
   --json
 ```
 
@@ -392,22 +392,22 @@ one-shot runner自身も同じ副作用なしpreflightを再実行し、`ready`�
 まず副作用なしpreflightを実行します。
 
 ```bash
-python3 "$SOZA_REPO/runtime/integration/preflight_tei_version_exchange_local.py" \
+python3 "$SEI_REPO/runtime/integration/preflight_tei_version_exchange_local.py" \
   --source-repo "$TEI_SOURCE_CLONE" \
   --checkout-output "$TEI_B_REPO" \
   --reference-evidence-bundle "$TEI_A_BUNDLE" \
-  --soza-repo-root "$SOZA_REPO" \
+  --sei-repo-root "$SEI_REPO" \
   --output-dir "$EVIDENCE_DIR" \
   --tei-go-executable "$TEI_GO" \
-  --soza-go-executable "$SOZA_GO" \
-  --expected-soza-head "$SOZA_HEAD" \
+  --sei-go-executable "$SEI_GO" \
+  --expected-sei-head "$SEI_HEAD" \
   --json
 ```
 
 `result=ready`を確認した後に、exact-B checkoutを準備します。post-run acquisition provenanceも残す場合はhelper自身のsafe report outputを使います。
 
 ```bash
-python3 "$SOZA_REPO/runtime/integration/prepare_tei_revision_b_checkout.py" \
+python3 "$SEI_REPO/runtime/integration/prepare_tei_revision_b_checkout.py" \
   --source-repo "$TEI_SOURCE_CLONE" \
   --output-repo "$TEI_B_REPO" \
   --report-output "$CHECKOUT_PREPARATION_REPORT" \
@@ -419,14 +419,14 @@ python3 "$SOZA_REPO/runtime/integration/prepare_tei_revision_b_checkout.py" \
 そのcheckoutをcanonical E2→E3 runnerへ渡します。
 
 ```bash
-python3 "$SOZA_REPO/runtime/integration/run_tei_version_exchange_evidence.py" \
+python3 "$SEI_REPO/runtime/integration/run_tei_version_exchange_evidence.py" \
   --source-repo "$TEI_B_REPO" \
   --reference-evidence-bundle "$TEI_A_BUNDLE" \
-  --soza-repo-root "$SOZA_REPO" \
+  --sei-repo-root "$SEI_REPO" \
   --output-dir "$EVIDENCE_DIR" \
   --tei-go-executable "$TEI_GO" \
-  --soza-go-executable "$SOZA_GO" \
-  --expected-soza-head "$SOZA_HEAD" \
+  --sei-go-executable "$SEI_GO" \
+  --expected-sei-head "$SEI_HEAD" \
   --json
 ```
 
@@ -444,7 +444,7 @@ actual runが成功した場合に初めて、fixed scopeについて次を観�
 revision B actual CLI build PASS
 revision B + revision A fixed input Provider Plan execution PASS
 Evidence bundle verification PASS
-current SOZA Adapter live compatibility PASS
+current SEI Adapter live compatibility PASS
 fixed_scope_e2_e3_verified
 ```
 
@@ -498,7 +498,7 @@ GitHub source temporary parent side-effect-free resolution
 TEI source Git object / config environment isolation
   = implemented for canonical verifier, local preflight/preparation, and GitHub acquisition
 
-E3 SOZA source Git environment isolation
+E3 SEI source Git environment isolation
   = implemented
 
 E2/E3 process-level Go build/test environment isolation
@@ -546,7 +546,7 @@ revision B actual CLI build / execution
 revision B Provider Plan
   = Not Yet Observed
 
-revision B current SOZA Adapter live compatibility
+revision B current SEI Adapter live compatibility
   = Not Yet Verified
 
 ISSUE-000072
