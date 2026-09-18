@@ -344,6 +344,10 @@ H2 evidence bundle
 
 synthetic fixtureやAI生成回答をhuman observationとして代用しません。また、同じ人がreference stateを事前に見たcaseをblind reviewとして扱いません。
 
+2026-09-18の追加監査では、current `decision_continuity_counterfactual_matched_set_v1.json`と3 fixtureをGitHub上の正本bytesから再照合し、manifest schema / Issue、各fixtureの単一Decision、basis / Recommendation / unresolved参照、reference stateとの一致、post-decision id境界、A/B/C condition、R1〜R3の割当構造がすべて整合していることを確認しました。これは**static source audit**であり、Pythonの`decision_continuity_preflight.py`またはfocused unittestをactual実行したEvidenceではありません。
+
+同じdriftを今後自動検出できるよう、`test_decision_continuity_review_runner.py`にはcurrent repositoryのDecision manifest / fixtureを`load_context → new_session → reviewer_bundle`で開くintegration caseを追加しました。source追加だけをtest PASSとは扱いません。
+
 ## 9. 現在のEvidence状態
 
 | 項目 | 状態 |
@@ -360,7 +364,7 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 | REQ-0023 / SCN-0019 Executable Evidence | **Not Yet Verified** |
 | H1 actual human review | **Not Yet Observed** |
 | H2 counterfactual human review | **Not Yet Observed** |
-| H2 provenance-first shared runner / evidence-export tooling | Available; init is exclusive-create and low-level packets/record bypass is rejected; actual human session pending; prior R1 exposure is not a completed observation |
+| H2 provenance-first shared runner / evidence-export tooling | Available; init is exclusive-create and low-level packets/record bypass is rejected; current Decision manifest / 3 fixture / R1-R3 structural contract was re-audited on 2026-09-18 and an actual-repository integration test source was added; Python focused test execution is still Not Yet Verified; actual human session pending; prior R1 exposure is not a completed observation |
 | H2 shared runner Decision regression test | Source available; **actual PASS Not Yet Verified in this work session** |
 | Decision Continuity Product Value | **Not Established** |
 | Operational Evidence | **Not Yet Verified** |
