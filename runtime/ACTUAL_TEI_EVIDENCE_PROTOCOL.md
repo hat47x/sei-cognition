@@ -61,7 +61,7 @@ direct executable file
 
 ## 4. source declarationとmanifest
 
-source repository / commitは必須の**declaration**です。
+source repository / commitは必須の**declaration**です。repositoryは取得URLではなく、credentialを含まないrepository identifierとして与えます。commitはhexadecimal object identityとして与えます。
 
 ```text
 declared repository / commit
@@ -112,8 +112,7 @@ go run ./cmd/tei-e3b-probe \
   --plugin-lock /path/to/plugin-lock.json \
   --observation-id <observation-id> \
   --capability-id deployment-provider-routing \
-  --observed-at <RFC3339 timestamp> \
-  --source-state-ref <non-secret source state ref>
+  --observed-at <RFC3339 timestamp>
 ```
 
 manifestを使う場合は `--manifest /path/to/manifest.json` を追加します。
@@ -134,9 +133,9 @@ success時のreportには少なくとも次を含みます。
 - solution / version
 - current Capability Observation
 
-credential、password、API key、access tokenをreport schemaへ追加しません。
+credential、password、API key、access tokenをreport schemaへ追加しません。declared repositoryもclone URLではなくrepository identifierへ限定し、credential-bearing URLを受理しません。
 
-ただし、呼び出し側が `source-state-ref` 等の自由入力へsecretを埋め込まない責任までprobeが自動的に代替するわけではありません。Evidenceへ渡すProvenance文字列は非secretである必要があります。
+Capability Observationの`mapping_provenance.source_state_ref`はcallerから受け取らず、probeが観測したbinary SHA-256から`tei-binary-sha256:<digest>`として生成します。これにより、成功Evidenceへ自由入力のProvenance文字列やsecretを持ち込む経路を減らします。
 
 ## 7. failure boundary
 
@@ -180,6 +179,8 @@ failureの詳細な分類・retry設計はISSUE-000076のfailure-behavior Eviden
 - timeout → PASS reportなし
 - probe中のexecutable digest変化 → reject
 - report schemaへcredential fieldを追加しない
+- credential-bearing repository URL / 非hex commit declarationを拒否する
+- caller-supplied source-state値を成功reportへ残さず、observed binary digestからsource-state refを生成する
 - success時のCapability Observationがcurrent validatorを通る
 
 これらのfixtureはactual TEIではありません。
