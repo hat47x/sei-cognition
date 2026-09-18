@@ -188,6 +188,24 @@ completed validationでは、resultだけでなく、
 
 を再検証する。
 
+### Actual runtime verification
+
+2026-09-18にGitHub正本とGit blob SHAが一致する一時再構成環境でPython 3.13.5を用いて実行した。
+
+- `validate_result.py`: PASS / current result remains draft/empty
+- result unit tests: 24 / 24 PASS
+- evaluation-run unit tests: 20 / 20 PASS
+- freeze-kit unit tests: 18 / 18 PASS
+- preregistration unit tests: 27 / 27 PASS
+- 合計: 89 tests PASS / 0 failures
+- GitHub Actions: 未使用
+
+machine-readable Evidence:
+
+`result_runtime_evidence_2026-09-18.json`
+
+このPASSはresult contractとcross-stage integrationのExecutable Evidenceであり、human-adjudicated benchmark result、current result completion、semantic interpretation、B5 decision、production adoptionを意味しない。
+
 ## 11. 停止線
 
 ```text
