@@ -66,7 +66,21 @@
           "distractor": 0.240192235
         }
       },
-      "observation": "Both localized policies recover the structurally aligned candidate that global k-WTA loses to text-cardinality domination."
+      "observation": "Both localized policies recover the structurally aligned candidate that global k-WTA loses to text-cardinality domination.",
+      "softSignatureBudgetUtilization": {
+        "reservedBudget": 16,
+        "activeDimensions": {
+          "anchor": 12,
+          "desired": 12,
+          "distractor": 13
+        },
+        "collisionOrOverlapLoss": {
+          "anchor": 4,
+          "desired": 4,
+          "distractor": 3
+        },
+        "note": "Local and global winner sets overlap; duplicate dimensions are collapsed rather than counted twice."
+      }
     },
     {
       "id": "B2-HARD-ISOLATION-01",
@@ -160,6 +174,7 @@
     "human-adjudicated SUI meaning-quality benchmark",
     "optimal family budget or residual ratio",
     "allocation optimization sufficient for always-on deployment",
-    "Production, Operational, Adoption, or Outcome Evidence"
+    "Production, Operational, Adoption, or Outcome Evidence",
+    "whether signature overlap loss is beneficial redundancy removal or harmful capacity loss on real workloads"
   ]
 }
