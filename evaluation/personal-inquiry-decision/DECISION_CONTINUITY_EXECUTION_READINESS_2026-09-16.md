@@ -107,9 +107,27 @@ commit T+1: Evidence JSONを保存
 Git object T + source blobsを再検証
 ```
 
-## 5. verifier / capture workflow self-test
+## 5. runner / verifier / capture workflow self-test
 
-validatorについてはstdlibだけでsynthetic Git repositoryを作るself-testを追加しています。
+runner preflightについては、stdlibだけでsynthetic Git repositoryを作るself-testを持ちます。
+
+```text
+tools/test_run_issue_000073_resume_first_evidence.py
+```
+
+現在固定している主な境界は次です。
+
+- dirty checkoutをblockedにする。
+- required source binding欠落をblockedにする。
+- Go 1.25.x未満をblockedにする。
+
+2026-09-18にcurrent runner sourceへ対してactual実行し、PASSを確認しました。
+
+```text
+PASS: ISSUE-000073 evidence runner preflight self-tests
+```
+
+validatorについてもstdlibだけでsynthetic Git repositoryを作るself-testを追加しています。
 
 ```text
 tools/test_verify_issue_000073_resume_first_evidence.py
@@ -125,11 +143,19 @@ tools/test_verify_issue_000073_resume_first_evidence.py
 - repositoryに存在しないtested HEADを拒否する。
 - Go 1.24.xを拒否する。
 
-このself-testは実際に実行し、PASSを確認しています。
+2026-09-18にcurrent verifier sourceへ対してactual実行し、PASSを確認しました。
 
 ```text
 PASS: ISSUE-000073 evidence verifier self-tests
 ```
+
+runner / verifier self-testのcurrent source bindingとactual実行結果は、次のmachine-readable Evidenceへまとめて固定しています。
+
+```text
+evaluation/personal-inquiry-decision/evidence/issue-000073/runner-verifier-selftests-2026-09-18.json
+```
+
+実行環境はPython 3.13.5 / git 2.47.3です。Python host固有のspreadsheet-runtime warmup警告がstderrへ出ましたが、`py_compile`、runner preflight self-test、verifier self-testはいずれもexit code 0で、self-testは期待するPASS stdoutを返しました。この環境警告をrepository test failureへ読み替えません。
 
 また、runner → verifier → Evidence保存を一命令でfail-closedに連結するcapture入口を追加しています。
 
@@ -309,8 +335,8 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 | Candidate Requirement audit | Completed as Design Evidence |
 | REQ-0023 / SCN-0019 formalization | Accepted / Design Satisfied |
 | E1〜E8 test source | Available |
-| Evidence runner preflight self-test | PASS |
-| Evidence verifier self-test | PASS |
+| Evidence runner preflight self-test | **PASS on current source (2026-09-18); machine-readable Evidence recorded** |
+| Evidence verifier self-test | **PASS on current source (2026-09-18); machine-readable Evidence recorded** |
 | One-command capture workflow self-test | **PASS on current source (2026-09-18); machine-readable Evidence recorded** |
 | E1〜E8 actual Go 1.25.x run | **Not Yet Verified** |
 | Current session Go 1.25.x availability | **Blocked by execution-environment DNS / network; not a repository test failure** |
@@ -343,6 +369,8 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 2026-09-17の更新では、E1〜E8の入口をrunner / verifierの個別手順だけでなく、fail-closedなone-command captureへ一本化しました。個別runner / verifierは診断用として残し、Evidence保存の標準経路を増やしていません。
 
 2026-09-18には、runnerがJSON recordを生成しない異常終了や、exit code 2だけでblockedと誤認する経路、failed `--replace`で旧PASS Evidenceが残る経路を追加で閉じました。補強後のcurrent sourceをactualに`py_compile` / self-test実行し、capture workflowについてPASSを確認しました。この結果はsource blobと実行環境をmachine-readable Evidenceへ固定していますが、E1〜E8 actual Go 1.25.x runとは分離しています。
+
+同日、runner preflightとverifierについてもcurrent sourceを一時実行環境へ展開し、`py_compile`後にself-testをactual実行しました。両方ともexit code 0 / expected PASS stdoutを確認し、source blobと実行環境を別のmachine-readable Evidenceへ固定しました。これによりEvidence受入れ経路のPython self-test群はcurrent sourceに対して再確認済みですが、Go 1.25.xでinteractionprobeを実行したことにはしていません。
 
 同日の実行環境確認では、host Goが1.23.2であることに加え、`GOTOOLCHAIN=go1.25.0+auto`によるGo 1.25.0取得も外向きDNS / network制限で成立しないことをactualに確認しました。このblockerをinteractionprobeのFAILとは扱わず、低いGoで代替PASSを作らない停止線を維持しています。
 
