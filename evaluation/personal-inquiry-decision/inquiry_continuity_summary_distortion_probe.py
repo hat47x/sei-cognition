@@ -18,6 +18,7 @@ SCHEMA = "sei.inquiry-continuity-summary-distortion-probe/v0"
 FIXTURE_SCHEMA = "sei.inquiry-continuity-comparison-fixture/v0"
 PACKET_SCHEMA = "sei.inquiry-continuity-summary-distortion-packet/v0"
 RESPONSE_SCHEMA = "sei.inquiry-continuity-summary-distortion-response/v0"
+EVIDENCE_SCHEMA = "sei.inquiry-continuity-summary-distortion-evidence/v0"
 REQUIRED_KINDS = {
     "hypothesis_to_certainty",
     "alternate_hypothesis_omission",
@@ -407,6 +408,61 @@ def build_audit_packet(
     }
 
 
+def build_evidence_bundle(
+    probe: dict[str, Any],
+    fixtures: dict[str, dict[str, Any]],
+    fixture_id: str,
+    response: str | Path,
+) -> dict[str, Any]:
+    """Preserve the fixed human response together with the material needed to audit it."""
+    response_value, raw = load_human_response(response, probe)
+    fixed = hashlib.sha256(raw).hexdigest()
+    case, fixture = _case(probe, fixture_id), fixtures[fixture_id]
+    return {
+        "schema": EVIDENCE_SCHEMA,
+        "status": "evaluation-only",
+        "issue": "ISSUE-000078",
+        "probe_id": probe["probe_id"],
+        "fixture_id": fixture_id,
+        "fixed_human_response_sha256": fixed,
+        "human_response": response_value,
+        "review_material": {
+            "canonical_orientation": fixture["conditions"]["C_sei_resume"][
+                "surface_text"
+            ]["orientation"],
+            "provisional_ai_summary": case["distorted_summary"],
+            "provisional_ai_next_question": case["distorted_next_question"],
+        },
+        "audit_material": {
+            "distortion_key": case["distortion_key"],
+            "reference_state": fixture["reference_state"],
+            "post_interruption_evidence": fixture["scenario"][
+                "post_interruption_evidence"
+            ],
+            "audit_dimensions": probe["audit_dimensions"],
+        },
+        "evidence_boundary": {
+            "human_review_observation": "recorded-with-declared-provenance",
+            "clean_blinded_review": (
+                "candidate-only"
+                if response_value["review_provenance"]["prior_exposure"]
+                == "none-declared"
+                else "not-clean-blinded"
+            ),
+            "actual_long_gap": "not-established-by-this-artifact",
+            "product_value": "not-established-by-this-artifact",
+            "stable_requirement_change": "not-authorized-by-this-artifact",
+        },
+        "provenance_stopline": (
+            "The embedded response preserves what was recorded, while reviewer "
+            "identity, prior exposure, and authorship remain declared metadata "
+            "rather than independent proof."
+        ),
+        "interpretation_stoplines": probe["interpretation_stoplines"],
+        "semantic_stopline": probe["semantic_stopline"],
+    }
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Build canonical ISSUE-000078 E78.3 summary-distortion packets"
@@ -419,6 +475,9 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("review")
     audit = sub.add_parser("audit")
     audit.add_argument("--response", required=True)
+    evidence = sub.add_parser("export-evidence")
+    evidence.add_argument("--response", required=True)
+    evidence.add_argument("--output")
     return parser
 
 
@@ -451,6 +510,30 @@ def main(argv: list[str] | None = None) -> int:
                 args.fixture_id,
                 args.response,
             )
+        elif args.command == "export-evidence":
+            result = build_evidence_bundle(
+                probe,
+                fixtures,
+                args.fixture_id,
+                args.response,
+            )
+            if args.output:
+                Path(args.output).write_text(
+                    json.dumps(result, ensure_ascii=False, indent=2) + "\\n",
+                    encoding="utf-8",
+                )
+                result = {
+                    "exported": True,
+                    "schema": EVIDENCE_SCHEMA,
+                    "probe_id": probe["probe_id"],
+                    "fixture_id": args.fixture_id,
+                    "output": str(args.output),
+                    "evidence": (
+                        "human review observation preserved; actual long-gap, "
+                        "Product Value, and Stable Requirement change remain "
+                        "unestablished"
+                    ),
+                }
         else:
             raise AssertionError(f"unhandled command: {args.command}")
     print(json.dumps(result, ensure_ascii=False, indent=2))
