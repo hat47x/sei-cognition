@@ -342,7 +342,15 @@ REVEAL_RECEIPT=<checkout外または意図的に管理するaudit-reveal-receipt
 AUDIT_RESPONSE=<checkout外または意図的に管理するsemantic-audit-response.json>
 EVIDENCE=<checkout外または意図的に管理するe78-3-evidence.json>
 
+# validateは3 source fixtureのGit blob freezeを全件検証し、current probe /
+# response / review-start / audit-reveal schemaとtyped audit dimensionsを表示する。
 python3 "$PROBE" --probe "$PROBE_SET" --repo-root . validate
+
+# preflightはhuman review artifactを作らず、選択fixtureについてcurrent
+# audit-response / durable Evidence schemaとdimension-specific allowed valuesを表示する。
+# current contractはv1専用であり、pre-v1 review/audit artifactを再利用しない。
+python3 "$EVIDENCE_TOOL" --probe "$PROBE_SET" --repo-root . \
+  --fixture-id <fixture-id> preflight
 
 python3 "$PROBE" --probe "$PROBE_SET" --repo-root . \
   --fixture-id <fixture-id> review \
@@ -394,6 +402,8 @@ python3 "$EVIDENCE_TOOL" --probe "$PROBE_SET" --repo-root . \
   --audit-response "$AUDIT_RESPONSE" \
   --output "$EVIDENCE"
 ```
+
+review開始前に、`validate`と`preflight`の双方が成功し、3 source fixtureのGit blob SHA-1、probe / response / receipt / audit-response / Evidence schema、typed audit dimension契約がcurrent v1であることを確認する。pre-v1 artifactはcurrent contractへ移行済みとはみなさず、human review開始後のschema差し替えを行わない。
 
 review packetに含まれる`provisional_ai_summary`と`provisional_ai_next_question`は、意図的に誤りを含む**evaluation-only stimulus**であり、canonical Question / Observation / Unknown / Hypothesis、Recommendation、Decision、Evidence reportへ自動昇格させない。
 
