@@ -113,14 +113,20 @@
   },
   "derivedResearchInsight": {
     "degradationMode": "global residual containment can erase the incremental effect of localized competition as capacity grows",
-    "nextQuestion": "Whether global residual scaling should be varied independently from local budgets, using static evaluation policies first, before considering input-adaptive local ceilings."
+    "nextQuestion": "Evaluate static residual scaling across more independent fixtures before considering input-adaptive residual or local-budget policies."
   },
   "notVerified": [
     "exact branch source execution on repository Go 1.25",
     "containment behavior across real SUI/SEI feature distributions",
     "human-adjudicated quality relationship to local incremental dimensions",
-    "optimal local/global residual scaling across capacities",
+    "static residual scaling across multiple independent fixtures and varying input cardinalities",
     "whether a static residual ceiling outperforms input-adaptive local ceilings",
     "Production, Operational, Adoption, or Outcome Evidence"
-  ]
+  ],
+  "followUp": {
+    "issue": 455,
+    "evidenceFile": "static_residual_scaling_evidence_2026-09-18.json",
+    "result": "B6d compares static global-residual caps while preserving the existing local-half scaling and without redistributing unused budget.",
+    "keyObservation": "cap128 and cap64 both restore the oversized desired ordering; cap64 restores more local incremental dimensions than cap128 but has a slightly smaller margin, so local incremental count is not a monotonic quality proxy."
+  }
 }

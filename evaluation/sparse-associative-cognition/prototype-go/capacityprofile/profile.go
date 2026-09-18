@@ -109,6 +109,27 @@ func EqualLocalHalfResidual(active uint16, familyCount uint16) (localEach uint16
 	return localEach, globalResidual, nil
 }
 
+// EqualLocalHalfResidualCapped preserves the baseline local-half allocation and
+// applies a static upper bound only to the global residual. Any resulting
+// unused winner budget stays unused; it is not redistributed implicitly.
+func EqualLocalHalfResidualCapped(
+	active uint16,
+	familyCount uint16,
+	residualCap uint16,
+) (localEach uint16, globalResidual uint16, err error) {
+	if residualCap == 0 {
+		return 0, 0, errors.New("residual cap must be > 0")
+	}
+	localEach, globalResidual, err = EqualLocalHalfResidual(active, familyCount)
+	if err != nil {
+		return 0, 0, err
+	}
+	if globalResidual > residualCap {
+		globalResidual = residualCap
+	}
+	return localEach, globalResidual, nil
+}
+
 // ProjectionUpperBound is a simple pre-collision upper bound on touched
 // dimensions for positive keyed features. It is not an observed activation
 // count and must not be treated as semantic quality.

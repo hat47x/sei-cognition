@@ -538,7 +538,47 @@
           "residual_ratio_changed": false,
           "b5_entry_gate_changed": false
         },
-        "stop_line": "dimension containmentをsemantic redundancyやlocal policy不要論へ昇格させず、単一fixtureのlocal incremental zeroをproduction policy変更の十分条件にしない。"
+        "stop_line": "dimension containmentをsemantic redundancyやlocal policy不要論へ昇格させず、単一fixtureのlocal incremental zeroをproduction policy変更の十分条件にしない。",
+        "follow_up_evidence_file": "static_residual_scaling_evidence_2026-09-18.json"
+      }
+    },
+    {
+      "stage": "SAC-B6d",
+      "name": "static global-residual scaling",
+      "depends_on": [
+        "SAC-B6c"
+      ],
+      "change": "current local-half scalingを維持したままglobal residualだけへstatic capを適用し、未使用budgetを再配分せずbaseline / cap128 / cap64を比較する。input-adaptive policyは導入しない。",
+      "primary_question": "capacity拡大でlocal winnerを包含したglobal residualの比例拡大を静的に抑えるだけで、local/globalのdistinctnessとsynthetic candidate orderingを回復できるか。またlocal incremental dimensionsとqualityが単調対応しない反例を保持できるか。",
+      "measures": [
+        "desired_minus_distractor_margin",
+        "residual_selected_dimensions",
+        "local_incremental_dimensions",
+        "family_unique_beyond_residual",
+        "merged_selected_dimensions",
+        "unused_budget",
+        "deterministic_reproducibility"
+      ],
+      "current_result": {
+        "state": "limited-synthetic-executable-evidence",
+        "evidence_file": "static_residual_scaling_evidence_2026-09-18.json",
+        "findings": [
+          "oversized baselineはdesired 0.34765625 / distractor 0.50390625 / margin -0.15625、residual=256、local incremental=0だった。",
+          "cap128ではdesired約0.585526 / distractor約0.394308 / margin約+0.191218、residual=128、local incremental=24へ回復した。",
+          "cap64ではdesired約0.585526 / distractor約0.407240 / margin約+0.178286、residual=64、local incremental=88へ回復した。",
+          "cap64はsmall/medium/largeのbaseline residual 16/32/64を変更せず、existing profile sequenceではoversizedだけを変える比較条件になる。",
+          "cap64はcap128よりlocal incremental dimensionsを多く回復したがmarginはわずかに小さく、incremental dimensionalityをquality proxyとして単調利用できない。",
+          "cap128/cap64ではunused budgetを128/192残し、他経路へ再配分しないことでresidual suppressionだけを比較した。"
+        ],
+        "implementation_boundary": {
+          "normal_encoder_changed": false,
+          "provider_response_contract_changed": false,
+          "sparse_profile_mutated": false,
+          "unused_budget_redistributed": false,
+          "adaptive_policy_implemented": false,
+          "b5_entry_gate_changed": false
+        },
+        "stop_line": "static capによるsynthetic回復を最適cap・実workload一般化・unused capacityの意味判断・production adaptive policyへ昇格させない。"
       }
     },
     {
@@ -676,7 +716,10 @@
     "minimum_escalation_floor_preservation",
     "execution_cognitive_outcome_separation",
     "policy_version_provenance_trace",
-    "distribution_shift_regret"
+    "distribution_shift_regret",
+    "desired_minus_distractor_margin",
+    "residual_selected_dimensions",
+    "unused_budget"
   ],
   "evaluation_policy": {
     "single_composite_score": false,
@@ -723,7 +766,10 @@
       "B6cではgroupingのresidual外寄与が全profileで0、graph/provenanceがlargeで0、textもoversizedで0となる包含系列を確認したが、これをsemantic redundancyやquality failureの十分条件とは扱っていない。",
       "SEI-B7のsynthetic evaluationで、provenance付きcognitive outcomeから生成したcandidate policyが明示activationまでactive routingを変更せず、immutable versionへのrollbackで以前のrouteを再現することを確認した。",
       "同じB7評価で、execution failureをcognitive insufficiencyへ自動変換せず、caller-owned minimum escalation floorをlower routeの高いsynthetic efficacyでも越えないことを確認した。",
-      "B7 positive replayではsynthetic success rateを維持したままunnecessary escalationを減らすケースを観測した一方、distribution-shift replayではstatic routeに対するregretが発生する反例を同時に固定した。"
+      "B7 positive replayではsynthetic success rateを維持したままunnecessary escalationを減らすケースを観測した一方、distribution-shift replayではstatic routeに対するregretが発生する反例を同時に固定した。",
+      "SAC-B6dでlocal-half scalingを維持しglobal residualだけをstaticにcapする比較を追加し、unused budgetを他経路へ再配分しなかった。",
+      "oversized fixtureではbaseline margin -0.15625に対しcap128で約+0.1912、cap64で約+0.1783へ回復し、residual scalingが独立したcapacity-policy変数であることをsyntheticに確認した。",
+      "cap64はcap128よりlocal incremental dimensionsを88対24まで多く回復した一方marginはわずかに小さく、local incremental dimensionalityがqualityの単調proxyではない反例を確認した。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -737,7 +783,7 @@
       "learned sparse projectionがrandom / static方式を上回るか",
       "10万件以上でのindex方式",
       "LLM呼び出し削減量",
-      "実hardware / real workloadにおけるcapacity profile品質、最適local/global residual scaling、path別selection-pressure ceiling、adaptive Active / local budget policy、power / latency / memory trade-off",
+      "実hardware / real workloadにおけるcapacity profile品質、複数fixtureでのstatic residual scaling一般化、最適residual scaling、path別selection-pressure ceiling、adaptive Active / local budget policy、power / latency / memory trade-off",
       "実problem class / real Outcome評価におけるoutcome-informed routingの一般化、selection-bias補正、statistical confidence、drift / expiry / rollback criteria",
       "production配置方式",
       "Product Value / Operational / Adoption / Outcome Evidence"
@@ -750,7 +796,8 @@
       "capacity_homeostasis_evidence_2026-09-18.json",
       "observed_selection_pressure_evidence_2026-09-18.json",
       "local_residual_containment_evidence_2026-09-18.json",
-      "../sei-cognition-orchestration/outcome_informed_routing_evidence_2026-09-18.json"
+      "../sei-cognition-orchestration/outcome_informed_routing_evidence_2026-09-18.json",
+      "static_residual_scaling_evidence_2026-09-18.json"
     ]
   },
   "references": [

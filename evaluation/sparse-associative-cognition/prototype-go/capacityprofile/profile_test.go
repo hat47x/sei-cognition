@@ -104,6 +104,41 @@ func TestEqualLocalHalfResidualScalesB2Budget(t *testing.T) {
 	}
 }
 
+func TestEqualLocalHalfResidualCappedPreservesLocalHalfAndCapsResidual(t *testing.T) {
+	cases := []struct {
+		active   uint16
+		cap      uint16
+		local    uint16
+		residual uint16
+	}{
+		{32, 64, 4, 16},
+		{64, 64, 8, 32},
+		{128, 64, 16, 64},
+		{512, 64, 64, 64},
+		{512, 128, 64, 128},
+	}
+	for _, tc := range cases {
+		local, residual, err := EqualLocalHalfResidualCapped(tc.active, 4, tc.cap)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if local != tc.local || residual != tc.residual {
+			t.Fatalf("active/cap=%d/%d local/residual=%d/%d want %d/%d",
+				tc.active, tc.cap, local, residual, tc.local, tc.residual)
+		}
+		reserved := int(local)*4 + int(residual)
+		if reserved > int(tc.active) {
+			t.Fatalf("reserved=%d exceeds active=%d", reserved, tc.active)
+		}
+	}
+}
+
+func TestEqualLocalHalfResidualCappedRejectsZeroCap(t *testing.T) {
+	if _, _, err := EqualLocalHalfResidualCapped(64, 4, 0); err == nil {
+		t.Fatal("zero residual cap must fail")
+	}
+}
+
 func TestTooSmallProfileCannotPreserveFourFamilyHalfResidualPolicy(t *testing.T) {
 	base := mediumProfile()
 	tiny, err := ScaleDimensions(base, "tiny", 256)
