@@ -27,7 +27,98 @@ const (
 	BinaryDigestPrePostMatched  = "pre_post_matched"
 )
 
-var sha256Pattern = regexp.MustCompile(`^[0-9a-fA-F]{64}$`)
+var (
+	sha256Pattern     = regexp.MustCompile(`^[0-9a-fA-F]{64}package teiprobe
+
+import (
+	"bytes"
+	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"os"
+	"regexp"
+	"strings"
+
+	"github.com/hat47x/sei-cognition/runtime/go/provideradapter"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/teiintegration"
+)
+
+const (
+	ReportSchema   = "sei.e3b-tei-probe/v1"
+	ManifestSchema = "sei.tei-binary-build-manifest/v1"
+
+	SourceBindingNotVerified    = "not_verified"
+	SourceBindingManifestMatch  = "manifest_matched"
+	BinaryDigestPrePostMatched  = "pre_post_matched"
+)
+
+)
+	repositoryPattern = regexp.MustCompile(`^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)+package teiprobe
+
+import (
+	"bytes"
+	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"os"
+	"regexp"
+	"strings"
+
+	"github.com/hat47x/sei-cognition/runtime/go/provideradapter"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/teiintegration"
+)
+
+const (
+	ReportSchema   = "sei.e3b-tei-probe/v1"
+	ManifestSchema = "sei.tei-binary-build-manifest/v1"
+
+	SourceBindingNotVerified    = "not_verified"
+	SourceBindingManifestMatch  = "manifest_matched"
+	BinaryDigestPrePostMatched  = "pre_post_matched"
+)
+
+)
+	commitPattern     = regexp.MustCompile(`^[0-9a-fA-F]{7,64}package teiprobe
+
+import (
+	"bytes"
+	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"os"
+	"regexp"
+	"strings"
+
+	"github.com/hat47x/sei-cognition/runtime/go/provideradapter"
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
+	"github.com/hat47x/sei-cognition/runtime/go/teiintegration"
+)
+
+const (
+	ReportSchema   = "sei.e3b-tei-probe/v1"
+	ManifestSchema = "sei.tei-binary-build-manifest/v1"
+
+	SourceBindingNotVerified    = "not_verified"
+	SourceBindingManifestMatch  = "manifest_matched"
+	BinaryDigestPrePostMatched  = "pre_post_matched"
+)
+
+)
+)
 
 // BuildManifest is an optional, evaluation-local declaration that binds one
 // supplied executable digest to a declared source repository and commit.
@@ -163,11 +254,19 @@ func validateRequest(request Request) error {
 	if strings.TrimSpace(request.BinaryPath) == "" {
 		return errors.New("TEI binary path is required")
 	}
-	if strings.TrimSpace(request.DeclaredRepository) == "" {
+	repository := strings.TrimSpace(request.DeclaredRepository)
+	if repository == "" {
 		return errors.New("declared TEI source repository is required")
 	}
-	if strings.TrimSpace(request.DeclaredCommit) == "" {
+	if !repositoryPattern.MatchString(repository) {
+		return errors.New("declared TEI source repository must be a non-URL repository identifier")
+	}
+	commit := strings.TrimSpace(request.DeclaredCommit)
+	if commit == "" {
 		return errors.New("declared TEI source commit is required")
+	}
+	if !commitPattern.MatchString(commit) {
+		return errors.New("declared TEI source commit must be a hexadecimal object identity")
 	}
 	return nil
 }
@@ -181,6 +280,8 @@ func Probe(ctx context.Context, request Request) (Report, error) {
 	if err := validateRequest(request); err != nil {
 		return Report{}, err
 	}
+	request.DeclaredRepository = strings.TrimSpace(request.DeclaredRepository)
+	request.DeclaredCommit = strings.ToLower(strings.TrimSpace(request.DeclaredCommit))
 
 	beforeDigest, err := hashRegularExecutable(request.BinaryPath)
 	if err != nil {
