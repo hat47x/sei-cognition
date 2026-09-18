@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"sort"
 	"strings"
 	"unicode"
@@ -530,9 +531,11 @@ func validateProjectionBias(policy *ProjectionBiasPolicy) error {
 	if strings.TrimSpace(policy.PolicyRef) == "" {
 		return errors.New("projection bias policyRef must not be empty")
 	}
-	if policy.MaxMultiplier <= 1 || policy.MaxMultiplier > MaxProjectionBiasMultiplier {
+	if !finiteFloat32(policy.MaxMultiplier) ||
+		policy.MaxMultiplier <= 1 ||
+		policy.MaxMultiplier > MaxProjectionBiasMultiplier {
 		return fmt.Errorf(
-			"projection bias maxMultiplier must be in (1,%g]",
+			"projection bias maxMultiplier must be finite and in (1,%g]",
 			MaxProjectionBiasMultiplier,
 		)
 	}
@@ -544,13 +547,21 @@ func validateProjectionBias(policy *ProjectionBiasPolicy) error {
 		if strings.TrimSpace(rule.Channel) == "" {
 			return fmt.Errorf("projection bias rule %d channel must not be empty", i)
 		}
+		if rule.Channel != strings.TrimSpace(rule.Channel) {
+			return fmt.Errorf("projection bias rule %d channel must be canonical", i)
+		}
 		if strings.TrimSpace(rule.Key) == "" {
 			return fmt.Errorf("projection bias rule %d key must not be empty", i)
+		}
+		if rule.Key != strings.TrimSpace(rule.Key) {
+			return fmt.Errorf("projection bias rule %d key must be canonical", i)
 		}
 		if strings.TrimSpace(rule.ProvenanceRef) == "" {
 			return fmt.Errorf("projection bias rule %d provenanceRef must not be empty", i)
 		}
-		if rule.Multiplier <= 1 || rule.Multiplier > policy.MaxMultiplier {
+		if !finiteFloat32(rule.Multiplier) ||
+			rule.Multiplier <= 1 ||
+			rule.Multiplier > policy.MaxMultiplier {
 			return fmt.Errorf(
 				"projection bias rule %d multiplier must be in (1,%g]",
 				i,
@@ -568,6 +579,11 @@ func validateProjectionBias(policy *ProjectionBiasPolicy) error {
 		seen[selector] = struct{}{}
 	}
 	return nil
+}
+
+func finiteFloat32(value float32) bool {
+	v := float64(value)
+	return !math.IsNaN(v) && !math.IsInf(v, 0)
 }
 
 func cloneProjectionBias(policy *ProjectionBiasPolicy) *ProjectionBiasPolicy {
