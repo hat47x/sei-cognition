@@ -1,7 +1,7 @@
 # SEI Product文書の読み方
 
-更新日: 2026-09-05  
-状態: **Current Product Documentation Baseline — v0.2.0 Release Evidence / E3b-P2 / E3b-M1a・M1b / historical reconstruction / runtime-version exchange / quality-evaluation boundary / PMS-06 current state reflected**
+更新日: 2026-09-18  
+状態: **Current Product Documentation Baseline — Product Shape再基線化 / resume-first Product Slice / v0.2.0 Release Evidence / E3b-P2・M1 / historical reconstruction / runtime-version exchange / actual TEI Evidence protocol / quality-evaluation boundary reflected**
 
 ## 1. この文書の役割
 
@@ -101,6 +101,7 @@ PMS-06のversion-exchange探索は現在、次の状態です。
 
 - ISSUE-000070 — **Resolved**。fixed KJ Atlas source / Method input / model artifact / promptの下でOllama `0.32.13` / `0.32.14`をactualに交換し、same logical / different Exact Binding、historical Application不変性、portable reconstruction、Evidence + Provenance `ready-to-review`まで確認したfixed-scope Scoped Executable Evidenceがあります。
 - ISSUE-000072 — **Open**。TEI executable revision A / Bを交換する探索です。revision A historical Evidence再検証、exact-B executable + exact-A fixed reference input、E2 / E3 runner、separate toolchains、stage-aware diagnosticsまで実装済みですが、revision B actual CLI / Provider Plan / current SEI Adapter compatibilityはNot Yet Verifiedです。
+- ISSUE-000074 — **Open**。actual TEI binaryを実行した際のEvidenceを再利用可能に採取する探索です。direct executableのpre/post SHA-256、declared source、optional strict manifest、既存`teiintegration`によるProvider Plan mappingを`sei.e3b-tei-probe/v1`へ束ねる`teiprobe` / `tei-e3b-probe` sourceは実装済みです。ただしcurrent Go 1.25でのtest実行とactual TEI reportはNot Yet Verifiedです。
 
 最新位置は`roadmap/PMS06_CURRENT_STATE_2026-09-05.md`を参照します。ISSUE-000070のPASSをISSUE-000072のEvidenceへ流用しません。
 
@@ -110,7 +111,7 @@ PMS-07はv0.2.0 Local Reference Product Baselineの範囲でRelease EvidenceがS
 
 ### `roadmap/PMS06_CURRENT_STATE_2026-09-05.md`
 
-PMS-06の広域Product基線を置き換えず、ISSUE-000070のfixed-scope ResolutionとISSUE-000072のOpen actual境界を短く確認するsnapshotです。
+PMS-06の広域Product基線を置き換えず、ISSUE-000070のfixed-scope Resolution、ISSUE-000072のOpen actual境界、ISSUE-000074のreusable actual-binary Evidence protocol実装状態を短く確認するsnapshotです。ファイル名は初回snapshot日を保持しますが、本文のcurrent stateは後続deltaへ更新します。
 
 ```text
 PMS-06 current snapshot
@@ -123,6 +124,10 @@ ISSUE-000070 Resolved
 
 ISSUE-000072 repository-side ready
   != revision B actual compatibility PASS
+
+ISSUE-000074 protocol source implemented
+  != protocol tests executed
+  != actual TEI report PASS
 ```
 
 ### `interaction/SEI_PRODUCT_INTERACTION.md`
@@ -162,6 +167,15 @@ PMS-06に対応し、Cognitive Method RealizationやCapability Providerを交換
 E3b-P2では固定revisionの実TEI CLIをbuild・起動し、actual `deployment-provider-plan`をSEI Adapterでstrictに読み、current Capability Observationへ戻す範囲まで確認しました。E3b-M1bではKJ Atlasの既存Method surfaceとpromptを保ったままactual model inferenceを通し、その結果を既存SEI Method mapping boundaryへ戻せることを確認しました。
 
 その後のversion-exchange explorationでは、Cognitive Method側のOllama runtime version交換（ISSUE-000070）と、Capability Provider側のTEI executable / Provider Plan revision交換（ISSUE-000072）を別軸として扱っています。
+
+ISSUE-000074では、これらの実行結果を「何を実行したか」へ戻って監査できるよう、actual TEI direct binaryのSHA-256、declared source repository / commit、optional manifestとの一致状態、実行対象、current Capability Observationをderived Evidence reportへ束ねる採取protocolを実装しました。Provider Planの意味mappingは既存`teiintegration`へ委譲し、Evidence用の第二mappingを作っていません。
+
+```text
+TEI Evidence protocol implementation
+  != current Go test PASS
+  != actual TEI binary report PASS
+  != ISSUE-000072 revision B compatibility PASS
+```
 
 ISSUE-000070はfixed scopeでResolvedしました。runtime version、archive digest、model digest、prompt digestはRealization-local metadata / Provenance / Evidenceに留まり、新しいUniversal fieldは追加していません。
 
@@ -215,6 +229,7 @@ current repositoryでは、少なくとも次の状態まで確認していま�
 - Realization / Provider portability: **Partial — E2 / E3a / E3b-P1 / E3b-P2 / E3b-M1a / E3b-M1b / historical reconstruction / actual model artifact exchange / fixed-scope Ollama runtime version exchangeまでScoped Executable Evidenceあり**
 - Ollama runtime version exchange: **ISSUE-000070 Resolved — fixed-scope actual A/B exchange / historical reconstruction / canonical Evidence + Provenance verificationまで確認済み**
 - TEI executable version exchange: **ISSUE-000072 Open — exact-B + exact-A fixed-input E2/E3 path implemented, revision B actual Not Yet Verified**
+- actual TEI Evidence protocol: **ISSUE-000074 Open — `teiprobe` / `tei-e3b-probe` / protocol source implemented, current Go 1.25 test + actual TEI report Not Yet Verified**
 - Cognitive Method outcome quality: **evaluation boundary established / actual human review and quality judgement pending**
 - PMS-07: **Satisfied for v0.2.0 Local Reference Product Baseline**
 - E4 Operational portability: **Not Yet Verified**
@@ -287,13 +302,15 @@ Coreへ追加する前に、少なくとも次を検討します。
 
 ## 10. Natural Japanese review
 
-2026-09-05時点のProduct Value、Value Proposition、Value Model / Acceptance、Product Shape、Vision / Principles、Product Milestones、PMS-06 current snapshot、Interaction、Packaging、Identity / Access / Collaboration、Realization / Provider Exchange、v0.2.0 Release Evidence、E3b-P2、E3b-M1a / M1b、ISSUE-000067〜000072へ戻ってProduct文書の入口を再監査しました。
+2026-09-18時点のProduct Value、Value Proposition、Value Model / Acceptance、Product Shape、Vision / Principles、Product Milestones、PMS-06 current snapshot、Interaction、Packaging、Identity / Access / Collaboration、Realization / Provider Exchange、v0.2.0 Release Evidence、resume-first Product Slice、E3b-P2、E3b-M1a / M1b、ISSUE-000067〜000074およびISSUE-000077 / 000078へ戻ってProduct文書の入口を再監査しました。
 
 旧文書に残っていた「SEI Actionsからprivate TEIを取得するcredential運用」という実行面固有の表現は、private artifact acquisition / credential lifecycleというProduct側の未検証境界へ既に戻しています。GitHub Actionsは当面完全停止しており、その停止自体をProduct semanticsへ持ち込みません。
 
 ISSUE-000070は、回収済みactual A/B Evidenceとcurrent-contract Git object equivalence監査によりfixed scopeでResolvedしました。これによりCognitive Method側のruntime version交換について、actual bytes / binary version / model identity / same prompt / A/B inference / Exact Binding / historical Application不変性 / portable reconstructionまでScoped Executable Evidenceがあります。一方、成果品質、任意runtime portability、E4 Operational portabilityは未成立のままです。
 
 Capability Provider側のTEI executable version交換（ISSUE-000072）は引き続きOpenです。revision B actual CLI / Provider Plan / current SEI Adapter compatibilityはNot Yet Verifiedであり、ISSUE-000070のPASSをそのEvidenceへ流用しません。
+
+2026-09-18には、ISSUE-000074でactual TEI Evidence採取protocolを`runtime/go/teiprobe`、`runtime/go/cmd/tei-e3b-probe`、`runtime/ACTUAL_TEI_EVIDENCE_PROTOCOL.md`として実体化しました。これはrevision A / Bのcompatibilityを新たに証明したものではなく、actual binaryが供給されたときにidentity、declared source、optional binding、Capability Observationを一つのderived Evidenceへ固定するための経路です。current Go 1.25 testとactual TEI reportは未取得のままです。
 
 historical reconstruction、actual model artifact交換、ISSUE-000071の成果品質評価境界も現在地を維持しています。human outcome reviewは未完了のままであり、version交換PASSから成果品質へ自動昇格させません。
 
