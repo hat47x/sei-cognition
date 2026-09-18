@@ -822,7 +822,8 @@
       "cross-stage result artifactをdraft / empty templateとして実装し、authorized runへのexact digest binding、requested metric完全性、metric role、unavailable明示、raw Evidence digest、canonical result digestの境界をvalidator/testで固定した。実human-adjudicated benchmark resultは未生成。",
       "cross-stage result validatorをGitHub正本とGit blob SHA一致の一時再構成環境でPython 3.13.5実行し、result 24 tests、run 20 tests、freeze 18 tests、preregistration 27 testsの計89 testsがPASSした。4 validatorもPASSし、current result / run / freeze bundle / preregistrationは引き続きdraft / lockedのままである。",
       "cross-stage interpretation artifactをdraft / non-decisional templateとして実装し、completed result exact digest binding、scope identity、metric evidence reference、analyst provenance、explicit limitation、canonical digestをcontract化した。source inspectionでinterpretation 27 tests、preregistration 32 tests、research-plan 33 testsを定義し、semantic truth / winner / recommendation / B5 decision / production defaultへの昇格をfail-closedにした。runtime実行は本更新では未観測。",
-      "cross-stage execution-attempt artifactをresultから分離してdraft contract化し、成功/失敗双方の試行、exact run digest、executor/environment/time/exit/raw Evidence、canonical attempt digestをGit blob SHA一致のfocused 20 testsで固定した。upstream full integration runtime Evidenceは未実行で、実benchmark resultも未生成。"
+      "cross-stage execution-attempt artifactをresultから分離してdraft contract化し、成功/失敗双方の試行、exact run digest、executor/environment/time/exit/raw Evidence、canonical attempt digestをGit blob SHA一致のfocused 20 testsで固定した。upstream full integration runtime Evidenceは未実行で、実benchmark resultも未生成。",
+      "cross-stage execution-attemptをGitHub正本17 source / manifestのGit blob SHA一致一時再構成環境でPython 3.13.5実行し、focused 20 tests、actual upstream integration 6 tests、run/freeze/preregistration regression 70 testsの計96 testsがPASSした。4 validatorもPASSし、current attempt / run / freeze / preregistrationはdraft / lockedのままである。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -863,7 +864,8 @@
       "cross-stage-result/result_contract_evidence_2026-09-18.json",
       "cross-stage-result/result_runtime_evidence_2026-09-18.json",
       "cross-stage-interpretation/interpretation_contract_evidence_2026-09-19.json",
-      "cross-stage-attempt/execution_attempt_contract_evidence_2026-09-19.json"
+      "cross-stage-attempt/execution_attempt_contract_evidence_2026-09-19.json",
+      "cross-stage-attempt/execution_attempt_runtime_evidence_2026-09-19.json"
     ]
   },
   "references": [
@@ -991,9 +993,15 @@
       "evidence_ref": "cross-stage-attempt/execution_attempt_contract_evidence_2026-09-19.json",
       "current_attempt_completed": false,
       "benchmark_result_generated": false,
-      "upstream_integration_runtime_evidence": false,
+      "upstream_integration_runtime_evidence": true,
       "b5_entry_gate_changed": false,
-      "production_default_changed": false
+      "production_default_changed": false,
+      "runtime_evidence_ref": "cross-stage-attempt/execution_attempt_runtime_evidence_2026-09-19.json",
+      "runtime_validation_state": "passed-current-draft-and-full-upstream-integration-regression",
+      "focused_tests_passed": 20,
+      "integration_tests_passed": 6,
+      "upstream_regression_tests_passed": 70,
+      "total_tests_passed": 96
     }
   }
 }
