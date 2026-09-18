@@ -20,15 +20,22 @@ from pathlib import Path
 from typing import Any
 
 from inquiry_continuity_packet import (
+    DECISION_MANIFEST_SCHEMA,
     INQUIRY_MANIFEST_SCHEMA,
     PacketError,
     load_manifest_fixtures,
 )
 from inquiry_continuity_review_analysis import (
     InquiryReviewError,
-    response_template,
+    response_template as inquiry_response_template,
     validate_inquiry_response,
     validate_inquiry_session,
+)
+from decision_continuity_review_analysis import (
+    DecisionReviewError,
+    response_template as decision_response_template,
+    validate_decision_response,
+    validate_decision_session,
 )
 from inquiry_continuity_review_evidence import (
     InquiryEvidenceBundleError,
@@ -181,9 +188,12 @@ def load_context(
         )
     except PacketError as exc:
         raise InquiryReviewRunnerError(str(exc)) from exc
-    if manifest.get("schema") != INQUIRY_MANIFEST_SCHEMA:
+    if manifest.get("schema") not in {
+        INQUIRY_MANIFEST_SCHEMA,
+        DECISION_MANIFEST_SCHEMA,
+    }:
         raise InquiryReviewRunnerError(
-            "manifest is not an Inquiry Continuity matched set"
+            "manifest is not a supported Inquiry/Decision Continuity matched set"
         )
     return manifest, fixtures
 
@@ -206,15 +216,45 @@ def _validate_safe_session(
     require_complete: bool = False,
 ) -> None:
     try:
-        validate_inquiry_session(
-            session,
-            manifest,
-            fixtures_by_id,
-            require_complete=require_complete,
-        )
-    except InquiryReviewError as exc:
+        if manifest.get("schema") == INQUIRY_MANIFEST_SCHEMA:
+            validate_inquiry_session(
+                session,
+                manifest,
+                fixtures_by_id,
+                require_complete=require_complete,
+            )
+        elif manifest.get("schema") == DECISION_MANIFEST_SCHEMA:
+            validate_decision_session(
+                session,
+                manifest,
+                fixtures_by_id,
+                require_complete=require_complete,
+            )
+        else:
+            raise InquiryReviewRunnerError(
+                "unsupported matched-review manifest schema"
+            )
+    except (InquiryReviewError, DecisionReviewError) as exc:
         raise InquiryReviewRunnerError(str(exc)) from exc
     validate_review_provenance(session)
+
+
+def _response_template(
+    manifest: dict[str, Any],
+    stage: str,
+    fixture: dict[str, Any],
+) -> dict[str, Any]:
+    if manifest.get("schema") == INQUIRY_MANIFEST_SCHEMA:
+        return inquiry_response_template(stage, fixture)
+    if manifest.get("schema") == DECISION_MANIFEST_SCHEMA:
+        return decision_response_template(stage, fixture)
+    raise InquiryReviewRunnerError("unsupported matched-review manifest schema")
+
+
+def _reviewer_bundle_schema(manifest: dict[str, Any]) -> str:
+    if manifest.get("schema") == DECISION_MANIFEST_SCHEMA:
+        return "sei.decision-continuity-reviewer-bundle/v0"
+    return "sei.inquiry-continuity-reviewer-bundle/v0"
 
 
 def reviewer_bundle(
@@ -232,7 +272,7 @@ def reviewer_bundle(
     review_context = provenance_projection(session)
     if stage == COMPLETE:
         return {
-            "schema": "sei.inquiry-continuity-reviewer-bundle/v0",
+            "schema": _reviewer_bundle_schema(manifest),
             "status": "evaluation-only",
             "session_id": session["session_id"],
             "stage": COMPLETE,
@@ -256,7 +296,8 @@ def reviewer_bundle(
             {
                 "fixture_id": fixture_id,
                 "packet": _reviewer_packet(packet),
-                "response_template": response_template(
+                "response_template": _response_template(
+                    manifest,
                     stage,
                     fixtures_by_id[fixture_id],
                 ),
@@ -264,7 +305,7 @@ def reviewer_bundle(
         )
 
     return {
-        "schema": "sei.inquiry-continuity-reviewer-bundle/v0",
+        "schema": _reviewer_bundle_schema(manifest),
         "status": "evaluation-only",
         "session_id": session["session_id"],
         "stage": stage,
@@ -309,11 +350,22 @@ def record_checked_response(
         )
 
     try:
-        validate_inquiry_response(
-            stage,
-            response,
-            fixtures_by_id[fixture_id],
-        )
+        if manifest.get("schema") == INQUIRY_MANIFEST_SCHEMA:
+            validate_inquiry_response(
+                stage,
+                response,
+                fixtures_by_id[fixture_id],
+            )
+        elif manifest.get("schema") == DECISION_MANIFEST_SCHEMA:
+            validate_decision_response(
+                stage,
+                response,
+                fixtures_by_id[fixture_id],
+            )
+        else:
+            raise InquiryReviewRunnerError(
+                "unsupported matched-review manifest schema"
+            )
         updated = record_response(
             session,
             fixture_id,
@@ -367,7 +419,7 @@ def _load_response(path: str | Path) -> Any:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Run ISSUE-000078 Inquiry Continuity human reviews safely"
+        description="Run Inquiry/Decision Continuity matched human reviews safely"
     )
     parser.add_argument("--manifest", default=DEFAULT_MANIFEST)
     parser.add_argument("--repo-root", default=".")
