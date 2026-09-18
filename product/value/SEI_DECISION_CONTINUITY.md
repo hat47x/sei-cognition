@@ -1,7 +1,7 @@
 # SEI Decision Continuity — Product Value Synthesis
 
-更新日: 2026-09-11  
-状態: **Cross-axis Product Value Synthesis — Design Baseline / Outcome Evidence Pending**
+更新日: 2026-09-18  
+状態: **Cross-axis Product Value Synthesis — Design Baseline / Executable & Human Outcome Evidence Pending**
 
 ## 1. この文書の役割
 
@@ -267,13 +267,18 @@ Decision Continuityを中心価値へつなぐと、first sliceの設計優先�
 ```text
 Decision Continuity as Product Value synthesis: Design baseline
 first Product Slice mapping: Design baseline
-Executable Evidence: Not Yet Verified for Decision Continuity outcome
-Human comparative Evidence: Not Yet Verified
+REQ-0023 / SCN-0019 formalization: Accepted / Design Satisfied
+E1-E8 prototype / test source: Available
+Evidence runner / verifier / one-command capture: Available
+E1-E8 actual Go 1.25.x execution: Not Yet Verified
+H1 resume usability Evidence: Not Yet Observed
+H2 human comparative Evidence: Not Yet Observed
+Decision Continuity Product Value: Not Established
 Operational Evidence: Not Yet Verified
 Adoption / Outcome Evidence: Not Yet Verified
 ```
 
-既存のContract / Interaction / Packaging probe PASSを、Decision Continuityの利用者成果へ昇格させません。
+既存のContract / Interaction / Packaging probe PASS、REQ-0023 / SCN-0019のformalization、E1〜E8 sourceや受入れtoolingの存在を、Decision Continuityの利用者成果へ昇格させません。actual Executable PASSとhuman observationを分離し、H1 / H2が未観測の間はProduct ValueをEstablishedと扱いません。
 
 ## 12. 参考研究
 
@@ -300,4 +305,4 @@ Adoption / Outcome Evidence: Not Yet Verified
 
 その結果、resume-firstをUI機能として独立させるのではなく、「時間・Surface・AI・Provider・情報更新をまたいで、過去を捏造せず判断の続きを始められる」というDecision Continuityへ統合した。Decision ContinuityはV1〜V8の横断Outcomeであり、V9やUniversal型へは昇格させていない。
 
-また、semantic integrityが高いだけではProduct Valueとせず、raw chat / simple note等の妥当な代替と比較して再構成負担・誤帰属・AI correction・継続利用負担に実質的な差があるかをAdoption / Outcome側の停止線とした。意味、要求強度、Evidence階層を混同しないよう再監査し、自然な日本語として全文を整えた。
+また、semantic integrityが高いだけではProduct Valueとせず、raw chat / simple note等の妥当な代替と比較して再構成負担・誤帰属・AI correction・継続利用負担に実質的な差があるかをAdoption / Outcome側の停止線とした。2026-09-18時点ではREQ-0023 / SCN-0019のDesign formalizationとE1〜E8のtest / capture基盤まで進んでいるが、actual Go 1.25.x executionはNot Yet Verified、H1 / H2はNot Yet Observed、Decision Continuity Product ValueはNot Establishedである。意味、要求強度、Evidence階層を混同しないよう再監査し、自然な日本語として全文を整えた。
