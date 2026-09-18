@@ -1,0 +1,47 @@
+{
+  "schema": "sei.issue-000073-go-toolchain-acquisition-blocker-evidence/v0",
+  "issue": "ISSUE-000073",
+  "status": "blocked",
+  "observed_at": "2026-09-18T19:53:00+09:00",
+  "scope": "Execution-environment availability of a Go 1.25.x toolchain for ISSUE-000073 E1-E8 only.",
+  "environment": {
+    "os": "Linux",
+    "arch": "x86_64",
+    "host_go": "go version go1.23.2 linux/amd64",
+    "git": "git version 2.47.3",
+    "python": "Python 3.13.5"
+  },
+  "probes": [
+    {
+      "kind": "filesystem_scan",
+      "command": "find /usr/local /usr /opt /root/.cache/go-toolchains /root/sdk /home/oai/share /home/oai/.cache -maxdepth 5 ( -type f -o -type l ) ( -name go -o -name 'go1.25*' )",
+      "observed_candidates": [
+        "/usr/local/go/bin/go"
+      ],
+      "go_1_25_x_found": false
+    },
+    {
+      "kind": "official_direct_distribution",
+      "command": "curl -I --max-time 10 https://go.dev/dl/go1.25.0.linux-amd64.tar.gz",
+      "exit_code": 6,
+      "stderr_summary": "Could not resolve host: go.dev"
+    },
+    {
+      "kind": "official_direct_distribution",
+      "command": "curl -I --max-time 10 https://dl.google.com/go/go1.25.0.linux-amd64.tar.gz",
+      "exit_code": 6,
+      "stderr_summary": "Could not resolve host: dl.google.com"
+    }
+  ],
+  "prior_observation": {
+    "toolchain_auto_download": "GOTOOLCHAIN=go1.25.0+auto go version",
+    "result": "blocked by proxy.golang.org DNS / outbound-network restriction"
+  },
+  "interpretation": [
+    "No Go 1.25.x toolchain is available in the current execution environment.",
+    "Official direct distribution paths are also blocked by DNS resolution.",
+    "This is an execution-environment blocker, not an interactionprobe test failure.",
+    "Do not substitute Go 1.23.2 to manufacture E1-E8 PASS evidence."
+  ],
+  "stopline": "Go 1.25.x acquisition blocked != interactionprobe FAIL != E1-E8 PASS != H1/H2 human evidence != Decision Continuity Product Value established."
+}

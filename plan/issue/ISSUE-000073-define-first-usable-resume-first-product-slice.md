@@ -220,7 +220,7 @@ Question 5、6、9については、Requirement auditとREQ-0023 / SCN-0019のfo
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
 
-runner / captureはclean committed HEAD、required sourceとHEAD blobの一致、Go 1.25.xを要求する。2026-09-18にcurrent execution environmentを再確認したが、host Goは引き続き1.23.2で、`GOTOOLCHAIN=go1.25.0+auto go version`によるtoolchain取得も`proxy.golang.org`へのDNS / 外向き通信制限でblockedとなった。これはinteractionprobe FAILではなくenvironment blockerであり、低いGoで代替PASSを作らない。
+runner / captureはclean committed HEAD、required sourceとHEAD blobの一致、Go 1.25.xを要求する。2026-09-18にcurrent execution environmentを再確認したが、host Goは引き続き1.23.2で、`GOTOOLCHAIN=go1.25.0+auto go version`によるtoolchain取得は`proxy.golang.org`へのDNS / 外向き通信制限でblockedとなった。さらに別経路としてGo公式配布先 `go.dev` / `dl.google.com` へのdirect probeもactualに実行し、いずれもDNS resolution failure（curl exit 6）だった。filesystem scanでもGo executable candidateは`/usr/local/go/bin/go`のみで、Go 1.25.xは見つからなかった。これはinteractionprobe FAILではなくenvironment blockerであり、低いGoで代替PASSを作らない。
 
 Evidence受入れ経路のactual self-test結果は、次のmachine-readable Evidenceへ固定している。
 
@@ -228,6 +228,7 @@ Evidence受入れ経路のactual self-test結果は、次のmachine-readable Evi
 evaluation/personal-inquiry-decision/evidence/issue-000073/runner-verifier-selftests-2026-09-18.json
 evaluation/personal-inquiry-decision/evidence/issue-000073/capture-workflow-selftest-2026-09-18.json
 evaluation/personal-inquiry-decision/evidence/issue-000073/h2-runner-capture-selftest-2026-09-18.json
+evaluation/personal-inquiry-decision/evidence/issue-000073/go-toolchain-acquisition-blocker-2026-09-18.json
 ```
 
 これらはrunner / verifier / captureの受入れ系に限定したExecutable Evidenceであり、E1〜E8 actual Go Evidenceではない。currentの実行手順とblocker詳細は`evaluation/personal-inquiry-decision/DECISION_CONTINUITY_EXECUTION_READINESS_2026-09-16.md`をcurrent-state正本として参照する。
