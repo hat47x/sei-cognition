@@ -235,6 +235,31 @@ TEI migration selected
 9. Product Value / Requirementを再監査し、新Stable Requirement、既存Requirement統合、No Change / Deferredのいずれかを明示する。
 10. SEI Application Planeをbroad / incremental / limited / deferredのどれでTEIへ寄せるかを明示する。
 
+## 2026-09-18 Stage 0 design baseline
+
+`plan/SEI_TEI_REFERENCE_ADOPTION_DESIGN_2026-09.md`を追加し、最初のread-only Referenceのsource / oracle / temporal stoplineを固定した。
+
+重要な判断は、既存fixtureの`conditions.C_sei_resume.surface_text`をTEI Referenceへの入力にはせず、`scenario`側を入力、`C_sei_resume.surface_text`を期待Projectionのoracle、`reference_state`をsemantic audit oracleとして分けることである。
+
+これにより、SEI側で生成済みのResume ProjectionをTEIで再表示するだけの自己循環を避け、Recommendation / Decision、historical basis、unresolved、post-decision changeをTEI Application / Projection境界でどこまで重複なく導出できるかをPressureできる。
+
+TEI current Application Pattern v1の`record` / `browse`へResumeを無理に押し込まず、新しい`resume` / `review` Pattern Kindも先取りしない。Stage 0はReference-local adapter / Projectionから開始し、複数Applicationで同じ不足が再現した場合だけreusable extensionやTEI Product gapを検討する。
+
+current state:
+
+```text
+Stage 0 mapping / source authority / oracle design
+  = available
+
+TEI-side Reference tool source
+  = Not Yet Implemented
+
+Reference Executable Evidence
+  = Not Yet Verified
+
+native vs TEI change-amplification comparison
+  = Not Yet Observed
+```
 ## Initial next step
 
 最初の実装はWeb UI完成ではなく、**Challenge Aのread-only Resume / Review Reference**とする。
