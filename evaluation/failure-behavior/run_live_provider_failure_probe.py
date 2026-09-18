@@ -58,6 +58,19 @@ def sanitized_live_environment(source: dict[str, str] | None = None) -> dict[str
     # The live failure tests use an unauthenticated missing-revision request and
     # one fixed intentionally-invalid token. No real Provider credential is
     # required or inherited from the parent shell.
+    environment["GOWORK"] = "off"
+    environment["GOENV"] = "off"
+    environment["GOTOOLCHAIN"] = "local"
+    for key in (
+        "GOFLAGS",
+        "GOOS",
+        "GOARCH",
+        "GOAMD64",
+        "GOEXPERIMENT",
+        "CGO_ENABLED",
+    ):
+        environment.pop(key, None)
+
     environment[LIVE_FLAG] = "1"
     environment["PYTHONDONTWRITEBYTECODE"] = "1"
     environment["PYTHONNOUSERSITE"] = "1"
