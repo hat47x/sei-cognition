@@ -1,0 +1,31 @@
+{
+  "schema": "sei.sacs-cross-stage-result/v1alpha1",
+  "issue": 473,
+  "state": "draft",
+  "result_id": "cross-stage-result-template",
+  "generated_at": null,
+  "run_binding": {
+    "ref": "../cross-stage-run/evaluation_run.json",
+    "digest": ""
+  },
+  "execution": {
+    "executor_ref": "",
+    "executor_commit": "",
+    "started_at": null,
+    "completed_at": null,
+    "exit_code": null
+  },
+  "track": "",
+  "variant": "",
+  "capacity_profile": null,
+  "stress_policy": null,
+  "observed_environment": {
+    "os": "",
+    "arch": "",
+    "runtime": ""
+  },
+  "metrics": [],
+  "raw_evidence": [],
+  "results_generated": false,
+  "result_digest": ""
+}

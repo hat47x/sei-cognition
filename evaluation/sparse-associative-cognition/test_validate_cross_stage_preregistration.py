@@ -93,6 +93,34 @@ class CrossStagePreregistrationTests(unittest.TestCase):
                 doc["evaluation_run"][key] = True
                 self.assertTrue(validate_preregistration(doc))
 
+    def test_result_artifact_draft_is_registered_without_results(self) -> None:
+        self.assertEqual(self.doc["result_artifact"]["state"], "draft")
+        self.assertFalse(self.doc["result_artifact"]["current_result_completed"])
+        self.assertFalse(self.doc["result_artifact"]["semantic_interpretation_generated"])
+
+    def test_result_artifact_state_and_completed_flag_must_match(self) -> None:
+        doc = copy.deepcopy(self.doc)
+        doc["result_artifact"]["state"] = "completed"
+        self.assert_has_error(
+            validate_preregistration(doc),
+            "current_result_completed must match",
+        )
+
+    def test_result_artifact_cannot_generate_interpretation_in_this_slice(self) -> None:
+        doc = copy.deepcopy(self.doc)
+        doc["result_artifact"]["semantic_interpretation_generated"] = True
+        self.assert_has_error(
+            validate_preregistration(doc),
+            "semantic_interpretation_generated must remain false",
+        )
+
+    def test_result_artifact_cannot_open_b5_or_change_production_default(self) -> None:
+        for key in ("b5_entry_gate_changed", "production_default_changed"):
+            with self.subTest(key=key):
+                doc = copy.deepcopy(self.doc)
+                doc["result_artifact"][key] = True
+                self.assertTrue(validate_preregistration(doc))
+
     def test_semantic_labels_cannot_be_embedded_in_preregistration(self) -> None:
         doc = copy.deepcopy(self.doc)
         doc["adjudication"]["semantic_labels_embedded_in_preregistration"] = True

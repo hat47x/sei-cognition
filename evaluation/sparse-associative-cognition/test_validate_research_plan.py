@@ -127,6 +127,47 @@ class SparseAssociativeCognitionResearchPlanTests(unittest.TestCase):
         plan["cross_stage_evaluation_gate"]["freeze_kit"]["b5_entry_gate_changed"] = True
         self.assert_has_error(plan, "freeze_kit.b5_entry_gate_changed must remain false")
 
+    def test_cross_stage_evaluation_run_state_flag_must_match(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["cross_stage_evaluation_gate"]["evaluation_run"]["state"] = "authorized"
+        self.assert_has_error(plan, "current_run_authorized must match state")
+
+    def test_cross_stage_evaluation_run_stop_lines_remain_closed(self) -> None:
+        for key in (
+            "executor_implemented",
+            "result_artifact_generated",
+            "b5_entry_gate_changed",
+            "production_default_changed",
+        ):
+            with self.subTest(key=key):
+                plan = copy.deepcopy(self.plan)
+                plan["cross_stage_evaluation_gate"]["evaluation_run"][key] = True
+                self.assert_has_error(plan, f"evaluation_run.{key} must remain false")
+
+    def test_cross_stage_evaluation_run_runtime_evidence_floor_is_retained(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["cross_stage_evaluation_gate"]["evaluation_run"]["runtime_tests_passed"] = 19
+        self.assert_has_error(plan, "runtime_tests_passed must be >= 20")
+        plan = copy.deepcopy(self.plan)
+        plan["cross_stage_evaluation_gate"]["evaluation_run"]["integration_tests_passed"] = 40
+        self.assert_has_error(plan, "integration_tests_passed must be >= 41")
+
+    def test_cross_stage_result_artifact_state_flag_must_match(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["cross_stage_evaluation_gate"]["result_artifact"]["state"] = "completed"
+        self.assert_has_error(plan, "current_result_completed must match state")
+
+    def test_cross_stage_result_artifact_cannot_become_interpretation_or_decision(self) -> None:
+        for key in (
+            "semantic_interpretation_generated",
+            "b5_entry_gate_changed",
+            "production_default_changed",
+        ):
+            with self.subTest(key=key):
+                plan = copy.deepcopy(self.plan)
+                plan["cross_stage_evaluation_gate"]["result_artifact"][key] = True
+                self.assert_has_error(plan, f"result_artifact.{key} must remain false")
+
     def test_llm_is_not_required_or_default_fallback(self) -> None:
         for key in ("llm_required", "llm_is_fallback_by_default"):
             with self.subTest(key=key):

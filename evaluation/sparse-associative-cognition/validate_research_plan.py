@@ -247,6 +247,104 @@ def validate_research_plan(plan: dict) -> list[str]:
                     "cross_stage_evaluation_gate.freeze_kit.b5_entry_gate_changed must remain false"
                 )
 
+        evaluation_run = cross_stage.get("evaluation_run")
+        if not isinstance(evaluation_run, dict):
+            errors.append("cross_stage_evaluation_gate.evaluation_run must be an object")
+        else:
+            if evaluation_run.get("state") not in {"draft", "authorized"}:
+                errors.append(
+                    "cross_stage_evaluation_gate.evaluation_run.state must be draft or authorized"
+                )
+            required_run_refs = {
+                "directory": "cross-stage-run",
+                "run_ref": "cross-stage-run/evaluation_run.json",
+                "validator_ref": "cross-stage-run/validate_evaluation_run.py",
+                "evidence_ref": "cross-stage-run/evaluation_run_evidence_2026-09-18.json",
+                "runtime_evidence_ref": "cross-stage-run/evaluation_run_runtime_evidence_2026-09-18.json",
+            }
+            for key, expected in required_run_refs.items():
+                if evaluation_run.get(key) != expected:
+                    errors.append(
+                        f"cross_stage_evaluation_gate.evaluation_run.{key} must remain {expected}"
+                    )
+            authorized = evaluation_run.get("state") == "authorized"
+            if evaluation_run.get("current_run_authorized") is not authorized:
+                errors.append(
+                    "cross_stage_evaluation_gate.evaluation_run.current_run_authorized must match state"
+                )
+            if evaluation_run.get("executor_implemented") is not False:
+                errors.append(
+                    "cross_stage_evaluation_gate.evaluation_run.executor_implemented must remain false"
+                )
+            if evaluation_run.get("result_artifact_generated") is not False:
+                errors.append(
+                    "cross_stage_evaluation_gate.evaluation_run.result_artifact_generated must remain false"
+                )
+            if evaluation_run.get("b5_entry_gate_changed") is not False:
+                errors.append(
+                    "cross_stage_evaluation_gate.evaluation_run.b5_entry_gate_changed must remain false"
+                )
+            if evaluation_run.get("production_default_changed") is not False:
+                errors.append(
+                    "cross_stage_evaluation_gate.evaluation_run.production_default_changed must remain false"
+                )
+            runtime_state = evaluation_run.get("runtime_validation_state")
+            if not isinstance(runtime_state, str) or not runtime_state.startswith("passed-"):
+                errors.append(
+                    "cross_stage_evaluation_gate.evaluation_run.runtime_validation_state must record a passed state"
+                )
+            run_tests = evaluation_run.get("runtime_tests_passed")
+            integration_tests = evaluation_run.get("integration_tests_passed")
+            if not isinstance(run_tests, int) or isinstance(run_tests, bool) or run_tests < 20:
+                errors.append(
+                    "cross_stage_evaluation_gate.evaluation_run.runtime_tests_passed must be >= 20"
+                )
+            if (
+                not isinstance(integration_tests, int)
+                or isinstance(integration_tests, bool)
+                or integration_tests < 41
+            ):
+                errors.append(
+                    "cross_stage_evaluation_gate.evaluation_run.integration_tests_passed must be >= 41"
+                )
+
+        result_artifact = cross_stage.get("result_artifact")
+        if not isinstance(result_artifact, dict):
+            errors.append("cross_stage_evaluation_gate.result_artifact must be an object")
+        else:
+            if result_artifact.get("state") not in {"draft", "completed"}:
+                errors.append(
+                    "cross_stage_evaluation_gate.result_artifact.state must be draft or completed"
+                )
+            required_result_refs = {
+                "directory": "cross-stage-result",
+                "result_ref": "cross-stage-result/result.json",
+                "validator_ref": "cross-stage-result/validate_result.py",
+                "evidence_ref": "cross-stage-result/result_contract_evidence_2026-09-18.json",
+            }
+            for key, expected in required_result_refs.items():
+                if result_artifact.get(key) != expected:
+                    errors.append(
+                        f"cross_stage_evaluation_gate.result_artifact.{key} must remain {expected}"
+                    )
+            completed = result_artifact.get("state") == "completed"
+            if result_artifact.get("current_result_completed") is not completed:
+                errors.append(
+                    "cross_stage_evaluation_gate.result_artifact.current_result_completed must match state"
+                )
+            if result_artifact.get("semantic_interpretation_generated") is not False:
+                errors.append(
+                    "cross_stage_evaluation_gate.result_artifact.semantic_interpretation_generated must remain false"
+                )
+            if result_artifact.get("b5_entry_gate_changed") is not False:
+                errors.append(
+                    "cross_stage_evaluation_gate.result_artifact.b5_entry_gate_changed must remain false"
+                )
+            if result_artifact.get("production_default_changed") is not False:
+                errors.append(
+                    "cross_stage_evaluation_gate.result_artifact.production_default_changed must remain false"
+                )
+
     deferred = plan.get("deferred_directions")
     if not isinstance(deferred, list):
         errors.append("deferred_directions must be a list")
