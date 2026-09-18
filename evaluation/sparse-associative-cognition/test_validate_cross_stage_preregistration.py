@@ -79,6 +79,16 @@ class CrossStagePreregistrationTests(unittest.TestCase):
         doc["capacity_profiles"]["diagnostics_are_not_semantic_scores"] = False
         self.assert_has_error(validate_preregistration(doc), "must not become semantic scores")
 
+    def test_b6d_b6e_stress_track_cannot_define_production_default(self) -> None:
+        doc = copy.deepcopy(self.doc)
+        doc["capacity_profiles"]["stress_track"]["may_not_define_production_default"] = False
+        self.assert_has_error(validate_preregistration(doc), "must not define production default")
+
+    def test_feature_cardinality_cannot_become_semantic_priority(self) -> None:
+        doc = copy.deepcopy(self.doc)
+        doc["capacity_profiles"]["stress_track"]["may_not_use_feature_cardinality_as_semantic_priority"] = False
+        self.assert_has_error(validate_preregistration(doc), "feature cardinality must not become semantic priority")
+
     def test_single_composite_score_remains_prohibited(self) -> None:
         doc = copy.deepcopy(self.doc)
         doc["evaluation_policy"]["no_single_composite_score"] = False
