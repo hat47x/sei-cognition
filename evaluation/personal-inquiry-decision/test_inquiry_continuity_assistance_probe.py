@@ -11,6 +11,7 @@ from inquiry_continuity_assistance_probe import (
     AssistanceProbeError,
     RESPONSE_SCHEMA,
     build_audit_packets,
+    build_review_start_receipt,
     build_audit_receipt,
     build_initial_packets,
     build_reveal_packets,
@@ -21,6 +22,7 @@ from inquiry_continuity_assistance_probe import (
     response_template,
     save_stage_receipt,
     stage_receipt_bytes,
+    validate_review_start_receipt,
     validate_probe,
     validate_response,
 )
@@ -253,6 +255,20 @@ class AssistanceProbeTest(unittest.TestCase):
             self.probe,
             self.root,
         )
+        self.review_receipt = build_review_start_receipt(
+            self.probe,
+            "R1",
+            "reviewer-opaque-1",
+            "none-declared",
+            "human-direct",
+            "2026-09-18T23:55:00+09:00",
+        )
+        self.review_receipt_raw = stage_receipt_bytes(
+            self.review_receipt
+        )
+        self.review_receipt_sha = hashlib.sha256(
+            self.review_receipt_raw
+        ).hexdigest()
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -272,6 +288,7 @@ class AssistanceProbeTest(unittest.TestCase):
             self.probe,
             "R1",
             stage,
+            self.review_receipt_sha,
             stage_gate_sha256,
         )
         for entry in value["entries"]:
@@ -289,6 +306,7 @@ class AssistanceProbeTest(unittest.TestCase):
             self.probe,
             self.fixtures,
             "R1",
+            self.review_receipt_sha,
             initial,
             "2026-09-19T00:00:00+09:00",
         )
@@ -305,6 +323,7 @@ class AssistanceProbeTest(unittest.TestCase):
             self.probe,
             self.fixtures,
             "R1",
+            self.review_receipt_sha,
             initial,
             reveal,
             reveal_receipt,
@@ -320,11 +339,60 @@ class AssistanceProbeTest(unittest.TestCase):
             {"f1", "f2", "f3"},
         )
 
+    def test_review_start_receipt_binds_declared_provenance(self):
+        validate_review_start_receipt(
+            self.review_receipt,
+            self.probe,
+            "R1",
+        )
+        self.assertEqual(
+            self.review_receipt["reviewer_id"],
+            "reviewer-opaque-1",
+        )
+        self.assertEqual(
+            self.review_receipt["prior_exposure"],
+            "none-declared",
+        )
+        self.assertEqual(
+            self.review_receipt["response_authorship"],
+            "human-direct",
+        )
+
+    def test_initial_response_rejects_different_review_start_receipt(self):
+        value = response_template(
+            self.probe,
+            "R1",
+            "initial",
+            self.review_receipt_sha,
+        )
+        for entry in value["entries"]:
+            for question_id in entry["answers"]:
+                entry["answers"][question_id] = "fixed"
+        with self.assertRaises(AssistanceProbeError):
+            validate_response(
+                value,
+                self.probe,
+                "R1",
+                "initial",
+                "a" * 64,
+            )
+
+    def test_review_start_receipt_rejects_provenance_mutation(self):
+        changed = copy.deepcopy(self.review_receipt)
+        changed["prior_exposure"] = "clean"
+        with self.assertRaises(AssistanceProbeError):
+            validate_review_start_receipt(
+                changed,
+                self.probe,
+                "R1",
+            )
+
     def test_response_template_is_probe_bound_and_condition_blind(self):
         value = response_template(
             self.probe,
             "R1",
             "initial",
+            self.review_receipt_sha,
         )
         self.assertEqual(
             value["schema"],
@@ -333,6 +401,10 @@ class AssistanceProbeTest(unittest.TestCase):
         self.assertEqual(
             value["probe_sha256"],
             probe_content_sha256(self.probe),
+        )
+        self.assertEqual(
+            value["review_start_receipt_sha256"],
+            self.review_receipt_sha,
         )
         self.assertIsNone(value["stage_gate_sha256"])
         rendered = json.dumps(value)
@@ -345,6 +417,7 @@ class AssistanceProbeTest(unittest.TestCase):
             self.probe,
             self.fixtures,
             "R1",
+            self.review_receipt_sha,
         )
         self.assertEqual(
             [
@@ -370,6 +443,7 @@ class AssistanceProbeTest(unittest.TestCase):
             self.probe,
             self.fixtures,
             "R1",
+            self.review_receipt_sha,
             response,
             receipt,
             receipt_raw,
@@ -403,6 +477,7 @@ class AssistanceProbeTest(unittest.TestCase):
                 self.probe,
                 self.fixtures,
                 "R1",
+                self.review_receipt_sha,
                 response,
                 "2026-09-19T00:00:00+09:00",
             )
@@ -418,6 +493,7 @@ class AssistanceProbeTest(unittest.TestCase):
             self.probe,
             "R1",
             "reveal",
+            self.review_receipt_sha,
             receipt_sha,
         )
         self.assertEqual(
@@ -432,6 +508,7 @@ class AssistanceProbeTest(unittest.TestCase):
             self.probe,
             "R1",
             "reveal",
+            self.review_receipt_sha,
             receipt_sha,
         )
         with self.assertRaises(AssistanceProbeError):
@@ -440,6 +517,7 @@ class AssistanceProbeTest(unittest.TestCase):
                 self.probe,
                 "R1",
                 "reveal",
+                self.review_receipt_sha,
                 "a" * 64,
             )
 
@@ -448,6 +526,7 @@ class AssistanceProbeTest(unittest.TestCase):
             self.probe,
             "R1",
             "initial",
+            self.review_receipt_sha,
         )
         for entry in value["entries"]:
             for question_id in entry["answers"]:
@@ -461,6 +540,7 @@ class AssistanceProbeTest(unittest.TestCase):
                 self.probe,
                 "R1",
                 "initial",
+                self.review_receipt_sha,
             )
 
         changed = copy.deepcopy(value)
@@ -473,6 +553,7 @@ class AssistanceProbeTest(unittest.TestCase):
                 self.probe,
                 "R1",
                 "initial",
+                self.review_receipt_sha,
             )
 
     def test_audit_reveals_condition_only_after_both_responses_fixed(self):
@@ -498,6 +579,7 @@ class AssistanceProbeTest(unittest.TestCase):
             self.probe,
             self.fixtures,
             "R1",
+            self.review_receipt_sha,
             initial,
             reveal,
             reveal_receipt,
@@ -577,6 +659,7 @@ class AssistanceProbeTest(unittest.TestCase):
                 self.probe,
                 self.fixtures,
                 "R1",
+                self.review_receipt_sha,
                 initial,
                 reveal,
                 reveal_receipt,
@@ -598,6 +681,7 @@ class AssistanceProbeTest(unittest.TestCase):
                 self.probe,
                 self.fixtures,
                 "R1",
+                self.review_receipt_sha,
                 initial,
                 receipt,
                 mismatched_raw,
