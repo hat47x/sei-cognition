@@ -56,8 +56,9 @@
       "biological_observation": "嗅覚入力では、総入力活動に応じたdivisive normalizationが投射ニューロン応答を調整し、刺激間の応答規模を均す働きが報告されている。",
       "engineering_abstraction": "疎展開の前に、入力全体またはfeature channelごとの強度差をbounded normalizationし、単純なfeature量や反復数だけでactivationが支配されることを抑える。",
       "sei_role": "always-on feature preparation / pre-attentive stabilization",
-      "adoption_state": "next-experiment",
-      "risk": "有意な絶対強度まで消してしまう可能性があるため、raw magnitudeを別featureとして保持できる構造にする。"
+      "adoption_state": "synthetic-executable-evaluation",
+      "risk": "有意な絶対強度まで消してしまう可能性があるため、raw magnitudeを別featureとして保持できる構造にする。",
+      "evidence_note": "SUI-shaped synthetic fixturesでtext cardinality支配の補正とexact-channel過補正の失敗モードを確認した。実データ一般化は未検証。"
     },
     {
       "id": "sparse-expansion-wta",
@@ -207,25 +208,41 @@
       "id": "SAC-01-sei-artifact-method-recall",
       "domain": "sei-native",
       "goal": "Inquiry文脈の構造化特徴から関連Method、過去Application、Artifact候補を想起する。",
-      "focus": ["candidate recall", "novelty abstention", "small perturbation stability"]
+      "focus": [
+        "candidate recall",
+        "novelty abstention",
+        "small perturbation stability"
+      ]
     },
     {
       "id": "SAC-02-grammar-constrained-code-completion",
       "domain": "structured-code",
       "goal": "局所contextから既知templateや構文motifを高速想起し、最終構文妥当性はgrammar/AST側で検証する。",
-      "focus": ["retrieval latency", "recall@k", "grammar separation"]
+      "focus": [
+        "retrieval latency",
+        "recall@k",
+        "grammar separation"
+      ]
     },
     {
       "id": "SAC-03-spreadsheet-format-recognition",
       "domain": "two-dimensional-structure",
       "goal": "Excel設計書のセル位置、罫線、見出し、反復ブロック等から書式候補を想起し、小さな位置ずれや欠損への耐性を評価する。",
-      "focus": ["perturbation stability", "false activation", "deterministic parser handoff"]
+      "focus": [
+        "perturbation stability",
+        "false activation",
+        "deterministic parser handoff"
+      ]
     },
     {
       "id": "SAC-04-functional-dependency-testdata",
       "domain": "constraint-structure",
       "goal": "項目間の関数従属性や制約clusterから既知生成motifを想起し、具体値生成・充足判定はsymbolic/deterministic処理へ委ねる。",
-      "focus": ["motif recall", "constraint separation", "novel combination detection"]
+      "focus": [
+        "motif recall",
+        "constraint separation",
+        "novel combination detection"
+      ]
     }
   ],
   "follow_on_experiments": [
@@ -235,65 +252,137 @@
       "depends_on": [],
       "change": "現行のuniform sparse random expansion + global k-WTAを変更せずbaselineとして固定する。",
       "primary_question": "後続の生物由来抽象が、単純baselineに対して本当に増分を持つか。",
-      "measures": ["recall_at_k", "false_activation_rate", "p50_latency", "p95_latency", "memory_footprint"]
+      "measures": [
+        "recall_at_k",
+        "false_activation_rate",
+        "p50_latency",
+        "p95_latency",
+        "memory_footprint"
+      ]
     },
     {
       "stage": "SAC-B1",
       "name": "input normalization",
-      "depends_on": ["SAC-B0"],
-      "change": "none / global / per-channel normalizationを同一fixtureで比較する。",
-      "primary_question": "feature数や入力強度の差に対する安定性を改善しつつ、有意な強度情報を失わないか。",
-      "measures": ["amplitude_perturbation_stability", "recall_at_k", "false_activation_rate", "latency_delta"]
+      "depends_on": [
+        "SAC-B0"
+      ],
+      "change": "global scalar normalizationをrank-only signatureのnegative controlとして保持し、none / exact-channel / caller-owned feature-family bounded normalizationを同一fixtureで比較する。",
+      "primary_question": "feature数・subchannel分割・入力強度の差に対する安定性を改善しつつ、singleton subchannelの過補正や有意な強度情報の消失を避けられるか。",
+      "measures": [
+        "amplitude_perturbation_stability",
+        "text_cardinality_domination",
+        "subchannel_overcorrection_behavior",
+        "recall_at_k",
+        "false_activation_rate",
+        "latency_delta"
+      ],
+      "current_result": {
+        "state": "limited-synthetic-executable-evidence",
+        "evidence_file": "input_normalization_evidence_2026-09-18.json",
+        "findings": [
+          "normalizationなしでは、多数のtext n-gram一致が構造一致candidateを押し流すsynthetic fixtureを確認した。",
+          "exact-channel normalizationはそのfixtureを補正した一方、細分化されたsingleton structural subchannelを過大評価してbaseline順位を逆転させる別fixtureを確認した。",
+          "caller-owned feature-family normalizationは、後者の逆転を抑えつつ元のFeature.Channel / Keyを保持した。"
+        ],
+        "stop_line": "synthetic fixture上の改善を、実SUIデータ上のsemantic qualityやproduction defaultへ昇格させない。"
+      }
     },
     {
       "stage": "SAC-B2",
       "name": "localized competition",
-      "depends_on": ["SAC-B1"],
+      "depends_on": [
+        "SAC-B1"
+      ],
       "change": "global k-WTAとcaller-owned channel単位のlocal k-WTA + mergeを比較する。",
       "primary_question": "lexical等の一つのfeature familyが他channelを押し流す現象を減らせるか。",
-      "measures": ["channel_domination_rate", "recall_at_k", "false_activation_rate", "memory_footprint", "latency_delta"]
+      "measures": [
+        "channel_domination_rate",
+        "recall_at_k",
+        "false_activation_rate",
+        "memory_footprint",
+        "latency_delta"
+      ]
     },
     {
       "stage": "SAC-B3",
       "name": "policy-bounded biased projection",
-      "depends_on": ["SAC-B2"],
+      "depends_on": [
+        "SAC-B2"
+      ],
       "change": "uniform projectionとprovenance付きstatic salience priorによるbounded biasを比較する。",
       "primary_question": "希少だが重要なfeatureを拾いやすくしつつ、汎用容量と新規性検出を壊さないか。",
-      "measures": ["rare_critical_recall", "common_noise_false_activation", "novelty_abstention_behavior", "capacity_tradeoff"]
+      "measures": [
+        "rare_critical_recall",
+        "common_noise_false_activation",
+        "novelty_abstention_behavior",
+        "capacity_tradeoff"
+      ]
     },
     {
       "stage": "SAC-B4",
       "name": "reversible familiarity modulation",
-      "depends_on": ["SAC-B1"],
+      "depends_on": [
+        "SAC-B1"
+      ],
       "change": "stable repeated eventだけattention priorityを減衰させ、content delta / expiry / stakesで即時復帰するtemporal modulationを追加する。",
       "primary_question": "常時認知における重複escalationを減らしつつ、意味のある変化を見逃さないか。",
-      "measures": ["duplicate_escalation_reduction", "missed_change_rate", "recovery_latency", "state_memory_cost"]
+      "measures": [
+        "duplicate_escalation_reduction",
+        "missed_change_rate",
+        "recovery_latency",
+        "state_memory_cost"
+      ]
     },
     {
       "stage": "SAC-B5",
       "name": "learned sparse projection comparison",
-      "depends_on": ["SAC-B2", "SAC-B3"],
+      "depends_on": [
+        "SAC-B2",
+        "SAC-B3"
+      ],
       "change": "uniform random / policy-biased random / BioHash系data-driven projectionを比較する。",
       "primary_question": "学習型射影の追加複雑性が、静的・ランダム方式では得られない品質増分を生むか。",
       "entry_gate": "SAC-B0〜B3で意味品質不足が観測され、static semantic adapterだけでは要求を満たせない場合に限る。",
-      "measures": ["recall_at_k", "false_activation_rate", "training_cost", "incremental_update_cost", "drift_sensitivity", "reproducibility"]
+      "measures": [
+        "recall_at_k",
+        "false_activation_rate",
+        "training_cost",
+        "incremental_update_cost",
+        "drift_sensitivity",
+        "reproducibility"
+      ]
     },
     {
       "stage": "SAC-B6",
       "name": "capacity-homeostatic profiles",
-      "depends_on": ["SAC-B1", "SAC-B2"],
+      "depends_on": [
+        "SAC-B1",
+        "SAC-B2"
+      ],
       "change": "wearable / home / workstation相当のmemory・CPU budgetごとにdimensionsとactive fractionを調整する。",
       "primary_question": "同一アルゴリズムの固定parameterではなく、認知品質を保つ不変量として疎性を運用できるか。",
-      "measures": ["quality_per_memory", "quality_per_latency", "active_fraction_stability", "profile_degradation_curve"]
+      "measures": [
+        "quality_per_memory",
+        "quality_per_latency",
+        "active_fraction_stability",
+        "profile_degradation_curve"
+      ]
     },
     {
       "stage": "SEI-B7",
       "name": "outcome-informed cognitive policy",
-      "depends_on": ["SAC-B0"],
+      "depends_on": [
+        "SAC-B0"
+      ],
       "change": "SACS内部のsemantic stateではなく、上位SEI routerがproblem class別のMethod / model / route efficacyをversionedに更新する。",
       "primary_question": "結果から学ぶ対象をtruthではなくroute efficacyへ限定することで、安全に認知配分を改善できるか。",
       "placement": "evaluation/sei-cognition-orchestration side, not SACS core",
-      "measures": ["route_success_rate", "unnecessary_escalation_rate", "regret_against_static_policy", "rollback_reproducibility"]
+      "measures": [
+        "route_success_rate",
+        "unnecessary_escalation_rate",
+        "regret_against_static_policy",
+        "rollback_reproducibility"
+      ]
     }
   ],
   "stage_gate_policy": {
@@ -357,7 +446,8 @@
     "p95_latency",
     "memory_footprint",
     "incremental_update_cost",
-    "deterministic_reproducibility"
+    "deterministic_reproducibility",
+    "subchannel_overcorrection_behavior"
   ],
   "evaluation_policy": {
     "single_composite_score": false,
@@ -381,13 +471,15 @@
     "claims": [
       "依存ゼロGo prototypeでfixed-seed encoding、k-WTA、bundle、similarity、novelty、top-k retrievalのunit testを実行した。",
       "synthetic benchmarkで20-feature encode約5.6 microseconds/op、10,000 signature top-8 query約0.85 milliseconds/opを観測した。",
-      "active=64ではsignature active payloadは128 bytesである。"
+      "active=64ではsignature active payloadは128 bytesである。",
+      "SAC-B1bのSUI-shaped synthetic fixtureで、text cardinalityに支配された候補順をbounded normalizationが回復するケースを観測した。",
+      "同じB1b評価で、exact-channel normalizationがsingleton structural subchannelを過補正してbaseline順位を逆転させる失敗モードと、caller-owned feature-family normalizationがその逆転を抑えるケースを観測した。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
       "SEI-native taskでのretrieval品質",
       "SUI Sensemaking親和図法での深層意味候補品質",
-      "input normalizationの有効性",
+      "実SUI / SEIデータとhuman-adjudicated benchmarkに対するinput normalizationの一般化可能性",
       "localized competitionの有効性",
       "policy-bounded biased projectionの有効性",
       "reversible familiarity modulationの見逃し率",
@@ -399,6 +491,9 @@
       "outcome-informed routingの有効性",
       "production配置方式",
       "Product Value / Operational / Adoption / Outcome Evidence"
+    ],
+    "supporting_evidence_files": [
+      "input_normalization_evidence_2026-09-18.json"
     ]
   },
   "references": [
