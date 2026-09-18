@@ -9,6 +9,7 @@ from inquiry_continuity_review_runner import (
     InquiryReviewRunnerError,
     attach_review_provenance,
     evidence_bundle,
+    load_context,
     provenance_projection,
     record_checked_response,
     reviewer_bundle,
@@ -193,6 +194,39 @@ class DecisionContinuityReviewRunnerTest(unittest.TestCase):
                 "2026-09-18T13:31:00+09:00",
                 response,
             )
+
+    def test_current_repository_decision_set_opens_through_shared_runner(self) -> None:
+        repo_root = Path(__file__).resolve().parents[2]
+        manifest_path = (
+            repo_root
+            / "evaluation"
+            / "personal-inquiry-decision"
+            / "decision_continuity_counterfactual_matched_set_v1.json"
+        )
+        manifest, fixtures = load_context(manifest_path, repo_root)
+        base = new_session(
+            manifest,
+            fixtures,
+            "R1",
+            "current-decision-set-integration",
+            "2026-09-18T14:00:00+09:00",
+        )
+        session = attach_review_provenance(
+            base,
+            "reviewer-integration",
+            "none-declared",
+            "human-direct",
+        )
+        bundle = reviewer_bundle(session, manifest, fixtures)
+        self.assertEqual(
+            bundle["schema"], "sei.decision-continuity-reviewer-bundle/v0"
+        )
+        self.assertEqual(bundle["stage"], "phase1")
+        self.assertEqual(len(bundle["items"]), 3)
+        for item in bundle["items"]:
+            self.assertNotIn("condition", item["packet"])
+            self.assertNotIn("post_decision_evidence", item["packet"])
+            self.assertNotIn("reference_state", item["packet"])
 
     def test_phase1_bundle_hides_condition_and_later_material(self) -> None:
         bundle = reviewer_bundle(self.session, self.manifest, self.fixtures)
