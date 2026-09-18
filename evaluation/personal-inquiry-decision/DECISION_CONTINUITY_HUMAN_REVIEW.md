@@ -1,8 +1,8 @@
 # Decision Continuity — H1 / H2 Human Review Execution
 
-更新日: 2026-09-17  
+更新日: 2026-09-18  
 状態: **Evaluation-only / Human Review Execution Guide / Not Product Requirement**  
-関連: ISSUE-000073 / `DOGFOOD_SURFACE.md` / `DOGFOOD_EVALUATION_RECORDING.md` / `decision_continuity_counterfactual_matched_set_v1.json` / `matched_review_session.py` / `decision_continuity_review_analysis.py`
+関連: ISSUE-000073 / `DOGFOOD_SURFACE.md` / `DOGFOOD_EVALUATION_RECORDING.md` / `decision_continuity_counterfactual_matched_set_v1.json` / `inquiry_continuity_review_runner.py` / `matched_review_session.py` / `decision_continuity_review_analysis.py`
 
 ## 1. この文書の役割
 
@@ -53,7 +53,7 @@ decision_continuity_review_analysis.py
     operator observation、非採点comparison
 ```
 
-Decision Continuity専用のsession managerは作らない。Inquiry Continuityと共有できるstage gateは共有し、意味監査だけをDecision側へ残す。
+Decision Continuity専用のsession managerは作らない。`inquiry_continuity_review_runner.py`を073/078で共有し、その下で`matched_review_session.py`のstage gateを利用する。Issueごとの差はresponse validationと意味監査に限定する。
 
 ## 3. H2でglobal stage gateを使う理由
 
@@ -75,28 +75,52 @@ complete
 
 ## 4. H2 session開始
 
-例:
+H2では、reviewerへ最初のstimulusを提示する前にprovenanceを固定する。正規入口は073/078で共有する`inquiry_continuity_review_runner.py`である。
 
 ```bash
-python evaluation/personal-inquiry-decision/matched_review_session.py init \
+RUNNER=evaluation/personal-inquiry-decision/inquiry_continuity_review_runner.py
+MANIFEST=evaluation/personal-inquiry-decision/decision_continuity_counterfactual_matched_set_v1.json
+
+python "$RUNNER" --manifest "$MANIFEST" --repo-root . init \
   /tmp/e73-r1-session.json \
-  --manifest evaluation/personal-inquiry-decision/decision_continuity_counterfactual_matched_set_v1.json \
-  --repo-root . \
   --rotation R1 \
   --session-id e73-r1-reader-001 \
-  --created-at '2026-09-17T10:00:00+09:00'
+  --created-at '2026-09-18T13:30:00+09:00' \
+  --reviewer-id reviewer-opaque-001 \
+  --prior-exposure none-declared \
+  --response-authorship human-direct
 ```
+
+`reviewer-id`は個人名・メールアドレス・account idではなく、evaluation内だけで用いるopaque idとする。`prior-exposure`は次から選ぶ。
+
+- `none-declared` — 割当fixtureのmaterialをstimulus提示前に見ていないとreviewerが申告する。
+- `known-material-exposure` — 割当case、同caseの別Surface、reference material等を既に見ている。
+- `unknown` — exposureの有無を確定できない。
+
+これらは申告metadataであり、盲検やhuman authorshipを独立に証明するものではない。既知または不明のexposureがあるsessionもpilot observationとして残せるが、clean blinded reviewとは呼ばない。
 
 現在提示してよいpacketだけを確認する。
 
 ```bash
-python evaluation/personal-inquiry-decision/matched_review_session.py packets \
-  /tmp/e73-r1-session.json \
-  --manifest evaluation/personal-inquiry-decision/decision_continuity_counterfactual_matched_set_v1.json \
-  --repo-root .
+python "$RUNNER" --manifest "$MANIFEST" --repo-root . bundle \
+  /tmp/e73-r1-session.json
 ```
 
-初期状態では3件とも`phase1`だけが返る。`post_decision_evidence`や`reference_state`は返らない。
+初期状態では3件とも`phase1`だけが返り、condition label、`post_decision_evidence`、`reference_state`はreviewer bundleへ出さない。
+
+### 4.1 2026-09-18のpre-stimulus provenance上の注意
+
+本Issueの作業過程では、R1相当のphase1 materialをreviewer provenance固定前に一度提示したが、human responseは固定されなかった。この提示自体はH2 observationではない。
+
+同じreaderが今後このmatched setをreviewする場合、その事前提示をなかったことにはせず、少なくとも`known-material-exposure`として記録する。clean blinded H2が必要なら、割当materialへ未露出の別readerを用いる。
+
+```text
+stimulus shown before provenance is fixed
+  != human H2 observation
+
+known prior material exposure
+  != clean blinded review
+```
 
 ## 5. H2 phase1 response
 
@@ -124,11 +148,11 @@ python evaluation/personal-inquiry-decision/matched_review_session.py packets \
 記録例:
 
 ```bash
-python evaluation/personal-inquiry-decision/matched_review_session.py record \
+python "$RUNNER" --manifest "$MANIFEST" --repo-root . record \
   /tmp/e73-r1-session.json \
   --fixture-id e73-decision-continuity-001-provider-pilot \
   --stage phase1 \
-  --recorded-at '2026-09-17T10:05:00+09:00' \
+  --recorded-at '2026-09-18T13:35:00+09:00' \
   --response /tmp/e73-f1-phase1.json
 ```
 
@@ -187,9 +211,13 @@ H2用のprepared Surfaceを読んだだけでは、actual workで「継続利用
 sessionを保存しただけでは、response内容がDecision Continuityの評価形式に沿っているとは限らない。
 
 ```bash
+python "$RUNNER" --manifest "$MANIFEST" --repo-root . validate \
+  /tmp/e73-r1-session.json \
+  --require-complete
+
+# Decision固有の独立validationを明示的に再確認したい場合
 python evaluation/personal-inquiry-decision/decision_continuity_review_analysis.py \
-  --manifest evaluation/personal-inquiry-decision/decision_continuity_counterfactual_matched_set_v1.json \
-  --repo-root . \
+  --manifest "$MANIFEST" --repo-root . \
   validate-session /tmp/e73-r1-session.json \
   --require-complete
 ```
@@ -255,6 +283,16 @@ faster orientation
 ```
 
 chronological noteがSEIと同等以上なら、それをSEI固有構造を減らすEvidenceとして扱う。SEIに有利な結果だけを成功条件にしない。
+
+complete sessionは共有runnerからEvidence bundleへexportできる。
+
+```bash
+python "$RUNNER" --manifest "$MANIFEST" --repo-root . export-evidence \
+  /tmp/e73-r1-session.json \
+  --output /tmp/e73-r1-evidence.json
+```
+
+Evidence bundleではphase1 / postのhuman review observationと、reference state開示後のsemantic auditを別layerとして保持する。review provenanceも併記するが、そのmetadataだけをhuman authorshipやblindnessの独立証明にはしない。
 
 ## 11. H1 actual resume usability
 
@@ -402,10 +440,12 @@ ISSUE-000073のResolution判断では、E1〜E8のScoped Executable Evidence、H
 
 ## 13. Natural Japanese review
 
-H2用に既に成立していたmatched review手順を維持したまま、ISSUE-000073で未接続だったH1 actual resume usabilityを既存Personal Inquiry Continuity dogfood surfaceへ接続した。
+H2用に既に成立していたmatched review手順を維持しながら、073/078で同じreview runnerを共有する形へ整理した。H2ではreviewer provenanceを最初のstimulus提示前に固定し、condition labelを伏せたbundle、Decision固有response validation、complete後のEvidence exportまでを同じ入口へ集約した。また、ISSUE-000073で未接続だったH1 actual resume usabilityを既存Personal Inquiry Continuity dogfood surfaceへ接続した。
 
 H1のために新しい評価schemaやsession managerを増やさず、Inquiry stateは既存dogfood state、評価観測は既存sidecarを使う。これによりH1 / H2を別々の評価基盤として断片化させず、real Inquiryのresumptionとcontrolled counterfactual reviewだけを意味上分離した。
 
 また、暦上のgapと認知的context lossを同一視せず、pre-orientationのmaterial exposureがあった回を架空のH1 Evidenceへ数えない停止線を明示した。速い再開をhistorical correctnessより優先せず、capture burdenが未観測なら後知恵で埋めない。
 
-自然な日本語として全文を再読し、H1 / H2、canonical Inquiry state / evaluation observation、synthetic pilot / actual resumption、Executable / Adoption・Outcome Evidenceの境界が変わっていないことを最終監査した。
+2026-09-18の作業過程でR1 phase1 materialがprovenance固定前に提示された事実についても、回答が固定されていないためH2 observationへは数えず、同じreaderの後続reviewではknown exposureとして扱う停止線を追加した。
+
+自然な日本語として全文を再読し、H1 / H2、canonical Inquiry state / evaluation observation、synthetic pilot / actual resumption、reviewer provenance / human authorship、Executable / Adoption・Outcome Evidenceの境界が変わっていないことを最終監査した。
