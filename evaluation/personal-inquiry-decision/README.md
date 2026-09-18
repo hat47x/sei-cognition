@@ -300,11 +300,11 @@ first actual caseは開始済みでmulti-dayの暦条件へ到達したが、202
 23. `inquiry_continuity_review_analysis.py` — historical correctness、role separation、unresolved、temporal integrity、burden等をscoreへ潰さず監査するvalidation / projection
 24. `inquiry_continuity_review_evidence.py` — complete sessionからhuman observation、semantic audit、review provenanceを分離してexportするEvidence境界
 25. `inquiry_continuity_summary_distortion_probe_v1.json` / `inquiry_continuity_summary_distortion_probe.py` — E78.3の正規AI-summary-distortion経路。歪んだsummary / next questionはhuman response固定前にaudit keyを開かず、matched reviewを同一reviewerで行う場合はその完了後に提示する
-26. `inquiry_continuity_summary_distortion_evidence.py` — E78.3で固定済みhuman responseにpost-reveal semantic auditをSHA-256で結び、human observation / semantic audit / provenanceを分離してEvidence exportする。既存Evidenceは上書きしない
+26. `inquiry_continuity_summary_distortion_evidence.py` — E78.3で固定済みhuman responseにpost-reveal semantic auditをSHA-256で結び、human observation / semantic audit / provenanceを分離してEvidence exportする。review / audit / Evidenceはcanonicalized probe JSONのSHA-256にも結び、Evidence bundleへ実際のstimulus / review questionsを`probe_snapshot`として残す。既存Evidenceは上書きしない
 27. `inquiry_continuity_assistance_probe_v1.json` / `inquiry_continuity_assistance_probe.py` — E78.6 quiet / proactive / adaptiveの比較scaffold
 28. `inquiry_continuity_lifecycle_probe_v1.json` / `inquiry_continuity_lifecycle_probe.py` — E78.7 closure / dormancyのProduct-local比較scaffold
 
-E78.3では以前の`inquiry_continuity_distortion_*`並行経路を廃止しており、`inquiry_continuity_summary_distortion_*`を唯一の維持対象とする。human responseはaudit material開示前に固定し、post-reveal semantic auditは別artifactとして同じresponse SHA-256へ結びつける。どのprobeやEvidence exporterも、実行可能であること自体をhuman review resultやProduct Valueへ昇格させない。
+E78.3では以前の`inquiry_continuity_distortion_*`並行経路を廃止しており、`inquiry_continuity_summary_distortion_*`を唯一の維持対象とする。human responseはaudit material開示前に固定し、post-reveal semantic auditは別artifactとして同じresponse SHA-256へ結びつける。加えてcanonicalized probe JSONのSHA-256でreview responseとaudit responseを同じ評価刺激へ固定し、Evidence bundleへそのstimulusとreview questionsを自己完結的に残す。どのprobeやEvidence exporterも、実行可能であること自体をhuman review resultやProduct Valueへ昇格させない。
 
 ### Stage 7 — EvidenceからRequirementへ戻る
 

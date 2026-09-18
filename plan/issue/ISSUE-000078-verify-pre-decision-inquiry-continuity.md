@@ -3,7 +3,7 @@
 Status: **Open**  
 Priority: **2**  
 Related ADRs: **ADR-0005, ADR-0018, ADR-0020, ADR-0028**  
-Updated: 2026-09-17
+Updated: 2026-09-18
 
 ## Goal
 
@@ -369,7 +369,7 @@ python3 "$EVIDENCE_TOOL" --probe "$PROBE_SET" --repo-root . \
 
 review packetに含まれる`provisional_ai_summary`と`provisional_ai_next_question`は、意図的に誤りを含む**evaluation-only stimulus**であり、canonical Question / Observation / Unknown / Hypothesis、Recommendation、Decision、Evidence reportへ自動昇格させない。
 
-`audit`はhuman responseのSHA-256を固定してからreference materialを開く。`audit-template`以後に記録するsemantic auditは、**post-revealなoperator / auditor Evidence**であり、開示前のhuman responseへ混ぜ戻さない。Evidence exporterはhuman review observation、review provenance、semantic auditを別layerとして保存し、existing Evidence outputの上書きを拒否する。
+`audit`はhuman responseのSHA-256を固定してからreference materialを開く。さらにreview response、audit response、Evidence bundleをcanonicalized probe JSONのSHA-256へ結び、summary、next question、review questions等のprobe内容が後から変更された場合に別の評価を同一Evidenceとして読み替えられないようにする。Evidence bundle自身にも、実際に評価したsummary / next question / review questions / audit dimensionsを`probe_snapshot`として保存する。`audit-template`以後に記録するsemantic auditは、**post-revealなoperator / auditor Evidence**であり、開示前のhuman responseへ混ぜ戻さない。Evidence exporterはhuman review observation、review provenance、semantic auditを別layerとして保存し、existing Evidence outputの上書きを拒否する。
 
 reviewer / auditorのopaque id、prior exposure、response authorship等は評価上の申告metadataであり、それだけで盲検やhuman authorshipを独立に証明するものではない。`human-direct` / `human-transcribed`以外をhuman reviewとして受理しないが、その機械検証自体をHuman Evidenceと読み替えない。
 
