@@ -1,0 +1,90 @@
+{
+  "schema": "sei.sacs-cross-stage-freeze-kit-evidence/v1alpha1",
+  "date": "2026-09-18",
+  "status": "limited-local-executable-boundary-evidence",
+  "issue": 465,
+  "branch": "topic/sacs-cross-stage-freeze-kit",
+  "subject": "Cross-stage adjudication freeze kit",
+  "repository_state": {
+    "current_templates": "draft",
+    "semantic_results_generated": false,
+    "human_adjudication_frozen": false,
+    "b5_gate_changed": false,
+    "production_runtime_changed": false
+  },
+  "implemented_artifacts": [
+    "dataset_manifest.json",
+    "adjudication_manifest.json",
+    "split_manifest.json",
+    "b3_prior_manifest.json",
+    "freeze_bundle.json",
+    "freeze_manifests.py",
+    "test_freeze_manifests.py",
+    "README.md"
+  ],
+  "freeze_semantics": {
+    "input_must_be_all_draft": true,
+    "input_directory_mutated": false,
+    "output_directory_must_be_new": true,
+    "frozen_at_must_be_explicit": true,
+    "canonicalization": "UTF-8 JSON, sorted keys, compact separators, own digest field excluded",
+    "digest": "SHA-256",
+    "unresolved_disagreement_preserved": true,
+    "opaque_reviewer_refs": true,
+    "result_generation_enabled_after_freeze": false,
+    "b5_gate_changed_after_freeze": false
+  },
+  "local_verification": {
+    "python": "3.13.5",
+    "exact_repository_checkout": false,
+    "method": "The latest branch versions of freeze_manifests.py and test_freeze_manifests.py were retrieved through the GitHub connector and reconstructed together with the five branch draft manifest templates in a temporary local directory.",
+    "validator_command": "python freeze_manifests.py --validate-only",
+    "validator_result": "PASS: Cross-stage freeze manifests validated; current bundle remains draft/locked",
+    "unittest_command": "python -m unittest -v test_freeze_manifests.py",
+    "unittest_result": "PASS",
+    "tests_passed": 17,
+    "elapsed_seconds": 0.008,
+    "unrelated_environment_note": "Python startup emitted an artifact_tool spreadsheet warmup warning to stderr, but both freeze-kit commands exited with status 0 and all freeze-kit tests passed.",
+    "verified_boundaries": [
+      "repository draft templates are structurally valid and cannot freeze while dataset is empty",
+      "synthetic complete draft can freeze",
+      "same content and explicit timestamp produce deterministic digests",
+      "mixed draft/frozen input is rejected",
+      "stale digest in draft is rejected",
+      "post-freeze dataset mutation is detected",
+      "post-freeze adjudication mutation is detected",
+      "split overlap is rejected",
+      "unknown split item is rejected",
+      "evaluation-label-derived B3 prior is rejected",
+      "nonfinite/out-of-range prior multiplier is rejected",
+      "non-opaque reviewer ref is rejected",
+      "unresolved adjudication can be preserved without forced consensus",
+      "frozen adjudication requires complete dataset coverage",
+      "bundle component replacement is detected",
+      "freeze bundle cannot enable results or open B5",
+      "frozen output is written as a separate directory and revalidates"
+    ]
+  },
+  "stop_lines": [
+    "draft template != human-adjudicated dataset",
+    "synthetic freeze-path test != real adjudication freeze",
+    "frozen bundle != benchmark result",
+    "frozen bundle != permission to generate results",
+    "frozen bundle != B5 gate open",
+    "content digest != semantic correctness",
+    "reviewer ref != reviewer identity",
+    "unresolved disagreement != failure requiring forced consensus",
+    "freeze-kit validator PASS != production evidence"
+  ],
+  "not_verified": [
+    "actual SUI/SEI human-adjudicated dataset",
+    "actual reviewer process and adjudication policy",
+    "actual source-ref resolution durability",
+    "actual split balance and representativeness",
+    "actual B3 prior provenance review",
+    "counterfactually complete B7 holdout replay data",
+    "explicit evaluation-run artifact",
+    "human-adjudicated semantic benchmark results",
+    "Product Value, Operational, Adoption, or Outcome Evidence"
+  ]
+}
