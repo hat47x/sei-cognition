@@ -129,6 +129,41 @@ func TestProbeWithMatchingManifestRecordsManifestMatched(t *testing.T) {
 	}
 }
 
+func TestProbeRejectsUnsafeSourceDeclaration(t *testing.T) {
+	binary := writeExecutable(t, successScript())
+
+	tests := []struct {
+		name       string
+		repository string
+		commit     string
+	}{
+		{
+			name:       "credential-bearing repository URL",
+			repository: "https://token@example.invalid/hat47x/tei-platform.git",
+			commit:     "0123456789abcdef0123456789abcdef01234567",
+		},
+		{
+			name:       "non-hex commit",
+			repository: "hat47x/tei-platform",
+			commit:     "release-latest",
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			request := fixtureRequest(binary)
+			request.DeclaredRepository = tc.repository
+			request.DeclaredCommit = tc.commit
+			report, err := Probe(context.Background(), request)
+			if err == nil {
+				t.Fatalf("expected source declaration rejection, got %#v", report)
+			}
+			if report.Schema != "" {
+				t.Fatalf("invalid source declaration must not produce PASS report: %#v", report)
+			}
+		})
+	}
+}
+
 func TestProbeRejectsManifestMismatch(t *testing.T) {
 	binary := writeExecutable(t, successScript())
 	base := fixtureRequest(binary)
