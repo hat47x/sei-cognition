@@ -42,8 +42,8 @@
     "validator_result": "PASS: Cross-stage freeze manifests validated; current bundle remains draft/locked",
     "unittest_command": "python -m unittest -v test_freeze_manifests.py",
     "unittest_result": "PASS",
-    "tests_passed": 17,
-    "elapsed_seconds": 0.008,
+    "tests_passed": 18,
+    "elapsed_seconds": 0.007,
     "unrelated_environment_note": "Python startup emitted an artifact_tool spreadsheet warmup warning to stderr, but both freeze-kit commands exited with status 0 and all freeze-kit tests passed.",
     "verified_boundaries": [
       "repository draft templates are structurally valid and cannot freeze while dataset is empty",
@@ -62,8 +62,10 @@
       "frozen adjudication requires complete dataset coverage",
       "bundle component replacement is detected",
       "freeze bundle cannot enable results or open B5",
-      "frozen output is written as a separate directory and revalidates"
-    ]
+      "frozen output is written as a separate directory and revalidates",
+      "freeze timestamp must use explicit UTC second format YYYY-MM-DDTHH:MM:SSZ"
+    ],
+    "reconstruction_note": "An initial temporary reconstruction accidentally double-escaped the UTC timestamp regex and failed. The GitHub branch source was inspected and already contained the correct regex; after reconstructing it exactly, validator and all 18 tests passed. No repository fix was required for that temporary reconstruction error."
   },
   "stop_lines": [
     "draft template != human-adjudicated dataset",
