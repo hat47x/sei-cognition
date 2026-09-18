@@ -15,6 +15,7 @@ from inquiry_continuity_summary_distortion_probe import (
     build_review_packet,
     git_blob_sha1,
     load_sources,
+    probe_content_sha256,
     response_sha256,
     response_template,
     validate_human_response,
@@ -194,6 +195,14 @@ class SummaryDistortionProbeTest(unittest.TestCase):
         )
         self.assertIn("interpretation_stoplines", packet)
         self.assertEqual(packet["response_template"]["schema"], RESPONSE_SCHEMA)
+        self.assertEqual(
+            packet["probe_sha256"],
+            probe_content_sha256(self.probe),
+        )
+        self.assertEqual(
+            packet["response_template"]["probe_sha256"],
+            probe_content_sha256(self.probe),
+        )
         self.assertEqual(len(packet["response_template"]["answers"]), 5)
         self.assertNotIn("distortion_key", packet)
         self.assertNotIn("reference_state", packet)
@@ -214,6 +223,13 @@ class SummaryDistortionProbeTest(unittest.TestCase):
         response["answers"][2] = ""
         with self.assertRaises(SummaryDistortionProbeError):
             validate_human_response(response, self.probe)
+
+    def test_response_is_bound_to_exact_probe_content(self):
+        response = self.valid_response()
+        changed = copy.deepcopy(self.probe)
+        changed["cases"][0]["distorted_summary"] = "changed after review"
+        with self.assertRaises(SummaryDistortionProbeError):
+            validate_human_response(response, changed)
 
     def test_response_requires_declared_human_provenance(self):
         response = self.valid_response()
@@ -263,6 +279,10 @@ class SummaryDistortionProbeTest(unittest.TestCase):
             response,
         )
         self.assertEqual(packet["stage"], "audit")
+        self.assertEqual(
+            packet["probe_sha256"],
+            probe_content_sha256(self.probe),
+        )
         self.assertEqual(
             packet["fixed_human_response_sha256"],
             hashlib.sha256(response.read_bytes()).hexdigest(),

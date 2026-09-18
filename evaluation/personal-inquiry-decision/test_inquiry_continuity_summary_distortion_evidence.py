@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import tempfile
 import unittest
 from pathlib import Path
+
+from inquiry_continuity_summary_distortion_probe import probe_content_sha256
 
 from inquiry_continuity_summary_distortion_evidence import (
     AUDIT_RESPONSE_SCHEMA,
@@ -130,6 +133,9 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
         )
         self.assertEqual(value["schema"], AUDIT_RESPONSE_SCHEMA)
         self.assertEqual(
+            value["probe_sha256"], probe_content_sha256(self.probe)
+        )
+        self.assertEqual(
             value["fixed_human_response_sha256"], self.human_sha
         )
         self.assertEqual(
@@ -138,6 +144,15 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
         with self.assertRaises(SummaryDistortionEvidenceError):
             validate_audit_response(
                 value, self.probe, self.fixture_id, self.human_sha
+            )
+
+    def test_audit_rejects_changed_probe_binding(self):
+        value = self.valid_audit()
+        changed = copy.deepcopy(self.probe)
+        changed["cases"][0]["distorted_next_question"] = "changed after review?"
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_audit_response(
+                value, changed, self.fixture_id, self.human_sha
             )
 
     def test_audit_rejects_wrong_response_binding(self):
@@ -178,6 +193,18 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
             audit_path,
         )
         self.assertEqual(bundle["schema"], EVIDENCE_SCHEMA)
+        self.assertEqual(
+            bundle["probe_snapshot"]["content_sha256"],
+            probe_content_sha256(self.probe),
+        )
+        self.assertEqual(
+            bundle["probe_snapshot"]["distorted_summary"],
+            self.probe["cases"][0]["distorted_summary"],
+        )
+        self.assertEqual(
+            bundle["probe_snapshot"]["review_questions"],
+            self.probe["review_questions"],
+        )
         self.assertEqual(
             bundle["human_review_observation"]["response_sha256"],
             self.human_sha,

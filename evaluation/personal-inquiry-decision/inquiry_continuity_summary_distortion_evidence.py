@@ -23,6 +23,7 @@ from inquiry_continuity_summary_distortion_probe import (
     load_human_response,
     load_json,
     load_sources,
+    probe_content_sha256,
     validate_probe,
 )
 
@@ -61,6 +62,7 @@ def audit_response_template(
     return {
         "schema": AUDIT_RESPONSE_SCHEMA,
         "fixture_id": fixture_id,
+        "probe_sha256": probe_content_sha256(probe),
         "fixed_human_response_sha256": fixed_human_response_sha256,
         "findings": {
             dimension: "not-observed" for dimension in probe["audit_dimensions"]
@@ -86,6 +88,7 @@ def validate_audit_response(
     required = {
         "schema",
         "fixture_id",
+        "probe_sha256",
         "fixed_human_response_sha256",
         "findings",
         "audit_provenance",
@@ -102,6 +105,10 @@ def validate_audit_response(
         )
     if value["fixture_id"] != fixture_id:
         raise SummaryDistortionEvidenceError("audit response fixture_id mismatch")
+    if value["probe_sha256"] != probe_content_sha256(probe):
+        raise SummaryDistortionEvidenceError(
+            "audit response is bound to a different probe content"
+        )
     if value["fixed_human_response_sha256"] != fixed_human_response_sha256:
         raise SummaryDistortionEvidenceError(
             "audit response is bound to a different human response"
@@ -209,6 +216,13 @@ def build_evidence_bundle(
         "status": "evaluation-only",
         "probe_id": probe["probe_id"],
         "fixture_id": fixture_id,
+        "probe_snapshot": {
+            "content_sha256": probe_content_sha256(probe),
+            "distorted_summary": case["distorted_summary"],
+            "distorted_next_question": case["distorted_next_question"],
+            "review_questions": copy.deepcopy(probe["review_questions"]),
+            "audit_dimensions": copy.deepcopy(probe["audit_dimensions"]),
+        },
         "source_snapshot": {
             "path": case["path"],
             "blob_sha1": case["blob_sha1"],
@@ -255,6 +269,7 @@ def build_evidence_bundle(
         },
         "interpretation_stoplines": [
             "review observation and semantic audit remain separate evidence layers",
+            "probe content digest binds the review and audit to the exact evaluation stimulus",
             "no overall score, ranking, winner, or preferred condition is computed",
             "a completed synthetic distortion review is not actual long-gap resumption",
             "correction success alone does not establish SEI-specific value over raw chat or notes",

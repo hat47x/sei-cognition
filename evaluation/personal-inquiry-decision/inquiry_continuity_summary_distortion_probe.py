@@ -53,6 +53,17 @@ def git_blob_sha1(raw: bytes) -> str:
     return hashlib.sha1(f"blob {len(raw)}\0".encode("ascii") + raw).hexdigest()
 
 
+def probe_content_sha256(probe: dict[str, Any]) -> str:
+    """Return a stable semantic digest for the evaluation probe content."""
+    payload = json.dumps(
+        probe,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
 def _validate_string_list(value: Any, label: str) -> None:
     if (
         not isinstance(value, list)
@@ -200,6 +211,7 @@ def response_template(probe: dict[str, Any]) -> dict[str, Any]:
     _validate_questions(probe.get("review_questions"))
     return {
         "schema": RESPONSE_SCHEMA,
+        "probe_sha256": probe_content_sha256(probe),
         "answers": ["" for _ in probe["review_questions"]],
         "review_provenance": {
             "reviewer_id": "",
@@ -242,6 +254,7 @@ def validate_human_response(response: Any, probe: dict[str, Any]) -> None:
     """Fail closed unless a response is structurally usable as human-review input."""
     required = {
         "schema",
+        "probe_sha256",
         "answers",
         "review_provenance",
         "operator_observation",
@@ -255,6 +268,10 @@ def validate_human_response(response: Any, probe: dict[str, Any]) -> None:
     if response["schema"] != RESPONSE_SCHEMA:
         raise SummaryDistortionProbeError(
             f"human response schema must be {RESPONSE_SCHEMA}"
+        )
+    if response["probe_sha256"] != probe_content_sha256(probe):
+        raise SummaryDistortionProbeError(
+            "human response is bound to a different probe content"
         )
 
     questions = probe.get("review_questions")
@@ -356,6 +373,7 @@ def build_review_packet(
         "status": "evaluation-only",
         "probe_id": probe["probe_id"],
         "fixture_id": fixture_id,
+        "probe_sha256": probe_content_sha256(probe),
         "stage": "review",
         "canonical_orientation": orientation,
         "provisional_ai_summary": case["distorted_summary"],
@@ -386,6 +404,7 @@ def build_audit_packet(
         "status": "evaluation-only",
         "probe_id": probe["probe_id"],
         "fixture_id": fixture_id,
+        "probe_sha256": probe_content_sha256(probe),
         "stage": "audit",
         "fixed_human_response_sha256": fixed,
         "review_provenance": dict(response_value["review_provenance"]),
@@ -430,6 +449,7 @@ def main(argv: list[str] | None = None) -> int:
         result = {
             "valid": True,
             "probe_id": probe["probe_id"],
+            "probe_sha256": probe_content_sha256(probe),
             "cases": len(fixtures),
             "human_response_schema": RESPONSE_SCHEMA,
         }
