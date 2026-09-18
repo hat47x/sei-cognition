@@ -356,6 +356,10 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 
 同じdriftを今後自動検出できるよう、`test_decision_continuity_review_runner.py`にはcurrent repositoryのDecision manifest / fixtureを`load_context → new_session → reviewer_bundle`で開くintegration caseを追加しました。source追加だけをtest PASSとは扱いません。
 
+2026-09-18には、tested commit `42872959a13746eb5fd87f1fe10233ccd55caac0` のH2 Decision regression関連12 sourceをGitHub正本からmaterializeし、各fileのGit blob SHA-1がtested commitと完全一致することを確認したうえで、`python3 -m unittest -v test_decision_continuity_review_runner.py`をactual実行しました。8 tests / 8 PASS、exit code 0です。tested commit以降からdevelop `af3e959e0dabee9b3a5ea60018c2f11e662efcb8`まで、対象12 sourceに差分がないことも確認しています。
+
+この実行はexact blob-validated materialization上のExecutable Evidenceであり、native Git clean checkout上で`capture_issue_000073_h2_runner_selftest.py`を通したactual captureではありません。そのためfocused regression本体のPASSとcapture未実行を分離して保持します。machine-readable recordは`evidence/issue-000073/h2-decision-review-runner-regression-2026-09-18.json`です。
+
 ## 9. 現在のEvidence状態
 
 | 項目 | 状態 |
@@ -372,8 +376,8 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 | REQ-0023 / SCN-0019 Executable Evidence | **Not Yet Verified** |
 | H1 actual human review | **Not Yet Observed** |
 | H2 counterfactual human review | **Not Yet Observed** |
-| H2 provenance-first shared runner / evidence-export tooling | Available; init is exclusive-create and low-level packets/record bypass is rejected; current Decision manifest / 3 fixture / R1-R3 structural contract was re-audited on 2026-09-18 and an actual-repository integration test source was added; Python focused test execution is still Not Yet Verified; actual human session pending; prior R1 exposure is not a completed observation |
-| H2 shared runner Decision regression test | Source available; current repository integration case included; **actual PASS Not Yet Verified** |
+| H2 provenance-first shared runner / evidence-export tooling | Available; init is exclusive-create and low-level packets/record bypass is rejected; current Decision manifest / 3 fixture / R1-R3 structural contract was re-audited on 2026-09-18 and an actual-repository integration test source was added; Python focused test executionはexact blob-validated materialization上で8 tests / 8 PASSをactual確認済み; native clean-HEAD captureとactual human sessionはpending; prior R1 exposure is not a completed observation |
+| H2 shared runner Decision regression test | **PASS — exact blob-validated materialization, 8 tests / 8 PASS (2026-09-18); machine-readable Evidence recorded** |
 | H2 Decision regression Evidence capture workflow self-test | **PASS on current source (2026-09-18); machine-readable Evidence recorded** |
 | H2 shared runner Decision regression actual capture | **Not Yet Verified** |
 | Decision Continuity Product Value | **Not Established** |
@@ -409,7 +413,7 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 
 H1は既存dogfood stateとevaluation sidecarを利用し、real Inquiryのactual resumptionだけを観測します。H1専用のschemaやsession managerは増やしていません。H2は既存matched review基盤を利用し、073/078共通のreview runnerでstimulus提示前にreviewer provenanceを固定してからbundleを提示し、completed sessionのEvidence exportまで同じ経路を使います。2026-09-18にprovenance固定前のR1 material提示が一度発生したため、その提示を受けたreaderの後続sessionはknown exposureとして扱い、回答未固定の提示そのものはhuman Evidenceへ数えない停止線を追加しました。
 
-同日、H2 shared runnerのDecision regression testをclean HEAD / source binding付きでactual実行できるcapture toolを追加しました。capture workflow自体のsynthetic self-testはactual PASSし、source blob / SHA-256 / Python / Git環境とともにmachine-readable Evidenceへ固定しています。ただし、このPASSはcapture workflowだけのExecutable Evidenceであり、Decision regression test本体のactual PASSやH2 human observationではありません。
+同日、H2 shared runnerのDecision regression testをclean HEAD / source binding付きでactual実行できるcapture toolを追加しました。capture workflow自体のsynthetic self-testはactual PASSし、source blob / SHA-256 / Python / Git環境とともにmachine-readable Evidenceへ固定しています。capture workflow self-test自体のPASSはcapture受入れ経路だけのExecutable Evidenceです。これとは別にDecision regression test本体はexact blob-validated materialization上で8 tests / 8 PASSをactual確認しましたが、native clean-HEAD captureとH2 human observationは未取得です。
 
 これにより、実行準備文書からmachine EvidenceとH1 / H2へ進む経路は一本化しつつ、environment blockerとrepository failure、real Inquiryとsynthetic matched review、human observationとsemantic audit、mechanicsとProduct Valueの意味差を維持しました。
 

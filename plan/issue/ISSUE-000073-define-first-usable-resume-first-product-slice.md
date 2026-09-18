@@ -212,7 +212,7 @@ Question 5、6、9については、Requirement auditとREQ-0023 / SCN-0019のfo
 - E1〜E8 actual Go 1.25.x execution: **Not Yet Verified**
 - REQ-0023 / SCN-0019 Executable Evidence: **Not Yet Verified**
 - H1 resume usability review: **Not Yet Observed**
-- H2 counterfactual Decision Continuity review: **Not Yet Observed**。073/078共通runnerでreviewer provenanceをstimulus提示前に固定し、Decision固有validationとEvidence exportまで同じ経路へ統合済み。current Decision manifest / 3 fixture / R1〜R3のstatic source auditは整合し、actual repository integration test sourceも追加済みだが、Python focused test execution自体は**Not Yet Verified**
+- H2 counterfactual Decision Continuity review: **Not Yet Observed**。073/078共通runnerでreviewer provenanceをstimulus提示前に固定し、Decision固有validationとEvidence exportまで同じ経路へ統合済み。current Decision manifest / 3 fixture / R1〜R3のstatic source auditは整合し、actual repository integration test sourceも追加済み。tested commit `42872959a13746eb5fd87f1fe10233ccd55caac0` の対象12 sourceをGit blob SHA一致でmaterializeしたactual executionでは、Python focused regressionが**8 tests / 8 PASS**。ただしnative clean-HEAD captureは**Not Yet Verified**
 - `tools/capture_issue_000073_h2_runner_selftest.py`: H2 shared runner Decision regression testをclean HEAD / source binding付きでEvidence化するcapture入口あり
 - H2 runner capture workflow self-test: **PASS on current source (2026-09-18); machine-readable Evidence recorded**
 - H2 shared runner Decision regression actual capture: **Not Yet Verified**
@@ -234,9 +234,9 @@ evaluation/personal-inquiry-decision/evidence/issue-000073/h2-runner-capture-sel
 
 H2については2026-09-18に実行経路を再監査し、`inquiry_continuity_review_runner.py`を073/078共通のprovenance-first入口としてDecision Continuityにも対応させた。reviewer provenanceを固定しないsessionからreviewer bundleを開かず、condition labelをreviewerへ出さず、Decision固有response validationを通したcomplete sessionだけをEvidence exportへ進める。
 
-同じ日にcurrent Decision manifestと3 fixtureを正本bytesから再照合し、Decision参照、historical basis、unresolved、post-decision id、condition割当、R1〜R3 rotationの構造整合をstatic source auditとして確認した。さらにcurrent repositoryのmanifest / fixtureを共有runnerから直接開くintegration test sourceを追加した。ただし、このauditとtest sourceの存在はPython test actual PASSではない。
+同じ日にcurrent Decision manifestと3 fixtureを正本bytesから再照合し、Decision参照、historical basis、unresolved、post-decision id、condition割当、R1〜R3 rotationの構造整合をstatic source auditとして確認した。さらにcurrent repositoryのmanifest / fixtureを共有runnerから直接開くintegration test sourceを追加した。その後、tested commit `42872959a13746eb5fd87f1fe10233ccd55caac0` の対象12 sourceをGit blob SHA一致でmaterializeし、focused Python regressionをactual実行して8 tests / 8 PASSを確認した。これはnative clean-HEAD captureではなく、H2 human observationでもない。
 
-同じDecision regression testをactual checkoutで再現可能なEvidenceへ落とすため、`capture_issue_000073_h2_runner_selftest.py`を追加した。captureはclean committed HEAD、required sourceのHEAD blob一致、正確なtest commandを固定し、test failureをPASSへ昇格させない。capture workflow自体のsynthetic self-testはactualにPASSしmachine-readable Evidenceへ固定済みだが、**Decision regression test本体のactual captureはNot Yet Verified**のままとする。
+同じDecision regression testをactual checkoutで再現可能なEvidenceへ落とすため、`capture_issue_000073_h2_runner_selftest.py`を追加した。captureはclean committed HEAD、required sourceのHEAD blob一致、正確なtest commandを固定し、test failureをPASSへ昇格させない。capture workflow自体のsynthetic self-testはactualにPASSしmachine-readable Evidenceへ固定済みである。Decision regression test本体もexact blob-validated materializationでは8 tests / 8 PASSをactual確認したが、**native clean-HEAD actual captureはNot Yet Verified**のままとする。
 
 同日の作業過程では、R1相当のphase1 materialがこの境界を追加する前に一度提示されたが、human responseは固定されなかった。この提示をH2 observationへは数えず、同じreaderが後続reviewを行う場合は`known-material-exposure`として扱う。clean blinded pilotが必要なら、当該materialへ未露出のreaderを用いる。
 
@@ -441,7 +441,7 @@ runner preflight / verifier / capture workflowについては、current source�
 
 H2 shared runnerのDecision経路には`test_decision_continuity_review_runner.py`があり、blinding、declared provenance、stage gate、Decision固有response validation、Evidence layer分離に加え、current repository manifest / fixtureを直接開くintegration caseも回帰test sourceとして固定している。
 
-2026-09-18に`capture_issue_000073_h2_runner_selftest.py`と、そのfail-closed self-testを追加した。captureはclean committed HEAD、required sourceのHEAD一致、正確なDecision regression test commandを固定し、test failureをPASSへ昇格させない。capture workflow self-testはactualにPASSしmachine-readable Evidenceへ固定したが、**Decision regression test本体のactual captureはNot Yet Verified**のままとする。
+2026-09-18に`capture_issue_000073_h2_runner_selftest.py`と、そのfail-closed self-testを追加した。captureはclean committed HEAD、required sourceのHEAD一致、正確なDecision regression test commandを固定し、test failureをPASSへ昇格させない。capture workflow self-testはactualにPASSしmachine-readable Evidenceへ固定した。Decision regression test本体もexact blob-validated materializationでは8 tests / 8 PASSをactual確認したが、**native clean-HEAD actual captureはNot Yet Verified**のままとする。
 
 ```text
 runner / verifier / capture exists
