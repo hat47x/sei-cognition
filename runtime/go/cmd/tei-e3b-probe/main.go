@@ -42,7 +42,6 @@ func run(args []string) error {
 	capabilityKind := flags.String("capability-kind", "capability", "Capability reference kind")
 	capabilityID := flags.String("capability-id", "", "Capability reference ID")
 	observedAt := flags.String("observed-at", "", "observation timestamp")
-	sourceStateRef := flags.String("source-state-ref", "", "non-secret source state reference")
 	timeout := flags.Duration("timeout", 30*time.Second, "TEI process timeout")
 
 	if err := flags.Parse(args); err != nil {
@@ -80,8 +79,7 @@ func run(args []string) error {
 				Kind: *capabilityKind,
 				ID:   *capabilityID,
 			},
-			ObservedAt:     *observedAt,
-			SourceStateRef: *sourceStateRef,
+			ObservedAt: *observedAt,
 		},
 	}
 
