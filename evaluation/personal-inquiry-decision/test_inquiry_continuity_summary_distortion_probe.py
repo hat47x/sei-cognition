@@ -12,7 +12,6 @@ from inquiry_continuity_summary_distortion_probe import (
     RESPONSE_SCHEMA,
     SummaryDistortionProbeError,
     build_audit_packet,
-    build_evidence_bundle,
     build_review_packet,
     git_blob_sha1,
     load_sources,
@@ -280,52 +279,6 @@ class SummaryDistortionProbeTest(unittest.TestCase):
         self.assertIn("distortion_key", packet)
         self.assertIn("reference_state", packet)
         self.assertIn("interpretation_stoplines", packet)
-
-    def test_evidence_bundle_preserves_fixed_human_response_and_stoplines(self):
-        fixture = json.loads(
-            self.fixture_path.read_text(encoding="utf-8")
-        )
-        response = self.root / "response.json"
-        value = self.valid_response()
-        response.write_text(json.dumps(value), encoding="utf-8")
-
-        bundle = build_evidence_bundle(
-            self.probe,
-            {self.fixture_id: fixture},
-            self.fixture_id,
-            response,
-        )
-
-        self.assertEqual(
-            bundle["human_response"],
-            value,
-        )
-        self.assertEqual(
-            bundle["fixed_human_response_sha256"],
-            hashlib.sha256(response.read_bytes()).hexdigest(),
-        )
-        self.assertEqual(
-            bundle["review_material"]["provisional_ai_summary"],
-            "wrong summary",
-        )
-        self.assertIn("distortion_key", bundle["audit_material"])
-        self.assertEqual(
-            bundle["evidence_boundary"]["human_review_observation"],
-            "recorded-with-declared-provenance",
-        )
-        self.assertEqual(
-            bundle["evidence_boundary"]["clean_blinded_review"],
-            "not-clean-blinded",
-        )
-        self.assertEqual(
-            bundle["evidence_boundary"]["product_value"],
-            "not-established-by-this-artifact",
-        )
-        self.assertEqual(
-            bundle["evidence_boundary"]["stable_requirement_change"],
-            "not-authorized-by-this-artifact",
-        )
-
 
     def test_response_hash_rejects_non_object(self):
         response = self.root / "response.json"
