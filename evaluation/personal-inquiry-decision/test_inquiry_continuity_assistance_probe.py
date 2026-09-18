@@ -74,6 +74,36 @@ def write_fixture(
     return str(path.relative_to(root)), git_blob_sha1(raw)
 
 
+def write_matched_set(
+    root: Path,
+    cases: list[dict],
+) -> tuple[str, str]:
+    path = root / "matched-set.json"
+    value = {
+        "schema": "sei.inquiry-continuity-matched-set/v0",
+        "status": "evaluation-only",
+        "issue": "ISSUE-000078",
+        "set_id": "test-set",
+        "fixtures": [
+            {
+                "id": case["fixture_id"],
+                "path": case["path"],
+            }
+            for case in cases
+        ],
+    }
+    raw = (
+        json.dumps(
+            value,
+            ensure_ascii=False,
+            separators=(",", ":"),
+        )
+        + "\n"
+    ).encode("utf-8")
+    path.write_bytes(raw)
+    return str(path.relative_to(root)), git_blob_sha1(raw)
+
+
 def make_probe(root: Path) -> dict:
     cases = []
     for fid in ("f1", "f2", "f3"):
@@ -112,6 +142,10 @@ def make_probe(root: Path) -> dict:
                 ],
             }
         )
+    source_set_path, source_set_sha = write_matched_set(
+        root,
+        cases,
+    )
     return {
         "schema": "sei.inquiry-continuity-assistance-probe/v1",
         "status": "evaluation-only",
@@ -122,6 +156,10 @@ def make_probe(root: Path) -> dict:
             "quiet_may_hide_canonical_orientation": False,
             "surface_choice_is_stable_requirement": False,
             "overall_winner_allowed": False,
+        },
+        "source_set": {
+            "path": source_set_path,
+            "blob_sha1": source_set_sha,
         },
         "presentation_rules": {
             "condition_labels_hidden_until_audit": True,
@@ -397,6 +435,40 @@ class AssistanceProbeTest(unittest.TestCase):
                 for packet in packets
             )
         )
+
+    def test_source_set_manifest_is_frozen_and_matches_cases(self):
+        matched = self.root / "matched-set.json"
+        original = matched.read_bytes()
+        matched.write_bytes(original + b" ")
+        with self.assertRaises(AssistanceProbeError):
+            load_sources(
+                self.probe,
+                self.root,
+            )
+
+    def test_source_set_manifest_rejects_case_path_mismatch(self):
+        changed = copy.deepcopy(self.probe)
+        matched = json.loads(
+            (self.root / "matched-set.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        matched["fixtures"][0]["path"] = "different.json"
+        raw = (
+            json.dumps(
+                matched,
+                ensure_ascii=False,
+                separators=(",", ":"),
+            )
+            + "\n"
+        ).encode("utf-8")
+        (self.root / "matched-set.json").write_bytes(raw)
+        changed["source_set"]["blob_sha1"] = git_blob_sha1(raw)
+        with self.assertRaises(AssistanceProbeError):
+            load_sources(
+                changed,
+                self.root,
+            )
 
     def test_source_freeze_rejects_changed_fixture(self):
         (self.root / "f1.json").write_text(

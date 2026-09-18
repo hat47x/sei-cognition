@@ -22,6 +22,7 @@ SCHEMA = "sei.inquiry-continuity-assistance-probe/v1"
 FIXTURE_SCHEMA = "sei.inquiry-continuity-comparison-fixture/v0"
 PACKET_SCHEMA = "sei.inquiry-continuity-assistance-packet/v1"
 RESPONSE_SCHEMA = "sei.inquiry-continuity-assistance-response/v1"
+MATCHED_SET_SCHEMA = "sei.inquiry-continuity-matched-set/v0"
 
 CONDITIONS = {"A_proactive_first", "B_quiet_first", "C_adaptive_progressive"}
 RESPONSE_STAGES = {"initial", "reveal"}
@@ -166,6 +167,26 @@ def validate_probe(probe: dict[str, Any]) -> None:
             "response stages must be initial then reveal"
         )
 
+    source_set = probe.get("source_set")
+    if not isinstance(source_set, dict) or set(source_set) != {
+        "path",
+        "blob_sha1",
+    }:
+        raise AssistanceProbeError("source_set has invalid shape")
+    if (
+        not isinstance(source_set["path"], str)
+        or not source_set["path"].strip()
+        or Path(source_set["path"]).is_absolute()
+        or ".." in Path(source_set["path"]).parts
+        or not isinstance(source_set["blob_sha1"], str)
+        or len(source_set["blob_sha1"]) != 40
+        or any(
+            character not in "0123456789abcdef"
+            for character in source_set["blob_sha1"]
+        )
+    ):
+        raise AssistanceProbeError("source_set path/blob binding is invalid")
+
     conditions = probe.get("conditions")
     if not isinstance(conditions, dict) or set(conditions) != CONDITIONS:
         raise AssistanceProbeError(
@@ -259,6 +280,52 @@ def load_sources(
 ) -> dict[str, dict[str, Any]]:
     validate_probe(probe)
     root = Path(repo_root)
+    source_set = probe["source_set"]
+    source_set_path = root / source_set["path"]
+    try:
+        source_set_raw = source_set_path.read_bytes()
+    except OSError as exc:
+        raise AssistanceProbeError(
+            f"cannot load source-set manifest: {source_set_path}"
+        ) from exc
+    if git_blob_sha1(source_set_raw) != source_set["blob_sha1"]:
+        raise AssistanceProbeError(
+            "source-set manifest changed after probe design"
+        )
+    try:
+        source_set_value = json.loads(source_set_raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise AssistanceProbeError(
+            "source-set manifest must be valid UTF-8 JSON"
+        ) from exc
+    if (
+        not isinstance(source_set_value, dict)
+        or source_set_value.get("schema") != MATCHED_SET_SCHEMA
+        or source_set_value.get("status") != "evaluation-only"
+        or source_set_value.get("issue") != "ISSUE-000078"
+    ):
+        raise AssistanceProbeError(
+            "source-set manifest has invalid identity"
+        )
+    manifest_fixtures = source_set_value.get("fixtures")
+    if not isinstance(manifest_fixtures, list):
+        raise AssistanceProbeError(
+            "source-set manifest fixtures must be a list"
+        )
+    manifest_pairs = [
+        (item.get("id"), item.get("path"))
+        for item in manifest_fixtures
+        if isinstance(item, dict)
+    ]
+    probe_pairs = [
+        (case["fixture_id"], case["path"])
+        for case in probe["cases"]
+    ]
+    if manifest_pairs != probe_pairs:
+        raise AssistanceProbeError(
+            "source-set manifest fixture identity/path differs from probe"
+        )
+
     fixtures: dict[str, dict[str, Any]] = {}
     for case in probe["cases"]:
         path = root / case["path"]
