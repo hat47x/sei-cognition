@@ -107,6 +107,26 @@ class SparseAssociativeCognitionResearchPlanTests(unittest.TestCase):
         plan["cross_stage_evaluation_gate"]["b5_entry_gate_changed"] = True
         self.assert_has_error(plan, "b5_entry_gate_changed must remain false")
 
+    def test_cross_stage_freeze_kit_state_flag_must_match(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["cross_stage_evaluation_gate"]["freeze_kit"]["state"] = "frozen"
+        self.assert_has_error(plan, "current_bundle_is_frozen must match state")
+
+    def test_cross_stage_freeze_kit_cannot_enable_results(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["cross_stage_evaluation_gate"]["freeze_kit"][
+            "result_generation_enabled_after_freeze"
+        ] = True
+        self.assert_has_error(
+            plan,
+            "result_generation_enabled_after_freeze must remain false",
+        )
+
+    def test_cross_stage_freeze_kit_cannot_open_b5(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["cross_stage_evaluation_gate"]["freeze_kit"]["b5_entry_gate_changed"] = True
+        self.assert_has_error(plan, "freeze_kit.b5_entry_gate_changed must remain false")
+
     def test_llm_is_not_required_or_default_fallback(self) -> None:
         for key in ("llm_required", "llm_is_fallback_by_default"):
             with self.subTest(key=key):

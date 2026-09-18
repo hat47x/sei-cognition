@@ -219,6 +219,34 @@ def validate_research_plan(plan: dict) -> list[str]:
         if not cross_stage.get("unlock_rule"):
             errors.append("cross_stage_evaluation_gate.unlock_rule must be declared")
 
+        freeze_kit = cross_stage.get("freeze_kit")
+        if not isinstance(freeze_kit, dict):
+            errors.append("cross_stage_evaluation_gate.freeze_kit must be an object")
+        else:
+            if freeze_kit.get("state") not in {"draft", "frozen"}:
+                errors.append("cross_stage_evaluation_gate.freeze_kit.state must be draft or frozen")
+            if freeze_kit.get("directory") != "cross-stage-freeze":
+                errors.append("cross_stage_evaluation_gate.freeze_kit.directory must remain cross-stage-freeze")
+            if freeze_kit.get("bundle_ref") != "cross-stage-freeze/freeze_bundle.json":
+                errors.append("cross_stage_evaluation_gate.freeze_kit.bundle_ref must remain declared")
+            if freeze_kit.get("validator_ref") != "cross-stage-freeze/freeze_manifests.py":
+                errors.append("cross_stage_evaluation_gate.freeze_kit.validator_ref must remain declared")
+            if freeze_kit.get("evidence_ref") != "cross-stage-freeze/freeze_kit_evidence_2026-09-18.json":
+                errors.append("cross_stage_evaluation_gate.freeze_kit.evidence_ref must remain declared")
+            frozen = freeze_kit.get("state") == "frozen"
+            if freeze_kit.get("current_bundle_is_frozen") is not frozen:
+                errors.append(
+                    "cross_stage_evaluation_gate.freeze_kit.current_bundle_is_frozen must match state"
+                )
+            if freeze_kit.get("result_generation_enabled_after_freeze") is not False:
+                errors.append(
+                    "cross_stage_evaluation_gate.freeze_kit.result_generation_enabled_after_freeze must remain false"
+                )
+            if freeze_kit.get("b5_entry_gate_changed") is not False:
+                errors.append(
+                    "cross_stage_evaluation_gate.freeze_kit.b5_entry_gate_changed must remain false"
+                )
+
     deferred = plan.get("deferred_directions")
     if not isinstance(deferred, list):
         errors.append("deferred_directions must be a list")

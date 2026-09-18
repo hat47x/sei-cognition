@@ -1,0 +1,24 @@
+{
+  "schema": "sei.sacs-cross-stage-freeze-bundle/v1alpha1",
+  "state": "draft",
+  "frozen_at": null,
+  "dataset_manifest": {
+    "ref": "dataset_manifest.json",
+    "digest": ""
+  },
+  "adjudication_manifest": {
+    "ref": "adjudication_manifest.json",
+    "digest": ""
+  },
+  "split_manifest": {
+    "ref": "split_manifest.json",
+    "digest": ""
+  },
+  "b3_prior_manifest": {
+    "ref": "b3_prior_manifest.json",
+    "digest": ""
+  },
+  "result_generation_enabled": false,
+  "b5_entry_gate_changed": false,
+  "bundle_digest": ""
+}

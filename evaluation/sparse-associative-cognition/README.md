@@ -213,7 +213,9 @@ human-adjudicated評価へ進む前に、比較variant、split、B3 prior、B4 f
 
 - machine-readable preregistration: `cross_stage_benchmark_preregistration.json`
 - 説明文書: `CROSS_STAGE_BENCHMARK_PREREGISTRATION.md`
-- validator: `validate_cross_stage_preregistration.py`
+- preregistration validator: `validate_cross_stage_preregistration.py`
+- freeze kit: `cross-stage-freeze/`
+- freeze kit validator: `cross-stage-freeze/freeze_manifests.py`
 
 現在は **Evaluation Locked** である。
 

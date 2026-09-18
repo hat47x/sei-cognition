@@ -225,5 +225,19 @@
     "single composite score is prohibited",
     "synthetic evidence != production evidence",
     "cross-stage benchmark != B5 gate automatically open"
-  ]
+  ],
+  "freeze_kit": {
+    "state": "draft",
+    "directory": "cross-stage-freeze",
+    "dataset_manifest_ref": "cross-stage-freeze/dataset_manifest.json",
+    "adjudication_manifest_ref": "cross-stage-freeze/adjudication_manifest.json",
+    "split_manifest_ref": "cross-stage-freeze/split_manifest.json",
+    "b3_prior_manifest_ref": "cross-stage-freeze/b3_prior_manifest.json",
+    "freeze_bundle_ref": "cross-stage-freeze/freeze_bundle.json",
+    "validator_ref": "cross-stage-freeze/freeze_manifests.py",
+    "evidence_ref": "cross-stage-freeze/freeze_kit_evidence_2026-09-18.json",
+    "current_bundle_is_frozen": false,
+    "result_generation_enabled_after_freeze": false,
+    "b5_entry_gate_changed": false
+  }
 }

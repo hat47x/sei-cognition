@@ -160,7 +160,44 @@ Outcome-informed routingはtraining Outcomeとholdout replayを分離する。
 
 一つの加重scoreへ圧縮しない。
 
-## 8. Unlock条件
+## 8. Freeze kit
+
+preregistrationだけでは、human adjudication結果、dataset digest、split、B3 priorをどの形式で固定するかまでは扱わない。
+
+そのため `cross-stage-freeze/` にfreeze kitを分離する。
+
+- dataset manifest
+- human adjudication manifest
+- split manifest
+- B3 prior manifest
+- freeze bundle
+- canonical SHA-256 validator
+
+現在repoにあるmanifestはすべて `draft` であり、human-adjudicated datasetの代用品ではない。
+
+freeze kitは、空dataset、mixed draft/frozen state、stale digest、split overlap、evaluation-label-derived prior、digest binding不一致をfail-closedにする。
+
+human disagreementは `unresolved` として保存でき、強制的なconsensusへ潰さない。
+
+freeze後もbundleは `result_generation_enabled=false`、`b5_entry_gate_changed=false` を維持する。
+
+```text
+preregistration
+  ↓
+draft freeze manifests
+  ↓
+human adjudication / split / prior preparation
+  ↓
+frozen freeze bundle
+  ↓
+explicit evaluation-run artifact
+  ↓
+benchmark execution
+```
+
+詳細は `cross-stage-freeze/README.md` を参照する。
+
+## 9. Unlock条件
 
 現在はlockedである。
 
@@ -176,7 +213,7 @@ evaluation runを作成する前に、別artifactで少なくとも次を満た�
 
 preregistration artifact自身の `result_generation.enabled` は将来も `false` のままにする。
 
-## 9. B5との関係
+## 10. B5との関係
 
 B5 learned sparse projectionのentry gateは変更しない。
 
@@ -187,7 +224,7 @@ cross-stage preregistration
   != B5 gate open
 ```
 
-## 10. Evidence境界
+## 11. Evidence境界
 
 この作業が提供するのはDesign / Evaluation-boundary Evidenceである。
 

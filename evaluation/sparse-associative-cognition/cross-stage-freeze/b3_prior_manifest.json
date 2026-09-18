@@ -1,0 +1,10 @@
+{
+  "schema": "sei.sacs-cross-stage-b3-prior-manifest/v1alpha1",
+  "state": "draft",
+  "frozen_at": null,
+  "dataset_digest": "",
+  "adjudication_manifest_digest": "",
+  "evaluation_labels_used_for_authoring": false,
+  "rules": [],
+  "manifest_digest": ""
+}
