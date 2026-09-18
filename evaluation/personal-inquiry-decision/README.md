@@ -363,8 +363,8 @@ root purpose
 - local evaluation CLIによるscoped executable mechanics
 - dogfood evaluation sidecarとfocused tests
 - ISSUE-000073 E1〜E8 interaction probe source
-- clean committed HEADとsource blobを固定するEvidence runner
-- recorded tested commitへ戻って検証するEvidence verifier
+- checkout外で独立に取得したcanonical expected HEAD、clean committed HEAD、source blobを固定するEvidence runner / one-command capture
+- Evidence record内の`expected_head == head`、recorded tested commit、source blobへ戻って検証するEvidence verifier
 - H2 matched reviewのblinded packet、pre-stimulus reviewer provenance、073/078共通runner、global stage gate、Decision固有validation、evidence export
 - ISSUE-000078 matched reviewのreviewer provenance、phase1 / post / audit stage gate、非採点analysis、complete-session Evidence export
 - ISSUE-000078 E78.3のsource-fixture blob固定、provisional summary / next question、human response固定後だけのaudit reveal
@@ -393,7 +393,7 @@ root purpose
 
 文書や機能を増やすことより、既に準備した経路からactual Evidenceを得ることを優先する。
 
-1. Go 1.25.xを使えるclean checkoutでISSUE-000073 E1〜E8 runnerをactual実行し、verifierでrecorded tested commit / source blob / test結果を再検証する。
+1. Go 1.25.xを使えるclean checkoutで、GitHub等の独立したrepository正本からcanonical commit SHAを取得し、`capture_issue_000073_resume_first_evidence.py --expected-head <canonical-commit-sha>`をactual実行して、recorded tested commit / source blob / test結果を再検証する。
 2. materialなpre-orientation exposureのないreal InquiryでH1 actual resumptionを実施し、既存sidecarへ`evidence_role=resumption`として記録する。
 3. ISSUE-000073 H2 matched counterfactual reviewを`inquiry_continuity_review_runner.py`からhuman readerで少なくとも一rotation実施し、reviewer provenanceを保持したsynthetic pilotとして保存する。known exposureのあるreaderをclean blinded扱いにしない。
 4. ISSUE-000078 E78.2 / E78.4 / E78.5 matched reviewを`inquiry_continuity_review_runner.py`からhuman readerで少なくとも一rotation実施し、review provenanceを保持したcomplete sessionからEvidenceをexportする。
