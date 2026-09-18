@@ -241,7 +241,7 @@ func TestDeterministicTieBreak(t *testing.T) {
 	}
 }
 
-func TestReplayShowsGainAndDistributionShiftRegretSeparately(t *testing.T) {
+func TestReplayCanReduceEscalationWithoutReducingSyntheticSuccess(t *testing.T) {
 	store, _ := NewStore(testDefinitions())
 	candidate, err := store.BuildCandidate(outcomes("routine-summary", "local-slm", 9, 1, 0, 0))
 	if err != nil {
@@ -257,12 +257,41 @@ func TestReplayShowsGainAndDistributionShiftRegretSeparately(t *testing.T) {
 			ID: "r2", ProblemClass: "routine-summary",
 			RouteOutcomes: map[string]bool{"local-slm": true, "general-llm": true},
 		},
+	}
+	adapted, err := store.Replay(candidate.Version, cases)
+	if err != nil {
+		t.Fatal(err)
+	}
+	baseline, err := store.Replay(BaselineVersion, cases)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if adapted.PolicySuccessRate != 1 || baseline.PolicySuccessRate != 1 {
+		t.Fatalf("positive fixture must preserve synthetic success: adapted=%#v baseline=%#v", adapted, baseline)
+	}
+	if adapted.UnnecessaryEscalationRate != 0 || baseline.UnnecessaryEscalationRate != 1 {
+		t.Fatalf("expected escalation reduction without success change: adapted=%#v baseline=%#v", adapted, baseline)
+	}
+	if adapted.RegretAgainstStatic != 0 {
+		t.Fatalf("positive fixture must not contain regret: %#v", adapted)
+	}
+}
+
+func TestReplayPreservesDistributionShiftRegretAgainstStatic(t *testing.T) {
+	store, _ := NewStore(testDefinitions())
+	candidate, err := store.BuildCandidate(outcomes("routine-summary", "local-slm", 9, 1, 0, 0))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cases := []ReplayCase{
 		{
-			ID: "r3", ProblemClass: "routine-summary",
+			ID: "shift-1", ProblemClass: "routine-summary",
 			RouteOutcomes: map[string]bool{"local-slm": false, "general-llm": true},
 		},
 		{
-			ID: "n1", ProblemClass: "novel-analysis",
+			ID: "novel-1", ProblemClass: "novel-analysis",
 			RouteOutcomes: map[string]bool{"local-slm": false, "general-llm": true},
 		},
 	}
@@ -275,17 +304,11 @@ func TestReplayShowsGainAndDistributionShiftRegretSeparately(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if adapted.PolicySuccesses != 3 || adapted.RegretAgainstStatic != 1 {
-		t.Fatalf("unexpected adapted replay: %#v", adapted)
+	if adapted.PolicySuccesses != 1 || adapted.RegretAgainstStatic != 1 || adapted.RegretAgainstStaticRate != 0.5 {
+		t.Fatalf("distribution-shift regret was not preserved: %#v", adapted)
 	}
-	if baseline.PolicySuccesses != 4 || baseline.UnnecessaryEscalations != 2 {
-		t.Fatalf("unexpected baseline replay: %#v", baseline)
-	}
-	if adapted.UnnecessaryEscalations != 0 {
-		t.Fatalf("adapted policy should avoid unnecessary escalation on successful routine cases: %#v", adapted)
-	}
-	if adapted.PolicySuccessRate >= baseline.PolicySuccessRate {
-		t.Fatalf("fixture must preserve distribution-shift tradeoff: adapted=%#v baseline=%#v", adapted, baseline)
+	if baseline.PolicySuccesses != 2 || baseline.RegretAgainstStatic != 0 {
+		t.Fatalf("unexpected static baseline replay: %#v", baseline)
 	}
 }
 
