@@ -306,7 +306,7 @@ pre-orientation material exposure
 
 H2では、raw chat、chronological note、SEI Resume Projectionを同等素材で比較します。reviewer provenanceを最初のstimulus提示前に固定し、condition labelを伏せたbundle、global stage gate、Decision固有validationを用いて、post-decision materialやreference stateを先に見ないようにします。
 
-正規入口は073/078で共有する`inquiry_continuity_review_runner.py`です。Decision専用runnerやsession managerは増やしません。complete reviewのEvidence exportも同じrunnerの`export-evidence`から行います。
+正規入口は073/078で共有する`inquiry_continuity_review_runner.py`です。Decision専用runnerやsession managerは増やしません。初期sessionはexclusive-createし、同じpathへの再`init`を拒否します。provenance付きsessionについては低レベル`matched_review_session.py` CLIの`packets` / `record`も拒否し、Issue固有validationを迂回してstageを進めないようにします。complete reviewのEvidence exportも同じrunnerの`export-evidence`から行います。
 
 例:
 
@@ -360,7 +360,7 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 | REQ-0023 / SCN-0019 Executable Evidence | **Not Yet Verified** |
 | H1 actual human review | **Not Yet Observed** |
 | H2 counterfactual human review | **Not Yet Observed** |
-| H2 provenance-first shared runner / evidence-export tooling | Available; actual human session pending; prior R1 exposure is not a completed observation |
+| H2 provenance-first shared runner / evidence-export tooling | Available; init is exclusive-create and low-level packets/record bypass is rejected; actual human session pending; prior R1 exposure is not a completed observation |
 | Decision Continuity Product Value | **Not Established** |
 | Operational Evidence | **Not Yet Verified** |
 | Adoption / Outcome Evidence | **Not Yet Verified** |
