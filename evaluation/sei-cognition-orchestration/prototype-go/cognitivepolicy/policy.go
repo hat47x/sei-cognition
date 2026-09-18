@@ -54,12 +54,14 @@ type ProblemPolicy struct {
 }
 
 type RouteStats struct {
-	Assessed        int
-	Sufficient      int
-	Insufficient    int
-	NotAssessed     int
-	ExecutionFailed int
-	SuccessRate     float64
+	Assessed               int
+	Sufficient             int
+	Insufficient           int
+	NotAssessed            int
+	ExecutionFailed        int
+	SuccessRate            float64
+	ObservedPolicyVersions map[string]int
+	EvidenceRefs           []string
 }
 
 type Selection struct {
@@ -225,6 +227,14 @@ func (s *Store) aggregate(records []OutcomeRecord) (map[string]map[string]RouteS
 			return nil, fmt.Errorf("outcome record %d: %w", i, err)
 		}
 		routeStats := stats[record.ProblemClass][record.Route]
+		if routeStats.ObservedPolicyVersions == nil {
+			routeStats.ObservedPolicyVersions = make(map[string]int)
+		}
+		routeStats.ObservedPolicyVersions[record.ObservedPolicyVersion]++
+		if !containsString(routeStats.EvidenceRefs, record.ProvenanceRef) {
+			routeStats.EvidenceRefs = append(routeStats.EvidenceRefs, record.ProvenanceRef)
+			sort.Strings(routeStats.EvidenceRefs)
+		}
 		if record.ExecutionOutcome == ExecutionFailed {
 			routeStats.ExecutionFailed++
 		}
@@ -352,6 +362,7 @@ func cloneSnapshot(in Snapshot) Snapshot {
 		Efficacy:      cloneEfficacy(in.Efficacy),
 	}
 	for problemClass, selection := range in.Selections {
+		selection.Stats = cloneRouteStats(selection.Stats)
 		out.Selections[problemClass] = selection
 	}
 	return out
@@ -362,9 +373,28 @@ func cloneEfficacy(in map[string]map[string]RouteStats) map[string]map[string]Ro
 	for problemClass, routes := range in {
 		routeCopy := make(map[string]RouteStats, len(routes))
 		for route, stats := range routes {
-			routeCopy[route] = stats
+			routeCopy[route] = cloneRouteStats(stats)
 		}
 		out[problemClass] = routeCopy
 	}
 	return out
+}
+
+func cloneRouteStats(in RouteStats) RouteStats {
+	out := in
+	out.ObservedPolicyVersions = make(map[string]int, len(in.ObservedPolicyVersions))
+	for version, count := range in.ObservedPolicyVersions {
+		out.ObservedPolicyVersions[version] = count
+	}
+	out.EvidenceRefs = append([]string(nil), in.EvidenceRefs...)
+	return out
+}
+
+func containsString(values []string, target string) bool {
+	for _, value := range values {
+		if value == target {
+			return true
+		}
+	}
+	return false
 }
