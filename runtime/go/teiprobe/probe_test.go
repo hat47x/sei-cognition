@@ -51,7 +51,7 @@ func fixtureRequest(binary string) Request {
 				ID:   "deployment-provider-routing",
 			},
 			ObservedAt:     "2026-09-18T00:00:00Z",
-			SourceStateRef: "tei-probe:fixture",
+			SourceStateRef: "caller-provided-value-must-not-survive",
 		},
 	}
 }
@@ -101,6 +101,13 @@ func TestProbeWithoutManifestRecordsUnverifiedBinding(t *testing.T) {
 	}
 	if _, err := provideradapter.ValidateObservation(report.CapabilityObservation); err != nil {
 		t.Fatalf("Capability Observation did not validate: %v", err)
+	}
+	if report.CapabilityObservation.Observation.MappingProvenance == nil {
+		t.Fatal("Capability Observation mapping provenance is missing")
+	}
+	expectedSourceState := "tei-binary-sha256:" + report.Binary.SHA256
+	if got := report.CapabilityObservation.Observation.MappingProvenance.SourceStateRef; got != expectedSourceState {
+		t.Fatalf("source state ref = %q, want %q", got, expectedSourceState)
 	}
 }
 
@@ -239,7 +246,7 @@ func TestReportShapeDoesNotIntroduceCredentialFields(t *testing.T) {
 	if err != nil {
 		t.Fatalf("marshal report: %v", err)
 	}
-	for _, forbidden := range []string{"credential", "password", "api_key", "access_token", "stderr", "process_error"} {
+	for _, forbidden := range []string{"credential", "password", "api_key", "access_token", "stderr", "process_error", "caller-provided-value-must-not-survive"} {
 		if strings.Contains(strings.ToLower(string(payload)), forbidden) {
 			t.Fatalf("report unexpectedly contains secret-bearing field name %q: %s", forbidden, payload)
 		}
