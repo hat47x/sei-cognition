@@ -57,6 +57,13 @@ class LiveProviderFailureRunnerTest(unittest.TestCase):
                 "GH_TOKEN": "gh-secret",
                 "KJ_ATLAS_DATABASE_URL": "secret-db",
                 "OPENAI_API_KEY": "openai-secret",
+                "GOTOOLCHAIN": "auto",
+                "GOWORK": "/tmp/injected.work",
+                "GOENV": "/tmp/injected-goenv",
+                "GOFLAGS": "-mod=mod",
+                "GOOS": "windows",
+                "GOARCH": "arm64",
+                "CGO_ENABLED": "1",
             }
         )
         self.assertEqual(environment["PATH"], "/bin")
@@ -68,8 +75,15 @@ class LiveProviderFailureRunnerTest(unittest.TestCase):
             "GH_TOKEN",
             "KJ_ATLAS_DATABASE_URL",
             "OPENAI_API_KEY",
+            "GOFLAGS",
+            "GOOS",
+            "GOARCH",
+            "CGO_ENABLED",
         ):
             self.assertNotIn(removed, environment)
+        self.assertEqual(environment["GOTOOLCHAIN"], "local")
+        self.assertEqual(environment["GOWORK"], "off")
+        self.assertEqual(environment["GOENV"], "off")
         serialized = json.dumps(environment, sort_keys=True)
         self.assertNotIn("real-secret-token", serialized)
         self.assertNotIn("legacy-secret-token", serialized)
