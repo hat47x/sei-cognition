@@ -740,7 +740,8 @@
       "実hardware / real workloadにおけるcapacity profile品質、最適local/global residual scaling、path別selection-pressure ceiling、adaptive Active / local budget policy、power / latency / memory trade-off",
       "実problem class / real Outcome評価におけるoutcome-informed routingの一般化、selection-bias補正、statistical confidence、drift / expiry / rollback criteria",
       "production配置方式",
-      "Product Value / Operational / Adoption / Outcome Evidence"
+      "Product Value / Operational / Adoption / Outcome Evidence",
+      "cross-stage human-adjudicated evaluationはpreregistration済みだが、adjudication / dataset / split / B3 prior manifest未freezeのためlocked。semantic benchmark resultは未生成。"
     ],
     "supporting_evidence_files": [
       "input_normalization_evidence_2026-09-18.json",
@@ -796,5 +797,22 @@
       "doi": "10.1038/s41586-024-07819-w",
       "evidence_role": "multi-timescale compartmental outcome-learning inspiration"
     }
-  ]
+  ],
+  "cross_stage_evaluation_gate": {
+    "state": "locked-preregistration",
+    "preregistration_file": "cross_stage_benchmark_preregistration.json",
+    "document": "CROSS_STAGE_BENCHMARK_PREREGISTRATION.md",
+    "results_generation_enabled": false,
+    "human_adjudication_required": true,
+    "human_adjudication_state": "pending",
+    "variant_set_frozen": true,
+    "tracks": [
+      "retrieval",
+      "familiarity",
+      "routing"
+    ],
+    "no_single_composite_score": true,
+    "b5_entry_gate_changed": false,
+    "unlock_rule": "human adjudication, dataset digest, split manifests, and B3 prior manifest must be frozen; evaluation starts only from a separate explicit evaluation-run artifact."
+  }
 }
