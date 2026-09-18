@@ -57,7 +57,27 @@
     "single_composite_score": false,
     "evaluation_label_authored_b3_prior": false,
     "evaluation_label_authored_b4_fingerprint": false,
-    "b7_training_holdout_overlap": false
+    "b7_training_holdout_overlap": false,
+    "stress_track": {
+      "stages": [
+        "SAC-B6d",
+        "SAC-B6e"
+      ],
+      "profile": {
+        "id": "oversized-stress",
+        "dimensions": 32768,
+        "active": 512,
+        "fanout": 8,
+        "seed": 47
+      },
+      "residual_policies": [
+        "proportional-baseline",
+        "cap128",
+        "cap64"
+      ],
+      "production_default": false,
+      "feature_cardinality_is_semantic_priority": false
+    }
   },
   "local_verification": {
     "toolchain": "Python 3.13.5",
@@ -67,7 +87,7 @@
     "validator_result": "PASS: Cross-stage preregistration validated; evaluation remains locked",
     "unittest_command": "python -m unittest -v evaluation/sparse-associative-cognition/test_validate_cross_stage_preregistration.py",
     "unittest_result": "PASS",
-    "tests_passed": 13,
+    "tests_passed": 15,
     "elapsed_seconds": 0.002,
     "covered_fail_closed_boundaries": [
       "result generation cannot be enabled by preregistration",
@@ -81,7 +101,9 @@
       "B6b/B6c diagnostics cannot become semantic scores",
       "single composite score remains prohibited",
       "B5 gate remains closed",
-      "fully frozen synthetic manifest can satisfy unlock validator"
+      "fully frozen synthetic manifest can satisfy unlock validator",
+      "B6d/B6e stress track cannot define production default",
+      "feature cardinality cannot become semantic priority"
     ]
   },
   "stop_lines": [
