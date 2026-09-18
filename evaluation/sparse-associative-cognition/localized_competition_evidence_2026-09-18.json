@@ -1,0 +1,165 @@
+{
+  "schema": "sei.sacs-localized-competition-evidence/v1alpha1",
+  "date": "2026-09-18",
+  "status": "limited-local-executable-evidence",
+  "subject": "SAC-B2 caller-owned feature-family localized competition",
+  "issue": 433,
+  "branch": "topic/sac-b2-localized-competition",
+  "biological_reference": {
+    "citation": "Amin et al. (2020), Localized inhibition in the Drosophila mushroom body, eLife 9:e56954",
+    "doi": "10.7554/eLife.56954",
+    "engineering_reading": "Local inhibition is stronger nearby but not perfectly isolated; evaluate family-local winner budgets together with a bounded global residual path rather than assuming hard partitions."
+  },
+  "policies": {
+    "baseline": {
+      "description": "current global k-WTA",
+      "active": 16
+    },
+    "hardLocal": {
+      "familyActive": {
+        "text": 4,
+        "graph": 4,
+        "provenance": 4,
+        "grouping": 4
+      },
+      "globalResidualActive": 0,
+      "totalBudget": 16
+    },
+    "localWithResidual": {
+      "familyActive": {
+        "text": 2,
+        "graph": 2,
+        "provenance": 2,
+        "grouping": 2
+      },
+      "globalResidualActive": 8,
+      "totalBudget": 16
+    },
+    "invariants": [
+      "family mapping is owned by the SUI adapter, not SACS Core",
+      "kind receives no reserved local budget in these fixtures",
+      "total reserved local plus global residual budget does not exceed Sparse.Active",
+      "absent-family budget is not automatically redistributed",
+      "merged signatures are sorted and duplicate dimensions are collapsed"
+    ]
+  },
+  "syntheticFixtures": [
+    {
+      "id": "B2-TEXT-DOMINATION-01",
+      "config": {
+        "dimensions": 32768,
+        "fanout": 4,
+        "active": 16,
+        "seed": 47
+      },
+      "similarity": {
+        "global": {
+          "desired": 0.125,
+          "distractor": 0.625
+        },
+        "hardLocal": {
+          "desired": 0.75,
+          "distractor": 0.125
+        },
+        "localWithResidual": {
+          "desired": 0.5,
+          "distractor": 0.240192235
+        }
+      },
+      "observation": "Both localized policies recover the structurally aligned candidate that global k-WTA loses to text-cardinality domination."
+    },
+    {
+      "id": "B2-HARD-ISOLATION-01",
+      "config": {
+        "dimensions": 32768,
+        "fanout": 4,
+        "active": 16,
+        "seed": 47
+      },
+      "similarity": {
+        "global": {
+          "desired": 0.4375,
+          "distractor": 0.1875
+        },
+        "hardLocal": {
+          "desired": 0.3125,
+          "distractor": 0.375
+        },
+        "localWithResidual": {
+          "desired": 0.384900182,
+          "distractor": 0.277350098
+        }
+      },
+      "observation": "Hard equal family reservation reverses a correct global ordering toward a narrow-family match; retaining half of the budget as global residual restores the broad-evidence candidate in this fixture."
+    }
+  ],
+  "implementation_iteration": {
+    "initialNaiveReconstruction": {
+      "note": "A standalone Go reconstruction created new sparse Encoder scratch arrays for every family and item.",
+      "softLocal": {
+        "latencyNsPerOpRange": [
+          461844,
+          473554
+        ],
+        "bytesPerOpRange": [
+          29475,
+          29484
+        ],
+        "allocsPerOp": 122
+      }
+    },
+    "requestScopedEncoderReuseReconstruction": {
+      "note": "The branch implementation was revised to reuse one sparse Encoder per distinct active width within a request. This standalone reconstruction mirrors that lifecycle but is not an exact repository checkout.",
+      "softLocal": {
+        "latencyNsPerOpRange": [
+          47494,
+          50100
+        ],
+        "bytesPerOp": 7376,
+        "allocsPerOp": 47
+      },
+      "global": {
+        "latencyNsPerOpRange": [
+          19207,
+          20309
+        ],
+        "bytesPerOp": 144,
+        "allocsPerOp": 5
+      },
+      "interpretation": "Encoder reuse removes most of the naive setup cost, but localized competition remains materially more expensive than the global baseline and needs further allocation work before any production consideration."
+    }
+  },
+  "localVerification": {
+    "toolchain": "go1.23.2 linux/amd64",
+    "repositoryGoDirective": "1.25",
+    "exactRepositoryCheckout": false,
+    "method": "Standalone deterministic Go reconstruction of the current sparse encoder, SUI feature projection, family mapping, local winner budgets, signature merge, and request-scoped encoder reuse.",
+    "fixtureCommand": "go test -v ./...",
+    "fixtureResult": "PASS",
+    "benchmarkCommand": "go test -bench=Benchmark -benchmem -count=3 ./...",
+    "staticBranchChecks": [
+      "old per-item encodeLocalizedCompetition helper is absent",
+      "old Provider.encodeFeatures helper is absent",
+      "request-scoped localizedCompetitionEncoder is present",
+      "B2 tests no longer reference removed helpers"
+    ]
+  },
+  "stopLines": [
+    "localized winner slot != semantic importance",
+    "similarity != confidence or truth",
+    "synthetic fixture improvement != general semantic quality",
+    "global residual recovery in one fixture != optimal budget ratio",
+    "localized competition != B1 normalization",
+    "this evidence != production default",
+    "this evidence != SUI affinity benchmark result"
+  ],
+  "notVerified": [
+    "exact branch source execution from a full repository checkout",
+    "repository-wide regression on Go 1.25",
+    "actual SUI card distribution",
+    "human-adjudicated SUI meaning-quality benchmark",
+    "optimal family budget or residual ratio",
+    "allocation optimization sufficient for always-on deployment",
+    "Production, Operational, Adoption, or Outcome Evidence"
+  ]
+}
