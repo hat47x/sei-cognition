@@ -1,6 +1,6 @@
 # SEI Product Value
 
-更新日: 2026-09-14  
+更新日: 2026-09-18  
 状態: **Product Value Baseline — Decision Continuity / Brand-world discovery synthesis reflected**
 
 ## 1. SEIが存在する理由
@@ -69,6 +69,8 @@ SEIは「何を可能にするか」と「誰／何がそれを実現するか�
 
 人間、AI、SaaS、外部組織、TEI、custom codeなどを、必要に応じて異質なCapability Providerとして扱います。SEI自身と関係の深い技術であることだけを理由に、特定Providerを優遇しません。
 
+この交換可能性は、生成AI同士の切替だけを意味しません。規則、従来型分類器、embedding、疎な連想・再帰型の認知器、ローカル軽量LLM、外部の高性能モデル、人間手順など、性質の異なる判断手段を、必要な意味境界を保ったままCognitive MethodやCapability Providerとして接続できる余地を含みます。個々の技術をUniversal Coreへ持ち込まず、どの手段を使ったか、何を観測し、どこまで確かだったかを後から読み分けられることを重視します。
+
 これにより、利用技術が置き換わっても、Intent・Constraint・Decision・Provenance等の意味を保ちやすくします。
 
 ### 3.5 実行基盤より上位の意味を保持する
@@ -76,6 +78,8 @@ SEIは「何を可能にするか」と「誰／何がそれを実現するか�
 workflow、BPM、agent runtime、queue、retry、worker scheduling等は重要ですが、それらをSEIの恒久的な中心にはしません。
 
 SEIは、外部の実行基盤をCapability Providerとして利用できる一方、それらが置き換わっても残る認知・判断の意味構造を所有します。
+
+EKI Fabricのような分散実行基盤と連携する場合も、SEIが所有するのは「どのCapabilityが必要か」「どの制約・根拠で選んだか」「どの実行結果をObservationとして受け取ったか」という意味です。CPU / GPU / NPUやWorkerの選択、資源配置、再実行、局所性などの実行配置は、SEIのUniversal Coreへ取り込みません。
 
 ### 3.6 人間とAIが同じ判断面を読めるようにする
 
@@ -131,6 +135,19 @@ shared cognition
 ```
 
 共有できること自体からDecision Authorityを推定しません。逆に、privacyやAccess Controlが必要だからという理由で、認知成果を各sessionへ分断することも避けます。
+
+### 3.10 隣接Productと価値の正本を混ぜない
+
+SEIはSUI Sensemaking、TEI、EKI Fabricと組み合わせて利用できますが、4つを一つの固定pipelineや単一Product Boundaryとして扱いません。
+
+- **SUI Sensemaking** は、未整理な材料から関係・仮説・構造・統合を形成し、その意味形成の過程を成熟させるsensemaking lifecycleを主に扱います。
+- **SEI Cognition** は、その過程を含む認知・判断について、Observation、Question、Unknown、Evidence、Decision、Capability、Provenance等の耐久的な意味と継続性を扱います。
+- **TEI** は、業務上の意味をCanonicalなformal modelとして保持し、実装・実行可能な形へ接続する境界を主に扱います。
+- **EKI Fabric** は、異質で一時的な計算資源を安全に利用し、計算をどこで実行するかという分散実行の境界を主に扱います。
+
+この整理は相互排他を意味しません。SUIの探索結果をSEIが認知材料として扱う、SEIがTEIをCapability Providerとして選ぶ、SEIの認知処理をEKI上で実行するといった接続は可能です。
+
+ただし、隣接Productの内部概念を「関係が深いから」という理由でSEI Universal Coreへ複製しません。各Productの価値・権限・Evidence claimは、それぞれのリポジトリを正本とします。
 
 ## 4. Product Valueと下位設計の境界
 

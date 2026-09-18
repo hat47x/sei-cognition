@@ -1,5 +1,5 @@
 schema: sei.document-review-registry/v1
-updated: 2026-09-17
+updated: 2026-09-18
 
 purpose: >-
   ISSUE-000015で行った既存開発文書の自然な日本語監査について、current branch上の
@@ -31,7 +31,7 @@ reviewed:
       - SEI_BRAND_WORLD_PRODUCT_VALUE_REVIEW.md
       - SEI_VALUE_ACCEPTANCE.md
       - SEI_VALUE_TRACEABILITY.md
-    note: current V1〜V8とDecision Continuityを維持しつつ、ISSUE-000077のBrand World Product Value ReviewでCognitive Commons、Surface / Depth Interface、Deliberate Non-closure、Durable Cognitive Aperture、Quiet Infrastructure、Shared but not Unboundedを既存Valueへ逆照合した。新Value Axisは追加せず、Decision成立前のInquiry Continuityだけを独立Product hypothesisとしてISSUE-000078へ切り出した。Value Traceabilityの既存Evidence高さとv0.2.0 supported scopeは変更していない。2026-09-16のdevelop / main統合では、両branchが独立に作成していた同一主旨のBrand World文書を`SEI_BRAND_WORLD_DISCOVERY_SOURCE.md`と`SEI_BRAND_WORLD_PRODUCT_VALUE_REVIEW.md`へ一本化し、develop側にしかなかった採る方向と反対側の停止線の表、および5段階Evidence状態の明示ブロックを取り込んだ。判断内容は変更していない。
+    note: current V1〜V8とDecision Continuityを維持しつつ、ISSUE-000077のBrand World Product Value ReviewでCognitive Commons、Surface / Depth Interface、Deliberate Non-closure、Durable Cognitive Aperture、Quiet Infrastructure、Shared but not Unboundedを既存Valueへ逆照合した。新Value Axisは追加せず、Decision成立前のInquiry Continuityだけを独立Product hypothesisとしてISSUE-000078へ切り出した。Value Traceabilityの既存Evidence高さとv0.2.0 supported scopeは変更していない。2026-09-16のdevelop / main統合では、両branchが独立に作成していた同一主旨のBrand World文書を`SEI_BRAND_WORLD_DISCOVERY_SOURCE.md`と`SEI_BRAND_WORLD_PRODUCT_VALUE_REVIEW.md`へ一本化し、develop側にしかなかった採る方向と反対側の停止線の表、および5段階Evidence状態の明示ブロックを取り込んだ。判断内容は変更していない。 2026-09-18には、異種の認知手段をCognitive Method / Capability Providerとして交換可能に扱う価値と、SUI / TEI / EKIとのProduct Boundaryを追記した。SEI Universal CoreやValue Axisは増やさず、既存のProvider Independence / Execution Independenceを具体化した。
   - scope: product/definition/*.md
     status: revised
     coverage:
@@ -42,7 +42,7 @@ reviewed:
     status: revised
     coverage:
       - SEI_PRODUCT_VISION.md
-    note: Brand World Discovery Sourceは2026-09-16の統合で`product/value/SEI_BRAND_WORLD_DISCOVERY_SOURCE.md`へ一本化した。Product Visionには比喩をそのまま持ち込まず、判断前のInquiryを失わないこと、boundedな共有認知基盤、人間・AI・Methodが利用するInfrastructure、過剰なattentionを要求しない将来像を反映した。Inquiry Continuityは未検証Product hypothesisのまま維持している。Product Visionはmain側の節構成を土台とし、develop側にしかなかったshared cognitionの非同一式、静けさとproactive assistanceのtrade-offを明示する記述、SUIを含むProvider関係、収束強制を目指さない旨、thin infrastructureとshallow cognitionの非同一性を統合した。新Value Axisを追加しないという留保は保持している。
+    note: Brand World Discovery Sourceは2026-09-16の統合で`product/value/SEI_BRAND_WORLD_DISCOVERY_SOURCE.md`へ一本化した。Product Visionには比喩をそのまま持ち込まず、判断前のInquiryを失わないこと、boundedな共有認知基盤、人間・AI・Methodが利用するInfrastructure、過剰なattentionを要求しない将来像を反映した。Inquiry Continuityは未検証Product hypothesisのまま維持している。Product Visionはmain側の節構成を土台とし、develop側にしかなかったshared cognitionの非同一式、静けさとproactive assistanceのtrade-offを明示する記述、SUIを含むProvider関係、収束強制を目指さない旨、thin infrastructureとshallow cognitionの非同一性を統合した。新Value Axisを追加しないという留保は保持している。 2026-09-18にはSUI / TEI / EKIを固定pipelineではない独立Productとして整理し、SEIが認知・判断の耐久的意味を所有する境界を明確化した。
   - scope: product/principles/SEI_PRODUCT_PRINCIPLES.md
     status: revised
     note: Open Question、議論・実証、Candidate Requirement、Stable Requirementを分離する上流原則を追加し、既存原則との意味整合を監査済み。

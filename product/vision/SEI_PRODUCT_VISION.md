@@ -1,6 +1,6 @@
 # SEI Product Vision
 
-更新日: 2026-09-16  
+更新日: 2026-09-18  
 状態: **Product Vision Baseline — Brand World Discovery reflected**
 
 ## 1. この文書の役割
@@ -195,22 +195,24 @@ SEIから見れば、Camunda等のworkflow/BPM、AI agent runtime、TEI、SaaS�
 
 SEI自身が実行安定化の全領域を所有する必要はありません。生成AIが十分に賢くなり、現在のオーケストレーターの多くが不要になった場合でも残る認知・判断の意味構造を主に扱います。
 
-## 11. TEI・SUIとの関係
+## 11. SUI・TEI・EKIとの関係
 
-鼎（TEI）は、SEIから利用し得るCapability Providerの一つです。萃（SUI Sensemaking）は、認知素材を集め、関係や構造を立ち上げる隣接Product / Method familyとして接続し得ます。
+萃（SUI Sensemaking）、鼎（TEI）、益（EKI Fabric）はSEIと連携し得る隣接Productですが、SEIの内部moduleではありません。
 
 ```text
-SEI = 何を見るか、何を問うか、何を残すか、何を判断するか
-SUI = 集めた素材から関係・まとまり・emergenceを扱う一つの手段
-TEI = 実行可能な業務Capabilityを実現する一つの手段
+SUI = 未整理な材料から関係・仮説・構造・統合を形成し、意味形成を成熟させる
+SEI = 認知・問い・不確実性・根拠・判断・Capability・来歴を継続可能な意味として保つ
+TEI = 業務上の意味をCanonicalなformal modelとして保持し、実装・実行可能な形へ接続する
+EKI = 異質で一時的な計算資源を束ね、計算を適切な場所で実行する
 ```
 
-SEIは、関連製品であるという理由だけでTEIやSUIを優先しません。Intent、Constraint、Observation、Evidence等に基づき、他のMethod / Providerと同じ判断面で扱えることを目指します。
+SUIで形成されたObservationやHypothesisをSEIのInquiryへ接続する、SEIがTEIをCapability Providerとして利用する、SEIが必要とする認知処理をEKI上の資源へ配置するといった協調は可能です。
 
-この関係を固定pipelineにはしません。SEIはSUI / TEIを使わなくても成立し、SUI / TEIもSEI専用Providerとして特権化しません。象徴的な親和性は、必須依存やProvider優先の根拠にはしません。
+ただし、この関係を固定pipelineにはしません。SEIはSUI / TEI / EKIを使わなくても成立し、各ProductもSEI専用のsurface、Provider、runtimeとして特権化しません。関連製品であるという理由だけで、優先度、信頼、Authorityを与えないことを維持します。
 
-また、SUI / TEIの内部構造をSEI Universal Coreへコピーせず、必要なCognitive Method、Capability、Observation、Evidence、Artifact referenceを明示的な境界から読み取ります。
+また、SUIのsensemaking object、TEIのApplication / Database / Release、EKIのWorker / scheduler等の内部構造をSEI Universal Coreへコピーしません。必要なCognitive Method、Capability、Observation、Evidence、Artifact reference、Execution receipt等を、明示的な境界から読み取ります。
 
+この分離により、認知手段や実行場所が変わってもSEIの意味を保ちながら、各Productがそれぞれの専門領域で独立に進化できます。
 ## 12. SEIが目指さない将来像
 
 SEIは、次の状態を長期目標にはしません。
