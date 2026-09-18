@@ -1,0 +1,68 @@
+{
+  "schema": "sei.sacs-cross-stage-execution-attempt-contract-evidence/v1alpha1",
+  "date": "2026-09-19",
+  "issue": 481,
+  "state": "focused-contract-evidence",
+  "execution_model": "locally authored standalone contract validation",
+  "environment": {
+    "python": "3.13.5",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+    "github_actions_used": false,
+    "full_repository_checkout": false
+  },
+  "source_binding": {
+    "status": "pending-github-blob-binding",
+    "files": []
+  },
+  "executions": [
+    {
+      "command": "python3 -m unittest -v test_validate_execution_attempt.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "tests": 20,
+      "failures": 0
+    },
+    {
+      "command": "python3 -m py_compile validate_execution_attempt.py test_validate_execution_attempt.py",
+      "exit_code": 0,
+      "result": "PASS"
+    }
+  ],
+  "coverage": [
+    "draft template structural validity",
+    "successful completed attempt",
+    "failed completed attempt without raw-output",
+    "upstream validation error propagation",
+    "template attempt id rejection",
+    "exact authorized run digest binding",
+    "observed environment exact binding",
+    "executor git commit identity",
+    "UTC-second timestamp contract and ordering",
+    "integer exit code and outcome consistency",
+    "runner-log and environment-capture evidence requirements",
+    "successful raw-output requirement",
+    "raw evidence digest and uniqueness",
+    "canonical attempt digest mutation detection",
+    "metric / winner / decision field rejection"
+  ],
+  "upstream_integration": {
+    "runtime_executed": false,
+    "method_in_focused_tests": "dependency-injected upstream validator stub",
+    "follow_up_required": "reconstruct GitHub-bound attempt + run + freeze + preregistration sources and execute full integration validator/test chain"
+  },
+  "summary": {
+    "focused_tests_passed": 20,
+    "focused_tests_failed": 0,
+    "syntax_compile_passed": true,
+    "current_attempt_state": "draft",
+    "benchmark_result_generated": false
+  },
+  "stop_lines": [
+    "focused contract PASS != GitHub-bound full integration runtime Evidence",
+    "execution attempt != benchmark result",
+    "successful synthetic attempt != human-adjudicated benchmark execution",
+    "failed attempt != zero metric",
+    "attempt artifact != B5 decision",
+    "attempt artifact != production adoption"
+  ]
+}

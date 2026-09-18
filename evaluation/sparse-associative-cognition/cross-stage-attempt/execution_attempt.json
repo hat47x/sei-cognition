@@ -1,0 +1,26 @@
+{
+  "schema": "sei.sacs-cross-stage-execution-attempt/v1alpha1",
+  "issue": 481,
+  "state": "draft",
+  "attempt_id": "cross-stage-attempt-template",
+  "run_binding": {
+    "ref": "../cross-stage-run/evaluation_run.json",
+    "digest": ""
+  },
+  "executor": {
+    "ref": "",
+    "commit": ""
+  },
+  "started_at": null,
+  "completed_at": null,
+  "exit_code": null,
+  "outcome": "not-started",
+  "observed_environment": {
+    "os": "",
+    "arch": "",
+    "runtime": ""
+  },
+  "raw_evidence": [],
+  "results_generated": false,
+  "attempt_digest": ""
+}
