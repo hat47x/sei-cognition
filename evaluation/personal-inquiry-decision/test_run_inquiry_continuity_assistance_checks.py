@@ -39,7 +39,7 @@ class AssistanceLocalChecksTest(unittest.TestCase):
         self.assertEqual(exit_code, 0)
         return result
 
-    def test_configured_checks_cover_units_compile_and_validate(self):
+    def test_configured_checks_cover_units_and_validate(self):
         checks = configured_checks()
         self.assertEqual(
             [check.name for check in checks],
