@@ -284,6 +284,8 @@ def build_evidence_bundle(
             probe,
             fixture_id,
             fixed_human_response_sha256,
+            review_start_receipt_sha256,
+            review_receipt_value["started_at"],
             material_digest,
         )
     except SummaryDistortionProbeError as exc:
@@ -338,6 +340,8 @@ def build_evidence_bundle(
         ),
         "audit_reveal": {
             "receipt_sha256": audit_reveal_receipt_sha256,
+            "review_start_receipt_sha256": review_start_receipt_sha256,
+            "review_started_at": review_receipt_value["started_at"],
             "audit_material_sha256": material_digest,
             "revealed_at": receipt_value["revealed_at"],
             "boundary": (
@@ -463,11 +467,16 @@ def main(argv: list[str] | None = None) -> int:
     material = build_audit_material(probe, fixtures, args.fixture_id)
     material_digest = audit_material_sha256(material)
     try:
+        review_start_receipt_sha256 = hashlib.sha256(
+            review_receipt_raw
+        ).hexdigest()
         receipt_value, receipt_raw = load_audit_reveal_receipt(
             args.receipt,
             probe,
             args.fixture_id,
             fixed_human_response_sha256,
+            review_start_receipt_sha256,
+            review_receipt_value["started_at"],
             material_digest,
         )
     except SummaryDistortionProbeError as exc:

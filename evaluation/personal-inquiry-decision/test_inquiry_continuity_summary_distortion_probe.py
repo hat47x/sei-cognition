@@ -323,6 +323,8 @@ class SummaryDistortionProbeTest(unittest.TestCase):
             self.probe,
             self.fixture_id,
             response,
+            self.review_receipt,
+            self.review_receipt_raw,
             audit_material_sha256(material),
             "2026-09-18T02:55:00Z",
         )
@@ -344,6 +346,14 @@ class SummaryDistortionProbeTest(unittest.TestCase):
         self.assertEqual(
             packet["audit_reveal_receipt_sha256"],
             hashlib.sha256(receipt_path.read_bytes()).hexdigest(),
+        )
+        self.assertEqual(
+            receipt["review_start_receipt_sha256"],
+            self.review_receipt_sha,
+        )
+        self.assertEqual(
+            receipt["review_started_at"],
+            "2026-09-18T02:50:00Z",
         )
         self.assertEqual(
             packet["audit_material_sha256"],
@@ -385,6 +395,8 @@ class SummaryDistortionProbeTest(unittest.TestCase):
             self.probe,
             self.fixture_id,
             response,
+            self.review_receipt,
+            self.review_receipt_raw,
             audit_material_sha256(material),
             "2026-09-18T02:55:00Z",
         )
@@ -394,6 +406,28 @@ class SummaryDistortionProbeTest(unittest.TestCase):
         with self.assertRaises(SummaryDistortionProbeError):
             save_audit_reveal_receipt(target, receipt)
         self.assertEqual(target.read_text(encoding="utf-8"), original)
+
+    def test_audit_reveal_cannot_precede_review_start(self):
+        response = self.root / "response.json"
+        response.write_text(json.dumps(self.valid_response()), encoding="utf-8")
+        fixture = json.loads(
+            self.fixture_path.read_text(encoding="utf-8")
+        )
+        material = build_audit_material(
+            self.probe,
+            {self.fixture_id: fixture},
+            self.fixture_id,
+        )
+        with self.assertRaises(SummaryDistortionProbeError):
+            build_audit_reveal_receipt(
+                self.probe,
+                self.fixture_id,
+                response,
+                self.review_receipt,
+                self.review_receipt_raw,
+                audit_material_sha256(material),
+                "2026-09-18T02:49:59Z",
+            )
 
     def test_receipt_rejects_changed_audit_material(self):
         fixture = json.loads(
@@ -410,6 +444,8 @@ class SummaryDistortionProbeTest(unittest.TestCase):
             self.probe,
             self.fixture_id,
             response,
+            self.review_receipt,
+            self.review_receipt_raw,
             audit_material_sha256(material),
             "2026-09-18T02:55:00Z",
         )

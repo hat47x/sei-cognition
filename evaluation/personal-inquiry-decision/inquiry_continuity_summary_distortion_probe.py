@@ -24,7 +24,7 @@ REVIEW_START_RECEIPT_SCHEMA = (
     "sei.inquiry-continuity-summary-distortion-review-start-receipt/v0"
 )
 AUDIT_REVEAL_RECEIPT_SCHEMA = (
-    "sei.inquiry-continuity-summary-distortion-audit-reveal-receipt/v0"
+    "sei.inquiry-continuity-summary-distortion-audit-reveal-receipt/v1"
 )
 REQUIRED_KINDS = {
     "hypothesis_to_certainty",
@@ -229,9 +229,7 @@ def response_template(
     return {
         "schema": RESPONSE_SCHEMA,
         "probe_sha256": probe_content_sha256(probe),
-        "review_start_receipt_sha256": hashlib.sha256(
-            review_receipt_raw
-        ).hexdigest(),
+        "review_start_receipt_sha256": review_receipt_sha,
         "answers": ["" for _ in probe["review_questions"]],
         "review_provenance": {
             "reviewer_id": review_receipt_value["reviewer_id"],
@@ -606,13 +604,22 @@ def build_audit_reveal_receipt(
     probe: dict[str, Any],
     fixture_id: str,
     response: str | Path,
+    review_receipt_value: dict[str, Any],
+    review_receipt_raw: bytes,
     audit_material_digest: str,
     revealed_at: str,
 ) -> dict[str, Any]:
-    """Bind the fixed response before audit/reference material is emitted."""
+    """Bind the fixed response and review start before audit material is emitted."""
     validate_probe(probe)
     _case(probe, fixture_id)
-    _, raw = load_human_response(response, probe)
+    response_value, raw = load_human_response(response, probe)
+    validate_human_response_against_review_start(
+        response_value,
+        probe,
+        fixture_id,
+        review_receipt_value,
+        review_receipt_raw,
+    )
     if (
         not isinstance(audit_material_digest, str)
         or len(audit_material_digest) != 64
@@ -621,13 +628,24 @@ def build_audit_reveal_receipt(
         raise SummaryDistortionProbeError(
             "audit_material_digest must be a lowercase SHA-256 hex digest"
         )
-    _parse_timestamp(revealed_at, "revealed_at")
+    started = _parse_timestamp(
+        review_receipt_value["started_at"],
+        "review_started_at",
+    )
+    revealed = _parse_timestamp(revealed_at, "revealed_at")
+    if revealed < started:
+        raise SummaryDistortionProbeError(
+            "revealed_at must not precede review started_at"
+        )
+    review_receipt_sha = hashlib.sha256(review_receipt_raw).hexdigest()
     return {
         "schema": AUDIT_REVEAL_RECEIPT_SCHEMA,
         "status": "evaluation-only",
         "probe_id": probe["probe_id"],
         "fixture_id": fixture_id,
         "probe_sha256": probe_content_sha256(probe),
+        "review_start_receipt_sha256": review_receipt_sha,
+        "review_started_at": review_receipt_value["started_at"],
         "fixed_human_response_sha256": hashlib.sha256(raw).hexdigest(),
         "audit_material_sha256": audit_material_digest,
         "revealed_at": revealed_at,
@@ -657,6 +675,8 @@ def validate_audit_reveal_receipt(
     probe: dict[str, Any],
     fixture_id: str,
     fixed_human_response_sha256: str,
+    expected_review_start_receipt_sha256: str,
+    expected_review_started_at: str,
     expected_audit_material_sha256: str,
 ) -> None:
     required = {
@@ -665,6 +685,8 @@ def validate_audit_reveal_receipt(
         "probe_id",
         "fixture_id",
         "probe_sha256",
+        "review_start_receipt_sha256",
+        "review_started_at",
         "fixed_human_response_sha256",
         "audit_material_sha256",
         "revealed_at",
@@ -689,6 +711,17 @@ def validate_audit_reveal_receipt(
         raise SummaryDistortionProbeError(
             "audit-reveal receipt is bound to different probe content"
         )
+    if (
+        value["review_start_receipt_sha256"]
+        != expected_review_start_receipt_sha256
+    ):
+        raise SummaryDistortionProbeError(
+            "audit-reveal receipt is bound to a different review-start receipt"
+        )
+    if value["review_started_at"] != expected_review_started_at:
+        raise SummaryDistortionProbeError(
+            "audit-reveal receipt review_started_at mismatch"
+        )
     if value["fixed_human_response_sha256"] != fixed_human_response_sha256:
         raise SummaryDistortionProbeError(
             "audit-reveal receipt is bound to a different human response"
@@ -697,7 +730,15 @@ def validate_audit_reveal_receipt(
         raise SummaryDistortionProbeError(
             "audit-reveal receipt is bound to different audit material"
         )
-    _parse_timestamp(value["revealed_at"], "revealed_at")
+    started = _parse_timestamp(
+        value["review_started_at"],
+        "review_started_at",
+    )
+    revealed = _parse_timestamp(value["revealed_at"], "revealed_at")
+    if revealed < started:
+        raise SummaryDistortionProbeError(
+            "audit-reveal receipt revealed_at precedes review started_at"
+        )
 
 
 def load_audit_reveal_receipt(
@@ -705,6 +746,8 @@ def load_audit_reveal_receipt(
     probe: dict[str, Any],
     fixture_id: str,
     fixed_human_response_sha256: str,
+    expected_review_start_receipt_sha256: str,
+    expected_review_started_at: str,
     expected_audit_material_sha256: str,
 ) -> tuple[dict[str, Any], bytes]:
     try:
@@ -726,6 +769,8 @@ def load_audit_reveal_receipt(
         probe,
         fixture_id,
         fixed_human_response_sha256,
+        expected_review_start_receipt_sha256,
+        expected_review_started_at,
         expected_audit_material_sha256,
     )
     return value, raw
@@ -822,11 +867,14 @@ def build_audit_packet_from_receipt(
     fixed = hashlib.sha256(raw).hexdigest()
     material = build_audit_material(probe, fixtures, fixture_id)
     material_digest = audit_material_sha256(material)
+    review_receipt_sha = hashlib.sha256(review_receipt_raw).hexdigest()
     validate_audit_reveal_receipt(
         receipt_value,
         probe,
         fixture_id,
         fixed,
+        review_receipt_sha,
+        review_receipt_value["started_at"],
         material_digest,
     )
     return {
@@ -879,11 +927,14 @@ def build_audit_packet(
     fixed = hashlib.sha256(raw).hexdigest()
     material = build_audit_material(probe, fixtures, fixture_id)
     material_digest = audit_material_sha256(material)
+    review_receipt_sha = hashlib.sha256(review_receipt_raw).hexdigest()
     receipt_value, receipt_raw = load_audit_reveal_receipt(
         receipt,
         probe,
         fixture_id,
         fixed,
+        review_receipt_sha,
+        review_receipt_value["started_at"],
         material_digest,
     )
     return build_audit_packet_from_receipt(
@@ -1000,6 +1051,8 @@ def main(argv: list[str] | None = None) -> int:
                 probe,
                 args.fixture_id,
                 args.response,
+                review_receipt_value,
+                review_receipt_raw,
                 material_digest,
                 revealed_at,
             )

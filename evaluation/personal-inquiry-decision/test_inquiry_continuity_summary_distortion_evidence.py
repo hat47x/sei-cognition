@@ -141,6 +141,8 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
             self.probe,
             self.fixture_id,
             self.human_path,
+            self.review_receipt,
+            self.review_receipt_raw,
             self.audit_material_sha,
             "2026-09-17T09:29:00Z",
         )
@@ -316,6 +318,14 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
         self.assertEqual(
             bundle["audit_reveal"]["receipt_sha256"],
             self.receipt_sha,
+        )
+        self.assertEqual(
+            bundle["audit_reveal"]["review_start_receipt_sha256"],
+            self.review_receipt_sha,
+        )
+        self.assertEqual(
+            bundle["audit_reveal"]["review_started_at"],
+            "2026-09-17T09:28:00Z",
         )
         self.assertEqual(
             bundle["audit_reveal"]["audit_material_sha256"],
