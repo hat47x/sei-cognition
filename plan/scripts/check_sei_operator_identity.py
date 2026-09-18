@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ISSUE-000072のcurrent operator surfaceへ旧SOZA操作tokenが再流入していないことを検査する。"""
+"""current operator / production integration surfaceへ旧SOZA操作tokenが再流入していないことを検査する。"""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ TARGET_GLOBS = (
     "runtime/TEI_PROVIDER_SURFACE_STATIC_COMPATIBILITY_*.md",
     "runtime/TEI_E2_PARTIAL_ACTUAL_RUNBOOK_*.md",
     "runtime/TEI_GITHUB_HOSTED_JOB_START_DELTA_*.md",
+    "runtime/integration/*.py",
     "runtime/integration/*tei_version_exchange*.py",
     "runtime/integration/run_tei_bundle_adapter_compatibility.py",
     "runtime/integration/preflight_tei_version_exchange*.py",

@@ -62,6 +62,17 @@ class SeiOperatorIdentityCheckerTest(unittest.TestCase):
         self.assertTrue(any("soza_teiintegration_live_test" in error for error in errors))
         self.assertTrue(any("sozaGoRequirement" in error for error in errors))
 
+    def test_non_tei_production_integration_script_is_scanned(self) -> None:
+        root = self.make_repo(
+            {
+                "runtime/integration/e3b_m1b_ollama_adapter.py":
+                    'legacy_env = "SOZA_GO"\n'
+            }
+        )
+        errors = MODULE.check_repo(root)
+        self.assertEqual(1, len(errors))
+        self.assertIn("SOZA_GO", errors[0])
+
     def test_historical_names_and_legacy_schema_are_not_banned(self) -> None:
         root = self.make_repo(
             {
