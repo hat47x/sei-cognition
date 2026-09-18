@@ -1,7 +1,7 @@
 {
   "schema": "sei.sparse-associative-cognition-research/v1alpha1",
   "status": "evaluation-only",
-  "date": "2026-09-12",
+  "date": "2026-09-18",
   "root_intent": {
     "statement": "生成モデルを常時呼び出さなくても、候補想起、注意配分、近似照合、新奇性検出の一部をCPU上で高速・低メモリ・再現可能に実行し、LLMを本当に必要な処理へ限定する。",
     "non_goal": "非LLM化それ自体、特定の生物模倣方式の採用、または上位Cognitive Methodや人間判断の置換を目的にしない。"
@@ -73,8 +73,9 @@
       "biological_observation": "APLによる抑制はキノコ体全体で一様ではなく局所性を持ち、Kenyon cellの疎な応答形成に寄与することが報告されている。",
       "engineering_abstraction": "全featureを一つのglobal k-WTAで競わせるだけでなく、lexical、graph、spatial、history等のchannel内またはchannel group内で局所競合させ、最後に少数候補を統合する。",
       "sei_role": "attention allocation / feature-family competition",
-      "adoption_state": "planned",
-      "risk": "channel分割をdomain ontologyへ固定すると汎用基質を壊すため、channel定義はcaller-ownedのまま保つ。"
+      "adoption_state": "synthetic-executable-evaluation",
+      "risk": "channel分割をdomain ontologyへ固定すると汎用基質を壊すため、channel定義はcaller-ownedのまま保つ。",
+      "evidence_note": "SUI-shaped synthetic fixturesでfamily-local competitionによるtext domination補正、hard family isolationの過剰予約、bounded global residualによる回復を観測した。実データ一般化と最適budgetは未検証。"
     },
     {
       "id": "biased-sparse-projection",
@@ -293,15 +294,29 @@
       "depends_on": [
         "SAC-B1"
       ],
-      "change": "global k-WTAとcaller-owned channel単位のlocal k-WTA + mergeを比較する。",
-      "primary_question": "lexical等の一つのfeature familyが他channelを押し流す現象を減らせるか。",
+      "change": "current global k-WTA、hard caller-owned feature-family local k-WTA + merge、family-local k-WTA + bounded global residualを比較する。生のFeature.Channelをそのまま競合区画とせず、SUI adapter側のkind / text / graph / provenance / grouping familyを用いる。",
+      "primary_question": "多数featureを持つfamilyによるwinner枠独占を抑えつつ、hard partitionが少数familyを過剰予約する失敗をglobal residualで緩和できるか。",
       "measures": [
         "channel_domination_rate",
+        "hard_isolation_overreservation_behavior",
+        "global_residual_recovery_behavior",
+        "signature_collision_loss",
         "recall_at_k",
         "false_activation_rate",
         "memory_footprint",
         "latency_delta"
-      ]
+      ],
+      "current_result": {
+        "state": "limited-synthetic-executable-evidence",
+        "evidence_file": "localized_competition_evidence_2026-09-18.json",
+        "findings": [
+          "global k-WTAでは多数のtext n-gram一致に構造一致candidateが押し流されるfixtureを、hard family-localおよびlocal+global residualの双方が補正した。",
+          "hard equal family reservationがbaselineで正しかった候補順を狭いfamily一致へ逆転させるfixtureを確認した。",
+          "local budgetの半分をglobal residualへ残す比較方式では、同fixtureでbroad-evidence candidateの順位を回復した。",
+          "request-scopedにactive幅ごとのEncoderを再利用することでnaiveなper-family Encoder生成コストを大幅に削減できたが、standalone reconstructionではglobal baselineよりなお高いlatency / allocationを観測した。"
+        ],
+        "stop_line": "synthetic fixtureの改善やglobal residualの回復を、最適budget、実SUI意味品質、always-on運用性能、production defaultへ昇格させない。"
+      }
     },
     {
       "stage": "SAC-B3",
@@ -447,7 +462,10 @@
     "memory_footprint",
     "incremental_update_cost",
     "deterministic_reproducibility",
-    "subchannel_overcorrection_behavior"
+    "subchannel_overcorrection_behavior",
+    "hard_isolation_overreservation_behavior",
+    "global_residual_recovery_behavior",
+    "signature_collision_loss"
   ],
   "evaluation_policy": {
     "single_composite_score": false,
@@ -473,14 +491,17 @@
       "synthetic benchmarkで20-feature encode約5.6 microseconds/op、10,000 signature top-8 query約0.85 milliseconds/opを観測した。",
       "active=64ではsignature active payloadは128 bytesである。",
       "SAC-B1bのSUI-shaped synthetic fixtureで、text cardinalityに支配された候補順をbounded normalizationが回復するケースを観測した。",
-      "同じB1b評価で、exact-channel normalizationがsingleton structural subchannelを過補正してbaseline順位を逆転させる失敗モードと、caller-owned feature-family normalizationがその逆転を抑えるケースを観測した。"
+      "同じB1b評価で、exact-channel normalizationがsingleton structural subchannelを過補正してbaseline順位を逆転させる失敗モードと、caller-owned feature-family normalizationがその逆転を抑えるケースを観測した。",
+      "SAC-B2のSUI-shaped synthetic fixtureで、family-local winner枠がglobal k-WTAのtext cardinality支配を補正するケースを観測した。",
+      "同じB2評価で、hard equal family reservationがbaselineで正しかった候補順を逆転させる失敗モードと、bounded global residualがその逆転を緩和するケースを観測した。",
+      "B2 local competitionのrequest-scoped Encoder再利用はnaiveなper-family生成より大幅に軽量化したが、standalone reconstructionではglobal baselineより高いlatency / allocationが残った。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
       "SEI-native taskでのretrieval品質",
       "SUI Sensemaking親和図法での深層意味候補品質",
       "実SUI / SEIデータとhuman-adjudicated benchmarkに対するinput normalizationの一般化可能性",
-      "localized competitionの有効性",
+      "実SUI / SEIデータでのlocalized competition一般化、最適family budget / residual比、およびalways-on運用に十分なallocation特性",
       "policy-bounded biased projectionの有効性",
       "reversible familiarity modulationの見逃し率",
       "static semantic補完が必要かどうか",
@@ -493,7 +514,8 @@
       "Product Value / Operational / Adoption / Outcome Evidence"
     ],
     "supporting_evidence_files": [
-      "input_normalization_evidence_2026-09-18.json"
+      "input_normalization_evidence_2026-09-18.json",
+      "localized_competition_evidence_2026-09-18.json"
     ]
   },
   "references": [
