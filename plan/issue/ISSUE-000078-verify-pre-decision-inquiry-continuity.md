@@ -465,9 +465,15 @@ durable Evidence schema v3はreview-start receipt → initial response → revea
 
 ### E78.7 — Closure / dormancy
 
-active / dormant / closed without Decision / later Decision connectionを比較するlifecycle probeを用意した。これらはUniversal Inquiry statusではなく、Product-localなattention projectionとして扱う。
+active / dormant / closed without Decision / later Decision connectionを比較するlifecycle probeを、condition-blindedなstage-gated human reviewへ更新した。これらはUniversal Inquiry statusではなく、Product-localなattention projectionとして扱う。
 
-dormantやclosedにしても元InquiryへDecisionを自動生成せず、unresolved meaningを消さず、後日のDecisionは別recordへの文脈linkとして扱う境界を固定している。ここでもhuman reviewは**Not Yet Observed**であり、Universal status typeを提案しない。
+current contractはprobe / packet / response schema v1、review-start receipt v1、audit receipt v1である。A=always open / B=age hidden / C=explicit attention projectionの3条件はR1〜R3で提示順をcounterbalanceし、review中はcondition identifierと設計側の`intended_tradeoff`を隠す。reviewerには同じDecisionless scenario、lifecycle snapshots、各conditionの実際のhandling surfaceだけを提示し、どの方式か、設計者が想定した利点・欠点、audit keyはresponse固定前には開かない。
+
+stimulus提示前にopaque reviewer id、declared prior exposure、response authorship、started_at、probe / rotationをexclusive-create review-start receiptへ固定する。human responseは3 presentationを一つのstructured artifactへまとめ、presentation順、question id、completion time、attention loadを固定する。responseを固定した後にだけaudit receiptをexclusive-createし、condition mapping、full handling contract、intended tradeoff、semantic hard failure、Product failure signal、acceptable outcomeを開く。audit receiptはreview-start receiptのexact raw SHA-256、fixed response SHA-256、canonical audit material SHA-256へ結び、`revealed_at < review_started_at`を拒否する。receiptのsemantic valueとraw bytesが一致しない経路も拒否する。
+
+dormantやclosedにしても元InquiryへDecisionを自動生成せず、unresolved meaningを消さず、後日のDecisionは別recordへの文脈linkとして扱う境界は維持している。また、explicit attention projectionを自動遷移させず、Product-local attention stateからUniversal status型を先取りしない。
+
+ここまでで成立したのはcondition-blinded executable review scaffoldとpre/post stimulusのreceipt chainまでである。post-audit human findingをtypedに保存するdurable Evidence exporterはまだ未実装であり、human reviewも**Not Yet Observed**、Universal status typeも**not-proposed**のままとする。
 
 ### V1〜V8 / Decision Continuity coverage audit
 
