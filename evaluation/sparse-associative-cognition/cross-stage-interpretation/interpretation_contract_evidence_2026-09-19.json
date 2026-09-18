@@ -67,8 +67,14 @@
       "preregistration and research-plan gates retain completed-result dependency"
     ],
     "parent_sync": {
-      "develop_commit": "3dba7644a0f6b344576a49236844f02ea323899d",
-      "merge_commit": "23dced8097e71a95cdda2c6e2854ad4ed0b7031d",
+      "develop_commits": [
+        "3dba7644a0f6b344576a49236844f02ea323899d",
+        "501ecef45dfa66eddf1d557841dbbbf4dca7fdc4"
+      ],
+      "merge_commits": [
+        "23dced8097e71a95cdda2c6e2854ad4ed0b7031d",
+        "9e3852b66e8f032d83e795c05d835d3bbfd8cbdd"
+      ],
       "overlapping_sacs_files": 0
     }
   },
