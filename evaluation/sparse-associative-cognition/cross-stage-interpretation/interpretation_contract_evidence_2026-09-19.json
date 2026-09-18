@@ -1,0 +1,97 @@
+{
+  "schema": "sei.sacs-cross-stage-interpretation-contract-evidence/v1alpha1",
+  "date": "2026-09-19",
+  "issue": 480,
+  "branch": "topic/sacs-cross-stage-interpretation-contract",
+  "base_branch": "develop/v0.2.0",
+  "artifact": {
+    "interpretation_ref": "interpretation.json",
+    "validator_ref": "validate_interpretation.py",
+    "test_ref": "test_validate_interpretation.py",
+    "result_ref": "../cross-stage-result/result.json",
+    "run_ref": "../cross-stage-run/evaluation_run.json",
+    "preregistration_ref": "../cross_stage_benchmark_preregistration.json",
+    "freeze_bundle_ref": "../cross-stage-freeze/freeze_bundle.json"
+  },
+  "current_state": {
+    "interpretation_state": "draft",
+    "current_interpretation_generated": false,
+    "current_result_completed": false,
+    "current_run_authorized": false,
+    "current_freeze_bundle_frozen": false,
+    "semantic_truth_claimed": false,
+    "variant_winner_declared": false,
+    "recommendation_generated": false,
+    "b5_decision_generated": false,
+    "production_default_changed": false
+  },
+  "source_inspection": {
+    "status": "pass",
+    "source_blob_shas": {
+      "evaluation/sparse-associative-cognition/cross-stage-interpretation/interpretation.json": "21733a8057832decc65ee3af7ee45a7937f4618b",
+      "evaluation/sparse-associative-cognition/cross-stage-interpretation/validate_interpretation.py": "ddd6ff900565efca346e5a881f65fd2d31018d76",
+      "evaluation/sparse-associative-cognition/cross-stage-interpretation/test_validate_interpretation.py": "2c8ef1870e6bb5e83856f84167c8e892bfb068c3",
+      "evaluation/sparse-associative-cognition/cross_stage_benchmark_preregistration.json": "49c599517dbb511cefeefcd7bfad6dc7476a64c6",
+      "evaluation/sparse-associative-cognition/validate_cross_stage_preregistration.py": "3ee67bb85d3158655f919fb8e57a2c45d2c92ed0",
+      "evaluation/sparse-associative-cognition/test_validate_cross_stage_preregistration.py": "bc61093353428fc43ff6e508285870731a250021",
+      "evaluation/sparse-associative-cognition/research_plan.json": "352e92ad51edabb82fcf7c26a3935d34935a504f",
+      "evaluation/sparse-associative-cognition/validate_research_plan.py": "7d98833a0728ad5bca0fec84bce68e100901c91d",
+      "evaluation/sparse-associative-cognition/test_validate_research_plan.py": "07b4ad4df6076eed7c645fed971a15404d6abeaa"
+    },
+    "validator_functions": [
+      "canonical_interpretation_digest",
+      "validate_interpretation_structure",
+      "validate_interpreted_artifact"
+    ],
+    "regression_tests_defined": {
+      "interpretation": 27,
+      "preregistration": 32,
+      "research_plan": 33
+    },
+    "verified_contracts": [
+      "checked-in interpretation remains draft / empty",
+      "interpreted artifact binds exact completed result digest",
+      "interpreted scope must match result track / variant / capacity / stress identity",
+      "analyst provenance requires stable ref and 40-char lowercase Git commit SHA",
+      "finding evidence references only result metric names",
+      "finding kind is restricted to observation / cross-metric observation / limitation-aware hypothesis",
+      "claim strength is restricted to observation or hypothesis",
+      "interpreted artifact requires at least one explicit limitation",
+      "post-interpretation mutation is covered by canonical SHA-256 digest",
+      "strict schema rejects winner / decision fields",
+      "semantic truth claim remains false",
+      "variant winner declaration remains false",
+      "recommendation generation remains false",
+      "B5 decision generation remains false",
+      "production default change remains false",
+      "preregistration and research-plan gates retain completed-result dependency"
+    ]
+  },
+  "execution_observation": {
+    "validator_runtime_execution": "not-observed-in-this-artifact-update",
+    "unittest_runtime_execution": "not-observed-in-this-artifact-update",
+    "github_actions_used": false,
+    "local_checkout_attempt": "blocked-by-environment-network-resolution",
+    "note": "This Evidence records GitHub-source inspection and defined regression coverage only. It does not claim executed test PASS."
+  },
+  "stop_lines": [
+    "defined tests != executed tests",
+    "draft interpretation != benchmark interpretation",
+    "interpretation != semantic truth",
+    "interpretation != variant winner",
+    "interpretation != recommendation",
+    "interpretation != B5 decision",
+    "interpretation != production default",
+    "synthetic interpreted path != human-adjudicated benchmark interpretation"
+  ],
+  "not_verified": [
+    "runtime execution of validate_interpretation.py in this artifact update",
+    "runtime execution of test_validate_interpretation.py in this artifact update",
+    "actual frozen human-adjudicated bundle",
+    "actual authorized evaluation run",
+    "actual completed result artifact",
+    "actual analyst interpretation of human-adjudicated results",
+    "B5 decision",
+    "production adoption"
+  ]
+}
