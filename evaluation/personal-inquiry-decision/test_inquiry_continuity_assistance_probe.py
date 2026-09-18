@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 import tempfile
 import unittest
@@ -260,11 +261,18 @@ class AssistanceProbeTest(unittest.TestCase):
         self,
         name: str,
         stage: str,
+        stage_gate_raw: bytes | None = None,
     ) -> Path:
+        stage_gate_sha256 = (
+            hashlib.sha256(stage_gate_raw).hexdigest()
+            if stage_gate_raw is not None
+            else None
+        )
         value = response_template(
             self.probe,
             "R1",
             stage,
+            stage_gate_sha256,
         )
         for entry in value["entries"]:
             for question_id in entry["answers"]:
@@ -326,6 +334,7 @@ class AssistanceProbeTest(unittest.TestCase):
             value["probe_sha256"],
             probe_content_sha256(self.probe),
         )
+        self.assertIsNone(value["stage_gate_sha256"])
         rendered = json.dumps(value)
         self.assertNotIn("A_proactive_first", rendered)
         self.assertNotIn("B_quiet_first", rendered)
@@ -398,6 +407,42 @@ class AssistanceProbeTest(unittest.TestCase):
                 "2026-09-19T00:00:00+09:00",
             )
 
+    def test_reveal_response_template_binds_reveal_receipt(self):
+        initial = self._response(
+            "initial.json",
+            "initial",
+        )
+        receipt, receipt_raw = self._reveal_receipt(initial)
+        receipt_sha = hashlib.sha256(receipt_raw).hexdigest()
+        value = response_template(
+            self.probe,
+            "R1",
+            "reveal",
+            receipt_sha,
+        )
+        self.assertEqual(
+            value["stage_gate_sha256"],
+            receipt_sha,
+        )
+        for entry in value["entries"]:
+            for question_id in entry["answers"]:
+                entry["answers"][question_id] = "fixed"
+        validate_response(
+            value,
+            self.probe,
+            "R1",
+            "reveal",
+            receipt_sha,
+        )
+        with self.assertRaises(AssistanceProbeError):
+            validate_response(
+                value,
+                self.probe,
+                "R1",
+                "reveal",
+                "a" * 64,
+            )
+
     def test_response_fixture_and_presentation_order_are_fixed(self):
         value = response_template(
             self.probe,
@@ -435,12 +480,13 @@ class AssistanceProbeTest(unittest.TestCase):
             "initial.json",
             "initial",
         )
+        reveal_receipt, reveal_receipt_raw = self._reveal_receipt(
+            initial
+        )
         reveal = self._response(
             "reveal.json",
             "reveal",
-        )
-        reveal_receipt, reveal_receipt_raw = self._reveal_receipt(
-            initial
+            reveal_receipt_raw,
         )
         audit_receipt, audit_receipt_raw = self._audit_receipt(
             initial,
@@ -524,6 +570,7 @@ class AssistanceProbeTest(unittest.TestCase):
         reveal = self._response(
             "reveal.json",
             "reveal",
+            reveal_receipt_raw,
         )
         with self.assertRaises(AssistanceProbeError):
             build_audit_receipt(

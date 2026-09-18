@@ -23,7 +23,7 @@ from typing import Any
 SCHEMA = "sei.inquiry-continuity-assistance-probe/v1"
 FIXTURE_SCHEMA = "sei.inquiry-continuity-comparison-fixture/v0"
 PACKET_SCHEMA = "sei.inquiry-continuity-assistance-packet/v1"
-RESPONSE_SCHEMA = "sei.inquiry-continuity-assistance-response/v1"
+RESPONSE_SCHEMA = "sei.inquiry-continuity-assistance-response/v2"
 MATCHED_SET_SCHEMA = "sei.inquiry-continuity-matched-set/v0"
 REVEAL_RECEIPT_SCHEMA = "sei.inquiry-continuity-assistance-reveal-receipt/v1"
 AUDIT_RECEIPT_SCHEMA = "sei.inquiry-continuity-assistance-audit-receipt/v1"
@@ -426,12 +426,30 @@ def response_template(
     probe: dict[str, Any],
     rotation: str,
     stage: str,
+    stage_gate_sha256: str | None = None,
 ) -> dict[str, Any]:
     validate_probe(probe)
     if stage not in RESPONSE_STAGES:
         raise AssistanceProbeError(
             "response stage must be initial or reveal"
         )
+    if stage == "initial":
+        if stage_gate_sha256 is not None:
+            raise AssistanceProbeError(
+                "initial response must not have a prior stage gate"
+            )
+    else:
+        if (
+        not isinstance(stage_gate_sha256, str)
+        or len(stage_gate_sha256) != 64
+        or any(
+            character not in "0123456789abcdef"
+            for character in stage_gate_sha256
+        )
+    ):
+            raise AssistanceProbeError(
+                "reveal response requires reveal receipt SHA-256"
+            )
     assignments = _assignments(probe, rotation)
     questions = probe["review_questions"][stage]
     question_ids = [item["id"] for item in questions]
@@ -440,6 +458,7 @@ def response_template(
         "probe_sha256": probe_content_sha256(probe),
         "rotation": rotation,
         "stage": stage,
+        "stage_gate_sha256": stage_gate_sha256,
         "entries": [
             {
                 "presentation_id": _presentation_id(rotation, index),
@@ -498,6 +517,7 @@ def validate_response(
     probe: dict[str, Any],
     rotation: str,
     stage: str,
+    expected_stage_gate_sha256: str | None = None,
 ) -> None:
     validate_probe(probe)
     if stage not in RESPONSE_STAGES:
@@ -509,6 +529,7 @@ def validate_response(
         "probe_sha256",
         "rotation",
         "stage",
+        "stage_gate_sha256",
         "entries",
         "notes",
     }
@@ -528,6 +549,39 @@ def validate_response(
         raise AssistanceProbeError(
             "assistance response rotation/stage mismatch"
         )
+    gate = value["stage_gate_sha256"]
+    if stage == "initial":
+        if gate is not None or expected_stage_gate_sha256 is not None:
+            raise AssistanceProbeError(
+                "initial response must not carry a prior stage gate"
+            )
+    else:
+        if (
+        not isinstance(gate, str)
+        or len(gate) != 64
+        or any(
+            character not in "0123456789abcdef"
+            for character in gate
+        )
+    ):
+            raise AssistanceProbeError(
+                "reveal response stage_gate_sha256 must be SHA-256"
+            )
+        if (
+        not isinstance(expected_stage_gate_sha256, str)
+        or len(expected_stage_gate_sha256) != 64
+        or any(
+            character not in "0123456789abcdef"
+            for character in expected_stage_gate_sha256
+        )
+    ):
+            raise AssistanceProbeError(
+                "reveal response validation requires receipt SHA-256"
+            )
+        if gate != expected_stage_gate_sha256:
+            raise AssistanceProbeError(
+                "reveal response is bound to a different reveal receipt"
+            )
     if not isinstance(value["notes"], str):
         raise AssistanceProbeError(
             "assistance response notes must be a string"
@@ -615,6 +669,7 @@ def load_response(
     probe: dict[str, Any],
     rotation: str,
     stage: str,
+    expected_stage_gate_sha256: str | None = None,
 ) -> tuple[dict[str, Any], bytes]:
     try:
         raw = Path(path).read_bytes()
@@ -632,7 +687,13 @@ def load_response(
         raise AssistanceProbeError(
             f"{stage} response must be valid UTF-8 JSON"
         ) from exc
-    validate_response(value, probe, rotation, stage)
+    validate_response(
+        value,
+        probe,
+        rotation,
+        stage,
+        expected_stage_gate_sha256,
+    )
     return value, raw
 
 
@@ -641,8 +702,15 @@ def response_sha256(
     probe: dict[str, Any],
     rotation: str,
     stage: str,
+    expected_stage_gate_sha256: str | None = None,
 ) -> str:
-    _, raw = load_response(path, probe, rotation, stage)
+    _, raw = load_response(
+        path,
+        probe,
+        rotation,
+        stage,
+        expected_stage_gate_sha256,
+    )
     return hashlib.sha256(raw).hexdigest()
 
 
@@ -999,11 +1067,15 @@ def build_audit_receipt(
         reveal_receipt_raw,
         "reveal receipt",
     )
+    reveal_receipt_sha = hashlib.sha256(
+        reveal_receipt_raw
+    ).hexdigest()
     reveal_response_hash = response_sha256(
         reveal_response,
         probe,
         rotation,
         "reveal",
+        reveal_receipt_sha,
     )
     reveal_time = _parse_timestamp(
         reveal_receipt_value["revealed_at"],
@@ -1023,9 +1095,7 @@ def build_audit_receipt(
         "probe_id": probe["probe_id"],
         "probe_sha256": probe_content_sha256(probe),
         "rotation": rotation,
-        "reveal_receipt_sha256": hashlib.sha256(
-            reveal_receipt_raw
-        ).hexdigest(),
+        "reveal_receipt_sha256": reveal_receipt_sha,
         "fixed_initial_response_sha256": reveal_receipt_value[
             "fixed_initial_response_sha256"
         ],
@@ -1106,6 +1176,7 @@ def validate_audit_receipt(
         probe,
         rotation,
         "reveal",
+        expected_reveal_receipt_sha,
     )
     if value["fixed_reveal_response_sha256"] != expected_reveal_response:
         raise AssistanceProbeError(
@@ -1207,6 +1278,8 @@ def build_parser() -> argparse.ArgumentParser:
         choices=sorted(RESPONSE_STAGES),
         required=True,
     )
+    p.add_argument("--reveal-receipt")
+    p.add_argument("--initial-response")
 
     p = sub.add_parser("reveal")
     p.add_argument("--initial-response", required=True)
@@ -1264,10 +1337,33 @@ def main(argv: list[str] | None = None) -> int:
             args.rotation,
         )
     elif args.command == "response-template":
+        stage_gate_sha256 = None
+        if args.stage == "reveal":
+            if not args.reveal_receipt or not args.initial_response:
+                raise AssistanceProbeError(
+                    "reveal response-template requires "
+                    "--reveal-receipt and --initial-response"
+                )
+            _, reveal_receipt_raw = load_reveal_receipt(
+                args.reveal_receipt,
+                probe,
+                fixtures,
+                args.rotation,
+                args.initial_response,
+            )
+            stage_gate_sha256 = hashlib.sha256(
+                reveal_receipt_raw
+            ).hexdigest()
+        elif args.reveal_receipt or args.initial_response:
+            raise AssistanceProbeError(
+                "initial response-template must not receive "
+                "reveal-stage receipt arguments"
+            )
         payload = response_template(
             probe,
             args.rotation,
             args.stage,
+            stage_gate_sha256,
         )
     elif args.command == "reveal":
         receipt = build_reveal_receipt(
