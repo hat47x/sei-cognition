@@ -3,7 +3,7 @@
 Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0003, ADR-0021, ADR-0031**  
-Updated: 2026-09-13
+Updated: 2026-09-18
 
 ## Goal
 
@@ -204,7 +204,7 @@ Executable Evidence (fixture / test / checker scoped)
 - 実在するhistorical workflow名 `SOZA E3b-P2 TEI Evidence`、historical artifact / branch名、記録済みEvidenceの`soza.*` schemaは観測事実として変更していない。
 - reader側の`legacy_schema()`等、ADR-0031が要求するhistorical `soza.*`受理も変更していない。
 - `plan/scripts/check_sei_operator_identity.py`を追加し、ISSUE-000072のcurrent operator surfaceへobsolete operational tokenが再流入した場合だけfailする境界を固定した。
-- checker self-testはGit blob一致を確認した再構成環境で6/6 PASS。current `develop/v0.2.0`の対象operator surface 24 fileをGitHub treeから実査し、obsolete operational tokenは0件だった。
+- checkerはproduction `runtime/integration/*.py`全体へ対象を広げた。checker self-testはGit blob一致を確認した再構成環境で7/7 PASS。current `develop/v0.2.0`ではproduction integration 42 fileとoperator Markdown 13 fileの計55 fileを実査し、guard対象のobsolete operational tokenは0件だった。結果は`evaluation/identity-migration/sei_operator_identity_guard_execution_20260918.json`へmachine-readableに固定した。
 
 このguardは改名前の全記録を書き換えるcheckerではない。
 

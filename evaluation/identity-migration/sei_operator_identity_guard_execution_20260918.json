@@ -1,0 +1,68 @@
+{
+  "schema": "sei.operator-identity-guard-execution/v1",
+  "issue": "ISSUE-000075",
+  "recordedAt": "2026-09-18",
+  "scope": "post-resolution-operator-identity-regression",
+  "authority": "evaluation-only",
+  "branch": "develop/v0.2.0",
+  "currentBranchHeadAtVerification": "712aff3f1c572929de803f0ce3edf4833adbeafb",
+  "exactSourceBinding": {
+    "checker": {
+      "path": "plan/scripts/check_sei_operator_identity.py",
+      "gitBlobSha1": "e7cbf54b372e581021c0ae83e37bf7f17fe63598"
+    },
+    "selfTest": {
+      "path": "plan/scripts/test_check_sei_operator_identity.py",
+      "gitBlobSha1": "636d8055c6cdd77eafad1538bac2ba473c328259"
+    }
+  },
+  "selfTestExecution": {
+    "status": "pass",
+    "passed": 7,
+    "failed": 0,
+    "exactGitBlobIdentityVerifiedBeforeExecution": true,
+    "runtime": "python3 stdlib unittest"
+  },
+  "currentSurfaceScan": {
+    "selectedFiles": 55,
+    "productionIntegrationPythonFiles": 42,
+    "operatorMarkdownFiles": 13,
+    "obsoleteOperationalTokenHits": 0,
+    "selectionRule": "current runtime/integration/*.py production files excluding test_*, plus ISSUE-000072 TEI version-exchange operator Markdown surfaces",
+    "scanSource": "current GitHub branch content fetched through repository connector"
+  },
+  "guardedObsoleteTokens": [
+    "--soza-repo-root",
+    "--soza-go-executable",
+    "--expected-soza-head",
+    "SOZA_REPO",
+    "SOZA_GO",
+    "SOZA_HEAD",
+    "soza_runtime_layout",
+    "soza_source_identity",
+    "soza_go_toolchain",
+    "soza_teiintegration_live_test",
+    "sozaGoRequirement",
+    "sozaGoVersion",
+    "sozaSource",
+    "postLiveTestSozaSource"
+  ],
+  "intentionalExclusions": [
+    "historical workflow names such as SOZA E3b-P2 TEI Evidence",
+    "historical artifact and branch names",
+    "recorded soza.* Evidence schema identities",
+    "ADR-0031 legacy reader compatibility",
+    "runtime/evidence historical artifacts",
+    "test_*.py sources"
+  ],
+  "claims": {
+    "currentOperatorRegressionGuardExecutableEvidence": true,
+    "currentSelectedSurfaceContainsNoGuardedObsoleteTokens": true,
+    "historicalEvidenceImmutabilityReverifiedByThisArtifact": false,
+    "fullRenameMigrationReexecuted": false,
+    "releaseEvidence": false,
+    "operationalEvidence": false,
+    "adoptionOutcomeEvidence": false
+  },
+  "stopLine": "exact checker self-test PASS + 55-file current surface scan with 0 guarded obsolete tokens != full ADR-0031 migration re-execution != historical Evidence immutability re-verification != Release Evidence != Operational Evidence"
+}

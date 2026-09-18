@@ -116,7 +116,7 @@ python3 plan/scripts/check_sei_operator_identity.py
 
 SOZA→SEI Cognition改名後のcurrent operator surfaceについて、後続mergeで旧CLIや旧stage名が再流入して実行手順と実装がずれることを検出します。
 
-対象はISSUE-000072のTEI version-exchangeに関するcurrent runtime文書とproduction integration scriptです。主に次のobsolete operational tokenを検査します。
+対象はISSUE-000072のTEI version-exchangeに関するcurrent runtime文書に加え、`runtime/integration/*.py`のproduction script全体です。主に次のobsolete operational tokenを検査します。
 
 - `SOZA_REPO / SOZA_GO / SOZA_HEAD`
 - `--soza-repo-root / --soza-go-executable / --expected-soza-head`
@@ -131,7 +131,7 @@ self-test:
 python3 -m unittest plan/scripts/test_check_sei_operator_identity.py
 ```
 
-2026-09-18にはchecker / testのGit blob SHA-1一致を確認した再構成環境で6/6 PASSを確認し、current branchの対象24 fileをGitHub treeから別途実査してobsolete operational token 0件を確認しました。これはoperator identityの限定的な回帰検査であり、改名作業全体の再証明やhistorical Evidence不変性検査の代替ではありません。
+2026-09-18にはchecker / testのGit blob SHA-1一致を確認した再構成環境で7/7 PASSを確認し、production integration 42 file + operator Markdown 13 fileの計55 fileをcurrent branchから実査してobsolete operational token 0件を確認しました。結果は`evaluation/identity-migration/sei_operator_identity_guard_execution_20260918.json`へ保存しています。これはoperator / production integration identityの限定的な回帰検査であり、改名作業全体の再証明やhistorical Evidence不変性検査の代替ではありません。
 
 ## 7. 次番号の候補
 
