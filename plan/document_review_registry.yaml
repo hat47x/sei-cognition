@@ -175,7 +175,7 @@ reviewed:
     note: E3b-P2の後続Evidenceとして、固定TEI sourceからactual `cmd/tei`をbuild・実行し、Evidence artifactをcurrent SEI Adapterから別processとして起動してCapability Observationへ戻した範囲を記録した。fixed-artifact Executable Evidenceとcredential運用・任意version・Operational Evidenceを分離している。
   - scope: runtime/ACTUAL_TEI_EVIDENCE_PROTOCOL.md
     status: revised
-    note: ISSUE-000074の再利用可能なactual-binary Evidence採取境界として全文監査した。direct executableのpre/post SHA-256、declared source、optional strict manifest、既存teiintegrationによるProvider Plan mapping、derived reportを分離し、manifest matchを真正性検証へ昇格させず、fixture test sourceとactual TEI Evidence、Operational / Product Valueを別の高さとして保持している。
+    note: ISSUE-000074の再利用可能なactual-binary Evidence採取境界として全文監査した。direct executableのpre/post SHA-256、secretを含まないrepository identifierとfull commit identity、optional strict manifest、observed binary digestから生成するsource-state provenance、既存teiintegrationによるProvider Plan mapping、derived reportを分離している。manifest matchを真正性検証へ昇格させず、fixture test sourceとactual TEI Evidence、Operational / Product Valueを別の高さとして保持している。
   - scope: runtime/TEI_PROVIDER_SURFACE_STATIC_COMPATIBILITY_2026-09-05.md
     status: revised
     note: revision A / BのProvider surfaceを静的比較し、静的互換性観測をactual revision B build / Provider Plan / Adapter compatibilityへ昇格させない境界を監査済み。2026-09-18にcurrent Adapter / Universal Contractの表記をSEIへ同期し、意味とEvidence強度は変更していない。
