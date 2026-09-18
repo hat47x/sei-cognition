@@ -19,7 +19,8 @@
       "evaluation-only probe literal rename: soza- -> sei-",
       "runtime/go/semanticruntime/loader.go current explanatory two-line comment omitted for executable-content comparison"
     ],
-    "claimBoundary": "normalization proves only that no additional textual executable delta was found in the scoped files; it does not execute current source"
+    "claimBoundary": "normalization proves only that no additional textual executable delta was found in the scoped files; it does not execute current source",
+    "normalizedContentDigestAlgorithm": "sha1-over-utf8-normalized-content"
   },
   "files": [
     {
@@ -27,49 +28,63 @@
       "historicalBlobSha": "614d3978db1fd008828f137ac9fec1823bf254a3",
       "currentBlobSha": "5db5c5562d6737635b6c00951072d3cde8f2a42e",
       "classification": "ADR-0031 identity rename only",
-      "normalizedExecutableContentEquivalent": true
+      "normalizedExecutableContentEquivalent": true,
+      "normalizedExecutableContentSha1": "d190585083538cf643cadc7de3e03b4bd1bae2bf",
+      "historicalAndCurrentNormalizedContentMatchedAtAudit": true
     },
     {
       "path": "runtime/go/provideradapter/synthetic.go",
       "historicalBlobSha": "ccdfcdfefcd8a37bea5d546bcd75938d856fbe42",
       "currentBlobSha": "96a42785e003ec9a468efff5e6e99351db6dd748",
       "classification": "ADR-0031 identity rename only",
-      "normalizedExecutableContentEquivalent": true
+      "normalizedExecutableContentEquivalent": true,
+      "normalizedExecutableContentSha1": "b254737931e8bd56313155038f3bf7c888d23a6a",
+      "historicalAndCurrentNormalizedContentMatchedAtAudit": true
     },
     {
       "path": "runtime/go/provideradapter/failure_behavior_test.go",
       "historicalBlobSha": "38f7f89c38b6efc3655cc43d93f552c2081d2886",
       "currentBlobSha": "38f7f89c38b6efc3655cc43d93f552c2081d2886",
       "classification": "byte-identical",
-      "normalizedExecutableContentEquivalent": true
+      "normalizedExecutableContentEquivalent": true,
+      "normalizedExecutableContentSha1": "7b9629eef038734e8f9927ee5cfdcadd9eea2c8f",
+      "historicalAndCurrentNormalizedContentMatchedAtAudit": true
     },
     {
       "path": "runtime/go/liveintegration/github_service.go",
       "historicalBlobSha": "9ed3c2d95a9ee87836218c5056c4c421071561fc",
       "currentBlobSha": "5f56676aa8b95dec5cd86b37f671520d67f85634",
       "classification": "ADR-0031 identity rename plus evaluation User-Agent literal rename",
-      "normalizedExecutableContentEquivalent": true
+      "normalizedExecutableContentEquivalent": true,
+      "normalizedExecutableContentSha1": "9535d7251937363ec5352a3b9d3fa13eba13b668",
+      "historicalAndCurrentNormalizedContentMatchedAtAudit": true
     },
     {
       "path": "runtime/go/liveintegration/github_failure_probe_test.go",
       "historicalBlobSha": "7ab829873fb189763eb2c71cbc0954733fe8a0b7",
       "currentBlobSha": "b594b5848f667e65ae6e6fe33b0486ccae21d89b",
       "classification": "ADR-0031 identity/environment/probe-literal rename only",
-      "normalizedExecutableContentEquivalent": true
+      "normalizedExecutableContentEquivalent": true,
+      "normalizedExecutableContentSha1": "598deb606d09f43e09a31c3e926b2848924acd6e",
+      "historicalAndCurrentNormalizedContentMatchedAtAudit": true
     },
     {
       "path": "runtime/go/semanticruntime/model.go",
       "historicalBlobSha": "0e99f14febc4c7b650053269ccde19ae200d65c2",
       "currentBlobSha": "0e99f14febc4c7b650053269ccde19ae200d65c2",
       "classification": "byte-identical",
-      "normalizedExecutableContentEquivalent": true
+      "normalizedExecutableContentEquivalent": true,
+      "normalizedExecutableContentSha1": "33920a3c7c0c0129e62968d3a616fbee17b1911b",
+      "historicalAndCurrentNormalizedContentMatchedAtAudit": true
     },
     {
       "path": "runtime/go/semanticruntime/loader.go",
       "historicalBlobSha": "ee2c08dd48cd031eb70bea099668b6164897d1e8",
       "currentBlobSha": "0084a8d71fad5306d516e6a24264b929ee317dee",
       "classification": "ADR-0031 identity rename plus explanatory comment only",
-      "normalizedExecutableContentEquivalent": true
+      "normalizedExecutableContentEquivalent": true,
+      "normalizedExecutableContentSha1": "c37d3d0002b7e84461a2deea363901c217d62d0d",
+      "historicalAndCurrentNormalizedContentMatchedAtAudit": true
     }
   ],
   "claims": {
