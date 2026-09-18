@@ -73,6 +73,8 @@ def pass_record(root: Path) -> dict:
         "scope": "Executable Evidence for E1-E8 only; H1/H2 and Product Outcome are out of scope.",
         "repository": {
             "head": head,
+            "expected_head": head,
+            "head_matches_expected": True,
             "head_tree": tree,
             "git_checkout_detected": True,
             "clean_required": True,
@@ -118,6 +120,15 @@ def main() -> int:
         tampered["source_bindings"][0]["sha256"] = "0" * 64
         report = verifier.validate(root, tampered)
         assert not report.passed and "source-sha256" in finding_codes(report), report.to_dict()
+
+        wrong_expected = copy.deepcopy(record)
+        wrong_expected["repository"]["expected_head"] = "0" * 40
+        wrong_expected["repository"]["head_matches_expected"] = False
+        report = verifier.validate(root, wrong_expected)
+        assert not report.passed, report.to_dict()
+        codes = finding_codes(report)
+        assert "head-matches-expected" in codes, report.to_dict()
+        assert "expected-head-mismatch" in codes, report.to_dict()
 
         dirty = copy.deepcopy(record)
         dirty["repository"]["dirty"] = True

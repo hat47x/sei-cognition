@@ -82,6 +82,15 @@ def validate(repo: Path, record: dict[str, Any]) -> Report:
         add("head", f"repository.head is not a full commit SHA: {head!r}")
         head = None
 
+    expected_head = repository.get("expected_head")
+    if not isinstance(expected_head, str) or not HEX40_RE.fullmatch(expected_head):
+        add("expected-head", f"repository.expected_head is not a full commit SHA: {expected_head!r}")
+        expected_head = None
+    if repository.get("head_matches_expected") is not True:
+        add("head-matches-expected", "head_matches_expected must be true for PASS evidence")
+    if head is not None and expected_head is not None and head != expected_head:
+        add("expected-head-mismatch", f"recorded head {head} != expected head {expected_head}")
+
     if repository.get("clean_required") is not True:
         add("clean-required", "clean_required must be true")
     if repository.get("dirty") is not False:

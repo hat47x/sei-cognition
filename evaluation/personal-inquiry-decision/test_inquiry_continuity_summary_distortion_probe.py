@@ -16,6 +16,7 @@ from inquiry_continuity_summary_distortion_probe import (
     audit_material_sha256,
     build_audit_material,
     build_audit_packet,
+    build_audit_packet_from_receipt,
     build_audit_reveal_receipt,
     build_review_packet,
     build_review_start_receipt,
@@ -279,6 +280,28 @@ class SummaryDistortionProbeTest(unittest.TestCase):
                 {self.fixture_id: fixture},
             )
 
+    def test_response_template_binds_exact_review_start_receipt_bytes(self):
+        template = response_template(
+            self.probe,
+            self.review_receipt,
+            self.review_receipt_raw,
+        )
+        self.assertEqual(
+            template["review_start_receipt_sha256"],
+            hashlib.sha256(self.review_receipt_raw).hexdigest(),
+        )
+
+    def test_response_template_rejects_mismatched_review_receipt_bytes(self):
+        changed = copy.deepcopy(self.review_receipt)
+        changed["reviewer_id"] = "different-reviewer"
+        mismatched_raw = review_start_receipt_bytes(changed)
+        with self.assertRaises(SummaryDistortionProbeError):
+            response_template(
+                self.probe,
+                self.review_receipt,
+                mismatched_raw,
+            )
+
     def test_review_packet_exposes_stimulus_template_but_hides_audit_material(self):
         fixture = json.loads(
             self.fixture_path.read_text(encoding="utf-8")
@@ -456,6 +479,43 @@ class SummaryDistortionProbeTest(unittest.TestCase):
         self.assertIn("distortion_key", packet)
         self.assertIn("reference_state", packet)
         self.assertIn("interpretation_stoplines", packet)
+
+    def test_audit_packet_rejects_mismatched_receipt_value_and_bytes(self):
+        fixture = json.loads(
+            self.fixture_path.read_text(encoding="utf-8")
+        )
+        response = self.root / "response.json"
+        response.write_text(json.dumps(self.valid_response()), encoding="utf-8")
+        material = build_audit_material(
+            self.probe,
+            {self.fixture_id: fixture},
+            self.fixture_id,
+        )
+        receipt = build_audit_reveal_receipt(
+            self.probe,
+            self.fixture_id,
+            response,
+            self.review_receipt,
+            self.review_receipt_raw,
+            audit_material_sha256(material),
+            "2026-09-18T02:55:00Z",
+        )
+        changed = copy.deepcopy(receipt)
+        changed["revealed_at"] = "2026-09-18T02:56:00Z"
+        mismatched_raw = (
+            json.dumps(changed, ensure_ascii=False, indent=2) + "\n"
+        ).encode("utf-8")
+        with self.assertRaises(SummaryDistortionProbeError):
+            build_audit_packet_from_receipt(
+                self.probe,
+                {self.fixture_id: fixture},
+                self.fixture_id,
+                response,
+                self.review_receipt,
+                self.review_receipt_raw,
+                receipt,
+                mismatched_raw,
+            )
 
     def test_audit_reveal_receipt_never_overwrites(self):
         response = self.root / "response.json"

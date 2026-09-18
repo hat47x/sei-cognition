@@ -28,7 +28,7 @@ def setup_repo(
     runner_write = 'a.output.write_text(json.dumps(record), encoding="utf-8")' if runner_writes_record else ""
     write_tool(
         tools / "run_issue_000073_resume_first_evidence.py",
-        f'''import argparse, json, subprocess\nfrom pathlib import Path\np=argparse.ArgumentParser(); p.add_argument("--output", type=Path); p.add_argument("--go"); a=p.parse_args()\ndirty = bool(subprocess.run(["git", "status", "--porcelain=v1"], text=True, stdout=subprocess.PIPE, check=True).stdout.strip())\nexit_code = 2 if dirty else {runner_exit}\nstatus = "blocked" if exit_code == 2 else ("pass" if exit_code == 0 else "fail")\nrecord={{"status": status, "repository": {{"head": "0123456789abcdef0123456789abcdef01234567"}}}}\n{runner_write}\nraise SystemExit(exit_code)\n''',
+        f'''import argparse, json, subprocess\nfrom pathlib import Path\np=argparse.ArgumentParser(); p.add_argument("--output", type=Path); p.add_argument("--go"); p.add_argument("--expected-head", required=True); a=p.parse_args()\nhead = subprocess.run(["git", "rev-parse", "HEAD"], text=True, stdout=subprocess.PIPE, check=True).stdout.strip()\ndirty = bool(subprocess.run(["git", "status", "--porcelain=v1"], text=True, stdout=subprocess.PIPE, check=True).stdout.strip())\nexit_code = 2 if dirty else {runner_exit}\nstatus = "blocked" if exit_code == 2 else ("pass" if exit_code == 0 else "fail")\nrecord={{"status": status, "repository": {{"head": head, "expected_head": a.expected_head, "head_matches_expected": head == a.expected_head}}}}\n{runner_write}\nraise SystemExit(exit_code)\n''',
     )
     write_tool(
         tools / "verify_issue_000073_resume_first_evidence.py",
@@ -41,11 +41,45 @@ def setup_repo(
     subprocess.run(["git", "commit", "-qm", "fixture"], cwd=root, check=True)
 
 
-def invoke(root: Path, *extra: str) -> tuple[int, dict]:
-    cmd = [sys.executable, str(WRAPPER), "--repo", str(root), *extra]
+def invoke(
+    root: Path,
+    *extra: str,
+    expected_head: str | None = None,
+) -> tuple[int, dict]:
+    head = expected_head or subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=root,
+        check=True,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    ).stdout.strip()
+    cmd = [
+        sys.executable,
+        str(WRAPPER),
+        "--repo",
+        str(root),
+        "--expected-head",
+        head,
+        *extra,
+    ]
     proc = subprocess.run(cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     assert proc.stderr == "", proc.stderr
     return proc.returncode, json.loads(proc.stdout)
+
+
+def test_expected_head_mismatch_blocks_before_runner() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        setup_repo(root)
+        code, out = invoke(root, expected_head="0" * 40)
+        assert code == 2, out
+        assert out["status"] == "blocked", out
+        assert "expected HEAD" in out["detail"], out
+        evidence = root / "evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8.json"
+        verification = root / "evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8-verification.json"
+        assert not evidence.exists()
+        assert not verification.exists()
 
 
 def test_pass_publishes_both() -> None:
@@ -168,6 +202,7 @@ def test_same_output_path_is_rejected() -> None:
 
 
 def main() -> int:
+    test_expected_head_mismatch_blocks_before_runner()
     test_pass_publishes_both()
     test_runner_blocked_keeps_raw_only()
     test_runner_zero_without_record_is_fail_closed()

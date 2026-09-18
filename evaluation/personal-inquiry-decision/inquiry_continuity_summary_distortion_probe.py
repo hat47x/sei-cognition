@@ -256,6 +256,25 @@ def _case(probe: dict[str, Any], fixture_id: str) -> dict[str, Any]:
     raise SummaryDistortionProbeError(f"unknown fixture: {fixture_id}")
 
 
+def _validate_json_value_raw_pair(
+    value: dict[str, Any],
+    raw: bytes,
+    label: str,
+) -> None:
+    if not isinstance(raw, bytes) or not raw.strip():
+        raise SummaryDistortionProbeError(f"{label} raw bytes must not be empty")
+    try:
+        decoded = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise SummaryDistortionProbeError(
+            f"{label} raw bytes must be valid UTF-8 JSON"
+        ) from exc
+    if decoded != value:
+        raise SummaryDistortionProbeError(
+            f"{label} value/raw bytes mismatch"
+        )
+
+
 def response_template(
     probe: dict[str, Any],
     review_receipt_value: dict[str, Any],
@@ -268,6 +287,12 @@ def response_template(
         probe,
         review_receipt_value.get("fixture_id"),
     )
+    _validate_json_value_raw_pair(
+        review_receipt_value,
+        review_receipt_raw,
+        "review-start receipt",
+    )
+    review_receipt_sha = hashlib.sha256(review_receipt_raw).hexdigest()
     return {
         "schema": RESPONSE_SCHEMA,
         "probe_sha256": probe_content_sha256(probe),
@@ -592,6 +617,11 @@ def validate_human_response_against_review_start(
         review_receipt_value,
         probe,
         fixture_id,
+    )
+    _validate_json_value_raw_pair(
+        review_receipt_value,
+        review_receipt_raw,
+        "review-start receipt",
     )
     receipt_sha = hashlib.sha256(review_receipt_raw).hexdigest()
     if response["review_start_receipt_sha256"] != receipt_sha:
@@ -918,6 +948,11 @@ def build_audit_packet_from_receipt(
         review_receipt_sha,
         review_receipt_value["started_at"],
         material_digest,
+    )
+    _validate_json_value_raw_pair(
+        receipt_value,
+        receipt_raw,
+        "audit-reveal receipt",
     )
     return {
         "schema": PACKET_SCHEMA,
