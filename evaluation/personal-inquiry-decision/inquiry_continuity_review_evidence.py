@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Export completed ISSUE-000078 reviews without collapsing evidence layers.
+"""Export completed Inquiry/Decision Continuity reviews without collapsing evidence layers.
 
 The matched-review session intentionally stores reviewer/operator observations and
 post-review semantic audit in one immutable session so the stage gate can protect
-their order. This module projects that completed session into two explicitly
-separate collections for durable recording. It never invents missing responses,
-computes a score/winner, or upgrades synthetic review to Product Value evidence.
+their order. This module projects a completed ISSUE-000073 or ISSUE-000078 session
+into explicitly separate observation and audit collections. It never invents
+missing responses, computes a score/winner, or upgrades synthetic review to
+Product Value evidence.
 """
 from __future__ import annotations
 
@@ -42,7 +43,7 @@ DEFAULT_MANIFEST = (
 
 
 class InquiryEvidenceBundleError(ValueError):
-    """Raised when a review cannot be exported without weakening its boundary."""
+    """Raised when a shared matched review cannot be exported safely."""
 
 
 def _load_context(
