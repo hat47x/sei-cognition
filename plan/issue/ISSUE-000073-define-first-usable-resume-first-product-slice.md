@@ -3,7 +3,7 @@
 Status: **Open**  
 Priority: **1**  
 Related ADRs: **ADR-0005, ADR-0010, ADR-0028, ADR-0029**  
-Updated: 2026-09-17
+Updated: 2026-09-18
 
 ## Goal
 
@@ -196,7 +196,7 @@ Question 5、6、9については、Requirement auditとREQ-0023 / SCN-0019のfo
 - Research EvidenceをSEI Product Evidenceへ読み替えない。
 - ISSUE-000072のTEI version-exchange Evidenceとは独立して扱う。
 
-## Current implementation / Evidence status — 2026-09-17
+## Current implementation / Evidence status — 2026-09-18
 
 現在はDesign baselineだけの段階から、E1〜E8を再現するGo interaction probeと、runner・verifier・one-command captureを持つ段階へ進んでいる。ただし、sourceや受入れtoolingの存在とactual E1〜E8実行結果は分ける。
 
@@ -206,9 +206,9 @@ Question 5、6、9については、Requirement auditとREQ-0023 / SCN-0019のfo
 - `tools/run_issue_000073_resume_first_evidence.py`: E1〜E8をmachine-readable recordへ束ねるrunnerあり
 - `tools/verify_issue_000073_resume_first_evidence.py`: recorded tested commit、source blob / SHA-256、Go version、E1〜E8個別test結果を再検証するverifierあり
 - `tools/capture_issue_000073_resume_first_evidence.py`: runner → verifier → Evidence保存を一命令でfail-closedに連結する標準入口あり
-- runner preflight self-test: **PASS**
-- verifier self-test: **PASS**
-- capture workflow self-test: **PASS**
+- runner preflight self-test: **PASS on current source (2026-09-18); machine-readable Evidence recorded**
+- verifier self-test: **PASS on current source (2026-09-18); machine-readable Evidence recorded**
+- capture workflow self-test: **PASS on current source (2026-09-18); machine-readable Evidence recorded**
 - E1〜E8 actual Go 1.25.x execution: **Not Yet Verified**
 - REQ-0023 / SCN-0019 Executable Evidence: **Not Yet Verified**
 - H1 resume usability review: **Not Yet Observed**
@@ -217,9 +217,16 @@ Question 5、6、9については、Requirement auditとREQ-0023 / SCN-0019のfo
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
 
-runner / captureはclean committed HEAD、required sourceとHEAD blobの一致、Go 1.25.xを要求する。2026-09-17のcurrent execution environmentではhost Goは1.23.2で、`GOTOOLCHAIN=go1.25.0+auto go version`によるtoolchain取得も`proxy.golang.org`へのDNS / 外向き通信制限でblockedとなった。これはinteractionprobe FAILではなくenvironment blockerであり、低いGoで代替PASSを作らない。
+runner / captureはclean committed HEAD、required sourceとHEAD blobの一致、Go 1.25.xを要求する。2026-09-18にcurrent execution environmentを再確認したが、host Goは引き続き1.23.2で、`GOTOOLCHAIN=go1.25.0+auto go version`によるtoolchain取得も`proxy.golang.org`へのDNS / 外向き通信制限でblockedとなった。これはinteractionprobe FAILではなくenvironment blockerであり、低いGoで代替PASSを作らない。
 
-currentの実行手順とblocker詳細は`evaluation/personal-inquiry-decision/DECISION_CONTINUITY_EXECUTION_READINESS_2026-09-16.md`をcurrent-state正本として参照する。
+Evidence受入れ経路のactual self-test結果は、次のmachine-readable Evidenceへ固定している。
+
+```text
+evaluation/personal-inquiry-decision/evidence/issue-000073/runner-verifier-selftests-2026-09-18.json
+evaluation/personal-inquiry-decision/evidence/issue-000073/capture-workflow-selftest-2026-09-18.json
+```
+
+これらはrunner / verifier / captureの受入れ系に限定したExecutable Evidenceであり、E1〜E8 actual Go Evidenceではない。currentの実行手順とblocker詳細は`evaluation/personal-inquiry-decision/DECISION_CONTINUITY_EXECUTION_READINESS_2026-09-16.md`をcurrent-state正本として参照する。
 
 ## Required scenarios / experiments
 
@@ -371,10 +378,10 @@ SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw 
 9. Candidate Requirementをexisting REQ / SCNへ再照合し、Stable Requirement追加の要否を決定する。
 10. 実装方式固有のlocal browser / protocol / AI model等をUniversal semanticsへ持ち込んでいない。
 
-### Current resolution status — 2026-09-17
+### Current resolution status — 2026-09-18
 
 - 条件1、2、9、10: **Design / Requirement auditの範囲では成立**。
-- 条件3〜5: E1〜E8のprobe / test sourceとrunner / verifier / captureはあるが、**actual Go 1.25.x実行結果はNot Yet Verified**。受入れtoolingのself-test PASSやsource存在だけで成立扱いにしない。
+- 条件3〜5: E1〜E8のprobe / test sourceとrunner / verifier / captureはある。runner preflight / verifier / capture workflowのcurrent source self-testは2026-09-18にactual PASSしmachine-readable Evidenceへ固定済みだが、**actual Go 1.25.x E1〜E8実行結果はNot Yet Verified**。受入れtoolingのPASSやsource存在だけで条件3〜5の成立扱いにしない。
 - 条件6〜8: H1 / H2とProduct Valueのcounterfactual observationは**Not Yet Observed**であり、未成立。
 
 したがってStatusは**Open**を維持する。Design文書が完成したこと、REQ-0023 / SCN-0019をformalizeしたこと、probe sourceやEvidence受入れtoolingを実装したことだけではResolvedにしない。prototypeが技術的にPASSした場合も、それだけでDecision ContinuityのAdoption / Outcome Evidenceが成立したことにはしない。
@@ -413,7 +420,9 @@ python3 tools/run_issue_000073_resume_first_evidence.py --output <evidence-recor
 python3 tools/verify_issue_000073_resume_first_evidence.py <evidence-record.json> --json-out <verification-record.json>
 ```
 
-runner / captureはclean committed HEAD、required sourceとHEAD blobの一致、Go 1.25.xをpreconditionとする。preconditionを満たせずblockedとなった場合はrepository test failureともPASSとも扱わない。2026-09-17のcurrent execution environmentではhost Go 1.23.2であり、Go自身のtoolchain自動取得もnetwork / DNS制限でblockedだったため、actual E1〜E8 runはNot Yet Verifiedのまま保持する。
+runner / captureはclean committed HEAD、required sourceとHEAD blobの一致、Go 1.25.xをpreconditionとする。preconditionを満たせずblockedとなった場合はrepository test failureともPASSとも扱わない。2026-09-18に再確認したcurrent execution environmentでもhost Goは1.23.2であり、Go自身のtoolchain自動取得はnetwork / DNS制限でblockedだったため、actual E1〜E8 runはNot Yet Verifiedのまま保持する。
+
+runner preflight / verifier / capture workflowについては、current sourceに対する2026-09-18 actual self-test PASSをmachine-readable Evidenceへ固定済みである。ただしこれはEvidence受入れ経路の検証であり、Go 1.25.xで`interactionprobe`を実行したEvidenceへは昇格させない。
 
 ```text
 runner / verifier / capture exists
@@ -438,6 +447,6 @@ Product Value、Decision Continuity synthesis、Value Model V1〜V8、Product Sh
 
 2026-09-16の追加監査では、CR-73.1〜10を機械的にStable化せずcurrent REQ / SCNへ再照合した。resume、AI provisional boundary、Progressive Explicitness、working-set non-authority等は既存Requirement、Product-local設計またはhuman Outcome評価へ戻し、既存REQでは直接禁止できなかったpartial commitとstale writeだけを「successful canonical commitの整合性」という一つのREQ-0023へ統合し、SCN-0019でAcceptance化した。transaction、ETag、digest、snapshot token等の実現方式をUniversal semanticsへ昇格させていない。
 
-2026-09-17には、E1〜E8の実行入口をrunner単体からrunner / verifier / one-command captureのcurrent implementationへ同期した。runner preflight、verifier、capture workflowのself-testはPASSしているが、Go 1.25.xを用いたactual E1〜E8 runはenvironment blockerにより未取得である。H1 / H2もactual human observationがないためNot Yet Observedのまま保持する。
+2026-09-17には、E1〜E8の実行入口をrunner単体からrunner / verifier / one-command captureのcurrent implementationへ同期した。2026-09-18にはEvidence受入れ経路のcurrent sourceをactualに再実行し、runner preflight、verifier、capture workflowのself-testをいずれもPASSとしてmachine-readable Evidenceへ固定した。同日Go 1.25.x取得経路も再確認したが、current execution environmentではhost Go 1.23.2かつ外向きDNS / network制限が継続しているためactual E1〜E8 runは未取得である。H1 / H2もactual human observationがないためNot Yet Observedのまま保持する。
 
 SEIのsemantic integrityが高いだけではProduct Valueとせず、historical誤帰属、Recommendation / Decision混同、再構成負担を実際に減らし、その利益がcapture / review overheadを上回るかまでを見る。価値差がない結果もProduct hypothesisを修正する正当なEvidenceとして扱う。意味、要求強度、留保、Evidenceの高さを固定したうえで自然な日本語として読み直し、最終意味監査を実施した。
