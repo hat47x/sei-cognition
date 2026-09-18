@@ -1,0 +1,142 @@
+{
+  "schema": "sei.issue-000073-h2-decision-review-runner-regression-evidence/v0",
+  "status": "pass",
+  "issue": "ISSUE-000073",
+  "captured_at": "2026-09-18T19:36:00+09:00",
+  "tested_commit": "42872959a13746eb5fd87f1fe10233ccd55caac0",
+  "current_source_equivalence": {
+    "checked_against_develop_commit": "af3e959e0dabee9b3a5ea60018c2f11e662efcb8",
+    "target_file_changes_since_tested_commit": []
+  },
+  "execution_environment": {
+    "python": "3.13.5",
+    "repository_checkout": "not-native-git-checkout",
+    "materialization": "exact GitHub UTF-8 blobs at tested_commit with local Git blob SHA-1 revalidation before execution"
+  },
+  "command": [
+    "python3",
+    "-m",
+    "unittest",
+    "-v",
+    "test_decision_continuity_review_runner.py"
+  ],
+  "working_directory": "evaluation/personal-inquiry-decision",
+  "exit_code": 0,
+  "result": {
+    "tests_run": 8,
+    "passed": 8,
+    "failed": 0,
+    "errors": 0,
+    "summary": "OK",
+    "duration_seconds": 0.034
+  },
+  "tests": [
+    "test_complete_decision_review_exports_separate_evidence_layers",
+    "test_current_repository_decision_set_opens_through_shared_runner",
+    "test_decision_validation_and_stage_gate",
+    "test_invalid_decision_response_is_wrapped_by_shared_runner",
+    "test_known_exposure_is_not_clean_blinded",
+    "test_missing_provenance_cannot_open_bundle",
+    "test_phase1_bundle_hides_condition_and_later_material",
+    "test_review_start_session_cannot_be_reinitialized_in_place"
+  ],
+  "source_binding": [
+    {
+      "path": "evaluation/personal-inquiry-decision/test_decision_continuity_review_runner.py",
+      "expected_blob": "589595ca0b36416c718f2a6cccdfae1e459fea94",
+      "materialized_blob": "589595ca0b36416c718f2a6cccdfae1e459fea94",
+      "matches": true,
+      "size": 12376
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_review_runner.py",
+      "expected_blob": "738c3d91f04c3207809b47ce422e78bc38bd1de2",
+      "materialized_blob": "738c3d91f04c3207809b47ce422e78bc38bd1de2",
+      "matches": true,
+      "size": 19483
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/matched_review_session.py",
+      "expected_blob": "b1e58d74ef905daf7bd22b8e81c62abceae3f2a7",
+      "materialized_blob": "b1e58d74ef905daf7bd22b8e81c62abceae3f2a7",
+      "matches": true,
+      "size": 14241
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/decision_continuity_review_analysis.py",
+      "expected_blob": "ca811be7a6d8ed818a37b26e2ccfbea33881cb2b",
+      "materialized_blob": "ca811be7a6d8ed818a37b26e2ccfbea33881cb2b",
+      "matches": true,
+      "size": 16726
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_review_analysis.py",
+      "expected_blob": "893503f7e835b932e5e35a05a4aaefe90798b359",
+      "materialized_blob": "893503f7e835b932e5e35a05a4aaefe90798b359",
+      "matches": true,
+      "size": 16782
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_review_evidence.py",
+      "expected_blob": "3f81d5041a4c6ad3ec25197b576623c2c1d555ef",
+      "materialized_blob": "3f81d5041a4c6ad3ec25197b576623c2c1d555ef",
+      "matches": true,
+      "size": 8031
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_packet.py",
+      "expected_blob": "3ef4581bbde71ed4ee64d451c2c03492fa055698",
+      "materialized_blob": "3ef4581bbde71ed4ee64d451c2c03492fa055698",
+      "matches": true,
+      "size": 11621
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/decision_continuity_preflight.py",
+      "expected_blob": "8959e2c2370930ed9ffe354be19c2d09f59b670a",
+      "materialized_blob": "8959e2c2370930ed9ffe354be19c2d09f59b670a",
+      "matches": true,
+      "size": 8551
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/decision_continuity_counterfactual_matched_set_v1.json",
+      "expected_blob": "e573d5df2a95521fd8d87286015108ca5e6361cd",
+      "materialized_blob": "e573d5df2a95521fd8d87286015108ca5e6361cd",
+      "matches": true,
+      "size": 6020
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/decision_continuity_counterfactual_001.json",
+      "expected_blob": "6354fce0a01093cb5545ed6bb9730aceb3b20023",
+      "materialized_blob": "6354fce0a01093cb5545ed6bb9730aceb3b20023",
+      "matches": true,
+      "size": 4842
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/decision_continuity_counterfactual_002.json",
+      "expected_blob": "54e1e244cba4f4859e661b3590a5d3f25adb0cb0",
+      "materialized_blob": "54e1e244cba4f4859e661b3590a5d3f25adb0cb0",
+      "matches": true,
+      "size": 5040
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/decision_continuity_counterfactual_003.json",
+      "expected_blob": "9d72729d8425ae0f68b7569107c281b4f3e479b8",
+      "materialized_blob": "9d72729d8425ae0f68b7569107c281b4f3e479b8",
+      "matches": true,
+      "size": 5267
+    }
+  ],
+  "evidence_scope": [
+    "actual executable regression evidence for the H2 Decision Continuity shared review runner",
+    "actual executable evidence for stage gating, provenance boundary, current repository fixture opening, response validation, and evidence-layer separation"
+  ],
+  "limitations": [
+    "The execution used an exact blob-validated materialization rather than a native Git checkout.",
+    "The clean-HEAD capture workflow itself was not used for this execution and remains Not Yet Verified for the Decision regression body.",
+    "This is not H2 human review evidence.",
+    "This is not H1 actual-resume usability evidence.",
+    "This is not E1-E8 Go executable evidence.",
+    "This does not establish Decision Continuity Product Value, Operational evidence, or Adoption evidence."
+  ],
+  "stopline": "H2 runner regression PASS != H2 native capture PASS != H2 human review != H1 actual resume != E1-E8 Go evidence != Decision Continuity Product Value established."
+}
