@@ -93,6 +93,13 @@ class ScopedGoFailureSourceDeltaAuditTest(unittest.TestCase):
                 item["path"],
             )
 
+    def test_digest_correction_provenance_is_preserved(self) -> None:
+        correction = load_audit()["digestCorrection"]
+        self.assertEqual(correction["recordedAt"], "2026-09-18")
+        self.assertIn("64-bit message-length trailer", correction["reason"])
+        self.assertIn("Only the derived normalizedExecutableContentSha1", correction["impact"])
+        self.assertIn("matched for all 7 audited files", correction["verification"])
+
     def test_claims_fail_closed_at_current_execution_boundary(self) -> None:
         claims = load_audit()["claims"]
         self.assertTrue(claims["scopedHistoricalExecutionRemainsRelevantRegressionContext"])
