@@ -353,7 +353,10 @@
           "selectors": "exact Channel + exact Key only",
           "provenance_required": true,
           "default_enabled": false,
-          "fanout_topology_bias_in_first_slice": false
+          "fanout_topology_bias_in_first_slice": false,
+          "non_finite_multiplier_rejected": true,
+          "selector_canonicality": "exact Channel / Key with surrounding whitespace is rejected",
+          "hardening_issue": 441
         },
         "stop_line": "bounded multiplierやprovenanceの存在を、policyの正しさ、順位安定性、実SUI意味品質、production defaultへ昇格させない。"
       }

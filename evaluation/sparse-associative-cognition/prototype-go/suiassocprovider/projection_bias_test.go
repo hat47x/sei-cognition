@@ -2,6 +2,7 @@ package suiassocprovider
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"testing"
 
@@ -32,6 +33,17 @@ func TestProjectionBiasPolicyFailsClosed(t *testing.T) {
 		{PolicyID: "p", MaxMultiplier: 1.25, Rules: []ProjectionBiasRule{{Channel: "graph:relationType", Key: "critical", Multiplier: 1.5, ProvenanceRef: "p"}}},
 		{PolicyID: "p", MaxMultiplier: 1.25, Rules: []ProjectionBiasRule{{Channel: "graph:relationType", Key: "critical", Multiplier: 1.01}}},
 		{PolicyID: "p", MaxMultiplier: 1.25, Rules: []ProjectionBiasRule{validRule, validRule}},
+		{PolicyID: "p", MaxMultiplier: float32(math.NaN()), Rules: []ProjectionBiasRule{validRule}},
+		{PolicyID: "p", MaxMultiplier: float32(math.Inf(1)), Rules: []ProjectionBiasRule{validRule}},
+		{PolicyID: "p", MaxMultiplier: 1.25, Rules: []ProjectionBiasRule{{
+			Channel: "graph:relationType", Key: "critical", Multiplier: float32(math.NaN()), ProvenanceRef: "p",
+		}}},
+		{PolicyID: "p", MaxMultiplier: 1.25, Rules: []ProjectionBiasRule{{
+			Channel: " graph:relationType", Key: "critical", Multiplier: 1.01, ProvenanceRef: "p",
+		}}},
+		{PolicyID: "p", MaxMultiplier: 1.25, Rules: []ProjectionBiasRule{{
+			Channel: "graph:relationType", Key: "critical ", Multiplier: 1.01, ProvenanceRef: "p",
+		}}},
 	}
 	for i, policy := range cases {
 		cfg := base

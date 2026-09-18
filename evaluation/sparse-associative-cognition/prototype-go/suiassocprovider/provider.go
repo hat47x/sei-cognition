@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"sort"
 	"strings"
 	"unicode"
@@ -376,8 +377,10 @@ func validateProjectionBias(policy *ProjectionBiasPolicy) error {
 	if strings.TrimSpace(policy.PolicyID) == "" {
 		return errors.New("projection bias policy id must not be empty")
 	}
-	if policy.MaxMultiplier <= 1 || policy.MaxMultiplier > MaxProjectionBiasMultiplier {
-		return fmt.Errorf("projection bias max multiplier must be > 1 and <= %v", MaxProjectionBiasMultiplier)
+	if !finiteFloat32(policy.MaxMultiplier) ||
+		policy.MaxMultiplier <= 1 ||
+		policy.MaxMultiplier > MaxProjectionBiasMultiplier {
+		return fmt.Errorf("projection bias max multiplier must be finite, > 1 and <= %v", MaxProjectionBiasMultiplier)
 	}
 	if len(policy.Rules) == 0 {
 		return errors.New("projection bias policy requires at least one rule")
@@ -390,10 +393,18 @@ func validateProjectionBias(policy *ProjectionBiasPolicy) error {
 		if strings.TrimSpace(rule.Channel) == "" {
 			return fmt.Errorf("projection bias rule %d channel must not be empty", i)
 		}
+		if rule.Channel != strings.TrimSpace(rule.Channel) {
+			return fmt.Errorf("projection bias rule %d channel must be canonical", i)
+		}
 		if strings.TrimSpace(rule.Key) == "" {
 			return fmt.Errorf("projection bias rule %d key must not be empty", i)
 		}
-		if rule.Multiplier <= 1 || rule.Multiplier > policy.MaxMultiplier {
+		if rule.Key != strings.TrimSpace(rule.Key) {
+			return fmt.Errorf("projection bias rule %d key must be canonical", i)
+		}
+		if !finiteFloat32(rule.Multiplier) ||
+			rule.Multiplier <= 1 ||
+			rule.Multiplier > policy.MaxMultiplier {
 			return fmt.Errorf("projection bias rule %d multiplier must be > 1 and <= max multiplier", i)
 		}
 		if strings.TrimSpace(rule.ProvenanceRef) == "" {
@@ -406,6 +417,11 @@ func validateProjectionBias(policy *ProjectionBiasPolicy) error {
 		seen[selector] = struct{}{}
 	}
 	return nil
+}
+
+func finiteFloat32(value float32) bool {
+	v := float64(value)
+	return !math.IsNaN(v) && !math.IsInf(v, 0)
 }
 
 func cloneProjectionBias(policy *ProjectionBiasPolicy) *ProjectionBiasPolicy {
