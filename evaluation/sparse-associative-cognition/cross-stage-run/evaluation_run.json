@@ -4,6 +4,7 @@
   "state": "draft",
   "run_id": "cross-stage-run-template",
   "authorized_at": null,
+  "authorization_ref": "",
   "freeze_bundle": {
     "ref": "../cross-stage-freeze/freeze_bundle.json",
     "digest": ""
@@ -35,5 +36,6 @@
     "production_default_unchanged": true
   },
   "results_generated": false,
-  "result_artifact_ref": ""
+  "result_artifact_ref": "",
+  "run_digest": ""
 }
