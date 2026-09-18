@@ -25,8 +25,8 @@ if str(FREEZE_DIR) not in sys.path:
     sys.path.insert(0, str(FREEZE_DIR))
 
 from validate_cross_stage_preregistration import (  # noqa: E402
+    validate_pre_run_prerequisites,
     validate_preregistration,
-    validate_unlock,
 )
 from freeze_manifests import load_directory, validate_all  # noqa: E402
 
@@ -212,8 +212,8 @@ def validate_authorized_run(
         if auth.get(key) is not True:
             errors.append(f"authorized run requires authorization.{key}=true")
 
-    unlock_errors = validate_unlock(prereg)
-    errors.extend(f"preregistration unlock: {e}" for e in unlock_errors)
+    pre_run_errors = validate_pre_run_prerequisites(prereg)
+    errors.extend(f"preregistration pre-run: {e}" for e in pre_run_errors)
 
     bundle_doc = freeze_documents.get("bundle", {})
     if bundle_doc.get("state") != "frozen":
