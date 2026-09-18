@@ -29,6 +29,10 @@ SOURCE_FILES = (
     Path("evaluation/personal-inquiry-decision/inquiry_continuity_review_evidence.py"),
     Path("evaluation/personal-inquiry-decision/inquiry_continuity_packet.py"),
     Path("evaluation/personal-inquiry-decision/decision_continuity_preflight.py"),
+    Path("evaluation/personal-inquiry-decision/decision_continuity_counterfactual_matched_set_v1.json"),
+    Path("evaluation/personal-inquiry-decision/decision_continuity_counterfactual_001.json"),
+    Path("evaluation/personal-inquiry-decision/decision_continuity_counterfactual_002.json"),
+    Path("evaluation/personal-inquiry-decision/decision_continuity_counterfactual_003.json"),
 )
 SCHEMA = "issue-000073-h2-shared-runner-selftest-evidence/v1"
 STOP_LINE = (
@@ -112,6 +116,14 @@ def main(argv: list[str] | None = None) -> int:
         )
     )
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument(
+        "--expected-head",
+        required=True,
+        help=(
+            "Canonical repository commit SHA obtained independently of this checkout. "
+            "The capture blocks unless git HEAD matches it exactly."
+        ),
+    )
     parser.add_argument("--replace", action="store_true")
     parser.add_argument("--repo", type=Path, help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
@@ -157,9 +169,28 @@ def main(argv: list[str] | None = None) -> int:
 
     repository = {
         "head": head,
+        "expected_head": args.expected_head,
+        "head_matches_expected": head == args.expected_head,
         "head_tree": head_tree,
         "clean": dirty == "",
     }
+    if head != args.expected_head:
+        if args.replace:
+            output.unlink(missing_ok=True)
+        value = record(
+            status="blocked",
+            repository=repository,
+            environment=environment,
+            sources=[],
+            execution=None,
+            detail=(
+                "checkout HEAD does not match independently supplied canonical "
+                f"expected HEAD: actual={head} expected={args.expected_head}"
+            ),
+        )
+        print(json.dumps(value, ensure_ascii=False, indent=2))
+        return 2
+
     if dirty:
         if args.replace:
             output.unlink(missing_ok=True)
