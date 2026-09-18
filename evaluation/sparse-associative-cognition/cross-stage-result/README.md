@@ -22,10 +22,24 @@ execution attempt
   ↓ success only
 result artifact
   ↓
-future interpretation / decision artifact
+interpretation artifact
+  ↓
+future decision artifact
 ```
 
 result artifactは最後の「判断」ではなく、再検証可能な測定記録である。
+
+interpretationは `../cross-stage-interpretation/` の別artifactへ分離し、result自身へwinner・recommendation・B5 decisionを埋め込まない。
+
+### Interpretationとの分離
+
+```text
+result measurement
+  != interpretation
+  != decision
+```
+
+測定値の意味づけをresult artifactへ書き戻さず、interpretation側も非決定的artifactとして扱う。
 
 ## 2. State
 

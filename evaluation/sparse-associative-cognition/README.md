@@ -218,6 +218,7 @@ human-adjudicated評価へ進む前に、比較variant、split、B3 prior、B4 f
 - freeze kit validator: `cross-stage-freeze/freeze_manifests.py`
 - explicit evaluation run: `cross-stage-run/`
 - result artifact contract: `cross-stage-result/`
+- interpretation artifact contract: `cross-stage-interpretation/`
 
 現在は **Evaluation Locked** である。
 
@@ -234,7 +235,9 @@ human-adjudicated evaluation
   ↓
 immutable result artifact
   ↓
-future interpretation / decision
+non-decisional interpretation artifact
+  ↓
+future decision
 ```
 
 preregistration artifact自身はsemantic benchmark resultを生成しない。

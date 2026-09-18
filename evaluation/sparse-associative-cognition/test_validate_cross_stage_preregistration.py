@@ -121,6 +121,55 @@ class CrossStagePreregistrationTests(unittest.TestCase):
                 doc["result_artifact"][key] = True
                 self.assertTrue(validate_preregistration(doc))
 
+    def test_interpretation_artifact_draft_is_registered(self) -> None:
+        artifact = self.doc["interpretation_artifact"]
+        self.assertEqual(artifact["state"], "draft")
+        self.assertFalse(artifact["current_interpretation_generated"])
+        self.assertTrue(artifact["requires_completed_result"])
+
+    def test_interpretation_artifact_state_and_generated_flag_must_match(self) -> None:
+        doc = copy.deepcopy(self.doc)
+        doc["interpretation_artifact"]["state"] = "interpreted"
+        self.assert_has_error(
+            validate_preregistration(doc),
+            "current_interpretation_generated must match",
+        )
+
+    def test_interpretation_artifact_requires_completed_result_contract(self) -> None:
+        doc = copy.deepcopy(self.doc)
+        doc["interpretation_artifact"]["requires_completed_result"] = False
+        self.assert_has_error(
+            validate_preregistration(doc),
+            "requires_completed_result must remain true",
+        )
+
+    def test_interpreted_state_requires_completed_result_state(self) -> None:
+        doc = copy.deepcopy(self.doc)
+        doc["interpretation_artifact"].update({
+            "state": "interpreted",
+            "current_interpretation_generated": True,
+        })
+        self.assert_has_error(
+            validate_preregistration(doc),
+            "requires result_artifact.state=completed",
+        )
+
+    def test_interpretation_artifact_cannot_become_decision(self) -> None:
+        for key in (
+            "semantic_truth_claimed",
+            "variant_winner_declared",
+            "recommendation_generated",
+            "b5_decision_generated",
+            "production_default_changed",
+        ):
+            with self.subTest(key=key):
+                doc = copy.deepcopy(self.doc)
+                doc["interpretation_artifact"][key] = True
+                self.assert_has_error(
+                    validate_preregistration(doc),
+                    f"interpretation_artifact.{key} must remain false",
+                )
+
     def test_semantic_labels_cannot_be_embedded_in_preregistration(self) -> None:
         doc = copy.deepcopy(self.doc)
         doc["adjudication"]["semantic_labels_embedded_in_preregistration"] = True

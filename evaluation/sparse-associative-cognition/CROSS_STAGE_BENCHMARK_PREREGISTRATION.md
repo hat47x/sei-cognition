@@ -1,6 +1,6 @@
 # Cross-stage Benchmark Preregistration
 
-更新日: 2026-09-18  
+更新日: 2026-09-19  
 状態: **Preregistration-only / Evaluation Locked**
 
 ## 1. 目的
@@ -24,7 +24,9 @@ human-adjudicated evaluation
   ↓
 immutable result artifact
   ↓
-future interpretation / decision
+non-decisional interpretation artifact
+  ↓
+future decision
 ```
 
 この文書と `cross_stage_benchmark_preregistration.json` は、evaluation runそのものではない。
@@ -273,3 +275,30 @@ cross-stage preregistration
 - B7 routingの実運用有効性
 - learned projectionの必要性
 - Product Value / Operational / Adoption / Outcome Evidence
+
+
+## 12. Interpretation artifact
+
+result artifactと意思決定の間に、`cross-stage-interpretation/` の非決定的interpretation artifactを置く。
+
+interpretationはcompleted resultのdigest、track / variant / capacity / stress identity、analyst provenance、参照metricへbindする。
+
+ただし次は常にfalseのまま維持する。
+
+```text
+semantic_truth_claimed
+variant_winner_declared
+recommendation_generated
+b5_decision_generated
+production_default_changed
+```
+
+したがって:
+
+```text
+result measurement
+  != interpretation
+  != decision
+```
+
+をartifact contractとして分離する。実human-adjudicated completed resultが存在するまでchecked-in interpretationはdraft / emptyである。
