@@ -66,17 +66,15 @@ func TestMergeSparseSignaturesIsDeterministicAndDeduplicated(t *testing.T) {
 func TestLocalizedCompetitionDoesNotExceedConfiguredBudget(t *testing.T) {
 	cfg := sparseassoc.Config{Dimensions: 32768, Fanout: 4, Active: 16, Seed: 47}
 	policy := softLocalCompetitionPolicy()
-	sig, err := encodeLocalizedCompetition(cfg, featuresForItem(localCompetitionAnchor()), policy)
+	encoder, err := newLocalizedCompetitionEncoder(cfg, policy)
 	if err != nil {
 		t.Fatal(err)
 	}
+	sig := encoder.Encode(featuresForItem(localCompetitionAnchor()))
 	if len(sig.Active) > int(cfg.Active) {
 		t.Fatalf("signature exceeded configured active budget: %d > %d", len(sig.Active), cfg.Active)
 	}
-	second, err := encodeLocalizedCompetition(cfg, featuresForItem(localCompetitionAnchor()), policy)
-	if err != nil {
-		t.Fatal(err)
-	}
+	second := encoder.Encode(featuresForItem(localCompetitionAnchor()))
 	if !reflect.DeepEqual(sig, second) {
 		t.Fatalf("localized competition is not deterministic: %#v != %#v", sig, second)
 	}
@@ -203,12 +201,15 @@ func TestGlobalResidualSoftensHardIsolationFailure(t *testing.T) {
 func BenchmarkLocalizedCompetitionSoft(b *testing.B) {
 	cfg := sparseassoc.Config{Dimensions: 32768, Fanout: 4, Active: 16, Seed: 47}
 	policy := softLocalCompetitionPolicy()
+	encoder, err := newLocalizedCompetitionEncoder(cfg, policy)
+	if err != nil {
+		b.Fatal(err)
+	}
 	features := featuresForItem(localCompetitionAnchor())
 	b.ReportAllocs()
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if _, err := encodeLocalizedCompetition(cfg, features, policy); err != nil {
-			b.Fatal(err)
-		}
+		_ = encoder.Encode(features)
 	}
 }
 
@@ -273,7 +274,7 @@ func localCompetitionSimilarities(
 	if err != nil {
 		t.Fatal(err)
 	}
-	globalEncoder, err := sparseassoc.NewEncoder(cfg.Sparse)
+	encoder, err := newProviderEncoder(p.cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -282,7 +283,7 @@ func localCompetitionSimilarities(
 		if err != nil {
 			t.Fatal(err)
 		}
-		sig, err := p.encodeFeatures(globalEncoder, features)
+		sig, err := encoder.Encode(features)
 		if err != nil {
 			t.Fatal(err)
 		}
