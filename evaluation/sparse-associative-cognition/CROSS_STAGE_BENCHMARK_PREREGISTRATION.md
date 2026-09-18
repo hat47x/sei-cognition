@@ -1,0 +1,182 @@
+# Cross-stage Benchmark Preregistration
+
+更新日: 2026-09-18  
+状態: **Preregistration-only / Evaluation Locked**
+
+## 1. 目的
+
+B1/B2/B3/B4/B6/B6b/B6c/SEI-B7にはlimited synthetic executable evidenceがある。
+
+ただし、個別synthetic fixtureで局所的な改善や失敗境界が見えたことは、実SUI/SEIデータで意味品質が改善することを示さない。
+
+したがって次に必要なのは、新しい機構を増やすことではなく、**human-adjudicatedな実評価へ移る前に比較条件と停止線を固定すること**である。
+
+```text
+synthetic executable evidence
+  ↓
+cross-stage preregistration
+  ↓
+human adjudication freeze
+  ↓
+explicit evaluation-run artifact
+  ↓
+human-adjudicated evaluation
+```
+
+この文書と `cross_stage_benchmark_preregistration.json` は、evaluation runそのものではない。
+
+## 2. なぜcross-stage gateが必要か
+
+現在のEvidenceには、単独段階では見えにくい相互作用がある。
+
+- B1 normalizationはfeature massを補正する。
+- B2 competitionはwinner budgetをfamily / global residualへ分配する。
+- B3 bounded priorはB1/B2後にもrankingへ離散的な影響を与える。
+- B6 capacity scalingは同じactive fractionでもselection pressureを変える。
+- B6b/B6c diagnosticsはpath saturation / residual containmentを観測する。
+- B4 familiarityはretrievalそのものではなく、event attention / escalationを変える。
+- B7 route policyはSACS内部ではなく、Outcome後のupper control planeを変える。
+
+したがって、各段階を個別に「改善」とみなして積み上げるのではなく、frozen variantとして横並びに比較する。
+
+## 3. Retrieval track
+
+human-adjudicated semantic retrievalで比較するvariantは事前に固定する。
+
+1. B0
+2. B1
+3. B1 + B2
+4. B1 + B2 + B3
+
+B6 small / medium / large profileを同じvariant setへ適用する。
+
+B6b / B6cはdiagnosticだけを出す。
+
+```text
+observed winner share
+local incremental dimensions
+residual containment
+  != semantic quality score
+```
+
+## 4. B3 prior leakageを防ぐ
+
+B3は特にevaluation label leakageへ弱い。
+
+評価対象の正解を見てから「重要feature」を定義すると、priorの有効性ではなく答えの埋め込みを測ることになる。
+
+したがってB3 priorは、
+
+- provenance必須
+- exact Channel + exact Key
+- evaluation前にmanifest freeze
+- evaluation labelsをauthoringに使わない
+
+を必須にする。
+
+## 5. B4は別trackにする
+
+familiarity modulationはsemantic retrieval accuracyとは別の問題を扱う。
+
+評価対象:
+
+- duplicate escalation reduction
+- content delta recovery
+- expiry recovery
+- high-stakes recovery
+- missed-change rate
+
+fingerprintはcaller-ownedであり、evaluation labelを使って作ってはならない。
+
+特に、
+
+```text
+unchanged caller fingerprint
+  != unchanged underlying content
+```
+
+を維持する。
+
+## 6. B7はOutcome train / holdout replayを分ける
+
+Outcome-informed routingはtraining Outcomeとholdout replayを分離する。
+
+- training Outcomeからcandidate policyを作る
+- holdout replayはcandidateを作るために使わない
+- holdoutはcounterfactually completeなsynthetic / curated replayに限定する
+- static baselineとのregretを独立指標にする
+
+実運用で未実行routeのcounterfactual outcomeが通常得られない問題は、別途selection-bias研究として残す。
+
+## 7. 単一scoreを作らない
+
+次を独立に扱う。
+
+### Quality
+- recall@k
+- pairwise ordering accuracy
+- false activation rate
+
+### Robustness
+- perturbation stability
+- cross-profile ordering stability
+
+### Resource
+- p50 / p95 latency
+- memory footprint
+- allocation count
+
+### Safety / failure
+- B3 prior misapplication
+- B4 missed change
+- B7 regret against static
+- minimum escalation floor preservation
+
+### Diagnostics
+- touched dimensions
+- winner share
+- local incremental dimensions
+- residual containment
+
+一つの加重scoreへ圧縮しない。
+
+## 8. Unlock条件
+
+現在はlockedである。
+
+evaluation runを作成する前に、別artifactで少なくとも次を満たす。
+
+- human adjudication state = frozen
+- dataset digest固定
+- adjudication manifest固定
+- variant set固定
+- retrieval / familiarity / routing split固定
+- B3 prior manifest固定
+- explicit evaluation-run artifact作成
+
+preregistration artifact自身の `result_generation.enabled` は将来も `false` のままにする。
+
+## 9. B5との関係
+
+B5 learned sparse projectionのentry gateは変更しない。
+
+B5を開けるには、少なくともfrozen human-adjudicated evaluationでB0-B3のmeaning quality不足を確認し、そのうえでstatic semantic adapterでも不足する必要がある。
+
+```text
+cross-stage preregistration
+  != B5 gate open
+```
+
+## 10. Evidence境界
+
+この作業が提供するのはDesign / Evaluation-boundary Evidenceである。
+
+証明しないもの:
+
+- 実SUI/SEI意味品質
+- production runtime適性
+- B3 priorの正しさ
+- B4 fingerprint品質
+- B7 routingの実運用有効性
+- learned projectionの必要性
+- Product Value / Operational / Adoption / Outcome Evidence
