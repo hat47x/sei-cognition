@@ -202,11 +202,30 @@ SEI自身が実行安定化の全領域を所有する必要はありません�
 ```text
 SUI = 未整理な材料から関係・仮説・構造・統合を形成し、意味形成を成熟させる
 SEI = 認知・問い・不確実性・根拠・判断・Capability・来歴を継続可能な意味として保つ
-TEI = 業務上の意味をCanonicalなformal modelとして保持し、実装・実行可能な形へ接続する
+TEI = 受入済みの業務・Application・Infrastructure knowledgeをformalizeし、構築・実行・Agent業務遂行へ接続する
 EKI = 異質で一時的な計算資源を束ね、計算を適切な場所で実行する
 ```
 
 SUIで形成されたObservationやHypothesisをSEIのInquiryへ接続する、SEIがTEIをCapability Providerとして利用する、SEIが必要とする認知処理をEKI上の資源へ配置するといった協調は可能です。
+
+AI Business Actorを使う場合、TEIがBusiness Procedure / Action / Constraint / Authorization / Runtime Binding等のOperational Knowledgeを提供し、SEIは必要に応じてObservation / Question / Unknown / Recommendation / Decision等の認知・判断文脈を提供できます。AgentがTEIだけを読んで既定業務を遂行する構成も、SEIが判断文脈を補う構成も成立し得ます。
+
+```text
+SEI
+  what to notice / question / decide
+        ↓ optional
+AI Business Actor
+        ↓ reads
+TEI
+  what can be done / under which constraints and authority
+        ↓
+Execution
+        ↓
+Observation / Evidence
+        └── SEIへ戻せる
+```
+
+この協調でも、Agent runtimeそのものをSEI Universal Coreへ取り込みません。
 
 ただし、この関係を固定pipelineにはしません。SEIはSUI / TEI / EKIを使わなくても成立し、各ProductもSEI専用のsurface、Provider、runtimeとして特権化しません。関連製品であるという理由だけで、優先度、信頼、Authorityを与えないことを維持します。
 
