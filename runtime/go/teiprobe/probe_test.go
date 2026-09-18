@@ -177,7 +177,7 @@ func TestProbeRejectsManifestMismatch(t *testing.T) {
 		mutate func(*BuildManifest)
 	}{
 		{"repository", func(m *BuildManifest) { m.Repository = "other/repository" }},
-		{"commit", func(m *BuildManifest) { m.Commit = "deadbeef" }},
+		{"commit", func(m *BuildManifest) { m.Commit = strings.Repeat("d", 40) }},
 		{"digest", func(m *BuildManifest) { m.BinarySHA256 = strings.Repeat("0", 64) }},
 	}
 	for _, tc := range tests {
@@ -211,7 +211,7 @@ func TestProbeRejectsManifestMismatch(t *testing.T) {
 }
 
 func TestDecodeManifestRejectsUnknownFieldAndMultipleJSON(t *testing.T) {
-	valid := `{"schema":"sei.tei-binary-build-manifest/v1","repository":"hat47x/tei-platform","commit":"abc","binary_sha256":"` + strings.Repeat("a", 64) + `"}`
+	valid := `{"schema":"sei.tei-binary-build-manifest/v1","repository":"hat47x/tei-platform","commit":"0123456789abcdef0123456789abcdef01234567","binary_sha256":"` + strings.Repeat("a", 64) + `"}`
 	for _, payload := range []string{
 		strings.TrimSuffix(valid, "}") + `,"token":"must-not-be-accepted"}`,
 		valid + "\n" + valid,
