@@ -1,0 +1,197 @@
+{
+  "schema": "sei.sacs-cross-stage-benchmark-preregistration/v1alpha1",
+  "date": "2026-09-18",
+  "status": "preregistration-only",
+  "issue": 458,
+  "purpose": "Freeze cross-stage evaluation boundaries before any human-adjudicated semantic benchmark result is generated.",
+  "result_generation": {
+    "enabled": false,
+    "unlock_requires": [
+      "human_adjudication_state=frozen",
+      "dataset_digest_is_frozen",
+      "variant_set_is_frozen",
+      "split_manifest_is_frozen",
+      "b3_prior_manifest_is_frozen",
+      "explicit_evaluation_run_artifact"
+    ],
+    "preregistration_artifact_must_never_enable_results": true
+  },
+  "adjudication": {
+    "state": "pending",
+    "required_final_state": "frozen",
+    "dataset_digest": "",
+    "adjudication_manifest_ref": "",
+    "semantic_labels_embedded_in_preregistration": false
+  },
+  "variants": [
+    {
+      "id": "B0",
+      "description": "current sparse baseline",
+      "components": [
+        "SAC-B0"
+      ]
+    },
+    {
+      "id": "B1",
+      "description": "caller-owned feature-family normalization",
+      "components": [
+        "SAC-B0",
+        "SAC-B1"
+      ]
+    },
+    {
+      "id": "B1-B2",
+      "description": "family normalization plus soft-local competition with global residual",
+      "components": [
+        "SAC-B0",
+        "SAC-B1",
+        "SAC-B2"
+      ]
+    },
+    {
+      "id": "B1-B2-B3",
+      "description": "B1+B2 plus provenance-bound bounded salience prior",
+      "components": [
+        "SAC-B0",
+        "SAC-B1",
+        "SAC-B2",
+        "SAC-B3"
+      ],
+      "requires_prior_manifest": true
+    }
+  ],
+  "capacity_profiles": {
+    "stage": "SAC-B6",
+    "profile_set_state": "frozen-for-preregistration",
+    "profiles": [
+      {
+        "id": "small",
+        "dimensions": 2048,
+        "active": 32,
+        "fanout": 8,
+        "seed": 47
+      },
+      {
+        "id": "medium",
+        "dimensions": 4096,
+        "active": 64,
+        "fanout": 8,
+        "seed": 47
+      },
+      {
+        "id": "large",
+        "dimensions": 8192,
+        "active": 128,
+        "fanout": 8,
+        "seed": 47
+      }
+    ],
+    "diagnostics_only": [
+      "SAC-B6b",
+      "SAC-B6c"
+    ],
+    "diagnostics_are_not_semantic_scores": true
+  },
+  "b3_prior_manifest": {
+    "state": "not-yet-frozen",
+    "manifest_ref": "",
+    "provenance_required": true,
+    "evaluation_labels_may_not_author_prior": true,
+    "selectors": "exact Channel + exact Key only",
+    "absolute_max_multiplier": 2,
+    "max_rules": 32
+  },
+  "tracks": {
+    "retrieval": {
+      "split_manifest": {
+        "state": "not-yet-frozen",
+        "calibration_ids": [],
+        "evaluation_ids": []
+      },
+      "metrics": {
+        "quality": [
+          "recall_at_k",
+          "pairwise_ordering_accuracy",
+          "false_activation_rate"
+        ],
+        "robustness": [
+          "perturbation_stability",
+          "cross_profile_ordering_stability"
+        ],
+        "resource": [
+          "p50_latency",
+          "p95_latency",
+          "memory_footprint",
+          "allocation_count"
+        ],
+        "diagnostics": [
+          "observed_touched_dimensions",
+          "observed_winner_share",
+          "local_incremental_dimensions",
+          "residual_containment_behavior"
+        ]
+      }
+    },
+    "familiarity": {
+      "stage": "SAC-B4",
+      "split_manifest": {
+        "state": "not-yet-frozen",
+        "calibration_ids": [],
+        "evaluation_ids": []
+      },
+      "caller_owned_fingerprint_required": true,
+      "fingerprint_may_not_use_evaluation_labels": true,
+      "metrics": [
+        "duplicate_escalation_reduction",
+        "content_delta_recovery",
+        "expiry_recovery",
+        "high_stakes_recovery",
+        "missed_change_rate"
+      ]
+    },
+    "routing": {
+      "stage": "SEI-B7",
+      "split_manifest": {
+        "state": "not-yet-frozen",
+        "training_outcome_ids": [],
+        "holdout_replay_ids": []
+      },
+      "training_holdout_must_be_disjoint": true,
+      "holdout_replay_must_be_counterfactually_complete": true,
+      "metrics": [
+        "route_success_rate",
+        "unnecessary_escalation_rate",
+        "regret_against_static_policy",
+        "rollback_reproducibility",
+        "minimum_escalation_floor_preservation"
+      ]
+    }
+  },
+  "evaluation_policy": {
+    "no_single_composite_score": true,
+    "no_variant_tuning_on_evaluation_labels": true,
+    "no_b3_prior_authoring_from_evaluation_labels": true,
+    "no_b4_fingerprint_authoring_from_evaluation_labels": true,
+    "no_b7_training_holdout_overlap": true,
+    "b5_entry_gate_changed": false,
+    "provider_default_changed": false,
+    "production_runtime_changed": false
+  },
+  "b5_gate": {
+    "state": "closed",
+    "entry_condition": "Open only if B0-B3 meaning quality is insufficient on frozen human-adjudicated evaluation and static semantic adapter is also insufficient.",
+    "current_evidence_satisfies_entry_condition": false
+  },
+  "stop_lines": [
+    "preregistration != benchmark result",
+    "human adjudication pending != semantic evaluation allowed",
+    "diagnostic saturation != semantic importance",
+    "bounded salience prior != correct salience",
+    "familiarity != unimportance",
+    "route efficacy != semantic truth",
+    "resource improvement != cognitive quality",
+    "single composite score is prohibited",
+    "synthetic evidence != production evidence",
+    "cross-stage benchmark != B5 gate automatically open"
+  ]
+}
