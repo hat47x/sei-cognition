@@ -221,7 +221,7 @@ PR #343では、GitHub Actionsを成立条件にしないrepository-local入口�
 
 PR #344では、既存`runtime/go/liveintegration`へfailure probe testを追加した。deterministic `httptest`ではProvider rejection時にCapability Observationを生成しないこととAuthorization tokenをerrorへ漏らさないことを検査し、明示的opt-inのactual GitHub negative probeとして、存在しないrevisionと固定invalid credentialの2 caseを定義した。通常のrepository-local checkではlive flagが環境浄化で除去されるため、actual通信を自動実行しない。
 
-PR #345では、actual negative probe専用の`run_live_provider_failure_probe.py`を追加した。`--allow-live`がなければ外部通信前に終了し、親環境のreal credentialを除去したうえで`SEI_E3B_FAILURE_LIVE=1`だけを設定する。`go test -json`のprocess exit codeだけではなく、missing revision / invalid credentialのexact 2 testが双方`pass`したことを要求し、missing / skip / fail / malformed JSON / non-zero / timeout / launch errorをfail closedとする。専用runnerのunit testは10 test PASSを確認しているが、actual GitHub negative probeそのものはまだ実行していない。
+PR #345では、actual negative probe専用の`run_live_provider_failure_probe.py`を追加した。`--allow-live`がなければ外部通信前に終了し、親環境のreal credentialを除去したうえで`SEI_E3B_FAILURE_LIVE=1`だけを設定する。`go test -json`のprocess exit codeだけではなく、missing revision / invalid credentialのexact 2 testが双方`pass`したことを要求し、missing / skip / fail / malformed JSON / non-zero / timeout / launch errorをfail closedとする。2026-09-18の再監査では、runnerのIssue表記を`ISSUE-000076`へ揃え、child processへ旧名`SOZA_*`の秘匿値も継承しないよう境界を補強した。current probe blob `613b75824fe88595749d8667d06d8bbaa5822313`とcurrent test blob `cd0e91ad436321a61fd7ed0d000acf80a1c937f2`を一時領域へ再構成したfocused executionでは11 testすべてPASSした。ただし、これは完全なrepository checkout上の実行ではなく、`go test ./liveintegration`やactual GitHub negative probeを実行済みとするEvidenceではない。
 
 PR #346では、Product Requirements / Acceptance Scenariosを再監査し、`evaluation/failure-behavior/requirement_audit.json`へ`completed-no-change-at-current-evidence-height`を記録した。REQ-0002、REQ-0006、REQ-0007、REQ-0020、REQ-0021、REQ-0022と、SCN-0010、SCN-0011、SCN-0017、SCN-0018を対象に、現Evidence高さでは新Stable Requirement、既存Stable Requirement変更、Acceptance Scenario追加・変更、Universal Contract field追加のいずれも行わない判断を固定した。audit testは5 test PASSを確認した。
 
@@ -235,7 +235,7 @@ Design Evidence
   + explicit opt-in actual failure runner
   + Requirement audit = No Change at current evidence height
   != Provider Adapter Go testの実行済みEvidence
-  != actual Provider failure Evidence
+  != complete two-case actual Provider integration failure Evidence
   != actual deployment failure Evidence
   != Operational Evidence
 ```
@@ -323,7 +323,7 @@ current deterministic probeでは1〜9をすべてfixture-scopedに発火させ�
 
 ## Current verification state
 
-2026-09-10時点のcurrent stateは次のとおりである。
+2026-09-18時点のcurrent stateは次のとおりである。
 
 - Design Evidence: **Established**。failure stage、retry boundary、secret-safe Evidence、Evidence ladderを本Issueで固定した。
 - case catalog / validator: **Verified fixture-scoped**。mainへ統合済み。
@@ -331,7 +331,7 @@ current deterministic probeでは1〜9をすべてfixture-scopedに発火させ�
 - Provider Adapter failure tests: **Defined on current runtime path**。mapping failure、semantic validation failure、retry attempt separationを既存Adapter境界へ接続済み。
 - repository-local failure runner: **Defined / unit-tested**。runner unit logic 6 test PASS。Provider Adapter Go test実行は未確認。
 - live Provider failure tests: **Defined explicit opt-in**。missing revision / invalid credential、secret-safe deterministic rejectionを追加済み。
-- explicit live failure runner: **Defined / unit-tested**。runner unit test 10 test PASS。actual GitHub negative probe全体は未実行。missing revision単独については`actual_provider_missing_revision_observation_20260910.json`のactual service observationが存在するが、invalid credentialとの2-case runner完走は未確認。
+- explicit live failure runner: **Defined / focused current-blob unit execution verified**。2026-09-18にcurrent probe/test blobを一時領域へ再構成し11/11 test PASSを確認した。これは完全checkout Evidenceではない。actual GitHub negative probe全体は未実行。missing revision単独については`actual_provider_missing_revision_observation_20260910.json`のactual service observationが存在するが、invalid credentialとの2-case runner完走は未確認。
 - Requirement audit: **Completed — No Change at current evidence height**。audit test 5 test PASS。
 - actual Provider failure Evidence: **Partially observed / not sufficient for Resolution**。`actual_provider_missing_revision_observation_20260910.json`にmissing revisionのactual service observationが保存されている一方、invalid credentialを含むexplicit live negative probe全体は未実行であり、Provider admission / credential等を跨ぐactual比較Evidenceには達していない。
 - actual deployment failure Evidence: **Not Yet Verified**。
