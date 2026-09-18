@@ -245,7 +245,7 @@ func (p *Provider) Handle(req Request) (Response, error) {
 	if err := validateRequest(req); err != nil {
 		return Response{}, err
 	}
-	encoder, err := sparseassoc.NewEncoder(p.cfg.Sparse)
+	encoder, err := newProviderEncoder(p.cfg)
 	if err != nil {
 		return Response{}, err
 	}
@@ -265,7 +265,7 @@ func (p *Provider) Handle(req Request) (Response, error) {
 		if err != nil {
 			return Response{}, err
 		}
-		sig, err := p.encodeFeatures(encoder, features)
+		sig, err := encoder.Encode(features)
 		if err != nil {
 			return Response{}, err
 		}
@@ -383,54 +383,91 @@ func cloneLocalCompetition(policy *LocalCompetitionPolicy) *LocalCompetitionPoli
 	return out
 }
 
-func (p *Provider) encodeFeatures(globalEncoder *sparseassoc.Encoder, features []sparseassoc.Feature) (sparseassoc.Signature, error) {
-	if p.cfg.LocalCompetition == nil {
-		return globalEncoder.Encode(features), nil
-	}
-	return encodeLocalizedCompetition(p.cfg.Sparse, features, *p.cfg.LocalCompetition)
+type providerEncoder struct {
+	global *sparseassoc.Encoder
+	local  *localizedCompetitionEncoder
 }
 
-func encodeLocalizedCompetition(
+func newProviderEncoder(cfg Config) (*providerEncoder, error) {
+	if cfg.LocalCompetition == nil {
+		encoder, err := sparseassoc.NewEncoder(cfg.Sparse)
+		if err != nil {
+			return nil, err
+		}
+		return &providerEncoder{global: encoder}, nil
+	}
+	local, err := newLocalizedCompetitionEncoder(cfg.Sparse, *cfg.LocalCompetition)
+	if err != nil {
+		return nil, err
+	}
+	return &providerEncoder{local: local}, nil
+}
+
+func (e *providerEncoder) Encode(features []sparseassoc.Feature) (sparseassoc.Signature, error) {
+	if e.local != nil {
+		return e.local.Encode(features), nil
+	}
+	return e.global.Encode(features), nil
+}
+
+type localizedCompetitionEncoder struct {
+	policy   LocalCompetitionPolicy
+	families []string
+	encoders map[uint16]*sparseassoc.Encoder
+}
+
+func newLocalizedCompetitionEncoder(
 	cfg sparseassoc.Config,
-	features []sparseassoc.Feature,
 	policy LocalCompetitionPolicy,
-) (sparseassoc.Signature, error) {
+) (*localizedCompetitionEncoder, error) {
+	families := make([]string, 0, len(policy.FamilyActive))
+	activeWidths := make(map[uint16]struct{}, len(policy.FamilyActive)+1)
+	for family, active := range policy.FamilyActive {
+		families = append(families, family)
+		activeWidths[active] = struct{}{}
+	}
+	sort.Strings(families)
+	if policy.GlobalResidualActive > 0 {
+		activeWidths[policy.GlobalResidualActive] = struct{}{}
+	}
+
+	encoders := make(map[uint16]*sparseassoc.Encoder, len(activeWidths))
+	for active := range activeWidths {
+		localCfg := cfg
+		localCfg.Active = active
+		encoder, err := sparseassoc.NewEncoder(localCfg)
+		if err != nil {
+			return nil, err
+		}
+		encoders[active] = encoder
+	}
+	return &localizedCompetitionEncoder{
+		policy:   policy,
+		families: families,
+		encoders: encoders,
+	}, nil
+}
+
+func (e *localizedCompetitionEncoder) Encode(features []sparseassoc.Feature) sparseassoc.Signature {
 	groups := make(map[string][]sparseassoc.Feature)
 	for _, feature := range features {
 		family := featureFamily(feature.Channel)
 		groups[family] = append(groups[family], feature)
 	}
 
-	families := make([]string, 0, len(policy.FamilyActive))
-	for family := range policy.FamilyActive {
-		families = append(families, family)
-	}
-	sort.Strings(families)
-
-	parts := make([]sparseassoc.Signature, 0, len(families)+1)
-	for _, family := range families {
+	parts := make([]sparseassoc.Signature, 0, len(e.families)+1)
+	for _, family := range e.families {
 		familyFeatures := groups[family]
 		if len(familyFeatures) == 0 {
 			continue
 		}
-		localCfg := cfg
-		localCfg.Active = policy.FamilyActive[family]
-		encoder, err := sparseassoc.NewEncoder(localCfg)
-		if err != nil {
-			return sparseassoc.Signature{}, err
-		}
-		parts = append(parts, encoder.Encode(familyFeatures))
+		active := e.policy.FamilyActive[family]
+		parts = append(parts, e.encoders[active].Encode(familyFeatures))
 	}
-	if policy.GlobalResidualActive > 0 {
-		residualCfg := cfg
-		residualCfg.Active = policy.GlobalResidualActive
-		encoder, err := sparseassoc.NewEncoder(residualCfg)
-		if err != nil {
-			return sparseassoc.Signature{}, err
-		}
-		parts = append(parts, encoder.Encode(features))
+	if e.policy.GlobalResidualActive > 0 {
+		parts = append(parts, e.encoders[e.policy.GlobalResidualActive].Encode(features))
 	}
-	return mergeSparseSignatures(parts), nil
+	return mergeSparseSignatures(parts)
 }
 
 func mergeSparseSignatures(signatures []sparseassoc.Signature) sparseassoc.Signature {
