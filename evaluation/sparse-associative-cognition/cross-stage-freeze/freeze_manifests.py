@@ -397,13 +397,16 @@ def freeze_documents(
         raise ValueError("frozen_at must be an explicit canonical timestamp string")
 
     draft_errors = validate_all(documents)
-    structural_errors = [
-        error
-        for error in draft_errors
-        if "while draft" not in error
-    ]
-    if structural_errors:
-        raise ValueError("input manifests are invalid: " + "; ".join(structural_errors))
+    if draft_errors:
+        raise ValueError("input manifests are invalid: " + "; ".join(draft_errors))
+    non_draft = sorted(
+        name for name, document in documents.items()
+        if document.get("state") != "draft"
+    )
+    if non_draft:
+        raise ValueError(
+            "freeze input must contain only draft manifests: " + ", ".join(non_draft)
+        )
 
     frozen = copy.deepcopy(documents)
 
