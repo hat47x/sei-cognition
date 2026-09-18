@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -408,6 +409,21 @@ def evidence_bundle(
     return exported
 
 
+def save_new_session(path: str | Path, session: dict[str, Any]) -> None:
+    """Persist a provenance-fixed review start without replacing prior session state."""
+    target = Path(path)
+    payload = json.dumps(session, ensure_ascii=False, indent=2) + "\n"
+    try:
+        with target.open("x", encoding="utf-8") as handle:
+            handle.write(payload)
+            handle.flush()
+            os.fsync(handle.fileno())
+    except FileExistsError as exc:
+        raise InquiryReviewRunnerError(
+            f"refusing to overwrite existing review session: {target}"
+        ) from exc
+
+
 def _load_response(path: str | Path) -> Any:
     try:
         return json.loads(Path(path).read_text(encoding="utf-8"))
@@ -486,7 +502,7 @@ def main(argv: list[str] | None = None) -> int:
             _validate_safe_session(session, manifest, fixtures)
         except (InquiryReviewError, ReviewSessionError) as exc:
             raise InquiryReviewRunnerError(str(exc)) from exc
-        save_session(args.session_path, session)
+        save_new_session(args.session_path, session)
         return 0
 
     session = load_session(args.session_path)
