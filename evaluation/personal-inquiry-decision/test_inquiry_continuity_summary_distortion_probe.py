@@ -279,6 +279,17 @@ class SummaryDistortionProbeTest(unittest.TestCase):
                 {self.fixture_id: fixture},
             )
 
+    def test_response_template_binds_exact_review_start_receipt_bytes(self):
+        template = response_template(
+            self.probe,
+            self.review_receipt,
+            self.review_receipt_raw,
+        )
+        self.assertEqual(
+            template["review_start_receipt_sha256"],
+            hashlib.sha256(self.review_receipt_raw).hexdigest(),
+        )
+
     def test_review_packet_exposes_stimulus_template_but_hides_audit_material(self):
         fixture = json.loads(
             self.fixture_path.read_text(encoding="utf-8")

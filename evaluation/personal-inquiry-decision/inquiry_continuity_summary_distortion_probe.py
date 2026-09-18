@@ -268,6 +268,7 @@ def response_template(
         probe,
         review_receipt_value.get("fixture_id"),
     )
+    review_receipt_sha = hashlib.sha256(review_receipt_raw).hexdigest()
     return {
         "schema": RESPONSE_SCHEMA,
         "probe_sha256": probe_content_sha256(probe),
