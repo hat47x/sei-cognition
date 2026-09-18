@@ -72,7 +72,8 @@ func (s *Store) Replay(version string, cases []ReplayCase) (ReplayMetrics, error
 		if policySuccess {
 			selectedLevel, _ := escalationLevel(definition, selection.Route)
 			for _, option := range definition.AllowedRoutes {
-				if option.EscalationLevel >= selectedLevel {
+				if option.EscalationLevel < definition.MinimumEscalationLevel ||
+					option.EscalationLevel >= selectedLevel {
 					continue
 				}
 				if replayCase.RouteOutcomes[option.ID] {
