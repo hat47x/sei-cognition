@@ -1,6 +1,7 @@
 package suiassocprovider
 
 import (
+	"math"
 	"testing"
 
 	"github.com/hat47x/sei-cognition/evaluation/sparse-associative-cognition/prototype-go/sparseassoc"
@@ -66,6 +67,40 @@ func TestProjectionBiasPolicyFailsClosed(t *testing.T) {
 			PolicyRef:     "policy:b3",
 			MaxMultiplier: 2,
 			Rules:         []ProjectionBiasRule{validRule, validRule},
+		},
+		{
+			PolicyRef:     "policy:b3",
+			MaxMultiplier: float32(math.NaN()),
+			Rules:         []ProjectionBiasRule{validRule},
+		},
+		{
+			PolicyRef:     "policy:b3",
+			MaxMultiplier: float32(math.Inf(1)),
+			Rules:         []ProjectionBiasRule{validRule},
+		},
+		{
+			PolicyRef:     "policy:b3",
+			MaxMultiplier: 2,
+			Rules: []ProjectionBiasRule{{
+				Channel: "provenance:source", Key: "critical:s1",
+				Multiplier: float32(math.NaN()), ProvenanceRef: "policy-source:critical-v1",
+			}},
+		},
+		{
+			PolicyRef:     "policy:b3",
+			MaxMultiplier: 2,
+			Rules: []ProjectionBiasRule{{
+				Channel: " provenance:source", Key: "critical:s1", Multiplier: 2,
+				ProvenanceRef: "policy-source:critical-v1",
+			}},
+		},
+		{
+			PolicyRef:     "policy:b3",
+			MaxMultiplier: 2,
+			Rules: []ProjectionBiasRule{{
+				Channel: "provenance:source", Key: "critical:s1 ", Multiplier: 2,
+				ProvenanceRef: "policy-source:critical-v1",
+			}},
 		},
 	}
 	for i, policy := range cases {
