@@ -121,6 +121,35 @@ def validate_preregistration(doc: dict) -> list[str]:
         if evaluation_run.get("production_default_changed") is not False:
             errors.append("evaluation_run must not change production default")
 
+    result_artifact = doc.get("result_artifact")
+    if not isinstance(result_artifact, dict):
+        errors.append("result_artifact must be an object")
+    else:
+        if result_artifact.get("state") not in {"draft", "completed"}:
+            errors.append("result_artifact.state must be draft or completed")
+        required_refs = {
+            "directory": "cross-stage-result",
+            "result_ref": "cross-stage-result/result.json",
+            "validator_ref": "cross-stage-result/validate_result.py",
+            "evidence_ref": "cross-stage-result/result_contract_evidence_2026-09-18.json",
+        }
+        for key, expected in required_refs.items():
+            if result_artifact.get(key) != expected:
+                errors.append(f"result_artifact.{key} must remain {expected}")
+        completed = result_artifact.get("state") == "completed"
+        if result_artifact.get("current_result_completed") is not completed:
+            errors.append(
+                "result_artifact.current_result_completed must match result_artifact.state"
+            )
+        if result_artifact.get("semantic_interpretation_generated") is not False:
+            errors.append(
+                "result_artifact.semantic_interpretation_generated must remain false in this slice"
+            )
+        if result_artifact.get("b5_entry_gate_changed") is not False:
+            errors.append("result_artifact must not change B5 entry gate")
+        if result_artifact.get("production_default_changed") is not False:
+            errors.append("result_artifact must not change production default")
+
     variants = doc.get("variants")
     if not isinstance(variants, list):
         errors.append("variants must be a list")
