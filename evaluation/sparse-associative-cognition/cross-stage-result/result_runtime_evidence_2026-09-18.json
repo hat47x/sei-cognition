@@ -1,0 +1,177 @@
+{
+  "schema": "sei.sacs-cross-stage-result-runtime-evidence/v1alpha1",
+  "date": "2026-09-18",
+  "issue": 477,
+  "base_branch": "develop/v0.2.0",
+  "work_branch": "topic/sacs-cross-stage-result-contract",
+  "tested_source_commit": "bf5190e4f562dc46a0d2ec3515957d832354cb0e",
+  "parent_commit_at_recording": "c0cf339efa9650ef73c7c429f429c5573b17f4af",
+  "parent_delta": {
+    "commits_after_tested_source": 4,
+    "cross_stage_source_overlap": false,
+    "changed_paths": [
+      "evaluation/personal-inquiry-decision/README.md",
+      "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_evidence.py",
+      "evaluation/personal-inquiry-decision/test_inquiry_continuity_summary_distortion_evidence.py",
+      "plan/issue/ISSUE-000078-verify-pre-decision-inquiry-continuity.md"
+    ],
+    "note": "The four parent commits after the tested source do not touch any source file bound below. The work branch was advanced to the current parent before recording this Evidence."
+  },
+  "environment": {
+    "python": "3.13.5",
+    "github_actions_used": false
+  },
+  "source_reconstruction": {
+    "method": "GitHub canonical file content reconstructed in a temporary local directory; each reconstructed file verified with git hash-object against the GitHub blob SHA.",
+    "files_verified": 16,
+    "sha_mismatches": 0,
+    "files": [
+      {
+        "path": "evaluation/sparse-associative-cognition/cross-stage-result/validate_result.py",
+        "blob_sha": "990b7b836bd2e4ef6028ef39f2f52708efbb6f5f"
+      },
+      {
+        "path": "evaluation/sparse-associative-cognition/cross-stage-result/test_validate_result.py",
+        "blob_sha": "93de7b3bce1a14b8ac8187fb40fa3e454a414cc6"
+      },
+      {
+        "path": "evaluation/sparse-associative-cognition/cross-stage-result/result.json",
+        "blob_sha": "8de66bd58944f2503bc865d0504244545b6f8861"
+      },
+      {
+        "path": "evaluation/sparse-associative-cognition/cross-stage-run/validate_evaluation_run.py",
+        "blob_sha": "8d1ab85e90433ba30c63f93a5a4b3c864a4a748e"
+      },
+      {
+        "path": "evaluation/sparse-associative-cognition/cross-stage-run/test_validate_evaluation_run.py",
+        "blob_sha": "492fcc90a2abfc37d6cebea60c952736ca4009f7"
+      },
+      {
+        "path": "evaluation/sparse-associative-cognition/cross-stage-run/evaluation_run.json",
+        "blob_sha": "93e6aced7e2986b794397b684c27ce97a2593853"
+      },
+      {
+        "path": "evaluation/sparse-associative-cognition/cross-stage-freeze/freeze_manifests.py",
+        "blob_sha": "2cdef6363f38f5dbccf295754f12a2a19b476380"
+      },
+      {
+        "path": "evaluation/sparse-associative-cognition/cross-stage-freeze/test_freeze_manifests.py",
+        "blob_sha": "4f1181339b7af2449d7d0a8ac2156cfc4e6c25d0"
+      },
+      {
+        "path": "evaluation/sparse-associative-cognition/cross-stage-freeze/dataset_manifest.json",
+        "blob_sha": "33706fc9b9fb7b657ffa98f1d35cf8425534d934"
+      },
+      {
+        "path": "evaluation/sparse-associative-cognition/cross-stage-freeze/adjudication_manifest.json",
+        "blob_sha": "e00faf23a8829e1609548017bec89bb73760f459"
+      },
+      {
+        "path": "evaluation/sparse-associative-cognition/cross-stage-freeze/split_manifest.json",
+        "blob_sha": "27eee758d6c92535fbc5efda54873f721f10ead9"
+      },
+      {
+        "path": "evaluation/sparse-associative-cognition/cross-stage-freeze/b3_prior_manifest.json",
+        "blob_sha": "a9e44f7104b7ac9201ffd9a488f7e82d9434ecfe"
+      },
+      {
+        "path": "evaluation/sparse-associative-cognition/cross-stage-freeze/freeze_bundle.json",
+        "blob_sha": "76cd3380e75b7f80ed88c9080d2d24793240cb21"
+      },
+      {
+        "path": "evaluation/sparse-associative-cognition/validate_cross_stage_preregistration.py",
+        "blob_sha": "c332700e10827265146a42a474d1f8ff823a643c"
+      },
+      {
+        "path": "evaluation/sparse-associative-cognition/test_validate_cross_stage_preregistration.py",
+        "blob_sha": "26b34fea47ba7e2bd4e8135110f382ef6f38ff7b"
+      },
+      {
+        "path": "evaluation/sparse-associative-cognition/cross_stage_benchmark_preregistration.json",
+        "blob_sha": "30a3de5730ff3162f8d69fc0ef12567e326fe57d"
+      }
+    ]
+  },
+  "executions": [
+    {
+      "command": "python3 cross-stage-result/validate_result.py",
+      "exit_code": 0,
+      "status": "pass",
+      "observation": "Cross-stage result validated; current result remains draft/empty"
+    },
+    {
+      "command": "python3 -m unittest -v cross-stage-result/test_validate_result.py",
+      "exit_code": 0,
+      "status": "pass",
+      "tests_passed": 24,
+      "failures": 0
+    },
+    {
+      "command": "python3 cross-stage-run/validate_evaluation_run.py",
+      "exit_code": 0,
+      "status": "pass",
+      "observation": "Cross-stage evaluation-run validated; current run remains draft/locked"
+    },
+    {
+      "command": "python3 -m unittest -v cross-stage-run/test_validate_evaluation_run.py",
+      "exit_code": 0,
+      "status": "pass",
+      "tests_passed": 20,
+      "failures": 0
+    },
+    {
+      "command": "python3 cross-stage-freeze/freeze_manifests.py --validate-only",
+      "exit_code": 0,
+      "status": "pass",
+      "observation": "Cross-stage freeze manifests validated; current bundle remains draft/locked"
+    },
+    {
+      "command": "python3 -m unittest -v cross-stage-freeze/test_freeze_manifests.py",
+      "exit_code": 0,
+      "status": "pass",
+      "tests_passed": 18,
+      "failures": 0
+    },
+    {
+      "command": "python3 validate_cross_stage_preregistration.py",
+      "exit_code": 0,
+      "status": "pass",
+      "observation": "Cross-stage preregistration validated; evaluation remains locked"
+    },
+    {
+      "command": "python3 -m unittest -v test_validate_cross_stage_preregistration.py",
+      "exit_code": 0,
+      "status": "pass",
+      "tests_passed": 27,
+      "failures": 0
+    }
+  ],
+  "totals": {
+    "unittest_suites": 4,
+    "tests_passed": 89,
+    "failures": 0,
+    "validators_passed": 4
+  },
+  "current_state": {
+    "result_state": "draft",
+    "results_generated": false,
+    "evaluation_run_state": "draft",
+    "current_run_authorized": false,
+    "freeze_bundle_state": "draft",
+    "preregistration_unlock": "locked",
+    "semantic_benchmark_result_generated": false,
+    "benchmark_interpretation_generated": false,
+    "b5_entry_gate_changed": false,
+    "production_default_changed": false
+  },
+  "stop_lines": [
+    "runtime regression PASS != human-adjudicated benchmark result",
+    "synthetic completed-result test PASS != semantic truth",
+    "draft result != completed result",
+    "draft run != authorized run",
+    "draft freeze bundle != frozen human dataset",
+    "result artifact != benchmark interpretation",
+    "result artifact != B5 gate decision",
+    "result artifact != production adoption"
+  ]
+}
