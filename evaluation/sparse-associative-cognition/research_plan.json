@@ -457,9 +457,88 @@
           "active_fraction_only_guarantee": false,
           "projection_upper_bound_is_observed_touched_count": false,
           "adaptive_active_rule_implemented": false,
-          "provider_default_changed": false
+          "provider_default_changed": false,
+          "observed_touched_follow_up_available": true
         },
-        "stop_line": "profile内synthetic品質を、実hardware適性、device classの採否、最適adaptive Active、production defaultへ昇格させない。"
+        "stop_line": "profile内synthetic品質を、実hardware適性、device classの採否、最適adaptive Active、production defaultへ昇格させない。",
+        "follow_up_evidence_file": "observed_selection_pressure_evidence_2026-09-18.json"
+      }
+    },
+    {
+      "stage": "SAC-B6b",
+      "name": "observed selection-pressure diagnostics",
+      "depends_on": [
+        "SAC-B2",
+        "SAC-B6"
+      ],
+      "change": "pre-collisionのpositiveFeatures×fanout proxyだけに依存せず、明示opt-in diagnosticsでhash collision後のunique touched dimensionsとselected dimensionsをB2 family-local / global-residual path別に観測する。adaptive Activeやlocal budget adaptationはまだ導入しない。",
+      "primary_question": "capacity scalingでcompetitionが弱まる位置を、全体Activeではなくpath別のpost-hash touched cardinalityに対するwinner shareとして観測できるか。また、その観測からB2の低cardinality familyが先に飽和する境界を識別できるか。",
+      "measures": [
+        "observed_touched_dimensions",
+        "observed_winner_share",
+        "projection_collision_fraction",
+        "family_local_saturation_behavior",
+        "merged_budget_utilization",
+        "deterministic_reproducibility"
+      ],
+      "current_result": {
+        "state": "limited-synthetic-executable-evidence",
+        "evidence_file": "observed_selection_pressure_evidence_2026-09-18.json",
+        "findings": [
+          "global residualのpost-hash touched countはsmall/medium/large/oversizedで495/539/560/574、selectedは16/32/64/256となり、observed winner shareは約0.032/0.059/0.114/0.446へ増加した。",
+          "oversized profileの旧total-active upper-bound proxyは512/576≈0.889だったが、global residualの実測は256/574≈0.446であり、旧proxyはglobal pathの圧力を大きく過大評価していた。",
+          "oversizedではgraph/provenance/grouping local pathがselected/touched=1.0まで飽和し、textは約0.131に留まった。equal local budgetをtotal Activeへ比例拡大すると、低cardinality familyの競合が先に消える。",
+          "groupingはlarge profileでも1.0へ達する一方、既存B6 fixtureではlargeのdesired orderingは維持されているため、単一pathの完全飽和だけをfailure判定には使えない。",
+          "global residualのcollision fractionは0.140625→0.0642→0.0278→0.00347へ低下する一方winner shareは上昇したため、selection-pressure lossをhash collision増加では説明できない。",
+          "family-localとglobal residualのwinner重複によりmerged signatureはconfigured total budgetを常に使い切るとは限らず、oversizedではActive=512に対しmerged selectedは256だった。"
+        ],
+        "implementation_boundary": {
+          "normal_encode_semantics_changed": false,
+          "provider_response_contract_changed": false,
+          "diagnostics_opt_in_only": true,
+          "adaptive_active_rule_implemented": false,
+          "local_budget_adaptation_implemented": false,
+          "b5_entry_gate_changed": false
+        },
+        "stop_line": "observed touched/winner shareをsemantic importanceやquality scoreへ昇格させず、path飽和を単独のfailure criterionやproduction adaptive ruleへ直結させない。",
+        "follow_up_evidence_file": "local_residual_containment_evidence_2026-09-18.json"
+      }
+    },
+    {
+      "stage": "SAC-B6c",
+      "name": "local residual containment",
+      "depends_on": [
+        "SAC-B2",
+        "SAC-B6b"
+      ],
+      "change": "B2 family-local winnerのうちglobal residualに含まれないdimension数と、merged signatureへlocal pathが追加するincremental dimensionsを明示opt-in diagnosticsで観測する。local/global budget policy自体は変更しない。",
+      "primary_question": "capacity scalingでglobal residualが拡大すると、localized competitionをdistinctにしていたdimensionがresidualへ包含され、local+global mergeがpure global residualへ退化するか。",
+      "measures": [
+        "family_unique_beyond_residual",
+        "local_incremental_dimensions",
+        "local_incremental_share",
+        "residual_containment_behavior",
+        "capacity_scaling_degradation",
+        "deterministic_reproducibility"
+      ],
+      "current_result": {
+        "state": "limited-synthetic-executable-evidence",
+        "evidence_file": "local_residual_containment_evidence_2026-09-18.json",
+        "findings": [
+          "local incremental dimensionsはsmall/medium/large/oversizedで11/20/16/0となり、oversizedではmerged signatureがglobal residualと同一サイズになった。",
+          "family別residual外寄与はsmallでtext/graph/provenance/grouping=4/4/3/0、medium=8/6/6/0、large=16/0/0/0、oversized=0/0/0/0だった。",
+          "groupingは全profileでresidual外寄与0、graph/provenanceはlargeで0、textはlargeまで残るがoversizedで0となった。",
+          "oversizedでは全family-local winnerがglobal residual内に含まれ、B2 local+global mergeはこのanchorではresidual signatureへ完全退化した。",
+          "既存B6 quality marginはlargeまで正でoversizedで負となるが、containmentをquality failureの因果・十分条件とは扱わない。"
+        ],
+        "implementation_boundary": {
+          "normal_encode_changed": false,
+          "provider_response_contract_changed": false,
+          "adaptive_budget_implemented": false,
+          "residual_ratio_changed": false,
+          "b5_entry_gate_changed": false
+        },
+        "stop_line": "dimension containmentをsemantic redundancyやlocal policy不要論へ昇格させず、単一fixtureのlocal incremental zeroをproduction policy変更の十分条件にしない。"
       }
     },
     {
@@ -585,6 +664,15 @@
     "b2_partition_representability",
     "winner_share_upper_bound",
     "competition_saturation_behavior",
+    "observed_touched_dimensions",
+    "observed_winner_share",
+    "projection_collision_fraction",
+    "family_local_saturation_behavior",
+    "merged_budget_utilization",
+    "family_unique_beyond_residual",
+    "local_incremental_dimensions",
+    "local_incremental_share",
+    "residual_containment_behavior",
     "minimum_escalation_floor_preservation",
     "execution_cognitive_outcome_separation",
     "policy_version_provenance_trace",
@@ -627,6 +715,12 @@
       "SAC-B6のsynthetic capacity evaluationで、2048/32・4096/64・8192/128の同一active fraction profileがB1 family normalization + B2 soft-local fixtureのdesired candidate順位を維持することを確認した。",
       "同じB6評価で、Active=4では4 family + half global residualのB2比を表現できないcapacity floorを確認し、黙ったpolicy歪曲ではなくfail-closedとした。",
       "32768/512ではActive/Dimensions=1/64を保ってもconfigured winnersが入力projection upper-boundへ接近し候補順が逆転する反例を観測し、active fraction単独ではhomeostatic invariantとして不十分と確認した。",
+      "SAC-B6bでB2 path別のpost-hash unique touched dimensionsを明示opt-inで観測できるようにし、通常Encodeとprovider response contractは変更しなかった。",
+      "同じ1/64 active fraction scalingでもglobal residualのobserved winner shareは約0.032→0.059→0.114→0.446へ上昇し、oversizedではgraph/provenance/grouping local pathがselected/touched=1.0へ飽和することを確認した。",
+      "B6bではprofile拡大とともにglobal residualのhash collision fractionが低下する一方winner shareが上昇し、competition lossがcollision増加ではなくwinner budgetと固定入力cardinalityの関係から生じることを確認した。",
+      "SAC-B6cでfamily-local winnerのresidual外寄与とmerged signatureへのlocal incremental dimensionsを明示opt-inで観測できるようにし、通常Encodeとprovider response contractは変更しなかった。",
+      "同じcapacity fixtureでlocal incremental dimensionsは11→20→16→0となり、oversizedでは全family-local winnerがglobal residualへ包含されlocal+global mergeがresidual signatureへ退化した。",
+      "B6cではgroupingのresidual外寄与が全profileで0、graph/provenanceがlargeで0、textもoversizedで0となる包含系列を確認したが、これをsemantic redundancyやquality failureの十分条件とは扱っていない。",
       "SEI-B7のsynthetic evaluationで、provenance付きcognitive outcomeから生成したcandidate policyが明示activationまでactive routingを変更せず、immutable versionへのrollbackで以前のrouteを再現することを確認した。",
       "同じB7評価で、execution failureをcognitive insufficiencyへ自動変換せず、caller-owned minimum escalation floorをlower routeの高いsynthetic efficacyでも越えないことを確認した。",
       "B7 positive replayではsynthetic success rateを維持したままunnecessary escalationを減らすケースを観測した一方、distribution-shift replayではstatic routeに対するregretが発生する反例を同時に固定した。"
@@ -643,7 +737,7 @@
       "learned sparse projectionがrandom / static方式を上回るか",
       "10万件以上でのindex方式",
       "LLM呼び出し削減量",
-      "実hardware / real workloadにおけるcapacity profile品質、selection-pressure invariant、adaptive Active、power / latency / memory trade-off",
+      "実hardware / real workloadにおけるcapacity profile品質、最適local/global residual scaling、path別selection-pressure ceiling、adaptive Active / local budget policy、power / latency / memory trade-off",
       "実problem class / real Outcome評価におけるoutcome-informed routingの一般化、selection-bias補正、statistical confidence、drift / expiry / rollback criteria",
       "production配置方式",
       "Product Value / Operational / Adoption / Outcome Evidence"
@@ -654,6 +748,8 @@
       "projection_bias_evidence_2026-09-18.json",
       "familiarity_modulation_evidence_2026-09-18.json",
       "capacity_homeostasis_evidence_2026-09-18.json",
+      "observed_selection_pressure_evidence_2026-09-18.json",
+      "local_residual_containment_evidence_2026-09-18.json",
       "../sei-cognition-orchestration/outcome_informed_routing_evidence_2026-09-18.json"
     ]
   },
