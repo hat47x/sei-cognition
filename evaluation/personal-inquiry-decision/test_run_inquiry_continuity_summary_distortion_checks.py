@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import json
 import subprocess
 import tempfile
@@ -17,10 +18,27 @@ from run_inquiry_continuity_summary_distortion_checks import (
     run_checks,
     sanitized_environment,
     save_result,
+    validate_result,
 )
 
 
 class SummaryDistortionLocalChecksTest(unittest.TestCase):
+    def mechanics_result(self):
+        def runner(command, *, cwd, env, timeout):
+            return subprocess.CompletedProcess(
+                command,
+                0,
+                stdout="ok\n",
+                stderr="",
+            )
+
+        exit_code, result = run_checks(
+            configured_checks(),
+            runner=runner,
+        )
+        self.assertEqual(exit_code, 0)
+        return result
+
     def test_configured_checks_cover_units_validate_and_three_preflights(self):
         checks = configured_checks()
         self.assertEqual(
@@ -329,22 +347,59 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
         )
         self.assertEqual(result["result"], "failed")
 
+    def test_validate_result_rejects_tampered_stopline_and_digest(self):
+        result = self.mechanics_result()
+
+        tampered = copy.deepcopy(result)
+        tampered["stopLine"] = "PASS"
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+        tampered = copy.deepcopy(result)
+        tampered["executed"][0]["stdout"]["sha256"] = "not-a-digest"
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+    def test_validate_result_rejects_absolute_command_and_count_mismatch(self):
+        result = self.mechanics_result()
+
+        tampered = copy.deepcopy(result)
+        tampered["executed"][0]["command"][0] = "/host/private/python"
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+        tampered = copy.deepcopy(result)
+        tampered["executedCount"] += 1
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+    def test_validate_result_rejects_shape_and_contract_identity_tampering(self):
+        result = self.mechanics_result()
+
+        tampered = copy.deepcopy(result)
+        tampered["executed"][0]["unexpected"] = True
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+        tampered = copy.deepcopy(result)
+        tampered["contractSnapshot"]["mechanicsFiles"][0]["path"] = "other.py"
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+        tampered = copy.deepcopy(result)
+        tampered["contractSnapshot"]["sourceFixtures"][0]["fixtureId"] = "other"
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+        tampered = copy.deepcopy(result)
+        tampered["executed"][0]["command"][1] = "../../outside.py"
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
     def test_save_result_is_exclusive_create(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "result.json"
-            checks = configured_checks()
-            result = build_result(
-                checks,
-                [
-                    {
-                        "name": check.name,
-                        "exitCode": 0,
-                    }
-                    for check in checks
-                ],
-                stopped_early=False,
-                contract_snapshot={"probeContentSha256": "a" * 64},
-            )
+            result = self.mechanics_result()
             save_result(path, result)
             written = json.loads(path.read_text(encoding="utf-8"))
             self.assertEqual(written["schema"], result["schema"])

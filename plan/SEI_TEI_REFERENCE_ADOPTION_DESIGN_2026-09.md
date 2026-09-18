@@ -1,7 +1,7 @@
 # SEI → TEI Reference Adoption 設計基線 — Resume / Review Stage 0
 
 更新日: 2026-09-18  
-状態: **Pre-design / Reference Adoption Baseline — 実装・Executable Evidence未取得**  
+状態: **Stage 0 Reference Adoption Baseline — source freeze検証済み / TEI Reference実装・Executable Evidence未取得**  
 親Issue: **ISSUE-000079**
 
 ## 1. この文書の役割
@@ -263,6 +263,18 @@ SEI source revision
   != TEI Reference implementation revision
 ```
 
+2026-09-18にStage 0 source freezeを次へ固定しました。
+
+- `evaluation/tei-reference-adoption/stage0_resume_review_source_freeze_v1.json`
+- source fixture Git blob SHA-1: `6354fce0a01093cb5545ed6bb9730aceb3b20023`
+- source fixture bytes SHA-256: `43ce2ead3e7861835570297063d0287799adc15cdba4590f857cb4f25e66b63e`
+- input: `scenario.initial_question / phase_1 / interruption_point / post_decision_evidence`
+- oracle: `conditions.C_sei_resume.surface_text / reference_state`
+
+manifestはselectorとsource identityだけを持つevaluation control artifactであり、Resume dataを複製したhandoff schemaではありません。`validate_stage0_resume_reference.py`はfixture bytes、input / oracle分離、Decision参照role、post-decision分離をfail-closedに検査します。
+
+current GitHub contentを同じ規則で検証したreceiptは`stage0_resume_review_source_freeze_validation_20260918.json`です。source freezeはPASSしていますが、Python self-test actual executionやTEI側Reference tool executionを成立させるものではありません。
+
 ## 9. Challenge Aの最小受入れ条件
 
 read-only Resume / Review Referenceは、少なくとも次を満たす必要があります。
@@ -432,7 +444,7 @@ Reference codeへ進む条件は次です。
 次の作業単位は次です。
 
 1. TEI側で、既存SEI fixture 001をread-onlyに読むReference toolの置き場所を選ぶ。
-2. fixture bytesとSEI source revisionを固定する。
+2. **完了:** fixture bytes、SEI source revision、input / oracle selectorをStage 0 source-freeze manifestへ固定する。
 3. `scenario`からResume concernを決定論的に導出する。
 4. `C_sei_resume.surface_text`と`reference_state`をoracleとして意味差を検査する。
 5. N1〜N4 negative casesをfixture-local testにする。

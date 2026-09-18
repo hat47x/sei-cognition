@@ -1,0 +1,77 @@
+{
+  "schema": "sei.tei-reference-adoption-stage0-source-freeze/v1",
+  "status": "evaluation-only",
+  "issue": "ISSUE-000079",
+  "artifact_role": "evaluation-control-manifest-not-handoff-schema",
+  "source_authority": {
+    "repository": "hat47x/sei-cognition",
+    "branch": "develop/v0.2.0",
+    "head_at_freeze": "d01c16a1da5a518c59691579d9f00988d03a6584",
+    "fixture_path": "evaluation/personal-inquiry-decision/decision_continuity_counterfactual_001.json",
+    "fixture_schema": "sei.decision-continuity-comparison-fixture/v0",
+    "fixture_id": "e73-decision-continuity-001-provider-pilot",
+    "git_blob_sha1": "6354fce0a01093cb5545ed6bb9730aceb3b20023",
+    "content_sha256": "43ce2ead3e7861835570297063d0287799adc15cdba4590f857cb4f25e66b63e",
+    "byte_length": 4842
+  },
+  "tei_reference_context": {
+    "repository": "hat47x/tei-platform",
+    "branch": "main",
+    "head_at_freeze": "f785bdd8f3e445410148c2a31c342bd356842d4f",
+    "application_pattern_design_path": "plan/design/APPLICATION_PATTERN_V1_DESIGN.md",
+    "application_pattern_design_blob_sha1": "64ee1c20496ce12b1bd06b016c174f8b1a1439bd",
+    "application_pattern_syntax_path": "internal/syntax/application_pattern.go",
+    "application_pattern_syntax_blob_sha1": "9141144966b819dbfd02f4691554fb89cbcad4de",
+    "application_pattern_kinds": [
+      "browse",
+      "record",
+      "reference",
+      "command",
+      "header-detail"
+    ],
+    "new_pattern_kind_added_for_stage0": false
+  },
+  "input_json_pointers": [
+    "/scenario/initial_question",
+    "/scenario/phase_1",
+    "/scenario/interruption_point",
+    "/scenario/post_decision_evidence"
+  ],
+  "oracle_json_pointers": [
+    "/conditions/C_sei_resume/surface_text",
+    "/reference_state"
+  ],
+  "required_semantic_roles": [
+    "observation",
+    "recommendation",
+    "unknown",
+    "decision"
+  ],
+  "reference_checks": {
+    "decision_id": "dec-pilot",
+    "recommendation_id": "rec-full-switch",
+    "historical_basis_source": "decision.basis_refs",
+    "recommendation_source": "decision.recommendation_refs",
+    "unresolved_source": "decision.unresolved_refs",
+    "post_decision_source": "scenario.post_decision_evidence",
+    "expected_oracle_changes_since_decision_at_interruption": []
+  },
+  "challenge_a_acceptance": [
+    "current question can be resolved from scenario.initial_question",
+    "recommendation and decision remain distinct",
+    "historical basis resolves only through decision.basis_refs into phase_1 observations",
+    "unresolved resolves only through decision.unresolved_refs into phase_1 unknowns",
+    "post-decision evidence remains outside historical basis",
+    "source ids remain available for audit descent",
+    "missing references and unknown roles fail closed",
+    "source fixture is read-only",
+    "no TEI Core or new Application Pattern kind is required by this manifest"
+  ],
+  "stop_lines": [
+    "this manifest contains selectors and source identity, not a transformed handoff payload",
+    "oracle material is never TEI Reference input",
+    "source freeze validation pass is not TEI Reference Executable Evidence",
+    "TEI Reference Executable Evidence is not human usability or Product Value Evidence",
+    "TEI application implementation authority does not become SEI semantic authority"
+  ]
+}

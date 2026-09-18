@@ -350,10 +350,10 @@ exportはcompleted sessionだけを受理し、human-review observationとsemant
 H2 shared runnerのDecision regression testは、clean checkoutで次のcaptureから実行・Evidence保存できます。
 
 ```text
-python3 tools/capture_issue_000073_h2_runner_selftest.py
+python3 tools/capture_issue_000073_h2_runner_selftest.py --expected-head <canonical-commit-sha>
 ```
 
-captureはclean committed HEADとrequired sourceのHEAD blob一致を要求し、`test_decision_continuity_review_runner.py`のexit codeとstdout / stderrをmachine-readable recordへ固定します。既存recordの置換は`--replace`を明示した場合だけ許可します。
+captureはclean committed HEADに加えて、checkout外で取得したcanonical commit SHAを`--expected-head`で必須指定し、actual HEADとの完全一致を要求します。さらにmatched-set manifest / 3 fixtureを含む13 required sourceのHEAD blob一致を検証し、`test_decision_continuity_review_runner.py`のexit codeとstdout / stderrをmachine-readable recordへ固定します。既存recordの置換は`--replace`を明示した場合だけ許可します。
 
 2026-09-18の本Issue作業では、R1相当のphase1 materialがprovenance固定前に一度提示されましたが、human responseは固定されませんでした。この提示はH2 observationには数えません。同じreaderで後続reviewを行う場合は`known-material-exposure`として記録し、clean blinded reviewとは呼びません。
 
@@ -392,7 +392,7 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 | H2 counterfactual human review | **Not Yet Observed** |
 | H2 provenance-first shared runner / evidence-export tooling | Available; init is exclusive-create and low-level packets/record bypass is rejected; current Decision manifest / 3 fixture / R1-R3 structural contract was re-audited on 2026-09-18 and an actual-repository integration test source was added; Python focused test executionはexact blob-validated materialization上で8 tests / 8 PASSをactual確認済み; native clean-HEAD captureとactual human sessionはpending; prior R1 exposure is not a completed observation |
 | H2 shared runner Decision regression test | **PASS — exact blob-validated materialization, 8 tests / 8 PASS (2026-09-18); machine-readable Evidence recorded** |
-| H2 Decision regression Evidence capture workflow self-test | **PASS on current source (2026-09-18); machine-readable Evidence recorded** |
+| H2 Decision regression Evidence capture workflow self-test | **PASS on canonical-HEAD / fixture-bound current source (2026-09-18); machine-readable Evidence recorded** |
 | H2 shared runner Decision regression actual capture | **Not Yet Verified** |
 | Decision Continuity Product Value | **Not Established** |
 | Operational Evidence | **Not Yet Verified** |
@@ -427,7 +427,7 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 
 H1は既存dogfood stateとevaluation sidecarを利用し、real Inquiryのactual resumptionだけを観測します。H1専用のschemaやsession managerは増やしていません。H2は既存matched review基盤を利用し、073/078共通のreview runnerでstimulus提示前にreviewer provenanceを固定してからbundleを提示し、completed sessionのEvidence exportまで同じ経路を使います。2026-09-18にprovenance固定前のR1 material提示が一度発生したため、その提示を受けたreaderの後続sessionはknown exposureとして扱い、回答未固定の提示そのものはhuman Evidenceへ数えない停止線を追加しました。
 
-同日、H2 shared runnerのDecision regression testをclean HEAD / source binding付きでactual実行できるcapture toolを追加しました。capture workflow自体のsynthetic self-testはactual PASSし、source blob / SHA-256 / Python / Git環境とともにmachine-readable Evidenceへ固定しています。capture workflow self-test自体のPASSはcapture受入れ経路だけのExecutable Evidenceです。これとは別にDecision regression test本体はexact blob-validated materialization上で8 tests / 8 PASSをactual確認しましたが、native clean-HEAD captureとH2 human observationは未取得です。
+同日、H2 shared runnerのDecision regression testをclean HEAD / source binding付きでactual実行できるcapture toolを追加しました。capture workflow自体のsynthetic self-testはactual PASSし、source blob / SHA-256 / Python / Git環境とともにmachine-readable Evidenceへ固定しています。capture workflow self-test自体のPASSはcapture受入れ経路だけのExecutable Evidenceです。2026-09-18の補強では、canonical expected HEAD不一致をblockedにし、manifest / 3 fixtureをsource bindingへ含めたcurrent capture sourceに対してself-testをactual再実行してPASSを確認しました。これとは別にDecision regression test本体はexact blob-validated materialization上で8 tests / 8 PASSをactual確認しましたが、native canonical checkout captureとH2 human observationは未取得です。
 
 これにより、実行準備文書からmachine EvidenceとH1 / H2へ進む経路は一本化しつつ、environment blockerとrepository failure、real Inquiryとsynthetic matched review、human observationとsemantic audit、mechanicsとProduct Valueの意味差を維持しました。
 

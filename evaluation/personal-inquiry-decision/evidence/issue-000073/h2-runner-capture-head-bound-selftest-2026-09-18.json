@@ -1,0 +1,58 @@
+{
+  "schema": "sei.issue-000073-h2-runner-capture-head-bound-selftest-evidence/v0",
+  "issue": "ISSUE-000073",
+  "status": "pass",
+  "observed_at": "2026-09-18T20:07:50+09:00",
+  "scope": "Executable Evidence for the strengthened H2 Decision runner capture workflow only; not the Decision regression body on a native canonical checkout, not H2 human review, not H1 actual resume, not E1-E8 Go evidence, not Decision Continuity Product Value.",
+  "source_binding": {
+    "repository": "hat47x/sei-cognition",
+    "source_commit": "98d691bd5b24cab4cc06899b28d8241039b024d0",
+    "files": [
+      {
+        "path": "tools/capture_issue_000073_h2_runner_selftest.py",
+        "git_blob": "4280f8519752cb093251dbb5cc570a7d3c477dc9",
+        "sha256": "f20a4736f43f458d0227c4eb405de4812ec67d6d18228eab5fe615454a664151",
+        "size": 9356
+      },
+      {
+        "path": "tools/test_capture_issue_000073_h2_runner_selftest.py",
+        "git_blob": "4e4d45fd65e43bbaa26a745a8944f0f90df4a62c",
+        "sha256": "96f6fd906bf4072d554915289c85d0461a37fb7004d340f7e7aebd68de27cd04",
+        "size": 7257
+      }
+    ]
+  },
+  "environment": {
+    "python": "Python 3.13.5",
+    "git": "git version 2.47.3"
+  },
+  "execution": {
+    "syntax_check": {
+      "command": "python3 -m py_compile capture_issue_000073_h2_runner_selftest.py test_capture_issue_000073_h2_runner_selftest.py",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    "self_test": {
+      "command": "python3 -u test_capture_issue_000073_h2_runner_selftest.py",
+      "exit_code": 0,
+      "stdout": "PASS: ISSUE-000073 H2 runner self-test capture workflow",
+      "status": "pass"
+    }
+  },
+  "covered_boundaries": [
+    "clean committed checkout with matching independently supplied expected HEAD can publish PASS",
+    "expected HEAD mismatch blocks without publishing Evidence",
+    "dirty checkout blocks without publishing Evidence",
+    "missing required Python source blocks",
+    "missing matched-set fixture blocks",
+    "source binding covers capture, regression code, manifest, and all three fixtures (13 files total)",
+    "Decision regression test failure is recorded as FAIL rather than promoted to PASS",
+    "existing Evidence requires explicit --replace before intentional rerun"
+  ],
+  "limitations": [
+    "The self-test uses synthetic repositories to validate capture mechanics; it is not the native canonical repository capture.",
+    "The actual Decision regression body remains separately evidenced by exact blob-validated materialization, not by this capture.",
+    "H2 human review remains Not Yet Observed."
+  ],
+  "stopline": "Head-bound capture workflow PASS != native canonical checkout capture PASS != H2 human review != H1 actual resume != E1-E8 Go evidence != Decision Continuity Product Value established."
+}

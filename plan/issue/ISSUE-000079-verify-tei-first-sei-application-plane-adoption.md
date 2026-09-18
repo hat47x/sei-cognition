@@ -251,6 +251,12 @@ current state:
 Stage 0 mapping / source authority / oracle design
   = available
 
+Stage 0 source-freeze manifest / validator source
+  = available
+
+Stage 0 source-freeze current-content validation
+  = PASS（evaluation-only）
+
 TEI-side Reference tool source
   = Not Yet Implemented
 
@@ -260,6 +266,26 @@ Reference Executable Evidence
 native vs TEI change-amplification comparison
   = Not Yet Observed
 ```
+## 2026-09-18 source-freeze execution boundary
+
+Stage 0のReference入力を第三schemaへ変換せず固定するため、次を追加した。
+
+- `evaluation/tei-reference-adoption/stage0_resume_review_source_freeze_v1.json`
+- `evaluation/tei-reference-adoption/validate_stage0_resume_reference.py`
+- `evaluation/tei-reference-adoption/test_validate_stage0_resume_reference.py`
+- `evaluation/tei-reference-adoption/stage0_resume_review_source_freeze_validation_20260918.json`
+
+manifestは既存fixtureのinput / oracle JSON pointerとsource identityだけを保持する。Decision Continuityのdataを複製したhandoff payloadではない。current fixture blob `6354fce0...`、bytes SHA-256 `43ce2ead...`を固定し、Recommendation / Decision、basis / unresolved、post-decision idsの参照整合とinput / oracle非混入を検査する。
+
+GitHub connectorから取得したcurrent manifest / fixtureを同一規則で評価した結果はPASSで、validation errorsは0件だった。ただしPython self-test actual executionとTEI-side Reference tool executionはこのreceiptでは未検証である。
+
+```text
+source freeze PASS
+  != TEI Reference tool PASS
+  != change amplification reduction
+  != Product Value
+```
+
 ## Initial next step
 
 最初の実装はWeb UI完成ではなく、**Challenge Aのread-only Resume / Review Reference**とする。
