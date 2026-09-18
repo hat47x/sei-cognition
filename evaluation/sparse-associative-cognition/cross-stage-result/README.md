@@ -18,8 +18,8 @@ frozen bundle
   ↓
 authorized run
   ↓
-executor
-  ↓
+execution attempt
+  ↓ success only
 result artifact
   ↓
 interpretation artifact
@@ -147,7 +147,7 @@ completed resultは次を持つ。
 
 completed resultでは `exit_code=0` を要求する。
 
-失敗したexecutionを成功結果として包装しない。失敗実行の記録が必要な場合は、将来のexecution-attempt artifactへ分離する。
+失敗したexecutionを成功結果として包装しない。失敗実行は `../cross-stage-attempt/execution_attempt.json` のexecution-attempt artifactへ分離する。
 
 ## 8. Immutability
 

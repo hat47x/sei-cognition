@@ -16,6 +16,8 @@ frozen bundle
   ↓
 authorized run
   ↓
+execution attempt
+  ↓ success only
 result artifact
   ↓
 interpretation artifact
