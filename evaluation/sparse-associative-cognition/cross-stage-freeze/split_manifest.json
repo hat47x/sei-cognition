@@ -1,0 +1,19 @@
+{
+  "schema": "sei.sacs-cross-stage-split-manifest/v1alpha1",
+  "state": "draft",
+  "frozen_at": null,
+  "dataset_digest": "",
+  "retrieval": {
+    "calibration_ids": [],
+    "evaluation_ids": []
+  },
+  "familiarity": {
+    "calibration_ids": [],
+    "evaluation_ids": []
+  },
+  "routing": {
+    "training_outcome_ids": [],
+    "holdout_replay_ids": []
+  },
+  "manifest_digest": ""
+}
