@@ -112,6 +112,13 @@ const (
 	FeatureNormalizationFamily
 )
 
+// LocalCompetitionPolicy reserves bounded winner slots for caller-owned feature
+// families and optionally keeps a global residual competition path.
+type LocalCompetitionPolicy struct {
+	FamilyActive         map[string]uint16
+	GlobalResidualActive uint16
+}
+
 type Config struct {
 	Sparse                sparseassoc.Config
 	MinInternalSimilarity float32
@@ -119,6 +126,7 @@ type Config struct {
 	ImplementationVersion string
 	FeatureNormalization  FeatureNormalizationMode
 	NormalizationFloor    float32
+	LocalCompetition      *LocalCompetitionPolicy
 }
 
 type Provider struct {
@@ -147,6 +155,10 @@ func New(cfg Config) (*Provider, error) {
 	default:
 		return nil, errors.New("unsupported feature normalization mode")
 	}
+	if err := validateLocalCompetition(cfg.Sparse, cfg.LocalCompetition); err != nil {
+		return nil, err
+	}
+	cfg.LocalCompetition = cloneLocalCompetition(cfg.LocalCompetition)
 	return &Provider{cfg: cfg}, nil
 }
 
@@ -253,7 +265,10 @@ func (p *Provider) Handle(req Request) (Response, error) {
 		if err != nil {
 			return Response{}, err
 		}
-		sig := encoder.Encode(features)
+		sig, err := p.encodeFeatures(encoder, features)
+		if err != nil {
+			return Response{}, err
+		}
 		if _, anchor := anchorSet[item.Ref]; anchor {
 			anchorSignatures = append(anchorSignatures, sig)
 			continue
@@ -323,6 +338,119 @@ func (p *Provider) providerInfo() ProviderInfo {
 		ProviderID:            p.cfg.ProviderID,
 		ImplementationVersion: p.cfg.ImplementationVersion,
 	}
+}
+
+func validateLocalCompetition(cfg sparseassoc.Config, policy *LocalCompetitionPolicy) error {
+	if policy == nil {
+		return nil
+	}
+	if len(policy.FamilyActive) == 0 {
+		return errors.New("local competition requires at least one family budget")
+	}
+	knownFamilies := map[string]struct{}{
+		"kind": {}, "text": {}, "graph": {}, "provenance": {}, "grouping": {},
+	}
+	total := uint32(policy.GlobalResidualActive)
+	for family, active := range policy.FamilyActive {
+		if _, ok := knownFamilies[family]; !ok {
+			return fmt.Errorf("unsupported local competition family: %s", family)
+		}
+		if active == 0 {
+			return fmt.Errorf("local competition family %s must have active > 0", family)
+		}
+		total += uint32(active)
+	}
+	if total == 0 {
+		return errors.New("local competition total active budget must be > 0")
+	}
+	if total > uint32(cfg.Active) {
+		return fmt.Errorf("local competition total active budget %d exceeds sparse active %d", total, cfg.Active)
+	}
+	return nil
+}
+
+func cloneLocalCompetition(policy *LocalCompetitionPolicy) *LocalCompetitionPolicy {
+	if policy == nil {
+		return nil
+	}
+	out := &LocalCompetitionPolicy{
+		FamilyActive:         make(map[string]uint16, len(policy.FamilyActive)),
+		GlobalResidualActive: policy.GlobalResidualActive,
+	}
+	for family, active := range policy.FamilyActive {
+		out.FamilyActive[family] = active
+	}
+	return out
+}
+
+func (p *Provider) encodeFeatures(globalEncoder *sparseassoc.Encoder, features []sparseassoc.Feature) (sparseassoc.Signature, error) {
+	if p.cfg.LocalCompetition == nil {
+		return globalEncoder.Encode(features), nil
+	}
+	return encodeLocalizedCompetition(p.cfg.Sparse, features, *p.cfg.LocalCompetition)
+}
+
+func encodeLocalizedCompetition(
+	cfg sparseassoc.Config,
+	features []sparseassoc.Feature,
+	policy LocalCompetitionPolicy,
+) (sparseassoc.Signature, error) {
+	groups := make(map[string][]sparseassoc.Feature)
+	for _, feature := range features {
+		family := featureFamily(feature.Channel)
+		groups[family] = append(groups[family], feature)
+	}
+
+	families := make([]string, 0, len(policy.FamilyActive))
+	for family := range policy.FamilyActive {
+		families = append(families, family)
+	}
+	sort.Strings(families)
+
+	parts := make([]sparseassoc.Signature, 0, len(families)+1)
+	for _, family := range families {
+		familyFeatures := groups[family]
+		if len(familyFeatures) == 0 {
+			continue
+		}
+		localCfg := cfg
+		localCfg.Active = policy.FamilyActive[family]
+		encoder, err := sparseassoc.NewEncoder(localCfg)
+		if err != nil {
+			return sparseassoc.Signature{}, err
+		}
+		parts = append(parts, encoder.Encode(familyFeatures))
+	}
+	if policy.GlobalResidualActive > 0 {
+		residualCfg := cfg
+		residualCfg.Active = policy.GlobalResidualActive
+		encoder, err := sparseassoc.NewEncoder(residualCfg)
+		if err != nil {
+			return sparseassoc.Signature{}, err
+		}
+		parts = append(parts, encoder.Encode(features))
+	}
+	return mergeSparseSignatures(parts), nil
+}
+
+func mergeSparseSignatures(signatures []sparseassoc.Signature) sparseassoc.Signature {
+	var merged []uint16
+	for _, signature := range signatures {
+		merged = append(merged, signature.Active...)
+	}
+	if len(merged) == 0 {
+		return sparseassoc.Signature{}
+	}
+	sort.Slice(merged, func(i, j int) bool { return merged[i] < merged[j] })
+	write := 1
+	for read := 1; read < len(merged); read++ {
+		if merged[read] == merged[write-1] {
+			continue
+		}
+		merged[write] = merged[read]
+		write++
+	}
+	return sparseassoc.Signature{Active: merged[:write]}
 }
 
 func (p *Provider) preparedFeatures(item Item) ([]sparseassoc.Feature, error) {
