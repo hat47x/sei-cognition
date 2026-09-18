@@ -413,6 +413,7 @@ python3 tools/test_run_issue_000073_resume_first_evidence.py
 python3 tools/test_verify_issue_000073_resume_first_evidence.py
 python3 tools/test_capture_issue_000073_resume_first_evidence.py
 python3 tools/capture_issue_000073_resume_first_evidence.py
+python3 evaluation/personal-inquiry-decision/test_decision_continuity_review_runner.py
 ```
 
 captureはrunner → verifier → Evidence保存をfail-closedに連結する。runnerがblocked / failならverifierへ進まずraw診断を保存し、verifier failureをPASSへ昇格させない。既存Evidenceの置換は明示的な`--replace`を要求し、一時artifactはcheckout外へ置いてclean-tree preconditionを自ら壊さない。
@@ -427,6 +428,8 @@ python3 tools/verify_issue_000073_resume_first_evidence.py <evidence-record.json
 runner / captureはclean committed HEAD、required sourceとHEAD blobの一致、Go 1.25.xをpreconditionとする。preconditionを満たせずblockedとなった場合はrepository test failureともPASSとも扱わない。2026-09-18に再確認したcurrent execution environmentでもhost Goは1.23.2であり、Go自身のtoolchain自動取得はnetwork / DNS制限でblockedだったため、actual E1〜E8 runはNot Yet Verifiedのまま保持する。
 
 runner preflight / verifier / capture workflowについては、current sourceに対する2026-09-18 actual self-test PASSをmachine-readable Evidenceへ固定済みである。ただしこれはEvidence受入れ経路の検証であり、Go 1.25.xで`interactionprobe`を実行したEvidenceへは昇格させない。
+
+H2 shared runnerのDecision経路には`test_decision_continuity_review_runner.py`があり、blinding、declared provenance、stage gate、Decision固有response validation、Evidence layer分離を回帰test sourceとして固定している。この作業セッションではそのactual test PASSを確認できるrepository checkout / CI Evidenceがないため、**source available / actual PASS Not Yet Verified**として扱う。
 
 ```text
 runner / verifier / capture exists
