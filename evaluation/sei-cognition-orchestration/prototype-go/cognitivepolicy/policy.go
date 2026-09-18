@@ -8,6 +8,7 @@ package cognitivepolicy
 import (
 	"errors"
 	"fmt"
+	"math"
 	"sort"
 	"strings"
 )
@@ -71,6 +72,7 @@ type Snapshot struct {
 	Version       string
 	ParentVersion string
 	Selections    map[string]Selection
+	Efficacy      map[string]map[string]RouteStats
 }
 
 type Store struct {
@@ -103,6 +105,7 @@ func NewStore(definitions []ProblemPolicy) (*Store, error) {
 	baseline := Snapshot{
 		Version:    BaselineVersion,
 		Selections: baselineSelections,
+		Efficacy:   make(map[string]map[string]RouteStats),
 	}
 	return &Store{
 		definitions: defs,
@@ -194,6 +197,7 @@ func (s *Store) BuildCandidate(records []OutcomeRecord) (Snapshot, error) {
 		Version:       version,
 		ParentVersion: s.active,
 		Selections:    selections,
+		Efficacy:      cloneEfficacy(stats),
 	}
 	s.snapshots[version] = cloneSnapshot(candidate)
 	s.nextVersion++
@@ -279,14 +283,21 @@ func validateProblemPolicy(definition ProblemPolicy) error {
 	if strings.TrimSpace(definition.ProblemClass) == "" {
 		return errors.New("problem class must not be empty")
 	}
+	if definition.ProblemClass != strings.TrimSpace(definition.ProblemClass) {
+		return errors.New("problem class must be canonical")
+	}
 	if strings.TrimSpace(definition.StaticRoute) == "" {
 		return fmt.Errorf("problem class %s static route must not be empty", definition.ProblemClass)
+	}
+	if definition.StaticRoute != strings.TrimSpace(definition.StaticRoute) {
+		return fmt.Errorf("problem class %s static route must be canonical", definition.ProblemClass)
 	}
 	if len(definition.AllowedRoutes) == 0 {
 		return fmt.Errorf("problem class %s requires at least one allowed route", definition.ProblemClass)
 	}
-	if definition.RequiredSuccessRate < 0 || definition.RequiredSuccessRate > 1 {
-		return fmt.Errorf("problem class %s required success rate must be in [0,1]", definition.ProblemClass)
+	if math.IsNaN(definition.RequiredSuccessRate) || math.IsInf(definition.RequiredSuccessRate, 0) ||
+		definition.RequiredSuccessRate < 0 || definition.RequiredSuccessRate > 1 {
+		return fmt.Errorf("problem class %s required success rate must be finite and in [0,1]", definition.ProblemClass)
 	}
 	if definition.MinAssessedObservations <= 0 {
 		return fmt.Errorf("problem class %s minimum assessed observations must be > 0", definition.ProblemClass)
@@ -297,6 +308,9 @@ func validateProblemPolicy(definition ProblemPolicy) error {
 	for _, option := range definition.AllowedRoutes {
 		if strings.TrimSpace(option.ID) == "" {
 			return fmt.Errorf("problem class %s contains empty route id", definition.ProblemClass)
+		}
+		if option.ID != strings.TrimSpace(option.ID) {
+			return fmt.Errorf("problem class %s route id must be canonical: %q", definition.ProblemClass, option.ID)
 		}
 		if option.EscalationLevel < 0 {
 			return fmt.Errorf("problem class %s route %s has negative escalation level", definition.ProblemClass, option.ID)
@@ -335,9 +349,22 @@ func cloneSnapshot(in Snapshot) Snapshot {
 		Version:       in.Version,
 		ParentVersion: in.ParentVersion,
 		Selections:    make(map[string]Selection, len(in.Selections)),
+		Efficacy:      cloneEfficacy(in.Efficacy),
 	}
 	for problemClass, selection := range in.Selections {
 		out.Selections[problemClass] = selection
+	}
+	return out
+}
+
+func cloneEfficacy(in map[string]map[string]RouteStats) map[string]map[string]RouteStats {
+	out := make(map[string]map[string]RouteStats, len(in))
+	for problemClass, routes := range in {
+		routeCopy := make(map[string]RouteStats, len(routes))
+		for route, stats := range routes {
+			routeCopy[route] = stats
+		}
+		out[problemClass] = routeCopy
 	}
 	return out
 }
