@@ -14,7 +14,7 @@ E2 partial actual success
   + independently verifiable Evidence bundle
 
 E2 partial actual success
-  != E3 SOZA Adapter compatibility PASS
+  != E3 SEI Adapter compatibility PASS
   != arbitrary TEI version compatibility
   != ISSUE-000072 Resolved
 ```
@@ -27,12 +27,12 @@ actual開始前に、次を別々の事実として確認します。
 
 ```text
 host                    = Linux / amd64
-SOZA checkout           = actualに使うcurrent checkout
+SEI checkout            = actualに使うcurrent checkout
 E2 Go executable        = exact go1.23.2 linux/amd64
 controlled Go target    = linux / amd64
 revision A fixed input  = exact checkout または historical Evidence bundle
 GitHub credential       = GITHUB_TOKEN または GH_TOKEN
-Evidence output         = SOZA / A inputとは分離したfresh directory
+Evidence output         = SEI / A inputとは分離したfresh directory
 ```
 
 credential値そのものは表示・記録しません。
@@ -40,11 +40,11 @@ credential値そのものは表示・記録しません。
 例:
 
 ```bash
-SOZA_REPO=/path/to/soza
+SEI_REPO=/path/to/sei-cognition
 TEI_GO=/path/to/go1.23.2/bin/go
 E2_DIR=/path/to/evidence/tei-e2-partial-20260906
 
-SOZA_HEAD="$(git -C "$SOZA_REPO" rev-parse HEAD)"
+SEI_HEAD="$(git -C "$SEI_REPO" rev-parse HEAD)"
 
 uname -s
 uname -m
@@ -92,7 +92,7 @@ fresh Evidence directoryを使い、標準手順では`--overwrite`を付けま�
 ### historical A bundleを使う場合
 
 ```bash
-python3 "$SOZA_REPO/runtime/integration/run_tei_revision_b_e2_from_github.py" \
+python3 "$SEI_REPO/runtime/integration/run_tei_revision_b_e2_from_github.py" \
   --reference-evidence-bundle "$TEI_A_BUNDLE" \
   --output-dir "$E2_DIR" \
   --tei-go-executable "$TEI_GO" \
@@ -102,7 +102,7 @@ python3 "$SOZA_REPO/runtime/integration/run_tei_revision_b_e2_from_github.py" \
 ### revision A checkoutを使う場合
 
 ```bash
-python3 "$SOZA_REPO/runtime/integration/run_tei_revision_b_e2_from_github.py" \
+python3 "$SEI_REPO/runtime/integration/run_tei_revision_b_e2_from_github.py" \
   --reference-source-repo "$TEI_A_REPO" \
   --output-dir "$E2_DIR" \
   --tei-go-executable "$TEI_GO" \
@@ -131,7 +131,7 @@ E2_REPORT="$E2_DIR/tei-revision-b-e2-github.json"
 成功reportの期待値:
 
 ```text
-schema = soza.tei-revision-b-e2-github-run/v1
+schema = sei.tei-revision-b-e2-github-run/v1
 result = e2_bundle_verified_e3_not_run
 qualityJudgement = not_evaluated
 ```
@@ -149,7 +149,7 @@ revision B固定source commit:
 E2 runner成功後、同じbundle bytesをISSUE-000072専用のstrict verifierへ戻します。この入口は既存generic bundle verifierを再利用し、revision B source commitだけでなく、revision A fixed reference inputもrepository-local正本の期待値へ固定します。
 
 ```bash
-python3 "$SOZA_REPO/runtime/integration/verify_tei_version_exchange_e2_bundle.py" \
+python3 "$SEI_REPO/runtime/integration/verify_tei_version_exchange_e2_bundle.py" \
   "$E2_BUNDLE" \
   --json
 ```
@@ -203,26 +203,26 @@ E2 failure with repository-local substage
 
 ## 8. E3を後日resumeする
 
-E2 partialが成功した後、current SOZAのE3要件を満たすGo executableが利用可能になれば、保存済みE2を再利用します。
+E2 partialが成功した後、current SEIのE3要件を満たすGo executableが利用可能になれば、保存済みE2を再利用します。
 
 新しいfresh output directoryを用意します。
 
 ```bash
-SOZA_GO=/path/to/go-for-current-soza/bin/go
+SEI_GO=/path/to/go-for-current-sei/bin/go
 E3_DIR=/path/to/evidence/tei-e2-partial-e3-resume-20260906
-SOZA_HEAD="$(git -C "$SOZA_REPO" rev-parse HEAD)"
+SEI_HEAD="$(git -C "$SEI_REPO" rev-parse HEAD)"
 ```
 
 実行:
 
 ```bash
-python3 "$SOZA_REPO/runtime/integration/run_tei_version_exchange_resume_from_e2_partial.py" \
+python3 "$SEI_REPO/runtime/integration/run_tei_version_exchange_resume_from_e2_partial.py" \
   --partial-report "$E2_REPORT" \
   --bundle "$E2_BUNDLE" \
-  --soza-repo-root "$SOZA_REPO" \
+  --sei-repo-root "$SEI_REPO" \
   --output-dir "$E3_DIR" \
-  --soza-go-executable "$SOZA_GO" \
-  --expected-soza-head "$SOZA_HEAD" \
+  --sei-go-executable "$SEI_GO" \
+  --expected-sei-head "$SEI_HEAD" \
   --json
 ```
 
@@ -278,7 +278,7 @@ E2_BUNDLE preserved
 reconcile:
 
 ```bash
-python3 "$SOZA_REPO/runtime/integration/reconcile_tei_e2_partial_resume_reports.py" \
+python3 "$SEI_REPO/runtime/integration/reconcile_tei_e2_partial_resume_reports.py" \
   --partial-report "$E2_REPORT" \
   --bundle "$E2_BUNDLE" \
   --canonical-report "$CANONICAL_REPORT" \
@@ -312,12 +312,12 @@ historical A bundleを利用可能なら、criteria 1 / 5のcurrent再検証も�
 ```bash
 AUDIT_OUT=/path/to/evidence/tei-version-exchange-resolution-audit-20260906.json
 
-python3 "$SOZA_REPO/runtime/integration/audit_tei_version_exchange_resolution.py" \
+python3 "$SEI_REPO/runtime/integration/audit_tei_version_exchange_resolution.py" \
   --canonical-report "$CANONICAL_REPORT" \
   --historical-a-bundle "$TEI_A_BUNDLE" \
   --github-wrapper-report "$GITHUB_WRAPPER_REPORT" \
-  --soza-repo-root "$SOZA_REPO" \
-  --expected-soza-head "$SOZA_HEAD" \
+  --sei-repo-root "$SEI_REPO" \
+  --expected-sei-head "$SEI_HEAD" \
   --output "$AUDIT_OUT"
 ```
 
