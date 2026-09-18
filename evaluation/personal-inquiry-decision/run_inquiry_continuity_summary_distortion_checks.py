@@ -280,6 +280,7 @@ def validate_checks(checks: Sequence[Check]) -> None:
                 f"local check cwd does not exist: {check.name}: {check.cwd}"
             )
         _repo_relative_cwd(check.cwd)
+        _portable_command(check.command)
 
 
 def build_result(
@@ -289,6 +290,7 @@ def build_result(
     stopped_early: bool,
     contract_snapshot: dict[str, object],
 ) -> dict[str, object]:
+    validate_checks(checks)
     failed = [item for item in executions if item["exitCode"] != 0]
     complete = len(executions) == len(checks)
     return {
@@ -327,9 +329,33 @@ def _repo_relative_cwd(cwd: Path) -> str:
         relative = cwd.resolve().relative_to(SEI_ROOT.resolve())
     except ValueError as exc:
         raise ValueError(
-            f"local check cwd escapes repository root: {cwd}"
+            "local check cwd escapes repository root"
         ) from exc
     return "." if relative == Path(".") else relative.as_posix()
+
+
+def _portable_command(command: Sequence[str]) -> list[str]:
+    portable: list[str] = []
+    repo_root = SEI_ROOT.resolve()
+    python_path = Path(sys.executable).resolve()
+    for token in command:
+        path = Path(token)
+        if path.is_absolute():
+            resolved = path.resolve()
+            if resolved == python_path:
+                portable.append("<python>")
+                continue
+            try:
+                relative = resolved.relative_to(repo_root)
+            except ValueError as exc:
+                raise ValueError(
+                    "local check command contains an absolute path outside "
+                    "the repository"
+                ) from exc
+            portable.append(relative.as_posix())
+            continue
+        portable.append(token)
+    return portable
 
 
 def _default_runner(
@@ -375,7 +401,7 @@ def run_checks(
             )
             execution: dict[str, object] = {
                 "name": check.name,
-                "command": list(check.command),
+                "command": _portable_command(check.command),
                 "cwdRelativeToRepo": _repo_relative_cwd(check.cwd),
                 "exitCode": completed.returncode,
                 "timedOut": False,
@@ -386,7 +412,7 @@ def run_checks(
         except subprocess.TimeoutExpired as exc:
             execution = {
                 "name": check.name,
-                "command": list(check.command),
+                "command": _portable_command(check.command),
                 "cwdRelativeToRepo": _repo_relative_cwd(check.cwd),
                 "exitCode": TIMEOUT_EXIT_CODE,
                 "timedOut": True,
@@ -397,14 +423,17 @@ def run_checks(
         except OSError as exc:
             execution = {
                 "name": check.name,
-                "command": list(check.command),
+                "command": _portable_command(check.command),
                 "cwdRelativeToRepo": _repo_relative_cwd(check.cwd),
                 "exitCode": LAUNCH_ERROR_EXIT_CODE,
                 "timedOut": False,
                 "timeoutSeconds": timeout_seconds,
                 "stdout": _stream_evidence(None),
                 "stderr": _stream_evidence(None),
-                "launchError": str(exc),
+                "launchError": {
+                    "type": type(exc).__name__,
+                    "errno": exc.errno,
+                },
             }
 
         executions.append(execution)

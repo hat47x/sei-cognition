@@ -148,7 +148,9 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
             "a" * 64,
         )
         first = result["executed"][0]
-        self.assertEqual(first["command"], list(configured_checks()[0].command))
+        expected_command = list(configured_checks()[0].command)
+        expected_command[0] = "<python>"
+        self.assertEqual(first["command"], expected_command)
         self.assertEqual(first["cwdRelativeToRepo"], ".")
         self.assertEqual(first["stdout"]["bytes"], 3)
         self.assertEqual(len(first["stdout"]["sha256"]), 64)
@@ -182,6 +184,31 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
         self.assertEqual(failed["exitCode"], 7)
         self.assertEqual(failed["stderr"]["bytes"], len("failed\n".encode("utf-8")))
         self.assertEqual(len(failed["stderr"]["sha256"]), 64)
+
+    def test_launch_error_does_not_store_os_message_or_path(self):
+        def runner(command, *, cwd, env, timeout):
+            raise FileNotFoundError(
+                2,
+                "No such file or directory",
+                "/host/private/bin/python",
+            )
+
+        exit_code, result = run_checks(
+            configured_checks(),
+            stop_on_failure=True,
+            runner=runner,
+            snapshot_builder=lambda: {"probeContentSha256": "a" * 64},
+        )
+        self.assertEqual(exit_code, 1)
+        execution = result["executed"][0]
+        self.assertEqual(execution["exitCode"], 127)
+        self.assertEqual(
+            execution["launchError"],
+            {"type": "FileNotFoundError", "errno": 2},
+        )
+        serialized = json.dumps(execution)
+        self.assertNotIn("/host/private", serialized)
+        self.assertNotIn("No such file or directory", serialized)
 
     def test_stop_on_failure_marks_incomplete_run(self):
         def runner(command, *, cwd, env, timeout):
@@ -238,6 +265,15 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_checks(())
 
+    def test_build_result_rejects_empty_check_set(self):
+        with self.assertRaises(ValueError):
+            build_result(
+                (),
+                (),
+                stopped_early=False,
+                contract_snapshot={"probeContentSha256": "a" * 64},
+            )
+
     def test_check_cwd_must_stay_within_repository_root(self):
         from run_inquiry_continuity_summary_distortion_checks import (
             Check,
@@ -257,6 +293,32 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
                     )
                 )
 
+    def test_absolute_command_outside_repo_is_rejected_before_execution(self):
+        from run_inquiry_continuity_summary_distortion_checks import (
+            Check,
+            run_checks,
+        )
+
+        runner_called = False
+
+        def runner(command, *, cwd, env, timeout):
+            nonlocal runner_called
+            runner_called = True
+            raise AssertionError("runner must not be called")
+
+        check = Check(
+            name="outside-command",
+            command=("/definitely/outside/repository/tool",),
+            cwd=configured_checks()[0].cwd,
+        )
+        with self.assertRaises(ValueError):
+            run_checks(
+                (check,),
+                runner=runner,
+                snapshot_builder=lambda: {"probeContentSha256": "a" * 64},
+            )
+        self.assertFalse(runner_called)
+
     def test_build_result_requires_all_selected_checks(self):
         checks = configured_checks()
         result = build_result(
@@ -270,9 +332,16 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
     def test_save_result_is_exclusive_create(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "result.json"
+            checks = configured_checks()
             result = build_result(
-                (),
-                (),
+                checks,
+                [
+                    {
+                        "name": check.name,
+                        "exitCode": 0,
+                    }
+                    for check in checks
+                ],
                 stopped_early=False,
                 contract_snapshot={"probeContentSha256": "a" * 64},
             )
