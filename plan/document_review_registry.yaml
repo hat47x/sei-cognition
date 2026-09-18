@@ -19,7 +19,7 @@ reviewed:
 
   - scope: product/README.md
     status: revised
-    note: Product Value、Milestone、Interaction、Packaging、Identity / Access、Realization / Provider Exchange、v0.2.0 Release Evidence、release後のE3b-P2 revision A fixed-artifact、E3b-M1a、E3b-M1b、PMS-06 current snapshotまでをcurrent Product入口として自然な日本語で再整理済み。ISSUE-000070とISSUE-000072を別のversion交換軸として扱う。
+    note: Product Value、Product Shape、Milestone、resume-first Interaction、Packaging、Identity / Access、Realization / Provider Exchange、v0.2.0 Release Evidence、release後のE3b-P2 revision A fixed-artifact、E3b-M1a、E3b-M1b、PMS-06 current snapshotまでをcurrent Product入口として自然な日本語で再整理済み。ISSUE-000070とISSUE-000072を別のversion交換軸として扱い、2026-09-18にはISSUE-000074のreusable actual-binary Evidence protocol source実装状態を入口へ追加した。teiprobe / CLI / protocol sourceの存在をcurrent Go test PASS、actual TEI report、revision B compatibilityへ昇格させない停止線を維持している。
   - scope: product/value/*.md
     status: revised
     coverage:
@@ -51,7 +51,7 @@ reviewed:
     coverage:
       - SEI_PRODUCT_MILESTONES.md
       - PMS06_CURRENT_STATE_2026-09-05.md
-    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06 current snapshotはISSUE-000070をfixed-scope Ollama runtime version exchangeのScoped Executable Evidence成立・Resolvedへ更新し、ISSUE-000072を主要Open version-exchange探索として保持する。PMS-07のv0.2.0 supported scopeはE3aまでに維持している。 2026-09-18にはPMS-06へISSUE-000074のreusable TEI Evidence protocol source実装状態を追記し、revision A actual Evidence、protocol implementation、revision B pendingを別のEvidence高さとして保持した。
+    note: calendar deadlineではなくOutcomeとEvidenceでPMS-00〜PMS-08およびMoving Rebaselineを定義。PMS-06 current snapshotはISSUE-000070をfixed-scope Ollama runtime version exchangeのScoped Executable Evidence成立・Resolvedへ更新し、ISSUE-000072を主要Open version-exchange探索として保持する。PMS-07のv0.2.0 supported scopeはE3aまでに維持している。2026-09-18には`SEI_PRODUCT_MILESTONES.md`と`PMS06_CURRENT_STATE_2026-09-05.md`の双方へISSUE-000074のreusable TEI Evidence protocol source実装状態を追記し、revision A actual Evidence、protocol implementation、revision B pending、Go 1.25 test未実行を別のEvidence高さとして保持した。snapshotのファイル名は初回日を保持し、本文current stateだけを更新している。
   - scope: product/interaction/*.md
     status: revised
     coverage:
