@@ -20,6 +20,31 @@ def git_blob_sha1(path: Path) -> str:
     return hashlib.sha1(header + payload).hexdigest()
 
 
+
+def normalized_executable_text(path: str, text: str) -> str:
+    normalized = (
+        text.replace("github.com/hat47x/soza", "github.com/hat47x/sei-cognition")
+        .replace("SOZA", "SEI")
+        .replace("Soza", "Sei")
+        .replace("soza.", "sei.")
+        .replace("soza-", "sei-")
+    )
+    if path == "runtime/go/semanticruntime/loader.go":
+        normalized = normalized.replace(
+            "\t\t\t\t// The reference may point outside this bundle. Payload acquisition and\n",
+            "",
+        ).replace(
+            "\t\t\t\t// digest verification are handled by Payload Source / Verifier layers.\n",
+            "",
+        )
+    return normalized
+
+
+def normalized_executable_sha1(path: str, file_path: Path) -> str:
+    normalized = normalized_executable_text(path, file_path.read_text(encoding="utf-8"))
+    return hashlib.sha1(normalized.encode("utf-8")).hexdigest()
+
+
 def load_audit() -> dict:
     return json.loads(EVIDENCE_PATH.read_text(encoding="utf-8"))
 
@@ -47,12 +72,24 @@ class ScopedGoFailureSourceDeltaAuditTest(unittest.TestCase):
         self.assertEqual(audit["historicalExecutionEvidence"]["goVersion"], "go1.23.2")
         self.assertEqual(audit["historicalExecutionEvidence"]["repositoryBaselineGo"], "1.25")
 
-    def test_all_audited_files_are_declared_normalized_equivalent(self) -> None:
+    def test_all_audited_files_match_fixed_normalized_content_digest(self) -> None:
         audit = load_audit()
+        self.assertEqual(
+            audit["comparisonMethod"]["normalizedContentDigestAlgorithm"],
+            "sha1-over-utf8-normalized-content",
+        )
         self.assertGreater(len(audit["files"]), 0)
         for item in audit["files"]:
+            path = REPOSITORY_ROOT / item["path"]
+            self.assertTrue(path.is_file(), item["path"])
+            self.assertTrue(item["normalizedExecutableContentEquivalent"], item["path"])
             self.assertTrue(
-                item["normalizedExecutableContentEquivalent"],
+                item["historicalAndCurrentNormalizedContentMatchedAtAudit"],
+                item["path"],
+            )
+            self.assertEqual(
+                normalized_executable_sha1(item["path"], path),
+                item["normalizedExecutableContentSha1"],
                 item["path"],
             )
 
