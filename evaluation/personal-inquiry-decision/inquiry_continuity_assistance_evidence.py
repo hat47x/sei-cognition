@@ -38,7 +38,7 @@ from inquiry_continuity_assistance_probe import (
 
 
 AUDIT_RESPONSE_SCHEMA = "sei.inquiry-continuity-assistance-audit-response/v1"
-EVIDENCE_SCHEMA = "sei.inquiry-continuity-assistance-evidence/v1"
+EVIDENCE_SCHEMA = "sei.inquiry-continuity-assistance-evidence/v2"
 FINDING_VALUES = {"observed", "not-observed", "not-applicable"}
 
 
@@ -367,7 +367,24 @@ def _artifact_snapshot(
     value: dict[str, Any],
     raw: bytes,
 ) -> dict[str, Any]:
+    try:
+        raw_json = raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise AssistanceEvidenceError(
+            "artifact snapshot raw bytes must be UTF-8 JSON"
+        ) from exc
+    try:
+        decoded = json.loads(raw_json)
+    except json.JSONDecodeError as exc:
+        raise AssistanceEvidenceError(
+            "artifact snapshot raw bytes must be valid JSON"
+        ) from exc
+    if decoded != value:
+        raise AssistanceEvidenceError(
+            "artifact snapshot raw JSON differs from semantic value"
+        )
     return {
+        "raw_json": raw_json,
         "raw_sha256": _sha256(raw),
         "semantic_sha256": _canonical_sha256(value),
         "value": copy.deepcopy(value),
@@ -662,6 +679,7 @@ def validate_evidence_bundle(bundle: Any) -> None:
     for field in artifact_fields:
         snapshot = bundle[field]
         if not isinstance(snapshot, dict) or set(snapshot) != {
+            "raw_json",
             "raw_sha256",
             "semantic_sha256",
             "value",
@@ -669,9 +687,28 @@ def validate_evidence_bundle(bundle: Any) -> None:
             raise AssistanceEvidenceError(
                 f"{field} snapshot has invalid shape"
             )
-        if not _is_sha256(snapshot["raw_sha256"]):
+        raw_json = snapshot["raw_json"]
+        if not isinstance(raw_json, str):
             raise AssistanceEvidenceError(
-                f"{field} raw_sha256 must be SHA-256"
+                f"{field} raw_json must be a string"
+            )
+        raw_bytes = raw_json.encode("utf-8")
+        if (
+            not _is_sha256(snapshot["raw_sha256"])
+            or snapshot["raw_sha256"] != _sha256(raw_bytes)
+        ):
+            raise AssistanceEvidenceError(
+                f"{field} raw SHA-256 mismatch"
+            )
+        try:
+            decoded = json.loads(raw_json)
+        except json.JSONDecodeError as exc:
+            raise AssistanceEvidenceError(
+                f"{field} raw_json must be valid JSON"
+            ) from exc
+        if decoded != snapshot["value"]:
+            raise AssistanceEvidenceError(
+                f"{field} raw JSON differs from semantic value"
             )
         if (
             snapshot["semantic_sha256"]

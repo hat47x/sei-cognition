@@ -270,6 +270,25 @@ class AssistanceEvidenceTest(unittest.TestCase):
             ],
             bundle["audit_gate"]["raw_sha256"],
         )
+        for field in (
+            "review_start",
+            "initial_response",
+            "reveal_gate",
+            "reveal_response",
+            "audit_gate",
+            "semantic_audit",
+        ):
+            snapshot = bundle[field]
+            self.assertEqual(
+                hashlib.sha256(
+                    snapshot["raw_json"].encode("utf-8")
+                ).hexdigest(),
+                snapshot["raw_sha256"],
+            )
+            self.assertEqual(
+                json.loads(snapshot["raw_json"]),
+                snapshot["value"],
+            )
         rendered = json.dumps(bundle)
         self.assertNotIn('"winner"', rendered)
         self.assertNotIn('"score"', rendered)
@@ -290,6 +309,28 @@ class AssistanceEvidenceTest(unittest.TestCase):
                 separators=(",", ":"),
             ).encode("utf-8")
         ).hexdigest()
+
+    def test_bundle_rejects_raw_snapshot_tampering(self):
+        bundle = self.valid_bundle()
+
+        changed = copy.deepcopy(bundle)
+        changed["initial_response"]["raw_json"] += " "
+        with self.assertRaises(AssistanceEvidenceError):
+            validate_evidence_bundle(changed)
+
+        changed = copy.deepcopy(bundle)
+        changed["review_start"]["raw_json"] = json.dumps(
+            {
+                **changed["review_start"]["value"],
+                "reviewer_id": "different",
+            },
+            ensure_ascii=False,
+        )
+        changed["review_start"]["raw_sha256"] = hashlib.sha256(
+            changed["review_start"]["raw_json"].encode("utf-8")
+        ).hexdigest()
+        with self.assertRaises(AssistanceEvidenceError):
+            validate_evidence_bundle(changed)
 
     def test_bundle_rejects_semantically_invalid_artifact_even_with_refreshed_digest(self):
         bundle = self.valid_bundle()
