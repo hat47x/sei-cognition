@@ -21,6 +21,10 @@ human adjudication freeze
 explicit evaluation-run artifact
   ↓
 human-adjudicated evaluation
+  ↓
+immutable result artifact
+  ↓
+future interpretation / decision
 ```
 
 この文書と `cross_stage_benchmark_preregistration.json` は、evaluation runそのものではない。
@@ -213,7 +217,39 @@ evaluation runを作成する前に、別artifactで少なくとも次を満た�
 
 preregistration artifact自身の `result_generation.enabled` は将来も `false` のままにする。
 
-## 10. B5との関係
+## 10. Result artifact
+
+authorized runの実行結果はrun artifactへ書き戻さず、`cross-stage-result/` の別artifactとして記録する。
+
+completed resultは、
+
+- authorized runのexact digest
+- preregistration / frozen bundle
+- run identity
+- observed environment
+- executor identity
+- requested metric set
+- raw-output / environment-capture digest
+
+へbindする。
+
+requested metricはexactly once記録し、測定不能は欠落や0ではなく `unavailable` と理由を明示する。
+
+retrieval diagnosticは `diagnostic` のまま保持し、qualityへ昇格させない。
+
+completed resultはcanonical SHA-256でself-bindするが、result artifact自身はwinner、B5判断、production defaultを所有しない。
+
+```text
+result artifact
+  != benchmark interpretation
+  != variant winner
+  != B5 decision
+  != production adoption
+```
+
+詳細は `cross-stage-result/README.md` を参照する。
+
+## 11. B5との関係
 
 B5 learned sparse projectionのentry gateは変更しない。
 
@@ -224,7 +260,7 @@ cross-stage preregistration
   != B5 gate open
 ```
 
-## 11. Evidence境界
+## 12. Evidence境界
 
 この作業が提供するのはDesign / Evaluation-boundary Evidenceである。
 
