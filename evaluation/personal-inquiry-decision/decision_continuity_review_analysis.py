@@ -235,6 +235,37 @@ def validate_decision_session(
         raise DecisionReviewError("Decision Continuity review session is not complete")
 
 
+
+def response_template(stage: str, fixture: dict[str, Any]) -> dict[str, Any]:
+    """Return an incomplete Decision review template; empty answers are not Evidence."""
+    if stage == "phase1":
+        questions = fixture["human_review_template"]["before_post_decision_evidence"]
+        return {
+            "answers": ["" for _ in questions],
+            "operator_observation": {
+                "time_to_orientation_seconds": "not-observed",
+                "source_reopen_count": "not-observed",
+                "mental_effort_1_to_5": "not-observed",
+            },
+        }
+    if stage == "post":
+        questions = fixture["human_review_template"]["after_post_decision_evidence"]
+        return {"answers": ["" for _ in questions]}
+    if stage == "audit":
+        return {
+            "findings": {field: "not-observed" for field in FINDING_FIELDS},
+            "operator_observation": {
+                "historical_misattribution_count": "not-observed",
+                "recommendation_decision_confusion": "not-observed",
+                "correction_burden": "not-observed",
+            },
+            "continued_use": "not-observed",
+            "continued_use_reason": "",
+            "notes": "",
+        }
+    raise DecisionReviewError(f"invalid stage: {stage}")
+
+
 def _condition_summary() -> dict[str, Any]:
     return {
         "audited_attempts": 0,
