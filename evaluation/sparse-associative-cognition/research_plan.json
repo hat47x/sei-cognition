@@ -499,7 +499,45 @@
           "local_budget_adaptation_implemented": false,
           "b5_entry_gate_changed": false
         },
-        "stop_line": "observed touched/winner shareをsemantic importanceやquality scoreへ昇格させず、path飽和を単独のfailure criterionやproduction adaptive ruleへ直結させない。"
+        "stop_line": "observed touched/winner shareをsemantic importanceやquality scoreへ昇格させず、path飽和を単独のfailure criterionやproduction adaptive ruleへ直結させない。",
+        "follow_up_evidence_file": "local_residual_containment_evidence_2026-09-18.json"
+      }
+    },
+    {
+      "stage": "SAC-B6c",
+      "name": "local residual containment",
+      "depends_on": [
+        "SAC-B2",
+        "SAC-B6b"
+      ],
+      "change": "B2 family-local winnerのうちglobal residualに含まれないdimension数と、merged signatureへlocal pathが追加するincremental dimensionsを明示opt-in diagnosticsで観測する。local/global budget policy自体は変更しない。",
+      "primary_question": "capacity scalingでglobal residualが拡大すると、localized competitionをdistinctにしていたdimensionがresidualへ包含され、local+global mergeがpure global residualへ退化するか。",
+      "measures": [
+        "family_unique_beyond_residual",
+        "local_incremental_dimensions",
+        "local_incremental_share",
+        "residual_containment_behavior",
+        "capacity_scaling_degradation",
+        "deterministic_reproducibility"
+      ],
+      "current_result": {
+        "state": "limited-synthetic-executable-evidence",
+        "evidence_file": "local_residual_containment_evidence_2026-09-18.json",
+        "findings": [
+          "local incremental dimensionsはsmall/medium/large/oversizedで11/20/16/0となり、oversizedではmerged signatureがglobal residualと同一サイズになった。",
+          "family別residual外寄与はsmallでtext/graph/provenance/grouping=4/4/3/0、medium=8/6/6/0、large=16/0/0/0、oversized=0/0/0/0だった。",
+          "groupingは全profileでresidual外寄与0、graph/provenanceはlargeで0、textはlargeまで残るがoversizedで0となった。",
+          "oversizedでは全family-local winnerがglobal residual内に含まれ、B2 local+global mergeはこのanchorではresidual signatureへ完全退化した。",
+          "既存B6 quality marginはlargeまで正でoversizedで負となるが、containmentをquality failureの因果・十分条件とは扱わない。"
+        ],
+        "implementation_boundary": {
+          "normal_encode_changed": false,
+          "provider_response_contract_changed": false,
+          "adaptive_budget_implemented": false,
+          "residual_ratio_changed": false,
+          "b5_entry_gate_changed": false
+        },
+        "stop_line": "dimension containmentをsemantic redundancyやlocal policy不要論へ昇格させず、単一fixtureのlocal incremental zeroをproduction policy変更の十分条件にしない。"
       }
     },
     {
@@ -600,7 +638,11 @@
     "observed_winner_share",
     "projection_collision_fraction",
     "family_local_saturation_behavior",
-    "merged_budget_utilization"
+    "merged_budget_utilization",
+    "family_unique_beyond_residual",
+    "local_incremental_dimensions",
+    "local_incremental_share",
+    "residual_containment_behavior"
   ],
   "evaluation_policy": {
     "single_composite_score": false,
@@ -641,7 +683,10 @@
       "32768/512ではActive/Dimensions=1/64を保ってもconfigured winnersが入力projection upper-boundへ接近し候補順が逆転する反例を観測し、active fraction単独ではhomeostatic invariantとして不十分と確認した。",
       "SAC-B6bでB2 path別のpost-hash unique touched dimensionsを明示opt-inで観測できるようにし、通常Encodeとprovider response contractは変更しなかった。",
       "同じ1/64 active fraction scalingでもglobal residualのobserved winner shareは約0.032→0.059→0.114→0.446へ上昇し、oversizedではgraph/provenance/grouping local pathがselected/touched=1.0へ飽和することを確認した。",
-      "B6bではprofile拡大とともにglobal residualのhash collision fractionが低下する一方winner shareが上昇し、competition lossがcollision増加ではなくwinner budgetと固定入力cardinalityの関係から生じることを確認した。"
+      "B6bではprofile拡大とともにglobal residualのhash collision fractionが低下する一方winner shareが上昇し、competition lossがcollision増加ではなくwinner budgetと固定入力cardinalityの関係から生じることを確認した。",
+      "SAC-B6cでfamily-local winnerのresidual外寄与とmerged signatureへのlocal incremental dimensionsを明示opt-inで観測できるようにし、通常Encodeとprovider response contractは変更しなかった。",
+      "同じcapacity fixtureでlocal incremental dimensionsは11→20→16→0となり、oversizedでは全family-local winnerがglobal residualへ包含されlocal+global mergeがresidual signatureへ退化した。",
+      "B6cではgroupingのresidual外寄与が全profileで0、graph/provenanceがlargeで0、textもoversizedで0となる包含系列を確認したが、これをsemantic redundancyやquality failureの十分条件とは扱っていない。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -655,7 +700,7 @@
       "learned sparse projectionがrandom / static方式を上回るか",
       "10万件以上でのindex方式",
       "LLM呼び出し削減量",
-      "実hardware / real workloadにおけるcapacity profile品質、最適path別selection-pressure ceiling、adaptive Active / local budget policy、power / latency / memory trade-off",
+      "実hardware / real workloadにおけるcapacity profile品質、最適local/global residual scaling、path別selection-pressure ceiling、adaptive Active / local budget policy、power / latency / memory trade-off",
       "outcome-informed routingの有効性",
       "production配置方式",
       "Product Value / Operational / Adoption / Outcome Evidence"
@@ -666,7 +711,8 @@
       "projection_bias_evidence_2026-09-18.json",
       "familiarity_modulation_evidence_2026-09-18.json",
       "capacity_homeostasis_evidence_2026-09-18.json",
-      "observed_selection_pressure_evidence_2026-09-18.json"
+      "observed_selection_pressure_evidence_2026-09-18.json",
+      "local_residual_containment_evidence_2026-09-18.json"
     ]
   },
   "references": [
