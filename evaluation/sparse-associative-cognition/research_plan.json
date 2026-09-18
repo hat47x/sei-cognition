@@ -815,7 +815,8 @@
       "SAC-B6eでcontrol / structure-heavy / text-heavyの3 synthetic fixtureにbaseline / cap128 / cap64を同一条件で適用し、feature-family cardinalityとmarginを固定した。",
       "B6eではtext-dominantなcontrolとtext-heavyでstatic residual capが負のbaseline marginを正へ回復した一方、structure-heavyではbaseline marginが最も大きく、capが無条件改善ではない反例を確認した。",
       "3 fixtureすべてでcap64はcap128よりlocal incremental dimensionsを多く回復する一方marginは小さく、local distinctnessをqualityの単調proxyにできない性質が複数fixtureでも残った。",
-      "cross-stage preregistration専用validatorをlocal Python 3.13.5で実行し15 tests PASSを確認し、B6d/B6e stress trackのproduction default化とfeature cardinalityのsemantic昇格もfail-closedにした。一方、unlock validatorはadjudication / dataset / split / B3 prior未freezeのため意図どおりlockedを維持した。semantic benchmark resultは未生成。"
+      "cross-stage preregistration専用validatorをlocal Python 3.13.5で実行し15 tests PASSを確認し、B6d/B6e stress trackのproduction default化とfeature cardinalityのsemantic昇格もfail-closedにした。一方、unlock validatorはadjudication / dataset / split / B3 prior未freezeのため意図どおりlockedを維持した。semantic benchmark resultは未生成。",
+      "cross-stage freeze kitをdraft manifest群として実装し、branch source再現のPython 3.13.5環境でfreeze-kit 17 testsとpreregistration 19 testsがPASSした。空のcurrent datasetはfreeze不可で、synthetic complete bundleのみdeterministic digest付きでfreezeできることを確認した。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -833,7 +834,8 @@
       "実problem class / real Outcome評価におけるoutcome-informed routingの一般化、selection-bias補正、statistical confidence、drift / expiry / rollback criteria",
       "production配置方式",
       "Product Value / Operational / Adoption / Outcome Evidence",
-      "cross-stage human-adjudicated evaluationはpreregistration済みだが、adjudication / dataset / split / B3 prior manifest未freezeのためlocked。semantic benchmark resultは未生成。"
+      "cross-stage human-adjudicated evaluationはpreregistration済みだが、adjudication / dataset / split / B3 prior manifest未freezeのためlocked。semantic benchmark resultは未生成。",
+      "実SUI/SEI human-adjudicated dataset、review process、split、B3 prior provenanceが未提供のためcross-stage freeze kitはdraftのまま。frozen bundleおよびevaluation-run artifactは未生成。"
     ],
     "supporting_evidence_files": [
       "input_normalization_evidence_2026-09-18.json",
@@ -846,7 +848,8 @@
       "../sei-cognition-orchestration/outcome_informed_routing_evidence_2026-09-18.json",
       "static_residual_scaling_evidence_2026-09-18.json",
       "multi_fixture_residual_scaling_evidence_2026-09-18.json",
-      "cross_stage_preregistration_evidence_2026-09-18.json"
+      "cross_stage_preregistration_evidence_2026-09-18.json",
+      "cross-stage-freeze/freeze_kit_evidence_2026-09-18.json"
     ]
   },
   "references": [
@@ -909,6 +912,16 @@
     "no_single_composite_score": true,
     "b5_entry_gate_changed": false,
     "unlock_rule": "human adjudication, dataset digest, split manifests, and B3 prior manifest must be frozen; evaluation starts only from a separate explicit evaluation-run artifact.",
-    "evidence_file": "cross_stage_preregistration_evidence_2026-09-18.json"
+    "evidence_file": "cross_stage_preregistration_evidence_2026-09-18.json",
+    "freeze_kit": {
+      "state": "draft",
+      "directory": "cross-stage-freeze",
+      "bundle_ref": "cross-stage-freeze/freeze_bundle.json",
+      "validator_ref": "cross-stage-freeze/freeze_manifests.py",
+      "evidence_ref": "cross-stage-freeze/freeze_kit_evidence_2026-09-18.json",
+      "current_bundle_is_frozen": false,
+      "result_generation_enabled_after_freeze": false,
+      "b5_entry_gate_changed": false
+    }
   }
 }
