@@ -3,7 +3,7 @@
 Status: **Open**  
 Priority: **1**  
 Related ADRs: **ADR-0013, ADR-0019, ADR-0020, ADR-0021, ADR-0024**  
-Updated: 2026-09-11
+Updated: 2026-09-18
 
 ## ID再採番の経緯
 
@@ -105,6 +105,30 @@ actual Evidence commandでは、`PrefixArgs`を使ったwrapperや`go run`では
 
 既存`runtime/go/teiintegration`を再利用し、Provider Planの意味mappingを二重実装しない。
 
+## 2026-09-18 current implementation
+
+`develop/v0.2.0`には次を実装した。
+
+- `runtime/go/teiprobe/probe.go`
+- `runtime/go/teiprobe/probe_test.go`
+- `runtime/go/cmd/tei-e3b-probe/main.go`
+- `runtime/ACTUAL_TEI_EVIDENCE_PROTOCOL.md`
+
+`teiprobe`はProvider Planの意味mappingを再実装せず、既存`teiintegration.CLI.ObserveProviderPlan`へ委譲する。追加責務はdirect regular executableの実行前SHA-256、optional manifestのstrict照合、actual process実行、実行後SHA-256再確認、derived report生成に限定した。
+
+symlink binaryは拒否する。manifestはunknown field / malformed JSON / multiple JSON valuesを拒否し、repository / commit / digestが一致した場合だけ`manifest_matched`とする。process failure、timeout、Observation mapping failure、実行中digest変化ではPASS reportを返さない。
+
+fixture-scoped test sourceではmanifestなし / 一致 / 不一致、strict manifest、symlink、process failure、timeout、digest change、credential field非追加を扱う。ただしcurrent moduleはGo 1.25を要求し、この作業環境ではGo 1.25.xを取得できないため、**test sourceは実装済みだがactual `go test`はNot Yet Verified**である。
+
+```text
+implementation source available
+  + fixture-scoped test source available
+  + protocol document available
+  != current Go test PASS
+  != actual TEI report PASS
+  != E3b-P2 scope expansion
+```
+
 ## 必須検査
 
 1. 実行対象binary fileのSHA-256を計算する。
@@ -150,17 +174,17 @@ binary digestやbuild manifestはEvidence / provenanceの実現手段であり�
 
 ## 完了条件
 
-- [ ] `runtime/go/teiprobe`を実装する。
-- [ ] `tei-e3b-probe` commandを実装する。
-- [ ] binary SHA-256とsource declarationをderived reportへ記録する。
-- [ ] manifestなし / 一致 / 不一致をtestへ落とす。
-- [ ] process failure / timeout時にPASS reportを生成しないことをtestする。
-- [ ] reportにcredential fieldを持たせない。
-- [ ] current runtime regressionを含むCIをsuccessさせる。
-- [ ] Evidence protocol文書を自然な日本語で整備する。
-- [ ] Product Milestone / Realization Provider Exchange / upstream planへ境界を同期する。
-- [ ] plan registry / document review registryを同期する。
-- [ ] 自然な日本語を最重要視した全文再ドラフトと最終意味監査を行う。
+- [x] `runtime/go/teiprobe`を実装する。
+- [x] `tei-e3b-probe` commandを実装する。
+- [x] binary SHA-256とsource declarationをderived reportへ記録する。
+- [x] manifestなし / 一致 / 不一致をtest sourceへ落とす。
+- [x] process failure / timeout時にPASS reportを生成しないtest sourceを追加する。
+- [x] report schemaにcredential fieldを持たせない。
+- [ ] current Go 1.25環境で`teiprobe`を含むrepository-local runtime regressionを実行する。
+- [x] Evidence protocol文書を自然な日本語で整備する。
+- [x] Product Milestone / Realization Provider Exchange / upstream planへ境界を同期する。
+- [x] plan registryのcurrent登録を確認し、document review registryへ新規protocol文書を同期する。
+- [x] 自然な日本語を最重要視した全文再ドラフトと最終意味監査を行う。
 
 ## Evidence state
 
@@ -168,7 +192,7 @@ binary digestやbuild manifestはEvidence / provenanceの実現手段であり�
 
 - E3b-P1 public live Provider service: **Scoped Executable Evidence available**
 - external TEI executable injection boundary: **Scoped Executable Evidence available with helper subprocess**
-- actual TEI Evidence collection protocol: **Not Yet Verified**
+- actual TEI Evidence collection protocol: **Implementation source available / Executable Evidence Not Yet Verified**。`teiprobe` / `tei-e3b-probe` / protocol文書とfixture-scoped test sourceはcurrent developへ統合済みだが、Go 1.25でのactual test runとactual TEI reportは未取得
 - E3b-P2 actual TEI CLI execution: **Scoped Executable Evidence available（ISSUE-000065 / revision A fixed-artifact）**
 - TEI executable version交換後のProvider Observation境界: **Not Yet Verified（ISSUE-000072 Open）**
 - source-to-binary authenticity: **Not Yet Verified**
@@ -178,7 +202,9 @@ binary digestやbuild manifestはEvidence / provenanceの実現手段であり�
 - Release Evidence: **available（ISSUE-000063 / v0.2.0、supported scopeはE3aまで）**
 - Adoption / Outcome Evidence: **Not Yet Verified**
 
-ISSUE-000065はrevision Aのfixed-artifactについてactual binary SHA-256とProvider Plan SHA-256を個別のEvidence文書へ記録したが、`runtime/go/teiprobe` / `tei-e3b-probe` / `sei.e3b-tei-probe/v1`として再利用可能なEvidence採取プロトコルと、build manifestによるsource-to-binary bindingは実装していない。本Issueが未完了として残るのはこの範囲である。
+ISSUE-000065はrevision Aのfixed-artifactについてactual binary SHA-256とProvider Plan SHA-256を個別のEvidence文書へ記録した。2026-09-18に本Issueで`runtime/go/teiprobe` / `tei-e3b-probe` / `sei.e3b-tei-probe/v1`の再利用可能な採取境界と、optional build manifestによるsource-to-binary bindingを実装した。
+
+ただし、本Issueが未完了として残る範囲は、current sourceに対するGo 1.25 actual test executionとactual TEI binaryによるreport生成である。実装sourceの存在やfixture sourceを、current Executable Evidenceへは昇格させない。
 
 ## Reopen / escalation条件
 
@@ -189,4 +215,6 @@ ISSUE-000065はrevision Aのfixed-artifactについてactual binary SHA-256とPr
 
 ## Natural Japanese review
 
-PMS-06、ISSUE-000060 / 000061、current Capability Observation Contract、Provider Adapter、`runtime/go/teiintegration`、`hat47x/tei-platform`のGo CLI・reference artifacts・CI構成を照合した。TEIには実行可能なCLI sourceがある一方、現時点ではSEIがそのまま利用できるbinary配布artifactがなく、private repositoryの取得方式をSEI側へ暗黙に持ち込むべきでもない。そのため、取得方式そのものを先に固定せず、実際に供給されたbinary bytesのSHA-256とsource declaration、任意manifestとの一致状態をderived Evidenceとして記録する境界を先に定めた。`manifest_matched`もmanifest真正性の検証とは区別し、Evidenceの高さを過大評価していない。意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
+PMS-06、ISSUE-000060 / 000061、current Capability Observation Contract、Provider Adapter、`runtime/go/teiintegration`、`hat47x/tei-platform`のGo CLI・reference artifacts・CI構成を照合した。TEIには実行可能なCLI sourceがある一方、現時点ではSEIがそのまま利用できるbinary配布artifactがなく、private repositoryの取得方式をSEI側へ暗黙に持ち込むべきでもない。そのため、取得方式そのものを先に固定せず、実際に供給されたbinary bytesのSHA-256とsource declaration、任意manifestとの一致状態をderived Evidenceとして記録する境界を先に定めた。`manifest_matched`もmanifest真正性の検証とは区別し、Evidenceの高さを過大評価していない。2026-09-18には、設計だけだったEvidence protocolを`teiprobe`、`tei-e3b-probe`、fixture-scoped test source、`ACTUAL_TEI_EVIDENCE_PROTOCOL.md`として実体化し、Product Milestone、Realization / Provider Exchange、Upstream Planへcurrent境界を同期した。current Go 1.25 testとactual TEI reportが未取得であること、manifest matchが真正性検証ではないこと、helper fixtureをactual TEI Evidenceへ昇格させないことを維持している。
+
+意味、規範強度、未検証範囲、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施した。
