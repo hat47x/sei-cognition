@@ -10,12 +10,16 @@ from inquiry_continuity_assistance_probe import (
     AssistanceProbeError,
     RESPONSE_SCHEMA,
     build_audit_packets,
+    build_audit_receipt,
     build_initial_packets,
     build_reveal_packets,
+    build_reveal_receipt,
     git_blob_sha1,
     load_sources,
     probe_content_sha256,
     response_template,
+    save_stage_receipt,
+    stage_receipt_bytes,
     validate_probe,
     validate_response,
 )
@@ -272,6 +276,35 @@ class AssistanceProbeTest(unittest.TestCase):
         )
         return path
 
+    def _reveal_receipt(self, initial: Path):
+        receipt = build_reveal_receipt(
+            self.probe,
+            self.fixtures,
+            "R1",
+            initial,
+            "2026-09-19T00:00:00+09:00",
+        )
+        return receipt, stage_receipt_bytes(receipt)
+
+    def _audit_receipt(
+        self,
+        initial: Path,
+        reveal: Path,
+        reveal_receipt: dict,
+        reveal_receipt_raw: bytes,
+    ):
+        receipt = build_audit_receipt(
+            self.probe,
+            self.fixtures,
+            "R1",
+            initial,
+            reveal,
+            reveal_receipt,
+            reveal_receipt_raw,
+            "2026-09-19T00:05:00+09:00",
+        )
+        return receipt, stage_receipt_bytes(receipt)
+
     def test_rotation_and_semantic_stoplines_validate(self):
         validate_probe(self.probe)
         self.assertEqual(
@@ -323,11 +356,14 @@ class AssistanceProbeTest(unittest.TestCase):
             "initial.json",
             "initial",
         )
+        receipt, receipt_raw = self._reveal_receipt(response)
         packets = build_reveal_packets(
             self.probe,
             self.fixtures,
             "R1",
             response,
+            receipt,
+            receipt_raw,
         )
         self.assertEqual(len(packets), 3)
         self.assertEqual(
@@ -354,11 +390,12 @@ class AssistanceProbeTest(unittest.TestCase):
             encoding="utf-8",
         )
         with self.assertRaises(AssistanceProbeError):
-            build_reveal_packets(
+            build_reveal_receipt(
                 self.probe,
                 self.fixtures,
                 "R1",
                 response,
+                "2026-09-19T00:00:00+09:00",
             )
 
     def test_response_fixture_and_presentation_order_are_fixed(self):
@@ -402,12 +439,25 @@ class AssistanceProbeTest(unittest.TestCase):
             "reveal.json",
             "reveal",
         )
+        reveal_receipt, reveal_receipt_raw = self._reveal_receipt(
+            initial
+        )
+        audit_receipt, audit_receipt_raw = self._audit_receipt(
+            initial,
+            reveal,
+            reveal_receipt,
+            reveal_receipt_raw,
+        )
         packets = build_audit_packets(
             self.probe,
             self.fixtures,
             "R1",
             initial,
             reveal,
+            reveal_receipt,
+            reveal_receipt_raw,
+            audit_receipt,
+            audit_receipt_raw,
         )
         self.assertEqual(
             [packet["condition"] for packet in packets],
@@ -435,6 +485,76 @@ class AssistanceProbeTest(unittest.TestCase):
                 for packet in packets
             )
         )
+
+    def test_reveal_receipt_never_overwrites(self):
+        initial = self._response(
+            "initial.json",
+            "initial",
+        )
+        receipt, _ = self._reveal_receipt(initial)
+        target = self.root / "reveal-receipt.json"
+        save_stage_receipt(
+            target,
+            receipt,
+            "reveal receipt",
+        )
+        original = target.read_bytes()
+        with self.assertRaises(AssistanceProbeError):
+            save_stage_receipt(
+                target,
+                receipt,
+                "reveal receipt",
+            )
+        self.assertEqual(target.read_bytes(), original)
+
+    def test_audit_rejects_initial_response_changed_after_reveal(self):
+        initial = self._response(
+            "initial.json",
+            "initial",
+        )
+        reveal_receipt, reveal_receipt_raw = self._reveal_receipt(
+            initial
+        )
+        changed = json.loads(initial.read_text(encoding="utf-8"))
+        changed["notes"] = "changed after reveal"
+        initial.write_text(
+            json.dumps(changed, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        reveal = self._response(
+            "reveal.json",
+            "reveal",
+        )
+        with self.assertRaises(AssistanceProbeError):
+            build_audit_receipt(
+                self.probe,
+                self.fixtures,
+                "R1",
+                initial,
+                reveal,
+                reveal_receipt,
+                reveal_receipt_raw,
+                "2026-09-19T00:05:00+09:00",
+            )
+
+    def test_reveal_packet_rejects_receipt_value_raw_mismatch(self):
+        initial = self._response(
+            "initial.json",
+            "initial",
+        )
+        receipt, receipt_raw = self._reveal_receipt(initial)
+        changed = copy.deepcopy(receipt)
+        changed["revealed_at"] = "2026-09-19T00:01:00+09:00"
+        mismatched_raw = stage_receipt_bytes(changed)
+        with self.assertRaises(AssistanceProbeError):
+            build_reveal_packets(
+                self.probe,
+                self.fixtures,
+                "R1",
+                initial,
+                receipt,
+                mismatched_raw,
+            )
 
     def test_source_set_manifest_is_frozen_and_matches_cases(self):
         matched = self.root / "matched-set.json"
