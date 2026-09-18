@@ -1,0 +1,45 @@
+{
+  "schema": "issue-000073-capture-workflow-selftest-evidence/v1",
+  "issue": "ISSUE-000073",
+  "observed_at": "2026-09-18T03:36:35Z",
+  "scope": "Executable Evidence for the one-command capture workflow only; not E1-E8 Go evidence, not H1/H2 human review, not Decision Continuity Product Value.",
+  "source_binding": {
+    "repository": "hat47x/sei-cognition",
+    "source_commit": "d6d82a2e405727c7a4e76d001f34ed3f279372b6",
+    "still_current_at_commit": "5818a418ac625fe42a6b9f1673408da600458be9",
+    "files": [
+      {
+        "path": "tools/capture_issue_000073_resume_first_evidence.py",
+        "git_blob": "70c936314e4810b7f038f86b86e7b2d32cb9f8cb",
+        "sha256": "d33f6551c7e8307be45f603ac92c3a505ab9b5d19f1b7d2f2412496054a864e6"
+      },
+      {
+        "path": "tools/test_capture_issue_000073_resume_first_evidence.py",
+        "git_blob": "65c7a0c7379184636d1ddfb1bd113ce55f40d710",
+        "sha256": "f48012a3eb1295cc0b7479779f0fd159e398e99a4dd55f9aa1dc7edf04359dc8"
+      }
+    ]
+  },
+  "environment": {
+    "python": "Python 3.13.5",
+    "git": "git version 2.47.3"
+  },
+  "execution": {
+    "syntax_check": "python3 -m py_compile capture_issue_000073_resume_first_evidence.py test_capture_issue_000073_resume_first_evidence.py",
+    "self_test": "python3 test_capture_issue_000073_resume_first_evidence.py",
+    "exit_code": 0,
+    "stdout": "PASS: ISSUE-000073 capture workflow self-tests",
+    "status": "pass"
+  },
+  "covered_boundaries": [
+    "normal PASS publishes Evidence and verification",
+    "runner blocked keeps raw Evidence only",
+    "runner exit 0 without a readable record fails closed",
+    "runner exit 2 without a readable blocked record is not accepted as blocked",
+    "--replace with a missing runner record removes stale prior Evidence and verification",
+    "verifier failure is not promoted to PASS",
+    "existing outputs require intentional --replace",
+    "Evidence and verification cannot share one output path"
+  ],
+  "stop_line": "Capture workflow self-test PASS != E1-E8 executable PASS != H1/H2 human review != Decision Continuity Product Value established."
+}

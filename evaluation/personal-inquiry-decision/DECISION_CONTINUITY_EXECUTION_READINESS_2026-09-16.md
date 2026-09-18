@@ -1,6 +1,6 @@
 # ISSUE-000073 — Decision Continuity 実行準備状態
 
-更新日: 2026-09-17  
+更新日: 2026-09-18  
 状態: **Current Execution Readiness / Executable and Human Evidence Pending**
 
 ## 1. この文書の役割
@@ -140,18 +140,42 @@ tools/capture_issue_000073_resume_first_evidence.py
 captureは次を守ります。
 
 - runnerがblocked / failならverifierへ進まず、raw診断Evidenceだけを保存する。
+- runnerのexit codeだけをEvidence stateとして信用せず、readable JSON recordとの整合を要求する。
+- runnerがzero exitでも`status=pass` recordを出していなければfailとする。
+- runnerがrecordを生成できない異常終了ではverifierへ進まず、wrapper自身も例外終了せずfail-closedにする。
 - verifier failureをPASSへ昇格させない。
 - 既存Evidenceを暗黙に上書きせず、意図的な再実行では`--replace`を要求する。
+- `--replace`中にrunner record生成自体が失敗した場合、旧Evidence / verificationを残して新runと誤認させない。
 - 一時artifactをcheckout外へ置き、capture自身がrunnerのclean-tree preconditionを壊さない。
 - verified E1〜E8をH1 / H2 / Product Valueへ自動昇格しない。
 
-capture workflowのself-testも実際に実行し、PASSを確認しています。
+2026-09-18に、PR #428でfail-closed境界を補強したcurrent sourceに対して、`py_compile`とcapture workflow self-testをactual実行しました。
 
 ```text
+Python 3.13.5
+git version 2.47.3
 PASS: ISSUE-000073 capture workflow self-tests
 ```
 
-これらのself-testはEvidence受入れ経路の検証であり、E1〜E8自体のGo Executable Evidenceではありません。
+実行対象は、次のsource blobへ固定しています。
+
+```text
+tools/capture_issue_000073_resume_first_evidence.py
+  git blob: 70c936314e4810b7f038f86b86e7b2d32cb9f8cb
+  sha256: d33f6551c7e8307be45f603ac92c3a505ab9b5d19f1b7d2f2412496054a864e6
+
+tools/test_capture_issue_000073_resume_first_evidence.py
+  git blob: 65c7a0c7379184636d1ddfb1bd113ce55f40d710
+  sha256: f48012a3eb1295cc0b7479779f0fd159e398e99a4dd55f9aa1dc7edf04359dc8
+```
+
+machine-readable Evidenceは次へ保存します。
+
+```text
+evaluation/personal-inquiry-decision/evidence/issue-000073/capture-workflow-selftest-2026-09-18.json
+```
+
+このPASSはcapture workflowの受入れ経路だけに限定したExecutable Evidenceです。E1〜E8自体のGo Executable Evidence、H1 / H2 human review、Decision Continuity Product Valueには昇格させません。
 
 ## 6. actual E1〜E8実行手順
 
@@ -287,7 +311,7 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 | E1〜E8 test source | Available |
 | Evidence runner preflight self-test | PASS |
 | Evidence verifier self-test | PASS |
-| One-command capture workflow self-test | PASS |
+| One-command capture workflow self-test | **PASS on current source (2026-09-18); machine-readable Evidence recorded** |
 | E1〜E8 actual Go 1.25.x run | **Not Yet Verified** |
 | Current session Go 1.25.x availability | **Blocked by execution-environment DNS / network; not a repository test failure** |
 | REQ-0023 / SCN-0019 Executable Evidence | **Not Yet Verified** |
@@ -317,6 +341,8 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 ## 11. Natural Japanese review
 
 2026-09-17の更新では、E1〜E8の入口をrunner / verifierの個別手順だけでなく、fail-closedなone-command captureへ一本化しました。個別runner / verifierは診断用として残し、Evidence保存の標準経路を増やしていません。
+
+2026-09-18には、runnerがJSON recordを生成しない異常終了や、exit code 2だけでblockedと誤認する経路、failed `--replace`で旧PASS Evidenceが残る経路を追加で閉じました。補強後のcurrent sourceをactualに`py_compile` / self-test実行し、capture workflowについてPASSを確認しました。この結果はsource blobと実行環境をmachine-readable Evidenceへ固定していますが、E1〜E8 actual Go 1.25.x runとは分離しています。
 
 同日の実行環境確認では、host Goが1.23.2であることに加え、`GOTOOLCHAIN=go1.25.0+auto`によるGo 1.25.0取得も外向きDNS / network制限で成立しないことをactualに確認しました。このblockerをinteractionprobeのFAILとは扱わず、低いGoで代替PASSを作らない停止線を維持しています。
 
