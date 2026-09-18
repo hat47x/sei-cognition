@@ -1,0 +1,47 @@
+{
+  "schema": "issue-000073-h2-runner-capture-selftest-evidence/v1",
+  "issue": "ISSUE-000073",
+  "observed_at": "2026-09-18T05:03:01Z",
+  "scope": "Executable Evidence for the H2 shared-runner self-test capture workflow only; not the Decision regression test PASS, not H2 human review, not H1 actual resume usability, not Decision Continuity Product Value.",
+  "source_binding": {
+    "repository": "hat47x/sei-cognition",
+    "source_commit": "78a1c22e70be5a2c3eda0bf35f63b1026107dbdf",
+    "files": [
+      {
+        "path": "tools/capture_issue_000073_h2_runner_selftest.py",
+        "git_blob": "bcefb1668e39ff6f80c14db7a2f9d228c81f4841",
+        "sha256": "1d679e65c1683c3c7369b865024a0270265be93f33311d4a13c1a7aae1222e93"
+      },
+      {
+        "path": "tools/test_capture_issue_000073_h2_runner_selftest.py",
+        "git_blob": "76e91967597acbad7f977a2678b31f6c30c34c60",
+        "sha256": "2ff1509b0ef8a50f4781a02c75f51081a8ead98ba4956e437b0ba68538dbc976"
+      }
+    ]
+  },
+  "environment": {
+    "python": "Python 3.13.5",
+    "git": "git version 2.47.3"
+  },
+  "execution": {
+    "syntax_check": {
+      "command": "python3 -m py_compile capture_issue_000073_h2_runner_selftest.py test_capture_issue_000073_h2_runner_selftest.py",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    "self_test": {
+      "command": "python3 test_capture_issue_000073_h2_runner_selftest.py",
+      "exit_code": 0,
+      "stdout": "PASS: ISSUE-000073 H2 runner self-test capture workflow",
+      "status": "pass"
+    }
+  },
+  "covered_boundaries": [
+    "clean committed checkout can publish a PASS record bound to HEAD and required sources",
+    "dirty checkout blocks without publishing Evidence",
+    "missing required source blocks",
+    "Decision regression test failure is recorded as FAIL rather than promoted to PASS",
+    "existing Evidence requires explicit --replace before intentional rerun"
+  ],
+  "stop_line": "H2 runner capture workflow self-test PASS != Decision H2 regression test PASS != H2 human review != H1 actual resume usability != Decision Continuity Product Value established."
+}
