@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run repository-local ISSUE-000072 focused checks.
+"""Run repository-local ISSUE-000076 failure-behavior focused checks.
 
 This runner deliberately stops at deterministic / fixture-scoped evidence. It
 must not be used to claim actual Provider failure behavior or Operational
@@ -213,7 +213,7 @@ def run_checks(
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="ISSUE-000072のrepository-local focused checksを実行します。",
+        description="ISSUE-000076のrepository-local failure-behavior focused checksを実行します。",
         allow_abbrev=False,
     )
     parser.add_argument("--list", action="store_true", help="check一覧を表示して終了します。")
