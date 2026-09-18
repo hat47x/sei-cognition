@@ -1,0 +1,81 @@
+{
+  "schema": "sei.sacs-cross-stage-result-contract-evidence/v1alpha1",
+  "date": "2026-09-18",
+  "issue": 473,
+  "branch": "topic/sacs-cross-stage-result-contract",
+  "base_branch": "develop/v0.2.0",
+  "artifact": {
+    "result_ref": "result.json",
+    "validator_ref": "validate_result.py",
+    "test_ref": "test_validate_result.py",
+    "preregistration_ref": "../cross_stage_benchmark_preregistration.json",
+    "run_ref": "../cross-stage-run/evaluation_run.json",
+    "freeze_bundle_ref": "../cross-stage-freeze/freeze_bundle.json"
+  },
+  "current_state": {
+    "result_state": "draft",
+    "results_generated": false,
+    "current_run_authorized": false,
+    "current_freeze_bundle_frozen": false,
+    "semantic_interpretation_generated": false,
+    "b5_entry_gate_changed": false,
+    "production_default_changed": false
+  },
+  "source_inspection": {
+    "status": "pass",
+    "result_blob_sha": "8de66bd58944f2503bc865d0504244545b6f8861",
+    "validator_blob_sha": "990b7b836bd2e4ef6028ef39f2f52708efbb6f5f",
+    "test_blob_sha": "93de7b3bce1a14b8ac8187fb40fa3e454a414cc6",
+    "validator_functions": [
+      "canonical_result_digest",
+      "validate_result_structure",
+      "validate_completed_result"
+    ],
+    "regression_tests_defined": 24,
+    "verified_contracts": [
+      "checked-in result remains draft / empty",
+      "completed result requires authorized run and full preregistration unlock",
+      "result binds exact authorized run digest",
+      "track / variant / capacity / stress identity must match authorized run",
+      "observed environment must match authorized run environment",
+      "requested metrics must be recorded exactly once",
+      "retrieval metric role is preserved from preregistration categories",
+      "unavailable metric is explicit and is not represented as zero",
+      "measured metric requires finite numeric value and sample_count >= 1",
+      "raw-output and environment-capture evidence refs require SHA-256 digests",
+      "completed result is canonical SHA-256 self-bound",
+      "strict schema rejects winner / decision fields",
+      "completed execution requires exit_code=0 and ordered UTC timestamps",
+      "result artifact does not generate semantic interpretation, B5 decision, or production default"
+    ]
+  },
+  "execution_observation": {
+    "validator_runtime_execution": "not-observed-in-this-artifact-update",
+    "unittest_runtime_execution": "not-observed-in-this-artifact-update",
+    "github_actions_used": false,
+    "note": "This Evidence records GitHub-source inspection and defined regression coverage. It does not claim that the 24 tests executed or passed in this artifact update."
+  },
+  "stop_lines": [
+    "draft result != benchmark result",
+    "result artifact != benchmark interpretation",
+    "measured metric != semantic truth",
+    "diagnostic metric != semantic score",
+    "unavailable metric != zero",
+    "result artifact != variant winner",
+    "result artifact != B5 gate decision",
+    "result artifact != production adoption",
+    "synthetic completed-result path != human-adjudicated benchmark result"
+  ],
+  "not_verified": [
+    "runtime execution of validate_result.py in this artifact update",
+    "runtime execution of test_validate_result.py in this artifact update",
+    "actual frozen human-adjudicated bundle",
+    "actual authorized evaluation run",
+    "actual executor output",
+    "actual raw-output and environment-capture artifacts",
+    "human-adjudicated semantic benchmark results",
+    "benchmark interpretation",
+    "B5 gate decision",
+    "Product Value / Operational / Adoption / Outcome Evidence"
+  ]
+}
