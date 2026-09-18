@@ -453,9 +453,9 @@ source fixture単体だけでなく、元となるmatched-set manifest自体もG
 
 さらに、initial response固定後に全候補を開く前にexclusive-createのreveal receipt v1を保存し、canonical probe / rotation / fixed initial response SHA-256 / exact reveal material SHA-256 / reveal timestampへ結ぶ。reveal response固定後にcondition mapping / reference state / audit keyを開く前にはaudit receipt v1を保存し、reveal receipt SHA-256 / fixed initial・reveal response SHA-256 / exact audit material SHA-256 / audit timestampへ結ぶ。audit timestampがreveal timestampより前の場合、responseがreceipt固定後に変更された場合、receiptのsemantic valueとraw bytesが一致しない場合を拒否する。CLIはreceiptをexclusive-createできた後にだけpacketをstdoutへ出す。
 
-response schemaはv2へ更新し、initial responseはprior-stage gateを持たず、reveal responseはvalidated reveal receiptのexact raw bytes SHA-256を`stage_gate_sha256`として必須で保持する。audit receipt作成時・検証時にも同じreveal receipt SHA-256を期待してreveal responseを再検証するため、別receiptへ結ばれたresponseを後からaudit chainへ差し込めない。CLIのreveal response templateではoperatorがdigestを自由入力せず、validated receipt raw bytesからgate SHA-256を導出する。
+pre-stimulus reviewer provenanceもreview-start receipt v1へ固定する。initial packetを出力する前にopaque reviewer id、declared prior exposure、response authorship、started_at、canonical probe / rotationをexclusive-createし、そのexact raw bytes SHA-256をpacket v2、response v3、reveal receipt v2、audit receipt v2へ一貫して伝播する。response schema v3ではinitial / revealの双方が同じreview-start receiptへ結ばれ、initial responseはprior-stage gateを持たず、reveal responseはさらにvalidated reveal receiptのexact raw bytes SHA-256を`stage_gate_sha256`として必須で保持する。audit receipt作成時・検証時にも両receipt bindingを再検証するため、別reviewer provenanceや別reveal receiptへ結ばれたresponseを後から同じaudit chainへ差し込めない。
 
-現時点で成立したのはcondition-blinded executable scaffold、structured response v2、reveal / audit stage receipt chainまでである。残る主要gapはpre-stimulus reviewer provenanceを固定するreview-start receiptであり、human reviewも**Not Yet Observed**である。したがってQuiet / Proactive / Adaptiveのどれかを採用する根拠やStable Requirement変更には使わない。
+現時点で成立したのはcondition-blinded executable scaffold、pre-stimulus provenance receipt、structured response v3、reveal / audit stage receipt chainまでである。human reviewは依然**Not Yet Observed**であり、次のgapはaudit後のhuman findingをtypedに保存し、このchainをdurable Evidenceとしてexportする経路である。したがってQuiet / Proactive / Adaptiveのどれかを採用する根拠やStable Requirement変更には使わない。
 
 ### E78.7 — Closure / dormancy
 
