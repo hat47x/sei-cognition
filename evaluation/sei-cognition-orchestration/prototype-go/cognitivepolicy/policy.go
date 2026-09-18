@@ -49,6 +49,7 @@ type ProblemPolicy struct {
 	ProblemClass            string
 	StaticRoute             string
 	AllowedRoutes           []RouteOption
+	MinimumEscalationLevel  int
 	RequiredSuccessRate     float64
 	MinAssessedObservations int
 }
@@ -164,6 +165,9 @@ func (s *Store) BuildCandidate(records []OutcomeRecord) (Snapshot, error) {
 		}
 		var eligible []eligibleRoute
 		for _, option := range definition.AllowedRoutes {
+			if option.EscalationLevel < definition.MinimumEscalationLevel {
+				continue
+			}
 			routeStats := stats[problemClass][option.ID]
 			if routeStats.Assessed < definition.MinAssessedObservations {
 				continue
@@ -309,12 +313,16 @@ func validateProblemPolicy(definition ProblemPolicy) error {
 		definition.RequiredSuccessRate < 0 || definition.RequiredSuccessRate > 1 {
 		return fmt.Errorf("problem class %s required success rate must be finite and in [0,1]", definition.ProblemClass)
 	}
+	if definition.MinimumEscalationLevel < 0 {
+		return fmt.Errorf("problem class %s minimum escalation level must be >= 0", definition.ProblemClass)
+	}
 	if definition.MinAssessedObservations <= 0 {
 		return fmt.Errorf("problem class %s minimum assessed observations must be > 0", definition.ProblemClass)
 	}
 
 	seen := make(map[string]struct{}, len(definition.AllowedRoutes))
 	staticFound := false
+	staticLevel := -1
 	for _, option := range definition.AllowedRoutes {
 		if strings.TrimSpace(option.ID) == "" {
 			return fmt.Errorf("problem class %s contains empty route id", definition.ProblemClass)
@@ -331,10 +339,14 @@ func validateProblemPolicy(definition ProblemPolicy) error {
 		seen[option.ID] = struct{}{}
 		if option.ID == definition.StaticRoute {
 			staticFound = true
+			staticLevel = option.EscalationLevel
 		}
 	}
 	if !staticFound {
 		return fmt.Errorf("problem class %s static route %s is not in allowed routes", definition.ProblemClass, definition.StaticRoute)
+	}
+	if staticLevel < definition.MinimumEscalationLevel {
+		return fmt.Errorf("problem class %s static route is below minimum escalation level", definition.ProblemClass)
 	}
 	return nil
 }
