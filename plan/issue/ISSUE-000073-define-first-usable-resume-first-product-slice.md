@@ -212,7 +212,7 @@ Question 5、6、9については、Requirement auditとREQ-0023 / SCN-0019のfo
 - E1〜E8 actual Go 1.25.x execution: **Not Yet Verified**
 - REQ-0023 / SCN-0019 Executable Evidence: **Not Yet Verified**
 - H1 resume usability review: **Not Yet Observed**
-- H2 counterfactual Decision Continuity review: **Not Yet Observed**。073/078共通runnerでreviewer provenanceをstimulus提示前に固定し、Decision固有validationとEvidence exportまで同じ経路へ統合済み
+- H2 counterfactual Decision Continuity review: **Not Yet Observed**。073/078共通runnerでreviewer provenanceをstimulus提示前に固定し、Decision固有validationとEvidence exportまで同じ経路へ統合済み。current Decision manifest / 3 fixture / R1〜R3のstatic source auditは整合し、actual repository integration test sourceも追加済みだが、Python focused test execution自体は**Not Yet Verified**
 - Decision Continuity Product Value: **Not Established**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
@@ -229,6 +229,8 @@ evaluation/personal-inquiry-decision/evidence/issue-000073/capture-workflow-self
 これらはrunner / verifier / captureの受入れ系に限定したExecutable Evidenceであり、E1〜E8 actual Go Evidenceではない。currentの実行手順とblocker詳細は`evaluation/personal-inquiry-decision/DECISION_CONTINUITY_EXECUTION_READINESS_2026-09-16.md`をcurrent-state正本として参照する。
 
 H2については2026-09-18に実行経路を再監査し、`inquiry_continuity_review_runner.py`を073/078共通のprovenance-first入口としてDecision Continuityにも対応させた。reviewer provenanceを固定しないsessionからreviewer bundleを開かず、condition labelをreviewerへ出さず、Decision固有response validationを通したcomplete sessionだけをEvidence exportへ進める。
+
+同じ日にcurrent Decision manifestと3 fixtureを正本bytesから再照合し、Decision参照、historical basis、unresolved、post-decision id、condition割当、R1〜R3 rotationの構造整合をstatic source auditとして確認した。さらにcurrent repositoryのmanifest / fixtureを共有runnerから直接開くintegration test sourceを追加した。ただし、このauditとtest sourceの存在はPython test actual PASSではない。
 
 同日の作業過程では、R1相当のphase1 materialがこの境界を追加する前に一度提示されたが、human responseは固定されなかった。この提示をH2 observationへは数えず、同じreaderが後続reviewを行う場合は`known-material-exposure`として扱う。clean blinded pilotが必要なら、当該materialへ未露出のreaderを用いる。
 
