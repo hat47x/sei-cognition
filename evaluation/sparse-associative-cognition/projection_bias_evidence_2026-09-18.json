@@ -1,0 +1,133 @@
+{
+  "schema": "sei.sacs-projection-bias-evidence/v1alpha1",
+  "date": "2026-09-18",
+  "status": "limited-local-executable-evidence",
+  "subject": "SAC-B3 provenance-bearing policy-bounded exact-feature projection bias",
+  "issue": 441,
+  "branch": "topic/sac-b3-policy-bounded-biased-projection",
+  "policy": {
+    "ownership": "caller-owned; SACS does not learn or infer salience",
+    "selector": "exact (channel, key) only",
+    "policyRefRequired": true,
+    "ruleProvenanceRefRequired": true,
+    "callerMaxMultiplierRequired": true,
+    "hardMaxMultiplier": 4,
+    "maxRules": 64,
+    "applicationOrder": [
+      "SUI-shaped feature extraction",
+      "optional B1 input normalization",
+      "B3 exact-feature bounded bias",
+      "optional B2 localized competition / global residual",
+      "sparse projection"
+    ],
+    "capacityInvariant": "Dimensions, Fanout, and Active are unchanged; bias only changes competition within the existing sparse capacity.",
+    "implementation": "Rules are validated and cloned at Provider construction, compiled into an exact-selector map once, and applied in place to request-owned prepared features."
+  },
+  "syntheticFixtures": [
+    {
+      "id": "B3-RARE-CRITICAL-01",
+      "config": {
+        "dimensions": 32768,
+        "fanout": 4,
+        "active": 16,
+        "seed": 47
+      },
+      "rule": {
+        "channel": "provenance:source",
+        "key": "critical:s1",
+        "multiplier": 2,
+        "provenanceRef": "policy-source:critical-v1"
+      },
+      "similarity": {
+        "uniform": {
+          "desired": 0.0625,
+          "textDistractor": 0.125,
+          "unrelated": 0.0625
+        },
+        "biased": {
+          "desired": 0.25,
+          "textDistractor": 0.125,
+          "unrelated": 0.0625
+        }
+      },
+      "observation": "The exact rare provenance prior raises the shared critical feature into the sparse winner set and reverses the synthetic baseline miss without increasing the unrelated candidate in this fixture."
+    },
+    {
+      "id": "B3-COMMON-NOISE-NEGATIVE-CONTROL-01",
+      "config": {
+        "dimensions": 32768,
+        "fanout": 4,
+        "active": 16,
+        "seed": 47
+      },
+      "rule": {
+        "channel": "kind",
+        "key": "card",
+        "multiplier": 2,
+        "provenanceRef": "negative-control:common-kind"
+      },
+      "similarity": {
+        "uniformUnrelated": 0.0625,
+        "biasedUnrelated": 0.25
+      },
+      "observation": "A provenance-bearing but semantically poor caller policy can still create false activation by boosting a common feature. Provenance and hard bounds provide auditability and containment, not policy correctness."
+    }
+  ],
+  "standaloneGoReconstruction": {
+    "toolchain": "go1.23.2 linux/amd64",
+    "repositoryGoDirective": "1.25",
+    "exactRepositoryCheckout": false,
+    "method": "Standalone deterministic Go reconstruction of the current hash/projection algorithm, SUI-shaped feature extraction, exact-selector bias, and the B3 fixtures.",
+    "fixtureCommand": "go test -v",
+    "fixtureResult": "PASS",
+    "benchmarkCommand": "go test -bench=BenchmarkPrepare -benchmem -count=3",
+    "benchmark": {
+      "uniformPreparedFeatures": {
+        "latencyNsPerOpRange": [9791, 9875],
+        "bytesPerOpRange": [6315, 6316],
+        "allocsPerOp": 52
+      },
+      "biasedPreparedFeatures": {
+        "latencyNsPerOpRange": [10364, 10798],
+        "bytesPerOp": 6316,
+        "allocsPerOp": 52
+      },
+      "interpretation": "The reconstruction shows no additional allocation count for in-place bias application. Exact-selector map lookup adds a modest CPU delta in this synthetic preparation path; this is not an exact repository benchmark."
+    }
+  },
+  "repositoryBranchVerification": {
+    "temporaryWorkflow": ".github/workflows/sac-b3-go-eval.yml",
+    "workflowRun": 35309896228,
+    "result": "runner failed before steps started; no job log was produced",
+    "interpretation": "This run does not constitute a code test failure and does not provide exact-branch execution evidence.",
+    "staticChecks": [
+      "policy defaults to disabled when ProjectionBias is nil",
+      "policyRef and every rule provenanceRef are required",
+      "caller maxMultiplier is bounded by a hard implementation cap of 4",
+      "duplicate exact selectors fail closed",
+      "policy and rules are cloned before Provider retention",
+      "rules are compiled once at Provider construction",
+      "bias is applied after normalization and before providerEncoder/B2 competition",
+      "bias mutates only request-owned prepared feature slices in place"
+    ]
+  },
+  "stopLines": [
+    "biased activation != semantic importance, truth, confidence, or priority",
+    "provenance-bearing policy != correct policy",
+    "rare-critical recovery in one synthetic fixture != general semantic quality",
+    "hard multiplier cap != protection from a semantically bad common-feature rule",
+    "bounded bias != learned salience",
+    "this evidence != production default",
+    "this evidence != SUI affinity benchmark result"
+  ],
+  "notVerified": [
+    "exact branch source execution on Go 1.25",
+    "repository-wide regression",
+    "actual SUI card distribution",
+    "human-adjudicated SUI meaning-quality benchmark",
+    "optimal multiplier bound below the hard cap",
+    "interaction quality across B1 normalization and B2 localized competition on real workloads",
+    "always-on latency on target wearable, home, and workstation profiles",
+    "Production, Operational, Adoption, or Outcome Evidence"
+  ]
+}
