@@ -28,96 +28,9 @@ const (
 )
 
 var (
-	sha256Pattern     = regexp.MustCompile(`^[0-9a-fA-F]{64}package teiprobe
-
-import (
-	"bytes"
-	"context"
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"io"
-	"os"
-	"regexp"
-	"strings"
-
-	"github.com/hat47x/sei-cognition/runtime/go/provideradapter"
-	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
-	"github.com/hat47x/sei-cognition/runtime/go/teiintegration"
-)
-
-const (
-	ReportSchema   = "sei.e3b-tei-probe/v1"
-	ManifestSchema = "sei.tei-binary-build-manifest/v1"
-
-	SourceBindingNotVerified    = "not_verified"
-	SourceBindingManifestMatch  = "manifest_matched"
-	BinaryDigestPrePostMatched  = "pre_post_matched"
-)
-
-)
-	repositoryPattern = regexp.MustCompile(`^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)+package teiprobe
-
-import (
-	"bytes"
-	"context"
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"io"
-	"os"
-	"regexp"
-	"strings"
-
-	"github.com/hat47x/sei-cognition/runtime/go/provideradapter"
-	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
-	"github.com/hat47x/sei-cognition/runtime/go/teiintegration"
-)
-
-const (
-	ReportSchema   = "sei.e3b-tei-probe/v1"
-	ManifestSchema = "sei.tei-binary-build-manifest/v1"
-
-	SourceBindingNotVerified    = "not_verified"
-	SourceBindingManifestMatch  = "manifest_matched"
-	BinaryDigestPrePostMatched  = "pre_post_matched"
-)
-
-)
-	commitPattern     = regexp.MustCompile(`^(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{64})package teiprobe
-
-import (
-	"bytes"
-	"context"
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"io"
-	"os"
-	"regexp"
-	"strings"
-
-	"github.com/hat47x/sei-cognition/runtime/go/provideradapter"
-	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
-	"github.com/hat47x/sei-cognition/runtime/go/teiintegration"
-)
-
-const (
-	ReportSchema   = "sei.e3b-tei-probe/v1"
-	ManifestSchema = "sei.tei-binary-build-manifest/v1"
-
-	SourceBindingNotVerified    = "not_verified"
-	SourceBindingManifestMatch  = "manifest_matched"
-	BinaryDigestPrePostMatched  = "pre_post_matched"
-)
-
-)
+	sha256Pattern     = regexp.MustCompile(`^[0-9a-fA-F]{64}$`)
+	repositoryPattern = regexp.MustCompile(`^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)+$`)
+	commitPattern     = regexp.MustCompile(`^(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{64})$`)
 )
 
 // BuildManifest is an optional, evaluation-local declaration that binds one
