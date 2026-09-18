@@ -1,0 +1,71 @@
+{
+  "schema": "sei.tei-reference-adoption-stage0-source-freeze-validation/v1",
+  "issue": "ISSUE-000079",
+  "recordedAt": "2026-09-18",
+  "authority": "evaluation-only",
+  "branch": "develop/v0.2.0",
+  "branchHeadAtValidation": "fc77d156048bdf3d149a75d8f536919a33d76480",
+  "manifest": {
+    "path": "evaluation/tei-reference-adoption/stage0_resume_review_source_freeze_v1.json",
+    "gitBlobSha1": "bf9ca62e530009d6ec2e3367fb367bdcba482ba4"
+  },
+  "sourceFixture": {
+    "path": "evaluation/personal-inquiry-decision/decision_continuity_counterfactual_001.json",
+    "gitBlobSha1": "6354fce0a01093cb5545ed6bb9730aceb3b20023",
+    "contentSha256": "43ce2ead3e7861835570297063d0287799adc15cdba4590f857cb4f25e66b63e",
+    "byteLength": 4842,
+    "fixtureId": "e73-decision-continuity-001-provider-pilot"
+  },
+  "teiContext": {
+    "repository": "hat47x/tei-platform",
+    "mainHeadAtFreeze": "f785bdd8f3e445410148c2a31c342bd356842d4f",
+    "applicationPatternDesignBlobSha1": "64ee1c20496ce12b1bd06b016c174f8b1a1439bd",
+    "applicationPatternSyntaxBlobSha1": "9141144966b819dbfd02f4691554fb89cbcad4de",
+    "applicationPatternKinds": [
+      "browse",
+      "record",
+      "reference",
+      "command",
+      "header-detail"
+    ]
+  },
+  "validation": {
+    "engine": "current GitHub connector content evaluated with the same Stage 0 source-contract rules",
+    "result": "pass",
+    "errors": [],
+    "checks": {
+      "sourceGitBlobFreeze": "pass",
+      "sourceContentSha256Freeze": "pass",
+      "sourceByteLengthFreeze": "pass",
+      "inputPointersResolve": "pass",
+      "oraclePointersResolve": "pass",
+      "inputOracleSeparation": "pass",
+      "decisionRoleBinding": "pass",
+      "recommendationRoleBinding": "pass",
+      "basisRefsResolveOnlyToObservations": "pass",
+      "recommendationRefsResolveOnlyToRecommendation": "pass",
+      "unresolvedRefsResolveOnlyToUnknowns": "pass",
+      "postDecisionEvidenceExcludedFromHistoricalBasis": "pass",
+      "referenceStateIdAlignment": "pass",
+      "interruptionOracleKeepsChangesSinceDecisionEmpty": "pass",
+      "noNewTeiApplicationPatternKindClaimed": "pass"
+    }
+  },
+  "pythonValidator": {
+    "path": "evaluation/tei-reference-adoption/validate_stage0_resume_reference.py",
+    "gitBlobSha1": "696255dbe4a0636d657cc04d1fa24139aea0feea",
+    "selfTestPath": "evaluation/tei-reference-adoption/test_validate_stage0_resume_reference.py",
+    "selfTestGitBlobSha1": "34d412aa1c54bfe3bbbf61821607b3385b954f29",
+    "actualPythonSelfTestExecution": "not-verified-by-this-receipt"
+  },
+  "claims": {
+    "stage0SourceFreezeValidated": true,
+    "transformedHandoffSchemaIntroduced": false,
+    "teiReferenceToolImplemented": false,
+    "teiReferenceExecutableEvidence": false,
+    "changeAmplificationObserved": false,
+    "humanUsabilityObserved": false,
+    "productValueEstablished": false
+  },
+  "stopLine": "Stage 0 source freeze validation PASS != TEI-side Reference tool implemented != TEI Reference Executable Evidence != native-vs-TEI leverage demonstrated != human usability / Product Value Evidence"
+}
