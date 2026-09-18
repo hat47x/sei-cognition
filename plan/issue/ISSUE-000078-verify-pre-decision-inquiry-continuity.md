@@ -367,7 +367,8 @@ python3 "$PROBE" --probe "$PROBE_SET" --repo-root . \
 
 # audit commandはreference materialをstdoutへ出す前に、開示予定materialを先に
 # canonical SHA-256へ固定し、固定済みRESPONSE、exact probe content、fixture、
-# audit material SHA-256、revealed_atをexclusive-create receiptへ保存する。
+# REVIEW_RECEIPT SHA-256、review started_at、audit material SHA-256、revealed_atを
+# audit-reveal receipt v1へ保存する。
 # packet構築に失敗した場合はreceiptを作らず、receiptが既に存在する場合も
 # 上書きせずfail-closedし、reference materialを出力しない。
 #
@@ -394,9 +395,9 @@ review packetに含まれる`provisional_ai_summary`と`provisional_ai_next_ques
 
 `review`では、歪んだsummary / next-question suggestionを出力する前に、opaque reviewer id、`prior_exposure`、`response_authorship`をreview-start receiptへ固定する。human responseはそのreceipt SHA-256と同じ三つのprovenance値を保持しなければauditへ進めない。このためstimulusを見た後に`none-declared`へ書き換える等のpost-hoc provenance変更を機械的に拒否できる。ただし、これらはあくまでreviewer / operatorによる申告metadataであり、実際の盲検状態、本人性、human authorshipを独立に証明するものではない。review-start receiptも上書き不可とする。
 
-`audit`はまず、開示予定の`distortion_key`、`reference_state`、`post_interruption_evidence`、audit dimensions、stopline群から**exact audit material**をメモリ上で組み立て、そのcanonical SHA-256を確定する。次にhuman response SHA-256、exact probe content、fixture、audit material SHA-256、machine-recorded `revealed_at`をexclusive-createのaudit-reveal receiptへ結び、receiptの永続化に成功した場合だけ、事前構築済みの同じaudit materialをstdoutへ出力する。packet構築が失敗した段階ではreceiptを残さず、receiptの永続化が失敗した場合もreference materialを出力しない。post-reveal auditの`completed_at`が`revealed_at`より前の場合は拒否する。
+`audit`はまず、開示予定の`distortion_key`、`reference_state`、`post_interruption_evidence`、audit dimensions、stopline群から**exact audit material**をメモリ上で組み立て、そのcanonical SHA-256を確定する。次にhuman response SHA-256、exact probe content、fixture、audit material SHA-256、machine-recorded `revealed_at`をexclusive-createのaudit-reveal receiptへ結び、receiptの永続化に成功した場合だけ、事前構築済みの同じaudit materialをstdoutへ出力する。packet構築が失敗した段階ではreceiptを残さず、receiptの永続化が失敗した場合もreference materialを出力しない。audit-reveal receipt v1はreview-start receipt SHA-256と`review_started_at`へ直接結び、`revealed_at < review_started_at`を拒否する。さらにpost-reveal auditの`completed_at`が`revealed_at`より前の場合も拒否する。
 
-これにより「開示後にhuman responseを書き直したもの」をpre-reveal responseとして扱う経路だけでなく、receipt作成後に別のreference materialへ差し替える経路も機械的に狭める。ただしreceiptは利用者が実際に画面を見た時刻やhuman authorshipそのものを独立に証明するものではない。
+これにより「開示後にhuman responseを書き直したもの」をpre-reveal responseとして扱う経路、review開始より前にaudit revealが起きたように見える不正な時系列、receipt作成後に別のreference materialへ差し替える経路を機械的に狭める。ただしreceiptは利用者が実際に画面を見た時刻やhuman authorshipそのものを独立に証明するものではない。
 
 さらにreview response、audit-reveal receipt、audit response、Evidence bundleをcanonicalized probe JSONのSHA-256へ結び、summary、next question、review questions等のprobe内容が後から変更された場合に別の評価を同一Evidenceとして読み替えられないようにする。Evidence bundle自身にも、実際に評価したsummary / next question / review questions / audit dimensionsを`probe_snapshot`として保存し、human review observation、audit reveal、semantic auditを別layerとして保持する。`audit-template`以後に記録するsemantic auditは、**post-revealなoperator / auditor Evidence**であり、開示前のhuman responseへ混ぜ戻さない。既存Evidence outputは上書きしない。
 
