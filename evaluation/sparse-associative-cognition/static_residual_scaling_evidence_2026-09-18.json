@@ -1,0 +1,142 @@
+{
+  "schema": "sei.sacs-static-residual-scaling-evidence/v1alpha1",
+  "date": "2026-09-18",
+  "status": "limited-local-executable-evidence",
+  "subject": "SAC-B6d static global-residual scaling comparison",
+  "issue": 455,
+  "branch": "topic/sac-b6d-static-residual-scaling",
+  "intent": "Isolate the effect of global-residual capacity growth with static comparison policies before introducing any input-adaptive Active or local-budget rule.",
+  "policies": {
+    "baseline": {
+      "rule": "equal local half + equal global half",
+      "oversized": {
+        "localEach": 64,
+        "globalResidual": 256,
+        "reservedBudget": 512,
+        "unusedBudget": 0
+      }
+    },
+    "cap128": {
+      "rule": "preserve local-half scaling; cap only global residual at 128; do not redistribute unused budget",
+      "oversized": {
+        "localEach": 64,
+        "globalResidual": 128,
+        "reservedBudget": 384,
+        "unusedBudget": 128
+      }
+    },
+    "cap64": {
+      "rule": "preserve local-half scaling; cap only global residual at 64; do not redistribute unused budget",
+      "oversized": {
+        "localEach": 64,
+        "globalResidual": 64,
+        "reservedBudget": 320,
+        "unusedBudget": 192
+      },
+      "controlProperty": "small/medium/large baseline residuals are 16/32/64, so cap64 changes only the oversized profile in the existing profile sequence"
+    }
+  },
+  "oversizedFixture": {
+    "profile": {
+      "dimensions": 32768,
+      "active": 512,
+      "fanout": 8,
+      "seed": 47
+    },
+    "normalization": "B1 feature-family normalization",
+    "results": [
+      {
+        "policy": "baseline",
+        "desired": 0.34765625,
+        "distractor": 0.50390625,
+        "margin": -0.15625,
+        "residualSelected": 256,
+        "mergedSelected": 256,
+        "localIncrementalDimensions": 0,
+        "familyUniqueBeyondResidual": {
+          "text": 0,
+          "graph": 0,
+          "provenance": 0,
+          "grouping": 0
+        },
+        "unusedBudget": 0
+      },
+      {
+        "policy": "cap128",
+        "desired": 0.5855263157894737,
+        "distractor": 0.394308292590028,
+        "margin": 0.1912180231994457,
+        "residualSelected": 128,
+        "mergedSelected": 152,
+        "localIncrementalDimensions": 24,
+        "familyUniqueBeyondResidual": {
+          "text": 24,
+          "graph": 0,
+          "provenance": 0,
+          "grouping": 0
+        },
+        "unusedBudget": 128
+      },
+      {
+        "policy": "cap64",
+        "desired": 0.5855263157894737,
+        "distractor": 0.40723985345937597,
+        "margin": 0.1782864623300977,
+        "residualSelected": 64,
+        "mergedSelected": 152,
+        "localIncrementalDimensions": 88,
+        "familyUniqueBeyondResidual": {
+          "text": 64,
+          "graph": 12,
+          "provenance": 12,
+          "grouping": 0
+        },
+        "unusedBudget": 192
+      }
+    ]
+  },
+  "firstThreeProfileControl": {
+    "cap64": "does not change baseline local or residual budgets for 2048/32, 4096/64, or 8192/128 profiles",
+    "cap128": "also does not change those three baseline residual budgets",
+    "interpretation": "the oversized comparison can vary residual growth without rewriting the existing first-three profile policies"
+  },
+  "findings": [
+    "Both static residual caps restore the desired candidate ordering in the existing oversized fixture without changing Sparse.Active or local-half scaling.",
+    "cap128 yields a slightly larger positive margin than cap64 in this fixture even though cap64 restores far more local incremental dimensions (88 versus 24). Local incremental dimensionality is therefore not a monotonic quality metric.",
+    "The capped policies leave part of Sparse.Active unreserved rather than silently reallocating it. This isolates residual suppression from capacity redistribution.",
+    "cap64 restores graph and provenance dimensions outside the residual, while cap128 leaves only text incremental; both nevertheless recover the candidate ordering. Family-level distinctness and retrieval margin are not interchangeable metrics.",
+    "The result supports treating residual scaling as an independent capacity-policy variable, but does not establish 64 or 128 as an optimal or deployable cap."
+  ],
+  "independentReconstruction": {
+    "toolchain": "Python 3.13.5 on Linux x86_64",
+    "method": "Independent deterministic reconstruction of current feature hashing, B1 family normalization, B2 family-local/global residual selection, signature union, similarity, and residual-containment diagnostics.",
+    "result": "reproduced the baseline, cap128, and cap64 similarities and local incremental counts used by the Go regression fixtures.",
+    "limitation": "Not an exact repository Go 1.25 execution."
+  },
+  "implementationState": {
+    "helper": "capacityprofile.EqualLocalHalfResidualCapped",
+    "normalEncoderChanged": false,
+    "providerResponseContractChanged": false,
+    "sparseProfileMutated": false,
+    "unusedBudgetRedistributed": false,
+    "adaptivePolicyImplemented": false,
+    "b5EntryGateChanged": false
+  },
+  "stopLines": [
+    "static cap improvement != optimal cap",
+    "unused winner budget != wasted semantic capacity",
+    "local incremental dimensions != semantic quality",
+    "cap64 or cap128 != deployment requirement",
+    "one oversized synthetic recovery != real-workload generalization",
+    "static comparison != adaptive production policy"
+  ],
+  "notVerified": [
+    "exact repository Go 1.25 execution",
+    "quality across multiple independent SUI/SEI fixtures",
+    "human-adjudicated relationship between residual scaling and meaning quality",
+    "optimal static residual cap",
+    "whether static caps remain useful when input cardinality varies substantially",
+    "hardware latency, power, and memory trade-offs",
+    "Production, Operational, Adoption, or Outcome Evidence"
+  ]
+}

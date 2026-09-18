@@ -88,6 +88,29 @@ func softLocalPolicyForProfile(profile capacityprofile.Profile) (*LocalCompetiti
 	}, nil
 }
 
+func softLocalCappedPolicyForProfile(
+	profile capacityprofile.Profile,
+	residualCap uint16,
+) (*LocalCompetitionPolicy, error) {
+	localEach, residual, err := capacityprofile.EqualLocalHalfResidualCapped(
+		profile.Sparse.Active,
+		4,
+		residualCap,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &LocalCompetitionPolicy{
+		FamilyActive: map[string]uint16{
+			"text":       localEach,
+			"graph":      localEach,
+			"provenance": localEach,
+			"grouping":   localEach,
+		},
+		GlobalResidualActive: residual,
+	}, nil
+}
+
 func capacitySimilarityPair(
 	t *testing.T,
 	profile capacityprofile.Profile,
@@ -98,6 +121,16 @@ func capacitySimilarityPair(
 	if err != nil {
 		t.Fatal(err)
 	}
+	return capacitySimilarityPairWithPolicy(t, profile, normalization, local)
+}
+
+func capacitySimilarityPairWithPolicy(
+	t *testing.T,
+	profile capacityprofile.Profile,
+	normalization FeatureNormalizationMode,
+	local *LocalCompetitionPolicy,
+) (desiredSimilarity, distractorSimilarity float32) {
+	t.Helper()
 	cfg := Config{
 		Sparse:                profile.Sparse,
 		MinInternalSimilarity: 0,
@@ -146,6 +179,16 @@ func capacityObservedStats(
 	if err != nil {
 		t.Fatal(err)
 	}
+	return capacityObservedStatsWithPolicy(t, profile, item, local)
+}
+
+func capacityObservedStatsWithPolicy(
+	t *testing.T,
+	profile capacityprofile.Profile,
+	item Item,
+	local *LocalCompetitionPolicy,
+) (sparseassoc.Signature, providerEncodeStats) {
+	t.Helper()
 	p, err := New(Config{
 		Sparse:                profile.Sparse,
 		MinInternalSimilarity: 0,
@@ -396,6 +439,168 @@ func TestObservedCollisionFallsWhileWinnerShareRises(t *testing.T) {
 		first = false
 		previousCollision = collision
 		previousShare = share
+	}
+}
+
+func TestStaticResidualCap64PreservesFirstThreeBaselineBudgets(t *testing.T) {
+	base := capacityBaseProfile()
+	for _, dimensions := range []uint16{2048, 4096, 8192} {
+		profile, err := capacityprofile.ScaleDimensions(base, fmt.Sprintf("d%d", dimensions), dimensions)
+		if err != nil {
+			t.Fatal(err)
+		}
+		baseline, err := softLocalPolicyForProfile(profile)
+		if err != nil {
+			t.Fatal(err)
+		}
+		capped, err := softLocalCappedPolicyForProfile(profile, 64)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if baseline.GlobalResidualActive != capped.GlobalResidualActive {
+			t.Fatalf("dimensions=%d residual changed: baseline=%d capped=%d",
+				dimensions, baseline.GlobalResidualActive, capped.GlobalResidualActive)
+		}
+		for _, family := range []string{"text", "graph", "provenance", "grouping"} {
+			if baseline.FamilyActive[family] != capped.FamilyActive[family] {
+				t.Fatalf("dimensions=%d family=%s local changed: baseline=%d capped=%d",
+					dimensions, family, baseline.FamilyActive[family], capped.FamilyActive[family])
+			}
+		}
+	}
+}
+
+func TestStaticResidualCapsRestoreOversizedFixtureOrdering(t *testing.T) {
+	base := capacityBaseProfile()
+	oversized, err := capacityprofile.ScaleDimensions(base, "oversized", 32768)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	baselineDesired, baselineDistractor := capacitySimilarityPair(
+		t,
+		oversized,
+		FeatureNormalizationFamily,
+	)
+	if baselineDesired >= baselineDistractor {
+		t.Fatalf("baseline fixture must remain reversed: desired=%v distractor=%v",
+			baselineDesired, baselineDistractor)
+	}
+
+	cases := []struct {
+		cap            uint16
+		wantDesired    float32
+		wantDistractor float32
+	}{
+		{128, 0.5855263158, 0.3943082926},
+		{64, 0.5855263158, 0.4072398535},
+	}
+	for _, tc := range cases {
+		policy, err := softLocalCappedPolicyForProfile(oversized, tc.cap)
+		if err != nil {
+			t.Fatal(err)
+		}
+		desired, distractor := capacitySimilarityPairWithPolicy(
+			t,
+			oversized,
+			FeatureNormalizationFamily,
+			policy,
+		)
+		if desired <= distractor {
+			t.Fatalf("cap=%d did not restore desired ordering: desired=%v distractor=%v",
+				tc.cap, desired, distractor)
+		}
+		if diff := desired - tc.wantDesired; diff < -0.000001 || diff > 0.000001 {
+			t.Fatalf("cap=%d desired=%v want approximately %v", tc.cap, desired, tc.wantDesired)
+		}
+		if diff := distractor - tc.wantDistractor; diff < -0.000001 || diff > 0.000001 {
+			t.Fatalf("cap=%d distractor=%v want approximately %v",
+				tc.cap, distractor, tc.wantDistractor)
+		}
+	}
+}
+
+func TestStaticResidualCapsRestoreLocalContributionAtOversized(t *testing.T) {
+	base := capacityBaseProfile()
+	oversized, err := capacityprofile.ScaleDimensions(base, "oversized", 32768)
+	if err != nil {
+		t.Fatal(err)
+	}
+	anchor, _, _ := capacityEvalItems()
+
+	cases := []struct {
+		cap          uint16
+		residual     int
+		merged       int
+		incremental  int
+		textUnique   int
+		graphUnique  int
+		provUnique   int
+		groupUnique  int
+		unusedBudget int
+	}{
+		{128, 128, 152, 24, 24, 0, 0, 0, 128},
+		{64, 64, 152, 88, 64, 12, 12, 0, 192},
+	}
+	for _, tc := range cases {
+		policy, err := softLocalCappedPolicyForProfile(oversized, tc.cap)
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, stats := capacityObservedStatsWithPolicy(t, oversized, anchor, policy)
+		local := stats.Local
+		if local == nil || local.GlobalResidual == nil {
+			t.Fatalf("cap=%d missing localized diagnostics: %#v", tc.cap, stats)
+		}
+		if local.GlobalResidual.SelectedDimensions != tc.residual {
+			t.Fatalf("cap=%d residual selected=%d want %d",
+				tc.cap, local.GlobalResidual.SelectedDimensions, tc.residual)
+		}
+		if local.MergedSelectedDimensions != tc.merged ||
+			local.LocalIncrementalDimensions != tc.incremental {
+			t.Fatalf("cap=%d merged/incremental=%d/%d want %d/%d",
+				tc.cap,
+				local.MergedSelectedDimensions,
+				local.LocalIncrementalDimensions,
+				tc.merged,
+				tc.incremental)
+		}
+		want := map[string]int{
+			"text":       tc.textUnique,
+			"graph":      tc.graphUnique,
+			"provenance": tc.provUnique,
+			"grouping":   tc.groupUnique,
+		}
+		for family, expected := range want {
+			if got := local.FamilyUniqueBeyondResidual[family]; got != expected {
+				t.Fatalf("cap=%d %s unique beyond residual=%d want %d",
+					tc.cap, family, got, expected)
+			}
+		}
+		reserved := 0
+		for _, active := range policy.FamilyActive {
+			reserved += int(active)
+		}
+		reserved += int(policy.GlobalResidualActive)
+		if unused := int(oversized.Sparse.Active) - reserved; unused != tc.unusedBudget {
+			t.Fatalf("cap=%d unused budget=%d want %d", tc.cap, unused, tc.unusedBudget)
+		}
+	}
+}
+
+func TestStaticResidualCapDoesNotChangeSparseProfile(t *testing.T) {
+	base := capacityBaseProfile()
+	oversized, err := capacityprofile.ScaleDimensions(base, "oversized", 32768)
+	if err != nil {
+		t.Fatal(err)
+	}
+	before := oversized.Sparse
+	if _, err := softLocalCappedPolicyForProfile(oversized, 64); err != nil {
+		t.Fatal(err)
+	}
+	if oversized.Sparse != before {
+		t.Fatalf("static residual policy mutated sparse profile: before=%#v after=%#v",
+			before, oversized.Sparse)
 	}
 }
 
