@@ -51,6 +51,7 @@ class LiveProviderFailureRunnerTest(unittest.TestCase):
                 "PATH": "/bin",
                 "SEI_E3B_FAILURE_LIVE": "old",
                 "SEI_LIVE_PROVIDER_TOKEN": "real-secret-token",
+                "SOZA_LIVE_PROVIDER_TOKEN": "legacy-secret-token",
                 "GITHUB_TOKEN": "github-secret",
                 "GH_TOKEN": "gh-secret",
                 "KJ_ATLAS_DATABASE_URL": "secret-db",
@@ -61,13 +62,16 @@ class LiveProviderFailureRunnerTest(unittest.TestCase):
         self.assertEqual(environment[LIVE_FLAG], "1")
         for removed in (
             "SEI_LIVE_PROVIDER_TOKEN",
+            "SOZA_LIVE_PROVIDER_TOKEN",
             "GITHUB_TOKEN",
             "GH_TOKEN",
             "KJ_ATLAS_DATABASE_URL",
             "OPENAI_API_KEY",
         ):
             self.assertNotIn(removed, environment)
-        self.assertNotIn("real-secret-token", json.dumps(environment, sort_keys=True))
+        serialized = json.dumps(environment, sort_keys=True)
+        self.assertNotIn("real-secret-token", serialized)
+        self.assertNotIn("legacy-secret-token", serialized)
 
     def test_two_exact_pass_events_establish_actual_provider_failure_evidence(self) -> None:
         result = evaluate_execution(0, passing_output())
@@ -121,6 +125,7 @@ class LiveProviderFailureRunnerTest(unittest.TestCase):
         def runner(command, *, cwd, env, timeout):
             self.assertEqual(env[LIVE_FLAG], "1")
             self.assertNotIn("SEI_LIVE_PROVIDER_TOKEN", env)
+            self.assertNotIn("SOZA_LIVE_PROVIDER_TOKEN", env)
             return subprocess.CompletedProcess(
                 command,
                 0,
