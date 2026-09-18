@@ -212,7 +212,7 @@ Question 5、6、9については、Requirement auditとREQ-0023 / SCN-0019のfo
 - E1〜E8 actual Go 1.25.x execution: **Not Yet Verified**
 - REQ-0023 / SCN-0019 Executable Evidence: **Not Yet Verified**
 - H1 resume usability review: **Not Yet Observed**
-- H2 counterfactual Decision Continuity review: **Not Yet Observed**
+- H2 counterfactual Decision Continuity review: **Not Yet Observed**。073/078共通runnerでreviewer provenanceをstimulus提示前に固定し、Decision固有validationとEvidence exportまで同じ経路へ統合済み
 - Decision Continuity Product Value: **Not Established**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
@@ -227,6 +227,10 @@ evaluation/personal-inquiry-decision/evidence/issue-000073/capture-workflow-self
 ```
 
 これらはrunner / verifier / captureの受入れ系に限定したExecutable Evidenceであり、E1〜E8 actual Go Evidenceではない。currentの実行手順とblocker詳細は`evaluation/personal-inquiry-decision/DECISION_CONTINUITY_EXECUTION_READINESS_2026-09-16.md`をcurrent-state正本として参照する。
+
+H2については2026-09-18に実行経路を再監査し、`inquiry_continuity_review_runner.py`を073/078共通のprovenance-first入口としてDecision Continuityにも対応させた。reviewer provenanceを固定しないsessionからreviewer bundleを開かず、condition labelをreviewerへ出さず、Decision固有response validationを通したcomplete sessionだけをEvidence exportへ進める。
+
+同日の作業過程では、R1相当のphase1 materialがこの境界を追加する前に一度提示されたが、human responseは固定されなかった。この提示をH2 observationへは数えず、同じreaderが後続reviewを行う場合は`known-material-exposure`として扱う。clean blinded pilotが必要なら、当該materialへ未露出のreaderを用いる。
 
 ## Required scenarios / experiments
 
@@ -382,7 +386,7 @@ SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw 
 
 - 条件1、2、9、10: **Design / Requirement auditの範囲では成立**。
 - 条件3〜5: E1〜E8のprobe / test sourceとrunner / verifier / captureはある。runner preflight / verifier / capture workflowのcurrent source self-testは2026-09-18にactual PASSしmachine-readable Evidenceへ固定済みだが、**actual Go 1.25.x E1〜E8実行結果はNot Yet Verified**。受入れtoolingのPASSやsource存在だけで条件3〜5の成立扱いにしない。
-- 条件6〜8: H1 / H2とProduct Valueのcounterfactual observationは**Not Yet Observed**であり、未成立。
+- 条件6〜8: H1 / H2とProduct Valueのcounterfactual observationは**Not Yet Observed**であり、未成立。H2のprovenance-first共通runnerとDecision-specific validationは実装済みだが、reviewer response未取得のため条件7を満たしたとは扱わない。
 
 したがってStatusは**Open**を維持する。Design文書が完成したこと、REQ-0023 / SCN-0019をformalizeしたこと、probe sourceやEvidence受入れtoolingを実装したことだけではResolvedにしない。prototypeが技術的にPASSした場合も、それだけでDecision ContinuityのAdoption / Outcome Evidenceが成立したことにはしない。
 
@@ -447,6 +451,8 @@ Product Value、Decision Continuity synthesis、Value Model V1〜V8、Product Sh
 
 2026-09-16の追加監査では、CR-73.1〜10を機械的にStable化せずcurrent REQ / SCNへ再照合した。resume、AI provisional boundary、Progressive Explicitness、working-set non-authority等は既存Requirement、Product-local設計またはhuman Outcome評価へ戻し、既存REQでは直接禁止できなかったpartial commitとstale writeだけを「successful canonical commitの整合性」という一つのREQ-0023へ統合し、SCN-0019でAcceptance化した。transaction、ETag、digest、snapshot token等の実現方式をUniversal semanticsへ昇格させていない。
 
-2026-09-17には、E1〜E8の実行入口をrunner単体からrunner / verifier / one-command captureのcurrent implementationへ同期した。2026-09-18にはEvidence受入れ経路のcurrent sourceをactualに再実行し、runner preflight、verifier、capture workflowのself-testをいずれもPASSとしてmachine-readable Evidenceへ固定した。同日Go 1.25.x取得経路も再確認したが、current execution environmentではhost Go 1.23.2かつ外向きDNS / network制限が継続しているためactual E1〜E8 runは未取得である。H1 / H2もactual human observationがないためNot Yet Observedのまま保持する。
+2026-09-17には、E1〜E8の実行入口をrunner単体からrunner / verifier / one-command captureのcurrent implementationへ同期した。2026-09-18にはEvidence受入れ経路のcurrent sourceをactualに再実行し、runner preflight、verifier、capture workflowのself-testをいずれもPASSとしてmachine-readable Evidenceへ固定した。同日Go 1.25.x取得経路も再確認したが、current execution environmentではhost Go 1.23.2かつ外向きDNS / network制限が継続しているためactual E1〜E8 runは未取得である。
+
+H2についても同日、073専用の別runnerを増やさず、既存Inquiry Continuity review runnerをDecision manifestへ対応させた。reviewer provenance、stage gate、Decision固有validation、Evidence exportを一つの経路へ収束させ、provenance固定前に提示されたR1 materialは回答未固定のprotocol exposureとしてのみ扱う。H1 / H2ともactual human observationがないためNot Yet Observedのまま保持する。
 
 SEIのsemantic integrityが高いだけではProduct Valueとせず、historical誤帰属、Recommendation / Decision混同、再構成負担を実際に減らし、その利益がcapture / review overheadを上回るかまでを見る。価値差がない結果もProduct hypothesisを修正する正当なEvidenceとして扱う。意味、要求強度、留保、Evidenceの高さを固定したうえで自然な日本語として読み直し、最終意味監査を実施した。
