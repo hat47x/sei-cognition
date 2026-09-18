@@ -37,7 +37,7 @@ reviewed:
     coverage:
       - SEI_PRODUCT_SHAPE.md
       - SEI_REALIZATION_PROVIDER_EXCHANGE.md
-    note: Product ShapeとRealization / Provider Exchangeを全文監査し、E2、E3a、E3b-P1、TEI executable注入境界、E3b-P2 revision A fixed-artifact、E3b-M1a、E3b-M1bを同じEvidence ladder上で分離した。ISSUE-000070 / 000072のversion交換を別軸として扱い、TEI / KJ Atlas / Ollama固有response、revision、toolchainをUniversal semanticsへ持ち込まない境界を維持している。
+    note: Product ShapeとRealization / Provider Exchangeを全文監査した。2026-09-18のProduct Shape再基線化では、異種Cognitive Methodを生成AIへ限定しない境界、resume-firstなfirst usable Product Slice、REQ-0023 / SCN-0019のCanonical commit integrity、SUI / TEI / EKIとの独立Product Boundaryをcurrent Product Valueへ同期した。rule / classifier / embedding / sparse associative cognition / local SLM / external model / human procedure等の内部機構をUniversal Coreへ持ち込まず、Cognitive Method、Capability、compute placementを別の交換境界として扱う。ISSUE-000073 / 000078のhuman Outcomeは未観測、SUI / TEI / EKIの共通protocolは未確定のまま維持している。Realization / Provider ExchangeではE2、E3a、E3b-P1、TEI executable注入境界、E3b-P2 revision A fixed-artifact、E3b-M1a、E3b-M1bを同じEvidence ladder上で分離し、ISSUE-000070 / 000072のversion交換を別軸として扱う。
   - scope: product/vision/*.md
     status: revised
     coverage:
