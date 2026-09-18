@@ -1,6 +1,6 @@
 # SEI Cognition — Emergent Cognitive Architecture
 
-更新日: 2026-09-12  
+更新日: 2026-09-18  
 状態: **Evaluation-only Architecture Hypothesis**  
 関連: Issue #381 / #371 / #375 / #378
 
@@ -621,6 +621,51 @@ raw dataを中央へ送るより、local feature / proposal化した方がprivac
 ### H6 — Outcome-informed Routing
 
 過去のMethod Application / outcomeを使うことで、static routingより適切なroute選択ができるか。
+
+2026-09-18時点では、first executable sliceを `evaluation/sei-cognition-orchestration/prototype-go/cognitivepolicy/` へ追加した。
+
+ここで学習対象にしているのはsemantic truthではなく、caller-ownedなproblem classごとの**route efficacy**だけである。
+
+```text
+Outcome Evidence
+  ↓
+route efficacy aggregation
+  ↓
+immutable candidate policy version
+  ↓
+explicit activation
+```
+
+candidateを生成しただけではactive routingを変更しない。既存versionはimmutableに保持し、明示activationとrollbackを分離した。
+
+また、次をpolicy learningの外側に残している。
+
+- allowed route
+- minimum escalation floor
+- Authority
+- permission / data access
+- semantic truth
+- Recommendation / Decision correctness
+
+execution failureもcognitive insufficiencyへ自動変換しない。Execution LearningとCognitive Policy Learningを別軸のまま保持する。
+
+synthetic replayでは、routine problem classについてadapted / staticの両policyがsuccess rate 1.0を保ったまま、unnecessary escalation rateをstatic 1.0からadapted 0へ下げるfixtureを確認した。一方、distribution shiftを与えた別fixtureではadapted policyのsuccess rateが0.5、static policyが1.0となり、regret-against-static rate 0.5を観測した。
+
+したがってcurrent Evidenceは、
+
+```text
+past route efficacy
+  may reduce unnecessary escalation
+  != future route guarantee
+```
+
+を支持するに留まる。
+
+特に、cost / latency / escalation削減だけをrouter最適化の成功条件にしない。distribution-shift regret、safety floor preservation、policy version provenance、rollback reproducibilityを別々の評価軸として保持する。
+
+詳細Evidenceは `outcome_informed_routing_evidence_2026-09-18.json` を参照する。
+
+これは **limited synthetic executable evidence** であり、real problem class、Outcomeの評価主体、selection-bias補正、statistical confidence、drift / expiry、automatic rollback criteria、production routing policyはNot Yet Verifiedである。Stable Requirementへの昇格も行わない。
 
 ## 21. Requirement化を急がないもの
 

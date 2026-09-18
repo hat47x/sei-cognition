@@ -1,0 +1,201 @@
+{
+  "schema": "sei.outcome-informed-routing-evidence/v1alpha1",
+  "date": "2026-09-18",
+  "status": "limited-local-executable-evidence",
+  "subject": "SEI-B7 outcome-informed cognitive routing policy",
+  "issue": 450,
+  "branch": "topic/sei-b7-outcome-routing-policy",
+  "architecturalPosition": {
+    "placement": "evaluation/sei-cognition-orchestration side",
+    "inSACSCore": false,
+    "universalContractChange": false,
+    "stableRequirementChange": false,
+    "productionRuntimeDefaultChanged": false,
+    "learningTarget": "route efficacy by caller-owned problem class",
+    "explicitNonTargets": [
+      "semantic truth",
+      "Recommendation correctness",
+      "Decision correctness",
+      "Authority",
+      "permission",
+      "model weights"
+    ]
+  },
+  "firstSlice": {
+    "outcomeRecordFields": [
+      "problem class",
+      "route id",
+      "cognitive outcome: sufficient / insufficient / not-assessed",
+      "execution outcome: completed / failed / not-recorded",
+      "provenance ref",
+      "observed policy version"
+    ],
+    "problemPolicyFields": [
+      "static baseline route",
+      "allowed routes",
+      "route escalation levels",
+      "caller-owned minimum escalation level",
+      "required success-rate floor",
+      "minimum assessed observations"
+    ],
+    "selectionRule": [
+      "route must be allowed",
+      "route escalation must be at or above caller-owned minimum",
+      "assessed observations must meet minimum",
+      "cognitive sufficient rate must meet required floor",
+      "choose lowest escalation level",
+      "then higher sufficient rate",
+      "then more assessed observations",
+      "then lexical route id"
+    ],
+    "activationBoundary": "BuildCandidate stores an immutable candidate snapshot but does not change the active policy. Activate(version) is explicit; activating an older snapshot performs rollback.",
+    "provenanceBoundary": "Each route-efficacy aggregate retains observed-policy-version counts and sorted evidence refs."
+  },
+  "syntheticFixtures": [
+    {
+      "id": "B7-LOWER-ROUTE-QUALIFIES-01",
+      "problemClass": "routine-summary",
+      "staticRoute": "general-llm",
+      "lowerRoute": "local-slm",
+      "requiredSuccessRate": 0.8,
+      "minAssessedObservations": 5,
+      "trainingEvidence": {
+        "sufficient": 9,
+        "insufficient": 1,
+        "assessed": 10,
+        "successRate": 0.9
+      },
+      "candidateRoute": "local-slm",
+      "activeBeforeExplicitActivation": "general-llm",
+      "observation": "A lower-escalation route can become a candidate when explicit assessed evidence meets the caller-owned floor, without implicit activation."
+    },
+    {
+      "id": "B7-LOWER-ROUTE-FAILS-FLOOR-01",
+      "problemClass": "novel-analysis",
+      "staticRoute": "general-llm",
+      "lowerRoute": "local-slm",
+      "trainingEvidence": {
+        "sufficient": 3,
+        "insufficient": 2,
+        "assessed": 5,
+        "successRate": 0.6
+      },
+      "candidateRoute": "general-llm",
+      "observation": "When the lower route misses the required cognitive-efficacy floor, the static route is preserved."
+    },
+    {
+      "id": "B7-EXECUTION-SEPARATION-01",
+      "problemClass": "routine-summary",
+      "route": "local-slm",
+      "cognitive": {
+        "sufficient": 4,
+        "insufficient": 0,
+        "notAssessed": 3,
+        "assessed": 4,
+        "successRate": 1
+      },
+      "executionFailed": 3,
+      "candidateRoute": "general-llm",
+      "observation": "Execution failures attached to not-assessed records are tracked separately and do not become cognitive insufficiency; minimum assessed evidence still blocks adaptation."
+    },
+    {
+      "id": "B7-SAFETY-FLOOR-01",
+      "problemClass": "high-stakes-review",
+      "lowerRoute": "local-slm",
+      "lowerRouteEvidence": {
+        "sufficient": 10,
+        "insufficient": 0,
+        "successRate": 1
+      },
+      "minimumEscalationLevel": 2,
+      "lowerRouteEscalationLevel": 1,
+      "staticRoute": "human-or-stronger-review",
+      "candidateRoute": "human-or-stronger-review",
+      "observation": "Perfect synthetic efficacy cannot move routing below a caller-owned escalation floor; a route below the floor is not counted as avoidable escalation in replay."
+    },
+    {
+      "id": "B7-POSITIVE-REPLAY-01",
+      "cases": 2,
+      "routeOutcomes": "local-slm and general-llm both sufficient in both cases",
+      "adapted": {
+        "policySuccessRate": 1,
+        "unnecessaryEscalationRate": 0,
+        "regretAgainstStaticRate": 0
+      },
+      "static": {
+        "policySuccessRate": 1,
+        "unnecessaryEscalationRate": 1,
+        "regretAgainstStaticRate": 0
+      },
+      "observation": "In this synthetic slice, the candidate reduces escalation while preserving success."
+    },
+    {
+      "id": "B7-DISTRIBUTION-SHIFT-REGRET-01",
+      "cases": 2,
+      "adapted": {
+        "policySuccessRate": 0.5,
+        "regretAgainstStaticRate": 0.5
+      },
+      "static": {
+        "policySuccessRate": 1,
+        "regretAgainstStaticRate": 0
+      },
+      "observation": "A holdout shift can make the adapted lower route fail where the static route succeeds. Past efficacy is not treated as a future guarantee."
+    },
+    {
+      "id": "B7-ROLLBACK-01",
+      "routeSequence": [
+        "v0 -> routine-summary=general-llm",
+        "activate v1 -> routine-summary=local-slm",
+        "activate v0 -> routine-summary=general-llm"
+      ],
+      "observation": "Rollback reproduces the prior route because snapshots are immutable and activation changes only the active-version pointer."
+    }
+  ],
+  "localVerification": {
+    "repositoryGoDirective": "1.25",
+    "localToolchain": "go1.23.x linux/amd64",
+    "exactRepositoryCheckout": false,
+    "sourceMethod": "The three branch source files policy.go, replay.go, and policy_test.go were retrieved from the private GitHub branch, decoded into a temporary module, locally gofmt-normalized, and executed. The local go.mod only changed the Go directive from 1.25 to 1.23.",
+    "unitTestCommand": "gofmt -w cognitivepolicy/*.go && go test -v ./...",
+    "unitTestResult": "PASS",
+    "testsPassed": 17,
+    "benchmarkCommand": "go test -bench=. -benchmem -count=3 ./...",
+    "benchmark": {
+      "name": "BenchmarkBuildCandidate",
+      "observations": [
+        "21.289 us/op, 16512 B/op, 83 allocs/op",
+        "20.914 us/op, 16512 B/op, 83 allocs/op",
+        "20.586 us/op, 16512 B/op, 83 allocs/op"
+      ],
+      "note": "Builds a new store and candidate from a 215-record synthetic evidence set. This is local Go 1.23 evaluation performance, not production or Go 1.25 evidence."
+    },
+    "independentFixtureCheck": "A separate standalone Go reconstruction reproduced the candidate selections and the positive/shift replay metrics before the branch-source test."
+  },
+  "stopLines": [
+    "method efficacy != semantic truth",
+    "route sufficient rate != calibrated confidence",
+    "route success != Recommendation or Decision correctness",
+    "execution success != cognitive success",
+    "lower escalation != better cognition",
+    "learned route != new permission",
+    "learned route != Authority",
+    "candidate snapshot != active policy",
+    "past route efficacy != future guarantee",
+    "counterfactual replay != online estimator",
+    "synthetic replay != production routing evidence",
+    "outcome-informed routing != model training"
+  ],
+  "notVerified": [
+    "exact full-repository Go 1.25 execution",
+    "production runtime integration",
+    "real problem-class taxonomy",
+    "human or validator process that assigns sufficient / insufficient outcomes",
+    "selection-bias correction when only executed routes have outcomes",
+    "statistical confidence bounds beyond minimum observation count",
+    "policy expiry / drift detection / automatic rollback criteria",
+    "real latency, privacy, energy, and cost tradeoffs",
+    "real high-stakes governance integration",
+    "Product Value, Operational, Adoption, or Outcome Evidence"
+  ]
+}
