@@ -80,10 +80,11 @@
     {
       "id": "biased-sparse-projection",
       "biological_observation": "PN-KC結合は大部分が疎くランダムな一方、食物など生態上重要な入力channelが過剰表現される偏りも観測されている。",
-      "engineering_abstraction": "uniform random projectionを既定値としつつ、callerまたは明示policyが指定したsalience priorだけ、fanoutまたはsampling probabilityを限定的に調整する比較方式を用意する。",
+      "engineering_abstraction": "uniform sparse projectionを既定値とする。first sliceではfanout/topology変更を避け、callerがprovenance付きexact Feature{Channel, Key}へ与えたbounded contribution priorだけを比較する。fanoutまたはsampling probabilityのbiasは、この最小proxyで独立増分が不足した場合だけ後続候補とする。",
       "sei_role": "policy-bounded attention prior",
-      "adoption_state": "planned-after-local-inhibition",
-      "risk": "substrate自身が重要性や真偽を学習・決定してはならない。biasはprovenance付きの外部policyとして扱う。"
+      "adoption_state": "synthetic-executable-evaluation",
+      "risk": "小さなmultiplierでもk-WTA境界を跨ぐとsignatureとcandidate順位が離散的に変化し得る。substrate自身が重要性・真偽を学習してはならず、biasはprovenance付き外部policyとして明示opt-inし、誤適用反例を同時に評価する。",
+      "evidence_note": "SUI-shaped synthetic fixtureで1.01倍のrare-critical priorがtext支配を逆転してdesired candidateを回復する一方、同じ1.01倍をcommon featureへ与えるとbaselineで正しかった順位を逆転させる反例を確認した。absolute multiplier capは順位安定性の保証ではない。"
     },
     {
       "id": "temporal-familiarity",
@@ -324,14 +325,37 @@
       "depends_on": [
         "SAC-B2"
       ],
-      "change": "uniform projectionとprovenance付きstatic salience priorによるbounded biasを比較する。",
-      "primary_question": "希少だが重要なfeatureを拾いやすくしつつ、汎用容量と新規性検出を壊さないか。",
+      "change": "uniform projectionを既定値とし、first sliceではprovenance付きexact-feature contribution priorをB1 normalizationより前にbounded reweightする。wildcard / family-wide boost、substrate自律学習、fanout/topology biasはこの段階では行わない。",
+      "primary_question": "外部から根拠付きで指定された希少featureを拾いやすくできるか、また小さなpriorがk-WTAの離散境界でcommon/noisy featureを過補正する失敗をどの程度生むか。",
       "measures": [
         "rare_critical_recall",
         "common_noise_false_activation",
+        "kwta_bias_discontinuity",
+        "family_normalization_interaction",
+        "localized_competition_interaction",
         "novelty_abstention_behavior",
-        "capacity_tradeoff"
-      ]
+        "capacity_tradeoff",
+        "latency_delta"
+      ],
+      "current_result": {
+        "state": "limited-synthetic-executable-evidence",
+        "evidence_file": "projection_bias_evidence_2026-09-18.json",
+        "findings": [
+          "二つのrare relation featureへ1.01倍のpriorを与えるfixtureでは、global baselineのdesired 0.0625 / distractor 0.875がdesired 0.5 / distractor 0.4375へ逆転し、構造一致candidateを回復した。",
+          "同じ1.01倍をgraph:neighborKind=artifactへ与える反例では、baselineのdesired 0.4375 / distractor 0.1875がdesired 0.25 / distractor 0.375へ逆転し、誤priorが候補順を悪化させた。",
+          "rare-critical anchorではunbiased / biased signature similarityが0.5となり、微小multiplierでも16 activeの半数が入れ替わるk-WTA不連続を観測した。",
+          "B1 family normalizationではfamily総量をboundedにしたままrelative priorが残り、B2 soft-local + global residualでも同じpriorがcandidate順位へ作用することをsyntheticに確認した。"
+        ],
+        "implementation_boundary": {
+          "absolute_max_multiplier": 2,
+          "max_rules": 32,
+          "selectors": "exact Channel + exact Key only",
+          "provenance_required": true,
+          "default_enabled": false,
+          "fanout_topology_bias_in_first_slice": false
+        },
+        "stop_line": "bounded multiplierやprovenanceの存在を、policyの正しさ、順位安定性、実SUI意味品質、production defaultへ昇格させない。"
+      }
     },
     {
       "stage": "SAC-B4",
@@ -465,7 +489,10 @@
     "subchannel_overcorrection_behavior",
     "hard_isolation_overreservation_behavior",
     "global_residual_recovery_behavior",
-    "signature_collision_loss"
+    "signature_collision_loss",
+    "kwta_bias_discontinuity",
+    "prior_misapplication_false_activation",
+    "salience_policy_traceability"
   ],
   "evaluation_policy": {
     "single_composite_score": false,
@@ -494,7 +521,10 @@
       "同じB1b評価で、exact-channel normalizationがsingleton structural subchannelを過補正してbaseline順位を逆転させる失敗モードと、caller-owned feature-family normalizationがその逆転を抑えるケースを観測した。",
       "SAC-B2のSUI-shaped synthetic fixtureで、family-local winner枠がglobal k-WTAのtext cardinality支配を補正するケースを観測した。",
       "同じB2評価で、hard equal family reservationがbaselineで正しかった候補順を逆転させる失敗モードと、bounded global residualがその逆転を緩和するケースを観測した。",
-      "B2 local competitionのrequest-scoped Encoder再利用はnaiveなper-family生成より大幅に軽量化したが、standalone reconstructionではglobal baselineより高いlatency / allocationが残った。"
+      "B2 local competitionのrequest-scoped Encoder再利用はnaiveなper-family生成より大幅に軽量化したが、standalone reconstructionではglobal baselineより高いlatency / allocationが残った。",
+      "SAC-B3のSUI-shaped synthetic fixtureで、provenance付きexact-feature priorがtext支配されたrare-critical candidateを回復するケースを観測した。",
+      "同じB3評価で、1.01倍という微小priorでもcommon featureへ誤適用するとbaselineで正しかった候補順を逆転させる失敗モードを観測した。",
+      "B3 rare-critical anchorではunbiased / biased signature similarity 0.5を観測し、bounded multiplierがbounded ranking changeを意味しないk-WTA不連続を確認した。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -502,7 +532,7 @@
       "SUI Sensemaking親和図法での深層意味候補品質",
       "実SUI / SEIデータとhuman-adjudicated benchmarkに対するinput normalizationの一般化可能性",
       "実SUI / SEIデータでのlocalized competition一般化、最適family budget / residual比、およびalways-on運用に十分なallocation特性",
-      "policy-bounded biased projectionの有効性",
+      "実SUI / SEIデータでのsalience prior一般化、policy authoring / review / expiry、最適bounds、およびfanout/topology biasの独立増分",
       "reversible familiarity modulationの見逃し率",
       "static semantic補完が必要かどうか",
       "learned sparse projectionがrandom / static方式を上回るか",
@@ -515,7 +545,8 @@
     ],
     "supporting_evidence_files": [
       "input_normalization_evidence_2026-09-18.json",
-      "localized_competition_evidence_2026-09-18.json"
+      "localized_competition_evidence_2026-09-18.json",
+      "projection_bias_evidence_2026-09-18.json"
     ]
   },
   "references": [
