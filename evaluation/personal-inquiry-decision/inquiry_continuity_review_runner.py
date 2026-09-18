@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Safely run ISSUE-000078 Inquiry Continuity human reviews.
+"""Safely run Inquiry/Decision Continuity matched human reviews.
 
 This wrapper keeps the generic matched-review session reusable while enforcing
-Inquiry Continuity response semantics before a stage can advance. Reviewer
+Issue-specific response semantics before a stage can advance. Reviewer
 bundles intentionally hide condition labels and never expose later-stage
 material before the shared stage gate opens it.
 
@@ -71,7 +71,7 @@ RESPONSE_AUTHORSHIP_VALUES = (
 
 
 class InquiryReviewRunnerError(ValueError):
-    """Raised when the Issue 78 review runner cannot safely continue."""
+    """Raised when the shared matched-review runner cannot safely continue."""
 
 
 def new_review_provenance(
@@ -331,12 +331,12 @@ def record_checked_response(
     recorded_at: str,
     response: Any,
 ) -> dict[str, Any]:
-    """Validate provenance and Issue 78 semantics before the stage gate moves."""
+    """Validate provenance and Issue-specific semantics before the stage gate moves."""
     _validate_safe_session(session, manifest, fixtures_by_id)
 
     if fixture_id not in fixtures_by_id:
         raise InquiryReviewRunnerError(
-            f"fixture is not part of this Inquiry matched set: {fixture_id}"
+            f"fixture is not part of this matched set: {fixture_id}"
         )
     if stage not in REVIEW_STAGES:
         raise InquiryReviewRunnerError(f"invalid review stage: {stage}")
@@ -374,7 +374,7 @@ def record_checked_response(
             response,
         )
         _validate_safe_session(updated, manifest, fixtures_by_id)
-    except (InquiryReviewError, ReviewSessionError) as exc:
+    except (InquiryReviewError, DecisionReviewError, ReviewSessionError) as exc:
         raise InquiryReviewRunnerError(str(exc)) from exc
     return updated
 
