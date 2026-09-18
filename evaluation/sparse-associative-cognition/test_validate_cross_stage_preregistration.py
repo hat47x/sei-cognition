@@ -12,6 +12,7 @@ if str(EVALUATION_DIR) not in sys.path:
     sys.path.insert(0, str(EVALUATION_DIR))
 
 from validate_cross_stage_preregistration import (  # noqa: E402
+    validate_pre_run_prerequisites,
     validate_preregistration,
     validate_unlock,
 )
@@ -64,6 +65,33 @@ class CrossStagePreregistrationTests(unittest.TestCase):
             validate_preregistration(doc),
             "current_bundle_is_frozen must match",
         )
+
+    def test_evaluation_run_draft_keeps_full_unlock_closed(self) -> None:
+        doc = copy.deepcopy(self.doc)
+        self.assertEqual(doc["evaluation_run"]["state"], "draft")
+        self.assertFalse(doc["evaluation_run"]["current_run_authorized"])
+
+    def test_evaluation_run_state_and_authorized_flag_must_match(self) -> None:
+        doc = copy.deepcopy(self.doc)
+        doc["evaluation_run"]["state"] = "authorized"
+        self.assert_has_error(
+            validate_preregistration(doc),
+            "current_run_authorized must match",
+        )
+
+    def test_evaluation_run_cannot_embed_executor_or_results_in_this_slice(self) -> None:
+        for key in ("executor_implemented", "result_artifact_generated"):
+            with self.subTest(key=key):
+                doc = copy.deepcopy(self.doc)
+                doc["evaluation_run"][key] = True
+                self.assert_has_error(validate_preregistration(doc), key)
+
+    def test_evaluation_run_cannot_open_b5_or_change_production_default(self) -> None:
+        for key in ("b5_entry_gate_changed", "production_default_changed"):
+            with self.subTest(key=key):
+                doc = copy.deepcopy(self.doc)
+                doc["evaluation_run"][key] = True
+                self.assertTrue(validate_preregistration(doc))
 
     def test_semantic_labels_cannot_be_embedded_in_preregistration(self) -> None:
         doc = copy.deepcopy(self.doc)
@@ -148,6 +176,15 @@ class CrossStagePreregistrationTests(unittest.TestCase):
         doc["freeze_kit"].update({
             "state": "frozen",
             "current_bundle_is_frozen": True,
+        })
+        self.assertEqual(validate_pre_run_prerequisites(doc), [])
+        self.assert_has_error(
+            validate_unlock(doc),
+            "authorized explicit evaluation-run artifact",
+        )
+        doc["evaluation_run"].update({
+            "state": "authorized",
+            "current_run_authorized": True,
         })
         self.assertEqual(validate_unlock(doc), [])
 
