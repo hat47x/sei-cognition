@@ -123,6 +123,33 @@ func TestCandidateFallsBackWhenLowerRouteMissesFloor(t *testing.T) {
 	}
 }
 
+func TestEfficacySnapshotKeepsObservedVersionAndEvidenceTrace(t *testing.T) {
+	store, _ := NewStore(testDefinitions())
+	records := []OutcomeRecord{
+		{
+			ProblemClass: "routine-summary", Route: "local-slm",
+			CognitiveOutcome: CognitiveSufficient, ExecutionOutcome: ExecutionCompleted,
+			ProvenanceRef: "evidence:b", ObservedPolicyVersion: BaselineVersion,
+		},
+		{
+			ProblemClass: "routine-summary", Route: "local-slm",
+			CognitiveOutcome: CognitiveSufficient, ExecutionOutcome: ExecutionCompleted,
+			ProvenanceRef: "evidence:a", ObservedPolicyVersion: BaselineVersion,
+		},
+	}
+	candidate, err := store.BuildCandidate(records)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stats := candidate.Efficacy["routine-summary"]["local-slm"]
+	if stats.ObservedPolicyVersions[BaselineVersion] != 2 {
+		t.Fatalf("observed version trace missing: %#v", stats.ObservedPolicyVersions)
+	}
+	if !reflect.DeepEqual(stats.EvidenceRefs, []string{"evidence:a", "evidence:b"}) {
+		t.Fatalf("evidence refs are not stable/sorted: %#v", stats.EvidenceRefs)
+	}
+}
+
 func TestExecutionFailureDoesNotBecomeCognitiveFailure(t *testing.T) {
 	store, _ := NewStore(testDefinitions())
 	records := outcomes("routine-summary", "local-slm", 4, 0, 3, 3)
