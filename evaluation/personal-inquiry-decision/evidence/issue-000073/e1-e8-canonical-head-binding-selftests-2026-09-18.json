@@ -1,0 +1,70 @@
+{
+  "schema": "sei.issue-000073-e1-e8-canonical-head-binding-validation/v0",
+  "issue": "ISSUE-000073",
+  "observed_on": "2026-09-18",
+  "status": "pass_for_delta",
+  "source_commit": "852c5edc8811f9802b12368d8ed7082774054237",
+  "source_binding": [
+    {
+      "path": "tools/run_issue_000073_resume_first_evidence.py",
+      "git_blob": "a02467cfb09b190f19c3e2df262a1bcb17dcc44e"
+    },
+    {
+      "path": "tools/verify_issue_000073_resume_first_evidence.py",
+      "git_blob": "2fe08f3006bee2f31c8edaff26c8c1d06889ebd1"
+    },
+    {
+      "path": "tools/capture_issue_000073_resume_first_evidence.py",
+      "git_blob": "07a31d3efcb9096224e53e52cbdf75c82a036409"
+    },
+    {
+      "path": "tools/test_run_issue_000073_resume_first_evidence.py",
+      "git_blob": "69d533e17afdd6b788b1476eb610edba34b61615"
+    },
+    {
+      "path": "tools/test_verify_issue_000073_resume_first_evidence.py",
+      "git_blob": "5aa91c3cc29ea5e609d9257838b8bde848e9112a"
+    },
+    {
+      "path": "tools/test_capture_issue_000073_resume_first_evidence.py",
+      "git_blob": "9f7d99f2f6f90857781c44e3f0c281e0f3132da3"
+    }
+  ],
+  "change_scope": [
+    "runner requires independently supplied --expected-head and blocks on mismatch",
+    "runner records expected_head and head_matches_expected",
+    "verifier requires a valid expected_head, head_matches_expected=true, and expected_head == head",
+    "one-command capture requires --expected-head before runner invocation and forwards it unchanged"
+  ],
+  "actual_validation": {
+    "py_compile": "pass on current six-file source set",
+    "runner_preflight_selftest": "pass",
+    "verifier_selftest": "pass",
+    "capture_selftest_cases": {
+      "actual_current_module_passed": [
+        "expected-head mismatch blocks before runner",
+        "normal pass publishes evidence and verification",
+        "runner blocked keeps raw only",
+        "runner zero without record fails closed",
+        "runner block exit without record is not accepted as blocked",
+        "failed --replace removes stale outputs",
+        "verifier failure is not PASS",
+        "existing outputs require --replace"
+      ],
+      "same_output_path": {
+        "status": "pass",
+        "mode": "focused preflight probe",
+        "result": "blocked",
+        "exit_code": 2,
+        "source": "GitHub canonical capture preflight lines from blob 07a31d3efcb9096224e53e52cbdf75c82a036409",
+        "note": "The full capture self-test was not re-run as one uninterrupted process after this delta; prior historical full-suite PASS remains a separate Evidence record."
+      }
+    }
+  },
+  "limitations": [
+    "This validates Evidence-chain canonical-HEAD binding, not E1-E8 Go execution.",
+    "The current environment still lacks Go 1.25.x and cannot acquire it because of DNS/outbound restrictions.",
+    "This does not establish H1/H2 human evidence or Decision Continuity Product Value."
+  ],
+  "stopline": "Canonical-HEAD binding delta PASS != E1-E8 Go PASS != H1/H2 human review != Decision Continuity Product Value established."
+}

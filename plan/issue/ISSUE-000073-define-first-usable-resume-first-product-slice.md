@@ -206,9 +206,9 @@ Question 5、6、9については、Requirement auditとREQ-0023 / SCN-0019のfo
 - `tools/run_issue_000073_resume_first_evidence.py`: E1〜E8をmachine-readable recordへ束ねるrunnerあり
 - `tools/verify_issue_000073_resume_first_evidence.py`: recorded tested commit、source blob / SHA-256、Go version、E1〜E8個別test結果を再検証するverifierあり
 - `tools/capture_issue_000073_resume_first_evidence.py`: runner → verifier → Evidence保存を一命令でfail-closedに連結する標準入口あり
-- runner preflight self-test: **PASS on current source (2026-09-18); machine-readable Evidence recorded**
-- verifier self-test: **PASS on current source (2026-09-18); machine-readable Evidence recorded**
-- capture workflow self-test: **PASS on current source (2026-09-18); machine-readable Evidence recorded**
+- runner preflight self-test: **PASS on canonical-HEAD-bound current source (2026-09-18); machine-readable delta Evidence recorded**
+- verifier self-test: **PASS on canonical-HEAD-bound current source (2026-09-18); machine-readable delta Evidence recorded**
+- capture workflow: **historical full self-test PASS retained; canonical-HEAD deltaは8 case actual + same-output focused preflight actualで確認 (2026-09-18)**
 - E1〜E8 actual Go 1.25.x execution: **Not Yet Verified**
 - REQ-0023 / SCN-0019 Executable Evidence: **Not Yet Verified**
 - H1 resume usability review: **Not Yet Observed**
@@ -230,6 +230,7 @@ evaluation/personal-inquiry-decision/evidence/issue-000073/capture-workflow-self
 evaluation/personal-inquiry-decision/evidence/issue-000073/h2-runner-capture-selftest-2026-09-18.json
 evaluation/personal-inquiry-decision/evidence/issue-000073/h2-runner-capture-head-bound-selftest-2026-09-18.json
 evaluation/personal-inquiry-decision/evidence/issue-000073/go-toolchain-acquisition-blocker-2026-09-18.json
+evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8-canonical-head-binding-selftests-2026-09-18.json
 ```
 
 これらはrunner / verifier / captureの受入れ系に限定したExecutable Evidenceであり、E1〜E8 actual Go Evidenceではない。currentの実行手順とblocker詳細は`evaluation/personal-inquiry-decision/DECISION_CONTINUITY_EXECUTION_READINESS_2026-09-16.md`をcurrent-state正本として参照する。
@@ -395,7 +396,7 @@ SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw 
 ### Current resolution status — 2026-09-18
 
 - 条件1、2、9、10: **Design / Requirement auditの範囲では成立**。
-- 条件3〜5: E1〜E8のprobe / test sourceとrunner / verifier / captureはある。runner preflight / verifier / capture workflowのcurrent source self-testは2026-09-18にactual PASSしmachine-readable Evidenceへ固定済みだが、**actual Go 1.25.x E1〜E8実行結果はNot Yet Verified**。受入れtoolingのPASSやsource存在だけで条件3〜5の成立扱いにしない。
+- 条件3〜5: E1〜E8のprobe / test sourceとrunner / verifier / captureはある。runner / verifierのcanonical-HEAD-bound current source self-testはactual PASSし、captureのcanonical-HEAD deltaもsplit executionで確認済みだが、**actual Go 1.25.x E1〜E8実行結果はNot Yet Verified**。受入れtoolingのPASSやsource存在だけで条件3〜5の成立扱いにしない。
 - 条件6〜8: H1 / H2とProduct Valueのcounterfactual observationは**Not Yet Observed**であり、未成立。H2のprovenance-first共通runnerとDecision-specific validationは実装済みだが、reviewer response未取得のため条件7を満たしたとは扱わない。
 
 したがってStatusは**Open**を維持する。Design文書が完成したこと、REQ-0023 / SCN-0019をformalizeしたこと、probe sourceやEvidence受入れtoolingを実装したことだけではResolvedにしない。prototypeが技術的にPASSした場合も、それだけでDecision ContinuityのAdoption / Outcome Evidenceが成立したことにはしない。
@@ -422,7 +423,7 @@ Plan / document整合は、変更範囲に応じて`plan/scripts/check_plan_regi
 python3 tools/test_run_issue_000073_resume_first_evidence.py
 python3 tools/test_verify_issue_000073_resume_first_evidence.py
 python3 tools/test_capture_issue_000073_resume_first_evidence.py
-python3 tools/capture_issue_000073_resume_first_evidence.py
+python3 tools/capture_issue_000073_resume_first_evidence.py --expected-head <canonical-commit-sha>
 python3 tools/test_capture_issue_000073_h2_runner_selftest.py
 python3 tools/capture_issue_000073_h2_runner_selftest.py --expected-head <canonical-commit-sha>
 python3 evaluation/personal-inquiry-decision/test_decision_continuity_review_runner.py
@@ -433,11 +434,11 @@ captureはrunner → verifier → Evidence保存をfail-closedに連結する。
 個別診断が必要な場合だけrunner / verifierを直接使う。
 
 ```text
-python3 tools/run_issue_000073_resume_first_evidence.py --output <evidence-record.json>
+python3 tools/run_issue_000073_resume_first_evidence.py --expected-head <canonical-commit-sha> --output <evidence-record.json>
 python3 tools/verify_issue_000073_resume_first_evidence.py <evidence-record.json> --json-out <verification-record.json>
 ```
 
-runner / captureはclean committed HEAD、required sourceとHEAD blobの一致、Go 1.25.xをpreconditionとする。preconditionを満たせずblockedとなった場合はrepository test failureともPASSとも扱わない。2026-09-18に再確認したcurrent execution environmentでもhost Goは1.23.2であり、Go自身のtoolchain自動取得はnetwork / DNS制限でblockedだったため、actual E1〜E8 runはNot Yet Verifiedのまま保持する。
+runner / captureはcheckout外で独立に取得したcanonical expected HEADとの完全一致、clean committed HEAD、required sourceとHEAD blobの一致、Go 1.25.xをpreconditionとする。verifierもEvidence record内の`expected_head == head`と`head_matches_expected=true`を必須にする。preconditionを満たせずblockedとなった場合はrepository test failureともPASSとも扱わない。2026-09-18に再確認したcurrent execution environmentでもhost Goは1.23.2であり、Go自身のtoolchain自動取得はnetwork / DNS制限でblockedだったため、actual E1〜E8 runはNot Yet Verifiedのまま保持する。
 
 runner preflight / verifier / capture workflowについては、current sourceに対する2026-09-18 actual self-test PASSをmachine-readable Evidenceへ固定済みである。ただしこれはEvidence受入れ経路の検証であり、Go 1.25.xで`interactionprobe`を実行したEvidenceへは昇格させない。
 
