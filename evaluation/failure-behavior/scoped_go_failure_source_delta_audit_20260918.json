@@ -29,7 +29,7 @@
       "currentBlobSha": "5db5c5562d6737635b6c00951072d3cde8f2a42e",
       "classification": "ADR-0031 identity rename only",
       "normalizedExecutableContentEquivalent": true,
-      "normalizedExecutableContentSha1": "d190585083538cf643cadc7de3e03b4bd1bae2bf",
+      "normalizedExecutableContentSha1": "121c95720db403e04ed0c37b751701d13907b392",
       "historicalAndCurrentNormalizedContentMatchedAtAudit": true
     },
     {
@@ -38,7 +38,7 @@
       "currentBlobSha": "96a42785e003ec9a468efff5e6e99351db6dd748",
       "classification": "ADR-0031 identity rename only",
       "normalizedExecutableContentEquivalent": true,
-      "normalizedExecutableContentSha1": "b254737931e8bd56313155038f3bf7c888d23a6a",
+      "normalizedExecutableContentSha1": "d9e3c89b46a91adec85b08c58a08d001519f74a9",
       "historicalAndCurrentNormalizedContentMatchedAtAudit": true
     },
     {
@@ -47,7 +47,7 @@
       "currentBlobSha": "38f7f89c38b6efc3655cc43d93f552c2081d2886",
       "classification": "byte-identical",
       "normalizedExecutableContentEquivalent": true,
-      "normalizedExecutableContentSha1": "7b9629eef038734e8f9927ee5cfdcadd9eea2c8f",
+      "normalizedExecutableContentSha1": "9dfc1be60a363551f7e76a714689a4340dd67e5c",
       "historicalAndCurrentNormalizedContentMatchedAtAudit": true
     },
     {
@@ -56,7 +56,7 @@
       "currentBlobSha": "5f56676aa8b95dec5cd86b37f671520d67f85634",
       "classification": "ADR-0031 identity rename plus evaluation User-Agent literal rename",
       "normalizedExecutableContentEquivalent": true,
-      "normalizedExecutableContentSha1": "9535d7251937363ec5352a3b9d3fa13eba13b668",
+      "normalizedExecutableContentSha1": "f9cb0360447af10f3a2dd29f81cfe69f52b2c586",
       "historicalAndCurrentNormalizedContentMatchedAtAudit": true
     },
     {
@@ -65,7 +65,7 @@
       "currentBlobSha": "b594b5848f667e65ae6e6fe33b0486ccae21d89b",
       "classification": "ADR-0031 identity/environment/probe-literal rename only",
       "normalizedExecutableContentEquivalent": true,
-      "normalizedExecutableContentSha1": "598deb606d09f43e09a31c3e926b2848924acd6e",
+      "normalizedExecutableContentSha1": "56779b5fc3edabdf465723edcdd0cdf85f474c99",
       "historicalAndCurrentNormalizedContentMatchedAtAudit": true
     },
     {
@@ -74,7 +74,7 @@
       "currentBlobSha": "0e99f14febc4c7b650053269ccde19ae200d65c2",
       "classification": "byte-identical",
       "normalizedExecutableContentEquivalent": true,
-      "normalizedExecutableContentSha1": "33920a3c7c0c0129e62968d3a616fbee17b1911b",
+      "normalizedExecutableContentSha1": "0d840a35c96759adc3c61f32fb11a31c77af94d0",
       "historicalAndCurrentNormalizedContentMatchedAtAudit": true
     },
     {
@@ -83,7 +83,7 @@
       "currentBlobSha": "0084a8d71fad5306d516e6a24264b929ee317dee",
       "classification": "ADR-0031 identity rename plus explanatory comment only",
       "normalizedExecutableContentEquivalent": true,
-      "normalizedExecutableContentSha1": "c37d3d0002b7e84461a2deea363901c217d62d0d",
+      "normalizedExecutableContentSha1": "be09f08fea165309a769efcec0598d1a5ba6a6a4",
       "historicalAndCurrentNormalizedContentMatchedAtAudit": true
     }
   ],
@@ -96,5 +96,11 @@
     "actualProviderFailureEvidenceEstablishedByThisAudit": false,
     "operationalEvidence": false
   },
-  "stopLine": "source-delta audit equivalence != current exact-blob Go execution PASS != full repository regression PASS != Go 1.25 baseline verification != actual Provider failure Evidence != Operational Evidence"
+  "stopLine": "source-delta audit equivalence != current exact-blob Go execution PASS != full repository regression PASS != Go 1.25 baseline verification != actual Provider failure Evidence != Operational Evidence",
+  "digestCorrection": {
+    "recordedAt": "2026-09-18",
+    "reason": "The initial auxiliary JavaScript SHA-1 helper encoded the 64-bit message-length trailer incorrectly by relying on JavaScript shifts above 31 bits.",
+    "impact": "Only the derived normalizedExecutableContentSha1 values were affected. Historical/current Git blob identities and the normalization classifications were not changed.",
+    "verification": "Historical and current normalized content were recomputed with a corrected SHA-1 implementation and matched for all 7 audited files before any current-source execution PASS claim."
+  }
 }
