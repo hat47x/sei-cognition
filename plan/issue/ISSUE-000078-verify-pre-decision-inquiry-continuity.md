@@ -346,6 +346,9 @@ EVIDENCE=<checkout外または意図的に管理するe78-3-evidence.json>
 
 # repository-local mechanics gate。probe/evidence focused unit test、canonical validate、
 # 3 fixture全てのEvidence preflightを一括実行する。result JSONは上書きしない。
+# result schema v1はcanonical probe semantic SHA-256、mechanics file SHA-256、
+# frozen source fixtureのexpected/actual Git blob SHA-1、Python runtimeへ結びつく。
+# source fixtureがprobeのfreezeと一致しなければcheck開始前にfail-closedする。
 python3 "$LOCAL_CHECKS" --stop-on-failure --result-output "$LOCAL_RESULT"
 
 # validateは3 source fixtureのGit blob freezeを全件検証し、current probe /
@@ -409,7 +412,7 @@ python3 "$EVIDENCE_TOOL" --probe "$PROBE_SET" --repo-root . \
   --output "$EVIDENCE"
 ```
 
-review開始前に、repository-local mechanics runnerが全checkを完走し、加えて`validate`と対象fixtureの`preflight`がcurrent v1 contractを示すことを確認する。runnerはprobe/evidence focused unit tests、canonical validate、3 fixture全てのpreflightを一つの入口で実行し、途中停止や未実行checkをPASSへ数えない。result JSONはexclusive-createで保存できる。ただしそのPASSはHuman Evidenceではなく、actual long-gap resumption、Product Value、Stable Requirement authorizationも成立させない。
+review開始前に、repository-local mechanics runnerが全checkを完走し、加えて`validate`と対象fixtureの`preflight`がcurrent v1 contractを示すことを確認する。runnerはprobe/evidence focused unit tests、canonical validate、3 fixture全てのpreflightを一つの入口で実行し、途中停止や未実行checkをPASSへ数えない。local-check result schema v1は、canonical probeのsemantic SHA-256、runner / probe / Evidence tool / focused test等のexact file SHA-256、3 source fixtureのexpected / actual Git blob SHA-1、Python implementation / versionを`contractSnapshot`へ保存する。source fixtureがprobeのfreezeと一致しない場合はcheck実行前にfail-closedする。これにより、後からprobeやmechanicsが変わったPASSを同一条件の検証結果として読み替えない。result JSONはexclusive-createで保存できる。ただしそのPASSはHuman Evidenceではなく、actual long-gap resumption、Product Value、Stable Requirement authorizationも成立させない。
 
 `validate`と`preflight`では3 source fixtureのGit blob SHA-1、probe / response / receipt / audit-response / Evidence schema、typed audit dimension契約がcurrent v1であることを確認する。pre-v1 artifactはcurrent contractへ移行済みとはみなさず、human review開始後のschema差し替えを行わない。
 
