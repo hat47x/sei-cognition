@@ -230,6 +230,7 @@ def run_live_probe(
             "missingTests": list(EXPECTED_TESTS),
             "nonPassTests": {},
             "parseErrors": [],
+            "toolchainPreflight": preflight_result,
             "actualProviderFailureEvidence": False,
             "operationalEvidence": False,
             "stopLine": STOP_LINE,
