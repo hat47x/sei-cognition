@@ -21,7 +21,9 @@
       "sparse projection"
     ],
     "capacityInvariant": "Dimensions, Fanout, and Active are unchanged; bias only changes competition within the existing sparse capacity.",
-    "implementation": "Rules are validated and cloned at Provider construction, compiled into an exact-selector map once, and applied in place to request-owned prepared features."
+    "implementation": "Rules are validated and cloned at Provider construction, compiled into an exact-selector map once, and applied in place to request-owned prepared features.",
+    "maxMultiplierValidation": "caller max and rule multiplier must be finite; NaN/Inf fail closed",
+    "selectorCanonicalization": "channel/key must already be canonical exact strings; surrounding whitespace fails closed instead of being silently normalized"
   },
   "syntheticFixtures": [
     {
@@ -83,12 +85,21 @@
     "benchmarkCommand": "go test -bench=BenchmarkPrepare -benchmem -count=3",
     "benchmark": {
       "uniformPreparedFeatures": {
-        "latencyNsPerOpRange": [9791, 9875],
-        "bytesPerOpRange": [6315, 6316],
+        "latencyNsPerOpRange": [
+          9791,
+          9875
+        ],
+        "bytesPerOpRange": [
+          6315,
+          6316
+        ],
         "allocsPerOp": 52
       },
       "biasedPreparedFeatures": {
-        "latencyNsPerOpRange": [10364, 10798],
+        "latencyNsPerOpRange": [
+          10364,
+          10798
+        ],
         "bytesPerOp": 6316,
         "allocsPerOp": 52
       },
@@ -108,7 +119,9 @@
       "policy and rules are cloned before Provider retention",
       "rules are compiled once at Provider construction",
       "bias is applied after normalization and before providerEncoder/B2 competition",
-      "bias mutates only request-owned prepared feature slices in place"
+      "bias mutates only request-owned prepared feature slices in place",
+      "NaN/Inf maxMultiplier and rule multiplier fail closed",
+      "non-canonical exact selectors with surrounding whitespace fail closed"
     ]
   },
   "stopLines": [
