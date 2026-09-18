@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import tempfile
 import unittest
+from pathlib import Path
 
 from inquiry_continuity_review_runner import (
     InquiryReviewRunnerError,
@@ -10,6 +12,7 @@ from inquiry_continuity_review_runner import (
     provenance_projection,
     record_checked_response,
     reviewer_bundle,
+    save_new_session,
 )
 from matched_review_session import current_stage, new_session
 
@@ -198,6 +201,13 @@ class DecisionContinuityReviewRunnerTest(unittest.TestCase):
         )
         projection = provenance_projection(session)
         self.assertFalse(projection["clean_blinded_candidate"])
+
+    def test_review_start_session_cannot_be_reinitialized_in_place(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "session.json"
+            save_new_session(path, self.session)
+            with self.assertRaises(InquiryReviewRunnerError):
+                save_new_session(path, self.session)
 
     def test_missing_provenance_cannot_open_bundle(self) -> None:
         session = new_session(
