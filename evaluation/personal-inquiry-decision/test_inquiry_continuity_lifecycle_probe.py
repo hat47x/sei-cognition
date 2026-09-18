@@ -17,6 +17,7 @@ from inquiry_continuity_lifecycle_probe import (
     probe_content_sha256,
     response_template,
     save_receipt,
+    validate_audit_receipt_data,
     validate_probe,
     validate_response,
 )
@@ -298,6 +299,37 @@ class LifecycleProbeTest(unittest.TestCase):
             packet["fixed_response_sha256"],
             receipt["fixed_response_sha256"],
         )
+
+    def test_audit_data_validator_rejects_response_raw_mismatch(self):
+        response_value = self._response_value()
+        response_raw = (
+            json.dumps(
+                response_value,
+                ensure_ascii=False,
+            )
+            + "\n"
+        ).encode("utf-8")
+        with tempfile.TemporaryDirectory() as tmp:
+            response_path = Path(tmp) / "response.json"
+            response_path.write_bytes(response_raw)
+            receipt = build_audit_receipt(
+                self.probe,
+                "R1",
+                self.review_receipt,
+                self.review_raw,
+                response_path,
+                "2026-09-19T02:05:00+09:00",
+            )
+        with self.assertRaises(LifecycleProbeError):
+            validate_audit_receipt_data(
+                receipt,
+                self.probe,
+                "R1",
+                self.review_receipt,
+                self.review_raw,
+                response_value,
+                response_raw + b" ",
+            )
 
     def test_audit_cannot_precede_review_start(self):
         with tempfile.TemporaryDirectory() as tmp:

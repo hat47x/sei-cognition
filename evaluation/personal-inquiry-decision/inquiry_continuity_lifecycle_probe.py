@@ -844,6 +844,111 @@ def _audit_material(
     }
 
 
+def audit_material(
+    probe: dict[str, Any],
+    rotation: str,
+) -> dict[str, Any]:
+    validate_probe(probe)
+    return _audit_material(probe, rotation)
+
+
+def validate_audit_receipt_data(
+    value: Any,
+    probe: dict[str, Any],
+    rotation: str,
+    review_start_receipt_value: dict[str, Any],
+    review_start_receipt_raw: bytes,
+    response_value: dict[str, Any],
+    response_raw: bytes,
+) -> None:
+    validate_review_start_receipt(
+        review_start_receipt_value,
+        probe,
+        rotation,
+    )
+    _validate_value_raw_pair(
+        review_start_receipt_value,
+        review_start_receipt_raw,
+        "review-start receipt",
+    )
+    review_start_receipt_sha256 = hashlib.sha256(
+        review_start_receipt_raw
+    ).hexdigest()
+    validate_response(
+        response_value,
+        probe,
+        rotation,
+        review_start_receipt_sha256,
+    )
+    _validate_value_raw_pair(
+        response_value,
+        response_raw,
+        "lifecycle response",
+    )
+    required = {
+        "schema",
+        "status",
+        "probe_id",
+        "probe_sha256",
+        "rotation",
+        "review_start_receipt_sha256",
+        "review_started_at",
+        "fixed_response_sha256",
+        "audit_material_sha256",
+        "revealed_at",
+    }
+    if not isinstance(value, dict) or set(value) != required:
+        raise LifecycleProbeError(
+            "audit receipt has invalid shape"
+        )
+    if value["schema"] != AUDIT_RECEIPT_SCHEMA:
+        raise LifecycleProbeError(
+            "audit receipt schema mismatch"
+        )
+    if (
+        value["status"] != "evaluation-only"
+        or value["probe_id"] != probe["probe_id"]
+        or value["probe_sha256"] != probe_content_sha256(probe)
+        or value["rotation"] != rotation
+        or value["review_start_receipt_sha256"]
+        != review_start_receipt_sha256
+        or value["review_started_at"]
+        != review_start_receipt_value["started_at"]
+    ):
+        raise LifecycleProbeError(
+            "audit receipt binding mismatch"
+        )
+    if (
+        value["fixed_response_sha256"]
+        != hashlib.sha256(response_raw).hexdigest()
+    ):
+        raise LifecycleProbeError(
+            "audit receipt is bound to a different response"
+        )
+    if (
+        value["audit_material_sha256"]
+        != _canonical_sha256(
+            audit_material(
+                probe,
+                rotation,
+            )
+        )
+    ):
+        raise LifecycleProbeError(
+            "audit receipt is bound to different audit material"
+        )
+    if _parse_timestamp(
+        value["revealed_at"],
+        "revealed_at",
+    ) < _parse_timestamp(
+        value["review_started_at"],
+        "review_started_at",
+    ):
+        raise LifecycleProbeError(
+            "audit reveal must not precede review start"
+        )
+
+
 def build_audit_receipt(
     probe: dict[str, Any],
     rotation: str,
@@ -896,7 +1001,7 @@ def build_audit_receipt(
             response_raw
         ).hexdigest(),
         "audit_material_sha256": _canonical_sha256(
-            _audit_material(
+            audit_material(
                 probe,
                 rotation,
             )
@@ -913,88 +1018,23 @@ def validate_audit_receipt(
     review_start_receipt_raw: bytes,
     response_path: str | Path,
 ) -> None:
-    validate_review_start_receipt(
-        review_start_receipt_value,
-        probe,
-        rotation,
-    )
-    _validate_value_raw_pair(
-        review_start_receipt_value,
-        review_start_receipt_raw,
-        "review-start receipt",
-    )
-    review_start_receipt_sha256 = hashlib.sha256(
-        review_start_receipt_raw
-    ).hexdigest()
-    required = {
-        "schema",
-        "status",
-        "probe_id",
-        "probe_sha256",
-        "rotation",
-        "review_start_receipt_sha256",
-        "review_started_at",
-        "fixed_response_sha256",
-        "audit_material_sha256",
-        "revealed_at",
-    }
-    if not isinstance(value, dict) or set(value) != required:
-        raise LifecycleProbeError(
-            "audit receipt has invalid shape"
-        )
-    if value["schema"] != AUDIT_RECEIPT_SCHEMA:
-        raise LifecycleProbeError(
-            "audit receipt schema mismatch"
-        )
-    if (
-        value["status"] != "evaluation-only"
-        or value["probe_id"] != probe["probe_id"]
-        or value["probe_sha256"] != probe_content_sha256(probe)
-        or value["rotation"] != rotation
-        or value["review_start_receipt_sha256"]
-        != review_start_receipt_sha256
-        or value["review_started_at"]
-        != review_start_receipt_value["started_at"]
-    ):
-        raise LifecycleProbeError(
-            "audit receipt binding mismatch"
-        )
-    _, response_raw = load_response(
+    response_value, response_raw = load_response(
         response_path,
         probe,
         rotation,
-        review_start_receipt_sha256,
+        hashlib.sha256(
+            review_start_receipt_raw
+        ).hexdigest(),
     )
-    if (
-        value["fixed_response_sha256"]
-        != hashlib.sha256(response_raw).hexdigest()
-    ):
-        raise LifecycleProbeError(
-            "audit receipt is bound to a different response"
-        )
-    if (
-        value["audit_material_sha256"]
-        != _canonical_sha256(
-            _audit_material(
-                probe,
-                rotation,
-            )
-        )
-    ):
-        raise LifecycleProbeError(
-            "audit receipt is bound to different audit material"
-        )
-    if _parse_timestamp(
-        value["revealed_at"],
-        "revealed_at",
-    ) < _parse_timestamp(
-        value["review_started_at"],
-        "review_started_at",
-    ):
-        raise LifecycleProbeError(
-            "audit reveal must not precede review start"
-        )
-
+    validate_audit_receipt_data(
+        value,
+        probe,
+        rotation,
+        review_start_receipt_value,
+        review_start_receipt_raw,
+        response_value,
+        response_raw,
+    )
 
 def build_audit_packet(
     probe: dict[str, Any],
@@ -1044,7 +1084,7 @@ def build_audit_packet(
         "audit_material_sha256": receipt_value[
             "audit_material_sha256"
         ],
-        **_audit_material(probe, rotation),
+        **audit_material(probe, rotation),
     }
 
 
