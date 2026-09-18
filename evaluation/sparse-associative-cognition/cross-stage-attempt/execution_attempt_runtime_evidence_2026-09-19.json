@@ -186,5 +186,12 @@
     "runtime Evidence != semantic interpretation",
     "runtime Evidence != B5 decision",
     "runtime Evidence != production adoption"
-  ]
+  ],
+  "current_source_equivalent_head": "72170df78ce2fcbac6d959ad9b35f7d03940a1ab",
+  "parent_sync": {
+    "develop_commit": "a24078226375f070f28e4805eec50c36800eab49",
+    "merge_commit": "72170df78ce2fcbac6d959ad9b35f7d03940a1ab",
+    "overlapping_sacs_files": 0,
+    "note": "Parent advancement was confined to personal-inquiry-decision and issue-plan files; all 17 runtime-bound SACS blobs remained unchanged."
+  }
 }
