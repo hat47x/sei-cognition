@@ -45,7 +45,7 @@ Provider PlanのdecodeとSEI Capability Observationへのmappingは既存 `runti
 
 ## 3. direct binary境界
 
-`--binary`は、実際に起動するregular fileを直接指します。
+`--binary`は、実際に起動するTEI regular fileを直接指します。probe自身の起動方法とTEI executable identityを混同しません。actual採取ではprobe commandも一度buildした実行fileとして起動する例を正本とします。
 
 symlinkは受理しません。wrapper commandやPrefixArgsをprobe側へ持ち込みません。
 
@@ -101,10 +101,12 @@ source_binding = manifest_matched
 基本形は次です。
 
 ```bash
-go run ./cmd/tei-e3b-probe \
+go build -o /tmp/tei-e3b-probe ./cmd/tei-e3b-probe
+
+/tmp/tei-e3b-probe \
   --binary /path/to/tei \
   --source-repository hat47x/tei-platform \
-  --source-commit <commit> \
+  --source-commit <full-commit-object-id> \
   --workspace /path/to/workspace \
   --run /path/to/run.json \
   --solution <solution-id> \
