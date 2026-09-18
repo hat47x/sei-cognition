@@ -258,9 +258,13 @@ Stage 0 source-freeze current-content validation
   = PASS（evaluation-only）
 
 TEI-side Reference tool source
-  = Not Yet Implemented
+  = available（TEI ISSUE-000054 / PR #686）
 
 Reference Executable Evidence
+  = Scoped Evidence available
+  = Go 1.23.2 targeted go test / go vet PASS
+
+TEI Application Pattern / Target adoption
   = Not Yet Verified
 
 native vs TEI change-amplification comparison
@@ -285,6 +289,45 @@ source freeze PASS
   != change amplification reduction
   != Product Value
 ```
+
+## 2026-09-18 TEI Stage 0 executable result
+
+TEI側では、`research/sei-reference-adoption`の一つのworkstream branchでStage 0を実装し、PR #686として`main`へ統合した。
+
+- TEI Issue: `plan/issue/000054-sei-reference-adoption-resume-review.md`
+- TEI Design: `plan/design/SEI_REFERENCE_ADOPTION_STAGE0_DESIGN.md`
+- frozen Reference snapshot: `reference/sei-adoption/decision-continuity-counterfactual-001.json`
+- checker: `tools/sei-resume-reference`
+- PR: #686
+- merged TEI commit: `0d1c068d6fc9e9faf444c1a47eaa071eee61b272`
+
+Go 1.23.2でtargetedに、
+
+```text
+gofmt -d
+  -> 0 bytes
+
+go test ./tools/sei-resume-reference
+  -> PASS
+
+go vet ./tools/sei-resume-reference
+  -> PASS
+```
+
+を確認した。
+
+checkerは`scenario`からRecommendation / Decision、historical basis、unresolved、post-decision changeを導出し、`C_sei_resume`と`reference_state`をoracleとして意味境界を監査する。historical basisはObservation roleへ限定し、Recommendation / Unknown等へのrole confusionもfail closedにした。
+
+```text
+source-freeze validation PASS
+  + TEI Reference checker targeted PASS
+  != TEI Application Pattern adoption
+  != Target / Gate C Evidence
+  != change amplification reduction
+  != SEI Product Value / human usability
+```
+
+PR merge後、TEIの継続branch `research/sei-reference-adoption`はcurrent `main`へ戻し、同一workstreamの派生branchを増やしていない。
 
 ## Initial next step
 
