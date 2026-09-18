@@ -114,13 +114,13 @@ actual Evidence commandでは、`PrefixArgs`を使ったwrapperや`go run`では
 - `runtime/go/cmd/tei-e3b-probe/main.go`
 - `runtime/ACTUAL_TEI_EVIDENCE_PROTOCOL.md`
 
-`teiprobe`はProvider Planの意味mappingを再実装せず、既存`teiintegration.CLI.ObserveProviderPlan`へ委譲する。追加責務はdirect regular executableの実行前SHA-256、optional manifestのstrict照合、actual process実行、実行後SHA-256再確認、derived report生成に限定した。
+`teiprobe`はProvider Planの意味mappingを再実装せず、既存`teiintegration.CLI.ObserveProviderPlan`へ委譲する。追加責務はdirect regular executableの実行前SHA-256、optional manifestのstrict照合、actual process実行、実行後SHA-256再確認、derived report生成に限定した。declared repositoryは取得URLではなくsecretを含まないrepository identifier、declared commitはhex object identityへ制約し、Capability Observationの`source_state_ref`もcaller入力ではなくobserved binary SHA-256から生成する。
 
 symlink binaryは拒否する。manifestはunknown field / malformed JSON / multiple JSON valuesを拒否し、repository / commit / digestが一致した場合だけ`manifest_matched`とする。process failure、timeout、Observation mapping failure、実行中digest変化ではPASS reportを返さない。
 
 failure時の診断については、既存`teiintegration`が上限付きTEI subprocess stderrを返却errorへ含め得る。これはlocal diagnosticであり、`sei.e3b-tei-probe/v1`の成功Evidence reportには含めない。失敗情報をrepositoryへ保存する場合もraw stderrをそのままEvidence化せず、ISSUE-000076のsecret-safe boundaryを通して、secretを含まないfailure stage / observationへ落とす。これにより、診断可能性を失わずにactual Evidence reportとfailure diagnosticを分離する。
 
-fixture-scoped test sourceではmanifestなし / 一致 / 不一致、strict manifest、symlink、process failure、timeout、digest change、credential field非追加を扱う。ただしcurrent moduleはGo 1.25を要求し、この作業環境ではGo 1.25.xを取得できないため、**test sourceは実装済みだがactual `go test`はNot Yet Verified**である。
+fixture-scoped test sourceではmanifestなし / 一致 / 不一致、strict manifest、symlink、process failure、timeout、digest change、credential field非追加、credential-bearing repository URL / 非hex commit拒否、caller-supplied source-state値の非残存を扱う。ただしcurrent moduleはGo 1.25を要求し、この作業環境ではGo 1.25.xを取得できないため、**test sourceは実装済みだがactual `go test`はNot Yet Verified**である。
 
 ```text
 implementation source available
@@ -142,7 +142,7 @@ implementation source available
 7. Probe用commandではwrapper / PrefixArgsを許可しない。
 8. TEI process failure / timeoutではPASS reportを生成しない。
 9. success時のCapability Observationがcurrent validatorを通る。
-10. credential / secretをreport fieldへ追加しない。
+10. credential / secretをreport fieldへ追加しない。declared repositoryへcredential-bearing URLを受理せず、Capability Observationのsource state referenceもcaller自由入力から生成しない。
 11. process stderr / error textを成功reportのEvidence fieldへ追加しない。failureを保存する場合はISSUE-000076のsecret-safe boundaryを使う。
 12. helper subprocessによるtestをactual TEI Evidenceへ昇格させない.
 13. v0.2.0 supported release scopeをE3aから暗黙に拡張しない。
@@ -182,7 +182,7 @@ binary digestやbuild manifestはEvidence / provenanceの実現手段であり�
 - [x] binary SHA-256とsource declarationをderived reportへ記録する。
 - [x] manifestなし / 一致 / 不一致をtest sourceへ落とす。
 - [x] process failure / timeout時にPASS reportを生成しないtest sourceを追加する。
-- [x] report schemaにcredential fieldを持たせない。
+- [x] report schemaにcredential fieldを持たせず、source declaration / source-state provenanceの自由入力からsecretが混入しにくい境界を実装する。
 - [ ] current Go 1.25環境で`teiprobe`を含むrepository-local runtime regressionを実行する。
 - [x] Evidence protocol文書を自然な日本語で整備する。
 - [x] Product Milestone / Realization Provider Exchange / upstream planへ境界を同期する。
