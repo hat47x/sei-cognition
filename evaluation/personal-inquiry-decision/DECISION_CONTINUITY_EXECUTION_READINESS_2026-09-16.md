@@ -246,7 +246,21 @@ Go自身のtoolchain自動取得でGo 1.25.0を起動できるかもactualに確
 GOTOOLCHAIN=go1.25.0+auto go version
 ```
 
-しかし`proxy.golang.org`への名前解決 / 外向き通信が実行環境側で拒否され、Go 1.25.0 toolchainを取得できませんでした。この結果はrepository test failureではなく、**actual E1〜E8実行に必要なtoolchainを現在の実行環境で用意できないenvironment blocker**として扱います。
+しかし`proxy.golang.org`への名前解決 / 外向き通信が実行環境側で拒否され、Go 1.25.0 toolchainを取得できませんでした。
+
+2026-09-18 19:53 JSTには、同じ取得経路の再試行ではなく、別経路としてGo公式配布先をdirect probeしました。
+
+```text
+curl -I --max-time 10 https://go.dev/dl/go1.25.0.linux-amd64.tar.gz
+  -> curl: (6) Could not resolve host: go.dev
+
+curl -I --max-time 10 https://dl.google.com/go/go1.25.0.linux-amd64.tar.gz
+  -> curl: (6) Could not resolve host: dl.google.com
+```
+
+filesystem上のGo / Go 1.25.x candidateも走査し、確認できたのは`/usr/local/go/bin/go`のみでした。そのbinaryは`go1.23.2 linux/amd64`です。したがって、toolchain auto-downloadだけでなくofficial direct distribution経路も現在のexecution environmentでは利用できず、preinstalled Go 1.25.xも存在しません。
+
+この結果はrepository test failureではなく、**actual E1〜E8実行に必要なtoolchainを現在の実行環境で用意できないenvironment blocker**として扱います。観測は`evidence/issue-000073/go-toolchain-acquisition-blocker-2026-09-18.json`へmachine-readableに固定しています。
 
 したがって、Go 1.23.2で代替PASSを作らず、E1〜E8 actual runは引き続き**Not Yet Verified**とします。
 
