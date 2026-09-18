@@ -1,5 +1,5 @@
 schema: sei.plan-registry/v1
-updated: 2026-09-16
+updated: 2026-09-18
 
 adr:
   - id: ADR-0001
@@ -57,7 +57,7 @@ adr:
   - id: ADR-0014
     file: plan/adr/ADR-0014-sei-tei-product-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000016, ISSUE-000017, ISSUE-000018, ISSUE-000019, ISSUE-000020, ISSUE-000021, ISSUE-000022, ISSUE-000024, ISSUE-000028, ISSUE-000029, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000044, ISSUE-000046]
+    related_issues: [ISSUE-000016, ISSUE-000017, ISSUE-000018, ISSUE-000019, ISSUE-000020, ISSUE-000021, ISSUE-000022, ISSUE-000024, ISSUE-000028, ISSUE-000029, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000044, ISSUE-000046, ISSUE-000079]
   - id: ADR-0015
     file: plan/adr/ADR-0015-requirement-inquiry-decision-memory.md
     status: Accepted
@@ -85,7 +85,7 @@ adr:
   - id: ADR-0021
     file: plan/adr/ADR-0021-architecture-contract-authority-and-versioning.md
     status: Accepted
-    related_issues: [ISSUE-000022, ISSUE-000028, ISSUE-000029, ISSUE-000030, ISSUE-000031, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000038, ISSUE-000039, ISSUE-000041, ISSUE-000043, ISSUE-000044, ISSUE-000045, ISSUE-000046, ISSUE-000047, ISSUE-000048, ISSUE-000049, ISSUE-000050, ISSUE-000051, ISSUE-000053, ISSUE-000054, ISSUE-000056, ISSUE-000062, ISSUE-000063, ISSUE-000064, ISSUE-000065, ISSUE-000066, ISSUE-000067, ISSUE-000068, ISSUE-000069, ISSUE-000070, ISSUE-000071, ISSUE-000072, ISSUE-000074, ISSUE-000075, ISSUE-000076]
+    related_issues: [ISSUE-000022, ISSUE-000028, ISSUE-000029, ISSUE-000030, ISSUE-000031, ISSUE-000032, ISSUE-000033, ISSUE-000035, ISSUE-000038, ISSUE-000039, ISSUE-000041, ISSUE-000043, ISSUE-000044, ISSUE-000045, ISSUE-000046, ISSUE-000047, ISSUE-000048, ISSUE-000049, ISSUE-000050, ISSUE-000051, ISSUE-000053, ISSUE-000054, ISSUE-000056, ISSUE-000062, ISSUE-000063, ISSUE-000064, ISSUE-000065, ISSUE-000066, ISSUE-000067, ISSUE-000068, ISSUE-000069, ISSUE-000070, ISSUE-000071, ISSUE-000072, ISSUE-000074, ISSUE-000075, ISSUE-000076, ISSUE-000079]
   - id: ADR-0022
     file: plan/adr/ADR-0022-runtime-first-slice-read-validate-reconstruct.md
     status: Accepted
@@ -113,7 +113,7 @@ adr:
   - id: ADR-0028
     file: plan/adr/ADR-0028-product-interaction-canonical-operation-boundary.md
     status: Accepted
-    related_issues: [ISSUE-000045, ISSUE-000053, ISSUE-000078]
+    related_issues: [ISSUE-000045, ISSUE-000053, ISSUE-000078, ISSUE-000079]
   - id: ADR-0029
     file: plan/adr/ADR-0029-local-single-node-packaging-profile.md
     status: Accepted
@@ -206,3 +206,4 @@ issue:
   - {id: ISSUE-000076, file: plan/issue/ISSUE-000076-design-runtime-provider-failure-behavior-evidence.md, status: Open, priority: 2, related_adrs: [ADR-0013, ADR-0019, ADR-0021, ADR-0024, ADR-0025]}
   - {id: ISSUE-000077, file: plan/issue/ISSUE-000077-integrate-brand-world-into-product-value-discovery.md, status: Resolved, priority: 1, related_adrs: [ADR-0018]}
   - {id: ISSUE-000078, file: plan/issue/ISSUE-000078-verify-pre-decision-inquiry-continuity.md, status: Open, priority: 2, related_adrs: [ADR-0005, ADR-0018, ADR-0020, ADR-0028]}
+  - {id: ISSUE-000079, file: plan/issue/ISSUE-000079-verify-tei-first-sei-application-plane-adoption.md, status: Open, priority: 1, related_adrs: [ADR-0014, ADR-0021, ADR-0028]}
