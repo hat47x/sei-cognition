@@ -1,0 +1,74 @@
+{
+  "schema": "sei.tei-version-exchange-workflow-observation/v1",
+  "observedAt": "2026-09-18T08:19:54Z",
+  "repository": "hat47x/tei-platform",
+  "workflow": {
+    "name": "SOZA E3b-P2 TEI Evidence",
+    "path": ".github/workflows/soza-e3b-p2-evidence.yml",
+    "runId": 33913500170,
+    "runNumber": 2,
+    "runAttempt": 8,
+    "event": "push",
+    "headBranch": "evidence/soza-e3b-p2-version-exchange-2026-09-05",
+    "workflowHeadSha": "5e87cd18967b6d86001cc4d5229bd4886b94e30d",
+    "runStartedAt": "2026-09-18T08:19:48Z",
+    "updatedAt": "2026-09-18T08:19:54Z",
+    "status": "completed",
+    "conclusion": "failure",
+    "rerunMode": "rerun-failed-jobs"
+  },
+  "comparisonAxis": {
+    "targetRevisionB": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be",
+    "revisionAFixedReference": "48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67"
+  },
+  "job": {
+    "id": 105532149763,
+    "name": "actual-tei-cli",
+    "status": "completed",
+    "conclusion": "failure",
+    "createdAt": "2026-09-18T08:19:50Z",
+    "startedAt": "2026-09-18T08:19:50Z",
+    "completedAt": "2026-09-18T08:19:53Z",
+    "labels": [
+      "ubuntu-latest"
+    ],
+    "runnerId": 0,
+    "runnerName": "",
+    "runnerGroupId": 0,
+    "runnerGroupName": "",
+    "stepCount": 0,
+    "steps": [],
+    "jobLogAvailable": false
+  },
+  "artifacts": [],
+  "observation": {
+    "runnerAssignmentObserved": false,
+    "jobStepStarted": false,
+    "revisionBSourceCheckoutObserved": false,
+    "teiBuildProcessObserved": false,
+    "providerPlanProcessObserved": false,
+    "evidenceArtifactProduced": false,
+    "failureClass": "github_hosted_job_start_failure",
+    "productFailureObserved": false,
+    "hostedRunnerRecoveryObserved": false
+  },
+  "comparisonWithAttempt7": {
+    "previousObservation": "runtime/evidence/tei-version-exchange-workflow-attempt7-20260907/observation.json",
+    "sameRunId": true,
+    "sameWorkflowHeadSha": true,
+    "sameTargetRevisionB": true,
+    "sameZeroStepBoundary": true,
+    "daysSincePreviousAttempt": 11,
+    "newProductExecutionEvidence": false
+  },
+  "stopLine": [
+    "attempt 8 zero-step hosted job failure observed",
+    "does not prove revision B source checkout",
+    "does not prove TEI build failure",
+    "does not prove Provider Plan failure",
+    "does not prove SEI Adapter incompatibility",
+    "does not resolve ISSUE-000072",
+    "do not repeatedly rerun this hosted workflow solely to infer Product behavior"
+  ],
+  "qualityJudgement": "not_evaluated"
+}
