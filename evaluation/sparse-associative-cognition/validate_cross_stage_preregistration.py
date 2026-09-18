@@ -107,6 +107,29 @@ def validate_preregistration(doc: dict) -> list[str]:
                     if profile["active"] > profile["dimensions"]:
                         errors.append(f"capacity profile {profile.get('id')} active must not exceed dimensions")
 
+        stress = capacity.get("stress_track")
+        if not isinstance(stress, dict):
+            errors.append("capacity_profiles.stress_track must be an object")
+        else:
+            if set(stress.get("stages", [])) != {"SAC-B6d", "SAC-B6e"}:
+                errors.append("capacity stress track must retain SAC-B6d and SAC-B6e")
+            if stress.get("policy_set_state") != "frozen-for-preregistration":
+                errors.append("capacity stress policy set must remain frozen-for-preregistration")
+            if stress.get("may_not_define_production_default") is not True:
+                errors.append("capacity stress track must not define production default")
+            if stress.get("may_not_use_feature_cardinality_as_semantic_priority") is not True:
+                errors.append("feature cardinality must not become semantic priority")
+            profile = stress.get("profile")
+            if not isinstance(profile, dict) or profile.get("id") != "oversized-stress":
+                errors.append("capacity stress profile must remain oversized-stress")
+            policies = stress.get("residual_policies")
+            if not isinstance(policies, list):
+                errors.append("capacity stress residual_policies must be a list")
+            else:
+                ids = {item.get("id") for item in policies if isinstance(item, dict)}
+                if ids != {"proportional-baseline", "cap128", "cap64"}:
+                    errors.append("capacity stress policies must remain proportional-baseline/cap128/cap64")
+
     prior = doc.get("b3_prior_manifest")
     if not isinstance(prior, dict):
         errors.append("b3_prior_manifest must be an object")
