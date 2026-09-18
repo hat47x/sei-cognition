@@ -1,0 +1,128 @@
+{
+  "schema": "sei.sacs-cross-stage-preregistration-evidence/v1alpha1",
+  "date": "2026-09-18",
+  "status": "limited-local-executable-boundary-evidence",
+  "issue": 458,
+  "branch": "topic/sacs-cross-stage-benchmark-prereg",
+  "subject": "Cross-stage human-adjudicated benchmark preregistration gate",
+  "semantic_results_generated": false,
+  "current_gate": {
+    "state": "locked-preregistration",
+    "human_adjudication_state": "pending",
+    "b3_prior_manifest_state": "not-yet-frozen",
+    "retrieval_split_state": "not-yet-frozen",
+    "familiarity_split_state": "not-yet-frozen",
+    "routing_split_state": "not-yet-frozen",
+    "b5_gate": "closed"
+  },
+  "frozen_design": {
+    "variants": [
+      "B0",
+      "B1",
+      "B1-B2",
+      "B1-B2-B3"
+    ],
+    "capacity_profiles": [
+      {
+        "id": "small",
+        "dimensions": 2048,
+        "active": 32,
+        "fanout": 8,
+        "seed": 47
+      },
+      {
+        "id": "medium",
+        "dimensions": 4096,
+        "active": 64,
+        "fanout": 8,
+        "seed": 47
+      },
+      {
+        "id": "large",
+        "dimensions": 8192,
+        "active": 128,
+        "fanout": 8,
+        "seed": 47
+      }
+    ],
+    "tracks": [
+      "retrieval",
+      "familiarity",
+      "routing"
+    ],
+    "diagnostics_only": [
+      "SAC-B6b",
+      "SAC-B6c"
+    ],
+    "single_composite_score": false,
+    "evaluation_label_authored_b3_prior": false,
+    "evaluation_label_authored_b4_fingerprint": false,
+    "b7_training_holdout_overlap": false,
+    "stress_track": {
+      "stages": [
+        "SAC-B6d",
+        "SAC-B6e"
+      ],
+      "profile": {
+        "id": "oversized-stress",
+        "dimensions": 32768,
+        "active": 512,
+        "fanout": 8,
+        "seed": 47
+      },
+      "residual_policies": [
+        "proportional-baseline",
+        "cap128",
+        "cap64"
+      ],
+      "production_default": false,
+      "feature_cardinality_is_semantic_priority": false
+    }
+  },
+  "local_verification": {
+    "toolchain": "Python 3.13.5",
+    "repository_checkout": false,
+    "method": "The branch preregistration JSON and validator/test source were reconstructed in a temporary local directory and executed without generating benchmark results.",
+    "validator_command": "python evaluation/sparse-associative-cognition/validate_cross_stage_preregistration.py",
+    "validator_result": "PASS: Cross-stage preregistration validated; evaluation remains locked",
+    "unittest_command": "python -m unittest -v evaluation/sparse-associative-cognition/test_validate_cross_stage_preregistration.py",
+    "unittest_result": "PASS",
+    "tests_passed": 15,
+    "elapsed_seconds": 0.002,
+    "covered_fail_closed_boundaries": [
+      "result generation cannot be enabled by preregistration",
+      "pending adjudication cannot unlock evaluation",
+      "semantic labels cannot be embedded in preregistration",
+      "B3 prior cannot be authored from evaluation labels",
+      "B4 fingerprint cannot use evaluation labels",
+      "retrieval calibration/evaluation overlap rejected",
+      "familiarity calibration/evaluation overlap rejected",
+      "B7 training/holdout overlap rejected",
+      "B6b/B6c diagnostics cannot become semantic scores",
+      "single composite score remains prohibited",
+      "B5 gate remains closed",
+      "fully frozen synthetic manifest can satisfy unlock validator",
+      "B6d/B6e stress track cannot define production default",
+      "feature cardinality cannot become semantic priority"
+    ]
+  },
+  "stop_lines": [
+    "preregistration != semantic benchmark result",
+    "validator PASS != evaluation unlocked",
+    "human adjudication pending != semantic evaluation allowed",
+    "cross-stage gate != B5 entry condition satisfied",
+    "diagnostic data != semantic score",
+    "synthetic executable evidence != production evidence"
+  ],
+  "not_verified": [
+    "human adjudication completion",
+    "dataset digest and adjudication manifest freeze",
+    "real retrieval calibration/evaluation split",
+    "real B3 prior manifest",
+    "real B4 fingerprint contract",
+    "real B7 Outcome training and holdout replay split",
+    "human-adjudicated semantic benchmark quality",
+    "cross-stage latency/memory on target hardware",
+    "Product Value, Operational, Adoption, or Outcome Evidence"
+  ]
+}

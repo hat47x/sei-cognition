@@ -203,3 +203,39 @@ prototypeのunit testやsynthetic benchmarkは、アルゴリズム実装が動�
 - Product Value / Operational / Adoption / Outcome Evidence
 
 SUI側の事前登録benchmarkはhuman adjudication完了までsemantic resultを生成しない。そのgateを、この共通基質の実装都合で開かない。
+
+
+## 8. Cross-stage human-adjudicated benchmark gate
+
+B1/B2/B3/B4/B6/B6b/B6c/SEI-B7にはlimited synthetic executable evidenceがあるが、これをそのまま実SUI/SEI意味品質へ一般化しない。
+
+human-adjudicated評価へ進む前に、比較variant、split、B3 prior、B4 fingerprint、B7 training / holdout、metrics、停止線を事前登録する。
+
+- machine-readable preregistration: `cross_stage_benchmark_preregistration.json`
+- 説明文書: `CROSS_STAGE_BENCHMARK_PREREGISTRATION.md`
+- validator: `validate_cross_stage_preregistration.py`
+
+現在は **Evaluation Locked** である。
+
+```text
+synthetic executable evidence
+  ↓
+cross-stage preregistration
+  ↓
+human adjudication freeze
+  ↓
+explicit evaluation-run artifact
+  ↓
+human-adjudicated evaluation
+```
+
+preregistration artifact自身はsemantic benchmark resultを生成しない。
+
+特に次を維持する。
+
+- evaluation labelを使ってB3 salience priorを作らない
+- evaluation labelを使ってB4 fingerprintを作らない
+- B7 training Outcomeとholdout replayを混ぜない
+- B6b/B6c diagnosticをsemantic scoreへ変換しない
+- quality / robustness / resource / safetyを単一scoreへ圧縮しない
+- cross-stage preregistrationだけではB5 learned sparse projectionのentry gateを開かない

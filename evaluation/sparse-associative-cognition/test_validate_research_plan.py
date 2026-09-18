@@ -97,6 +97,16 @@ class SparseAssociativeCognitionResearchPlanTests(unittest.TestCase):
         plan["stage_gate_policy"]["rejection_is_valid_completion"] = False
         self.assert_has_error(plan, "rejection_is_valid_completion must remain true")
 
+    def test_cross_stage_preregistration_remains_locked(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["cross_stage_evaluation_gate"]["results_generation_enabled"] = True
+        self.assert_has_error(plan, "results_generation_enabled must remain false")
+
+    def test_cross_stage_gate_cannot_open_b5(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["cross_stage_evaluation_gate"]["b5_entry_gate_changed"] = True
+        self.assert_has_error(plan, "b5_entry_gate_changed must remain false")
+
     def test_llm_is_not_required_or_default_fallback(self) -> None:
         for key in ("llm_required", "llm_is_fallback_by_default"):
             with self.subTest(key=key):

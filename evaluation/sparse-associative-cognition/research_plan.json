@@ -814,7 +814,8 @@
       "cap64はcap128よりlocal incremental dimensionsを88対24まで多く回復した一方marginはわずかに小さく、local incremental dimensionalityがqualityの単調proxyではない反例を確認した。",
       "SAC-B6eでcontrol / structure-heavy / text-heavyの3 synthetic fixtureにbaseline / cap128 / cap64を同一条件で適用し、feature-family cardinalityとmarginを固定した。",
       "B6eではtext-dominantなcontrolとtext-heavyでstatic residual capが負のbaseline marginを正へ回復した一方、structure-heavyではbaseline marginが最も大きく、capが無条件改善ではない反例を確認した。",
-      "3 fixtureすべてでcap64はcap128よりlocal incremental dimensionsを多く回復する一方marginは小さく、local distinctnessをqualityの単調proxyにできない性質が複数fixtureでも残った。"
+      "3 fixtureすべてでcap64はcap128よりlocal incremental dimensionsを多く回復する一方marginは小さく、local distinctnessをqualityの単調proxyにできない性質が複数fixtureでも残った。",
+      "cross-stage preregistration専用validatorをlocal Python 3.13.5で実行し15 tests PASSを確認し、B6d/B6e stress trackのproduction default化とfeature cardinalityのsemantic昇格もfail-closedにした。一方、unlock validatorはadjudication / dataset / split / B3 prior未freezeのため意図どおりlockedを維持した。semantic benchmark resultは未生成。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -831,7 +832,8 @@
       "実hardware / real workloadにおけるcapacity profile品質、3 synthetic fixtureを越えたstatic residual scaling一般化、最適residual scaling、safe policy condition、path別selection-pressure ceiling、adaptive Active / local budget policy、power / latency / memory trade-off",
       "実problem class / real Outcome評価におけるoutcome-informed routingの一般化、selection-bias補正、statistical confidence、drift / expiry / rollback criteria",
       "production配置方式",
-      "Product Value / Operational / Adoption / Outcome Evidence"
+      "Product Value / Operational / Adoption / Outcome Evidence",
+      "cross-stage human-adjudicated evaluationはpreregistration済みだが、adjudication / dataset / split / B3 prior manifest未freezeのためlocked。semantic benchmark resultは未生成。"
     ],
     "supporting_evidence_files": [
       "input_normalization_evidence_2026-09-18.json",
@@ -843,7 +845,8 @@
       "local_residual_containment_evidence_2026-09-18.json",
       "../sei-cognition-orchestration/outcome_informed_routing_evidence_2026-09-18.json",
       "static_residual_scaling_evidence_2026-09-18.json",
-      "multi_fixture_residual_scaling_evidence_2026-09-18.json"
+      "multi_fixture_residual_scaling_evidence_2026-09-18.json",
+      "cross_stage_preregistration_evidence_2026-09-18.json"
     ]
   },
   "references": [
@@ -889,5 +892,23 @@
       "doi": "10.1038/s41586-024-07819-w",
       "evidence_role": "multi-timescale compartmental outcome-learning inspiration"
     }
-  ]
+  ],
+  "cross_stage_evaluation_gate": {
+    "state": "locked-preregistration",
+    "preregistration_file": "cross_stage_benchmark_preregistration.json",
+    "document": "CROSS_STAGE_BENCHMARK_PREREGISTRATION.md",
+    "results_generation_enabled": false,
+    "human_adjudication_required": true,
+    "human_adjudication_state": "pending",
+    "variant_set_frozen": true,
+    "tracks": [
+      "retrieval",
+      "familiarity",
+      "routing"
+    ],
+    "no_single_composite_score": true,
+    "b5_entry_gate_changed": false,
+    "unlock_rule": "human adjudication, dataset digest, split manifests, and B3 prior manifest must be frozen; evaluation starts only from a separate explicit evaluation-run artifact.",
+    "evidence_file": "cross_stage_preregistration_evidence_2026-09-18.json"
+  }
 }

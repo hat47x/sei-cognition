@@ -193,6 +193,32 @@ def validate_research_plan(plan: dict) -> list[str]:
         if stage_gate.get("rejection_is_valid_completion") is not True:
             errors.append("stage_gate_policy.rejection_is_valid_completion must remain true")
 
+    cross_stage = plan.get("cross_stage_evaluation_gate")
+    if not isinstance(cross_stage, dict):
+        errors.append("cross_stage_evaluation_gate must be an object")
+    else:
+        if cross_stage.get("state") != "locked-preregistration":
+            errors.append("cross_stage_evaluation_gate.state must remain locked-preregistration")
+        if cross_stage.get("preregistration_file") != "cross_stage_benchmark_preregistration.json":
+            errors.append("cross_stage_evaluation_gate.preregistration_file must remain declared")
+        if cross_stage.get("results_generation_enabled") is not False:
+            errors.append("cross_stage_evaluation_gate.results_generation_enabled must remain false")
+        if cross_stage.get("human_adjudication_required") is not True:
+            errors.append("cross_stage_evaluation_gate.human_adjudication_required must remain true")
+        if cross_stage.get("human_adjudication_state") not in {"pending", "frozen"}:
+            errors.append("cross_stage_evaluation_gate.human_adjudication_state must be pending or frozen")
+        if cross_stage.get("variant_set_frozen") is not True:
+            errors.append("cross_stage_evaluation_gate.variant_set_frozen must remain true")
+        tracks = cross_stage.get("tracks")
+        if not isinstance(tracks, list) or set(tracks) != {"retrieval", "familiarity", "routing"}:
+            errors.append("cross_stage_evaluation_gate.tracks must remain retrieval/familiarity/routing")
+        if cross_stage.get("no_single_composite_score") is not True:
+            errors.append("cross_stage_evaluation_gate.no_single_composite_score must remain true")
+        if cross_stage.get("b5_entry_gate_changed") is not False:
+            errors.append("cross_stage_evaluation_gate.b5_entry_gate_changed must remain false")
+        if not cross_stage.get("unlock_rule"):
+            errors.append("cross_stage_evaluation_gate.unlock_rule must be declared")
+
     deferred = plan.get("deferred_directions")
     if not isinstance(deferred, list):
         errors.append("deferred_directions must be a list")
