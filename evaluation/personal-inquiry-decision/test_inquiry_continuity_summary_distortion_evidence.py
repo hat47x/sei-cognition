@@ -7,7 +7,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from inquiry_continuity_summary_distortion_probe import probe_content_sha256
+from inquiry_continuity_summary_distortion_probe import (
+    build_audit_reveal_receipt,
+    probe_content_sha256,
+    save_audit_reveal_receipt,
+)
 
 from inquiry_continuity_summary_distortion_evidence import (
     AUDIT_RESPONSE_SCHEMA,
@@ -105,13 +109,27 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
             encoding="utf-8",
         )
         self.human_sha = hashlib.sha256(self.human_path.read_bytes()).hexdigest()
+        self.receipt_path = self.root / "receipt.json"
+        receipt = build_audit_reveal_receipt(
+            self.probe,
+            self.fixture_id,
+            self.human_path,
+            "2026-09-17T09:29:00Z",
+        )
+        save_audit_reveal_receipt(self.receipt_path, receipt)
+        self.receipt_sha = hashlib.sha256(
+            self.receipt_path.read_bytes()
+        ).hexdigest()
 
     def tearDown(self):
         self.tmp.cleanup()
 
     def valid_audit(self) -> dict:
         value = audit_response_template(
-            self.probe, self.fixture_id, self.human_sha
+            self.probe,
+            self.fixture_id,
+            self.human_sha,
+            self.receipt_sha,
         )
         value["findings"] = {
             "hypothesis_to_certainty_detection": "pass",
@@ -129,7 +147,10 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
 
     def test_audit_template_is_bound_to_fixed_human_response(self):
         value = audit_response_template(
-            self.probe, self.fixture_id, self.human_sha
+            self.probe,
+            self.fixture_id,
+            self.human_sha,
+            self.receipt_sha,
         )
         self.assertEqual(value["schema"], AUDIT_RESPONSE_SCHEMA)
         self.assertEqual(
@@ -139,11 +160,19 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
             value["fixed_human_response_sha256"], self.human_sha
         )
         self.assertEqual(
+            value["audit_reveal_receipt_sha256"], self.receipt_sha
+        )
+        self.assertEqual(
             set(value["findings"]), set(self.probe["audit_dimensions"])
         )
         with self.assertRaises(SummaryDistortionEvidenceError):
             validate_audit_response(
-                value, self.probe, self.fixture_id, self.human_sha
+                value,
+                self.probe,
+                self.fixture_id,
+                self.human_sha,
+                self.receipt_sha,
+                "2026-09-17T09:29:00Z",
             )
 
     def test_audit_rejects_changed_probe_binding(self):
@@ -152,7 +181,12 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
         changed["cases"][0]["distorted_next_question"] = "changed after review?"
         with self.assertRaises(SummaryDistortionEvidenceError):
             validate_audit_response(
-                value, changed, self.fixture_id, self.human_sha
+                value,
+                changed,
+                self.fixture_id,
+                self.human_sha,
+                self.receipt_sha,
+                "2026-09-17T09:29:00Z",
             )
 
     def test_audit_rejects_wrong_response_binding(self):
@@ -160,7 +194,12 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
         value["fixed_human_response_sha256"] = "b" * 64
         with self.assertRaises(SummaryDistortionEvidenceError):
             validate_audit_response(
-                value, self.probe, self.fixture_id, self.human_sha
+                value,
+                self.probe,
+                self.fixture_id,
+                self.human_sha,
+                self.receipt_sha,
+                "2026-09-17T09:29:00Z",
             )
 
     def test_audit_requires_exact_dimensions_and_human_authorship(self):
@@ -168,14 +207,37 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
         del value["findings"]["correction_burden"]
         with self.assertRaises(SummaryDistortionEvidenceError):
             validate_audit_response(
-                value, self.probe, self.fixture_id, self.human_sha
+                value,
+                self.probe,
+                self.fixture_id,
+                self.human_sha,
+                self.receipt_sha,
+                "2026-09-17T09:29:00Z",
             )
 
         value = self.valid_audit()
         value["audit_provenance"]["response_authorship"] = "ai-generated"
         with self.assertRaises(SummaryDistortionEvidenceError):
             validate_audit_response(
-                value, self.probe, self.fixture_id, self.human_sha
+                value,
+                self.probe,
+                self.fixture_id,
+                self.human_sha,
+                self.receipt_sha,
+                "2026-09-17T09:29:00Z",
+            )
+
+    def test_audit_completed_at_cannot_precede_reveal(self):
+        value = self.valid_audit()
+        value["audit_provenance"]["completed_at"] = "2026-09-17T09:28:59Z"
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_audit_response(
+                value,
+                self.probe,
+                self.fixture_id,
+                self.human_sha,
+                self.receipt_sha,
+                "2026-09-17T09:29:00Z",
             )
 
     def test_bundle_separates_review_observation_and_semantic_audit(self):
@@ -190,6 +252,7 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
             self.fixtures,
             self.fixture_id,
             self.human_path,
+            self.receipt_path,
             audit_path,
         )
         self.assertEqual(bundle["schema"], EVIDENCE_SCHEMA)
@@ -212,6 +275,14 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
         self.assertEqual(
             bundle["review_provenance"]["reviewer_id"],
             "reviewer-opaque-1",
+        )
+        self.assertEqual(
+            bundle["audit_reveal"]["receipt_sha256"],
+            self.receipt_sha,
+        )
+        self.assertEqual(
+            bundle["audit_reveal"]["revealed_at"],
+            "2026-09-17T09:29:00Z",
         )
         self.assertEqual(
             bundle["semantic_audit"]["findings"][

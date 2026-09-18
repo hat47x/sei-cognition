@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+from datetime import datetime, timezone
 import hashlib
 import json
 import os
@@ -20,6 +21,7 @@ from typing import Any
 from inquiry_continuity_summary_distortion_probe import (
     RESPONSE_AUTHORSHIP_VALUES,
     SummaryDistortionProbeError,
+    load_audit_reveal_receipt,
     load_human_response,
     load_json,
     load_sources,
@@ -43,10 +45,32 @@ def _case(probe: dict[str, Any], fixture_id: str) -> dict[str, Any]:
     raise SummaryDistortionEvidenceError(f"unknown fixture: {fixture_id}")
 
 
+def _parse_timestamp(value: Any, field: str) -> datetime:
+    if not isinstance(value, str) or not value.strip():
+        raise SummaryDistortionEvidenceError(
+            f"{field} must be a non-empty timestamp"
+        )
+    normalized = value.strip()
+    if normalized.endswith("Z"):
+        normalized = normalized[:-1] + "+00:00"
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError as exc:
+        raise SummaryDistortionEvidenceError(
+            f"{field} must be ISO-8601"
+        ) from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise SummaryDistortionEvidenceError(
+            f"{field} must include a timezone offset"
+        )
+    return parsed.astimezone(timezone.utc)
+
+
 def audit_response_template(
     probe: dict[str, Any],
     fixture_id: str,
     fixed_human_response_sha256: str,
+    audit_reveal_receipt_sha256: str,
 ) -> dict[str, Any]:
     """Return an intentionally incomplete post-reveal semantic-audit template."""
     validate_probe(probe)
@@ -59,11 +83,20 @@ def audit_response_template(
         raise SummaryDistortionEvidenceError(
             "fixed_human_response_sha256 must be a lowercase SHA-256 hex digest"
         )
+    if (
+        not isinstance(audit_reveal_receipt_sha256, str)
+        or len(audit_reveal_receipt_sha256) != 64
+        or any(c not in "0123456789abcdef" for c in audit_reveal_receipt_sha256)
+    ):
+        raise SummaryDistortionEvidenceError(
+            "audit_reveal_receipt_sha256 must be a lowercase SHA-256 hex digest"
+        )
     return {
         "schema": AUDIT_RESPONSE_SCHEMA,
         "fixture_id": fixture_id,
         "probe_sha256": probe_content_sha256(probe),
         "fixed_human_response_sha256": fixed_human_response_sha256,
+        "audit_reveal_receipt_sha256": audit_reveal_receipt_sha256,
         "findings": {
             dimension: "not-observed" for dimension in probe["audit_dimensions"]
         },
@@ -82,6 +115,8 @@ def validate_audit_response(
     probe: dict[str, Any],
     fixture_id: str,
     fixed_human_response_sha256: str,
+    audit_reveal_receipt_sha256: str,
+    audit_revealed_at: str,
 ) -> None:
     validate_probe(probe)
     _case(probe, fixture_id)
@@ -90,6 +125,7 @@ def validate_audit_response(
         "fixture_id",
         "probe_sha256",
         "fixed_human_response_sha256",
+        "audit_reveal_receipt_sha256",
         "findings",
         "audit_provenance",
         "notes",
@@ -112,6 +148,10 @@ def validate_audit_response(
     if value["fixed_human_response_sha256"] != fixed_human_response_sha256:
         raise SummaryDistortionEvidenceError(
             "audit response is bound to a different human response"
+        )
+    if value["audit_reveal_receipt_sha256"] != audit_reveal_receipt_sha256:
+        raise SummaryDistortionEvidenceError(
+            "audit response is bound to a different audit-reveal receipt"
         )
 
     expected_dimensions = set(probe["audit_dimensions"])
@@ -145,11 +185,15 @@ def validate_audit_response(
         raise SummaryDistortionEvidenceError(
             "audit response authorship must be human-direct or human-transcribed"
         )
-    if (
-        not isinstance(provenance["completed_at"], str)
-        or not provenance["completed_at"].strip()
-    ):
-        raise SummaryDistortionEvidenceError("completed_at must be a non-empty string")
+    completed_at = _parse_timestamp(
+        provenance["completed_at"],
+        "completed_at",
+    )
+    revealed_at = _parse_timestamp(audit_revealed_at, "audit_revealed_at")
+    if completed_at < revealed_at:
+        raise SummaryDistortionEvidenceError(
+            "completed_at must not precede audit reveal"
+        )
     if not isinstance(provenance["note"], str):
         raise SummaryDistortionEvidenceError("audit_provenance note must be a string")
     if not isinstance(value["notes"], str):
@@ -161,6 +205,8 @@ def load_audit_response(
     probe: dict[str, Any],
     fixture_id: str,
     fixed_human_response_sha256: str,
+    audit_reveal_receipt_sha256: str,
+    audit_revealed_at: str,
 ) -> tuple[dict[str, Any], bytes]:
     try:
         raw = Path(path).read_bytes()
@@ -181,6 +227,8 @@ def load_audit_response(
         probe,
         fixture_id,
         fixed_human_response_sha256,
+        audit_reveal_receipt_sha256,
+        audit_revealed_at,
     )
     return value, raw
 
@@ -190,6 +238,7 @@ def build_evidence_bundle(
     fixtures: dict[str, dict[str, Any]],
     fixture_id: str,
     human_response_path: str | Path,
+    audit_reveal_receipt_path: str | Path,
     audit_response_path: str | Path,
 ) -> dict[str, Any]:
     """Build one E78.3 bundle with reviewer observation and semantic audit separated."""
@@ -204,11 +253,23 @@ def build_evidence_bundle(
     except SummaryDistortionProbeError as exc:
         raise SummaryDistortionEvidenceError(str(exc)) from exc
     fixed_human_response_sha256 = hashlib.sha256(human_raw).hexdigest()
+    try:
+        receipt_value, receipt_raw = load_audit_reveal_receipt(
+            audit_reveal_receipt_path,
+            probe,
+            fixture_id,
+            fixed_human_response_sha256,
+        )
+    except SummaryDistortionProbeError as exc:
+        raise SummaryDistortionEvidenceError(str(exc)) from exc
+    audit_reveal_receipt_sha256 = hashlib.sha256(receipt_raw).hexdigest()
     audit_response, audit_raw = load_audit_response(
         audit_response_path,
         probe,
         fixture_id,
         fixed_human_response_sha256,
+        audit_reveal_receipt_sha256,
+        receipt_value["revealed_at"],
     )
 
     return {
@@ -238,6 +299,14 @@ def build_evidence_bundle(
         "review_provenance": copy.deepcopy(
             human_response["review_provenance"]
         ),
+        "audit_reveal": {
+            "receipt_sha256": audit_reveal_receipt_sha256,
+            "revealed_at": receipt_value["revealed_at"],
+            "boundary": (
+                "machine-generated receipt persisted before audit/reference "
+                "material was emitted"
+            ),
+        },
         "semantic_audit": {
             "audit_response_sha256": hashlib.sha256(audit_raw).hexdigest(),
             "findings": copy.deepcopy(audit_response["findings"]),
@@ -268,7 +337,8 @@ def build_evidence_bundle(
             "stable_requirement_change": "not-authorized-by-this-artifact",
         },
         "interpretation_stoplines": [
-            "review observation and semantic audit remain separate evidence layers",
+            "review observation, audit reveal, and semantic audit remain separate evidence layers",
+            "audit-reveal receipt binds the fixed response before reference material is emitted",
             "probe content digest binds the review and audit to the exact evaluation stimulus",
             "no overall score, ranking, winner, or preferred condition is computed",
             "a completed synthetic distortion review is not actual long-gap resumption",
@@ -307,9 +377,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     template = sub.add_parser("audit-template")
     template.add_argument("--response", required=True)
+    template.add_argument("--receipt", required=True)
 
     export = sub.add_parser("export-evidence")
     export.add_argument("--response", required=True)
+    export.add_argument("--receipt", required=True)
     export.add_argument("--audit-response", required=True)
     export.add_argument("--output")
     return parser
@@ -332,12 +404,23 @@ def main(argv: list[str] | None = None) -> int:
     except SummaryDistortionProbeError as exc:
         raise SummaryDistortionEvidenceError(str(exc)) from exc
     fixed_human_response_sha256 = hashlib.sha256(human_raw).hexdigest()
+    try:
+        receipt_value, receipt_raw = load_audit_reveal_receipt(
+            args.receipt,
+            probe,
+            args.fixture_id,
+            fixed_human_response_sha256,
+        )
+    except SummaryDistortionProbeError as exc:
+        raise SummaryDistortionEvidenceError(str(exc)) from exc
+    audit_reveal_receipt_sha256 = hashlib.sha256(receipt_raw).hexdigest()
 
     if args.command == "audit-template":
         result = audit_response_template(
             probe,
             args.fixture_id,
             fixed_human_response_sha256,
+            audit_reveal_receipt_sha256,
         )
     elif args.command == "export-evidence":
         result = build_evidence_bundle(
@@ -345,6 +428,7 @@ def main(argv: list[str] | None = None) -> int:
             fixtures,
             args.fixture_id,
             args.response,
+            args.receipt,
             args.audit_response,
         )
     else:

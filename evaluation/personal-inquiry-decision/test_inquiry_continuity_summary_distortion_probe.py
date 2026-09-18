@@ -8,16 +8,19 @@ import unittest
 from pathlib import Path
 
 from inquiry_continuity_summary_distortion_probe import (
+    AUDIT_REVEAL_RECEIPT_SCHEMA,
     REQUIRED_KINDS,
     RESPONSE_SCHEMA,
     SummaryDistortionProbeError,
     build_audit_packet,
+    build_audit_reveal_receipt,
     build_review_packet,
     git_blob_sha1,
     load_sources,
     probe_content_sha256,
     response_sha256,
     response_template,
+    save_audit_reveal_receipt,
     validate_human_response,
     validate_probe,
 )
@@ -268,17 +271,36 @@ class SummaryDistortionProbeTest(unittest.TestCase):
                 {self.fixture_id: fixture},
                 self.fixture_id,
                 response,
+                self.root / "missing-receipt.json",
             )
 
         value = self.valid_response()
         response.write_text(json.dumps(value), encoding="utf-8")
+        receipt_path = self.root / "receipt.json"
+        receipt = build_audit_reveal_receipt(
+            self.probe,
+            self.fixture_id,
+            response,
+            "2026-09-18T02:55:00Z",
+        )
+        save_audit_reveal_receipt(receipt_path, receipt)
         packet = build_audit_packet(
             self.probe,
             {self.fixture_id: fixture},
             self.fixture_id,
             response,
+            receipt_path,
         )
         self.assertEqual(packet["stage"], "audit")
+        self.assertEqual(receipt["schema"], AUDIT_REVEAL_RECEIPT_SCHEMA)
+        self.assertEqual(
+            packet["audit_revealed_at"],
+            "2026-09-18T02:55:00Z",
+        )
+        self.assertEqual(
+            packet["audit_reveal_receipt_sha256"],
+            hashlib.sha256(receipt_path.read_bytes()).hexdigest(),
+        )
         self.assertEqual(
             packet["probe_sha256"],
             probe_content_sha256(self.probe),
@@ -299,6 +321,22 @@ class SummaryDistortionProbeTest(unittest.TestCase):
         self.assertIn("distortion_key", packet)
         self.assertIn("reference_state", packet)
         self.assertIn("interpretation_stoplines", packet)
+
+    def test_audit_reveal_receipt_never_overwrites(self):
+        response = self.root / "response.json"
+        response.write_text(json.dumps(self.valid_response()), encoding="utf-8")
+        receipt = build_audit_reveal_receipt(
+            self.probe,
+            self.fixture_id,
+            response,
+            "2026-09-18T02:55:00Z",
+        )
+        target = self.root / "receipt.json"
+        save_audit_reveal_receipt(target, receipt)
+        original = target.read_text(encoding="utf-8")
+        with self.assertRaises(SummaryDistortionProbeError):
+            save_audit_reveal_receipt(target, receipt)
+        self.assertEqual(target.read_text(encoding="utf-8"), original)
 
     def test_response_hash_rejects_non_object(self):
         response = self.root / "response.json"
