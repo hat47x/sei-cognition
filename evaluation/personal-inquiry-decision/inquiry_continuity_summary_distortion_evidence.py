@@ -411,6 +411,46 @@ def save_bundle(path: str | Path, bundle: dict[str, Any]) -> None:
         ) from exc
 
 
+def evidence_contract_summary(
+    probe: dict[str, Any],
+    fixtures: dict[str, dict[str, Any]],
+    fixture_id: str,
+) -> dict[str, Any]:
+    """Return the post-reveal artifact contract without creating review artifacts."""
+    validate_probe(probe)
+    expected_fixture_ids = {
+        case["fixture_id"] for case in probe["cases"]
+    }
+    if set(fixtures) != expected_fixture_ids:
+        raise SummaryDistortionEvidenceError(
+            "validated fixture set must match all probe cases exactly"
+        )
+    _case(probe, fixture_id)
+    if fixture_id not in fixtures:
+        raise SummaryDistortionEvidenceError(
+            f"unknown fixture: {fixture_id}"
+        )
+    return {
+        "valid": True,
+        "probe_id": probe["probe_id"],
+        "probe_schema": probe["schema"],
+        "probe_sha256": probe_content_sha256(probe),
+        "fixture_id": fixture_id,
+        "source_fixture": {
+            "path": _case(probe, fixture_id)["path"],
+            "blob_sha1": _case(probe, fixture_id)["blob_sha1"],
+        },
+        "audit_response_schema": AUDIT_RESPONSE_SCHEMA,
+        "evidence_schema": EVIDENCE_SCHEMA,
+        "audit_dimensions": copy.deepcopy(probe["audit_dimensions"]),
+        "compatibility": (
+            "v1 evaluation artifacts only; pre-v1 review/audit artifacts are "
+            "not accepted by the current contract"
+        ),
+        "evidence_boundary": copy.deepcopy(probe["evidence_boundary"]),
+    }
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
@@ -423,6 +463,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fixture-id", required=True)
     sub = parser.add_subparsers(dest="command", required=True)
 
+    sub.add_parser("preflight")
     template = sub.add_parser("audit-template")
     template.add_argument("--response", required=True)
     template.add_argument("--review-receipt", required=True)
@@ -448,6 +489,19 @@ def main(argv: list[str] | None = None) -> int:
         raise SummaryDistortionEvidenceError(
             f"unknown fixture: {args.fixture_id}"
         )
+    if args.command == "preflight":
+        print(
+            json.dumps(
+                evidence_contract_summary(
+                    probe,
+                    fixtures,
+                    args.fixture_id,
+                ),
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return 0
 
     try:
         _, human_raw = load_human_response(args.response, probe)

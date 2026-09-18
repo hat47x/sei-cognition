@@ -9,6 +9,7 @@ meaning. This module is the single maintained E78.3 probe path.
 from __future__ import annotations
 
 import argparse
+import copy
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -990,6 +991,42 @@ def build_audit_packet(
     )
 
 
+def probe_contract_summary(
+    probe: dict[str, Any],
+    fixtures: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    """Return the operator-visible E78.3 contract after full source validation."""
+    validate_probe(probe)
+    expected_fixture_ids = {
+        case["fixture_id"] for case in probe["cases"]
+    }
+    if set(fixtures) != expected_fixture_ids:
+        raise SummaryDistortionProbeError(
+            "validated fixture set must match all probe cases exactly"
+        )
+    return {
+        "valid": True,
+        "probe_id": probe["probe_id"],
+        "probe_schema": probe["schema"],
+        "probe_sha256": probe_content_sha256(probe),
+        "cases": len(fixtures),
+        "source_fixtures": [
+            {
+                "fixture_id": case["fixture_id"],
+                "path": case["path"],
+                "blob_sha1": case["blob_sha1"],
+            }
+            for case in probe["cases"]
+        ],
+        "packet_schema": PACKET_SCHEMA,
+        "human_response_schema": RESPONSE_SCHEMA,
+        "review_start_receipt_schema": REVIEW_START_RECEIPT_SCHEMA,
+        "audit_reveal_receipt_schema": AUDIT_REVEAL_RECEIPT_SCHEMA,
+        "audit_dimensions": copy.deepcopy(probe["audit_dimensions"]),
+        "evidence_boundary": copy.deepcopy(probe["evidence_boundary"]),
+    }
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Build canonical ISSUE-000078 E78.3 summary-distortion packets"
@@ -1024,14 +1061,7 @@ def main(argv: list[str] | None = None) -> int:
     probe = load_json(args.probe)
     fixtures = load_sources(probe, args.repo_root)
     if args.command == "validate":
-        result = {
-            "valid": True,
-            "probe_id": probe["probe_id"],
-            "probe_sha256": probe_content_sha256(probe),
-            "cases": len(fixtures),
-            "human_response_schema": RESPONSE_SCHEMA,
-            "review_start_receipt_schema": REVIEW_START_RECEIPT_SCHEMA,
-        }
+        result = probe_contract_summary(probe, fixtures)
     else:
         if not args.fixture_id:
             raise SummaryDistortionProbeError(
