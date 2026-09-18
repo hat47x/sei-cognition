@@ -142,10 +142,14 @@ SEIはSUI Sensemaking、TEI、EKI Fabricと組み合わせて利用できます�
 
 - **SUI Sensemaking** は、未整理な材料から関係・仮説・構造・統合を形成し、その意味形成の過程を成熟させるsensemaking lifecycleを主に扱います。
 - **SEI Cognition** は、その過程を含む認知・判断について、Observation、Question、Unknown、Evidence、Decision、Capability、Provenance等の耐久的な意味と継続性を扱います。
-- **TEI** は、業務上の意味をCanonicalなformal modelとして保持し、実装・実行可能な形へ接続する境界を主に扱います。
+- **TEI** は、業務・Application・Infrastructureの受入済みの意味をCanonicalなformal modelとして保持し、人間向けProjection、AIによる継続開発、Application実行、AI Business Actorが利用するOperational Knowledgeへ接続する境界を主に扱います。
 - **EKI Fabric** は、異質で一時的な計算資源を安全に利用し、計算をどこで実行するかという分散実行の境界を主に扱います。
 
 この整理は相互排他を意味しません。SUIの探索結果をSEIが認知材料として扱う、SEIがTEIをCapability Providerとして選ぶ、SEIの認知処理をEKI上で実行するといった接続は可能です。
+
+AIエージェントが業務を遂行する場合も、SEIとTEIの責務は分けます。SEIは「何を観察し、何を問い、何を根拠にどう判断したか」というCognitive / Decision Semanticsを保持し、TEIは「何が業務上可能で、どのBusiness Action / Capability / Constraint / Authorization / Evidence境界を利用できるか」というOperational Semanticsを提供できます。
+
+したがって、AI Agentの実行計画やDecision ContinuityをSEIが支援する場合でも、TEIのBusiness ProcedureやApplication contractをSEI Universal Coreへ複製しません。逆にTEIも、SEIのRecommendation / DecisionをBusiness truthへ暗黙昇格させません。
 
 ただし、隣接Productの内部概念を「関係が深いから」という理由でSEI Universal Coreへ複製しません。各Productの価値・権限・Evidence claimは、それぞれのリポジトリを正本とします。
 
