@@ -1,7 +1,7 @@
 # SEI Interaction Working-Set Architecture
 
-更新日: 2026-09-11  
-状態: **Reference Architecture Design Baseline — ISSUE-000073**
+更新日: 2026-09-18  
+状態: **Reference Architecture Design Baseline — ISSUE-000073 / REQ-0023 formalization reflected / Executable Evidence Pending**
 
 ## 1. 目的
 
@@ -526,8 +526,11 @@ Surface-level testだけでなく、Canonical Storeへ何がcommitされたか�
 - REQ-0015: private chain-of-thought非依存。
 - REQ-0018: Persistence mechanicsとsemantic identityの分離。
 - REQ-0019: Human / AI Surface parity。
+- REQ-0023: Product Interactionから公開するcanonical commitの整合性。partial semantic stateやstale draftをsuccessful commitとして扱わない。
 
-CR-73.8 / 73.9 / 73.10については、prototype Evidenceから既存REQで十分かを再監査します。
+2026-09-16のRequirement auditでは、CR-73.8 / CR-73.9を一つの独立failure boundaryとしてREQ-0023へ統合し、SCN-0019でAcceptance化しました。CR-73.10はexisting selective-disclosure / authority boundaryとhuman Outcome評価へ戻し、新しいStable Requirementは追加していません。
+
+transaction、atomic replace、ETag、digest、generation、snapshot token等は引き続きProduct / Persistence-localなmechanismであり、Universal semantic entityやSemantic Revisionへ昇格させません。
 
 ## 16. 意図的に未確定な点
 
@@ -547,11 +550,19 @@ CR-73.8 / 73.9 / 73.10については、prototype Evidenceから既存REQで十�
 
 ```text
 Architecture Design Evidence: established by this document
-Prototype implementation: Not Yet Verified
-Fault-injection Evidence: Not Yet Verified
-Human usability Evidence: Not Yet Verified
-Operational / Adoption Evidence: Not Yet Verified
+REQ-0023 / SCN-0019 formalization: Accepted / Design Satisfied
+E1-E8 prototype / test source: Available
+Evidence runner / verifier / one-command capture: Available
+E1-E8 actual Go 1.25.x execution: Not Yet Verified
+REQ-0023 / SCN-0019 Executable Evidence: Not Yet Verified
+H1 human usability Evidence: Not Yet Observed
+H2 counterfactual review Evidence: Not Yet Observed
+Decision Continuity Product Value: Not Established
+Operational Evidence: Not Yet Verified
+Adoption / Outcome Evidence: Not Yet Verified
 ```
+
+sourceや受入れtoolingの存在をactual Executable PASSへ読み替えません。E1〜E8がPASSしても、H1 / H2やDecision Continuity Product Valueが自動的に成立するわけではありません。current実行入口とtoolchain blockerは`../evaluation/personal-inquiry-decision/DECISION_CONTINUITY_EXECUTION_READINESS_2026-09-16.md`を参照します。
 
 ## 18. 関連文書
 
@@ -572,6 +583,6 @@ current Reference Architecture、Interaction、Packaging、Product Access、Pers
 
 working setやResume Briefを製品上重要な構造として認めつつ、それらを新しいsemantic authorityへ昇格させないことを設計の中心に置いた。またAI responseからcanonical commitまでにprovisional draftとsemantic change planを置き、AIの能力を利用しながらRecommendation / Decision / Authorityの境界を保つ構成とした。
 
-partial commitとstale writeは、単なる実装詳細として無視すると利用者から見たDecision integrityを壊し得るため、Architecture上のfailure boundaryとして明示した。ただしtransaction modelやconcurrency versionをUniversal semanticsへ持ち込まず、prototype Evidenceから必要な規範強度を決める停止線を維持している。
+partial commitとstale writeは、単なる実装詳細として無視すると利用者から見たDecision integrityを壊し得るため、Architecture上のfailure boundaryとして明示した。Requirement auditではこの二つをREQ-0023 / SCN-0019へformalizeしたが、transaction modelやconcurrency versionはUniversal semanticsへ持ち込まずProduct / Persistence-localに保っている。actual E1〜E8はまだNot Yet Verifiedであり、formalizationやtest sourceの存在をExecutable Evidenceへ昇格させない。
 
 意味、権威関係、未決事項、Evidenceの高さを固定したうえで全文を自然な日本語として再読し、最終意味監査を実施した。
