@@ -198,11 +198,11 @@ reviewed:
     status: reviewed-no-change
     note: ISSUE-000072のrevision B source取得経路、controlled Git / Go environment、副作用なしpreflight、current container実測をcurrent deltaとして全文確認した。repository-side実装の完了をactual build / Provider Plan / Adapter compatibilityへ昇格させない停止線が保たれているため現状の本文を保つ。
   - scope: runtime/TEI_VERSION_EXCHANGE_E2_PARTIAL_DELTA_2026-09-06.md
-    status: reviewed-no-change
-    note: E2 partial Evidence経路、exact-B / exact-A strict bundle verification、later E3 resume、interrupted report-pair reconciliationを全文確認した。E2 partial成立をE3やISSUE-000072 Resolutionへ昇格させない境界が明示されているため現状の本文を保つ。
+    status: revised
+    note: E2 partial Evidence経路、exact-B / exact-A strict bundle verification、later E3 resume、interrupted report-pair reconciliationを全文再確認した。2026-09-18にcurrent実装がSEI identityへ移行済みであることへ合わせ、current SEI Adapter表記とcanonical sei.* schema例へ改訂した。historical soza.* Evidenceをreader側で受理するADR-0031の互換境界は変更せず、E2 partial成立をE3やISSUE-000072 Resolutionへ昇格させない停止線も維持した。
   - scope: runtime/TEI_E2_PARTIAL_ACTUAL_RUNBOOK_2026-09-06.md
-    status: reviewed-no-change
-    note: operator向けE2 partial actual手順として全文確認した。credential値を記録しない扱い、pre-source rejectionとE2 stage failureの分離、Resolution auditが1〜6のみ自動判定である点が保たれているため現状の本文を保つ。
+    status: revised
+    note: operator向けE2 partial actual手順をcurrent実装と照合し、2026-09-18に旧SOZA表記、旧 --soza-* CLI、旧soza.* current schema例をSEI_REPO / SEI_GO / SEI_HEAD、--sei-*、sei.*へ改訂した。credential値を記録しない扱い、pre-source rejectionとE2 stage failureの分離、Resolution auditが1〜6のみ自動判定である点は維持している。
   - scope: runtime/TEI_VERSION_EXCHANGE_POST_RUN_AUDIT_2026-09-06.md
     status: reviewed-no-change
     note: actual実行後のResolution条件1〜8監査手順として全文確認した。条件7 / 8を必ず人の意味確認として残し、resolutionCandidateをResolvedと書かない自然な日本語監査観点も明示されているため現状の本文を保つ。
