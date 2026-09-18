@@ -59,6 +59,26 @@ residual containment
   != semantic quality score
 ```
 
+### B6d / B6e stress track
+
+作業中にB6d / B6eでstatic global-residual scalingの条件依存性が追加観測されたため、主評価profileへ混ぜず、oversized stress trackとして別に固定する。
+
+- profile: 32768 dimensions / 512 active / fanout 8 / seed 47
+- proportional baseline
+- residual cap 128
+- residual cap 64
+
+これはrobustness比較であり、production default選定ではない。
+
+またB6eでtext-heavyとstructure-heavyの挙動が異なったため、feature-family cardinalityをそのままsemantic importanceへ変換しない。
+
+```text
+feature cardinality
+  may explain a failure mode
+  != semantic priority
+  != automatic routing/policy rule
+```
+
 ## 4. B3 prior leakageを防ぐ
 
 B3は特にevaluation label leakageへ弱い。
