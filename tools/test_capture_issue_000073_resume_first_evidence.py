@@ -25,9 +25,10 @@ def setup_repo(
 ) -> None:
     tools = root / "tools"
     tools.mkdir(parents=True, exist_ok=True)
+    runner_write = 'a.output.write_text(json.dumps(record), encoding="utf-8")' if runner_writes_record else ""
     write_tool(
         tools / "run_issue_000073_resume_first_evidence.py",
-        f'''import argparse, json, subprocess\nfrom pathlib import Path\np=argparse.ArgumentParser(); p.add_argument("--output", type=Path); p.add_argument("--go"); a=p.parse_args()\ndirty = bool(subprocess.run(["git", "status", "--porcelain=v1"], text=True, stdout=subprocess.PIPE, check=True).stdout.strip())\nexit_code = 2 if dirty else {runner_exit}\nstatus = "blocked" if exit_code == 2 else ("pass" if exit_code == 0 else "fail")\nrecord={{"status": status, "repository": {{"head": "0123456789abcdef0123456789abcdef01234567"}}}}\n${"a.output.write_text(json.dumps(record), encoding=\"utf-8\")" if runner_writes_record else ""}\nraise SystemExit(exit_code)\n''',
+        f'''import argparse, json, subprocess\nfrom pathlib import Path\np=argparse.ArgumentParser(); p.add_argument("--output", type=Path); p.add_argument("--go"); a=p.parse_args()\ndirty = bool(subprocess.run(["git", "status", "--porcelain=v1"], text=True, stdout=subprocess.PIPE, check=True).stdout.strip())\nexit_code = 2 if dirty else {runner_exit}\nstatus = "blocked" if exit_code == 2 else ("pass" if exit_code == 0 else "fail")\nrecord={{"status": status, "repository": {{"head": "0123456789abcdef0123456789abcdef01234567"}}}}\n{runner_write}\nraise SystemExit(exit_code)\n''',
     )
     write_tool(
         tools / "verify_issue_000073_resume_first_evidence.py",
