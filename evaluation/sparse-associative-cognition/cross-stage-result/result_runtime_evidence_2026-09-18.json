@@ -1,0 +1,162 @@
+{
+  "schema": "sei.sacs-cross-stage-result-runtime-evidence/v1alpha1",
+  "date": "2026-09-18",
+  "issue": 477,
+  "tested_ref": "develop/v0.2.0",
+  "tested_commit": "bf5190e4f562dc46a0d2ec3515957d832354cb0e",
+  "current_source_equivalent_commit": "c0cf339efa9650ef73c7c429f429c5573b17f4af",
+  "execution_model": "exact-git-blob-validated temporary reconstruction",
+  "environment": {
+    "python": "3.13.5",
+    "github_actions_used": false,
+    "full_repository_checkout": false
+  },
+  "source_equivalence": {
+    "status": "pass",
+    "note": "develop/v0.2.0 advanced by four commits after reconstruction, but the intervening changes were confined to evaluation/personal-inquiry-decision and plan/issue; none touched the 16 bound SACS source/manifest files."
+  },
+  "source_binding": {
+    "status": "all-matched",
+    "method": "Each reconstructed file was checked with git hash-object against the GitHub contents blob SHA before execution.",
+    "files": [
+      {
+        "path": "cross-stage-result/validate_result.py",
+        "blob_sha": "990b7b836bd2e4ef6028ef39f2f52708efbb6f5f"
+      },
+      {
+        "path": "cross-stage-result/test_validate_result.py",
+        "blob_sha": "93de7b3bce1a14b8ac8187fb40fa3e454a414cc6"
+      },
+      {
+        "path": "cross-stage-result/result.json",
+        "blob_sha": "8de66bd58944f2503bc865d0504244545b6f8861"
+      },
+      {
+        "path": "cross-stage-run/validate_evaluation_run.py",
+        "blob_sha": "8d1ab85e90433ba30c63f93a5a4b3c864a4a748e"
+      },
+      {
+        "path": "cross-stage-run/test_validate_evaluation_run.py",
+        "blob_sha": "492fcc90a2abfc37d6cebea60c952736ca4009f7"
+      },
+      {
+        "path": "cross-stage-run/evaluation_run.json",
+        "blob_sha": "93e6aced7e2986b794397b684c27ce97a2593853"
+      },
+      {
+        "path": "cross-stage-freeze/freeze_manifests.py",
+        "blob_sha": "2cdef6363f38f5dbccf295754f12a2a19b476380"
+      },
+      {
+        "path": "cross-stage-freeze/test_freeze_manifests.py",
+        "blob_sha": "4f1181339b7af2449d7d0a8ac2156cfc4e6c25d0"
+      },
+      {
+        "path": "cross-stage-freeze/dataset_manifest.json",
+        "blob_sha": "33706fc9b9fb7b657ffa98f1d35cf8425534d934"
+      },
+      {
+        "path": "cross-stage-freeze/adjudication_manifest.json",
+        "blob_sha": "e00faf23a8829e1609548017bec89bb73760f459"
+      },
+      {
+        "path": "cross-stage-freeze/split_manifest.json",
+        "blob_sha": "27eee758d6c92535fbc5efda54873f721f10ead9"
+      },
+      {
+        "path": "cross-stage-freeze/b3_prior_manifest.json",
+        "blob_sha": "a9e44f7104b7ac9201ffd9a488f7e82d9434ecfe"
+      },
+      {
+        "path": "cross-stage-freeze/freeze_bundle.json",
+        "blob_sha": "76cd3380e75b7f80ed88c9080d2d24793240cb21"
+      },
+      {
+        "path": "validate_cross_stage_preregistration.py",
+        "blob_sha": "c332700e10827265146a42a474d1f8ff823a643c"
+      },
+      {
+        "path": "test_validate_cross_stage_preregistration.py",
+        "blob_sha": "26b34fea47ba7e2bd4e8135110f382ef6f38ff7b"
+      },
+      {
+        "path": "cross_stage_benchmark_preregistration.json",
+        "blob_sha": "30a3de5730ff3162f8d69fc0ef12567e326fe57d"
+      }
+    ]
+  },
+  "executions": [
+    {
+      "command": "python3 cross-stage-result/validate_result.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "observation": "Cross-stage result validated; current result remains draft/empty"
+    },
+    {
+      "command": "python3 -m unittest -v cross-stage-result/test_validate_result.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "tests": 24,
+      "elapsed_seconds": 0.101
+    },
+    {
+      "command": "python3 cross-stage-run/validate_evaluation_run.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "observation": "Cross-stage evaluation-run validated; current run remains draft/locked"
+    },
+    {
+      "command": "python3 -m unittest -v cross-stage-run/test_validate_evaluation_run.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "tests": 20,
+      "elapsed_seconds": 0.051
+    },
+    {
+      "command": "python3 cross-stage-freeze/freeze_manifests.py --validate-only",
+      "exit_code": 0,
+      "result": "PASS",
+      "observation": "Cross-stage freeze manifests validated; current bundle remains draft/locked"
+    },
+    {
+      "command": "python3 -m unittest -v cross-stage-freeze/test_freeze_manifests.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "tests": 18,
+      "elapsed_seconds": 0.018
+    },
+    {
+      "command": "python3 validate_cross_stage_preregistration.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "observation": "Cross-stage preregistration validated; evaluation remains locked"
+    },
+    {
+      "command": "python3 -m unittest -v test_validate_cross_stage_preregistration.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "tests": 27,
+      "elapsed_seconds": 0.011
+    }
+  ],
+  "summary": {
+    "validator_commands_passed": 4,
+    "result_tests_passed": 24,
+    "integration_tests_passed": 65,
+    "total_tests_passed": 89,
+    "total_tests_failed": 0,
+    "current_result_state": "draft",
+    "current_run_state": "draft",
+    "current_freeze_bundle_state": "draft",
+    "current_preregistration_unlock": "locked"
+  },
+  "stop_lines": [
+    "runtime regression PASS != human-adjudicated benchmark result",
+    "synthetic completed-result path PASS != current result completed",
+    "exact blob reconstruction != full repository checkout",
+    "draft result != semantic interpretation",
+    "measured metric != semantic truth",
+    "runtime Evidence != B5 decision",
+    "runtime Evidence != production adoption"
+  ]
+}
