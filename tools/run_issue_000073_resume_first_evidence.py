@@ -111,6 +111,14 @@ def block(record: dict[str, Any], reason: str, output: str | None) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Capture ISSUE-000073 E1-E8 executable evidence.")
     parser.add_argument("--output", help="Write the JSON evidence record to this path; stdout when omitted.")
+    parser.add_argument(
+        "--expected-head",
+        required=True,
+        help=(
+            "Canonical repository commit SHA obtained independently of this checkout. "
+            "The runner blocks unless git HEAD matches it exactly."
+        ),
+    )
     parser.add_argument("--go", dest="go_executable", help="Go executable to use; defaults to PATH lookup.")
     args = parser.parse_args()
 
@@ -129,6 +137,8 @@ def main() -> int:
         "scope": "Executable Evidence for E1-E8 only; H1/H2 and Product Outcome are out of scope.",
         "repository": {
             "head": head,
+            "expected_head": args.expected_head,
+            "head_matches_expected": head == args.expected_head,
             "head_tree": head_tree,
             "git_checkout_detected": head is not None and status is not None,
             "clean_required": True,
@@ -143,6 +153,15 @@ def main() -> int:
 
     if head is None or status is None:
         return block(record, "runner must execute inside a Git checkout with a readable HEAD and working-tree status", args.output)
+    if head != args.expected_head:
+        return block(
+            record,
+            (
+                "checkout HEAD does not match independently supplied canonical expected HEAD: "
+                f"actual={head} expected={args.expected_head}"
+            ),
+            args.output,
+        )
     if status:
         return block(
             record,

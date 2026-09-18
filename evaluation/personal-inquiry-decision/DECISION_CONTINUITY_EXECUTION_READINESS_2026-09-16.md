@@ -67,6 +67,7 @@ runnerはGo 1.25.xを要求し、`GOTOOLCHAIN=local`で`runtime/go/interactionpr
 さらに、次の条件を満たさないcheckoutではE1〜E8を実行せず`blocked`とします。
 
 - readableなGit HEADがある。
+- checkout外で独立に取得したcanonical expected HEADとactual HEADが完全一致する。
 - working treeがcleanである。
 - runner自身、`go.mod` / `go.sum`、主要test sourceがHEADと一致する。
 - required sourceが欠けていない。
@@ -117,8 +118,9 @@ tools/test_run_issue_000073_resume_first_evidence.py
 
 現在固定している主な境界は次です。
 
+- canonical expected HEAD不一致をblockedにする。
 - dirty checkoutをblockedにする。
-- required source binding欠落をblockedにする。
+- required source binding欠落をblockedにする.
 - Go 1.25.x未満をblockedにする。
 
 2026-09-18にcurrent runner sourceへ対してactual実行し、PASSを確認しました。
@@ -138,6 +140,7 @@ tools/test_verify_issue_000073_resume_first_evidence.py
 - cleanなPASS recordを受理する。
 - Evidence保存後にHEADが進んでもrecorded tested HEADを検証できる。
 - source SHA-256改ざんを拒否する。
+- `expected_head != head`または`head_matches_expected != true`を拒否する。
 - dirtyと記録されたEvidenceを拒否する。
 - E8 failを拒否する。
 - repositoryに存在しないtested HEADを拒否する。
@@ -209,7 +212,7 @@ Go 1.25.xが利用可能なclean checkoutでは、通常はcapture入口を使�
 
 ```text
 git status --porcelain=v1
-python tools/capture_issue_000073_resume_first_evidence.py
+python tools/capture_issue_000073_resume_first_evidence.py --expected-head <canonical-commit-sha>
 ```
 
 既定では次へ保存します。
@@ -219,12 +222,13 @@ evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8.json
 evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8-verification.json
 ```
 
-意図的に既存Evidenceを置き換える場合だけ`--replace`を指定します。captureが`pass`になった場合でも、tested commitはEvidence JSON内の`repository.head`で固定し、後のEvidence保存commitと混同しません。
+意図的に既存Evidenceを置き換える場合だけ`--replace`を指定します。`<canonical-commit-sha>`はcheckout自身から自己申告させず、GitHub等の独立したrepository正本から取得します。captureが`pass`になった場合でも、tested commitはEvidence JSON内の`repository.head` / `repository.expected_head`一致で固定し、後のEvidence保存commitと混同しません。
 
 runner / verifierを個別に診断したい場合は、次を使えます。
 
 ```text
 python tools/run_issue_000073_resume_first_evidence.py \
+  --expected-head <canonical-commit-sha> \
   --output evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8.json
 
 python tools/verify_issue_000073_resume_first_evidence.py \
@@ -382,9 +386,9 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 | Candidate Requirement audit | Completed as Design Evidence |
 | REQ-0023 / SCN-0019 formalization | Accepted / Design Satisfied |
 | E1〜E8 test source | Available |
-| Evidence runner preflight self-test | **PASS on current source (2026-09-18); machine-readable Evidence recorded** |
-| Evidence verifier self-test | **PASS on current source (2026-09-18); machine-readable Evidence recorded** |
-| One-command capture workflow self-test | **PASS on current source (2026-09-18); machine-readable Evidence recorded** |
+| Evidence runner preflight self-test | **PASS on canonical-HEAD-bound current source (2026-09-18); delta Evidence recorded** |
+| Evidence verifier self-test | **PASS on canonical-HEAD-bound current source (2026-09-18); delta Evidence recorded** |
+| One-command capture workflow self-test | Historical full PASS retained; **canonical-HEAD deltaは8 case actual + same-output focused preflight actualで確認** |
 | E1〜E8 actual Go 1.25.x run | **Not Yet Verified** |
 | Current session Go 1.25.x availability | **Blocked by execution-environment DNS / network; not a repository test failure** |
 | REQ-0023 / SCN-0019 Executable Evidence | **Not Yet Verified** |
