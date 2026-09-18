@@ -1,0 +1,85 @@
+{
+  "schema": "sei.failure-behavior-scoped-go-source-delta-audit/v1",
+  "issue": "ISSUE-000076",
+  "recordedAt": "2026-09-18",
+  "scope": "source-delta-audit-only",
+  "authority": "evaluation-only",
+  "historicalExecutionEvidence": {
+    "path": "evaluation/failure-behavior/scoped_go_failure_execution_20260910.json",
+    "sourceMainCommit": "fc9c7b41d8c6cae60ff1549ebb679a9888efc2a1",
+    "goVersion": "go1.23.2",
+    "repositoryBaselineGo": "1.25"
+  },
+  "currentAuditHead": "e1a96a6e620101923f276f454f93030e0d0421fe",
+  "comparisonMethod": {
+    "source": "GitHub connector blob-by-sha versus current branch blob",
+    "normalization": [
+      "ADR-0031 repository/module identity rename: github.com/hat47x/soza -> github.com/hat47x/sei-cognition",
+      "ADR-0031 textual identity rename: SOZA/Soza/soza. -> SEI/Sei/sei.",
+      "evaluation-only probe literal rename: soza- -> sei-",
+      "runtime/go/semanticruntime/loader.go current explanatory two-line comment omitted for executable-content comparison"
+    ],
+    "claimBoundary": "normalization proves only that no additional textual executable delta was found in the scoped files; it does not execute current source"
+  },
+  "files": [
+    {
+      "path": "runtime/go/provideradapter/adapter.go",
+      "historicalBlobSha": "614d3978db1fd008828f137ac9fec1823bf254a3",
+      "currentBlobSha": "5db5c5562d6737635b6c00951072d3cde8f2a42e",
+      "classification": "ADR-0031 identity rename only",
+      "normalizedExecutableContentEquivalent": true
+    },
+    {
+      "path": "runtime/go/provideradapter/synthetic.go",
+      "historicalBlobSha": "ccdfcdfefcd8a37bea5d546bcd75938d856fbe42",
+      "currentBlobSha": "96a42785e003ec9a468efff5e6e99351db6dd748",
+      "classification": "ADR-0031 identity rename only",
+      "normalizedExecutableContentEquivalent": true
+    },
+    {
+      "path": "runtime/go/provideradapter/failure_behavior_test.go",
+      "historicalBlobSha": "38f7f89c38b6efc3655cc43d93f552c2081d2886",
+      "currentBlobSha": "38f7f89c38b6efc3655cc43d93f552c2081d2886",
+      "classification": "byte-identical",
+      "normalizedExecutableContentEquivalent": true
+    },
+    {
+      "path": "runtime/go/liveintegration/github_service.go",
+      "historicalBlobSha": "9ed3c2d95a9ee87836218c5056c4c421071561fc",
+      "currentBlobSha": "5f56676aa8b95dec5cd86b37f671520d67f85634",
+      "classification": "ADR-0031 identity rename plus evaluation User-Agent literal rename",
+      "normalizedExecutableContentEquivalent": true
+    },
+    {
+      "path": "runtime/go/liveintegration/github_failure_probe_test.go",
+      "historicalBlobSha": "7ab829873fb189763eb2c71cbc0954733fe8a0b7",
+      "currentBlobSha": "b594b5848f667e65ae6e6fe33b0486ccae21d89b",
+      "classification": "ADR-0031 identity/environment/probe-literal rename only",
+      "normalizedExecutableContentEquivalent": true
+    },
+    {
+      "path": "runtime/go/semanticruntime/model.go",
+      "historicalBlobSha": "0e99f14febc4c7b650053269ccde19ae200d65c2",
+      "currentBlobSha": "0e99f14febc4c7b650053269ccde19ae200d65c2",
+      "classification": "byte-identical",
+      "normalizedExecutableContentEquivalent": true
+    },
+    {
+      "path": "runtime/go/semanticruntime/loader.go",
+      "historicalBlobSha": "ee2c08dd48cd031eb70bea099668b6164897d1e8",
+      "currentBlobSha": "0084a8d71fad5306d516e6a24264b929ee317dee",
+      "classification": "ADR-0031 identity rename plus explanatory comment only",
+      "normalizedExecutableContentEquivalent": true
+    }
+  ],
+  "claims": {
+    "scopedHistoricalExecutionRemainsRelevantRegressionContext": true,
+    "additionalExecutableBehaviorDeltaDetectedInAuditedFiles": false,
+    "currentExactBlobExecutionVerified": false,
+    "fullRepositoryRegressionVerified": false,
+    "go125BaselineVerified": false,
+    "actualProviderFailureEvidenceEstablishedByThisAudit": false,
+    "operationalEvidence": false
+  },
+  "stopLine": "source-delta audit equivalence != current exact-blob Go execution PASS != full repository regression PASS != Go 1.25 baseline verification != actual Provider failure Evidence != Operational Evidence"
+}
