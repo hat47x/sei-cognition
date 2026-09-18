@@ -290,8 +290,8 @@ first actual caseは開始済みでmulti-dayの暦条件へ到達したが、202
 ### Stage 5 — ISSUE-000073の実行・human review
 
 18. `DECISION_CONTINUITY_EXECUTION_READINESS_2026-09-16.md` — REQ-0023 / SCN-0019、E1〜E8 runner / verifier、H1 / H2のcurrent実行準備状態
-19. `DECISION_CONTINUITY_HUMAN_REVIEW.md` — H1 actual resumptionとH2 matched counterfactual reviewの共通実行入口
-20. `decision_continuity_counterfactual_matched_set_v1.json`と関連script — H2のrotation、stage gate、validation、非採点comparison
+19. `DECISION_CONTINUITY_HUMAN_REVIEW.md` — H1 actual resumptionとH2 matched counterfactual reviewの共通実行入口。H2は`inquiry_continuity_review_runner.py`を073/078で共有し、stimulus提示前のreviewer provenance固定、condition非表示bundle、Decision固有validation、Evidence exportまでを一つの経路で扱う
+20. `decision_continuity_counterfactual_matched_set_v1.json`と関連script — H2のrotation、shared stage gate、Decision固有validation、非採点comparison
 
 ### Stage 6 — ISSUE-000078の比較・human review
 
@@ -364,7 +364,7 @@ root purpose
 - ISSUE-000073 E1〜E8 interaction probe source
 - clean committed HEADとsource blobを固定するEvidence runner
 - recorded tested commitへ戻って検証するEvidence verifier
-- H2 matched reviewのblinded packet、global stage gate、Decision固有validation、evidence export
+- H2 matched reviewのblinded packet、pre-stimulus reviewer provenance、073/078共通runner、global stage gate、Decision固有validation、evidence export
 - ISSUE-000078 matched reviewのreviewer provenance、phase1 / post / audit stage gate、非採点analysis、complete-session Evidence export
 - ISSUE-000078 E78.3のsource-fixture blob固定、provisional summary / next question、human response固定後だけのaudit reveal
 - ISSUE-000078 E78.3のpre-stimulus reviewer provenance固定、exclusive-create review-start receipt、pre-reveal response SHA-256固定、exact audit material SHA-256固定、exclusive-create audit-reveal receipt、post-reveal semantic audit、review start / human observation / audit reveal / semantic audit / provenance分離、exclusive-create Evidence export
@@ -380,7 +380,7 @@ root purpose
 - ISSUE-000078 E78.3 human correction / rejection: **Not Yet Observed**
 - actual team handoff: **Not Yet Observed**
 - ISSUE-000073 H1 actual resume usability: **Not Yet Observed**
-- ISSUE-000073 H2 counterfactual human pilot: **Not Yet Observed**
+- ISSUE-000073 H2 counterfactual human pilot: **Not Yet Observed**。R1相当materialのprovenance固定前提示は回答未固定のためhuman observationへ数えず、同一readerの後続reviewではknown exposureとして扱う
 - capture burdenが継続利用可能であること: **Not Yet Established**
 - Generic Summary / raw chat / chronological noteに対する価値差: **Not Yet Established**
 - voluntary reuse: **Not Yet Observed**
@@ -394,7 +394,7 @@ root purpose
 
 1. Go 1.25.xを使えるclean checkoutでISSUE-000073 E1〜E8 runnerをactual実行し、verifierでrecorded tested commit / source blob / test結果を再検証する。
 2. materialなpre-orientation exposureのないreal InquiryでH1 actual resumptionを実施し、既存sidecarへ`evidence_role=resumption`として記録する。
-3. ISSUE-000073 H2 matched counterfactual reviewをhuman readerで少なくとも一rotation実施し、synthetic pilotとして保存する。
+3. ISSUE-000073 H2 matched counterfactual reviewを`inquiry_continuity_review_runner.py`からhuman readerで少なくとも一rotation実施し、reviewer provenanceを保持したsynthetic pilotとして保存する。known exposureのあるreaderをclean blinded扱いにしない。
 4. ISSUE-000078 E78.2 / E78.4 / E78.5 matched reviewを`inquiry_continuity_review_runner.py`からhuman readerで少なくとも一rotation実施し、review provenanceを保持したcomplete sessionからEvidenceをexportする。
 5. 同一reviewerでE78.3も行う場合は4を完了・固定した後、`inquiry_continuity_summary_distortion_probe.py`で歪んだsummary / next questionを提示してhuman responseを固定する。probeのaudit packetでreference materialを開いた後、`inquiry_continuity_summary_distortion_evidence.py audit-template`からpost-reveal semantic auditを記録し、`export-evidence`でreview observationとsemantic auditを分離したEvidenceを保存する。
 6. ISSUE-000078 actual Inquiryについて十分なcognitive gapが得られた時点でclean resumptionを観測する。
@@ -441,5 +441,7 @@ ISSUE-000073とISSUE-000078を別々の評価体系として並立させず、�
 同日の追加同期では、ISSUE-000078についてmatched human review、Evidence export、E78.3 summary distortion、E78.6 assistance、E78.7 lifecycleまでをReading Orderへ接続した。E78.3は重複していた旧distortion pathを廃止し、source fixture固定とreview→audit順序を持つ`inquiry_continuity_summary_distortion_*`だけを正規入口としたが、これらはすべて実証準備でありhuman / Product Value Evidenceではない。
 
 さらに、E78.3のpost-reveal semantic auditとEvidence exportをReading Orderへ接続した。固定済みhuman responseと後段auditをSHA-256で結びながら別Evidence layerとして保存し、既存Evidenceの上書きを拒否する。これにより実行経路は明確になったが、actual human correction / rejection、clean resumption、SEI固有のProduct Valueは引き続き未観測である。
+
+2026-09-18にはISSUE-000073のH2も078と同じreview runnerへ統合し、stimulus提示前のreviewer provenance固定とcondition非表示bundleを共通化した。R1相当materialがこの固定前に提示された事実は、回答未固定のprotocol exposureとしてのみ扱い、同一readerの後続reviewをclean blindedへ読み替えない。
 
 自然な日本語として全文を再ドラフトし、Root Intent、Product hypothesis、Stable Requirement、evaluation tooling、actual Evidence、Adoption / Outcome Evidenceの境界が変わっていないことを最終監査した。
