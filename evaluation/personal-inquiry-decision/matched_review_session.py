@@ -296,6 +296,15 @@ def load_session(path: str | Path) -> dict[str, Any]:
     return session
 
 
+def guard_provenance_fixed_cli(session: dict[str, Any], command: str) -> None:
+    """Prevent low-level CLI bypass once a human-review provenance boundary exists."""
+    if "review_provenance" in session and command in {"packets", "record"}:
+        raise ReviewSessionError(
+            "provenance-fixed human review must use "
+            "inquiry_continuity_review_runner.py for bundle/record operations"
+        )
+
+
 def _load_response(path: str | Path) -> Any:
     try:
         return json.loads(Path(path).read_text(encoding="utf-8"))
@@ -356,6 +365,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     session = load_session(args.session_path)
+    guard_provenance_fixed_cli(session, args.command)
 
     if args.command == "packets":
         manifest, fixtures = load_manifest_fixtures(
