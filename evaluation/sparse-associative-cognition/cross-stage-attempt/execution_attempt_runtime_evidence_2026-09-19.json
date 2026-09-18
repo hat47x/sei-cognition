@@ -1,0 +1,190 @@
+{
+  "schema": "sei.sacs-cross-stage-execution-attempt-runtime-evidence/v1alpha1",
+  "date": "2026-09-19",
+  "issue": 484,
+  "branch": "topic/sacs-cross-stage-attempt-runtime-evidence",
+  "source_snapshot_head": "75549fa8a96586875a8559b88dfef6a93dda1cec",
+  "execution_model": "exact-git-blob-validated temporary reconstruction",
+  "environment": {
+    "python": "3.13.5",
+    "platform": "Linux 6.18.44 x86_64",
+    "github_actions_used": false,
+    "full_repository_checkout": false,
+    "source_transport": "GitHub connector -> local temporary reconstruction"
+  },
+  "source_binding": {
+    "status": "all-matched",
+    "method": "Each reconstructed source/manifest was checked with git hash-object against the GitHub blob SHA; the new integration test was created on the topic branch first and its local execution copy matched the branch blob SHA.",
+    "files": [
+      {
+        "path": "cross-stage-attempt/validate_execution_attempt.py",
+        "blob_sha": "167b1d765351d83267a607dc59ae7fb3607bc6c6"
+      },
+      {
+        "path": "cross-stage-attempt/test_validate_execution_attempt.py",
+        "blob_sha": "ff777678eefb380f01da533ca226fec204c810ca"
+      },
+      {
+        "path": "cross-stage-attempt/test_validate_execution_attempt_integration.py",
+        "blob_sha": "768b83e58cc5f1fb3d9d91e91e49aebcf0514100"
+      },
+      {
+        "path": "cross-stage-attempt/execution_attempt.json",
+        "blob_sha": "8f20012c41d5c9f1fa1e94f6850d2616989b5aa4"
+      },
+      {
+        "path": "cross-stage-run/validate_evaluation_run.py",
+        "blob_sha": "8d1ab85e90433ba30c63f93a5a4b3c864a4a748e"
+      },
+      {
+        "path": "cross-stage-run/test_validate_evaluation_run.py",
+        "blob_sha": "492fcc90a2abfc37d6cebea60c952736ca4009f7"
+      },
+      {
+        "path": "cross-stage-run/evaluation_run.json",
+        "blob_sha": "93e6aced7e2986b794397b684c27ce97a2593853"
+      },
+      {
+        "path": "cross-stage-freeze/freeze_manifests.py",
+        "blob_sha": "2cdef6363f38f5dbccf295754f12a2a19b476380"
+      },
+      {
+        "path": "cross-stage-freeze/test_freeze_manifests.py",
+        "blob_sha": "4f1181339b7af2449d7d0a8ac2156cfc4e6c25d0"
+      },
+      {
+        "path": "cross-stage-freeze/dataset_manifest.json",
+        "blob_sha": "33706fc9b9fb7b657ffa98f1d35cf8425534d934"
+      },
+      {
+        "path": "cross-stage-freeze/adjudication_manifest.json",
+        "blob_sha": "e00faf23a8829e1609548017bec89bb73760f459"
+      },
+      {
+        "path": "cross-stage-freeze/split_manifest.json",
+        "blob_sha": "27eee758d6c92535fbc5efda54873f721f10ead9"
+      },
+      {
+        "path": "cross-stage-freeze/b3_prior_manifest.json",
+        "blob_sha": "a9e44f7104b7ac9201ffd9a488f7e82d9434ecfe"
+      },
+      {
+        "path": "cross-stage-freeze/freeze_bundle.json",
+        "blob_sha": "76cd3380e75b7f80ed88c9080d2d24793240cb21"
+      },
+      {
+        "path": "validate_cross_stage_preregistration.py",
+        "blob_sha": "3ee67bb85d3158655f919fb8e57a2c45d2c92ed0"
+      },
+      {
+        "path": "test_validate_cross_stage_preregistration.py",
+        "blob_sha": "bc61093353428fc43ff6e508285870731a250021"
+      },
+      {
+        "path": "cross_stage_benchmark_preregistration.json",
+        "blob_sha": "49c599517dbb511cefeefcd7bfad6dc7476a64c6"
+      }
+    ]
+  },
+  "executions": [
+    {
+      "command": "python3 cross-stage-attempt/validate_execution_attempt.py",
+      "working_directory": "evaluation/sparse-associative-cognition",
+      "result": "PASS",
+      "exit_code": 0,
+      "observation": "Cross-stage execution attempt validated; current attempt remains draft/not-started"
+    },
+    {
+      "command": "python3 cross-stage-run/validate_evaluation_run.py",
+      "working_directory": "evaluation/sparse-associative-cognition",
+      "result": "PASS",
+      "exit_code": 0,
+      "observation": "Cross-stage evaluation-run validated; current run remains draft/locked"
+    },
+    {
+      "command": "python3 cross-stage-freeze/freeze_manifests.py --validate-only",
+      "working_directory": "evaluation/sparse-associative-cognition",
+      "result": "PASS",
+      "exit_code": 0,
+      "observation": "Cross-stage freeze manifests validated; current bundle remains draft/locked"
+    },
+    {
+      "command": "python3 validate_cross_stage_preregistration.py",
+      "working_directory": "evaluation/sparse-associative-cognition",
+      "result": "PASS",
+      "exit_code": 0,
+      "observation": "Cross-stage preregistration validated; evaluation remains locked"
+    },
+    {
+      "command": "python3 -m unittest -v test_validate_execution_attempt.py",
+      "working_directory": "evaluation/sparse-associative-cognition/cross-stage-attempt",
+      "result": "PASS",
+      "tests": 20,
+      "elapsed_seconds": 0.007
+    },
+    {
+      "command": "python3 -m unittest -v test_validate_execution_attempt_integration.py",
+      "working_directory": "evaluation/sparse-associative-cognition/cross-stage-attempt",
+      "result": "PASS",
+      "tests": 6,
+      "elapsed_seconds": 0.013
+    },
+    {
+      "command": "python3 -m unittest -v test_validate_evaluation_run.py",
+      "working_directory": "evaluation/sparse-associative-cognition/cross-stage-run",
+      "result": "PASS",
+      "tests": 20,
+      "elapsed_seconds": 0.038
+    },
+    {
+      "command": "python3 -m unittest -v test_freeze_manifests.py",
+      "working_directory": "evaluation/sparse-associative-cognition/cross-stage-freeze",
+      "result": "PASS",
+      "tests": 18,
+      "elapsed_seconds": 0.012
+    },
+    {
+      "command": "python3 -m unittest -v test_validate_cross_stage_preregistration.py",
+      "working_directory": "evaluation/sparse-associative-cognition",
+      "result": "PASS",
+      "tests": 32,
+      "elapsed_seconds": 0.013
+    }
+  ],
+  "discarded_invocation": {
+    "command": "python3 -m unittest -v cross-stage-attempt/test_validate_execution_attempt.py",
+    "working_directory": "evaluation/sparse-associative-cognition",
+    "result": "INVOCATION_ERROR",
+    "reason": "Python unittest module resolution cannot import a sibling module through the hyphenated directory when invoked from the parent directory. The same exact Git-blob-bound test source was rerun from cross-stage-attempt as its working directory and passed 20/20. This invocation is not counted as a test failure."
+  },
+  "integration_cases": {
+    "synthetic_successful_attempt_with_actual_upstream": "PASS",
+    "synthetic_failed_attempt_without_raw_output_with_actual_upstream": "PASS",
+    "current_draft_upstream_rejects_completed_attempt": "PASS",
+    "run_digest_mismatch_rejected": "PASS",
+    "full_unlock_error_preserved": "PASS",
+    "post_completion_mutation_rejected": "PASS"
+  },
+  "summary": {
+    "validator_commands_passed": 4,
+    "attempt_focused_tests_passed": 20,
+    "attempt_integration_tests_passed": 6,
+    "upstream_regression_tests_passed": 70,
+    "total_tests_passed": 96,
+    "total_tests_failed": 0,
+    "current_attempt_state": "draft/not-started",
+    "current_run_state": "draft/locked",
+    "current_freeze_bundle_state": "draft/locked",
+    "current_preregistration_state": "locked"
+  },
+  "stop_lines": [
+    "integration runtime PASS != human-adjudicated benchmark execution",
+    "synthetic completed attempt != benchmark result",
+    "successful attempt != result artifact",
+    "failed attempt != zero-valued or unavailable metric",
+    "synthetic authorized run != current run authorized",
+    "runtime Evidence != semantic interpretation",
+    "runtime Evidence != B5 decision",
+    "runtime Evidence != production adoption"
+  ]
+}
