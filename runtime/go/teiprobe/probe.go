@@ -88,7 +88,7 @@ const (
 )
 
 )
-	commitPattern     = regexp.MustCompile(`^[0-9a-fA-F]{7,64}package teiprobe
+	commitPattern     = regexp.MustCompile(`^(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{64})package teiprobe
 
 import (
 	"bytes"
@@ -210,11 +210,14 @@ func decodeManifest(payload []byte) (BuildManifest, error) {
 	if manifest.Schema != ManifestSchema {
 		return BuildManifest{}, fmt.Errorf("TEI build manifest schema must be %s", ManifestSchema)
 	}
-	if strings.TrimSpace(manifest.Repository) == "" {
-		return BuildManifest{}, errors.New("TEI build manifest repository is required")
+	manifest.Repository = strings.TrimSpace(manifest.Repository)
+	manifest.Commit = strings.ToLower(strings.TrimSpace(manifest.Commit))
+	manifest.BinarySHA256 = strings.ToLower(strings.TrimSpace(manifest.BinarySHA256))
+	if !repositoryPattern.MatchString(manifest.Repository) {
+		return BuildManifest{}, errors.New("TEI build manifest repository must be a non-URL repository identifier")
 	}
-	if strings.TrimSpace(manifest.Commit) == "" {
-		return BuildManifest{}, errors.New("TEI build manifest commit is required")
+	if !commitPattern.MatchString(manifest.Commit) {
+		return BuildManifest{}, errors.New("TEI build manifest commit must be a full hexadecimal object identity")
 	}
 	if !sha256Pattern.MatchString(manifest.BinarySHA256) {
 		return BuildManifest{}, errors.New("TEI build manifest binary_sha256 must be a 64-character hexadecimal SHA-256")
@@ -255,18 +258,12 @@ func validateRequest(request Request) error {
 		return errors.New("TEI binary path is required")
 	}
 	repository := strings.TrimSpace(request.DeclaredRepository)
-	if repository == "" {
-		return errors.New("declared TEI source repository is required")
-	}
 	if !repositoryPattern.MatchString(repository) {
 		return errors.New("declared TEI source repository must be a non-URL repository identifier")
 	}
 	commit := strings.TrimSpace(request.DeclaredCommit)
-	if commit == "" {
-		return errors.New("declared TEI source commit is required")
-	}
 	if !commitPattern.MatchString(commit) {
-		return errors.New("declared TEI source commit must be a hexadecimal object identity")
+		return errors.New("declared TEI source commit must be a full hexadecimal object identity")
 	}
 	return nil
 }
