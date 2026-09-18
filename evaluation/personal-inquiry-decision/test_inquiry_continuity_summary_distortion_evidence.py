@@ -552,6 +552,49 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
         with self.assertRaises(SummaryDistortionEvidenceError):
             validate_evidence_bundle(changed)
 
+    def test_validate_bundle_rejects_human_observation_contract_tampering(self):
+        bundle = self.valid_bundle()
+
+        changed = copy.deepcopy(bundle)
+        changed["human_review_observation"]["answers"].pop()
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_evidence_bundle(changed)
+
+        changed = copy.deepcopy(bundle)
+        changed["human_review_observation"]["operator_observation"][
+            "correction_burden"
+        ] = "tiny"
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_evidence_bundle(changed)
+
+        changed = copy.deepcopy(bundle)
+        changed["human_review_observation"]["operator_observation"][
+            "source_reopen_count"
+        ] = -1
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_evidence_bundle(changed)
+
+    def test_validate_bundle_recomputes_audit_material_digest(self):
+        bundle = self.valid_bundle()
+        validate_evidence_bundle(bundle)
+
+        changed = copy.deepcopy(bundle)
+        changed["semantic_audit"]["reference_state"] = {"tampered": True}
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_evidence_bundle(changed)
+
+        changed = copy.deepcopy(bundle)
+        changed["semantic_audit"]["distortion_key"][0]["detail"] = "tampered"
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_evidence_bundle(changed)
+
+        changed = copy.deepcopy(bundle)
+        changed["semantic_audit"]["post_interruption_evidence"].append(
+            {"role": "observation", "text": "tampered"}
+        )
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_evidence_bundle(changed)
+
     def test_validate_bundle_rejects_provenance_and_boundary_shape_tampering(self):
         bundle = self.valid_bundle()
 

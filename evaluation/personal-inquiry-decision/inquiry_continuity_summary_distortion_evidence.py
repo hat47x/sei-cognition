@@ -626,16 +626,57 @@ def validate_evidence_bundle(bundle: Any) -> None:
         )
     if (
         not isinstance(human["answers"], list)
-        or not human["answers"]
+        or len(human["answers"]) != len(questions)
         or any(
             not isinstance(answer, str) or not answer.strip()
             for answer in human["answers"]
         )
-        or not isinstance(human["operator_observation"], dict)
         or not isinstance(human["notes"], str)
     ):
         raise SummaryDistortionEvidenceError(
             "human_review_observation content is invalid"
+        )
+    observation = human["operator_observation"]
+    if not isinstance(observation, dict) or set(observation) != {
+        "review_completion_seconds",
+        "source_reopen_count",
+        "correction_burden",
+    }:
+        raise SummaryDistortionEvidenceError(
+            "human operator_observation has invalid shape"
+        )
+    completion_seconds = observation["review_completion_seconds"]
+    if (
+        completion_seconds != "not-observed"
+        and (
+            not isinstance(completion_seconds, (int, float))
+            or isinstance(completion_seconds, bool)
+            or completion_seconds < 0
+        )
+    ):
+        raise SummaryDistortionEvidenceError(
+            "review_completion_seconds must be nonnegative or not-observed"
+        )
+    reopen_count = observation["source_reopen_count"]
+    if (
+        reopen_count != "not-observed"
+        and (
+            not isinstance(reopen_count, int)
+            or isinstance(reopen_count, bool)
+            or reopen_count < 0
+        )
+    ):
+        raise SummaryDistortionEvidenceError(
+            "source_reopen_count must be nonnegative integer or not-observed"
+        )
+    if observation["correction_burden"] not in {
+        "low",
+        "medium",
+        "high",
+        "not-observed",
+    }:
+        raise SummaryDistortionEvidenceError(
+            "correction_burden has invalid value"
         )
 
     review_provenance = bundle["review_provenance"]
@@ -760,6 +801,30 @@ def validate_evidence_bundle(bundle: Any) -> None:
     if completed_at < revealed_at:
         raise SummaryDistortionEvidenceError(
             "semantic audit completion must not precede audit reveal"
+        )
+    if semantic["distortion_key"] != canonical_case["distortion_key"]:
+        raise SummaryDistortionEvidenceError(
+            "semantic_audit distortion_key differs from canonical_probe"
+        )
+    reconstructed_audit_material = {
+        "distortion_key": copy.deepcopy(semantic["distortion_key"]),
+        "reference_state": copy.deepcopy(semantic["reference_state"]),
+        "post_interruption_evidence": copy.deepcopy(
+            semantic["post_interruption_evidence"]
+        ),
+        "audit_dimensions": copy.deepcopy(canonical_probe["audit_dimensions"]),
+        "evidence_boundary": copy.deepcopy(canonical_probe["evidence_boundary"]),
+        "interpretation_stoplines": copy.deepcopy(
+            canonical_probe["interpretation_stoplines"]
+        ),
+        "semantic_stopline": copy.deepcopy(canonical_probe["semantic_stopline"]),
+    }
+    if (
+        audit_material_sha256(reconstructed_audit_material)
+        != reveal["audit_material_sha256"]
+    ):
+        raise SummaryDistortionEvidenceError(
+            "audit_reveal audit_material_sha256 does not match embedded material"
         )
 
     boundaries = bundle["evidence_boundaries"]
