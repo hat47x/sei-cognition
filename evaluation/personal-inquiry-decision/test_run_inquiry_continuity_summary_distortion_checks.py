@@ -123,7 +123,12 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
 
     def test_all_pass_is_mechanics_only(self):
         def runner(command, *, cwd, env, timeout):
-            return subprocess.CompletedProcess(command, 0)
+            return subprocess.CompletedProcess(
+                command,
+                0,
+                stdout="ok\n",
+                stderr="",
+            )
 
         exit_code, result = run_checks(
             configured_checks(),
@@ -142,6 +147,12 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
             result["contractSnapshot"]["probeContentSha256"],
             "a" * 64,
         )
+        first = result["executed"][0]
+        self.assertEqual(first["command"], list(configured_checks()[0].command))
+        self.assertEqual(first["cwdRelativeToRepo"], ".")
+        self.assertEqual(first["stdout"]["bytes"], 3)
+        self.assertEqual(len(first["stdout"]["sha256"]), 64)
+        self.assertEqual(first["stderr"]["bytes"], 0)
 
     def test_failure_is_preserved_without_claiming_unexecuted_pass(self):
         calls = 0
@@ -152,6 +163,8 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
             return subprocess.CompletedProcess(
                 command,
                 7 if calls == 2 else 0,
+                stdout=f"call-{calls}\n",
+                stderr="failed\n" if calls == 2 else "",
             )
 
         exit_code, result = run_checks(
@@ -165,10 +178,19 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
             result["executedCount"],
             result["selectedCount"],
         )
+        failed = result["executed"][1]
+        self.assertEqual(failed["exitCode"], 7)
+        self.assertEqual(failed["stderr"]["bytes"], len("failed\n".encode("utf-8")))
+        self.assertEqual(len(failed["stderr"]["sha256"]), 64)
 
     def test_stop_on_failure_marks_incomplete_run(self):
         def runner(command, *, cwd, env, timeout):
-            return subprocess.CompletedProcess(command, 1)
+            return subprocess.CompletedProcess(
+                command,
+                1,
+                stdout="",
+                stderr="failed\n",
+            )
 
         exit_code, result = run_checks(
             configured_checks(),
@@ -184,6 +206,30 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
             result["executedCount"],
         )
 
+    def test_timeout_preserves_partial_output_digests(self):
+        def runner(command, *, cwd, env, timeout):
+            raise subprocess.TimeoutExpired(
+                command,
+                timeout,
+                output=b"partial-out",
+                stderr=b"partial-err",
+            )
+
+        exit_code, result = run_checks(
+            configured_checks(),
+            stop_on_failure=True,
+            runner=runner,
+            snapshot_builder=lambda: {"probeContentSha256": "a" * 64},
+        )
+        self.assertEqual(exit_code, 1)
+        execution = result["executed"][0]
+        self.assertTrue(execution["timedOut"])
+        self.assertEqual(execution["exitCode"], 124)
+        self.assertEqual(execution["stdout"]["bytes"], len(b"partial-out"))
+        self.assertEqual(execution["stderr"]["bytes"], len(b"partial-err"))
+        self.assertEqual(len(execution["stdout"]["sha256"]), 64)
+        self.assertEqual(len(execution["stderr"]["sha256"]), 64)
+
     def test_empty_check_set_is_rejected(self):
         from run_inquiry_continuity_summary_distortion_checks import (
             validate_checks,
@@ -191,6 +237,25 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             validate_checks(())
+
+    def test_check_cwd_must_stay_within_repository_root(self):
+        from run_inquiry_continuity_summary_distortion_checks import (
+            Check,
+            validate_checks,
+        )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            outside = Path(tmp)
+            with self.assertRaises(ValueError):
+                validate_checks(
+                    (
+                        Check(
+                            name="outside",
+                            command=("python", "-V"),
+                            cwd=outside,
+                        ),
+                    )
+                )
 
     def test_build_result_requires_all_selected_checks(self):
         checks = configured_checks()

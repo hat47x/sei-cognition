@@ -31,7 +31,7 @@ EVIDENCE_TOOL = (
     "evaluation/personal-inquiry-decision/"
     "inquiry_continuity_summary_distortion_evidence.py"
 )
-RESULT_SCHEMA = "sei.inquiry-continuity-summary-distortion-local-check-result/v1"
+RESULT_SCHEMA = "sei.inquiry-continuity-summary-distortion-local-check-result/v2"
 DEFAULT_TIMEOUT_SECONDS = 120
 TIMEOUT_EXIT_CODE = 124
 LAUNCH_ERROR_EXIT_CODE = 127
@@ -279,6 +279,7 @@ def validate_checks(checks: Sequence[Check]) -> None:
             raise ValueError(
                 f"local check cwd does not exist: {check.name}: {check.cwd}"
             )
+        _repo_relative_cwd(check.cwd)
 
 
 def build_result(
@@ -308,6 +309,29 @@ def build_result(
     }
 
 
+def _stream_evidence(value: str | bytes | None) -> dict[str, object]:
+    if value is None:
+        payload = b""
+    elif isinstance(value, bytes):
+        payload = value
+    else:
+        payload = value.encode("utf-8")
+    return {
+        "sha256": _sha256_bytes(payload),
+        "bytes": len(payload),
+    }
+
+
+def _repo_relative_cwd(cwd: Path) -> str:
+    try:
+        relative = cwd.resolve().relative_to(SEI_ROOT.resolve())
+    except ValueError as exc:
+        raise ValueError(
+            f"local check cwd escapes repository root: {cwd}"
+        ) from exc
+    return "." if relative == Path(".") else relative.as_posix()
+
+
 def _default_runner(
     command: Sequence[str],
     *,
@@ -322,6 +346,7 @@ def _default_runner(
         check=False,
         timeout=timeout,
         text=True,
+        capture_output=True,
     )
 
 
@@ -350,23 +375,35 @@ def run_checks(
             )
             execution: dict[str, object] = {
                 "name": check.name,
+                "command": list(check.command),
+                "cwdRelativeToRepo": _repo_relative_cwd(check.cwd),
                 "exitCode": completed.returncode,
                 "timedOut": False,
                 "timeoutSeconds": timeout_seconds,
+                "stdout": _stream_evidence(completed.stdout),
+                "stderr": _stream_evidence(completed.stderr),
             }
-        except subprocess.TimeoutExpired:
+        except subprocess.TimeoutExpired as exc:
             execution = {
                 "name": check.name,
+                "command": list(check.command),
+                "cwdRelativeToRepo": _repo_relative_cwd(check.cwd),
                 "exitCode": TIMEOUT_EXIT_CODE,
                 "timedOut": True,
                 "timeoutSeconds": timeout_seconds,
+                "stdout": _stream_evidence(exc.stdout),
+                "stderr": _stream_evidence(exc.stderr),
             }
         except OSError as exc:
             execution = {
                 "name": check.name,
+                "command": list(check.command),
+                "cwdRelativeToRepo": _repo_relative_cwd(check.cwd),
                 "exitCode": LAUNCH_ERROR_EXIT_CODE,
                 "timedOut": False,
                 "timeoutSeconds": timeout_seconds,
+                "stdout": _stream_evidence(None),
+                "stderr": _stream_evidence(None),
                 "launchError": str(exc),
             }
 
