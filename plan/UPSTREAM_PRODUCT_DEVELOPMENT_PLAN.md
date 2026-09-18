@@ -67,6 +67,7 @@ rich source / metaphor / observation
 - Local Single-Node Package。
 - Product Accessとsemantic Responsibility / Authorityの分離。
 - Cognitive Method / Capability ProviderをUniversal semanticsへ同化させない交換境界。
+- Work / Interaction、Projection / Review、Evidence / Governance等のApplication PlaneではTEIを第一候補としつつ、SEI Product / Semantic authorityとTEI implementation authorityを分離するTEI-first方針。Semantic Core、Cognitive Method、provider-specific low-level integration、headless pathはTEIへ強制しない。
 
 Scoped Executable Evidenceも、Semantic Runtime、Interaction probe、Packaging、Product Access、external Provider / Method、historical reconstruction等で蓄積しています。
 
@@ -176,6 +177,39 @@ ISSUE-000073のCandidate Requirement監査では、CR-73.8 / CR-73.9を一つの
 canonical-only resume、AI correction、AI unavailable、working-set rebuild、commit fault injection、stale draft、AI context egressについてはProduct-localなprobe / test sourceが一通り揃っています。E1〜E8 actual実行はGo 1.25.x環境待ちで**Not Yet Verified**、H1 / H2 human reviewは**Not Yet Observed**です。H2は073/078共通のprovenance-first review runnerへ統合し、known exposureをclean blinded reviewへ読み替えない境界を固定しています。
 
 したがって次の高情報量Evidenceは、(1) clean Go 1.25.x環境でのE1〜E8 actual実行、(2) real InquiryでのH1 actual resume、(3) provenance条件を満たすH2 human matched reviewです。
+
+### Priority B1 companion — TEI-first Application Plane Reference Adoption
+
+Product Shapeで定めたTEI-first方針を、実装上の既成事実ではなく反証可能な探索へ戻すため、**ISSUE-000079**をPriority 1で起票しました。
+
+ISSUE-000079が問うのは、SEIをTEIへ多く移せるかではありません。ISSUE-000073のresume-first Product Valueを保ったまま、Application PlaneをTEIで実装することで、二重管理を増やさずchange amplificationを実際に減らせるかを検証します。
+
+最初のReferenceはWeb UI完成ではなく、SEI側をauthorityとして保ったread-only Resume / Review Projectionです。次にEvidence / Governance SurfaceをPressureします。
+
+```text
+SEI canonical state
+  = authority
+
+TEI Reference mapping / Projection
+  = derived / read-only
+
+TEI can render/read SEI meaning
+  != TEI owns SEI meaning
+```
+
+SUI Reference Adoptionで採用された`encapsulation before translation`、およびExisting TEI → reusable extension → Native application asset → cross-application Evidenceを伴うCore candidateという分類を再利用します。ただし、SUIのEvidenceをSEIのEvidenceへ流用しません。
+
+SUI側で候補となっているReview / Diff Visualizationは、SEIを第二Applicationとして再利用性をPressureできるため、Plugin / extension discovery上の高情報量な比較対象です。SEI一件またはSUI一件だけを根拠にTEI Coreを増やしません。
+
+ISSUE-000079はISSUE-000073のH1 / H2 human reviewをブロックしません。073は人間にとってのProduct Value、079はApplication implementation strategyを扱う別laneです。
+
+```text
+073 human usability / Decision Continuity Evidence
+  != 079 TEI adoption Evidence
+
+079 change-amplification improvement
+  != 073 Product Value established
+```
 
 ### Priority B2 — TEI executable version exchange
 
@@ -373,6 +407,7 @@ Product confidenceを高めるため、happy pathだけでなくpartial commit�
 | Product Value discovery | ISSUE-000077 | Resolved / source + review + Vision integration complete | ISSUE-000078等のactual Evidenceでreopen conditionが生じた場合のみ再監査 |
 | Inquiry Continuity validation | ISSUE-000078 | Open / actual Inquiry seeded / clean context gap reset after material exposure | last material exposureから十分なgap後のSEI Orientation actual human resumption、次いでraw chat / note counterfactual |
 | Product Interaction | ISSUE-000073 | Open / prototype + Requirement audit progressed / E1〜E8 actual・H1/H2 pending | Go 1.25 actual E1〜E8、H1 actual resume、H2 provenance-first human review |
+| Application implementation strategy | ISSUE-000079 | Open / TEI-first Product Shape policyをReference Adoptionへ接続 / Stage 0 | SEI authorityを保持したread-only Resume / Review Referenceとnative比較のchange-amplification測定 |
 | TEI Provider portability | ISSUE-000072 | Open / execution blocked externally | exact-B actual E2 when execution surface is available |
 | TEI actual Evidence protocol | ISSUE-000074 | Open / teiprobe + CLI + protocol source implemented / tests + actual run Not Yet Verified | current Go環境でfixture-scoped tests、次いでactual TEI binary report |
 | Method outcome quality | ISSUE-000071 follow-up | evaluation boundary established | actual human outcome review |
@@ -414,6 +449,8 @@ human usability review
 - Unknown / Conflict / unavailableをfalse / Noへ変換しようとしている。
 - concurrency tokenをSemantic Revisionへ流用しようとしている。
 - browser / HTTP / MCP / specific modelをprototype採用だけでStable Requirementへしようとしている。
+- TEI-first方針を「TEIを使わなければならない」というStable Requirementへ読み替え、SEI Application Planeの実証前にTEI Core / Plugin種別を増やそうとしている。
+- TEIで表示できることを、SEI semantic authorityがTEIへ移ったこととして扱おうとしている。
 - partial commitやstale writeを「実装詳細」として放置し、利用者へ誤ったcanonical成功状態を見せる可能性がある。
 - Design Evidenceだけでproduction usabilityを主張しようとしている。
 - ISSUE-000070の固定scope PASSをISSUE-000072やarbitrary portabilityへ流用しようとしている。
@@ -449,6 +486,8 @@ Reviewの結果、Cognitive Commons、Surface / Depth Interface、Deliberate Non
 
 first actual caseは2026-09-14にseed済みで、2026-09-16にはcase作成からの暦上のmulti-day gapへ一度到達しました。ただし同日の上流整理でmaterialな事前露出が生じたため、clean context gapはその時点から再設定し、human observationはまだ記録していません。この差を維持し、次は最後のmaterial exposureから十分なgapを置いた後にOrientationからのactual resumptionを先に観測し、その後にGeneric Summary / chronological noteおよびQuiet / Proactive条件を比較します。
 
-Provider / Method portabilityのEvidenceは引き続き重要であり、人間が「使い続けられること」のactual Evidenceを深めるISSUE-000073も並行して進めます。ISSUE-000072のTEI executable version exchangeもPriority 1のまま維持します。各laneは互いのEvidenceを代用せず、上流価値、Inquiry Continuity、Decision-centered Product Interaction、Provider portabilityという異なる未知を減らします。
+Provider / Method portabilityのEvidenceは引き続き重要であり、人間が「使い続けられること」のactual Evidenceを深めるISSUE-000073も並行して進めます。ISSUE-000072のTEI executable version exchangeもPriority 1のまま維持します。加えて2026-09-18のProduct ShapeでApplication PlaneをTEI-firstとする実装方針が明示されたため、これを暗黙の実装命令にはせずISSUE-000079へ切り出しました。079ではResume / ReviewとEvidence / Governanceをread-only ReferenceからPressureし、change amplification、二重管理、authority driftを比較してbroad / incremental / limited / deferredの判断へ進めます。
+
+各laneは互いのEvidenceを代用せず、上流価値、Inquiry Continuity、Decision-centered Product Interaction、Application implementation strategy、Provider portabilityという異なる未知を減らします。
 
 今回の更新では、ISSUE-000077のResolutionとactiveなfollow-up探索の分離を現在地へ合わせました。ブランド世界の詩的な豊かさと、SEIのProduct governanceが要求するauthority / Evidenceの厳密さをどちらも削らず、背景から価値仮説、Discovery Reviewの結論、follow-up実証、下位設計へ降ろさない停止線、現在のwork laneまでが自然につながるように再読し、**自然な日本語となることを最重要視したうえで、意味、規範強度、current Evidence、未検証範囲が変わっていないことを最終監査しました。**
