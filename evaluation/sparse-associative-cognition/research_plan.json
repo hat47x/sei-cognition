@@ -578,7 +578,45 @@
           "adaptive_policy_implemented": false,
           "b5_entry_gate_changed": false
         },
-        "stop_line": "static capによるsynthetic回復を最適cap・実workload一般化・unused capacityの意味判断・production adaptive policyへ昇格させない。"
+        "stop_line": "static capによるsynthetic回復を最適cap・実workload一般化・unused capacityの意味判断・production adaptive policyへ昇格させない。",
+        "follow_up_evidence_file": "multi_fixture_residual_scaling_evidence_2026-09-18.json"
+      }
+    },
+    {
+      "stage": "SAC-B6e",
+      "name": "multi-fixture static residual scaling",
+      "depends_on": [
+        "SAC-B6d"
+      ],
+      "change": "oversized profileのbaseline / cap128 / cap64を、既存control、structure-heavy、higher-text-cardinalityの3 fixtureで比較する。feature-family cardinalityを記録し、cap効果の共通点と反例を同時に保持する。adaptive policyは導入しない。",
+      "primary_question": "static residual suppressionはどのfamily構成でも改善するのか、それともtext-dominant等の条件に依存するのか。またlocal incremental dimensionsとqualityが単調対応しない性質は複数fixtureでも残るか。",
+      "measures": [
+        "cross_fixture_margin_behavior",
+        "feature_family_cardinality",
+        "residual_policy_recovery_rate",
+        "local_incremental_dimensions",
+        "fixture_specific_degradation",
+        "deterministic_reproducibility"
+      ],
+      "current_result": {
+        "state": "limited-synthetic-cross-fixture-evidence",
+        "evidence_file": "multi_fixture_residual_scaling_evidence_2026-09-18.json",
+        "findings": [
+          "control fixtureは72 features（text 61 / graph 4 / provenance 4 / grouping 2 / kind 1）で、baseline margin -0.15625がcap128約+0.1912 / cap64約+0.1783へ回復した。",
+          "text-heavy fixtureは119 features（text 108 / graph 4 / provenance 4 / grouping 2 / kind 1）で、baseline margin -0.3320がcap128約+0.0825 / cap64約+0.0656へ回復した。",
+          "structure-heavy fixtureは40 features（text 5 / graph 16 / provenance 16 / grouping 2 / kind 1）で、baseline margin約+0.5373がcap128約+0.4398 / cap64約+0.4378へ低下した。capはorderingを壊さないが改善もしなかった。",
+          "3 fixtureすべてでcap128のmarginがcap64を上回った一方、cap64はlocal incremental dimensionsをより多く回復し、local distinctnessとretrieval marginの非単調関係が複数fixtureでも残った。",
+          "text-dominant 2 fixtureではcapがorderingを回復し、structure-heavyでは比例baselineが最も強かったため、static residual suppressionを無条件defaultにはできない。"
+        ],
+        "implementation_boundary": {
+          "production_code_changed": false,
+          "test_only_fixture_extension": true,
+          "adaptive_policy_implemented": false,
+          "input_cardinality_as_semantic_importance": false,
+          "provider_default_changed": false,
+          "b5_entry_gate_changed": false
+        },
+        "stop_line": "3 synthetic fixtureの条件依存性を、実workload policy条件・最適cap・input cardinalityによるsemantic priorityへ昇格させない。"
       }
     },
     {
@@ -719,7 +757,11 @@
     "distribution_shift_regret",
     "desired_minus_distractor_margin",
     "residual_selected_dimensions",
-    "unused_budget"
+    "unused_budget",
+    "cross_fixture_margin_behavior",
+    "feature_family_cardinality",
+    "residual_policy_recovery_rate",
+    "fixture_specific_degradation"
   ],
   "evaluation_policy": {
     "single_composite_score": false,
@@ -769,7 +811,10 @@
       "B7 positive replayではsynthetic success rateを維持したままunnecessary escalationを減らすケースを観測した一方、distribution-shift replayではstatic routeに対するregretが発生する反例を同時に固定した。",
       "SAC-B6dでlocal-half scalingを維持しglobal residualだけをstaticにcapする比較を追加し、unused budgetを他経路へ再配分しなかった。",
       "oversized fixtureではbaseline margin -0.15625に対しcap128で約+0.1912、cap64で約+0.1783へ回復し、residual scalingが独立したcapacity-policy変数であることをsyntheticに確認した。",
-      "cap64はcap128よりlocal incremental dimensionsを88対24まで多く回復した一方marginはわずかに小さく、local incremental dimensionalityがqualityの単調proxyではない反例を確認した。"
+      "cap64はcap128よりlocal incremental dimensionsを88対24まで多く回復した一方marginはわずかに小さく、local incremental dimensionalityがqualityの単調proxyではない反例を確認した。",
+      "SAC-B6eでcontrol / structure-heavy / text-heavyの3 synthetic fixtureにbaseline / cap128 / cap64を同一条件で適用し、feature-family cardinalityとmarginを固定した。",
+      "B6eではtext-dominantなcontrolとtext-heavyでstatic residual capが負のbaseline marginを正へ回復した一方、structure-heavyではbaseline marginが最も大きく、capが無条件改善ではない反例を確認した。",
+      "3 fixtureすべてでcap64はcap128よりlocal incremental dimensionsを多く回復する一方marginは小さく、local distinctnessをqualityの単調proxyにできない性質が複数fixtureでも残った。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -783,7 +828,7 @@
       "learned sparse projectionがrandom / static方式を上回るか",
       "10万件以上でのindex方式",
       "LLM呼び出し削減量",
-      "実hardware / real workloadにおけるcapacity profile品質、複数fixtureでのstatic residual scaling一般化、最適residual scaling、path別selection-pressure ceiling、adaptive Active / local budget policy、power / latency / memory trade-off",
+      "実hardware / real workloadにおけるcapacity profile品質、3 synthetic fixtureを越えたstatic residual scaling一般化、最適residual scaling、safe policy condition、path別selection-pressure ceiling、adaptive Active / local budget policy、power / latency / memory trade-off",
       "実problem class / real Outcome評価におけるoutcome-informed routingの一般化、selection-bias補正、statistical confidence、drift / expiry / rollback criteria",
       "production配置方式",
       "Product Value / Operational / Adoption / Outcome Evidence"
@@ -797,7 +842,8 @@
       "observed_selection_pressure_evidence_2026-09-18.json",
       "local_residual_containment_evidence_2026-09-18.json",
       "../sei-cognition-orchestration/outcome_informed_routing_evidence_2026-09-18.json",
-      "static_residual_scaling_evidence_2026-09-18.json"
+      "static_residual_scaling_evidence_2026-09-18.json",
+      "multi_fixture_residual_scaling_evidence_2026-09-18.json"
     ]
   },
   "references": [

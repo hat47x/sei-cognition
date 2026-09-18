@@ -132,11 +132,17 @@
   ],
   "notVerified": [
     "exact repository Go 1.25 execution",
-    "quality across multiple independent SUI/SEI fixtures",
+    "generalization beyond three synthetic fixtures to real SUI/SEI workloads",
     "human-adjudicated relationship between residual scaling and meaning quality",
     "optimal static residual cap",
     "whether static caps remain useful when input cardinality varies substantially",
     "hardware latency, power, and memory trade-offs",
     "Production, Operational, Adoption, or Outcome Evidence"
-  ]
+  ],
+  "followUp": {
+    "issue": 459,
+    "evidenceFile": "multi_fixture_residual_scaling_evidence_2026-09-18.json",
+    "result": "B6e compares the same baseline/cap128/cap64 policies across control, structure-heavy, and higher-text-cardinality fixtures.",
+    "keyObservation": "caps restore both text-dominant fixtures but slightly reduce the already-positive structure-heavy margin; static residual suppression is conditional rather than uniformly beneficial."
+  }
 }
