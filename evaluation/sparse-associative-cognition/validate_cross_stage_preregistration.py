@@ -67,6 +67,33 @@ def validate_preregistration(doc: dict) -> list[str]:
         if adjudication.get("state") not in {"pending", "frozen"}:
             errors.append("adjudication.state must be pending or frozen")
 
+    freeze_kit = doc.get("freeze_kit")
+    if not isinstance(freeze_kit, dict):
+        errors.append("freeze_kit must be an object")
+    else:
+        if freeze_kit.get("state") not in {"draft", "frozen"}:
+            errors.append("freeze_kit.state must be draft or frozen")
+        required_refs = {
+            "directory": "cross-stage-freeze",
+            "dataset_manifest_ref": "cross-stage-freeze/dataset_manifest.json",
+            "adjudication_manifest_ref": "cross-stage-freeze/adjudication_manifest.json",
+            "split_manifest_ref": "cross-stage-freeze/split_manifest.json",
+            "b3_prior_manifest_ref": "cross-stage-freeze/b3_prior_manifest.json",
+            "freeze_bundle_ref": "cross-stage-freeze/freeze_bundle.json",
+            "validator_ref": "cross-stage-freeze/freeze_manifests.py",
+            "evidence_ref": "cross-stage-freeze/freeze_kit_evidence_2026-09-18.json",
+        }
+        for key, expected in required_refs.items():
+            if freeze_kit.get(key) != expected:
+                errors.append(f"freeze_kit.{key} must remain {expected}")
+        frozen = freeze_kit.get("state") == "frozen"
+        if freeze_kit.get("current_bundle_is_frozen") is not frozen:
+            errors.append("freeze_kit.current_bundle_is_frozen must match freeze_kit.state")
+        if freeze_kit.get("result_generation_enabled_after_freeze") is not False:
+            errors.append("freeze kit must not enable result generation after freeze")
+        if freeze_kit.get("b5_entry_gate_changed") is not False:
+            errors.append("freeze kit must not change B5 entry gate")
+
     variants = doc.get("variants")
     if not isinstance(variants, list):
         errors.append("variants must be a list")
@@ -221,6 +248,10 @@ def validate_unlock(doc: dict) -> list[str]:
     errors = validate_preregistration(doc)
     if errors:
         return errors
+
+    freeze_kit = doc["freeze_kit"]
+    if freeze_kit.get("state") != "frozen" or freeze_kit.get("current_bundle_is_frozen") is not True:
+        errors.append("unlock requires frozen freeze-kit bundle")
 
     adjudication = doc["adjudication"]
     if adjudication.get("state") != "frozen":
