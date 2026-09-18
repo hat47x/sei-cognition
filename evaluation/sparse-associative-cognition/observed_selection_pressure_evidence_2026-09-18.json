@@ -235,15 +235,21 @@
   "derivedResearchInsight": {
     "oldProxy": "total configured Active / pre-collision projection upper bound",
     "improvedObservation": "path-specific selected / post-collision unique touched dimensions",
-    "nextQuestion": "Whether B2 local budgets should be bounded by a path-specific selection-pressure ceiling or other caller-owned capacity policy without turning input cardinality into semantic importance."
+    "nextQuestion": "Compare local/global residual scaling policies as static evaluation conditions first, because oversized capacity can let the global residual absorb all local winners; do not jump directly from path saturation to input-adaptive local ceilings."
   },
   "notVerified": [
     "exact branch source execution on repository Go 1.25",
     "human-adjudicated SUI/SEI quality under observed path saturation",
     "real workload feature-cardinality distributions",
-    "optimal path-specific selection-pressure ceiling",
+    "optimal local/global residual scaling before any adaptive path-specific ceiling",
     "whether an adaptive Active or local-budget rule improves quality without introducing instability",
     "hardware latency, power, and memory trade-offs",
     "Production, Operational, Adoption, or Outcome Evidence"
-  ]
+  ],
+  "followUp": {
+    "issue": 453,
+    "evidenceFile": "local_residual_containment_evidence_2026-09-18.json",
+    "result": "B6c measures each family-local signature's dimensions outside the global residual and the local incremental dimensions added to the merged signature.",
+    "keyObservation": "local incremental dimensions are 11/20/16/0 across small/medium/large/oversized; the oversized merged signature is fully contained by the global residual for the evaluated anchor."
+  }
 }
