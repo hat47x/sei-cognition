@@ -7,6 +7,8 @@ This module does not execute a benchmark and does not generate result artifacts.
 from __future__ import annotations
 
 import argparse
+import copy
+import hashlib
 import json
 import re
 import sys
@@ -33,6 +35,7 @@ from freeze_manifests import load_directory, validate_all  # noqa: E402
 EXPECTED_SCHEMA = "sei.sacs-cross-stage-evaluation-run/v1alpha1"
 UTC_SECOND = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 COMMIT_SHA = re.compile(r"^[0-9a-f]{40}$")
+HEX64 = re.compile(r"^[0-9a-f]{64}$")
 
 TOP_LEVEL_KEYS = {
     "schema",
@@ -40,6 +43,7 @@ TOP_LEVEL_KEYS = {
     "state",
     "run_id",
     "authorized_at",
+    "authorization_ref",
     "freeze_bundle",
     "implementation",
     "track",
@@ -52,6 +56,7 @@ TOP_LEVEL_KEYS = {
     "authorization",
     "results_generated",
     "result_artifact_ref",
+    "run_digest",
 }
 AUTH_KEYS = {
     "execution_authorized",
@@ -76,6 +81,18 @@ VERIFICATION_FLAGS = {
     "split_boundary_verified",
     "prior_boundary_verified",
 }
+
+
+def canonical_run_digest(run: dict[str, Any]) -> str:
+    payload = copy.deepcopy(run)
+    payload.pop("run_digest", None)
+    encoded = json.dumps(
+        payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def _canonical_string(value: object) -> bool:
@@ -176,6 +193,10 @@ def validate_run_structure(run: dict[str, Any]) -> list[str]:
     if run.get("state") == "draft":
         if run.get("authorized_at") is not None:
             errors.append("draft run authorized_at must be null")
+        if run.get("authorization_ref") != "":
+            errors.append("draft run authorization_ref must be empty")
+        if run.get("run_digest") != "":
+            errors.append("draft run run_digest must be empty")
         if isinstance(auth, dict):
             if auth.get("execution_authorized") is not False:
                 errors.append("draft run cannot be execution-authorized")
@@ -201,6 +222,13 @@ def validate_authorized_run(
 
     if not isinstance(run.get("authorized_at"), str) or UTC_SECOND.fullmatch(run["authorized_at"]) is None:
         errors.append("authorized run authorized_at must use UTC second format YYYY-MM-DDTHH:MM:SSZ")
+    if not _canonical_string(run.get("authorization_ref")):
+        errors.append("authorized run requires canonical authorization_ref")
+    digest = run.get("run_digest")
+    if not isinstance(digest, str) or HEX64.fullmatch(digest) is None:
+        errors.append("authorized run requires run_digest as lowercase SHA-256 hex")
+    elif digest != canonical_run_digest(run):
+        errors.append("authorized run run_digest does not match canonical run content")
 
     if run.get("run_id") == "cross-stage-run-template":
         errors.append("authorized run must replace the template run_id")
