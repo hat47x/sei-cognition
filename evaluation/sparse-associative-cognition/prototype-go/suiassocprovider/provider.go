@@ -520,9 +520,11 @@ type providerEncodeStats struct {
 }
 
 type localizedCompetitionEncodeStats struct {
-	Families                 map[string]sparseassoc.EncodeStats
-	GlobalResidual           *sparseassoc.EncodeStats
-	MergedSelectedDimensions int
+	Families                   map[string]sparseassoc.EncodeStats
+	GlobalResidual             *sparseassoc.EncodeStats
+	FamilyUniqueBeyondResidual map[string]int
+	LocalIncrementalDimensions int
+	MergedSelectedDimensions   int
 }
 
 func newProviderEncoder(cfg Config) (*providerEncoder, error) {
@@ -635,8 +637,10 @@ func (e *localizedCompetitionEncoder) EncodeWithStats(features []sparseassoc.Fea
 	}
 
 	stats := localizedCompetitionEncodeStats{
-		Families: make(map[string]sparseassoc.EncodeStats, len(e.families)),
+		Families:                   make(map[string]sparseassoc.EncodeStats, len(e.families)),
+		FamilyUniqueBeyondResidual: make(map[string]int, len(e.families)),
 	}
+	familySignatures := make(map[string]sparseassoc.Signature, len(e.families))
 	parts := make([]sparseassoc.Signature, 0, len(e.families)+1)
 	for _, family := range e.families {
 		familyFeatures := groups[family]
@@ -646,16 +650,49 @@ func (e *localizedCompetitionEncoder) EncodeWithStats(features []sparseassoc.Fea
 		active := e.policy.FamilyActive[family]
 		signature, familyStats := e.encoders[active].EncodeWithStats(familyFeatures)
 		parts = append(parts, signature)
+		familySignatures[family] = signature
 		stats.Families[family] = familyStats
 	}
+
+	var residualSignature sparseassoc.Signature
 	if e.policy.GlobalResidualActive > 0 {
 		signature, residualStats := e.encoders[e.policy.GlobalResidualActive].EncodeWithStats(features)
 		parts = append(parts, signature)
+		residualSignature = signature
 		stats.GlobalResidual = &residualStats
 	}
+
 	merged := mergeSparseSignatures(parts)
 	stats.MergedSelectedDimensions = len(merged.Active)
+	if stats.GlobalResidual != nil {
+		stats.LocalIncrementalDimensions = len(merged.Active) - len(residualSignature.Active)
+		for family, signature := range familySignatures {
+			stats.FamilyUniqueBeyondResidual[family] = countSignatureDifference(signature, residualSignature)
+		}
+	} else {
+		stats.LocalIncrementalDimensions = len(merged.Active)
+		for family, signature := range familySignatures {
+			stats.FamilyUniqueBeyondResidual[family] = len(signature.Active)
+		}
+	}
 	return merged, stats
+}
+
+func countSignatureDifference(
+	left sparseassoc.Signature,
+	right sparseassoc.Signature,
+) int {
+	i, j, unique := 0, 0, 0
+	for i < len(left.Active) {
+		for j < len(right.Active) && right.Active[j] < left.Active[i] {
+			j++
+		}
+		if j >= len(right.Active) || right.Active[j] != left.Active[i] {
+			unique++
+		}
+		i++
+	}
+	return unique
 }
 
 func mergeSparseSignatures(signatures []sparseassoc.Signature) sparseassoc.Signature {

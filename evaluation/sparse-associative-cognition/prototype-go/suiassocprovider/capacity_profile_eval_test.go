@@ -251,6 +251,90 @@ func TestObservedSelectionPressureAcrossCapacityProfiles(t *testing.T) {
 	}
 }
 
+func TestLocalContributionBeyondResidualAcrossProfiles(t *testing.T) {
+	base := capacityBaseProfile()
+	anchor, _, _ := capacityEvalItems()
+	cases := []struct {
+		id          string
+		dimensions  uint16
+		incremental int
+		textUnique  int
+		graphUnique int
+		provUnique  int
+		groupUnique int
+		merged      int
+	}{
+		{"small", 2048, 11, 4, 4, 3, 0, 27},
+		{"medium", 4096, 20, 8, 6, 6, 0, 52},
+		{"large", 8192, 16, 16, 0, 0, 0, 80},
+		{"oversized", 32768, 0, 0, 0, 0, 0, 256},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.id, func(t *testing.T) {
+			profile, err := capacityprofile.ScaleDimensions(base, tc.id, tc.dimensions)
+			if err != nil {
+				t.Fatal(err)
+			}
+			_, stats := capacityObservedStats(t, profile, anchor)
+			local := stats.Local
+			if local == nil || local.GlobalResidual == nil {
+				t.Fatalf("missing localized diagnostics: %#v", stats)
+			}
+			if local.LocalIncrementalDimensions != tc.incremental {
+				t.Fatalf("local incremental=%d want %d",
+					local.LocalIncrementalDimensions, tc.incremental)
+			}
+			if local.MergedSelectedDimensions != tc.merged {
+				t.Fatalf("merged=%d want %d", local.MergedSelectedDimensions, tc.merged)
+			}
+
+			want := map[string]int{
+				"text":       tc.textUnique,
+				"graph":      tc.graphUnique,
+				"provenance": tc.provUnique,
+				"grouping":   tc.groupUnique,
+			}
+			for family, expected := range want {
+				if got := local.FamilyUniqueBeyondResidual[family]; got != expected {
+					t.Fatalf("%s unique beyond residual=%d want %d",
+						family, got, expected)
+				}
+			}
+		})
+	}
+}
+
+func TestOversizedLocalCompetitionAddsNoDimensionsBeyondResidual(t *testing.T) {
+	base := capacityBaseProfile()
+	oversized, err := capacityprofile.ScaleDimensions(base, "oversized", 32768)
+	if err != nil {
+		t.Fatal(err)
+	}
+	anchor, _, _ := capacityEvalItems()
+	signature, stats := capacityObservedStats(t, oversized, anchor)
+	local := stats.Local
+	if local == nil || local.GlobalResidual == nil {
+		t.Fatalf("missing localized diagnostics: %#v", stats)
+	}
+	if local.LocalIncrementalDimensions != 0 {
+		t.Fatalf("oversized local incremental=%d want 0", local.LocalIncrementalDimensions)
+	}
+	if local.MergedSelectedDimensions != local.GlobalResidual.SelectedDimensions {
+		t.Fatalf("merged=%d residual selected=%d",
+			local.MergedSelectedDimensions, local.GlobalResidual.SelectedDimensions)
+	}
+	if len(signature.Active) != local.GlobalResidual.SelectedDimensions {
+		t.Fatalf("signature=%d residual selected=%d",
+			len(signature.Active), local.GlobalResidual.SelectedDimensions)
+	}
+	for family, unique := range local.FamilyUniqueBeyondResidual {
+		if unique != 0 {
+			t.Fatalf("%s contributes %d dimensions outside residual", family, unique)
+		}
+	}
+}
+
 func TestOversizedProfileExposesFamilyLocalSaturation(t *testing.T) {
 	base := capacityBaseProfile()
 	oversized, err := capacityprofile.ScaleDimensions(base, "oversized", 32768)
