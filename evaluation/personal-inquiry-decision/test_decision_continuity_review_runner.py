@@ -18,15 +18,42 @@ from matched_review_session import current_stage, new_session
 
 
 def fixture(fid: str) -> dict:
+    basis_a = f"{fid}-basis-a"
+    basis_b = f"{fid}-basis-b"
+    recommendation = f"{fid}-recommendation"
+    unknown_a = f"{fid}-unknown-a"
+    unknown_b = f"{fid}-unknown-b"
+    decision = f"{fid}-decision"
+    late = f"{fid}-late"
     return {
         "schema": "sei.decision-continuity-comparison-fixture/v0",
         "status": "evaluation-only",
+        "issue": "ISSUE-000073",
         "fixture_id": fid,
         "title": fid,
         "scenario": {
+            "phase_1": [
+                {"role": "observation", "id": basis_a, "text": "basis a"},
+                {"role": "observation", "id": basis_b, "text": "basis b"},
+                {
+                    "role": "recommendation",
+                    "id": recommendation,
+                    "text": "recommendation",
+                },
+                {"role": "unknown", "id": unknown_a, "text": "unknown a"},
+                {"role": "unknown", "id": unknown_b, "text": "unknown b"},
+                {
+                    "role": "decision",
+                    "id": decision,
+                    "text": "decision",
+                    "basis_refs": [basis_a, basis_b],
+                    "recommendation_refs": [recommendation],
+                    "unresolved_refs": [unknown_a, unknown_b],
+                },
+            ],
             "post_decision_evidence": [
-                {"role": "observation", "id": "late", "text": "later evidence"}
-            ]
+                {"role": "observation", "id": late, "text": "later evidence"}
+            ],
         },
         "conditions": {
             "A_raw_chat": {"surface_text": ["raw"]},
@@ -34,11 +61,11 @@ def fixture(fid: str) -> dict:
             "C_sei_resume": {"surface_text": {"question": "q"}},
         },
         "reference_state": {
-            "decision": "d",
-            "recommendation": "r",
-            "historical_basis_ids": ["b1", "b2"],
-            "unresolved_ids": ["u1", "u2"],
-            "post_decision_ids": ["late"],
+            "decision": "decision",
+            "recommendation": "recommendation",
+            "historical_basis_ids": [basis_a, basis_b],
+            "unresolved_ids": [unknown_a, unknown_b],
+            "post_decision_ids": [late],
             "temporal_stopline": "late evidence is not historical basis",
         },
         "human_review_template": {
@@ -77,6 +104,10 @@ def matched_set() -> tuple[dict, dict[str, dict]]:
             "B_chronological_note": "note",
             "C_sei_resume": "sei",
         },
+        "interpretation_stoplines": [
+            "synthetic review is not H1 actual-resumption evidence",
+            "no overall winner is computed",
+        ],
         "assignment_rotations": {
             "R1": [
                 {"fixture": "f1", "condition": "A_raw_chat"},
