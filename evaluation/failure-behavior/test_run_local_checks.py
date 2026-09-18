@@ -26,6 +26,7 @@ class FailureBehaviorLocalCheckRunnerTest(unittest.TestCase):
                 "live-provider-runner-tests",
                 "requirement-audit-tests",
                 "scoped-go-evidence-tests",
+                "scoped-go-source-delta-audit-tests",
                 "actual-provider-service-observation-tests",
                 "provider-adapter-go-tests",
                 "live-provider-integration-go-tests",
@@ -37,7 +38,10 @@ class FailureBehaviorLocalCheckRunnerTest(unittest.TestCase):
             checks[5].command[-1], "test_scoped_go_failure_execution_evidence.py"
         )
         self.assertEqual(
-            checks[6].command[-1], "test_actual_provider_missing_revision_observation.py"
+            checks[6].command[-1], "test_scoped_go_failure_source_delta_audit.py"
+        )
+        self.assertEqual(
+            checks[7].command[-1], "test_actual_provider_missing_revision_observation.py"
         )
         self.assertEqual(checks[-2].command, ("go", "test", "./provideradapter"))
         self.assertEqual(checks[-1].command, ("go", "test", "./liveintegration"))
