@@ -300,11 +300,11 @@ first actual caseは開始済みでmulti-dayの暦条件へ到達したが、202
 23. `inquiry_continuity_review_analysis.py` — historical correctness、role separation、unresolved、temporal integrity、burden等をscoreへ潰さず監査するvalidation / projection
 24. `inquiry_continuity_review_evidence.py` — complete sessionからhuman observation、semantic audit、review provenanceを分離してexportするEvidence境界
 25. `inquiry_continuity_summary_distortion_probe_v1.json` / `inquiry_continuity_summary_distortion_probe.py` — E78.3の正規AI-summary-distortion経路。歪んだsummary / next questionはhuman response固定前にaudit keyを開かず、matched reviewを同一reviewerで行う場合はその完了後に提示する
-26. `inquiry_continuity_summary_distortion_evidence.py` — E78.3で固定済みhuman responseにpost-reveal semantic auditをSHA-256で結び、human observation / semantic audit / provenanceを分離してEvidence exportする。review / audit / Evidenceはcanonicalized probe JSONのSHA-256にも結び、Evidence bundleへ実際のstimulus / review questionsを`probe_snapshot`として残す。既存Evidenceは上書きしない
+26. `inquiry_continuity_summary_distortion_evidence.py` — E78.3で固定済みhuman responseにpost-reveal semantic auditをSHA-256で結び、human observation / audit reveal / semantic audit / provenanceを分離してEvidence exportする。probeの`audit`はreference material出力前にexclusive-create receiptを保存し、review / receipt / audit / Evidenceをcanonicalized probe JSONのSHA-256へ結ぶ。Evidence bundleへ実際のstimulus / review questionsを`probe_snapshot`として残し、既存Evidenceは上書きしない
 27. `inquiry_continuity_assistance_probe_v1.json` / `inquiry_continuity_assistance_probe.py` — E78.6 quiet / proactive / adaptiveの比較scaffold
 28. `inquiry_continuity_lifecycle_probe_v1.json` / `inquiry_continuity_lifecycle_probe.py` — E78.7 closure / dormancyのProduct-local比較scaffold
 
-E78.3では以前の`inquiry_continuity_distortion_*`並行経路を廃止しており、`inquiry_continuity_summary_distortion_*`を唯一の維持対象とする。human responseはaudit material開示前に固定し、post-reveal semantic auditは別artifactとして同じresponse SHA-256へ結びつける。加えてcanonicalized probe JSONのSHA-256でreview responseとaudit responseを同じ評価刺激へ固定し、Evidence bundleへそのstimulusとreview questionsを自己完結的に残す。どのprobeやEvidence exporterも、実行可能であること自体をhuman review resultやProduct Valueへ昇格させない。
+E78.3では以前の`inquiry_continuity_distortion_*`並行経路を廃止しており、`inquiry_continuity_summary_distortion_*`を唯一の維持対象とする。human responseはaudit material開示前に固定し、probeの`audit`はreference materialを出力する前にそのresponse SHA-256、exact probe、fixture、`revealed_at`をexclusive-create receiptへ保存する。post-reveal semantic auditは同じreceiptへ結び、`completed_at`がrevealより前のものを拒否する。加えてcanonicalized probe JSONのSHA-256でreview response、receipt、audit responseを同じ評価刺激へ固定し、Evidence bundleへそのstimulusとreview questionsを自己完結的に残す。どのprobeやEvidence exporterも、実行可能であること自体をhuman review resultやProduct Valueへ昇格させない。
 
 ### Stage 7 — EvidenceからRequirementへ戻る
 
@@ -367,7 +367,7 @@ root purpose
 - H2 matched reviewのblinded packet、global stage gate、Decision固有validation、evidence export
 - ISSUE-000078 matched reviewのreviewer provenance、phase1 / post / audit stage gate、非採点analysis、complete-session Evidence export
 - ISSUE-000078 E78.3のsource-fixture blob固定、provisional summary / next question、human response固定後だけのaudit reveal
-- ISSUE-000078 E78.3のpost-reveal semantic audit、human response SHA-256 binding、human observation / semantic audit / provenance分離、exclusive-create Evidence export
+- ISSUE-000078 E78.3のpre-reveal response SHA-256固定、exclusive-create audit-reveal receipt、post-reveal semantic audit、human observation / audit reveal / semantic audit / provenance分離、exclusive-create Evidence export
 - E78.6 assistance probeとE78.7 lifecycle probeのevaluation-only scaffold
 
 ただし、sourceやrunnerが存在することをactual E1〜E8 Executable PASSやhuman review resultへ読み替えない。ISSUE-000073のGo 1.25.x actual runはまだNot Yet Verifiedであり、ISSUE-000078の各human reviewも未実施である。

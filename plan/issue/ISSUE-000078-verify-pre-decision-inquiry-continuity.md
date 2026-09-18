@@ -337,6 +337,7 @@ PROBE=evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion
 PROBE_SET=evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe_v1.json
 EVIDENCE_TOOL=evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_evidence.py
 RESPONSE=<checkout外または意図的に管理するhuman-response.json>
+REVEAL_RECEIPT=<checkout外または意図的に管理するaudit-reveal-receipt.json>
 AUDIT_RESPONSE=<checkout外または意図的に管理するsemantic-audit-response.json>
 EVIDENCE=<checkout外または意図的に管理するe78-3-evidence.json>
 
@@ -350,26 +351,35 @@ python3 "$PROBE" --probe "$PROBE_SET" --repo-root . \
 # review burden等を埋め、audit materialを開く前にRESPONSEを固定する。
 python3 "$PROBE" --probe "$PROBE_SET" --repo-root . \
   --fixture-id <fixture-id> audit \
-  --response "$RESPONSE" > <audit-packet.json>
+  --response "$RESPONSE" \
+  --receipt "$REVEAL_RECEIPT" > <audit-packet.json>
 
+# audit commandはreference materialをstdoutへ出す前に、固定済みRESPONSE、
+# exact probe content、fixture、revealed_atをexclusive-create receiptへ保存する。
+# receiptが既に存在する場合は上書きせずfail-closedする。
+#
 # audit-packetでreference materialを開いた後にだけsemantic auditを作る。
-# audit-templateは固定済みRESPONSEのSHA-256へ結びつく。
+# audit-templateは固定済みRESPONSEと同じREVEAL_RECEIPTへ結びつく。
 python3 "$EVIDENCE_TOOL" --probe "$PROBE_SET" --repo-root . \
   --fixture-id <fixture-id> audit-template \
-  --response "$RESPONSE" > "$AUDIT_RESPONSE"
+  --response "$RESPONSE" \
+  --receipt "$REVEAL_RECEIPT" > "$AUDIT_RESPONSE"
 
 # AUDIT_RESPONSEのfindings、opaque auditor id、human authorship、completed_at等を
 # post-revealに記録してからEvidenceをexportする。
 python3 "$EVIDENCE_TOOL" --probe "$PROBE_SET" --repo-root . \
   --fixture-id <fixture-id> export-evidence \
   --response "$RESPONSE" \
+  --receipt "$REVEAL_RECEIPT" \
   --audit-response "$AUDIT_RESPONSE" \
   --output "$EVIDENCE"
 ```
 
 review packetに含まれる`provisional_ai_summary`と`provisional_ai_next_question`は、意図的に誤りを含む**evaluation-only stimulus**であり、canonical Question / Observation / Unknown / Hypothesis、Recommendation、Decision、Evidence reportへ自動昇格させない。
 
-`audit`はhuman responseのSHA-256を固定してからreference materialを開く。さらにreview response、audit response、Evidence bundleをcanonicalized probe JSONのSHA-256へ結び、summary、next question、review questions等のprobe内容が後から変更された場合に別の評価を同一Evidenceとして読み替えられないようにする。Evidence bundle自身にも、実際に評価したsummary / next question / review questions / audit dimensionsを`probe_snapshot`として保存する。`audit-template`以後に記録するsemantic auditは、**post-revealなoperator / auditor Evidence**であり、開示前のhuman responseへ混ぜ戻さない。Evidence exporterはhuman review observation、review provenance、semantic auditを別layerとして保存し、existing Evidence outputの上書きを拒否する。
+`audit`はhuman responseのSHA-256を固定し、**reference materialを出力する前に**exclusive-createのaudit-reveal receiptを永続化する。receiptはexact probe content、fixture、固定済みresponse hash、machine-recorded `revealed_at`へ結びつき、post-reveal auditの`completed_at`がその時刻より前の場合は拒否する。これにより「開示後にhuman responseを書き直したもの」をpre-reveal responseとして扱う経路を機械的に狭める。ただしreceiptは利用者が実際に画面を見た時刻やhuman authorshipそのものを独立に証明するものではない。
+
+さらにreview response、audit-reveal receipt、audit response、Evidence bundleをcanonicalized probe JSONのSHA-256へ結び、summary、next question、review questions等のprobe内容が後から変更された場合に別の評価を同一Evidenceとして読み替えられないようにする。Evidence bundle自身にも、実際に評価したsummary / next question / review questions / audit dimensionsを`probe_snapshot`として保存し、human review observation、audit reveal、semantic auditを別layerとして保持する。`audit-template`以後に記録するsemantic auditは、**post-revealなoperator / auditor Evidence**であり、開示前のhuman responseへ混ぜ戻さない。既存Evidence outputは上書きしない。
 
 reviewer / auditorのopaque id、prior exposure、response authorship等は評価上の申告metadataであり、それだけで盲検やhuman authorshipを独立に証明するものではない。`human-direct` / `human-transcribed`以外をhuman reviewとして受理しないが、その機械検証自体をHuman Evidenceと読み替えない。
 
