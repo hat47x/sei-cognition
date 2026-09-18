@@ -239,7 +239,7 @@ func TestReportShapeDoesNotIntroduceCredentialFields(t *testing.T) {
 	if err != nil {
 		t.Fatalf("marshal report: %v", err)
 	}
-	for _, forbidden := range []string{"credential", "password", "api_key", "access_token"} {
+	for _, forbidden := range []string{"credential", "password", "api_key", "access_token", "stderr", "process_error"} {
 		if strings.Contains(strings.ToLower(string(payload)), forbidden) {
 			t.Fatalf("report unexpectedly contains secret-bearing field name %q: %s", forbidden, payload)
 		}

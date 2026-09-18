@@ -44,16 +44,20 @@ ISSUE-000065では、次の固定revisionについてactual CLI build / executio
 - evidence branch: `evidence/sei-e3b-p2-version-exchange-2026-09-05`
 - workflow commit: `5e87cd18967b6d86001cc4d5229bd4886b94e30d`
 
-revision Bを旧revisionと同じ`deployment-provider-plan`条件で実行するEvidence workflow Run `33913500170`を起動したが、attempt 1 / 2ともjob stepが一つも開始される前にfailureとなった。
+revision Bを旧revisionと同じ`deployment-provider-plan`条件で実行するEvidence workflow Run `33913500170`を起動したが、初期attempt 1 / 2以降もGitHub-hosted jobはProduct stepへ到達していない。2026-09-18には、11日空けた再確認として同runのfailed jobだけをattempt 8として再実行した。run自体は正常に再queueされたが、`actual-tei-cli` jobはrunner assignmentなし（`runner_id = 0`）、step 0、artifact 0、job log unavailableのまま約3秒でfailureへ戻った。revision B source checkout、TEI build、Provider Plan executionはいずれも観測されていない。
+
+machine-readable observation:
+`runtime/evidence/tei-version-exchange-workflow-attempt8-20260918/observation.json`
 
 ```text
 GitHub-hosted job start failure
+  != revision B source checkout
   != TEI build failure
   != Provider surface incompatibility
   != SEI Adapter incompatibility
 ```
 
-このため、revision B actual executionは現時点ではNot Yet Verifiedである。
+attempt 8は、時間を置いても同じhosted-execution boundaryが継続していることの再確認である。これ以上同一workflowを繰り返しrerunしてもProduct Evidenceの高さは上がらないため、次の主線は引き続きcanonical local E2とする。このためrevision B actual executionは現時点でもNot Yet Verifiedである。
 
 2026-09-07には、exact revision BのGit objectへ束縛したsource-level監査で、`cmd/tei`に決定論的なcompile矛盾候補が観測された。`cmd/tei/main.go`と`cmd/tei/validation_output.go`が同一`package main`で`validateWorkspace`を二重定義し、後者が参照する`workspace.DiagnosticFromLoadError`もfixed-B側の`SourceDiagnosticFromError`と一致しない。既知のbuild-fix commit `3b928502...`はfixed-Bのancestorではなくdivergedである。
 
@@ -330,8 +334,8 @@ workspace / validation / IR input interpretation
 specific execution host
   = not selected; any suitable Linux / amd64 environment may be used
 
-revision B workflow attempt 1 / 2
-  = failure before any job step; not counted as Product failure
+revision B workflow attempt 1 / 2 / 3 / 7 / 8
+  = failure before any job step; latest attempt 8 (2026-09-18)もrunner assignmentなし / step 0 / artifact 0で、Product failureには数えない
 
 revision B actual CLI build / execution
   = Not Yet Verified
@@ -344,6 +348,11 @@ revision B current SEI Adapter live compatibility
 ```
 
 repository-sideで、actual開始前のacquisition / identity / purity / preflight / orchestrationと、actual後のResolution auditまでは実装済みである。E2とE3を同じ機会に実行できない場合も、E2 partialを保存し、strict再検証後にE3だけを後日resumeして同じcanonical report / Resolution auditへ戻せる。したがって次にEvidenceの高さを本質的に上げる作業は、synthetic hardeningの追加ではなくactual revision B E2である。
+
+2026-09-18時点では、GitHub connectorからrevision Bのexact commit/tree/blob identityは読める一方、private repository archiveまたはcredentialをこのexecution processへ渡すtransportは成立していない。同日のexecution environment実測では`Linux / x86_64`、`go1.23.2 linux/amd64`、Git 2.47.3であり、E2のplatformとexact Go条件自体は成立している。bootstrap / historical materialize shortcutは既存Evidenceどおりexact revision B identityへ一致しないため再利用しない。したがってcurrent blockerはsource identityのUnknownやtoolchain不足ではなく、**exact private sourceをexecution processへmaterializeするtransport**へ絞られる。これはexecution mechanism上の未成立であり、comparison axisやProduct semanticsへ取り込まない。
+
+machine-readable readiness observation:
+`runtime/evidence/tei-version-exchange-execution-route-recheck-20260918/observation.json`
 
 #316のStatic Evidenceにより、fixed-BはE2 build stageで停止する可能性が具体化した。しかしactual E2前に結論を先取りしない。
 
@@ -400,6 +409,8 @@ operator向けactual手順は次を正とする。
 - `runtime/TEI_VERSION_EXCHANGE_POST_RUN_AUDIT_2026-09-06.md`
 - `runtime/evidence/tei-revision-b-static-cli-compile-contradiction-20260907/evidence.json`
 - `runtime/evidence/tei-revision-b-static-cli-compile-contradiction-20260907/README.md`
+- `runtime/evidence/tei-version-exchange-workflow-attempt8-20260918/observation.json`
+- `runtime/evidence/tei-version-exchange-execution-route-recheck-20260918/observation.json`
 
 ## Deliverables
 

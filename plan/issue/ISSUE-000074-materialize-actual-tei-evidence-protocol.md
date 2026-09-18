@@ -118,6 +118,8 @@ actual Evidence commandでは、`PrefixArgs`を使ったwrapperや`go run`では
 
 symlink binaryは拒否する。manifestはunknown field / malformed JSON / multiple JSON valuesを拒否し、repository / commit / digestが一致した場合だけ`manifest_matched`とする。process failure、timeout、Observation mapping failure、実行中digest変化ではPASS reportを返さない。
 
+failure時の診断については、既存`teiintegration`が上限付きTEI subprocess stderrを返却errorへ含め得る。これはlocal diagnosticであり、`sei.e3b-tei-probe/v1`の成功Evidence reportには含めない。失敗情報をrepositoryへ保存する場合もraw stderrをそのままEvidence化せず、ISSUE-000076のsecret-safe boundaryを通して、secretを含まないfailure stage / observationへ落とす。これにより、診断可能性を失わずにactual Evidence reportとfailure diagnosticを分離する。
+
 fixture-scoped test sourceではmanifestなし / 一致 / 不一致、strict manifest、symlink、process failure、timeout、digest change、credential field非追加を扱う。ただしcurrent moduleはGo 1.25を要求し、この作業環境ではGo 1.25.xを取得できないため、**test sourceは実装済みだがactual `go test`はNot Yet Verified**である。
 
 ```text
@@ -141,8 +143,9 @@ implementation source available
 8. TEI process failure / timeoutではPASS reportを生成しない。
 9. success時のCapability Observationがcurrent validatorを通る。
 10. credential / secretをreport fieldへ追加しない。
-11. helper subprocessによるtestをactual TEI Evidenceへ昇格させない。
-12. v0.2.0 supported release scopeをE3aから暗黙に拡張しない。
+11. process stderr / error textを成功reportのEvidence fieldへ追加しない。failureを保存する場合はISSUE-000076のsecret-safe boundaryを使う。
+12. helper subprocessによるtestをactual TEI Evidenceへ昇格させない.
+13. v0.2.0 supported release scopeをE3aから暗黙に拡張しない。
 
 ## Requirement / Scenario監査
 

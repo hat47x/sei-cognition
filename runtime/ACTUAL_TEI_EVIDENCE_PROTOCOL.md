@@ -154,6 +154,17 @@ binary acquisition failure
 
 current `Probe` APIはfailure時にPASS reportを返しません。途中まで得られたObservationやpartial reportを成功Evidenceとして残しません。
 
+`teiintegration`はprocess failureの診断性を保つため、上限付きで取得したTEI subprocessのstderrを返却errorへ含める場合があります。このerror textは**local diagnostic**であり、`sei.e3b-tei-probe/v1`のderived Evidence reportではありません。失敗時のstderrをそのまま通常Evidenceやrepository保存artifactへ転記しません。failure observationを保存する必要がある場合は、ISSUE-000076のsecret-safe Evidence boundaryで、credential・token・secret等を含まない最小限の分類と事実へ落としてから記録します。
+
+```text
+successful derived report
+  != local failure diagnostic
+
+bounded subprocess stderr
+  = local diagnosis input
+  != repository-safe Evidence by itself
+```
+
 failureの詳細な分類・retry設計はISSUE-000076のfailure-behavior Evidenceと混同しません。ISSUE-000074の主眼は、actual TEI success Evidenceのidentity / binding / mappingを監査可能にすることです。
 
 ## 8. test Evidenceの高さ

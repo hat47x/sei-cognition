@@ -336,11 +336,17 @@ repo rootからの正規経路は次である。
 PROBE=evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe.py
 PROBE_SET=evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe_v1.json
 EVIDENCE_TOOL=evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_evidence.py
+LOCAL_CHECKS=evaluation/personal-inquiry-decision/run_inquiry_continuity_summary_distortion_checks.py
+LOCAL_RESULT=<checkout外または意図的に管理するe78-3-local-check-result.json>
 REVIEW_RECEIPT=<checkout外または意図的に管理するreview-start-receipt.json>
 RESPONSE=<checkout外または意図的に管理するhuman-response.json>
 REVEAL_RECEIPT=<checkout外または意図的に管理するaudit-reveal-receipt.json>
 AUDIT_RESPONSE=<checkout外または意図的に管理するsemantic-audit-response.json>
 EVIDENCE=<checkout外または意図的に管理するe78-3-evidence.json>
+
+# repository-local mechanics gate。probe/evidence focused unit test、canonical validate、
+# 3 fixture全てのEvidence preflightを一括実行する。result JSONは上書きしない。
+python3 "$LOCAL_CHECKS" --stop-on-failure --result-output "$LOCAL_RESULT"
 
 # validateは3 source fixtureのGit blob freezeを全件検証し、current probe /
 # response / review-start / audit-reveal schemaとtyped audit dimensionsを表示する。
@@ -403,7 +409,9 @@ python3 "$EVIDENCE_TOOL" --probe "$PROBE_SET" --repo-root . \
   --output "$EVIDENCE"
 ```
 
-review開始前に、`validate`と`preflight`の双方が成功し、3 source fixtureのGit blob SHA-1、probe / response / receipt / audit-response / Evidence schema、typed audit dimension契約がcurrent v1であることを確認する。pre-v1 artifactはcurrent contractへ移行済みとはみなさず、human review開始後のschema差し替えを行わない。
+review開始前に、repository-local mechanics runnerが全checkを完走し、加えて`validate`と対象fixtureの`preflight`がcurrent v1 contractを示すことを確認する。runnerはprobe/evidence focused unit tests、canonical validate、3 fixture全てのpreflightを一つの入口で実行し、途中停止や未実行checkをPASSへ数えない。result JSONはexclusive-createで保存できる。ただしそのPASSはHuman Evidenceではなく、actual long-gap resumption、Product Value、Stable Requirement authorizationも成立させない。
+
+`validate`と`preflight`では3 source fixtureのGit blob SHA-1、probe / response / receipt / audit-response / Evidence schema、typed audit dimension契約がcurrent v1であることを確認する。pre-v1 artifactはcurrent contractへ移行済みとはみなさず、human review開始後のschema差し替えを行わない。
 
 review packetに含まれる`provisional_ai_summary`と`provisional_ai_next_question`は、意図的に誤りを含む**evaluation-only stimulus**であり、canonical Question / Observation / Unknown / Hypothesis、Recommendation、Decision、Evidence reportへ自動昇格させない。
 

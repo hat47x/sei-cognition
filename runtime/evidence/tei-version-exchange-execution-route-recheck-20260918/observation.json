@@ -1,0 +1,63 @@
+{
+  "schema": "sei.tei-version-exchange-execution-route-recheck/v1",
+  "issue": "ISSUE-000072",
+  "observedAt": "2026-09-18T08:24:00Z",
+  "scope": "execution-readiness-only",
+  "target": {
+    "repository": "hat47x/tei-platform",
+    "revisionBCommit": "1a7028d444fcae60a1c4f2f2d247456f4c7c35be",
+    "revisionBRootTree": "630d3e9e2acaea70312bee19cf8a0f7235655cd6",
+    "revisionAFixedReferenceCommit": "48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67"
+  },
+  "currentExecutionEnvironment": {
+    "system": "Linux",
+    "machine": "x86_64",
+    "goVersion": "go1.23.2",
+    "goTarget": "linux/amd64",
+    "gitVersion": "2.47.3",
+    "e2PlatformRequirementSatisfied": true,
+    "e2GoRequirementSatisfied": true
+  },
+  "githubHostedRoute": {
+    "runId": 33913500170,
+    "latestObservedAttempt": 8,
+    "latestObservation": "runtime/evidence/tei-version-exchange-workflow-attempt8-20260918/observation.json",
+    "runnerAssignmentObserved": false,
+    "jobStepStarted": false,
+    "artifactProduced": false,
+    "usableForActualE2Now": false
+  },
+  "connectorRoute": {
+    "privateRepositoryReadable": true,
+    "revisionBCommitObjectReadable": true,
+    "revisionBTreeReadable": true,
+    "revisionBBlobIdentityReadable": true,
+    "revisionACommitObjectReadable": true,
+    "processCredentialAvailable": false,
+    "privateArchiveMaterializedIntoExecutionProcess": false,
+    "usableForActualE2Now": false
+  },
+  "shortcutAudit": {
+    "bootstrapPayloadObservation": "runtime/evidence/tei-bootstrap-source-identity-rejection-20260907/observation.json",
+    "historicalMaterializeObservation": "runtime/evidence/tei-revision-b-bootstrap-materialize-shortcut-rejection-20260907/observation.json",
+    "bootstrapAcceptedAsExactRevisionB": false,
+    "historicalMaterializeAcceptedAsExactRevisionB": false
+  },
+  "currentBlocker": {
+    "class": "private_exact_source_transport_to_execution_process",
+    "sourceIdentityUnknown": false,
+    "platformUnavailable": false,
+    "requiredE2GoUnavailable": false,
+    "productFailureObserved": false
+  },
+  "nextCanonicalAction": "Materialize exact revision B source into the Linux/amd64 execution process through an authenticated or otherwise verifiably content-addressed transport, then run the existing E2 prepositioned/partial path without changing the comparison axis.",
+  "claims": {
+    "actualRevisionBE2Executed": false,
+    "revisionBBuildPass": false,
+    "revisionBBuildFailure": false,
+    "providerPlanObserved": false,
+    "seiAdapterCompatibilityObserved": false,
+    "issueResolved": false
+  },
+  "stopLine": "platform and exact E2 Go ready + source identity readable != exact revision B source materialized != E2 executed != Provider Plan observed != SEI Adapter compatibility verified != ISSUE-000072 resolved"
+}
