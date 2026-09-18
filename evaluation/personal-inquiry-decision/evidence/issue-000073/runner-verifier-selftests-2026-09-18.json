@@ -1,0 +1,73 @@
+{
+  "schema": "issue-000073-runner-verifier-selftest-evidence/v1",
+  "issue": "ISSUE-000073",
+  "observed_at": "2026-09-18T03:51:21Z",
+  "scope": "Executable Evidence for runner preflight and evidence verifier self-tests only; not E1-E8 Go evidence, not H1/H2 human review, not Decision Continuity Product Value.",
+  "source_binding": {
+    "repository": "hat47x/sei-cognition",
+    "still_current_at_commit": "8f724513ec3cf9b942ede151d10acd21748e629e",
+    "files": [
+      {
+        "path": "tools/run_issue_000073_resume_first_evidence.py",
+        "git_blob": "1233a2ded8f915c50dc895986459de4ff4eabaf4",
+        "sha256": "657faf1b65e75371d629cf583f5c7a1a6a5b098518102edd3df79d267ea53ed7"
+      },
+      {
+        "path": "tools/test_run_issue_000073_resume_first_evidence.py",
+        "git_blob": "2e2cd3f0d77b1e15b546f9ab7db4e6cb863db174",
+        "sha256": "11cc42f919276af6f1db870285b02bea75f2fa9aadceea365945365785b77204"
+      },
+      {
+        "path": "tools/verify_issue_000073_resume_first_evidence.py",
+        "git_blob": "60fb6286a82f5ef24f58310f0c76cb0c85474878",
+        "sha256": "eb20e8f2b16709827692757299abbcf621df6432ef05dc011e074a58460426b5"
+      },
+      {
+        "path": "tools/test_verify_issue_000073_resume_first_evidence.py",
+        "git_blob": "a1ab0b2bada0f2a9b7b71b5f7869c30836ad3aec",
+        "sha256": "c68eef8f05362258cf3884f486d80b609a61bd74c02d5fbc69fa3c6869f2f562"
+      }
+    ]
+  },
+  "environment": {
+    "python": "Python 3.13.5",
+    "git": "git version 2.47.3"
+  },
+  "execution": {
+    "syntax_check": {
+      "command": "python3 -m py_compile run_issue_000073_resume_first_evidence.py test_run_issue_000073_resume_first_evidence.py verify_issue_000073_resume_first_evidence.py test_verify_issue_000073_resume_first_evidence.py",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    "runner_preflight_selftest": {
+      "command": "python3 test_run_issue_000073_resume_first_evidence.py",
+      "exit_code": 0,
+      "stdout": "PASS: ISSUE-000073 evidence runner preflight self-tests",
+      "status": "pass"
+    },
+    "verifier_selftest": {
+      "command": "python3 test_verify_issue_000073_resume_first_evidence.py",
+      "exit_code": 0,
+      "stdout": "PASS: ISSUE-000073 evidence verifier self-tests",
+      "status": "pass"
+    },
+    "environment_stderr_note": "The Python host emitted an unrelated spreadsheet-runtime warmup warning before each invocation. All three commands returned exit code 0 and the two self-tests emitted the expected PASS stdout."
+  },
+  "covered_boundaries": {
+    "runner_preflight": [
+      "dirty checkout blocks",
+      "missing required source binding blocks",
+      "Go lower than 1.25.x blocks"
+    ],
+    "verifier": [
+      "clean PASS record is accepted",
+      "recorded tested HEAD remains authoritative after later Evidence commit",
+      "source SHA-256 tampering is rejected",
+      "dirty-recorded Evidence is rejected",
+      "E8 fail is rejected",
+      "unavailable recorded tested HEAD is rejected",
+      "Go 1.24.x is rejected"
+    ]
+  },
+  "stop_line": "Runner/verifier self-test PASS != E1-E8 executable PASS != H1/H2 human review != Decision Continuity Product Value established."
+}
