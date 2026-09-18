@@ -445,9 +445,13 @@ probe、Evidence exporter、focused testが存在することは、利用者が�
 - Quiet-first: canonical orientationを保ちつつAI候補は必要時まで前面に出さない。
 - Adaptive progressive disclosure: 最も直接的な候補だけを初期表示し、残りへ段階的に降りる。
 
+probe / packet / responseはv1へ更新した。initial / reveal packetでは`A_proactive_first` / `B_quiet_first` / `C_adaptive_progressive`のcondition名を出さず、rotation内の`presentation_id`だけを提示する。condition mappingはinitialとrevealのstructured responseが両方固定された後のauditでのみ開示する。responseはcanonical probe SHA-256、rotation、stage、presentation順、fixture順へ固定し、各stage questionへの1回答、completion time、source reopen count、attention loadを別々に保持する。単なる任意JSONをresponseとしてSHA固定する旧経路は受理しない。
+
+source fixture単体だけでなく、元となるmatched-set manifest自体もGit blob SHA-1で固定し、そのordered fixture id / path列がassistance probeのcase列と一致しなければpacket生成を停止する。
+
 初期回答を固定する前に全候補を見せないこと、AI候補をcanonical meaningとみなさないこと、Quiet表示でもoriginal concern / current Question / material Observation / Unknown / Hypothesis / next useful investigationを隠さないことを停止線としている。
 
-これも比較実行のscaffoldが成立した段階であり、Quiet / Proactive / Adaptiveのどれかを採用する根拠はまだない。human reviewは**Not Yet Observed**である。
+ただし、現時点で成立したのはcondition-blinded executable scaffoldとstructured response contractまでである。review-start / reveal / auditのdurable receipt chainはE78.3ほど強くなく、human reviewも**Not Yet Observed**である。したがってQuiet / Proactive / Adaptiveのどれかを採用する根拠やStable Requirement変更には使わない。
 
 ### E78.7 — Closure / dormancy
 
