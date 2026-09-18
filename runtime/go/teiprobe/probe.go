@@ -241,7 +241,7 @@ func sourceBinding(request Request, binaryDigest string) (string, bool, error) {
 	if manifest.Repository != request.DeclaredRepository {
 		return "", true, errors.New("TEI build manifest repository does not match declared repository")
 	}
-	if manifest.Commit != request.DeclaredCommit {
+	if !strings.EqualFold(manifest.Commit, request.DeclaredCommit) {
 		return "", true, errors.New("TEI build manifest commit does not match declared commit")
 	}
 	if !strings.EqualFold(manifest.BinarySHA256, binaryDigest) {
