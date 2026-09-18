@@ -1,0 +1,204 @@
+{
+  "schema": "sei.sacs-capacity-homeostasis-evidence/v1alpha1",
+  "date": "2026-09-18",
+  "status": "limited-local-executable-evidence",
+  "subject": "SAC-B6 capacity-homeostatic profiles",
+  "issue": 447,
+  "branch": "topic/sac-b6-capacity-homeostasis",
+  "biologicalReference": {
+    "citation": "Schlegel et al. (2024), Whole-brain annotation and multi-connectome cell typing of Drosophila, Nature 634:139-152",
+    "doi": "10.1038/s41586-024-07686-5",
+    "observation": "The study reports evidence for functional homeostasis in the mushroom body through adjustment of absolute excitatory input while maintaining the excitation/inhibition ratio across connectomes.",
+    "engineeringReading": "Preserve empirically useful engineering invariants across capacity changes rather than copying biological neuron counts or E/I ratios."
+  },
+  "genericProfile": {
+    "fields": [
+      "id",
+      "dimensions",
+      "fanout",
+      "active",
+      "seed"
+    ],
+    "metrics": [
+      "active_fraction",
+      "signature_active_payload_bytes",
+      "encoder_score_mark_scratch_lower_bound_bytes",
+      "projection_upper_bound",
+      "winner_share_upper_bound"
+    ],
+    "scaleRule": "Change dimensions while rounding Active from the base Active/Dimensions ratio; fanout and seed remain fixed.",
+    "stopLine": "Profile labels and ratios are evaluation constructs, not deployment requirements."
+  },
+  "firstThreeProfiles": [
+    {
+      "id": "small",
+      "illustrativeLabel": "wearable-like",
+      "dimensions": 2048,
+      "active": 32,
+      "fanout": 8,
+      "seed": 47,
+      "activeFraction": 0.015625,
+      "signaturePayloadBytes": 64,
+      "encoderScratchLowerBoundBytes": 16384,
+      "b2LocalEach": 4,
+      "b2GlobalResidual": 16,
+      "normalizedFixture": {
+        "desired": 0.777777791,
+        "distractor": 0.386500597,
+        "margin": 0.391277194
+      }
+    },
+    {
+      "id": "medium",
+      "illustrativeLabel": "home-like",
+      "dimensions": 4096,
+      "active": 64,
+      "fanout": 8,
+      "seed": 47,
+      "activeFraction": 0.015625,
+      "signaturePayloadBytes": 128,
+      "encoderScratchLowerBoundBytes": 32768,
+      "b2LocalEach": 8,
+      "b2GlobalResidual": 32,
+      "normalizedFixture": {
+        "desired": 0.784464538,
+        "distractor": 0.235378265,
+        "margin": 0.549086273
+      }
+    },
+    {
+      "id": "large",
+      "illustrativeLabel": "workstation-like",
+      "dimensions": 8192,
+      "active": 128,
+      "fanout": 8,
+      "seed": 47,
+      "activeFraction": 0.015625,
+      "signaturePayloadBytes": 256,
+      "encoderScratchLowerBoundBytes": 65536,
+      "b2LocalEach": 16,
+      "b2GlobalResidual": 64,
+      "normalizedFixture": {
+        "desired": 0.787500024,
+        "distractor": 0.17129004,
+        "margin": 0.616209984
+      }
+    }
+  ],
+  "boundaryFixtures": [
+    {
+      "id": "B6-TINY-PARTITION-FLOOR-01",
+      "dimensions": 256,
+      "active": 4,
+      "activeFraction": 0.015625,
+      "observation": "With four local feature families plus a half-budget global residual, Active=4 cannot reserve at least one local slot per family while preserving the requested 50/50 local/global ratio.",
+      "behavior": "fail-closed rather than silently changing the B2 policy ratio"
+    },
+    {
+      "id": "B6-OVERSIZED-SELECTION-SATURATION-01",
+      "dimensions": 32768,
+      "active": 512,
+      "fanout": 8,
+      "activeFraction": 0.015625,
+      "signaturePayloadBytes": 1024,
+      "encoderScratchLowerBoundBytes": 262144,
+      "anchorPositiveFeatureCount": 72,
+      "projectionUpperBound": 576,
+      "winnerShareUpperBound": 0.888888889,
+      "normalizedFixture": {
+        "desired": 0.34765625,
+        "distractor": 0.50390625,
+        "margin": -0.15625
+      },
+      "observation": "Despite preserving Active/Dimensions=1/64, configured winners approach the fixed input projection upper bound and the synthetic desired ordering reverses.",
+      "interpretation": "Active fraction alone is not a sufficient homeostatic invariant; selection pressure relative to input projection cardinality must also be bounded."
+    }
+  ],
+  "b1Interaction": {
+    "observation": "On the same B2 soft-local fixture, B1 family normalization improved the desired-minus-distractor margin for the first three profiles.",
+    "rawMargins": {
+      "small": 0.369801819,
+      "medium": 0.268689871,
+      "large": 0.164172113
+    },
+    "normalizedMargins": {
+      "small": 0.391277194,
+      "medium": 0.549086273,
+      "large": 0.616209984
+    },
+    "note": "This is one synthetic fixture and does not establish that normalization monotonically improves all profiles or workloads."
+  },
+  "localVerification": {
+    "toolchain": "go1.23.2 linux/amd64",
+    "repositoryGoDirective": "1.25",
+    "exactRepositoryCheckout": false,
+    "method": "A temporary Go module used the same capacity-profile helper semantics and a deterministic reconstruction of the current sparse encoder, SUI feature projection, B1 family normalization, and B2 local+global competition.",
+    "unitTestCommand": "gofmt -w sparseassoc/*.go capacityprofile/*.go integration/*.go && go test -v ./...",
+    "unitTestResult": "PASS",
+    "benchmarkCommand": "go test -bench=. -benchmem -count=3 ./integration",
+    "encodeBenchmarks": [
+      {
+        "profile": "small",
+        "rangeNsPerOp": [
+          50599,
+          51822
+        ],
+        "bytesPerOp": 8207,
+        "allocsPerOp": 55
+      },
+      {
+        "profile": "medium",
+        "rangeNsPerOp": [
+          57982,
+          59718
+        ],
+        "bytesPerOp": [
+          8387,
+          8388
+        ],
+        "allocsPerOp": 59
+      },
+      {
+        "profile": "large",
+        "rangeNsPerOp": [
+          66615,
+          67637
+        ],
+        "bytesPerOp": [
+          9172,
+          9174
+        ],
+        "allocsPerOp": [
+          61,
+          62
+        ]
+      }
+    ],
+    "note": "Benchmarks encode one already-prepared anchor through the reconstructed B2 local+global competition path. They are not exact repository checkout, Go 1.25, end-to-end retrieval, or production benchmarks."
+  },
+  "derivedResearchInsight": {
+    "insufficientInvariant": "Active / Dimensions alone",
+    "additionalCandidateInvariant": "configured or effective winners relative to available/touched input projections (competition selection pressure)",
+    "futureQuestion": "Whether effective Active should be clamped or adapted from observed feature/touched cardinality without making input size a semantic importance signal."
+  },
+  "stopLines": [
+    "biological E/I ratio != SACS active fraction",
+    "active fraction invariant != semantic quality guarantee",
+    "winner share proxy != observed touched dimension count",
+    "larger profile != automatically better cognition",
+    "small profile policy floor != a device-class rejection",
+    "profile label != deployment requirement",
+    "synthetic retrieval quality != actual wearable/home/workstation quality",
+    "this evidence != production default or Stable Requirement"
+  ],
+  "notVerified": [
+    "exact branch source execution from a full repository checkout on Go 1.25",
+    "actual wearable/home/workstation hardware latency and power",
+    "real SUI/SEI feature-cardinality distributions",
+    "observed touched-dimension saturation rather than projection upper-bound proxy",
+    "optimal selection-pressure invariant or adaptive Active rule",
+    "quality across a human-adjudicated benchmark",
+    "index/query scaling across profile sizes",
+    "Production, Operational, Adoption, or Outcome Evidence"
+  ]
+}

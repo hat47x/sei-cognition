@@ -98,10 +98,11 @@
     {
       "id": "homeostatic-sparsity",
       "biological_observation": "複数connectome比較では、キノコ体の細胞数や絶対入力量が変わっても興奮・抑制比が保たれるfunctional homeostasisのEvidenceが報告されている。",
-      "engineering_abstraction": "dimensionsやdevice capacityが異なっても、固定個数ではなくtarget active fraction、candidate load、latency budget等の不変量を保つadaptive sparsityを比較する。",
+      "engineering_abstraction": "device capacityが異なっても固定parameterを押し付けず、active fraction、B2 local/global budget比、fanout等の比較条件を保ちながら品質劣化を観測する。さらにActive/Dimensionsだけでは不十分な場合、configured/effective winner数を入力投影cardinalityに対してboundedにするselection-pressure不変量を比較候補とする。",
       "sei_role": "wearable / home / workstation間のcapacity scaling",
-      "adoption_state": "deferred-until-multi-profile-evaluation",
-      "risk": "生物学上の比率そのものを設定値として輸入しない。工学的なtargetは実測から決める。"
+      "adoption_state": "synthetic-executable-evaluation",
+      "risk": "active fractionを一定にしても、入力feature数が固定されたままActiveだけ増えるとwinner数がavailable projectionへ近づき、competitionが弱まって識別品質を壊し得る。生物学的E/I比や細胞数を設定値として直接輸入しない。",
+      "evidence_note": "2048/32、4096/64、8192/128の1/64 active fraction profileでは同じSUI-shaped fixtureの候補順を維持した。一方32768/512では同じactive fractionでもwinner share upper-boundが約0.889となり候補順が逆転した。Active=4では4 family + half global residual比を整数枠で表現できずfail-closedするcapacity floorも確認した。"
     },
     {
       "id": "compartmental-outcome-learning",
@@ -428,14 +429,37 @@
         "SAC-B1",
         "SAC-B2"
       ],
-      "change": "wearable / home / workstation相当のmemory・CPU budgetごとにdimensionsとactive fractionを調整する。",
-      "primary_question": "同一アルゴリズムの固定parameterではなく、認知品質を保つ不変量として疎性を運用できるか。",
+      "change": "generic capacity profileでdimensionsを変更しつつactive fraction、fanout、seed、B2 local/global budget比を比較条件として保つ。profile labelはdevice requirementにせず、B1 family normalizationも同一policyで比較する。さらにactive fractionだけではselection pressureを保てない反例を評価する。",
+      "primary_question": "capacityを変えても候補品質を保つために、Active/Dimensionsに加えてwinner数と入力投影cardinalityの関係をどのような不変量として扱う必要があるか。",
       "measures": [
         "quality_per_memory",
         "quality_per_latency",
         "active_fraction_stability",
+        "b2_partition_representability",
+        "winner_share_upper_bound",
+        "competition_saturation_behavior",
         "profile_degradation_curve"
-      ]
+      ],
+      "current_result": {
+        "state": "limited-synthetic-executable-evidence",
+        "evidence_file": "capacity_homeostasis_evidence_2026-09-18.json",
+        "findings": [
+          "2048/32、4096/64、8192/128はActive/Dimensions=1/64、fanout=8、seed=47、B2 half-local/half-global比を保ち、B1 family normalization + B2 soft-local fixtureでdesired candidate順位を維持した。",
+          "同じ3 profileでsignature active payloadは64/128/256 bytes、Encoder score+mark scratch lower boundは16/32/64 KiBへ単調増加した。",
+          "Active=4のtiny profileでは4 local familyへ最低1枠ずつ割り当てながらhalf-global比を保てず、policyを黙って歪めずfail-closedするcapacity floorを確認した。",
+          "32768/512は同じ1/64 active fractionを保つが、72 positive features × fanout 8のprojection upper-bound 576に対してconfigured Active 512となりwinner-share proxy約0.889へ達し、normalized fixtureでdesired 0.34765625 / distractor 0.50390625へ順位が逆転した。",
+          "この反例からactive fraction単独をhomeostatic invariantとは扱わず、入力/touched projectionに対するselection pressureを追加候補として扱う必要がある。"
+        ],
+        "implementation_boundary": {
+          "device_labels_are_requirements": false,
+          "biological_ratios_copied": false,
+          "active_fraction_only_guarantee": false,
+          "projection_upper_bound_is_observed_touched_count": false,
+          "adaptive_active_rule_implemented": false,
+          "provider_default_changed": false
+        },
+        "stop_line": "profile内synthetic品質を、実hardware適性、device classの採否、最適adaptive Active、production defaultへ昇格させない。"
+      }
     },
     {
       "stage": "SEI-B7",
@@ -527,7 +551,10 @@
     "expiry_recovery",
     "high_stakes_recovery",
     "bounded_state_eviction",
-    "fingerprint_missed_change_behavior"
+    "fingerprint_missed_change_behavior",
+    "b2_partition_representability",
+    "winner_share_upper_bound",
+    "competition_saturation_behavior"
   ],
   "evaluation_policy": {
     "single_composite_score": false,
@@ -562,7 +589,10 @@
       "B3 rare-critical anchorではunbiased / biased signature similarity 0.5を観測し、bounded multiplierがbounded ranking changeを意味しないk-WTA不連続を確認した。",
       "SAC-B4のself-contained synthetic evaluationで、stable repeated eventが設定threshold到達後に一時attenuationされ、content delta / expiry / high-stakesでfull attentionへ復帰することを確認した。",
       "同じB4評価で、caller fingerprintに現れないunderlying content changeはattenuationされたままになるmissed-change failure boundaryを確認した。",
-      "B4 familiarity stateはMaxEntriesでboundedにし、capacity超過時のoldest / lexical tie-break deterministic evictionを確認した。"
+      "B4 familiarity stateはMaxEntriesでboundedにし、capacity超過時のoldest / lexical tie-break deterministic evictionを確認した。",
+      "SAC-B6のsynthetic capacity evaluationで、2048/32・4096/64・8192/128の同一active fraction profileがB1 family normalization + B2 soft-local fixtureのdesired candidate順位を維持することを確認した。",
+      "同じB6評価で、Active=4では4 family + half global residualのB2比を表現できないcapacity floorを確認し、黙ったpolicy歪曲ではなくfail-closedとした。",
+      "32768/512ではActive/Dimensions=1/64を保ってもconfigured winnersが入力projection upper-boundへ接近し候補順が逆転する反例を観測し、active fraction単独ではhomeostatic invariantとして不十分と確認した。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -576,7 +606,7 @@
       "learned sparse projectionがrandom / static方式を上回るか",
       "10万件以上でのindex方式",
       "LLM呼び出し削減量",
-      "wearable / home / workstation profileでの品質維持",
+      "実hardware / real workloadにおけるcapacity profile品質、selection-pressure invariant、adaptive Active、power / latency / memory trade-off",
       "outcome-informed routingの有効性",
       "production配置方式",
       "Product Value / Operational / Adoption / Outcome Evidence"
@@ -585,7 +615,8 @@
       "input_normalization_evidence_2026-09-18.json",
       "localized_competition_evidence_2026-09-18.json",
       "projection_bias_evidence_2026-09-18.json",
-      "familiarity_modulation_evidence_2026-09-18.json"
+      "familiarity_modulation_evidence_2026-09-18.json",
+      "capacity_homeostasis_evidence_2026-09-18.json"
     ]
   },
   "references": [
