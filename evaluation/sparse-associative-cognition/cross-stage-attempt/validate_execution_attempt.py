@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Validate immutable cross-stage execution-attempt artifacts.
 
-An execution attempt records one authorized benchmark execution try. It does not
+An execution attempt records one authorized benchmark execution try.  It does not
 contain benchmark metrics, interpretation, a winner, a B5 decision, or a
-production-default decision. Failed attempts remain first-class evidence and
+production-default decision.  Failed attempts remain first-class evidence and
 must never be wrapped as successful result artifacts.
 """
 
@@ -57,10 +57,7 @@ REQUIRED_EVIDENCE_ALWAYS = {"runner-log", "environment-capture"}
 TEMPLATE_ATTEMPT_ID = "cross-stage-attempt-template"
 FIXED_RUN_REF = "../cross-stage-run/evaluation_run.json"
 
-UpstreamValidator = Callable[
-    [dict[str, Any], dict[str, Any], dict[str, dict[str, Any]]],
-    list[str],
-]
+UpstreamValidator = Callable[[dict[str, Any], dict[str, Any], dict[str, dict[str, Any]]], list[str]]
 
 
 def _canonical_string(value: object) -> bool:
@@ -85,9 +82,7 @@ def validate_attempt_structure(attempt: dict[str, Any]) -> list[str]:
     if set(attempt) != TOP_LEVEL_KEYS:
         missing = sorted(TOP_LEVEL_KEYS - set(attempt))
         extra = sorted(set(attempt) - TOP_LEVEL_KEYS)
-        errors.append(
-            f"attempt top-level keys mismatch: missing={missing}, extra={extra}"
-        )
+        errors.append(f"attempt top-level keys mismatch: missing={missing}, extra={extra}")
 
     if attempt.get("schema") != EXPECTED_SCHEMA:
         errors.append(f"attempt.schema must be {EXPECTED_SCHEMA}")
@@ -108,9 +103,7 @@ def validate_attempt_structure(attempt: dict[str, Any]) -> list[str]:
 
     environment = attempt.get("observed_environment")
     if not isinstance(environment, dict) or set(environment) != ENVIRONMENT_KEYS:
-        errors.append(
-            "attempt.observed_environment must contain exactly os, arch, runtime"
-        )
+        errors.append("attempt.observed_environment must contain exactly os, arch, runtime")
 
     evidence = attempt.get("raw_evidence")
     if not isinstance(evidence, list):
@@ -119,8 +112,7 @@ def validate_attempt_structure(attempt: dict[str, Any]) -> list[str]:
         for index, item in enumerate(evidence):
             if not isinstance(item, dict) or set(item) != RAW_EVIDENCE_KEYS:
                 errors.append(
-                    f"attempt.raw_evidence[{index}] keys do not match "
-                    "the registered evidence contract"
+                    f"attempt.raw_evidence[{index}] keys do not match the registered evidence contract"
                 )
 
     if attempt.get("results_generated") is not False:
@@ -142,9 +134,7 @@ def validate_attempt_structure(attempt: dict[str, Any]) -> list[str]:
         if isinstance(executor, dict):
             if executor.get("ref") != "" or executor.get("commit") != "":
                 errors.append("draft attempt executor identity must be empty")
-        if isinstance(environment, dict) and any(
-            environment.get(key) != "" for key in ENVIRONMENT_KEYS
-        ):
+        if isinstance(environment, dict) and any(environment.get(k) != "" for k in ENVIRONMENT_KEYS):
             errors.append("draft attempt observed_environment must remain empty")
         if isinstance(evidence, list) and evidence:
             errors.append("draft attempt raw_evidence must be empty")
@@ -196,38 +186,29 @@ def validate_completed_attempt(
     if not isinstance(run_digest, str) or HEX64.fullmatch(run_digest) is None:
         errors.append("completed attempt requires authorized run with valid run_digest")
     elif run_binding.get("digest") != run_digest:
-        errors.append(
-            "attempt run_binding.digest does not match authorized run digest"
-        )
+        errors.append("attempt run_binding.digest does not match authorized run digest")
 
     executor = attempt.get("executor", {})
     if not _canonical_string(executor.get("ref")):
         errors.append("completed attempt requires canonical executor.ref")
     commit = executor.get("commit")
     if not isinstance(commit, str) or COMMIT_SHA.fullmatch(commit) is None:
-        errors.append(
-            "completed attempt executor.commit must be a 40-char lowercase git SHA"
-        )
+        errors.append("completed attempt executor.commit must be a 40-char lowercase git SHA")
 
     environment = attempt.get("observed_environment", {})
     run_environment = run.get("environment")
     if environment != run_environment:
-        errors.append(
-            "attempt observed_environment must exactly match authorized run environment"
-        )
+        errors.append("attempt observed_environment must exactly match authorized run environment")
     for key in ENVIRONMENT_KEYS:
         if not _canonical_string(environment.get(key)):
-            errors.append(
-                f"completed attempt requires canonical observed_environment.{key}"
-            )
+            errors.append(f"completed attempt requires canonical observed_environment.{key}")
 
     started_at = attempt.get("started_at")
     completed_at = attempt.get("completed_at")
     for key, value in (("started_at", started_at), ("completed_at", completed_at)):
         if not isinstance(value, str) or UTC_SECOND.fullmatch(value) is None:
             errors.append(
-                f"completed attempt {key} must use UTC second format "
-                "YYYY-MM-DDTHH:MM:SSZ"
+                f"completed attempt {key} must use UTC second format YYYY-MM-DDTHH:MM:SSZ"
             )
     if (
         isinstance(started_at, str)
@@ -245,8 +226,7 @@ def validate_completed_attempt(
         expected_outcome = "succeeded" if exit_code == 0 else "failed"
         if attempt.get("outcome") != expected_outcome:
             errors.append(
-                f"attempt.outcome must be {expected_outcome} "
-                f"when exit_code={exit_code}"
+                f"attempt.outcome must be {expected_outcome} when exit_code={exit_code}"
             )
 
     evidence = attempt.get("raw_evidence", [])
@@ -258,9 +238,7 @@ def validate_completed_attempt(
                 continue
             kind = item.get("kind")
             if kind not in RAW_EVIDENCE_KINDS:
-                errors.append(
-                    f"attempt.raw_evidence[{index}].kind is not registered: {kind}"
-                )
+                errors.append(f"attempt.raw_evidence[{index}].kind is not registered: {kind}")
             elif kind in kinds:
                 errors.append(f"attempt raw evidence kind must be unique: {kind}")
             else:
@@ -279,27 +257,20 @@ def validate_completed_attempt(
             digest = item.get("digest")
             if not isinstance(digest, str) or HEX64.fullmatch(digest) is None:
                 errors.append(
-                    f"attempt.raw_evidence[{index}].digest must be "
-                    "lowercase SHA-256 hex"
+                    f"attempt.raw_evidence[{index}].digest must be lowercase SHA-256 hex"
                 )
 
     missing = sorted(REQUIRED_EVIDENCE_ALWAYS - kinds)
     if missing:
-        errors.append(
-            f"completed attempt is missing required raw evidence kinds: {missing}"
-        )
+        errors.append(f"completed attempt is missing required raw evidence kinds: {missing}")
     if attempt.get("outcome") == "succeeded" and "raw-output" not in kinds:
         errors.append("successful attempt requires raw_evidence kind=raw-output")
 
     digest = attempt.get("attempt_digest")
     if not isinstance(digest, str) or HEX64.fullmatch(digest) is None:
-        errors.append(
-            "completed attempt requires attempt_digest as lowercase SHA-256 hex"
-        )
+        errors.append("completed attempt requires attempt_digest as lowercase SHA-256 hex")
     elif digest != canonical_attempt_digest(attempt):
-        errors.append(
-            "completed attempt attempt_digest does not match canonical content"
-        )
+        errors.append("completed attempt attempt_digest does not match canonical content")
 
     return errors
 
@@ -332,24 +303,16 @@ def main() -> int:
         return 1
 
     if attempt.get("state") == "draft":
-        print(
-            "Cross-stage execution attempt validated; "
-            "current attempt remains draft/not-started"
-        )
+        print("Cross-stage execution attempt validated; current attempt remains draft/not-started")
         return 0
 
-    errors = validate_completed_attempt(
-        attempt, run, prereg, freeze_documents
-    )
+    errors = validate_completed_attempt(attempt, run, prereg, freeze_documents)
     if errors:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
 
-    print(
-        "Cross-stage execution attempt validated; "
-        "completed attempt is provenance-bound"
-    )
+    print("Cross-stage execution attempt validated; completed attempt is provenance-bound")
     return 0
 
 
