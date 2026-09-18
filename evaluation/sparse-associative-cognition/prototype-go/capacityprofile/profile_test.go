@@ -142,6 +142,27 @@ func TestWinnerShareUpperBoundRevealsSelectionPressureLoss(t *testing.T) {
 	}
 }
 
+func TestObservedWinnerShareAndCollisionFraction(t *testing.T) {
+	stats := sparseassoc.EncodeStats{
+		PositiveFeatures:   72,
+		ProjectionAttempts: 576,
+		TouchedDimensions:  495,
+		SelectedDimensions: 16,
+	}
+	if got := ObservedWinnerShare(stats); math.Abs(got-(16.0/495.0)) > 1e-12 {
+		t.Fatalf("observed winner share=%v want %v", got, 16.0/495.0)
+	}
+	if got := ProjectionCollisionFraction(stats); math.Abs(got-(81.0/576.0)) > 1e-12 {
+		t.Fatalf("collision fraction=%v want %v", got, 81.0/576.0)
+	}
+	if got := ObservedWinnerShare(sparseassoc.EncodeStats{}); got != 0 {
+		t.Fatalf("zero touched winner share=%v want 0", got)
+	}
+	if got := ProjectionCollisionFraction(sparseassoc.EncodeStats{}); got != 0 {
+		t.Fatalf("zero attempts collision fraction=%v want 0", got)
+	}
+}
+
 func TestProfileValidationFailsClosed(t *testing.T) {
 	if err := Validate(Profile{}); err == nil {
 		t.Fatal("empty profile must fail")

@@ -136,6 +136,185 @@ func capacitySimilarityPair(
 		sparseassoc.Similarity(anchorSignature, encode(distractor))
 }
 
+func capacityObservedStats(
+	t *testing.T,
+	profile capacityprofile.Profile,
+	item Item,
+) (sparseassoc.Signature, providerEncodeStats) {
+	t.Helper()
+	local, err := softLocalPolicyForProfile(profile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, err := New(Config{
+		Sparse:                profile.Sparse,
+		MinInternalSimilarity: 0,
+		ProviderID:            "sei-sacs-go-eval",
+		ImplementationVersion: "capacity-observed-stats-eval",
+		FeatureNormalization:  FeatureNormalizationFamily,
+		NormalizationFloor:    1,
+		LocalCompetition:      local,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	encoder, err := newProviderEncoder(p.cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	prepared, err := p.preparedFeatures(item)
+	if err != nil {
+		t.Fatal(err)
+	}
+	signature, stats, err := encoder.EncodeWithStats(prepared)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if stats.Local == nil || stats.Global != nil {
+		t.Fatalf("expected localized stats only: %#v", stats)
+	}
+	return signature, stats
+}
+
+func TestObservedSelectionPressureAcrossCapacityProfiles(t *testing.T) {
+	base := capacityBaseProfile()
+	anchor, _, _ := capacityEvalItems()
+	cases := []struct {
+		id             string
+		dimensions     uint16
+		globalTouched  int
+		globalSelected int
+		textTouched    int
+		textSelected   int
+		graphSelected  int
+		provSelected   int
+		groupSelected  int
+		mergedSelected int
+	}{
+		{"small", 2048, 495, 16, 433, 4, 4, 4, 4, 27},
+		{"medium", 4096, 539, 32, 463, 8, 8, 8, 8, 52},
+		{"large", 8192, 560, 64, 477, 16, 16, 16, 16, 80},
+		{"oversized", 32768, 574, 256, 487, 64, 32, 32, 16, 256},
+	}
+
+	previousGlobalShare := float64(-1)
+	for _, tc := range cases {
+		t.Run(tc.id, func(t *testing.T) {
+			profile, err := capacityprofile.ScaleDimensions(base, tc.id, tc.dimensions)
+			if err != nil {
+				t.Fatal(err)
+			}
+			signature, stats := capacityObservedStats(t, profile, anchor)
+			local := stats.Local
+			if local.GlobalResidual == nil {
+				t.Fatal("missing global residual diagnostics")
+			}
+			global := *local.GlobalResidual
+			if global.PositiveFeatures != 72 || global.ProjectionAttempts != 576 {
+				t.Fatalf("global input cardinality changed: %#v", global)
+			}
+			if global.TouchedDimensions != tc.globalTouched || global.SelectedDimensions != tc.globalSelected {
+				t.Fatalf("global stats=%#v want touched/selected=%d/%d",
+					global, tc.globalTouched, tc.globalSelected)
+			}
+
+			textStats := local.Families["text"]
+			graphStats := local.Families["graph"]
+			provStats := local.Families["provenance"]
+			groupStats := local.Families["grouping"]
+			if textStats.TouchedDimensions != tc.textTouched || textStats.SelectedDimensions != tc.textSelected {
+				t.Fatalf("text stats=%#v want touched/selected=%d/%d",
+					textStats, tc.textTouched, tc.textSelected)
+			}
+			if graphStats.TouchedDimensions != 32 || graphStats.SelectedDimensions != tc.graphSelected {
+				t.Fatalf("graph stats=%#v", graphStats)
+			}
+			if provStats.TouchedDimensions != 32 || provStats.SelectedDimensions != tc.provSelected {
+				t.Fatalf("provenance stats=%#v", provStats)
+			}
+			if groupStats.TouchedDimensions != 16 || groupStats.SelectedDimensions != tc.groupSelected {
+				t.Fatalf("grouping stats=%#v", groupStats)
+			}
+			if local.MergedSelectedDimensions != tc.mergedSelected ||
+				len(signature.Active) != tc.mergedSelected {
+				t.Fatalf("merged selected=%d signature=%d want %d",
+					local.MergedSelectedDimensions, len(signature.Active), tc.mergedSelected)
+			}
+
+			globalShare := capacityprofile.ObservedWinnerShare(global)
+			if previousGlobalShare >= 0 && globalShare <= previousGlobalShare {
+				t.Fatalf("global observed winner share did not increase: previous=%v current=%v",
+					previousGlobalShare, globalShare)
+			}
+			previousGlobalShare = globalShare
+		})
+	}
+}
+
+func TestOversizedProfileExposesFamilyLocalSaturation(t *testing.T) {
+	base := capacityBaseProfile()
+	oversized, err := capacityprofile.ScaleDimensions(base, "oversized", 32768)
+	if err != nil {
+		t.Fatal(err)
+	}
+	anchor, _, _ := capacityEvalItems()
+	_, stats := capacityObservedStats(t, oversized, anchor)
+	local := stats.Local
+	if local == nil || local.GlobalResidual == nil {
+		t.Fatalf("missing localized diagnostics: %#v", stats)
+	}
+
+	globalShare := capacityprofile.ObservedWinnerShare(*local.GlobalResidual)
+	if globalShare < 0.44 || globalShare > 0.45 {
+		t.Fatalf("unexpected global residual winner share: %v", globalShare)
+	}
+	for _, family := range []string{"graph", "provenance", "grouping"} {
+		if share := capacityprofile.ObservedWinnerShare(local.Families[family]); share != 1 {
+			t.Fatalf("%s local path must expose complete selection saturation, got %v", family, share)
+		}
+	}
+	if textShare := capacityprofile.ObservedWinnerShare(local.Families["text"]); textShare >= 0.2 {
+		t.Fatalf("text local path should remain selective in this fixture, got %v", textShare)
+	}
+
+	upperBoundProxy := capacityprofile.WinnerShareUpperBound(oversized, 72)
+	if upperBoundProxy < 0.88 || upperBoundProxy > 0.90 {
+		t.Fatalf("unexpected pre-collision proxy: %v", upperBoundProxy)
+	}
+	if globalShare >= upperBoundProxy {
+		t.Fatalf("observed global share must remain below total-active upper-bound proxy: observed=%v proxy=%v",
+			globalShare, upperBoundProxy)
+	}
+}
+
+func TestObservedCollisionFallsWhileWinnerShareRises(t *testing.T) {
+	base := capacityBaseProfile()
+	anchor, _, _ := capacityEvalItems()
+	var previousCollision, previousShare float64
+	first := true
+	for _, dimensions := range []uint16{2048, 4096, 8192, 32768} {
+		profile, err := capacityprofile.ScaleDimensions(base, fmt.Sprintf("d%d", dimensions), dimensions)
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, stats := capacityObservedStats(t, profile, anchor)
+		global := *stats.Local.GlobalResidual
+		collision := capacityprofile.ProjectionCollisionFraction(global)
+		share := capacityprofile.ObservedWinnerShare(global)
+		if !first {
+			if collision >= previousCollision {
+				t.Fatalf("collision fraction did not fall: previous=%v current=%v", previousCollision, collision)
+			}
+			if share <= previousShare {
+				t.Fatalf("winner share did not rise: previous=%v current=%v", previousShare, share)
+			}
+		}
+		first = false
+		previousCollision = collision
+		previousShare = share
+	}
+}
+
 func TestCapacityProfilesPreserveOrderingAcrossFirstThreeProfiles(t *testing.T) {
 	base := capacityBaseProfile()
 	profiles := []capacityprofile.Profile{}
