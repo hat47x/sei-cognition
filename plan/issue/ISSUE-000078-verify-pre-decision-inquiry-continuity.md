@@ -382,6 +382,10 @@ python3 "$EVIDENCE_TOOL" --probe "$PROBE_SET" --repo-root . \
 
 # AUDIT_RESPONSEのfindings、opaque auditor id、human authorship、completed_at等を
 # post-revealに記録してからEvidenceをexportする。
+# findingsは共通pass/failではなくprobe schema v1のdimension-specific contractへ従う。
+# detectionはdetected/not-detected/not-applicable/not-observed、
+# preservationはpreserved/not-preserved/not-applicable/not-observed、
+# correction_burdenはlow/medium/high/not-observed等として異種観測を混ぜない。
 python3 "$EVIDENCE_TOOL" --probe "$PROBE_SET" --repo-root . \
   --fixture-id <fixture-id> export-evidence \
   --response "$RESPONSE" \
@@ -399,11 +403,11 @@ review packetに含まれる`provisional_ai_summary`と`provisional_ai_next_ques
 
 これにより「開示後にhuman responseを書き直したもの」をpre-reveal responseとして扱う経路、review開始より前にaudit revealが起きたように見える不正な時系列、receipt作成後に別のreference materialへ差し替える経路を機械的に狭める。ただしreceiptは利用者が実際に画面を見た時刻やhuman authorshipそのものを独立に証明するものではない。
 
-さらにreview response、audit-reveal receipt、audit response、Evidence bundleをcanonicalized probe JSONのSHA-256へ結び、summary、next question、review questions等のprobe内容が後から変更された場合に別の評価を同一Evidenceとして読み替えられないようにする。Evidence bundle自身にも、実際に評価したsummary / next question / review questions / audit dimensionsを`probe_snapshot`として保存し、human review observation、audit reveal、semantic auditを別layerとして保持する。`audit-template`以後に記録するsemantic auditは、**post-revealなoperator / auditor Evidence**であり、開示前のhuman responseへ混ぜ戻さない。既存Evidence outputは上書きしない。
+さらにreview response、audit-reveal receipt、audit response、Evidence bundleをcanonicalized probe JSONのSHA-256へ結び、summary、next question、review questions等のprobe内容が後から変更された場合に別の評価を同一Evidenceとして読み替えられないようにする。probe schema v1では`audit_dimensions`を`id / value_kind / allowed_values`の契約として保持し、異質な観測を共通のpass/failへ押し込めない。`unsupported_generalization_detection`は、実際の3ケースにovergeneralizationとunsupported dismissalの双方があるため、より正確な`unsupported_claim_detection`へ一般化した。audit response / durable Evidenceもv1へ更新し、このtyped contractをそのまま保存・検証する。Evidence bundle自身にも、実際に評価したsummary / next question / review questions / audit dimensionsを`probe_snapshot`として保存し、human review observation、audit reveal、semantic auditを別layerとして保持する。`audit-template`以後に記録するsemantic auditは、**post-revealなoperator / auditor Evidence**であり、開示前のhuman responseへ混ぜ戻さない。既存Evidence outputは上書きしない。
 
 reviewer / auditorのopaque id、prior exposure、response authorship等は評価上の申告metadataであり、review-start receiptによって申告時点をstimulus提示前へ固定しても、それだけで盲検やhuman authorshipを独立に証明するものではない。`human-direct` / `human-transcribed`以外をhuman reviewとして受理しないが、その機械検証自体をHuman Evidenceと読み替えない。
 
-歪みを流暢に修正できたことだけをSEI固有価値の証明にせず、検出できなかった歪みも反証Evidenceとして残す。検出数を単一scoreへ畳まず、raw chat / noteでも同程度に訂正できる可能性を比較対象として維持する。
+歪みを流暢に修正できたことだけをSEI固有価値の証明にせず、検出できなかった歪みも反証Evidenceとして残す。検出数を単一scoreへ畳まず、さらにcorrection burdenを「pass / fail」へ読み替えず、raw chat / noteでも同程度に訂正できる可能性を比較対象として維持する。
 
 probe、Evidence exporter、focused testが存在することは、利用者が実際に誤りを発見・修正・却下できたEvidenceではない。E78.3のhuman correction / rejection Evidenceは**Not Yet Observed**とする。
 
