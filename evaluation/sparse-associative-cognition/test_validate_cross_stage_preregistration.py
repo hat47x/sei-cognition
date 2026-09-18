@@ -41,6 +41,30 @@ class CrossStagePreregistrationTests(unittest.TestCase):
     def test_unfrozen_adjudication_cannot_unlock(self) -> None:
         self.assert_has_error(validate_unlock(self.doc), "human adjudication state=frozen")
 
+    def test_freeze_kit_draft_keeps_unlock_closed(self) -> None:
+        self.assert_has_error(validate_unlock(self.doc), "frozen freeze-kit bundle")
+
+    def test_freeze_kit_cannot_enable_results_after_freeze(self) -> None:
+        doc = copy.deepcopy(self.doc)
+        doc["freeze_kit"]["result_generation_enabled_after_freeze"] = True
+        self.assert_has_error(
+            validate_preregistration(doc),
+            "must not enable result generation after freeze",
+        )
+
+    def test_freeze_kit_cannot_open_b5(self) -> None:
+        doc = copy.deepcopy(self.doc)
+        doc["freeze_kit"]["b5_entry_gate_changed"] = True
+        self.assert_has_error(validate_preregistration(doc), "must not change B5 entry gate")
+
+    def test_freeze_kit_state_and_frozen_flag_must_match(self) -> None:
+        doc = copy.deepcopy(self.doc)
+        doc["freeze_kit"]["state"] = "frozen"
+        self.assert_has_error(
+            validate_preregistration(doc),
+            "current_bundle_is_frozen must match",
+        )
+
     def test_semantic_labels_cannot_be_embedded_in_preregistration(self) -> None:
         doc = copy.deepcopy(self.doc)
         doc["adjudication"]["semantic_labels_embedded_in_preregistration"] = True
@@ -120,6 +144,10 @@ class CrossStagePreregistrationTests(unittest.TestCase):
             "state": "frozen",
             "training_outcome_ids": ["route-train"],
             "holdout_replay_ids": ["route-holdout"],
+        })
+        doc["freeze_kit"].update({
+            "state": "frozen",
+            "current_bundle_is_frozen": True,
         })
         self.assertEqual(validate_unlock(doc), [])
 
