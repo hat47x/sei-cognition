@@ -36,6 +36,7 @@ DIGEST_FIELDS = {
     "bundle": "bundle_digest",
 }
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
+UTC_SECOND = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 REVIEWER_REF = re.compile(r"^reviewer:[A-Za-z0-9._:-]+$")
 
 
@@ -76,8 +77,10 @@ def _validate_state(document: dict[str, Any], name: str, errors: list[str]) -> N
         if digest != "":
             errors.append(f"{name}.{digest_field} must be empty while draft")
     else:
-        if not _canonical_string(frozen_at):
-            errors.append(f"{name}.frozen_at must be declared when frozen")
+        if not isinstance(frozen_at, str) or UTC_SECOND.fullmatch(frozen_at) is None:
+            errors.append(
+                f"{name}.frozen_at must use explicit UTC second format YYYY-MM-DDTHH:MM:SSZ"
+            )
         if not _is_digest(digest):
             errors.append(f"{name}.{digest_field} must be a sha256 hex digest when frozen")
         elif digest != canonical_digest(document, digest_field):
@@ -393,8 +396,10 @@ def freeze_documents(
     documents: dict[str, dict[str, Any]],
     frozen_at: str,
 ) -> dict[str, dict[str, Any]]:
-    if not _canonical_string(frozen_at):
-        raise ValueError("frozen_at must be an explicit canonical timestamp string")
+    if not isinstance(frozen_at, str) or UTC_SECOND.fullmatch(frozen_at) is None:
+        raise ValueError(
+            "frozen_at must use explicit UTC second format YYYY-MM-DDTHH:MM:SSZ"
+        )
 
     draft_errors = validate_all(documents)
     if draft_errors:
