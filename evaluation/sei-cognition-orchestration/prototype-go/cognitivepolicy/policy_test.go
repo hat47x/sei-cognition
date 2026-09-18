@@ -169,6 +169,61 @@ func TestExecutionFailureDoesNotBecomeCognitiveFailure(t *testing.T) {
 	}
 }
 
+func TestMinimumEscalationFloorCannotBeLearnedAway(t *testing.T) {
+	definitions := []ProblemPolicy{{
+		ProblemClass: "high-stakes-review",
+		StaticRoute:  "human-or-stronger-review",
+		AllowedRoutes: []RouteOption{
+			{ID: "local-slm", EscalationLevel: 1},
+			{ID: "human-or-stronger-review", EscalationLevel: 2},
+		},
+		MinimumEscalationLevel:  2,
+		RequiredSuccessRate:     0.80,
+		MinAssessedObservations: 5,
+	}}
+	store, err := NewStore(definitions)
+	if err != nil {
+		t.Fatal(err)
+	}
+	candidate, err := store.BuildCandidate(outcomes("high-stakes-review", "local-slm", 10, 0, 0, 0))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := candidate.Selections["high-stakes-review"].Route; got != "human-or-stronger-review" {
+		t.Fatalf("outcome learning crossed caller-owned escalation floor: %s", got)
+	}
+
+	metrics, err := store.Replay(candidate.Version, []ReplayCase{{
+		ID: "hs-1", ProblemClass: "high-stakes-review",
+		RouteOutcomes: map[string]bool{
+			"local-slm": true, "human-or-stronger-review": true,
+		},
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if metrics.UnnecessaryEscalations != 0 {
+		t.Fatalf("route below safety floor must not count as avoidable escalation: %#v", metrics)
+	}
+}
+
+func TestStaticRouteBelowEscalationFloorFailsClosed(t *testing.T) {
+	_, err := NewStore([]ProblemPolicy{{
+		ProblemClass: "invalid-high-stakes",
+		StaticRoute:  "local-slm",
+		AllowedRoutes: []RouteOption{
+			{ID: "local-slm", EscalationLevel: 1},
+			{ID: "human-or-stronger-review", EscalationLevel: 2},
+		},
+		MinimumEscalationLevel:  2,
+		RequiredSuccessRate:     0.80,
+		MinAssessedObservations: 5,
+	}})
+	if err == nil {
+		t.Fatal("static route below caller-owned escalation floor must fail closed")
+	}
+}
+
 func TestUnknownOrUnauthorizedRouteFailsClosed(t *testing.T) {
 	store, _ := NewStore(testDefinitions())
 	_, err := store.BuildCandidate([]OutcomeRecord{{
