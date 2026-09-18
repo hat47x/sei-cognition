@@ -188,6 +188,22 @@ unit testsではsynthetic frozen bundleをmemory上で作り、
 
 synthetic authorizationは実human benchmarkのunlockではない。
 
+### Actual runtime verification
+
+2026-09-18にGitHub正本とGit blob SHAが一致する一時再構成環境でPython 3.13.5を用いて実行した。
+
+- `validate_evaluation_run.py`: PASS / current run remains draft/locked
+- evaluation-run unit tests: 20 / 20 PASS
+- freeze-kit unit tests: 18 / 18 PASS
+- preregistration unit tests: 23 / 23 PASS
+- GitHub Actions: 未使用
+
+machine-readable Evidence:
+
+`evaluation_run_runtime_evidence_2026-09-18.json`
+
+このPASSはvalidator / synthetic regressionのExecutable Evidenceであり、human-adjudicated benchmark result、current run authorization、B5 gate open、production adoptionを意味しない。
+
 ## 10. 停止線
 
 ```text

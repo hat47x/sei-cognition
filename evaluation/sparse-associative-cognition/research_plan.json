@@ -817,7 +817,8 @@
       "3 fixtureすべてでcap64はcap128よりlocal incremental dimensionsを多く回復する一方marginは小さく、local distinctnessをqualityの単調proxyにできない性質が複数fixtureでも残った。",
       "cross-stage preregistration専用validatorをlocal Python 3.13.5で実行し15 tests PASSを確認し、B6d/B6e stress trackのproduction default化とfeature cardinalityのsemantic昇格もfail-closedにした。一方、unlock validatorはadjudication / dataset / split / B3 prior未freezeのため意図どおりlockedを維持した。semantic benchmark resultは未生成。",
       "cross-stage freeze kitをdraft manifest群として実装し、branch source再現のPython 3.13.5環境でfreeze-kit 18 testsとpreregistration 19 testsがPASSした。空のcurrent datasetはfreeze不可で、synthetic complete bundleのみdeterministic digest付きでfreezeできることを確認した。",
-      "cross-stage evaluation-run artifactをdraft / locked templateとして実装し、authorization validatorと20本のsynthetic / fail-closed回帰テストを定義した。current freeze bundleはdraftのためchecked-in runはauthorizeされず、executor / result artifact / B5 gate / production defaultは変更していない。"
+      "cross-stage evaluation-run artifactをdraft / locked templateとして実装し、authorization validatorと20本のsynthetic / fail-closed回帰テストを定義した。current freeze bundleはdraftのためchecked-in runはauthorizeされず、executor / result artifact / B5 gate / production defaultは変更していない。",
+      "cross-stage evaluation-run validatorをGitHub正本とGit blob SHA一致の一時再構成環境でPython 3.13.5実行し、run 20 tests、freeze 18 tests、preregistration 23 testsの計61 testsがPASSした。3 validatorもPASSし、current run / freeze bundle / preregistrationは引き続きdraft / lockedのままである。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -851,7 +852,8 @@
       "multi_fixture_residual_scaling_evidence_2026-09-18.json",
       "cross_stage_preregistration_evidence_2026-09-18.json",
       "cross-stage-freeze/freeze_kit_evidence_2026-09-18.json",
-      "cross-stage-run/evaluation_run_evidence_2026-09-18.json"
+      "cross-stage-run/evaluation_run_evidence_2026-09-18.json",
+      "cross-stage-run/evaluation_run_runtime_evidence_2026-09-18.json"
     ]
   },
   "references": [
@@ -935,7 +937,11 @@
       "executor_implemented": false,
       "result_artifact_generated": false,
       "b5_entry_gate_changed": false,
-      "production_default_changed": false
+      "production_default_changed": false,
+      "runtime_evidence_ref": "cross-stage-run/evaluation_run_runtime_evidence_2026-09-18.json",
+      "runtime_validation_state": "passed-current-draft-and-synthetic-regression",
+      "runtime_tests_passed": 20,
+      "integration_tests_passed": 41
     }
   }
 }
