@@ -593,6 +593,9 @@ func compileProjectionBias(policy *ProjectionBiasPolicy) map[projectionBiasSelec
 	return out
 }
 
+// applyProjectionBias mutates request-owned prepared features in place.
+// featuresForItem and both normalization paths return slices owned by the
+// current preparation call, so B3 does not require an additional copy.
 func applyProjectionBias(
 	features []sparseassoc.Feature,
 	bias map[projectionBiasSelector]float32,
@@ -600,15 +603,14 @@ func applyProjectionBias(
 	if len(bias) == 0 {
 		return features
 	}
-	out := append([]sparseassoc.Feature(nil), features...)
-	for i := range out {
-		multiplier, ok := bias[projectionBiasSelector{channel: out[i].Channel, key: out[i].Key}]
+	for i := range features {
+		multiplier, ok := bias[projectionBiasSelector{channel: features[i].Channel, key: features[i].Key}]
 		if !ok {
 			continue
 		}
-		out[i].Weight *= multiplier
+		features[i].Weight *= multiplier
 	}
-	return out
+	return features
 }
 
 func (p *Provider) preparedFeatures(item Item) ([]sparseassoc.Feature, error) {
