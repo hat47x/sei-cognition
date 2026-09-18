@@ -16,7 +16,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-SCHEMA = "sei.inquiry-continuity-summary-distortion-probe/v0"
+SCHEMA = "sei.inquiry-continuity-summary-distortion-probe/v1"
 FIXTURE_SCHEMA = "sei.inquiry-continuity-comparison-fixture/v0"
 PACKET_SCHEMA = "sei.inquiry-continuity-summary-distortion-packet/v0"
 RESPONSE_SCHEMA = "sei.inquiry-continuity-summary-distortion-response/v1"
@@ -164,8 +164,49 @@ def validate_probe(probe: dict[str, Any]) -> None:
         raise SummaryDistortionProbeError("fixture ids must be unique")
 
     _validate_questions(probe.get("review_questions"))
-    if not probe.get("audit_dimensions"):
+    dimensions = probe.get("audit_dimensions")
+    if not isinstance(dimensions, list) or not dimensions:
         raise SummaryDistortionProbeError("audit dimensions are required")
+    dimension_ids: list[str] = []
+    for dimension in dimensions:
+        if not isinstance(dimension, dict) or set(dimension) != {
+            "id",
+            "value_kind",
+            "allowed_values",
+        }:
+            raise SummaryDistortionProbeError(
+                "audit dimension must contain id/value_kind/allowed_values exactly"
+            )
+        dimension_id = dimension["id"]
+        value_kind = dimension["value_kind"]
+        allowed_values = dimension["allowed_values"]
+        if not isinstance(dimension_id, str) or not dimension_id.strip():
+            raise SummaryDistortionProbeError(
+                "audit dimension id must be non-empty"
+            )
+        if not isinstance(value_kind, str) or not value_kind.strip():
+            raise SummaryDistortionProbeError(
+                "audit dimension value_kind must be non-empty"
+            )
+        if (
+            not isinstance(allowed_values, list)
+            or not allowed_values
+            or any(
+                not isinstance(value, str) or not value.strip()
+                for value in allowed_values
+            )
+            or len(allowed_values) != len(set(allowed_values))
+        ):
+            raise SummaryDistortionProbeError(
+                "audit dimension allowed_values must be unique non-empty strings"
+            )
+        if "not-observed" not in allowed_values:
+            raise SummaryDistortionProbeError(
+                "audit dimension must allow not-observed"
+            )
+        dimension_ids.append(dimension_id)
+    if len(dimension_ids) != len(set(dimension_ids)):
+        raise SummaryDistortionProbeError("audit dimension ids must be unique")
 
 
 def load_sources(

@@ -40,7 +40,7 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
             {"kind": "temporal_backfill", "detail": "z"},
         ]
         self.probe = {
-            "schema": "sei.inquiry-continuity-summary-distortion-probe/v0",
+            "schema": "sei.inquiry-continuity-summary-distortion-probe/v1",
             "status": "evaluation-only",
             "issue": "ISSUE-000078",
             "probe_id": "probe-1",
@@ -73,9 +73,36 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
                 for i in range(1, 6)
             ],
             "audit_dimensions": [
-                "hypothesis_to_certainty_detection",
-                "alternate_hypothesis_preservation",
-                "correction_burden",
+                {
+                    "id": "hypothesis_to_certainty_detection",
+                    "value_kind": "detection",
+                    "allowed_values": [
+                        "detected",
+                        "not-detected",
+                        "not-applicable",
+                        "not-observed",
+                    ],
+                },
+                {
+                    "id": "alternate_hypothesis_preservation",
+                    "value_kind": "preservation",
+                    "allowed_values": [
+                        "preserved",
+                        "not-preserved",
+                        "not-applicable",
+                        "not-observed",
+                    ],
+                },
+                {
+                    "id": "correction_burden",
+                    "value_kind": "burden",
+                    "allowed_values": [
+                        "low",
+                        "medium",
+                        "high",
+                        "not-observed",
+                    ],
+                },
             ],
             "evidence_boundary": {
                 "human_review": "not-yet-observed",
@@ -162,9 +189,9 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
             self.receipt_sha,
         )
         value["findings"] = {
-            "hypothesis_to_certainty_detection": "pass",
-            "alternate_hypothesis_preservation": "fail",
-            "correction_burden": "not-observed",
+            "hypothesis_to_certainty_detection": "detected",
+            "alternate_hypothesis_preservation": "not-preserved",
+            "correction_burden": "medium",
         }
         value["audit_provenance"] = {
             "auditor_id": "auditor-opaque-1",
@@ -193,7 +220,8 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
             value["audit_reveal_receipt_sha256"], self.receipt_sha
         )
         self.assertEqual(
-            set(value["findings"]), set(self.probe["audit_dimensions"])
+            set(value["findings"]),
+            {dimension["id"] for dimension in self.probe["audit_dimensions"]},
         )
         with self.assertRaises(SummaryDistortionEvidenceError):
             validate_audit_response(
@@ -222,6 +250,31 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
     def test_audit_rejects_wrong_response_binding(self):
         value = self.valid_audit()
         value["fixed_human_response_sha256"] = "b" * 64
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_audit_response(
+                value,
+                self.probe,
+                self.fixture_id,
+                self.human_sha,
+                self.receipt_sha,
+                "2026-09-17T09:29:00Z",
+            )
+
+    def test_audit_rejects_cross_dimension_pass_fail_normalization(self):
+        value = self.valid_audit()
+        value["findings"]["correction_burden"] = "pass"
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_audit_response(
+                value,
+                self.probe,
+                self.fixture_id,
+                self.human_sha,
+                self.receipt_sha,
+                "2026-09-17T09:29:00Z",
+            )
+
+        value = self.valid_audit()
+        value["findings"]["hypothesis_to_certainty_detection"] = "medium"
         with self.assertRaises(SummaryDistortionEvidenceError):
             validate_audit_response(
                 value,
@@ -339,7 +392,7 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
             bundle["semantic_audit"]["findings"][
                 "alternate_hypothesis_preservation"
             ],
-            "fail",
+            "not-preserved",
         )
         self.assertIn("distortion_key", bundle["semantic_audit"])
         self.assertNotIn("distortion_key", bundle["human_review_observation"])

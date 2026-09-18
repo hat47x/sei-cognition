@@ -66,7 +66,7 @@ class SummaryDistortionProbeTest(unittest.TestCase):
         self.fixture_path.write_text(json.dumps(fixture), encoding="utf-8")
         raw = self.fixture_path.read_bytes()
         self.probe = {
-            "schema": "sei.inquiry-continuity-summary-distortion-probe/v0",
+            "schema": "sei.inquiry-continuity-summary-distortion-probe/v1",
             "status": "evaluation-only",
             "issue": "ISSUE-000078",
             "probe_id": "test-probe",
@@ -123,8 +123,26 @@ class SummaryDistortionProbeTest(unittest.TestCase):
                 {"id": f"D{i}", "prompt": "q"} for i in range(1, 6)
             ],
             "audit_dimensions": [
-                "temporal_backfill_detection",
-                "correction_burden",
+                {
+                    "id": "temporal_backfill_detection",
+                    "value_kind": "detection",
+                    "allowed_values": [
+                        "detected",
+                        "not-detected",
+                        "not-applicable",
+                        "not-observed",
+                    ],
+                },
+                {
+                    "id": "correction_burden",
+                    "value_kind": "burden",
+                    "allowed_values": [
+                        "low",
+                        "medium",
+                        "high",
+                        "not-observed",
+                    ],
+                },
             ],
             "interpretation_stoplines": [
                 "do not collapse detections into one score",
@@ -187,6 +205,17 @@ class SummaryDistortionProbeTest(unittest.TestCase):
         no_rules["presentation_rules"] = []
         with self.assertRaises(SummaryDistortionProbeError):
             validate_probe(no_rules)
+
+    def test_audit_dimensions_require_typed_value_contracts(self):
+        bad = copy.deepcopy(self.probe)
+        bad["audit_dimensions"] = ["correction_burden"]
+        with self.assertRaises(SummaryDistortionProbeError):
+            validate_probe(bad)
+
+        bad = copy.deepcopy(self.probe)
+        bad["audit_dimensions"][0]["allowed_values"] = ["detected"]
+        with self.assertRaises(SummaryDistortionProbeError):
+            validate_probe(bad)
 
     def test_semantic_stopline_cannot_make_summary_canonical(self):
         bad = copy.deepcopy(self.probe)

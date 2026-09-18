@@ -33,9 +33,8 @@ from inquiry_continuity_summary_distortion_probe import (
     validate_probe,
 )
 
-AUDIT_RESPONSE_SCHEMA = "sei.inquiry-continuity-summary-distortion-audit-response/v0"
-EVIDENCE_SCHEMA = "sei.inquiry-continuity-summary-distortion-evidence/v0"
-FINDING_VALUES = {"pass", "fail", "not-observed"}
+AUDIT_RESPONSE_SCHEMA = "sei.inquiry-continuity-summary-distortion-audit-response/v1"
+EVIDENCE_SCHEMA = "sei.inquiry-continuity-summary-distortion-evidence/v1"
 
 
 class SummaryDistortionEvidenceError(ValueError):
@@ -102,7 +101,8 @@ def audit_response_template(
         "fixed_human_response_sha256": fixed_human_response_sha256,
         "audit_reveal_receipt_sha256": audit_reveal_receipt_sha256,
         "findings": {
-            dimension: "not-observed" for dimension in probe["audit_dimensions"]
+            dimension["id"]: "not-observed"
+            for dimension in probe["audit_dimensions"]
         },
         "audit_provenance": {
             "auditor_id": "",
@@ -158,16 +158,21 @@ def validate_audit_response(
             "audit response is bound to a different audit-reveal receipt"
         )
 
-    expected_dimensions = set(probe["audit_dimensions"])
+    dimension_contracts = {
+        dimension["id"]: set(dimension["allowed_values"])
+        for dimension in probe["audit_dimensions"]
+    }
     findings = value["findings"]
-    if not isinstance(findings, dict) or set(findings) != expected_dimensions:
+    if not isinstance(findings, dict) or set(findings) != set(dimension_contracts):
         raise SummaryDistortionEvidenceError(
             "audit findings must contain each audit dimension exactly"
         )
-    if any(result not in FINDING_VALUES for result in findings.values()):
-        raise SummaryDistortionEvidenceError(
-            "audit findings must be pass/fail/not-observed"
-        )
+    for dimension_id, result in findings.items():
+        if result not in dimension_contracts[dimension_id]:
+            allowed = "/".join(sorted(dimension_contracts[dimension_id]))
+            raise SummaryDistortionEvidenceError(
+                f"audit finding {dimension_id} must be one of: {allowed}"
+            )
 
     provenance = value["audit_provenance"]
     provenance_keys = {
