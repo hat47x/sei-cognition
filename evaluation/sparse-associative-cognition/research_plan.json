@@ -723,7 +723,8 @@
       "B6cではgroupingのresidual外寄与が全profileで0、graph/provenanceがlargeで0、textもoversizedで0となる包含系列を確認したが、これをsemantic redundancyやquality failureの十分条件とは扱っていない。",
       "SEI-B7のsynthetic evaluationで、provenance付きcognitive outcomeから生成したcandidate policyが明示activationまでactive routingを変更せず、immutable versionへのrollbackで以前のrouteを再現することを確認した。",
       "同じB7評価で、execution failureをcognitive insufficiencyへ自動変換せず、caller-owned minimum escalation floorをlower routeの高いsynthetic efficacyでも越えないことを確認した。",
-      "B7 positive replayではsynthetic success rateを維持したままunnecessary escalationを減らすケースを観測した一方、distribution-shift replayではstatic routeに対するregretが発生する反例を同時に固定した。"
+      "B7 positive replayではsynthetic success rateを維持したままunnecessary escalationを減らすケースを観測した一方、distribution-shift replayではstatic routeに対するregretが発生する反例を同時に固定した。",
+      "cross-stage preregistration専用validatorをlocal Python 3.13.5で実行し13 tests PASSを確認した一方、unlock validatorはadjudication / dataset / split / B3 prior未freezeのため意図どおりlockedを維持した。semantic benchmark resultは未生成。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -751,7 +752,8 @@
       "capacity_homeostasis_evidence_2026-09-18.json",
       "observed_selection_pressure_evidence_2026-09-18.json",
       "local_residual_containment_evidence_2026-09-18.json",
-      "../sei-cognition-orchestration/outcome_informed_routing_evidence_2026-09-18.json"
+      "../sei-cognition-orchestration/outcome_informed_routing_evidence_2026-09-18.json",
+      "cross_stage_preregistration_evidence_2026-09-18.json"
     ]
   },
   "references": [
@@ -813,6 +815,7 @@
     ],
     "no_single_composite_score": true,
     "b5_entry_gate_changed": false,
-    "unlock_rule": "human adjudication, dataset digest, split manifests, and B3 prior manifest must be frozen; evaluation starts only from a separate explicit evaluation-run artifact."
+    "unlock_rule": "human adjudication, dataset digest, split manifests, and B3 prior manifest must be frozen; evaluation starts only from a separate explicit evaluation-run artifact.",
+    "evidence_file": "cross_stage_preregistration_evidence_2026-09-18.json"
   }
 }
