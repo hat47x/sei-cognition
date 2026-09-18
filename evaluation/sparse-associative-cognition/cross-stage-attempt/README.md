@@ -186,7 +186,38 @@ python3 -m unittest -v test_validate_execution_attempt.py
 
 2026-09-19のlocal authored-contract validationでは20 tests / 20 PASS、`py_compile` PASSを確認した。
 
-このfocused testではupstream run/freeze/preregistration validatorの実runtime integrationはdependency injectionで代替している。GitHub正本sourceを再構成したfull integration runtime Evidenceは別sliceで固定する。
+focused testではupstream run/freeze/preregistration validatorをdependency injectionで代替していたため、別途GitHub正本sourceをGit blob SHA一致で再構成し、actual upstream integrationを実行した。
+
+### Full integration runtime verification
+
+Python 3.13.5 / Linux 6.18.44 x86_64。
+
+- current attempt validator: PASS / draft-not-started
+- current run validator: PASS / draft-locked
+- current freeze validator: PASS / draft-locked
+- preregistration validator: PASS / evaluation locked
+- attempt focused tests: 20 / 20 PASS
+- actual upstream integration tests: 6 / 6 PASS
+- run regression: 20 / 20 PASS
+- freeze regression: 18 / 18 PASS
+- preregistration regression: 32 / 32 PASS
+- total: **96 tests PASS / 0 failures**
+- GitHub Actions: 未使用
+
+machine-readable Evidence:
+
+`execution_attempt_runtime_evidence_2026-09-19.json`
+
+integrationではsynthetic successful attemptとfailed attemptの双方をactual upstream validatorへ通し、current draft upstreamの拒否、run digest mismatch、full unlock error、post-completion mutationもfail-closedで確認した。
+
+```text
+integration runtime PASS
+  != human-adjudicated benchmark execution
+  != benchmark result
+  != semantic interpretation
+  != B5 decision
+  != production adoption
+```
 
 ## 11. 停止線
 
