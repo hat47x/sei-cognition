@@ -450,7 +450,256 @@ def run_checks(
     return (0 if result["result"] == "ok" else 1), result
 
 
+def _is_lower_hex(value: object, length: int) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == length
+        and all(character in "0123456789abcdef" for character in value)
+    )
+
+
+def _validate_relative_path(value: object, field: str) -> str:
+    if not isinstance(value, str) or not value:
+        raise ValueError(f"{field} must be a non-empty string")
+    path = Path(value)
+    if path.is_absolute() or ".." in path.parts:
+        raise ValueError(f"{field} must stay relative to the repository")
+    return value
+
+
+def _validate_stream_evidence(value: object, field: str) -> None:
+    if not isinstance(value, dict) or set(value) != {"sha256", "bytes"}:
+        raise ValueError(f"{field} must contain sha256/bytes exactly")
+    if not _is_lower_hex(value["sha256"], 64):
+        raise ValueError(f"{field}.sha256 must be lowercase SHA-256")
+    byte_count = value["bytes"]
+    if isinstance(byte_count, bool) or not isinstance(byte_count, int) or byte_count < 0:
+        raise ValueError(f"{field}.bytes must be a nonnegative integer")
+
+
+def validate_result(result: dict[str, object]) -> None:
+    required = {
+        "schema",
+        "result",
+        "selected",
+        "selectedCount",
+        "executed",
+        "executedCount",
+        "failedCount",
+        "stoppedEarly",
+        "contractSnapshot",
+        "humanReviewObserved",
+        "actualLongGapResumptionEstablished",
+        "productValueEstablished",
+        "stableRequirementAuthorized",
+        "stopLine",
+    }
+    if not isinstance(result, dict) or set(result) != required:
+        raise ValueError("E78.3 local-check result has invalid top-level shape")
+    if result["schema"] != RESULT_SCHEMA:
+        raise ValueError(f"E78.3 local-check result schema must be {RESULT_SCHEMA}")
+    if result["result"] not in {"ok", "failed"}:
+        raise ValueError("E78.3 local-check result must be ok or failed")
+
+    selected = result["selected"]
+    if (
+        not isinstance(selected, list)
+        or not selected
+        or any(not isinstance(name, str) or not name for name in selected)
+        or len(selected) != len(set(selected))
+    ):
+        raise ValueError("selected checks must be unique non-empty strings")
+    if result["selectedCount"] != len(selected):
+        raise ValueError("selectedCount mismatch")
+
+    executed = result["executed"]
+    if not isinstance(executed, list):
+        raise ValueError("executed must be a list")
+    if result["executedCount"] != len(executed):
+        raise ValueError("executedCount mismatch")
+    if len(executed) > len(selected):
+        raise ValueError("executed checks exceed selected checks")
+    if [item.get("name") for item in executed if isinstance(item, dict)] != selected[: len(executed)]:
+        raise ValueError("executed checks must match the selected order")
+
+    failed_count = 0
+    base_execution_keys = {
+        "name",
+        "command",
+        "cwdRelativeToRepo",
+        "exitCode",
+        "timedOut",
+        "timeoutSeconds",
+        "stdout",
+        "stderr",
+    }
+    for item in executed:
+        if not isinstance(item, dict):
+            raise ValueError("executed entry must be an object")
+        item_keys = set(item)
+        if (
+            item_keys != base_execution_keys
+            and item_keys != base_execution_keys | {"launchError"}
+        ):
+            raise ValueError("executed entry has invalid shape")
+        command = item["command"]
+        if (
+            not isinstance(command, list)
+            or not command
+            or any(not isinstance(token, str) or not token for token in command)
+        ):
+            raise ValueError("executed command must contain non-empty strings")
+        for token in command:
+            if token == "<python>":
+                continue
+            token_path = Path(token)
+            if token_path.is_absolute() or ".." in token_path.parts:
+                raise ValueError(
+                    "executed command must not contain host-escaping paths"
+                )
+        _validate_relative_path(item["cwdRelativeToRepo"], "cwdRelativeToRepo")
+        exit_code = item["exitCode"]
+        if isinstance(exit_code, bool) or not isinstance(exit_code, int):
+            raise ValueError("exitCode must be an integer")
+        timed_out = item["timedOut"]
+        if not isinstance(timed_out, bool):
+            raise ValueError("timedOut must be boolean")
+        timeout_seconds = item["timeoutSeconds"]
+        if (
+            isinstance(timeout_seconds, bool)
+            or not isinstance(timeout_seconds, int)
+            or timeout_seconds <= 0
+        ):
+            raise ValueError("timeoutSeconds must be a positive integer")
+        _validate_stream_evidence(item["stdout"], "stdout")
+        _validate_stream_evidence(item["stderr"], "stderr")
+        if "launchError" in item:
+            launch_error = item["launchError"]
+            if (
+                not isinstance(launch_error, dict)
+                or set(launch_error) != {"type", "errno"}
+                or not isinstance(launch_error["type"], str)
+                or not launch_error["type"]
+                or (
+                    launch_error["errno"] is not None
+                    and (
+                        isinstance(launch_error["errno"], bool)
+                        or not isinstance(launch_error["errno"], int)
+                    )
+                )
+            ):
+                raise ValueError("launchError must contain sanitized type/errno")
+        if exit_code != 0:
+            failed_count += 1
+
+    if result["failedCount"] != failed_count:
+        raise ValueError("failedCount mismatch")
+    complete = len(executed) == len(selected)
+    expected_result = "ok" if complete and failed_count == 0 else "failed"
+    if result["result"] != expected_result:
+        raise ValueError("result status is inconsistent with executed checks")
+    if not isinstance(result["stoppedEarly"], bool):
+        raise ValueError("stoppedEarly must be boolean")
+    if result["stoppedEarly"] and complete:
+        raise ValueError("stoppedEarly cannot be true for a complete run")
+
+    snapshot = result["contractSnapshot"]
+    if not isinstance(snapshot, dict):
+        raise ValueError("contractSnapshot must be an object")
+    snapshot_required = {
+        "probeId",
+        "probeSchema",
+        "probeContentSha256",
+        "mechanicsFiles",
+        "sourceFixtures",
+        "python",
+    }
+    if set(snapshot) != snapshot_required:
+        raise ValueError("contractSnapshot has invalid shape")
+    if not isinstance(snapshot["probeId"], str) or not snapshot["probeId"]:
+        raise ValueError("contractSnapshot.probeId must be non-empty")
+    if not isinstance(snapshot["probeSchema"], str) or not snapshot["probeSchema"]:
+        raise ValueError("contractSnapshot.probeSchema must be non-empty")
+    if not _is_lower_hex(snapshot["probeContentSha256"], 64):
+        raise ValueError("contractSnapshot.probeContentSha256 must be SHA-256")
+
+    mechanics = snapshot["mechanicsFiles"]
+    if not isinstance(mechanics, list) or not mechanics:
+        raise ValueError("contractSnapshot.mechanicsFiles must be non-empty")
+    if tuple(
+        item.get("path") if isinstance(item, dict) else None
+        for item in mechanics
+    ) != MECHANICS_PATHS:
+        raise ValueError("mechanics file paths differ from runner contract")
+    seen_mechanics: set[str] = set()
+    for item in mechanics:
+        if not isinstance(item, dict) or set(item) != {"path", "sha256"}:
+            raise ValueError("mechanics file entry has invalid shape")
+        path = _validate_relative_path(item["path"], "mechanics file path")
+        if path in seen_mechanics:
+            raise ValueError("duplicate mechanics file path")
+        seen_mechanics.add(path)
+        if not _is_lower_hex(item["sha256"], 64):
+            raise ValueError("mechanics file sha256 must be lowercase SHA-256")
+
+    sources = snapshot["sourceFixtures"]
+    if not isinstance(sources, list) or not sources:
+        raise ValueError("contractSnapshot.sourceFixtures must be non-empty")
+    if tuple(
+        item.get("fixtureId") if isinstance(item, dict) else None
+        for item in sources
+    ) != FIXTURE_IDS:
+        raise ValueError("source fixture ids differ from runner contract")
+    seen_sources: set[str] = set()
+    for item in sources:
+        if not isinstance(item, dict) or set(item) != {
+            "fixtureId",
+            "path",
+            "expectedBlobSha1",
+            "actualBlobSha1",
+        }:
+            raise ValueError("source fixture entry has invalid shape")
+        fixture_id = item["fixtureId"]
+        if (
+            not isinstance(fixture_id, str)
+            or not fixture_id
+            or fixture_id in seen_sources
+        ):
+            raise ValueError("source fixture ids must be unique non-empty strings")
+        seen_sources.add(fixture_id)
+        _validate_relative_path(item["path"], "source fixture path")
+        if not _is_lower_hex(item["expectedBlobSha1"], 40):
+            raise ValueError("expectedBlobSha1 must be lowercase Git blob SHA-1")
+        if not _is_lower_hex(item["actualBlobSha1"], 40):
+            raise ValueError("actualBlobSha1 must be lowercase Git blob SHA-1")
+        if item["expectedBlobSha1"] != item["actualBlobSha1"]:
+            raise ValueError("source fixture expected/actual blob SHA-1 mismatch")
+
+    runtime = snapshot["python"]
+    if (
+        not isinstance(runtime, dict)
+        or set(runtime) != {"implementation", "version"}
+        or not isinstance(runtime["implementation"], str)
+        or not runtime["implementation"]
+        or not isinstance(runtime["version"], str)
+        or not runtime["version"]
+    ):
+        raise ValueError("contractSnapshot.python has invalid shape")
+
+    for field in (
+        "humanReviewObserved",
+        "actualLongGapResumptionEstablished",
+        "productValueEstablished",
+        "stableRequirementAuthorized",
+    ):
+        if result[field] is not False:
+            raise ValueError(f"{field} must remain false for local mechanics evidence")
+    if result["stopLine"] != STOP_LINE:
+        raise ValueError("local mechanics stop line mismatch")
+
+
 def save_result(path: str | Path, result: dict[str, object]) -> None:
+    validate_result(result)
     target = Path(path).expanduser()
     payload = json.dumps(
         result,
