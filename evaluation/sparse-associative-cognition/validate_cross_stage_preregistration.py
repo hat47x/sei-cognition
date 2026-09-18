@@ -150,6 +150,46 @@ def validate_preregistration(doc: dict) -> list[str]:
         if result_artifact.get("production_default_changed") is not False:
             errors.append("result_artifact must not change production default")
 
+    interpretation_artifact = doc.get("interpretation_artifact")
+    if not isinstance(interpretation_artifact, dict):
+        errors.append("interpretation_artifact must be an object")
+    else:
+        if interpretation_artifact.get("state") not in {"draft", "interpreted"}:
+            errors.append("interpretation_artifact.state must be draft or interpreted")
+        required_refs = {
+            "directory": "cross-stage-interpretation",
+            "interpretation_ref": "cross-stage-interpretation/interpretation.json",
+            "validator_ref": "cross-stage-interpretation/validate_interpretation.py",
+            "evidence_ref": "cross-stage-interpretation/interpretation_contract_evidence_2026-09-19.json",
+        }
+        for key, expected in required_refs.items():
+            if interpretation_artifact.get(key) != expected:
+                errors.append(f"interpretation_artifact.{key} must remain {expected}")
+        interpreted = interpretation_artifact.get("state") == "interpreted"
+        if interpretation_artifact.get("current_interpretation_generated") is not interpreted:
+            errors.append(
+                "interpretation_artifact.current_interpretation_generated must match interpretation_artifact.state"
+            )
+        if interpretation_artifact.get("requires_completed_result") is not True:
+            errors.append(
+                "interpretation_artifact.requires_completed_result must remain true"
+            )
+        if interpreted and isinstance(result_artifact, dict) and result_artifact.get("state") != "completed":
+            errors.append(
+                "interpreted artifact requires result_artifact.state=completed"
+            )
+        for key in (
+            "semantic_truth_claimed",
+            "variant_winner_declared",
+            "recommendation_generated",
+            "b5_decision_generated",
+            "production_default_changed",
+        ):
+            if interpretation_artifact.get(key) is not False:
+                errors.append(
+                    f"interpretation_artifact.{key} must remain false"
+                )
+
     variants = doc.get("variants")
     if not isinstance(variants, list):
         errors.append("variants must be a list")
