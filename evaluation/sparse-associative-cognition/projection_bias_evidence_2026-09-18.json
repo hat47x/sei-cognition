@@ -1,0 +1,177 @@
+{
+  "schema": "sei.sacs-projection-bias-evidence/v1alpha1",
+  "date": "2026-09-18",
+  "status": "limited-local-executable-evidence",
+  "subject": "SAC-B3 provenance-bearing bounded salience prior",
+  "issue": 440,
+  "branch": "topic/sac-b3-bounded-salience-prior",
+  "biologicalReference": {
+    "citation": "Zheng et al. (2022), Structured sampling of olfactory input by the fly mushroom body, Current Biology 32(15):3334-3349.e6",
+    "doi": "10.1016/j.cub.2022.06.031",
+    "engineeringReading": "Observed PN-to-KC connectivity contains non-random overconvergence for primarily food-responsive inputs, but the reported simulations do not establish that this bias universally improves discrimination. SEI therefore evaluates explicit external priors without treating biological bias as authority."
+  },
+  "firstSlice": {
+    "mechanism": "Exact Feature{Channel, Key} contribution reweighting before optional normalization and competition.",
+    "reason": "Use a minimal proxy before changing hash topology or per-feature fanout, so salience effects are not confounded with representation-capacity changes.",
+    "ordering": [
+      "caller-owned feature projection",
+      "explicit exact-feature salience prior",
+      "optional B1 normalization",
+      "B2 localized or baseline global competition"
+    ],
+    "absoluteLimits": {
+      "maxRules": 32,
+      "maxMultiplier": 2
+    },
+    "ruleRequirements": [
+      "non-empty policy id",
+      "exact channel",
+      "exact key",
+      "multiplier > 1 and <= policy max",
+      "non-empty provenance reference",
+      "duplicate selectors rejected"
+    ],
+    "invariants": [
+      "Feature.Channel is unchanged",
+      "Feature.Key is unchanged",
+      "current provider default remains no bias",
+      "no wildcard or family-wide boost in this slice",
+      "substrate does not autonomously create or reinforce rules"
+    ]
+  },
+  "syntheticFixtures": [
+    {
+      "id": "B3-RARE-CRITICAL-01",
+      "prior": [
+        {
+          "channel": "graph:relationType",
+          "key": "critical",
+          "multiplier": 1.01,
+          "provenanceRef": "fixture:critical-1"
+        },
+        {
+          "channel": "graph:relationType",
+          "key": "critical2",
+          "multiplier": 1.01,
+          "provenanceRef": "fixture:critical-2"
+        }
+      ],
+      "config": {
+        "dimensions": 32768,
+        "fanout": 4,
+        "active": 16,
+        "seed": 47
+      },
+      "similarity": {
+        "unbiased": {
+          "desired": 0.0625,
+          "distractor": 0.875
+        },
+        "biased": {
+          "desired": 0.5,
+          "distractor": 0.4375
+        }
+      },
+      "anchorSignatureSimilarityUnbiasedVsBiased": 0.5,
+      "interpretation": "A 1.01 prior on two externally selected rare relation features changes half of the 16 active dimensions and recovers the structurally aligned candidate in this fixture."
+    },
+    {
+      "id": "B3-COMMON-PRIOR-FAILURE-01",
+      "prior": [
+        {
+          "channel": "graph:neighborKind",
+          "key": "artifact",
+          "multiplier": 1.01,
+          "provenanceRef": "fixture:common-neighbor"
+        }
+      ],
+      "config": {
+        "dimensions": 32768,
+        "fanout": 4,
+        "active": 16,
+        "seed": 47
+      },
+      "similarity": {
+        "unbiased": {
+          "desired": 0.4375,
+          "distractor": 0.1875
+        },
+        "biased": {
+          "desired": 0.25,
+          "distractor": 0.375
+        }
+      },
+      "interpretation": "The same small multiplier, when applied to a broader/non-discriminating feature, reverses a correct baseline ordering. Multiplier bounds do not imply ranking stability."
+    }
+  ],
+  "interactionObservations": {
+    "familyNormalization": {
+      "unbiased": {
+        "desired": 0.4375,
+        "distractor": 0.25
+      },
+      "biased": {
+        "desired": 0.75,
+        "distractor": 0.25
+      },
+      "interpretation": "B1 family normalization keeps total family mass bounded while an exact-feature relative prior can still affect winners inside that family."
+    },
+    "softLocalizedCompetition": {
+      "localBudget": {
+        "text": 2,
+        "graph": 2,
+        "provenance": 2,
+        "grouping": 2
+      },
+      "globalResidualActive": 8,
+      "unbiased": {
+        "desired": 0.17407766,
+        "distractor": 0.636363626
+      },
+      "biased": {
+        "desired": 0.609271824,
+        "distractor": 0.181818187
+      },
+      "interpretation": "Because the first slice applies the prior before B2 competition, the same biased feature slice reaches both family-local and global-residual paths. A local-only versus residual-only scope is not yet evaluated."
+    }
+  },
+  "localVerification": {
+    "toolchain": "go1.23.2 linux/amd64",
+    "repositoryGoDirective": "1.25",
+    "exactRepositoryCheckout": false,
+    "method": "Standalone deterministic Go reconstruction of the current sparse encoder, SUI feature projection, B1 family normalization, B2 local+global competition, and the B3 exact-feature multiplier semantics.",
+    "fixtureCommand": "go test -v ./...",
+    "fixtureResult": "PASS",
+    "benchmarkCommand": "go test -bench=. -benchmem -count=3 ./...",
+    "benchmark": {
+      "subject": "reconstruction-only exact-feature bias copy and lookup on the critical fixture input",
+      "observations": [
+        "1.586 us/op, 2304 B/op, 1 alloc/op",
+        "1.470 us/op, 2304 B/op, 1 alloc/op",
+        "1.549 us/op, 2304 B/op, 1 alloc/op"
+      ],
+      "note": "This isolates the reconstruction's feature-copy/bias step and is not repository or production performance evidence."
+    }
+  },
+  "stopLines": [
+    "biased contribution != semantic importance",
+    "salience prior != truth or confidence",
+    "bounded multiplier != bounded ranking change",
+    "synthetic improvement != general semantic quality",
+    "provenance-bearing policy != evidence that the policy is correct",
+    "this first slice is not a fanout/topology bias evaluation",
+    "this evidence != production default",
+    "this evidence != SUI human-adjudicated meaning-quality result"
+  ],
+  "notVerified": [
+    "exact branch source execution from a full repository checkout",
+    "repository-wide regression on Go 1.25",
+    "actual SUI or SEI feature distributions",
+    "how external salience policies should be authored, reviewed, expired, or revoked",
+    "optimal multiplier and rule-count bounds",
+    "false activation behavior on human-adjudicated data",
+    "local-only versus global-residual-only bias scope under B2",
+    "fanout-biased or sampling-probability-biased projection",
+    "Production, Operational, Adoption, or Outcome Evidence"
+  ]
+}

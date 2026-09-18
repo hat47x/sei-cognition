@@ -23,9 +23,11 @@ const (
 	RequestSchema  = "sui.associative-recall-request/v1alpha1"
 	ResponseSchema = "sui.associative-recall-response/v1alpha1"
 
-	MaxItems          = 512
-	MaxAnchors        = 32
-	MaxCandidateLimit = 64
+	MaxItems                    = 512
+	MaxAnchors                  = 32
+	MaxCandidateLimit           = 64
+	MaxProjectionBiasRules      = 32
+	MaxProjectionBiasMultiplier = float32(2)
 )
 
 var allowedIntents = map[string]struct{}{
@@ -119,6 +121,24 @@ type LocalCompetitionPolicy struct {
 	GlobalResidualActive uint16
 }
 
+// ProjectionBiasRule is an evaluation-only exact-feature prior. It does not
+// assign semantic importance; it only changes a feature's contribution to the
+// sparse competition under an externally justified, provenance-bearing rule.
+type ProjectionBiasRule struct {
+	Channel       string
+	Key           string
+	Multiplier    float32
+	ProvenanceRef string
+}
+
+// ProjectionBiasPolicy bounds explicit caller-owned salience priors. Wildcards
+// and family-wide rules are intentionally unsupported in the first slice.
+type ProjectionBiasPolicy struct {
+	PolicyID      string
+	MaxMultiplier float32
+	Rules         []ProjectionBiasRule
+}
+
 type Config struct {
 	Sparse                sparseassoc.Config
 	MinInternalSimilarity float32
@@ -127,10 +147,12 @@ type Config struct {
 	FeatureNormalization  FeatureNormalizationMode
 	NormalizationFloor    float32
 	LocalCompetition      *LocalCompetitionPolicy
+	ProjectionBias        *ProjectionBiasPolicy
 }
 
 type Provider struct {
-	cfg Config
+	cfg                       Config
+	projectionBiasMultipliers map[string]float32
 }
 
 func New(cfg Config) (*Provider, error) {
@@ -158,8 +180,15 @@ func New(cfg Config) (*Provider, error) {
 	if err := validateLocalCompetition(cfg.Sparse, cfg.LocalCompetition); err != nil {
 		return nil, err
 	}
+	if err := validateProjectionBias(cfg.ProjectionBias); err != nil {
+		return nil, err
+	}
 	cfg.LocalCompetition = cloneLocalCompetition(cfg.LocalCompetition)
-	return &Provider{cfg: cfg}, nil
+	cfg.ProjectionBias = cloneProjectionBias(cfg.ProjectionBias)
+	return &Provider{
+		cfg:                       cfg,
+		projectionBiasMultipliers: compileProjectionBias(cfg.ProjectionBias),
+	}, nil
 }
 
 func DecodeRequest(data []byte) (Request, error) {
@@ -340,6 +369,85 @@ func (p *Provider) providerInfo() ProviderInfo {
 	}
 }
 
+func validateProjectionBias(policy *ProjectionBiasPolicy) error {
+	if policy == nil {
+		return nil
+	}
+	if strings.TrimSpace(policy.PolicyID) == "" {
+		return errors.New("projection bias policy id must not be empty")
+	}
+	if policy.MaxMultiplier <= 1 || policy.MaxMultiplier > MaxProjectionBiasMultiplier {
+		return fmt.Errorf("projection bias max multiplier must be > 1 and <= %v", MaxProjectionBiasMultiplier)
+	}
+	if len(policy.Rules) == 0 {
+		return errors.New("projection bias policy requires at least one rule")
+	}
+	if len(policy.Rules) > MaxProjectionBiasRules {
+		return fmt.Errorf("projection bias policy rules must contain at most %d entries", MaxProjectionBiasRules)
+	}
+	seen := make(map[string]struct{}, len(policy.Rules))
+	for i, rule := range policy.Rules {
+		if strings.TrimSpace(rule.Channel) == "" {
+			return fmt.Errorf("projection bias rule %d channel must not be empty", i)
+		}
+		if strings.TrimSpace(rule.Key) == "" {
+			return fmt.Errorf("projection bias rule %d key must not be empty", i)
+		}
+		if rule.Multiplier <= 1 || rule.Multiplier > policy.MaxMultiplier {
+			return fmt.Errorf("projection bias rule %d multiplier must be > 1 and <= max multiplier", i)
+		}
+		if strings.TrimSpace(rule.ProvenanceRef) == "" {
+			return fmt.Errorf("projection bias rule %d provenance ref must not be empty", i)
+		}
+		selector := rule.Channel + "\x00" + rule.Key
+		if _, exists := seen[selector]; exists {
+			return fmt.Errorf("duplicate projection bias selector: %s/%s", rule.Channel, rule.Key)
+		}
+		seen[selector] = struct{}{}
+	}
+	return nil
+}
+
+func cloneProjectionBias(policy *ProjectionBiasPolicy) *ProjectionBiasPolicy {
+	if policy == nil {
+		return nil
+	}
+	out := &ProjectionBiasPolicy{
+		PolicyID:      policy.PolicyID,
+		MaxMultiplier: policy.MaxMultiplier,
+		Rules:         make([]ProjectionBiasRule, len(policy.Rules)),
+	}
+	copy(out.Rules, policy.Rules)
+	return out
+}
+
+func compileProjectionBias(policy *ProjectionBiasPolicy) map[string]float32 {
+	if policy == nil {
+		return nil
+	}
+	multipliers := make(map[string]float32, len(policy.Rules))
+	for _, rule := range policy.Rules {
+		multipliers[rule.Channel+"\x00"+rule.Key] = rule.Multiplier
+	}
+	return multipliers
+}
+
+func applyProjectionBias(features []sparseassoc.Feature, multipliers map[string]float32) []sparseassoc.Feature {
+	if len(multipliers) == 0 {
+		return features
+	}
+	out := append([]sparseassoc.Feature(nil), features...)
+	for i := range out {
+		if out[i].Weight <= 0 || out[i].Key == "" {
+			continue
+		}
+		if multiplier, ok := multipliers[out[i].Channel+"\x00"+out[i].Key]; ok {
+			out[i].Weight *= multiplier
+		}
+	}
+	return out
+}
+
 func validateLocalCompetition(cfg sparseassoc.Config, policy *LocalCompetitionPolicy) error {
 	if policy == nil {
 		return nil
@@ -491,7 +599,7 @@ func mergeSparseSignatures(signatures []sparseassoc.Signature) sparseassoc.Signa
 }
 
 func (p *Provider) preparedFeatures(item Item) ([]sparseassoc.Feature, error) {
-	features := featuresForItem(item)
+	features := applyProjectionBias(featuresForItem(item), p.projectionBiasMultipliers)
 	switch p.cfg.FeatureNormalization {
 	case FeatureNormalizationNone:
 		return features, nil
