@@ -333,6 +333,14 @@ python "$RUNNER" --manifest "$MANIFEST" --repo-root . export-evidence \
 
 exportはcompleted sessionだけを受理し、human-review observationとsemantic auditを別collectionとして保持します。review provenanceも同じbundleへ残しますが、申告metadata自体を盲検やhuman authorshipの独立証明にはしません。synthetic reviewをH1 actual resumptionやProduct Valueへ昇格させません。
 
+H2 shared runnerのDecision regression testは、clean checkoutで次のcaptureから実行・Evidence保存できます。
+
+```text
+python3 tools/capture_issue_000073_h2_runner_selftest.py
+```
+
+captureはclean committed HEADとrequired sourceのHEAD blob一致を要求し、`test_decision_continuity_review_runner.py`のexit codeとstdout / stderrをmachine-readable recordへ固定します。既存recordの置換は`--replace`を明示した場合だけ許可します。
+
 2026-09-18の本Issue作業では、R1相当のphase1 materialがprovenance固定前に一度提示されましたが、human responseは固定されませんでした。この提示はH2 observationには数えません。同じreaderで後続reviewを行う場合は`known-material-exposure`として記録し、clean blinded reviewとは呼びません。
 
 ```text
@@ -365,7 +373,9 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 | H1 actual human review | **Not Yet Observed** |
 | H2 counterfactual human review | **Not Yet Observed** |
 | H2 provenance-first shared runner / evidence-export tooling | Available; init is exclusive-create and low-level packets/record bypass is rejected; current Decision manifest / 3 fixture / R1-R3 structural contract was re-audited on 2026-09-18 and an actual-repository integration test source was added; Python focused test execution is still Not Yet Verified; actual human session pending; prior R1 exposure is not a completed observation |
-| H2 shared runner Decision regression test | Source available; **actual PASS Not Yet Verified in this work session** |
+| H2 shared runner Decision regression test | Source available; current repository integration case included; **actual PASS Not Yet Verified** |
+| H2 Decision regression Evidence capture workflow self-test | **PASS on current source (2026-09-18); machine-readable Evidence recorded** |
+| H2 shared runner Decision regression actual capture | **Not Yet Verified** |
 | Decision Continuity Product Value | **Not Established** |
 | Operational Evidence | **Not Yet Verified** |
 | Adoption / Outcome Evidence | **Not Yet Verified** |
@@ -379,10 +389,11 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 1. Go 1.25.xを利用できるclean checkoutで`capture_issue_000073_resume_first_evidence.py`をactual実行する。
 2. captureが保存したrunner / verification recordについて、recorded tested commit / source blobs / E1〜E8結果を確認する。
 3. actual Evidenceを保存し、REQ-0023 / SCN-0019を含むEvidence状態を再監査する。
-4. materialなpre-orientation exposureのないreal InquiryでH1 actual resumptionを実施する。
-5. H2 matched reviewをprovenance-first shared runnerからhuman readerで少なくとも一rotation実施し、completed sessionからevidence bundleをexportする。既知の事前露出があるreaderはその事実を保持し、clean blinded扱いにしない。
-6. capture / review overheadをH1のreal Inquiryと合わせて読む。
-7. human observationを踏まえて、残るCandidate RequirementとDecision Continuity Product hypothesisを再評価する。
+4. clean checkoutで`capture_issue_000073_h2_runner_selftest.py`をactual実行し、Decision H2 shared runner regressionのmachine-readable Evidenceを得る。
+5. materialなpre-orientation exposureのないreal InquiryでH1 actual resumptionを実施する。
+6. H2 matched reviewをprovenance-first shared runnerからhuman readerで少なくとも一rotation実施し、completed sessionからevidence bundleをexportする。既知の事前露出があるreaderはその事実を保持し、clean blinded扱いにしない。
+7. capture / review overheadをH1のreal Inquiryと合わせて読む。
+8. human observationを踏まえて、残るCandidate RequirementとDecision Continuity Product hypothesisを再評価する。
 
 実行環境がないことを理由に、Go 1.23.x等の低いtoolchainで代替PASSを作らないことを優先します。human reviewについても、synthetic回答や事前露出済みの記憶をactual resumptionへ読み替えません。
 
@@ -397,6 +408,8 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 同日の実行環境確認では、host Goが1.23.2であることに加え、`GOTOOLCHAIN=go1.25.0+auto`によるGo 1.25.0取得も外向きDNS / network制限で成立しないことをactualに確認しました。このblockerをinteractionprobeのFAILとは扱わず、低いGoで代替PASSを作らない停止線を維持しています。
 
 H1は既存dogfood stateとevaluation sidecarを利用し、real Inquiryのactual resumptionだけを観測します。H1専用のschemaやsession managerは増やしていません。H2は既存matched review基盤を利用し、073/078共通のreview runnerでstimulus提示前にreviewer provenanceを固定してからbundleを提示し、completed sessionのEvidence exportまで同じ経路を使います。2026-09-18にprovenance固定前のR1 material提示が一度発生したため、その提示を受けたreaderの後続sessionはknown exposureとして扱い、回答未固定の提示そのものはhuman Evidenceへ数えない停止線を追加しました。
+
+同日、H2 shared runnerのDecision regression testをclean HEAD / source binding付きでactual実行できるcapture toolを追加しました。capture workflow自体のsynthetic self-testはactual PASSし、source blob / SHA-256 / Python / Git環境とともにmachine-readable Evidenceへ固定しています。ただし、このPASSはcapture workflowだけのExecutable Evidenceであり、Decision regression test本体のactual PASSやH2 human observationではありません。
 
 これにより、実行準備文書からmachine EvidenceとH1 / H2へ進む経路は一本化しつつ、environment blockerとrepository failure、real Inquiryとsynthetic matched review、human observationとsemantic audit、mechanicsとProduct Valueの意味差を維持しました。
 

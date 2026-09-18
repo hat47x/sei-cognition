@@ -213,6 +213,9 @@ Question 5、6、9については、Requirement auditとREQ-0023 / SCN-0019のfo
 - REQ-0023 / SCN-0019 Executable Evidence: **Not Yet Verified**
 - H1 resume usability review: **Not Yet Observed**
 - H2 counterfactual Decision Continuity review: **Not Yet Observed**。073/078共通runnerでreviewer provenanceをstimulus提示前に固定し、Decision固有validationとEvidence exportまで同じ経路へ統合済み。current Decision manifest / 3 fixture / R1〜R3のstatic source auditは整合し、actual repository integration test sourceも追加済みだが、Python focused test execution自体は**Not Yet Verified**
+- `tools/capture_issue_000073_h2_runner_selftest.py`: H2 shared runner Decision regression testをclean HEAD / source binding付きでEvidence化するcapture入口あり
+- H2 runner capture workflow self-test: **PASS on current source (2026-09-18); machine-readable Evidence recorded**
+- H2 shared runner Decision regression actual capture: **Not Yet Verified**
 - Decision Continuity Product Value: **Not Established**
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
@@ -224,6 +227,7 @@ Evidence受入れ経路のactual self-test結果は、次のmachine-readable Evi
 ```text
 evaluation/personal-inquiry-decision/evidence/issue-000073/runner-verifier-selftests-2026-09-18.json
 evaluation/personal-inquiry-decision/evidence/issue-000073/capture-workflow-selftest-2026-09-18.json
+evaluation/personal-inquiry-decision/evidence/issue-000073/h2-runner-capture-selftest-2026-09-18.json
 ```
 
 これらはrunner / verifier / captureの受入れ系に限定したExecutable Evidenceであり、E1〜E8 actual Go Evidenceではない。currentの実行手順とblocker詳細は`evaluation/personal-inquiry-decision/DECISION_CONTINUITY_EXECUTION_READINESS_2026-09-16.md`をcurrent-state正本として参照する。
@@ -231,6 +235,8 @@ evaluation/personal-inquiry-decision/evidence/issue-000073/capture-workflow-self
 H2については2026-09-18に実行経路を再監査し、`inquiry_continuity_review_runner.py`を073/078共通のprovenance-first入口としてDecision Continuityにも対応させた。reviewer provenanceを固定しないsessionからreviewer bundleを開かず、condition labelをreviewerへ出さず、Decision固有response validationを通したcomplete sessionだけをEvidence exportへ進める。
 
 同じ日にcurrent Decision manifestと3 fixtureを正本bytesから再照合し、Decision参照、historical basis、unresolved、post-decision id、condition割当、R1〜R3 rotationの構造整合をstatic source auditとして確認した。さらにcurrent repositoryのmanifest / fixtureを共有runnerから直接開くintegration test sourceを追加した。ただし、このauditとtest sourceの存在はPython test actual PASSではない。
+
+同じDecision regression testをactual checkoutで再現可能なEvidenceへ落とすため、`capture_issue_000073_h2_runner_selftest.py`を追加した。captureはclean committed HEAD、required sourceのHEAD blob一致、正確なtest commandを固定し、test failureをPASSへ昇格させない。capture workflow自体のsynthetic self-testはactualにPASSしmachine-readable Evidenceへ固定済みだが、**Decision regression test本体のactual captureはNot Yet Verified**のままとする。
 
 同日の作業過程では、R1相当のphase1 materialがこの境界を追加する前に一度提示されたが、human responseは固定されなかった。この提示をH2 observationへは数えず、同じreaderが後続reviewを行う場合は`known-material-exposure`として扱う。clean blinded pilotが必要なら、当該materialへ未露出のreaderを用いる。
 
@@ -415,6 +421,8 @@ python3 tools/test_run_issue_000073_resume_first_evidence.py
 python3 tools/test_verify_issue_000073_resume_first_evidence.py
 python3 tools/test_capture_issue_000073_resume_first_evidence.py
 python3 tools/capture_issue_000073_resume_first_evidence.py
+python3 tools/test_capture_issue_000073_h2_runner_selftest.py
+python3 tools/capture_issue_000073_h2_runner_selftest.py
 python3 evaluation/personal-inquiry-decision/test_decision_continuity_review_runner.py
 ```
 
@@ -431,7 +439,9 @@ runner / captureはclean committed HEAD、required sourceとHEAD blobの一致�
 
 runner preflight / verifier / capture workflowについては、current sourceに対する2026-09-18 actual self-test PASSをmachine-readable Evidenceへ固定済みである。ただしこれはEvidence受入れ経路の検証であり、Go 1.25.xで`interactionprobe`を実行したEvidenceへは昇格させない。
 
-H2 shared runnerのDecision経路には`test_decision_continuity_review_runner.py`があり、blinding、declared provenance、stage gate、Decision固有response validation、Evidence layer分離を回帰test sourceとして固定している。この作業セッションではそのactual test PASSを確認できるrepository checkout / CI Evidenceがないため、**source available / actual PASS Not Yet Verified**として扱う。
+H2 shared runnerのDecision経路には`test_decision_continuity_review_runner.py`があり、blinding、declared provenance、stage gate、Decision固有response validation、Evidence layer分離に加え、current repository manifest / fixtureを直接開くintegration caseも回帰test sourceとして固定している。
+
+2026-09-18に`capture_issue_000073_h2_runner_selftest.py`と、そのfail-closed self-testを追加した。captureはclean committed HEAD、required sourceのHEAD一致、正確なDecision regression test commandを固定し、test failureをPASSへ昇格させない。capture workflow self-testはactualにPASSしmachine-readable Evidenceへ固定したが、**Decision regression test本体のactual captureはNot Yet Verified**のままとする。
 
 ```text
 runner / verifier / capture exists
@@ -459,5 +469,7 @@ Product Value、Decision Continuity synthesis、Value Model V1〜V8、Product Sh
 2026-09-17には、E1〜E8の実行入口をrunner単体からrunner / verifier / one-command captureのcurrent implementationへ同期した。2026-09-18にはEvidence受入れ経路のcurrent sourceをactualに再実行し、runner preflight、verifier、capture workflowのself-testをいずれもPASSとしてmachine-readable Evidenceへ固定した。同日Go 1.25.x取得経路も再確認したが、current execution environmentではhost Go 1.23.2かつ外向きDNS / network制限が継続しているためactual E1〜E8 runは未取得である。
 
 H2についても同日、073専用の別runnerを増やさず、既存Inquiry Continuity review runnerをDecision manifestへ対応させた。reviewer provenance、stage gate、Decision固有validation、Evidence exportを一つの経路へ収束させ、provenance固定前に提示されたR1 materialは回答未固定のprotocol exposureとしてのみ扱う。H1 / H2ともactual human observationがないためNot Yet Observedのまま保持する。
+
+同日の後続監査ではcurrent manifest / fixtureのstatic整合とactual-repository integration test sourceまで確認し、そのfocused Python testをclean HEAD / source binding付きでEvidence化するcapture入口も追加した。capture workflow self-testのPASSは受入れ経路だけのExecutable Evidenceであり、Decision regression actual PASSやH2 human observationへは昇格させない。
 
 SEIのsemantic integrityが高いだけではProduct Valueとせず、historical誤帰属、Recommendation / Decision混同、再構成負担を実際に減らし、その利益がcapture / review overheadを上回るかまでを見る。価値差がない結果もProduct hypothesisを修正する正当なEvidenceとして扱う。意味、要求強度、留保、Evidenceの高さを固定したうえで自然な日本語として読み直し、最終意味監査を実施した。
