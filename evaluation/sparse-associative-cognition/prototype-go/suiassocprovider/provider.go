@@ -102,11 +102,23 @@ type Evidence struct {
 	MatchedChannelRefs []string `json:"matchedChannelRefs"`
 }
 
+// FeatureNormalizationMode controls evaluation-only input reweighting.
+// The default keeps the current provider behavior unchanged.
+type FeatureNormalizationMode uint8
+
+const (
+	FeatureNormalizationNone FeatureNormalizationMode = iota
+	FeatureNormalizationExactChannel
+	FeatureNormalizationFamily
+)
+
 type Config struct {
 	Sparse                sparseassoc.Config
 	MinInternalSimilarity float32
 	ProviderID            string
 	ImplementationVersion string
+	FeatureNormalization  FeatureNormalizationMode
+	NormalizationFloor    float32
 }
 
 type Provider struct {
@@ -125,6 +137,15 @@ func New(cfg Config) (*Provider, error) {
 	}
 	if strings.TrimSpace(cfg.ImplementationVersion) == "" {
 		return nil, errors.New("implementation version must not be empty")
+	}
+	switch cfg.FeatureNormalization {
+	case FeatureNormalizationNone:
+	case FeatureNormalizationExactChannel, FeatureNormalizationFamily:
+		if cfg.NormalizationFloor <= 0 {
+			return nil, errors.New("normalization floor must be > 0 when normalization is enabled")
+		}
+	default:
+		return nil, errors.New("unsupported feature normalization mode")
 	}
 	return &Provider{cfg: cfg}, nil
 }
@@ -228,7 +249,11 @@ func (p *Provider) Handle(req Request) (Response, error) {
 
 	for _, item := range req.Items {
 		itemByRef[item.Ref] = item
-		sig := encoder.Encode(featuresForItem(item))
+		features, err := p.preparedFeatures(item)
+		if err != nil {
+			return Response{}, err
+		}
+		sig := encoder.Encode(features)
 		if _, anchor := anchorSet[item.Ref]; anchor {
 			anchorSignatures = append(anchorSignatures, sig)
 			continue
@@ -297,6 +322,64 @@ func (p *Provider) providerInfo() ProviderInfo {
 	return ProviderInfo{
 		ProviderID:            p.cfg.ProviderID,
 		ImplementationVersion: p.cfg.ImplementationVersion,
+	}
+}
+
+func (p *Provider) preparedFeatures(item Item) ([]sparseassoc.Feature, error) {
+	features := featuresForItem(item)
+	switch p.cfg.FeatureNormalization {
+	case FeatureNormalizationNone:
+		return features, nil
+	case FeatureNormalizationExactChannel:
+		return sparseassoc.NormalizeFeatures(features, sparseassoc.NormalizationConfig{
+			Mode:             sparseassoc.NormalizationPerChannel,
+			DenominatorFloor: p.cfg.NormalizationFloor,
+		})
+	case FeatureNormalizationFamily:
+		return normalizeFeaturesByFamily(features, p.cfg.NormalizationFloor), nil
+	default:
+		return nil, errors.New("unsupported feature normalization mode")
+	}
+}
+
+// normalizeFeaturesByFamily keeps each feature's original Channel and Key for
+// hashing/provenance, and uses caller-owned families only to compute divisors.
+func normalizeFeaturesByFamily(features []sparseassoc.Feature, denominatorFloor float32) []sparseassoc.Feature {
+	out := append([]sparseassoc.Feature(nil), features...)
+	totals := make(map[string]float32)
+	for _, feature := range features {
+		if feature.Weight <= 0 || feature.Key == "" {
+			continue
+		}
+		totals[featureFamily(feature.Channel)] += feature.Weight
+	}
+	for i := range out {
+		if out[i].Weight <= 0 || out[i].Key == "" {
+			continue
+		}
+		denominator := totals[featureFamily(out[i].Channel)]
+		if denominator < denominatorFloor {
+			denominator = denominatorFloor
+		}
+		out[i].Weight /= denominator
+	}
+	return out
+}
+
+func featureFamily(channel string) string {
+	switch {
+	case channel == "kind":
+		return "kind"
+	case channel == "text":
+		return "text"
+	case strings.HasPrefix(channel, "graph:"):
+		return "graph"
+	case strings.HasPrefix(channel, "provenance:"):
+		return "provenance"
+	case strings.HasPrefix(channel, "grouping:"):
+		return "grouping"
+	default:
+		return channel
 	}
 }
 
