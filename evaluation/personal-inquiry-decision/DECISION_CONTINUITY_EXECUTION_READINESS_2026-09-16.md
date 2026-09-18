@@ -361,6 +361,7 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 | H1 actual human review | **Not Yet Observed** |
 | H2 counterfactual human review | **Not Yet Observed** |
 | H2 provenance-first shared runner / evidence-export tooling | Available; init is exclusive-create and low-level packets/record bypass is rejected; actual human session pending; prior R1 exposure is not a completed observation |
+| H2 shared runner Decision regression test | Source available; **actual PASS Not Yet Verified in this work session** |
 | Decision Continuity Product Value | **Not Established** |
 | Operational Evidence | **Not Yet Verified** |
 | Adoption / Outcome Evidence | **Not Yet Verified** |
