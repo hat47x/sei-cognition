@@ -27,6 +27,7 @@ from inquiry_continuity_summary_distortion_evidence import (
     evidence_contract_summary,
     save_bundle,
     validate_audit_response,
+    validate_evidence_bundle,
 )
 
 
@@ -202,6 +203,23 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
         }
         value["notes"] = "one omission remained"
         return value
+
+    def valid_bundle(self) -> dict:
+        audit = self.valid_audit()
+        audit_path = self.root / "valid-audit.json"
+        audit_path.write_text(
+            json.dumps(audit, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        return build_evidence_bundle(
+            self.probe,
+            self.fixtures,
+            self.fixture_id,
+            self.human_path,
+            self.review_receipt_path,
+            self.receipt_path,
+            audit_path,
+        )
 
     def test_preflight_exposes_v1_artifact_contract_without_review_artifacts(self):
         summary = evidence_contract_summary(
@@ -487,13 +505,59 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
                 audit_path,
             )
 
+    def test_validate_bundle_rejects_tampered_boundaries_and_findings(self):
+        bundle = self.valid_bundle()
+        validate_evidence_bundle(bundle)
+
+        changed = copy.deepcopy(bundle)
+        changed["evidence_boundaries"]["product_value"] = "established"
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_evidence_bundle(changed)
+
+        changed = copy.deepcopy(bundle)
+        changed["semantic_audit"]["findings"]["correction_burden"] = "pass"
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_evidence_bundle(changed)
+
+        changed = copy.deepcopy(bundle)
+        changed["audit_reveal"]["review_start_receipt_sha256"] = "b" * 64
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_evidence_bundle(changed)
+
+    def test_validate_bundle_rejects_provenance_and_boundary_shape_tampering(self):
+        bundle = self.valid_bundle()
+
+        changed = copy.deepcopy(bundle)
+        changed["review_start"]["prior_exposure"] = "clean"
+        changed["review_provenance"]["prior_exposure"] = "clean"
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_evidence_bundle(changed)
+
+        changed = copy.deepcopy(bundle)
+        changed["evidence_boundaries"]["winner"] = "condition-c"
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_evidence_bundle(changed)
+
+        changed = copy.deepcopy(bundle)
+        changed["source_snapshot"]["path"] = "../../outside.json"
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_evidence_bundle(changed)
+
+    def test_save_bundle_rejects_tampered_bundle_before_persistence(self):
+        target = self.root / "tampered-evidence.json"
+        bundle = self.valid_bundle()
+        bundle["probe_snapshot"]["content_sha256"] = "not-a-digest"
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            save_bundle(target, bundle)
+        self.assertFalse(target.exists())
+
     def test_save_bundle_never_overwrites_existing_evidence(self):
         target = self.root / "evidence.json"
-        bundle = {"schema": EVIDENCE_SCHEMA}
+        bundle = self.valid_bundle()
         save_bundle(target, bundle)
         original = target.read_text(encoding="utf-8")
         with self.assertRaises(SummaryDistortionEvidenceError):
-            save_bundle(target, {"schema": "changed"})
+            save_bundle(target, bundle)
         self.assertEqual(target.read_text(encoding="utf-8"), original)
 
 
