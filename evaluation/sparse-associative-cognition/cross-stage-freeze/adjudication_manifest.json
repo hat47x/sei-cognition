@@ -1,0 +1,11 @@
+{
+  "schema": "sei.sacs-cross-stage-adjudication-manifest/v1alpha1",
+  "state": "draft",
+  "frozen_at": null,
+  "dataset_digest": "",
+  "adjudication_policy_version": "v1alpha1",
+  "reviewer_refs": [],
+  "judgments": [],
+  "unresolved": [],
+  "manifest_digest": ""
+}
