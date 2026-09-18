@@ -21,6 +21,8 @@ from typing import Any
 from inquiry_continuity_summary_distortion_probe import (
     RESPONSE_AUTHORSHIP_VALUES,
     SummaryDistortionProbeError,
+    audit_material_sha256,
+    build_audit_material,
     load_audit_reveal_receipt,
     load_human_response,
     load_json,
@@ -253,12 +255,15 @@ def build_evidence_bundle(
     except SummaryDistortionProbeError as exc:
         raise SummaryDistortionEvidenceError(str(exc)) from exc
     fixed_human_response_sha256 = hashlib.sha256(human_raw).hexdigest()
+    material = build_audit_material(probe, fixtures, fixture_id)
+    material_digest = audit_material_sha256(material)
     try:
         receipt_value, receipt_raw = load_audit_reveal_receipt(
             audit_reveal_receipt_path,
             probe,
             fixture_id,
             fixed_human_response_sha256,
+            material_digest,
         )
     except SummaryDistortionProbeError as exc:
         raise SummaryDistortionEvidenceError(str(exc)) from exc
@@ -301,6 +306,7 @@ def build_evidence_bundle(
         ),
         "audit_reveal": {
             "receipt_sha256": audit_reveal_receipt_sha256,
+            "audit_material_sha256": material_digest,
             "revealed_at": receipt_value["revealed_at"],
             "boundary": (
                 "machine-generated receipt persisted before audit/reference "
@@ -404,12 +410,15 @@ def main(argv: list[str] | None = None) -> int:
     except SummaryDistortionProbeError as exc:
         raise SummaryDistortionEvidenceError(str(exc)) from exc
     fixed_human_response_sha256 = hashlib.sha256(human_raw).hexdigest()
+    material = build_audit_material(probe, fixtures, args.fixture_id)
+    material_digest = audit_material_sha256(material)
     try:
         receipt_value, receipt_raw = load_audit_reveal_receipt(
             args.receipt,
             probe,
             args.fixture_id,
             fixed_human_response_sha256,
+            material_digest,
         )
     except SummaryDistortionProbeError as exc:
         raise SummaryDistortionEvidenceError(str(exc)) from exc

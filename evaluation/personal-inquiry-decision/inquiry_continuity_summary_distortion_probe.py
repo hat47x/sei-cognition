@@ -383,16 +383,61 @@ def _parse_timestamp(value: Any, field: str) -> datetime:
     return parsed.astimezone(timezone.utc)
 
 
+def build_audit_material(
+    probe: dict[str, Any],
+    fixtures: dict[str, dict[str, Any]],
+    fixture_id: str,
+) -> dict[str, Any]:
+    """Build the exact reference material that will be revealed at audit stage."""
+    case, fixture = _case(probe, fixture_id), fixtures[fixture_id]
+    return {
+        "distortion_key": case["distortion_key"],
+        "reference_state": fixture["reference_state"],
+        "post_interruption_evidence": fixture["scenario"][
+            "post_interruption_evidence"
+        ],
+        "audit_dimensions": probe["audit_dimensions"],
+        "evidence_boundary": probe["evidence_boundary"],
+        "interpretation_stoplines": probe["interpretation_stoplines"],
+        "semantic_stopline": probe["semantic_stopline"],
+    }
+
+
+def audit_material_sha256(material: dict[str, Any]) -> str:
+    payload = json.dumps(
+        material,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def audit_reveal_receipt_bytes(receipt: dict[str, Any]) -> bytes:
+    return (
+        json.dumps(receipt, ensure_ascii=False, indent=2) + "\n"
+    ).encode("utf-8")
+
+
 def build_audit_reveal_receipt(
     probe: dict[str, Any],
     fixture_id: str,
     response: str | Path,
+    audit_material_digest: str,
     revealed_at: str,
 ) -> dict[str, Any]:
     """Bind the fixed response before audit/reference material is emitted."""
     validate_probe(probe)
     _case(probe, fixture_id)
     _, raw = load_human_response(response, probe)
+    if (
+        not isinstance(audit_material_digest, str)
+        or len(audit_material_digest) != 64
+        or any(c not in "0123456789abcdef" for c in audit_material_digest)
+    ):
+        raise SummaryDistortionProbeError(
+            "audit_material_digest must be a lowercase SHA-256 hex digest"
+        )
     _parse_timestamp(revealed_at, "revealed_at")
     return {
         "schema": AUDIT_REVEAL_RECEIPT_SCHEMA,
@@ -401,6 +446,7 @@ def build_audit_reveal_receipt(
         "fixture_id": fixture_id,
         "probe_sha256": probe_content_sha256(probe),
         "fixed_human_response_sha256": hashlib.sha256(raw).hexdigest(),
+        "audit_material_sha256": audit_material_digest,
         "revealed_at": revealed_at,
     }
 
@@ -411,9 +457,9 @@ def save_audit_reveal_receipt(
 ) -> None:
     """Persist the reveal boundary before returning audit material."""
     target = Path(path)
-    payload = json.dumps(receipt, ensure_ascii=False, indent=2) + "\n"
+    payload = audit_reveal_receipt_bytes(receipt)
     try:
-        with target.open("x", encoding="utf-8") as handle:
+        with target.open("xb") as handle:
             handle.write(payload)
             handle.flush()
             os.fsync(handle.fileno())
@@ -423,26 +469,13 @@ def save_audit_reveal_receipt(
         ) from exc
 
 
-def load_audit_reveal_receipt(
-    path: str | Path,
+def validate_audit_reveal_receipt(
+    value: Any,
     probe: dict[str, Any],
     fixture_id: str,
     fixed_human_response_sha256: str,
-) -> tuple[dict[str, Any], bytes]:
-    try:
-        raw = Path(path).read_bytes()
-    except OSError as exc:
-        raise SummaryDistortionProbeError(
-            f"cannot load audit-reveal receipt: {path}"
-        ) from exc
-    if not raw.strip():
-        raise SummaryDistortionProbeError("audit-reveal receipt must not be empty")
-    try:
-        value = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise SummaryDistortionProbeError(
-            "audit-reveal receipt must be valid UTF-8 JSON"
-        ) from exc
+    expected_audit_material_sha256: str,
+) -> None:
     required = {
         "schema",
         "status",
@@ -450,6 +483,7 @@ def load_audit_reveal_receipt(
         "fixture_id",
         "probe_sha256",
         "fixed_human_response_sha256",
+        "audit_material_sha256",
         "revealed_at",
     }
     if not isinstance(value, dict) or set(value) != required:
@@ -476,7 +510,41 @@ def load_audit_reveal_receipt(
         raise SummaryDistortionProbeError(
             "audit-reveal receipt is bound to a different human response"
         )
+    if value["audit_material_sha256"] != expected_audit_material_sha256:
+        raise SummaryDistortionProbeError(
+            "audit-reveal receipt is bound to different audit material"
+        )
     _parse_timestamp(value["revealed_at"], "revealed_at")
+
+
+def load_audit_reveal_receipt(
+    path: str | Path,
+    probe: dict[str, Any],
+    fixture_id: str,
+    fixed_human_response_sha256: str,
+    expected_audit_material_sha256: str,
+) -> tuple[dict[str, Any], bytes]:
+    try:
+        raw = Path(path).read_bytes()
+    except OSError as exc:
+        raise SummaryDistortionProbeError(
+            f"cannot load audit-reveal receipt: {path}"
+        ) from exc
+    if not raw.strip():
+        raise SummaryDistortionProbeError("audit-reveal receipt must not be empty")
+    try:
+        value = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise SummaryDistortionProbeError(
+            "audit-reveal receipt must be valid UTF-8 JSON"
+        ) from exc
+    validate_audit_reveal_receipt(
+        value,
+        probe,
+        fixture_id,
+        fixed_human_response_sha256,
+        expected_audit_material_sha256,
+    )
     return value, raw
 
 
@@ -511,22 +579,25 @@ def build_review_packet(
     }
 
 
-def build_audit_packet(
+def build_audit_packet_from_receipt(
     probe: dict[str, Any],
     fixtures: dict[str, dict[str, Any]],
     fixture_id: str,
     response: str | Path,
-    receipt: str | Path,
+    receipt_value: dict[str, Any],
+    receipt_raw: bytes,
 ) -> dict[str, Any]:
     response_value, raw = load_human_response(response, probe)
     fixed = hashlib.sha256(raw).hexdigest()
-    receipt_value, receipt_raw = load_audit_reveal_receipt(
-        receipt,
+    material = build_audit_material(probe, fixtures, fixture_id)
+    material_digest = audit_material_sha256(material)
+    validate_audit_reveal_receipt(
+        receipt_value,
         probe,
         fixture_id,
         fixed,
+        material_digest,
     )
-    case, fixture = _case(probe, fixture_id), fixtures[fixture_id]
     return {
         "schema": PACKET_SCHEMA,
         "status": "evaluation-only",
@@ -535,6 +606,7 @@ def build_audit_packet(
         "probe_sha256": probe_content_sha256(probe),
         "stage": "audit",
         "fixed_human_response_sha256": fixed,
+        "audit_material_sha256": material_digest,
         "audit_reveal_receipt_sha256": hashlib.sha256(receipt_raw).hexdigest(),
         "audit_revealed_at": receipt_value["revealed_at"],
         "review_provenance": dict(response_value["review_provenance"]),
@@ -544,16 +616,36 @@ def build_audit_packet(
             "evaluation metadata; they are not independent proof of blinding "
             "or human authorship"
         ),
-        "distortion_key": case["distortion_key"],
-        "reference_state": fixture["reference_state"],
-        "post_interruption_evidence": fixture["scenario"][
-            "post_interruption_evidence"
-        ],
-        "audit_dimensions": probe["audit_dimensions"],
-        "evidence_boundary": probe["evidence_boundary"],
-        "interpretation_stoplines": probe["interpretation_stoplines"],
-        "semantic_stopline": probe["semantic_stopline"],
+        **material,
     }
+
+
+def build_audit_packet(
+    probe: dict[str, Any],
+    fixtures: dict[str, dict[str, Any]],
+    fixture_id: str,
+    response: str | Path,
+    receipt: str | Path,
+) -> dict[str, Any]:
+    _, raw = load_human_response(response, probe)
+    fixed = hashlib.sha256(raw).hexdigest()
+    material = build_audit_material(probe, fixtures, fixture_id)
+    material_digest = audit_material_sha256(material)
+    receipt_value, receipt_raw = load_audit_reveal_receipt(
+        receipt,
+        probe,
+        fixture_id,
+        fixed,
+        material_digest,
+    )
+    return build_audit_packet_from_receipt(
+        probe,
+        fixtures,
+        fixture_id,
+        response,
+        receipt_value,
+        receipt_raw,
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -596,6 +688,12 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "review":
             result = build_review_packet(probe, fixtures, args.fixture_id)
         elif args.command == "audit":
+            material = build_audit_material(
+                probe,
+                fixtures,
+                args.fixture_id,
+            )
+            material_digest = audit_material_sha256(material)
             revealed_at = datetime.now(timezone.utc).isoformat().replace(
                 "+00:00", "Z"
             )
@@ -603,16 +701,19 @@ def main(argv: list[str] | None = None) -> int:
                 probe,
                 args.fixture_id,
                 args.response,
+                material_digest,
                 revealed_at,
             )
-            save_audit_reveal_receipt(args.receipt, receipt)
-            result = build_audit_packet(
+            receipt_raw = audit_reveal_receipt_bytes(receipt)
+            result = build_audit_packet_from_receipt(
                 probe,
                 fixtures,
                 args.fixture_id,
                 args.response,
-                args.receipt,
+                receipt,
+                receipt_raw,
             )
+            save_audit_reveal_receipt(args.receipt, receipt)
         else:
             raise AssertionError(f"unhandled command: {args.command}")
     print(json.dumps(result, ensure_ascii=False, indent=2))

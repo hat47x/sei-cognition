@@ -8,6 +8,8 @@ import unittest
 from pathlib import Path
 
 from inquiry_continuity_summary_distortion_probe import (
+    audit_material_sha256,
+    build_audit_material,
     build_audit_reveal_receipt,
     probe_content_sha256,
     save_audit_reveal_receipt,
@@ -110,10 +112,17 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
         )
         self.human_sha = hashlib.sha256(self.human_path.read_bytes()).hexdigest()
         self.receipt_path = self.root / "receipt.json"
+        self.audit_material = build_audit_material(
+            self.probe,
+            self.fixtures,
+            self.fixture_id,
+        )
+        self.audit_material_sha = audit_material_sha256(self.audit_material)
         receipt = build_audit_reveal_receipt(
             self.probe,
             self.fixture_id,
             self.human_path,
+            self.audit_material_sha,
             "2026-09-17T09:29:00Z",
         )
         save_audit_reveal_receipt(self.receipt_path, receipt)
@@ -281,6 +290,10 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
             self.receipt_sha,
         )
         self.assertEqual(
+            bundle["audit_reveal"]["audit_material_sha256"],
+            self.audit_material_sha,
+        )
+        self.assertEqual(
             bundle["audit_reveal"]["revealed_at"],
             "2026-09-17T09:29:00Z",
         )
@@ -311,6 +324,22 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
                 self.fixtures,
                 self.fixture_id,
                 self.human_path,
+                audit_path,
+            )
+
+    def test_bundle_rejects_material_changed_after_reveal_receipt(self):
+        audit = self.valid_audit()
+        audit_path = self.root / "audit.json"
+        audit_path.write_text(json.dumps(audit), encoding="utf-8")
+        changed = copy.deepcopy(self.fixtures)
+        changed[self.fixture_id]["reference_state"] = {"changed": True}
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            build_evidence_bundle(
+                self.probe,
+                changed,
+                self.fixture_id,
+                self.human_path,
+                self.receipt_path,
                 audit_path,
             )
 

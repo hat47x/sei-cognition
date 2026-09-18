@@ -12,6 +12,8 @@ from inquiry_continuity_summary_distortion_probe import (
     REQUIRED_KINDS,
     RESPONSE_SCHEMA,
     SummaryDistortionProbeError,
+    audit_material_sha256,
+    build_audit_material,
     build_audit_packet,
     build_audit_reveal_receipt,
     build_review_packet,
@@ -277,10 +279,16 @@ class SummaryDistortionProbeTest(unittest.TestCase):
         value = self.valid_response()
         response.write_text(json.dumps(value), encoding="utf-8")
         receipt_path = self.root / "receipt.json"
+        material = build_audit_material(
+            self.probe,
+            {self.fixture_id: fixture},
+            self.fixture_id,
+        )
         receipt = build_audit_reveal_receipt(
             self.probe,
             self.fixture_id,
             response,
+            audit_material_sha256(material),
             "2026-09-18T02:55:00Z",
         )
         save_audit_reveal_receipt(receipt_path, receipt)
@@ -300,6 +308,10 @@ class SummaryDistortionProbeTest(unittest.TestCase):
         self.assertEqual(
             packet["audit_reveal_receipt_sha256"],
             hashlib.sha256(receipt_path.read_bytes()).hexdigest(),
+        )
+        self.assertEqual(
+            packet["audit_material_sha256"],
+            audit_material_sha256(material),
         )
         self.assertEqual(
             packet["probe_sha256"],
@@ -325,10 +337,19 @@ class SummaryDistortionProbeTest(unittest.TestCase):
     def test_audit_reveal_receipt_never_overwrites(self):
         response = self.root / "response.json"
         response.write_text(json.dumps(self.valid_response()), encoding="utf-8")
+        fixture = json.loads(
+            self.fixture_path.read_text(encoding="utf-8")
+        )
+        material = build_audit_material(
+            self.probe,
+            {self.fixture_id: fixture},
+            self.fixture_id,
+        )
         receipt = build_audit_reveal_receipt(
             self.probe,
             self.fixture_id,
             response,
+            audit_material_sha256(material),
             "2026-09-18T02:55:00Z",
         )
         target = self.root / "receipt.json"
@@ -337,6 +358,37 @@ class SummaryDistortionProbeTest(unittest.TestCase):
         with self.assertRaises(SummaryDistortionProbeError):
             save_audit_reveal_receipt(target, receipt)
         self.assertEqual(target.read_text(encoding="utf-8"), original)
+
+    def test_receipt_rejects_changed_audit_material(self):
+        fixture = json.loads(
+            self.fixture_path.read_text(encoding="utf-8")
+        )
+        response = self.root / "response.json"
+        response.write_text(json.dumps(self.valid_response()), encoding="utf-8")
+        material = build_audit_material(
+            self.probe,
+            {self.fixture_id: fixture},
+            self.fixture_id,
+        )
+        receipt = build_audit_reveal_receipt(
+            self.probe,
+            self.fixture_id,
+            response,
+            audit_material_sha256(material),
+            "2026-09-18T02:55:00Z",
+        )
+        target = self.root / "receipt.json"
+        save_audit_reveal_receipt(target, receipt)
+        changed = copy.deepcopy(fixture)
+        changed["reference_state"] = {"changed": True}
+        with self.assertRaises(SummaryDistortionProbeError):
+            build_audit_packet(
+                self.probe,
+                {self.fixture_id: changed},
+                self.fixture_id,
+                response,
+                target,
+            )
 
     def test_response_hash_rejects_non_object(self):
         response = self.root / "response.json"
