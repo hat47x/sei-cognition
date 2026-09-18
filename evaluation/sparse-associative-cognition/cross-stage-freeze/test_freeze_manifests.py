@@ -152,6 +152,22 @@ class CrossStageFreezeManifestTests(unittest.TestCase):
             right["bundle"]["bundle_digest"],
         )
 
+    def test_freeze_rejects_mixed_draft_and_frozen_input(self) -> None:
+        docs = synthetic_draft()
+        docs["dataset"]["state"] = "frozen"
+        docs["dataset"]["frozen_at"] = "2026-09-18T00:00:00Z"
+        docs["dataset"]["dataset_digest"] = canonical_digest(
+            docs["dataset"], "dataset_digest"
+        )
+        with self.assertRaisesRegex(ValueError, "only draft manifests"):
+            freeze_documents(docs, "2026-09-18T00:00:00Z")
+
+    def test_freeze_rejects_stale_digest_in_draft(self) -> None:
+        docs = synthetic_draft()
+        docs["dataset"]["dataset_digest"] = "0" * 64
+        with self.assertRaisesRegex(ValueError, "must be empty while draft"):
+            freeze_documents(docs, "2026-09-18T00:00:00Z")
+
     def test_dataset_digest_detects_post_freeze_mutation(self) -> None:
         frozen = freeze_documents(synthetic_draft(), "2026-09-18T00:00:00Z")
         frozen["dataset"]["items"][0]["source_ref"] = "fixture:mutated"
