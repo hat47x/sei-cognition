@@ -526,8 +526,34 @@ Change 2はGate B Ready + Handover Baseline固定 + First Web Target着手、ま
 6. **完了:** Change 1をnative / TEI Referenceで比較し、semantic compatibilityは確認したがTEI leverageは未観測と記録する。
 7. **完了:** Change 1をExisting / Reference-localで十分、reusable extension不要、Native SEI authority継続、TEI Product gap未観測と分類する。
 8. **deferred:** Change 2はcurrent Gateではsurrogate Presentationを発明する危険があるため、Gate B / C再開条件を固定する。
-9. **現在:** Challenge BのEvidence / Governance SurfaceをTarget behaviorなしのmapping-onlyで監査する。
-10. Gate B / Cが進展した後、Change 2を実Application / Target能力で再開する。
+9. **完了:** Challenge BのEvidence / Governance SurfaceをTarget behaviorなしのmapping-onlyで監査する。
+10. **現在:** Stage 0のadoption postureをlimited / Reference-localとし、広い移管をdeferする。
+11. Gate B / Cが進展した後、Change 2を実Application / Target能力で再開する。
+
+## 15.1 Challenge B mappingと暫定adoption posture
+
+Evidence / Governanceについては、TEIのgeneric Evidence mechanicsとSEI固有Governanceを分離できた。
+
+Existing TEIとして利用できるのは、artifact integrity、provenance、subject / revision / build trace、secret-safe collection、異なるEvidence natureを相互代替しない境界である。
+
+SEIに残すのは、human observation / semantic auditの意味、review/reveal stage ordering、reviewer provenance declaration、Evidence高さ、Product Value / Requirement authorizationである。
+
+したがってStage 0後の採用姿勢は、
+
+```text
+Reference-local / generic Evidence mechanics
+  = usable
+
+broader Application Plane adoption
+  = deferred
+
+SEI semantic / governance authority
+  = native
+```
+
+とする。
+
+これはTEI-first方針の撤回ではない。現時点のEvidence高さに合わせ、実際にleverageを測れるTarget境界が成立するまで適用範囲を増やさないという判断である。
 
 ## 16. Natural Japanese review
 

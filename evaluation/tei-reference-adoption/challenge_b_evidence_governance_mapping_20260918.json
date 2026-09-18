@@ -1,0 +1,67 @@
+{
+  "schema": "sei.tei-reference-adoption-challenge-b-mapping-link/v1",
+  "recorded_at": "2026-09-18",
+  "issue": "ISSUE-000079",
+  "authority": "evaluation-only-cross-repository-reference",
+  "sei": {
+    "repository": "hat47x/sei-cognition",
+    "branch": "develop/v0.2.0",
+    "head_at_recording": "67045503ec6eab80d09eb138003273633e35ec7e"
+  },
+  "tei": {
+    "repository": "hat47x/tei-platform",
+    "main_head": "eb587a5aed06d24d6c813d2db4dd40d13286b5ca",
+    "mapping_path": "reference/sei-adoption/challenge-b-evidence-governance-mapping-20260918.json",
+    "mapping_git_blob_sha1": "5d52463c0fd6cf571c83d47a0013dcbdf1e4b097"
+  },
+  "classification": {
+    "existing_tei": [
+      "non-Canonical Evidence artifact boundary",
+      "subject/revision/build/context traceability",
+      "artifact digest/fingerprint integrity",
+      "source provenance and processing trace",
+      "secret-safe Evidence collection",
+      "non-substitution of different Evidence natures"
+    ],
+    "native_sei_governance": [
+      "human reviewer observation vs semantic audit semantics",
+      "review-start fixation and reveal ordering",
+      "reviewer authorship and prior-exposure declarations",
+      "SEI Evidence-height interpretation",
+      "Product Value / Stable Requirement authorization"
+    ],
+    "reusable_extension_candidate": [
+      "Review / Diff Visualization"
+    ],
+    "deferred_target_behavior": [
+      "interactive Evidence / Governance Surface"
+    ]
+  },
+  "adoption_posture": {
+    "current": "limited-reference-local",
+    "broader_application_plane": "deferred-until-valid-target-evidence",
+    "rationale": [
+      "Change 1 showed semantic compatibility but no native-SEI change-amplification reduction",
+      "Stage 0 frozen cross-repository snapshot adds synchronization overhead",
+      "Change 2 cannot validly test Presentation leverage before Gate B/Handover/Gate C Target capability",
+      "Challenge B mapping reuses generic TEI Evidence mechanics but keeps SEI governance semantics native"
+    ]
+  },
+  "product_requirement_review": {
+    "new_stable_requirement": "no-change",
+    "new_universal_contract_field": "no-change",
+    "tei_core_gap_candidate": "not-observed",
+    "new_application_pattern_kind": "not-authorized",
+    "reusable_plugin": "candidate-only-not-authorized"
+  },
+  "next_evidence": [
+    "actual Gate B/Handover/First Target capability sufficient to re-enter Change 2",
+    "or independently justified reusable Review/Diff implementation pressure from multiple applications"
+  ],
+  "stop_lines": [
+    "limited-reference-local posture is not a permanent rejection of TEI-first",
+    "mapping compatibility is not Product Value",
+    "TEI generic Evidence mechanics do not own SEI review semantics",
+    "no Stable Requirement or Universal schema change follows from this mapping"
+  ]
+}

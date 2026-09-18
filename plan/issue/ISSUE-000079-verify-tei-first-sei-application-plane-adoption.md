@@ -383,11 +383,52 @@ new Pattern / Core gap
 
 再開条件は、Gate B Ready + Handover Baseline固定 + First Web Target着手、またはSEIと独立した根拠でtarget-neutral Presentation機構が成立することとする。
 
+## 2026-09-18 Challenge B mapping result
+
+Evidence / Governance SurfaceについてTarget behaviorを作らずmapping-only監査を行い、TEI側結果をmain `eb587a5aed06d24d6c813d2db4dd40d13286b5ca`へ統合した。
+
+- TEI mapping: `reference/sei-adoption/challenge-b-evidence-governance-mapping-20260918.json`
+- mapping blob: `5d52463c0fd6cf571c83d47a0013dcbdf1e4b097`
+- SEI link receipt: `evaluation/tei-reference-adoption/challenge_b_evidence_governance_mapping_20260918.json`
+
+再利用できるのは、non-Canonical Evidence artifact、subject / revision / build / context trace、fingerprint、source provenance、secret-safe collection、Evidence natureの非代替性といった**generic Evidence mechanics**である。
+
+一方、
+
+- human reviewer observation / semantic auditの意味分離
+- review開始条件とreveal順序
+- authorship / prior exposure declaration
+- SEI固有のEvidence高さ
+- Product Value / Stable Requirementへの昇格可否
+
+はSEI Governanceとして残す。TEIが将来表示しても意味authorityは取得しない。
+
+Review / Diff VisualizationはSUIとSEIで共通需要が見えるためreusable extension候補ではあるが、Target Evidenceがない現段階ではcandidateに留める。
+
+### 現時点の採用姿勢
+
+Stage 0全体から、現時点では**limited / Reference-local**とする。
+
+```text
+TEI-first
+  = candidate policy remains
+
+current actual adoption
+  = limited to Reference-local validation / generic Evidence mechanics
+
+broader SEI Application Plane migration
+  = deferred until valid Target evidence
+```
+
+理由は、Change 1でsemantic compatibilityは確認できたもののnative SEI比の負荷低減は観測されず、frozen snapshot同期負担が残り、Change 2はcurrent Gateでは正当なPresentation比較を実行できないためである。
+
+この判断から新Stable Requirement、Universal Contract field、Application Pattern kind、TEI Core gapは追加しない。
+
 ## Next step
 
-現在安全に進められるのは、Target behaviorを必要としない**Challenge B — Evidence / Governance Surfaceのmapping-only監査**である。ここではEvidenceの高さ、human observation / semantic audit分離、provenance / digest、secret-safe境界を既存TEI capabilityへ対応付ける。
+Challenge Bのmapping-only監査まで完了した。次の高情報量Evidenceは、TEI Gate B / Handover / First Targetが実Application PlaneをPressureできる状態になった後のChange 2再開、またはSUI / SEI双方から独立に成立したReview / Diff実装の再利用性Pressureである。
 
-新しいUI、Presentation IR、Pattern Kind、Stable Requirementは先取りしない。
+それまではReference専用のUI / Presentation surrogateを増やさず、SEIのheadless / native Product Value検証を独立に継続する。
 
 ## Natural Japanese review
 
