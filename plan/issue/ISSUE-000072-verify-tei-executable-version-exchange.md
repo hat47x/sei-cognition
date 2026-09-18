@@ -349,7 +349,10 @@ revision B current SEI Adapter live compatibility
 
 repository-sideで、actual開始前のacquisition / identity / purity / preflight / orchestrationと、actual後のResolution auditまでは実装済みである。E2とE3を同じ機会に実行できない場合も、E2 partialを保存し、strict再検証後にE3だけを後日resumeして同じcanonical report / Resolution auditへ戻せる。したがって次にEvidenceの高さを本質的に上げる作業は、synthetic hardeningの追加ではなくactual revision B E2である。
 
-2026-09-18時点では、GitHub connectorからrevision Bのexact commit/tree/blob identityは読めるが、private repository archiveまたはcredentialをこのexecution processへ渡すtransportは成立していない。これはsource identityのUnknownではなくexecution mechanism上の未成立であり、comparison axisやProduct semanticsへ取り込まない。
+2026-09-18時点では、GitHub connectorからrevision Bのexact commit/tree/blob identityは読める一方、private repository archiveまたはcredentialをこのexecution processへ渡すtransportは成立していない。同日のexecution environment実測では`Linux / x86_64`、`go1.23.2 linux/amd64`、Git 2.47.3であり、E2のplatformとexact Go条件自体は成立している。bootstrap / historical materialize shortcutは既存Evidenceどおりexact revision B identityへ一致しないため再利用しない。したがってcurrent blockerはsource identityのUnknownやtoolchain不足ではなく、**exact private sourceをexecution processへmaterializeするtransport**へ絞られる。これはexecution mechanism上の未成立であり、comparison axisやProduct semanticsへ取り込まない。
+
+machine-readable readiness observation:
+`runtime/evidence/tei-version-exchange-execution-route-recheck-20260918/observation.json`
 
 #316のStatic Evidenceにより、fixed-BはE2 build stageで停止する可能性が具体化した。しかしactual E2前に結論を先取りしない。
 
@@ -407,6 +410,7 @@ operator向けactual手順は次を正とする。
 - `runtime/evidence/tei-revision-b-static-cli-compile-contradiction-20260907/evidence.json`
 - `runtime/evidence/tei-revision-b-static-cli-compile-contradiction-20260907/README.md`
 - `runtime/evidence/tei-version-exchange-workflow-attempt8-20260918/observation.json`
+- `runtime/evidence/tei-version-exchange-execution-route-recheck-20260918/observation.json`
 
 ## Deliverables
 
