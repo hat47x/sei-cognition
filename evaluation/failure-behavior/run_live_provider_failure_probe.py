@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the opt-in actual GitHub Provider failure probes for ISSUE-000072.
+"""Run the opt-in actual GitHub Provider failure probes for ISSUE-000076.
 
 This runner requires an explicit --allow-live flag. It validates the two exact
 Go test cases from ``runtime/go/liveintegration`` by parsing ``go test -json``;
@@ -38,7 +38,7 @@ def sanitized_live_environment(source: dict[str, str] | None = None) -> dict[str
 
     environment = dict(os.environ if source is None else source)
     for key in tuple(environment):
-        if key.startswith("SEI_") or key.startswith("KJ_ATLAS_"):
+        if key.startswith(("SEI_", "SOZA_", "KJ_ATLAS_")):
             environment.pop(key, None)
 
     for key in (
