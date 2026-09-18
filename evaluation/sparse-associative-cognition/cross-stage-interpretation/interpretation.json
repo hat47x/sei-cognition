@@ -1,0 +1,30 @@
+{
+  "schema": "sei.sacs-cross-stage-interpretation/v1alpha1",
+  "issue": 480,
+  "state": "draft",
+  "interpretation_id": "cross-stage-interpretation-template",
+  "generated_at": null,
+  "result_binding": {
+    "ref": "../cross-stage-result/result.json",
+    "digest": ""
+  },
+  "analyst_provenance": {
+    "ref": "",
+    "commit": ""
+  },
+  "scope": {
+    "track": "",
+    "variant": "",
+    "capacity_profile": null,
+    "stress_policy": null
+  },
+  "findings": [],
+  "limitations": [],
+  "unresolved_questions": [],
+  "semantic_truth_claimed": false,
+  "variant_winner_declared": false,
+  "recommendation_generated": false,
+  "b5_decision_generated": false,
+  "production_default_changed": false,
+  "interpretation_digest": ""
+}
