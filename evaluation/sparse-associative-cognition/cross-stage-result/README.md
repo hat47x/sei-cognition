@@ -188,7 +188,40 @@ completed validationでは、resultだけでなく、
 
 を再検証する。
 
-## 11. 停止線
+## 11. Actual runtime Evidence
+
+Issue #477で、GitHub正本のcross-stage関連sourceを一時環境へ再構成し、各fileのGit blob SHA一致を確認したうえでactual Python executionを行った。
+
+machine-readable Evidence:
+
+- `result_runtime_evidence_2026-09-18.json`
+
+Python 3.13.5で次を確認した。
+
+- result validator: PASS
+- result regression: 24 / 24 PASS
+- evaluation-run validator: PASS
+- evaluation-run regression: 20 / 20 PASS
+- freeze validator: PASS
+- freeze regression: 18 / 18 PASS
+- preregistration validator: PASS
+- preregistration regression: 27 / 27 PASS
+- total: 89 tests PASS / 0 failure
+
+current checked-in stateは変更していない。
+
+```text
+runtime regression PASS
+  != human-adjudicated benchmark result
+  != semantic truth
+  != completed result
+  != authorized run
+  != frozen human dataset
+  != B5 gate open
+  != production adoption
+```
+
+## 12. 停止線
 
 ```text
 result artifact != benchmark interpretation
