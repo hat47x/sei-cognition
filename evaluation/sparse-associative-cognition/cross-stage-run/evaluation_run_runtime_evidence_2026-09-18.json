@@ -1,0 +1,130 @@
+{
+  "schema": "sei.sacs-cross-stage-evaluation-run-runtime-evidence/v1alpha1",
+  "date": "2026-09-18",
+  "issue": 470,
+  "tested_ref": "develop/v0.2.0",
+  "tested_commit": "db2df02c9fb0a8b4a2bd374f47062216bd239642",
+  "execution_model": "exact-git-blob-validated temporary reconstruction",
+  "environment": {
+    "python": "3.13.5",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+    "github_actions_used": false,
+    "full_repository_checkout": false
+  },
+  "source_binding": {
+    "status": "all-matched",
+    "method": "Each reconstructed file was checked with git hash-object against the GitHub contents blob SHA. Current develop changes after PR #469 were TEI-reference files only and did not alter the bound SACS files.",
+    "files": [
+      {
+        "path": "cross-stage-run/validate_evaluation_run.py",
+        "blob_sha": "8d1ab85e90433ba30c63f93a5a4b3c864a4a748e"
+      },
+      {
+        "path": "cross-stage-run/test_validate_evaluation_run.py",
+        "blob_sha": "492fcc90a2abfc37d6cebea60c952736ca4009f7"
+      },
+      {
+        "path": "cross-stage-run/evaluation_run.json",
+        "blob_sha": "93e6aced7e2986b794397b684c27ce97a2593853"
+      },
+      {
+        "path": "validate_cross_stage_preregistration.py",
+        "blob_sha": "152984157e121222b50dd22a35496c8afef53f4c"
+      },
+      {
+        "path": "test_validate_cross_stage_preregistration.py",
+        "blob_sha": "b0db1edaa981b71ba1a04f1fa951fbc021ffea71"
+      },
+      {
+        "path": "cross_stage_benchmark_preregistration.json",
+        "blob_sha": "2ae99e7dbdb63761875faf1dd2bd5e8c20db250c"
+      },
+      {
+        "path": "cross-stage-freeze/freeze_manifests.py",
+        "blob_sha": "2cdef6363f38f5dbccf295754f12a2a19b476380"
+      },
+      {
+        "path": "cross-stage-freeze/test_freeze_manifests.py",
+        "blob_sha": "4f1181339b7af2449d7d0a8ac2156cfc4e6c25d0"
+      },
+      {
+        "path": "cross-stage-freeze/dataset_manifest.json",
+        "blob_sha": "33706fc9b9fb7b657ffa98f1d35cf8425534d934"
+      },
+      {
+        "path": "cross-stage-freeze/adjudication_manifest.json",
+        "blob_sha": "e00faf23a8829e1609548017bec89bb73760f459"
+      },
+      {
+        "path": "cross-stage-freeze/split_manifest.json",
+        "blob_sha": "27eee758d6c92535fbc5efda54873f721f10ead9"
+      },
+      {
+        "path": "cross-stage-freeze/b3_prior_manifest.json",
+        "blob_sha": "a9e44f7104b7ac9201ffd9a488f7e82d9434ecfe"
+      },
+      {
+        "path": "cross-stage-freeze/freeze_bundle.json",
+        "blob_sha": "76cd3380e75b7f80ed88c9080d2d24793240cb21"
+      }
+    ]
+  },
+  "executions": [
+    {
+      "command": "python3 cross-stage-run/validate_evaluation_run.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "observation": "Cross-stage evaluation-run validated; current run remains draft/locked"
+    },
+    {
+      "command": "python3 -m unittest -v cross-stage-run/test_validate_evaluation_run.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "tests": 20,
+      "elapsed_seconds": 0.053
+    },
+    {
+      "command": "python3 cross-stage-freeze/freeze_manifests.py --validate-only",
+      "exit_code": 0,
+      "result": "PASS",
+      "observation": "Cross-stage freeze manifests validated; current bundle remains draft/locked"
+    },
+    {
+      "command": "python3 -m unittest -v cross-stage-freeze/test_freeze_manifests.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "tests": 18,
+      "elapsed_seconds": 0.028
+    },
+    {
+      "command": "python3 validate_cross_stage_preregistration.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "observation": "Cross-stage preregistration validated; evaluation remains locked"
+    },
+    {
+      "command": "python3 -m unittest -v test_validate_cross_stage_preregistration.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "tests": 23,
+      "elapsed_seconds": 0.013
+    }
+  ],
+  "summary": {
+    "validator_commands_passed": 3,
+    "unit_tests_passed": 61,
+    "unit_tests_failed": 0,
+    "current_run_state": "draft",
+    "current_freeze_bundle_state": "draft",
+    "current_preregistration_unlock": "locked"
+  },
+  "stop_lines": [
+    "runtime regression PASS != human-adjudicated benchmark result",
+    "synthetic authorized-run path PASS != current run authorized",
+    "exact blob reconstruction != full repository checkout",
+    "frozen synthetic fixture != real dataset freeze",
+    "validator PASS != semantic quality",
+    "runtime Evidence != B5 gate open",
+    "runtime Evidence != production adoption"
+  ]
+}
