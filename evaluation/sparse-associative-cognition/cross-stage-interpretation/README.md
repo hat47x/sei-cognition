@@ -150,3 +150,17 @@ synthetic interpreted path != human-adjudicated benchmark interpretation
 ```
 
 実human-adjudicated benchmark resultが存在するまで、checked-in `interpretation.json` をinterpretedへ変更しない。
+
+
+## 10. Evidence
+
+machine-readable contract Evidence:
+
+`interpretation_contract_evidence_2026-09-19.json`
+
+このEvidenceはGitHub source inspectionと定義済み回帰coverageを記録する。今回のcontract更新ではruntime test PASSを主張しない。
+
+```text
+defined tests != executed tests
+source contract != human benchmark interpretation
+```
