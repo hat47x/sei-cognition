@@ -9,8 +9,10 @@ authorization.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
+import platform
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -29,7 +31,7 @@ EVIDENCE_TOOL = (
     "evaluation/personal-inquiry-decision/"
     "inquiry_continuity_summary_distortion_evidence.py"
 )
-RESULT_SCHEMA = "sei.inquiry-continuity-summary-distortion-local-check-result/v0"
+RESULT_SCHEMA = "sei.inquiry-continuity-summary-distortion-local-check-result/v1"
 DEFAULT_TIMEOUT_SECONDS = 120
 TIMEOUT_EXIT_CODE = 124
 LAUNCH_ERROR_EXIT_CODE = 127
@@ -37,6 +39,19 @@ FIXTURE_IDS = (
     "e78-counterfactual-001-nightly-batch",
     "e78-counterfactual-002-support-response",
     "e78-counterfactual-003-import-duplicates",
+)
+MECHANICS_PATHS = (
+    PROBE_SET,
+    PROBE,
+    EVIDENCE_TOOL,
+    "evaluation/personal-inquiry-decision/"
+    "test_inquiry_continuity_summary_distortion_probe.py",
+    "evaluation/personal-inquiry-decision/"
+    "test_inquiry_continuity_summary_distortion_evidence.py",
+    "evaluation/personal-inquiry-decision/"
+    "run_inquiry_continuity_summary_distortion_checks.py",
+    "evaluation/personal-inquiry-decision/"
+    "test_run_inquiry_continuity_summary_distortion_checks.py",
 )
 STOP_LINE = (
     "E78.3 local checks PASS != human review result "
@@ -50,6 +65,118 @@ class Check:
     name: str
     command: tuple[str, ...]
     cwd: Path
+
+
+def _sha256_bytes(payload: bytes) -> str:
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _git_blob_sha1(payload: bytes) -> str:
+    header = f"blob {len(payload)}\0".encode("ascii")
+    return hashlib.sha1(header + payload).hexdigest()
+
+
+def _canonical_json_sha256(value: object) -> str:
+    payload = json.dumps(
+        value,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return _sha256_bytes(payload)
+
+
+def build_contract_snapshot(repo_root: str | Path = SEI_ROOT) -> dict[str, object]:
+    root = Path(repo_root)
+    probe_path = root / PROBE_SET
+    try:
+        probe = json.loads(probe_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"cannot load canonical E78.3 probe: {probe_path}") from exc
+    if not isinstance(probe, dict):
+        raise ValueError("canonical E78.3 probe must be a JSON object")
+
+    mechanics_files: list[dict[str, str]] = []
+    for relative in MECHANICS_PATHS:
+        path = root / relative
+        try:
+            payload = path.read_bytes()
+        except OSError as exc:
+            raise ValueError(f"cannot read E78.3 mechanics file: {relative}") from exc
+        mechanics_files.append(
+            {
+                "path": relative,
+                "sha256": _sha256_bytes(payload),
+            }
+        )
+
+    cases = probe.get("cases")
+    if not isinstance(cases, list) or not cases:
+        raise ValueError("canonical E78.3 probe must contain cases")
+    source_fixtures: list[dict[str, str]] = []
+    seen_fixture_ids: set[str] = set()
+    for case in cases:
+        if not isinstance(case, dict):
+            raise ValueError("E78.3 probe case must be an object")
+        fixture_id = case.get("fixture_id")
+        path_text = case.get("path")
+        expected_blob = case.get("blob_sha1")
+        if (
+            not isinstance(fixture_id, str)
+            or not fixture_id
+            or fixture_id in seen_fixture_ids
+            or not isinstance(path_text, str)
+            or not path_text
+            or not isinstance(expected_blob, str)
+            or len(expected_blob) != 40
+        ):
+            raise ValueError("E78.3 probe case has invalid source binding")
+        seen_fixture_ids.add(fixture_id)
+        path = root / path_text
+        try:
+            payload = path.read_bytes()
+        except OSError as exc:
+            raise ValueError(
+                f"cannot read E78.3 source fixture: {path_text}"
+            ) from exc
+        actual_blob = _git_blob_sha1(payload)
+        if actual_blob != expected_blob:
+            raise ValueError(
+                f"E78.3 source fixture blob mismatch: {fixture_id}: "
+                f"expected {expected_blob}, got {actual_blob}"
+            )
+        source_fixtures.append(
+            {
+                "fixtureId": fixture_id,
+                "path": path_text,
+                "expectedBlobSha1": expected_blob,
+                "actualBlobSha1": actual_blob,
+            }
+        )
+
+    if tuple(item["fixtureId"] for item in source_fixtures) != FIXTURE_IDS:
+        raise ValueError(
+            "E78.3 probe fixture ordering/identity differs from runner contract"
+        )
+
+    probe_id = probe.get("probe_id")
+    probe_schema = probe.get("schema")
+    if not isinstance(probe_id, str) or not probe_id:
+        raise ValueError("canonical E78.3 probe_id must be non-empty")
+    if not isinstance(probe_schema, str) or not probe_schema:
+        raise ValueError("canonical E78.3 probe schema must be non-empty")
+
+    return {
+        "probeId": probe_id,
+        "probeSchema": probe_schema,
+        "probeContentSha256": _canonical_json_sha256(probe),
+        "mechanicsFiles": mechanics_files,
+        "sourceFixtures": source_fixtures,
+        "python": {
+            "implementation": sys.implementation.name,
+            "version": platform.python_version(),
+        },
+    }
 
 
 def configured_checks() -> tuple[Check, ...]:
@@ -159,6 +286,7 @@ def build_result(
     executions: Sequence[dict[str, object]],
     *,
     stopped_early: bool,
+    contract_snapshot: dict[str, object],
 ) -> dict[str, object]:
     failed = [item for item in executions if item["exitCode"] != 0]
     complete = len(executions) == len(checks)
@@ -171,6 +299,7 @@ def build_result(
         "executedCount": len(executions),
         "failedCount": len(failed),
         "stoppedEarly": stopped_early,
+        "contractSnapshot": contract_snapshot,
         "humanReviewObserved": False,
         "actualLongGapResumptionEstablished": False,
         "productValueEstablished": False,
@@ -202,8 +331,10 @@ def run_checks(
     timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
     stop_on_failure: bool = False,
     runner: Callable[..., subprocess.CompletedProcess[str]] = _default_runner,
+    snapshot_builder: Callable[[], dict[str, object]] = build_contract_snapshot,
 ) -> tuple[int, dict[str, object]]:
     validate_checks(checks)
+    contract_snapshot = snapshot_builder()
     environment = sanitized_environment()
     executions: list[dict[str, object]] = []
     stopped_early = False
@@ -248,6 +379,7 @@ def run_checks(
         checks,
         executions,
         stopped_early=stopped_early,
+        contract_snapshot=contract_snapshot,
     )
     return (0 if result["result"] == "ok" else 1), result
 
@@ -320,16 +452,23 @@ def main(argv: list[str] | None = None) -> int:
         print(f"- stop line: {STOP_LINE}")
         return 0
 
-    exit_code, result = run_checks(
-        checks,
-        timeout_seconds=args.timeout_seconds,
-        stop_on_failure=args.stop_on_failure,
-    )
+    try:
+        exit_code, result = run_checks(
+            checks,
+            timeout_seconds=args.timeout_seconds,
+            stop_on_failure=args.stop_on_failure,
+        )
+    except ValueError as exc:
+        parser.exit(2, f"E78.3 local checks: {exc}\n")
 
     print("E78.3 local check summary")
     print(f"- selected: {result['selectedCount']}")
     print(f"- executed: {result['executedCount']}")
     print(f"- failed: {result['failedCount']}")
+    print(
+        "- probe content sha256: "
+        f"{result['contractSnapshot']['probeContentSha256']}"
+    )
     print(f"- stop line: {STOP_LINE}")
 
     if args.result_output is not None:

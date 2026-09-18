@@ -11,6 +11,7 @@ from pathlib import Path
 from run_inquiry_continuity_summary_distortion_checks import (
     FIXTURE_IDS,
     STOP_LINE,
+    build_contract_snapshot,
     build_result,
     configured_checks,
     run_checks,
@@ -39,6 +40,59 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
             )
             self.assertEqual(check.command[-1], "preflight")
             self.assertIn(fixture_id, check.command)
+
+    def test_contract_snapshot_binds_probe_mechanics_and_frozen_sources(self):
+        snapshot = build_contract_snapshot()
+        self.assertEqual(
+            snapshot["probeSchema"],
+            "sei.inquiry-continuity-summary-distortion-probe/v1",
+        )
+        self.assertEqual(len(snapshot["probeContentSha256"]), 64)
+        self.assertEqual(
+            tuple(item["fixtureId"] for item in snapshot["sourceFixtures"]),
+            FIXTURE_IDS,
+        )
+        for source in snapshot["sourceFixtures"]:
+            self.assertEqual(
+                source["actualBlobSha1"],
+                source["expectedBlobSha1"],
+            )
+        mechanics = {
+            item["path"]: item["sha256"]
+            for item in snapshot["mechanicsFiles"]
+        }
+        self.assertIn(
+            "evaluation/personal-inquiry-decision/"
+            "inquiry_continuity_summary_distortion_probe_v1.json",
+            mechanics,
+        )
+        self.assertTrue(all(len(value) == 64 for value in mechanics.values()))
+
+    def test_contract_snapshot_rejects_changed_frozen_source(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_root = root / "evaluation/personal-inquiry-decision"
+            source_root.mkdir(parents=True)
+            repo_root = Path(__file__).resolve().parents[2]
+            for relative in (
+                "inquiry_continuity_summary_distortion_probe_v1.json",
+                "inquiry_continuity_summary_distortion_probe.py",
+                "inquiry_continuity_summary_distortion_evidence.py",
+                "test_inquiry_continuity_summary_distortion_probe.py",
+                "test_inquiry_continuity_summary_distortion_evidence.py",
+                "run_inquiry_continuity_summary_distortion_checks.py",
+                "test_run_inquiry_continuity_summary_distortion_checks.py",
+                "inquiry_continuity_counterfactual_001.json",
+                "inquiry_continuity_counterfactual_002.json",
+                "inquiry_continuity_counterfactual_003.json",
+            ):
+                source = repo_root / "evaluation/personal-inquiry-decision" / relative
+                target = source_root / relative
+                target.write_bytes(source.read_bytes())
+            changed = source_root / "inquiry_continuity_counterfactual_001.json"
+            changed.write_text("{}\n", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                build_contract_snapshot(root)
 
     def test_sanitized_environment_removes_secret_and_injection_inputs(self):
         environment = sanitized_environment(
@@ -74,6 +128,7 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
         exit_code, result = run_checks(
             configured_checks(),
             runner=runner,
+            snapshot_builder=lambda: {"probeContentSha256": "a" * 64},
         )
         self.assertEqual(exit_code, 0)
         self.assertEqual(result["result"], "ok")
@@ -83,6 +138,10 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
         self.assertFalse(result["productValueEstablished"])
         self.assertFalse(result["stableRequirementAuthorized"])
         self.assertEqual(result["stopLine"], STOP_LINE)
+        self.assertEqual(
+            result["contractSnapshot"]["probeContentSha256"],
+            "a" * 64,
+        )
 
     def test_failure_is_preserved_without_claiming_unexecuted_pass(self):
         calls = 0
@@ -98,6 +157,7 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
         exit_code, result = run_checks(
             configured_checks(),
             runner=runner,
+            snapshot_builder=lambda: {"probeContentSha256": "a" * 64},
         )
         self.assertEqual(exit_code, 1)
         self.assertEqual(result["failedCount"], 1)
@@ -114,6 +174,7 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
             configured_checks(),
             stop_on_failure=True,
             runner=runner,
+            snapshot_builder=lambda: {"probeContentSha256": "a" * 64},
         )
         self.assertEqual(exit_code, 1)
         self.assertTrue(result["stoppedEarly"])
@@ -137,6 +198,7 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
             checks,
             [{"name": checks[0].name, "exitCode": 0}],
             stopped_early=True,
+            contract_snapshot={"probeContentSha256": "a" * 64},
         )
         self.assertEqual(result["result"], "failed")
 
@@ -147,6 +209,7 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
                 (),
                 (),
                 stopped_early=False,
+                contract_snapshot={"probeContentSha256": "a" * 64},
             )
             save_result(path, result)
             written = json.loads(path.read_text(encoding="utf-8"))
