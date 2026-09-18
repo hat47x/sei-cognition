@@ -354,9 +354,11 @@ python3 "$PROBE" --probe "$PROBE_SET" --repo-root . \
   --response "$RESPONSE" \
   --receipt "$REVEAL_RECEIPT" > <audit-packet.json>
 
-# audit commandはreference materialをstdoutへ出す前に、固定済みRESPONSE、
-# exact probe content、fixture、revealed_atをexclusive-create receiptへ保存する。
-# receiptが既に存在する場合は上書きせずfail-closedする。
+# audit commandはreference materialをstdoutへ出す前に、開示予定materialを先に
+# canonical SHA-256へ固定し、固定済みRESPONSE、exact probe content、fixture、
+# audit material SHA-256、revealed_atをexclusive-create receiptへ保存する。
+# packet構築に失敗した場合はreceiptを作らず、receiptが既に存在する場合も
+# 上書きせずfail-closedし、reference materialを出力しない。
 #
 # audit-packetでreference materialを開いた後にだけsemantic auditを作る。
 # audit-templateは固定済みRESPONSEと同じREVEAL_RECEIPTへ結びつく。
@@ -377,7 +379,9 @@ python3 "$EVIDENCE_TOOL" --probe "$PROBE_SET" --repo-root . \
 
 review packetに含まれる`provisional_ai_summary`と`provisional_ai_next_question`は、意図的に誤りを含む**evaluation-only stimulus**であり、canonical Question / Observation / Unknown / Hypothesis、Recommendation、Decision、Evidence reportへ自動昇格させない。
 
-`audit`はhuman responseのSHA-256を固定し、**reference materialを出力する前に**exclusive-createのaudit-reveal receiptを永続化する。receiptはexact probe content、fixture、固定済みresponse hash、machine-recorded `revealed_at`へ結びつき、post-reveal auditの`completed_at`がその時刻より前の場合は拒否する。これにより「開示後にhuman responseを書き直したもの」をpre-reveal responseとして扱う経路を機械的に狭める。ただしreceiptは利用者が実際に画面を見た時刻やhuman authorshipそのものを独立に証明するものではない。
+`audit`はまず、開示予定の`distortion_key`、`reference_state`、`post_interruption_evidence`、audit dimensions、stopline群から**exact audit material**をメモリ上で組み立て、そのcanonical SHA-256を確定する。次にhuman response SHA-256、exact probe content、fixture、audit material SHA-256、machine-recorded `revealed_at`をexclusive-createのaudit-reveal receiptへ結び、receiptの永続化に成功した場合だけ、事前構築済みの同じaudit materialをstdoutへ出力する。packet構築が失敗した段階ではreceiptを残さず、receiptの永続化が失敗した場合もreference materialを出力しない。post-reveal auditの`completed_at`が`revealed_at`より前の場合は拒否する。
+
+これにより「開示後にhuman responseを書き直したもの」をpre-reveal responseとして扱う経路だけでなく、receipt作成後に別のreference materialへ差し替える経路も機械的に狭める。ただしreceiptは利用者が実際に画面を見た時刻やhuman authorshipそのものを独立に証明するものではない。
 
 さらにreview response、audit-reveal receipt、audit response、Evidence bundleをcanonicalized probe JSONのSHA-256へ結び、summary、next question、review questions等のprobe内容が後から変更された場合に別の評価を同一Evidenceとして読み替えられないようにする。Evidence bundle自身にも、実際に評価したsummary / next question / review questions / audit dimensionsを`probe_snapshot`として保存し、human review observation、audit reveal、semantic auditを別layerとして保持する。`audit-template`以後に記録するsemantic auditは、**post-revealなoperator / auditor Evidence**であり、開示前のhuman responseへ混ぜ戻さない。既存Evidence outputは上書きしない。
 
