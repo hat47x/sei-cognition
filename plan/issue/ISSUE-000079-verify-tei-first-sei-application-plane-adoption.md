@@ -359,6 +359,24 @@ TEI Core / new Pattern need
 
 SEI側のcross-repository receiptは`evaluation/tei-reference-adoption/change1_tei_reference_evidence_20260918.json`へ固定する。
 
+## 2026-09-18 Change 1 native SEI side execution（receiptの未実行部分を埋める）
+
+上のChange 1 receiptは`native_sei_comparison.actual_execution_in_this_receipt: not-run`と明示しており、native SEI側では実際にはtestを追加・実行していなかった。この欠けを埋めるため、`runtime/go/interactionprobe/review_test.go`へ`TestChangeReviewProjectionAddingOnePostDecisionObservationOnlyExtendsCanonicalChanges`を追加し、TEI側Change 1と同じchallenge（Decision後にObservationを一件追加する）をnative側で実行した。
+
+- 追加ファイル: `runtime/go/interactionprobe/review_test.go`のみ（production code = `resume.go` / `review.go`は無変更）
+- 追加方法: 既存`human.RecordManualObservation(id, text)`を1回追加呼び出しし、`ChangeReviewProjection`が計算する`CanonicalChanges`へ自動的に反映されることをbefore/after比較で確認
+- 不変条件: historical basis・unresolvedとも呼び出し前後で`reflect.DeepEqual`一致を確認（自動的に維持、production側の特別な考慮は不要）
+- 検証: `go vet ./interactionprobe/...`、`go test ./interactionprobe/... -run TestChangeReviewProjection`（4 test）ともPASS（Go 1.25.14、`~/.local/toolchains/go`）
+
+結果はTEI側Change 1 receiptの`implementation_file_changes_required: 0`と整合する。native SEI側もproduction code変更ゼロで同じchallengeを吸収できることを、参照のみでなく実行して確認した。TEI Reference側は同じ事実をfixture 2箇所（`scenario.post_decision_evidence` / `reference_state.post_decision_ids`）+ test 1箇所の計3箇所へ書く必要がある一方、native SEI側はtest内の1呼び出し+1assertionのみで完結する。source owner数の差（TEI=2ファイル、SEI=1ファイル）はTEI fixtureのinput/oracle分離という設計選択に起因し、TEI Core gapではない。
+
+```text
+change_1 receipt (TEI-recorded)
+  native_sei_comparison.actual_execution_in_this_receipt = not-run
+    ↓ この節で補完
+  actual native SEI execution = PASS（review_test.go追加のみ、production code変更0）
+```
+
 ## 2026-09-18 Change 2 Gate boundary
 
 Projection-onlyなChange 2についてTEI current Gateを再監査した結果、Product behaviorとしての実装はdeferする。

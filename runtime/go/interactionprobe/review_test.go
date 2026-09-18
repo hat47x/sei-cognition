@@ -145,6 +145,96 @@ func TestChangeReviewProjectionReconstructsFromCanonicalRecordsAfterStoreRebuild
 	}
 }
 
+// TestChangeReviewProjectionAddingOnePostDecisionObservationOnlyExtendsCanonicalChanges は
+// TEI-side Stage 0 Reference（tools/sei-resume-reference）とのchange-amplification比較用に、
+// Decision後にObservationを一件追加した場合の native SEI 側の影響範囲を固定する。
+//
+// 追加はこのtest file内の一つのRecordManualObservation呼び出しと一つのassertion更新だけで完結し、
+// resume.go / review.go 等のproduction codeは変更しない。historical basisとunresolvedは不変、
+// 新しいObservationはCanonicalChangesへ追記されるだけであることを確認する。
+func TestChangeReviewProjectionAddingOnePostDecisionObservationOnlyExtendsCanonicalChanges(t *testing.T) {
+	store := NewCanonicalStore()
+	human := NewHumanSurface(store)
+	machine := NewMachineSurface(store)
+
+	inquiry, err := human.StartInquiry("I-ADD-OBSERVATION", "Decision後にObservationを一件追加しても他の記録が変化しないことを確認する")
+	if err != nil {
+		t.Fatalf("StartInquiry() error = %v", err)
+	}
+	basis := lr("capability_observation", "CO-ADD-OBS-BASE")
+	capability := lr("capability", "CAP-ADD-OBS")
+	provider := lr("provider", "P-ADD-OBS")
+	if err := machine.RecordCapabilityObservation(CapabilityObservationInput{
+		Ref:           basis,
+		CapabilityRef: &capability,
+		ProviderRef:   &provider,
+		ObservedAt:    "2026-09-18T00:00:00Z",
+		Conditions:    []semanticruntime.ObservedCondition{{Key: "availability", State: "available"}},
+	}); err != nil {
+		t.Fatalf("RecordCapabilityObservation() basis error = %v", err)
+	}
+	unresolved, err := human.RecordConflict("C-ADD-OBS-UNRESOLVED", "pilot後の運用負荷条件が未解決のまま残っている")
+	if err != nil {
+		t.Fatalf("RecordConflict() error = %v", err)
+	}
+
+	decision := lr("decision", "D-ADD-OBSERVATION")
+	if err := human.RecordDecisionWithReviewCheckpoint(DecisionInput{
+		Ref:            decision,
+		Statement:      "10%だけpilotし、既存Providerをfallbackとして維持する",
+		ContextRefs:    []semanticruntime.LogicalReference{inquiry},
+		BasisRefs:      []semanticruntime.LogicalReference{basis},
+		UnresolvedRefs: []semanticruntime.LogicalReference{unresolved},
+	}); err != nil {
+		t.Fatalf("RecordDecisionWithReviewCheckpoint() error = %v", err)
+	}
+
+	firstChange, err := human.RecordManualObservation("OBS-ADD-FIRST", "pilot開始2日後、高負荷帯で429が観測された")
+	if err != nil {
+		t.Fatalf("RecordManualObservation() first error = %v", err)
+	}
+
+	before, err := human.ChangeReviewProjection(decision)
+	if err != nil {
+		t.Fatalf("ChangeReviewProjection() before error = %v", err)
+	}
+	beforeChanges := make([]semanticruntime.LogicalReference, 0, len(before.CanonicalChanges))
+	for _, change := range before.CanonicalChanges {
+		beforeChanges = append(beforeChanges, change.Ref)
+	}
+	if !reflect.DeepEqual(beforeChanges, []semanticruntime.LogicalReference{firstChange}) {
+		t.Fatalf("canonical changes before second observation = %#v, want [%v]", beforeChanges, firstChange)
+	}
+
+	// ここが「Decision後Observationを一件追加する」比較対象の変更そのもの。
+	// production側の呼び出しを一つ増やすだけで、他のrecordやschemaには触れない。
+	secondChange, err := human.RecordManualObservation("OBS-ADD-SECOND", "Decisionの6日後、rate-limitとlatencyが安定した")
+	if err != nil {
+		t.Fatalf("RecordManualObservation() second error = %v", err)
+	}
+
+	after, err := human.ChangeReviewProjection(decision)
+	if err != nil {
+		t.Fatalf("ChangeReviewProjection() after error = %v", err)
+	}
+
+	if !reflect.DeepEqual(after.Resume.Basis, before.Resume.Basis) {
+		t.Fatalf("historical basis changed after adding a post-decision observation: before=%#v after=%#v", before.Resume.Basis, after.Resume.Basis)
+	}
+	if !reflect.DeepEqual(after.Resume.Unresolved, before.Resume.Unresolved) {
+		t.Fatalf("unresolved was auto-resolved after adding a post-decision observation: before=%#v after=%#v", before.Resume.Unresolved, after.Resume.Unresolved)
+	}
+
+	afterChanges := make([]semanticruntime.LogicalReference, 0, len(after.CanonicalChanges))
+	for _, change := range after.CanonicalChanges {
+		afterChanges = append(afterChanges, change.Ref)
+	}
+	wantChanges := []semanticruntime.LogicalReference{firstChange, secondChange}
+	if !reflect.DeepEqual(afterChanges, wantChanges) {
+		t.Fatalf("canonical changes after adding a post-decision observation = %#v, want %#v", afterChanges, wantChanges)
+	}
+}
+
 func TestChangeReviewProjectionFailsClosedWithoutCheckpoint(t *testing.T) {
 	store := NewCanonicalStore()
 	human := NewHumanSurface(store)
