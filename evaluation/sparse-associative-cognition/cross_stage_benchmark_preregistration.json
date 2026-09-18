@@ -90,7 +90,38 @@
       "SAC-B6b",
       "SAC-B6c"
     ],
-    "diagnostics_are_not_semantic_scores": true
+    "diagnostics_are_not_semantic_scores": true,
+    "stress_track": {
+      "stages": [
+        "SAC-B6d",
+        "SAC-B6e"
+      ],
+      "purpose": "robustness-only comparison of static global-residual scaling under an intentionally oversized profile",
+      "profile": {
+        "id": "oversized-stress",
+        "dimensions": 32768,
+        "active": 512,
+        "fanout": 8,
+        "seed": 47
+      },
+      "residual_policies": [
+        {
+          "id": "proportional-baseline",
+          "global_residual_cap": null
+        },
+        {
+          "id": "cap128",
+          "global_residual_cap": 128
+        },
+        {
+          "id": "cap64",
+          "global_residual_cap": 64
+        }
+      ],
+      "policy_set_state": "frozen-for-preregistration",
+      "may_not_define_production_default": true,
+      "may_not_use_feature_cardinality_as_semantic_priority": true
+    }
   },
   "b3_prior_manifest": {
     "state": "not-yet-frozen",
@@ -116,7 +147,8 @@
         ],
         "robustness": [
           "perturbation_stability",
-          "cross_profile_ordering_stability"
+          "cross_profile_ordering_stability",
+          "oversized_residual_policy_stress"
         ],
         "resource": [
           "p50_latency",
