@@ -8,6 +8,7 @@ from matched_review_session import (
     ReviewSessionError,
     build_current_packets,
     current_stage,
+    guard_provenance_fixed_cli,
     new_session,
     record_response,
     validate_session,
@@ -143,6 +144,22 @@ class MatchedReviewSessionTest(unittest.TestCase):
         self.assertEqual(
             build_current_packets(audit_done, self.manifest, self.fixtures), []
         )
+
+    def test_provenance_fixed_human_review_rejects_low_level_cli_bypass(self):
+        protected = copy.deepcopy(self.session)
+        protected["review_provenance"] = {
+            "schema": "sei.inquiry-continuity-review-provenance/v0",
+            "status": "evaluation-only",
+            "reviewer_id": "opaque-reviewer",
+            "prior_exposure": "none-declared",
+            "response_authorship": "human-direct",
+            "note": "",
+        }
+        for command in ("packets", "record"):
+            with self.assertRaises(ReviewSessionError):
+                guard_provenance_fixed_cli(protected, command)
+        guard_provenance_fixed_cli(protected, "show")
+        guard_provenance_fixed_cli(protected, "stage")
 
     def test_fixed_response_cannot_be_overwritten(self):
         first = self.session["assignments"][0]["fixture_id"]
