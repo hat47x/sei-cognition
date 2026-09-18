@@ -1,11 +1,11 @@
 # PMS-06 — Current State Snapshot
 
-更新日: 2026-09-07  
+更新日: 2026-09-18  
 対象: PMS-06 Realization / Provider Exchange
 
 ## この文書の役割
 
-この文書は、PMS-06の現在地を短く確認するためのsnapshotです。`SEI_PRODUCT_MILESTONES.md`、`SEI_REALIZATION_PROVIDER_EXCHANGE.md`、`SEI_VALUE_TRACEABILITY.md`等のProduct基線を置き換えず、2026-09-05以降に進展したversion-exchange EvidenceとIssue状態を補完します。
+この文書は、PMS-06の現在地を短く確認するためのsnapshotです。`SEI_PRODUCT_MILESTONES.md`、`SEI_REALIZATION_PROVIDER_EXCHANGE.md`、`SEI_VALUE_TRACEABILITY.md`等のProduct基線を置き換えず、2026-09-05以降に進展したversion-exchange Evidence、actual-binary Evidence protocol、Issue状態を補完します。ファイル名は初回snapshot日を履歴上保持しますが、本文のcurrent stateは後続deltaへ更新します。
 
 Product Value、Milestone Outcome、Requirement、Acceptance Scenario、Universal Contractを新しく定義しません。意味上の正本は既存Product / Requirement / Issue本文であり、このsnapshotは現在のEvidence位置を読み違えないための補助資料です。
 
@@ -46,6 +46,12 @@ ISSUE-000072
   = Open
   = TEI executable / Provider Plan revision B actual execution pending
   = snapshot transport / E2 partial / failure audit path repository-side ready
+
+ISSUE-000074
+  = Open
+  = reusable actual TEI Evidence protocol source implemented
+  = teiprobe / tei-e3b-probe / protocol document available
+  = current Go 1.25 tests and actual TEI report Not Yet Verified
 ```
 
 片方のEvidenceをもう片方へ流用しません。
@@ -198,6 +204,44 @@ revision B current SEI Adapter live compatibility
 
 actual E2がbuild failureで停止した場合は、stage-aware failure reportを保存し、専用Resolution auditへ接続してE3へ進みません。`resolutionCandidate=false`を維持し、Bのexact binding / failure Evidenceを保持します。actual E2が成功した場合だけstrict bundle verificationを行い、current SEI E3へ進みます。
 
+## ISSUE-000074 — actual TEI Evidence collection protocol
+
+ISSUE-000065のrevision A fixed-artifactではactual binary SHA-256とProvider Plan SHA-256を個別Evidenceへ固定できました。一方、別revisionや別取得経路でactual TEI binaryが供給されたときに、同じ監査境界で「何を実行したか」をderived Evidenceへ束ねる再利用可能な入口は未実装でした。
+
+2026-09-18に次をcurrent developへ追加しました。
+
+- `runtime/go/teiprobe/probe.go`
+- `runtime/go/teiprobe/probe_test.go`
+- `runtime/go/cmd/tei-e3b-probe/main.go`
+- `runtime/ACTUAL_TEI_EVIDENCE_PROTOCOL.md`
+
+`teiprobe`はTEI Provider Planを独自解釈せず、既存`teiintegration.CLI.ObserveProviderPlan`へ意味mappingを委譲します。新たに扱うのはdirect executable fileのpre/post SHA-256、declared repository / commit、optional strict manifestとの一致状態、実行対象solution / version、current Capability Observationです。
+
+```text
+observed direct binary SHA-256
+  + declared source
+  + optional manifest match
+  + actual Provider Plan execution
+  + current Observation validation
+        ↓
+sei.e3b-tei-probe/v1 derived report
+```
+
+`manifest_matched`はmanifest authenticity、signature、reproducible buildを意味しません。また、fixture-scoped test sourceの存在をactual TEI Evidenceへ昇格させません。
+
+current moduleはGo 1.25を要求しますが、この作業環境ではGo 1.25.xと必要moduleを取得できていません。したがってcurrent stateは次です。
+
+```text
+protocol implementation source available
++ fixture-scoped test source available
++ Product / Issue / document-review sync complete
+!= current Go test PASS
+!= actual TEI report PASS
+!= ISSUE-000072 revision B compatibility PASS
+```
+
+ISSUE-000074はOpenを維持します。次にEvidence高さが上がるのは、current Go 1.25環境でfixture-scoped testをactual実行し、その後actual TEI binaryをdirect fileとして与えてreportを保存したときです。
+
 ## ISSUE-000071との関係
 
 ISSUE-000071はResolvedですが、完了したのはCognitive Method成果品質の**評価境界の確立**です。
@@ -233,6 +277,10 @@ ISSUE-000070
 ISSUE-000072
   = Capability Provider側のTEI executable / Provider Plan version exchange
   = actual revision BがOpen
+
+ISSUE-000074
+  = actual TEI execution Evidenceの採取・binding protocol
+  = implementation source available / Executable Evidence pending
 ```
 
 ## Requirement boundary
@@ -282,7 +330,7 @@ specific execution host not selected
 
 ## 次にEvidence強度が上がる条件
 
-現在のPMS-06で次にEvidence強度が上がる主対象はISSUE-000072です。
+現在のPMS-06でProvider portabilityそのもののEvidence強度が次に上がる主対象はISSUE-000072です。一方、ISSUE-000074は外部execution surfaceを待たずに進められる隣接laneとして、current Go 1.25環境でのfixture-scoped test実行とactual-binary Evidence reportの受入れ準備を進めます。074のtest PASSだけで072のrevision B compatibilityを成立させません。
 
 snapshot transportを使う場合のoperator向け手順は`runtime/TEI_E2_SNAPSHOT_TRANSPORT_ACTUAL_RUNBOOK_2026-09-07.md`を正とし、次の順で進めます。
 
@@ -344,4 +392,11 @@ ISSUE-000072 snapshot / E2 / failure-audit path ready
   != E4 Operational portability
   != v0.2.0 supported scope expanded
   != Adoption / Outcome Evidence
+
+ISSUE-000074 protocol implementation available
+  != current Go test PASS
+  != actual TEI binary Evidence
+  != manifest authenticity
+  != arbitrary TEI compatibility
+  != ISSUE-000072 Resolved
 ```
