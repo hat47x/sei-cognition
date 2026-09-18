@@ -19,6 +19,7 @@ if str(FREEZE_DIR) not in sys.path:
 
 from freeze_manifests import freeze_documents, load_directory  # noqa: E402
 from validate_evaluation_run import (  # noqa: E402
+    canonical_run_digest,
     validate_authorized_run,
     validate_run_structure,
 )
@@ -172,6 +173,7 @@ def authorized_run(
         "state": "authorized",
         "run_id": "run:fixture:001",
         "authorized_at": "2026-09-18T11:30:00Z",
+        "authorization_ref": "authorization:fixture:001",
         "track": track,
         "variant": variant,
         "capacity_profile": capacity_profile,
@@ -191,6 +193,7 @@ def authorized_run(
     }
     for key in run["authorization"]:
         run["authorization"][key] = True
+    run["run_digest"] = canonical_run_digest(run)
     return run
 
 
@@ -228,8 +231,10 @@ class EvaluationRunTests(unittest.TestCase):
         })
         run["implementation"] = {"ref": "develop/v0.2.0", "commit": "a" * 40}
         run["environment"] = {"os": "linux", "arch": "amd64", "runtime": "go1.25"}
+        run["authorization_ref"] = "authorization:invalid-current"
         for key in run["authorization"]:
             run["authorization"][key] = True
+        run["run_digest"] = canonical_run_digest(run)
         errors = validate_authorized_run(run, self.current_prereg, self.current_freeze)
         self.assert_error(errors, "frozen freeze bundle")
 
@@ -328,6 +333,23 @@ class EvaluationRunTests(unittest.TestCase):
         self.assert_error(
             validate_authorized_run(run, self.prereg, self.frozen),
             "digest does not match",
+        )
+
+    def test_authorized_run_digest_detects_post_authorization_mutation(self) -> None:
+        run = authorized_run(self.frozen)
+        run["output_ref"] = "result:mutated-after-authorization"
+        self.assert_error(
+            validate_authorized_run(run, self.prereg, self.frozen),
+            "run_digest does not match canonical run content",
+        )
+
+    def test_authorized_run_requires_authorization_ref(self) -> None:
+        run = authorized_run(self.frozen)
+        run["authorization_ref"] = ""
+        run["run_digest"] = canonical_run_digest(run)
+        self.assert_error(
+            validate_authorized_run(run, self.prereg, self.frozen),
+            "requires canonical authorization_ref",
         )
 
     def test_authorized_run_requires_git_commit_sha(self) -> None:
