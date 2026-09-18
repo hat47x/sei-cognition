@@ -350,7 +350,10 @@ EVIDENCE=<checkout外または意図的に管理するe78-3-evidence.json>
 # frozen source fixtureのexpected/actual Git blob SHA-1、Python runtimeへ結びつく。
 # 加えて各checkのcommand、repo相対cwd、stdout/stderrのSHA-256とbyte数を記録する。
 # raw stdout/stderr本文やローカル絶対pathはresult JSONへ保存しない。
+# launch errorはtype/errnoだけへ縮約し、OS messageやhost pathを保存しない。
 # source fixtureがprobeのfreezeと一致しなければcheck開始前にfail-closedする。
+# 保存時にもresult v2全体を再検証し、count/order/status、portable command/cwd、
+# stream digest、mechanics/source identity、Evidence stoplineの改変を拒否する。
 python3 "$LOCAL_CHECKS" --stop-on-failure --result-output "$LOCAL_RESULT"
 
 # validateは3 source fixtureのGit blob freezeを全件検証し、current probe /
@@ -414,7 +417,7 @@ python3 "$EVIDENCE_TOOL" --probe "$PROBE_SET" --repo-root . \
   --output "$EVIDENCE"
 ```
 
-review開始前に、repository-local mechanics runnerが全checkを完走し、加えて`validate`と対象fixtureの`preflight`がcurrent v1 contractを示すことを確認する。runnerはprobe/evidence focused unit tests、canonical validate、3 fixture全てのpreflightを一つの入口で実行し、途中停止や未実行checkをPASSへ数えない。local-check result schema v2は、canonical probeのsemantic SHA-256、runner / probe / Evidence tool / focused test等のexact file SHA-256、3 source fixtureのexpected / actual Git blob SHA-1、Python implementation / versionを`contractSnapshot`へ保存する。さらに各実行についてcommand、repo相対cwd、exit code、timeout、stdout/stderrのSHA-256とbyte数を保存し、rawログ本文やローカル絶対pathは保存しない。source fixtureがprobeのfreezeと一致しない場合はcheck実行前にfail-closedする。これにより、後からprobeやmechanicsが変わったPASSを同一条件の検証結果として読み替えず、同じsnapshotでも実際に何を実行し何が返ったかをdigestで追跡できる。result JSONはexclusive-createで保存できる。ただしそのPASSはHuman Evidenceではなく、actual long-gap resumption、Product Value、Stable Requirement authorizationも成立させない。
+review開始前に、repository-local mechanics runnerが全checkを完走し、加えて`validate`と対象fixtureの`preflight`がcurrent v1 contractを示すことを確認する。runnerはprobe/evidence focused unit tests、canonical validate、3 fixture全てのpreflightを一つの入口で実行し、途中停止や未実行checkをPASSへ数えない。local-check result schema v2は、canonical probeのsemantic SHA-256、runner / probe / Evidence tool / focused test等のexact file SHA-256、3 source fixtureのexpected / actual Git blob SHA-1、Python implementation / versionを`contractSnapshot`へ保存する。さらに各実行についてcommand、repo相対cwd、exit code、timeout、stdout/stderrのSHA-256とbyte数を保存し、rawログ本文やローカル絶対pathは保存しない。source fixtureがprobeのfreezeと一致しない場合はcheck実行前にfail-closedする。これにより、後からprobeやmechanicsが変わったPASSを同一条件の検証結果として読み替えず、同じsnapshotでも実際に何を実行し何が返ったかをdigestで追跡できる。result JSONは保存直前にもschema v2全体をfail-closedで再検証し、空checkによるvacuous PASS、check順序/count/statusの矛盾、host-escaping command、stream digest不正、mechanics/source identity差し替え、Evidence stopline変更を拒否したうえでexclusive-createする。launch errorはtype / errnoだけを残し、OS error messageやhost pathをartifactへ持ち込まない。ただしそのPASSはHuman Evidenceではなく、actual long-gap resumption、Product Value、Stable Requirement authorizationも成立させない。
 
 `validate`と`preflight`では3 source fixtureのGit blob SHA-1、probe / response / receipt / audit-response / Evidence schema、typed audit dimension契約がcurrent v1であることを確認する。pre-v1 artifactはcurrent contractへ移行済みとはみなさず、human review開始後のschema差し替えを行わない。
 
