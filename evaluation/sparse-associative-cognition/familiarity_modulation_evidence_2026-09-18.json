@@ -1,0 +1,171 @@
+{
+  "schema": "sei.sacs-familiarity-modulation-evidence/v1alpha1",
+  "date": "2026-09-18",
+  "status": "limited-local-executable-evidence",
+  "subject": "SAC-B4 reversible familiarity modulation",
+  "issue": 445,
+  "branch": "topic/sac-b4-reversible-familiarity",
+  "biologicalReference": {
+    "citation": "Hattori et al. (2017), Representations of Novelty and Familiarity in a Mushroom Body Compartment, Cell 169(5):956-969.e17",
+    "doi": "10.1016/j.cell.2017.04.028",
+    "engineeringReading": "Repeated exposure to the same odor rapidly suppresses novelty-related activity in the studied mushroom-body compartment. SEI uses this only as inspiration for temporary attenuation of stable repeated caller-identified events.",
+    "nonBiologicalSafeguards": [
+      "content fingerprint change recovery",
+      "logical expiry recovery",
+      "caller-declared high-stakes bypass",
+      "bounded state with deterministic eviction"
+    ]
+  },
+  "firstSlice": {
+    "placement": "prototype-go/familiarity reusable evaluation helper; not wired into current SUI provider or CLI",
+    "policy": {
+      "repeatThreshold": 3,
+      "attenuatedScale": 0.25,
+      "expiryTicks": 5,
+      "maxEntries": 4
+    },
+    "callerOwnedInputs": [
+      "stable event key",
+      "content fingerprint",
+      "logical tick",
+      "habituation eligibility",
+      "high-stakes flag",
+      "high-stakes provenance reference"
+    ],
+    "transitions": [
+      "novel",
+      "repeated",
+      "changed",
+      "expired"
+    ],
+    "bypasses": [
+      "ineligible",
+      "high-stakes"
+    ]
+  },
+  "syntheticObservations": [
+    {
+      "id": "B4-STABLE-REPEAT-01",
+      "sequence": [
+        {
+          "tick": 1,
+          "fingerprint": "v1",
+          "scale": 1,
+          "repeatCount": 1,
+          "transition": "novel"
+        },
+        {
+          "tick": 2,
+          "fingerprint": "v1",
+          "scale": 1,
+          "repeatCount": 2,
+          "transition": "repeated"
+        },
+        {
+          "tick": 3,
+          "fingerprint": "v1",
+          "scale": 0.25,
+          "repeatCount": 3,
+          "transition": "repeated"
+        }
+      ],
+      "observation": "Attenuation begins only at the configured repeat threshold."
+    },
+    {
+      "id": "B4-CONTENT-DELTA-RECOVERY-01",
+      "afterAttenuation": {
+        "tick": 4,
+        "fingerprint": "v2",
+        "scale": 1,
+        "repeatCount": 1,
+        "transition": "changed"
+      },
+      "observation": "Caller-visible fingerprint delta immediately restores full attention and resets repetition."
+    },
+    {
+      "id": "B4-EXPIRY-RECOVERY-01",
+      "afterLastSeenTick": 3,
+      "nextTick": 8,
+      "scale": 1,
+      "repeatCount": 1,
+      "transition": "expired",
+      "observation": "A gap equal to ExpiryTicks restores full attention in the first slice."
+    },
+    {
+      "id": "B4-HIGH-STAKES-BYPASS-01",
+      "bypass": {
+        "tick": 4,
+        "scale": 1,
+        "bypassReason": "high-stakes"
+      },
+      "nextOrdinaryObservation": {
+        "tick": 5,
+        "scale": 0.25,
+        "repeatCount": 5,
+        "attenuated": true
+      },
+      "observation": "High-stakes restores one observation without erasing familiarity state; provenance is required."
+    },
+    {
+      "id": "B4-HIDDEN-CHANGE-MISSED-01",
+      "scenario": "Underlying content changes but caller continues to provide the same fingerprint.",
+      "observedResult": {
+        "transition": "repeated",
+        "attenuated": true,
+        "scale": 0.25
+      },
+      "observation": "The familiarity layer cannot detect a change omitted from the caller-owned fingerprint. This is the primary missed-change failure boundary."
+    },
+    {
+      "id": "B4-BOUNDED-STATE-01",
+      "capacity": 2,
+      "sameTickKeys": [
+        "b",
+        "a"
+      ],
+      "insertedNewKey": "c",
+      "evictedKey": "a",
+      "observation": "Oldest entry is evicted; equal-tick ties are resolved deterministically by lexical key order."
+    }
+  ],
+  "localVerification": {
+    "toolchain": "go1.23.2 linux/amd64",
+    "repositoryGoDirective": "1.25",
+    "exactRepositoryCheckout": false,
+    "method": "A temporary module used the same familiarity helper source and equivalent focused tests for policy validation, repeat attenuation, delta/expiry/stakes recovery, ineligible bypass, hidden-fingerprint change risk, deterministic eviction, monotonic logical time, and reproducibility.",
+    "unitTestCommand": "gofmt -w familiarity/*.go && go test -v ./...",
+    "unitTestResult": "PASS",
+    "benchmarkCommand": "go test -bench=. -benchmem -count=3 ./...",
+    "benchmark": {
+      "subject": "repeated same-key/same-fingerprint Observe hot path after initialization",
+      "observations": [
+        "29.59 ns/op, 0 B/op, 0 allocs/op",
+        "33.30 ns/op, 0 B/op, 0 allocs/op",
+        "32.02 ns/op, 0 B/op, 0 allocs/op"
+      ],
+      "note": "Temporary-module microbenchmark only; not a full repository checkout, Go 1.25 result, or production performance guarantee."
+    }
+  },
+  "stopLines": [
+    "familiarity != truth",
+    "repeated != unimportant",
+    "attenuation != deletion",
+    "attention scale != Recommendation or Decision",
+    "high-stakes is caller-owned and is not inferred by the helper",
+    "unchanged fingerprint != proof of unchanged underlying content",
+    "temporary attenuation != permanent forgetting",
+    "this evidence != current provider default",
+    "this evidence != Operational, Adoption, or Outcome Evidence"
+  ],
+  "notVerified": [
+    "exact branch source test from a full repository checkout on Go 1.25",
+    "actual always-on event distribution",
+    "caller fingerprint contract quality",
+    "optimal repeat threshold, attenuation scale, expiry, or capacity",
+    "persisted familiarity state across restart",
+    "cross-device or distributed familiarity state",
+    "missed-change rate on real workloads",
+    "integration with SUI provider or SEI orchestration",
+    "Production, Operational, Adoption, or Outcome Evidence"
+  ]
+}

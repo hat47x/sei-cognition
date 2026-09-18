@@ -89,10 +89,11 @@
     {
       "id": "temporal-familiarity",
       "biological_observation": "新奇な匂いへの強い応答が反復曝露で急速に抑制されるnovelty/familiarity表現が、dopamine依存の可塑性とともに報告されている。",
-      "engineering_abstraction": "内容が安定した反復eventのattention priorityを一時的に減衰させ、意味のある変化、長時間経過、high-stakes条件では即座に復帰させるreversible habituationを評価する。",
+      "engineering_abstraction": "caller-owned stable event keyとcontent fingerprintを用い、同一eventの安定反復だけattention scaleを一時的に減衰させる。content delta / logical expiry / caller-declared high-stakes / ineligible inputでは即時にfull attentionへ戻す。stateはboundedかつdeterministicにevictする。",
       "sei_role": "always-on event triage / notification suppression / novelty routing",
-      "adoption_state": "planned",
-      "risk": "馴化が変化見逃しを生むことが最大の失敗であり、missed-change rateを独立指標として測る。"
+      "adoption_state": "synthetic-executable-evaluation",
+      "risk": "最大の失敗はcaller fingerprintが意味のある変化を表現せず、実際には変化しているeventをfamiliarとしてattenuationし続けること。familiarity layerはsemantic samenessやstakesを自律推定しない。",
+      "evidence_note": "self-contained synthetic evaluationでrepeat threshold到達後のattenuation、fingerprint delta / expiry / high-stakes recovery、ineligible bypass、bounded deterministic evictionを確認した。同一fingerprintのままunderlying contentだけ変わるmissed-change反例も固定した。"
     },
     {
       "id": "homeostatic-sparsity",
@@ -363,14 +364,40 @@
       "depends_on": [
         "SAC-B1"
       ],
-      "change": "stable repeated eventだけattention priorityを減衰させ、content delta / expiry / stakesで即時復帰するtemporal modulationを追加する。",
-      "primary_question": "常時認知における重複escalationを減らしつつ、意味のある変化を見逃さないか。",
+      "change": "stable repeated eventだけ固定attention scaleへ一時減衰し、content fingerprint delta / logical expiry / caller-declared high-stakes / habituation ineligibleで即時復帰するreversible familiarity helperを比較する。first sliceはSUI providerへ直結せず、reusable evaluation helperとして分離する。",
+      "primary_question": "always-on cognitionで重複attentionを減らしつつ、meaningful changeを見逃さないためにcaller fingerprint・expiry・stakes・bounded stateの境界をどこまで明示すべきか。",
       "measures": [
         "duplicate_escalation_reduction",
+        "content_delta_recovery",
+        "expiry_recovery",
+        "high_stakes_recovery",
+        "ineligible_bypass",
         "missed_change_rate",
-        "recovery_latency",
-        "state_memory_cost"
-      ]
+        "bounded_state_eviction",
+        "deterministic_reproducibility",
+        "state_memory_cost",
+        "processing_latency"
+      ],
+      "current_result": {
+        "state": "limited-synthetic-executable-evidence",
+        "evidence_file": "familiarity_modulation_evidence_2026-09-18.json",
+        "findings": [
+          "RepeatThreshold=3 / AttenuatedScale=0.25のfixtureで、初回と2回目はscale=1、3回目のstable repeatからscale=0.25へ減衰した。",
+          "fingerprint変化ではtransition=changed、expiry到達ではtransition=expiredとしてrepeat countを1へ戻し、attention scale=1へ即時復帰した。",
+          "high-stakes observationはprovenance必須のcaller-owned bypassとしてその1回だけscale=1へ復帰し、既存familiarity state自体は保持した。",
+          "caller fingerprintが変わらないhidden content changeはrepeatedとしてattenuationされ続け、B4単独では検出不能なmissed-change failureとして固定した。",
+          "MaxEntries上限とoldest/lexical tie-breakでbounded deterministic evictionを確認した。"
+        ],
+        "implementation_boundary": {
+          "placement": "prototype-go/familiarity reusable evaluation helper",
+          "provider_default_changed": false,
+          "semantic_sameness_inferred": false,
+          "high_stakes_inferred": false,
+          "wall_clock_used": false,
+          "persisted_state_in_first_slice": false
+        },
+        "stop_line": "repetition attenuationを、重要性判断、削除、semantic samenessの証明、実workload上のmissed-change安全性、production defaultへ昇格させない。"
+      }
     },
     {
       "stage": "SAC-B5",
@@ -492,7 +519,12 @@
     "signature_collision_loss",
     "kwta_bias_discontinuity",
     "prior_misapplication_false_activation",
-    "salience_policy_traceability"
+    "salience_policy_traceability",
+    "content_delta_recovery",
+    "expiry_recovery",
+    "high_stakes_recovery",
+    "bounded_state_eviction",
+    "fingerprint_missed_change_behavior"
   ],
   "evaluation_policy": {
     "single_composite_score": false,
@@ -524,7 +556,10 @@
       "B2 local competitionのrequest-scoped Encoder再利用はnaiveなper-family生成より大幅に軽量化したが、standalone reconstructionではglobal baselineより高いlatency / allocationが残った。",
       "SAC-B3のSUI-shaped synthetic fixtureで、provenance付きexact-feature priorがtext支配されたrare-critical candidateを回復するケースを観測した。",
       "同じB3評価で、1.01倍という微小priorでもcommon featureへ誤適用するとbaselineで正しかった候補順を逆転させる失敗モードを観測した。",
-      "B3 rare-critical anchorではunbiased / biased signature similarity 0.5を観測し、bounded multiplierがbounded ranking changeを意味しないk-WTA不連続を確認した。"
+      "B3 rare-critical anchorではunbiased / biased signature similarity 0.5を観測し、bounded multiplierがbounded ranking changeを意味しないk-WTA不連続を確認した。",
+      "SAC-B4のself-contained synthetic evaluationで、stable repeated eventが設定threshold到達後に一時attenuationされ、content delta / expiry / high-stakesでfull attentionへ復帰することを確認した。",
+      "同じB4評価で、caller fingerprintに現れないunderlying content changeはattenuationされたままになるmissed-change failure boundaryを確認した。",
+      "B4 familiarity stateはMaxEntriesでboundedにし、capacity超過時のoldest / lexical tie-break deterministic evictionを確認した。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -533,7 +568,7 @@
       "実SUI / SEIデータとhuman-adjudicated benchmarkに対するinput normalizationの一般化可能性",
       "実SUI / SEIデータでのlocalized competition一般化、最適family budget / residual比、およびalways-on運用に十分なallocation特性",
       "実SUI / SEIデータでのsalience prior一般化、policy authoring / review / expiry、最適bounds、およびfanout/topology biasの独立増分",
-      "reversible familiarity modulationの見逃し率",
+      "実workloadでのreversible familiarity missed-change rate、caller fingerprint contract品質、最適threshold / expiry / capacity、persisted / distributed state",
       "static semantic補完が必要かどうか",
       "learned sparse projectionがrandom / static方式を上回るか",
       "10万件以上でのindex方式",
@@ -546,7 +581,8 @@
     "supporting_evidence_files": [
       "input_normalization_evidence_2026-09-18.json",
       "localized_competition_evidence_2026-09-18.json",
-      "projection_bias_evidence_2026-09-18.json"
+      "projection_bias_evidence_2026-09-18.json",
+      "familiarity_modulation_evidence_2026-09-18.json"
     ]
   },
   "references": [
