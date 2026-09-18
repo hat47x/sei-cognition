@@ -58,13 +58,31 @@ def fake_go(root: Path, version: str) -> Path:
     return path
 
 
-def invoke(root: Path, argv: list[str]) -> tuple[int, dict]:
+def invoke(
+    root: Path,
+    argv: list[str],
+    *,
+    expected_head: str | None = None,
+) -> tuple[int, dict]:
     original_file = runner.__file__
     original_argv = sys.argv[:]
     stdout = io.StringIO()
+    head = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=root,
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    ).stdout.strip()
     try:
         runner.__file__ = str(root / "tools" / "run_issue_000073_resume_first_evidence.py")
-        sys.argv = ["run_issue_000073_resume_first_evidence.py", *argv]
+        sys.argv = [
+            "run_issue_000073_resume_first_evidence.py",
+            "--expected-head",
+            expected_head or head,
+            *argv,
+        ]
         with contextlib.redirect_stdout(stdout):
             code = runner.main()
     finally:
@@ -73,6 +91,18 @@ def invoke(root: Path, argv: list[str]) -> tuple[int, dict]:
 
     payload = json.loads(stdout.getvalue())
     return code, payload
+
+
+def test_expected_head_mismatch_blocks() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        init_repo(root)
+
+        code, payload = invoke(root, [], expected_head="0" * 40)
+        assert code == 2, payload
+        assert payload["status"] == "blocked", payload
+        assert payload["repository"]["head_matches_expected"] is False, payload
+        assert "expected HEAD" in payload["blocked_reason"], payload
 
 
 def test_dirty_checkout_blocks() -> None:
@@ -119,6 +149,7 @@ def test_lower_go_version_blocks() -> None:
 
 
 def main() -> int:
+    test_expected_head_mismatch_blocks()
     test_dirty_checkout_blocks()
     test_missing_required_binding_blocks()
     test_lower_go_version_blocks()

@@ -54,6 +54,14 @@ def main() -> int:
     )
     parser.add_argument("--evidence", type=Path, default=DEFAULT_EVIDENCE)
     parser.add_argument("--verification", type=Path, default=DEFAULT_VERIFICATION)
+    parser.add_argument(
+        "--expected-head",
+        required=True,
+        help=(
+            "Canonical repository commit SHA obtained independently of this checkout. "
+            "The capture blocks unless git HEAD matches it exactly."
+        ),
+    )
     parser.add_argument("--go", dest="go_executable", help="Go executable forwarded to the evidence runner.")
     parser.add_argument("--replace", action="store_true", help="Replace existing evidence outputs intentionally.")
     parser.add_argument("--repo", type=Path, help=argparse.SUPPRESS)
@@ -65,9 +73,23 @@ def main() -> int:
     evidence = evidence.resolve()
     verification = verification.resolve()
 
+    head_proc = run(["git", "rev-parse", "HEAD"], repo)
+    actual_head = head_proc.stdout.strip() if head_proc.returncode == 0 else None
+    if actual_head != args.expected_head:
+        sys.stdout.write(summary(
+            status="blocked", evidence=evidence, verification=verification,
+            tested_head=actual_head,
+            detail=(
+                "checkout HEAD does not match independently supplied canonical expected HEAD: "
+                f"actual={actual_head!r} expected={args.expected_head!r}"
+            ),
+        ))
+        return 2
+
     if evidence == verification:
         sys.stdout.write(summary(
             status="blocked", evidence=evidence, verification=verification,
+            tested_head=actual_head,
             detail="evidence and verification outputs must be different files",
         ))
         return 2
@@ -101,7 +123,14 @@ def main() -> int:
     verification_temp = Path(temp_root.name) / "e1-e8-verification.json"
 
     try:
-        runner_cmd = [sys.executable, str(runner), "--output", str(evidence_temp)]
+        runner_cmd = [
+            sys.executable,
+            str(runner),
+            "--output",
+            str(evidence_temp),
+            "--expected-head",
+            args.expected_head,
+        ]
         if args.go_executable:
             runner_cmd.extend(["--go", args.go_executable])
         runner_proc = run(runner_cmd, repo)
