@@ -12,6 +12,7 @@ from run_live_provider_failure_probe import (
     EXPECTED_TESTS,
     LIVE_FLAG,
     STOP_LINE,
+    build_parser,
     evaluate_execution,
     live_command,
     main,
@@ -36,7 +37,7 @@ def passing_output() -> str:
 
 
 class LiveProviderFailureRunnerTest(unittest.TestCase):
-    def test_live_command_targets_only_expected_negative_probes(self) -> None:
+    def test_parser_labels_current_issue(self) -> None:\n        parser = build_parser()\n        self.assertIn("ISSUE-000076", parser.description or "")\n        self.assertNotIn("ISSUE-000072", parser.description or "")\n\n    def test_live_command_targets_only_expected_negative_probes(self) -> None:
         command = live_command()
         self.assertEqual(command[:3], ("go", "test", "./liveintegration"))
         pattern = command[command.index("-run") + 1]
