@@ -4,7 +4,7 @@ Status: **Open**
 Priority: **2**  
 Related ADRs: **ADR-0013, ADR-0019, ADR-0021, ADR-0024, ADR-0025**  
 Product Milestone: **PMS-06**  
-Updated: 2026-09-10
+Updated: 2026-09-18
 
 ## Goal
 
@@ -217,7 +217,7 @@ PR #337では、同catalogの9 caseを外部serviceなしで発火させるdeter
 
 PR #338では、既存`runtime/go/provideradapter`の`Adapter.Observe(...)`と`ValidateObservation(...)`を直接使うfailure test fixtureを追加した。Provider固有payloadのdecode後にmappingが失敗した場合にpartial Capability Observationを返さないこと、mapping成功後のsemantic runtime validation failureを別段階として扱えること、retry成功時も初回mapping failureを別attemptとして保持できることをtestとして固定した。
 
-PR #343では、GitHub Actionsを成立条件にしないrepository-local入口として`evaluation/failure-behavior/run_local_checks.py`を追加した。catalog validator、deterministic probe、runner自身のtest、Provider Adapter Go testを一つの実行境界へまとめ、timeout、起動不能、途中停止、未実行checkをPASSへ読み替えない。子processには`SEI_*`、`KJ_ATLAS_*`、model runtimeや各種API key等のlive入力を暗黙継承しない。runner unit logicは6 test PASSを確認したが、`go test ./provideradapter`自体はこの作業環境では未実行である。
+PR #343では、GitHub Actionsを成立条件にしないrepository-local入口として`evaluation/failure-behavior/run_local_checks.py`を追加した。2026-09-18の再監査で、runner先頭docstringとCLI descriptionだけが誤って`ISSUE-000072`を名乗っていたことを確認し、実行意味を変えず`ISSUE-000076`へ訂正した。catalog validator、deterministic probe、runner自身のtest、Provider Adapter Go testを一つの実行境界へまとめ、timeout、起動不能、途中停止、未実行checkをPASSへ読み替えない。子processには`SEI_*`、`KJ_ATLAS_*`、model runtimeや各種API key等のlive入力を暗黙継承しない。runner unit logicは6 test PASSを確認したが、`go test ./provideradapter`自体はこの作業環境では未実行である。
 
 PR #344では、既存`runtime/go/liveintegration`へfailure probe testを追加した。deterministic `httptest`ではProvider rejection時にCapability Observationを生成しないこととAuthorization tokenをerrorへ漏らさないことを検査し、明示的opt-inのactual GitHub negative probeとして、存在しないrevisionと固定invalid credentialの2 caseを定義した。通常のrepository-local checkではlive flagが環境浄化で除去されるため、actual通信を自動実行しない。
 
@@ -331,9 +331,9 @@ current deterministic probeでは1〜9をすべてfixture-scopedに発火させ�
 - Provider Adapter failure tests: **Defined on current runtime path**。mapping failure、semantic validation failure、retry attempt separationを既存Adapter境界へ接続済み。
 - repository-local failure runner: **Defined / unit-tested**。runner unit logic 6 test PASS。Provider Adapter Go test実行は未確認。
 - live Provider failure tests: **Defined explicit opt-in**。missing revision / invalid credential、secret-safe deterministic rejectionを追加済み。
-- explicit live failure runner: **Defined / unit-tested**。runner unit test 10 test PASS。actual GitHub negative probeは未実行。
+- explicit live failure runner: **Defined / unit-tested**。runner unit test 10 test PASS。actual GitHub negative probe全体は未実行。missing revision単独については`actual_provider_missing_revision_observation_20260910.json`のactual service observationが存在するが、invalid credentialとの2-case runner完走は未確認。
 - Requirement audit: **Completed — No Change at current evidence height**。audit test 5 test PASS。
-- actual Provider failure Evidence: **Not Yet Verified**。
+- actual Provider failure Evidence: **Partially observed / not sufficient for Resolution**。`actual_provider_missing_revision_observation_20260910.json`にmissing revisionのactual service observationが保存されている一方、invalid credentialを含むexplicit live negative probe全体は未実行であり、Provider admission / credential等を跨ぐactual比較Evidenceには達していない。
 - actual deployment failure Evidence: **Not Yet Verified**。
 - Operational Evidence: **Not Yet Verified**。
 
