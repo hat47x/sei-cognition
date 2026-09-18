@@ -398,6 +398,14 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
             self.probe["cases"][0]["distorted_summary"],
         )
         self.assertEqual(
+            bundle["probe_snapshot"]["canonical_probe"],
+            self.probe,
+        )
+        self.assertEqual(
+            probe_content_sha256(bundle["probe_snapshot"]["canonical_probe"]),
+            bundle["probe_snapshot"]["content_sha256"],
+        )
+        self.assertEqual(
             bundle["probe_snapshot"]["review_questions"],
             self.probe["review_questions"],
         )
@@ -521,6 +529,26 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
 
         changed = copy.deepcopy(bundle)
         changed["audit_reveal"]["review_start_receipt_sha256"] = "b" * 64
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_evidence_bundle(changed)
+
+    def test_validate_bundle_rejects_probe_snapshot_tampering(self):
+        bundle = self.valid_bundle()
+
+        changed = copy.deepcopy(bundle)
+        changed["probe_snapshot"]["distorted_summary"] = "tampered"
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_evidence_bundle(changed)
+
+        changed = copy.deepcopy(bundle)
+        changed["probe_snapshot"]["canonical_probe"]["cases"][0][
+            "distorted_summary"
+        ] = "tampered"
+        with self.assertRaises(SummaryDistortionEvidenceError):
+            validate_evidence_bundle(changed)
+
+        changed = copy.deepcopy(bundle)
+        changed["source_snapshot"]["blob_sha1"] = "a" * 40
         with self.assertRaises(SummaryDistortionEvidenceError):
             validate_evidence_bundle(changed)
 

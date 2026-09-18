@@ -35,7 +35,7 @@ from inquiry_continuity_summary_distortion_probe import (
 )
 
 AUDIT_RESPONSE_SCHEMA = "sei.inquiry-continuity-summary-distortion-audit-response/v1"
-EVIDENCE_SCHEMA = "sei.inquiry-continuity-summary-distortion-evidence/v1"
+EVIDENCE_SCHEMA = "sei.inquiry-continuity-summary-distortion-evidence/v2"
 
 
 class SummaryDistortionEvidenceError(ValueError):
@@ -313,6 +313,7 @@ def build_evidence_bundle(
         "fixture_id": fixture_id,
         "probe_snapshot": {
             "content_sha256": probe_content_sha256(probe),
+            "canonical_probe": copy.deepcopy(probe),
             "distorted_summary": case["distorted_summary"],
             "distorted_next_question": case["distorted_next_question"],
             "review_questions": copy.deepcopy(probe["review_questions"]),
@@ -442,6 +443,7 @@ def validate_evidence_bundle(bundle: Any) -> None:
     probe_snapshot = bundle["probe_snapshot"]
     if not isinstance(probe_snapshot, dict) or set(probe_snapshot) != {
         "content_sha256",
+        "canonical_probe",
         "distorted_summary",
         "distorted_next_question",
         "review_questions",
@@ -453,6 +455,47 @@ def validate_evidence_bundle(bundle: Any) -> None:
     if not _is_lower_hex(probe_snapshot["content_sha256"], 64):
         raise SummaryDistortionEvidenceError(
             "probe_snapshot content_sha256 must be SHA-256"
+        )
+    canonical_probe = probe_snapshot["canonical_probe"]
+    if not isinstance(canonical_probe, dict):
+        raise SummaryDistortionEvidenceError(
+            "probe_snapshot canonical_probe must be an object"
+        )
+    try:
+        validate_probe(canonical_probe)
+    except SummaryDistortionProbeError as exc:
+        raise SummaryDistortionEvidenceError(
+            f"probe_snapshot canonical_probe is invalid: {exc}"
+        ) from exc
+    if probe_content_sha256(canonical_probe) != probe_snapshot["content_sha256"]:
+        raise SummaryDistortionEvidenceError(
+            "probe_snapshot content_sha256 does not match canonical_probe"
+        )
+    if canonical_probe["probe_id"] != bundle["probe_id"]:
+        raise SummaryDistortionEvidenceError(
+            "probe_snapshot canonical_probe probe_id mismatch"
+        )
+    canonical_case = next(
+        (
+            case
+            for case in canonical_probe["cases"]
+            if case["fixture_id"] == bundle["fixture_id"]
+        ),
+        None,
+    )
+    if canonical_case is None:
+        raise SummaryDistortionEvidenceError(
+            "probe_snapshot canonical_probe lacks selected fixture"
+        )
+    if (
+        probe_snapshot["distorted_summary"] != canonical_case["distorted_summary"]
+        or probe_snapshot["distorted_next_question"]
+        != canonical_case["distorted_next_question"]
+        or probe_snapshot["review_questions"] != canonical_probe["review_questions"]
+        or probe_snapshot["audit_dimensions"] != canonical_probe["audit_dimensions"]
+    ):
+        raise SummaryDistortionEvidenceError(
+            "probe_snapshot selected stimulus differs from canonical_probe"
         )
     if (
         not isinstance(probe_snapshot["distorted_summary"], str)
@@ -528,6 +571,13 @@ def validate_evidence_bundle(bundle: Any) -> None:
     ):
         raise SummaryDistortionEvidenceError(
             "source_snapshot path/blob binding is invalid"
+        )
+    if (
+        source_snapshot["path"] != canonical_case["path"]
+        or source_snapshot["blob_sha1"] != canonical_case["blob_sha1"]
+    ):
+        raise SummaryDistortionEvidenceError(
+            "source_snapshot differs from canonical_probe selected case"
         )
 
     review_start = bundle["review_start"]
@@ -805,8 +855,9 @@ def evidence_contract_summary(
         "evidence_schema": EVIDENCE_SCHEMA,
         "audit_dimensions": copy.deepcopy(probe["audit_dimensions"]),
         "compatibility": (
-            "v1 evaluation artifacts only; pre-v1 review/audit artifacts are "
-            "not accepted by the current contract"
+            "Evidence bundle v2 embeds the complete canonical probe so its "
+            "content SHA-256 is self-verifiable; review/audit artifacts remain "
+            "current v1 and pre-v1 review/audit artifacts are not accepted"
         ),
         "evidence_boundary": copy.deepcopy(probe["evidence_boundary"]),
     }
