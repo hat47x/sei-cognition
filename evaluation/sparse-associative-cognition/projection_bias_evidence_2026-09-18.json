@@ -29,7 +29,9 @@
       "exact key",
       "multiplier > 1 and <= policy max",
       "non-empty provenance reference",
-      "duplicate selectors rejected"
+      "duplicate selectors rejected",
+      "policy and rule multipliers must be finite; NaN / Inf fail closed",
+      "exact channel and key must already be canonical; surrounding whitespace fails closed"
     ],
     "invariants": [
       "Feature.Channel is unchanged",
@@ -173,5 +175,21 @@
     "local-only versus global-residual-only bias scope under B2",
     "fanout-biased or sampling-probability-biased projection",
     "Production, Operational, Adoption, or Outcome Evidence"
-  ]
+  ],
+  "hardeningReview": {
+    "issue": 441,
+    "source": "post-merge review of SAC-B3 canonical implementation from PR #443",
+    "changes": [
+      "reject non-finite policy MaxMultiplier and rule Multiplier before comparison",
+      "reject exact Channel / Key selectors with surrounding whitespace instead of silently compiling a selector that cannot match canonical prepared features"
+    ],
+    "regressionTestsAdded": [
+      "NaN policy max",
+      "+Inf policy max",
+      "NaN rule multiplier",
+      "non-canonical channel",
+      "non-canonical key"
+    ],
+    "executionStatus": "regression tests added but not counted as PASS; exact repository / Go 1.25 execution remains unverified"
+  }
 }
