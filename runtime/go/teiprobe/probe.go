@@ -191,10 +191,12 @@ func Probe(ctx context.Context, request Request) (Report, error) {
 		return Report{}, err
 	}
 
+	observationContext := request.ObservationContext
+	observationContext.SourceStateRef = "tei-binary-sha256:" + beforeDigest
 	observation, err := (teiintegration.CLI{Executable: request.BinaryPath}).ObserveProviderPlan(
 		ctx,
 		request.ProviderPlan,
-		request.ObservationContext,
+		observationContext,
 	)
 	if err != nil {
 		return Report{}, err
