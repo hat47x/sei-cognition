@@ -304,19 +304,36 @@ pre-orientation material exposure
 
 ### H2 — matched counterfactual review
 
-H2では、raw chat、chronological note、SEI Resume Projectionを同等素材で比較します。blinded packet、global stage gate、Decision固有validationを用い、reference stateを先に見ないようにします。
+H2では、raw chat、chronological note、SEI Resume Projectionを同等素材で比較します。reviewer provenanceを最初のstimulus提示前に固定し、condition labelを伏せたbundle、global stage gate、Decision固有validationを用いて、post-decision materialやreference stateを先に見ないようにします。
 
-completed reviewのEvidence exportは、既存Inquiry Continuity review runnerの`export-evidence`へ統合されています。別のoperational pathを増やしません。
+正規入口は073/078で共有する`inquiry_continuity_review_runner.py`です。Decision専用runnerやsession managerは増やしません。complete reviewのEvidence exportも同じrunnerの`export-evidence`から行います。
 
 例:
 
 ```text
-python evaluation/personal-inquiry-decision/inquiry_continuity_review_runner.py \
-  export-evidence /tmp/review-session.json \
-  --output /tmp/review-evidence.json
+RUNNER=evaluation/personal-inquiry-decision/inquiry_continuity_review_runner.py
+MANIFEST=evaluation/personal-inquiry-decision/decision_continuity_counterfactual_matched_set_v1.json
+
+python "$RUNNER" --manifest "$MANIFEST" --repo-root . init \
+  /tmp/e73-review-session.json \
+  --rotation R1 \
+  --session-id e73-r1-reader-001 \
+  --created-at <timestamp> \
+  --reviewer-id <opaque-reviewer-id> \
+  --prior-exposure <none-declared|known-material-exposure|unknown> \
+  --response-authorship <human-direct|human-transcribed>
+
+python "$RUNNER" --manifest "$MANIFEST" --repo-root . bundle \
+  /tmp/e73-review-session.json
+
+python "$RUNNER" --manifest "$MANIFEST" --repo-root . export-evidence \
+  /tmp/e73-review-session.json \
+  --output /tmp/e73-review-evidence.json
 ```
 
-exportはcompleted sessionだけを受理し、human-review observationとsemantic auditを別collectionとして保持します。synthetic reviewをactual long-gap resumptionやProduct Valueへ昇格させません。
+exportはcompleted sessionだけを受理し、human-review observationとsemantic auditを別collectionとして保持します。review provenanceも同じbundleへ残しますが、申告metadata自体を盲検やhuman authorshipの独立証明にはしません。synthetic reviewをH1 actual resumptionやProduct Valueへ昇格させません。
+
+2026-09-18の本Issue作業では、R1相当のphase1 materialがprovenance固定前に一度提示されましたが、human responseは固定されませんでした。この提示はH2 observationには数えません。同じreaderで後続reviewを行う場合は`known-material-exposure`として記録し、clean blinded reviewとは呼びません。
 
 ```text
 H2 evidence bundle
@@ -343,7 +360,7 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 | REQ-0023 / SCN-0019 Executable Evidence | **Not Yet Verified** |
 | H1 actual human review | **Not Yet Observed** |
 | H2 counterfactual human review | **Not Yet Observed** |
-| H2 review / evidence-export tooling | Available; actual human session pending |
+| H2 provenance-first shared runner / evidence-export tooling | Available; actual human session pending; prior R1 exposure is not a completed observation |
 | Decision Continuity Product Value | **Not Established** |
 | Operational Evidence | **Not Yet Verified** |
 | Adoption / Outcome Evidence | **Not Yet Verified** |
@@ -358,7 +375,7 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 2. captureが保存したrunner / verification recordについて、recorded tested commit / source blobs / E1〜E8結果を確認する。
 3. actual Evidenceを保存し、REQ-0023 / SCN-0019を含むEvidence状態を再監査する。
 4. materialなpre-orientation exposureのないreal InquiryでH1 actual resumptionを実施する。
-5. H2 matched reviewをhuman readerで少なくとも一rotation実施し、completed sessionからevidence bundleをexportする。
+5. H2 matched reviewをprovenance-first shared runnerからhuman readerで少なくとも一rotation実施し、completed sessionからevidence bundleをexportする。既知の事前露出があるreaderはその事実を保持し、clean blinded扱いにしない。
 6. capture / review overheadをH1のreal Inquiryと合わせて読む。
 7. human observationを踏まえて、残るCandidate RequirementとDecision Continuity Product hypothesisを再評価する。
 
@@ -374,7 +391,7 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 
 同日の実行環境確認では、host Goが1.23.2であることに加え、`GOTOOLCHAIN=go1.25.0+auto`によるGo 1.25.0取得も外向きDNS / network制限で成立しないことをactualに確認しました。このblockerをinteractionprobeのFAILとは扱わず、低いGoで代替PASSを作らない停止線を維持しています。
 
-H1は既存dogfood stateとevaluation sidecarを利用し、real Inquiryのactual resumptionだけを観測します。H1専用のschemaやsession managerは増やしていません。H2は既存matched review基盤を利用し、completed sessionのEvidence exportも既存Inquiry Continuity review runnerへ統合された経路を使います。
+H1は既存dogfood stateとevaluation sidecarを利用し、real Inquiryのactual resumptionだけを観測します。H1専用のschemaやsession managerは増やしていません。H2は既存matched review基盤を利用し、073/078共通のreview runnerでstimulus提示前にreviewer provenanceを固定してからbundleを提示し、completed sessionのEvidence exportまで同じ経路を使います。2026-09-18にprovenance固定前のR1 material提示が一度発生したため、その提示を受けたreaderの後続sessionはknown exposureとして扱い、回答未固定の提示そのものはhuman Evidenceへ数えない停止線を追加しました。
 
 これにより、実行準備文書からmachine EvidenceとH1 / H2へ進む経路は一本化しつつ、environment blockerとrepository failure、real Inquiryとsynthetic matched review、human observationとsemantic audit、mechanicsとProduct Valueの意味差を維持しました。
 
