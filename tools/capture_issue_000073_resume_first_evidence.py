@@ -112,20 +112,51 @@ def main() -> int:
             if isinstance(repository, dict) and isinstance(repository.get("head"), str):
                 tested_head = repository["head"]
 
+        # The runner must always publish a readable machine record before its exit code is interpreted.
+        # A Python exception, startup failure, or malformed output must not make this wrapper crash while
+        # attempting to publish a nonexistent temp file, and must never inherit a stale prior PASS.
+        if runner_record is None:
+            if args.replace:
+                evidence.unlink(missing_ok=True)
+                verification.unlink(missing_ok=True)
+            detail = "runner did not publish a readable JSON evidence record; verifier was not invoked"
+            if runner_proc.stderr.strip():
+                detail += f"; runner stderr: {runner_proc.stderr.strip()}"
+            sys.stdout.write(summary(
+                status="fail", evidence=evidence, verification=None, tested_head=None,
+                runner_exit=runner_proc.returncode, detail=detail,
+            ))
+            return 1
+
         # A blocked or failing actual run is still useful diagnostic evidence, but is never verified/prompted as PASS.
         if runner_proc.returncode != 0:
             publish(evidence_temp, evidence)
             if args.replace:
                 verification.unlink(missing_ok=True)
-            status = "blocked" if runner_proc.returncode == 2 else "fail"
+            runner_status = runner_record.get("status")
+            blocked = runner_proc.returncode == 2 and runner_status == "blocked"
+            status = "blocked" if blocked else "fail"
             detail = "runner did not PASS; verifier was not invoked"
+            if runner_proc.returncode == 2 and not blocked:
+                detail += "; exit code 2 was not accepted as blocked without a status=blocked evidence record"
             if runner_proc.stderr.strip():
                 detail += f"; runner stderr: {runner_proc.stderr.strip()}"
             sys.stdout.write(summary(
                 status=status, evidence=evidence, verification=None, tested_head=tested_head,
                 runner_exit=runner_proc.returncode, detail=detail,
             ))
-            return runner_proc.returncode
+            return 2 if blocked else 1
+
+        if runner_record.get("status") != "pass":
+            publish(evidence_temp, evidence)
+            if args.replace:
+                verification.unlink(missing_ok=True)
+            sys.stdout.write(summary(
+                status="fail", evidence=evidence, verification=None, tested_head=tested_head,
+                runner_exit=0,
+                detail="runner exited zero but its evidence record did not declare status=pass; verifier was not invoked",
+            ))
+            return 1
 
         verifier_cmd = [
             sys.executable,
