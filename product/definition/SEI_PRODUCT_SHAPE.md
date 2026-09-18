@@ -266,7 +266,35 @@ SEIは、SUIの内部キャンバスや関係表現を自らのUniversal Coreへ
 
 TEIは、業務上の意味をformal modelとして保持し、実装・実行可能なCapabilityへ接続する製品です。
 
-SEIはTEIをCapability Providerとして利用できますが、TEI固有のmodel structureやruntime identityをSEI semantic identityへ同化させません。
+SEIでは今後、**Work / Interaction Surface、Projection / Review Surface、Evidence / Governance Surface等のApplication Planeを実装するとき、TEIを第一候補とします。** Web / Desktop UI、設定・方針編集、review / resume projection、管理面等を個別frameworkで増やす前に、TEIのApplication / Projection / Target / Capabilityで実現できるかを確認します。
+
+一方、次はTEIへ無理に移しません。
+
+- SEI Universal Coreのsemantic meaning
+- Cognitive Method本体
+- local model / classifier / associative cognition等の専門runtime
+- provider-specific low-level integration
+- performance / device constraintが強いkernel処理
+- headless / embedded利用でTEI Application surfaceを必要としない経路
+
+TEIで不足が見つかった場合も、SEI固有要求を直接TEI Coreへ追加せず、既存TEI機能 → reusable Plugin / Adapter / Capability → native asset / custom implementation → cross-application EvidenceがあるCore gap候補、の順で扱います。
+
+したがって、
+
+```text
+SEI Product / Semantic authority
+  != TEI implementation authority
+
+SEI Application Plane
+  -> TEI-first
+
+SEI Cognitive / Semantic Kernel
+  -> native / Provider-specific allowed
+```
+
+という境界を維持します。
+
+SEIはTEIをCapability Providerとして利用できますが、TEI固有のmodel structureやruntime identityをSEI semantic identityへ同化させません。またTEIが利用不能でも、Canonical Semantic AccessやCognitive Method integration等のheadlessな中心機能まで失う設計にはしません。
 
 ### 6.3 EKI Fabric
 
