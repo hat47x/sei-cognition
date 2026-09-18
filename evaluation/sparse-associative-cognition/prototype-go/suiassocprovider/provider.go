@@ -23,9 +23,11 @@ const (
 	RequestSchema  = "sui.associative-recall-request/v1alpha1"
 	ResponseSchema = "sui.associative-recall-response/v1alpha1"
 
-	MaxItems          = 512
-	MaxAnchors        = 32
-	MaxCandidateLimit = 64
+	MaxItems                    = 512
+	MaxAnchors                  = 32
+	MaxCandidateLimit           = 64
+	MaxProjectionBiasRules      = 64
+	MaxProjectionBiasMultiplier = float32(4)
 )
 
 var allowedIntents = map[string]struct{}{
@@ -119,6 +121,23 @@ type LocalCompetitionPolicy struct {
 	GlobalResidualActive uint16
 }
 
+// ProjectionBiasRule is a caller-owned, provenance-bearing exact-feature prior.
+// It changes projection competition only; it does not assert semantic importance.
+type ProjectionBiasRule struct {
+	Channel       string
+	Key           string
+	Multiplier    float32
+	ProvenanceRef string
+}
+
+// ProjectionBiasPolicy bounds caller-provided static projection priors.
+// SACS does not learn or infer these priors.
+type ProjectionBiasPolicy struct {
+	PolicyRef     string
+	MaxMultiplier float32
+	Rules         []ProjectionBiasRule
+}
+
 type Config struct {
 	Sparse                sparseassoc.Config
 	MinInternalSimilarity float32
@@ -127,10 +146,17 @@ type Config struct {
 	FeatureNormalization  FeatureNormalizationMode
 	NormalizationFloor    float32
 	LocalCompetition      *LocalCompetitionPolicy
+	ProjectionBias        *ProjectionBiasPolicy
+}
+
+type projectionBiasSelector struct {
+	channel string
+	key     string
 }
 
 type Provider struct {
-	cfg Config
+	cfg            Config
+	projectionBias map[projectionBiasSelector]float32
 }
 
 func New(cfg Config) (*Provider, error) {
@@ -158,8 +184,15 @@ func New(cfg Config) (*Provider, error) {
 	if err := validateLocalCompetition(cfg.Sparse, cfg.LocalCompetition); err != nil {
 		return nil, err
 	}
+	if err := validateProjectionBias(cfg.ProjectionBias); err != nil {
+		return nil, err
+	}
 	cfg.LocalCompetition = cloneLocalCompetition(cfg.LocalCompetition)
-	return &Provider{cfg: cfg}, nil
+	cfg.ProjectionBias = cloneProjectionBias(cfg.ProjectionBias)
+	return &Provider{
+		cfg:            cfg,
+		projectionBias: compileProjectionBias(cfg.ProjectionBias),
+	}, nil
 }
 
 func DecodeRequest(data []byte) (Request, error) {
@@ -490,21 +523,113 @@ func mergeSparseSignatures(signatures []sparseassoc.Signature) sparseassoc.Signa
 	return sparseassoc.Signature{Active: merged[:write]}
 }
 
+func validateProjectionBias(policy *ProjectionBiasPolicy) error {
+	if policy == nil {
+		return nil
+	}
+	if strings.TrimSpace(policy.PolicyRef) == "" {
+		return errors.New("projection bias policyRef must not be empty")
+	}
+	if policy.MaxMultiplier <= 1 || policy.MaxMultiplier > MaxProjectionBiasMultiplier {
+		return fmt.Errorf(
+			"projection bias maxMultiplier must be in (1,%g]",
+			MaxProjectionBiasMultiplier,
+		)
+	}
+	if len(policy.Rules) == 0 || len(policy.Rules) > MaxProjectionBiasRules {
+		return fmt.Errorf("projection bias rules must contain 1..%d entries", MaxProjectionBiasRules)
+	}
+	seen := make(map[projectionBiasSelector]struct{}, len(policy.Rules))
+	for i, rule := range policy.Rules {
+		if strings.TrimSpace(rule.Channel) == "" {
+			return fmt.Errorf("projection bias rule %d channel must not be empty", i)
+		}
+		if strings.TrimSpace(rule.Key) == "" {
+			return fmt.Errorf("projection bias rule %d key must not be empty", i)
+		}
+		if strings.TrimSpace(rule.ProvenanceRef) == "" {
+			return fmt.Errorf("projection bias rule %d provenanceRef must not be empty", i)
+		}
+		if rule.Multiplier <= 1 || rule.Multiplier > policy.MaxMultiplier {
+			return fmt.Errorf(
+				"projection bias rule %d multiplier must be in (1,%g]",
+				i,
+				policy.MaxMultiplier,
+			)
+		}
+		selector := projectionBiasSelector{channel: rule.Channel, key: rule.Key}
+		if _, exists := seen[selector]; exists {
+			return fmt.Errorf(
+				"duplicate projection bias selector: channel=%q key=%q",
+				rule.Channel,
+				rule.Key,
+			)
+		}
+		seen[selector] = struct{}{}
+	}
+	return nil
+}
+
+func cloneProjectionBias(policy *ProjectionBiasPolicy) *ProjectionBiasPolicy {
+	if policy == nil {
+		return nil
+	}
+	out := &ProjectionBiasPolicy{
+		PolicyRef:     policy.PolicyRef,
+		MaxMultiplier: policy.MaxMultiplier,
+		Rules:         append([]ProjectionBiasRule(nil), policy.Rules...),
+	}
+	return out
+}
+
+func compileProjectionBias(policy *ProjectionBiasPolicy) map[projectionBiasSelector]float32 {
+	if policy == nil {
+		return nil
+	}
+	out := make(map[projectionBiasSelector]float32, len(policy.Rules))
+	for _, rule := range policy.Rules {
+		out[projectionBiasSelector{channel: rule.Channel, key: rule.Key}] = rule.Multiplier
+	}
+	return out
+}
+
+func applyProjectionBias(
+	features []sparseassoc.Feature,
+	bias map[projectionBiasSelector]float32,
+) []sparseassoc.Feature {
+	if len(bias) == 0 {
+		return features
+	}
+	out := append([]sparseassoc.Feature(nil), features...)
+	for i := range out {
+		multiplier, ok := bias[projectionBiasSelector{channel: out[i].Channel, key: out[i].Key}]
+		if !ok {
+			continue
+		}
+		out[i].Weight *= multiplier
+	}
+	return out
+}
+
 func (p *Provider) preparedFeatures(item Item) ([]sparseassoc.Feature, error) {
 	features := featuresForItem(item)
 	switch p.cfg.FeatureNormalization {
 	case FeatureNormalizationNone:
-		return features, nil
 	case FeatureNormalizationExactChannel:
-		return sparseassoc.NormalizeFeatures(features, sparseassoc.NormalizationConfig{
+		normalized, err := sparseassoc.NormalizeFeatures(features, sparseassoc.NormalizationConfig{
 			Mode:             sparseassoc.NormalizationPerChannel,
 			DenominatorFloor: p.cfg.NormalizationFloor,
 		})
+		if err != nil {
+			return nil, err
+		}
+		features = normalized
 	case FeatureNormalizationFamily:
-		return normalizeFeaturesByFamily(features, p.cfg.NormalizationFloor), nil
+		features = normalizeFeaturesByFamily(features, p.cfg.NormalizationFloor)
 	default:
 		return nil, errors.New("unsupported feature normalization mode")
 	}
+	return applyProjectionBias(features, p.projectionBias), nil
 }
 
 // normalizeFeaturesByFamily keeps each feature's original Channel and Key for
