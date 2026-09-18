@@ -34,7 +34,7 @@
       "evaluation/sparse-associative-cognition/cross_stage_benchmark_preregistration.json": "49c599517dbb511cefeefcd7bfad6dc7476a64c6",
       "evaluation/sparse-associative-cognition/validate_cross_stage_preregistration.py": "3ee67bb85d3158655f919fb8e57a2c45d2c92ed0",
       "evaluation/sparse-associative-cognition/test_validate_cross_stage_preregistration.py": "bc61093353428fc43ff6e508285870731a250021",
-      "evaluation/sparse-associative-cognition/research_plan.json": "352e92ad51edabb82fcf7c26a3935d34935a504f",
+      "evaluation/sparse-associative-cognition/research_plan.json": "17f45f8685e967a33da9ae02c1ceaf81c9743bc6",
       "evaluation/sparse-associative-cognition/validate_research_plan.py": "7d98833a0728ad5bca0fec84bce68e100901c91d",
       "evaluation/sparse-associative-cognition/test_validate_research_plan.py": "07b4ad4df6076eed7c645fed971a15404d6abeaa"
     },
@@ -65,7 +65,12 @@
       "B5 decision generation remains false",
       "production default change remains false",
       "preregistration and research-plan gates retain completed-result dependency"
-    ]
+    ],
+    "parent_sync": {
+      "develop_commit": "3dba7644a0f6b344576a49236844f02ea323899d",
+      "merge_commit": "23dced8097e71a95cdda2c6e2854ad4ed0b7031d",
+      "overlapping_sacs_files": 0
+    }
   },
   "execution_observation": {
     "validator_runtime_execution": "not-observed-in-this-artifact-update",
