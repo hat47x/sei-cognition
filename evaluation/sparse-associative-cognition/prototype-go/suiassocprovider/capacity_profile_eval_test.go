@@ -72,6 +72,99 @@ func capacityEvalItems() (Item, Item, Item) {
 	return anchor, desired, distractor
 }
 
+func structureHeavyCapacityEvalItems() (Item, Item, Item) {
+	values := func(prefix string, n int) []string {
+		out := make([]string, n)
+		for i := range out {
+			out[i] = fmt.Sprintf("%s%d", prefix, i+1)
+		}
+		return out
+	}
+	anchor := Item{
+		Ref: "structure-anchor", Kind: "card",
+		Channels: Channels{
+			Text: "監査記録",
+			Graph: &GraphChannel{
+				RelationTypes: values("r", 8),
+				NeighborKinds: values("k", 8),
+			},
+			Provenance: &ProvenanceChannel{
+				SourceRefs: values("s", 8),
+				ActorRefs: values("a", 8),
+			},
+			Grouping: &GroupingChannel{IslandRef: "is-struct", HoldState: "hold"},
+		},
+	}
+	desired := anchor
+	desired.Ref = "structure-desired"
+	desired.Channels.Text = "別件確認"
+	distractor := Item{
+		Ref: "structure-distractor", Kind: "card",
+		Channels: Channels{
+			Text: "監査記録",
+			Graph: &GraphChannel{
+				RelationTypes: []string{"other1", "other2"},
+				NeighborKinds: []string{"otherk"},
+			},
+			Provenance: &ProvenanceChannel{
+				SourceRefs: []string{"sx"},
+				ActorRefs: []string{"ax"},
+			},
+			Grouping: &GroupingChannel{IslandRef: "is-other", HoldState: "none"},
+		},
+	}
+	return anchor, desired, distractor
+}
+
+func textHeavyCapacityEvalItems() (Item, Item, Item) {
+	anchor := Item{
+		Ref: "text-heavy-anchor", Kind: "card",
+		Channels: Channels{
+			Text: "確認記録統合作業では担当者間の引継ぎ手順と例外処理条件を整理し監査証跡と変更履歴を保持しながら再確認工程を減らす",
+			Graph: &GraphChannel{
+				RelationTypes: []string{"causal", "related"},
+				NeighborKinds: []string{"artifact", "card"},
+			},
+			Provenance: &ProvenanceChannel{
+				SourceRefs: []string{"s1", "s2"},
+				ActorRefs: []string{"human:a", "ai:b"},
+			},
+			Grouping: &GroupingChannel{IslandRef: "it", HoldState: "hold"},
+		},
+	}
+	desired := Item{
+		Ref: "text-heavy-desired", Kind: "card",
+		Channels: Channels{
+			Text: "異なる表現で同じ構造と出典を保持する観察",
+			Graph: &GraphChannel{
+				RelationTypes: []string{"causal", "related"},
+				NeighborKinds: []string{"artifact", "card"},
+			},
+			Provenance: &ProvenanceChannel{
+				SourceRefs: []string{"s1", "s2"},
+				ActorRefs: []string{"human:a", "ai:b"},
+			},
+			Grouping: &GroupingChannel{IslandRef: "it", HoldState: "hold"},
+		},
+	}
+	distractor := Item{
+		Ref: "text-heavy-distractor", Kind: "card",
+		Channels: Channels{
+			Text: anchor.Channels.Text,
+			Graph: &GraphChannel{
+				RelationTypes: []string{"contrast"},
+				NeighborKinds: []string{"note"},
+			},
+			Provenance: &ProvenanceChannel{
+				SourceRefs: []string{"s9"},
+				ActorRefs: []string{"human:z"},
+			},
+			Grouping: &GroupingChannel{IslandRef: "ix", HoldState: "none"},
+		},
+	}
+	return anchor, desired, distractor
+}
+
 func softLocalPolicyForProfile(profile capacityprofile.Profile) (*LocalCompetitionPolicy, error) {
 	localEach, residual, err := capacityprofile.EqualLocalHalfResidual(profile.Sparse.Active, 4)
 	if err != nil {
@@ -131,6 +224,22 @@ func capacitySimilarityPairWithPolicy(
 	local *LocalCompetitionPolicy,
 ) (desiredSimilarity, distractorSimilarity float32) {
 	t.Helper()
+	anchor, desired, distractor := capacityEvalItems()
+	return capacitySimilarityForItemsWithPolicy(
+		t, profile, normalization, local, anchor, desired, distractor,
+	)
+}
+
+func capacitySimilarityForItemsWithPolicy(
+	t *testing.T,
+	profile capacityprofile.Profile,
+	normalization FeatureNormalizationMode,
+	local *LocalCompetitionPolicy,
+	anchor Item,
+	desired Item,
+	distractor Item,
+) (desiredSimilarity, distractorSimilarity float32) {
+	t.Helper()
 	cfg := Config{
 		Sparse:                profile.Sparse,
 		MinInternalSimilarity: 0,
@@ -150,8 +259,6 @@ func capacitySimilarityPairWithPolicy(
 	if err != nil {
 		t.Fatal(err)
 	}
-	anchor, desired, distractor := capacityEvalItems()
-
 	encode := func(item Item) sparseassoc.Signature {
 		features, err := p.preparedFeatures(item)
 		if err != nil {
@@ -601,6 +708,140 @@ func TestStaticResidualCapDoesNotChangeSparseProfile(t *testing.T) {
 	if oversized.Sparse != before {
 		t.Fatalf("static residual policy mutated sparse profile: before=%#v after=%#v",
 			before, oversized.Sparse)
+	}
+}
+
+func TestStaticResidualScalingAcrossIndependentFixtures(t *testing.T) {
+	base := capacityBaseProfile()
+	oversized, err := capacityprofile.ScaleDimensions(base, "oversized", 32768)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	type fixtureFactory func() (Item, Item, Item)
+	fixtures := []struct {
+		id             string
+		items          fixtureFactory
+		totalFeatures  int
+		textFeatures   int
+		graphFeatures  int
+		provFeatures   int
+		groupFeatures  int
+		baselineMargin float32
+		cap128Margin   float32
+		cap64Margin    float32
+		baselineInc    int
+		cap128Inc      int
+		cap64Inc       int
+	}{
+		{
+			id: "control", items: capacityEvalItems,
+			totalFeatures: 72, textFeatures: 61, graphFeatures: 4, provFeatures: 4, groupFeatures: 2,
+			baselineMargin: -0.15625, cap128Margin: 0.19121802, cap64Margin: 0.17828646,
+			baselineInc: 0, cap128Inc: 24, cap64Inc: 88,
+		},
+		{
+			id: "structure-heavy", items: structureHeavyCapacityEvalItems,
+			totalFeatures: 40, textFeatures: 5, graphFeatures: 16, provFeatures: 16, groupFeatures: 2,
+			baselineMargin: 0.5373185, cap128Margin: 0.4398274, cap64Margin: 0.4378301,
+			baselineInc: 0, cap128Inc: 65, cap64Inc: 128,
+		},
+		{
+			id: "text-heavy", items: textHeavyCapacityEvalItems,
+			totalFeatures: 119, textFeatures: 108, graphFeatures: 4, provFeatures: 4, groupFeatures: 2,
+			baselineMargin: -0.33203125, cap128Margin: 0.08249881, cap64Margin: 0.06557022,
+			baselineInc: 0, cap128Inc: 24, cap64Inc: 88,
+		},
+	}
+
+	policyFor := func(t *testing.T, mode string) *LocalCompetitionPolicy {
+		t.Helper()
+		switch mode {
+		case "baseline":
+			policy, err := softLocalPolicyForProfile(oversized)
+			if err != nil {
+				t.Fatal(err)
+			}
+			return policy
+		case "cap128":
+			policy, err := softLocalCappedPolicyForProfile(oversized, 128)
+			if err != nil {
+				t.Fatal(err)
+			}
+			return policy
+		case "cap64":
+			policy, err := softLocalCappedPolicyForProfile(oversized, 64)
+			if err != nil {
+				t.Fatal(err)
+			}
+			return policy
+		default:
+			t.Fatalf("unknown policy mode: %s", mode)
+			return nil
+		}
+	}
+
+	for _, fixture := range fixtures {
+		t.Run(fixture.id, func(t *testing.T) {
+			anchor, desired, distractor := fixture.items()
+			counts := map[string]int{}
+			for _, feature := range featuresForItem(anchor) {
+				counts[featureFamily(feature.Channel)]++
+			}
+			if total := len(featuresForItem(anchor)); total != fixture.totalFeatures {
+				t.Fatalf("total features=%d want %d", total, fixture.totalFeatures)
+			}
+			if counts["text"] != fixture.textFeatures ||
+				counts["graph"] != fixture.graphFeatures ||
+				counts["provenance"] != fixture.provFeatures ||
+				counts["grouping"] != fixture.groupFeatures ||
+				counts["kind"] != 1 {
+				t.Fatalf("unexpected family counts: %#v", counts)
+			}
+
+			for _, mode := range []string{"baseline", "cap128", "cap64"} {
+				policy := policyFor(t, mode)
+				desiredSimilarity, distractorSimilarity := capacitySimilarityForItemsWithPolicy(
+					t,
+					oversized,
+					FeatureNormalizationFamily,
+					policy,
+					anchor,
+					desired,
+					distractor,
+				)
+				margin := desiredSimilarity - distractorSimilarity
+				wantMargin := fixture.baselineMargin
+				wantIncremental := fixture.baselineInc
+				switch mode {
+				case "cap128":
+					wantMargin = fixture.cap128Margin
+					wantIncremental = fixture.cap128Inc
+				case "cap64":
+					wantMargin = fixture.cap64Margin
+					wantIncremental = fixture.cap64Inc
+				}
+				if diff := margin - wantMargin; diff < -0.00001 || diff > 0.00001 {
+					t.Fatalf("%s margin=%v want approximately %v", mode, margin, wantMargin)
+				}
+				_, stats := capacityObservedStatsWithPolicy(t, oversized, anchor, policy)
+				if stats.Local.LocalIncrementalDimensions != wantIncremental {
+					t.Fatalf("%s local incremental=%d want %d",
+						mode, stats.Local.LocalIncrementalDimensions, wantIncremental)
+				}
+			}
+
+			switch fixture.id {
+			case "control", "text-heavy":
+				if fixture.baselineMargin >= 0 || fixture.cap128Margin <= 0 || fixture.cap64Margin <= 0 {
+					t.Fatalf("fixture must expose residual-cap ordering recovery: %#v", fixture)
+				}
+			case "structure-heavy":
+				if fixture.baselineMargin <= fixture.cap128Margin || fixture.baselineMargin <= fixture.cap64Margin {
+					t.Fatalf("structure-heavy fixture must preserve baseline as strongest margin: %#v", fixture)
+				}
+			}
+		})
 	}
 }
 

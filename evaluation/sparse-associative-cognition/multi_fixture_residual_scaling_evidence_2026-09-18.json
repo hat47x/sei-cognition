@@ -1,0 +1,183 @@
+{
+  "schema": "sei.sacs-multi-fixture-residual-scaling-evidence/v1alpha1",
+  "date": "2026-09-18",
+  "status": "limited-synthetic-cross-fixture-evidence",
+  "subject": "SAC-B6e static residual scaling across heterogeneous fixtures",
+  "issue": 459,
+  "branch": "topic/sac-b6e-multi-fixture-residual-scaling",
+  "intent": "Test whether the B6d static global-residual cap effect persists or reverses across fixtures with different feature-family cardinalities before considering adaptive policy.",
+  "profile": {
+    "dimensions": 32768,
+    "active": 512,
+    "fanout": 8,
+    "seed": 47,
+    "localEach": 64,
+    "policies": [
+      {
+        "id": "baseline",
+        "globalResidual": 256,
+        "unusedBudget": 0
+      },
+      {
+        "id": "cap128",
+        "globalResidual": 128,
+        "unusedBudget": 128
+      },
+      {
+        "id": "cap64",
+        "globalResidual": 64,
+        "unusedBudget": 192
+      }
+    ]
+  },
+  "fixtures": [
+    {
+      "id": "control",
+      "role": "existing B6/B6d control",
+      "anchorFeatureCardinality": {
+        "total": 72,
+        "kind": 1,
+        "text": 61,
+        "graph": 4,
+        "provenance": 4,
+        "grouping": 2
+      },
+      "results": [
+        {
+          "policy": "baseline",
+          "desired": 0.34765625,
+          "distractor": 0.50390625,
+          "margin": -0.15625,
+          "localIncrementalDimensions": 0
+        },
+        {
+          "policy": "cap128",
+          "desired": 0.5855263157894737,
+          "distractor": 0.394308292590028,
+          "margin": 0.1912180231994457,
+          "localIncrementalDimensions": 24
+        },
+        {
+          "policy": "cap64",
+          "desired": 0.5855263157894737,
+          "distractor": 0.40723985345937597,
+          "margin": 0.1782864623300977,
+          "localIncrementalDimensions": 88
+        }
+      ],
+      "interpretation": "text-dominant control reverses under proportional residual growth; both static caps restore desired ordering."
+    },
+    {
+      "id": "structure-heavy",
+      "role": "independent structure-heavy negative control",
+      "anchorFeatureCardinality": {
+        "total": 40,
+        "kind": 1,
+        "text": 5,
+        "graph": 16,
+        "provenance": 16,
+        "grouping": 2
+      },
+      "results": [
+        {
+          "policy": "baseline",
+          "desired": 0.84375,
+          "distractor": 0.3064314611534126,
+          "margin": 0.5373185388465874,
+          "localIncrementalDimensions": 0
+        },
+        {
+          "policy": "cap128",
+          "desired": 0.7927461139896373,
+          "distractor": 0.3529187076210609,
+          "margin": 0.4398274063685764,
+          "localIncrementalDimensions": 65
+        },
+        {
+          "policy": "cap64",
+          "desired": 0.7916666666666666,
+          "distractor": 0.35383657317018613,
+          "margin": 0.4378300934964805,
+          "localIncrementalDimensions": 128
+        }
+      ],
+      "interpretation": "baseline already strongly preserves desired ordering. Static caps increase local distinct dimensions but slightly reduce the retrieval margin, so residual suppression is not uniformly beneficial."
+    },
+    {
+      "id": "text-heavy",
+      "role": "independent higher-text-cardinality stress fixture",
+      "anchorFeatureCardinality": {
+        "total": 119,
+        "kind": 1,
+        "text": 108,
+        "graph": 4,
+        "provenance": 4,
+        "grouping": 2
+      },
+      "results": [
+        {
+          "policy": "baseline",
+          "desired": 0.359375,
+          "distractor": 0.69140625,
+          "margin": -0.33203125,
+          "localIncrementalDimensions": 0
+        },
+        {
+          "policy": "cap128",
+          "desired": 0.5986842105263158,
+          "distractor": 0.5161854012087639,
+          "margin": 0.08249880931755194,
+          "localIncrementalDimensions": 24
+        },
+        {
+          "policy": "cap64",
+          "desired": 0.5986842105263158,
+          "distractor": 0.533113989983183,
+          "margin": 0.06557022054313277,
+          "localIncrementalDimensions": 88
+        }
+      ],
+      "interpretation": "higher text cardinality produces a stronger baseline reversal; both static caps recover positive ordering, with cap128 retaining a larger margin than cap64."
+    }
+  ],
+  "crossFixtureFindings": [
+    "Static residual suppression recovered desired ordering in both text-dominant fixtures, but reduced the already-positive margin in the structure-heavy fixture.",
+    "cap128 produced a larger candidate margin than cap64 in all three evaluated fixtures, despite cap64 restoring more local incremental dimensions. More local-distinct dimensions are not a monotonic quality signal.",
+    "The two text-dominant fixtures share graph/provenance/grouping cardinalities and differ mainly in text feature count (61 versus 108); the baseline reversal becomes more negative as text cardinality rises in these synthetic examples.",
+    "The structure-heavy fixture has only 5 text features and 16 graph + 16 provenance features. Its proportional baseline remains strongest, showing that a static residual cap should not be treated as an unconditional improvement.",
+    "The result narrows the next research question from 'should residual be capped?' to 'under what workload/profile conditions should residual scaling be bounded?', while keeping input cardinality separate from semantic importance."
+  ],
+  "independentReconstruction": {
+    "toolchain": "Python 3.13.5 on Linux x86_64",
+    "method": "Independent deterministic reconstruction of byte-wise feature hashing, splitmix64 projection, SUI text n-grams and structured features, B1 family normalization, B2 local/global selection, signature union, containment, and cosine similarity.",
+    "result": "reproduced all three fixture feature cardinalities, margins, and local incremental counts encoded in the Go regression fixture.",
+    "limitation": "This is not an exact repository Go 1.25 execution."
+  },
+  "implementationState": {
+    "productionCodeChanged": false,
+    "testOnlyFixtureExtension": true,
+    "staticCapHelperReused": true,
+    "adaptivePolicyImplemented": false,
+    "inputCardinalityUsedAsSemanticImportance": false,
+    "providerDefaultChanged": false,
+    "b5EntryGateChanged": false
+  },
+  "stopLines": [
+    "three synthetic fixtures != real workload generalization",
+    "cap128 beating cap64 here != globally optimal cap",
+    "text cardinality correlation != semantic importance rule",
+    "structure-heavy baseline advantage != universal no-cap rule",
+    "local incremental dimensions != semantic quality",
+    "static comparison != adaptive production policy"
+  ],
+  "notVerified": [
+    "exact repository Go 1.25 execution",
+    "branch-source Go test execution in this environment",
+    "real SUI/SEI feature-family cardinality distributions",
+    "human-adjudicated retrieval quality across heterogeneous workloads",
+    "optimal static residual scaling",
+    "safe policy condition for when to bound residual scaling",
+    "hardware latency, power, and memory trade-offs",
+    "Production, Operational, Adoption, or Outcome Evidence"
+  ]
+}
