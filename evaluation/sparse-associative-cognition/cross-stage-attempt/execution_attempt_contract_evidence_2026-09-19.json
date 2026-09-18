@@ -3,7 +3,7 @@
   "date": "2026-09-19",
   "issue": 481,
   "state": "focused-contract-evidence",
-  "execution_model": "locally authored standalone contract validation",
+  "execution_model": "locally authored standalone contract validation with Git blob source equivalence",
   "environment": {
     "python": "3.13.5",
     "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
@@ -11,8 +11,26 @@
     "full_repository_checkout": false
   },
   "source_binding": {
-    "status": "pending-github-blob-binding",
-    "files": []
+    "status": "all-matched",
+    "method": "The locally executed contract sources were checked with git hash-object and matched the GitHub blob SHA on the topic branch.",
+    "files": [
+      {
+        "path": "cross-stage-attempt/execution_attempt.json",
+        "blob_sha": "8f20012c41d5c9f1fa1e94f6850d2616989b5aa4"
+      },
+      {
+        "path": "cross-stage-attempt/validate_execution_attempt.py",
+        "blob_sha": "167b1d765351d83267a607dc59ae7fb3607bc6c6"
+      },
+      {
+        "path": "cross-stage-attempt/test_validate_execution_attempt.py",
+        "blob_sha": "ff777678eefb380f01da533ca226fec204c810ca"
+      },
+      {
+        "path": "cross-stage-attempt/README.md",
+        "blob_sha": "7a59e2b73fde0fb0b96d96d139fe075d26b5caae"
+      }
+    ]
   },
   "executions": [
     {
@@ -54,11 +72,12 @@
     "focused_tests_passed": 20,
     "focused_tests_failed": 0,
     "syntax_compile_passed": true,
+    "github_blob_source_equivalence": "pass",
     "current_attempt_state": "draft",
     "benchmark_result_generated": false
   },
   "stop_lines": [
-    "focused contract PASS != GitHub-bound full integration runtime Evidence",
+    "focused contract PASS != full upstream integration runtime Evidence",
     "execution attempt != benchmark result",
     "successful synthetic attempt != human-adjudicated benchmark execution",
     "failed attempt != zero metric",
