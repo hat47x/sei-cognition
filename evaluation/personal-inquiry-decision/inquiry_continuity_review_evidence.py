@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from inquiry_continuity_packet import (
+    DECISION_MANIFEST_SCHEMA,
     INQUIRY_MANIFEST_SCHEMA,
     PacketError,
     load_manifest_fixtures,
@@ -25,9 +26,15 @@ from inquiry_continuity_review_analysis import (
     InquiryReviewError,
     validate_inquiry_session,
 )
+from decision_continuity_review_analysis import (
+    DecisionReviewError,
+    validate_decision_session,
+)
 from matched_review_session import load_session
 
-SCHEMA = "sei.inquiry-continuity-review-evidence-bundle/v0"
+INQUIRY_SCHEMA = "sei.inquiry-continuity-review-evidence-bundle/v0"
+DECISION_SCHEMA = "sei.decision-continuity-review-evidence-bundle/v0"
+SCHEMA = INQUIRY_SCHEMA
 DEFAULT_MANIFEST = (
     "evaluation/personal-inquiry-decision/"
     "inquiry_continuity_counterfactual_matched_set_v1.json"
@@ -49,9 +56,12 @@ def _load_context(
         )
     except PacketError as exc:
         raise InquiryEvidenceBundleError(str(exc)) from exc
-    if manifest.get("schema") != INQUIRY_MANIFEST_SCHEMA:
+    if manifest.get("schema") not in {
+        INQUIRY_MANIFEST_SCHEMA,
+        DECISION_MANIFEST_SCHEMA,
+    }:
         raise InquiryEvidenceBundleError(
-            "manifest is not an Inquiry Continuity matched set"
+            "manifest is not a supported Inquiry/Decision Continuity matched set"
         )
     return manifest, fixtures
 
@@ -62,14 +72,29 @@ def build_evidence_bundle(
     fixtures_by_id: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
     """Project one complete review into separate observation and audit layers."""
+    manifest_schema = manifest.get("schema")
     try:
-        validate_inquiry_session(
-            session,
-            manifest,
-            fixtures_by_id,
-            require_complete=True,
-        )
-    except InquiryReviewError as exc:
+        if manifest_schema == INQUIRY_MANIFEST_SCHEMA:
+            validate_inquiry_session(
+                session,
+                manifest,
+                fixtures_by_id,
+                require_complete=True,
+            )
+            bundle_schema = INQUIRY_SCHEMA
+        elif manifest_schema == DECISION_MANIFEST_SCHEMA:
+            validate_decision_session(
+                session,
+                manifest,
+                fixtures_by_id,
+                require_complete=True,
+            )
+            bundle_schema = DECISION_SCHEMA
+        else:
+            raise InquiryEvidenceBundleError(
+                "unsupported matched-review manifest schema"
+            )
+    except (InquiryReviewError, DecisionReviewError) as exc:
         raise InquiryEvidenceBundleError(str(exc)) from exc
 
     observations: list[dict[str, Any]] = []
@@ -95,7 +120,7 @@ def build_evidence_bundle(
         )
 
     return {
-        "schema": SCHEMA,
+        "schema": bundle_schema,
         "status": "evaluation-only",
         "provenance": {
             "session_id": session["session_id"],
@@ -116,8 +141,17 @@ def build_evidence_bundle(
                 "post-review audit against revealed reference material; "
                 "not reviewer answer"
             ),
-            "actual_long_gap_resumption": "not-established-by-this-artifact",
-            "actual_team_handoff": "not-established-by-synthetic-reader-context",
+            **(
+                {
+                    "actual_long_gap_resumption": "not-established-by-this-artifact",
+                    "actual_team_handoff": "not-established-by-synthetic-reader-context",
+                }
+                if manifest_schema == INQUIRY_MANIFEST_SCHEMA
+                else {
+                    "h1_actual_resume_usability": "not-established-by-this-artifact",
+                    "capture_burden": "not-measured-by-prepared-synthetic-fixtures",
+                }
+            ),
             "product_value": "not-established-by-this-artifact",
             "stable_requirement_change": "not-authorized-by-this-artifact",
         },
@@ -125,8 +159,17 @@ def build_evidence_bundle(
             "human review observation and semantic audit remain separate evidence layers",
             "condition labels are operator-side metadata revealed only after completion",
             "no overall score, ranking, winner, or preferred condition is computed",
-            "synthetic matched review does not substitute for actual long-gap resumption",
-            "synthetic reader_context=handoff does not establish actual team handoff",
+            *(
+                [
+                    "synthetic matched review does not substitute for actual long-gap resumption",
+                    "synthetic reader_context=handoff does not establish actual team handoff",
+                ]
+                if manifest_schema == INQUIRY_MANIFEST_SCHEMA
+                else [
+                    "H2 synthetic matched review does not substitute for H1 actual resume usability",
+                    "prepared synthetic fixtures do not establish capture/review burden in real work",
+                ]
+            ),
             "this bundle does not authorize Product Value or Stable Requirement changes",
         ],
     }
@@ -150,8 +193,8 @@ def save_bundle(path: str | Path, bundle: dict[str, Any]) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Export a completed ISSUE-000078 review while keeping human "
-            "observations separate from semantic audit"
+            "Export a completed Inquiry/Decision Continuity review while keeping "
+            "human observations separate from semantic audit"
         )
     )
     parser.add_argument("session")
