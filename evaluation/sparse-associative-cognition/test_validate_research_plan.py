@@ -168,6 +168,52 @@ class SparseAssociativeCognitionResearchPlanTests(unittest.TestCase):
                 plan["cross_stage_evaluation_gate"]["result_artifact"][key] = True
                 self.assert_has_error(plan, f"result_artifact.{key} must remain false")
 
+    def test_cross_stage_interpretation_artifact_state_flag_must_match(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["cross_stage_evaluation_gate"]["interpretation_artifact"]["state"] = "interpreted"
+        self.assert_has_error(
+            plan,
+            "current_interpretation_generated must match state",
+        )
+
+    def test_cross_stage_interpretation_requires_completed_result(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["cross_stage_evaluation_gate"]["interpretation_artifact"][
+            "requires_completed_result"
+        ] = False
+        self.assert_has_error(
+            plan,
+            "requires_completed_result must remain true",
+        )
+
+    def test_cross_stage_interpreted_state_requires_completed_result_state(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        artifact = plan["cross_stage_evaluation_gate"]["interpretation_artifact"]
+        artifact.update({
+            "state": "interpreted",
+            "current_interpretation_generated": True,
+        })
+        self.assert_has_error(
+            plan,
+            "interpreted state requires completed result",
+        )
+
+    def test_cross_stage_interpretation_cannot_become_decision(self) -> None:
+        for key in (
+            "semantic_truth_claimed",
+            "variant_winner_declared",
+            "recommendation_generated",
+            "b5_decision_generated",
+            "production_default_changed",
+        ):
+            with self.subTest(key=key):
+                plan = copy.deepcopy(self.plan)
+                plan["cross_stage_evaluation_gate"]["interpretation_artifact"][key] = True
+                self.assert_has_error(
+                    plan,
+                    f"interpretation_artifact.{key} must remain false",
+                )
+
     def test_llm_is_not_required_or_default_fallback(self) -> None:
         for key in ("llm_required", "llm_is_fallback_by_default"):
             with self.subTest(key=key):
