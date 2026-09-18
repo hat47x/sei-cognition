@@ -154,7 +154,7 @@ def make_probe(root: Path) -> dict:
         cases,
     )
     return {
-        "schema": "sei.inquiry-continuity-assistance-probe/v1",
+        "schema": "sei.inquiry-continuity-assistance-probe/v2",
         "status": "evaluation-only",
         "issue": "ISSUE-000078",
         "probe_id": "p1",
@@ -236,7 +236,10 @@ def make_probe(root: Path) -> dict:
             ],
         },
         "audit_key": {
-            "semantic_hard_failures": ["fail"]
+            "presentation_hard_failures": ["presentation fail"],
+            "session_hard_failures": ["session fail"],
+            "comparison_dimensions": ["orientation"],
+            "interpretation_stoplines": ["no winner"],
         },
         "evidence_boundary": {
             "current": "executable-scaffold-only",
@@ -745,6 +748,14 @@ class AssistanceProbeTest(unittest.TestCase):
         changed["presentation_rules"][
             "condition_labels_hidden_until_audit"
         ] = False
+        with self.assertRaises(AssistanceProbeError):
+            validate_probe(changed)
+
+    def test_audit_failure_scopes_must_be_separate(self):
+        changed = copy.deepcopy(self.probe)
+        changed["audit_key"]["session_hard_failures"] = [
+            changed["audit_key"]["presentation_hard_failures"][0]
+        ]
         with self.assertRaises(AssistanceProbeError):
             validate_probe(changed)
 

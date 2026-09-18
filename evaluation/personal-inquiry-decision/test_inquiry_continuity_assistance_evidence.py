@@ -152,6 +152,10 @@ class AssistanceEvidenceTest(unittest.TestCase):
                 "hard_failure_findings"
             ]:
                 finding["finding"] = "not-observed"
+        for finding in self.audit_response[
+            "session_hard_failure_findings"
+        ]:
+            finding["finding"] = "not-observed"
         self.audit_response["audit_provenance"] = {
             "auditor_id": "auditor-test-fixture",
             "response_authorship": "human-transcribed",
@@ -206,6 +210,10 @@ class AssistanceEvidenceTest(unittest.TestCase):
         rendered = json.dumps(template)
         self.assertNotIn('"winner"', rendered)
         self.assertNotIn('"score"', rendered)
+        self.assertEqual(
+            len(template["session_hard_failure_findings"]),
+            len(self.probe["audit_key"]["session_hard_failures"]),
+        )
         self.assertEqual(
             [
                 item["condition"]
@@ -270,6 +278,25 @@ class AssistanceEvidenceTest(unittest.TestCase):
             ],
             bundle["audit_gate"]["raw_sha256"],
         )
+        for field in (
+            "review_start",
+            "initial_response",
+            "reveal_gate",
+            "reveal_response",
+            "audit_gate",
+            "semantic_audit",
+        ):
+            snapshot = bundle[field]
+            self.assertEqual(
+                hashlib.sha256(
+                    snapshot["raw_json"].encode("utf-8")
+                ).hexdigest(),
+                snapshot["raw_sha256"],
+            )
+            self.assertEqual(
+                json.loads(snapshot["raw_json"]),
+                snapshot["value"],
+            )
         rendered = json.dumps(bundle)
         self.assertNotIn('"winner"', rendered)
         self.assertNotIn('"score"', rendered)
@@ -291,6 +318,28 @@ class AssistanceEvidenceTest(unittest.TestCase):
             ).encode("utf-8")
         ).hexdigest()
 
+    def test_bundle_rejects_raw_snapshot_tampering(self):
+        bundle = self.valid_bundle()
+
+        changed = copy.deepcopy(bundle)
+        changed["initial_response"]["raw_json"] += " "
+        with self.assertRaises(AssistanceEvidenceError):
+            validate_evidence_bundle(changed)
+
+        changed = copy.deepcopy(bundle)
+        changed["review_start"]["raw_json"] = json.dumps(
+            {
+                **changed["review_start"]["value"],
+                "reviewer_id": "different",
+            },
+            ensure_ascii=False,
+        )
+        changed["review_start"]["raw_sha256"] = hashlib.sha256(
+            changed["review_start"]["raw_json"].encode("utf-8")
+        ).hexdigest()
+        with self.assertRaises(AssistanceEvidenceError):
+            validate_evidence_bundle(changed)
+
     def test_bundle_rejects_semantically_invalid_artifact_even_with_refreshed_digest(self):
         bundle = self.valid_bundle()
 
@@ -300,6 +349,16 @@ class AssistanceEvidenceTest(unittest.TestCase):
         ][0]["hard_failure_findings"][0][
             "finding"
         ] = "pass"
+        self._refresh_semantic_digest(
+            changed["semantic_audit"]
+        )
+        with self.assertRaises(AssistanceEvidenceError):
+            validate_evidence_bundle(changed)
+
+        changed = copy.deepcopy(bundle)
+        changed["semantic_audit"]["value"][
+            "session_hard_failure_findings"
+        ][0]["finding"] = "pass"
         self._refresh_semantic_digest(
             changed["semantic_audit"]
         )
