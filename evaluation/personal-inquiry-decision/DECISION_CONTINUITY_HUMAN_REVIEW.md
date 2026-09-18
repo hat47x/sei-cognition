@@ -99,6 +99,18 @@ python "$RUNNER" --manifest "$MANIFEST" --repo-root . init \
 
 これらは申告metadataであり、盲検やhuman authorshipを独立に証明するものではない。既知または不明のexposureがあるsessionもpilot observationとして残せるが、clean blinded reviewとは呼ばない。
 
+共有runnerの`init`は、provenanceを付けた初期sessionをexclusive-createで保存する。同じsession pathが既に存在する場合は上書きせず停止する。これにより、stimulus提示後に同じpathへ`init`し直してpre-stimulus provenanceを置き換える事故経路を閉じる。以後の`record`は固定済みsessionを前進させるため同じpathを更新するが、runner自身はreview provenanceを差し替えない。
+
+```text
+exclusive-create at review init
+  = accidental/post-hoc re-initを拒否
+
+exclusive-create
+  != reviewer identityの独立証明
+  != actual blindnessの独立証明
+  != manual file tamperingを暗号学的に排除
+```
+
 現在提示してよいpacketだけを確認する。
 
 ```bash
@@ -440,7 +452,7 @@ ISSUE-000073のResolution判断では、E1〜E8のScoped Executable Evidence、H
 
 ## 13. Natural Japanese review
 
-H2用に既に成立していたmatched review手順を維持しながら、073/078で同じreview runnerを共有する形へ整理した。H2ではreviewer provenanceを最初のstimulus提示前に固定し、condition labelを伏せたbundle、Decision固有response validation、complete後のEvidence exportまでを同じ入口へ集約した。また、ISSUE-000073で未接続だったH1 actual resume usabilityを既存Personal Inquiry Continuity dogfood surfaceへ接続した。
+H2用に既に成立していたmatched review手順を維持しながら、073/078で同じreview runnerを共有する形へ整理した。H2ではreviewer provenanceを最初のstimulus提示前に固定し、その初期sessionをexclusive-createして同じpathへの再initを拒否する。condition labelを伏せたbundle、Decision固有response validation、complete後のEvidence exportまでを同じ入口へ集約した。また、ISSUE-000073で未接続だったH1 actual resume usabilityを既存Personal Inquiry Continuity dogfood surfaceへ接続した。
 
 H1のために新しい評価schemaやsession managerを増やさず、Inquiry stateは既存dogfood state、評価観測は既存sidecarを使う。これによりH1 / H2を別々の評価基盤として断片化させず、real Inquiryのresumptionとcontrolled counterfactual reviewだけを意味上分離した。
 
