@@ -840,7 +840,8 @@
       "Product Value / Operational / Adoption / Outcome Evidence",
       "cross-stage human-adjudicated evaluationはpreregistration済みだが、adjudication / dataset / split / B3 prior manifest未freezeのためlocked。semantic benchmark resultは未生成。",
       "実SUI/SEI human-adjudicated dataset、review process、split、B3 prior provenanceが未提供のためcross-stage freeze kitはdraftのまま。frozen bundleおよびauthorized evaluation-runは未生成。checked-in evaluation_run.jsonはdraft / locked templateのみ。",
-      "cross-stage result contractは実装済みだが、human-adjudicated dataset / frozen bundle / authorized runが未生成のためchecked-in resultはdraft / empty。benchmark interpretation / B5 decision / production adoptionは未実施。"
+      "cross-stage result contractは実装済みだが、human-adjudicated dataset / frozen bundle / authorized runが未生成のためchecked-in resultはdraft / empty。benchmark interpretation / B5 decision / production adoptionは未実施。",
+      "cross-stage interpretation contractは実装済みでも、human-adjudicated completed resultが未生成のためchecked-in interpretationはdraft / empty。variant winner / recommendation / B5 decision / production adoptionは未実施。"
     ],
     "supporting_evidence_files": [
       "input_normalization_evidence_2026-09-18.json",
@@ -963,6 +964,20 @@
       "runtime_tests_passed": 24,
       "integration_tests_passed": 65,
       "total_tests_passed": 89
+    },
+    "interpretation_artifact": {
+      "state": "draft",
+      "directory": "cross-stage-interpretation",
+      "interpretation_ref": "cross-stage-interpretation/interpretation.json",
+      "validator_ref": "cross-stage-interpretation/validate_interpretation.py",
+      "evidence_ref": "cross-stage-interpretation/interpretation_contract_evidence_2026-09-19.json",
+      "current_interpretation_generated": false,
+      "requires_completed_result": true,
+      "semantic_truth_claimed": false,
+      "variant_winner_declared": false,
+      "recommendation_generated": false,
+      "b5_decision_generated": false,
+      "production_default_changed": false
     }
   }
 }
