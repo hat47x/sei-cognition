@@ -1,0 +1,104 @@
+{
+  "schema": "sei.sacs-workload-class-governance-runtime-evidence/v1alpha1",
+  "date": "2026-09-19",
+  "issue": 519,
+  "branch": "topic/sac-b6g-workload-policy-envelope",
+  "tested_source_commit": "812b317c9f61e3048b16569421e94502ddca1ed1",
+  "purpose": "Record exact-source Python execution of the evaluation-only SAC-B6i workload-class lifecycle/review governance contract.",
+  "source_reconstruction": {
+    "method": "Reconstructed the three canonical GitHub files locally and verified each with git hash-object before execution.",
+    "files_verified": 3,
+    "sha_mismatches": 0,
+    "bindings": [
+      {
+        "path": "workload-class-governance/governance.json",
+        "blob_sha": "8fb89a1bf1e9b2c9a315ad2774bbc33666b1e800"
+      },
+      {
+        "path": "workload-class-governance/validate_governance.py",
+        "blob_sha": "9b8f3d1d0cb4a4d77ae49d0bb68a00cc626e05fe"
+      },
+      {
+        "path": "workload-class-governance/test_validate_governance.py",
+        "blob_sha": "fabc014277d913750b991c9bc93d6369bd6a76fd"
+      }
+    ],
+    "upstream_envelope": {
+      "path": "workload_policy_envelope_evidence_2026-09-19.json",
+      "blob_sha": "4adff3702cc39a38b30f1366bfd790b77d45a269",
+      "envelope_id": "b6g-grid-eval-v1",
+      "exact_mapping": {
+        "general": "cap128",
+        "structure-preserving": "baseline"
+      }
+    }
+  },
+  "environment": {
+    "python": "3.13.5",
+    "os_arch": "linux/x86_64",
+    "github_actions_used": false
+  },
+  "executions": [
+    {
+      "command": "python3 workload-class-governance/validate_governance.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "observation": "Workload class governance validated; current declarations remain candidate / fail-closed"
+    },
+    {
+      "command": "python3 -m unittest -v workload-class-governance/test_validate_governance.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "tests_passed": 34,
+      "tests_failed": 0,
+      "elapsed_seconds": 0.014
+    }
+  ],
+  "regression_boundaries_observed": [
+    "strict schema and exact B6g envelope binding",
+    "registered exact workload classes and class-policy mapping",
+    "bool-as-int/nonpositive version rejection",
+    "caller owner/provenance refs required",
+    "declared_at <= valid_from < review_due_at < expires_at",
+    "fixed logical validation_as_of instead of wall-clock mutation",
+    "candidate declarations remain resolution_allowed=false",
+    "reviewed state requires reviewer/change-review/Evidence metadata",
+    "reviewed state fails closed before valid_from, at review_due, and at expiry",
+    "expired state cannot be declared before expiry",
+    "version > 1 requires supersedes_version",
+    "supersession links must be bidirectional and non-latest versions fail closed",
+    "automatic class inference / probabilistic classifier / automatic activation remain false",
+    "semantic correctness / real-world error rate / production activation / B5 claims remain false"
+  ],
+  "current_state": {
+    "declarations": 2,
+    "candidate_declarations": 2,
+    "reviewed_declarations": 0,
+    "resolution_allowed_declarations": 0,
+    "automatic_class_inference": false,
+    "automatic_activation": false,
+    "production_activation": false,
+    "b5_entry_gate_changed": false
+  },
+  "development_observation": {
+    "pre_final_test_run": "One expiry lifecycle test initially changed only one of two declarations to expired. The remaining candidate correctly failed closed. The fixture was corrected before this Evidence snapshot; the final exact source is 34/34 PASS.",
+    "validator_failure_observed": false
+  },
+  "stop_lines": [
+    "valid declaration != correct declaration",
+    "reviewed != semantic truth",
+    "provenance != correctness",
+    "expiry/review contract != automatic classifier",
+    "governance runtime PASS != real workload taxonomy validation",
+    "resolution_allowed in evaluation contract != provider / production activation",
+    "runtime Evidence != Product Value / Adoption / Outcome Evidence"
+  ],
+  "not_verified": [
+    "real workload class taxonomy",
+    "real declaration error rate",
+    "human reviewer governance process",
+    "real class expiry cadence",
+    "real SUI/SEI task quality under reviewed declarations",
+    "production activation"
+  ]
+}
