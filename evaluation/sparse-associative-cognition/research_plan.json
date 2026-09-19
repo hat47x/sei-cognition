@@ -825,7 +825,8 @@
       "cross-stage execution-attempt artifactをresultから分離してdraft contract化し、成功/失敗双方の試行、exact run digest、executor/environment/time/exit/raw Evidence、canonical attempt digestをGit blob SHA一致のfocused 20 testsで固定した。upstream full integration runtime Evidenceは未実行で、実benchmark resultも未生成。",
       "cross-stage execution-attemptをGitHub正本17 source / manifestのGit blob SHA一致一時再構成環境でPython 3.13.5実行し、focused 20 tests、actual upstream integration 6 tests、run/freeze/preregistration regression 70 testsの計96 testsがPASSした。4 validatorもPASSし、current attempt / run / freeze / preregistrationはdraft / lockedのままである。",
       "cross-stage interpretationをGitHub正本19 source / manifestのGit blob SHA一致一時再構成環境でPython 3.13.5実行し、interpretation 27 tests、result/run/freeze/preregistration regression 94 testsの計121 testsがPASSした。5 validatorもPASSし、synthetic interpreted artifactはcompleted resultとactual upstream chainを通過する一方、current interpretation / result / run / freeze / preregistrationはdraft / lockedのままである。",
-      "cross-stage interpretation後のB5 review dispositionを独立decision-record contractとして分離し、defer-for-evidence / retain-current-stage / request-b5-reviewの3 disposition、exact interpretation digest binding、decision authority provenance、rationale refs、upstream limitation preservation、canonical digestを定義した。request-b5-reviewはB5 gate openではなく、semantic truth / variant winner / production default変更もfail-closedのままである。"
+      "cross-stage interpretation後のB5 review dispositionを独立decision-record contractとして分離し、defer-for-evidence / retain-current-stage / request-b5-reviewの3 disposition、exact interpretation digest binding、decision authority provenance、rationale refs、upstream limitation preservation、canonical digestを定義した。request-b5-reviewはB5 gate openではなく、semantic truth / variant winner / production default変更もfail-closedのままである。",
+      "cross-stage decision-record contractをGitHub source inspectionで確認し、decision 27 tests、preregistration 38 tests、research-plan 39 testsの計104 testsを定義した。実行環境からGitHub checkoutできなかったためruntime PASSは主張せず、checked-in decisionはdraft / not-assessed、B5 gate / production defaultは未変更のままである。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -1032,7 +1033,13 @@
       "variant_winner_selected": false,
       "b5_gate_opened": false,
       "production_default_changed": false,
-      "current_disposition": "not-assessed"
+      "current_disposition": "not-assessed",
+      "contract_validation_state": "source-inspected-regression-defined",
+      "runtime_execution_observed": false,
+      "decision_tests_defined": 27,
+      "preregistration_tests_defined": 38,
+      "research_plan_tests_defined": 39,
+      "total_tests_defined": 104
     }
   }
 }
