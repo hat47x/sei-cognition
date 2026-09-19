@@ -352,8 +352,9 @@ EVIDENCE=<checkout外または意図的に管理するe78-3-evidence.json>
 # raw stdout/stderr本文やローカル絶対pathはresult JSONへ保存しない。
 # launch errorはtype/errnoだけへ縮約し、OS messageやhost pathを保存しない。
 # source fixtureがprobeのfreezeと一致しなければcheck開始前にfail-closedする。
-# 保存時にもresult v2全体を再検証し、count/order/status、portable command/cwd、
-# stream digest、mechanics/source identity、Evidence stoplineの改変を拒否する。
+# 保存時にもresult v2全体を再検証し、count/order/status、正規check名と
+# portable command / repo相対cwdの一致、stream digest、mechanics/source identity、
+# Evidence stoplineの改変を拒否する。
 python3 "$LOCAL_CHECKS" --stop-on-failure --result-output "$LOCAL_RESULT"
 
 # validateは3 source fixtureのGit blob freezeを全件検証し、current probe /
