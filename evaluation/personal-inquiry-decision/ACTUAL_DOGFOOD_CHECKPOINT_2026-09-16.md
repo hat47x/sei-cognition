@@ -235,3 +235,21 @@ first case自体は破棄しない。2026-09-16の最後の事前露出後から
 「数日経ったので再開価値が証明された」という近道を避け、時間条件、material exposure、human observation、counterfactual comparison、Product判断を分離している。SEI Cognitionのブランド世界から得たQuiet Infrastructureの着想は、引き続き評価仮説の源泉として利用するが、結果を先取りする規範としては扱わない。
 
 本文を自然な日本語として再読し、Design / Evaluation / Human Evidence / Product Value / Stable Requirementの高さが混在していないことを最終確認した。
+
+## 13. 2026-09-19 Lane F継続時のmaterial exposure
+
+2026-09-19のLane F継続作業では、ISSUE-000078のE78.1 / E78.3、actual dogfood case、Quiet / Proactive比較、clean resumptionの停止線を再確認した。この過程で、利用者へcurrent Inquiryの問いと未解決点、過去のmaterial exposure、次に必要なEvidence条件が再び提示された。
+
+したがって、2026-09-16以後に暦上のgapが伸びていても、2026-09-19時点をclean multi-day resumptionとして扱わない。今回の作業を最後のmaterial exposureとして、認知的gapの起点を改めて後ろへ送る。
+
+```text
+calendar gap since 2026-09-16
++ 2026-09-19 material re-exposure
+!= clean cognitive resumption
+```
+
+この観測だけでは比較対象Surfaceを使った再開を行っていないため、`actual_dogfood_quiet_infrastructure_2026-09-14.evaluation.json`の`resume_observations`は空のまま保持する。架空の`resumption`や`calibration`を追加しない。
+
+次にhuman resumptionを行う場合は、2026-09-19のmaterial exposure以後に十分なgapがあり、その間に元chat、source、Inquiry state、E78.1 / E78.3の評価説明へmaterialに再露出していないことを確認してから、Orientationを最初のSurfaceとして使う。gapの暦上の長さだけでなく、current stateを実質的に思い出せる情報へ触れていなかったかをnotesで明示する。
+
+この追記はProduct ValueやStable Requirementを変更しない。むしろ、actual workの継続そのものがclean resumption条件を壊し得ることをEvidenceとして保守的に扱い、成立していないhuman outcomeを成立済みに見せないためのprotocol checkpointである。
