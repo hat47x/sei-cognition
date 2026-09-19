@@ -1,0 +1,73 @@
+{
+  "schema": "sei.sacs-research-plan-runtime-guard-runtime-evidence/v1alpha1",
+  "issue": 525,
+  "observedAt": {
+    "utc": "2026-09-19T17:28:16Z",
+    "local": "2026-09-20T02:28:16+09:00"
+  },
+  "sourceBinding": {
+    "branch": "develop/v0.2.0",
+    "commit": "e198099c9efa3946a8708dee86def90ad76321c3",
+    "files": {
+      "evaluation/sparse-associative-cognition/research_plan.json": "7e5b4c78e96e311a21c1d10443a1cb3577d15083",
+      "evaluation/sparse-associative-cognition/validate_research_plan.py": "6958e91a71da76a3ef637c4a84f23d1d02dc841a",
+      "evaluation/sparse-associative-cognition/test_validate_research_plan.py": "c1901f5c2fde641f4c4835d718a5db57a48d784d"
+    },
+    "exactBlobVerification": {
+      "tool": "git hash-object",
+      "allMatched": true
+    }
+  },
+  "materialization": {
+    "method": "GitHub connector exact content -> deterministic LZSS transfer -> local reconstruction",
+    "fullRepositoryCheckout": false,
+    "exactThreeSourceBlobsMaterialized": true,
+    "note": "Execution scope is the research-plan validator plus its regression suite over the exact current plan/validator/test blobs; this is not a full-repository integration run."
+  },
+  "runtime": {
+    "python": "Python 3.13.5",
+    "os": "Linux localhost 6.18.44 #1 SMP Sat Sep 12 15:35:21 UTC 2026 x86_64 GNU/Linux"
+  },
+  "executions": [
+    {
+      "command": "python3 evaluation/sparse-associative-cognition/validate_research_plan.py",
+      "exitCode": 0,
+      "stdout": "Sparse associative cognition research plan validated",
+      "stderr": "",
+      "status": "PASS"
+    },
+    {
+      "command": "python3 -m unittest -v evaluation/sparse-associative-cognition/test_validate_research_plan.py",
+      "exitCode": 0,
+      "testsDefined": 64,
+      "testsExecuted": 64,
+      "testsPassed": 64,
+      "failures": 0,
+      "errors": 0,
+      "elapsedSeconds": 0.081,
+      "terminalSummary": [
+        "Ran 64 tests in 0.081s",
+        "OK"
+      ],
+      "status": "PASS"
+    }
+  ],
+  "observedResult": {
+    "validatorExecutionObserved": true,
+    "regressionExecutionObserved": true,
+    "regressionPass": true,
+    "testsExecuted": 64,
+    "testsPassed": 64,
+    "failures": 0,
+    "errors": 0
+  },
+  "priorBlockerEvidence": "research_plan_runtime_guard_b6ij_execution_blocker_2026-09-20.json",
+  "blockerResolution": "A materially different local exact-source materialization path succeeded; prior GitHub Actions no-step attempts remain valid historical evidence and are not reclassified.",
+  "boundaries": [
+    "research-plan guard PASS != human-adjudicated benchmark result",
+    "research-plan guard PASS != B5 gate open",
+    "research-plan guard PASS != production adoption",
+    "64/64 guard regression PASS != semantic truth",
+    "exact three-file runtime != full-repository integration runtime"
+  ]
+}
