@@ -35,7 +35,9 @@
       "review": null,
       "supersedes_version": null,
       "superseded_by_version": null,
-      "resolution_allowed": false
+      "resolution_allowed": false,
+      "declared_at": "2026-09-19T00:00:00Z",
+      "review_due_at": "2026-10-19T00:00:00Z"
     },
     {
       "class_id": "structure-preserving",
@@ -49,7 +51,9 @@
       "review": null,
       "supersedes_version": null,
       "superseded_by_version": null,
-      "resolution_allowed": false
+      "resolution_allowed": false,
+      "declared_at": "2026-09-19T00:00:00Z",
+      "review_due_at": "2026-10-19T00:00:00Z"
     }
   ],
   "stop_flags": {
@@ -57,5 +61,6 @@
     "real_world_declaration_error_rate_claimed": false,
     "production_activation_enabled": false,
     "b5_entry_gate_changed": false
-  }
+  },
+  "validation_as_of": "2026-09-20T00:00:00Z"
 }
