@@ -1,0 +1,72 @@
+{
+  "schema": "sei.sacs-research-plan-runtime-guard-execution-blocker-evidence/v1alpha1",
+  "issue": 525,
+  "pullRequest": 526,
+  "observedAt": {
+    "utc": "2026-09-19T17:11:11Z",
+    "local": "2026-09-20T02:11:11+09:00"
+  },
+  "purpose": "Re-run the current research-plan runtime guard after SAC-B6i/B6j additions without promoting unexecuted checks to runtime PASS.",
+  "sourceBinding": {
+    "baseBranch": "develop/v0.2.0",
+    "baseCommit": "3cf8e79e16c35ffbc2c7b4e631a384b976b0bb94",
+    "files": {
+      "evaluation/sparse-associative-cognition/research_plan.json": "7e5b4c78e96e311a21c1d10443a1cb3577d15083",
+      "evaluation/sparse-associative-cognition/validate_research_plan.py": "6958e91a71da76a3ef637c4a84f23d1d02dc841a",
+      "evaluation/sparse-associative-cognition/test_validate_research_plan.py": "c1901f5c2fde641f4c4835d718a5db57a48d784d"
+    },
+    "researchPlanTestsDefined": 64
+  },
+  "requiredExecution": {
+    "python": "3.13",
+    "commands": [
+      "python evaluation/sparse-associative-cognition/validate_research_plan.py",
+      "python -m unittest -v evaluation/sparse-associative-cognition/test_validate_research_plan.py"
+    ]
+  },
+  "githubActionsAttempts": [
+    {
+      "runId": 35457216202,
+      "jobId": 105934533347,
+      "headCommit": "70e8ff264f69bd77b8a5bf4b51d13d8c5964e735",
+      "workflowConclusion": "failure",
+      "stepsObserved": [],
+      "logsObserved": false,
+      "logFetchResult": "404 BlobNotFound",
+      "classification": "no-step-execution-observed"
+    },
+    {
+      "runId": 35457237476,
+      "jobId": 105934589449,
+      "headCommit": "91f230b20e04e3f8981c7e889bc6d738b8704aaa",
+      "workflowConclusion": "failure",
+      "stepsObserved": [],
+      "logsObserved": false,
+      "logFetchResult": "404 BlobNotFound",
+      "classification": "no-step-execution-observed"
+    }
+  ],
+  "localEnvironment": {
+    "pythonVersion": "Python 3.13.5",
+    "sourceCheckoutObserved": false,
+    "exactSourceExecutionObserved": false,
+    "note": "The local runtime is suitable for Python 3.13 execution, but no exact repository checkout/materialization was observed in this attempt; therefore no local PASS is claimed."
+  },
+  "observedResult": {
+    "validatorExecutionObserved": false,
+    "regressionExecutionObserved": false,
+    "regressionPass": null,
+    "testFailuresObserved": false,
+    "runtimePassClaimed": false
+  },
+  "boundaries": [
+    "workflow conclusion failure != validator or unittest failure",
+    "no-step-execution-observed != test execution",
+    "64 tests defined != 64 tests executed",
+    "local Python 3.13.5 availability != exact repository source execution",
+    "research-plan guard PASS != human-adjudicated benchmark result",
+    "plan validation != B5 gate open",
+    "plan validation != production adoption"
+  ],
+  "nextRequirement": "Obtain exact current repository source execution under Python 3.13 and record validator plus all research-plan regression results before closing Issue #525."
+}
