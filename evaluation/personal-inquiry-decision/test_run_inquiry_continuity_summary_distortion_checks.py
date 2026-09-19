@@ -420,6 +420,36 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_result(tampered)
 
+    def test_validate_result_rejects_tampered_current_contract_snapshot(self):
+        result = self.mechanics_result()
+
+        tampered = copy.deepcopy(result)
+        tampered["contractSnapshot"]["probeContentSha256"] = "0" * 64
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+        tampered = copy.deepcopy(result)
+        tampered["contractSnapshot"]["mechanicsFiles"][0]["sha256"] = "1" * 64
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+        tampered = copy.deepcopy(result)
+        source = tampered["contractSnapshot"]["sourceFixtures"][0]
+        source["expectedBlobSha1"] = "2" * 40
+        source["actualBlobSha1"] = "2" * 40
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+    def test_validate_result_rejects_incomplete_run_without_stopped_early(self):
+        result = self.mechanics_result()
+        tampered = copy.deepcopy(result)
+        tampered["executed"] = tampered["executed"][:-1]
+        tampered["executedCount"] -= 1
+        tampered["result"] = "failed"
+        tampered["stoppedEarly"] = False
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
     def test_validate_result_rejects_inconsistent_failure_metadata(self):
         result = self.mechanics_result()
 
