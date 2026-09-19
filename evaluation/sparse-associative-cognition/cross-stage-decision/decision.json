@@ -1,0 +1,32 @@
+{
+  "schema": "sei.sacs-cross-stage-decision/v1alpha1",
+  "issue": 489,
+  "state": "draft",
+  "decision_id": "cross-stage-decision-template",
+  "decided_at": null,
+  "interpretation_binding": {
+    "ref": "../cross-stage-interpretation/interpretation.json",
+    "digest": ""
+  },
+  "decision_authority": {
+    "ref": "",
+    "commit": ""
+  },
+  "decision_kind": "b5-review-disposition",
+  "disposition": "not-assessed",
+  "scope": {
+    "track": "",
+    "variant": "",
+    "capacity_profile": null,
+    "stress_policy": null
+  },
+  "rationale_refs": [],
+  "limitations_acknowledged": [],
+  "b5_entry_condition_assessed": false,
+  "b5_review_requested": false,
+  "semantic_truth_claimed": false,
+  "variant_winner_selected": false,
+  "b5_gate_opened": false,
+  "production_default_changed": false,
+  "decision_digest": ""
+}

@@ -391,6 +391,89 @@ def validate_research_plan(plan: dict) -> list[str]:
                         f"cross_stage_evaluation_gate.interpretation_artifact.{key} must remain false"
                     )
 
+        decision_artifact = cross_stage.get("decision_artifact")
+        if not isinstance(decision_artifact, dict):
+            errors.append(
+                "cross_stage_evaluation_gate.decision_artifact must be an object"
+            )
+        else:
+            if decision_artifact.get("state") not in {"draft", "decided"}:
+                errors.append(
+                    "cross_stage_evaluation_gate.decision_artifact.state must be draft or decided"
+                )
+            required_decision_refs = {
+                "directory": "cross-stage-decision",
+                "decision_ref": "cross-stage-decision/decision.json",
+                "validator_ref": "cross-stage-decision/validate_decision.py",
+                "evidence_ref": "cross-stage-decision/decision_contract_evidence_2026-09-19.json",
+            }
+            for key, expected in required_decision_refs.items():
+                if decision_artifact.get(key) != expected:
+                    errors.append(
+                        f"cross_stage_evaluation_gate.decision_artifact.{key} must remain {expected}"
+                    )
+
+            decided = decision_artifact.get("state") == "decided"
+            if decision_artifact.get("current_decision_generated") is not decided:
+                errors.append(
+                    "cross_stage_evaluation_gate.decision_artifact.current_decision_generated must match state"
+                )
+            if decision_artifact.get("requires_interpreted_artifact") is not True:
+                errors.append(
+                    "cross_stage_evaluation_gate.decision_artifact.requires_interpreted_artifact must remain true"
+                )
+            if (
+                decided
+                and isinstance(interpretation_artifact, dict)
+                and interpretation_artifact.get("state") != "interpreted"
+            ):
+                errors.append(
+                    "cross_stage_evaluation_gate.decision_artifact decided state requires interpreted interpretation"
+                )
+
+            allowed = decision_artifact.get("allowed_dispositions")
+            expected_allowed = {
+                "defer-for-evidence",
+                "retain-current-stage",
+                "request-b5-review",
+            }
+            if (
+                not isinstance(allowed, list)
+                or len(allowed) != len(set(allowed))
+                or set(allowed) != expected_allowed
+            ):
+                errors.append(
+                    "cross_stage_evaluation_gate.decision_artifact.allowed_dispositions must remain registered set"
+                )
+
+            current_disposition = decision_artifact.get("current_disposition")
+            if decided:
+                if current_disposition not in expected_allowed:
+                    errors.append(
+                        "cross_stage_evaluation_gate.decision_artifact decided current_disposition must be registered"
+                    )
+            elif current_disposition != "not-assessed":
+                errors.append(
+                    "cross_stage_evaluation_gate.decision_artifact draft current_disposition must remain not-assessed"
+                )
+
+            expected_review_request = current_disposition == "request-b5-review"
+            if decision_artifact.get("b5_review_requested") is not expected_review_request:
+                errors.append(
+                    "cross_stage_evaluation_gate.decision_artifact.b5_review_requested must match request-b5-review disposition"
+                )
+
+            for key in (
+                "semantic_truth_claimed",
+                "variant_winner_selected",
+                "b5_gate_opened",
+                "production_default_changed",
+            ):
+                if decision_artifact.get(key) is not False:
+                    errors.append(
+                        f"cross_stage_evaluation_gate.decision_artifact.{key} must remain false"
+                    )
+
     deferred = plan.get("deferred_directions")
     if not isinstance(deferred, list):
         errors.append("deferred_directions must be a list")

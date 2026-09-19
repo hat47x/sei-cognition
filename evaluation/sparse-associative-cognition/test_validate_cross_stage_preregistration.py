@@ -170,6 +170,76 @@ class CrossStagePreregistrationTests(unittest.TestCase):
                     f"interpretation_artifact.{key} must remain false",
                 )
 
+    def test_decision_artifact_draft_is_registered(self) -> None:
+        artifact = self.doc["decision_artifact"]
+        self.assertEqual(artifact["state"], "draft")
+        self.assertFalse(artifact["current_decision_generated"])
+        self.assertEqual(artifact["current_disposition"], "not-assessed")
+        self.assertTrue(artifact["requires_interpreted_artifact"])
+        self.assertFalse(artifact["b5_review_requested"])
+
+    def test_decision_artifact_state_and_generated_flag_must_match(self) -> None:
+        doc = copy.deepcopy(self.doc)
+        doc["decision_artifact"]["state"] = "decided"
+        self.assert_has_error(
+            validate_preregistration(doc),
+            "current_decision_generated must match",
+        )
+
+    def test_decision_artifact_requires_interpreted_artifact_contract(self) -> None:
+        doc = copy.deepcopy(self.doc)
+        doc["decision_artifact"]["requires_interpreted_artifact"] = False
+        self.assert_has_error(
+            validate_preregistration(doc),
+            "requires_interpreted_artifact must remain true",
+        )
+
+    def test_decided_state_requires_interpreted_upstream_state(self) -> None:
+        doc = copy.deepcopy(self.doc)
+        doc["decision_artifact"].update({
+            "state": "decided",
+            "current_decision_generated": True,
+            "current_disposition": "retain-current-stage",
+        })
+        self.assert_has_error(
+            validate_preregistration(doc),
+            "requires interpretation_artifact.state=interpreted",
+        )
+
+    def test_request_b5_review_does_not_open_b5_gate(self) -> None:
+        doc = copy.deepcopy(self.doc)
+        doc["interpretation_artifact"].update({
+            "state": "interpreted",
+            "current_interpretation_generated": True,
+        })
+        doc["result_artifact"].update({
+            "state": "completed",
+            "current_result_completed": True,
+        })
+        doc["decision_artifact"].update({
+            "state": "decided",
+            "current_decision_generated": True,
+            "current_disposition": "request-b5-review",
+            "b5_review_requested": True,
+        })
+        self.assertEqual(validate_preregistration(doc), [])
+        self.assertFalse(doc["decision_artifact"]["b5_gate_opened"])
+
+    def test_decision_artifact_cannot_become_truth_winner_gate_or_production(self) -> None:
+        for key in (
+            "semantic_truth_claimed",
+            "variant_winner_selected",
+            "b5_gate_opened",
+            "production_default_changed",
+        ):
+            with self.subTest(key=key):
+                doc = copy.deepcopy(self.doc)
+                doc["decision_artifact"][key] = True
+                self.assert_has_error(
+                    validate_preregistration(doc),
+                    f"decision_artifact.{key} must remain false",
+                )
+
     def test_semantic_labels_cannot_be_embedded_in_preregistration(self) -> None:
         doc = copy.deepcopy(self.doc)
         doc["adjudication"]["semantic_labels_embedded_in_preregistration"] = True

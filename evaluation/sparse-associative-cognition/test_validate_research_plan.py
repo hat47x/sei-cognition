@@ -214,6 +214,82 @@ class SparseAssociativeCognitionResearchPlanTests(unittest.TestCase):
                     f"interpretation_artifact.{key} must remain false",
                 )
 
+    def test_cross_stage_decision_artifact_draft_is_registered(self) -> None:
+        artifact = self.plan["cross_stage_evaluation_gate"]["decision_artifact"]
+        self.assertEqual(artifact["state"], "draft")
+        self.assertFalse(artifact["current_decision_generated"])
+        self.assertEqual(artifact["current_disposition"], "not-assessed")
+        self.assertTrue(artifact["requires_interpreted_artifact"])
+        self.assertFalse(artifact["b5_review_requested"])
+
+    def test_cross_stage_decision_state_flag_must_match(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["cross_stage_evaluation_gate"]["decision_artifact"]["state"] = "decided"
+        self.assert_has_error(
+            plan,
+            "decision_artifact.current_decision_generated must match state",
+        )
+
+    def test_cross_stage_decision_requires_interpreted_artifact(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["cross_stage_evaluation_gate"]["decision_artifact"][
+            "requires_interpreted_artifact"
+        ] = False
+        self.assert_has_error(
+            plan,
+            "decision_artifact.requires_interpreted_artifact must remain true",
+        )
+
+    def test_cross_stage_decided_state_requires_interpreted_state(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        artifact = plan["cross_stage_evaluation_gate"]["decision_artifact"]
+        artifact.update({
+            "state": "decided",
+            "current_decision_generated": True,
+            "current_disposition": "retain-current-stage",
+        })
+        self.assert_has_error(
+            plan,
+            "decided state requires interpreted interpretation",
+        )
+
+    def test_cross_stage_request_b5_review_does_not_open_gate(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        result = plan["cross_stage_evaluation_gate"]["result_artifact"]
+        result.update({
+            "state": "completed",
+            "current_result_completed": True,
+        })
+        interpretation = plan["cross_stage_evaluation_gate"]["interpretation_artifact"]
+        interpretation.update({
+            "state": "interpreted",
+            "current_interpretation_generated": True,
+        })
+        decision = plan["cross_stage_evaluation_gate"]["decision_artifact"]
+        decision.update({
+            "state": "decided",
+            "current_decision_generated": True,
+            "current_disposition": "request-b5-review",
+            "b5_review_requested": True,
+        })
+        self.assertEqual(validate_research_plan(plan), [])
+        self.assertFalse(decision["b5_gate_opened"])
+
+    def test_cross_stage_decision_cannot_become_truth_winner_gate_or_production(self) -> None:
+        for key in (
+            "semantic_truth_claimed",
+            "variant_winner_selected",
+            "b5_gate_opened",
+            "production_default_changed",
+        ):
+            with self.subTest(key=key):
+                plan = copy.deepcopy(self.plan)
+                plan["cross_stage_evaluation_gate"]["decision_artifact"][key] = True
+                self.assert_has_error(
+                    plan,
+                    f"decision_artifact.{key} must remain false",
+                )
+
     def test_llm_is_not_required_or_default_fallback(self) -> None:
         for key in ("llm_required", "llm_is_fallback_by_default"):
             with self.subTest(key=key):

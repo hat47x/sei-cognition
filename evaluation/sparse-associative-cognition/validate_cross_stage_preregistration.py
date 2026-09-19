@@ -190,6 +190,83 @@ def validate_preregistration(doc: dict) -> list[str]:
                     f"interpretation_artifact.{key} must remain false"
                 )
 
+    decision_artifact = doc.get("decision_artifact")
+    if not isinstance(decision_artifact, dict):
+        errors.append("decision_artifact must be an object")
+    else:
+        if decision_artifact.get("state") not in {"draft", "decided"}:
+            errors.append("decision_artifact.state must be draft or decided")
+        required_refs = {
+            "directory": "cross-stage-decision",
+            "decision_ref": "cross-stage-decision/decision.json",
+            "validator_ref": "cross-stage-decision/validate_decision.py",
+            "evidence_ref": "cross-stage-decision/decision_contract_evidence_2026-09-19.json",
+        }
+        for key, expected in required_refs.items():
+            if decision_artifact.get(key) != expected:
+                errors.append(f"decision_artifact.{key} must remain {expected}")
+
+        decided = decision_artifact.get("state") == "decided"
+        if decision_artifact.get("current_decision_generated") is not decided:
+            errors.append(
+                "decision_artifact.current_decision_generated must match decision_artifact.state"
+            )
+        if decision_artifact.get("requires_interpreted_artifact") is not True:
+            errors.append(
+                "decision_artifact.requires_interpreted_artifact must remain true"
+            )
+        if (
+            decided
+            and isinstance(interpretation_artifact, dict)
+            and interpretation_artifact.get("state") != "interpreted"
+        ):
+            errors.append(
+                "decided artifact requires interpretation_artifact.state=interpreted"
+            )
+
+        allowed = decision_artifact.get("allowed_dispositions")
+        expected_allowed = {
+            "defer-for-evidence",
+            "retain-current-stage",
+            "request-b5-review",
+        }
+        if (
+            not isinstance(allowed, list)
+            or len(allowed) != len(set(allowed))
+            or set(allowed) != expected_allowed
+        ):
+            errors.append(
+                "decision_artifact.allowed_dispositions must remain defer-for-evidence / retain-current-stage / request-b5-review"
+            )
+
+        current_disposition = decision_artifact.get("current_disposition")
+        if decided:
+            if current_disposition not in expected_allowed:
+                errors.append(
+                    "decided decision_artifact.current_disposition must be registered"
+                )
+        elif current_disposition != "not-assessed":
+            errors.append(
+                "draft decision_artifact.current_disposition must remain not-assessed"
+            )
+
+        expected_review_request = current_disposition == "request-b5-review"
+        if decision_artifact.get("b5_review_requested") is not expected_review_request:
+            errors.append(
+                "decision_artifact.b5_review_requested must match request-b5-review disposition"
+            )
+
+        for key in (
+            "semantic_truth_claimed",
+            "variant_winner_selected",
+            "b5_gate_opened",
+            "production_default_changed",
+        ):
+            if decision_artifact.get(key) is not False:
+                errors.append(
+                    f"decision_artifact.{key} must remain false"
+                )
+
     variants = doc.get("variants")
     if not isinstance(variants, list):
         errors.append("variants must be a list")
