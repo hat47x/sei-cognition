@@ -1,0 +1,98 @@
+{
+  "schema": "sei.sacs-hybrid-model-call-avoidance-evidence/v1alpha1",
+  "date": "2026-09-19",
+  "issue": 501,
+  "branch": "topic/sacs-hybrid-call-avoidance",
+  "source_snapshot": "2c5aa5619aa5fa997fa72f1917296eaebf461e56",
+  "scope": "synthetic routing mechanics only",
+  "source_binding": {
+    "status": "source-inspected",
+    "files": [
+      {
+        "path": "prototype-go/hybridreasoning/router.go",
+        "blob_sha": "015c78d7f551642c379fa9637d821386c1b064b1"
+      },
+      {
+        "path": "prototype-go/cognitiveeval/eval.go",
+        "blob_sha": "c9e68719adbe009f631160fb9470811fc3c40837"
+      },
+      {
+        "path": "prototype-go/modelprobe/probe.go",
+        "blob_sha": "10bd563d10fefbd2c57e86a0d22855c39cbfcca1"
+      },
+      {
+        "path": "prototype-go/modelprobe/call_avoidance.go",
+        "blob_sha": "81cb7c4ca541035c76b8ce6c19ea9a57f93e534c"
+      },
+      {
+        "path": "prototype-go/modelprobe/call_avoidance_test.go",
+        "blob_sha": "f32e95ecd93547ab926b2a0bf274c8c9ef8ea424"
+      }
+    ]
+  },
+  "actual_source_inspection": {
+    "reference_fixture_count": 7,
+    "raw_mode_behavior": "BuildPlan ModeRaw sets ShouldInvokeModel=true for valid fixtures",
+    "workspace_mode_behavior": "BuildPlan ModeWorkspace sets ShouldInvokeModel=true for valid fixtures",
+    "staged_route_distribution": {
+      "local-slm": 4,
+      "external-evidence-required": 1,
+      "abstain-or-expand-evidence": 1,
+      "symbolic": 1
+    },
+    "staged_model_invocations": 4,
+    "staged_skipped_invocations": 3,
+    "calls_avoided_vs_raw": 3,
+    "call_avoidance_ratio_vs_raw": 0.42857142857142855,
+    "staged_model_call_rate": 0.5714285714285714,
+    "all_reference_expected_routes_match_current_routing_contract": true
+  },
+  "isolated_runtime": {
+    "environment": {
+      "go": "go1.23.2",
+      "os_arch": "linux/amd64",
+      "mode": "GOPATH / isolated aggregation logic test",
+      "github_actions_used": false
+    },
+    "dependency_model": "aggregation code executed with stubbed BuildPlan / cognitiveeval seams matching the inspected current route distribution",
+    "command": "GO111MODULE=off GOPATH=/tmp/sei-hybrid-call/gopath go test -v github.com/hat47x/sei-cognition/evaluation/sparse-associative-cognition/prototype-go/modelprobe",
+    "focused_tests_passed": 5,
+    "focused_tests_failed": 0,
+    "elapsed_seconds": 0.002,
+    "cases": [
+      "7-fixture summary yields raw=7 workspace=7 staged=4 skipped=3 and 3/7 avoidance",
+      "single local route yields zero avoidance",
+      "single deterministic route yields full avoidance",
+      "empty fixture input rejects",
+      "invalid fixture propagates error"
+    ]
+  },
+  "repository_integration_runtime": {
+    "observed": false,
+    "reason": "The execution environment cannot resolve GitHub hosts for an exact checkout/reconstruction of all repository dependencies. This slice therefore does not claim an integrated repository go test PASS."
+  },
+  "model_execution": {
+    "invoked": false,
+    "endpoint_used": false,
+    "token_usage_observed": false,
+    "latency_observed": false,
+    "task_success_observed": false
+  },
+  "stop_lines": [
+    "synthetic routing call avoidance != production LLM call reduction",
+    "source-derived call plan != actual model invocation telemetry",
+    "isolated stubbed test PASS != repository integration runtime PASS",
+    "skipped local model != task success",
+    "route decision != semantic correctness",
+    "lower model-call rate != lower total system cost",
+    "model-call avoidance != Product Value / Adoption / Outcome Evidence"
+  ],
+  "not_verified": [
+    "actual repository integration runtime for the new summary using exact current dependencies",
+    "real model endpoint call rate",
+    "real SEI workload distribution",
+    "task-success impact of skipped calls",
+    "total latency / memory / energy / monetary cost impact",
+    "production LLM-call reduction"
+  ]
+}
