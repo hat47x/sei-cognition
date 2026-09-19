@@ -1,0 +1,142 @@
+{
+  "schema": "sei.sacs-workload-policy-envelope-evidence/v1alpha1",
+  "date": "2026-09-19",
+  "status": "limited-synthetic-envelope-evidence",
+  "subject": "SAC-B6g caller-owned workload-level residual policy envelope",
+  "issue": 514,
+  "branch": "topic/sac-b6g-workload-policy-envelope",
+  "intent": "Evaluate an explicit caller-owned workload-class to static residual-policy mapping without inferring classes from per-item cardinality, content, margin, or semantic importance.",
+  "envelope": {
+    "id": "b6g-grid-eval-v1",
+    "provenanceRef": "evidence://sac-b6g/fixed-envelope",
+    "allowedPolicies": [
+      "baseline",
+      "cap128",
+      "cap64"
+    ],
+    "bindings": [
+      {
+        "workloadClass": "general",
+        "policy": "cap128"
+      },
+      {
+        "workloadClass": "structure-preserving",
+        "policy": "baseline"
+      }
+    ],
+    "resolutionBoundary": "Resolve accepts only an exact caller-owned workload class string. It has no Item, feature-count, margin, or cardinality input.",
+    "failClosed": [
+      "unknown workload class",
+      "duplicate workload class binding",
+      "unsupported residual policy id",
+      "empty envelope id or provenance ref",
+      "noncanonical leading/trailing whitespace"
+    ]
+  },
+  "gridEvaluation": {
+    "source": "SAC-B6f 16-cell response surface",
+    "callerDeclaration": "Cells with structuredPerSubchannel 1/2/4 are explicitly declared 'general'; cells with 8 are explicitly declared 'structure-preserving'. This declaration is fixture metadata, not resolver inference.",
+    "envelopeRegretAgainstCellBest": {
+      "mean": 0.010253900625,
+      "max": 0.0552083,
+      "zeroRegretCells": 13,
+      "totalCells": 16
+    },
+    "fixedPolicyComparison": {
+      "baseline": {
+        "meanRegret": 0.20882774,
+        "maxRegret": 0.45755205
+      },
+      "cap128": {
+        "meanRegret": 0.05573622,
+        "maxRegret": 0.20799837
+      },
+      "cap64": {
+        "meanRegret": 0.04560984,
+        "maxRegret": 0.20799837
+      }
+    },
+    "nonOracleCells": [
+      {
+        "textRunes": 17,
+        "structuredPerSubchannel": 1,
+        "declaredClass": "general",
+        "chosenPolicy": "cap128",
+        "cellBest": "cap64",
+        "regret": 0.05416664
+      },
+      {
+        "textRunes": 33,
+        "structuredPerSubchannel": 1,
+        "declaredClass": "general",
+        "chosenPolicy": "cap128",
+        "cellBest": "cap64",
+        "regret": 0.05468747
+      },
+      {
+        "textRunes": 55,
+        "structuredPerSubchannel": 1,
+        "declaredClass": "general",
+        "chosenPolicy": "cap128",
+        "cellBest": "cap64",
+        "regret": 0.0552083
+      }
+    ]
+  },
+  "negativeControl": {
+    "cell": {
+      "textRunes": 55,
+      "structuredPerSubchannel": 8
+    },
+    "correctDeclaredClass": "structure-preserving",
+    "correctPolicy": "baseline",
+    "baselineMargin": 0.57644296,
+    "misdeclaredClass": "general",
+    "resultingPolicy": "cap128",
+    "misdeclaredMargin": 0.36844459,
+    "regret": 0.20799837,
+    "observation": "Caller ownership and provenance do not make the declaration correct; a wrong workload class can materially worsen the synthetic margin."
+  },
+  "findings": [
+    "An exact caller-owned two-class envelope reduces mean regret on the B6f grid relative to any single fixed policy, while retaining non-zero regret and therefore remaining distinct from a cell-best oracle.",
+    "The envelope resolver requires no item content or cardinality and therefore does not convert runtime feature counts into semantic priority.",
+    "Unknown workload classes fail closed instead of silently falling back to a guessed policy.",
+    "Three narrow-structure cells still prefer cap64 while the 'general' class is fixed to cap128, preserving explicit residual regret rather than overfitting the mapping to every grid cell.",
+    "A caller misdeclaration on the t55/s8 negative control produces regret about 0.208, so caller-owned provenance improves auditability but not correctness."
+  ],
+  "implementationState": {
+    "placement": "evaluation/sparse-associative-cognition/prototype-go/capacityprofile",
+    "productionRuntimeIntegrated": false,
+    "providerResponseContractChanged": false,
+    "automaticClassInferenceImplemented": false,
+    "automaticPolicyActivationImplemented": false,
+    "adaptiveResidualImplemented": false,
+    "cardinalityUsedAsSemanticImportance": false,
+    "b5EntryGateChanged": false
+  },
+  "stopLines": [
+    "caller-owned class != semantic truth",
+    "provenance != policy correctness",
+    "lower synthetic regret != production policy",
+    "workload envelope != per-item automatic selector",
+    "declared class != inferred feature importance",
+    "synthetic grid fit != real workload generalization",
+    "envelope policy != provider default"
+  ],
+  "verification": {
+    "independentArithmetic": "B6f checked-in margins were independently aggregated for envelope regret and negative-control regret.",
+    "exactRepositoryGo125": "not verified in this lane",
+    "relatedRuntimeIssue": "#512 remains open for exact B6f repository Go 1.25 execution; this B6g lane does not duplicate that runner work."
+  },
+  "notVerified": [
+    "exact repository Go 1.25 execution for B6g",
+    "branch-source Go regression execution in this environment",
+    "real workload class taxonomy",
+    "human governance process for assigning and reviewing workload classes",
+    "real SUI/SEI quality under workload-level envelope selection",
+    "class expiry / versioning / change review",
+    "whether a two-class or other envelope generalizes beyond B6f synthetic geometry",
+    "hardware latency, power, and memory trade-offs",
+    "Production, Operational, Adoption, or Outcome Evidence"
+  ]
+}
