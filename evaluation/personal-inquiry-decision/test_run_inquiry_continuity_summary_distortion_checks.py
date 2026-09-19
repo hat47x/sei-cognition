@@ -466,6 +466,41 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_result(tampered)
 
+    def test_validate_result_rejects_empty_or_mixed_timeout_execution(self):
+        result = self.mechanics_result()
+
+        tampered = copy.deepcopy(result)
+        tampered["executed"] = []
+        tampered["executedCount"] = 0
+        tampered["failedCount"] = 0
+        tampered["result"] = "failed"
+        tampered["stoppedEarly"] = True
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+        tampered = copy.deepcopy(result)
+        tampered["executed"][1]["timeoutSeconds"] += 1
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+    def test_validate_result_rejects_launch_error_with_process_output(self):
+        def runner(command, *, cwd, env, timeout):
+            raise FileNotFoundError(2, "No such file or directory", "/private/tool")
+
+        exit_code, result = run_checks(
+            configured_checks(),
+            stop_on_failure=True,
+            runner=runner,
+        )
+        self.assertEqual(exit_code, 1)
+        tampered = copy.deepcopy(result)
+        tampered["executed"][0]["stdout"] = {
+            "sha256": "0" * 64,
+            "bytes": 1,
+        }
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
     def test_save_result_is_exclusive_create(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "result.json"
