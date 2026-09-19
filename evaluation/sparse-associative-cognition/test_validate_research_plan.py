@@ -357,6 +357,56 @@ class SparseAssociativeCognitionResearchPlanTests(unittest.TestCase):
             "supporting_evidence_files must retain decision runtime Evidence",
         )
 
+    def test_hybrid_call_avoidance_evidence_must_remain_in_supporting_files(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        ref = "hybrid_model_call_avoidance_evidence_2026-09-19.json"
+        plan["current_evidence"]["supporting_evidence_files"] = [
+            item
+            for item in plan["current_evidence"]["supporting_evidence_files"]
+            if item != ref
+        ]
+        self.assert_has_error(
+            plan,
+            "supporting_evidence_files must retain hybrid call-avoidance Evidence",
+        )
+
+    def test_hybrid_call_avoidance_real_workload_boundary_is_required(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["current_evidence"]["not_yet_verified"] = [
+            item
+            for item in plan["current_evidence"]["not_yet_verified"]
+            if "実SEI workloadでのLLM呼び出し削減量" not in item
+        ]
+        self.assert_has_error(
+            plan,
+            "not_yet_verified must retain real-workload LLM-call-reduction boundary",
+        )
+
+    def test_hybrid_call_avoidance_boundary_retains_non_promotion_fragments(self) -> None:
+        required_fragments = (
+            "3/7",
+            "actual model telemetry",
+            "task success",
+            "total system cost",
+            "未検証",
+        )
+        for fragment in required_fragments:
+            with self.subTest(fragment=fragment):
+                plan = copy.deepcopy(self.plan)
+                items = plan["current_evidence"]["not_yet_verified"]
+                plan["current_evidence"]["not_yet_verified"] = [
+                    (
+                        item.replace(fragment, "removed")
+                        if "実SEI workloadでのLLM呼び出し削減量" in item
+                        else item
+                    )
+                    for item in items
+                ]
+                self.assert_has_error(
+                    plan,
+                    f"hybrid call-avoidance boundary must retain {fragment}",
+                )
+
     def test_llm_is_not_required_or_default_fallback(self) -> None:
         for key in ("llm_required", "llm_is_fallback_by_default"):
             with self.subTest(key=key):
