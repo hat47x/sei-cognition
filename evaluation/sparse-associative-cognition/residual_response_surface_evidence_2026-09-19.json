@@ -400,8 +400,14 @@
     "real SUI/SEI workload cardinality joint distributions",
     "human-adjudicated quality across the response surface",
     "stable low-dimensional policy condition that generalizes beyond this synthetic grid",
-    "safe caller-owned workload-level residual policy",
+    "real workload taxonomy, governance, and correctness of caller-owned workload-class declarations",
     "hardware latency, power, and memory trade-offs",
     "Production, Operational, Adoption, or Outcome Evidence"
-  ]
+  ],
+  "followUp": {
+    "issue": 514,
+    "evidenceFile": "workload_policy_envelope_evidence_2026-09-19.json",
+    "result": "B6g evaluates an exact caller-owned workload-class -> static residual-policy envelope without feature/cardinality inference.",
+    "keyObservation": "The fixed two-class envelope lowers mean B6f grid regret to about 0.01025 with 13/16 zero-regret cells, but retains max regret about 0.0552 and a misdeclaration negative control around 0.208."
+  }
 }
