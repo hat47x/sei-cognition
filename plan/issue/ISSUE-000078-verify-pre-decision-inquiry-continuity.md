@@ -584,6 +584,8 @@ repository-local mechanics implementation
 
 このcheckpointでは新しいhuman observation、clean resumption、actual team handoff、Product Value判断を生成していない。既存の未観測状態を維持し、次の進行条件をactual Evidenceへ限定する。
 
+また、2026-09-19のLane F継続ではactual dogfood caseのcurrent concern、Unknown、Quiet / Proactive比較、clean resumption条件へmaterialに再露出した。これはE78.1のclean resumptionではなくprotocol observationであるため、evaluation sidecarの`resume_observations`は空のまま維持し、`ACTUAL_DOGFOOD_CHECKPOINT_2026-09-16.md`へ再露出事実だけを追記した。次のclean resumptionでは、この2026-09-19 exposure以後の認知的gapを基準にする。
+
 branch運用についても、同一Issueの継続作業は引き続き`develop/v0.2.0`へ集約する。小さな継続作業ごとにtopic branchを増やさず、元ブランチから分岐した未統合branchを残さない。
 
 
