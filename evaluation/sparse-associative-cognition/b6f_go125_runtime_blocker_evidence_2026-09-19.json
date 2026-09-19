@@ -1,0 +1,90 @@
+{
+  "schema": "sei.sacs-b6f-go125-runtime-blocker-evidence/v1alpha1",
+  "date": "2026-09-19",
+  "status": "blocked-runner-not-started",
+  "subject": "SAC-B6f exact repository Go 1.25 runtime execution attempt",
+  "issue": 512,
+  "pullRequest": 513,
+  "sourceBinding": {
+    "developCommit": "4dd86fcd45978f6490acad356c7cdf11f933b7d3",
+    "module": "evaluation/sparse-associative-cognition/prototype-go",
+    "goModBlob": "d6ba24ea65b4b80414bcf86912287973720ab7c7",
+    "goDirective": "1.25",
+    "b6fTestBlob": "357024038015f75d8f31cdbb53c6759db4a35325",
+    "providerBlob": "76302fcb9066746a1c414bc7d9121c3227bbc32c",
+    "capacityProfileEvalBlob": "c2fb6e55e7ed304f2f3214339cf7562d0ede1c48"
+  },
+  "requiredCommands": [
+    "go test -count=1 -v ./suiassocprovider -run 'TestResidualScaling(ResponseSurface|CannotUseSingleCardinalityRatioThreshold)$'",
+    "go test -count=1 -v ./suiassocprovider",
+    "go test -count=1 ./..."
+  ],
+  "localEnvironmentAttempt": {
+    "observedGoVersion": "go1.23.2 linux/amd64",
+    "pythonVersion": "3.13.5",
+    "kernel": "Linux 6.18.44 x86_64",
+    "go125AcceptedAsSubstitute": false,
+    "toolchainDownloadAttempted": true,
+    "toolchainDownloadObserved": false,
+    "networkObservation": "Could not resolve host: go.dev",
+    "testExecutionClaimed": false
+  },
+  "githubActionsAttempts": [
+    {
+      "runId": 35437104761,
+      "jobId": 105881529937,
+      "headSha": "98b280dc05e25ae38113cddaa9ff0557d6eb3434",
+      "conclusion": "failure",
+      "runnerLabels": ["ubuntu-latest"],
+      "runnerId": 0,
+      "runnerName": "",
+      "steps": 0,
+      "goSetupObserved": false,
+      "testExecutionObserved": false,
+      "classification": "runner-not-started"
+    },
+    {
+      "runId": 35437117909,
+      "jobId": 105881560973,
+      "headSha": "ac99a6f55c6a9e3b50e22ee1b7a8d4c6b925fffe",
+      "conclusion": "failure",
+      "runnerLabels": ["ubuntu-latest"],
+      "runnerId": 0,
+      "runnerName": "",
+      "steps": 0,
+      "goSetupObserved": false,
+      "testExecutionObserved": false,
+      "classification": "runner-not-started"
+    }
+  ],
+  "observedResult": {
+    "exactRepositoryGo125Execution": false,
+    "focusedB6fPass": null,
+    "suiassocproviderRegressionPass": null,
+    "prototypeGoFullRegressionPass": null,
+    "testFailuresObserved": false,
+    "reason": "Both GitHub Actions jobs completed before a runner was assigned; no workflow step executed. Local environment has Go 1.23.2 and could not obtain Go 1.25 because external host resolution was unavailable."
+  },
+  "preservedEvidence": {
+    "independentPythonReconstruction": "residual_response_surface_evidence_2026-09-19.json",
+    "independentReconstructionStillValidWithinItsRecordedBoundary": true,
+    "promotedToExactGoRuntimeEvidence": false
+  },
+  "stopLines": [
+    "workflow conclusion failure != Go test failure",
+    "runner-not-started != test execution",
+    "Go 1.23 execution != exact Go 1.25 execution",
+    "independent Python reconstruction != exact repository Go runtime",
+    "synthetic response surface != real workload policy map",
+    "cap64 lowest mean synthetic regret != production default"
+  ],
+  "notVerified": [
+    "exact repository Go 1.25 execution",
+    "focused SAC-B6f Go test PASS/FAIL",
+    "suiassocprovider package regression under Go 1.25",
+    "prototype-go full regression under Go 1.25",
+    "real SUI/SEI workload policy map",
+    "human-adjudicated quality",
+    "production residual policy"
+  ]
+}
