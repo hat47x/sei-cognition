@@ -1,0 +1,93 @@
+{
+  "schema": "sei.sacs-cross-stage-decision-contract-evidence/v1alpha1",
+  "date": "2026-09-19",
+  "issue": 489,
+  "branch": "topic/sacs-cross-stage-decision-contract",
+  "base_branch": "develop/v0.2.0",
+  "artifact": {
+    "decision_ref": "decision.json",
+    "validator_ref": "validate_decision.py",
+    "test_ref": "test_validate_decision.py",
+    "interpretation_ref": "../cross-stage-interpretation/interpretation.json",
+    "result_ref": "../cross-stage-result/result.json",
+    "run_ref": "../cross-stage-run/evaluation_run.json",
+    "preregistration_ref": "../cross_stage_benchmark_preregistration.json",
+    "freeze_bundle_ref": "../cross-stage-freeze/freeze_bundle.json"
+  },
+  "current_state": {
+    "decision_state": "draft",
+    "current_decision_generated": false,
+    "current_disposition": "not-assessed",
+    "current_interpretation_generated": false,
+    "semantic_truth_claimed": false,
+    "variant_winner_selected": false,
+    "b5_review_requested": false,
+    "b5_gate_opened": false,
+    "production_default_changed": false
+  },
+  "source_inspection": {
+    "status": "pass",
+    "source_blob_shas": {
+      "cross-stage-decision/decision.json": "68a89beedbd8ac35b60754c6f418cd54417930fa",
+      "cross-stage-decision/validate_decision.py": "6bfb481fd35a693a0bcd2257bea02dffc5760521",
+      "cross-stage-decision/test_validate_decision.py": "b4b8d0d9976174ed179b4e62fc112b3717acab65",
+      "cross_stage_benchmark_preregistration.json": "10caecec73714275c9161a95786d6eca0d8172c2",
+      "validate_cross_stage_preregistration.py": "7951f8c5705d496ece77ff18da88537c5a32c091",
+      "test_validate_cross_stage_preregistration.py": "90fb9968dd797fae4aa6318cd8f25295bacda1ac",
+      "research_plan.json": "4fad3bdbf4a6f787b447f6fe7d3dd34043035e3f",
+      "validate_research_plan.py": "521527c73758b477ebfa2ea805792d2ecffa8bad",
+      "test_validate_research_plan.py": "d537f673f6aea83a262fd88e182876322e907153"
+    },
+    "regression_tests_defined": {
+      "decision": 27,
+      "preregistration": 38,
+      "research_plan": 39,
+      "total": 104
+    },
+    "verified_contracts": [
+      "checked-in decision remains draft / not-assessed",
+      "decided artifact binds exact interpretation digest",
+      "decision scope must match interpreted artifact scope",
+      "decision authority requires stable ref and 40-char lowercase Git commit SHA",
+      "decided artifact requires at least one rationale ref",
+      "interpreted limitations must be preserved exactly in limitations_acknowledged",
+      "allowed dispositions are defer-for-evidence / retain-current-stage / request-b5-review",
+      "b5_review_requested is true only for request-b5-review disposition",
+      "request-b5-review does not open the B5 gate",
+      "semantic truth claim remains false",
+      "variant winner selection remains false",
+      "B5 gate opening remains false",
+      "production default change remains false",
+      "post-decision mutation is covered by canonical SHA-256 digest",
+      "strict schema rejects winner / unregistered decision fields",
+      "preregistration and research-plan gates require interpreted upstream state before decided state"
+    ]
+  },
+  "execution_observation": {
+    "validator_runtime_execution": "not-observed-in-this-contract-update",
+    "unittest_runtime_execution": "not-observed-in-this-contract-update",
+    "github_actions_used": false,
+    "local_checkout_attempt": "blocked-by-environment-network-resolution",
+    "checkout_error": "Could not resolve host: github.com",
+    "note": "This Evidence records GitHub-source inspection and defined regression coverage only. It does not claim executed test PASS."
+  },
+  "stop_lines": [
+    "defined tests != executed tests",
+    "decision record != semantic truth",
+    "decision scope variant != variant winner",
+    "request-b5-review != B5 gate open",
+    "decided artifact != production adoption",
+    "synthetic decided path != human-adjudicated benchmark decision",
+    "draft decision != B5 review request",
+    "decision contract != B5 decision authority"
+  ],
+  "not_verified": [
+    "runtime execution of validate_decision.py in this contract update",
+    "runtime execution of test_validate_decision.py in this contract update",
+    "runtime execution of preregistration and research-plan regression suites in this contract update",
+    "actual human-adjudicated interpreted artifact",
+    "actual B5 review request",
+    "actual B5 gate opening decision",
+    "actual production adoption"
+  ]
+}
