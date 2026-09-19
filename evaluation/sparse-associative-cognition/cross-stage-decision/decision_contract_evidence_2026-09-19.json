@@ -34,7 +34,7 @@
       "cross_stage_benchmark_preregistration.json": "10caecec73714275c9161a95786d6eca0d8172c2",
       "validate_cross_stage_preregistration.py": "7951f8c5705d496ece77ff18da88537c5a32c091",
       "test_validate_cross_stage_preregistration.py": "90fb9968dd797fae4aa6318cd8f25295bacda1ac",
-      "research_plan.json": "4fad3bdbf4a6f787b447f6fe7d3dd34043035e3f",
+      "research_plan.json": "a5748ad92f6e85e9f228784389a54db6d2f0b34e",
       "validate_research_plan.py": "521527c73758b477ebfa2ea805792d2ecffa8bad",
       "test_validate_research_plan.py": "d537f673f6aea83a262fd88e182876322e907153"
     },
