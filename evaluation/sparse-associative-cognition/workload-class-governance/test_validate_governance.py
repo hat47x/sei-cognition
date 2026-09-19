@@ -205,10 +205,10 @@ class WorkloadClassGovernanceTests(unittest.TestCase):
 
     def test_expired_state_is_valid_at_expiry_and_fails_closed(self) -> None:
         doc = copy.deepcopy(self.doc)
-        entry = doc["classes"][0]
-        entry["state"] = "expired"
-        doc["validation_as_of"] = entry["expires_at"]
-        self.assertFalse(entry["resolution_allowed"])
+        doc["validation_as_of"] = doc["classes"][0]["expires_at"]
+        for entry in doc["classes"]:
+            entry["state"] = "expired"
+            self.assertFalse(entry["resolution_allowed"])
         self.assertEqual(validate_governance(doc), [])
 
     def test_version_above_one_requires_supersedes_version(self) -> None:
