@@ -176,8 +176,14 @@
     "real SUI/SEI feature-family cardinality distributions",
     "human-adjudicated retrieval quality across heterogeneous workloads",
     "optimal static residual scaling",
-    "safe policy condition for when to bound residual scaling",
+    "stable low-dimensional workload-level condition for residual scaling beyond the B6f synthetic response surface",
     "hardware latency, power, and memory trade-offs",
     "Production, Operational, Adoption, or Outcome Evidence"
-  ]
+  ],
+  "followUp": {
+    "issue": 508,
+    "evidenceFile": "residual_response_surface_evidence_2026-09-19.json",
+    "result": "B6f expands the three-fixture comparison into a 4x4 cardinality grid and records static-policy margin, regret, and local incremental dimensions per cell.",
+    "keyObservation": "baseline- and capped-preferred regions coexist, and cells with text/structured ratios 3.10 and 3.147 prefer opposite policies; a single ratio threshold is insufficient."
+  }
 }

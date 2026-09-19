@@ -1,0 +1,407 @@
+{
+  "schema": "sei.sacs-residual-response-surface-evidence/v1alpha1",
+  "date": "2026-09-19",
+  "status": "limited-synthetic-response-surface-evidence",
+  "subject": "SAC-B6f static residual scaling response surface",
+  "issue": 508,
+  "branch": "topic/sac-b6f-residual-response-surface",
+  "profile": {
+    "dimensions": 32768,
+    "active": 512,
+    "fanout": 8,
+    "seed": 47,
+    "localEach": 64,
+    "policies": [
+      {
+        "id": "baseline",
+        "globalResidual": 256
+      },
+      {
+        "id": "cap128",
+        "globalResidual": 128
+      },
+      {
+        "id": "cap64",
+        "globalResidual": 64
+      }
+    ]
+  },
+  "gridDefinition": {
+    "textRuneLengths": [
+      5,
+      17,
+      33,
+      55
+    ],
+    "textFeatureCounts": [
+      7,
+      31,
+      63,
+      107
+    ],
+    "structuredPerSubchannel": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "graphFeatureCounts": [
+      2,
+      4,
+      8,
+      16
+    ],
+    "provenanceFeatureCounts": [
+      2,
+      4,
+      8,
+      16
+    ],
+    "groupingFeatures": 2,
+    "kindFeatures": 1,
+    "cells": 16,
+    "relation": "desired shares graph/provenance/grouping with anchor but uses disjoint text; distractor shares anchor text but uses disjoint graph/provenance/grouping"
+  },
+  "cells": [
+    {
+      "t": 5,
+      "s": 1,
+      "ratio": 1.1666666667,
+      "cls": "all-tie",
+      "m": {
+        "baseline": -0.0714286,
+        "cap128": -0.0714286,
+        "cap64": -0.0714286
+      },
+      "inc": {
+        "baseline": 0,
+        "cap128": 0,
+        "cap64": 48
+      }
+    },
+    {
+      "t": 5,
+      "s": 2,
+      "ratio": 0.7,
+      "cls": "all-tie",
+      "m": {
+        "baseline": 0.16666666,
+        "cap128": 0.16666666,
+        "cap64": 0.16666666
+      },
+      "inc": {
+        "baseline": 0,
+        "cap128": 16,
+        "cap64": 80
+      }
+    },
+    {
+      "t": 5,
+      "s": 4,
+      "ratio": 0.3888888889,
+      "cls": "all-tie",
+      "m": {
+        "baseline": 0.41826922,
+        "cap128": 0.41826922,
+        "cap64": 0.41826922
+      },
+      "inc": {
+        "baseline": 0,
+        "cap128": 80,
+        "cap64": 144
+      }
+    },
+    {
+      "t": 5,
+      "s": 8,
+      "ratio": 0.2058823529,
+      "cls": "baseline",
+      "m": {
+        "baseline": 0.52734375,
+        "cap128": 0.41879618,
+        "cap64": 0.41675589
+      },
+      "inc": {
+        "baseline": 0,
+        "cap128": 81,
+        "cap64": 144
+      }
+    },
+    {
+      "t": 17,
+      "s": 1,
+      "ratio": 5.1666666667,
+      "cls": "cap64",
+      "m": {
+        "baseline": -0.5859375,
+        "cap128": -0.1875,
+        "cap64": -0.13333336
+      },
+      "inc": {
+        "baseline": 0,
+        "cap128": 0,
+        "cap64": 56
+      }
+    },
+    {
+      "t": 17,
+      "s": 2,
+      "ratio": 3.1,
+      "cls": "capped-tie",
+      "m": {
+        "baseline": -0.33984375,
+        "cap128": 0.10526314,
+        "cap64": 0.10526314
+      },
+      "inc": {
+        "baseline": 0,
+        "cap128": 24,
+        "cap64": 88
+      }
+    },
+    {
+      "t": 17,
+      "s": 4,
+      "ratio": 1.7222222222,
+      "cls": "capped-tie",
+      "m": {
+        "baseline": 0.15625,
+        "cap128": 0.36574075,
+        "cap64": 0.36574075
+      },
+      "inc": {
+        "baseline": 0,
+        "cap128": 88,
+        "cap64": 152
+      }
+    },
+    {
+      "t": 17,
+      "s": 8,
+      "ratio": 0.9117647059,
+      "cls": "baseline",
+      "m": {
+        "baseline": 0.57529426,
+        "cap128": 0.37038627,
+        "cap64": 0.37038627
+      },
+      "inc": {
+        "baseline": 64,
+        "cap128": 90,
+        "cap64": 154
+      }
+    },
+    {
+      "t": 33,
+      "s": 1,
+      "ratio": 10.5,
+      "cls": "cap64",
+      "m": {
+        "baseline": -0.578125,
+        "cap128": -0.1796875,
+        "cap64": -0.12500003
+      },
+      "inc": {
+        "baseline": 0,
+        "cap128": 0,
+        "cap64": 56
+      }
+    },
+    {
+      "t": 33,
+      "s": 2,
+      "ratio": 6.3,
+      "cls": "capped-tie",
+      "m": {
+        "baseline": -0.3359375,
+        "cap128": 0.11184207,
+        "cap64": 0.11184207
+      },
+      "inc": {
+        "baseline": 0,
+        "cap128": 24,
+        "cap64": 88
+      }
+    },
+    {
+      "t": 33,
+      "s": 4,
+      "ratio": 3.5,
+      "cls": "capped-tie",
+      "m": {
+        "baseline": 0.15234375,
+        "cap128": 0.37123069,
+        "cap64": 0.37123069
+      },
+      "inc": {
+        "baseline": 0,
+        "cap128": 88,
+        "cap64": 152
+      }
+    },
+    {
+      "t": 33,
+      "s": 8,
+      "ratio": 1.8529411765,
+      "cls": "baseline",
+      "m": {
+        "baseline": 0.57420778,
+        "cap128": 0.36794457,
+        "cap64": 0.36794457
+      },
+      "inc": {
+        "baseline": 63,
+        "cap128": 90,
+        "cap64": 154
+      }
+    },
+    {
+      "t": 55,
+      "s": 1,
+      "ratio": 17.8333333333,
+      "cls": "cap64",
+      "m": {
+        "baseline": -0.57421875,
+        "cap128": -0.171875,
+        "cap64": -0.1166667
+      },
+      "inc": {
+        "baseline": 0,
+        "cap128": 0,
+        "cap64": 56
+      }
+    },
+    {
+      "t": 55,
+      "s": 2,
+      "ratio": 10.7,
+      "cls": "capped-tie",
+      "m": {
+        "baseline": -0.328125,
+        "cap128": 0.11842105,
+        "cap64": 0.11842105
+      },
+      "inc": {
+        "baseline": 0,
+        "cap128": 24,
+        "cap64": 88
+      }
+    },
+    {
+      "t": 55,
+      "s": 4,
+      "ratio": 5.9444444444,
+      "cls": "capped-tie",
+      "m": {
+        "baseline": 0.1640625,
+        "cap128": 0.37421498,
+        "cap64": 0.37421498
+      },
+      "inc": {
+        "baseline": 0,
+        "cap128": 88,
+        "cap64": 152
+      }
+    },
+    {
+      "t": 55,
+      "s": 8,
+      "ratio": 3.1470588235,
+      "cls": "baseline",
+      "m": {
+        "baseline": 0.57644296,
+        "cap128": 0.36844459,
+        "cap64": 0.36844459
+      },
+      "inc": {
+        "baseline": 63,
+        "cap128": 90,
+        "cap64": 154
+      }
+    }
+  ],
+  "policyClassCounts": {
+    "allTie": 3,
+    "baselineStrict": 4,
+    "cap64Strict": 3,
+    "cappedTie": 6,
+    "cap128Strict": 0
+  },
+  "fixedPolicyRegretAgainstCellBest": {
+    "baseline": {
+      "mean": 0.20882774,
+      "max": 0.45755205,
+      "zeroRegretCells": 7
+    },
+    "cap128": {
+      "mean": 0.05573622,
+      "max": 0.20799837,
+      "zeroRegretCells": 9
+    },
+    "cap64": {
+      "mean": 0.04560984,
+      "max": 0.20799837,
+      "zeroRegretCells": 12
+    }
+  },
+  "ratioCounterexample": {
+    "left": {
+      "textRunes": 17,
+      "structuredPerSubchannel": 2,
+      "ratio": 3.1,
+      "preferred": "capped",
+      "baselineMargin": -0.33984375,
+      "cap128Margin": 0.10526314
+    },
+    "right": {
+      "textRunes": 55,
+      "structuredPerSubchannel": 8,
+      "ratio": 3.1470588235,
+      "preferred": "baseline",
+      "baselineMargin": 0.57644296,
+      "cap128Margin": 0.36844459
+    },
+    "observation": "Nearly equal text/(graph+provenance+grouping) ratios prefer opposite static policies, so one scalar ratio threshold is insufficient even in this synthetic grid."
+  },
+  "findings": [
+    "The surface contains both baseline-preferred and capped-preferred regions plus tie regions; static residual suppression is conditional.",
+    "For textRuneLength >= 17, the lowest structured cardinality (one feature per graph/provenance subchannel) prefers cap64 but still remains negative-margin, so stronger suppression does not guarantee recovery.",
+    "At structuredPerSubchannel=2 or 4 and textRuneLength >=17, cap128 and cap64 tie on margin despite cap64 restoring substantially more local incremental dimensions.",
+    "At structuredPerSubchannel=8 and textRuneLength >=17, proportional baseline is strongest even as the text/structured ratio rises from about 0.91 to 3.15.",
+    "A near-equal cardinality-ratio pair (3.10 versus 3.147) prefers opposite policies, rejecting a simple single-ratio switching threshold.",
+    "cap64 has the lowest mean regret among the three fixed policies on this grid, but still has max regret about 0.208; this is not evidence for a default cap64 policy."
+  ],
+  "independentReconstruction": {
+    "toolchain": "Python 3.13.5 with float32 score/normalization emulation",
+    "method": "Independent reconstruction of UTF-8 FNV-like feature hashing, splitmix64 projection, family normalization, family-local/global residual selection, union, cosine similarity, and local incremental dimensions.",
+    "result": "reproduced the 16-cell margins and incremental-dimension expectations encoded in residual_response_surface_test.go.",
+    "limitation": "Not an exact repository Go 1.25 execution."
+  },
+  "implementationState": {
+    "productionCodeChanged": false,
+    "testOnlyFixtureAdded": true,
+    "automaticPolicySelectorImplemented": false,
+    "adaptiveResidualImplemented": false,
+    "cardinalityUsedAsSemanticImportance": false,
+    "providerDefaultChanged": false,
+    "b5EntryGateChanged": false
+  },
+  "stopLines": [
+    "synthetic response surface != real workload policy map",
+    "cell-best policy != per-item automatic selector",
+    "cardinality ratio != semantic importance",
+    "cap64 lowest mean synthetic regret != default policy requirement",
+    "nearby ratio with opposite policy preference != license to add more opaque heuristics",
+    "response surface != production adaptive policy"
+  ],
+  "notVerified": [
+    "exact repository Go 1.25 execution",
+    "branch-source Go test execution in this environment",
+    "real SUI/SEI workload cardinality joint distributions",
+    "human-adjudicated quality across the response surface",
+    "stable low-dimensional policy condition that generalizes beyond this synthetic grid",
+    "safe caller-owned workload-level residual policy",
+    "hardware latency, power, and memory trade-offs",
+    "Production, Operational, Adoption, or Outcome Evidence"
+  ]
+}
