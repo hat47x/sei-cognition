@@ -614,6 +614,17 @@ def _validate_stream_evidence(
         )
 
 
+def _expected_check_contract() -> tuple[dict[str, object], ...]:
+    return tuple(
+        {
+            "name": check.name,
+            "command": _portable_command(check.command),
+            "cwdRelativeToRepo": _repo_relative_cwd(check.cwd),
+        }
+        for check in configured_checks()
+    )
+
+
 def validate_result(result: dict[str, object]) -> None:
     required = {
         "schema",
@@ -661,9 +672,16 @@ def validate_result(result: dict[str, object]) -> None:
     if result["selectedCount"] != len(selected):
         raise ValueError("selectedCount mismatch")
 
+    expected_checks = _expected_check_contract()
+    expected_names = [item["name"] for item in expected_checks]
+    if selected != expected_names:
+        raise ValueError(
+            "selected checks differ from the canonical runner contract"
+        )
+
     executed = result["executed"]
-    if not isinstance(executed, list):
-        raise ValueError("executed must be a list")
+    if not isinstance(executed, list) or not executed:
+        raise ValueError("executed must be a non-empty list")
     if result["executedCount"] != len(executed):
         raise ValueError("executedCount mismatch")
     if len(executed) > len(selected):
@@ -680,6 +698,7 @@ def validate_result(result: dict[str, object]) -> None:
         )
 
     failed_count = 0
+    observed_timeout_seconds: int | None = None
     base_keys = {
         "name",
         "command",
@@ -690,7 +709,7 @@ def validate_result(result: dict[str, object]) -> None:
         "stdout",
         "stderr",
     }
-    for item in executed:
+    for index, item in enumerate(executed):
         if not isinstance(item, dict):
             raise ValueError(
                 "executed entry must be an object"
@@ -727,10 +746,19 @@ def validate_result(result: dict[str, object]) -> None:
                     "executed command must not contain "
                     "host-escaping paths"
                 )
-        _validate_relative_path(
+        cwd_relative = _validate_relative_path(
             item["cwdRelativeToRepo"],
             "cwdRelativeToRepo",
         )
+        expected_check = expected_checks[index]
+        if command != expected_check["command"]:
+            raise ValueError(
+                "executed command differs from the canonical runner contract"
+            )
+        if cwd_relative != expected_check["cwdRelativeToRepo"]:
+            raise ValueError(
+                "executed cwd differs from the canonical runner contract"
+            )
         if (
             isinstance(item["exitCode"], bool)
             or not isinstance(item["exitCode"], int)
@@ -738,6 +766,8 @@ def validate_result(result: dict[str, object]) -> None:
             raise ValueError("exitCode must be an integer")
         if not isinstance(item["timedOut"], bool):
             raise ValueError("timedOut must be boolean")
+        if item["timedOut"] and item["exitCode"] != TIMEOUT_EXIT_CODE:
+            raise ValueError("timedOut execution must use the timeout exit code")
         timeout_seconds = item["timeoutSeconds"]
         if (
             isinstance(timeout_seconds, bool)
@@ -746,6 +776,12 @@ def validate_result(result: dict[str, object]) -> None:
         ):
             raise ValueError(
                 "timeoutSeconds must be a positive integer"
+            )
+        if observed_timeout_seconds is None:
+            observed_timeout_seconds = timeout_seconds
+        elif timeout_seconds != observed_timeout_seconds:
+            raise ValueError(
+                "all executed checks must use the same timeoutSeconds"
             )
         _validate_stream_evidence(
             item["stdout"],
@@ -782,6 +818,16 @@ def validate_result(result: dict[str, object]) -> None:
                 raise ValueError(
                     "launchError must contain sanitized type/errno"
                 )
+            if item["timedOut"] or item["exitCode"] != LAUNCH_ERROR_EXIT_CODE:
+                raise ValueError(
+                    "launchError execution must use the launch-error exit code "
+                    "without timeout"
+                )
+            empty_stream = _stream_evidence(None)
+            if item["stdout"] != empty_stream or item["stderr"] != empty_stream:
+                raise ValueError(
+                    "launchError execution must not contain process output"
+                )
         if item["exitCode"] != 0:
             failed_count += 1
 
@@ -799,10 +845,21 @@ def validate_result(result: dict[str, object]) -> None:
         )
     if not isinstance(result["stoppedEarly"], bool):
         raise ValueError("stoppedEarly must be boolean")
-    if result["stoppedEarly"] and complete:
+    expected_stopped_early = not complete
+    if result["stoppedEarly"] != expected_stopped_early:
         raise ValueError(
-            "stoppedEarly cannot be true for a complete run"
+            "stoppedEarly is inconsistent with execution completeness"
         )
+    if not complete:
+        prefix_exit_codes = [item["exitCode"] for item in executed]
+        if any(code != 0 for code in prefix_exit_codes[:-1]):
+            raise ValueError(
+                "stoppedEarly run must stop at the first failed check"
+            )
+        if prefix_exit_codes[-1] == 0:
+            raise ValueError(
+                "stoppedEarly run must end with a failed check"
+            )
 
     snapshot = result["contractSnapshot"]
     if not isinstance(snapshot, dict) or set(snapshot) != {
@@ -954,6 +1011,12 @@ def validate_result(result: dict[str, object]) -> None:
             "contractSnapshot.python has invalid shape"
         )
 
+    expected_snapshot = build_contract_snapshot()
+    if snapshot != expected_snapshot:
+        raise ValueError(
+            "contractSnapshot differs from the current checkout contract"
+        )
+
     for field in (
         "humanReviewObserved",
         "actualLongGapComparisonEstablished",
@@ -1070,6 +1133,14 @@ def main(argv: list[str] | None = None) -> int:
         parser.exit(
             2,
             f"E78.6 local checks: {exc}\n",
+        )
+
+    try:
+        validate_result(result)
+    except ValueError as exc:
+        parser.exit(
+            2,
+            f"E78.6 local checks: invalid result: {exc}\n",
         )
 
     print("E78.6 local check summary")
