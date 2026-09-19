@@ -20,13 +20,15 @@ human adjudication freeze
   ↓
 explicit evaluation-run artifact
   ↓
-human-adjudicated evaluation
-  ↓
+execution-attempt artifact
+  ↓ success only
 immutable result artifact
   ↓
 non-decisional interpretation artifact
   ↓
-future decision
+decision record
+  ↓
+future B5 review / product governance
 ```
 
 この文書と `cross_stage_benchmark_preregistration.json` は、evaluation runそのものではない。
