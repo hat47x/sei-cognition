@@ -24,12 +24,14 @@ result artifact
   ↓
 interpretation artifact
   ↓
-future decision artifact
+B5 review disposition decision record
 ```
 
 result artifactは最後の「判断」ではなく、再検証可能な測定記録である。
 
 interpretationは `../cross-stage-interpretation/` の別artifactへ分離し、result自身へwinner・recommendation・B5 decisionを埋め込まない。
+
+interpretation後のdispositionは `../cross-stage-decision/` のdecision recordへ分離する。decision recordもresultへ書き戻さない。
 
 ### Interpretationとの分離
 
