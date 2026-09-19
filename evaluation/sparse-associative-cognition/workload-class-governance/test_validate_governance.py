@@ -41,6 +41,13 @@ class WorkloadClassGovernanceTests(unittest.TestCase):
                 doc["validation_as_of"] = value
                 self.assert_error(doc, "validation_as_of must be a UTC-second timestamp")
 
+    def test_envelope_binding_is_exact(self) -> None:
+        for key in ("envelope_ref", "envelope_id"):
+            with self.subTest(key=key):
+                doc = copy.deepcopy(self.doc)
+                doc[key] = "stale"
+                self.assert_error(doc, f"{key} must remain")
+
     def test_policy_allowlist_is_exact(self) -> None:
         doc = copy.deepcopy(self.doc)
         doc["allowed_policy_ids"].append("adaptive")
