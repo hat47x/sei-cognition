@@ -420,6 +420,22 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_result(tampered)
 
+    def test_validate_result_rejects_inconsistent_failure_metadata(self):
+        result = self.mechanics_result()
+
+        tampered = copy.deepcopy(result)
+        tampered["executed"][0]["timedOut"] = True
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+        tampered = copy.deepcopy(result)
+        tampered["executed"][0]["launchError"] = {
+            "type": "FileNotFoundError",
+            "errno": 2,
+        }
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
     def test_save_result_is_exclusive_create(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "result.json"
