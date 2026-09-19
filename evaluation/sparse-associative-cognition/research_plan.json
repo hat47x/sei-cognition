@@ -824,7 +824,8 @@
       "cross-stage interpretation artifactをdraft / non-decisional templateとして実装し、completed result exact digest binding、scope identity、metric evidence reference、analyst provenance、explicit limitation、canonical digestをcontract化した。source inspectionでinterpretation 27 tests、preregistration 32 tests、research-plan 33 testsを定義し、semantic truth / winner / recommendation / B5 decision / production defaultへの昇格をfail-closedにした。runtime実行は本更新では未観測。",
       "cross-stage execution-attempt artifactをresultから分離してdraft contract化し、成功/失敗双方の試行、exact run digest、executor/environment/time/exit/raw Evidence、canonical attempt digestをGit blob SHA一致のfocused 20 testsで固定した。upstream full integration runtime Evidenceは未実行で、実benchmark resultも未生成。",
       "cross-stage execution-attemptをGitHub正本17 source / manifestのGit blob SHA一致一時再構成環境でPython 3.13.5実行し、focused 20 tests、actual upstream integration 6 tests、run/freeze/preregistration regression 70 testsの計96 testsがPASSした。4 validatorもPASSし、current attempt / run / freeze / preregistrationはdraft / lockedのままである。",
-      "cross-stage interpretationをGitHub正本19 source / manifestのGit blob SHA一致一時再構成環境でPython 3.13.5実行し、interpretation 27 tests、result/run/freeze/preregistration regression 94 testsの計121 testsがPASSした。5 validatorもPASSし、synthetic interpreted artifactはcompleted resultとactual upstream chainを通過する一方、current interpretation / result / run / freeze / preregistrationはdraft / lockedのままである。"
+      "cross-stage interpretationをGitHub正本19 source / manifestのGit blob SHA一致一時再構成環境でPython 3.13.5実行し、interpretation 27 tests、result/run/freeze/preregistration regression 94 testsの計121 testsがPASSした。5 validatorもPASSし、synthetic interpreted artifactはcompleted resultとactual upstream chainを通過する一方、current interpretation / result / run / freeze / preregistrationはdraft / lockedのままである。",
+      "cross-stage interpretation後のB5 review dispositionを独立decision-record contractとして分離し、defer-for-evidence / retain-current-stage / request-b5-reviewの3 disposition、exact interpretation digest binding、decision authority provenance、rationale refs、upstream limitation preservation、canonical digestを定義した。request-b5-reviewはB5 gate openではなく、semantic truth / variant winner / production default変更もfail-closedのままである。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -845,7 +846,8 @@
       "cross-stage human-adjudicated evaluationはpreregistration済みだが、adjudication / dataset / split / B3 prior manifest未freezeのためlocked。semantic benchmark resultは未生成。",
       "実SUI/SEI human-adjudicated dataset、review process、split、B3 prior provenanceが未提供のためcross-stage freeze kitはdraftのまま。frozen bundleおよびauthorized evaluation-runは未生成。checked-in evaluation_run.jsonはdraft / locked templateのみ。",
       "cross-stage result contractは実装済みだが、human-adjudicated dataset / frozen bundle / authorized runが未生成のためchecked-in resultはdraft / empty。benchmark interpretation / B5 decision / production adoptionは未実施。",
-      "cross-stage interpretation contractは実装済みでも、human-adjudicated completed resultが未生成のためchecked-in interpretationはdraft / empty。variant winner / recommendation / B5 decision / production adoptionは未実施。"
+      "cross-stage interpretation contractは実装済みでも、human-adjudicated completed resultが未生成のためchecked-in interpretationはdraft / empty。variant winner / recommendation / B5 decision / production adoptionは未実施。",
+      "cross-stage decision-record contractは実装中だが、human-adjudicated interpreted artifactが未生成のためchecked-in decisionはdraft / not-assessed。request-b5-review / B5 gate open / production adoptionはいずれも未実施。"
     ],
     "supporting_evidence_files": [
       "input_normalization_evidence_2026-09-18.json",
@@ -867,7 +869,8 @@
       "cross-stage-interpretation/interpretation_contract_evidence_2026-09-19.json",
       "cross-stage-attempt/execution_attempt_contract_evidence_2026-09-19.json",
       "cross-stage-attempt/execution_attempt_runtime_evidence_2026-09-19.json",
-      "cross-stage-interpretation/interpretation_runtime_evidence_2026-09-19.json"
+      "cross-stage-interpretation/interpretation_runtime_evidence_2026-09-19.json",
+      "cross-stage-decision/decision_contract_evidence_2026-09-19.json"
     ]
   },
   "references": [
@@ -1010,6 +1013,25 @@
       "integration_tests_passed": 6,
       "upstream_regression_tests_passed": 70,
       "total_tests_passed": 96
+    },
+    "decision_artifact": {
+      "state": "draft",
+      "directory": "cross-stage-decision",
+      "decision_ref": "cross-stage-decision/decision.json",
+      "validator_ref": "cross-stage-decision/validate_decision.py",
+      "evidence_ref": "cross-stage-decision/decision_contract_evidence_2026-09-19.json",
+      "current_decision_generated": false,
+      "requires_interpreted_artifact": true,
+      "allowed_dispositions": [
+        "defer-for-evidence",
+        "retain-current-stage",
+        "request-b5-review"
+      ],
+      "b5_review_requested": false,
+      "semantic_truth_claimed": false,
+      "variant_winner_selected": false,
+      "b5_gate_opened": false,
+      "production_default_changed": false
     }
   }
 }
