@@ -1,7 +1,7 @@
 # Sparse Associative Cognitive Substrate
 
 状態: **Evaluation / Experimental**  
-更新日: 2026-09-12
+更新日: 2026-09-19
 
 ## 1. 根幹の趣旨
 
@@ -217,8 +217,10 @@ human-adjudicated評価へ進む前に、比較variant、split、B3 prior、B4 f
 - freeze kit: `cross-stage-freeze/`
 - freeze kit validator: `cross-stage-freeze/freeze_manifests.py`
 - explicit evaluation run: `cross-stage-run/`
+- execution-attempt artifact contract: `cross-stage-attempt/`
 - result artifact contract: `cross-stage-result/`
 - interpretation artifact contract: `cross-stage-interpretation/`
+- decision-record artifact contract: `cross-stage-decision/`
 
 現在は **Evaluation Locked** である。
 
@@ -231,13 +233,15 @@ human adjudication freeze
   ↓
 explicit evaluation-run artifact
   ↓
-human-adjudicated evaluation
-  ↓
+execution-attempt artifact
+  ↓ success only
 immutable result artifact
   ↓
 non-decisional interpretation artifact
   ↓
-future decision
+decision record
+  ↓
+future B5 review / product governance
 ```
 
 preregistration artifact自身はsemantic benchmark resultを生成しない。
