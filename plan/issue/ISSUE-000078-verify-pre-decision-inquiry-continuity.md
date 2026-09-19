@@ -354,7 +354,9 @@ EVIDENCE=<checkout外または意図的に管理するe78-3-evidence.json>
 # source fixtureがprobeのfreezeと一致しなければcheck開始前にfail-closedする。
 # 保存時にもresult v2全体を再検証し、count/order/status、正規check名と
 # portable command / repo相対cwdの一致、timeout / launch-error metadataの整合、
-# stream digest、mechanics/source identity、Evidence stoplineの改変を拒否する。
+# stoppedEarlyと実行完了性の整合を検証する。さらにcontractSnapshotを現在checkoutから
+# 再計算し、probe / mechanics / fixture / Python runtimeのdigest差し替えも拒否する。
+# stream digestとEvidence stoplineの改変も拒否する。
 python3 "$LOCAL_CHECKS" --stop-on-failure --result-output "$LOCAL_RESULT"
 
 # validateは3 source fixtureのGit blob freezeを全件検証し、current probe /
