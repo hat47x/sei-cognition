@@ -441,6 +441,8 @@ GitHub正本のblobを固定して一時実行環境へ再構成し、Python 3.1
 
 今後connector等を介して一時実行環境へ再構成する場合は、**10ファイルを同一bound commitからmaterializeし、全件のGit blob SHA-1一致を確認してからのみcanonical runnerを実行する**。1件でも不一致なら、その試行はcanonical local gateのPASS / FAILへ数えず、再構成失敗として破棄する。runnerが生成するresult schema v2も従来どおり`validate_result`成功後だけ保存する。
 
+actual runtimeの残工程は GitHub Issue #532 `E78.3: exact-source bindingからcanonical local gateをactual実行する` に集約する。同一ISSUE-000078の継続作業として `develop/v0.2.0` を集約先に保ち、transport/reconstructionだけを理由にtopic branchを増やさない。Issue #532は10-blob一致、runner focused tests、7-check aggregate、validated result schema v2生成だけを完了条件とし、source reconstruction mismatchはcanonical PASS / FAILへ数えない。
+
 ```text
 exact 10-blob source binding
   != E78.3 local gate PASS
