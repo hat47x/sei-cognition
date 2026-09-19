@@ -335,6 +335,84 @@ class AssistanceLocalChecksTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_result(tampered)
 
+    def test_validate_result_rejects_noncanonical_execution_contract(self):
+        result = self.mechanics_result()
+
+        tampered = copy.deepcopy(result)
+        tampered["selected"][0] = "other-check"
+        tampered["executed"][0]["name"] = "other-check"
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+        tampered = copy.deepcopy(result)
+        tampered["executed"][0]["command"][1] = (
+            "evaluation/personal-inquiry-decision/"
+            "inquiry_continuity_assistance_evidence.py"
+        )
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+        tampered = copy.deepcopy(result)
+        tampered["executed"][0]["cwdRelativeToRepo"] = "evaluation"
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+    def test_validate_result_rejects_execution_state_tampering(self):
+        result = self.mechanics_result()
+
+        tampered = copy.deepcopy(result)
+        tampered["executed"] = []
+        tampered["executedCount"] = 0
+        tampered["failedCount"] = 0
+        tampered["result"] = "failed"
+        tampered["stoppedEarly"] = True
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+        tampered = copy.deepcopy(result)
+        tampered["executed"][1]["timeoutSeconds"] += 1
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+        tampered = copy.deepcopy(result)
+        tampered["executed"] = tampered["executed"][:2]
+        tampered["executedCount"] = 2
+        tampered["failedCount"] = 0
+        tampered["result"] = "failed"
+        tampered["stoppedEarly"] = True
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+    def test_validate_result_rejects_failure_metadata_and_snapshot_tampering(self):
+        result = self.mechanics_result()
+
+        tampered = copy.deepcopy(result)
+        tampered["executed"][0]["timedOut"] = True
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+        def runner(command, *, cwd, env, timeout):
+            raise FileNotFoundError(2, "No such file or directory", "/private/tool")
+
+        exit_code, failed = run_checks(
+            configured_checks(),
+            stop_on_failure=True,
+            runner=runner,
+        )
+        self.assertEqual(exit_code, 1)
+        tampered = copy.deepcopy(failed)
+        tampered["executed"][0]["stdout"] = {
+            "sha256": "0" * 64,
+            "bytes": 1,
+        }
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+        tampered = copy.deepcopy(result)
+        tampered["contractSnapshot"]["probeContentSha256"] = "0" * 64
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
     def test_save_result_is_exclusive_create(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "result.json"
