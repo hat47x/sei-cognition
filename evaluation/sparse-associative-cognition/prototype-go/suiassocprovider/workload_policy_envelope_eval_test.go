@@ -153,6 +153,51 @@ func TestCallerOwnedWorkloadEnvelopeReducesFixedPolicyRegretWithoutBecomingOracl
 	}
 }
 
+func TestCallerOwnedWorkloadClassCanStillBeWrong(t *testing.T) {
+	base := capacityBaseProfile()
+	oversized, err := capacityprofile.ScaleDimensions(base, "oversized", 32768)
+	if err != nil {
+		t.Fatal(err)
+	}
+	envelope, err := capacityprofile.NewWorkloadPolicyEnvelope(
+		"b6g-misdeclaration-negative-control",
+		"evidence://sac-b6g/misdeclaration",
+		[]capacityprofile.WorkloadPolicyBinding{
+			{WorkloadClass: "general", Policy: capacityprofile.ResidualPolicyCap128},
+			{WorkloadClass: "structure-preserving", Policy: capacityprofile.ResidualPolicyBaseline},
+		},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	anchor, desired, distractor := responseSurfaceItems(55, 8)
+	baseline := responseSurfaceResult(
+		t,
+		oversized,
+		envelopeStaticPolicy(t, oversized, capacityprofile.ResidualPolicyBaseline),
+		anchor,
+		desired,
+		distractor,
+	)
+	misdeclaredID, err := envelope.Resolve("general")
+	if err != nil {
+		t.Fatal(err)
+	}
+	misdeclared := responseSurfaceResult(
+		t,
+		oversized,
+		envelopeStaticPolicy(t, oversized, misdeclaredID),
+		anchor,
+		desired,
+		distractor,
+	)
+	if baseline.margin-misdeclared.margin < 0.20 {
+		t.Fatalf("negative control did not expose declaration regret: baseline=%v misdeclared=%v",
+			baseline.margin, misdeclared.margin)
+	}
+}
+
 func TestWorkloadEnvelopeResolutionDependsOnlyOnCallerDeclaration(t *testing.T) {
 	envelope, err := capacityprofile.NewWorkloadPolicyEnvelope(
 		"b6g-declaration-only-v1",
