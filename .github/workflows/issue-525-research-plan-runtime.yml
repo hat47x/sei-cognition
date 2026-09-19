@@ -1,0 +1,34 @@
+name: issue-525 research-plan runtime
+
+on:
+  pull_request:
+    branches:
+      - develop/v0.2.0
+  workflow_dispatch:
+
+jobs:
+  research-plan-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Runtime identity
+        run: |
+          set -euxo pipefail
+          git rev-parse HEAD
+          python --version
+          uname -a
+          git hash-object evaluation/sparse-associative-cognition/research_plan.json
+          git hash-object evaluation/sparse-associative-cognition/validate_research_plan.py
+          git hash-object evaluation/sparse-associative-cognition/test_validate_research_plan.py
+      - name: Validate research plan
+        run: |
+          set -euxo pipefail
+          python evaluation/sparse-associative-cognition/validate_research_plan.py
+      - name: Run research-plan regression
+        run: |
+          set -euxo pipefail
+          python -m unittest -v evaluation/sparse-associative-cognition/test_validate_research_plan.py
