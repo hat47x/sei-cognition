@@ -1,0 +1,82 @@
+{
+  "schema": "sei.sacs-research-plan-runtime-guard-execution-evidence/v1alpha1",
+  "date": "2026-09-19",
+  "issue": 500,
+  "branch": "topic/sacs-research-plan-runtime-guard-evidence",
+  "purpose": "Record attempts to execute the research-plan runtime guard without promoting an unstarted runner to a test result.",
+  "source_bindings": [
+    {
+      "path": "evaluation/sparse-associative-cognition/research_plan.json",
+      "blob_sha": "3131ba05742deb4d01655cd3a31119cc0c1432a1"
+    },
+    {
+      "path": "evaluation/sparse-associative-cognition/validate_research_plan.py",
+      "blob_sha": "4bdb1fc9664be7a211a17b842dd1218dedf20db7"
+    },
+    {
+      "path": "evaluation/sparse-associative-cognition/test_validate_research_plan.py",
+      "blob_sha": "2fbdba0daa4a4fc08718ccd3bc868325c674f13c"
+    }
+  ],
+  "execution_attempts": [
+    {
+      "mechanism": "temporary GitHub Actions pull_request workflow",
+      "workflow_run_id": 35421736547,
+      "head_sha": "15cabf26bb4b919fc4b33fb9327e038ed352c29a",
+      "status": "completed",
+      "conclusion": "failure",
+      "job_id": 105840587661,
+      "job_name": "research-plan-runtime-guard",
+      "runner_id": 0,
+      "runner_name": "",
+      "step_count": 0,
+      "started_at": "2026-09-19T04:36:18Z",
+      "completed_at": "2026-09-19T04:36:21Z",
+      "classification": "runner-not-started",
+      "python_execution_observed": false,
+      "validator_execution_observed": false,
+      "unittest_execution_observed": false
+    },
+    {
+      "mechanism": "temporary GitHub Actions pull_request workflow after latest-parent sync",
+      "workflow_run_id": 35422080480,
+      "head_sha": "d7f40fa21f961ef18d486c36f5952dc6b1cf1449",
+      "status": "completed",
+      "conclusion": "failure",
+      "job_id": 105841502027,
+      "job_name": "research-plan-runtime-guard",
+      "runner_id": 0,
+      "runner_name": "",
+      "step_count": 0,
+      "started_at": "2026-09-19T04:43:58Z",
+      "completed_at": "2026-09-19T04:44:01Z",
+      "classification": "runner-not-started",
+      "python_execution_observed": false,
+      "validator_execution_observed": false,
+      "unittest_execution_observed": false
+    }
+  ],
+  "current_observation": {
+    "actual_research_plan_validator_result": "not-observed",
+    "actual_research_plan_unittest_result": "not-observed",
+    "tests_defined": 43,
+    "tests_passed_claimed": null,
+    "tests_failed_claimed": null,
+    "runtime_guard_actual_execution_complete": false
+  },
+  "branch_hygiene": {
+    "latest_parent_synced": true,
+    "parent_at_second_attempt": "2f089a58af816a7b22697abe7ef6d3ffdbb54547",
+    "overlapping_parent_files": 0,
+    "temporary_workflow_should_merge": false
+  },
+  "stop_lines": [
+    "workflow conclusion failure != research-plan validator failure",
+    "runner-not-started != test execution",
+    "defined tests != executed tests",
+    "runtime guard source inspection != actual runtime Evidence",
+    "plan validation != human-adjudicated benchmark decision",
+    "plan validation != B5 gate open",
+    "plan validation != production adoption"
+  ]
+}
