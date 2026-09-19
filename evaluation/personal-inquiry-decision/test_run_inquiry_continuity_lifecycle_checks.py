@@ -51,7 +51,7 @@ class LifecycleLocalChecksTest(unittest.TestCase):
         snapshot = build_contract_snapshot()
         self.assertEqual(
             snapshot["probeSchema"],
-            "sei.inquiry-continuity-lifecycle-probe/v1",
+            "sei.inquiry-continuity-lifecycle-probe/v2",
         )
         self.assertEqual(
             len(snapshot["probeContentSha256"]),

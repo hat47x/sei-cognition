@@ -103,7 +103,7 @@ def build_contract_snapshot(
     )
     if (
         probe.get("schema")
-        != "sei.inquiry-continuity-lifecycle-probe/v1"
+        != "sei.inquiry-continuity-lifecycle-probe/v2"
         or probe.get("status") != "evaluation-only"
         or probe.get("issue") != "ISSUE-000078"
     ):
@@ -649,7 +649,7 @@ def validate_result(
         not isinstance(snapshot["probeId"], str)
         or not snapshot["probeId"]
         or snapshot["probeSchema"]
-        != "sei.inquiry-continuity-lifecycle-probe/v1"
+        != "sei.inquiry-continuity-lifecycle-probe/v2"
         or not _is_lower_hex(
             snapshot["probeContentSha256"],
             64,

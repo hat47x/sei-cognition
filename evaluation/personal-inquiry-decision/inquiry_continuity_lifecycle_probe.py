@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 
-SCHEMA = "sei.inquiry-continuity-lifecycle-probe/v1"
+SCHEMA = "sei.inquiry-continuity-lifecycle-probe/v2"
 PACKET_SCHEMA = "sei.inquiry-continuity-lifecycle-packet/v1"
 RESPONSE_SCHEMA = "sei.inquiry-continuity-lifecycle-response/v1"
 REVIEW_START_RECEIPT_SCHEMA = (
@@ -418,7 +418,7 @@ def validate_probe(
             "explicit attention projection must remain human-controlled"
         )
 
-    _validate_questions(
+    review_questions = _validate_questions(
         probe.get("human_review_questions")
     )
     audit_key = probe.get("audit_key")
@@ -427,9 +427,25 @@ def validate_probe(
         or not audit_key.get("semantic_hard_failures")
         or not audit_key.get("product_failure_signals")
         or not audit_key.get("acceptable_outcomes")
+        or not audit_key.get("design_reflection_questions")
     ):
         raise LifecycleProbeError(
-            "audit_key semantic/product/acceptable material is required"
+            "audit_key semantic/product/acceptable/reflection material is required"
+        )
+    reflection_questions = _validate_questions(
+        audit_key["design_reflection_questions"]
+    )
+    review_ids = {
+        item["id"]
+        for item in review_questions
+    }
+    reflection_ids = {
+        item["id"]
+        for item in reflection_questions
+    }
+    if review_ids & reflection_ids:
+        raise LifecycleProbeError(
+            "review and design-reflection question ids must not overlap"
         )
     boundary = probe.get("evidence_boundary")
     if (

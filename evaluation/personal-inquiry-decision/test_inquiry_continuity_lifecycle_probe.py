@@ -53,7 +53,7 @@ def make_probe() -> dict:
         },
     ]
     return {
-        "schema": "sei.inquiry-continuity-lifecycle-probe/v1",
+        "schema": "sei.inquiry-continuity-lifecycle-probe/v2",
         "status": "evaluation-only",
         "issue": "ISSUE-000078",
         "probe_id": "probe-1",
@@ -119,6 +119,9 @@ def make_probe() -> dict:
             "semantic_hard_failures": ["do not rewrite"],
             "product_failure_signals": ["burden"],
             "acceptable_outcomes": ["no extra state"],
+            "design_reflection_questions": [
+                {"id": "D1", "prompt": "reflect after reveal"}
+            ],
         },
         "evidence_boundary": ["design only"],
     }
@@ -179,6 +182,15 @@ class LifecycleProbeTest(unittest.TestCase):
             self.assertNotIn(condition, rendered)
         self.assertNotIn("intended_tradeoff", rendered)
         self.assertNotIn("audit_key", rendered)
+
+    def test_design_reflection_is_hidden_until_audit(self):
+        packets = build_review_packets(
+            self.probe,
+            "R1",
+            self.review_sha,
+        )
+        rendered = json.dumps(packets)
+        self.assertNotIn("reflect after reveal", rendered)
 
     def test_review_start_receipt_binds_provenance(self):
         self.assertEqual(

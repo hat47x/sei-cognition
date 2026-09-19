@@ -116,6 +116,14 @@ class LifecycleEvidenceTest(unittest.TestCase):
                 "product_failure_signal_findings"
             ]:
                 finding["finding"] = "not-indicated"
+        for question in self.probe["audit_key"][
+            "design_reflection_questions"
+        ]:
+            self.audit_response[
+                "design_reflection_answers"
+            ][question["id"]] = (
+                "synthetic mechanics fixture reflection"
+            )
         self.audit_response["audit_provenance"] = {
             "auditor_id": "auditor-test-fixture",
             "response_authorship": "human-transcribed",
@@ -162,6 +170,23 @@ class LifecycleEvidenceTest(unittest.TestCase):
             self.audit_sha,
         )
         self.assertEqual(
+            set(template["design_reflection_answers"]),
+            {
+                item["id"]
+                for item in self.probe["audit_key"][
+                    "design_reflection_questions"
+                ]
+            },
+        )
+        self.assertTrue(
+            all(
+                value == ""
+                for value in template[
+                    "design_reflection_answers"
+                ].values()
+            )
+        )
+        self.assertEqual(
             template["finding_contract"],
             {
                 "semantic_hard_failure": [
@@ -201,6 +226,23 @@ class LifecycleEvidenceTest(unittest.TestCase):
         changed["audit_provenance"]["completed_at"] = (
             "2026-09-19T03:04:59+09:00"
         )
+        with self.assertRaises(LifecycleEvidenceError):
+            validate_audit_response(
+                changed,
+                self.probe,
+                self.rotation,
+                self.audit_sha,
+                self.audit_receipt["revealed_at"],
+            )
+
+    def test_audit_response_requires_post_reveal_design_reflection(self):
+        changed = copy.deepcopy(self.audit_response)
+        question_id = next(
+            iter(changed["design_reflection_answers"])
+        )
+        changed["design_reflection_answers"][
+            question_id
+        ] = ""
         with self.assertRaises(LifecycleEvidenceError):
             validate_audit_response(
                 changed,

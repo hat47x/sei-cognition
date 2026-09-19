@@ -34,8 +34,8 @@ from inquiry_continuity_lifecycle_probe import (
 )
 
 
-AUDIT_RESPONSE_SCHEMA = "sei.inquiry-continuity-lifecycle-audit-response/v2"
-EVIDENCE_SCHEMA = "sei.inquiry-continuity-lifecycle-evidence/v2"
+AUDIT_RESPONSE_SCHEMA = "sei.inquiry-continuity-lifecycle-audit-response/v3"
+EVIDENCE_SCHEMA = "sei.inquiry-continuity-lifecycle-evidence/v3"
 SEMANTIC_FINDING_VALUES = (
     "present",
     "not-present",
@@ -204,6 +204,12 @@ def audit_response_template(
             }
             for index, condition in enumerate(conditions)
         ],
+        "design_reflection_answers": {
+            question["id"]: ""
+            for question in probe["audit_key"][
+                "design_reflection_questions"
+            ]
+        },
         "acceptable_outcome_notes": [
             {
                 "outcome": outcome,
@@ -278,6 +284,7 @@ def validate_audit_response(
         "audit_receipt_sha256",
         "finding_contract",
         "presentations",
+        "design_reflection_answers",
         "acceptable_outcome_notes",
         "audit_provenance",
         "notes",
@@ -374,6 +381,27 @@ def validate_audit_response(
             raise LifecycleEvidenceError(
                 "audit presentation notes must be a string"
             )
+
+    reflection_questions = probe["audit_key"][
+        "design_reflection_questions"
+    ]
+    reflection_ids = {
+        item["id"]
+        for item in reflection_questions
+    }
+    reflection_answers = value["design_reflection_answers"]
+    if (
+        not isinstance(reflection_answers, dict)
+        or set(reflection_answers) != reflection_ids
+        or any(
+            not isinstance(answer, str)
+            or not answer.strip()
+            for answer in reflection_answers.values()
+        )
+    ):
+        raise LifecycleEvidenceError(
+            "design reflection answers are incomplete"
+        )
 
     outcomes = value["acceptable_outcome_notes"]
     expected_outcomes = probe["audit_key"][
@@ -584,6 +612,7 @@ def build_evidence_bundle(
             "closed without Decision is not resolution, Decision, or truth",
             "acceptable outcome notes are not a ranking or selected winner",
             "risk-indicated is a synthetic-review assessment, not actual product behavior observation",
+            "design reflection is post-reveal audit material, not pre-reveal human observation",
             "a single reviewer cannot separate presentation-order effects from condition effects",
             "this synthetic lifecycle comparison is not actual long-gap resumption",
             "this artifact does not establish Product Value",
@@ -800,6 +829,10 @@ def validate_evidence_bundle(
         )
         or not any(
             "synthetic-review assessment" in line
+            for line in stoplines
+        )
+        or not any(
+            "post-reveal audit material" in line
             for line in stoplines
         )
         or not any(
