@@ -594,6 +594,8 @@ def validate_result(result: dict[str, object]) -> None:
         timed_out = item["timedOut"]
         if not isinstance(timed_out, bool):
             raise ValueError("timedOut must be boolean")
+        if timed_out and exit_code != TIMEOUT_EXIT_CODE:
+            raise ValueError("timedOut execution must use the timeout exit code")
         timeout_seconds = item["timeoutSeconds"]
         if (
             isinstance(timeout_seconds, bool)
@@ -619,6 +621,11 @@ def validate_result(result: dict[str, object]) -> None:
                 )
             ):
                 raise ValueError("launchError must contain sanitized type/errno")
+            if timed_out or exit_code != LAUNCH_ERROR_EXIT_CODE:
+                raise ValueError(
+                    "launchError execution must use the launch-error exit code "
+                    "without timeout"
+                )
         if exit_code != 0:
             failed_count += 1
 
