@@ -478,6 +478,18 @@ def _validate_stream_evidence(value: object, field: str) -> None:
         raise ValueError(f"{field}.bytes must be a nonnegative integer")
 
 
+def _expected_check_contract() -> tuple[dict[str, object], ...]:
+    """Return the canonical portable execution contract for this runner."""
+    return tuple(
+        {
+            "name": check.name,
+            "command": _portable_command(check.command),
+            "cwdRelativeToRepo": _repo_relative_cwd(check.cwd),
+        }
+        for check in configured_checks()
+    )
+
+
 def validate_result(result: dict[str, object]) -> None:
     required = {
         "schema",
@@ -513,6 +525,11 @@ def validate_result(result: dict[str, object]) -> None:
     if result["selectedCount"] != len(selected):
         raise ValueError("selectedCount mismatch")
 
+    expected_checks = _expected_check_contract()
+    expected_names = [item["name"] for item in expected_checks]
+    if selected != expected_names:
+        raise ValueError("selected checks differ from the canonical runner contract")
+
     executed = result["executed"]
     if not isinstance(executed, list):
         raise ValueError("executed must be a list")
@@ -534,7 +551,7 @@ def validate_result(result: dict[str, object]) -> None:
         "stdout",
         "stderr",
     }
-    for item in executed:
+    for index, item in enumerate(executed):
         if not isinstance(item, dict):
             raise ValueError("executed entry must be an object")
         item_keys = set(item)
@@ -558,13 +575,27 @@ def validate_result(result: dict[str, object]) -> None:
                 raise ValueError(
                     "executed command must not contain host-escaping paths"
                 )
-        _validate_relative_path(item["cwdRelativeToRepo"], "cwdRelativeToRepo")
+        cwd_relative = _validate_relative_path(
+            item["cwdRelativeToRepo"],
+            "cwdRelativeToRepo",
+        )
+        expected_check = expected_checks[index]
+        if command != expected_check["command"]:
+            raise ValueError(
+                "executed command differs from the canonical runner contract"
+            )
+        if cwd_relative != expected_check["cwdRelativeToRepo"]:
+            raise ValueError(
+                "executed cwd differs from the canonical runner contract"
+            )
         exit_code = item["exitCode"]
         if isinstance(exit_code, bool) or not isinstance(exit_code, int):
             raise ValueError("exitCode must be an integer")
         timed_out = item["timedOut"]
         if not isinstance(timed_out, bool):
             raise ValueError("timedOut must be boolean")
+        if timed_out and exit_code != TIMEOUT_EXIT_CODE:
+            raise ValueError("timedOut execution must use the timeout exit code")
         timeout_seconds = item["timeoutSeconds"]
         if (
             isinstance(timeout_seconds, bool)
@@ -590,6 +621,11 @@ def validate_result(result: dict[str, object]) -> None:
                 )
             ):
                 raise ValueError("launchError must contain sanitized type/errno")
+            if timed_out or exit_code != LAUNCH_ERROR_EXIT_CODE:
+                raise ValueError(
+                    "launchError execution must use the launch-error exit code "
+                    "without timeout"
+                )
         if exit_code != 0:
             failed_count += 1
 
