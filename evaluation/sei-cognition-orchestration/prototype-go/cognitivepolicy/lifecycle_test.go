@@ -7,6 +7,46 @@ import (
 	"time"
 )
 
+func lifecycleDefinitions() []ProblemPolicy {
+	return []ProblemPolicy{
+		{
+			ProblemClass: "routine-summary",
+			StaticRoute:  "general-llm",
+			AllowedRoutes: []RouteOption{
+				{ID: "local-slm", EscalationLevel: 1},
+				{ID: "general-llm", EscalationLevel: 2},
+			},
+			RequiredSuccessRate:     0.80,
+			MinAssessedObservations: 5,
+		},
+	}
+}
+
+func lifecycleOutcomes(problemClass, route string, sufficient, insufficient int) []OutcomeRecord {
+	out := make([]OutcomeRecord, 0, sufficient+insufficient)
+	for i := 0; i < sufficient; i++ {
+		out = append(out, OutcomeRecord{
+			ProblemClass:          problemClass,
+			Route:                 route,
+			CognitiveOutcome:      CognitiveSufficient,
+			ExecutionOutcome:      ExecutionCompleted,
+			ProvenanceRef:         "fixture:lifecycle",
+			ObservedPolicyVersion: BaselineVersion,
+		})
+	}
+	for i := 0; i < insufficient; i++ {
+		out = append(out, OutcomeRecord{
+			ProblemClass:          problemClass,
+			Route:                 route,
+			CognitiveOutcome:      CognitiveInsufficient,
+			ExecutionOutcome:      ExecutionCompleted,
+			ProvenanceRef:         "fixture:lifecycle",
+			ObservedPolicyVersion: BaselineVersion,
+		})
+	}
+	return out
+}
+
 func lifecycleTimes() (time.Time, time.Time, time.Time) {
 	validFrom := time.Date(2026, 9, 20, 0, 0, 0, 0, time.UTC)
 	asOf := validFrom.Add(6 * time.Hour)
@@ -26,11 +66,11 @@ func lifecycleFor(snapshot Snapshot) PolicyLifecycle {
 
 func candidateForLifecycleTest(t *testing.T) (*Store, Snapshot) {
 	t.Helper()
-	store, err := NewStore(testDefinitions())
+	store, err := NewStore(lifecycleDefinitions())
 	if err != nil {
 		t.Fatal(err)
 	}
-	candidate, err := store.BuildCandidate(outcomes("routine-summary", "local-slm", 9, 1, 0, 0))
+	candidate, err := store.BuildCandidate(lifecycleOutcomes("routine-summary", "local-slm", 9, 1))
 	if err != nil {
 		t.Fatal(err)
 	}
