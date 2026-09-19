@@ -24,6 +24,7 @@ CLASS_ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 TOP_KEYS = {
     "schema",
     "status",
+    "validation_as_of",
     "allowed_policy_ids",
     "required_class_policy_map",
     "governance",
@@ -49,7 +50,9 @@ ENTRY_KEYS = {
     "state",
     "owner_ref",
     "provenance_ref",
+    "declared_at",
     "valid_from",
+    "review_due_at",
     "expires_at",
     "review",
     "supersedes_version",
@@ -61,6 +64,7 @@ REVIEW_KEYS = {
     "reviewer_ref",
     "reviewed_at",
     "change_review_ref",
+    "evidence_refs",
 }
 STOP_KEYS = {
     "semantic_correctness_claimed",
@@ -97,6 +101,10 @@ def validate_governance(doc: dict) -> list[str]:
         errors.append(f"schema must be {EXPECTED_SCHEMA}")
     if doc.get("status") != "evaluation-only":
         errors.append("status must remain evaluation-only")
+
+    validation_as_of = parse_utc_second(
+        doc.get("validation_as_of"), "validation_as_of", errors
+    )
 
     allowed = doc.get("allowed_policy_ids")
     if (
@@ -183,10 +191,37 @@ def validate_governance(doc: dict) -> list[str]:
             if not nonempty_canonical_ref(entry.get(ref_key)):
                 errors.append(f"{label}.{ref_key} must be a non-empty canonical ref")
 
-        valid_from = parse_utc_second(entry.get("valid_from"), f"{label}.valid_from", errors)
-        expires_at = parse_utc_second(entry.get("expires_at"), f"{label}.expires_at", errors)
-        if valid_from and expires_at and expires_at <= valid_from:
-            errors.append(f"{label}.expires_at must be later than valid_from")
+        declared_at = parse_utc_second(
+            entry.get("declared_at"), f"{label}.declared_at", errors
+        )
+        valid_from = parse_utc_second(
+            entry.get("valid_from"), f"{label}.valid_from", errors
+        )
+        review_due_at = parse_utc_second(
+            entry.get("review_due_at"), f"{label}.review_due_at", errors
+        )
+        expires_at = parse_utc_second(
+            entry.get("expires_at"), f"{label}.expires_at", errors
+        )
+        if declared_at and valid_from and declared_at > valid_from:
+            errors.append(f"{label}.declared_at must be <= valid_from")
+        if valid_from and review_due_at and review_due_at <= valid_from:
+            errors.append(f"{label}.review_due_at must be later than valid_from")
+        if review_due_at and expires_at and expires_at <= review_due_at:
+            errors.append(f"{label}.expires_at must be later than review_due_at")
+
+        if validation_as_of and expires_at:
+            if state == "candidate" and validation_as_of >= expires_at:
+                errors.append(f"{label}.candidate state cannot remain after expiry")
+            if state == "reviewed":
+                if valid_from and validation_as_of < valid_from:
+                    errors.append(f"{label}.reviewed state cannot resolve before valid_from")
+                if review_due_at and validation_as_of >= review_due_at:
+                    errors.append(f"{label}.reviewed state cannot remain after review_due_at")
+                if validation_as_of >= expires_at:
+                    errors.append(f"{label}.reviewed state cannot remain at/after expiry")
+            if state == "expired" and validation_as_of < expires_at:
+                errors.append(f"{label}.expired state requires validation_as_of >= expires_at")
 
         resolution_allowed = entry.get("resolution_allowed")
         if not isinstance(resolution_allowed, bool):
@@ -202,21 +237,37 @@ def validate_governance(doc: dict) -> list[str]:
                 for ref_key in ("reviewer_ref", "change_review_ref"):
                     if not nonempty_canonical_ref(review.get(ref_key)):
                         errors.append(f"{label}.review.{ref_key} must be a canonical ref")
+                evidence_refs = review.get("evidence_refs")
+                if (
+                    not isinstance(evidence_refs, list)
+                    or not evidence_refs
+                    or len(evidence_refs) != len(set(evidence_refs))
+                    or not all(nonempty_canonical_ref(ref) for ref in evidence_refs)
+                ):
+                    errors.append(
+                        f"{label}.review.evidence_refs must be a non-empty unique canonical ref list"
+                    )
                 reviewed_at = parse_utc_second(
                     review.get("reviewed_at"), f"{label}.review.reviewed_at", errors
                 )
                 if (
                     reviewed_at
-                    and valid_from
-                    and reviewed_at < valid_from
+                    and declared_at
+                    and reviewed_at < declared_at
                 ):
-                    errors.append(f"{label}.review.reviewed_at cannot predate valid_from")
+                    errors.append(f"{label}.review.reviewed_at cannot predate declared_at")
                 if (
                     reviewed_at
-                    and expires_at
-                    and reviewed_at >= expires_at
+                    and validation_as_of
+                    and reviewed_at > validation_as_of
                 ):
-                    errors.append(f"{label}.review.reviewed_at must predate expires_at")
+                    errors.append(f"{label}.review.reviewed_at cannot follow validation_as_of")
+                if (
+                    reviewed_at
+                    and review_due_at
+                    and reviewed_at >= review_due_at
+                ):
+                    errors.append(f"{label}.review.reviewed_at must predate review_due_at")
             if resolution_allowed is not True:
                 errors.append(f"{label}.reviewed state requires resolution_allowed=true")
         else:
@@ -236,6 +287,8 @@ def validate_governance(doc: dict) -> list[str]:
             ):
                 errors.append(f"{label}.{field} must be null or integer >= 1")
 
+        if version > 1 and supersedes is None:
+            errors.append(f"{label}.version > 1 requires supersedes_version")
         if isinstance(supersedes, int) and not isinstance(supersedes, bool):
             if supersedes >= version:
                 errors.append(f"{label}.supersedes_version must be lower than version")
