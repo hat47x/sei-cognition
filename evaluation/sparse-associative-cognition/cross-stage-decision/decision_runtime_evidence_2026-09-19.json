@@ -1,0 +1,227 @@
+{
+  "schema": "sei.sacs-cross-stage-decision-runtime-evidence/v1alpha1",
+  "date": "2026-09-19",
+  "issue": 491,
+  "branch": "topic/sacs-cross-stage-decision-runtime-evidence",
+  "tested_commit": "077a7b97db613758432b461ec366ff9e9a93f4c2",
+  "execution_model": "exact-git-blob-validated temporary reconstruction",
+  "environment": {
+    "python": "3.13.5",
+    "platform": "Linux 6.18.44 x86_64 GNU/Linux",
+    "github_actions_used": false,
+    "full_repository_checkout": false,
+    "source_transport": "GitHub connector + exact local reconstruction"
+  },
+  "source_binding": {
+    "status": "all-matched",
+    "files": [
+      {
+        "path": "cross-stage-decision/validate_decision.py",
+        "blob_sha": "6bfb481fd35a693a0bcd2257bea02dffc5760521"
+      },
+      {
+        "path": "cross-stage-decision/test_validate_decision.py",
+        "blob_sha": "b4b8d0d9976174ed179b4e62fc112b3717acab65"
+      },
+      {
+        "path": "cross-stage-decision/decision.json",
+        "blob_sha": "68a89beedbd8ac35b60754c6f418cd54417930fa"
+      },
+      {
+        "path": "cross-stage-interpretation/validate_interpretation.py",
+        "blob_sha": "ddd6ff900565efca346e5a881f65fd2d31018d76"
+      },
+      {
+        "path": "cross-stage-interpretation/test_validate_interpretation.py",
+        "blob_sha": "2c8ef1870e6bb5e83856f84167c8e892bfb068c3"
+      },
+      {
+        "path": "cross-stage-interpretation/interpretation.json",
+        "blob_sha": "21733a8057832decc65ee3af7ee45a7937f4618b"
+      },
+      {
+        "path": "cross-stage-result/validate_result.py",
+        "blob_sha": "990b7b836bd2e4ef6028ef39f2f52708efbb6f5f"
+      },
+      {
+        "path": "cross-stage-result/test_validate_result.py",
+        "blob_sha": "93de7b3bce1a14b8ac8187fb40fa3e454a414cc6"
+      },
+      {
+        "path": "cross-stage-result/result.json",
+        "blob_sha": "8de66bd58944f2503bc865d0504244545b6f8861"
+      },
+      {
+        "path": "cross-stage-run/validate_evaluation_run.py",
+        "blob_sha": "8d1ab85e90433ba30c63f93a5a4b3c864a4a748e"
+      },
+      {
+        "path": "cross-stage-run/test_validate_evaluation_run.py",
+        "blob_sha": "492fcc90a2abfc37d6cebea60c952736ca4009f7"
+      },
+      {
+        "path": "cross-stage-run/evaluation_run.json",
+        "blob_sha": "93e6aced7e2986b794397b684c27ce97a2593853"
+      },
+      {
+        "path": "cross-stage-freeze/freeze_manifests.py",
+        "blob_sha": "2cdef6363f38f5dbccf295754f12a2a19b476380"
+      },
+      {
+        "path": "cross-stage-freeze/test_freeze_manifests.py",
+        "blob_sha": "4f1181339b7af2449d7d0a8ac2156cfc4e6c25d0"
+      },
+      {
+        "path": "cross-stage-freeze/dataset_manifest.json",
+        "blob_sha": "33706fc9b9fb7b657ffa98f1d35cf8425534d934"
+      },
+      {
+        "path": "cross-stage-freeze/adjudication_manifest.json",
+        "blob_sha": "e00faf23a8829e1609548017bec89bb73760f459"
+      },
+      {
+        "path": "cross-stage-freeze/split_manifest.json",
+        "blob_sha": "27eee758d6c92535fbc5efda54873f721f10ead9"
+      },
+      {
+        "path": "cross-stage-freeze/b3_prior_manifest.json",
+        "blob_sha": "a9e44f7104b7ac9201ffd9a488f7e82d9434ecfe"
+      },
+      {
+        "path": "cross-stage-freeze/freeze_bundle.json",
+        "blob_sha": "76cd3380e75b7f80ed88c9080d2d24793240cb21"
+      },
+      {
+        "path": "validate_cross_stage_preregistration.py",
+        "blob_sha": "7951f8c5705d496ece77ff18da88537c5a32c091"
+      },
+      {
+        "path": "test_validate_cross_stage_preregistration.py",
+        "blob_sha": "90fb9968dd797fae4aa6318cd8f25295bacda1ac"
+      },
+      {
+        "path": "cross_stage_benchmark_preregistration.json",
+        "blob_sha": "10caecec73714275c9161a95786d6eca0d8172c2"
+      }
+    ],
+    "note": "All 22 reconstructed files were checked with git hash-object against the GitHub blob SHA before execution."
+  },
+  "executions": [
+    {
+      "command": "python3 cross-stage-decision/validate_decision.py",
+      "result": "PASS",
+      "exit_code": 0,
+      "observation": "current decision remains draft/not-assessed"
+    },
+    {
+      "command": "python3 cross-stage-interpretation/validate_interpretation.py",
+      "result": "PASS",
+      "exit_code": 0,
+      "observation": "current interpretation remains draft/empty"
+    },
+    {
+      "command": "python3 cross-stage-result/validate_result.py",
+      "result": "PASS",
+      "exit_code": 0,
+      "observation": "current result remains draft/empty"
+    },
+    {
+      "command": "python3 cross-stage-run/validate_evaluation_run.py",
+      "result": "PASS",
+      "exit_code": 0,
+      "observation": "current run remains draft/locked"
+    },
+    {
+      "command": "python3 cross-stage-freeze/freeze_manifests.py --validate-only",
+      "result": "PASS",
+      "exit_code": 0,
+      "observation": "current bundle remains draft/locked"
+    },
+    {
+      "command": "python3 validate_cross_stage_preregistration.py",
+      "result": "PASS",
+      "exit_code": 0,
+      "observation": "evaluation remains locked"
+    },
+    {
+      "command": "python3 -m unittest -q test_validate_decision.py",
+      "working_directory": "cross-stage-decision",
+      "result": "PASS",
+      "tests": 27,
+      "elapsed_seconds": 0.044
+    },
+    {
+      "command": "python3 -m unittest -q test_validate_interpretation.py",
+      "working_directory": "cross-stage-interpretation",
+      "result": "PASS",
+      "tests": 27,
+      "elapsed_seconds": 0.042
+    },
+    {
+      "command": "python3 -m unittest -q test_validate_result.py",
+      "working_directory": "cross-stage-result",
+      "result": "PASS",
+      "tests": 24,
+      "elapsed_seconds": 0.028
+    },
+    {
+      "command": "python3 -m unittest -q test_validate_evaluation_run.py",
+      "working_directory": "cross-stage-run",
+      "result": "PASS",
+      "tests": 20,
+      "elapsed_seconds": 0.02
+    },
+    {
+      "command": "python3 -m unittest -q test_freeze_manifests.py",
+      "working_directory": "cross-stage-freeze",
+      "result": "PASS",
+      "tests": 18,
+      "elapsed_seconds": 0.007
+    },
+    {
+      "command": "python3 -m unittest -q test_validate_cross_stage_preregistration.py",
+      "working_directory": ".",
+      "result": "PASS",
+      "tests": 38,
+      "elapsed_seconds": 0.007
+    }
+  ],
+  "integration_observations": {
+    "retain_current_stage_synthetic_decision": "PASS",
+    "defer_for_evidence_synthetic_decision": "PASS",
+    "request_b5_review_synthetic_decision_without_gate_open": "PASS",
+    "current_draft_upstream_rejects_decided_artifact": "PASS",
+    "interpretation_digest_mismatch_rejected": "PASS",
+    "source_identity_mismatch_rejected": "PASS",
+    "authority_provenance_missing_rejected": "PASS",
+    "upstream_limitation_loss_rejected": "PASS",
+    "post_decision_mutation_rejected": "PASS",
+    "semantic_truth_winner_b5_production_flags_remain_false": "PASS"
+  },
+  "summary": {
+    "validator_commands_passed": 6,
+    "decision_tests_passed": 27,
+    "upstream_regression_tests_passed": 127,
+    "total_tests_passed": 154,
+    "total_tests_failed": 0,
+    "current_decision_state": "draft/not-assessed",
+    "current_interpretation_state": "draft/empty",
+    "current_result_state": "draft/empty",
+    "current_run_state": "draft/locked",
+    "current_freeze_bundle_state": "draft/locked",
+    "current_preregistration_state": "locked",
+    "current_b5_gate_state": "closed",
+    "production_default_changed": false
+  },
+  "stop_lines": [
+    "runtime PASS != human-adjudicated benchmark decision",
+    "synthetic decided artifact != real decision authority",
+    "decision record != semantic truth",
+    "decision scope variant != variant winner",
+    "request-b5-review != B5 gate open",
+    "runtime Evidence != production adoption",
+    "current checked-in decision remains draft / not-assessed",
+    "current B5 gate remains closed",
+    "production default remains unchanged"
+  ]
+}
