@@ -214,6 +214,153 @@ class SparseAssociativeCognitionResearchPlanTests(unittest.TestCase):
                     f"interpretation_artifact.{key} must remain false",
                 )
 
+    def test_cross_stage_result_runtime_metadata_is_pinned(self) -> None:
+        for key, value in (
+            (
+                "runtime_evidence_ref",
+                "cross-stage-result/result_runtime_evidence_2026-09-18.json",
+            ),
+            (
+                "runtime_validation_state",
+                "passed-current-draft-and-synthetic-regression",
+            ),
+        ):
+            with self.subTest(key=key):
+                plan = copy.deepcopy(self.plan)
+                plan["cross_stage_evaluation_gate"]["result_artifact"][key] = "stale"
+                self.assert_has_error(plan, f"result_artifact.{key} must remain")
+
+    def test_cross_stage_result_runtime_test_floors_are_retained(self) -> None:
+        floors = {
+            "runtime_tests_passed": 24,
+            "integration_tests_passed": 65,
+            "total_tests_passed": 89,
+        }
+        for key, minimum in floors.items():
+            with self.subTest(key=key):
+                plan = copy.deepcopy(self.plan)
+                plan["cross_stage_evaluation_gate"]["result_artifact"][key] = minimum - 1
+                self.assert_has_error(
+                    plan,
+                    f"result_artifact.{key} must be >= {minimum}",
+                )
+        plan = copy.deepcopy(self.plan)
+        plan["cross_stage_evaluation_gate"]["result_artifact"]["total_tests_passed"] = True
+        self.assert_has_error(plan, "result_artifact.total_tests_passed must be >= 89")
+
+    def test_cross_stage_interpretation_runtime_metadata_is_pinned(self) -> None:
+        mutations = (
+            ("runtime_evidence_ref", "stale"),
+            ("upstream_integration_runtime_evidence", False),
+            ("runtime_validation_state", "stale"),
+        )
+        for key, value in mutations:
+            with self.subTest(key=key):
+                plan = copy.deepcopy(self.plan)
+                plan["cross_stage_evaluation_gate"]["interpretation_artifact"][key] = value
+                self.assert_has_error(plan, f"interpretation_artifact.{key} must remain")
+
+    def test_cross_stage_interpretation_runtime_test_floors_are_retained(self) -> None:
+        floors = {
+            "runtime_tests_passed": 27,
+            "upstream_regression_tests_passed": 94,
+            "total_tests_passed": 121,
+        }
+        for key, minimum in floors.items():
+            with self.subTest(key=key):
+                plan = copy.deepcopy(self.plan)
+                plan["cross_stage_evaluation_gate"]["interpretation_artifact"][key] = minimum - 1
+                self.assert_has_error(
+                    plan,
+                    f"interpretation_artifact.{key} must be >= {minimum}",
+                )
+        plan = copy.deepcopy(self.plan)
+        plan["cross_stage_evaluation_gate"]["interpretation_artifact"][
+            "total_tests_passed"
+        ] = True
+        self.assert_has_error(
+            plan,
+            "interpretation_artifact.total_tests_passed must be >= 121",
+        )
+
+    def test_cross_stage_execution_attempt_draft_is_registered(self) -> None:
+        artifact = self.plan["cross_stage_evaluation_gate"]["execution_attempt"]
+        self.assertEqual(artifact["state"], "draft")
+        self.assertFalse(artifact["current_attempt_completed"])
+        self.assertFalse(artifact["benchmark_result_generated"])
+        self.assertTrue(artifact["upstream_integration_runtime_evidence"])
+
+    def test_cross_stage_execution_attempt_state_flag_must_match(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["cross_stage_evaluation_gate"]["execution_attempt"]["state"] = "completed"
+        self.assert_has_error(
+            plan,
+            "execution_attempt.current_attempt_completed must match state",
+        )
+
+    def test_cross_stage_execution_attempt_stop_lines_remain_closed(self) -> None:
+        for key in (
+            "benchmark_result_generated",
+            "b5_entry_gate_changed",
+            "production_default_changed",
+        ):
+            with self.subTest(key=key):
+                plan = copy.deepcopy(self.plan)
+                plan["cross_stage_evaluation_gate"]["execution_attempt"][key] = True
+                self.assert_has_error(plan, f"execution_attempt.{key} must remain false")
+
+    def test_cross_stage_execution_attempt_runtime_metadata_is_pinned(self) -> None:
+        mutations = (
+            ("runtime_evidence_ref", "stale"),
+            ("upstream_integration_runtime_evidence", False),
+            ("runtime_validation_state", "stale"),
+        )
+        for key, value in mutations:
+            with self.subTest(key=key):
+                plan = copy.deepcopy(self.plan)
+                plan["cross_stage_evaluation_gate"]["execution_attempt"][key] = value
+                self.assert_has_error(plan, f"execution_attempt.{key} must remain")
+
+    def test_cross_stage_execution_attempt_runtime_test_floors_are_retained(self) -> None:
+        floors = {
+            "focused_tests_passed": 20,
+            "integration_tests_passed": 6,
+            "upstream_regression_tests_passed": 70,
+            "total_tests_passed": 96,
+        }
+        for key, minimum in floors.items():
+            with self.subTest(key=key):
+                plan = copy.deepcopy(self.plan)
+                plan["cross_stage_evaluation_gate"]["execution_attempt"][key] = minimum - 1
+                self.assert_has_error(
+                    plan,
+                    f"execution_attempt.{key} must be >= {minimum}",
+                )
+        plan = copy.deepcopy(self.plan)
+        plan["cross_stage_evaluation_gate"]["execution_attempt"][
+            "total_tests_passed"
+        ] = True
+        self.assert_has_error(
+            plan,
+            "execution_attempt.total_tests_passed must be >= 96",
+        )
+
+    def test_remaining_cross_stage_runtime_evidence_refs_must_remain_supported(self) -> None:
+        refs = (
+            "cross-stage-result/result_runtime_evidence_2026-09-18.json",
+            "cross-stage-interpretation/interpretation_runtime_evidence_2026-09-19.json",
+            "cross-stage-attempt/execution_attempt_runtime_evidence_2026-09-19.json",
+        )
+        for ref in refs:
+            with self.subTest(ref=ref):
+                plan = copy.deepcopy(self.plan)
+                plan["current_evidence"]["supporting_evidence_files"] = [
+                    item
+                    for item in plan["current_evidence"]["supporting_evidence_files"]
+                    if item != ref
+                ]
+                self.assert_has_error(plan, f"must retain {ref}")
+
     def test_cross_stage_decision_artifact_draft_is_registered(self) -> None:
         artifact = self.plan["cross_stage_evaluation_gate"]["decision_artifact"]
         self.assertEqual(artifact["state"], "draft")
