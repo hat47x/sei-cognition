@@ -297,6 +297,33 @@ local runtime choice
 
 単一scoreへ潰さない。
 
+### 10.1 Synthetic model-call avoidance snapshot
+
+2026-09-19時点の7件の`ReferenceFixtures`について、current routing contractをsource inspectionし、model-call planを集計するevaluation-only helperを `prototype-go/modelprobe/call_avoidance.go` に追加した。
+
+current fixture distribution:
+
+- local SLM route: 4
+- current external evidence required: 1
+- high-novelty evidence expansion: 1
+- deterministic symbolic: 1
+
+raw / workspace comparison baselineは7件ともmodel invocationを計画する一方、staged routeは4件だけをlocal modelへ送る。このsynthetic fixture集合に限れば、raw baseline比で3/7、約42.9%のmodel invocationをrouting段階で回避する計画になる。
+
+ただしこれは実model telemetryではない。aggregation logicのisolated testは5/5 PASSしたが、execution environmentのGitHub名前解決制約によりcurrent repository dependency全体でのintegration runtimeは本sliceでは未観測である。
+
+machine-readable Evidence:
+
+`hybrid_model_call_avoidance_evidence_2026-09-19.json`
+
+```text
+synthetic routing call avoidance
+  != production LLM call reduction
+  != task success
+  != semantic correctness
+  != lower total system cost
+```
+
 ## 11. Falsification
 
 次ならhybrid Product Hypothesisを縮小する。
