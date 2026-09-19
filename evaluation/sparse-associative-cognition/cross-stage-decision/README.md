@@ -139,3 +139,25 @@ synthetic decided path != human-adjudicated benchmark decision
 ```
 
 実human-adjudicated benchmark interpretationが存在するまで、checked-in `decision.json` をdecidedへ変更しない。
+
+
+## 10. Evidence
+
+machine-readable contract Evidence:
+
+`decision_contract_evidence_2026-09-19.json`
+
+GitHub source inspectionで次の回帰定義を確認した。
+
+- decision: 27 tests
+- preregistration: 38 tests
+- research plan: 39 tests
+- total: 104 tests defined
+
+今回のcontract更新では実行環境からGitHub checkoutできなかったため、runtime test PASSは主張しない。
+
+```text
+defined tests != executed tests
+decision contract != B5 gate open
+decision contract != production adoption
+```
