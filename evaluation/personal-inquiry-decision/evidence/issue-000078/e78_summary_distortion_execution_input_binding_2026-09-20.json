@@ -1,0 +1,82 @@
+{
+  "schema": "sei.inquiry-continuity-summary-distortion-execution-input-binding/v1",
+  "status": "evaluation-only",
+  "date": "2026-09-20",
+  "issue": "ISSUE-000078",
+  "experiment": "E78.3",
+  "source_ref": {
+    "branch": "develop/v0.2.0",
+    "commit": "e785a7ad0e7070fafe9d187f458ce9cca587a7f6"
+  },
+  "purpose": "Bind the exact Git blobs required by the existing canonical E78.3 local-check runner so connector-to-local reconstruction can fail closed before any runtime result is counted.",
+  "mechanics": [
+    {
+      "role": "probe-set",
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe_v1.json",
+      "git_blob_sha1": "9cee9cbccaed96b1a4048dde2763c1ca5c297958"
+    },
+    {
+      "role": "probe",
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe.py",
+      "git_blob_sha1": "b3f9b5dd00f88653c8165f0c31826603dd9b5d0a"
+    },
+    {
+      "role": "evidence-tool",
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_evidence.py",
+      "git_blob_sha1": "20dfc08b7ca9cf4fb2baeee27958f244ca7a642a"
+    },
+    {
+      "role": "probe-tests",
+      "path": "evaluation/personal-inquiry-decision/test_inquiry_continuity_summary_distortion_probe.py",
+      "git_blob_sha1": "c52167e5c79a898d8b85abab845870a573106a34"
+    },
+    {
+      "role": "evidence-tests",
+      "path": "evaluation/personal-inquiry-decision/test_inquiry_continuity_summary_distortion_evidence.py",
+      "git_blob_sha1": "5efb23aeb7646a180bfde39133639e149c97ce84"
+    },
+    {
+      "role": "local-runner",
+      "path": "evaluation/personal-inquiry-decision/run_inquiry_continuity_summary_distortion_checks.py",
+      "git_blob_sha1": "b344056911ef7fed25f5d0ac34c07dc8f32b30c7"
+    },
+    {
+      "role": "local-runner-tests",
+      "path": "evaluation/personal-inquiry-decision/test_run_inquiry_continuity_summary_distortion_checks.py",
+      "git_blob_sha1": "2c88693e00e780b9e4e04c82d9be00937d17549b"
+    }
+  ],
+  "source_fixtures": [
+    {
+      "fixture_id": "e78-counterfactual-001-nightly-batch",
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_001.json",
+      "git_blob_sha1": "52335589c72ab3548a29053a0acd4c287fbee85d"
+    },
+    {
+      "fixture_id": "e78-counterfactual-002-support-response",
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_002.json",
+      "git_blob_sha1": "0c3f7caac753e1642e3ff3e8e40425bd7b0e0976"
+    },
+    {
+      "fixture_id": "e78-counterfactual-003-import-duplicates",
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_003.json",
+      "git_blob_sha1": "645519e1a502e844ca640ab0d61dfa438a46e8d2"
+    }
+  ],
+  "execution_preconditions": [
+    "Materialize all ten listed files from one bound source commit.",
+    "Compute Git blob SHA-1 for every materialized file and require exact equality before executing the runner.",
+    "Discard reconstruction attempts with any blob mismatch; do not classify them as PASS or FAIL of the canonical local gate.",
+    "Use the existing run_inquiry_continuity_summary_distortion_checks.py as the sole aggregate local-check entry point.",
+    "Persist result schema v2 only after its own validate_result check succeeds."
+  ],
+  "current_observation": {
+    "all_bound_blobs_match_develop_head": true,
+    "runtime_gate_executed_from_this_binding": false,
+    "human_review_observed": false,
+    "actual_long_gap_resumption_established": false,
+    "product_value_established": false,
+    "stable_requirement_authorized": false
+  },
+  "stop_line": "exact source binding != runner PASS != human review result != actual long-gap Evidence != Product Value decision != Stable Requirement authorization"
+}
