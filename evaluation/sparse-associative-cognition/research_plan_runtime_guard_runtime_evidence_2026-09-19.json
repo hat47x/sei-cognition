@@ -1,0 +1,81 @@
+{
+  "schema": "sei.sacs-research-plan-runtime-guard-runtime-evidence/v1alpha1",
+  "date": "2026-09-19",
+  "issue": 500,
+  "branch": "topic/sacs-research-plan-runtime-guard-evidence",
+  "base_branch": "develop/v0.2.0",
+  "purpose": "Record actual Python execution of the current research-plan runtime guard after the previous GitHub Actions attempts never started a runner.",
+  "tested_source_commit": "3b1482a319afaf4210fc39e459b5ed1078f0dcea",
+  "source_reconstruction": {
+    "method": "Reconstruct the GitHub canonical sources in a temporary local directory and verify each reconstructed file with git hash-object against the GitHub blob SHA. The current research_plan.json parent delta was applied from the GitHub commit patch and then hash-verified before execution.",
+    "files_verified": 3,
+    "sha_mismatches": 0,
+    "bindings": [
+      {
+        "path": "evaluation/sparse-associative-cognition/validate_research_plan.py",
+        "blob_sha": "a4d7c7e2d6aff882ef7cc636f3f9d7998cd7d1bc"
+      },
+      {
+        "path": "evaluation/sparse-associative-cognition/test_validate_research_plan.py",
+        "blob_sha": "4bd9ac0ed7d45f1dfac150499fc809c10b2fef56"
+      },
+      {
+        "path": "evaluation/sparse-associative-cognition/research_plan.json",
+        "blob_sha": "d66aaed9331a61d3b2c10aa640f2c9ed5732bc8a"
+      }
+    ]
+  },
+  "environment": {
+    "python": "3.13.5",
+    "github_actions_used_for_successful_execution": false
+  },
+  "executions": [
+    {
+      "command": "python3 validate_research_plan.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "observation": "Sparse associative cognition research plan validated"
+    },
+    {
+      "command": "python3 -m unittest -v test_validate_research_plan.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "tests_passed": 56,
+      "failures": 0,
+      "elapsed_seconds": 0.063
+    }
+  ],
+  "required_checks_observed": {
+    "current_research_plan_validator_passed": true,
+    "all_current_research_plan_tests_passed": true,
+    "decision_runtime_metadata_exact_state_and_ref_guard": true,
+    "test_count_floor_degradation_rejection": true,
+    "bool_as_int_rejection": true,
+    "supporting_evidence_ref_removal_rejection": true,
+    "result_runtime_metadata_guard": true,
+    "interpretation_runtime_metadata_guard": true,
+    "execution_attempt_runtime_metadata_guard": true
+  },
+  "prior_runner_not_started_evidence": {
+    "ref": "research_plan_runtime_guard_execution_evidence_2026-09-19.json",
+    "retained_as_history": true,
+    "note": "The prior GitHub Actions runs never started a runner and therefore remain non-PASS historical execution-attempt Evidence. They are not used as the basis for the 56-test PASS claim."
+  },
+  "current_state": {
+    "runtime_guard_actual_execution_complete": true,
+    "tests_defined_and_executed": 56,
+    "tests_passed": 56,
+    "tests_failed": 0,
+    "human_adjudicated_benchmark_executed": false,
+    "benchmark_result_generated": false,
+    "b5_entry_gate_changed": false,
+    "production_default_changed": false
+  },
+  "stop_lines": [
+    "research-plan guard PASS != human benchmark decision",
+    "plan validation != B5 gate open",
+    "plan validation != production adoption",
+    "guard runtime Evidence != semantic truth",
+    "56 synthetic/contract tests PASS != human-adjudicated benchmark result"
+  ]
+}
