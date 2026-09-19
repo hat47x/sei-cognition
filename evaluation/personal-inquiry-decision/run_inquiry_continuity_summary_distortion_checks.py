@@ -648,6 +648,12 @@ def validate_result(result: dict[str, object]) -> None:
     expected_stopped_early = not complete
     if result["stoppedEarly"] != expected_stopped_early:
         raise ValueError("stoppedEarly is inconsistent with execution completeness")
+    if not complete:
+        prefix_exit_codes = [item["exitCode"] for item in executed]
+        if any(code != 0 for code in prefix_exit_codes[:-1]):
+            raise ValueError("stoppedEarly run must stop at the first failed check")
+        if prefix_exit_codes[-1] == 0:
+            raise ValueError("stoppedEarly run must end with a failed check")
 
     snapshot = result["contractSnapshot"]
     if not isinstance(snapshot, dict):
