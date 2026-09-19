@@ -483,6 +483,29 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_result(tampered)
 
+    def test_validate_result_rejects_impossible_stopped_early_prefix(self):
+        result = self.mechanics_result()
+
+        tampered = copy.deepcopy(result)
+        tampered["executed"] = tampered["executed"][:2]
+        tampered["executedCount"] = 2
+        tampered["failedCount"] = 0
+        tampered["result"] = "failed"
+        tampered["stoppedEarly"] = True
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+        tampered = copy.deepcopy(result)
+        tampered["executed"] = tampered["executed"][:3]
+        tampered["executedCount"] = 3
+        tampered["executed"][0]["exitCode"] = 1
+        tampered["executed"][2]["exitCode"] = 1
+        tampered["failedCount"] = 2
+        tampered["result"] = "failed"
+        tampered["stoppedEarly"] = True
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
     def test_validate_result_rejects_launch_error_with_process_output(self):
         def runner(command, *, cwd, env, timeout):
             raise FileNotFoundError(2, "No such file or directory", "/private/tool")
