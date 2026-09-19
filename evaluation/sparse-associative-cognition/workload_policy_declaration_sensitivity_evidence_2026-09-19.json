@@ -1,0 +1,365 @@
+{
+  "schema": "sei.sacs-workload-policy-declaration-sensitivity-evidence/v1alpha1",
+  "date": "2026-09-19",
+  "status": "limited-synthetic-counterfactual-evidence",
+  "subject": "SAC-B6h caller-owned workload-class declaration sensitivity",
+  "issue": 517,
+  "branch": "topic/sac-b6g-workload-policy-envelope",
+  "intent": "Evaluate counterfactual class-declaration error across the full B6f response surface without inferring classes, assigning real-world probabilities, or activating policies automatically.",
+  "inputBindings": {
+    "responseSurface": {
+      "path": "residual_response_surface_evidence_2026-09-19.json",
+      "blobSha": "1f9ed2ede0c010ccee5a8b33599102a63539def1"
+    },
+    "workloadEnvelope": {
+      "path": "workload_policy_envelope_evidence_2026-09-19.json",
+      "blobSha": "f6f1cfa0d0b7c76264a4b340289abd6832871588"
+    },
+    "envelopeId": "b6g-grid-eval-v1",
+    "mapping": [
+      {
+        "workloadClass": "general",
+        "policy": "cap128"
+      },
+      {
+        "workloadClass": "structure-preserving",
+        "policy": "baseline"
+      }
+    ]
+  },
+  "counterfactualDefinition": {
+    "correctDeclaration": "Use the B6g fixture metadata declaration: structuredPerSubchannel 1/2/4 -> general; 8 -> structure-preserving.",
+    "flippedDeclaration": "Replace general with structure-preserving and vice versa; resolve through the same fixed B6g envelope.",
+    "penalty": "correct-declaration margin minus flipped-declaration margin",
+    "regret": "cell-best margin minus selected-policy margin",
+    "probabilitiesAssigned": false,
+    "automaticInferenceUsed": false
+  },
+  "summary": {
+    "overall": {
+      "cells": 16,
+      "worsenedCells": 13,
+      "tieCells": 3,
+      "improvedCells": 0,
+      "meanMisdeclarationPenalty": 0.24405616062499996,
+      "maxMisdeclarationPenalty": 0.44777957,
+      "meanFlippedRegret": 0.25431006125,
+      "maxFlippedRegret": 0.45755205
+    },
+    "general": {
+      "cells": 12,
+      "worsenedCells": 9,
+      "tieCells": 3,
+      "improvedCells": 0,
+      "meanMisdeclarationPenalty": 0.26476511916666673,
+      "maxMisdeclarationPenalty": 0.44777957,
+      "meanFlippedRegret": 0.27843698666666666,
+      "maxFlippedRegret": 0.45755205
+    },
+    "structurePreserving": {
+      "cells": 4,
+      "worsenedCells": 4,
+      "tieCells": 0,
+      "improvedCells": 0,
+      "meanMisdeclarationPenalty": 0.18192928499999994,
+      "maxMisdeclarationPenalty": 0.20799836999999993,
+      "meanFlippedRegret": 0.18192928499999994,
+      "maxFlippedRegret": 0.20799836999999993
+    }
+  },
+  "cells": [
+    {
+      "textRunes": 5,
+      "structuredPerSubchannel": 1,
+      "ratio": 1.1666666667,
+      "declaredClass": "general",
+      "correctPolicy": "cap128",
+      "flippedClass": "structure-preserving",
+      "flippedPolicy": "baseline",
+      "cellBestMargin": -0.0714286,
+      "correctMargin": -0.0714286,
+      "flippedMargin": -0.0714286,
+      "correctRegret": 0,
+      "flippedRegret": 0,
+      "misdeclarationPenalty": 0
+    },
+    {
+      "textRunes": 5,
+      "structuredPerSubchannel": 2,
+      "ratio": 0.7,
+      "declaredClass": "general",
+      "correctPolicy": "cap128",
+      "flippedClass": "structure-preserving",
+      "flippedPolicy": "baseline",
+      "cellBestMargin": 0.16666666,
+      "correctMargin": 0.16666666,
+      "flippedMargin": 0.16666666,
+      "correctRegret": 0,
+      "flippedRegret": 0,
+      "misdeclarationPenalty": 0
+    },
+    {
+      "textRunes": 5,
+      "structuredPerSubchannel": 4,
+      "ratio": 0.3888888889,
+      "declaredClass": "general",
+      "correctPolicy": "cap128",
+      "flippedClass": "structure-preserving",
+      "flippedPolicy": "baseline",
+      "cellBestMargin": 0.41826922,
+      "correctMargin": 0.41826922,
+      "flippedMargin": 0.41826922,
+      "correctRegret": 0,
+      "flippedRegret": 0,
+      "misdeclarationPenalty": 0
+    },
+    {
+      "textRunes": 5,
+      "structuredPerSubchannel": 8,
+      "ratio": 0.2058823529,
+      "declaredClass": "structure-preserving",
+      "correctPolicy": "baseline",
+      "flippedClass": "general",
+      "flippedPolicy": "cap128",
+      "cellBestMargin": 0.52734375,
+      "correctMargin": 0.52734375,
+      "flippedMargin": 0.41879618,
+      "correctRegret": 0,
+      "flippedRegret": 0.10854756999999998,
+      "misdeclarationPenalty": 0.10854756999999998
+    },
+    {
+      "textRunes": 17,
+      "structuredPerSubchannel": 1,
+      "ratio": 5.1666666667,
+      "declaredClass": "general",
+      "correctPolicy": "cap128",
+      "flippedClass": "structure-preserving",
+      "flippedPolicy": "baseline",
+      "cellBestMargin": -0.13333336,
+      "correctMargin": -0.1875,
+      "flippedMargin": -0.5859375,
+      "correctRegret": 0.05416663999999999,
+      "flippedRegret": 0.45260414,
+      "misdeclarationPenalty": 0.3984375
+    },
+    {
+      "textRunes": 17,
+      "structuredPerSubchannel": 2,
+      "ratio": 3.1,
+      "declaredClass": "general",
+      "correctPolicy": "cap128",
+      "flippedClass": "structure-preserving",
+      "flippedPolicy": "baseline",
+      "cellBestMargin": 0.10526314,
+      "correctMargin": 0.10526314,
+      "flippedMargin": -0.33984375,
+      "correctRegret": 0,
+      "flippedRegret": 0.44510689000000003,
+      "misdeclarationPenalty": 0.44510689000000003
+    },
+    {
+      "textRunes": 17,
+      "structuredPerSubchannel": 4,
+      "ratio": 1.7222222222,
+      "declaredClass": "general",
+      "correctPolicy": "cap128",
+      "flippedClass": "structure-preserving",
+      "flippedPolicy": "baseline",
+      "cellBestMargin": 0.36574075,
+      "correctMargin": 0.36574075,
+      "flippedMargin": 0.15625,
+      "correctRegret": 0,
+      "flippedRegret": 0.20949075,
+      "misdeclarationPenalty": 0.20949075
+    },
+    {
+      "textRunes": 17,
+      "structuredPerSubchannel": 8,
+      "ratio": 0.9117647059,
+      "declaredClass": "structure-preserving",
+      "correctPolicy": "baseline",
+      "flippedClass": "general",
+      "flippedPolicy": "cap128",
+      "cellBestMargin": 0.57529426,
+      "correctMargin": 0.57529426,
+      "flippedMargin": 0.37038627,
+      "correctRegret": 0,
+      "flippedRegret": 0.20490798999999993,
+      "misdeclarationPenalty": 0.20490798999999993
+    },
+    {
+      "textRunes": 33,
+      "structuredPerSubchannel": 1,
+      "ratio": 10.5,
+      "declaredClass": "general",
+      "correctPolicy": "cap128",
+      "flippedClass": "structure-preserving",
+      "flippedPolicy": "baseline",
+      "cellBestMargin": -0.12500003,
+      "correctMargin": -0.1796875,
+      "flippedMargin": -0.578125,
+      "correctRegret": 0.05468746999999999,
+      "flippedRegret": 0.45312496999999996,
+      "misdeclarationPenalty": 0.3984375
+    },
+    {
+      "textRunes": 33,
+      "structuredPerSubchannel": 2,
+      "ratio": 6.3,
+      "declaredClass": "general",
+      "correctPolicy": "cap128",
+      "flippedClass": "structure-preserving",
+      "flippedPolicy": "baseline",
+      "cellBestMargin": 0.11184207,
+      "correctMargin": 0.11184207,
+      "flippedMargin": -0.3359375,
+      "correctRegret": 0,
+      "flippedRegret": 0.44777957,
+      "misdeclarationPenalty": 0.44777957
+    },
+    {
+      "textRunes": 33,
+      "structuredPerSubchannel": 4,
+      "ratio": 3.5,
+      "declaredClass": "general",
+      "correctPolicy": "cap128",
+      "flippedClass": "structure-preserving",
+      "flippedPolicy": "baseline",
+      "cellBestMargin": 0.37123069,
+      "correctMargin": 0.37123069,
+      "flippedMargin": 0.15234375,
+      "correctRegret": 0,
+      "flippedRegret": 0.21888693999999997,
+      "misdeclarationPenalty": 0.21888693999999997
+    },
+    {
+      "textRunes": 33,
+      "structuredPerSubchannel": 8,
+      "ratio": 1.8529411765,
+      "declaredClass": "structure-preserving",
+      "correctPolicy": "baseline",
+      "flippedClass": "general",
+      "flippedPolicy": "cap128",
+      "cellBestMargin": 0.57420778,
+      "correctMargin": 0.57420778,
+      "flippedMargin": 0.36794457,
+      "correctRegret": 0,
+      "flippedRegret": 0.20626320999999992,
+      "misdeclarationPenalty": 0.20626320999999992
+    },
+    {
+      "textRunes": 55,
+      "structuredPerSubchannel": 1,
+      "ratio": 17.8333333333,
+      "declaredClass": "general",
+      "correctPolicy": "cap128",
+      "flippedClass": "structure-preserving",
+      "flippedPolicy": "baseline",
+      "cellBestMargin": -0.1166667,
+      "correctMargin": -0.171875,
+      "flippedMargin": -0.57421875,
+      "correctRegret": 0.0552083,
+      "flippedRegret": 0.45755205,
+      "misdeclarationPenalty": 0.40234375
+    },
+    {
+      "textRunes": 55,
+      "structuredPerSubchannel": 2,
+      "ratio": 10.7,
+      "declaredClass": "general",
+      "correctPolicy": "cap128",
+      "flippedClass": "structure-preserving",
+      "flippedPolicy": "baseline",
+      "cellBestMargin": 0.11842105,
+      "correctMargin": 0.11842105,
+      "flippedMargin": -0.328125,
+      "correctRegret": 0,
+      "flippedRegret": 0.44654605,
+      "misdeclarationPenalty": 0.44654605
+    },
+    {
+      "textRunes": 55,
+      "structuredPerSubchannel": 4,
+      "ratio": 5.9444444444,
+      "declaredClass": "general",
+      "correctPolicy": "cap128",
+      "flippedClass": "structure-preserving",
+      "flippedPolicy": "baseline",
+      "cellBestMargin": 0.37421498,
+      "correctMargin": 0.37421498,
+      "flippedMargin": 0.1640625,
+      "correctRegret": 0,
+      "flippedRegret": 0.21015247999999997,
+      "misdeclarationPenalty": 0.21015247999999997
+    },
+    {
+      "textRunes": 55,
+      "structuredPerSubchannel": 8,
+      "ratio": 3.1470588235,
+      "declaredClass": "structure-preserving",
+      "correctPolicy": "baseline",
+      "flippedClass": "general",
+      "flippedPolicy": "cap128",
+      "cellBestMargin": 0.57644296,
+      "correctMargin": 0.57644296,
+      "flippedMargin": 0.36844459,
+      "correctRegret": 0,
+      "flippedRegret": 0.20799836999999993,
+      "misdeclarationPenalty": 0.20799836999999993
+    }
+  ],
+  "independentCrossCheck": {
+    "toolchain": "Python 3.13.5",
+    "method": "Recomputed all 16 counterfactual rows independently from the checked-in margin table.",
+    "observed": {
+      "meanMisdeclarationPenalty": 0.244056160625,
+      "maxMisdeclarationPenalty": 0.44777957,
+      "worsenedCells": 13,
+      "tieCells": 3,
+      "improvedCells": 0,
+      "meanFlippedRegret": 0.25431006125,
+      "maxFlippedRegret": 0.45755205
+    },
+    "matchesPrimaryArithmetic": true
+  },
+  "findings": [
+    "Flipping the caller-owned workload class worsens the synthetic margin in 13/16 cells and is neutral in the three t=5 general cells; it improves no cell.",
+    "Across all 16 cells the mean declaration penalty is about 0.2441 and the maximum is about 0.4478.",
+    "The general-class region is more declaration-sensitive on this grid (mean penalty about 0.2648) than the structure-preserving region (about 0.1819), but these are synthetic geometry observations rather than real workload risk estimates.",
+    "The three neutral cells show that a wrong declaration does not necessarily change output when baseline and cap128 are tied; declaration correctness cannot be inferred from the absence of an observed margin change.",
+    "Because misdeclaration can materially degrade margin while provenance remains intact, provenance is an auditability mechanism rather than correctness proof."
+  ],
+  "governanceImplications": [
+    "retain exact caller ownership and provenance",
+    "make class review and change explicit rather than inferred from item features",
+    "preserve fail-closed behavior for unknown classes",
+    "do not interpret a valid declaration record as proof that the class is semantically correct",
+    "treat future class expiry/versioning/review mechanics as governance controls, not automatic semantic classifiers"
+  ],
+  "implementationState": {
+    "productionCodeChanged": false,
+    "automaticClassInferenceImplemented": false,
+    "probabilisticClassifierImplemented": false,
+    "automaticPolicyActivationImplemented": false,
+    "adaptiveResidualImplemented": false,
+    "providerDefaultChanged": false,
+    "b5EntryGateChanged": false
+  },
+  "stopLines": [
+    "caller-owned class != correct class",
+    "provenance != declaration correctness",
+    "counterfactual penalty != real-world error probability",
+    "synthetic sensitivity != production risk estimate",
+    "misdeclaration sensitivity != license for automatic class inference",
+    "lower envelope regret != production policy"
+  ],
+  "notVerified": [
+    "real workload class taxonomy",
+    "empirical workload-class declaration error rate",
+    "human review and governance process",
+    "class expiry/versioning/change-review mechanics",
+    "real SUI/SEI quality under declaration errors",
+    "Production, Operational, Adoption, or Outcome Evidence"
+  ]
+}

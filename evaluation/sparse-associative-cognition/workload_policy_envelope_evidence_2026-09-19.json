@@ -138,5 +138,11 @@
     "whether a two-class or other envelope generalizes beyond B6f synthetic geometry",
     "hardware latency, power, and memory trade-offs",
     "Production, Operational, Adoption, or Outcome Evidence"
-  ]
+  ],
+  "followUp": {
+    "issue": 517,
+    "evidenceFile": "workload_policy_declaration_sensitivity_evidence_2026-09-19.json",
+    "result": "B6h evaluates counterfactual class-declaration error across all 16 B6f cells without class inference or automatic policy activation.",
+    "keyObservation": "Flipped declaration worsens 13/16 cells, ties 3/16, improves 0/16; mean synthetic penalty is about 0.2441 and max about 0.4478."
+  }
 }

@@ -701,6 +701,44 @@
       }
     },
     {
+      "stage": "SAC-B6h",
+      "name": "workload-class declaration sensitivity",
+      "depends_on": [
+        "SAC-B6g"
+      ],
+      "change": "B6g fixed envelopeは変更せず、B6f 16-cell fixture metadataのcaller-owned workload classを反転したcounterfactualを全cellで評価する。class inference、probabilistic classifier、automatic activationは導入しない。",
+      "primary_question": "caller-owned/provenance付きworkload classが誤って宣言された場合、fixed envelopeのmargin/regretはどの程度悪化し得るか。またprovenanceをcorrectness proofへ昇格させずにgovernance境界を明示できるか。",
+      "measures": [
+        "misdeclaration_penalty",
+        "flipped_declaration_regret",
+        "worsened_tie_improved_cell_count",
+        "class_specific_sensitivity",
+        "declaration_auditability_boundary",
+        "deterministic_counterfactual_reproducibility"
+      ],
+      "current_result": {
+        "state": "limited-synthetic-counterfactual-evidence",
+        "evidence_file": "workload_policy_declaration_sensitivity_evidence_2026-09-19.json",
+        "findings": [
+          "B6g classを反転したcounterfactualでは16セル中13セルでmarginが悪化、3セルで同値、改善0セルだった。",
+          "全16セルのmean misdeclaration penaltyは約0.24406、max約0.44778、flipped declarationのmean cell-best regretは約0.25431、max約0.45755だった。",
+          "general領域12セルではmean penalty約0.26477、structure-preserving領域4セルでは約0.18193で、このsynthetic gridでは感度が一様でない。",
+          "t=5のgeneral 3セルはbaseline/cap128 tieのため誤宣言してもmarginが変わらず、観測差がないことをclass correctnessの証拠にはできない。",
+          "provenanceは宣言の追跡可能性を与えるが、宣言自体のsemantic correctnessは保証しない。"
+        ],
+        "implementation_boundary": {
+          "production_code_changed": false,
+          "automatic_class_inference_implemented": false,
+          "probabilistic_classifier_implemented": false,
+          "automatic_policy_activation_implemented": false,
+          "adaptive_residual_implemented": false,
+          "provider_default_changed": false,
+          "b5_entry_gate_changed": false
+        },
+        "stop_line": "caller-owned/provenance付きclass、synthetic misdeclaration penalty、counterfactual sensitivityをsemantic correctness、real-world error probability、automatic classifier、production risk estimateへ昇格させない。"
+      }
+    },
+    {
       "stage": "SEI-B7",
       "name": "outcome-informed cognitive policy",
       "depends_on": [
@@ -923,7 +961,8 @@
       "B6fでtext/structured cardinality ratioが3.10と約3.147の近接2セルが反対のstatic policyを選好する反例を確認し、単一scalar ratio thresholdをsafe policy conditionとは扱えないことを固定した。",
       "SAC-B6gでcaller-owned exact workload classをstatic residual policyへ解決するevaluation-only envelopeを追加し、item/cardinality/marginからのautomatic class inferenceを実装しなかった。",
       "B6g fixed two-class envelopeはB6f 16-cell gridでmean regret約0.01025 / max約0.05521、zero-regret 13/16を観測したが、3 narrow-structure cellのregretを残してcell-best oracle化を避けた。",
-      "B6gの誤宣言negative controlではworkload classのcaller-owned provenanceがpolicy correctnessを保証せず、t55/s8で約0.208のregretを生むことを固定した。"
+      "B6gの誤宣言negative controlではworkload classのcaller-owned provenanceがpolicy correctnessを保証せず、t55/s8で約0.208のregretを生むことを固定した。",
+      "SAC-B6hでB6g workload classを全16-cellで反転するcounterfactualを評価し、13/16でmargin悪化、3/16で同値、改善0を確認した。mean misdeclaration penalty約0.24406 / max約0.44778であり、provenanceをdeclaration correctnessへ昇格できないことを固定した。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -947,7 +986,8 @@
       "cross-stage result contractとactual runtime Evidenceは実装済みだが、human-adjudicated dataset / frozen bundle / authorized runが未生成のためchecked-in resultはdraft / empty。actual benchmark result / interpretation / B5 decision / production adoptionは未実施。",
       "cross-stage interpretation contractとactual upstream integration runtime Evidenceは実装済みだが、human-adjudicated completed resultが未生成のためchecked-in interpretationはdraft / empty。actual interpretation / variant winner / recommendation / B5 decision / production adoptionは未実施。",
       "cross-stage decision-record contractとactual runtime Evidenceは実装済みだが、human-adjudicated interpreted artifactが未生成のためchecked-in decisionはdraft / not-assessed。actual request-b5-review / B5 gate open / production adoptionはいずれも未実施。",
-      "cross-stage execution-attempt contractとactual upstream integration runtime Evidenceは実装済みだが、human-adjudicated frozen bundle / authorized runが未生成のためchecked-in execution attemptはdraft / not-started。actual benchmark execution attemptおよびbenchmark result生成は未実施。"
+      "cross-stage execution-attempt contractとactual upstream integration runtime Evidenceは実装済みだが、human-adjudicated frozen bundle / authorized runが未生成のためchecked-in execution attemptはdraft / not-started。actual benchmark execution attemptおよびbenchmark result生成は未実施。",
+      "caller-owned workload classの実workload taxonomy、宣言error rate、human review / expiry / versioning / change-review governance、および実SUI/SEI品質への影響"
     ],
     "supporting_evidence_files": [
       "input_normalization_evidence_2026-09-18.json",
@@ -975,7 +1015,8 @@
       "hybrid_model_call_avoidance_evidence_2026-09-19.json",
       "hybrid_model_call_avoidance_runtime_blocker_evidence_2026-09-19.json",
       "residual_response_surface_evidence_2026-09-19.json",
-      "workload_policy_envelope_evidence_2026-09-19.json"
+      "workload_policy_envelope_evidence_2026-09-19.json",
+      "workload_policy_declaration_sensitivity_evidence_2026-09-19.json"
     ]
   },
   "references": [
