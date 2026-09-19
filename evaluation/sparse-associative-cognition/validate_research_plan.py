@@ -308,6 +308,71 @@ def validate_research_plan(plan: dict) -> list[str]:
                     "cross_stage_evaluation_gate.evaluation_run.integration_tests_passed must be >= 41"
                 )
 
+        execution_attempt = cross_stage.get("execution_attempt")
+        if not isinstance(execution_attempt, dict):
+            errors.append(
+                "cross_stage_evaluation_gate.execution_attempt must be an object"
+            )
+        else:
+            if execution_attempt.get("state") not in {"draft", "completed"}:
+                errors.append(
+                    "cross_stage_evaluation_gate.execution_attempt.state must be draft or completed"
+                )
+            required_attempt_refs = {
+                "directory": "cross-stage-attempt",
+                "attempt_ref": "cross-stage-attempt/execution_attempt.json",
+                "validator_ref": "cross-stage-attempt/validate_execution_attempt.py",
+                "evidence_ref": "cross-stage-attempt/execution_attempt_contract_evidence_2026-09-19.json",
+                "runtime_evidence_ref": "cross-stage-attempt/execution_attempt_runtime_evidence_2026-09-19.json",
+            }
+            for key, expected in required_attempt_refs.items():
+                if execution_attempt.get(key) != expected:
+                    errors.append(
+                        f"cross_stage_evaluation_gate.execution_attempt.{key} must remain {expected}"
+                    )
+
+            attempt_completed = execution_attempt.get("state") == "completed"
+            if execution_attempt.get("current_attempt_completed") is not attempt_completed:
+                errors.append(
+                    "cross_stage_evaluation_gate.execution_attempt.current_attempt_completed must match state"
+                )
+            for key in (
+                "benchmark_result_generated",
+                "b5_entry_gate_changed",
+                "production_default_changed",
+            ):
+                if execution_attempt.get(key) is not False:
+                    errors.append(
+                        f"cross_stage_evaluation_gate.execution_attempt.{key} must remain false"
+                    )
+            if execution_attempt.get("upstream_integration_runtime_evidence") is not True:
+                errors.append(
+                    "cross_stage_evaluation_gate.execution_attempt.upstream_integration_runtime_evidence must remain true"
+                )
+            if (
+                execution_attempt.get("runtime_validation_state")
+                != "passed-current-draft-and-full-upstream-integration-regression"
+            ):
+                errors.append(
+                    "cross_stage_evaluation_gate.execution_attempt.runtime_validation_state must remain passed-current-draft-and-full-upstream-integration-regression"
+                )
+            attempt_runtime_floors = {
+                "focused_tests_passed": 20,
+                "integration_tests_passed": 6,
+                "upstream_regression_tests_passed": 70,
+                "total_tests_passed": 96,
+            }
+            for key, minimum in attempt_runtime_floors.items():
+                value = execution_attempt.get(key)
+                if (
+                    isinstance(value, bool)
+                    or not isinstance(value, int)
+                    or value < minimum
+                ):
+                    errors.append(
+                        f"cross_stage_evaluation_gate.execution_attempt.{key} must be >= {minimum}"
+                    )
+
         result_artifact = cross_stage.get("result_artifact")
         if not isinstance(result_artifact, dict):
             errors.append("cross_stage_evaluation_gate.result_artifact must be an object")
@@ -321,6 +386,7 @@ def validate_research_plan(plan: dict) -> list[str]:
                 "result_ref": "cross-stage-result/result.json",
                 "validator_ref": "cross-stage-result/validate_result.py",
                 "evidence_ref": "cross-stage-result/result_contract_evidence_2026-09-18.json",
+                "runtime_evidence_ref": "cross-stage-result/result_runtime_evidence_2026-09-18.json",
             }
             for key, expected in required_result_refs.items():
                 if result_artifact.get(key) != expected:
@@ -344,6 +410,28 @@ def validate_research_plan(plan: dict) -> list[str]:
                 errors.append(
                     "cross_stage_evaluation_gate.result_artifact.production_default_changed must remain false"
                 )
+            if (
+                result_artifact.get("runtime_validation_state")
+                != "passed-current-draft-and-synthetic-regression"
+            ):
+                errors.append(
+                    "cross_stage_evaluation_gate.result_artifact.runtime_validation_state must remain passed-current-draft-and-synthetic-regression"
+                )
+            result_runtime_floors = {
+                "runtime_tests_passed": 24,
+                "integration_tests_passed": 65,
+                "total_tests_passed": 89,
+            }
+            for key, minimum in result_runtime_floors.items():
+                value = result_artifact.get(key)
+                if (
+                    isinstance(value, bool)
+                    or not isinstance(value, int)
+                    or value < minimum
+                ):
+                    errors.append(
+                        f"cross_stage_evaluation_gate.result_artifact.{key} must be >= {minimum}"
+                    )
 
         interpretation_artifact = cross_stage.get("interpretation_artifact")
         if not isinstance(interpretation_artifact, dict):
@@ -360,6 +448,7 @@ def validate_research_plan(plan: dict) -> list[str]:
                 "interpretation_ref": "cross-stage-interpretation/interpretation.json",
                 "validator_ref": "cross-stage-interpretation/validate_interpretation.py",
                 "evidence_ref": "cross-stage-interpretation/interpretation_contract_evidence_2026-09-19.json",
+                "runtime_evidence_ref": "cross-stage-interpretation/interpretation_runtime_evidence_2026-09-19.json",
             }
             for key, expected in required_interpretation_refs.items():
                 if interpretation_artifact.get(key) != expected:
@@ -389,6 +478,32 @@ def validate_research_plan(plan: dict) -> list[str]:
                 if interpretation_artifact.get(key) is not False:
                     errors.append(
                         f"cross_stage_evaluation_gate.interpretation_artifact.{key} must remain false"
+                    )
+            if interpretation_artifact.get("upstream_integration_runtime_evidence") is not True:
+                errors.append(
+                    "cross_stage_evaluation_gate.interpretation_artifact.upstream_integration_runtime_evidence must remain true"
+                )
+            if (
+                interpretation_artifact.get("runtime_validation_state")
+                != "passed-current-draft-and-full-upstream-integration-regression"
+            ):
+                errors.append(
+                    "cross_stage_evaluation_gate.interpretation_artifact.runtime_validation_state must remain passed-current-draft-and-full-upstream-integration-regression"
+                )
+            interpretation_runtime_floors = {
+                "runtime_tests_passed": 27,
+                "upstream_regression_tests_passed": 94,
+                "total_tests_passed": 121,
+            }
+            for key, minimum in interpretation_runtime_floors.items():
+                value = interpretation_artifact.get(key)
+                if (
+                    isinstance(value, bool)
+                    or not isinstance(value, int)
+                    or value < minimum
+                ):
+                    errors.append(
+                        f"cross_stage_evaluation_gate.interpretation_artifact.{key} must be >= {minimum}"
                     )
 
         decision_artifact = cross_stage.get("decision_artifact")
@@ -590,6 +705,23 @@ def validate_research_plan(plan: dict) -> list[str]:
         ):
             errors.append(
                 "current_evidence.supporting_evidence_files must retain decision runtime Evidence"
+            )
+
+        required_cross_stage_runtime_evidence = (
+            "cross-stage-result/result_runtime_evidence_2026-09-18.json",
+            "cross-stage-interpretation/interpretation_runtime_evidence_2026-09-19.json",
+            "cross-stage-attempt/execution_attempt_runtime_evidence_2026-09-19.json",
+        )
+        if isinstance(supporting, list):
+            for runtime_ref in required_cross_stage_runtime_evidence:
+                if runtime_ref not in supporting:
+                    errors.append(
+                        "current_evidence.supporting_evidence_files must retain "
+                        f"{runtime_ref}"
+                    )
+        else:
+            errors.append(
+                "current_evidence.supporting_evidence_files must retain cross-stage runtime Evidence"
             )
 
         hybrid_call_avoidance_ref = (
