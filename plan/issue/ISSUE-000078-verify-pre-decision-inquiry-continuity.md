@@ -484,7 +484,7 @@ durable Evidenceはcanonical probe、review-start receipt、structured response�
 
 reader assignmentは一人につき一rotationだけを原則とし、複数readerではR1〜R3をbalanceする。同一readerの反復rotationは許さず、single-reader pilotからcondition effectとpresentation-order effectを分離したとは主張しない。
 
-さらに`run_inquiry_continuity_lifecycle_checks.py`をrepository-local mechanics gateとして追加した。probe / Evidence / runner focused testsとcanonical probe validateをsanitized environmentで実行し、probeとmechanics file digest、portable command、stdout/stderr digestを保存できる。local mechanics gateではOpenRouterを含む外部provider API keyを環境から除外し、外部モデルを使う検証は明示的なintegration testとして分離する。ただしrunner sourceの存在はPASSではなく、human reviewも依然**Not Yet Observed**、Universal status typeは**not-proposed**、Product Value / Stable Requirementも未成立のままである。
+さらに`run_inquiry_continuity_lifecycle_checks.py`をrepository-local mechanics gateとして追加した。probe / Evidence / runner focused testsとcanonical probe validateをsanitized environmentで実行し、probeとmechanics file digest、portable command、stdout/stderr digestを保存できる。result自己検証ではcanonical selected check / command / cwd、non-empty execution、全checkの同一timeout、timeout / launch-error metadata、first-failure stop prefix、launch error時の空stream、現在checkoutから再計算したcontractSnapshotとの完全一致まで確認し、summary表示前にも同じ検証を通す。local mechanics gateではOpenRouterを含む外部provider API keyを環境から除外し、外部モデルを使う検証は明示的なintegration testとして分離する。ただしrunner sourceの存在はPASSではなく、human reviewも依然**Not Yet Observed**、Universal status typeは**not-proposed**、Product Value / Stable Requirementも未成立のままである。
 
 ### V1〜V8 / Decision Continuity coverage audit
 
