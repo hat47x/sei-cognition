@@ -1031,7 +1031,8 @@
       "semantic_truth_claimed": false,
       "variant_winner_selected": false,
       "b5_gate_opened": false,
-      "production_default_changed": false
+      "production_default_changed": false,
+      "current_disposition": "not-assessed"
     }
   }
 }
