@@ -849,7 +849,8 @@
       "実SUI/SEI human-adjudicated dataset、review process、split、B3 prior provenanceが未提供のためcross-stage freeze kitはdraftのまま。frozen bundleおよびauthorized evaluation-runは未生成。checked-in evaluation_run.jsonはdraft / locked templateのみ。",
       "cross-stage result contractは実装済みだが、human-adjudicated dataset / frozen bundle / authorized runが未生成のためchecked-in resultはdraft / empty。benchmark interpretation / B5 decision / production adoptionは未実施。",
       "cross-stage interpretation contractは実装済みでも、human-adjudicated completed resultが未生成のためchecked-in interpretationはdraft / empty。variant winner / recommendation / B5 decision / production adoptionは未実施。",
-      "cross-stage decision-record contractは実装中だが、human-adjudicated interpreted artifactが未生成のためchecked-in decisionはdraft / not-assessed。request-b5-review / B5 gate open / production adoptionはいずれも未実施。"
+      "cross-stage decision-record contractとactual runtime Evidenceは実装済みだが、human-adjudicated interpreted artifactが未生成のためchecked-in decisionはdraft / not-assessed。actual request-b5-review / B5 gate open / production adoptionはいずれも未実施。",
+      "cross-stage execution-attempt contractとactual upstream integration runtime Evidenceは実装済みだが、human-adjudicated frozen bundle / authorized runが未生成のためchecked-in execution attemptはdraft / not-started。actual benchmark execution attemptおよびbenchmark result生成は未実施。"
     ],
     "supporting_evidence_files": [
       "input_normalization_evidence_2026-09-18.json",
