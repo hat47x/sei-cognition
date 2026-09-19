@@ -465,6 +465,17 @@ def _validate_stream(
         )
 
 
+def _expected_check_contract() -> tuple[dict[str, object], ...]:
+    return tuple(
+        {
+            "name": check.name,
+            "command": _portable_command(check.command),
+            "cwdRelativeToRepo": _repo_relative_cwd(check.cwd),
+        }
+        for check in configured_checks()
+    )
+
+
 def validate_result(
     result: dict[str, object],
 ) -> None:
@@ -507,11 +518,18 @@ def validate_result(
         )
         or result["selectedCount"] != len(selected)
         or not isinstance(executed, list)
+        or not executed
         or result["executedCount"] != len(executed)
         or len(executed) > len(selected)
     ):
         raise ValueError(
             "E78.7 selected/executed counts are invalid"
+        )
+    expected_checks = _expected_check_contract()
+    expected_names = [item["name"] for item in expected_checks]
+    if selected != expected_names:
+        raise ValueError(
+            "E78.7 selected checks differ from the canonical runner contract"
         )
     if [
         item.get("name")
@@ -522,6 +540,7 @@ def validate_result(
             "E78.7 executed order differs from selection"
         )
     failed = 0
+    observed_timeout_seconds: int | None = None
     base_keys = {
         "name",
         "command",
@@ -532,7 +551,7 @@ def validate_result(
         "stdout",
         "stderr",
     }
-    for item in executed:
+    for index, item in enumerate(executed):
         if not isinstance(item, dict) or set(item) not in (
             base_keys,
             base_keys | {"launchError"},
@@ -574,6 +593,15 @@ def validate_result(
                 raise ValueError(
                     "E78.7 cwdRelativeToRepo is invalid"
                 )
+        expected_check = expected_checks[index]
+        if command != expected_check["command"]:
+            raise ValueError(
+                "E78.7 executed command differs from the canonical runner contract"
+            )
+        if cwd_relative != expected_check["cwdRelativeToRepo"]:
+            raise ValueError(
+                "E78.7 executed cwd differs from the canonical runner contract"
+            )
         if (
             isinstance(item["exitCode"], bool)
             or not isinstance(item["exitCode"], int)
@@ -587,6 +615,16 @@ def validate_result(
         ):
             raise ValueError(
                 "E78.7 execution status is invalid"
+            )
+        if item["timedOut"] and item["exitCode"] != TIMEOUT_EXIT_CODE:
+            raise ValueError(
+                "E78.7 timedOut execution must use the timeout exit code"
+            )
+        if observed_timeout_seconds is None:
+            observed_timeout_seconds = item["timeoutSeconds"]
+        elif item["timeoutSeconds"] != observed_timeout_seconds:
+            raise ValueError(
+                "E78.7 all executed checks must use the same timeoutSeconds"
             )
         _validate_stream(item["stdout"], "stdout")
         _validate_stream(item["stderr"], "stderr")
@@ -608,6 +646,16 @@ def validate_result(
                 raise ValueError(
                     "E78.7 launchError is invalid"
                 )
+            if item["timedOut"] or item["exitCode"] != LAUNCH_ERROR_EXIT_CODE:
+                raise ValueError(
+                    "E78.7 launchError must use the launch-error exit code "
+                    "without timeout"
+                )
+            empty_stream = _stream_evidence(None)
+            if item["stdout"] != empty_stream or item["stderr"] != empty_stream:
+                raise ValueError(
+                    "E78.7 launchError must not contain process output"
+                )
         if item["exitCode"] != 0:
             failed += 1
 
@@ -623,16 +671,25 @@ def validate_result(
         raise ValueError(
             "E78.7 result is inconsistent with executions"
         )
-    if (
-        not isinstance(result["stoppedEarly"], bool)
-        or (
-            result["stoppedEarly"]
-            and complete
-        )
-    ):
+    if not isinstance(result["stoppedEarly"], bool):
         raise ValueError(
             "E78.7 stoppedEarly is invalid"
         )
+    expected_stopped_early = not complete
+    if result["stoppedEarly"] != expected_stopped_early:
+        raise ValueError(
+            "E78.7 stoppedEarly is inconsistent with execution completeness"
+        )
+    if not complete:
+        prefix_exit_codes = [item["exitCode"] for item in executed]
+        if any(code != 0 for code in prefix_exit_codes[:-1]):
+            raise ValueError(
+                "E78.7 stoppedEarly run must stop at the first failed check"
+            )
+        if prefix_exit_codes[-1] == 0:
+            raise ValueError(
+                "E78.7 stoppedEarly run must end with a failed check"
+            )
 
     snapshot = result["contractSnapshot"]
     if not isinstance(snapshot, dict) or set(snapshot) != {
@@ -699,6 +756,12 @@ def validate_result(
     ):
         raise ValueError(
             "E78.7 Python runtime evidence is invalid"
+        )
+
+    expected_snapshot = build_contract_snapshot()
+    if snapshot != expected_snapshot:
+        raise ValueError(
+            "E78.7 contractSnapshot differs from the current checkout contract"
         )
 
     for field in (
@@ -796,6 +859,13 @@ def main(
         timeout_seconds=args.timeout_seconds,
         stop_on_failure=args.stop_on_failure,
     )
+    try:
+        validate_result(result)
+    except ValueError as exc:
+        parser.exit(
+            2,
+            f"E78.7 local checks: invalid result: {exc}\n",
+        )
     print("E78.7 local check summary")
     print(f"- selected: {result['selectedCount']}")
     print(f"- executed: {result['executedCount']}")
