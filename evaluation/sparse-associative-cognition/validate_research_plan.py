@@ -54,6 +54,7 @@ REQUIRED_FOLLOW_ON_STAGES = {
     "SAC-B5",
     "SAC-B6",
     "SAC-B6i",
+    "SAC-B6j",
     "SEI-B7",
 }
 
@@ -747,6 +748,17 @@ def validate_research_plan(plan: dict) -> list[str]:
                 "current_evidence.supporting_evidence_files must retain SAC-B6i governance runtime Evidence"
             )
 
+        b6j_admission_ref = (
+            "workload_governance_admission_evidence_2026-09-19.json"
+        )
+        if (
+            not isinstance(supporting, list)
+            or b6j_admission_ref not in supporting
+        ):
+            errors.append(
+                "current_evidence.supporting_evidence_files must retain SAC-B6j admission Evidence"
+            )
+
         not_yet_verified = evidence.get("not_yet_verified")
         if not isinstance(not_yet_verified, list) or not all(
             isinstance(item, str) for item in not_yet_verified
@@ -802,6 +814,32 @@ def validate_research_plan(plan: dict) -> list[str]:
                     if required_fragment not in b6i_boundary:
                         errors.append(
                             "current_evidence.not_yet_verified SAC-B6i boundary "
+                            f"must retain {required_fragment}"
+                        )
+
+            b6j_boundary = next(
+                (
+                    item
+                    for item in not_yet_verified
+                    if "SAC-B6j admission adapter" in item
+                ),
+                None,
+            )
+            if b6j_boundary is None:
+                errors.append(
+                    "current_evidence.not_yet_verified must retain SAC-B6j runtime boundary"
+                )
+            else:
+                for required_fragment in (
+                    "canonical Go 1.25 execution",
+                    "full prototype-go regression",
+                    "production provider integration",
+                    "実workload class correctness",
+                    "未検証",
+                ):
+                    if required_fragment not in b6j_boundary:
+                        errors.append(
+                            "current_evidence.not_yet_verified SAC-B6j boundary "
                             f"must retain {required_fragment}"
                         )
 
