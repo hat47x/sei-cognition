@@ -562,6 +562,31 @@ focused testによって各評価器の停止線や入力検証は確認して�
 
 ISSUE-000078の継続作業は`develop/v0.2.0`を元ブランチとして集約する。同一Issueの小さな継続作業ごとにtopic branchを増やさず、独立した責務や並行作業が実際に必要になった場合だけ分岐を検討する。
 
+
+## Lane F continuation checkpoint — 2026-09-19
+
+前回のE78.3 local mechanics gate追加後、`develop/v0.2.0`には他レーンの変更も集約され、E78.3の正規runner自体もresult schema v2まで強化された。現在の`run_inquiry_continuity_summary_distortion_checks.py`は、canonical probeのsemantic SHA-256、mechanics fileのSHA-256、source fixtureのexpected / actual Git blob SHA-1、Python runtime、各checkのportable command / repository相対cwd / stdout・stderr digestを保存し、source freeze不一致、host path混入、tampered / vacuous result、既存result上書きを拒否する。
+
+このcheckpointでは、これ以上E78.3専用scaffoldを増やさない。現行の`inquiry_continuity_summary_distortion_*`とlocal-check runnerを正規経路として凍結し、同じexperimentに別runner、別exporter、別Evidence schemaを並立させない。
+
+現在もEvidence高さは次のままである。
+
+```text
+repository-local mechanics implementation
+  != repository-local actual PASS recorded
+  != human correction / rejection observed
+  != clean long-gap resumption observed
+  != Product Value established
+  != Stable Requirement authorized
+```
+
+したがって、次に必要なのは設計追加ではなくactual executionである。特に同一reviewerで進める場合、E78.3の意図的なdistortionを先に見せてbase comparisonを汚染しないよう、E78.2 / E78.4 / E78.5のmatched human reviewを先に完了・固定し、その後にE78.3を実施する。既知のmaterial exposureがあるreaderは`known-material-exposure`として扱い、clean blinded reviewへ読み替えない。
+
+このcheckpointでは新しいhuman observation、clean resumption、actual team handoff、Product Value判断を生成していない。既存の未観測状態を維持し、次の進行条件をactual Evidenceへ限定する。
+
+branch運用についても、同一Issueの継続作業は引き続き`develop/v0.2.0`へ集約する。小さな継続作業ごとにtopic branchを増やさず、元ブランチから分岐した未統合branchを残さない。
+
+
 ## Resolution
 
 次を満たしたときResolvedとする。
