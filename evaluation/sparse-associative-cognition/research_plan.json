@@ -954,15 +954,16 @@
       "cross-stage interpretationをGitHub正本19 source / manifestのGit blob SHA一致一時再構成環境でPython 3.13.5実行し、interpretation 27 tests、result/run/freeze/preregistration regression 94 testsの計121 testsがPASSした。5 validatorもPASSし、synthetic interpreted artifactはcompleted resultとactual upstream chainを通過する一方、current interpretation / result / run / freeze / preregistrationはdraft / lockedのままである。",
       "cross-stage interpretation後のB5 review dispositionを独立decision-record contractとして分離し、defer-for-evidence / retain-current-stage / request-b5-reviewの3 disposition、exact interpretation digest binding、decision authority provenance、rationale refs、upstream limitation preservation、canonical digestを定義した。request-b5-reviewはB5 gate openではなく、semantic truth / variant winner / production default変更もfail-closedのままである。",
       "cross-stage decision-recordをGitHub正本22 source / manifestのGit blob SHA一致一時再構成環境でPython 3.13.5実行し、decision 27 tests、interpretation/result/run/freeze/preregistration regression 127 testsの計154 testsがPASSした。6 validatorもPASSし、synthetic 3 dispositionはactual upstream chainを通過する一方、current decisionはdraft / not-assessed、B5 gateはclosed、production defaultは未変更のままである。",
-      "SACS + local SLM hybridの7 synthetic ReferenceFixturesについてcurrent routing sourceをinspectionし、raw/workspace baseline 7 callsに対してstaged routeは4 local-model calls / 3 skipsとなるcall planを固定した。aggregation logicのisolated Go testは5/5 PASS。これは3/7（約42.9%）のsynthetic routing call avoidanceであり、actual repository integration runtime / real model telemetry / production LLM削減量は未検証。",
-      "Issue #511でhybrid model-call avoidanceのcurrent repository Go integration runtimeを試行したが、GitHub Actionsはrunner_id=0 / steps=[]で開始せず、local Go 1.23.2はgo 1.25 module requirementでbuild前に拒否された。Go 1.25 toolchain自動取得もnetwork名前解決不可で未開始のため、repository integration PASS / FAILは未観測のままである。",
+      "SACS + local SLM hybridの7 synthetic ReferenceFixturesについてcurrent routing sourceをinspectionし、raw/workspace baseline 7 callsに対してstaged routeは4 local-model calls / 3 skipsとなるcall planを固定した。aggregation logicのisolated Go testは5/5 PASS。これは3/7（約42.9%）のsynthetic routing call avoidanceであり、real model telemetry / production LLM削減量は未検証。",
+      "Issue #511の先行runtime試行ではGitHub Actionsがrunner_id=0 / steps=[]で開始せず、canonical go 1.25 module executionもtoolchain取得不能で未観測だった。このblocker Evidenceは履歴として保持する。",
       "SAC-B6fでtext cardinality 4段階 × structured cardinality 4段階の16-cell synthetic response surfaceを固定し、baseline / cap128 / cap64のmargin・regret・local incremental dimensionsを比較した。",
       "B6fではbaseline strict優位4セル、cap64 strict優位3セル、capped同率優位6セル、全policy同率3セルを観測し、static residual suppressionが条件依存であることを確認した。",
       "B6fでtext/structured cardinality ratioが3.10と約3.147の近接2セルが反対のstatic policyを選好する反例を確認し、単一scalar ratio thresholdをsafe policy conditionとは扱えないことを固定した。",
       "SAC-B6gでcaller-owned exact workload classをstatic residual policyへ解決するevaluation-only envelopeを追加し、item/cardinality/marginからのautomatic class inferenceを実装しなかった。",
       "B6g fixed two-class envelopeはB6f 16-cell gridでmean regret約0.01025 / max約0.05521、zero-regret 13/16を観測したが、3 narrow-structure cellのregretを残してcell-best oracle化を避けた。",
       "B6gの誤宣言negative controlではworkload classのcaller-owned provenanceがpolicy correctnessを保証せず、t55/s8で約0.208のregretを生むことを固定した。",
-      "SAC-B6hでB6g workload classを全16-cellで反転するcounterfactualを評価し、13/16でmargin悪化、3/16で同値、改善0を確認した。mean misdeclaration penalty約0.24406 / max約0.44778であり、provenanceをdeclaration correctnessへ昇格できないことを固定した。"
+      "SAC-B6hでB6g workload classを全16-cellで反転するcounterfactualを評価し、13/16でmargin悪化、3/16で同値、改善0を確認した。mean misdeclaration penalty約0.24406 / max約0.44778であり、provenanceをdeclaration correctnessへ昇格できないことを固定した。",
+      "Issue #511でGitHub正本8 blobをSHA完全一致でGOPATHへ再構成し、Go 1.23.2 / GO111MODULE=offでcurrent cognitiveeval / hybridreasoningをstubせずactual dependency integration実行した。focused call-avoidance 5/5、current modelprobe package regression 16/16 PASS。これはcanonical Go 1.25 module execution、real model telemetry、task success、total system cost、production LLM削減量を示さない。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -976,7 +977,7 @@
       "learned sparse projectionがrandom / static方式を上回るか",
       "10万件以上でのindex方式",
       "実SEI workloadでのLLM呼び出し削減量。7 synthetic ReferenceFixturesではrouting plan上3/7（約42.9%）call avoidanceを観測したが、actual model telemetry / task success / total system cost / production一般化は未検証。",
-      "SACS hybrid model-call avoidanceのcurrent repository integration runtime。Go 1.25-capable runtime未確保のためfocused / package / full-module Go test結果は未観測。",
+      "SACS hybrid model-call avoidanceのcanonical Go 1.25 module execution。Go 1.23.2 / GOPATH exact-blob actual dependency integrationではfocused 5/5・modelprobe package 16/16 PASSを観測したが、go.modのgo 1.25を使うcanonical module executionおよびfull-module Go 1.25 regressionは未観測。",
       "実hardware / real workloadにおけるcapacity profile品質、B6g caller-owned workload envelopeの実taxonomy/governance/generalization、human-adjudicated quality、class expiry/versioning、path別selection-pressure ceiling、adaptive Active / local budget policy、power / latency / memory trade-off",
       "実problem class / real Outcome評価におけるoutcome-informed routingの一般化、selection-bias補正、statistical confidence、drift / expiry / rollback criteria",
       "production配置方式",
@@ -1014,6 +1015,7 @@
       "cross-stage-decision/decision_runtime_evidence_2026-09-19.json",
       "hybrid_model_call_avoidance_evidence_2026-09-19.json",
       "hybrid_model_call_avoidance_runtime_blocker_evidence_2026-09-19.json",
+      "hybrid_model_call_avoidance_integration_runtime_evidence_2026-09-19.json",
       "residual_response_surface_evidence_2026-09-19.json",
       "workload_policy_envelope_evidence_2026-09-19.json",
       "workload_policy_declaration_sensitivity_evidence_2026-09-19.json"

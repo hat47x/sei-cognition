@@ -310,14 +310,26 @@ current fixture distribution:
 
 raw / workspace comparison baselineは7件ともmodel invocationを計画する一方、staged routeは4件だけをlocal modelへ送る。このsynthetic fixture集合に限れば、raw baseline比で3/7、約42.9%のmodel invocationをrouting段階で回避する計画になる。
 
-ただしこれは実model telemetryではない。aggregation logicのisolated testは5/5 PASSしているが、Issue #511でcurrent repository dependencyを使うactual Go integration runtimeを試行したところ、GitHub Actionsは `runner_id=0` / `steps=[]` のままrunner割当前に終了した。local実行環境はGo 1.23.2で、正本moduleの `go 1.25` requirementによりbuild前に拒否され、automatic toolchain取得もnetwork名前解決不可で開始できなかった。
+ただしこれは実model telemetryではない。aggregation logicのisolated 5/5 PASSに加え、Issue #511でGitHub正本8 blobをSHA完全一致でGOPATHへ再構成し、stubではないcurrent `cognitiveeval` / `hybridreasoning` sourceを使ってactual dependency integrationを実行した。
 
-したがって、current repository integration runtimeのPASS / FAILは引き続き**未観測**である。runner未開始やtoolchain取得不能をGo test failureへ読み替えない。
+実行環境は Go 1.23.2 / linux/amd64、`GO111MODULE=off` のGOPATH exact-blob reconstructionである。
+
+- focused call-avoidance: 5/5 PASS
+- current `modelprobe` package regression: 16/16 PASS
+- source blob SHA: 8/8一致
+- actual current `cognitiveeval` source: 使用
+- actual current `hybridreasoning` source: 使用
+- external dependency stub: 不使用
+
+先行PR #516で記録したGitHub Actions runner未開始およびcanonical moduleのGo 1.25 toolchain取得不能は履歴Evidenceとして保持する。今回の実行はその事実を否定するものではなく、別経路のexact-source GOPATH integrationによってrepository dependency integrationを観測したものである。
+
+したがって **repository dependency integration PASS** は観測済みへ更新する一方、正本 `go.mod` の `go 1.25` を使うcanonical module executionは未観測のままとする。また3/7のcall avoidanceは引き続きsynthetic routing planであり、actual model telemetry、task success、total system cost、production LLM削減量を示さない。
 
 machine-readable Evidence:
 
 - synthetic / isolated Evidence: `hybrid_model_call_avoidance_evidence_2026-09-19.json`
-- repository-runtime blocker Evidence: `hybrid_model_call_avoidance_runtime_blocker_evidence_2026-09-19.json`
+- prior runtime blocker Evidence: `hybrid_model_call_avoidance_runtime_blocker_evidence_2026-09-19.json`
+- actual dependency integration Evidence: `hybrid_model_call_avoidance_integration_runtime_evidence_2026-09-19.json`
 
 ```text
 synthetic routing call avoidance
