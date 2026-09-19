@@ -1,0 +1,209 @@
+{
+  "schema": "sei.sacs-cross-stage-interpretation-runtime-evidence/v1alpha1",
+  "date": "2026-09-19",
+  "issue": 487,
+  "branch": "topic/sacs-cross-stage-interpretation-runtime-evidence",
+  "tested_ref": "develop/v0.2.0",
+  "tested_commit": "a10cd21b6206096f3fa993c53f6a99472cea1a32",
+  "current_source_equivalent_commit": "0b4c9f2545c60ef69bd8e5b8c5156f651063b65c",
+  "execution_model": "exact-git-blob-validated temporary reconstruction",
+  "environment": {
+    "python": "3.13.5",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+    "github_actions_used": false,
+    "full_repository_checkout": false
+  },
+  "source_equivalence": {
+    "status": "pass",
+    "note": "develop/v0.2.0 advanced by four commits after runtime reconstruction. Those commits touched only evaluation/personal-inquiry-decision and plan/issue; none of the 19 bound SACS source/manifest files changed."
+  },
+  "source_binding": {
+    "status": "all-matched",
+    "method": "Each reconstructed file was checked with git hash-object against the GitHub blob SHA before execution.",
+    "files": [
+      {
+        "path": "cross-stage-interpretation/validate_interpretation.py",
+        "blob_sha": "ddd6ff900565efca346e5a881f65fd2d31018d76"
+      },
+      {
+        "path": "cross-stage-interpretation/test_validate_interpretation.py",
+        "blob_sha": "2c8ef1870e6bb5e83856f84167c8e892bfb068c3"
+      },
+      {
+        "path": "cross-stage-interpretation/interpretation.json",
+        "blob_sha": "21733a8057832decc65ee3af7ee45a7937f4618b"
+      },
+      {
+        "path": "cross-stage-result/validate_result.py",
+        "blob_sha": "990b7b836bd2e4ef6028ef39f2f52708efbb6f5f"
+      },
+      {
+        "path": "cross-stage-result/test_validate_result.py",
+        "blob_sha": "93de7b3bce1a14b8ac8187fb40fa3e454a414cc6"
+      },
+      {
+        "path": "cross-stage-result/result.json",
+        "blob_sha": "8de66bd58944f2503bc865d0504244545b6f8861"
+      },
+      {
+        "path": "cross-stage-run/validate_evaluation_run.py",
+        "blob_sha": "8d1ab85e90433ba30c63f93a5a4b3c864a4a748e"
+      },
+      {
+        "path": "cross-stage-run/test_validate_evaluation_run.py",
+        "blob_sha": "492fcc90a2abfc37d6cebea60c952736ca4009f7"
+      },
+      {
+        "path": "cross-stage-run/evaluation_run.json",
+        "blob_sha": "93e6aced7e2986b794397b684c27ce97a2593853"
+      },
+      {
+        "path": "cross-stage-freeze/freeze_manifests.py",
+        "blob_sha": "2cdef6363f38f5dbccf295754f12a2a19b476380"
+      },
+      {
+        "path": "cross-stage-freeze/test_freeze_manifests.py",
+        "blob_sha": "4f1181339b7af2449d7d0a8ac2156cfc4e6c25d0"
+      },
+      {
+        "path": "cross-stage-freeze/dataset_manifest.json",
+        "blob_sha": "33706fc9b9fb7b657ffa98f1d35cf8425534d934"
+      },
+      {
+        "path": "cross-stage-freeze/adjudication_manifest.json",
+        "blob_sha": "e00faf23a8829e1609548017bec89bb73760f459"
+      },
+      {
+        "path": "cross-stage-freeze/split_manifest.json",
+        "blob_sha": "27eee758d6c92535fbc5efda54873f721f10ead9"
+      },
+      {
+        "path": "cross-stage-freeze/b3_prior_manifest.json",
+        "blob_sha": "a9e44f7104b7ac9201ffd9a488f7e82d9434ecfe"
+      },
+      {
+        "path": "cross-stage-freeze/freeze_bundle.json",
+        "blob_sha": "76cd3380e75b7f80ed88c9080d2d24793240cb21"
+      },
+      {
+        "path": "validate_cross_stage_preregistration.py",
+        "blob_sha": "3ee67bb85d3158655f919fb8e57a2c45d2c92ed0"
+      },
+      {
+        "path": "test_validate_cross_stage_preregistration.py",
+        "blob_sha": "bc61093353428fc43ff6e508285870731a250021"
+      },
+      {
+        "path": "cross_stage_benchmark_preregistration.json",
+        "blob_sha": "49c599517dbb511cefeefcd7bfad6dc7476a64c6"
+      }
+    ]
+  },
+  "executions": [
+    {
+      "command": "python3 cross-stage-interpretation/validate_interpretation.py",
+      "working_directory": "evaluation/sparse-associative-cognition",
+      "result": "PASS",
+      "exit_code": 0,
+      "observation": "Cross-stage interpretation validated; current interpretation remains draft/empty"
+    },
+    {
+      "command": "python3 cross-stage-result/validate_result.py",
+      "working_directory": "evaluation/sparse-associative-cognition",
+      "result": "PASS",
+      "exit_code": 0,
+      "observation": "Cross-stage result validated; current result remains draft/empty"
+    },
+    {
+      "command": "python3 cross-stage-run/validate_evaluation_run.py",
+      "working_directory": "evaluation/sparse-associative-cognition",
+      "result": "PASS",
+      "exit_code": 0,
+      "observation": "Cross-stage evaluation-run validated; current run remains draft/locked"
+    },
+    {
+      "command": "python3 cross-stage-freeze/freeze_manifests.py --validate-only",
+      "working_directory": "evaluation/sparse-associative-cognition",
+      "result": "PASS",
+      "exit_code": 0,
+      "observation": "Cross-stage freeze manifests validated; current bundle remains draft/locked"
+    },
+    {
+      "command": "python3 validate_cross_stage_preregistration.py",
+      "working_directory": "evaluation/sparse-associative-cognition",
+      "result": "PASS",
+      "exit_code": 0,
+      "observation": "Cross-stage preregistration validated; evaluation remains locked"
+    },
+    {
+      "command": "python3 -m unittest -v test_validate_interpretation.py",
+      "working_directory": "evaluation/sparse-associative-cognition/cross-stage-interpretation",
+      "result": "PASS",
+      "tests": 27,
+      "elapsed_seconds": 0.043
+    },
+    {
+      "command": "python3 -m unittest -v test_validate_result.py",
+      "working_directory": "evaluation/sparse-associative-cognition/cross-stage-result",
+      "result": "PASS",
+      "tests": 24,
+      "elapsed_seconds": 0.031
+    },
+    {
+      "command": "python3 -m unittest -v test_validate_evaluation_run.py",
+      "working_directory": "evaluation/sparse-associative-cognition/cross-stage-run",
+      "result": "PASS",
+      "tests": 20,
+      "elapsed_seconds": 0.02
+    },
+    {
+      "command": "python3 -m unittest -v test_freeze_manifests.py",
+      "working_directory": "evaluation/sparse-associative-cognition/cross-stage-freeze",
+      "result": "PASS",
+      "tests": 18,
+      "elapsed_seconds": 0.01
+    },
+    {
+      "command": "python3 -m unittest -v test_validate_cross_stage_preregistration.py",
+      "working_directory": "evaluation/sparse-associative-cognition",
+      "result": "PASS",
+      "tests": 32,
+      "elapsed_seconds": 0.007
+    }
+  ],
+  "interpretation_cases": {
+    "current_draft_structurally_valid": "PASS",
+    "current_draft_upstream_cannot_support_interpreted_artifact": "PASS",
+    "synthetic_interpreted_artifact_with_completed_result_and_actual_upstream": "PASS",
+    "exact_result_digest_binding": "PASS",
+    "unknown_result_metric_rejected": "PASS",
+    "post_interpretation_mutation_rejected": "PASS",
+    "semantic_truth_claim_rejected": "PASS",
+    "variant_winner_declaration_rejected": "PASS",
+    "recommendation_generation_rejected": "PASS",
+    "b5_decision_generation_rejected": "PASS",
+    "production_default_change_rejected": "PASS"
+  },
+  "summary": {
+    "validator_commands_passed": 5,
+    "interpretation_tests_passed": 27,
+    "upstream_regression_tests_passed": 94,
+    "total_tests_passed": 121,
+    "total_tests_failed": 0,
+    "current_interpretation_state": "draft/empty",
+    "current_result_state": "draft/empty",
+    "current_run_state": "draft/locked",
+    "current_freeze_bundle_state": "draft/locked",
+    "current_preregistration_state": "locked"
+  },
+  "stop_lines": [
+    "runtime PASS != human-adjudicated benchmark interpretation",
+    "synthetic interpreted artifact != human-adjudicated benchmark interpretation",
+    "interpretation != semantic truth",
+    "interpretation != variant winner",
+    "interpretation != recommendation",
+    "interpretation != B5 decision",
+    "interpretation != production adoption",
+    "current checked-in interpretation remains draft / empty"
+  ]
+}
