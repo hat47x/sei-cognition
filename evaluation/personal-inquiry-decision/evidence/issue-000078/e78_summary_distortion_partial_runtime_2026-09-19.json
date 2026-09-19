@@ -1,0 +1,130 @@
+{
+  "schema": "sei.inquiry-continuity-summary-distortion-partial-runtime-evidence/v1alpha1",
+  "date": "2026-09-19",
+  "issue": "ISSUE-000078",
+  "experiment": "E78.3",
+  "branch": "develop/v0.2.0",
+  "purpose": "Record actual Python execution already observed for the canonical E78.3 probe and evidence-focused mechanics without promoting the still-unexecuted aggregate runner to PASS.",
+  "execution_environment": {
+    "python": "3.13.5",
+    "method": "GitHub canonical sources reconstructed in a temporary local execution directory and accepted only after exact Git blob SHA verification.",
+    "github_actions_used_for_successful_execution": false
+  },
+  "source_snapshots": [
+    {
+      "commit": "2863bcfdc202778402b98f79dbd066f25595c26a",
+      "role": "probe validate and probe focused tests actual execution",
+      "bindings": [
+        {
+          "path": "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe_v1.json",
+          "blob_sha": "9cee9cbccaed96b1a4048dde2763c1ca5c297958"
+        },
+        {
+          "path": "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe.py",
+          "blob_sha": "b3f9b5dd00f88653c8165f0c31826603dd9b5d0a"
+        },
+        {
+          "path": "evaluation/personal-inquiry-decision/test_inquiry_continuity_summary_distortion_probe.py",
+          "blob_sha": "c52167e5c79a898d8b85abab845870a573106a34"
+        },
+        {
+          "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_001.json",
+          "blob_sha": "52335589c72ab3548a29053a0acd4c287fbee85d"
+        },
+        {
+          "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_002.json",
+          "blob_sha": "0c3f7caac753e1642e3ff3e8e40425bd7b0e0976"
+        },
+        {
+          "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_003.json",
+          "blob_sha": "645519e1a502e844ca640ab0d61dfa438a46e8d2"
+        }
+      ]
+    },
+    {
+      "commit": "3353fd7f7f399975e337ff609dbeb9b346c402f6",
+      "role": "evidence focused tests actual execution after correcting two test-fixture defects",
+      "bindings": [
+        {
+          "path": "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe.py",
+          "blob_sha": "b3f9b5dd00f88653c8165f0c31826603dd9b5d0a"
+        },
+        {
+          "path": "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_evidence.py",
+          "blob_sha": "20dfc08b7ca9cf4fb2baeee27958f244ca7a642a"
+        },
+        {
+          "path": "evaluation/personal-inquiry-decision/test_inquiry_continuity_summary_distortion_evidence.py",
+          "blob_sha": "5efb23aeb7646a180bfde39133639e149c97ce84"
+        }
+      ]
+    }
+  ],
+  "actual_executions": [
+    {
+      "name": "summary-distortion-probe-validate",
+      "command": "python3 evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe.py --probe evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe_v1.json --repo-root . validate",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "name": "summary-distortion-probe-tests",
+      "command": "python3 evaluation/personal-inquiry-decision/test_inquiry_continuity_summary_distortion_probe.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "tests_passed": 23,
+      "tests_failed": 0
+    },
+    {
+      "name": "summary-distortion-evidence-tests",
+      "command": "python3 evaluation/personal-inquiry-decision/test_inquiry_continuity_summary_distortion_evidence.py",
+      "exit_code": 0,
+      "result": "PASS",
+      "tests_passed": 18,
+      "tests_failed": 0
+    }
+  ],
+  "test_defects_corrected_before_counting_evidence_tests": [
+    {
+      "defect": "preflight test supplied only one fixture although the evidence contract intentionally requires the complete three-fixture validated set",
+      "resolution": "construct the complete fixture set in the test; production contract unchanged"
+    },
+    {
+      "defect": "source snapshot tamper test assigned 'a' * 40, which was already the selected fixture's original synthetic blob value and therefore did not tamper the artifact",
+      "resolution": "use '0' * 40 so the test performs an actual mutation"
+    }
+  ],
+  "discarded_attempts": [
+    {
+      "scope": "summary-distortion-evidence-tests",
+      "classification": "source-reconstruction-mismatch",
+      "counted_as_execution_evidence": false,
+      "note": "An earlier copied test file did not match the GitHub canonical blob and its result was discarded before the exact-blob 18/18 PASS run."
+    }
+  ],
+  "current_unverified": [
+    "test_run_inquiry_continuity_summary_distortion_checks.py actual execution",
+    "canonical seven-check run_inquiry_continuity_summary_distortion_checks.py aggregate execution",
+    "result schema v2 artifact generated by the canonical runner"
+  ],
+  "current_state": {
+    "canonical_probe_validate_actual_pass": true,
+    "probe_focused_tests_actual_pass": true,
+    "probe_tests_passed": 23,
+    "evidence_focused_tests_actual_pass": true,
+    "evidence_tests_passed": 18,
+    "runner_focused_tests_actual_pass": false,
+    "aggregate_local_gate_actual_pass": false,
+    "human_review_observed": false,
+    "actual_long_gap_resumption_established": false,
+    "product_value_established": false,
+    "stable_requirement_authorized": false
+  },
+  "stop_lines": [
+    "partial focused mechanics PASS != full E78.3 local gate PASS",
+    "local mechanics PASS != human review result",
+    "local mechanics PASS != actual long-gap Evidence",
+    "local mechanics PASS != Product Value decision",
+    "local mechanics PASS != Stable Requirement authorization"
+  ]
+}
