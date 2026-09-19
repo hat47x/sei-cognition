@@ -657,7 +657,47 @@
           "provider_default_changed": false,
           "b5_entry_gate_changed": false
         },
-        "stop_line": "synthetic response surfaceやcell-best policyをper-item automatic selector、single-ratio threshold、production residual policyへ昇格させない。"
+        "stop_line": "synthetic response surfaceやcell-best policyをper-item automatic selector、single-ratio threshold、production residual policyへ昇格させない。",
+        "follow_up_evidence_file": "workload_policy_envelope_evidence_2026-09-19.json"
+      }
+    },
+    {
+      "stage": "SAC-B6g",
+      "name": "caller-owned workload residual policy envelope",
+      "depends_on": [
+        "SAC-B6f"
+      ],
+      "change": "callerが明示したexact workload classを、baseline / cap128 / cap64の許可済みstatic residual policyへ解決するevaluation-only envelopeを追加する。item content、feature cardinality、margin、semantic importanceからclassを自動推定しない。",
+      "primary_question": "B6f response surfaceをper-item heuristicへ変換せず、caller-owned workload-level policy classでstatic residual policyを選択した場合、fixed single policyよりregretを下げつつauditabilityとfail-closed境界を保てるか。",
+      "measures": [
+        "declared_class_policy_resolution",
+        "envelope_regret_against_cell_best",
+        "unknown_class_fail_closed",
+        "policy_allowlist_preservation",
+        "misdeclaration_regret",
+        "deterministic_resolution"
+      ],
+      "current_result": {
+        "state": "limited-synthetic-envelope-evidence",
+        "evidence_file": "workload_policy_envelope_evidence_2026-09-19.json",
+        "findings": [
+          "exact caller-owned mappingとしてgeneral→cap128、structure-preserving→baselineを固定し、resolver APIはworkload class string以外のitem/cardinality/margin入力を持たない。",
+          "B6f 16-cell gridで固定envelopeのcell-best regretはmean約0.01025 / max約0.05521、zero-regret 13/16となり、単一fixed policyより低いregretを観測した。",
+          "narrow-structure 3セルではgeneral→cap128がcell-best cap64に届かず約0.0542〜0.0552のregretを残し、envelopeをcell-best oracleへ過適合させなかった。",
+          "unknown class、duplicate class、unsupported policy ID、noncanonical class/metadataはfail-closedとした。",
+          "t55/s8をgeneralへ誤宣言するnegative controlではbaseline margin約0.5764に対しcap128約0.3684となりregret約0.208を観測した。caller ownership/provenanceはdeclaration correctnessを保証しない。"
+        ],
+        "implementation_boundary": {
+          "placement": "evaluation/sparse-associative-cognition/prototype-go/capacityprofile",
+          "production_runtime_integrated": false,
+          "provider_response_contract_changed": false,
+          "automatic_class_inference_implemented": false,
+          "automatic_policy_activation_implemented": false,
+          "adaptive_residual_implemented": false,
+          "cardinality_used_as_semantic_importance": false,
+          "b5_entry_gate_changed": false
+        },
+        "stop_line": "caller-owned workload classや低synthetic regretをsemantic truth、automatic selector、production policy、provider defaultへ昇格させない。"
       }
     },
     {
@@ -807,7 +847,12 @@
     "best_static_policy_by_cell",
     "policy_regret_against_cell_best",
     "text_to_structure_cardinality_ratio",
-    "policy_switch_boundary"
+    "policy_switch_boundary",
+    "declared_class_policy_resolution",
+    "envelope_regret_against_cell_best",
+    "unknown_class_fail_closed",
+    "policy_allowlist_preservation",
+    "misdeclaration_regret"
   ],
   "evaluation_policy": {
     "single_composite_score": false,
@@ -874,7 +919,10 @@
       "SACS + local SLM hybridの7 synthetic ReferenceFixturesについてcurrent routing sourceをinspectionし、raw/workspace baseline 7 callsに対してstaged routeは4 local-model calls / 3 skipsとなるcall planを固定した。aggregation logicのisolated Go testは5/5 PASS。これは3/7（約42.9%）のsynthetic routing call avoidanceであり、actual repository integration runtime / real model telemetry / production LLM削減量は未検証。",
       "SAC-B6fでtext cardinality 4段階 × structured cardinality 4段階の16-cell synthetic response surfaceを固定し、baseline / cap128 / cap64のmargin・regret・local incremental dimensionsを比較した。",
       "B6fではbaseline strict優位4セル、cap64 strict優位3セル、capped同率優位6セル、全policy同率3セルを観測し、static residual suppressionが条件依存であることを確認した。",
-      "B6fでtext/structured cardinality ratioが3.10と約3.147の近接2セルが反対のstatic policyを選好する反例を確認し、単一scalar ratio thresholdをsafe policy conditionとは扱えないことを固定した。"
+      "B6fでtext/structured cardinality ratioが3.10と約3.147の近接2セルが反対のstatic policyを選好する反例を確認し、単一scalar ratio thresholdをsafe policy conditionとは扱えないことを固定した。",
+      "SAC-B6gでcaller-owned exact workload classをstatic residual policyへ解決するevaluation-only envelopeを追加し、item/cardinality/marginからのautomatic class inferenceを実装しなかった。",
+      "B6g fixed two-class envelopeはB6f 16-cell gridでmean regret約0.01025 / max約0.05521、zero-regret 13/16を観測したが、3 narrow-structure cellのregretを残してcell-best oracle化を避けた。",
+      "B6gの誤宣言negative controlではworkload classのcaller-owned provenanceがpolicy correctnessを保証せず、t55/s8で約0.208のregretを生むことを固定した。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -888,7 +936,7 @@
       "learned sparse projectionがrandom / static方式を上回るか",
       "10万件以上でのindex方式",
       "実SEI workloadでのLLM呼び出し削減量。7 synthetic ReferenceFixturesではrouting plan上3/7（約42.9%）call avoidanceを観測したが、actual model telemetry / task success / total system cost / production一般化は未検証。",
-      "実hardware / real workloadにおけるcapacity profile品質、16-cell synthetic response surfaceを越えたresidual scaling一般化、human-adjudicated quality、safe workload-level policy condition、path別selection-pressure ceiling、adaptive Active / local budget policy、power / latency / memory trade-off",
+      "実hardware / real workloadにおけるcapacity profile品質、B6g caller-owned workload envelopeの実taxonomy/governance/generalization、human-adjudicated quality、class expiry/versioning、path別selection-pressure ceiling、adaptive Active / local budget policy、power / latency / memory trade-off",
       "実problem class / real Outcome評価におけるoutcome-informed routingの一般化、selection-bias補正、statistical confidence、drift / expiry / rollback criteria",
       "production配置方式",
       "Product Value / Operational / Adoption / Outcome Evidence",
@@ -923,7 +971,8 @@
       "cross-stage-decision/decision_contract_evidence_2026-09-19.json",
       "cross-stage-decision/decision_runtime_evidence_2026-09-19.json",
       "hybrid_model_call_avoidance_evidence_2026-09-19.json",
-      "residual_response_surface_evidence_2026-09-19.json"
+      "residual_response_surface_evidence_2026-09-19.json",
+      "workload_policy_envelope_evidence_2026-09-19.json"
     ]
   },
   "references": [
