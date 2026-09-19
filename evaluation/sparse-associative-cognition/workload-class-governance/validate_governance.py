@@ -13,6 +13,8 @@ BASE_DIR = Path(__file__).resolve().parent
 MANIFEST_PATH = BASE_DIR / "governance.json"
 
 EXPECTED_SCHEMA = "sei.sacs-workload-class-governance/v1alpha1"
+EXPECTED_ENVELOPE_REF = "../workload_policy_envelope_evidence_2026-09-19.json"
+EXPECTED_ENVELOPE_ID = "b6g-grid-eval-v1"
 EXPECTED_POLICIES = {"baseline", "cap128", "cap64"}
 EXPECTED_CLASS_POLICY = {
     "general": "cap128",
@@ -25,6 +27,8 @@ TOP_KEYS = {
     "schema",
     "status",
     "validation_as_of",
+    "envelope_ref",
+    "envelope_id",
     "allowed_policy_ids",
     "required_class_policy_map",
     "governance",
@@ -105,6 +109,10 @@ def validate_governance(doc: dict) -> list[str]:
     validation_as_of = parse_utc_second(
         doc.get("validation_as_of"), "validation_as_of", errors
     )
+    if doc.get("envelope_ref") != EXPECTED_ENVELOPE_REF:
+        errors.append(f"envelope_ref must remain {EXPECTED_ENVELOPE_REF}")
+    if doc.get("envelope_id") != EXPECTED_ENVELOPE_ID:
+        errors.append(f"envelope_id must remain {EXPECTED_ENVELOPE_ID}")
 
     allowed = doc.get("allowed_policy_ids")
     if (
