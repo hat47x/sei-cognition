@@ -310,11 +310,14 @@ current fixture distribution:
 
 raw / workspace comparison baselineは7件ともmodel invocationを計画する一方、staged routeは4件だけをlocal modelへ送る。このsynthetic fixture集合に限れば、raw baseline比で3/7、約42.9%のmodel invocationをrouting段階で回避する計画になる。
 
-ただしこれは実model telemetryではない。aggregation logicのisolated testは5/5 PASSしたが、execution environmentのGitHub名前解決制約によりcurrent repository dependency全体でのintegration runtimeは本sliceでは未観測である。
+ただしこれは実model telemetryではない。aggregation logicのisolated testは5/5 PASSしているが、Issue #511でcurrent repository dependencyを使うactual Go integration runtimeを試行したところ、GitHub Actionsは `runner_id=0` / `steps=[]` のままrunner割当前に終了した。local実行環境はGo 1.23.2で、正本moduleの `go 1.25` requirementによりbuild前に拒否され、automatic toolchain取得もnetwork名前解決不可で開始できなかった。
+
+したがって、current repository integration runtimeのPASS / FAILは引き続き**未観測**である。runner未開始やtoolchain取得不能をGo test failureへ読み替えない。
 
 machine-readable Evidence:
 
-`hybrid_model_call_avoidance_evidence_2026-09-19.json`
+- synthetic / isolated Evidence: `hybrid_model_call_avoidance_evidence_2026-09-19.json`
+- repository-runtime blocker Evidence: `hybrid_model_call_avoidance_runtime_blocker_evidence_2026-09-19.json`
 
 ```text
 synthetic routing call avoidance

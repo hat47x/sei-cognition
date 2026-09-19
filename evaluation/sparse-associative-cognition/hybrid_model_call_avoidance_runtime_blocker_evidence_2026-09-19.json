@@ -1,0 +1,96 @@
+{
+  "schema": "sei.sacs-hybrid-model-call-avoidance-runtime-blocker-evidence/v1alpha1",
+  "date": "2026-09-19",
+  "issue": 511,
+  "branch": "topic/sacs-hybrid-call-avoidance",
+  "base_branch": "develop/v0.2.0",
+  "purpose": "Record why current-repository integration runtime for hybrid model-call avoidance is still unobserved, without promoting runner/toolchain failure to a Go test result.",
+  "current_parent_commit": "42d1602e2707924b0bb274e8179e5efdd123f908",
+  "source_scope": {
+    "unchanged_from_actions_attempt": true,
+    "note": "The parent advanced after the Actions attempt, but the Go module and hybrid/modelprobe/cognitiveeval source blobs in this evidence scope remained byte-identical.",
+    "bindings": [
+      {
+        "path": "prototype-go/go.mod",
+        "blob_sha": "d6ba24ea65b4b80414bcf86912287973720ab7c7"
+      },
+      {
+        "path": "prototype-go/modelprobe/call_avoidance.go",
+        "blob_sha": "81cb7c4ca541035c76b8ce6c19ea9a57f93e534c"
+      },
+      {
+        "path": "prototype-go/modelprobe/call_avoidance_test.go",
+        "blob_sha": "f32e95ecd93547ab926b2a0bf274c8c9ef8ea424"
+      },
+      {
+        "path": "prototype-go/modelprobe/probe.go",
+        "blob_sha": "10bd563d10fefbd2c57e86a0d22855c39cbfcca1"
+      },
+      {
+        "path": "prototype-go/cognitiveeval/eval.go",
+        "blob_sha": "c9e68719adbe009f631160fb9470811fc3c40837"
+      },
+      {
+        "path": "prototype-go/hybridreasoning/router.go",
+        "blob_sha": "015c78d7f551642c379fa9637d821386c1b064b1"
+      }
+    ]
+  },
+  "github_actions_attempt": {
+    "attempt_head_sha": "f428bf148da6c558a0659c1db8d46caff512b460",
+    "workflow_run_id": 35439127724,
+    "job_id": 105886784754,
+    "status": "completed",
+    "conclusion": "failure",
+    "runner_id": 0,
+    "runner_name": "",
+    "step_count": 0,
+    "started_at": "2026-09-19T11:04:58Z",
+    "completed_at": "2026-09-19T11:05:01Z",
+    "classification": "runner-not-started",
+    "go_setup_observed": false,
+    "focused_test_execution_observed": false,
+    "package_regression_observed": false,
+    "full_module_regression_observed": false
+  },
+  "local_toolchain_observation": {
+    "available_go": "go1.23.2 linux/amd64",
+    "module_requirement": "go 1.25",
+    "local_mode": {
+      "command": "GOTOOLCHAIN=local go test ./...",
+      "exit_code": 1,
+      "result": "rejected-before-build",
+      "observation": "go.mod requires go >= 1.25 (running go 1.23.2; GOTOOLCHAIN=local)"
+    },
+    "auto_toolchain_mode": {
+      "command": "GOTOOLCHAIN=auto go test ./...",
+      "exit_code": 1,
+      "result": "toolchain-download-failed-before-build",
+      "observation": "go1.25.0 download attempted; proxy.golang.org DNS lookup failed with connection refused"
+    }
+  },
+  "repository_integration_runtime": {
+    "observed": false,
+    "focused_tests_passed_claimed": null,
+    "package_tests_passed_claimed": null,
+    "full_module_tests_passed_claimed": null,
+    "current_state": "blocked-on-go-1.25-capable-runtime",
+    "shared_infrastructure_constraint": "Issue #512 independently observed the same GitHub runner-not-started / local Go 1.25 availability constraint."
+  },
+  "prior_evidence": {
+    "ref": "hybrid_model_call_avoidance_evidence_2026-09-19.json",
+    "isolated_stubbed_tests_passed": 5,
+    "isolated_stubbed_tests_failed": 0,
+    "promoted_to_repository_integration_pass": false
+  },
+  "stop_lines": [
+    "runner-not-started != Go test failure",
+    "Go 1.23 toolchain rejection != hybrid logic failure",
+    "isolated stubbed 5/5 PASS != repository integration runtime PASS",
+    "repository integration PASS != production LLM call reduction",
+    "synthetic fixture call avoidance != real model telemetry",
+    "skipped model call != task success",
+    "lower model-call rate != lower total system cost",
+    "runtime blocker Evidence != production adoption"
+  ]
+}
