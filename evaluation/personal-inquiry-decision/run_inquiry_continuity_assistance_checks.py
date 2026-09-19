@@ -329,6 +329,7 @@ def sanitized_environment(
         "OLLAMA_HOST",
         "OLLAMA_MODELS",
         "OPENAI_API_KEY",
+        "OPENROUTER_API_KEY",
         "DEEPSEEK_API_KEY",
         "PYTHONPATH",
         "PYTHONHOME",

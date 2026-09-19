@@ -253,6 +253,7 @@ def sanitized_environment(source: dict[str, str] | None = None) -> dict[str, str
         "OLLAMA_HOST",
         "OLLAMA_MODELS",
         "OPENAI_API_KEY",
+        "OPENROUTER_API_KEY",
         "DEEPSEEK_API_KEY",
         "PYTHONPATH",
         "PYTHONHOME",

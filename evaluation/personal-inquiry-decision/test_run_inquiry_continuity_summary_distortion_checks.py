@@ -121,6 +121,7 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
                 "KJ_ATLAS_DATABASE_URL": "db",
                 "OLLAMA_HOST": "127.0.0.1:11434",
                 "OPENAI_API_KEY": "secret",
+                "OPENROUTER_API_KEY": "secret",
                 "PYTHONPATH": "/tmp/injected",
                 "PYTHONHOME": "/tmp/python",
             }
@@ -132,6 +133,7 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
             "KJ_ATLAS_DATABASE_URL",
             "OLLAMA_HOST",
             "OPENAI_API_KEY",
+            "OPENROUTER_API_KEY",
             "PYTHONPATH",
             "PYTHONHOME",
         ):
