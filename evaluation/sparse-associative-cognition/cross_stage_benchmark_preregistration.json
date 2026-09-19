@@ -276,5 +276,24 @@
     "recommendation_generated": false,
     "b5_decision_generated": false,
     "production_default_changed": false
+  },
+  "decision_artifact": {
+    "state": "draft",
+    "directory": "cross-stage-decision",
+    "decision_ref": "cross-stage-decision/decision.json",
+    "validator_ref": "cross-stage-decision/validate_decision.py",
+    "evidence_ref": "cross-stage-decision/decision_contract_evidence_2026-09-19.json",
+    "current_decision_generated": false,
+    "requires_interpreted_artifact": true,
+    "allowed_dispositions": [
+      "defer-for-evidence",
+      "retain-current-stage",
+      "request-b5-review"
+    ],
+    "b5_review_requested": false,
+    "semantic_truth_claimed": false,
+    "variant_winner_selected": false,
+    "b5_gate_opened": false,
+    "production_default_changed": false
   }
 }
