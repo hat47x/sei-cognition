@@ -821,12 +821,9 @@
       "cross-stage evaluation-run validatorをGitHub正本とGit blob SHA一致の一時再構成環境でPython 3.13.5実行し、run 20 tests、freeze 18 tests、preregistration 23 testsの計61 testsがPASSした。3 validatorもPASSし、current run / freeze bundle / preregistrationは引き続きdraft / lockedのままである。",
       "cross-stage result artifactをdraft / empty templateとして実装し、authorized runへのexact digest binding、requested metric完全性、metric role、unavailable明示、raw Evidence digest、canonical result digestの境界をvalidator/testで固定した。実human-adjudicated benchmark resultは未生成。",
       "cross-stage result validatorをGitHub正本とGit blob SHA一致の一時再構成環境でPython 3.13.5実行し、result 24 tests、run 20 tests、freeze 18 tests、preregistration 27 testsの計89 testsがPASSした。4 validatorもPASSし、current result / run / freeze bundle / preregistrationは引き続きdraft / lockedのままである。",
-      "cross-stage interpretation artifactをdraft / non-decisional templateとして実装し、completed result exact digest binding、scope identity、metric evidence reference、analyst provenance、explicit limitation、canonical digestをcontract化した。source inspectionでinterpretation 27 tests、preregistration 32 tests、research-plan 33 testsを定義し、semantic truth / winner / recommendation / B5 decision / production defaultへの昇格をfail-closedにした。runtime実行は本更新では未観測。",
-      "cross-stage execution-attempt artifactをresultから分離してdraft contract化し、成功/失敗双方の試行、exact run digest、executor/environment/time/exit/raw Evidence、canonical attempt digestをGit blob SHA一致のfocused 20 testsで固定した。upstream full integration runtime Evidenceは未実行で、実benchmark resultも未生成。",
       "cross-stage execution-attemptをGitHub正本17 source / manifestのGit blob SHA一致一時再構成環境でPython 3.13.5実行し、focused 20 tests、actual upstream integration 6 tests、run/freeze/preregistration regression 70 testsの計96 testsがPASSした。4 validatorもPASSし、current attempt / run / freeze / preregistrationはdraft / lockedのままである。",
       "cross-stage interpretationをGitHub正本19 source / manifestのGit blob SHA一致一時再構成環境でPython 3.13.5実行し、interpretation 27 tests、result/run/freeze/preregistration regression 94 testsの計121 testsがPASSした。5 validatorもPASSし、synthetic interpreted artifactはcompleted resultとactual upstream chainを通過する一方、current interpretation / result / run / freeze / preregistrationはdraft / lockedのままである。",
       "cross-stage interpretation後のB5 review dispositionを独立decision-record contractとして分離し、defer-for-evidence / retain-current-stage / request-b5-reviewの3 disposition、exact interpretation digest binding、decision authority provenance、rationale refs、upstream limitation preservation、canonical digestを定義した。request-b5-reviewはB5 gate openではなく、semantic truth / variant winner / production default変更もfail-closedのままである。",
-      "cross-stage decision-record contractをGitHub source inspectionで確認し、decision 27 tests、preregistration 38 tests、research-plan 39 testsの計104 testsを定義した。実行環境からGitHub checkoutできなかったためruntime PASSは主張せず、checked-in decisionはdraft / not-assessed、B5 gate / production defaultは未変更のままである。",
       "cross-stage decision-recordをGitHub正本22 source / manifestのGit blob SHA一致一時再構成環境でPython 3.13.5実行し、decision 27 tests、interpretation/result/run/freeze/preregistration regression 127 testsの計154 testsがPASSした。6 validatorもPASSし、synthetic 3 dispositionはactual upstream chainを通過する一方、current decisionはdraft / not-assessed、B5 gateはclosed、production defaultは未変更のままである。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
@@ -847,9 +844,10 @@
       "Product Value / Operational / Adoption / Outcome Evidence",
       "cross-stage human-adjudicated evaluationはpreregistration済みだが、adjudication / dataset / split / B3 prior manifest未freezeのためlocked。semantic benchmark resultは未生成。",
       "実SUI/SEI human-adjudicated dataset、review process、split、B3 prior provenanceが未提供のためcross-stage freeze kitはdraftのまま。frozen bundleおよびauthorized evaluation-runは未生成。checked-in evaluation_run.jsonはdraft / locked templateのみ。",
-      "cross-stage result contractは実装済みだが、human-adjudicated dataset / frozen bundle / authorized runが未生成のためchecked-in resultはdraft / empty。benchmark interpretation / B5 decision / production adoptionは未実施。",
-      "cross-stage interpretation contractは実装済みでも、human-adjudicated completed resultが未生成のためchecked-in interpretationはdraft / empty。variant winner / recommendation / B5 decision / production adoptionは未実施。",
-      "cross-stage decision-record contractは実装中だが、human-adjudicated interpreted artifactが未生成のためchecked-in decisionはdraft / not-assessed。request-b5-review / B5 gate open / production adoptionはいずれも未実施。"
+      "cross-stage result contractとactual runtime Evidenceは実装済みだが、human-adjudicated dataset / frozen bundle / authorized runが未生成のためchecked-in resultはdraft / empty。actual benchmark result / interpretation / B5 decision / production adoptionは未実施。",
+      "cross-stage interpretation contractとactual upstream integration runtime Evidenceは実装済みだが、human-adjudicated completed resultが未生成のためchecked-in interpretationはdraft / empty。actual interpretation / variant winner / recommendation / B5 decision / production adoptionは未実施。",
+      "cross-stage decision-record contractとactual runtime Evidenceは実装済みだが、human-adjudicated interpreted artifactが未生成のためchecked-in decisionはdraft / not-assessed。actual request-b5-review / B5 gate open / production adoptionはいずれも未実施。",
+      "cross-stage execution-attempt contractとactual upstream integration runtime Evidenceは実装済みだが、human-adjudicated frozen bundle / authorized runが未生成のためchecked-in execution attemptはdraft / not-started。actual benchmark execution attemptおよびbenchmark result生成は未実施。"
     ],
     "supporting_evidence_files": [
       "input_normalization_evidence_2026-09-18.json",
@@ -1036,7 +1034,7 @@
       "b5_gate_opened": false,
       "production_default_changed": false,
       "current_disposition": "not-assessed",
-      "contract_validation_state": "source-inspected-regression-defined",
+      "contract_validation_state": "runtime-validated-contract-and-synthetic-upstream-regression",
       "runtime_execution_observed": true,
       "decision_tests_defined": 27,
       "preregistration_tests_defined": 38,
