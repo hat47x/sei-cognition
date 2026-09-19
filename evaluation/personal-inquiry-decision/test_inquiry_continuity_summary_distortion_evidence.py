@@ -222,9 +222,15 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
         )
 
     def test_preflight_exposes_v1_artifact_contract_without_review_artifacts(self):
+        all_fixtures = {
+            case["fixture_id"]: copy.deepcopy(
+                self.fixtures[self.fixture_id]
+            )
+            for case in self.probe["cases"]
+        }
         summary = evidence_contract_summary(
             self.probe,
-            self.fixtures,
+            all_fixtures,
             self.fixture_id,
         )
         self.assertTrue(summary["valid"])
@@ -548,7 +554,7 @@ class SummaryDistortionEvidenceTest(unittest.TestCase):
             validate_evidence_bundle(changed)
 
         changed = copy.deepcopy(bundle)
-        changed["source_snapshot"]["blob_sha1"] = "a" * 40
+        changed["source_snapshot"]["blob_sha1"] = "0" * 40
         with self.assertRaises(SummaryDistortionEvidenceError):
             validate_evidence_bundle(changed)
 
