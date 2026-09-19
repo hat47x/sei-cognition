@@ -160,9 +160,35 @@ machine-readable contract Evidence:
 
 `interpretation_contract_evidence_2026-09-19.json`
 
-このEvidenceはGitHub source inspectionと定義済み回帰coverageを記録する。今回のcontract更新ではruntime test PASSを主張しない。
+actual runtime Evidence:
+
+`interpretation_runtime_evidence_2026-09-19.json`
+
+### Actual runtime verification
+
+GitHub正本19 source / manifestをGit blob SHA一致で一時再構成し、Python 3.13.5 / Linux 6.18.44 x86_64で実行した。
+
+- interpretation validator: PASS / current interpretation remains draft / empty
+- result validator: PASS / current result remains draft / empty
+- evaluation-run validator: PASS / current run remains draft / locked
+- freeze validator: PASS / current bundle remains draft / locked
+- preregistration validator: PASS / evaluation remains locked
+- interpretation tests: 27 / 27 PASS
+- result regression: 24 / 24 PASS
+- evaluation-run regression: 20 / 20 PASS
+- freeze regression: 18 / 18 PASS
+- preregistration regression: 32 / 32 PASS
+- total: **121 tests PASS / 0 failures**
+- GitHub Actions: 未使用
+
+interpretation testsのsynthetic interpreted pathはcompleted result、authorized run、frozen bundle、full unlockをactual validator chainで再検証する。一方、checked-in artifactは引き続きdraft / emptyである。
 
 ```text
-defined tests != executed tests
-source contract != human benchmark interpretation
+runtime PASS
+  != human-adjudicated benchmark interpretation
+  != semantic truth
+  != variant winner
+  != recommendation
+  != B5 decision
+  != production adoption
 ```
