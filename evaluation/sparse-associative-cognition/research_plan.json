@@ -822,6 +822,48 @@
         },
         "stop_line": "valid/reviewed declaration、provenance、expiry/versioning contractをclass correctness、semantic truth、automatic classifier、production activation、real governance outcomeへ昇格させない。"
       }
+    },
+    {
+      "stage": "SAC-B6j",
+      "name": "governance-validated workload declaration admission",
+      "depends_on": [
+        "SAC-B6i"
+      ],
+      "change": "B6i governance lifecycleをGoへ再実装せず、upstream validation済みのdeclaration snapshotをB6g WorkloadPolicyEnvelope.Resolveへ渡す直前にreviewed / resolution_allowed / non-superseded / exact policy一致だけをfail-closedに確認するevaluation-only admission adapterを追加する。",
+      "primary_question": "governance validityとresolver責務を分離したまま、candidate / expired / superseded / policy-mismatched declarationがGo resolverへ到達しないadmission boundaryを固定できるか。",
+      "measures": [
+        "reviewed_snapshot_admission",
+        "non_reviewed_state_rejection",
+        "resolution_allowed_gate",
+        "supersession_fail_closed",
+        "exact_policy_match",
+        "current_candidate_manifest_rejection",
+        "existing_envelope_regression_preservation"
+      ],
+      "current_result": {
+        "state": "limited-go123-compatibility-integration-evidence",
+        "evidence_file": "workload_governance_admission_evidence_2026-09-19.json",
+        "findings": [
+          "Go admission adapterはupstream B6i lifecycle validatorを再実装せず、reviewed / resolution_allowed / non-superseded / positive version / canonical governance ref / exact policy一致のみを要求する。",
+          "current B6i governance manifestの2 candidate declarationは、どちらもGo resolver到達前にfail-closedとなることをexact-source integration testで確認した。",
+          "synthetic reviewed snapshotのpositive controlではgeneral→cap128をadmitし、candidate / expired / superseded / resolution_allowed=false / unknown class / unsupported policy / policy mismatchを拒否した。",
+          "existing B6g envelope regressionを同じfocused source setで再実行し、新adapter追加後もresolver既存挙動を保持した。",
+          "Go 1.23.2 / GO111MODULE=off focused executionでは15 top-level tests PASS / 0 failures。canonical moduleはGo 1.25であり、#512未解消のためGo 1.25 PASSへ昇格しない。"
+        ],
+        "implementation_boundary": {
+          "placement": "evaluation/sparse-associative-cognition/prototype-go/capacityprofile",
+          "evaluation_only": true,
+          "python_governance_reimplemented_in_go": false,
+          "wall_clock_lifecycle_validation_in_go": false,
+          "workload_class_inference_implemented": false,
+          "automatic_activation_implemented": false,
+          "production_provider_integrated": false,
+          "provider_default_changed": false,
+          "canonical_go125_execution_observed": false,
+          "b5_entry_gate_changed": false
+        },
+        "stop_line": "admission PASSやreviewed snapshotをclass correctness、semantic truth、production activation、canonical Go 1.25 PASSへ昇格させない。"
+      }
     }
   ],
   "stage_gate_policy": {
@@ -1004,7 +1046,8 @@
       "B6gの誤宣言negative controlではworkload classのcaller-owned provenanceがpolicy correctnessを保証せず、t55/s8で約0.208のregretを生むことを固定した。",
       "SAC-B6hでB6g workload classを全16-cellで反転するcounterfactualを評価し、13/16でmargin悪化、3/16で同値、改善0を確認した。mean misdeclaration penalty約0.24406 / max約0.44778であり、provenanceをdeclaration correctnessへ昇格できないことを固定した。",
       "Issue #511でGitHub正本8 blobをSHA完全一致でGOPATHへ再構成し、Go 1.23.2 / GO111MODULE=offでcurrent cognitiveeval / hybridreasoningをstubせずactual dependency integration実行した。focused call-avoidance 5/5、current modelprobe package regression 16/16 PASS。これはcanonical Go 1.25 module execution、real model telemetry、task success、total system cost、production LLM削減量を示さない。",
-      "SAC-B6iでB6g workload classへversion / review / expiry / supersessionを持つevaluation-only governance contractを追加し、exact-source validator PASSと34/34 regression PASSを固定した。checked-in declarationsはcandidate / resolution_allowed=falseで、automatic inference / activation / production / B5は未変更。"
+      "SAC-B6iでB6g workload classへversion / review / expiry / supersessionを持つevaluation-only governance contractを追加し、exact-source validator PASSと34/34 regression PASSを固定した。checked-in declarationsはcandidate / resolution_allowed=falseで、automatic inference / activation / production / B5は未変更。",
+      "SAC-B6jでB6i validation済みdeclaration snapshotからB6g Go resolverへのevaluation-only admission adapterを追加し、current candidate declarationsのfail-closedとexisting envelope regressionを含むGo 1.23.2 focused 15-test PASSを固定した。canonical Go 1.25 executionは未達のため互換性Evidenceに限定する。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -1030,7 +1073,8 @@
       "cross-stage decision-record contractとactual runtime Evidenceは実装済みだが、human-adjudicated interpreted artifactが未生成のためchecked-in decisionはdraft / not-assessed。actual request-b5-review / B5 gate open / production adoptionはいずれも未実施。",
       "cross-stage execution-attempt contractとactual upstream integration runtime Evidenceは実装済みだが、human-adjudicated frozen bundle / authorized runが未生成のためchecked-in execution attemptはdraft / not-started。actual benchmark execution attemptおよびbenchmark result生成は未実施。",
       "caller-owned workload classの実workload taxonomy、宣言error rate、human review / expiry / versioning / change-review governance、および実SUI/SEI品質への影響",
-      "SAC-B6i governance contractと34/34 runtime Evidenceは取得済みだが、実workload class taxonomy、宣言error rate、human reviewer governance process、real expiry cadence、reviewed declaration下の実SUI/SEI品質、production activationは未検証。"
+      "SAC-B6i governance contractと34/34 runtime Evidenceは取得済みだが、実workload class taxonomy、宣言error rate、human reviewer governance process、real expiry cadence、reviewed declaration下の実SUI/SEI品質、production activationは未検証。",
+      "SAC-B6j admission adapterのGo 1.23.2 focused compatibility Evidenceは取得済みだが、canonical Go 1.25 execution、full prototype-go regression、real reviewed declaration運用、production provider integration、実workload class correctnessは未検証。"
     ],
     "supporting_evidence_files": [
       "input_normalization_evidence_2026-09-18.json",
@@ -1061,7 +1105,8 @@
       "residual_response_surface_evidence_2026-09-19.json",
       "workload_policy_envelope_evidence_2026-09-19.json",
       "workload_policy_declaration_sensitivity_evidence_2026-09-19.json",
-      "workload_class_governance_runtime_evidence_2026-09-19.json"
+      "workload_class_governance_runtime_evidence_2026-09-19.json",
+      "workload_governance_admission_evidence_2026-09-19.json"
     ]
   },
   "references": [

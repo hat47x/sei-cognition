@@ -1,0 +1,86 @@
+{
+  "schema": "sei.sacs-workload-governance-admission-evidence/v1alpha1",
+  "date": "2026-09-19",
+  "issue": 523,
+  "branch": "topic/sac-b6j-governance-resolver-admission",
+  "status": "limited-go123-compatibility-integration-evidence",
+  "purpose": "Evaluate the admission boundary from an upstream-governance-validated workload declaration snapshot into the B6g Go workload policy envelope without duplicating lifecycle governance in Go.",
+  "source_bindings": {
+    "method": "Reconstructed the focused source set locally and verified each file with git hash-object before execution.",
+    "files": [
+      {
+        "path": "prototype-go/capacityprofile/workload_policy_envelope.go",
+        "blob_sha": "e142d98012e960982ae4be2692d45369785e82e6"
+      },
+      {
+        "path": "prototype-go/capacityprofile/workload_policy_envelope_test.go",
+        "blob_sha": "e341591144038b95ebc8c4158016430c8d4e69bb"
+      },
+      {
+        "path": "prototype-go/capacityprofile/workload_governance_admission.go",
+        "blob_sha": "76a17ab1a82fb2cf91c6145cb56f913e28925b59"
+      },
+      {
+        "path": "prototype-go/capacityprofile/workload_governance_admission_test.go",
+        "blob_sha": "7c50c179ade853ac0164309cf3c5bc6fc5a098e6"
+      },
+      {
+        "path": "workload-class-governance/governance.json",
+        "blob_sha": "8fb89a1bf1e9b2c9a315ad2774bbc33666b1e800"
+      }
+    ],
+    "sha_mismatches": 0
+  },
+  "environment": {
+    "go": "go1.23.2 linux/amd64",
+    "mode": "GO111MODULE=off focused GOPATH-style package execution",
+    "canonical_module_go_version": "1.25",
+    "canonical_go125_execution_observed": false,
+    "github_actions_used": false,
+    "full_repository_checkout": false
+  },
+  "execution": {
+    "command": "GO111MODULE=off go test -v",
+    "package": "capacityprofile focused reconstructed source set",
+    "exit_code": 0,
+    "result": "PASS",
+    "top_level_tests_passed": 15,
+    "failures": 0
+  },
+  "observations": [
+    "reviewed + resolution_allowed + non-superseded declaration with exact envelope policy is admitted",
+    "candidate / expired / superseded / empty state fails closed",
+    "resolution_allowed=false fails closed",
+    "superseded snapshot fails closed",
+    "nonpositive version and missing/noncanonical governance ref fail closed",
+    "declaration policy mismatch fails closed",
+    "unknown workload class and unsupported policy fail closed",
+    "current checked-in B6i candidate declarations cannot reach the resolver",
+    "existing B6g envelope regression remains PASS in the same focused source set"
+  ],
+  "architecture_boundary": {
+    "python_governance_reimplemented_in_go": false,
+    "wall_clock_lifecycle_validation_in_go": false,
+    "workload_class_inference_implemented": false,
+    "automatic_activation_implemented": false,
+    "production_provider_integrated": false,
+    "provider_default_changed": false,
+    "b5_entry_gate_changed": false
+  },
+  "stop_lines": [
+    "admitted declaration != correct declaration",
+    "reviewed snapshot != semantic truth",
+    "Go adapter PASS != production activation",
+    "Go 1.23 compatibility PASS != canonical Go 1.25 PASS",
+    "governance admission != workload class inference",
+    "focused source set PASS != full repository regression"
+  ],
+  "not_verified": [
+    "canonical Go 1.25 execution",
+    "full prototype-go module regression",
+    "real human reviewer governance process",
+    "real workload class taxonomy or declaration correctness",
+    "production provider integration",
+    "Product Value / Operational / Adoption / Outcome Evidence"
+  ]
+}
