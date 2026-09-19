@@ -398,6 +398,28 @@ class SummaryDistortionLocalChecksTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_result(tampered)
 
+    def test_validate_result_rejects_safe_but_noncanonical_execution_contract(self):
+        result = self.mechanics_result()
+
+        tampered = copy.deepcopy(result)
+        tampered["selected"][0] = "other-check"
+        tampered["executed"][0]["name"] = "other-check"
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+        tampered = copy.deepcopy(result)
+        tampered["executed"][0]["command"][1] = (
+            "evaluation/personal-inquiry-decision/"
+            "inquiry_continuity_summary_distortion_evidence.py"
+        )
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
+        tampered = copy.deepcopy(result)
+        tampered["executed"][0]["cwdRelativeToRepo"] = "evaluation"
+        with self.assertRaises(ValueError):
+            validate_result(tampered)
+
     def test_save_result_is_exclusive_create(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "result.json"
