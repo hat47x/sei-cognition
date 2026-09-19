@@ -99,6 +99,13 @@ class SparseAssociativeCognitionResearchPlanTests(unittest.TestCase):
         ]
         self.assert_has_error(plan, "missing required stages")
 
+    def test_b6j_follow_on_stage_cannot_disappear_silently(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["follow_on_experiments"] = [
+            item for item in plan["follow_on_experiments"] if item["stage"] != "SAC-B6j"
+        ]
+        self.assert_has_error(plan, "missing required stages")
+
     def test_rejection_remains_valid_research_completion(self) -> None:
         plan = copy.deepcopy(self.plan)
         plan["stage_gate_policy"]["rejection_is_valid_completion"] = False
@@ -537,6 +544,19 @@ class SparseAssociativeCognitionResearchPlanTests(unittest.TestCase):
             "supporting_evidence_files must retain SAC-B6i governance runtime Evidence",
         )
 
+    def test_b6j_admission_evidence_must_remain_supported(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        ref = "workload_governance_admission_evidence_2026-09-19.json"
+        plan["current_evidence"]["supporting_evidence_files"] = [
+            item
+            for item in plan["current_evidence"]["supporting_evidence_files"]
+            if item != ref
+        ]
+        self.assert_has_error(
+            plan,
+            "supporting_evidence_files must retain SAC-B6j admission Evidence",
+        )
+
     def test_hybrid_call_avoidance_real_workload_boundary_is_required(self) -> None:
         plan = copy.deepcopy(self.plan)
         plan["current_evidence"]["not_yet_verified"] = [
@@ -609,6 +629,43 @@ class SparseAssociativeCognitionResearchPlanTests(unittest.TestCase):
                 self.assert_has_error(
                     plan,
                     f"SAC-B6i boundary must retain {fragment}",
+                )
+
+    def test_b6j_runtime_boundary_is_required(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["current_evidence"]["not_yet_verified"] = [
+            item
+            for item in plan["current_evidence"]["not_yet_verified"]
+            if "SAC-B6j admission adapter" not in item
+        ]
+        self.assert_has_error(
+            plan,
+            "not_yet_verified must retain SAC-B6j runtime boundary",
+        )
+
+    def test_b6j_runtime_boundary_retains_non_promotion_fragments(self) -> None:
+        required_fragments = (
+            "canonical Go 1.25 execution",
+            "full prototype-go regression",
+            "production provider integration",
+            "実workload class correctness",
+            "未検証",
+        )
+        for fragment in required_fragments:
+            with self.subTest(fragment=fragment):
+                plan = copy.deepcopy(self.plan)
+                items = plan["current_evidence"]["not_yet_verified"]
+                plan["current_evidence"]["not_yet_verified"] = [
+                    (
+                        item.replace(fragment, "removed")
+                        if "SAC-B6j admission adapter" in item
+                        else item
+                    )
+                    for item in items
+                ]
+                self.assert_has_error(
+                    plan,
+                    f"SAC-B6j boundary must retain {fragment}",
                 )
 
     def test_llm_is_not_required_or_default_fallback(self) -> None:
