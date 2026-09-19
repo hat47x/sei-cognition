@@ -53,6 +53,7 @@ REQUIRED_FOLLOW_ON_STAGES = {
     "SAC-B4",
     "SAC-B5",
     "SAC-B6",
+    "SAC-B6i",
     "SEI-B7",
 }
 
@@ -735,6 +736,17 @@ def validate_research_plan(plan: dict) -> list[str]:
                 "current_evidence.supporting_evidence_files must retain hybrid call-avoidance Evidence"
             )
 
+        b6i_governance_ref = (
+            "workload_class_governance_runtime_evidence_2026-09-19.json"
+        )
+        if (
+            not isinstance(supporting, list)
+            or b6i_governance_ref not in supporting
+        ):
+            errors.append(
+                "current_evidence.supporting_evidence_files must retain SAC-B6i governance runtime Evidence"
+            )
+
         not_yet_verified = evidence.get("not_yet_verified")
         if not isinstance(not_yet_verified, list) or not all(
             isinstance(item, str) for item in not_yet_verified
@@ -764,6 +776,32 @@ def validate_research_plan(plan: dict) -> list[str]:
                     if required_fragment not in hybrid_boundary:
                         errors.append(
                             "current_evidence.not_yet_verified hybrid call-avoidance boundary "
+                            f"must retain {required_fragment}"
+                        )
+
+            b6i_boundary = next(
+                (
+                    item
+                    for item in not_yet_verified
+                    if "SAC-B6i governance contract" in item
+                ),
+                None,
+            )
+            if b6i_boundary is None:
+                errors.append(
+                    "current_evidence.not_yet_verified must retain SAC-B6i real-governance boundary"
+                )
+            else:
+                for required_fragment in (
+                    "実workload class taxonomy",
+                    "宣言error rate",
+                    "human reviewer governance process",
+                    "production activation",
+                    "未検証",
+                ):
+                    if required_fragment not in b6i_boundary:
+                        errors.append(
+                            "current_evidence.not_yet_verified SAC-B6i boundary "
                             f"must retain {required_fragment}"
                         )
 

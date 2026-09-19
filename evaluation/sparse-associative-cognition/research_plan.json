@@ -782,6 +782,46 @@
         },
         "stop_line": "synthetic route efficacyを、semantic truth、Recommendation / Decision correctness、new permission、Authority、future success guarantee、production routing policyへ昇格させない。"
       }
+    },
+    {
+      "stage": "SAC-B6i",
+      "name": "workload-class declaration lifecycle / review governance",
+      "depends_on": [
+        "SAC-B6h"
+      ],
+      "change": "B6g/B6hのcaller-owned workload classについて、class correctnessを推定せず、version / validity window / review / expiry / supersessionを持つevaluation-only governance contractを追加する。fixed logical validation_as_ofで再現可能に検証し、review済み・期限内・latest versionだけをresolution可能にする。",
+      "primary_question": "caller-owned workload classをautomatic inferenceへ昇格させず、宣言の追跡可能性・review期限・expiry・supersessionをfail-closedに管理できるか。またgovernance validityとsemantic correctness / production activationを分離できるか。",
+      "measures": [
+        "exact_envelope_binding",
+        "declaration_version_validity",
+        "review_metadata_completeness",
+        "expiry_fail_closed",
+        "supersession_consistency",
+        "resolution_gate_preservation",
+        "deterministic_logical_time_validation"
+      ],
+      "current_result": {
+        "state": "limited-executable-governance-evidence",
+        "evidence_file": "workload_class_governance_runtime_evidence_2026-09-19.json",
+        "findings": [
+          "B6g exact mapping（general→cap128、structure-preserving→baseline）へgovernance artifactを固定し、checked-in 2 declarationはいずれもcandidate / resolution_allowed=falseのままとした。",
+          "exact-source Python executionでvalidator PASS、focused regression 34/34 PASSを確認した。",
+          "version bool-as-int/nonpositive、unknown/noncanonical class、policy mismatch、owner/provenance欠落、timestamp ordering破壊、review metadata欠落、review due/expiry到来、supersession不整合をfail-closedにした。",
+          "reviewed declarationでもvalid_from <= validation_as_of < review_due_at < expires_atを満たし、strict review metadataとEvidence refsが揃う場合だけresolution_allowed=trueを許可する。",
+          "automatic class inference / probabilistic classifier / automatic activation / semantic correctness inference / production activation / B5 gate changeはすべてfalseのまま維持した。"
+        ],
+        "implementation_boundary": {
+          "placement": "evaluation/sparse-associative-cognition/workload-class-governance",
+          "evaluation_only": true,
+          "automatic_class_inference_implemented": false,
+          "probabilistic_classifier_implemented": false,
+          "automatic_activation_implemented": false,
+          "production_activation_enabled": false,
+          "provider_default_changed": false,
+          "b5_entry_gate_changed": false
+        },
+        "stop_line": "valid/reviewed declaration、provenance、expiry/versioning contractをclass correctness、semantic truth、automatic classifier、production activation、real governance outcomeへ昇格させない。"
+      }
     }
   ],
   "stage_gate_policy": {
@@ -963,7 +1003,8 @@
       "B6g fixed two-class envelopeはB6f 16-cell gridでmean regret約0.01025 / max約0.05521、zero-regret 13/16を観測したが、3 narrow-structure cellのregretを残してcell-best oracle化を避けた。",
       "B6gの誤宣言negative controlではworkload classのcaller-owned provenanceがpolicy correctnessを保証せず、t55/s8で約0.208のregretを生むことを固定した。",
       "SAC-B6hでB6g workload classを全16-cellで反転するcounterfactualを評価し、13/16でmargin悪化、3/16で同値、改善0を確認した。mean misdeclaration penalty約0.24406 / max約0.44778であり、provenanceをdeclaration correctnessへ昇格できないことを固定した。",
-      "Issue #511でGitHub正本8 blobをSHA完全一致でGOPATHへ再構成し、Go 1.23.2 / GO111MODULE=offでcurrent cognitiveeval / hybridreasoningをstubせずactual dependency integration実行した。focused call-avoidance 5/5、current modelprobe package regression 16/16 PASS。これはcanonical Go 1.25 module execution、real model telemetry、task success、total system cost、production LLM削減量を示さない。"
+      "Issue #511でGitHub正本8 blobをSHA完全一致でGOPATHへ再構成し、Go 1.23.2 / GO111MODULE=offでcurrent cognitiveeval / hybridreasoningをstubせずactual dependency integration実行した。focused call-avoidance 5/5、current modelprobe package regression 16/16 PASS。これはcanonical Go 1.25 module execution、real model telemetry、task success、total system cost、production LLM削減量を示さない。",
+      "SAC-B6iでB6g workload classへversion / review / expiry / supersessionを持つevaluation-only governance contractを追加し、exact-source validator PASSと34/34 regression PASSを固定した。checked-in declarationsはcandidate / resolution_allowed=falseで、automatic inference / activation / production / B5は未変更。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -988,7 +1029,8 @@
       "cross-stage interpretation contractとactual upstream integration runtime Evidenceは実装済みだが、human-adjudicated completed resultが未生成のためchecked-in interpretationはdraft / empty。actual interpretation / variant winner / recommendation / B5 decision / production adoptionは未実施。",
       "cross-stage decision-record contractとactual runtime Evidenceは実装済みだが、human-adjudicated interpreted artifactが未生成のためchecked-in decisionはdraft / not-assessed。actual request-b5-review / B5 gate open / production adoptionはいずれも未実施。",
       "cross-stage execution-attempt contractとactual upstream integration runtime Evidenceは実装済みだが、human-adjudicated frozen bundle / authorized runが未生成のためchecked-in execution attemptはdraft / not-started。actual benchmark execution attemptおよびbenchmark result生成は未実施。",
-      "caller-owned workload classの実workload taxonomy、宣言error rate、human review / expiry / versioning / change-review governance、および実SUI/SEI品質への影響"
+      "caller-owned workload classの実workload taxonomy、宣言error rate、human review / expiry / versioning / change-review governance、および実SUI/SEI品質への影響",
+      "SAC-B6i governance contractと34/34 runtime Evidenceは取得済みだが、実workload class taxonomy、宣言error rate、human reviewer governance process、real expiry cadence、reviewed declaration下の実SUI/SEI品質、production activationは未検証。"
     ],
     "supporting_evidence_files": [
       "input_normalization_evidence_2026-09-18.json",
@@ -1018,7 +1060,8 @@
       "hybrid_model_call_avoidance_integration_runtime_evidence_2026-09-19.json",
       "residual_response_surface_evidence_2026-09-19.json",
       "workload_policy_envelope_evidence_2026-09-19.json",
-      "workload_policy_declaration_sensitivity_evidence_2026-09-19.json"
+      "workload_policy_declaration_sensitivity_evidence_2026-09-19.json",
+      "workload_class_governance_runtime_evidence_2026-09-19.json"
     ]
   },
   "references": [

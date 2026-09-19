@@ -1,0 +1,68 @@
+{
+  "schema": "sei.sacs-workload-class-governance/v1alpha1",
+  "status": "evaluation-only",
+  "allowed_policy_ids": [
+    "baseline",
+    "cap128",
+    "cap64"
+  ],
+  "required_class_policy_map": {
+    "general": "cap128",
+    "structure-preserving": "baseline"
+  },
+  "governance": {
+    "exact_class_match_required": true,
+    "caller_owned_provenance_required": true,
+    "review_required_before_resolution": true,
+    "expiry_fail_closed": true,
+    "superseded_version_fail_closed": true,
+    "automatic_class_inference_implemented": false,
+    "probabilistic_classifier_implemented": false,
+    "automatic_activation_implemented": false,
+    "semantic_correctness_inferred": false,
+    "production_activation_allowed": false
+  },
+  "classes": [
+    {
+      "class_id": "general",
+      "policy_id": "cap128",
+      "version": 1,
+      "state": "candidate",
+      "owner_ref": "caller:synthetic-b6g-general",
+      "provenance_ref": "workload_policy_envelope_evidence_2026-09-19.json#general",
+      "valid_from": "2026-09-19T00:00:00Z",
+      "expires_at": "2026-12-18T00:00:00Z",
+      "review": null,
+      "supersedes_version": null,
+      "superseded_by_version": null,
+      "resolution_allowed": false,
+      "declared_at": "2026-09-19T00:00:00Z",
+      "review_due_at": "2026-10-19T00:00:00Z"
+    },
+    {
+      "class_id": "structure-preserving",
+      "policy_id": "baseline",
+      "version": 1,
+      "state": "candidate",
+      "owner_ref": "caller:synthetic-b6g-structure-preserving",
+      "provenance_ref": "workload_policy_envelope_evidence_2026-09-19.json#structure-preserving",
+      "valid_from": "2026-09-19T00:00:00Z",
+      "expires_at": "2026-12-18T00:00:00Z",
+      "review": null,
+      "supersedes_version": null,
+      "superseded_by_version": null,
+      "resolution_allowed": false,
+      "declared_at": "2026-09-19T00:00:00Z",
+      "review_due_at": "2026-10-19T00:00:00Z"
+    }
+  ],
+  "stop_flags": {
+    "semantic_correctness_claimed": false,
+    "real_world_declaration_error_rate_claimed": false,
+    "production_activation_enabled": false,
+    "b5_entry_gate_changed": false
+  },
+  "validation_as_of": "2026-09-20T00:00:00Z",
+  "envelope_ref": "../workload_policy_envelope_evidence_2026-09-19.json",
+  "envelope_id": "b6g-grid-eval-v1"
+}
