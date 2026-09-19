@@ -422,6 +422,26 @@ python3 "$EVIDENCE_TOOL" --probe "$PROBE_SET" --repo-root . \
   --output "$EVIDENCE"
 ```
 
+#### E78.3 actual mechanics checkpoint — 2026-09-19
+
+GitHub正本のblobを固定して一時実行環境へ再構成し、Python 3.13.5でE78.3 mechanicsの一部をactual実行した。machine-readable recordは `evaluation/personal-inquiry-decision/evidence/issue-000078/e78_summary_distortion_partial_runtime_2026-09-19.json` とする。
+
+- canonical probe `validate`: exit 0。
+- probe focused tests: **23 / 23 PASS**。
+- Evidence focused tests: **18 / 18 PASS**。
+- Evidence focused testsのactual実行前に、preflight testがcomplete 3-fixture setではなく1 fixtureだけを渡していた点と、tamper testが元値と同じblob値を代入して実際には改変になっていなかった点をtest fixture側で修正した。production contractは弱めていない。
+- canonical runner focused tests、7-check aggregate local gate、result schema v2 artifact生成は **Not Yet Verified** のままとする。
+- full aggregateの追加実行では、実行環境へGitHub正本を一括取得する経路を確立できず、connectorからlocalへ再構成する途中でblob mismatchを検知した。正本一致しなかった試行はPASS / FAILのどちらにも数えず、full local gate Evidenceへ昇格させない。
+
+```text
+partial focused mechanics PASS
+  != full E78.3 local gate PASS
+  != human review result
+  != actual long-gap Evidence
+  != Product Value decision
+  != Stable Requirement authorization
+```
+
 review開始前に、repository-local mechanics runnerが全checkを完走し、加えて`validate`と対象fixtureの`preflight`がcurrent v1 contractを示すことを確認する。runnerはprobe/evidence focused unit tests、canonical validate、3 fixture全てのpreflightを一つの入口で実行し、途中停止や未実行checkをPASSへ数えない。local-check result schema v2は、canonical probeのsemantic SHA-256、runner / probe / Evidence tool / focused test等のexact file SHA-256、3 source fixtureのexpected / actual Git blob SHA-1、Python implementation / versionを`contractSnapshot`へ保存する。さらに各実行についてcommand、repo相対cwd、exit code、timeout、stdout/stderrのSHA-256とbyte数を保存し、rawログ本文やローカル絶対pathは保存しない。source fixtureがprobeのfreezeと一致しない場合はcheck実行前にfail-closedする。これにより、後からprobeやmechanicsが変わったPASSを同一条件の検証結果として読み替えず、同じsnapshotでも実際に何を実行し何が返ったかをdigestで追跡できる。result JSONは保存直前にもschema v2全体をfail-closedで再検証し、空checkによるvacuous PASS、check順序/count/statusの矛盾、host-escaping command、stream digest不正、mechanics/source identity差し替え、Evidence stopline変更を拒否したうえでexclusive-createする。launch errorはtype / errnoだけを残し、OS error messageやhost pathをartifactへ持ち込まない。ただしそのPASSはHuman Evidenceではなく、actual long-gap resumption、Product Value、Stable Requirement authorizationも成立させない。
 
 `validate`と`preflight`では3 source fixtureのGit blob SHA-1、probe / response / receipt / audit-response / Evidence schema、typed audit dimension契約がcurrent v1であることを確認する。pre-v1 artifactはcurrent contractへ移行済みとはみなさず、human review開始後のschema差し替えを行わない。
