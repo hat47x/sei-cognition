@@ -637,8 +637,9 @@ def validate_result(result: dict[str, object]) -> None:
         raise ValueError("result status is inconsistent with executed checks")
     if not isinstance(result["stoppedEarly"], bool):
         raise ValueError("stoppedEarly must be boolean")
-    if result["stoppedEarly"] and complete:
-        raise ValueError("stoppedEarly cannot be true for a complete run")
+    expected_stopped_early = not complete
+    if result["stoppedEarly"] != expected_stopped_early:
+        raise ValueError("stoppedEarly is inconsistent with execution completeness")
 
     snapshot = result["contractSnapshot"]
     if not isinstance(snapshot, dict):
@@ -722,6 +723,12 @@ def validate_result(result: dict[str, object]) -> None:
         or not runtime["version"]
     ):
         raise ValueError("contractSnapshot.python has invalid shape")
+
+    expected_snapshot = build_contract_snapshot()
+    if snapshot != expected_snapshot:
+        raise ValueError(
+            "contractSnapshot differs from the current checkout contract"
+        )
 
     for field in (
         "humanReviewObserved",
