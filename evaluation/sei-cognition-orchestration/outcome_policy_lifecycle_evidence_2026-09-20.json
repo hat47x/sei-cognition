@@ -1,0 +1,84 @@
+{
+  "schema": "sei.outcome-policy-lifecycle-evidence/v1alpha1",
+  "issue": 528,
+  "date": "2026-09-20",
+  "status": "limited-go123-exact-source-lifecycle-evidence",
+  "subject": "SEI-B7a candidate policy lifecycle / rollback diagnostic",
+  "branch": "topic/sei-b7-outcome-routing-policy",
+  "sourceBinding": {
+    "testedSourceCommit": "4fcbddacafe1b3e4027b272e9d35d97b7196e745",
+    "parentAtExecution": "c4062199e289d96851854e02b4ad051ee926a861",
+    "files": {
+      "evaluation/sei-cognition-orchestration/prototype-go/cognitivepolicy/policy.go": "9a3b623d21b684d27c20b42a126d42442d4b225d",
+      "evaluation/sei-cognition-orchestration/prototype-go/cognitivepolicy/replay.go": "6766c42ddc2b74a023eb8546fc8f3d09afd4fd0e",
+      "evaluation/sei-cognition-orchestration/prototype-go/cognitivepolicy/lifecycle.go": "e2a8eb8cb9be4643e55b8cd12ab920cd21f79b9e",
+      "evaluation/sei-cognition-orchestration/prototype-go/cognitivepolicy/lifecycle_test.go": "2b31826d53f909d660dc941b078daec6e0caea90"
+    },
+    "exactGitBlobVerification": {
+      "allMatched": true,
+      "filesMatched": 4,
+      "filesMismatched": 0
+    }
+  },
+  "execution": {
+    "go": "go1.23.2 linux/amd64",
+    "moduleMode": "GO111MODULE=off",
+    "command": "go test -count=1 -v policy.go replay.go lifecycle.go lifecycle_test.go",
+    "canonicalRepositoryModuleExecution": false,
+    "canonicalGo125Execution": false,
+    "testsExecuted": 8,
+    "testsPassed": 8,
+    "failures": 0,
+    "errors": 0,
+    "terminalStatus": "PASS"
+  },
+  "observedDiagnostics": [
+    {
+      "case": "threshold-equality",
+      "input": "regretAgainstStaticRate == caller-owned maximum",
+      "disposition": "retain",
+      "mutationOfActivePolicy": false
+    },
+    {
+      "case": "threshold-exceeded",
+      "input": "regretAgainstStaticRate > caller-owned maximum",
+      "disposition": "request-rollback",
+      "mutationOfActivePolicy": false
+    },
+    {
+      "case": "expiry",
+      "input": "as_of >= expires_at",
+      "disposition": "expired",
+      "mutationOfActivePolicy": false
+    }
+  ],
+  "failClosedChecks": [
+    "lifecycle/snapshot version mismatch",
+    "zero logical time",
+    "valid_from >= expires_at",
+    "as_of before valid_from",
+    "NaN/Inf/out-of-range maximum regret threshold",
+    "zero replay cases",
+    "NaN/Inf/out-of-range replay regret rate"
+  ],
+  "implementationBoundary": {
+    "evaluationOnly": true,
+    "automaticRollbackImplemented": false,
+    "automaticActivationImplemented": false,
+    "onlineCounterfactualEstimatorImplemented": false,
+    "statisticalConfidenceImplemented": false,
+    "selectionBiasCorrectionImplemented": false,
+    "learnedExpiryImplemented": false,
+    "productionRoutingDefaultChanged": false,
+    "b5EntryGateChanged": false
+  },
+  "boundaries": [
+    "Go 1.23.2 exact-source file-list PASS != canonical Go 1.25 module PASS",
+    "focused 8/8 PASS != full cognitivepolicy package or prototype-go module regression",
+    "counterfactually complete replay regret != online production regret estimate",
+    "request-rollback != automatic rollback",
+    "expiry != semantic failure",
+    "lifecycle validity != route correctness",
+    "synthetic lifecycle diagnostics != production routing evidence"
+  ]
+}

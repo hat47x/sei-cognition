@@ -784,6 +784,47 @@
       }
     },
     {
+      "stage": "SEI-B7a",
+      "name": "candidate policy lifecycle / rollback diagnostic",
+      "depends_on": [
+        "SEI-B7"
+      ],
+      "change": "SEI-B7 immutable candidate snapshotにcaller-owned logical validity windowとmaximum regret-against-static thresholdを結び、counterfactually complete replay結果からretain / request-rollback / expiredをevaluation-onlyに診断する。診断はStoreを変更せず、automatic activation / rollback、online counterfactual estimator、selection-bias correction、statistical confidenceは導入しない。",
+      "primary_question": "candidate policyのexpiryとrollback要求を、route correctnessやproduction policyへ昇格させず、明示logical timeとcounterfactually complete replay regretだけでfail-closedに診断できるか。",
+      "placement": "evaluation/sei-cognition-orchestration/prototype-go/cognitivepolicy",
+      "measures": [
+        "exact_snapshot_version_binding",
+        "logical_validity_window",
+        "regret_threshold_boundary",
+        "expiry_fail_closed",
+        "rollback_request_without_mutation",
+        "deterministic_logical_time_reproducibility"
+      ],
+      "current_result": {
+        "state": "limited-go123-exact-source-lifecycle-evidence",
+        "evidence_file": "../sei-cognition-orchestration/outcome_policy_lifecycle_evidence_2026-09-20.json",
+        "findings": [
+          "GitHub正本4 blobをSHA完全一致で再構成し、Go 1.23.2 / GO111MODULE=off / explicit file-listでB7a focused tests 8/8 PASSを確認した。",
+          "regret-against-static rateがcaller-owned thresholdと等しい場合はretain、threshold超過ではrequest-rollbackとなる境界を固定した。",
+          "as_of >= expires_atではexpiredを返し、request-rollback / expiredのいずれもactive policyを自動変更しないことを確認した。",
+          "snapshot/lifecycle version mismatch、logical time不正、未発効、NaN/Inf/[0,1]外threshold、zero/invalid replayをfail-closedにした。",
+          "このEvidenceはcanonical Go 1.25 module execution、full package/module regression、online regret推定、real workload drift、production rollback安全性を示さない。"
+        ],
+        "implementation_boundary": {
+          "evaluation_only": true,
+          "automatic_rollback_implemented": false,
+          "automatic_activation_implemented": false,
+          "online_counterfactual_estimator_implemented": false,
+          "selection_bias_correction_implemented": false,
+          "statistical_confidence_implemented": false,
+          "learned_expiry_implemented": false,
+          "production_routing_default_changed": false,
+          "b5_entry_gate_changed": false
+        },
+        "stop_line": "lifecycle validity / synthetic replay regretをroute correctness、online production regret、automatic rollback、semantic failure、production routing evidenceへ昇格させない。"
+      }
+    },
+    {
       "stage": "SAC-B6i",
       "name": "workload-class declaration lifecycle / review governance",
       "depends_on": [
@@ -1047,7 +1088,8 @@
       "SAC-B6hでB6g workload classを全16-cellで反転するcounterfactualを評価し、13/16でmargin悪化、3/16で同値、改善0を確認した。mean misdeclaration penalty約0.24406 / max約0.44778であり、provenanceをdeclaration correctnessへ昇格できないことを固定した。",
       "Issue #511でGitHub正本8 blobをSHA完全一致でGOPATHへ再構成し、Go 1.23.2 / GO111MODULE=offでcurrent cognitiveeval / hybridreasoningをstubせずactual dependency integration実行した。focused call-avoidance 5/5、current modelprobe package regression 16/16 PASS。これはcanonical Go 1.25 module execution、real model telemetry、task success、total system cost、production LLM削減量を示さない。",
       "SAC-B6iでB6g workload classへversion / review / expiry / supersessionを持つevaluation-only governance contractを追加し、exact-source validator PASSと34/34 regression PASSを固定した。checked-in declarationsはcandidate / resolution_allowed=falseで、automatic inference / activation / production / B5は未変更。",
-      "SAC-B6jでB6i validation済みdeclaration snapshotからB6g Go resolverへのevaluation-only admission adapterを追加し、current candidate declarationsのfail-closedとexisting envelope regressionを含むGo 1.23.2 focused 15-test PASSを固定した。canonical Go 1.25 executionは未達のため互換性Evidenceに限定する。"
+      "SAC-B6jでB6i validation済みdeclaration snapshotからB6g Go resolverへのevaluation-only admission adapterを追加し、current candidate declarationsのfail-closedとexisting envelope regressionを含むGo 1.23.2 focused 15-test PASSを固定した。canonical Go 1.25 executionは未達のため互換性Evidenceに限定する。",
+      "SEI-B7aでcaller-owned logical validity windowとcounterfactually complete replay regret thresholdによるretain / request-rollback / expired診断を追加し、GitHub正本4 blob一致のGo 1.23.2 explicit file-list実行でfocused 8/8 PASSを固定した。診断はactive policyを変更せず、canonical Go 1.25 module execution、online regret推定、automatic rollback、real workload driftは未検証。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -1063,7 +1105,7 @@
       "実SEI workloadでのLLM呼び出し削減量。7 synthetic ReferenceFixturesではrouting plan上3/7（約42.9%）call avoidanceを観測したが、actual model telemetry / task success / total system cost / production一般化は未検証。",
       "SACS hybrid model-call avoidanceのcanonical Go 1.25 module execution。Go 1.23.2 / GOPATH exact-blob actual dependency integrationではfocused 5/5・modelprobe package 16/16 PASSを観測したが、go.modのgo 1.25を使うcanonical module executionおよびfull-module Go 1.25 regressionは未観測。",
       "実hardware / real workloadにおけるcapacity profile品質、B6g caller-owned workload envelopeの実taxonomy/governance/generalization、human-adjudicated quality、class expiry/versioning、path別selection-pressure ceiling、adaptive Active / local budget policy、power / latency / memory trade-off",
-      "実problem class / real Outcome評価におけるoutcome-informed routingの一般化、selection-bias補正、statistical confidence、drift / expiry / rollback criteria",
+      "実problem class / real Outcome評価におけるoutcome-informed routingの一般化、selection-bias補正、statistical confidence、real drift detection / expiry cadence / rollback governance。SEI-B7aではcaller-owned logical expiryとcounterfactually complete replay regretによるretain / request-rollback / expired診断をGo 1.23.2 exact-source focused 8/8 PASSで観測したが、canonical Go 1.25 module execution、online estimator、自動rollback、real workload driftは未検証。",
       "production配置方式",
       "Product Value / Operational / Adoption / Outcome Evidence",
       "cross-stage human-adjudicated evaluationはpreregistration済みだが、adjudication / dataset / split / B3 prior manifest未freezeのためlocked。semantic benchmark resultは未生成。",
@@ -1106,7 +1148,8 @@
       "workload_policy_envelope_evidence_2026-09-19.json",
       "workload_policy_declaration_sensitivity_evidence_2026-09-19.json",
       "workload_class_governance_runtime_evidence_2026-09-19.json",
-      "workload_governance_admission_evidence_2026-09-19.json"
+      "workload_governance_admission_evidence_2026-09-19.json",
+      "../sei-cognition-orchestration/outcome_policy_lifecycle_evidence_2026-09-20.json"
     ]
   },
   "references": [
