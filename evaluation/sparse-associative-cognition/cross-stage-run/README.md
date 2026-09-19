@@ -20,10 +20,12 @@ explicit evaluation-run artifact
   ↓
 authorized
   ↓
-future executor / result artifact
+execution-attempt artifact
+  ↓ success only
+result artifact
 ```
 
-この段階ではexecutorもresult artifactも実装しない。
+run artifact自身はexecutor実装やresultを所有しない。実行試行は `../cross-stage-attempt/`、成功試行から得られる測定結果は `../cross-stage-result/` の別artifactへ記録する。
 
 ## 2. state
 
@@ -159,7 +161,7 @@ run artifactは結果を所有しない。
 
 とする。
 
-将来executorが実行された場合、結果は別schemaのresult artifactとして生成する。
+authorized runを実行した試行はexecution-attempt artifactへ記録し、成功試行だけが別schemaのresult artifact生成へ進める。failed attemptを0値metricやsuccessful resultへ包装しない。
 
 run artifactを実行後に書き換えて結果を埋め込まない。
 
@@ -208,6 +210,9 @@ machine-readable Evidence:
 
 ```text
 authorized run != benchmark success
+authorized run != execution attempt
+execution attempt != result artifact
+failed attempt != zero-valued metric
 authorized run != result artifact
 frozen bundle != semantic correctness
 implementation commit != production release

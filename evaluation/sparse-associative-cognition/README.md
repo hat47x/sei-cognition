@@ -220,7 +220,7 @@ human-adjudicated評価へ進む前に、比較variant、split、B3 prior、B4 f
 - execution-attempt artifact contract: `cross-stage-attempt/`
 - result artifact contract: `cross-stage-result/`
 - interpretation artifact contract: `cross-stage-interpretation/`
-- decision-record artifact contract: `cross-stage-decision/`
+- decision-record contract: `cross-stage-decision/`
 
 現在は **Evaluation Locked** である。
 
@@ -239,7 +239,7 @@ immutable result artifact
   ↓
 non-decisional interpretation artifact
   ↓
-decision record
+B5 review disposition decision record
   ↓
 future B5 review / product governance
 ```
@@ -254,3 +254,6 @@ preregistration artifact自身はsemantic benchmark resultを生成しない。
 - B6b/B6c diagnosticをsemantic scoreへ変換しない
 - quality / robustness / resource / safetyを単一scoreへ圧縮しない
 - cross-stage preregistrationだけではB5 learned sparse projectionのentry gateを開かない
+- failed execution-attemptを0値metricやsuccessful resultとして扱わない
+- `request-b5-review` をB5 gate openとして扱わない
+- decision recordだけではproduction defaultを変更しない

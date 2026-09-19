@@ -26,7 +26,7 @@ immutable result artifact
   ↓
 non-decisional interpretation artifact
   ↓
-decision record
+B5 review disposition decision record
   ↓
 future B5 review / product governance
 ```
@@ -200,7 +200,9 @@ frozen freeze bundle
   ↓
 explicit evaluation-run artifact
   ↓
-benchmark execution
+execution-attempt artifact
+  ↓ success only
+result artifact
 ```
 
 詳細は `cross-stage-freeze/README.md` を参照する。
@@ -221,9 +223,36 @@ evaluation runを作成する前に、別artifactで少なくとも次を満た�
 
 preregistration artifact自身の `result_generation.enabled` は将来も `false` のままにする。
 
-## 10. Result artifact
+## 10. Execution-attempt artifact
 
-authorized runの実行結果はrun artifactへ書き戻さず、`cross-stage-result/` の別artifactとして記録する。
+authorized runの実行試行は、run artifactやresult artifactへ直接書き込まず、`cross-stage-attempt/` の別artifactとして記録する。
+
+completed attemptは、
+
+- authorized runのexact digest
+- executor identity
+- observed environment
+- started / completed time
+- exit code / outcome
+- runner-log / environment-capture
+- successful attemptではraw-output
+
+へbindする。
+
+success / failureの双方を履歴として保存できるが、result生成へ進めるのはsuccessful attemptだけである。
+
+```text
+failed attempt
+  != unavailable metric
+  != zero metric
+  != benchmark result
+```
+
+詳細は `cross-stage-attempt/README.md` を参照する。
+
+## 11. Result artifact
+
+successful execution attemptから得られる測定結果はrun artifactへ書き戻さず、`cross-stage-result/` の別artifactとして記録する。
 
 completed resultは、
 
@@ -253,35 +282,9 @@ result artifact
 
 詳細は `cross-stage-result/README.md` を参照する。
 
-## 11. B5との関係
-
-B5 learned sparse projectionのentry gateは変更しない。
-
-B5を開けるには、少なくともfrozen human-adjudicated evaluationでB0-B3のmeaning quality不足を確認し、そのうえでstatic semantic adapterでも不足する必要がある。
-
-```text
-cross-stage preregistration
-  != B5 gate open
-```
-
-## 12. Evidence境界
-
-この作業が提供するのはDesign / Evaluation-boundary Evidenceである。
-
-証明しないもの:
-
-- 実SUI/SEI意味品質
-- production runtime適性
-- B3 priorの正しさ
-- B4 fingerprint品質
-- B7 routingの実運用有効性
-- learned projectionの必要性
-- Product Value / Operational / Adoption / Outcome Evidence
-
-
 ## 12. Interpretation artifact
 
-result artifactと意思決定の間に、`cross-stage-interpretation/` の非決定的interpretation artifactを置く。
+result artifactとdecision recordの間に、`cross-stage-interpretation/` の非決定的interpretation artifactを置く。
 
 interpretationはcompleted resultのdigest、track / variant / capacity / stress identity、analyst provenance、参照metricへbindする。
 
@@ -304,3 +307,66 @@ result measurement
 ```
 
 をartifact contractとして分離する。実human-adjudicated completed resultが存在するまでchecked-in interpretationはdraft / emptyである。
+
+詳細は `cross-stage-interpretation/README.md` を参照する。
+
+## 13. Decision record
+
+interpreted artifactの後段には、`cross-stage-decision/` のB5 review disposition decision recordを置く。
+
+許可するdispositionは:
+
+- `defer-for-evidence`
+- `retain-current-stage`
+- `request-b5-review`
+
+の3つだけである。
+
+decision recordはexact interpretation digest、source scope identity、decision authority provenance、rationale refs、upstream limitationsへbindする。
+
+`request-b5-review` はB5 gateをopenする操作ではない。
+
+```text
+decision record != semantic truth
+decision scope variant != variant winner
+request-b5-review != B5 gate open
+decision record != production adoption
+```
+
+実human-adjudicated interpreted artifactが存在するまでchecked-in decisionはdraft / not-assessedである。
+
+詳細は `cross-stage-decision/README.md` を参照する。
+
+## 14. B5との関係
+
+B5 learned sparse projectionのentry gateは変更しない。
+
+B5を開けるには、少なくともfrozen human-adjudicated evaluationでB0-B3のmeaning quality不足を確認し、そのうえでstatic semantic adapterでも不足する必要がある。
+
+decision recordの `request-b5-review` は、その条件をreview対象として提示するだけであり、gate stateを変更しない。
+
+```text
+cross-stage preregistration
+  != B5 gate open
+request-b5-review
+  != B5 gate open
+```
+
+## 15. Evidence境界
+
+この作業が提供するのはDesign / Evaluation-boundary Evidenceである。
+
+現在repoのfreeze / run / attempt / result / interpretation / decision artifactはdraft / locked stateであり、human-adjudicated benchmarkは未実行である。
+
+証明しないもの:
+
+- 実SUI/SEI意味品質
+- production runtime適性
+- B3 priorの正しさ
+- B4 fingerprint品質
+- B7 routingの実運用有効性
+- learned projectionの必要性
+- variant winner
+- B5 gate open
+- production adoption
+- Product Value / Operational / Adoption / Outcome Evidence

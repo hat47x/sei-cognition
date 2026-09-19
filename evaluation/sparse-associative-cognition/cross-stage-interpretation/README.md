@@ -22,10 +22,12 @@ result artifact
   ↓
 interpretation artifact
   ↓
-future decision artifact
+B5 review disposition decision record
 ```
 
 interpretationは「結果から何を読み取ったか」を外在化するが、winner、recommendation、B5 decision、production adoptionを所有しない。
+
+後段のdispositionは `../cross-stage-decision/` に分離し、`request-b5-review` もB5 gate openとは区別する。
 
 ## 2. State
 
