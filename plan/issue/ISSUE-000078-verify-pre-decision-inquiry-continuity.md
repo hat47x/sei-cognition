@@ -3,7 +3,7 @@
 Status: **Open**  
 Priority: **2**  
 Related ADRs: **ADR-0005, ADR-0018, ADR-0020, ADR-0028**  
-Updated: 2026-09-19
+Updated: 2026-09-20
 
 ## Goal
 
@@ -432,6 +432,25 @@ GitHub正本のblobを固定して一時実行環境へ再構成し、Python 3.1
 - Evidence focused testsのactual実行前に、preflight testがcomplete 3-fixture setではなく1 fixtureだけを渡していた点と、tamper testが元値と同じblob値を代入して実際には改変になっていなかった点をtest fixture側で修正した。production contractは弱めていない。
 - canonical runner focused tests、7-check aggregate local gate、result schema v2 artifact生成は **Not Yet Verified** のままとする。
 - full aggregateの追加実行では、実行環境へGitHub正本を一括取得する経路を確立できず、connectorからlocalへ再構成する途中でblob mismatchを検知した。正本一致しなかった試行はPASS / FAILのどちらにも数えず、full local gate Evidenceへ昇格させない。
+
+#### E78.3 exact execution-input binding — 2026-09-20
+
+前回のsource-reconstruction mismatchを実行結果と混同しないため、既存runnerへ渡すexact sourceを `evaluation/personal-inquiry-decision/evidence/issue-000078/e78_summary_distortion_execution_input_binding_2026-09-20.json` に固定した。これは新しいrunner / exporter / Evidence schemaを追加するものではなく、既存の正規local-check経路へ入る前の入力同一性を明示するsidecarである。
+
+2026-09-20時点の `develop/v0.2.0` HEAD `e785a7ad0e7070fafe9d187f458ce9cca587a7f6` で、probe set、probe、Evidence tool、probe / Evidence / runner focused tests、runner、3 source fixtureの計10ファイルをGit blob SHA-1で再照合した。直前のE78.3 checkpointから10 blobはすべて不変であり、同時に取り込まれたSEI-B7a変更はE78.3の正本へ触れていない。
+
+今後connector等を介して一時実行環境へ再構成する場合は、**10ファイルを同一bound commitからmaterializeし、全件のGit blob SHA-1一致を確認してからのみcanonical runnerを実行する**。1件でも不一致なら、その試行はcanonical local gateのPASS / FAILへ数えず、再構成失敗として破棄する。runnerが生成するresult schema v2も従来どおり`validate_result`成功後だけ保存する。
+
+```text
+exact 10-blob source binding
+  != E78.3 local gate PASS
+  != human review result
+  != actual long-gap Evidence
+  != Product Value decision
+  != Stable Requirement authorization
+```
+
+このbinding checkpointでは新しいruntime PASSを主張しない。canonical runner focused tests、7-check aggregate local gate、result schema v2 artifact生成は引き続き **Not Yet Verified** とし、次のactual executionでのみ更新する。
 
 ```text
 partial focused mechanics PASS
