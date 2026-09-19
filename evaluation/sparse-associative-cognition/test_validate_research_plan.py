@@ -290,6 +290,73 @@ class SparseAssociativeCognitionResearchPlanTests(unittest.TestCase):
                     f"decision_artifact.{key} must remain false",
                 )
 
+    def test_cross_stage_decision_runtime_metadata_is_pinned(self) -> None:
+        for key, value in (
+            (
+                "contract_validation_state",
+                "runtime-validated-contract-and-synthetic-upstream-regression",
+            ),
+            ("runtime_execution_observed", True),
+            (
+                "runtime_evidence_ref",
+                "cross-stage-decision/decision_runtime_evidence_2026-09-19.json",
+            ),
+            (
+                "runtime_validation_state",
+                "passed-current-draft-and-synthetic-upstream-regression",
+            ),
+        ):
+            with self.subTest(key=key):
+                plan = copy.deepcopy(self.plan)
+                plan["cross_stage_evaluation_gate"]["decision_artifact"][key] = (
+                    False if isinstance(value, bool) else "stale"
+                )
+                self.assert_has_error(plan, f"decision_artifact.{key} must remain")
+
+    def test_cross_stage_decision_runtime_test_floors_are_retained(self) -> None:
+        floors = {
+            "decision_tests_defined": 27,
+            "preregistration_tests_defined": 38,
+            "research_plan_tests_defined": 39,
+            "total_tests_defined": 104,
+            "decision_tests_passed": 27,
+            "upstream_regression_tests_passed": 127,
+            "total_tests_passed": 154,
+        }
+        for key, minimum in floors.items():
+            with self.subTest(key=key):
+                plan = copy.deepcopy(self.plan)
+                plan["cross_stage_evaluation_gate"]["decision_artifact"][key] = (
+                    minimum - 1
+                )
+                self.assert_has_error(
+                    plan,
+                    f"decision_artifact.{key} must be >= {minimum}",
+                )
+
+    def test_cross_stage_decision_runtime_test_floors_reject_bool(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["cross_stage_evaluation_gate"]["decision_artifact"][
+            "total_tests_passed"
+        ] = True
+        self.assert_has_error(
+            plan,
+            "decision_artifact.total_tests_passed must be >= 154",
+        )
+
+    def test_decision_runtime_evidence_must_remain_in_supporting_files(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        ref = "cross-stage-decision/decision_runtime_evidence_2026-09-19.json"
+        plan["current_evidence"]["supporting_evidence_files"] = [
+            item
+            for item in plan["current_evidence"]["supporting_evidence_files"]
+            if item != ref
+        ]
+        self.assert_has_error(
+            plan,
+            "supporting_evidence_files must retain decision runtime Evidence",
+        )
+
     def test_llm_is_not_required_or_default_fallback(self) -> None:
         for key in ("llm_required", "llm_is_fallback_by_default"):
             with self.subTest(key=key):

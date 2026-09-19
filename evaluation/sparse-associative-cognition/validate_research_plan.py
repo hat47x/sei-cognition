@@ -474,6 +474,52 @@ def validate_research_plan(plan: dict) -> list[str]:
                         f"cross_stage_evaluation_gate.decision_artifact.{key} must remain false"
                     )
 
+            if (
+                decision_artifact.get("contract_validation_state")
+                != "runtime-validated-contract-and-synthetic-upstream-regression"
+            ):
+                errors.append(
+                    "cross_stage_evaluation_gate.decision_artifact.contract_validation_state must remain runtime-validated-contract-and-synthetic-upstream-regression"
+                )
+            if decision_artifact.get("runtime_execution_observed") is not True:
+                errors.append(
+                    "cross_stage_evaluation_gate.decision_artifact.runtime_execution_observed must remain true"
+                )
+            if (
+                decision_artifact.get("runtime_evidence_ref")
+                != "cross-stage-decision/decision_runtime_evidence_2026-09-19.json"
+            ):
+                errors.append(
+                    "cross_stage_evaluation_gate.decision_artifact.runtime_evidence_ref must remain cross-stage-decision/decision_runtime_evidence_2026-09-19.json"
+                )
+            if (
+                decision_artifact.get("runtime_validation_state")
+                != "passed-current-draft-and-synthetic-upstream-regression"
+            ):
+                errors.append(
+                    "cross_stage_evaluation_gate.decision_artifact.runtime_validation_state must remain passed-current-draft-and-synthetic-upstream-regression"
+                )
+
+            runtime_floors = {
+                "decision_tests_defined": 27,
+                "preregistration_tests_defined": 38,
+                "research_plan_tests_defined": 39,
+                "total_tests_defined": 104,
+                "decision_tests_passed": 27,
+                "upstream_regression_tests_passed": 127,
+                "total_tests_passed": 154,
+            }
+            for key, minimum in runtime_floors.items():
+                value = decision_artifact.get(key)
+                if (
+                    isinstance(value, bool)
+                    or not isinstance(value, int)
+                    or value < minimum
+                ):
+                    errors.append(
+                        f"cross_stage_evaluation_gate.decision_artifact.{key} must be >= {minimum}"
+                    )
+
     deferred = plan.get("deferred_directions")
     if not isinstance(deferred, list):
         errors.append("deferred_directions must be a list")
@@ -531,8 +577,20 @@ def validate_research_plan(plan: dict) -> list[str]:
     evidence = plan.get("current_evidence")
     if not isinstance(evidence, dict) or evidence.get("level") != "executable-evaluation":
         errors.append("current_evidence.level must remain executable-evaluation")
-    elif not evidence.get("evidence_file"):
-        errors.append("current_evidence.evidence_file must be declared")
+    else:
+        if not evidence.get("evidence_file"):
+            errors.append("current_evidence.evidence_file must be declared")
+        supporting = evidence.get("supporting_evidence_files")
+        decision_runtime_ref = (
+            "cross-stage-decision/decision_runtime_evidence_2026-09-19.json"
+        )
+        if (
+            not isinstance(supporting, list)
+            or decision_runtime_ref not in supporting
+        ):
+            errors.append(
+                "current_evidence.supporting_evidence_files must retain decision runtime Evidence"
+            )
 
     return errors
 
