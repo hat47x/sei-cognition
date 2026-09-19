@@ -111,11 +111,11 @@ class LifecycleEvidenceTest(unittest.TestCase):
             for finding in presentation[
                 "semantic_hard_failure_findings"
             ]:
-                finding["finding"] = "not-observed"
+                finding["finding"] = "not-present"
             for finding in presentation[
                 "product_failure_signal_findings"
             ]:
-                finding["finding"] = "not-observed"
+                finding["finding"] = "not-indicated"
         self.audit_response["audit_provenance"] = {
             "auditor_id": "auditor-test-fixture",
             "response_authorship": "human-transcribed",
@@ -162,6 +162,21 @@ class LifecycleEvidenceTest(unittest.TestCase):
             self.audit_sha,
         )
         self.assertEqual(
+            template["finding_contract"],
+            {
+                "semantic_hard_failure": [
+                    "present",
+                    "not-present",
+                    "not-applicable",
+                ],
+                "product_failure_signal": [
+                    "risk-indicated",
+                    "not-indicated",
+                    "not-assessable",
+                ],
+            },
+        )
+        self.assertEqual(
             [item["condition"] for item in template["presentations"]],
             self.probe["assignment_rotations"][self.rotation],
         )
@@ -186,6 +201,33 @@ class LifecycleEvidenceTest(unittest.TestCase):
         changed["audit_provenance"]["completed_at"] = (
             "2026-09-19T03:04:59+09:00"
         )
+        with self.assertRaises(LifecycleEvidenceError):
+            validate_audit_response(
+                changed,
+                self.probe,
+                self.rotation,
+                self.audit_sha,
+                self.audit_receipt["revealed_at"],
+            )
+
+    def test_audit_response_keeps_semantic_and_product_signal_values_distinct(self):
+        changed = copy.deepcopy(self.audit_response)
+        changed["presentations"][0][
+            "product_failure_signal_findings"
+        ][0]["finding"] = "present"
+        with self.assertRaises(LifecycleEvidenceError):
+            validate_audit_response(
+                changed,
+                self.probe,
+                self.rotation,
+                self.audit_sha,
+                self.audit_receipt["revealed_at"],
+            )
+
+        changed = copy.deepcopy(self.audit_response)
+        changed["presentations"][0][
+            "semantic_hard_failure_findings"
+        ][0]["finding"] = "risk-indicated"
         with self.assertRaises(LifecycleEvidenceError):
             validate_audit_response(
                 changed,
@@ -246,6 +288,12 @@ class LifecycleEvidenceTest(unittest.TestCase):
                 "universal_status_type"
             ],
             "not-authorized-by-this-artifact",
+        )
+        self.assertIn(
+            "synthetic-review assessments",
+            bundle["evidence_boundaries"][
+                "product_failure_signal_interpretation"
+            ],
         )
         rendered = json.dumps(bundle)
         self.assertNotIn('"winner"', rendered)

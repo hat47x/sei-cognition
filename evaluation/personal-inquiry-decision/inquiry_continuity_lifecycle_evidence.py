@@ -34,13 +34,18 @@ from inquiry_continuity_lifecycle_probe import (
 )
 
 
-AUDIT_RESPONSE_SCHEMA = "sei.inquiry-continuity-lifecycle-audit-response/v1"
-EVIDENCE_SCHEMA = "sei.inquiry-continuity-lifecycle-evidence/v1"
-FINDING_VALUES = {
-    "observed",
-    "not-observed",
+AUDIT_RESPONSE_SCHEMA = "sei.inquiry-continuity-lifecycle-audit-response/v2"
+EVIDENCE_SCHEMA = "sei.inquiry-continuity-lifecycle-evidence/v2"
+SEMANTIC_FINDING_VALUES = (
+    "present",
+    "not-present",
     "not-applicable",
-}
+)
+PRODUCT_SIGNAL_FINDING_VALUES = (
+    "risk-indicated",
+    "not-indicated",
+    "not-assessable",
+)
 
 
 class LifecycleEvidenceError(ValueError):
@@ -164,6 +169,14 @@ def audit_response_template(
         "probe_sha256": probe_content_sha256(probe),
         "rotation": rotation,
         "audit_receipt_sha256": audit_receipt_sha256,
+        "finding_contract": {
+            "semantic_hard_failure": list(
+                SEMANTIC_FINDING_VALUES
+            ),
+            "product_failure_signal": list(
+                PRODUCT_SIGNAL_FINDING_VALUES
+            ),
+        },
         "presentations": [
             {
                 "presentation_id": _presentation_id(
@@ -215,6 +228,7 @@ def _validate_findings(
     expected: list[str],
     label_key: str,
     label: str,
+    allowed_values: tuple[str, ...],
 ) -> None:
     if (
         not isinstance(findings, list)
@@ -239,7 +253,7 @@ def _validate_findings(
             raise LifecycleEvidenceError(
                 f"{label} finding order/content mismatch"
             )
-        if finding["finding"] not in FINDING_VALUES:
+        if finding["finding"] not in allowed_values:
             raise LifecycleEvidenceError(
                 f"{label} finding has invalid value"
             )
@@ -262,6 +276,7 @@ def validate_audit_response(
         "probe_sha256",
         "rotation",
         "audit_receipt_sha256",
+        "finding_contract",
         "presentations",
         "acceptable_outcome_notes",
         "audit_provenance",
@@ -288,6 +303,17 @@ def validate_audit_response(
     if not isinstance(value["notes"], str):
         raise LifecycleEvidenceError(
             "lifecycle audit response notes must be a string"
+        )
+    if value["finding_contract"] != {
+        "semantic_hard_failure": list(
+            SEMANTIC_FINDING_VALUES
+        ),
+        "product_failure_signal": list(
+            PRODUCT_SIGNAL_FINDING_VALUES
+        ),
+    }:
+        raise LifecycleEvidenceError(
+            "lifecycle audit finding contract mismatch"
         )
 
     conditions = _rotation(probe, rotation)
@@ -333,6 +359,7 @@ def validate_audit_response(
             hard_failures,
             "failure",
             "semantic hard-failure",
+            SEMANTIC_FINDING_VALUES,
         )
         _validate_findings(
             presentation[
@@ -341,6 +368,7 @@ def validate_audit_response(
             failure_signals,
             "signal",
             "Product failure signal",
+            PRODUCT_SIGNAL_FINDING_VALUES,
         )
         if not isinstance(presentation["notes"], str):
             raise LifecycleEvidenceError(
@@ -542,6 +570,11 @@ def build_evidence_bundle(
                 "per-condition observations are preserved without "
                 "winner, ranking, or preferred condition"
             ),
+            "product_failure_signal_interpretation": (
+                "risk-indicated / not-indicated / not-assessable are "
+                "synthetic-review assessments, not observations of "
+                "actual user behavior"
+            ),
             "universal_status_type": "not-authorized-by-this-artifact",
             "product_value": "not-established-by-this-artifact",
             "stable_requirement_change": "not-authorized-by-this-artifact",
@@ -550,6 +583,7 @@ def build_evidence_bundle(
             "Product-local attention state is not canonical Inquiry status",
             "closed without Decision is not resolution, Decision, or truth",
             "acceptable outcome notes are not a ranking or selected winner",
+            "risk-indicated is a synthetic-review assessment, not actual product behavior observation",
             "a single reviewer cannot separate presentation-order effects from condition effects",
             "this synthetic lifecycle comparison is not actual long-gap resumption",
             "this artifact does not establish Product Value",
@@ -728,6 +762,7 @@ def validate_evidence_bundle(
     if not isinstance(boundaries, dict) or set(boundaries) != {
         "review_provenance",
         "condition_comparison",
+        "product_failure_signal_interpretation",
         *expected,
     }:
         raise LifecycleEvidenceError(
@@ -741,6 +776,7 @@ def validate_evidence_bundle(
     for field in (
         "review_provenance",
         "condition_comparison",
+        "product_failure_signal_interpretation",
     ):
         if (
             not isinstance(boundaries[field], str)
@@ -760,6 +796,10 @@ def validate_evidence_bundle(
         )
         or not any(
             "not canonical Inquiry status" in line
+            for line in stoplines
+        )
+        or not any(
+            "synthetic-review assessment" in line
             for line in stoplines
         )
         or not any(

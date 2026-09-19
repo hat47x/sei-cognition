@@ -74,6 +74,7 @@ class LifecycleLocalChecksTest(unittest.TestCase):
                 "SOZA_SECRET": "secret",
                 "KJ_ATLAS_DB": "secret",
                 "OPENAI_API_KEY": "secret",
+                "OPENROUTER_API_KEY": "secret",
                 "PYTHONPATH": "/tmp/injected",
             }
         )
@@ -83,6 +84,7 @@ class LifecycleLocalChecksTest(unittest.TestCase):
             "SOZA_SECRET",
             "KJ_ATLAS_DB",
             "OPENAI_API_KEY",
+            "OPENROUTER_API_KEY",
             "PYTHONPATH",
         ):
             self.assertNotIn(key, env)

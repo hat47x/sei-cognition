@@ -473,7 +473,13 @@ stimulus提示前にopaque reviewer id、declared prior exposure、response auth
 
 dormantやclosedにしても元InquiryへDecisionを自動生成せず、unresolved meaningを消さず、後日のDecisionは別recordへの文脈linkとして扱う境界は維持している。また、explicit attention projectionを自動遷移させず、Product-local attention stateからUniversal status型を先取りしない。
 
-ここまでで成立したのはcondition-blinded executable review scaffoldとpre/post stimulusのreceipt chainまでである。post-audit human findingをtypedに保存するdurable Evidence exporterはまだ未実装であり、human reviewも**Not Yet Observed**、Universal status typeも**not-proposed**のままとする。
+post-audit経路も`inquiry_continuity_lifecycle_evidence.py`へ一本化した。current audit response / durable Evidenceはv2で、semantic hard failureは`present / not-present / not-applicable`、Product failure signalは`risk-indicated / not-indicated / not-assessable`として別の値域を持つ。後者はsynthetic review上のrisk assessmentであり、actual user behaviorを「観測した」ことにはしない。acceptable outcomeは候補ごとのnoteとして保持するだけで、選択・ranking・winnerへ変換しない。
+
+durable Evidenceはcanonical probe、review-start receipt、structured response、audit receipt、post-audit responseについてexact UTF-8 JSON、raw SHA-256、canonical semantic SHA-256、semantic valueを保持し、artifact単体でchainとtamperを再検証する。Product-local attention stateからUniversal status型、Product Value、Stable Requirementへ自動昇格しない。
+
+reader assignmentは一人につき一rotationだけを原則とし、複数readerではR1〜R3をbalanceする。同一readerの反復rotationは許さず、single-reader pilotからcondition effectとpresentation-order effectを分離したとは主張しない。
+
+さらに`run_inquiry_continuity_lifecycle_checks.py`をrepository-local mechanics gateとして追加した。probe / Evidence / runner focused testsとcanonical probe validateをsanitized environmentで実行し、probeとmechanics file digest、portable command、stdout/stderr digestを保存できる。local mechanics gateではOpenRouterを含む外部provider API keyを環境から除外し、外部モデルを使う検証は明示的なintegration testとして分離する。ただしrunner sourceの存在はPASSではなく、human reviewも依然**Not Yet Observed**、Universal status typeは**not-proposed**、Product Value / Stable Requirementも未成立のままである。
 
 ### V1〜V8 / Decision Continuity coverage audit
 
