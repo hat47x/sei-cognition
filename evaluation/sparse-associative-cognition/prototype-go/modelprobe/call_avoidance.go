@@ -15,18 +15,18 @@ type RouteCallCount struct {
 }
 
 type CallAvoidanceSummary struct {
-	Schema                     string           `json:"schema"`
-	Status                     string           `json:"status"`
-	FixtureCount               int              `json:"fixture_count"`
-	RawBaselineModelCalls      int              `json:"raw_baseline_model_calls"`
-	WorkspaceBaselineModelCalls int             `json:"workspace_baseline_model_calls"`
-	StagedModelCalls           int              `json:"staged_model_calls"`
-	StagedSkippedModelCalls    int              `json:"staged_skipped_model_calls"`
-	CallsAvoidedVsRaw          int              `json:"calls_avoided_vs_raw"`
-	CallAvoidanceRatioVsRaw    float64          `json:"call_avoidance_ratio_vs_raw"`
-	StagedModelCallRate        float64          `json:"staged_model_call_rate"`
-	AllExpectedRoutesMatched   bool             `json:"all_expected_routes_matched"`
-	RouteCounts                []RouteCallCount `json:"route_counts"`
+	Schema                      string           `json:"schema"`
+	Status                      string           `json:"status"`
+	FixtureCount                int              `json:"fixture_count"`
+	RawBaselineModelCalls       int              `json:"raw_baseline_model_calls"`
+	WorkspaceBaselineModelCalls int              `json:"workspace_baseline_model_calls"`
+	StagedModelCalls            int              `json:"staged_model_calls"`
+	StagedSkippedModelCalls     int              `json:"staged_skipped_model_calls"`
+	CallsAvoidedVsRaw           int              `json:"calls_avoided_vs_raw"`
+	CallAvoidanceRatioVsRaw     float64          `json:"call_avoidance_ratio_vs_raw"`
+	StagedModelCallRate         float64          `json:"staged_model_call_rate"`
+	AllExpectedRoutesMatched    bool             `json:"all_expected_routes_matched"`
+	RouteCounts                 []RouteCallCount `json:"route_counts"`
 }
 
 // SummarizeCallAvoidance evaluates routing mechanics only. It does not invoke
