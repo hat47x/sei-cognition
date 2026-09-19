@@ -592,6 +592,49 @@ def validate_research_plan(plan: dict) -> list[str]:
                 "current_evidence.supporting_evidence_files must retain decision runtime Evidence"
             )
 
+        hybrid_call_avoidance_ref = (
+            "hybrid_model_call_avoidance_evidence_2026-09-19.json"
+        )
+        if (
+            not isinstance(supporting, list)
+            or hybrid_call_avoidance_ref not in supporting
+        ):
+            errors.append(
+                "current_evidence.supporting_evidence_files must retain hybrid call-avoidance Evidence"
+            )
+
+        not_yet_verified = evidence.get("not_yet_verified")
+        if not isinstance(not_yet_verified, list) or not all(
+            isinstance(item, str) for item in not_yet_verified
+        ):
+            errors.append("current_evidence.not_yet_verified must remain a string list")
+        else:
+            hybrid_boundary = next(
+                (
+                    item
+                    for item in not_yet_verified
+                    if "実SEI workloadでのLLM呼び出し削減量" in item
+                ),
+                None,
+            )
+            if hybrid_boundary is None:
+                errors.append(
+                    "current_evidence.not_yet_verified must retain real-workload LLM-call-reduction boundary"
+                )
+            else:
+                for required_fragment in (
+                    "3/7",
+                    "actual model telemetry",
+                    "task success",
+                    "total system cost",
+                    "未検証",
+                ):
+                    if required_fragment not in hybrid_boundary:
+                        errors.append(
+                            "current_evidence.not_yet_verified hybrid call-avoidance boundary "
+                            f"must retain {required_fragment}"
+                        )
+
     return errors
 
 
