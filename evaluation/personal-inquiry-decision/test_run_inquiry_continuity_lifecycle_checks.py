@@ -185,6 +185,84 @@ class LifecycleLocalChecksTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_result(changed)
 
+    def test_validate_result_rejects_noncanonical_execution_contract(self):
+        result = self.mechanics_result()
+
+        changed = copy.deepcopy(result)
+        changed["selected"][0] = "other-check"
+        changed["executed"][0]["name"] = "other-check"
+        with self.assertRaises(ValueError):
+            validate_result(changed)
+
+        changed = copy.deepcopy(result)
+        changed["executed"][0]["command"][1] = (
+            "evaluation/personal-inquiry-decision/"
+            "inquiry_continuity_lifecycle_evidence.py"
+        )
+        with self.assertRaises(ValueError):
+            validate_result(changed)
+
+        changed = copy.deepcopy(result)
+        changed["executed"][0]["cwdRelativeToRepo"] = "evaluation"
+        with self.assertRaises(ValueError):
+            validate_result(changed)
+
+    def test_validate_result_rejects_execution_state_tampering(self):
+        result = self.mechanics_result()
+
+        changed = copy.deepcopy(result)
+        changed["executed"] = []
+        changed["executedCount"] = 0
+        changed["failedCount"] = 0
+        changed["result"] = "failed"
+        changed["stoppedEarly"] = True
+        with self.assertRaises(ValueError):
+            validate_result(changed)
+
+        changed = copy.deepcopy(result)
+        changed["executed"][1]["timeoutSeconds"] += 1
+        with self.assertRaises(ValueError):
+            validate_result(changed)
+
+        changed = copy.deepcopy(result)
+        changed["executed"] = changed["executed"][:2]
+        changed["executedCount"] = 2
+        changed["failedCount"] = 0
+        changed["result"] = "failed"
+        changed["stoppedEarly"] = True
+        with self.assertRaises(ValueError):
+            validate_result(changed)
+
+    def test_validate_result_rejects_failure_metadata_and_snapshot_tampering(self):
+        result = self.mechanics_result()
+
+        changed = copy.deepcopy(result)
+        changed["executed"][0]["timedOut"] = True
+        with self.assertRaises(ValueError):
+            validate_result(changed)
+
+        def missing(command, *, cwd, env, timeout):
+            raise FileNotFoundError(2, "No such file", "/private/tool")
+
+        code, failed = run_checks(
+            configured_checks(),
+            runner=missing,
+            stop_on_failure=True,
+        )
+        self.assertEqual(code, 1)
+        changed = copy.deepcopy(failed)
+        changed["executed"][0]["stdout"] = {
+            "sha256": "0" * 64,
+            "bytes": 1,
+        }
+        with self.assertRaises(ValueError):
+            validate_result(changed)
+
+        changed = copy.deepcopy(result)
+        changed["contractSnapshot"]["probeContentSha256"] = "0" * 64
+        with self.assertRaises(ValueError):
+            validate_result(changed)
+
     def test_save_result_is_exclusive(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "result.json"
