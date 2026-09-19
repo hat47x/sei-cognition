@@ -161,3 +161,47 @@ defined tests != executed tests
 decision contract != B5 gate open
 decision contract != production adoption
 ```
+
+## 11. Actual runtime verification
+
+2026-09-19、GitHub正本22 source / manifestを一時環境へ再構成し、各fileの `git hash-object` がGitHub blob SHAと一致することを確認してからactual executionを行った。
+
+Environment:
+
+- Python 3.13.5
+- Linux 6.18.44 x86_64 GNU/Linux
+- GitHub Actions: 未使用
+- full repository checkout: false
+- execution model: exact Git-blob-validated temporary reconstruction
+
+Actual result:
+
+- decision validator: PASS / current decision remains draft-not-assessed
+- interpretation validator: PASS / current interpretation remains draft-empty
+- result validator: PASS / current result remains draft-empty
+- run validator: PASS / current run remains draft-locked
+- freeze validator: PASS / current bundle remains draft-locked
+- preregistration validator: PASS / evaluation remains locked
+- decision tests: **27 / 27 PASS**
+- interpretation regression: **27 / 27 PASS**
+- result regression: **24 / 24 PASS**
+- run regression: **20 / 20 PASS**
+- freeze regression: **18 / 18 PASS**
+- preregistration regression: **38 / 38 PASS**
+- total: **154 tests PASS / 0 failures**
+
+machine-readable Evidence:
+
+`decision_runtime_evidence_2026-09-19.json`
+
+synthetic `retain-current-stage` / `defer-for-evidence` / `request-b5-review` の3 pathはactual upstream chainを通過した。特に `request-b5-review` はvalidでも `b5_gate_opened=false` のままである。
+
+```text
+runtime PASS != human-adjudicated benchmark decision
+decision record != semantic truth
+decision scope variant != variant winner
+request-b5-review != B5 gate open
+runtime Evidence != production adoption
+```
+
+checked-in `decision.json` は引き続きdraft / not-assessedであり、B5 gateとproduction defaultは変更していない。
