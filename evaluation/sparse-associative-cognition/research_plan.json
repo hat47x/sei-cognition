@@ -824,7 +824,8 @@
       "cross-stage execution-attemptをGitHub正本17 source / manifestのGit blob SHA一致一時再構成環境でPython 3.13.5実行し、focused 20 tests、actual upstream integration 6 tests、run/freeze/preregistration regression 70 testsの計96 testsがPASSした。4 validatorもPASSし、current attempt / run / freeze / preregistrationはdraft / lockedのままである。",
       "cross-stage interpretationをGitHub正本19 source / manifestのGit blob SHA一致一時再構成環境でPython 3.13.5実行し、interpretation 27 tests、result/run/freeze/preregistration regression 94 testsの計121 testsがPASSした。5 validatorもPASSし、synthetic interpreted artifactはcompleted resultとactual upstream chainを通過する一方、current interpretation / result / run / freeze / preregistrationはdraft / lockedのままである。",
       "cross-stage interpretation後のB5 review dispositionを独立decision-record contractとして分離し、defer-for-evidence / retain-current-stage / request-b5-reviewの3 disposition、exact interpretation digest binding、decision authority provenance、rationale refs、upstream limitation preservation、canonical digestを定義した。request-b5-reviewはB5 gate openではなく、semantic truth / variant winner / production default変更もfail-closedのままである。",
-      "cross-stage decision-recordをGitHub正本22 source / manifestのGit blob SHA一致一時再構成環境でPython 3.13.5実行し、decision 27 tests、interpretation/result/run/freeze/preregistration regression 127 testsの計154 testsがPASSした。6 validatorもPASSし、synthetic 3 dispositionはactual upstream chainを通過する一方、current decisionはdraft / not-assessed、B5 gateはclosed、production defaultは未変更のままである。"
+      "cross-stage decision-recordをGitHub正本22 source / manifestのGit blob SHA一致一時再構成環境でPython 3.13.5実行し、decision 27 tests、interpretation/result/run/freeze/preregistration regression 127 testsの計154 testsがPASSした。6 validatorもPASSし、synthetic 3 dispositionはactual upstream chainを通過する一方、current decisionはdraft / not-assessed、B5 gateはclosed、production defaultは未変更のままである。",
+      "SACS + local SLM hybridの7 synthetic ReferenceFixturesについてcurrent routing sourceをinspectionし、raw/workspace baseline 7 callsに対してstaged routeは4 local-model calls / 3 skipsとなるcall planを固定した。aggregation logicのisolated Go testは5/5 PASS。これは3/7（約42.9%）のsynthetic routing call avoidanceであり、actual repository integration runtime / real model telemetry / production LLM削減量は未検証。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -837,7 +838,7 @@
       "static semantic補完が必要かどうか",
       "learned sparse projectionがrandom / static方式を上回るか",
       "10万件以上でのindex方式",
-      "LLM呼び出し削減量",
+      "実SEI workloadでのLLM呼び出し削減量。7 synthetic ReferenceFixturesではrouting plan上3/7（約42.9%）call avoidanceを観測したが、actual model telemetry / task success / total system cost / production一般化は未検証。",
       "実hardware / real workloadにおけるcapacity profile品質、3 synthetic fixtureを越えたstatic residual scaling一般化、最適residual scaling、safe policy condition、path別selection-pressure ceiling、adaptive Active / local budget policy、power / latency / memory trade-off",
       "実problem class / real Outcome評価におけるoutcome-informed routingの一般化、selection-bias補正、statistical confidence、drift / expiry / rollback criteria",
       "production配置方式",
@@ -871,7 +872,8 @@
       "cross-stage-attempt/execution_attempt_runtime_evidence_2026-09-19.json",
       "cross-stage-interpretation/interpretation_runtime_evidence_2026-09-19.json",
       "cross-stage-decision/decision_contract_evidence_2026-09-19.json",
-      "cross-stage-decision/decision_runtime_evidence_2026-09-19.json"
+      "cross-stage-decision/decision_runtime_evidence_2026-09-19.json",
+      "hybrid_model_call_avoidance_evidence_2026-09-19.json"
     ]
   },
   "references": [
