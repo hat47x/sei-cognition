@@ -1,0 +1,126 @@
+{
+  "schema": "sei.sacs-hybrid-model-call-avoidance-integration-runtime-evidence/v1alpha1",
+  "date": "2026-09-19",
+  "status": "passed-current-exact-blob-gopath-integration",
+  "subject": "SACS hybrid synthetic model-call avoidance actual repository dependency integration runtime",
+  "issue": 511,
+  "branch": "topic/sacs-hybrid-call-avoidance",
+  "sourceBinding": {
+    "developCommit": "79312a4f343b6b8ec789612ee2e2c56270b50219",
+    "canonicalModuleGoDirective": "1.25",
+    "canonicalGoModBlob": "d6ba24ea65b4b80414bcf86912287973720ab7c7",
+    "exactBlobs": [
+      {
+        "path": "prototype-go/modelprobe/call_avoidance.go",
+        "sha": "81cb7c4ca541035c76b8ce6c19ea9a57f93e534c"
+      },
+      {
+        "path": "prototype-go/modelprobe/call_avoidance_test.go",
+        "sha": "f32e95ecd93547ab926b2a0bf274c8c9ef8ea424"
+      },
+      {
+        "path": "prototype-go/modelprobe/preflight.go",
+        "sha": "5bd0e04a5f5ea2ea62b74e973d21ca3d5d7b7643"
+      },
+      {
+        "path": "prototype-go/modelprobe/preflight_test.go",
+        "sha": "b8c44935e4c51be7a01552174d7283b73ec2c9c1"
+      },
+      {
+        "path": "prototype-go/modelprobe/probe.go",
+        "sha": "10bd563d10fefbd2c57e86a0d22855c39cbfcca1"
+      },
+      {
+        "path": "prototype-go/modelprobe/probe_test.go",
+        "sha": "d90b8a3dcc4eb926ec99aab0b24224f5a2de2485"
+      },
+      {
+        "path": "prototype-go/cognitiveeval/eval.go",
+        "sha": "c9e68719adbe009f631160fb9470811fc3c40837"
+      },
+      {
+        "path": "prototype-go/hybridreasoning/router.go",
+        "sha": "015c78d7f551642c379fa9637d821386c1b064b1"
+      }
+    ],
+    "gitHashObjectMatches": 8,
+    "gitHashObjectMismatches": 0
+  },
+  "runtime": {
+    "goVersion": "go1.23.2 linux/amd64",
+    "kernel": "Linux 6.18.44 x86_64",
+    "goos": "linux",
+    "goarch": "amd64",
+    "executionMode": "GO111MODULE=off GOPATH exact-blob reconstruction",
+    "gopathRoot": "/mnt/data/sei-gopath",
+    "canonicalGo125ModuleExecution": false,
+    "externalDependenciesStubbed": false,
+    "actualCurrentCognitiveevalSourceUsed": true,
+    "actualCurrentHybridreasoningSourceUsed": true
+  },
+  "executions": {
+    "focusedCallAvoidance": {
+      "command": "go test -count=1 -v -run 'TestSummarize(ReferenceFixtureCallAvoidance|SingleLocalRouteHasNoAvoidance|SingleDeterministicRouteAvoidsBaselineCall|RejectsEmptyFixtures|PropagatesInvalidFixture)$' .",
+      "testsRun": 5,
+      "testsPassed": 5,
+      "failures": 0,
+      "result": "PASS"
+    },
+    "modelprobePackageRegression": {
+      "command": "go test -count=1 -v .",
+      "testsRun": 16,
+      "testsPassed": 16,
+      "failures": 0,
+      "result": "PASS"
+    }
+  },
+  "observedSyntheticCallPlan": {
+    "fixtures": 7,
+    "rawBaselineModelCalls": 7,
+    "workspaceBaselineModelCalls": 7,
+    "stagedLocalModelCalls": 4,
+    "stagedSkippedModelCalls": 3,
+    "callsAvoidedVsRaw": 3,
+    "callAvoidanceRatioVsRaw": 0.42857142857142855,
+    "stagedModelCallRate": 0.5714285714285714,
+    "routeCounts": {
+      "local-slm": 4,
+      "external-evidence-required": 1,
+      "abstain-or-expand-evidence": 1,
+      "symbolic": 1
+    },
+    "allExpectedRoutesMatched": true
+  },
+  "priorBlockerEvidence": {
+    "file": "hybrid_model_call_avoidance_runtime_blocker_evidence_2026-09-19.json",
+    "retainedAsHistoricalExecutionAttempt": true,
+    "contradicted": false,
+    "resolution": "The prior canonical-module runner/toolchain path remained blocked. A separate exact-Git-blob GOPATH reconstruction made actual current cognitiveeval/hybridreasoning dependency integration executable under Go 1.23.2."
+  },
+  "interpretation": {
+    "actualRepositoryDependencyIntegrationObserved": true,
+    "repositoryIntegrationPass": true,
+    "canonicalGo125ModuleExecutionObserved": false,
+    "realModelInvocationTelemetryObserved": false,
+    "productionLLMCallReductionObserved": false,
+    "taskSuccessObserved": false,
+    "totalSystemCostObserved": false,
+    "productionGeneralizationObserved": false
+  },
+  "stopLines": [
+    "Go 1.23.2 GOPATH exact-blob integration PASS != canonical Go 1.25 module execution",
+    "repository dependency integration PASS != production LLM call reduction",
+    "synthetic fixture call avoidance != real model telemetry",
+    "skipped model call != task success",
+    "lower model-call rate != lower total system cost",
+    "runtime Evidence != production adoption"
+  ],
+  "notVerified": [
+    "canonical go 1.25 module execution",
+    "actual local or external model invocation telemetry across the seven fixtures",
+    "real SEI workload LLM-call reduction",
+    "task success attributable to skipped or invoked model calls",
+    "total system cost reduction",
+    "production generalization, adoption, or outcome"
+  ]
+}
