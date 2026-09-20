@@ -6,12 +6,12 @@
   "subject": "SEI-B7b observational support / selection-bias diagnostic",
   "branch": "topic/sei-b7-outcome-routing-policy",
   "sourceBinding": {
-    "testedSourceCommit": "f6509a8b691f84556b19fc5fa7869250de8edfab",
+    "testedSourceCommit": "678ed784d0329d0dc7e0fda97ff83ac8cf636d63",
     "parentAtImplementation": "ed8d0053861213c63955f38d288b04bbf6b0a283",
     "files": {
       "evaluation/sei-cognition-orchestration/prototype-go/cognitivepolicy/policy.go": "9a3b623d21b684d27c20b42a126d42442d4b225d",
       "evaluation/sei-cognition-orchestration/prototype-go/cognitivepolicy/support.go": "6bb7acdc14cff9951dd7df141c89588263440210",
-      "evaluation/sei-cognition-orchestration/prototype-go/cognitivepolicy/support_test.go": "946166dd63b5a71a0cc75fd95e5cbb213b654b49"
+      "evaluation/sei-cognition-orchestration/prototype-go/cognitivepolicy/support_test.go": "0ca2d0bb007a7884135519811335c8f108f093f6"
     },
     "exactGitBlobVerification": {
       "allMatched": true,
@@ -59,7 +59,8 @@
   ],
   "failClosedChecks": [
     "unknown / disallowed route OutcomeRecord",
-    "existing OutcomeRecord validation including observed policy version provenance"
+    "unknown observed policy version OutcomeRecord",
+    "existing OutcomeRecord validation including provenance and outcome enums"
   ],
   "implementationBoundary": {
     "evaluationOnly": true,
