@@ -23,6 +23,7 @@ func main() {
 	runIDFlag := flag.String("run-id", "", "stable run identity shared with preflight")
 	sourceGitSHAFlag := flag.String("source-git-sha", "", "exact lowercase 40-character source Git SHA")
 	telemetryJSONFlag := flag.String("telemetry-json", "", "write run-level actual invocation telemetry to a new JSON file")
+	runJSONFlag := flag.String("run-json", "", "write results plus telemetry as a new actual-run artifact JSON file")
 	flag.Parse()
 
 	mode := modelprobe.Mode(*modeFlag)
@@ -35,23 +36,29 @@ func main() {
 		fatalf("fixture not found: %s", *fixtureFlag)
 	}
 
-	if *dryRunFlag && *telemetryJSONFlag != "" {
-		fatalf("--telemetry-json is for actual inference and cannot be combined with --dry-run")
+	artifactMode := *telemetryJSONFlag != "" || *runJSONFlag != ""
+	if *dryRunFlag && artifactMode {
+		fatalf("--telemetry-json/--run-json are for actual inference and cannot be combined with --dry-run")
 	}
-	if *telemetryJSONFlag != "" {
+	if artifactMode {
 		if err := modelprobe.ValidateRunIdentity(*runIDFlag, *sourceGitSHAFlag); err != nil {
 			fatalf("%v", err)
 		}
-		if _, err := os.Stat(*telemetryJSONFlag); err == nil {
-			fatalf("telemetry output already exists: %s", *telemetryJSONFlag)
-		} else if !os.IsNotExist(err) {
-			fatalf("inspect telemetry output: %v", err)
+		if *telemetryJSONFlag != "" {
+			ensureNewOutput(*telemetryJSONFlag, "telemetry")
+		}
+		if *runJSONFlag != "" {
+			ensureNewOutput(*runJSONFlag, "run artifact")
+		}
+		if *telemetryJSONFlag != "" && *runJSONFlag != "" && *telemetryJSONFlag == *runJSONFlag {
+			fatalf("--telemetry-json and --run-json must use different paths")
 		}
 	}
 
 	encoder := json.NewEncoder(os.Stdout)
 	encoder.SetIndent("", "  ")
 	observations := make([]modelprobe.ActualRunObservation, 0, len(fixtures))
+	results := make([]modelprobe.Result, 0, len(fixtures))
 	hadRunError := false
 
 	for _, fixture := range fixtures {
@@ -74,7 +81,7 @@ func main() {
 		}, fixture, mode)
 		cancel()
 
-		if *telemetryJSONFlag != "" {
+		if artifactMode {
 			observations = append(
 				observations,
 				modelprobe.ObserveActualRun(plan, result, runErr),
@@ -82,19 +89,21 @@ func main() {
 		}
 
 		if runErr != nil {
-			if *telemetryJSONFlag == "" {
+			if !artifactMode {
 				fatalf("%s: %v", fixture.ID, runErr)
 			}
 			fmt.Fprintf(os.Stderr, "%s: %v\n", fixture.ID, runErr)
 			hadRunError = true
 			continue
 		}
+
+		results = append(results, result)
 		if err := encoder.Encode(result); err != nil {
 			fatalf("encode result: %v", err)
 		}
 	}
 
-	if *telemetryJSONFlag == "" {
+	if !artifactMode {
 		return
 	}
 
@@ -109,22 +118,41 @@ func main() {
 	if err != nil {
 		fatalf("summarize actual telemetry: %v", err)
 	}
-	if err := writeTelemetry(*telemetryJSONFlag, summary); err != nil {
-		fatalf("write telemetry: %v", err)
+	if *telemetryJSONFlag != "" {
+		if err := writeJSONExclusive(*telemetryJSONFlag, summary); err != nil {
+			fatalf("write telemetry: %v", err)
+		}
+	}
+	if *runJSONFlag != "" {
+		artifact, err := modelprobe.BuildActualRunArtifact(summary, results)
+		if err != nil {
+			fatalf("build run artifact: %v", err)
+		}
+		if err := writeJSONExclusive(*runJSONFlag, artifact); err != nil {
+			fatalf("write run artifact: %v", err)
+		}
 	}
 	if hadRunError || !summary.CompleteWithoutInvocationError {
 		os.Exit(1)
 	}
 }
 
-func writeTelemetry(path string, summary modelprobe.ActualTelemetrySummary) error {
+func ensureNewOutput(path string, label string) {
+	if _, err := os.Stat(path); err == nil {
+		fatalf("%s output already exists: %s", label, path)
+	} else if !os.IsNotExist(err) {
+		fatalf("inspect %s output: %v", label, err)
+	}
+}
+
+func writeJSONExclusive(path string, value any) error {
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
 	if err != nil {
 		return err
 	}
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
-	if err := encoder.Encode(summary); err != nil {
+	if err := encoder.Encode(value); err != nil {
 		_ = file.Close()
 		return err
 	}

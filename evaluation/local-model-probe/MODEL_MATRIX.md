@@ -1,6 +1,6 @@
 # Local Model Comparison Matrix
 
-更新日: 2026-09-12  
+更新日: 2026-09-20  
 状態: **Evaluation-only Candidate Matrix**  
 関連: Issue #375 / `README.md`
 
@@ -231,6 +231,25 @@ model × fixture × modeごとに:
 - invalid evidence ref
 - need-more-evidence appropriateness
 - staged model call / skip
+
+### Cross-mode comparison artifact
+
+同一modelのraw / workspace / stagedは、同一exact source SHAで作ったrun artifactとして保存し、`cmd/modelcompare`で比較する。
+
+比較器が出すのは、少なくとも次の独立した記述量である。
+
+- mode別 evaluated / skipped fixture数;
+- Unknown / Conflict preservation rateの平均;
+- Recommendation / Decision separation件数;
+- historical basis violation数;
+- unsupported claim / invalid ref数;
+- need-more-evidence appropriateness;
+- material claim support integrity;
+- latency / token usage;
+- actual invocation attempts / staged explicit skip;
+- shared fixtureに限定した`workspace - raw` delta.
+
+これらを総合点へ畳み込まない。quality改善とcost低下が逆方向になる場合、そのtrade-off自体をEvidenceとして残す。
 
 runtime側で別途:
 - model load memory
