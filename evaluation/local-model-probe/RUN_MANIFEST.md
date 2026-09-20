@@ -156,6 +156,19 @@ statusは次の三つに限定する。
 
 `blocked-preflight` / `incomplete-inference`でも、取得済みpreflight・mode artifact・failureは捨てずに保存する。一方、partialなrunからcross-mode comparisonを生成しない。
 
+### 5.5 streamed latency
+
+TTFTを必要とするactual matrixでは `--stream` を指定する。probeはOpenAI-compatible SSEの最初の非空content deltaをfirst-token観測点とし、`[DONE]`までをtransport total latencyとする。
+
+streaming artifactでは次を別々に保持する。
+
+- response header latency;
+- first-token observed flag;
+- first-token latency;
+- transport total latency.
+
+usageがstream responseに含まれないruntimeではtoken usageが0のままになり得る。これは0 token消費のEvidenceではなく、provider telemetry未提供として扱う。
+
 ### 5.4 runtime process memory
 
 Linuxでruntime server PIDが分かる場合は `modelmatrix --runtime-pid <pid>` を指定する。matrix artifactの `runtime_memory` に、matrix開始時とraw / workspace / staged後のprocess RSSを保存する。
