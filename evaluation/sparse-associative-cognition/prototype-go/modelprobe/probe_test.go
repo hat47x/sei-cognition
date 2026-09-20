@@ -3,10 +3,12 @@ package modelprobe
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hat47x/sei-cognition/evaluation/sparse-associative-cognition/prototype-go/cognitiveeval"
 )
@@ -150,6 +152,12 @@ func TestRunCallsOpenAICompatibleEndpointAndEvaluates(t *testing.T) {
 	if result.Usage.TotalTokens != 140 {
 		t.Fatalf("usage=%+v", result.Usage)
 	}
+	if result.FirstTokenObserved || result.FirstTokenLatencyMS != 0 {
+		t.Fatalf("non-streaming run must not claim first-token timing: %+v", result)
+	}
+	if result.TotalLatencyMS < result.ResponseHeaderLatencyMS {
+		t.Fatalf("total latency=%d must be >= response header latency=%d", result.TotalLatencyMS, result.ResponseHeaderLatencyMS)
+	}
 }
 
 func TestRunRawTranslatesOpaqueAliasesBeforeEvaluation(t *testing.T) {
@@ -196,5 +204,104 @@ func TestRunStagedCanSkipWithoutEndpoint(t *testing.T) {
 	}
 	if result.Route != "symbolic" {
 		t.Fatalf("route=%s", result.Route)
+	}
+}
+
+
+func TestRunStreamingMeasuresFirstContentDeltaAndTotalLatency(t *testing.T) {
+	f := fixtureByID(t, "recommendation-not-decision")
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Fatal(err)
+		}
+		if req["stream"] != true {
+			t.Fatalf("stream=%v want=true", req["stream"])
+		}
+
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			t.Fatal("test server does not support flush")
+		}
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.WriteHeader(http.StatusOK)
+		flusher.Flush()
+
+		writeChunk := func(content string, usage map[string]any) {
+			chunk := map[string]any{
+				"choices": []any{map[string]any{
+					"delta": map[string]any{"content": content},
+				}},
+			}
+			if usage != nil {
+				chunk["usage"] = usage
+			}
+			payload, err := json.Marshal(chunk)
+			if err != nil {
+				t.Fatal(err)
+			}
+			fmt.Fprintf(w, "data: %s\n\n", payload)
+			flusher.Flush()
+		}
+
+		time.Sleep(10 * time.Millisecond)
+		writeChunk(`{"proposal":"B is faster, but A remains the recorded Decision.",`, nil)
+		time.Sleep(10 * time.Millisecond)
+		writeChunk(`"supporting_refs":["obs-3","rec-3","dec-3"],"decision_basis_refs":["obs-3"],"recommendation_ref":"rec-3","decision_ref":"dec-3","need_more_evidence":false,"claims":[{"text":"B had lower measured latency.","supporting_refs":["obs-3"]}]}`, nil)
+		writeChunk("", map[string]any{"prompt_tokens": 2, "completion_tokens": 1, "total_tokens": 3})
+		fmt.Fprint(w, "data: [DONE]\n\n")
+		flusher.Flush()
+	}))
+	defer server.Close()
+
+	result, err := Run(context.Background(), Config{
+		Endpoint:   server.URL,
+		Model:      "tiny-local",
+		MaxTokens:  512,
+		Stream:     true,
+		HTTPClient: server.Client(),
+	}, f, ModeWorkspace)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !result.FirstTokenObserved {
+		t.Fatalf("expected first-token observation: %+v", result)
+	}
+	if result.FirstTokenLatencyMS <= result.ResponseHeaderLatencyMS {
+		t.Fatalf("first-token latency=%d should be greater than header latency=%d", result.FirstTokenLatencyMS, result.ResponseHeaderLatencyMS)
+	}
+	if result.TotalLatencyMS < result.FirstTokenLatencyMS {
+		t.Fatalf("total latency=%d must be >= first-token latency=%d", result.TotalLatencyMS, result.FirstTokenLatencyMS)
+	}
+	if result.Usage.TotalTokens != 3 {
+		t.Fatalf("stream usage=%+v", result.Usage)
+	}
+	if result.Evaluation == nil || !result.Evaluation.RecommendationDecisionSeparated {
+		t.Fatal("expected streamed output to be evaluated")
+	}
+}
+
+func TestRunStreamingRejectsMissingDoneMarker(t *testing.T) {
+	f := fixtureByID(t, "recommendation-not-decision")
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		fmt.Fprint(w, "data: {\"choices\":[{\"delta\":{\"content\":\"{\\\"proposal\\\":\\\"partial\\\",\\\"need_more_evidence\\\":false}\"}}]}\n\n")
+	}))
+	defer server.Close()
+
+	result, err := Run(context.Background(), Config{
+		Endpoint:   server.URL,
+		Model:      "tiny-local",
+		Stream:     true,
+		HTTPClient: server.Client(),
+	}, f, ModeWorkspace)
+	if err == nil || !strings.Contains(err.Error(), "before [DONE]") {
+		t.Fatalf("err=%v want missing DONE failure", err)
+	}
+	if !result.FirstTokenObserved {
+		t.Fatalf("content was observed before stream ended: %+v", result)
+	}
+	if result.TotalLatencyMS < result.ResponseHeaderLatencyMS {
+		t.Fatalf("total latency=%d must be >= header latency=%d", result.TotalLatencyMS, result.ResponseHeaderLatencyMS)
 	}
 }

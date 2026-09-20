@@ -20,6 +20,7 @@ func main() {
 	dryRunFlag := flag.Bool("dry-run", false, "print probe plans without invoking a model")
 	timeoutFlag := flag.Duration("timeout", 120*time.Second, "per-request timeout")
 	maxTokensFlag := flag.Int("max-tokens", 800, "maximum completion tokens")
+	streamFlag := flag.Bool("stream", false, "use OpenAI-compatible SSE streaming and measure first content-delta latency")
 	runIDFlag := flag.String("run-id", "", "stable run identity shared with preflight")
 	sourceGitSHAFlag := flag.String("source-git-sha", "", "exact lowercase 40-character source Git SHA")
 	telemetryJSONFlag := flag.String("telemetry-json", "", "write run-level actual invocation telemetry to a new JSON file")
@@ -78,6 +79,7 @@ func main() {
 			Endpoint:  *endpointFlag,
 			Model:     *modelFlag,
 			MaxTokens: *maxTokensFlag,
+			Stream:    *streamFlag,
 		}, fixture, mode)
 		cancel()
 

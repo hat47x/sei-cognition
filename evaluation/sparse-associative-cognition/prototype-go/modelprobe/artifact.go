@@ -34,6 +34,9 @@ type EvaluationAggregate struct {
 	InvalidReferenceCount                    int     `json:"invalid_reference_count"`
 	NeedMoreEvidenceAppropriateCount         int     `json:"need_more_evidence_appropriate_count"`
 	AllMaterialClaimsHaveValidSupportCount   int     `json:"all_material_claims_have_valid_support_count"`
+	ResponseHeaderLatencyMSTotal             int64   `json:"response_header_latency_ms_total"`
+	FirstTokenObservedCount                  int     `json:"first_token_observed_count"`
+	FirstTokenLatencyMSMean                  float64 `json:"first_token_latency_ms_mean"`
 	TotalLatencyMS                           int64   `json:"total_latency_ms"`
 	TotalPromptTokens                        int     `json:"total_prompt_tokens"`
 	TotalCompletionTokens                    int     `json:"total_completion_tokens"`
@@ -50,6 +53,8 @@ type PairwiseEvaluationDelta struct {
 	WorkspaceMinusRawInvalidReferences                 int     `json:"workspace_minus_raw_invalid_references"`
 	WorkspaceMinusRawNeedMoreEvidenceAppropriate       int     `json:"workspace_minus_raw_need_more_evidence_appropriate"`
 	WorkspaceMinusRawValidMaterialSupport              int     `json:"workspace_minus_raw_valid_material_support"`
+	SharedFirstTokenFixtureCount                       int     `json:"shared_first_token_fixture_count"`
+	WorkspaceMinusRawFirstTokenLatencyMSMean           float64 `json:"workspace_minus_raw_first_token_latency_ms_mean"`
 	WorkspaceMinusRawLatencyMS                         int64   `json:"workspace_minus_raw_latency_ms"`
 	WorkspaceMinusRawTotalTokens                       int     `json:"workspace_minus_raw_total_tokens"`
 }
@@ -227,7 +232,13 @@ func aggregateEvaluations(artifact ActualRunArtifact) EvaluationAggregate {
 	aggregate := EvaluationAggregate{Mode: artifact.Mode, ResultCount: len(artifact.Results)}
 	var unknownSum float64
 	var conflictSum float64
+	var firstTokenSum int64
 	for _, result := range artifact.Results {
+		aggregate.ResponseHeaderLatencyMSTotal += result.ResponseHeaderLatencyMS
+		if result.FirstTokenObserved {
+			aggregate.FirstTokenObservedCount++
+			firstTokenSum += result.FirstTokenLatencyMS
+		}
 		aggregate.TotalLatencyMS += result.TotalLatencyMS
 		aggregate.TotalPromptTokens += result.Usage.PromptTokens
 		aggregate.TotalCompletionTokens += result.Usage.CompletionTokens
@@ -260,6 +271,9 @@ func aggregateEvaluations(artifact ActualRunArtifact) EvaluationAggregate {
 		aggregate.UnknownPreservationRateMean = unknownSum / float64(aggregate.EvaluatedFixtureCount)
 		aggregate.ConflictPreservationRateMean = conflictSum / float64(aggregate.EvaluatedFixtureCount)
 	}
+	if aggregate.FirstTokenObservedCount > 0 {
+		aggregate.FirstTokenLatencyMSMean = float64(firstTokenSum) / float64(aggregate.FirstTokenObservedCount)
+	}
 	return aggregate
 }
 
@@ -269,6 +283,7 @@ func pairwiseWorkspaceRaw(raw, workspace ActualRunArtifact) PairwiseEvaluationDe
 	var delta PairwiseEvaluationDelta
 	var unknownDelta float64
 	var conflictDelta float64
+	var firstTokenDelta float64
 
 	fixtureIDs := make([]string, 0, len(rawByFixture))
 	for fixtureID := range rawByFixture {
@@ -294,6 +309,10 @@ func pairwiseWorkspaceRaw(raw, workspace ActualRunArtifact) PairwiseEvaluationDe
 		delta.WorkspaceMinusRawInvalidReferences += w.InvalidReferenceCount - r.InvalidReferenceCount
 		delta.WorkspaceMinusRawNeedMoreEvidenceAppropriate += boolInt(w.NeedMoreEvidenceAppropriate) - boolInt(r.NeedMoreEvidenceAppropriate)
 		delta.WorkspaceMinusRawValidMaterialSupport += boolInt(w.AllMaterialClaimsHaveValidSupport) - boolInt(r.AllMaterialClaimsHaveValidSupport)
+		if rawResult.FirstTokenObserved && workspaceResult.FirstTokenObserved {
+			delta.SharedFirstTokenFixtureCount++
+			firstTokenDelta += float64(workspaceResult.FirstTokenLatencyMS - rawResult.FirstTokenLatencyMS)
+		}
 		delta.WorkspaceMinusRawLatencyMS += workspaceResult.TotalLatencyMS - rawResult.TotalLatencyMS
 		delta.WorkspaceMinusRawTotalTokens += workspaceResult.Usage.TotalTokens - rawResult.Usage.TotalTokens
 	}
@@ -302,6 +321,10 @@ func pairwiseWorkspaceRaw(raw, workspace ActualRunArtifact) PairwiseEvaluationDe
 			unknownDelta / float64(delta.SharedEvaluatedFixtureCount)
 		delta.WorkspaceMinusRawConflictPreservationRateMean =
 			conflictDelta / float64(delta.SharedEvaluatedFixtureCount)
+	}
+	if delta.SharedFirstTokenFixtureCount > 0 {
+		delta.WorkspaceMinusRawFirstTokenLatencyMSMean =
+			firstTokenDelta / float64(delta.SharedFirstTokenFixtureCount)
 	}
 	return delta
 }
