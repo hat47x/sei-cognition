@@ -1,6 +1,6 @@
 # Local Model Probe — Cognitive Workspace vs Raw Context
 
-更新日: 2026-09-12  
+更新日: 2026-09-20  
 状態: **Evaluation-only Probe Harness**  
 関連: Issue #375 / #385 / #383
 
@@ -202,6 +202,49 @@ Issue #375では少なくとも次を比較する。
 - energy
 
 これらはruntime-specific probeとして後続する。
+
+## 8.1 run artifact / comparison
+
+actual runでは、標準出力だけでなく比較可能なrun artifactを保存できる。
+
+```bash
+go run ./cmd/modelprobe \\
+  --mode raw \\
+  --fixture all \\
+  --model <model-id> \\
+  --run-id <raw-run-id> \\
+  --source-git-sha <exact-source-sha> \\
+  --run-json raw.json
+```
+
+`workspace` / `staged`も同じsource SHA・同じmodelで別run artifactを作る。artifactは、run identity、telemetry、成功したfixture resultを一つに束ねる。existing fileは上書きしない。
+
+3 modeが揃ったら:
+
+```bash
+go run ./cmd/modelcompare \\
+  --raw raw.json \\
+  --workspace workspace.json \\
+  --staged staged.json \\
+  --output comparison.json
+```
+
+比較器は次を確認する。
+
+- raw / workspace / stagedのmodeが正しいこと;
+- 3 artifactのmodelが同じこと;
+- 3 artifactの`source_git_sha`が完全一致すること;
+- resultとtelemetryのinvocation / skip状態が矛盾しないこと.
+
+出力は単一scoreを作らない。mode別aggregateと、shared fixtureだけを使った`workspace - raw`の記述的deltaを別々に出す。stagedのskipはtask successへ読み替えない。
+
+```text
+run comparison
+  = same-source / same-model descriptive evidence
+  != human adjudication
+  != model adoption decision
+  != Product Value
+```
 
 ## 9. 実験順
 
