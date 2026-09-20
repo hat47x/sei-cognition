@@ -948,6 +948,154 @@
         },
         "stop_line": "admission PASSやreviewed snapshotをclass correctness、semantic truth、production activation、canonical Go 1.25 PASSへ昇格させない。"
       }
+    },
+    {
+      "stage": "JD-LGBM-0",
+      "name": "typed teacher dataset feasibility",
+      "depends_on": [
+        "SAC-B6",
+        "SEI-B7b"
+      ],
+      "change": "2〜3個のlow-risk typed taskでstructured stateだけを入力し、Jev等のtyped teacherからChoice / Score / Noulとprobability/scoreをversioned dataset artifactへ固定する。production log replayだけに依存せず、boundary / perturbation / counterexample / minority / abstention / drift sliceを含める。",
+      "primary_question": "teacher judgmentをground truthへ昇格させず、再現可能なversioned supervision artifactとして安定取得できるか。",
+      "measures": [
+        "dataset_reproducibility",
+        "schema_version_binding",
+        "teacher_identity_binding",
+        "probability_payload_retention",
+        "minority_boundary_coverage",
+        "teacher_labeling_latency_cost"
+      ],
+      "current_result": {
+        "state": "planned-no-execution-evidence",
+        "teacher_dataset_generated": false,
+        "ground_truth_claimed": false,
+        "product_integration_enabled": false,
+        "stop_line": "teacher datasetをground truth、semantic truth、production training corpusへ自動昇格させない。"
+      }
+    },
+    {
+      "stage": "JD-LGBM-1",
+      "name": "hard-label typed student baseline",
+      "depends_on": [
+        "JD-LGBM-0"
+      ],
+      "change": "Noul binary、Choice multiclass、Score regressionについてdeterministic / linear-logistic baselineとLightGBM hard-label studentを比較する。LightGBM採用を前提化しない。",
+      "primary_question": "simple baselineに対してtree ensembleがteacher fidelity / latency / memoryの独立増分を持つか。",
+      "measures": [
+        "teacher_agreement",
+        "brier_or_log_loss",
+        "p50_inference_latency",
+        "p95_inference_latency",
+        "peak_rss",
+        "model_size",
+        "simple_baseline_delta"
+      ],
+      "current_result": {
+        "state": "planned-no-execution-evidence",
+        "lightgbm_selected": false,
+        "production_default_changed": false,
+        "stop_line": "hard-label agreementをtask correctness、semantic truth、LightGBM採用決定へ昇格させない。"
+      }
+    },
+    {
+      "stage": "JD-LGBM-2",
+      "name": "soft probability distillation",
+      "depends_on": [
+        "JD-LGBM-1"
+      ],
+      "change": "teacher probability distribution / expected ordered scoreをsoft targetとして保持し、hard-label onlyとのcalibration / distribution fidelity差を評価する。",
+      "primary_question": "teacher uncertainty structureを保持することがescalation品質を改善するか。ただしteacher probability自体をground truth confidenceとは扱わない。",
+      "measures": [
+        "probability_cross_entropy",
+        "distribution_kl",
+        "brier_score",
+        "calibration_error",
+        "reliability_curve",
+        "escalation_quality_delta"
+      ],
+      "current_result": {
+        "state": "planned-no-execution-evidence",
+        "teacher_probability_is_truth": false,
+        "student_confidence_is_sei_confidence": false,
+        "stop_line": "teacher probability / student calibrationをsemantic truthまたはSEI confidenceへ昇格させない。"
+      }
+    },
+    {
+      "stage": "JD-LGBM-3",
+      "name": "bounded semantic feature adapter",
+      "depends_on": [
+        "JD-LGBM-0"
+      ],
+      "change": "raw textをtreeへ直接渡さず、lexical/hash、SACS sparse signature、static semantic embedding、optional bounded local encoderを固定featureizer候補として比較する。",
+      "primary_question": "raw-text teacher判断のうちどこまでをbounded local featureへ圧縮でき、どの領域でteacher/SLM/escalationが残るか。",
+      "measures": [
+        "feature_adapter_fidelity",
+        "ood_failure_rate",
+        "novel_language_regret",
+        "latency_delta",
+        "memory_delta",
+        "feature_schema_stability"
+      ],
+      "current_result": {
+        "state": "planned-no-execution-evidence",
+        "raw_text_direct_to_tree": false,
+        "universal_text_understanding_claimed": false,
+        "stop_line": "fixed featureizer fidelityをraw language understandingやarbitrary unseen schema generalizationへ昇格させない。"
+      }
+    },
+    {
+      "stage": "JD-LGBM-4",
+      "name": "student teacher cascade / call avoidance",
+      "depends_on": [
+        "JD-LGBM-2",
+        "JD-LGBM-3",
+        "SAC-B6"
+      ],
+      "change": "student -> Jev/local SLM -> stronger modelのcascadeをheld-out / OOD / drift replayで評価し、actual teacher-call reductionとquality preservationを分離計測する。",
+      "primary_question": "false-confident miss、Unknown preservation、high-stakes floorを悪化させずにteacher/model call削減が成立するか。",
+      "measures": [
+        "actual_teacher_call_reduction",
+        "task_validity",
+        "abstention_precision_recall",
+        "escalation_rate",
+        "ood_failure_rate",
+        "false_confident_decision_rate",
+        "total_system_cost",
+        "latency_delta"
+      ],
+      "current_result": {
+        "state": "planned-no-execution-evidence",
+        "actual_call_reduction_observed": false,
+        "quality_preservation_observed": false,
+        "high_stakes_floor_changed": false,
+        "stop_line": "synthetic fidelityやcall avoidanceをactual production cost reduction、task success、安全性保証へ昇格させない。"
+      }
+    },
+    {
+      "stage": "JD-LGBM-5",
+      "name": "offline refresh / activation boundary",
+      "depends_on": [
+        "JD-LGBM-4",
+        "SEI-B7a"
+      ],
+      "change": "automatic online learningを行わず、new teacher batch -> offline retraining -> immutable model artifact -> shadow evaluation -> explicit activation -> rollbackの境界を評価する。",
+      "primary_question": "learned studentの更新をself-modifying cognitionへ昇格させず、artifact identity / review / activation / rollbackを再現可能に保てるか。",
+      "measures": [
+        "immutable_artifact_identity",
+        "offline_retrain_reproducibility",
+        "shadow_gate_result",
+        "explicit_activation_trace",
+        "rollback_reproducibility",
+        "drift_regret"
+      ],
+      "current_result": {
+        "state": "planned-no-execution-evidence",
+        "automatic_online_learning": false,
+        "automatic_activation": false,
+        "production_activation": false,
+        "stop_line": "offline retraining candidateをautomatic self-modification、automatic activation、production defaultへ昇格させない。"
+      }
     }
   ],
   "stage_gate_policy": {
@@ -1160,7 +1308,8 @@
       "cross-stage execution-attempt contractとactual upstream integration runtime Evidenceは実装済みだが、human-adjudicated frozen bundle / authorized runが未生成のためchecked-in execution attemptはdraft / not-started。actual benchmark execution attemptおよびbenchmark result生成は未実施。",
       "caller-owned workload classの実workload taxonomy、宣言error rate、human review / expiry / versioning / change-review governance、および実SUI/SEI品質への影響",
       "SAC-B6i governance contractと34/34 runtime Evidenceは取得済みだが、実workload class taxonomy、宣言error rate、human reviewer governance process、real expiry cadence、reviewed declaration下の実SUI/SEI品質、production activationは未検証。",
-      "SAC-B6j admission adapterのGo 1.23.2 focused compatibility Evidenceは取得済みだが、canonical Go 1.25 execution、full prototype-go regression、real reviewed declaration運用、production provider integration、実workload class correctnessは未検証。"
+      "SAC-B6j admission adapterのGo 1.23.2 focused compatibility Evidenceは取得済みだが、canonical Go 1.25 execution、full prototype-go regression、real reviewed declaration運用、production provider integration、実workload class correctnessは未検証。",
+      "JD-LGBM distilled typed studentはresearch contractのみ登録済み。teacher dataset生成、LightGBM/linear baseline学習、teacher fidelity、human/ground-truth task validity、OOD / drift、actual teacher-call reduction、model artifact activation / rollback、production integrationは未実行・未検証。"
     ],
     "supporting_evidence_files": [
       "input_normalization_evidence_2026-09-18.json",
@@ -1369,5 +1518,65 @@
       "upstream_regression_tests_passed": 127,
       "total_tests_passed": 154
     }
+  },
+  "distilled_typed_student_policy": {
+    "state": "planned-evaluation-only",
+    "architectural_classification": "cognitive-realization-support / learned local decision substrate",
+    "teacher_family": "Jev or equivalent typed decision teacher",
+    "teacher_role": "versioned labeling oracle for bounded typed judgments",
+    "first_student": "LightGBM",
+    "lightgbm_is_required": false,
+    "student_role": "cheap local proposal or routing signal",
+    "cognitive_method_definition": false,
+    "universal_model_assumed": false,
+    "raw_text_direct_to_tree": false,
+    "teacher_dataset_is_ground_truth": false,
+    "teacher_confidence_is_ground_truth_confidence": false,
+    "student_output_is_semantic_truth": false,
+    "student_confidence_is_sei_confidence": false,
+    "automatic_online_learning": false,
+    "automatic_retraining": false,
+    "automatic_activation": false,
+    "high_stakes_floor_can_be_lowered": false,
+    "production_default_changed": false,
+    "b5_entry_gate_changed": false,
+    "target_types": [
+      "Noul",
+      "Choice",
+      "Score"
+    ],
+    "required_evaluation_axes": [
+      "teacher_fidelity",
+      "task_validity"
+    ],
+    "minimum_dataset_fields": [
+      "feature_schema_version",
+      "task_schema_version",
+      "teacher_provider",
+      "teacher_model_version",
+      "teacher_request_hash",
+      "typed_output",
+      "teacher_probability_or_score",
+      "source_provenance_class",
+      "generation_time",
+      "split_group_identity"
+    ],
+    "required_escalation_triggers": [
+      "low_calibrated_confidence",
+      "feature_ood_or_missing_critical",
+      "unseen_categorical_value",
+      "teacher_student_audit_disagreement",
+      "drift_detector_trigger",
+      "high_stakes",
+      "caller_policy_floor",
+      "unknown_or_conflict_sensitive_task"
+    ],
+    "stop_lines": [
+      "student fidelity != task correctness",
+      "teacher confidence != ground truth confidence",
+      "teacher probability != semantic truth",
+      "student confidence != SEI confidence",
+      "model fidelity != product value"
+    ]
   }
 }

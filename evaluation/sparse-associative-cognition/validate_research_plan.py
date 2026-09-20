@@ -56,7 +56,35 @@ REQUIRED_FOLLOW_ON_STAGES = {
     "SAC-B6i",
     "SAC-B6j",
     "SEI-B7",
+    "JD-LGBM-0",
+    "JD-LGBM-1",
+    "JD-LGBM-2",
+    "JD-LGBM-3",
+    "JD-LGBM-4",
+    "JD-LGBM-5",
 }
+
+REQUIRED_DISTILLED_DATASET_FIELDS = {
+    "feature_schema_version",
+    "task_schema_version",
+    "teacher_provider",
+    "teacher_model_version",
+    "teacher_request_hash",
+    "typed_output",
+    "teacher_probability_or_score",
+    "source_provenance_class",
+    "generation_time",
+    "split_group_identity",
+}
+REQUIRED_DISTILLATION_STOP_LINES = {
+    "student fidelity != task correctness",
+    "teacher confidence != ground truth confidence",
+    "teacher probability != semantic truth",
+    "student confidence != SEI confidence",
+    "model fidelity != product value",
+}
+REQUIRED_DISTILLATION_TARGET_TYPES = {"Noul", "Choice", "Score"}
+REQUIRED_DISTILLATION_EVALUATION_AXES = {"teacher_fidelity", "task_validity"}
 
 
 def validate_research_plan(plan: dict) -> list[str]:
@@ -185,6 +213,72 @@ def validate_research_plan(plan: dict) -> list[str]:
                 "follow_on_experiments is missing required stages: "
                 + ", ".join(sorted(missing))
             )
+
+        distillation_stages = {
+            item.get("stage"): item
+            for item in follow_on
+            if isinstance(item, dict) and str(item.get("stage", "")).startswith("JD-LGBM-")
+        }
+        for stage in sorted(REQUIRED_FOLLOW_ON_STAGES.intersection(distillation_stages)):
+            result = distillation_stages[stage].get("current_result")
+            if not isinstance(result, dict) or result.get("state") != "planned-no-execution-evidence":
+                errors.append(f"{stage}.current_result.state must remain planned-no-execution-evidence")
+            elif not result.get("stop_line"):
+                errors.append(f"{stage}.current_result.stop_line must be declared")
+
+    distillation = plan.get("distilled_typed_student_policy")
+    if not isinstance(distillation, dict):
+        errors.append("distilled_typed_student_policy must be an object")
+    else:
+        if distillation.get("state") != "planned-evaluation-only":
+            errors.append("distilled_typed_student_policy.state must remain planned-evaluation-only")
+        if distillation.get("first_student") != "LightGBM":
+            errors.append("distilled_typed_student_policy.first_student must remain LightGBM for the first comparison slice")
+        required_false = (
+            "lightgbm_is_required",
+            "cognitive_method_definition",
+            "universal_model_assumed",
+            "raw_text_direct_to_tree",
+            "teacher_dataset_is_ground_truth",
+            "teacher_confidence_is_ground_truth_confidence",
+            "student_output_is_semantic_truth",
+            "student_confidence_is_sei_confidence",
+            "automatic_online_learning",
+            "automatic_retraining",
+            "automatic_activation",
+            "high_stakes_floor_can_be_lowered",
+            "production_default_changed",
+            "b5_entry_gate_changed",
+        )
+        for key in required_false:
+            if distillation.get(key) is not False:
+                errors.append(f"distilled_typed_student_policy.{key} must remain false")
+
+        target_types = distillation.get("target_types")
+        if not isinstance(target_types, list) or set(target_types) != REQUIRED_DISTILLATION_TARGET_TYPES:
+            errors.append("distilled_typed_student_policy.target_types must remain Noul/Choice/Score")
+
+        axes = distillation.get("required_evaluation_axes")
+        if not isinstance(axes, list) or set(axes) != REQUIRED_DISTILLATION_EVALUATION_AXES:
+            errors.append("distilled_typed_student_policy.required_evaluation_axes must retain teacher_fidelity/task_validity")
+
+        dataset_fields = distillation.get("minimum_dataset_fields")
+        if not isinstance(dataset_fields, list) or not REQUIRED_DISTILLED_DATASET_FIELDS.issubset(dataset_fields):
+            errors.append("distilled_typed_student_policy.minimum_dataset_fields is missing required provenance/version fields")
+
+        escalation = distillation.get("required_escalation_triggers")
+        required_escalation = {
+            "feature_ood_or_missing_critical",
+            "high_stakes",
+            "caller_policy_floor",
+            "unknown_or_conflict_sensitive_task",
+        }
+        if not isinstance(escalation, list) or not required_escalation.issubset(escalation):
+            errors.append("distilled_typed_student_policy.required_escalation_triggers must retain OOD/high-stakes/policy/Unknown boundaries")
+
+        stop_lines = distillation.get("stop_lines")
+        if not isinstance(stop_lines, list) or not REQUIRED_DISTILLATION_STOP_LINES.issubset(stop_lines):
+            errors.append("distilled_typed_student_policy.stop_lines must retain fidelity/truth/confidence/product-value boundaries")
 
     stage_gate = plan.get("stage_gate_policy")
     if not isinstance(stage_gate, dict):
