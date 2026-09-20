@@ -1,0 +1,59 @@
+{
+  "schema": "sei.jd-lgbm0-split-group-isolation-evidence/v1alpha1",
+  "issue": 543,
+  "observedDateLocal": "2026-09-21",
+  "parentBinding": {
+    "branch": "develop/v0.2.0",
+    "commit": "edbb70635813aa5e2afb4ea262f142c0c2397baf"
+  },
+  "finding": {
+    "before": {
+      "crossSplitGroupCount": 2,
+      "groups": ["urgency-mid-pair", "review-boundary-pair"],
+      "risk": "related perturbation/boundary cases could leak across train/valid and inflate later student-fidelity estimates"
+    },
+    "after": {
+      "crossSplitGroupCount": 0,
+      "splitCounts": {"train": 6, "valid": 3, "test": 3},
+      "caseCount": 12
+    }
+  },
+  "localFiles": {
+    "README.md": "8082138d25870ac417329d9304f145b35fb8baf9",
+    "teacher_dataset.py": "b2c135a9750fcb838c0c2c9f9289a8f9b6c7c754",
+    "tasks.v1.json": "8f85f244848ef5da11b0d1326ea2706c12528dd9",
+    "test_teacher_dataset.py": "08db4df763d1ad9877d74b155913931544a9e969"
+  },
+  "localExecution": {
+    "python": "Python 3.13.5",
+    "testCommand": "python3 -m unittest -v test_teacher_dataset.py",
+    "testsDefined": 17,
+    "testsExecuted": 17,
+    "testsPassed": 17,
+    "failures": 0,
+    "errors": 0,
+    "unittestReportedSeconds": 0.004,
+    "planCommand": "python3 teacher_dataset.py tasks.v1.json --mode plan",
+    "planExitCode": 0,
+    "planRequests": 12,
+    "status": "PASS"
+  },
+  "guard": {
+    "rule": "one split_group_identity may belong to exactly one of train/valid/test",
+    "manifestValidationEnabled": true,
+    "negativeRegressionTestEnabled": true
+  },
+  "actualTeacherRun": {
+    "teacherRowsCollected": 0,
+    "teacherExecutionUsedForThisFix": false,
+    "lightgbmTrainingPerformed": false
+  },
+  "boundaries": [
+    "17/17 manifest/harness tests PASS != Jev teacher execution",
+    "split-group isolation != proof of unbiased evaluation",
+    "split-group isolation != task correctness or teacher fidelity",
+    "synthetic cases remain design fixtures, not ground truth",
+    "no LightGBM model was trained",
+    "no production default, activation policy, or B5 gate changed"
+  ]
+}
