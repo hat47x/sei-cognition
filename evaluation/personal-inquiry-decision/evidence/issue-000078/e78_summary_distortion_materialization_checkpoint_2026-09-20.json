@@ -53,6 +53,11 @@
       "method": "connector compressed/base64 textual handoff",
       "outcome": "CRC32 or full-file Git blob mismatch detected before execution",
       "classification": "discarded-reconstruction"
+    },
+    {
+      "method": "connector line-range/base64 handoff with scratch prefix hash",
+      "outcome": "Git blob comparison later detected mismatch; scratch SHA-256 prefix verifier retired",
+      "classification": "discarded-reconstruction"
     }
   ],
   "canonical_runtime_state": {
@@ -80,11 +85,11 @@
   },
   "stop_line": "materialization checkpoint != canonical runner PASS/FAIL != human review result != actual long-gap Evidence != Product Value decision != Stable Requirement authorization",
   "parallel_head_conflict_check": {
-    "develop_head": "f103e9c68e21a496ea5d0907e4486763a5c0d96c",
-    "checked_on": "2026-09-20",
+    "develop_head": "3c0e56c7949da7a6dded816254572a7a3e63a912",
+    "checked_on": "2026-09-21",
     "bound_files_checked": 10,
     "all_current_develop_blobs_match_binding": true,
-    "commits_since_previous_lane_checkpoint": 16,
+    "commits_since_previous_lane_checkpoint": 51,
     "observed_parallel_changes_touch_bound_e78_3_files": false,
     "open_prs_observed": [
       {
@@ -98,5 +103,13 @@
       }
     ],
     "interpretation": "Parallel lane progress has not changed any of the ten bound E78.3 source/mechanics blobs. This is a conflict check, not runtime Evidence."
+  },
+  "validation_method": {
+    "authoritative_file_identity": "Git blob SHA-1 only",
+    "local_verifier": "git hash-object",
+    "remote_complete_file_identity": "GitHub fetch_file blob SHA",
+    "remote_range_diagnostic": "GitHub create_blob over the exact fetched range may be used only to localize transport corruption; it does not replace complete-file binding verification.",
+    "retired_intermediate_check": "Ad-hoc SHA-256 prefix verification is not authoritative and must not be used to accept reconstructed source.",
+    "correction_note": "A scratch SHA-256 verifier produced a misleading intermediate agreement during a discarded reconstruction attempt. No canonical PASS, FAIL, or exact-materialization claim was based on that verifier; complete-file Git blob verification remains the acceptance criterion."
   }
 }
