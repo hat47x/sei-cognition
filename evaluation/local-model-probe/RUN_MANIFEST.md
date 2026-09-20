@@ -146,6 +146,8 @@ raw / workspace / staged artifactの比較は`cmd/modelcompare`を使う。比�
 
 `cmd/modelmatrix`は3 modeのpreflight・run artifact・comparisonを一つのmatrix artifactへまとめる。
 
+標準matrix入口では、source identityをcurrent Git HEADから実測する。`--source-git-sha`は任意の記録値ではなくexpected SHAとして扱い、指定時は`git rev-parse HEAD`との完全一致を要求する。未指定時はcurrent HEADを採用する。
+
 statusは次の三つに限定する。
 
 - `complete`: 3 modeがinvocation errorなしで完了し、comparisonを生成した;
