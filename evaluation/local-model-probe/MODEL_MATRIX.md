@@ -220,7 +220,9 @@ model × fixture × modeごとに:
 
 - request chars
 - token usage（runtimeが返す場合）
-- total latency
+- response header latency
+- first-token latency（streaming時のみ）
+- transport total latency
 - response chars
 - JSON contract success/failure
 - Unknown preservation
@@ -259,6 +261,16 @@ runtime側で別途:
 - tokens/sec
 
 を記録する。
+
+### Latency evidence
+
+actual model比較では、latencyを一つの数へ潰さない。
+
+- response header: serverがresponseを開始するまで;
+- TTFT: `--stream`時、最初の非空content deltaまで;
+- total: response body完了またはSSE `[DONE]`まで.
+
+`total_latency_ms`はmodelprobe内部のJSON decode / semantic evaluator時間を含めない。TTFT未観測runを0msとして平均へ入れず、raw/workspace比較は両方でTTFTが観測できたshared fixtureだけを使う。
 
 ### Memory evidence
 
