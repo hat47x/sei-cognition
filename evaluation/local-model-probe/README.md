@@ -194,14 +194,42 @@ Issue #375では少なくとも次を比較する。
 - invalid evidence ref
 - need-more-evidence appropriateness
 
+取得可能:
+- response header latency
+- request開始からresponse完了までのtransport total latency
+- `--stream`時のfirst-token latency（最初の非空content delta受信時刻を操作的定義とする）
+- Linux `--runtime-pid`指定時のruntime process RSS / peak RSS
+
 まだ取得しないもの:
-- streaming first-token latency
-- process peak RSS
-- model weight memory
-- KV cache memory
+- tokenizer内部の厳密な単一token生成時刻
+- model weight単独memory
+- KV cache単独memory
+- GPU VRAM
 - energy
 
 これらはruntime-specific probeとして後続する。
+
+### Streaming latency
+
+actual比較でTTFTを取る場合は `modelmatrix --stream` を指定する。OpenAI-compatible SSE streamの最初の**非空 `choices[].delta.content`**をfirst tokenの操作的観測点とする。
+
+保存値:
+
+- `response_header_latency_ms`: request開始からHTTP response header受信まで;
+- `first_token_observed`: content deltaを実際に観測したか;
+- `first_token_latency_ms`: request開始から最初の非空content deltaまで;
+- `total_latency_ms`: request開始からfull bodyまたはSSE `[DONE]`まで.
+
+```text
+first content delta latency
+  ~= operational TTFT
+  != tokenizer-internal exact token timestamp
+
+transport total latency
+  != local evaluator processing time
+```
+
+streamingを指定しないrunでは `first_token_observed=false` のままとし、0msをTTFT観測値として扱わない。SSEがcontentを返しても `[DONE]`なしで終了した場合はincomplete responseとしてfail-closedにする。
 
 ### Runtime process RSS
 
