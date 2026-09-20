@@ -1,0 +1,108 @@
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"flag"
+	"fmt"
+	"os"
+	"time"
+
+	"github.com/hat47x/sei-cognition/evaluation/sparse-associative-cognition/prototype-go/cognitiveeval"
+	"github.com/hat47x/sei-cognition/evaluation/sparse-associative-cognition/prototype-go/modelprobe"
+)
+
+func main() {
+	runIDPrefix := flag.String("run-id-prefix", "", "stable prefix used for raw/workspace/staged run ids")
+	sourceGitSHA := flag.String("source-git-sha", "", "exact lowercase 40-character source Git SHA")
+	healthEndpoint := flag.String("health-endpoint", "http://127.0.0.1:8080/health", "runtime health endpoint")
+	endpoint := flag.String("endpoint", "http://127.0.0.1:8080/v1/chat/completions", "OpenAI-compatible chat-completions endpoint")
+	runtimeName := flag.String("runtime", "", "runtime name")
+	runtimeVersion := flag.String("runtime-version", "", "runtime version")
+	model := flag.String("model", "", "model identifier sent to endpoint")
+	quantization := flag.String("quantization", "", "quantization label")
+	contextSize := flag.Int("context-size", 0, "runtime context size")
+	threads := flag.Int("threads", 0, "runtime thread count")
+	timeout := flag.Duration("timeout", 120*time.Second, "per-request timeout")
+	maxTokens := flag.Int("max-tokens", 800, "maximum completion tokens")
+	fixtureID := flag.String("fixture", "all", "fixture id or all")
+	output := flag.String("output", "", "new matrix artifact JSON path")
+	flag.Parse()
+
+	if *output == "" {
+		fatalf("--output is required")
+	}
+	if _, err := os.Stat(*output); err == nil {
+		fatalf("output already exists: %s", *output)
+	} else if !os.IsNotExist(err) {
+		fatalf("inspect output: %v", err)
+	}
+
+	fixtures := selectFixtures(*fixtureID)
+	if len(fixtures) == 0 {
+		fatalf("fixture not found: %s", *fixtureID)
+	}
+
+	matrix, err := modelprobe.RunActualMatrix(
+		context.Background(),
+		modelprobe.MatrixConfig{
+			RunIDPrefix:    *runIDPrefix,
+			SourceGitSHA:   *sourceGitSHA,
+			HealthEndpoint: *healthEndpoint,
+			RuntimeName:    *runtimeName,
+			RuntimeVersion: *runtimeVersion,
+			Quantization:   *quantization,
+			ContextSize:    *contextSize,
+			Threads:        *threads,
+			Timeout:        *timeout,
+			Probe: modelprobe.Config{
+				Endpoint:  *endpoint,
+				Model:     *model,
+				MaxTokens: *maxTokens,
+			},
+		},
+		fixtures,
+	)
+	if err != nil {
+		fatalf("run matrix: %v", err)
+	}
+
+	if err := writeJSONExclusive(*output, matrix); err != nil {
+		fatalf("write matrix artifact: %v", err)
+	}
+	if matrix.Status != "complete" {
+		os.Exit(1)
+	}
+}
+
+func selectFixtures(id string) []cognitiveeval.Fixture {
+	all := cognitiveeval.ReferenceFixtures()
+	if id == "all" {
+		return all
+	}
+	for _, fixture := range all {
+		if fixture.ID == id {
+			return []cognitiveeval.Fixture{fixture}
+		}
+	}
+	return nil
+}
+
+func writeJSONExclusive(path string, value any) error {
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
+	if err != nil {
+		return err
+	}
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	if err := encoder.Encode(value); err != nil {
+		_ = file.Close()
+		return err
+	}
+	return file.Close()
+}
+
+func fatalf(format string, args ...any) {
+	fmt.Fprintf(os.Stderr, format+"\n", args...)
+	os.Exit(1)
+}
