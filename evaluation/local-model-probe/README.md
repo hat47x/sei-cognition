@@ -253,7 +253,7 @@ runtimeが用意されている環境では、preflightから3 mode比較まで�
 ```bash
 go run ./cmd/modelmatrix \\
   --run-id-prefix qwen08-first \\
-  --source-git-sha <exact-source-sha> \\
+  --source-git-sha <expected-exact-source-sha> \\
   --runtime llama.cpp \\
   --runtime-version <version> \\
   --model <model-id> \\
@@ -262,6 +262,8 @@ go run ./cmd/modelmatrix \\
   --threads 8 \\
   --output qwen08-matrix.json
 ```
+
+matrix runnerは実行開始前に `git rev-parse HEAD` を取り、`--source-git-sha` が指定されていれば完全一致を要求する。未指定ならcurrent HEADをsource identityとして採用する。Git repositoryとしてHEADを検証できない環境ではactual matrixを開始しない。
 
 実行順は固定される。
 
