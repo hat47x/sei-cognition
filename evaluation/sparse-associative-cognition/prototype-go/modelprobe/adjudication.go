@@ -112,6 +112,9 @@ func ValidateHumanAdjudication(
 	if adjudication.Model != matrix.Model {
 		return HumanAdjudicationReport{}, fmt.Errorf("adjudication model does not match matrix")
 	}
+	if err := ValidateModelArtifactIdentity(adjudication.ModelArtifact); err != nil {
+		return HumanAdjudicationReport{}, fmt.Errorf("adjudication model artifact identity: %w", err)
+	}
 	if !SameModelArtifactIdentity(adjudication.ModelArtifact, matrix.ModelArtifact) {
 		return HumanAdjudicationReport{}, fmt.Errorf("adjudication model_artifact does not match matrix")
 	}
