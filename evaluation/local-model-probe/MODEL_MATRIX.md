@@ -252,12 +252,26 @@ model × fixture × modeごとに:
 これらを総合点へ畳み込まない。quality改善とcost低下が逆方向になる場合、そのtrade-off自体をEvidenceとして残す。
 
 runtime側で別途:
+- runtime process RSS / peak RSS
 - model load memory
-- peak RSS / VRAM
+- VRAM
 - idle memory
 - tokens/sec
 
 を記録する。
+
+### Memory evidence
+
+first executable sliceではLinux runtime processの `VmRSS` / `VmHWM` を取得できる。これはOS process-level memory Evidenceであり、model weight・KV cache・allocator overheadを分解しない。
+
+```text
+process RSS evidence
+  != model weight memory
+  != KV cache memory
+  != GPU VRAM
+```
+
+同じruntime processを複数実験で再利用すると `VmHWM` は過去のhigh-water markを保持する。model間比較ではdedicated processを起動し直すか、この制約を明記する。
 
 ## 10. 結果の読み方
 
