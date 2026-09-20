@@ -76,7 +76,7 @@ func BuildHumanAdjudicationTemplate(
 
 	return HumanAdjudication{
 		Schema:        humanAdjudicationSchema,
-		Status:        "draft",
+		Status:        "human-review-template",
 		SourceGitSHA:  matrix.SourceGitSHA,
 		Model:         matrix.Model,
 		ReviewerLabel: reviewerLabel,
@@ -99,6 +99,9 @@ func ValidateHumanAdjudication(
 	}
 	if adjudication.Schema != humanAdjudicationSchema {
 		return HumanAdjudicationReport{}, fmt.Errorf("adjudication schema %q is unsupported", adjudication.Schema)
+	}
+	if adjudication.Status != "human-review-template" {
+		return HumanAdjudicationReport{}, fmt.Errorf("adjudication status %q is unsupported", adjudication.Status)
 	}
 	if adjudication.SourceGitSHA != matrix.SourceGitSHA {
 		return HumanAdjudicationReport{}, fmt.Errorf("adjudication source_git_sha does not match matrix")
