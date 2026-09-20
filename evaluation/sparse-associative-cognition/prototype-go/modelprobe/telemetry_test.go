@@ -193,3 +193,38 @@ func TestSummarizeActualTelemetryDetectsPlanExecutionMismatch(t *testing.T) {
 		t.Fatalf("mismatch must fail completeness: %+v", summary)
 	}
 }
+
+
+func TestSummarizeActualTelemetryRejectsPlannedCallAsSkip(t *testing.T) {
+	fixtures := cognitiveeval.ReferenceFixtures()
+	observations := stagedObservations(t, fixtures)
+	for i := range observations {
+		if observations[i].PlannedModelInvocation {
+			observations[i].ModelInvocationAttempted = false
+			observations[i].ModelInvocationSucceeded = false
+			observations[i].Skipped = true
+			break
+		}
+	}
+
+	summary, err := SummarizeActualTelemetry(
+		"run-005",
+		testSourceGitSHA,
+		"candidate-model",
+		ModeStaged,
+		fixtures,
+		observations,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.ActualSkippedCalls != 3 {
+		t.Fatalf("planned-call skip must not count as avoided call: %+v", summary)
+	}
+	if summary.ActualCallsAvoidedVsRaw != 3 {
+		t.Fatalf("actual calls avoided=%d want=3", summary.ActualCallsAvoidedVsRaw)
+	}
+	if summary.PlanExecutionMismatchCount == 0 || summary.CompleteWithoutInvocationError {
+		t.Fatalf("inconsistent planned-call skip must fail completeness: %+v", summary)
+	}
+}
