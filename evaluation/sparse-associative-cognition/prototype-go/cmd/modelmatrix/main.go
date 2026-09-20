@@ -28,6 +28,7 @@ func main() {
 	threads := flag.Int("threads", 0, "runtime thread count")
 	timeout := flag.Duration("timeout", 120*time.Second, "per-request timeout")
 	maxTokens := flag.Int("max-tokens", 800, "maximum completion tokens")
+	stream := flag.Bool("stream", false, "use OpenAI-compatible SSE streaming and measure first content-delta latency")
 	fixtureID := flag.String("fixture", "all", "fixture id or all")
 	output := flag.String("output", "", "new matrix artifact JSON path")
 	flag.Parse()
@@ -68,6 +69,7 @@ func main() {
 				Endpoint:  *endpoint,
 				Model:     *model,
 				MaxTokens: *maxTokens,
+				Stream:    *stream,
 			},
 		},
 		fixtures,
