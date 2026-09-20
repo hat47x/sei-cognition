@@ -28,6 +28,8 @@ type RunManifest struct {
 	Status        string       `json:"status"`
 	ObservedAt    string       `json:"observed_at"`
 	ExecutionKind string       `json:"execution_kind"`
+	RunID         string       `json:"run_id,omitempty"`
+	SourceGitSHA  string       `json:"source_git_sha,omitempty"`
 	Host          HostInfo     `json:"host"`
 	Endpoint      EndpointInfo `json:"endpoint"`
 	RuntimeName   string       `json:"runtime_name,omitempty"`
