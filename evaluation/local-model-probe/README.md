@@ -370,6 +370,18 @@ Workspace
 
 逆に、Workspaceがraw contextと同等以下であれば、SEI-specific context shapingを縮小または再設計する。
 
+## 10.1 human adjudication
+
+machine evaluatorの結果だけでtask successを確定しない。complete matrix取得後は[`HUMAN_ADJUDICATION.md`](./HUMAN_ADJUDICATION.md)のsidecarを使い、actual model outputが存在するfixtureだけを人が評価する。
+
+```text
+machine semantic checks
+  + independent human adjudication
+  -> separate Evidence views
+```
+
+review templateは全entryを`unassessed`で生成し、AIがpass/failを先取りしない。validated reportもmode別countを保持するだけでoverall scoreを生成しない。
+
 ## 11. 停止線
 
 ```text
