@@ -124,6 +124,24 @@ lower actual invocation count
 
 preflight manifestとactual telemetry summaryは同じ `run_id` / `source_git_sha` を使用する。異なるsource revisionの結果を一つのrunとして結合しない。
 
+### 5.2 run artifact
+
+`--run-json`を指定すると、telemetryと成功したfixture resultを同一のevaluation-only artifactへ保存する。
+
+```bash
+go run ./cmd/modelprobe \\
+  --mode workspace \\
+  --fixture all \\
+  --model <model-id> \\
+  --run-id <workspace-run-id> \\
+  --source-git-sha <exact-source-sha> \\
+  --run-json workspace.json
+```
+
+`--telemetry-json`と併用してもよいが、同じpathは拒否する。どちらもexclusive-createであり既存Evidenceを上書きしない。途中failureがある場合も、保存可能な観測はartifactへ残し、runはnon-zeroで終了する。
+
+raw / workspace / staged artifactの比較は`cmd/modelcompare`を使う。比較時にはmodelとexact source SHAの一致を必須とする。
+
 ## 6. 現在の実行環境で確認できたこと
 
 2026-09-12時点の現在の作業環境では:
