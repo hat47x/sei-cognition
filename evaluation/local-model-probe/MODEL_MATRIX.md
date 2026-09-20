@@ -300,6 +300,21 @@ reasoning-specialized modelを常駐させる必要はない。
 
 逆に、小型modelの成功率だけを見て採用判断しない。
 
+### 標準実行入口
+
+actual runtimeがある環境では `cmd/modelmatrix` を標準入口とする。これによりraw / workspace / stagedでsource revisionやmodel identityがずれる事故を避け、preflight・actual invocation・comparisonを一つのmatrix artifactへ束縛する。
+
+matrix runnerは次を自動化するが、model取得・runtime installは行わない。
+
+source provenanceについては、Git HEADの実測・照合をactual inferenceより前に行う。別revisionのprompt/evaluatorを同じmodel比較へ混ぜない。
+
+- modeごとのpreflight;
+- 7 fixtureの実行;
+- explicit staged skip保持;
+- partial failure Evidence保持;
+- same-source / same-model cross-mode comparison;
+- complete / blocked-preflight / incomplete-inferenceの区別.
+
 ## 12. 次の実測単位
 
 最初のactual runはQwen3.5-0.8Bのみで十分である。
