@@ -180,8 +180,11 @@ func SummarizeActualTelemetry(
 		if observation.Error != "" && observation.ModelInvocationAttempted {
 			summary.ActualModelInvocationFailures++
 		}
-		if observation.Skipped {
+		if !plan.ShouldInvokeModel && observation.Skipped {
 			summary.ActualSkippedCalls++
+		}
+		if plan.ShouldInvokeModel && observation.Skipped {
+			summary.PlanExecutionMismatchCount++
 		}
 		if plan.ShouldInvokeModel && !observation.ModelInvocationAttempted {
 			summary.UnattemptedPlannedCalls++
