@@ -1,0 +1,82 @@
+{
+  "schema": "sei.inquiry-continuity-summary-distortion-materialization-checkpoint/v1alpha1",
+  "status": "evaluation-only",
+  "date": "2026-09-20",
+  "issue": "ISSUE-000078",
+  "tracking_issue": 532,
+  "experiment": "E78.3",
+  "aggregation_branch": "develop/v0.2.0",
+  "bound_source": {
+    "commit": "e785a7ad0e7070fafe9d187f458ce9cca587a7f6",
+    "binding_path": "evaluation/personal-inquiry-decision/evidence/issue-000078/e78_summary_distortion_execution_input_binding_2026-09-20.json",
+    "binding_blob_sha1": "7255d0195a877477ec9f82e9f276691a06d979c8"
+  },
+  "purpose": "Record the current byte-faithful materialization boundary separately from canonical runtime evidence so transport failures cannot be misclassified as local-gate PASS or FAIL.",
+  "exact_materialization_observed": [
+    {
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe_v1.json",
+      "git_blob_sha1": "9cee9cbccaed96b1a4048dde2763c1ca5c297958"
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_001.json",
+      "git_blob_sha1": "52335589c72ab3548a29053a0acd4c287fbee85d"
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_002.json",
+      "git_blob_sha1": "0c3f7caac753e1642e3ff3e8e40425bd7b0e0976"
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_003.json",
+      "git_blob_sha1": "645519e1a502e844ca640ab0d61dfa438a46e8d2"
+    }
+  ],
+  "not_materialized_exactly_in_current_attempt": [
+    "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe.py",
+    "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_evidence.py",
+    "evaluation/personal-inquiry-decision/test_inquiry_continuity_summary_distortion_probe.py",
+    "evaluation/personal-inquiry-decision/test_inquiry_continuity_summary_distortion_evidence.py",
+    "evaluation/personal-inquiry-decision/run_inquiry_continuity_summary_distortion_checks.py",
+    "evaluation/personal-inquiry-decision/test_run_inquiry_continuity_summary_distortion_checks.py"
+  ],
+  "transport_attempts": [
+    {
+      "method": "direct checkout/raw download from current execution container",
+      "outcome": "unavailable",
+      "classification": "transport-blocked"
+    },
+    {
+      "method": "connector line-range/manual reconstruction",
+      "outcome": "full-file Git blob mismatch detected before execution",
+      "classification": "discarded-reconstruction"
+    },
+    {
+      "method": "connector compressed/base64 textual handoff",
+      "outcome": "CRC32 or full-file Git blob mismatch detected before execution",
+      "classification": "discarded-reconstruction"
+    }
+  ],
+  "canonical_runtime_state": {
+    "runner_focused_tests_executed_from_bound_10_blob_set": false,
+    "seven_check_aggregate_executed_from_bound_10_blob_set": false,
+    "validated_result_v2_persisted": false,
+    "new_pass_claimed": false,
+    "new_fail_claimed": false
+  },
+  "resume_requirements": [
+    "Materialize all ten files from the one bound source commit using an authenticated mounted checkout, local Git object database, or another byte-faithful transport.",
+    "Compute Git blob SHA-1 for all ten files and require exact equality with the execution-input binding before running any canonical check.",
+    "Discard any reconstruction with one or more mismatches without classifying the canonical local gate as PASS or FAIL.",
+    "Then run the runner-focused tests, followed by the canonical seven-check aggregate runner and validate_result before persisting result schema v2."
+  ],
+  "prior_actual_runtime_evidence": {
+    "path": "evaluation/personal-inquiry-decision/evidence/issue-000078/e78_summary_distortion_partial_runtime_2026-09-19.json",
+    "note": "This checkpoint does not supersede the previously observed canonical validate exit 0, probe focused tests 23/23 PASS, or Evidence focused tests 18/18 PASS."
+  },
+  "evidence_boundary": {
+    "human_review_observed": false,
+    "actual_long_gap_resumption_established": false,
+    "product_value_established": false,
+    "stable_requirement_authorized": false
+  },
+  "stop_line": "materialization checkpoint != canonical runner PASS/FAIL != human review result != actual long-gap Evidence != Product Value decision != Stable Requirement authorization"
+}
