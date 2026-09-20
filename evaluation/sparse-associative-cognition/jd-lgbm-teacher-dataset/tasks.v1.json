@@ -10,26 +10,8 @@
       "source_provenance_class": "synthetic-representative",
       "split": "train",
       "split_group_identity": "route-low-impact-a",
-      "state": {
-        "error_class": "timeout",
-        "retry_count": 1,
-        "retry_success_rate": 0.98,
-        "customer_impact": "none",
-        "billing_signal": false,
-        "recent_deploy": false
-      },
-      "questions": {
-        "route": {
-          "type": "choice",
-          "instructions": "Which bounded handling route best fits this structured service state?",
-          "criteria": {
-            "observe": "Transient low-impact event suitable for observation",
-            "technical_review": "Technical investigation is warranted",
-            "billing_review": "Billing-specific review is warranted",
-            "manual_review": "The state is ambiguous or outside the other routes"
-          }
-        }
-      }
+      "state": {"error_class": "timeout", "retry_count": 1, "retry_success_rate": 0.98, "customer_impact": "none", "billing_signal": false, "recent_deploy": false},
+      "questions": {"route": {"type": "choice", "instructions": "Which bounded handling route best fits this structured service state?", "criteria": {"observe": "Transient low-impact event suitable for observation", "technical_review": "Technical investigation is warranted", "billing_review": "Billing-specific review is warranted", "manual_review": "The state is ambiguous or outside the other routes"}}}
     },
     {
       "case_id": "route-technical-01",
@@ -39,26 +21,8 @@
       "source_provenance_class": "synthetic-representative",
       "split": "valid",
       "split_group_identity": "route-technical-a",
-      "state": {
-        "error_class": "schema_mismatch",
-        "retry_count": 4,
-        "retry_success_rate": 0.05,
-        "customer_impact": "partial",
-        "billing_signal": false,
-        "recent_deploy": true
-      },
-      "questions": {
-        "route": {
-          "type": "choice",
-          "instructions": "Which bounded handling route best fits this structured service state?",
-          "criteria": {
-            "observe": "Transient low-impact event suitable for observation",
-            "technical_review": "Technical investigation is warranted",
-            "billing_review": "Billing-specific review is warranted",
-            "manual_review": "The state is ambiguous or outside the other routes"
-          }
-        }
-      }
+      "state": {"error_class": "schema_mismatch", "retry_count": 4, "retry_success_rate": 0.05, "customer_impact": "partial", "billing_signal": false, "recent_deploy": true},
+      "questions": {"route": {"type": "choice", "instructions": "Which bounded handling route best fits this structured service state?", "criteria": {"observe": "Transient low-impact event suitable for observation", "technical_review": "Technical investigation is warranted", "billing_review": "Billing-specific review is warranted", "manual_review": "The state is ambiguous or outside the other routes"}}}
     },
     {
       "case_id": "route-billing-01",
@@ -68,26 +32,8 @@
       "source_provenance_class": "synthetic-boundary",
       "split": "valid",
       "split_group_identity": "route-billing-a",
-      "state": {
-        "error_class": "duplicate_charge",
-        "retry_count": 0,
-        "retry_success_rate": 1.0,
-        "customer_impact": "financial",
-        "billing_signal": true,
-        "recent_deploy": false
-      },
-      "questions": {
-        "route": {
-          "type": "choice",
-          "instructions": "Which bounded handling route best fits this structured service state?",
-          "criteria": {
-            "observe": "Transient low-impact event suitable for observation",
-            "technical_review": "Technical investigation is warranted",
-            "billing_review": "Billing-specific review is warranted",
-            "manual_review": "The state is ambiguous or outside the other routes"
-          }
-        }
-      }
+      "state": {"error_class": "duplicate_charge", "retry_count": 0, "retry_success_rate": 1.0, "customer_impact": "financial", "billing_signal": true, "recent_deploy": false},
+      "questions": {"route": {"type": "choice", "instructions": "Which bounded handling route best fits this structured service state?", "criteria": {"observe": "Transient low-impact event suitable for observation", "technical_review": "Technical investigation is warranted", "billing_review": "Billing-specific review is warranted", "manual_review": "The state is ambiguous or outside the other routes"}}}
     },
     {
       "case_id": "route-ambiguous-01",
@@ -97,26 +43,8 @@
       "source_provenance_class": "synthetic-counterexample",
       "split": "test",
       "split_group_identity": "route-ambiguous-a",
-      "state": {
-        "error_class": "unknown",
-        "retry_count": 2,
-        "retry_success_rate": 0.5,
-        "customer_impact": "unknown",
-        "billing_signal": false,
-        "recent_deploy": false
-      },
-      "questions": {
-        "route": {
-          "type": "choice",
-          "instructions": "Which bounded handling route best fits this structured service state?",
-          "criteria": {
-            "observe": "Transient low-impact event suitable for observation",
-            "technical_review": "Technical investigation is warranted",
-            "billing_review": "Billing-specific review is warranted",
-            "manual_review": "The state is ambiguous or outside the other routes"
-          }
-        }
-      }
+      "state": {"error_class": "unknown", "retry_count": 2, "retry_success_rate": 0.5, "customer_impact": "unknown", "billing_signal": false, "recent_deploy": false},
+      "questions": {"route": {"type": "choice", "instructions": "Which bounded handling route best fits this structured service state?", "criteria": {"observe": "Transient low-impact event suitable for observation", "technical_review": "Technical investigation is warranted", "billing_review": "Billing-specific review is warranted", "manual_review": "The state is ambiguous or outside the other routes"}}}
     },
     {
       "case_id": "urgency-low-01",
@@ -126,26 +54,8 @@
       "source_provenance_class": "synthetic-representative",
       "split": "train",
       "split_group_identity": "urgency-low-a",
-      "state": {
-        "affected_sessions": 0,
-        "data_loss_signal": false,
-        "security_signal": false,
-        "error_rate": 0.001,
-        "recovery_eta_minutes": 2,
-        "workaround_available": true
-      },
-      "questions": {
-        "urgency": {
-          "type": "score",
-          "instructions": "Rate operational urgency from low to critical using only the structured state.",
-          "criteria": [
-            "Low: monitor during normal operations",
-            "Moderate: timely operator review is useful",
-            "High: prompt intervention is warranted",
-            "Critical: immediate escalation is warranted"
-          ]
-        }
-      }
+      "state": {"affected_sessions": 0, "data_loss_signal": false, "security_signal": false, "error_rate": 0.001, "recovery_eta_minutes": 2, "workaround_available": true},
+      "questions": {"urgency": {"type": "score", "instructions": "Rate operational urgency from low to critical using only the structured state.", "criteria": ["Low: monitor during normal operations", "Moderate: timely operator review is useful", "High: prompt intervention is warranted", "Critical: immediate escalation is warranted"]}}
     },
     {
       "case_id": "urgency-moderate-01",
@@ -155,26 +65,8 @@
       "source_provenance_class": "synthetic-perturbation",
       "split": "train",
       "split_group_identity": "urgency-mid-pair",
-      "state": {
-        "affected_sessions": 15,
-        "data_loss_signal": false,
-        "security_signal": false,
-        "error_rate": 0.03,
-        "recovery_eta_minutes": 20,
-        "workaround_available": true
-      },
-      "questions": {
-        "urgency": {
-          "type": "score",
-          "instructions": "Rate operational urgency from low to critical using only the structured state.",
-          "criteria": [
-            "Low: monitor during normal operations",
-            "Moderate: timely operator review is useful",
-            "High: prompt intervention is warranted",
-            "Critical: immediate escalation is warranted"
-          ]
-        }
-      }
+      "state": {"affected_sessions": 15, "data_loss_signal": false, "security_signal": false, "error_rate": 0.03, "recovery_eta_minutes": 20, "workaround_available": true},
+      "questions": {"urgency": {"type": "score", "instructions": "Rate operational urgency from low to critical using only the structured state.", "criteria": ["Low: monitor during normal operations", "Moderate: timely operator review is useful", "High: prompt intervention is warranted", "Critical: immediate escalation is warranted"]}}
     },
     {
       "case_id": "urgency-high-01",
@@ -184,26 +76,8 @@
       "source_provenance_class": "synthetic-perturbation",
       "split": "train",
       "split_group_identity": "urgency-mid-pair",
-      "state": {
-        "affected_sessions": 150,
-        "data_loss_signal": false,
-        "security_signal": false,
-        "error_rate": 0.3,
-        "recovery_eta_minutes": 20,
-        "workaround_available": false
-      },
-      "questions": {
-        "urgency": {
-          "type": "score",
-          "instructions": "Rate operational urgency from low to critical using only the structured state.",
-          "criteria": [
-            "Low: monitor during normal operations",
-            "Moderate: timely operator review is useful",
-            "High: prompt intervention is warranted",
-            "Critical: immediate escalation is warranted"
-          ]
-        }
-      }
+      "state": {"affected_sessions": 150, "data_loss_signal": false, "security_signal": false, "error_rate": 0.3, "recovery_eta_minutes": 20, "workaround_available": false},
+      "questions": {"urgency": {"type": "score", "instructions": "Rate operational urgency from low to critical using only the structured state.", "criteria": ["Low: monitor during normal operations", "Moderate: timely operator review is useful", "High: prompt intervention is warranted", "Critical: immediate escalation is warranted"]}}
     },
     {
       "case_id": "urgency-critical-01",
@@ -213,26 +87,8 @@
       "source_provenance_class": "synthetic-rare",
       "split": "test",
       "split_group_identity": "urgency-critical-a",
-      "state": {
-        "affected_sessions": 900,
-        "data_loss_signal": true,
-        "security_signal": true,
-        "error_rate": 0.85,
-        "recovery_eta_minutes": 90,
-        "workaround_available": false
-      },
-      "questions": {
-        "urgency": {
-          "type": "score",
-          "instructions": "Rate operational urgency from low to critical using only the structured state.",
-          "criteria": [
-            "Low: monitor during normal operations",
-            "Moderate: timely operator review is useful",
-            "High: prompt intervention is warranted",
-            "Critical: immediate escalation is warranted"
-          ]
-        }
-      }
+      "state": {"affected_sessions": 900, "data_loss_signal": true, "security_signal": true, "error_rate": 0.85, "recovery_eta_minutes": 90, "workaround_available": false},
+      "questions": {"urgency": {"type": "score", "instructions": "Rate operational urgency from low to critical using only the structured state.", "criteria": ["Low: monitor during normal operations", "Moderate: timely operator review is useful", "High: prompt intervention is warranted", "Critical: immediate escalation is warranted"]}}
     },
     {
       "case_id": "review-no-01",
@@ -242,23 +98,8 @@
       "source_provenance_class": "synthetic-representative",
       "split": "valid",
       "split_group_identity": "review-clear-a",
-      "state": {
-        "novelty": 0.05,
-        "missing_critical_features": false,
-        "policy_conflict": false,
-        "high_stakes": false,
-        "known_pattern_support": 0.94
-      },
-      "questions": {
-        "needs_human_review": {
-          "type": "noul",
-          "instructions": "Does this structured state warrant human review before action?",
-          "criteria": {
-            "true": "Human review is warranted before action",
-            "false": "No human review is warranted by these bounded signals"
-          }
-        }
-      }
+      "state": {"novelty": 0.05, "missing_critical_features": false, "policy_conflict": false, "high_stakes": false, "known_pattern_support": 0.94},
+      "questions": {"needs_human_review": {"type": "noul", "instructions": "Does this structured state warrant human review before action?", "criteria": {"true": "Human review is warranted before action", "false": "No human review is warranted by these bounded signals"}}}
     },
     {
       "case_id": "review-boundary-01",
@@ -268,23 +109,8 @@
       "source_provenance_class": "synthetic-boundary",
       "split": "train",
       "split_group_identity": "review-boundary-pair",
-      "state": {
-        "novelty": 0.48,
-        "missing_critical_features": false,
-        "policy_conflict": false,
-        "high_stakes": false,
-        "known_pattern_support": 0.52
-      },
-      "questions": {
-        "needs_human_review": {
-          "type": "noul",
-          "instructions": "Does this structured state warrant human review before action?",
-          "criteria": {
-            "true": "Human review is warranted before action",
-            "false": "No human review is warranted by these bounded signals"
-          }
-        }
-      }
+      "state": {"novelty": 0.48, "missing_critical_features": false, "policy_conflict": false, "high_stakes": false, "known_pattern_support": 0.52},
+      "questions": {"needs_human_review": {"type": "noul", "instructions": "Does this structured state warrant human review before action?", "criteria": {"true": "Human review is warranted before action", "false": "No human review is warranted by these bounded signals"}}}
     },
     {
       "case_id": "review-boundary-02",
@@ -294,23 +120,8 @@
       "source_provenance_class": "synthetic-perturbation",
       "split": "train",
       "split_group_identity": "review-boundary-pair",
-      "state": {
-        "novelty": 0.53,
-        "missing_critical_features": false,
-        "policy_conflict": false,
-        "high_stakes": false,
-        "known_pattern_support": 0.47
-      },
-      "questions": {
-        "needs_human_review": {
-          "type": "noul",
-          "instructions": "Does this structured state warrant human review before action?",
-          "criteria": {
-            "true": "Human review is warranted before action",
-            "false": "No human review is warranted by these bounded signals"
-          }
-        }
-      }
+      "state": {"novelty": 0.53, "missing_critical_features": false, "policy_conflict": false, "high_stakes": false, "known_pattern_support": 0.47},
+      "questions": {"needs_human_review": {"type": "noul", "instructions": "Does this structured state warrant human review before action?", "criteria": {"true": "Human review is warranted before action", "false": "No human review is warranted by these bounded signals"}}}
     },
     {
       "case_id": "review-yes-01",
@@ -320,23 +131,8 @@
       "source_provenance_class": "synthetic-rare",
       "split": "test",
       "split_group_identity": "review-high-stakes-a",
-      "state": {
-        "novelty": 0.8,
-        "missing_critical_features": true,
-        "policy_conflict": true,
-        "high_stakes": true,
-        "known_pattern_support": 0.1
-      },
-      "questions": {
-        "needs_human_review": {
-          "type": "noul",
-          "instructions": "Does this structured state warrant human review before action?",
-          "criteria": {
-            "true": "Human review is warranted before action",
-            "false": "No human review is warranted by these bounded signals"
-          }
-        }
-      }
+      "state": {"novelty": 0.8, "missing_critical_features": true, "policy_conflict": true, "high_stakes": true, "known_pattern_support": 0.1},
+      "questions": {"needs_human_review": {"type": "noul", "instructions": "Does this structured state warrant human review before action?", "criteria": {"true": "Human review is warranted before action", "false": "No human review is warranted by these bounded signals"}}}
     }
   ]
 }

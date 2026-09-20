@@ -21,7 +21,7 @@
   "localFiles": {
     "README.md": "8082138d25870ac417329d9304f145b35fb8baf9",
     "teacher_dataset.py": "b2c135a9750fcb838c0c2c9f9289a8f9b6c7c754",
-    "tasks.v1.json": "8ad2b22022cebfc1ea52d18ce6ee9a411422213a",
+    "tasks.v1.json": "8f85f244848ef5da11b0d1326ea2706c12528dd9",
     "test_teacher_dataset.py": "08db4df763d1ad9877d74b155913931544a9e969"
   },
   "localExecution": {
