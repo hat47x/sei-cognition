@@ -142,6 +142,26 @@ go run ./cmd/modelprobe \\
 
 raw / workspace / staged artifactの比較は`cmd/modelcompare`を使う。比較時にはmodelとexact source SHAの一致を必須とする。
 
+### 5.3 matrix artifact
+
+`cmd/modelmatrix`は3 modeのpreflight・run artifact・comparisonを一つのmatrix artifactへまとめる。
+
+statusは次の三つに限定する。
+
+- `complete`: 3 modeがinvocation errorなしで完了し、comparisonを生成した;
+- `blocked-preflight`: health endpointが到達不能、error、または非2xxでinference開始前に停止した;
+- `incomplete-inference`: preflightは通ったが1件以上のactual invocationが失敗した.
+
+`blocked-preflight` / `incomplete-inference`でも、取得済みpreflight・mode artifact・failureは捨てずに保存する。一方、partialなrunからcross-mode comparisonを生成しない。
+
+```text
+matrix complete
+  != semantic correctness
+  != human adjudication PASS
+  != memory / energy acceptance
+  != model adoption
+```
+
 ## 6. 現在の実行環境で確認できたこと
 
 2026-09-12時点の現在の作業環境では:
