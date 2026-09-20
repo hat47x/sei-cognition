@@ -10,6 +10,8 @@ import (
 )
 
 func main() {
+	runID := flag.String("run-id", "", "stable run identity shared with actual telemetry")
+	sourceGitSHA := flag.String("source-git-sha", "", "exact lowercase 40-character source Git SHA")
 	endpoint := flag.String("endpoint", "http://127.0.0.1:8080/health", "runtime health endpoint")
 	runtimeName := flag.String("runtime", "", "runtime name")
 	runtimeVersion := flag.String("runtime-version", "", "runtime version")
@@ -21,7 +23,20 @@ func main() {
 	mode := flag.String("mode", "", "probe mode: raw|workspace|staged")
 	flag.Parse()
 
+	if (*runID == "") != (*sourceGitSHA == "") {
+		fmt.Fprintln(os.Stderr, "--run-id and --source-git-sha must be supplied together")
+		os.Exit(2)
+	}
+	if *runID != "" {
+		if err := modelprobe.ValidateRunIdentity(*runID, *sourceGitSHA); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(2)
+		}
+	}
+
 	m := modelprobe.Preflight(context.Background(), *endpoint, nil)
+	m.RunID = *runID
+	m.SourceGitSHA = *sourceGitSHA
 	m.RuntimeName = *runtimeName
 	m.RuntimeVersion = *runtimeVersion
 	m.Model = *model
