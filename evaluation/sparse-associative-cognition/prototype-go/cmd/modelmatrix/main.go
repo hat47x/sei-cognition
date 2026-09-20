@@ -6,6 +6,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/hat47x/sei-cognition/evaluation/sparse-associative-cognition/prototype-go/cognitiveeval"
@@ -14,7 +16,7 @@ import (
 
 func main() {
 	runIDPrefix := flag.String("run-id-prefix", "", "stable prefix used for raw/workspace/staged run ids")
-	sourceGitSHA := flag.String("source-git-sha", "", "exact lowercase 40-character source Git SHA")
+	sourceGitSHA := flag.String("source-git-sha", "", "expected exact source Git SHA; defaults to current git HEAD")
 	healthEndpoint := flag.String("health-endpoint", "http://127.0.0.1:8080/health", "runtime health endpoint")
 	endpoint := flag.String("endpoint", "http://127.0.0.1:8080/v1/chat/completions", "OpenAI-compatible chat-completions endpoint")
 	runtimeName := flag.String("runtime", "", "runtime name")
@@ -38,6 +40,11 @@ func main() {
 		fatalf("inspect output: %v", err)
 	}
 
+	resolvedSourceGitSHA, err := resolveSourceGitSHA(*sourceGitSHA)
+	if err != nil {
+		fatalf("resolve source identity: %v", err)
+	}
+
 	fixtures := selectFixtures(*fixtureID)
 	if len(fixtures) == 0 {
 		fatalf("fixture not found: %s", *fixtureID)
@@ -47,7 +54,7 @@ func main() {
 		context.Background(),
 		modelprobe.MatrixConfig{
 			RunIDPrefix:    *runIDPrefix,
-			SourceGitSHA:   *sourceGitSHA,
+			SourceGitSHA:   resolvedSourceGitSHA,
 			HealthEndpoint: *healthEndpoint,
 			RuntimeName:    *runtimeName,
 			RuntimeVersion: *runtimeVersion,
@@ -73,6 +80,22 @@ func main() {
 	if matrix.Status != "complete" {
 		os.Exit(1)
 	}
+}
+
+func resolveSourceGitSHA(expected string) (string, error) {
+	output, err := exec.Command("git", "rev-parse", "HEAD").Output()
+	if err != nil {
+		return "", fmt.Errorf("git rev-parse HEAD: %w", err)
+	}
+	actual := strings.TrimSpace(string(output))
+	if err := modelprobe.ValidateRunIdentity("source-head-check", actual); err != nil {
+		return "", fmt.Errorf("current git HEAD is not a valid source identity: %w", err)
+	}
+	expected = strings.TrimSpace(expected)
+	if expected != "" && expected != actual {
+		return "", fmt.Errorf("source Git SHA mismatch: expected %s, current HEAD is %s", expected, actual)
+	}
+	return actual, nil
 }
 
 func selectFixtures(id string) []cognitiveeval.Fixture {
