@@ -78,5 +78,28 @@
     "product_value_established": false,
     "stable_requirement_authorized": false
   },
-  "stop_line": "exact source binding != runner PASS != human review result != actual long-gap Evidence != Product Value decision != Stable Requirement authorization"
+  "stop_line": "exact source binding != runner PASS != human review result != actual long-gap Evidence != Product Value decision != Stable Requirement authorization",
+  "execution_recipe": {
+    "repository_root_requirement": "Run from a checkout/root where the bound repository-relative paths resolve unchanged.",
+    "python_command": "python3",
+    "runner_focused_test_command": [
+      "python3",
+      "evaluation/personal-inquiry-decision/test_run_inquiry_continuity_summary_distortion_checks.py"
+    ],
+    "aggregate_command": [
+      "python3",
+      "evaluation/personal-inquiry-decision/run_inquiry_continuity_summary_distortion_checks.py",
+      "--result-output",
+      "<outside-checkout-or-intentionally-managed>/e78-summary-distortion-local-check-result-v2.json"
+    ],
+    "aggregate_expected_check_count": 7,
+    "result_schema": "sei.inquiry-continuity-summary-distortion-local-check-result/v2",
+    "result_persistence": "The runner validates the result before summary/save and uses exclusive-create for --result-output; do not overwrite a prior artifact.",
+    "post_execution_recording": [
+      "Record Python implementation/version actually used.",
+      "Record the exact bound source commit and all ten verified Git blob SHA-1 values.",
+      "Record the runner-focused test result and aggregate seven-check result.",
+      "Record a SHA-256 digest of the validated result JSON without treating raw stdout/stderr as durable Evidence."
+    ]
+  }
 }
