@@ -156,6 +156,12 @@ statusは次の三つに限定する。
 
 `blocked-preflight` / `incomplete-inference`でも、取得済みpreflight・mode artifact・failureは捨てずに保存する。一方、partialなrunからcross-mode comparisonを生成しない。
 
+### 5.6 human adjudication
+
+complete matrixのtask successはmachine evaluatorだけで確定しない。human reviewは`HUMAN_ADJUDICATION.md`のsidecarとして別artifactへ保存し、exact source SHA / model identityへ結合する。
+
+`modeladjudicate`はreview templateを未評価状態で生成し、人が全対象fixtureを記入した後にcoverage / identity / allowed valuesを検証する。staged skipはmodel answerが存在しないため対象外とする。
+
 ### 5.5 streamed latency
 
 TTFTを必要とするactual matrixでは `--stream` を指定する。probeはOpenAI-compatible SSEの最初の非空content deltaをfirst-token観測点とし、`[DONE]`までをtransport total latencyとする。

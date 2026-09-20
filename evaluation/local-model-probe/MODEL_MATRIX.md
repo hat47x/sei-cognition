@@ -285,6 +285,20 @@ process RSS evidence
 
 同じruntime processを複数実験で再利用すると `VmHWM` は過去のhigh-water markを保持する。model間比較ではdedicated processを起動し直すか、この制約を明記する。
 
+### Human adjudication
+
+machine evaluatorとは別に、actual resultへhuman adjudication sidecarを付ける。対象はmodel outputが実在するfixtureだけで、staged routing skipはhuman task-success判定へ含めない。
+
+記録:
+
+- task success: pass / fail / uncertain;
+- semantic boundary: preserved / violated / uncertain;
+- fail / uncertain系のnotes;
+- reviewer label;
+- review timestamp.
+
+同じmodel / exact source SHAのmatrixだけへ結合し、mode別countを保存する。自動overall scoreは作らない。
+
 ## 10. 結果の読み方
 
 ### sub-1B + Workspaceが十分な場合
