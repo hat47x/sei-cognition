@@ -82,7 +82,8 @@ validatorは次をfail-closedで確認する。
 
 - schema / status;
 - exact `source_git_sha`;
-- exact model identity;
+- exact model identifier;
+- matrixにmodel artifact identityがある場合、そのSHA-256 / size;
 - matrixがcompleteであること;
 - raw / workspace / staged artifact identity;
 - entry重複なし;
@@ -122,3 +123,5 @@ routing skip
 `reviewer_label`はEvidence内でreview単位を識別するためのlabelであり、実名を要求しない。
 
 複数reviewerを比較する場合は、それぞれ独立sidecarとして保存し、一つの値へ暗黙統合しない。
+
+review template / validated reportはmatrixの`model_artifact` identityも引き継ぐ。これによりmodel名が同じでも異なるGGUF bytesへのreview取り違えを防ぐ。ただしmodel artifact digestはruntime load attestationではない。
