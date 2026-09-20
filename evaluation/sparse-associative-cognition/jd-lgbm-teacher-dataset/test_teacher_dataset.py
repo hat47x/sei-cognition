@@ -1,7 +1,10 @@
 import copy
 import importlib.util
+import io
 import json
 import tempfile
+import urllib.error
+from unittest import mock
 import unittest
 from pathlib import Path
 
@@ -15,6 +18,29 @@ class TeacherDatasetTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.manifest = td.load_manifest(HERE / "tasks.v1.json")
+
+    @staticmethod
+    def valid_response(case, model="jev-test-1.0"):
+        qid, question = next(iter(case["questions"].items()))
+        qtype = question["type"]
+        if qtype == "noul":
+            answer = {"type": "noul", "noul": 0.7}
+        elif qtype == "choice":
+            options = list(question["criteria"])
+            probabilities = {key: 0.0 for key in options}
+            probabilities[options[0]] = 1.0
+            answer = {"type": "choice", "choice": options[0], "confidence": 1.0, "probabilities": probabilities}
+        else:
+            probabilities = {str(i): 0.0 for i in range(len(question["criteria"]))}
+            probabilities["0"] = 1.0
+            answer = {
+                "type": "score",
+                "score": 0.0,
+                "confidence": 1.0,
+                "probabilities": probabilities,
+                "legend": {str(i): v for i, v in enumerate(question["criteria"])},
+            }
+        return {"model": model, "answers": {qid: answer}, "usage": {"input_tokens": 1, "output_tokens": 1}}
 
     def test_manifest_covers_three_typed_primitives(self):
         types = {next(iter(c["questions"].values()))["type"] for c in self.manifest["cases"]}
@@ -78,6 +104,60 @@ class TeacherDatasetTest(unittest.TestCase):
         bad = copy.deepcopy(self.manifest)
         bad["cases"][0]["split_group_identity"] = ""
         with self.assertRaises(td.ContractError): td.validate_manifest(bad)
+
+    def test_import_raw_directory_normalizes_all_cases(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            raw = root / "raw"
+            raw.mkdir()
+            for case in self.manifest["cases"]:
+                (raw / f"{case['case_id']}.json").write_text(json.dumps(self.valid_response(case)), encoding="utf-8")
+            rows_path = root / "out" / "teacher_rows.jsonl"
+            count = td.normalize_raw_directory(
+                self.manifest,
+                raw,
+                rows_path,
+                generated_at="2026-09-21T00:00:00Z",
+            )
+            self.assertEqual(count, len(self.manifest["cases"]))
+            rows = [json.loads(line) for line in rows_path.read_text().splitlines()]
+            self.assertEqual(len(rows), len(self.manifest["cases"]))
+            self.assertTrue(all(row["teacher_model_version"] == "jev-test-1.0" for row in rows))
+            self.assertTrue(all(row["teacher_latency_ms"] is None for row in rows))
+
+    def test_import_raw_directory_rejects_missing_case(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            raw = root / "raw"
+            raw.mkdir()
+            with self.assertRaises(td.CollectionBlocked):
+                td.normalize_raw_directory(self.manifest, raw, root / "rows.jsonl")
+
+    def test_collect_case_retries_529_then_succeeds(self):
+        case = self.manifest["cases"][0]
+        payload = json.dumps(self.valid_response(case)).encode()
+
+        class FakeResponse:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+            def read(self):
+                return payload
+
+        err = urllib.error.HTTPError(
+            td.API_URL,
+            529,
+            "overloaded",
+            hdrs=None,
+            fp=io.BytesIO(b'{"error":"overloaded"}'),
+        )
+        with mock.patch.object(td.urllib.request, "urlopen", side_effect=[err, FakeResponse()]) as call, mock.patch.object(td.time, "sleep") as sleep:
+            response, latency = td.collect_case(case, "secret", backoff_base_seconds=0.0)
+        self.assertEqual(response["model"], "jev-test-1.0")
+        self.assertGreaterEqual(latency, 0.0)
+        self.assertEqual(call.call_count, 2)
+        sleep.assert_called_once()
 
 
 if __name__ == "__main__": unittest.main()
