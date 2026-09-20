@@ -246,6 +246,40 @@ run comparison
   != Product Value
 ```
 
+## 8.2 one-shot matrix run
+
+runtimeが用意されている環境では、preflightから3 mode比較までを一つの入口で実行できる。
+
+```bash
+go run ./cmd/modelmatrix \\
+  --run-id-prefix qwen08-first \\
+  --source-git-sha <exact-source-sha> \\
+  --runtime llama.cpp \\
+  --runtime-version <version> \\
+  --model <model-id> \\
+  --quantization <quant> \\
+  --context-size 4096 \\
+  --threads 8 \\
+  --output qwen08-matrix.json
+```
+
+実行順は固定される。
+
+```text
+preflight(raw)
+  -> raw
+preflight(workspace)
+  -> workspace
+preflight(staged)
+  -> staged
+all complete
+  -> descriptive comparison
+```
+
+health endpointが2xxでなければ、そのmodeのinferenceを開始せず `blocked-preflight` としてartifactを保存する。inference failureがある場合も各modeの観測を保持するが、cross-mode comparisonは作らず `incomplete-inference` とする。
+
+`complete`は「3 modeのtransport/evaluator実行が成立し比較artifactを生成できた」という意味に限定する。task successやmodel採用を意味しない。
+
 ## 9. 実験順
 
 最初から多数modelを回さない。
