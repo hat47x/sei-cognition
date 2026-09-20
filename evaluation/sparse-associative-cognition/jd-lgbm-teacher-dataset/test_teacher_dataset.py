@@ -49,6 +49,23 @@ class TeacherDatasetTest(unittest.TestCase):
     def test_all_states_are_structured(self):
         self.assertTrue(all(isinstance(c["state"], (dict, list)) for c in self.manifest["cases"]))
 
+    def test_split_groups_do_not_cross_splits(self):
+        group_splits = {}
+        for case in self.manifest["cases"]:
+            group_splits.setdefault(case["split_group_identity"], set()).add(case["split"])
+        self.assertTrue(all(len(splits) == 1 for splits in group_splits.values()))
+        counts = {split_name: sum(c["split"] == split_name for c in self.manifest["cases"]) for split_name in ("train", "valid", "test")}
+        self.assertEqual(counts, {"train": 6, "valid": 3, "test": 3})
+
+    def test_manifest_rejects_cross_split_group(self):
+        bad = copy.deepcopy(self.manifest)
+        first = bad["cases"][0]
+        second = bad["cases"][1]
+        second["split_group_identity"] = first["split_group_identity"]
+        second["split"] = "valid" if first["split"] != "valid" else "train"
+        with self.assertRaises(td.ContractError):
+            td.validate_manifest(bad)
+
     def test_request_hash_is_canonical(self):
         case = self.manifest["cases"][0]
         req = td.request_for(case)

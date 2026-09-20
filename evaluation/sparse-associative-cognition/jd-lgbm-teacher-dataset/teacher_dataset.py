@@ -68,6 +68,7 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         raise ContractError("manifest cases must be a non-empty list")
     ids: set[str] = set()
     seen_types: set[str] = set()
+    group_splits: dict[str, str] = {}
     for case in cases:
         if not isinstance(case, dict):
             raise ContractError("every case must be an object")
@@ -84,6 +85,13 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
             raise ContractError(f"{case_id}: invalid split")
         if not case["split_group_identity"]:
             raise ContractError(f"{case_id}: split_group_identity is required")
+        group = case["split_group_identity"]
+        previous_split = group_splits.get(group)
+        if previous_split is not None and previous_split != case["split"]:
+            raise ContractError(
+                f"{case_id}: split_group_identity {group} crosses {previous_split}/{case['split']} splits"
+            )
+        group_splits[group] = case["split"]
         questions = case["questions"]
         if not isinstance(questions, dict) or len(questions) != 1:
             raise ContractError(f"{case_id}: JD-LGBM-0 cases must contain exactly one typed question")

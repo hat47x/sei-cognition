@@ -7,7 +7,7 @@ This directory prepares the first Jev → local-student experiment without inven
 - 12 low-risk synthetic structured-state cases.
 - Three bounded tasks: `service_route` (Choice), `operational_urgency` (Score), and `human_review_gate` (Noul).
 - Representative, boundary, perturbation, counterexample, and rare slices.
-- Explicit train/valid/test and `split_group_identity` metadata.
+- Explicit train/valid/test and `split_group_identity` metadata; one group is never allowed to cross splits.
 - Canonical SHA-256 request identity before any teacher call.
 - Exact returned Jev model version, raw response hash, probability/score payload, usage, and observed client latency in every derived row.
 
