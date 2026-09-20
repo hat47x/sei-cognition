@@ -76,6 +76,12 @@ type ActualRunComparison struct {
 }
 
 func BuildActualRunArtifact(summary ActualTelemetrySummary, results []Result) (ActualRunArtifact, error) {
+	if summary.Schema != "sei-cognition.actual-model-telemetry/v0" {
+		return ActualRunArtifact{}, fmt.Errorf("telemetry schema %q is unsupported", summary.Schema)
+	}
+	if summary.Status != "evaluation-only" {
+		return ActualRunArtifact{}, fmt.Errorf("telemetry status %q is unsupported", summary.Status)
+	}
 	if err := ValidateRunIdentity(summary.RunID, summary.SourceGitSHA); err != nil {
 		return ActualRunArtifact{}, err
 	}
@@ -88,6 +94,12 @@ func BuildActualRunArtifact(summary ActualTelemetrySummary, results []Result) (A
 
 	observations := make(map[string]ActualRunObservation, len(summary.Observations))
 	for _, observation := range summary.Observations {
+		if observation.FixtureID == "" {
+			return ActualRunArtifact{}, fmt.Errorf("telemetry observation fixture_id is required")
+		}
+		if _, exists := observations[observation.FixtureID]; exists {
+			return ActualRunArtifact{}, fmt.Errorf("duplicate telemetry observation fixture %q", observation.FixtureID)
+		}
 		observations[observation.FixtureID] = observation
 	}
 
@@ -139,11 +151,8 @@ func CompareActualRuns(raw, workspace, staged ActualRunArtifact) (ActualRunCompa
 	for label, artifact := range map[string]ActualRunArtifact{
 		"raw": raw, "workspace": workspace, "staged": staged,
 	} {
-		if artifact.Schema != actualRunArtifactSchema {
-			return ActualRunComparison{}, fmt.Errorf("%s artifact schema %q is unsupported", label, artifact.Schema)
-		}
-		if err := ValidateRunIdentity(artifact.RunID, artifact.SourceGitSHA); err != nil {
-			return ActualRunComparison{}, fmt.Errorf("%s artifact identity: %w", label, err)
+		if err := validateActualRunArtifact(label, artifact); err != nil {
+			return ActualRunComparison{}, err
 		}
 	}
 	if raw.Mode != ModeRaw || workspace.Mode != ModeWorkspace || staged.Mode != ModeStaged {
@@ -183,6 +192,35 @@ func CompareActualRuns(raw, workspace, staged ActualRunArtifact) (ActualRunCompa
 			"human adjudication, memory, first-token latency, and total system cost remain separate evidence",
 		},
 	}, nil
+}
+
+func validateActualRunArtifact(label string, artifact ActualRunArtifact) error {
+	if artifact.Schema != actualRunArtifactSchema {
+		return fmt.Errorf("%s artifact schema %q is unsupported", label, artifact.Schema)
+	}
+	if artifact.Status != "evaluation-only" {
+		return fmt.Errorf("%s artifact status %q is unsupported", label, artifact.Status)
+	}
+	if err := ValidateRunIdentity(artifact.RunID, artifact.SourceGitSHA); err != nil {
+		return fmt.Errorf("%s artifact identity: %w", label, err)
+	}
+	if artifact.Telemetry.RunID != artifact.RunID ||
+		artifact.Telemetry.SourceGitSHA != artifact.SourceGitSHA ||
+		artifact.Telemetry.Model != artifact.Model ||
+		artifact.Telemetry.Mode != artifact.Mode {
+		return fmt.Errorf("%s artifact outer identity does not match embedded telemetry", label)
+	}
+	rebuilt, err := BuildActualRunArtifact(artifact.Telemetry, artifact.Results)
+	if err != nil {
+		return fmt.Errorf("%s artifact consistency: %w", label, err)
+	}
+	if rebuilt.RunID != artifact.RunID ||
+		rebuilt.SourceGitSHA != artifact.SourceGitSHA ||
+		rebuilt.Model != artifact.Model ||
+		rebuilt.Mode != artifact.Mode {
+		return fmt.Errorf("%s artifact rebuilt identity mismatch", label)
+	}
+	return nil
 }
 
 func aggregateEvaluations(artifact ActualRunArtifact) EvaluationAggregate {
