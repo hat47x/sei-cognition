@@ -19,6 +19,9 @@ type ActualRunObservation struct {
 	ModelInvocationSucceeded   bool       `json:"model_invocation_succeeded"`
 	Skipped                    bool       `json:"skipped"`
 	Error                      string     `json:"error,omitempty"`
+	ResponseHeaderLatencyMS    int64      `json:"response_header_latency_ms,omitempty"`
+	FirstTokenObserved         bool       `json:"first_token_observed"`
+	FirstTokenLatencyMS        int64      `json:"first_token_latency_ms,omitempty"`
 	TotalLatencyMS             int64      `json:"total_latency_ms,omitempty"`
 	Usage                      TokenUsage `json:"usage,omitempty"`
 	EvaluationAvailable        bool       `json:"evaluation_available"`
@@ -44,6 +47,9 @@ type ActualTelemetrySummary struct {
 	ActualCallsAvoidedVsRaw        int                    `json:"actual_calls_avoided_vs_raw"`
 	ActualCallAvoidanceRatioVsRaw  float64                `json:"actual_call_avoidance_ratio_vs_raw"`
 	ActualModelCallRate            float64                `json:"actual_model_call_rate"`
+	ResponseHeaderLatencyMSTotal   int64                  `json:"response_header_latency_ms_total"`
+	FirstTokenObservedCount        int                    `json:"first_token_observed_count"`
+	FirstTokenLatencyMSTotal       int64                  `json:"first_token_latency_ms_total"`
 	TotalLatencyMS                 int64                  `json:"total_latency_ms"`
 	TotalPromptTokens              int                    `json:"total_prompt_tokens"`
 	TotalCompletionTokens          int                    `json:"total_completion_tokens"`
@@ -64,6 +70,9 @@ func ObserveActualRun(plan Plan, result Result, runErr error) ActualRunObservati
 		PlannedModelInvocation:   plan.ShouldInvokeModel,
 		ModelInvocationAttempted: result.ModelInvocationAttempted,
 		Skipped:                  result.Skipped,
+		ResponseHeaderLatencyMS:  result.ResponseHeaderLatencyMS,
+		FirstTokenObserved:       result.FirstTokenObserved,
+		FirstTokenLatencyMS:      result.FirstTokenLatencyMS,
 		TotalLatencyMS:           result.TotalLatencyMS,
 		Usage:                    result.Usage,
 		EvaluationAvailable:      result.Evaluation != nil,
@@ -194,6 +203,11 @@ func SummarizeActualTelemetry(
 		}
 		if observation.EvaluationAvailable {
 			summary.ResultsWithEvaluation++
+		}
+		summary.ResponseHeaderLatencyMSTotal += observation.ResponseHeaderLatencyMS
+		if observation.FirstTokenObserved {
+			summary.FirstTokenObservedCount++
+			summary.FirstTokenLatencyMSTotal += observation.FirstTokenLatencyMS
 		}
 		summary.TotalLatencyMS += observation.TotalLatencyMS
 		summary.TotalPromptTokens += observation.Usage.PromptTokens
