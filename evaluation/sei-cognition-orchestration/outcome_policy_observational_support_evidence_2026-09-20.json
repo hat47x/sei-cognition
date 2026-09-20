@@ -1,0 +1,86 @@
+{
+  "schema": "sei.outcome-policy-observational-support-evidence/v1alpha1",
+  "issue": 534,
+  "date": "2026-09-20",
+  "status": "limited-go123-exact-source-support-diagnostic-evidence",
+  "subject": "SEI-B7b observational support / selection-bias diagnostic",
+  "branch": "topic/sei-b7-outcome-routing-policy",
+  "sourceBinding": {
+    "testedSourceCommit": "f6509a8b691f84556b19fc5fa7869250de8edfab",
+    "parentAtImplementation": "ed8d0053861213c63955f38d288b04bbf6b0a283",
+    "files": {
+      "evaluation/sei-cognition-orchestration/prototype-go/cognitivepolicy/policy.go": "9a3b623d21b684d27c20b42a126d42442d4b225d",
+      "evaluation/sei-cognition-orchestration/prototype-go/cognitivepolicy/support.go": "6bb7acdc14cff9951dd7df141c89588263440210",
+      "evaluation/sei-cognition-orchestration/prototype-go/cognitivepolicy/support_test.go": "946166dd63b5a71a0cc75fd95e5cbb213b654b49"
+    },
+    "exactGitBlobVerification": {
+      "allMatched": true,
+      "filesMatched": 3,
+      "filesMismatched": 0
+    }
+  },
+  "execution": {
+    "go": "go1.23.2 linux/amd64",
+    "moduleMode": "GO111MODULE=off",
+    "command": "go test -count=1 -v policy.go support.go support_test.go",
+    "canonicalRepositoryModuleExecution": false,
+    "canonicalGo125Execution": false,
+    "fullCognitivePolicyPackageRegression": false,
+    "testsExecuted": 7,
+    "testsPassed": 7,
+    "failures": 0,
+    "errors": 0,
+    "terminalStatus": "PASS",
+    "elapsedSeconds": 0.002
+  },
+  "observedDiagnostics": [
+    {
+      "case": "complete-route-support",
+      "observation": "both allowed routes have assessed observations",
+      "allAllowedRoutesAssessed": true,
+      "selectionBiasCorrected": false
+    },
+    {
+      "case": "missing-route-support",
+      "observation": "general-llm has zero assessed observations",
+      "missingRoute": "general-llm"
+    },
+    {
+      "case": "not-assessed-separation",
+      "observation": "two local-slm not-assessed records remain outside assessed support",
+      "assessed": 0,
+      "notAssessed": 2
+    },
+    {
+      "case": "policy-version-provenance",
+      "observation": "v0/v1 observations deduplicate and sort deterministically",
+      "randomizedAssignmentInferred": false
+    }
+  ],
+  "failClosedChecks": [
+    "unknown / disallowed route OutcomeRecord",
+    "existing OutcomeRecord validation including observed policy version provenance"
+  ],
+  "implementationBoundary": {
+    "evaluationOnly": true,
+    "propensityEstimationImplemented": false,
+    "inversePropensityWeightingImplemented": false,
+    "randomizedAssignmentInferred": false,
+    "causalEffectEstimationImplemented": false,
+    "statisticalConfidenceImplemented": false,
+    "automaticCandidateGatingImplemented": false,
+    "automaticActivationImplemented": false,
+    "automaticRollbackImplemented": false,
+    "productionRoutingDefaultChanged": false,
+    "b5EntryGateChanged": false
+  },
+  "boundaries": [
+    "Go 1.23.2 exact-source file-list PASS != canonical Go 1.25 module PASS",
+    "focused 7/7 PASS != full cognitivepolicy package or prototype-go module regression",
+    "full route coverage != unbiased observation",
+    "full route coverage != statistical confidence",
+    "observed policy-version diversity != randomized assignment",
+    "support diagnostic != selection-bias correction",
+    "support diagnostic != production routing evidence"
+  ]
+}
