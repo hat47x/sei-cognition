@@ -199,6 +199,7 @@ Issue #375では少なくとも次を比較する。
 - request開始からresponse完了までのtransport total latency
 - `--stream`時のfirst-token latency（最初の非空content delta受信時刻を操作的定義とする）
 - Linux `--runtime-pid`指定時のruntime process RSS / peak RSS
+- `--model-file`指定時のlocal model artifact file name / size / SHA-256
 
 まだ取得しないもの:
 - tokenizer内部の厳密な単一token生成時刻
@@ -301,6 +302,8 @@ go run ./cmd/modelmatrix \\
   --runtime llama.cpp \\
   --runtime-version <version> \\
   --model <model-id> \\
+  --model-file /path/to/model.gguf \\
+  --expected-model-sha256 <optional-known-digest> \\
   --quantization <quant> \\
   --context-size 4096 \\
   --threads 8 \\
@@ -308,6 +311,8 @@ go run ./cmd/modelmatrix \\
 ```
 
 matrix runnerは実行開始前に `git rev-parse HEAD` を取り、`--source-git-sha` が指定されていれば完全一致を要求する。未指定ならcurrent HEADをsource identityとして採用する。Git repositoryとしてHEADを検証できない環境ではactual matrixを開始しない。
+
+`--model-file`指定時はlocal fileのSHA-256 / sizeもinference前に固定する。`--expected-model-sha256`不一致はfail-closedとする。ただしこれは指定fileのidentityであってruntime load attestationではない。
 
 実行順は固定される。
 
