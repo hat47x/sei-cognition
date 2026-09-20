@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"runtime"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -90,6 +92,9 @@ func TestRunActualMatrixCompletesThreeModes(t *testing.T) {
 	}
 	if len(matrix.Failures) != 0 {
 		t.Fatalf("unexpected failures: %+v", matrix.Failures)
+	}
+	if matrix.RuntimeMemory.Status != "not-requested" {
+		t.Fatalf("runtime memory status=%q want=not-requested", matrix.RuntimeMemory.Status)
 	}
 }
 
@@ -206,5 +211,69 @@ func TestRunActualMatrixRejectsInvalidIdentity(t *testing.T) {
 	)
 	if err == nil {
 		t.Fatal("expected invalid source identity rejection")
+	}
+}
+
+
+func TestRunActualMatrixRecordsRuntimeMemoryWhenRequested(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		t.Skip("Linux /proc test")
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/health":
+			w.WriteHeader(http.StatusOK)
+		case "/v1/chat/completions":
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"choices": []any{map[string]any{
+					"message": map[string]any{
+						"content": `{"proposal":"bounded candidate","need_more_evidence":false}`,
+					},
+				}},
+				"usage": map[string]any{
+					"prompt_tokens":     2,
+					"completion_tokens": 1,
+					"total_tokens":      3,
+				},
+			})
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	fixtures := cognitiveeval.ReferenceFixtures()[:1]
+	matrix, err := RunActualMatrix(
+		context.Background(),
+		MatrixConfig{
+			RunIDPrefix:    "matrix-memory",
+			SourceGitSHA:   artifactTestGitSHA,
+			HealthEndpoint: server.URL + "/health",
+			RuntimePID:     os.Getpid(),
+			Timeout:        2 * time.Second,
+			Probe: Config{
+				Endpoint:   server.URL + "/v1/chat/completions",
+				Model:      "fake-model",
+				HTTPClient: server.Client(),
+			},
+		},
+		fixtures,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if matrix.Status != "complete" {
+		t.Fatalf("status=%q want=complete", matrix.Status)
+	}
+	if matrix.RuntimeMemory.Status != "observed" {
+		t.Fatalf("runtime memory status=%q want=observed: %+v", matrix.RuntimeMemory.Status, matrix.RuntimeMemory)
+	}
+	if len(matrix.RuntimeMemory.Samples) != 4 {
+		t.Fatalf("memory samples=%d want=4", len(matrix.RuntimeMemory.Samples))
+	}
+	if matrix.RuntimeMemory.MaxObservedRSSBytes == 0 || matrix.RuntimeMemory.PeakRSSBytes == 0 {
+		t.Fatalf("runtime memory summary must be non-zero: %+v", matrix.RuntimeMemory)
 	}
 }
