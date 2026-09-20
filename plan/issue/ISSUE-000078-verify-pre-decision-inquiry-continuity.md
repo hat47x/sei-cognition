@@ -443,6 +443,8 @@ GitHub正本のblobを固定して一時実行環境へ再構成し、Python 3.1
 
 actual runtimeの残工程は GitHub Issue #532 `E78.3: exact-source bindingからcanonical local gateをactual実行する` に集約する。同一ISSUE-000078の継続作業として `develop/v0.2.0` を集約先に保ち、transport/reconstructionだけを理由にtopic branchを増やさない。Issue #532は10-blob一致、runner focused tests、7-check aggregate、validated result schema v2生成だけを完了条件とし、source reconstruction mismatchはcanonical PASS / FAILへ数えない。
 
+2026-09-20、execution-input binding v1 に `execution_recipe` を追加し、repository-root要件、runner focused test command、canonical aggregate command、期待check数7、result schema v2、exclusive-create、実行後に記録すべきprovenanceを機械可読で固定した。これはrunner追加ではなく既存canonical pathの再現手順を固定するものであり、runtime PASSそのものではない。
+
 ```text
 exact 10-blob source binding
   != E78.3 local gate PASS
