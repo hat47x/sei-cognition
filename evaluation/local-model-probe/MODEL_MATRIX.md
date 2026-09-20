@@ -233,6 +233,7 @@ model × fixture × modeごとに:
 - invalid evidence ref
 - need-more-evidence appropriateness
 - staged model call / skip
+- operator-supplied model artifact SHA-256 / size（利用可能な場合）
 
 ### Cross-mode comparison artifact
 
@@ -347,6 +348,8 @@ actual runtimeがある環境では `cmd/modelmatrix` を標準入口とする�
 matrix runnerは次を自動化するが、model取得・runtime installは行わない。
 
 source provenanceについては、Git HEADの実測・照合をactual inferenceより前に行う。別revisionのprompt/evaluatorを同じmodel比較へ混ぜない。
+
+local model fileを直接指定できるruntimeでは `--model-file` でartifact bytesもSHA-256へ固定する。model名やquantization labelだけで別bytesを同一視しない。一方、このdigestだけからruntimeがそのfileをloadしたとは推定しない。
 
 - modeごとのpreflight;
 - 7 fixtureの実行;

@@ -25,6 +25,7 @@ type HumanAdjudication struct {
 	Status       string                   `json:"status"`
 	SourceGitSHA string                   `json:"source_git_sha"`
 	Model        string                   `json:"model"`
+	ModelArtifact ModelArtifactIdentity    `json:"model_artifact"`
 	ReviewerLabel string                  `json:"reviewer_label"`
 	ReviewedAt   string                   `json:"reviewed_at"`
 	Entries      []HumanAdjudicationEntry `json:"entries"`
@@ -47,6 +48,7 @@ type HumanAdjudicationReport struct {
 	Status       string                         `json:"status"`
 	SourceGitSHA string                         `json:"source_git_sha"`
 	Model        string                         `json:"model"`
+	ModelArtifact ModelArtifactIdentity          `json:"model_artifact"`
 	ReviewerLabel string                        `json:"reviewer_label"`
 	ReviewedAt   string                         `json:"reviewed_at"`
 	Raw          HumanAdjudicationModeSummary   `json:"raw"`
@@ -79,6 +81,7 @@ func BuildHumanAdjudicationTemplate(
 		Status:        "human-review-template",
 		SourceGitSHA:  matrix.SourceGitSHA,
 		Model:         matrix.Model,
+		ModelArtifact: NormalizeModelArtifactIdentity(matrix.ModelArtifact),
 		ReviewerLabel: reviewerLabel,
 		ReviewedAt:    "",
 		Entries:       entries,
@@ -108,6 +111,12 @@ func ValidateHumanAdjudication(
 	}
 	if adjudication.Model != matrix.Model {
 		return HumanAdjudicationReport{}, fmt.Errorf("adjudication model does not match matrix")
+	}
+	if err := ValidateModelArtifactIdentity(adjudication.ModelArtifact); err != nil {
+		return HumanAdjudicationReport{}, fmt.Errorf("adjudication model artifact identity: %w", err)
+	}
+	if !SameModelArtifactIdentity(adjudication.ModelArtifact, matrix.ModelArtifact) {
+		return HumanAdjudicationReport{}, fmt.Errorf("adjudication model_artifact does not match matrix")
 	}
 	adjudication.ReviewerLabel = strings.TrimSpace(adjudication.ReviewerLabel)
 	if adjudication.ReviewerLabel == "" {
@@ -205,6 +214,7 @@ func ValidateHumanAdjudication(
 		Status:        "human-adjudicated-evaluation-only",
 		SourceGitSHA:  matrix.SourceGitSHA,
 		Model:         matrix.Model,
+		ModelArtifact: NormalizeModelArtifactIdentity(matrix.ModelArtifact),
 		ReviewerLabel: adjudication.ReviewerLabel,
 		ReviewedAt:    adjudication.ReviewedAt,
 		Raw:           *summaries[ModeRaw],
@@ -231,6 +241,9 @@ func validateMatrixForHumanAdjudication(matrix ActualMatrixArtifact) error {
 	}
 	if strings.TrimSpace(matrix.Model) == "" {
 		return fmt.Errorf("matrix model is required")
+	}
+	if err := ValidateModelArtifactIdentity(matrix.ModelArtifact); err != nil {
+		return fmt.Errorf("matrix model artifact identity: %w", err)
 	}
 	if matrix.Raw == nil || matrix.Workspace == nil || matrix.Staged == nil || matrix.Comparison == nil {
 		return fmt.Errorf("complete matrix requires raw/workspace/staged artifacts and comparison")

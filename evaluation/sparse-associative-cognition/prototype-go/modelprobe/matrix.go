@@ -18,6 +18,7 @@ type MatrixConfig struct {
 	RuntimeName    string
 	RuntimeVersion string
 	RuntimePID     int
+	ModelArtifact  ModelArtifactIdentity
 	Quantization   string
 	ContextSize    int
 	Threads        int
@@ -37,6 +38,7 @@ type ActualMatrixArtifact struct {
 	RunIDPrefix  string               `json:"run_id_prefix"`
 	SourceGitSHA string               `json:"source_git_sha"`
 	Model        string               `json:"model"`
+	ModelArtifact ModelArtifactIdentity `json:"model_artifact"`
 	Preflights   []RunManifest        `json:"preflights"`
 	Raw          *ActualRunArtifact   `json:"raw,omitempty"`
 	Workspace    *ActualRunArtifact   `json:"workspace,omitempty"`
@@ -64,6 +66,10 @@ func RunActualMatrix(
 	if cfg.Probe.Model == "" {
 		return ActualMatrixArtifact{}, fmt.Errorf("model is required")
 	}
+	cfg.ModelArtifact = NormalizeModelArtifactIdentity(cfg.ModelArtifact)
+	if err := ValidateModelArtifactIdentity(cfg.ModelArtifact); err != nil {
+		return ActualMatrixArtifact{}, fmt.Errorf("model artifact identity: %w", err)
+	}
 	if strings.TrimSpace(cfg.Probe.Endpoint) == "" {
 		return ActualMatrixArtifact{}, fmt.Errorf("probe endpoint is required")
 	}
@@ -80,11 +86,13 @@ func RunActualMatrix(
 		RunIDPrefix:  cfg.RunIDPrefix,
 		SourceGitSHA: cfg.SourceGitSHA,
 		Model:         cfg.Probe.Model,
+		ModelArtifact: cfg.ModelArtifact,
 		RuntimeMemory: newRuntimeMemoryEvidence(cfg.RuntimePID),
 		Notes: []string{
 			"complete means the three probe modes executed without invocation errors and produced a descriptive comparison",
 			"complete does not mean task success, human adjudication, model adoption, or Product Value",
 			"runtime process RSS is optional execution evidence; first-token latency, energy, and total system cost remain separate evidence",
+			"model_artifact identifies operator-supplied local file bytes; it does not prove the runtime loaded those bytes",
 		},
 	}
 	matrix.RuntimeMemory.Observe("matrix-start", "")
@@ -99,6 +107,7 @@ func RunActualMatrix(
 		preflight.RuntimeName = cfg.RuntimeName
 		preflight.RuntimeVersion = cfg.RuntimeVersion
 		preflight.Model = cfg.Probe.Model
+		preflight.ModelArtifact = cfg.ModelArtifact
 		preflight.Quantization = cfg.Quantization
 		preflight.ContextSize = cfg.ContextSize
 		preflight.Threads = cfg.Threads

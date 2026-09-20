@@ -277,3 +277,65 @@ func TestRunActualMatrixRecordsRuntimeMemoryWhenRequested(t *testing.T) {
 		t.Fatalf("runtime memory summary must be non-zero: %+v", matrix.RuntimeMemory)
 	}
 }
+
+func TestRunActualMatrixPropagatesModelArtifactToPreflight(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "not ready", http.StatusServiceUnavailable)
+	}))
+	defer server.Close()
+
+	identity := ModelArtifactIdentity{
+		Status:    modelArtifactObserved,
+		FileName:  "candidate.gguf",
+		SizeBytes: 1234,
+		SHA256:    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+	}
+	matrix, err := RunActualMatrix(
+		context.Background(),
+		MatrixConfig{
+			RunIDPrefix:    "matrix-model-artifact",
+			SourceGitSHA:   artifactTestGitSHA,
+			HealthEndpoint: server.URL,
+			ModelArtifact:  identity,
+			Probe: Config{
+				Endpoint:   server.URL + "/v1/chat/completions",
+				Model:      "fake-model",
+				HTTPClient: server.Client(),
+			},
+		},
+		cognitiveeval.ReferenceFixtures(),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !SameModelArtifactIdentity(matrix.ModelArtifact, identity) {
+		t.Fatalf("matrix model artifact mismatch: %+v", matrix.ModelArtifact)
+	}
+	if len(matrix.Preflights) != 1 || !SameModelArtifactIdentity(matrix.Preflights[0].ModelArtifact, identity) {
+		t.Fatalf("preflight model artifact mismatch: %+v", matrix.Preflights)
+	}
+}
+
+func TestRunActualMatrixRejectsMalformedModelArtifact(t *testing.T) {
+	_, err := RunActualMatrix(
+		context.Background(),
+		MatrixConfig{
+			RunIDPrefix:  "matrix-bad-model-artifact",
+			SourceGitSHA: artifactTestGitSHA,
+			ModelArtifact: ModelArtifactIdentity{
+				Status:    modelArtifactObserved,
+				FileName:  "candidate.gguf",
+				SizeBytes: 1234,
+				SHA256:    "not-a-digest",
+			},
+			Probe: Config{
+				Endpoint: "http://127.0.0.1:8080/v1/chat/completions",
+				Model:    "fake-model",
+			},
+		},
+		cognitiveeval.ReferenceFixtures(),
+	)
+	if err == nil {
+		t.Fatal("expected malformed model artifact rejection")
+	}
+}

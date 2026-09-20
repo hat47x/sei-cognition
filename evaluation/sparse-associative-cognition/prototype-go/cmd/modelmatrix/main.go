@@ -23,6 +23,8 @@ func main() {
 	runtimeVersion := flag.String("runtime-version", "", "runtime version")
 	runtimePID := flag.Int("runtime-pid", 0, "optional local runtime server PID for Linux RSS/peak RSS sampling")
 	model := flag.String("model", "", "model identifier sent to endpoint")
+	modelFile := flag.String("model-file", "", "optional local model artifact file to hash once before the matrix run")
+	expectedModelSHA256 := flag.String("expected-model-sha256", "", "optional expected SHA-256 for --model-file")
 	quantization := flag.String("quantization", "", "quantization label")
 	contextSize := flag.Int("context-size", 0, "runtime context size")
 	threads := flag.Int("threads", 0, "runtime thread count")
@@ -47,6 +49,11 @@ func main() {
 		fatalf("resolve source identity: %v", err)
 	}
 
+	modelArtifact, err := modelprobe.ObserveModelArtifact(*modelFile, *expectedModelSHA256)
+	if err != nil {
+		fatalf("resolve model artifact identity: %v", err)
+	}
+
 	fixtures := selectFixtures(*fixtureID)
 	if len(fixtures) == 0 {
 		fatalf("fixture not found: %s", *fixtureID)
@@ -61,6 +68,7 @@ func main() {
 			RuntimeName:    *runtimeName,
 			RuntimeVersion: *runtimeVersion,
 			RuntimePID:     *runtimePID,
+			ModelArtifact:  modelArtifact,
 			Quantization:   *quantization,
 			ContextSize:    *contextSize,
 			Threads:        *threads,

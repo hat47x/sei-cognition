@@ -27,6 +27,7 @@ same fixture
 - runtime endpoint readiness / HTTP status / latency
 - runtime name / version
 - model identifier
+- operator-supplied local model artifactのfile name / size / SHA-256（`--model-file`指定時）
 - quantization
 - context size
 - thread count
@@ -48,6 +49,8 @@ go run ./cmd/modelpreflight \
   --runtime llama.cpp \
   --runtime-version <version> \
   --model Qwen3.5-0.8B \
+  --model-file /path/to/model.gguf \
+  --expected-model-sha256 <optional-known-digest> \
   --quantization <quant> \
   --context-size 4096 \
   --threads 8 \
@@ -147,6 +150,15 @@ raw / workspace / staged artifactの比較は`cmd/modelcompare`を使う。比�
 `cmd/modelmatrix`は3 modeのpreflight・run artifact・comparisonを一つのmatrix artifactへまとめる。
 
 標準matrix入口では、source identityをcurrent Git HEADから実測する。`--source-git-sha`は任意の記録値ではなくexpected SHAとして扱い、指定時は`git rev-parse HEAD`との完全一致を要求する。未指定時はcurrent HEADを採用する。
+
+`--model-file`を指定した場合、matrix開始前にファイルを一度だけ読み、SHA-256とsizeを固定する。同じidentityをmatrix本体と3 modeのpreflightへ保存する。`--expected-model-sha256`を併用した場合は不一致をinference前にfail-closedとする。保存するpath情報はbasenameだけで、環境固有の絶対pathはEvidenceへ持ち込まない。
+
+ただし、このidentityはoperatorが実験入力として指定したlocal fileのexact bytesを示すものであり、runtime内部が実際にそのbytesをloadしたことをattestするものではない。
+
+```text
+model artifact SHA-256 match
+  != runtime load attestation
+```
 
 statusは次の三つに限定する。
 

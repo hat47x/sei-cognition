@@ -17,6 +17,12 @@ func completeMatrixForAdjudication(t *testing.T) ActualMatrixArtifact {
 		RunIDPrefix:  "matrix-review",
 		SourceGitSHA: raw.SourceGitSHA,
 		Model:        raw.Model,
+		ModelArtifact: ModelArtifactIdentity{
+			Status:    modelArtifactObserved,
+			FileName:  "candidate.gguf",
+			SizeBytes: 1234,
+			SHA256:    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		},
 		Raw:          &raw,
 		Workspace:    &workspace,
 		Staged:       &staged,
@@ -151,5 +157,17 @@ func TestValidateHumanAdjudicationRejectsSourceMismatch(t *testing.T) {
 
 	if _, err := ValidateHumanAdjudication(matrix, adjudication); err == nil {
 		t.Fatal("expected source mismatch rejection")
+	}
+}
+
+func TestValidateHumanAdjudicationRejectsModelArtifactMismatch(t *testing.T) {
+	matrix := completeMatrixForAdjudication(t)
+	adjudication, err := BuildHumanAdjudicationTemplate(matrix, "reviewer-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	adjudication.ModelArtifact.SHA256 = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+	if _, err := ValidateHumanAdjudication(matrix, adjudication); err == nil {
+		t.Fatal("expected model artifact mismatch rejection")
 	}
 }
