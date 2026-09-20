@@ -6,6 +6,7 @@
 package modelprobe
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -44,6 +45,7 @@ type Config struct {
 	Model       string
 	MaxTokens   int
 	Temperature float64
+	Stream      bool
 	HTTPClient  *http.Client
 }
 
@@ -64,7 +66,10 @@ type Result struct {
 	RequestChars   int                            `json:"request_chars"`
 	ModelInvocationAttempted bool                  `json:"model_invocation_attempted"`
 	ResponseChars  int                            `json:"response_chars,omitempty"`
-	TotalLatencyMS int64                          `json:"total_latency_ms,omitempty"`
+	ResponseHeaderLatencyMS int64                  `json:"response_header_latency_ms,omitempty"`
+	FirstTokenObserved bool                        `json:"first_token_observed"`
+	FirstTokenLatencyMS int64                      `json:"first_token_latency_ms,omitempty"`
+	TotalLatencyMS int64                           `json:"total_latency_ms,omitempty"`
 	HTTPStatus     int                            `json:"http_status,omitempty"`
 	Usage          TokenUsage                     `json:"usage,omitempty"`
 	Output         *cognitiveeval.ModelOutput      `json:"output,omitempty"`
@@ -183,6 +188,15 @@ type chatResponse struct {
 	Usage TokenUsage `json:"usage"`
 }
 
+type chatStreamResponse struct {
+	Choices []struct {
+		Delta struct {
+			Content string `json:"content"`
+		} `json:"delta"`
+	} `json:"choices"`
+	Usage TokenUsage `json:"usage"`
+}
+
 func Run(ctx context.Context, cfg Config, f cognitiveeval.Fixture, mode Mode) (Result, error) {
 	plan, err := BuildPlan(f, mode)
 	if err != nil {
@@ -220,7 +234,7 @@ func Run(ctx context.Context, cfg Config, f cognitiveeval.Fixture, mode Mode) (R
 		},
 		Temperature: cfg.Temperature,
 		MaxTokens:   cfg.MaxTokens,
-		Stream:      false,
+		Stream:      cfg.Stream,
 	}
 	encoded, err := json.Marshal(body)
 	if err != nil {
@@ -235,31 +249,50 @@ func Run(ctx context.Context, cfg Config, f cognitiveeval.Fixture, mode Mode) (R
 	result.ModelInvocationAttempted = true
 	started := time.Now()
 	resp, err := client.Do(req)
-	result.TotalLatencyMS = time.Since(started).Milliseconds()
+	result.ResponseHeaderLatencyMS = time.Since(started).Milliseconds()
 	if err != nil {
+		result.TotalLatencyMS = time.Since(started).Milliseconds()
 		return result, fmt.Errorf("model request: %w", err)
 	}
 	defer resp.Body.Close()
 	result.HTTPStatus = resp.StatusCode
-	payload, err := io.ReadAll(io.LimitReader(resp.Body, 8<<20))
-	if err != nil {
-		return result, fmt.Errorf("read model response: %w", err)
-	}
+
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		payload, readErr := io.ReadAll(io.LimitReader(resp.Body, 8<<20))
+		result.TotalLatencyMS = time.Since(started).Milliseconds()
+		if readErr != nil {
+			return result, fmt.Errorf("read model error response: %w", readErr)
+		}
 		return result, fmt.Errorf("model endpoint returned %s: %s", resp.Status, strings.TrimSpace(string(payload)))
 	}
 
-	var decoded chatResponse
-	if err := json.Unmarshal(payload, &decoded); err != nil {
-		return result, fmt.Errorf("decode chat response: %w", err)
+	var content string
+	if cfg.Stream {
+		streamContent, usage, streamErr := readStreamingChatResponse(resp.Body, started, &result)
+		result.TotalLatencyMS = time.Since(started).Milliseconds()
+		if streamErr != nil {
+			return result, streamErr
+		}
+		content = streamContent
+		result.Usage = usage
+	} else {
+		payload, readErr := io.ReadAll(io.LimitReader(resp.Body, 8<<20))
+		result.TotalLatencyMS = time.Since(started).Milliseconds()
+		if readErr != nil {
+			return result, fmt.Errorf("read model response: %w", readErr)
+		}
+		var decoded chatResponse
+		if err := json.Unmarshal(payload, &decoded); err != nil {
+			return result, fmt.Errorf("decode chat response: %w", err)
+		}
+		if len(decoded.Choices) == 0 {
+			return result, fmt.Errorf("chat response has no choices")
+		}
+		content = decoded.Choices[0].Message.Content
+		result.Usage = decoded.Usage
 	}
-	if len(decoded.Choices) == 0 {
-		return result, fmt.Errorf("chat response has no choices")
-	}
-	content := decoded.Choices[0].Message.Content
 	result.RawContent = content
 	result.ResponseChars = len([]rune(content))
-	result.Usage = decoded.Usage
 
 	out, err := DecodeModelOutput(content)
 	if err != nil {
@@ -275,6 +308,63 @@ func Run(ctx context.Context, cfg Config, f cognitiveeval.Fixture, mode Mode) (R
 	result.Output = &out
 	result.Evaluation = &report
 	return result, nil
+}
+
+func readStreamingChatResponse(reader io.Reader, started time.Time, result *Result) (string, TokenUsage, error) {
+	scanner := bufio.NewScanner(io.LimitReader(reader, 8<<20))
+	scanner.Buffer(make([]byte, 64<<10), 1<<20)
+
+	var content strings.Builder
+	var usage TokenUsage
+	firstContentObserved := false
+	doneObserved := false
+
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, ":") {
+			continue
+		}
+		if !strings.HasPrefix(line, "data:") {
+			continue
+		}
+		data := strings.TrimSpace(strings.TrimPrefix(line, "data:"))
+		if data == "[DONE]" {
+			doneObserved = true
+			break
+		}
+
+		var chunk chatStreamResponse
+		if err := json.Unmarshal([]byte(data), &chunk); err != nil {
+			return "", TokenUsage{}, fmt.Errorf("decode streamed chat response: %w", err)
+		}
+		if chunk.Usage.PromptTokens != 0 || chunk.Usage.CompletionTokens != 0 || chunk.Usage.TotalTokens != 0 {
+			usage = chunk.Usage
+		}
+		for _, choice := range chunk.Choices {
+			if choice.Delta.Content == "" {
+				continue
+			}
+			if !firstContentObserved {
+				firstContentObserved = true
+				result.FirstTokenObserved = true
+				result.FirstTokenLatencyMS = time.Since(started).Milliseconds()
+			}
+			if content.Len()+len(choice.Delta.Content) > 8<<20 {
+				return "", TokenUsage{}, fmt.Errorf("streamed model content exceeds 8 MiB limit")
+			}
+			content.WriteString(choice.Delta.Content)
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return "", TokenUsage{}, fmt.Errorf("read streamed chat response: %w", err)
+	}
+	if !firstContentObserved {
+		return "", TokenUsage{}, fmt.Errorf("streamed chat response produced no content")
+	}
+	if !doneObserved {
+		return "", TokenUsage{}, fmt.Errorf("streamed chat response ended before [DONE]")
+	}
+	return content.String(), usage, nil
 }
 
 func DecodeModelOutput(content string) (cognitiveeval.ModelOutput, error) {
