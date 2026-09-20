@@ -156,6 +156,30 @@ statusは次の三つに限定する。
 
 `blocked-preflight` / `incomplete-inference`でも、取得済みpreflight・mode artifact・failureは捨てずに保存する。一方、partialなrunからcross-mode comparisonを生成しない。
 
+### 5.4 runtime process memory
+
+Linuxでruntime server PIDが分かる場合は `modelmatrix --runtime-pid <pid>` を指定する。matrix artifactの `runtime_memory` に、matrix開始時とraw / workspace / staged後のprocess RSSを保存する。
+
+記録値:
+
+- PID / process name;
+- source path (`/proc/<pid>/status`);
+- timestamp / stage / mode;
+- `VmRSS`由来のcurrent RSS bytes;
+- `VmHWM`由来のpeak RSS bytes;
+- matrix内のmax observed RSS / peak RSS;
+- read errorがあればerror text.
+
+状態:
+
+- `not-requested`: PID未指定;
+- `observed`: requested sampleをerrorなく取得;
+- `partial`: 一部sample取得後に読取失敗;
+- `unavailable`: sampleを一件も取得できない;
+- `unsupported`: 非Linuxなど現行sampler対象外.
+
+`VmHWM` はprocess起動以来のhigh-water markであり、このmatrix runだけのpeakとは限らない。dedicated runtime processを推奨する。memory Evidenceが未取得でもtransport/evaluator matrixは `complete` になり得るため、Issue #375のmemory完了条件は別途確認する。
+
 ```text
 matrix complete
   != semantic correctness
