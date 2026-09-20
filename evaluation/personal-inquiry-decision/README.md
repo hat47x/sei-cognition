@@ -370,6 +370,7 @@ root purpose
 - ISSUE-000078 E78.3のsource-fixture blob固定、provisional summary / next question、human response固定後だけのaudit reveal
 - ISSUE-000078 E78.3のpre-stimulus reviewer provenance固定、exclusive-create review-start receipt、pre-reveal response SHA-256固定、exact audit material SHA-256固定、exclusive-create audit-reveal receipt、post-reveal semantic audit、review start / human observation / audit reveal / semantic audit / provenance分離、exclusive-create Evidence export
 - ISSUE-000078 E78.3 actual mechanicsは `evidence/issue-000078/e78_summary_distortion_partial_runtime_2026-09-19.json` に部分実行Evidenceを固定。GitHub正本blob一致の一時再構成でcanonical `validate` exit 0、probe focused tests 23/23 PASS、Evidence focused tests 18/18 PASSをactual確認済み。ただしrunner focused tests、7-check aggregate local gate、result v2生成は **Not Yet Verified** のため、partial PASSをfull local gate PASSへ昇格しない
+- ISSUE-000078 E78.3 materialization境界は `evidence/issue-000078/e78_summary_distortion_materialization_checkpoint_2026-09-20.json` に分離。bound sourceのprobe set＋3 source fixtureは4/10 filesでGit blob SHA-1一致を確認済みだが、残る6 Python mechanicsはcurrent connector→execution-container境界でbyte-faithful materialization未達。CRC32 / full-file blob不一致の再構成は破棄し、canonical runnerのPASS / FAILへ数えない
 - E78.6 assistanceのcondition-blinded review / typed Evidence / local mechanics gate
 - E78.7 lifecycleのcondition-blinded review / reader-rotation safeguard / typed Evidence / local mechanics gate
 
