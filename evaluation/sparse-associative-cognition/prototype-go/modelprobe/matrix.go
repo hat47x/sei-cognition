@@ -17,6 +17,7 @@ type MatrixConfig struct {
 	HealthEndpoint string
 	RuntimeName    string
 	RuntimeVersion string
+	RuntimePID     int
 	Quantization   string
 	ContextSize    int
 	Threads        int
@@ -41,6 +42,7 @@ type ActualMatrixArtifact struct {
 	Workspace    *ActualRunArtifact   `json:"workspace,omitempty"`
 	Staged       *ActualRunArtifact   `json:"staged,omitempty"`
 	Comparison   *ActualRunComparison `json:"comparison,omitempty"`
+	RuntimeMemory RuntimeMemoryEvidence `json:"runtime_memory"`
 	Failures     []MatrixFailure      `json:"failures,omitempty"`
 	Notes        []string             `json:"notes"`
 }
@@ -77,13 +79,15 @@ func RunActualMatrix(
 		Status:       "evaluation-only",
 		RunIDPrefix:  cfg.RunIDPrefix,
 		SourceGitSHA: cfg.SourceGitSHA,
-		Model:        cfg.Probe.Model,
+		Model:         cfg.Probe.Model,
+		RuntimeMemory: newRuntimeMemoryEvidence(cfg.RuntimePID),
 		Notes: []string{
 			"complete means the three probe modes executed without invocation errors and produced a descriptive comparison",
 			"complete does not mean task success, human adjudication, model adoption, or Product Value",
-			"memory, first-token latency, energy, and total system cost remain separate evidence",
+			"runtime process RSS is optional execution evidence; first-token latency, energy, and total system cost remain separate evidence",
 		},
 	}
+	matrix.RuntimeMemory.Observe("matrix-start", "")
 
 	modes := []Mode{ModeRaw, ModeWorkspace, ModeStaged}
 	artifacts := make(map[Mode]ActualRunArtifact, len(modes))
@@ -103,6 +107,7 @@ func RunActualMatrix(
 		matrix.Preflights = append(matrix.Preflights, preflight)
 
 		if !preflightReady(preflight) {
+			matrix.RuntimeMemory.Observe("blocked-preflight", mode)
 			matrix.Status = "blocked-preflight"
 			matrix.Failures = append(matrix.Failures, MatrixFailure{
 				Mode:      mode,
@@ -126,6 +131,7 @@ func RunActualMatrix(
 		case ModeStaged:
 			matrix.Staged = &artifact
 		}
+		matrix.RuntimeMemory.Observe("after-"+string(mode), mode)
 	}
 
 	if len(matrix.Failures) > 0 {
