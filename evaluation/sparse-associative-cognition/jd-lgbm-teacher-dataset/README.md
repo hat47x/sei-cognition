@@ -36,4 +36,16 @@ export TYPESAFE_API_KEY=...
 python3 teacher_dataset.py tasks.v1.json --mode run --output-dir run-YYYYMMDD
 ```
 
-The harness refuses to run without `TYPESAFE_API_KEY`. It stores raw responses separately from normalized `teacher_rows.jsonl`; it does not silently overwrite an existing row file.
+The harness refuses to run without `TYPESAFE_API_KEY`. It stores raw responses separately from normalized `teacher_rows.jsonl`; it does not silently overwrite an existing row file. HTTP 429 and 529 responses are retried with a bounded exponential backoff.
+
+## Import externally captured raw responses
+
+An API key does not need to be copied into this execution environment. If the same case requests are executed in another trusted environment, save one raw TypeSafe response per case as `<case_id>.json`, then validate and normalize them here:
+
+```bash
+python3 teacher_dataset.py tasks.v1.json --mode import \
+  --raw-dir trusted-capture/raw \
+  --output-dir normalized-run
+```
+
+Import mode requires all 12 case files, revalidates the returned Jev model version and typed probability/score shapes, and writes normalized rows with `teacher_latency_ms: null` because external capture latency was not observed by this harness.

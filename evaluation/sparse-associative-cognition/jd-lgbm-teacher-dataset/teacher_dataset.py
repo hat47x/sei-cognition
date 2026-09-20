@@ -15,7 +15,6 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -228,9 +227,18 @@ def dataset_row(
     }
 
 
-def collect_case(case: dict[str, Any], api_key: str, timeout: float = 30.0) -> tuple[dict[str, Any], float]:
+def collect_case(
+    case: dict[str, Any],
+    api_key: str,
+    timeout: float = 30.0,
+    *,
+    max_attempts: int = 4,
+    backoff_base_seconds: float = 0.5,
+) -> tuple[dict[str, Any], float]:
     if not api_key:
         raise CollectionBlocked("TYPESAFE_API_KEY is required for an actual Jev teacher call")
+    if max_attempts < 1:
+        raise ContractError("max_attempts must be >= 1")
     body = canonical_json(request_for(case))
     request = urllib.request.Request(
         API_URL,
@@ -239,14 +247,22 @@ def collect_case(case: dict[str, Any], api_key: str, timeout: float = 30.0) -> t
         headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
     )
     started = time.perf_counter()
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as resp:
-            raw = resp.read()
-    except urllib.error.HTTPError as exc:
-        detail = exc.read().decode("utf-8", errors="replace")
-        raise CollectionBlocked(f"TypeSafe HTTP {exc.code}: {detail[:500]}") from exc
-    except OSError as exc:
-        raise CollectionBlocked(f"TypeSafe transport failure: {exc}") from exc
+    raw: bytes | None = None
+    for attempt in range(max_attempts):
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as resp:
+                raw = resp.read()
+            break
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="replace")
+            if exc.code in {429, 529} and attempt + 1 < max_attempts:
+                time.sleep(backoff_base_seconds * (2**attempt))
+                continue
+            raise CollectionBlocked(f"TypeSafe HTTP {exc.code}: {detail[:500]}") from exc
+        except OSError as exc:
+            raise CollectionBlocked(f"TypeSafe transport failure: {exc}") from exc
+    if raw is None:
+        raise CollectionBlocked("TypeSafe collection exhausted retry attempts without a response")
     latency_ms = (time.perf_counter() - started) * 1000.0
     try:
         parsed = json.loads(raw)
@@ -280,17 +296,58 @@ def run_collection(manifest: dict[str, Any], output_dir: Path, *, api_key: str, 
     return len(rows)
 
 
+def normalize_raw_directory(
+    manifest: dict[str, Any],
+    raw_dir: Path,
+    rows_path: Path,
+    *,
+    force: bool = False,
+    generated_at: str | None = None,
+) -> int:
+    if rows_path.exists() and not force:
+        raise CollectionBlocked(f"refusing to overwrite {rows_path}; pass --force for an intentional re-import")
+    rows: list[dict[str, Any]] = []
+    for case in manifest["cases"]:
+        raw_path = raw_dir / f"{case['case_id']}.json"
+        if not raw_path.is_file():
+            raise CollectionBlocked(f"missing raw response: {raw_path}")
+        try:
+            response = json.loads(raw_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            raise ContractError(f"invalid JSON in {raw_path}") from exc
+        now = generated_at or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        rows.append(dataset_row(case, response, generated_at=now, latency_ms=None))
+    rows_path.parent.mkdir(parents=True, exist_ok=True)
+    rows_path.write_text(
+        "".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows),
+        encoding="utf-8",
+    )
+    return len(rows)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("manifest", type=Path)
-    parser.add_argument("--mode", choices=("plan", "run"), default="plan")
+    parser.add_argument("--mode", choices=("plan", "run", "import"), default="plan")
     parser.add_argument("--output-dir", type=Path, default=Path("jd-lgbm0-output"))
+    parser.add_argument("--raw-dir", type=Path)
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args(argv)
     try:
         manifest = load_manifest(args.manifest)
         if args.mode == "plan":
             print(json.dumps({"model": manifest["model"], "requests": plan(manifest)}, ensure_ascii=False, indent=2))
+            return 0
+        if args.mode == "import":
+            if args.raw_dir is None:
+                raise CollectionBlocked("--raw-dir is required for import mode")
+            count = normalize_raw_directory(
+                manifest,
+                args.raw_dir,
+                args.output_dir / "teacher_rows.jsonl",
+                force=args.force,
+            )
+            print(f"imported {count} validated Jev teacher rows")
             return 0
         count = run_collection(manifest, args.output_dir, api_key=os.environ.get("TYPESAFE_API_KEY", ""), force=args.force)
         print(f"collected {count} Jev teacher rows")

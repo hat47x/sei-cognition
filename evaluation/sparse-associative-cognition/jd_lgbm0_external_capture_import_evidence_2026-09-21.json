@@ -1,0 +1,58 @@
+{
+  "schema": "sei.jd-lgbm0-external-capture-import-evidence/v1alpha1",
+  "issue": 543,
+  "observedDateLocal": "2026-09-21",
+  "workUnit": "external-capture import and bounded transient retry",
+  "localFiles": {
+    "README.md": "ce001f49c817c4bc12c2e8f16bc0f1ebc9dafc78",
+    "teacher_dataset.py": "808bc9d717199be1a5c08e24f28f285ae0bee8c7",
+    "tasks.v1.json": "4a3435cd71c3434dd9d569a94af842dd614cb476",
+    "test_teacher_dataset.py": "d84ada9fd7a12f83210f8e32783003865ac1c7d1"
+  },
+  "localExecution": {
+    "python": "Python 3.13.5",
+    "testCommand": "python3 -m unittest -v test_teacher_dataset.py",
+    "testsDefined": 15,
+    "testsExecuted": 15,
+    "testsPassed": 15,
+    "failures": 0,
+    "errors": 0,
+    "status": "PASS"
+  },
+  "externalCaptureImport": {
+    "mode": "import",
+    "rawFileConvention": "<case_id>.json",
+    "requiresAllManifestCases": true,
+    "revalidatesTypedResponse": true,
+    "requiresImmutableJevModelVersion": true,
+    "writesNormalizedRows": true,
+    "externalLatencyRecordedAs": null,
+    "overwriteRequiresForce": true,
+    "testOnlySyntheticResponsesUsedForUnitTests": true,
+    "testOnlySyntheticResponsesAreTeacherEvidence": false
+  },
+  "transientRetry": {
+    "httpCodes": [429, 529],
+    "maxAttemptsDefault": 4,
+    "backoff": "bounded exponential",
+    "otherHttpErrorsRetried": false,
+    "unitTestObserved": "first 529 then valid typed response; two urlopen attempts; one sleep"
+  },
+  "actualTeacherRun": {
+    "apiKeyPresent": false,
+    "requestSent": false,
+    "teacherExecutionStarted": false,
+    "teacherRowsCollected": 0,
+    "teacherModelVersionObserved": null
+  },
+  "boundaries": [
+    "15/15 harness tests PASS != Jev teacher execution",
+    "test-only synthetic responses != Jev responses",
+    "external import support != external capture actually performed",
+    "retry behavior != service availability evidence",
+    "teacher rows remain 0 until authenticated raw responses are observed",
+    "no LightGBM model was trained",
+    "no task-validity or teacher-fidelity result was measured",
+    "no production default, automatic activation, or B5 gate changed"
+  ]
+}
