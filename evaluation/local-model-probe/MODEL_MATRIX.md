@@ -306,6 +306,8 @@ actual runtimeがある環境では `cmd/modelmatrix` を標準入口とする�
 
 matrix runnerは次を自動化するが、model取得・runtime installは行わない。
 
+source provenanceについては、Git HEADの実測・照合をactual inferenceより前に行う。別revisionのprompt/evaluatorを同じmodel比較へ混ぜない。
+
 - modeごとのpreflight;
 - 7 fixtureの実行;
 - explicit staged skip保持;
