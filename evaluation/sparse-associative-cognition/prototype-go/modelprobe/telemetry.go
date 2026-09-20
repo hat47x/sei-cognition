@@ -79,6 +79,16 @@ func ObserveActualRun(plan Plan, result Result, runErr error) ActualRunObservati
 	return observation
 }
 
+func ValidateRunIdentity(runID string, sourceGitSHA string) error {
+	if strings.TrimSpace(runID) == "" {
+		return fmt.Errorf("run_id is required")
+	}
+	if !gitSHA40.MatchString(strings.TrimSpace(sourceGitSHA)) {
+		return fmt.Errorf("source_git_sha must be a lowercase 40-character Git SHA")
+	}
+	return nil
+}
+
 func SummarizeActualTelemetry(
 	runID string,
 	sourceGitSHA string,
@@ -90,11 +100,8 @@ func SummarizeActualTelemetry(
 	runID = strings.TrimSpace(runID)
 	sourceGitSHA = strings.TrimSpace(sourceGitSHA)
 	model = strings.TrimSpace(model)
-	if runID == "" {
-		return ActualTelemetrySummary{}, fmt.Errorf("run_id is required")
-	}
-	if !gitSHA40.MatchString(sourceGitSHA) {
-		return ActualTelemetrySummary{}, fmt.Errorf("source_git_sha must be a lowercase 40-character Git SHA")
+	if err := ValidateRunIdentity(runID, sourceGitSHA); err != nil {
+		return ActualTelemetrySummary{}, err
 	}
 	if model == "" {
 		return ActualTelemetrySummary{}, fmt.Errorf("model is required")
