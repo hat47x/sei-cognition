@@ -28,11 +28,14 @@ type RunManifest struct {
 	Status        string       `json:"status"`
 	ObservedAt    string       `json:"observed_at"`
 	ExecutionKind string       `json:"execution_kind"`
+	RunID         string       `json:"run_id,omitempty"`
+	SourceGitSHA  string       `json:"source_git_sha,omitempty"`
 	Host          HostInfo     `json:"host"`
 	Endpoint      EndpointInfo `json:"endpoint"`
 	RuntimeName   string       `json:"runtime_name,omitempty"`
 	RuntimeVersion string      `json:"runtime_version,omitempty"`
 	Model         string       `json:"model,omitempty"`
+	ModelArtifact ModelArtifactIdentity `json:"model_artifact"`
 	Quantization  string       `json:"quantization,omitempty"`
 	ContextSize   int          `json:"context_size,omitempty"`
 	Threads       int          `json:"threads,omitempty"`
@@ -47,6 +50,7 @@ func Preflight(ctx context.Context, endpoint string, client *http.Client) RunMan
 		Status: "evaluation-only",
 		ObservedAt: time.Now().UTC().Format(time.RFC3339),
 		ExecutionKind: "preflight",
+		ModelArtifact: ModelArtifactIdentity{Status: modelArtifactNotSupplied},
 		Host: HostInfo{OS: runtime.GOOS, Arch: runtime.GOARCH, LogicalCPU: runtime.NumCPU(), GoVersion: runtime.Version()},
 		Endpoint: EndpointInfo{URL: endpoint},
 	}

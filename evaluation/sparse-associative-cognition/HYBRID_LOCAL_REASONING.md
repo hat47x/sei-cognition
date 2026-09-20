@@ -339,6 +339,35 @@ synthetic routing call avoidance
   != lower total system cost
 ```
 
+
+### 10.2 Actual model-call telemetry boundary
+
+Issue #375のactual inferenceへ進むため、`modelprobe`にはrun-level telemetryを追加する。preflightとactual runは同じ `run_id` と exact `source_git_sha` を持ち、fixtureごとに次を分離して記録する。
+
+- planned model invocation;
+- actual endpoint invocation attempt;
+- successful invocation;
+- attempted invocation failure;
+- routingによるexplicit skip;
+- planned callがHTTP attemptへ到達しなかったexecution shortfall.
+
+actual call avoidanceは**explicit route skipだけ**を数える。endpoint未配置、request構築失敗、timeout前の停止などでplanned callが実行されなかった場合を「回避できたcall」へ含めない。
+
+```text
+planned routing skip
+  may become observed actual skip
+
+execution failure
+  != model-call avoidance
+
+actual call avoidance
+  != task success
+  != quality improvement
+  != lower total system cost
+```
+
+このtelemetry contract自体はactual inference Evidenceではない。sub-1B / 2–4Bの実model runが行われるまでは、actual model quality・latency・memory・real call reductionはNot Yet Verifiedのままとする。
+
 ## 11. Falsification
 
 次ならhybrid Product Hypothesisを縮小する。
@@ -351,17 +380,21 @@ synthetic routing call avoidance
 - deterministic / non-LLM処理だけで十分なtaskが大半
 - external strong modelとの差がProduct Value上許容不能
 
-## 12. first executable step
+## 12. next executable step
 
-actual modelを呼ぶ前に、次をdeterministicに実装する。
+actual model実験の前提となるdeterministic境界は実装済みである。
 
 - task routing
 - novelty / evidence adequacy gate
 - bounded Working Set construction
 - semantic stop lines
 - no-canonical-write boundary
+- synthetic call-plan accounting
+- actual invocation telemetry / preflight identity binding
 
-これにより次のmodel実験で、model性能とorchestration設計を分離して評価できる。
+次の実行単位はIssue #375のactual local model比較である。まずsub-1B候補をraw / workspace / stagedの同一fixture群で実行し、quality / latency / memory / invocation telemetryを分けて観測する。結果を見てretrieval / decomposition改善を検討した後に2–4B帯へ進む。
+
+mechanics実装完了をactual model performanceのEvidenceへ昇格させない。
 
 ## 13. references / current implementation candidates
 

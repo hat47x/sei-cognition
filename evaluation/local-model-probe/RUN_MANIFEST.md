@@ -1,6 +1,6 @@
 # Local Model Probe — Run Manifest / Preflight
 
-更新日: 2026-09-12  
+更新日: 2026-09-20  
 状態: **Evaluation-only**  
 関連: Issue #375 / #389
 
@@ -21,10 +21,13 @@ same fixture
 
 - observed_at
 - execution_kind (`preflight` / 後続actual run)
+- `run_id` — preflightとactual telemetryを結ぶ実験単位ID
+- `source_git_sha` — 実行sourceのexact 40-char Git SHA
 - host OS / arch / logical CPU / Go version
 - runtime endpoint readiness / HTTP status / latency
 - runtime name / version
 - model identifier
+- operator-supplied local model artifactのfile name / size / SHA-256（`--model-file`指定時）
 - quantization
 - context size
 - thread count
@@ -40,10 +43,14 @@ same fixture
 cd evaluation/sparse-associative-cognition/prototype-go
 
 go run ./cmd/modelpreflight \
+  --run-id <stable-run-id> \
+  --source-git-sha <40-char-exact-source-sha> \
   --endpoint http://127.0.0.1:8080/health \
   --runtime llama.cpp \
   --runtime-version <version> \
   --model Qwen3.5-0.8B \
+  --model-file /path/to/model.gguf \
+  --expected-model-sha256 <optional-known-digest> \
   --quantization <quant> \
   --context-size 4096 \
   --threads 8 \
@@ -77,6 +84,140 @@ preflight success
 ```
 
 actual probe結果は`modelprobe`のevaluation reportとこのrun manifestを組にして扱う。
+
+### 5.1 actual invocation telemetry
+
+actual inferenceでは、syntheticなcall planと実際のendpoint呼び出しを分離して記録する。
+
+```bash
+go run ./cmd/modelprobe \
+  --mode staged \
+  --fixture all \
+  --model <model-id> \
+  --endpoint http://127.0.0.1:8080/v1/chat/completions \
+  --run-id <same-stable-run-id> \
+  --source-git-sha <same-40-char-exact-source-sha> \
+  --telemetry-json <new-output-path>
+```
+
+`--telemetry-json`は既存fileを上書きしない。actual runではfixtureごとに次を区別する。
+
+- planned model invocation;
+- actual HTTP invocation attempt;
+- successful model result;
+- attempted invocation failure;
+- routingによるexplicit skip;
+- planned callなのにHTTP attemptへ到達しなかったexecution shortfall.
+
+run summaryはplanned/actual call数、success/failure/skip、latency、token usage、plan-execution mismatchを別フィールドで保持する。途中のendpoint failureがあってもtelemetry modeでは残りfixtureを観測してsummaryを保存し、run自体はnon-zeroで終了する。
+
+特に、planned callが実行前に失敗した場合を「call avoidance」と数えない。actual avoided callはexplicit route skipだけから算出する。
+
+```text
+synthetic planned skip
+  != actual endpoint skip
+
+endpoint failure / unattempted planned call
+  != avoided model call
+
+lower actual invocation count
+  != task success
+  != lower total system cost
+```
+
+preflight manifestとactual telemetry summaryは同じ `run_id` / `source_git_sha` を使用する。異なるsource revisionの結果を一つのrunとして結合しない。
+
+### 5.2 run artifact
+
+`--run-json`を指定すると、telemetryと成功したfixture resultを同一のevaluation-only artifactへ保存する。
+
+```bash
+go run ./cmd/modelprobe \\
+  --mode workspace \\
+  --fixture all \\
+  --model <model-id> \\
+  --run-id <workspace-run-id> \\
+  --source-git-sha <exact-source-sha> \\
+  --run-json workspace.json
+```
+
+`--telemetry-json`と併用してもよいが、同じpathは拒否する。どちらもexclusive-createであり既存Evidenceを上書きしない。途中failureがある場合も、保存可能な観測はartifactへ残し、runはnon-zeroで終了する。
+
+raw / workspace / staged artifactの比較は`cmd/modelcompare`を使う。比較時にはmodelとexact source SHAの一致を必須とする。
+
+### 5.3 matrix artifact
+
+`cmd/modelmatrix`は3 modeのpreflight・run artifact・comparisonを一つのmatrix artifactへまとめる。
+
+標準matrix入口では、source identityをcurrent Git HEADから実測する。`--source-git-sha`は任意の記録値ではなくexpected SHAとして扱い、指定時は`git rev-parse HEAD`との完全一致を要求する。未指定時はcurrent HEADを採用する。
+
+`--model-file`を指定した場合、matrix開始前にファイルを一度だけ読み、SHA-256とsizeを固定する。同じidentityをmatrix本体と3 modeのpreflightへ保存する。`--expected-model-sha256`を併用した場合は不一致をinference前にfail-closedとする。保存するpath情報はbasenameだけで、環境固有の絶対pathはEvidenceへ持ち込まない。
+
+ただし、このidentityはoperatorが実験入力として指定したlocal fileのexact bytesを示すものであり、runtime内部が実際にそのbytesをloadしたことをattestするものではない。
+
+```text
+model artifact SHA-256 match
+  != runtime load attestation
+```
+
+statusは次の三つに限定する。
+
+- `complete`: 3 modeがinvocation errorなしで完了し、comparisonを生成した;
+- `blocked-preflight`: health endpointが到達不能、error、または非2xxでinference開始前に停止した;
+- `incomplete-inference`: preflightは通ったが1件以上のactual invocationが失敗した.
+
+`blocked-preflight` / `incomplete-inference`でも、取得済みpreflight・mode artifact・failureは捨てずに保存する。一方、partialなrunからcross-mode comparisonを生成しない。
+
+### 5.6 human adjudication
+
+complete matrixのtask successはmachine evaluatorだけで確定しない。human reviewは`HUMAN_ADJUDICATION.md`のsidecarとして別artifactへ保存し、exact source SHA / model identityへ結合する。
+
+`modeladjudicate`はreview templateを未評価状態で生成し、人が全対象fixtureを記入した後にcoverage / identity / allowed valuesを検証する。staged skipはmodel answerが存在しないため対象外とする。
+
+### 5.5 streamed latency
+
+TTFTを必要とするactual matrixでは `--stream` を指定する。probeはOpenAI-compatible SSEの最初の非空content deltaをfirst-token観測点とし、`[DONE]`までをtransport total latencyとする。
+
+streaming artifactでは次を別々に保持する。
+
+- response header latency;
+- first-token observed flag;
+- first-token latency;
+- transport total latency.
+
+usageがstream responseに含まれないruntimeではtoken usageが0のままになり得る。これは0 token消費のEvidenceではなく、provider telemetry未提供として扱う。
+
+### 5.4 runtime process memory
+
+Linuxでruntime server PIDが分かる場合は `modelmatrix --runtime-pid <pid>` を指定する。matrix artifactの `runtime_memory` に、matrix開始時とraw / workspace / staged後のprocess RSSを保存する。
+
+記録値:
+
+- PID / process name;
+- source path (`/proc/<pid>/status`);
+- timestamp / stage / mode;
+- `VmRSS`由来のcurrent RSS bytes;
+- `VmHWM`由来のpeak RSS bytes;
+- matrix内のmax observed RSS / peak RSS;
+- read errorがあればerror text.
+
+状態:
+
+- `not-requested`: PID未指定;
+- `observed`: requested sampleをerrorなく取得;
+- `partial`: 一部sample取得後に読取失敗;
+- `unavailable`: sampleを一件も取得できない;
+- `unsupported`: 非Linuxなど現行sampler対象外.
+
+`VmHWM` はprocess起動以来のhigh-water markであり、このmatrix runだけのpeakとは限らない。dedicated runtime processを推奨する。memory Evidenceが未取得でもtransport/evaluator matrixは `complete` になり得るため、Issue #375のmemory完了条件は別途確認する。
+
+```text
+matrix complete
+  != semantic correctness
+  != human adjudication PASS
+  != memory / energy acceptance
+  != model adoption
+```
 
 ## 6. 現在の実行環境で確認できたこと
 

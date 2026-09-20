@@ -1,6 +1,6 @@
 # Local Model Probe — Cognitive Workspace vs Raw Context
 
-更新日: 2026-09-12  
+更新日: 2026-09-20  
 状態: **Evaluation-only Probe Harness**  
 関連: Issue #375 / #385 / #383
 
@@ -194,14 +194,142 @@ Issue #375では少なくとも次を比較する。
 - invalid evidence ref
 - need-more-evidence appropriateness
 
+取得可能:
+- response header latency
+- request開始からresponse完了までのtransport total latency
+- `--stream`時のfirst-token latency（最初の非空content delta受信時刻を操作的定義とする）
+- Linux `--runtime-pid`指定時のruntime process RSS / peak RSS
+- `--model-file`指定時のlocal model artifact file name / size / SHA-256
+
 まだ取得しないもの:
-- streaming first-token latency
-- process peak RSS
-- model weight memory
-- KV cache memory
+- tokenizer内部の厳密な単一token生成時刻
+- model weight単独memory
+- KV cache単独memory
+- GPU VRAM
 - energy
 
 これらはruntime-specific probeとして後続する。
+
+### Streaming latency
+
+actual比較でTTFTを取る場合は `modelmatrix --stream` を指定する。OpenAI-compatible SSE streamの最初の**非空 `choices[].delta.content`**をfirst tokenの操作的観測点とする。
+
+保存値:
+
+- `response_header_latency_ms`: request開始からHTTP response header受信まで;
+- `first_token_observed`: content deltaを実際に観測したか;
+- `first_token_latency_ms`: request開始から最初の非空content deltaまで;
+- `total_latency_ms`: request開始からfull bodyまたはSSE `[DONE]`まで.
+
+```text
+first content delta latency
+  ~= operational TTFT
+  != tokenizer-internal exact token timestamp
+
+transport total latency
+  != local evaluator processing time
+```
+
+streamingを指定しないrunでは `first_token_observed=false` のままとし、0msをTTFT観測値として扱わない。SSEがcontentを返しても `[DONE]`なしで終了した場合はincomplete responseとしてfail-closedにする。
+
+### Runtime process RSS
+
+Linuxでlocal runtime serverのPIDが分かる場合、`modelmatrix --runtime-pid <pid>` により `/proc/<pid>/status` の `VmRSS` / `VmHWM` をmatrix開始時と各mode後に記録できる。
+
+```text
+VmRSS
+  = sampling時点のruntime process RSS
+
+VmHWM
+  = そのprocess起動以来のRSS high-water mark
+```
+
+これはmodel weight単独量、KV cache単独量、GPU VRAMではない。shared server processで別requestや別modelを処理した履歴があれば `VmHWM` に混入し得るため、dedicated runtime processを比較runごとに使う方がよい。
+
+PID未指定は `not-requested`、非Linuxは `unsupported`、読取不能は `unavailable` / `partial` として記録し、0 byteを観測値として捏造しない。
+
+## 8.1 run artifact / comparison
+
+actual runでは、標準出力だけでなく比較可能なrun artifactを保存できる。
+
+```bash
+go run ./cmd/modelprobe \\
+  --mode raw \\
+  --fixture all \\
+  --model <model-id> \\
+  --run-id <raw-run-id> \\
+  --source-git-sha <exact-source-sha> \\
+  --run-json raw.json
+```
+
+`workspace` / `staged`も同じsource SHA・同じmodelで別run artifactを作る。artifactは、run identity、telemetry、成功したfixture resultを一つに束ねる。existing fileは上書きしない。
+
+3 modeが揃ったら:
+
+```bash
+go run ./cmd/modelcompare \\
+  --raw raw.json \\
+  --workspace workspace.json \\
+  --staged staged.json \\
+  --output comparison.json
+```
+
+比較器は次を確認する。
+
+- raw / workspace / stagedのmodeが正しいこと;
+- 3 artifactのmodelが同じこと;
+- 3 artifactの`source_git_sha`が完全一致すること;
+- resultとtelemetryのinvocation / skip状態が矛盾しないこと.
+
+出力は単一scoreを作らない。mode別aggregateと、shared fixtureだけを使った`workspace - raw`の記述的deltaを別々に出す。stagedのskipはtask successへ読み替えない。
+
+```text
+run comparison
+  = same-source / same-model descriptive evidence
+  != human adjudication
+  != model adoption decision
+  != Product Value
+```
+
+## 8.2 one-shot matrix run
+
+runtimeが用意されている環境では、preflightから3 mode比較までを一つの入口で実行できる。
+
+```bash
+go run ./cmd/modelmatrix \\
+  --run-id-prefix qwen08-first \\
+  --source-git-sha <expected-exact-source-sha> \\
+  --runtime llama.cpp \\
+  --runtime-version <version> \\
+  --model <model-id> \\
+  --model-file /path/to/model.gguf \\
+  --expected-model-sha256 <optional-known-digest> \\
+  --quantization <quant> \\
+  --context-size 4096 \\
+  --threads 8 \\
+  --output qwen08-matrix.json
+```
+
+matrix runnerは実行開始前に `git rev-parse HEAD` を取り、`--source-git-sha` が指定されていれば完全一致を要求する。未指定ならcurrent HEADをsource identityとして採用する。Git repositoryとしてHEADを検証できない環境ではactual matrixを開始しない。
+
+`--model-file`指定時はlocal fileのSHA-256 / sizeもinference前に固定する。`--expected-model-sha256`不一致はfail-closedとする。ただしこれは指定fileのidentityであってruntime load attestationではない。
+
+実行順は固定される。
+
+```text
+preflight(raw)
+  -> raw
+preflight(workspace)
+  -> workspace
+preflight(staged)
+  -> staged
+all complete
+  -> descriptive comparison
+```
+
+health endpointが2xxでなければ、そのmodeのinferenceを開始せず `blocked-preflight` としてartifactを保存する。inference failureがある場合も各modeの観測を保持するが、cross-mode comparisonは作らず `incomplete-inference` とする。
+
+`complete`は「3 modeのtransport/evaluator実行が成立し比較artifactを生成できた」という意味に限定する。task successやmodel採用を意味しない。
 
 ## 9. 実験順
 
@@ -246,6 +374,18 @@ Workspace
 であれば価値がある。
 
 逆に、Workspaceがraw contextと同等以下であれば、SEI-specific context shapingを縮小または再設計する。
+
+## 10.1 human adjudication
+
+machine evaluatorの結果だけでtask successを確定しない。complete matrix取得後は[`HUMAN_ADJUDICATION.md`](./HUMAN_ADJUDICATION.md)のsidecarを使い、actual model outputが存在するfixtureだけを人が評価する。
+
+```text
+machine semantic checks
+  + independent human adjudication
+  -> separate Evidence views
+```
+
+review templateは全entryを`unassessed`で生成し、AIがpass/failを先取りしない。validated reportもmode別countを保持するだけでoverall scoreを生成しない。
 
 ## 11. 停止線
 

@@ -1,6 +1,6 @@
 # Local Model Comparison Matrix
 
-更新日: 2026-09-12  
+更新日: 2026-09-20  
 状態: **Evaluation-only Candidate Matrix**  
 関連: Issue #375 / `README.md`
 
@@ -220,7 +220,9 @@ model × fixture × modeごとに:
 
 - request chars
 - token usage（runtimeが返す場合）
-- total latency
+- response header latency
+- first-token latency（streaming時のみ）
+- transport total latency
 - response chars
 - JSON contract success/failure
 - Unknown preservation
@@ -231,14 +233,72 @@ model × fixture × modeごとに:
 - invalid evidence ref
 - need-more-evidence appropriateness
 - staged model call / skip
+- operator-supplied model artifact SHA-256 / size（利用可能な場合）
+
+### Cross-mode comparison artifact
+
+同一modelのraw / workspace / stagedは、同一exact source SHAで作ったrun artifactとして保存し、`cmd/modelcompare`で比較する。
+
+比較器が出すのは、少なくとも次の独立した記述量である。
+
+- mode別 evaluated / skipped fixture数;
+- Unknown / Conflict preservation rateの平均;
+- Recommendation / Decision separation件数;
+- historical basis violation数;
+- unsupported claim / invalid ref数;
+- need-more-evidence appropriateness;
+- material claim support integrity;
+- latency / token usage;
+- actual invocation attempts / staged explicit skip;
+- shared fixtureに限定した`workspace - raw` delta.
+
+これらを総合点へ畳み込まない。quality改善とcost低下が逆方向になる場合、そのtrade-off自体をEvidenceとして残す。
 
 runtime側で別途:
+- runtime process RSS / peak RSS
 - model load memory
-- peak RSS / VRAM
+- VRAM
 - idle memory
 - tokens/sec
 
 を記録する。
+
+### Latency evidence
+
+actual model比較では、latencyを一つの数へ潰さない。
+
+- response header: serverがresponseを開始するまで;
+- TTFT: `--stream`時、最初の非空content deltaまで;
+- total: response body完了またはSSE `[DONE]`まで.
+
+`total_latency_ms`はmodelprobe内部のJSON decode / semantic evaluator時間を含めない。TTFT未観測runを0msとして平均へ入れず、raw/workspace比較は両方でTTFTが観測できたshared fixtureだけを使う。
+
+### Memory evidence
+
+first executable sliceではLinux runtime processの `VmRSS` / `VmHWM` を取得できる。これはOS process-level memory Evidenceであり、model weight・KV cache・allocator overheadを分解しない。
+
+```text
+process RSS evidence
+  != model weight memory
+  != KV cache memory
+  != GPU VRAM
+```
+
+同じruntime processを複数実験で再利用すると `VmHWM` は過去のhigh-water markを保持する。model間比較ではdedicated processを起動し直すか、この制約を明記する。
+
+### Human adjudication
+
+machine evaluatorとは別に、actual resultへhuman adjudication sidecarを付ける。対象はmodel outputが実在するfixtureだけで、staged routing skipはhuman task-success判定へ含めない。
+
+記録:
+
+- task success: pass / fail / uncertain;
+- semantic boundary: preserved / violated / uncertain;
+- fail / uncertain系のnotes;
+- reviewer label;
+- review timestamp.
+
+同じmodel / exact source SHAのmatrixだけへ結合し、mode別countを保存する。自動overall scoreは作らない。
 
 ## 10. 結果の読み方
 
@@ -280,6 +340,23 @@ reasoning-specialized modelを常駐させる必要はない。
 - memory / latency差がProduct Valueへつながらない
 
 逆に、小型modelの成功率だけを見て採用判断しない。
+
+### 標準実行入口
+
+actual runtimeがある環境では `cmd/modelmatrix` を標準入口とする。これによりraw / workspace / stagedでsource revisionやmodel identityがずれる事故を避け、preflight・actual invocation・comparisonを一つのmatrix artifactへ束縛する。
+
+matrix runnerは次を自動化するが、model取得・runtime installは行わない。
+
+source provenanceについては、Git HEADの実測・照合をactual inferenceより前に行う。別revisionのprompt/evaluatorを同じmodel比較へ混ぜない。
+
+local model fileを直接指定できるruntimeでは `--model-file` でartifact bytesもSHA-256へ固定する。model名やquantization labelだけで別bytesを同一視しない。一方、このdigestだけからruntimeがそのfileをloadしたとは推定しない。
+
+- modeごとのpreflight;
+- 7 fixtureの実行;
+- explicit staged skip保持;
+- partial failure Evidence保持;
+- same-source / same-model cross-mode comparison;
+- complete / blocked-preflight / incomplete-inferenceの区別.
 
 ## 12. 次の実測単位
 

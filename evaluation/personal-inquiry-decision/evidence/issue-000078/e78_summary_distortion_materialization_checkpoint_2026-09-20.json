@@ -28,15 +28,23 @@
     {
       "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_003.json",
       "git_blob_sha1": "645519e1a502e844ca640ab0d61dfa438a46e8d2"
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/run_inquiry_continuity_summary_distortion_checks.py",
+      "git_blob_sha1": "b344056911ef7fed25f5d0ac34c07dc8f32b30c7",
+      "observed_on": "2026-09-21"
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/test_run_inquiry_continuity_summary_distortion_checks.py",
+      "git_blob_sha1": "2c88693e00e780b9e4e04c82d9be00937d17549b",
+      "observed_on": "2026-09-21"
     }
   ],
   "not_materialized_exactly_in_current_attempt": [
     "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe.py",
     "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_evidence.py",
     "evaluation/personal-inquiry-decision/test_inquiry_continuity_summary_distortion_probe.py",
-    "evaluation/personal-inquiry-decision/test_inquiry_continuity_summary_distortion_evidence.py",
-    "evaluation/personal-inquiry-decision/run_inquiry_continuity_summary_distortion_checks.py",
-    "evaluation/personal-inquiry-decision/test_run_inquiry_continuity_summary_distortion_checks.py"
+    "evaluation/personal-inquiry-decision/test_inquiry_continuity_summary_distortion_evidence.py"
   ],
   "transport_attempts": [
     {
@@ -53,6 +61,21 @@
       "method": "connector compressed/base64 textual handoff",
       "outcome": "CRC32 or full-file Git blob mismatch detected before execution",
       "classification": "discarded-reconstruction"
+    },
+    {
+      "method": "connector line-range/base64 handoff with scratch prefix hash",
+      "outcome": "Git blob comparison later detected mismatch; scratch SHA-256 prefix verifier retired",
+      "classification": "discarded-reconstruction"
+    },
+    {
+      "method": "connector Git blob -> reversible compressed/base64 chunks -> per-chunk CRC32 -> local reconstruction -> git hash-object",
+      "outcome": "exact complete-file Git blob identity observed for canonical runner and runner-focused test",
+      "classification": "accepted-materialization",
+      "observed_on": "2026-09-21",
+      "paths": [
+        "evaluation/personal-inquiry-decision/run_inquiry_continuity_summary_distortion_checks.py",
+        "evaluation/personal-inquiry-decision/test_run_inquiry_continuity_summary_distortion_checks.py"
+      ]
     }
   ],
   "canonical_runtime_state": {
@@ -78,5 +101,42 @@
     "product_value_established": false,
     "stable_requirement_authorized": false
   },
-  "stop_line": "materialization checkpoint != canonical runner PASS/FAIL != human review result != actual long-gap Evidence != Product Value decision != Stable Requirement authorization"
+  "stop_line": "materialization checkpoint != canonical runner PASS/FAIL != human review result != actual long-gap Evidence != Product Value decision != Stable Requirement authorization",
+  "parallel_head_conflict_check": {
+    "develop_head": "2407e3b89fe9e7ce0a618b717b8a83d2394cacf3",
+    "checked_on": "2026-09-21",
+    "bound_files_checked": 10,
+    "all_current_develop_blobs_match_binding": true,
+    "observed_parallel_changes_touch_bound_e78_3_files": false,
+    "open_prs_observed": [
+      {
+        "number": 537,
+        "base": "develop/v0.2.0",
+        "head": "topic/sacs-research-plan-runtime-guard-evidence",
+        "overlaps_bound_e78_3_files": false
+      }
+    ],
+    "interpretation": "Parallel lane progress has not changed any bound E78.3 source/mechanics blob. This is a conflict check, not runtime Evidence."
+  },
+  "validation_method": {
+    "authoritative_file_identity": "Git blob SHA-1 only",
+    "local_verifier": "git hash-object",
+    "remote_complete_file_identity": "GitHub fetch_file blob SHA",
+    "remote_range_diagnostic": "GitHub create_blob over the exact fetched range may be used only to localize transport corruption; it does not replace complete-file binding verification.",
+    "retired_intermediate_check": "Ad-hoc SHA-256 prefix verification is not authoritative and must not be used to accept reconstructed source.",
+    "correction_note": "A scratch SHA-256 verifier produced a misleading intermediate agreement during a discarded reconstruction attempt. No canonical PASS, FAIL, or exact-materialization claim was based on that verifier; complete-file Git blob verification remains the acceptance criterion.",
+    "accepted_chunk_transport": "Per-chunk CRC32 is transport-integrity assistance only; acceptance still requires complete-file git hash-object equality with the bound Git blob SHA-1."
+  },
+  "latest_progress_on": "2026-09-21",
+  "exact_materialization_count": 6,
+  "transport_progress": {
+    "observed_on": "2026-09-21",
+    "method": "GitHub connector base64 line ranges -> local base64 decode -> per-range Git blob verification -> concatenation -> complete-file git hash-object",
+    "new_exact_file": "evaluation/personal-inquiry-decision/test_run_inquiry_continuity_summary_distortion_checks.py",
+    "new_exact_file_bytes": 19867,
+    "new_exact_file_blob_sha1": "2c88693e00e780b9e4e04c82d9be00937d17549b",
+    "exact_count": 6,
+    "pending_count": 4,
+    "note": "Range transport was accepted only after GitHub-side base64-derived blob SHA matched each local range and the concatenated complete file matched the canonical bound blob. No canonical runner execution was performed."
+  }
 }
