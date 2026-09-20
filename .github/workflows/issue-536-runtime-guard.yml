@@ -1,0 +1,46 @@
+name: issue-536-research-plan-runtime-guard
+# temporary evidence runner; removed before merge
+
+on:
+  pull_request:
+    branches:
+      - develop/v0.2.0
+
+permissions:
+  contents: read
+
+jobs:
+  research-plan-runtime-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13.5
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13.5"
+
+      - name: Verify exact Git blob SHAs
+        shell: bash
+        run: |
+          set -euo pipefail
+          PLAN="evaluation/sparse-associative-cognition/research_plan.json"
+          VALIDATOR="evaluation/sparse-associative-cognition/validate_research_plan.py"
+          TESTS="evaluation/sparse-associative-cognition/test_validate_research_plan.py"
+
+          test "$(git hash-object "$PLAN")" = "864d8876d75a58e3cf275759ffa04c7a3107e480"
+          test "$(git hash-object "$VALIDATOR")" = "6958e91a71da76a3ef637c4a84f23d1d02dc841a"
+          test "$(git hash-object "$TESTS")" = "c1901f5c2fde641f4c4835d718a5db57a48d784d"
+
+          echo "plan_blob=$(git hash-object "$PLAN")"
+          echo "validator_blob=$(git hash-object "$VALIDATOR")"
+          echo "tests_blob=$(git hash-object "$TESTS")"
+          python --version
+          uname -a
+
+      - name: Run current research-plan validator
+        run: python evaluation/sparse-associative-cognition/validate_research_plan.py
+
+      - name: Run full research-plan unit suite
+        run: python -m unittest -v evaluation/sparse-associative-cognition/test_validate_research_plan.py
