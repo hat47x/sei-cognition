@@ -1,0 +1,103 @@
+{
+  "schema": "sei.jd-lgbm0-teacher-dataset-harness-evidence/v1alpha1",
+  "issue": 543,
+  "observedDateLocal": "2026-09-21",
+  "parentBinding": {
+    "branch": "develop/v0.2.0",
+    "commit": "0270e80eb0fc731f8794d59f5a4804375c6e57d0"
+  },
+  "harnessFiles": {
+    "README.md": "2aed30bb7e49b093caa6c8158b70ef7a958c61ca",
+    "teacher_dataset.py": "3683293bf9d52d3028dd9dce6d185935c692fb87",
+    "tasks.v1.json": "4a3435cd71c3434dd9d569a94af842dd614cb476",
+    "test_teacher_dataset.py": "ec8e186340b8a76bb872ae27f67f5cfcb017e191"
+  },
+  "publicApiContract": {
+    "endpoint": "https://api.typesafe.ai/v1/systemone",
+    "modelAlias": "jev-latest",
+    "stateShape": "string | object | array; JD-LGBM-0 restricts its manifest to object/array",
+    "questionTypes": ["choice", "score", "noul"],
+    "references": [
+      "https://docs.typesafe.ai/api",
+      "https://docs.typesafe.ai/introduction/quickstart"
+    ]
+  },
+  "plannedDataset": {
+    "caseCount": 12,
+    "taskCount": 3,
+    "tasks": {
+      "service_route": "choice",
+      "operational_urgency": "score",
+      "human_review_gate": "noul"
+    },
+    "splitCounts": {
+      "train": 6,
+      "valid": 3,
+      "test": 3
+    },
+    "provenanceCounts": {
+      "synthetic-representative": 4,
+      "synthetic-perturbation": 3,
+      "synthetic-boundary": 2,
+      "synthetic-rare": 2,
+      "synthetic-counterexample": 1
+    },
+    "structuredStateOnly": true,
+    "canonicalRequestHashing": "SHA-256 over canonical JSON",
+    "teacherRowsCollected": 0
+  },
+  "localExecution": {
+    "python": "Python 3.13.5",
+    "planCommand": "python3 teacher_dataset.py tasks.v1.json --mode plan",
+    "planExitCode": 0,
+    "planRequests": 12,
+    "testCommand": "python3 -m unittest -v test_teacher_dataset.py",
+    "testsDefined": 12,
+    "testsExecuted": 12,
+    "testsPassed": 12,
+    "failures": 0,
+    "errors": 0,
+    "status": "PASS"
+  },
+  "actualTeacherRun": {
+    "command": "python3 teacher_dataset.py tasks.v1.json --mode run --output-dir blocked-run",
+    "exitCode": 2,
+    "apiKeyPresent": false,
+    "dnsResolutionObserved": false,
+    "requestSent": false,
+    "teacherExecutionStarted": false,
+    "teacherModelVersionObserved": null,
+    "rowsCollected": 0,
+    "classification": "credential/network preflight blocker; not a Jev model failure",
+    "stderr": "ERROR: TYPESAFE_API_KEY is absent; no teacher request was sent"
+  },
+  "rowContract": {
+    "requiredIdentity": [
+      "feature_schema_version",
+      "task_schema_version",
+      "teacher_provider",
+      "teacher_model_version",
+      "teacher_request_hash",
+      "teacher_response_hash",
+      "source_provenance_class",
+      "generation_time",
+      "split_group_identity"
+    ],
+    "typedOutputs": {
+      "noul": "p_yes",
+      "choice": "choice + full probabilities + confidence",
+      "score": "score + full level probabilities + confidence + legend"
+    },
+    "observability": ["teacher_latency_ms", "usage"]
+  },
+  "boundaries": [
+    "12/12 harness tests PASS != Jev teacher execution",
+    "planned synthetic cases != teacher labels",
+    "planned synthetic cases != ground truth",
+    "teacherRowsCollected=0 until an authenticated API response is observed",
+    "student fidelity != task correctness",
+    "teacher probability/confidence != semantic truth or SEI confidence",
+    "no LightGBM model was trained",
+    "no production default, activation policy, or B5 gate changed"
+  ]
+}
