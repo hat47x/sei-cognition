@@ -132,11 +132,25 @@ func TestObservationalSupportDeduplicatesAndSortsPolicyVersions(t *testing.T) {
 
 func TestObservationalSupportRejectsInvalidOutcomeRecords(t *testing.T) {
 	store, _ := NewStore(supportDefinitions())
-	_, err := store.DiagnoseObservationalSupport([]OutcomeRecord{
-		supportRecord("unknown-route", CognitiveSufficient, BaselineVersion, "fixture:invalid"),
-	})
-	if err == nil {
-		t.Fatal("invalid outcome record must fail closed")
+	cases := []struct {
+		name   string
+		record OutcomeRecord
+	}{
+		{
+			name:   "unknown-route",
+			record: supportRecord("unknown-route", CognitiveSufficient, BaselineVersion, "fixture:invalid-route"),
+		},
+		{
+			name:   "unknown-policy-version",
+			record: supportRecord("local-slm", CognitiveSufficient, "v999", "fixture:invalid-version"),
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if _, err := store.DiagnoseObservationalSupport([]OutcomeRecord{tc.record}); err == nil {
+				t.Fatal("invalid outcome record must fail closed")
+			}
+		})
 	}
 }
 
