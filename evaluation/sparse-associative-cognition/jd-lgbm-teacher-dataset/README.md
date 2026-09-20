@@ -49,3 +49,14 @@ python3 teacher_dataset.py tasks.v1.json --mode import \
 ```
 
 Import mode requires all 12 case files, revalidates the returned Jev model version and typed probability/score shapes, and writes normalized rows with `teacher_latency_ms: null` because external capture latency was not observed by this harness.
+
+## Student-dataset readiness gate
+
+After authenticated teacher rows exist, join them back to the exact structured inputs before any model training:
+
+```bash
+python3 student_dataset.py tasks.v1.json normalized-run/teacher_rows.jsonl \
+  --output-dir student-ready
+```
+
+The gate requires exactly one validated teacher row for every manifest case, exact request/split/schema/provenance identity, one immutable Jev model version across the first JD-LGBM-0 slice, and valid typed target distributions. It writes structured `features` joined from the manifest plus teacher targets; it does **not** train LightGBM. Missing, duplicated, mixed-version, or identity-mismatched rows are rejected.

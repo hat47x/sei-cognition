@@ -1,0 +1,59 @@
+{
+  "schema": "sei.jd-lgbm0-student-dataset-readiness-evidence/v1alpha1",
+  "issue": 543,
+  "observedDateLocal": "2026-09-21",
+  "parentBinding": {
+    "branch": "develop/v0.2.0",
+    "commit": "f13440228d30c818e816da1ed0b0d6b2c3f325aa"
+  },
+  "localFiles": {
+    "README.md": "29821cfdfba7dd84dbc193dc5495f0881f767691",
+    "student_dataset.py": "11475489aed2ebf223d13f3d57d88d2ea20a3b6c",
+    "test_student_dataset.py": "65bb9fa1492d0e0723cd35e338fe1441ef049a0f",
+    "teacher_dataset.py": "b2c135a9750fcb838c0c2c9f9289a8f9b6c7c754",
+    "tasks.v1.json": "8f85f244848ef5da11b0d1326ea2706c12528dd9"
+  },
+  "localExecution": {
+    "python": "Python 3.13.5",
+    "command": "python3 -m unittest -v test_teacher_dataset.py test_student_dataset.py",
+    "testsDefined": 27,
+    "testsExecuted": 27,
+    "testsPassed": 27,
+    "failures": 0,
+    "errors": 0,
+    "unittestReportedSeconds": 0.010,
+    "status": "PASS"
+  },
+  "readinessGate": {
+    "requiresExactlyOneTeacherRowPerManifestCase": true,
+    "rejectsMissingDuplicateAndUnknownCases": true,
+    "revalidatesRequestSplitSchemaAndProvenanceIdentity": true,
+    "requiresSingleImmutableTeacherModelVersion": true,
+    "revalidatesTypedTargetDistribution": true,
+    "joinsStructuredFeaturesFromManifest": true,
+    "copiesFeaturesAwayFromMutableManifestState": true,
+    "recordsSourceAndOutputSha256": true,
+    "lightgbmTrainingPerformed": false
+  },
+  "actualReadinessAttempt": {
+    "command": "python3 student_dataset.py tasks.v1.json actual-teacher-rows-do-not-exist.jsonl --output-dir student-blocked",
+    "exitCode": 2,
+    "teacherRowFilePresent": false,
+    "studentDatasetWritten": false,
+    "studentTrainingStarted": false,
+    "stderr": "ERROR: teacher row file does not exist: /mnt/data/jd-lgbm0/actual-teacher-rows-do-not-exist.jsonl"
+  },
+  "testFixtureBoundary": {
+    "syntheticTeacherRowsUsedOnlyInsideUnitTests": true,
+    "syntheticTeacherRowsAreActualJevEvidence": false,
+    "syntheticTeacherRowsAreGroundTruth": false
+  },
+  "boundaries": [
+    "27/27 readiness/harness tests PASS != actual Jev teacher dataset readiness",
+    "test-only synthetic teacher rows != Jev responses",
+    "readiness validation != teacher fidelity or task correctness",
+    "single teacher model version != semantic correctness",
+    "no LightGBM or other student model was trained",
+    "no production default, automatic activation, or B5 gate changed"
+  ]
+}
