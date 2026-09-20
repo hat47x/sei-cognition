@@ -21,6 +21,7 @@ func main() {
 	endpoint := flag.String("endpoint", "http://127.0.0.1:8080/v1/chat/completions", "OpenAI-compatible chat-completions endpoint")
 	runtimeName := flag.String("runtime", "", "runtime name")
 	runtimeVersion := flag.String("runtime-version", "", "runtime version")
+	runtimePID := flag.Int("runtime-pid", 0, "optional local runtime server PID for Linux RSS/peak RSS sampling")
 	model := flag.String("model", "", "model identifier sent to endpoint")
 	quantization := flag.String("quantization", "", "quantization label")
 	contextSize := flag.Int("context-size", 0, "runtime context size")
@@ -58,6 +59,7 @@ func main() {
 			HealthEndpoint: *healthEndpoint,
 			RuntimeName:    *runtimeName,
 			RuntimeVersion: *runtimeVersion,
+			RuntimePID:     *runtimePID,
 			Quantization:   *quantization,
 			ContextSize:    *contextSize,
 			Threads:        *threads,
