@@ -106,6 +106,79 @@ class SparseAssociativeCognitionResearchPlanTests(unittest.TestCase):
         ]
         self.assert_has_error(plan, "missing required stages")
 
+    def test_jd_lgbm_follow_on_stages_cannot_disappear_silently(self) -> None:
+        for stage in (
+            "JD-LGBM-0",
+            "JD-LGBM-1",
+            "JD-LGBM-2",
+            "JD-LGBM-3",
+            "JD-LGBM-4",
+            "JD-LGBM-5",
+        ):
+            with self.subTest(stage=stage):
+                plan = copy.deepcopy(self.plan)
+                plan["follow_on_experiments"] = [
+                    item for item in plan["follow_on_experiments"] if item["stage"] != stage
+                ]
+                self.assert_has_error(plan, "missing required stages")
+
+    def test_distilled_student_policy_remains_evaluation_only(self) -> None:
+        for key in (
+            "lightgbm_is_required",
+            "cognitive_method_definition",
+            "universal_model_assumed",
+            "teacher_dataset_is_ground_truth",
+            "teacher_confidence_is_ground_truth_confidence",
+            "student_output_is_semantic_truth",
+            "student_confidence_is_sei_confidence",
+            "automatic_online_learning",
+            "automatic_retraining",
+            "automatic_activation",
+            "high_stakes_floor_can_be_lowered",
+            "production_default_changed",
+            "b5_entry_gate_changed",
+        ):
+            with self.subTest(key=key):
+                plan = copy.deepcopy(self.plan)
+                plan["distilled_typed_student_policy"][key] = True
+                self.assert_has_error(plan, f"distilled_typed_student_policy.{key} must remain false")
+
+    def test_distilled_student_does_not_accept_raw_text_directly(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["distilled_typed_student_policy"]["raw_text_direct_to_tree"] = True
+        self.assert_has_error(plan, "raw_text_direct_to_tree must remain false")
+
+    def test_distilled_student_requires_teacher_fidelity_and_task_validity_axes(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["distilled_typed_student_policy"]["required_evaluation_axes"] = ["teacher_fidelity"]
+        self.assert_has_error(plan, "teacher_fidelity/task_validity")
+
+    def test_distilled_student_dataset_provenance_fields_cannot_disappear(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["distilled_typed_student_policy"]["minimum_dataset_fields"].remove("teacher_request_hash")
+        self.assert_has_error(plan, "missing required provenance/version fields")
+
+    def test_distilled_student_stop_lines_cannot_be_removed(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["distilled_typed_student_policy"]["stop_lines"].remove("teacher probability != semantic truth")
+        self.assert_has_error(plan, "fidelity/truth/confidence/product-value boundaries")
+
+    def test_distilled_student_retains_ood_high_stakes_and_unknown_escalation(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["distilled_typed_student_policy"]["required_escalation_triggers"].remove("high_stakes")
+        self.assert_has_error(plan, "OOD/high-stakes/policy/Unknown boundaries")
+
+    def test_distilled_student_target_types_remain_closed(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["distilled_typed_student_policy"]["target_types"].append("FreeText")
+        self.assert_has_error(plan, "target_types must remain Noul/Choice/Score")
+
+    def test_jd_lgbm_stages_remain_planned_until_runtime_evidence_exists(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        stage = next(item for item in plan["follow_on_experiments"] if item["stage"] == "JD-LGBM-0")
+        stage["current_result"]["state"] = "implemented"
+        self.assert_has_error(plan, "JD-LGBM-0.current_result.state must remain planned-no-execution-evidence")
+
     def test_rejection_remains_valid_research_completion(self) -> None:
         plan = copy.deepcopy(self.plan)
         plan["stage_gate_policy"]["rejection_is_valid_completion"] = False

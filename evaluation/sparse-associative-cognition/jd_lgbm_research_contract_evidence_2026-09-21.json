@@ -1,0 +1,94 @@
+{
+  "schema": "sei.jd-lgbm-research-contract-evidence/v1alpha1",
+  "issue": 543,
+  "observedAt": {
+    "utc": "2026-09-20T18:00:00Z",
+    "local": "2026-09-21T03:00:00+09:00"
+  },
+  "sourceBinding": {
+    "branch": "topic/jev-lightgbm-distillation",
+    "commit": "aeef08671a1ba1e3b28012e8bed2786f5768ecd8",
+    "files": {
+      "evaluation/sparse-associative-cognition/research_plan.json": "fccbbe2fbda7997ae263b460660c806e1d4cee52",
+      "evaluation/sparse-associative-cognition/validate_research_plan.py": "9277ceb5d32d65bde0ee16b7f47e2afe52842fd6",
+      "evaluation/sparse-associative-cognition/test_validate_research_plan.py": "f9019bf2a404f2e2686d8d60eb6effe68ba6bb33"
+    },
+    "exactBlobVerification": {
+      "tool": "git hash-object",
+      "allMatched": true,
+      "filesMatched": 3
+    }
+  },
+  "runtime": {
+    "python": "Python 3.13.5",
+    "validator": {
+      "command": "python3 validate_research_plan.py",
+      "exitCode": 0,
+      "stdout": "Sparse associative cognition research plan validated",
+      "wallSeconds": 0.59,
+      "status": "PASS"
+    },
+    "regression": {
+      "command": "python3 -m unittest -v test_validate_research_plan.py",
+      "exitCode": 0,
+      "testsDefined": 73,
+      "testsExecuted": 73,
+      "testsPassed": 73,
+      "failures": 0,
+      "errors": 0,
+      "unittestReportedSeconds": 0.118,
+      "wallSeconds": 0.71,
+      "status": "PASS"
+    }
+  },
+  "registeredResearchContract": {
+    "stages": [
+      "JD-LGBM-0",
+      "JD-LGBM-1",
+      "JD-LGBM-2",
+      "JD-LGBM-3",
+      "JD-LGBM-4",
+      "JD-LGBM-5"
+    ],
+    "firstStudent": "LightGBM",
+    "lightgbmRequired": false,
+    "targetTypes": [
+      "Noul",
+      "Choice",
+      "Score"
+    ],
+    "evaluationAxes": [
+      "teacher_fidelity",
+      "task_validity"
+    ],
+    "automaticOnlineLearning": false,
+    "automaticRetraining": false,
+    "automaticActivation": false,
+    "productionDefaultChanged": false,
+    "b5EntryGateChanged": false
+  },
+  "unexecuted": [
+    "teacher dataset generation",
+    "Jev teacher labeling run",
+    "LightGBM training",
+    "linear/logistic baseline training",
+    "soft probability distillation",
+    "semantic feature adapter benchmark",
+    "OOD/drift replay",
+    "actual teacher-call reduction measurement",
+    "human or external-ground-truth task-validity evaluation",
+    "model artifact activation or rollback",
+    "production integration"
+  ],
+  "boundaries": [
+    "research-contract validator PASS != teacher dataset generated",
+    "research-contract validator PASS != LightGBM feasibility established",
+    "student fidelity != task correctness",
+    "teacher confidence != ground truth confidence",
+    "teacher probability != semantic truth",
+    "student confidence != SEI confidence",
+    "model fidelity != product value",
+    "planned student != production default",
+    "planned research stages != B5 gate open"
+  ]
+}
