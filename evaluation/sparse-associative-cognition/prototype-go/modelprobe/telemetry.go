@@ -201,7 +201,9 @@ func SummarizeActualTelemetry(
 
 	summary.AllFixturesAccounted = len(observed) == len(fixtures)
 	summary.PlanExecutionMismatchCount += summary.UnattemptedPlannedCalls + summary.UnexpectedInvocationAttempts
-	summary.ActualCallsAvoidedVsRaw = len(fixtures) - summary.ActualModelInvocationAttempts
+	// Count only explicit route skips as avoided calls. A planned call that failed
+	// before an HTTP attempt is an execution shortfall, not an avoided model call.
+	summary.ActualCallsAvoidedVsRaw = summary.ActualSkippedCalls
 	if len(fixtures) > 0 {
 		summary.ActualCallAvoidanceRatioVsRaw =
 			float64(summary.ActualCallsAvoidedVsRaw) / float64(len(fixtures))
