@@ -203,6 +203,22 @@ Issue #375では少なくとも次を比較する。
 
 これらはruntime-specific probeとして後続する。
 
+### Runtime process RSS
+
+Linuxでlocal runtime serverのPIDが分かる場合、`modelmatrix --runtime-pid <pid>` により `/proc/<pid>/status` の `VmRSS` / `VmHWM` をmatrix開始時と各mode後に記録できる。
+
+```text
+VmRSS
+  = sampling時点のruntime process RSS
+
+VmHWM
+  = そのprocess起動以来のRSS high-water mark
+```
+
+これはmodel weight単独量、KV cache単独量、GPU VRAMではない。shared server processで別requestや別modelを処理した履歴があれば `VmHWM` に混入し得るため、dedicated runtime processを比較runごとに使う方がよい。
+
+PID未指定は `not-requested`、非Linuxは `unsupported`、読取不能は `unavailable` / `partial` として記録し、0 byteを観測値として捏造しない。
+
 ## 8.1 run artifact / comparison
 
 actual runでは、標準出力だけでなく比較可能なrun artifactを保存できる。
