@@ -16,6 +16,8 @@ func main() {
 	runtimeName := flag.String("runtime", "", "runtime name")
 	runtimeVersion := flag.String("runtime-version", "", "runtime version")
 	model := flag.String("model", "", "model identifier")
+	modelFile := flag.String("model-file", "", "optional local model artifact file to hash for provenance")
+	expectedModelSHA256 := flag.String("expected-model-sha256", "", "optional expected SHA-256 for --model-file")
 	quant := flag.String("quantization", "", "quantization label")
 	ctxSize := flag.Int("context-size", 0, "context size")
 	threads := flag.Int("threads", 0, "runtime thread count")
@@ -34,12 +36,19 @@ func main() {
 		}
 	}
 
+	modelArtifact, err := modelprobe.ObserveModelArtifact(*modelFile, *expectedModelSHA256)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+
 	m := modelprobe.Preflight(context.Background(), *endpoint, nil)
 	m.RunID = *runID
 	m.SourceGitSHA = *sourceGitSHA
 	m.RuntimeName = *runtimeName
 	m.RuntimeVersion = *runtimeVersion
 	m.Model = *model
+	m.ModelArtifact = modelArtifact
 	m.Quantization = *quant
 	m.ContextSize = *ctxSize
 	m.Threads = *threads
