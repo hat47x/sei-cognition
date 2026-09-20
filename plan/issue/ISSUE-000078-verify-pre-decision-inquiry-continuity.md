@@ -445,6 +445,8 @@ actual runtimeの残工程は GitHub Issue #532 `E78.3: exact-source bindingか�
 
 2026-09-20、execution-input binding v1 に `execution_recipe` を追加し、repository-root要件、runner focused test command、canonical aggregate command、期待check数7、result schema v2、exclusive-create、実行後に記録すべきprovenanceを機械可読で固定した。これはrunner追加ではなく既存canonical pathの再現手順を固定するものであり、runtime PASSそのものではない。
 
+同日のtransport試行は `evaluation/personal-inquiry-decision/evidence/issue-000078/e78_summary_distortion_materialization_checkpoint_2026-09-20.json` に分離して記録した。probe setと3 source fixtureの4/10 filesはGit blob SHA-1一致を実測した一方、残る6 Python mechanicsはcurrent connector→execution-container境界でbyte-faithful materialization未達であり、CRC32 / full-file blob検査で不一致となった再構成は全て破棄した。canonical runnerはこのcheckpointでは未実行で、新しいPASS / FAILを主張しない。
+
 ```text
 exact 10-blob source binding
   != E78.3 local gate PASS
