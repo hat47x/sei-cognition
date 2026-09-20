@@ -825,6 +825,49 @@
       }
     },
     {
+      "stage": "SEI-B7b",
+      "name": "observational support / selection-bias diagnostic",
+      "depends_on": [
+        "SEI-B7"
+      ],
+      "change": "OutcomeRecordの観測supportをallowed route / observed policy version単位で外在化し、assessed observationがないrouteを明示するevaluation-only diagnosticを追加する。full route coverageやpolicy-version diversityをunbiased assignment、statistical confidence、selection-bias correctionへ昇格させず、candidate生成・activation・rollbackは変更しない。",
+      "primary_question": "observational route efficacyがpolicy-dependent selectionを受けることを、propensityや因果効果を推定せずにfail-closedなsupport診断として可視化できるか。またcoverage完備をselection-bias correctionと誤認しない境界を実装で固定できるか。",
+      "placement": "evaluation/sei-cognition-orchestration/prototype-go/cognitivepolicy",
+      "measures": [
+        "allowed_route_assessed_support",
+        "allowed_route_missing_support",
+        "not_assessed_separation",
+        "observed_policy_version_trace",
+        "deterministic_support_ordering",
+        "active_policy_non_mutation"
+      ],
+      "current_result": {
+        "state": "limited-go123-exact-source-support-diagnostic-evidence",
+        "evidence_file": "../sei-cognition-orchestration/outcome_policy_observational_support_evidence_2026-09-20.json",
+        "findings": [
+          "GitHub正本3 blobをSHA完全一致で再構成し、Go 1.23.2 / GO111MODULE=off / explicit file-listでB7b focused tests 7/7 PASSを確認した。",
+          "allowed routeごとのassessed / not-assessed件数とobserved policy version集合を外在化し、assessed observationが0のrouteをdeterministicにmissingとして列挙する。",
+          "全allowed routeにassessed observationがあるfixtureでもSelectionBiasCorrected=falseを維持し、full coverage != unbiased assignmentを実装上固定した。",
+          "複数policy versionが観測された場合もdeduplicate / sortするだけで、randomized assignment、propensity、confidence、causal correctionを主張しない。",
+          "invalid OutcomeRecordは既存validationを再利用してfail-closedとし、diagnosticはactive policyを変更しない。"
+        ],
+        "implementation_boundary": {
+          "evaluation_only": true,
+          "propensity_estimation_implemented": false,
+          "inverse_propensity_weighting_implemented": false,
+          "randomized_assignment_inferred": false,
+          "causal_effect_estimation_implemented": false,
+          "statistical_confidence_implemented": false,
+          "automatic_candidate_gating_implemented": false,
+          "automatic_activation_implemented": false,
+          "automatic_rollback_implemented": false,
+          "production_routing_default_changed": false,
+          "b5_entry_gate_changed": false
+        },
+        "stop_line": "full route coverage / policy-version diversityをunbiased observation、statistical confidence、selection-bias correction、production routing evidenceへ昇格させない。"
+      }
+    },
+    {
       "stage": "SAC-B6i",
       "name": "workload-class declaration lifecycle / review governance",
       "depends_on": [
@@ -1089,7 +1132,8 @@
       "Issue #511でGitHub正本8 blobをSHA完全一致でGOPATHへ再構成し、Go 1.23.2 / GO111MODULE=offでcurrent cognitiveeval / hybridreasoningをstubせずactual dependency integration実行した。focused call-avoidance 5/5、current modelprobe package regression 16/16 PASS。これはcanonical Go 1.25 module execution、real model telemetry、task success、total system cost、production LLM削減量を示さない。",
       "SAC-B6iでB6g workload classへversion / review / expiry / supersessionを持つevaluation-only governance contractを追加し、exact-source validator PASSと34/34 regression PASSを固定した。checked-in declarationsはcandidate / resolution_allowed=falseで、automatic inference / activation / production / B5は未変更。",
       "SAC-B6jでB6i validation済みdeclaration snapshotからB6g Go resolverへのevaluation-only admission adapterを追加し、current candidate declarationsのfail-closedとexisting envelope regressionを含むGo 1.23.2 focused 15-test PASSを固定した。canonical Go 1.25 executionは未達のため互換性Evidenceに限定する。",
-      "SEI-B7aでcaller-owned logical validity windowとcounterfactually complete replay regret thresholdによるretain / request-rollback / expired診断を追加し、GitHub正本4 blob一致のGo 1.23.2 explicit file-list実行でfocused 8/8 PASSを固定した。診断はactive policyを変更せず、canonical Go 1.25 module execution、online regret推定、automatic rollback、real workload driftは未検証。"
+      "SEI-B7aでcaller-owned logical validity windowとcounterfactually complete replay regret thresholdによるretain / request-rollback / expired診断を追加し、GitHub正本4 blob一致のGo 1.23.2 explicit file-list実行でfocused 8/8 PASSを固定した。診断はactive policyを変更せず、canonical Go 1.25 module execution、online regret推定、automatic rollback、real workload driftは未検証。",
+      "SEI-B7bでallowed routeごとのobservational supportとobserved policy versionを外在化し、GitHub正本3 blob一致のGo 1.23.2 explicit file-list実行でfocused 7/7 PASSを固定した。full route coverageでもSelectionBiasCorrected=falseを維持し、propensity推定、因果補正、statistical confidence、automatic gating、canonical Go 1.25 module executionは未検証・未実装。"
     ],
     "evidence_file": "EXECUTION_EVIDENCE_2026-09-12.md",
     "not_yet_verified": [
@@ -1105,7 +1149,7 @@
       "実SEI workloadでのLLM呼び出し削減量。7 synthetic ReferenceFixturesではrouting plan上3/7（約42.9%）call avoidanceを観測したが、actual model telemetry / task success / total system cost / production一般化は未検証。",
       "SACS hybrid model-call avoidanceのcanonical Go 1.25 module execution。Go 1.23.2 / GOPATH exact-blob actual dependency integrationではfocused 5/5・modelprobe package 16/16 PASSを観測したが、go.modのgo 1.25を使うcanonical module executionおよびfull-module Go 1.25 regressionは未観測。",
       "実hardware / real workloadにおけるcapacity profile品質、B6g caller-owned workload envelopeの実taxonomy/governance/generalization、human-adjudicated quality、class expiry/versioning、path別selection-pressure ceiling、adaptive Active / local budget policy、power / latency / memory trade-off",
-      "実problem class / real Outcome評価におけるoutcome-informed routingの一般化、selection-bias補正、statistical confidence、real drift detection / expiry cadence / rollback governance。SEI-B7aではcaller-owned logical expiryとcounterfactually complete replay regretによるretain / request-rollback / expired診断をGo 1.23.2 exact-source focused 8/8 PASSで観測したが、canonical Go 1.25 module execution、online estimator、自動rollback、real workload driftは未検証。",
+      "実problem class / real Outcome評価におけるoutcome-informed routingの一般化、selection-bias補正、statistical confidence、real drift detection / expiry cadence / rollback governance。SEI-B7aではcaller-owned logical expiryとcounterfactually complete replay regretによるretain / request-rollback / expired診断をGo 1.23.2 exact-source focused 8/8 PASSで観測した。SEI-B7bではallowed route / observed policy versionのobservational support診断をGo 1.23.2 exact-source focused 7/7 PASSで観測したが、full route coverageをunbiased assignmentとは扱わず、propensity推定 / selection-bias correction / calibrated confidence / causal effect estimation / canonical Go 1.25 module execution / real workload assignment biasは未検証。",
       "production配置方式",
       "Product Value / Operational / Adoption / Outcome Evidence",
       "cross-stage human-adjudicated evaluationはpreregistration済みだが、adjudication / dataset / split / B3 prior manifest未freezeのためlocked。semantic benchmark resultは未生成。",
@@ -1149,7 +1193,8 @@
       "workload_policy_declaration_sensitivity_evidence_2026-09-19.json",
       "workload_class_governance_runtime_evidence_2026-09-19.json",
       "workload_governance_admission_evidence_2026-09-19.json",
-      "../sei-cognition-orchestration/outcome_policy_lifecycle_evidence_2026-09-20.json"
+      "../sei-cognition-orchestration/outcome_policy_lifecycle_evidence_2026-09-20.json",
+      "../sei-cognition-orchestration/outcome_policy_observational_support_evidence_2026-09-20.json"
     ]
   },
   "references": [
