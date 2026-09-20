@@ -1,0 +1,96 @@
+{
+  "schema": "sei.sacs-research-plan-runtime-guard-runtime-evidence/v1alpha1",
+  "issue": 531,
+  "observedAt": {
+    "utc": "2026-09-20T08:14:43Z",
+    "local": "2026-09-20T17:14:43+09:00"
+  },
+  "sourceBinding": {
+    "branch": "develop/v0.2.0",
+    "commit": "dd683bc218485e96608b82f4f333226117f6a5c2",
+    "files": {
+      "evaluation/sparse-associative-cognition/research_plan.json": "b64cd479f5422413bae7a1f5333313ff455f1604",
+      "evaluation/sparse-associative-cognition/validate_research_plan.py": "6958e91a71da76a3ef637c4a84f23d1d02dc841a",
+      "evaluation/sparse-associative-cognition/test_validate_research_plan.py": "c1901f5c2fde641f4c4835d718a5db57a48d784d"
+    },
+    "byteLengths": {
+      "evaluation/sparse-associative-cognition/research_plan.json": 98698,
+      "evaluation/sparse-associative-cognition/validate_research_plan.py": 41217,
+      "evaluation/sparse-associative-cognition/test_validate_research_plan.py": 31639
+    },
+    "exactBlobVerification": {
+      "tool": "git hash-object",
+      "allMatched": true
+    }
+  },
+  "materialization": {
+    "method": "GitHub connector exact UTF-8 line ranges -> local reconstruction",
+    "fullRepositoryCheckout": false,
+    "exactThreeSourceBlobsMaterialized": true,
+    "note": "Execution scope is the research-plan validator plus its regression suite over the exact B7a-updated plan/validator/test blobs; this is not a full-repository integration run."
+  },
+  "runtime": {
+    "python": "Python 3.13.5",
+    "pythonExecutable": "/opt/pyvenv/bin/python3",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+    "os": "Linux localhost 6.18.44 #1 SMP Sat Sep 12 15:35:21 UTC 2026 x86_64 GNU/Linux"
+  },
+  "workflowProbe": {
+    "pullRequest": 533,
+    "commit": "2bc64474cc9ffb9403d8613873bc788c4f8f8df9",
+    "runId": 35498766405,
+    "jobId": 106046591882,
+    "workflowConclusion": "failure",
+    "jobConclusion": "failure",
+    "steps": null,
+    "executionStarted": false,
+    "classification": "runner-not-started; not a validator or unittest failure",
+    "temporaryWorkflowRemovedBeforeMerge": true
+  },
+  "executions": [
+    {
+      "workingDirectory": "evaluation/sparse-associative-cognition",
+      "command": "python3 validate_research_plan.py",
+      "exitCode": 0,
+      "stdout": "Sparse associative cognition research plan validated",
+      "stderr": "",
+      "status": "PASS"
+    },
+    {
+      "workingDirectory": "evaluation/sparse-associative-cognition",
+      "command": "python3 -m unittest -v test_validate_research_plan.py",
+      "exitCode": 0,
+      "testsDefined": 64,
+      "testsExecuted": 64,
+      "testsPassed": 64,
+      "failures": 0,
+      "errors": 0,
+      "elapsedSeconds": 0.080,
+      "terminalSummary": [
+        "Ran 64 tests in 0.080s",
+        "OK"
+      ],
+      "status": "PASS"
+    }
+  ],
+  "observedResult": {
+    "b7aUpdatedPlanObserved": true,
+    "validatorExecutionObserved": true,
+    "regressionExecutionObserved": true,
+    "regressionPass": true,
+    "testsDefined": 64,
+    "testsExecuted": 64,
+    "testsPassed": 64,
+    "failures": 0,
+    "errors": 0
+  },
+  "boundaries": [
+    "research-plan guard PASS != human-adjudicated benchmark result",
+    "research-plan guard PASS != B5 gate open",
+    "research-plan guard PASS != production adoption",
+    "64/64 guard regression PASS != semantic truth",
+    "exact three-file runtime != full-repository integration runtime",
+    "runner-not-started workflow probe != guard execution failure",
+    "this Python guard does not resolve Issue #512 canonical Go 1.25 runtime evidence"
+  ]
+}
