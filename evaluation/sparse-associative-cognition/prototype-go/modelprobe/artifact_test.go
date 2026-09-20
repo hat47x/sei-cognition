@@ -167,3 +167,35 @@ func TestCompareActualRunsRejectsDifferentSourceRevision(t *testing.T) {
 		t.Fatal("expected source revision mismatch rejection")
 	}
 }
+
+
+func TestCompareActualRunsRejectsOuterTelemetryIdentityMismatch(t *testing.T) {
+	raw := makeArtifact(t, ModeRaw)
+	workspace := makeArtifact(t, ModeWorkspace)
+	staged := makeArtifact(t, ModeStaged)
+	workspace.RunID = "tampered-run"
+
+	if _, err := CompareActualRuns(raw, workspace, staged); err == nil {
+		t.Fatal("expected outer/telemetry identity mismatch rejection")
+	}
+}
+
+func TestBuildActualRunArtifactRejectsDuplicateTelemetryObservation(t *testing.T) {
+	artifact := makeArtifact(t, ModeRaw)
+	summary := artifact.Telemetry
+	summary.Observations = append(summary.Observations, summary.Observations[0])
+
+	if _, err := BuildActualRunArtifact(summary, artifact.Results); err == nil {
+		t.Fatal("expected duplicate telemetry observation rejection")
+	}
+}
+
+func TestBuildActualRunArtifactRejectsTelemetrySchemaDrift(t *testing.T) {
+	artifact := makeArtifact(t, ModeRaw)
+	summary := artifact.Telemetry
+	summary.Schema = "sei-cognition.actual-model-telemetry/v999"
+
+	if _, err := BuildActualRunArtifact(summary, artifact.Results); err == nil {
+		t.Fatal("expected telemetry schema mismatch rejection")
+	}
+}
