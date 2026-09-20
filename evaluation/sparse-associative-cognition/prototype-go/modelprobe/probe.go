@@ -62,6 +62,7 @@ type Result struct {
 	SkipReason     string                         `json:"skip_reason,omitempty"`
 	Route          string                         `json:"route"`
 	RequestChars   int                            `json:"request_chars"`
+	ModelInvocationAttempted bool                  `json:"model_invocation_attempted"`
 	ResponseChars  int                            `json:"response_chars,omitempty"`
 	TotalLatencyMS int64                          `json:"total_latency_ms,omitempty"`
 	HTTPStatus     int                            `json:"http_status,omitempty"`
@@ -231,6 +232,7 @@ func Run(ctx context.Context, cfg Config, f cognitiveeval.Fixture, mode Mode) (R
 	}
 	req.Header.Set("Content-Type", "application/json")
 
+	result.ModelInvocationAttempted = true
 	started := time.Now()
 	resp, err := client.Do(req)
 	result.TotalLatencyMS = time.Since(started).Milliseconds()
