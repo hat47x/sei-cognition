@@ -22,7 +22,7 @@ func main() {
 	maxTokensFlag := flag.Int("max-tokens", 800, "maximum completion tokens")
 	streamFlag := flag.Bool("stream", false, "use OpenAI-compatible SSE streaming and measure first content-delta latency")
 	runIDFlag := flag.String("run-id", "", "stable run identity shared with preflight")
-	sourceGitSHAFlag := flag.String("source-git-sha", "", "exact lowercase 40-character source Git SHA")
+	sourceGitSHAFlag := flag.String("source-git-sha", "", "expected exact source Git SHA; artifact mode also requires a clean working tree")
 	telemetryJSONFlag := flag.String("telemetry-json", "", "write run-level actual invocation telemetry to a new JSON file")
 	runJSONFlag := flag.String("run-json", "", "write results plus telemetry as a new actual-run artifact JSON file")
 	flag.Parse()
