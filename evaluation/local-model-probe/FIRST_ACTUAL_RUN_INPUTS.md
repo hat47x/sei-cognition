@@ -118,6 +118,7 @@ go run ./cmd/modelmatrix \
 
 - runtime process RSS / VmHWM;
 - `/proc/<pid>/exe` executable basename / size / SHA-256;
+- `/proc/<pid>/maps` によるhash済みGGUF fileのsame-filesystem-object mapping correlation;
 - llama.cpp `/metrics` のprompt/generation累積token数、KV cache usage ratio / tokens、context token high-water mark（利用可能なものだけ）;
 
 を同じmatrixへ保存する。
@@ -137,6 +138,10 @@ KV cache usage ratio / tokens
 
 operator-supplied model file SHA-256
   != runtime model-load attestation
+
+same-file mapping observed
+  != proof that runtime parsed every model byte
+  != proof that no other model is loaded
 
 health endpoint ready
   != inference success
