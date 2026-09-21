@@ -177,6 +177,20 @@ Issue #375では少なくとも次を比較する。
 
 具体的なfirst candidatesは[`MODEL_MATRIX.md`](./MODEL_MATRIX.md)を参照する。
 
+### First-run evidence retention
+
+`run_first_actual.sh` はmatrix outputだけでなくserver logもrun ID固有名で保存し、両fileのSHA-256 sidecarを生成する。既存matrix/log/digest fileは上書きしない。
+
+```text
+matrix JSON
+  + runtime server log
+  + digest sidecar
+  = transferable run Evidence set
+
+digest match
+  != inference quality
+```
+
 ## 8. 現在取得するmeasurement
 
 - route
