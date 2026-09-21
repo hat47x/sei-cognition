@@ -46,7 +46,11 @@ launcherは次を順に行う。
 <RUN_ID_PREFIX>-evidence.sha256
 ```
 
-3 fileのどれかが既に存在する場合はrun開始前に停止し、過去Evidenceを上書きしない。digest sidecarはmatrix/logのSHA-256とbasenameだけを保持し、local absolute pathは記録しない。
+3 fileのどれかが既に存在する場合はrun開始前に停止し、過去Evidenceを上書きしない。3 pathを同一値にすることも拒否する。
+
+digest sidecarはmatrix/logのSHA-256とbasenameに加え、`modelmatrix_exit_code` を保持する。local absolute pathは記録しない。
+
+`modelmatrix` が `blocked-model-identity` / `blocked-preflight` / `incomplete-inference` 等でnon-zero終了しても、matrix artifactが生成済みならlauncherはmatrix/logのdigest sidecarを作ってから**同じexit codeを返す**。compile failure等でmatrixが作られなかった場合も、その事実とserver log digestをsidecarへ残す。
 
 環境変数で `WORK_DIR` / `THREADS` / `PORT` / `RUN_ID_PREFIX` / `OUTPUT` / pinned URL等をoverrideできる。ただしdigestを変更した場合は、そのrunを既定pinned inputと同一視しない。
 
