@@ -34,6 +34,7 @@ type RunManifest struct {
 	Endpoint      EndpointInfo `json:"endpoint"`
 	RuntimeName   string       `json:"runtime_name,omitempty"`
 	RuntimeVersion string      `json:"runtime_version,omitempty"`
+	RuntimeProcess RuntimeProcessIdentity `json:"runtime_process"`
 	Model         string       `json:"model,omitempty"`
 	ModelArtifact ModelArtifactIdentity `json:"model_artifact"`
 	Quantization  string       `json:"quantization,omitempty"`
