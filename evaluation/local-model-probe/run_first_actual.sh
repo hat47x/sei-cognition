@@ -5,11 +5,14 @@ RUNTIME_TAG="${RUNTIME_TAG:-b10964}"
 RUNTIME_ARCHIVE_NAME="${RUNTIME_ARCHIVE_NAME:-llama-b10964-bin-ubuntu-x64.tar.gz}"
 RUNTIME_SHA256="${RUNTIME_SHA256:-9abf88aea48a55d0f80edb1ee20220b186848cca0b4e919d71518cfd7ca67443}"
 RUNTIME_URL="${RUNTIME_URL:-https://github.com/ggml-org/llama.cpp/releases/download/${RUNTIME_TAG}/${RUNTIME_ARCHIVE_NAME}}"
+RUNTIME_BINARY_PATH="${RUNTIME_BINARY_PATH:-}"
+RUNTIME_BINARY_SHA256="${RUNTIME_BINARY_SHA256:-}"
 
 MODEL_NAME="${MODEL_NAME:-Qwen3.5-0.8B-Q4_0.gguf}"
 MODEL_SHA256="${MODEL_SHA256:-57d1997790d1744fba5b40a7317df71ea5e2acee28c47e78f0cce39c0703f8cf}"
 MODEL_URL="${MODEL_URL:-https://huggingface.co/ggml-org/Qwen3.5-0.8B-GGUF/resolve/main/${MODEL_NAME}?download=true}"
 MODEL_ALIAS="${MODEL_ALIAS:-qwen35-0.8b-q4_0}"
+MODEL_FILE_PATH="${MODEL_FILE_PATH:-}"
 
 PORT="${PORT:-8080}"
 HOST="${HOST:-127.0.0.1}"
@@ -26,7 +29,7 @@ WORK_DIR="${WORK_DIR:-${REPO_ROOT}/.local-model-run/qwen35-08-q4-0}"
 RUNTIME_ARCHIVE="${WORK_DIR}/${RUNTIME_ARCHIVE_NAME}"
 RUNTIME_DIR="${WORK_DIR}/llama-runtime"
 RUNTIME_MARKER="${RUNTIME_DIR}/.archive-sha256"
-MODEL_FILE="${WORK_DIR}/${MODEL_NAME}"
+MODEL_FILE="${MODEL_FILE_PATH:-${WORK_DIR}/${MODEL_NAME}}"
 SERVER_LOG="${SERVER_LOG:-${WORK_DIR}/llama-server.log}"
 
 require_command() {
@@ -68,11 +71,8 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-require_command curl
 require_command sha256sum
 require_command awk
-require_command tar
-require_command find
 require_command git
 require_command go
 
@@ -89,28 +89,57 @@ fi
 
 mkdir -p "$WORK_DIR"
 
-download_if_missing "$RUNTIME_URL" "$RUNTIME_ARCHIVE"
-verify_sha256 "$RUNTIME_SHA256" "$RUNTIME_ARCHIVE"
+if [[ -n "$RUNTIME_BINARY_PATH" ]]; then
+  if [[ ! -f "$RUNTIME_BINARY_PATH" || ! -x "$RUNTIME_BINARY_PATH" ]]; then
+    echo "pre-provisioned runtime binary must be an executable file: $RUNTIME_BINARY_PATH" >&2
+    exit 4
+  fi
+  LLAMA_SERVER="$RUNTIME_BINARY_PATH"
+  if [[ -n "$RUNTIME_BINARY_SHA256" ]]; then
+    verify_sha256 "$RUNTIME_BINARY_SHA256" "$LLAMA_SERVER"
+  fi
+  RUNTIME_SOURCE="pre-provisioned-binary"
+else
+  require_command curl
+  require_command tar
+  require_command find
 
-download_if_missing "$MODEL_URL" "$MODEL_FILE"
+  download_if_missing "$RUNTIME_URL" "$RUNTIME_ARCHIVE"
+  verify_sha256 "$RUNTIME_SHA256" "$RUNTIME_ARCHIVE"
+
+  EXTRACTED_RUNTIME_SHA=""
+  if [[ -f "$RUNTIME_MARKER" ]]; then
+    IFS= read -r EXTRACTED_RUNTIME_SHA <"$RUNTIME_MARKER" || true
+  fi
+  if [[ "$EXTRACTED_RUNTIME_SHA" != "$RUNTIME_SHA256" ]]; then
+    rm -rf "$RUNTIME_DIR"
+    mkdir -p "$RUNTIME_DIR"
+    tar -xzf "$RUNTIME_ARCHIVE" -C "$RUNTIME_DIR"
+    printf '%s\n' "$RUNTIME_SHA256" >"$RUNTIME_MARKER"
+  fi
+
+  LLAMA_SERVER="$(find "$RUNTIME_DIR" -type f -name llama-server -print -quit)"
+  if [[ -z "$LLAMA_SERVER" ]]; then
+    echo "llama-server not found under $RUNTIME_DIR" >&2
+    exit 4
+  fi
+  RUNTIME_SOURCE="pinned-archive"
+fi
+
+if [[ -n "$MODEL_FILE_PATH" ]]; then
+  if [[ ! -f "$MODEL_FILE" ]]; then
+    echo "pre-provisioned model file not found: $MODEL_FILE" >&2
+    exit 4
+  fi
+  MODEL_SOURCE="pre-provisioned-file"
+else
+  require_command curl
+  download_if_missing "$MODEL_URL" "$MODEL_FILE"
+  MODEL_SOURCE="pinned-download"
+fi
 verify_sha256 "$MODEL_SHA256" "$MODEL_FILE"
 
-EXTRACTED_RUNTIME_SHA=""
-if [[ -f "$RUNTIME_MARKER" ]]; then
-  IFS= read -r EXTRACTED_RUNTIME_SHA <"$RUNTIME_MARKER" || true
-fi
-if [[ "$EXTRACTED_RUNTIME_SHA" != "$RUNTIME_SHA256" ]]; then
-  rm -rf "$RUNTIME_DIR"
-  mkdir -p "$RUNTIME_DIR"
-  tar -xzf "$RUNTIME_ARCHIVE" -C "$RUNTIME_DIR"
-  printf '%s\n' "$RUNTIME_SHA256" >"$RUNTIME_MARKER"
-fi
-
-LLAMA_SERVER="$(find "$RUNTIME_DIR" -type f -name llama-server -print -quit)"
-if [[ -z "$LLAMA_SERVER" ]]; then
-  echo "llama-server not found under $RUNTIME_DIR" >&2
-  exit 4
-fi
+RUNTIME_BINARY_OBSERVED_SHA256="$(sha256sum "$LLAMA_SERVER" | awk '{print $1}')"
 
 SOURCE_GIT_SHA="$(git -C "$REPO_ROOT" rev-parse HEAD)"
 RUN_ID_PREFIX="${RUN_ID_PREFIX:-qwen35-08-q4-0-$(date -u +%Y%m%dT%H%M%SZ)}"
@@ -122,7 +151,16 @@ if [[ -e "$OUTPUT" ]]; then
 fi
 
 echo "source_git_sha=$SOURCE_GIT_SHA"
-echo "runtime_archive_sha256=$RUNTIME_SHA256"
+echo "runtime_source=$RUNTIME_SOURCE"
+echo "runtime_binary=$LLAMA_SERVER"
+echo "runtime_binary_observed_sha256=$RUNTIME_BINARY_OBSERVED_SHA256"
+if [[ "$RUNTIME_SOURCE" == "pinned-archive" ]]; then
+  echo "runtime_archive_sha256=$RUNTIME_SHA256"
+elif [[ -z "$RUNTIME_BINARY_SHA256" ]]; then
+  echo "runtime_binary_expected_sha256=not-supplied"
+fi
+echo "model_source=$MODEL_SOURCE"
+echo "model_file=$MODEL_FILE"
 echo "model_sha256=$MODEL_SHA256"
 echo "work_dir=$WORK_DIR"
 echo "output=$OUTPUT"
