@@ -28,6 +28,7 @@ func main() {
 	matrixPath := flag.String("matrix", "", "local-model matrix artifact JSON to validate")
 	expectedSource := flag.String("expected-source-git-sha", "", "optional expected matrix source Git SHA")
 	expectedModelSHA256 := flag.String("expected-model-sha256", "", "optional expected observed model artifact SHA-256")
+	observedExitCode := flag.Int("observed-modelmatrix-exit-code", -1, "optional observed modelmatrix exit code from the run evidence sidecar")
 	outputPath := flag.String("output", "", "optional new verification report JSON path; stdout when omitted")
 	flag.Parse()
 
@@ -64,6 +65,24 @@ func main() {
 		}
 	}
 
+	if *observedExitCode < -1 {
+		fatalf("--observed-modelmatrix-exit-code must be -1, 0, or 1")
+	}
+	if *observedExitCode >= 0 {
+		expectedExitCode := 1
+		if matrix.Status == "complete" {
+			expectedExitCode = 0
+		}
+		if *observedExitCode != expectedExitCode {
+			fatalf(
+				"modelmatrix exit code mismatch: matrix status %q expects %d, sidecar reports %d",
+				matrix.Status,
+				expectedExitCode,
+				*observedExitCode,
+			)
+		}
+	}
+
 	report := verificationReport{
 		Schema:        verificationSchema,
 		Status:        "valid-evaluation-artifact",
@@ -73,7 +92,7 @@ func main() {
 		ModelArtifact: matrix.ModelArtifact,
 		Notes: []string{
 			"structural validation does not prove model quality, task success, or Product Value",
-			"expected identity checks are only applied when explicitly supplied",
+			"expected identity and exit-code checks are only applied when explicitly supplied",
 		},
 	}
 
