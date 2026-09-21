@@ -71,6 +71,7 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
+require_command curl
 require_command sha256sum
 require_command awk
 require_command git
@@ -100,9 +101,20 @@ if [[ -n "$RUNTIME_BINARY_PATH" ]]; then
   fi
   RUNTIME_SOURCE="pre-provisioned-binary"
 else
-  require_command curl
   require_command tar
   require_command find
+
+  if [[ "$(uname -s)" != "Linux" ]]; then
+    echo "pinned runtime archive path currently supports Linux only" >&2
+    exit 2
+  fi
+  case "$(uname -m)" in
+    x86_64|amd64) ;;
+    *)
+      echo "pinned runtime archive is x86_64; observed architecture: $(uname -m)" >&2
+      exit 2
+      ;;
+  esac
 
   download_if_missing "$RUNTIME_URL" "$RUNTIME_ARCHIVE"
   verify_sha256 "$RUNTIME_SHA256" "$RUNTIME_ARCHIVE"
@@ -133,7 +145,6 @@ if [[ -n "$MODEL_FILE_PATH" ]]; then
   fi
   MODEL_SOURCE="pre-provisioned-file"
 else
-  require_command curl
   download_if_missing "$MODEL_URL" "$MODEL_FILE"
   MODEL_SOURCE="pinned-download"
 fi
