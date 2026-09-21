@@ -1,0 +1,139 @@
+{
+  "contractSnapshot": {
+    "mechanicsFiles": [
+      {
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_lifecycle_probe_v1.json",
+        "sha256": "cff894481f27cef676dc07189913b2908c2015b1f3d58a1b761125ce4f50f72b"
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_lifecycle_probe.py",
+        "sha256": "0d35fa11dc3c1d412ec6cc3f32fd90b4e841209bcd1d7da83c3f109b2f39d2a8"
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_lifecycle_evidence.py",
+        "sha256": "94b5930bb5df974ec80a9ca4dbf252c0958e9daf115abf1e4004c23c4b024f77"
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/test_inquiry_continuity_lifecycle_probe.py",
+        "sha256": "6c3b98ed9cea8e2831197cf275c3b3b4bdc5cbcb0fa7606711b5971552f615a9"
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/test_inquiry_continuity_lifecycle_evidence.py",
+        "sha256": "6baf97ee5be1527adf48724e75d9bb99e30d3caded2cfd14653e7f192e1fab74"
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/run_inquiry_continuity_lifecycle_checks.py",
+        "sha256": "765370fdd62a65e6fd528d99efd8a9ed4f49d659e14d84ea7928daefc3da2d16"
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/test_run_inquiry_continuity_lifecycle_checks.py",
+        "sha256": "c17f8e43aec0440020df6512e75a1ac8e22cbb06edd513e979121e62c292a7e6"
+      }
+    ],
+    "probeContentSha256": "904294c8c21ed2127df04802ada39b2febe090a365c51f6c898a8c99b0bf5c0f",
+    "probeId": "e78-lifecycle-closure-dormancy-v1",
+    "probeSchema": "sei.inquiry-continuity-lifecycle-probe/v2",
+    "python": {
+      "implementation": "cpython",
+      "version": "3.13.5"
+    }
+  },
+  "executed": [
+    {
+      "command": [
+        "<python>",
+        "evaluation/personal-inquiry-decision/test_inquiry_continuity_lifecycle_probe.py"
+      ],
+      "cwdRelativeToRepo": ".",
+      "exitCode": 0,
+      "name": "lifecycle-probe-tests",
+      "stderr": {
+        "bytes": 114,
+        "sha256": "c39c88100a3b6b5a07400fd4f9264af9dcb67d8bf0752a29fda6fee19edc8cbc"
+      },
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "timedOut": false,
+      "timeoutSeconds": 120
+    },
+    {
+      "command": [
+        "<python>",
+        "evaluation/personal-inquiry-decision/test_inquiry_continuity_lifecycle_evidence.py"
+      ],
+      "cwdRelativeToRepo": ".",
+      "exitCode": 0,
+      "name": "lifecycle-evidence-tests",
+      "stderr": {
+        "bytes": 105,
+        "sha256": "62f4decbacb2e031de4e76f2bc96caa7cf3ec498967ced4083e0885df723cc1e"
+      },
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "timedOut": false,
+      "timeoutSeconds": 120
+    },
+    {
+      "command": [
+        "<python>",
+        "evaluation/personal-inquiry-decision/test_run_inquiry_continuity_lifecycle_checks.py"
+      ],
+      "cwdRelativeToRepo": ".",
+      "exitCode": 0,
+      "name": "lifecycle-local-runner-tests",
+      "stderr": {
+        "bytes": 109,
+        "sha256": "d0f4cb4453a92a69d5dd26c24dffc24abb841b09c300bd1df43f899fc1976ff5"
+      },
+      "stdout": {
+        "bytes": 865,
+        "sha256": "72c760fcfd0d680c3e616cc2e5921837c1c11ae1c3016d56f5e2bd80687f45c6"
+      },
+      "timedOut": false,
+      "timeoutSeconds": 120
+    },
+    {
+      "command": [
+        "<python>",
+        "evaluation/personal-inquiry-decision/inquiry_continuity_lifecycle_probe.py",
+        "--probe",
+        "evaluation/personal-inquiry-decision/inquiry_continuity_lifecycle_probe_v1.json",
+        "validate"
+      ],
+      "cwdRelativeToRepo": ".",
+      "exitCode": 0,
+      "name": "lifecycle-probe-validate",
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 672,
+        "sha256": "6d391e24a75da424931da32b883f5acfcd9141711f041f54306d8881aac4fab1"
+      },
+      "timedOut": false,
+      "timeoutSeconds": 120
+    }
+  ],
+  "executedCount": 4,
+  "failedCount": 0,
+  "humanReviewObserved": false,
+  "productValueEstablished": false,
+  "result": "ok",
+  "schema": "sei.inquiry-continuity-lifecycle-local-check-result/v1",
+  "selected": [
+    "lifecycle-probe-tests",
+    "lifecycle-evidence-tests",
+    "lifecycle-local-runner-tests",
+    "lifecycle-probe-validate"
+  ],
+  "selectedCount": 4,
+  "stableRequirementAuthorized": false,
+  "stopLine": "E78.7 local checks PASS != human review result != Product Value decision != Universal status authorization != Stable Requirement authorization",
+  "stoppedEarly": false,
+  "universalStatusAuthorized": false
+}
