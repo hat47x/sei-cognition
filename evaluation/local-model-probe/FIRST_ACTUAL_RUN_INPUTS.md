@@ -149,6 +149,9 @@ runtime `/props` same-file match
   != proof of successful inference
   != proof of semantic use
 
+runtime `/props` explicit same-file mismatch
+  -> block before health check / inference
+
 health endpoint ready
   != inference success
 
