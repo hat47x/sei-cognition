@@ -287,6 +287,8 @@ set -e
   fi
 } >"$EVIDENCE_DIGESTS"
 
+EVIDENCE_DIGESTS_SHA256="$(sha256sum "$EVIDENCE_DIGESTS" | awk '{print $1}')"
+
 if [[ -f "$OUTPUT" ]]; then
   echo "matrix artifact: $OUTPUT"
 else
@@ -294,5 +296,6 @@ else
 fi
 echo "server log: $SERVER_LOG"
 echo "evidence digests: $EVIDENCE_DIGESTS"
+echo "evidence digests sha256: $EVIDENCE_DIGESTS_SHA256"
 
 exit "$MATRIX_EXIT_CODE"
