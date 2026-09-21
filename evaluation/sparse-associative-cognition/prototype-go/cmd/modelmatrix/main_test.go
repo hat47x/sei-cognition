@@ -88,3 +88,80 @@ func withWorkingDirectory(t *testing.T, dir string) {
 		_ = os.Chdir(previous)
 	})
 }
+
+
+func TestResolveSourceGitSHARejectsDirtyTrackedFile(t *testing.T) {
+	repo, head := createTempGitRepo(t)
+	withWorkingDirectory(t, repo)
+
+	if err := os.WriteFile(filepath.Join(repo, "fixture.txt"), []byte("dirty\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := resolveSourceGitSHA(head)
+	if err == nil {
+		t.Fatal("expected dirty working tree rejection")
+	}
+	if !strings.Contains(err.Error(), "working tree is not clean") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestResolveSourceGitSHARejectsStagedChange(t *testing.T) {
+	repo, head := createTempGitRepo(t)
+	withWorkingDirectory(t, repo)
+
+	if err := os.WriteFile(filepath.Join(repo, "fixture.txt"), []byte("staged\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	runGit(t, repo, "add", "fixture.txt")
+
+	_, err := resolveSourceGitSHA(head)
+	if err == nil {
+		t.Fatal("expected staged working tree rejection")
+	}
+	if !strings.Contains(err.Error(), "working tree is not clean") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestResolveSourceGitSHARejectsUntrackedFile(t *testing.T) {
+	repo, head := createTempGitRepo(t)
+	withWorkingDirectory(t, repo)
+
+	if err := os.WriteFile(filepath.Join(repo, "untracked.go"), []byte("package ignored\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := resolveSourceGitSHA(head)
+	if err == nil {
+		t.Fatal("expected untracked working tree rejection")
+	}
+	if !strings.Contains(err.Error(), "working tree is not clean") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestResolveSourceGitSHAAllowsIgnoredFile(t *testing.T) {
+	repo, head := createTempGitRepo(t)
+	withWorkingDirectory(t, repo)
+
+	if err := os.WriteFile(filepath.Join(repo, ".gitignore"), []byte("ignored.tmp\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	runGit(t, repo, "add", ".gitignore")
+	runGit(t, repo, "commit", "-q", "-m", "ignore test artifact")
+	head = strings.TrimSpace(runGit(t, repo, "rev-parse", "HEAD"))
+
+	if err := os.WriteFile(filepath.Join(repo, "ignored.tmp"), []byte("generated\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := resolveSourceGitSHA(head)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != head {
+		t.Fatalf("resolved SHA=%s want=%s", got, head)
+	}
+}
