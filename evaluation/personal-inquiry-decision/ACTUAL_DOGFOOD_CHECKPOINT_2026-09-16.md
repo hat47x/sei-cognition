@@ -1,6 +1,6 @@
 # Personal Inquiry Continuity — Actual Dogfood Checkpoint 2026-09-16
 
-更新日: 2026-09-16  
+更新日: 2026-09-22  
 状態: **Actual Dogfood In Progress / Context Gap Reset After Material Exposure / Human Observation Not Yet Recorded**  
 関連: `ACTUAL_DOGFOOD_CASE_QUIET_INFRASTRUCTURE_2026-09-14.md` / `actual_dogfood_quiet_infrastructure_2026-09-14.inquiry.json` / `actual_dogfood_quiet_infrastructure_2026-09-14.evaluation.json` / ISSUE-000078
 
@@ -253,3 +253,31 @@ calendar gap since 2026-09-16
 次にhuman resumptionを行う場合は、2026-09-19のmaterial exposure以後に十分なgapがあり、その間に元chat、source、Inquiry state、E78.1 / E78.3の評価説明へmaterialに再露出していないことを確認してから、Orientationを最初のSurfaceとして使う。gapの暦上の長さだけでなく、current stateを実質的に思い出せる情報へ触れていなかったかをnotesで明示する。
 
 この追記はProduct ValueやStable Requirementを変更しない。むしろ、actual workの継続そのものがclean resumption条件を壊し得ることをEvidenceとして保守的に扱い、成立していないhuman outcomeを成立済みに見せないためのprotocol checkpointである。
+
+## 14. 2026-09-22 E78継続時のmaterial re-exposure
+
+2026-09-22の継続作業では、E78.6のactual local mechanics Evidenceが他レーンで完了・統合済みであることを確認し、ISSUE-000078本文、E78.1 actual dogfood checkpoint、Quiet / Proactive / Adaptive assistanceのcurrent仮説、未解決点、次のHuman Evidence条件を再読した。
+
+この作業ではactual resumption Surfaceを使ったhuman observationは実施していない。一方、利用者側にはcurrent Inquiry stateへmaterialに再露出する条件が成立しているため、2026-09-19以後の暦上の経過をclean cognitive gapとして数えない。
+
+```text
+calendar gap since 2026-09-19
++ 2026-09-22 material re-exposure
+!= clean cognitive resumption
+```
+
+したがって、E78.1のclean resumptionに必要な認知的gapの起点は2026-09-22へ改めて送る。`actual_dogfood_quiet_infrastructure_2026-09-14.evaluation.json`の`resume_observations`には何も追加せず、今回の再露出をresumption成功・失敗・calibrationとして数えない。
+
+次にactual human resumptionを行う場合は、2026-09-22のmaterial exposure以後に十分なgapがあり、その間に元chat、source、Inquiry state、E78.1 / E78.2 / E78.3 / E78.6の評価説明へmaterialに再露出していないことを確認してから、Orientationを最初のSurfaceとして使う。
+
+この追記は、E78.6 local mechanics PASS、E78.2 / E78.4 / E78.5 matched human review、E78.1 actual long-gap resumptionを互いに混同しないためのprotocol checkpointである。
+
+```text
+E78.6 local mechanics PASS
+  != E78.1 clean resumption
+  != matched human review
+  != Product Value
+  != Stable Requirement authorization
+```
+
+branchやPRの進行そのものがhuman outcomeを成立させるわけではない。current stateへ触れた作業をmaterial exposureとして正直に記録し、未観測のHuman Evidenceを未観測のまま保持する。
