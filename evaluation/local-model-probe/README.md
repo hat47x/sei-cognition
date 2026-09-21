@@ -19,7 +19,7 @@ Durable Semantic State
 
 このprobeは、そのためのtransportとmeasurement entry pointである。
 
-実際に比較するmodel tierと実験順は[`MODEL_MATRIX.md`](./MODEL_MATRIX.md)で整理する。first actual runのpinned runtime/model入力と取得後の実行手順は[`FIRST_ACTUAL_RUN_INPUTS.md`](./FIRST_ACTUAL_RUN_INPUTS.md)に固定する。 Linux x86_64 + Go 1.25以上の環境では `bash evaluation/local-model-probe/run_first_actual.sh` で取得・digest検証・runtime起動・matrix実行までを一続きで実行できる。
+実際に比較するmodel tierと実験順は[`MODEL_MATRIX.md`](./MODEL_MATRIX.md)で整理する。first actual runのpinned runtime/model入力と取得後の実行手順は[`FIRST_ACTUAL_RUN_INPUTS.md`](./FIRST_ACTUAL_RUN_INPUTS.md)に固定する。既定のLinux x86_64 archive経路では `bash evaluation/local-model-probe/run_first_actual.sh` で取得・digest検証・runtime起動・matrix実行までを一続きで実行できる。事前配置済みruntime/modelがある場合は `RUNTIME_BINARY_PATH` / `MODEL_FILE_PATH` で外部downloadを避けられる。
 
 ## 2. 比較する3 mode
 
