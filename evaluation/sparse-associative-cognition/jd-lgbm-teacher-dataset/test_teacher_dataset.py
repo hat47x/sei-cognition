@@ -97,6 +97,24 @@ class TeacherDatasetTest(unittest.TestCase):
         resp = {"model":"jev-1.13.0","answers":{"needs_human_review":{"type":"noul","noul":1.1}}}
         with self.assertRaises(td.ContractError): td.validate_response(case, resp)
 
+    def test_noul_response_rejects_boolean(self):
+        case = next(c for c in self.manifest["cases"] if next(iter(c["questions"].values()))["type"] == "noul")
+        qid = next(iter(case["questions"]))
+        resp = {"model":"jev-1.13.0","answers":{qid:{"type":"noul","noul":True}}}
+        with self.assertRaises(td.ContractError): td.validate_response(case, resp)
+
+    def test_choice_response_rejects_boolean_probability_and_confidence(self):
+        case = next(c for c in self.manifest["cases"] if next(iter(c["questions"].values()))["type"] == "choice")
+        qid, question = next(iter(case["questions"].items()))
+        opts = list(question["criteria"])
+        probs = {k: 0.0 for k in opts}; probs[opts[0]] = True
+        resp = {"model":"jev-1.13.0","answers":{qid:{"type":"choice","choice":opts[0],"confidence":1.0,"probabilities":probs}}}
+        with self.assertRaises(td.ContractError): td.validate_response(case, resp)
+
+        probs = {k: 0.0 for k in opts}; probs[opts[0]] = 1.0
+        resp = {"model":"jev-1.13.0","answers":{qid:{"type":"choice","choice":opts[0],"confidence":True,"probabilities":probs}}}
+        with self.assertRaises(td.ContractError): td.validate_response(case, resp)
+
     def test_alias_only_response_model_is_rejected(self):
         case = self.manifest["cases"][0]
         opts = list(next(iter(case["questions"].values()))["criteria"])
