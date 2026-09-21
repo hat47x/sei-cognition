@@ -134,7 +134,7 @@ def validate_teacher_row(case: dict[str, Any], row: dict[str, Any]) -> None:
             raise StudentDatasetError(f"{case['case_id']}: Score payload does not match target")
         _validate_probability_map(payload.get("probabilities"), {str(i) for i in range(len(question["criteria"]))})
         confidence = payload.get("confidence")
-        if not isinstance(confidence, (int, float)) or not 0.0 <= float(confidence) <= 1.0:
+        if not _is_real_number(confidence) or not 0.0 <= float(confidence) <= 1.0:
             raise StudentDatasetError(f"{case['case_id']}: invalid Score confidence")
 
 
