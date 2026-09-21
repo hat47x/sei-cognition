@@ -26,6 +26,7 @@ same fixture
 - host OS / arch / logical CPU / Go version
 - runtime endpoint readiness / HTTP status / latency
 - runtime name / version
+- `--runtime-pid`指定時の実行中runtime executable basename / size / SHA-256
 - model identifier
 - operator-supplied local model artifactのfile name / size / SHA-256（`--model-file`指定時）
 - quantization
@@ -187,9 +188,11 @@ streaming artifactでは次を別々に保持する。
 
 usageがstream responseに含まれないruntimeではtoken usageが0のままになり得る。これは0 token消費のEvidenceではなく、provider telemetry未提供として扱う。
 
-### 5.4 runtime process memory
+### 5.4 runtime process memory / executable identity
 
 Linuxでruntime server PIDが分かる場合は `modelmatrix --runtime-pid <pid>` を指定する。matrix artifactの `runtime_memory` に、matrix開始時とraw / workspace / staged後のprocess RSSを保存する。
+
+同時にmatrix開始時に `/proc/<pid>/exe` を読み、`runtime_process`へ実行中executableのbasename / size / SHA-256を保存する。絶対pathは保存せず、sourceとして `/proc/<pid>/exe` だけを記録する。
 
 記録値:
 
@@ -210,6 +213,13 @@ Linuxでruntime server PIDが分かる場合は `modelmatrix --runtime-pid <pid>
 - `unsupported`: 非Linuxなど現行sampler対象外.
 
 `VmHWM` はprocess起動以来のhigh-water markであり、このmatrix runだけのpeakとは限らない。dedicated runtime processを推奨する。memory Evidenceが未取得でもtransport/evaluator matrixは `complete` になり得るため、Issue #375のmemory完了条件は別途確認する。
+
+`runtime_process`のSHA-256は実行中binaryのidentityを強くするが、loaded model fileやruntime内部stateをattestしない。
+
+```text
+runtime process executable identity
+  != model-load attestation
+```
 
 ```text
 matrix complete
