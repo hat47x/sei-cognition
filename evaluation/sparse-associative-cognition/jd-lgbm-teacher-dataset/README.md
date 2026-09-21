@@ -49,6 +49,22 @@ The bundle is deterministic for the same source/manifest and refuses a non-empty
 
 This first 12-case bundle remains the fixed passive JD-LGBM-0 baseline. Active-curriculum work such as #556 may add later acquisition, but must not replace or selectively filter this baseline.
 
+## Credentialed direct-capture preflight
+
+Before a direct authenticated run, validate the frozen bundle, the intended checkout identity, credential presence, and output collision state without sending a network request:
+
+```bash
+export TYPESAFE_API_KEY=...
+python3 teacher_dataset.py tasks.v1.json --mode preflight \
+  --capture-manifest trusted-capture-bundle/capture_manifest.json \
+  --expected-source-git-sha "$(git rev-parse HEAD)" \
+  --output-dir run-YYYYMMDD
+```
+
+A successful preflight reports `network_requests_sent: 0`, never prints the API key value, and requires the capture bundle's `source_git_sha` to match the explicitly supplied checkout SHA. It also refuses protected direct-capture artifacts already present under the output path.
+
+This preflight is operational readiness only. It is not Jev Evidence, teacher correctness, or permission to train a student.
+
 ## Actual teacher collection
 
 Direct authenticated collection uses the same frozen request bundle as external capture. Create the bundle first, then run:
