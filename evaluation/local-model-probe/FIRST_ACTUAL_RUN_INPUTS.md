@@ -49,7 +49,7 @@ launcherは次を順に行う。
 
 3 fileのどれかが既に存在する場合はrun開始前に停止し、過去Evidenceを上書きしない。3 pathを同一値にすることも拒否する。
 
-digest sidecarはmatrix/logのSHA-256とbasenameに加え、`modelmatrix_exit_code` を保持する。local absolute pathは記録しない。
+digest sidecarは `modelmatrix_exit_code`、matrix/logのbasename、標準 `sha256sum -c` 互換のSHA-256行を保持する。local absolute pathは記録しない。
 
 `modelmatrix` が `blocked-model-identity` / `blocked-preflight` / `incomplete-inference` 等でnon-zero終了しても、matrix artifactが生成済みならlauncherはmatrix/logのdigest sidecarを作ってから**同じexit codeを返す**。compile failure等でmatrixが作られなかった場合も、その事実とserver log digestをsidecarへ残す。
 
@@ -191,6 +191,50 @@ go run ./cmd/modelmatrix \
 - llama.cpp `/metrics` のprompt/generation累積token数、KV cache usage ratio / tokens、context token high-water mark（利用可能なものだけ）;
 
 を同じmatrixへ保存する。
+
+## 5.1 Returned Evidence verification
+
+外部環境でrunした3点Evidenceを別環境へ戻した後は、repository rootから次を実行する。
+
+```bash
+bash evaluation/local-model-probe/verify_first_actual.sh \
+  /path/to/<RUN_ID_PREFIX>-evidence.sha256
+```
+
+verifierは次を順に確認する。
+
+1. sidecar syntaxとbasename-only path制約;
+2. matrix/logの2 hash entryがsidecarコメントと一致すること;
+3. `sha256sum -c` によるmatrix/log bytes整合;
+4. matrix JSONのstrict decode（unknown field / trailing JSON拒否）;
+5. matrix status別の構造整合（complete / blocked-model-identity / blocked-preflight / incomplete-inference）;
+6. sidecarの `modelmatrix_exit_code` とmatrix statusの整合;
+7. 指定時はexpected source SHA / model SHA-256の一致.
+
+optionalな外部anchor:
+
+```bash
+EXPECTED_SOURCE_GIT_SHA=<run-source-sha> \
+EXPECTED_MODEL_SHA256=<expected-model-digest> \
+EXPECTED_EVIDENCE_DIGESTS_SHA256=<sidecar-digest-retained-out-of-band> \
+bash evaluation/local-model-probe/verify_first_actual.sh /path/to/run-evidence.sha256
+```
+
+`EXPECTED_EVIDENCE_DIGESTS_SHA256` は、sidecar自体のdigestをrun環境外で保持できた場合だけ使う。
+
+```text
+matrix/log + sidecar
+  -> transfer corruption / accidental modification detection
+
+sidecar without an external trusted digest
+  != cryptographic provenance / signer identity
+
+structurally valid matrix
+  != task success
+  != model quality
+```
+
+complete matrixだけがhuman adjudicationへ進める。blocked/incomplete matrixはdiagnostic Evidenceとして構造検証できるが、human task-success reviewの対象へ昇格しない。
 
 ## 6. Evidence stop lines
 
