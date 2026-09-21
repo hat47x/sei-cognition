@@ -23,6 +23,7 @@ API_URL = "https://api.typesafe.ai/v1/systemone"
 DEFAULT_MODEL = "jev-latest"
 ROW_SCHEMA = "sei.jd-lgbm-teacher-row/v1alpha1"
 CAPTURE_BUNDLE_SCHEMA = "sei.jd-lgbm-teacher-capture-bundle/v1alpha1"
+RAW_RESPONSE_MANIFEST_SCHEMA = "sei.jd-lgbm-raw-response-manifest/v1alpha1"
 REQUIRED_CASE_FIELDS = {
     "case_id",
     "task_id",
@@ -360,6 +361,104 @@ def write_capture_bundle(
     return bundle
 
 
+def load_capture_bundle(
+    manifest_path: Path,
+    manifest: dict[str, Any],
+    capture_manifest_path: Path,
+) -> dict[str, Any]:
+    validate_manifest(manifest)
+    try:
+        bundle = json.loads(capture_manifest_path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise CollectionBlocked(f"capture manifest does not exist: {capture_manifest_path}") from exc
+    except json.JSONDecodeError as exc:
+        raise ContractError("capture manifest is not valid JSON") from exc
+
+    if bundle.get("schema") != CAPTURE_BUNDLE_SCHEMA:
+        raise ContractError("unexpected capture bundle schema")
+    if bundle.get("api_url") != API_URL or bundle.get("method") != "POST":
+        raise ContractError("capture bundle endpoint/method does not match the teacher contract")
+    if bundle.get("content_type") != "application/json":
+        raise ContractError("capture bundle content type must be application/json")
+    if bundle.get("model_alias") != manifest["model"]:
+        raise ContractError("capture bundle model alias does not match the manifest")
+    if bundle.get("source_manifest_sha256") != sha256_file(manifest_path):
+        raise ContractError("capture bundle source manifest hash does not match current manifest")
+    source_git_sha = bundle.get("source_git_sha")
+    if not isinstance(source_git_sha, str) or len(source_git_sha) != 40 or any(
+        ch not in "0123456789abcdef" for ch in source_git_sha.lower()
+    ):
+        raise ContractError("capture bundle source_git_sha is invalid")
+
+    entries = bundle.get("requests")
+    if (
+        not isinstance(entries, list)
+        or bundle.get("request_count") != len(manifest["cases"])
+        or len(entries) != len(manifest["cases"])
+    ):
+        raise ContractError("capture bundle request count does not match the manifest")
+    by_case: dict[str, dict[str, Any]] = {}
+    for entry in entries:
+        if not isinstance(entry, dict):
+            raise ContractError("capture bundle request entry must be an object")
+        case_id = entry.get("case_id")
+        if not isinstance(case_id, str) or case_id in by_case:
+            raise ContractError("capture bundle contains missing/duplicate case_id")
+        by_case[case_id] = entry
+
+    expected_ids = {case["case_id"] for case in manifest["cases"]}
+    if set(by_case) != expected_ids:
+        raise ContractError("capture bundle case set does not match the manifest")
+
+    bundle_root = capture_manifest_path.parent
+    for case in manifest["cases"]:
+        case_id = case["case_id"]
+        entry = by_case[case_id]
+        expected_descriptor = request_descriptor(case, manifest["model"])
+        for field, expected in expected_descriptor.items():
+            if entry.get(field) != expected:
+                raise ContractError(f"{case_id}: capture bundle {field} does not match current request")
+        expected_relative_path = f"requests/{case_id}.json"
+        if entry.get("request_path") != expected_relative_path:
+            raise ContractError(f"{case_id}: capture bundle request_path is not canonical")
+        request_path = bundle_root / "requests" / f"{case_id}.json"
+        try:
+            request_bytes = request_path.read_bytes()
+        except FileNotFoundError as exc:
+            raise CollectionBlocked(f"missing frozen request file: {request_path}") from exc
+        expected_bytes = canonical_json(request_for(case, manifest["model"])) + b"\n"
+        if request_bytes != expected_bytes:
+            raise ContractError(f"{case_id}: frozen request bytes do not match the current canonical request")
+        if entry.get("request_file_sha256") != hashlib.sha256(request_bytes).hexdigest():
+            raise ContractError(f"{case_id}: frozen request file SHA-256 mismatch")
+    return bundle
+
+
+def build_raw_response_manifest(
+    manifest_path: Path,
+    capture_manifest_path: Path,
+    capture_bundle: dict[str, Any],
+    raw_descriptors: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return {
+        "schema": RAW_RESPONSE_MANIFEST_SCHEMA,
+        "source_git_sha": capture_bundle["source_git_sha"],
+        "source_manifest_sha256": sha256_file(manifest_path),
+        "capture_manifest_sha256": sha256_file(capture_manifest_path),
+        "response_count": len(raw_descriptors),
+        "responses": raw_descriptors,
+        "raw_response_set_sha256": sha256_json(raw_descriptors),
+        "teacher_model_versions": sorted({item["teacher_model_version"] for item in raw_descriptors}),
+        "external_capture_latency_observed": False,
+        "boundaries": [
+            "raw response bytes are teacher Evidence, not semantic truth or ground truth",
+            "external capture latency is not inferred during import",
+            "raw response manifest completeness != single-version student readiness",
+            "raw response manifest creation != permission to train or activate a student",
+        ],
+    }
+
+
 def run_collection(manifest: dict[str, Any], output_dir: Path, *, api_key: str, force: bool = False) -> int:
     if not api_key:
         raise CollectionBlocked("TYPESAFE_API_KEY is absent; no teacher request was sent")
@@ -387,25 +486,72 @@ def normalize_raw_directory(
     *,
     force: bool = False,
     generated_at: str | None = None,
+    manifest_path: Path | None = None,
+    capture_manifest_path: Path | None = None,
+    raw_manifest_path: Path | None = None,
 ) -> int:
     if rows_path.exists() and not force:
         raise CollectionBlocked(f"refusing to overwrite {rows_path}; pass --force for an intentional re-import")
+    if raw_manifest_path is not None and raw_manifest_path.exists() and not force:
+        raise CollectionBlocked(
+            f"refusing to overwrite {raw_manifest_path}; pass --force for an intentional re-import"
+        )
+
+    capture_bundle: dict[str, Any] | None = None
+    capture_by_case: dict[str, dict[str, Any]] = {}
+    if capture_manifest_path is not None:
+        if manifest_path is None:
+            raise ContractError("manifest_path is required when capture_manifest_path is supplied")
+        capture_bundle = load_capture_bundle(manifest_path, manifest, capture_manifest_path)
+        capture_by_case = {entry["case_id"]: entry for entry in capture_bundle["requests"]}
+        expected_names = {f"{case['case_id']}.json" for case in manifest["cases"]}
+        actual_names = {path.name for path in raw_dir.glob("*.json")}
+        extras = sorted(actual_names - expected_names)
+        if extras:
+            raise CollectionBlocked(f"unexpected raw response files: {', '.join(extras)}")
+    elif raw_manifest_path is not None:
+        raise ContractError("raw_manifest_path requires capture_manifest_path")
+
     rows: list[dict[str, Any]] = []
+    raw_descriptors: list[dict[str, Any]] = []
     for case in manifest["cases"]:
         raw_path = raw_dir / f"{case['case_id']}.json"
         if not raw_path.is_file():
             raise CollectionBlocked(f"missing raw response: {raw_path}")
+        raw_bytes = raw_path.read_bytes()
         try:
-            response = json.loads(raw_path.read_text(encoding="utf-8"))
+            response = json.loads(raw_bytes)
         except json.JSONDecodeError as exc:
             raise ContractError(f"invalid JSON in {raw_path}") from exc
         now = generated_at or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-        rows.append(dataset_row(case, response, generated_at=now, latency_ms=None))
+        row = dataset_row(case, response, generated_at=now, latency_ms=None)
+        rows.append(row)
+        if capture_bundle is not None:
+            raw_descriptors.append({
+                "case_id": case["case_id"],
+                "request_sha256": capture_by_case[case["case_id"]]["request_sha256"],
+                "raw_response_path": f"raw/{case['case_id']}.json",
+                "raw_response_file_sha256": hashlib.sha256(raw_bytes).hexdigest(),
+                "canonical_response_sha256": sha256_json(response),
+                "teacher_model_version": row["teacher_model_version"],
+            })
     rows_path.parent.mkdir(parents=True, exist_ok=True)
     rows_path.write_text(
         "".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows),
         encoding="utf-8",
     )
+    if raw_manifest_path is not None:
+        raw_manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        raw_manifest = build_raw_response_manifest(
+            manifest_path,
+            capture_manifest_path,
+            capture_bundle,
+            raw_descriptors,
+        )
+        raw_manifest_path.write_text(
+            json.dumps(raw_manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
     return len(rows)
 
 
@@ -415,6 +561,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--mode", choices=("plan", "bundle", "run", "import"), default="plan")
     parser.add_argument("--output-dir", type=Path, default=Path("jd-lgbm0-output"))
     parser.add_argument("--raw-dir", type=Path)
+    parser.add_argument("--capture-manifest", type=Path)
     parser.add_argument("--source-git-sha")
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args(argv)
@@ -444,11 +591,16 @@ def main(argv: list[str] | None = None) -> int:
         if args.mode == "import":
             if args.raw_dir is None:
                 raise CollectionBlocked("--raw-dir is required for import mode")
+            if args.capture_manifest is None:
+                raise CollectionBlocked("--capture-manifest is required for import mode")
             count = normalize_raw_directory(
                 manifest,
                 args.raw_dir,
                 args.output_dir / "teacher_rows.jsonl",
                 force=args.force,
+                manifest_path=args.manifest,
+                capture_manifest_path=args.capture_manifest,
+                raw_manifest_path=args.output_dir / "raw_response_manifest.json",
             )
             print(f"imported {count} validated Jev teacher rows")
             return 0
