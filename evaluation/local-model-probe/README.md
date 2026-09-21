@@ -19,7 +19,7 @@ Durable Semantic State
 
 このprobeは、そのためのtransportとmeasurement entry pointである。
 
-実際に比較するmodel tierと実験順は[`MODEL_MATRIX.md`](./MODEL_MATRIX.md)で整理する。
+実際に比較するmodel tierと実験順は[`MODEL_MATRIX.md`](./MODEL_MATRIX.md)で整理する。first actual runのpinned runtime/model入力と取得後の実行手順は[`FIRST_ACTUAL_RUN_INPUTS.md`](./FIRST_ACTUAL_RUN_INPUTS.md)に固定する。
 
 ## 2. 比較する3 mode
 
@@ -199,6 +199,7 @@ Issue #375では少なくとも次を比較する。
 - request開始からresponse完了までのtransport total latency
 - `--stream`時のfirst-token latency（最初の非空content delta受信時刻を操作的定義とする）
 - Linux `--runtime-pid`指定時のruntime process RSS / peak RSS
+- Linux `--runtime-pid`指定時の実行中runtime executable basename / size / SHA-256（`/proc/<pid>/exe`）
 - `--model-file`指定時のlocal model artifact file name / size / SHA-256
 
 まだ取得しないもの:
@@ -247,6 +248,13 @@ VmHWM
 これはmodel weight単独量、KV cache単独量、GPU VRAMではない。shared server processで別requestや別modelを処理した履歴があれば `VmHWM` に混入し得るため、dedicated runtime processを比較runごとに使う方がよい。
 
 PID未指定は `not-requested`、非Linuxは `unsupported`、読取不能は `unavailable` / `partial` として記録し、0 byteを観測値として捏造しない。
+
+同じPIDから `/proc/<pid>/exe` も一度観測し、実際に動いているruntime executableのbasename / size / SHA-256を `runtime_process` として保存する。これはruntime binary identityであり、processがどのmodel bytesをloadしたかの証明ではない。
+
+```text
+runtime executable SHA-256
+  != loaded model identity
+```
 
 ## 8.1 run artifact / comparison
 

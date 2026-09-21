@@ -255,6 +255,7 @@ model × fixture × modeごとに:
 これらを総合点へ畳み込まない。quality改善とcost低下が逆方向になる場合、そのtrade-off自体をEvidenceとして残す。
 
 runtime側で別途:
+- runtime executable basename / size / SHA-256（PID利用可能時）
 - runtime process RSS / peak RSS
 - model load memory
 - VRAM

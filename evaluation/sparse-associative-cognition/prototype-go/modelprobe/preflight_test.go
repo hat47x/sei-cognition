@@ -23,6 +23,9 @@ func TestPreflightRecordsReachableEndpoint(t *testing.T) {
 	if m.Host.OS == "" || m.Host.Arch == "" || m.Host.LogicalCPU < 1 {
 		t.Fatalf("host=%+v", m.Host)
 	}
+	if m.RuntimeProcess.Status != "not-requested" {
+		t.Fatalf("runtime process status=%q want=not-requested", m.RuntimeProcess.Status)
+	}
 }
 
 func TestPreflightWithoutEndpointIsExplicit(t *testing.T) {

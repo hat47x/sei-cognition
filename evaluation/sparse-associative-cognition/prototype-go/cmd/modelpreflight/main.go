@@ -15,6 +15,7 @@ func main() {
 	endpoint := flag.String("endpoint", "http://127.0.0.1:8080/health", "runtime health endpoint")
 	runtimeName := flag.String("runtime", "", "runtime name")
 	runtimeVersion := flag.String("runtime-version", "", "runtime version")
+	runtimePID := flag.Int("runtime-pid", 0, "optional local runtime server PID for Linux executable identity")
 	model := flag.String("model", "", "model identifier")
 	modelFile := flag.String("model-file", "", "optional local model artifact file to hash for provenance")
 	expectedModelSHA256 := flag.String("expected-model-sha256", "", "optional expected SHA-256 for --model-file")
@@ -47,6 +48,7 @@ func main() {
 	m.SourceGitSHA = *sourceGitSHA
 	m.RuntimeName = *runtimeName
 	m.RuntimeVersion = *runtimeVersion
+	m.RuntimeProcess = modelprobe.ObserveRuntimeProcessIdentity(*runtimePID)
 	m.Model = *model
 	m.ModelArtifact = modelArtifact
 	m.Quantization = *quant
