@@ -262,6 +262,31 @@ class EvidenceGateTest(unittest.TestCase):
             with self.assertRaises(eg.GateError):
                 self.verify(paths)
 
+    def test_numeric_zero_training_flag_is_rejected(self):
+        with tempfile.TemporaryDirectory() as d:
+            paths = self.build_chain(Path(d))
+            dataset = eg.load_json(paths["dataset"])
+            dataset["lightgbm_training_performed"] = 0
+            self.write_json(paths["dataset"], dataset)
+            with self.assertRaises(eg.GateError):
+                self.verify(paths)
+
+    def test_missing_teacher_target_is_rejected_even_if_student_matches(self):
+        with tempfile.TemporaryDirectory() as d:
+            paths = self.build_chain(Path(d))
+            teacher_rows = eg.load_jsonl(paths["teacher_rows"])
+            student_rows = eg.load_jsonl(paths["student_records"])
+            teacher_rows[0].pop("typed_output")
+            student_rows[0]["target"] = None
+            self.write_jsonl(paths["teacher_rows"], teacher_rows)
+            self.write_jsonl(paths["student_records"], student_rows)
+            dataset = eg.load_json(paths["dataset"])
+            dataset["source_teacher_rows_sha256"] = eg.sha256_file(paths["teacher_rows"])
+            dataset["student_records_sha256"] = eg.sha256_file(paths["student_records"])
+            self.write_json(paths["dataset"], dataset)
+            with self.assertRaises(eg.GateError):
+                self.verify(paths)
+
     def test_external_capture_latency_claim_is_rejected(self):
         with tempfile.TemporaryDirectory() as d:
             paths = self.build_chain(Path(d))
