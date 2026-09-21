@@ -71,6 +71,8 @@ The harness refuses direct collection without both `TYPESAFE_API_KEY` and the ex
 
 HTTP 429 and 529 responses are retried with a bounded exponential backoff. Existing direct-capture artifacts are not overwritten unless `--force` is supplied. The raw-response manifest records `capture_mode: "direct-run"`; this is provenance metadata, not a correctness claim.
 
+The response validator follows the current TypeSafe API response contract for this slice: exactly the requested answer is accepted, Score requires a complete `legend` matching the declared levels, and `usage.input_tokens` / `usage.output_tokens` must be present as non-negative integers. These checks protect capture integrity; they do not turn API conformance into teacher correctness.
+
 ## Import externally captured raw responses
 
 An API key does not need to be copied into this execution environment. If the same case requests are executed in another trusted environment, save one raw TypeSafe response per case as `<case_id>.json`, then validate and normalize them here:
