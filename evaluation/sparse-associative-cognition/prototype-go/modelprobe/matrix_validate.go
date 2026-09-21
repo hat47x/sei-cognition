@@ -10,6 +10,9 @@ func ValidateActualMatrixArtifact(matrix ActualMatrixArtifact) error {
 	if matrix.Schema != actualMatrixArtifactSchema {
 		return fmt.Errorf("matrix schema %q is unsupported", matrix.Schema)
 	}
+	if strings.TrimSpace(matrix.RunIDPrefix) == "" {
+		return fmt.Errorf("matrix run_id_prefix is required")
+	}
 	if err := ValidateRunIdentity(matrix.RunIDPrefix+"-matrix", matrix.SourceGitSHA); err != nil {
 		return fmt.Errorf("matrix identity: %w", err)
 	}
@@ -47,6 +50,12 @@ func validateMatrixPreflights(matrix ActualMatrixArtifact) error {
 	modes := []Mode{ModeRaw, ModeWorkspace, ModeStaged}
 	for i, preflight := range matrix.Preflights {
 		mode := modes[i]
+		if preflight.Schema != "sei-cognition.local-model-run-manifest/v0" {
+			return fmt.Errorf("preflight %d schema %q is unsupported", i, preflight.Schema)
+		}
+		if preflight.Status != "evaluation-only" {
+			return fmt.Errorf("preflight %d status %q is unsupported", i, preflight.Status)
+		}
 		if preflight.RunID != matrix.RunIDPrefix+"-"+string(mode) {
 			return fmt.Errorf("preflight %d run_id does not match matrix", i)
 		}
