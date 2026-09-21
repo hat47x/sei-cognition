@@ -80,6 +80,20 @@ class StudentDatasetTest(unittest.TestCase):
         with self.assertRaises(sd.StudentDatasetError):
             sd.prepare_student_records(self.manifest, rows)
 
+    def test_boolean_teacher_numeric_is_rejected(self):
+        rows = self.rows()
+        row = next(r for r in rows if r["question_type"] == "noul")
+        row["typed_output"] = True
+        row["teacher_probability_or_score"]["p_yes"] = True
+        with self.assertRaises(sd.StudentDatasetError):
+            sd.prepare_student_records(self.manifest, rows)
+
+    def test_non_hex_response_hash_is_rejected(self):
+        rows = self.rows()
+        rows[0]["teacher_response_hash"] = "g" * 64
+        with self.assertRaises(sd.StudentDatasetError):
+            sd.prepare_student_records(self.manifest, rows)
+
     def test_empty_teacher_file_is_rejected(self):
         with tempfile.TemporaryDirectory() as d:
             p = Path(d) / "rows.jsonl"; p.write_text("")
