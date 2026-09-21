@@ -88,3 +88,13 @@ func TestRuntimeMetricsEvidenceUnavailableDoesNotInventZeros(t *testing.T) {
 		t.Fatalf("unavailable endpoint must not create zero-valued samples: %+v", evidence)
 	}
 }
+
+
+func TestParseRuntimePrometheusMetricsRejectsNonFinite(t *testing.T) {
+	for _, value := range []string{"NaN", "+Inf", "-Inf"} {
+		_, err := parseRuntimePrometheusMetrics(strings.NewReader("llamacpp:kv_cache_usage_ratio " + value + "\n"))
+		if err == nil {
+			t.Fatalf("expected non-finite metric %q to be rejected", value)
+		}
+	}
+}
