@@ -608,3 +608,80 @@ func TestRunActualMatrixRecordsRuntimePropsWhenRequested(t *testing.T) {
 		t.Fatalf("same-file runtime props correlation missing: %+v", matrix.RuntimeProps)
 	}
 }
+
+
+func TestRunActualMatrixBlocksExplicitRuntimeModelIdentityMismatch(t *testing.T) {
+	dir := t.TempDir()
+	suppliedPath := filepath.Join(dir, "supplied.gguf")
+	reportedPath := filepath.Join(dir, "reported.gguf")
+	if err := os.WriteFile(suppliedPath, []byte("supplied"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(reportedPath, []byte("reported"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	identity, err := ObserveModelArtifact(suppliedPath, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var healthCalls int32
+	var chatCalls int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/props":
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"model_path":  reportedPath,
+				"model_alias": "wrong-model",
+			})
+		case "/health":
+			atomic.AddInt32(&healthCalls, 1)
+			w.WriteHeader(http.StatusOK)
+		case "/v1/chat/completions":
+			atomic.AddInt32(&chatCalls, 1)
+			http.Error(w, "must not be called", http.StatusInternalServerError)
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	matrix, err := RunActualMatrix(
+		context.Background(),
+		MatrixConfig{
+			RunIDPrefix:          "matrix-model-identity-mismatch",
+			SourceGitSHA:         artifactTestGitSHA,
+			HealthEndpoint:       server.URL + "/health",
+			RuntimePropsEndpoint: server.URL + "/props",
+			ModelFilePath:        suppliedPath,
+			ModelArtifact:        identity,
+			Probe: Config{
+				Endpoint:   server.URL + "/v1/chat/completions",
+				Model:      "fake-model",
+				HTTPClient: server.Client(),
+			},
+		},
+		cognitiveeval.ReferenceFixtures()[:1],
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if matrix.Status != "blocked-model-identity" {
+		t.Fatalf("status=%q want=blocked-model-identity: %+v", matrix.Status, matrix)
+	}
+	if matrix.RuntimeProps.SameFileAsSupplied == nil || *matrix.RuntimeProps.SameFileAsSupplied {
+		t.Fatalf("expected explicit same-file mismatch: %+v", matrix.RuntimeProps)
+	}
+	if len(matrix.Failures) != 1 || matrix.Failures[0].Stage != "runtime-props" {
+		t.Fatalf("unexpected failures: %+v", matrix.Failures)
+	}
+	if got := atomic.LoadInt32(&healthCalls); got != 0 {
+		t.Fatalf("health calls=%d want=0", got)
+	}
+	if got := atomic.LoadInt32(&chatCalls); got != 0 {
+		t.Fatalf("chat calls=%d want=0", got)
+	}
+	if len(matrix.Preflights) != 0 || matrix.Raw != nil || matrix.Comparison != nil {
+		t.Fatalf("identity mismatch must stop before preflight/inference: %+v", matrix)
+	}
+}
