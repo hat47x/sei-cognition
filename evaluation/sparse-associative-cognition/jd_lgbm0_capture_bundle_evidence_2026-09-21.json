@@ -4,7 +4,7 @@
   "observedDateLocal": "2026-09-21",
   "testedSource": {
     "branch": "topic/jev-lightgbm-distillation",
-    "commit": "57ca94a168edaa9639c54f616db9f9abe037a206",
+    "commit": "beedfa80daf9b10bb6194e2962c5adfc517e4640",
     "currentParentAtValidation": "cfb0a342d4666bfd31e654a1007276c33c49441c",
     "parentAdvancedByNonOverlappingPR": 561
   },
@@ -29,7 +29,7 @@
     "status": "PASS"
   },
   "captureBundleExecution": {
-    "command": "python3 teacher_dataset.py tasks.v1.json --mode bundle --source-git-sha 57ca94a168edaa9639c54f616db9f9abe037a206 --output-dir <fresh-dir>",
+    "command": "python3 teacher_dataset.py tasks.v1.json --mode bundle --source-git-sha beedfa80daf9b10bb6194e2962c5adfc517e4640 --output-dir <fresh-dir>",
     "schema": "sei.jd-lgbm-teacher-capture-bundle/v1alpha1",
     "requestCount": 12,
     "uniqueCaseIds": 12,
@@ -43,7 +43,7 @@
       "valid": 3,
       "test": 3
     },
-    "captureManifestSha256": "3c432722a03fe4a5e54f064290e7d5a367d0b9bb596616f9a2c7bc903687474f",
+    "captureManifestSha256": "d156111621bbf9e46f0eadebcdac079e77598ccca79208647063411e534a29bf",
     "repeatedBundleByteIdentical": true,
     "authorizationHeaderMatches": 0,
     "networkRequestSent": false
