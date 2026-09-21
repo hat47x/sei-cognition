@@ -146,6 +146,8 @@ def validate_response(case: dict[str, Any], response: dict[str, Any]) -> tuple[s
     if not isinstance(answers, dict):
         raise ContractError("response.answers must be an object")
     qid, question = next(iter(case["questions"].items()))
+    if set(answers) != {qid}:
+        raise ContractError("response.answers must contain exactly the requested question")
     answer = answers.get(qid)
     if not isinstance(answer, dict):
         raise ContractError(f"missing answer for {qid}")
@@ -166,13 +168,21 @@ def validate_response(case: dict[str, Any], response: dict[str, Any]) -> tuple[s
         _validate_confidence(answer)
     else:
         probs = answer.get("probabilities")
-        if not isinstance(probs, dict) or set(probs) != {str(i) for i in range(len(question["criteria"]))}:
+        expected_keys = {str(i) for i in range(len(question["criteria"]))}
+        if not isinstance(probs, dict) or set(probs) != expected_keys:
             raise ContractError("score probabilities must cover every score level")
         _validate_probabilities(probs)
         score = answer.get("score")
         if not _is_real_number(score) or not 0.0 <= float(score) <= len(question["criteria"]) - 1:
             raise ContractError("score must be numeric and inside the declared level range")
+        legend = answer.get("legend")
+        if not isinstance(legend, dict) or set(legend) != expected_keys:
+            raise ContractError("score legend must cover every declared score level")
+        expected_legend = {str(i): str(value) for i, value in enumerate(question["criteria"])}
+        if legend != expected_legend:
+            raise ContractError("score legend must match the declared criteria")
         _validate_confidence(answer)
+    _validate_usage(response)
     return model, answer
 
 
@@ -194,6 +204,16 @@ def _validate_confidence(answer: dict[str, Any]) -> None:
     confidence = answer.get("confidence")
     if not _is_real_number(confidence) or not 0.0 <= float(confidence) <= 1.0:
         raise ContractError("confidence must be a numeric value in [0,1]")
+
+
+def _validate_usage(response: dict[str, Any]) -> None:
+    usage = response.get("usage")
+    if not isinstance(usage, dict):
+        raise ContractError("response.usage must be an object")
+    for field in ("input_tokens", "output_tokens"):
+        value = usage.get(field)
+        if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+            raise ContractError(f"response.usage.{field} must be a non-negative integer")
 
 
 def dataset_row(
@@ -224,7 +244,7 @@ def dataset_row(
             "legend": answer.get("legend"),
         }
     req = request_for(case)
-    usage = response.get("usage") if isinstance(response.get("usage"), dict) else None
+    usage = response["usage"]
     return {
         "schema": ROW_SCHEMA,
         "case_id": case["case_id"],

@@ -279,7 +279,7 @@ class TeacherDatasetTest(unittest.TestCase):
         payload = (
             b'{\n  "model": "jev-test-1.0",\n  "answers": {"route": '
             + json.dumps(self.valid_response(case)["answers"]["route"], separators=(",", ":")).encode()
-            + b'}\n}'
+            + b'},\n  "usage": {"input_tokens": 1, "output_tokens": 1}\n}'
         )
 
         class FakeResponse:
@@ -390,6 +390,43 @@ class TeacherDatasetTest(unittest.TestCase):
         case = next(c for c in self.manifest["cases"] if next(iter(c["questions"].values()))["type"] == "score")
         resp = {"model":"jev-1.13.0","answers":{"urgency":{"type":"score","score":1.0,"confidence":0.8,"probabilities":{"0":0.2,"1":0.8}}}}
         with self.assertRaises(td.ContractError): td.validate_response(case, resp)
+
+    def test_response_rejects_unrequested_answer(self):
+        case = self.manifest["cases"][0]
+        response = self.valid_response(case)
+        response["answers"]["unexpected"] = {"type": "noul", "noul": 0.5}
+        with self.assertRaises(td.ContractError):
+            td.validate_response(case, response)
+
+    def test_score_response_requires_exact_legend(self):
+        case = next(c for c in self.manifest["cases"] if next(iter(c["questions"].values()))["type"] == "score")
+        qid, question = next(iter(case["questions"].items()))
+        response = self.valid_response(case)
+        response["answers"][qid].pop("legend")
+        with self.assertRaises(td.ContractError):
+            td.validate_response(case, response)
+
+        response = self.valid_response(case)
+        response["answers"][qid]["legend"]["0"] = "wrong"
+        with self.assertRaises(td.ContractError):
+            td.validate_response(case, response)
+
+    def test_response_requires_usage_token_counts(self):
+        case = self.manifest["cases"][0]
+        response = self.valid_response(case)
+        response.pop("usage")
+        with self.assertRaises(td.ContractError):
+            td.validate_response(case, response)
+
+        response = self.valid_response(case)
+        response["usage"]["input_tokens"] = True
+        with self.assertRaises(td.ContractError):
+            td.validate_response(case, response)
+
+        response = self.valid_response(case)
+        response["usage"]["output_tokens"] = -1
+        with self.assertRaises(td.ContractError):
+            td.validate_response(case, response)
 
     def test_noul_response_rejects_out_of_range(self):
         case = next(c for c in self.manifest["cases"] if next(iter(c["questions"].values()))["type"] == "noul")

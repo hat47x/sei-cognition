@@ -1,0 +1,87 @@
+{
+  "schema": "sei.jd-lgbm0-response-contract-hardening-evidence/v1alpha1",
+  "issue": 543,
+  "observedDateLocal": "2026-09-22",
+  "testedSource": {
+    "branch": "topic/jev-lightgbm-distillation",
+    "commit": "9f6ebbb069466690087cf07d48930273c7e7babd",
+    "parent": "158ff291e70302697a79a869bb41cb0b639f0313"
+  },
+  "exactSourceReview": {
+    "files": {
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/README.md": "b99a6b5afb914d808f6672fc22f609ea5bb0d74a",
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/teacher_dataset.py": "7a712ecfb721bfa42539cb063a43f7aa1e201976",
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/test_teacher_dataset.py": "2f3da1742fbf09f1c4d350c8b0655fa3ffe75275",
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/evidence_gate.py": "2fdcdd748226f98485b26d462aabac1e63bcfda1",
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/test_evidence_gate.py": "72ce72dd73543c4302de550bf4a227a82b7e3277"
+    },
+    "testDefinitionsObserved": {
+      "teacherDataset": 35,
+      "evidenceGate": 11
+    }
+  },
+  "currentPublicApiContract": {
+    "docsReviewed": [
+      "https://docs.typesafe.ai/api",
+      "https://docs.typesafe.ai/introduction/quickstart"
+    ],
+    "endpoint": "POST https://api.typesafe.ai/v1/systemone",
+    "authorization": "Bearer API key",
+    "modelAlias": "jev-latest",
+    "typedQuestionFamilies": [
+      "noul",
+      "choice",
+      "score"
+    ],
+    "responseRequirementsHardened": [
+      "exact requested answer set",
+      "Score legend covers and matches declared levels",
+      "usage.input_tokens is a non-negative integer",
+      "usage.output_tokens is a non-negative integer"
+    ],
+    "retryStatusCodes": [
+      429,
+      529
+    ]
+  },
+  "focusedLogicProbe": {
+    "python": "Python 3.13.5",
+    "fullRepositoryTestSuiteExecuted": false,
+    "successfulNormalCases": [
+      "Noul",
+      "Choice",
+      "Score"
+    ],
+    "failClosedCases": [
+      "Score legend missing",
+      "response usage missing",
+      "boolean input_tokens",
+      "unrequested extra answer",
+      "teacher typed_output/distribution diverges from raw answer"
+    ],
+    "status": "PASS",
+    "note": "Exact modified logic was reviewed from the current GitHub blobs and its new contract branches were exercised in a standalone local logic probe. This is not represented as a full repository unittest run."
+  },
+  "evidenceChainStrengthening": [
+    "raw Jev answer is independently projected into typed_output/distribution",
+    "teacher row question_id/question_type must match the raw requested question",
+    "teacher row usage must equal raw response usage",
+    "teacher row typed_output must equal the raw answer projection",
+    "teacher row probability/score payload must equal the raw answer projection"
+  ],
+  "parallelWorkCheck": {
+    "mergedParallelPR": 571,
+    "overlap": [],
+    "parentRealignedBeforeEvidence": true,
+    "branchBehindParentAtEvidence": 0,
+    "openPRsAtEvidence": 0
+  },
+  "boundaries": [
+    "API-contract conformance != teacher correctness",
+    "raw-to-row semantic identity != ground truth",
+    "focused logic probe != full repository regression suite",
+    "actual authenticated Jev teacher rows remain 0",
+    "LightGBM training remains blocked",
+    "active curriculum #556 remains downstream of the fixed authenticated passive baseline"
+  ]
+}

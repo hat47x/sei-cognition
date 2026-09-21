@@ -97,6 +97,97 @@ def is_real_number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
+def project_raw_teacher_response(case: dict[str, Any], response: dict[str, Any]) -> dict[str, Any]:
+    model = response.get("model")
+    if not isinstance(model, str) or not model.startswith("jev-") or model == DEFAULT_MODEL:
+        raise GateError(f"{case.get('case_id')}: immutable Jev model version is required")
+    questions = case.get("questions")
+    if not isinstance(questions, dict) or len(questions) != 1:
+        raise GateError(f"{case.get('case_id')}: manifest must contain exactly one question")
+    qid, question = next(iter(questions.items()))
+    answers = response.get("answers")
+    if not isinstance(answers, dict) or set(answers) != {qid}:
+        raise GateError(f"{case.get('case_id')}: raw response answers must match the single requested question")
+    answer = answers.get(qid)
+    if not isinstance(answer, dict):
+        raise GateError(f"{case.get('case_id')}: raw answer must be an object")
+    qtype = question.get("type")
+    if answer.get("type") != qtype:
+        raise GateError(f"{case.get('case_id')}: raw answer type mismatch")
+
+    usage = response.get("usage")
+    if not isinstance(usage, dict):
+        raise GateError(f"{case.get('case_id')}: raw response usage is required")
+    for field in ("input_tokens", "output_tokens"):
+        value = usage.get(field)
+        if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+            raise GateError(f"{case.get('case_id')}: raw response usage.{field} must be a non-negative integer")
+
+    if qtype == "noul":
+        value = answer.get("noul")
+        if not is_real_number(value) or not 0.0 <= float(value) <= 1.0:
+            raise GateError(f"{case.get('case_id')}: invalid raw Noul value")
+        typed_output: Any = float(value)
+        payload: dict[str, Any] = {"p_yes": float(value)}
+    elif qtype == "choice":
+        criteria = question.get("criteria")
+        probs = answer.get("probabilities")
+        confidence = answer.get("confidence")
+        if not isinstance(criteria, dict) or answer.get("choice") not in criteria:
+            raise GateError(f"{case.get('case_id')}: invalid raw Choice target")
+        if (
+            not isinstance(probs, dict)
+            or set(probs) != set(criteria)
+            or any(not is_real_number(v) or not 0.0 <= float(v) <= 1.0 for v in probs.values())
+            or abs(sum(float(v) for v in probs.values()) - 1.0) > 1e-6
+            or not is_real_number(confidence)
+            or not 0.0 <= float(confidence) <= 1.0
+        ):
+            raise GateError(f"{case.get('case_id')}: invalid raw Choice distribution")
+        typed_output = answer["choice"]
+        payload = {"probabilities": probs, "confidence": float(confidence)}
+    elif qtype == "score":
+        criteria = question.get("criteria")
+        probs = answer.get("probabilities")
+        score = answer.get("score")
+        confidence = answer.get("confidence")
+        legend = answer.get("legend")
+        if not isinstance(criteria, list) or not 2 <= len(criteria) <= 10:
+            raise GateError(f"{case.get('case_id')}: invalid Score criteria")
+        expected_keys = {str(i) for i in range(len(criteria))}
+        expected_legend = {str(i): str(value) for i, value in enumerate(criteria)}
+        if (
+            not is_real_number(score)
+            or not 0.0 <= float(score) <= len(criteria) - 1
+            or not isinstance(probs, dict)
+            or set(probs) != expected_keys
+            or any(not is_real_number(v) or not 0.0 <= float(v) <= 1.0 for v in probs.values())
+            or abs(sum(float(v) for v in probs.values()) - 1.0) > 1e-6
+            or not is_real_number(confidence)
+            or not 0.0 <= float(confidence) <= 1.0
+            or legend != expected_legend
+        ):
+            raise GateError(f"{case.get('case_id')}: invalid raw Score answer")
+        typed_output = float(score)
+        payload = {
+            "score": float(score),
+            "probabilities": probs,
+            "confidence": float(confidence),
+            "legend": legend,
+        }
+    else:
+        raise GateError(f"{case.get('case_id')}: unsupported question type: {qtype}")
+
+    return {
+        "teacher_model_version": model,
+        "question_id": qid,
+        "question_type": qtype,
+        "typed_output": typed_output,
+        "teacher_probability_or_score": payload,
+        "usage": usage,
+    }
+
+
 def unique_by_case(rows: list[dict[str, Any]], expected_ids: list[str], label: str) -> dict[str, dict[str, Any]]:
     by_case: dict[str, dict[str, Any]] = {}
     for row in rows:
@@ -206,6 +297,7 @@ def verify_evidence_chain(
         raise GateError("raw response descriptor-set SHA-256 mismatch")
 
     observed_models: list[str] = []
+    raw_projection_by_case: dict[str, dict[str, Any]] = {}
     for case_id in case_ids:
         entry = response_by_case[case_id]
         if entry.get("request_sha256") != request_by_case[case_id].get("request_sha256"):
@@ -224,9 +316,9 @@ def verify_evidence_chain(
             raise GateError(f"{case_id}: raw response root must be an object")
         if entry.get("canonical_response_sha256") != sha256_json(raw_obj):
             raise GateError(f"{case_id}: canonical raw response SHA-256 mismatch")
-        model = raw_obj.get("model")
-        if not isinstance(model, str) or not model.startswith("jev-") or model == DEFAULT_MODEL:
-            raise GateError(f"{case_id}: immutable Jev model version is required")
+        projection = project_raw_teacher_response(cases_by_id[case_id], raw_obj)
+        raw_projection_by_case[case_id] = projection
+        model = projection["teacher_model_version"]
         if entry.get("teacher_model_version") != model:
             raise GateError(f"{case_id}: raw response model version mismatch")
         latency = entry.get("teacher_latency_ms")
@@ -248,14 +340,11 @@ def verify_evidence_chain(
         response_entry = response_by_case[case_id]
         if row.get("schema") != TEACHER_ROW_SCHEMA:
             raise GateError(f"{case_id}: unexpected teacher row schema")
-        qvalues = case.get("questions")
-        if not isinstance(qvalues, dict) or len(qvalues) != 1:
-            raise GateError(f"{case_id}: manifest must contain exactly one question")
-        question = next(iter(qvalues.values()))
-        qtype = question.get("type")
+        projection = raw_projection_by_case[case_id]
         expected_fields = {
             "task_id": case.get("task_id"),
-            "question_type": qtype,
+            "question_id": projection["question_id"],
+            "question_type": projection["question_type"],
             "feature_schema_version": case.get("feature_schema_version"),
             "task_schema_version": case.get("task_schema_version"),
             "source_provenance_class": case.get("source_provenance_class"),
@@ -267,54 +356,15 @@ def verify_evidence_chain(
             "teacher_response_hash": response_entry.get("canonical_response_sha256"),
             "teacher_model_version": response_entry.get("teacher_model_version"),
             "teacher_latency_ms": response_entry.get("teacher_latency_ms"),
+            "usage": projection["usage"],
         }
         for field, expected in expected_fields.items():
             if row.get(field) != expected:
                 raise GateError(f"{case_id}: teacher row {field} breaks the evidence chain")
-        if "typed_output" not in row or "teacher_probability_or_score" not in row:
-            raise GateError(f"{case_id}: teacher row target/distribution is missing")
-        payload = row.get("teacher_probability_or_score")
-        if not isinstance(payload, dict):
-            raise GateError(f"{case_id}: teacher distribution must be an object")
-        target = row.get("typed_output")
-        if qtype == "noul":
-            if not is_real_number(target) or not 0.0 <= float(target) <= 1.0 or payload.get("p_yes") != target:
-                raise GateError(f"{case_id}: invalid Noul teacher target/distribution")
-        elif qtype == "choice":
-            criteria = question.get("criteria")
-            if not isinstance(criteria, dict) or target not in criteria:
-                raise GateError(f"{case_id}: invalid Choice teacher target")
-            probs = payload.get("probabilities")
-            confidence = payload.get("confidence")
-            if (
-                not isinstance(probs, dict)
-                or set(probs) != set(criteria)
-                or any(not is_real_number(v) or not 0.0 <= float(v) <= 1.0 for v in probs.values())
-                or abs(sum(float(v) for v in probs.values()) - 1.0) > 1e-6
-                or not is_real_number(confidence)
-                or not 0.0 <= float(confidence) <= 1.0
-            ):
-                raise GateError(f"{case_id}: invalid Choice teacher distribution")
-        elif qtype == "score":
-            criteria = question.get("criteria")
-            if not isinstance(criteria, list) or not 2 <= len(criteria) <= 10:
-                raise GateError(f"{case_id}: invalid Score task criteria")
-            probs = payload.get("probabilities")
-            confidence = payload.get("confidence")
-            if (
-                not is_real_number(target)
-                or not 0.0 <= float(target) <= len(criteria) - 1
-                or payload.get("score") != target
-                or not isinstance(probs, dict)
-                or set(probs) != {str(i) for i in range(len(criteria))}
-                or any(not is_real_number(v) or not 0.0 <= float(v) <= 1.0 for v in probs.values())
-                or abs(sum(float(v) for v in probs.values()) - 1.0) > 1e-6
-                or not is_real_number(confidence)
-                or not 0.0 <= float(confidence) <= 1.0
-            ):
-                raise GateError(f"{case_id}: invalid Score teacher target/distribution")
-        else:
-            raise GateError(f"{case_id}: unsupported question type: {qtype}")
+        if row.get("typed_output") != projection["typed_output"]:
+            raise GateError(f"{case_id}: teacher typed_output does not match the raw Jev answer")
+        if row.get("teacher_probability_or_score") != projection["teacher_probability_or_score"]:
+            raise GateError(f"{case_id}: teacher distribution does not match the raw Jev answer")
         teacher_versions.add(row["teacher_model_version"])
     if len(teacher_versions) != 1:
         raise GateError(f"JD-LGBM-0 requires one immutable teacher model version; got {sorted(teacher_versions)}")
