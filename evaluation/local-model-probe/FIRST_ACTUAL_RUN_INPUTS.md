@@ -27,14 +27,15 @@ bash evaluation/local-model-probe/run_first_actual.sh
 
 launcherは次を順に行う。
 
-1. pinned llama.cpp archive / Qwen GGUFを未取得時だけdownload;
-2. runtime/model SHA-256を起動前に検証;
-3. llama-serverをdedicated processとして起動;
-4. health readyを待機;
-5. runtime PID / metrics / props / model-file identityを付けて`modelmatrix --stream`を実行;
-6. matrix JSONとserver logをrun ID固有名で保存;
-7. matrix/logのSHA-256 sidecarを生成;
-8. 終了時にruntime processをcleanup.
+1. repository HEADを取得し、working tree / index / untracked sourceがcleanであることを確認;
+2. pinned llama.cpp archive / Qwen GGUFを未取得時だけdownload;
+3. runtime/model SHA-256を起動前に検証;
+4. llama-serverをdedicated processとして起動;
+5. health readyを待機;
+6. runtime PID / metrics / props / model-file identityを付けて`modelmatrix --stream`を実行;
+7. matrix JSONとserver logをrun ID固有名で保存;
+8. matrix/logのSHA-256 sidecarを生成;
+9. 終了時にruntime processをcleanup.
 
 既定のwork directoryはrepository rootの `.local-model-run/qwen35-08-q4-0` で、Git管理対象外とする。
 
@@ -78,6 +79,8 @@ bash evaluation/local-model-probe/run_first_actual.sh
 `RUNTIME_BINARY_SHA256` 未指定の事前配置runtimeは、binary identityを観測できても既定pinned runtime archive由来とは主張しない。
 
 既定archive経路だけがUbuntu/Linux x86_64 assetに固定される。事前配置runtime経路ではlauncherがarchive architectureを仮定しないが、current model mapping / RSS Evidenceを最大限取得するにはLinuxを推奨する。
+
+launcherはdirty sourceをdownload / server起動より前に拒否する。pre-provisioned model/runtimeをrepository内に置く場合は、Git ignore対象の `.local-model-run/` などを使い、untracked source状態を作らない。
 
 launcher自体はdownload成功やinference成功を保証しない。current ChatGPT execution environmentではGo 1.23.2のため、network取得前にGo 1.25 gateで停止することを確認している。
 

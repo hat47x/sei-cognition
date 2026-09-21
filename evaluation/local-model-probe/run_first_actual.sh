@@ -82,6 +82,14 @@ require_command awk
 require_command git
 require_command go
 
+SOURCE_GIT_SHA="$(git -C "$REPO_ROOT" rev-parse HEAD)"
+SOURCE_STATUS="$(git -C "$REPO_ROOT" status --porcelain=v1 --untracked-files=all)"
+if [[ -n "$SOURCE_STATUS" ]]; then
+  echo "working tree is not clean; refusing an ambiguous exact-source run" >&2
+  printf '%s\n' "$SOURCE_STATUS" | head -n 20 >&2
+  exit 2
+fi
+
 GO_VERSION="$(go env GOVERSION)"
 GO_VERSION_NUM="${GO_VERSION#go}"
 GO_MAJOR="${GO_VERSION_NUM%%.*}"
@@ -156,8 +164,6 @@ fi
 verify_sha256 "$MODEL_SHA256" "$MODEL_FILE"
 
 RUNTIME_BINARY_OBSERVED_SHA256="$(sha256sum "$LLAMA_SERVER" | awk '{print $1}')"
-
-SOURCE_GIT_SHA="$(git -C "$REPO_ROOT" rev-parse HEAD)"
 
 if [[ "$OUTPUT" == "$SERVER_LOG" ||
       "$OUTPUT" == "$EVIDENCE_DIGESTS" ||

@@ -6,8 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"os/exec"
-	"strings"
 	"time"
 
 	"github.com/hat47x/sei-cognition/evaluation/sparse-associative-cognition/prototype-go/cognitiveeval"
@@ -100,19 +98,7 @@ func main() {
 }
 
 func resolveSourceGitSHA(expected string) (string, error) {
-	output, err := exec.Command("git", "rev-parse", "HEAD").Output()
-	if err != nil {
-		return "", fmt.Errorf("git rev-parse HEAD: %w", err)
-	}
-	actual := strings.TrimSpace(string(output))
-	if err := modelprobe.ValidateRunIdentity("source-head-check", actual); err != nil {
-		return "", fmt.Errorf("current git HEAD is not a valid source identity: %w", err)
-	}
-	expected = strings.TrimSpace(expected)
-	if expected != "" && expected != actual {
-		return "", fmt.Errorf("source Git SHA mismatch: expected %s, current HEAD is %s", expected, actual)
-	}
-	return actual, nil
+	return modelprobe.ResolveExactSourceGitSHA(expected)
 }
 
 func selectFixtures(id string) []cognitiveeval.Fixture {

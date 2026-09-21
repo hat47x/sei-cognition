@@ -11,7 +11,7 @@ import (
 
 func main() {
 	runID := flag.String("run-id", "", "stable run identity shared with actual telemetry")
-	sourceGitSHA := flag.String("source-git-sha", "", "exact lowercase 40-character source Git SHA")
+	sourceGitSHA := flag.String("source-git-sha", "", "expected exact source Git SHA; run identity also requires a clean working tree")
 	endpoint := flag.String("endpoint", "http://127.0.0.1:8080/health", "runtime health endpoint")
 	runtimeName := flag.String("runtime", "", "runtime name")
 	runtimeVersion := flag.String("runtime-version", "", "runtime version")
@@ -30,8 +30,15 @@ func main() {
 		fmt.Fprintln(os.Stderr, "--run-id and --source-git-sha must be supplied together")
 		os.Exit(2)
 	}
+	resolvedSourceGitSHA := ""
 	if *runID != "" {
 		if err := modelprobe.ValidateRunIdentity(*runID, *sourceGitSHA); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(2)
+		}
+		var err error
+		resolvedSourceGitSHA, err = modelprobe.ResolveExactSourceGitSHA(*sourceGitSHA)
+		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(2)
 		}
@@ -45,7 +52,7 @@ func main() {
 
 	m := modelprobe.Preflight(context.Background(), *endpoint, nil)
 	m.RunID = *runID
-	m.SourceGitSHA = *sourceGitSHA
+	m.SourceGitSHA = resolvedSourceGitSHA
 	m.RuntimeName = *runtimeName
 	m.RuntimeVersion = *runtimeVersion
 	m.RuntimeProcess = modelprobe.ObserveRuntimeProcessIdentity(*runtimePID)

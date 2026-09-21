@@ -177,6 +177,16 @@ Issue #375では少なくとも次を比較する。
 
 具体的なfirst candidatesは[`MODEL_MATRIX.md`](./MODEL_MATRIX.md)を参照する。
 
+### Exact source identity
+
+actual-run artifactで `source_git_sha` を記録する場合、current HEAD一致だけではなくclean working treeを要求する。tracked/staged/untracked changeがある状態では、同じSHAに異なる実行sourceが対応し得るためrunを開始しない。Git ignore対象のrun cacheはこの判定から除外される。
+
+```text
+HEAD match
+  != exact source
+unless working tree is clean
+```
+
 ### First-run evidence retention
 
 `run_first_actual.sh` はmatrix outputだけでなくserver logもrun ID固有名で保存し、両fileのSHA-256 sidecarを生成する。既存matrix/log/digest fileは上書きせず、3 output pathの衝突も拒否する。`modelmatrix` がnon-zeroでも生成済みartifact/logのdigestを保存してから元のexit codeを返す。

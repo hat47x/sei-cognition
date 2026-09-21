@@ -22,7 +22,7 @@ func main() {
 	maxTokensFlag := flag.Int("max-tokens", 800, "maximum completion tokens")
 	streamFlag := flag.Bool("stream", false, "use OpenAI-compatible SSE streaming and measure first content-delta latency")
 	runIDFlag := flag.String("run-id", "", "stable run identity shared with preflight")
-	sourceGitSHAFlag := flag.String("source-git-sha", "", "exact lowercase 40-character source Git SHA")
+	sourceGitSHAFlag := flag.String("source-git-sha", "", "expected exact source Git SHA; artifact mode also requires a clean working tree")
 	telemetryJSONFlag := flag.String("telemetry-json", "", "write run-level actual invocation telemetry to a new JSON file")
 	runJSONFlag := flag.String("run-json", "", "write results plus telemetry as a new actual-run artifact JSON file")
 	flag.Parse()
@@ -38,12 +38,18 @@ func main() {
 	}
 
 	artifactMode := *telemetryJSONFlag != "" || *runJSONFlag != ""
+	resolvedSourceGitSHA := ""
 	if *dryRunFlag && artifactMode {
 		fatalf("--telemetry-json/--run-json are for actual inference and cannot be combined with --dry-run")
 	}
 	if artifactMode {
 		if err := modelprobe.ValidateRunIdentity(*runIDFlag, *sourceGitSHAFlag); err != nil {
 			fatalf("%v", err)
+		}
+		var err error
+		resolvedSourceGitSHA, err = modelprobe.ResolveExactSourceGitSHA(*sourceGitSHAFlag)
+		if err != nil {
+			fatalf("resolve source identity: %v", err)
 		}
 		if *telemetryJSONFlag != "" {
 			ensureNewOutput(*telemetryJSONFlag, "telemetry")
@@ -111,7 +117,7 @@ func main() {
 
 	summary, err := modelprobe.SummarizeActualTelemetry(
 		*runIDFlag,
-		*sourceGitSHAFlag,
+		resolvedSourceGitSHA,
 		*modelFlag,
 		mode,
 		fixtures,
