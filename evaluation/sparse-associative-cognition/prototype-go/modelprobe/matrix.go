@@ -19,6 +19,7 @@ type MatrixConfig struct {
 	RuntimeVersion string
 	RuntimePID     int
 	RuntimeMetricsEndpoint string
+	RuntimePropsEndpoint string
 	ModelFilePath string
 	ModelArtifact  ModelArtifactIdentity
 	Quantization   string
@@ -49,6 +50,7 @@ type ActualMatrixArtifact struct {
 	RuntimeProcess RuntimeProcessIdentity `json:"runtime_process"`
 	RuntimeMemory RuntimeMemoryEvidence `json:"runtime_memory"`
 	RuntimeMetrics RuntimeMetricsEvidence `json:"runtime_metrics"`
+	RuntimeProps RuntimePropsEvidence `json:"runtime_props"`
 	RuntimeModelMapping RuntimeModelMappingEvidence `json:"runtime_model_mapping"`
 	Failures     []MatrixFailure      `json:"failures,omitempty"`
 	Notes        []string             `json:"notes"`
@@ -95,6 +97,7 @@ func RunActualMatrix(
 		RuntimeProcess: ObserveRuntimeProcessIdentity(cfg.RuntimePID),
 		RuntimeMemory: newRuntimeMemoryEvidence(cfg.RuntimePID),
 		RuntimeMetrics: newRuntimeMetricsEvidence(cfg.RuntimeMetricsEndpoint),
+		RuntimeProps: RuntimePropsEvidence{Status: "not-requested"},
 		RuntimeModelMapping: RuntimeModelMappingEvidence{Status: "not-requested"},
 		Notes: []string{
 			"complete means the three probe modes executed without invocation errors and produced a descriptive comparison",
@@ -102,12 +105,14 @@ func RunActualMatrix(
 			"runtime process RSS is optional execution evidence; first-token latency, energy, and total system cost remain separate evidence",
 			"runtime_process hashes the executable behind /proc/<pid>/exe when --runtime-pid is available; it does not identify the loaded model bytes",
 			"runtime_metrics is optional runtime-specific observability; KV cache ratio/tokens are not KV memory bytes or model-weight memory",
+			"runtime_props is optional runtime-reported metadata; same-file correlation strengthens load evidence but does not prove parsing or semantic use",
 			"runtime_model_mapping correlates the hashed model file with Linux process mappings when both --runtime-pid and --model-file are available; it does not prove parsing, exclusive loading, or semantic use",
 			"model_artifact identifies operator-supplied local file bytes; it does not prove the runtime loaded those bytes",
 		},
 	}
 	matrix.RuntimeMemory.Observe("matrix-start", "")
 	matrix.RuntimeMetrics.Observe(ctx, "matrix-start", "", cfg.Probe.HTTPClient)
+	matrix.RuntimeProps = ObserveRuntimeProps(ctx, cfg.RuntimePropsEndpoint, cfg.ModelFilePath, cfg.Probe.HTTPClient)
 
 	modes := []Mode{ModeRaw, ModeWorkspace, ModeStaged}
 	artifacts := make(map[Mode]ActualRunArtifact, len(modes))
