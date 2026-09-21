@@ -248,8 +248,14 @@ def verify_evidence_chain(
         response_entry = response_by_case[case_id]
         if row.get("schema") != TEACHER_ROW_SCHEMA:
             raise GateError(f"{case_id}: unexpected teacher row schema")
+        qvalues = case.get("questions")
+        if not isinstance(qvalues, dict) or len(qvalues) != 1:
+            raise GateError(f"{case_id}: manifest must contain exactly one question")
+        question = next(iter(qvalues.values()))
+        qtype = question.get("type")
         expected_fields = {
             "task_id": case.get("task_id"),
+            "question_type": qtype,
             "feature_schema_version": case.get("feature_schema_version"),
             "task_schema_version": case.get("task_schema_version"),
             "source_provenance_class": case.get("source_provenance_class"),
@@ -265,6 +271,50 @@ def verify_evidence_chain(
         for field, expected in expected_fields.items():
             if row.get(field) != expected:
                 raise GateError(f"{case_id}: teacher row {field} breaks the evidence chain")
+        if "typed_output" not in row or "teacher_probability_or_score" not in row:
+            raise GateError(f"{case_id}: teacher row target/distribution is missing")
+        payload = row.get("teacher_probability_or_score")
+        if not isinstance(payload, dict):
+            raise GateError(f"{case_id}: teacher distribution must be an object")
+        target = row.get("typed_output")
+        if qtype == "noul":
+            if not is_real_number(target) or not 0.0 <= float(target) <= 1.0 or payload.get("p_yes") != target:
+                raise GateError(f"{case_id}: invalid Noul teacher target/distribution")
+        elif qtype == "choice":
+            criteria = question.get("criteria")
+            if not isinstance(criteria, dict) or target not in criteria:
+                raise GateError(f"{case_id}: invalid Choice teacher target")
+            probs = payload.get("probabilities")
+            confidence = payload.get("confidence")
+            if (
+                not isinstance(probs, dict)
+                or set(probs) != set(criteria)
+                or any(not is_real_number(v) or not 0.0 <= float(v) <= 1.0 for v in probs.values())
+                or abs(sum(float(v) for v in probs.values()) - 1.0) > 1e-6
+                or not is_real_number(confidence)
+                or not 0.0 <= float(confidence) <= 1.0
+            ):
+                raise GateError(f"{case_id}: invalid Choice teacher distribution")
+        elif qtype == "score":
+            criteria = question.get("criteria")
+            if not isinstance(criteria, list) or not 2 <= len(criteria) <= 10:
+                raise GateError(f"{case_id}: invalid Score task criteria")
+            probs = payload.get("probabilities")
+            confidence = payload.get("confidence")
+            if (
+                not is_real_number(target)
+                or not 0.0 <= float(target) <= len(criteria) - 1
+                or payload.get("score") != target
+                or not isinstance(probs, dict)
+                or set(probs) != {str(i) for i in range(len(criteria))}
+                or any(not is_real_number(v) or not 0.0 <= float(v) <= 1.0 for v in probs.values())
+                or abs(sum(float(v) for v in probs.values()) - 1.0) > 1e-6
+                or not is_real_number(confidence)
+                or not 0.0 <= float(confidence) <= 1.0
+            ):
+                raise GateError(f"{case_id}: invalid Score teacher target/distribution")
+        else:
+            raise GateError(f"{case_id}: unsupported question type: {qtype}")
         teacher_versions.add(row["teacher_model_version"])
     if len(teacher_versions) != 1:
         raise GateError(f"JD-LGBM-0 requires one immutable teacher model version; got {sorted(teacher_versions)}")
@@ -280,6 +330,7 @@ def verify_evidence_chain(
             raise GateError(f"{case_id}: unexpected student row schema")
         expected_fields = {
             "task_id": case.get("task_id"),
+            "question_type": teacher.get("question_type"),
             "feature_schema_version": case.get("feature_schema_version"),
             "task_schema_version": case.get("task_schema_version"),
             "split": case.get("split"),
@@ -310,7 +361,10 @@ def verify_evidence_chain(
         "lightgbm_training_performed": False,
     }
     for field, expected in expected_dataset.items():
-        if dataset.get(field) != expected:
+        if field == "lightgbm_training_performed":
+            if dataset.get(field) is not False:
+                raise GateError("student dataset manifest lightgbm_training_performed must be boolean false")
+        elif dataset.get(field) != expected:
             raise GateError(f"student dataset manifest {field} mismatch")
 
     return {
