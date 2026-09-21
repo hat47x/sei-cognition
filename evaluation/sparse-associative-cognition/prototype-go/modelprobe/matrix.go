@@ -18,6 +18,7 @@ type MatrixConfig struct {
 	RuntimeName    string
 	RuntimeVersion string
 	RuntimePID     int
+	RuntimeMetricsEndpoint string
 	ModelArtifact  ModelArtifactIdentity
 	Quantization   string
 	ContextSize    int
@@ -46,6 +47,7 @@ type ActualMatrixArtifact struct {
 	Comparison   *ActualRunComparison `json:"comparison,omitempty"`
 	RuntimeProcess RuntimeProcessIdentity `json:"runtime_process"`
 	RuntimeMemory RuntimeMemoryEvidence `json:"runtime_memory"`
+	RuntimeMetrics RuntimeMetricsEvidence `json:"runtime_metrics"`
 	Failures     []MatrixFailure      `json:"failures,omitempty"`
 	Notes        []string             `json:"notes"`
 }
@@ -90,15 +92,18 @@ func RunActualMatrix(
 		ModelArtifact: cfg.ModelArtifact,
 		RuntimeProcess: ObserveRuntimeProcessIdentity(cfg.RuntimePID),
 		RuntimeMemory: newRuntimeMemoryEvidence(cfg.RuntimePID),
+		RuntimeMetrics: newRuntimeMetricsEvidence(cfg.RuntimeMetricsEndpoint),
 		Notes: []string{
 			"complete means the three probe modes executed without invocation errors and produced a descriptive comparison",
 			"complete does not mean task success, human adjudication, model adoption, or Product Value",
 			"runtime process RSS is optional execution evidence; first-token latency, energy, and total system cost remain separate evidence",
 			"runtime_process hashes the executable behind /proc/<pid>/exe when --runtime-pid is available; it does not identify the loaded model bytes",
+			"runtime_metrics is optional runtime-specific observability; KV cache ratio/tokens are not KV memory bytes or model-weight memory",
 			"model_artifact identifies operator-supplied local file bytes; it does not prove the runtime loaded those bytes",
 		},
 	}
 	matrix.RuntimeMemory.Observe("matrix-start", "")
+	matrix.RuntimeMetrics.Observe(ctx, "matrix-start", "", cfg.Probe.HTTPClient)
 
 	modes := []Mode{ModeRaw, ModeWorkspace, ModeStaged}
 	artifacts := make(map[Mode]ActualRunArtifact, len(modes))
@@ -121,6 +126,7 @@ func RunActualMatrix(
 
 		if !preflightReady(preflight) {
 			matrix.RuntimeMemory.Observe("blocked-preflight", mode)
+			matrix.RuntimeMetrics.Observe(ctx, "blocked-preflight", mode, cfg.Probe.HTTPClient)
 			matrix.Status = "blocked-preflight"
 			matrix.Failures = append(matrix.Failures, MatrixFailure{
 				Mode:      mode,
@@ -145,6 +151,7 @@ func RunActualMatrix(
 			matrix.Staged = &artifact
 		}
 		matrix.RuntimeMemory.Observe("after-"+string(mode), mode)
+		matrix.RuntimeMetrics.Observe(ctx, "after-"+string(mode), mode, cfg.Probe.HTTPClient)
 	}
 
 	if len(matrix.Failures) > 0 {
