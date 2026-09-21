@@ -27,6 +27,7 @@ same fixture
 - runtime endpoint readiness / HTTP status / latency
 - runtime name / version
 - `--runtime-pid`指定時の実行中runtime executable basename / size / SHA-256
+- `--runtime-metrics-endpoint`指定時のruntime-specific metrics samples
 - model identifier
 - operator-supplied local model artifactのfile name / size / SHA-256（`--model-file`指定時）
 - quantization
@@ -219,6 +220,20 @@ Linuxでruntime server PIDが分かる場合は `modelmatrix --runtime-pid <pid>
 ```text
 runtime process executable identity
   != model-load attestation
+```
+
+### 5.7 runtime-specific metrics
+
+`modelmatrix --runtime-metrics-endpoint <url>` はoptionalなPrometheus text endpointをmatrix開始時と各mode後にsampleする。llama.cppの場合は `llama-server --metrics` の `/metrics` を利用できる。
+
+保存対象はprompt/generation累積token数、KV cache usage ratio / token count、context token high-water markのうちendpointが公開した値だけである。endpoint failureは `unavailable` / `partial` として保存し、matrixのtransport/evaluator statusとは分離する。
+
+```text
+KV cache token count / usage ratio
+  != KV cache memory bytes
+
+runtime metrics available
+  != memory acceptance
 ```
 
 ```text

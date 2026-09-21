@@ -200,6 +200,7 @@ Issue #375では少なくとも次を比較する。
 - `--stream`時のfirst-token latency（最初の非空content delta受信時刻を操作的定義とする）
 - Linux `--runtime-pid`指定時のruntime process RSS / peak RSS
 - Linux `--runtime-pid`指定時の実行中runtime executable basename / size / SHA-256（`/proc/<pid>/exe`）
+- `--runtime-metrics-endpoint`指定時のruntime-specific Prometheus metrics（llama.cppではprompt/generation累積tokens、KV cache usage ratio / tokens、context token high-water mark）
 - `--model-file`指定時のlocal model artifact file name / size / SHA-256
 
 まだ取得しないもの:
@@ -209,7 +210,7 @@ Issue #375では少なくとも次を比較する。
 - GPU VRAM
 - energy
 
-これらはruntime-specific probeとして後続する。
+model weight単独memory、KV cache単独memory bytes、GPU VRAM、energyは引き続き未取得である。KV cache usage ratio / token countを取得できても、bytesへ換算してこれらを取得済みとは扱わない。
 
 ### Streaming latency
 
@@ -255,6 +256,31 @@ PID未指定は `not-requested`、非Linuxは `unsupported`、読取不能は `u
 runtime executable SHA-256
   != loaded model identity
 ```
+
+### Runtime-specific metrics
+
+`modelmatrix --runtime-metrics-endpoint <url>` を指定すると、matrix開始時と各mode後にPrometheus text endpointを補助Evidenceとしてsampleする。llama.cppではserverを `--metrics` 付きで起動し `/metrics` を指定できる。
+
+collectorは次の既知metricだけを保存する。
+
+- `llamacpp:prompt_tokens_total`;
+- `llamacpp:tokens_predicted_total`;
+- `llamacpp:kv_cache_usage_ratio`;
+- `llamacpp:kv_cache_tokens`;
+- `llamacpp:n_tokens_max`.
+
+endpoint未指定は `not-requested`、取得不能や非2xxは `unavailable`、途中から失敗した場合は `partial` とし、0値を観測値として捏造しない。metrics Evidenceの失敗だけでtransport/evaluator matrixを失敗扱いにはしない。
+
+```text
+runtime metric token counter
+  != provider usage telemetry
+
+KV cache usage ratio / tokens
+  != KV cache memory bytes
+  != model weight memory
+```
+
+shared runtimeに別requestが混ざれば累積counterへ混入するため、dedicated processを推奨する。
 
 ## 8.1 run artifact / comparison
 

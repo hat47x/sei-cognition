@@ -257,6 +257,7 @@ model × fixture × modeごとに:
 runtime側で別途:
 - runtime executable basename / size / SHA-256（PID利用可能時）
 - runtime process RSS / peak RSS
+- runtime-specific prompt/generation token counters、KV cache usage ratio / tokens、context token high-water mark（利用可能時）
 - model load memory
 - VRAM
 - idle memory
@@ -283,6 +284,13 @@ process RSS evidence
   != model weight memory
   != KV cache memory
   != GPU VRAM
+```
+
+llama.cpp等がPrometheus metricsを提供する場合は補助的にKV cache usage ratio / token countをsampleできるが、これはKV cache bytesの実測ではない。
+
+```text
+KV cache usage ratio / tokens
+  != KV cache memory bytes
 ```
 
 同じruntime processを複数実験で再利用すると `VmHWM` は過去のhigh-water markを保持する。model間比較ではdedicated processを起動し直すか、この制約を明記する。
