@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"runtime"
+	"strconv"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -98,6 +99,9 @@ func TestRunActualMatrixCompletesThreeModes(t *testing.T) {
 	}
 	if matrix.RuntimeProcess.Status != "not-requested" {
 		t.Fatalf("runtime process status=%q want=not-requested", matrix.RuntimeProcess.Status)
+	}
+	if matrix.RuntimeMetrics.Status != "not-requested" {
+		t.Fatalf("runtime metrics status=%q want=not-requested", matrix.RuntimeMetrics.Status)
 	}
 }
 
@@ -351,5 +355,82 @@ func TestRunActualMatrixRejectsMalformedModelArtifact(t *testing.T) {
 	)
 	if err == nil {
 		t.Fatal("expected malformed model artifact rejection")
+	}
+}
+
+
+func TestRunActualMatrixRecordsRuntimeMetricsWhenRequested(t *testing.T) {
+	var chatCalls int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/health":
+			w.WriteHeader(http.StatusOK)
+		case "/metrics":
+			calls := atomic.LoadInt32(&chatCalls)
+			w.Header().Set("Content-Type", "text/plain")
+			_, _ = w.Write([]byte(
+				"llamacpp:prompt_tokens_total " + strconv.FormatInt(int64(calls*2), 10) + "\n" +
+					"llamacpp:tokens_predicted_total " + strconv.FormatInt(int64(calls), 10) + "\n" +
+					"llamacpp:kv_cache_usage_ratio 0.25\n" +
+					"llamacpp:kv_cache_tokens 64\n" +
+					"llamacpp:n_tokens_max 128\n",
+			))
+		case "/v1/chat/completions":
+			atomic.AddInt32(&chatCalls, 1)
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"choices": []any{map[string]any{
+					"message": map[string]any{
+						"content": `{"proposal":"bounded candidate","need_more_evidence":false}`,
+					},
+				}},
+				"usage": map[string]any{
+					"prompt_tokens":     2,
+					"completion_tokens": 1,
+					"total_tokens":      3,
+				},
+			})
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	matrix, err := RunActualMatrix(
+		context.Background(),
+		MatrixConfig{
+			RunIDPrefix:           "matrix-runtime-metrics",
+			SourceGitSHA:          artifactTestGitSHA,
+			HealthEndpoint:        server.URL + "/health",
+			RuntimeMetricsEndpoint: server.URL + "/metrics",
+			Timeout:               2 * time.Second,
+			Probe: Config{
+				Endpoint:   server.URL + "/v1/chat/completions",
+				Model:      "fake-model",
+				HTTPClient: server.Client(),
+			},
+		},
+		cognitiveeval.ReferenceFixtures()[:1],
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if matrix.Status != "complete" {
+		t.Fatalf("status=%q want=complete", matrix.Status)
+	}
+	if matrix.RuntimeMetrics.Status != "observed" {
+		t.Fatalf("runtime metrics status=%q want=observed: %+v", matrix.RuntimeMetrics.Status, matrix.RuntimeMetrics)
+	}
+	if len(matrix.RuntimeMetrics.Samples) != 4 {
+		t.Fatalf("runtime metrics samples=%d want=4", len(matrix.RuntimeMetrics.Samples))
+	}
+	for _, sample := range matrix.RuntimeMetrics.Samples {
+		if sample.PromptTokensTotal == nil ||
+			sample.TokensPredictedTotal == nil ||
+			sample.KVCacheUsageRatio == nil ||
+			sample.KVCacheTokens == nil ||
+			sample.ContextTokensMax == nil {
+			t.Fatalf("runtime metrics sample is incomplete: %+v", sample)
+		}
 	}
 }
