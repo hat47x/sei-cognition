@@ -82,3 +82,23 @@ func TestObserveRuntimeModelMappingNotObserved(t *testing.T) {
 		t.Fatalf("mapping_count=%d want=0", evidence.MappingCount)
 	}
 }
+
+
+func TestObserveRuntimeModelMappingUnavailablePID(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		t.Skip("Linux /proc test")
+	}
+
+	path := filepath.Join(t.TempDir(), "candidate.gguf")
+	if err := os.WriteFile(path, []byte("candidate"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	evidence := ObserveRuntimeModelMapping(1<<30, path)
+	if evidence.Status != "unavailable" {
+		t.Fatalf("status=%q want=unavailable: %+v", evidence.Status, evidence)
+	}
+	if evidence.MappingCount != 0 || evidence.Error == "" {
+		t.Fatalf("unavailable PID must not invent mapping evidence: %+v", evidence)
+	}
+}
