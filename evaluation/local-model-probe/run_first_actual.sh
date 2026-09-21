@@ -270,14 +270,18 @@ set -e
 {
   printf '# modelmatrix_exit_code=%d\n' "$MATRIX_EXIT_CODE"
   if [[ -f "$OUTPUT" ]]; then
+    MATRIX_BASENAME="$(basename "$OUTPUT")"
     MATRIX_SHA256="$(sha256sum "$OUTPUT" | awk '{print $1}')"
-    printf '%s  %s\n' "$MATRIX_SHA256" "$(basename "$OUTPUT")"
+    printf '# matrix_file=%s\n' "$MATRIX_BASENAME"
+    printf '%s  %s\n' "$MATRIX_SHA256" "$MATRIX_BASENAME"
   else
     printf '# matrix_artifact=not-created\n'
   fi
   if [[ -f "$SERVER_LOG" ]]; then
+    SERVER_LOG_BASENAME="$(basename "$SERVER_LOG")"
     SERVER_LOG_SHA256="$(sha256sum "$SERVER_LOG" | awk '{print $1}')"
-    printf '%s  %s\n' "$SERVER_LOG_SHA256" "$(basename "$SERVER_LOG")"
+    printf '# server_log_file=%s\n' "$SERVER_LOG_BASENAME"
+    printf '%s  %s\n' "$SERVER_LOG_SHA256" "$SERVER_LOG_BASENAME"
   else
     printf '# server_log=not-created\n'
   fi
