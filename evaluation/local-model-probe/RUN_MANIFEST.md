@@ -22,7 +22,7 @@ same fixture
 - observed_at
 - execution_kind (`preflight` / 後続actual run)
 - `run_id` — preflightとactual telemetryを結ぶ実験単位ID
-- `source_git_sha` — 実行sourceのexact 40-char Git SHA
+- `source_git_sha` — **clean working tree**のcurrent HEADに一致するexact 40-char Git SHA
 - host OS / arch / logical CPU / Go version
 - runtime endpoint readiness / HTTP status / latency
 - runtime name / version
@@ -155,9 +155,22 @@ raw / workspace / staged artifactの比較は`cmd/modelcompare`を使う。比�
 
 標準matrix入口では、source identityをcurrent Git HEADから実測する。`--source-git-sha`は任意の記録値ではなくexpected SHAとして扱い、指定時は`git rev-parse HEAD`との完全一致を要求する。未指定時はcurrent HEADを採用する。
 
+さらに `git status --porcelain=v1 --untracked-files=all` が空であることを必須とする。tracked modification、staged change、untracked fileのいずれかがあれば、同じHEAD SHAから実行source bytesを一意に復元できないためinference前にfail-closedする。Git ignore対象の生成物はdirty sourceとは扱わない。
+
+同じhelperを `modelmatrix`、artifact出力を行う `modelprobe`、run identity付き `modelpreflight` で共用する。
+
 `--model-file`を指定した場合、matrix開始前にファイルを一度だけ読み、SHA-256とsizeを固定する。同じidentityをmatrix本体と3 modeのpreflightへ保存する。`--expected-model-sha256`を併用した場合は不一致をinference前にfail-closedとする。保存するpath情報はbasenameだけで、環境固有の絶対pathはEvidenceへ持ち込まない。
 
 ただし、このidentityはoperatorが実験入力として指定したlocal fileのexact bytesを示すものであり、runtime内部が実際にそのbytesをloadしたことをattestするものではない。
+
+```text
+HEAD SHA recorded
+  + dirty worktree
+  != exact source identity
+
+clean HEAD
+  != successful inference
+```
 
 ```text
 model artifact SHA-256 match
