@@ -19,6 +19,7 @@ type MatrixConfig struct {
 	RuntimeVersion string
 	RuntimePID     int
 	RuntimeMetricsEndpoint string
+	ModelFilePath string
 	ModelArtifact  ModelArtifactIdentity
 	Quantization   string
 	ContextSize    int
@@ -48,6 +49,7 @@ type ActualMatrixArtifact struct {
 	RuntimeProcess RuntimeProcessIdentity `json:"runtime_process"`
 	RuntimeMemory RuntimeMemoryEvidence `json:"runtime_memory"`
 	RuntimeMetrics RuntimeMetricsEvidence `json:"runtime_metrics"`
+	RuntimeModelMapping RuntimeModelMappingEvidence `json:"runtime_model_mapping"`
 	Failures     []MatrixFailure      `json:"failures,omitempty"`
 	Notes        []string             `json:"notes"`
 }
@@ -93,12 +95,14 @@ func RunActualMatrix(
 		RuntimeProcess: ObserveRuntimeProcessIdentity(cfg.RuntimePID),
 		RuntimeMemory: newRuntimeMemoryEvidence(cfg.RuntimePID),
 		RuntimeMetrics: newRuntimeMetricsEvidence(cfg.RuntimeMetricsEndpoint),
+		RuntimeModelMapping: RuntimeModelMappingEvidence{Status: "not-requested"},
 		Notes: []string{
 			"complete means the three probe modes executed without invocation errors and produced a descriptive comparison",
 			"complete does not mean task success, human adjudication, model adoption, or Product Value",
 			"runtime process RSS is optional execution evidence; first-token latency, energy, and total system cost remain separate evidence",
 			"runtime_process hashes the executable behind /proc/<pid>/exe when --runtime-pid is available; it does not identify the loaded model bytes",
 			"runtime_metrics is optional runtime-specific observability; KV cache ratio/tokens are not KV memory bytes or model-weight memory",
+			"runtime_model_mapping correlates the hashed model file with Linux process mappings when both --runtime-pid and --model-file are available; it does not prove parsing, exclusive loading, or semantic use",
 			"model_artifact identifies operator-supplied local file bytes; it does not prove the runtime loaded those bytes",
 		},
 	}
@@ -123,6 +127,9 @@ func RunActualMatrix(
 		preflight.Fixture = "all"
 		preflight.Mode = mode
 		matrix.Preflights = append(matrix.Preflights, preflight)
+		if matrix.RuntimeModelMapping.Status == "not-requested" && cfg.RuntimePID > 0 && strings.TrimSpace(cfg.ModelFilePath) != "" {
+			matrix.RuntimeModelMapping = ObserveRuntimeModelMapping(cfg.RuntimePID, cfg.ModelFilePath)
+		}
 
 		if !preflightReady(preflight) {
 			matrix.RuntimeMemory.Observe("blocked-preflight", mode)
