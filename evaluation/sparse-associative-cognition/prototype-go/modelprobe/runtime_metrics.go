@@ -53,7 +53,9 @@ func (e *RuntimeMetricsEvidence) Observe(
 		client = http.DefaultClient
 	}
 
-	request, err := http.NewRequestWithContext(ctx, http.MethodGet, e.Endpoint, nil)
+	requestCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	request, err := http.NewRequestWithContext(requestCtx, http.MethodGet, e.Endpoint, nil)
 	if err != nil {
 		e.recordRuntimeMetricsError(stage, err)
 		return
