@@ -75,6 +75,17 @@ require_command find
 require_command git
 require_command go
 
+GO_VERSION="$(go env GOVERSION)"
+GO_VERSION_NUM="${GO_VERSION#go}"
+GO_MAJOR="${GO_VERSION_NUM%%.*}"
+GO_MINOR_REST="${GO_VERSION_NUM#*.}"
+GO_MINOR="${GO_MINOR_REST%%.*}"
+if [[ ! "$GO_MAJOR" =~ ^[0-9]+$ || ! "$GO_MINOR" =~ ^[0-9]+$ ]] ||
+   (( GO_MAJOR < 1 || (GO_MAJOR == 1 && GO_MINOR < 25) )); then
+  echo "Go 1.25 or newer is required for the canonical probe module; observed: $GO_VERSION" >&2
+  exit 2
+fi
+
 mkdir -p "$WORK_DIR"
 
 download_if_missing "$RUNTIME_URL" "$RUNTIME_ARCHIVE"
