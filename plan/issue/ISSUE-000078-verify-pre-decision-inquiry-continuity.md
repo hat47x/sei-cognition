@@ -179,6 +179,38 @@ C. SEI canonical meaning + derived resume Projection
 
 を観測する。
 
+#### E78.2 / E78.4 / E78.5 exact execution-input binding — 2026-09-22
+
+human reviewを開始する前のrepository-local mechanics gateについて、正規入口 `inquiry_continuity_review_runner.py` とそのimport closure、focused tests、matched-set manifest、3 source fixtureをexact sourceへ固定した。
+
+bindingは次である。
+
+```text
+evaluation/personal-inquiry-decision/evidence/issue-000078/
+  e78_matched_review_execution_input_binding_2026-09-22.json
+```
+
+- exact source commit: `1de126f6cddea9eac4cef2c5aaeb89b044f1f89b`
+- binding Git blob SHA-1: `90178c356b7a1eea0f5a4a36230cf65efebc49b6`
+- bound files: 15
+- execution tracking: GitHub Issue #576
+
+15 filesは、canonical runner / import closure 7、focused tests 4、matched-set manifest 1、source fixtures 3で構成する。actual Python executionでは、15 / 15 Git blob SHA-1 exact一致を確認した後だけfocused testsへ進む。
+
+このbinding自体はPASSを意味しない。
+
+```text
+exact-source binding
+  != matched-review local mechanics PASS
+  != human review result
+  != actual long-gap Evidence
+  != actual team handoff
+  != Product Value decision
+  != Stable Requirement authorization
+```
+
+human responseそのものをAI生成してhuman reviewとして記録しない。local mechanics PASSがactualに固定されるまではhuman review開始条件を満たしたと扱わない。
+
 ### E78.3 — AI summary distortion
 
 AIにInquiry summaryとnext question候補を生成させる。
