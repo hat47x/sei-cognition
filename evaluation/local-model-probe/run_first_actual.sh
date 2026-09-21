@@ -2,6 +2,7 @@
 set -euo pipefail
 
 RUNTIME_TAG="${RUNTIME_TAG:-b10964}"
+RUNTIME_VERSION="${RUNTIME_VERSION:-${RUNTIME_TAG}}"
 RUNTIME_ARCHIVE_NAME="${RUNTIME_ARCHIVE_NAME:-llama-b10964-bin-ubuntu-x64.tar.gz}"
 RUNTIME_SHA256="${RUNTIME_SHA256:-9abf88aea48a55d0f80edb1ee20220b186848cca0b4e919d71518cfd7ca67443}"
 RUNTIME_URL="${RUNTIME_URL:-https://github.com/ggml-org/llama.cpp/releases/download/${RUNTIME_TAG}/${RUNTIME_ARCHIVE_NAME}}"
@@ -12,6 +13,7 @@ MODEL_NAME="${MODEL_NAME:-Qwen3.5-0.8B-Q4_0.gguf}"
 MODEL_SHA256="${MODEL_SHA256:-57d1997790d1744fba5b40a7317df71ea5e2acee28c47e78f0cce39c0703f8cf}"
 MODEL_URL="${MODEL_URL:-https://huggingface.co/ggml-org/Qwen3.5-0.8B-GGUF/resolve/main/${MODEL_NAME}?download=true}"
 MODEL_ALIAS="${MODEL_ALIAS:-qwen35-0.8b-q4_0}"
+QUANTIZATION="${QUANTIZATION:-Q4_0}"
 MODEL_FILE_PATH="${MODEL_FILE_PATH:-}"
 
 PORT="${PORT:-8080}"
@@ -163,6 +165,7 @@ fi
 
 echo "source_git_sha=$SOURCE_GIT_SHA"
 echo "runtime_source=$RUNTIME_SOURCE"
+echo "runtime_version=$RUNTIME_VERSION"
 echo "runtime_binary=$LLAMA_SERVER"
 echo "runtime_binary_observed_sha256=$RUNTIME_BINARY_OBSERVED_SHA256"
 if [[ "$RUNTIME_SOURCE" == "pinned-archive" ]]; then
@@ -171,6 +174,8 @@ elif [[ -z "$RUNTIME_BINARY_SHA256" ]]; then
   echo "runtime_binary_expected_sha256=not-supplied"
 fi
 echo "model_source=$MODEL_SOURCE"
+echo "model_alias=$MODEL_ALIAS"
+echo "quantization=$QUANTIZATION"
 echo "model_file=$MODEL_FILE"
 echo "model_sha256=$MODEL_SHA256"
 echo "work_dir=$WORK_DIR"
@@ -219,14 +224,14 @@ fi
     --health-endpoint "$HEALTH_URL" \
     --endpoint "$CHAT_URL" \
     --runtime llama.cpp \
-    --runtime-version "$RUNTIME_TAG" \
+    --runtime-version "$RUNTIME_VERSION" \
     --runtime-pid "$RUNTIME_PID" \
     --runtime-metrics-endpoint "$METRICS_URL" \
     --runtime-props-endpoint "$PROPS_URL" \
     --model "$MODEL_ALIAS" \
     --model-file "$MODEL_FILE" \
     --expected-model-sha256 "$MODEL_SHA256" \
-    --quantization Q4_0 \
+    --quantization "$QUANTIZATION" \
     --context-size "$CONTEXT_SIZE" \
     --threads "$THREADS" \
     --max-tokens "$MAX_TOKENS" \
