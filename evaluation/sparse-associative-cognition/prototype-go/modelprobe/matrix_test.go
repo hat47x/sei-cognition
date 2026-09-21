@@ -96,6 +96,9 @@ func TestRunActualMatrixCompletesThreeModes(t *testing.T) {
 	if matrix.RuntimeMemory.Status != "not-requested" {
 		t.Fatalf("runtime memory status=%q want=not-requested", matrix.RuntimeMemory.Status)
 	}
+	if matrix.RuntimeProcess.Status != "not-requested" {
+		t.Fatalf("runtime process status=%q want=not-requested", matrix.RuntimeProcess.Status)
+	}
 }
 
 func TestRunActualMatrixStopsOnBlockedPreflight(t *testing.T) {
@@ -275,6 +278,17 @@ func TestRunActualMatrixRecordsRuntimeMemoryWhenRequested(t *testing.T) {
 	}
 	if matrix.RuntimeMemory.MaxObservedRSSBytes == 0 || matrix.RuntimeMemory.PeakRSSBytes == 0 {
 		t.Fatalf("runtime memory summary must be non-zero: %+v", matrix.RuntimeMemory)
+	}
+	if matrix.RuntimeProcess.Status != "observed" {
+		t.Fatalf("runtime process status=%q want=observed: %+v", matrix.RuntimeProcess.Status, matrix.RuntimeProcess)
+	}
+	if matrix.RuntimeProcess.PID != os.Getpid() || matrix.RuntimeProcess.ExecutableName == "" || matrix.RuntimeProcess.SizeBytes <= 0 || len(matrix.RuntimeProcess.SHA256) != 64 {
+		t.Fatalf("runtime process identity must be populated: %+v", matrix.RuntimeProcess)
+	}
+	for _, preflight := range matrix.Preflights {
+		if preflight.RuntimeProcess.SHA256 != matrix.RuntimeProcess.SHA256 || preflight.RuntimeProcess.SizeBytes != matrix.RuntimeProcess.SizeBytes {
+			t.Fatalf("preflight runtime process identity mismatch: matrix=%+v preflight=%+v", matrix.RuntimeProcess, preflight.RuntimeProcess)
+		}
 	}
 }
 
