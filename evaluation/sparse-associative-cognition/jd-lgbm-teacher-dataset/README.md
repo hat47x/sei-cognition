@@ -64,11 +64,20 @@ An API key does not need to be copied into this execution environment. If the sa
 
 ```bash
 python3 teacher_dataset.py tasks.v1.json --mode import \
+  --capture-manifest trusted-capture-bundle/capture_manifest.json \
   --raw-dir trusted-capture/raw \
   --output-dir normalized-run
 ```
 
-Import mode requires all 12 case files, revalidates the returned Jev model version and typed probability/score shapes, and writes normalized rows with `teacher_latency_ms: null` because external capture latency was not observed by this harness.
+Import mode requires the exact capture manifest and all 12 case files. Before normalization it revalidates the bundle against the current `tasks.v1.json`, checks every frozen request file byte-for-byte, rejects missing/duplicate/unexpected raw JSON files, and revalidates the returned Jev model version and typed probability/score shapes.
+
+The normalized output contains:
+
+- `teacher_rows.jsonl`;
+- `raw_response_manifest.json`, which binds each case to its request SHA-256, exact raw-response file SHA-256, canonical response SHA-256, and returned immutable Jev model version;
+- a deterministic `raw_response_set_sha256` over the ordered response descriptors.
+
+External capture latency remains `null`; import does not invent latency that this harness did not observe. Raw-response completeness also does not prove that all rows use one teacher model version; the student-dataset readiness gate checks that separately.
 
 ## Student-dataset readiness gate
 
