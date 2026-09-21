@@ -6,9 +6,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"sync/atomic"
+	"syscall"
 	"testing"
 	"time"
 
@@ -102,6 +104,9 @@ func TestRunActualMatrixCompletesThreeModes(t *testing.T) {
 	}
 	if matrix.RuntimeMetrics.Status != "not-requested" {
 		t.Fatalf("runtime metrics status=%q want=not-requested", matrix.RuntimeMetrics.Status)
+	}
+	if matrix.RuntimeModelMapping.Status != "not-requested" {
+		t.Fatalf("runtime model mapping status=%q want=not-requested", matrix.RuntimeModelMapping.Status)
 	}
 }
 
@@ -432,5 +437,92 @@ func TestRunActualMatrixRecordsRuntimeMetricsWhenRequested(t *testing.T) {
 			sample.ContextTokensMax == nil {
 			t.Fatalf("runtime metrics sample is incomplete: %+v", sample)
 		}
+	}
+}
+
+
+func TestRunActualMatrixRecordsRuntimeModelMappingWhenRequested(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		t.Skip("Linux /proc test")
+	}
+
+	modelPath := filepath.Join(t.TempDir(), "candidate.gguf")
+	modelBytes := make([]byte, 4096)
+	modelBytes[0] = 1
+	if err := os.WriteFile(modelPath, modelBytes, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	modelFile, err := os.OpenFile(modelPath, os.O_RDWR, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer modelFile.Close()
+	mapped, err := syscall.Mmap(int(modelFile.Fd()), 0, len(modelBytes), syscall.PROT_READ, syscall.MAP_SHARED)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer syscall.Munmap(mapped)
+
+	identity, err := ObserveModelArtifact(modelPath, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/health":
+			w.WriteHeader(http.StatusOK)
+		case "/v1/chat/completions":
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"choices": []any{map[string]any{
+					"message": map[string]any{
+						"content": `{"proposal":"bounded candidate","need_more_evidence":false}`,
+					},
+				}},
+				"usage": map[string]any{
+					"prompt_tokens":     2,
+					"completion_tokens": 1,
+					"total_tokens":      3,
+				},
+			})
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	matrix, err := RunActualMatrix(
+		context.Background(),
+		MatrixConfig{
+			RunIDPrefix:    "matrix-model-mapping",
+			SourceGitSHA:   artifactTestGitSHA,
+			HealthEndpoint: server.URL + "/health",
+			RuntimePID:     os.Getpid(),
+			ModelFilePath:  modelPath,
+			ModelArtifact:  identity,
+			Timeout:        2 * time.Second,
+			Probe: Config{
+				Endpoint:   server.URL + "/v1/chat/completions",
+				Model:      "fake-model",
+				HTTPClient: server.Client(),
+			},
+		},
+		cognitiveeval.ReferenceFixtures()[:1],
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if matrix.Status != "complete" {
+		t.Fatalf("status=%q want=complete", matrix.Status)
+	}
+	if matrix.RuntimeModelMapping.Status != "observed" {
+		t.Fatalf("runtime model mapping status=%q want=observed: %+v", matrix.RuntimeModelMapping.Status, matrix.RuntimeModelMapping)
+	}
+	if matrix.RuntimeModelMapping.MappingCount < 1 {
+		t.Fatalf("mapping_count=%d want>=1", matrix.RuntimeModelMapping.MappingCount)
+	}
+	if matrix.RuntimeModelMapping.ModelFileName != identity.FileName {
+		t.Fatalf("model filename mismatch: mapping=%q identity=%q", matrix.RuntimeModelMapping.ModelFileName, identity.FileName)
 	}
 }

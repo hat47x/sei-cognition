@@ -70,6 +70,7 @@ func main() {
 			RuntimeVersion: *runtimeVersion,
 			RuntimePID:     *runtimePID,
 			RuntimeMetricsEndpoint: *runtimeMetricsEndpoint,
+			ModelFilePath: *modelFile,
 			ModelArtifact:  modelArtifact,
 			Quantization:   *quantization,
 			ContextSize:    *contextSize,
