@@ -531,6 +531,58 @@ reader assignmentは一人につき一rotationだけを原則とし、複数read
 
 さらに`run_inquiry_continuity_lifecycle_checks.py`をrepository-local mechanics gateとして追加した。probe / Evidence / runner focused testsとcanonical probe validateをsanitized environmentで実行し、probeとmechanics file digest、portable command、stdout/stderr digestを保存できる。result自己検証ではcanonical selected check / command / cwd、non-empty execution、全checkの同一timeout、timeout / launch-error metadata、first-failure stop prefix、launch error時の空stream、現在checkoutから再計算したcontractSnapshotとの完全一致まで確認し、summary表示前にも同じ検証を通す。local mechanics gateではOpenRouterを含む外部provider API keyを環境から除外し、外部モデルを使う検証は明示的なintegration testとして分離する。ただしrunner sourceの存在はPASSではなく、human reviewも依然**Not Yet Observed**、Universal status typeは**not-proposed**、Product Value / Stable Requirementも未成立のままである。
 
+
+## E78.7 local runtime checkpoint — 2026-09-21
+
+E78.7のrepository-local mechanics gateは、current `develop/v0.2.0` と一致する7ファイルを同一execution containerへmaterializeし、実行前に7/7全てのGit blob SHA-1がGitHub正本と完全一致することを確認したうえでactual実行した。実行直前に並行レーンで`develop/v0.2.0`が2コミット進んだが、差分は`evaluation/local-model-probe`と`evaluation/sparse-associative-cognition`に限定され、E78.7の7ファイルには重複しないことも確認した。
+
+実測結果は次のとおりである。
+
+```text
+bound lifecycle mechanics exact materialization
+  = 7 / 7
+
+lifecycle probe focused tests
+  = 15 / 15 PASS
+
+lifecycle Evidence focused tests
+  = 7 / 7 PASS
+
+lifecycle local runner focused tests
+  = 10 / 10 PASS
+
+canonical aggregate
+  = selected 4
+  = executed 4
+  = failed 0
+  = result ok
+
+canonical probe validate
+  = exit 0
+```
+
+validated result v1は次へdurable保存した。
+
+```text
+evaluation/personal-inquiry-decision/evidence/issue-000078/
+  e78_lifecycle_local_check_result_v1_2026-09-21.json
+```
+
+artifact identityは、schema `sei.inquiry-continuity-lifecycle-local-check-result/v1`、4,811 bytes、SHA-256 `59b170723ecf32ab049c0dee54b05c3cca924d08e622f06ab4639f4559b9a390`、Git blob SHA-1 `76e12cae3ed85da3cbbaac0a9415e989d3a75921`である。Python runtimeはCPython 3.13.5だった。
+
+したがってE78.7について、以前の「runner sourceは存在するがrepository上のactual PASSは未記録」という状態は解消した。ただし成立したEvidence高さは**repository-local mechanics PASS**までであり、human reviewは依然Not Yet Observedである。
+
+```text
+E78.7 local mechanics actual PASS
+  != human lifecycle comparison
+  != preferred lifecycle condition
+  != Product Value decision
+  != Universal Inquiry status authorization
+  != Stable Requirement authorization
+```
+
+特にA / B / Cのどれを採用すべきか、Product-local attention Projectionが実利用で価値を持つか、Universal status型が必要かについて、このmechanics resultから結論を出さない。次のEvidence段階はstage-gated human reviewであり、reader assignment / condition blinding / post-reveal auditの既存canonical pathをそのまま使う。別runnerや別Evidence schemaは追加しない。
+
 ### V1〜V8 / Decision Continuity coverage audit
 
 `inquiry_continuity_coverage_audit_2026-09-16.json`でcurrent V1〜V8 / Decision Continuityを再照合した。現段階の読みは、Observation / Hypothesis / Unknown等の既存semantic axisにはDecision前にも利用できるcoverageが広く存在する一方、Decisionが一度も成立していないInquiryのresumeをcross-axis Product Acceptanceとしてどこまで保証すべきか、またその価値をhuman comparisonで裏付けられるかが未確定、というものである。
