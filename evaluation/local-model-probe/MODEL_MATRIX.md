@@ -257,6 +257,7 @@ model × fixture × modeごとに:
 runtime側で別途:
 - runtime executable basename / size / SHA-256（PID利用可能時）
 - hash済みmodel fileのruntime process mapping correlation（Linux /proc利用可能時）
+- runtime-reported model path / aliasとsupplied fileのsame-file correlation（props endpoint利用可能時）
 - runtime process RSS / peak RSS
 - runtime-specific prompt/generation token counters、KV cache usage ratio / tokens、context token high-water mark（利用可能時）
 - model load memory
@@ -359,7 +360,7 @@ matrix runnerは次を自動化するが、model取得・runtime installは行�
 
 source provenanceについては、Git HEADの実測・照合をactual inferenceより前に行う。別revisionのprompt/evaluatorを同じmodel比較へ混ぜない。
 
-local model fileを直接指定できるruntimeでは `--model-file` でartifact bytesもSHA-256へ固定する。model名やquantization labelだけで別bytesを同一視しない。Linuxで `--runtime-pid` も指定した場合は、同じfile objectが `/proc/<pid>/maps` に存在するかも補助観測する。一方、digestやmapping correlationだけからruntimeがmodelを完全にparse・利用したとは推定しない。
+local model fileを直接指定できるruntimeでは `--model-file` でartifact bytesもSHA-256へ固定する。model名やquantization labelだけで別bytesを同一視しない。Linuxで `--runtime-pid` も指定した場合は、同じfile objectが `/proc/<pid>/maps` に存在するかも補助観測する。`--runtime-props-endpoint` が利用可能ならruntime自身が報告するmodel path / aliasも別Evidenceとして取得し、local filesystem上でsame-file照合できる場合は相関させる。一方、digest・mapping・props correlationだけからruntimeがmodelを完全にparse・利用したとは推定しない。
 
 - modeごとのpreflight;
 - 7 fixtureの実行;
