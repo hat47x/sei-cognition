@@ -17,6 +17,29 @@ pinned first-run input
   != production support matrix
 ```
 
+## 1.1 One-command launcher
+
+Linux x86_64 + Go 1.25以上の環境では、repository rootから次を実行できる。
+
+```bash
+bash evaluation/local-model-probe/run_first_actual.sh
+```
+
+launcherは次を順に行う。
+
+1. pinned llama.cpp archive / Qwen GGUFを未取得時だけdownload;
+2. runtime/model SHA-256を起動前に検証;
+3. llama-serverをdedicated processとして起動;
+4. health readyを待機;
+5. runtime PID / metrics / props / model-file identityを付けて`modelmatrix --stream`を実行;
+6. 終了時にruntime processをcleanup.
+
+既定のwork directoryはrepository rootの `.local-model-run/qwen35-08-q4-0` で、Git管理対象外とする。
+
+環境変数で `WORK_DIR` / `THREADS` / `PORT` / `RUN_ID_PREFIX` / `OUTPUT` / pinned URL等をoverrideできる。ただしdigestを変更した場合は、そのrunを既定pinned inputと同一視しない。
+
+launcher自体はdownload成功やinference成功を保証しない。current ChatGPT execution environmentではGo 1.23.2のため、network取得前にGo 1.25 gateで停止することを確認している。
+
 ## 2. Runtime candidate
 
 first CPU execution candidate:
