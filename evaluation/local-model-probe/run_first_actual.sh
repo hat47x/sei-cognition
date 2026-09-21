@@ -159,6 +159,13 @@ RUNTIME_BINARY_OBSERVED_SHA256="$(sha256sum "$LLAMA_SERVER" | awk '{print $1}')"
 
 SOURCE_GIT_SHA="$(git -C "$REPO_ROOT" rev-parse HEAD)"
 
+if [[ "$OUTPUT" == "$SERVER_LOG" ||
+      "$OUTPUT" == "$EVIDENCE_DIGESTS" ||
+      "$SERVER_LOG" == "$EVIDENCE_DIGESTS" ]]; then
+  echo "OUTPUT, SERVER_LOG, and EVIDENCE_DIGESTS must be distinct paths" >&2
+  exit 5
+fi
+
 for evidence_path in "$OUTPUT" "$SERVER_LOG" "$EVIDENCE_DIGESTS"; do
   if [[ -e "$evidence_path" ]]; then
     echo "evidence output already exists: $evidence_path" >&2
@@ -221,6 +228,7 @@ if ! curl --silent --show-error --fail "$HEALTH_URL" >/dev/null 2>&1; then
   exit 7
 fi
 
+set +e
 (
   cd "$PROBE_DIR"
   go run ./cmd/modelmatrix \
@@ -243,14 +251,31 @@ fi
     --stream \
     --output "$OUTPUT"
 )
+MATRIX_EXIT_CODE=$?
+set -e
 
-MATRIX_SHA256="$(sha256sum "$OUTPUT" | awk '{print $1}')"
-SERVER_LOG_SHA256="$(sha256sum "$SERVER_LOG" | awk '{print $1}')"
 {
-  printf '%s  matrix:%s\n' "$MATRIX_SHA256" "$(basename "$OUTPUT")"
-  printf '%s  server-log:%s\n' "$SERVER_LOG_SHA256" "$(basename "$SERVER_LOG")"
+  printf '# modelmatrix_exit_code=%d\n' "$MATRIX_EXIT_CODE"
+  if [[ -f "$OUTPUT" ]]; then
+    MATRIX_SHA256="$(sha256sum "$OUTPUT" | awk '{print $1}')"
+    printf '%s  matrix:%s\n' "$MATRIX_SHA256" "$(basename "$OUTPUT")"
+  else
+    printf '# matrix_artifact=not-created\n'
+  fi
+  if [[ -f "$SERVER_LOG" ]]; then
+    SERVER_LOG_SHA256="$(sha256sum "$SERVER_LOG" | awk '{print $1}')"
+    printf '%s  server-log:%s\n' "$SERVER_LOG_SHA256" "$(basename "$SERVER_LOG")"
+  else
+    printf '# server_log=not-created\n'
+  fi
 } >"$EVIDENCE_DIGESTS"
 
-echo "matrix artifact: $OUTPUT"
+if [[ -f "$OUTPUT" ]]; then
+  echo "matrix artifact: $OUTPUT"
+else
+  echo "matrix artifact: not created" >&2
+fi
 echo "server log: $SERVER_LOG"
 echo "evidence digests: $EVIDENCE_DIGESTS"
+
+exit "$MATRIX_EXIT_CODE"
