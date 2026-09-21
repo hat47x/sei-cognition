@@ -1,0 +1,127 @@
+{
+  "schema": "sei.inquiry-continuity-matched-review-execution-input-binding/v1",
+  "status": "evaluation-only",
+  "issue": "ISSUE-000078",
+  "experiment_scope": [
+    "E78.2",
+    "E78.4",
+    "E78.5"
+  ],
+  "purpose": "Freeze the canonical matched human-review mechanics, focused tests, matched-set manifest, and three synthetic source fixtures before repository-local execution. This binding does not record a human review result.",
+  "aggregation_branch": "develop/v0.2.0",
+  "exact_source_commit": "1de126f6cddea9eac4cef2c5aaeb89b044f1f89b",
+  "execution_entrypoint": "evaluation/personal-inquiry-decision/inquiry_continuity_review_runner.py",
+  "files": [
+    {
+      "path": "evaluation/personal-inquiry-decision/decision_continuity_preflight.py",
+      "git_blob_sha1": "8959e2c2370930ed9ffe354be19c2d09f59b670a",
+      "bytes": 8551,
+      "role": "import-closure"
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/decision_continuity_review_analysis.py",
+      "git_blob_sha1": "ca811be7a6d8ed818a37b26e2ccfbea33881cb2b",
+      "bytes": 16726,
+      "role": "import-closure"
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_packet.py",
+      "git_blob_sha1": "3ef4581bbde71ed4ee64d451c2c03492fa055698",
+      "bytes": 11621,
+      "role": "mechanics"
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/matched_review_session.py",
+      "git_blob_sha1": "b1e58d74ef905daf7bd22b8e81c62abceae3f2a7",
+      "bytes": 14241,
+      "role": "mechanics"
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_review_analysis.py",
+      "git_blob_sha1": "893503f7e835b932e5e35a05a4aaefe90798b359",
+      "bytes": 16782,
+      "role": "mechanics"
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_review_evidence.py",
+      "git_blob_sha1": "3f81d5041a4c6ad3ec25197b576623c2c1d555ef",
+      "bytes": 8031,
+      "role": "mechanics"
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_review_runner.py",
+      "git_blob_sha1": "738c3d91f04c3207809b47ce422e78bc38bd1de2",
+      "bytes": 19483,
+      "role": "canonical-entrypoint"
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/test_matched_review_session.py",
+      "git_blob_sha1": "6a37c465afa8fc2b4473e0177d0e435a7f05fc87",
+      "bytes": 7073,
+      "role": "focused-test"
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/test_inquiry_continuity_review_analysis.py",
+      "git_blob_sha1": "bafb2f03abd61836beba9021a37264b85ff9891d",
+      "bytes": 8558,
+      "role": "focused-test"
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/test_inquiry_continuity_review_evidence.py",
+      "git_blob_sha1": "ef93c37912fa6afe9c0ce904566e82d1655ebf97",
+      "bytes": 5036,
+      "role": "focused-test"
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/test_inquiry_continuity_review_runner.py",
+      "git_blob_sha1": "1530aa1f4d4274b08385eea0f03f44b9e65e54d2",
+      "bytes": 13952,
+      "role": "focused-test"
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_matched_set_v1.json",
+      "git_blob_sha1": "ca8d05c64ab3d106d54f8a30a68a89face9b683b",
+      "bytes": 5266,
+      "role": "matched-set-manifest"
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_001.json",
+      "git_blob_sha1": "52335589c72ab3548a29053a0acd4c287fbee85d",
+      "bytes": 15078,
+      "role": "source-fixture"
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_002.json",
+      "git_blob_sha1": "0c3f7caac753e1642e3ff3e8e40425bd7b0e0976",
+      "bytes": 12796,
+      "role": "source-fixture"
+    },
+    {
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_003.json",
+      "git_blob_sha1": "645519e1a502e844ca640ab0d61dfa438a46e8d2",
+      "bytes": 11843,
+      "role": "source-fixture"
+    }
+  ],
+  "acceptance": {
+    "require_same_source_commit": true,
+    "require_all_git_blob_sha1_exact": true,
+    "focused_tests": [
+      "test_matched_review_session.py",
+      "test_inquiry_continuity_review_analysis.py",
+      "test_inquiry_continuity_review_evidence.py",
+      "test_inquiry_continuity_review_runner.py"
+    ],
+    "human_review_may_start_only_after_local_mechanics_pass": true
+  },
+  "evidence_boundary": {
+    "local_mechanics_pass_observed": false,
+    "human_review_result_observed": false,
+    "actual_long_gap_resumption_established": false,
+    "actual_team_handoff_observed": false,
+    "product_value_established": false,
+    "stable_requirement_authorized": false
+  },
+  "stop_line": "exact-source binding != matched-review local mechanics PASS != human review result != actual long-gap Evidence != Product Value decision != Stable Requirement authorization",
+  "bound_on": "2026-09-22"
+}
