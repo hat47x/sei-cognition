@@ -1,0 +1,79 @@
+{
+  "schema": "sei.jd-lgbm0-raw-import-binding-evidence/v1alpha1",
+  "issue": 543,
+  "observedDateLocal": "2026-09-21",
+  "testedSource": {
+    "branch": "topic/jev-lightgbm-distillation",
+    "commit": "f4d2ae9dd708ee01090891ff3582e0366d9786fe",
+    "parent": "c1fdc9d43324b09639b22bb8413a72403f8881f9",
+    "parentAdvancePR": 564
+  },
+  "exactBlobIdentity": {
+    "verifier": "git hash-object",
+    "verifiedCount": 5,
+    "files": {
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/teacher_dataset.py": "e7b1b7c36e9e601d008c3725f923ca13f943255b",
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/test_teacher_dataset.py": "9ca340116003caa77f3d5b4a8ebc2c7a909aef4c",
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/student_dataset.py": "42a13d27c1ae40095f60ace05fb82f47eeb9a38f",
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/test_student_dataset.py": "3b00f5979ca78ddf1bba8b7760c8cf19881e3016",
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/tasks.v1.json": "8f85f244848ef5da11b0d1326ea2706c12528dd9"
+    }
+  },
+  "focusedRegression": {
+    "python": "Python 3.13.5",
+    "command": "python3 -m unittest -v test_teacher_dataset.py test_student_dataset.py",
+    "testsDefined": 41,
+    "testsExecuted": 41,
+    "testsPassed": 41,
+    "failures": 0,
+    "errors": 0,
+    "unittestReportedSeconds": 0.03,
+    "status": "PASS"
+  },
+  "syntheticRoundTrip": {
+    "purpose": "mechanical capture/import/readiness verification only; not teacher Evidence",
+    "bundle": {
+      "sourceGitSha": "f4d2ae9dd708ee01090891ff3582e0366d9786fe",
+      "requestCount": 12,
+      "captureManifestSha256": "d6d38506bb1995a0ecf850dfc6572cffbcae7d5d754977ed193a1aa77144f1b8"
+    },
+    "rawImport": {
+      "responseCount": 12,
+      "teacherModelVersions": [
+        "jev-test-1.0"
+      ],
+      "rawResponseManifestSha256": "21ed6993235a3fc05b94f37952f5d119163337be80276e114c70f522775650f3",
+      "rawResponseSetSha256": "8ee496d9c2190fd20ef256aaf372f5e7686b72329027fe97b720fb5783373a6c",
+      "teacherRowsSha256Observed": "c413451a6a702a247aced51b075e23fbf9ba05703f3d72c215e4d738a94ecdcb",
+      "note": "teacher_rows includes import generation_time, so its byte hash is an observed run artifact rather than a deterministic fixture identity"
+    },
+    "studentReadiness": {
+      "recordCount": 12,
+      "splitCounts": {
+        "train": 6,
+        "valid": 3,
+        "test": 3
+      },
+      "studentRecordsSha256": "b68d8a84f4983cc69c8751c82acec3cfd429cda5c326817998b41c04be2fddf0",
+      "datasetManifestSha256Observed": "e4732075fcc4d8643587dedc3713c8e3ecaacde14c2e58e565cb72bb35b064df",
+      "lightgbmTrainingPerformed": false
+    }
+  },
+  "parallelWorkCheck": {
+    "prs": [
+      563,
+      564
+    ],
+    "overlap": [],
+    "note": "Both parallel PRs changed local-model probe/runtime files only. This topic branch was realigned to PR #564's merged parent before final validation."
+  },
+  "boundaries": [
+    "41/41 focused regression PASS != actual Jev teacher capture",
+    "synthetic round-trip != teacher Evidence or ground truth",
+    "raw response manifest completeness != teacher correctness",
+    "single-version synthetic readiness != permission to train a student on synthetic labels",
+    "actual trusted Jev teacher rows remain 0",
+    "no LightGBM training or product activation occurred",
+    "the fixed passive 12-case baseline remains prior to any #556 active curriculum acquisition"
+  ]
+}
