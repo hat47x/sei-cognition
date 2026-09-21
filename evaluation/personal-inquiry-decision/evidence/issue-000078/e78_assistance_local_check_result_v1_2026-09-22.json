@@ -1,0 +1,166 @@
+{
+  "actualLongGapComparisonEstablished": false,
+  "contractSnapshot": {
+    "mechanicsFiles": [
+      {
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_assistance_probe_v1.json",
+        "sha256": "923e9fc8c00a9acba795396320607ccdef9fe23df8829f0b38c40769776653de"
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_assistance_probe.py",
+        "sha256": "11985efa215ff1d3fbf5d04b159e9fee198f04088cb2ed6141b46c0594ee9691"
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_assistance_evidence.py",
+        "sha256": "67d890933f8e71a01e09e9eb04b250b2c93ef2d926876fe920b4135baee4eda3"
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/test_inquiry_continuity_assistance_probe.py",
+        "sha256": "534c98ae14adab9dcef0d91dba5b9513d0430d4108a045dbee6107620e02b9ec"
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/test_inquiry_continuity_assistance_evidence.py",
+        "sha256": "51f44e3a455e59684b8cbf6850a793164122e13ff3f7071d4af9d51376e6a7f0"
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/run_inquiry_continuity_assistance_checks.py",
+        "sha256": "cd2083e9bbae957c83759d233b8c964f9c6c0aa8b750bf04459ef6797536f011"
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/test_run_inquiry_continuity_assistance_checks.py",
+        "sha256": "49ce80cfadf6f6d19f2301462c0fc62afe7e5a7844758f90b82cf37a38fd4714"
+      }
+    ],
+    "probeContentSha256": "d3a9a917d8f043f7cecba623524d1bcce64fed806cb31c6202f9379eaf337a28",
+    "probeId": "e78-quiet-proactive-matched-v1",
+    "probeSchema": "sei.inquiry-continuity-assistance-probe/v2",
+    "python": {
+      "implementation": "cpython",
+      "version": "3.13.5"
+    },
+    "sourceFixtures": [
+      {
+        "actualBlobSha1": "52335589c72ab3548a29053a0acd4c287fbee85d",
+        "expectedBlobSha1": "52335589c72ab3548a29053a0acd4c287fbee85d",
+        "fixtureId": "e78-counterfactual-001-nightly-batch",
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_001.json"
+      },
+      {
+        "actualBlobSha1": "0c3f7caac753e1642e3ff3e8e40425bd7b0e0976",
+        "expectedBlobSha1": "0c3f7caac753e1642e3ff3e8e40425bd7b0e0976",
+        "fixtureId": "e78-counterfactual-002-support-response",
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_002.json"
+      },
+      {
+        "actualBlobSha1": "645519e1a502e844ca640ab0d61dfa438a46e8d2",
+        "expectedBlobSha1": "645519e1a502e844ca640ab0d61dfa438a46e8d2",
+        "fixtureId": "e78-counterfactual-003-import-duplicates",
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_003.json"
+      }
+    ],
+    "sourceSet": {
+      "actualBlobSha1": "ca8d05c64ab3d106d54f8a30a68a89face9b683b",
+      "expectedBlobSha1": "ca8d05c64ab3d106d54f8a30a68a89face9b683b",
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_matched_set_v1.json"
+    }
+  },
+  "executed": [
+    {
+      "command": [
+        "<python>",
+        "evaluation/personal-inquiry-decision/test_inquiry_continuity_assistance_probe.py"
+      ],
+      "cwdRelativeToRepo": ".",
+      "exitCode": 0,
+      "name": "assistance-probe-tests",
+      "stderr": {
+        "bytes": 1196,
+        "sha256": "d17861de0b0d840b06d085d65a2ad2a7c7f5b293b8391b8f06fd6c124d492835"
+      },
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "timedOut": false,
+      "timeoutSeconds": 120
+    },
+    {
+      "command": [
+        "<python>",
+        "evaluation/personal-inquiry-decision/test_inquiry_continuity_assistance_evidence.py"
+      ],
+      "cwdRelativeToRepo": ".",
+      "exitCode": 0,
+      "name": "assistance-evidence-tests",
+      "stderr": {
+        "bytes": 1181,
+        "sha256": "1f5e8f383e126d8eecb67594ffa944e3881433e5eca98ecc5d1d41272910365f"
+      },
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "timedOut": false,
+      "timeoutSeconds": 120
+    },
+    {
+      "command": [
+        "<python>",
+        "evaluation/personal-inquiry-decision/test_run_inquiry_continuity_assistance_checks.py"
+      ],
+      "cwdRelativeToRepo": ".",
+      "exitCode": 0,
+      "name": "assistance-local-runner-tests",
+      "stderr": {
+        "bytes": 1189,
+        "sha256": "67259c4f49286d4afbd74a256fd2f427a5c861952f02a2b85e3920a08361e5bc"
+      },
+      "stdout": {
+        "bytes": 893,
+        "sha256": "2b7a706041aad185c0c5926187c5e69ff506f10419c84a3e13a9f06dce15f2a6"
+      },
+      "timedOut": false,
+      "timeoutSeconds": 120
+    },
+    {
+      "command": [
+        "<python>",
+        "evaluation/personal-inquiry-decision/inquiry_continuity_assistance_probe.py",
+        "--probe",
+        "evaluation/personal-inquiry-decision/inquiry_continuity_assistance_probe_v1.json",
+        "--repo-root",
+        ".",
+        "validate"
+      ],
+      "cwdRelativeToRepo": ".",
+      "exitCode": 0,
+      "name": "assistance-probe-validate",
+      "stderr": {
+        "bytes": 1076,
+        "sha256": "d3b8e374c1930542a30e2f6a7ae41c900ea83c9a669afc3e5ee9576da1386b3d"
+      },
+      "stdout": {
+        "bytes": 955,
+        "sha256": "f8474dd0026af44134c495398a8c1607d59528e344b7cfff802b90a835b03bb2"
+      },
+      "timedOut": false,
+      "timeoutSeconds": 120
+    }
+  ],
+  "executedCount": 4,
+  "failedCount": 0,
+  "humanReviewObserved": false,
+  "productValueEstablished": false,
+  "result": "ok",
+  "schema": "sei.inquiry-continuity-assistance-local-check-result/v1",
+  "selected": [
+    "assistance-probe-tests",
+    "assistance-evidence-tests",
+    "assistance-local-runner-tests",
+    "assistance-probe-validate"
+  ],
+  "selectedCount": 4,
+  "stableRequirementAuthorized": false,
+  "stopLine": "E78.6 local checks PASS != human review result != actual long-gap comparison != Product Value decision != Stable Requirement authorization",
+  "stoppedEarly": false
+}
