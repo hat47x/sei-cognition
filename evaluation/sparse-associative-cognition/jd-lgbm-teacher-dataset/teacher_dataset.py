@@ -249,14 +249,14 @@ def dataset_row(
     }
 
 
-def collect_case(
+def collect_case_raw(
     case: dict[str, Any],
     api_key: str,
     timeout: float = 30.0,
     *,
     max_attempts: int = 4,
     backoff_base_seconds: float = 0.5,
-) -> tuple[dict[str, Any], float]:
+) -> tuple[dict[str, Any], float, bytes]:
     if not api_key:
         raise CollectionBlocked("TYPESAFE_API_KEY is required for an actual Jev teacher call")
     if max_attempts < 1:
@@ -291,6 +291,24 @@ def collect_case(
     except json.JSONDecodeError as exc:
         raise ContractError("TypeSafe response was not valid JSON") from exc
     validate_response(case, parsed)
+    return parsed, latency_ms, raw
+
+
+def collect_case(
+    case: dict[str, Any],
+    api_key: str,
+    timeout: float = 30.0,
+    *,
+    max_attempts: int = 4,
+    backoff_base_seconds: float = 0.5,
+) -> tuple[dict[str, Any], float]:
+    parsed, latency_ms, _ = collect_case_raw(
+        case,
+        api_key,
+        timeout,
+        max_attempts=max_attempts,
+        backoff_base_seconds=backoff_base_seconds,
+    )
     return parsed, latency_ms
 
 
@@ -439,43 +457,99 @@ def build_raw_response_manifest(
     capture_manifest_path: Path,
     capture_bundle: dict[str, Any],
     raw_descriptors: list[dict[str, Any]],
+    *,
+    capture_mode: str,
+    capture_latency_observed: bool,
 ) -> dict[str, Any]:
+    if capture_mode not in {"direct-run", "external-import"}:
+        raise ContractError(f"unsupported capture_mode: {capture_mode}")
     return {
         "schema": RAW_RESPONSE_MANIFEST_SCHEMA,
         "source_git_sha": capture_bundle["source_git_sha"],
         "source_manifest_sha256": sha256_file(manifest_path),
         "capture_manifest_sha256": sha256_file(capture_manifest_path),
+        "capture_mode": capture_mode,
+        "capture_latency_observed": capture_latency_observed,
         "response_count": len(raw_descriptors),
         "responses": raw_descriptors,
         "raw_response_set_sha256": sha256_json(raw_descriptors),
         "teacher_model_versions": sorted({item["teacher_model_version"] for item in raw_descriptors}),
-        "external_capture_latency_observed": False,
+        "external_capture_latency_observed": capture_mode == "external-import" and capture_latency_observed,
         "boundaries": [
             "raw response bytes are teacher Evidence, not semantic truth or ground truth",
-            "external capture latency is not inferred during import",
+            "capture latency is recorded only when this harness directly observed it",
             "raw response manifest completeness != single-version student readiness",
             "raw response manifest creation != permission to train or activate a student",
         ],
     }
 
 
-def run_collection(manifest: dict[str, Any], output_dir: Path, *, api_key: str, force: bool = False) -> int:
+def run_collection(
+    manifest: dict[str, Any],
+    output_dir: Path,
+    *,
+    api_key: str,
+    manifest_path: Path | None = None,
+    capture_manifest_path: Path | None = None,
+    raw_manifest_path: Path | None = None,
+    force: bool = False,
+) -> int:
     if not api_key:
         raise CollectionBlocked("TYPESAFE_API_KEY is absent; no teacher request was sent")
+    if manifest_path is None or capture_manifest_path is None:
+        raise CollectionBlocked("direct collection requires manifest_path and capture_manifest_path")
+    capture_bundle = load_capture_bundle(manifest_path, manifest, capture_manifest_path)
+    capture_by_case = {entry["case_id"]: entry for entry in capture_bundle["requests"]}
+    raw_manifest_path = raw_manifest_path or output_dir / "raw_response_manifest.json"
+
     output_dir.mkdir(parents=True, exist_ok=True)
     raw_dir = output_dir / "raw"
     raw_dir.mkdir(exist_ok=True)
     rows_path = output_dir / "teacher_rows.jsonl"
-    if rows_path.exists() and not force:
-        raise CollectionBlocked(f"refusing to overwrite {rows_path}; pass --force for an intentional rerun")
+    protected_paths = [rows_path, raw_manifest_path] + [
+        raw_dir / f"{case['case_id']}.json" for case in manifest["cases"]
+    ]
+    existing = [path for path in protected_paths if path.exists()]
+    if existing and not force:
+        raise CollectionBlocked(
+            f"refusing to overwrite existing direct-capture artifacts: {', '.join(str(path) for path in existing)}"
+        )
+
     rows: list[dict[str, Any]] = []
+    raw_descriptors: list[dict[str, Any]] = []
     for case in manifest["cases"]:
-        response, latency_ms = collect_case(case, api_key)
+        response, latency_ms, raw_bytes = collect_case_raw(case, api_key)
         now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         raw_path = raw_dir / f"{case['case_id']}.json"
-        raw_path.write_text(json.dumps(response, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        rows.append(dataset_row(case, response, generated_at=now, latency_ms=latency_ms))
-    rows_path.write_text("".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows), encoding="utf-8")
+        raw_path.write_bytes(raw_bytes)
+        row = dataset_row(case, response, generated_at=now, latency_ms=latency_ms)
+        rows.append(row)
+        raw_descriptors.append({
+            "case_id": case["case_id"],
+            "request_sha256": capture_by_case[case["case_id"]]["request_sha256"],
+            "raw_response_path": f"raw/{case['case_id']}.json",
+            "raw_response_file_sha256": hashlib.sha256(raw_bytes).hexdigest(),
+            "canonical_response_sha256": sha256_json(response),
+            "teacher_model_version": row["teacher_model_version"],
+            "teacher_latency_ms": latency_ms,
+        })
+
+    rows_path.write_text(
+        "".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows),
+        encoding="utf-8",
+    )
+    raw_manifest = build_raw_response_manifest(
+        manifest_path,
+        capture_manifest_path,
+        capture_bundle,
+        raw_descriptors,
+        capture_mode="direct-run",
+        capture_latency_observed=True,
+    )
+    raw_manifest_path.write_text(
+        json.dumps(raw_manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
     return len(rows)
 
 
@@ -534,6 +608,7 @@ def normalize_raw_directory(
                 "raw_response_file_sha256": hashlib.sha256(raw_bytes).hexdigest(),
                 "canonical_response_sha256": sha256_json(response),
                 "teacher_model_version": row["teacher_model_version"],
+                "teacher_latency_ms": None,
             })
     rows_path.parent.mkdir(parents=True, exist_ok=True)
     rows_path.write_text(
@@ -547,6 +622,8 @@ def normalize_raw_directory(
             capture_manifest_path,
             capture_bundle,
             raw_descriptors,
+            capture_mode="external-import",
+            capture_latency_observed=False,
         )
         raw_manifest_path.write_text(
             json.dumps(raw_manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
@@ -604,7 +681,17 @@ def main(argv: list[str] | None = None) -> int:
             )
             print(f"imported {count} validated Jev teacher rows")
             return 0
-        count = run_collection(manifest, args.output_dir, api_key=os.environ.get("TYPESAFE_API_KEY", ""), force=args.force)
+        if args.capture_manifest is None:
+            raise CollectionBlocked("--capture-manifest is required for run mode")
+        count = run_collection(
+            manifest,
+            args.output_dir,
+            api_key=os.environ.get("TYPESAFE_API_KEY", ""),
+            manifest_path=args.manifest,
+            capture_manifest_path=args.capture_manifest,
+            raw_manifest_path=args.output_dir / "raw_response_manifest.json",
+            force=args.force,
+        )
         print(f"collected {count} Jev teacher rows")
         return 0
     except (ContractError, CollectionBlocked) as exc:
