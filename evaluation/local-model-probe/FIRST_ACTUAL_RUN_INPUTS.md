@@ -32,9 +32,21 @@ launcherは次を順に行う。
 3. llama-serverをdedicated processとして起動;
 4. health readyを待機;
 5. runtime PID / metrics / props / model-file identityを付けて`modelmatrix --stream`を実行;
-6. 終了時にruntime processをcleanup.
+6. matrix JSONとserver logをrun ID固有名で保存;
+7. matrix/logのSHA-256 sidecarを生成;
+8. 終了時にruntime processをcleanup.
 
 既定のwork directoryはrepository rootの `.local-model-run/qwen35-08-q4-0` で、Git管理対象外とする。
+
+既定では1 runにつき次の3 Evidence fileを作る。
+
+```text
+<RUN_ID_PREFIX>-matrix.json
+<RUN_ID_PREFIX>-llama-server.log
+<RUN_ID_PREFIX>-evidence.sha256
+```
+
+3 fileのどれかが既に存在する場合はrun開始前に停止し、過去Evidenceを上書きしない。digest sidecarはmatrix/logのSHA-256とbasenameだけを保持し、local absolute pathは記録しない。
 
 環境変数で `WORK_DIR` / `THREADS` / `PORT` / `RUN_ID_PREFIX` / `OUTPUT` / pinned URL等をoverrideできる。ただしdigestを変更した場合は、そのrunを既定pinned inputと同一視しない。
 
