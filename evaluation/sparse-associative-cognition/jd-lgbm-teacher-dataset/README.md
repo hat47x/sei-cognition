@@ -29,6 +29,26 @@ python3 teacher_dataset.py tasks.v1.json --mode plan
 
 This validates the manifest and prints deterministic request identities. It sends no network request.
 
+## Exact request bundle for trusted external capture
+
+When the API key must stay outside the validation environment, first freeze the exact passive-baseline requests from the repository checkout:
+
+```bash
+python3 teacher_dataset.py tasks.v1.json --mode bundle \
+  --source-git-sha "$(git rev-parse HEAD)" \
+  --output-dir trusted-capture-bundle
+```
+
+Bundle mode sends **no network request** and stores no authorization header. It exclusive-creates:
+
+- `capture_manifest.json` with the exact source Git SHA, `tasks.v1.json` SHA-256, API endpoint/method, and one descriptor per case;
+- `requests/<case_id>.json` for all 12 canonical request bodies;
+- both canonical request SHA-256 and exact request-file SHA-256.
+
+The bundle is deterministic for the same source/manifest and refuses a non-empty output directory. Execute these exact request bodies in the trusted credentialed environment, then save one raw response per case as `raw/<case_id>.json` for the existing import path.
+
+This first 12-case bundle remains the fixed passive JD-LGBM-0 baseline. Active-curriculum work such as #556 may add later acquisition, but must not replace or selectively filter this baseline.
+
 ## Actual teacher collection
 
 ```bash
