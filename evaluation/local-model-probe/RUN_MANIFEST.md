@@ -305,6 +305,29 @@ matrix complete
   != model adoption
 ```
 
+### 5.10 returned matrix verification
+
+外部nodeで生成したmatrixを受け取る場合、hash一致だけでartifact内部の整合は保証されない。`cmd/modelmatrixverify` は次をfail-closedで検証する。
+
+- matrix schema / status / run identity / model artifact identity;
+- preflight count・順序・source/model identity;
+- nested raw/workspace/staged artifact identity;
+- complete matrixの3 ready preflight・failureなし・comparison再計算一致;
+- incomplete matrixの3 mode artifact・comparisonなし・failure/incomplete telemetry;
+- blocked-preflightのblocking modeとartifact境界;
+- blocked-model-identityのexplicit runtime-props mismatch;
+- optional expected source SHA / model SHA-256;
+- optional observed `modelmatrix` exit code.
+
+`verify_first_actual.sh` はその前段でsidecar syntax・basename-only制約・matrix/log hashを検証する。
+
+```text
+bundle integrity PASS
+  != trusted signer
+  != model correctness
+  != human adjudication PASS
+```
+
 ## 6. 現在の実行環境で確認できたこと
 
 2026-09-12時点の現在の作業環境では:
