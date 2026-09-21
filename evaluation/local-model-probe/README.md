@@ -335,6 +335,8 @@ runtime props match
 
 remote/container-separated runtimeではreported pathをprobe hostからstatできない場合があるため、その場合は `partial` をfailureへ読み替えない。
 
+同じhostで明示的に別fileだと確認できた場合だけ、matrixは `blocked-model-identity` としてactual invocationを開始しない。
+
 ## 8.1 run artifact / comparison
 
 actual runでは、標準出力だけでなく比較可能なrun artifactを保存できる。
@@ -413,6 +415,8 @@ preflight(staged)
 all complete
   -> descriptive comparison
 ```
+
+`--runtime-props-endpoint` と `--model-file` のsame-file照合が明示的にfalseなら、health checkより前に `blocked-model-identity` として停止する。propsが `partial` / `unavailable` の場合はmismatchを推定しない。
 
 health endpointが2xxでなければ、そのmodeのinferenceを開始せず `blocked-preflight` としてartifactを保存する。inference failureがある場合も各modeの観測を保持するが、cross-mode comparisonは作らず `incomplete-inference` とする。
 

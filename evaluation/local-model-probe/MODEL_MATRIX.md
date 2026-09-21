@@ -360,14 +360,14 @@ matrix runnerは次を自動化するが、model取得・runtime installは行�
 
 source provenanceについては、Git HEADの実測・照合をactual inferenceより前に行う。別revisionのprompt/evaluatorを同じmodel比較へ混ぜない。
 
-local model fileを直接指定できるruntimeでは `--model-file` でartifact bytesもSHA-256へ固定する。model名やquantization labelだけで別bytesを同一視しない。Linuxで `--runtime-pid` も指定した場合は、同じfile objectが `/proc/<pid>/maps` に存在するかも補助観測する。`--runtime-props-endpoint` が利用可能ならruntime自身が報告するmodel path / aliasも別Evidenceとして取得し、local filesystem上でsame-file照合できる場合は相関させる。一方、digest・mapping・props correlationだけからruntimeがmodelを完全にparse・利用したとは推定しない。
+local model fileを直接指定できるruntimeでは `--model-file` でartifact bytesもSHA-256へ固定する。model名やquantization labelだけで別bytesを同一視しない。Linuxで `--runtime-pid` も指定した場合は、同じfile objectが `/proc/<pid>/maps` に存在するかも補助観測する。`--runtime-props-endpoint` が利用可能ならruntime自身が報告するmodel path / aliasも別Evidenceとして取得し、local filesystem上でsame-file照合できる場合は相関させる。same-fileが明示的にfalseなら別modelでの誤実行を避けるためpre-inferenceでblockする。一方、digest・mapping・props correlationだけからruntimeがmodelを完全にparse・利用したとは推定しない。
 
 - modeごとのpreflight;
 - 7 fixtureの実行;
 - explicit staged skip保持;
 - partial failure Evidence保持;
 - same-source / same-model cross-mode comparison;
-- complete / blocked-preflight / incomplete-inferenceの区別.
+- complete / blocked-model-identity / blocked-preflight / incomplete-inferenceの区別.
 
 ## 12. 次の実測単位
 

@@ -30,7 +30,8 @@ type MatrixConfig struct {
 }
 
 type MatrixFailure struct {
-	Mode      Mode   `json:"mode"`
+	Stage     string `json:"stage,omitempty"`
+	Mode      Mode   `json:"mode,omitempty"`
 	FixtureID string `json:"fixture_id"`
 	Error     string `json:"error"`
 }
@@ -113,6 +114,17 @@ func RunActualMatrix(
 	matrix.RuntimeMemory.Observe("matrix-start", "")
 	matrix.RuntimeMetrics.Observe(ctx, "matrix-start", "", cfg.Probe.HTTPClient)
 	matrix.RuntimeProps = ObserveRuntimeProps(ctx, cfg.RuntimePropsEndpoint, cfg.ModelFilePath, cfg.Probe.HTTPClient)
+	if matrix.RuntimeProps.Status == "observed" &&
+		matrix.RuntimeProps.SameFileAsSupplied != nil &&
+		!*matrix.RuntimeProps.SameFileAsSupplied {
+		matrix.Status = "blocked-model-identity"
+		matrix.Failures = append(matrix.Failures, MatrixFailure{
+			Stage:     "runtime-props",
+			FixtureID: "model-identity",
+			Error:     "runtime-reported model file does not match operator-supplied model file",
+		})
+		return matrix, nil
+	}
 
 	modes := []Mode{ModeRaw, ModeWorkspace, ModeStaged}
 	artifacts := make(map[Mode]ActualRunArtifact, len(modes))
