@@ -1,0 +1,110 @@
+{
+  "schema": "sei.inquiry-continuity-assistance-execution-input-binding/v1",
+  "status": "evaluation-only",
+  "date": "2026-09-21",
+  "issue": "ISSUE-000078",
+  "experiment": "E78.6",
+  "source_ref": {
+    "branch": "develop/v0.2.0",
+    "commit": "60269a11439d06b05317a9dc66ac80b21589d5aa"
+  },
+  "purpose": "Bind the exact Git blobs required by the existing canonical E78.6 assistance local-check runner so connector-to-local reconstruction can fail closed before any runtime result is counted.",
+  "mechanics": [
+    {
+      "role": "probe-set",
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_assistance_probe_v1.json",
+      "git_blob_sha1": "3de90d96269665e5cebf4630ca3b8ac6170ca6fa"
+    },
+    {
+      "role": "probe",
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_assistance_probe.py",
+      "git_blob_sha1": "e2ac2407002137d5eed7ad04cb504e371b0f5868"
+    },
+    {
+      "role": "evidence-tool",
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_assistance_evidence.py",
+      "git_blob_sha1": "1fad535ca9a82d95221ff80a2de02b1adbebb6f8"
+    },
+    {
+      "role": "probe-tests",
+      "path": "evaluation/personal-inquiry-decision/test_inquiry_continuity_assistance_probe.py",
+      "git_blob_sha1": "5148c8c8ba1db337f2a4aca5a75cad420271dd90"
+    },
+    {
+      "role": "evidence-tests",
+      "path": "evaluation/personal-inquiry-decision/test_inquiry_continuity_assistance_evidence.py",
+      "git_blob_sha1": "9646a02050bc4f0d4aec17055f21b44cc681d2f6"
+    },
+    {
+      "role": "local-runner",
+      "path": "evaluation/personal-inquiry-decision/run_inquiry_continuity_assistance_checks.py",
+      "git_blob_sha1": "d6072e669364f67109711fb775d74207aecaf1d3"
+    },
+    {
+      "role": "local-runner-tests",
+      "path": "evaluation/personal-inquiry-decision/test_run_inquiry_continuity_assistance_checks.py",
+      "git_blob_sha1": "5359a746cf666373b6524063a053e4ab51e7a458"
+    }
+  ],
+  "source_set": {
+    "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_matched_set_v1.json",
+    "git_blob_sha1": "ca8d05c64ab3d106d54f8a30a68a89face9b683b"
+  },
+  "source_fixtures": [
+    {
+      "fixture_id": "e78-counterfactual-001-nightly-batch",
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_001.json",
+      "git_blob_sha1": "52335589c72ab3548a29053a0acd4c287fbee85d"
+    },
+    {
+      "fixture_id": "e78-counterfactual-002-support-response",
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_002.json",
+      "git_blob_sha1": "0c3f7caac753e1642e3ff3e8e40425bd7b0e0976"
+    },
+    {
+      "fixture_id": "e78-counterfactual-003-import-duplicates",
+      "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_003.json",
+      "git_blob_sha1": "645519e1a502e844ca640ab0d61dfa438a46e8d2"
+    }
+  ],
+  "execution_preconditions": [
+    "Materialize all eleven listed files from one bound source commit.",
+    "Compute Git blob SHA-1 for every materialized file and require exact equality before executing the runner.",
+    "Discard reconstruction attempts with any blob mismatch; do not classify them as PASS or FAIL of the canonical local gate.",
+    "Use the existing run_inquiry_continuity_assistance_checks.py as the sole aggregate local-check entry point.",
+    "Persist result schema v1 only after its own validate_result check succeeds."
+  ],
+  "current_observation": {
+    "all_bound_blobs_match_develop_head": true,
+    "runtime_gate_executed_from_this_binding": false,
+    "human_review_observed": false,
+    "actual_long_gap_comparison_established": false,
+    "product_value_established": false,
+    "stable_requirement_authorized": false
+  },
+  "stop_line": "exact source binding != E78.6 local mechanics PASS != human review result != actual long-gap comparison != Product Value decision != Stable Requirement authorization",
+  "execution_recipe": {
+    "repository_root_requirement": "Run from a checkout/root where the bound repository-relative paths resolve unchanged.",
+    "python_command": "python3",
+    "runner_focused_test_command": [
+      "python3",
+      "evaluation/personal-inquiry-decision/test_run_inquiry_continuity_assistance_checks.py"
+    ],
+    "aggregate_command": [
+      "python3",
+      "evaluation/personal-inquiry-decision/run_inquiry_continuity_assistance_checks.py",
+      "--stop-on-failure",
+      "--result-output",
+      "<outside-checkout-or-intentionally-managed>/e78-assistance-local-check-result-v1.json"
+    ],
+    "aggregate_expected_check_count": 4,
+    "result_schema": "sei.inquiry-continuity-assistance-local-check-result/v1",
+    "result_persistence": "The runner validates the result before summary/save and uses exclusive-create for --result-output; do not overwrite a prior artifact.",
+    "post_execution_recording": [
+      "Record Python implementation/version actually used.",
+      "Record the exact bound source commit and all eleven verified Git blob SHA-1 values.",
+      "Record the runner-focused test result and aggregate four-check result.",
+      "Record a SHA-256 digest of the validated result JSON without treating raw stdout/stderr as durable Evidence."
+    ]
+  }
+}
