@@ -1,0 +1,64 @@
+{
+  "schema": "sei.jd-lgbm0-capture-bundle-evidence/v1alpha1",
+  "issue": 543,
+  "observedDateLocal": "2026-09-21",
+  "testedSource": {
+    "branch": "topic/jev-lightgbm-distillation",
+    "commit": "beedfa80daf9b10bb6194e2962c5adfc517e4640",
+    "currentParentAtValidation": "cfb0a342d4666bfd31e654a1007276c33c49441c",
+    "parentAdvancedByNonOverlappingPR": 561
+  },
+  "exactBlobIdentity": {
+    "verifiedCount": 3,
+    "files": {
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/teacher_dataset.py": "a78af969d0780a3927232d4c5e777c76f8d7cb17",
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/test_teacher_dataset.py": "9535ecfdd5dda32ef5057d96e85225c481dcc1e4",
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/tasks.v1.json": "8f85f244848ef5da11b0d1326ea2706c12528dd9"
+    },
+    "verifier": "git hash-object"
+  },
+  "localExecution": {
+    "python": "Python 3.13.5",
+    "command": "python3 -m unittest -v test_teacher_dataset.py",
+    "testsDefined": 24,
+    "testsExecuted": 24,
+    "testsPassed": 24,
+    "failures": 0,
+    "errors": 0,
+    "unittestReportedSeconds": 0.022,
+    "status": "PASS"
+  },
+  "captureBundleExecution": {
+    "command": "python3 teacher_dataset.py tasks.v1.json --mode bundle --source-git-sha beedfa80daf9b10bb6194e2962c5adfc517e4640 --output-dir <fresh-dir>",
+    "schema": "sei.jd-lgbm-teacher-capture-bundle/v1alpha1",
+    "requestCount": 12,
+    "uniqueCaseIds": 12,
+    "questionTypes": [
+      "choice",
+      "noul",
+      "score"
+    ],
+    "splitCounts": {
+      "train": 6,
+      "valid": 3,
+      "test": 3
+    },
+    "captureManifestSha256": "d156111621bbf9e46f0eadebcdac079e77598ccca79208647063411e534a29bf",
+    "repeatedBundleByteIdentical": true,
+    "authorizationHeaderMatches": 0,
+    "networkRequestSent": false
+  },
+  "parallelWorkCheck": {
+    "pr": 561,
+    "overlapWithThisWork": [],
+    "note": "PR #561 changes local-model probe/runtime mapping files only; JD-LGBM capture bundle files do not overlap."
+  },
+  "boundaries": [
+    "capture bundle mechanics PASS != actual Jev teacher capture",
+    "request identity != teacher response Evidence",
+    "actual Jev teacher rows remain 0",
+    "no LightGBM or other student training was performed",
+    "the fixed 12-case passive baseline must not be replaced or filtered by active curriculum",
+    "active curriculum Issue #556 may only add later acquisition after the passive baseline is frozen"
+  ]
+}

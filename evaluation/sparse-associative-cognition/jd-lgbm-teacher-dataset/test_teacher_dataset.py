@@ -77,6 +77,86 @@ class TeacherDatasetTest(unittest.TestCase):
         self.assertEqual(len(desc), len(self.manifest["cases"]))
         self.assertTrue(all(len(x["request_sha256"]) == 64 for x in desc))
 
+    def test_capture_bundle_freezes_all_requests(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            output = root / "bundle"
+            source_sha = "a" * 40
+            bundle = td.write_capture_bundle(
+                HERE / "tasks.v1.json",
+                self.manifest,
+                output,
+                source_git_sha=source_sha,
+            )
+            self.assertEqual(bundle["schema"], td.CAPTURE_BUNDLE_SCHEMA)
+            self.assertEqual(bundle["request_count"], len(self.manifest["cases"]))
+            self.assertEqual(bundle["source_git_sha"], source_sha)
+            self.assertEqual(bundle["source_manifest_sha256"], td.sha256_file(HERE / "tasks.v1.json"))
+
+            by_case = {entry["case_id"]: entry for entry in bundle["requests"]}
+            self.assertEqual(set(by_case), {case["case_id"] for case in self.manifest["cases"]})
+            for case in self.manifest["cases"]:
+                request_path = output / by_case[case["case_id"]]["request_path"]
+                request = json.loads(request_path.read_text(encoding="utf-8"))
+                self.assertEqual(request, td.request_for(case))
+                self.assertEqual(by_case[case["case_id"]]["request_sha256"], td.sha256_json(request))
+                self.assertEqual(by_case[case["case_id"]]["request_file_sha256"], td.sha256_file(request_path))
+                self.assertNotIn("Authorization", request_path.read_text(encoding="utf-8"))
+
+            saved = json.loads((output / "capture_manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(saved, bundle)
+
+    def test_capture_bundle_is_deterministic(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            source_sha = "b" * 40
+            first = root / "first"
+            second = root / "second"
+            td.write_capture_bundle(HERE / "tasks.v1.json", self.manifest, first, source_git_sha=source_sha)
+            td.write_capture_bundle(HERE / "tasks.v1.json", self.manifest, second, source_git_sha=source_sha)
+            self.assertEqual(
+                (first / "capture_manifest.json").read_bytes(),
+                (second / "capture_manifest.json").read_bytes(),
+            )
+            for case in self.manifest["cases"]:
+                name = f"{case['case_id']}.json"
+                self.assertEqual((first / "requests" / name).read_bytes(), (second / "requests" / name).read_bytes())
+
+    def test_capture_bundle_rejects_nonempty_output(self):
+        with tempfile.TemporaryDirectory() as d:
+            output = Path(d) / "bundle"
+            output.mkdir()
+            (output / "unrelated.txt").write_text("keep", encoding="utf-8")
+            with self.assertRaises(td.CollectionBlocked):
+                td.write_capture_bundle(
+                    HERE / "tasks.v1.json",
+                    self.manifest,
+                    output,
+                    source_git_sha="c" * 40,
+                )
+
+    def test_capture_bundle_rejects_file_output_path(self):
+        with tempfile.TemporaryDirectory() as d:
+            output = Path(d) / "bundle"
+            output.write_text("not-a-directory", encoding="utf-8")
+            with self.assertRaises(td.CollectionBlocked):
+                td.write_capture_bundle(
+                    HERE / "tasks.v1.json",
+                    self.manifest,
+                    output,
+                    source_git_sha="d" * 40,
+                )
+
+    def test_capture_bundle_requires_exact_source_sha(self):
+        with tempfile.TemporaryDirectory() as d:
+            with self.assertRaises(td.ContractError):
+                td.write_capture_bundle(
+                    HERE / "tasks.v1.json",
+                    self.manifest,
+                    Path(d) / "bundle",
+                    source_git_sha="not-a-git-sha",
+                )
+
     def test_choice_response_builds_versioned_row(self):
         case = next(c for c in self.manifest["cases"] if next(iter(c["questions"].values()))["type"] == "choice")
         opts = list(next(iter(case["questions"].values()))["criteria"])

@@ -22,6 +22,7 @@ from typing import Any
 API_URL = "https://api.typesafe.ai/v1/systemone"
 DEFAULT_MODEL = "jev-latest"
 ROW_SCHEMA = "sei.jd-lgbm-teacher-row/v1alpha1"
+CAPTURE_BUNDLE_SCHEMA = "sei.jd-lgbm-teacher-capture-bundle/v1alpha1"
 REQUIRED_CASE_FIELDS = {
     "case_id",
     "task_id",
@@ -50,6 +51,14 @@ def canonical_json(value: Any) -> bytes:
 
 def sha256_json(value: Any) -> str:
     return hashlib.sha256(canonical_json(value)).hexdigest()
+
+
+def sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as fh:
+        for block in iter(lambda: fh.read(65536), b""):
+            h.update(block)
+    return h.hexdigest()
 
 
 def load_manifest(path: Path) -> dict[str, Any]:
@@ -288,6 +297,69 @@ def plan(manifest: dict[str, Any]) -> list[dict[str, Any]]:
     return [request_descriptor(case, manifest["model"]) for case in manifest["cases"]]
 
 
+def write_capture_bundle(
+    manifest_path: Path,
+    manifest: dict[str, Any],
+    output_dir: Path,
+    *,
+    source_git_sha: str,
+) -> dict[str, Any]:
+    validate_manifest(manifest)
+    source_git_sha = source_git_sha.strip().lower()
+    if len(source_git_sha) != 40 or any(ch not in "0123456789abcdef" for ch in source_git_sha):
+        raise ContractError("source_git_sha must be a 40-character Git SHA-1 hex string")
+    if output_dir.exists() and not output_dir.is_dir():
+        raise CollectionBlocked(f"capture bundle output path is not a directory: {output_dir}")
+    if output_dir.exists() and any(output_dir.iterdir()):
+        raise CollectionBlocked(
+            f"capture bundle output must be a new or empty directory: {output_dir}"
+        )
+
+    requests_dir = output_dir / "requests"
+    requests_dir.mkdir(parents=True, exist_ok=True)
+    descriptors: list[dict[str, Any]] = []
+    for case in manifest["cases"]:
+        request = request_for(case, manifest["model"])
+        request_bytes = canonical_json(request) + b"\n"
+        request_path = requests_dir / f"{case['case_id']}.json"
+        try:
+            with request_path.open("xb") as fh:
+                fh.write(request_bytes)
+        except FileExistsError as exc:
+            raise CollectionBlocked(f"refusing to overwrite capture request: {request_path}") from exc
+        descriptors.append({
+            **request_descriptor(case, manifest["model"]),
+            "request_path": f"requests/{case['case_id']}.json",
+            "request_file_sha256": hashlib.sha256(request_bytes).hexdigest(),
+        })
+
+    bundle = {
+        "schema": CAPTURE_BUNDLE_SCHEMA,
+        "api_url": API_URL,
+        "method": "POST",
+        "content_type": "application/json",
+        "model_alias": manifest["model"],
+        "source_git_sha": source_git_sha,
+        "source_manifest_name": manifest_path.name,
+        "source_manifest_sha256": sha256_file(manifest_path),
+        "request_count": len(descriptors),
+        "requests": descriptors,
+        "boundaries": [
+            "request bundle creation sends no network request",
+            "bundle request identity != Jev response Evidence",
+            "first 12-row bundle is the fixed passive baseline; active curriculum may only add later acquisition",
+        ],
+    }
+    bundle_path = output_dir / "capture_manifest.json"
+    try:
+        with bundle_path.open("x", encoding="utf-8") as fh:
+            json.dump(bundle, fh, ensure_ascii=False, indent=2, sort_keys=True)
+            fh.write("\n")
+    except FileExistsError as exc:
+        raise CollectionBlocked(f"refusing to overwrite capture manifest: {bundle_path}") from exc
+    return bundle
+
+
 def run_collection(manifest: dict[str, Any], output_dir: Path, *, api_key: str, force: bool = False) -> int:
     if not api_key:
         raise CollectionBlocked("TYPESAFE_API_KEY is absent; no teacher request was sent")
@@ -340,15 +412,34 @@ def normalize_raw_directory(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("manifest", type=Path)
-    parser.add_argument("--mode", choices=("plan", "run", "import"), default="plan")
+    parser.add_argument("--mode", choices=("plan", "bundle", "run", "import"), default="plan")
     parser.add_argument("--output-dir", type=Path, default=Path("jd-lgbm0-output"))
     parser.add_argument("--raw-dir", type=Path)
+    parser.add_argument("--source-git-sha")
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args(argv)
     try:
         manifest = load_manifest(args.manifest)
         if args.mode == "plan":
             print(json.dumps({"model": manifest["model"], "requests": plan(manifest)}, ensure_ascii=False, indent=2))
+            return 0
+        if args.mode == "bundle":
+            if args.force:
+                raise CollectionBlocked("capture bundle is exclusive-create; use a fresh output directory instead of --force")
+            if not args.source_git_sha:
+                raise CollectionBlocked("--source-git-sha is required for bundle mode")
+            bundle = write_capture_bundle(
+                args.manifest,
+                manifest,
+                args.output_dir,
+                source_git_sha=args.source_git_sha,
+            )
+            print(json.dumps({
+                "schema": bundle["schema"],
+                "request_count": bundle["request_count"],
+                "source_git_sha": bundle["source_git_sha"],
+                "capture_manifest_sha256": sha256_file(args.output_dir / "capture_manifest.json"),
+            }, ensure_ascii=False, indent=2))
             return 0
         if args.mode == "import":
             if args.raw_dir is None:
