@@ -11,7 +11,7 @@ func completeMatrixForAdjudication(t *testing.T) ActualMatrixArtifact {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return ActualMatrixArtifact{
+	matrix := ActualMatrixArtifact{
 		Schema:       actualMatrixArtifactSchema,
 		Status:       "complete",
 		RunIDPrefix:  "matrix-review",
@@ -23,11 +23,17 @@ func completeMatrixForAdjudication(t *testing.T) ActualMatrixArtifact {
 			SizeBytes: 1234,
 			SHA256:    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 		},
-		Raw:          &raw,
-		Workspace:    &workspace,
-		Staged:       &staged,
-		Comparison:   &comparison,
+		Raw:        &raw,
+		Workspace:  &workspace,
+		Staged:     &staged,
+		Comparison: &comparison,
 	}
+	matrix.Preflights = []RunManifest{
+		readyValidationPreflight(matrix, ModeRaw),
+		readyValidationPreflight(matrix, ModeWorkspace),
+		readyValidationPreflight(matrix, ModeStaged),
+	}
+	return matrix
 }
 
 func TestBuildHumanAdjudicationTemplateOnlyIncludesEvaluatedResults(t *testing.T) {
