@@ -88,6 +88,13 @@ class StudentDatasetTest(unittest.TestCase):
         with self.assertRaises(sd.StudentDatasetError):
             sd.prepare_student_records(self.manifest, rows)
 
+    def test_boolean_score_confidence_is_rejected(self):
+        rows = self.rows()
+        row = next(r for r in rows if r["question_type"] == "score")
+        row["teacher_probability_or_score"]["confidence"] = True
+        with self.assertRaises(sd.StudentDatasetError):
+            sd.prepare_student_records(self.manifest, rows)
+
     def test_non_hex_response_hash_is_rejected(self):
         rows = self.rows()
         rows[0]["teacher_response_hash"] = "g" * 64
