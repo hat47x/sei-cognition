@@ -102,3 +102,34 @@ python3 student_dataset.py tasks.v1.json normalized-run/teacher_rows.jsonl \
 ```
 
 The gate requires exactly one validated teacher row for every manifest case, exact request/split/schema/provenance identity, one immutable Jev model version across the first JD-LGBM-0 slice, and valid typed target distributions. It writes structured `features` joined from the manifest plus teacher targets; it does **not** train LightGBM. Missing, duplicated, mixed-version, or identity-mismatched rows are rejected.
+
+## Evidence-chain integrity gate
+
+After the authenticated 12-case capture has been normalized and the student-ready dataset has been produced, verify the entire retained chain before any training step:
+
+```bash
+python3 evidence_gate.py \
+  tasks.v1.json \
+  trusted-capture-bundle/capture_manifest.json \
+  trusted-capture/raw \
+  normalized-run/raw_response_manifest.json \
+  normalized-run/teacher_rows.jsonl \
+  student-ready/student_records.jsonl \
+  student-ready/dataset_manifest.json \
+  --output normalized-run/evidence_chain_verification.json
+```
+
+For a direct authenticated run, point the raw directory and raw-response manifest at the direct-run output instead.
+
+The gate independently checks the fixed 12-case manifest order/set, frozen request bytes and hashes, raw response bytes and canonical hashes, capture mode/latency semantics, one immutable Jev model version, teacher-row provenance, typed target/distribution shape, student record joins, and dataset manifest hashes. It also requires `lightgbm_training_performed` to be the boolean value `false`.
+
+```text
+evidence-chain integrity PASS
+  != authenticated-origin attestation by the verifier itself
+  != teacher correctness / ground truth
+  != model quality / Product Value
+  != automatic permission to train or activate a student
+```
+
+Synthetic fixtures may satisfy this integrity gate, so a PASS is meaningful only together with the separately retained authenticated capture provenance. The first passive 12-case baseline still precedes #556 active curriculum acquisition.
+
