@@ -86,7 +86,14 @@ SOURCE_GIT_SHA="$(git -C "$REPO_ROOT" rev-parse HEAD)"
 SOURCE_STATUS="$(git -C "$REPO_ROOT" status --porcelain=v1 --untracked-files=all)"
 if [[ -n "$SOURCE_STATUS" ]]; then
   echo "working tree is not clean; refusing an ambiguous exact-source run" >&2
-  printf '%s\n' "$SOURCE_STATUS" | head -n 20 >&2
+  dirty_line_count=0
+  while IFS= read -r dirty_line; do
+    printf '%s\n' "$dirty_line" >&2
+    dirty_line_count=$((dirty_line_count + 1))
+    if (( dirty_line_count >= 20 )); then
+      break
+    fi
+  done <<<"$SOURCE_STATUS"
   exit 2
 fi
 
@@ -263,18 +270,24 @@ set -e
 {
   printf '# modelmatrix_exit_code=%d\n' "$MATRIX_EXIT_CODE"
   if [[ -f "$OUTPUT" ]]; then
+    MATRIX_BASENAME="$(basename "$OUTPUT")"
     MATRIX_SHA256="$(sha256sum "$OUTPUT" | awk '{print $1}')"
-    printf '%s  matrix:%s\n' "$MATRIX_SHA256" "$(basename "$OUTPUT")"
+    printf '# matrix_file=%s\n' "$MATRIX_BASENAME"
+    printf '%s  %s\n' "$MATRIX_SHA256" "$MATRIX_BASENAME"
   else
     printf '# matrix_artifact=not-created\n'
   fi
   if [[ -f "$SERVER_LOG" ]]; then
+    SERVER_LOG_BASENAME="$(basename "$SERVER_LOG")"
     SERVER_LOG_SHA256="$(sha256sum "$SERVER_LOG" | awk '{print $1}')"
-    printf '%s  server-log:%s\n' "$SERVER_LOG_SHA256" "$(basename "$SERVER_LOG")"
+    printf '# server_log_file=%s\n' "$SERVER_LOG_BASENAME"
+    printf '%s  %s\n' "$SERVER_LOG_SHA256" "$SERVER_LOG_BASENAME"
   else
     printf '# server_log=not-created\n'
   fi
 } >"$EVIDENCE_DIGESTS"
+
+EVIDENCE_DIGESTS_SHA256="$(sha256sum "$EVIDENCE_DIGESTS" | awk '{print $1}')"
 
 if [[ -f "$OUTPUT" ]]; then
   echo "matrix artifact: $OUTPUT"
@@ -283,5 +296,6 @@ else
 fi
 echo "server log: $SERVER_LOG"
 echo "evidence digests: $EVIDENCE_DIGESTS"
+echo "evidence digests sha256: $EVIDENCE_DIGESTS_SHA256"
 
 exit "$MATRIX_EXIT_CODE"

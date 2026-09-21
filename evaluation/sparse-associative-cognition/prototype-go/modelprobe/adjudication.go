@@ -230,33 +230,11 @@ func ValidateHumanAdjudication(
 }
 
 func validateMatrixForHumanAdjudication(matrix ActualMatrixArtifact) error {
-	if matrix.Schema != actualMatrixArtifactSchema {
-		return fmt.Errorf("matrix schema %q is unsupported", matrix.Schema)
+	if err := ValidateActualMatrixArtifact(matrix); err != nil {
+		return err
 	}
 	if matrix.Status != "complete" {
 		return fmt.Errorf("matrix status %q is not complete", matrix.Status)
-	}
-	if err := ValidateRunIdentity(matrix.RunIDPrefix+"-human-review", matrix.SourceGitSHA); err != nil {
-		return err
-	}
-	if strings.TrimSpace(matrix.Model) == "" {
-		return fmt.Errorf("matrix model is required")
-	}
-	if err := ValidateModelArtifactIdentity(matrix.ModelArtifact); err != nil {
-		return fmt.Errorf("matrix model artifact identity: %w", err)
-	}
-	if matrix.Raw == nil || matrix.Workspace == nil || matrix.Staged == nil || matrix.Comparison == nil {
-		return fmt.Errorf("complete matrix requires raw/workspace/staged artifacts and comparison")
-	}
-	for label, artifact := range map[string]ActualRunArtifact{
-		"raw": *matrix.Raw, "workspace": *matrix.Workspace, "staged": *matrix.Staged,
-	} {
-		if err := validateActualRunArtifact(label, artifact); err != nil {
-			return err
-		}
-		if artifact.SourceGitSHA != matrix.SourceGitSHA || artifact.Model != matrix.Model {
-			return fmt.Errorf("%s artifact identity does not match matrix", label)
-		}
 	}
 	return nil
 }

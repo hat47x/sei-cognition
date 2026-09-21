@@ -189,7 +189,7 @@ unless working tree is clean
 
 ### First-run evidence retention
 
-`run_first_actual.sh` はmatrix outputだけでなくserver logもrun ID固有名で保存し、両fileのSHA-256 sidecarを生成する。既存matrix/log/digest fileは上書きせず、3 output pathの衝突も拒否する。`modelmatrix` がnon-zeroでも生成済みartifact/logのdigestを保存してから元のexit codeを返す。
+`run_first_actual.sh` はmatrix outputだけでなくserver logもrun ID固有名で保存し、両fileの標準 `sha256sum -c` 互換sidecarを生成する。既存matrix/log/digest fileは上書きせず、3 output pathの衝突も拒否する。`modelmatrix` がnon-zeroでも生成済みartifact/logのdigestを保存してから元のexit codeを返す。
 
 ```text
 matrix JSON
@@ -200,6 +200,20 @@ matrix JSON
 digest match
   != inference quality
 ```
+
+### Returned Evidence verification
+
+外部環境からmatrix/log/sidecarを戻したら:
+
+```bash
+bash evaluation/local-model-probe/verify_first_actual.sh /path/to/run-evidence.sha256
+```
+
+を使う。scriptはhash対象をbasename-onlyに制限し、sidecarのmatrix/log labelとhash行を相互照合してから `sha256sum -c` を行う。その後 `cmd/modelmatrixverify` がstrict JSONとstatus別構造を検証する。
+
+`EXPECTED_SOURCE_GIT_SHA` / `EXPECTED_MODEL_SHA256` を与えればrun identityを外部期待値へ固定できる。`EXPECTED_EVIDENCE_DIGESTS_SHA256` がある場合はsidecar自体のtransfer integrityも確認できる。
+
+sidecarだけを同梱しても第三者署名やorigin authenticityにはならない。これはEvidence bundle integrity validatorであり、model quality validatorではない。
 
 ## 8. 現在取得するmeasurement
 
