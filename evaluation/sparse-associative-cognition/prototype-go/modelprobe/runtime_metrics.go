@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -137,6 +138,9 @@ func parseRuntimePrometheusMetrics(reader io.Reader) (map[string]float64, error)
 		value, err := strconv.ParseFloat(fields[1], 64)
 		if err != nil {
 			return nil, fmt.Errorf("parse metric %s value %q: %w", name, fields[1], err)
+		}
+		if math.IsNaN(value) || math.IsInf(value, 0) {
+			return nil, fmt.Errorf("metric %s has non-finite value %q", name, fields[1])
 		}
 		values[name] = value
 	}
