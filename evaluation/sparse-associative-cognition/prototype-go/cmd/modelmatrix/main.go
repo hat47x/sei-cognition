@@ -22,6 +22,7 @@ func main() {
 	runtimeName := flag.String("runtime", "", "runtime name")
 	runtimeVersion := flag.String("runtime-version", "", "runtime version")
 	runtimePID := flag.Int("runtime-pid", 0, "optional local runtime server PID for Linux RSS/peak RSS sampling")
+	runtimeMetricsEndpoint := flag.String("runtime-metrics-endpoint", "", "optional runtime-specific Prometheus metrics endpoint, e.g. llama.cpp /metrics")
 	model := flag.String("model", "", "model identifier sent to endpoint")
 	modelFile := flag.String("model-file", "", "optional local model artifact file to hash once before the matrix run")
 	expectedModelSHA256 := flag.String("expected-model-sha256", "", "optional expected SHA-256 for --model-file")
@@ -68,6 +69,7 @@ func main() {
 			RuntimeName:    *runtimeName,
 			RuntimeVersion: *runtimeVersion,
 			RuntimePID:     *runtimePID,
+			RuntimeMetricsEndpoint: *runtimeMetricsEndpoint,
 			ModelArtifact:  modelArtifact,
 			Quantization:   *quantization,
 			ContextSize:    *contextSize,
