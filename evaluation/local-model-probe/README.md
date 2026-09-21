@@ -201,6 +201,7 @@ Issue #375では少なくとも次を比較する。
 - Linux `--runtime-pid`指定時のruntime process RSS / peak RSS
 - Linux `--runtime-pid`指定時の実行中runtime executable basename / size / SHA-256（`/proc/<pid>/exe`）
 - Linuxで `--runtime-pid` と `--model-file` を併用した場合のmodel file process mapping（`/proc/<pid>/maps` のsame-filesystem-object照合）
+- `--runtime-props-endpoint`指定時のruntime-reported model metadata / supplied-file correlation
 - `--runtime-metrics-endpoint`指定時のruntime-specific Prometheus metrics（llama.cppではprompt/generation累積tokens、KV cache usage ratio / tokens、context token high-water mark）
 - `--model-file`指定時のlocal model artifact file name / size / SHA-256
 
@@ -304,6 +305,35 @@ KV cache usage ratio / tokens
 ```
 
 shared runtimeに別requestが混ざれば累積counterへ混入するため、dedicated processを推奨する。
+
+### Runtime-reported props
+
+`modelmatrix --runtime-props-endpoint <url>` はruntime自身のread-only properties endpointを補助観測する。llama.cppの `GET /props` では `model_path` / `model_alias` / `role` / context size等が返る。
+
+Evidenceへはruntime報告model pathの**basenameだけ**を保存する。`--model-file` が同時指定され、runtime報告pathを同じhost filesystemからstatできる場合は、両者をsame-file identityで照合する。
+
+状態:
+
+- `not-requested`: endpoint未指定;
+- `observed`: props取得成功（same-fileがfalseの場合も観測値として保持）;
+- `partial`: propsは取得できたがreported pathのlocal stat等ができない;
+- `unavailable`: HTTP / JSON取得失敗.
+
+```text
+runtime-reported model path
+  + operator-supplied model SHA-256
+  + same-file match
+  = stronger local load-correlation evidence
+
+but
+
+runtime props match
+  != model parsing completeness
+  != successful inference
+  != semantic correctness
+```
+
+remote/container-separated runtimeではreported pathをprobe hostからstatできない場合があるため、その場合は `partial` をfailureへ読み替えない。
 
 ## 8.1 run artifact / comparison
 

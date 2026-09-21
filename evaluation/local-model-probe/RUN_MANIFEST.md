@@ -28,6 +28,7 @@ same fixture
 - runtime name / version
 - `--runtime-pid`指定時の実行中runtime executable basename / size / SHA-256
 - `--runtime-pid` + `--model-file`併用時のruntime model mapping correlation
+- `--runtime-props-endpoint`指定時のruntime-reported model metadata / supplied-file correlation
 - `--runtime-metrics-endpoint`指定時のruntime-specific metrics samples
 - model identifier
 - operator-supplied local model artifactのfile name / size / SHA-256（`--model-file`指定時）
@@ -243,6 +244,26 @@ same-file mapping observed
 ```
 
 mapping未観測はruntimeがmmapを使わない可能性もあるため、model failureへ読み替えない。
+
+### 5.9 runtime-reported props
+
+`modelmatrix --runtime-props-endpoint <url>` はruntime自身が公開するread-only propertiesを一度取得する。llama.cppの `GET /props` ではruntime-selected `model_path` / `model_alias` / `role` / context sizeを観測できる。
+
+absolute `model_path` はEvidenceへ保存せずbasenameだけを残す。`--model-file` が同じhostから参照可能なら、runtime報告pathとoperator-supplied pathをsame-file identityで照合する。
+
+```text
+runtime-reported same-file match
+  + model artifact SHA-256
+  > model identifier stringだけのEvidence
+
+ただし
+
+props match
+  != successful inference
+  != semantic use
+```
+
+runtimeが別container/hostにありreported pathをlocal statできない場合は `partial` とし、false mismatchを作らない。
 
 ### 5.7 runtime-specific metrics
 
