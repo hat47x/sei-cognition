@@ -54,12 +54,24 @@ def load_teacher_rows(path: Path) -> list[dict[str, Any]]:
     return rows
 
 
+def _is_real_number(value: Any) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def _is_sha256_hex(value: Any) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 64
+        and all(ch in "0123456789abcdef" for ch in value.lower())
+    )
+
+
 def _validate_probability_map(probs: Any, expected_keys: set[str]) -> None:
     if not isinstance(probs, dict) or set(probs) != expected_keys:
         raise StudentDatasetError("teacher distribution keys do not match the task contract")
     values: list[float] = []
     for value in probs.values():
-        if not isinstance(value, (int, float)) or not 0.0 <= float(value) <= 1.0:
+        if not _is_real_number(value) or not 0.0 <= float(value) <= 1.0:
             raise StudentDatasetError("teacher distribution contains an invalid probability")
         values.append(float(value))
     if abs(sum(values) - 1.0) > 1e-6:
@@ -89,7 +101,7 @@ def validate_teacher_row(case: dict[str, Any], row: dict[str, Any]) -> None:
     if not isinstance(model, str) or not model.startswith("jev-") or model == td.DEFAULT_MODEL:
         raise StudentDatasetError(f"{case['case_id']}: immutable Jev teacher model version is required")
     response_hash = row.get("teacher_response_hash")
-    if not isinstance(response_hash, str) or len(response_hash) != 64:
+    if not _is_sha256_hex(response_hash):
         raise StudentDatasetError(f"{case['case_id']}: teacher_response_hash must be a SHA-256 hex digest")
     if not row.get("generation_time"):
         raise StudentDatasetError(f"{case['case_id']}: generation_time is required")
@@ -103,7 +115,7 @@ def validate_teacher_row(case: dict[str, Any], row: dict[str, Any]) -> None:
     if not isinstance(payload, dict):
         raise StudentDatasetError(f"{case['case_id']}: teacher probability/score payload is required")
     if qtype == "noul":
-        if not isinstance(target, (int, float)) or not 0.0 <= float(target) <= 1.0:
+        if not _is_real_number(target) or not 0.0 <= float(target) <= 1.0:
             raise StudentDatasetError(f"{case['case_id']}: invalid Noul target")
         if payload.get("p_yes") != target:
             raise StudentDatasetError(f"{case['case_id']}: Noul probability payload does not match target")
@@ -113,10 +125,10 @@ def validate_teacher_row(case: dict[str, Any], row: dict[str, Any]) -> None:
             raise StudentDatasetError(f"{case['case_id']}: Choice target is outside criteria")
         _validate_probability_map(payload.get("probabilities"), criteria)
         confidence = payload.get("confidence")
-        if not isinstance(confidence, (int, float)) or not 0.0 <= float(confidence) <= 1.0:
+        if not _is_real_number(confidence) or not 0.0 <= float(confidence) <= 1.0:
             raise StudentDatasetError(f"{case['case_id']}: invalid Choice confidence")
     else:
-        if not isinstance(target, (int, float)) or not 0.0 <= float(target) <= len(question["criteria"]) - 1:
+        if not _is_real_number(target) or not 0.0 <= float(target) <= len(question["criteria"]) - 1:
             raise StudentDatasetError(f"{case['case_id']}: invalid Score target")
         if payload.get("score") != target:
             raise StudentDatasetError(f"{case['case_id']}: Score payload does not match target")
