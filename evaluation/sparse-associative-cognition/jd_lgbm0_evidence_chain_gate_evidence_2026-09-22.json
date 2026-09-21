@@ -1,0 +1,66 @@
+{
+  "schema": "sei.jd-lgbm0-evidence-chain-gate-evidence/v1alpha1",
+  "issue": 543,
+  "observedDateLocal": "2026-09-22",
+  "testedSource": {
+    "branch": "topic/jev-lightgbm-distillation",
+    "commit": "5dec646723aaed61cbfadb692dbec533f34a4635",
+    "parent": "d277b1c11c15f14290cb5ae6ab701fb473a3b2c9"
+  },
+  "exactBlobIdentity": {
+    "verifier": "git hash-object",
+    "verifiedCount": 2,
+    "files": {
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/evidence_gate.py": "4a81cb2d235ddf98b2ed93d7417291edbcf4d390",
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/test_evidence_gate.py": "431eed86b56b04edb01c5103ae46eb101daa4098"
+    }
+  },
+  "focusedRegression": {
+    "python": "Python 3.13.5",
+    "command": "python3 -m unittest -v test_evidence_gate.py",
+    "testsDefined": 9,
+    "testsExecuted": 9,
+    "testsPassed": 9,
+    "failures": 0,
+    "errors": 0,
+    "unittestReportedSeconds": 0.032,
+    "status": "PASS"
+  },
+  "verifiedBoundaries": [
+    "fixed 12-case manifest and order/set",
+    "frozen request bytes + canonical/file hashes",
+    "raw response bytes + canonical/file hashes",
+    "capture mode and latency semantics",
+    "teacher row provenance and typed target/distribution shape",
+    "single immutable Jev model version",
+    "student record joins to teacher/manifest identity",
+    "student dataset manifest source hashes and split counts",
+    "lightgbm_training_performed must be boolean false"
+  ],
+  "failClosedProbes": [
+    "tampered raw response bytes",
+    "tampered frozen request bytes",
+    "teacher response hash chain break",
+    "student target chain break",
+    "missing teacher target even when student is altered to match",
+    "external-import latency claim",
+    "lightgbm_training_performed=true",
+    "lightgbm_training_performed=0"
+  ],
+  "parallelWorkCheck": {
+    "openPRsAtValidation": 0,
+    "branchBehindParent": 0,
+    "note": "No parallel open PR was present at validation; topic branch was directly based on current develop/v0.2.0."
+  },
+  "unchangedPriorHarness": {
+    "note": "teacher_dataset.py and student_dataset.py were not modified in this work unit; PR #567's separate 45/45 focused regression remains the prior harness evidence."
+  },
+  "boundaries": [
+    "9/9 integrity-gate tests PASS != authenticated Jev teacher capture",
+    "synthetic fixture PASS != authenticated-origin attestation",
+    "integrity PASS != teacher correctness or ground truth",
+    "integrity PASS != model quality or Product Value",
+    "integrity PASS != automatic permission to train or activate LightGBM",
+    "actual trusted Jev teacher rows remain 0 in this development environment"
+  ]
+}
