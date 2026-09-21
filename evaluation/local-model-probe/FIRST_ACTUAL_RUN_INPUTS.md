@@ -82,6 +82,7 @@ LLAMA_SERVER="$(find llama-runtime -type f -name llama-server -print -quit)"
   --port 8080 \
   --ctx-size 4096 \
   --threads 8 \
+  --metrics \
   > llama-server.log 2>&1 &
 
 RUNTIME_PID=$!
@@ -102,6 +103,7 @@ go run ./cmd/modelmatrix \
   --runtime llama.cpp \
   --runtime-version b10964 \
   --runtime-pid "$RUNTIME_PID" \
+  --runtime-metrics-endpoint http://127.0.0.1:8080/metrics \
   --model qwen35-0.8b-q4_0 \
   --model-file /absolute/path/to/Qwen3.5-0.8B-Q4_0.gguf \
   --expected-model-sha256 57d1997790d1744fba5b40a7317df71ea5e2acee28c47e78f0cce39c0703f8cf \
@@ -116,6 +118,7 @@ go run ./cmd/modelmatrix \
 
 - runtime process RSS / VmHWM;
 - `/proc/<pid>/exe` executable basename / size / SHA-256;
+- llama.cpp `/metrics` のprompt/generation累積token数、KV cache usage ratio / tokens、context token high-water mark（利用可能なものだけ）;
 
 を同じmatrixへ保存する。
 
@@ -127,6 +130,10 @@ download SHA-256 match
 
 runtime executable SHA-256
   != loaded model identity
+
+KV cache usage ratio / tokens
+  != KV cache memory bytes
+  != model weight memory
 
 operator-supplied model file SHA-256
   != runtime model-load attestation
