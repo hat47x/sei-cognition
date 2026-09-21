@@ -164,13 +164,16 @@ model artifact SHA-256 match
   != runtime load attestation
 ```
 
-statusは次の三つに限定する。
+statusは次の四つに限定する。
 
 - `complete`: 3 modeがinvocation errorなしで完了し、comparisonを生成した;
+- `blocked-model-identity`: requested runtime propsがoperator-supplied model fileと**明示的に別filesystem object**を報告し、health check / inference前に停止した;
 - `blocked-preflight`: health endpointが到達不能、error、または非2xxでinference開始前に停止した;
 - `incomplete-inference`: preflightは通ったが1件以上のactual invocationが失敗した.
 
-`blocked-preflight` / `incomplete-inference`でも、取得済みpreflight・mode artifact・failureは捨てずに保存する。一方、partialなrunからcross-mode comparisonを生成しない。
+`blocked-model-identity` / `blocked-preflight` / `incomplete-inference`でも、取得済みEvidence・preflight・mode artifact・failureは捨てずに保存する。一方、partialなrunからcross-mode comparisonを生成しない。
+
+`runtime_props` が `partial` / `unavailable` の場合はmodel mismatchを推定せず、このgateではblockしない。`same_file_as_supplied=false` を明示観測した場合だけfail-closedとする。
 
 ### 5.6 human adjudication
 
@@ -264,6 +267,8 @@ props match
 ```
 
 runtimeが別container/hostにありreported pathをlocal statできない場合は `partial` とし、false mismatchを作らない。
+
+一方、同じhostで両pathをstatでき、`same_file_as_supplied=false` が明示された場合は `blocked-model-identity` としてpreflight / inferenceを開始しない。
 
 ### 5.7 runtime-specific metrics
 
