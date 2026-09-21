@@ -1,0 +1,242 @@
+{
+  "actualLongGapResumptionEstablished": false,
+  "contractSnapshot": {
+    "mechanicsFiles": [
+      {
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe_v1.json",
+        "sha256": "4ed013cd8f9467f772738d8664925aaa875696e28bb3d20c4091b5b84d1023b0"
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe.py",
+        "sha256": "7750bed5dbdde03feea54d3b7035469cbae65a9986a64ad309efb09614800e17"
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_evidence.py",
+        "sha256": "88ec24a4283fa2d257ae898f34826305ed7505eae8cfe3a407974b225eed6839"
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/test_inquiry_continuity_summary_distortion_probe.py",
+        "sha256": "3efa4a01bcff6cd7b3c6b2d72ce964d8d935bf169c999ab58a807ed6e2586ee6"
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/test_inquiry_continuity_summary_distortion_evidence.py",
+        "sha256": "37ad6dc1656514a4400a2d3054544960ff8b0ba5ce6413299db56781ea5887dd"
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/run_inquiry_continuity_summary_distortion_checks.py",
+        "sha256": "59f224494f2ca19a6f847ca1bca0c9eb313c2034af57e70ab49dd8268a10df8d"
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/test_run_inquiry_continuity_summary_distortion_checks.py",
+        "sha256": "09ae91194ca180567b3a942e91ef20e6c2b0ca884ede15eaa0a31517ad8e4254"
+      }
+    ],
+    "probeContentSha256": "f39c5c813fa695ade28ed8b13557e5d89e4914531265432e6c64df535bbd2049",
+    "probeId": "e78-summary-distortion-v1",
+    "probeSchema": "sei.inquiry-continuity-summary-distortion-probe/v1",
+    "python": {
+      "implementation": "cpython",
+      "version": "3.13.5"
+    },
+    "sourceFixtures": [
+      {
+        "actualBlobSha1": "52335589c72ab3548a29053a0acd4c287fbee85d",
+        "expectedBlobSha1": "52335589c72ab3548a29053a0acd4c287fbee85d",
+        "fixtureId": "e78-counterfactual-001-nightly-batch",
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_001.json"
+      },
+      {
+        "actualBlobSha1": "0c3f7caac753e1642e3ff3e8e40425bd7b0e0976",
+        "expectedBlobSha1": "0c3f7caac753e1642e3ff3e8e40425bd7b0e0976",
+        "fixtureId": "e78-counterfactual-002-support-response",
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_002.json"
+      },
+      {
+        "actualBlobSha1": "645519e1a502e844ca640ab0d61dfa438a46e8d2",
+        "expectedBlobSha1": "645519e1a502e844ca640ab0d61dfa438a46e8d2",
+        "fixtureId": "e78-counterfactual-003-import-duplicates",
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_003.json"
+      }
+    ]
+  },
+  "executed": [
+    {
+      "command": [
+        "<python>",
+        "evaluation/personal-inquiry-decision/test_inquiry_continuity_summary_distortion_probe.py"
+      ],
+      "cwdRelativeToRepo": ".",
+      "exitCode": 0,
+      "name": "summary-distortion-probe-tests",
+      "stderr": {
+        "bytes": 122,
+        "sha256": "e45d8e29e7aa510f8ba297fb9bb19e7a52f535597f4f6c94d8d9b2ef85c1cf81"
+      },
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "timedOut": false,
+      "timeoutSeconds": 120
+    },
+    {
+      "command": [
+        "<python>",
+        "evaluation/personal-inquiry-decision/test_inquiry_continuity_summary_distortion_evidence.py"
+      ],
+      "cwdRelativeToRepo": ".",
+      "exitCode": 0,
+      "name": "summary-distortion-evidence-tests",
+      "stderr": {
+        "bytes": 117,
+        "sha256": "6a56d146011e58b03562cab5d16249f529c0f7071ed51e86f8c139a020e9638a"
+      },
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "timedOut": false,
+      "timeoutSeconds": 120
+    },
+    {
+      "command": [
+        "<python>",
+        "evaluation/personal-inquiry-decision/test_run_inquiry_continuity_summary_distortion_checks.py"
+      ],
+      "cwdRelativeToRepo": ".",
+      "exitCode": 0,
+      "name": "summary-distortion-local-runner-tests",
+      "stderr": {
+        "bytes": 124,
+        "sha256": "785314566a653b972a5ebb3f41ba614075499fd4918420c6ca9ac431844e762f"
+      },
+      "stdout": {
+        "bytes": 4756,
+        "sha256": "1f165fa9320f58eea0366280e6bcc839aea9368933b35efa086a6df2c22c28f3"
+      },
+      "timedOut": false,
+      "timeoutSeconds": 120
+    },
+    {
+      "command": [
+        "<python>",
+        "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe.py",
+        "--probe",
+        "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe_v1.json",
+        "--repo-root",
+        ".",
+        "validate"
+      ],
+      "cwdRelativeToRepo": ".",
+      "exitCode": 0,
+      "name": "summary-distortion-probe-validate",
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 3118,
+        "sha256": "775ac74ead30de1506135b19c5aaa3729d1f0457689919defb6e5069b6d8f33a"
+      },
+      "timedOut": false,
+      "timeoutSeconds": 120
+    },
+    {
+      "command": [
+        "<python>",
+        "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_evidence.py",
+        "--probe",
+        "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe_v1.json",
+        "--repo-root",
+        ".",
+        "--fixture-id",
+        "e78-counterfactual-001-nightly-batch",
+        "preflight"
+      ],
+      "cwdRelativeToRepo": ".",
+      "exitCode": 0,
+      "name": "summary-distortion-preflight-e78-counterfactual-001-nightly-batch",
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 2630,
+        "sha256": "d97e5411e8b385570b09f2a967e26e2d00159eaae53bbe5d26790d268a6b8f45"
+      },
+      "timedOut": false,
+      "timeoutSeconds": 120
+    },
+    {
+      "command": [
+        "<python>",
+        "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_evidence.py",
+        "--probe",
+        "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe_v1.json",
+        "--repo-root",
+        ".",
+        "--fixture-id",
+        "e78-counterfactual-002-support-response",
+        "preflight"
+      ],
+      "cwdRelativeToRepo": ".",
+      "exitCode": 0,
+      "name": "summary-distortion-preflight-e78-counterfactual-002-support-response",
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 2633,
+        "sha256": "6acc4e0bfa8041727024ca4384d604c65a23b9bac72e39065559212efdb7c34b"
+      },
+      "timedOut": false,
+      "timeoutSeconds": 120
+    },
+    {
+      "command": [
+        "<python>",
+        "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_evidence.py",
+        "--probe",
+        "evaluation/personal-inquiry-decision/inquiry_continuity_summary_distortion_probe_v1.json",
+        "--repo-root",
+        ".",
+        "--fixture-id",
+        "e78-counterfactual-003-import-duplicates",
+        "preflight"
+      ],
+      "cwdRelativeToRepo": ".",
+      "exitCode": 0,
+      "name": "summary-distortion-preflight-e78-counterfactual-003-import-duplicates",
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 2634,
+        "sha256": "396605ed3c027eab5de68f85b7a6fa81341d02c6ebb2d70236a57ee2f826d9b6"
+      },
+      "timedOut": false,
+      "timeoutSeconds": 120
+    }
+  ],
+  "executedCount": 7,
+  "failedCount": 0,
+  "humanReviewObserved": false,
+  "productValueEstablished": false,
+  "result": "ok",
+  "schema": "sei.inquiry-continuity-summary-distortion-local-check-result/v2",
+  "selected": [
+    "summary-distortion-probe-tests",
+    "summary-distortion-evidence-tests",
+    "summary-distortion-local-runner-tests",
+    "summary-distortion-probe-validate",
+    "summary-distortion-preflight-e78-counterfactual-001-nightly-batch",
+    "summary-distortion-preflight-e78-counterfactual-002-support-response",
+    "summary-distortion-preflight-e78-counterfactual-003-import-duplicates"
+  ],
+  "selectedCount": 7,
+  "stableRequirementAuthorized": false,
+  "stopLine": "E78.3 local checks PASS != human review result != actual long-gap Evidence != Product Value decision != Stable Requirement authorization",
+  "stoppedEarly": false
+}
