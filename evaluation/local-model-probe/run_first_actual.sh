@@ -32,7 +32,10 @@ RUNTIME_ARCHIVE="${WORK_DIR}/${RUNTIME_ARCHIVE_NAME}"
 RUNTIME_DIR="${WORK_DIR}/llama-runtime"
 RUNTIME_MARKER="${RUNTIME_DIR}/.archive-sha256"
 MODEL_FILE="${MODEL_FILE_PATH:-${WORK_DIR}/${MODEL_NAME}}"
-SERVER_LOG="${SERVER_LOG:-${WORK_DIR}/llama-server.log}"
+RUN_ID_PREFIX="${RUN_ID_PREFIX:-qwen35-08-q4-0-$(date -u +%Y%m%dT%H%M%SZ)}"
+OUTPUT="${OUTPUT:-${WORK_DIR}/${RUN_ID_PREFIX}-matrix.json}"
+SERVER_LOG="${SERVER_LOG:-${WORK_DIR}/${RUN_ID_PREFIX}-llama-server.log}"
+EVIDENCE_DIGESTS="${EVIDENCE_DIGESTS:-${WORK_DIR}/${RUN_ID_PREFIX}-evidence.sha256}"
 
 require_command() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -155,13 +158,13 @@ verify_sha256 "$MODEL_SHA256" "$MODEL_FILE"
 RUNTIME_BINARY_OBSERVED_SHA256="$(sha256sum "$LLAMA_SERVER" | awk '{print $1}')"
 
 SOURCE_GIT_SHA="$(git -C "$REPO_ROOT" rev-parse HEAD)"
-RUN_ID_PREFIX="${RUN_ID_PREFIX:-qwen35-08-q4-0-$(date -u +%Y%m%dT%H%M%SZ)}"
-OUTPUT="${OUTPUT:-${WORK_DIR}/${RUN_ID_PREFIX}-matrix.json}"
 
-if [[ -e "$OUTPUT" ]]; then
-  echo "matrix output already exists: $OUTPUT" >&2
-  exit 5
-fi
+for evidence_path in "$OUTPUT" "$SERVER_LOG" "$EVIDENCE_DIGESTS"; do
+  if [[ -e "$evidence_path" ]]; then
+    echo "evidence output already exists: $evidence_path" >&2
+    exit 5
+  fi
+done
 
 echo "source_git_sha=$SOURCE_GIT_SHA"
 echo "runtime_source=$RUNTIME_SOURCE"
@@ -180,6 +183,8 @@ echo "model_file=$MODEL_FILE"
 echo "model_sha256=$MODEL_SHA256"
 echo "work_dir=$WORK_DIR"
 echo "output=$OUTPUT"
+echo "server_log=$SERVER_LOG"
+echo "evidence_digests=$EVIDENCE_DIGESTS"
 
 "$LLAMA_SERVER" \
   --model "$MODEL_FILE" \
@@ -239,5 +244,13 @@ fi
     --output "$OUTPUT"
 )
 
+MATRIX_SHA256="$(sha256sum "$OUTPUT" | awk '{print $1}')"
+SERVER_LOG_SHA256="$(sha256sum "$SERVER_LOG" | awk '{print $1}')"
+{
+  printf '%s  matrix:%s\n' "$MATRIX_SHA256" "$(basename "$OUTPUT")"
+  printf '%s  server-log:%s\n' "$SERVER_LOG_SHA256" "$(basename "$SERVER_LOG")"
+} >"$EVIDENCE_DIGESTS"
+
 echo "matrix artifact: $OUTPUT"
 echo "server log: $SERVER_LOG"
+echo "evidence digests: $EVIDENCE_DIGESTS"
