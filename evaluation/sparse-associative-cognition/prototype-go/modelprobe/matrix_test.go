@@ -477,7 +477,7 @@ func TestRunActualMatrixRecordsRuntimeModelMappingWhenRequested(t *testing.T) {
 			_ = json.NewEncoder(w).Encode(map[string]any{
 				"choices": []any{map[string]any{
 					"message": map[string]any{
-						"content": \`{"proposal":"bounded candidate","need_more_evidence":false}\`,
+						"content": `{"proposal":"bounded candidate","need_more_evidence":false}`,
 					},
 				}},
 				"usage": map[string]any{
