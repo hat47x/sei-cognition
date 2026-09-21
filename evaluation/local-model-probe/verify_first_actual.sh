@@ -67,6 +67,7 @@ MATRIX_FILE=""
 SERVER_LOG_FILE=""
 MATRIX_EXIT_CODE=""
 HASH_ENTRY_COUNT=0
+HASH_FILES=()
 
 while IFS= read -r line || [[ -n "$line" ]]; do
   line="${line%$'\r'}"
@@ -96,6 +97,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         echo "digest sidecar must contain basename-only evidence files: $evidence_file" >&2
         exit 4
       fi
+      HASH_FILES+=("$evidence_file")
       HASH_ENTRY_COUNT=$((HASH_ENTRY_COUNT + 1))
       ;;
   esac
@@ -121,6 +123,24 @@ if [[ "$MATRIX_FILE" == "$SERVER_LOG_FILE" ]]; then
 fi
 if (( HASH_ENTRY_COUNT != 2 )); then
   echo "digest sidecar must contain exactly two SHA-256 entries; observed: $HASH_ENTRY_COUNT" >&2
+  exit 4
+fi
+if [[ "${HASH_FILES[0]}" == "${HASH_FILES[1]}" ]]; then
+  echo "digest sidecar must hash two distinct evidence files" >&2
+  exit 4
+fi
+matrix_hashed=false
+server_log_hashed=false
+for evidence_file in "${HASH_FILES[@]}"; do
+  if [[ "$evidence_file" == "$MATRIX_FILE" ]]; then
+    matrix_hashed=true
+  fi
+  if [[ "$evidence_file" == "$SERVER_LOG_FILE" ]]; then
+    server_log_hashed=true
+  fi
+done
+if [[ "$matrix_hashed" != true || "$server_log_hashed" != true ]]; then
+  echo "matrix_file/server_log_file comments must match the two hashed evidence files" >&2
   exit 4
 fi
 
