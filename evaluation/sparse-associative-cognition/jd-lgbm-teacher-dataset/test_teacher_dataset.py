@@ -157,6 +157,120 @@ class TeacherDatasetTest(unittest.TestCase):
                     source_git_sha="not-a-git-sha",
                 )
 
+    def test_capture_bundle_loader_rejects_tampered_request_bytes(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            bundle_dir = root / "bundle"
+            td.write_capture_bundle(
+                HERE / "tasks.v1.json",
+                self.manifest,
+                bundle_dir,
+                source_git_sha="e" * 40,
+            )
+            request_path = bundle_dir / "requests" / f"{self.manifest['cases'][0]['case_id']}.json"
+            request_path.write_bytes(request_path.read_bytes() + b" ")
+            with self.assertRaises(td.ContractError):
+                td.load_capture_bundle(
+                    HERE / "tasks.v1.json",
+                    self.manifest,
+                    bundle_dir / "capture_manifest.json",
+                )
+
+    def test_import_with_capture_bundle_writes_raw_response_manifest(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            bundle_dir = root / "bundle"
+            raw_dir = root / "raw"
+            raw_dir.mkdir()
+            td.write_capture_bundle(
+                HERE / "tasks.v1.json",
+                self.manifest,
+                bundle_dir,
+                source_git_sha="f" * 40,
+            )
+            for case in self.manifest["cases"]:
+                response = self.valid_response(case)
+                (raw_dir / f"{case['case_id']}.json").write_text(
+                    json.dumps(response, ensure_ascii=False, indent=2) + "\n",
+                    encoding="utf-8",
+                )
+
+            rows_path = root / "normalized" / "teacher_rows.jsonl"
+            raw_manifest_path = root / "normalized" / "raw_response_manifest.json"
+            count = td.normalize_raw_directory(
+                self.manifest,
+                raw_dir,
+                rows_path,
+                generated_at="2026-09-21T00:00:00Z",
+                manifest_path=HERE / "tasks.v1.json",
+                capture_manifest_path=bundle_dir / "capture_manifest.json",
+                raw_manifest_path=raw_manifest_path,
+            )
+            self.assertEqual(count, len(self.manifest["cases"]))
+            raw_manifest = json.loads(raw_manifest_path.read_text(encoding="utf-8"))
+            self.assertEqual(raw_manifest["schema"], td.RAW_RESPONSE_MANIFEST_SCHEMA)
+            self.assertEqual(raw_manifest["source_git_sha"], "f" * 40)
+            self.assertEqual(raw_manifest["response_count"], len(self.manifest["cases"]))
+            self.assertEqual(raw_manifest["teacher_model_versions"], ["jev-test-1.0"])
+            self.assertFalse(raw_manifest["external_capture_latency_observed"])
+            self.assertEqual(
+                raw_manifest["capture_manifest_sha256"],
+                td.sha256_file(bundle_dir / "capture_manifest.json"),
+            )
+            self.assertEqual(len(raw_manifest["raw_response_set_sha256"]), 64)
+
+            by_case = {entry["case_id"]: entry for entry in raw_manifest["responses"]}
+            self.assertEqual(set(by_case), {case["case_id"] for case in self.manifest["cases"]})
+            for case in self.manifest["cases"]:
+                raw_path = raw_dir / f"{case['case_id']}.json"
+                response = json.loads(raw_path.read_bytes())
+                entry = by_case[case["case_id"]]
+                self.assertEqual(entry["raw_response_file_sha256"], td.sha256_file(raw_path))
+                self.assertEqual(entry["canonical_response_sha256"], td.sha256_json(response))
+                self.assertEqual(entry["teacher_model_version"], "jev-test-1.0")
+
+    def test_import_with_capture_bundle_rejects_unexpected_raw_json(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            bundle_dir = root / "bundle"
+            raw_dir = root / "raw"
+            raw_dir.mkdir()
+            td.write_capture_bundle(
+                HERE / "tasks.v1.json",
+                self.manifest,
+                bundle_dir,
+                source_git_sha="1" * 40,
+            )
+            for case in self.manifest["cases"]:
+                (raw_dir / f"{case['case_id']}.json").write_text(
+                    json.dumps(self.valid_response(case)),
+                    encoding="utf-8",
+                )
+            (raw_dir / "extra.json").write_text("{}", encoding="utf-8")
+            with self.assertRaises(td.CollectionBlocked):
+                td.normalize_raw_directory(
+                    self.manifest,
+                    raw_dir,
+                    root / "teacher_rows.jsonl",
+                    manifest_path=HERE / "tasks.v1.json",
+                    capture_manifest_path=bundle_dir / "capture_manifest.json",
+                    raw_manifest_path=root / "raw_response_manifest.json",
+                )
+
+    def test_import_cli_requires_capture_manifest(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            raw_dir = root / "raw"
+            raw_dir.mkdir()
+            result = td.main([
+                str(HERE / "tasks.v1.json"),
+                "--mode", "import",
+                "--raw-dir", str(raw_dir),
+                "--output-dir", str(root / "out"),
+            ])
+            self.assertEqual(result, 2)
+            self.assertFalse((root / "out" / "teacher_rows.jsonl").exists())
+
     def test_choice_response_builds_versioned_row(self):
         case = next(c for c in self.manifest["cases"] if next(iter(c["questions"].values()))["type"] == "choice")
         opts = list(next(iter(case["questions"].values()))["criteria"])
