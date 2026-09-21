@@ -4,3 +4,6 @@ _external/
 # Python実行時の生成物。repositoryの管理対象には含めない。
 __pycache__/
 .pytest_cache/
+
+# Local model evaluation runtime/model cache and generated run artifacts.
+.local-model-run/
