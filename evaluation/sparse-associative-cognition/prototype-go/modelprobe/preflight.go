@@ -51,6 +51,7 @@ func Preflight(ctx context.Context, endpoint string, client *http.Client) RunMan
 		Status: "evaluation-only",
 		ObservedAt: time.Now().UTC().Format(time.RFC3339),
 		ExecutionKind: "preflight",
+		RuntimeProcess: ObserveRuntimeProcessIdentity(0),
 		ModelArtifact: ModelArtifactIdentity{Status: modelArtifactNotSupplied},
 		Host: HostInfo{OS: runtime.GOOS, Arch: runtime.GOARCH, LogicalCPU: runtime.NumCPU(), GoVersion: runtime.Version()},
 		Endpoint: EndpointInfo{URL: endpoint},
