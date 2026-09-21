@@ -102,6 +102,7 @@ class EvidenceGateTest(unittest.TestCase):
             response = {
                 "model": "jev-test-1.0",
                 "answers": {"q": {"type": "noul", "noul": 0.5}},
+                "usage": {"input_tokens": 1, "output_tokens": 1},
             }
             raw_path = raw_dir / f"{case['case_id']}.json"
             raw_bytes = (json.dumps(response, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
@@ -136,7 +137,7 @@ class EvidenceGateTest(unittest.TestCase):
                 "split": case["split"],
                 "split_group_identity": case["split_group_identity"],
                 "teacher_latency_ms": None,
-                "usage": None,
+                "usage": {"input_tokens": 1, "output_tokens": 1},
             })
             student_rows.append({
                 "schema": eg.STUDENT_ROW_SCHEMA,
@@ -235,6 +236,46 @@ class EvidenceGateTest(unittest.TestCase):
             rows = eg.load_jsonl(paths["teacher_rows"])
             rows[0]["teacher_response_hash"] = "0" * 64
             self.write_jsonl(paths["teacher_rows"], rows)
+            dataset = eg.load_json(paths["dataset"])
+            dataset["source_teacher_rows_sha256"] = eg.sha256_file(paths["teacher_rows"])
+            self.write_json(paths["dataset"], dataset)
+            with self.assertRaises(eg.GateError):
+                self.verify(paths)
+
+    def test_teacher_target_cannot_diverge_from_raw_answer_even_if_student_matches(self):
+        with tempfile.TemporaryDirectory() as d:
+            paths = self.build_chain(Path(d))
+            teacher_rows = eg.load_jsonl(paths["teacher_rows"])
+            student_rows = eg.load_jsonl(paths["student_records"])
+            teacher_rows[0]["typed_output"] = 0.6
+            teacher_rows[0]["teacher_probability_or_score"] = {"p_yes": 0.6}
+            student_rows[0]["target"] = 0.6
+            student_rows[0]["teacher_distribution"] = {"p_yes": 0.6}
+            self.write_jsonl(paths["teacher_rows"], teacher_rows)
+            self.write_jsonl(paths["student_records"], student_rows)
+            dataset = eg.load_json(paths["dataset"])
+            dataset["source_teacher_rows_sha256"] = eg.sha256_file(paths["teacher_rows"])
+            dataset["student_records_sha256"] = eg.sha256_file(paths["student_records"])
+            self.write_json(paths["dataset"], dataset)
+            with self.assertRaises(eg.GateError):
+                self.verify(paths)
+
+    def test_raw_response_requires_usage(self):
+        with tempfile.TemporaryDirectory() as d:
+            paths = self.build_chain(Path(d))
+            raw_path = paths["raw_dir"] / "case-00.json"
+            raw = json.loads(raw_path.read_text(encoding="utf-8"))
+            raw.pop("usage")
+            self.write_json(raw_path, raw)
+            raw_manifest = eg.load_json(paths["raw_manifest"])
+            entry = raw_manifest["responses"][0]
+            entry["raw_response_file_sha256"] = eg.sha256_file(raw_path)
+            entry["canonical_response_sha256"] = eg.sha256_json(raw)
+            raw_manifest["raw_response_set_sha256"] = eg.sha256_json(raw_manifest["responses"])
+            self.write_json(paths["raw_manifest"], raw_manifest)
+            teacher_rows = eg.load_jsonl(paths["teacher_rows"])
+            teacher_rows[0]["teacher_response_hash"] = eg.sha256_json(raw)
+            self.write_jsonl(paths["teacher_rows"], teacher_rows)
             dataset = eg.load_json(paths["dataset"])
             dataset["source_teacher_rows_sha256"] = eg.sha256_file(paths["teacher_rows"])
             self.write_json(paths["dataset"], dataset)
