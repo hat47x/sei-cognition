@@ -179,7 +179,7 @@ Issue #375では少なくとも次を比較する。
 
 ### First-run evidence retention
 
-`run_first_actual.sh` はmatrix outputだけでなくserver logもrun ID固有名で保存し、両fileのSHA-256 sidecarを生成する。既存matrix/log/digest fileは上書きしない。
+`run_first_actual.sh` はmatrix outputだけでなくserver logもrun ID固有名で保存し、両fileのSHA-256 sidecarを生成する。既存matrix/log/digest fileは上書きせず、3 output pathの衝突も拒否する。`modelmatrix` がnon-zeroでも生成済みartifact/logのdigestを保存してから元のexit codeを返す。
 
 ```text
 matrix JSON
