@@ -44,6 +44,7 @@ type ActualMatrixArtifact struct {
 	Workspace    *ActualRunArtifact   `json:"workspace,omitempty"`
 	Staged       *ActualRunArtifact   `json:"staged,omitempty"`
 	Comparison   *ActualRunComparison `json:"comparison,omitempty"`
+	RuntimeProcess RuntimeProcessIdentity `json:"runtime_process"`
 	RuntimeMemory RuntimeMemoryEvidence `json:"runtime_memory"`
 	Failures     []MatrixFailure      `json:"failures,omitempty"`
 	Notes        []string             `json:"notes"`
@@ -87,11 +88,13 @@ func RunActualMatrix(
 		SourceGitSHA: cfg.SourceGitSHA,
 		Model:         cfg.Probe.Model,
 		ModelArtifact: cfg.ModelArtifact,
+		RuntimeProcess: ObserveRuntimeProcessIdentity(cfg.RuntimePID),
 		RuntimeMemory: newRuntimeMemoryEvidence(cfg.RuntimePID),
 		Notes: []string{
 			"complete means the three probe modes executed without invocation errors and produced a descriptive comparison",
 			"complete does not mean task success, human adjudication, model adoption, or Product Value",
 			"runtime process RSS is optional execution evidence; first-token latency, energy, and total system cost remain separate evidence",
+			"runtime_process hashes the executable behind /proc/<pid>/exe when --runtime-pid is available; it does not identify the loaded model bytes",
 			"model_artifact identifies operator-supplied local file bytes; it does not prove the runtime loaded those bytes",
 		},
 	}
@@ -106,6 +109,7 @@ func RunActualMatrix(
 		preflight.SourceGitSHA = cfg.SourceGitSHA
 		preflight.RuntimeName = cfg.RuntimeName
 		preflight.RuntimeVersion = cfg.RuntimeVersion
+		preflight.RuntimeProcess = matrix.RuntimeProcess
 		preflight.Model = cfg.Probe.Model
 		preflight.ModelArtifact = cfg.ModelArtifact
 		preflight.Quantization = cfg.Quantization
