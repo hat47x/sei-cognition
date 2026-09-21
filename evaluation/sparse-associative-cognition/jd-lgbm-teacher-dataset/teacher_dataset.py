@@ -472,6 +472,64 @@ def load_capture_bundle(
     return bundle
 
 
+def direct_capture_preflight(
+    manifest: dict[str, Any],
+    output_dir: Path,
+    *,
+    api_key: str,
+    manifest_path: Path,
+    capture_manifest_path: Path,
+    expected_source_git_sha: str,
+) -> dict[str, Any]:
+    """Validate direct-capture readiness without sending a network request."""
+    if not api_key:
+        raise CollectionBlocked("TYPESAFE_API_KEY is absent; preflight sent no teacher request")
+    capture_bundle = load_capture_bundle(manifest_path, manifest, capture_manifest_path)
+
+    expected_source_git_sha = expected_source_git_sha.strip().lower()
+    if len(expected_source_git_sha) != 40 or any(
+        ch not in "0123456789abcdef" for ch in expected_source_git_sha
+    ):
+        raise ContractError("expected_source_git_sha must be a 40-character Git SHA-1 hex string")
+    if capture_bundle["source_git_sha"].lower() != expected_source_git_sha:
+        raise ContractError(
+            "capture bundle source_git_sha does not match the expected checkout source Git SHA"
+        )
+
+    if output_dir.exists() and not output_dir.is_dir():
+        raise CollectionBlocked(f"direct-capture output path is not a directory: {output_dir}")
+    raw_dir = output_dir / "raw"
+    protected_paths = [
+        output_dir / "teacher_rows.jsonl",
+        output_dir / "raw_response_manifest.json",
+        *[raw_dir / f"{case['case_id']}.json" for case in manifest["cases"]],
+    ]
+    existing = [path for path in protected_paths if path.exists()]
+    if existing:
+        raise CollectionBlocked(
+            "direct-capture output already contains protected artifacts: "
+            + ", ".join(str(path) for path in existing)
+        )
+
+    return {
+        "schema": "sei.jd-lgbm-direct-capture-preflight/v1alpha1",
+        "status": "ready",
+        "network_requests_sent": 0,
+        "api_key_present": True,
+        "source_git_sha": capture_bundle["source_git_sha"],
+        "source_manifest_sha256": capture_bundle["source_manifest_sha256"],
+        "capture_manifest_sha256": sha256_file(capture_manifest_path),
+        "request_count": capture_bundle["request_count"],
+        "output_dir": str(output_dir),
+        "boundaries": [
+            "preflight validates local readiness only and sends no teacher request",
+            "api key presence != authenticated Jev capture",
+            "preflight PASS != teacher correctness / ground truth",
+            "preflight PASS != permission to train or activate LightGBM",
+        ],
+    }
+
+
 def build_raw_response_manifest(
     manifest_path: Path,
     capture_manifest_path: Path,
@@ -655,11 +713,12 @@ def normalize_raw_directory(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("manifest", type=Path)
-    parser.add_argument("--mode", choices=("plan", "bundle", "run", "import"), default="plan")
+    parser.add_argument("--mode", choices=("plan", "bundle", "preflight", "run", "import"), default="plan")
     parser.add_argument("--output-dir", type=Path, default=Path("jd-lgbm0-output"))
     parser.add_argument("--raw-dir", type=Path)
     parser.add_argument("--capture-manifest", type=Path)
     parser.add_argument("--source-git-sha")
+    parser.add_argument("--expected-source-git-sha")
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args(argv)
     try:
@@ -684,6 +743,21 @@ def main(argv: list[str] | None = None) -> int:
                 "source_git_sha": bundle["source_git_sha"],
                 "capture_manifest_sha256": sha256_file(args.output_dir / "capture_manifest.json"),
             }, ensure_ascii=False, indent=2))
+            return 0
+        if args.mode == "preflight":
+            if args.capture_manifest is None:
+                raise CollectionBlocked("--capture-manifest is required for preflight mode")
+            if not args.expected_source_git_sha:
+                raise CollectionBlocked("--expected-source-git-sha is required for preflight mode")
+            report = direct_capture_preflight(
+                manifest,
+                args.output_dir,
+                api_key=os.environ.get("TYPESAFE_API_KEY", ""),
+                manifest_path=args.manifest,
+                capture_manifest_path=args.capture_manifest,
+                expected_source_git_sha=args.expected_source_git_sha,
+            )
+            print(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True))
             return 0
         if args.mode == "import":
             if args.raw_dir is None:

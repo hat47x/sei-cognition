@@ -367,6 +367,78 @@ class TeacherDatasetTest(unittest.TestCase):
                     )
             collect.assert_not_called()
 
+    def test_direct_capture_preflight_is_network_free_and_binds_source(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            bundle_dir = root / "bundle"
+            output_dir = root / "run"
+            source_sha = "4" * 40
+            td.write_capture_bundle(
+                HERE / "tasks.v1.json",
+                self.manifest,
+                bundle_dir,
+                source_git_sha=source_sha,
+            )
+            with mock.patch.object(td.urllib.request, "urlopen") as urlopen:
+                report = td.direct_capture_preflight(
+                    self.manifest,
+                    output_dir,
+                    api_key="secret",
+                    manifest_path=HERE / "tasks.v1.json",
+                    capture_manifest_path=bundle_dir / "capture_manifest.json",
+                    expected_source_git_sha=source_sha,
+                )
+            urlopen.assert_not_called()
+            self.assertEqual(report["status"], "ready")
+            self.assertEqual(report["network_requests_sent"], 0)
+            self.assertTrue(report["api_key_present"])
+            self.assertEqual(report["source_git_sha"], source_sha)
+            self.assertEqual(report["request_count"], len(self.manifest["cases"]))
+            self.assertNotIn("secret", json.dumps(report))
+
+    def test_direct_capture_preflight_rejects_source_mismatch(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            bundle_dir = root / "bundle"
+            td.write_capture_bundle(
+                HERE / "tasks.v1.json",
+                self.manifest,
+                bundle_dir,
+                source_git_sha="5" * 40,
+            )
+            with self.assertRaises(td.ContractError):
+                td.direct_capture_preflight(
+                    self.manifest,
+                    root / "run",
+                    api_key="secret",
+                    manifest_path=HERE / "tasks.v1.json",
+                    capture_manifest_path=bundle_dir / "capture_manifest.json",
+                    expected_source_git_sha="6" * 40,
+                )
+
+    def test_direct_capture_preflight_rejects_existing_artifact(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            bundle_dir = root / "bundle"
+            output_dir = root / "run"
+            td.write_capture_bundle(
+                HERE / "tasks.v1.json",
+                self.manifest,
+                bundle_dir,
+                source_git_sha="7" * 40,
+            )
+            output_dir.mkdir()
+            (output_dir / "teacher_rows.jsonl").write_text("existing\n", encoding="utf-8")
+            with self.assertRaises(td.CollectionBlocked):
+                td.direct_capture_preflight(
+                    self.manifest,
+                    output_dir,
+                    api_key="secret",
+                    manifest_path=HERE / "tasks.v1.json",
+                    capture_manifest_path=bundle_dir / "capture_manifest.json",
+                    expected_source_git_sha="7" * 40,
+                )
+
     def test_run_cli_requires_capture_manifest(self):
         with tempfile.TemporaryDirectory() as d:
             result = td.main([
