@@ -38,12 +38,18 @@ func main() {
 	}
 
 	artifactMode := *telemetryJSONFlag != "" || *runJSONFlag != ""
+	resolvedSourceGitSHA := ""
 	if *dryRunFlag && artifactMode {
 		fatalf("--telemetry-json/--run-json are for actual inference and cannot be combined with --dry-run")
 	}
 	if artifactMode {
 		if err := modelprobe.ValidateRunIdentity(*runIDFlag, *sourceGitSHAFlag); err != nil {
 			fatalf("%v", err)
+		}
+		var err error
+		resolvedSourceGitSHA, err = modelprobe.ResolveExactSourceGitSHA(*sourceGitSHAFlag)
+		if err != nil {
+			fatalf("resolve source identity: %v", err)
 		}
 		if *telemetryJSONFlag != "" {
 			ensureNewOutput(*telemetryJSONFlag, "telemetry")
@@ -111,7 +117,7 @@ func main() {
 
 	summary, err := modelprobe.SummarizeActualTelemetry(
 		*runIDFlag,
-		*sourceGitSHAFlag,
+		resolvedSourceGitSHA,
 		*modelFlag,
 		mode,
 		fixtures,
