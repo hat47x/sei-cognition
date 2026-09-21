@@ -4,24 +4,26 @@
   "observedDateLocal": "2026-09-21",
   "parentBinding": {
     "branch": "develop/v0.2.0",
-    "commit": "f13440228d30c818e816da1ed0b0d6b2c3f325aa"
+    "commit": "569872329421bddaf4be65c6daed5dea11f5fe9d"
   },
   "localFiles": {
     "README.md": "29821cfdfba7dd84dbc193dc5495f0881f767691",
-    "student_dataset.py": "11475489aed2ebf223d13f3d57d88d2ea20a3b6c",
-    "test_student_dataset.py": "65bb9fa1492d0e0723cd35e338fe1441ef049a0f",
-    "teacher_dataset.py": "b2c135a9750fcb838c0c2c9f9289a8f9b6c7c754",
+    "student_dataset.py": "42a13d27c1ae40095f60ace05fb82f47eeb9a38f",
+    "test_student_dataset.py": "3b00f5979ca78ddf1bba8b7760c8cf19881e3016",
+    "teacher_dataset.py": "7faf8db7b1b610c039ec055dd046047d86ba3c0b",
+    "test_teacher_dataset.py": "ed0435db202ae69ceb767745520b1176306eed17",
     "tasks.v1.json": "8f85f244848ef5da11b0d1326ea2706c12528dd9"
   },
   "localExecution": {
     "python": "Python 3.13.5",
     "command": "python3 -m unittest -v test_teacher_dataset.py test_student_dataset.py",
-    "testsDefined": 27,
-    "testsExecuted": 27,
-    "testsPassed": 27,
+    "sourceBlobIdentity": "5/5 fetched current-head source/test/manifest files matched GitHub git hash-object",
+    "testsDefined": 32,
+    "testsExecuted": 32,
+    "testsPassed": 32,
     "failures": 0,
     "errors": 0,
-    "unittestReportedSeconds": 0.010,
+    "unittestReportedSeconds": 0.011,
     "status": "PASS"
   },
   "readinessGate": {
@@ -33,7 +35,9 @@
     "joinsStructuredFeaturesFromManifest": true,
     "copiesFeaturesAwayFromMutableManifestState": true,
     "recordsSourceAndOutputSha256": true,
-    "lightgbmTrainingPerformed": false
+    "lightgbmTrainingPerformed": false,
+    "rejectsBooleanMasqueradingAsNumeric": true,
+    "requiresResponseHashSha256Hex": true
   },
   "actualReadinessAttempt": {
     "command": "python3 student_dataset.py tasks.v1.json actual-teacher-rows-do-not-exist.jsonl --output-dir student-blocked",
@@ -49,11 +53,12 @@
     "syntheticTeacherRowsAreGroundTruth": false
   },
   "boundaries": [
-    "27/27 readiness/harness tests PASS != actual Jev teacher dataset readiness",
+    "32/32 readiness/harness tests PASS != actual Jev teacher dataset readiness",
     "test-only synthetic teacher rows != Jev responses",
     "readiness validation != teacher fidelity or task correctness",
     "single teacher model version != semantic correctness",
     "no LightGBM or other student model was trained",
     "no production default, automatic activation, or B5 gate changed"
-  ]
+  ],
+  "testedSourceCommit": "7a22a3a5cec3a43ca28f9a48dac3a9e86f16a920"
 }
