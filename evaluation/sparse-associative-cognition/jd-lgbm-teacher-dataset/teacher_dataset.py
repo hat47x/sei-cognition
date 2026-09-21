@@ -144,8 +144,8 @@ def validate_response(case: dict[str, Any], response: dict[str, Any]) -> tuple[s
         raise ContractError(f"answer type mismatch for {qid}")
     if qtype == "noul":
         value = answer.get("noul")
-        if not isinstance(value, (int, float)) or not 0.0 <= float(value) <= 1.0:
-            raise ContractError("noul must be in [0,1]")
+        if not _is_real_number(value) or not 0.0 <= float(value) <= 1.0:
+            raise ContractError("noul must be a numeric value in [0,1]")
     elif qtype == "choice":
         probs = answer.get("probabilities")
         if not isinstance(probs, dict) or set(probs) != set(question["criteria"]):
@@ -160,16 +160,20 @@ def validate_response(case: dict[str, Any], response: dict[str, Any]) -> tuple[s
             raise ContractError("score probabilities must cover every score level")
         _validate_probabilities(probs)
         score = answer.get("score")
-        if not isinstance(score, (int, float)) or not 0.0 <= float(score) <= len(question["criteria"]) - 1:
-            raise ContractError("score outside declared level range")
+        if not _is_real_number(score) or not 0.0 <= float(score) <= len(question["criteria"]) - 1:
+            raise ContractError("score must be numeric and inside the declared level range")
         _validate_confidence(answer)
     return model, answer
+
+
+def _is_real_number(value: Any) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
 def _validate_probabilities(probs: dict[str, Any]) -> None:
     values = []
     for key, value in probs.items():
-        if not isinstance(value, (int, float)) or not 0.0 <= float(value) <= 1.0:
+        if not _is_real_number(value) or not 0.0 <= float(value) <= 1.0:
             raise ContractError(f"invalid probability for {key}")
         values.append(float(value))
     if abs(sum(values) - 1.0) > 1e-6:
@@ -178,8 +182,8 @@ def _validate_probabilities(probs: dict[str, Any]) -> None:
 
 def _validate_confidence(answer: dict[str, Any]) -> None:
     confidence = answer.get("confidence")
-    if not isinstance(confidence, (int, float)) or not 0.0 <= float(confidence) <= 1.0:
-        raise ContractError("confidence must be in [0,1]")
+    if not _is_real_number(confidence) or not 0.0 <= float(confidence) <= 1.0:
+        raise ContractError("confidence must be a numeric value in [0,1]")
 
 
 def dataset_row(
