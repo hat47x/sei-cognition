@@ -19,7 +19,7 @@ pinned first-run input
 
 ## 1.1 One-command launcher
 
-Linux x86_64 + Go 1.25以上の環境では、repository rootから次を実行できる。
+既定のpinned archive取得経路はLinux x86_64 + Go 1.25以上を対象とする。repository rootから次を実行できる。
 
 ```bash
 bash evaluation/local-model-probe/run_first_actual.sh
@@ -37,6 +37,31 @@ launcherは次を順に行う。
 既定のwork directoryはrepository rootの `.local-model-run/qwen35-08-q4-0` で、Git管理対象外とする。
 
 環境変数で `WORK_DIR` / `THREADS` / `PORT` / `RUN_ID_PREFIX` / `OUTPUT` / pinned URL等をoverrideできる。ただしdigestを変更した場合は、そのrunを既定pinned inputと同一視しない。
+
+### 事前配置済みartifactを使う
+
+外部GPU VM、Colab、mounted storage等ですでにruntime/modelが存在する場合はdownload経路を使わずに実行できる。
+
+```bash
+RUNTIME_BINARY_PATH=/path/to/llama-server \
+RUNTIME_VERSION=<actual-runtime-version> \
+MODEL_FILE_PATH=/path/to/Qwen3.5-0.8B-Q4_0.gguf \
+MODEL_SHA256=57d1997790d1744fba5b40a7317df71ea5e2acee28c47e78f0cce39c0703f8cf \
+MODEL_ALIAS=qwen35-0.8b-q4_0 \
+QUANTIZATION=Q4_0 \
+bash evaluation/local-model-probe/run_first_actual.sh
+```
+
+この経路では:
+- runtime archiveのdownload/extractは行わない;
+- model downloadも行わない;
+- model fileのexpected SHA-256検証は**必須のまま**;
+- runtime binaryのactual SHA-256は必ず観測・表示し、matrix側でも `/proc/<pid>/exe` から記録する;
+- known runtime binary digestがある場合は `RUNTIME_BINARY_SHA256=<digest>` を与えると起動前にfail-closedできる.
+
+`RUNTIME_BINARY_SHA256` 未指定の事前配置runtimeは、binary identityを観測できても既定pinned runtime archive由来とは主張しない。
+
+既定archive経路だけがUbuntu/Linux x86_64 assetに固定される。事前配置runtime経路ではlauncherがarchive architectureを仮定しないが、current model mapping / RSS Evidenceを最大限取得するにはLinuxを推奨する。
 
 launcher自体はdownload成功やinference成功を保証しない。current ChatGPT execution environmentではGo 1.23.2のため、network取得前にGo 1.25 gateで停止することを確認している。
 
