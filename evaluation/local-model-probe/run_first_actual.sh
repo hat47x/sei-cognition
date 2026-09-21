@@ -25,6 +25,7 @@ WORK_DIR="${WORK_DIR:-${REPO_ROOT}/.local-model-run/qwen35-08-q4-0}"
 
 RUNTIME_ARCHIVE="${WORK_DIR}/${RUNTIME_ARCHIVE_NAME}"
 RUNTIME_DIR="${WORK_DIR}/llama-runtime"
+RUNTIME_MARKER="${RUNTIME_DIR}/.archive-sha256"
 MODEL_FILE="${WORK_DIR}/${MODEL_NAME}"
 SERVER_LOG="${SERVER_LOG:-${WORK_DIR}/llama-server.log}"
 
@@ -94,9 +95,15 @@ verify_sha256 "$RUNTIME_SHA256" "$RUNTIME_ARCHIVE"
 download_if_missing "$MODEL_URL" "$MODEL_FILE"
 verify_sha256 "$MODEL_SHA256" "$MODEL_FILE"
 
-if [[ ! -d "$RUNTIME_DIR" ]]; then
+EXTRACTED_RUNTIME_SHA=""
+if [[ -f "$RUNTIME_MARKER" ]]; then
+  IFS= read -r EXTRACTED_RUNTIME_SHA <"$RUNTIME_MARKER" || true
+fi
+if [[ "$EXTRACTED_RUNTIME_SHA" != "$RUNTIME_SHA256" ]]; then
+  rm -rf "$RUNTIME_DIR"
   mkdir -p "$RUNTIME_DIR"
   tar -xzf "$RUNTIME_ARCHIVE" -C "$RUNTIME_DIR"
+  printf '%s\n' "$RUNTIME_SHA256" >"$RUNTIME_MARKER"
 fi
 
 LLAMA_SERVER="$(find "$RUNTIME_DIR" -type f -name llama-server -print -quit)"
