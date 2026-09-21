@@ -220,7 +220,7 @@ EXPECTED_EVIDENCE_DIGESTS_SHA256=<sidecar-digest-retained-out-of-band> \
 bash evaluation/local-model-probe/verify_first_actual.sh /path/to/run-evidence.sha256
 ```
 
-`EXPECTED_EVIDENCE_DIGESTS_SHA256` は、sidecar自体のdigestをrun環境外で保持できた場合だけ使う。
+`run_first_actual.sh` は終了時に `evidence digests sha256: <digest>` を標準出力へ表示する。これをEvidence bundleとは別経路で控えられた場合、その値を `EXPECTED_EVIDENCE_DIGESTS_SHA256` として使う。sidecarと同じbundle内だけに同じ値を保存しても独立anchorにはならない。
 
 ```text
 matrix/log + sidecar
