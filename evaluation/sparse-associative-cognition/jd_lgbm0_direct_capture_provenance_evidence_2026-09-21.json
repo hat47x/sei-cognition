@@ -1,0 +1,81 @@
+{
+  "schema": "sei.jd-lgbm0-direct-capture-provenance-evidence/v1alpha1",
+  "issue": 543,
+  "observedDateLocal": "2026-09-21",
+  "testedSource": {
+    "branch": "topic/jev-lightgbm-distillation",
+    "commit": "5ebb42a9d4673ecb90d632595fddaa734658e680",
+    "parent": "8f2847c02dfb467b176849159a2a9c6a4849ccd5",
+    "parentAdvancePR": 566
+  },
+  "exactBlobIdentity": {
+    "verifier": "git hash-object",
+    "verifiedCount": 5,
+    "files": {
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/teacher_dataset.py": "1e10fd2ae89df5ccf4da8eeb905e2d9ee2afa0b3",
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/test_teacher_dataset.py": "0c671569aab09c514af0661379bbbff16fa8033d",
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/student_dataset.py": "42a13d27c1ae40095f60ace05fb82f47eeb9a38f",
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/test_student_dataset.py": "3b00f5979ca78ddf1bba8b7760c8cf19881e3016",
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/tasks.v1.json": "8f85f244848ef5da11b0d1326ea2706c12528dd9"
+    }
+  },
+  "focusedRegression": {
+    "python": "Python 3.13.5",
+    "command": "python3 -m unittest -v test_teacher_dataset.py test_student_dataset.py",
+    "testsDefined": 45,
+    "testsExecuted": 45,
+    "testsPassed": 45,
+    "failures": 0,
+    "errors": 0,
+    "unittestReportedSeconds": 0.036,
+    "status": "PASS"
+  },
+  "directCaptureMechanicalProbe": {
+    "purpose": "synthetic transport/provenance mechanics verification only; no authenticated Jev request was sent",
+    "sourceGitSha": "5ebb42a9d4673ecb90d632595fddaa734658e680",
+    "requestCount": 12,
+    "responseCount": 12,
+    "captureMode": "direct-run",
+    "captureLatencyObserved": true,
+    "syntheticLatencyMsPerCase": [
+      12.5
+    ],
+    "teacherModelVersions": [
+      "jev-test-1.0"
+    ],
+    "exactHttpResponseBytesPreserved": 12,
+    "captureManifestSha256": "084b95208444afaf4b14769843bc2b20f1bfae6c7fbcd1181fec9ce84e254173",
+    "rawResponseManifestSha256": "9935b2a0ab47a2d27fb9c0ca6a2ca6bdc5709113d42661493f26bbce8dc76366",
+    "rawResponseSetSha256": "5e3bc1aca5476ffb209972b6048ee73eaa09f699cebb4e5ca01452980660a896",
+    "teacherRowsSha256Observed": "977ba9b4297d922c7fdcffe94912361e9b522e9790a03b0aa513172cf645eed5",
+    "studentRecordsSha256": "b68d8a84f4983cc69c8751c82acec3cfd429cda5c326817998b41c04be2fddf0",
+    "datasetManifestSha256Observed": "76e3c7d375d349aa39e7a7d9aad7e3ffb61a17183a9643d565db0ccea8e80352",
+    "splitCounts": {
+      "train": 6,
+      "valid": 3,
+      "test": 3
+    },
+    "lightgbmTrainingPerformed": false
+  },
+  "failClosedChecks": {
+    "frozenCaptureBundleValidatedBeforeNetwork": true,
+    "tamperedFrozenRequestBlocksBeforeNetwork": true,
+    "runCliRequiresCaptureManifest": true,
+    "exactRawHttpBytesStored": true,
+    "existingDirectCaptureArtifactsRequireForce": true
+  },
+  "parallelWorkCheck": {
+    "pr": 566,
+    "overlap": [],
+    "note": "PR #566 changes .gitignore and local-model probe files only. The JD-LGBM branch was realigned to its merged parent before final source binding."
+  },
+  "boundaries": [
+    "45/45 focused regression PASS != actual Jev teacher capture",
+    "synthetic direct-run probe != authenticated teacher Evidence or ground truth",
+    "preserved HTTP bytes != teacher correctness",
+    "directly observed synthetic latency != real Jev latency",
+    "actual trusted Jev teacher rows remain 0",
+    "no LightGBM training or product activation occurred",
+    "the fixed passive 12-case baseline remains prior to any #556 active curriculum acquisition"
+  ]
+}
