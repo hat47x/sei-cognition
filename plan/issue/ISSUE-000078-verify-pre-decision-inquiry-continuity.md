@@ -3,7 +3,7 @@
 Status: **Open**  
 Priority: **2**  
 Related ADRs: **ADR-0005, ADR-0018, ADR-0020, ADR-0028**  
-Updated: 2026-09-21
+Updated: 2026-09-22
 
 ## Goal
 
@@ -747,6 +747,62 @@ E78.3のhuman reviewはまだ開始しない。同一reviewerがE78.2 / E78.4 / 
 
 よってE78.3について次に追加すべきものは別runnerや別Evidence schemaではなく、protocol順序を守ったactual human reviewと、その後のsemantic auditである。local mechanicsの再設計は、新しいfailureが見つからない限りここで止める。
 
+
+
+## E78.6 local runtime checkpoint — 2026-09-22
+
+E78.6のQuiet / Proactive / Adaptive assistance mechanicsは、execution-input bindingで固定したexact source commit `60269a11439d06b05317a9dc66ac80b21589d5aa`から11ファイルを同一execution rootへmaterializeし、**11 / 11全件のGit blob SHA-1がbindingと一致した後だけ**actual Python executionへ進めた。
+
+実測結果は次のとおりである。
+
+```text
+bound source / mechanics exact materialization
+  = 11 / 11
+
+runner-focused tests
+  = 14 / 14 PASS
+  = exit 0
+
+canonical four-check aggregate
+  = selected 4
+  = executed 4
+  = failed 0
+  = stoppedEarly false
+  = result ok
+  = exit 0
+
+canonical validate_result
+  = PASS
+
+Python
+  = CPython 3.13.5
+```
+
+canonical aggregateは、probe tests、Evidence tests、local runner tests、probe validateの4checkを実行した。probe content SHA-256は `d3a9a917d8f043f7cecba623524d1bcce64fed806cb31c6202f9379eaf337a28` である。
+
+validated result v1は次へdurable保存した。
+
+```text
+evaluation/personal-inquiry-decision/evidence/issue-000078/
+  e78_assistance_local_check_result_v1_2026-09-22.json
+```
+
+artifact identityは、schema `sei.inquiry-continuity-assistance-local-check-result/v1`、6,139 bytes、SHA-256 `73898b8052e1141ad1a502845ec2dd90b52373b236d9f13aa8c038cc6ace1086`、Git blob SHA-1 `faae8fd8574653d1a86c38d273ffb9f055dd246c` である。GitHubへ保存したartifactも同じGit blob SHA-1であり、local validated artifactとのbyte identityを確認した。
+
+実行環境ではPython startup時にrepository外のspreadsheet runtime warmup警告がstderrへ出たが、canonical 4checkはいずれもexit 0であり、resultはraw stderr本文を保存せずbyte数とSHA-256だけを保持している。
+
+このcheckpointで成立したのは**E78.6 repository-local mechanics PASS**までである。Quiet / Proactive / Adaptiveのどれを望ましい方式とするかはhuman review前には決めない。
+
+```text
+E78.6 local checks PASS
+  != human review result
+  != actual long-gap comparison
+  != preferred assistance condition
+  != Product Value decision
+  != Stable Requirement authorization
+```
+
+したがって次の段階は、同一fixtureの複数conditionを固定回答前に同じreaderへ見せないという既存stage gateを守ったhuman reviewである。local mechanics PASSだけを根拠にSurface preferenceやStable Requirementを確定しない。
 
 ## Resolution
 
