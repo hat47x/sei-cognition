@@ -51,12 +51,25 @@ This first 12-case bundle remains the fixed passive JD-LGBM-0 baseline. Active-c
 
 ## Actual teacher collection
 
+Direct authenticated collection uses the same frozen request bundle as external capture. Create the bundle first, then run:
+
 ```bash
+python3 teacher_dataset.py tasks.v1.json --mode bundle \
+  --source-git-sha "$(git rev-parse HEAD)" \
+  --output-dir trusted-capture-bundle
+
 export TYPESAFE_API_KEY=...
-python3 teacher_dataset.py tasks.v1.json --mode run --output-dir run-YYYYMMDD
+python3 teacher_dataset.py tasks.v1.json --mode run \
+  --capture-manifest trusted-capture-bundle/capture_manifest.json \
+  --output-dir run-YYYYMMDD
 ```
 
-The harness refuses to run without `TYPESAFE_API_KEY`. It stores raw responses separately from normalized `teacher_rows.jsonl`; it does not silently overwrite an existing row file. HTTP 429 and 529 responses are retried with a bounded exponential backoff.
+The harness refuses direct collection without both `TYPESAFE_API_KEY` and the exact capture manifest. It validates every frozen request before the first network request, preserves the exact HTTP response bytes under `raw/<case_id>.json`, and writes:
+
+- normalized `teacher_rows.jsonl`;
+- `raw_response_manifest.json` with request identity, exact raw-response SHA-256, canonical-response SHA-256, immutable Jev model version, and directly observed client latency.
+
+HTTP 429 and 529 responses are retried with a bounded exponential backoff. Existing direct-capture artifacts are not overwritten unless `--force` is supplied. The raw-response manifest records `capture_mode: "direct-run"`; this is provenance metadata, not a correctness claim.
 
 ## Import externally captured raw responses
 

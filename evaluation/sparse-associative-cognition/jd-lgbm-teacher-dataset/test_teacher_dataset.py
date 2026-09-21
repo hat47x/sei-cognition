@@ -212,6 +212,8 @@ class TeacherDatasetTest(unittest.TestCase):
             self.assertEqual(raw_manifest["source_git_sha"], "f" * 40)
             self.assertEqual(raw_manifest["response_count"], len(self.manifest["cases"]))
             self.assertEqual(raw_manifest["teacher_model_versions"], ["jev-test-1.0"])
+            self.assertEqual(raw_manifest["capture_mode"], "external-import")
+            self.assertFalse(raw_manifest["capture_latency_observed"])
             self.assertFalse(raw_manifest["external_capture_latency_observed"])
             self.assertEqual(
                 raw_manifest["capture_manifest_sha256"],
@@ -228,6 +230,7 @@ class TeacherDatasetTest(unittest.TestCase):
                 self.assertEqual(entry["raw_response_file_sha256"], td.sha256_file(raw_path))
                 self.assertEqual(entry["canonical_response_sha256"], td.sha256_json(response))
                 self.assertEqual(entry["teacher_model_version"], "jev-test-1.0")
+                self.assertIsNone(entry["teacher_latency_ms"])
 
     def test_import_with_capture_bundle_rejects_unexpected_raw_json(self):
         with tempfile.TemporaryDirectory() as d:
@@ -270,6 +273,108 @@ class TeacherDatasetTest(unittest.TestCase):
             ])
             self.assertEqual(result, 2)
             self.assertFalse((root / "out" / "teacher_rows.jsonl").exists())
+
+    def test_collect_case_raw_preserves_exact_http_bytes(self):
+        case = self.manifest["cases"][0]
+        payload = (
+            b'{\n  "model": "jev-test-1.0",\n  "answers": {"route": '
+            + json.dumps(self.valid_response(case)["answers"]["route"], separators=(",", ":")).encode()
+            + b'}\n}'
+        )
+
+        class FakeResponse:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+            def read(self):
+                return payload
+
+        with mock.patch.object(td.urllib.request, "urlopen", return_value=FakeResponse()):
+            response, latency, raw = td.collect_case_raw(case, "secret")
+        self.assertEqual(response["model"], "jev-test-1.0")
+        self.assertGreaterEqual(latency, 0.0)
+        self.assertEqual(raw, payload)
+
+    def test_direct_run_binds_capture_bundle_and_preserves_raw_bytes(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            bundle_dir = root / "bundle"
+            output_dir = root / "run"
+            td.write_capture_bundle(
+                HERE / "tasks.v1.json",
+                self.manifest,
+                bundle_dir,
+                source_git_sha="2" * 40,
+            )
+
+            raw_by_case = {}
+            def fake_collect(case, api_key):
+                response = self.valid_response(case)
+                raw = (
+                    json.dumps(response, ensure_ascii=False, separators=(", ", ": "))
+                    + "\n"
+                ).encode("utf-8")
+                raw_by_case[case["case_id"]] = raw
+                return response, 12.5, raw
+
+            with mock.patch.object(td, "collect_case_raw", side_effect=fake_collect) as collect:
+                count = td.run_collection(
+                    self.manifest,
+                    output_dir,
+                    api_key="secret",
+                    manifest_path=HERE / "tasks.v1.json",
+                    capture_manifest_path=bundle_dir / "capture_manifest.json",
+                )
+            self.assertEqual(count, len(self.manifest["cases"]))
+            self.assertEqual(collect.call_count, len(self.manifest["cases"]))
+
+            raw_manifest = json.loads((output_dir / "raw_response_manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(raw_manifest["capture_mode"], "direct-run")
+            self.assertTrue(raw_manifest["capture_latency_observed"])
+            self.assertFalse(raw_manifest["external_capture_latency_observed"])
+            self.assertEqual(raw_manifest["response_count"], len(self.manifest["cases"]))
+            self.assertEqual(raw_manifest["teacher_model_versions"], ["jev-test-1.0"])
+
+            by_case = {entry["case_id"]: entry for entry in raw_manifest["responses"]}
+            for case in self.manifest["cases"]:
+                raw_path = output_dir / "raw" / f"{case['case_id']}.json"
+                self.assertEqual(raw_path.read_bytes(), raw_by_case[case["case_id"]])
+                entry = by_case[case["case_id"]]
+                self.assertEqual(entry["raw_response_file_sha256"], td.sha256_file(raw_path))
+                self.assertEqual(entry["teacher_latency_ms"], 12.5)
+
+    def test_direct_run_validates_capture_bundle_before_network(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            bundle_dir = root / "bundle"
+            td.write_capture_bundle(
+                HERE / "tasks.v1.json",
+                self.manifest,
+                bundle_dir,
+                source_git_sha="3" * 40,
+            )
+            request_path = bundle_dir / "requests" / f"{self.manifest['cases'][0]['case_id']}.json"
+            request_path.write_bytes(request_path.read_bytes() + b" ")
+            with mock.patch.object(td, "collect_case_raw") as collect:
+                with self.assertRaises(td.ContractError):
+                    td.run_collection(
+                        self.manifest,
+                        root / "run",
+                        api_key="secret",
+                        manifest_path=HERE / "tasks.v1.json",
+                        capture_manifest_path=bundle_dir / "capture_manifest.json",
+                    )
+            collect.assert_not_called()
+
+    def test_run_cli_requires_capture_manifest(self):
+        with tempfile.TemporaryDirectory() as d:
+            result = td.main([
+                str(HERE / "tasks.v1.json"),
+                "--mode", "run",
+                "--output-dir", str(Path(d) / "run"),
+            ])
+            self.assertEqual(result, 2)
 
     def test_choice_response_builds_versioned_row(self):
         case = next(c for c in self.manifest["cases"] if next(iter(c["questions"].values()))["type"] == "choice")
