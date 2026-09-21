@@ -3,7 +3,7 @@
 Status: **Open**  
 Priority: **2**  
 Related ADRs: **ADR-0005, ADR-0018, ADR-0020, ADR-0028**  
-Updated: 2026-09-20
+Updated: 2026-09-21
 
 ## Goal
 
@@ -637,6 +637,63 @@ repository-local mechanics implementation
 また、2026-09-19のLane F継続ではactual dogfood caseのcurrent concern、Unknown、Quiet / Proactive比較、clean resumption条件へmaterialに再露出した。これはE78.1のclean resumptionではなくprotocol observationであるため、evaluation sidecarの`resume_observations`は空のまま維持し、`ACTUAL_DOGFOOD_CHECKPOINT_2026-09-16.md`へ再露出事実だけを追記した。次のclean resumptionでは、この2026-09-19 exposure以後の認知的gapを基準にする。
 
 branch運用についても、同一Issueの継続作業は引き続き`develop/v0.2.0`へ集約する。小さな継続作業ごとにtopic branchを増やさず、元ブランチから分岐した未統合branchを残さない。
+
+
+
+## E78.3 local runtime checkpoint — 2026-09-21
+
+E78.3のrepository-local mechanics gateは、execution-input bindingで固定した10ファイルを**同一execution container上**へmaterializeし、実行前に10/10全てのGit blob SHA-1がbindingと完全一致することを確認したうえでactual実行した。
+
+実測結果は次のとおりである。
+
+```text
+bound source / mechanics exact materialization
+  = 10 / 10
+
+runner-focused tests
+  = 25 / 25 PASS
+  = exit 0
+
+canonical seven-check aggregate
+  = selected 7
+  = executed 7
+  = failed 0
+  = result ok
+  = exit 0
+
+canonical validate_result
+  = PASS
+```
+
+validated result v2は次へdurable保存した。
+
+```text
+evaluation/personal-inquiry-decision/evidence/issue-000078/
+  e78_summary_distortion_local_check_result_v2_2026-09-21.json
+```
+
+identityは、schema `sei.inquiry-continuity-summary-distortion-local-check-result/v2`、8,859 bytes、SHA-256 `65e69a8fa2334021063eabef584e4563dc0d680b83d40d28395d2d59e0ab483b`、Git blob SHA-1 `fc203bea767aa36f5d2a194099c28df5002235fe`である。GitHubへ保存したartifactも同じblob SHA-1であり、local validated artifactとのbyte identityを確認済みである。
+
+したがって、以前の
+
+```text
+repository-local mechanics implementation
+  != repository-local actual PASS recorded
+```
+
+という未実行状態は解消した。ただし、成立したEvidence高さは**repository-local mechanics PASS**までである。
+
+```text
+repository-local mechanics actual PASS
+  != human correction / rejection observed
+  != actual long-gap Evidence
+  != Product Value established
+  != Stable Requirement authorized
+```
+
+E78.3のhuman reviewはまだ開始しない。同一reviewerがE78.2 / E78.4 / E78.5のmatched reviewにも参加する場合、意図的なdistortion刺激による汚染を避けるため、matched reviewを先に完了・固定する。別reviewerを用いる場合も、sourceに対する初期回答を固定する前にdistorted summary / next-questionを提示しない。
+
+よってE78.3について次に追加すべきものは別runnerや別Evidence schemaではなく、protocol順序を守ったactual human reviewと、その後のsemantic auditである。local mechanicsの再設計は、新しいfailureが見つからない限りここで止める。
 
 
 ## Resolution
