@@ -27,6 +27,7 @@ same fixture
 - runtime endpoint readiness / HTTP status / latency
 - runtime name / version
 - `--runtime-pid`指定時の実行中runtime executable basename / size / SHA-256
+- `--runtime-pid` + `--model-file`併用時のruntime model mapping correlation
 - `--runtime-metrics-endpoint`指定時のruntime-specific metrics samples
 - model identifier
 - operator-supplied local model artifactのfile name / size / SHA-256（`--model-file`指定時）
@@ -221,6 +222,27 @@ Linuxでruntime server PIDが分かる場合は `modelmatrix --runtime-pid <pid>
 runtime process executable identity
   != model-load attestation
 ```
+
+### 5.8 runtime model mapping correlation
+
+Linuxでmatrixへ `--runtime-pid` と `--model-file` の両方が渡された場合、最初のpreflight時に `/proc/<pid>/maps` を読み、model fileと同じfilesystem objectのmappingが存在するかを補助観測する。
+
+保存するのはstatus / timestamp / PID / model basename / `/proc/<pid>/maps` source / matching mapping countであり、local absolute model pathは保存しない。
+
+```text
+model artifact SHA-256
+  + same-filesystem-object mapping
+  > model nameだけのEvidence
+
+ただし
+
+same-file mapping observed
+  != runtime parsed every model byte
+  != exclusive model load
+  != successful inference
+```
+
+mapping未観測はruntimeがmmapを使わない可能性もあるため、model failureへ読み替えない。
 
 ### 5.7 runtime-specific metrics
 
