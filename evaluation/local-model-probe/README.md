@@ -200,6 +200,7 @@ Issue #375では少なくとも次を比較する。
 - `--stream`時のfirst-token latency（最初の非空content delta受信時刻を操作的定義とする）
 - Linux `--runtime-pid`指定時のruntime process RSS / peak RSS
 - Linux `--runtime-pid`指定時の実行中runtime executable basename / size / SHA-256（`/proc/<pid>/exe`）
+- Linuxで `--runtime-pid` と `--model-file` を併用した場合のmodel file process mapping（`/proc/<pid>/maps` のsame-filesystem-object照合）
 - `--runtime-metrics-endpoint`指定時のruntime-specific Prometheus metrics（llama.cppではprompt/generation累積tokens、KV cache usage ratio / tokens、context token high-water mark）
 - `--model-file`指定時のlocal model artifact file name / size / SHA-256
 
@@ -255,6 +256,28 @@ PID未指定は `not-requested`、非Linuxは `unsupported`、読取不能は `u
 ```text
 runtime executable SHA-256
   != loaded model identity
+```
+
+### Runtime model mapping
+
+Linuxで `--runtime-pid` と `--model-file` を同時指定すると、matrixは `/proc/<pid>/maps` を読み、hash済みmodel fileと同じfilesystem objectがprocess address spaceへmapされているかを `runtime_model_mapping` に記録する。照合にはabsolute path文字列ではなく `os.SameFile` 相当のdevice/inode identityを使い、Evidenceにはbasenameだけを保存する。
+
+状態:
+
+- `not-requested`: PIDまたはmodel fileが未指定;
+- `observed`: 同じfilesystem objectのmappingを1件以上観測;
+- `not-observed`: `/proc/<pid>/maps` は読めたが対象mappingを観測しなかった;
+- `unavailable`: model file statまたはprocess maps読取に失敗;
+- `unsupported`: 非Linux.
+
+`not-observed` はruntime/model failureではない。runtimeがmmapを使わない場合や観測時点の差でも成立し得る。
+
+```text
+hashed model file + same-file process mapping
+  = stronger load-correlation evidence
+  != proof that runtime parsed every byte
+  != proof that this is the only loaded model
+  != semantic use / task success
 ```
 
 ### Runtime-specific metrics
