@@ -321,14 +321,35 @@ runtime logはmodel load診断には利用できるが、model result qualityと
 
 ## 7. Current environment boundary
 
-このChatGPT execution environmentではshell DNSからGitHubへ到達できないため、上記runtime/modelのactual downloadは未実行である。
+2026-09-23時点、このChatGPT execution environmentではshell DNSからGitHub / Hugging Faceへ直接到達できない。ただしruntimeについては、GitHub connector経由でllama.cpp公式Release workflow artifactをmaterializeできた。
 
-このtransport制約は:
+実測済み:
+
+- official Release workflow run: `34852868138`;
+- artifact: `llama-bin-ubuntu-x64.tar.gz` / ID `10354692768`;
+- workflow artifact ZIP SHA-256:
+  `4b7bfdc8857ea001e602c8c330982bdcb50c28ea08c2f17705b9a728d7033805`;
+- artifact内 `llama-b10964-bin-ubuntu-x64.tar.gz` SHA-256:
+  `9abf88aea48a55d0f80edb1ee20220b186848cca0b4e919d71518cfd7ca67443`;
+- 上記inner archiveはこの文書で固定したpinned release asset SHA-256と完全一致;
+- 展開した `llama-server --version`:
+  `0.4.1-dev (build 10964, commit b29c606e2)`;
+- observed `llama-server` SHA-256:
+  `79e312188dc1d75c28201771f106e91de470b5cebdd838d31bb4db25eecf5d39`.
+
+Durable Evidence:
+`first_actual_runtime_materialization_evidence_2026-09-23.json`.
+
+一方、first modelのHugging Face Xet signed URLまでは解決できたが、current container downloaderのsource-view制約によりGGUF bytesはまだmaterializeできていない。Goもcurrent environmentは1.23.2のままで、canonical Go 1.25.14は未materializeである。
 
 ```text
-download unavailable here
-  != runtime unavailable in general
-  != model failure
+runtime bytes materialized + pinned digest match
+  != model bytes materialized
+  != model load
+  != inference success
+
+signed model URL resolved
+  != GGUF materialized
 ```
 
-として扱う。
+したがって現在のremaining transport blockerは、主としてmodel GGUFとcanonical Go 1.25.14である。runtime自体を「未取得」とは扱わない。
