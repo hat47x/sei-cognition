@@ -681,20 +681,36 @@ review中はcondition labelをreviewer bundleへ出さず、全phase1回答が�
 
 ### current Evidence stopline
 
-現時点では次を維持する。
+2026-09-22時点では、repository-local mechanicsについてはDesign / scaffold段階を越え、次のactual PASSがdurable Evidenceへ固定済みである。
+
+- E78.2 / E78.4 / E78.5 matched-review mechanics:
+  - exact materialization 15 / 15
+  - focused tests 34 / 34 PASS
+  - result Git blob SHA-1 `21d195b52acfe29195232ea3f2d7940ec7253a68`
+- E78.3 summary-distortion mechanics: actual local PASS
+- E78.6 Quiet / Proactive / Adaptive assistance mechanics: actual local PASS
+- E78.7 lifecycle mechanics: actual local PASS
+
+したがって、current Evidence stoplineは次へ更新する。
 
 ```text
-Design / executable evaluation scaffold
-  != human review result
-  != actual long-gap Evidence
+repository-local mechanics actual PASS
+  != matched human review result
+  != E78.3 human correction / rejection observed
+  != E78.1 clean long-gap resumption observed
+  != actual team handoff observed
   != Product Value decision
   != Stable Requirement authorization
   != Adoption / Outcome Evidence
 ```
 
-focused testによって各評価器の停止線や入力検証は確認しているが、それ自体をhuman reviewやProduct Value Evidenceへ読み替えない。GitHub Actionsは使用せず、current repository方針どおりlocal verificationを前提とする。
+E78.2 / E78.4 / E78.5の次のvalid transitionはGitHub Issue #575のactual matched human reviewである。新しいrunner、review template、Evidence schemaを追加せず、既存canonical runnerを唯一の入口とする。human回答本文をAI生成して`human-direct`または`human-transcribed`へ読み替えない。
 
-ISSUE-000078の継続作業は`develop/v0.2.0`を元ブランチとして集約する。同一Issueの小さな継続作業ごとにtopic branchを増やさず、独立した責務や並行作業が実際に必要になった場合だけ分岐を検討する。
+同一reviewerについては、matched reviewが完了・固定される前にE78.3のdistortion刺激を提示しない。current ChatGPT conversation participantをreviewerに使う場合、E78設計・順序・Evidence境界へのmaterial exposureは既知であり、`none-declared`へ読み替えない。
+
+E78.1については2026-09-22のmaterial re-exposureが既にprotocol checkpointへ記録済みであり、その再露出をclean resumption成功・失敗として数えない。次のclean resumption候補は、このmaterial exposure以後の新しい認知的gapを必要とする。
+
+ISSUE-000078の継続作業は引き続き`develop/v0.2.0`を元ブランチとし、`evaluation/issue-000078-dogfood`を再利用する。完了単位はparentへsquash mergeし、reusable branchをparent HEADへrealignしてahead / behind 0 / 0へ戻す。
 
 
 ## Lane F continuation checkpoint — 2026-09-19
