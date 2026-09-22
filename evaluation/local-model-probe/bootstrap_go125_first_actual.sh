@@ -51,9 +51,9 @@ verify_exact_go() {
   fi
 
   local observed_version observed_os observed_arch
-  observed_version="$("$go_binary" env GOVERSION)"
-  observed_os="$("$go_binary" env GOOS)"
-  observed_arch="$("$go_binary" env GOARCH)"
+  observed_version="$(GOTOOLCHAIN=local "$go_binary" env GOVERSION)"
+  observed_os="$(GOTOOLCHAIN=local "$go_binary" env GOHOSTOS)"
+  observed_arch="$(GOTOOLCHAIN=local "$go_binary" env GOHOSTARCH)"
 
   if [[ "$observed_version" != "$GO_TOOLCHAIN_VERSION" ||
         "$observed_os" != "$GO_TOOLCHAIN_OS" ||
