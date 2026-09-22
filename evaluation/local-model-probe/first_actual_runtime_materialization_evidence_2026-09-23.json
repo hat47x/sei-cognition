@@ -1,0 +1,93 @@
+{
+  "schema": "sei.local-model-first-actual-runtime-materialization-evidence/v1",
+  "date": "2026-09-23",
+  "status": "runtime-materialized-no-model",
+  "subject": "Issue #375 pinned llama.cpp b10964 runtime materialization via official Release workflow artifact",
+  "issue": 375,
+  "repositorySourceBinding": {
+    "branch": "topic/sacs-hybrid-call-avoidance",
+    "parentAtObservation": "10aa6780d3dc78fbf7d8476bfbef28f89e818afb"
+  },
+  "runtime": {
+    "repository": "ggml-org/llama.cpp",
+    "releaseTag": "b10964",
+    "releaseVersion": "v0.4.1",
+    "sourceCommit": "b29c606e28a01b1bc8c1351026a0fa6e616bf6c4",
+    "releaseWorkflow": {
+      "runId": 34852868138,
+      "name": "Release",
+      "conclusion": "success",
+      "event": "push",
+      "headSha": "b29c606e28a01b1bc8c1351026a0fa6e616bf6c4"
+    },
+    "workflowArtifact": {
+      "artifactId": 10354692768,
+      "name": "llama-bin-ubuntu-x64.tar.gz",
+      "expired": false,
+      "sizeBytes": 16712688,
+      "githubReportedSha256": "4b7bfdc8857ea001e602c8c330982bdcb50c28ea08c2f17705b9a728d7033805",
+      "locallyObservedZipSha256": "4b7bfdc8857ea001e602c8c330982bdcb50c28ea08c2f17705b9a728d7033805"
+    },
+    "innerArchive": {
+      "fileName": "llama-b10964-bin-ubuntu-x64.tar.gz",
+      "sizeBytes": 16825086,
+      "expectedPinnedReleaseAssetSha256": "9abf88aea48a55d0f80edb1ee20220b186848cca0b4e919d71518cfd7ca67443",
+      "locallyObservedSha256": "9abf88aea48a55d0f80edb1ee20220b186848cca0b4e919d71518cfd7ca67443",
+      "byteIdentityWithPinnedReleaseAsset": true
+    },
+    "executable": {
+      "fileName": "llama-server",
+      "locallyObservedSha256": "79e312188dc1d75c28201771f106e91de470b5cebdd838d31bb4db25eecf5d39",
+      "versionOutput": "version: 0.4.1-dev (build 10964, commit b29c606e2)",
+      "buildOutput": "built with GNU 11.4.0 for Linux x86_64",
+      "executableInvokedForVersion": true
+    }
+  },
+  "model": {
+    "repository": "ggml-org/Qwen3.5-0.8B-GGUF",
+    "revision": "8fea620810c4afa23dd6443f999a48574c1611a3",
+    "fileName": "Qwen3.5-0.8B-Q4_0.gguf",
+    "expectedSizeBytes": 563036064,
+    "expectedSha256": "57d1997790d1744fba5b40a7317df71ea5e2acee28c47e78f0cce39c0703f8cf",
+    "xetHash": "837050aebe61f7728418ca7634f91616f320b66db229b06973533d21fd205549",
+    "signedDownloadUrlResolved": true,
+    "materialized": false,
+    "blocker": "The current container downloader requires a successfully viewed source URL; Hugging Face Xet signed CDN URLs are not accepted as viewable sources in this environment."
+  },
+  "goToolchain": {
+    "canonicalVersion": "go1.25.14",
+    "platform": "linux/amd64",
+    "materialized": false,
+    "currentEnvironmentVersion": "go1.23.2"
+  },
+  "observedResult": {
+    "officialRuntimeWorkflowArtifactDownloaded": true,
+    "workflowArtifactDigestMatched": true,
+    "innerArchiveDigestMatchedPinnedReleaseAsset": true,
+    "llamaServerVersionExecuted": true,
+    "llamaServerModelStartupExecuted": false,
+    "modelArtifactMaterialized": false,
+    "modelLoadExecuted": false,
+    "inferenceExecuted": false,
+    "matrixArtifactCreated": false
+  },
+  "stopLines": [
+    "Release workflow artifact digest match != model load",
+    "inner runtime archive byte identity != inference success",
+    "llama-server --version PASS != llama-server model startup PASS",
+    "runtime materialized != model materialized",
+    "signed model URL resolved != GGUF bytes materialized",
+    "runtime acquisition progress != task quality Evidence"
+  ],
+  "notVerified": [
+    "exact Go 1.25.14 materialization for Issue #375 actual run",
+    "prototype-go full regression under Go 1.25.14",
+    "Qwen3.5-0.8B-Q4_0 GGUF materialization in this execution environment",
+    "llama.cpp startup with the pinned model",
+    "raw/workspace/staged sub-1B inference",
+    "actual invocation/skip telemetry",
+    "quality/latency/memory comparison",
+    "independent human adjudication",
+    "2-4B comparator"
+  ]
+}
