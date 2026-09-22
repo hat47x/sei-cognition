@@ -181,3 +181,13 @@ func TestValidateActualMatrixArtifactRejectsMissingMatrixHost(t *testing.T) {
 		t.Fatal("expected missing matrix host rejection")
 	}
 }
+
+
+func TestValidateActualMatrixArtifactRejectsLegacyV0Schema(t *testing.T) {
+	matrix := completeMatrixForValidation(t)
+	matrix.Schema = legacyActualMatrixArtifactSchema
+
+	if err := ValidateActualMatrixArtifact(matrix); err == nil {
+		t.Fatal("expected legacy v0 matrix schema rejection")
+	}
+}
