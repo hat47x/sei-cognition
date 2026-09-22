@@ -10,7 +10,10 @@ import (
 	"github.com/hat47x/sei-cognition/evaluation/sparse-associative-cognition/prototype-go/cognitiveeval"
 )
 
-const actualMatrixArtifactSchema = "sei-cognition.local-model-matrix-run/v0"
+const (
+	actualMatrixArtifactSchema       = "sei-cognition.local-model-matrix-run/v1"
+	legacyActualMatrixArtifactSchema = "sei-cognition.local-model-matrix-run/v0"
+)
 
 type MatrixConfig struct {
 	RunIDPrefix    string
