@@ -8,7 +8,9 @@ import (
 	"time"
 )
 
-const runManifestSchema = "sei-cognition.local-model-run-manifest/v1"\n\ntype HostInfo struct {
+const runManifestSchema = "sei-cognition.local-model-run-manifest/v1"
+
+type HostInfo struct {
 	OS        string `json:"os"`
 	Arch      string `json:"arch"`
 	LogicalCPU int   `json:"logical_cpu"`
