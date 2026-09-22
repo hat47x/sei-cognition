@@ -183,3 +183,17 @@ func TestValidateHumanAdjudicationRejectsModelArtifactMismatch(t *testing.T) {
 		t.Fatal("expected model artifact mismatch rejection")
 	}
 }
+
+
+func TestValidateHumanAdjudicationRejectsLegacyV0Schema(t *testing.T) {
+	matrix := completeMatrixForAdjudication(t)
+	adjudication, err := BuildHumanAdjudicationTemplate(matrix, "reviewer-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	adjudication.Schema = legacyHumanAdjudicationSchema
+
+	if _, err := ValidateHumanAdjudication(matrix, adjudication); err == nil {
+		t.Fatal("expected legacy v0 human adjudication rejection")
+	}
+}

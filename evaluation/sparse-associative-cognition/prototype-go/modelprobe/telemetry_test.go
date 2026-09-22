@@ -51,7 +51,7 @@ func TestSummarizeActualTelemetrySeparatesPlannedAndObservedCalls(t *testing.T) 
 		t.Fatal(err)
 	}
 
-	if summary.Schema != "sei-cognition.actual-model-telemetry/v0" ||
+	if summary.Schema != actualTelemetrySchema ||
 		summary.Status != "evaluation-only" {
 		t.Fatalf("unexpected metadata: %+v", summary)
 	}

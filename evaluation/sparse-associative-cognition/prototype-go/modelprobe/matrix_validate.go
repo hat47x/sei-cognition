@@ -7,6 +7,13 @@ import (
 )
 
 func ValidateActualMatrixArtifact(matrix ActualMatrixArtifact) error {
+	if matrix.Schema == legacyActualMatrixArtifactSchema {
+		return fmt.Errorf(
+			"matrix schema %q predates required host evidence; rerun with %q",
+			matrix.Schema,
+			actualMatrixArtifactSchema,
+		)
+	}
 	if matrix.Schema != actualMatrixArtifactSchema {
 		return fmt.Errorf("matrix schema %q is unsupported", matrix.Schema)
 	}
@@ -69,7 +76,7 @@ func validateMatrixPreflights(matrix ActualMatrixArtifact) error {
 	modes := []Mode{ModeRaw, ModeWorkspace, ModeStaged}
 	for i, preflight := range matrix.Preflights {
 		mode := modes[i]
-		if preflight.Schema != "sei-cognition.local-model-run-manifest/v0" {
+		if preflight.Schema != runManifestSchema {
 			return fmt.Errorf("preflight %d schema %q is unsupported", i, preflight.Schema)
 		}
 		if preflight.Status != "evaluation-only" {

@@ -6,8 +6,9 @@ import (
 )
 
 const (
-	actualRunArtifactSchema = "sei-cognition.local-model-probe-run/v0"
-	runComparisonSchema     = "sei-cognition.local-model-run-comparison/v0"
+	actualRunArtifactSchema       = "sei-cognition.local-model-probe-run/v1"
+	legacyActualRunArtifactSchema = "sei-cognition.local-model-probe-run/v0"
+	runComparisonSchema           = "sei-cognition.local-model-run-comparison/v1"
 )
 
 type ActualRunArtifact struct {
@@ -81,8 +82,8 @@ type ActualRunComparison struct {
 }
 
 func BuildActualRunArtifact(summary ActualTelemetrySummary, results []Result) (ActualRunArtifact, error) {
-	if summary.Schema != "sei-cognition.actual-model-telemetry/v0" {
-		return ActualRunArtifact{}, fmt.Errorf("telemetry schema %q is unsupported", summary.Schema)
+	if summary.Schema != actualTelemetrySchema {
+		return ActualRunArtifact{}, fmt.Errorf("telemetry schema %q is unsupported; current schema is %q", summary.Schema, actualTelemetrySchema)
 	}
 	if summary.Status != "evaluation-only" {
 		return ActualRunArtifact{}, fmt.Errorf("telemetry status %q is unsupported", summary.Status)
@@ -200,6 +201,9 @@ func CompareActualRuns(raw, workspace, staged ActualRunArtifact) (ActualRunCompa
 }
 
 func validateActualRunArtifact(label string, artifact ActualRunArtifact) error {
+	if artifact.Schema == legacyActualRunArtifactSchema {
+		return fmt.Errorf("%s artifact schema %q predates current telemetry/latency evidence; rerun with %q", label, artifact.Schema, actualRunArtifactSchema)
+	}
 	if artifact.Schema != actualRunArtifactSchema {
 		return fmt.Errorf("%s artifact schema %q is unsupported", label, artifact.Schema)
 	}

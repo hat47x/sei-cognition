@@ -17,7 +17,7 @@ func TestPreflightRecordsReachableEndpoint(t *testing.T) {
 	if !m.Endpoint.Reachable || m.Endpoint.HTTPStatus != http.StatusOK {
 		t.Fatalf("endpoint=%+v", m.Endpoint)
 	}
-	if m.Schema == "" || m.ExecutionKind != "preflight" {
+	if m.Schema != runManifestSchema || m.ExecutionKind != "preflight" {
 		t.Fatalf("manifest=%+v", m)
 	}
 	if m.Host.OS == "" || m.Host.Arch == "" || m.Host.LogicalCPU < 1 {

@@ -94,7 +94,7 @@ launcherは次を順に行う。
 
 3 fileのどれかが既に存在する場合はrun開始前に停止し、過去Evidenceを上書きしない。3 pathを同一値にすることも拒否する。
 
-digest sidecarは `modelmatrix_exit_code`、matrix/logのbasename、標準 `sha256sum -c` 互換のSHA-256行を保持する。local absolute pathは記録しない。
+digest sidecarは先頭metadataとして `evidence_bundle_schema=sei-cognition.local-model-evidence-bundle/v1` を保持し、そのほか `modelmatrix_exit_code`、matrix/logのbasename、標準 `sha256sum -c` 互換のSHA-256行を保持する。local absolute pathは記録しない。
 
 `modelmatrix` が `blocked-model-identity` / `blocked-preflight` / `incomplete-inference` 等でnon-zero終了しても、matrix artifactが生成済みならlauncherはmatrix/logのdigest sidecarを作ってから**同じexit codeを返す**。compile failure等でmatrixが作られなかった場合も、その事実とserver log digestをsidecarへ残す。
 
@@ -248,7 +248,7 @@ bash evaluation/local-model-probe/verify_first_actual.sh \
 
 verifierは次を順に確認する。
 
-1. sidecar syntaxとbasename-only path制約;
+1. exact sidecar schema `sei-cognition.local-model-evidence-bundle/v1`、syntax、basename-only path制約;
 2. matrix/logの2 hash entryがsidecarコメントと一致すること;
 3. `sha256sum -c` によるmatrix/log bytes整合;
 4. matrix JSONのstrict decode（unknown field / trailing JSON拒否）;

@@ -8,8 +8,9 @@ import (
 )
 
 const (
-	humanAdjudicationSchema       = "sei-cognition.local-model-human-adjudication/v0"
-	humanAdjudicationReportSchema = "sei-cognition.local-model-human-adjudication-report/v0"
+	humanAdjudicationSchema       = "sei-cognition.local-model-human-adjudication/v1"
+	humanAdjudicationReportSchema = "sei-cognition.local-model-human-adjudication-report/v1"
+	legacyHumanAdjudicationSchema = "sei-cognition.local-model-human-adjudication/v0"
 )
 
 type HumanAdjudicationEntry struct {
@@ -99,6 +100,9 @@ func ValidateHumanAdjudication(
 ) (HumanAdjudicationReport, error) {
 	if err := validateMatrixForHumanAdjudication(matrix); err != nil {
 		return HumanAdjudicationReport{}, err
+	}
+	if adjudication.Schema == legacyHumanAdjudicationSchema {
+		return HumanAdjudicationReport{}, fmt.Errorf("adjudication schema %q predates model artifact identity; regenerate with %q", adjudication.Schema, humanAdjudicationSchema)
 	}
 	if adjudication.Schema != humanAdjudicationSchema {
 		return HumanAdjudicationReport{}, fmt.Errorf("adjudication schema %q is unsupported", adjudication.Schema)

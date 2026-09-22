@@ -268,6 +268,7 @@ MATRIX_EXIT_CODE=$?
 set -e
 
 {
+  printf '# evidence_bundle_schema=sei-cognition.local-model-evidence-bundle/v1\n'
   printf '# modelmatrix_exit_code=%d\n' "$MATRIX_EXIT_CODE"
   if [[ -n "${SEI_GO_TOOLCHAIN_VERSION:-}" ]]; then
     printf '# go_toolchain_version=%s\n' "$SEI_GO_TOOLCHAIN_VERSION"

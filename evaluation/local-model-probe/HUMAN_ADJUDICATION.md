@@ -20,9 +20,18 @@ human adjudication
 
 human reviewはmodel outputをTruthやDecisionへ昇格させる手続きではない。
 
+current sidecar/report schema:
+
+```text
+sei-cognition.local-model-human-adjudication/v1
+sei-cognition.local-model-human-adjudication-report/v1
+```
+
+`v1` はmodel artifact identityを含む現行形式である。旧human adjudication `v0` は同じ意味へ暗黙upgradeせずrejectする。
+
 ## 2. template生成
 
-complete matrix artifactからreview templateを生成する。
+current complete matrix artifact（`sei-cognition.local-model-matrix-run/v1`）からreview templateを生成する。Host Evidence導入前のmatrix `v0` はcurrent validatorで暗黙upgradeせずrejectする。
 
 ```bash
 go run ./cmd/modeladjudicate \

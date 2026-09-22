@@ -12,7 +12,7 @@ import (
 	"github.com/hat47x/sei-cognition/evaluation/sparse-associative-cognition/prototype-go/modelprobe"
 )
 
-const verificationSchema = "sei-cognition.local-model-matrix-verification/v0"
+const verificationSchema = "sei-cognition.local-model-matrix-verification/v1"
 
 type verificationReport struct {
 	Schema        string                          `json:"schema"`

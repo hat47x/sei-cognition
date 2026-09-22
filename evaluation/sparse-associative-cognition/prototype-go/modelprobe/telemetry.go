@@ -9,22 +9,24 @@ import (
 	"github.com/hat47x/sei-cognition/evaluation/sparse-associative-cognition/prototype-go/cognitiveeval"
 )
 
+const actualTelemetrySchema = "sei-cognition.actual-model-telemetry/v1"
+
 var gitSHA40 = regexp.MustCompile("^[0-9a-f]{40}$")
 
 type ActualRunObservation struct {
-	FixtureID                  string     `json:"fixture_id"`
-	Route                      string     `json:"route"`
-	PlannedModelInvocation     bool       `json:"planned_model_invocation"`
-	ModelInvocationAttempted   bool       `json:"model_invocation_attempted"`
-	ModelInvocationSucceeded   bool       `json:"model_invocation_succeeded"`
-	Skipped                    bool       `json:"skipped"`
-	Error                      string     `json:"error,omitempty"`
-	ResponseHeaderLatencyMS    int64      `json:"response_header_latency_ms,omitempty"`
-	FirstTokenObserved         bool       `json:"first_token_observed"`
-	FirstTokenLatencyMS        int64      `json:"first_token_latency_ms,omitempty"`
-	TotalLatencyMS             int64      `json:"total_latency_ms,omitempty"`
-	Usage                      TokenUsage `json:"usage,omitempty"`
-	EvaluationAvailable        bool       `json:"evaluation_available"`
+	FixtureID                string     `json:"fixture_id"`
+	Route                    string     `json:"route"`
+	PlannedModelInvocation   bool       `json:"planned_model_invocation"`
+	ModelInvocationAttempted bool       `json:"model_invocation_attempted"`
+	ModelInvocationSucceeded bool       `json:"model_invocation_succeeded"`
+	Skipped                  bool       `json:"skipped"`
+	Error                    string     `json:"error,omitempty"`
+	ResponseHeaderLatencyMS  int64      `json:"response_header_latency_ms,omitempty"`
+	FirstTokenObserved       bool       `json:"first_token_observed"`
+	FirstTokenLatencyMS      int64      `json:"first_token_latency_ms,omitempty"`
+	TotalLatencyMS           int64      `json:"total_latency_ms,omitempty"`
+	Usage                    TokenUsage `json:"usage,omitempty"`
+	EvaluationAvailable      bool       `json:"evaluation_available"`
 }
 
 type ActualTelemetrySummary struct {
@@ -80,11 +82,10 @@ func ObserveActualRun(plan Plan, result Result, runErr error) ActualRunObservati
 	if runErr != nil {
 		observation.Error = runErr.Error()
 	}
-	observation.ModelInvocationSucceeded = (
-		runErr == nil &&
-			plan.ShouldInvokeModel &&
-			result.ModelInvocationAttempted &&
-			!result.Skipped)
+	observation.ModelInvocationSucceeded = (runErr == nil &&
+		plan.ShouldInvokeModel &&
+		result.ModelInvocationAttempted &&
+		!result.Skipped)
 	return observation
 }
 
@@ -145,7 +146,7 @@ func SummarizeActualTelemetry(
 	}
 
 	summary := ActualTelemetrySummary{
-		Schema:       "sei-cognition.actual-model-telemetry/v0",
+		Schema:       actualTelemetrySchema,
 		Status:       "evaluation-only",
 		RunID:        runID,
 		SourceGitSHA: sourceGitSHA,
@@ -227,9 +228,8 @@ func SummarizeActualTelemetry(
 		summary.ActualModelCallRate =
 			float64(summary.ActualModelInvocationAttempts) / float64(len(fixtures))
 	}
-	summary.CompleteWithoutInvocationError = (
-		summary.AllFixturesAccounted &&
-			summary.ActualModelInvocationFailures == 0 &&
-			summary.PlanExecutionMismatchCount == 0)
+	summary.CompleteWithoutInvocationError = (summary.AllFixturesAccounted &&
+		summary.ActualModelInvocationFailures == 0 &&
+		summary.PlanExecutionMismatchCount == 0)
 	return summary, nil
 }

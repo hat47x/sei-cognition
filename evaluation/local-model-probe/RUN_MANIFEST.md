@@ -324,6 +324,32 @@ go1.25.14 archive verified
   != model inference PASS
 ```
 
+### 5.12 matrix / verification schema boundary
+
+Host Evidence必須化後のmatrix schemaは:
+
+```text
+sei-cognition.local-model-matrix-run/v1
+```
+
+とする。旧 `v0` はHost追加前なのでcurrent validatorはrejectする。field追加を同じschema名のまま暗黙適用しない。
+
+`cmd/modelmatrixverify` のverification reportもHostを含む現行shapeを:
+
+```text
+sei-cognition.local-model-matrix-verification/v1
+```
+
+として出力する。
+
+first actual bundle sidecarは:
+
+```text
+sei-cognition.local-model-evidence-bundle/v1
+```
+
+をcomment metadataへ持ち、`verify_first_actual.sh` はexact schema matchを要求する。
+
 ### 5.10 returned matrix verification
 
 外部nodeで生成したmatrixを受け取る場合、hash一致だけでartifact内部の整合は保証されない。`cmd/modelmatrixverify` は次をfail-closedで検証する。
