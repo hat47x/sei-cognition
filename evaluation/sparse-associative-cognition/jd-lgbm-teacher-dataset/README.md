@@ -151,3 +151,40 @@ evidence-chain integrity PASS
 
 Synthetic fixtures may satisfy this integrity gate, so a PASS is meaningful only together with the separately retained authenticated capture provenance. The first passive 12-case baseline still precedes #556 active curriculum acquisition.
 
+## Atomic post-capture finalization
+
+After either direct capture or external import has produced validated `teacher_rows.jsonl` and `raw_response_manifest.json`, finalize the fixed baseline in one network-free command:
+
+```bash
+python3 finalize_capture.py \
+  tasks.v1.json \
+  trusted-capture-bundle/capture_manifest.json \
+  trusted-capture/raw \
+  normalized-run/raw_response_manifest.json \
+  normalized-run/teacher_rows.jsonl \
+  --expected-source-git-sha "$(git rev-parse HEAD)" \
+  --output-dir verified-capture
+```
+
+For a direct run, replace the last three capture inputs with `run-YYYYMMDD/raw`, `run-YYYYMMDD/raw_response_manifest.json`, and `run-YYYYMMDD/teacher_rows.jsonl`.
+
+The finalizer:
+
+- revalidates the frozen bundle and requires its `source_git_sha` to equal the explicitly supplied checkout SHA;
+- builds the student-ready dataset without training a model;
+- runs the full retained evidence-chain integrity check;
+- writes `evidence_chain_verification.json` and `capture_verification_receipt.json`;
+- records `network_requests_sent: 0` and `lightgbm_training_performed: false`;
+- prepares all derived artifacts in a temporary directory and publishes the final output directory only after every gate passes.
+
+If any gate fails, no final `verified-capture` directory is published. An existing output directory is never overwritten by this command.
+
+```text
+post-capture finalization PASS
+  != authenticated-origin attestation by the finalizer itself
+  != teacher correctness / ground truth
+  != permission to activate a student
+```
+
+JD-LGBM-1 training remains a separate later stage and is not invoked by this command.
+

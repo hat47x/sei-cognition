@@ -1,0 +1,64 @@
+{
+  "schema": "sei.jd-lgbm0-post-capture-finalizer-evidence/v1alpha1",
+  "issue": 543,
+  "observedDateLocal": "2026-09-22",
+  "testedSource": {
+    "branch": "topic/jev-lightgbm-distillation",
+    "commit": "ded66408e85150f9818e344aefd84c692d131dd4",
+    "parent": "d68d16b1bc787b1d9cbc29af62d5a7bbe13fc2c9"
+  },
+  "exactSourceReview": {
+    "files": {
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/finalize_capture.py": "b2bf980fbc1c0b64a022eb09f16357db93523222",
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/test_finalize_capture.py": "b5456496d1131acdbb66d358ba8cbc1a295f7e9b",
+      "evaluation/sparse-associative-cognition/jd-lgbm-teacher-dataset/README.md": "4f3c6c604aa4057b3840ff4421b9da30e0068f9f"
+    },
+    "focusedTestDefinitionsObserved": 5,
+    "networkCallPrimitivePresent": false,
+    "orchestrationCalls": [
+      "student_dataset.write_student_dataset",
+      "evidence_gate.verify_evidence_chain"
+    ]
+  },
+  "atomicPublishPrimitiveProbe": {
+    "python": "Python 3.13.5",
+    "status": "PASS",
+    "scope": "Standalone local probe of TemporaryDirectory + publish subdirectory + os.replace semantics used by the finalizer.",
+    "fullRepositoryTestSuiteExecuted": false,
+    "finalizeCaptureFocusedSuiteExecuted": false
+  },
+  "intendedFinalizationContract": [
+    "requires explicit expected source Git SHA and matches it to the frozen capture bundle",
+    "refuses an already-existing final output directory",
+    "builds student-ready artifacts only in a temporary publish directory",
+    "runs the retained evidence-chain verifier before publication",
+    "publishes the final directory only after all gates pass",
+    "writes evidence_chain_verification.json and capture_verification_receipt.json",
+    "records network_requests_sent = 0",
+    "records lightgbm_training_performed = false"
+  ],
+  "focusedTestsAdded": [
+    "successful finalization publishes receipt and student-ready dataset",
+    "wrong expected source SHA fails without final output",
+    "tampered raw bytes fail without partial student artifacts",
+    "existing output is preserved and rejected",
+    "invalid source SHA is rejected"
+  ],
+  "parallelWorkCheck": {
+    "latestMergedParallelPR": 579,
+    "overlap": [],
+    "branchRealignedToLatestParentBeforeWork": true,
+    "branchBehindParentAtEvidence": 0,
+    "openPRsAtEvidence": 0
+  },
+  "boundaries": [
+    "post-capture finalization mechanics != authenticated Jev capture",
+    "receipt PASS != authenticated-origin attestation by the finalizer itself",
+    "receipt PASS != teacher correctness or ground truth",
+    "student-ready artifact generation != LightGBM training",
+    "focused tests are added but were not executed in the connector environment",
+    "actual trusted Jev teacher rows remain 0",
+    "JD-LGBM-1 training remains blocked",
+    "active curriculum #556 remains downstream of the fixed authenticated passive baseline"
+  ]
+}
