@@ -9,7 +9,9 @@ import (
 	"github.com/hat47x/sei-cognition/evaluation/sparse-associative-cognition/prototype-go/cognitiveeval"
 )
 
-const actualTelemetrySchema = "sei-cognition.actual-model-telemetry/v1"\n\nvar gitSHA40 = regexp.MustCompile("^[0-9a-f]{40}$")
+const actualTelemetrySchema = "sei-cognition.actual-model-telemetry/v1"
+
+var gitSHA40 = regexp.MustCompile("^[0-9a-f]{40}$")
 
 type ActualRunObservation struct {
 	FixtureID                  string     `json:"fixture_id"`
