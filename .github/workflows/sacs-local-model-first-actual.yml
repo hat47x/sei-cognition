@@ -21,8 +21,6 @@ jobs:
     timeout-minutes: 45
     env:
       RUN_ID_PREFIX: gha-qwen35-08-${{ github.run_id }}-${{ github.run_attempt }}
-      WORK_DIR: ${{ runner.temp }}/sei-local-model-first-actual
-      GO_TOOLCHAIN_WORK_DIR: ${{ runner.temp }}/sei-go-toolchain
       THREADS: "4"
       HEALTH_WAIT_SECONDS: "180"
       MODEL_SHA256: 57d1997790d1744fba5b40a7317df71ea5e2acee28c47e78f0cce39c0703f8cf
@@ -37,6 +35,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          WORK_DIR="$RUNNER_TEMP/sei-local-model-first-actual"
+          GO_TOOLCHAIN_WORK_DIR="$RUNNER_TEMP/sei-go-toolchain"
+          export WORK_DIR GO_TOOLCHAIN_WORK_DIR
+          {
+            echo "WORK_DIR=$WORK_DIR"
+            echo "GO_TOOLCHAIN_WORK_DIR=$GO_TOOLCHAIN_WORK_DIR"
+          } >> "$GITHUB_ENV"
           mkdir -p "$WORK_DIR"
           {
             echo "github_sha=$GITHUB_SHA"
