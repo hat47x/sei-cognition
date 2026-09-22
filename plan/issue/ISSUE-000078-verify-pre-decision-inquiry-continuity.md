@@ -836,6 +836,67 @@ E78.6 local checks PASS
 
 したがって次の段階は、同一fixtureの複数conditionを固定回答前に同じreaderへ見せないという既存stage gateを守ったhuman reviewである。local mechanics PASSだけを根拠にSurface preferenceやStable Requirementを確定しない。
 
+## E78.2 / E78.4 / E78.5 local runtime checkpoint — 2026-09-22
+
+matched human-reviewのrepository-local mechanics gateは、execution-input bindingで固定したexact source commit `1de126f6cddea9eac4cef2c5aaeb89b044f1f89b` の15ファイルを同一execution rootへmaterializeし、実行前に **15 / 15全件のGit blob SHA-1とbyte数がbindingへ完全一致すること**を確認したうえでactual実行した。
+
+実測結果は次のとおりである。
+
+```text
+bound source / mechanics exact materialization
+  = 15 / 15
+
+test_matched_review_session.py
+  = 7 / 7 PASS
+  = exit 0
+
+test_inquiry_continuity_review_analysis.py
+  = 7 / 7 PASS
+  = exit 0
+
+test_inquiry_continuity_review_evidence.py
+  = 5 / 5 PASS
+  = exit 0
+
+test_inquiry_continuity_review_runner.py
+  = 15 / 15 PASS
+  = exit 0
+
+focused tests total
+  = 34 / 34 PASS
+  = failed 0
+
+Python
+  = CPython 3.13.5
+
+Git
+  = 2.47.3
+```
+
+validated local resultは次へdurable保存した。
+
+```text
+evaluation/personal-inquiry-decision/evidence/issue-000078/
+  e78_matched_review_local_check_result_v1_2026-09-22.json
+```
+
+artifact identityは、schema `sei.inquiry-continuity-matched-review-local-check-result/v1`、9,640 bytes、SHA-256 `77603218f515de28849aed2afb25d1108ec43e467d70c4a1e48af587933a8b31`、Git blob SHA-1 `21d195b52acfe29195232ea3f2d7940ec7253a68` である。
+
+実行時のstderrにはrepository外のspreadsheet runtime warmup diagnosticsが含まれたが、4 processはいずれもexit 0かつunittest `OK` で終了した。durable resultにはraw stdout/stderr本文を保存せず、byte数とSHA-256のみを保持した。
+
+これにより、E78.2 / E78.4 / E78.5について、human review開始前のrepository-local mechanics gateはactual PASSまで進んだ。ただし、成立したEvidence高さはここまでである。
+
+```text
+matched-review local mechanics PASS
+  != human review result
+  != actual long-gap resumption
+  != actual team handoff
+  != Product Value decision
+  != Stable Requirement authorization
+```
+
+したがって次段は既存の`inquiry_continuity_review_runner.py`を唯一の入口とするactual human reviewである。同一reviewerがE78.3にも参加する場合は、matched reviewを先に完了・固定してからdistorted summary / next-questionを提示する。human回答そのものをAI生成してhuman reviewとして記録しない。
+
 ## Resolution
 
 次を満たしたときResolvedとする。
