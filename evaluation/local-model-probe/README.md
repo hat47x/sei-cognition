@@ -205,6 +205,20 @@ wrapperはsystem exact Go / pre-provisioned exact binary / pre-provisioned offic
 
 ### Artifact schema versioning
 
+current generated Evidence schemas:
+
+```text
+sei-cognition.local-model-run-manifest/v1
+sei-cognition.actual-model-telemetry/v1
+sei-cognition.local-model-probe-run/v1
+sei-cognition.local-model-run-comparison/v1
+sei-cognition.local-model-matrix-run/v1
+sei-cognition.local-model-matrix-verification/v1
+sei-cognition.local-model-human-adjudication/v1
+sei-cognition.local-model-human-adjudication-report/v1
+sei-cognition.local-model-evidence-bundle/v1
+```
+
 current matrix artifact schema:
 
 ```text
