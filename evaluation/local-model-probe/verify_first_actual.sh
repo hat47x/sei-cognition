@@ -65,6 +65,7 @@ DIGEST_BASENAME="$(basename "$DIGEST_INPUT")"
 
 MATRIX_FILE=""
 SERVER_LOG_FILE=""
+EVIDENCE_BUNDLE_SCHEMA=""
 MATRIX_EXIT_CODE=""
 SIDECAR_GO_VERSION=""
 SIDECAR_GO_OS=""
@@ -80,6 +81,9 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   case "$line" in
     "")
       continue
+      ;;
+    "# evidence_bundle_schema="*)
+      EVIDENCE_BUNDLE_SCHEMA="${line#\# evidence_bundle_schema=}"
       ;;
     "# modelmatrix_exit_code="*)
       MATRIX_EXIT_CODE="${line#\# modelmatrix_exit_code=}"
@@ -126,6 +130,11 @@ while IFS= read -r line || [[ -n "$line" ]]; do
       ;;
   esac
 done <"$DIGEST_INPUT"
+
+if [[ "$EVIDENCE_BUNDLE_SCHEMA" != "sei-cognition.local-model-evidence-bundle/v1" ]]; then
+  echo "unsupported evidence bundle schema: ${EVIDENCE_BUNDLE_SCHEMA:-missing}" >&2
+  exit 4
+fi
 
 if [[ "$MATRIX_EXIT_CODE" != "0" && "$MATRIX_EXIT_CODE" != "1" ]]; then
   echo "digest sidecar must contain modelmatrix_exit_code 0 or 1 when a matrix artifact is present" >&2
