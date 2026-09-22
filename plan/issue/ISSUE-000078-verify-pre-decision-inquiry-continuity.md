@@ -913,6 +913,45 @@ matched-review local mechanics PASS
 
 したがって次段は既存の`inquiry_continuity_review_runner.py`を唯一の入口とするactual human reviewである。同一reviewerがE78.3にも参加する場合は、matched reviewを先に完了・固定してからdistorted summary / next-questionを提示する。human回答そのものをAI生成してhuman reviewとして記録しない。
 
+
+## Human review launch gate — 2026-09-22
+
+repository-local mechanicsは、E78.2 / E78.4 / E78.5 matched review、E78.3 summary distortion、E78.6 assistance、E78.7 lifecycleまでactual PASSがdurable Evidenceへ固定された。ここから先の主な未観測はHuman / actual long-gap / actual team handoff / Product Valueであり、machine gateを増やすこと自体を進捗としない。
+
+actual matched human reviewの追跡先はGitHub Issue #575へ一本化する。新しいreview template、runner、Evidence schemaは追加せず、既存の `inquiry_continuity_review_runner.py` を唯一の入口とする。
+
+現時点のChatGPT実行環境では、private repositoryのexact bound-source checkoutを直接materializeしてcanonical runnerを起動できない。この制約はexecution environmentのblockerであり、canonical runnerやreview mechanicsのfailureではない。環境制約を回避するためにsource identity checkを弱めたり、別runnerを増設したりしない。
+
+また、このconversation participantをreviewerとして用いる場合、すでにE78設計、実行順序、Evidence boundaryへmaterialに露出しており、fixture 001もcanonical `init` 前に提示された履歴がある。そのため、そのreviewerを `none-declared` として扱わず、truthfulなprovenanceとして `known-material-exposure` を保持する。human response本文をAIが生成して `human-direct` / `human-transcribed` として記録しない。
+
+同一reviewerを使う場合の順序は次で固定する。
+
+```text
+E78.2 / E78.4 / E78.5 matched review
+  -> phase1(all fixtures) fixed
+  -> post(all fixtures) fixed
+  -> audit(all fixtures) fixed
+  -> validate --require-complete
+  -> export-evidence
+
+then, for the same reviewer:
+  E78.3 distorted summary / next-question review
+```
+
+E78.6は既存stage gateを守り、同一fixtureの複数conditionを固定回答前に同じreaderへ見せない。Quiet / Proactive / Adaptiveのpreferred conditionをmachine PASSから決めない。E78.1のclean long-gap resumptionは引き続き**Not Yet Observed**であり、synthetic reviewや事前露出済みsessionをactual long-gap Evidenceへ読み替えない。
+
+execution-input binding内の `current_observation` はbinding作成時点のpoint-in-time snapshotとして保持し、後からruntime PASSへ合わせて過去artifactを書き換えない。後続execution stateはdurable local-check resultと本Issueのruntime checkpointを参照する。
+
+```text
+machine mechanics PASS
+  -> human review may start
+
+human review may start
+  != human review observed
+  != Product Value established
+  != Stable Requirement authorization
+```
+
 ## Resolution
 
 次を満たしたときResolvedとする。
