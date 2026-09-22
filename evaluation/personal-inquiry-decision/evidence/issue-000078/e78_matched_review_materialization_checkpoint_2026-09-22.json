@@ -1,0 +1,57 @@
+{
+  "schema": "sei.inquiry-continuity-matched-review-materialization-checkpoint/v1alpha1",
+  "status": "evaluation-only",
+  "issue": "ISSUE-000078",
+  "tracking_issue": 576,
+  "experiment_scope": [
+    "E78.2",
+    "E78.4",
+    "E78.5"
+  ],
+  "date": "2026-09-22",
+  "aggregation_branch": "develop/v0.2.0",
+  "reusable_branch": "evaluation/issue-000078-dogfood",
+  "binding": {
+    "path": "evaluation/personal-inquiry-decision/evidence/issue-000078/e78_matched_review_execution_input_binding_2026-09-22.json",
+    "git_blob_sha1": "90178c356b7a1eea0f5a4a36230cf65efebc49b6",
+    "exact_source_commit": "1de126f6cddea9eac4cef2c5aaeb89b044f1f89b",
+    "bound_files": 15
+  },
+  "current_head_conflict_check": {
+    "develop_head": "85b811c6e9014d5dcbc8d44e0ea7daf1c4a646cc",
+    "current_develop_bound_files_checked": 15,
+    "all_current_develop_blobs_match_binding": true,
+    "overlapping_parallel_change_observed": false,
+    "open_prs_observed": 0
+  },
+  "local_execution_environment": {
+    "python": "CPython 3.13.5",
+    "git": "2.47.3",
+    "authenticated_git_checkout_available": false,
+    "github_cli_available": false,
+    "direct_github_dns_reachable": false
+  },
+  "materialization_attempts": [
+    {
+      "method": "connector-side reversible archive + manual text chunk handoff",
+      "outcome": "first local chunk failed Git blob identity",
+      "classification": "discarded-transport-attempt",
+      "counted_as_local_mechanics_pass_or_fail": false
+    }
+  ],
+  "local_mechanics_state": {
+    "exact_local_materialization_observed": false,
+    "focused_tests_executed": [],
+    "local_mechanics_pass_observed": false,
+    "local_mechanics_fail_observed": false,
+    "human_review_may_start": false
+  },
+  "resume_requirements": [
+    "Materialize all 15 bound files into one execution root.",
+    "Verify all 15 with local git hash-object against the binding before any test is counted.",
+    "Run the four focused test files exactly as listed in the binding/Issue #576.",
+    "Only after all four actual focused tests pass may human review begin.",
+    "AI-generated responses must never be recorded as human review."
+  ],
+  "stop_line": "materialization checkpoint != matched-review local mechanics PASS != human review result != actual long-gap Evidence != actual team handoff != Product Value decision != Stable Requirement authorization"
+}
