@@ -102,3 +102,10 @@ func TestValidateExpectedHostRejectsMismatch(t *testing.T) {
 		})
 	}
 }
+
+
+func TestVerificationSchemaVersion(t *testing.T) {
+	if verificationSchema != "sei-cognition.local-model-matrix-verification/v1" {
+		t.Fatalf("verificationSchema=%q want v1", verificationSchema)
+	}
+}
