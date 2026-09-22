@@ -38,8 +38,7 @@ func TestReadStrictJSONRejectsTrailingValue(t *testing.T) {
 
 func TestReadStrictJSONRejectsUnknownField(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "value.json")
-	if err := os.WriteFile(path, []byte("{"value":1,"extra":2}
-"), 0o600); err != nil {
+	if err := os.WriteFile(path, []byte("{\"value\":1,\"extra\":2}\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	var target struct {
@@ -52,8 +51,7 @@ func TestReadStrictJSONRejectsUnknownField(t *testing.T) {
 
 func TestReadStrictJSONAcceptsSingleValue(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "value.json")
-	if err := os.WriteFile(path, []byte("{"value":1}
-"), 0o600); err != nil {
+	if err := os.WriteFile(path, []byte("{\"value\":1}\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	var target struct {
