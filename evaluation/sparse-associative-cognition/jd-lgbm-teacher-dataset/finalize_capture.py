@@ -11,7 +11,6 @@ import argparse
 import importlib.util
 import json
 import os
-import shutil
 import sys
 import tempfile
 from pathlib import Path
@@ -73,7 +72,9 @@ def finalize_capture(
         )
 
     with tempfile.TemporaryDirectory(prefix=".jd-lgbm0-finalize-", dir=output_dir.parent) as tmp:
-        work = Path(tmp)
+        temp_root = Path(tmp)
+        work = temp_root / "publish"
+        work.mkdir()
         student_dir = work / "student-ready"
         student_summary = sd.write_student_dataset(
             manifest_path,
