@@ -76,7 +76,7 @@ func validateMatrixPreflights(matrix ActualMatrixArtifact) error {
 	modes := []Mode{ModeRaw, ModeWorkspace, ModeStaged}
 	for i, preflight := range matrix.Preflights {
 		mode := modes[i]
-		if preflight.Schema != "sei-cognition.local-model-run-manifest/v0" {
+		if preflight.Schema != runManifestSchema {
 			return fmt.Errorf("preflight %d schema %q is unsupported", i, preflight.Schema)
 		}
 		if preflight.Status != "evaluation-only" {
