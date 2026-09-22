@@ -7,6 +7,13 @@ import (
 )
 
 func ValidateActualMatrixArtifact(matrix ActualMatrixArtifact) error {
+	if matrix.Schema == legacyActualMatrixArtifactSchema {
+		return fmt.Errorf(
+			"matrix schema %q predates required host evidence; rerun with %q",
+			matrix.Schema,
+			actualMatrixArtifactSchema,
+		)
+	}
 	if matrix.Schema != actualMatrixArtifactSchema {
 		return fmt.Errorf("matrix schema %q is unsupported", matrix.Schema)
 	}
