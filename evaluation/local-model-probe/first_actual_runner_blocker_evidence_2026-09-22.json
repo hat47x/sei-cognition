@@ -1,0 +1,150 @@
+{
+  "schema": "sei.local-model-first-actual-runner-blocker-evidence/v1",
+  "date": "2026-09-22",
+  "status": "blocked-runner-not-started",
+  "subject": "Issue #375 first actual sub-1B local model execution attempt",
+  "issue": 375,
+  "pullRequest": null,
+  "sourceBinding": {
+    "parentBeforeAttempt": "1a6a981082d0d549b6265b514e02869ec89308fa",
+    "executionHead": "80127d4708be4692b30557dc438e40b681facaec",
+    "branch": "topic/sacs-hybrid-call-avoidance",
+    "module": "evaluation/sparse-associative-cognition/prototype-go",
+    "launcher": "evaluation/local-model-probe/bootstrap_go125_first_actual.sh",
+    "actualRunner": "evaluation/local-model-probe/run_first_actual.sh",
+    "evidenceVerifier": "evaluation/local-model-probe/verify_first_actual.sh"
+  },
+  "intendedInputs": {
+    "go": {
+      "version": "go1.25.14",
+      "platform": "linux/amd64",
+      "archive": "go1.25.14.linux-amd64.tar.gz",
+      "sha256": "a21ae5633a269bcd7e90cf767e48225633795e99d831742cbf3397064fee7712"
+    },
+    "runtime": {
+      "name": "llama.cpp",
+      "build": "b10964",
+      "sourceCommit": "b29c606e28a01b1bc8c1351026a0fa6e616bf6c4",
+      "archive": "llama-b10964-bin-ubuntu-x64.tar.gz",
+      "sha256": "9abf88aea48a55d0f80edb1ee20220b186848cca0b4e919d71518cfd7ca67443"
+    },
+    "model": {
+      "repository": "ggml-org/Qwen3.5-0.8B-GGUF",
+      "file": "Qwen3.5-0.8B-Q4_0.gguf",
+      "quantization": "Q4_0",
+      "sha256": "57d1997790d1744fba5b40a7317df71ea5e2acee28c47e78f0cce39c0703f8cf"
+    }
+  },
+  "localEnvironmentRecheck": {
+    "observedGoVersion": "go1.23.2 linux/amd64",
+    "gitVersion": "2.47.3",
+    "kernel": "Linux 6.18.44 x86_64",
+    "llamaServerPresent": false,
+    "ollamaPresent": false,
+    "modelCacheObserved": false,
+    "shellDNS": {
+      "githubCom": false,
+      "huggingfaceCo": false,
+      "goDev": false,
+      "proxyGolangOrg": false
+    },
+    "directActualInferenceClaimed": false
+  },
+  "workflowAuthoringAttempt": {
+    "runId": 35693800567,
+    "headSha": "34b7fdd03502a74f394c01ecec46db2625566457",
+    "workflowReportedName": ".github/workflows/sacs-local-model-first-actual.yml",
+    "conclusion": "failure",
+    "jobs": 0,
+    "checkRuns": 0,
+    "classification": "workflow-definition-startup-failure",
+    "exactDiagnosticAvailableFromApi": false,
+    "acceptedAsRuntimeOrModelEvidence": false,
+    "correctedHead": "80127d4708be4692b30557dc438e40b681facaec"
+  },
+  "githubActionsAttempts": [
+    {
+      "runId": 35693909290,
+      "runAttempt": 1,
+      "jobId": 106636503469,
+      "headSha": "80127d4708be4692b30557dc438e40b681facaec",
+      "workflowName": "SACS first actual local model",
+      "conclusion": "failure",
+      "runnerLabels": [
+        "ubuntu-latest"
+      ],
+      "runnerId": 0,
+      "runnerName": "",
+      "runnerGroupId": 0,
+      "steps": 0,
+      "checkoutObserved": false,
+      "goBootstrapObserved": false,
+      "runtimeDownloadObserved": false,
+      "modelDownloadObserved": false,
+      "inferenceObserved": false,
+      "artifactObserved": false,
+      "classification": "runner-not-started"
+    },
+    {
+      "runId": 35693909290,
+      "runAttempt": 2,
+      "jobId": 106636807674,
+      "headSha": "80127d4708be4692b30557dc438e40b681facaec",
+      "workflowName": "SACS first actual local model",
+      "conclusion": "failure",
+      "runnerLabels": [
+        "ubuntu-latest"
+      ],
+      "runnerId": 0,
+      "runnerName": "",
+      "runnerGroupId": 0,
+      "steps": 0,
+      "checkoutObserved": false,
+      "goBootstrapObserved": false,
+      "runtimeDownloadObserved": false,
+      "modelDownloadObserved": false,
+      "inferenceObserved": false,
+      "artifactObserved": false,
+      "classification": "runner-not-started"
+    }
+  ],
+  "observedResult": {
+    "workflowDefinitionParsedAfterCorrection": true,
+    "runnerAssigned": false,
+    "anyWorkflowStepExecuted": false,
+    "exactGo125Materialized": false,
+    "prototypeGo125RegressionExecuted": false,
+    "llamaRuntimeStarted": false,
+    "modelArtifactDownloaded": false,
+    "sub1BInferenceExecuted": false,
+    "matrixArtifactCreated": false,
+    "evidenceBundleCreated": false,
+    "testOrInferenceFailureObserved": false,
+    "reason": "Both accepted GitHub Actions attempts completed before a runner was assigned. No checkout, toolchain setup, download, test, model process, or inference step executed."
+  },
+  "branchPolicy": {
+    "reusedExistingTopicBranch": true,
+    "derivedBranchCreated": false,
+    "temporaryWorkflowMustBeRemovedBeforeMerge": true
+  },
+  "stopLines": [
+    "workflow conclusion failure != Go test failure",
+    "runner-not-started != checkout or toolchain execution",
+    "runner-not-started != runtime/model download failure",
+    "runner-not-started != model inference failure",
+    "planned first-actual workflow != actual model Evidence",
+    "Go 1.23.2 local mechanics != canonical Go 1.25.14 execution",
+    "sub-1B Not Yet Verified != sub-1B unsuitable"
+  ],
+  "notVerified": [
+    "exact Go 1.25.14 materialization for Issue #375 actual run",
+    "prototype-go full regression under Go 1.25.14",
+    "llama.cpp b10964 startup",
+    "Qwen3.5-0.8B-Q4_0 model load",
+    "raw/workspace/staged sub-1B inference",
+    "actual invocation/skip telemetry",
+    "quality/latency/memory comparison",
+    "independent human adjudication",
+    "2-4B comparator"
+  ]
+}
