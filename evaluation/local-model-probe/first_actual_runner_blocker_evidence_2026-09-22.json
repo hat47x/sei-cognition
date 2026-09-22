@@ -4,7 +4,7 @@
   "status": "blocked-runner-not-started",
   "subject": "Issue #375 first actual sub-1B local model execution attempt",
   "issue": 375,
-  "pullRequest": null,
+  "pullRequest": 584,
   "sourceBinding": {
     "parentBeforeAttempt": "1a6a981082d0d549b6265b514e02869ec89308fa",
     "executionHead": "80127d4708be4692b30557dc438e40b681facaec",
