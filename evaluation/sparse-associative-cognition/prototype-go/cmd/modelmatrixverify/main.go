@@ -21,6 +21,7 @@ type verificationReport struct {
 	SourceGitSHA  string                          `json:"source_git_sha"`
 	Model         string                          `json:"model"`
 	ModelArtifact modelprobe.ModelArtifactIdentity `json:"model_artifact"`
+	Host          modelprobe.HostInfo               `json:"host"`
 	Notes         []string                        `json:"notes"`
 }
 
@@ -28,6 +29,9 @@ func main() {
 	matrixPath := flag.String("matrix", "", "local-model matrix artifact JSON to validate")
 	expectedSource := flag.String("expected-source-git-sha", "", "optional expected matrix source Git SHA")
 	expectedModelSHA256 := flag.String("expected-model-sha256", "", "optional expected observed model artifact SHA-256")
+	expectedGoVersion := flag.String("expected-go-version", "", "optional expected matrix Go runtime version")
+	expectedHostOS := flag.String("expected-host-os", "", "optional expected matrix host OS")
+	expectedHostArch := flag.String("expected-host-arch", "", "optional expected matrix host architecture")
 	observedExitCode := flag.Int("observed-modelmatrix-exit-code", -1, "optional observed modelmatrix exit code from the run evidence sidecar")
 	outputPath := flag.String("output", "", "optional new verification report JSON path; stdout when omitted")
 	flag.Parse()
@@ -65,6 +69,16 @@ func main() {
 		}
 	}
 
+	if expected := strings.TrimSpace(*expectedGoVersion); expected != "" && matrix.Host.GoVersion != expected {
+		fatalf("Go runtime version mismatch: expected %s, matrix has %s", expected, matrix.Host.GoVersion)
+	}
+	if expected := strings.TrimSpace(*expectedHostOS); expected != "" && matrix.Host.OS != expected {
+		fatalf("host OS mismatch: expected %s, matrix has %s", expected, matrix.Host.OS)
+	}
+	if expected := strings.TrimSpace(*expectedHostArch); expected != "" && matrix.Host.Arch != expected {
+		fatalf("host architecture mismatch: expected %s, matrix has %s", expected, matrix.Host.Arch)
+	}
+
 	if *observedExitCode < -1 {
 		fatalf("--observed-modelmatrix-exit-code must be -1, 0, or 1")
 	}
@@ -90,9 +104,10 @@ func main() {
 		SourceGitSHA:  matrix.SourceGitSHA,
 		Model:         matrix.Model,
 		ModelArtifact: matrix.ModelArtifact,
+		Host:          matrix.Host,
 		Notes: []string{
 			"structural validation does not prove model quality, task success, or Product Value",
-			"expected identity and exit-code checks are only applied when explicitly supplied",
+			"expected source, model, host, Go runtime, and exit-code checks are only applied when explicitly supplied",
 		},
 	}
 
