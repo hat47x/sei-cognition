@@ -199,3 +199,13 @@ func TestBuildActualRunArtifactRejectsTelemetrySchemaDrift(t *testing.T) {
 		t.Fatal("expected telemetry schema mismatch rejection")
 	}
 }
+
+
+func TestValidateActualRunArtifactRejectsLegacyV0Schema(t *testing.T) {
+	artifact := completeArtifactForTest(t, ModeRaw)
+	artifact.Schema = legacyActualRunArtifactSchema
+
+	if err := validateActualRunArtifact("raw", artifact); err == nil {
+		t.Fatal("expected legacy v0 run artifact rejection")
+	}
+}
