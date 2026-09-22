@@ -22,6 +22,9 @@ func ValidateActualMatrixArtifact(matrix ActualMatrixArtifact) error {
 	if err := ValidateModelArtifactIdentity(matrix.ModelArtifact); err != nil {
 		return fmt.Errorf("matrix model artifact identity: %w", err)
 	}
+	if err := validateHostInfo(matrix.Host); err != nil {
+		return fmt.Errorf("matrix host: %w", err)
+	}
 	if len(matrix.Preflights) > 3 {
 		return fmt.Errorf("matrix has %d preflights; maximum is 3", len(matrix.Preflights))
 	}
@@ -46,6 +49,22 @@ func ValidateActualMatrixArtifact(matrix ActualMatrixArtifact) error {
 	}
 }
 
+func validateHostInfo(host HostInfo) error {
+	if strings.TrimSpace(host.OS) == "" {
+		return fmt.Errorf("os is required")
+	}
+	if strings.TrimSpace(host.Arch) == "" {
+		return fmt.Errorf("arch is required")
+	}
+	if host.LogicalCPU <= 0 {
+		return fmt.Errorf("logical_cpu must be positive")
+	}
+	if strings.TrimSpace(host.GoVersion) == "" {
+		return fmt.Errorf("go_version is required")
+	}
+	return nil
+}
+
 func validateMatrixPreflights(matrix ActualMatrixArtifact) error {
 	modes := []Mode{ModeRaw, ModeWorkspace, ModeStaged}
 	for i, preflight := range matrix.Preflights {
@@ -55,6 +74,12 @@ func validateMatrixPreflights(matrix ActualMatrixArtifact) error {
 		}
 		if preflight.Status != "evaluation-only" {
 			return fmt.Errorf("preflight %d status %q is unsupported", i, preflight.Status)
+		}
+		if err := validateHostInfo(preflight.Host); err != nil {
+			return fmt.Errorf("preflight %d host: %w", i, err)
+		}
+		if !reflect.DeepEqual(preflight.Host, matrix.Host) {
+			return fmt.Errorf("preflight %d host does not match matrix host", i)
 		}
 		if preflight.RunID != matrix.RunIDPrefix+"-"+string(mode) {
 			return fmt.Errorf("preflight %d run_id does not match matrix", i)
