@@ -69,14 +69,13 @@ func main() {
 		}
 	}
 
-	if expected := strings.TrimSpace(*expectedGoVersion); expected != "" && matrix.Host.GoVersion != expected {
-		fatalf("Go runtime version mismatch: expected %s, matrix has %s", expected, matrix.Host.GoVersion)
-	}
-	if expected := strings.TrimSpace(*expectedHostOS); expected != "" && matrix.Host.OS != expected {
-		fatalf("host OS mismatch: expected %s, matrix has %s", expected, matrix.Host.OS)
-	}
-	if expected := strings.TrimSpace(*expectedHostArch); expected != "" && matrix.Host.Arch != expected {
-		fatalf("host architecture mismatch: expected %s, matrix has %s", expected, matrix.Host.Arch)
+	if err := validateExpectedHost(
+		matrix.Host,
+		*expectedGoVersion,
+		*expectedHostOS,
+		*expectedHostArch,
+	); err != nil {
+		fatalf("%v", err)
 	}
 
 	if *observedExitCode < -1 {
@@ -123,6 +122,24 @@ func main() {
 	if err := writeJSONExclusive(*outputPath, report); err != nil {
 		fatalf("write verification report: %v", err)
 	}
+}
+
+func validateExpectedHost(
+	host modelprobe.HostInfo,
+	expectedGoVersion string,
+	expectedOS string,
+	expectedArch string,
+) error {
+	if expected := strings.TrimSpace(expectedGoVersion); expected != "" && host.GoVersion != expected {
+		return fmt.Errorf("Go runtime version mismatch: expected %s, matrix has %s", expected, host.GoVersion)
+	}
+	if expected := strings.TrimSpace(expectedOS); expected != "" && host.OS != expected {
+		return fmt.Errorf("host OS mismatch: expected %s, matrix has %s", expected, host.OS)
+	}
+	if expected := strings.TrimSpace(expectedArch); expected != "" && host.Arch != expected {
+		return fmt.Errorf("host architecture mismatch: expected %s, matrix has %s", expected, host.Arch)
+	}
+	return nil
 }
 
 func validateSHA256(value string) error {
