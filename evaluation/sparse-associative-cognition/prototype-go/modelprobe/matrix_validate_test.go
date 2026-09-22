@@ -19,6 +19,7 @@ func readyValidationPreflight(matrix ActualMatrixArtifact, mode Mode) RunManifes
 		Status:       "evaluation-only",
 		RunID:        matrix.RunIDPrefix + "-" + string(mode),
 		SourceGitSHA: matrix.SourceGitSHA,
+		Host:          matrix.Host,
 		Endpoint: EndpointInfo{
 			Reachable:  true,
 			HTTPStatus: 200,
@@ -80,12 +81,14 @@ func TestValidateActualMatrixArtifactBlockedPreflight(t *testing.T) {
 		SourceGitSHA:  base.SourceGitSHA,
 		Model:         base.Model,
 		ModelArtifact: base.ModelArtifact,
+		Host:          base.Host,
 		Preflights: []RunManifest{
 			{
 				Schema:       "sei-cognition.local-model-run-manifest/v0",
 				Status:       "evaluation-only",
 				RunID:        base.RunIDPrefix + "-" + string(ModeRaw),
 				SourceGitSHA: base.SourceGitSHA,
+				Host:          base.Host,
 				Endpoint: EndpointInfo{
 					Reachable:  true,
 					HTTPStatus: 503,
@@ -118,6 +121,7 @@ func TestValidateActualMatrixArtifactBlockedModelIdentity(t *testing.T) {
 		SourceGitSHA:  base.SourceGitSHA,
 		Model:         base.Model,
 		ModelArtifact: base.ModelArtifact,
+		Host:          base.Host,
 		RuntimeProps: RuntimePropsEvidence{
 			Status:             "observed",
 			SameFileAsSupplied: &same,
@@ -143,6 +147,7 @@ func TestValidateActualMatrixArtifactRejectsBlockedIdentityWithoutMismatch(t *te
 		SourceGitSHA:  base.SourceGitSHA,
 		Model:         base.Model,
 		ModelArtifact: base.ModelArtifact,
+		Host:          base.Host,
 		RuntimeProps: RuntimePropsEvidence{
 			Status:             "observed",
 			SameFileAsSupplied: &same,
@@ -155,5 +160,24 @@ func TestValidateActualMatrixArtifactRejectsBlockedIdentityWithoutMismatch(t *te
 	}
 	if err := ValidateActualMatrixArtifact(blocked); err == nil {
 		t.Fatal("expected blocked-model-identity mismatch evidence rejection")
+	}
+}
+
+
+func TestValidateActualMatrixArtifactRejectsHostMismatch(t *testing.T) {
+	matrix := completeMatrixForValidation(t)
+	matrix.Preflights[1].Host.GoVersion = "go1.25.13"
+
+	if err := ValidateActualMatrixArtifact(matrix); err == nil {
+		t.Fatal("expected preflight host mismatch rejection")
+	}
+}
+
+func TestValidateActualMatrixArtifactRejectsMissingMatrixHost(t *testing.T) {
+	matrix := completeMatrixForValidation(t)
+	matrix.Host = HostInfo{}
+
+	if err := ValidateActualMatrixArtifact(matrix); err == nil {
+		t.Fatal("expected missing matrix host rejection")
 	}
 }

@@ -269,6 +269,16 @@ set -e
 
 {
   printf '# modelmatrix_exit_code=%d\n' "$MATRIX_EXIT_CODE"
+  if [[ -n "${SEI_GO_TOOLCHAIN_VERSION:-}" ]]; then
+    printf '# go_toolchain_version=%s\n' "$SEI_GO_TOOLCHAIN_VERSION"
+    printf '# go_toolchain_os=%s\n' "${SEI_GO_TOOLCHAIN_OS:-}"
+    printf '# go_toolchain_arch=%s\n' "${SEI_GO_TOOLCHAIN_ARCH:-}"
+    printf '# go_toolchain_source=%s\n' "${SEI_GO_TOOLCHAIN_SOURCE:-}"
+    printf '# go_toolchain_binary_sha256=%s\n' "${SEI_GO_TOOLCHAIN_BINARY_SHA256:-}"
+    if [[ -n "${SEI_GO_TOOLCHAIN_ARCHIVE_SHA256:-}" ]]; then
+      printf '# go_toolchain_archive_sha256=%s\n' "$SEI_GO_TOOLCHAIN_ARCHIVE_SHA256"
+    fi
+  fi
   if [[ -f "$OUTPUT" ]]; then
     MATRIX_BASENAME="$(basename "$OUTPUT")"
     MATRIX_SHA256="$(sha256sum "$OUTPUT" | awk '{print $1}')"

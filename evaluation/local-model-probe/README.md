@@ -19,7 +19,7 @@ Durable Semantic State
 
 このprobeは、そのためのtransportとmeasurement entry pointである。
 
-実際に比較するmodel tierと実験順は[`MODEL_MATRIX.md`](./MODEL_MATRIX.md)で整理する。first actual runのpinned runtime/model入力と取得後の実行手順は[`FIRST_ACTUAL_RUN_INPUTS.md`](./FIRST_ACTUAL_RUN_INPUTS.md)に固定する。既定のLinux x86_64 archive経路では `bash evaluation/local-model-probe/run_first_actual.sh` で取得・digest検証・runtime起動・matrix実行までを一続きで実行できる。事前配置済みruntime/modelがある場合は `RUNTIME_BINARY_PATH` / `MODEL_FILE_PATH` で外部downloadを避けられる。
+実際に比較するmodel tierと実験順は[`MODEL_MATRIX.md`](./MODEL_MATRIX.md)で整理する。first actual runのpinned runtime/model入力と取得後の実行手順は[`FIRST_ACTUAL_RUN_INPUTS.md`](./FIRST_ACTUAL_RUN_INPUTS.md)に固定する。既定のLinux x86_64 archive経路では `bash evaluation/local-model-probe/run_first_actual.sh` で取得・digest検証・runtime起動・matrix実行までを一続きで実行できる。事前配置済みruntime/modelがある場合は `RUNTIME_BINARY_PATH` / `MODEL_FILE_PATH` で外部downloadを避けられる。 Go 1.25が未配置のLinux x86_64 nodeでは `bootstrap_go125_first_actual.sh` がofficial go1.25.14 archiveをroot不要でmaterializeし、exact toolchain identityをsidecarとmatrix hostへ結ぶ。
 
 ## 2. 比較する3 mode
 
@@ -186,6 +186,22 @@ HEAD match
   != exact source
 unless working tree is clean
 ```
+
+### Exact Go 1.25 runtime handoff
+
+Issue #512と同じcanonical runtimeで外部actual runを行う場合:
+
+```bash
+bash evaluation/local-model-probe/bootstrap_go125_first_actual.sh
+```
+
+を使う。canonical identity:
+- `go1.25.14`;
+- Linux amd64;
+- official archive `go1.25.14.linux-amd64.tar.gz`;
+- SHA-256 `a21ae5633a269bcd7e90cf767e48225633795e99d831742cbf3397064fee7712`.
+
+wrapperはsystem exact Go / pre-provisioned exact binary / pre-provisioned official archive / official downloadを同じidentityへ収束させ、`GOTOOLCHAIN=local` で自動toolchain差替えを止める。matrix top-level `host.go_version` / OS / archをreturned Evidence verifierがcross-checkする。
 
 ### First-run evidence retention
 

@@ -17,6 +17,12 @@ func completeMatrixForAdjudication(t *testing.T) ActualMatrixArtifact {
 		RunIDPrefix:  "matrix-review",
 		SourceGitSHA: raw.SourceGitSHA,
 		Model:        raw.Model,
+		Host: HostInfo{
+			OS:         "linux",
+			Arch:       "amd64",
+			LogicalCPU: 8,
+			GoVersion:  "go1.25.14",
+		},
 		ModelArtifact: ModelArtifactIdentity{
 			Status:    modelArtifactObserved,
 			FileName:  "candidate.gguf",

@@ -3,6 +3,7 @@ package modelprobe
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"strings"
 	"time"
 
@@ -43,6 +44,7 @@ type ActualMatrixArtifact struct {
 	SourceGitSHA string               `json:"source_git_sha"`
 	Model        string               `json:"model"`
 	ModelArtifact ModelArtifactIdentity `json:"model_artifact"`
+	Host         HostInfo             `json:"host"`
 	Preflights   []RunManifest        `json:"preflights"`
 	Raw          *ActualRunArtifact   `json:"raw,omitempty"`
 	Workspace    *ActualRunArtifact   `json:"workspace,omitempty"`
@@ -95,6 +97,12 @@ func RunActualMatrix(
 		SourceGitSHA: cfg.SourceGitSHA,
 		Model:         cfg.Probe.Model,
 		ModelArtifact: cfg.ModelArtifact,
+		Host: HostInfo{
+			OS:         runtime.GOOS,
+			Arch:       runtime.GOARCH,
+			LogicalCPU: runtime.NumCPU(),
+			GoVersion:  runtime.Version(),
+		},
 		RuntimeProcess: ObserveRuntimeProcessIdentity(cfg.RuntimePID),
 		RuntimeMemory: newRuntimeMemoryEvidence(cfg.RuntimePID),
 		RuntimeMetrics: newRuntimeMetricsEvidence(cfg.RuntimeMetricsEndpoint),
@@ -133,6 +141,7 @@ func RunActualMatrix(
 		preflight := Preflight(ctx, cfg.HealthEndpoint, cfg.Probe.HTTPClient)
 		preflight.RunID = runID
 		preflight.SourceGitSHA = cfg.SourceGitSHA
+		preflight.Host = matrix.Host
 		preflight.RuntimeName = cfg.RuntimeName
 		preflight.RuntimeVersion = cfg.RuntimeVersion
 		preflight.RuntimeProcess = matrix.RuntimeProcess

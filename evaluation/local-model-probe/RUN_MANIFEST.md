@@ -23,7 +23,7 @@ same fixture
 - execution_kind (`preflight` / 後続actual run)
 - `run_id` — preflightとactual telemetryを結ぶ実験単位ID
 - `source_git_sha` — **clean working tree**のcurrent HEADに一致するexact 40-char Git SHA
-- host OS / arch / logical CPU / Go version
+- matrix top-level host OS / arch / logical CPU / Go version（blocked statusでも保持）
 - runtime endpoint readiness / HTTP status / latency
 - runtime name / version
 - `--runtime-pid`指定時の実行中runtime executable basename / size / SHA-256
@@ -151,7 +151,7 @@ raw / workspace / staged artifactの比較は`cmd/modelcompare`を使う。比�
 
 ### 5.3 matrix artifact
 
-`cmd/modelmatrix`は3 modeのpreflight・run artifact・comparisonを一つのmatrix artifactへまとめる。
+`cmd/modelmatrix`は3 modeのpreflight・run artifact・comparisonを一つのmatrix artifactへまとめる。matrix開始直後にtop-level `host` を固定するため、`blocked-model-identity` のようにpreflight前で停止してもOS / arch / logical CPU / Go runtime versionを失わない。各preflightのhostはtop-level hostと同一値に固定する。
 
 標準matrix入口では、source identityをcurrent Git HEADから実測する。`--source-git-sha`は任意の記録値ではなくexpected SHAとして扱い、指定時は`git rev-parse HEAD`との完全一致を要求する。未指定時はcurrent HEADを採用する。
 
@@ -305,6 +305,25 @@ matrix complete
   != model adoption
 ```
 
+### 5.11 canonical Go 1.25 bootstrap Evidence
+
+`bootstrap_go125_first_actual.sh` はIssue #512で固定したexact `go1.25.14 linux/amd64` を外部nodeへroot不要でmaterializeする補助入口である。
+
+official archive:
+- `go1.25.14.linux-amd64.tar.gz`;
+- SHA-256 `a21ae5633a269bcd7e90cf767e48225633795e99d831742cbf3397064fee7712`.
+
+wrapperは `GOTOOLCHAIN=local` を設定し、exact Go binaryの `GOVERSION / GOHOSTOS / GOHOSTARCH` を起動前に確認する。archive経路ではdigest一致後だけ展開する。
+
+wrapper由来toolchain metadataがsidecarに存在する場合、`verify_first_actual.sh` はcanonical値を検証し、`modelmatrixverify` へexpected Go/host値として渡す。matrix top-level hostとの不一致はfail-closed。
+
+```text
+go1.25.14 archive verified
+  + matrix host go1.25.14/linux/amd64
+  != full repository regression PASS
+  != model inference PASS
+```
+
 ### 5.10 returned matrix verification
 
 外部nodeで生成したmatrixを受け取る場合、hash一致だけでartifact内部の整合は保証されない。`cmd/modelmatrixverify` は次をfail-closedで検証する。
@@ -317,6 +336,7 @@ matrix complete
 - blocked-preflightのblocking modeとartifact境界;
 - blocked-model-identityのexplicit runtime-props mismatch;
 - optional expected source SHA / model SHA-256;
+- optional expected Go runtime version / host OS / host arch;
 - optional observed `modelmatrix` exit code.
 
 `verify_first_actual.sh` はその前段でsidecar syntax・basename-only制約・matrix/log hashを検証する。
