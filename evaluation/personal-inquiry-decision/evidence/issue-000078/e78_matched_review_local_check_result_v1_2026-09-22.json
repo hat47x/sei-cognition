@@ -1,0 +1,243 @@
+{
+  "schema": "sei.inquiry-continuity-matched-review-local-check-result/v1",
+  "status": "evaluation-only",
+  "issue": "ISSUE-000078",
+  "tracking_issue": 576,
+  "experiment_scope": [
+    "E78.2",
+    "E78.4",
+    "E78.5"
+  ],
+  "date": "2026-09-22",
+  "binding": {
+    "path": "evaluation/personal-inquiry-decision/evidence/issue-000078/e78_matched_review_execution_input_binding_2026-09-22.json",
+    "git_blob_sha1": "90178c356b7a1eea0f5a4a36230cf65efebc49b6",
+    "exact_source_commit": "1de126f6cddea9eac4cef2c5aaeb89b044f1f89b",
+    "bound_files": 15
+  },
+  "materialization": {
+    "files_verified": 15,
+    "files_matched": 15,
+    "all_git_blob_sha1_exact": true,
+    "transport_whole_crc32": "8c8329b7",
+    "source_files": [
+      {
+        "path": "evaluation/personal-inquiry-decision/decision_continuity_preflight.py",
+        "git_blob_sha1_expected": "8959e2c2370930ed9ffe354be19c2d09f59b670a",
+        "git_blob_sha1_actual": "8959e2c2370930ed9ffe354be19c2d09f59b670a",
+        "bytes_expected": 8551,
+        "bytes_actual": 8551,
+        "identity_match": true
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/decision_continuity_review_analysis.py",
+        "git_blob_sha1_expected": "ca811be7a6d8ed818a37b26e2ccfbea33881cb2b",
+        "git_blob_sha1_actual": "ca811be7a6d8ed818a37b26e2ccfbea33881cb2b",
+        "bytes_expected": 16726,
+        "bytes_actual": 16726,
+        "identity_match": true
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_packet.py",
+        "git_blob_sha1_expected": "3ef4581bbde71ed4ee64d451c2c03492fa055698",
+        "git_blob_sha1_actual": "3ef4581bbde71ed4ee64d451c2c03492fa055698",
+        "bytes_expected": 11621,
+        "bytes_actual": 11621,
+        "identity_match": true
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/matched_review_session.py",
+        "git_blob_sha1_expected": "b1e58d74ef905daf7bd22b8e81c62abceae3f2a7",
+        "git_blob_sha1_actual": "b1e58d74ef905daf7bd22b8e81c62abceae3f2a7",
+        "bytes_expected": 14241,
+        "bytes_actual": 14241,
+        "identity_match": true
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_review_analysis.py",
+        "git_blob_sha1_expected": "893503f7e835b932e5e35a05a4aaefe90798b359",
+        "git_blob_sha1_actual": "893503f7e835b932e5e35a05a4aaefe90798b359",
+        "bytes_expected": 16782,
+        "bytes_actual": 16782,
+        "identity_match": true
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_review_evidence.py",
+        "git_blob_sha1_expected": "3f81d5041a4c6ad3ec25197b576623c2c1d555ef",
+        "git_blob_sha1_actual": "3f81d5041a4c6ad3ec25197b576623c2c1d555ef",
+        "bytes_expected": 8031,
+        "bytes_actual": 8031,
+        "identity_match": true
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_review_runner.py",
+        "git_blob_sha1_expected": "738c3d91f04c3207809b47ce422e78bc38bd1de2",
+        "git_blob_sha1_actual": "738c3d91f04c3207809b47ce422e78bc38bd1de2",
+        "bytes_expected": 19483,
+        "bytes_actual": 19483,
+        "identity_match": true
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/test_matched_review_session.py",
+        "git_blob_sha1_expected": "6a37c465afa8fc2b4473e0177d0e435a7f05fc87",
+        "git_blob_sha1_actual": "6a37c465afa8fc2b4473e0177d0e435a7f05fc87",
+        "bytes_expected": 7073,
+        "bytes_actual": 7073,
+        "identity_match": true
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/test_inquiry_continuity_review_analysis.py",
+        "git_blob_sha1_expected": "bafb2f03abd61836beba9021a37264b85ff9891d",
+        "git_blob_sha1_actual": "bafb2f03abd61836beba9021a37264b85ff9891d",
+        "bytes_expected": 8558,
+        "bytes_actual": 8558,
+        "identity_match": true
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/test_inquiry_continuity_review_evidence.py",
+        "git_blob_sha1_expected": "ef93c37912fa6afe9c0ce904566e82d1655ebf97",
+        "git_blob_sha1_actual": "ef93c37912fa6afe9c0ce904566e82d1655ebf97",
+        "bytes_expected": 5036,
+        "bytes_actual": 5036,
+        "identity_match": true
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/test_inquiry_continuity_review_runner.py",
+        "git_blob_sha1_expected": "1530aa1f4d4274b08385eea0f03f44b9e65e54d2",
+        "git_blob_sha1_actual": "1530aa1f4d4274b08385eea0f03f44b9e65e54d2",
+        "bytes_expected": 13952,
+        "bytes_actual": 13952,
+        "identity_match": true
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_matched_set_v1.json",
+        "git_blob_sha1_expected": "ca8d05c64ab3d106d54f8a30a68a89face9b683b",
+        "git_blob_sha1_actual": "ca8d05c64ab3d106d54f8a30a68a89face9b683b",
+        "bytes_expected": 5266,
+        "bytes_actual": 5266,
+        "identity_match": true
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_001.json",
+        "git_blob_sha1_expected": "52335589c72ab3548a29053a0acd4c287fbee85d",
+        "git_blob_sha1_actual": "52335589c72ab3548a29053a0acd4c287fbee85d",
+        "bytes_expected": 15078,
+        "bytes_actual": 15078,
+        "identity_match": true
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_002.json",
+        "git_blob_sha1_expected": "0c3f7caac753e1642e3ff3e8e40425bd7b0e0976",
+        "git_blob_sha1_actual": "0c3f7caac753e1642e3ff3e8e40425bd7b0e0976",
+        "bytes_expected": 12796,
+        "bytes_actual": 12796,
+        "identity_match": true
+      },
+      {
+        "path": "evaluation/personal-inquiry-decision/inquiry_continuity_counterfactual_003.json",
+        "git_blob_sha1_expected": "645519e1a502e844ca640ab0d61dfa438a46e8d2",
+        "git_blob_sha1_actual": "645519e1a502e844ca640ab0d61dfa438a46e8d2",
+        "bytes_expected": 11843,
+        "bytes_actual": 11843,
+        "identity_match": true
+      }
+    ]
+  },
+  "runtime": {
+    "python_implementation": "CPython",
+    "python_version": "3.13.5",
+    "git_version": "2.47.3"
+  },
+  "focused_tests": {
+    "selected": 4,
+    "executed": 4,
+    "failed": 0,
+    "tests_run_total": 34,
+    "result": "pass",
+    "checks": [
+      {
+        "name": "test_matched_review_session.py",
+        "command": "python3 evaluation/personal-inquiry-decision/test_matched_review_session.py",
+        "cwd": ".",
+        "exit_code": 0,
+        "tests_run": 7,
+        "status": "pass",
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "bytes": 1181,
+          "sha256": "e68581c15f41054371da2a1e679474c11243ddcc60e6a8758ff57a0b2eb613af"
+        },
+        "raw_streams_persisted": false
+      },
+      {
+        "name": "test_inquiry_continuity_review_analysis.py",
+        "command": "python3 evaluation/personal-inquiry-decision/test_inquiry_continuity_review_analysis.py",
+        "cwd": ".",
+        "exit_code": 0,
+        "tests_run": 7,
+        "status": "pass",
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "bytes": 1181,
+          "sha256": "f01ad7339f90cd196bf846f924b7a16dea2750b026ee91b9652ea16c28ee1c5a"
+        },
+        "raw_streams_persisted": false
+      },
+      {
+        "name": "test_inquiry_continuity_review_evidence.py",
+        "command": "python3 evaluation/personal-inquiry-decision/test_inquiry_continuity_review_evidence.py",
+        "cwd": ".",
+        "exit_code": 0,
+        "tests_run": 5,
+        "status": "pass",
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "bytes": 1179,
+          "sha256": "447ba4e7d7a82ed1792511f7622c40fbab5560d30796ef8a9d9849237a8a02f7"
+        },
+        "raw_streams_persisted": false
+      },
+      {
+        "name": "test_inquiry_continuity_review_runner.py",
+        "command": "python3 evaluation/personal-inquiry-decision/test_inquiry_continuity_review_runner.py",
+        "cwd": ".",
+        "exit_code": 0,
+        "tests_run": 15,
+        "status": "pass",
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "bytes": 1190,
+          "sha256": "42df129f5813b9a1a6de92263179e1cbbc64e4b793b4816b76ac6967994ba724"
+        },
+        "raw_streams_persisted": false
+      }
+    ],
+    "note": "stderr included repository-external spreadsheet runtime warmup diagnostics; raw stream text is not persisted, and all four focused unittest processes exited 0 with OK."
+  },
+  "local_mechanics_state": {
+    "exact_local_materialization_observed": true,
+    "local_mechanics_pass_observed": true,
+    "local_mechanics_fail_observed": false,
+    "human_review_may_start": true
+  },
+  "evidence_boundary": {
+    "human_review_result_observed": false,
+    "actual_long_gap_resumption_established": false,
+    "actual_team_handoff_observed": false,
+    "product_value_established": false,
+    "stable_requirement_authorized": false
+  },
+  "stop_line": "matched-review local mechanics PASS != human review result != actual long-gap Evidence != actual team handoff != Product Value decision != Stable Requirement authorization"
+}
