@@ -19,10 +19,55 @@ pinned first-run input
 
 ## 1.1 One-command launcher
 
-既定のpinned archive取得経路はLinux x86_64 + Go 1.25以上を対象とする。repository rootから次を実行できる。
+既定のpinned runtime/model取得経路はLinux x86_64を対象とする。Go 1.25以上が既に利用できる環境ではrepository rootから次を実行できる。
 
 ```bash
 bash evaluation/local-model-probe/run_first_actual.sh
+```
+
+### Canonical Go 1.25.14 bootstrap
+
+Go 1.25が未配置、またはIssue #512と同じexact runtimeで実行したいLinux x86_64環境では、代わりに次を使う。
+
+```bash
+bash evaluation/local-model-probe/bootstrap_go125_first_actual.sh
+```
+
+wrapperはroot権限を使わない。順序:
+
+1. clean working treeを確認;
+2. system `go` がexact `go1.25.14 linux/amd64`なら再利用;
+3. `GO_BINARY_PATH` が指定されていればexact identityを確認して再利用;
+4. それ以外はofficial `go1.25.14.linux-amd64.tar.gz` を `.local-model-run/toolchains` へ取得または `GO_TOOLCHAIN_ARCHIVE_PATH` から利用;
+5. archive SHA-256 `a21ae5633a269bcd7e90cf767e48225633795e99d831742cbf3397064fee7712` を検証;
+6. `GOTOOLCHAIN=local` とexact Go binaryをPATHへ固定して `run_first_actual.sh` をexec.
+
+version / OS / arch / expected archive digestはcanonical wrapper内で固定し、environment variableで別identityへ再ラベルしない。`GO_TOOLCHAIN_URL` はmirror利用のためoverride可能だが、expected SHA-256は変わらない。
+
+事前配置済みのexact Go binary:
+
+```bash
+GO_BINARY_PATH=/path/to/go \
+bash evaluation/local-model-probe/bootstrap_go125_first_actual.sh
+```
+
+事前配置済みofficial archive:
+
+```bash
+GO_TOOLCHAIN_ARCHIVE_PATH=/mounted/go1.25.14.linux-amd64.tar.gz \
+bash evaluation/local-model-probe/bootstrap_go125_first_actual.sh
+```
+
+wrapper利用時はGo toolchain version / host OS / host arch / source / observed binary SHA-256 / archive SHA-256（archive経路のみ）をrun sidecarへコメントとして残す。matrix本体にもtop-level `host` を保存し、returned Evidence verifierがsidecarの `go1.25.14 linux/amd64` とmatrix hostをcross-checkする。
+
+```text
+official Go archive SHA-256 match
+  + matrix host go1.25.14
+  = stronger exact-runtime Evidence
+
+but
+  != full repository test PASS
+  != inference success
 ```
 
 launcherは次を順に行う。
@@ -209,7 +254,8 @@ verifierは次を順に確認する。
 4. matrix JSONのstrict decode（unknown field / trailing JSON拒否）;
 5. matrix status別の構造整合（complete / blocked-model-identity / blocked-preflight / incomplete-inference）;
 6. sidecarの `modelmatrix_exit_code` とmatrix statusの整合;
-7. 指定時はexpected source SHA / model SHA-256の一致.
+7. 指定時はexpected source SHA / model SHA-256の一致;
+8. canonical Go toolchain metadataがsidecarに存在する場合は、go1.25.14 / linux / amd64 / archive digestの整合とmatrix top-level hostの一致.
 
 optionalな外部anchor:
 
