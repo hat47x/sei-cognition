@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-type HostInfo struct {
+const runManifestSchema = "sei-cognition.local-model-run-manifest/v1"\n\ntype HostInfo struct {
 	OS        string `json:"os"`
 	Arch      string `json:"arch"`
 	LogicalCPU int   `json:"logical_cpu"`
@@ -47,7 +47,7 @@ type RunManifest struct {
 
 func Preflight(ctx context.Context, endpoint string, client *http.Client) RunManifest {
 	m := RunManifest{
-		Schema: "sei-cognition.local-model-run-manifest/v0",
+		Schema: runManifestSchema,
 		Status: "evaluation-only",
 		ObservedAt: time.Now().UTC().Format(time.RFC3339),
 		ExecutionKind: "preflight",
