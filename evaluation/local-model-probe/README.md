@@ -203,6 +203,36 @@ bash evaluation/local-model-probe/bootstrap_go125_first_actual.sh
 
 wrapperはsystem exact Go / pre-provisioned exact binary / pre-provisioned official archive / official downloadを同じidentityへ収束させ、`GOTOOLCHAIN=local` で自動toolchain差替えを止める。matrix top-level `host.go_version` / OS / archをreturned Evidence verifierがcross-checkする。
 
+### Artifact schema versioning
+
+current matrix artifact schema:
+
+```text
+sei-cognition.local-model-matrix-run/v1
+```
+
+`v1` はtop-level `host` Evidenceを必須化したschemaである。旧 `.../v0` はHost追加前のshapeなので、current validatorは同じ意味として読み替えず明示的にrejectする。
+
+current matrix verification report:
+
+```text
+sei-cognition.local-model-matrix-verification/v1
+```
+
+first-run digest sidecarにも:
+
+```text
+# evidence_bundle_schema=sei-cognition.local-model-evidence-bundle/v1
+```
+
+を必須で入れる。schema commentがない旧sidecarをcurrent verifierへ暗黙upgradeしない。
+
+```text
+same schema name
+  + changed required fields
+  = prohibited implicit drift
+```
+
 ### First-run evidence retention
 
 `run_first_actual.sh` はmatrix outputだけでなくserver logもrun ID固有名で保存し、両fileの標準 `sha256sum -c` 互換sidecarを生成する。既存matrix/log/digest fileは上書きせず、3 output pathの衝突も拒否する。`modelmatrix` がnon-zeroでも生成済みartifact/logのdigestを保存してから元のexit codeを返す。
