@@ -15,7 +15,7 @@ func completeMatrixForValidation(t *testing.T) ActualMatrixArtifact {
 
 func readyValidationPreflight(matrix ActualMatrixArtifact, mode Mode) RunManifest {
 	return RunManifest{
-		Schema:       "sei-cognition.local-model-run-manifest/v0",
+		Schema:       runManifestSchema,
 		Status:       "evaluation-only",
 		RunID:        matrix.RunIDPrefix + "-" + string(mode),
 		SourceGitSHA: matrix.SourceGitSHA,
@@ -84,7 +84,7 @@ func TestValidateActualMatrixArtifactBlockedPreflight(t *testing.T) {
 		Host:          base.Host,
 		Preflights: []RunManifest{
 			{
-				Schema:       "sei-cognition.local-model-run-manifest/v0",
+				Schema:       runManifestSchema,
 				Status:       "evaluation-only",
 				RunID:        base.RunIDPrefix + "-" + string(ModeRaw),
 				SourceGitSHA: base.SourceGitSHA,
