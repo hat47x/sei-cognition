@@ -66,6 +66,12 @@ DIGEST_BASENAME="$(basename "$DIGEST_INPUT")"
 MATRIX_FILE=""
 SERVER_LOG_FILE=""
 MATRIX_EXIT_CODE=""
+SIDECAR_GO_VERSION=""
+SIDECAR_GO_OS=""
+SIDECAR_GO_ARCH=""
+SIDECAR_GO_SOURCE=""
+SIDECAR_GO_BINARY_SHA256=""
+SIDECAR_GO_ARCHIVE_SHA256=""
 HASH_ENTRY_COUNT=0
 HASH_FILES=()
 
@@ -83,6 +89,24 @@ while IFS= read -r line || [[ -n "$line" ]]; do
       ;;
     "# server_log_file="*)
       SERVER_LOG_FILE="${line#\# server_log_file=}"
+      ;;
+    "# go_toolchain_version="*)
+      SIDECAR_GO_VERSION="${line#\# go_toolchain_version=}"
+      ;;
+    "# go_toolchain_os="*)
+      SIDECAR_GO_OS="${line#\# go_toolchain_os=}"
+      ;;
+    "# go_toolchain_arch="*)
+      SIDECAR_GO_ARCH="${line#\# go_toolchain_arch=}"
+      ;;
+    "# go_toolchain_source="*)
+      SIDECAR_GO_SOURCE="${line#\# go_toolchain_source=}"
+      ;;
+    "# go_toolchain_binary_sha256="*)
+      SIDECAR_GO_BINARY_SHA256="${line#\# go_toolchain_binary_sha256=}"
+      ;;
+    "# go_toolchain_archive_sha256="*)
+      SIDECAR_GO_ARCHIVE_SHA256="${line#\# go_toolchain_archive_sha256=}"
       ;;
     \#*)
       continue
@@ -144,6 +168,53 @@ if [[ "$matrix_hashed" != true || "$server_log_hashed" != true ]]; then
   exit 4
 fi
 
+TOOLCHAIN_METADATA_PRESENT=false
+for toolchain_value in   "$SIDECAR_GO_VERSION"   "$SIDECAR_GO_OS"   "$SIDECAR_GO_ARCH"   "$SIDECAR_GO_SOURCE"   "$SIDECAR_GO_BINARY_SHA256"   "$SIDECAR_GO_ARCHIVE_SHA256"; do
+  if [[ -n "$toolchain_value" ]]; then
+    TOOLCHAIN_METADATA_PRESENT=true
+    break
+  fi
+done
+
+if [[ "$TOOLCHAIN_METADATA_PRESENT" == true ]]; then
+  if [[ -z "$SIDECAR_GO_VERSION" ||
+        -z "$SIDECAR_GO_OS" ||
+        -z "$SIDECAR_GO_ARCH" ||
+        -z "$SIDECAR_GO_SOURCE" ||
+        -z "$SIDECAR_GO_BINARY_SHA256" ]]; then
+    echo "Go toolchain sidecar metadata is incomplete" >&2
+    exit 4
+  fi
+  if [[ "$SIDECAR_GO_VERSION" != "go1.25.14" ||
+        "$SIDECAR_GO_OS" != "linux" ||
+        "$SIDECAR_GO_ARCH" != "amd64" ]]; then
+    echo "Go toolchain sidecar metadata is not the canonical go1.25.14 linux/amd64 identity" >&2
+    exit 4
+  fi
+  if [[ ! "$SIDECAR_GO_BINARY_SHA256" =~ ^[0-9a-f]{64}$ ]]; then
+    echo "Go toolchain binary SHA-256 must be 64 lowercase hexadecimal characters" >&2
+    exit 4
+  fi
+  case "$SIDECAR_GO_SOURCE" in
+    system-exact|pre-provisioned-binary)
+      if [[ -n "$SIDECAR_GO_ARCHIVE_SHA256" ]]; then
+        echo "binary Go toolchain source must not claim an archive SHA-256" >&2
+        exit 4
+      fi
+      ;;
+    pinned-archive|pre-provisioned-archive)
+      if [[ "$SIDECAR_GO_ARCHIVE_SHA256" != "a21ae5633a269bcd7e90cf767e48225633795e99d831742cbf3397064fee7712" ]]; then
+        echo "Go toolchain archive SHA-256 does not match canonical go1.25.14 linux-amd64" >&2
+        exit 4
+      fi
+      ;;
+    *)
+      echo "unsupported Go toolchain source: $SIDECAR_GO_SOURCE" >&2
+      exit 4
+      ;;
+  esac
+fi
+
 (
   cd "$DIGEST_DIR"
   sha256sum -c "$DIGEST_BASENAME"
@@ -166,6 +237,13 @@ if [[ -n "$EXPECTED_SOURCE_GIT_SHA" ]]; then
 fi
 if [[ -n "$EXPECTED_MODEL_SHA256" ]]; then
   VERIFY_ARGS+=(--expected-model-sha256 "$EXPECTED_MODEL_SHA256")
+fi
+if [[ "$TOOLCHAIN_METADATA_PRESENT" == true ]]; then
+  VERIFY_ARGS+=(
+    --expected-go-version "$SIDECAR_GO_VERSION"
+    --expected-host-os "$SIDECAR_GO_OS"
+    --expected-host-arch "$SIDECAR_GO_ARCH"
+  )
 fi
 if [[ -n "$VERIFICATION_OUTPUT" ]]; then
   VERIFY_ARGS+=(--output "$VERIFICATION_OUTPUT")
