@@ -920,7 +920,7 @@ repository-local mechanicsは、E78.2 / E78.4 / E78.5 matched review、E78.3 sum
 
 actual matched human reviewの追跡先はGitHub Issue #575へ一本化する。新しいreview template、runner、Evidence schemaは追加せず、既存の `inquiry_continuity_review_runner.py` を唯一の入口とする。
 
-現時点のChatGPT実行環境では、private repositoryのexact bound-source checkoutを直接materializeしてcanonical runnerを起動できない。この制約はexecution environmentのblockerであり、canonical runnerやreview mechanicsのfailureではない。環境制約を回避するためにsource identity checkを弱めたり、別runnerを増設したりしない。
+2026-09-22時点の該当ChatGPT実行環境では、private repositoryのexact bound-source checkoutを直接materializeしてcanonical runnerを起動できなかった。この制約はexecution environmentのblockerであり、canonical runnerやreview mechanicsのfailureではない。環境制約を回避するためにsource identity checkを弱めたり、別runnerを増設したりしない。
 
 また、このconversation participantをreviewerとして用いる場合、すでにE78設計、実行順序、Evidence boundaryへmaterialに露出しており、fixture 001もcanonical `init` 前に提示された履歴がある。そのため、そのreviewerを `none-declared` として扱わず、truthfulなprovenanceとして `known-material-exposure` を保持する。human response本文をAIが生成して `human-direct` / `human-transcribed` として記録しない。
 
@@ -951,6 +951,23 @@ human review may start
   != Product Value established
   != Stable Requirement authorization
 ```
+
+
+### Human review execution readiness update — 2026-09-23
+
+並行レーンのGitHub Issue #575で、frozen source commit `1de126f6cddea9eac4cef2c5aaeb89b044f1f89b` のcanonical human-review実行に必要な11ファイルのexact materializationを**11 / 11 Git blob SHA-1一致**として確認した。manifestと3 source fixturesのcanonical JSON SHA-256も事前oracleに**4 / 4一致**した。non-mutating canonical smokeとして`inquiry_continuity_review_runner.py --help`および`inquiry_continuity_packet.py --validate-only`がPASSした。以前のtransport blockerは、その実行contextについては解消済みである。
+
+これは別のChatGPT実行コンテナへのファイル共有や、human reviewの開始・実施を意味しない。実際のreviewerが参加する際は、exact materialization済みの実行contextで既存runnerの`init`を開始し、reviewerの事前露出を正直に記録する。現conversation参加者によるpilotなら`known-material-exposure`とし、既存CLIの`--provenance-note`へ「E78設計への事前露出、canonical init前にfixture 001 phase1を一度見たがhuman回答は未記録」を保存する。review sessionを未開始のままfixture素材を再提示したり、AIがhuman responseを代作したりしない。
+
+```text
+11/11 exact materialization + canonical non-mutating smoke PASS
+  != canonical human review init
+  != human response observed
+  != clean blinded review
+  != actual long-gap / handoff Evidence
+  != Product Value / Stable Requirement authorization
+```
+
 
 ## Resolution
 
