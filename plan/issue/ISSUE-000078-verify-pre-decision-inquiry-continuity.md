@@ -333,6 +333,17 @@ calendar gap reached
 
 したがって、E78.1のactual long-gap resumptionは**Not Yet Observed**のままとする。再開品質、負担、継続利用価値を推測で埋めない。
 
+actual clean long-gap resumptionの実観測追跡は **GitHub Issue #590** に一本化する。#590は新しいrunner / schema / fixtureを追加せず、既存actual dogfood case、Orientation、evaluation sidecar、`dogfood_evaluation_cli.py resume-add`をそのまま使う。tracker自体にはunderlying InquiryのQuestion / Observation / Unknown / Hypothesisを再掲せず、読むだけで認知的gapを壊さないようにする。
+
+```text
+calendar gap
+  != clean cognitive gap
+
+Issue #590 open
+  != resumption observed
+```
+
+
 ### E78.2 / E78.4 / E78.5 — matched comparison / handoff / later evidence
 
 3件のmatched synthetic caseと、raw chat / chronological note / SEI resumeの3条件をR1〜R3でcounterbalanceするfixture setを用意した。`matched_review_session.py`では、session開始時のfixture内容を固定し、全phase 1回答が確定するまで中断後Evidenceを開かず、全post回答が確定するまでreference state / audit materialを開かない。
