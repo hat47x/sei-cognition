@@ -993,6 +993,42 @@ human review may start
 ```
 
 
+
+## Resolution Evidence dependency matrix — 2026-09-24
+
+Resolved条件へ到達するまでの未完了Evidenceを、既存trackerへ次のように集約する。同じ未観測項目のために新しいrunner / schema / fixture / topic branchを作らない。
+
+| Resolution上の問い | 現在のEvidence高さ | 次のactual Evidence | 追跡先 |
+| --- | --- | --- | --- |
+| Decision前Inquiryの比較設計をactualに実施したか | repository-local mechanicsはactual PASS | human-authored matched reviewをcomplete sessionとして固定 | #575 |
+| raw chat / chronological note等との差が実質的か | matched comparison scaffold / fixtureあり | E78.2のhuman review結果 | #575 |
+| semantic correctnessとresume speedを分けて見られるか | 評価語彙とmechanicsあり | human response + audit、またはclean resumptionのactual観測 | #575 / #590 |
+| capture / review overheadが実用上許容可能か | sidecar / review burdenの記録経路あり | actual reviewerのburden、reopen、detail descent等 | #575 / #590 |
+| AI summaryの誤りを人間が検出・修正・却下できるか | E78.3 local mechanics actual PASS | distorted summary / next-questionへのhuman correction / rejection | #575完了後に同一reviewerで実施する場合のみ開始 |
+| long-gap Inquiryを意味を壊さず再開できるか | actual case seed済み、clean resumptionは未観測 | material re-exposureのないgap後のOrientation-first resumption | #590 |
+| working memoryを共有しない別readerへ引き継げるか | handoff projection / synthetic matched mechanicsあり | 実在する別readerのhuman-authored handoff response | #592 |
+| current V1〜V8 / Decision Continuityで十分か | coverage / mechanics上の設計監査は進行済み | 上記Human Evidenceを反映した最終再監査 | 本Issue |
+| Value Axis / Stable Requirement / Universal型を追加すべきか | **未決定** | Human Evidenceを踏まえた明示的なNo Changeを含む最終判断 | 本Issue |
+| Product Value / Value Model / Product Visionを再編すべきか | **未決定** | 上記actual observationsを束ねた最終Decision record | 本Issue |
+
+E78.3については、同一reviewerを使う場合に#575のmatched responseを固定する前へdistortion刺激を持ち込まない。したがって、現時点でE78.3 human review専用の別trackerを作らないこと自体がcontamination controlである。#575完了後に必要なら、その時点のactual stateから継続する。
+
+#590のcandidate clean gap中は、parent Issueの保守作業を理由にunderlying Inquiry stateを利用者へ再提示しない。#592もactual readerが参加するまではprojection本文や想定回答をtracker上へ先回りして書かない。
+
+```text
+machine mechanics complete
+  + tracker prepared
+  != Human Evidence
+
+Human Evidence observed
+  != Product Value established
+  != Stable Requirement authorization
+
+all required observations collected
+  -> coverage / Product Value / Stable Requirement final review
+```
+
+
 ## Resolution
 
 次を満たしたときResolvedとする。
