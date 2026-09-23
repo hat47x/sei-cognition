@@ -239,6 +239,19 @@ AI suggestion自体をcanonical factへ自動昇格させない。
 
 へ到達できるか確認する。
 
+synthetic matched reviewでのhandoff刺激と、実際の別readerによるteam handoffは分けて扱う。actual team handoffの実観測追跡は **GitHub Issue #592** に一本化する。#592では新しいrunner / schema / fixtureを追加せず、既存 `dogfood_cli.py handoff` projectionを最初の提示面として使い、別readerのhuman-authored responseと必要なsource/chat reopenを観測する。
+
+現在の`dogfood_evaluation_cli.py resume-add`はresumption surface用であり、`sei-handoff`を持たない。そのenumをactual handoff記録の都合だけで拡張せず、最初のactual observationは必要最小限のanonymized Evidence / checkpointとして保持する。
+
+```text
+synthetic E78.4 review
+  != actual team handoff
+
+handoff projection renders
+  != another reader understood the Inquiry
+```
+
+
 ### E78.5 — New evidence after interruption
 
 中断後に新しいObservationを追加する。
