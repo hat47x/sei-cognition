@@ -201,6 +201,21 @@ class CaptureTest(unittest.TestCase):
                 transport,
             )
 
+    def test_pinned_artifact_record_is_portable_basename_only(self):
+        with tempfile.TemporaryDirectory() as td:
+            nested = Path(td) / "private" / "cache"
+            nested.mkdir(parents=True)
+            path = nested / "artifact.bin"
+            path.write_bytes(b"abc")
+            observed = cap.require_pinned_artifact(
+                path,
+                hashlib.sha256(b"abc").hexdigest(),
+                3,
+                "artifact",
+            )
+        self.assertEqual(observed["file"], "artifact.bin")
+        self.assertNotIn("path", observed)
+
     def test_pinned_artifact_rejects_wrong_hash(self):
         with tempfile.TemporaryDirectory() as td:
             path = Path(td) / "artifact"

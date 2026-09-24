@@ -62,7 +62,7 @@ def require_pinned_artifact(
         raise CaptureError(f"{label} sha256 mismatch: {digest}")
     if expected_size is not None and size != expected_size:
         raise CaptureError(f"{label} size mismatch: {size}")
-    return {"path": str(path.resolve()), "sha256": digest, "size_bytes": size}
+    return {"file": path.name, "sha256": digest, "size_bytes": size}
 
 
 def require_local_endpoint(endpoint: str) -> str:
@@ -152,6 +152,13 @@ def provider_inference_ms(headers: dict[str, str]) -> float | None:
     except ValueError:
         return None
     return value if value >= 0 else None
+
+
+def package_version(distribution: str) -> str | None:
+    try:
+        return importlib.metadata.version(distribution)
+    except importlib.metadata.PackageNotFoundError:
+        return None
 
 
 def capture_health(
@@ -263,7 +270,7 @@ def require_clean_source(expected_sha: str) -> dict[str, str]:
         )
     if dirty:
         raise CaptureError("source working tree must be clean before capture")
-    return {"git_sha": actual, "repo_root": root}
+    return {"git_sha": actual}
 
 
 def load_protocol_module(directory: Path):
@@ -340,9 +347,30 @@ def main(argv: list[str] | None = None) -> int:
             "provider": {
                 "name": "laya",
                 "endpoint": endpoint,
-                "laya_version": observed_laya_version,
                 "pypi_source_revision": PINNED_LAYA_SOURCE_REVISION,
                 "runtime_wheel": runtime_artifact,
+                "capture_interpreter": {
+                    "laya_version": observed_laya_version,
+                    "dependencies": {
+                        "torch": package_version("torch"),
+                        "transformers": package_version("transformers"),
+                        "safetensors": package_version("safetensors"),
+                        "huggingface_hub": package_version("huggingface_hub"),
+                        "numpy": package_version("numpy"),
+                        "fastapi": package_version("fastapi"),
+                        "uvicorn": package_version("uvicorn"),
+                    },
+                },
+                "runtime_binding": {
+                    "supplied_runtime_wheel_digest_verified": True,
+                    "capture_interpreter_exact_wheel_attested": False,
+                    "endpoint_exact_runtime_wheel_attested": False,
+                    "note": (
+                        "The capture verifies supplied wheel bytes and observes the "
+                        "capture interpreter package version separately. Laya 0.3.20 "
+                        "HTTP health/response metadata do not attest endpoint wheel bytes."
+                    ),
+                },
             },
             "checkpoint": {
                 "repository": PINNED_MODEL_REPOSITORY,
@@ -360,7 +388,7 @@ def main(argv: list[str] | None = None) -> int:
                 },
             },
             "fixture": {
-                "path": str(args.fixture.resolve()),
+                "file": args.fixture.name,
                 "schema": fixture.get("schema"),
                 "sha256": sha256_bytes(fixture_raw),
                 "case_count": len(fixture.get("cases", [])),
