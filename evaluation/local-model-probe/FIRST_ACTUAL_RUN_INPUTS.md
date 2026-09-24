@@ -301,6 +301,44 @@ structurally valid matrix
 
 complete matrixだけがhuman adjudicationへ進める。blocked/incomplete matrixはdiagnostic Evidenceとして構造検証できるが、human task-success reviewの対象へ昇格しない。
 
+## 5.2 CPU/GPU paired verification
+
+CPU baselineとsame-model GPU runを比較するときは、両方のEvidence bundleを同じverification環境へ戻し、次を実行する。
+
+```bash
+PAIR_VERIFICATION_OUTPUT=/path/to/cpu-gpu-pair.json \
+bash evaluation/local-model-probe/verify_cpu_gpu_pair.sh \
+  /path/to/cpu/<RUN_ID_PREFIX>-evidence.sha256 \
+  /path/to/gpu/<RUN_ID_PREFIX>-evidence.sha256
+```
+
+wrapperは最初に両bundleへ `verify_first_actual.sh` を個別実行する。その後、CPU側は `gpu_layers_requested=0` またはmetadata未記録、GPU側は正の `gpu_layers_requested` を要求し、次が一致する場合だけ `sei-cognition.local-model-compute-pair-verification/v1` を生成する。
+
+- exact `source_git_sha`;
+- model identifierとobserved GGUF SHA-256 / size;
+- host OS / arch / Go version;
+- runtime name / revision;
+- quantization / context size / threads;
+- raw / workspace / stagedのfixture set.
+
+CPU/GPUでlogical CPU countやruntime binaryそのものが異なることは許容し、host/runtime Evidence側に残す。pair reportはmode別のtotal latency / first-token mean / token countとGPU-minus-CPU latency deltaを記述的に並べる。
+
+sidecar自体のout-of-band digestを保持している場合は、CPU/GPU別に指定できる。
+
+```bash
+CPU_EXPECTED_EVIDENCE_DIGESTS_SHA256=<cpu-sidecar-digest> \
+GPU_EXPECTED_EVIDENCE_DIGESTS_SHA256=<gpu-sidecar-digest> \
+bash evaluation/local-model-probe/verify_cpu_gpu_pair.sh cpu-evidence.sha256 gpu-evidence.sha256
+```
+
+pair verifierはPython標準ライブラリだけを使う。比較対象は**同じsource SHAで生成されたrun**に限定するため、CPU baselineとGPU runはpair-verification変更を含む同じmerged sourceから取り直す。
+
+```text
+comparable-complete-pair
+  != observed CUDA offload
+  != faster inference
+  != deployment recommendation
+```
 ## 6. Evidence stop lines
 
 ```text
