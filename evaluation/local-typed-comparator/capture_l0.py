@@ -323,7 +323,7 @@ def main(argv: list[str] | None = None) -> int:
                 "runtime_wheel": runtime_artifact,
             },
             "checkpoint": {
-                "model": PINNED_MODEL,
+                "model": PINNED_REQUEST_MODEL,
                 "hub_revision": PINNED_HUB_REVISION,
                 "model_artifact": model_artifact,
             },
@@ -346,7 +346,7 @@ def main(argv: list[str] | None = None) -> int:
             artifact["cases"] = capture_cases(
                 fixture,
                 endpoint,
-                PINNED_MODEL,
+                PINNED_REQUEST_MODEL,
                 protocol.validate_response,
                 api_key=api_key,
             )
