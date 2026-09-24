@@ -187,8 +187,10 @@ def capture_cases(
     validate_response: Callable[[dict[str, Any], dict[str, Any]], None],
     transport: Callable[..., tuple[int, dict[str, str], bytes, float]] = request_bytes,
     api_key: str | None = None,
+    records: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
-    records: list[dict[str, Any]] = []
+    if records is None:
+        records = []
     for case in fixture["cases"]:
         request_value = json.loads(json.dumps(case["request"], ensure_ascii=False))
         request_value["model"] = model
@@ -349,7 +351,7 @@ def main(argv: list[str] | None = None) -> int:
                 "hub_revision": PINNED_HUB_REVISION,
                 "model_artifact": model_artifact,
                 "runtime_binding": {
-                    "logical_checkpoint_observed": True,
+                    "logical_checkpoint_observed": False,
                     "exact_artifact_bytes_attested_by_endpoint": False,
                     "note": (
                         "Laya 0.3.20 health/routing surfaces expose logical "
@@ -373,13 +375,17 @@ def main(argv: list[str] | None = None) -> int:
         }
         try:
             artifact["health"] = capture_health(endpoint, api_key=api_key)
-            artifact["cases"] = capture_cases(
+            capture_cases(
                 fixture,
                 endpoint,
                 PINNED_REQUEST_MODEL,
                 protocol.validate_response,
                 api_key=api_key,
+                records=artifact["cases"],
             )
+            artifact["checkpoint"]["runtime_binding"][
+                "logical_checkpoint_observed"
+            ] = True
             artifact["status"] = "complete"
         except Exception as exc:
             artifact["error"] = f"{type(exc).__name__}: {exc}"
