@@ -22,6 +22,8 @@ RUN_SCHEMA = "sei.local-typed-comparator-run/v1alpha1"
 DEFAULT_ENDPOINT = "http://127.0.0.1:8000/v1/systemone"
 PINNED_MODEL_REPOSITORY = "convaiinnovations/laya-typed-decisions"
 PINNED_REQUEST_MODEL = "convaiinnovations/laya-typed-decisions"
+PINNED_LOGICAL_MODEL = "typed-decisions"
+PINNED_RESPONSE_MODEL = "laya-rl-agent"
 PINNED_HUB_REVISION = "f9ab0b228f0fc0f14d873dbc99038f135c2da1b2"
 PINNED_MODEL_SHA256 = "4fa56de72383a9d3efa9cfa78955733c81b9fc8067a587ca4beb82c78107a24e"
 PINNED_MODEL_SIZE = 842_609_220
@@ -163,12 +165,17 @@ def capture_health(
     parsed = decode_json(raw, "health response")
     if status != 200 or parsed.get("status") != "ok":
         raise CaptureError(f"health check failed with HTTP {status}")
+    loaded = parsed.get("loaded")
+    if not isinstance(loaded, list) or PINNED_LOGICAL_MODEL not in loaded:
+        raise CaptureError(
+            "health response does not report the pinned logical checkpoint as loaded"
+        )
     return {
         "http_status": status,
         "latency_ms": round(elapsed_ms, 3),
         "response_sha256": sha256_bytes(raw),
         "response_utf8": raw.decode("utf-8"),
-        "loaded": parsed.get("loaded"),
+        "loaded": loaded,
         "device": parsed.get("device"),
     }
 
@@ -204,7 +211,19 @@ def capture_cases(
             raise CaptureError(f"{case['case_id']}: HTTP {status}")
         response_value = decode_json(raw, f"{case['case_id']} response")
         validate_response(request_value, response_value)
-        record["response_model"] = response_value.get("model")
+        response_model = response_value.get("model")
+        if response_model != PINNED_RESPONSE_MODEL:
+            raise CaptureError(
+                f"{case['case_id']}: unexpected response model: {response_model!r}"
+            )
+        routing = response_value.get("routing")
+        if not isinstance(routing, dict) or routing.get("model") != PINNED_LOGICAL_MODEL:
+            raise CaptureError(
+                f"{case['case_id']}: endpoint did not report routing through "
+                f"{PINNED_LOGICAL_MODEL!r}"
+            )
+        record["response_model"] = response_model
+        record["routing_model"] = routing["model"]
         record["contract"] = "pass"
     return records
 
@@ -326,8 +345,17 @@ def main(argv: list[str] | None = None) -> int:
             "checkpoint": {
                 "repository": PINNED_MODEL_REPOSITORY,
                 "request_model": PINNED_REQUEST_MODEL,
+                "logical_model": PINNED_LOGICAL_MODEL,
                 "hub_revision": PINNED_HUB_REVISION,
                 "model_artifact": model_artifact,
+                "runtime_binding": {
+                    "logical_checkpoint_observed": True,
+                    "exact_artifact_bytes_attested_by_endpoint": False,
+                    "note": (
+                        "Laya 0.3.20 health/routing surfaces expose logical "
+                        "checkpoint identity but not the loaded model-file digest"
+                    ),
+                },
             },
             "fixture": {
                 "path": str(args.fixture.resolve()),
