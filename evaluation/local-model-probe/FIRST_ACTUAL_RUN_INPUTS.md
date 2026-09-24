@@ -123,6 +123,25 @@ bash evaluation/local-model-probe/run_first_actual.sh
 
 `RUNTIME_BINARY_SHA256` 未指定の事前配置runtimeは、binary identityを観測できても既定pinned runtime archive由来とは主張しない。
 
+GPU nodeでCUDA対応 `llama-server` を事前配置する場合は、同じ入口で明示的なlayer offloadを要求できる。
+
+```bash
+GPU_LAYERS=<non-negative-layer-count> \
+RUNTIME_BINARY_PATH=/path/to/cuda-enabled-llama-server \
+RUNTIME_VERSION=<actual-runtime-version> \
+MODEL_FILE_PATH=/path/to/Qwen3.5-0.8B-Q4_0.gguf \
+bash evaluation/local-model-probe/bootstrap_go125_first_actual.sh
+```
+
+`GPU_LAYERS` 未指定時は `--n-gpu-layers` を渡さない。指定値はstdoutとEvidence sidecarへ残すが、これはGPU利用の実測証明ではない。CUDA対応binary、server log、実行host側のGPU観測を別Evidenceとして確認する。
+
+```text
+GPU_LAYERS requested
+  != CUDA-capable runtime
+  != observed GPU offload
+  != faster inference
+```
+
 既定archive経路だけがUbuntu/Linux x86_64 assetに固定される。事前配置runtime経路ではlauncherがarchive architectureを仮定しないが、current model mapping / RSS Evidenceを最大限取得するにはLinuxを推奨する。
 
 launcherはdirty sourceをdownload / server起動より前に拒否する。pre-provisioned model/runtimeをrepository内に置く場合は、Git ignore対象の `.local-model-run/` などを使い、untracked source状態を作らない。
