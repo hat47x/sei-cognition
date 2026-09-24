@@ -188,3 +188,44 @@ post-capture finalization PASS
 
 JD-LGBM-1 training remains a separate later stage and is not invoked by this command.
 
+
+## Provider-neutral burst-compute run receipt
+
+GPU / accelerator work remains an external execution surface. After a completed
+Kaggle, Colab, local GPU, or other burst work unit, validate the returned run
+receipt before using its artifacts as research Evidence:
+
+```bash
+python3 burst_run_manifest.py run_manifest.json
+```
+
+The `sei.cognition-burst-run-manifest/v1alpha1` receipt requires:
+
+- exact `source_git_sha`;
+- SHA-256 identities for the frozen dataset, split manifest, preregistered metrics,
+  dependency lock, and every retained output artifact;
+- explicit provider / model / revision identity so a Laya-compatible run cannot be
+  relabeled as a TypeSafe/Jev run;
+- the accelerator that was actually observed, rather than the accelerator merely
+  requested from a notebook provider;
+- elapsed execution time and cost only when cost was actually observable;
+- non-empty held-out metrics;
+- an explicit local-export compatibility result and bounded promotion decision;
+- `semantic_truth=false` and `production_authority=false`.
+
+Supported first purposes are `teacher-batch`, `fine-tune`, `distillation`,
+`export-validation`, `connectome-sweep`, and `embodied-offline-learning`.
+
+```text
+burst-run receipt PASS
+  != teacher correctness
+  != semantic truth
+  != production authority
+  != permission to activate a model
+```
+
+The receipt complements the local-first compute-placement policy. GPU artifacts
+must return to a local validation/export gate; a notebook session or requested
+GPU type is not itself experiment identity or Evidence. JD-LGBM-0's authenticated
+Jev baseline remains a separate prerequisite and is not replaced by Laya or other
+Jev-compatible providers.
