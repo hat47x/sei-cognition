@@ -1,0 +1,90 @@
+{
+  "schema": "sei.local-typed-comparator-runtime-materialization/v1alpha1",
+  "observed_at_utc": "2026-09-24T23:44:00Z",
+  "purpose": "Record independently materialized Laya 0.3.20 runtime bytes and preserve the boundary before first live L0 inference.",
+  "upstream": {
+    "repository": "NandhaKishorM/laya",
+    "source_revision": "23a17522aa4942da6cce53a995a275760320b691",
+    "release_version": "0.3.20",
+    "workflow_run_id": 35960902240,
+    "workflow_artifact": {
+      "artifact_id": 10792385664,
+      "name": "dist",
+      "github_reported_size_bytes": 392519,
+      "github_reported_sha256": "c6740d85f261188e51dcf7f0fc490bed4b8c0d55656d57f3cda5bb474078e32f",
+      "locally_observed_sha256": "c6740d85f261188e51dcf7f0fc490bed4b8c0d55656d57f3cda5bb474078e32f",
+      "digest_match": true,
+      "expired_at_observation": false
+    }
+  },
+  "artifacts": {
+    "wheel": {
+      "name": "laya-0.3.20-py3-none-any.whl",
+      "observed_size_bytes": 118520,
+      "expected_sha256": "6039e802fa5effb8dd492061cd7ad39a43087beadc4a4fa4a649614e77eb83d4",
+      "observed_sha256": "6039e802fa5effb8dd492061cd7ad39a43087beadc4a4fa4a649614e77eb83d4",
+      "sha256_match": true,
+      "pypi_publish_attestation_source_revision": "23a17522aa4942da6cce53a995a275760320b691"
+    },
+    "sdist": {
+      "name": "laya-0.3.20.tar.gz",
+      "observed_size_bytes": 275028,
+      "expected_sha256": "692de1346cf0239bb7bbcffdf0cfbd538c24834f8bc61e9b60f4106465c033c9",
+      "observed_sha256": "692de1346cf0239bb7bbcffdf0cfbd538c24834f8bc61e9b60f4106465c033c9",
+      "sha256_match": true
+    }
+  },
+  "isolated_install_probe": {
+    "mode": "pip --no-deps --no-index --target <temporary-directory> <materialized-wheel>",
+    "python_version": "3.13.5",
+    "observed_laya_version": "0.3.20",
+    "import_laya": true,
+    "import_laya_serve": true,
+    "resolve_model": {
+      "convaiinnovations/laya-typed-decisions": "typed-decisions",
+      "typed-decisions": "typed-decisions"
+    },
+    "known_models": [
+      "english",
+      "multilingual",
+      "typed-decisions"
+    ]
+  },
+  "host_dependency_probe": {
+    "torch_version": "2.10.0+cpu",
+    "torch_cuda_available": false,
+    "present": [
+      "numpy",
+      "huggingface_hub",
+      "safetensors",
+      "fastapi",
+      "uvicorn",
+      "pydantic",
+      "psutil"
+    ],
+    "missing_for_live_reference_runtime": [
+      "transformers",
+      "tokenizers"
+    ],
+    "model_weights_materialized": false
+  },
+  "verification": {
+    "runtime_wheel_bytes_materialized": true,
+    "runtime_wheel_digest_verified": true,
+    "pypi_and_github_actions_provenance_consistent": true,
+    "package_import_verified": true,
+    "jev_compatible_model_id_resolution_verified": true,
+    "typed_decisions_weights_materialized": false,
+    "typed_decisions_weights_loaded": false,
+    "live_laya_endpoint_started": false,
+    "live_l0_inference_performed": false,
+    "task_quality_evaluated": false
+  },
+  "stop_lines": [
+    "runtime wheel materialized != model weights materialized",
+    "package import != checkpoint load",
+    "logical model-id resolution != exact loaded weight-byte attestation",
+    "runtime provenance != task correctness",
+    "Laya Evidence != authenticated TypeSafe/Jev teacher Evidence"
+  ]
+}
