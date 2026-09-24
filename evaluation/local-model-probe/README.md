@@ -214,6 +214,7 @@ sei-cognition.local-model-probe-run/v1
 sei-cognition.local-model-run-comparison/v1
 sei-cognition.local-model-matrix-run/v1
 sei-cognition.local-model-matrix-verification/v1
+sei-cognition.local-model-compute-pair-verification/v1
 sei-cognition.local-model-human-adjudication/v1
 sei-cognition.local-model-human-adjudication-report/v1
 sei-cognition.local-model-evidence-bundle/v1
@@ -275,6 +276,20 @@ bash evaluation/local-model-probe/verify_first_actual.sh /path/to/run-evidence.s
 
 sidecarだけを同梱しても第三者署名やorigin authenticityにはならない。これはEvidence bundle integrity validatorであり、model quality validatorではない。
 
+### CPU/GPU paired Evidence verification
+
+same-model CPU baselineとGPU runをhardware effect比較へ使う場合は、個々のbundle verification後にpair gateを通す。
+
+```bash
+PAIR_VERIFICATION_OUTPUT=/path/to/cpu-gpu-pair.json \
+bash evaluation/local-model-probe/verify_cpu_gpu_pair.sh \
+  /path/to/cpu/run-evidence.sha256 \
+  /path/to/gpu/run-evidence.sha256
+```
+
+`verify_cpu_gpu_pair.sh` はsource SHA、GGUF identity、runtime revision、quantization、context size、threads、fixture setを同一条件として固定する。CPU側はGPU offload要求なし、GPU側はpositive `GPU_LAYERS` requestを必須とする。
+
+`gpu_layers_requested` はlauncher requestでありGPU利用の実測証明ではない。pair reportのlatency deltaも記述的Evidenceであり、model品質やdeployment choiceへ自動昇格させない。
 ## 8. 現在取得するmeasurement
 
 - route
