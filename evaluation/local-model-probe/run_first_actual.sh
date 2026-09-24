@@ -22,6 +22,7 @@ CONTEXT_SIZE="${CONTEXT_SIZE:-4096}"
 THREADS="${THREADS:-8}"
 MAX_TOKENS="${MAX_TOKENS:-800}"
 HEALTH_WAIT_SECONDS="${HEALTH_WAIT_SECONDS:-120}"
+GPU_LAYERS="${GPU_LAYERS:-}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
@@ -105,6 +106,11 @@ GO_MINOR="${GO_MINOR_REST%%.*}"
 if [[ ! "$GO_MAJOR" =~ ^[0-9]+$ || ! "$GO_MINOR" =~ ^[0-9]+$ ]] ||
    (( GO_MAJOR < 1 || (GO_MAJOR == 1 && GO_MINOR < 25) )); then
   echo "Go 1.25 or newer is required for the canonical probe module; observed: $GO_VERSION" >&2
+  exit 2
+fi
+
+if [[ -n "$GPU_LAYERS" && ! "$GPU_LAYERS" =~ ^[0-9]+$ ]]; then
+  echo "GPU_LAYERS must be a non-negative integer when supplied; observed: $GPU_LAYERS" >&2
   exit 2
 fi
 
@@ -201,20 +207,30 @@ echo "model_alias=$MODEL_ALIAS"
 echo "quantization=$QUANTIZATION"
 echo "model_file=$MODEL_FILE"
 echo "model_sha256=$MODEL_SHA256"
+if [[ -n "$GPU_LAYERS" ]]; then
+  echo "gpu_layers_requested=$GPU_LAYERS"
+else
+  echo "gpu_layers_requested=not-requested"
+fi
 echo "work_dir=$WORK_DIR"
 echo "output=$OUTPUT"
 echo "server_log=$SERVER_LOG"
 echo "evidence_digests=$EVIDENCE_DIGESTS"
 
-"$LLAMA_SERVER" \
-  --model "$MODEL_FILE" \
-  --alias "$MODEL_ALIAS" \
-  --host "$HOST" \
-  --port "$PORT" \
-  --ctx-size "$CONTEXT_SIZE" \
-  --threads "$THREADS" \
-  --metrics \
-  >"$SERVER_LOG" 2>&1 &
+SERVER_ARGS=(
+  --model "$MODEL_FILE"
+  --alias "$MODEL_ALIAS"
+  --host "$HOST"
+  --port "$PORT"
+  --ctx-size "$CONTEXT_SIZE"
+  --threads "$THREADS"
+  --metrics
+)
+if [[ -n "$GPU_LAYERS" ]]; then
+  SERVER_ARGS+=(--n-gpu-layers "$GPU_LAYERS")
+fi
+
+"$LLAMA_SERVER" "${SERVER_ARGS[@]}" >"$SERVER_LOG" 2>&1 &
 RUNTIME_PID=$!
 
 HEALTH_URL="http://${HOST}:${PORT}/health"
@@ -270,6 +286,9 @@ set -e
 {
   printf '# evidence_bundle_schema=sei-cognition.local-model-evidence-bundle/v1\n'
   printf '# modelmatrix_exit_code=%d\n' "$MATRIX_EXIT_CODE"
+  if [[ -n "$GPU_LAYERS" ]]; then
+    printf '# gpu_layers_requested=%s\n' "$GPU_LAYERS"
+  fi
   if [[ -n "${SEI_GO_TOOLCHAIN_VERSION:-}" ]]; then
     printf '# go_toolchain_version=%s\n' "$SEI_GO_TOOLCHAIN_VERSION"
     printf '# go_toolchain_os=%s\n' "${SEI_GO_TOOLCHAIN_OS:-}"
