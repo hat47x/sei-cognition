@@ -20,8 +20,9 @@ from urllib.request import Request, urlopen
 
 RUN_SCHEMA = "sei.local-typed-comparator-run/v1alpha1"
 DEFAULT_ENDPOINT = "http://127.0.0.1:8000/v1/systemone"
-PINNED_MODEL = "convaiinnovations/laya-typed-decisions"
-PINNED_HUB_REVISION = "458d7563c5cab85ff9f7f6e06cf2dd166fb697e2"
+PINNED_MODEL_REPOSITORY = "convaiinnovations/laya-typed-decisions"
+PINNED_REQUEST_MODEL = "convaiinnovations/laya-typed-decisions"
+PINNED_HUB_REVISION = "f9ab0b228f0fc0f14d873dbc99038f135c2da1b2"
 PINNED_MODEL_SHA256 = "4fa56de72383a9d3efa9cfa78955733c81b9fc8067a587ca4beb82c78107a24e"
 PINNED_MODEL_SIZE = 842_609_220
 PINNED_LAYA_VERSION = "0.3.20"
@@ -323,7 +324,8 @@ def main(argv: list[str] | None = None) -> int:
                 "runtime_wheel": runtime_artifact,
             },
             "checkpoint": {
-                "model": PINNED_REQUEST_MODEL,
+                "repository": PINNED_MODEL_REPOSITORY,
+                "request_model": PINNED_REQUEST_MODEL,
                 "hub_revision": PINNED_HUB_REVISION,
                 "model_artifact": model_artifact,
             },
