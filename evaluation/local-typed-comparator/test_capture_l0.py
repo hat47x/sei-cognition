@@ -128,10 +128,11 @@ class CaptureTest(unittest.TestCase):
         sent = json.loads(seen[0][2].decode())
         self.assertEqual(sent["model"], cap.PINNED_REQUEST_MODEL)
 
-    def test_non_200_is_fail_closed(self):
+    def test_non_200_is_fail_closed_and_retains_partial_record(self):
         def transport(url, method, body=None, api_key=None, timeout=120.0):
             return 422, {}, b'{"detail":"bad"}', 1.0
 
+        records = []
         with self.assertRaisesRegex(cap.CaptureError, "HTTP 422"):
             cap.capture_cases(
                 fixture(),
@@ -139,7 +140,11 @@ class CaptureTest(unittest.TestCase):
                 cap.PINNED_REQUEST_MODEL,
                 lambda r, s: None,
                 transport,
+                records=records,
             )
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["http_status"], 422)
+        self.assertEqual(records[0]["response_utf8"], '{"detail":"bad"}')
 
     def test_health_capture(self):
         raw = (
