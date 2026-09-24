@@ -44,6 +44,7 @@ def valid_response():
             }
         },
         "usage": {"input_tokens": 3, "output_tokens": 0},
+        "routing": {"model": "typed-decisions", "reason": "explicit model"},
     }
 
 
@@ -57,6 +58,8 @@ class CaptureTest(unittest.TestCase):
             cap.PINNED_REQUEST_MODEL,
             "convaiinnovations/laya-typed-decisions",
         )
+        self.assertEqual(cap.PINNED_LOGICAL_MODEL, "typed-decisions")
+        self.assertEqual(cap.PINNED_RESPONSE_MODEL, "laya-rl-agent")
         self.assertEqual(
             cap.PINNED_HUB_REVISION,
             "f9ab0b228f0fc0f14d873dbc99038f135c2da1b2",
@@ -149,6 +152,49 @@ class CaptureTest(unittest.TestCase):
         result = cap.capture_health(cap.DEFAULT_ENDPOINT, transport)
         self.assertEqual(result["loaded"], ["typed-decisions"])
         self.assertEqual(result["device"], "cpu")
+
+    def test_health_requires_pinned_logical_checkpoint(self):
+        raw = b'{"status":"ok","loaded":["english"],"device":"cpu"}'
+
+        def transport(url, method, body=None, api_key=None, timeout=120.0):
+            return 200, {}, raw, 2.0
+
+        with self.assertRaisesRegex(cap.CaptureError, "logical checkpoint"):
+            cap.capture_health(cap.DEFAULT_ENDPOINT, transport)
+
+    def test_capture_rejects_wrong_logical_route(self):
+        response = valid_response()
+        response["routing"]["model"] = "english"
+        response_raw = json.dumps(response, separators=(",", ":")).encode()
+
+        def transport(url, method, body=None, api_key=None, timeout=120.0):
+            return 200, {}, response_raw, 1.0
+
+        with self.assertRaisesRegex(cap.CaptureError, "routing through"):
+            cap.capture_cases(
+                fixture(),
+                cap.DEFAULT_ENDPOINT,
+                cap.PINNED_REQUEST_MODEL,
+                lambda r, s: None,
+                transport,
+            )
+
+    def test_capture_rejects_unexpected_response_model(self):
+        response = valid_response()
+        response["model"] = "other-runtime"
+        response_raw = json.dumps(response, separators=(",", ":")).encode()
+
+        def transport(url, method, body=None, api_key=None, timeout=120.0):
+            return 200, {}, response_raw, 1.0
+
+        with self.assertRaisesRegex(cap.CaptureError, "unexpected response model"):
+            cap.capture_cases(
+                fixture(),
+                cap.DEFAULT_ENDPOINT,
+                cap.PINNED_REQUEST_MODEL,
+                lambda r, s: None,
+                transport,
+            )
 
     def test_pinned_artifact_rejects_wrong_hash(self):
         with tempfile.TemporaryDirectory() as td:
