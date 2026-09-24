@@ -41,21 +41,22 @@ read_comment_value() {
   printf '%s' "$value"
 }
 
-resolve_matrix_path() {
+resolve_evidence_path() {
   local digest_input="$1"
-  local matrix_file
-  matrix_file="$(read_comment_value "$digest_input" matrix_file)"
-  if [[ -z "$matrix_file" ]]; then
-    echo "matrix_file metadata is missing from $digest_input" >&2
+  local key="$2"
+  local evidence_file
+  evidence_file="$(read_comment_value "$digest_input" "$key")"
+  if [[ -z "$evidence_file" ]]; then
+    echo "$key metadata is missing from $digest_input" >&2
     exit 4
   fi
-  if [[ "$matrix_file" == */* || "$matrix_file" == "." || "$matrix_file" == ".." ]]; then
-    echo "matrix_file must be a basename: $matrix_file" >&2
+  if [[ "$evidence_file" == */* || "$evidence_file" == "." || "$evidence_file" == ".." ]]; then
+    echo "$key must be a basename: $evidence_file" >&2
     exit 4
   fi
   local digest_dir
   digest_dir="$(cd "$(dirname "$digest_input")" && pwd)"
-  printf '%s/%s' "$digest_dir" "$matrix_file"
+  printf '%s/%s' "$digest_dir" "$evidence_file"
 }
 
 require_file "$CPU_DIGEST_INPUT"
@@ -89,13 +90,17 @@ EXPECTED_EVIDENCE_DIGESTS_SHA256="$GPU_EXPECTED_EVIDENCE_DIGESTS_SHA256" \
 VERIFICATION_OUTPUT="" \
 bash "$VERIFY_SINGLE" "$GPU_DIGEST_INPUT"
 
-CPU_MATRIX_PATH="$(resolve_matrix_path "$CPU_DIGEST_INPUT")"
-GPU_MATRIX_PATH="$(resolve_matrix_path "$GPU_DIGEST_INPUT")"
+CPU_MATRIX_PATH="$(resolve_evidence_path "$CPU_DIGEST_INPUT" matrix_file)"
+GPU_MATRIX_PATH="$(resolve_evidence_path "$GPU_DIGEST_INPUT" matrix_file)"
+CPU_SERVER_LOG_PATH="$(resolve_evidence_path "$CPU_DIGEST_INPUT" server_log_file)"
+GPU_SERVER_LOG_PATH="$(resolve_evidence_path "$GPU_DIGEST_INPUT" server_log_file)"
 
 PAIR_ARGS=(
   python3 "${SCRIPT_DIR}/verify_cpu_gpu_pair.py"
   --cpu "$CPU_MATRIX_PATH"
   --gpu "$GPU_MATRIX_PATH"
+  --cpu-server-log "$CPU_SERVER_LOG_PATH"
+  --gpu-server-log "$GPU_SERVER_LOG_PATH"
   --cpu-gpu-layers-requested "$CPU_GPU_LAYERS"
   --gpu-gpu-layers-requested "$GPU_GPU_LAYERS"
 )

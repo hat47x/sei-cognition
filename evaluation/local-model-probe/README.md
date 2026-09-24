@@ -214,7 +214,7 @@ sei-cognition.local-model-probe-run/v1
 sei-cognition.local-model-run-comparison/v1
 sei-cognition.local-model-matrix-run/v1
 sei-cognition.local-model-matrix-verification/v1
-sei-cognition.local-model-compute-pair-verification/v1
+sei-cognition.local-model-compute-pair-verification/v2
 sei-cognition.local-model-human-adjudication/v1
 sei-cognition.local-model-human-adjudication-report/v1
 sei-cognition.local-model-evidence-bundle/v1
@@ -287,9 +287,22 @@ bash evaluation/local-model-probe/verify_cpu_gpu_pair.sh \
   /path/to/gpu/run-evidence.sha256
 ```
 
-`verify_cpu_gpu_pair.sh` はsource SHA、GGUF identity、runtime revision、quantization、context size、threads、fixture setを同一条件として固定する。CPU側はGPU offload要求なし、GPU側はpositive `GPU_LAYERS` requestを必須とする。
+`verify_cpu_gpu_pair.sh` はsource SHA、GGUF identity、runtime revision、quantization、context size、threads、fixture setを同一条件として固定する。CPU側はGPU offload要求なし、GPU側はpositive `GPU_LAYERS` requestを必須とする。さらに、個別bundle検証でSHA-256確認済みの `llama-server.log` を直接読み、GPU側で `offloaded N/M layers to GPU` の `N>0` を観測できることを要求する。CPU側ログでpositive offloadが観測された場合も比較baselineとしてrejectする。
 
-`gpu_layers_requested` はlauncher requestでありGPU利用の実測証明ではない。pair reportのlatency deltaも記述的Evidenceであり、model品質やdeployment choiceへ自動昇格させない。
+current pair reportは `sei-cognition.local-model-compute-pair-verification/v2`。旧v1はrequest-onlyで、observed GPU offload Evidenceとして暗黙upgradeしない。
+
+```text
+gpu_layers_requested > 0
+  + verified server log reports offloaded N/M with N > 0
+  = observed layer-offload Evidence
+
+but
+  != GPU utilization percentage
+  != speedup
+  != deployment choice
+```
+
+pair reportのlatency deltaも記述的Evidenceであり、model品質やdeployment choiceへ自動昇格させない。
 ## 8. 現在取得するmeasurement
 
 - route

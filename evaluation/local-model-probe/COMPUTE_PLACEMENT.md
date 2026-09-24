@@ -138,13 +138,19 @@ bash evaluation/local-model-probe/verify_cpu_gpu_pair.sh \
   /path/to/gpu/run-evidence.sha256
 ```
 
-pair gateはsource SHA / observed model artifact / runtime revision / quantization / context / threads / fixtureを固定する。logical CPU数やCPU/CUDA runtime binary digestの差は隠さずexecution-environment Evidenceとして残す。
+pair gateはsource SHA / observed model artifact / runtime revision / quantization / context / threads / fixtureを固定する。logical CPU数やCPU/GPU runtime binary digestの差は隠さずexecution-environment Evidenceとして残す。current v2 gateでは、digest検証済みserver logから実際のlayer offloadも確認する。
 
 ```text
 positive GPU_LAYERS request
-  != observed CUDA offload
+  != observed GPU offload
 
-paired latency delta
+verified llama.cpp log
+  + offloaded N/M layers to GPU
+  + N > 0
+  = observed layer-offload Evidence
+
+observed layer offload
+  != GPU utilization percentage
   != model-quality delta
   != deployment choice
 ```

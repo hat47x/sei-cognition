@@ -312,7 +312,7 @@ bash evaluation/local-model-probe/verify_cpu_gpu_pair.sh \
   /path/to/gpu/<RUN_ID_PREFIX>-evidence.sha256
 ```
 
-wrapperは最初に両bundleへ `verify_first_actual.sh` を個別実行する。その後、CPU側は `gpu_layers_requested=0` またはmetadata未記録、GPU側は正の `gpu_layers_requested` を要求し、次が一致する場合だけ `sei-cognition.local-model-compute-pair-verification/v1` を生成する。
+wrapperは最初に両bundleへ `verify_first_actual.sh` を個別実行する。その後、CPU側は `gpu_layers_requested=0` またはmetadata未記録、GPU側は正の `gpu_layers_requested` を要求する。さらに、SHA-256検証済みの両 `llama-server.log` を直接読み、CPU側でpositive offloadがないこと、GPU側で `offloaded N/M layers to GPU` の `N>0` が観測されることを必須化する。条件を満たした場合だけ `sei-cognition.local-model-compute-pair-verification/v2` を生成する。
 
 - exact `source_git_sha`;
 - model identifierとobserved GGUF SHA-256 / size;
@@ -334,9 +334,15 @@ bash evaluation/local-model-probe/verify_cpu_gpu_pair.sh cpu-evidence.sha256 gpu
 pair verifierはPython標準ライブラリだけを使う。比較対象は**同じsource SHAで生成されたrun**に限定するため、CPU baselineとGPU runはpair-verification変更を含む同じmerged sourceから取り直す。
 
 ```text
-comparable-complete-pair
-  != observed CUDA offload
+positive GPU_LAYERS request
+  != observed GPU offload
+
+verified server log: offloaded N/M layers to GPU, N > 0
+  = observed layer-offload Evidence
+  != GPU utilization percentage
   != faster inference
+
+comparable-complete-pair/v2
   != deployment recommendation
 ```
 ## 6. Evidence stop lines

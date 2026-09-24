@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import re
 from pathlib import Path
 
 MATRIX_SCHEMA = "sei-cognition.local-model-matrix-run/v1"
-PAIR_SCHEMA = "sei-cognition.local-model-compute-pair-verification/v1"
+PAIR_SCHEMA = "sei-cognition.local-model-compute-pair-verification/v2"
 MODES = ("raw", "workspace", "staged")
+GPU_OFFLOAD_RE = re.compile(r"\boffloaded\s+(\d+)/(\d+)\s+layers\s+to\s+GPU\b", re.IGNORECASE)
 
 
 def load_matrix(path):
@@ -23,7 +25,47 @@ def fixture_ids(matrix, mode):
     return sorted(item.get("fixture_id", "") for item in observations)
 
 
-def validate_pair(cpu, gpu, cpu_layers, gpu_layers):
+def parse_gpu_offload_text(text):
+    matches = {(int(a), int(b)) for a, b in GPU_OFFLOAD_RE.findall(text)}
+    if not matches:
+        return {
+            "status": "not-observed",
+            "offloaded_layers": None,
+            "total_layers": None,
+        }
+    if len(matches) != 1:
+        raise ValueError(f"ambiguous GPU offload observations: {sorted(matches)}")
+    offloaded, total = next(iter(matches))
+    if total <= 0 or offloaded < 0 or offloaded > total:
+        raise ValueError(f"invalid GPU offload observation: {offloaded}/{total}")
+    return {
+        "status": "observed",
+        "offloaded_layers": offloaded,
+        "total_layers": total,
+    }
+
+
+def observe_gpu_offload(path):
+    with open(path, encoding="utf-8", errors="replace") as f:
+        return parse_gpu_offload_text(f.read())
+
+
+def validate_offload_pair(cpu_offload, gpu_offload):
+    if cpu_offload.get("status") == "observed" and cpu_offload.get("offloaded_layers", 0) > 0:
+        raise ValueError(
+            "CPU run observed positive GPU offload: "
+            f"{cpu_offload.get('offloaded_layers')}/{cpu_offload.get('total_layers')}"
+        )
+    if gpu_offload.get("status") != "observed":
+        raise ValueError("GPU run has no observed layer-offload Evidence in the verified server log")
+    if gpu_offload.get("offloaded_layers", 0) <= 0:
+        raise ValueError(
+            "GPU run did not observe positive layer offload: "
+            f"{gpu_offload.get('offloaded_layers')}/{gpu_offload.get('total_layers')}"
+        )
+
+
+def validate_pair(cpu, gpu, cpu_layers, gpu_layers, cpu_offload, gpu_offload):
     if cpu.get("schema") != MATRIX_SCHEMA or gpu.get("schema") != MATRIX_SCHEMA:
         raise ValueError("both inputs must use the current matrix schema")
     if cpu.get("status") != "complete" or gpu.get("status") != "complete":
@@ -32,6 +74,7 @@ def validate_pair(cpu, gpu, cpu_layers, gpu_layers):
         raise ValueError(f"CPU run requested GPU offload: {cpu_layers}")
     if gpu_layers <= 0:
         raise ValueError("GPU run must record positive gpu_layers_requested")
+    validate_offload_pair(cpu_offload, gpu_offload)
     if cpu.get("source_git_sha") != gpu.get("source_git_sha"):
         raise ValueError("source_git_sha mismatch")
     if cpu.get("model") != gpu.get("model"):
@@ -62,7 +105,7 @@ def validate_pair(cpu, gpu, cpu_layers, gpu_layers):
         raise ValueError("both matrices require comparison evidence")
 
 
-def build_report(cpu, gpu, cpu_layers, gpu_layers):
+def build_report(cpu, gpu, cpu_layers, gpu_layers, cpu_offload, gpu_offload):
     cfg = cpu["preflights"][0]
     modes = []
     for mode in MODES:
@@ -95,10 +138,13 @@ def build_report(cpu, gpu, cpu_layers, gpu_layers):
         "gpu_host": gpu.get("host", {}),
         "cpu_gpu_layers_requested": cpu_layers,
         "gpu_gpu_layers_requested": gpu_layers,
+        "cpu_gpu_offload_observation": cpu_offload,
+        "gpu_gpu_offload_observation": gpu_offload,
         "modes": modes,
         "notes": [
             "pair comparability requires matching source/model/runtime/config/fixture identity",
-            "gpu_layers_requested is an operator request, not proof of observed CUDA offload",
+            "gpu_layers_requested records operator intent; positive GPU offload must also be observed in the verified llama.cpp server log",
+            "server-log offload observation proves reported layer placement, not GPU utilization percentage or speedup",
             "logical CPU count may differ and remains visible execution-environment evidence",
             "latency deltas are descriptive evidence, not a deployment recommendation",
         ],
@@ -109,14 +155,32 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--cpu", required=True)
     parser.add_argument("--gpu", required=True)
+    parser.add_argument("--cpu-server-log", required=True)
+    parser.add_argument("--gpu-server-log", required=True)
     parser.add_argument("--cpu-gpu-layers-requested", type=int, default=0)
     parser.add_argument("--gpu-gpu-layers-requested", type=int, required=True)
     parser.add_argument("--output")
     args = parser.parse_args()
 
     cpu, gpu = load_matrix(args.cpu), load_matrix(args.gpu)
-    validate_pair(cpu, gpu, args.cpu_gpu_layers_requested, args.gpu_gpu_layers_requested)
-    report = build_report(cpu, gpu, args.cpu_gpu_layers_requested, args.gpu_gpu_layers_requested)
+    cpu_offload = observe_gpu_offload(args.cpu_server_log)
+    gpu_offload = observe_gpu_offload(args.gpu_server_log)
+    validate_pair(
+        cpu,
+        gpu,
+        args.cpu_gpu_layers_requested,
+        args.gpu_gpu_layers_requested,
+        cpu_offload,
+        gpu_offload,
+    )
+    report = build_report(
+        cpu,
+        gpu,
+        args.cpu_gpu_layers_requested,
+        args.gpu_gpu_layers_requested,
+        cpu_offload,
+        gpu_offload,
+    )
     text = json.dumps(report, indent=2, ensure_ascii=False) + "\n"
     if args.output:
         Path(args.output).open("x", encoding="utf-8").write(text)
