@@ -127,6 +127,28 @@ bash evaluation/local-model-probe/bootstrap_go125_first_actual.sh
 
 first GPU runでもmodel / fixture / source / evaluatorを変えない。CPU/GPU差だけを観測する。
 
+### CPU/GPU pair gate
+
+hardware effectをmodel effectから分離する比較では、両runを独立にverifyした後、pair verifierを通す。
+
+```bash
+PAIR_VERIFICATION_OUTPUT=/path/to/cpu-gpu-pair.json \
+bash evaluation/local-model-probe/verify_cpu_gpu_pair.sh \
+  /path/to/cpu/run-evidence.sha256 \
+  /path/to/gpu/run-evidence.sha256
+```
+
+pair gateはsource SHA / observed model artifact / runtime revision / quantization / context / threads / fixtureを固定する。logical CPU数やCPU/CUDA runtime binary digestの差は隠さずexecution-environment Evidenceとして残す。
+
+```text
+positive GPU_LAYERS request
+  != observed CUDA offload
+
+paired latency delta
+  != model-quality delta
+  != deployment choice
+```
+
 ## 5. Hosted teacher / external reasoner
 
 Jev等のhosted teacherは:
@@ -213,6 +235,6 @@ T0 deterministic / symbolic
 5. first actual raw/workspace/staged matrix;
 6. returned Evidence verification.
 
-次に、同一modelをCUDA対応runtime + explicit `GPU_LAYERS` で再実行し、CPUとの差を記述する。
+次に、同一merged sourceからCPU baselineを取得し、同一modelをCUDA対応runtime + explicit `GPU_LAYERS` で再実行する。両Evidence bundleを `verify_cpu_gpu_pair.sh` へ通してcomparabilityを確認してから、CPUとの差を記述する。
 
 4Bへ進むのはその後とする。
