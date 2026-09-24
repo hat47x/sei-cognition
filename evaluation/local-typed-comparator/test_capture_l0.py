@@ -48,6 +48,24 @@ def valid_response():
 
 
 class CaptureTest(unittest.TestCase):
+    def test_pinned_checkpoint_identity_is_single_lineage(self):
+        self.assertEqual(
+            cap.PINNED_MODEL_REPOSITORY,
+            "convaiinnovations/laya-typed-decisions",
+        )
+        self.assertEqual(
+            cap.PINNED_REQUEST_MODEL,
+            "convaiinnovations/laya-typed-decisions",
+        )
+        self.assertEqual(
+            cap.PINNED_HUB_REVISION,
+            "f9ab0b228f0fc0f14d873dbc99038f135c2da1b2",
+        )
+        self.assertEqual(
+            cap.PINNED_MODEL_SHA256,
+            "4fa56de72383a9d3efa9cfa78955733c81b9fc8067a587ca4beb82c78107a24e",
+        )
+
     def test_endpoint_is_loopback_only(self):
         self.assertEqual(
             cap.require_local_endpoint(cap.DEFAULT_ENDPOINT),
@@ -93,7 +111,7 @@ class CaptureTest(unittest.TestCase):
         rows = cap.capture_cases(
             fixture(),
             cap.DEFAULT_ENDPOINT,
-            cap.PINNED_MODEL,
+            cap.PINNED_REQUEST_MODEL,
             validator,
             transport,
         )
@@ -105,7 +123,7 @@ class CaptureTest(unittest.TestCase):
             hashlib.sha256(response_raw).hexdigest(),
         )
         sent = json.loads(seen[0][2].decode())
-        self.assertEqual(sent["model"], cap.PINNED_MODEL)
+        self.assertEqual(sent["model"], cap.PINNED_REQUEST_MODEL)
 
     def test_non_200_is_fail_closed(self):
         def transport(url, method, body=None, api_key=None, timeout=120.0):
@@ -115,7 +133,7 @@ class CaptureTest(unittest.TestCase):
             cap.capture_cases(
                 fixture(),
                 cap.DEFAULT_ENDPOINT,
-                cap.PINNED_MODEL,
+                cap.PINNED_REQUEST_MODEL,
                 lambda r, s: None,
                 transport,
             )
