@@ -143,6 +143,84 @@ Thus:
 The known clamp-sensitive path must be exercised explicitly in any SEI parity
 experiment.
 
+
+## Deterministic `choice:11+` temperature incompatibility
+
+The clamp-sensitive path can be classified before model bytes are available.
+
+The shipped typed-decisions config contains:
+
+```text
+choice:11+ = 0.10058280825614929
+```
+
+Pinned Python Laya 0.3.20 keeps the raw value for inspection but applies
+`clamp_temperature()` before inference. Its lower bound is:
+
+```text
+TEMP_MIN = 0.5
+```
+
+Therefore the Python reference uses `T = 0.5` for `choice:11+`.
+
+Pinned Papaya instead formats answers with:
+
+```python
+z = logits / max(1e-3, temperature)
+```
+
+so it applies the raw `T = 0.10058280825614929`.
+
+This is not merely an untested bucket. If the raw logits are the same, the two
+probability vectors are deterministically related. Let `p` be the Python
+0.3.20 probability vector after the 0.5 clamp and `q` the current Papaya
+vector. Then:
+
+```text
+r = 0.5 / 0.10058280825614929
+  = 4.971028435860277
+
+q_i = p_i^r / sum_j(p_j^r)
+```
+
+For every non-uniform finite distribution, `r != 1` changes the reported
+probabilities. A unique argmax is preserved by positive temperature scaling,
+but calibrated probability / entropy-confidence parity is not.
+
+Illustrative 12-option distributions with one top option and the remaining
+probability spread equally show the scale of the deterministic difference:
+
+| Python 0.3.20 top p | Papaya top p | Python entropy confidence | Papaya entropy confidence |
+| ---: | ---: | ---: | ---: |
+| 0.15 | 0.7108 | 0.0097 | 0.4789 |
+| 0.20 | 0.9328 | 0.0266 | 0.8361 |
+| 0.24 | 0.9779 | 0.0448 | 0.9361 |
+| 0.30 | 0.9951 | 0.0787 | 0.9828 |
+| 0.40 | 0.9995 | 0.1502 | 0.9976 |
+
+These values are an analytic temperature transform, not observed model output.
+
+Consequently:
+
+```text
+current Papaya code
+  + identical tokenizer / logits / head weights
+  != Python Laya 0.3.20 numeric parity on choice:11+
+```
+
+Exact full-runtime parity is therefore impossible on this bucket without a
+Papaya-side behavior change (or an explicit decision to preserve the historical
+unclamped semantics as a different runtime contract).
+
+This narrows G2. A later live experiment should not ask whether the current
+implementations happen to match on `choice:11+`; the static answer is already
+no for ordinary non-uniform logits. Instead it should verify that a candidate
+compatibility patch applies the same 0.5 clamp and then compare probabilities.
+
+Do not modify the frozen four-case #597 L0 fixture solely to cover this
+candidate-specific difference. Keep a separate >=11-option parity diagnostic so
+the provider-neutral fixture remains stable.
+
 ## Other protocol / semantic gaps
 
 Papaya intentionally exposes a TypeSafe-shaped `POST /v1/systemone` surface, but
