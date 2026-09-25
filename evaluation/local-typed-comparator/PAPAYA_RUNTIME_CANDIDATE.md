@@ -178,6 +178,68 @@ GGUF/head/config/tokenizer bytes from Hugging Face.
 So this candidate improves the future runtime search space, not today's model-byte
 materialization path.
 
+## P0 frozen-fixture rendering audit
+
+The model-independent rendering subset can be checked before any checkpoint bytes
+are available.
+
+Compared source lineages:
+
+- Python reference:
+  `NandhaKishorM/laya@23a17522aa4942da6cce53a995a275760320b691`;
+- Papaya:
+  `m0rphtail/papaya@a76bc99bddafdac32863b2edc5319773e0cd3532`;
+- SEI fixture blob:
+  `2bed0f232ea845e2bda43ffd113d5cd86a9f770e`.
+
+For the current four #597 cases, both source lineages produce the same logical
+pre-tokenization content for the common request subset:
+
+- structured-state serialization;
+- `"<type> question: <instructions>"` head text;
+- authored Choice option order;
+- Score level rendering;
+- default Noul `false / true` option rendering.
+
+For auditability, define the rendering packet as UTF-8 JSON with compact object
+separators and keys `state`, `head`, `options`, where the `state` value is
+itself the exact serialized state string.
+
+Observed SHA-256 values:
+
+| case | rendering packet SHA-256 |
+| --- | --- |
+| `choice-route-a` | `1f5e5482d8934c75ad21d762ceb7f14f2fadb17767486ae2ee0a878fdcb23358` |
+| `choice-route-b` | `4b5d5f0f8a19144c272d25755fecadb8fb47a3adb5725a50eb2066134c64e09f` |
+| `score-urgency` | `e5f3c3e110448de9d45148e1230b660e47b4f10da7483a4eebdf50ba0a0b43b3` |
+| `noul-review` | `422380a515b93446dc58aaad8a7dcd89d334f5fade2e5248f591e424094623f2` |
+
+This completes only the logical rendering portion of P0.
+
+It does **not** establish:
+
+- tokenizer file identity;
+- token ID identity;
+- option-token truncation parity;
+- marker-position identity;
+- checkpoint tensor identity;
+- numeric output parity.
+
+The Papaya sequence builder tokenizes full option text and slices to 48 tokens,
+whereas the current Python reference requests tokenizer-side truncation to 48
+tokens. The present option strings are short, but token-level equivalence remains
+a P1 observation rather than a P0 assumption.
+
+Custom Noul labels also remain outside this common subset.
+
+Therefore the live boundary is now narrower:
+
+```text
+logical rendering parity on frozen #597 common subset
+  -> tokenizer / token-id / marker parity still required
+  -> numeric parity still blocked on model bytes
+```
+
 ## SEI admission sequence
 
 If exact candidate bytes later become available, use one bounded comparison unit:
