@@ -144,6 +144,56 @@ The known clamp-sensitive path must be exercised explicitly in any SEI parity
 experiment.
 
 
+
+## P1b reference-side tokenizer identity
+
+The original reference-side tokenizer can now be narrowed more strongly from an
+independent conversion receipt, without claiming that Papaya's copied file has
+the same bytes.
+
+The published `aac6fef/laya-typed-decisions-coreml` release records, in one
+`coreml_config.json`:
+
+- source repository: `convaiinnovations/laya-typed-decisions`;
+- source revision:
+  `f9ab0b228f0fc0f14d873dbc99038f135c2da1b2`;
+- source weights SHA-256:
+  `4fa56de72383a9d3efa9cfa78955733c81b9fc8067a587ca4beb82c78107a24e`;
+- `tokenizer/tokenizer.json` bytes: **3,583,228**;
+- `tokenizer/tokenizer.json` SHA-256:
+  `6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30`.
+
+This independently source-binds the same tokenizer hash already reported by
+other Laya-family conversion manifests to SEI's exact pinned standalone
+checkpoint revision.
+
+The Papaya model acquisition path, however, reads its tokenizer from
+`fr0stbit3/laya-typed-decisions-gguf`. That repository says it is a conversion
+of `convaiinnovations/laya-typed-decisions`; its committed `tokenizer.json`
+is also 3.58 MB and was added in a single verified upload commit. Public source
+inspection shows matching tokenizer structure/config and sampled content, but
+that repository does not publish a per-file SHA-256 receipt comparable to the
+Core ML manifest.
+
+Therefore split the P1b claim explicitly:
+
+```text
+reference tokenizer identity
+  = independently source-bound to
+    6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30
+
+Papaya/fr0stbit3 tokenizer lineage
+  = strongly consistent with the same source
+  != byte-attested to the same SHA-256
+```
+
+Do not use equal byte size, matching sampled regions, or a base-model declaration
+as a substitute for hashing the candidate-side file.
+
+P1c token-ID / marker replay remains blocked until the candidate-side tokenizer
+bytes can be materialized with a tokenizer runtime, or an upstream retained
+fixture exposes exact token IDs and marker positions.
+
 ## Deterministic `choice:11+` temperature incompatibility
 
 The clamp-sensitive path can be classified before model bytes are available.
