@@ -240,6 +240,59 @@ logical rendering parity on frozen #597 common subset
   -> numeric parity still blocked on model bytes
 ```
 
+
+## P1a retained sequence-length parity
+
+The retained Papaya benchmark outputs expose one additional tokenization
+observation even though they do not retain token IDs or marker positions.
+
+At the pinned Papaya commit, the following Git-backed result artifacts were
+compared by exact case id:
+
+- `benchmarks/results/ours.json` — Papaya Q8;
+- `benchmarks/results/navopw-on-typed-decisions.json` — the typed-decisions
+  ONNX comparator.
+
+Both contain 48 cases in the same case-id order. For every matched case,
+`usage.input_tokens` is identical:
+
+- exact input-token-count matches: **48 / 48**;
+- mismatches: **0**;
+- observed minimum: **784** tokens;
+- observed maximum: **2041** tokens.
+
+A second retained runtime check, `native-12.json` versus `docker-12.json`,
+also has exact `usage.input_tokens` equality for **12 / 12** matched cases.
+
+The retained `scripts/bench_compare.py` harness sends the same input row to
+each TypeSafe-compatible endpoint and stores the endpoint-reported usage, so
+this is positive **sequence-length parity** evidence across the retained runs.
+
+It is deliberately weaker than token parity:
+
+```text
+same case identity
+  + same logical rendering family
+  + same reported input-token count
+  = sequence-length parity evidence
+
+  != tokenizer-file byte identity
+  != token-ID identity
+  != per-option token identity
+  != marker-position identity
+  != truncation-path identity
+```
+
+Two different token sequences can have the same length. Also, the benchmark
+`rows.json` input is not retained beside these outputs, so the 48-case result
+cannot be independently regenerated from Git alone.
+
+P1 therefore remains open. Completion still requires actual tokenizer bytes (or
+an equivalently strong retained token fixture), exact token-ID comparison for
+the four frozen #597 cases, and marker/truncation parity. No model weights are
+needed for that remaining tokenization check, but no such complete artifact is
+materialized in the current execution environment.
+
 ## SEI admission sequence
 
 If exact candidate bytes later become available, use one bounded comparison unit:
