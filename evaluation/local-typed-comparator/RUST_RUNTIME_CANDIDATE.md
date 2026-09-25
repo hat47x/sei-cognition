@@ -93,6 +93,116 @@ Those checkpoint-dependent tests skip when model weights are absent.
 They are useful upstream regression tests, but they are **not** SEI cross-runtime parity
 Evidence against the pinned Python Laya 0.3.20 reference.
 
+## Static Python/Rust parity audit before model execution
+
+A source-level comparison was performed before model bytes are available, using the exact
+runtime lineages relevant to this candidate:
+
+- Python reference: `NandhaKishorM/laya@23a17522aa4942da6cce53a995a275760320b691`
+  (the source revision pinned for Laya 0.3.20);
+- Rust candidate: `aovestdipaperino/laya-rust@5104bf2a42287382cb867edfe74732f6d823795a`.
+
+This audit does not substitute for numerical execution. It narrows the parity experiment by
+separating already-known semantic/rendering differences from differences that require the
+checkpoint.
+
+### Choice option order is preserved
+
+An initial concern that Rust might reorder JSON object keys is not supported by the pinned
+source. Its `serde_json` dependency enables `preserve_order`, and the upstream rendering
+tests explicitly require Choice criteria to follow authored JSON order.
+
+Therefore the #597 option-order perturbation remains a valid future cross-runtime probe.
+
+### Object-state serialization is currently not token-identical
+
+The pinned Python and Rust runtimes serialize structured state differently before
+tokenization:
+
+- Python `serialize_state` uses `json.dumps(state, ensure_ascii=False)` with the default
+  separators;
+- Rust `serialize_state` uses `serde_json::Value::to_string()`, which emits compact JSON.
+
+For an object state, the effective text is therefore of the form:
+
+```text
+Python: {"a": 1, "b": 2}
+Rust:   {"a":1,"b":2}
+```
+
+The frozen #597 L0 cases use object state, so the two runtimes are not entitled to claim
+identical rendered input or token IDs merely because they receive semantically equivalent
+JSON. This is a **pre-numeric parity blocker**.
+
+Before comparing logits/probabilities, the parity run must retain and compare:
+
+1. serialized state text;
+2. full token ID sequence;
+3. marker positions;
+4. option order.
+
+If the pinned Rust candidate does not match the Python reference on these identities, either
+the Rust rendering must be made reference-compatible or the experiment must explicitly
+classify itself as a different-input comparison. A different-input run cannot establish
+implementation parity.
+
+### Broader Noul request shape is not identical
+
+Python Laya supports an optional Noul `labels` mapping for custom false/true labels. The
+pinned Rust `Question` shape has `type`, `instructions`, and `criteria`, but no
+equivalent `labels` field.
+
+The current frozen #597 Noul case does not exercise custom labels, so this does not block that
+specific fixture. It remains a broader Jev-wire compatibility gap and must be covered before
+calling the Rust runtime a general replacement.
+
+### Temperature handling differs outside the common subset
+
+Python Laya applies a safety clamp to calibration temperatures before use. The pinned Rust
+candidate reads `temperature_by_options` / per-type fallback directly without the same
+clamp.
+
+The first #597 parity run must therefore record the exact effective temperature for each
+question in both runtimes. Any fixture whose raw checkpoint temperature falls outside the
+Python clamp range is not a like-for-like probability comparison until this behavior is
+aligned.
+
+### Compare typed semantics, not raw JSON equality
+
+Python Laya reports two distinct confidence notions for Choice/Score:
+
+- `confidence`: normalized entropy concentration;
+- `answer_confidence`: the calibrated top-answer probability `max(p)`.
+
+The pinned Rust response reports the normalized-entropy `confidence` but does not expose the
+same `answer_confidence` field. Other response metadata also differs as already noted above.
+
+Accordingly, parity must compare separately:
+
+- option/level identity and order;
+- raw typed probability vector;
+- selected Choice / expected Score / Noul probability;
+- normalized-entropy confidence where both sides expose it;
+- `answer_confidence` only where an equivalent quantity is explicitly derived.
+
+Whole-response JSON equality is not a valid parity criterion.
+
+### Revised pre-admission sequence
+
+The execution gate is therefore:
+
+```text
+P0 static contract audit
+  -> P1 exact serialized-state / token / marker parity
+  -> P2 same-byte checkpoint numeric probability comparison
+  -> P3 CPU load/latency/RSS comparison
+  -> P4 thin Jev-wire adapter, only if P1-P3 are acceptable
+```
+
+The current pinned Rust source is not yet P1-qualified for object-state inputs because the
+serialization difference above is known in advance. No adapter branch should be opened to
+hide that difference.
+
 ## SEI admission gate
 
 Only evaluate the Rust runtime after exact typed-decisions checkpoint bytes are available.
