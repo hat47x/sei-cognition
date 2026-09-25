@@ -33,6 +33,11 @@ particular, base zero-shot Laya results and the typed-decisions specialist
 fine-tuned on the benchmark training split are not treated as one evidence
 lineage.
 
+Candidate local runtime audits are also kept provider/runtime-specific. See
+[`RUST_RUNTIME_CANDIDATE.md`](./RUST_RUNTIME_CANDIDATE.md) and
+[`PAPAYA_RUNTIME_CANDIDATE.md`](./PAPAYA_RUNTIME_CANDIDATE.md). Neither changes
+the pinned Python reference or the model-byte admission gate.
+
 At the inspection point, upstream also had open hardening work around malformed
 or missing request state. SEI therefore requires an explicit non-null state in
 the fixture rather than inheriting permissive behavior from a particular Laya
