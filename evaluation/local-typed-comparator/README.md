@@ -27,6 +27,12 @@ The fixture was checked against:
 The upstream SHA is a compatibility reference, not dependency pinning or
 endorsement. SEI owns this fixture contract.
 
+Benchmark/result provenance is tracked separately in
+[`UPSTREAM_BENCHMARK_PROVENANCE.md`](./UPSTREAM_BENCHMARK_PROVENANCE.md). In
+particular, base zero-shot Laya results and the typed-decisions specialist
+fine-tuned on the benchmark training split are not treated as one evidence
+lineage.
+
 At the inspection point, upstream also had open hardening work around malformed
 or missing request state. SEI therefore requires an explicit non-null state in
 the fixture rather than inheriting permissive behavior from a particular Laya
