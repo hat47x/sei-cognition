@@ -35,6 +35,7 @@ PINNED_MODEL_REVISION = "f9ab0b228f0fc0f14d873dbc99038f135c2da1b2"
 REQUIRED_DEPENDENCIES = (
     "torch",
     "transformers",
+    "tokenizers",
     "safetensors",
     "huggingface-hub",
     "numpy",
@@ -112,7 +113,7 @@ if not model_binding_local_directory:
     raise RuntimeError("typed-decisions agent did not bind to the verified local model directory")
 
 dependencies = {}
-for distribution in ("torch", "transformers", "safetensors", "huggingface-hub", "numpy", "fastapi", "uvicorn"):
+for distribution in ("torch", "transformers", "tokenizers", "safetensors", "huggingface-hub", "numpy", "fastapi", "uvicorn"):
     dependencies[distribution] = importlib.metadata.version(distribution)
 
 identity = {
