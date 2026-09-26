@@ -175,8 +175,16 @@ def compare_payloads(papaya: dict[str, Any], onnx: dict[str, Any]) -> dict[str, 
         "source": {
             "repository": UPSTREAM_REPOSITORY,
             "revision": UPSTREAM_REVISION,
-            "papaya_results": {"path": PAPAYA_PATH, "git_blob": PAPAYA_BLOB},
-            "onnx_results": {"path": ONNX_PATH, "git_blob": ONNX_BLOB},
+            "papaya_results": {
+                "path": PAPAYA_PATH,
+                "git_blob": PAPAYA_BLOB,
+                "label": papaya.get("label"),
+            },
+            "onnx_results": {
+                "path": ONNX_PATH,
+                "git_blob": ONNX_BLOB,
+                "label": onnx.get("label"),
+            },
             "readme_git_blob": README_BLOB,
         },
         "population": {
@@ -199,6 +207,10 @@ def compare_payloads(papaya: dict[str, Any], onnx: dict[str, Any]) -> dict[str, 
             "published_discrete_scope": {
                 "agree": choice_agree + noul_agree,
                 "n": by_type["choice"] + by_type["noul"],
+                "meaning": (
+                    "choice selected label plus noul thresholded at 0.5; "
+                    "score is excluded"
+                ),
             },
             "score_probability_argmax": {
                 "agree": score_argmax_agree,

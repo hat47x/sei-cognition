@@ -33,6 +33,9 @@ REFERENCE_MODEL_SHA256 = (
     "4fa56de72383a9d3efa9cfa78955733c81b9fc8067a587ca4beb82c78107a24e"
 )
 REFERENCE_MODEL_BYTES = 842_609_220
+REFERENCE_MODEL_ATTESTATION_SCHEMA = (
+    "sei.local-typed-comparator-reference-model-directory-attestation/v1"
+)
 REFERENCE_LAYA_VERSION = "0.3.20"
 REFERENCE_LAYA_SOURCE_REVISION = (
     "23a17522aa4942da6cce53a995a275760320b691"
@@ -301,12 +304,24 @@ def _validate_reference(
         raise NumericComparisonError("reference loaded checkpoint identity drift")
     if runtime_identity.get("model_binding_local_directory") is not True:
         raise NumericComparisonError("reference local model-directory binding missing")
+    if runtime_identity.get("device") != "cpu":
+        raise NumericComparisonError("reference managed capture must remain on CPU")
+    offline = _object(
+        runtime_identity.get("offline"), "reference.runtime_identity.offline"
+    )
+    if offline != {
+        "HF_HUB_OFFLINE": "1",
+        "TRANSFORMERS_OFFLINE": "1",
+    }:
+        raise NumericComparisonError("reference managed capture offline receipt drift")
 
     checkpoint = _object(run.get("checkpoint"), "reference.checkpoint")
     if checkpoint.get("repository") != REFERENCE_REPOSITORY:
         raise NumericComparisonError("reference checkpoint repository drift")
     if checkpoint.get("revision") != REFERENCE_REVISION:
         raise NumericComparisonError("reference checkpoint revision drift")
+    if checkpoint.get("attestation_schema") != REFERENCE_MODEL_ATTESTATION_SCHEMA:
+        raise NumericComparisonError("reference checkpoint attestation schema drift")
     before = _validate_reference_verification(
         checkpoint.get("verification_immediately_before_launch"),
         "reference.checkpoint.verification_immediately_before_launch",

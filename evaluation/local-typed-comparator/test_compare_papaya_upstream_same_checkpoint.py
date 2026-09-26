@@ -76,8 +76,17 @@ class TestComparison(unittest.TestCase):
         )
         self.assertEqual(
             out["agreement"]["published_discrete_scope"],
-            {"agree": 144, "n": 144},
+            {
+                "agree": 144,
+                "n": 144,
+                "meaning": (
+                    "choice selected label plus noul thresholded at 0.5; "
+                    "score is excluded"
+                ),
+            },
         )
+        self.assertEqual(out["source"]["papaya_results"]["label"], "laya-cpp")
+        self.assertEqual(out["source"]["onnx_results"]["label"], "navopw-typed")
         self.assertEqual(
             out["agreement"]["score_probability_argmax"]["agree"],
             96,

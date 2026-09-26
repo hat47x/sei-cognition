@@ -149,10 +149,16 @@ def reference_run():
             "imported_from_extracted_wheel": True,
             "loaded": [mod.REFERENCE_LOGICAL_MODEL],
             "model_binding_local_directory": True,
+            "device": "cpu",
+            "offline": {
+                "HF_HUB_OFFLINE": "1",
+                "TRANSFORMERS_OFFLINE": "1",
+            },
         },
         "checkpoint": {
             "repository": mod.REFERENCE_REPOSITORY,
             "revision": mod.REFERENCE_REVISION,
+            "attestation_schema": mod.REFERENCE_MODEL_ATTESTATION_SCHEMA,
             "verification_immediately_before_launch": copy.deepcopy(verification),
             "verification_after_health_before_inference": copy.deepcopy(verification),
             "verification_after_inference": copy.deepcopy(verification),
@@ -308,6 +314,23 @@ class NumericComparatorTest(unittest.TestCase):
     def test_managed_reference_scope_missing_is_rejected(self):
         ref = reference_run()
         ref["scope"]["endpoint_exact_runtime_wheel_attested"] = False
+        with self.assertRaises(mod.NumericComparisonError):
+            compare(reference=ref)
+
+    def test_managed_reference_cpu_offline_binding_is_required(self):
+        ref = reference_run()
+        ref["runtime_identity"]["device"] = "cuda"
+        with self.assertRaises(mod.NumericComparisonError):
+            compare(reference=ref)
+
+        ref = reference_run()
+        ref["runtime_identity"]["offline"]["HF_HUB_OFFLINE"] = "0"
+        with self.assertRaises(mod.NumericComparisonError):
+            compare(reference=ref)
+
+    def test_reference_attestation_schema_drift_is_rejected(self):
+        ref = reference_run()
+        ref["checkpoint"]["attestation_schema"] = "wrong"
         with self.assertRaises(mod.NumericComparisonError):
             compare(reference=ref)
 

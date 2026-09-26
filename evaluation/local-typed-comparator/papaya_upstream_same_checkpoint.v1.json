@@ -85,13 +85,6 @@
     "papaya_total_s": 566.44,
     "onnx_total_s": 1120.54
   },
-  "recomputation": {
-    "date": "2026-09-26",
-    "full_payloads_recomputed_from_exact_git_blobs": true,
-    "generator_path": "evaluation/local-typed-comparator/compare_papaya_upstream_same_checkpoint.py",
-    "generator_full_blob_replay_in_current_container": false,
-    "generator_model_free_unit_tests": "5/5 PASS"
-  },
   "scope": {
     "upstream_retained_output_recalculation": true,
     "same_checkpoint_identity_independently_attested": false,
