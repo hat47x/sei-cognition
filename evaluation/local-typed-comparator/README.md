@@ -74,8 +74,28 @@ python3 papaya_candidate_tokenizer_attestation.py papaya_candidate_tokenizer_att
 python3 -m unittest -v test_papaya_candidate_tokenizer_attestation.py
 ```
 
-The candidate packet proves byte identity only. It keeps candidate token-ID /
-marker parity, numeric model parity, and live L0 inference explicitly false.
+The candidate tokenizer packet proves byte identity only. Its own scope therefore
+keeps token-ID / marker parity, numeric model parity, and live L0 inference
+explicitly false.
+
+Papaya's pinned source-equivalent sequence replay is retained separately in
+[`papaya_sequence_replay.v1.json`](./papaya_sequence_replay.v1.json). Validate
+its cross-binding to the frozen request fixture, reference token fixture, and
+candidate tokenizer attestation with:
+
+```bash
+python3 papaya_sequence_replay.py \
+  fixture.v1.json \
+  reference_token_fixture.v1.json \
+  papaya_candidate_tokenizer_attestation.v1.json \
+  papaya_sequence_replay.v1.json
+python3 -m unittest -v test_papaya_sequence_replay.py
+```
+
+That replay establishes exact full input-ID and marker-position equality for all
+four frozen cases. It deliberately does **not** claim upstream Papaya Python or
+Transformers execution, model loading, temperature-semantics parity, numeric
+model parity, or live L0 inference.
 
 The current focused suite covers:
 
@@ -119,8 +139,10 @@ for calibration/robustness review, not silently normalize it away.
 
 ## Next step
 
-#597 L0 can proceed with an actual local Laya endpoint only after the runtime and
-checkpoint identity are fixed. The live runner should:
+The tokenizer/sequence-preparation side of the frozen Papaya comparison is now
+closed through byte attestation plus 4/4 source-equivalent token/marker replay.
+The remaining Papaya work is numeric/runtime Evidence. An actual local endpoint
+run should:
 
 1. load this exact fixture;
 2. submit one case at a time;
