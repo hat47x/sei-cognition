@@ -31,17 +31,20 @@ class FakeRunner:
         report_sha=SHA,
         decision="pass",
         bad_decision_binding=None,
+        preflight_live=False,
     ):
         self.calls = []
         self.fail_stage = fail_stage
         self.report_sha = report_sha
         self.decision = decision
         self.bad_decision_binding = bad_decision_binding
+        self.preflight_live = preflight_live
 
     def __call__(self, command, *, cwd, check):
         self.calls.append((command, cwd, check))
         script = Path(command[1]).name
         stage = {
+            "preflight_managed_pair.py": "preflight",
             "capture_reference_l0.py": "reference",
             "capture_papaya_l0.py": "papaya",
             "compare_papaya_reference_numeric.py": "comparison",
@@ -52,7 +55,27 @@ class FakeRunner:
 
         output = Path(command[command.index("--output") + 1])
         root = output.parent
-        if stage == "reference":
+        if stage == "preflight":
+            write_json(
+                output,
+                {
+                    "schema": mod.PREFLIGHT_SCHEMA,
+                    "status": "ready",
+                    "source": {"git_sha": SHA},
+                    "scope": {
+                        "all_required_inputs_verified": True,
+                        "model_weights_loaded": self.preflight_live,
+                        "live_reference_inference": False,
+                        "live_papaya_inference": False,
+                        "numeric_difference_observed": False,
+                        "numeric_parity_decision_observed": False,
+                        "task_quality": False,
+                        "calibration_validity": False,
+                        "shipping_decision": False,
+                    },
+                },
+            )
+        elif stage == "reference":
             write_json(
                 output,
                 {
@@ -144,7 +167,7 @@ class ManagedPairTest(unittest.TestCase):
         )
         return tuple(
             zip(
-                ("reference", "papaya", "comparison", "decision"),
+                ("preflight", "reference", "papaya", "comparison", "decision"),
                 commands,
             )
         )
@@ -154,24 +177,30 @@ class ManagedPairTest(unittest.TestCase):
             root = Path(td)
             out = root / "evidence"
             commands = self._commands(root, out)
-            ref = commands[0][1]
-            pap = commands[1][1]
-            cmp = commands[2][1]
-            dec = commands[3][1]
+            pre = commands[0][1]
+            ref = commands[1][1]
+            pap = commands[2][1]
+            cmp = commands[3][1]
+            dec = commands[4][1]
+            self.assertEqual(pre[pre.index("--source-git-sha") + 1], SHA)
             self.assertEqual(ref[ref.index("--source-git-sha") + 1], SHA)
             self.assertEqual(pap[pap.index("--source-git-sha") + 1], SHA)
+            self.assertIn(str(out / mod.PREFLIGHT_FILE), pre)
             self.assertIn(str(out / mod.REFERENCE_FILE), cmp)
             self.assertIn(str(out / mod.PAPAYA_FILE), cmp)
             self.assertIn(str(out / mod.REPORT_FILE), dec)
 
+    def test_preflight_failure_stops_before_model_load(self):
+        self._assert_stage_failure("preflight", 1)
+
     def test_reference_failure_is_fail_fast(self):
-        self._assert_stage_failure("reference", 1)
+        self._assert_stage_failure("reference", 2)
 
     def test_papaya_failure_stops_before_comparison(self):
-        self._assert_stage_failure("papaya", 2)
+        self._assert_stage_failure("papaya", 3)
 
     def test_comparison_failure_stops_before_decision(self):
-        self._assert_stage_failure("comparison", 3)
+        self._assert_stage_failure("comparison", 4)
 
     def _assert_stage_failure(self, stage, expected_calls):
         with tempfile.TemporaryDirectory() as td:
@@ -198,6 +227,9 @@ class ManagedPairTest(unittest.TestCase):
         self.assertEqual(receipt["status"], "complete")
         self.assertEqual(receipt["artifacts"]["decision"]["decision"], "pass")
         self.assertTrue(
+            receipt["scope"]["preflight_all_required_inputs_verified"]
+        )
+        self.assertTrue(
             receipt["scope"]["preregistered_numeric_policy_applied"]
         )
         self.assertFalse(receipt["scope"]["shipping_decision"])
@@ -222,10 +254,10 @@ class ManagedPairTest(unittest.TestCase):
                 cwd=root,
                 runner=runner,
             )
-            self.assertEqual(len(runner.calls), 4)
+            self.assertEqual(len(runner.calls), 5)
             self.assertEqual(
                 set(receipt["artifacts"]),
-                {"reference", "papaya", "comparison", "decision"},
+                {"preflight", "reference", "papaya", "comparison", "decision"},
             )
             return receipt
 
@@ -244,7 +276,7 @@ class ManagedPairTest(unittest.TestCase):
                     cwd=root,
                     runner=runner,
                 )
-            self.assertEqual(len(runner.calls), 3)
+            self.assertEqual(len(runner.calls), 4)
 
     def test_decision_artifact_digest_binding_drift_is_rejected(self):
         with tempfile.TemporaryDirectory() as td:
@@ -263,7 +295,36 @@ class ManagedPairTest(unittest.TestCase):
                     cwd=root,
                     runner=runner,
                 )
-            self.assertEqual(len(runner.calls), 4)
+            self.assertEqual(len(runner.calls), 5)
+
+    def test_preflight_overclaim_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = FakeRunner(preflight_live=True)
+            with self.assertRaises(mod.ManagedPairError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(root, out),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            self.assertEqual(len(runner.calls), 1)
+
+    def test_script_checkout_must_equal_sei_source_dir(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            here = root / "sei" / "evaluation" / "local-typed-comparator"
+            here.mkdir(parents=True)
+            self.assertEqual(
+                mod._require_script_source_binding(here, root / "sei"),
+                (root / "sei").resolve(),
+            )
+            with self.assertRaises(mod.ManagedPairError):
+                mod._require_script_source_binding(here, root / "other-sei")
 
     def test_output_dir_must_be_new_and_external(self):
         with tempfile.TemporaryDirectory() as td:
