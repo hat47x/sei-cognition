@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import math
 import sys
@@ -22,9 +23,19 @@ REFERENCE_REPOSITORY = "convaiinnovations/laya-typed-decisions"
 REFERENCE_REVISION = "f9ab0b228f0fc0f14d873dbc99038f135c2da1b2"
 REFERENCE_MODEL_SHA256 = "4fa56de72383a9d3efa9cfa78955733c81b9fc8067a587ca4beb82c78107a24e"
 REFERENCE_MODEL_BYTES = 842_609_220
+REFERENCE_LAYA_VERSION = "0.3.20"
+REFERENCE_LAYA_SOURCE_REVISION = "23a17522aa4942da6cce53a995a275760320b691"
+REFERENCE_LAYA_WHEEL_SHA256 = "6039e802fa5effb8dd492061cd7ad39a43087beadc4a4fa4a649614e77eb83d4"
 
 PAPAYA_PROVIDER = "papaya"
 PAPAYA_RESPONSE_MODEL = "papaya/typed-decisions-v1"
+PAPAYA_SOURCE_REPOSITORY = "m0rphtail/papaya"
+PAPAYA_SOURCE_REVISION = "a76bc99bddafdac32863b2edc5319773e0cd3532"
+EXPECTED_CLAMP_CHANGE = {
+    "path": "temperature_by_options.choice:11+",
+    "raw": 0.10058280825614929,
+    "applied": 0.5,
+}
 EXPECTED_CASE_IDS = (
     "choice-route-a",
     "choice-route-b",
@@ -51,6 +62,29 @@ def _array(value: Any, field: str) -> list[Any]:
 
 def _sha256_bytes(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
+
+
+def _protocol_module():
+    path = Path(__file__).resolve().parent / "protocol_contract.py"
+    spec = importlib.util.spec_from_file_location(
+        "protocol_contract_cross_provider_numeric", path
+    )
+    if spec is None or spec.loader is None:
+        raise NumericComparisonError(f"cannot import protocol contract: {path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _revalidate_contract(
+    request: dict[str, Any], response: dict[str, Any], case_id: str
+) -> None:
+    try:
+        _protocol_module().validate_response(request, response)
+    except Exception as exc:
+        raise NumericComparisonError(
+            f"{case_id}: retained response no longer passes protocol contract: {exc}"
+        ) from exc
 
 
 def _load(path: Path, label: str) -> tuple[dict[str, Any], bytes]:
@@ -141,6 +175,25 @@ def _validate_reference(
     provider = _object(run.get("provider"), "reference.provider")
     if provider.get("name") != REFERENCE_PROVIDER:
         raise NumericComparisonError("reference provider identity drift")
+    if provider.get("pypi_source_revision") != REFERENCE_LAYA_SOURCE_REVISION:
+        raise NumericComparisonError("reference Laya source revision drift")
+    runtime_wheel = _object(provider.get("runtime_wheel"), "reference.provider.runtime_wheel")
+    if runtime_wheel.get("sha256") != REFERENCE_LAYA_WHEEL_SHA256:
+        raise NumericComparisonError("reference runtime wheel digest drift")
+    capture_interpreter = _object(
+        provider.get("capture_interpreter"), "reference.provider.capture_interpreter"
+    )
+    if capture_interpreter.get("laya_version") != REFERENCE_LAYA_VERSION:
+        raise NumericComparisonError("reference capture Laya version drift")
+    runtime_binding = _object(
+        provider.get("runtime_binding"), "reference.provider.runtime_binding"
+    )
+    if runtime_binding.get("supplied_runtime_wheel_digest_verified") is not True:
+        raise NumericComparisonError("reference supplied runtime wheel was not verified")
+    if runtime_binding.get("endpoint_exact_runtime_wheel_attested") is not False:
+        raise NumericComparisonError(
+            "reference endpoint runtime-wheel attestation scope drift"
+        )
     checkpoint = _object(run.get("checkpoint"), "reference.checkpoint")
     if checkpoint.get("repository") != REFERENCE_REPOSITORY:
         raise NumericComparisonError("reference checkpoint repository drift")
@@ -163,6 +216,7 @@ def _validate_reference(
     for cid in EXPECTED_CASE_IDS:
         record = records[cid]
         req, resp = _decode_record(record, cid)
+        _revalidate_contract(req, resp, cid)
         if record.get("response_model") != REFERENCE_RESPONSE_MODEL:
             raise NumericComparisonError(f"{cid}: reference response model drift")
         if record.get("routing_model") != REFERENCE_LOGICAL_MODEL:
@@ -188,6 +242,11 @@ def _validate_papaya(
         raise NumericComparisonError("Papaya run must not claim Jev provider identity")
     if provider.get("python_laya_reference_identity") is not False:
         raise NumericComparisonError("Papaya run must not claim Python-Laya identity")
+    papaya_runtime = _object(run.get("papaya_runtime"), "papaya.papaya_runtime")
+    if papaya_runtime.get("repository") != PAPAYA_SOURCE_REPOSITORY:
+        raise NumericComparisonError("Papaya source repository drift")
+    if papaya_runtime.get("revision") != PAPAYA_SOURCE_REVISION:
+        raise NumericComparisonError("Papaya source revision drift")
     fixture = _object(run.get("fixture"), "papaya.fixture")
     if fixture.get("sha256") != fixture_sha or fixture.get("case_count") != len(EXPECTED_CASE_IDS):
         raise NumericComparisonError("Papaya fixture binding drift")
@@ -214,12 +273,17 @@ def _validate_papaya(
     overlay = _object(run.get("overlay"), "papaya.overlay")
     if overlay.get("verification_after_health_before_inference") is None:
         raise NumericComparisonError("Papaya overlay was not reverified after health")
+    receipt = _object(overlay.get("receipt"), "papaya.overlay.receipt")
+    policy = _object(receipt.get("temperature_policy"), "papaya.overlay.receipt.temperature_policy")
+    if policy.get("changes") != [EXPECTED_CLAMP_CHANGE]:
+        raise NumericComparisonError("Papaya compatibility clamp receipt drift")
 
     records = _case_map(run.get("frozen_cases"), "papaya.frozen_cases")
     result = {}
     for cid in EXPECTED_CASE_IDS:
         record = records[cid]
         req, resp = _decode_record(record, cid)
+        _revalidate_contract(req, resp, cid)
         if record.get("diagnostic") is not False:
             raise NumericComparisonError(f"{cid}: frozen case mislabeled diagnostic")
         if record.get("response_model") != PAPAYA_RESPONSE_MODEL:
@@ -361,6 +425,12 @@ def compare_runs(
             }
         )
 
+    numeric_difference_observed = (
+        any(value > 0.0 for value in probability_maxima)
+        or any(value > 0.0 for value in scalar_deltas)
+        or any(not value for value in selected_results)
+    )
+
     return {
         "schema": REPORT_SCHEMA,
         "fixture": {
@@ -395,7 +465,7 @@ def compare_runs(
         },
         "scope": {
             "complete_capture_inputs_required": True,
-            "numeric_difference_observed": True,
+            "numeric_difference_observed": numeric_difference_observed,
             "numeric_parity_threshold_defined": False,
             "numeric_parity_decision": False,
             "task_quality": False,
