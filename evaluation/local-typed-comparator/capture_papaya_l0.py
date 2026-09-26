@@ -145,7 +145,7 @@ def require_git_checkout(
                 )
             observed_blobs[relative] = observed
     return {
-        "path": str(root),
+        "checkout_dir_name": root.name,
         "git_sha": actual_sha,
         "clean": True,
         "source_blobs": observed_blobs,
@@ -189,8 +189,7 @@ def require_papaya_import(source_root: Path) -> dict[str, Any]:
             f"Papaya imported from unexpected path: {observed}"
         )
     return {
-        "expected_init": str(expected),
-        "observed_init": str(observed),
+        "module_relative_path": "src/papaya/__init__.py",
         "source_checkout_imported": True,
     }
 
@@ -245,7 +244,7 @@ def require_llama_server(path: Path) -> dict[str, Any]:
             f"unexpected llama-server version output: {output!r}"
         )
     return {
-        "path": str(path),
+        "file_name": path.name,
         "sha256": digest,
         "size_bytes": size,
         "release_tag": LLAMA_RELEASE_TAG,
@@ -255,6 +254,25 @@ def require_llama_server(path: Path) -> dict[str, Any]:
         "pin_role": "SEI first Papaya live-run runtime pin; not an upstream Papaya requirement",
         "evidence_path": LLAMA_RUNTIME_EVIDENCE_PATH,
         "evidence_git_blob": LLAMA_RUNTIME_EVIDENCE_BLOB,
+    }
+
+
+def require_sei_evidence_blob(sei_root: Path) -> dict[str, Any]:
+    path = sei_root.resolve() / LLAMA_RUNTIME_EVIDENCE_PATH
+    if not path.is_file():
+        raise PapayaCaptureError(
+            f"llama runtime Evidence missing from SEI checkout: {LLAMA_RUNTIME_EVIDENCE_PATH}"
+        )
+    observed = git_blob_sha1_bytes(path.read_bytes())
+    if observed != LLAMA_RUNTIME_EVIDENCE_BLOB:
+        raise PapayaCaptureError(
+            "llama runtime Evidence Git blob drift: "
+            f"expected {LLAMA_RUNTIME_EVIDENCE_BLOB}, got {observed}"
+        )
+    return {
+        "relative_path": LLAMA_RUNTIME_EVIDENCE_PATH,
+        "git_blob": observed,
+        "binding_verified": True,
     }
 
 
@@ -627,7 +645,9 @@ def main(argv: list[str] | None = None) -> int:
             label="Papaya source",
         )
         papaya_import = require_papaya_import(args.papaya_source_dir)
+        llama_evidence = require_sei_evidence_blob(args.sei_source_dir)
         llama_runtime = require_llama_server(args.llama_binary)
+        llama_runtime["evidence_binding"] = llama_evidence
 
         protocol = load_module(here / "protocol_contract.py", "protocol_contract_papaya_capture")
         fixture, fixture_raw = load_json(args.fixture, "frozen fixture")
@@ -677,20 +697,19 @@ def main(argv: list[str] | None = None) -> int:
             },
             "llama_runtime": llama_runtime,
             "overlay": {
-                "directory": str(args.overlay_dir.resolve()),
                 "verification": overlay_verification,
                 "receipt": overlay_receipt,
                 "verified_immediately_before_launch": True,
             },
             "fixture": {
-                "path": str(args.fixture),
+                "file": args.fixture.name,
                 "schema": fixture.get("schema"),
                 "sha256": sha256_bytes(fixture_raw),
                 "case_count": len(fixture.get("cases", [])),
                 "retained_replay_schema": replay.get("schema"),
             },
             "choice11_diagnostic": {
-                "path": str(args.diagnostic),
+                "file": args.diagnostic.name,
                 "schema": diagnostic.get("schema"),
                 "sha256": sha256_bytes(diagnostic_raw),
                 "case_count": 1,
@@ -702,7 +721,7 @@ def main(argv: list[str] | None = None) -> int:
             },
             "host": {
                 "python": platform.python_version(),
-                "executable": sys.executable,
+                "python_executable_name": Path(sys.executable).name,
                 "platform": platform.platform(),
                 "threads_requested": args.threads,
             },
@@ -712,6 +731,7 @@ def main(argv: list[str] | None = None) -> int:
             "process": None,
             "logs": {},
             "scope": {
+                "papaya_runtime_source_verified": True,
                 "papaya_live_inference": False,
                 "frozen_protocol_contract": False,
                 "frozen_live_token_count_matches_replay": False,
@@ -749,8 +769,23 @@ def main(argv: list[str] | None = None) -> int:
                 str(args.threads),
             ]
             artifact["process"] = {
-                "command": command,
-                "cwd": str(args.papaya_source_dir.resolve()),
+                "command_shape": [
+                    "<capture-python>",
+                    "-m",
+                    "papaya.cli",
+                    "serve",
+                    "--host",
+                    "127.0.0.1",
+                    "--port",
+                    "<ephemeral-loopback-port>",
+                    "--model-dir",
+                    "<verified-overlay-dir>",
+                    "--llama-binary",
+                    "<verified-llama-server>",
+                    "--threads",
+                    str(args.threads),
+                ],
+                "cwd_binding": "verified Papaya source checkout",
                 "papaya_api_key_present": False,
                 "started": False,
             }
@@ -764,7 +799,6 @@ def main(argv: list[str] | None = None) -> int:
                         stderr=stderr_file,
                     )
                     artifact["process"]["started"] = True
-                    artifact["process"]["pid"] = process.pid
 
                     artifact["health"] = wait_for_health(
                         base_url,
