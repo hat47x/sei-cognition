@@ -4,6 +4,7 @@ import os
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -66,6 +67,51 @@ class PapayaCaptureTest(unittest.TestCase):
             self.assertEqual(
                 env["PYTHONPATH"].split(os.pathsep)[0],
                 str((root / "src").resolve()),
+            )
+
+    def test_runtime_dependency_versions_are_retained_and_required(self):
+        versions = {
+            "numpy": "2.1.0",
+            "torch": "2.5.0",
+            "transformers": "4.50.0",
+            "safetensors": "0.5.0",
+            "huggingface-hub": "0.30.0",
+        }
+        with mock.patch.object(
+            capture,
+            "package_version",
+            side_effect=lambda name: versions.get(name),
+        ):
+            observed = capture.require_runtime_dependencies()
+        self.assertEqual(observed["numpy"], "2.1.0")
+        self.assertEqual(observed["huggingface_hub"], "0.30.0")
+
+        with mock.patch.object(
+            capture,
+            "package_version",
+            side_effect=lambda name: None if name == "torch" else "1.0",
+        ):
+            with self.assertRaises(capture.PapayaCaptureError):
+                capture.require_runtime_dependencies()
+
+    def test_log_capture_sanitizes_known_local_paths_but_hashes_raw_log(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "runtime.log"
+            path.write_text(
+                "loading /private/work/papaya/model from /private/work/papaya\n",
+                encoding="utf-8",
+            )
+            raw_digest, raw_size = capture.sha256_file(path)
+            retained = capture.capture_log(
+                path, {"/private/work/papaya": "<papaya-source>"}
+            )
+            self.assertEqual(retained["sha256"], raw_digest)
+            self.assertEqual(retained["size_bytes"], raw_size)
+            self.assertNotIn(
+                "/private/work/papaya", retained["utf8_prefix_sanitized"]
+            )
+            self.assertIn(
+                "<papaya-source>/model", retained["utf8_prefix_sanitized"]
             )
 
     def test_retained_choice11_diagnostic_is_exact_12_option_probe(self):
