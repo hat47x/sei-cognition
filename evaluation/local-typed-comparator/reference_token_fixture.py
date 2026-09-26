@@ -8,6 +8,7 @@ candidate runtime, load a model, or claim numeric parity.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -134,6 +135,16 @@ def validate_reference_token_fixture(
             raise ReferenceTokenFixtureError(
                 f"{case_id}: reference token fixture requires exactly one question"
             )
+        request_bytes = json.dumps(
+            request, ensure_ascii=False, separators=(",", ":")
+        ).encode("utf-8")
+        request_sha256 = retained.get("request_sha256")
+        if (
+            not isinstance(request_sha256, str)
+            or request_sha256 != hashlib.sha256(request_bytes).hexdigest()
+        ):
+            raise ReferenceTokenFixtureError(f"{case_id}: request SHA-256 drift")
+
         question_id, question = next(iter(questions.items()))
         if retained.get("question_id") != question_id:
             raise ReferenceTokenFixtureError(f"{case_id}: question id drift")
