@@ -13,6 +13,11 @@ from typing import Any
 POLICY_SCHEMA = "sei.local-typed-comparator-numeric-parity-policy/v1"
 REPORT_SCHEMA = "sei.local-typed-comparator-cross-provider-numeric-report/v1"
 DECISION_SCHEMA = "sei.local-typed-comparator-numeric-parity-decision/v1"
+FIXTURE_SCHEMA = "sei.local-typed-comparator-fixture/v1alpha1"
+FIXTURE_SHA256 = "cb070bfa342a2ca7329538620541fa32588130d3d1b67f21c8b3c4e3494d8ed5"
+CHOICE11_DIAGNOSTIC_SHA256 = (
+    "6c572390e91d662864d9ef2b43cd147e698773649531e798a3a55179e35a5a32"
+)
 REFERENCE_RUN_SCHEMA = "sei.local-typed-comparator-reference-managed-run/v1"
 PAPAYA_RUN_SCHEMA = "sei.local-typed-comparator-papaya-run/v1"
 CHOICE11_ATTESTATION_SCHEMA = (
@@ -115,6 +120,12 @@ def _validate_policy(policy: dict[str, Any]) -> tuple[dict[str, Any], dict[str, 
         raise ParityDecisionError("policy managed-reference schema drift")
     if surface.get("papaya_schema") != PAPAYA_RUN_SCHEMA:
         raise ParityDecisionError("policy Papaya schema drift")
+    if surface.get("fixture_schema") != FIXTURE_SCHEMA:
+        raise ParityDecisionError("policy fixture schema drift")
+    if surface.get("fixture_sha256") != FIXTURE_SHA256:
+        raise ParityDecisionError("policy fixture SHA-256 drift")
+    if surface.get("choice11_diagnostic_sha256") != CHOICE11_DIAGNOSTIC_SHA256:
+        raise ParityDecisionError("policy choice11 diagnostic SHA-256 drift")
 
     context = _object(policy.get("context_only"), "policy.context_only")
     expected_context = {
@@ -181,9 +192,13 @@ def _validate_report(report: dict[str, Any]) -> None:
         raise ParityDecisionError("numeric report schema drift")
 
     fixture = _object(report.get("fixture"), "report.fixture")
+    if fixture.get("schema") != FIXTURE_SCHEMA:
+        raise ParityDecisionError("report fixture schema drift")
     if tuple(fixture.get("case_ids", ())) != EXPECTED_CASE_IDS:
         raise ParityDecisionError("report fixture case identity/order drift")
-    _full_hex(fixture.get("sha256"), 64, "report.fixture.sha256")
+    fixture_sha = _full_hex(fixture.get("sha256"), 64, "report.fixture.sha256")
+    if fixture_sha != FIXTURE_SHA256:
+        raise ParityDecisionError("report fixture SHA-256 drift")
 
     inputs = _object(report.get("inputs"), "report.inputs")
     reference = _object(inputs.get("reference"), "report.inputs.reference")
@@ -219,11 +234,13 @@ def _validate_report(report: dict[str, Any]) -> None:
             raise ParityDecisionError(
                 f"report choice11_sequence_precondition.{field} drift"
             )
-    _full_hex(
+    diagnostic_sha = _full_hex(
         precondition.get("diagnostic_sha256"),
         64,
         "report.choice11_sequence_precondition.diagnostic_sha256",
     )
+    if diagnostic_sha != CHOICE11_DIAGNOSTIC_SHA256:
+        raise ParityDecisionError("report choice11 diagnostic SHA-256 drift")
 
     cases = _array(report.get("cases"), "report.cases")
     if tuple(
