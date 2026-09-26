@@ -1,0 +1,37 @@
+{
+  "schema": "sei.local-typed-comparator-papaya-tokenizer-attestation/v1",
+  "observed_at": "2026-09-26",
+  "candidate": {
+    "repository": "fr0stbit3/laya-typed-decisions-gguf",
+    "revision": "75300646cddbac2b47409fc1ca839c95bec004c8",
+    "path": "tokenizer.json",
+    "bytes": 3583228,
+    "huggingface_resolve_etag": "2f4d8583e507b7466d2490e2d6c045647a822698",
+    "git_blob": "2f4d8583e507b7466d2490e2d6c045647a822698",
+    "sha256": "6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30",
+    "sha256_basis": "byte identity via immutable Git blob equality to independently hashed reference",
+    "immutable_file_url": "https://huggingface.co/fr0stbit3/laya-typed-decisions-gguf/blob/75300646cddbac2b47409fc1ca839c95bec004c8/tokenizer.json",
+    "resolve_cache_etag_observed_url": "https://huggingface.co/api/resolve-cache/models/fr0stbit3/laya-typed-decisions-gguf/75300646cddbac2b47409fc1ca839c95bec004c8/tokenizer.json?download=true&etag=%222f4d8583e507b7466d2490e2d6c045647a822698%22",
+    "etag_semantics_source": "https://huggingface.co/docs/huggingface_hub/package_reference/file_download"
+  },
+  "reference": {
+    "repository": "MatteoGauthier/laya-portable",
+    "revision": "3dc028023929432b4a3d76b1a8ee050d0e5ccd7f",
+    "path": "packages/laya-js/src/tokenizer/tokenizer.json",
+    "bytes": 3583228,
+    "git_blob": "2f4d8583e507b7466d2490e2d6c045647a822698",
+    "sha256": "6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30"
+  },
+  "proof": {
+    "candidate_git_blob_equals_reference_git_blob": true,
+    "candidate_bytes_equal_reference_bytes": true,
+    "candidate_sha256_equals_reference_sha256": true,
+    "candidate_sha256_independently_recomputed": false
+  },
+  "scope": {
+    "candidate_side_tokenizer_attested": true,
+    "candidate_token_id_marker_parity": false,
+    "numeric_model_parity": false,
+    "live_l0_inference": false
+  }
+}
