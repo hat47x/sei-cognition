@@ -96,6 +96,65 @@ records endpoint-loaded exact bytes, endpoint runtime-wheel identity, live
 reference inference, and Papaya numeric parity as false. A managed reference
 runner must re-hash this directory immediately before model load.
 
+### Managed Python-Laya reference first-live capture
+
+The standalone reference directory attestation can be carried into a managed
+endpoint without relying on an already-running server:
+
+```bash
+python3 capture_reference_l0.py \
+  --source-git-sha <exact-clean-SEI-checkout-SHA> \
+  --model-dir <attested-standalone-reference-model-directory> \
+  --runtime-wheel <laya-0.3.20-py3-none-any.whl> \
+  --run-id <unique-run-id> \
+  --output <new-run-artifact-outside-the-SEI-checkout.json>
+```
+
+The managed runner is CPU-only for the first reference capture. It:
+
+1. verifies the 118,520-byte pinned Laya 0.3.20 wheel and safely extracts it to
+   a temporary runtime site;
+2. computes a deterministic source-file manifest for the extracted `laya/*.py`
+   package and requires the child interpreter to report the same manifest;
+3. starts the child in Hugging Face / Transformers offline mode and removes
+   inherited Hugging Face and Laya API credentials;
+4. injects the exact verified local model directory into
+   `Router(models={"typed-decisions": ...})` and preloads only that checkpoint;
+5. requires the child to attest that the imported Laya package came from the
+   extracted pinned wheel and that the loaded Agent is bound to the supplied
+   local directory;
+6. re-hashes the entire reference model-directory contract immediately before
+   launch, after health/preload and before first inference, and after inference;
+7. captures the frozen four cases through the normal `/v1/systemone` contract
+   and requires their live `usage.input_tokens` values to equal
+   `reference_token_fixture.v1.json`;
+8. executes the same retained 12-option `choice:11+` diagnostic used by the
+   Papaya first-live runner, with no expected answer and no task-quality claim;
+9. keeps the evidence output outside the verified SEI checkout and sanitizes
+   host-local paths from retained log prefixes.
+
+The child dependency versions are observed and retained per run; Laya's wheel
+declares dependency ranges, so those observed versions are not relabelled as
+upstream-pinned identities.
+
+A complete managed reference run may establish exact local-directory loading,
+exact Laya runtime-wheel use, live protocol Evidence and the reference
+`choice:11+` path. It still keeps the following false until separate comparison
+work exists:
+
+```text
+numeric parity with Papaya       false
+task quality                     false
+calibration validity             false
+Jev provider identity            false
+```
+
+Validate the model-independent runner logic with:
+
+```bash
+python3 -m unittest -v test_capture_reference_l0.py
+```
+
 Papaya candidate tokenizer byte identity is retained separately in
 [`papaya_candidate_tokenizer_attestation.v1.json`](./papaya_candidate_tokenizer_attestation.v1.json).
 Validate that packet and its stop lines with:
