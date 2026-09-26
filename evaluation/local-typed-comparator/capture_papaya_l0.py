@@ -159,6 +159,30 @@ def package_version(name: str) -> str | None:
         return None
 
 
+def require_runtime_dependencies() -> dict[str, str]:
+    distributions = {
+        "numpy": "numpy",
+        "torch": "torch",
+        "transformers": "transformers",
+        "safetensors": "safetensors",
+        "huggingface_hub": "huggingface-hub",
+    }
+    observed: dict[str, str] = {}
+    missing: list[str] = []
+    for field, distribution in distributions.items():
+        version = package_version(distribution)
+        if version is None:
+            missing.append(distribution)
+        else:
+            observed[field] = version
+    if missing:
+        raise PapayaCaptureError(
+            "capture interpreter is missing Papaya runtime dependencies: "
+            + ", ".join(sorted(missing))
+        )
+    return observed
+
+
 def require_papaya_import(source_root: Path) -> dict[str, Any]:
     source_root = source_root.resolve()
     expected = (source_root / "src" / "papaya" / "__init__.py").resolve()
@@ -653,6 +677,7 @@ def main(argv: list[str] | None = None) -> int:
             PAPAYA_SOURCE_BLOBS,
             label="Papaya source",
         )
+        dependencies = require_runtime_dependencies()
         papaya_import = require_papaya_import(args.papaya_source_dir)
         llama_evidence = require_sei_evidence_blob(args.sei_source_dir)
         llama_runtime = require_llama_server(args.llama_binary)
@@ -692,12 +717,15 @@ def main(argv: list[str] | None = None) -> int:
                 "revision": PAPAYA_SOURCE_REVISION,
                 "checkout": papaya_source,
                 "import_binding": papaya_import,
-                "installed_dependencies": {
-                    "numpy": package_version("numpy"),
-                    "torch": package_version("torch"),
-                    "transformers": package_version("transformers"),
-                    "safetensors": package_version("safetensors"),
-                    "huggingface_hub": package_version("huggingface-hub"),
+                "installed_dependencies": dependencies,
+                "dependency_lock": {
+                    "exact_versions_pinned_by_SEI": False,
+                    "actual_versions_retained_per_run": True,
+                    "note": (
+                        "Papaya's pinned pyproject declares version ranges rather than "
+                        "an exact runtime lock; live comparisons must retain and compare "
+                        "the observed dependency versions."
+                    ),
                 },
                 "network_mode": {
                     "HF_HUB_OFFLINE": "1",
@@ -706,9 +734,10 @@ def main(argv: list[str] | None = None) -> int:
             },
             "llama_runtime": llama_runtime,
             "overlay": {
-                "verification": overlay_verification,
+                "verification_before_launch": overlay_verification,
                 "receipt": overlay_receipt,
                 "verified_immediately_before_launch": True,
+                "verification_after_health_before_inference": None,
             },
             "fixture": {
                 "file": args.fixture.name,
@@ -814,6 +843,16 @@ def main(argv: list[str] | None = None) -> int:
                         process,
                         timeout=args.startup_timeout,
                     )
+                    post_health_verification, post_health_receipt = verify_overlay(
+                        here, args.overlay_dir.resolve()
+                    )
+                    if post_health_receipt != overlay_receipt:
+                        raise PapayaCaptureError(
+                            "overlay receipt changed between launch and inference"
+                        )
+                    artifact["overlay"][
+                        "verification_after_health_before_inference"
+                    ] = post_health_verification
                     artifact["frozen_cases"] = capture_fixture_cases(
                         fixture,
                         endpoint,
