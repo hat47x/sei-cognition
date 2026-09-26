@@ -861,9 +861,27 @@ temperature config with this derived compatibility config. It also writes
 `sei_compat_overlay_receipt.json`.
 
 The receipt intentionally contains no host-local input paths. It records
-artifact byte/hash identities, the Papaya source revision/blobs, tokenizer
-identity, the #617 frozen sequence-parity precondition, reference clamp
-provenance, the exact config delta, and the derived config hash.
+artifact byte/hash identities, the **required** Papaya source revision/blobs,
+tokenizer identity, the #617 frozen sequence-parity precondition, reference
+clamp provenance, the exact config delta, and the derived config hash.
+
+The helper does not inspect a local Papaya source checkout. Accordingly the
+receipt explicitly records `source_verified_by_overlay=false` and
+`runtime_source_verified=false`; those pinned source identities are execution
+requirements, not observations about whichever runtime later consumes the
+overlay.
+
+The Q8 backbone and decision head are staged as symbolic links to avoid copying
+roughly 527 MB of model data. That makes a second fail-closed check mandatory
+immediately before inference:
+
+```bash
+python3 prepare_papaya_compat_overlay.py --verify-staged <output-directory>
+```
+
+This command re-hashes the current link targets plus all copied/derived overlay
+files and rejects post-staging drift. Overlay creation performs the same staged
+verification once before publishing the output directory.
 
 The claim boundary is:
 
