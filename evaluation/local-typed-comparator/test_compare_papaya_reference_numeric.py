@@ -89,7 +89,16 @@ def reference_run():
         "schema": mod.REFERENCE_RUN_SCHEMA,
         "status": "complete",
         "run_id": "ref",
-        "provider": {"name": "laya"},
+        "provider": {
+            "name": "laya",
+            "pypi_source_revision": mod.REFERENCE_LAYA_SOURCE_REVISION,
+            "runtime_wheel": {"sha256": mod.REFERENCE_LAYA_WHEEL_SHA256},
+            "capture_interpreter": {"laya_version": mod.REFERENCE_LAYA_VERSION},
+            "runtime_binding": {
+                "supplied_runtime_wheel_digest_verified": True,
+                "endpoint_exact_runtime_wheel_attested": False,
+            },
+        },
         "checkpoint": {
             "repository": mod.REFERENCE_REPOSITORY,
             "hub_revision": mod.REFERENCE_REVISION,
@@ -124,6 +133,10 @@ def papaya_run():
             "jev_provider_identity": False,
             "python_laya_reference_identity": False,
         },
+        "papaya_runtime": {
+            "repository": mod.PAPAYA_SOURCE_REPOSITORY,
+            "revision": mod.PAPAYA_SOURCE_REVISION,
+        },
         "fixture": {"sha256": fixture_sha, "case_count": 4},
         "scope": {
             "papaya_runtime_source_verified": True,
@@ -137,7 +150,12 @@ def papaya_run():
             "jev_provider_identity": False,
             "reference_provider_promotion": False,
         },
-        "overlay": {"verification_after_health_before_inference": {"valid": True}},
+        "overlay": {
+            "verification_after_health_before_inference": {"valid": True},
+            "receipt": {
+                "temperature_policy": {"changes": [mod.EXPECTED_CLAMP_CHANGE]}
+            },
+        },
         "frozen_cases": [
             record(c, mod.PAPAYA_RESPONSE_MODEL, reference=False)
             for c in FIXTURE["cases"]
@@ -156,6 +174,7 @@ class NumericComparatorTest(unittest.TestCase):
         )
         self.assertEqual(report["aggregate"]["max_probability_abs_delta"], 0.0)
         self.assertEqual(report["aggregate"]["max_score_or_noul_abs_delta"], 0.0)
+        self.assertFalse(report["scope"]["numeric_difference_observed"])
         self.assertFalse(report["scope"]["numeric_parity_threshold_defined"])
         self.assertFalse(report["scope"]["numeric_parity_decision"])
         self.assertFalse(report["inputs"]["provider_provenance_merged"])
@@ -176,6 +195,7 @@ class NumericComparatorTest(unittest.TestCase):
             report["cases"][0]["questions"][0]["probabilities"]["total_variation_distance"],
             0.1,
         )
+        self.assertTrue(report["scope"]["numeric_difference_observed"])
 
     def test_incomplete_run_is_rejected(self):
         pap = papaya_run()
@@ -209,6 +229,23 @@ class NumericComparatorTest(unittest.TestCase):
         raw = compact(request)
         row["request_utf8"] = raw
         row["request_sha256"] = hashlib.sha256(raw.encode()).hexdigest()
+        with self.assertRaises(mod.NumericComparisonError):
+            mod.compare_runs(FIXTURE, FIXTURE_RAW, reference_run(), pap)
+
+    def test_retained_response_contract_is_revalidated(self):
+        pap = papaya_run()
+        row = pap["frozen_cases"][0]
+        response = json.loads(row["response_utf8"])
+        response["answers"]["route"]["probabilities"].pop("manual_review")
+        raw = compact(response)
+        row["response_utf8"] = raw
+        row["response_sha256"] = hashlib.sha256(raw.encode()).hexdigest()
+        with self.assertRaises(mod.NumericComparisonError):
+            mod.compare_runs(FIXTURE, FIXTURE_RAW, reference_run(), pap)
+
+    def test_papaya_clamp_receipt_drift_is_rejected(self):
+        pap = papaya_run()
+        pap["overlay"]["receipt"]["temperature_policy"]["changes"] = []
         with self.assertRaises(mod.NumericComparisonError):
             mod.compare_runs(FIXTURE, FIXTURE_RAW, reference_run(), pap)
 
