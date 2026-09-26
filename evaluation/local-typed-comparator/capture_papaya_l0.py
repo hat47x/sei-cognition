@@ -578,16 +578,25 @@ def stop_process(process: subprocess.Popen[Any] | None) -> dict[str, Any]:
     }
 
 
-def capture_log(path: Path) -> dict[str, Any]:
+def capture_log(
+    path: Path, replacements: dict[str, str] | None = None
+) -> dict[str, Any]:
     digest, size = sha256_file(path)
     with path.open("rb") as f:
         prefix = f.read(MAX_LOG_CAPTURE_BYTES)
+    text = prefix.decode("utf-8", errors="replace")
+    for raw, placeholder in sorted(
+        (replacements or {}).items(), key=lambda item: len(item[0]), reverse=True
+    ):
+        if raw:
+            text = text.replace(raw, placeholder)
     return {
         "size_bytes": size,
         "sha256": digest,
         "captured_prefix_bytes": len(prefix),
         "truncated": size > len(prefix),
-        "utf8_prefix": prefix.decode("utf-8", errors="replace"),
+        "utf8_prefix_sanitized": text,
+        "local_path_placeholders_applied": bool(replacements),
     }
 
 
@@ -830,9 +839,16 @@ def main(argv: list[str] | None = None) -> int:
             finally:
                 artifact["process"]["termination"] = stop_process(process)
                 process = None
+                log_replacements = {
+                    str(args.sei_source_dir.resolve()): "<sei-source>",
+                    str(args.papaya_source_dir.resolve()): "<papaya-source>",
+                    str(args.overlay_dir.resolve()): "<overlay-dir>",
+                    str(args.llama_binary.resolve()): "<llama-server>",
+                    str(temp_root.resolve()): "<capture-temp>",
+                }
                 artifact["logs"] = {
-                    "stdout": capture_log(stdout_path),
-                    "stderr": capture_log(stderr_path),
+                    "stdout": capture_log(stdout_path, log_replacements),
+                    "stderr": capture_log(stderr_path, log_replacements),
                 }
 
         write_artifact(args.output, artifact)
