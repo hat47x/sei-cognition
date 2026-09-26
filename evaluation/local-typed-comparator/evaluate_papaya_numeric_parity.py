@@ -32,6 +32,10 @@ EXPECTED_QUESTIONS = {
     "score-urgency": ("urgency", "score"),
     "noul-review": ("needs_human_review", "noul"),
 }
+EXPECTED_QUESTION_SHAPES = {
+    case_id: (question_shape,)
+    for case_id, question_shape in EXPECTED_QUESTIONS.items()
+}
 CHOICE11_QUESTION_ID = "choice12"
 
 
