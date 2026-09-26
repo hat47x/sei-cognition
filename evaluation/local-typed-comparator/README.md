@@ -410,6 +410,58 @@ The retained upstream Papaya Q8-vs-ONNX packet in
 `papaya_upstream_same_checkpoint.v1.json` is tolerance context only. It is not
 the Python-Laya reference and does not supply the acceptance threshold.
 
+
+## Pre-registered managed numeric parity gate
+
+The managed Python-Laya ↔ Papaya comparator intentionally emits measurements
+without deciding whether they are close enough. Before any managed live result
+exists, SEI fixes that decision rule in:
+
+- `papaya_numeric_parity_policy.v1.json`;
+- `evaluate_papaya_numeric_parity.py`.
+
+The policy uses the retained upstream Q8-vs-ONNX packet only as **engineering
+context**, not as Python-Laya reference Evidence. The current frozen-surface
+limits are:
+
+| metric | frozen four cases | choice:11+ diagnostic |
+| --- | ---: | ---: |
+| per-answer max probability | <= 0.025 | <= 0.030 |
+| confidence absolute delta | <= 0.015 | <= 0.020 |
+| Noul scalar delta | <= 0.025 | n/a |
+| Score expected-value delta | <= 0.040 | n/a |
+| Choice selected label | exact | exact |
+| Noul threshold at 0.5 | exact | n/a |
+| Score probability argmax | exact | n/a |
+
+Apply the policy only to a complete
+`sei.local-typed-comparator-cross-provider-numeric-report/v1` produced by the
+managed #622/#624 capture lineage:
+
+```bash
+python3 evaluate_papaya_numeric_parity.py numeric_report.json \
+  --output numeric_parity_decision.json
+```
+
+The evaluator fails closed if the raw comparator report already claims a parity
+threshold/decision, if policy constants drift, or if case identity/order drifts.
+
+A PASS means only:
+
+```text
+bounded numeric parity
+  on the frozen four-case protocol surface
+  + the separate aligned choice:11+ diagnostic
+```
+
+A FAIL means the current Papaya candidate is not numerically interchangeable
+with the pinned Python-Laya reference on that preregistered surface.
+
+Neither result establishes task quality, deployment calibration, cross-runtime
+performance equivalence, Jev provider identity, reference-provider promotion,
+or a shipping decision. Latency is deliberately not part of this gate.
+
+
 ## Next step
 
 The executable handoff and model-free comparison path are now defined. The next
