@@ -57,6 +57,31 @@ class ReferenceTokenFixtureTest(unittest.TestCase):
         with self.assertRaises(rtf.ReferenceTokenFixtureError):
             rtf.validate_reference_token_fixture(copy.deepcopy(FIXTURE), tokens)
 
+    def test_pinned_provenance_drift_is_rejected(self):
+        mutations = (
+            ("source_git_sha", "0" * 40),
+            ("fixture.git_blob", "0" * 40),
+            ("reference_runtime.git_sha", "0" * 40),
+            ("reference_runtime.sequence_builder_git_blob", "0" * 40),
+            ("tokenizer.git_blob", "0" * 40),
+            ("tokenizer.sha256", "0" * 64),
+            ("tokenizer_implementation.git_blob", "0" * 40),
+            ("tokenizer_implementation.fuzz_fixture_git_blob", "0" * 40),
+        )
+        for path, value in mutations:
+            tokens = copy.deepcopy(TOKENS)
+            target = tokens
+            parts = path.split(".")
+            for part in parts[:-1]:
+                target = target[part]
+            target[parts[-1]] = value
+            with self.subTest(path=path), self.assertRaises(
+                rtf.ReferenceTokenFixtureError
+            ):
+                rtf.validate_reference_token_fixture(
+                    copy.deepcopy(FIXTURE), tokens
+                )
+
     def test_token_count_corruption_is_rejected(self):
         tokens = copy.deepcopy(TOKENS)
         tokens["cases"][2]["token_count"] += 1
