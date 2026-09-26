@@ -541,7 +541,7 @@ def _question_comparison(
     if qtype == "choice":
         result["reference_selected"] = ref_answer.get("choice")
         result["papaya_selected"] = pap_answer.get("choice")
-        result["selected_equal"] = (
+        result["choice_selected_equal"] = (
             ref_answer.get("choice") == pap_answer.get("choice")
         )
     elif qtype == "score":
@@ -550,13 +550,24 @@ def _question_comparison(
         result["reference_score"] = a
         result["papaya_score"] = b
         result["score_abs_delta"] = abs(a - b)
-        result["selected_equal"] = a == b
+        ref_probs = _object(
+            ref_answer.get("probabilities"), f"{qid}.reference.probabilities"
+        )
+        pap_probs = _object(
+            pap_answer.get("probabilities"), f"{qid}.papaya.probabilities"
+        )
+        ref_argmax = max(ref_probs, key=lambda key: float(ref_probs[key]))
+        pap_argmax = max(pap_probs, key=lambda key: float(pap_probs[key]))
+        result["reference_probability_argmax"] = ref_argmax
+        result["papaya_probability_argmax"] = pap_argmax
+        result["score_probability_argmax_equal"] = ref_argmax == pap_argmax
     elif qtype == "noul":
         a = _finite_number(ref_answer.get("noul"), f"{qid}.reference.noul")
         b = _finite_number(pap_answer.get("noul"), f"{qid}.papaya.noul")
         result["reference_noul"] = a
         result["papaya_noul"] = b
         result["noul_abs_delta"] = abs(a - b)
+        result["noul_threshold_0_5_equal"] = (a >= 0.5) == (b >= 0.5)
     else:
         raise NumericComparisonError(
             f"{qid}: unsupported question type {qtype!r}"
@@ -649,7 +660,15 @@ def _numeric_row(
     questions: dict[str, Any],
     ref_response: dict[str, Any],
     pap_response: dict[str, Any],
-) -> tuple[list[dict[str, Any]], list[float], list[float], list[float], list[bool]]:
+) -> tuple[
+    list[dict[str, Any]],
+    list[float],
+    list[float],
+    list[float],
+    list[bool],
+    list[bool],
+    list[bool],
+]:
     ref_answers = _object(ref_response.get("answers"), f"{case_id}.reference.answers")
     pap_answers = _object(pap_response.get("answers"), f"{case_id}.papaya.answers")
     if list(ref_answers) != list(questions) or list(pap_answers) != list(questions):
@@ -659,7 +678,9 @@ def _numeric_row(
     probability_maxima: list[float] = []
     tv_values: list[float] = []
     scalar_deltas: list[float] = []
-    selected_results: list[bool] = []
+    choice_selected_results: list[bool] = []
+    noul_threshold_results: list[bool] = []
+    score_argmax_results: list[bool] = []
     for qid, question in questions.items():
         row = _question_comparison(
             qid,
@@ -675,9 +696,23 @@ def _numeric_row(
         for field in ("score_abs_delta", "noul_abs_delta"):
             if field in row:
                 scalar_deltas.append(float(row[field]))
-        if "selected_equal" in row:
-            selected_results.append(bool(row["selected_equal"]))
-    return rows, probability_maxima, tv_values, scalar_deltas, selected_results
+        if "choice_selected_equal" in row:
+            choice_selected_results.append(bool(row["choice_selected_equal"]))
+        if "noul_threshold_0_5_equal" in row:
+            noul_threshold_results.append(bool(row["noul_threshold_0_5_equal"]))
+        if "score_probability_argmax_equal" in row:
+            score_argmax_results.append(
+                bool(row["score_probability_argmax_equal"])
+            )
+    return (
+        rows,
+        probability_maxima,
+        tv_values,
+        scalar_deltas,
+        choice_selected_results,
+        noul_threshold_results,
+        score_argmax_results,
+    )
 
 
 def compare_runs(
@@ -713,7 +748,9 @@ def compare_runs(
     probability_maxima: list[float] = []
     tv_values: list[float] = []
     scalar_deltas: list[float] = []
-    selected_results: list[bool] = []
+    choice_selected_results: list[bool] = []
+    noul_threshold_results: list[bool] = []
+    score_argmax_results: list[bool] = []
 
     for cid in EXPECTED_CASE_IDS:
         ref_record, _ref_req, ref_response = reference[cid]
@@ -721,13 +758,21 @@ def compare_runs(
         questions = _object(
             fixture_cases[cid]["request"].get("questions"), f"{cid}.questions"
         )
-        qrows, pmax, tv, scalars, selected = _numeric_row(
-            cid, questions, ref_response, pap_response
-        )
+        (
+            qrows,
+            pmax,
+            tv,
+            scalars,
+            choice_selected,
+            noul_threshold,
+            score_argmax,
+        ) = _numeric_row(cid, questions, ref_response, pap_response)
         probability_maxima.extend(pmax)
         tv_values.extend(tv)
         scalar_deltas.extend(scalars)
-        selected_results.extend(selected)
+        choice_selected_results.extend(choice_selected)
+        noul_threshold_results.extend(noul_threshold)
+        score_argmax_results.extend(score_argmax)
         cases.append(
             {
                 "case_id": cid,
@@ -767,7 +812,15 @@ def compare_runs(
         _object(diag_case.get("request"), "choice11.fixture.request").get("questions"),
         "choice11.fixture.questions",
     )
-    diag_rows, dpmax, dtv, dscalars, dselected = _numeric_row(
+    (
+        diag_rows,
+        dpmax,
+        dtv,
+        dscalars,
+        dchoice_selected,
+        dnoul_threshold,
+        dscore_argmax,
+    ) = _numeric_row(
         CHOICE11_CASE_ID,
         diag_questions,
         ref_diag_response,
@@ -776,12 +829,16 @@ def compare_runs(
     probability_maxima.extend(dpmax)
     tv_values.extend(dtv)
     scalar_deltas.extend(dscalars)
-    selected_results.extend(dselected)
+    choice_selected_results.extend(dchoice_selected)
+    noul_threshold_results.extend(dnoul_threshold)
+    score_argmax_results.extend(dscore_argmax)
 
     numeric_difference_observed = (
         any(value > 0.0 for value in probability_maxima)
         or any(value > 0.0 for value in scalar_deltas)
-        or any(not value for value in selected_results)
+        or any(not value for value in choice_selected_results)
+        or any(not value for value in noul_threshold_results)
+        or any(not value for value in score_argmax_results)
     )
 
     return {
@@ -848,10 +905,20 @@ def compare_runs(
             "max_score_or_noul_abs_delta": (
                 max(scalar_deltas) if scalar_deltas else None
             ),
-            "selected_output_equal_count": sum(
-                1 for value in selected_results if value
+            "choice_selected_equal_count": sum(
+                1 for value in choice_selected_results if value
             ),
-            "selected_output_compared_count": len(selected_results),
+            "choice_selected_compared_count": len(choice_selected_results),
+            "noul_threshold_0_5_equal_count": sum(
+                1 for value in noul_threshold_results if value
+            ),
+            "noul_threshold_0_5_compared_count": len(noul_threshold_results),
+            "score_probability_argmax_equal_count": sum(
+                1 for value in score_argmax_results if value
+            ),
+            "score_probability_argmax_compared_count": len(
+                score_argmax_results
+            ),
         },
         "scope": {
             "complete_managed_capture_inputs_required": True,
