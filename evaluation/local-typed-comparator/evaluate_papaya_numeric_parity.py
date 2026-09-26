@@ -115,6 +115,12 @@ def _validate_policy(policy: dict[str, Any]) -> tuple[dict[str, Any], dict[str, 
     if diag != expected_diag:
         raise ParityDecisionError("choice11 threshold policy drift")
 
+    decision_rule = _object(policy.get("decision_rule"), "policy.decision_rule")
+    if decision_rule.get("all_observed_questions_must_pass") is not True:
+        raise ParityDecisionError("policy all-observed rule drift")
+    if decision_rule.get("no_latency_gate") is not True:
+        raise ParityDecisionError("policy latency-gate rule drift")
+
     scope = _object(policy.get("scope"), "policy.scope")
     if scope.get("threshold_preregistered_before_managed_live_results") is not True:
         raise ParityDecisionError("policy preregistration scope drift")
