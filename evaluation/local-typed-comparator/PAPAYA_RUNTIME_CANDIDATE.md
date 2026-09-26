@@ -605,3 +605,41 @@ G6  only after G0-G5, consider Papaya/llama.cpp as a shipping-runtime candidate
 
 The official F16/pinned Python run remains the #597 reference event. A smaller Q8
 artifact must not become the teacher/reference merely because it is easier to run.
+
+
+## Candidate tokenizer transport recheck (2026-09-26)
+
+The candidate-side tokenizer boundary was rechecked after the reference-side P1c
+fixture was merged.
+
+Current public Hugging Face metadata for
+`fr0stbit3/laya-typed-decisions-gguf` still identifies the bundle as a
+conversion of `convaiinnovations/laya-typed-decisions`. Its published
+llama.cpp quickstart also constructs the typed-decision agent through the
+original Laya package and explicitly tokenizes with the Hugging Face tokenizer
+before sending token IDs to the converted backbone.
+
+This strengthens **lineage and intended-tokenizer** evidence, but it does not
+change the byte-attestation stop line:
+
+```text
+candidate model card names the exact base model
+  + candidate runtime path uses the HF tokenizer contract
+  + candidate tokenizer has the same observed byte size / structure
+  != independent full-file SHA-256 of candidate tokenizer.json
+```
+
+A direct candidate-byte hashing attempt through available hosted compute was
+also attempted during this checkpoint, but the compute service rejected the job
+before execution. That transport/billing failure is not model evidence and is
+not treated as a negative runtime result.
+
+Accordingly, P1 remains fail-closed on the candidate side. The next admissible
+event is still one of:
+
+1. independently materialize the candidate `tokenizer.json` and hash all bytes;
+2. obtain an authoritative immutable file digest tied to the candidate revision;
+3. obtain a retained exact candidate token-ID fixture whose provenance can be
+   independently bound to that revision.
+
+Until then, `candidate_side_tokenizer_attested=false` remains required.
