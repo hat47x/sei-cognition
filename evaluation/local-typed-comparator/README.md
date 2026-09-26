@@ -97,6 +97,40 @@ four frozen cases. It deliberately does **not** claim upstream Papaya Python or
 Transformers execution, model loading, temperature-semantics parity, numeric
 model parity, or live L0 inference.
 
+For the known Papaya `choice:11+` temperature mismatch, prepare an
+**evaluation-only compatibility overlay** with:
+
+```bash
+python3 prepare_papaya_compat_overlay.py \
+  <candidate-bundle-directory> \
+  <attested-tokenizer.json> \
+  <output-directory>
+```
+
+Use `--verify-only` to validate the input hashes and print the planned receipt
+without creating an output directory.
+
+The overlay requires the pinned Q8 backbone, decision head, raw config,
+tokenizer config, and tokenizer bytes. It fails closed unless all exact byte
+sizes / SHA-256 values match the retained candidate Evidence. It then derives a
+config using Python Laya 0.3.20's `[0.5, 5.0]` clamp policy. For the currently
+pinned candidate the **only** allowed semantic change is:
+
+`temperature_by_options.choice:11+: 0.10058280825614929 -> 0.5`.
+
+The derived config is pinned to 832 bytes / SHA-256
+`279207d55fefd56b2c6738dd141a3e10ab1d3f46b755c43faee42364ce1cc892`.
+
+This is not “Papaya as-is” and does not establish numeric parity. The generated
+receipt keeps encoder/head/full numeric parity and live inference false, and
+does not retain host-local file paths.
+
+Validate the helper with:
+
+```bash
+python3 -m unittest -v test_prepare_papaya_compat_overlay.py
+```
+
 The current focused suite covers:
 
 - fixture identity and option-order perturbation integrity;

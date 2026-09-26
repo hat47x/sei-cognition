@@ -803,3 +803,84 @@ The next useful Papaya comparison is therefore numeric rather than another
 tokenizer search: preserve the frozen four-case input packet, separately cover
 the known clamp-sensitive >=11-option diagnostic, and compare encoder/head
 outputs only when executable candidate model bytes/runtime are available.
+
+
+## G2 evaluation-only clamp compatibility overlay
+
+The known `choice:11+` incompatibility can now be isolated without modifying
+the pinned Papaya source or pretending that current Papaya already matches
+Python Laya 0.3.20.
+
+The helper:
+
+`prepare_papaya_compat_overlay.py`
+
+takes:
+
+1. a local directory containing the exact pinned candidate Q8 backbone, decision
+   head, raw `rl_agent_config.json`, and `tokenizer_config.json`;
+2. any local copy of the tokenizer bytes that verifies to the attested
+   3,583,228-byte / SHA-256
+   `6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30`;
+3. a fresh output directory.
+
+It first verifies the exact retained candidate identities:
+
+| role | bytes | SHA-256 |
+| --- | ---: | --- |
+| Q8 backbone | 421,407,968 | `84f16d7b0b0a07343e7a6f8d8bd7ae9633aa0372d55621e2242d0ed9a0aca28c` |
+| decision head | 106,052,952 | `f115a16370df62e24a88aded4ef10d6542d2cdec9439df86d3aea3689f13ca44` |
+| raw config | 847 | `ebf0cd524d92342a6be5e48e9fca3d7c2babfb5a56ccd79d2171ef5d8c7f7be8` |
+| tokenizer config | 337 | `08d4cf3ac4dca381759441b85b91a6d40e688471dcd33d15d6649eb0a9a854d1` |
+| tokenizer bytes | 3,583,228 | `6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30` |
+
+It then applies the pinned reference `clamp_temperature()` policy from
+`NandhaKishorM/laya@23a17522...`, `laya/common.py` blob
+`6c4c426e64eb9660c97d40bc64c227e8c7e71361`.
+
+For the currently pinned candidate, the helper fails closed unless the complete
+temperature transformation contains exactly one delta:
+
+```text
+temperature_by_options.choice:11+
+  raw     = 0.10058280825614929
+  applied = 0.5
+```
+
+All other temperature values must remain numerically unchanged.
+
+The resulting deterministic compatibility config is pinned to:
+
+- bytes: **832**;
+- SHA-256:
+  `279207d55fefd56b2c6738dd141a3e10ab1d3f46b755c43faee42364ce1cc892`.
+
+The staged directory keeps the candidate Q8/head artifacts, the byte-attested
+tokenizer identity, and the candidate tokenizer config, but replaces the raw
+temperature config with this derived compatibility config. It also writes
+`sei_compat_overlay_receipt.json`.
+
+The receipt intentionally contains no host-local input paths. It records
+artifact byte/hash identities, the Papaya source revision/blobs, tokenizer
+identity, the #617 frozen sequence-parity precondition, reference clamp
+provenance, the exact config delta, and the derived config hash.
+
+The claim boundary is:
+
+```text
+current Papaya as-is temperature semantics       INCOMPATIBLE on choice:11+
+SEI compatibility-overlay temperature semantics ALIGNED BY CONSTRUCTION
+tokenizer byte identity                          PRESERVED
+frozen four-case token/marker parity             PRECONDITION PRESERVED
+
+encoder numeric parity                           NOT ESTABLISHED
+decision-head numeric parity                     NOT ESTABLISHED
+full numeric parity                              NOT ESTABLISHED
+live inference                                   NOT RUN
+reference-provider promotion                     NO
+```
+
+This means G2 has an executable compatibility **preparation** path, not an
+observed runtime parity result. The next live candidate event should run the
+pinned model through this overlay and retain both the ordinary frozen four-case
+numeric outputs and a separate >=11-option clamp-sensitive diagnostic.
