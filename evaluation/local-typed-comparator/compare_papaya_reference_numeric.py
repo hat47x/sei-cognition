@@ -149,7 +149,7 @@ def _validate_reference(
     if checkpoint.get("logical_model") != REFERENCE_LOGICAL_MODEL:
         raise NumericComparisonError("reference logical model drift")
     artifact = _object(checkpoint.get("model_artifact"), "reference.checkpoint.model_artifact")
-    if artifact.get("sha256") != REFERENCE_MODEL_SHA256 or artifact.get("bytes") != REFERENCE_MODEL_BYTES:
+    if artifact.get("sha256") != REFERENCE_MODEL_SHA256 or artifact.get("size_bytes") != REFERENCE_MODEL_BYTES:
         raise NumericComparisonError("reference model artifact identity drift")
     binding = _object(checkpoint.get("runtime_binding"), "reference.checkpoint.runtime_binding")
     if binding.get("logical_checkpoint_observed") is not True:
