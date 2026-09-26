@@ -45,6 +45,37 @@ class PapayaSequenceReplayTest(unittest.TestCase):
                 copy.deepcopy(REPLAY),
             )
 
+    def test_candidate_binding_drift_is_rejected(self):
+        mutations = (
+            ("candidate_revision", "0" * 40),
+            ("tokenizer_bytes", 1),
+            ("tokenizer_git_blob", "0" * 40),
+            ("tokenizer_sha256", "0" * 64),
+        )
+        for field, value in mutations:
+            replay = copy.deepcopy(REPLAY)
+            replay["candidate_tokenizer_attestation"][field] = value
+            with self.subTest(field=field), self.assertRaises(
+                mod.PapayaSequenceReplayError
+            ):
+                mod.validate_papaya_sequence_replay(
+                    copy.deepcopy(FIXTURE),
+                    copy.deepcopy(REFERENCE),
+                    copy.deepcopy(ATTESTATION),
+                    replay,
+                )
+
+    def test_parity_scope_drift_is_rejected(self):
+        replay = copy.deepcopy(REPLAY)
+        replay["scope"]["parity_scope"] = "broader than frozen replay"
+        with self.assertRaises(mod.PapayaSequenceReplayError):
+            mod.validate_papaya_sequence_replay(
+                copy.deepcopy(FIXTURE),
+                copy.deepcopy(REFERENCE),
+                copy.deepcopy(ATTESTATION),
+                replay,
+            )
+
     def test_papaya_source_drift_is_rejected(self):
         replay = copy.deepcopy(REPLAY)
         replay["papaya_source"]["sequences_git_blob"] = "0" * 40
