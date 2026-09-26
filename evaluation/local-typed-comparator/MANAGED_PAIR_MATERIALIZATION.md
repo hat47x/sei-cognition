@@ -3,7 +3,7 @@
 Status: execution handoff only. This document does not claim that the model
 bytes have been materialized in the current ChatGPT execution environment.
 
-Related: #597, #622, #623, #624, #627, #628, #629, #630.
+Related: #597, #622, #623, #624, #627, #628, #629, #630, #631.
 
 The fail-closed validators already define the authoritative byte contract.
 This page only collects the acquisition steps needed on an eligible host. Do
