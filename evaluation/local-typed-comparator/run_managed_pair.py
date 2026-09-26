@@ -64,6 +64,16 @@ def _is_within(child: Path, parent: Path) -> bool:
         return False
 
 
+def _require_script_source_binding(here: Path, sei_source_dir: Path) -> Path:
+    script_root = here.parents[1].resolve()
+    supplied_root = sei_source_dir.expanduser().resolve()
+    if script_root != supplied_root:
+        raise ManagedPairError(
+            "paired-run script checkout must equal --sei-source-dir"
+        )
+    return script_root
+
+
 def _require_external_new_output_dir(
     output_dir: Path, *, sei_source_dir: Path, papaya_source_dir: Path
 ) -> Path:
@@ -445,6 +455,7 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         source_sha = _require_full_sha(args.source_git_sha)
+        _require_script_source_binding(here, args.sei_source_dir)
         if not args.run_id.strip():
             raise ManagedPairError("run-id must be non-empty")
         if args.threads < 1:
