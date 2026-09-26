@@ -50,6 +50,19 @@ python3 protocol_contract.py fixture.v1.json
 python3 -m unittest -v test_protocol_contract.py
 ```
 
+Reference-side exact token/marker Evidence is retained separately in
+[`reference_token_fixture.v1.json`](./reference_token_fixture.v1.json). Validate
+its fixture binding and stop lines with:
+
+```bash
+python3 reference_token_fixture.py fixture.v1.json reference_token_fixture.v1.json
+python3 -m unittest -v test_reference_token_fixture.py
+```
+
+That packet proves only the pinned **reference-side** tokenizer replay for these
+four frozen cases. It deliberately records
+`candidate_side_tokenizer_attested=false` and `numeric_model_parity=false`.
+
 The current focused suite covers:
 
 - fixture identity and option-order perturbation integrity;
