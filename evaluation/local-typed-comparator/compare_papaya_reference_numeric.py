@@ -33,7 +33,10 @@ REFERENCE_MODEL_SHA256 = (
     "4fa56de72383a9d3efa9cfa78955733c81b9fc8067a587ca4beb82c78107a24e"
 )
 REFERENCE_MODEL_BYTES = 842_609_220
-REFERENCE_MODEL_ATTESTATION_SCHEMA = (\n    "sei.local-typed-comparator-reference-model-directory-attestation/v1"\n)\nREFERENCE_LAYA_VERSION = "0.3.20"
+REFERENCE_MODEL_ATTESTATION_SCHEMA = (
+    "sei.local-typed-comparator-reference-model-directory-attestation/v1"
+)
+REFERENCE_LAYA_VERSION = "0.3.20"
 REFERENCE_LAYA_SOURCE_REVISION = (
     "23a17522aa4942da6cce53a995a275760320b691"
 )
