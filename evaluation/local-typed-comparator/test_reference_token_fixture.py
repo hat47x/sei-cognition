@@ -37,6 +37,26 @@ class ReferenceTokenFixtureTest(unittest.TestCase):
         with self.assertRaises(rtf.ReferenceTokenFixtureError):
             rtf.validate_reference_token_fixture(fixture, copy.deepcopy(TOKENS))
 
+    def test_state_or_instruction_drift_is_rejected(self):
+        for mutate in ("state", "instructions"):
+            fixture = copy.deepcopy(FIXTURE)
+            if mutate == "state":
+                fixture["cases"][0]["request"]["state"]["retry_count"] = 5
+            else:
+                fixture["cases"][0]["request"]["questions"]["route"][
+                    "instructions"
+                ] += " changed"
+            with self.assertRaises(rtf.ReferenceTokenFixtureError):
+                rtf.validate_reference_token_fixture(
+                    fixture, copy.deepcopy(TOKENS)
+                )
+
+    def test_request_hash_corruption_is_rejected(self):
+        tokens = copy.deepcopy(TOKENS)
+        tokens["cases"][0]["request_sha256"] = "0" * 64
+        with self.assertRaises(rtf.ReferenceTokenFixtureError):
+            rtf.validate_reference_token_fixture(copy.deepcopy(FIXTURE), tokens)
+
     def test_token_count_corruption_is_rejected(self):
         tokens = copy.deepcopy(TOKENS)
         tokens["cases"][2]["token_count"] += 1
