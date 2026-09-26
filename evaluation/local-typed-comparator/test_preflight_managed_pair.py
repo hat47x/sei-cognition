@@ -158,15 +158,36 @@ class PairPreflightTest(unittest.TestCase):
             td.cleanup()
 
     def test_reference_and_papaya_token_counts_must_match(self):
-        td = None
+        td = tempfile.TemporaryDirectory()
         try:
-            with self.assertRaises(mod.PairPreflightError):
-                td, _receipt, _loader = self._run(
-                    replay_counts={"a": 11}
-                )
+            root = Path(td.name)
+            here = self._tree(root)
+            old_fixture = mod.FIXTURE_SHA256
+            old_diag = mod.CHOICE11_DIAGNOSTIC_SHA256
+            mod.FIXTURE_SHA256 = mod._sha256(
+                (here / "fixture.v1.json").read_bytes()
+            )
+            mod.CHOICE11_DIAGNOSTIC_SHA256 = mod._sha256(
+                (here / "papaya_choice11_diagnostic.v1.json").read_bytes()
+            )
+            try:
+                with self.assertRaises(mod.PairPreflightError):
+                    mod.run_preflight(
+                        here=here,
+                        source_sha=SHA,
+                        sei_source_dir=root / "sei",
+                        reference_model_dir=root / "reference-model",
+                        laya_runtime_wheel=root / "laya.whl",
+                        papaya_source_dir=root / "papaya",
+                        papaya_overlay_dir=root / "overlay",
+                        llama_binary=root / "llama-server",
+                        loader=FakeLoader(replay_counts={"a": 11}),
+                    )
+            finally:
+                mod.FIXTURE_SHA256 = old_fixture
+                mod.CHOICE11_DIAGNOSTIC_SHA256 = old_diag
         finally:
-            if td is not None:
-                td.cleanup()
+            td.cleanup()
 
     def test_full_source_sha_is_required(self):
         with self.assertRaises(mod.PairPreflightError):
