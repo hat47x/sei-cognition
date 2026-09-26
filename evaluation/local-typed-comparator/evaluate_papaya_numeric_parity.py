@@ -20,6 +20,13 @@ EXPECTED_CASE_IDS = (
     "noul-review",
 )
 CHOICE11_CASE_ID = "choice-12-clamp-path"
+EXPECTED_QUESTIONS = {
+    "choice-route-a": ("route", "choice"),
+    "choice-route-b": ("route", "choice"),
+    "score-urgency": ("urgency", "score"),
+    "noul-review": ("needs_human_review", "noul"),
+}
+CHOICE11_QUESTION_ID = "choice12"
 
 
 class ParityDecisionError(ValueError):
@@ -44,6 +51,13 @@ def _finite(value: Any, field: str) -> float:
     result = float(value)
     if not math.isfinite(result):
         raise ParityDecisionError(f"{field} must be finite")
+    return result
+
+
+def _nonnegative_finite(value: Any, field: str) -> float:
+    result = _finite(value, field)
+    if result < 0:
+        raise ParityDecisionError(f"{field} must be non-negative")
     return result
 
 
@@ -163,11 +177,13 @@ def _check_question(
 
     if qtype in ("choice", "score"):
         probs = _object(row.get("probabilities"), f"{case_id}.{qid}.probabilities")
-        pmax = _finite(probs.get("max_abs_delta"), f"{case_id}.{qid}.max_abs_delta")
+        pmax = _nonnegative_finite(
+            probs.get("max_abs_delta"), f"{case_id}.{qid}.max_abs_delta"
+        )
         limit = float(thresholds["probability_max_abs_delta_max"])
         if pmax > limit:
             fail("probability_max_abs_delta", pmax, limit)
-        conf = _finite(
+        conf = _nonnegative_finite(
             row.get("confidence_abs_delta"),
             f"{case_id}.{qid}.confidence_abs_delta",
         )
@@ -189,7 +205,7 @@ def _check_question(
                 row.get("score_probability_argmax_equal"),
                 True,
             )
-        score_delta = _finite(
+        score_delta = _nonnegative_finite(
             row.get("score_abs_delta"), f"{case_id}.{qid}.score_abs_delta"
         )
         score_limit = float(thresholds["score_abs_delta_max"])
@@ -204,7 +220,7 @@ def _check_question(
                 row.get("noul_threshold_0_5_equal"),
                 True,
             )
-        noul_delta = _finite(
+        noul_delta = _nonnegative_finite(
             row.get("noul_abs_delta"), f"{case_id}.{qid}.noul_abs_delta"
         )
         noul_limit = float(thresholds["noul_abs_delta_max"])
@@ -232,13 +248,26 @@ def evaluate(
     for case in cases:
         case = _object(case, "report.case")
         cid = case["case_id"]
-        for row in _array(case.get("questions"), f"{cid}.questions"):
-            _check_question(
-                cid,
-                _object(row, f"{cid}.question"),
-                frozen_thresholds,
-                failures,
+        expected_qid, expected_qtype = EXPECTED_QUESTIONS[cid]
+        rows = _array(case.get("questions"), f"{cid}.questions")
+        if len(rows) != 1:
+            raise ParityDecisionError(
+                f"{cid}: expected exactly one question row"
             )
+        row = _object(rows[0], f"{cid}.question")
+        if (
+            row.get("question_id") != expected_qid
+            or row.get("type") != expected_qtype
+        ):
+            raise ParityDecisionError(
+                f"{cid}: question identity/type drift"
+            )
+        _check_question(
+            cid,
+            row,
+            frozen_thresholds,
+            failures,
+        )
 
     diagnostic = _object(report.get("choice11_diagnostic"), "report.choice11_diagnostic")
     if diagnostic.get("case_id") != CHOICE11_CASE_ID:
@@ -248,9 +277,17 @@ def evaluate(
     )
     if len(diag_questions) != 1:
         raise ParityDecisionError("choice11 diagnostic must contain exactly one question")
+    diag_row = _object(
+        diag_questions[0], "report.choice11_diagnostic.question"
+    )
+    if (
+        diag_row.get("question_id") != CHOICE11_QUESTION_ID
+        or diag_row.get("type") != "choice"
+    ):
+        raise ParityDecisionError("choice11 diagnostic question identity/type drift")
     _check_question(
         CHOICE11_CASE_ID,
-        _object(diag_questions[0], "report.choice11_diagnostic.question"),
+        diag_row,
         diag_thresholds,
         failures,
     )
