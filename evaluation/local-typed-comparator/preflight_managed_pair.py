@@ -55,6 +55,16 @@ def _full_sha(value: str) -> str:
     return sha
 
 
+def _require_script_source_binding(here: Path, sei_source_dir: Path) -> Path:
+    script_root = here.parents[1].resolve()
+    supplied_root = sei_source_dir.expanduser().resolve()
+    if script_root != supplied_root:
+        raise PairPreflightError(
+            "preflight script checkout must equal --sei-source-dir"
+        )
+    return script_root
+
+
 def _external_output(
     path: Path, *, sei_source_dir: Path, papaya_source_dir: Path
 ) -> Path:
@@ -257,6 +267,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
+        _require_script_source_binding(here, args.sei_source_dir)
         output = _external_output(
             args.output,
             sei_source_dir=args.sei_source_dir,
