@@ -643,3 +643,74 @@ event is still one of:
    independently bound to that revision.
 
 Until then, `candidate_side_tokenizer_attested=false` remains required.
+
+
+## Candidate tokenizer byte attestation (2026-09-26)
+
+The candidate-side tokenizer byte gate is now closed by an immutable
+Git-object identity rather than by size or sampled-content similarity.
+
+Pinned candidate:
+
+- repository: `fr0stbit3/laya-typed-decisions-gguf`;
+- revision: `75300646cddbac2b47409fc1ca839c95bec004c8`;
+- path: `tokenizer.json`;
+- bytes: **3,583,228**.
+
+The exact-revision Hugging Face download resolution exposes ETag
+`2f4d8583e507b7466d2490e2d6c045647a822698`. Hugging Face documents that
+for files tracked directly in Git, the Hub ETag is the file's Git SHA-1. The
+candidate tokenizer is a regular Git-tracked file, so this is its immutable Git
+blob identity.
+
+That blob is exactly the independently retained reference tokenizer blob from
+`MatteoGauthier/laya-portable@3dc028023929432b4a3d76b1a8ee050d0e5ccd7f`:
+
+```text
+candidate Git blob
+  2f4d8583e507b7466d2490e2d6c045647a822698
+
+reference Git blob
+  2f4d8583e507b7466d2490e2d6c045647a822698
+```
+
+Git blob equality establishes byte equality. Because the reference bytes were
+independently materialized and hashed, the candidate therefore has the same
+SHA-256:
+
+`6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30`.
+
+This does **not** claim that the candidate SHA-256 was independently recomputed
+from a second local download. Its SHA-256 equality is derived from exact byte
+identity to the independently hashed reference.
+
+Durable SEI Evidence is retained in:
+
+- `papaya_candidate_tokenizer_attestation.v1.json`;
+- `papaya_candidate_tokenizer_attestation.py`;
+- `test_papaya_candidate_tokenizer_attestation.py`.
+
+The validator fails closed if the candidate revision/blob/ETag/size/reference
+identity drifts and rejects downstream overclaims.
+
+Current boundary:
+
+```text
+candidate tokenizer byte identity     ATTESTED
+candidate token-ID / marker parity    NOT YET REPLAYED
+numeric model parity                  NOT ESTABLISHED
+live L0 inference                     NOT RUN
+```
+
+This section supersedes the earlier chronological checkpoints that recorded
+`candidate_side_tokenizer_attested=false`. Those entries remain useful as
+history of the transport blocker, but are no longer the current state.
+
+The reference-only `reference_token_fixture.v1.json` remains unchanged and
+continues to record `candidate_side_tokenizer_attested=false` because that
+packet itself does not attest the candidate. Candidate-side byte Evidence lives
+in the separate attestation packet above.
+
+The next P1 event is therefore no longer another tokenizer-byte search. It is
+Papaya's pinned sequence-builder replay against the four frozen #597 reference
+token-ID / marker rows, keeping that replay separate from model numeric parity.
