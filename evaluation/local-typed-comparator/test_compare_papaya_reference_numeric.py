@@ -96,7 +96,7 @@ def reference_run():
             "logical_model": mod.REFERENCE_LOGICAL_MODEL,
             "model_artifact": {
                 "sha256": mod.REFERENCE_MODEL_SHA256,
-                "bytes": mod.REFERENCE_MODEL_BYTES,
+                "size_bytes": mod.REFERENCE_MODEL_BYTES,
             },
             "runtime_binding": {"logical_checkpoint_observed": True},
         },
