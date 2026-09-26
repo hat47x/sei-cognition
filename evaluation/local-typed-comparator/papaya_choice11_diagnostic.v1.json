@@ -1,0 +1,36 @@
+{
+  "schema": "sei.local-typed-comparator-fixture/v1alpha1",
+  "purpose": "Papaya compatibility-overlay diagnostic for the choice:11+ temperature bucket only. No task-quality or expected-answer claim.",
+  "cases": [
+    {
+      "case_id": "choice-12-clamp-path",
+      "request": {
+        "state": {
+          "synthetic_bucket_probe": true,
+          "probe_family": "choice_option_count",
+          "option_count": 12
+        },
+        "questions": {
+          "choice12": {
+            "type": "choice",
+            "instructions": "Choose one bounded synthetic label using only the structured state.",
+            "criteria": {
+              "option_00": "Synthetic ordinal 0",
+              "option_01": "Synthetic ordinal 1",
+              "option_02": "Synthetic ordinal 2",
+              "option_03": "Synthetic ordinal 3",
+              "option_04": "Synthetic ordinal 4",
+              "option_05": "Synthetic ordinal 5",
+              "option_06": "Synthetic ordinal 6",
+              "option_07": "Synthetic ordinal 7",
+              "option_08": "Synthetic ordinal 8",
+              "option_09": "Synthetic ordinal 9",
+              "option_10": "Synthetic ordinal 10",
+              "option_11": "Synthetic ordinal 11"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

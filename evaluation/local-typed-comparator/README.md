@@ -186,18 +186,70 @@ not assert that a model must return the same distribution. A future live Laya
 run should record both outputs and treat material order sensitivity as Evidence
 for calibration/robustness review, not silently normalize it away.
 
+## Papaya first-live-run capture
+
+Papaya is captured through its own provider-specific runner rather than by
+weakening the Python-Laya identity gates in `capture_l0.py`.
+
+Prepare and revalidate the #620/#621 compatibility overlay first, then use:
+
+```bash
+python3 capture_papaya_l0.py \
+  --source-git-sha <exact-clean-SEI-checkout-SHA> \
+  --papaya-source-dir <clean-m0rphtail-papaya-a76bc99-checkout> \
+  --overlay-dir <prepared-compat-overlay> \
+  --llama-binary <pinned-b10964-llama-server> \
+  --run-id <unique-run-id> \
+  --output <new-run-artifact.json>
+```
+
+The run artifact path must be outside both verified source checkouts, so the
+capture cannot make either working tree dirty after its cleanliness check.
+
+The runner itself starts Papaya on an ephemeral loopback port and fails closed
+unless all of the following bind correctly:
+
+- the clean SEI source checkout at the requested full SHA;
+- the clean `m0rphtail/papaya@a76bc99...` checkout and exact runtime/source
+  Git blobs;
+- the #621 prepared overlay, re-hashed once before launch and again after health
+  but before first inference;
+- the SEI first-run llama.cpp `b10964` binary, including executable SHA-256
+  and `--version` output;
+- the retained #617 four-case token-count replay.
+
+The b10964 pin is an **SEI first-live-run runtime pin**, not a claim that Papaya
+upstream requires that exact llama.cpp build.
+
+The runner captures the frozen four cases and separately executes
+[`papaya_choice11_diagnostic.v1.json`](./papaya_choice11_diagnostic.v1.json),
+which contains one synthetic 12-option Choice question solely to exercise the
+`choice:11+` compatibility-overlay path. The diagnostic has no expected answer
+and no quality claim.
+
+Papaya's pinned `pyproject.toml` uses dependency ranges rather than an exact
+lock. The capture therefore requires the runtime dependencies to be present and
+retains their **observed versions per run**; it does not relabel those versions
+as upstream-pinned identities.
+
+A complete Papaya run may establish live protocol/runtime Evidence, but still
+keeps these claims false until a separate comparison exists:
+
+```text
+numeric parity with Python Laya   false
+task quality                      false
+calibration validity              false
+Jev provider identity             false
+reference-provider promotion      false
+```
+
 ## Next step
 
-The tokenizer/sequence-preparation side of the frozen Papaya comparison is now
-closed through byte attestation plus 4/4 source-equivalent token/marker replay.
-The remaining Papaya work is numeric/runtime Evidence. An actual local endpoint
-run should:
-
-1. load this exact fixture;
-2. submit one case at a time;
-3. retain exact request/response bytes and latency;
-4. validate each response with `validate_response`;
-5. record provider/model/checkpoint/runtime hashes separately;
-6. make no task-quality claim from protocol conformance alone.
+The tokenizer/sequence/overlay preparation side is now closed sufficiently for
+a first fail-closed Papaya execution handoff. The next admissible event is an
+actual `capture_papaya_l0.py` run with the exact pinned model/runtime bytes.
+After that run exists, compare its retained numeric outputs against the
+independently captured Python-Laya reference without merging provider
+provenance.
 
 No new product/runtime branch is implied by this fixture.
