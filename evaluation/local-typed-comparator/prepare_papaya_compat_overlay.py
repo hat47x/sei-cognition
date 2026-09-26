@@ -210,10 +210,12 @@ def inspect_overlay_inputs(
     candidate_dir = candidate_dir.resolve()
     attested_tokenizer = attested_tokenizer.resolve()
 
-    observed: dict[str, dict[str, Any]] = {}
+    candidate_artifacts: dict[str, dict[str, Any]] = {}
     for spec in artifact_specs:
-        observed[spec.role] = verify_artifact(candidate_dir / spec.relative_path, spec)
-    observed["attested_tokenizer"] = verify_artifact(
+        candidate_artifacts[spec.role] = verify_artifact(
+            candidate_dir / spec.relative_path, spec
+        )
+    tokenizer_observation = verify_artifact(
         attested_tokenizer, attested_tokenizer_spec
     )
 
@@ -256,15 +258,15 @@ def inspect_overlay_inputs(
         "candidate_bundle": {
             "repository": CANDIDATE_REPOSITORY,
             "revision": CANDIDATE_REVISION,
-            "artifacts": observed,
+            "artifacts": candidate_artifacts,
         },
         "tokenizer_identity": {
             "candidate_revision": CANDIDATE_TOKENIZER_REVISION,
             "candidate_git_blob": CANDIDATE_TOKENIZER_GIT_BLOB,
             "reference_repository": REFERENCE_REPOSITORY,
             "reference_revision": REFERENCE_REVISION,
-            "bytes": observed["attested_tokenizer"]["bytes"],
-            "sha256": observed["attested_tokenizer"]["sha256"],
+            "bytes": tokenizer_observation["bytes"],
+            "sha256": tokenizer_observation["sha256"],
             "candidate_byte_identity_attested": True,
             "staged_bytes_verified": True,
         },
