@@ -12,7 +12,10 @@
     ],
     "choice11_diagnostic_case_id": "choice-12-clamp-path",
     "managed_reference_schema": "sei.local-typed-comparator-reference-managed-run/v1",
-    "papaya_schema": "sei.local-typed-comparator-papaya-run/v1"
+    "papaya_schema": "sei.local-typed-comparator-papaya-run/v1",
+    "fixture_schema": "sei.local-typed-comparator-fixture/v1alpha1",
+    "fixture_sha256": "cb070bfa342a2ca7329538620541fa32588130d3d1b67f21c8b3c4e3494d8ed5",
+    "choice11_diagnostic_sha256": "6c572390e91d662864d9ef2b43cd147e698773649531e798a3a55179e35a5a32"
   },
   "context_only": {
     "upstream_packet_path": "papaya_upstream_same_checkpoint.v1.json",
