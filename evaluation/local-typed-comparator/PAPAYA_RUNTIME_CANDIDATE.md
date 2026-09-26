@@ -254,9 +254,10 @@ Special-token IDs observed from the exact tokenizer are:
 - PAD = `50283`.
 
 `reference_token_fixture.py` validates the packet fail-closed against the
-frozen protocol fixture, including case/question/option identity, sequence
-bounds, token counts, strictly increasing marker positions, and each marker
-pointing to MASK. It also rejects attempts to change either
+frozen protocol fixture, including canonical per-case request SHA-256
+(state/instructions/criteria and authored order), case/question/option identity,
+sequence bounds, token counts, strictly increasing marker positions, and each
+marker pointing to MASK. It also rejects attempts to change either
 `candidate_side_tokenizer_attested` or `numeric_model_parity` to true.
 
 An independent Core ML validation artifact from
