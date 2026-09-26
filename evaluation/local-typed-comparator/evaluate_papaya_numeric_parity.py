@@ -13,6 +13,12 @@ from typing import Any
 POLICY_SCHEMA = "sei.local-typed-comparator-numeric-parity-policy/v1"
 REPORT_SCHEMA = "sei.local-typed-comparator-cross-provider-numeric-report/v1"
 DECISION_SCHEMA = "sei.local-typed-comparator-numeric-parity-decision/v1"
+REFERENCE_RUN_SCHEMA = "sei.local-typed-comparator-reference-managed-run/v1"
+PAPAYA_RUN_SCHEMA = "sei.local-typed-comparator-papaya-run/v1"
+CHOICE11_ATTESTATION_SCHEMA = (
+    "sei.local-typed-comparator-choice11-sequence-attestation/v1"
+)
+UPSTREAM_PACKET_BLOB = "212e429c760adccf14e3fc348b658cc83a27d5fa"
 EXPECTED_CASE_IDS = (
     "choice-route-a",
     "choice-route-b",
@@ -65,6 +71,18 @@ def _sha256(raw: bytes) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
+def _full_hex(value: Any, length: int, field: str) -> str:
+    if (
+        not isinstance(value, str)
+        or len(value) != length
+        or any(ch not in "0123456789abcdef" for ch in value)
+    ):
+        raise ParityDecisionError(
+            f"{field} must be a lowercase {length}-character hexadecimal digest"
+        )
+    return value
+
+
 def _load(path: Path, label: str) -> tuple[dict[str, Any], bytes]:
     try:
         raw = path.read_bytes()
@@ -89,6 +107,23 @@ def _validate_policy(policy: dict[str, Any]) -> tuple[dict[str, Any], dict[str, 
         raise ParityDecisionError("policy frozen-case identity/order drift")
     if surface.get("choice11_diagnostic_case_id") != CHOICE11_CASE_ID:
         raise ParityDecisionError("policy choice11 case drift")
+    if surface.get("managed_reference_schema") != REFERENCE_RUN_SCHEMA:
+        raise ParityDecisionError("policy managed-reference schema drift")
+    if surface.get("papaya_schema") != PAPAYA_RUN_SCHEMA:
+        raise ParityDecisionError("policy Papaya schema drift")
+
+    context = _object(policy.get("context_only"), "policy.context_only")
+    expected_context = {
+        "upstream_packet_path": "papaya_upstream_same_checkpoint.v1.json",
+        "upstream_packet_git_blob": UPSTREAM_PACKET_BLOB,
+        "observed_answer_probability_abs_max": 0.0125,
+        "observed_noul_probability_abs_max": 0.0197,
+        "observed_score_expected_value_abs_max": 0.0189,
+        "observed_confidence_abs_max": 0.0054,
+    }
+    for field, expected in expected_context.items():
+        if context.get(field) != expected:
+            raise ParityDecisionError(f"policy context_only.{field} drift")
 
     thresholds = _object(policy.get("thresholds"), "policy.thresholds")
     frozen = _object(thresholds.get("frozen_cases"), "policy.thresholds.frozen_cases")
@@ -140,6 +175,89 @@ def _validate_policy(policy: dict[str, Any]) -> tuple[dict[str, Any], dict[str, 
 def _validate_report(report: dict[str, Any]) -> None:
     if report.get("schema") != REPORT_SCHEMA:
         raise ParityDecisionError("numeric report schema drift")
+
+    fixture = _object(report.get("fixture"), "report.fixture")
+    if tuple(fixture.get("case_ids", ())) != EXPECTED_CASE_IDS:
+        raise ParityDecisionError("report fixture case identity/order drift")
+    _full_hex(fixture.get("sha256"), 64, "report.fixture.sha256")
+
+    inputs = _object(report.get("inputs"), "report.inputs")
+    reference = _object(inputs.get("reference"), "report.inputs.reference")
+    papaya = _object(inputs.get("papaya"), "report.inputs.papaya")
+    if reference.get("schema") != REFERENCE_RUN_SCHEMA:
+        raise ParityDecisionError("report reference input schema drift")
+    if reference.get("provider") != "laya":
+        raise ParityDecisionError("report reference provider drift")
+    if papaya.get("schema") != PAPAYA_RUN_SCHEMA:
+        raise ParityDecisionError("report Papaya input schema drift")
+    if papaya.get("provider") != "papaya":
+        raise ParityDecisionError("report Papaya provider drift")
+    _full_hex(reference.get("artifact_sha256"), 64, "report.inputs.reference.artifact_sha256")
+    _full_hex(papaya.get("artifact_sha256"), 64, "report.inputs.papaya.artifact_sha256")
+    _full_hex(inputs.get("same_sei_source_git_sha"), 40, "report.inputs.same_sei_source_git_sha")
+    if inputs.get("provider_provenance_merged") is not False:
+        raise ParityDecisionError("report provider provenance must remain separate")
+
+    precondition = _object(
+        report.get("choice11_sequence_precondition"),
+        "report.choice11_sequence_precondition",
+    )
+    expected_precondition = {
+        "schema": CHOICE11_ATTESTATION_SCHEMA,
+        "token_count": 155,
+        "source_equivalent_exact_sequence_attested": True,
+        "live_input_token_count_matched": True,
+        "live_input_ids_observed": False,
+        "live_marker_positions_observed": False,
+    }
+    for field, expected in expected_precondition.items():
+        if precondition.get(field) != expected:
+            raise ParityDecisionError(
+                f"report choice11_sequence_precondition.{field} drift"
+            )
+    _full_hex(
+        precondition.get("diagnostic_sha256"),
+        64,
+        "report.choice11_sequence_precondition.diagnostic_sha256",
+    )
+
+    cases = _array(report.get("cases"), "report.cases")
+    if tuple(
+        case.get("case_id") for case in cases if isinstance(case, dict)
+    ) != EXPECTED_CASE_IDS:
+        raise ParityDecisionError("report frozen-case identity/order drift")
+    for case in cases:
+        case = _object(case, "report.case")
+        cid = case["case_id"]
+        rows = _array(case.get("questions"), f"{cid}.questions")
+        observed = tuple(
+            (row.get("question_id"), row.get("type"))
+            for row in rows
+            if isinstance(row, dict)
+        )
+        if len(observed) != len(rows) or observed != EXPECTED_QUESTION_SHAPES[cid]:
+            raise ParityDecisionError(f"{cid}: question identity/type drift")
+
+    diagnostic = _object(
+        report.get("choice11_diagnostic"), "report.choice11_diagnostic"
+    )
+    if diagnostic.get("case_id") != CHOICE11_CASE_ID:
+        raise ParityDecisionError("report choice11 case drift")
+    diag_rows = _array(
+        diagnostic.get("questions"), "report.choice11_diagnostic.questions"
+    )
+    if (
+        len(diag_rows) != 1
+        or not isinstance(diag_rows[0], dict)
+        or diag_rows[0].get("question_id") != CHOICE11_QUESTION_ID
+        or diag_rows[0].get("type") != "choice"
+    ):
+        raise ParityDecisionError("report choice11 question identity/type drift")
+    if diagnostic.get("expected_answer") is not None:
+        raise ParityDecisionError("report choice11 must not have an expected answer")
+    if diagnostic.get("quality_claim") is not False:
+        raise ParityDecisionError("report choice11 must not make a quality claim")
+
     scope = _object(report.get("scope"), "report.scope")
     if scope.get("complete_managed_capture_inputs_required") is not True:
         raise ParityDecisionError("report managed-capture scope drift")
@@ -309,6 +427,9 @@ def evaluate(
         "numeric_report": {
             "schema": REPORT_SCHEMA,
             "sha256": report_sha256,
+            "same_sei_source_git_sha": report["inputs"]["same_sei_source_git_sha"],
+            "reference_artifact_sha256": report["inputs"]["reference"]["artifact_sha256"],
+            "papaya_artifact_sha256": report["inputs"]["papaya"]["artifact_sha256"],
         },
         "decision": "pass" if passed else "fail",
         "failures": failures,
