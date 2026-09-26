@@ -11,11 +11,13 @@ from pathlib import Path
 from typing import Any, Callable, Sequence
 
 PAIR_SCHEMA = "sei.local-typed-comparator-managed-pair-run/v1"
+PREFLIGHT_SCHEMA = "sei.local-typed-comparator-managed-pair-preflight/v1"
 REFERENCE_SCHEMA = "sei.local-typed-comparator-reference-managed-run/v1"
 PAPAYA_SCHEMA = "sei.local-typed-comparator-papaya-run/v1"
 REPORT_SCHEMA = "sei.local-typed-comparator-cross-provider-numeric-report/v1"
 DECISION_SCHEMA = "sei.local-typed-comparator-numeric-parity-decision/v1"
 
+PREFLIGHT_FILE = "pair-preflight.json"
 REFERENCE_FILE = "reference-run.json"
 PAPAYA_FILE = "papaya-run.json"
 REPORT_FILE = "numeric-difference-report.json"
@@ -78,6 +80,38 @@ def _require_external_new_output_dir(
                 f"output-dir must be outside {label}: {resolved}"
             )
     return resolved
+
+
+def _preflight_summary(path: Path, source_sha: str) -> dict[str, Any]:
+    value = _load_json(path, "pair preflight")
+    if value.get("schema") != PREFLIGHT_SCHEMA or value.get("status") != "ready":
+        raise ManagedPairError("pair preflight must be ready")
+    source = value.get("source")
+    scope = value.get("scope")
+    if not isinstance(source, dict) or source.get("git_sha") != source_sha:
+        raise ManagedPairError("pair preflight source Git SHA drift")
+    if not isinstance(scope, dict):
+        raise ManagedPairError("pair preflight scope missing")
+    if scope.get("all_required_inputs_verified") is not True:
+        raise ManagedPairError("pair preflight input verification missing")
+    for field in (
+        "model_weights_loaded",
+        "live_reference_inference",
+        "live_papaya_inference",
+        "numeric_difference_observed",
+        "numeric_parity_decision_observed",
+        "task_quality",
+        "calibration_validity",
+        "shipping_decision",
+    ):
+        if scope.get(field) is not False:
+            raise ManagedPairError(f"pair preflight overclaims {field}")
+    return {
+        "file": path.name,
+        "sha256": _sha256_file(path),
+        "schema": PREFLIGHT_SCHEMA,
+        "status": "ready",
+    }
 
 
 def _artifact_summary(
@@ -209,12 +243,33 @@ def build_commands(
     threads: int,
     reference_startup_timeout: float,
     papaya_startup_timeout: float,
-) -> tuple[list[str], list[str], list[str], list[str]]:
+) -> tuple[list[str], list[str], list[str], list[str], list[str]]:
+    preflight_output = output_dir / PREFLIGHT_FILE
     reference_output = output_dir / REFERENCE_FILE
     papaya_output = output_dir / PAPAYA_FILE
     report_output = output_dir / REPORT_FILE
     decision_output = output_dir / DECISION_FILE
 
+    preflight = [
+        python_executable,
+        str(here / "preflight_managed_pair.py"),
+        "--source-git-sha",
+        source_sha,
+        "--sei-source-dir",
+        str(sei_source_dir),
+        "--reference-model-dir",
+        str(reference_model_dir),
+        "--laya-runtime-wheel",
+        str(laya_runtime_wheel),
+        "--papaya-source-dir",
+        str(papaya_source_dir),
+        "--papaya-overlay-dir",
+        str(papaya_overlay_dir),
+        "--llama-binary",
+        str(llama_binary),
+        "--output",
+        str(preflight_output),
+    ]
     reference = [
         python_executable,
         str(here / "capture_reference_l0.py"),
@@ -270,7 +325,7 @@ def build_commands(
         "--output",
         str(decision_output),
     ]
-    return reference, papaya, compare, decide
+    return preflight, reference, papaya, compare, decide
 
 
 def execute_pair(
@@ -296,6 +351,7 @@ def execute_pair(
         "artifacts": {},
         "scope": {
             "single_sei_source_git_sha": True,
+            "preflight_all_required_inputs_verified": False,
             "provider_provenance_merged": False,
             "raw_comparator_threshold_defined": False,
             "preregistered_numeric_policy_applied": False,
@@ -326,7 +382,12 @@ def execute_pair(
             )
 
         path = _output_arg(command)
-        if stage == "reference":
+        if stage == "preflight":
+            receipt["artifacts"]["preflight"] = _preflight_summary(
+                path, source_sha
+            )
+            receipt["scope"]["preflight_all_required_inputs_verified"] = True
+        elif stage == "reference":
             receipt["artifacts"]["reference"] = _artifact_summary(
                 path,
                 expected_schema=REFERENCE_SCHEMA,
@@ -400,7 +461,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         output_dir.mkdir(parents=True)
 
-        reference, papaya, compare, decide = build_commands(
+        preflight, reference, papaya, compare, decide = build_commands(
             python_executable=sys.executable,
             here=here,
             source_sha=source_sha,
@@ -420,6 +481,7 @@ def main(argv: list[str] | None = None) -> int:
             source_sha=source_sha,
             output_dir=output_dir,
             commands=(
+                ("preflight", preflight),
                 ("reference", reference),
                 ("papaya", papaya),
                 ("comparison", compare),
