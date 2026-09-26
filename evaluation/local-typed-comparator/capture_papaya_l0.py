@@ -19,6 +19,7 @@ import importlib.util
 import json
 import os
 import platform
+import signal
 import socket
 import subprocess
 import sys
@@ -586,18 +587,29 @@ def stop_process(process: subprocess.Popen[Any] | None) -> dict[str, Any]:
     if process is None:
         return {"started": False}
     observed_before = process.poll()
+    stop_method = "already-exited"
     if observed_before is None:
-        process.terminate()
+        # Papaya's CLI catches KeyboardInterrupt and then executes model.stop(),
+        # which is the clean path for terminating its managed llama-server child.
+        stop_method = "SIGINT"
+        process.send_signal(signal.SIGINT)
         try:
             return_code = process.wait(timeout=15)
         except subprocess.TimeoutExpired:
-            process.kill()
-            return_code = process.wait(timeout=10)
+            stop_method = "SIGINT->terminate"
+            process.terminate()
+            try:
+                return_code = process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                stop_method = "SIGINT->terminate->kill"
+                process.kill()
+                return_code = process.wait(timeout=10)
     else:
         return_code = observed_before
     return {
         "started": True,
         "return_code_before_stop": observed_before,
+        "stop_method": stop_method,
         "return_code_after_stop": return_code,
     }
 
