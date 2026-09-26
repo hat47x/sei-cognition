@@ -387,6 +387,73 @@ accepts Jev-like request
   != exact checkpoint attestation
 ```
 
+
+## Candidate bundle artifact identity
+
+The Papaya runtime source is pinned separately from the model bundle it
+downloads. The current `fr0stbit3/laya-typed-decisions-gguf` bundle can now be
+pinned more precisely even though its large files are still not materialized in
+the current execution container.
+
+Inspected Hugging Face repository state:
+
+- repository: `fr0stbit3/laya-typed-decisions-gguf`;
+- current bundle commit:
+  `54ec2dbb58aad9e3c74782cb2feb5801f72b13d0`;
+- tokenizer/config upload ancestor:
+  `75300646cddbac2b47409fc1ca839c95bec004c8`.
+
+Exact large-file pointer identities at the current bundle commit:
+
+| artifact | bytes | SHA-256 |
+| --- | ---: | --- |
+| `laya-typed-decisions-Q8_0.gguf` | 421,407,968 | `84f16d7b0b0a07343e7a6f8d8bd7ae9633aa0372d55621e2242d0ed9a0aca28c` |
+| `laya-typed-decisions-head.safetensors` | 106,052,952 | `f115a16370df62e24a88aded4ef10d6542d2cdec9439df86d3aea3689f13ca44` |
+
+These values come from the repository's raw Xet/LFS pointer metadata, so they
+identify the remote file bytes even though those bytes were not downloaded
+locally.
+
+Two small configuration files are also byte-identical to the pinned reference
+lineage. Their complete public file contents and displayed byte sizes were
+reconstructed exactly as UTF-8 JSON with no trailing newline; the recomputed
+digests match the already independently attested reference hashes:
+
+| artifact | bytes | SHA-256 | relation |
+| --- | ---: | --- | --- |
+| `rl_agent_config.json` | 847 | `ebf0cd524d92342a6be5e48e9fca3d7c2babfb5a56ccd79d2171ef5d8c7f7be8` | exact reference match |
+| `tokenizer_config.json` | 337 | `08d4cf3ac4dca381759441b85b91a6d40e688471dcd33d15d6649eb0a9a854d1` | exact reference match |
+
+The retained candidate `rl_agent_config.json` therefore carries the same raw
+`choice:11+ = 0.10058280825614929` value as the reference checkpoint. The
+numeric incompatibility described below remains a **runtime behavior** difference:
+Python Laya 0.3.20 clamps that value before use while current Papaya does not.
+
+The remaining tokenizer boundary is deliberately narrower:
+
+- candidate `tokenizer.json` is publicly visible at 3,583,228 bytes;
+- it was added at the verified `75300646...` upload;
+- its structure, special-token IDs, line count and sampled contents match the
+  independently attested reference tokenizer;
+- but the candidate-side file still lacks an independently obtained full-file
+  SHA-256 in SEI Evidence.
+
+Therefore:
+
+```text
+Q8 backbone byte identity        ATTESTED by remote pointer
+decision-head byte identity      ATTESTED by remote pointer
+rl_agent_config byte identity    ATTESTED / exact reference match
+tokenizer_config byte identity   ATTESTED / exact reference match
+candidate tokenizer.json         NOT YET byte-attested
+model numerical parity           NOT ESTABLISHED
+```
+
+This receipt improves future reproducibility but does not promote the Papaya
+bundle to reference status. The Q8 encoder is quantized derived state and the
+separate head file still requires source-lineage/numeric validation against the
+pinned F16 Python reference.
+
 ## Transport finding
 
 Papaya does **not** bypass the current ChatGPT-container transport blocker.
