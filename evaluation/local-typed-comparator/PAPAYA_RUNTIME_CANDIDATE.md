@@ -902,3 +902,126 @@ This means G2 has an executable compatibility **preparation** path, not an
 observed runtime parity result. The next live candidate event should run the
 pinned model through this overlay and retain both the ordinary frozen four-case
 numeric outputs and a separate >=11-option clamp-sensitive diagnostic.
+
+
+## First live Papaya capture contract
+
+The next execution unit is now represented by
+`capture_papaya_l0.py`. It is intentionally separate from the pinned Python
+Laya `capture_l0.py`: Papaya does not expose Laya 0.3.20's
+`health.loaded`, `routing.model`, or `model=laya-rl-agent` identity
+surfaces, so weakening those reference-provider checks would collapse two
+different provenance lines.
+
+The Papaya runner instead fixes provenance from the **launch side**.
+
+Before starting a process it verifies:
+
+1. a clean SEI checkout at the supplied full source SHA;
+2. a clean `m0rphtail/papaya@a76bc99bddafdac32863b2edc5319773e0cd3532`
+   checkout;
+3. exact working-tree Git blobs for `pyproject.toml` and the Papaya
+   `cli/head/questions/runtime/sequences/server` source files;
+4. import resolution from that checkout's `src/papaya`, not another installed
+   copy;
+5. the #621 compatibility overlay;
+6. the SEI first-live-run llama.cpp runtime pin:
+   - release tag `b10964`;
+   - source commit `b29c606e28a01b1bc8c1351026a0fa6e616bf6c4`;
+   - `llama-server` SHA-256
+     `79e312188dc1d75c28201771f106e91de470b5cebdd838d31bb4db25eecf5d39`;
+   - version containing
+     `0.4.1-dev (build 10964, commit b29c606e2)`;
+   - the retained runtime-materialization Evidence Git blob
+     `c554fd1a646494ce3880679894e360364d7b79ab`.
+
+That llama.cpp build is an **SEI evaluation pin for the first live Papaya
+event**, not an upstream Papaya dependency declaration.
+
+The child process is launched with:
+
+- `PYTHONPATH` preferring the verified Papaya source checkout;
+- `HF_HUB_OFFLINE=1`;
+- `TRANSFORMERS_OFFLINE=1`;
+- no inherited `PAPAYA_API_KEY`;
+- loopback-only HTTP serving on an ephemeral port.
+
+The prepared overlay is re-hashed twice:
+
+```text
+before Papaya launch
+  -> Papaya/llama-server becomes healthy
+  -> re-hash overlay again
+  -> only then submit first inference
+```
+
+This closes the ordinary symlink-target drift window as far as the handoff can
+without copying the ~527 MB Q8/head pair.
+
+### Captured request sets
+
+The live runner keeps the two purposes separate.
+
+**Frozen provider-neutral subset**
+
+The four #597 cases are submitted one at a time. Each response is checked by
+the provider-neutral protocol validator and must report
+`model=papaya/typed-decisions-v1`. Live `usage.input_tokens` must exactly
+match the retained #617 replay token count for that case.
+
+**Clamp-sensitive candidate diagnostic**
+
+`papaya_choice11_diagnostic.v1.json` is a separate one-case fixture with one
+12-option Choice question. Because the pinned Papaya source selects the
+temperature bucket from marker count, 12 options exercise `choice:11+`.
+The overlay receipt must already show the sole admitted delta:
+
+```text
+temperature_by_options.choice:11+
+  0.10058280825614929 -> 0.5
+```
+
+The diagnostic intentionally carries no expected answer or quality target. Its
+purpose is only to prove that a live request passed through the candidate path
+whose compatibility temperature is 0.5.
+
+### Dependency and log provenance
+
+Papaya's pinned `pyproject.toml` specifies dependency **ranges**, not exact
+versions. The capture therefore requires NumPy, PyTorch, Transformers,
+safetensors, and huggingface-hub to be present and stores their observed
+versions in every run artifact. A run-to-run version difference remains an
+experimental variable rather than being silently normalized away.
+
+Durable process logs retain raw byte size and SHA-256, while their embedded
+text prefix substitutes known host-local absolute paths with placeholders. This
+keeps debugging information without turning local filesystem layout into
+portable Evidence.
+
+### Live-run claim boundary
+
+A complete capture may set:
+
+```text
+Papaya runtime source verified                 true
+prepared overlay verified before launch        true
+prepared overlay verified after health         true
+Papaya live inference                          true
+frozen protocol contract                       true
+frozen live token counts match #617 replay     true
+choice:11+ overlay path exercised               true
+```
+
+It must still keep:
+
+```text
+numeric parity with Python Laya                false
+task quality                                   false
+calibration validity                           false
+Jev provider identity                          false
+reference-provider promotion                   false
+```
+
+The following work unit, after a real Papaya run exists, is therefore a
+**cross-provider numeric comparison artifact**, not another transport,
+tokenizer, or overlay-construction step.
