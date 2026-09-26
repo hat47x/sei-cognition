@@ -462,6 +462,18 @@ performance equivalence, Jev provider identity, reference-provider promotion,
 or a shipping decision. Latency is deliberately not part of this gate.
 
 
+## Managed pair input materialization
+
+The acquisition handoff for the exact reference/Papaya model/runtime inputs is
+collected in
+[`MANAGED_PAIR_MATERIALIZATION.md`](./MANAGED_PAIR_MATERIALIZATION.md).
+
+It fixes the immutable source revisions, expected byte sizes/SHA-256 values,
+the already-materialized b10964 llama runtime Evidence, and the preflight /
+paired-run command sequence. The document is an execution handoff only; it does
+not claim that the large Hugging Face model objects were materialized in this
+ChatGPT environment.
+
 ## Managed paired-run handoff
 
 When all exact runtime/model inputs are materialized on one eligible host, run
