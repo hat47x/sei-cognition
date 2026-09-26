@@ -153,6 +153,22 @@ def require_git_checkout(
     }
 
 
+def require_external_output_path(
+    output: Path, source_roots: tuple[Path, ...]
+) -> Path:
+    resolved = output.resolve()
+    for root in source_roots:
+        root_resolved = root.resolve()
+        try:
+            resolved.relative_to(root_resolved)
+        except ValueError:
+            continue
+        raise PapayaCaptureError(
+            f"output must be outside verified source checkouts: {root_resolved.name}"
+        )
+    return resolved
+
+
 def package_version(name: str) -> str | None:
     try:
         return importlib.metadata.version(name)
@@ -675,8 +691,14 @@ def main(argv: list[str] | None = None) -> int:
             raise PapayaCaptureError("threads must be >= 1")
         if args.startup_timeout <= 0:
             raise PapayaCaptureError("startup-timeout must be positive")
+        if not args.run_id.strip():
+            raise PapayaCaptureError("run-id must be non-empty")
         if args.output.exists():
             raise PapayaCaptureError(f"output already exists: {args.output}")
+        require_external_output_path(
+            args.output,
+            (args.sei_source_dir, args.papaya_source_dir),
+        )
 
         sei_source = require_git_checkout(
             args.sei_source_dir,
