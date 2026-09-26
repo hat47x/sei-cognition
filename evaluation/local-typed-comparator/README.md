@@ -462,6 +462,63 @@ performance equivalence, Jev provider identity, reference-provider promotion,
 or a shipping decision. Latency is deliberately not part of this gate.
 
 
+## Managed paired-run handoff
+
+When all exact runtime/model inputs are materialized on one eligible host, run
+the two managed captures, raw comparison, and preregistered decision from one
+SEI revision with:
+
+```bash
+python3 run_managed_pair.py \
+  --source-git-sha <exact-merged-SEI-SHA> \
+  --reference-model-dir <attested-reference-model-directory> \
+  --laya-runtime-wheel <laya-0.3.20-py3-none-any.whl> \
+  --papaya-source-dir <clean-m0rphtail-papaya-a76bc99-checkout> \
+  --papaya-overlay-dir <verified-compat-overlay> \
+  --llama-binary <pinned-b10964-llama-server> \
+  --run-id <unique-pair-run-id> \
+  --output-dir <new-directory-outside-both-source-checkouts>
+```
+
+The orchestrator does not replace any provider-specific verification. It invokes
+the existing fail-closed stages in order:
+
+```text
+managed Python-Laya reference capture
+  -> managed Papaya capture
+  -> raw numeric-difference report
+  -> preregistered bounded numeric-parity decision
+```
+
+All four stages are bound to one supplied full SEI Git SHA. A reference failure
+stops before Papaya, a Papaya failure stops before comparison, and a comparison
+failure stops before policy evaluation.
+
+A parity `FAIL` is **not** treated as an orchestration failure. If all four
+tools execute and their artifact bindings validate, the paired run is complete
+and retains the FAIL as the scientific result.
+
+The output directory retains:
+
+- `reference-run.json`;
+- `papaya-run.json`;
+- `numeric-difference-report.json`;
+- `numeric-parity-decision.json`;
+- `pair-run-receipt.json`.
+
+The receipt stores SHA-256 bindings for every artifact and rejects a decision
+artifact whose source SHA, raw report digest, reference-run digest, or Papaya-run
+digest no longer matches the paired evidence bundle. It continues to keep task
+quality, calibration, cross-runtime performance equivalence, provider identity,
+reference promotion, and shipping decisions out of scope.
+
+Validate the orchestration mechanics without model bytes with:
+
+```bash
+python3 -m unittest -v test_run_managed_pair.py
+```
+
+
 ## Next step
 
 The executable handoff and model-free comparison path are now defined. The next
