@@ -117,3 +117,68 @@ For the local comparator lane:
 
 This provenance guard does not change the current execution blocker: exact model
 bytes still have to be materialized before the first live local Laya capture.
+
+
+## Papaya Q8 vs ONNX same-checkpoint retained outputs
+
+Papaya also retains a narrower **same-checkpoint runtime comparison** at
+`m0rphtail/papaya@a76bc99bddafdac32863b2edc5319773e0cd3532`.
+
+Exact result blobs:
+
+- Papaya Q8: `benchmarks/results/ours.json`
+  - Git blob: `53fe8d4c7481d09d291dfc3914e730a5c36bbab0`;
+  - retained label: `laya-cpp`;
+- comparison run: `benchmarks/results/navopw-on-typed-decisions.json`
+  - Git blob: `ef9d27f18f2428d02e51e356cb2b4136a578deed`;
+  - retained label: `navopw-typed`;
+- upstream README Git blob:
+  `ab6ca374dda4b61c38824c95d18d703327c64293`.
+
+SEI independently recomputed the retained 48-case outputs:
+
+- cases: 48 / input-token counts equal on 48/48;
+- typed questions: 240 = Choice 72 + Noul 72 + Score 96;
+- Choice selected label: **72/72 equal**;
+- Noul boolean at threshold 0.5: **72/72 equal**;
+- therefore upstream's **144/144 discrete agreement** means
+  **Choice + Noul only**;
+- Score expected-value absolute delta:
+  mean **0.0043833333**, max **0.0189**;
+- if Score distributions are additionally reduced to probability argmax,
+  agreement is **95/96**, with one near-boundary difference at
+  `security_incidents_000003 / urgency`;
+- mean absolute answer-probability delta across 708 retained probability cells:
+  **0.0014935**, max **0.0125**.
+
+The retained environment reports mean latency 11.8 s for Papaya and 23.34 s for
+the comparison run, a ratio of about **1.978x**. That number is upstream-host
+context only, not SEI shipping performance Evidence.
+
+Durable SEI material:
+
+- `papaya_upstream_same_checkpoint.v1.json`;
+- `compare_papaya_upstream_same_checkpoint.py`;
+- `test_compare_papaya_upstream_same_checkpoint.py`.
+
+The comparator validates the exact upstream Git blobs before recomputing the
+summary. Its model-free unit tests were run locally before merge: **5/5 PASS**.
+
+Important stop line:
+
+```text
+retained Papaya Q8 output
+  vs upstream-labeled ONNX comparison output
+  = useful quantization/runtime tolerance context
+
+same-checkpoint wording in upstream README
+  != independently attested ONNX model/runtime bytes
+
+upstream Q8-vs-ONNX delta
+  != Python-Laya reference parity threshold
+  != SEI live-capture acceptance threshold
+```
+
+The packet therefore keeps `numeric_acceptance_threshold=false` and
+`tolerance_context_only=true`. Actual #597 parity still requires the managed
+Python-Laya and Papaya live artifacts introduced by #622/#624.

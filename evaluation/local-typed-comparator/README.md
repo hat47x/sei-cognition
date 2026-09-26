@@ -333,13 +333,90 @@ Jev provider identity             false
 reference-provider promotion      false
 ```
 
+## Choice:11+ exact sequence precondition
+
+The separate 12-option diagnostic now has retained source-equivalent sequence
+Evidence in
+[`choice11_sequence_attestation.v1.json`](./choice11_sequence_attestation.v1.json).
+
+It was generated from the byte-attested typed-decisions tokenizer and the pinned
+Laya/Papaya sequence-builder semantics. The same replay path first reproduced
+the already-retained four-case reference fixture **4/4 exactly** for full input
+IDs, marker positions, and token counts before deriving the diagnostic row.
+
+The diagnostic is fixed at:
+
+```text
+token_count       155
+marker_positions  [16,25,34,43,52,61,70,79,88,97,106,115]
+temperature path  choice:11+
+```
+
+Validate the retained packet with:
+
+```bash
+python3 choice11_sequence_attestation.py \
+  papaya_choice11_diagnostic.v1.json \
+  choice11_sequence_attestation.v1.json
+python3 -m unittest -v test_choice11_sequence_attestation.py
+```
+
+This packet proves source-equivalent deterministic sequence parity, not direct
+observation of live runtime input IDs or marker tensors. A live comparison must
+also observe `usage.input_tokens == 155` on both providers.
+
+## Cross-provider numeric difference report
+
+After **both** managed live artifacts exist, measure their retained outputs with:
+
+```bash
+python3 compare_papaya_reference_numeric.py \
+  <managed-reference-run.json> \
+  <papaya-run.json> \
+  --output <numeric-difference-report.json>
+```
+
+The comparator accepts only the #624 managed Python-Laya schema and the #622
+Papaya schema. The older attach-only Laya capture is not admitted as the
+authoritative numeric input.
+
+Before computing deltas it requires, among other gates:
+
+- both captures were produced from the same exact SEI source Git SHA;
+- exact Laya 0.3.20 wheel and standalone reference model-directory provenance;
+- exact Papaya source plus pinned llama-server and compatibility-overlay
+  provenance;
+- four-case live token-count bindings;
+- request bytes equivalent to the frozen fixtures after removing only the
+  provider-specific `model` field, **with Choice option order preserved**;
+- the 12-option diagnostic attestation above plus 155 live input tokens on both
+  sides.
+
+The report includes the frozen four cases and the separate `choice:11+`
+diagnostic. It measures probability/scalar/selection differences, but
+deliberately does **not** define an acceptance threshold:
+
+```text
+numeric difference observed       measurable
+numeric parity threshold defined  false
+numeric parity decision           false
+task quality                      false
+calibration validity              false
+cross-runtime performance claim   false
+provider identity equivalence     false
+```
+
+The retained upstream Papaya Q8-vs-ONNX packet in
+`papaya_upstream_same_checkpoint.v1.json` is tolerance context only. It is not
+the Python-Laya reference and does not supply the acceptance threshold.
+
 ## Next step
 
-The tokenizer/sequence/overlay preparation side is now closed sufficiently for
-a first fail-closed Papaya execution handoff. The next admissible event is an
-actual `capture_papaya_l0.py` run with the exact pinned model/runtime bytes.
-After that run exists, compare its retained numeric outputs against the
-independently captured Python-Laya reference without merging provider
-provenance.
+The executable handoff and model-free comparison path are now defined. The next
+semantic event is materializing the exact reference and Papaya model/runtime
+bytes on an eligible host and producing the two managed live-run artifacts from
+the **same merged SEI revision**. Only then should
+`compare_papaya_reference_numeric.py` emit an observed numeric-difference
+report.
 
 No new product/runtime branch is implied by this fixture.
