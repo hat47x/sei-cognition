@@ -1,0 +1,301 @@
+import importlib.util
+import json
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+SPEC = importlib.util.spec_from_file_location(
+    "run_managed_pair_tested", HERE / "run_managed_pair.py"
+)
+mod = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = mod
+SPEC.loader.exec_module(mod)
+
+SHA = "1" * 40
+
+
+def write_json(path: Path, value):
+    path.write_text(
+        json.dumps(value, separators=(",", ":")) + "\n",
+        encoding="utf-8",
+    )
+
+
+class FakeRunner:
+    def __init__(
+        self,
+        fail_stage=None,
+        report_sha=SHA,
+        decision="pass",
+        bad_decision_binding=None,
+    ):
+        self.calls = []
+        self.fail_stage = fail_stage
+        self.report_sha = report_sha
+        self.decision = decision
+        self.bad_decision_binding = bad_decision_binding
+
+    def __call__(self, command, *, cwd, check):
+        self.calls.append((command, cwd, check))
+        script = Path(command[1]).name
+        stage = {
+            "capture_reference_l0.py": "reference",
+            "capture_papaya_l0.py": "papaya",
+            "compare_papaya_reference_numeric.py": "comparison",
+            "evaluate_papaya_numeric_parity.py": "decision",
+        }[script]
+        if stage == self.fail_stage:
+            return subprocess.CompletedProcess(command, 2)
+
+        output = Path(command[command.index("--output") + 1])
+        root = output.parent
+        if stage == "reference":
+            write_json(
+                output,
+                {
+                    "schema": mod.REFERENCE_SCHEMA,
+                    "status": "complete",
+                    "source": {"git_sha": SHA},
+                },
+            )
+        elif stage == "papaya":
+            write_json(
+                output,
+                {
+                    "schema": mod.PAPAYA_SCHEMA,
+                    "status": "complete",
+                    "source": {"git_sha": SHA},
+                },
+            )
+        elif stage == "comparison":
+            write_json(
+                output,
+                {
+                    "schema": mod.REPORT_SCHEMA,
+                    "inputs": {"same_sei_source_git_sha": self.report_sha},
+                    "scope": {
+                        "numeric_parity_threshold_defined": False,
+                        "numeric_parity_decision": False,
+                    },
+                },
+            )
+        else:
+            report_sha = mod._sha256_file(root / mod.REPORT_FILE)
+            reference_sha = mod._sha256_file(root / mod.REFERENCE_FILE)
+            papaya_sha = mod._sha256_file(root / mod.PAPAYA_FILE)
+            bindings = {
+                "sha256": report_sha,
+                "same_sei_source_git_sha": SHA,
+                "reference_artifact_sha256": reference_sha,
+                "papaya_artifact_sha256": papaya_sha,
+            }
+            if self.bad_decision_binding is not None:
+                bindings[self.bad_decision_binding] = "0" * (
+                    40
+                    if self.bad_decision_binding == "same_sei_source_git_sha"
+                    else 64
+                )
+            passed = self.decision == "pass"
+            write_json(
+                output,
+                {
+                    "schema": mod.DECISION_SCHEMA,
+                    "decision": self.decision,
+                    "failures": (
+                        []
+                        if passed
+                        else [{"metric": "probability_max_abs_delta"}]
+                    ),
+                    "numeric_report": bindings,
+                    "scope": {
+                        "bounded_numeric_parity_on_preregistered_surface": passed,
+                        "task_quality": False,
+                        "calibration_validity": False,
+                        "cross_runtime_performance_comparison": False,
+                        "jev_provider_identity_equivalence": False,
+                        "reference_provider_promotion": False,
+                        "shipping_decision": False,
+                    },
+                },
+            )
+        return subprocess.CompletedProcess(command, 0)
+
+
+class ManagedPairTest(unittest.TestCase):
+    def _commands(self, root, output):
+        commands = mod.build_commands(
+            python_executable="python3",
+            here=root / "scripts",
+            source_sha=SHA,
+            sei_source_dir=root / "sei",
+            reference_model_dir=root / "reference-model",
+            laya_runtime_wheel=root / "laya.whl",
+            papaya_source_dir=root / "papaya-source",
+            papaya_overlay_dir=root / "papaya-overlay",
+            llama_binary=root / "llama-server",
+            output_dir=output,
+            run_id="r1",
+            threads=4,
+            reference_startup_timeout=300.0,
+            papaya_startup_timeout=240.0,
+        )
+        return tuple(
+            zip(
+                ("reference", "papaya", "comparison", "decision"),
+                commands,
+            )
+        )
+
+    def test_commands_bind_same_source_and_report_chain(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            commands = self._commands(root, out)
+            ref = commands[0][1]
+            pap = commands[1][1]
+            cmp = commands[2][1]
+            dec = commands[3][1]
+            self.assertEqual(ref[ref.index("--source-git-sha") + 1], SHA)
+            self.assertEqual(pap[pap.index("--source-git-sha") + 1], SHA)
+            self.assertIn(str(out / mod.REFERENCE_FILE), cmp)
+            self.assertIn(str(out / mod.PAPAYA_FILE), cmp)
+            self.assertIn(str(out / mod.REPORT_FILE), dec)
+
+    def test_reference_failure_is_fail_fast(self):
+        self._assert_stage_failure("reference", 1)
+
+    def test_papaya_failure_stops_before_comparison(self):
+        self._assert_stage_failure("papaya", 2)
+
+    def test_comparison_failure_stops_before_decision(self):
+        self._assert_stage_failure("comparison", 3)
+
+    def _assert_stage_failure(self, stage, expected_calls):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = FakeRunner(fail_stage=stage)
+            with self.assertRaises(mod.ManagedPairError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(root, out),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            self.assertEqual(len(runner.calls), expected_calls)
+            receipt = json.loads((out / mod.RECEIPT_FILE).read_text())
+            self.assertEqual(receipt["status"], "failed")
+            self.assertEqual(receipt["stage"], f"{stage}_failed")
+
+    def test_pass_decision_completes_pipeline(self):
+        receipt = self._complete("pass")
+        self.assertEqual(receipt["status"], "complete")
+        self.assertEqual(receipt["artifacts"]["decision"]["decision"], "pass")
+        self.assertTrue(
+            receipt["scope"]["preregistered_numeric_policy_applied"]
+        )
+        self.assertFalse(receipt["scope"]["shipping_decision"])
+
+    def test_fail_decision_is_evidence_not_pipeline_failure(self):
+        receipt = self._complete("fail")
+        self.assertEqual(receipt["status"], "complete")
+        self.assertEqual(receipt["artifacts"]["decision"]["decision"], "fail")
+        self.assertEqual(receipt["artifacts"]["decision"]["failure_count"], 1)
+
+    def _complete(self, decision):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = FakeRunner(decision=decision)
+            receipt = mod.execute_pair(
+                source_sha=SHA,
+                output_dir=out,
+                commands=self._commands(root, out),
+                run_id="r1",
+                cwd=root,
+                runner=runner,
+            )
+            self.assertEqual(len(runner.calls), 4)
+            self.assertEqual(
+                set(receipt["artifacts"]),
+                {"reference", "papaya", "comparison", "decision"},
+            )
+            return receipt
+
+    def test_report_source_sha_drift_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = FakeRunner(report_sha="2" * 40)
+            with self.assertRaises(mod.ManagedPairError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(root, out),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            self.assertEqual(len(runner.calls), 3)
+
+    def test_decision_artifact_digest_binding_drift_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = FakeRunner(
+                bad_decision_binding="reference_artifact_sha256"
+            )
+            with self.assertRaises(mod.ManagedPairError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(root, out),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            self.assertEqual(len(runner.calls), 4)
+
+    def test_output_dir_must_be_new_and_external(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            sei = root / "sei"
+            papaya = root / "papaya"
+            sei.mkdir()
+            papaya.mkdir()
+            with self.assertRaises(mod.ManagedPairError):
+                mod._require_external_new_output_dir(
+                    sei / "evidence",
+                    sei_source_dir=sei,
+                    papaya_source_dir=papaya,
+                )
+            existing = root / "existing"
+            existing.mkdir()
+            with self.assertRaises(mod.ManagedPairError):
+                mod._require_external_new_output_dir(
+                    existing,
+                    sei_source_dir=sei,
+                    papaya_source_dir=papaya,
+                )
+            external = root / "evidence"
+            self.assertEqual(
+                mod._require_external_new_output_dir(
+                    external,
+                    sei_source_dir=sei,
+                    papaya_source_dir=papaya,
+                ),
+                external.resolve(),
+            )
+
+
+if __name__ == "__main__":
+    unittest.main()
