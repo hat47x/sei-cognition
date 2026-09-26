@@ -110,6 +110,21 @@ python3 prepare_papaya_compat_overlay.py \
 Use `--verify-only` to validate the input hashes and print the planned receipt
 without creating an output directory.
 
+Because the staged Q8 backbone and decision head are symbolic links back to the
+verified candidate directory, re-hash the **prepared overlay immediately before
+each inference run**:
+
+```bash
+python3 prepare_papaya_compat_overlay.py --verify-staged <output-directory>
+```
+
+That staged verification follows the links and rejects any post-preparation
+byte drift in the Q8/head files. It also rechecks the copied tokenizer,
+tokenizer config, derived compatibility config, and receipt bindings. The
+overlay does not inspect a local Papaya source checkout, so its receipt keeps
+`runtime_source_verified=false`; the actual runtime revision/blobs must be
+verified separately by the eventual execution harness.
+
 The overlay requires the pinned Q8 backbone, decision head, raw config,
 tokenizer config, and tokenizer bytes. It fails closed unless all exact byte
 sizes / SHA-256 values match the retained candidate Evidence. It then derives a
