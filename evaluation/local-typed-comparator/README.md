@@ -203,6 +203,9 @@ python3 capture_papaya_l0.py \
   --output <new-run-artifact.json>
 ```
 
+The run artifact path must be outside both verified source checkouts, so the
+capture cannot make either working tree dirty after its cleanliness check.
+
 The runner itself starts Papaya on an ephemeral loopback port and fails closed
 unless all of the following bind correctly:
 
