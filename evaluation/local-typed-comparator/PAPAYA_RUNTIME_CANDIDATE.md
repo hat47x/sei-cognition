@@ -938,6 +938,10 @@ Before starting a process it verifies:
 That llama.cpp build is an **SEI evaluation pin for the first live Papaya
 event**, not an upstream Papaya dependency declaration.
 
+The output artifact and temporary capture logs must live outside both verified
+source checkouts. This prevents the capture itself from introducing untracked
+files after the clean-tree gate has passed.
+
 The child process is launched with:
 
 - `PYTHONPATH` preferring the verified Papaya source checkout;
