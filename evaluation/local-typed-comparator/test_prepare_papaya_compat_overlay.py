@@ -163,6 +163,10 @@ class PapayaCompatOverlayTest(unittest.TestCase):
             self.assertTrue(
                 receipt["scope"]["frozen_token_marker_parity_precondition"]
             )
+            self.assertFalse(receipt["scope"]["runtime_source_verified"])
+            self.assertFalse(
+                receipt["papaya_runtime"]["source_verified_by_overlay"]
+            )
             self.assertFalse(receipt["scope"]["full_numeric_parity"])
             self.assertFalse(receipt["scope"]["live_inference"])
             self.assertEqual(
@@ -220,6 +224,78 @@ class PapayaCompatOverlayTest(unittest.TestCase):
                 overlay.inspect_overlay_inputs(
                     candidate,
                     reference,
+                    artifact_specs=specs,
+                    attested_tokenizer_spec=ref_spec,
+                )
+
+    def test_staged_overlay_revalidation_passes_before_run(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            candidate, reference, specs, ref_spec = self._fixture(root)
+            output = root / "overlay"
+            overlay.prepare_overlay(
+                candidate,
+                reference,
+                output,
+                artifact_specs=specs,
+                attested_tokenizer_spec=ref_spec,
+            )
+
+            result = overlay.verify_prepared_overlay(
+                output,
+                artifact_specs=specs,
+                attested_tokenizer_spec=ref_spec,
+            )
+            self.assertTrue(result["valid"])
+            self.assertFalse(result["runtime_source_verified"])
+            self.assertEqual(
+                result["staged_artifacts"]["compat_config"]["sha256"],
+                overlay.EXPECTED_COMPAT_CONFIG_SHA256,
+            )
+
+    def test_staged_overlay_revalidation_detects_symlink_target_drift(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            candidate, reference, specs, ref_spec = self._fixture(root)
+            output = root / "overlay"
+            overlay.prepare_overlay(
+                candidate,
+                reference,
+                output,
+                artifact_specs=specs,
+                attested_tokenizer_spec=ref_spec,
+            )
+
+            (candidate / "q8.gguf").write_bytes(b"changed-after-stage")
+            with self.assertRaises(overlay.OverlayError):
+                overlay.verify_prepared_overlay(
+                    output,
+                    artifact_specs=specs,
+                    attested_tokenizer_spec=ref_spec,
+                )
+
+    def test_staged_overlay_rejects_runtime_source_overclaim(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            candidate, reference, specs, ref_spec = self._fixture(root)
+            output = root / "overlay"
+            overlay.prepare_overlay(
+                candidate,
+                reference,
+                output,
+                artifact_specs=specs,
+                attested_tokenizer_spec=ref_spec,
+            )
+
+            receipt_path = output / "sei_compat_overlay_receipt.json"
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+            receipt["scope"]["runtime_source_verified"] = True
+            receipt_path.write_text(
+                json.dumps(receipt, indent=2) + "\n", encoding="utf-8"
+            )
+            with self.assertRaises(overlay.OverlayError):
+                overlay.verify_prepared_overlay(
+                    output,
                     artifact_specs=specs,
                     attested_tokenizer_spec=ref_spec,
                 )
