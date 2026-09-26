@@ -69,6 +69,42 @@ class PapayaCaptureTest(unittest.TestCase):
                 str((root / "src").resolve()),
             )
 
+    def test_output_must_stay_outside_verified_source_trees(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            sei = root / "sei"
+            papaya = root / "papaya"
+            external = root / "evidence"
+            sei.mkdir()
+            papaya.mkdir()
+            external.mkdir()
+
+            with self.assertRaises(capture.PapayaCaptureError):
+                capture.require_external_output_path(
+                    sei / "run.json", (sei, papaya)
+                )
+            with self.assertRaises(capture.PapayaCaptureError):
+                capture.require_external_output_path(
+                    papaya / "run.json", (sei, papaya)
+                )
+            self.assertEqual(
+                capture.require_external_output_path(
+                    external / "run.json", (sei, papaya)
+                ),
+                (external / "run.json").resolve(),
+            )
+
+    def test_stop_process_uses_sigint_before_harder_fallbacks(self):
+        process = mock.Mock()
+        process.poll.return_value = None
+        process.wait.return_value = 0
+        result = capture.stop_process(process)
+        process.send_signal.assert_called_once_with(capture.signal.SIGINT)
+        process.terminate.assert_not_called()
+        process.kill.assert_not_called()
+        self.assertEqual(result["stop_method"], "SIGINT")
+        self.assertEqual(result["return_code_after_stop"], 0)
+
     def test_runtime_dependency_versions_are_retained_and_required(self):
         versions = {
             "numpy": "2.1.0",
