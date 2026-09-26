@@ -254,6 +254,7 @@ def inspect_overlay_inputs(
             "repository": PAPAYA_REPOSITORY,
             "revision": PAPAYA_REVISION,
             "source_blobs": PAPAYA_RUNTIME_BLOBS,
+            "source_verified_by_overlay": False,
         },
         "candidate_bundle": {
             "repository": CANDIDATE_REPOSITORY,
@@ -288,6 +289,7 @@ def inspect_overlay_inputs(
         },
         "scope": {
             "upstream_papaya_unmodified": False,
+            "runtime_source_verified": False,
             "tokenizer_byte_identity_preserved": True,
             "frozen_token_marker_parity_precondition": True,
             "temperature_semantics_aligned_by_construction": True,
@@ -303,6 +305,146 @@ def inspect_overlay_inputs(
 
 def _symlink_file(source: Path, destination: Path) -> None:
     destination.symlink_to(source.resolve())
+
+
+def verify_prepared_overlay(
+    output_dir: Path,
+    *,
+    artifact_specs: tuple[ArtifactSpec, ...] = DEFAULT_ARTIFACTS,
+    attested_tokenizer_spec: ArtifactSpec = ATTESTED_TOKENIZER_SPEC,
+) -> dict[str, Any]:
+    """Re-hash the staged overlay so symlink targets cannot drift silently."""
+    output_dir = output_dir.resolve()
+    if not output_dir.is_dir():
+        raise OverlayError(f"overlay directory does not exist: {output_dir}")
+
+    receipt_path = output_dir / "sei_compat_overlay_receipt.json"
+    try:
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise OverlayError(f"cannot parse overlay receipt: {receipt_path}") from exc
+    if not isinstance(receipt, dict) or receipt.get("schema") != SCHEMA:
+        raise OverlayError("overlay receipt schema drift")
+
+    runtime = receipt.get("papaya_runtime")
+    if not isinstance(runtime, dict):
+        raise OverlayError("papaya_runtime receipt must be an object")
+    if runtime.get("repository") != PAPAYA_REPOSITORY:
+        raise OverlayError("Papaya runtime repository drift")
+    if runtime.get("revision") != PAPAYA_REVISION:
+        raise OverlayError("Papaya runtime revision drift")
+    if runtime.get("source_blobs") != PAPAYA_RUNTIME_BLOBS:
+        raise OverlayError("Papaya runtime source-blob drift")
+    if runtime.get("source_verified_by_overlay") is not False:
+        raise OverlayError("overlay must not claim local Papaya runtime source verification")
+
+    by_role = {spec.role: spec for spec in artifact_specs}
+    required_roles = {"q8_backbone", "decision_head", "raw_config", "tokenizer_config"}
+    if set(by_role) != required_roles:
+        raise OverlayError(
+            f"artifact role set drift: expected {sorted(required_roles)}, "
+            f"got {sorted(by_role)}"
+        )
+
+    observations: dict[str, dict[str, Any]] = {}
+    for role in ("q8_backbone", "decision_head"):
+        spec = by_role[role]
+        observations[role] = verify_artifact(
+            output_dir / spec.relative_path, spec
+        )
+
+    tokcfg = by_role["tokenizer_config"]
+    observations["tokenizer_config"] = verify_artifact(
+        output_dir / "tokenizer" / "tokenizer_config.json",
+        ArtifactSpec(
+            "tokenizer/tokenizer_config.json",
+            tokcfg.bytes,
+            tokcfg.sha256,
+            "tokenizer_config",
+        ),
+    )
+    observations["attested_tokenizer"] = verify_artifact(
+        output_dir / "tokenizer" / "tokenizer.json",
+        ArtifactSpec(
+            "tokenizer/tokenizer.json",
+            attested_tokenizer_spec.bytes,
+            attested_tokenizer_spec.sha256,
+            "attested_tokenizer",
+        ),
+    )
+    observations["compat_config"] = verify_artifact(
+        output_dir / "rl_agent_config.json",
+        ArtifactSpec(
+            "rl_agent_config.json",
+            EXPECTED_COMPAT_CONFIG_BYTES,
+            EXPECTED_COMPAT_CONFIG_SHA256,
+            "compat_config",
+        ),
+    )
+
+    candidate_bundle = receipt.get("candidate_bundle")
+    if not isinstance(candidate_bundle, dict):
+        raise OverlayError("candidate_bundle receipt must be an object")
+    if candidate_bundle.get("repository") != CANDIDATE_REPOSITORY:
+        raise OverlayError("candidate repository drift")
+    if candidate_bundle.get("revision") != CANDIDATE_REVISION:
+        raise OverlayError("candidate revision drift")
+    recorded = candidate_bundle.get("artifacts")
+    if not isinstance(recorded, dict):
+        raise OverlayError("candidate artifact receipt must be an object")
+    for role in ("q8_backbone", "decision_head", "tokenizer_config"):
+        observed = observations[role]
+        source_record = recorded.get(role)
+        if not isinstance(source_record, dict):
+            raise OverlayError(f"missing candidate artifact receipt: {role}")
+        if source_record.get("bytes") != observed["bytes"]:
+            raise OverlayError(f"{role} staged/source byte-size mismatch")
+        if source_record.get("sha256") != observed["sha256"]:
+            raise OverlayError(f"{role} staged/source SHA-256 mismatch")
+
+    tokenizer_identity = receipt.get("tokenizer_identity")
+    if not isinstance(tokenizer_identity, dict):
+        raise OverlayError("tokenizer_identity receipt must be an object")
+    if tokenizer_identity.get("candidate_revision") != CANDIDATE_TOKENIZER_REVISION:
+        raise OverlayError("candidate tokenizer revision drift")
+    if tokenizer_identity.get("candidate_git_blob") != CANDIDATE_TOKENIZER_GIT_BLOB:
+        raise OverlayError("candidate tokenizer Git blob drift")
+    if tokenizer_identity.get("bytes") != observations["attested_tokenizer"]["bytes"]:
+        raise OverlayError("staged tokenizer byte-size mismatch")
+    if tokenizer_identity.get("sha256") != observations["attested_tokenizer"]["sha256"]:
+        raise OverlayError("staged tokenizer SHA-256 mismatch")
+
+    policy = receipt.get("temperature_policy")
+    if not isinstance(policy, dict):
+        raise OverlayError("temperature_policy receipt must be an object")
+    if policy.get("compat_config_bytes") != EXPECTED_COMPAT_CONFIG_BYTES:
+        raise OverlayError("receipt compat config byte-size drift")
+    if policy.get("compat_config_sha256") != EXPECTED_COMPAT_CONFIG_SHA256:
+        raise OverlayError("receipt compat config SHA-256 drift")
+    if policy.get("changes") != [EXPECTED_CURRENT_CHANGE]:
+        raise OverlayError("receipt temperature delta drift")
+
+    scope = receipt.get("scope")
+    if not isinstance(scope, dict):
+        raise OverlayError("scope receipt must be an object")
+    if scope.get("runtime_source_verified") is not False:
+        raise OverlayError("overlay scope must keep runtime_source_verified=false")
+    for field in (
+        "encoder_numeric_parity",
+        "head_numeric_parity",
+        "full_numeric_parity",
+        "live_inference",
+        "reference_provider_promotion",
+    ):
+        if scope.get(field) is not False:
+            raise OverlayError(f"overlay scope overclaims {field}")
+
+    return {
+        "valid": True,
+        "schema": SCHEMA,
+        "runtime_source_verified": False,
+        "staged_artifacts": observations,
+    }
 
 
 def prepare_overlay(
@@ -356,6 +498,11 @@ def prepare_overlay(
             encoding="utf-8",
         )
 
+        verify_prepared_overlay(
+            temp_path,
+            artifact_specs=artifact_specs,
+            attested_tokenizer_spec=attested_tokenizer_spec,
+        )
         os.replace(temp_path, output_dir)
     except BaseException:
         shutil.rmtree(temp_path, ignore_errors=True)
@@ -366,27 +513,46 @@ def prepare_overlay(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("candidate_dir", type=Path)
-    parser.add_argument("attested_tokenizer", type=Path)
+    parser.add_argument("candidate_dir", type=Path, nargs="?")
+    parser.add_argument("attested_tokenizer", type=Path, nargs="?")
     parser.add_argument("output_dir", type=Path, nargs="?")
     parser.add_argument(
         "--verify-only",
         action="store_true",
         help="verify inputs and print the overlay receipt without creating a directory",
     )
+    parser.add_argument(
+        "--verify-staged",
+        type=Path,
+        help="re-hash an already prepared overlay directory before execution",
+    )
     args = parser.parse_args(argv)
 
     try:
-        if args.verify_only:
-            receipt, _ = inspect_overlay_inputs(
-                args.candidate_dir, args.attested_tokenizer
-            )
+        if args.verify_staged is not None:
+            if any(
+                value is not None
+                for value in (
+                    args.candidate_dir,
+                    args.attested_tokenizer,
+                    args.output_dir,
+                )
+            ) or args.verify_only:
+                parser.error("--verify-staged cannot be combined with other modes")
+            receipt = verify_prepared_overlay(args.verify_staged)
         else:
-            if args.output_dir is None:
-                parser.error("output_dir is required unless --verify-only is used")
-            receipt = prepare_overlay(
-                args.candidate_dir, args.attested_tokenizer, args.output_dir
-            )
+            if args.candidate_dir is None or args.attested_tokenizer is None:
+                parser.error("candidate_dir and attested_tokenizer are required")
+            if args.verify_only:
+                receipt, _ = inspect_overlay_inputs(
+                    args.candidate_dir, args.attested_tokenizer
+                )
+            else:
+                if args.output_dir is None:
+                    parser.error("output_dir is required unless --verify-only is used")
+                receipt = prepare_overlay(
+                    args.candidate_dir, args.attested_tokenizer, args.output_dir
+                )
     except OverlayError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
