@@ -101,6 +101,12 @@ def validate_papaya_sequence_replay(
         raise PapayaSequenceReplayError("attested candidate tokenizer blob drift")
     if att_candidate.get("sha256") != TOKENIZER_SHA256:
         raise PapayaSequenceReplayError("attested candidate tokenizer SHA-256 drift")
+    if candidate_meta.get("candidate_revision") != CANDIDATE_TOKENIZER_REVISION:
+        raise PapayaSequenceReplayError("candidate tokenizer revision drift")
+    if candidate_meta.get("tokenizer_bytes") != TOKENIZER_BYTES:
+        raise PapayaSequenceReplayError("candidate tokenizer byte-size drift")
+    if candidate_meta.get("tokenizer_bytes") != att_candidate.get("bytes"):
+        raise PapayaSequenceReplayError("replay/attestation tokenizer byte-size mismatch")
     if candidate_meta.get("tokenizer_git_blob") != att_candidate.get("git_blob"):
         raise PapayaSequenceReplayError("replay/attestation tokenizer blob mismatch")
     if candidate_meta.get("tokenizer_sha256") != att_candidate.get("sha256"):
@@ -146,6 +152,8 @@ def validate_papaya_sequence_replay(
     scope = _object(replay.get("scope"), "scope")
     if scope.get("candidate_token_id_marker_parity") is not True:
         raise PapayaSequenceReplayError("candidate token/marker parity must be true")
+    if scope.get("parity_scope") != "frozen SEI four-case source-equivalent sequence replay":
+        raise PapayaSequenceReplayError("candidate token/marker parity scope drift")
     for field in (
         "numeric_model_parity",
         "temperature_semantics_parity",
