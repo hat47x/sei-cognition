@@ -3,7 +3,7 @@
 Status: execution handoff only. This document does not claim that the model
 bytes have been materialized in the current ChatGPT execution environment.
 
-Related: #597, #622, #623, #624, #627, #628, #629, #630.
+Related: #597, #622, #623, #624, #627, #628, #629, #630, #631.
 
 The fail-closed validators already define the authoritative byte contract.
 This page only collects the acquisition steps needed on an eligible host. Do
@@ -54,7 +54,7 @@ Do not substitute a locally rebuilt wheel.
 
 ## 3. Python-Laya reference model directory
 
-Acquire the standalone checkpoint from the immutable Hub revision:
+Acquire the standalone checkpoint from the immutable Hub revision. The commands below use Hugging Face's current `hf` CLI (`huggingface-cli` was renamed to `hf` in 2025):
 
 ```text
 repository  convaiinnovations/laya-typed-decisions
@@ -64,7 +64,7 @@ revision    f9ab0b228f0fc0f14d873dbc99038f135c2da1b2
 One explicit form is:
 
 ```bash
-huggingface-cli download \
+hf download \
   convaiinnovations/laya-typed-decisions \
   model.safetensors \
   encoder/config.json \
@@ -104,7 +104,7 @@ bytes.
 ## 4. Papaya Q8 candidate bytes
 
 Papaya's evaluation candidate is intentionally a separate derived runtime
-lineage.
+lineage. Use the same current `hf download` CLI surface as the reference path.
 
 Acquire these four files from:
 
@@ -116,7 +116,7 @@ revision    54ec2dbb58aad9e3c74782cb2feb5801f72b13d0
 For example:
 
 ```bash
-huggingface-cli download \
+hf download \
   fr0stbit3/laya-typed-decisions-gguf \
   laya-typed-decisions-Q8_0.gguf \
   laya-typed-decisions-head.safetensors \
@@ -139,7 +139,7 @@ The exact tokenizer byte identity was closed separately. Acquire
 `tokenizer.json` from the immutable candidate tokenizer revision:
 
 ```bash
-huggingface-cli download \
+hf download \
   fr0stbit3/laya-typed-decisions-gguf \
   tokenizer.json \
   --revision 75300646cddbac2b47409fc1ca839c95bec004c8 \
