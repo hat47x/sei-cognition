@@ -131,7 +131,8 @@
         2032,
         94,
         50282
-      ]
+      ],
+      "request_sha256": "07b02b3ca4daabcd6d34430306ae52ec3ed59fa44c0d93fdc2f96155b935d272"
     },
     {
       "case_id": "choice-route-b",
@@ -219,7 +220,8 @@
         2032,
         94,
         50282
-      ]
+      ],
+      "request_sha256": "cb253c91c871629abeae2b959fadb922b1a0078d661b39673a95fea7d0ee85eb"
     },
     {
       "case_id": "score-urgency",
@@ -307,7 +309,8 @@
         3221,
         94,
         50282
-      ]
+      ],
+      "request_sha256": "b75cbe3f4c9a236be247d7393150ffe34f386b457377409cc531d80827c7cb94"
     },
     {
       "case_id": "noul-review",
@@ -392,7 +395,8 @@
         2032,
         94,
         50282
-      ]
+      ],
+      "request_sha256": "0408d3b66b7f8b20668501582ba5e869e915121f8641b3dc461f28aef6873d21"
     }
   ]
 }
