@@ -15,6 +15,18 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA = "sei.local-typed-comparator-reference-token-fixture/v1"
+EXPECTED_SOURCE_GIT_SHA = "eb92c515bc1aa741e5de58c364e9a3628cf6dac3"
+EXPECTED_FIXTURE_BLOB = "2bed0f232ea845e2bda43ffd113d5cd86a9f770e"
+EXPECTED_REFERENCE_RUNTIME_SHA = "23a17522aa4942da6cce53a995a275760320b691"
+EXPECTED_SEQUENCE_BUILDER_BLOB = "6c4c426e64eb9660c97d40bc64c227e8c7e71361"
+EXPECTED_TOKENIZER_BLOB = "2f4d8583e507b7466d2490e2d6c045647a822698"
+EXPECTED_TOKENIZER_BYTES = 3_583_228
+EXPECTED_TOKENIZER_SHA256 = (
+    "6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30"
+)
+EXPECTED_TOKENIZER_IMPL_BLOB = "58cabadbab133e162d4e4e7e792ec63932ab86c7"
+EXPECTED_FUZZ_FIXTURE_BLOB = "be6c2982f2d088c5d249cd69d65e4695dc126040"
+EXPECTED_FUZZ_CASES = 206
 
 
 class ReferenceTokenFixtureError(ValueError):
@@ -54,17 +66,33 @@ def validate_reference_token_fixture(
 ) -> None:
     if token_fixture.get("schema") != SCHEMA:
         raise ReferenceTokenFixtureError(f"schema must be {SCHEMA}")
+    if token_fixture.get("source_git_sha") != EXPECTED_SOURCE_GIT_SHA:
+        raise ReferenceTokenFixtureError("source_git_sha drift")
 
     fixture_meta = token_fixture.get("fixture")
     if not isinstance(fixture_meta, dict):
         raise ReferenceTokenFixtureError("fixture metadata must be an object")
     if fixture_meta.get("schema") != fixture.get("schema"):
         raise ReferenceTokenFixtureError("fixture schema binding does not match")
+    if fixture_meta.get("git_blob") != EXPECTED_FIXTURE_BLOB:
+        raise ReferenceTokenFixtureError("fixture Git blob drift")
+
+    runtime = token_fixture.get("reference_runtime")
+    if not isinstance(runtime, dict):
+        raise ReferenceTokenFixtureError("reference_runtime must be an object")
+    if runtime.get("git_sha") != EXPECTED_REFERENCE_RUNTIME_SHA:
+        raise ReferenceTokenFixtureError("reference runtime SHA drift")
+    if runtime.get("sequence_builder_git_blob") != EXPECTED_SEQUENCE_BUILDER_BLOB:
+        raise ReferenceTokenFixtureError("sequence builder Git blob drift")
 
     tokenizer = token_fixture.get("tokenizer")
     if not isinstance(tokenizer, dict):
         raise ReferenceTokenFixtureError("tokenizer metadata must be an object")
-    _positive_int(tokenizer.get("bytes"), "tokenizer.bytes")
+    tokenizer_bytes = _positive_int(tokenizer.get("bytes"), "tokenizer.bytes")
+    if tokenizer_bytes != EXPECTED_TOKENIZER_BYTES:
+        raise ReferenceTokenFixtureError("tokenizer byte-size drift")
+    if tokenizer.get("git_blob") != EXPECTED_TOKENIZER_BLOB:
+        raise ReferenceTokenFixtureError("tokenizer Git blob drift")
     sha256 = tokenizer.get("sha256")
     if (
         not isinstance(sha256, str)
@@ -72,16 +100,24 @@ def validate_reference_token_fixture(
         or any(c not in "0123456789abcdef" for c in sha256)
     ):
         raise ReferenceTokenFixtureError("tokenizer.sha256 must be lowercase hex SHA-256")
+    if sha256 != EXPECTED_TOKENIZER_SHA256:
+        raise ReferenceTokenFixtureError("tokenizer SHA-256 drift")
 
     implementation = token_fixture.get("tokenizer_implementation")
     if not isinstance(implementation, dict):
         raise ReferenceTokenFixtureError("tokenizer_implementation must be an object")
+    if implementation.get("git_blob") != EXPECTED_TOKENIZER_IMPL_BLOB:
+        raise ReferenceTokenFixtureError("tokenizer implementation Git blob drift")
+    if implementation.get("fuzz_fixture_git_blob") != EXPECTED_FUZZ_FIXTURE_BLOB:
+        raise ReferenceTokenFixtureError("tokenizer fuzz fixture Git blob drift")
     fuzz_cases = _positive_int(
         implementation.get("fuzz_cases"), "tokenizer_implementation.fuzz_cases"
     )
     fuzz_pass = _positive_int(
         implementation.get("fuzz_pass"), "tokenizer_implementation.fuzz_pass"
     )
+    if fuzz_cases != EXPECTED_FUZZ_CASES:
+        raise ReferenceTokenFixtureError("tokenizer fuzz case-count drift")
     if fuzz_pass != fuzz_cases:
         raise ReferenceTokenFixtureError("tokenizer fuzz replay must be complete")
 
