@@ -193,6 +193,18 @@ class PairPreflightTest(unittest.TestCase):
         with self.assertRaises(mod.PairPreflightError):
             mod._full_sha("abc")
 
+    def test_script_checkout_must_equal_sei_source_dir(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            here = root / "sei" / "evaluation" / "local-typed-comparator"
+            here.mkdir(parents=True)
+            self.assertEqual(
+                mod._require_script_source_binding(here, root / "sei"),
+                (root / "sei").resolve(),
+            )
+            with self.assertRaises(mod.PairPreflightError):
+                mod._require_script_source_binding(here, root / "other-sei")
+
     def test_output_must_be_new_and_external(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
