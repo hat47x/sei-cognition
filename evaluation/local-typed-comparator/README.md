@@ -480,26 +480,47 @@ python3 run_managed_pair.py \
   --output-dir <new-directory-outside-both-source-checkouts>
 ```
 
-The orchestrator does not replace any provider-specific verification. It invokes
-the existing fail-closed stages in order:
+The orchestrator does not replace any provider-specific verification. Before
+either provider loads model weights, it now runs a shared preflight that reuses
+the existing reference/Papaya validators:
+
+```bash
+python3 preflight_managed_pair.py \
+  --source-git-sha <exact-merged-SEI-SHA> \
+  --reference-model-dir <attested-reference-model-directory> \
+  --laya-runtime-wheel <laya-0.3.20-py3-none-any.whl> \
+  --papaya-source-dir <clean-m0rphtail-papaya-a76bc99-checkout> \
+  --papaya-overlay-dir <verified-compat-overlay> \
+  --llama-binary <pinned-b10964-llama-server> \
+  --output <external-preflight-receipt.json>
+```
+
+That preflight verifies both provider input sets, the exact frozen
+fixture/diagnostic bytes, reference/Papaya token-count replay equality, and the
+preregistered parity policy without loading model weights or running inference.
+
+The paired orchestrator invokes the fail-closed stages in order:
 
 ```text
-managed Python-Laya reference capture
+cross-provider input preflight
+  -> managed Python-Laya reference capture
   -> managed Papaya capture
   -> raw numeric-difference report
   -> preregistered bounded numeric-parity decision
 ```
 
-All four stages are bound to one supplied full SEI Git SHA. A reference failure
-stops before Papaya, a Papaya failure stops before comparison, and a comparison
-failure stops before policy evaluation.
+All five stages are bound to one supplied full SEI Git SHA. A preflight failure
+stops before either model is loaded; a reference failure stops before Papaya, a
+Papaya failure stops before comparison, and a comparison failure stops before
+policy evaluation.
 
-A parity `FAIL` is **not** treated as an orchestration failure. If all four
+A parity `FAIL` is **not** treated as an orchestration failure. If all five
 tools execute and their artifact bindings validate, the paired run is complete
 and retains the FAIL as the scientific result.
 
 The output directory retains:
 
+- `pair-preflight.json`;
 - `reference-run.json`;
 - `papaya-run.json`;
 - `numeric-difference-report.json`;
@@ -512,9 +533,10 @@ digest no longer matches the paired evidence bundle. It continues to keep task
 quality, calibration, cross-runtime performance equivalence, provider identity,
 reference promotion, and shipping decisions out of scope.
 
-Validate the orchestration mechanics without model bytes with:
+Validate the model-free preflight/orchestration mechanics with:
 
 ```bash
+python3 -m unittest -v test_preflight_managed_pair.py
 python3 -m unittest -v test_run_managed_pair.py
 ```
 
