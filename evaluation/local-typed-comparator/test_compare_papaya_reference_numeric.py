@@ -279,6 +279,18 @@ class NumericComparatorTest(unittest.TestCase):
         self.assertEqual(report["aggregate"]["max_probability_abs_delta"], 0.0)
         self.assertEqual(report["aggregate"]["max_score_or_noul_abs_delta"], 0.0)
         self.assertTrue(report["aggregate"]["includes_choice11_diagnostic"])
+        self.assertEqual(report["aggregate"]["choice_selected_equal_count"], 3)
+        self.assertEqual(report["aggregate"]["choice_selected_compared_count"], 3)
+        self.assertEqual(report["aggregate"]["noul_threshold_0_5_equal_count"], 1)
+        self.assertEqual(report["aggregate"]["noul_threshold_0_5_compared_count"], 1)
+        self.assertEqual(
+            report["aggregate"]["score_probability_argmax_equal_count"], 1
+        )
+        self.assertEqual(
+            report["aggregate"]["score_probability_argmax_compared_count"], 1
+        )
+        self.assertNotIn("selected_output_equal_count", report["aggregate"])
+        self.assertNotIn("selected_output_compared_count", report["aggregate"])
         self.assertFalse(report["scope"]["numeric_parity_threshold_defined"])
         self.assertFalse(report["scope"]["numeric_parity_decision"])
         self.assertFalse(report["inputs"]["provider_provenance_merged"])
@@ -355,6 +367,27 @@ class NumericComparatorTest(unittest.TestCase):
             0.05,
         )
         self.assertFalse(report["scope"]["numeric_parity_decision"])
+
+    def test_noul_threshold_agreement_is_separate_from_scalar_delta(self):
+        pap = papaya_run()
+        row = next(
+            item
+            for item in pap["frozen_cases"]
+            if item["case_id"] == "noul-review"
+        )
+        response = json.loads(row["response_utf8"])
+        response["answers"]["needs_review"]["noul"] = 0.6
+        raw = compact(response)
+        row["response_utf8"] = raw
+        row["response_sha256"] = hashlib.sha256(raw.encode()).hexdigest()
+        report = compare(papaya=pap)
+        self.assertEqual(
+            report["aggregate"]["noul_threshold_0_5_equal_count"], 0
+        )
+        self.assertEqual(
+            report["aggregate"]["noul_threshold_0_5_compared_count"], 1
+        )
+        self.assertTrue(report["scope"]["numeric_difference_observed"])
 
     def test_choice11_attestation_overclaim_is_rejected(self):
         packet = copy.deepcopy(CHOICE11)
