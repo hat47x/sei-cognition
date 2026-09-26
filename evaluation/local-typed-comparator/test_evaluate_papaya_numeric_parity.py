@@ -49,15 +49,50 @@ def noul(qid="review", d=0.01, threshold=True):
 def report():
     return {
         "schema": mod.REPORT_SCHEMA,
+        "fixture": {
+            "schema": "sei.local-typed-comparator-fixture/v1alpha1",
+            "sha256": "a" * 64,
+            "case_ids": list(mod.EXPECTED_CASE_IDS),
+        },
+        "choice11_sequence_precondition": {
+            "schema": mod.CHOICE11_ATTESTATION_SCHEMA,
+            "diagnostic_sha256": "b" * 64,
+            "token_count": 155,
+            "source_equivalent_exact_sequence_attested": True,
+            "live_input_token_count_matched": True,
+            "live_input_ids_observed": False,
+            "live_marker_positions_observed": False,
+        },
+        "inputs": {
+            "reference": {
+                "schema": mod.REFERENCE_RUN_SCHEMA,
+                "run_id": "ref",
+                "provider": "laya",
+                "artifact_sha256": "c" * 64,
+            },
+            "papaya": {
+                "schema": mod.PAPAYA_RUN_SCHEMA,
+                "run_id": "pap",
+                "provider": "papaya",
+                "artifact_sha256": "d" * 64,
+            },
+            "same_sei_source_git_sha": "1" * 40,
+            "provider_provenance_merged": False,
+        },
         "cases": [
             {"case_id": "choice-route-a", "questions": [choice("route")]},
             {"case_id": "choice-route-b", "questions": [choice("route")]},
             {"case_id": "score-urgency", "questions": [score()]},
-            {"case_id": "noul-review", "questions": [noul()]},
+            {
+                "case_id": "noul-review",
+                "questions": [noul("needs_human_review")],
+            },
         ],
         "choice11_diagnostic": {
             "case_id": mod.CHOICE11_CASE_ID,
             "questions": [choice("choice12", p=0.02, c=0.01)],
+            "expected_answer": None,
+            "quality_claim": False,
         },
         "scope": {
             "complete_managed_capture_inputs_required": True,
@@ -159,6 +194,36 @@ class TestPapayaNumericParityPolicy(unittest.TestCase):
     def test_decision_rule_drift_is_rejected(self):
         policy = copy.deepcopy(POLICY)
         policy["decision_rule"]["all_observed_questions_must_pass"] = False
+        with self.assertRaises(mod.ParityDecisionError):
+            mod.evaluate(policy, report())
+
+    def test_managed_input_artifact_sha_is_required(self):
+        value = report()
+        value["inputs"]["reference"]["artifact_sha256"] = None
+        with self.assertRaises(mod.ParityDecisionError):
+            mod.evaluate(copy.deepcopy(POLICY), value)
+
+    def test_question_identity_drift_is_rejected(self):
+        value = report()
+        value["cases"][3]["questions"][0]["question_id"] = "review"
+        with self.assertRaises(mod.ParityDecisionError):
+            mod.evaluate(copy.deepcopy(POLICY), value)
+
+    def test_choice11_sequence_precondition_drift_is_rejected(self):
+        value = report()
+        value["choice11_sequence_precondition"]["token_count"] = 154
+        with self.assertRaises(mod.ParityDecisionError):
+            mod.evaluate(copy.deepcopy(POLICY), value)
+
+    def test_provider_provenance_cannot_be_merged(self):
+        value = report()
+        value["inputs"]["provider_provenance_merged"] = True
+        with self.assertRaises(mod.ParityDecisionError):
+            mod.evaluate(copy.deepcopy(POLICY), value)
+
+    def test_policy_managed_schema_drift_is_rejected(self):
+        policy = copy.deepcopy(POLICY)
+        policy["surface"]["managed_reference_schema"] = "wrong"
         with self.assertRaises(mod.ParityDecisionError):
             mod.evaluate(policy, report())
 
