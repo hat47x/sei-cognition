@@ -65,6 +65,37 @@ four frozen cases. It deliberately records
 that flag describes the scope of the reference-only packet, not the current
 candidate-byte state.
 
+The complete standalone Python-Laya **model-directory input contract** is also
+retained separately in
+[`reference_model_directory_attestation.v1.json`](./reference_model_directory_attestation.v1.json).
+It pins every file consumed by Laya 0.3.20 for the standalone
+`convaiinnovations/laya-typed-decisions@f9ab0b...` checkpoint:
+
+- `model.safetensors`;
+- `encoder/config.json`;
+- `rl_agent_config.json`;
+- `tokenizer/tokenizer.json`;
+- `tokenizer/tokenizer_config.json`.
+
+Verify an actual local directory with:
+
+```bash
+python3 verify_reference_model_directory.py \
+  reference_model_directory_attestation.v1.json \
+  <standalone-reference-model-directory>
+```
+
+The ancillary file hashes are independently retained in
+`mizorewww/laya-coreml@4619e048...`, while the source weight hash remains the
+same pinned 842,609,220-byte F16 checkpoint. The pinned tokenizer config already
+uses `PreTrainedTokenizerFast`, so Laya 0.3.20's compatibility helper is not
+expected to rewrite it at load time.
+
+This attestation closes the **input directory byte contract only**. It still
+records endpoint-loaded exact bytes, endpoint runtime-wheel identity, live
+reference inference, and Papaya numeric parity as false. A managed reference
+runner must re-hash this directory immediately before model load.
+
 Papaya candidate tokenizer byte identity is retained separately in
 [`papaya_candidate_tokenizer_attestation.v1.json`](./papaya_candidate_tokenizer_attestation.v1.json).
 Validate that packet and its stop lines with:
