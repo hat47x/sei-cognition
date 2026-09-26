@@ -117,6 +117,51 @@ class TestPapayaNumericParityPolicy(unittest.TestCase):
         out = mod.evaluate(copy.deepcopy(POLICY), value)
         self.assertEqual(out["decision"], "fail")
 
+    def test_missing_or_extra_question_rows_are_rejected(self):
+        value = report()
+        value["cases"][0]["questions"] = []
+        with self.assertRaises(mod.ParityDecisionError):
+            mod.evaluate(copy.deepcopy(POLICY), value)
+
+        value = report()
+        value["cases"][0]["questions"].append(choice("route"))
+        with self.assertRaises(mod.ParityDecisionError):
+            mod.evaluate(copy.deepcopy(POLICY), value)
+
+    def test_question_identity_and_type_drift_are_rejected(self):
+        value = report()
+        value["cases"][3]["questions"][0]["question_id"] = "review"
+        with self.assertRaises(mod.ParityDecisionError):
+            mod.evaluate(copy.deepcopy(POLICY), value)
+
+        value = report()
+        value["cases"][2]["questions"][0]["type"] = "choice"
+        with self.assertRaises(mod.ParityDecisionError):
+            mod.evaluate(copy.deepcopy(POLICY), value)
+
+    def test_choice11_question_identity_or_type_drift_is_rejected(self):
+        value = report()
+        value["choice11_diagnostic"]["questions"][0]["question_id"] = "choice13"
+        with self.assertRaises(mod.ParityDecisionError):
+            mod.evaluate(copy.deepcopy(POLICY), value)
+
+        value = report()
+        value["choice11_diagnostic"]["questions"][0]["type"] = "score"
+        with self.assertRaises(mod.ParityDecisionError):
+            mod.evaluate(copy.deepcopy(POLICY), value)
+
+    def test_negative_delta_is_rejected(self):
+        value = report()
+        value["cases"][0]["questions"][0]["probabilities"]["max_abs_delta"] = -0.001
+        with self.assertRaises(mod.ParityDecisionError):
+            mod.evaluate(copy.deepcopy(POLICY), value)
+
+    def test_decision_rule_drift_is_rejected(self):
+        policy = copy.deepcopy(POLICY)
+        policy["decision_rule"]["all_observed_questions_must_pass"] = False
+        with self.assertRaises(mod.ParityDecisionError):
+            mod.evaluate(policy, report())
+
     def test_raw_report_cannot_arrive_with_decision_already_set(self):
         value = report()
         value["scope"]["numeric_parity_decision"] = True
