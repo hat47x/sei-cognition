@@ -190,9 +190,100 @@ Papaya/fr0stbit3 tokenizer lineage
 Do not use equal byte size, matching sampled regions, or a base-model declaration
 as a substitute for hashing the candidate-side file.
 
-P1c token-ID / marker replay remains blocked until the candidate-side tokenizer
-bytes can be materialized with a tokenizer runtime, or an upstream retained
-fixture exposes exact token IDs and marker positions.
+The reference side of P1c is now closed by retained exact-token Evidence below.
+The Papaya/fr0stbit3 **candidate side** remains open until that tokenizer file is
+independently byte-attested or replayed.
+
+## P1c exact reference token / marker fixture
+
+The reference tokenizer bytes are now available through an independent GitHub
+retention path without relying on the current Hugging Face/Xet transport.
+
+Pinned retained source:
+
+- repository: `MatteoGauthier/laya-portable`;
+- revision: `3dc028023929432b4a3d76b1a8ee050d0e5ccd7f`;
+- path: `packages/laya-js/src/tokenizer/tokenizer.json`;
+- Git blob: `2f4d8583e507b7466d2490e2d6c045647a822698`;
+- UTF-8 bytes: **3,583,228**;
+- independently recomputed SHA-256:
+  `6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30`.
+
+The recomputed digest exactly matches the reference tokenizer identity frozen in
+P1b.
+
+The same pinned repository retains a pure-JS ByteLevel BPE implementation and a
+typed-decisions fuzz fixture:
+
+- implementation:
+  `packages/laya-js/src/laya-bpe.ts`,
+  blob `58cabadbab133e162d4e4e7e792ec63932ab86c7`;
+- fixture:
+  `packages/test-vectors/vectors/bpe-fuzz.typed-decisions.json`,
+  blob `be6c2982f2d088c5d249cd69d65e4695dc126040`.
+
+Replaying that fixture against the exact tokenizer bytes produced **206 / 206
+PASS** before generating SEI token Evidence.
+
+The resulting reference-side token fixture is retained at:
+
+`reference_token_fixture.v1.json`
+
+with schema:
+
+`sei.local-typed-comparator-reference-token-fixture/v1`.
+
+For the exact frozen SEI fixture blob
+`2bed0f232ea845e2bda43ffd113d5cd86a9f770e`:
+
+| case | tokens | marker positions |
+| --- | ---: | --- |
+| `choice-route-a` | 72 | `[16, 21, 28]` |
+| `choice-route-b` | 72 | `[16, 23, 30]` |
+| `score-urgency` | 71 | `[14, 19, 25, 30]` |
+| `noul-review` | 70 | `[16, 26]` |
+
+The artifact retains the full `input_ids` arrays rather than only lengths or
+hashes.
+
+Special-token IDs observed from the exact tokenizer are:
+
+- CLS = `50281`;
+- SEP = `50282`;
+- MASK = `50284`;
+- PAD = `50283`.
+
+`reference_token_fixture.py` validates the packet fail-closed against the
+frozen protocol fixture, including case/question/option identity, sequence
+bounds, token counts, strictly increasing marker positions, and each marker
+pointing to MASK. It also rejects attempts to change either
+`candidate_side_tokenizer_attested` or `numeric_model_parity` to true.
+
+An independent Core ML validation artifact from
+`mizorewww/laya-coreml@4619e0483f07adf39068532e85b42ec2347edb83`
+also binds the same checkpoint revision / weights / tokenizer hash and reports
+`tokens_equal=true` for 16 retained cases / 63 questions. That is useful
+corroboration, but it does not substitute for this SEI fixture because it does
+not retain these four SEI token arrays.
+
+The claim boundary is therefore:
+
+```text
+exact reference tokenizer bytes
+  + exact SHA-256 match
+  + 206/206 tokenizer fuzz replay
+  + exact #597 reference input IDs / markers
+  = reference-side P1c Evidence
+
+reference-side P1c Evidence
+  != Papaya/fr0stbit3 candidate tokenizer byte attestation
+  != candidate token-ID / marker parity
+  != model tensor identity
+  != numeric model parity
+  != live L0 inference
+```
+
+The remaining P1 work is now candidate-side only.
 
 ## Deterministic `choice:11+` temperature incompatibility
 
@@ -415,11 +506,11 @@ Two different token sequences can have the same length. Also, the benchmark
 `rows.json` input is not retained beside these outputs, so the 48-case result
 cannot be independently regenerated from Git alone.
 
-P1 therefore remains open. Completion still requires actual tokenizer bytes (or
-an equivalently strong retained token fixture), exact token-ID comparison for
-the four frozen #597 cases, and marker/truncation parity. No model weights are
-needed for that remaining tokenization check, but no such complete artifact is
-materialized in the current execution environment.
+P1a remains useful as independent sequence-length evidence, but it is no longer
+the strongest reference-side token evidence. The exact reference tokenizer and
+four-case token/marker fixture in P1c supersede the earlier reference-side
+blocker. What remains open is candidate-side Papaya/fr0stbit3 byte attestation
+and replay against these retained IDs/markers.
 
 ## SEI admission sequence
 
