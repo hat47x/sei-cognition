@@ -711,6 +711,95 @@ continues to record `candidate_side_tokenizer_attested=false` because that
 packet itself does not attest the candidate. Candidate-side byte Evidence lives
 in the separate attestation packet above.
 
-The next P1 event is therefore no longer another tokenizer-byte search. It is
-Papaya's pinned sequence-builder replay against the four frozen #597 reference
-token-ID / marker rows, keeping that replay separate from model numeric parity.
+The tokenizer-byte search is therefore closed. The next chronological P1 event
+was Papaya's pinned sequence-builder replay against the four frozen #597
+reference token-ID / marker rows; that replay is now retained below.
+
+
+## P1d frozen #597 Papaya sequence replay
+
+The pinned Papaya question normalization / rendering / sequence builder has now
+been replayed against the exact four-case SEI reference token fixture without
+loading model weights.
+
+Pinned Papaya source:
+
+- repository: `m0rphtail/papaya`;
+- revision: `a76bc99bddafdac32863b2edc5319773e0cd3532`;
+- `src/papaya/questions.py` blob
+  `7b1fe73f23b225a04f4b2ac53fd0011a4fdf90bf`;
+- `src/papaya/sequences.py` blob
+  `f21139970d6d288114213db8f917f0cead9c082f`;
+- `src/papaya/runtime.py` blob
+  `b3999b7f1e02d4761ffba63b7f846b210f3e27dd`.
+
+The replay uses the candidate tokenizer identity closed above:
+
+`2f4d8583e507b7466d2490e2d6c045647a822698`
+
+which is byte-identical to the independently hashed reference tokenizer. The
+candidate config is also already attested at 847 bytes / SHA-256
+`ebf0cd524d92342a6be5e48e9fca3d7c2babfb5a56ccd79d2171ef5d8c7f7be8`,
+with `max_len=1024` and `head_max_len=256`.
+
+The source-equivalent replay result is:
+
+| case | Papaya tokens | reference tokens | input IDs | markers |
+| --- | ---: | ---: | --- | --- |
+| `choice-route-a` | 72 | 72 | exact | `[16, 21, 28]` exact |
+| `choice-route-b` | 72 | 72 | exact | `[16, 23, 30]` exact |
+| `score-urgency` | 71 | 71 | exact | `[14, 19, 25, 30]` exact |
+| `noul-review` | 70 | 70 | exact | `[16, 26]` exact |
+
+Thus the retained four-case common subset has **4 / 4 full input-ID equality**
+and **4 / 4 marker-position equality**.
+
+Durable Evidence:
+
+- `papaya_sequence_replay.v1.json`;
+- `papaya_sequence_replay.py`;
+- `test_papaya_sequence_replay.py`.
+
+The replay packet is intentionally narrower than a live Papaya run. It records:
+
+```text
+candidate tokenizer byte identity         ATTESTED
+frozen #597 input-ID parity                PASS 4/4
+frozen #597 marker-position parity         PASS 4/4
+
+upstream Papaya Python executed            NO
+Transformers AutoTokenizer executed        NO
+model weights loaded                       NO
+temperature-semantics parity               NO
+numeric model parity                       NO
+live L0 inference                          NO
+```
+
+The replay is called **source-equivalent** because the pinned Papaya source
+semantics were reproduced with the byte-attested tokenizer and the independently
+validated ByteLevel BPE implementation (206 / 206 retained typed-decisions fuzz
+cases). It is not relabeled as an upstream runtime execution.
+
+No frozen case exercises Papaya's option/head/state truncation boundary; the
+observed rows are comfortably inside the configured budgets. The earlier
+candidate-specific `choice:11+` temperature incompatibility is also unchanged:
+token parity does not imply output-probability parity.
+
+Current P1 boundary:
+
+```text
+P0  logical rendering parity             PASS
+P1a retained sequence length             PASS
+P1b candidate tokenizer bytes            ATTESTED
+P1c reference exact IDs / markers        PASS
+P1d candidate exact IDs / markers        PASS on frozen 4-case replay
+
+P2  model numeric parity                 OPEN
+G2  choice:11+ compatibility behavior    OPEN / current Papaya known incompatible
+live L0 Papaya inference                 NOT RUN
+```
+
+The next useful Papaya comparison is therefore numeric rather than another
+tokenizer search: preserve the frozen four-case input packet, separately cover
+the known clamp-sensitive >=11-option diagnostic, and compare encoder/head
+outputs only when executable candidate model bytes/runtime are available.
