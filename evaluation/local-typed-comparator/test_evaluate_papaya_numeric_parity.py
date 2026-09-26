@@ -50,13 +50,13 @@ def report():
     return {
         "schema": mod.REPORT_SCHEMA,
         "fixture": {
-            "schema": "sei.local-typed-comparator-fixture/v1alpha1",
-            "sha256": "a" * 64,
+            "schema": mod.FIXTURE_SCHEMA,
+            "sha256": mod.FIXTURE_SHA256,
             "case_ids": list(mod.EXPECTED_CASE_IDS),
         },
         "choice11_sequence_precondition": {
             "schema": mod.CHOICE11_ATTESTATION_SCHEMA,
-            "diagnostic_sha256": "b" * 64,
+            "diagnostic_sha256": mod.CHOICE11_DIAGNOSTIC_SHA256,
             "token_count": 155,
             "source_equivalent_exact_sequence_attested": True,
             "live_input_token_count_matched": True,
@@ -194,6 +194,27 @@ class TestPapayaNumericParityPolicy(unittest.TestCase):
     def test_decision_rule_drift_is_rejected(self):
         policy = copy.deepcopy(POLICY)
         policy["decision_rule"]["all_observed_questions_must_pass"] = False
+        with self.assertRaises(mod.ParityDecisionError):
+            mod.evaluate(policy, report())
+
+    def test_exact_fixture_and_diagnostic_bytes_are_required(self):
+        value = report()
+        value["fixture"]["sha256"] = "a" * 64
+        with self.assertRaises(mod.ParityDecisionError):
+            mod.evaluate(copy.deepcopy(POLICY), value)
+
+        value = report()
+        value["choice11_sequence_precondition"]["diagnostic_sha256"] = "b" * 64
+        with self.assertRaises(mod.ParityDecisionError):
+            mod.evaluate(copy.deepcopy(POLICY), value)
+
+        policy = copy.deepcopy(POLICY)
+        policy["surface"]["fixture_sha256"] = "a" * 64
+        with self.assertRaises(mod.ParityDecisionError):
+            mod.evaluate(policy, report())
+
+        policy = copy.deepcopy(POLICY)
+        policy["surface"]["choice11_diagnostic_sha256"] = "b" * 64
         with self.assertRaises(mod.ParityDecisionError):
             mod.evaluate(policy, report())
 
