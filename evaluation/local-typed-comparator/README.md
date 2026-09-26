@@ -61,7 +61,21 @@ python3 -m unittest -v test_reference_token_fixture.py
 
 That packet proves only the pinned **reference-side** tokenizer replay for these
 four frozen cases. It deliberately records
-`candidate_side_tokenizer_attested=false` and `numeric_model_parity=false`.
+`candidate_side_tokenizer_attested=false` and `numeric_model_parity=false`;
+that flag describes the scope of the reference-only packet, not the current
+candidate-byte state.
+
+Papaya candidate tokenizer byte identity is retained separately in
+[`papaya_candidate_tokenizer_attestation.v1.json`](./papaya_candidate_tokenizer_attestation.v1.json).
+Validate that packet and its stop lines with:
+
+```bash
+python3 papaya_candidate_tokenizer_attestation.py papaya_candidate_tokenizer_attestation.v1.json
+python3 -m unittest -v test_papaya_candidate_tokenizer_attestation.py
+```
+
+The candidate packet proves byte identity only. It keeps candidate token-ID /
+marker parity, numeric model parity, and live L0 inference explicitly false.
 
 The current focused suite covers:
 
