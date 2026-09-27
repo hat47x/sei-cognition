@@ -267,6 +267,19 @@ input preflight
 
 Do not change the preregistered thresholds after observing live output.
 
+After the evidence directory has been copied back from the execution host,
+verify the returned chain without re-running the models:
+
+```bash
+python3 verify_managed_pair_bundle.py \
+  <returned-evidence-directory> \
+  --source-git-sha <exact-clean-SEI-SHA>
+```
+
+This re-hashes the receipt, every completed artifact, and any retained
+failed-stage partial output. It verifies internal transfer/integrity bindings;
+it does not authenticate the host or recompute inference/parity.
+
 ## 8. Current ChatGPT-environment boundary
 
 As of 2026-09-26, the current execution environment cannot materialize the
