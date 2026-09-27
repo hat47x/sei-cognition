@@ -567,6 +567,37 @@ python3 -m unittest -v test_preflight_managed_pair.py
 python3 -m unittest -v test_run_managed_pair.py
 ```
 
+### Verify a returned pair bundle
+
+After an eligible host produces or returns the evidence directory, verify it
+without re-running either model:
+
+```bash
+python3 verify_managed_pair_bundle.py \
+  <returned-evidence-directory> \
+  --source-git-sha <exact-SEI-SHA-used-for-the-run>
+```
+
+The verifier re-hashes the receipt and every completed stage artifact, reuses
+the paired-run semantic summary checks, and requires the receipt's completed
+artifact set to match the recorded stage progression.
+
+For failed runs it also re-hashes any #633 retained failed-stage output and
+requires the on-disk partial artifact summary to match the failure receipt.
+Thus a transferred bundle cannot silently add, remove, or mutate a failed-stage
+artifact while preserving a superficially valid receipt.
+
+A successful verification means only that the **returned evidence bundle is
+internally consistent with the recorded pair-run chain**. It does not re-run
+inference, recompute numeric parity, authenticate an external host, or establish
+task quality/calibration/shipping suitability.
+
+Model-free verifier coverage is retained in:
+
+```bash
+python3 -m unittest -v test_verify_managed_pair_bundle.py
+```
+
 
 ## Next step
 
