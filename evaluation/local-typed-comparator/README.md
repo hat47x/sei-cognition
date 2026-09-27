@@ -530,6 +530,21 @@ A parity `FAIL` is **not** treated as an orchestration failure. If all five
 tools execute and their artifact bindings validate, the paired run is complete
 and retains the FAIL as the scientific result.
 
+Execution failures are also retained as Evidence rather than leaving the
+receipt ambiguously stuck in a running state:
+
+```text
+subprocess non-zero       -> <stage>_failed
+process launch exception  -> <stage>_launch_failed
+artifact validation error -> <stage>_validation_failed
+```
+
+If the failed stage already produced an output file, the receipt retains its
+file name, byte size, SHA-256, UTF-8/JSON readability, and any readable
+schema/status/run/source-SHA fields without promoting that partial artifact to a
+complete stage result. Previously validated earlier-stage artifacts remain
+bound in the same receipt.
+
 The output directory retains:
 
 - `pair-preflight.json`;
