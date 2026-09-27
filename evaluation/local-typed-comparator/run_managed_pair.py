@@ -578,6 +578,7 @@ def execute_pair(
         "scope": {
             "single_sei_source_git_sha": True,
             "preflight_all_required_inputs_verified": False,
+            "transported_wheel_installation_origin_attested": False,
             "provider_provenance_merged": False,
             "raw_comparator_threshold_defined": False,
             "preregistered_numeric_policy_applied": False,
@@ -622,10 +623,16 @@ def execute_pair(
 
         try:
             if stage == "preflight":
-                receipt["artifacts"]["preflight"] = _preflight_summary(
+                preflight_summary = _preflight_summary(
                     path, source_sha
                 )
+                receipt["artifacts"]["preflight"] = preflight_summary
                 receipt["scope"]["preflight_all_required_inputs_verified"] = True
+                receipt["scope"][
+                    "transported_wheel_installation_origin_attested"
+                ] = preflight_summary[
+                    "transported_wheel_installation_origin_attested"
+                ]
             elif stage == "reference":
                 receipt["artifacts"]["reference"] = _artifact_summary(
                     path,
@@ -698,6 +705,13 @@ def main(argv: list[str] | None = None) -> int:
     try:
         source_sha = _require_full_sha(args.source_git_sha)
         _require_script_source_binding(here, args.sei_source_dir)
+        if (
+            args.runtime_environment_dir is not None
+            and args.runtime_wheelhouse_dir is None
+        ):
+            raise ManagedPairError(
+                "--runtime-environment-dir requires --runtime-wheelhouse-dir"
+            )
         if not args.run_id.strip():
             raise ManagedPairError("run-id must be non-empty")
         if args.threads < 1:
