@@ -1,3 +1,4 @@
+import hashlib
 import importlib.util
 import json
 import sys
@@ -48,11 +49,11 @@ def reference_receipt(output: Path):
     }
 
 
-def runtime_receipt(output: Path):
+def runtime_receipt(output: Path, manifest_raw: bytes):
     return {
         "schema": mod.runtime_materializer.SCHEMA,
         "status": "materialized-and-verified",
-        "wheelhouse_manifest_sha256": "c" * 64,
+        "wheelhouse_manifest_sha256": hashlib.sha256(manifest_raw).hexdigest(),
         "wheelhouse": {"valid": True},
         "install": {"returncode": 0},
         "environment_verification": {"valid": True},
@@ -169,7 +170,7 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
             output.mkdir()
             (output / "bin").mkdir()
             (output / "bin" / "python").write_bytes(b"python")
-            return runtime_receipt(output)
+            return runtime_receipt(output, _raw)
 
         stack.enter_context(
             mock.patch.object(
@@ -446,6 +447,75 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
             self.assertFalse(
                 receipt["scope"]["runtime_installation_origin_attested"]
             )
+
+    def test_runtime_receipt_binding_drift_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            wheelhouse = root / "wheelhouse"
+            wheelhouse.mkdir()
+            wheel_manifest = {"schema": "wheelhouse"}
+            wheel_raw = b'{"schema":"wheelhouse"}'
+
+            cases = []
+
+            bad = runtime_receipt(root / "unused", wheel_raw)
+            bad["wheelhouse_manifest_sha256"] = "0" * 64
+            cases.append(bad)
+
+            bad = runtime_receipt(root / "unused", wheel_raw)
+            bad["wheelhouse"]["valid"] = False
+            cases.append(bad)
+
+            bad = runtime_receipt(root / "unused", wheel_raw)
+            bad["install"]["returncode"] = 1
+            cases.append(bad)
+
+            bad = runtime_receipt(root / "unused", wheel_raw)
+            bad["environment_verification"]["valid"] = False
+            cases.append(bad)
+
+            for index, bad_receipt in enumerate(cases):
+                with self.subTest(index=index):
+                    output = root / f"workspace-{index}"
+                    source = root / f"sei-{index}"
+                    source.mkdir()
+                    with ExitStack() as stack:
+                        self._install_common_patches(stack)
+                        stack.enter_context(
+                            mock.patch.object(
+                                mod.wheelhouse_verifier,
+                                "verify_wheelhouse",
+                                return_value={"valid": True},
+                            )
+                        )
+                        stack.enter_context(
+                            mock.patch.object(
+                                mod.runtime_materializer,
+                                "materialize_environment",
+                                return_value=bad_receipt,
+                            )
+                        )
+                        with self.assertRaises(
+                            mod.ManagedPairMaterializationError
+                        ):
+                            mod.prepare_workspace(
+                                source_sha=SHA,
+                                sei_source_dir=source,
+                                reference_manifest=REFERENCE_MANIFEST,
+                                reference_manifest_raw=REFERENCE_RAW,
+                                reference_transport=(
+                                    mod.reference_materializer.HF_ID
+                                ),
+                                papaya_manifest=PAPAYA_MANIFEST,
+                                papaya_manifest_raw=PAPAYA_RAW,
+                                output_dir=output,
+                                timeout=30.0,
+                                runtime_wheelhouse_dir=wheelhouse,
+                                runtime_wheelhouse_manifest=wheel_manifest,
+                                runtime_wheelhouse_manifest_raw=wheel_raw,
+                                materialize_runtime_environment=True,
+                            )
+                    self.assertFalse(output.exists())
 
     def test_runtime_environment_requires_wheelhouse_before_workspace(self):
         with tempfile.TemporaryDirectory() as td:
