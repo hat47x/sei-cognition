@@ -48,6 +48,29 @@ def reference_receipt(output: Path):
     }
 
 
+def runtime_receipt(output: Path):
+    return {
+        "schema": mod.runtime_materializer.SCHEMA,
+        "status": "materialized-and-verified",
+        "wheelhouse_manifest_sha256": "c" * 64,
+        "wheelhouse": {"valid": True},
+        "install": {"returncode": 0},
+        "environment_verification": {"valid": True},
+        "scope": {
+            "host_assisted_environment": True,
+            "transported_wheel_installation_origin_attested": True,
+            "runtime_installation_origin_attested": False,
+            "host_dependency_versions_pinned": False,
+            "self_contained_runtime": False,
+            "environment_relocatable": False,
+            "model_weights_loaded": False,
+            "live_inference": False,
+            "numeric_parity": False,
+            "shipping_decision": False,
+        },
+    }
+
+
 def papaya_receipt(output: Path):
     return {
         "schema": mod.papaya_materializer.SCHEMA,
@@ -75,7 +98,9 @@ def papaya_receipt(output: Path):
 
 
 class ManagedPairInputMaterializationTest(unittest.TestCase):
-    def _install_common_patches(self, stack: ExitStack):
+    def _install_common_patches(
+        self, stack: ExitStack, events: list[str] | None = None
+    ):
         stack.enter_context(
             mock.patch.object(
                 mod.papaya_capture,
@@ -104,10 +129,14 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
         )
 
         def ref_materialize(_manifest, _transport, output, *, timeout):
+            if events is not None:
+                events.append("reference")
             output.mkdir()
             return reference_receipt(output)
 
         def pap_materialize(_manifest, output, *, timeout):
+            if events is not None:
+                events.append("papaya")
             output.mkdir()
             (output / "tokenizer.json").write_bytes(b"tokenizer")
             for spec in mod.overlay.DEFAULT_ARTIFACTS:
@@ -129,6 +158,24 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
                 mod.papaya_materializer,
                 "materialize_papaya_candidate",
                 side_effect=pap_materialize,
+            )
+        )
+
+        def materialize_runtime(
+            _manifest, _raw, _wheelhouse, output, **kwargs
+        ):
+            if events is not None:
+                events.append("runtime")
+            output.mkdir()
+            (output / "bin").mkdir()
+            (output / "bin" / "python").write_bytes(b"python")
+            return runtime_receipt(output)
+
+        stack.enter_context(
+            mock.patch.object(
+                mod.runtime_materializer,
+                "materialize_environment",
+                side_effect=materialize_runtime,
             )
         )
 
@@ -170,12 +217,14 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
         runtime_wheelhouse_dir=None,
         runtime_wheelhouse_manifest=None,
         runtime_wheelhouse_manifest_raw=None,
+        materialize_runtime_environment=False,
+        events=None,
     ):
         source = root / "sei"
         source.mkdir()
         output = root / "workspace"
         with ExitStack() as stack:
-            self._install_common_patches(stack)
+            self._install_common_patches(stack, events=events)
             receipt = mod.prepare_workspace(
                 source_sha=SHA,
                 sei_source_dir=source,
@@ -189,6 +238,9 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
                 runtime_wheelhouse_dir=runtime_wheelhouse_dir,
                 runtime_wheelhouse_manifest=runtime_wheelhouse_manifest,
                 runtime_wheelhouse_manifest_raw=runtime_wheelhouse_manifest_raw,
+                materialize_runtime_environment=(
+                    materialize_runtime_environment
+                ),
             )
         return source, output, receipt
 
@@ -226,6 +278,14 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
                 ]
             )
             self.assertFalse(receipt["scope"]["workspace_relocatable"])
+            self.assertFalse(
+                receipt["scope"]["runtime_environment_materialized"]
+            )
+            self.assertFalse(
+                receipt["scope"][
+                    "transported_wheel_installation_origin_attested"
+                ]
+            )
             self.assertFalse(
                 receipt["scope"]["runtime_installation_origin_attested"]
             )
@@ -340,6 +400,126 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
                 receipt["runtime_wheelhouse"]["external_path_retained"]
             )
             self.assertTrue(receipt["scope"]["runtime_wheelhouse_verified"])
+
+    def test_runtime_environment_is_materialized_before_models(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            wheelhouse = root / "wheelhouse"
+            wheelhouse.mkdir()
+            wheel_manifest = {"schema": "wheelhouse"}
+            wheel_raw = b'{"schema":"wheelhouse"}'
+            events: list[str] = []
+
+            with mock.patch.object(
+                mod.wheelhouse_verifier,
+                "verify_wheelhouse",
+                return_value={"valid": True},
+            ):
+                _source, output, receipt = self._prepare(
+                    root,
+                    runtime_wheelhouse_dir=wheelhouse,
+                    runtime_wheelhouse_manifest=wheel_manifest,
+                    runtime_wheelhouse_manifest_raw=wheel_raw,
+                    materialize_runtime_environment=True,
+                    events=events,
+                )
+
+            self.assertEqual(
+                events[:3], ["runtime", "reference", "papaya"]
+            )
+            self.assertTrue((output / mod.RUNTIME_ENV_DIR).is_dir())
+            self.assertEqual(
+                receipt["layout"]["runtime_environment_dir"],
+                mod.RUNTIME_ENV_DIR,
+            )
+            self.assertTrue(
+                receipt["runtime_environment"]["provided"]
+            )
+            self.assertTrue(
+                receipt["scope"]["runtime_environment_materialized"]
+            )
+            self.assertTrue(
+                receipt["scope"][
+                    "transported_wheel_installation_origin_attested"
+                ]
+            )
+            self.assertFalse(
+                receipt["scope"]["runtime_installation_origin_attested"]
+            )
+
+    def test_runtime_environment_requires_wheelhouse_before_workspace(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            source = root / "sei"
+            source.mkdir()
+            output = root / "workspace"
+            with self.assertRaisesRegex(
+                mod.ManagedPairMaterializationError,
+                "requires runtime wheelhouse",
+            ):
+                mod.prepare_workspace(
+                    source_sha=SHA,
+                    sei_source_dir=source,
+                    reference_manifest=REFERENCE_MANIFEST,
+                    reference_manifest_raw=REFERENCE_RAW,
+                    reference_transport=mod.reference_materializer.HF_ID,
+                    papaya_manifest=PAPAYA_MANIFEST,
+                    papaya_manifest_raw=PAPAYA_RAW,
+                    output_dir=output,
+                    timeout=30.0,
+                    materialize_runtime_environment=True,
+                )
+            self.assertFalse(output.exists())
+
+    def test_runtime_environment_failure_stops_before_model_transfer(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            source = root / "sei"
+            source.mkdir()
+            wheelhouse = root / "wheelhouse"
+            wheelhouse.mkdir()
+            output = root / "workspace"
+            wheel_manifest = {"schema": "wheelhouse"}
+            wheel_raw = b'{"schema":"wheelhouse"}'
+            events: list[str] = []
+
+            with ExitStack() as stack:
+                self._install_common_patches(stack, events=events)
+                stack.enter_context(
+                    mock.patch.object(
+                        mod.wheelhouse_verifier,
+                        "verify_wheelhouse",
+                        return_value={"valid": True},
+                    )
+                )
+                stack.enter_context(
+                    mock.patch.object(
+                        mod.runtime_materializer,
+                        "materialize_environment",
+                        side_effect=RuntimeError(
+                            "synthetic runtime failure"
+                        ),
+                    )
+                )
+                with self.assertRaises(RuntimeError):
+                    mod.prepare_workspace(
+                        source_sha=SHA,
+                        sei_source_dir=source,
+                        reference_manifest=REFERENCE_MANIFEST,
+                        reference_manifest_raw=REFERENCE_RAW,
+                        reference_transport=mod.reference_materializer.HF_ID,
+                        papaya_manifest=PAPAYA_MANIFEST,
+                        papaya_manifest_raw=PAPAYA_RAW,
+                        output_dir=output,
+                        timeout=30.0,
+                        runtime_wheelhouse_dir=wheelhouse,
+                        runtime_wheelhouse_manifest=wheel_manifest,
+                        runtime_wheelhouse_manifest_raw=wheel_raw,
+                        materialize_runtime_environment=True,
+                    )
+
+            self.assertEqual(events, [])
+            self.assertFalse(output.exists())
 
     def test_invalid_wheelhouse_fails_before_workspace_creation(self):
         with tempfile.TemporaryDirectory() as td:
