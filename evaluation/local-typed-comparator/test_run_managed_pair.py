@@ -222,6 +222,133 @@ class ManagedPairTest(unittest.TestCase):
             self.assertEqual(receipt["status"], "failed")
             self.assertEqual(receipt["stage"], f"{stage}_failed")
 
+    def test_runner_exception_updates_receipt(self):
+        class LaunchFailureRunner(FakeRunner):
+            def __call__(self, command, *, cwd, check):
+                script = Path(command[1]).name
+                if script == "capture_reference_l0.py":
+                    self.calls.append((command, cwd, check))
+                    raise OSError("synthetic launch failure")
+                return super().__call__(command, cwd=cwd, check=check)
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = LaunchFailureRunner()
+            with self.assertRaises(OSError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(root, out),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            receipt = json.loads((out / mod.RECEIPT_FILE).read_text())
+            self.assertEqual(receipt["status"], "failed")
+            self.assertEqual(receipt["stage"], "reference_launch_failed")
+            self.assertEqual(
+                receipt["failure"]["kind"], "runner_exception"
+            )
+            self.assertEqual(receipt["failure"]["error_type"], "OSError")
+            self.assertFalse(receipt["failure"]["stage_output"]["present"])
+            self.assertIn("preflight", receipt["artifacts"])
+            self.assertNotIn("reference", receipt["artifacts"])
+
+    def test_process_failure_retains_partial_stage_artifact_digest(self):
+        class PartialPapayaFailureRunner(FakeRunner):
+            def __call__(self, command, *, cwd, check):
+                script = Path(command[1]).name
+                if script == "capture_papaya_l0.py":
+                    self.calls.append((command, cwd, check))
+                    output = Path(command[command.index("--output") + 1])
+                    write_json(
+                        output,
+                        {
+                            "schema": mod.PAPAYA_SCHEMA,
+                            "status": "incomplete",
+                            "run_id": "r1-papaya",
+                            "source": {"git_sha": SHA},
+                        },
+                    )
+                    return subprocess.CompletedProcess(command, 2)
+                return super().__call__(command, cwd=cwd, check=check)
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = PartialPapayaFailureRunner()
+            with self.assertRaises(mod.ManagedPairError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(root, out),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            receipt = json.loads((out / mod.RECEIPT_FILE).read_text())
+            self.assertEqual(receipt["status"], "failed")
+            self.assertEqual(receipt["stage"], "papaya_failed")
+            self.assertEqual(receipt["failure"]["kind"], "process_exit")
+            self.assertEqual(receipt["failure"]["returncode"], 2)
+            partial = receipt["failure"]["stage_output"]
+            self.assertTrue(partial["present"])
+            self.assertTrue(partial["readable_utf8"])
+            self.assertTrue(partial["json_object"])
+            self.assertEqual(partial["schema"], mod.PAPAYA_SCHEMA)
+            self.assertEqual(partial["status"], "incomplete")
+            self.assertEqual(partial["source_git_sha"], SHA)
+            self.assertEqual(
+                partial["sha256"],
+                mod._sha256_file(out / mod.PAPAYA_FILE),
+            )
+            self.assertIn("reference", receipt["artifacts"])
+            self.assertNotIn("papaya", receipt["artifacts"])
+
+    def test_artifact_validation_failure_updates_receipt(self):
+        class InvalidReferenceRunner(FakeRunner):
+            def __call__(self, command, *, cwd, check):
+                completed = super().__call__(command, cwd=cwd, check=check)
+                if Path(command[1]).name == "capture_reference_l0.py":
+                    output = Path(command[command.index("--output") + 1])
+                    value = json.loads(output.read_text())
+                    value["status"] = "incomplete"
+                    write_json(output, value)
+                return completed
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = InvalidReferenceRunner()
+            with self.assertRaises(mod.ManagedPairError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(root, out),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            receipt = json.loads((out / mod.RECEIPT_FILE).read_text())
+            self.assertEqual(receipt["status"], "failed")
+            self.assertEqual(receipt["stage"], "reference_validation_failed")
+            self.assertEqual(
+                receipt["failure"]["kind"], "artifact_validation"
+            )
+            self.assertEqual(
+                receipt["failure"]["error_type"], "ManagedPairError"
+            )
+            partial = receipt["failure"]["stage_output"]
+            self.assertTrue(partial["present"])
+            self.assertEqual(partial["schema"], mod.REFERENCE_SCHEMA)
+            self.assertEqual(partial["status"], "incomplete")
+            self.assertIn("preflight", receipt["artifacts"])
+            self.assertNotIn("reference", receipt["artifacts"])
+
     def test_pass_decision_completes_pipeline(self):
         receipt = self._complete("pass")
         self.assertEqual(receipt["status"], "complete")
@@ -325,6 +452,17 @@ class ManagedPairTest(unittest.TestCase):
             )
             with self.assertRaises(mod.ManagedPairError):
                 mod._require_script_source_binding(here, root / "other-sei")
+
+    def test_partial_artifact_summary_handles_non_json(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "partial.json"
+            path.write_text("{not-json", encoding="utf-8")
+            summary = mod._partial_artifact_summary(path)
+            self.assertTrue(summary["present"])
+            self.assertTrue(summary["readable_utf8"])
+            self.assertFalse(summary["json_object"])
+            self.assertEqual(summary["bytes"], len(b"{not-json"))
+            self.assertEqual(summary["sha256"], mod._sha256_file(path))
 
     def test_output_dir_must_be_new_and_external(self):
         with tempfile.TemporaryDirectory() as td:

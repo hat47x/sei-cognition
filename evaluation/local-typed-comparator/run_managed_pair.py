@@ -227,6 +227,75 @@ def _write_receipt(path: Path, receipt: dict[str, Any]) -> None:
     temp.replace(path)
 
 
+def _partial_artifact_summary(path: Path) -> dict[str, Any]:
+    summary: dict[str, Any] = {
+        "file": path.name,
+        "present": path.exists(),
+    }
+    if not path.exists():
+        return summary
+
+    try:
+        summary["bytes"] = path.stat().st_size
+        summary["sha256"] = _sha256_file(path)
+        raw = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        summary["readable_utf8"] = False
+        return summary
+
+    summary["readable_utf8"] = True
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError:
+        summary["json_object"] = False
+        return summary
+    if not isinstance(value, dict):
+        summary["json_object"] = False
+        return summary
+
+    summary["json_object"] = True
+    for field in ("schema", "status", "run_id"):
+        value_field = value.get(field)
+        if isinstance(value_field, str):
+            summary[field] = value_field
+    source = value.get("source")
+    if isinstance(source, dict):
+        git_sha = source.get("git_sha")
+        if isinstance(git_sha, str):
+            summary["source_git_sha"] = git_sha
+    return summary
+
+
+def _record_failure(
+    *,
+    receipt_path: Path,
+    receipt: dict[str, Any],
+    stage: str,
+    kind: str,
+    output_path: Path,
+    returncode: int | None = None,
+    error_type: str | None = None,
+) -> None:
+    receipt["status"] = "failed"
+    if kind == "process_exit":
+        receipt["stage"] = f"{stage}_failed"
+    elif kind == "runner_exception":
+        receipt["stage"] = f"{stage}_launch_failed"
+    else:
+        receipt["stage"] = f"{stage}_validation_failed"
+    failure: dict[str, Any] = {
+        "stage": stage,
+        "kind": kind,
+        "stage_output": _partial_artifact_summary(output_path),
+    }
+    if returncode is not None:
+        failure["returncode"] = returncode
+    if error_type is not None:
+        failure["error_type"] = error_type
+    receipt["failure"] = failure
+    _write_receipt(receipt_path, receipt)
+
+
 def _output_arg(command: Sequence[str]) -> Path:
     try:
         index = command.index("--output")
@@ -378,54 +447,78 @@ def execute_pair(
     for stage, command in commands:
         receipt["stage"] = f"{stage}_running"
         _write_receipt(receipt_path, receipt)
-        completed = runner(list(command), cwd=str(cwd), check=False)
+        path = _output_arg(command)
+        try:
+            completed = runner(list(command), cwd=str(cwd), check=False)
+        except Exception as exc:
+            _record_failure(
+                receipt_path=receipt_path,
+                receipt=receipt,
+                stage=stage,
+                kind="runner_exception",
+                output_path=path,
+                error_type=type(exc).__name__,
+            )
+            raise
         if completed.returncode != 0:
-            receipt["status"] = "failed"
-            receipt["stage"] = f"{stage}_failed"
-            receipt["failure"] = {
-                "stage": stage,
-                "returncode": completed.returncode,
-            }
-            _write_receipt(receipt_path, receipt)
+            _record_failure(
+                receipt_path=receipt_path,
+                receipt=receipt,
+                stage=stage,
+                kind="process_exit",
+                output_path=path,
+                returncode=completed.returncode,
+            )
             raise ManagedPairError(
                 f"{stage} stage failed with exit code {completed.returncode}"
             )
 
-        path = _output_arg(command)
-        if stage == "preflight":
-            receipt["artifacts"]["preflight"] = _preflight_summary(
-                path, source_sha
+        try:
+            if stage == "preflight":
+                receipt["artifacts"]["preflight"] = _preflight_summary(
+                    path, source_sha
+                )
+                receipt["scope"]["preflight_all_required_inputs_verified"] = True
+            elif stage == "reference":
+                receipt["artifacts"]["reference"] = _artifact_summary(
+                    path,
+                    expected_schema=REFERENCE_SCHEMA,
+                    source_sha=source_sha,
+                    label="reference run",
+                )
+            elif stage == "papaya":
+                receipt["artifacts"]["papaya"] = _artifact_summary(
+                    path,
+                    expected_schema=PAPAYA_SCHEMA,
+                    source_sha=source_sha,
+                    label="Papaya run",
+                )
+            elif stage == "comparison":
+                receipt["artifacts"]["comparison"] = _report_summary(
+                    path, source_sha
+                )
+            elif stage == "decision":
+                receipt["artifacts"]["decision"] = _decision_summary(
+                    path,
+                    source_sha=source_sha,
+                    report_sha=receipt["artifacts"]["comparison"]["sha256"],
+                    reference_sha=receipt["artifacts"]["reference"]["sha256"],
+                    papaya_sha=receipt["artifacts"]["papaya"]["sha256"],
+                )
+                receipt["scope"]["preregistered_numeric_policy_applied"] = True
+            else:
+                raise ManagedPairError(f"unknown stage: {stage}")
+        except Exception as exc:
+            _record_failure(
+                receipt_path=receipt_path,
+                receipt=receipt,
+                stage=stage,
+                kind="artifact_validation",
+                output_path=path,
+                error_type=type(exc).__name__,
             )
-            receipt["scope"]["preflight_all_required_inputs_verified"] = True
-        elif stage == "reference":
-            receipt["artifacts"]["reference"] = _artifact_summary(
-                path,
-                expected_schema=REFERENCE_SCHEMA,
-                source_sha=source_sha,
-                label="reference run",
-            )
-        elif stage == "papaya":
-            receipt["artifacts"]["papaya"] = _artifact_summary(
-                path,
-                expected_schema=PAPAYA_SCHEMA,
-                source_sha=source_sha,
-                label="Papaya run",
-            )
-        elif stage == "comparison":
-            receipt["artifacts"]["comparison"] = _report_summary(
-                path, source_sha
-            )
-        elif stage == "decision":
-            receipt["artifacts"]["decision"] = _decision_summary(
-                path,
-                source_sha=source_sha,
-                report_sha=receipt["artifacts"]["comparison"]["sha256"],
-                reference_sha=receipt["artifacts"]["reference"]["sha256"],
-                papaya_sha=receipt["artifacts"]["papaya"]["sha256"],
-            )
-            receipt["scope"]["preregistered_numeric_policy_applied"] = True
-        else:
-            raise ManagedPairError(f"unknown stage: {stage}")
+            raise
+
         receipt["stage"] = f"{stage}_complete"
         _write_receipt(receipt_path, receipt)
 
