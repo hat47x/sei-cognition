@@ -1,0 +1,178 @@
+import copy
+import hashlib
+import importlib.util
+import io
+import json
+import sys
+import tempfile
+import unittest
+from contextlib import closing
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+SPEC = importlib.util.spec_from_file_location(
+    "materialize_reference_model",
+    HERE / "materialize_reference_model.py",
+)
+mod = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = mod
+SPEC.loader.exec_module(mod)
+
+MANIFEST = json.loads(
+    (HERE / "reference_model_transport.v1.json").read_text(
+        encoding="utf-8"
+    )
+)
+
+
+class ReferenceModelTransportTest(unittest.TestCase):
+    def test_retained_manifest_is_exact(self):
+        transports = mod.validate_manifest(copy.deepcopy(MANIFEST))
+        self.assertEqual(
+            set(transports),
+            {mod.HF_ID, mod.MIRROR_ID},
+        )
+        for entries in transports.values():
+            self.assertEqual(len(entries), 5)
+
+    def test_manifest_scope_overclaim_is_rejected(self):
+        for field in (
+            "current_chat_transport_succeeded",
+            "model_bytes_materialized",
+            "model_weights_loaded",
+            "live_inference",
+            "numeric_parity",
+            "shipping_decision",
+        ):
+            packet = copy.deepcopy(MANIFEST)
+            packet["scope"][field] = True
+            with self.subTest(field=field), self.assertRaises(
+                mod.ReferenceModelTransportError
+            ):
+                mod.validate_manifest(packet)
+
+    def test_transport_contract_or_provenance_drift_is_rejected(self):
+        packet = copy.deepcopy(MANIFEST)
+        packet["transports"][1]["provenance"]["git_blob"] = "0" * 40
+        with self.assertRaises(mod.ReferenceModelTransportError):
+            mod.validate_manifest(packet)
+
+        packet = copy.deepcopy(MANIFEST)
+        packet["transports"][0]["files"][0]["sha256"] = "0" * 64
+        with self.assertRaises(mod.ReferenceModelTransportError):
+            mod.validate_manifest(packet)
+
+        packet = copy.deepcopy(MANIFEST)
+        packet["transports"][1]["files"][0]["url"] += "?changed=1"
+        with self.assertRaises(mod.ReferenceModelTransportError):
+            mod.validate_manifest(packet)
+
+    def test_atomic_materialization_succeeds_for_verified_streams(self):
+        blobs = {
+            "https://example.invalid/a": b"alpha",
+            "https://example.invalid/nested/b": b"beta",
+        }
+        entries = [
+            {
+                "path": "a",
+                "url": "https://example.invalid/a",
+                "bytes": len(blobs["https://example.invalid/a"]),
+                "sha256": hashlib.sha256(
+                    blobs["https://example.invalid/a"]
+                ).hexdigest(),
+            },
+            {
+                "path": "nested/b",
+                "url": "https://example.invalid/nested/b",
+                "bytes": len(
+                    blobs["https://example.invalid/nested/b"]
+                ),
+                "sha256": hashlib.sha256(
+                    blobs["https://example.invalid/nested/b"]
+                ).hexdigest(),
+            },
+        ]
+
+        def stream(url, _timeout):
+            return closing(io.BytesIO(blobs[url]))
+
+        def verify(root):
+            self.assertEqual(
+                (root / "a").read_bytes(),
+                b"alpha",
+            )
+            self.assertEqual(
+                (root / "nested/b").read_bytes(),
+                b"beta",
+            )
+            return {"valid": True}
+
+        with tempfile.TemporaryDirectory() as td:
+            output = Path(td) / "model"
+            receipt = mod.materialize_entries(
+                entries,
+                output,
+                transport_id="synthetic",
+                stream_factory=stream,
+                directory_verifier=verify,
+            )
+            self.assertTrue(output.is_dir())
+            self.assertEqual(
+                receipt["status"],
+                "materialized-and-verified",
+            )
+            self.assertTrue(
+                receipt["scope"]["model_bytes_materialized"]
+            )
+            self.assertFalse(
+                receipt["scope"]["model_weights_loaded"]
+            )
+
+    def test_hash_or_size_failure_never_publishes_output(self):
+        entry = {
+            "path": "model.safetensors",
+            "url": "https://example.invalid/model",
+            "bytes": 5,
+            "sha256": hashlib.sha256(b"right").hexdigest(),
+        }
+
+        def stream(_url, _timeout):
+            return closing(io.BytesIO(b"wrong"))
+
+        with tempfile.TemporaryDirectory() as td:
+            output = Path(td) / "model"
+            with self.assertRaises(
+                mod.ReferenceModelTransportError
+            ):
+                mod.materialize_entries(
+                    [entry],
+                    output,
+                    transport_id="synthetic",
+                    stream_factory=stream,
+                    directory_verifier=lambda _root: {"valid": True},
+                )
+            self.assertFalse(output.exists())
+            self.assertEqual(list(Path(td).iterdir()), [])
+
+    def test_output_collision_and_unsafe_paths_are_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            output = root / "model"
+            output.mkdir()
+            with self.assertRaises(
+                mod.ReferenceModelTransportError
+            ):
+                mod.materialize_entries(
+                    [],
+                    output,
+                    transport_id="synthetic",
+                )
+
+        with self.assertRaises(mod.ReferenceModelTransportError):
+            mod._safe_relative_path("../escape", "path")
+        with self.assertRaises(mod.ReferenceModelTransportError):
+            mod._safe_relative_path("/absolute", "path")
+
+
+if __name__ == "__main__":
+    unittest.main()
