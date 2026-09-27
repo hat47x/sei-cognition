@@ -15,14 +15,18 @@
       "wheel_filename": "laya-0.3.20-py3-none-any.whl",
       "wheel_bytes": 118520,
       "wheel_sha256": "6039e802fa5effb8dd492061cd7ad39a43087beadc4a4fa4a649614e77eb83d4",
-      "wheel_tags": ["py3-none-any"],
+      "wheel_tags": [
+        "py3-none-any"
+      ],
       "source": {
         "repository": "NandhaKishorM/laya",
         "revision": "23a17522aa4942da6cce53a995a275760320b691",
         "workflow_run_id": 35960902240,
         "artifact_id": 10792385664,
         "artifact_name": "dist",
-        "artifact_zip_sha256": "c6740d85f261188e51dcf7f0fc490bed4b8c0d55656d57f3cda5bb474078e32f"
+        "artifact_zip_sha256": "c6740d85f261188e51dcf7f0fc490bed4b8c0d55656d57f3cda5bb474078e32f",
+        "workflow_conclusion": "success",
+        "artifact_expires_at": "2026-12-23T05:39:21Z"
       }
     },
     {
@@ -31,14 +35,18 @@
       "wheel_filename": "transformers-5.17.0-py3-none-any.whl",
       "wheel_bytes": 12295140,
       "wheel_sha256": "78ec1ce21579b38dfb83950a0658cd119f87212a2fcfdff478096ce9d6c03801",
-      "wheel_tags": ["py3-none-any"],
+      "wheel_tags": [
+        "py3-none-any"
+      ],
       "source": {
         "repository": "huggingface/transformers",
         "revision": "856157a2f3e9594954310df18fdccc31ffddebe9",
         "workflow_run_id": 34367538606,
         "artifact_id": 10110585452,
         "artifact_name": "python-dist",
-        "artifact_zip_sha256": "4fde928338a10a3faedd9a90fb0c3fefee8d23fcb05ecfe94c20320a4c1a3f0a"
+        "artifact_zip_sha256": "4fde928338a10a3faedd9a90fb0c3fefee8d23fcb05ecfe94c20320a4c1a3f0a",
+        "workflow_conclusion": "success",
+        "artifact_expires_at": "2026-12-08T15:01:53Z"
       }
     },
     {
@@ -57,7 +65,9 @@
         "workflow_run_id": 33735388484,
         "artifact_id": 9885597962,
         "artifact_name": "pypi_files-ubuntu-x86_64-auto-abi3",
-        "artifact_zip_sha256": "26cefb048f96a11e605e5937de700355b3d58c732c7b58bdfaaa5ed513751d0a"
+        "artifact_zip_sha256": "26cefb048f96a11e605e5937de700355b3d58c732c7b58bdfaaa5ed513751d0a",
+        "workflow_conclusion": "success",
+        "artifact_expires_at": "2026-12-02T08:48:51Z"
       }
     },
     {
@@ -76,7 +86,9 @@
         "workflow_run_id": 35890001765,
         "artifact_id": 10764477075,
         "artifact_name": "wheels-linux-x86_64-3.14",
-        "artifact_zip_sha256": "5e07f39aa5ba28105acd1932a529f50b5e240e5d9bff1560f1e5b4f8ad2bda8b"
+        "artifact_zip_sha256": "5e07f39aa5ba28105acd1932a529f50b5e240e5d9bff1560f1e5b4f8ad2bda8b",
+        "workflow_conclusion": "success",
+        "artifact_expires_at": "2026-12-22T16:37:11Z"
       }
     }
   ],
@@ -105,6 +117,34 @@
     "model_weights_loaded": false,
     "live_inference": false,
     "numeric_parity": false,
-    "shipping_decision": false
+    "shipping_decision": false,
+    "host_assisted_transport": true,
+    "self_contained_wheelhouse": false
+  },
+  "transport_boundary": {
+    "host_assisted_transport": true,
+    "wheelhouse_is_self_contained": false,
+    "managed_reference_required_distributions": [
+      "torch",
+      "transformers",
+      "tokenizers",
+      "safetensors",
+      "huggingface-hub",
+      "numpy",
+      "fastapi",
+      "uvicorn"
+    ],
+    "wheelhouse_supplied_managed_reference_distributions": [
+      "transformers",
+      "tokenizers",
+      "safetensors"
+    ],
+    "required_host_distributions_not_supplied": [
+      "torch",
+      "huggingface-hub",
+      "numpy",
+      "fastapi",
+      "uvicorn"
+    ]
   }
 }
