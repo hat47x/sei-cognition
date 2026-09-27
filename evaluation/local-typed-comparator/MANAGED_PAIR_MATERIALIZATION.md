@@ -290,6 +290,39 @@ GitHub mirrors also expose Git-LFS pointers with the same SHA-256 and size.
 Those pointers/manifests are provenance corroboration, not substitute model
 bytes.
 
+### Rejected alternate reference transports
+
+A public Kaggle model at
+`ser8147/arc-laya/Transformers/typed-decisions` was inspected as a possible
+independent transport on 2026-09-27. It is **not** the frozen Python-Laya
+reference checkpoint.
+
+The public operator record shows Kaggle versions 1 and 2. Version 2 contains a
+`model.safetensors` with the same 842,609,220-byte length as the reference,
+but its metadata identifies it as an ARC-specific fine-tune on 1,720 cases and
+does not provide the frozen reference SHA-256. Equal byte length is therefore
+not identity Evidence.
+
+Version 1 is also a derived fine-tune: its retained metadata names
+`ser8147/arc-laya-finetune-data` as training data and its
+`rl_agent_config.json` has `fine_tuned=true`, 816 bytes, versus the frozen
+reference contract's 847-byte config. Neither version is admitted as a
+reference transport.
+
+```text
+same architecture / same weight-file byte length
+  != same checkpoint bytes
+
+derived ARC fine-tune
+  != frozen convaiinnovations/laya-typed-decisions reference
+```
+
+The public macOS LayaServe releases were also inspected only as transport
+leads. They publish a single approximately 1.1 GB disk image rather than a
+standalone or split reference-weight artifact, and their release workflow does
+not upload the model as a separate Actions artifact. That packaging route is
+not an admitted exact-byte transport for this experiment.
+
 ## 4. Papaya Q8 candidate bytes
 
 Papaya's evaluation candidate is intentionally a separate derived runtime
@@ -496,7 +529,7 @@ it does not authenticate the host or recompute inference/parity.
 
 ## 8. Current ChatGPT-environment boundary
 
-As of 2026-09-26, the current execution environment cannot materialize the
+As of 2026-09-27, the current execution environment cannot materialize the
 large Hugging Face/Xet model objects through its available download path.
 
 Observed public transport evidence is narrower:
@@ -509,6 +542,15 @@ Observed public transport evidence is narrower:
   library packs, not bundled Laya model weights;
 - no GitHub mirror/Release/Actions artifact for the exact Papaya Q8/head
   SHA-256 values was found;
+- the TrueSpar reference mirror is independently catalogued with the exact
+  reference hashes, but even its 337-byte/847-byte files fail at DNS resolution
+  in the current shell; this is a transport-environment failure, not a byte
+  mismatch;
+- the public Kaggle `ser8147/arc-laya` versions were rejected because both are
+  derived fine-tunes rather than the frozen reference checkpoint;
+- the public LayaServe macOS release exposes only an approximately 1.1 GB
+  bundled disk image and no separate/split model artifact suitable for the
+  current GitHub artifact handoff;
 - the pinned b10964 llama runtime is already materialized Evidence and is not
   the remaining transport blocker.
 
