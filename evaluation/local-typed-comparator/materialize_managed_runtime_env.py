@@ -105,6 +105,10 @@ def _venv_python(root: Path) -> Path:
     return root / "bin" / "python"
 
 
+def _absolute_without_resolving_symlinks(path: Path) -> Path:
+    return Path(os.path.abspath(str(path.expanduser())))
+
+
 def _write_receipt(path: Path, value: dict[str, Any]) -> None:
     temp = path.with_name(path.name + ".tmp")
     temp.write_text(
@@ -346,10 +350,15 @@ def verify_environment(
             "runtime environment must keep system-site-packages enabled"
         )
 
-    python = _venv_python(root).resolve()
+    python = _absolute_without_resolving_symlinks(
+        _venv_python(root)
+    )
     if (
         expected_python_executable is not None
-        and python != expected_python_executable.expanduser().resolve()
+        and python
+        != _absolute_without_resolving_symlinks(
+            expected_python_executable
+        )
     ):
         raise ManagedRuntimeEnvironmentError(
             "current interpreter is not the verified managed runtime"
