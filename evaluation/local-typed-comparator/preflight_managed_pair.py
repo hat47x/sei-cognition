@@ -198,6 +198,7 @@ def run_preflight(
                 "host_assisted_transport": True,
                 "self_contained_wheelhouse": False,
                 "host_dependency_versions_pinned": False,
+                "runtime_installation_origin_attested": False,
             },
         }
 

@@ -142,6 +142,10 @@ def _preflight_summary(path: Path, source_sha: str) -> dict[str, Any]:
             raise ManagedPairError(
                 "pair preflight wheelhouse host dependency pin overclaim"
             )
+        if wheel_scope.get("runtime_installation_origin_attested") is not False:
+            raise ManagedPairError(
+                "pair preflight wheelhouse installation-origin overclaim"
+            )
     for field in (
         "model_weights_loaded",
         "live_reference_inference",

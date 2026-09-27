@@ -153,6 +153,13 @@ versions to equal the host on which #635 was observed. Those distributions must
 exist and their actual versions remain captured, but they are not promoted into
 a product/runtime pin.
 
+The wheelhouse check also does not prove installation origin for
+Transformers/tokenizers/safetensors. It proves that the retained wheel bytes are
+valid and that the currently observed package versions match those wheels. The
+preflight receipt therefore keeps
+`runtime_installation_origin_attested=false` unless a future, separately
+designed provenance mechanism establishes more.
+
 The current environment additionally demonstrated an offline install of these
 four wheels together with its already-present host dependencies. That
 observation is explicitly host-assisted rather than proof that the four-wheel

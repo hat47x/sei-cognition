@@ -526,7 +526,11 @@ Laya 0.3.20 wheel remains independently fixed by its existing SHA/size gate.
 
 This option does **not** pin host-provided `torch`, `huggingface-hub`,
 `numpy`, `fastapi`, or `uvicorn` versions, and it does not turn the
-wheelhouse into a self-contained or product runtime lock. Omitting the option
+wheelhouse into a self-contained or product runtime lock. It also does not
+attest that the currently importable Transformers/tokenizers/safetensors
+packages were installed *from those exact wheel files*; the preflight proves
+wheel-byte validity plus observed-version agreement only. The receipt therefore
+keeps `runtime_installation_origin_attested=false`. Omitting the option
 preserves the existing host-native dependency path.
 
 The paired orchestrator invokes the fail-closed stages in order:

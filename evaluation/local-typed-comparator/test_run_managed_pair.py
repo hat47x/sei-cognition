@@ -32,6 +32,7 @@ class FakeRunner:
         decision="pass",
         bad_decision_binding=None,
         preflight_live=False,
+        preflight_install_origin=False,
     ):
         self.calls = []
         self.fail_stage = fail_stage
@@ -39,6 +40,7 @@ class FakeRunner:
         self.decision = decision
         self.bad_decision_binding = bad_decision_binding
         self.preflight_live = preflight_live
+        self.preflight_install_origin = preflight_install_origin
 
     def __call__(self, command, *, cwd, check):
         self.calls.append((command, cwd, check))
@@ -71,6 +73,9 @@ class FakeRunner:
                                 "host_assisted_transport": True,
                                 "self_contained_wheelhouse": False,
                                 "host_dependency_versions_pinned": False,
+                                "runtime_installation_origin_attested": (
+                                    self.preflight_install_origin
+                                ),
                             },
                         }
                         if "--runtime-wheelhouse-dir" in command
@@ -472,6 +477,29 @@ class ManagedPairTest(unittest.TestCase):
                     runner=runner,
                 )
             self.assertEqual(len(runner.calls), 5)
+
+    def test_wheelhouse_installation_origin_overclaim_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = FakeRunner(preflight_install_origin=True)
+            with self.assertRaises(mod.ManagedPairError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(
+                        root, out, runtime_wheelhouse=True
+                    ),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            self.assertEqual(len(runner.calls), 1)
+            receipt = json.loads((out / mod.RECEIPT_FILE).read_text())
+            self.assertEqual(
+                receipt["stage"], "preflight_validation_failed"
+            )
 
     def test_preflight_overclaim_is_rejected(self):
         with tempfile.TemporaryDirectory() as td:
