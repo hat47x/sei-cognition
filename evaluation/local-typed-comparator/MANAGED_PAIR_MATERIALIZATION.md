@@ -3,7 +3,7 @@
 Status: execution handoff only. This document does not claim that the model
 bytes have been materialized in the current ChatGPT execution environment.
 
-Related: #597, #622, #623, #624, #627, #628, #629, #630, #631.
+Related: #597, #622, #623, #624, #627, #628, #629, #630, #631, #635, #636.
 
 The fail-closed validators already define the authoritative byte contract.
 This page only collects the acquisition steps needed on an eligible host. Do
@@ -134,6 +134,24 @@ python3 verify_runtime_dependency_wheelhouse.py \
 The validator fails closed on wheel-set drift, bytes/SHA-256 drift, package
 name/version metadata drift, wheel-tag drift, artifact provenance shape drift,
 or any attempt to promote the packet beyond transport-candidate scope.
+
+If this wheelhouse is used for the actual managed pair, keep the same verified
+directory available and pass it to the shared preflight:
+
+```bash
+--runtime-wheelhouse-dir <wheelhouse>
+```
+
+The preflight revalidates the manifest + wheel bytes and additionally requires
+the currently observed `transformers`, `tokenizers`, and `safetensors`
+versions to equal the retained transport candidate. The exact Laya wheel is
+still checked independently by the existing Laya wheel SHA/size gate.
+
+This binding intentionally does **not** require the execution host's
+`torch`, `huggingface-hub`, `numpy`, `fastapi`, or `uvicorn`
+versions to equal the host on which #635 was observed. Those distributions must
+exist and their actual versions remain captured, but they are not promoted into
+a product/runtime pin.
 
 The current environment additionally demonstrated an offline install of these
 four wheels together with its already-present host dependencies. That
@@ -348,9 +366,17 @@ python3 preflight_managed_pair.py \
   --output <new-path-outside-both-source-checkouts>/pair-preflight.json
 ```
 
+When using the #635 host-assisted wheelhouse, add:
+
+```bash
+--runtime-wheelhouse-dir <verified-wheelhouse>
+```
+
 A preflight PASS means only that the materialized input set satisfies the
-already-merged byte/provenance/contracts. It does not load model weights or
-claim inference/parity.
+already-merged byte/provenance/contracts. If the optional wheelhouse is
+provided, its verification and the matched transported dependency versions are
+also retained in the preflight receipt. It does not load model weights or claim
+inference/parity.
 
 ## 7. One-shot paired execution
 
@@ -369,6 +395,11 @@ python3 run_managed_pair.py \
   --run-id <unique-run-id> \
   --output-dir <new-directory-outside-both-source-checkouts>
 ```
+
+When using the retained runtime wheelhouse, add the same optional
+`--runtime-wheelhouse-dir <verified-wheelhouse>` argument. The paired runner
+passes it only to preflight; the two provider captures keep their existing
+runtime/provenance contracts unchanged.
 
 The orchestrator runs:
 
