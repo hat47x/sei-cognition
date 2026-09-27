@@ -1,0 +1,109 @@
+{
+  "schema": "sei.local-typed-comparator-reference-model-transport/v1",
+  "status": "transport-candidate",
+  "observed_date": "2026-09-27",
+  "observed_from_sei_source_sha": "143e84d2fe1490f2a7d190cb7f15610f40f3cdcf",
+  "reference_contract": {
+    "attestation_schema": "sei.local-typed-comparator-reference-model-directory-attestation/v1",
+    "repository": "convaiinnovations/laya-typed-decisions",
+    "revision": "f9ab0b228f0fc0f14d873dbc99038f135c2da1b2"
+  },
+  "transports": [
+    {
+      "id": "huggingface-immutable",
+      "kind": "huggingface-resolve",
+      "content_addressed_url": true,
+      "requires_post_download_verification": true,
+      "provenance": {
+        "repository": "convaiinnovations/laya-typed-decisions",
+        "revision": "f9ab0b228f0fc0f14d873dbc99038f135c2da1b2"
+      },
+      "files": [
+        {
+          "path": "model.safetensors",
+          "url": "https://huggingface.co/convaiinnovations/laya-typed-decisions/resolve/f9ab0b228f0fc0f14d873dbc99038f135c2da1b2/model.safetensors",
+          "bytes": 842609220,
+          "sha256": "4fa56de72383a9d3efa9cfa78955733c81b9fc8067a587ca4beb82c78107a24e"
+        },
+        {
+          "path": "encoder/config.json",
+          "url": "https://huggingface.co/convaiinnovations/laya-typed-decisions/resolve/f9ab0b228f0fc0f14d873dbc99038f135c2da1b2/encoder/config.json",
+          "bytes": 2084,
+          "sha256": "5268d24ad3b77c8151de5dcb0762ba4391619aad9ab0bda33e36fb083cfeae6d"
+        },
+        {
+          "path": "rl_agent_config.json",
+          "url": "https://huggingface.co/convaiinnovations/laya-typed-decisions/resolve/f9ab0b228f0fc0f14d873dbc99038f135c2da1b2/rl_agent_config.json",
+          "bytes": 847,
+          "sha256": "ebf0cd524d92342a6be5e48e9fca3d7c2babfb5a56ccd79d2171ef5d8c7f7be8"
+        },
+        {
+          "path": "tokenizer/tokenizer.json",
+          "url": "https://huggingface.co/convaiinnovations/laya-typed-decisions/resolve/f9ab0b228f0fc0f14d873dbc99038f135c2da1b2/tokenizer/tokenizer.json",
+          "bytes": 3583228,
+          "sha256": "6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30"
+        },
+        {
+          "path": "tokenizer/tokenizer_config.json",
+          "url": "https://huggingface.co/convaiinnovations/laya-typed-decisions/resolve/f9ab0b228f0fc0f14d873dbc99038f135c2da1b2/tokenizer/tokenizer_config.json",
+          "bytes": 337,
+          "sha256": "08d4cf3ac4dca381759441b85b91a6d40e688471dcd33d15d6649eb0a9a854d1"
+        }
+      ]
+    },
+    {
+      "id": "truespar-paddock-mirror",
+      "kind": "https-mirror",
+      "content_addressed_url": false,
+      "requires_post_download_verification": true,
+      "provenance": {
+        "repository": "truespar/paddock",
+        "revision": "610cd8f5ea72e7421a99ca418d51de804d312730",
+        "path": "crates/paddock-manager/models.toml",
+        "git_blob": "330a4ce13bd17fda07f6945123b3635bf548c95c"
+      },
+      "files": [
+        {
+          "path": "model.safetensors",
+          "url": "https://models.truespar.io/models/laya/typed-decisions/model.safetensors",
+          "bytes": 842609220,
+          "sha256": "4fa56de72383a9d3efa9cfa78955733c81b9fc8067a587ca4beb82c78107a24e"
+        },
+        {
+          "path": "encoder/config.json",
+          "url": "https://models.truespar.io/models/laya/typed-decisions/encoder/config.json",
+          "bytes": 2084,
+          "sha256": "5268d24ad3b77c8151de5dcb0762ba4391619aad9ab0bda33e36fb083cfeae6d"
+        },
+        {
+          "path": "rl_agent_config.json",
+          "url": "https://models.truespar.io/models/laya/typed-decisions/rl_agent_config.json",
+          "bytes": 847,
+          "sha256": "ebf0cd524d92342a6be5e48e9fca3d7c2babfb5a56ccd79d2171ef5d8c7f7be8"
+        },
+        {
+          "path": "tokenizer/tokenizer.json",
+          "url": "https://models.truespar.io/models/laya/typed-decisions/tokenizer/tokenizer.json",
+          "bytes": 3583228,
+          "sha256": "6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30"
+        },
+        {
+          "path": "tokenizer/tokenizer_config.json",
+          "url": "https://models.truespar.io/models/laya/typed-decisions/tokenizer/tokenizer_config.json",
+          "bytes": 337,
+          "sha256": "08d4cf3ac4dca381759441b85b91a6d40e688471dcd33d15d6649eb0a9a854d1"
+        }
+      ]
+    }
+  ],
+  "scope": {
+    "reference_contract_matches_all_transports": true,
+    "transport_candidate_only": true,
+    "current_chat_transport_succeeded": false,
+    "model_bytes_materialized": false,
+    "model_weights_loaded": false,
+    "live_inference": false,
+    "numeric_parity": false,
+    "shipping_decision": false
+  }
+}

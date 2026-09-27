@@ -215,6 +215,55 @@ hf download \
   --local-dir <reference-model-dir>
 ```
 
+A second public transport candidate is retained in
+`reference_model_transport.v1.json`. It binds the exact same five-file
+contract to:
+
+- the immutable Hugging Face revision above; and
+- the public `truespar/paddock@610cd8f5...` mirror catalog
+  (`crates/paddock-manager/models.toml`, blob
+  `330a4ce13bd17fda07f6945123b3635bf548c95c`).
+
+All five mirror rows match the existing reference attestation byte-for-byte,
+including the 842,609,220-byte model weight SHA-256
+`4fa56de72383a9d3efa9cfa78955733c81b9fc8067a587ca4beb82c78107a24e`.
+
+On an eligible host, either transport can be materialized atomically:
+
+```bash
+python3 materialize_reference_model.py \
+  reference_model_transport.v1.json \
+  --transport huggingface-immutable \
+  --output-dir <new-reference-model-dir>
+```
+
+or:
+
+```bash
+python3 materialize_reference_model.py \
+  reference_model_transport.v1.json \
+  --transport truespar-paddock-mirror \
+  --output-dir <new-reference-model-dir>
+```
+
+The materializer downloads into a sibling staging directory, verifies every
+file's exact byte count and SHA-256, runs the existing
+`verify_reference_model_directory.py` contract against the complete staged
+directory, and only then atomically publishes the destination. Any download,
+size, digest or directory-contract failure removes staging and leaves the
+destination absent.
+
+The TrueSpar URLs are deliberately **not** labelled content-addressed. Their
+pinned catalog is provenance for the expected mirror mapping; the post-download
+hash gate remains authoritative.
+
+In the current ChatGPT shell, outbound DNS/HTTPS remains unavailable, so neither
+transport succeeded here and no reference model bytes are claimed as
+materialized. A separate public `chrisns/laya-mac-serve` Actions artifact was
+also found to bundle the real checkpoint, but its 1,011,457,975-byte artifact
+exceeds the connector's 536,870,912-byte download ceiling. These are transport
+constraints, not model-validation failures.
+
 The complete runtime-consumed contract is already frozen in
 `reference_model_directory_attestation.v1.json`:
 
