@@ -525,12 +525,24 @@ If the #635 host-assisted wheelhouse is available, add:
 --runtime-wheelhouse-dir <verified-wheelhouse>
 ```
 
+To create the #645 exact-wheel managed venv inside the same workspace, also
+add:
+
+```bash
+--materialize-runtime-environment
+```
+
+That flag requires the wheelhouse. Runtime creation is deliberately placed
+before the large model transfers, so platform/pip/PEP-610 failures do not occur
+after downloading roughly 1.37 GB of model inputs.
+
 The wrapper performs:
 
 ```text
 validate exact clean SEI source SHA
   -> bind reference/Papaya manifest objects to the exact retained raw bytes
   -> optionally verify the retained runtime wheelhouse
+  -> optionally materialize + verify runtime-env/
   -> materialize + verify reference model
   -> materialize + verify Papaya candidate
   -> prepare Papaya compatibility overlay
@@ -543,6 +555,7 @@ The output layout is:
 
 ```text
 <workspace>/
+  runtime-env/            # only with --materialize-runtime-environment
   reference-model/
   papaya-candidate/
   papaya-overlay/
@@ -564,13 +577,21 @@ For the same reason, a successful workspace is **not relocatable**. Its overlay
 must be used in place. The receipt fixes:
 
 ```text
-workspace_relocatable                  false
-runtime_installation_origin_attested   false
-model_weights_loaded                   false
+workspace_relocatable                          false
+runtime_environment_materialized                true/false
+transported_wheel_installation_origin_attested  true/false
+runtime_installation_origin_attested            false
+model_weights_loaded                            false
 live_reference_inference               false
 live_papaya_inference                  false
 numeric parity decision observed       false
 ```
+
+When `runtime-env/` is included, keep both the workspace and source
+wheelhouse at their verified paths. Launch subsequent preflight / paired
+execution with `<workspace>/runtime-env/bin/python`,
+`--runtime-wheelhouse-dir <verified-wheelhouse>`, and
+`--runtime-environment-dir <workspace>/runtime-env`.
 
 This command does not materialize the clean Papaya source checkout or the
 pinned llama.cpp runtime; those remain separate preflight inputs.
