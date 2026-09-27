@@ -49,6 +49,31 @@ def synthetic_manifest(root: Path):
     return {
         "schema": mod.SCHEMA,
         "status": "transport-candidate",
+        "observed_from_sei_source_sha": "c" * 40,
+        "platform": copy.deepcopy(mod.OBSERVED_PLATFORM),
+        "transport_boundary": {
+            "host_assisted_transport": True,
+            "wheelhouse_is_self_contained": False,
+            "managed_reference_required_distributions": list(
+                mod.MANAGED_REFERENCE_REQUIRED
+            ),
+            "wheelhouse_supplied_managed_reference_distributions": list(
+                mod.WHEELHOUSE_SUPPLIED_RUNTIME
+            ),
+            "required_host_distributions_not_supplied": list(
+                mod.HOST_REQUIRED_NOT_SUPPLIED
+            ),
+        },
+        "observed_host_dependencies": {
+            "torch": "2.10.0+cpu",
+            "huggingface-hub": "1.16.1",
+            "numpy": "2.3.5",
+            "fastapi": "0.128.2",
+            "uvicorn": "0.48.0",
+        },
+        "validation_observation": copy.deepcopy(
+            mod.EXPECTED_VALIDATION_OBSERVATION
+        ),
         "entries": [
             {
                 "distribution": "demo",
@@ -64,11 +89,15 @@ def synthetic_manifest(root: Path):
                     "artifact_id": 2,
                     "artifact_name": "dist",
                     "artifact_zip_sha256": "b" * 64,
+                    "workflow_conclusion": "success",
+                    "artifact_expires_at": "2026-12-31T23:59:59Z",
                 },
             }
         ],
         "scope": {
             "transport_candidate_only": True,
+            "host_assisted_transport": True,
+            "self_contained_wheelhouse": False,
             "product_runtime_pin": False,
             "model_bytes_materialized": False,
             "model_weights_loaded": False,
@@ -87,6 +116,58 @@ class WheelhouseTest(unittest.TestCase):
             result = mod.verify_wheelhouse(manifest, root)
             self.assertTrue(result["valid"])
             self.assertEqual(result["wheel_count"], 1)
+
+    def test_platform_and_transport_boundary_drift_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            manifest = synthetic_manifest(root)
+
+            bad = copy.deepcopy(manifest)
+            bad["platform"]["arch"] = "aarch64"
+            with self.assertRaises(mod.WheelhouseError):
+                mod.verify_wheelhouse(bad, root)
+
+            bad = copy.deepcopy(manifest)
+            bad["transport_boundary"]["wheelhouse_is_self_contained"] = True
+            with self.assertRaises(mod.WheelhouseError):
+                mod.verify_wheelhouse(bad, root)
+
+            bad = copy.deepcopy(manifest)
+            bad["transport_boundary"][
+                "required_host_distributions_not_supplied"
+            ] = []
+            with self.assertRaises(mod.WheelhouseError):
+                mod.verify_wheelhouse(bad, root)
+
+    def test_host_dependency_and_observation_drift_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            manifest = synthetic_manifest(root)
+
+            bad = copy.deepcopy(manifest)
+            del bad["observed_host_dependencies"]["torch"]
+            with self.assertRaises(mod.WheelhouseError):
+                mod.verify_wheelhouse(bad, root)
+
+            bad = copy.deepcopy(manifest)
+            bad["validation_observation"]["modernbert_import"] = "fail"
+            with self.assertRaises(mod.WheelhouseError):
+                mod.verify_wheelhouse(bad, root)
+
+    def test_artifact_lifecycle_fields_are_required(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            manifest = synthetic_manifest(root)
+
+            bad = copy.deepcopy(manifest)
+            bad["entries"][0]["source"]["workflow_conclusion"] = "failure"
+            with self.assertRaises(mod.WheelhouseError):
+                mod.verify_wheelhouse(bad, root)
+
+            bad = copy.deepcopy(manifest)
+            bad["entries"][0]["source"]["artifact_expires_at"] = "not-a-date"
+            with self.assertRaises(mod.WheelhouseError):
+                mod.verify_wheelhouse(bad, root)
 
     def test_hash_or_metadata_drift_is_rejected(self):
         with tempfile.TemporaryDirectory() as td:
