@@ -554,6 +554,42 @@ Observed public transport evidence is narrower:
 - the pinned b10964 llama runtime is already materialized Evidence and is not
   the remaining transport blocker.
 
+On 2026-09-27 the GitHub transport audit was extended with exact public
+repository evidence so later runs do not repeat the same dead ends:
+
+- `he-jev/laya@c5d78730f3493e4fe16d61507ef4b78eef7318cf`
+  retains `typed-decisions/model.safetensors` as Git blob
+  `3fb9c9678050815e76d0c847115919d7871ace3e`. The tracked file is the
+  standard 134-byte Git-LFS pointer whose object id is exactly
+  `sha256:4fa56de72383a9d3efa9cfa78955733c81b9fc8067a587ca4beb82c78107a24e`
+  and whose declared object size is exactly 842,609,220 bytes. The repository
+  tree also retains the four small typed-decisions files at the expected Git
+  blobs. However, both the GitHub `raw` and connector file paths return the
+  134-byte pointer, not the LFS object; the repository has no Releases or
+  Actions runs carrying the weights. This is strong independent provenance,
+  but not current-environment materialization.
+- `danielmeppiel/apm-laya-triage` successfully ran the genuine frozen
+  checkpoint in public Actions. Full-run `36122098981` retained eight
+  `laya-shard-*` artifacts, `full-laya-report`, and `experiment-source`.
+  Their published artifact sizes are all only a few megabytes or less and the
+  workflow uploads results after each runner downloads the checkpoint itself;
+  it does not upload the model cache. Therefore those successful live runs are
+  independent execution corroboration, not a weight transport.
+- the exact Papaya filenames and SHA-256 values were searched across public
+  GitHub code/workflow surfaces. `m0rphtail/papaya` downloads the files from
+  Hugging Face at runtime and does not publish a model-bearing Actions artifact,
+  Release asset, or GHCR build path in the pinned source. No independent
+  GitHub artifact for the exact 421,407,968-byte Q8 backbone or
+  106,052,952-byte decision head was found.
+- public split-artifact searches for the exact 842,609,220-byte reference
+  object found no workflow that publishes sub-512-MB chunks. The known
+  model-bearing LayaServe artifact remains larger than the connector download
+  ceiling, so it does not create a usable current-environment bypass.
+
+These findings deliberately do not add another admitted transport. A Git-LFS
+pointer, successful third-party inference run, or model-bearing oversized bundle
+must not be relabelled as materialized exact bytes.
+
 On 2026-09-27 the GitHub Actions artifact path additionally materialized the
 exact Laya wheel plus a compatible Transformers/tokenizers/safetensors runtime
 candidate and verified the resulting imports offline. Therefore the Python
