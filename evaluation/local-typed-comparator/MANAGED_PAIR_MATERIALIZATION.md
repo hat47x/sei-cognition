@@ -417,6 +417,34 @@ no independent exact-byte mirror of the Q8 backbone/head has been identified;
 the admitted transport therefore remains the immutable Hugging Face repository
 revision only.
 
+A superficially similar public repository,
+`fr0stbit3/laya-gguf`, was rechecked on 2026-09-28 and is **not** an admitted
+mirror. Its current Hub metadata identifies the base lineage as
+`convaiinnovations/laya`, while this experiment is fixed to the
+`convaiinnovations/laya-typed-decisions` /
+`fr0stbit3/laya-typed-decisions-gguf` lineage below. Public integrations such
+as `llamadart` pin that separate `laya-gguf` repository and use similarly
+sized Q8/head files, but approximate file size, architecture, naming, or task
+surface is not byte identity Evidence.
+
+Therefore:
+
+```text
+fr0stbit3/laya-gguf
+  != independent mirror of fr0stbit3/laya-typed-decisions-gguf
+
+approximately 421 MB Q8 + 106 MB head
+  != retained SHA-256 pair
+
+similar local typed-decision runtime
+  != admissible Papaya candidate transport
+```
+
+Do not substitute that lineage unless every retained candidate file is first
+shown to match the exact SHA-256/size contract below and the transport contract
+is separately reviewed and updated. No such exact-byte equivalence is currently
+established.
+
 Materialize all candidate inputs atomically with:
 
 ```bash
