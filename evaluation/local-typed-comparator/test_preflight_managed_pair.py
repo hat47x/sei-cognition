@@ -31,6 +31,8 @@ class FakeLoader:
         replay_counts=None,
         wheel_versions=None,
         papaya_versions=None,
+        runtime_environment_current_match=True,
+        runtime_environment_full_origin=False,
     ):
         self.replay_counts = replay_counts or {"a": 10}
         self.wheel_versions = wheel_versions or {
@@ -39,6 +41,12 @@ class FakeLoader:
             "tokenizers": "0.23.2",
             "safetensors": "0.9.0rc1",
         }
+        self.runtime_environment_current_match = (
+            runtime_environment_current_match
+        )
+        self.runtime_environment_full_origin = (
+            runtime_environment_full_origin
+        )
         self.papaya_versions = papaya_versions or {
             "numpy": "1",
             "torch": "1",
@@ -153,6 +161,39 @@ class FakeLoader:
                     },
                 },
             )
+        if path.name == "materialize_managed_runtime_env.py":
+            return types.SimpleNamespace(
+                verify_environment=lambda manifest, wheelhouse, env_root, **kwargs: {
+                    "schema": (
+                        "sei.local-typed-comparator-managed-runtime-environment/v1"
+                    ),
+                    "valid": True,
+                    "python": {
+                        "relative_path": "bin/python",
+                        "version": "3.13.5",
+                        "system_site_packages": True,
+                        "current_interpreter_matches": (
+                            self.runtime_environment_current_match
+                        ),
+                    },
+                    "transported": {},
+                    "host_dependencies": {},
+                    "scope": {
+                        "host_assisted_environment": True,
+                        "transported_wheel_installation_origin_attested": True,
+                        "runtime_installation_origin_attested": (
+                            self.runtime_environment_full_origin
+                        ),
+                        "host_dependency_versions_pinned": False,
+                        "self_contained_runtime": False,
+                        "environment_relocatable": False,
+                        "model_weights_loaded": False,
+                        "live_inference": False,
+                        "numeric_parity": False,
+                        "shipping_decision": False,
+                    },
+                }
+            )
         raise AssertionError(path)
 
 
@@ -183,8 +224,11 @@ class PairPreflightTest(unittest.TestCase):
         *,
         replay_counts=None,
         runtime_wheelhouse=False,
+        runtime_environment=False,
         wheel_versions=None,
         papaya_versions=None,
+        runtime_environment_current_match=True,
+        runtime_environment_full_origin=False,
     ):
         td = tempfile.TemporaryDirectory()
         root = Path(td.name)
@@ -199,6 +243,12 @@ class PairPreflightTest(unittest.TestCase):
             replay_counts=replay_counts,
             wheel_versions=wheel_versions,
             papaya_versions=papaya_versions,
+            runtime_environment_current_match=(
+                runtime_environment_current_match
+            ),
+            runtime_environment_full_origin=(
+                runtime_environment_full_origin
+            ),
         )
         try:
             receipt = mod.run_preflight(
@@ -211,7 +261,12 @@ class PairPreflightTest(unittest.TestCase):
                 papaya_overlay_dir=root / "overlay",
                 llama_binary=root / "llama-server",
                 runtime_wheelhouse_dir=(
-                    root / "wheelhouse" if runtime_wheelhouse else None
+                    root / "wheelhouse"
+                    if runtime_wheelhouse or runtime_environment
+                    else None
+                ),
+                runtime_environment_dir=(
+                    root / "runtime-env" if runtime_environment else None
                 ),
                 loader=loader,
             )
@@ -260,11 +315,90 @@ class PairPreflightTest(unittest.TestCase):
             self.assertFalse(
                 wheelhouse["scope"]["runtime_installation_origin_attested"]
             )
+            self.assertFalse(
+                wheelhouse["scope"][
+                    "transported_wheel_installation_origin_attested"
+                ]
+            )
+            self.assertEqual(
+                wheelhouse["runtime_environment"], {"provided": False}
+            )
             self.assertIn(
                 "verify_runtime_dependency_wheelhouse.py", loader.calls
             )
+            self.assertNotIn(
+                "materialize_managed_runtime_env.py", loader.calls
+            )
         finally:
             td.cleanup()
+
+    def test_runtime_environment_closes_transported_origin_only(self):
+        td, receipt, loader = self._run(runtime_environment=True)
+        try:
+            wheelhouse = receipt["runtime_wheelhouse"]
+            self.assertTrue(wheelhouse["provided"])
+            self.assertTrue(
+                wheelhouse["runtime_environment"]["provided"]
+            )
+            self.assertTrue(
+                wheelhouse["runtime_environment"]["verification"]["valid"]
+            )
+            self.assertTrue(
+                wheelhouse["scope"][
+                    "transported_wheel_installation_origin_attested"
+                ]
+            )
+            self.assertFalse(
+                wheelhouse["scope"]["runtime_installation_origin_attested"]
+            )
+            self.assertIn(
+                "materialize_managed_runtime_env.py", loader.calls
+            )
+        finally:
+            td.cleanup()
+
+    def test_runtime_environment_requires_current_interpreter_binding(self):
+        with self.assertRaisesRegex(
+            mod.PairPreflightError,
+            "not running under the verified managed runtime",
+        ):
+            td, _receipt, _loader = self._run(
+                runtime_environment=True,
+                runtime_environment_current_match=False,
+            )
+            td.cleanup()
+
+    def test_runtime_environment_full_origin_overclaim_is_rejected(self):
+        with self.assertRaisesRegex(
+            mod.PairPreflightError,
+            "overclaims full installation origin",
+        ):
+            td, _receipt, _loader = self._run(
+                runtime_environment=True,
+                runtime_environment_full_origin=True,
+            )
+            td.cleanup()
+
+    def test_runtime_environment_requires_wheelhouse(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            here = self._tree(root)
+            with self.assertRaisesRegex(
+                mod.PairPreflightError,
+                "requires --runtime-wheelhouse-dir",
+            ):
+                mod.run_preflight(
+                    here=here,
+                    source_sha=SHA,
+                    sei_source_dir=root / "sei",
+                    reference_model_dir=root / "reference-model",
+                    laya_runtime_wheel=root / "laya.whl",
+                    papaya_source_dir=root / "papaya",
+                    papaya_overlay_dir=root / "overlay",
+                    llama_binary=root / "llama-server",
+                    runtime_environment_dir=root / "runtime-env",
+                    loader=FakeLoader(),
+                )
 
     def test_runtime_wheelhouse_version_drift_is_rejected(self):
         td = tempfile.TemporaryDirectory()
