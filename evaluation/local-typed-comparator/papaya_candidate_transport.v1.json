@@ -1,0 +1,72 @@
+{
+  "schema": "sei.local-typed-comparator-papaya-candidate-transport/v1",
+  "status": "transport-candidate",
+  "observed_date": "2026-09-27",
+  "observed_from_sei_source_sha": "5f648c74e760b35914dced05137992b30132f5fd",
+  "candidate_contract": {
+    "repository": "fr0stbit3/laya-typed-decisions-gguf",
+    "candidate_revision": "54ec2dbb58aad9e3c74782cb2feb5801f72b13d0",
+    "tokenizer_revision": "75300646cddbac2b47409fc1ca839c95bec004c8",
+    "overlay_schema": "sei.local-typed-comparator-papaya-compat-overlay/v1"
+  },
+  "transport": {
+    "id": "huggingface-immutable",
+    "kind": "huggingface-resolve",
+    "content_addressed_url": true,
+    "requires_post_download_verification": true,
+    "files": [
+      {
+        "path": "laya-typed-decisions-Q8_0.gguf",
+        "role": "q8_backbone",
+        "revision": "54ec2dbb58aad9e3c74782cb2feb5801f72b13d0",
+        "url": "https://huggingface.co/fr0stbit3/laya-typed-decisions-gguf/resolve/54ec2dbb58aad9e3c74782cb2feb5801f72b13d0/laya-typed-decisions-Q8_0.gguf",
+        "bytes": 421407968,
+        "sha256": "84f16d7b0b0a07343e7a6f8d8bd7ae9633aa0372d55621e2242d0ed9a0aca28c"
+      },
+      {
+        "path": "laya-typed-decisions-head.safetensors",
+        "role": "decision_head",
+        "revision": "54ec2dbb58aad9e3c74782cb2feb5801f72b13d0",
+        "url": "https://huggingface.co/fr0stbit3/laya-typed-decisions-gguf/resolve/54ec2dbb58aad9e3c74782cb2feb5801f72b13d0/laya-typed-decisions-head.safetensors",
+        "bytes": 106052952,
+        "sha256": "f115a16370df62e24a88aded4ef10d6542d2cdec9439df86d3aea3689f13ca44"
+      },
+      {
+        "path": "rl_agent_config.json",
+        "role": "raw_config",
+        "revision": "54ec2dbb58aad9e3c74782cb2feb5801f72b13d0",
+        "url": "https://huggingface.co/fr0stbit3/laya-typed-decisions-gguf/resolve/54ec2dbb58aad9e3c74782cb2feb5801f72b13d0/rl_agent_config.json",
+        "bytes": 847,
+        "sha256": "ebf0cd524d92342a6be5e48e9fca3d7c2babfb5a56ccd79d2171ef5d8c7f7be8"
+      },
+      {
+        "path": "tokenizer_config.json",
+        "role": "tokenizer_config",
+        "revision": "54ec2dbb58aad9e3c74782cb2feb5801f72b13d0",
+        "url": "https://huggingface.co/fr0stbit3/laya-typed-decisions-gguf/resolve/54ec2dbb58aad9e3c74782cb2feb5801f72b13d0/tokenizer_config.json",
+        "bytes": 337,
+        "sha256": "08d4cf3ac4dca381759441b85b91a6d40e688471dcd33d15d6649eb0a9a854d1"
+      },
+      {
+        "path": "tokenizer.json",
+        "role": "attested_tokenizer",
+        "revision": "75300646cddbac2b47409fc1ca839c95bec004c8",
+        "url": "https://huggingface.co/fr0stbit3/laya-typed-decisions-gguf/resolve/75300646cddbac2b47409fc1ca839c95bec004c8/tokenizer.json",
+        "bytes": 3583228,
+        "sha256": "6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30"
+      }
+    ]
+  },
+  "scope": {
+    "candidate_contract_matches_transport": true,
+    "transport_candidate_only": true,
+    "independent_exact_byte_mirror_available": false,
+    "current_chat_transport_succeeded": false,
+    "candidate_bytes_materialized": false,
+    "compatibility_overlay_prepared": false,
+    "model_weights_loaded": false,
+    "live_inference": false,
+    "numeric_parity": false,
+    "shipping_decision": false
+  }
+}

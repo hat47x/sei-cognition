@@ -293,29 +293,34 @@ bytes.
 ## 4. Papaya Q8 candidate bytes
 
 Papaya's evaluation candidate is intentionally a separate derived runtime
-lineage. Use the same current `hf download` CLI surface as the reference path.
+lineage.
 
-Acquire these four files from:
+The canonical transport contract is retained in
+`papaya_candidate_transport.v1.json`. Unlike the Python-Laya reference,
+no independent exact-byte mirror of the Q8 backbone/head has been identified;
+the admitted transport therefore remains the immutable Hugging Face repository
+revision only.
+
+Materialize all candidate inputs atomically with:
+
+```bash
+python3 materialize_papaya_candidate.py \
+  papaya_candidate_transport.v1.json \
+  --output-dir <new-papaya-candidate-dir>
+```
+
+The materializer downloads into sibling staging, verifies every file while
+streaming, runs the existing Papaya overlay-input verifier over the complete
+staged set, and publishes the destination only after all checks pass. A size,
+SHA-256, URL/revision, or overlay-input verification failure removes staging and
+leaves the destination absent.
+
+Four files are bound to:
 
 ```text
 repository  fr0stbit3/laya-typed-decisions-gguf
 revision    54ec2dbb58aad9e3c74782cb2feb5801f72b13d0
 ```
-
-For example:
-
-```bash
-hf download \
-  fr0stbit3/laya-typed-decisions-gguf \
-  laya-typed-decisions-Q8_0.gguf \
-  laya-typed-decisions-head.safetensors \
-  rl_agent_config.json \
-  tokenizer_config.json \
-  --revision 54ec2dbb58aad9e3c74782cb2feb5801f72b13d0 \
-  --local-dir <papaya-candidate-dir>
-```
-
-Required identities:
 
 | path | bytes | SHA-256 |
 | --- | ---: | --- |
@@ -324,31 +329,27 @@ Required identities:
 | `rl_agent_config.json` | 847 | `ebf0cd524d92342a6be5e48e9fca3d7c2babfb5a56ccd79d2171ef5d8c7f7be8` |
 | `tokenizer_config.json` | 337 | `08d4cf3ac4dca381759441b85b91a6d40e688471dcd33d15d6649eb0a9a854d1` |
 
-The exact tokenizer byte identity was closed separately. Acquire
-`tokenizer.json` from the immutable candidate tokenizer revision:
-
-```bash
-hf download \
-  fr0stbit3/laya-typed-decisions-gguf \
-  tokenizer.json \
-  --revision 75300646cddbac2b47409fc1ca839c95bec004c8 \
-  --local-dir <papaya-tokenizer-dir>
-```
-
-Required tokenizer identity:
+The exact `tokenizer.json` is intentionally bound to the separately attested
+immutable tokenizer revision:
 
 ```text
-bytes   3583228
-sha256  6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30
+revision 75300646cddbac2b47409fc1ca839c95bec004c8
+bytes    3583228
+sha256   6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30
 Git blob 2f4d8583e507b7466d2490e2d6c045647a822698
 ```
 
-Prepare the evaluation-only clamp overlay:
+The materialized directory therefore contains the four candidate-revision
+files plus the attested tokenizer at its own revision. Materialization still
+does **not** prepare the compatibility overlay.
+
+Prepare the evaluation-only clamp overlay only after successful candidate
+materialization:
 
 ```bash
 python3 prepare_papaya_compat_overlay.py \
   <papaya-candidate-dir> \
-  <papaya-tokenizer-dir>/tokenizer.json \
+  <papaya-candidate-dir>/tokenizer.json \
   <new-papaya-overlay-dir>
 ```
 
@@ -373,6 +374,17 @@ Derived compatibility config:
 bytes   832
 sha256  279207d55fefd56b2c6738dd141a3e10ab1d3f46b755c43faee42364ce1cc892
 ```
+
+Model-free mechanics are retained in:
+
+```bash
+python3 -m unittest -v test_materialize_papaya_candidate.py
+```
+
+A successful materializer receipt proves only exact candidate input bytes and
+the already-defined overlay-input preconditions. It does not claim overlay
+publication, model load, inference, numeric parity, task quality, or shipping
+readiness.
 
 ## 5. Pinned llama.cpp runtime
 
