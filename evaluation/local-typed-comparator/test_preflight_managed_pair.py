@@ -362,22 +362,20 @@ class PairPreflightTest(unittest.TestCase):
             mod.PairPreflightError,
             "not running under the verified managed runtime",
         ):
-            td, _receipt, _loader = self._run(
+            self._run(
                 runtime_environment=True,
                 runtime_environment_current_match=False,
             )
-            td.cleanup()
 
     def test_runtime_environment_full_origin_overclaim_is_rejected(self):
         with self.assertRaisesRegex(
             mod.PairPreflightError,
             "overclaims full installation origin",
         ):
-            td, _receipt, _loader = self._run(
+            self._run(
                 runtime_environment=True,
                 runtime_environment_full_origin=True,
             )
-            td.cleanup()
 
     def test_runtime_environment_requires_wheelhouse(self):
         with tempfile.TemporaryDirectory() as td:
