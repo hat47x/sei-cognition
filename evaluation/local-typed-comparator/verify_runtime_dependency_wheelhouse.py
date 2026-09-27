@@ -11,6 +11,39 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA = "sei.local-typed-comparator-runtime-wheelhouse/v1"
+OBSERVED_PLATFORM = {
+    "os": "linux",
+    "arch": "x86_64",
+    "python": "3.13.5",
+}
+MANAGED_REFERENCE_REQUIRED = (
+    "torch",
+    "transformers",
+    "tokenizers",
+    "safetensors",
+    "huggingface-hub",
+    "numpy",
+    "fastapi",
+    "uvicorn",
+)
+WHEELHOUSE_SUPPLIED_RUNTIME = (
+    "transformers",
+    "tokenizers",
+    "safetensors",
+)
+HOST_REQUIRED_NOT_SUPPLIED = (
+    "torch",
+    "huggingface-hub",
+    "numpy",
+    "fastapi",
+    "uvicorn",
+)
+EXPECTED_VALIDATION_OBSERVATION = {
+    "offline_install": "pass",
+    "laya_import": "pass",
+    "transformers_import": "pass",
+    "modernbert_import": "pass",
+}
 
 
 class WheelhouseError(ValueError):
@@ -93,6 +126,56 @@ def validate_manifest(manifest: dict[str, Any]) -> list[dict[str, Any]]:
     if manifest.get("status") != "transport-candidate":
         raise WheelhouseError("status must remain transport-candidate")
 
+    _lower_hex(
+        manifest.get("observed_from_sei_source_sha"),
+        40,
+        "observed_from_sei_source_sha",
+    )
+    platform = manifest.get("platform")
+    if platform != OBSERVED_PLATFORM:
+        raise WheelhouseError("observed platform drift")
+
+    boundary = manifest.get("transport_boundary")
+    if not isinstance(boundary, dict):
+        raise WheelhouseError("transport_boundary must be an object")
+    if boundary.get("host_assisted_transport") is not True:
+        raise WheelhouseError(
+            "transport_boundary.host_assisted_transport must be true"
+        )
+    if boundary.get("wheelhouse_is_self_contained") is not False:
+        raise WheelhouseError(
+            "transport_boundary.wheelhouse_is_self_contained must be false"
+        )
+    expected_boundary_lists = {
+        "managed_reference_required_distributions": list(
+            MANAGED_REFERENCE_REQUIRED
+        ),
+        "wheelhouse_supplied_managed_reference_distributions": list(
+            WHEELHOUSE_SUPPLIED_RUNTIME
+        ),
+        "required_host_distributions_not_supplied": list(
+            HOST_REQUIRED_NOT_SUPPLIED
+        ),
+    }
+    for field, expected in expected_boundary_lists.items():
+        if boundary.get(field) != expected:
+            raise WheelhouseError(f"transport_boundary.{field} drift")
+
+    host_dependencies = manifest.get("observed_host_dependencies")
+    if not isinstance(host_dependencies, dict) or not host_dependencies:
+        raise WheelhouseError(
+            "observed_host_dependencies must be a non-empty object"
+        )
+    for distribution in HOST_REQUIRED_NOT_SUPPLIED:
+        version = host_dependencies.get(distribution)
+        if not isinstance(version, str) or not version:
+            raise WheelhouseError(
+                f"observed_host_dependencies.{distribution} missing"
+            )
+    observation = manifest.get("validation_observation")
+    if observation != EXPECTED_VALIDATION_OBSERVATION:
+        raise WheelhouseError("validation_observation drift")
+
     entries = manifest.get("entries")
     if not isinstance(entries, list) or not entries:
         raise WheelhouseError("entries must be a non-empty array")
@@ -132,11 +215,34 @@ def validate_manifest(manifest: dict[str, Any]) -> list[dict[str, Any]]:
         source = entry.get("source")
         if not isinstance(source, dict):
             raise WheelhouseError(f"{canonical}.source must be an object")
-        for field in ("repository", "revision", "artifact_name"):
+        for field in ("repository", "artifact_name"):
             if not isinstance(source.get(field), str) or not source[field]:
                 raise WheelhouseError(
                     f"{canonical}.source.{field} must be a string"
                 )
+        _lower_hex(
+            source.get("revision"),
+            40,
+            f"{canonical}.source.revision",
+        )
+        if source.get("workflow_conclusion") != "success":
+            raise WheelhouseError(
+                f"{canonical}.source.workflow_conclusion must be success"
+            )
+        expires_at = source.get("artifact_expires_at")
+        if (
+            not isinstance(expires_at, str)
+            or len(expires_at) != 20
+            or not expires_at.endswith("Z")
+            or expires_at[4] != "-"
+            or expires_at[7] != "-"
+            or expires_at[10] != "T"
+            or expires_at[13] != ":"
+            or expires_at[16] != ":"
+        ):
+            raise WheelhouseError(
+                f"{canonical}.source.artifact_expires_at must be UTC ISO-8601"
+            )
         _positive_int(
             source.get("workflow_run_id"),
             f"{canonical}.source.workflow_run_id",
@@ -175,6 +281,12 @@ def validate_manifest(manifest: dict[str, Any]) -> list[dict[str, Any]]:
     if scope.get("transport_candidate_only") is not True:
         raise WheelhouseError(
             "scope.transport_candidate_only must remain true"
+        )
+    if scope.get("host_assisted_transport") is not True:
+        raise WheelhouseError("scope.host_assisted_transport must remain true")
+    if scope.get("self_contained_wheelhouse") is not False:
+        raise WheelhouseError(
+            "scope.self_contained_wheelhouse must remain false"
         )
 
     for field in (
