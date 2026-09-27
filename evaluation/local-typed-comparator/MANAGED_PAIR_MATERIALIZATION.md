@@ -419,6 +419,79 @@ the already-defined overlay-input preconditions. It does not claim overlay
 publication, model load, inference, numeric parity, task quality, or shipping
 readiness.
 
+## 4.1 One-command managed model-input workspace
+
+Once an eligible host can reach the admitted reference and Papaya transports,
+the existing materializers can be composed without manually stitching their
+outputs together:
+
+```bash
+python3 materialize_managed_pair_inputs.py \
+  --source-git-sha <exact-clean-SEI-SHA> \
+  --sei-source-dir <same-SEI-checkout-containing-this-script> \
+  --reference-transport huggingface-immutable \
+  --output-dir <new-managed-input-workspace>
+```
+
+Use `--reference-transport truespar-paddock-mirror` only when deliberately
+selecting the separately retained exact-hash mirror mapping.
+
+If the #635 host-assisted wheelhouse is available, add:
+
+```bash
+--runtime-wheelhouse-dir <verified-wheelhouse>
+```
+
+The wrapper performs:
+
+```text
+validate exact clean SEI source SHA
+  -> bind reference/Papaya manifest objects to the exact retained raw bytes
+  -> optionally verify the retained runtime wheelhouse
+  -> materialize + verify reference model
+  -> materialize + verify Papaya candidate
+  -> prepare Papaya compatibility overlay
+  -> re-hash overlay
+  -> verify overlay Q8/head symlinks target the final candidate directory
+  -> write managed-pair-input-materialization.json
+```
+
+The output layout is:
+
+```text
+<workspace>/
+  reference-model/
+  papaya-candidate/
+  papaya-overlay/
+  managed-pair-input-materialization.json
+```
+
+The receipt keeps relative layout names and manifest digests rather than
+host-local absolute paths.
+
+This wrapper deliberately does **not** claim whole-workspace atomic publication.
+The current overlay implementation creates absolute symlinks for the large
+Q8/head pair. Moving a fully prepared parent staging tree would invalidate those
+targets. Instead, each large sub-materializer keeps its own atomic publish
+semantics, the final workspace path is used for overlay construction, and any
+failure removes the entire new workspace so the requested destination is absent
+after failure.
+
+For the same reason, a successful workspace is **not relocatable**. Its overlay
+must be used in place. The receipt fixes:
+
+```text
+workspace_relocatable                  false
+runtime_installation_origin_attested   false
+model_weights_loaded                   false
+live_reference_inference               false
+live_papaya_inference                  false
+numeric parity decision observed       false
+```
+
+This command does not materialize the clean Papaya source checkout or the
+pinned llama.cpp runtime; those remain separate preflight inputs.
+
 ## 5. Pinned llama.cpp runtime
 
 The first Papaya managed run uses SEI's existing b10964 runtime pin.

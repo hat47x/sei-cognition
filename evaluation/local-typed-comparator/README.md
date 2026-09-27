@@ -512,6 +512,32 @@ Papaya candidate
   -> prepare_papaya_compat_overlay.py
 ```
 
+For an eligible host that can reach the admitted transports, those existing
+components can now be composed with one command:
+
+```bash
+python3 materialize_managed_pair_inputs.py \
+  --source-git-sha <exact-clean-SEI-SHA> \
+  --reference-transport huggingface-immutable \
+  --output-dir <new-managed-input-workspace>
+```
+
+If the retained host-assisted wheelhouse is available, add
+`--runtime-wheelhouse-dir <verified-wheelhouse>`. The wrapper validates the
+wheelhouse before any model transfer, then materializes the reference model,
+materializes the Papaya candidate, prepares the compatibility overlay, re-hashes
+the overlay, and writes `managed-pair-input-materialization.json`.
+
+The wrapper adds no new transport identity. It reuses the existing
+reference/Papaya manifests and validators. If any stage fails, it removes the
+entire newly created workspace.
+
+The workspace itself is intentionally **not relocatable** after success. The
+Papaya overlay's Q8/head entries are the existing absolute symlinks to the
+candidate directory. The wrapper verifies those links point into the final
+workspace and records `workspace_relocatable=false`. Run preflight / the
+paired experiment in place rather than moving the workspace afterward.
+
 Each materializer downloads into sibling staging, verifies exact bytes before
 publish, and leaves the destination absent on failure. Papaya candidate
 materialization remains distinct from the evaluation-only compatibility overlay.
