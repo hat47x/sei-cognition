@@ -523,10 +523,30 @@ python3 materialize_managed_pair_inputs.py \
 ```
 
 If the retained host-assisted wheelhouse is available, add
-`--runtime-wheelhouse-dir <verified-wheelhouse>`. The wrapper validates the
-wheelhouse before any model transfer, then materializes the reference model,
-materializes the Papaya candidate, prepares the compatibility overlay, re-hashes
-the overlay, and writes `managed-pair-input-materialization.json`.
+`--runtime-wheelhouse-dir <verified-wheelhouse>`. To include the #645
+exact-wheel managed venv in the same workspace, also add
+`--materialize-runtime-environment`.
+
+With that flag, the wrapper validates the wheelhouse and materializes/verifies
+`runtime-env/` **before any model transfer**. It then materializes the
+reference model, materializes the Papaya candidate, prepares the compatibility
+overlay, re-hashes the overlay, and writes
+`managed-pair-input-materialization.json`.
+
+The resulting workspace can be used directly as:
+
+```text
+<workspace>/
+  runtime-env/           # when requested
+  reference-model/
+  papaya-candidate/
+  papaya-overlay/
+  managed-pair-input-materialization.json
+```
+
+Launch the later paired run with `<workspace>/runtime-env/bin/python` and pass
+the original verified wheelhouse plus
+`--runtime-environment-dir <workspace>/runtime-env`.
 
 The wrapper adds no new transport identity. It reuses the existing
 reference/Papaya manifests and validators. If any stage fails, it removes the
