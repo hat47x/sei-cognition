@@ -25,13 +25,26 @@ def write_json(path, value):
 
 
 class FakeLoader:
-    def __init__(self, *, replay_counts=None, wheel_versions=None):
+    def __init__(
+        self,
+        *,
+        replay_counts=None,
+        wheel_versions=None,
+        papaya_versions=None,
+    ):
         self.replay_counts = replay_counts or {"a": 10}
         self.wheel_versions = wheel_versions or {
             "laya": "0.3.20",
             "transformers": "5.17.0",
             "tokenizers": "0.23.2",
             "safetensors": "0.9.0rc1",
+        }
+        self.papaya_versions = papaya_versions or {
+            "numpy": "1",
+            "torch": "1",
+            "transformers": "5.17.0",
+            "safetensors": "0.9.0rc1",
+            "huggingface_hub": "1",
         }
         self.calls = []
 
@@ -69,13 +82,9 @@ class FakeLoader:
                     "clean": True,
                     "source_blobs": {},
                 },
-                require_runtime_dependencies=lambda: {
-                    "numpy": "1",
-                    "torch": "1",
-                    "transformers": "5.17.0",
-                    "safetensors": "0.9.0rc1",
-                    "huggingface_hub": "1",
-                },
+                require_runtime_dependencies=lambda: dict(
+                    self.papaya_versions
+                ),
                 require_papaya_import=lambda root: {
                     "source_checkout_imported": True
                 },
@@ -175,6 +184,7 @@ class PairPreflightTest(unittest.TestCase):
         replay_counts=None,
         runtime_wheelhouse=False,
         wheel_versions=None,
+        papaya_versions=None,
     ):
         td = tempfile.TemporaryDirectory()
         root = Path(td.name)
@@ -188,6 +198,7 @@ class PairPreflightTest(unittest.TestCase):
         loader = FakeLoader(
             replay_counts=replay_counts,
             wheel_versions=wheel_versions,
+            papaya_versions=papaya_versions,
         )
         try:
             receipt = mod.run_preflight(
@@ -286,6 +297,50 @@ class PairPreflightTest(unittest.TestCase):
                                 "transformers": "5.16.0",
                                 "tokenizers": "0.23.2",
                                 "safetensors": "0.9.0rc1",
+                            }
+                        ),
+                    )
+            finally:
+                mod.FIXTURE_SHA256 = old_fixture
+                mod.CHOICE11_DIAGNOSTIC_SHA256 = old_diag
+        finally:
+            td.cleanup()
+
+    def test_papaya_runtime_version_drift_is_rejected_with_wheelhouse(self):
+        td = tempfile.TemporaryDirectory()
+        try:
+            root = Path(td.name)
+            here = self._tree(root)
+            old_fixture = mod.FIXTURE_SHA256
+            old_diag = mod.CHOICE11_DIAGNOSTIC_SHA256
+            mod.FIXTURE_SHA256 = mod._sha256(
+                (here / "fixture.v1.json").read_bytes()
+            )
+            mod.CHOICE11_DIAGNOSTIC_SHA256 = mod._sha256(
+                (here / "papaya_choice11_diagnostic.v1.json").read_bytes()
+            )
+            try:
+                with self.assertRaisesRegex(
+                    mod.PairPreflightError,
+                    "Papaya/current host version drift",
+                ):
+                    mod.run_preflight(
+                        here=here,
+                        source_sha=SHA,
+                        sei_source_dir=root / "sei",
+                        reference_model_dir=root / "reference-model",
+                        laya_runtime_wheel=root / "laya.whl",
+                        papaya_source_dir=root / "papaya",
+                        papaya_overlay_dir=root / "overlay",
+                        llama_binary=root / "llama-server",
+                        runtime_wheelhouse_dir=root / "wheelhouse",
+                        loader=FakeLoader(
+                            papaya_versions={
+                                "numpy": "1",
+                                "torch": "1",
+                                "transformers": "5.16.0",
+                                "safetensors": "0.9.0rc1",
+                                "huggingface_hub": "1",
                             }
                         ),
                     )
