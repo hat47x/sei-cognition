@@ -93,6 +93,51 @@ def _load_json_bytes(path: Path, label: str) -> tuple[dict[str, Any], bytes]:
     return value, raw
 
 
+def _require_raw_binding(
+    value: dict[str, Any], raw: bytes, label: str
+) -> None:
+    try:
+        decoded = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ManagedPairMaterializationError(
+            f"{label} raw bytes must be UTF-8 JSON"
+        ) from exc
+    if decoded != value:
+        raise ManagedPairMaterializationError(
+            f"{label} object/raw-byte binding drift"
+        )
+
+
+def _verify_overlay_workspace_binding(
+    candidate_dir: Path, overlay_dir: Path
+) -> dict[str, Any]:
+    by_role = {spec.role: spec for spec in overlay.DEFAULT_ARTIFACTS}
+    observed: dict[str, str] = {}
+    for role in ("q8_backbone", "decision_head"):
+        spec = by_role.get(role)
+        if spec is None:
+            raise ManagedPairMaterializationError(
+                f"overlay artifact role missing: {role}"
+            )
+        staged = overlay_dir / spec.relative_path
+        expected = (candidate_dir / spec.relative_path).resolve()
+        if not staged.is_symlink():
+            raise ManagedPairMaterializationError(
+                f"overlay {role} must remain a symlink"
+            )
+        if staged.resolve() != expected:
+            raise ManagedPairMaterializationError(
+                f"overlay {role} symlink target drift"
+            )
+        observed[role] = spec.relative_path
+    return {
+        "valid": True,
+        "absolute_symlink_targets": True,
+        "workspace_relocatable": False,
+        "candidate_relative_paths": observed,
+    }
+
+
 def _portable_materialization_summary(
     receipt: dict[str, Any],
     *,
@@ -175,6 +220,19 @@ def prepare_workspace(
             "SEI source checkout receipt drift"
         )
 
+    # Bind the manifest bytes whose digests will be retained to the exact
+    # objects used for validation/materialization.
+    _require_raw_binding(
+        reference_manifest,
+        reference_manifest_raw,
+        "reference transport manifest",
+    )
+    _require_raw_binding(
+        papaya_manifest,
+        papaya_manifest_raw,
+        "Papaya transport manifest",
+    )
+
     # Validate all transport contracts before creating the workspace or
     # performing any network transfer.
     reference_materializer.validate_manifest(reference_manifest)
@@ -190,6 +248,11 @@ def prepare_workspace(
             raise ManagedPairMaterializationError(
                 "runtime wheelhouse manifest is required with wheelhouse dir"
             )
+        _require_raw_binding(
+            runtime_wheelhouse_manifest,
+            runtime_wheelhouse_manifest_raw,
+            "runtime dependency wheelhouse manifest",
+        )
         try:
             wheelhouse_verification = wheelhouse_verifier.verify_wheelhouse(
                 runtime_wheelhouse_manifest,
@@ -259,6 +322,10 @@ def prepare_workspace(
             raise ManagedPairMaterializationError(
                 "Papaya overlay receipt schema drift"
             )
+        workspace_binding = _verify_overlay_workspace_binding(
+            candidate_dir,
+            overlay_dir,
+        )
 
         receipt = {
             "schema": SCHEMA,
@@ -288,6 +355,7 @@ def prepare_workspace(
                 "schema": overlay.SCHEMA,
                 "receipt": overlay_receipt,
                 "verification": overlay_verification,
+                "workspace_binding": workspace_binding,
             },
             "runtime_wheelhouse": wheelhouse,
             "scope": {
@@ -297,6 +365,7 @@ def prepare_workspace(
                 "papaya_candidate_inputs_verified": True,
                 "papaya_compatibility_overlay_prepared": True,
                 "papaya_compatibility_overlay_verified": True,
+                "workspace_relocatable": False,
                 "runtime_wheelhouse_verified": (
                     runtime_wheelhouse_dir is not None
                 ),
