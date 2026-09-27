@@ -511,6 +511,24 @@ That preflight verifies both provider input sets, the exact frozen
 fixture/diagnostic bytes, reference/Papaya token-count replay equality, and the
 preregistered parity policy without loading model weights or running inference.
 
+If the #635 host-assisted runtime wheelhouse is used, add:
+
+```bash
+--runtime-wheelhouse-dir <verified-runtime-wheelhouse>
+```
+
+to either `preflight_managed_pair.py` or `run_managed_pair.py`. The paired
+runner forwards that option only to the preflight stage. When supplied,
+preflight revalidates the retained wheelhouse manifest and all four wheel bytes,
+then requires the currently observed `transformers`, `tokenizers`, and
+`safetensors` versions to match the retained transport candidate. The exact
+Laya 0.3.20 wheel remains independently fixed by its existing SHA/size gate.
+
+This option does **not** pin host-provided `torch`, `huggingface-hub`,
+`numpy`, `fastapi`, or `uvicorn` versions, and it does not turn the
+wheelhouse into a self-contained or product runtime lock. Omitting the option
+preserves the existing host-native dependency path.
+
 The paired orchestrator invokes the fail-closed stages in order:
 
 ```text
@@ -565,6 +583,7 @@ Validate the model-free preflight/orchestration mechanics with:
 ```bash
 python3 -m unittest -v test_preflight_managed_pair.py
 python3 -m unittest -v test_run_managed_pair.py
+python3 -m unittest -v test_verify_runtime_dependency_wheelhouse.py
 ```
 
 ### Verify a returned pair bundle
