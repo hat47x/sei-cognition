@@ -604,6 +604,42 @@ wheel-byte validity plus observed-version agreement only. The receipt therefore
 keeps `runtime_installation_origin_attested=false`. Omitting the option
 preserves the existing host-native dependency path.
 
+The exact transported-wheel origin can now be closed separately without
+promoting the host dependencies:
+
+```bash
+python3 materialize_managed_runtime_env.py \
+  <verified-runtime-wheelhouse> \
+  --output-dir <new-managed-runtime-env>
+```
+
+The helper creates a venv with `system-site-packages=true`, installs only the
+retained Laya / Transformers / tokenizers / safetensors wheels using
+`--no-index --no-deps --force-reinstall`, and then verifies offline that:
+
+- all four transported modules import from inside the new venv;
+- each transported distribution's PEP 610 `direct_url.json` points to the
+  supplied local wheel file and retains its exact SHA-256;
+- ModernBERT imports successfully;
+- the required host-assisted dependencies remain available.
+
+A successful receipt distinguishes the narrower origin claim from the broader
+runtime claim:
+
+```text
+transported_wheel_installation_origin_attested = true
+runtime_installation_origin_attested           = false
+host_dependency_versions_pinned                = false
+self_contained_runtime                          = false
+environment_relocatable                        = false
+```
+
+The broader runtime origin stays false because `torch`,
+`huggingface-hub`, `numpy`, `fastapi`, and `uvicorn` still come from
+the host. Keep the venv and source wheelhouse at their materialized paths; the
+PEP 610 local-wheel bindings are path-sensitive. Connecting this venv to the
+managed preflight/paired runner is intentionally a separate follow-up unit.
+
 The paired orchestrator invokes the fail-closed stages in order:
 
 ```text
