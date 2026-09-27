@@ -154,6 +154,26 @@ class WheelhouseTest(unittest.TestCase):
             with self.assertRaises(mod.WheelhouseError):
                 mod.verify_wheelhouse(bad, root)
 
+    def test_observed_source_and_scope_transport_flags_are_fixed(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            manifest = synthetic_manifest(root)
+
+            bad = copy.deepcopy(manifest)
+            bad["observed_from_sei_source_sha"] = "D" * 40
+            with self.assertRaises(mod.WheelhouseError):
+                mod.verify_wheelhouse(bad, root)
+
+            bad = copy.deepcopy(manifest)
+            bad["scope"]["host_assisted_transport"] = False
+            with self.assertRaises(mod.WheelhouseError):
+                mod.verify_wheelhouse(bad, root)
+
+            bad = copy.deepcopy(manifest)
+            bad["scope"]["self_contained_wheelhouse"] = True
+            with self.assertRaises(mod.WheelhouseError):
+                mod.verify_wheelhouse(bad, root)
+
     def test_artifact_lifecycle_fields_are_required(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
@@ -166,6 +186,13 @@ class WheelhouseTest(unittest.TestCase):
 
             bad = copy.deepcopy(manifest)
             bad["entries"][0]["source"]["artifact_expires_at"] = "not-a-date"
+            with self.assertRaises(mod.WheelhouseError):
+                mod.verify_wheelhouse(bad, root)
+
+            bad = copy.deepcopy(manifest)
+            bad["entries"][0]["source"][
+                "artifact_expires_at"
+            ] = "2026-99-99T99:99:99Z"
             with self.assertRaises(mod.WheelhouseError):
                 mod.verify_wheelhouse(bad, root)
 
