@@ -85,6 +85,33 @@ python3 verify_reference_model_directory.py \
   <standalone-reference-model-directory>
 ```
 
+The same byte contract now has a retained transport manifest:
+
+[`reference_model_transport.v1.json`](./reference_model_transport.v1.json)
+
+It records two acquisition paths for the **same** five exact files: the pinned
+Hugging Face revision and a `truespar/paddock` public mirror whose catalog rows
+match all five attested byte counts and SHA-256 values.
+
+An eligible host can materialize either path atomically:
+
+```bash
+python3 materialize_reference_model.py \
+  reference_model_transport.v1.json \
+  --transport truespar-paddock-mirror \
+  --output-dir <new-reference-model-directory>
+```
+
+Use `--transport huggingface-immutable` for the canonical Hub path. The
+materializer verifies each download while streaming, runs the existing complete
+directory verifier on staging, and publishes the destination only after every
+gate passes. The mirror URL is not promoted to content-addressed provenance;
+the exact post-download digest remains authoritative.
+
+The current ChatGPT shell still cannot reach either HTTPS transport, so this
+adds a verified handoff rather than a model-materialization claim.
+
+
 The ancillary file hashes are independently retained in
 `mizorewww/laya-coreml@4619e048...`, while the source weight hash remains the
 same pinned 842,609,220-byte F16 checkpoint. The pinned tokenizer config already
