@@ -84,8 +84,6 @@ def _wheel_metadata(path: Path) -> tuple[str, str, list[str]]:
                 raise WheelhouseError(f"{path.name}: WHEEL contains no Tag")
             return name.lower().replace("_", "-"), version, tags
     except (OSError, zipfile.BadZipFile, UnicodeDecodeError) as exc:
-        if isinstance(exc, WheelhouseError):
-            raise
         raise WheelhouseError(f"cannot inspect wheel: {path}") from exc
 
 
