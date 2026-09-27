@@ -3,6 +3,7 @@ import json
 import sys
 import tempfile
 import unittest
+from contextlib import ExitStack
 from pathlib import Path
 from unittest import mock
 
@@ -16,6 +17,10 @@ sys.modules[SPEC.name] = mod
 SPEC.loader.exec_module(mod)
 
 SHA = "1" * 40
+REFERENCE_MANIFEST = {"schema": "reference"}
+REFERENCE_RAW = b'{"schema":"reference"}'
+PAPAYA_MANIFEST = {"schema": "papaya"}
+PAPAYA_RAW = b'{"schema":"papaya"}'
 
 
 def reference_receipt(output: Path):
@@ -24,7 +29,13 @@ def reference_receipt(output: Path):
         "status": "materialized-and-verified",
         "transport_id": mod.reference_materializer.HF_ID,
         "output_dir": str(output.resolve()),
-        "files": [{"path": "model.safetensors", "bytes": 1, "sha256": "a" * 64}],
+        "files": [
+            {
+                "path": "model.safetensors",
+                "bytes": 1,
+                "sha256": "a" * 64,
+            }
+        ],
         "directory_verification": {"valid": True},
         "scope": {
             "model_bytes_materialized": True,
@@ -43,7 +54,13 @@ def papaya_receipt(output: Path):
         "status": "materialized-and-verified",
         "transport_id": mod.papaya_materializer.TRANSPORT_ID,
         "output_dir": str(output.resolve()),
-        "files": [{"path": "tokenizer.json", "bytes": 1, "sha256": "b" * 64}],
+        "files": [
+            {
+                "path": "tokenizer.json",
+                "bytes": 1,
+                "sha256": "b" * 64,
+            }
+        ],
         "candidate_input_verification": {"valid": True},
         "scope": {
             "candidate_bytes_materialized": True,
@@ -58,26 +75,32 @@ def papaya_receipt(output: Path):
 
 
 class ManagedPairInputMaterializationTest(unittest.TestCase):
-    def _patches(self):
-        source = mock.patch.object(
-            mod.papaya_capture,
-            "require_git_checkout",
-            return_value={"git_sha": SHA, "clean": True},
+    def _install_common_patches(self, stack: ExitStack):
+        stack.enter_context(
+            mock.patch.object(
+                mod.papaya_capture,
+                "require_git_checkout",
+                return_value={"git_sha": SHA, "clean": True},
+            )
         )
-        ref_validate = mock.patch.object(
-            mod.reference_materializer,
-            "validate_manifest",
-            return_value={mod.reference_materializer.HF_ID: []},
+        stack.enter_context(
+            mock.patch.object(
+                mod.reference_materializer,
+                "validate_manifest",
+                return_value={mod.reference_materializer.HF_ID: []},
+            )
         )
-        pap_validate = mock.patch.object(
-            mod.papaya_materializer,
-            "validate_manifest",
-            return_value=[
-                {
-                    "role": "attested_tokenizer",
-                    "path": "tokenizer.json",
-                }
-            ],
+        stack.enter_context(
+            mock.patch.object(
+                mod.papaya_materializer,
+                "validate_manifest",
+                return_value=[
+                    {
+                        "role": "attested_tokenizer",
+                        "path": "tokenizer.json",
+                    }
+                ],
+            )
         )
 
         def ref_materialize(_manifest, _transport, output, *, timeout):
@@ -87,83 +110,92 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
         def pap_materialize(_manifest, output, *, timeout):
             output.mkdir()
             (output / "tokenizer.json").write_bytes(b"tokenizer")
+            for spec in mod.overlay.DEFAULT_ARTIFACTS:
+                if spec.role in ("q8_backbone", "decision_head"):
+                    path = output / spec.relative_path
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_bytes(spec.role.encode("ascii"))
             return papaya_receipt(output)
 
-        ref_mat = mock.patch.object(
-            mod.reference_materializer,
-            "materialize_reference_model",
-            side_effect=ref_materialize,
+        stack.enter_context(
+            mock.patch.object(
+                mod.reference_materializer,
+                "materialize_reference_model",
+                side_effect=ref_materialize,
+            )
         )
-        pap_mat = mock.patch.object(
-            mod.papaya_materializer,
-            "materialize_papaya_candidate",
-            side_effect=pap_materialize,
+        stack.enter_context(
+            mock.patch.object(
+                mod.papaya_materializer,
+                "materialize_papaya_candidate",
+                side_effect=pap_materialize,
+            )
         )
 
         def prepare_overlay(candidate, tokenizer, output):
             self.assertTrue(candidate.is_dir())
             self.assertEqual(tokenizer, candidate / "tokenizer.json")
             output.mkdir()
+            for spec in mod.overlay.DEFAULT_ARTIFACTS:
+                if spec.role in ("q8_backbone", "decision_head"):
+                    staged = output / spec.relative_path
+                    staged.parent.mkdir(parents=True, exist_ok=True)
+                    staged.symlink_to(
+                        (candidate / spec.relative_path).resolve()
+                    )
             return {"schema": mod.overlay.SCHEMA, "scope": {}}
 
-        overlay_prepare = mock.patch.object(
-            mod.overlay,
-            "prepare_overlay",
-            side_effect=prepare_overlay,
+        stack.enter_context(
+            mock.patch.object(
+                mod.overlay,
+                "prepare_overlay",
+                side_effect=prepare_overlay,
+            )
         )
-        overlay_verify = mock.patch.object(
-            mod.overlay,
-            "verify_prepared_overlay",
-            return_value={"valid": True, "schema": mod.overlay.SCHEMA},
-        )
-        return (
-            source,
-            ref_validate,
-            pap_validate,
-            ref_mat,
-            pap_mat,
-            overlay_prepare,
-            overlay_verify,
+        stack.enter_context(
+            mock.patch.object(
+                mod.overlay,
+                "verify_prepared_overlay",
+                return_value={
+                    "valid": True,
+                    "schema": mod.overlay.SCHEMA,
+                },
+            )
         )
 
-    def _run(self, root: Path, **kwargs):
+    def _prepare(
+        self,
+        root: Path,
+        *,
+        runtime_wheelhouse_dir=None,
+        runtime_wheelhouse_manifest=None,
+        runtime_wheelhouse_manifest_raw=None,
+    ):
         source = root / "sei"
         source.mkdir()
         output = root / "workspace"
-        with self._patches()[0] as _src,              self._patches()[1] as _rv,              self._patches()[2] as _pv,              self._patches()[3] as _rm,              self._patches()[4] as _pm,              self._patches()[5] as _op,              self._patches()[6] as _ov:
-            return mod.prepare_workspace(
+        with ExitStack() as stack:
+            self._install_common_patches(stack)
+            receipt = mod.prepare_workspace(
                 source_sha=SHA,
                 sei_source_dir=source,
-                reference_manifest={"schema": "reference"},
-                reference_manifest_raw=b'{"schema":"reference"}',
+                reference_manifest=REFERENCE_MANIFEST,
+                reference_manifest_raw=REFERENCE_RAW,
                 reference_transport=mod.reference_materializer.HF_ID,
-                papaya_manifest={"schema": "papaya"},
-                papaya_manifest_raw=b'{"schema":"papaya"}',
+                papaya_manifest=PAPAYA_MANIFEST,
+                papaya_manifest_raw=PAPAYA_RAW,
                 output_dir=output,
                 timeout=30.0,
-                **kwargs,
+                runtime_wheelhouse_dir=runtime_wheelhouse_dir,
+                runtime_wheelhouse_manifest=runtime_wheelhouse_manifest,
+                runtime_wheelhouse_manifest_raw=runtime_wheelhouse_manifest_raw,
             )
+        return source, output, receipt
 
     def test_success_writes_portable_receipt(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
-            source = root / "sei"
-            source.mkdir()
-            output = root / "workspace"
-
-            patches = self._patches()
-            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6]:
-                receipt = mod.prepare_workspace(
-                    source_sha=SHA,
-                    sei_source_dir=source,
-                    reference_manifest={"schema": "reference"},
-                    reference_manifest_raw=b'{"schema":"reference"}',
-                    reference_transport=mod.reference_materializer.HF_ID,
-                    papaya_manifest={"schema": "papaya"},
-                    papaya_manifest_raw=b'{"schema":"papaya"}',
-                    output_dir=output,
-                    timeout=30.0,
-                )
+            _source, output, receipt = self._prepare(root)
 
             self.assertEqual(
                 receipt["status"], "ready-for-managed-pair-preflight"
@@ -175,10 +207,25 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
                 (output / mod.RECEIPT_FILE).read_text(encoding="utf-8")
             )
             self.assertEqual(retained, receipt)
+
             rendered = json.dumps(receipt)
             self.assertNotIn(str(output.resolve()), rendered)
             self.assertNotIn("output_dir", receipt["reference"])
             self.assertNotIn("output_dir", receipt["papaya_candidate"])
+            self.assertTrue(
+                receipt["papaya_overlay"]["workspace_binding"]["valid"]
+            )
+            self.assertTrue(
+                receipt["papaya_overlay"]["workspace_binding"][
+                    "absolute_symlink_targets"
+                ]
+            )
+            self.assertFalse(
+                receipt["papaya_overlay"]["workspace_binding"][
+                    "workspace_relocatable"
+                ]
+            )
+            self.assertFalse(receipt["scope"]["workspace_relocatable"])
             self.assertFalse(
                 receipt["scope"]["runtime_installation_origin_attested"]
             )
@@ -192,21 +239,26 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
             source = root / "sei"
             source.mkdir()
             output = root / "workspace"
-            patches = self._patches()
-            with patches[0], patches[1], patches[2], patches[3],                  mock.patch.object(
-                     mod.papaya_materializer,
-                     "materialize_papaya_candidate",
-                     side_effect=RuntimeError("synthetic Papaya failure"),
-                 ), patches[5], patches[6]:
+            with ExitStack() as stack:
+                self._install_common_patches(stack)
+                stack.enter_context(
+                    mock.patch.object(
+                        mod.papaya_materializer,
+                        "materialize_papaya_candidate",
+                        side_effect=RuntimeError(
+                            "synthetic Papaya failure"
+                        ),
+                    )
+                )
                 with self.assertRaises(RuntimeError):
                     mod.prepare_workspace(
                         source_sha=SHA,
                         sei_source_dir=source,
-                        reference_manifest={},
-                        reference_manifest_raw=b"{}",
+                        reference_manifest=REFERENCE_MANIFEST,
+                        reference_manifest_raw=REFERENCE_RAW,
                         reference_transport=mod.reference_materializer.HF_ID,
-                        papaya_manifest={},
-                        papaya_manifest_raw=b"{}",
+                        papaya_manifest=PAPAYA_MANIFEST,
+                        papaya_manifest_raw=PAPAYA_RAW,
                         output_dir=output,
                         timeout=30.0,
                     )
@@ -218,21 +270,26 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
             source = root / "sei"
             source.mkdir()
             output = root / "workspace"
-            patches = self._patches()
-            with patches[0], patches[1], patches[2], patches[3], patches[4],                  mock.patch.object(
-                     mod.overlay,
-                     "prepare_overlay",
-                     side_effect=RuntimeError("synthetic overlay failure"),
-                 ), patches[6]:
+            with ExitStack() as stack:
+                self._install_common_patches(stack)
+                stack.enter_context(
+                    mock.patch.object(
+                        mod.overlay,
+                        "prepare_overlay",
+                        side_effect=RuntimeError(
+                            "synthetic overlay failure"
+                        ),
+                    )
+                )
                 with self.assertRaises(RuntimeError):
                     mod.prepare_workspace(
                         source_sha=SHA,
                         sei_source_dir=source,
-                        reference_manifest={},
-                        reference_manifest_raw=b"{}",
+                        reference_manifest=REFERENCE_MANIFEST,
+                        reference_manifest_raw=REFERENCE_RAW,
                         reference_transport=mod.reference_materializer.HF_ID,
-                        papaya_manifest={},
-                        papaya_manifest_raw=b"{}",
+                        papaya_manifest=PAPAYA_MANIFEST,
+                        papaya_manifest_raw=PAPAYA_RAW,
                         output_dir=output,
                         timeout=30.0,
                     )
@@ -246,27 +303,38 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
             wheelhouse = root / "wheelhouse"
             wheelhouse.mkdir()
             output = root / "workspace"
-            patches = self._patches()
+            wheel_manifest = {"schema": "wheelhouse"}
+            wheel_raw = b'{"schema":"wheelhouse"}'
 
-            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6],                  mock.patch.object(
-                     mod.wheelhouse_verifier,
-                     "verify_wheelhouse",
-                     return_value={"valid": True, "scope": {"transport_candidate_only": True}},
-                 ):
+            with ExitStack() as stack:
+                self._install_common_patches(stack)
+                stack.enter_context(
+                    mock.patch.object(
+                        mod.wheelhouse_verifier,
+                        "verify_wheelhouse",
+                        return_value={
+                            "valid": True,
+                            "scope": {
+                                "transport_candidate_only": True
+                            },
+                        },
+                    )
+                )
                 receipt = mod.prepare_workspace(
                     source_sha=SHA,
                     sei_source_dir=source,
-                    reference_manifest={},
-                    reference_manifest_raw=b"{}",
+                    reference_manifest=REFERENCE_MANIFEST,
+                    reference_manifest_raw=REFERENCE_RAW,
                     reference_transport=mod.reference_materializer.HF_ID,
-                    papaya_manifest={},
-                    papaya_manifest_raw=b"{}",
+                    papaya_manifest=PAPAYA_MANIFEST,
+                    papaya_manifest_raw=PAPAYA_RAW,
                     output_dir=output,
                     timeout=30.0,
                     runtime_wheelhouse_dir=wheelhouse,
-                    runtime_wheelhouse_manifest={"schema": "wheelhouse"},
-                    runtime_wheelhouse_manifest_raw=b'{"schema":"wheelhouse"}',
+                    runtime_wheelhouse_manifest=wheel_manifest,
+                    runtime_wheelhouse_manifest_raw=wheel_raw,
                 )
+
             self.assertTrue(receipt["runtime_wheelhouse"]["provided"])
             self.assertFalse(
                 receipt["runtime_wheelhouse"]["external_path_retained"]
@@ -281,28 +349,41 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
             wheelhouse = root / "wheelhouse"
             wheelhouse.mkdir()
             output = root / "workspace"
-            patches = self._patches()
-            with patches[0], patches[1], patches[2],                  mock.patch.object(
-                     mod.wheelhouse_verifier,
-                     "verify_wheelhouse",
-                     return_value={"valid": False},
-                 ):
-                with self.assertRaises(mod.ManagedPairMaterializationError):
+            with ExitStack() as stack:
+                self._install_common_patches(stack)
+                stack.enter_context(
+                    mock.patch.object(
+                        mod.wheelhouse_verifier,
+                        "verify_wheelhouse",
+                        return_value={"valid": False},
+                    )
+                )
+                with self.assertRaises(
+                    mod.ManagedPairMaterializationError
+                ):
                     mod.prepare_workspace(
                         source_sha=SHA,
                         sei_source_dir=source,
-                        reference_manifest={},
-                        reference_manifest_raw=b"{}",
+                        reference_manifest=REFERENCE_MANIFEST,
+                        reference_manifest_raw=REFERENCE_RAW,
                         reference_transport=mod.reference_materializer.HF_ID,
-                        papaya_manifest={},
-                        papaya_manifest_raw=b"{}",
+                        papaya_manifest=PAPAYA_MANIFEST,
+                        papaya_manifest_raw=PAPAYA_RAW,
                         output_dir=output,
                         timeout=30.0,
                         runtime_wheelhouse_dir=wheelhouse,
                         runtime_wheelhouse_manifest={"schema": "wheelhouse"},
-                        runtime_wheelhouse_manifest_raw=b"{}",
+                        runtime_wheelhouse_manifest_raw=b'{"schema":"wheelhouse"}',
                     )
             self.assertFalse(output.exists())
+
+    def test_manifest_object_raw_binding_is_required(self):
+        with self.assertRaises(mod.ManagedPairMaterializationError):
+            mod._require_raw_binding(
+                {"schema": "expected"},
+                b'{"schema":"different"}',
+                "test manifest",
+            )
 
     def test_existing_or_source_internal_workspace_is_rejected(self):
         with tempfile.TemporaryDirectory() as td:
@@ -327,19 +408,41 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
                 "require_git_checkout",
                 return_value={"git_sha": "2" * 40, "clean": True},
             ):
-                with self.assertRaises(mod.ManagedPairMaterializationError):
+                with self.assertRaises(
+                    mod.ManagedPairMaterializationError
+                ):
                     mod.prepare_workspace(
                         source_sha=SHA,
                         sei_source_dir=source,
-                        reference_manifest={},
-                        reference_manifest_raw=b"{}",
+                        reference_manifest=REFERENCE_MANIFEST,
+                        reference_manifest_raw=REFERENCE_RAW,
                         reference_transport=mod.reference_materializer.HF_ID,
-                        papaya_manifest={},
-                        papaya_manifest_raw=b"{}",
+                        papaya_manifest=PAPAYA_MANIFEST,
+                        papaya_manifest_raw=PAPAYA_RAW,
                         output_dir=output,
                         timeout=30.0,
                     )
             self.assertFalse(output.exists())
+
+    def test_overlay_workspace_binding_rejects_non_symlink(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            candidate = root / "candidate"
+            staged = root / "overlay"
+            candidate.mkdir()
+            staged.mkdir()
+            for spec in mod.overlay.DEFAULT_ARTIFACTS:
+                if spec.role in ("q8_backbone", "decision_head"):
+                    source = candidate / spec.relative_path
+                    source.parent.mkdir(parents=True, exist_ok=True)
+                    source.write_bytes(b"source")
+                    target = staged / spec.relative_path
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    target.write_bytes(b"copy")
+            with self.assertRaises(
+                mod.ManagedPairMaterializationError
+            ):
+                mod._verify_overlay_workspace_binding(candidate, staged)
 
     def test_papaya_transport_must_have_one_attested_tokenizer(self):
         with self.assertRaises(mod.ManagedPairMaterializationError):
