@@ -257,6 +257,9 @@ class PairPreflightTest(unittest.TestCase):
             self.assertFalse(
                 wheelhouse["scope"]["host_dependency_versions_pinned"]
             )
+            self.assertFalse(
+                wheelhouse["scope"]["runtime_installation_origin_attested"]
+            )
             self.assertIn(
                 "verify_runtime_dependency_wheelhouse.py", loader.calls
             )
