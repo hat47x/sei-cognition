@@ -192,6 +192,68 @@ requires `safetensors>=0.8.0`. An eligible execution host may use another
 dependency set satisfying the declared package ranges; the managed capture
 retains the versions it actually observes.
 
+## 2.2 Host-assisted exact-wheel evaluation runtime
+
+When using the retained four-wheel transport candidate, materialize a dedicated
+evaluation venv with:
+
+```bash
+python3 materialize_managed_runtime_env.py \
+  <verified-runtime-wheelhouse> \
+  --output-dir <new-managed-runtime-env>
+```
+
+The helper revalidates the wheelhouse and the retained Linux x86_64 /
+Python 3.13.5 surface, creates the venv with
+`system-site-packages=true`, then installs exactly the retained four wheels
+offline with:
+
+```text
+pip install
+  --no-index
+  --no-deps
+  --force-reinstall
+  <Laya wheel>
+  <Transformers wheel>
+  <tokenizers wheel>
+  <safetensors wheel>
+```
+
+The post-install probe requires all four transported modules to import from
+inside the venv and verifies their PEP 610 `direct_url.json` local-file
+origins against the retained wheel filenames and SHA-256 values. It also
+requires an offline ModernBERT import.
+
+The following packages remain host-assisted through
+`system-site-packages` and are deliberately excluded from the exact-wheel
+installation-origin claim:
+
+```text
+torch
+huggingface-hub
+numpy
+fastapi
+uvicorn
+```
+
+Therefore a successful environment records:
+
+```text
+transported_wheel_installation_origin_attested  true
+runtime_installation_origin_attested            false
+host_dependency_versions_pinned                 false
+self_contained_runtime                           false
+environment_relocatable                         false
+model_weights_loaded                             false
+live_inference                                   false
+numeric_parity                                   false
+shipping_decision                                false
+```
+
+The environment and its source wheelhouse are path-bound and should not be
+moved after verification. Use the venv's `bin/python` for subsequent
+evaluation once the separate managed-preflight integration unit is enabled.
+
 ## 3. Python-Laya reference model directory
 
 Acquire the standalone checkpoint from the immutable Hub revision. The commands below use Hugging Face's current `hf` CLI (`huggingface-cli` was renamed to `hf` in 2025):
