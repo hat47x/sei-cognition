@@ -52,6 +52,91 @@ source      NandhaKishorM/laya@23a17522aa4942da6cce53a995a275760320b691
 
 Do not substitute a locally rebuilt wheel.
 
+## 2.1 DNS-independent runtime dependency fallback
+
+The managed reference runner records the dependency versions actually used; it
+does not turn Laya's dependency ranges into an upstream runtime lock. On
+2026-09-27, however, the current ChatGPT environment had no shell DNS for PyPI,
+Hugging Face, or GitHub, while the connected GitHub Actions artifact path was
+still able to materialize release artifacts.
+
+A **transport candidate** was therefore retained in
+`runtime_dependency_wheelhouse.v1.json` for Linux x86_64 / Python 3.13. It is
+not a product/runtime pin.
+
+The four materialized wheels are:
+
+| distribution | version | wheel SHA-256 | GitHub workflow run | artifact id |
+| --- | --- | --- | ---: | ---: |
+| Laya | 0.3.20 | `6039e802fa5effb8dd492061cd7ad39a43087beadc4a4fa4a649614e77eb83d4` | 35960902240 | 10792385664 |
+| Transformers | 5.17.0 | `78ec1ce21579b38dfb83950a0658cd119f87212a2fcfdff478096ce9d6c03801` | 34367538606 | 10110585452 |
+| tokenizers | 0.23.2 | `e8ccc55262e36550c54eafadf93df8ac449b454373727ef47c826adbeb733a1a` | 33735388484 | 9885597962 |
+| safetensors | 0.9.0rc1 | `d5109939a6f11d502c1656c927e3b9413f8d48dba635204c2f21cdc465e5035a` | 35890001765 | 10764477075 |
+
+The outer Actions artifact ZIP digests and exact wheel filenames/tags are also
+retained in the manifest.
+
+On a host with GitHub CLI access, equivalent artifacts can be obtained from the
+recorded repositories/runs, for example:
+
+```bash
+gh run download 35960902240 -R NandhaKishorM/laya \
+  -n dist -D <artifact-root>/laya
+
+gh run download 34367538606 -R huggingface/transformers \
+  -n python-dist -D <artifact-root>/transformers
+
+gh run download 33735388484 -R huggingface/tokenizers \
+  -n pypi_files-ubuntu-x86_64-auto-abi3 -D <artifact-root>/tokenizers
+
+gh run download 35890001765 -R safetensors/safetensors \
+  -n wheels-linux-x86_64-3.14 -D <artifact-root>/safetensors
+```
+
+Collect only the exact four retained wheel filenames into one directory, then
+validate them before installation:
+
+```bash
+python3 verify_runtime_dependency_wheelhouse.py \
+  runtime_dependency_wheelhouse.v1.json \
+  <wheelhouse>
+```
+
+The validator fails closed on wheel-set drift, bytes/SHA-256 drift, package
+name/version metadata drift, wheel-tag drift, artifact provenance shape drift,
+or any attempt to promote the packet beyond transport-candidate scope.
+
+The current environment additionally demonstrated an offline install of these
+four wheels together with its already-present host dependencies. The resulting
+isolated runtime imported:
+
+```text
+laya          0.3.20
+transformers  5.17.0
+tokenizers    0.23.2
+safetensors   0.9.0rc1
+```
+
+and successfully imported Transformers' ModernBERT implementation.
+
+That observation means only that a runnable dependency set can be transported
+without PyPI/Hugging Face shell access. In particular:
+
+```text
+runtime wheelhouse transport PASS
+  != upstream product runtime pin
+  != exact model bytes
+  != model load
+  != live inference
+  != numeric parity
+```
+
+The `safetensors 0.9.0rc1` member is a prerelease selected only because the
+stable 0.8.0 Actions artifacts had already expired while Transformers 5.17.0
+requires `safetensors>=0.8.0`. An eligible execution host may use another
+dependency set satisfying the declared package ranges; the managed capture
+retains the versions it actually observes.
+
 ## 3. Python-Laya reference model directory
 
 Acquire the standalone checkpoint from the immutable Hub revision. The commands below use Hugging Face's current `hf` CLI (`huggingface-cli` was renamed to `hf` in 2025):
@@ -298,16 +383,33 @@ Observed public transport evidence is narrower:
 - the pinned b10964 llama runtime is already materialized Evidence and is not
   the remaining transport blocker.
 
+On 2026-09-27 the GitHub Actions artifact path additionally materialized the
+exact Laya wheel plus a compatible Transformers/tokenizers/safetensors runtime
+candidate and verified the resulting imports offline. Therefore the Python
+runtime dependency transport is no longer the limiting factor in this
+environment.
+
+Shell DNS remains unavailable for both Hugging Face and GitHub. Consequently,
+this environment still does not contain:
+
+- a clean exact SEI source checkout usable by the managed Git cleanliness gate;
+- a clean exact Papaya source checkout;
+- the exact reference F16 model directory;
+- the exact Papaya Q8/head candidate bytes.
+
 Therefore:
 
 ```text
-materialization instructions frozen
+runtime dependency transport demonstrated
+  + materialization instructions frozen
+  != exact source checkouts materialized here
   != model bytes materialized here
   != model load
   != live inference
   != numeric parity result
 ```
 
-The remaining external-input blocker is specifically the exact reference F16
-model directory plus the exact Papaya Q8/head candidate bytes on an eligible
-host.
+The remaining semantic external-input blockers for the actual paired experiment
+are still the exact reference F16 model bytes and exact Papaya Q8/head bytes on
+an eligible host; the current ChatGPT container additionally lacks the two
+clean Git checkouts required by the managed runners.
