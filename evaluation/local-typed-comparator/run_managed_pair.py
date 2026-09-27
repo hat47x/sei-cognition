@@ -277,11 +277,12 @@ def _record_failure(
     error_type: str | None = None,
 ) -> None:
     receipt["status"] = "failed"
-    receipt["stage"] = (
-        f"{stage}_failed"
-        if kind == "process_exit"
-        else f"{stage}_validation_failed"
-    )
+    if kind == "process_exit":
+        receipt["stage"] = f"{stage}_failed"
+    elif kind == "runner_exception":
+        receipt["stage"] = f"{stage}_launch_failed"
+    else:
+        receipt["stage"] = f"{stage}_validation_failed"
     failure: dict[str, Any] = {
         "stage": stage,
         "kind": kind,
@@ -447,7 +448,18 @@ def execute_pair(
         receipt["stage"] = f"{stage}_running"
         _write_receipt(receipt_path, receipt)
         path = _output_arg(command)
-        completed = runner(list(command), cwd=str(cwd), check=False)
+        try:
+            completed = runner(list(command), cwd=str(cwd), check=False)
+        except Exception as exc:
+            _record_failure(
+                receipt_path=receipt_path,
+                receipt=receipt,
+                stage=stage,
+                kind="runner_exception",
+                output_path=path,
+                error_type=type(exc).__name__,
+            )
+            raise
         if completed.returncode != 0:
             _record_failure(
                 receipt_path=receipt_path,
