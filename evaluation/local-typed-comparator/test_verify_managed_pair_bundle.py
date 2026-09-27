@@ -74,6 +74,7 @@ class BundleRunner:
                     "schema": pair.PREFLIGHT_SCHEMA,
                     "status": "ready",
                     "source": {"git_sha": SHA},
+                    "runtime_wheelhouse": {"provided": False},
                     "scope": {
                         "all_required_inputs_verified": True,
                         "model_weights_loaded": False,

@@ -104,6 +104,7 @@ def run_preflight(
     papaya_source_dir: Path,
     papaya_overlay_dir: Path,
     llama_binary: Path,
+    runtime_wheelhouse_dir: Path | None = None,
     loader: Callable[[Path, str], Any] = _load_module,
 ) -> dict[str, Any]:
     source_sha = _full_sha(source_sha)
@@ -126,6 +127,12 @@ def run_preflight(
         here / "evaluate_papaya_numeric_parity.py",
         "pair_preflight_parity_policy",
     )
+    wheelhouse_verifier = None
+    if runtime_wheelhouse_dir is not None:
+        wheelhouse_verifier = loader(
+            here / "verify_runtime_dependency_wheelhouse.py",
+            "pair_preflight_runtime_wheelhouse",
+        )
 
     sei = papaya.require_git_checkout(
         sei_source_dir, source_sha, label="SEI source"
@@ -140,6 +147,59 @@ def run_preflight(
         label="Laya runtime wheel",
     )
     reference_dependencies = reference.require_runtime_dependencies()
+
+    runtime_wheelhouse = {"provided": False}
+    if runtime_wheelhouse_dir is not None:
+        if wheelhouse_verifier is None:
+            raise PairPreflightError("runtime wheelhouse verifier was not loaded")
+        wheelhouse_manifest, wheelhouse_manifest_raw = _load_json(
+            here / "runtime_dependency_wheelhouse.v1.json",
+            "runtime dependency wheelhouse manifest",
+        )
+        try:
+            wheelhouse_verification = wheelhouse_verifier.verify_wheelhouse(
+                wheelhouse_manifest,
+                runtime_wheelhouse_dir,
+            )
+        except Exception as exc:
+            raise PairPreflightError(
+                f"runtime dependency wheelhouse verification failed: {exc}"
+            ) from exc
+        if wheelhouse_verification.get("valid") is not True:
+            raise PairPreflightError(
+                "runtime dependency wheelhouse verification did not pass"
+            )
+        wheel_versions = {
+            item["distribution"]: item["version"]
+            for item in wheelhouse_verification.get("wheels", [])
+            if isinstance(item, dict)
+            and isinstance(item.get("distribution"), str)
+            and isinstance(item.get("version"), str)
+        }
+        if wheel_versions.get("laya") != reference.PINNED_LAYA_VERSION:
+            raise PairPreflightError("runtime wheelhouse Laya version drift")
+        runtime_version_matches: dict[str, str] = {}
+        for distribution in wheelhouse_verifier.WHEELHOUSE_SUPPLIED_RUNTIME:
+            expected = wheel_versions.get(distribution)
+            actual = reference_dependencies.get(distribution)
+            if expected is None or actual != expected:
+                raise PairPreflightError(
+                    f"runtime wheelhouse/current host version drift for {distribution}: "
+                    f"expected {expected!r}, got {actual!r}"
+                )
+            runtime_version_matches[distribution] = actual
+        runtime_wheelhouse = {
+            "provided": True,
+            "manifest_sha256": _sha256(wheelhouse_manifest_raw),
+            "verification": wheelhouse_verification,
+            "matched_runtime_versions": runtime_version_matches,
+            "scope": {
+                "transport_candidate_only": True,
+                "host_assisted_transport": True,
+                "self_contained_wheelhouse": False,
+                "host_dependency_versions_pinned": False,
+            },
+        }
 
     model_attestation, _ = _load_json(
         here / "reference_model_directory_attestation.v1.json",
@@ -192,6 +252,15 @@ def run_preflight(
         label="Papaya source",
     )
     papaya_dependencies = papaya.require_runtime_dependencies()
+    if runtime_wheelhouse.get("provided") is True:
+        for distribution in ("transformers", "safetensors"):
+            expected = runtime_wheelhouse["matched_runtime_versions"][distribution]
+            actual = papaya_dependencies.get(distribution)
+            if actual != expected:
+                raise PairPreflightError(
+                    f"Papaya/current host version drift for {distribution}: "
+                    f"expected {expected!r}, got {actual!r}"
+                )
     papaya_import = papaya.require_papaya_import(papaya_source_dir)
     llama_evidence = papaya.require_sei_evidence_blob(sei_source_dir)
     llama_runtime = papaya.require_llama_server(llama_binary)
@@ -217,6 +286,7 @@ def run_preflight(
             "model_directory": model,
             "model_attestation_schema": model_attestation.get("schema"),
         },
+        "runtime_wheelhouse": runtime_wheelhouse,
         "papaya": {
             "source": papaya_source,
             "runtime_dependencies": papaya_dependencies,
@@ -263,6 +333,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--papaya-source-dir", type=Path, required=True)
     parser.add_argument("--papaya-overlay-dir", type=Path, required=True)
     parser.add_argument("--llama-binary", type=Path, required=True)
+    parser.add_argument("--runtime-wheelhouse-dir", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
 
@@ -282,6 +353,11 @@ def main(argv: list[str] | None = None) -> int:
             papaya_source_dir=args.papaya_source_dir.resolve(),
             papaya_overlay_dir=args.papaya_overlay_dir.resolve(),
             llama_binary=args.llama_binary.resolve(),
+            runtime_wheelhouse_dir=(
+                args.runtime_wheelhouse_dir.resolve()
+                if args.runtime_wheelhouse_dir is not None
+                else None
+            ),
         )
         _write_atomic(output, receipt)
     except Exception as exc:

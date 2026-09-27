@@ -62,6 +62,20 @@ class FakeRunner:
                     "schema": mod.PREFLIGHT_SCHEMA,
                     "status": "ready",
                     "source": {"git_sha": SHA},
+                    "runtime_wheelhouse": (
+                        {
+                            "provided": True,
+                            "verification": {"valid": True},
+                            "scope": {
+                                "transport_candidate_only": True,
+                                "host_assisted_transport": True,
+                                "self_contained_wheelhouse": False,
+                                "host_dependency_versions_pinned": False,
+                            },
+                        }
+                        if "--runtime-wheelhouse-dir" in command
+                        else {"provided": False}
+                    ),
                     "scope": {
                         "all_required_inputs_verified": True,
                         "model_weights_loaded": self.preflight_live,
@@ -148,7 +162,7 @@ class FakeRunner:
 
 
 class ManagedPairTest(unittest.TestCase):
-    def _commands(self, root, output):
+    def _commands(self, root, output, *, runtime_wheelhouse=False):
         commands = mod.build_commands(
             python_executable="python3",
             here=root / "scripts",
@@ -164,6 +178,9 @@ class ManagedPairTest(unittest.TestCase):
             threads=4,
             reference_startup_timeout=300.0,
             papaya_startup_timeout=240.0,
+            runtime_wheelhouse_dir=(
+                root / "runtime-wheelhouse" if runtime_wheelhouse else None
+            ),
         )
         return tuple(
             zip(
@@ -189,6 +206,38 @@ class ManagedPairTest(unittest.TestCase):
             self.assertIn(str(out / mod.REFERENCE_FILE), cmp)
             self.assertIn(str(out / mod.PAPAYA_FILE), cmp)
             self.assertIn(str(out / mod.REPORT_FILE), dec)
+
+    def test_optional_wheelhouse_is_passed_only_to_preflight(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            commands = self._commands(
+                root, out, runtime_wheelhouse=True
+            )
+            pre = commands[0][1]
+            ref = commands[1][1]
+            pap = commands[2][1]
+            self.assertEqual(
+                pre[pre.index("--runtime-wheelhouse-dir") + 1],
+                str(root / "runtime-wheelhouse"),
+            )
+            self.assertNotIn("--runtime-wheelhouse-dir", ref)
+            self.assertNotIn("--runtime-wheelhouse-dir", pap)
+
+            out.mkdir()
+            receipt = mod.execute_pair(
+                source_sha=SHA,
+                output_dir=out,
+                commands=commands,
+                run_id="r1",
+                cwd=root,
+                runner=FakeRunner(),
+            )
+            self.assertTrue(
+                receipt["artifacts"]["preflight"][
+                    "runtime_wheelhouse_provided"
+                ]
+            )
 
     def test_preflight_failure_stops_before_model_load(self):
         self._assert_stage_failure("preflight", 1)
