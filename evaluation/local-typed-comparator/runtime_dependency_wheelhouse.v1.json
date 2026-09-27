@@ -1,0 +1,110 @@
+{
+  "schema": "sei.local-typed-comparator-runtime-wheelhouse/v1",
+  "status": "transport-candidate",
+  "observed_date": "2026-09-27",
+  "observed_from_sei_source_sha": "b591bde81b6187b9ad1729e7524f64bf054d318e",
+  "platform": {
+    "os": "linux",
+    "arch": "x86_64",
+    "python": "3.13.5"
+  },
+  "entries": [
+    {
+      "distribution": "laya",
+      "version": "0.3.20",
+      "wheel_filename": "laya-0.3.20-py3-none-any.whl",
+      "wheel_bytes": 118520,
+      "wheel_sha256": "6039e802fa5effb8dd492061cd7ad39a43087beadc4a4fa4a649614e77eb83d4",
+      "wheel_tags": ["py3-none-any"],
+      "source": {
+        "repository": "NandhaKishorM/laya",
+        "revision": "23a17522aa4942da6cce53a995a275760320b691",
+        "workflow_run_id": 35960902240,
+        "artifact_id": 10792385664,
+        "artifact_name": "dist",
+        "artifact_zip_sha256": "c6740d85f261188e51dcf7f0fc490bed4b8c0d55656d57f3cda5bb474078e32f"
+      }
+    },
+    {
+      "distribution": "transformers",
+      "version": "5.17.0",
+      "wheel_filename": "transformers-5.17.0-py3-none-any.whl",
+      "wheel_bytes": 12295140,
+      "wheel_sha256": "78ec1ce21579b38dfb83950a0658cd119f87212a2fcfdff478096ce9d6c03801",
+      "wheel_tags": ["py3-none-any"],
+      "source": {
+        "repository": "huggingface/transformers",
+        "revision": "856157a2f3e9594954310df18fdccc31ffddebe9",
+        "workflow_run_id": 34367538606,
+        "artifact_id": 10110585452,
+        "artifact_name": "python-dist",
+        "artifact_zip_sha256": "4fde928338a10a3faedd9a90fb0c3fefee8d23fcb05ecfe94c20320a4c1a3f0a"
+      }
+    },
+    {
+      "distribution": "tokenizers",
+      "version": "0.23.2",
+      "wheel_filename": "tokenizers-0.23.2-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "wheel_bytes": 3386840,
+      "wheel_sha256": "e8ccc55262e36550c54eafadf93df8ac449b454373727ef47c826adbeb733a1a",
+      "wheel_tags": [
+        "cp310-abi3-manylinux_2_17_x86_64",
+        "cp310-abi3-manylinux2014_x86_64"
+      ],
+      "source": {
+        "repository": "huggingface/tokenizers",
+        "revision": "88a4498ad4ea1a9487b0a9b0ff881383fd5a06a3",
+        "workflow_run_id": 33735388484,
+        "artifact_id": 9885597962,
+        "artifact_name": "pypi_files-ubuntu-x86_64-auto-abi3",
+        "artifact_zip_sha256": "26cefb048f96a11e605e5937de700355b3d58c732c7b58bdfaaa5ed513751d0a"
+      }
+    },
+    {
+      "distribution": "safetensors",
+      "version": "0.9.0rc1",
+      "wheel_filename": "safetensors-0.9.0rc1-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "wheel_bytes": 594109,
+      "wheel_sha256": "d5109939a6f11d502c1656c927e3b9413f8d48dba635204c2f21cdc465e5035a",
+      "wheel_tags": [
+        "cp310-abi3-manylinux_2_17_x86_64",
+        "cp310-abi3-manylinux2014_x86_64"
+      ],
+      "source": {
+        "repository": "safetensors/safetensors",
+        "revision": "659534d9cbd0f40b8463b2e090aee6d979ee8351",
+        "workflow_run_id": 35890001765,
+        "artifact_id": 10764477075,
+        "artifact_name": "wheels-linux-x86_64-3.14",
+        "artifact_zip_sha256": "5e07f39aa5ba28105acd1932a529f50b5e240e5d9bff1560f1e5b4f8ad2bda8b"
+      }
+    }
+  ],
+  "observed_host_dependencies": {
+    "huggingface-hub": "1.16.1",
+    "torch": "2.10.0+cpu",
+    "numpy": "2.3.5",
+    "fastapi": "0.128.2",
+    "uvicorn": "0.48.0",
+    "packaging": "25.0",
+    "pyyaml": "6.0.3",
+    "regex": "2026.5.9",
+    "typer": "0.26.3",
+    "tqdm": "4.67.3"
+  },
+  "validation_observation": {
+    "offline_install": "pass",
+    "laya_import": "pass",
+    "transformers_import": "pass",
+    "modernbert_import": "pass"
+  },
+  "scope": {
+    "transport_candidate_only": true,
+    "product_runtime_pin": false,
+    "model_bytes_materialized": false,
+    "model_weights_loaded": false,
+    "live_inference": false,
+    "numeric_parity": false,
+    "shipping_decision": false
+  }
+}
