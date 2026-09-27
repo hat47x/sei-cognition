@@ -716,9 +716,10 @@ reference promotion, and shipping decisions out of scope.
 Validate the model-free preflight/orchestration mechanics with:
 
 ```bash
+python3 -m unittest -v test_verify_runtime_dependency_wheelhouse.py
+python3 -m unittest -v test_materialize_managed_runtime_env.py
 python3 -m unittest -v test_preflight_managed_pair.py
 python3 -m unittest -v test_run_managed_pair.py
-python3 -m unittest -v test_verify_runtime_dependency_wheelhouse.py
 ```
 
 ### Verify a returned pair bundle
