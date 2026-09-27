@@ -251,8 +251,29 @@ shipping_decision                                false
 ```
 
 The environment and its source wheelhouse are path-bound and should not be
-moved after verification. Use the venv's `bin/python` for subsequent
-evaluation once the separate managed-preflight integration unit is enabled.
+moved after verification.
+
+The managed-preflight integration is now enabled. Use the exact venv interpreter
+and pass both the wheelhouse and environment paths:
+
+```bash
+<managed-runtime-env>/bin/python preflight_managed_pair.py \
+  --source-git-sha <exact-clean-SEI-SHA> \
+  --sei-source-dir <same-SEI-checkout-containing-this-script> \
+  --reference-model-dir <reference-model-dir> \
+  --laya-runtime-wheel <verified-runtime-wheelhouse>/laya-0.3.20-py3-none-any.whl \
+  --papaya-source-dir <clean-papaya-a76bc99-checkout> \
+  --papaya-overlay-dir <papaya-overlay-dir> \
+  --llama-binary <pinned-b10964-llama-server> \
+  --runtime-wheelhouse-dir <verified-runtime-wheelhouse> \
+  --runtime-environment-dir <managed-runtime-env> \
+  --output <external-preflight-receipt.json>
+```
+
+Preflight re-verifies the wheel bytes, PEP 610 origins, module locations,
+host-assisted dependency availability, and exact current interpreter binding
+before any model load. The broader
+`runtime_installation_origin_attested=false` boundary remains unchanged.
 
 ## 3. Python-Laya reference model directory
 
@@ -608,6 +629,13 @@ When using the #635 host-assisted wheelhouse, add:
 --runtime-wheelhouse-dir <verified-wheelhouse>
 ```
 
+When also using the #645 exact-wheel managed venv, run the command with
+`<managed-runtime-env>/bin/python` and additionally add:
+
+```bash
+--runtime-environment-dir <managed-runtime-env>
+```
+
 A preflight PASS means only that the materialized input set satisfies the
 already-merged byte/provenance/contracts. If the optional wheelhouse is
 provided, its verification and the matched transported dependency versions are
@@ -633,9 +661,15 @@ python3 run_managed_pair.py \
 ```
 
 When using the retained runtime wheelhouse, add the same optional
-`--runtime-wheelhouse-dir <verified-wheelhouse>` argument. The paired runner
-passes it only to preflight; the two provider captures keep their existing
-runtime/provenance contracts unchanged.
+`--runtime-wheelhouse-dir <verified-wheelhouse>` argument. When using the
+managed venv, invoke `run_managed_pair.py` with that venv's `bin/python` and
+also pass `--runtime-environment-dir <managed-runtime-env>`. Both optional
+paths are forwarded only to preflight, which verifies the environment and exact
+interpreter before either provider loads weights. All subsequent stages are then
+spawned with the same `sys.executable`.
+
+The two provider captures keep their existing provider/model/runtime provenance
+contracts unchanged.
 
 The orchestrator runs:
 

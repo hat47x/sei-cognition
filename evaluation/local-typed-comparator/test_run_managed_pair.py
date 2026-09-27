@@ -33,6 +33,8 @@ class FakeRunner:
         bad_decision_binding=None,
         preflight_live=False,
         preflight_install_origin=False,
+        preflight_runtime_current_match=True,
+        preflight_environment_full_origin=False,
     ):
         self.calls = []
         self.fail_stage = fail_stage
@@ -41,6 +43,12 @@ class FakeRunner:
         self.bad_decision_binding = bad_decision_binding
         self.preflight_live = preflight_live
         self.preflight_install_origin = preflight_install_origin
+        self.preflight_runtime_current_match = (
+            preflight_runtime_current_match
+        )
+        self.preflight_environment_full_origin = (
+            preflight_environment_full_origin
+        )
 
     def __call__(self, command, *, cwd, check):
         self.calls.append((command, cwd, check))
@@ -68,11 +76,38 @@ class FakeRunner:
                         {
                             "provided": True,
                             "verification": {"valid": True},
+                            "runtime_environment": (
+                                {
+                                    "provided": True,
+                                    "verification": {
+                                        "valid": True,
+                                        "python": {
+                                            "current_interpreter_matches": (
+                                                self.preflight_runtime_current_match
+                                            )
+                                        },
+                                        "scope": {
+                                            "transported_wheel_installation_origin_attested": True,
+                                            "runtime_installation_origin_attested": (
+                                                self.preflight_environment_full_origin
+                                            ),
+                                            "host_dependency_versions_pinned": False,
+                                            "self_contained_runtime": False,
+                                            "environment_relocatable": False,
+                                        },
+                                    },
+                                }
+                                if "--runtime-environment-dir" in command
+                                else {"provided": False}
+                            ),
                             "scope": {
                                 "transport_candidate_only": True,
                                 "host_assisted_transport": True,
                                 "self_contained_wheelhouse": False,
                                 "host_dependency_versions_pinned": False,
+                                "transported_wheel_installation_origin_attested": (
+                                    "--runtime-environment-dir" in command
+                                ),
                                 "runtime_installation_origin_attested": (
                                     self.preflight_install_origin
                                 ),
@@ -167,7 +202,14 @@ class FakeRunner:
 
 
 class ManagedPairTest(unittest.TestCase):
-    def _commands(self, root, output, *, runtime_wheelhouse=False):
+    def _commands(
+        self,
+        root,
+        output,
+        *,
+        runtime_wheelhouse=False,
+        runtime_environment=False,
+    ):
         commands = mod.build_commands(
             python_executable="python3",
             here=root / "scripts",
@@ -184,7 +226,12 @@ class ManagedPairTest(unittest.TestCase):
             reference_startup_timeout=300.0,
             papaya_startup_timeout=240.0,
             runtime_wheelhouse_dir=(
-                root / "runtime-wheelhouse" if runtime_wheelhouse else None
+                root / "runtime-wheelhouse"
+                if runtime_wheelhouse or runtime_environment
+                else None
+            ),
+            runtime_environment_dir=(
+                root / "runtime-env" if runtime_environment else None
             ),
         )
         return tuple(
@@ -242,6 +289,115 @@ class ManagedPairTest(unittest.TestCase):
                 receipt["artifacts"]["preflight"][
                     "runtime_wheelhouse_provided"
                 ]
+            )
+
+    def test_optional_runtime_environment_is_passed_only_to_preflight(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            commands = self._commands(
+                root, out, runtime_environment=True
+            )
+            pre = commands[0][1]
+            ref = commands[1][1]
+            pap = commands[2][1]
+            self.assertEqual(
+                pre[pre.index("--runtime-environment-dir") + 1],
+                str(root / "runtime-env"),
+            )
+            self.assertIn("--runtime-wheelhouse-dir", pre)
+            self.assertNotIn("--runtime-environment-dir", ref)
+            self.assertNotIn("--runtime-environment-dir", pap)
+
+            out.mkdir()
+            receipt = mod.execute_pair(
+                source_sha=SHA,
+                output_dir=out,
+                commands=commands,
+                run_id="r1",
+                cwd=root,
+                runner=FakeRunner(),
+            )
+            summary = receipt["artifacts"]["preflight"]
+            self.assertTrue(summary["runtime_wheelhouse_provided"])
+            self.assertTrue(summary["runtime_environment_provided"])
+            self.assertTrue(
+                summary[
+                    "transported_wheel_installation_origin_attested"
+                ]
+            )
+
+    def test_runtime_environment_requires_wheelhouse_in_command_builder(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "requires runtime wheelhouse",
+            ):
+                mod.build_commands(
+                    python_executable="python3",
+                    here=root / "scripts",
+                    source_sha=SHA,
+                    sei_source_dir=root / "sei",
+                    reference_model_dir=root / "reference-model",
+                    laya_runtime_wheel=root / "laya.whl",
+                    papaya_source_dir=root / "papaya-source",
+                    papaya_overlay_dir=root / "papaya-overlay",
+                    llama_binary=root / "llama-server",
+                    output_dir=root / "evidence",
+                    run_id="r1",
+                    threads=4,
+                    reference_startup_timeout=300.0,
+                    papaya_startup_timeout=240.0,
+                    runtime_environment_dir=root / "runtime-env",
+                )
+
+    def test_runtime_environment_interpreter_mismatch_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = FakeRunner(
+                preflight_runtime_current_match=False
+            )
+            with self.assertRaises(mod.ManagedPairError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(
+                        root, out, runtime_environment=True
+                    ),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            receipt = json.loads((out / mod.RECEIPT_FILE).read_text())
+            self.assertEqual(
+                receipt["stage"], "preflight_validation_failed"
+            )
+
+    def test_runtime_environment_full_origin_overclaim_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = FakeRunner(
+                preflight_environment_full_origin=True
+            )
+            with self.assertRaises(mod.ManagedPairError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(
+                        root, out, runtime_environment=True
+                    ),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            receipt = json.loads((out / mod.RECEIPT_FILE).read_text())
+            self.assertEqual(
+                receipt["stage"], "preflight_validation_failed"
             )
 
     def test_preflight_failure_stops_before_model_load(self):

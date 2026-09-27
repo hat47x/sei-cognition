@@ -146,6 +146,82 @@ def _preflight_summary(path: Path, source_sha: str) -> dict[str, Any]:
             raise ManagedPairError(
                 "pair preflight wheelhouse installation-origin overclaim"
             )
+        runtime_environment = wheelhouse.get("runtime_environment")
+        if not isinstance(runtime_environment, dict):
+            raise ManagedPairError(
+                "pair preflight runtime environment receipt missing"
+            )
+        environment_provided = runtime_environment.get("provided")
+        if not isinstance(environment_provided, bool):
+            raise ManagedPairError(
+                "pair preflight runtime environment provided flag missing"
+            )
+        transported_origin = wheel_scope.get(
+            "transported_wheel_installation_origin_attested"
+        )
+        if transported_origin is not environment_provided:
+            raise ManagedPairError(
+                "pair preflight transported-wheel origin scope drift"
+            )
+        if environment_provided:
+            environment_verification = runtime_environment.get("verification")
+            if (
+                not isinstance(environment_verification, dict)
+                or environment_verification.get("valid") is not True
+            ):
+                raise ManagedPairError(
+                    "pair preflight runtime environment verification missing"
+                )
+            environment_scope = environment_verification.get("scope")
+            environment_python = environment_verification.get("python")
+            if not isinstance(environment_scope, dict):
+                raise ManagedPairError(
+                    "pair preflight runtime environment scope missing"
+                )
+            if not isinstance(environment_python, dict):
+                raise ManagedPairError(
+                    "pair preflight runtime environment Python receipt missing"
+                )
+            if (
+                environment_scope.get(
+                    "transported_wheel_installation_origin_attested"
+                )
+                is not True
+            ):
+                raise ManagedPairError(
+                    "pair preflight transported-wheel origin attestation missing"
+                )
+            if (
+                environment_scope.get("runtime_installation_origin_attested")
+                is not False
+            ):
+                raise ManagedPairError(
+                    "pair preflight runtime environment full-origin overclaim"
+                )
+            if (
+                environment_scope.get("host_dependency_versions_pinned")
+                is not False
+            ):
+                raise ManagedPairError(
+                    "pair preflight runtime environment host-pin overclaim"
+                )
+            if environment_scope.get("self_contained_runtime") is not False:
+                raise ManagedPairError(
+                    "pair preflight runtime environment self-contained overclaim"
+                )
+            if environment_scope.get("environment_relocatable") is not False:
+                raise ManagedPairError(
+                    "pair preflight runtime environment relocatability drift"
+                )
+            if (
+                environment_python.get("current_interpreter_matches")
+                is not True
+            ):
+                raise ManagedPairError(
+                    "pair preflight runtime interpreter binding missing"
+                )
+    else:
+        environment_provided = False
     for field in (
         "model_weights_loaded",
         "live_reference_inference",
@@ -164,6 +240,10 @@ def _preflight_summary(path: Path, source_sha: str) -> dict[str, Any]:
         "schema": PREFLIGHT_SCHEMA,
         "status": "ready",
         "runtime_wheelhouse_provided": wheelhouse_provided,
+        "runtime_environment_provided": environment_provided,
+        "transported_wheel_installation_origin_attested": (
+            environment_provided
+        ),
     }
 
 
@@ -366,6 +446,7 @@ def build_commands(
     reference_startup_timeout: float,
     papaya_startup_timeout: float,
     runtime_wheelhouse_dir: Path | None = None,
+    runtime_environment_dir: Path | None = None,
 ) -> tuple[list[str], list[str], list[str], list[str], list[str]]:
     preflight_output = output_dir / PREFLIGHT_FILE
     reference_output = output_dir / REFERENCE_FILE
@@ -391,11 +472,22 @@ def build_commands(
         "--llama-binary",
         str(llama_binary),
     ]
+    if runtime_environment_dir is not None and runtime_wheelhouse_dir is None:
+        raise ManagedPairError(
+            "runtime environment requires runtime wheelhouse"
+        )
     if runtime_wheelhouse_dir is not None:
         preflight.extend(
             [
                 "--runtime-wheelhouse-dir",
                 str(runtime_wheelhouse_dir),
+            ]
+        )
+    if runtime_environment_dir is not None:
+        preflight.extend(
+            [
+                "--runtime-environment-dir",
+                str(runtime_environment_dir),
             ]
         )
     preflight.extend(
@@ -486,6 +578,7 @@ def execute_pair(
         "scope": {
             "single_sei_source_git_sha": True,
             "preflight_all_required_inputs_verified": False,
+            "transported_wheel_installation_origin_attested": False,
             "provider_provenance_merged": False,
             "raw_comparator_threshold_defined": False,
             "preregistered_numeric_policy_applied": False,
@@ -530,10 +623,16 @@ def execute_pair(
 
         try:
             if stage == "preflight":
-                receipt["artifacts"]["preflight"] = _preflight_summary(
+                preflight_summary = _preflight_summary(
                     path, source_sha
                 )
+                receipt["artifacts"]["preflight"] = preflight_summary
                 receipt["scope"]["preflight_all_required_inputs_verified"] = True
+                receipt["scope"][
+                    "transported_wheel_installation_origin_attested"
+                ] = preflight_summary[
+                    "transported_wheel_installation_origin_attested"
+                ]
             elif stage == "reference":
                 receipt["artifacts"]["reference"] = _artifact_summary(
                     path,
@@ -595,6 +694,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--papaya-overlay-dir", type=Path, required=True)
     parser.add_argument("--llama-binary", type=Path, required=True)
     parser.add_argument("--runtime-wheelhouse-dir", type=Path)
+    parser.add_argument("--runtime-environment-dir", type=Path)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--threads", type=int, default=4)
@@ -605,6 +705,13 @@ def main(argv: list[str] | None = None) -> int:
     try:
         source_sha = _require_full_sha(args.source_git_sha)
         _require_script_source_binding(here, args.sei_source_dir)
+        if (
+            args.runtime_environment_dir is not None
+            and args.runtime_wheelhouse_dir is None
+        ):
+            raise ManagedPairError(
+                "--runtime-environment-dir requires --runtime-wheelhouse-dir"
+            )
         if not args.run_id.strip():
             raise ManagedPairError("run-id must be non-empty")
         if args.threads < 1:
@@ -639,6 +746,11 @@ def main(argv: list[str] | None = None) -> int:
             runtime_wheelhouse_dir=(
                 args.runtime_wheelhouse_dir.resolve()
                 if args.runtime_wheelhouse_dir is not None
+                else None
+            ),
+            runtime_environment_dir=(
+                args.runtime_environment_dir.resolve()
+                if args.runtime_environment_dir is not None
                 else None
             ),
         )

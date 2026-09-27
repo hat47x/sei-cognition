@@ -236,6 +236,24 @@ def verify_bundle(
 
     scope = _object(receipt.get("scope"), "pair receipt scope")
     _validate_scope(scope, completed_stages=completed_stages)
+    transported_origin = scope.get(
+        "transported_wheel_installation_origin_attested"
+    )
+    if not isinstance(transported_origin, bool):
+        raise ManagedPairBundleError(
+            "transported-wheel origin scope flag missing"
+        )
+    expected_transported_origin = (
+        regenerated["preflight"].get(
+            "transported_wheel_installation_origin_attested"
+        )
+        if "preflight" in regenerated
+        else False
+    )
+    if transported_origin is not expected_transported_origin:
+        raise ManagedPairBundleError(
+            "transported-wheel origin receipt/preflight drift"
+        )
 
     failure_summary: dict[str, Any] | None = None
     if failure is not None:
@@ -275,6 +293,9 @@ def verify_bundle(
         "failure": failure_summary,
         "scope": {
             "internal_bundle_integrity_verified": True,
+            "transported_wheel_installation_origin_attested": (
+                transported_origin
+            ),
             "live_inference_reexecuted": False,
             "numeric_parity_recomputed": False,
             "task_quality": False,

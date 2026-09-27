@@ -637,8 +637,32 @@ environment_relocatable                        = false
 The broader runtime origin stays false because `torch`,
 `huggingface-hub`, `numpy`, `fastapi`, and `uvicorn` still come from
 the host. Keep the venv and source wheelhouse at their materialized paths; the
-PEP 610 local-wheel bindings are path-sensitive. Connecting this venv to the
-managed preflight/paired runner is intentionally a separate follow-up unit.
+PEP 610 local-wheel bindings are path-sensitive.
+
+The venv is now an optional managed-pair execution gate. Launch preflight or the
+paired runner with that exact interpreter and pass both paths:
+
+```bash
+<managed-runtime-env>/bin/python preflight_managed_pair.py \
+  ... \
+  --runtime-wheelhouse-dir <verified-runtime-wheelhouse> \
+  --runtime-environment-dir <managed-runtime-env>
+```
+
+or:
+
+```bash
+<managed-runtime-env>/bin/python run_managed_pair.py \
+  ... \
+  --runtime-wheelhouse-dir <verified-runtime-wheelhouse> \
+  --runtime-environment-dir <managed-runtime-env>
+```
+
+Preflight re-verifies the environment and requires its currently executing
+`sys.executable` to be that exact venv interpreter. The paired runner invokes
+all five stages with the same interpreter. A wheelhouse without the managed venv
+retains the existing transport/version-only path; a managed venv cannot be
+supplied without its source wheelhouse.
 
 The paired orchestrator invokes the fail-closed stages in order:
 
@@ -692,9 +716,10 @@ reference promotion, and shipping decisions out of scope.
 Validate the model-free preflight/orchestration mechanics with:
 
 ```bash
+python3 -m unittest -v test_verify_runtime_dependency_wheelhouse.py
+python3 -m unittest -v test_materialize_managed_runtime_env.py
 python3 -m unittest -v test_preflight_managed_pair.py
 python3 -m unittest -v test_run_managed_pair.py
-python3 -m unittest -v test_verify_runtime_dependency_wheelhouse.py
 ```
 
 ### Verify a returned pair bundle
