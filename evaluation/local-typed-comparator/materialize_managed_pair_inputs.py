@@ -319,6 +319,42 @@ def prepare_workspace(
                 raise ManagedPairMaterializationError(
                     "managed runtime environment receipt drift"
                 )
+            expected_wheelhouse_manifest_sha = _sha256_bytes(
+                runtime_wheelhouse_manifest_raw
+            )
+            if (
+                runtime_receipt.get("wheelhouse_manifest_sha256")
+                != expected_wheelhouse_manifest_sha
+            ):
+                raise ManagedPairMaterializationError(
+                    "managed runtime wheelhouse-manifest binding drift"
+                )
+            runtime_wheelhouse = runtime_receipt.get("wheelhouse")
+            if (
+                not isinstance(runtime_wheelhouse, dict)
+                or runtime_wheelhouse.get("valid") is not True
+            ):
+                raise ManagedPairMaterializationError(
+                    "managed runtime wheelhouse verification missing"
+                )
+            runtime_install = runtime_receipt.get("install")
+            if (
+                not isinstance(runtime_install, dict)
+                or runtime_install.get("returncode") != 0
+            ):
+                raise ManagedPairMaterializationError(
+                    "managed runtime install receipt drift"
+                )
+            runtime_verification = runtime_receipt.get(
+                "environment_verification"
+            )
+            if (
+                not isinstance(runtime_verification, dict)
+                or runtime_verification.get("valid") is not True
+            ):
+                raise ManagedPairMaterializationError(
+                    "managed runtime environment verification missing"
+                )
             runtime_scope = runtime_receipt.get("scope")
             if not isinstance(runtime_scope, dict):
                 raise ManagedPairMaterializationError(
