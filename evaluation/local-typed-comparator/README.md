@@ -497,9 +497,27 @@ collected in
 
 It fixes the immutable source revisions, expected byte sizes/SHA-256 values,
 the already-materialized b10964 llama runtime Evidence, and the preflight /
-paired-run command sequence. The document is an execution handoff only; it does
-not claim that the large Hugging Face model objects were materialized in this
-ChatGPT environment.
+paired-run command sequence.
+
+Both provider model inputs now have fail-closed atomic materializers:
+
+```text
+Python-Laya reference
+  reference_model_transport.v1.json
+  -> materialize_reference_model.py
+
+Papaya candidate
+  papaya_candidate_transport.v1.json
+  -> materialize_papaya_candidate.py
+  -> prepare_papaya_compat_overlay.py
+```
+
+Each materializer downloads into sibling staging, verifies exact bytes before
+publish, and leaves the destination absent on failure. Papaya candidate
+materialization remains distinct from the evaluation-only compatibility overlay.
+
+The document is an execution handoff only; it does not claim that the large
+Hugging Face model objects were materialized in this ChatGPT environment.
 
 ## Managed paired-run handoff
 
