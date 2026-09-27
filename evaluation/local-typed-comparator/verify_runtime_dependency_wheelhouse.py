@@ -7,6 +7,7 @@ import hashlib
 import json
 import sys
 import zipfile
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -230,18 +231,21 @@ def validate_manifest(manifest: dict[str, Any]) -> list[dict[str, Any]]:
                 f"{canonical}.source.workflow_conclusion must be success"
             )
         expires_at = source.get("artifact_expires_at")
-        if (
-            not isinstance(expires_at, str)
-            or len(expires_at) != 20
-            or not expires_at.endswith("Z")
-            or expires_at[4] != "-"
-            or expires_at[7] != "-"
-            or expires_at[10] != "T"
-            or expires_at[13] != ":"
-            or expires_at[16] != ":"
-        ):
+        if not isinstance(expires_at, str) or not expires_at.endswith("Z"):
             raise WheelhouseError(
                 f"{canonical}.source.artifact_expires_at must be UTC ISO-8601"
+            )
+        try:
+            expiry = datetime.fromisoformat(
+                expires_at[:-1] + "+00:00"
+            )
+        except ValueError as exc:
+            raise WheelhouseError(
+                f"{canonical}.source.artifact_expires_at must be UTC ISO-8601"
+            ) from exc
+        if expiry.tzinfo != timezone.utc:
+            raise WheelhouseError(
+                f"{canonical}.source.artifact_expires_at must be UTC"
             )
         _positive_int(
             source.get("workflow_run_id"),
