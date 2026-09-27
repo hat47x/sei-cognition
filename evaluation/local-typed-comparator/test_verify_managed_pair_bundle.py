@@ -304,6 +304,20 @@ class ManagedPairBundleVerifierTest(unittest.TestCase):
                     out, expected_source_sha=SHA, pair_module=pair
                 )
 
+    def test_receipt_cannot_promote_transported_wheel_origin(self):
+        with tempfile.TemporaryDirectory() as td:
+            out = self._make_bundle(Path(td))
+            receipt_path = out / pair.RECEIPT_FILE
+            receipt = json.loads(receipt_path.read_text())
+            receipt["scope"][
+                "transported_wheel_installation_origin_attested"
+            ] = True
+            write_json(receipt_path, receipt)
+            with self.assertRaises(verify.ManagedPairBundleError):
+                verify.verify_bundle(
+                    out, expected_source_sha=SHA, pair_module=pair
+                )
+
     def test_complete_receipt_cannot_retain_failure_block(self):
         with tempfile.TemporaryDirectory() as td:
             out = self._make_bundle(Path(td))
