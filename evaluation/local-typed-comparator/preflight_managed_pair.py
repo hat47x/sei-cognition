@@ -105,6 +105,7 @@ def run_preflight(
     papaya_overlay_dir: Path,
     llama_binary: Path,
     runtime_wheelhouse_dir: Path | None = None,
+    runtime_environment_dir: Path | None = None,
     loader: Callable[[Path, str], Any] = _load_module,
 ) -> dict[str, Any]:
     source_sha = _full_sha(source_sha)
@@ -128,10 +129,20 @@ def run_preflight(
         "pair_preflight_parity_policy",
     )
     wheelhouse_verifier = None
+    runtime_environment_verifier = None
+    if runtime_environment_dir is not None and runtime_wheelhouse_dir is None:
+        raise PairPreflightError(
+            "runtime environment requires --runtime-wheelhouse-dir"
+        )
     if runtime_wheelhouse_dir is not None:
         wheelhouse_verifier = loader(
             here / "verify_runtime_dependency_wheelhouse.py",
             "pair_preflight_runtime_wheelhouse",
+        )
+    if runtime_environment_dir is not None:
+        runtime_environment_verifier = loader(
+            here / "materialize_managed_runtime_env.py",
+            "pair_preflight_runtime_environment",
         )
 
     sei = papaya.require_git_checkout(
@@ -188,16 +199,98 @@ def run_preflight(
                     f"expected {expected!r}, got {actual!r}"
                 )
             runtime_version_matches[distribution] = actual
+        runtime_environment = {"provided": False}
+        transported_origin_attested = False
+        if runtime_environment_dir is not None:
+            if runtime_environment_verifier is None:
+                raise PairPreflightError(
+                    "runtime environment verifier was not loaded"
+                )
+            try:
+                environment_verification = (
+                    runtime_environment_verifier.verify_environment(
+                        wheelhouse_manifest,
+                        runtime_wheelhouse_dir,
+                        runtime_environment_dir,
+                        expected_python_executable=Path(sys.executable),
+                    )
+                )
+            except Exception as exc:
+                raise PairPreflightError(
+                    f"managed runtime environment verification failed: {exc}"
+                ) from exc
+            if environment_verification.get("valid") is not True:
+                raise PairPreflightError(
+                    "managed runtime environment verification did not pass"
+                )
+            environment_scope = environment_verification.get("scope")
+            environment_python = environment_verification.get("python")
+            if not isinstance(environment_scope, dict):
+                raise PairPreflightError(
+                    "managed runtime environment scope missing"
+                )
+            if not isinstance(environment_python, dict):
+                raise PairPreflightError(
+                    "managed runtime environment Python receipt missing"
+                )
+            if (
+                environment_scope.get(
+                    "transported_wheel_installation_origin_attested"
+                )
+                is not True
+            ):
+                raise PairPreflightError(
+                    "transported wheel installation origin is not attested"
+                )
+            if (
+                environment_scope.get("runtime_installation_origin_attested")
+                is not False
+            ):
+                raise PairPreflightError(
+                    "managed runtime environment overclaims full installation origin"
+                )
+            if (
+                environment_scope.get("host_dependency_versions_pinned")
+                is not False
+            ):
+                raise PairPreflightError(
+                    "managed runtime environment overclaims host dependency pins"
+                )
+            if environment_scope.get("self_contained_runtime") is not False:
+                raise PairPreflightError(
+                    "managed runtime environment overclaims self-contained runtime"
+                )
+            if environment_scope.get("environment_relocatable") is not False:
+                raise PairPreflightError(
+                    "managed runtime environment relocatability drift"
+                )
+            if (
+                environment_python.get("current_interpreter_matches")
+                is not True
+            ):
+                raise PairPreflightError(
+                    "preflight is not running under the verified managed runtime"
+                )
+            runtime_environment = {
+                "provided": True,
+                "verification": environment_verification,
+            }
+            transported_origin_attested = True
+
         runtime_wheelhouse = {
             "provided": True,
             "manifest_sha256": _sha256(wheelhouse_manifest_raw),
             "verification": wheelhouse_verification,
             "matched_runtime_versions": runtime_version_matches,
+            "runtime_environment": runtime_environment,
             "scope": {
                 "transport_candidate_only": True,
                 "host_assisted_transport": True,
                 "self_contained_wheelhouse": False,
                 "host_dependency_versions_pinned": False,
+                "transported_wheel_installation_origin_attested": (
+                    transported_origin_attested
+                ),
                 "runtime_installation_origin_attested": False,
             },
         }
@@ -335,6 +428,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--papaya-overlay-dir", type=Path, required=True)
     parser.add_argument("--llama-binary", type=Path, required=True)
     parser.add_argument("--runtime-wheelhouse-dir", type=Path)
+    parser.add_argument("--runtime-environment-dir", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
 
@@ -357,6 +451,11 @@ def main(argv: list[str] | None = None) -> int:
             runtime_wheelhouse_dir=(
                 args.runtime_wheelhouse_dir.resolve()
                 if args.runtime_wheelhouse_dir is not None
+                else None
+            ),
+            runtime_environment_dir=(
+                args.runtime_environment_dir.resolve()
+                if args.runtime_environment_dir is not None
                 else None
             ),
         )
