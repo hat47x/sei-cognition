@@ -104,6 +104,44 @@ def _preflight_summary(path: Path, source_sha: str) -> dict[str, Any]:
         raise ManagedPairError("pair preflight scope missing")
     if scope.get("all_required_inputs_verified") is not True:
         raise ManagedPairError("pair preflight input verification missing")
+    wheelhouse = value.get("runtime_wheelhouse")
+    if not isinstance(wheelhouse, dict):
+        raise ManagedPairError("pair preflight runtime wheelhouse receipt missing")
+    wheelhouse_provided = wheelhouse.get("provided")
+    if not isinstance(wheelhouse_provided, bool):
+        raise ManagedPairError(
+            "pair preflight runtime wheelhouse provided flag missing"
+        )
+    if wheelhouse_provided:
+        verification = wheelhouse.get("verification")
+        wheel_scope = wheelhouse.get("scope")
+        if (
+            not isinstance(verification, dict)
+            or verification.get("valid") is not True
+        ):
+            raise ManagedPairError(
+                "pair preflight runtime wheelhouse verification missing"
+            )
+        if not isinstance(wheel_scope, dict):
+            raise ManagedPairError(
+                "pair preflight runtime wheelhouse scope missing"
+            )
+        if wheel_scope.get("transport_candidate_only") is not True:
+            raise ManagedPairError(
+                "pair preflight wheelhouse transport scope drift"
+            )
+        if wheel_scope.get("host_assisted_transport") is not True:
+            raise ManagedPairError(
+                "pair preflight wheelhouse host-assisted scope drift"
+            )
+        if wheel_scope.get("self_contained_wheelhouse") is not False:
+            raise ManagedPairError(
+                "pair preflight wheelhouse self-contained overclaim"
+            )
+        if wheel_scope.get("host_dependency_versions_pinned") is not False:
+            raise ManagedPairError(
+                "pair preflight wheelhouse host dependency pin overclaim"
+            )
     for field in (
         "model_weights_loaded",
         "live_reference_inference",
@@ -121,6 +159,7 @@ def _preflight_summary(path: Path, source_sha: str) -> dict[str, Any]:
         "sha256": _sha256_file(path),
         "schema": PREFLIGHT_SCHEMA,
         "status": "ready",
+        "runtime_wheelhouse_provided": wheelhouse_provided,
     }
 
 
@@ -322,6 +361,7 @@ def build_commands(
     threads: int,
     reference_startup_timeout: float,
     papaya_startup_timeout: float,
+    runtime_wheelhouse_dir: Path | None = None,
 ) -> tuple[list[str], list[str], list[str], list[str], list[str]]:
     preflight_output = output_dir / PREFLIGHT_FILE
     reference_output = output_dir / REFERENCE_FILE
@@ -346,9 +386,20 @@ def build_commands(
         str(papaya_overlay_dir),
         "--llama-binary",
         str(llama_binary),
-        "--output",
-        str(preflight_output),
     ]
+    if runtime_wheelhouse_dir is not None:
+        preflight.extend(
+            [
+                "--runtime-wheelhouse-dir",
+                str(runtime_wheelhouse_dir),
+            ]
+        )
+    preflight.extend(
+        [
+            "--output",
+            str(preflight_output),
+        ]
+    )
     reference = [
         python_executable,
         str(here / "capture_reference_l0.py"),
@@ -539,6 +590,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--papaya-source-dir", type=Path, required=True)
     parser.add_argument("--papaya-overlay-dir", type=Path, required=True)
     parser.add_argument("--llama-binary", type=Path, required=True)
+    parser.add_argument("--runtime-wheelhouse-dir", type=Path)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--threads", type=int, default=4)
@@ -580,6 +632,11 @@ def main(argv: list[str] | None = None) -> int:
             threads=args.threads,
             reference_startup_timeout=args.reference_startup_timeout,
             papaya_startup_timeout=args.papaya_startup_timeout,
+            runtime_wheelhouse_dir=(
+                args.runtime_wheelhouse_dir.resolve()
+                if args.runtime_wheelhouse_dir is not None
+                else None
+            ),
         )
         receipt = execute_pair(
             source_sha=source_sha,
