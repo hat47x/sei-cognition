@@ -27,12 +27,14 @@ import materialize_papaya_candidate as papaya_materializer
 import materialize_reference_model as reference_materializer
 import prepare_papaya_compat_overlay as overlay
 import verify_runtime_dependency_wheelhouse as wheelhouse_verifier
+import materialize_managed_runtime_env as runtime_materializer
 
 SCHEMA = "sei.local-typed-comparator-managed-pair-input-materialization/v1"
 RECEIPT_FILE = "managed-pair-input-materialization.json"
 REFERENCE_DIR = "reference-model"
 PAPAYA_CANDIDATE_DIR = "papaya-candidate"
 PAPAYA_OVERLAY_DIR = "papaya-overlay"
+RUNTIME_ENV_DIR = "runtime-env"
 
 
 class ManagedPairMaterializationError(ValueError):
@@ -200,6 +202,7 @@ def prepare_workspace(
     runtime_wheelhouse_dir: Path | None = None,
     runtime_wheelhouse_manifest: dict[str, Any] | None = None,
     runtime_wheelhouse_manifest_raw: bytes | None = None,
+    materialize_runtime_environment: bool = False,
 ) -> dict[str, Any]:
     source_sha = _full_sha(source_sha)
     if timeout <= 0:
@@ -238,6 +241,14 @@ def prepare_workspace(
     reference_materializer.validate_manifest(reference_manifest)
     papaya_entries = papaya_materializer.validate_manifest(papaya_manifest)
     tokenizer_relative = _attested_tokenizer_relative_path(papaya_entries)
+
+    if (
+        materialize_runtime_environment
+        and runtime_wheelhouse_dir is None
+    ):
+        raise ManagedPairMaterializationError(
+            "runtime environment materialization requires runtime wheelhouse"
+        )
 
     wheelhouse = {"provided": False}
     if runtime_wheelhouse_dir is not None:
@@ -280,8 +291,96 @@ def prepare_workspace(
     reference_dir = output / REFERENCE_DIR
     candidate_dir = output / PAPAYA_CANDIDATE_DIR
     overlay_dir = output / PAPAYA_OVERLAY_DIR
+    runtime_env_dir = output / RUNTIME_ENV_DIR
 
     try:
+        runtime_environment = {"provided": False}
+        if materialize_runtime_environment:
+            if (
+                runtime_wheelhouse_manifest is None
+                or runtime_wheelhouse_manifest_raw is None
+                or runtime_wheelhouse_dir is None
+            ):
+                raise ManagedPairMaterializationError(
+                    "runtime environment materialization inputs missing"
+                )
+            runtime_receipt = runtime_materializer.materialize_environment(
+                runtime_wheelhouse_manifest,
+                runtime_wheelhouse_manifest_raw,
+                runtime_wheelhouse_dir,
+                runtime_env_dir,
+            )
+            if (
+                runtime_receipt.get("schema")
+                != runtime_materializer.SCHEMA
+                or runtime_receipt.get("status")
+                != "materialized-and-verified"
+            ):
+                raise ManagedPairMaterializationError(
+                    "managed runtime environment receipt drift"
+                )
+            expected_wheelhouse_manifest_sha = _sha256_bytes(
+                runtime_wheelhouse_manifest_raw
+            )
+            if (
+                runtime_receipt.get("wheelhouse_manifest_sha256")
+                != expected_wheelhouse_manifest_sha
+            ):
+                raise ManagedPairMaterializationError(
+                    "managed runtime wheelhouse-manifest binding drift"
+                )
+            runtime_wheelhouse = runtime_receipt.get("wheelhouse")
+            if (
+                not isinstance(runtime_wheelhouse, dict)
+                or runtime_wheelhouse.get("valid") is not True
+            ):
+                raise ManagedPairMaterializationError(
+                    "managed runtime wheelhouse verification missing"
+                )
+            runtime_install = runtime_receipt.get("install")
+            if (
+                not isinstance(runtime_install, dict)
+                or runtime_install.get("returncode") != 0
+            ):
+                raise ManagedPairMaterializationError(
+                    "managed runtime install receipt drift"
+                )
+            runtime_verification = runtime_receipt.get(
+                "environment_verification"
+            )
+            if (
+                not isinstance(runtime_verification, dict)
+                or runtime_verification.get("valid") is not True
+            ):
+                raise ManagedPairMaterializationError(
+                    "managed runtime environment verification missing"
+                )
+            runtime_scope = runtime_receipt.get("scope")
+            if not isinstance(runtime_scope, dict):
+                raise ManagedPairMaterializationError(
+                    "managed runtime environment scope missing"
+                )
+            if (
+                runtime_scope.get(
+                    "transported_wheel_installation_origin_attested"
+                )
+                is not True
+            ):
+                raise ManagedPairMaterializationError(
+                    "managed runtime transported-wheel origin missing"
+                )
+            if (
+                runtime_scope.get("runtime_installation_origin_attested")
+                is not False
+            ):
+                raise ManagedPairMaterializationError(
+                    "managed runtime overclaims full installation origin"
+                )
+            runtime_environment = {
+                "provided": True,
+                "receipt": runtime_receipt,
+            }
+
         reference_receipt = (
             reference_materializer.materialize_reference_model(
                 reference_manifest,
@@ -338,6 +437,11 @@ def prepare_workspace(
                 "reference_model_dir": REFERENCE_DIR,
                 "papaya_candidate_dir": PAPAYA_CANDIDATE_DIR,
                 "papaya_overlay_dir": PAPAYA_OVERLAY_DIR,
+                "runtime_environment_dir": (
+                    RUNTIME_ENV_DIR
+                    if materialize_runtime_environment
+                    else None
+                ),
             },
             "contracts": {
                 "reference_transport_manifest_sha256": _sha256_bytes(
@@ -358,6 +462,7 @@ def prepare_workspace(
                 "workspace_binding": workspace_binding,
             },
             "runtime_wheelhouse": wheelhouse,
+            "runtime_environment": runtime_environment,
             "scope": {
                 "reference_model_bytes_materialized": True,
                 "reference_model_directory_verified": True,
@@ -368,6 +473,12 @@ def prepare_workspace(
                 "workspace_relocatable": False,
                 "runtime_wheelhouse_verified": (
                     runtime_wheelhouse_dir is not None
+                ),
+                "runtime_environment_materialized": (
+                    materialize_runtime_environment
+                ),
+                "transported_wheel_installation_origin_attested": (
+                    materialize_runtime_environment
                 ),
                 "runtime_installation_origin_attested": False,
                 "model_weights_loaded": False,
@@ -413,6 +524,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--runtime-wheelhouse-dir", type=Path)
     parser.add_argument(
+        "--materialize-runtime-environment",
+        action="store_true",
+    )
+    parser.add_argument(
         "--runtime-wheelhouse-manifest",
         type=Path,
         default=here / "runtime_dependency_wheelhouse.v1.json",
@@ -455,6 +570,9 @@ def main(argv: list[str] | None = None) -> int:
             ),
             runtime_wheelhouse_manifest=wheelhouse_manifest,
             runtime_wheelhouse_manifest_raw=wheelhouse_raw,
+            materialize_runtime_environment=(
+                args.materialize_runtime_environment
+            ),
         )
     except Exception as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
