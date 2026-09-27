@@ -222,6 +222,40 @@ class ManagedPairTest(unittest.TestCase):
             self.assertEqual(receipt["status"], "failed")
             self.assertEqual(receipt["stage"], f"{stage}_failed")
 
+    def test_runner_exception_updates_receipt(self):
+        class LaunchFailureRunner(FakeRunner):
+            def __call__(self, command, *, cwd, check):
+                script = Path(command[1]).name
+                if script == "capture_reference_l0.py":
+                    self.calls.append((command, cwd, check))
+                    raise OSError("synthetic launch failure")
+                return super().__call__(command, cwd=cwd, check=check)
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = LaunchFailureRunner()
+            with self.assertRaises(OSError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(root, out),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            receipt = json.loads((out / mod.RECEIPT_FILE).read_text())
+            self.assertEqual(receipt["status"], "failed")
+            self.assertEqual(receipt["stage"], "reference_launch_failed")
+            self.assertEqual(
+                receipt["failure"]["kind"], "runner_exception"
+            )
+            self.assertEqual(receipt["failure"]["error_type"], "OSError")
+            self.assertFalse(receipt["failure"]["stage_output"]["present"])
+            self.assertIn("preflight", receipt["artifacts"])
+            self.assertNotIn("reference", receipt["artifacts"])
+
     def test_process_failure_retains_partial_stage_artifact_digest(self):
         class PartialPapayaFailureRunner(FakeRunner):
             def __call__(self, command, *, cwd, check):
