@@ -33,14 +33,6 @@ TRANSPORTED_DISTRIBUTIONS = (
     "tokenizers",
     "safetensors",
 )
-IMPORT_MODULES = {
-    "laya": "laya",
-    "transformers": "transformers",
-    "tokenizers": "tokenizers",
-    "safetensors": "safetensors",
-}
-
-
 class ManagedRuntimeEnvironmentError(ValueError):
     pass
 
@@ -559,13 +551,12 @@ def materialize_environment(
 def main(argv: list[str] | None = None) -> int:
     here = Path(__file__).resolve().parent
     parser = argparse.ArgumentParser()
+    parser.add_argument("wheelhouse", type=Path)
     parser.add_argument(
-        "manifest",
+        "--manifest",
         type=Path,
-        nargs="?",
         default=here / "runtime_dependency_wheelhouse.v1.json",
     )
-    parser.add_argument("wheelhouse", type=Path)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args(argv)
 
