@@ -60,24 +60,53 @@ does not turn Laya's dependency ranges into an upstream runtime lock. On
 Hugging Face, or GitHub, while the connected GitHub Actions artifact path was
 still able to materialize release artifacts.
 
-A **transport candidate** was therefore retained in
-`runtime_dependency_wheelhouse.v1.json` for Linux x86_64 / Python 3.13. It is
-not a product/runtime pin.
+A **host-assisted transport candidate** was therefore retained in
+`runtime_dependency_wheelhouse.v1.json` for the observed Linux x86_64 /
+Python 3.13.5 host. It is not a product/runtime pin and it is **not a
+self-contained wheelhouse**.
+
+The four retained wheels supply Laya plus three managed-reference
+dependencies:
+
+```text
+wheelhouse supplies
+  laya
+  transformers
+  tokenizers
+  safetensors
+
+still required from the execution host
+  torch
+  huggingface-hub
+  numpy
+  fastapi
+  uvicorn
+```
+
+The managed reference capture checks those host distributions again and retains
+the versions it actually uses.
 
 The four materialized wheels are:
 
-| distribution | version | wheel SHA-256 | GitHub workflow run | artifact id |
-| --- | --- | --- | ---: | ---: |
-| Laya | 0.3.20 | `6039e802fa5effb8dd492061cd7ad39a43087beadc4a4fa4a649614e77eb83d4` | 35960902240 | 10792385664 |
-| Transformers | 5.17.0 | `78ec1ce21579b38dfb83950a0658cd119f87212a2fcfdff478096ce9d6c03801` | 34367538606 | 10110585452 |
-| tokenizers | 0.23.2 | `e8ccc55262e36550c54eafadf93df8ac449b454373727ef47c826adbeb733a1a` | 33735388484 | 9885597962 |
-| safetensors | 0.9.0rc1 | `d5109939a6f11d502c1656c927e3b9413f8d48dba635204c2f21cdc465e5035a` | 35890001765 | 10764477075 |
+| distribution | version | wheel SHA-256 | GitHub workflow run | artifact id | artifact expires |
+| --- | --- | --- | ---: | ---: | --- |
+| Laya | 0.3.20 | `6039e802fa5effb8dd492061cd7ad39a43087beadc4a4fa4a649614e77eb83d4` | 35960902240 | 10792385664 | 2026-12-23T05:39:21Z |
+| Transformers | 5.17.0 | `78ec1ce21579b38dfb83950a0658cd119f87212a2fcfdff478096ce9d6c03801` | 34367538606 | 10110585452 | 2026-12-08T15:01:53Z |
+| tokenizers | 0.23.2 | `e8ccc55262e36550c54eafadf93df8ac449b454373727ef47c826adbeb733a1a` | 33735388484 | 9885597962 | 2026-12-02T08:48:51Z |
+| safetensors | 0.9.0rc1 | `d5109939a6f11d502c1656c927e3b9413f8d48dba635204c2f21cdc465e5035a` | 35890001765 | 10764477075 | 2026-12-22T16:37:11Z |
 
-The outer Actions artifact ZIP digests and exact wheel filenames/tags are also
-retained in the manifest.
+The outer Actions artifact ZIP digests, successful workflow head revisions,
+exact wheel filenames/tags, and artifact expiration timestamps are also
+retained in the manifest. The GitHub API audit on 2026-09-27 found all four
+artifacts unexpired and their workflow head SHAs equal to the retained source
+revisions.
 
-On a host with GitHub CLI access, equivalent artifacts can be obtained from the
-recorded repositories/runs, for example:
+The Actions artifacts are a **time-bounded fallback**. After the recorded
+expiration timestamps, `gh run download` may no longer work and must not be
+treated as an immutable long-term package registry.
+
+While they remain available, a host with GitHub CLI access can obtain the
+recorded artifacts, for example:
 
 ```bash
 gh run download 35960902240 -R NandhaKishorM/laya \
@@ -107,8 +136,9 @@ name/version metadata drift, wheel-tag drift, artifact provenance shape drift,
 or any attempt to promote the packet beyond transport-candidate scope.
 
 The current environment additionally demonstrated an offline install of these
-four wheels together with its already-present host dependencies. The resulting
-isolated runtime imported:
+four wheels together with its already-present host dependencies. That
+observation is explicitly host-assisted rather than proof that the four-wheel
+directory is self-contained. The resulting isolated runtime imported:
 
 ```text
 laya          0.3.20
