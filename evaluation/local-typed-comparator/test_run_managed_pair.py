@@ -201,6 +201,68 @@ class FakeRunner:
         return subprocess.CompletedProcess(command, 0)
 
 
+def write_materialized_workspace(
+    root: Path,
+    *,
+    source_sha: str = SHA,
+    runtime_environment: bool = False,
+):
+    root.mkdir()
+    (root / mod.workspace_materializer.REFERENCE_DIR).mkdir()
+    (root / mod.workspace_materializer.PAPAYA_CANDIDATE_DIR).mkdir()
+    (root / mod.workspace_materializer.PAPAYA_OVERLAY_DIR).mkdir()
+    if runtime_environment:
+        (root / mod.workspace_materializer.RUNTIME_ENV_DIR).mkdir()
+
+    receipt = {
+        "schema": mod.workspace_materializer.SCHEMA,
+        "status": "ready-for-managed-pair-preflight",
+        "source": {"git_sha": source_sha, "clean": True},
+        "layout": {
+            "reference_model_dir": mod.workspace_materializer.REFERENCE_DIR,
+            "papaya_candidate_dir": mod.workspace_materializer.PAPAYA_CANDIDATE_DIR,
+            "papaya_overlay_dir": mod.workspace_materializer.PAPAYA_OVERLAY_DIR,
+            "runtime_environment_dir": (
+                mod.workspace_materializer.RUNTIME_ENV_DIR
+                if runtime_environment
+                else None
+            ),
+        },
+        "disk_capacity": {"sufficient": True},
+        "papaya_overlay": {
+            "verification": {"valid": True},
+            "workspace_binding": {
+                "valid": True,
+                "workspace_relocatable": False,
+            },
+        },
+        "scope": {
+            "reference_model_bytes_materialized": True,
+            "reference_model_directory_verified": True,
+            "papaya_candidate_bytes_materialized": True,
+            "papaya_candidate_inputs_verified": True,
+            "papaya_compatibility_overlay_prepared": True,
+            "papaya_compatibility_overlay_verified": True,
+            "workspace_relocatable": False,
+            "runtime_environment_materialized": runtime_environment,
+            "runtime_installation_origin_attested": False,
+            "model_weights_loaded": False,
+            "live_reference_inference": False,
+            "live_papaya_inference": False,
+            "numeric_difference_observed": False,
+            "numeric_parity_decision_observed": False,
+            "task_quality": False,
+            "calibration_validity": False,
+            "shipping_decision": False,
+        },
+    }
+    write_json(
+        root / mod.workspace_materializer.RECEIPT_FILE,
+        receipt,
+    )
+    return receipt
+
+
 class ManagedPairTest(unittest.TestCase):
     def _commands(
         self,
@@ -240,6 +302,166 @@ class ManagedPairTest(unittest.TestCase):
                 commands,
             )
         )
+
+    def test_materialized_workspace_derives_provider_paths(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            workspace = root / "workspace"
+            write_materialized_workspace(workspace)
+            binding = mod._resolve_materialized_workspace(
+                workspace,
+                source_sha=SHA,
+            )
+            self.assertEqual(
+                binding["reference_model_dir"],
+                (workspace / mod.workspace_materializer.REFERENCE_DIR).resolve(),
+            )
+            self.assertEqual(
+                binding["papaya_overlay_dir"],
+                (workspace / mod.workspace_materializer.PAPAYA_OVERLAY_DIR).resolve(),
+            )
+            self.assertIsNone(binding["runtime_environment_dir"])
+            self.assertFalse(binding["runtime_environment_materialized"])
+            self.assertEqual(
+                binding["receipt_sha256"],
+                mod._sha256_file(
+                    workspace / mod.workspace_materializer.RECEIPT_FILE
+                ),
+            )
+
+    def test_materialized_workspace_runtime_is_derived_when_present(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            workspace = root / "workspace"
+            write_materialized_workspace(
+                workspace,
+                runtime_environment=True,
+            )
+            binding = mod._resolve_materialized_workspace(
+                workspace,
+                source_sha=SHA,
+            )
+            self.assertTrue(binding["runtime_environment_materialized"])
+            self.assertEqual(
+                binding["runtime_environment_dir"],
+                (workspace / mod.workspace_materializer.RUNTIME_ENV_DIR).resolve(),
+            )
+
+    def test_materialized_workspace_rejects_source_or_layout_drift(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            workspace = root / "workspace"
+            receipt = write_materialized_workspace(workspace)
+
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "source binding drift",
+            ):
+                mod._resolve_materialized_workspace(
+                    workspace,
+                    source_sha="2" * 40,
+                )
+
+            receipt["layout"]["reference_model_dir"] = "other-reference"
+            write_json(
+                workspace / mod.workspace_materializer.RECEIPT_FILE,
+                receipt,
+            )
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "layout.reference_model_dir drift",
+            ):
+                mod._resolve_materialized_workspace(
+                    workspace,
+                    source_sha=SHA,
+                )
+
+    def test_materialized_workspace_rejects_explicit_path_mismatch(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            workspace = root / "workspace"
+            write_materialized_workspace(workspace)
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "reference-model-dir must match",
+            ):
+                mod._resolve_materialized_workspace(
+                    workspace,
+                    source_sha=SHA,
+                    reference_model_dir=root / "different-reference",
+                )
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "papaya-overlay-dir must match",
+            ):
+                mod._resolve_materialized_workspace(
+                    workspace,
+                    source_sha=SHA,
+                    papaya_overlay_dir=root / "different-overlay",
+                )
+
+    def test_materialized_workspace_rejects_runtime_mismatch(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            workspace = root / "workspace"
+            write_materialized_workspace(workspace)
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "not present in materialized workspace",
+            ):
+                mod._resolve_materialized_workspace(
+                    workspace,
+                    source_sha=SHA,
+                    runtime_environment_dir=root / "runtime-env",
+                )
+
+            runtime_workspace = root / "runtime-workspace"
+            write_materialized_workspace(
+                runtime_workspace,
+                runtime_environment=True,
+            )
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "runtime-environment-dir must match",
+            ):
+                mod._resolve_materialized_workspace(
+                    runtime_workspace,
+                    source_sha=SHA,
+                    runtime_environment_dir=root / "wrong-runtime",
+                )
+
+    def test_materialized_workspace_rejects_scope_overclaim_or_missing_dir(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            workspace = root / "workspace"
+            receipt = write_materialized_workspace(workspace)
+            receipt["scope"]["model_weights_loaded"] = True
+            write_json(
+                workspace / mod.workspace_materializer.RECEIPT_FILE,
+                receipt,
+            )
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "model_weights_loaded must remain false",
+            ):
+                mod._resolve_materialized_workspace(
+                    workspace,
+                    source_sha=SHA,
+                )
+
+            workspace2 = root / "workspace2"
+            write_materialized_workspace(workspace2)
+            (
+                workspace2 / mod.workspace_materializer.PAPAYA_OVERLAY_DIR
+            ).rmdir()
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "Papaya overlay directory missing",
+            ):
+                mod._resolve_materialized_workspace(
+                    workspace2,
+                    source_sha=SHA,
+                )
 
     def test_commands_bind_same_source_and_report_chain(self):
         with tempfile.TemporaryDirectory() as td:
