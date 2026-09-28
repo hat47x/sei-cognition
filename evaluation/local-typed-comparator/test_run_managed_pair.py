@@ -563,6 +563,41 @@ class ManagedPairTest(unittest.TestCase):
             self.assertFalse(retained["external_path_retained"])
             self.assertNotIn(str(workspace), json.dumps(retained))
 
+    def test_workspace_snapshot_survives_provider_failure(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            workspace = root / "workspace"
+            write_materialized_workspace(workspace)
+            binding = mod._resolve_materialized_workspace(
+                workspace,
+                source_sha=SHA,
+            )
+            with self.assertRaises(mod.ManagedPairError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(root, out),
+                    run_id="r1",
+                    cwd=root,
+                    input_workspace_binding=binding,
+                    runner=FakeRunner(fail_stage="papaya"),
+                )
+            receipt = json.loads((out / mod.RECEIPT_FILE).read_text())
+            snapshot = out / mod.WORKSPACE_RECEIPT_SNAPSHOT_FILE
+            self.assertEqual(receipt["status"], "failed")
+            self.assertEqual(receipt["stage"], "papaya_failed")
+            self.assertTrue(snapshot.is_file())
+            self.assertEqual(
+                mod._sha256_file(snapshot),
+                receipt["input_workspace"]["receipt_sha256"],
+            )
+            self.assertEqual(
+                receipt["input_workspace"]["snapshot_sha256"],
+                receipt["input_workspace"]["receipt_sha256"],
+            )
+
     def test_workspace_receipt_change_after_resolution_is_rejected(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
