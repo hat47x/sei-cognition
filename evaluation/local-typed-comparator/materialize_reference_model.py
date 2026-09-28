@@ -45,6 +45,10 @@ class ReferenceModelTransportError(ValueError):
     pass
 
 
+class ReferenceModelDownloadError(ReferenceModelTransportError):
+    """Retryable transport/read failure before byte-contract validation."""
+
+
 def _lower_hex(value: Any, length: int, field: str) -> str:
     if not isinstance(value, str) or len(value) != length:
         raise ReferenceModelTransportError(
@@ -277,7 +281,7 @@ def _download_once(
             f"staged file already exists: {destination}"
         ) from exc
     except OSError as exc:
-        raise ReferenceModelTransportError(
+        raise ReferenceModelDownloadError(
             f"download failed for {entry['path']}: {exc}"
         ) from exc
 
@@ -310,7 +314,7 @@ def _download_verified(
     if isinstance(attempts, bool) or not isinstance(attempts, int) or attempts < 1:
         raise ReferenceModelTransportError("attempts must be an integer >= 1")
 
-    last_error: ReferenceModelTransportError | None = None
+    last_error: ReferenceModelDownloadError | None = None
     for attempt in range(1, attempts + 1):
         try:
             destination.unlink(missing_ok=True)
@@ -322,12 +326,12 @@ def _download_verified(
             )
             result["download_attempts"] = attempt
             return result
-        except ReferenceModelTransportError as exc:
+        except ReferenceModelDownloadError as exc:
             last_error = exc
             destination.unlink(missing_ok=True)
 
     assert last_error is not None
-    raise ReferenceModelTransportError(
+    raise ReferenceModelDownloadError(
         f"{entry['path']}: failed after {attempts} download attempts: {last_error}"
     ) from last_error
 
