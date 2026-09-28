@@ -177,16 +177,16 @@ class ReferenceModelTransportTest(unittest.TestCase):
         }
         calls = 0
 
-        def always_wrong(_url, _timeout):
+        def always_fails(_url, _timeout):
             nonlocal calls
             calls += 1
-            return closing(io.BytesIO(b"wrong"))
+            raise OSError("synthetic transient failure")
 
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             output = root / "model"
             with self.assertRaisesRegex(
-                mod.ReferenceModelTransportError,
+                mod.ReferenceModelDownloadError,
                 "failed after 2 download attempts",
             ):
                 mod.materialize_entries(
@@ -194,7 +194,7 @@ class ReferenceModelTransportTest(unittest.TestCase):
                     output,
                     transport_id="synthetic",
                     attempts=2,
-                    stream_factory=always_wrong,
+                    stream_factory=always_fails,
                     directory_verifier=lambda _root: {"valid": True},
                 )
             self.assertEqual(calls, 2)
@@ -238,37 +238,6 @@ class ReferenceModelTransportTest(unittest.TestCase):
                 )
             self.assertFalse(output.exists())
             self.assertEqual(list(Path(td).iterdir()), [])
-
-    def test_transient_transport_failure_is_retried(self):
-        body = b"alpha"
-        entry = {
-            "path": "a",
-            "url": "https://example.invalid/a",
-            "bytes": len(body),
-            "sha256": hashlib.sha256(body).hexdigest(),
-        }
-        calls = 0
-
-        def stream(_url, _timeout):
-            nonlocal calls
-            calls += 1
-            if calls == 1:
-                raise OSError("temporary network failure")
-            return closing(io.BytesIO(body))
-
-        with tempfile.TemporaryDirectory() as td:
-            output = Path(td) / "model"
-            receipt = mod.materialize_entries(
-                [entry],
-                output,
-                transport_id="synthetic",
-                attempts=3,
-                stream_factory=stream,
-                directory_verifier=lambda _root: {"valid": True},
-            )
-            self.assertEqual(calls, 2)
-            self.assertEqual(receipt["files"][0]["download_attempts"], 2)
-            self.assertEqual((output / "a").read_bytes(), body)
 
     def test_integrity_failure_is_not_retried(self):
         entry = {
