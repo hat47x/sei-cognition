@@ -297,18 +297,19 @@ class ManagedPairBundleVerifierTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             out = self._make_bundle(Path(td))
             snapshot_path, _receipt_path = bind_workspace_snapshot(out)
+            expected_snapshot_sha = pair._sha256_file(snapshot_path)
             result = verify.verify_bundle(
                 out, expected_source_sha=SHA, pair_module=pair
             )
-        self.assertTrue(result["input_workspace"]["provided"])
-        self.assertEqual(
-            result["input_workspace"]["snapshot_file"],
-            pair.WORKSPACE_RECEIPT_SNAPSHOT_FILE,
-        )
-        self.assertEqual(
-            result["input_workspace"]["snapshot_sha256"],
-            pair._sha256_file(snapshot_path),
-        )
+            self.assertTrue(result["input_workspace"]["provided"])
+            self.assertEqual(
+                result["input_workspace"]["snapshot_file"],
+                pair.WORKSPACE_RECEIPT_SNAPSHOT_FILE,
+            )
+            self.assertEqual(
+                result["input_workspace"]["snapshot_sha256"],
+                expected_snapshot_sha,
+            )
 
     def test_workspace_binding_digest_or_path_overclaim_is_rejected(self):
         with tempfile.TemporaryDirectory() as td:
