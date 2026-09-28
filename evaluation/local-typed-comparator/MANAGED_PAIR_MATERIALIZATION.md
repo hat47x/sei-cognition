@@ -332,9 +332,26 @@ python3 materialize_reference_model.py \
 The materializer downloads into a sibling staging directory, verifies every
 file's exact byte count and SHA-256, runs the existing
 `verify_reference_model_directory.py` contract against the complete staged
-directory, and only then atomically publishes the destination. Any download,
-size, digest or directory-contract failure removes staging and leaves the
-destination absent.
+directory, and only then atomically publishes the destination.
+
+Transient transport/read failures use a bounded per-file retry policy
+(default: 3 attempts). Each retry removes that file's partial staging bytes and
+restarts the file from byte zero; HTTP Range/resume behavior is deliberately
+not assumed. Byte-size or SHA-256 mismatch is an integrity failure and is
+**not retried**. Successful file receipts retain `download_attempts`.
+
+Override the bound only when needed:
+
+```bash
+python3 materialize_reference_model.py \
+  reference_model_transport.v1.json \
+  --transport huggingface-immutable \
+  --attempts <N> \
+  --output-dir <new-reference-model-dir>
+```
+
+Any exhausted transport failure, integrity failure, or directory-contract
+failure removes staging and leaves the destination absent.
 
 The TrueSpar URLs are deliberately **not** labelled content-addressed. Their
 pinned catalog is provenance for the expected mirror mapping; the post-download
@@ -455,9 +472,26 @@ python3 materialize_papaya_candidate.py \
 
 The materializer downloads into sibling staging, verifies every file while
 streaming, runs the existing Papaya overlay-input verifier over the complete
-staged set, and publishes the destination only after all checks pass. A size,
-SHA-256, URL/revision, or overlay-input verification failure removes staging and
-leaves the destination absent.
+staged set, and publishes the destination only after all checks pass.
+
+As on the reference path, transient transport/read failures use a bounded
+per-file retry policy (default: 3 attempts). Every retry removes the partial
+staged file and restarts from byte zero; no Range/resume behavior is assumed.
+Byte-size or SHA-256 mismatch is an integrity failure and is **not retried**.
+Successful file receipts retain `download_attempts`.
+
+Optional override:
+
+```bash
+python3 materialize_papaya_candidate.py \
+  papaya_candidate_transport.v1.json \
+  --attempts <N> \
+  --output-dir <new-papaya-candidate-dir>
+```
+
+An exhausted transport failure, integrity failure, URL/revision drift, or
+overlay-input verification failure removes staging and leaves the destination
+absent.
 
 Four files are bound to:
 
@@ -558,6 +592,22 @@ add:
 
 ```bash
 --materialize-runtime-environment
+```
+
+The one-command workspace forwards one shared model-download attempt bound to
+both reference and Papaya materializers. It defaults to 3; override it with:
+
+```bash
+--attempts <N>
+```
+
+The composite receipt retains the policy explicitly:
+
+```text
+attempts_per_file           N
+restart_from_zero           true
+retryable_failures          transport/read only
+integrity_failures_retried  false
 ```
 
 That flag requires the wheelhouse. Runtime creation is deliberately placed

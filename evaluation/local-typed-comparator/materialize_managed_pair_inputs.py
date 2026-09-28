@@ -35,6 +35,7 @@ REFERENCE_DIR = "reference-model"
 PAPAYA_CANDIDATE_DIR = "papaya-candidate"
 PAPAYA_OVERLAY_DIR = "papaya-overlay"
 RUNTIME_ENV_DIR = "runtime-env"
+DEFAULT_DOWNLOAD_ATTEMPTS = reference_materializer.DEFAULT_ATTEMPTS
 
 
 class ManagedPairMaterializationError(ValueError):
@@ -199,6 +200,7 @@ def prepare_workspace(
     papaya_manifest_raw: bytes,
     output_dir: Path,
     timeout: float,
+    attempts: int = DEFAULT_DOWNLOAD_ATTEMPTS,
     runtime_wheelhouse_dir: Path | None = None,
     runtime_wheelhouse_manifest: dict[str, Any] | None = None,
     runtime_wheelhouse_manifest_raw: bytes | None = None,
@@ -207,6 +209,17 @@ def prepare_workspace(
     source_sha = _full_sha(source_sha)
     if timeout <= 0:
         raise ManagedPairMaterializationError("timeout must be positive")
+    if (
+        reference_materializer.DEFAULT_ATTEMPTS
+        != papaya_materializer.DEFAULT_ATTEMPTS
+    ):
+        raise ManagedPairMaterializationError(
+            "reference/Papaya default download-attempt policy drift"
+        )
+    if isinstance(attempts, bool) or not isinstance(attempts, int) or attempts < 1:
+        raise ManagedPairMaterializationError(
+            "attempts must be an integer >= 1"
+        )
 
     output = _new_external_workspace(output_dir, sei_source_dir)
 
@@ -387,6 +400,7 @@ def prepare_workspace(
                 reference_transport,
                 reference_dir,
                 timeout=timeout,
+                attempts=attempts,
             )
         )
         reference_summary = _portable_materialization_summary(
@@ -399,6 +413,7 @@ def prepare_workspace(
             papaya_manifest,
             candidate_dir,
             timeout=timeout,
+            attempts=attempts,
         )
         papaya_summary = _portable_materialization_summary(
             papaya_receipt,
@@ -452,6 +467,12 @@ def prepare_workspace(
                     papaya_manifest_raw
                 ),
                 "papaya_transport": papaya_materializer.TRANSPORT_ID,
+            },
+            "download_policy": {
+                "attempts_per_file": attempts,
+                "restart_from_zero": True,
+                "retryable_failures": "transport/read only",
+                "integrity_failures_retried": False,
             },
             "reference": reference_summary,
             "papaya_candidate": papaya_summary,
@@ -534,6 +555,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--timeout", type=float, default=300.0)
+    parser.add_argument(
+        "--attempts",
+        type=int,
+        default=DEFAULT_DOWNLOAD_ATTEMPTS,
+    )
     args = parser.parse_args(argv)
 
     try:
@@ -563,6 +589,7 @@ def main(argv: list[str] | None = None) -> int:
             papaya_manifest_raw=papaya_raw,
             output_dir=args.output_dir,
             timeout=args.timeout,
+            attempts=args.attempts,
             runtime_wheelhouse_dir=(
                 args.runtime_wheelhouse_dir.resolve()
                 if args.runtime_wheelhouse_dir is not None
