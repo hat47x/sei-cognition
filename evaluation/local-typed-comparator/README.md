@@ -618,13 +618,19 @@ path or the run fails before preflight. In workspace mode the paired Evidence
 input workspace is not mutated by run outputs.
 
 The pair receipt retains a portable input-workspace binding when this mode is
-used: the workspace receipt filename, its SHA-256, and whether the workspace
-materialized `runtime-env/`. No host-local workspace path is retained. Manual
-input mode records only `input_workspace.provided=false`.
+used: the workspace receipt filename, its SHA-256, whether the workspace
+materialized `runtime-env/`, and a byte-for-byte snapshot of that workspace
+receipt inside the pair Evidence directory as
+`input-workspace-materialization.json`. No host-local workspace path is
+retained. Manual input mode records only
+`input_workspace.provided=false` and must not contain that snapshot.
 
-That digest is traceability Evidence, not external-host attestation and not a
-substitute for the existing provider byte checks. Preflight/reference/Papaya
-continue to verify the actual inputs before inference.
+The snapshot is created before preflight. If the workspace receipt changes after
+workspace validation but before Evidence capture, the run fails before provider
+execution. The retained digest/snapshot are traceability Evidence, not
+external-host attestation and not substitutes for the existing provider byte
+checks. Preflight/reference/Papaya continue to verify the actual inputs before
+inference.
 
 The orchestrator does not replace any provider-specific verification. Before
 either provider loads model weights, it now runs a shared preflight that reuses
@@ -798,10 +804,12 @@ python3 verify_managed_pair_bundle.py \
 
 The verifier re-hashes the receipt and every completed stage artifact, reuses
 the paired-run semantic summary checks, and requires the receipt's completed
-artifact set to match the recorded stage progression. It also validates the
-portable `input_workspace` binding shape, so returned Evidence retains whether
-the run was workspace-bound and, when it was, the materialization-receipt
-SHA-256 without exposing the original absolute path.
+artifact set to match the recorded stage progression. In workspace mode it also
+requires `input-workspace-materialization.json`, re-hashes it against the
+recorded workspace receipt SHA-256, and rechecks its source SHA/status/stop-line
+scope. Thus the returned bundle carries the actual portable workspace receipt
+bytes rather than only a digest string, without exposing the original absolute
+workspace path.
 
 For failed runs it also re-hashes any #633 retained failed-stage output and
 requires the on-disk partial artifact summary to match the failure receipt.
