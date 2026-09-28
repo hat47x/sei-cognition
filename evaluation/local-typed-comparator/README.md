@@ -617,6 +617,15 @@ path or the run fails before preflight. In workspace mode the paired Evidence
 `--output-dir` must also remain outside the materialized workspace, so the
 input workspace is not mutated by run outputs.
 
+The pair receipt retains a portable input-workspace binding when this mode is
+used: the workspace receipt filename, its SHA-256, and whether the workspace
+materialized `runtime-env/`. No host-local workspace path is retained. Manual
+input mode records only `input_workspace.provided=false`.
+
+That digest is traceability Evidence, not external-host attestation and not a
+substitute for the existing provider byte checks. Preflight/reference/Papaya
+continue to verify the actual inputs before inference.
+
 The orchestrator does not replace any provider-specific verification. Before
 either provider loads model weights, it now runs a shared preflight that reuses
 the existing reference/Papaya validators:
@@ -789,7 +798,10 @@ python3 verify_managed_pair_bundle.py \
 
 The verifier re-hashes the receipt and every completed stage artifact, reuses
 the paired-run semantic summary checks, and requires the receipt's completed
-artifact set to match the recorded stage progression.
+artifact set to match the recorded stage progression. It also validates the
+portable `input_workspace` binding shape, so returned Evidence retains whether
+the run was workspace-bound and, when it was, the materialization-receipt
+SHA-256 without exposing the original absolute path.
 
 For failed runs it also re-hashes any #633 retained failed-stage output and
 requires the on-disk partial artifact summary to match the failure receipt.

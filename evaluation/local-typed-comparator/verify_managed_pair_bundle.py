@@ -15,6 +15,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import materialize_managed_pair_inputs as workspace_materializer
+
 VERIFICATION_SCHEMA = (
     "sei.local-typed-comparator-managed-pair-bundle-verification/v1"
 )
@@ -51,6 +53,51 @@ def _object(value: Any, field: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ManagedPairBundleError(f"{field} must be an object")
     return value
+
+
+def _validate_input_workspace(value: Any) -> dict[str, Any]:
+    workspace = _object(value, "pair receipt input_workspace")
+    provided = workspace.get("provided")
+    if not isinstance(provided, bool):
+        raise ManagedPairBundleError(
+            "pair receipt input_workspace.provided must be boolean"
+        )
+    if not provided:
+        if set(workspace) != {"provided"}:
+            raise ManagedPairBundleError(
+                "manual-input receipt must not retain workspace binding fields"
+            )
+        return {"provided": False}
+
+    if workspace.get("receipt_file") != workspace_materializer.RECEIPT_FILE:
+        raise ManagedPairBundleError("input workspace receipt file drift")
+    digest = workspace.get("receipt_sha256")
+    if (
+        not isinstance(digest, str)
+        or len(digest) != 64
+        or digest != digest.lower()
+        or any(c not in "0123456789abcdef" for c in digest)
+    ):
+        raise ManagedPairBundleError("input workspace receipt SHA-256 drift")
+    if not isinstance(
+        workspace.get("runtime_environment_materialized"), bool
+    ):
+        raise ManagedPairBundleError(
+            "input workspace runtime flag missing"
+        )
+    if workspace.get("external_path_retained") is not False:
+        raise ManagedPairBundleError(
+            "input workspace must not retain external path"
+        )
+    return {
+        "provided": True,
+        "receipt_file": workspace_materializer.RECEIPT_FILE,
+        "receipt_sha256": digest,
+        "runtime_environment_materialized": workspace[
+            "runtime_environment_materialized"
+        ],
+        "external_path_retained": False,
+    }
 
 
 def _completed_summary(
@@ -167,6 +214,10 @@ def verify_bundle(
     }:
         raise ManagedPairBundleError("pair receipt provider run IDs drift")
 
+    input_workspace = _validate_input_workspace(
+        receipt.get("input_workspace")
+    )
+
     status = receipt.get("status")
     if status not in ("complete", "failed"):
         raise ManagedPairBundleError(
@@ -279,6 +330,7 @@ def verify_bundle(
         "pair_status": status,
         "source_git_sha": source_sha,
         "run_id": run_id,
+        "input_workspace": input_workspace,
         "receipt": {
             "file": RECEIPT_FILE,
             "sha256": pair._sha256_file(receipt_path),

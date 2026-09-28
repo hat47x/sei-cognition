@@ -509,6 +509,62 @@ class ManagedPairTest(unittest.TestCase):
                     materialized_workspace_dir=workspace,
                 )
 
+    def test_workspace_binding_is_retained_without_absolute_path(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            workspace = root / "workspace"
+            write_materialized_workspace(workspace)
+            binding = mod._resolve_materialized_workspace(
+                workspace,
+                source_sha=SHA,
+            )
+            receipt = mod.execute_pair(
+                source_sha=SHA,
+                output_dir=out,
+                commands=self._commands(root, out),
+                run_id="r1",
+                cwd=root,
+                input_workspace_binding=binding,
+                runner=FakeRunner(),
+            )
+            retained = receipt["input_workspace"]
+            self.assertTrue(retained["provided"])
+            self.assertEqual(
+                retained["receipt_file"],
+                mod.workspace_materializer.RECEIPT_FILE,
+            )
+            self.assertEqual(
+                retained["receipt_sha256"],
+                mod._sha256_file(
+                    workspace / mod.workspace_materializer.RECEIPT_FILE
+                ),
+            )
+            self.assertFalse(retained["runtime_environment_materialized"])
+            self.assertFalse(retained["external_path_retained"])
+            self.assertNotIn(str(workspace), json.dumps(retained))
+
+    def test_manual_pair_receipt_marks_workspace_absent(self):
+        receipt = self._complete("pass")
+        self.assertEqual(
+            receipt["input_workspace"],
+            {"provided": False},
+        )
+
+    def test_portable_workspace_binding_rejects_digest_drift(self):
+        with self.assertRaisesRegex(
+            mod.ManagedPairError,
+            "workspace receipt SHA-256 drift",
+        ):
+            mod._portable_workspace_binding(
+                {
+                    "receipt_file": mod.workspace_materializer.RECEIPT_FILE,
+                    "receipt_sha256": "not-a-digest",
+                    "runtime_environment_materialized": False,
+                }
+            )
+
     def test_commands_bind_same_source_and_report_chain(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
