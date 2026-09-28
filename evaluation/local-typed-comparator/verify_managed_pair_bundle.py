@@ -55,20 +55,44 @@ def _object(value: Any, field: str) -> dict[str, Any]:
     return value
 
 
-def _validate_input_workspace(value: Any) -> dict[str, Any]:
+def _validate_input_workspace(
+    value: Any,
+    *,
+    root: Path,
+    source_sha: str,
+    pair: Any,
+) -> dict[str, Any]:
     workspace = _object(value, "pair receipt input_workspace")
     provided = workspace.get("provided")
     if not isinstance(provided, bool):
         raise ManagedPairBundleError(
             "pair receipt input_workspace.provided must be boolean"
         )
+    snapshot_path = root / pair.WORKSPACE_RECEIPT_SNAPSHOT_FILE
     if not provided:
         if set(workspace) != {"provided"}:
             raise ManagedPairBundleError(
                 "manual-input receipt must not retain workspace binding fields"
             )
+        if snapshot_path.exists():
+            raise ManagedPairBundleError(
+                "manual-input bundle must not retain workspace receipt snapshot"
+            )
         return {"provided": False}
 
+    expected_fields = {
+        "provided",
+        "receipt_file",
+        "receipt_sha256",
+        "snapshot_file",
+        "snapshot_sha256",
+        "runtime_environment_materialized",
+        "external_path_retained",
+    }
+    if set(workspace) != expected_fields:
+        raise ManagedPairBundleError(
+            "input workspace binding field set drift"
+        )
     if workspace.get("receipt_file") != workspace_materializer.RECEIPT_FILE:
         raise ManagedPairBundleError("input workspace receipt file drift")
     digest = workspace.get("receipt_sha256")
@@ -79,11 +103,68 @@ def _validate_input_workspace(value: Any) -> dict[str, Any]:
         or any(c not in "0123456789abcdef" for c in digest)
     ):
         raise ManagedPairBundleError("input workspace receipt SHA-256 drift")
+    if workspace.get("snapshot_file") != pair.WORKSPACE_RECEIPT_SNAPSHOT_FILE:
+        raise ManagedPairBundleError("input workspace snapshot file drift")
+    if workspace.get("snapshot_sha256") != digest:
+        raise ManagedPairBundleError("input workspace snapshot digest drift")
+    if not snapshot_path.is_file():
+        raise ManagedPairBundleError("input workspace receipt snapshot missing")
+    if pair._sha256_file(snapshot_path) != digest:
+        raise ManagedPairBundleError(
+            "input workspace receipt snapshot bytes drift"
+        )
+    try:
+        snapshot = pair._load_json(
+            snapshot_path,
+            "input workspace receipt snapshot",
+        )
+    except Exception as exc:
+        raise ManagedPairBundleError(
+            f"cannot load input workspace receipt snapshot: {exc}"
+        ) from exc
+    if snapshot.get("schema") != workspace_materializer.SCHEMA:
+        raise ManagedPairBundleError("input workspace snapshot schema drift")
+    if snapshot.get("status") != "ready-for-managed-pair-preflight":
+        raise ManagedPairBundleError("input workspace snapshot status drift")
+    source = snapshot.get("source")
+    if (
+        not isinstance(source, dict)
+        or source.get("git_sha") != source_sha
+        or source.get("clean") is not True
+    ):
+        raise ManagedPairBundleError("input workspace snapshot source drift")
+    scope = snapshot.get("scope")
+    if not isinstance(scope, dict):
+        raise ManagedPairBundleError("input workspace snapshot scope missing")
+    if scope.get("workspace_relocatable") is not False:
+        raise ManagedPairBundleError(
+            "input workspace snapshot relocatability drift"
+        )
+    for field in (
+        "model_weights_loaded",
+        "live_reference_inference",
+        "live_papaya_inference",
+        "numeric_difference_observed",
+        "numeric_parity_decision_observed",
+        "task_quality",
+        "calibration_validity",
+        "shipping_decision",
+    ):
+        if scope.get(field) is not False:
+            raise ManagedPairBundleError(
+                f"input workspace snapshot scope.{field} must remain false"
+            )
     if not isinstance(
         workspace.get("runtime_environment_materialized"), bool
     ):
         raise ManagedPairBundleError(
             "input workspace runtime flag missing"
+        )
+    if scope.get("runtime_environment_materialized") is not workspace[
+        "runtime_environment_materialized"
+    ]:
+        raise ManagedPairBundleError(
+            "input workspace runtime flag/snapshot drift"
         )
     if workspace.get("external_path_retained") is not False:
         raise ManagedPairBundleError(
@@ -93,6 +174,8 @@ def _validate_input_workspace(value: Any) -> dict[str, Any]:
         "provided": True,
         "receipt_file": workspace_materializer.RECEIPT_FILE,
         "receipt_sha256": digest,
+        "snapshot_file": pair.WORKSPACE_RECEIPT_SNAPSHOT_FILE,
+        "snapshot_sha256": digest,
         "runtime_environment_materialized": workspace[
             "runtime_environment_materialized"
         ],
@@ -215,7 +298,10 @@ def verify_bundle(
         raise ManagedPairBundleError("pair receipt provider run IDs drift")
 
     input_workspace = _validate_input_workspace(
-        receipt.get("input_workspace")
+        receipt.get("input_workspace"),
+        root=root,
+        source_sha=source_sha,
+        pair=pair,
     )
 
     status = receipt.get("status")
