@@ -560,7 +560,7 @@ def prepare_workspace(
             "download_policy": {
                 "attempts_per_file": attempts,
                 "restart_from_zero": True,
-                "retryable_failures": "transport/read only",
+                "retryable_failures": "remote transport/source-read only",
                 "integrity_failures_retried": False,
             },
             "disk_capacity": disk_capacity,
