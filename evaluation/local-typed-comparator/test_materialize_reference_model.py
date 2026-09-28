@@ -121,12 +121,97 @@ class ReferenceModelTransportTest(unittest.TestCase):
                 receipt["status"],
                 "materialized-and-verified",
             )
+            self.assertEqual(
+                [item["download_attempts"] for item in receipt["files"]],
+                [1, 1],
+            )
             self.assertTrue(
                 receipt["scope"]["model_bytes_materialized"]
             )
             self.assertFalse(
                 receipt["scope"]["model_weights_loaded"]
             )
+
+    def test_transient_download_failure_retries_from_zero(self):
+        blob = b"reference"
+        entry = {
+            "path": "model.safetensors",
+            "url": "https://example.invalid/model",
+            "bytes": len(blob),
+            "sha256": hashlib.sha256(blob).hexdigest(),
+        }
+        calls = 0
+
+        def stream(_url, _timeout):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                raise OSError("synthetic transient failure")
+            return closing(io.BytesIO(blob))
+
+        with tempfile.TemporaryDirectory() as td:
+            output = Path(td) / "model"
+            receipt = mod.materialize_entries(
+                [entry],
+                output,
+                transport_id="synthetic",
+                attempts=3,
+                stream_factory=stream,
+                directory_verifier=lambda _root: {"valid": True},
+            )
+            self.assertEqual(calls, 2)
+            self.assertEqual(
+                receipt["files"][0]["download_attempts"], 2
+            )
+            self.assertEqual(
+                (output / "model.safetensors").read_bytes(), blob
+            )
+
+    def test_download_attempt_limit_and_exhaustion_are_fail_closed(self):
+        blob = b"right"
+        entry = {
+            "path": "model.safetensors",
+            "url": "https://example.invalid/model",
+            "bytes": len(blob),
+            "sha256": hashlib.sha256(blob).hexdigest(),
+        }
+        calls = 0
+
+        def always_fails(_url, _timeout):
+            nonlocal calls
+            calls += 1
+            raise OSError("synthetic transient failure")
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            output = root / "model"
+            with self.assertRaisesRegex(
+                mod.ReferenceModelDownloadError,
+                "failed after 2 download attempts",
+            ):
+                mod.materialize_entries(
+                    [entry],
+                    output,
+                    transport_id="synthetic",
+                    attempts=2,
+                    stream_factory=always_fails,
+                    directory_verifier=lambda _root: {"valid": True},
+                )
+            self.assertEqual(calls, 2)
+            self.assertFalse(output.exists())
+            self.assertEqual(list(root.iterdir()), [])
+
+        with tempfile.TemporaryDirectory() as td:
+            with self.assertRaisesRegex(
+                mod.ReferenceModelTransportError,
+                "attempts must be an integer >= 1",
+            ):
+                mod.materialize_entries(
+                    [],
+                    Path(td) / "model",
+                    transport_id="synthetic",
+                    attempts=0,
+                )
 
     def test_hash_or_size_failure_never_publishes_output(self):
         entry = {
@@ -153,6 +238,58 @@ class ReferenceModelTransportTest(unittest.TestCase):
                 )
             self.assertFalse(output.exists())
             self.assertEqual(list(Path(td).iterdir()), [])
+
+    def test_integrity_failure_is_not_retried(self):
+        entry = {
+            "path": "a",
+            "url": "https://example.invalid/a",
+            "bytes": len(b"right"),
+            "sha256": hashlib.sha256(b"right").hexdigest(),
+        }
+        calls = 0
+
+        def stream(_url, _timeout):
+            nonlocal calls
+            calls += 1
+            return closing(io.BytesIO(b"wrong"))
+
+        with tempfile.TemporaryDirectory() as td:
+            output = Path(td) / "model"
+            with self.assertRaises(mod.ReferenceModelTransportError):
+                mod.materialize_entries(
+                    [entry],
+                    output,
+                    transport_id="synthetic",
+                    attempts=3,
+                    stream_factory=stream,
+                    directory_verifier=lambda _root: {"valid": True},
+                )
+            self.assertEqual(calls, 1)
+            self.assertFalse(output.exists())
+            self.assertEqual(list(Path(td).iterdir()), [])
+
+    def test_attempt_count_must_be_positive_integer(self):
+        entry = {
+            "path": "a",
+            "url": "https://example.invalid/a",
+            "bytes": 1,
+            "sha256": hashlib.sha256(b"a").hexdigest(),
+        }
+        for attempts in (0, -1, True):
+            with tempfile.TemporaryDirectory() as td:
+                with self.subTest(attempts=attempts), self.assertRaises(
+                    mod.ReferenceModelTransportError
+                ):
+                    mod.materialize_entries(
+                        [entry],
+                        Path(td) / "model",
+                        transport_id="synthetic",
+                        attempts=attempts,
+                        stream_factory=lambda _url, _timeout: closing(
+                            io.BytesIO(b"a")
+                        ),
+                        directory_verifier=lambda _root: {"valid": True},
+                    )
 
     def test_output_collision_and_unsafe_paths_are_rejected(self):
         with tempfile.TemporaryDirectory() as td:

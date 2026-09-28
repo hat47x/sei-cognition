@@ -32,6 +32,7 @@ HF_BASE = (
     "f9ab0b228f0fc0f14d873dbc99038f135c2da1b2"
 )
 MIRROR_BASE = "https://models.truespar.io/models/laya/typed-decisions"
+DEFAULT_ATTEMPTS = 3
 MIRROR_PROVENANCE = {
     "repository": "truespar/paddock",
     "revision": "610cd8f5ea72e7421a99ca418d51de804d312730",
@@ -42,6 +43,10 @@ MIRROR_PROVENANCE = {
 
 class ReferenceModelTransportError(ValueError):
     pass
+
+
+class ReferenceModelDownloadError(ReferenceModelTransportError):
+    """Retryable transport/read failure before byte-contract validation."""
 
 
 def _lower_hex(value: Any, length: int, field: str) -> str:
@@ -244,7 +249,7 @@ def _url_stream(url: str, timeout: float) -> ContextManager[BinaryIO]:
     return closing(urllib.request.urlopen(request, timeout=timeout))
 
 
-def _download_verified(
+def _download_once(
     entry: dict[str, Any],
     destination: Path,
     *,
@@ -276,7 +281,7 @@ def _download_verified(
             f"staged file already exists: {destination}"
         ) from exc
     except OSError as exc:
-        raise ReferenceModelTransportError(
+        raise ReferenceModelDownloadError(
             f"download failed for {entry['path']}: {exc}"
         ) from exc
 
@@ -296,12 +301,48 @@ def _download_verified(
     }
 
 
+def _download_verified(
+    entry: dict[str, Any],
+    destination: Path,
+    *,
+    timeout: float,
+    attempts: int,
+    stream_factory: Callable[
+        [str, float], ContextManager[BinaryIO]
+    ],
+) -> dict[str, Any]:
+    if isinstance(attempts, bool) or not isinstance(attempts, int) or attempts < 1:
+        raise ReferenceModelTransportError("attempts must be an integer >= 1")
+
+    last_error: ReferenceModelDownloadError | None = None
+    for attempt in range(1, attempts + 1):
+        try:
+            destination.unlink(missing_ok=True)
+            result = _download_once(
+                entry,
+                destination,
+                timeout=timeout,
+                stream_factory=stream_factory,
+            )
+            result["download_attempts"] = attempt
+            return result
+        except ReferenceModelDownloadError as exc:
+            last_error = exc
+            destination.unlink(missing_ok=True)
+
+    assert last_error is not None
+    raise ReferenceModelDownloadError(
+        f"{entry['path']}: failed after {attempts} download attempts: {last_error}"
+    ) from last_error
+
+
 def materialize_entries(
     entries: list[dict[str, Any]],
     output_dir: Path,
     *,
     transport_id: str,
     timeout: float = 300.0,
+    attempts: int = DEFAULT_ATTEMPTS,
     stream_factory: Callable[
         [str, float], ContextManager[BinaryIO]
     ] = _url_stream,
@@ -311,6 +352,8 @@ def materialize_entries(
 ) -> dict[str, Any]:
     if timeout <= 0:
         raise ReferenceModelTransportError("timeout must be positive")
+    if isinstance(attempts, bool) or not isinstance(attempts, int) or attempts < 1:
+        raise ReferenceModelTransportError("attempts must be an integer >= 1")
     output = output_dir.expanduser().resolve()
     if output.exists():
         raise ReferenceModelTransportError(
@@ -334,6 +377,7 @@ def materialize_entries(
                     entry,
                     staging / relative,
                     timeout=timeout,
+                    attempts=attempts,
                     stream_factory=stream_factory,
                 )
             )
@@ -371,6 +415,7 @@ def materialize_reference_model(
     output_dir: Path,
     *,
     timeout: float = 300.0,
+    attempts: int = DEFAULT_ATTEMPTS,
 ) -> dict[str, Any]:
     transports = validate_manifest(manifest)
     try:
@@ -384,6 +429,7 @@ def materialize_reference_model(
         output_dir,
         transport_id=transport_id,
         timeout=timeout,
+        attempts=attempts,
     )
 
 
@@ -397,6 +443,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--timeout", type=float, default=300.0)
+    parser.add_argument("--attempts", type=int, default=DEFAULT_ATTEMPTS)
     args = parser.parse_args(argv)
     try:
         receipt = materialize_reference_model(
@@ -404,6 +451,7 @@ def main(argv: list[str] | None = None) -> int:
             args.transport,
             args.output_dir,
             timeout=args.timeout,
+            attempts=args.attempts,
         )
     except (
         ReferenceModelTransportError,
