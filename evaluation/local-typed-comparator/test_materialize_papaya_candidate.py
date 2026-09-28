@@ -202,23 +202,23 @@ class PapayaCandidateMaterializerTest(unittest.TestCase):
         }
         calls = 0
 
-        def always_wrong(_url, _timeout):
+        def always_fails(_url, _timeout):
             nonlocal calls
             calls += 1
-            return closing(io.BytesIO(b"wrong"))
+            raise OSError("synthetic transient failure")
 
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             output = root / "candidate"
             with self.assertRaisesRegex(
-                mod.PapayaCandidateTransportError,
+                mod.PapayaCandidateDownloadError,
                 "failed after 2 download attempts",
             ):
                 mod.materialize_entries(
                     [entry],
                     output,
                     attempts=2,
-                    stream_factory=always_wrong,
+                    stream_factory=always_fails,
                     input_verifier=lambda _root: {"verified": True},
                 )
             self.assertEqual(calls, 2)
@@ -263,6 +263,60 @@ class PapayaCandidateMaterializerTest(unittest.TestCase):
                 )
             self.assertFalse(output.exists())
             self.assertEqual(list(root.iterdir()), [])
+
+    def test_integrity_failure_is_not_retried(self):
+        entry = {
+            "path": "model.gguf",
+            "role": "q8_backbone",
+            "revision": "a" * 40,
+            "url": "https://example.invalid/model",
+            "bytes": len(b"right"),
+            "sha256": hashlib.sha256(b"right").hexdigest(),
+        }
+        calls = 0
+
+        def stream(_url, _timeout):
+            nonlocal calls
+            calls += 1
+            return closing(io.BytesIO(b"wrong"))
+
+        with tempfile.TemporaryDirectory() as td:
+            output = Path(td) / "candidate"
+            with self.assertRaises(mod.PapayaCandidateTransportError):
+                mod.materialize_entries(
+                    [entry],
+                    output,
+                    attempts=3,
+                    stream_factory=stream,
+                    input_verifier=lambda _root: {"verified": True},
+                )
+            self.assertEqual(calls, 1)
+            self.assertFalse(output.exists())
+            self.assertEqual(list(Path(td).iterdir()), [])
+
+    def test_attempt_count_must_be_positive_integer(self):
+        entry = {
+            "path": "model.gguf",
+            "role": "q8_backbone",
+            "revision": "a" * 40,
+            "url": "https://example.invalid/model",
+            "bytes": 1,
+            "sha256": hashlib.sha256(b"a").hexdigest(),
+        }
+        for attempts in (0, -1, True):
+            with tempfile.TemporaryDirectory() as td:
+                with self.subTest(attempts=attempts), self.assertRaises(
+                    mod.PapayaCandidateTransportError
+                ):
+                    mod.materialize_entries(
+                        [entry],
+                        Path(td) / "candidate",
+                        attempts=attempts,
+                        stream_factory=lambda _url, _timeout: closing(
+                            io.BytesIO(b"a")
+                        ),
+                        input_verifier=lambda _root: {"verified": True},
+                    )
 
     def test_verifier_failure_never_publishes_output(self):
         blob = b"q8"
