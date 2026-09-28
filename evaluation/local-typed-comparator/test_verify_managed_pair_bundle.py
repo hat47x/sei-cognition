@@ -419,6 +419,25 @@ class ManagedPairBundleVerifierTest(unittest.TestCase):
         self.assertEqual(result["failure"]["kind"], "process_exit")
         self.assertTrue(result["failure"]["stage_output_present"])
 
+    def test_failed_workspace_bundle_verifies_snapshot_and_partial_output(self):
+        with tempfile.TemporaryDirectory() as td:
+            out = self._make_bundle(
+                Path(td), fail_stage="papaya", partial_failure=True
+            )
+            snapshot_path, _receipt_path = bind_workspace_snapshot(out)
+            expected_snapshot_sha = pair._sha256_file(snapshot_path)
+            result = verify.verify_bundle(
+                out, expected_source_sha=SHA, pair_module=pair
+            )
+            self.assertEqual(result["pair_status"], "failed")
+            self.assertTrue(result["input_workspace"]["provided"])
+            self.assertEqual(
+                result["input_workspace"]["snapshot_sha256"],
+                expected_snapshot_sha,
+            )
+            self.assertEqual(result["failure"]["stage"], "papaya")
+            self.assertTrue(result["failure"]["stage_output_present"])
+
     def test_failed_partial_output_tamper_is_rejected(self):
         with tempfile.TemporaryDirectory() as td:
             out = self._make_bundle(
