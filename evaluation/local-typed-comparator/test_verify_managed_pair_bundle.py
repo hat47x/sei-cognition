@@ -237,6 +237,66 @@ class ManagedPairBundleVerifierTest(unittest.TestCase):
             )
         self.assertEqual(result["pair_status"], "complete")
 
+    def test_manual_bundle_retains_workspace_absent_marker(self):
+        with tempfile.TemporaryDirectory() as td:
+            out = self._make_bundle(Path(td))
+            result = verify.verify_bundle(
+                out, expected_source_sha=SHA, pair_module=pair
+            )
+        self.assertEqual(
+            result["input_workspace"],
+            {"provided": False},
+        )
+
+    def test_workspace_binding_digest_or_path_overclaim_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            out = self._make_bundle(Path(td))
+            receipt_path = out / pair.RECEIPT_FILE
+
+            receipt = json.loads(receipt_path.read_text())
+            receipt["input_workspace"] = {
+                "provided": True,
+                "receipt_file": pair.workspace_materializer.RECEIPT_FILE,
+                "receipt_sha256": "0" * 64,
+                "runtime_environment_materialized": False,
+                "external_path_retained": False,
+            }
+            write_json(receipt_path, receipt)
+            verified = verify.verify_bundle(
+                out, expected_source_sha=SHA, pair_module=pair
+            )
+            self.assertTrue(verified["input_workspace"]["provided"])
+            self.assertEqual(
+                verified["input_workspace"]["receipt_sha256"],
+                "0" * 64,
+            )
+
+            receipt = json.loads(receipt_path.read_text())
+            receipt["input_workspace"]["external_path_retained"] = True
+            write_json(receipt_path, receipt)
+            with self.assertRaises(verify.ManagedPairBundleError):
+                verify.verify_bundle(
+                    out, expected_source_sha=SHA, pair_module=pair
+                )
+
+    def test_workspace_binding_malformed_digest_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            out = self._make_bundle(Path(td))
+            receipt_path = out / pair.RECEIPT_FILE
+            receipt = json.loads(receipt_path.read_text())
+            receipt["input_workspace"] = {
+                "provided": True,
+                "receipt_file": pair.workspace_materializer.RECEIPT_FILE,
+                "receipt_sha256": "bad",
+                "runtime_environment_materialized": False,
+                "external_path_retained": False,
+            }
+            write_json(receipt_path, receipt)
+            with self.assertRaises(verify.ManagedPairBundleError):
+                verify.verify_bundle(
+                    out, expected_source_sha=SHA, pair_module=pair
+                )
+
     def test_wrong_expected_source_sha_is_rejected(self):
         with tempfile.TemporaryDirectory() as td:
             out = self._make_bundle(Path(td))
