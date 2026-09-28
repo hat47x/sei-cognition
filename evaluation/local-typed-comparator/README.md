@@ -527,6 +527,13 @@ If the retained host-assisted wheelhouse is available, add
 exact-wheel managed venv in the same workspace, also add
 `--materialize-runtime-environment`.
 
+Model downloads use one shared bounded retry policy for both providers:
+`--attempts 3` by default. Only transient transport/read failures are retried;
+each attempt restarts that file from byte zero. Size/SHA-256 mismatches are
+integrity failures and fail immediately. Successful per-file receipts retain the
+observed `download_attempts` count, and the workspace receipt retains the common
+policy.
+
 With that flag, the wrapper validates the wheelhouse and materializes/verifies
 `runtime-env/` **before any model transfer**. It then materializes the
 reference model, materializes the Papaya candidate, prepares the compatibility
