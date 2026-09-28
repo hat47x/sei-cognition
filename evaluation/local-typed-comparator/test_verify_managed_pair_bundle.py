@@ -150,6 +150,51 @@ class BundleRunner:
         return subprocess.CompletedProcess(command, 0)
 
 
+def bind_workspace_snapshot(
+    out: Path,
+    *,
+    runtime_environment_materialized: bool = False,
+):
+    snapshot = {
+        "schema": pair.workspace_materializer.SCHEMA,
+        "status": "ready-for-managed-pair-preflight",
+        "source": {"git_sha": SHA, "clean": True},
+        "scope": {
+            "workspace_relocatable": False,
+            "runtime_environment_materialized": (
+                runtime_environment_materialized
+            ),
+            "model_weights_loaded": False,
+            "live_reference_inference": False,
+            "live_papaya_inference": False,
+            "numeric_difference_observed": False,
+            "numeric_parity_decision_observed": False,
+            "task_quality": False,
+            "calibration_validity": False,
+            "shipping_decision": False,
+        },
+    }
+    snapshot_path = out / pair.WORKSPACE_RECEIPT_SNAPSHOT_FILE
+    write_json(snapshot_path, snapshot)
+    digest = pair._sha256_file(snapshot_path)
+
+    receipt_path = out / pair.RECEIPT_FILE
+    receipt = json.loads(receipt_path.read_text())
+    receipt["input_workspace"] = {
+        "provided": True,
+        "receipt_file": pair.workspace_materializer.RECEIPT_FILE,
+        "receipt_sha256": digest,
+        "snapshot_file": pair.WORKSPACE_RECEIPT_SNAPSHOT_FILE,
+        "snapshot_sha256": digest,
+        "runtime_environment_materialized": (
+            runtime_environment_materialized
+        ),
+        "external_path_retained": False,
+    }
+    write_json(receipt_path, receipt)
+    return snapshot_path, receipt_path
+
+
 class ManagedPairBundleVerifierTest(unittest.TestCase):
     def _commands(self, root: Path, output: Path):
         commands = pair.build_commands(
@@ -248,29 +293,39 @@ class ManagedPairBundleVerifierTest(unittest.TestCase):
             {"provided": False},
         )
 
+    def test_workspace_snapshot_bundle_verifies(self):
+        with tempfile.TemporaryDirectory() as td:
+            out = self._make_bundle(Path(td))
+            snapshot_path, _receipt_path = bind_workspace_snapshot(out)
+            result = verify.verify_bundle(
+                out, expected_source_sha=SHA, pair_module=pair
+            )
+        self.assertTrue(result["input_workspace"]["provided"])
+        self.assertEqual(
+            result["input_workspace"]["snapshot_file"],
+            pair.WORKSPACE_RECEIPT_SNAPSHOT_FILE,
+        )
+        self.assertEqual(
+            result["input_workspace"]["snapshot_sha256"],
+            pair._sha256_file(snapshot_path),
+        )
+
     def test_workspace_binding_digest_or_path_overclaim_is_rejected(self):
         with tempfile.TemporaryDirectory() as td:
             out = self._make_bundle(Path(td))
-            receipt_path = out / pair.RECEIPT_FILE
+            _snapshot_path, receipt_path = bind_workspace_snapshot(out)
 
             receipt = json.loads(receipt_path.read_text())
-            receipt["input_workspace"] = {
-                "provided": True,
-                "receipt_file": pair.workspace_materializer.RECEIPT_FILE,
-                "receipt_sha256": "0" * 64,
-                "runtime_environment_materialized": False,
-                "external_path_retained": False,
-            }
+            receipt["input_workspace"]["receipt_sha256"] = "0" * 64
             write_json(receipt_path, receipt)
-            verified = verify.verify_bundle(
-                out, expected_source_sha=SHA, pair_module=pair
-            )
-            self.assertTrue(verified["input_workspace"]["provided"])
-            self.assertEqual(
-                verified["input_workspace"]["receipt_sha256"],
-                "0" * 64,
-            )
+            with self.assertRaises(verify.ManagedPairBundleError):
+                verify.verify_bundle(
+                    out, expected_source_sha=SHA, pair_module=pair
+                )
 
+        with tempfile.TemporaryDirectory() as td:
+            out = self._make_bundle(Path(td))
+            _snapshot_path, receipt_path = bind_workspace_snapshot(out)
             receipt = json.loads(receipt_path.read_text())
             receipt["input_workspace"]["external_path_retained"] = True
             write_json(receipt_path, receipt)
@@ -282,16 +337,46 @@ class ManagedPairBundleVerifierTest(unittest.TestCase):
     def test_workspace_binding_malformed_digest_is_rejected(self):
         with tempfile.TemporaryDirectory() as td:
             out = self._make_bundle(Path(td))
-            receipt_path = out / pair.RECEIPT_FILE
+            _snapshot_path, receipt_path = bind_workspace_snapshot(out)
             receipt = json.loads(receipt_path.read_text())
-            receipt["input_workspace"] = {
-                "provided": True,
-                "receipt_file": pair.workspace_materializer.RECEIPT_FILE,
-                "receipt_sha256": "bad",
-                "runtime_environment_materialized": False,
-                "external_path_retained": False,
-            }
+            receipt["input_workspace"]["snapshot_sha256"] = "bad"
             write_json(receipt_path, receipt)
+            with self.assertRaises(verify.ManagedPairBundleError):
+                verify.verify_bundle(
+                    out, expected_source_sha=SHA, pair_module=pair
+                )
+
+    def test_workspace_snapshot_missing_or_tampered_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            out = self._make_bundle(Path(td))
+            snapshot_path, _receipt_path = bind_workspace_snapshot(out)
+            snapshot_path.unlink()
+            with self.assertRaises(verify.ManagedPairBundleError):
+                verify.verify_bundle(
+                    out, expected_source_sha=SHA, pair_module=pair
+                )
+
+        with tempfile.TemporaryDirectory() as td:
+            out = self._make_bundle(Path(td))
+            snapshot_path, _receipt_path = bind_workspace_snapshot(out)
+            snapshot = json.loads(snapshot_path.read_text())
+            snapshot["tampered"] = True
+            write_json(snapshot_path, snapshot)
+            with self.assertRaises(verify.ManagedPairBundleError):
+                verify.verify_bundle(
+                    out, expected_source_sha=SHA, pair_module=pair
+                )
+
+    def test_manual_bundle_rejects_unbound_workspace_snapshot(self):
+        with tempfile.TemporaryDirectory() as td:
+            out = self._make_bundle(Path(td))
+            write_json(
+                out / pair.WORKSPACE_RECEIPT_SNAPSHOT_FILE,
+                {
+                    "schema": pair.workspace_materializer.SCHEMA,
+                    "status": "ready-for-managed-pair-preflight",
+                },
+            )
             with self.assertRaises(verify.ManagedPairBundleError):
                 verify.verify_bundle(
                     out, expected_source_sha=SHA, pair_module=pair
