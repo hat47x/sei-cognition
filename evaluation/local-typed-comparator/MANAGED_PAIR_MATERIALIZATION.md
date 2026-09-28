@@ -334,11 +334,13 @@ file's exact byte count and SHA-256, runs the existing
 `verify_reference_model_directory.py` contract against the complete staged
 directory, and only then atomically publishes the destination.
 
-Transient transport/read failures use a bounded per-file retry policy
-(default: 3 attempts). Each retry removes that file's partial staging bytes and
-restarts the file from byte zero; HTTP Range/resume behavior is deliberately
-not assumed. Byte-size or SHA-256 mismatch is an integrity failure and is
-**not retried**. Successful file receipts retain `download_attempts`.
+Transient remote transport/source-read failures use a bounded per-file retry
+policy (default: 3 attempts). Each retry removes that file's partial staging
+bytes and restarts the file from byte zero; HTTP Range/resume behavior is
+deliberately not assumed. Local staging-directory/file open/write/close errors
+are not transport retries: they fail immediately. Byte-size or SHA-256 mismatch
+is also an integrity failure and is **not retried**. Successful file receipts
+retain `download_attempts`.
 
 Override the bound only when needed:
 
@@ -474,11 +476,13 @@ The materializer downloads into sibling staging, verifies every file while
 streaming, runs the existing Papaya overlay-input verifier over the complete
 staged set, and publishes the destination only after all checks pass.
 
-As on the reference path, transient transport/read failures use a bounded
-per-file retry policy (default: 3 attempts). Every retry removes the partial
-staged file and restarts from byte zero; no Range/resume behavior is assumed.
-Byte-size or SHA-256 mismatch is an integrity failure and is **not retried**.
-Successful file receipts retain `download_attempts`.
+As on the reference path, transient remote transport/source-read failures use
+a bounded per-file retry policy (default: 3 attempts). Every retry removes the
+partial staged file and restarts from byte zero; no Range/resume behavior is
+assumed. Local staging-directory/file open/write/close errors fail immediately
+rather than consuming the download retry budget. Byte-size or SHA-256 mismatch
+is also an integrity failure and is **not retried**. Successful file receipts
+retain `download_attempts`.
 
 Optional override:
 
@@ -606,7 +610,7 @@ The composite receipt retains the policy explicitly:
 ```text
 attempts_per_file           N
 restart_from_zero           true
-retryable_failures          transport/read only
+retryable_failures          remote transport/source-read only
 integrity_failures_retried  false
 ```
 
