@@ -282,6 +282,37 @@ def _resolve_materialized_workspace(
     }
 
 
+def _portable_workspace_binding(
+    binding: dict[str, Any] | None,
+) -> dict[str, Any]:
+    if binding is None:
+        return {"provided": False}
+
+    receipt_file = binding.get("receipt_file")
+    receipt_sha = binding.get("receipt_sha256")
+    runtime_materialized = binding.get("runtime_environment_materialized")
+    if receipt_file != workspace_materializer.RECEIPT_FILE:
+        raise ManagedPairError("workspace receipt file identity drift")
+    if (
+        not isinstance(receipt_sha, str)
+        or len(receipt_sha) != 64
+        or receipt_sha != receipt_sha.lower()
+        or any(c not in "0123456789abcdef" for c in receipt_sha)
+    ):
+        raise ManagedPairError("workspace receipt SHA-256 drift")
+    if not isinstance(runtime_materialized, bool):
+        raise ManagedPairError(
+            "workspace runtime-environment materialization flag missing"
+        )
+    return {
+        "provided": True,
+        "receipt_file": receipt_file,
+        "receipt_sha256": receipt_sha,
+        "runtime_environment_materialized": runtime_materialized,
+        "external_path_retained": False,
+    }
+
+
 def _require_external_new_output_dir(
     output_dir: Path,
     *,
@@ -778,6 +809,7 @@ def execute_pair(
     commands: Sequence[tuple[str, Sequence[str]]],
     run_id: str,
     cwd: Path,
+    input_workspace_binding: dict[str, Any] | None = None,
     runner: Callable[..., subprocess.CompletedProcess[Any]] = subprocess.run,
 ) -> dict[str, Any]:
     receipt_path = output_dir / RECEIPT_FILE
@@ -791,6 +823,9 @@ def execute_pair(
             "reference": f"{run_id}-reference",
             "papaya": f"{run_id}-papaya",
         },
+        "input_workspace": _portable_workspace_binding(
+            input_workspace_binding
+        ),
         "artifacts": {},
         "scope": {
             "single_sei_source_git_sha": True,
@@ -1023,6 +1058,7 @@ def main(argv: list[str] | None = None) -> int:
             ),
             run_id=args.run_id.strip(),
             cwd=args.sei_source_dir.resolve(),
+            input_workspace_binding=workspace_binding,
         )
     except Exception as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
