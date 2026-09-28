@@ -528,11 +528,12 @@ exact-wheel managed venv in the same workspace, also add
 `--materialize-runtime-environment`.
 
 Model downloads use one shared bounded retry policy for both providers:
-`--attempts 3` by default. Only transient transport/read failures are retried;
-each attempt restarts that file from byte zero. Size/SHA-256 mismatches are
-integrity failures and fail immediately. Successful per-file receipts retain the
-observed `download_attempts` count, and the workspace receipt retains the common
-policy.
+`--attempts 3` by default. Only transient remote transport/source-read
+failures are retried; each attempt restarts that file from byte zero. Local
+staging-directory/file open/write/close failures are not retried. Size/SHA-256
+mismatches are integrity failures and also fail immediately. Successful
+per-file receipts retain the observed `download_attempts` count, and the
+workspace receipt retains the common policy.
 
 Before the first model transfer, the workspace also checks free disk after any
 optional runtime-env creation. The current exact model-input total is
