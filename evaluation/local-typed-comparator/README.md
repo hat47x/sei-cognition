@@ -559,9 +559,18 @@ The resulting workspace can be used directly as:
   managed-pair-input-materialization.json
 ```
 
-Launch the later paired run with `<workspace>/runtime-env/bin/python` and pass
-the original verified wheelhouse plus
-`--runtime-environment-dir <workspace>/runtime-env`.
+For a workspace produced by this wrapper, bind the later live run back to its
+portable receipt with:
+
+```text
+--materialized-workspace-dir <workspace>
+```
+
+That option derives `reference-model/`, `papaya-overlay/`, and (when
+present) `runtime-env/` from the fixed workspace layout instead of relying on
+retyped paths. If `runtime-env/` is present, invoke the runner with
+`<workspace>/runtime-env/bin/python` and still pass the original verified
+wheelhouse so preflight can reverify the exact managed environment.
 
 The wrapper adds no new transport identity. It reuses the existing
 reference/Papaya manifests and validators. If any stage fails, it removes the
@@ -584,19 +593,27 @@ Hugging Face model objects were materialized in this ChatGPT environment.
 
 When all exact runtime/model inputs are materialized on one eligible host, run
 the two managed captures, raw comparison, and preregistered decision from one
-SEI revision with:
+SEI revision.
+
+For a workspace produced by `materialize_managed_pair_inputs.py`, the
+preferred form is:
 
 ```bash
-python3 run_managed_pair.py \
+<workspace-python-or-python3> run_managed_pair.py \
   --source-git-sha <exact-merged-SEI-SHA> \
-  --reference-model-dir <attested-reference-model-directory> \
+  --materialized-workspace-dir <workspace> \
   --laya-runtime-wheel <laya-0.3.20-py3-none-any.whl> \
   --papaya-source-dir <clean-m0rphtail-papaya-a76bc99-checkout> \
-  --papaya-overlay-dir <verified-compat-overlay> \
   --llama-binary <pinned-b10964-llama-server> \
   --run-id <unique-pair-run-id> \
   --output-dir <new-directory-outside-both-source-checkouts>
 ```
+
+The existing explicit `--reference-model-dir` /
+`--papaya-overlay-dir` form remains supported for manually prepared inputs.
+If either explicit path is supplied together with
+`--materialized-workspace-dir`, it must resolve to the workspace-derived
+path or the run fails before preflight.
 
 The orchestrator does not replace any provider-specific verification. Before
 either provider loads model weights, it now runs a shared preflight that reuses
