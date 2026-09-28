@@ -31,6 +31,7 @@ SCHEMA = "sei.local-typed-comparator-papaya-candidate-transport/v1"
 STATUS = "transport-candidate"
 TRANSPORT_ID = "huggingface-immutable"
 TRANSPORT_KIND = "huggingface-resolve"
+DEFAULT_ATTEMPTS = 3
 HF_REPOSITORY = overlay.CANDIDATE_REPOSITORY
 CANDIDATE_REVISION = overlay.CANDIDATE_REVISION
 TOKENIZER_REVISION = overlay.CANDIDATE_TOKENIZER_REVISION
@@ -296,7 +297,7 @@ def _url_stream(
     return closing(urllib.request.urlopen(request, timeout=timeout))
 
 
-def _download_verified(
+def _download_once(
     entry: dict[str, Any],
     destination: Path,
     *,
@@ -350,6 +351,43 @@ def _download_verified(
     }
 
 
+def _download_verified(
+    entry: dict[str, Any],
+    destination: Path,
+    *,
+    timeout: float,
+    attempts: int,
+    stream_factory: Callable[
+        [str, float], ContextManager[BinaryIO]
+    ],
+) -> dict[str, Any]:
+    if isinstance(attempts, bool) or not isinstance(attempts, int) or attempts < 1:
+        raise PapayaCandidateTransportError(
+            "attempts must be an integer >= 1"
+        )
+
+    last_error: PapayaCandidateTransportError | None = None
+    for attempt in range(1, attempts + 1):
+        try:
+            destination.unlink(missing_ok=True)
+            result = _download_once(
+                entry,
+                destination,
+                timeout=timeout,
+                stream_factory=stream_factory,
+            )
+            result["download_attempts"] = attempt
+            return result
+        except PapayaCandidateTransportError as exc:
+            last_error = exc
+            destination.unlink(missing_ok=True)
+
+    assert last_error is not None
+    raise PapayaCandidateTransportError(
+        f"{entry['path']}: failed after {attempts} download attempts: {last_error}"
+    ) from last_error
+
+
 def _verify_candidate_inputs(root: Path) -> dict[str, Any]:
     try:
         receipt, _compat_bytes = overlay.inspect_overlay_inputs(
@@ -399,6 +437,7 @@ def materialize_entries(
     output_dir: Path,
     *,
     timeout: float = 300.0,
+    attempts: int = DEFAULT_ATTEMPTS,
     stream_factory: Callable[
         [str, float], ContextManager[BinaryIO]
     ] = _url_stream,
@@ -409,6 +448,10 @@ def materialize_entries(
     if timeout <= 0:
         raise PapayaCandidateTransportError(
             "timeout must be positive"
+        )
+    if isinstance(attempts, bool) or not isinstance(attempts, int) or attempts < 1:
+        raise PapayaCandidateTransportError(
+            "attempts must be an integer >= 1"
         )
     output = output_dir.expanduser().resolve()
     if output.exists():
@@ -434,6 +477,7 @@ def materialize_entries(
                     entry,
                     staging / relative,
                     timeout=timeout,
+                    attempts=attempts,
                     stream_factory=stream_factory,
                 )
             )
@@ -471,12 +515,14 @@ def materialize_papaya_candidate(
     output_dir: Path,
     *,
     timeout: float = 300.0,
+    attempts: int = DEFAULT_ATTEMPTS,
 ) -> dict[str, Any]:
     entries = validate_manifest(manifest)
     return materialize_entries(
         entries,
         output_dir,
         timeout=timeout,
+        attempts=attempts,
     )
 
 
@@ -485,6 +531,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("manifest", type=Path)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--timeout", type=float, default=300.0)
+    parser.add_argument("--attempts", type=int, default=DEFAULT_ATTEMPTS)
     args = parser.parse_args(argv)
 
     try:
@@ -492,6 +539,7 @@ def main(argv: list[str] | None = None) -> int:
             load_manifest(args.manifest),
             args.output_dir,
             timeout=args.timeout,
+            attempts=args.attempts,
         )
     except (
         PapayaCandidateTransportError,
