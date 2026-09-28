@@ -606,14 +606,16 @@ preferred form is:
   --papaya-source-dir <clean-m0rphtail-papaya-a76bc99-checkout> \
   --llama-binary <pinned-b10964-llama-server> \
   --run-id <unique-pair-run-id> \
-  --output-dir <new-directory-outside-both-source-checkouts>
+  --output-dir <new-directory-outside-source-checkouts-and-workspace>
 ```
 
 The existing explicit `--reference-model-dir` /
 `--papaya-overlay-dir` form remains supported for manually prepared inputs.
 If either explicit path is supplied together with
 `--materialized-workspace-dir`, it must resolve to the workspace-derived
-path or the run fails before preflight.
+path or the run fails before preflight. In workspace mode the paired Evidence
+`--output-dir` must also remain outside the materialized workspace, so the
+input workspace is not mutated by run outputs.
 
 The orchestrator does not replace any provider-specific verification. Before
 either provider loads model weights, it now runs a shared preflight that reuses
