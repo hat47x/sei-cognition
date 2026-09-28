@@ -50,6 +50,10 @@ class PapayaCandidateTransportError(ValueError):
     pass
 
 
+class PapayaCandidateDownloadError(PapayaCandidateTransportError):
+    """Retryable transport/read failure before byte-contract validation."""
+
+
 def _lower_hex(value: Any, length: int, field: str) -> str:
     if not isinstance(value, str) or len(value) != length:
         raise PapayaCandidateTransportError(
@@ -329,7 +333,7 @@ def _download_once(
             f"staged file already exists: {destination}"
         ) from exc
     except OSError as exc:
-        raise PapayaCandidateTransportError(
+        raise PapayaCandidateDownloadError(
             f"download failed for {entry['path']}: {exc}"
         ) from exc
 
@@ -366,7 +370,7 @@ def _download_verified(
             "attempts must be an integer >= 1"
         )
 
-    last_error: PapayaCandidateTransportError | None = None
+    last_error: PapayaCandidateDownloadError | None = None
     for attempt in range(1, attempts + 1):
         try:
             destination.unlink(missing_ok=True)
@@ -378,12 +382,12 @@ def _download_verified(
             )
             result["download_attempts"] = attempt
             return result
-        except PapayaCandidateTransportError as exc:
+        except PapayaCandidateDownloadError as exc:
             last_error = exc
             destination.unlink(missing_ok=True)
 
     assert last_error is not None
-    raise PapayaCandidateTransportError(
+    raise PapayaCandidateDownloadError(
         f"{entry['path']}: failed after {attempts} download attempts: {last_error}"
     ) from last_error
 
