@@ -208,6 +208,39 @@ def _resolve_materialized_workspace(
         raise ManagedPairError(
             "materialized workspace runtime environment scope missing"
         )
+    runtime_receipt = receipt.get("runtime_environment")
+    if (
+        not isinstance(runtime_receipt, dict)
+        or runtime_receipt.get("provided") is not runtime_provided
+    ):
+        raise ManagedPairError(
+            "materialized workspace runtime environment receipt/scope drift"
+        )
+    wheelhouse = receipt.get("runtime_wheelhouse")
+    if not isinstance(wheelhouse, dict):
+        raise ManagedPairError(
+            "materialized workspace runtime wheelhouse receipt missing"
+        )
+    wheelhouse_provided = wheelhouse.get("provided")
+    if not isinstance(wheelhouse_provided, bool):
+        raise ManagedPairError(
+            "materialized workspace runtime wheelhouse provided flag missing"
+        )
+    if scope.get("runtime_wheelhouse_verified") is not wheelhouse_provided:
+        raise ManagedPairError(
+            "materialized workspace runtime wheelhouse scope drift"
+        )
+    if runtime_provided and not wheelhouse_provided:
+        raise ManagedPairError(
+            "materialized workspace runtime environment requires wheelhouse"
+        )
+    if (
+        scope.get("transported_wheel_installation_origin_attested")
+        is not runtime_provided
+    ):
+        raise ManagedPairError(
+            "materialized workspace transported-wheel origin scope drift"
+        )
     layout_runtime = layout.get("runtime_environment_dir")
     if runtime_provided:
         if layout_runtime != workspace_materializer.RUNTIME_ENV_DIR:
@@ -250,15 +283,24 @@ def _resolve_materialized_workspace(
 
 
 def _require_external_new_output_dir(
-    output_dir: Path, *, sei_source_dir: Path, papaya_source_dir: Path
+    output_dir: Path,
+    *,
+    sei_source_dir: Path,
+    papaya_source_dir: Path,
+    materialized_workspace_dir: Path | None = None,
 ) -> Path:
     resolved = output_dir.expanduser().resolve()
     if resolved.exists():
         raise ManagedPairError(f"output-dir already exists: {resolved}")
-    for label, root in (
+    forbidden_roots = [
         ("SEI source", sei_source_dir),
         ("Papaya source", papaya_source_dir),
-    ):
+    ]
+    if materialized_workspace_dir is not None:
+        forbidden_roots.append(
+            ("materialized workspace", materialized_workspace_dir)
+        )
+    for label, root in forbidden_roots:
         parent = root.expanduser().resolve()
         if resolved == parent or _is_within(resolved, parent):
             raise ManagedPairError(
@@ -939,6 +981,11 @@ def main(argv: list[str] | None = None) -> int:
             args.output_dir,
             sei_source_dir=args.sei_source_dir,
             papaya_source_dir=args.papaya_source_dir,
+            materialized_workspace_dir=(
+                workspace_binding["root"]
+                if workspace_binding is not None
+                else None
+            ),
         )
         output_dir.mkdir(parents=True)
 
