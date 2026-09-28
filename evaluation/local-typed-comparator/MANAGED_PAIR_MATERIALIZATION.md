@@ -808,6 +808,55 @@ These findings deliberately do not add another admitted transport. A Git-LFS
 pointer, successful third-party inference run, or model-bearing oversized bundle
 must not be relabelled as materialized exact bytes.
 
+### OCI/container transport audit
+
+A separate 2026-09-28 audit checked whether a public container image could carry
+the exact 842,609,220-byte reference object around the current Hugging Face/Xet
+transport failure. The durable packet is:
+
+`oci_reference_transport_audit_2026-09-28.json`
+
+Four concrete OCI leads were inspected at exact Git revisions:
+
+- `beremaran/laya-docker@90535d3...` publishes
+  `ghcr.io/beremaran/laya-docker`, but its Dockerfile keeps `/models` as a
+  volume and downloads checkpoints on first inference. The image does not
+  transport the reference bytes.
+- `ZulfiFazhar/system-one@f908c07...` publishes
+  `ghcr.io/zulfifazhar/system-one`, but model files live in an externally
+  mounted `models/` directory and are downloaded when absent. The documented
+  default is the multilingual checkpoint, not the frozen typed-decisions
+  reference.
+- `cloudn1ne/system1@7a1d89e...` publishes
+  `ghcr.io/cloudn1ne/system1`, and its Dockerfile explicitly states that
+  checkpoint weights are never baked into the image.
+- `wescodess/budds@820fef8...` has the useful opposite build recipe: its
+  Laya evaluator Dockerfile downloads the immutable
+  `f9ab0b228f...` typed-decisions revision, verifies the exact
+  `4fa56de7...a24e` weights SHA-256, and copies the checkpoint into the final
+  offline image. However, the inspected repository workflow tests that evaluator
+  without Docker/model weights and exposes no model-bearing image publish
+  workflow or public image reference.
+
+Therefore the OCI audit found one exact **recipe**, but no public exact
+model-bearing OCI **artifact**:
+
+```text
+public GHCR runtime image
+  != model-bearing image
+
+exact model-bearing Dockerfile recipe
+  != published OCI artifact
+
+published OCI artifact
+  + independently verified layer/model bytes
+  = potential transport candidate
+```
+
+No OCI manifest or layer was pulled by this audit, and no new reference
+transport is admitted.
+
+
 On 2026-09-27 the GitHub Actions artifact path additionally materialized the
 exact Laya wheel plus a compatible Transformers/tokenizers/safetensors runtime
 candidate and verified the resulting imports offline. Therefore the Python
