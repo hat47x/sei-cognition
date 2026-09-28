@@ -236,6 +236,8 @@ def write_materialized_workspace(
                 "workspace_relocatable": False,
             },
         },
+        "runtime_wheelhouse": {"provided": runtime_environment},
+        "runtime_environment": {"provided": runtime_environment},
         "scope": {
             "reference_model_bytes_materialized": True,
             "reference_model_directory_verified": True,
@@ -244,7 +246,9 @@ def write_materialized_workspace(
             "papaya_compatibility_overlay_prepared": True,
             "papaya_compatibility_overlay_verified": True,
             "workspace_relocatable": False,
+            "runtime_wheelhouse_verified": runtime_environment,
             "runtime_environment_materialized": runtime_environment,
+            "transported_wheel_installation_origin_attested": runtime_environment,
             "runtime_installation_origin_attested": False,
             "model_weights_loaded": False,
             "live_reference_inference": False,
@@ -461,6 +465,48 @@ class ManagedPairTest(unittest.TestCase):
                 mod._resolve_materialized_workspace(
                     workspace2,
                     source_sha=SHA,
+                )
+
+    def test_materialized_workspace_rejects_runtime_receipt_scope_drift(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            workspace = root / "workspace"
+            receipt = write_materialized_workspace(
+                workspace,
+                runtime_environment=True,
+            )
+            receipt["runtime_environment"]["provided"] = False
+            write_json(
+                workspace / mod.workspace_materializer.RECEIPT_FILE,
+                receipt,
+            )
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "runtime environment receipt/scope drift",
+            ):
+                mod._resolve_materialized_workspace(
+                    workspace,
+                    source_sha=SHA,
+                )
+
+    def test_output_dir_must_be_outside_materialized_workspace(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            sei = root / "sei"
+            papaya = root / "papaya"
+            workspace = root / "workspace"
+            sei.mkdir()
+            papaya.mkdir()
+            workspace.mkdir()
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "outside materialized workspace",
+            ):
+                mod._require_external_new_output_dir(
+                    workspace / "evidence",
+                    sei_source_dir=sei,
+                    papaya_source_dir=papaya,
+                    materialized_workspace_dir=workspace,
                 )
 
     def test_commands_bind_same_source_and_report_chain(self):
