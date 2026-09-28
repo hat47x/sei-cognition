@@ -283,6 +283,14 @@ def prepare_workspace(
         raise ManagedPairMaterializationError(
             "attempts must be an integer >= 1"
         )
+    if (
+        isinstance(disk_reserve_bytes, bool)
+        or not isinstance(disk_reserve_bytes, int)
+        or disk_reserve_bytes < 0
+    ):
+        raise ManagedPairMaterializationError(
+            "disk-reserve-bytes must be an integer >= 0"
+        )
 
     output = _new_external_workspace(output_dir, sei_source_dir)
 
