@@ -786,7 +786,7 @@ run to that workspace receipt instead of retyping its model/overlay paths:
   --papaya-source-dir <clean-papaya-a76bc99-checkout> \
   --llama-binary <pinned-b10964-llama-server> \
   --run-id <unique-run-id> \
-  --output-dir <new-directory-outside-both-source-checkouts>
+  --output-dir <new-directory-outside-source-checkouts-and-workspace>
 ```
 
 The workspace gate checks the portable receipt's exact source SHA, fixed
@@ -814,7 +814,7 @@ python3 run_managed_pair.py \
   --papaya-overlay-dir <papaya-overlay-dir> \
   --llama-binary <pinned-b10964-llama-server> \
   --run-id <unique-run-id> \
-  --output-dir <new-directory-outside-both-source-checkouts>
+  --output-dir <new-directory-outside-source-checkouts-and-workspace>
 ```
 
 If explicit `--reference-model-dir`, `--papaya-overlay-dir`, or
@@ -825,6 +825,11 @@ paths or the run fails before preflight.
 The workspace receipt is an operational path-binding gate, not a replacement
 for byte Evidence. Preflight and both provider captures continue to re-hash and
 revalidate the actual model/runtime/overlay inputs before inference.
+
+When `--materialized-workspace-dir` is used, the paired Evidence
+`--output-dir` must also be outside that workspace. This keeps the
+pre-materialized input tree unchanged by run outputs and preserves the
+workspace as an input artifact.
 
 The two provider captures keep their existing provider/model/runtime provenance
 contracts unchanged.
