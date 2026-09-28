@@ -774,9 +774,13 @@ The output directory retains:
 - `papaya-run.json`;
 - `numeric-difference-report.json`;
 - `numeric-parity-decision.json`;
-- `pair-run-receipt.json`.
+- `pair-run-receipt.json`;
+- in workspace mode only, `input-workspace-materialization.json`, an exact
+  snapshot of the validated workspace receipt.
 
-The receipt stores SHA-256 bindings for every artifact and rejects a decision
+The receipt stores SHA-256 bindings for every stage artifact; in workspace mode
+its `input_workspace` block separately binds the copied workspace receipt
+snapshot. It rejects a decision
 artifact whose source SHA, raw report digest, reference-run digest, or Papaya-run
 digest no longer matches the paired evidence bundle. It continues to keep task
 quality, calibration, cross-runtime performance equivalence, provider identity,
