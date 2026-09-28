@@ -100,7 +100,10 @@ def papaya_receipt(output: Path):
 
 class ManagedPairInputMaterializationTest(unittest.TestCase):
     def _install_common_patches(
-        self, stack: ExitStack, events: list[str] | None = None
+        self,
+        stack: ExitStack,
+        events: list[str] | None = None,
+        attempts_seen: list[tuple[str, int]] | None = None,
     ):
         stack.enter_context(
             mock.patch.object(
@@ -129,15 +132,21 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
             )
         )
 
-        def ref_materialize(_manifest, _transport, output, *, timeout):
+        def ref_materialize(
+            _manifest, _transport, output, *, timeout, attempts
+        ):
             if events is not None:
                 events.append("reference")
+            if attempts_seen is not None:
+                attempts_seen.append(("reference", attempts))
             output.mkdir()
             return reference_receipt(output)
 
-        def pap_materialize(_manifest, output, *, timeout):
+        def pap_materialize(_manifest, output, *, timeout, attempts):
             if events is not None:
                 events.append("papaya")
+            if attempts_seen is not None:
+                attempts_seen.append(("papaya", attempts))
             output.mkdir()
             (output / "tokenizer.json").write_bytes(b"tokenizer")
             for spec in mod.overlay.DEFAULT_ARTIFACTS:
@@ -220,12 +229,18 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
         runtime_wheelhouse_manifest_raw=None,
         materialize_runtime_environment=False,
         events=None,
+        attempts=mod.DEFAULT_DOWNLOAD_ATTEMPTS,
+        attempts_seen=None,
     ):
         source = root / "sei"
         source.mkdir()
         output = root / "workspace"
         with ExitStack() as stack:
-            self._install_common_patches(stack, events=events)
+            self._install_common_patches(
+                stack,
+                events=events,
+                attempts_seen=attempts_seen,
+            )
             receipt = mod.prepare_workspace(
                 source_sha=SHA,
                 sei_source_dir=source,
@@ -236,6 +251,7 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
                 papaya_manifest_raw=PAPAYA_RAW,
                 output_dir=output,
                 timeout=30.0,
+                attempts=attempts,
                 runtime_wheelhouse_dir=runtime_wheelhouse_dir,
                 runtime_wheelhouse_manifest=runtime_wheelhouse_manifest,
                 runtime_wheelhouse_manifest_raw=runtime_wheelhouse_manifest_raw,
@@ -293,6 +309,82 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
             self.assertFalse(receipt["scope"]["model_weights_loaded"])
             self.assertFalse(receipt["scope"]["live_reference_inference"])
             self.assertFalse(receipt["scope"]["live_papaya_inference"])
+
+    def test_download_attempt_policy_is_shared_and_retained(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            attempts_seen: list[tuple[str, int]] = []
+            _source, _output, receipt = self._prepare(
+                root,
+                attempts=5,
+                attempts_seen=attempts_seen,
+            )
+            self.assertEqual(
+                attempts_seen,
+                [("reference", 5), ("papaya", 5)],
+            )
+            self.assertEqual(
+                receipt["download_policy"],
+                {
+                    "attempts_per_file": 5,
+                    "restart_from_zero": True,
+                    "retryable_failures": "transport/read only",
+                    "integrity_failures_retried": False,
+                },
+            )
+
+    def test_invalid_attempt_policy_fails_before_workspace_creation(self):
+        for attempts in (0, -1, True):
+            with tempfile.TemporaryDirectory() as td:
+                root = Path(td)
+                source = root / "sei"
+                source.mkdir()
+                output = root / "workspace"
+                with self.subTest(attempts=attempts), self.assertRaisesRegex(
+                    mod.ManagedPairMaterializationError,
+                    "attempts must be an integer >= 1",
+                ):
+                    mod.prepare_workspace(
+                        source_sha=SHA,
+                        sei_source_dir=source,
+                        reference_manifest=REFERENCE_MANIFEST,
+                        reference_manifest_raw=REFERENCE_RAW,
+                        reference_transport=mod.reference_materializer.HF_ID,
+                        papaya_manifest=PAPAYA_MANIFEST,
+                        papaya_manifest_raw=PAPAYA_RAW,
+                        output_dir=output,
+                        timeout=30.0,
+                        attempts=attempts,
+                    )
+                self.assertFalse(output.exists())
+
+    def test_materializer_default_attempt_policy_must_match(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            source = root / "sei"
+            source.mkdir()
+            output = root / "workspace"
+            with mock.patch.object(
+                mod.papaya_materializer,
+                "DEFAULT_ATTEMPTS",
+                mod.reference_materializer.DEFAULT_ATTEMPTS + 1,
+            ):
+                with self.assertRaisesRegex(
+                    mod.ManagedPairMaterializationError,
+                    "default download-attempt policy drift",
+                ):
+                    mod.prepare_workspace(
+                        source_sha=SHA,
+                        sei_source_dir=source,
+                        reference_manifest=REFERENCE_MANIFEST,
+                        reference_manifest_raw=REFERENCE_RAW,
+                        reference_transport=mod.reference_materializer.HF_ID,
+                        papaya_manifest=PAPAYA_MANIFEST,
+                        papaya_manifest_raw=PAPAYA_RAW,
+                        output_dir=output,
+                        timeout=30.0,
+                    )
+            self.assertFalse(output.exists())
 
     def test_papaya_failure_removes_entire_workspace(self):
         with tempfile.TemporaryDirectory() as td:
