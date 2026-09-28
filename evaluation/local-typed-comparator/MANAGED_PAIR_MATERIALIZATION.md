@@ -829,7 +829,11 @@ revalidate the actual model/runtime/overlay inputs before inference.
 When `--materialized-workspace-dir` is used, the paired Evidence
 `--output-dir` must also be outside that workspace. This keeps the
 pre-materialized input tree unchanged by run outputs and preserves the
-workspace as an input artifact.
+workspace as an input artifact. Before preflight, the runner copies the exact
+workspace receipt bytes into the Evidence directory as
+`input-workspace-materialization.json` and requires its SHA-256 to match the
+receipt digest observed during workspace validation. A receipt change in that
+interval therefore fails before provider execution.
 
 The two provider captures keep their existing provider/model/runtime provenance
 contracts unchanged.
@@ -855,9 +859,12 @@ python3 verify_managed_pair_bundle.py \
   --source-git-sha <exact-clean-SEI-SHA>
 ```
 
-This re-hashes the receipt, every completed artifact, and any retained
-failed-stage partial output. It verifies internal transfer/integrity bindings;
-it does not authenticate the host or recompute inference/parity.
+This re-hashes the pair receipt, every completed artifact, any retained
+failed-stage partial output, and—when workspace mode was used—the copied
+`input-workspace-materialization.json`. The copied workspace receipt must match
+the SHA-256 recorded in the pair receipt and preserve the same source SHA and
+pre-inference stop-line scope. This verifies internal transfer/integrity
+bindings; it does not authenticate the host or recompute inference/parity.
 
 ## 8. Current ChatGPT-environment boundary
 

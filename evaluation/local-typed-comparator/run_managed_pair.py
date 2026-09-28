@@ -25,6 +25,7 @@ PAPAYA_FILE = "papaya-run.json"
 REPORT_FILE = "numeric-difference-report.json"
 DECISION_FILE = "numeric-parity-decision.json"
 RECEIPT_FILE = "pair-run-receipt.json"
+WORKSPACE_RECEIPT_SNAPSHOT_FILE = "input-workspace-materialization.json"
 
 
 class ManagedPairError(ValueError):
@@ -272,6 +273,7 @@ def _resolve_materialized_workspace(
 
     return {
         "root": root,
+        "receipt_path": receipt_path,
         "receipt_file": receipt_path.name,
         "receipt_sha256": _sha256_file(receipt_path),
         "reference_model_dir": derived_reference,
@@ -282,8 +284,72 @@ def _resolve_materialized_workspace(
     }
 
 
+def _snapshot_workspace_receipt(
+    output_dir: Path,
+    binding: dict[str, Any] | None,
+) -> dict[str, str] | None:
+    if binding is None:
+        return None
+
+    source = binding.get("receipt_path")
+    expected_sha = binding.get("receipt_sha256")
+    if not isinstance(source, Path):
+        raise ManagedPairError("workspace receipt path missing")
+    if (
+        not isinstance(expected_sha, str)
+        or len(expected_sha) != 64
+        or expected_sha != expected_sha.lower()
+        or any(c not in "0123456789abcdef" for c in expected_sha)
+    ):
+        raise ManagedPairError("workspace receipt SHA-256 drift")
+
+    try:
+        raw = source.read_bytes()
+    except OSError as exc:
+        raise ManagedPairError(
+            f"cannot read materialized workspace receipt snapshot source: {source}"
+        ) from exc
+    observed_sha = hashlib.sha256(raw).hexdigest()
+    if observed_sha != expected_sha:
+        raise ManagedPairError(
+            "materialized workspace receipt changed after workspace validation"
+        )
+
+    destination = output_dir / WORKSPACE_RECEIPT_SNAPSHOT_FILE
+    if destination.exists():
+        raise ManagedPairError(
+            f"workspace receipt snapshot already exists: {destination}"
+        )
+    temp = destination.with_name(destination.name + ".tmp")
+    try:
+        temp.write_bytes(raw)
+        temp.replace(destination)
+    except OSError as exc:
+        try:
+            temp.unlink()
+        except OSError:
+            pass
+        raise ManagedPairError(
+            "cannot retain materialized workspace receipt snapshot"
+        ) from exc
+    if _sha256_file(destination) != expected_sha:
+        try:
+            destination.unlink()
+        except OSError:
+            pass
+        raise ManagedPairError(
+            "materialized workspace receipt snapshot digest drift"
+        )
+    return {
+        "snapshot_file": WORKSPACE_RECEIPT_SNAPSHOT_FILE,
+        "snapshot_sha256": expected_sha,
+    }
+
+
 def _portable_workspace_binding(
     binding: dict[str, Any] | None,
+    *,
+    snapshot: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     if binding is None:
         return {"provided": False}
@@ -304,10 +370,20 @@ def _portable_workspace_binding(
         raise ManagedPairError(
             "workspace runtime-environment materialization flag missing"
         )
+    if snapshot is None:
+        raise ManagedPairError(
+            "workspace receipt snapshot missing from paired Evidence"
+        )
+    if snapshot.get("snapshot_file") != WORKSPACE_RECEIPT_SNAPSHOT_FILE:
+        raise ManagedPairError("workspace receipt snapshot file drift")
+    if snapshot.get("snapshot_sha256") != receipt_sha:
+        raise ManagedPairError("workspace receipt snapshot digest drift")
     return {
         "provided": True,
         "receipt_file": receipt_file,
         "receipt_sha256": receipt_sha,
+        "snapshot_file": WORKSPACE_RECEIPT_SNAPSHOT_FILE,
+        "snapshot_sha256": receipt_sha,
         "runtime_environment_materialized": runtime_materialized,
         "external_path_retained": False,
     }
@@ -813,6 +889,10 @@ def execute_pair(
     runner: Callable[..., subprocess.CompletedProcess[Any]] = subprocess.run,
 ) -> dict[str, Any]:
     receipt_path = output_dir / RECEIPT_FILE
+    workspace_snapshot = _snapshot_workspace_receipt(
+        output_dir,
+        input_workspace_binding,
+    )
     receipt: dict[str, Any] = {
         "schema": PAIR_SCHEMA,
         "status": "incomplete",
@@ -824,7 +904,8 @@ def execute_pair(
             "papaya": f"{run_id}-papaya",
         },
         "input_workspace": _portable_workspace_binding(
-            input_workspace_binding
+            input_workspace_binding,
+            snapshot=workspace_snapshot,
         ),
         "artifacts": {},
         "scope": {
