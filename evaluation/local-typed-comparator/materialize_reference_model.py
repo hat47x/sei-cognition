@@ -258,31 +258,69 @@ def _download_once(
         [str, float], ContextManager[BinaryIO]
     ],
 ) -> dict[str, Any]:
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise ReferenceModelTransportError(
+            f"cannot prepare staging directory for {entry['path']}: {exc}"
+        ) from exc
+
     digest = hashlib.sha256()
     size = 0
     try:
-        with stream_factory(
-            entry["url"], timeout
-        ) as source, destination.open("xb") as target:
-            while True:
-                block = source.read(8 * 1024 * 1024)
-                if not block:
-                    break
-                if not isinstance(block, (bytes, bytearray)):
-                    raise ReferenceModelTransportError(
-                        "download stream returned non-bytes"
-                    )
-                target.write(block)
-                digest.update(block)
-                size += len(block)
+        target = destination.open("xb")
     except FileExistsError as exc:
         raise ReferenceModelTransportError(
             f"staged file already exists: {destination}"
         ) from exc
     except OSError as exc:
-        raise ReferenceModelDownloadError(
-            f"download failed for {entry['path']}: {exc}"
+        raise ReferenceModelTransportError(
+            f"cannot create staged file for {entry['path']}: {exc}"
+        ) from exc
+
+    try:
+        with target:
+            try:
+                stream = stream_factory(entry["url"], timeout)
+            except OSError as exc:
+                raise ReferenceModelDownloadError(
+                    f"download failed for {entry['path']}: {exc}"
+                ) from exc
+
+            try:
+                with stream as source:
+                    while True:
+                        try:
+                            block = source.read(8 * 1024 * 1024)
+                        except OSError as exc:
+                            raise ReferenceModelDownloadError(
+                                f"download read failed for {entry['path']}: {exc}"
+                            ) from exc
+                        if not block:
+                            break
+                        if not isinstance(block, (bytes, bytearray)):
+                            raise ReferenceModelTransportError(
+                                "download stream returned non-bytes"
+                            )
+                        try:
+                            target.write(block)
+                        except OSError as exc:
+                            raise ReferenceModelTransportError(
+                                f"staged write failed for {entry['path']}: {exc}"
+                            ) from exc
+                        digest.update(block)
+                        size += len(block)
+            except ReferenceModelTransportError:
+                raise
+            except OSError as exc:
+                raise ReferenceModelDownloadError(
+                    f"download stream failed for {entry['path']}: {exc}"
+                ) from exc
+    except ReferenceModelTransportError:
+        raise
+    except OSError as exc:
+        raise ReferenceModelTransportError(
+            f"staged file I/O failed for {entry['path']}: {exc}"
         ) from exc
 
     observed_sha = digest.hexdigest()
