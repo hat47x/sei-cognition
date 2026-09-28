@@ -10,6 +10,8 @@ import sys
 from pathlib import Path
 from typing import Any, Callable, Sequence
 
+import materialize_managed_pair_inputs as workspace_materializer
+
 PAIR_SCHEMA = "sei.local-typed-comparator-managed-pair-run/v1"
 PREFLIGHT_SCHEMA = "sei.local-typed-comparator-managed-pair-preflight/v1"
 REFERENCE_SCHEMA = "sei.local-typed-comparator-reference-managed-run/v1"
@@ -72,6 +74,179 @@ def _require_script_source_binding(here: Path, sei_source_dir: Path) -> Path:
             "paired-run script checkout must equal --sei-source-dir"
         )
     return script_root
+
+
+def _resolve_materialized_workspace(
+    workspace_dir: Path,
+    *,
+    source_sha: str,
+    reference_model_dir: Path | None = None,
+    papaya_overlay_dir: Path | None = None,
+    runtime_environment_dir: Path | None = None,
+) -> dict[str, Any]:
+    root = workspace_dir.expanduser().resolve()
+    if not root.is_dir():
+        raise ManagedPairError(f"materialized workspace not found: {root}")
+
+    receipt_path = root / workspace_materializer.RECEIPT_FILE
+    receipt = _load_json(receipt_path, "materialized workspace receipt")
+    if receipt.get("schema") != workspace_materializer.SCHEMA:
+        raise ManagedPairError("materialized workspace receipt schema drift")
+    if receipt.get("status") != "ready-for-managed-pair-preflight":
+        raise ManagedPairError("materialized workspace is not preflight-ready")
+
+    source = receipt.get("source")
+    if (
+        not isinstance(source, dict)
+        or source.get("git_sha") != source_sha
+        or source.get("clean") is not True
+    ):
+        raise ManagedPairError("materialized workspace source binding drift")
+
+    layout = receipt.get("layout")
+    if not isinstance(layout, dict):
+        raise ManagedPairError("materialized workspace layout missing")
+    expected_layout = {
+        "reference_model_dir": workspace_materializer.REFERENCE_DIR,
+        "papaya_candidate_dir": workspace_materializer.PAPAYA_CANDIDATE_DIR,
+        "papaya_overlay_dir": workspace_materializer.PAPAYA_OVERLAY_DIR,
+    }
+    for field, expected in expected_layout.items():
+        if layout.get(field) != expected:
+            raise ManagedPairError(
+                f"materialized workspace layout.{field} drift"
+            )
+
+    scope = receipt.get("scope")
+    if not isinstance(scope, dict):
+        raise ManagedPairError("materialized workspace scope missing")
+    for field in (
+        "reference_model_bytes_materialized",
+        "reference_model_directory_verified",
+        "papaya_candidate_bytes_materialized",
+        "papaya_candidate_inputs_verified",
+        "papaya_compatibility_overlay_prepared",
+        "papaya_compatibility_overlay_verified",
+    ):
+        if scope.get(field) is not True:
+            raise ManagedPairError(
+                f"materialized workspace scope.{field} must be true"
+            )
+    if scope.get("workspace_relocatable") is not False:
+        raise ManagedPairError(
+            "materialized workspace must remain non-relocatable"
+        )
+    for field in (
+        "runtime_installation_origin_attested",
+        "model_weights_loaded",
+        "live_reference_inference",
+        "live_papaya_inference",
+        "numeric_difference_observed",
+        "numeric_parity_decision_observed",
+        "task_quality",
+        "calibration_validity",
+        "shipping_decision",
+    ):
+        if scope.get(field) is not False:
+            raise ManagedPairError(
+                f"materialized workspace scope.{field} must remain false"
+            )
+
+    disk = receipt.get("disk_capacity")
+    if not isinstance(disk, dict) or disk.get("sufficient") is not True:
+        raise ManagedPairError(
+            "materialized workspace disk-capacity receipt missing"
+        )
+
+    overlay = receipt.get("papaya_overlay")
+    if not isinstance(overlay, dict):
+        raise ManagedPairError("materialized workspace Papaya overlay missing")
+    verification = overlay.get("verification")
+    binding = overlay.get("workspace_binding")
+    if (
+        not isinstance(verification, dict)
+        or verification.get("valid") is not True
+    ):
+        raise ManagedPairError(
+            "materialized workspace overlay verification missing"
+        )
+    if (
+        not isinstance(binding, dict)
+        or binding.get("valid") is not True
+        or binding.get("workspace_relocatable") is not False
+    ):
+        raise ManagedPairError(
+            "materialized workspace overlay binding drift"
+        )
+
+    derived_reference = (root / workspace_materializer.REFERENCE_DIR).resolve()
+    derived_candidate = (root / workspace_materializer.PAPAYA_CANDIDATE_DIR).resolve()
+    derived_overlay = (root / workspace_materializer.PAPAYA_OVERLAY_DIR).resolve()
+    for label, path in (
+        ("reference model", derived_reference),
+        ("Papaya candidate", derived_candidate),
+        ("Papaya overlay", derived_overlay),
+    ):
+        if not path.is_dir():
+            raise ManagedPairError(
+                f"materialized workspace {label} directory missing: {path}"
+            )
+
+    def require_same(
+        supplied: Path | None, derived: Path, label: str
+    ) -> None:
+        if supplied is not None and supplied.expanduser().resolve() != derived:
+            raise ManagedPairError(
+                f"{label} must match --materialized-workspace-dir"
+            )
+
+    require_same(reference_model_dir, derived_reference, "reference-model-dir")
+    require_same(papaya_overlay_dir, derived_overlay, "papaya-overlay-dir")
+
+    runtime_provided = scope.get("runtime_environment_materialized")
+    if not isinstance(runtime_provided, bool):
+        raise ManagedPairError(
+            "materialized workspace runtime environment scope missing"
+        )
+    layout_runtime = layout.get("runtime_environment_dir")
+    if runtime_provided:
+        if layout_runtime != workspace_materializer.RUNTIME_ENV_DIR:
+            raise ManagedPairError(
+                "materialized workspace runtime environment layout drift"
+            )
+        derived_runtime = (
+            root / workspace_materializer.RUNTIME_ENV_DIR
+        ).resolve()
+        if not derived_runtime.is_dir():
+            raise ManagedPairError(
+                "materialized workspace runtime environment missing"
+            )
+        require_same(
+            runtime_environment_dir,
+            derived_runtime,
+            "runtime-environment-dir",
+        )
+    else:
+        if layout_runtime is not None:
+            raise ManagedPairError(
+                "materialized workspace unexpectedly retains runtime path"
+            )
+        if runtime_environment_dir is not None:
+            raise ManagedPairError(
+                "runtime-environment-dir is not present in materialized workspace"
+            )
+        derived_runtime = None
+
+    return {
+        "root": root,
+        "receipt_file": receipt_path.name,
+        "receipt_sha256": _sha256_file(receipt_path),
+        "reference_model_dir": derived_reference,
+        "papaya_candidate_dir": derived_candidate,
+        "papaya_overlay_dir": derived_overlay,
+        "runtime_environment_dir": derived_runtime,
+        "runtime_environment_materialized": runtime_provided,
+    }
 
 
 def _require_external_new_output_dir(
@@ -688,10 +863,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source-git-sha", required=True)
     parser.add_argument("--sei-source-dir", type=Path, default=default_sei_root)
-    parser.add_argument("--reference-model-dir", type=Path, required=True)
+    parser.add_argument("--materialized-workspace-dir", type=Path)
+    parser.add_argument("--reference-model-dir", type=Path)
     parser.add_argument("--laya-runtime-wheel", type=Path, required=True)
     parser.add_argument("--papaya-source-dir", type=Path, required=True)
-    parser.add_argument("--papaya-overlay-dir", type=Path, required=True)
+    parser.add_argument("--papaya-overlay-dir", type=Path)
     parser.add_argument("--llama-binary", type=Path, required=True)
     parser.add_argument("--runtime-wheelhouse-dir", type=Path)
     parser.add_argument("--runtime-environment-dir", type=Path)
@@ -705,8 +881,46 @@ def main(argv: list[str] | None = None) -> int:
     try:
         source_sha = _require_full_sha(args.source_git_sha)
         _require_script_source_binding(here, args.sei_source_dir)
+
+        workspace_binding = None
+        if args.materialized_workspace_dir is not None:
+            workspace_binding = _resolve_materialized_workspace(
+                args.materialized_workspace_dir,
+                source_sha=source_sha,
+                reference_model_dir=args.reference_model_dir,
+                papaya_overlay_dir=args.papaya_overlay_dir,
+                runtime_environment_dir=args.runtime_environment_dir,
+            )
+            reference_model_dir = workspace_binding[
+                "reference_model_dir"
+            ]
+            papaya_overlay_dir = workspace_binding[
+                "papaya_overlay_dir"
+            ]
+            runtime_environment_dir = workspace_binding[
+                "runtime_environment_dir"
+            ]
+        else:
+            if args.reference_model_dir is None:
+                raise ManagedPairError(
+                    "--reference-model-dir is required without "
+                    "--materialized-workspace-dir"
+                )
+            if args.papaya_overlay_dir is None:
+                raise ManagedPairError(
+                    "--papaya-overlay-dir is required without "
+                    "--materialized-workspace-dir"
+                )
+            reference_model_dir = args.reference_model_dir.resolve()
+            papaya_overlay_dir = args.papaya_overlay_dir.resolve()
+            runtime_environment_dir = (
+                args.runtime_environment_dir.resolve()
+                if args.runtime_environment_dir is not None
+                else None
+            )
+
         if (
-            args.runtime_environment_dir is not None
+            runtime_environment_dir is not None
             and args.runtime_wheelhouse_dir is None
         ):
             raise ManagedPairError(
@@ -733,10 +947,10 @@ def main(argv: list[str] | None = None) -> int:
             here=here,
             source_sha=source_sha,
             sei_source_dir=args.sei_source_dir.resolve(),
-            reference_model_dir=args.reference_model_dir.resolve(),
+            reference_model_dir=reference_model_dir,
             laya_runtime_wheel=args.laya_runtime_wheel.resolve(),
             papaya_source_dir=args.papaya_source_dir.resolve(),
-            papaya_overlay_dir=args.papaya_overlay_dir.resolve(),
+            papaya_overlay_dir=papaya_overlay_dir,
             llama_binary=args.llama_binary.resolve(),
             output_dir=output_dir,
             run_id=args.run_id.strip(),
@@ -748,11 +962,7 @@ def main(argv: list[str] | None = None) -> int:
                 if args.runtime_wheelhouse_dir is not None
                 else None
             ),
-            runtime_environment_dir=(
-                args.runtime_environment_dir.resolve()
-                if args.runtime_environment_dir is not None
-                else None
-            ),
+            runtime_environment_dir=runtime_environment_dir,
         )
         receipt = execute_pair(
             source_sha=source_sha,
