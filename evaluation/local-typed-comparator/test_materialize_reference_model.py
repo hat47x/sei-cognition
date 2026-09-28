@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 from contextlib import closing
+from unittest import mock
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -166,6 +167,96 @@ class ReferenceModelTransportTest(unittest.TestCase):
             self.assertEqual(
                 (output / "model.safetensors").read_bytes(), blob
             )
+
+    def test_source_read_failure_is_retryable(self):
+        blob = b"reference-read"
+        entry = {
+            "path": "model.safetensors",
+            "url": "https://example.invalid/model",
+            "bytes": len(blob),
+            "sha256": hashlib.sha256(blob).hexdigest(),
+        }
+        calls = 0
+
+        class ReadFails(io.BytesIO):
+            def read(self, _size=-1):
+                raise OSError("synthetic source read failure")
+
+        def stream(_url, _timeout):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                return ReadFails(blob)
+            return io.BytesIO(blob)
+
+        with tempfile.TemporaryDirectory() as td:
+            output = Path(td) / "model"
+            receipt = mod.materialize_entries(
+                [entry],
+                output,
+                transport_id="synthetic",
+                attempts=3,
+                stream_factory=stream,
+                directory_verifier=lambda _root: {"valid": True},
+            )
+            self.assertEqual(calls, 2)
+            self.assertEqual(
+                receipt["files"][0]["download_attempts"], 2
+            )
+
+    def test_local_staging_write_failure_is_not_retried(self):
+        blob = b"reference-write"
+        entry = {
+            "path": "model.safetensors",
+            "url": "https://example.invalid/model",
+            "bytes": len(blob),
+            "sha256": hashlib.sha256(blob).hexdigest(),
+        }
+        stream_calls = 0
+        write_calls = 0
+
+        class WriteFails:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def write(self, _block):
+                nonlocal write_calls
+                write_calls += 1
+                raise OSError("synthetic local staging failure")
+
+        def stream(_url, _timeout):
+            nonlocal stream_calls
+            stream_calls += 1
+            return io.BytesIO(blob)
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            output = root / "model"
+            with mock.patch.object(
+                mod.Path,
+                "open",
+                return_value=WriteFails(),
+            ) as open_mock:
+                with self.assertRaisesRegex(
+                    mod.ReferenceModelTransportError,
+                    "staged write failed",
+                ):
+                    mod.materialize_entries(
+                        [entry],
+                        output,
+                        transport_id="synthetic",
+                        attempts=3,
+                        stream_factory=stream,
+                        directory_verifier=lambda _root: {"valid": True},
+                    )
+            self.assertEqual(open_mock.call_count, 1)
+            self.assertEqual(stream_calls, 1)
+            self.assertEqual(write_calls, 1)
+            self.assertFalse(output.exists())
+            self.assertEqual(list(root.iterdir()), [])
 
     def test_download_attempt_limit_and_exhaustion_are_fail_closed(self):
         blob = b"right"

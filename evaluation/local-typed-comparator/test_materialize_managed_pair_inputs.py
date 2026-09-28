@@ -358,7 +358,7 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
                 {
                     "attempts_per_file": 5,
                     "restart_from_zero": True,
-                    "retryable_failures": "transport/read only",
+                    "retryable_failures": "remote transport/source-read only",
                     "integrity_failures_retried": False,
                 },
             )
