@@ -772,7 +772,37 @@ inference/parity.
 ## 7. One-shot paired execution
 
 After preflight is capable of passing, use the paired orchestrator rather than
-running the providers from unrelated revisions:
+running the providers from unrelated revisions.
+
+When the one-command materializer produced the workspace, prefer binding the
+run to that workspace receipt instead of retyping its model/overlay paths:
+
+```bash
+<workspace-python-or-python3> run_managed_pair.py \
+  --source-git-sha <exact-clean-SEI-SHA> \
+  --sei-source-dir <same-SEI-checkout-containing-this-script> \
+  --materialized-workspace-dir <workspace> \
+  --laya-runtime-wheel <laya-0.3.20-py3-none-any.whl> \
+  --papaya-source-dir <clean-papaya-a76bc99-checkout> \
+  --llama-binary <pinned-b10964-llama-server> \
+  --run-id <unique-run-id> \
+  --output-dir <new-directory-outside-both-source-checkouts>
+```
+
+The workspace gate checks the portable receipt's exact source SHA, fixed
+relative layout, preflight-ready scope, disk-capacity receipt, overlay
+verification/binding, and the presence of the derived
+`reference-model/`, `papaya-candidate/`, and `papaya-overlay/`
+directories. If the workspace contains `runtime-env/`, that path is derived
+automatically as well.
+
+When a managed runtime environment is derived from the workspace, still pass
+`--runtime-wheelhouse-dir <verified-wheelhouse>` and invoke the runner with
+`<workspace>/runtime-env/bin/python`. The existing preflight verifies both
+the wheelhouse and that the current interpreter is exactly the verified
+workspace runtime before model load.
+
+The older explicit path form remains supported for manually prepared inputs:
 
 ```bash
 python3 run_managed_pair.py \
@@ -787,13 +817,14 @@ python3 run_managed_pair.py \
   --output-dir <new-directory-outside-both-source-checkouts>
 ```
 
-When using the retained runtime wheelhouse, add the same optional
-`--runtime-wheelhouse-dir <verified-wheelhouse>` argument. When using the
-managed venv, invoke `run_managed_pair.py` with that venv's `bin/python` and
-also pass `--runtime-environment-dir <managed-runtime-env>`. Both optional
-paths are forwarded only to preflight, which verifies the environment and exact
-interpreter before either provider loads weights. All subsequent stages are then
-spawned with the same `sys.executable`.
+If explicit `--reference-model-dir`, `--papaya-overlay-dir`, or
+`--runtime-environment-dir` values are supplied together with
+`--materialized-workspace-dir`, they must resolve to the workspace-derived
+paths or the run fails before preflight.
+
+The workspace receipt is an operational path-binding gate, not a replacement
+for byte Evidence. Preflight and both provider captures continue to re-hash and
+revalidate the actual model/runtime/overlay inputs before inference.
 
 The two provider captures keep their existing provider/model/runtime provenance
 contracts unchanged.
