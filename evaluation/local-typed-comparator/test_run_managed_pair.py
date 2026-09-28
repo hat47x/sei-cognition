@@ -541,9 +541,61 @@ class ManagedPairTest(unittest.TestCase):
                     workspace / mod.workspace_materializer.RECEIPT_FILE
                 ),
             )
+            self.assertEqual(
+                retained["snapshot_file"],
+                mod.WORKSPACE_RECEIPT_SNAPSHOT_FILE,
+            )
+            self.assertEqual(
+                retained["snapshot_sha256"],
+                retained["receipt_sha256"],
+            )
+            snapshot = out / mod.WORKSPACE_RECEIPT_SNAPSHOT_FILE
+            source_receipt = (
+                workspace / mod.workspace_materializer.RECEIPT_FILE
+            )
+            self.assertTrue(snapshot.is_file())
+            self.assertEqual(snapshot.read_bytes(), source_receipt.read_bytes())
+            self.assertEqual(
+                mod._sha256_file(snapshot),
+                retained["receipt_sha256"],
+            )
             self.assertFalse(retained["runtime_environment_materialized"])
             self.assertFalse(retained["external_path_retained"])
             self.assertNotIn(str(workspace), json.dumps(retained))
+
+    def test_workspace_receipt_change_after_resolution_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            workspace = root / "workspace"
+            receipt = write_materialized_workspace(workspace)
+            binding = mod._resolve_materialized_workspace(
+                workspace,
+                source_sha=SHA,
+            )
+            receipt["disk_capacity"]["observed_free_bytes"] = 123
+            write_json(
+                workspace / mod.workspace_materializer.RECEIPT_FILE,
+                receipt,
+            )
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "changed after workspace validation",
+            ):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(root, out),
+                    run_id="r1",
+                    cwd=root,
+                    input_workspace_binding=binding,
+                    runner=FakeRunner(),
+                )
+            self.assertFalse(
+                (out / mod.WORKSPACE_RECEIPT_SNAPSHOT_FILE).exists()
+            )
+            self.assertFalse((out / mod.RECEIPT_FILE).exists())
 
     def test_manual_pair_receipt_marks_workspace_absent(self):
         receipt = self._complete("pass")
@@ -562,7 +614,11 @@ class ManagedPairTest(unittest.TestCase):
                     "receipt_file": mod.workspace_materializer.RECEIPT_FILE,
                     "receipt_sha256": "not-a-digest",
                     "runtime_environment_materialized": False,
-                }
+                },
+                snapshot={
+                    "snapshot_file": mod.WORKSPACE_RECEIPT_SNAPSHOT_FILE,
+                    "snapshot_sha256": "not-a-digest",
+                },
             )
 
     def test_commands_bind_same_source_and_report_chain(self):
