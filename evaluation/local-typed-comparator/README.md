@@ -534,6 +534,13 @@ integrity failures and fail immediately. Successful per-file receipts retain the
 observed `download_attempts` count, and the workspace receipt retains the common
 policy.
 
+Before the first model transfer, the workspace also checks free disk after any
+optional runtime-env creation. The current exact model-input total is
+1,377,241,048 bytes; with the default 256 MiB reserve the gate requires
+1,645,676,504 free bytes. Use `--disk-reserve-bytes <N>` only when the host
+storage plan deliberately needs a different reserve. The observed and required
+values are retained in the workspace receipt.
+
 With that flag, the wrapper validates the wheelhouse and materializes/verifies
 `runtime-env/` **before any model transfer**. It then materializes the
 reference model, materializes the Papaya candidate, prepares the compatibility

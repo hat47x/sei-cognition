@@ -610,6 +610,30 @@ retryable_failures          transport/read only
 integrity_failures_retried  false
 ```
 
+After any optional runtime-env has been created, the wrapper checks free disk
+on the workspace filesystem **before the first model transfer**. The exact
+retained model-input byte contract is currently:
+
+```text
+reference inputs   846,195,716 bytes
+Papaya inputs      531,045,332 bytes
+total            1,377,241,048 bytes
+```
+
+A configurable working reserve is added to that exact lower bound. The default
+is 256 MiB (268,435,456 bytes), so the current default gate requires at least
+1,645,676,504 free bytes after runtime materialization. Override only when the
+execution host has a deliberate storage plan:
+
+```bash
+--disk-reserve-bytes <N>
+```
+
+The receipt retains the exact model-input total, configured reserve, required
+free bytes, and observed free bytes immediately before model transfer. This is a
+disk-capacity gate, not a RAM estimate or a claim that every filesystem quota is
+observable through `disk_usage`.
+
 That flag requires the wheelhouse. Runtime creation is deliberately placed
 before the large model transfers, so platform/pip/PEP-610 failures do not occur
 after downloading roughly 1.37 GB of model inputs.

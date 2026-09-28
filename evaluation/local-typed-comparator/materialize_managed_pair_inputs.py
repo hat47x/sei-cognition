@@ -36,6 +36,7 @@ PAPAYA_CANDIDATE_DIR = "papaya-candidate"
 PAPAYA_OVERLAY_DIR = "papaya-overlay"
 RUNTIME_ENV_DIR = "runtime-env"
 DEFAULT_DOWNLOAD_ATTEMPTS = reference_materializer.DEFAULT_ATTEMPTS
+DEFAULT_DISK_RESERVE_BYTES = 256 * 1024 * 1024
 
 
 class ManagedPairMaterializationError(ValueError):
@@ -189,6 +190,67 @@ def _attested_tokenizer_relative_path(
     return matches[0]
 
 
+def _required_model_input_bytes(
+    reference_entries: list[dict[str, Any]],
+    papaya_entries: list[dict[str, Any]],
+) -> int:
+    total = 0
+    for label, entries in (
+        ("reference", reference_entries),
+        ("Papaya", papaya_entries),
+    ):
+        for index, entry in enumerate(entries):
+            value = entry.get("bytes")
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, int)
+                or value <= 0
+            ):
+                raise ManagedPairMaterializationError(
+                    f"{label} entry {index} missing positive byte size"
+                )
+            total += value
+    return total
+
+
+def _verify_model_disk_capacity(
+    workspace: Path,
+    *,
+    required_model_input_bytes: int,
+    reserve_bytes: int,
+) -> dict[str, Any]:
+    if (
+        isinstance(reserve_bytes, bool)
+        or not isinstance(reserve_bytes, int)
+        or reserve_bytes < 0
+    ):
+        raise ManagedPairMaterializationError(
+            "disk-reserve-bytes must be an integer >= 0"
+        )
+    if (
+        isinstance(required_model_input_bytes, bool)
+        or not isinstance(required_model_input_bytes, int)
+        or required_model_input_bytes <= 0
+    ):
+        raise ManagedPairMaterializationError(
+            "required model input bytes must be positive"
+        )
+    required_free = required_model_input_bytes + reserve_bytes
+    observed_free = shutil.disk_usage(workspace).free
+    if observed_free < required_free:
+        raise ManagedPairMaterializationError(
+            "insufficient free disk before model transfer: "
+            f"required {required_free} bytes, observed {observed_free}"
+        )
+    return {
+        "required_model_input_bytes": required_model_input_bytes,
+        "reserve_bytes": reserve_bytes,
+        "required_free_bytes": required_free,
+        "observed_free_bytes_before_model_transfer": observed_free,
+        "sufficient": True,
+    }
+
+
 def prepare_workspace(
     *,
     source_sha: str,
@@ -201,6 +263,7 @@ def prepare_workspace(
     output_dir: Path,
     timeout: float,
     attempts: int = DEFAULT_DOWNLOAD_ATTEMPTS,
+    disk_reserve_bytes: int = DEFAULT_DISK_RESERVE_BYTES,
     runtime_wheelhouse_dir: Path | None = None,
     runtime_wheelhouse_manifest: dict[str, Any] | None = None,
     runtime_wheelhouse_manifest_raw: bytes | None = None,
@@ -219,6 +282,14 @@ def prepare_workspace(
     if isinstance(attempts, bool) or not isinstance(attempts, int) or attempts < 1:
         raise ManagedPairMaterializationError(
             "attempts must be an integer >= 1"
+        )
+    if (
+        isinstance(disk_reserve_bytes, bool)
+        or not isinstance(disk_reserve_bytes, int)
+        or disk_reserve_bytes < 0
+    ):
+        raise ManagedPairMaterializationError(
+            "disk-reserve-bytes must be an integer >= 0"
         )
 
     output = _new_external_workspace(output_dir, sei_source_dir)
@@ -251,9 +322,21 @@ def prepare_workspace(
 
     # Validate all transport contracts before creating the workspace or
     # performing any network transfer.
-    reference_materializer.validate_manifest(reference_manifest)
+    reference_transports = reference_materializer.validate_manifest(
+        reference_manifest
+    )
+    try:
+        reference_entries = reference_transports[reference_transport]
+    except KeyError as exc:
+        raise ManagedPairMaterializationError(
+            f"unknown reference transport: {reference_transport}"
+        ) from exc
     papaya_entries = papaya_materializer.validate_manifest(papaya_manifest)
     tokenizer_relative = _attested_tokenizer_relative_path(papaya_entries)
+    required_model_input_bytes = _required_model_input_bytes(
+        reference_entries,
+        papaya_entries,
+    )
 
     if (
         materialize_runtime_environment
@@ -394,6 +477,12 @@ def prepare_workspace(
                 "receipt": runtime_receipt,
             }
 
+        disk_capacity = _verify_model_disk_capacity(
+            output,
+            required_model_input_bytes=required_model_input_bytes,
+            reserve_bytes=disk_reserve_bytes,
+        )
+
         reference_receipt = (
             reference_materializer.materialize_reference_model(
                 reference_manifest,
@@ -474,6 +563,7 @@ def prepare_workspace(
                 "retryable_failures": "transport/read only",
                 "integrity_failures_retried": False,
             },
+            "disk_capacity": disk_capacity,
             "reference": reference_summary,
             "papaya_candidate": papaya_summary,
             "papaya_overlay": {
@@ -560,6 +650,11 @@ def main(argv: list[str] | None = None) -> int:
         type=int,
         default=DEFAULT_DOWNLOAD_ATTEMPTS,
     )
+    parser.add_argument(
+        "--disk-reserve-bytes",
+        type=int,
+        default=DEFAULT_DISK_RESERVE_BYTES,
+    )
     args = parser.parse_args(argv)
 
     try:
@@ -590,6 +685,7 @@ def main(argv: list[str] | None = None) -> int:
             output_dir=args.output_dir,
             timeout=args.timeout,
             attempts=args.attempts,
+            disk_reserve_bytes=args.disk_reserve_bytes,
             runtime_wheelhouse_dir=(
                 args.runtime_wheelhouse_dir.resolve()
                 if args.runtime_wheelhouse_dir is not None
