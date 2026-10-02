@@ -354,6 +354,12 @@ def _download_once(
                             raise PapayaCandidateTransportError(
                                 "download stream returned non-bytes"
                             )
+                        next_size = size + len(block)
+                        if next_size > entry["bytes"]:
+                            raise PapayaCandidateTransportError(
+                                f"{entry['path']}: download exceeded expected "
+                                f"{entry['bytes']} bytes before completion"
+                            )
                         try:
                             target.write(block)
                         except OSError as exc:
@@ -361,7 +367,7 @@ def _download_once(
                                 f"staged write failed for {entry['path']}: {exc}"
                             ) from exc
                         digest.update(block)
-                        size += len(block)
+                        size = next_size
             except PapayaCandidateTransportError:
                 raise
             except OSError as exc:
