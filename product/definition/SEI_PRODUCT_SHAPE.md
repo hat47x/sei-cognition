@@ -1,7 +1,7 @@
 # SEI Product Shape
 
-更新日: 2026-09-18  
-状態: **Current Product Shape Baseline — resume-first / heterogeneous cognition / product-family boundary reflected**
+更新日: 2026-10-02  
+状態: **Current Product Shape Baseline — resume-first / heterogeneous cognition / product-family boundary reflected。§6.5 / §8.3 / §8.5の統合の頂点、制御の意味の境界、参考対応表は、ADR-0032（Proposed）による再基線化の提案**
 
 ## 1. この文書の役割
 
@@ -333,6 +333,19 @@ product affinity
 
 各ProductのProduct Value、supported scope、Evidence claimは、それぞれのrepositoryを正本とします。
 
+### 6.5 家族の統合の頂点（提案）
+
+SEIは、家族に対して「翻訳と記憶を担う統合の層」の役割を持つことを提案します（ADR-0032、Proposed）。頂点と呼ぶのは、抽象の頂点（各製品に固有の判断の意味の翻訳先）、時間の頂点（最も長く生きる記録）、統合の頂点（任意の合流先）の三つの意味に限ります。指揮の頂点、所有の頂点、可用性の頂点は採りません。
+
+Product Shapeの上では、これは次を意味します。
+
+- SEIから他の製品へ向かう信号は、すべて依頼です。受け取った製品が自らの権限で判断します。
+- SEIが持つのは、参照とコミットメントと対応表だけです。他の製品の意味やデータの正本は持ちません。
+- どの製品の局所のループも、SEIの稼働を必要としません。SEIはその「反射弓」に入りません。
+- 製品はSEIへ送ってもよいが、送らなくても成り立ちます。
+
+固定pipeline、中央の頭脳、関連製品の特権化はしません。詳細は`../vision/SEI_PRODUCT_VISION.md` §11.1と`../value/SEI_FAMILY_APEX_VALUE_REVIEW.md`を参照します。
+
 ## 7. First Usable Product Shape
 
 currentのfirst usable sliceでは、Local Single-Node Package上のsingle-userを基本条件として、Decision Continuityをactualに評価できる形へ絞ります。
@@ -382,6 +395,15 @@ currentでは、selection理由、Method Application、Provenance、outputの意
 
 actual利用から「routingの意味を外在化しなければ判断を再構成できない」という独立failureが確認された場合だけ、Requirement化を再検討します。
 
+**【提案・ADR-0032】** この整理を、次の規則で明確にします。routing、escalation、attentionの配分、cascadeといった制御の**仕組み**は、交換可能なRealizationまたはProfileです。一方、制御の**判断の意味**——何を見て、何を意図的に見送り、どのMethodやProviderをなぜ選び、何を保留または上位へ回したか——は、Coreに記録すべき意味として扱います。
+
+```text
+control mechanism = Realization / Profile
+meaning of a control decision = Coreに残す意味
+```
+
+「Coreに残す」ことは、新しいUniversal型を直ちに追加することではありません。既存のDecision Memory、Cognitive Method Application、Capability Choiceの組合せで表せるかを先に試します（とくに注意の範囲はISSUE-000081）。これにより、`evaluation/sei-cognition-orchestration/EMERGENT_COGNITIVE_ARCHITECTURE.md`のCognitive Control Planeは、交換可能なRealizationの集まりとして読めます。
+
 ### 8.4 single-userからcollaboration / hosted利用へどう拡張するか
 
 Product Accessとsemantic Responsibility / Authorityの分離はDesign baselineがあります。
@@ -393,6 +415,8 @@ Product Accessとsemantic Responsibility / Authorityの分離はDesign baseline�
 SUI / TEI / EKIとの接続は可能ですが、共通protocolやcross-product orchestrationを標準化する必要性はまだ確定していません。
 
 各Productの内部概念を共有ontologyへ寄せるより、actual integration failureから必要な境界だけを見つけます。
+
+**【提案・ADR-0032】** 現在は、SEIが翻訳のために持つ参考の対応表`SEI_FAMILY_SEMANTIC_MAP.md`があります。これはContractでも共通protocolでもなく、各製品との対応はすべて候補です。標準が確立したわけではなく、必要な最小限の求心プロファイルは、実在の記録から導く方針です（ISSUE-000082）。
 
 ### 8.6 非機能要件
 
@@ -438,7 +462,7 @@ current Product Shapeについて、Evidence高さを次のように分離しま
 - Decision Continuity human H1 / H2 Outcome review: **Not Yet Observed**
 - Inquiry Continuity actual human value: **Not Yet Established**
 - heterogeneous Cognitive Method routing portability: **Not Yet Verified as a general guarantee**
-- cross-product SUI / TEI / EKI integration standard: **Not Established**
+- cross-product SUI / TEI / EKI integration standard: **Not Established**（参考の対応表は存在するが、標準ではない）
 - Operational Evidence: **Not Yet Verified**
 - Adoption / Outcome Evidence: **Not Yet Verified**
 
@@ -467,6 +491,9 @@ Design boundary clarified
 - `../../plan/adr/ADR-0014-sei-tei-product-boundary.md`
 - `../../plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md`
 - `../../plan/adr/ADR-0021-architecture-contract-authority-and-versioning.md`
+- `SEI_FAMILY_SEMANTIC_MAP.md`
+- `../value/SEI_FAMILY_APEX_VALUE_REVIEW.md`
+- `../../plan/adr/ADR-0032-family-integration-apex-and-control-meaning-boundary.md`
 
 ## 12. Natural Japanese review
 
@@ -477,5 +504,7 @@ Design boundary clarified
 今回の再基線化では、それらを既存Product Valueへ統合しつつ、新しいValue Axis、Universal型、Stable Requirementを追加していません。CR-73.8 / 73.9だけは既存監査結果に従ってREQ-0023 / SCN-0019を正本とし、その他のInteraction仮説はactual execution / human review待ちのまま保持しました。
 
 また、SUI / TEI / EKIとの親和性を固定pipelineや必須依存へ変えず、Cognitive Method / Capability / compute placementの三つの交換境界を分離しました。
+
+2026-10-02には、ADR-0032（Proposed）に沿って、家族に対する統合の頂点（§6.5）、制御の仕組みと制御の判断の意味の分離（§8.3）、参考の対応表の存在（§8.5）を提案として加えました。固定pipeline、中央の頭脳、関連製品の特権化をしない境界と、統合標準が未確立であることは変えていません。
 
 意味、要求強度、Evidenceの高さ、未検証範囲を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。

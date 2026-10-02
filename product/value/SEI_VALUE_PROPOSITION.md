@@ -1,7 +1,7 @@
 # SEI Value Proposition
 
-更新日: 2026-09-14  
-状態: **Current Product Value Proposition Baseline — Decision Continuity / Brand-world discovery reflected**
+更新日: 2026-10-02  
+状態: **Current Product Value Proposition Baseline — Decision Continuity / Brand-world discovery reflected。§2の追加文と§6 / §7の組織・社会の場面は、ADR-0032（Proposed）による提案**
 
 ## 1. この文書の役割
 
@@ -18,6 +18,12 @@ Decision Continuityは新しいValue Axisではなく、V1〜V8が実際の利�
 SEIが利用者へ届けたい最も短い約束は、次です。
 
 > **まだ答えになっていない問いから始められ、あとで戻っても、別のAIを使っても、情報が変わっても、過去を捏造せず判断の続きを始められる。**
+
+**【提案・ADR-0032】** この約束には、次の一文を加えることを提案します。上の約束は変更しません。
+
+> **AIにどこまで任せたかを、あとから自分たちの言葉で確かめられる。**
+
+これは、§4.3の「どこまでを誰に委ねたかを後から読める」を、利用者の言葉で肯定形にしたものです。委任の範囲を契約上どう表せるかは未検証で、ISSUE-000081で試す段階です。
 
 そのためにSEIは、単なる会話履歴やログではなく、問い、Observation、Unknown / Conflict、Recommendation、Decision、basis、Responsibility、Provenance、Revision等の耐久的な意味を外在化します。
 
@@ -168,6 +174,14 @@ accessできることだけからResponsibilityやAuthorityを引き継いだと
 
 調査、整理、比較、Method Application、Recommendation、委任された範囲のDecision等を担い得ます。actor種別だけからAuthorityや信頼を推定しません。
 
+### 組織の中の関与者（仮説・提案）
+
+異動、退職、委託先の交代で判断の根拠と未解決を引き継ぐ人、AIエージェントの運用を監督する人、判断を振り返る人（運と判断を分けたい人）、モデルやベンダーの移行を担う人が、組織での主な関与者として考えられます。たとえば監督する人は、提案、委任、決定、実行を分けた記録から、委任の範囲を説明できることを期待します。これらはEvidenceのない仮説であり、確かめるべき証拠は`SEI_FAMILY_APEX_VALUE_REVIEW.md` §12にあります。
+
+### 社会の中の関与者（仮説・提案）
+
+行政や公共の判断で説明を求められる人、研究の再現性を保ちたい人、危機のときの判断を後から検証する人、少数意見を残したい合意形成の参加者、特定のAI供給元への依存を避けたい人が考えられます。これは社会の水準についての仮説であり、新しいValue Axisではありません。SEIは監視の拠点になることを目指さず、privacyとSelective Disclosureを弱めません。
+
 ### 外部システム・Capability Provider
 
 情報取得、計算、業務処理、実行等を担います。SEI自身の内部構造へ同化させるのではなく、必要な境界から接続します。
@@ -187,6 +201,12 @@ SEIは、次の条件が複数重なるほど価値を出しやすいと考え�
 - 「現在は知っているが、当時は知らなかった」ことを取り違えるコストが高い。
 - 弱いsignalや未整理な問いを、後から別のEvidenceと結び付ける価値がある。
 - 一人や一AI sessionで得た認知を、boundedに組織へ引き継ぐ必要がある。
+
+- （組織・仮説）AIエージェントに調査や購買、運用の一部を委任しており、委任の範囲を後から説明する必要がある。
+- （組織・仮説）担当者の異動や委託先の交代、モデルやベンダーの移行が起きても、過去の判断の意味を保ちたい。
+- （社会・仮説）行政、研究、長期のインフラ計画など、数年から数十年後に「なぜその時そう決めたか」へ戻る必要がある。
+
+組織と社会の場面は、いずれも仮説であり、Adoption / Outcome Evidenceはありません。
 
 言い換えると、SEIは**判断寿命・文脈変動・再訪頻度・不確実性・誤再構成コスト・認知継承の必要性**が高いほど価値を出しやすい製品です。
 
@@ -254,6 +274,7 @@ Adoption / Outcome Evidenceを収集できる段階では、たとえば次を�
 - `SEI_DECISION_CONTINUITY.md`
 - `../vision/SEI_BRAND_WORLD_SOURCE.md`
 - `SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md`
+- `SEI_FAMILY_APEX_VALUE_REVIEW.md`
 - `../interaction/SEI_FIRST_USABLE_PRODUCT_SLICE.md`
 - `../definition/SEI_PRODUCT_SHAPE.md`
 - `../vision/SEI_PRODUCT_VISION.md`
@@ -266,5 +287,7 @@ current Product Value、V1〜V8、resume-first Product Slice、Decision Continui
 従来の「後から判断へ戻れる」を維持したまま、SEIをKnowledge完成後の記録基盤に限定せず、「まだ答えになっていない問いや弱いObservationから始められること」と「認知成果を一人・一AI・一Providerの一時状態へ閉じずboundedに引き継げること」を利用者向け価値として追加した。
 
 また、Quiet Infrastructureを「常に静かなUI」という仕様にはせず、支援が利用者の認知帯域を不用意に奪わないというProduct hypothesisとして明示した。これはまだOutcome Evidenceを持たないため、actual human reviewを待つ。
+
+2026-10-02には、ADR-0032（Proposed）に沿って、§2へ約束の追加文を、§6と§7へ組織・社会の関与者と場面を、いずれも仮説として加えた。既存の約束は変更していない。新しいValue Axisは追加していない。
 
 新しいValue AxisやUniversal概念を追加せず、既存V1〜V8の利用世界として自然な日本語へ統合し、最終意味監査を実施済みである。
