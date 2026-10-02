@@ -7,7 +7,7 @@ Updated: 2026-09-01
 
 ## Goal
 
-個別Contract、fixture、runtime sliceの成立だけでなく、利用者から見た一続きの判断仕事としてSEIの価値を確認できる**代表的なend-to-end Acceptance Scenario**を定義する。
+個別Contract、fixture、runtime sliceの成立だけでなく、利用者から見た一続きの判断仕事としてSEIの価値を確認できる代表的なend-to-end Acceptance Scenarioを定義する。
 
 このScenarioを固定workflow ontologyにはせず、Product Shapeと既存REQ / SCNを横断してMinimum Usable Product Shapeを検査するためのgolden journeyとして扱う。
 
@@ -19,8 +19,8 @@ Updated: 2026-09-01
 2. Product Journeyを理由に新しいUniversal Requirementを追加する必要は、現時点ではない。
 3. 不足していたのは、新しいsemantic ontologyではなく、既存Requirementが一つのProduct Journeyで同時に壊れないことを確認するend-to-end Acceptanceである。
 4. とくに、external execution後に得たObservationを、過去Decisionのbasisへ時間逆行させず、次のInquiry / Decision reviewへ戻す循環を明示する必要がある。
-5. この不足をstable Scenario **SCN-0018「Inquiryから実行後の再検討までを一続きに扱う」**として`requirements/ACCEPTANCE_SCENARIOS.md`へ正本化した。
-6. Executable harnessの実体化は、DesignとImplementationのEvidenceを混同しないため、**ISSUE-000050**へ分離した。
+5. この不足をstable Scenario SCN-0018「Inquiryから実行後の再検討までを一続きに扱う」として`requirements/ACCEPTANCE_SCENARIOS.md`へ正本化した。
+6. Executable harnessの実体化は、DesignとImplementationのEvidenceを混同しないため、ISSUE-000050へ分離した。
 
 したがって、本IssueのDesign課題は完了とする。
 
@@ -47,7 +47,7 @@ Inquiry
 
 Product Journeyの順序、Workspace、Session、画面遷移等をそのままUniversal Requirementへ昇格させると、Product Interactionや実装都合をsemantic Coreへ持ち込む危険がある。
 
-新しいREQが必要になるのは、今後のExecutable / Interaction検証で、既存REQでは表現できない**独立した規範上の必要性**が見つかった場合だけとする。
+新しいREQが必要になるのは、今後のExecutable / Interaction検証で、既存REQでは表現できない独立した規範上の必要性が見つかった場合だけとする。
 
 ## SCN-0018の主要variant
 
@@ -110,18 +110,18 @@ Executable harnessはISSUE-000050で扱う。human usabilityはISSUE-000045、Pa
 - [x] 新しいREQを追加する必要が現時点でないことを確認する。
 - [x] normal / uncertain / collaborative / provider replacement / no-executionの主要variantをAcceptanceへ整理する。
 - [x] semantic end-to-end harnessの入力・期待結果・失敗条件をDesignとして定義する。
-- [x] stable ID **SCN-0018**を付与し、Acceptance Scenario正本へ反映する。
-- [x] Cognitive Method、Decision、Capability / Provider、residual / reopenを一続きにtraceするExecutable harnessを**ISSUE-000050**へ分離する。
+- [x] stable ID SCN-0018を付与し、Acceptance Scenario正本へ反映する。
+- [x] Cognitive Method、Decision、Capability / Provider、residual / reopenを一続きにtraceするExecutable harnessをISSUE-000050へ分離する。
 - [x] Executable / Release / Operational / Adoption・Outcome EvidenceをDesign完了と同一視しない境界を明示する。
 - [x] 今回追加・更新した文書を自然な日本語へ全文再ドラフトし、最終意味監査を行う。
 
 ## Evidence state
 
-- Design Evidence: **Satisfied** — Requirement composition、主要variant、期待・失敗条件を確定し、SCN-0018として正本化した。
-- Executable Evidence: **Not Yet Verified by this Issue** — 後続ISSUE-000050で検証する。
-- Release Evidence: **Not Yet Verified**
-- Operational Evidence: **Not Yet Verified**
-- Adoption / Outcome Evidence: **Not Yet Verified**
+- Design Evidence: Satisfied — Requirement composition、主要variant、期待・失敗条件を確定し、SCN-0018として正本化した。
+- Executable Evidence: Not Yet Verified by this Issue — 後続ISSUE-000050で検証する。
+- Release Evidence: Not Yet Verified
+- Operational Evidence: Not Yet Verified
+- Adoption / Outcome Evidence: Not Yet Verified
 
 ## Reopen条件
 

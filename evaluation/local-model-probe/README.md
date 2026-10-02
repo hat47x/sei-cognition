@@ -81,7 +81,7 @@ probeは特定runtimeをUniversal semanticsへ持ち込まない。
 
 第一probe interfaceはOpenAI-compatible Chat Completionsとする。
 
-デフォルト:
+デフォルトは次のとおりです。
 
 ```text
 http://127.0.0.1:8080/v1/chat/completions
@@ -89,7 +89,7 @@ http://127.0.0.1:8080/v1/chat/completions
 
 llama.cppの現行`llama-server` / `llama serve`はこのendpointを提供するため、一Realizationとして利用できる。
 
-参考:
+参考は次のとおりです。
 - https://github.com/ggml-org/llama.cpp
 - https://github.com/ggml-org/llama.cpp/tree/master/tools/server
 
@@ -106,7 +106,7 @@ go run ./cmd/modelprobe \
   --dry-run
 ```
 
-見る点:
+見る点は次のとおりです。
 - route
 - should_invoke_model
 - baseline boundary bypass
@@ -123,7 +123,7 @@ runtime/model installそのものはこのrepositoryの責任外とする。
 llama serve -hf ggml-org/Qwen3.5-0.8B-GGUF
 ```
 
-その後:
+その後は次のとおりです。
 
 ```bash
 go run ./cmd/modelprobe \
@@ -156,7 +156,7 @@ Issue #375では少なくとも次を比較する。
 
 ### sub-1B
 
-用途仮説:
+用途仮説は次のとおりです。
 - extraction
 - classification
 - simple comparison
@@ -164,7 +164,7 @@ Issue #375では少なくとも次を比較する。
 
 ### 2–4B
 
-用途仮説:
+用途仮説は次のとおりです。
 - bounded multi-step comparison
 - contradiction analysis
 - hypothesis / short planning
@@ -189,7 +189,7 @@ unless working tree is clean
 
 ### Exact Go 1.25 runtime handoff
 
-Issue #512と同じcanonical runtimeで外部actual runを行う場合:
+Issue #512と同じcanonical runtimeで外部actual runを行う場合。
 
 ```bash
 bash evaluation/local-model-probe/bootstrap_go125_first_actual.sh
@@ -320,7 +320,7 @@ pair reportのlatency deltaも記述的Evidenceであり、model品質やdeploym
 - invalid evidence ref
 - need-more-evidence appropriateness
 
-取得可能:
+取得可能は次のとおりです。
 - response header latency
 - request開始からresponse完了までのtransport total latency
 - `--stream`時のfirst-token latency（最初の非空content delta受信時刻を操作的定義とする）
@@ -331,7 +331,7 @@ pair reportのlatency deltaも記述的Evidenceであり、model品質やdeploym
 - `--runtime-metrics-endpoint`指定時のruntime-specific Prometheus metrics（llama.cppではprompt/generation累積tokens、KV cache usage ratio / tokens、context token high-water mark）
 - `--model-file`指定時のlocal model artifact file name / size / SHA-256
 
-まだ取得しないもの:
+まだ取得しないもの。
 - tokenizer内部の厳密な単一token生成時刻
 - model weight単独memory
 - KV cache単独memory
@@ -344,7 +344,7 @@ model weight単独memory、KV cache単独memory bytes、GPU VRAM、energyは引�
 
 actual比較でTTFTを取る場合は `modelmatrix --stream` を指定する。OpenAI-compatible SSE streamの最初の**非空 `choices[].delta.content`**をfirst tokenの操作的観測点とする。
 
-保存値:
+保存値は次のとおりです。
 
 - `response_header_latency_ms`: request開始からHTTP response header受信まで;
 - `first_token_observed`: content deltaを実際に観測したか;
@@ -389,7 +389,7 @@ runtime executable SHA-256
 
 Linuxで `--runtime-pid` と `--model-file` を同時指定すると、matrixは `/proc/<pid>/maps` を読み、hash済みmodel fileと同じfilesystem objectがprocess address spaceへmapされているかを `runtime_model_mapping` に記録する。照合にはabsolute path文字列ではなく `os.SameFile` 相当のdevice/inode identityを使い、Evidenceにはbasenameだけを保存する。
 
-状態:
+状態は次のとおりです。
 
 - `not-requested`: PIDまたはmodel fileが未指定;
 - `observed`: 同じfilesystem objectのmappingを1件以上観測;
@@ -438,7 +438,7 @@ shared runtimeに別requestが混ざれば累積counterへ混入するため、d
 
 Evidenceへはruntime報告model pathの**basenameだけ**を保存する。`--model-file` が同時指定され、runtime報告pathを同じhost filesystemからstatできる場合は、両者をsame-file identityで照合する。
 
-状態:
+状態は次のとおりです。
 
 - `not-requested`: endpoint未指定;
 - `observed`: props取得成功（same-fileがfalseの場合も観測値として保持）;
@@ -565,7 +565,7 @@ health endpointが2xxでなければ、そのmodeのinferenceを開始せず `bl
 
 小型modelの失敗を見たとき、直ちにmodelを大型化しない。
 
-まず:
+まずは次のとおりです。
 - evidence selection
 - task decomposition
 - prompt/output contract
@@ -578,7 +578,7 @@ health endpointが2xxでなければ、そのmodeのinferenceを開始せず `bl
 
 有望な結果は「小型modelが大モデルと同じ文章を書くこと」ではない。
 
-例えば:
+例えばは次のとおりです。
 
 ```text
 Workspace

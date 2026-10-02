@@ -149,11 +149,11 @@ review bundle preserved
 
 PR #72では、成功済みRun `33596839607` / Job `100141890796`について、repositoryに保存していたhistorical sampleとGitHubに残る当該job logからreview-ready bundleを再構成しました。
 
-保存先:
+保存先は次のとおりです。
 
 `historical/M1B-RUN-33596839607/`
 
-保存物:
+保存物は次のとおりです。
 
 - `request.json`
 - `result.json`

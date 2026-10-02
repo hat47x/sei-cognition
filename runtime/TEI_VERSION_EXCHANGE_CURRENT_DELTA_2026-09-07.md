@@ -24,7 +24,7 @@ operator向けactual手順の正本は次である。
 
 current containerへprivate sourceを渡す補助経路として、revision B commit内の`bootstrap/final-source` 62 chunkをGitHub connector経由で再構成した。
 
-観測:
+観測は次のとおりです。
 
 - 62 / 62 chunkを取得した。
 - 各chunkのactual bytesをlocal `git hash-object`でGitHub側blob SHAへ再照合し、不一致は0だった。
@@ -36,7 +36,7 @@ current containerへprivate sourceを渡す補助経路として、revision B co
 
 しかし、展開sourceをfixed revision B execution-source identityへ戻すと一致しなかった。
 
-代表例:
+代表例は次のとおりです。
 
 ```text
 go.mod
@@ -246,7 +246,7 @@ E2 Go ready
 
 適切なLinux/amd64 execution environmentまたはprivate exact-B source transportが利用可能になった時点では、追加bootstrap探索やsynthetic hardeningよりactual E2 partialを優先する。
 
-標準順序:
+標準順序は次のとおりです。
 
 1. `TEI_E2_PARTIAL_ACTUAL_RUNBOOK_2026-09-06.md`に従い、GitHub Git Data APIまたはself-contained local sourceからexact revision Bを取得する。
 2. current containerで取得・再実行済みのhistorical A Evidence bundleと同一identityのexact-A fixed input + exact Go 1.23.2でE2 partialをactual実行する。

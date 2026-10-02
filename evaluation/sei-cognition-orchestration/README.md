@@ -128,7 +128,7 @@ cognitive support
 
 ### Tier 0 — Sensor / MCU
 
-目的:
+目的は次のとおりです。
 - wake trigger
 - threshold / anomaly
 - simple feature extraction
@@ -138,7 +138,7 @@ cognitive support
 
 ### Tier 1 — Wearable / Home Device
 
-目的:
+目的は次のとおりです。
 - sensor fusion
 - privacy filtering
 - lightweight event classification
@@ -149,7 +149,7 @@ raw streamを上位へ送り続けるのではなく、必要なeventやfeature�
 
 ### Tier 2 — Phone / PC / Home Hub
 
-目的:
+目的は次のとおりです。
 - SACS
 - local semantic index
 - Personal Inquiry context
@@ -160,7 +160,7 @@ raw streamを上位へ送り続けるのではなく、必要なeventやfeature�
 
 ### Tier 3 — Local Server / Organization Edge
 
-目的:
+目的は次のとおりです。
 - larger local models
 - organization context
 - shared indexes
@@ -171,7 +171,7 @@ raw streamを上位へ送り続けるのではなく、必要なeventやfeature�
 
 社内の遊休CPU / GPU / workstation / serverを、policyの範囲内でopportunisticに利用する。
 
-用途:
+用途は次のとおりです。
 - hypothesis fan-out
 - alternative / counterfactual exploration
 - document / repository pre-analysis
@@ -186,7 +186,7 @@ raw streamを上位へ送り続けるのではなく、必要なeventやfeature�
 
 ### Tier 5 — Cloud / General-purpose LLM
 
-目的:
+目的は次のとおりです。
 - broad cross-domain reasoning
 - difficult natural-language interpretation
 - large-context synthesis
@@ -197,7 +197,7 @@ raw streamを上位へ送り続けるのではなく、必要なeventやfeature�
 
 ## 6. 認知の常時実行と重い推論を分ける
 
-常時実行候補:
+常時実行候補は次のとおりです。
 
 - signal / event detection
 - state change detection
@@ -209,7 +209,7 @@ raw streamを上位へ送り続けるのではなく、必要なeventやfeature�
 - known-case matching
 - lightweight route selection
 
-必要時だけ起動する候補:
+必要時だけ起動する候補は次のとおりです。
 
 - local SLM
 - large local model
@@ -226,14 +226,14 @@ continuous awareness
 
 SACSはSEI Cognition全体ではなく、軽量な認知primitiveの一つである。
 
-向く役割:
+向く役割は次のとおりです。
 - candidate recall
 - related-case selection
 - novelty signal
 - lightweight competition
 - fast local association
 
-向かない役割:
+向かない役割は次のとおりです。
 - Truth
 - confidence
 - Recommendation

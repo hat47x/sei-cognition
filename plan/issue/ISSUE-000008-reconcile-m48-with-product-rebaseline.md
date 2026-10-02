@@ -27,7 +27,7 @@ historical M47 Cognitive MethodのDefinition / Realization / Application境界�
 
 ## Resolution
 
-historical M48をProduct Rebaselineへ**意味上整合させる作業**は、current Product Value、Requirements、Accepted ADR、Reference Architecture、Contractへ分解・再統合できたためResolvedとする。
+historical M48をProduct Rebaselineへ意味上整合させる作業は、current Product Value、Requirements、Accepted ADR、Reference Architecture、Contractへ分解・再統合できたためResolvedとする。
 
 当初のblockerだったactual `sei` repository不在は解消済みである。さらにISSUE-000022でcurrent repository baselineを実体化し、Product / Requirements / Architecture / Contracts / Fixtures / Representation Profiles / first Runtime / Toolsまでactual treeへ配置した。
 
@@ -35,12 +35,12 @@ historical M48をProduct Rebaselineへ**意味上整合させる作業**は、cu
 
 ## Current evidence state
 
-- Historical M48 semantic reconciliation: **Satisfied**
-- Current repository baseline materialization: **Satisfied — ISSUE-000022**
-- Contract / fixture-scoped Executable Evidence: **Satisfied within current scope**
-- first semantic runtime Executable Evidence: **Satisfied within read / validate / reconstruct scope**
-- historical M47 digest Profile mapping: **Not Yet Verified — ISSUE-000034**
-- Release / Operational Evidence: **Not Yet Verified**
+- Historical M48 semantic reconciliation: Satisfied
+- Current repository baseline materialization: Satisfied — ISSUE-000022
+- Contract / fixture-scoped Executable Evidence: Satisfied within current scope
+- first semantic runtime Executable Evidence: Satisfied within read / validate / reconstruct scope
+- historical M47 digest Profile mapping: Not Yet Verified — ISSUE-000034
+- Release / Operational Evidence: Not Yet Verified
 
 ```text
 historical M48 design reconciled

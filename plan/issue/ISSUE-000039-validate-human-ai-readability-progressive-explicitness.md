@@ -7,7 +7,7 @@ Updated: 2026-09-01
 
 ## Goal
 
-SEIのV6 Human / AI ReadabilityとV7 Progressive Explicitnessについて、特定のUI技術や製品画面へ早期固定せず、**同じcanonical meaningを人間向けProjectionとmachine-readable representationの双方から回収できること**、および**案件の影響度に応じて明示量を変えても必要な意味を失わないこと**を、再現可能な評価系で検証する。
+SEIのV6 Human / AI ReadabilityとV7 Progressive Explicitnessについて、特定のUI技術や製品画面へ早期固定せず、同じcanonical meaningを人間向けProjectionとmachine-readable representationの双方から回収できること、および案件の影響度に応じて明示量を変えても必要な意味を失わないことを、再現可能な評価系で検証する。
 
 このIssueの目的は「UIを完成させること」ではない。
 
@@ -30,8 +30,8 @@ current Product Value Traceabilityでは、V1〜V5とV8にはContract、fixture�
 
 ### Value Axis
 
-- **V6 Human / AI Readability**
-- **V7 Progressive Explicitness**
+- V6 Human / AI Readability
+- V7 Progressive Explicitness
 
 ### Requirements
 
@@ -49,11 +49,11 @@ current Product Value Traceabilityでは、V1〜V5とV8にはContract、fixture�
 
 ### Current Evidence
 
-- Design: **Satisfied within the evaluation boundary** — light / audit Projection、semantic question set、Progressive Explicitness policy、negative cases、structured human review形式を定義した。
-- Executable: **Partially Satisfied** — representative canonical sourceからProjectionを生成・交換し、意味整合とnegative caseをactual CIで再現した。
-- Release: **Not Yet Verified**。
-- Operational: **Not Yet Verified**。
-- Adoption / Outcome: **Not Yet Verified**。
+- Design: Satisfied within the evaluation boundary — light / audit Projection、semantic question set、Progressive Explicitness policy、negative cases、structured human review形式を定義した。
+- Executable: Partially Satisfied — representative canonical sourceからProjectionを生成・交換し、意味整合とnegative caseをactual CIで再現した。
+- Release: Not Yet Verified。
+- Operational: Not Yet Verified。
+- Adoption / Outcome: Not Yet Verified。
 
 ## Questions and findings
 
@@ -176,9 +176,9 @@ GitHub Actions `V6 V7 Projection Evaluation`:
 
 - Run ID: `33456710459`
 - Head SHA: `513600724976a110aa21a48cd3fc3db44e55a048`
-- current Contract baseline recheck: **success**
-- V6 / V7 Projection evaluation: **success**
-- conclusion: **success**
+- current Contract baseline recheck: success
+- V6 / V7 Projection evaluation: success
+- conclusion: success
 
 評価harnessでは次を直接確認した。
 
@@ -211,7 +211,7 @@ GitHub Actions `V6 V7 Projection Evaluation`:
 
 ## Evidence boundary
 
-本Issueで成立したのは、**evaluation-harness scoped Executable Evidence**までである。
+本Issueで成立したのは、evaluation-harness scoped Executable Evidenceまでである。
 
 ```text
 projection harness PASS

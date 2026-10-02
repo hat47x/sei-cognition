@@ -41,11 +41,11 @@ first Go runtimeも同じ意味役割を読み込み、再構成する。
 
 ## Current evidence
 
-- Semantic role boundary: **Satisfied**
-- Decision Memory v1alpha1 representation: **Satisfied**
-- Contract fixture-scoped validation: **Satisfied**
-- first runtime reconstruction: **Satisfied within current scope**
-- Release / Operational Evidence: **Not Yet Verified**
+- Semantic role boundary: Satisfied
+- Decision Memory v1alpha1 representation: Satisfied
+- Contract fixture-scoped validation: Satisfied
+- first runtime reconstruction: Satisfied within current scope
+- Release / Operational Evidence: Not Yet Verified
 
 ## Natural Japanese review
 

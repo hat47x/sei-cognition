@@ -198,7 +198,7 @@ current SEIはsemantic historyを消さずに保持することを重視する�
 
 ただしPersonal ProfileだけでStable化せず、Product Security / Privacy / Backup / shared-data semanticsと合わせて設計する。
 
-候補表現:
+候補表現は次のとおりです。
 
 > SEIは、semantic historyをsurviving record内で黙って改変しないことと、権限ある利用者がProduct dataを明示的に削除・保持管理することを区別しなければならない。
 

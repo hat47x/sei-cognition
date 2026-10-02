@@ -24,7 +24,7 @@ GPUを常時認知の前提にはしない。GPUは「モデルを大きくす�
 
 ### deterministic / symbolic
 
-対象:
+対象は次のとおりです。
 - exact rule;
 - policy eligibility;
 - schema validation;
@@ -37,14 +37,14 @@ GPUを常時認知の前提にはしない。GPUは「モデルを大きくす�
 
 Issue #371で実装・評価したSACS系を置く。
 
-用途:
+用途は次のとおりです。
 - candidate recall;
 - novelty / known-vs-novel signal;
 - salience / attention candidate;
 - sparse signature;
 - retrieval前段.
 
-期待する性質:
+期待する性質は次のとおりです。
 - CPU / local / offline;
 - sparse memory;
 - deterministic reproducibility;
@@ -62,7 +62,7 @@ Issue #543のJev teacher -> LightGBM studentで扱う。
 
 Choice / Score / Noulに相当するbounded decisionを、task-specific featureから安価に提案する。
 
-必須境界:
+必須境界は次のとおりです。
 - teacher fidelityとtask correctnessを分離;
 - calibrated confidenceとSEI confidenceを分離;
 - OOD / low confidence / high stakesは上位routeへ戻す;
@@ -79,13 +79,13 @@ first tier:
 - llama.cpp;
 - raw / workspace / stagedを同じexact sourceで比較.
 
-目的:
+目的は次のとおりです。
 - bounded Cognitive Workspaceによりsub-1Bで十分なproblem classを見つける;
 - staged routeで不要なmodel callを避けられる範囲を測る.
 
 0.8Bが失敗しても直ちに4Bへ上げない。
 
-先に:
+先には次のとおりです。
 - selected evidence;
 - missing evidence;
 - decomposition;
@@ -98,7 +98,7 @@ first tier:
 
 GPUへ送る候補は、常時CPU routeで不足した処理だけに限定する。
 
-優先用途:
+優先用途は次のとおりです。
 1. 同一0.8BをGPUで実行し、hardware effectをmodel effectから分離する;
 2. 4B級local comparator;
 3. small neural student / adapterの短時間training;
@@ -180,7 +180,7 @@ teacher responseはground truthではない。actual outcome / human adjudicatio
 
 provider固有機能をrepository contractにしない。
 
-選定基準:
+選定基準は次のとおりです。
 - Linux x86_64;
 - exact checkoutを保持できる;
 - model/runtime bytesを固定できる;
@@ -208,7 +208,7 @@ repository launcher
 
 月額GPUを前提にしない。
 
-運用原則:
+運用原則は次のとおりです。
 - first actual 0.8BはCPUでも成立するため、GPU契約前にCPU baselineを取得;
 - GPUは1回のmatrix + 必要なrerunだけ;
 - 4B比較は0.8B failure analysis後;
@@ -233,7 +233,7 @@ T0 deterministic / symbolic
 
 ## 9. 次の実測
 
-最優先:
+最優先は次のとおりです。
 1. exact current source;
 2. Go 1.25.14;
 3. pinned CPU llama.cpp b10964;

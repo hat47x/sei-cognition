@@ -98,7 +98,7 @@ Workspaceはcanonical stateではなく、一時的なbounded projectionであ�
 
 既存`hybridreasoning.RouteReasoning`を利用し、まずrouteを決める。
 
-候補:
+候補は次のとおりです。
 
 - symbolic
 - non-LLM recall
@@ -150,7 +150,7 @@ actual modelをまだ接続しなくても、出力JSONを次の観点で評価�
 
 単一scoreへ潰さない。
 
-記録する候補:
+記録する候補は次のとおりです。
 
 - raw context characters
 - Workspace characters

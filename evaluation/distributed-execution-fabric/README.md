@@ -109,7 +109,7 @@ Fabricのjob successは、Product上のsemantic successを意味しない。
 
 ### A. Idle Workstation Pool
 
-特徴:
+特徴は次のとおりです。
 - availabilityが不安定
 - foreground userが最優先
 - worker churnが多い
@@ -122,7 +122,7 @@ HTCondorはidle desktop workstationsの未使用CPUを利用する用途を明�
 
 ### B. Stable AI / Application Cluster
 
-特徴:
+特徴は次のとおりです。
 - server / GPU nodeが比較的安定
 - task graph / actor / model serving
 - accelerator-aware scheduling
@@ -134,7 +134,7 @@ Rayはtask / actorとCPU / GPU / custom resource requirementを持ち、distribu
 
 ### C. General Workload Cluster
 
-特徴:
+特徴は次のとおりです。
 - batchとserviceが混在
 - container / process workload
 - GPU / device placement
@@ -192,7 +192,7 @@ Shared Execution Adapter Boundary
 
 社内遊休端末を使う目的には、HTCondorを最初に実証する価値が高い。
 
-理由:
+理由は次のとおりです。
 - idle workstation harvestingが中心ユースケースの一つ
 - resource/job matchingが柔軟
 - worker disappearanceを前提にできる

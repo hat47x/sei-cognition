@@ -114,7 +114,7 @@ Referenceで十分なleverageが確認された場合だけ、対象surfaceご�
 
 current canonical fixtureから、current concern / question、Decision、Recommendation、historical basis、unresolved、changes since decision、audit detailへの入口をread-onlyでProjectionする。
 
-確認すること:
+確認すること。
 
 - 同じ意味をTEI側で再定義せずProjectionできるか。
 - Projection変更でSEI canonical schemaを書き換えずに済むか。

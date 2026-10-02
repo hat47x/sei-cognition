@@ -7,7 +7,7 @@ Updated: 2026-09-02
 
 ## Goal
 
-PMS-06のE3b「live external process / service integration」について、version固定したartifactを読む段階から一歩進み、**SEIとは独立した外部serviceをネットワーク越しに実際に呼び出し、その結果をProvider固有の表現のままUniversal Contractへ持ち込まず、current Capability Observationへ戻せること**を確認する。
+PMS-06のE3b「live external process / service integration」について、version固定したartifactを読む段階から一歩進み、SEIとは独立した外部serviceをネットワーク越しに実際に呼び出し、その結果をProvider固有の表現のままUniversal Contractへ持ち込まず、current Capability Observationへ戻せることを確認する。
 
 E3bを一度に完成させることは目的としない。最初のスライスでは、追加credentialを必要としないpublic serviceを使い、live invocationとsemantic mapping、通信失敗時のcanonical非改変を切り分けて検証する。
 
@@ -61,7 +61,7 @@ repository / commit / HTTP
 
 ## Closure CI Evidence
 
-PR #37では、Issue本文とregistryをResolvedへ同期した検査点 `12621fe67a6fbc6226da5b37f56fcc39d5066faf` で次の6系統がすべて**success**した。
+PR #37では、Issue本文とregistryをResolvedへ同期した検査点 `12621fe67a6fbc6226da5b37f56fcc39d5066faf` で次の6系統がすべてsuccessした。
 
 - External Integration E3b Run `33570935966`
 - Semantic Runtime Conformance Run `33570935849`
@@ -136,15 +136,15 @@ v0.2.0 Release Candidateのsupported scopeはE3aまでであり、本Issueを理
 
 ## Evidence state
 
-- Design Evidence: **Satisfied**
-- E2 out-of-process reference exchange: **Scoped Executable Evidence available**
-- E3a version-pinned external artifact integration: **Scoped Executable Evidence available**
-- E3b-P1 public live Provider service: **Scoped Executable Evidence available** — External Integration E3b Run `33570935966`
-- E3b-P2 live TEI process / service: **Not Yet Verified**
-- E3b-M1 live external Cognitive Method execution: **Not Yet Verified**
-- E4 Operational portability: **Not Yet Verified**
-- Release Evidence: **Not Yet Verified**
-- Adoption / Outcome Evidence: **Not Yet Verified**
+- Design Evidence: Satisfied
+- E2 out-of-process reference exchange: Scoped Executable Evidence available
+- E3a version-pinned external artifact integration: Scoped Executable Evidence available
+- E3b-P1 public live Provider service: Scoped Executable Evidence available — External Integration E3b Run `33570935966`
+- E3b-P2 live TEI process / service: Not Yet Verified
+- E3b-M1 live external Cognitive Method execution: Not Yet Verified
+- E4 Operational portability: Not Yet Verified
+- Release Evidence: Not Yet Verified
+- Adoption / Outcome Evidence: Not Yet Verified
 
 ## Reopen / escalation条件
 

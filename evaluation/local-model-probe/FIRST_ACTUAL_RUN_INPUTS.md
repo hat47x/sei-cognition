@@ -6,7 +6,7 @@
 
 ## 1. 目的
 
-Issue #375 のfirst actual sub-1B runを、runtime/model探索からやり直さず再現できるようにする。
+Issue #375のfirst actual sub-1B runを、runtime/model探索からやり直さず再現できるようにする。
 
 これはproduction dependency lockではない。
 
@@ -114,7 +114,7 @@ QUANTIZATION=Q4_0 \
 bash evaluation/local-model-probe/run_first_actual.sh
 ```
 
-この経路では:
+この経路ではは次のとおりです。
 - runtime archiveのdownload/extractは行わない;
 - model downloadも行わない;
 - model fileのexpected SHA-256検証は**必須のまま**;
@@ -164,7 +164,7 @@ first CPU execution candidate:
 - release source:
   https://github.com/ggml-org/llama.cpp/releases/tag/b10964
 
-取得後:
+取得後は次のとおりです。
 
 ```bash
 echo "9abf88aea48a55d0f80edb1ee20220b186848cca0b4e919d71518cfd7ca67443  llama-b10964-bin-ubuntu-x64.tar.gz" | sha256sum -c -
@@ -189,7 +189,7 @@ first model artifact:
 - source:
   https://huggingface.co/ggml-org/Qwen3.5-0.8B-GGUF/blob/main/Qwen3.5-0.8B-Q4_0.gguf
 
-取得後:
+取得後は次のとおりです。
 
 ```bash
 echo "57d1997790d1744fba5b40a7317df71ea5e2acee28c47e78f0cce39c0703f8cf  Qwen3.5-0.8B-Q4_0.gguf" | sha256sum -c -
@@ -201,7 +201,7 @@ model fileのexact local sizeは `modelmatrix --model-file` が実測してmatri
 
 dedicated runtime processをrunごとに起動する。
 
-例:
+例は次のとおりです。
 
 ```bash
 LLAMA_SERVER="$(find llama-runtime -type f -name llama-server -print -quit)"
@@ -386,7 +386,7 @@ runtime logはmodel load診断には利用できるが、model result qualityと
 
 2026-09-23時点、このChatGPT execution environmentではshell DNSからGitHub / Hugging Faceへ直接到達できない。ただしruntimeについては、GitHub connector経由でllama.cpp公式Release workflow artifactをmaterializeできた。
 
-実測済み:
+実測済みは次のとおりです。
 
 - official Release workflow run: `34852868138`;
 - artifact: `llama-bin-ubuntu-x64.tar.gz` / ID `10354692768`;

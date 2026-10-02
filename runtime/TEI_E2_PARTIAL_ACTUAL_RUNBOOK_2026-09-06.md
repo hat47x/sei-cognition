@@ -37,7 +37,7 @@ Evidence output         = SEI / A inputとは分離したfresh directory
 
 credential値そのものは表示・記録しません。
 
-例:
+例は次のとおりです。
 
 ```bash
 SEI_REPO=/path/to/sei-cognition
@@ -51,7 +51,7 @@ uname -m
 "$TEI_GO" version
 ```
 
-期待値:
+期待値は次のとおりです。
 
 ```text
 Linux
@@ -213,7 +213,7 @@ E3_DIR=/path/to/evidence/tei-e2-partial-e3-resume-20260906
 SEI_HEAD="$(git -C "$SEI_REPO" rev-parse HEAD)"
 ```
 
-実行:
+実行は次のとおりです。
 
 ```bash
 python3 "$SEI_REPO/runtime/integration/run_tei_version_exchange_resume_from_e2_partial.py" \
@@ -246,7 +246,7 @@ executionProvenance.mode = e2_partial_then_e3_resume
 
 ## 9. E3 resume後のcanonical artifact
 
-固定名:
+固定名は次のとおりです。
 
 ```bash
 CANONICAL_REPORT="$E3_DIR/tei-version-exchange-evidence.json"
@@ -287,7 +287,7 @@ python3 "$SEI_REPO/runtime/integration/reconcile_tei_e2_partial_resume_reports.p
 
 reconcileは、partial/bundle identity、canonical E2、comparison axis、resume provenance、E3 success/failure stageを再照合し、欠落した標準wrapperだけを補完します。B source acquisition、E2 build、Provider Plan、E3 Adapter live testは再実行しません。
 
-期待結果:
+期待結果は次のとおりです。
 
 ```text
 result = wrapper_reconstructed_without_e3_rerun

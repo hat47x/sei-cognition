@@ -17,7 +17,7 @@
 
 ## 2. synthetic microbenchmark
 
-実行環境:
+実行環境は次のとおりです。
 
 - OS: Linux
 - arch: amd64
@@ -76,14 +76,14 @@ SOZAのAccepted Development Conventionに従い、GitHub Actionsは使用して�
 
 ローカル環境はGo 1.23.2であったため、一時moduleの`go` directiveだけを1.23とした。repositoryの`prototype-go/go.mod` (`go 1.25`) は変更していない。今回のadapterが利用する言語機能はこのローカルtoolchainで実行可能な範囲にある。
 
-実行:
+実行は次のとおりです。
 
 ```text
 gofmt -w sparseassoc/sparseassoc.go suiassocprovider/provider.go suiassocprovider/provider_test.go
 go test ./...
 ```
 
-結果:
+結果は次のとおりです。
 
 ```text
 ?    github.com/hat47x/soza/evaluation/sparse-associative-cognition/prototype-go/sparseassoc         [no test files]

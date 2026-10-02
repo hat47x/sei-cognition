@@ -497,9 +497,9 @@ GitHub正本のblobを固定して一時実行環境へ再構成し、Python 3.1
 
 今後connector等を介して一時実行環境へ再構成する場合は、**10ファイルを同一bound commitからmaterializeし、全件のGit blob SHA-1一致を確認してからのみcanonical runnerを実行する**。1件でも不一致なら、その試行はcanonical local gateのPASS / FAILへ数えず、再構成失敗として破棄する。runnerが生成するresult schema v2も従来どおり`validate_result`成功後だけ保存する。
 
-actual runtimeの残工程は GitHub Issue #532 `E78.3: exact-source bindingからcanonical local gateをactual実行する` に集約する。同一ISSUE-000078の継続作業として `develop/v0.2.0` を集約先に保ち、transport/reconstructionだけを理由にtopic branchを増やさない。Issue #532は10-blob一致、runner focused tests、7-check aggregate、validated result schema v2生成だけを完了条件とし、source reconstruction mismatchはcanonical PASS / FAILへ数えない。
+actual runtimeの残工程はGitHub Issue #532 `E78.3: exact-source bindingからcanonical local gateをactual実行する` に集約する。同一ISSUE-000078の継続作業として `develop/v0.2.0` を集約先に保ち、transport/reconstructionだけを理由にtopic branchを増やさない。Issue #532は10-blob一致、runner focused tests、7-check aggregate、validated result schema v2生成だけを完了条件とし、source reconstruction mismatchはcanonical PASS / FAILへ数えない。
 
-2026-09-20、execution-input binding v1 に `execution_recipe` を追加し、repository-root要件、runner focused test command、canonical aggregate command、期待check数7、result schema v2、exclusive-create、実行後に記録すべきprovenanceを機械可読で固定した。これはrunner追加ではなく既存canonical pathの再現手順を固定するものであり、runtime PASSそのものではない。
+2026-09-20、execution-input binding v1に `execution_recipe` を追加し、repository-root要件、runner focused test command、canonical aggregate command、期待check数7、result schema v2、exclusive-create、実行後に記録すべきprovenanceを機械可読で固定した。これはrunner追加ではなく既存canonical pathの再現手順を固定するものであり、runtime PASSそのものではない。
 
 同日のtransport試行は `evaluation/personal-inquiry-decision/evidence/issue-000078/e78_summary_distortion_materialization_checkpoint_2026-09-20.json` に分離して記録した。probe setと3 source fixtureの4/10 filesはGit blob SHA-1一致を実測した一方、残る6 Python mechanicsはcurrent connector→execution-container境界でbyte-faithful materialization未達であり、CRC32 / full-file blob検査で不一致となった再構成は全て破棄した。canonical runnerはこのcheckpointでは未実行で、新しいPASS / FAILを主張しない。
 

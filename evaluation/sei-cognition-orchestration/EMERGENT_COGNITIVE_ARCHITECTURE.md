@@ -144,7 +144,7 @@ Workspaceは再生成・圧縮・破棄できる。
 
 Method / model / tool間にraw promptをそのまま渡すのではなく、boundedなCognitive Envelopeを作る。
 
-候補:
+候補は次のとおりです。
 
 ```text
 Cognitive Envelope
@@ -261,7 +261,7 @@ explainability
 
 ハエ脳由来の議論から得た価値は「脳を再現すること」ではない。
 
-有効だった抽象は:
+有効だった抽象はは次のとおりです。
 
 - sparse representation
 - spreading activation的な候補想起
@@ -321,7 +321,7 @@ Organization Cognitive Fabricと遊休計算資源の議論から、新しい役
 
 遊休computeはinteractive responseを速めるためだけでなく、**前景作業を邪魔しない背景認知**へ使える。
 
-候補:
+候補は次のとおりです。
 
 - alternate hypothesis exploration
 - counterexample generation
@@ -382,7 +382,7 @@ bounded feature / event / semantic proposal
 upper tier if policy allows
 ```
 
-これにより:
+これによりは次のとおりです。
 
 - privacy
 - bandwidth
@@ -466,7 +466,7 @@ fast provider
 
 初期はdeterministic policyでよい。
 
-将来:
+将来は次のとおりです。
 
 ```text
 problem features
@@ -488,7 +488,7 @@ route policy
 
 novelty / contradiction / stale evidence / suspicious provider outputを「エラー」と即断せず、Challenge Pathを起動する。
 
-候補:
+候補は次のとおりです。
 
 ```text
 trigger
@@ -514,7 +514,7 @@ SACS noveltyはChallenge起動の一Signalになれるが、Unknownそのもの�
 
 SEI Cognitionの共有財産性は、単に「全員が同じAIを使う」ことではない。
 
-共有される価値は:
+共有される価値はは次のとおりです。
 
 - methods
 - reusable evidence structures

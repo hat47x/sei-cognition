@@ -2,7 +2,7 @@
 
 ## 1. この文書の位置づけ
 
-PMS-06 / ISSUE-000072のactual revision B実行では、失敗を「TEI version交換 failure」という一語へまとめると、source取得・toolchain・build・Provider Plan process・output validation・SEI Adapter compatibilityの境界を失います。
+PMS-06 / ISSUE-000072のactual revision B実行では、失敗を「TEI version交換failure」という一語へまとめると、source取得・toolchain・build・Provider Plan process・output validation・SEI Adapter compatibilityの境界を失います。
 
 そこで、repository-local E2 / E3 runnerが**外部から確実に観測できる境界だけ**をmachine-readable stageとして返すよう整理しました。
 

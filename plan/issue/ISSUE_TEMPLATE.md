@@ -7,7 +7,7 @@ Updated: YYYY-MM-DD
 
 ## Goal
 
-このIssueで、何を**決定可能・検証可能な状態**にするかを書く。
+このIssueで、何を決定可能・検証可能な状態にするかを書く。
 
 「検討する」「整理する」だけで終えず、完了時に何が判別でき、どの成果物へ着地するかを明示する。
 
@@ -99,4 +99,4 @@ CI successそのものをProduct Value達成やRelease readinessの証明には�
 
 ## Natural Japanese review
 
-内容・構造を作成して技術的一貫性を確認した後、意味、要求強度、仕様、留保、Evidence強度を固定する。そのうえで、**自然な日本語となることを最重要視して全文をドラフトし直す。** 最後に再ドラフト前後を照合し、Goal、Questions、Constraints、完了条件、Reopen条件、Evidenceの高さが変わっていないことを再監査する。
+内容・構造を作成して技術的一貫性を確認した後、意味、要求強度、仕様、留保、Evidence強度を固定する。そのうえで、自然な日本語となることを最重要視して全文をドラフトし直す。 最後に再ドラフト前後を照合し、Goal、Questions、Constraints、完了条件、Reopen条件、Evidenceの高さが変わっていないことを再監査する。

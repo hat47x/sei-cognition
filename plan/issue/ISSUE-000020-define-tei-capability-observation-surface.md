@@ -76,28 +76,28 @@ SEIがTEIの状態を読めても、TEIを操作するAuthorityを自動取得�
 
 ## Required scenariosへの回答
 
-1. **Applicationは利用可能だが依存Databaseの一つがread-only**  
+1. Applicationは利用可能だが依存Databaseの一つがread-only  
    Capability全体を自動的に`unavailable`とせず、対象operation / conditionに応じてadapterが制約付きObservationへ写像する。
 
-2. **Database migration proposalはあるが未採用**  
+2. Database migration proposalはあるが未採用  
    proposalをactual state changedと扱わない。Desired / proposed stateとObserved stateを分ける。
 
-3. **Application Releaseは存在するがEnvironmentへ未Binding**  
+3. Application Releaseは存在するがEnvironmentへ未Binding  
    Release存在だけから対象Environmentでのavailabilityを推定しない。
 
-4. **Pluginは解決済みだがObservation Providerが利用不能**  
+4. Pluginは解決済みだがObservation Providerが利用不能  
    観測gapをUnknownとして残し、解決済みPluginだけからavailabilityを確定しない。
 
-5. **同じCapabilityをTEIとSaaSが提供する**  
+5. 同じCapabilityをTEIとSaaSが提供する  
    Provider-neutral Observationと共通facetを用いて比較できる。Provider kindだけで優先しない。
 
-6. **TEIの一部構成がunknown**  
+6. TEIの一部構成がunknown  
    Unknownを保持したままChoiceを保留、条件付きDecision、追加Inquiryへ進める。
 
-7. **過去Decision時のTEI release / bindingを再構成する**  
+7. 過去Decision時のTEI release / bindingを再構成する  
    重要なbasisにはexact historical bindingを適用する。
 
-8. **内部topologyをSelective DisclosureしながらEvidenceだけ共有する**  
+8. 内部topologyをSelective DisclosureしながらEvidenceだけ共有する  
    raw内部構造を開示せず、必要なObservation / EvidenceとWithheld contextを共有できる。
 
 ## Current executable evidence
@@ -124,10 +124,10 @@ F1〜F7には、partial degradation、proposed / actual separation、Environment
 
 ## Remaining boundary
 
-- TEI production adapter: **Not Yet Verified**
-- actual SaaS production interoperability: **Not Yet Verified**
-- Matching / Choice production implementation: **Not Yet Verified**
-- Release / Operational Evidence: **Not Yet Verified**
+- TEI production adapter: Not Yet Verified
+- actual SaaS production interoperability: Not Yet Verified
+- Matching / Choice production implementation: Not Yet Verified
+- Release / Operational Evidence: Not Yet Verified
 
 production TEI adapterを実装する場合も、TEI固有SchemaをUniversal Coreへ昇格させず、ADR-0019 / ADR-0024のadapter boundaryを維持する。
 

@@ -2,7 +2,7 @@
 
 ## 1. 位置づけ
 
-本書は、`TEI_VERSION_EXCHANGE_EXECUTION_READINESS_2026-09-05.md` の後に追加された revision B source acquisition / actual orchestration / environment preflight の現在地をまとめる current delta です。
+本書は、`TEI_VERSION_EXCHANGE_EXECUTION_READINESS_2026-09-05.md` の後に追加されたrevision B source acquisition / actual orchestration / environment preflightの現在地をまとめるcurrent deltaです。
 
 historical Evidence、Stable Requirement、Universal Contract、supported scope、quality judgementを更新する文書ではありません。actual revision Bのbuild / Provider Plan / current SEI Adapter live testがまだ成立していないことを維持します。
 
@@ -29,13 +29,13 @@ revision A fixed reference input
 
 ### 2.1 既存local cloneからのexact checkout
 
-PR #250 / #252 / #254 により、self-containedな既存TEI Git object databaseにfixed revision B commit objectが存在する場合、元working treeを変更せず独立exact-B checkoutを作成できます。
+PR #250 / #252 / #254により、self-containedな既存TEI Git object databaseにfixed revision B commit objectが存在する場合、元working treeを変更せず独立exact-B checkoutを作成できます。
 
-入口:
+入口は次のとおりです。
 
 `runtime/integration/prepare_tei_revision_b_checkout.py`
 
-主な境界:
+主な境界は次のとおりです。
 
 - revision Bがbranch/tag/refからreachableである必要はない。
 - fixed revision B commit objectがlocal object databaseに存在すればよい。
@@ -51,13 +51,13 @@ local B commit object available
 
 ### 2.2 GitHub Git Data APIからのcontent-addressed取得
 
-PR #253 / #257 により、local cloneへrevision B objectがない場合でも、GitHub Git Data APIを取得経路としてexact-B sourceを再構成できます。
+PR #253 / #257により、local cloneへrevision B objectがない場合でも、GitHub Git Data APIを取得経路としてexact-B sourceを再構成できます。
 
-入口:
+入口は次のとおりです。
 
 `runtime/integration/prepare_tei_revision_b_source.py`
 
-処理:
+処理は次のとおりです。
 
 1. `GITHUB_TOKEN`または`GH_TOKEN`をenvironmentからのみ取得する。
 2. Git treeをtree-by-treeに辿り、各responseで`truncated=false`を要求する。
@@ -81,7 +81,7 @@ acquired bytes
 
 ### 2.3 Git source identity / materialization共通のcontrolled environment
 
-PR #271 / #273 / #274 により、local checkout、local preflight、GitHub acquisition、canonical source verifierが、literal repository / Git object graphを変え得るprocess-level Git overrideから分離されました。
+PR #271 / #273 / #274により、local checkout、local preflight、GitHub acquisition、canonical source verifierが、literal repository / Git object graphを変え得るprocess-level Git overrideから分離されました。
 
 共通helper:
 
@@ -126,7 +126,7 @@ controlled Git source identity
 
 ### 2.4 non-Git content directory verifier
 
-PR #251 の
+PR #251の
 
 `runtime/integration/verify_tei_execution_source_directory_identity.py`
 
@@ -136,9 +136,9 @@ PR #251 の
 
 ## 3. GitHub acquisitionからcanonical E2→E3までのone-shot入口
 
-PR #256 / #258 により、GitHub取得と既存canonical runnerを薄いwrapperで接続しました。
+PR #256 / #258により、GitHub取得と既存canonical runnerを薄いwrapperで接続しました。
 
-入口:
+入口は次のとおりです。
 
 `runtime/integration/run_tei_version_exchange_from_github.py`
 
@@ -180,7 +180,7 @@ PR #260 の入口:
 
 `runtime/integration/preflight_tei_version_exchange_from_github.py`
 
-検査対象:
+検査対象は次のとおりです。
 
 - Linux / amd64
 - `GITHUB_TOKEN` / `GH_TOKEN`の存在（値は出力しない）
@@ -210,7 +210,7 @@ local Git object databaseを使う場合は次を使います。
 
 `runtime/integration/preflight_tei_version_exchange_local.py`
 
-検査対象:
+検査対象は次のとおりです。
 
 - Linux / amd64
 - source cloneがGit worktreeであること
@@ -241,7 +241,7 @@ local preflight ready
 
 PR #279では、同じsource / Go versionでも親processからbuild/test結果を変え得るprocess-level Go overrideを、E2 buildとE3 live testで対称に分離しました。
 
-固定:
+固定は次のとおりです。
 
 ```text
 GOWORK=off

@@ -18,7 +18,7 @@ important concept
 
 ### `sei.semantic-reference/v1alpha1`
 
-対象:
+対象は次のとおりです。
 
 - Logical Reference
 - Exact Artifact Binding
@@ -44,7 +44,7 @@ current Executable material:
 
 ### `sei.decision-memory/v1alpha1`
 
-対象:
+対象は次のとおりです。
 
 - Decisionのhistorical reconstruction
 - context / basis / recommendation / unresolved / Responsibilityの参照役割
@@ -70,7 +70,7 @@ current Executable material:
 
 ### `sei.capability-observation/v1alpha1`
 
-対象:
+対象は次のとおりです。
 
 - Capability Definitionへの参照
 - Provider-neutralなObservation
@@ -96,7 +96,7 @@ current Executable material:
 
 ### `sei.cognitive-method/v1alpha1`
 
-対象:
+対象は次のとおりです。
 
 - Method Definition
 - Method Realization
@@ -126,7 +126,7 @@ current Executable material:
 - unknown future Method version fixture
 - standalone / Semantic Interchange双方のGo typed runtime
 
-重要な非同値関係:
+重要な非同値関係は次のとおりです。
 
 ```text
 Method Definition
@@ -143,7 +143,7 @@ Realizationが記録されていないMethod Applicationを、Realization不存�
 
 ### `sei.semantic-interchange/v1alpha1`
 
-対象:
+対象は次のとおりです。
 
 - portable semantic envelope
 - Contract identity / version

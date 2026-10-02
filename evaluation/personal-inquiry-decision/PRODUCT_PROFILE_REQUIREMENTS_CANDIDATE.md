@@ -415,7 +415,7 @@ first profileでは、画面数ではなくProjectionの役割を分ける。
 
 目的: 数分以内ではなく**できるだけ少ない再読で**現在地へ戻す。
 
-表示候補:
+表示候補は次のとおりです。
 
 - inquiry question / short context
 - important current observations

@@ -416,7 +416,7 @@ current synthetic Adapter sliceは、異なるProvider-specific input shapeか�
 
 Projectionは、人間やAIがSEIの意味資産を目的に応じて読むための表示・作業面です。
 
-例:
+例は次のとおりです。
 
 - Web workspace
 - kj-atlas

@@ -23,54 +23,54 @@ problem
 
 ### A. Qwen3.5-0.8B — sub-1B baseline
 
-位置づけ:
+位置づけは次のとおりです。
 - 最小tierの第一候補
 - extraction / classification / simple comparison / short explanation
 - Workspaceによるproblem compressionの効果を見る
 
-理由:
+理由は次のとおりです。
 - 0.8B class
 - Apache-2.0
 - 2026-09時点のllama.cpp公式READMEがGGUFを直接quick-start例に使用
 - `llama serve -hf ggml-org/Qwen3.5-0.8B-GGUF`でOpenAI-compatible serverを立てられる
 
-期待しないこと:
+期待しないこと。
 - high-novelty reasoning
 - broad factual recall
 - long autonomous planning
 
-公式参照:
+公式参照は次のとおりです。
 - https://huggingface.co/Qwen/Qwen3.5-0.8B
 - https://github.com/ggml-org/llama.cpp
 
 ### B. Gemma 3 4B IT — compact generalist comparator
 
-位置づけ:
+位置づけは次のとおりです。
 - 2–4B tierのgeneral-purpose comparator
 - instruction following / summarization / comparison / ordinary reasoning
 - reasoning-specialized modelとの対照
 
-理由:
+理由は次のとおりです。
 - Google公式4B instruction-tuned model
 - official QAT Q4_0 GGUFが存在
 - QAT版はmemoryを削減しつつBF16に近いqualityを狙う構成
 - multilingual generalistとしてSEI Cognitionの日常・組織問題に近い
 
-注意:
+注意は次のとおりです。
 - Gemma TermsでありApache/MITではない
 - model license条件とsoftware OSS条件を混同しない
 
-公式参照:
+公式参照は次のとおりです。
 - https://huggingface.co/google/gemma-3-4b-it-qat-q4_0-gguf
 - https://huggingface.co/ggml-org/gemma-3-4b-it-GGUF
 
 ### C. Phi-4-mini-reasoning 3.8B — reasoning-specialized comparator
 
-位置づけ:
+位置づけは次のとおりです。
 - bounded multi-step reasoningの比較候補
 - contradiction analysis / structured comparison / hypothesis candidate
 
-理由:
+理由は次のとおりです。
 - 3.8B parameter
 - reasoning向けpost-training
 - Microsoft model cardでは、同parameter帯の通常modelよりreasoning benchmarkを大幅に改善
@@ -78,30 +78,30 @@ problem
 
 これはSEI Cognitionの「知識は外部化し、modelはbounded reasoningへ集中させる」という仮説と相性がよい。
 
-注意:
+注意は次のとおりです。
 - llama.cppでのPhi系supportは進んでいるが、version/model variantによる互換性差が過去に存在する
 - first runでruntime frictionが大きい場合、model自体のquality評価とruntime compatibilityを分離する
 
-公式参照:
+公式参照は次のとおりです。
 - https://huggingface.co/microsoft/Phi-4-mini-reasoning
 - https://github.com/ggml-org/llama.cpp
 
 ### D. Llama 3.2 3B Instruct — optional mature baseline
 
-位置づけ:
+位置づけは次のとおりです。
 - 3B general instruct baseline
 - 新しいmodel family固有の効果を切り分ける補助
 
-理由:
+理由は次のとおりです。
 - 3B
 - conversational/instruction用途
 - local runtime実績が広い
 
-注意:
+注意は次のとおりです。
 - Llama licenseでありstrict OSS modelではない
 - first three candidatesで十分な場合は実行しない
 
-公式参照:
+公式参照は次のとおりです。
 - https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct
 
 ## 3. 最初に比較する順序
@@ -128,7 +128,7 @@ modelを大きくする前に、Step 2を必ず挟む。
 
 model間で変更してよいのは、model/runtime固有に不可避な部分だけとする。
 
-共通:
+共通は次のとおりです。
 - 同じ7 fixture
 - `raw` / `workspace` / `staged`
 - temperature = 0
@@ -150,10 +150,10 @@ Cognitive Workspaceの価値を見るため、最初は小さな共通budgetに�
 
 各modelで公式または代表的な4-bit量子化を使う。
 
-目的:
+目的は次のとおりです。
 - 実際のmemory / latency / quality trade-offを見る
 
-例:
+例は次のとおりです。
 - Gemma 3: official QAT Q4_0
 - Qwen: llama.cppで利用可能な4-bit GGUF
 
@@ -161,7 +161,7 @@ Cognitive Workspaceの価値を見るため、最初は小さな共通budgetに�
 
 可能なら近いquantization familyへ揃える。
 
-目的:
+目的は次のとおりです。
 - model差とquantization差をある程度切り分ける
 
 first passではdeployment-realistic trackを優先する。
@@ -170,14 +170,14 @@ first passではdeployment-realistic trackを優先する。
 
 first runtimeはllama.cppを候補とする。
 
-理由:
+理由は次のとおりです。
 - local CPU/GPU execution
 - broad GGUF support
 - OpenAI-compatible `/v1/chat/completions`
 - 量子化modelを扱いやすい
 - Qwen3.5-0.8Bの現行公式quick-startがある
 
-ただし:
+ただしは次のとおりです。
 
 ```text
 probe contract
@@ -190,14 +190,14 @@ vLLM / MLX / ONNX Runtime / ExecuTorch等へ後から差し替えられるよう
 
 reasoning modelが内部thoughtを生成しても、SEI Cognitionの評価正本にはしない。
 
-取得対象:
+取得対象は次のとおりです。
 - final proposal
 - evidence refs
 - preserved Unknown / Conflict
 - need-more-evidence
 - externally inspectable claims
 
-取得不要:
+取得不要は次のとおりです。
 - private chain-of-thought
 - full hidden reasoning trace
 
@@ -241,7 +241,7 @@ model × fixture × modeごとに:
 
 比較器が出すのは、少なくとも次の独立した記述量である。
 
-- mode別 evaluated / skipped fixture数;
+- mode別evaluated / skipped fixture数;
 - Unknown / Conflict preservation rateの平均;
 - Recommendation / Decision separation件数;
 - historical basis violation数;
@@ -301,7 +301,7 @@ KV cache usage ratio / tokens
 
 machine evaluatorとは別に、actual resultへhuman adjudication sidecarを付ける。対象はmodel outputが実在するfixtureだけで、staged routing skipはhuman task-success判定へ含めない。
 
-記録:
+記録は次のとおりです。
 
 - task success: pass / fail / uncertain;
 - semantic boundary: preserved / violated / uncertain;
@@ -323,7 +323,7 @@ model sizeではなくcontext shapingに価値がある。
 
 ### 0.8Bと4Bの両方が同じ失敗をする場合
 
-大型化前に:
+大型化前には次のとおりです。
 - selected evidence
 - missing evidence
 - problem decomposition

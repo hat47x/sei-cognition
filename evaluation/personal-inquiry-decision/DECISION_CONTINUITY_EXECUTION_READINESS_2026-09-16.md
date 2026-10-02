@@ -326,7 +326,7 @@ H2では、raw chat、chronological note、SEI Resume Projectionを同等素材�
 
 正規入口は073/078で共有する`inquiry_continuity_review_runner.py`です。Decision専用runnerやsession managerは増やしません。初期sessionはexclusive-createし、同じpathへの再`init`を拒否します。provenance付きsessionについては低レベル`matched_review_session.py` CLIの`packets` / `record`も拒否し、Issue固有validationを迂回してstageを進めないようにします。complete reviewのEvidence exportも同じrunnerの`export-evidence`から行います。
 
-例:
+例は次のとおりです。
 
 ```text
 RUNNER=evaluation/personal-inquiry-decision/inquiry_continuity_review_runner.py

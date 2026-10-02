@@ -347,11 +347,11 @@ Requirement
 
 少なくとも次の対立解釈を検討する。
 
-- 深層へアクセスする基盤 vs 既知の判断を保存する基盤
+- 深層へアクセスする基盤vs既知の判断を保存する基盤
 - Cognitive Commons vs privacy / bounded access
-- 静かな基盤 vs proactive assistance
-- 非収束性 vs decision latency
-- 余白を守る vs structure不足
+- 静かな基盤vs proactive assistance
+- 非収束性vs decision latency
+- 余白を守るvs structure不足
 - shared cognition vs clear Responsibility
 - poetic coherence vs practical product differentiation
 

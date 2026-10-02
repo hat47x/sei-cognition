@@ -169,7 +169,7 @@ historical representative Actions Run:
 - Contract Conformance Run `33527512045`: **success**
 - Semantic Runtime Conformance Run `33527512016`: **success**
 
-主な検査対象:
+主な検査対象は次のとおりです。
 
 - Capability Observation F1〜F7
 - Cognitive Method C1〜C8
@@ -192,7 +192,7 @@ Go semantic runtimeはread / validate / reconstructを中核とし、workflow / 
 
 current bundle-local consistencyでは、`RecordValidated`になったknown typed ContractだけからExact Referenceを抽出します。
 
-対象:
+対象は次のとおりです。
 
 - Decision / RecommendationのReference role
 - Cognitive Method Definition / Realization / ApplicationのReference role

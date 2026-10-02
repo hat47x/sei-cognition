@@ -198,7 +198,7 @@ Decision ContinuityをProduct Valueへ置くなら、「SEIの方がよいはず
 
 ISSUE-000073のhuman reviewでは、可能な範囲で単純な代替手段とのcounterfactualを持ちます。
 
-例:
+例は次のとおりです。
 
 ```text
 A: raw chat / chronological notesだけから再開

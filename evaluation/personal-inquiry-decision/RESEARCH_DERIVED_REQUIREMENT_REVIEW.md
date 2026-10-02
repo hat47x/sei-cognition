@@ -41,7 +41,7 @@ SEI personal wedge
 
 既存の外部sourceを置く。
 
-例:
+例は次のとおりです。
 
 - AI conversation
 - Web page
@@ -206,7 +206,7 @@ rationale記録の完全性を追求して入力負担で失敗しない。最�
 
 **Research-derived judgement:** first dogfoodではMUST相当。
 
-理由:
+理由は次のとおりです。
 
 - task resumptionでは現在のgoal contextを復元するcueが重要
 - long-term memoryではknowledge update / dynamic state trackingが難所
@@ -218,7 +218,7 @@ Stable Requirementのpriority変更ではなく、evaluation profile上の優先
 
 **Research-derived judgement:** first dogfoodではMUST相当。
 
-理由:
+理由は次のとおりです。
 
 - late-arriving Evidenceをpast Decision basisへ混入させないための前提となる
 - valid time / transaction timeを分けるbitemporalな考え方と整合する
@@ -241,7 +241,7 @@ Stable Requirementのpriority変更ではなく、evaluation profile上の優先
 
 独立PICを増やさずPIC-010へ含める。
 
-候補追記:
+候補追記は次のとおりです。
 
 > Inquiry内部の再定位は、利用者が適切な検索queryを思い出し入力することを前提にしてはならない。Inquiryを開くと、current stateへ戻るためのcueを取得できること。
 
@@ -293,7 +293,7 @@ PIC-021の重要性はresearchで上がった。
 
 今は新しい`requirements/profiles/`正本階層を作らない。
 
-正式化順序:
+正式化順序は次のとおりです。
 
 ```text
 research-derived hypothesis
@@ -341,7 +341,7 @@ export portable inquiry state
 
 ## 11. Product message candidate
 
-外部競合との境界を明瞭にする内部説明候補:
+外部競合との境界を明瞭にする内部説明候補は次のとおりです。
 
 > **Return me to the last faithful state of the inquiry, not merely the last conversation.**
 

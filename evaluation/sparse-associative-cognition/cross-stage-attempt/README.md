@@ -25,7 +25,7 @@ future result artifact
 
 ## 2. 責務境界
 
-execution-attempt artifactが記録するもの:
+execution-attempt artifactが記録するもの。
 
 - exact authorized `run_digest`
 - executor ref + exact Git commit
@@ -36,7 +36,7 @@ execution-attempt artifactが記録するもの:
 - runner-log / environment-capture / raw-outputのdigest-bound Evidence
 - canonical attempt digest
 
-記録しないもの:
+記録しないもの。
 
 - benchmark metric
 - quality / semantic score

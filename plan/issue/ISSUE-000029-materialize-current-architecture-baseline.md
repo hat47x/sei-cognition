@@ -61,13 +61,13 @@ old Milestone、field set、package、algorithm、local PASSはcurrentへ自動�
 
 ## Current evidence state
 
-- Architecture Design Baseline: **Satisfied**
-- Architecture → Contract traceability: **Satisfied — ISSUE-000030**
-- Contract / Fixture conformance: **Satisfied within ISSUE-000031 scope**
-- first semantic runtime: **Satisfied within ISSUE-000033 scope**
-- synthetic Provider Adapter: **Satisfied within ISSUE-000036 scope**
-- full Requirement implementation coverage: **Not Yet Verified**
-- Release / Operational: **Not Yet Verified**
+- Architecture Design Baseline: Satisfied
+- Architecture → Contract traceability: Satisfied — ISSUE-000030
+- Contract / Fixture conformance: Satisfied within ISSUE-000031 scope
+- first semantic runtime: Satisfied within ISSUE-000033 scope
+- synthetic Provider Adapter: Satisfied within ISSUE-000036 scope
+- full Requirement implementation coverage: Not Yet Verified
+- Release / Operational: Not Yet Verified
 
 Architecture文書自体がExecutable Evidenceなのではない。後続Contract / Runtimeがcurrent Architectureと整合する範囲をactual CIで確認できるようになった、という位置づけである。
 

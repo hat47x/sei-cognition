@@ -19,7 +19,7 @@ Updated: 2026-08-31
 
 ## Current disposition
 
-**Deferred**とする。
+Deferredとする。
 
 現行Product / ADR / Issueは、最新議論とactual implementationを優先して整備する。
 

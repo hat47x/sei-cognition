@@ -93,7 +93,7 @@ TEI側に残る`soza`は次の2件で、いずれも環境変数ではなくTEI�
 
 ### Phase 1 — Contract identity
 
-対象は portable Contract 5、Representation Profile 2、verifier reference 2、JSON Schema `$id` host 5file、negative / boundary fixture identity 3件です。
+対象はportable Contract 5、Representation Profile 2、verifier reference 2、JSON Schema `$id` host 5file、negative / boundary fixture identity 3件です。
 
 - PASS: `tools/check_contract_conformance.py`と`tools/check_representation_profiles.py`が成功し、`fixtures/contracts/`と`fixtures/representation-profiles/`のすべてが新identityで検証を通る。`runtime/go/`のtestが成功する。
 - FAIL: 上記のいずれかが失敗する。

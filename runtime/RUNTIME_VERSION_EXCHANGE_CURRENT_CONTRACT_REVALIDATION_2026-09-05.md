@@ -5,7 +5,7 @@
 
 ## 1. 目的
 
-`codex/issue-000070-actual-evidence`から回収したactual runtime version交換Evidenceが、実行当時だけでなく**現在の`develop/v0.2.0`のResolution Criteria / Requirement / Contractにもそのまま適用できるか**を、Git object identityで再監査する。
+`codex/issue-000070-actual-evidence`から回収したactual runtime version交換Evidenceが、実行当時だけでなく現在の`develop/v0.2.0`のResolution Criteria / Requirement / Contractにもそのまま適用できるかを、Git object identityで再監査する。
 
 この監査はactual Ollama A/Bを再実行したものではない。保存済みactual Evidenceが検証された基準と、現在の基準が同一であるかを確認するcurrent-contract equivalence auditである。
 
@@ -58,7 +58,7 @@ actual run commitとcurrent `develop/v0.2.0`をGit object identityで比較し�
 
 - actual run commit blob: `19e4802c8254bb4f76ce168f14aeff128cb2159c`
 - current develop blob: `19e4802c8254bb4f76ce168f14aeff128cb2159c`
-- 判定: **identical**
+- 判定: identical
 
 したがって、actual run後にResolution Criteriaが追加・変更された事実はない。
 
@@ -68,7 +68,7 @@ actual run commitとcurrent `develop/v0.2.0`をGit object identityで比較し�
 
 - actual run commit blob: `1e9f382e51b81f72e625824a1ebb8de58095f5c8`
 - current develop blob: `1e9f382e51b81f72e625824a1ebb8de58095f5c8`
-- 判定: **identical**
+- 判定: identical
 
 ### Evidence + Provenance verifier
 
@@ -76,7 +76,7 @@ actual run commitとcurrent `develop/v0.2.0`をGit object identityで比較し�
 
 - actual run commit blob: `6243d4bb8607b290b2494135a08840fffb4415c8`
 - current develop blob: `6243d4bb8607b290b2494135a08840fffb4415c8`
-- 判定: **identical**
+- 判定: identical
 
 保存済み`verification.json`を生成した機械判定と、current canonical verifierの判定ロジックは同一である。
 
@@ -86,7 +86,7 @@ actual run commitとcurrent `develop/v0.2.0`をGit object identityで比較し�
 
 - actual run commit blob: `c567edfa90d452f1945585a775ac5f8eef6ffc38`
 - current develop blob: `c567edfa90d452f1945585a775ac5f8eef6ffc38`
-- 判定: **identical**
+- 判定: identical
 
 runtime A / B、KJ Atlas source、model artifact等の固定条件も漂流していない。
 
@@ -96,7 +96,7 @@ runtime A / B、KJ Atlas source、model artifact等の固定条件も漂流し�
 
 - actual run commit blob: `deb59d99c7c6bd56d8cc9a79db6e1d25beb7eba1`
 - current develop blob: `deb59d99c7c6bd56d8cc9a79db6e1d25beb7eba1`
-- 判定: **identical**
+- 判定: identical
 
 ### Acceptance Scenarios
 
@@ -104,7 +104,7 @@ runtime A / B、KJ Atlas source、model artifact等の固定条件も漂流し�
 
 - actual run commit blob: `efaa2317afaf8f77d15ae8d49b4e269970e062dc`
 - current develop blob: `efaa2317afaf8f77d15ae8d49b4e269970e062dc`
-- 判定: **identical**
+- 判定: identical
 
 ### Semantic Contract baseline
 
@@ -156,7 +156,7 @@ historical actual Evidence recovered
 - Acceptance Scenarios
 - relevant Semantic Contract baseline
 
-したがって、「後から強化された別verifier / 別contractへまだ通していない」という前提自体が成立しない。保存済みverificationは、current canonical verifierと**同じ実装**・current fixed artifact manifestと**同じ固定条件**に対する結果である。
+したがって、「後から強化された別verifier / 別contractへまだ通していない」という前提自体が成立しない。保存済みverificationは、current canonical verifierと同じ実装・current fixed artifact manifestと同じ固定条件に対する結果である。
 
 repository内archiveを別pathで再実行することは再現性確認として有用だが、current IssueのResolution Criteriaに新しく追加された条件ではなく、今回のResolution判定を保留する理由にはしない。
 

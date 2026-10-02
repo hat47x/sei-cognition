@@ -7,7 +7,7 @@ Updated: 2026-09-01
 
 ## Goal
 
-PMS-05とProduct Identity / Access / Collaboration baselineで定めた境界について、**authentication identity、Bounded Subject、Product access permission、semantic Responsibilityを混同せずに扱えること**をGoのreference probeで検証する。
+PMS-05とProduct Identity / Access / Collaboration baselineで定めた境界について、authentication identity、Bounded Subject、Product access permission、semantic Responsibilityを混同せずに扱えることをGoのreference probeで検証する。
 
 あわせて、外部collaborator向けSelective Disclosureでcanonical sourceを変更せず、非開示情報を`unknown`へ読み替えないことを確認する。
 
@@ -36,49 +36,49 @@ canonical meaningは新しく定義せず、既存の`interactionprobe.Canonical
 
 ### 1. 複数authentication identityを同じBounded Subjectへbindingする
 
-**Satisfied in scoped Executable Evidence.**
+Satisfied in scoped Executable Evidence.
 
 旧IdP相当と新IdP相当の二つのidentityを`subject(org-a, alice)`へbindingし、どちらから同じDecisionを読んでもhistorical Responsibility Refが変化しないことを確認した。
 
 ### 2. IdP相当identity交換後もcanonical Responsibilityを保持する
 
-**Satisfied in scoped Executable Evidence.**
+Satisfied in scoped Executable Evidence.
 
 認証Provider固有subjectを変更しても、Decision内のResponsibility Refを現在のlogin subjectへ書き換えない。
 
 ### 3. semantic ResponsibilityからProduct permissionを推定しない
 
-**Satisfied in scoped Executable Evidence.**
+Satisfied in scoped Executable Evidence.
 
 DecisionにAliceのResponsibilityが記録されていても、Product Policyに`read` grantがなければreadを拒否した。
 
 ### 4. Product administratorからsemantic Responsibilityを生成しない
 
-**Satisfied in scoped Executable Evidence.**
+Satisfied in scoped Executable Evidence.
 
 Bobへ`administer` permissionを与えても、既存DecisionのResponsibilityはAliceのまま保持され、canonical digestも変化しないことを確認した。
 
 ### 5. actor kindからpermissionを推定しない
 
-**Satisfied in scoped Executable Evidence.**
+Satisfied in scoped Executable Evidence.
 
 binding済みのAI主体でもgrantがなければappendを拒否する。human主体であることだけからpermissionを付与する経路も持たない。
 
 ### 6. `not_evaluated`と`denied`を区別する
 
-**Satisfied in scoped Executable Evidence.**
+Satisfied in scoped Executable Evidence.
 
 Bounded Subjectへ解決済みだがgrantがない場合は`denied`、identity bindingが存在せず評価contextを作れない場合は`not_evaluated`として区別した。
 
 ### 7. enforcementはsafe failureできる
 
-**Satisfied in scoped Executable Evidence.**
+Satisfied in scoped Executable Evidence.
 
 `denied` / `not_evaluated`のいずれでもcanonical accessを許可せず、監査上の評価状態をerrorへ保持できる。
 
 ### 8. Selective Disclosureで非開示recordを`withheld`として扱う
 
-**Satisfied in scoped Executable Evidence.**
+Satisfied in scoped Executable Evidence.
 
 external collaborator向けProjectionで非開示Decision本文を返さず、`WithheldCount`として非開示recordの存在だけを外在化した。
 
@@ -86,19 +86,19 @@ fake Unknown semantic recordは生成していない。
 
 ### 9. Disclosure Projectionでcanonical sourceを変更しない
 
-**Satisfied in scoped Executable Evidence.**
+Satisfied in scoped Executable Evidence.
 
 Projection生成前後で`CanonicalStore.Digest()`が一致し、非開示Decision自体もcanonical sourceへ残っていることを確認した。
 
 ### 10. Product Scope readなしではProjectionを返さない
 
-**Satisfied in scoped Executable Evidence.**
+Satisfied in scoped Executable Evidence.
 
 identity bindingがあっても`read` grantがない主体へSelective Disclosure Projection自体を返さない。
 
 ### 11. Product permission変更でhistorical Decision / Responsibilityを書き換えない
 
-**Satisfied in scoped Executable Evidence within tested fixture.**
+Satisfied in scoped Executable Evidence within tested fixture.
 
 Product administrator permissionを追加してもcanonical Decision / Responsibilityが変化しないことをdigestとrecord内容で確認した。
 
@@ -165,19 +165,19 @@ production IdP、実team deployment、またはexternal collaborationの次段�
 - [x] 自然な日本語全文再ドラフトと最終意味監査を行う。
 - [x] 対象CIをsuccessさせる。
 
-初期probe head `41463a0881d7d9623a1f4fa36350747cce8d8bbd`では、Semantic Runtime Conformance Run `33511885433`が**success**した。
+初期probe head `41463a0881d7d9623a1f4fa36350747cce8d8bbd`では、Semantic Runtime Conformance Run `33511885433`がsuccessした。
 
-最終同期前head `4b05854ff4e31dd625e73a0fc05afe8e4bbbf0ec`では、Semantic Runtime Conformance Run `33513323477`、Plan integrity Run `33513323475`、Local Package Artifact Run `33513323460`がすべて**success**した。
+最終同期前head `4b05854ff4e31dd625e73a0fc05afe8e4bbbf0ec`では、Semantic Runtime Conformance Run `33513323477`、Plan integrity Run `33513323475`、Local Package Artifact Run `33513323460`がすべてsuccessした。
 
-Evidence文書へ最終Runを同期したhead `85401ec7d28aca84047923619bc54abb77880054`でも、Semantic Runtime Conformance Run `33513470530`、Plan integrity Run `33513470462`、Local Package Artifact Run `33513470467`がすべて**success**した。
+Evidence文書へ最終Runを同期したhead `85401ec7d28aca84047923619bc54abb77880054`でも、Semantic Runtime Conformance Run `33513470530`、Plan integrity Run `33513470462`、Local Package Artifact Run `33513470467`がすべてsuccessした。
 
 ## Evidence state
 
-- Design Evidence: **Satisfied**
-- Executable Evidence: **Scoped Evidence available** — `runtime/go/accessprobe`と上記Semantic Runtime Conformance Run。
-- Release Evidence: **Not Yet Verified**
-- Operational Evidence: **Not Yet Verified**
-- Adoption / Outcome Evidence: **Not Yet Verified**
+- Design Evidence: Satisfied
+- Executable Evidence: Scoped Evidence available — `runtime/go/accessprobe`と上記Semantic Runtime Conformance Run。
+- Release Evidence: Not Yet Verified
+- Operational Evidence: Not Yet Verified
+- Adoption / Outcome Evidence: Not Yet Verified
 
 詳細は`runtime/ACCESS_COLLABORATION_PROBE_EVIDENCE_2026-09-01.md`を正とする。
 

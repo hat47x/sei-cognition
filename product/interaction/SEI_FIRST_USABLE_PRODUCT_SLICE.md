@@ -230,7 +230,7 @@ Progressive Explicitnessを「詳細画面を用意する」だけで満たし�
 
 first sliceでは、各操作で**必要な意味だけを前面に出し、なぜ追加情報が必要なのかを利用者が理解できること**を目指します。
 
-例:
+例は次のとおりです。
 
 - 最初のInquiry: 短い問いだけで開始可能。
 - Recommendationを採る: basisの確認を促せる。

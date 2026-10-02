@@ -25,10 +25,10 @@ Universal Coreは意味境界を定義し、案件ごとの必須Artifact / rela
 
 ## Current evidence
 
-- Design boundary: **Satisfied**
-- Decision Memory Contractでのoptional representation: **Satisfied**
-- Profile / Policy obligation resolutionのProduction Executable Evidence: **Not Yet Verified**
-- Release / Operational Evidence: **Not Yet Verified**
+- Design boundary: Satisfied
+- Decision Memory Contractでのoptional representation: Satisfied
+- Profile / Policy obligation resolutionのProduction Executable Evidence: Not Yet Verified
+- Release / Operational Evidence: Not Yet Verified
 
 ## Natural Japanese review
 

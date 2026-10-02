@@ -7,7 +7,7 @@
 
 本書は、current Semantic Contractから再導出したGo Semantic Runtime、synthetic Provider Adapter、Representation Verifier Registry、Payload Source boundary、およびv0.2.0で追加したCognitive Method first sliceについて、actual repository上で再現したExecutable Evidenceを記録します。
 
-対象:
+対象は次のとおりです。
 
 ```text
 runtime/go/semanticruntime/
@@ -62,7 +62,7 @@ Pattern != Cognitive Method
 
 ADR-0025 / ISSUE-000043に基づき、Cognitive Methodのportable meaningをfirst semantic runtimeへ追加しました。
 
-実装:
+実装は次のとおりです。
 
 ```text
 runtime/go/semanticruntime/cognitive_method.go
@@ -245,7 +245,7 @@ endpoint
 
 Provider固有fieldをSOZA Universal ontologyにはしません。
 
-主な確認範囲:
+主な確認範囲は次のとおりです。
 
 - 異なるinput shapeから同じCapabilityへのObservationを生成する。
 - status interpretation / unit conversionをmappingとして扱う。
