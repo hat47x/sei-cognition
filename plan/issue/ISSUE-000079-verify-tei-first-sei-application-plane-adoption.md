@@ -3,7 +3,7 @@
 Status: **Resolved**  
 Priority: **1**  
 Related ADRs: **ADR-0014, ADR-0021, ADR-0028**  
-Updated: 2026-09-18
+Updated: 2026-10-02
 
 ## Goal
 
@@ -471,6 +471,34 @@ Change 1ではsemantic compatibilityを確認したがnative SEI比のchange-amp
 Challenge Bのmapping-only監査まで完了した。次の高情報量Evidenceは、TEI Gate B / Handover / First Targetが実Application PlaneをPressureできる状態になった後のChange 2再開、またはSUI / SEI双方から独立に成立したReview / Diff実装の再利用性Pressureである。
 
 それまではReference専用のUI / Presentation surrogateを増やさず、SEIのheadless / native Product Value検証を独立に継続する。
+
+## 2026-09-27 Change 2の再開条件の成立の記録
+
+2026-09-18の「Change 2 Gate boundary」は、Change 2を、Gate B Ready + Handover Baseline固定 + First Web Target着手の後に再開する条件としました。TEI側の2026-09-22のREADMEは、この三つが成立したと示しています。
+
+- Gate B: **Ready**（candidate revision `R = e5231839a5dcc62cce1181a2731fcb7c70d16736`）
+- Handover Baseline `B / R`: **固定済み**
+- First Web Target: build `T = 0ba87a4e0a96f70a198b03ff7652fb00e3826abe`が、Evidenceとともに実装済み
+- Gate C: **Ready**。ただし、見た目の忠実度（Visual Fidelity）は単一のAI評価者による判定であり、人による確認ではない
+
+出所は`hat47x/tei-platform:README.md`（2026-09-22時点）と、`plan/GATE_B_READINESS_AUDIT.md`、`plan/GATE_C_READINESS_AUDIT.md`です。
+
+したがって、**再開条件は成立しています。** ただし、次を明確にしておきます。
+
+```text
+reopen condition satisfied
+  != Change 2 executed
+  != TEI Presentation leverage observed
+  != native SEI比のchange-amplification reductionの観測
+```
+
+- Change 2は**まだ実行していません。** Product behaviorの比較も、Evidenceもありません。
+- Gate C ReadyはSingle AI評価者の判定であり、Presentationの人による確認ではありません。
+- 本Issueは**Resolvedのまま**とし、Statusと`plan/registry.yaml`は変更しません。Change 2の結果は、この節に続く後続Evidenceとして扱います。
+
+次の手順（提案）は、TEI側の`hat47x/tei-platform:plan/issue/000070-sei-reference-adoption-change2-resumption.md`（Proposed）で示されています。このファイルは、TEI側の未mergeブランチ`docs/family-apex-backflow-20260927`上にだけ存在します。TEIの所有者が受け入れた後に、Application PlaneのPresentationの比較を行います。それまで、Reference専用のUI / Presentation surrogateは作りません。
+
+この記録は、ADR-0032（Proposed）と同じ作業単位で追記しました。Change 2の実行を、ADR-0032の受け入れの条件にはしません。
 
 ## Natural Japanese review
 

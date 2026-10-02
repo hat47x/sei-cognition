@@ -3,7 +3,7 @@
 Status: **Open**  
 Priority: **1**  
 Related ADRs: **ADR-0005, ADR-0010, ADR-0028, ADR-0029**  
-Updated: 2026-09-18
+Updated: 2026-10-02
 
 ## Goal
 
@@ -366,6 +366,16 @@ faster resume
   = Product Value improvementではない
 ```
 
+**【提案・ADR-0032 / 2026-10-02】主な指標と副次の指標の重みづけ。** 一人で再開する速さは、各ベンダーの記憶機能が伸びるほど代替されやすい価値です。したがってH1 / H2の人手レビューでは、次を**主な指標**に置きます。
+
+1. historical basisへの誤帰属（Decision後の情報を、当時から知っていたように読む誤り）
+2. AI suggestionの誤った昇格（RecommendationをDecisionと読む、provisionalなものをcanonicalと読む誤り）
+3. プロバイダ（AIモデルや記憶の提供元）を交換した後の継続
+
+time-to-orientation（再開までの時間）、操作数、mental effortは**副次の指標**とします。副次の指標が良くても、主な指標が悪ければ成功とは扱いません。
+
+この変更はResolution条件を強めたり弱めたりしません。E1〜E8とH1 / H2の観測項目は、すでにこれらを含んでいます。観測の重みづけを明示するだけです。プロバイダ交換後の継続は、`SEI_VALUE_ACCEPTANCE.md`のV4のプロバイダ離脱訓練（ISSUE-000083）とも対応します。
+
 SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw chat / simple noteで十分である、またはcapture overheadが利益を上回る場合は、Decision Continuity Product hypothesisを弱める・scopeを狭めるEvidenceとして記録する。
 
 ## Deliverables
@@ -476,3 +486,5 @@ H2についても同日、073専用の別runnerを増やさず、既存Inquiry C
 同日の後続監査ではcurrent manifest / fixtureのstatic整合とactual-repository integration test sourceまで確認し、そのfocused Python testをclean HEAD / source binding付きでEvidence化するcapture入口も追加した。capture workflow self-testのPASSは受入れ経路だけのExecutable Evidenceであり、Decision regression actual PASSやH2 human observationへは昇格させない。
 
 SEIのsemantic integrityが高いだけではProduct Valueとせず、historical誤帰属、Recommendation / Decision混同、再構成負担を実際に減らし、その利益がcapture / review overheadを上回るかまでを見る。価値差がない結果もProduct hypothesisを修正する正当なEvidenceとして扱う。意味、要求強度、留保、Evidenceの高さを固定したうえで自然な日本語として読み直し、最終意味監査を実施した。
+
+2026-10-02には、ADR-0032（Proposed）に沿って、H2の解釈規則へ、主な指標（誤帰属、誤った昇格、プロバイダ交換後の継続）と副次の指標（再開の速さ等）の重みづけを提案として追記した。Resolution条件とEvidenceの高さは変えていない。
