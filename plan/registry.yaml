@@ -1,5 +1,5 @@
 schema: sei.plan-registry/v1
-updated: 2026-09-18
+updated: 2026-10-02
 
 adr:
   - id: ADR-0001
@@ -126,6 +126,10 @@ adr:
     file: plan/adr/ADR-0031-product-rename-sei-cognition-identifier-boundary.md
     status: Accepted
     related_issues: [ISSUE-000075]
+  - id: ADR-0032
+    file: plan/adr/ADR-0032-learned-component-admission-boundary.md
+    status: Proposed
+    related_issues: []
 
 issue:
   - {id: ISSUE-000001, file: plan/issue/ISSUE-000001-operationalize-moving-future-horizon.md, status: Resolved, priority: 4, related_adrs: [ADR-0001]}
