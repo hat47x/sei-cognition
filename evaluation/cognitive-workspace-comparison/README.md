@@ -1,7 +1,7 @@
 # Cognitive Workspace Comparison — Raw Context vs Bounded Cognition
 
-更新日: 2026-09-12  
-状態: **Evaluation-only Comparison Harness**  
+更新日: 2026-10-02  
+状態: **Evaluation-only Comparison Harness（§2.1は ADR-0032 Proposed による提案）**  
 関連: Issue #383 / #381 / #375 / #371
 
 ## 1. 根幹の趣旨
@@ -63,6 +63,20 @@ SEI Cognition側に都合のよい比較にしない。
 - novelty / fresh-data caseで推測せずEvidence expansionへ戻せる
 - late-arriving evidenceをhistorical Decision basisへ混ぜにくくなる
 - small/local reasonerでもbounded problemなら十分なcaseが増える
+
+### 2.1 脱皮台帳への一般化と、Workspaceの再正当化（提案 — ISSUE-000083 / ADR-0032）
+
+上の反証の条件は、Cognitive Workspaceとstaged routingだけに当てはまるものではありません。SEIの各仕組みについて、**なぜ必要なのか（正当化の札）**と**何が観測されたら縮小するか（縮小の条件、tripwire）**を先に書く台帳へ広げることを提案します。札は次の三つです。
+
+- **制度** — 権限、責任、時間、複数の主体に由来する。モデルが強くなっても残るか、強まる。
+- **容量** — モデルの弱さを補うために必要。薄くなる。
+- **経済・物理** — コスト、電力、通信、privacyに由来する。一部は残る。
+
+台帳の初期内容は`plan/issue/ISSUE-000083-maintain-model-progress-robustness-register.md`にあります。新しい世代の基盤モデルが出たときは、この比較をA / B / Cで再実行し、`historical PASS != current PASS`として記録します。
+
+Cognitive Workspaceについては、正当化を「容量」から「**開示範囲**」へ移すことを提案します。文脈長が伸び、生の履歴を読み直すコストが下がれば、「小さい文脈に絞らないと扱えない」という容量の理由は弱まります。一方、「この主体に、何を見せてよいか」という権限と開示範囲の理由は残ります。したがって、上の反証条件のうち「Raw Contextでも同程度に保持される」が成立しても、開示範囲を制御する必要が残る限り、Workspaceを全面的には縮小しません。容量のための部分だけを縮小します。
+
+この再正当化は評価仮説であり、Stable RequirementやUniversal Contractではありません。
 
 ## 3. 比較条件
 

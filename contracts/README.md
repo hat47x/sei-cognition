@@ -1,6 +1,6 @@
 # SEI Contracts
 
-更新日: 2026-09-05  
+更新日: 2026-10-02  
 状態: **Current Contract Baseline / Scoped Executable Evidence Available / v0.2.0 Release Evidence Reflected**
 
 ## 1. このディレクトリの役割
@@ -46,6 +46,11 @@ schemaだけに新しいsemantic requirementを追加しません。Markdownとs
 | Semantic Interchange | `sei.semantic-interchange` | `v1alpha1` | Design baseline + scoped Executable Evidence |
 
 5 Contract familyの意味境界は各Definitionを正本とします。対応Requirement、ADR、Architecture、fixture、runtimeとの関係は`CONTRACT_CATALOG.md`と`TRACEABILITY.md`を参照します。
+
+### 3.1 参考資料（非規範）
+
+- `EXTERNAL_STANDARD_MAPPING.md` — W3C PROV-O、Open Memory Protocol（v0.2草案）、C2PAとの参考の対応表。Contractではなく、準拠の宣言でも相互運用の実証でもありません（ADR-0032、Proposed）。
+- `CONTRACT_CATALOG.md` §5.1 — 安定化と長期互換の経路の**提案**。Contract versionの変更ではありません。
 
 ## 4. Representation Profile
 
@@ -146,4 +151,4 @@ Contract文書は、意味・規範強度・例外・Evidence境界を確定し�
 
 旧版に残っていた「4 Contract family」「17 fixture」「production Provider / TEI未確認」「Release Evidence未成立」という2026-08-31時点の記述をcurrent stateへ更新しました。
 
-そのうえで、ISSUE-000070のfixed-scope Evidenceをarbitrary portabilityや成果品質へ拡張せず、ISSUE-000072 revision B actual、Operational / Adoption・Outcomeを未検証として残しています。意味、権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して最終意味監査を行いました。
+そのうえで、ISSUE-000070のfixed-scope Evidenceをarbitrary portabilityや成果品質へ拡張せず、ISSUE-000072 revision B actual、Operational / Adoption・Outcomeを未検証として残しています。意味、権威関係、留保、Evidence強度を変えず、自然な日本語となることを最重要視して最終意味監査を行いました。2026-10-02には、非規範の参考資料として外部標準との対応表を索引に加えました。Contractとversionは変えていません。

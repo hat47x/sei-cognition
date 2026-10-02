@@ -39,7 +39,7 @@ architecture/
     HISTORICAL_ARCHITECTURE_MAPPING.md
 ```
 
-- `SEI_REFERENCE_ARCHITECTURE.md` — current SEI全体のReference Architecture。
+- `SEI_REFERENCE_ARCHITECTURE.md` — current SEI全体のReference Architecture。§20.1には、外部の強い仕組みとの境界B1〜B8を、ADR-0032（Proposed）に基づく提案・informativeとして置いている（current baselineではない）。
 - `SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md` — ISSUE-000073のresume-first Product Sliceについて、canonical / derived / transient / external state authority、working set、Resume Projection、AI suggestion、semantic commit、stale-write / partial-commit境界を定義する。
 - `SEI_DEPLOYMENT_ARCHITECTURE.md` — ADR-0029に基づくLocal Single-Node Packageのcomponent配置、Persistence、save / resume、export / import境界。
 - `SEI_PRODUCT_ACCESS_ARCHITECTURE.md` — ADR-0030に基づくAuthentication、Identity Binding、Product Access Policy、Guarded Canonical Access、Selective Disclosureの配置。
