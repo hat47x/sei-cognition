@@ -357,6 +357,58 @@ class PapayaCandidateMaterializerTest(unittest.TestCase):
             self.assertFalse(output.exists())
             self.assertEqual(list(root.iterdir()), [])
 
+    def test_oversized_stream_stops_at_attested_boundary_without_retry(self):
+        entry = {
+            "path": "model.gguf",
+            "role": "q8_backbone",
+            "revision": "a" * 40,
+            "url": "https://example.invalid/model",
+            "bytes": 5,
+            "sha256": hashlib.sha256(b"right").hexdigest(),
+        }
+        stream_calls = 0
+        read_calls = 0
+
+        class OversizedStream:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def read(self, _size=-1):
+                nonlocal read_calls
+                read_calls += 1
+                if read_calls == 1:
+                    return b"right"
+                if read_calls == 2:
+                    return b"extra"
+                raise AssertionError("downloader read past oversized boundary")
+
+        def stream(_url, _timeout):
+            nonlocal stream_calls
+            stream_calls += 1
+            return OversizedStream()
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            output = root / "candidate"
+            with self.assertRaisesRegex(
+                mod.PapayaCandidateTransportError,
+                "exceeded expected",
+            ):
+                mod.materialize_entries(
+                    [entry],
+                    output,
+                    attempts=3,
+                    stream_factory=stream,
+                    input_verifier=lambda _root: {"verified": True},
+                )
+            self.assertEqual(stream_calls, 1)
+            self.assertEqual(read_calls, 2)
+            self.assertFalse(output.exists())
+            self.assertEqual(list(root.iterdir()), [])
+
     def test_integrity_failure_is_not_retried(self):
         entry = {
             "path": "model.gguf",
