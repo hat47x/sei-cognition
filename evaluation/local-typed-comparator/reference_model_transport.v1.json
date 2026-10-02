@@ -1,8 +1,8 @@
 {
   "schema": "sei.local-typed-comparator-reference-model-transport/v1",
   "status": "transport-candidate",
-  "observed_date": "2026-09-27",
-  "observed_from_sei_source_sha": "143e84d2fe1490f2a7d190cb7f15610f40f3cdcf",
+  "observed_date": "2026-10-02",
+  "observed_from_sei_source_sha": "f052d3255f0be6bf6f433b136867b680372eafc5",
   "reference_contract": {
     "attestation_schema": "sei.local-typed-comparator-reference-model-directory-attestation/v1",
     "repository": "convaiinnovations/laya-typed-decisions",
