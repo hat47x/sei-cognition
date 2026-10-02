@@ -27,17 +27,43 @@ SCHEMA = "sei.local-typed-comparator-reference-model-transport/v1"
 STATUS = "transport-candidate"
 HF_ID = "huggingface-immutable"
 MIRROR_ID = "truespar-paddock-mirror"
+HF_MIRROR_ID = "hf-mirror-community"
 HF_BASE = (
     "https://huggingface.co/convaiinnovations/laya-typed-decisions/resolve/"
     "f9ab0b228f0fc0f14d873dbc99038f135c2da1b2"
 )
 MIRROR_BASE = "https://models.truespar.io/models/laya/typed-decisions"
+HF_MIRROR_BASE = (
+    "https://hf-mirror.com/convaiinnovations/laya-typed-decisions/resolve/"
+    "f9ab0b228f0fc0f14d873dbc99038f135c2da1b2"
+)
 DEFAULT_ATTEMPTS = 3
 MIRROR_PROVENANCE = {
     "repository": "truespar/paddock",
     "revision": "610cd8f5ea72e7421a99ca418d51de804d312730",
     "path": "crates/paddock-manager/models.toml",
     "git_blob": "330a4ce13bd17fda07f6945123b3635bf548c95c",
+}
+HF_MIRROR_PROVENANCE = {
+    "audit_schema": "sei.local-typed-comparator-hf-mirror-reference-transport-audit/v1",
+    "audit_path": (
+        "evaluation/local-typed-comparator/"
+        "hf_mirror_reference_transport_audit_2026-10-02.json"
+    ),
+    "mirror_documentation": {
+        "repository": "Mirrors-Project/hf-mirror",
+        "revision": "c82a7ea9b916b647a8bd9ff3b6fa1e22f60da0f9",
+        "path": "docs/en/quickstart.md",
+        "git_blob": "bac507d6e57a278c8774579d5824bb9a53136fc6",
+    },
+    "independent_exact_reference_observation": {
+        "repository": "artemmalanin979-create/hackathon-lct-vehicle-reid",
+        "revision": "84d06b899b3685f7a426488887f871b90ff51471",
+        "report_path": "04-solution/audit/judge-local/laya-REPORT.md",
+        "report_git_blob": "cba78b33ae250d2c79d224afcebf8327af9d8955",
+        "protocol_path": "04-solution/audit/judge-local/protocol.json",
+        "protocol_git_blob": "499bc982fa601cf83ca2ad0022abd8cee2ccd7bd",
+    },
 }
 
 
@@ -115,8 +141,8 @@ def validate_manifest(manifest: dict[str, Any]) -> dict[str, list[dict[str, Any]
         raise ReferenceModelTransportError("reference revision drift")
 
     transports = manifest.get("transports")
-    if not isinstance(transports, list) or len(transports) != 2:
-        raise ReferenceModelTransportError("exactly two transports are required")
+    if not isinstance(transports, list) or len(transports) != 3:
+        raise ReferenceModelTransportError("exactly three transports are required")
     by_id: dict[str, list[dict[str, Any]]] = {}
     expected = _expected_files()
     for index, transport in enumerate(transports):
@@ -125,7 +151,7 @@ def validate_manifest(manifest: dict[str, Any]) -> dict[str, list[dict[str, Any]
                 f"transports[{index}] must be an object"
             )
         tid = transport.get("id")
-        if tid not in (HF_ID, MIRROR_ID) or tid in by_id:
+        if tid not in (HF_ID, MIRROR_ID, HF_MIRROR_ID) or tid in by_id:
             raise ReferenceModelTransportError("transport id drift or duplicate")
         if transport.get("requires_post_download_verification") is not True:
             raise ReferenceModelTransportError(
@@ -149,7 +175,7 @@ def validate_manifest(manifest: dict[str, Any]) -> dict[str, list[dict[str, Any]
                     "Hugging Face provenance drift"
                 )
             base = HF_BASE
-        else:
+        elif tid == MIRROR_ID:
             if transport.get("kind") != "https-mirror":
                 raise ReferenceModelTransportError(
                     "mirror transport kind drift"
@@ -163,6 +189,20 @@ def validate_manifest(manifest: dict[str, Any]) -> dict[str, list[dict[str, Any]
                     "mirror catalog provenance drift"
                 )
             base = MIRROR_BASE
+        else:
+            if transport.get("kind") != "huggingface-community-mirror":
+                raise ReferenceModelTransportError(
+                    "hf-mirror transport kind drift"
+                )
+            if transport.get("content_addressed_url") is not False:
+                raise ReferenceModelTransportError(
+                    "hf-mirror URL must not be relabelled content-addressed"
+                )
+            if transport.get("provenance") != HF_MIRROR_PROVENANCE:
+                raise ReferenceModelTransportError(
+                    "hf-mirror provenance drift"
+                )
+            base = HF_MIRROR_BASE
 
         files = transport.get("files")
         if not isinstance(files, list) or len(files) != len(expected):
@@ -476,7 +516,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("manifest", type=Path)
     parser.add_argument(
         "--transport",
-        choices=(HF_ID, MIRROR_ID),
+        choices=(HF_ID, MIRROR_ID, HF_MIRROR_ID),
         required=True,
     )
     parser.add_argument("--output-dir", type=Path, required=True)
