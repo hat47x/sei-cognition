@@ -121,7 +121,10 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
                 return_value={
                     mod.reference_materializer.HF_ID: [
                         {"path": "model.safetensors", "bytes": REFERENCE_BYTES}
-                    ]
+                    ],
+                    mod.reference_materializer.HF_MIRROR_ID: [
+                        {"path": "model.safetensors", "bytes": REFERENCE_BYTES}
+                    ],
                 },
             )
         )
@@ -235,6 +238,7 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
         runtime_wheelhouse_manifest=None,
         runtime_wheelhouse_manifest_raw=None,
         materialize_runtime_environment=False,
+        reference_transport=None,
         events=None,
         attempts=mod.DEFAULT_DOWNLOAD_ATTEMPTS,
         attempts_seen=None,
@@ -254,7 +258,10 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
                 sei_source_dir=source,
                 reference_manifest=REFERENCE_MANIFEST,
                 reference_manifest_raw=REFERENCE_RAW,
-                reference_transport=mod.reference_materializer.HF_ID,
+                reference_transport=(
+                    reference_transport
+                    or mod.reference_materializer.HF_ID
+                ),
                 papaya_manifest=PAPAYA_MANIFEST,
                 papaya_manifest_raw=PAPAYA_RAW,
                 output_dir=output,
@@ -269,6 +276,18 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
                 ),
             )
         return source, output, receipt
+
+    def test_hf_mirror_reference_transport_flows_through_workspace(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            _source, _output, receipt = self._prepare(
+                root,
+                reference_transport=mod.reference_materializer.HF_MIRROR_ID,
+            )
+            self.assertEqual(
+                receipt["reference"]["transport_id"],
+                mod.reference_materializer.HF_MIRROR_ID,
+            )
 
     def test_success_writes_portable_receipt(self):
         with tempfile.TemporaryDirectory() as td:

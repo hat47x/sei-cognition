@@ -625,6 +625,7 @@ def main(argv: list[str] | None = None) -> int:
         choices=(
             reference_materializer.HF_ID,
             reference_materializer.MIRROR_ID,
+            reference_materializer.HF_MIRROR_ID,
         ),
         default=reference_materializer.HF_ID,
     )

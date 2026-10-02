@@ -31,7 +31,7 @@ class ReferenceModelTransportTest(unittest.TestCase):
         transports = mod.validate_manifest(copy.deepcopy(MANIFEST))
         self.assertEqual(
             set(transports),
-            {mod.HF_ID, mod.MIRROR_ID},
+            {mod.HF_ID, mod.MIRROR_ID, mod.HF_MIRROR_ID},
         )
         for entries in transports.values():
             self.assertEqual(len(entries), 5)
@@ -65,6 +65,23 @@ class ReferenceModelTransportTest(unittest.TestCase):
 
         packet = copy.deepcopy(MANIFEST)
         packet["transports"][1]["files"][0]["url"] += "?changed=1"
+        with self.assertRaises(mod.ReferenceModelTransportError):
+            mod.validate_manifest(packet)
+
+        packet = copy.deepcopy(MANIFEST)
+        packet["transports"][2]["provenance"][
+            "independent_exact_reference_observation"
+        ]["report_git_blob"] = "0" * 40
+        with self.assertRaises(mod.ReferenceModelTransportError):
+            mod.validate_manifest(packet)
+
+        packet = copy.deepcopy(MANIFEST)
+        packet["transports"][2]["files"][0]["url"] += "?changed=1"
+        with self.assertRaises(mod.ReferenceModelTransportError):
+            mod.validate_manifest(packet)
+
+        packet = copy.deepcopy(MANIFEST)
+        packet["transports"][2]["content_addressed_url"] = True
         with self.assertRaises(mod.ReferenceModelTransportError):
             mod.validate_manifest(packet)
 

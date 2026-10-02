@@ -1,8 +1,8 @@
 {
   "schema": "sei.local-typed-comparator-reference-model-transport/v1",
   "status": "transport-candidate",
-  "observed_date": "2026-09-27",
-  "observed_from_sei_source_sha": "143e84d2fe1490f2a7d190cb7f15610f40f3cdcf",
+  "observed_date": "2026-10-02",
+  "observed_from_sei_source_sha": "f052d3255f0be6bf6f433b136867b680372eafc5",
   "reference_contract": {
     "attestation_schema": "sei.local-typed-comparator-reference-model-directory-attestation/v1",
     "repository": "convaiinnovations/laya-typed-decisions",
@@ -90,6 +90,62 @@
         {
           "path": "tokenizer/tokenizer_config.json",
           "url": "https://models.truespar.io/models/laya/typed-decisions/tokenizer/tokenizer_config.json",
+          "bytes": 337,
+          "sha256": "08d4cf3ac4dca381759441b85b91a6d40e688471dcd33d15d6649eb0a9a854d1"
+        }
+      ]
+    },
+    {
+      "id": "hf-mirror-community",
+      "kind": "huggingface-community-mirror",
+      "content_addressed_url": false,
+      "requires_post_download_verification": true,
+      "provenance": {
+        "audit_schema": "sei.local-typed-comparator-hf-mirror-reference-transport-audit/v1",
+        "audit_path": "evaluation/local-typed-comparator/hf_mirror_reference_transport_audit_2026-10-02.json",
+        "mirror_documentation": {
+          "repository": "Mirrors-Project/hf-mirror",
+          "revision": "c82a7ea9b916b647a8bd9ff3b6fa1e22f60da0f9",
+          "path": "docs/en/quickstart.md",
+          "git_blob": "bac507d6e57a278c8774579d5824bb9a53136fc6"
+        },
+        "independent_exact_reference_observation": {
+          "repository": "artemmalanin979-create/hackathon-lct-vehicle-reid",
+          "revision": "84d06b899b3685f7a426488887f871b90ff51471",
+          "report_path": "04-solution/audit/judge-local/laya-REPORT.md",
+          "report_git_blob": "cba78b33ae250d2c79d224afcebf8327af9d8955",
+          "protocol_path": "04-solution/audit/judge-local/protocol.json",
+          "protocol_git_blob": "499bc982fa601cf83ca2ad0022abd8cee2ccd7bd"
+        }
+      },
+      "files": [
+        {
+          "path": "model.safetensors",
+          "url": "https://hf-mirror.com/convaiinnovations/laya-typed-decisions/resolve/f9ab0b228f0fc0f14d873dbc99038f135c2da1b2/model.safetensors",
+          "bytes": 842609220,
+          "sha256": "4fa56de72383a9d3efa9cfa78955733c81b9fc8067a587ca4beb82c78107a24e"
+        },
+        {
+          "path": "encoder/config.json",
+          "url": "https://hf-mirror.com/convaiinnovations/laya-typed-decisions/resolve/f9ab0b228f0fc0f14d873dbc99038f135c2da1b2/encoder/config.json",
+          "bytes": 2084,
+          "sha256": "5268d24ad3b77c8151de5dcb0762ba4391619aad9ab0bda33e36fb083cfeae6d"
+        },
+        {
+          "path": "rl_agent_config.json",
+          "url": "https://hf-mirror.com/convaiinnovations/laya-typed-decisions/resolve/f9ab0b228f0fc0f14d873dbc99038f135c2da1b2/rl_agent_config.json",
+          "bytes": 847,
+          "sha256": "ebf0cd524d92342a6be5e48e9fca3d7c2babfb5a56ccd79d2171ef5d8c7f7be8"
+        },
+        {
+          "path": "tokenizer/tokenizer.json",
+          "url": "https://hf-mirror.com/convaiinnovations/laya-typed-decisions/resolve/f9ab0b228f0fc0f14d873dbc99038f135c2da1b2/tokenizer/tokenizer.json",
+          "bytes": 3583228,
+          "sha256": "6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30"
+        },
+        {
+          "path": "tokenizer/tokenizer_config.json",
+          "url": "https://hf-mirror.com/convaiinnovations/laya-typed-decisions/resolve/f9ab0b228f0fc0f14d873dbc99038f135c2da1b2/tokenizer/tokenizer_config.json",
           "bytes": 337,
           "sha256": "08d4cf3ac4dca381759441b85b91a6d40e688471dcd33d15d6649eb0a9a854d1"
         }
