@@ -1,5 +1,5 @@
 schema: sei.plan-registry/v1
-updated: 2026-09-18
+updated: 2026-10-02
 
 adr:
   - id: ADR-0001
@@ -126,6 +126,10 @@ adr:
     file: plan/adr/ADR-0031-product-rename-sei-cognition-identifier-boundary.md
     status: Accepted
     related_issues: [ISSUE-000075]
+  - id: ADR-0032
+    file: plan/adr/ADR-0032-family-integration-apex-and-control-meaning-boundary.md
+    status: Proposed
+    related_issues: [ISSUE-000080, ISSUE-000081, ISSUE-000082, ISSUE-000083]
 
 issue:
   - {id: ISSUE-000001, file: plan/issue/ISSUE-000001-operationalize-moving-future-horizon.md, status: Resolved, priority: 4, related_adrs: [ADR-0001]}
@@ -207,3 +211,7 @@ issue:
   - {id: ISSUE-000077, file: plan/issue/ISSUE-000077-integrate-brand-world-into-product-value-discovery.md, status: Resolved, priority: 1, related_adrs: [ADR-0018]}
   - {id: ISSUE-000078, file: plan/issue/ISSUE-000078-verify-pre-decision-inquiry-continuity.md, status: Open, priority: 2, related_adrs: [ADR-0005, ADR-0018, ADR-0020, ADR-0028]}
   - {id: ISSUE-000079, file: plan/issue/ISSUE-000079-verify-tei-first-sei-application-plane-adoption.md, status: Resolved, priority: 1, related_adrs: [ADR-0014, ADR-0021, ADR-0028]}
+  - {id: ISSUE-000080, file: plan/issue/ISSUE-000080-rebaseline-family-integration-apex.md, status: Open, priority: 1, related_adrs: [ADR-0014, ADR-0018, ADR-0021, ADR-0032]}
+  - {id: ISSUE-000081, file: plan/issue/ISSUE-000081-test-commitment-gaps-by-composition.md, status: Open, priority: 1, related_adrs: [ADR-0003, ADR-0004, ADR-0010, ADR-0016, ADR-0032]}
+  - {id: ISSUE-000082, file: plan/issue/ISSUE-000082-derive-family-afferent-profile-from-sibling-records.md, status: Open, priority: 1, related_adrs: [ADR-0006, ADR-0014, ADR-0016, ADR-0032]}
+  - {id: ISSUE-000083, file: plan/issue/ISSUE-000083-maintain-model-progress-robustness-register.md, status: Open, priority: 2, related_adrs: [ADR-0001, ADR-0018, ADR-0021, ADR-0023, ADR-0032]}
