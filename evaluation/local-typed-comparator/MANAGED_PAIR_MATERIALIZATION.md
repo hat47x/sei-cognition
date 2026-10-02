@@ -298,20 +298,32 @@ hf download \
   --local-dir <reference-model-dir>
 ```
 
-A second public transport candidate is retained in
-`reference_model_transport.v1.json`. It binds the exact same five-file
-contract to:
+Additional public transport candidates are retained in
+`reference_model_transport.v1.json`. The exact same five-file contract now has
+three admitted acquisition paths:
 
-- the immutable Hugging Face revision above; and
+- the immutable Hugging Face revision above;
 - the public `truespar/paddock@610cd8f5...` mirror catalog
   (`crates/paddock-manager/models.toml`, blob
-  `330a4ce13bd17fda07f6945123b3635bf548c95c`).
+  `330a4ce13bd17fda07f6945123b3635bf548c95c`); and
+- the community `hf-mirror.com` endpoint as `hf-mirror-community`.
 
-All five mirror rows match the existing reference attestation byte-for-byte,
-including the 842,609,220-byte model weight SHA-256
+The hf-mirror admission has two retained provenance lines. The
+`Mirrors-Project/hf-mirror@c82a7ea9...` quickstart documents standard
+`HF_ENDPOINT` compatibility, while
+`artemmalanin979-create/hackathon-lct-vehicle-reid@84d06b89...` reports an
+actual download of this exact
+`convaiinnovations/laya-typed-decisions@f9ab0b22...` checkpoint through
+hf-mirror.com and records the same 842,609,220-byte weight SHA-256
 `4fa56de72383a9d3efa9cfa78955733c81b9fc8067a587ca4beb82c78107a24e`.
+The detailed audit is retained in
+`hf_mirror_reference_transport_audit_2026-10-02.json`.
 
-On an eligible host, either transport can be materialized atomically:
+All three paths remain subordinate to the same byte contract: every downloaded
+file must match the retained byte count and SHA-256 before the complete
+reference directory verifier may pass.
+
+On an eligible host, any admitted transport can be materialized atomically:
 
 ```bash
 python3 materialize_reference_model.py \
@@ -326,6 +338,15 @@ or:
 python3 materialize_reference_model.py \
   reference_model_transport.v1.json \
   --transport truespar-paddock-mirror \
+  --output-dir <new-reference-model-dir>
+```
+
+or:
+
+```bash
+python3 materialize_reference_model.py \
+  reference_model_transport.v1.json \
+  --transport hf-mirror-community \
   --output-dir <new-reference-model-dir>
 ```
 
@@ -355,13 +376,17 @@ python3 materialize_reference_model.py \
 Any exhausted transport failure, integrity failure, or directory-contract
 failure removes staging and leaves the destination absent.
 
-The TrueSpar URLs are deliberately **not** labelled content-addressed. Their
-pinned catalog is provenance for the expected mirror mapping; the post-download
-hash gate remains authoritative.
+The TrueSpar and hf-mirror URLs are deliberately **not** labelled
+content-addressed. Their retained provenance only admits them as acquisition
+candidates; the post-download size/SHA gate remains authoritative.
 
-In the current ChatGPT shell, outbound DNS/HTTPS remains unavailable, so neither
-transport succeeded here and no reference model bytes are claimed as
-materialized. A separate public `chrisns/laya-mac-serve` Actions artifact was
+On 2026-10-02 the current ChatGPT shell still cannot resolve
+`hf-mirror.com`, `huggingface.co`, or `models.truespar.io`. Therefore none
+of the three transports is claimed as successfully executed in this shell, and
+no reference model bytes are claimed as materialized here. The independent
+hf-mirror success record above is transport evidence from another host, not a
+substitute for SEI's own post-download verification. A separate public
+`chrisns/laya-mac-serve` Actions artifact was
 also found to bundle the real checkpoint, but its 1,011,457,975-byte artifact
 exceeds the connector's 536,870,912-byte download ceiling. These are transport
 constraints, not model-validation failures.
@@ -582,8 +607,11 @@ python3 materialize_managed_pair_inputs.py \
   --output-dir <new-managed-input-workspace>
 ```
 
-Use `--reference-transport truespar-paddock-mirror` only when deliberately
-selecting the separately retained exact-hash mirror mapping.
+Use `--reference-transport truespar-paddock-mirror` when deliberately
+selecting the retained TrueSpar mapping, or
+`--reference-transport hf-mirror-community` on hosts where the community
+Hugging Face-compatible mirror is the reachable path. Both mirror choices still
+require the exact post-download byte contract.
 
 If the #635 host-assisted wheelhouse is available, add:
 
