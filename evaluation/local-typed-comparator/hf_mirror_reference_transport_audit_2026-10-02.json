@@ -1,0 +1,62 @@
+{
+  "schema": "sei.local-typed-comparator-hf-mirror-reference-transport-audit/v1",
+  "status": "admitted-host-assisted-transport-candidate",
+  "observed_date": "2026-10-02",
+  "observed_from_sei_source_sha": "f052d3255f0be6bf6f433b136867b680372eafc5",
+  "exact_reference": {
+    "repository": "convaiinnovations/laya-typed-decisions",
+    "revision": "f9ab0b228f0fc0f14d873dbc99038f135c2da1b2",
+    "model_path": "model.safetensors",
+    "bytes": 842609220,
+    "sha256": "4fa56de72383a9d3efa9cfa78955733c81b9fc8067a587ca4beb82c78107a24e"
+  },
+  "mirror_endpoint": {
+    "base": "https://hf-mirror.com",
+    "compatibility": "HF_ENDPOINT-compatible Hugging Face mirror",
+    "documentation_provenance": {
+      "repository": "Mirrors-Project/hf-mirror",
+      "revision": "c82a7ea9b916b647a8bd9ff3b6fa1e22f60da0f9",
+      "path": "docs/en/quickstart.md",
+      "git_blob": "bac507d6e57a278c8774579d5824bb9a53136fc6"
+    }
+  },
+  "independent_exact_reference_observation": {
+    "repository": "artemmalanin979-create/hackathon-lct-vehicle-reid",
+    "revision": "84d06b899b3685f7a426488887f871b90ff51471",
+    "report_path": "04-solution/audit/judge-local/laya-REPORT.md",
+    "report_git_blob": "cba78b33ae250d2c79d224afcebf8327af9d8955",
+    "protocol_path": "04-solution/audit/judge-local/protocol.json",
+    "protocol_git_blob": "499bc982fa601cf83ca2ad0022abd8cee2ccd7bd",
+    "reported_transport": "hf-mirror.com",
+    "reported_model_repository": "convaiinnovations/laya-typed-decisions",
+    "reported_model_revision": "f9ab0b228f0fc0f14d873dbc99038f135c2da1b2",
+    "reported_model_bytes": 842609220,
+    "reported_model_sha256": "4fa56de72383a9d3efa9cfa78955733c81b9fc8067a587ca4beb82c78107a24e",
+    "interpretation": "Independent public run reports successful download of the exact reference weights through hf-mirror.com and verifies the same size/SHA-256. This supports transport admission, not trust in mirror bytes."
+  },
+  "current_chat_probe": {
+    "shell_dns": {
+      "hf-mirror.com": "unavailable",
+      "huggingface.co": "unavailable",
+      "models.truespar.io": "unavailable"
+    },
+    "classification": "environment transport constraint",
+    "exact_reference_bytes_downloaded": false
+  },
+  "admission": {
+    "add_as_reference_transport_candidate": true,
+    "url_template": "https://hf-mirror.com/convaiinnovations/laya-typed-decisions/resolve/f9ab0b228f0fc0f14d873dbc99038f135c2da1b2/<path>",
+    "content_addressed_url_claim": false,
+    "require_exact_size_and_sha256_after_download": true,
+    "require_complete_directory_verification": true
+  },
+  "scope": {
+    "audit_only": true,
+    "current_chat_transport_succeeded": false,
+    "reference_model_bytes_materialized": false,
+    "model_weights_loaded": false,
+    "live_inference": false,
+    "numeric_parity": false,
+    "shipping_decision": false
+  }
+}
