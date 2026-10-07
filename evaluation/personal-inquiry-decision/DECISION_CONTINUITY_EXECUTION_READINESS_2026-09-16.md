@@ -1,6 +1,6 @@
 # ISSUE-000073 — Decision Continuity 実行準備状態
 
-更新日: 2026-09-18  
+更新日: 2026-10-07  
 状態: **Current Execution Readiness / Executable and Human Evidence Pending**
 
 ## 1. この文書の役割
@@ -215,6 +215,34 @@ git status --porcelain=v1
 python tools/capture_issue_000073_resume_first_evidence.py --expected-head <canonical-commit-sha>
 ```
 
+hostにGo 1.25.xがない場合は、2026-10-07に追加したbootstrap入口から同じcaptureへ接続できます。
+
+```text
+bash tools/bootstrap_issue_000073_resume_first_evidence.sh \
+  --expected-head <canonical-commit-sha>
+```
+
+bootstrapは、明示された`GO_BINARY_PATH`、host上のGo 1.25.x、または固定済みGo 1.25.14 Linux / amd64 archiveの順に利用可能なtoolchainを選びます。自動取得用archiveは次のidentityへ固定しています。
+
+```text
+go1.25.14.linux-amd64.tar.gz
+sha256:a21ae5633a269bcd7e90cf767e48225633795e99d831742cbf3397064fee7712
+```
+
+事前配置済みtoolchain / archiveも利用できます。
+
+```text
+GO_BINARY_PATH=/path/to/go \
+bash tools/bootstrap_issue_000073_resume_first_evidence.sh \
+  --expected-head <canonical-commit-sha>
+
+GO_TOOLCHAIN_ARCHIVE_PATH=/path/to/go1.25.14.linux-amd64.tar.gz \
+bash tools/bootstrap_issue_000073_resume_first_evidence.sh \
+  --expected-head <canonical-commit-sha>
+```
+
+toolchainは既定でcheckout外のcacheへ置きます。archive digest不一致、不完全な既存cache、dirty working treeはfail-closedにし、低いGoで代替PASSを作りません。bootstrap自身はE1〜E8の判定を持たず、最終的な実行・Evidence保存・再検証は既存capture / runner / verifierへ委ねます。
+
 既定では次へ保存します。
 
 ```text
@@ -236,7 +264,7 @@ python tools/verify_issue_000073_resume_first_evidence.py \
   --json-out evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8-verification.json
 ```
 
-### 2026-09-17時点の実行環境blocker
+### 2026-09-18に観測した実行環境blockerと2026-10-07の取得経路更新
 
 この作業セッションの実行環境では、host toolchainは次でした。
 
@@ -266,12 +294,18 @@ filesystem上のGo / Go 1.25.x candidateも走査し、確認できたのは`/us
 
 この結果はrepository test failureではなく、**actual E1〜E8実行に必要なtoolchainを現在の実行環境で用意できないenvironment blocker**として扱います。観測は`evidence/issue-000073/go-toolchain-acquisition-blocker-2026-09-18.json`へmachine-readableに固定しています。
 
-したがって、Go 1.23.2で代替PASSを作らず、E1〜E8 actual runは引き続き**Not Yet Verified**とします。
+2026-09-18の観測時点では、Go 1.23.2で代替PASSを作らず、E1〜E8 actual runを**Not Yet Verified**として保持しました。
+
+2026-10-07には、repository内で後から固定されたGo 1.25.14 Linux / amd64 archive identityを用いる専用bootstrap入口を追加しました。この変更により、repository toolingとしては事前配置済みGo、事前配置済みarchive、またはnetworkが利用できる環境から既存captureへ到達できます。ただし、この文書更新時点では新入口を使ったE1〜E8 actual runをまだ記録していません。
 
 ```text
-current environment cannot acquire Go 1.25.x
+2026-09-18 environment could not acquire Go 1.25.x
   != interactionprobe FAIL
-  != E1-E8 PASS
+
+bootstrap path available
+  != E1-E8 actual PASS
+  != H1 / H2 human review
+  != Decision Continuity Product Value established
 ```
 
 ## 7. PASS後に更新してよいEvidence
@@ -390,7 +424,7 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 | Evidence verifier self-test | **PASS on canonical-HEAD-bound current source (2026-09-18); delta Evidence recorded** |
 | One-command capture workflow self-test | Historical full PASS retained; **canonical-HEAD deltaは8 case actual + same-output focused preflight actualで確認** |
 | E1〜E8 actual Go 1.25.x run | **Not Yet Verified** |
-| Current session Go 1.25.x availability | **Blocked by execution-environment DNS / network; not a repository test failure** |
+| Go 1.25.x execution path | **Repository bootstrap available as of 2026-10-07; 2026-09-18 environment blocker is retained as historical Environment Evidence; actual E1〜E8 run remains Not Yet Verified** |
 | REQ-0023 / SCN-0019 Executable Evidence | **Not Yet Verified** |
 | H1 actual human review | **Not Yet Observed** |
 | H2 counterfactual human review | **Not Yet Observed** |
@@ -408,7 +442,7 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 
 優先順位は次です。
 
-1. Go 1.25.xを利用できるclean checkoutで`capture_issue_000073_resume_first_evidence.py`をactual実行する。
+1. clean checkoutで`bootstrap_issue_000073_resume_first_evidence.sh`または既存captureを使い、Go 1.25.xによるE1〜E8をactual実行する。
 2. captureが保存したrunner / verification recordについて、recorded tested commit / source blobs / E1〜E8結果を確認する。
 3. actual Evidenceを保存し、REQ-0023 / SCN-0019を含むEvidence状態を再監査する。
 4. clean checkoutで`capture_issue_000073_h2_runner_selftest.py`をactual実行し、Decision H2 shared runner regressionのmachine-readable Evidenceを得る。
@@ -428,6 +462,8 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 同日、runner preflightとverifierについてもcurrent sourceを一時実行環境へ展開し、`py_compile`後にself-testをactual実行しました。両方ともexit code 0 / expected PASS stdoutを確認し、source blobと実行環境を別のmachine-readable Evidenceへ固定しました。これによりEvidence受入れ経路のPython self-test群はcurrent sourceに対して再確認済みですが、Go 1.25.xでinteractionprobeを実行したことにはしていません。
 
 同日の実行環境確認では、host Goが1.23.2であることに加え、`GOTOOLCHAIN=go1.25.0+auto`によるGo 1.25.0取得も外向きDNS / network制限で成立しないことをactualに確認しました。このblockerをinteractionprobeのFAILとは扱わず、低いGoで代替PASSを作らない停止線を維持しています。
+
+2026-10-07には、その後repository内で固定されたGo 1.25.14 Linux / amd64 archive identityを利用し、ISSUE-000073の既存captureへ接続するbootstrap入口を追加しました。toolchain materializationはcheckout外へ置き、archive digest不一致や不完全なcacheを暗黙に上書きせず停止します。この入口の追加はenvironment blockerを回避できる実行経路を増やしただけであり、E1〜E8を実際に実行したEvidenceには昇格させていません。
 
 H1は既存dogfood stateとevaluation sidecarを利用し、real Inquiryのactual resumptionだけを観測します。H1専用のschemaやsession managerは増やしていません。H2は既存matched review基盤を利用し、073/078共通のreview runnerでstimulus提示前にreviewer provenanceを固定してからbundleを提示し、completed sessionのEvidence exportまで同じ経路を使います。2026-09-18にprovenance固定前のR1 material提示が一度発生したため、その提示を受けたreaderの後続sessionはknown exposureとして扱い、回答未固定の提示そのものはhuman Evidenceへ数えない停止線を追加しました。
 
