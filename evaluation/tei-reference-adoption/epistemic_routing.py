@@ -37,6 +37,7 @@ REQUIRED_AUTHORITY_LIMITS = {
     "target-anchor-resolution-does-not-prove-semantic-identity",
     "coverage-mapping-is-input-not-semantic-completeness-proof",
     "partial-transport-health-is-not-project-wide-health",
+    "review-history-is-bounded-by-context-as-of",
 }
 
 
