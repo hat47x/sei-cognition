@@ -131,6 +131,18 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
         item = self.by_id(result, "conflict-a")
         self.assertEqual("review", item["route"])
 
+    def test_source_blocked_remains_blocked_even_with_partial_metadata(self) -> None:
+        projection = copy.deepcopy(self.projection)
+        item = next(
+            value for value in projection["assessments"]
+            if value["assertionId"] == "rejected"
+        )
+        item["metadataState"] = "partial"
+        result = self.route(projection)
+        routed = self.by_id(result, "rejected")
+        self.assertEqual("blocked", routed["route"])
+        self.assertIn("SEI_SOURCE_BLOCKED", routed["seiReasons"])
+
     def test_unsupported_schema_fails_closed(self) -> None:
         projection = copy.deepcopy(self.projection)
         projection["schema"] = "tei.reference.epistemic-assessment/v999"
