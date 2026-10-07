@@ -3,7 +3,7 @@
 Status: **Open**  
 Priority: **1**  
 Related ADRs: **ADR-0005, ADR-0010, ADR-0028, ADR-0029**  
-Updated: 2026-09-18
+Updated: 2026-10-07
 
 ## Goal
 
@@ -206,6 +206,7 @@ Question 5、6、9については、Requirement auditとREQ-0023 / SCN-0019のfo
 - `tools/run_issue_000073_resume_first_evidence.py`: E1〜E8をmachine-readable recordへ束ねるrunnerあり
 - `tools/verify_issue_000073_resume_first_evidence.py`: recorded tested commit、source blob / SHA-256、Go version、E1〜E8個別test結果を再検証するverifierあり
 - `tools/capture_issue_000073_resume_first_evidence.py`: runner → verifier → Evidence保存を一命令でfail-closedに連結する標準入口あり
+- `tools/bootstrap_issue_000073_resume_first_evidence.sh`: Go 1.25.xがhostにない場合、事前配置済みGo 1.25.xまたはSHA-256固定済みGo 1.25.14 Linux / amd64 archiveからtoolchainをcheckout外へ準備し、既存captureへ渡す入口あり。**bootstrap追加はE1〜E8 PASSを意味しない**
 - runner preflight self-test: **PASS on canonical-HEAD-bound current source (2026-09-18); machine-readable delta Evidence recorded**
 - verifier self-test: **PASS on canonical-HEAD-bound current source (2026-09-18); machine-readable delta Evidence recorded**
 - capture workflow: **historical full self-test PASS retained; canonical-HEAD deltaは8 case actual + same-output focused preflight actualで確認 (2026-09-18)**
@@ -234,6 +235,65 @@ evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8-canonical-head-
 ```
 
 これらはrunner / verifier / captureの受入れ系に限定したExecutable Evidenceであり、E1〜E8 actual Go Evidenceではない。currentの実行手順とblocker詳細は`evaluation/personal-inquiry-decision/DECISION_CONTINUITY_EXECUTION_READINESS_2026-09-16.md`をcurrent-state正本として参照する。
+
+
+### Go 1.25.x実行入口の更新 — 2026-10-07
+
+2026-09-18の実行環境ではhost Go 1.23.2しか利用できず、Go自身のtoolchain取得とGo公式配布先へのdirect probeもDNS / 外向き通信制限で停止した。この観測は当時のEnvironment Evidenceとして保持する。
+
+その後、repository内の別評価経路でexact Go 1.25.14 Linux / amd64 archive identityが固定されたため、ISSUE-000073でも同じarchive identityを用いて既存captureへ到達する専用入口を追加した。
+
+```text
+tools/bootstrap_issue_000073_resume_first_evidence.sh
+```
+
+入口は次の順序でGo executableを選ぶ。
+
+1. `GO_BINARY_PATH`で明示されたGo 1.25.xを検証して利用する。
+2. hostの`go`がGo 1.25.xならそのまま利用する。
+3. それ以外のLinux / amd64では、Go 1.25.14 archiveを事前配置または取得し、SHA-256照合後にcheckout外のcacheへ展開する。
+4. 既存の`capture_issue_000073_resume_first_evidence.py`へ`--go`として渡し、runner → verifier → Evidence保存の既存境界を変更しない。
+
+自動取得で固定するidentityは次のとおり。
+
+```text
+go1.25.14.linux-amd64.tar.gz
+sha256:a21ae5633a269bcd7e90cf767e48225633795e99d831742cbf3397064fee7712
+```
+
+通常の入口:
+
+```bash
+bash tools/bootstrap_issue_000073_resume_first_evidence.sh \
+  --expected-head <canonical-commit-sha>
+```
+
+外部で準備済みのGo 1.25.xを使う場合:
+
+```bash
+GO_BINARY_PATH=/path/to/go \
+bash tools/bootstrap_issue_000073_resume_first_evidence.sh \
+  --expected-head <canonical-commit-sha>
+```
+
+固定archiveを事前配置する場合:
+
+```bash
+GO_TOOLCHAIN_ARCHIVE_PATH=/path/to/go1.25.14.linux-amd64.tar.gz \
+bash tools/bootstrap_issue_000073_resume_first_evidence.sh \
+  --expected-head <canonical-commit-sha>
+```
+
+toolchain cacheは既定でrepository外へ置く。既存の不完全なcacheやdigest不一致を暗黙に上書きせずfail-closedにする。これによりcaptureのclean-tree preconditionをtoolchain materialization自身が壊さない。
+
+この追加でrepository tooling上のGo 1.25.x取得経路は具体化したが、2026-10-07時点でこの新入口によるE1〜E8 actual executionはまだ記録していない。したがってEvidence状態は変えない。
+
+```text
+bootstrap path available
+  != E1-E8 actual PASS
+  != H1 / H2 human review
+  != Decision Continuity Product Value established
+```
 
 H2については2026-09-18に実行経路を再監査し、`inquiry_continuity_review_runner.py`を073/078共通のprovenance-first入口としてDecision Continuityにも対応させた。reviewer provenanceを固定しないsessionからreviewer bundleを開かず、condition labelをreviewerへ出さず、Decision固有response validationを通したcomplete sessionだけをEvidence exportへ進める。
 
@@ -424,6 +484,7 @@ python3 tools/test_run_issue_000073_resume_first_evidence.py
 python3 tools/test_verify_issue_000073_resume_first_evidence.py
 python3 tools/test_capture_issue_000073_resume_first_evidence.py
 python3 tools/capture_issue_000073_resume_first_evidence.py --expected-head <canonical-commit-sha>
+bash tools/bootstrap_issue_000073_resume_first_evidence.sh --expected-head <canonical-commit-sha>
 python3 tools/test_capture_issue_000073_h2_runner_selftest.py
 python3 tools/capture_issue_000073_h2_runner_selftest.py --expected-head <canonical-commit-sha>
 python3 evaluation/personal-inquiry-decision/test_decision_continuity_review_runner.py
@@ -438,7 +499,7 @@ python3 tools/run_issue_000073_resume_first_evidence.py --expected-head <canonic
 python3 tools/verify_issue_000073_resume_first_evidence.py <evidence-record.json> --json-out <verification-record.json>
 ```
 
-runner / captureはcheckout外で独立に取得したcanonical expected HEADとの完全一致、clean committed HEAD、required sourceとHEAD blobの一致、Go 1.25.xをpreconditionとする。verifierもEvidence record内の`expected_head == head`と`head_matches_expected=true`を必須にする。preconditionを満たせずblockedとなった場合はrepository test failureともPASSとも扱わない。2026-09-18に再確認したcurrent execution environmentでもhost Goは1.23.2であり、Go自身のtoolchain自動取得はnetwork / DNS制限でblockedだったため、actual E1〜E8 runはNot Yet Verifiedのまま保持する。
+runner / captureはcheckout外で独立に取得したcanonical expected HEADとの完全一致、clean committed HEAD、required sourceとHEAD blobの一致、Go 1.25.xをpreconditionとする。verifierもEvidence record内の`expected_head == head`と`head_matches_expected=true`を必須にする。preconditionを満たせずblockedとなった場合はrepository test failureともPASSとも扱わない。2026-09-18の実行環境ではhost Go 1.23.2であり、Go自身のtoolchain自動取得はnetwork / DNS制限でblockedだった。2026-10-07にGo 1.25.x bootstrap入口を追加してrepository tooling上の取得経路を具体化したが、この入口によるactual E1〜E8 runはまだ記録していないため、Evidence状態はNot Yet Verifiedのまま保持する。
 
 runner preflight / verifier / capture workflowについては、current sourceに対する2026-09-18 actual self-test PASSをmachine-readable Evidenceへ固定済みである。ただしこれはEvidence受入れ経路の検証であり、Go 1.25.xで`interactionprobe`を実行したEvidenceへは昇格させない。
 
