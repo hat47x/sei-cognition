@@ -143,6 +143,12 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
         self.assertEqual("blocked", routed["route"])
         self.assertIn("SEI_SOURCE_BLOCKED", routed["seiReasons"])
 
+    def test_unknown_semantic_contract_fails_closed(self) -> None:
+        projection = copy.deepcopy(self.projection)
+        projection["contract"] = "tei.epistemic-projection/v999"
+        with self.assertRaisesRegex(ValueError, "contract must be"):
+            self.route(projection)
+
     def test_unsupported_schema_fails_closed(self) -> None:
         projection = copy.deepcopy(self.projection)
         projection["schema"] = "tei.reference.epistemic-assessment/v999"
