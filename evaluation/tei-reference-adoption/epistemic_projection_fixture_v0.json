@@ -37,7 +37,9 @@
         "reasons": [
           "DIRECT_USER_WORKING_PREMISE",
           "FRESHNESS_UNBOUNDED"
-        ]
+        ],
+        "meaningFingerprint": "sha256:0101010101010101010101010101010101010101010101010101010101010101",
+        "reviewLogSequence": 0
       },
       {
         "assertionId": "ai-unreviewed",
@@ -58,7 +60,9 @@
         "reasons": [
           "ASSERTION_UNREVIEWED",
           "FRESHNESS_UNBOUNDED"
-        ]
+        ],
+        "meaningFingerprint": "sha256:0202020202020202020202020202020202020202020202020202020202020202",
+        "reviewLogSequence": 0
       },
       {
         "assertionId": "reanchored-requirement",
@@ -78,7 +82,9 @@
         "inferredContextUsed": false,
         "reasons": [
           "DIRECT_USER_WORKING_PREMISE"
-        ]
+        ],
+        "meaningFingerprint": "sha256:0303030303030303030303030303030303030303030303030303030303030303",
+        "reviewLogSequence": 0
       },
       {
         "assertionId": "conflict-a",
@@ -98,7 +104,9 @@
         "inferredContextUsed": false,
         "reasons": [
           "CONFLICT_PRESENT"
-        ]
+        ],
+        "meaningFingerprint": "sha256:0404040404040404040404040404040404040404040404040404040404040404",
+        "reviewLogSequence": 1
       },
       {
         "assertionId": "rejected",
@@ -118,7 +126,9 @@
         "inferredContextUsed": false,
         "reasons": [
           "ASSERTION_REJECTED"
-        ]
+        ],
+        "meaningFingerprint": "sha256:0505050505050505050505050505050505050505050505050505050505050505",
+        "reviewLogSequence": 1
       },
       {
         "assertionId": "human-reviewed",
@@ -139,7 +149,9 @@
         "reasons": [
           "FRESHNESS_UNBOUNDED",
           "INFERRED_CONTEXT_USED"
-        ]
+        ],
+        "meaningFingerprint": "sha256:0606060606060606060606060606060606060606060606060606060606060606",
+        "reviewLogSequence": 1
       }
     ],
     "health": {
