@@ -7,7 +7,8 @@
     "pullRequest": 961,
     "head": "5d81c9244b301bae1598ff2502e674fca7e73450",
     "schema": "tei.reference.epistemic-assessment/v0",
-    "note": "Field-shape snapshot only. This fixture is not TEI Canonical authority."
+    "note": "Field-shape snapshot only. This fixture is not TEI Canonical authority.",
+    "contract": "tei.epistemic-projection/v0"
   },
   "projection": {
     "schema": "tei.reference.epistemic-assessment/v0",
@@ -230,6 +231,7 @@
       "content-fingerprint-does-not-restore-review-history",
       "partial-transport-health-is-not-project-wide-health",
       "reviewer-candidate-is-not-review-authority"
-    ]
+    ],
+    "contract": "tei.epistemic-projection/v0"
   }
 }
