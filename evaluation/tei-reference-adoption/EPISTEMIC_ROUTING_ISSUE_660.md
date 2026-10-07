@@ -6,6 +6,8 @@
 
 SEIはTEIの確認状態、文脈判定、target binding、Health計算を再実装しません。入力はTEI Projectionであり、SEIは認知処理へ渡す直前のroutingだけを担当します。
 
+Projectionの意味契約 `tei.epistemic-projection/v0` とJSON表現 `tei.reference.epistemic-assessment/v0` は別に確認します。意味契約が未知ならschemaが同じでも拒否し、意味契約が既知でもschemaが未対応ならdecoder未対応として拒否します。
+
 出力laneは次の4種類です。
 
 ```text
