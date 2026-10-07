@@ -149,6 +149,11 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "meaningFingerprint must be exact sha256"):
             self.route(invalid_fingerprint)
 
+        invalid_subject = copy.deepcopy(self.projection)
+        invalid_subject["assessments"][0]["reviewSubjectFingerprint"] = "sha256:not-a-digest"
+        with self.assertRaisesRegex(ValueError, "reviewSubjectFingerprint must be exact sha256"):
+            self.route(invalid_subject)
+
         invalid_sequence = copy.deepcopy(self.projection)
         invalid_sequence["assessments"][0]["reviewLogSequence"] = -1
         with self.assertRaisesRegex(ValueError, "reviewLogSequence must be a non-negative integer"):
@@ -159,6 +164,7 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
         source = self.projection["assessments"][0]
         routed = self.by_id(result, source["assertionId"])
         self.assertEqual(source["meaningFingerprint"], routed["meaningFingerprint"])
+        self.assertEqual(source["reviewSubjectFingerprint"], routed["reviewSubjectFingerprint"])
         self.assertEqual(source["reviewLogSequence"], routed["reviewLogSequence"])
 
     def test_unknown_semantic_contract_fails_closed(self) -> None:
