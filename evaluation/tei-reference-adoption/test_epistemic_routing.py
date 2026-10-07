@@ -143,6 +143,24 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
         self.assertEqual("blocked", routed["route"])
         self.assertIn("SEI_SOURCE_BLOCKED", routed["seiReasons"])
 
+    def test_invalid_meaning_binding_receipt_fails_closed(self) -> None:
+        invalid_fingerprint = copy.deepcopy(self.projection)
+        invalid_fingerprint["assessments"][0]["meaningFingerprint"] = "sha256:not-a-digest"
+        with self.assertRaisesRegex(ValueError, "meaningFingerprint must be exact sha256"):
+            self.route(invalid_fingerprint)
+
+        invalid_sequence = copy.deepcopy(self.projection)
+        invalid_sequence["assessments"][0]["reviewLogSequence"] = -1
+        with self.assertRaisesRegex(ValueError, "reviewLogSequence must be a non-negative integer"):
+            self.route(invalid_sequence)
+
+    def test_routing_preserves_binding_receipts_without_using_them_as_truth(self) -> None:
+        result = self.route()
+        source = self.projection["assessments"][0]
+        routed = self.by_id(result, source["assertionId"])
+        self.assertEqual(source["meaningFingerprint"], routed["meaningFingerprint"])
+        self.assertEqual(source["reviewLogSequence"], routed["reviewLogSequence"])
+
     def test_unknown_semantic_contract_fails_closed(self) -> None:
         projection = copy.deepcopy(self.projection)
         projection["contract"] = "tei.epistemic-projection/v999"
