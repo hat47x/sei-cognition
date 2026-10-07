@@ -14,6 +14,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+INPUT_CONTRACT = "tei.epistemic-projection/v0"
 INPUT_SCHEMA = "tei.reference.epistemic-assessment/v0"
 OUTPUT_SCHEMA = "sei.epistemic-routing-evaluation/v0"
 
@@ -65,6 +66,8 @@ def _require_string(value: Any, name: str) -> str:
 
 
 def validate_projection(projection: dict[str, Any]) -> None:
+    if projection.get("contract") != INPUT_CONTRACT:
+        raise ValueError(f"contract must be {INPUT_CONTRACT}")
     if projection.get("schema") != INPUT_SCHEMA:
         raise ValueError(f"schema must be {INPUT_SCHEMA}")
 
@@ -297,6 +300,7 @@ def route_projection(projection: dict[str, Any]) -> dict[str, Any]:
 
     return {
         "schema": OUTPUT_SCHEMA,
+        "sourceContract": projection["contract"],
         "sourceSchema": projection["schema"],
         "projectHealth": {
             "sourceLevel": health.get("level", "unknown"),
