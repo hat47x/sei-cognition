@@ -243,6 +243,8 @@ bash tools/bootstrap_issue_000073_resume_first_evidence.sh \
 
 toolchainは既定でcheckout外のcacheへ置きます。archive digest不一致、不完全な既存cache、dirty working treeはfail-closedにし、低いGoで代替PASSを作りません。bootstrap自身はE1〜E8の判定を持たず、最終的な実行・Evidence保存・再検証は既存capture / runner / verifierへ委ねます。
 
+追加したscriptのexact Git blob `8ec0d66aca9b16657c170f784ca2642ecdb309d8`について、`bash -n`、事前配置Go 1.25.xからcaptureへの引数受け渡し、dirty-tree拒否、直接`--go`指定による迂回拒否をsynthetic Git repositoryで実行し、いずれもPASSを確認しました。machine-readable recordは`evidence/issue-000073/go125-bootstrap-mechanics-2026-10-07.json`です。これはbootstrap mechanicsだけのScoped Executable Evidenceであり、固定archiveのmaterializationやE1〜E8 actual executionには昇格させません。
+
 既定では次へ保存します。
 
 ```text
@@ -425,6 +427,7 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 | One-command capture workflow self-test | Historical full PASS retained; **canonical-HEAD deltaは8 case actual + same-output focused preflight actualで確認** |
 | E1〜E8 actual Go 1.25.x run | **Not Yet Verified** |
 | Go 1.25.x execution path | **Repository bootstrap available as of 2026-10-07; 2026-09-18 environment blocker is retained as historical Environment Evidence; actual E1〜E8 run remains Not Yet Verified** |
+| Go 1.25 bootstrap mechanics | **PASS for exact-script syntax / pre-provisioned Go forwarding / dirty-tree guard / direct --go bypass guard; archive materialization Not Yet Verified** |
 | REQ-0023 / SCN-0019 Executable Evidence | **Not Yet Verified** |
 | H1 actual human review | **Not Yet Observed** |
 | H2 counterfactual human review | **Not Yet Observed** |
