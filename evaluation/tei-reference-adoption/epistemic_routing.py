@@ -167,8 +167,12 @@ def route_assessment(assessment: dict[str, Any]) -> dict[str, Any]:
         route = "review"
 
     # Defense in depth: malformed or future TEI producers must not smuggle an
-    # unsafe "premise" past the consumer boundary.
-    if assessment["lifecycleState"] != "active":
+    # unsafe "premise" past the consumer boundary. A source-side blocked state
+    # remains blocked even if another signal would otherwise route to review.
+    if source_use_state == "blocked":
+        route = "blocked"
+        sei_reasons.append("SEI_SOURCE_BLOCKED")
+    elif assessment["lifecycleState"] != "active":
         route = "blocked"
         sei_reasons.append("SEI_LIFECYCLE_NOT_ACTIVE")
     elif assessment["confirmationState"] == "rejected":
@@ -318,7 +322,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        projection = load_json(args.projection)
+        document = load_json(args.projection)
+        projection = document.get("projection", document)
+        if not isinstance(projection, dict):
+            raise ValueError("projection must be an object")
         routed = route_projection(projection)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         print(str(exc), file=sys.stderr)
