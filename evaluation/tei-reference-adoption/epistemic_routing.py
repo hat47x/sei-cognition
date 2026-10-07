@@ -97,6 +97,28 @@ def validate_projection(projection: dict[str, Any]) -> None:
             raise ValueError(f"duplicate assertionId: {assertion_id}")
         seen_ids.add(assertion_id)
 
+        meaning_fingerprint = _require_string(
+            assessment.get("meaningFingerprint"),
+            f"assessments[{index}].meaningFingerprint",
+        )
+        if (
+            not meaning_fingerprint.startswith("sha256:")
+            or len(meaning_fingerprint) != 71
+            or any(ch not in "0123456789abcdef" for ch in meaning_fingerprint[7:])
+        ):
+            raise ValueError(
+                f"assessments[{index}].meaningFingerprint must be exact sha256"
+            )
+        review_log_sequence = assessment.get("reviewLogSequence")
+        if (
+            not isinstance(review_log_sequence, int)
+            or isinstance(review_log_sequence, bool)
+            or review_log_sequence < 0
+        ):
+            raise ValueError(
+                f"assessments[{index}].reviewLogSequence must be a non-negative integer"
+            )
+
         _require_string(
             assessment.get("statementKind"),
             f"assessments[{index}].statementKind",
@@ -202,6 +224,8 @@ def route_assessment(assessment: dict[str, Any]) -> dict[str, Any]:
 
     return {
         "assertionId": assessment["assertionId"],
+        "meaningFingerprint": assessment["meaningFingerprint"],
+        "reviewLogSequence": assessment["reviewLogSequence"],
         "route": route,
         "sourceUseState": source_use_state,
         "statementKind": assessment["statementKind"],
