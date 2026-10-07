@@ -39,7 +39,8 @@
           "FRESHNESS_UNBOUNDED"
         ],
         "meaningFingerprint": "sha256:0101010101010101010101010101010101010101010101010101010101010101",
-        "reviewLogSequence": 0
+        "reviewLogSequence": 0,
+        "reviewSubjectFingerprint": "sha256:1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f"
       },
       {
         "assertionId": "ai-unreviewed",
@@ -62,7 +63,8 @@
           "FRESHNESS_UNBOUNDED"
         ],
         "meaningFingerprint": "sha256:0202020202020202020202020202020202020202020202020202020202020202",
-        "reviewLogSequence": 0
+        "reviewLogSequence": 0,
+        "reviewSubjectFingerprint": "sha256:2020202020202020202020202020202020202020202020202020202020202020"
       },
       {
         "assertionId": "reanchored-requirement",
@@ -84,7 +86,8 @@
           "DIRECT_USER_WORKING_PREMISE"
         ],
         "meaningFingerprint": "sha256:0303030303030303030303030303030303030303030303030303030303030303",
-        "reviewLogSequence": 0
+        "reviewLogSequence": 0,
+        "reviewSubjectFingerprint": "sha256:2121212121212121212121212121212121212121212121212121212121212121"
       },
       {
         "assertionId": "conflict-a",
@@ -106,7 +109,8 @@
           "CONFLICT_PRESENT"
         ],
         "meaningFingerprint": "sha256:0404040404040404040404040404040404040404040404040404040404040404",
-        "reviewLogSequence": 1
+        "reviewLogSequence": 1,
+        "reviewSubjectFingerprint": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
       },
       {
         "assertionId": "rejected",
@@ -128,7 +132,8 @@
           "ASSERTION_REJECTED"
         ],
         "meaningFingerprint": "sha256:0505050505050505050505050505050505050505050505050505050505050505",
-        "reviewLogSequence": 1
+        "reviewLogSequence": 1,
+        "reviewSubjectFingerprint": "sha256:2323232323232323232323232323232323232323232323232323232323232323"
       },
       {
         "assertionId": "human-reviewed",
@@ -151,7 +156,8 @@
           "INFERRED_CONTEXT_USED"
         ],
         "meaningFingerprint": "sha256:0606060606060606060606060606060606060606060606060606060606060606",
-        "reviewLogSequence": 1
+        "reviewLogSequence": 1,
+        "reviewSubjectFingerprint": "sha256:2424242424242424242424242424242424242424242424242424242424242424"
       }
     ],
     "health": {
