@@ -268,7 +268,8 @@
       "review-history-is-bounded-by-context-as-of",
       "review-binding-includes-context-kind-and-target-identity",
       "review-binding-includes-validity-window",
-      "resolution-coverage-is-operational-readiness-not-truth-ratio"
+      "resolution-coverage-is-operational-readiness-not-truth-ratio",
+      "checked-at-is-bound-to-current-subject"
     ],
     "contract": "tei.epistemic-projection/v0"
   }
