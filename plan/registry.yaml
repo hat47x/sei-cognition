@@ -1,5 +1,5 @@
 schema: sei.plan-registry/v1
-updated: 2026-10-02
+updated: 2026-10-06
 
 adr:
   - id: ADR-0001
@@ -130,6 +130,14 @@ adr:
     file: plan/adr/ADR-0032-learned-component-admission-boundary.md
     status: Proposed
     related_issues: []
+  - id: ADR-0033
+    file: plan/adr/ADR-0033-decision-gateway-and-single-binary-entry-boundary.md
+    status: Proposed
+    related_issues: [ISSUE-000080]
+  - id: ADR-0034
+    file: plan/adr/ADR-0034-gate-outcome-recording-boundary.md
+    status: Proposed
+    related_issues: [ISSUE-000080]
 
 issue:
   - {id: ISSUE-000001, file: plan/issue/ISSUE-000001-operationalize-moving-future-horizon.md, status: Resolved, priority: 4, related_adrs: [ADR-0001]}
@@ -211,3 +219,4 @@ issue:
   - {id: ISSUE-000077, file: plan/issue/ISSUE-000077-integrate-brand-world-into-product-value-discovery.md, status: Resolved, priority: 1, related_adrs: [ADR-0018]}
   - {id: ISSUE-000078, file: plan/issue/ISSUE-000078-verify-pre-decision-inquiry-continuity.md, status: Open, priority: 2, related_adrs: [ADR-0005, ADR-0018, ADR-0020, ADR-0028]}
   - {id: ISSUE-000079, file: plan/issue/ISSUE-000079-verify-tei-first-sei-application-plane-adoption.md, status: Resolved, priority: 1, related_adrs: [ADR-0014, ADR-0021, ADR-0028]}
+  - {id: ISSUE-000080, file: plan/issue/ISSUE-000080-connect-enterprise-governance-adoption-value-to-requirements.md, status: Open, priority: 1, related_adrs: [ADR-0005, ADR-0027, ADR-0028, ADR-0029, ADR-0030, ADR-0033, ADR-0034]}
