@@ -217,6 +217,22 @@
             ]
           }
         ]
+      },
+      "resolutionCoverage": {
+        "eligible": 4,
+        "resolved": 3,
+        "confirmed": 1,
+        "nativePremise": 2,
+        "rejected": 0,
+        "unresolved": 1,
+        "ratio": 0.75,
+        "minimumRatio": 0.8,
+        "minimumEligibleAssertions": 4,
+        "requiredResolutions": 1,
+        "state": "attention",
+        "reasons": [
+          "PROJECT_RESOLUTION_RATIO_BELOW_POLICY"
+        ]
       }
     },
     "reviewRequests": [
@@ -249,7 +265,11 @@
       "content-fingerprint-does-not-restore-review-history",
       "partial-transport-health-is-not-project-wide-health",
       "reviewer-candidate-is-not-review-authority",
-      "review-history-is-bounded-by-context-as-of"
+      "review-history-is-bounded-by-context-as-of",
+      "review-binding-includes-context-kind-and-target-identity",
+      "review-binding-includes-validity-window",
+      "resolution-coverage-is-operational-readiness-not-truth-ratio",
+      "checked-at-is-bound-to-current-subject"
     ],
     "contract": "tei.epistemic-projection/v0"
   }
