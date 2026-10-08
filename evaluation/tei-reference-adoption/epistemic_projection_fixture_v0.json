@@ -217,6 +217,22 @@
             ]
           }
         ]
+      },
+      "resolutionCoverage": {
+        "eligible": 4,
+        "resolved": 3,
+        "confirmed": 1,
+        "nativePremise": 2,
+        "rejected": 0,
+        "unresolved": 1,
+        "ratio": 0.75,
+        "minimumRatio": 0.8,
+        "minimumEligibleAssertions": 4,
+        "requiredResolutions": 1,
+        "state": "attention",
+        "reasons": [
+          "PROJECT_RESOLUTION_RATIO_BELOW_POLICY"
+        ]
       }
     },
     "reviewRequests": [
