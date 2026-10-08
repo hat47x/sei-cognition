@@ -249,7 +249,8 @@
       "content-fingerprint-does-not-restore-review-history",
       "partial-transport-health-is-not-project-wide-health",
       "reviewer-candidate-is-not-review-authority",
-      "review-history-is-bounded-by-context-as-of"
+      "review-history-is-bounded-by-context-as-of",
+      "review-binding-includes-context-kind-and-target-identity"
     ],
     "contract": "tei.epistemic-projection/v0"
   }
