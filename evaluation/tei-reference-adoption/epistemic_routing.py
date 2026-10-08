@@ -41,6 +41,10 @@ ALLOWED_RESOLUTION_COVERAGE_STATES = {
 REQUIRED_AUTHORITY_LIMITS = {
     "assessment-does-not-assert-objective-truth",
     "assessment-does-not-grant-canonical-acceptance",
+    "reviewer-candidate-is-not-review-authority",
+    "content-fingerprint-does-not-restore-review-history",
+    "meaning-fingerprint-is-input-not-semantic-proof",
+    "assessment-does-not-grant-write-or-runtime-authority",
     "target-anchor-resolution-does-not-prove-semantic-identity",
     "coverage-mapping-is-input-not-semantic-completeness-proof",
     "resolution-coverage-is-operational-readiness-not-truth-ratio",
