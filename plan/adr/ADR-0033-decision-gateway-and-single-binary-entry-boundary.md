@@ -1,14 +1,14 @@
 # ADR-0033: Decision Gatewayと単一バイナリによる最初の導入面の境界
 
 Status: **Proposed**  
-Related Issue: **ISSUE-000080**  
+Related Issue: **ISSUE-000084**  
 Updated: 2026-10-06
 
 ## Context
 
 企業が複数のAIツールを使うとき、SEIは、それらの提案を一つの責任主体の判断として記録できる必要があります。一方で、Product Visionは「最も賢い中央AI」や「あらゆる判断の自動決定」を長期目標にしません。
 
-ISSUE-000080で、プロダクト責任者は暫定的に次を決めました。統合された意思決定主体は、判断を受け付けて記録し、実行意図の発行を確認する層(Decision Gateway)にとどめます。最初の導入単位はチームとします。
+ISSUE-000084で、プロダクト責任者は暫定的に次を決めました。統合された意思決定主体は、判断を受け付けて記録し、実行意図の発行を確認する層(Decision Gateway)にとどめます。最初の導入単位はチームとします。
 
 このADRは、その二点を受けて、Decision Gatewayの境界と、利用者が最初に触れるGo製バイナリの面を定めます。
 
@@ -18,15 +18,15 @@ ISSUE-000080で、プロダクト責任者は暫定的に次を決めました�
 - Requirement: REQ-0006、0010、0013、0017、0018、0021。
 - ADR-0027(Goを標準実装言語とする)、ADR-0028(Product Interactionはcanonical meaning上の操作境界)、ADR-0029(単一node packaging)、ADR-0030(Product Accessとsemantic Authorityの分離)。
 
-このADRの起票時点では、Design Evidenceだけでした。その後、利用者向けCLIの最小版を実装しました(Evidenceの節を参照)。常駐サービスと、Action Intentの発行時の確認は、まだありません。`sei gate check`は、記録済みのDecisionを確認するCLIの機能です。導入容易性の観測(E-80.1)も未実施です。
+このADRの起票時点では、Design Evidenceだけでした。その後、利用者向けCLIの最小版を実装しました(Evidenceの節を参照)。常駐サービスと、Action Intentの発行時の確認は、まだありません。`sei gate check`は、記録済みのDecisionを確認するCLIの機能です。導入容易性の観測(E-84.1)も未実施です。
 
 このADRで固定しないものは次です。
 
 - 具体的なコマンド名、引数、設定ファイルの形式。
 - MCP、OpenTelemetry、webhookなど、AIツール接続の具体的なprotocol。
-- 委任(Delegation)をAuthority関係のRevisionで表せるかどうか(CR-80.1)。
-- 企業のID基盤との対応(CR-80.7)。
-- 署名とタイムスタンプ(CR-80.8)。
+- 委任(Delegation)をAuthority関係のRevisionで表せるかどうか(CR-84.1)。
+- 企業のID基盤との対応(CR-84.7)。
+- 署名とタイムスタンプ(CR-84.8)。
 
 ## Decision
 
@@ -71,7 +71,7 @@ SEI自身が所有する、利用者が最初に触れる面は、Goで実装し
 
 ### 4. 導入容易性の扱い
 
-導入容易性は、新しいValue Axisではなく、V7の観測と非機能要件として扱います。観測の基準はISSUE-000080のCR-80.5に従い、固定のしきい値はE-80.1の結果が出るまで確定しません。
+導入容易性は、新しいValue Axisではなく、V7の観測と非機能要件として扱います。観測の基準はISSUE-000084のCR-84.5に従い、固定のしきい値はE-84.1の結果が出るまで確定しません。
 
 ## Alternatives considered
 
@@ -108,8 +108,8 @@ SEI自身が所有する、利用者が最初に触れる面は、Goで実装し
 
 ## Revisit conditions
 
-- E-80.1で、書かれた手順だけでは初期導入が完了しない、または作者の補助が常に必要だという結果が出た。
-- E-80.2、E-80.3で、Gatewayの責務だけでは食い違いの保持や第三者の検証が成立しないことが分かった。
+- E-84.1で、書かれた手順だけでは初期導入が完了しない、または作者の補助が常に必要だという結果が出た。
+- E-84.2、E-84.3で、Gatewayの責務だけでは食い違いの保持や第三者の検証が成立しないことが分かった。
 - 参照エージェントを外部に置く構成では、チームが実用的に使えないというEvidenceが得られた。
 - 全社の統治部門から先に導入したいという、実際の需要が確認された。
 - ADR-0027、0029、0030が変更された。
@@ -126,8 +126,8 @@ Design Evidence
   != Adoption / Outcome Evidence
 ```
 
-- Design Evidence: ISSUE-000080、`plan/SEI_FUTURE_POSITIONING_2026-10.md`、ADR-0027、0028、0029、0030。
+- Design Evidence: ISSUE-000084、`plan/SEI_FUTURE_POSITIONING_2026-10.md`、ADR-0027、0028、0029、0030。
 - Executable Evidence: `sei` CLIの最小版(`init`、`add`、`resume`、`verify`、`export`)、`mcp`(AIツール接続のprofile)を実装し、Go 1.25.14の実際のgo.modで`runtime/go`全体のtestがPASSした。範囲と留保は`runtime/SEI_CLI_FIRST_SLICE_EVIDENCE_2026-10-06.md`に記録している。実行前の確認(`sei gate check`)は、既存のDecision Memoryを読んで確認する機能として実装した。Decision Memoryは変更しない。確認のたびに運用ログ(`gate-checks.jsonl`)へ追記するが、その運用ログは判断の記録の一部ではない。結果のContract化とAction Intentそのものの記録型は、ADR-0034(Proposed)で扱う。
 - Adoption / Outcome Evidence: なし。
 
-このADRがAcceptedになる条件は、最小のバイナリ実装とE-80.1の結果を踏まえて、プロダクト責任者が確認することです。
+このADRがAcceptedになる条件は、最小のバイナリ実装とE-84.1の結果を踏まえて、プロダクト責任者が確認することです。

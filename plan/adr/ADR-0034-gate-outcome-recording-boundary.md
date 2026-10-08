@@ -1,7 +1,7 @@
 # ADR-0034: 実行前の確認結果の記録は、まず運用ログに置き、Contract化は実証後に判断する
 
 Status: **Proposed**  
-Related Issue: **ISSUE-000080**  
+Related Issue: **ISSUE-000084**  
 Updated: 2026-10-06
 
 ## Context
@@ -21,7 +21,7 @@ ADR-0033は、Decision Gatewayが実行意図の発行前に、参照するDecis
 
 - Action Intentの意味と構造。
 - 確認結果をContractにする場合のfield。
-- Authorityの確認方法(CR-80.1、CR-80.7)。
+- Authorityの確認方法(CR-84.1、CR-84.7)。
 
 ## Decision
 
@@ -81,7 +81,7 @@ bundleに含められ、書き出しにも載ります。しかし、運用ロ�
 ### Costs / Risks
 
 - 運用ログは、`sei export`に含まれないため、別の環境へ持ち出すと失われる。第三者による検証には使えない。
-- 運用ログは、単一のファイルへの追記であり、改ざんの検出は無い。署名と時刻の証明(CR-80.8)は未実装である。
+- 運用ログは、単一のファイルへの追記であり、改ざんの検出は無い。署名と時刻の証明(CR-84.8)は未実装である。
 - 複数のプロセスが同時に追記したときの順序は、保証しない。
 
 ## Revisit conditions
@@ -101,8 +101,8 @@ Design Evidence
   != Adoption / Outcome Evidence
 ```
 
-- Design Evidence: ISSUE-000080、ADR-0033、`contracts/CONTRACT_CATALOG.md`。
+- Design Evidence: ISSUE-000084、ADR-0033、`contracts/CONTRACT_CATALOG.md`。
 - Executable Evidence: `sei gate check`の運用ログについて、`runtime/go/seicli`のtestで、追記、bundleの不変、`export`への非混入、ログに書けない場合の失敗を確認した。範囲と留保は`runtime/SEI_CLI_FIRST_SLICE_EVIDENCE_2026-10-06.md`に記録する。
 - Adoption / Outcome Evidence: なし。
 
-このADRをAcceptedにする条件は、E-80.2とE-80.3の結果を踏まえて、プロダクト責任者が確認することです。
+このADRをAcceptedにする条件は、E-84.2とE-84.3の結果を踏まえて、プロダクト責任者が確認することです。

@@ -1,4 +1,4 @@
-# ISSUE-000080: 企業の統治・意思決定基盤としての初期認知と導入容易性を、Product Valueからrequirementへ接続する
+# ISSUE-000084: 企業の統治・意思決定基盤としての初期認知と導入容易性を、Product Valueからrequirementへ接続する
 
 Status: **Open**  
 Priority: **1**  
@@ -63,10 +63,10 @@ Updated: 2026-10-06
 
 ## 暫定決定
 
-2026-10-06に、プロダクト責任者がQuestion 1と2について、Claudeの推奨どおりに進めることを指示した。いずれも暫定であり、E-80.1〜4の結果で見直す。
+2026-10-06に、プロダクト責任者がQuestion 1と2について、Claudeの推奨どおりに進めることを指示した。いずれも暫定であり、E-84.1〜4の結果で見直す。
 
 1. Question 1: Governed Decision Subjectは、Decision Gatewayにとどめる。判断を下書きする参照エージェントをSEI自身は持たない。必要な場合は、Cognitive MethodまたはProviderとして外部に置く。
-2. Question 2: 最初の導入単位はチームとする。全社の統治部門への展開は、チームでの効果をE-80.1〜3で確かめた後に扱う。
+2. Question 2: 最初の導入単位はチームとする。全社の統治部門への展開は、チームでの効果をE-84.1〜3で確かめた後に扱う。
 
 この二点を受けて、ADR-0033(Proposed)でDecision Gatewayの境界と最初の導入面を起票した。Question 3〜5は未決のままである。
 
@@ -97,7 +97,7 @@ Product Milestone候補(PMS-09)
   ↓
 Open Question / Experiment / Human Review
   ↓
-Candidate Requirement(CR-80.x)
+Candidate Requirement(CR-84.x)
   ↓
 Requirement audit
   ↓
@@ -134,7 +134,7 @@ Executable Evidence → Release / Operational / Adoption Evidence
 PMS-09 Governance Entry の案を示す。期限ではなくOutcomeとEvidenceで定義する。
 
 - Outcome: チーム一つが既存のAIツールを変えずにSEIを導入し、最初の委任付きDecisionの記録、再開、第三者による検証までを、追加の専任担当無しで行える。
-- Minimum Evidence: 空の環境での初期導入の観測(E-80.1)、異種ツールのConflict保持(E-80.2)、実行環境無しの検証(E-80.3)。
+- Minimum Evidence: 空の環境での初期導入の観測(E-84.1)、異種ツールのConflict保持(E-84.2)、実行環境無しの検証(E-84.3)。
 - 現在の状態: Not Yet Verified。
 
 ## 既存Requirementとの照合
@@ -156,14 +156,14 @@ Candidate Requirementを立てる前に、既存のREQ / SCNで表せる範囲�
 
 いずれもStableではない。優先順位は上から採用検討の価値が高い順である。
 
-### CR-80.1 委任の時点付き再構成
+### CR-84.1 委任の時点付き再構成
 
 AIまたはツールが、どのAuthorityから、どの範囲、どの期限で委任を受けて決定したかを、後から時点付きで再構成できる。
 
 - 既存の受け皿: REQ-0017、0008、0009。
 - 暫定の判断: 既存Requirementの拡張で足りる可能性が高い。Delegationを新しいUniversal型にせず、Authority関係のRevisionとして表せるかをまず確かめる。
 
-### CR-80.2 実行意図の発行前確認
+### CR-84.2 実行意図の発行前確認
 
 Action Intentの発行時に、参照するDecisionとAuthority basisの有無を確認でき、確認の失敗時の振る舞い(fail-closedまたはfail-open)を方針として選び、記録できる。
 
@@ -172,21 +172,21 @@ Action Intentの発行時に、参照するDecisionとAuthority basisの有無�
 - 暫定の判断: Profileまたは方針の層に置き、Requirement化は慎重に判断する。
 - 実装状況(2026-10-06): `sei gate check`として、記録済みDecisionが方針を満たすかを確認する機能として実装した。判断の記録(決定のstore)は変更せず、確認のたびに、その結果を判断の記録とは別の運用ログ(`gate-checks.jsonl`)に追記する。方針は呼び出し側が選び、終了コードで許可、拒否、確認不能を分ける。Action Intentそのものの記録型と、確認結果のContract化は、必要性のEvidenceが出るまで先送りし、ADR-0034(Proposed)に判断を記した。Authorityと行為の範囲は確認せず、`not_verified`として出力する。
 
-### CR-80.3 異種ツールの提案の保持
+### CR-84.3 異種ツールの提案の保持
 
 複数のAIツールが、同じ問いについて異なる推薦を出したとき、各ツールのProvenanceと食い違いを保ち、決定後に一つのツールの推薦が改訂されても過去のbasisは変わらない。
 
 - 既存の受け皿: REQ-0002、0003、0007、0009。
 - 暫定の判断: 新しいRequirementではなく、Acceptance Scenarioの追加で足りる可能性が高い。
 
-### CR-80.4 実行環境無しの第三者検証
+### CR-84.4 実行環境無しの第三者検証
 
 監査人が、SEIのruntimeやStorageにアクセスせず、書き出されたbundleだけで、根拠、権限、未解決事項、改訂の履歴を検証できる。
 
 - 既存の受け皿: REQ-0018、0020、0023、Semantic Interchange Contract。
 - 暫定の判断: 既存のContractで満たせるかを、独立した小さな検証器(Goの単体バイナリ)で確かめる。
 
-### CR-80.5 First-Contact Adoption(非機能)
+### CR-84.5 First-Contact Adoption(非機能)
 
 初期導入が、追加のインフラや既存ツールの変更を必要とせず、最初の記録と再開までを短い手順で行える。
 
@@ -197,23 +197,23 @@ Action Intentの発行時に、参照するDecisionとAuthority basisの有無�
   - 既存ツールへの変更の要否。
   - 初回で利用者が自力で完了できたか、助けが必要だったか。
 - 暫定の探索目標として、初回導入を十五分以内とする。これは仮の目標であり、最初の観測の後に見直す。
-- 暫定の判断: 製品の制約として記述する案と、Acceptance Scenarioに留める案を、E-80.1の結果で比べる。
+- 暫定の判断: 製品の制約として記述する案と、Acceptance Scenarioに留める案を、E-84.1の結果で比べる。
 
-### CR-80.6 既存ツールへの後付け接続
+### CR-84.6 既存ツールへの後付け接続
 
 既存のAIツールの出力(MCP呼び出し、OpenTelemetryのspan、ticket、ログ)を、ツール側を変更せずにObservationまたはRecommendationとして取り込み、AIが付けた分類と、権限者が確認した分類を別のものとして保てる。
 
 - 既存の受け皿: REQ-0010、0015、0016、0019。
 - 注意: MCPやOpenTelemetryを、Stable Requirementにしない。Integration SurfaceのProfileとAdapterとして扱う。
 
-### CR-80.7 企業のIDとの対応(Deferred)
+### CR-84.7 企業のIDとの対応(Deferred)
 
 OIDC、SCIM等の企業の識別基盤から得たIDを、Product Accessとして扱い、そこからResponsibilityやAuthorityを推定しない。
 
 - 既存の受け皿: ADR-0030、REQ-0013。
 - 暫定の判断: 単一チームの導入で必要性が実際に出るまでDeferredとする。
 
-### CR-80.8 時刻と作成者の証明(Deferred)
+### CR-84.8 時刻と作成者の証明(Deferred)
 
 署名とタイムスタンプで、記録の存在時刻と作成者を第三者が確かめられる。
 
@@ -224,19 +224,19 @@ OIDC、SCIM等の企業の識別基盤から得たIDを、Product Accessとし�
 
 いずれも、実行前はDesign Evidenceである。実行しても、Operational EvidenceやAdoption / Outcome Evidenceには昇格させない。
 
-### E-80.1 初期導入の観測
+### E-84.1 初期導入の観測
 
 SEIの開発に関わっていない開発者または運用担当者が、空の端末で、書かれた手順だけを使って導入する。経過時間、つまずいた箇所、必要になった事前準備を記録する。作者の補助は、補助が入った時点で記録に残し、成功として数えない。
 
-### E-80.2 異種ツールの接続
+### E-84.2 異種ツールの接続
 
 役割の違う三つ以上のAIツールの推薦を取り込み、食い違いを含む判断を一件完了させる。その後、一つのツールの推薦を改訂し、過去のbasisとConflictが保たれることを確かめる。
 
-### E-80.3 実行環境無しの検証
+### E-84.3 実行環境無しの検証
 
 書き出したbundleだけを、SEIを使っていない監査担当者に渡し、根拠、権限、未解決事項、決定後の変更を読み取れるかを観察する。
 
-### E-80.4 代替との比較
+### E-84.4 代替との比較
 
 ISSUE-000078の方式に倣い、ログ、ADR文書、チャット履歴と、SEIの記録で、再開の負担と誤読の件数を比べる。追加構造に実質的な差がなければ、その結果を価値の反証として残す。
 
@@ -265,13 +265,13 @@ ISSUE-000078の方式に倣い、ログ、ADR文書、チャット履歴と、SE
 - 導入件数やインストール数を、Adoption / Outcome Evidenceとして扱わない。
 - 作者の補助付きの導入を、導入容易性のEvidenceとして扱わない。
 - Design Evidenceだけで、導入が容易であると主張しない。
-- E-80.1〜4の結果を、v0.2.0のsupported scopeへ遡って加えない。
+- E-84.1〜4の結果を、v0.2.0のsupported scopeへ遡って加えない。
 
 ## Resolvedの条件
 
 - Questions 1〜5に、実際の根拠付きで答えが出ている。
 - Candidate Requirementのそれぞれが、Stable Requirement、既存Requirementへの統合、No Change / Deferredのいずれかに分類されている。
-- E-80.1〜4のうち実施したものと、未実施のものが、Evidenceの高さとともに分けて記録されている。
+- E-84.1〜4のうち実施したものと、未実施のものが、Evidenceの高さとともに分けて記録されている。
 - 必要なADR候補が起票され、不要なものはその理由が残っている。
 - Value Proposition候補とPMS-09候補の反映可否が決まっている。
 

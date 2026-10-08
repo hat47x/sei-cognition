@@ -145,7 +145,7 @@ reviewed:
     status: revised
   - scope: runtime/SEI_CLI_FIRST_SLICE_EVIDENCE_2026-10-06.md
     status: revised
-    note: 利用者向けCLI `sei`の最小版について、実装範囲、Go 1.25.14で`runtime/go`全体のtestがPASSしたこと(seicliは30件、doctorの6件を含む)、修正版バイナリの実プロセス確認、未確認事項を分けて記録した。2026-10-08に並列レビューの指摘を修正し、sei doctorを追加して実バイナリで4場面を確かめた(同時書き込みの消失、MCP引数の黙った無視、未記録の推薦への依拠、exportの上書き、出所の指定)。Windowsでの確認は修正版で行い、MCP Inspectorの確認も修正版で行った。導入容易性(E-80.1)、Authorityの確認、実AIツールとの接続、macOSでの実行、運用ログの改ざん検出は未確認のまま保持し、停止線を実際より高く書いていない。
+    note: 利用者向けCLI `sei`の最小版について、実装範囲、Go 1.25.14で`runtime/go`全体のtestがPASSしたこと(seicliは30件、doctorの6件を含む)、修正版バイナリの実プロセス確認、未確認事項を分けて記録した。2026-10-08に並列レビューの指摘を修正し、sei doctorを追加して実バイナリで4場面を確かめた(同時書き込みの消失、MCP引数の黙った無視、未記録の推薦への依拠、exportの上書き、出所の指定)。Windowsでの確認は修正版で行い、MCP Inspectorの確認も修正版で行った。導入容易性(E-84.1)、Authorityの確認、実AIツールとの接続、macOSでの実行、運用ログの改ざん検出は未確認のまま保持し、停止線を実際より高く書いていない。
   - scope: runtime/CONFORMANCE_EVIDENCE_2026-08-31.md
     status: revised
     note: semantic runtime、Verifier Registry、Payload Source、Provider Adapter、Cognitive Methodの限定Executable Evidenceを5段階Evidenceへ再整理済み。
@@ -262,7 +262,7 @@ reviewed:
 
   - scope: evaluation/adoption-first-contact/*.md
     status: revised
-    note: ISSUE-000080のE-80.1として、SEIの開発に関わっていない人が空の端末で最初の記録、再開、第三者による検証まで進めるかを観測する手順を定めた。観測は未実施で結果はない。導入の完了、導入の容易性、価値の到達を別のものとして扱い、作者の補助付きや作者の端末での実行を観測として数えない停止線を置いた。
+    note: ISSUE-000084のE-84.1として、SEIの開発に関わっていない人が空の端末で最初の記録、再開、第三者による検証まで進めるかを観測する手順を定めた。観測は未実施で結果はない。導入の完了、導入の容易性、価値の到達を別のものとして扱い、作者の補助付きや作者の端末での実行を観測として数えない停止線を置いた。
   - scope: runtime/go/cmd/sei/QUICKSTART.md
     status: revised
     note: sei CLI最小版の利用者向け入口。入手、最初の判断の記録、再開、第三者の検証、MCPによるAIツール接続を、実装済みの範囲に限って書いた。AIツールには既定で読み取りと推薦の追記だけを渡し、決定の記録は運用者の明示とresponsibleの指定を条件にしている。実行前の確認はAuthorityを確認せず、結果は判断の記録ではなく運用ログに残るだけであること、同時書き込みの制御、決定の改訂と取り消し、署名は未実装と明記し、導入容易性は未観測と状態に記した。

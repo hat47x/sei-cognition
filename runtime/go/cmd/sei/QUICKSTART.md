@@ -1,7 +1,7 @@
 # sei クイックスタート
 
 更新日: 2026-10-06  
-状態: **Experimental / v1alpha1。導入容易性は未観測(ISSUE-000080のE-80.1)**
+状態: **Experimental / v1alpha1。導入容易性は未観測(ISSUE-000084のE-84.1)**
 
 `sei`は、AIツールや人の提案と、人が下した決定を、別の記録として残し、後から続きを始められるようにするコマンドです。単一のバイナリで動き、外部のDBやサービスは要りません。
 
@@ -162,4 +162,4 @@ sei doctor --data-root /absolute/path/to/.sei
 
 `sei doctor`は、バイナリの版とハッシュ、データ置き場への書き込み、記録の検証、残っているロック、ゲートログの書き込みを確かめます。読み取り専用で、記録もロックも変更しません。`fail`が一つでもあれば終了コードは1になります。`warn`は、そのままでも動く状態を表します。出力には、AIツールに登録するための絶対パスのMCP設定も含まれます。
 
-それでも詰まった箇所は、作者に聞く前に、そのまま記録してください。導入の観測(`evaluation/adoption-first-contact/E80_1_OBSERVATION_PROTOCOL.md`)の材料になります。
+それでも詰まった箇所は、作者に聞く前に、そのまま記録してください。導入の観測(`evaluation/adoption-first-contact/E84_1_OBSERVATION_PROTOCOL.md`)の材料になります。

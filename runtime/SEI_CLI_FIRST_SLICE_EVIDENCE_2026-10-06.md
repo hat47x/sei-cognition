@@ -2,7 +2,7 @@
 
 更新日: 2026-10-08  
 状態: **Scoped Executable Evidence。Go 1.25.14で`runtime/go`全体のtestがPASS。導入容易性のEvidenceではない**  
-関連: **ISSUE-000080 / ADR-0033 / ADR-0034**
+関連: **ISSUE-000084 / ADR-0033 / ADR-0034**
 
 ## 1. この文書の役割
 
@@ -15,7 +15,7 @@
 - `runtime/go/seicli`: コマンドの実装。
 - `runtime/go/cmd/sei`: 実行可能バイナリの入口と、利用者向けの`QUICKSTART.md`。
 - `tools/build_sei.sh`: Linux、macOS、Windows向けの単体バイナリと`SHA256SUMS`を作る開発用script。
-- `evaluation/adoption-first-contact/E80_1_OBSERVATION_PROTOCOL.md`: 導入の観測手順(観測は未実施)。
+- `evaluation/adoption-first-contact/E84_1_OBSERVATION_PROTOCOL.md`: 導入の観測手順(観測は未実施)。
 
 新しいContractは作っていません。記録は既存のDecision Memory Contractで書き、既存のSemantic Interchangeの封筒に入れます。
 
@@ -127,13 +127,13 @@ WSL2のUbuntu上で、公式配布のGo 1.25.14(`go1.25.14.linux-amd64.tar.gz`�
 
 ```text
 runtime/go test PASS
-  != 導入容易性(E-80.1)
+  != 導入容易性(E-84.1)
   != Decision Gateway
   != Authorityの確認
   != Adoption / Outcome Evidence
 ```
 
-- 空の端末で、作者の補助なしに導入できるか(E-80.1)は未観測です。このbuildと実行は作者の環境で行いました。
+- 空の端末で、作者の補助なしに導入できるか(E-84.1)は未観測です。このbuildと実行は作者の環境で行いました。
 - Claude Code、Claude Desktop等の、実際のAIツールからの接続は未確認です。`claude mcp add`の構文は、この環境では実行していません。
 - 確認の結果は、運用ログ`gate-checks.jsonl`に追記されるだけで、判断の記録の一部ではなく、`sei export`にも含まれません。ログは改ざんを検出できません。
 - 確認が見るのは、決定が記録され、方針を満たすことだけです。責任を持つ人がAuthorityを持つこと、行為が決定の範囲に収まることは確認していません。
