@@ -293,10 +293,7 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
             item for item in plan["premiseReferences"]
             if item["assertionId"] == "user-current"
         )
-        query = MODULE.build_epistemic_detail_query(
-            reference,
-            ["policy:b", " policy:a ", "policy:b"],
-        )
+        query = MODULE.build_epistemic_detail_query(reference)
         self.assertEqual(MODULE.TEI_DETAIL_QUERY_CONTRACT, query["contract"])
         self.assertEqual(reference["assertionId"], query["assertionId"])
         self.assertEqual(
@@ -315,14 +312,25 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
             reference["reviewLogSequence"],
             query["expectedReviewLogSequence"],
         )
-        self.assertEqual(["policy:a", "policy:b"], query["grantedAccessRefs"])
+        self.assertNotIn("grantedAccessRefs", query)
         self.assertNotIn("text", query)
         self.assertNotIn("evidence", query)
 
-    def test_detail_query_does_not_infer_access_from_epistemic_content(self) -> None:
+    def test_detail_access_context_is_separate_from_semantic_query(self) -> None:
         reference = self.route()["contextEgressPlan"]["premiseReferences"][0]
         query = MODULE.build_epistemic_detail_query(reference)
-        self.assertEqual([], query["grantedAccessRefs"])
+        access = MODULE.build_epistemic_detail_access_context(
+            ["policy:b", " policy:a ", "policy:b"],
+        )
+        self.assertNotIn("grantedAccessRefs", query)
+        self.assertEqual(["policy:a", "policy:b"], access["grantedAccessRefs"])
+
+    def test_detail_access_context_is_not_inferred_from_epistemic_content(self) -> None:
+        reference = self.route()["contextEgressPlan"]["premiseReferences"][0]
+        query = MODULE.build_epistemic_detail_query(reference)
+        access = MODULE.build_epistemic_detail_access_context()
+        self.assertNotIn("grantedAccessRefs", query)
+        self.assertEqual([], access["grantedAccessRefs"])
 
     def test_resolved_premise_detail_remains_context_data(self) -> None:
         plan = self.route()["contextEgressPlan"]
