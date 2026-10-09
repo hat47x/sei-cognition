@@ -189,7 +189,7 @@ current draft:
 python validate_result.py
 ```
 
-期待値:
+期待値は次のとおりです。
 
 ```text
 Cross-stage result validated; current result remains draft/empty

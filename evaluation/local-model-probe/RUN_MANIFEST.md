@@ -213,7 +213,7 @@ Linuxでruntime server PIDが分かる場合は `modelmatrix --runtime-pid <pid>
 
 同時にmatrix開始時に `/proc/<pid>/exe` を読み、`runtime_process`へ実行中executableのbasename / size / SHA-256を保存する。絶対pathは保存せず、sourceとして `/proc/<pid>/exe` だけを記録する。
 
-記録値:
+記録値は次のとおりです。
 
 - PID / process name;
 - source path (`/proc/<pid>/status`);
@@ -223,7 +223,7 @@ Linuxでruntime server PIDが分かる場合は `modelmatrix --runtime-pid <pid>
 - matrix内のmax observed RSS / peak RSS;
 - read errorがあればerror text.
 
-状態:
+状態は次のとおりです。
 
 - `not-requested`: PID未指定;
 - `observed`: requested sampleをerrorなく取得;
@@ -376,7 +376,7 @@ bundle integrity PASS
 
 ## 6. 現在の実行環境で確認できたこと
 
-2026-09-12時点の現在の作業環境では:
+2026-09-12時点の現在の作業環境ではは次のとおりです。
 
 - Linux x86_64
 - RAM約5.8 GiB

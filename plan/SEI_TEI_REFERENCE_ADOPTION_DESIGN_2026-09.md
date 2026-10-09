@@ -335,7 +335,7 @@ Stage 0では、同一意味変更をnative SEI projectionとTEI Referenceで比
 - Decisionは変わらない。
 - unresolvedは自動解決されない。
 
-比較するもの:
+比較するもの。
 
 - 更新するsource owner数
 - hand-written mapping数

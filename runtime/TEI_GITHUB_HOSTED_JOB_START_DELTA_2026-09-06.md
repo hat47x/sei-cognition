@@ -70,14 +70,14 @@ completed steps observed = 6
 
 ## 言えること / 言えないこと
 
-現在言えること:
+現在言えること。
 
 - 2026-09-06には異なる複数workflowでGitHub-hosted jobがstep 0 failureとなっている。
 - 両workflowのjobは`ubuntu-latest`を指定している。
 - TEI Evidence workflow attempt 3ではTEI source checkout / build / Provider Plan processへ到達していない。
 - 2026-09-02には同repositoryでsuccessful hosted runを観測できる。
 
-現在言えないこと:
+現在言えないこと。
 
 - billingが原因である。
 - repository Actions policyが原因である。

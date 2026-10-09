@@ -23,27 +23,27 @@ Updated: 2026-08-31
 
 ADR-0017で、次の境界をAcceptedとした。
 
-1. **Reference Model / Patternはdomain-specificなDesign Knowledgeとして扱う。**  
+1. Reference Model / Patternはdomain-specificなDesign Knowledgeとして扱う。  
    業務domain固有のPattern、典型Data構造、Workflow、Authorization構造等は、TEI Design Knowledgeまたはdomain-specific knowledge assetへ置く。
 
-2. **Cognitive Methodは探索・比較・統合・検査の手続きを表す。**  
+2. Cognitive Methodは探索・比較・統合・検査の手続きを表す。  
    どの資料やPatternを探索するか、何を比較するか、どの反例・残差を調べるかという手続きはSEI側で表現できる。
 
-3. **Pattern matchをRecommendationやDecisionへ自動昇格させない。**
+3. Pattern matchをRecommendationやDecisionへ自動昇格させない。
 
 ```text
 Pattern match != Recommendation != Decision
 ```
 
-4. **Method ApplicationをAssuranceへ自動昇格させない。**
+4. Method ApplicationをAssuranceへ自動昇格させない。
 
 ```text
 Method Application != conclusion truth != Assurance
 ```
 
-5. **重要な過去Decisionで特定版のReference Model / Patternがbasisになった場合は、必要に応じてExactArtifactBinding等で当時の参照内容を特定する。**
+5. 重要な過去Decisionで特定版のReference Model / Patternがbasisになった場合は、必要に応じてExactArtifactBinding等で当時の参照内容を特定する。
 
-6. **historical X-TEA assetは設計系譜としてprovenanceを残すが、現行TEI Productの正本とはみなさない。**
+6. historical X-TEA assetは設計系譜としてprovenanceを残すが、現行TEI Productの正本とはみなさない。
 
 ## Questionsへの回答
 

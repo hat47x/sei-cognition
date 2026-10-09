@@ -492,14 +492,14 @@ runtime交換後もMethod outputをRecommendation / Decisionへ自動昇格し�
 
 runが停止した地点に応じて、存在する範囲のEvidenceを失わない。
 
-preflightでblockedした場合:
+preflightでblockedした場合。
 
 - structured preflight report
 - preflight observation
 - blocker / exit code
 - `strictStarted=false`
 
-strict開始後に失敗した場合:
+strict開始後に失敗した場合。
 
 - successful preflight report
 - runner combined output log
@@ -566,7 +566,7 @@ current developには次がある。
 - artifact manifest横断整合checker
 - official GitHub Release snapshot
 - runtime archive official origin / platform / size / digest validation
-- runtime archive repository外 preparation / symlink guard
+- runtime archive repository外preparation / symlink guard
 - strict prepositioned archive actual bytes precheck
 - KJ Atlas source exporter / verifier
 - source verifier / exporter result-output separation

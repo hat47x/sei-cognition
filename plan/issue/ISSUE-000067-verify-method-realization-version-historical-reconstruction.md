@@ -7,7 +7,7 @@ Updated: 2026-09-02
 
 ## Goal
 
-E3b-M1a / M1bで得られた実行Evidenceを入力として、**同じCognitive Method Definitionを異なるMethod Realizationで実行した履歴を、後から取り違えずに再構成できるか**を検証する。
+E3b-M1a / M1bで得られた実行Evidenceを入力として、同じCognitive Method Definitionを異なるMethod Realizationで実行した履歴を、後から取り違えずに再構成できるかを検証する。
 
 中心となる問いは、model名やruntime名をSEI Universal Contractへ追加すべきかではない。
 
@@ -58,11 +58,11 @@ Revision B
 
 ### H1 CI
 
-- Semantic Runtime Conformance Run `33629248978`: **success**
-- Job `100244317333`: **success**
-- Plan integrity Run `33629248942`: **success**
+- Semantic Runtime Conformance Run `33629248978`: success
+- Job `100244317333`: success
+- Plan integrity Run `33629248942`: success
 
-H1により、**current Method Realization + implementation refs + Exact Bindingにはhistorical revisionを区別する表現力がある**ことを確認した。
+H1により、current Method Realization + implementation refs + Exact Bindingにはhistorical revisionを区別する表現力があることを確認した。
 
 したがって、H1を理由として次は追加しない。
 
@@ -86,7 +86,7 @@ M1b
   Ollama runtime + actual model
 ```
 
-そのため、この二つは**同じMethod Definitionを実現する別のMethod Realization**として扱う。
+そのため、この二つは同じMethod Definitionを実現する別のMethod Realizationとして扱う。
 
 ```text
 M-KJ-ATLAS-GROUPING
@@ -143,19 +143,19 @@ Applicationは対応するRealization logical referenceを保持し、Provenance
 
 behavior-complete head `711b31cccdcd4644ab47554322455e4219f910b6`では、次を確認した。
 
-- External Method Integration E3b Run `33630741545`: **success**
+- External Method Integration E3b Run `33630741545`: success
   - M1a actual KJ Atlas grouping: success
   - mapping boundary tests: success
   - `MR-KJ-ATLAS-M1A` + deterministic stub execution identityでのSEI mapping: success
-- External Model-backed Method E3b M1b Run `33630741559`: **success**
+- External Model-backed Method E3b M1b Run `33630741559`: success
   - digest-pinned Ollama runtime install: success
   - model identity `a8b0c5157701`確認: success
   - actual inference: success
   - mapping boundary tests: success
   - `MR-KJ-ATLAS-M1B` + Ollama / qwen execution identityでのSEI mapping: success
-- Semantic Runtime Conformance Run `33630741581`: **success**
-- Plan integrity Run `33630741593`: **success**
-- Release Candidate Gate Run `33630741555`: **success**
+- Semantic Runtime Conformance Run `33630741581`: success
+- Plan integrity Run `33630741593`: success
+- Release Candidate Gate Run `33630741555`: success
   - Gate 1〜9: success
   - 公開済みv0.2.0のprepare / publish: skip
 
@@ -165,9 +165,9 @@ PR #56の最終head `9bb1861f7df0c2e6750895863883c12fe1a63ab6`でも9系統のwo
 
 H2でM1a / M1bを別Realizationとして扱うことは、H1を否定しない。
 
-H1は、**一つのRealizationについてhistorical revisionを固定する必要が生じた場合にExact Bindingで表現できる**ことを示した。
+H1は、一つのRealizationについてhistorical revisionを固定する必要が生じた場合にExact Bindingで表現できることを示した。
 
-H2は、**実現機構が異なるM1a / M1bを同じRealizationへ誤って畳み込まない**ことを示した。
+H2は、実現機構が異なるM1a / M1bを同じRealizationへ誤って畳み込まないことを示した。
 
 ```text
 H2: 実現機構が違う
@@ -268,17 +268,17 @@ ISSUE-000067の問いに対して、今回の実証範囲では次の結論を�
 4. このためにUniversal Cognitive Method Contractへmodel / runtime固有fieldを追加する必要は確認されなかった。
 5. 新しいStable Requirement / Scenarioも不要で、既存REQ / SCNで意味境界を保てる。
 
-以上をactual CIで検査し、上流計画へ反映したため、本Issueを**Resolved**とする。
+以上をactual CIで検査し、上流計画へ反映したため、本IssueをResolvedとする。
 
 ## Evidence state
 
-- M1a deterministic model stub execution: **Scoped Executable Evidence available**
-- M1b actual model-backed execution: **Scoped Executable Evidence available**
-- H1 Core / Bundle historical reconstruction: **Scoped Executable Evidence available — Run `33629248978`**
-- H2 live integration preservation: **Scoped Executable Evidence available — Runs `33630741545` / `33630741559`**
-- arbitrary model / runtime version portability: **Not Yet Verified**
-- E4 Operational portability: **Not Yet Verified**
-- Operational Evidence: **Not Yet Verified**
+- M1a deterministic model stub execution: Scoped Executable Evidence available
+- M1b actual model-backed execution: Scoped Executable Evidence available
+- H1 Core / Bundle historical reconstruction: Scoped Executable Evidence available — Run `33629248978`
+- H2 live integration preservation: Scoped Executable Evidence available — Runs `33630741545` / `33630741559`
+- arbitrary model / runtime version portability: Not Yet Verified
+- E4 Operational portability: Not Yet Verified
+- Operational Evidence: Not Yet Verified
 
 ## Reopen / escalation条件
 

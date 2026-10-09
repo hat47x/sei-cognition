@@ -152,7 +152,7 @@ REQ-0023 / SCN-0019もcurrent 5 Contract familyを増やしません。commit at
 
 actual repositoryには、Architectureの複数境界を限定範囲で検査するGo runtime / probe / integration materialがあります。
 
-代表例:
+代表例は次のとおりです。
 
 - semanticruntime — known Contractのread / validate / reconstruct
 - provideradapter — Provider-specific inputからCapability Observationへのmapping

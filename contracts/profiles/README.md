@@ -98,7 +98,7 @@ failed
 not_verified
 ```
 
-基本境界:
+基本境界は次のとおりです。
 
 - known Profile + digest一致 → `verified`
 - known Profile + digest mismatch → `failed`
@@ -191,14 +191,14 @@ historical bindingがどのdigest規則で作られたか不明な場合、現�
 
 ISSUE-000034では、historical M47 digest規則の回収を独立して実施しました。
 
-回収できたもの:
+回収できたもの。
 
 - M47 semantic Contract
 - M47 Implementation Report
 - M47 Release Closure
 - historical KJ / cultural-substrate-weaving Method Definition payload
 
-回収できなかったもの:
+回収できなかったもの。
 
 - actual digest-producing M47 Go source
 - actual M47 conformance tool
@@ -239,7 +239,7 @@ Design Evidence
 
 current `v1alpha1` Profile DefinitionはDesign Evidenceです。fixture / Go probe / runtime verifier / synthetic Payload SourceのPASSは、それぞれscopeを限定したExecutable Evidenceです。
 
-未検証:
+未検証は次のとおりです。
 
 - production-grade external payload acquisition
 - production object storage / network behavior

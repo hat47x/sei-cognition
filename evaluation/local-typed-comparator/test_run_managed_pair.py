@@ -1,0 +1,1148 @@
+import importlib.util
+import json
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+SPEC = importlib.util.spec_from_file_location(
+    "run_managed_pair_tested", HERE / "run_managed_pair.py"
+)
+mod = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = mod
+SPEC.loader.exec_module(mod)
+
+SHA = "1" * 40
+
+
+def write_json(path: Path, value):
+    path.write_text(
+        json.dumps(value, separators=(",", ":")) + "\n",
+        encoding="utf-8",
+    )
+
+
+class FakeRunner:
+    def __init__(
+        self,
+        fail_stage=None,
+        report_sha=SHA,
+        decision="pass",
+        bad_decision_binding=None,
+        preflight_live=False,
+        preflight_install_origin=False,
+        preflight_runtime_current_match=True,
+        preflight_environment_full_origin=False,
+    ):
+        self.calls = []
+        self.fail_stage = fail_stage
+        self.report_sha = report_sha
+        self.decision = decision
+        self.bad_decision_binding = bad_decision_binding
+        self.preflight_live = preflight_live
+        self.preflight_install_origin = preflight_install_origin
+        self.preflight_runtime_current_match = (
+            preflight_runtime_current_match
+        )
+        self.preflight_environment_full_origin = (
+            preflight_environment_full_origin
+        )
+
+    def __call__(self, command, *, cwd, check):
+        self.calls.append((command, cwd, check))
+        script = Path(command[1]).name
+        stage = {
+            "preflight_managed_pair.py": "preflight",
+            "capture_reference_l0.py": "reference",
+            "capture_papaya_l0.py": "papaya",
+            "compare_papaya_reference_numeric.py": "comparison",
+            "evaluate_papaya_numeric_parity.py": "decision",
+        }[script]
+        if stage == self.fail_stage:
+            return subprocess.CompletedProcess(command, 2)
+
+        output = Path(command[command.index("--output") + 1])
+        root = output.parent
+        if stage == "preflight":
+            write_json(
+                output,
+                {
+                    "schema": mod.PREFLIGHT_SCHEMA,
+                    "status": "ready",
+                    "source": {"git_sha": SHA},
+                    "runtime_wheelhouse": (
+                        {
+                            "provided": True,
+                            "verification": {"valid": True},
+                            "runtime_environment": (
+                                {
+                                    "provided": True,
+                                    "verification": {
+                                        "valid": True,
+                                        "python": {
+                                            "current_interpreter_matches": (
+                                                self.preflight_runtime_current_match
+                                            )
+                                        },
+                                        "scope": {
+                                            "transported_wheel_installation_origin_attested": True,
+                                            "runtime_installation_origin_attested": (
+                                                self.preflight_environment_full_origin
+                                            ),
+                                            "host_dependency_versions_pinned": False,
+                                            "self_contained_runtime": False,
+                                            "environment_relocatable": False,
+                                        },
+                                    },
+                                }
+                                if "--runtime-environment-dir" in command
+                                else {"provided": False}
+                            ),
+                            "scope": {
+                                "transport_candidate_only": True,
+                                "host_assisted_transport": True,
+                                "self_contained_wheelhouse": False,
+                                "host_dependency_versions_pinned": False,
+                                "transported_wheel_installation_origin_attested": (
+                                    "--runtime-environment-dir" in command
+                                ),
+                                "runtime_installation_origin_attested": (
+                                    self.preflight_install_origin
+                                ),
+                            },
+                        }
+                        if "--runtime-wheelhouse-dir" in command
+                        else {"provided": False}
+                    ),
+                    "scope": {
+                        "all_required_inputs_verified": True,
+                        "model_weights_loaded": self.preflight_live,
+                        "live_reference_inference": False,
+                        "live_papaya_inference": False,
+                        "numeric_difference_observed": False,
+                        "numeric_parity_decision_observed": False,
+                        "task_quality": False,
+                        "calibration_validity": False,
+                        "shipping_decision": False,
+                    },
+                },
+            )
+        elif stage == "reference":
+            write_json(
+                output,
+                {
+                    "schema": mod.REFERENCE_SCHEMA,
+                    "status": "complete",
+                    "source": {"git_sha": SHA},
+                },
+            )
+        elif stage == "papaya":
+            write_json(
+                output,
+                {
+                    "schema": mod.PAPAYA_SCHEMA,
+                    "status": "complete",
+                    "source": {"git_sha": SHA},
+                },
+            )
+        elif stage == "comparison":
+            write_json(
+                output,
+                {
+                    "schema": mod.REPORT_SCHEMA,
+                    "inputs": {"same_sei_source_git_sha": self.report_sha},
+                    "scope": {
+                        "numeric_parity_threshold_defined": False,
+                        "numeric_parity_decision": False,
+                    },
+                },
+            )
+        else:
+            report_sha = mod._sha256_file(root / mod.REPORT_FILE)
+            reference_sha = mod._sha256_file(root / mod.REFERENCE_FILE)
+            papaya_sha = mod._sha256_file(root / mod.PAPAYA_FILE)
+            bindings = {
+                "sha256": report_sha,
+                "same_sei_source_git_sha": SHA,
+                "reference_artifact_sha256": reference_sha,
+                "papaya_artifact_sha256": papaya_sha,
+            }
+            if self.bad_decision_binding is not None:
+                bindings[self.bad_decision_binding] = "0" * (
+                    40
+                    if self.bad_decision_binding == "same_sei_source_git_sha"
+                    else 64
+                )
+            passed = self.decision == "pass"
+            write_json(
+                output,
+                {
+                    "schema": mod.DECISION_SCHEMA,
+                    "decision": self.decision,
+                    "failures": (
+                        []
+                        if passed
+                        else [{"metric": "probability_max_abs_delta"}]
+                    ),
+                    "numeric_report": bindings,
+                    "scope": {
+                        "bounded_numeric_parity_on_preregistered_surface": passed,
+                        "task_quality": False,
+                        "calibration_validity": False,
+                        "cross_runtime_performance_comparison": False,
+                        "jev_provider_identity_equivalence": False,
+                        "reference_provider_promotion": False,
+                        "shipping_decision": False,
+                    },
+                },
+            )
+        return subprocess.CompletedProcess(command, 0)
+
+
+def write_materialized_workspace(
+    root: Path,
+    *,
+    source_sha: str = SHA,
+    runtime_environment: bool = False,
+):
+    root.mkdir()
+    (root / mod.workspace_materializer.REFERENCE_DIR).mkdir()
+    (root / mod.workspace_materializer.PAPAYA_CANDIDATE_DIR).mkdir()
+    (root / mod.workspace_materializer.PAPAYA_OVERLAY_DIR).mkdir()
+    if runtime_environment:
+        (root / mod.workspace_materializer.RUNTIME_ENV_DIR).mkdir()
+
+    receipt = {
+        "schema": mod.workspace_materializer.SCHEMA,
+        "status": "ready-for-managed-pair-preflight",
+        "source": {"git_sha": source_sha, "clean": True},
+        "layout": {
+            "reference_model_dir": mod.workspace_materializer.REFERENCE_DIR,
+            "papaya_candidate_dir": mod.workspace_materializer.PAPAYA_CANDIDATE_DIR,
+            "papaya_overlay_dir": mod.workspace_materializer.PAPAYA_OVERLAY_DIR,
+            "runtime_environment_dir": (
+                mod.workspace_materializer.RUNTIME_ENV_DIR
+                if runtime_environment
+                else None
+            ),
+        },
+        "disk_capacity": {"sufficient": True},
+        "papaya_overlay": {
+            "verification": {"valid": True},
+            "workspace_binding": {
+                "valid": True,
+                "workspace_relocatable": False,
+            },
+        },
+        "runtime_wheelhouse": {"provided": runtime_environment},
+        "runtime_environment": {"provided": runtime_environment},
+        "scope": {
+            "reference_model_bytes_materialized": True,
+            "reference_model_directory_verified": True,
+            "papaya_candidate_bytes_materialized": True,
+            "papaya_candidate_inputs_verified": True,
+            "papaya_compatibility_overlay_prepared": True,
+            "papaya_compatibility_overlay_verified": True,
+            "workspace_relocatable": False,
+            "runtime_wheelhouse_verified": runtime_environment,
+            "runtime_environment_materialized": runtime_environment,
+            "transported_wheel_installation_origin_attested": runtime_environment,
+            "runtime_installation_origin_attested": False,
+            "model_weights_loaded": False,
+            "live_reference_inference": False,
+            "live_papaya_inference": False,
+            "numeric_difference_observed": False,
+            "numeric_parity_decision_observed": False,
+            "task_quality": False,
+            "calibration_validity": False,
+            "shipping_decision": False,
+        },
+    }
+    write_json(
+        root / mod.workspace_materializer.RECEIPT_FILE,
+        receipt,
+    )
+    return receipt
+
+
+class ManagedPairTest(unittest.TestCase):
+    def _commands(
+        self,
+        root,
+        output,
+        *,
+        runtime_wheelhouse=False,
+        runtime_environment=False,
+    ):
+        commands = mod.build_commands(
+            python_executable="python3",
+            here=root / "scripts",
+            source_sha=SHA,
+            sei_source_dir=root / "sei",
+            reference_model_dir=root / "reference-model",
+            laya_runtime_wheel=root / "laya.whl",
+            papaya_source_dir=root / "papaya-source",
+            papaya_overlay_dir=root / "papaya-overlay",
+            llama_binary=root / "llama-server",
+            output_dir=output,
+            run_id="r1",
+            threads=4,
+            reference_startup_timeout=300.0,
+            papaya_startup_timeout=240.0,
+            runtime_wheelhouse_dir=(
+                root / "runtime-wheelhouse"
+                if runtime_wheelhouse or runtime_environment
+                else None
+            ),
+            runtime_environment_dir=(
+                root / "runtime-env" if runtime_environment else None
+            ),
+        )
+        return tuple(
+            zip(
+                ("preflight", "reference", "papaya", "comparison", "decision"),
+                commands,
+            )
+        )
+
+    def test_materialized_workspace_derives_provider_paths(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            workspace = root / "workspace"
+            write_materialized_workspace(workspace)
+            binding = mod._resolve_materialized_workspace(
+                workspace,
+                source_sha=SHA,
+            )
+            self.assertEqual(
+                binding["reference_model_dir"],
+                (workspace / mod.workspace_materializer.REFERENCE_DIR).resolve(),
+            )
+            self.assertEqual(
+                binding["papaya_overlay_dir"],
+                (workspace / mod.workspace_materializer.PAPAYA_OVERLAY_DIR).resolve(),
+            )
+            self.assertIsNone(binding["runtime_environment_dir"])
+            self.assertFalse(binding["runtime_environment_materialized"])
+            self.assertEqual(
+                binding["receipt_sha256"],
+                mod._sha256_file(
+                    workspace / mod.workspace_materializer.RECEIPT_FILE
+                ),
+            )
+
+    def test_materialized_workspace_runtime_is_derived_when_present(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            workspace = root / "workspace"
+            write_materialized_workspace(
+                workspace,
+                runtime_environment=True,
+            )
+            binding = mod._resolve_materialized_workspace(
+                workspace,
+                source_sha=SHA,
+            )
+            self.assertTrue(binding["runtime_environment_materialized"])
+            self.assertEqual(
+                binding["runtime_environment_dir"],
+                (workspace / mod.workspace_materializer.RUNTIME_ENV_DIR).resolve(),
+            )
+
+    def test_materialized_workspace_rejects_source_or_layout_drift(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            workspace = root / "workspace"
+            receipt = write_materialized_workspace(workspace)
+
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "source binding drift",
+            ):
+                mod._resolve_materialized_workspace(
+                    workspace,
+                    source_sha="2" * 40,
+                )
+
+            receipt["layout"]["reference_model_dir"] = "other-reference"
+            write_json(
+                workspace / mod.workspace_materializer.RECEIPT_FILE,
+                receipt,
+            )
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "layout.reference_model_dir drift",
+            ):
+                mod._resolve_materialized_workspace(
+                    workspace,
+                    source_sha=SHA,
+                )
+
+    def test_materialized_workspace_rejects_explicit_path_mismatch(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            workspace = root / "workspace"
+            write_materialized_workspace(workspace)
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "reference-model-dir must match",
+            ):
+                mod._resolve_materialized_workspace(
+                    workspace,
+                    source_sha=SHA,
+                    reference_model_dir=root / "different-reference",
+                )
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "papaya-overlay-dir must match",
+            ):
+                mod._resolve_materialized_workspace(
+                    workspace,
+                    source_sha=SHA,
+                    papaya_overlay_dir=root / "different-overlay",
+                )
+
+    def test_materialized_workspace_rejects_runtime_mismatch(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            workspace = root / "workspace"
+            write_materialized_workspace(workspace)
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "not present in materialized workspace",
+            ):
+                mod._resolve_materialized_workspace(
+                    workspace,
+                    source_sha=SHA,
+                    runtime_environment_dir=root / "runtime-env",
+                )
+
+            runtime_workspace = root / "runtime-workspace"
+            write_materialized_workspace(
+                runtime_workspace,
+                runtime_environment=True,
+            )
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "runtime-environment-dir must match",
+            ):
+                mod._resolve_materialized_workspace(
+                    runtime_workspace,
+                    source_sha=SHA,
+                    runtime_environment_dir=root / "wrong-runtime",
+                )
+
+    def test_materialized_workspace_rejects_scope_overclaim_or_missing_dir(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            workspace = root / "workspace"
+            receipt = write_materialized_workspace(workspace)
+            receipt["scope"]["model_weights_loaded"] = True
+            write_json(
+                workspace / mod.workspace_materializer.RECEIPT_FILE,
+                receipt,
+            )
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "model_weights_loaded must remain false",
+            ):
+                mod._resolve_materialized_workspace(
+                    workspace,
+                    source_sha=SHA,
+                )
+
+            workspace2 = root / "workspace2"
+            write_materialized_workspace(workspace2)
+            (
+                workspace2 / mod.workspace_materializer.PAPAYA_OVERLAY_DIR
+            ).rmdir()
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "Papaya overlay directory missing",
+            ):
+                mod._resolve_materialized_workspace(
+                    workspace2,
+                    source_sha=SHA,
+                )
+
+    def test_materialized_workspace_rejects_runtime_receipt_scope_drift(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            workspace = root / "workspace"
+            receipt = write_materialized_workspace(
+                workspace,
+                runtime_environment=True,
+            )
+            receipt["runtime_environment"]["provided"] = False
+            write_json(
+                workspace / mod.workspace_materializer.RECEIPT_FILE,
+                receipt,
+            )
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "runtime environment receipt/scope drift",
+            ):
+                mod._resolve_materialized_workspace(
+                    workspace,
+                    source_sha=SHA,
+                )
+
+    def test_output_dir_must_be_outside_materialized_workspace(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            sei = root / "sei"
+            papaya = root / "papaya"
+            workspace = root / "workspace"
+            sei.mkdir()
+            papaya.mkdir()
+            workspace.mkdir()
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "outside materialized workspace",
+            ):
+                mod._require_external_new_output_dir(
+                    workspace / "evidence",
+                    sei_source_dir=sei,
+                    papaya_source_dir=papaya,
+                    materialized_workspace_dir=workspace,
+                )
+
+    def test_workspace_binding_is_retained_without_absolute_path(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            workspace = root / "workspace"
+            write_materialized_workspace(workspace)
+            binding = mod._resolve_materialized_workspace(
+                workspace,
+                source_sha=SHA,
+            )
+            receipt = mod.execute_pair(
+                source_sha=SHA,
+                output_dir=out,
+                commands=self._commands(root, out),
+                run_id="r1",
+                cwd=root,
+                input_workspace_binding=binding,
+                runner=FakeRunner(),
+            )
+            retained = receipt["input_workspace"]
+            self.assertTrue(retained["provided"])
+            self.assertEqual(
+                retained["receipt_file"],
+                mod.workspace_materializer.RECEIPT_FILE,
+            )
+            self.assertEqual(
+                retained["receipt_sha256"],
+                mod._sha256_file(
+                    workspace / mod.workspace_materializer.RECEIPT_FILE
+                ),
+            )
+            self.assertEqual(
+                retained["snapshot_file"],
+                mod.WORKSPACE_RECEIPT_SNAPSHOT_FILE,
+            )
+            self.assertEqual(
+                retained["snapshot_sha256"],
+                retained["receipt_sha256"],
+            )
+            snapshot = out / mod.WORKSPACE_RECEIPT_SNAPSHOT_FILE
+            source_receipt = (
+                workspace / mod.workspace_materializer.RECEIPT_FILE
+            )
+            self.assertTrue(snapshot.is_file())
+            self.assertEqual(snapshot.read_bytes(), source_receipt.read_bytes())
+            self.assertEqual(
+                mod._sha256_file(snapshot),
+                retained["receipt_sha256"],
+            )
+            self.assertFalse(retained["runtime_environment_materialized"])
+            self.assertFalse(retained["external_path_retained"])
+            self.assertNotIn(str(workspace), json.dumps(retained))
+
+    def test_workspace_snapshot_survives_provider_failure(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            workspace = root / "workspace"
+            write_materialized_workspace(workspace)
+            binding = mod._resolve_materialized_workspace(
+                workspace,
+                source_sha=SHA,
+            )
+            with self.assertRaises(mod.ManagedPairError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(root, out),
+                    run_id="r1",
+                    cwd=root,
+                    input_workspace_binding=binding,
+                    runner=FakeRunner(fail_stage="papaya"),
+                )
+            receipt = json.loads((out / mod.RECEIPT_FILE).read_text())
+            snapshot = out / mod.WORKSPACE_RECEIPT_SNAPSHOT_FILE
+            self.assertEqual(receipt["status"], "failed")
+            self.assertEqual(receipt["stage"], "papaya_failed")
+            self.assertTrue(snapshot.is_file())
+            self.assertEqual(
+                mod._sha256_file(snapshot),
+                receipt["input_workspace"]["receipt_sha256"],
+            )
+            self.assertEqual(
+                receipt["input_workspace"]["snapshot_sha256"],
+                receipt["input_workspace"]["receipt_sha256"],
+            )
+
+    def test_workspace_receipt_change_after_resolution_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            workspace = root / "workspace"
+            receipt = write_materialized_workspace(workspace)
+            binding = mod._resolve_materialized_workspace(
+                workspace,
+                source_sha=SHA,
+            )
+            receipt["disk_capacity"]["observed_free_bytes"] = 123
+            write_json(
+                workspace / mod.workspace_materializer.RECEIPT_FILE,
+                receipt,
+            )
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "changed after workspace validation",
+            ):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(root, out),
+                    run_id="r1",
+                    cwd=root,
+                    input_workspace_binding=binding,
+                    runner=FakeRunner(),
+                )
+            self.assertFalse(
+                (out / mod.WORKSPACE_RECEIPT_SNAPSHOT_FILE).exists()
+            )
+            self.assertFalse((out / mod.RECEIPT_FILE).exists())
+
+    def test_manual_pair_receipt_marks_workspace_absent(self):
+        receipt = self._complete("pass")
+        self.assertEqual(
+            receipt["input_workspace"],
+            {"provided": False},
+        )
+
+    def test_portable_workspace_binding_rejects_digest_drift(self):
+        with self.assertRaisesRegex(
+            mod.ManagedPairError,
+            "workspace receipt SHA-256 drift",
+        ):
+            mod._portable_workspace_binding(
+                {
+                    "receipt_file": mod.workspace_materializer.RECEIPT_FILE,
+                    "receipt_sha256": "not-a-digest",
+                    "runtime_environment_materialized": False,
+                },
+                snapshot={
+                    "snapshot_file": mod.WORKSPACE_RECEIPT_SNAPSHOT_FILE,
+                    "snapshot_sha256": "not-a-digest",
+                },
+            )
+
+    def test_commands_bind_same_source_and_report_chain(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            commands = self._commands(root, out)
+            pre = commands[0][1]
+            ref = commands[1][1]
+            pap = commands[2][1]
+            cmp = commands[3][1]
+            dec = commands[4][1]
+            self.assertEqual(pre[pre.index("--source-git-sha") + 1], SHA)
+            self.assertEqual(ref[ref.index("--source-git-sha") + 1], SHA)
+            self.assertEqual(pap[pap.index("--source-git-sha") + 1], SHA)
+            self.assertIn(str(out / mod.PREFLIGHT_FILE), pre)
+            self.assertIn(str(out / mod.REFERENCE_FILE), cmp)
+            self.assertIn(str(out / mod.PAPAYA_FILE), cmp)
+            self.assertIn(str(out / mod.REPORT_FILE), dec)
+
+    def test_optional_wheelhouse_is_passed_only_to_preflight(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            commands = self._commands(
+                root, out, runtime_wheelhouse=True
+            )
+            pre = commands[0][1]
+            ref = commands[1][1]
+            pap = commands[2][1]
+            self.assertEqual(
+                pre[pre.index("--runtime-wheelhouse-dir") + 1],
+                str(root / "runtime-wheelhouse"),
+            )
+            self.assertNotIn("--runtime-wheelhouse-dir", ref)
+            self.assertNotIn("--runtime-wheelhouse-dir", pap)
+
+            out.mkdir()
+            receipt = mod.execute_pair(
+                source_sha=SHA,
+                output_dir=out,
+                commands=commands,
+                run_id="r1",
+                cwd=root,
+                runner=FakeRunner(),
+            )
+            self.assertTrue(
+                receipt["artifacts"]["preflight"][
+                    "runtime_wheelhouse_provided"
+                ]
+            )
+
+    def test_optional_runtime_environment_is_passed_only_to_preflight(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            commands = self._commands(
+                root, out, runtime_environment=True
+            )
+            pre = commands[0][1]
+            ref = commands[1][1]
+            pap = commands[2][1]
+            self.assertEqual(
+                pre[pre.index("--runtime-environment-dir") + 1],
+                str(root / "runtime-env"),
+            )
+            self.assertIn("--runtime-wheelhouse-dir", pre)
+            self.assertNotIn("--runtime-environment-dir", ref)
+            self.assertNotIn("--runtime-environment-dir", pap)
+
+            out.mkdir()
+            receipt = mod.execute_pair(
+                source_sha=SHA,
+                output_dir=out,
+                commands=commands,
+                run_id="r1",
+                cwd=root,
+                runner=FakeRunner(),
+            )
+            summary = receipt["artifacts"]["preflight"]
+            self.assertTrue(summary["runtime_wheelhouse_provided"])
+            self.assertTrue(summary["runtime_environment_provided"])
+            self.assertTrue(
+                summary[
+                    "transported_wheel_installation_origin_attested"
+                ]
+            )
+
+    def test_runtime_environment_requires_wheelhouse_in_command_builder(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            with self.assertRaisesRegex(
+                mod.ManagedPairError,
+                "requires runtime wheelhouse",
+            ):
+                mod.build_commands(
+                    python_executable="python3",
+                    here=root / "scripts",
+                    source_sha=SHA,
+                    sei_source_dir=root / "sei",
+                    reference_model_dir=root / "reference-model",
+                    laya_runtime_wheel=root / "laya.whl",
+                    papaya_source_dir=root / "papaya-source",
+                    papaya_overlay_dir=root / "papaya-overlay",
+                    llama_binary=root / "llama-server",
+                    output_dir=root / "evidence",
+                    run_id="r1",
+                    threads=4,
+                    reference_startup_timeout=300.0,
+                    papaya_startup_timeout=240.0,
+                    runtime_environment_dir=root / "runtime-env",
+                )
+
+    def test_runtime_environment_interpreter_mismatch_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = FakeRunner(
+                preflight_runtime_current_match=False
+            )
+            with self.assertRaises(mod.ManagedPairError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(
+                        root, out, runtime_environment=True
+                    ),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            receipt = json.loads((out / mod.RECEIPT_FILE).read_text())
+            self.assertEqual(
+                receipt["stage"], "preflight_validation_failed"
+            )
+
+    def test_runtime_environment_full_origin_overclaim_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = FakeRunner(
+                preflight_environment_full_origin=True
+            )
+            with self.assertRaises(mod.ManagedPairError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(
+                        root, out, runtime_environment=True
+                    ),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            receipt = json.loads((out / mod.RECEIPT_FILE).read_text())
+            self.assertEqual(
+                receipt["stage"], "preflight_validation_failed"
+            )
+
+    def test_preflight_failure_stops_before_model_load(self):
+        self._assert_stage_failure("preflight", 1)
+
+    def test_reference_failure_is_fail_fast(self):
+        self._assert_stage_failure("reference", 2)
+
+    def test_papaya_failure_stops_before_comparison(self):
+        self._assert_stage_failure("papaya", 3)
+
+    def test_comparison_failure_stops_before_decision(self):
+        self._assert_stage_failure("comparison", 4)
+
+    def _assert_stage_failure(self, stage, expected_calls):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = FakeRunner(fail_stage=stage)
+            with self.assertRaises(mod.ManagedPairError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(root, out),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            self.assertEqual(len(runner.calls), expected_calls)
+            receipt = json.loads((out / mod.RECEIPT_FILE).read_text())
+            self.assertEqual(receipt["status"], "failed")
+            self.assertEqual(receipt["stage"], f"{stage}_failed")
+
+    def test_runner_exception_updates_receipt(self):
+        class LaunchFailureRunner(FakeRunner):
+            def __call__(self, command, *, cwd, check):
+                script = Path(command[1]).name
+                if script == "capture_reference_l0.py":
+                    self.calls.append((command, cwd, check))
+                    raise OSError("synthetic launch failure")
+                return super().__call__(command, cwd=cwd, check=check)
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = LaunchFailureRunner()
+            with self.assertRaises(OSError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(root, out),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            receipt = json.loads((out / mod.RECEIPT_FILE).read_text())
+            self.assertEqual(receipt["status"], "failed")
+            self.assertEqual(receipt["stage"], "reference_launch_failed")
+            self.assertEqual(
+                receipt["failure"]["kind"], "runner_exception"
+            )
+            self.assertEqual(receipt["failure"]["error_type"], "OSError")
+            self.assertFalse(receipt["failure"]["stage_output"]["present"])
+            self.assertIn("preflight", receipt["artifacts"])
+            self.assertNotIn("reference", receipt["artifacts"])
+
+    def test_process_failure_retains_partial_stage_artifact_digest(self):
+        class PartialPapayaFailureRunner(FakeRunner):
+            def __call__(self, command, *, cwd, check):
+                script = Path(command[1]).name
+                if script == "capture_papaya_l0.py":
+                    self.calls.append((command, cwd, check))
+                    output = Path(command[command.index("--output") + 1])
+                    write_json(
+                        output,
+                        {
+                            "schema": mod.PAPAYA_SCHEMA,
+                            "status": "incomplete",
+                            "run_id": "r1-papaya",
+                            "source": {"git_sha": SHA},
+                        },
+                    )
+                    return subprocess.CompletedProcess(command, 2)
+                return super().__call__(command, cwd=cwd, check=check)
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = PartialPapayaFailureRunner()
+            with self.assertRaises(mod.ManagedPairError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(root, out),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            receipt = json.loads((out / mod.RECEIPT_FILE).read_text())
+            self.assertEqual(receipt["status"], "failed")
+            self.assertEqual(receipt["stage"], "papaya_failed")
+            self.assertEqual(receipt["failure"]["kind"], "process_exit")
+            self.assertEqual(receipt["failure"]["returncode"], 2)
+            partial = receipt["failure"]["stage_output"]
+            self.assertTrue(partial["present"])
+            self.assertTrue(partial["readable_utf8"])
+            self.assertTrue(partial["json_object"])
+            self.assertEqual(partial["schema"], mod.PAPAYA_SCHEMA)
+            self.assertEqual(partial["status"], "incomplete")
+            self.assertEqual(partial["source_git_sha"], SHA)
+            self.assertEqual(
+                partial["sha256"],
+                mod._sha256_file(out / mod.PAPAYA_FILE),
+            )
+            self.assertIn("reference", receipt["artifacts"])
+            self.assertNotIn("papaya", receipt["artifacts"])
+
+    def test_artifact_validation_failure_updates_receipt(self):
+        class InvalidReferenceRunner(FakeRunner):
+            def __call__(self, command, *, cwd, check):
+                completed = super().__call__(command, cwd=cwd, check=check)
+                if Path(command[1]).name == "capture_reference_l0.py":
+                    output = Path(command[command.index("--output") + 1])
+                    value = json.loads(output.read_text())
+                    value["status"] = "incomplete"
+                    write_json(output, value)
+                return completed
+
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = InvalidReferenceRunner()
+            with self.assertRaises(mod.ManagedPairError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(root, out),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            receipt = json.loads((out / mod.RECEIPT_FILE).read_text())
+            self.assertEqual(receipt["status"], "failed")
+            self.assertEqual(receipt["stage"], "reference_validation_failed")
+            self.assertEqual(
+                receipt["failure"]["kind"], "artifact_validation"
+            )
+            self.assertEqual(
+                receipt["failure"]["error_type"], "ManagedPairError"
+            )
+            partial = receipt["failure"]["stage_output"]
+            self.assertTrue(partial["present"])
+            self.assertEqual(partial["schema"], mod.REFERENCE_SCHEMA)
+            self.assertEqual(partial["status"], "incomplete")
+            self.assertIn("preflight", receipt["artifacts"])
+            self.assertNotIn("reference", receipt["artifacts"])
+
+    def test_pass_decision_completes_pipeline(self):
+        receipt = self._complete("pass")
+        self.assertEqual(receipt["status"], "complete")
+        self.assertEqual(receipt["artifacts"]["decision"]["decision"], "pass")
+        self.assertTrue(
+            receipt["scope"]["preflight_all_required_inputs_verified"]
+        )
+        self.assertTrue(
+            receipt["scope"]["preregistered_numeric_policy_applied"]
+        )
+        self.assertFalse(receipt["scope"]["shipping_decision"])
+
+    def test_fail_decision_is_evidence_not_pipeline_failure(self):
+        receipt = self._complete("fail")
+        self.assertEqual(receipt["status"], "complete")
+        self.assertEqual(receipt["artifacts"]["decision"]["decision"], "fail")
+        self.assertEqual(receipt["artifacts"]["decision"]["failure_count"], 1)
+
+    def _complete(self, decision):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = FakeRunner(decision=decision)
+            receipt = mod.execute_pair(
+                source_sha=SHA,
+                output_dir=out,
+                commands=self._commands(root, out),
+                run_id="r1",
+                cwd=root,
+                runner=runner,
+            )
+            self.assertEqual(len(runner.calls), 5)
+            self.assertEqual(
+                set(receipt["artifacts"]),
+                {"preflight", "reference", "papaya", "comparison", "decision"},
+            )
+            return receipt
+
+    def test_report_source_sha_drift_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = FakeRunner(report_sha="2" * 40)
+            with self.assertRaises(mod.ManagedPairError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(root, out),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            self.assertEqual(len(runner.calls), 4)
+
+    def test_decision_artifact_digest_binding_drift_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = FakeRunner(
+                bad_decision_binding="reference_artifact_sha256"
+            )
+            with self.assertRaises(mod.ManagedPairError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(root, out),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            self.assertEqual(len(runner.calls), 5)
+
+    def test_wheelhouse_installation_origin_overclaim_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = FakeRunner(preflight_install_origin=True)
+            with self.assertRaises(mod.ManagedPairError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(
+                        root, out, runtime_wheelhouse=True
+                    ),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            self.assertEqual(len(runner.calls), 1)
+            receipt = json.loads((out / mod.RECEIPT_FILE).read_text())
+            self.assertEqual(
+                receipt["stage"], "preflight_validation_failed"
+            )
+
+    def test_preflight_overclaim_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            out = root / "evidence"
+            out.mkdir()
+            runner = FakeRunner(preflight_live=True)
+            with self.assertRaises(mod.ManagedPairError):
+                mod.execute_pair(
+                    source_sha=SHA,
+                    output_dir=out,
+                    commands=self._commands(root, out),
+                    run_id="r1",
+                    cwd=root,
+                    runner=runner,
+                )
+            self.assertEqual(len(runner.calls), 1)
+
+    def test_script_checkout_must_equal_sei_source_dir(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            here = root / "sei" / "evaluation" / "local-typed-comparator"
+            here.mkdir(parents=True)
+            self.assertEqual(
+                mod._require_script_source_binding(here, root / "sei"),
+                (root / "sei").resolve(),
+            )
+            with self.assertRaises(mod.ManagedPairError):
+                mod._require_script_source_binding(here, root / "other-sei")
+
+    def test_partial_artifact_summary_handles_non_json(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "partial.json"
+            path.write_text("{not-json", encoding="utf-8")
+            summary = mod._partial_artifact_summary(path)
+            self.assertTrue(summary["present"])
+            self.assertTrue(summary["readable_utf8"])
+            self.assertFalse(summary["json_object"])
+            self.assertEqual(summary["bytes"], len(b"{not-json"))
+            self.assertEqual(summary["sha256"], mod._sha256_file(path))
+
+    def test_output_dir_must_be_new_and_external(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            sei = root / "sei"
+            papaya = root / "papaya"
+            sei.mkdir()
+            papaya.mkdir()
+            with self.assertRaises(mod.ManagedPairError):
+                mod._require_external_new_output_dir(
+                    sei / "evidence",
+                    sei_source_dir=sei,
+                    papaya_source_dir=papaya,
+                )
+            existing = root / "existing"
+            existing.mkdir()
+            with self.assertRaises(mod.ManagedPairError):
+                mod._require_external_new_output_dir(
+                    existing,
+                    sei_source_dir=sei,
+                    papaya_source_dir=papaya,
+                )
+            external = root / "evidence"
+            self.assertEqual(
+                mod._require_external_new_output_dir(
+                    external,
+                    sei_source_dir=sei,
+                    papaya_source_dir=papaya,
+                ),
+                external.resolve(),
+            )
+
+
+if __name__ == "__main__":
+    unittest.main()

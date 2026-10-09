@@ -152,7 +152,7 @@ authorization後にvariant、metric、output ref、environment等を変更すれ
 
 run artifactは結果を所有しない。
 
-常に:
+常には次のとおりです。
 
 ```json
 "results_generated": false,
@@ -173,7 +173,7 @@ current draft:
 python validate_evaluation_run.py
 ```
 
-期待値:
+期待値は次のとおりです。
 
 ```text
 Cross-stage evaluation-run validated; current run remains draft/locked

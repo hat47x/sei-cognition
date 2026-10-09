@@ -117,7 +117,7 @@ PR #72で、成功済みactual M1b Run `33596839607` / Job `100141890796`につ�
 
 `evaluation/method-quality/historical/M1B-RUN-33596839607/`
 
-保存しているもの:
+保存しているもの。
 
 - `request.json`
 - `result.json`

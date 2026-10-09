@@ -118,7 +118,7 @@ Local Reasoning Working Set
 
 first sliceでは最大候補数と各text長をboundedにする。
 
-目的:
+目的は次のとおりです。
 
 - context lengthを小さく保つ
 - KV cacheを小さくする
@@ -130,7 +130,7 @@ first sliceでは最大候補数と各text長をboundedにする。
 
 Working Setにはmodelへの責任境界をmachine-readableに含める。
 
-最低限:
+最低限は次のとおりです。
 
 ```text
 output_is_proposal_only = true
@@ -222,7 +222,7 @@ model familyは固定Requirementにしない。
 
 ### ultra-light: ~0.5–1B
 
-用途候補:
+用途候補は次のとおりです。
 
 - classification
 - short explanation
@@ -233,7 +233,7 @@ model familyは固定Requirementにしない。
 
 ### balanced local reasoning: ~2–4B
 
-用途候補:
+用途候補は次のとおりです。
 
 - bounded multi-step comparison
 - contradiction analysis
@@ -281,7 +281,7 @@ local runtime choice
 | SACS + 2–4B | approximate | medium | medium | medium | generated proposal |
 | larger local/external | approximate | stronger | high | high | generated proposal |
 
-測るもの:
+測るもの。
 
 - end-to-end task success
 - evidence-role integrity
@@ -312,7 +312,7 @@ raw / workspace comparison baselineは7件ともmodel invocationを計画する�
 
 ただしこれは実model telemetryではない。aggregation logicのisolated 5/5 PASSに加え、Issue #511でGitHub正本8 blobをSHA完全一致でGOPATHへ再構成し、stubではないcurrent `cognitiveeval` / `hybridreasoning` sourceを使ってactual dependency integrationを実行した。
 
-実行環境は Go 1.23.2 / linux/amd64、`GO111MODULE=off` のGOPATH exact-blob reconstructionである。
+実行環境はGo 1.23.2 / linux/amd64、`GO111MODULE=off` のGOPATH exact-blob reconstructionである。
 
 - focused call-avoidance: 5/5 PASS
 - current `modelprobe` package regression: 16/16 PASS
@@ -342,7 +342,7 @@ synthetic routing call avoidance
 
 ### 10.2 Actual model-call telemetry boundary
 
-Issue #375のactual inferenceへ進むため、`modelprobe`にはrun-level telemetryを追加する。preflightとactual runは同じ `run_id` と exact `source_git_sha` を持ち、fixtureごとに次を分離して記録する。
+Issue #375のactual inferenceへ進むため、`modelprobe`にはrun-level telemetryを追加する。preflightとactual runは同じ `run_id` とexact `source_git_sha` を持ち、fixtureごとに次を分離して記録する。
 
 - planned model invocation;
 - actual endpoint invocation attempt;

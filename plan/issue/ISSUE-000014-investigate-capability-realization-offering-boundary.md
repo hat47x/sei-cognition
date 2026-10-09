@@ -30,7 +30,7 @@ Provider固有の実現形はPlugin、Provider Binding、external process、SaaS
 
 ## Resolution
 
-ADR-0013で、**Universal `CapabilityRealization` / `CapabilityOffering`を現時点ではSEI Coreへ追加しない**と決定した。
+ADR-0013で、Universal `CapabilityRealization` / `CapabilityOffering`を現時点ではSEI Coreへ追加しないと決定した。
 
 Provider固有のOffering、deployment、contract、availability等はProvider / Profile側で扱い、Capability Definitionへ混ぜない。
 
@@ -46,13 +46,13 @@ ADR-0013に定めた複数の再検討条件が、異なるProvider種別をま�
 
 ## Current result
 
-- Universal `CapabilityRealization` / `CapabilityOffering`: **追加しない**
-- ADR-0013: **Accepted**
-- Provider-neutral Capability Observation: **実体化済み**
-- synthetic Provider Adapter: **Executable Evidenceあり**
-- Universal Realization schema: **意図的に作成していない**
-- production multi-Provider interoperability: **Not Yet Verified**
-- future review: **条件付き**
+- Universal `CapabilityRealization` / `CapabilityOffering`: 追加しない
+- ADR-0013: Accepted
+- Provider-neutral Capability Observation: 実体化済み
+- synthetic Provider Adapter: Executable Evidenceあり
+- Universal Realization schema: 意図的に作成していない
+- production multi-Provider interoperability: Not Yet Verified
+- future review: 条件付き
 
 「implementation未開始」や「schema未固定」は、Universal Realization型を将来必ず実装するという意味ではない。現時点では、そもそもUniversal型を導入しないことがDecisionである。
 

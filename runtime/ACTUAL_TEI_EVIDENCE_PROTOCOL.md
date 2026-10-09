@@ -82,7 +82,7 @@ manifestは任意です。current schemaは次です。
 
 manifestはstrict JSONとして読みます。unknown field、malformed JSON、複数JSON値は拒否します。
 
-manifestを与えない場合:
+manifestを与えない場合。
 
 ```text
 source_binding = not_verified

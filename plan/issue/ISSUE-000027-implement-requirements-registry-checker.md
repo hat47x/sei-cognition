@@ -77,7 +77,7 @@ negative coverage追加後のGitHub Actions:
 - Run ID: `33346697016`
 - Head SHA: `bcf707ed49b87fe03f217b67cce1da4e8788550d`
 - Job: `requirements-registry`
-- Conclusion: **success**
+- Conclusion: success
 
 実行結果:
 
@@ -115,11 +115,11 @@ REQ-0001〜REQ-0022やSCN-0001〜SCN-0017の意味内容自体が正しいこと
 
 ## Evidence state at closure
 
-- Requirements Design Baseline: **Satisfied**
-- Requirements Registry Structural Executable Evidence: **Satisfied**
-- Requirement implementation coverage: **Not Yet Verified**
-- Release Evidence: **Not Yet Verified**
-- Operational Evidence: **Not Yet Verified**
+- Requirements Design Baseline: Satisfied
+- Requirements Registry Structural Executable Evidence: Satisfied
+- Requirement implementation coverage: Not Yet Verified
+- Release Evidence: Not Yet Verified
+- Operational Evidence: Not Yet Verified
 
 ## Dependencies / Follow-up
 

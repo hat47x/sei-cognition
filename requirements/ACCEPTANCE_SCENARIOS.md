@@ -78,11 +78,11 @@ Design
 
 ### Current Evidence
 
-- Design: **Satisfied**
-- Executable: **Partially Satisfied** — Decision with unresolved、partial knowledge、Unknown / Withheldのfixtureとruntimeで、不確実性を残したDecisionの一部境界を確認済み。Source discovery、一般的Observation / Hypothesis、Inquiry再開を横断するruntimeは未検証。
-- Release: **Not Yet Verified**
-- Operational: **Not Yet Verified**
-- Adoption / Outcome: **Not Yet Verified**
+- Design: Satisfied
+- Executable: Partially Satisfied — Decision with unresolved、partial knowledge、Unknown / Withheldのfixtureとruntimeで、不確実性を残したDecisionの一部境界を確認済み。Source discovery、一般的Observation / Hypothesis、Inquiry再開を横断するruntimeは未検証。
+- Release: Not Yet Verified
+- Operational: Not Yet Verified
+- Adoption / Outcome: Not Yet Verified
 
 ## SCN-0002 — 同じIntent、異なるCapability Provider
 
@@ -107,11 +107,11 @@ Design
 
 ### Current Evidence
 
-- Design: **Satisfied**
-- Executable: **Partially Satisfied** — F5とsynthetic Provider A / B Adapterで、同じCapabilityに対する異質なProvider ObservationとProvider固有Schemaの分離を確認済み。Matching / Choice Decision / Executionは未実装。
-- Release: **Not Yet Verified**
-- Operational: **Not Yet Verified**
-- Adoption / Outcome: **Not Yet Verified**
+- Design: Satisfied
+- Executable: Partially Satisfied — F5とsynthetic Provider A / B Adapterで、同じCapabilityに対する異質なProvider ObservationとProvider固有Schemaの分離を確認済み。Matching / Choice Decision / Executionは未実装。
+- Release: Not Yet Verified
+- Operational: Not Yet Verified
+- Adoption / Outcome: Not Yet Verified
 
 ## SCN-0003 — 新しいEvidenceでDecisionを見直す
 
@@ -135,11 +135,11 @@ Decision D1の後、新しいObservation O2が得られ、D1のbasisだったHyp
 
 ### Current Evidence
 
-- Design: **Satisfied**
-- Executable: **Partially Satisfied** — Semantic Lineage、Exact Binding、Decision basis / unresolvedをContract checkerとfirst runtimeで検査済み。D1→D2のproduction lifecycleと一般Hypothesis更新は未検証。
-- Release: **Not Yet Verified**
-- Operational: **Not Yet Verified**
-- Adoption / Outcome: **Not Yet Verified**
+- Design: Satisfied
+- Executable: Partially Satisfied — Semantic Lineage、Exact Binding、Decision basis / unresolvedをContract checkerとfirst runtimeで検査済み。D1→D2のproduction lifecycleと一般Hypothesis更新は未検証。
+- Release: Not Yet Verified
+- Operational: Not Yet Verified
+- Adoption / Outcome: Not Yet Verified
 
 ## SCN-0004 — 軽量案件と高影響案件
 
@@ -162,11 +162,11 @@ Aは可逆で低影響な内部作業、Bは不可逆性が高く外部影響や
 
 ### Current Evidence
 
-- Design: **Satisfied**
-- Executable: **Partially Satisfied** — V6/V7 evaluation harnessで、low-impactの最小Decisionをlight Projectionで扱い、basis / Responsibility等の最大詳細を一律必須にしないことを確認した。high-impactのrich Decisionではaudit Projectionを要求し、lightだけで完了扱いにするnegative caseを拒否できる。productionでのimpact判定Policy / Profile runtimeや実運用は未検証。
-- Release: **Not Yet Verified**
-- Operational: **Not Yet Verified**
-- Adoption / Outcome: **Not Yet Verified**
+- Design: Satisfied
+- Executable: Partially Satisfied — V6/V7 evaluation harnessで、low-impactの最小Decisionをlight Projectionで扱い、basis / Responsibility等の最大詳細を一律必須にしないことを確認した。high-impactのrich Decisionではaudit Projectionを要求し、lightだけで完了扱いにするnegative caseを拒否できる。productionでのimpact判定Policy / Profile runtimeや実運用は未検証。
+- Release: Not Yet Verified
+- Operational: Not Yet Verified
+- Adoption / Outcome: Not Yet Verified
 
 ## SCN-0005 — Cognitive MethodとRealizationを交換する
 
@@ -189,11 +189,11 @@ Aは可逆で低影響な内部作業、Bは不可逆性が高く外部影響や
 
 ### Current Evidence
 
-- Design: **Satisfied**
-- Executable: **Partially Satisfied** — `sei.cognitive-method/v1alpha1`のC1〜C8、negative / unknown-version fixture、standalone / Semantic Interchange双方のtyped runtimeで、Method Definition / Realization / Applicationを分離し、input / output / residual、Exact-bound Method / Realization Reference、Realization省略を意味を変えずに保持できることを確認した。Contract Conformance Run `33467838961`とSemantic Runtime Conformance Run `33467838941`はsuccess。異なるMethodやRealizationをproductionで実際に差し替えて運用する経路は未検証。
-- Release: **Not Yet Verified**
-- Operational: **Not Yet Verified**
-- Adoption / Outcome: **Not Yet Verified**
+- Design: Satisfied
+- Executable: Partially Satisfied — `sei.cognitive-method/v1alpha1`のC1〜C8、negative / unknown-version fixture、standalone / Semantic Interchange双方のtyped runtimeで、Method Definition / Realization / Applicationを分離し、input / output / residual、Exact-bound Method / Realization Reference、Realization省略を意味を変えずに保持できることを確認した。Contract Conformance Run `33467838961`とSemantic Runtime Conformance Run `33467838941`はsuccess。異なるMethodやRealizationをproductionで実際に差し替えて運用する経路は未検証。
+- Release: Not Yet Verified
+- Operational: Not Yet Verified
+- Adoption / Outcome: Not Yet Verified
 
 ## SCN-0006 — Projectionを作り直す
 
@@ -215,11 +215,11 @@ Aは可逆で低影響な内部作業、Bは不可逆性が高く外部影響や
 
 ### Current Evidence
 
-- Design: **Satisfied** — Projection非権威のArchitecture boundaryに加え、同一canonical sourceからlight / auditを派生させる評価protocolとsemantic question setを実体化した。
-- Executable: **Partially Satisfied** — rich canonical sourceからlight / audit Projectionを決定的に再生成でき、Projectionを再構築してもcanonical sourceのstructural digestが変わらないことをharnessで確認した。lightから未解決事項と詳細の存在へ辿れる一方、Web / CLI / desktop等のproduction Projection交換は未検証。
-- Release: **Not Yet Verified**
-- Operational: **Not Yet Verified**
-- Adoption / Outcome: **Not Yet Verified**
+- Design: Satisfied — Projection非権威のArchitecture boundaryに加え、同一canonical sourceからlight / auditを派生させる評価protocolとsemantic question setを実体化した。
+- Executable: Partially Satisfied — rich canonical sourceからlight / audit Projectionを決定的に再生成でき、Projectionを再構築してもcanonical sourceのstructural digestが変わらないことをharnessで確認した。lightから未解決事項と詳細の存在へ辿れる一方、Web / CLI / desktop等のproduction Projection交換は未検証。
+- Release: Not Yet Verified
+- Operational: Not Yet Verified
+- Adoption / Outcome: Not Yet Verified
 
 ## SCN-0007 — Bounded Principal間で協働する
 
@@ -241,11 +241,11 @@ Aは可逆で低影響な内部作業、Bは不可逆性が高く外部影響や
 
 ### Current Evidence
 
-- Design: **Satisfied**
-- Executable: **Partially Satisfied** — F7とpartial-knowledge fixtureでWithheld / Unknownを分離可能。FederationのRequest / Offer / Commitment transportは未検証。
-- Release: **Not Yet Verified**
-- Operational: **Not Yet Verified**
-- Adoption / Outcome: **Not Yet Verified**
+- Design: Satisfied
+- Executable: Partially Satisfied — F7とpartial-knowledge fixtureでWithheld / Unknownを分離可能。FederationのRequest / Offer / Commitment transportは未検証。
+- Release: Not Yet Verified
+- Operational: Not Yet Verified
+- Adoption / Outcome: Not Yet Verified
 
 ## SCN-0008 — Storageを交換する
 
@@ -266,11 +266,11 @@ prototypeではGit / filesystemを使い、後にDB / object store等へ移行�
 
 ### Current Evidence
 
-- Design: **Satisfied**
-- Executable: **Not Yet Verified** — runtimeはStorage固有IDをsemantic identityとして要求しないが、actual Storage migrationは未実施。
-- Release: **Not Yet Verified**
-- Operational: **Not Yet Verified**
-- Adoption / Outcome: **Not Yet Verified**
+- Design: Satisfied
+- Executable: Not Yet Verified — runtimeはStorage固有IDをsemantic identityとして要求しないが、actual Storage migrationは未実施。
+- Release: Not Yet Verified
+- Operational: Not Yet Verified
+- Adoption / Outcome: Not Yet Verified
 
 ## SCN-0009 — RecommendationからExecutionまでの責任線
 
@@ -292,11 +292,11 @@ AIがRecommendation Rを作り、組織の担当者がDecision Dを行う。実�
 
 ### Current Evidence
 
-- Design: **Satisfied**
-- Executable: **Partially Satisfied** — Recommendation-onlyを正常に扱い、Decision recordへのAuthority埋め込みを拒否するfixture / runtimeを確認済み。Authorization / Action executionはscope外。
-- Release: **Not Yet Verified**
-- Operational: **Not Yet Verified**
-- Adoption / Outcome: **Not Yet Verified**
+- Design: Satisfied
+- Executable: Partially Satisfied — Recommendation-onlyを正常に扱い、Decision recordへのAuthority埋め込みを拒否するfixture / runtimeを確認済み。Authorization / Action executionはscope外。
+- Release: Not Yet Verified
+- Operational: Not Yet Verified
+- Adoption / Outcome: Not Yet Verified
 
 ## SCN-0010 — 可変Artifact更新後に過去Decisionを再構成する
 
@@ -318,11 +318,11 @@ Decision Dは、Provider Observation O、Reference Artifact A、mapping Mをbasi
 
 ### Current Evidence
 
-- Design: **Satisfied**
-- Executable: **Partially Satisfied** — F6、Exact Binding mismatch、Verification Outcome、first runtimeでhistorical basisの一部を再構成可能。長期のproduction更新とhistorical M47 digest mappingは未検証。
-- Release: **Not Yet Verified**
-- Operational: **Not Yet Verified**
-- Adoption / Outcome: **Not Yet Verified**
+- Design: Satisfied
+- Executable: Partially Satisfied — F6、Exact Binding mismatch、Verification Outcome、first runtimeでhistorical basisの一部を再構成可能。長期のproduction更新とhistorical M47 digest mappingは未検証。
+- Release: Not Yet Verified
+- Operational: Not Yet Verified
+- Adoption / Outcome: Not Yet Verified
 
 ## SCN-0011 — Providerが部分的にdegraded / 未観測である
 
@@ -345,11 +345,11 @@ TEI Applicationは存在するが依存Databaseの一つがread-onlyである。
 
 ### Current Evidence
 
-- Design: **Satisfied**
-- Executable: **Partially Satisfied** — F1 / F4、F1〜F7 runtime、synthetic Adapterのmissing→unknownをactual CIで確認。current fixture / synthetic Adapterの範囲では主要境界を検証済みだが、TEI production adapterは未検証。
-- Release: **Not Yet Verified**
-- Operational: **Not Yet Verified**
-- Adoption / Outcome: **Not Yet Verified**
+- Design: Satisfied
+- Executable: Partially Satisfied — F1 / F4、F1〜F7 runtime、synthetic Adapterのmissing→unknownをactual CIで確認。current fixture / synthetic Adapterの範囲では主要境界を検証済みだが、TEI production adapterは未検証。
+- Release: Not Yet Verified
+- Operational: Not Yet Verified
+- Adoption / Outcome: Not Yet Verified
 
 ## SCN-0012 — Provider内部をSelective Disclosureする
 
@@ -370,11 +370,11 @@ Providerは、内部topologyや契約情報を全量開示できないが、Capa
 
 ### Current Evidence
 
-- Design: **Satisfied**
-- Executable: **Partially Satisfied** — F7でWithheldとProvider-specific contextを保持し、内部topology全量をUniversal fieldへ要求しないことを確認。current fixtureの範囲では主要境界を検証済みだが、production selective disclosure運用は未検証。
-- Release: **Not Yet Verified**
-- Operational: **Not Yet Verified**
-- Adoption / Outcome: **Not Yet Verified**
+- Design: Satisfied
+- Executable: Partially Satisfied — F7でWithheldとProvider-specific contextを保持し、内部topology全量をUniversal fieldへ要求しないことを確認。current fixtureの範囲では主要境界を検証済みだが、production selective disclosure運用は未検証。
+- Release: Not Yet Verified
+- Operational: Not Yet Verified
+- Adoption / Outcome: Not Yet Verified
 
 ## SCN-0013 — 簡略UIとcanonical meaningを両立する
 
@@ -397,11 +397,11 @@ Providerは、内部topologyや契約情報を全量開示できないが、Capa
 
 ### Current Evidence
 
-- Design: **Satisfied** — light / audit Projectionの役割、同一canonical source、semantic question set、Progressive Explicitness policyを評価protocolとして定義済み。
-- Executable: **Partially Satisfied** — lightはDecision、未解決事項、Authorization Evidence stateを前景化し、basis / Responsibility / Provenanceの件数とaudit導線を保持する。auditは6 semantic questionsについてmachine-readable sourceと一致し、low-impactでは不要な最大詳細を強制しないことをRun `33456710459`で確認した。production UIと実利用者の可読性は未検証。
-- Release: **Not Yet Verified**
-- Operational: **Not Yet Verified**
-- Adoption / Outcome: **Not Yet Verified**
+- Design: Satisfied — light / audit Projectionの役割、同一canonical source、semantic question set、Progressive Explicitness policyを評価protocolとして定義済み。
+- Executable: Partially Satisfied — lightはDecision、未解決事項、Authorization Evidence stateを前景化し、basis / Responsibility / Provenanceの件数とaudit導線を保持する。auditは6 semantic questionsについてmachine-readable sourceと一致し、low-impactでは不要な最大詳細を強制しないことをRun `33456710459`で確認した。production UIと実利用者の可読性は未検証。
+- Release: Not Yet Verified
+- Operational: Not Yet Verified
+- Adoption / Outcome: Not Yet Verified
 
 ## SCN-0014 — Execution Providerを交換する
 
@@ -423,11 +423,11 @@ Providerは、内部topologyや契約情報を全量開示できないが、Capa
 
 ### Current Evidence
 
-- Design: **Satisfied**
-- Executable: **Not Yet Verified** — synthetic Provider AdapterはObservation Provider境界のEvidenceであり、Execution Provider交換のEvidenceではない。
-- Release: **Not Yet Verified**
-- Operational: **Not Yet Verified**
-- Adoption / Outcome: **Not Yet Verified**
+- Design: Satisfied
+- Executable: Not Yet Verified — synthetic Provider AdapterはObservation Provider境界のEvidenceであり、Execution Provider交換のEvidenceではない。
+- Release: Not Yet Verified
+- Operational: Not Yet Verified
+- Adoption / Outcome: Not Yet Verified
 
 ## SCN-0015 — PatternとCognitive Methodを分離する
 
@@ -449,11 +449,11 @@ TEI Design KnowledgeのPattern Cardを、AIがCognitive Methodの探索対象と
 
 ### Current Evidence
 
-- Design: **Satisfied** — ADR-0017 / ADR-0025でPatternとCognitive Methodを別の意味境界として扱う。
-- Executable: **Partially Satisfied** — Cognitive Method C5でdomain-specific Pattern相当の外部ArtifactをApplication input Referenceとして保持し、Pattern固有Universal fieldをMethod recordへ混入させるnegative fixtureを拒否する。typed runtimeはPattern inputをReferenceのまま保持し、Method ApplicationをRecommendation / Decision / Assuranceへ昇格させない。Contract Conformance Run `33467838961`とSemantic Runtime Conformance Run `33467838941`はsuccess。実際のTEI Pattern Card catalog、Pattern matching、別設計を選ぶproduction Decision workflowは未検証。
-- Release: **Not Yet Verified**
-- Operational: **Not Yet Verified**
-- Adoption / Outcome: **Not Yet Verified**
+- Design: Satisfied — ADR-0017 / ADR-0025でPatternとCognitive Methodを別の意味境界として扱う。
+- Executable: Partially Satisfied — Cognitive Method C5でdomain-specific Pattern相当の外部ArtifactをApplication input Referenceとして保持し、Pattern固有Universal fieldをMethod recordへ混入させるnegative fixtureを拒否する。typed runtimeはPattern inputをReferenceのまま保持し、Method ApplicationをRecommendation / Decision / Assuranceへ昇格させない。Contract Conformance Run `33467838961`とSemantic Runtime Conformance Run `33467838941`はsuccess。実際のTEI Pattern Card catalog、Pattern matching、別設計を選ぶproduction Decision workflowは未検証。
+- Release: Not Yet Verified
+- Operational: Not Yet Verified
+- Adoption / Outcome: Not Yet Verified
 
 ## SCN-0016 — Decision後も残差を次のInquiryへ渡す
 
@@ -474,11 +474,11 @@ TEI Design KnowledgeのPattern Cardを、AIがCognitive Methodの探索対象と
 
 ### Current Evidence
 
-- Design: **Partially Satisfied** — unresolved参照は定義済みだが、reopen conditionのcurrent Contractは限定的。
-- Executable: **Partially Satisfied** — Decision with unresolved fixtureとruntimeに加え、end-to-end Product Journey harnessで、Decisionの`unresolved_refs`とexecution後の新しいObservationを後続のreopen Method Applicationへ入力として引き渡すsynthetic pathをRun `33478127484`で確認した。実業務上のInquiry lifecycle、reopen policy、D1→D2の運用は未検証。
-- Release: **Not Yet Verified**
-- Operational: **Not Yet Verified**
-- Adoption / Outcome: **Not Yet Verified**
+- Design: Partially Satisfied — unresolved参照は定義済みだが、reopen conditionのcurrent Contractは限定的。
+- Executable: Partially Satisfied — Decision with unresolved fixtureとruntimeに加え、end-to-end Product Journey harnessで、Decisionの`unresolved_refs`とexecution後の新しいObservationを後続のreopen Method Applicationへ入力として引き渡すsynthetic pathをRun `33478127484`で確認した。実業務上のInquiry lifecycle、reopen policy、D1→D2の運用は未検証。
+- Release: Not Yet Verified
+- Operational: Not Yet Verified
+- Adoption / Outcome: Not Yet Verified
 
 ## SCN-0017 — Evidenceが低い段階で達成主張を監査する
 
@@ -505,11 +505,11 @@ TEI Design KnowledgeのPattern Cardを、AIがCognitive Methodの探索対象と
 
 ### Current Evidence
 
-- Design: **Satisfied** — Value Acceptance / ADR-0018 / REQ-0020で5段階Evidenceを定義。
-- Executable: **Partially Satisfied** — current checker / fixture / runtime CIに加え、V6/V7 Projection evaluationもsummaryで`release=false / operational=false / adoption_outcome=false`を明示し、Product Value TraceabilityではRun `33456710459`をevaluation-harness scoped Executable Evidenceとしてのみ記録している。Evidence claim専用の汎用linterは未実装。
-- Release: **Not Yet Verified**
-- Operational: **Not Yet Verified**
-- Adoption / Outcome: **Not Yet Verified**
+- Design: Satisfied — Value Acceptance / ADR-0018 / REQ-0020で5段階Evidenceを定義。
+- Executable: Partially Satisfied — current checker / fixture / runtime CIに加え、V6/V7 Projection evaluationもsummaryで`release=false / operational=false / adoption_outcome=false`を明示し、Product Value TraceabilityではRun `33456710459`をevaluation-harness scoped Executable Evidenceとしてのみ記録している。Evidence claim専用の汎用linterは未実装。
+- Release: Not Yet Verified
+- Operational: Not Yet Verified
+- Adoption / Outcome: Not Yet Verified
 
 ## SCN-0018 — Inquiryから実行後の再検討までを一続きに扱う
 
@@ -556,11 +556,11 @@ TEI Design KnowledgeのPattern Cardを、AIがCognitive Methodの探索対象と
 
 ### Current Evidence
 
-- Design: **Satisfied** — `PRODUCT_JOURNEY_COMPOSITION.md`でProduct ShapeとREQ-0001〜REQ-0022、SCN-0001〜SCN-0017を横断し、新しいUniversal Requirementを追加せずに統合Scenarioとして成立することを確認した。
-- Executable: **Partially Satisfied** — `runtime/go/journeyharness`でnormal / uncertain / collaborative / provider replacement / no-executionの主要variantを一つのsemantic Product Journeyとして検査するfixtureを実体化した。Run `33478127484`では、Semantic Interchange loaderを通るnormal path、RecommendationとDecisionの分離、Responsibility分離、execution後Observationの時間境界、historical Decision statement / basisの非改変、unresolvedからreopenへの引継ぎ、Provider / Capability分離、unsupported recordの`not_verified`保持、Projectionがcanonical Decisionを代替しないことを確認した。ただしproduction UI、production Provider / execution engine、実際のAuthorization、長期運用上のreopen、実利用者価値は未検証であり、本Scenario全体を`Satisfied`にはしない。
-- Release: **Not Yet Verified**
-- Operational: **Not Yet Verified**
-- Adoption / Outcome: **Not Yet Verified**
+- Design: Satisfied — `PRODUCT_JOURNEY_COMPOSITION.md`でProduct ShapeとREQ-0001〜REQ-0022、SCN-0001〜SCN-0017を横断し、新しいUniversal Requirementを追加せずに統合Scenarioとして成立することを確認した。
+- Executable: Partially Satisfied — `runtime/go/journeyharness`でnormal / uncertain / collaborative / provider replacement / no-executionの主要variantを一つのsemantic Product Journeyとして検査するfixtureを実体化した。Run `33478127484`では、Semantic Interchange loaderを通るnormal path、RecommendationとDecisionの分離、Responsibility分離、execution後Observationの時間境界、historical Decision statement / basisの非改変、unresolvedからreopenへの引継ぎ、Provider / Capability分離、unsupported recordの`not_verified`保持、Projectionがcanonical Decisionを代替しないことを確認した。ただしproduction UI、production Provider / execution engine、実際のAuthorization、長期運用上のreopen、実利用者価値は未検証であり、本Scenario全体を`Satisfied`にはしない。
+- Release: Not Yet Verified
+- Operational: Not Yet Verified
+- Adoption / Outcome: Not Yet Verified
 
 ## SCN-0019 — 途中失敗・stale draftを含むcanonical commit
 
@@ -601,17 +601,17 @@ TEI Design KnowledgeのPattern Cardを、AIがCognitive Methodの探索対象と
 
 ### Current Evidence
 
-- Design: **Satisfied** — REQ-0023、`SEI_FIRST_USABLE_PRODUCT_SLICE.md`のmeaning-preserving commit / stale-write境界、`SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md`のCommit Coordinator / snapshot precondition、ISSUE-000073 Candidate Requirement監査でScenario上の意味差を固定した。
-- Executable: **Not Yet Verified** — `runtime/go/interactionprobe/commit.go` / `commit_test.go`にはmulti-record staging、fault injection、後続validation failureを扱うprobe sourceがあり、`provisional.go` / `provisional_test.go`にはstale snapshot拒否とfresh proposalを扱うprobe sourceがある。ただしSCN-0019採用時点では、このScenarioに対するactual test runをcurrent Evidenceとして確認していない。
-- Release: **Not Yet Verified**
-- Operational: **Not Yet Verified**
-- Adoption / Outcome: **Not Yet Verified**
+- Design: Satisfied — REQ-0023、`SEI_FIRST_USABLE_PRODUCT_SLICE.md`のmeaning-preserving commit / stale-write境界、`SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md`のCommit Coordinator / snapshot precondition、ISSUE-000073 Candidate Requirement監査でScenario上の意味差を固定した。
+- Executable: Not Yet Verified — `runtime/go/interactionprobe/commit.go` / `commit_test.go`にはmulti-record staging、fault injection、後続validation failureを扱うprobe sourceがあり、`provisional.go` / `provisional_test.go`にはstale snapshot拒否とfresh proposalを扱うprobe sourceがある。ただしSCN-0019採用時点では、このScenarioに対するactual test runをcurrent Evidenceとして確認していない。
+- Release: Not Yet Verified
+- Operational: Not Yet Verified
+- Adoption / Outcome: Not Yet Verified
 
 ---
 
 ## 3. Core概念を追加するときのScenario規則
 
-新しいUniversal Core概念は、少なくとも一つのAcceptance Scenarioで、**その概念を区別しなければ実際にどの意味が失われるか**を説明できることを採用条件の一つとします。
+新しいUniversal Core概念は、少なくとも一つのAcceptance Scenarioで、その概念を区別しなければ実際にどの意味が失われるかを説明できることを採用条件の一つとします。
 
 現在の実装で便利でも、Scenario上の意味差を示せない場合は、Coreへ追加する前に次を検討します。
 

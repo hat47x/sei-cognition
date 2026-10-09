@@ -44,7 +44,7 @@ portable interchangeは、少なくとも次を識別できなければなりま
 
 Envelope内のrecordは、意味上の種類と解釈Contractを明示できなければなりません。
 
-例:
+例は次のとおりです。
 
 - Question
 - Observation

@@ -5,6 +5,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -27,8 +28,18 @@ def read_json(path: Path) -> dict[str, Any] | None:
 
 
 def publish(temp: Path, final: Path) -> None:
+    # 一時ファイルはclean tree要求のためリポジトリ外に置くので、最終出力とは別のファイル
+    # システムにあり得る (WSLの/tmpと/mnt/d、Windowsの%TEMP%がC:でリポジトリがD:等)。
+    # os.replaceは別デバイス間でEXDEVになるため、最終出力と同じディレクトリへ一度複製して
+    # から置き換える。同一ディレクトリ内のreplaceなので、最終出力が半端な内容で見える
+    # 瞬間は作らない。
     final.parent.mkdir(parents=True, exist_ok=True)
-    os.replace(temp, final)
+    staging = final.with_name(f".{final.name}.{os.getpid()}.partial")
+    try:
+        shutil.copyfile(temp, staging)
+        os.replace(staging, final)
+    finally:
+        staging.unlink(missing_ok=True)
 
 
 def summary(*, status: str, evidence: Path, verification: Path | None, tested_head: str | None = None,

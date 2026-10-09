@@ -94,11 +94,11 @@ unknown Contract version、partial knowledge、broken referenceを一つのinval
 
 本Issue自身はDesign baselineを閉じた。その後、別Issueで次を実体化した。
 
-- machine-readable Schema / positive / negative / boundary fixture / semantic validator: **Satisfied — ISSUE-000031**
-- Capability Observation F1〜F7: **Satisfied — ISSUE-000024**
-- Representation Profile fixture conformance: **Satisfied — ISSUE-000009**
-- first semantic runtime: **Satisfied — ISSUE-000033**
-- synthetic Provider Adapter: **Satisfied — ISSUE-000036**
+- machine-readable Schema / positive / negative / boundary fixture / semantic validator: Satisfied — ISSUE-000031
+- Capability Observation F1〜F7: Satisfied — ISSUE-000024
+- Representation Profile fixture conformance: Satisfied — ISSUE-000009
+- first semantic runtime: Satisfied — ISSUE-000033
+- synthetic Provider Adapter: Satisfied — ISSUE-000036
 
 ```text
 Downstream Executable Evidence exists
@@ -107,14 +107,14 @@ Downstream Executable Evidence exists
 
 ## Current evidence state
 
-- Contract Design Baseline: **Satisfied**
-- Contract Traceability: **Satisfied**
-- Representation Profile current baseline: **Satisfied**
-- Contract Fixture-scoped Executable Evidence: **Satisfied**
-- Capability Observation Fixture Evidence: **Satisfied**
-- first Runtime consumption of current Contract: **Satisfied within scoped runtime**
-- historical M47 digest mapping: **Not Yet Verified — ISSUE-000034**
-- Release / Operational: **Not Yet Verified**
+- Contract Design Baseline: Satisfied
+- Contract Traceability: Satisfied
+- Representation Profile current baseline: Satisfied
+- Contract Fixture-scoped Executable Evidence: Satisfied
+- Capability Observation Fixture Evidence: Satisfied
+- first Runtime consumption of current Contract: Satisfied within scoped runtime
+- historical M47 digest mapping: Not Yet Verified — ISSUE-000034
+- Release / Operational: Not Yet Verified
 
 ## Follow-up
 

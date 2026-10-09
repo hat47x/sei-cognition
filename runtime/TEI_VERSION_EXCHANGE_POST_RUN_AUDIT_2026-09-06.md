@@ -250,7 +250,7 @@ python3 "$SEI_REPO/runtime/integration/audit_tei_version_exchange_resolution_loc
 - pre-publish identity verification
 - reportの`outputRepository`とcurrent `--revision-b-source-repo`の一致
 
-例:
+例は次のとおりです。
 
 ```bash
 python3 "$SEI_REPO/runtime/integration/prepare_tei_revision_b_checkout.py" \

@@ -1,0 +1,91 @@
+{
+  "schema": "sei.local-typed-comparator-fixture/v1alpha1",
+  "upstream_reference": {
+    "project": "NandhaKishorM/laya",
+    "git_sha": "970dc8c5f63d7b886a68409493f37d569424f933",
+    "note": "Reference inspected for wire-shape compatibility only; fixture semantics are owned by SEI."
+  },
+  "cases": [
+    {
+      "case_id": "choice-route-a",
+      "perturbation_group": "choice-route-order",
+      "request": {
+        "state": {
+          "error_class": "schema_mismatch",
+          "retry_count": 4,
+          "customer_impact": "partial",
+          "recent_deploy": true
+        },
+        "questions": {
+          "route": {
+            "type": "choice",
+            "instructions": "Which bounded handling route best fits this structured service state?",
+            "criteria": {
+              "observe": "Observe only",
+              "technical_review": "Technical review",
+              "manual_review": "Manual review"
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "choice-route-b",
+      "perturbation_group": "choice-route-order",
+      "request": {
+        "state": {
+          "error_class": "schema_mismatch",
+          "retry_count": 4,
+          "customer_impact": "partial",
+          "recent_deploy": true
+        },
+        "questions": {
+          "route": {
+            "type": "choice",
+            "instructions": "Which bounded handling route best fits this structured service state?",
+            "criteria": {
+              "manual_review": "Manual review",
+              "technical_review": "Technical review",
+              "observe": "Observe only"
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "score-urgency",
+      "request": {
+        "state": {
+          "affected_sessions": 150,
+          "data_loss_signal": false,
+          "error_rate": 0.3,
+          "workaround_available": false
+        },
+        "questions": {
+          "urgency": {
+            "type": "score",
+            "instructions": "Rate operational urgency using only the structured state.",
+            "criteria": ["Low", "Moderate", "High", "Critical"]
+          }
+        }
+      }
+    },
+    {
+      "case_id": "noul-review",
+      "request": {
+        "state": {
+          "novelty": 0.8,
+          "missing_critical_features": true,
+          "policy_conflict": true,
+          "high_stakes": true
+        },
+        "questions": {
+          "needs_human_review": {
+            "type": "noul",
+            "instructions": "Does this structured state warrant human review before action?"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -2,9 +2,9 @@
 
 ## 1. 目的
 
-ISSUE-000072 の actual revision B E2 を、GitHub credential / private repository access を持つ環境と、actual build を行う Linux/amd64 環境へ分離して回収するための operator 向け手順である。
+ISSUE-000072のactual revision B E2を、GitHub credential / private repository accessを持つ環境と、actual buildを行うLinux/amd64環境へ分離して回収するためのoperator向け手順である。
 
-この経路は、既存の canonical source acquisition identity を変更しない。
+この経路は、既存のcanonical source acquisition identityを変更しない。
 
 ```text
 source acquisition
@@ -14,7 +14,7 @@ cross-environment source transport
   = preacquired-github-git-data-snapshot
 ```
 
-snapshot は新しい source acquisition ではない。GitHub Git Data API から取得した blob / tree / signed commit response と bounded provenance を credential-free JSON として運び、offline 側で Git object identity を再計算して exact revision B を再構成する。
+snapshotは新しいsource acquisitionではない。GitHub Git Data APIから取得したblob / tree / signed commit responseとbounded provenanceをcredential-free JSONとして運び、offline側でGit object identityを再計算してexact revision Bを再構成する。
 
 ```text
 snapshot transport ready
@@ -38,15 +38,15 @@ revision A fixed reference input:
 48a7ca1fe8a9538e9e9be3e1ee08ef14804c8f67
 ```
 
-Stable Requirement、Universal Contract、comparison axis、supported scope、quality judgement、Resolution 条件は変更しない。
+Stable Requirement、Universal Contract、comparison axis、supported scope、quality judgement、Resolution条件は変更しない。
 
 ## 3. 二段構成
 
 ### Stage T1 — online capture
 
-private `hat47x/tei-platform` を GitHub Git Data API で読める環境で行う。
+private `hat47x/tei-platform` をGitHub Git Data APIで読める環境で行う。
 
-必要条件:
+必要条件は次のとおりです。
 
 ```text
 SOZA checkout       = PR #312 / #313 取り込み後の current checkout
@@ -56,9 +56,9 @@ snapshot output     = fresh path、SOZA repository 外
 capture report      = source / snapshot と分離
 ```
 
-credential 値そのものは表示・記録しない。
+credential値そのものは表示・記録しない。
 
-例:
+例は次のとおりです。
 
 ```bash
 SOZA_REPO=/path/to/soza
@@ -72,38 +72,38 @@ python3 "$SOZA_REPO/runtime/integration/capture_tei_revision_b_git_data_snapshot
   --report-output "$CAPTURE_REPORT"
 ```
 
-capture runner は次を行う。
+capture runnerは次を行う。
 
-1. GitHub Git Data API から fixed revision B の tree / blob / signed commit を取得する。
-2. 取得 blob bytes を `git hash-object` 相当で再計算する。
-3. tree entry から tree object identity を再計算する。
-4. GitHub commit verification payload / signature から signed commit object を再構成する。
-5. exact revision B HEAD / expected execution-source objects / working-tree purity を canonical verifier で確認する。
-6. materializer が実際に消費した Git Data response のみを snapshot に保存する。
-7. runtime credential bytes を snapshot へ保存しない。
+1. GitHub Git Data APIからfixed revision Bのtree / blob / signed commitを取得する。
+2. 取得blob bytesを `git hash-object` 相当で再計算する。
+3. tree entryからtree object identityを再計算する。
+4. GitHub commit verification payload / signatureからsigned commit objectを再構成する。
+5. exact revision B HEAD / expected execution-source objects / working-tree purityをcanonical verifierで確認する。
+6. materializerが実際に消費したGit Data responseのみをsnapshotに保存する。
+7. runtime credential bytesをsnapshotへ保存しない。
 
-成功時も、ここでは E2 build / Provider Plan を PASS 扱いしない。
+成功時も、ここではE2 build / Provider PlanをPASS扱いしない。
 
 ## 4. snapshot の transport
 
-Stage T1 から E2 実行環境へ運ぶ主入力は次である。
+Stage T1からE2実行環境へ運ぶ主入力は次である。
 
 ```text
 TEI_B_SNAPSHOT
 TEI_A_BUNDLE または exact revision A checkout
 ```
 
-capture report に記録された snapshot SHA-256 は transfer 後の byte identity 確認に使用できる。
+capture reportに記録されたsnapshot SHA-256はtransfer後のbyte identity確認に使用できる。
 
-snapshot の top-level は固定 schema で検証され、repository / revision B commit / root tree / original acquisition provenance が固定値と一致しない場合は materialization 前に reject される。
+snapshotのtop-levelは固定schemaで検証され、repository / revision B commit / root tree / original acquisition provenanceが固定値と一致しない場合はmaterialization前にrejectされる。
 
-snapshot 自身を信頼境界にしない。offline 側でも blob / tree / signed commit identity を再計算する。
+snapshot自身を信頼境界にしない。offline側でもblob / tree / signed commit identityを再計算する。
 
 ## 5. Stage T2 — offline exact-B reconstruction + E2 partial
 
-actual E2 を行う Linux/amd64 環境では、GitHub credential は不要である。
+actual E2を行うLinux/amd64環境では、GitHub credentialは不要である。
 
-必要条件:
+必要条件は次のとおりです。
 
 ```text
 host                    = Linux / amd64
@@ -114,7 +114,7 @@ TEI_B_SNAPSHOT          = Stage T1 で生成・transfer 済み
 Evidence output         = fresh directory、SOZA / A input / snapshot と分離
 ```
 
-historical A bundle を使う場合:
+historical A bundleを使う場合。
 
 ```bash
 SOZA_REPO=/path/to/soza
@@ -131,7 +131,7 @@ python3 "$SOZA_REPO/runtime/integration/run_tei_revision_b_e2_from_snapshot.py" 
   --json
 ```
 
-exact revision A checkout を使う場合:
+exact revision A checkoutを使う場合。
 
 ```bash
 TEI_A_REPO=/path/to/exact-revision-a-checkout
@@ -144,20 +144,20 @@ python3 "$SOZA_REPO/runtime/integration/run_tei_revision_b_e2_from_snapshot.py" 
   --json
 ```
 
-runner は source bytes を展開する前に A fixed input、E2 Go、output / snapshot path safety を確認する。
+runnerはsource bytesを展開する前にA fixed input、E2 Go、output / snapshot path safetyを確認する。
 
-その後、snapshot から exact revision B Git repository を temporary path へ再構成し、canonical source verification を再度通したうえで既存 E2 `produce_bundle()` へ渡す。
+その後、snapshotからexact revision B Git repositoryをtemporary pathへ再構成し、canonical source verificationを再度通したうえで既存E2 `produce_bundle()` へ渡す。
 
 ## 6. provenance の読み方
 
-snapshot E2 report でも canonical source acquisition provenance は維持される。
+snapshot E2 reportでもcanonical source acquisition provenanceは維持される。
 
 ```text
 sourceAcquisition.mode
   = github-git-data-api-content-addressed
 ```
 
-snapshot 利用は追加情報として保存する。
+snapshot利用は追加情報として保存する。
 
 ```text
 sourceAcquisition.sourceTransport.mode
@@ -167,7 +167,7 @@ sourceAcquisition.sourceTransport.runtimeCredentialUsed
   = false
 ```
 
-この分離により、later E3 resume が固定している existing source acquisition contract を変更しない。
+この分離により、later E3 resumeが固定しているexisting source acquisition contractを変更しない。
 
 ```text
 acquisition identity
@@ -176,7 +176,7 @@ acquisition identity
 
 ## 7. E2 成功時の artifact
 
-既存 GitHub E2 partial と同じ固定名を使う。
+既存GitHub E2 partialと同じ固定名を使う。
 
 ```bash
 E2_BUNDLE="$E2_DIR/tei-e3b-p2-revision-b-e2-partial.tar.gz"
@@ -191,11 +191,11 @@ result = e2_bundle_verified_e3_not_run
 qualityJudgement = not_evaluated
 ```
 
-binary SHA-256 / Provider Plan SHA-256 は事前期待値を置かず、actual observation として初めて固定する。
+binary SHA-256 / Provider Plan SHA-256は事前期待値を置かず、actual observationとして初めて固定する。
 
 ## 8. strict bundle verification
 
-E2 成功後は transport 方式に依存せず existing strict verifier へ戻す。
+E2成功後はtransport方式に依存せずexisting strict verifierへ戻す。
 
 ```bash
 python3 "$SOZA_REPO/runtime/integration/verify_tei_version_exchange_e2_bundle.py" \
@@ -203,7 +203,7 @@ python3 "$SOZA_REPO/runtime/integration/verify_tei_version_exchange_e2_bundle.py
   --json
 ```
 
-ここで exact revision B source commit と exact revision A fixed reference input を repository-local expectations へ binding し、binary / Provider Plan / archive SHA-256 を actual bundle bytes から再計算する。
+ここでexact revision B source commitとexact revision A fixed reference inputをrepository-local expectationsへbindingし、binary / Provider Plan / archive SHA-256をactual bundle bytesから再計算する。
 
 ```text
 E2 partial report success
@@ -211,13 +211,13 @@ E2 partial report success
   = E2 actual Evidenceとして評価可能
 ```
 
-ただし E3 はまだ未実行である。
+ただしE3はまだ未実行である。
 
 ## 9. failure 分類
 
 ### T1 capture failure
 
-GitHub credential / API / source reconstruction で停止した場合:
+GitHub credential / API / source reconstructionで停止した場合。
 
 ```text
 T1 capture failure
@@ -227,7 +227,7 @@ T1 capture failure
 
 ### T2 pre-source rejection
 
-snapshot schema / provenance、A fixed input、Go toolchain、path safety 等で停止した場合:
+snapshot schema / provenance、A fixed input、Go toolchain、path safety等で停止した場合。
 
 ```text
 T2 pre-source rejection
@@ -237,22 +237,22 @@ T2 pre-source rejection
 
 ### T2 E2 failure
 
-exact-B materialization後に build / Provider Plan へ入り停止した場合は、既存 repository-local E2 substage を actual stopping-point Evidence として保存する。
+exact-B materialization後にbuild / Provider Planへ入り停止した場合は、既存repository-local E2 substageをactual stopping-point Evidenceとして保存する。
 
 ```text
 actual E2 substage failure observed
   != automatic Product incompatibility conclusion
 ```
 
-failure report は成功時と同じ固定名を使う。
+failure reportは成功時と同じ固定名を使う。
 
 ```bash
 E2_FAILURE_REPORT="$E2_DIR/tei-revision-b-e2-github.json"
 ```
 
-`result=e2_failed` の partial report は full canonical report schema ではないため、成功用 `audit_tei_version_exchange_resolution.py` へ直接渡さない。PR #323 以降は failure-only adapter へ戻す。
+`result=e2_failed` のpartial reportはfull canonical report schemaではないため、成功用 `audit_tei_version_exchange_resolution.py` へ直接渡さない。PR #323以降はfailure-only adapterへ戻す。
 
-historical A bundle を使った場合の標準例:
+historical A bundleを使った場合の標準例:
 
 ```bash
 SOZA_HEAD="$(git -C "$SOZA_REPO" rev-parse HEAD)"
@@ -292,11 +292,11 @@ actual E2 build failure
   != ISSUE-000072 Resolved
 ```
 
-原因確認前に `--overwrite` で既存 Evidence を上書きしない。
+原因確認前に `--overwrite` で既存Evidenceを上書きしない。
 
 ## 10. E3 resume 以降
 
-E2 partial 成功後は、既存の正本手順へ戻る。
+E2 partial成功後は、既存の正本手順へ戻る。
 
 - `run_tei_version_exchange_resume_from_e2_partial.py`
 - 必要時 `reconcile_tei_e2_partial_resume_reports.py`
@@ -304,11 +304,11 @@ E2 partial 成功後は、既存の正本手順へ戻る。
 
 E2 partial failureの場合はE3へ進まず、Section 9のfailure-only Resolution auditへ戻る。
 
-snapshot transport を使ったことを理由に E2 を再実行しない。
+snapshot transportを使ったことを理由にE2を再実行しない。
 
 ## 11. 2026-09-07 current execution surface
 
-2026-09-07 current check では、repository-side path は正本へ取り込まれている一方、actual snapshot bytes を生成できる execution surface はまだ観測できていない。
+2026-09-07 current checkでは、repository-side pathは正本へ取り込まれている一方、actual snapshot bytesを生成できるexecution surfaceはまだ観測できていない。
 
 ```text
 PR #312 snapshot producer / consumer       = merged
@@ -320,11 +320,11 @@ recent TEI GitHub-hosted workflow job      = steps=[]
 actual exact-B snapshot                    = Not Yet Acquired
 ```
 
-recent hosted job の zero-step failure は TEI build / Provider Plan failure へ昇格させない。
+recent hosted jobのzero-step failureはTEI build / Provider Plan failureへ昇格させない。
 
 またfixed-B exact sourceではsource-level compile contradictionがStatic Evidenceとして観測済みだが、canonical actual E2 build failureへは昇格させない。actual E2がbuild stageで停止した場合はSection 9のfailure-only auditへ戻す。
 
-したがって current blocker は次のように表現する。
+したがってcurrent blockerは次のように表現する。
 
 ```text
 transport implementation ready
@@ -348,4 +348,4 @@ snapshot transport implementation merged
   != ISSUE-000072 Resolved
 ```
 
-actual online capture surface が利用可能になった時点では、追加bootstrap探索やsynthetic hardeningより Stage T1 → T2 の actual 実行を優先する。
+actual online capture surfaceが利用可能になった時点では、追加bootstrap探索やsynthetic hardeningよりStage T1 → T2のactual実行を優先する。

@@ -25,10 +25,10 @@ ProfileはCore boundaryを緩和せず、Profile適用や要件充足からAutho
 
 ## Current evidence
 
-- Progressive Explicitness Design boundary: **Satisfied**
-- Decision Memory v1alpha1での段階的な表現余地: **Satisfied**
-- Profile / Policy obligation resolutionのProduction Executable Evidence: **Not Yet Verified**
-- Release / Operational Evidence: **Not Yet Verified**
+- Progressive Explicitness Design boundary: Satisfied
+- Decision Memory v1alpha1での段階的な表現余地: Satisfied
+- Profile / Policy obligation resolutionのProduction Executable Evidence: Not Yet Verified
+- Release / Operational Evidence: Not Yet Verified
 
 ## Natural Japanese review
 

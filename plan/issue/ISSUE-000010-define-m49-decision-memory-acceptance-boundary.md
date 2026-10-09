@@ -38,12 +38,12 @@ current repositoryでは、historical planning fixtureだけでなく次まで�
 
 したがってEvidence状態を次のように読む。
 
-- Semantic / Design boundary: **Satisfied**
-- Contract / fixture-scoped Executable Evidence: **Satisfied**
-- first runtime read / validate / reconstruct Evidence: **Satisfied within current scope**
-- durable production persistence: **Not Yet Verified**
-- Authorization / Action execution crossing: **Not Yet Verified**
-- Release / Operational Evidence: **Not Yet Verified**
+- Semantic / Design boundary: Satisfied
+- Contract / fixture-scoped Executable Evidence: Satisfied
+- first runtime read / validate / reconstruct Evidence: Satisfied within current scope
+- durable production persistence: Not Yet Verified
+- Authorization / Action execution crossing: Not Yet Verified
+- Release / Operational Evidence: Not Yet Verified
 
 ```text
 current Decision Memory fixture/runtime PASS

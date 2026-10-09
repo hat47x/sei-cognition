@@ -1,7 +1,7 @@
 # SEIの全体構成
 
-更新日: 2026-09-11  
-状態: **現行の設計基準（作業再開を優先する対話用作業集合の設計を反映）**
+更新日: 2026-10-10  
+状態: **現行の設計基準（作業再開を優先する対話用作業集合の設計を反映）。本文は現行の設計基準である。** 一方、§2で示す`SEI_REFERENCE_ARCHITECTURE.md`の§20.1（境界B1〜B8）は提案であり、§2・§10のADR-0035（Proposed）への参照も提案として扱う。これらの採否は未決である。提案は現行の設計基準の一部ではない。
 
 ## 1. このディレクトリの役割
 
@@ -39,7 +39,7 @@ architecture/
     HISTORICAL_ARCHITECTURE_MAPPING.md
 ```
 
-- `SEI_REFERENCE_ARCHITECTURE.md` — 現行のSEI全体を示す参照構成。
+- `SEI_REFERENCE_ARCHITECTURE.md` — 現行のSEI全体を示す参照構成。§20.1に、外部の強い仕組みとの境界B1〜B8の提案を置いている。これはADR-0035（Proposed）の影響範囲にある提案節であり、採否は未決である。§20.1は現行の基準（baseline）ではない。
 - `SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md` — ISSUE-000073の作業再開を優先する製品機能について、意味の正本・派生情報・一時情報・外部状態の管理主体、作業集合、再開時の表示、AIの提案、意味変更の確定、古い状態からの書き込みや部分的な確定を扱う境界を定義する。
 - `SEI_DEPLOYMENT_ARCHITECTURE.md` — ADR-0029に基づくLocal Single-Node Packageの構成要素の配置、永続化、保存・再開、書き出し・取り込みの境界。
 - `SEI_PRODUCT_ACCESS_ARCHITECTURE.md` — ADR-0030に基づく認証、識別情報の対応付け、製品利用権限、保護された正本アクセス、選択的な情報開示の配置。
@@ -116,7 +116,7 @@ post-decision observation != historical decision basis
 
 これらは設計の一部の境界を確かめた、対象を限定した実行検証根拠（Scoped Executable Evidence）です。設計上の関心領域を実行時の構成要素に一対一で対応させたことや、全体構成の実装を完了したことは意味しません。
 
-`SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md`は2026年9月11日時点では設計上の根拠（Design Evidence）です。作業集合の解決、再開時の表示、意味変更の計画、確定処理の調整、外部に渡す文脈の計画などについて、試作段階の実行検証根拠をISSUE-000073で確認します。
+`SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md`は2026年9月18日時点では設計上の根拠（Design Evidence）です。作業集合の解決、再開時の表示、意味変更の計画、確定処理の調整、外部に渡す文脈の計画などについて、試作段階の実行検証根拠をISSUE-000073で確認します。
 
 ADR-0027に従い、SEI自身が管理する本番向け実行環境の標準言語はGoとします。ただし、意味の契約や、外部で動く認知方式・能力の提供元までGoに固定するものではありません。詳細は`IMPLEMENTATION_LANGUAGE_POLICY.md`を参照します。
 
@@ -214,14 +214,24 @@ ISSUE-000073の`semantic change plan`や状態を識別するトークンにつ�
 - `TRACEABILITY.md`
 - `IMPLEMENTATION_LANGUAGE_POLICY.md`
 - `../plan/issue/ISSUE-000073-define-first-usable-resume-first-product-slice.md`
+- `../plan/adr/ADR-0027-go-as-standard-production-runtime-language.md`
 - `../plan/adr/ADR-0028-product-interaction-canonical-operation-boundary.md`
 - `../plan/adr/ADR-0029-local-single-node-packaging-profile.md`
 - `../plan/adr/ADR-0030-product-access-control-separation.md`
+- `../plan/adr/ADR-0035-family-integration-apex-and-control-meaning-boundary.md` — 提案（ADR-0035, Proposed）。採否は未決であり、現行の基準ではない。
 
 ## 11. 日本語の推敲記録
 
-2026-09-11時点のProduct Value、Requirements、Accepted ADR、Semantic Contract / Representation Profile、Go semantic runtime、Provider Adapter、Product Interaction probe、Packaging / Persistence、Product Access、Local Reference Package、ISSUE-000073へ戻ってArchitectureの入口を再監査した。
+2026-09-11時点のProduct Value、Requirements、Accepted ADR、Semantic Contract / Representation Profile、Go semantic runtime、Provider Adapter、Product Interaction probe、Packaging / Persistence、Product Access、Local Reference Package、ISSUE-000073を参照して、Architectureの入口の記述を確認した。
 
 新しいInteraction Working-Set Architectureをcurrent canonical fileとして登録し、working set / Resume Brief等を製品設計上の重要な関心として扱いつつUniversal Coreへ昇格させない境界を追加した。また、AI suggestionとcanonical commit、concurrency versionとSemantic Revision、post-decision Observationとhistorical basisの非同一性をArchitecture入口でも読めるようにした。
 
-意味、権威関係、留保、Evidence強度を変えず、自然な日本語として一続きに読めるよう全文を再ドラフトし、最終意味監査を実施した。
+2026-10-10の変更では、次を行った。
+
+- 更新日を2026-09-11から2026-10-10に改めた。
+- 状態行を、本文が基準版であることと、§2・§10のADR-0035（Proposed）への参照が提案であることを分けて書く形に改めた。
+- §2の`SEI_REFERENCE_ARCHITECTURE.md`の説明で、§20.1のB1〜B8を提案として示し、§20.1が現行の基準ではないことを明記した。
+- §5の`SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md`に関する日付を、2026年9月11日から9月18日に改めた（参照先の更新日に合わせた）。
+- §10に`ADR-0027`と`ADR-0035`のパスを加えた。
+- §11の2026-09-11段落の文言を、main側の原文に戻した。
+- §11で、監査の実施を述べていた段落を削除した。

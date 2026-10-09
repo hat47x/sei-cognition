@@ -1,7 +1,7 @@
 # SEI Reference Architecture
 
-更新日: 2026-09-05  
-状態: **Current Reference Architecture Baseline — current Product / Contract / scoped Evidence reflected**
+更新日: 2026-10-02  
+状態: **Current Reference Architecture Baseline — current Product / Contract / scoped Evidence reflected。§20.1の境界B1〜B8は提案（ADR-0035 Proposed）であり、current baselineではない**
 
 ## 1. 目的
 
@@ -416,7 +416,7 @@ current synthetic Adapter sliceは、異なるProvider-specific input shapeか�
 
 Projectionは、人間やAIがSEIの意味資産を目的に応じて読むための表示・作業面です。
 
-例:
+例は次のとおりです。
 
 - Web workspace
 - kj-atlas
@@ -616,6 +616,30 @@ JSON Schema shapeはcurrent Contract v1alpha1のmachine-readable representation�
 
 JCS+SHA-256 / raw-bytes+SHA-256はcurrent Representation ProfileとしてAccepted済みですが、それらを唯一の永久的representationへ固定しません。
 
+### 20.1 外部の強い仕組みとの境界B1〜B8（提案・informative）
+
+この節は**提案**であり、current baselineではありません。新しい設計判断はArchitecture本文だけで確定しない（ADR-0021）という規則に従い、判断はADR-0035（Proposed）にあり、ここではその読み方を示すだけです。Contract、Requirement、Value Axisは変更しません。
+
+頂点が崩れやすいのは、外部の強い仕組みに意味を吸い取られるときと、自分が中心に膨らむときです。SEIが持つものと相手に任せるものを、次の8つの境界で分けます。
+
+| # | 相手 | SEIが持つもの | 相手に任せるもの | 接続の仕方 |
+|---|---|---|---|---|
+| B1 | 基盤モデル | 出力の役割（RecommendationかHypothesisか）、どのモデルの出力かの束縛 | 推論、要約、生成 | Cognitive MethodのRealizationとして接続する。private chain-of-thoughtは保存しない（REQ-0015）。ベンダーが示す推論の要約はRationaleに近いが、根拠ではない |
+| B2 | ベンダーの記憶 | 判断の記録簿（system of record） | 好み、事実、利便のためのキャッシュ | SEIからベンダーへは撤回できる投影を渡す。ベンダーからSEIへは出所つきのObservationとして受け、レビューを経る |
+| B3 | エージェントとプロトコル | 委任、依頼と結果の意味 | 通信、実行、監視 | MCPはCanonical Semantic Access Surfaceの実現の一つとし、読み取りと提案に限る。決定は明示された権限の経路で行う。A2Aのタスクは委任の記録とMethod Applicationへ写す。OTel GenAIの規約（Development段階）は取り込まず、trace IDをExecution receiptとして参照する |
+| B4 | 兄弟製品 | 対応表、求心・遠心プロファイル（候補） | 各製品に固有の意味と権限 | 反射弓には入らない。他の製品の領域で権限を与えない。`../product/definition/SEI_FAMILY_SEMANTIC_MAP.md`を参照する |
+| B5 | 規制と標準 | 記録と監督のEvidenceを出せる形 | 適合の判定、認証 | 適合を保証しない。W3C PROV-Oなどへの対応は`../contracts/EXTERNAL_STANDARD_MAPPING.md`に参考として置く |
+| B6 | 時間 | 家族で最も長い互換性の約束（提案） | — | 安定化の経路は`../contracts/CONTRACT_CATALOG.md` §5.1。過去のPASSを現在のPASSとして扱わない |
+| B7 | SEI自身の自律性 | 背景認知の結果を提案として置くこと | — | SEIは自分に権限を与えない。背景の結果を信念、決定、通知へ自動で昇格させない |
+| B8 | プライバシーと消去 | 参照とコミットメント、消去の墓標（候補） | 生データ（端末や元のシステムに留める） | 消去では内容を消し、存在と系譜を残す（redaction ≠ revision）。SEIが監視の拠点になることを、明示的に非目標とする。消去の表し方はISSUE-000086で試す |
+
+```text
+control mechanism = Realization / Profile
+meaning of a control decision = Coreに残す意味
+```
+
+制御の仕組み（routing、escalation、attentionの配分）は、このArchitectureでもProfileまたはRealizationに置きます。制御の判断の意味をどのContractの組合せで残せるかは、ISSUE-000086で試す段階です。
+
 ## 21. 将来耐性
 
 Architecture reviewでは、評価時点の現実からおおむね10〜50倍程度先を見渡し、現在の技術制約へ過適合していないかを監査します。
@@ -654,3 +678,5 @@ current Product Value、REQ-0001〜0022、SCN-0001〜0018、ADR-0001〜0030、cu
 旧版に残っていた「4 Contract family」「Cognitive Method Contract未成立」「production Provider / TEI integration未確認」「Release Evidence未成立」という2026-08-31時点の記述をcurrent stateへ更新しました。
 
 そのうえで、ISSUE-000070のfixed-scope Scoped Executable Evidenceをarbitrary portabilityや成果品質へ拡張せず、ISSUE-000072 revision B actual、E4 Operational portability、Adoption / Outcome Evidenceを未検証として残しています。意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語となることを最重要視して最終意味監査を行いました。
+
+2026-10-02には、ADR-0035（Proposed）に沿って、外部の強い仕組みとの境界B1〜B8を§20.1へ提案・informativeとして加えました。Architecture本文だけで設計判断を確定しないという規則に従い、判断はADRにあることを節の冒頭に明記しています。既存の境界とEvidence強度は変えていません。

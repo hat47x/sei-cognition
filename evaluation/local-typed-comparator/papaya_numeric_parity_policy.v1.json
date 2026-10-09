@@ -1,0 +1,66 @@
+{
+  "schema": "sei.local-typed-comparator-numeric-parity-policy/v1",
+  "preregistered_date": "2026-09-26",
+  "purpose": "Pre-register bounded Python-Laya 0.3.20 vs Papaya numeric-parity gates before any managed live comparison result is observed.",
+  "comparator_report_schema": "sei.local-typed-comparator-cross-provider-numeric-report/v1",
+  "surface": {
+    "frozen_case_ids": [
+      "choice-route-a",
+      "choice-route-b",
+      "score-urgency",
+      "noul-review"
+    ],
+    "choice11_diagnostic_case_id": "choice-12-clamp-path",
+    "managed_reference_schema": "sei.local-typed-comparator-reference-managed-run/v1",
+    "papaya_schema": "sei.local-typed-comparator-papaya-run/v1",
+    "fixture_schema": "sei.local-typed-comparator-fixture/v1alpha1",
+    "fixture_sha256": "cb070bfa342a2ca7329538620541fa32588130d3d1b67f21c8b3c4e3494d8ed5",
+    "choice11_diagnostic_sha256": "6c572390e91d662864d9ef2b43cd147e698773649531e798a3a55179e35a5a32"
+  },
+  "context_only": {
+    "upstream_packet_path": "papaya_upstream_same_checkpoint.v1.json",
+    "upstream_packet_git_blob": "212e429c760adccf14e3fc348b658cc83a27d5fa",
+    "observed_answer_probability_abs_max": 0.0125,
+    "observed_noul_probability_abs_max": 0.0197,
+    "observed_score_expected_value_abs_max": 0.0189,
+    "observed_confidence_abs_max": 0.0054,
+    "note": "These retained upstream Q8-vs-ONNX numbers informed conservative engineering margins only. They are not managed Python-Laya reference evidence and cannot be used to move the gates after live results."
+  },
+  "thresholds": {
+    "frozen_cases": {
+      "probability_max_abs_delta_max": 0.025,
+      "confidence_abs_delta_max": 0.015,
+      "score_abs_delta_max": 0.04,
+      "noul_abs_delta_max": 0.025,
+      "require_choice_selected_equal": true,
+      "require_noul_threshold_0_5_equal": true,
+      "require_score_probability_argmax_equal": true
+    },
+    "choice11_diagnostic": {
+      "probability_max_abs_delta_max": 0.03,
+      "confidence_abs_delta_max": 0.02,
+      "require_choice_selected_equal": true
+    }
+  },
+  "decision_rule": {
+    "all_observed_questions_must_pass": true,
+    "no_latency_gate": true,
+    "pass_meaning": "Bounded numeric parity on the frozen four-case protocol surface plus the separate aligned choice:11+ diagnostic.",
+    "fail_meaning": "The current Papaya candidate is not numerically interchangeable with the pinned Python-Laya reference on this preregistered surface.",
+    "failure_does_not_mean": [
+      "task quality is poor",
+      "calibration is invalid in deployment",
+      "Papaya is unusable for every workload",
+      "Jev provider identity differs because of this numeric result"
+    ]
+  },
+  "scope": {
+    "threshold_preregistered_before_managed_live_results": true,
+    "task_quality": false,
+    "calibration_validity": false,
+    "cross_runtime_performance_comparison": false,
+    "jev_provider_identity_equivalence": false,
+    "reference_provider_promotion": false,
+    "shipping_decision": false
+  }
+}

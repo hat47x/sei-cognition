@@ -239,6 +239,19 @@ AI suggestion自体をcanonical factへ自動昇格させない。
 
 へ到達できるか確認する。
 
+synthetic matched reviewでのhandoff刺激と、実際の別readerによるteam handoffは分けて扱う。actual team handoffの実観測追跡は **GitHub Issue #592** に一本化する。#592では新しいrunner / schema / fixtureを追加せず、既存 `dogfood_cli.py handoff` projectionを最初の提示面として使い、別readerのhuman-authored responseと必要なsource/chat reopenを観測する。
+
+現在の`dogfood_evaluation_cli.py resume-add`はresumption surface用であり、`sei-handoff`を持たない。そのenumをactual handoff記録の都合だけで拡張せず、最初のactual observationは必要最小限のanonymized Evidence / checkpointとして保持する。
+
+```text
+synthetic E78.4 review
+  != actual team handoff
+
+handoff projection renders
+  != another reader understood the Inquiry
+```
+
+
 ### E78.5 — New evidence after interruption
 
 中断後に新しいObservationを追加する。
@@ -332,6 +345,17 @@ calendar gap reached
 ```
 
 したがって、E78.1のactual long-gap resumptionは**Not Yet Observed**のままとする。再開品質、負担、継続利用価値を推測で埋めない。
+
+actual clean long-gap resumptionの実観測追跡は **GitHub Issue #590** に一本化する。#590は新しいrunner / schema / fixtureを追加せず、既存actual dogfood case、Orientation、evaluation sidecar、`dogfood_evaluation_cli.py resume-add`をそのまま使う。tracker自体にはunderlying InquiryのQuestion / Observation / Unknown / Hypothesisを再掲せず、読むだけで認知的gapを壊さないようにする。
+
+```text
+calendar gap
+  != clean cognitive gap
+
+Issue #590 open
+  != resumption observed
+```
+
 
 ### E78.2 / E78.4 / E78.5 — matched comparison / handoff / later evidence
 
@@ -473,9 +497,9 @@ GitHub正本のblobを固定して一時実行環境へ再構成し、Python 3.1
 
 今後connector等を介して一時実行環境へ再構成する場合は、**10ファイルを同一bound commitからmaterializeし、全件のGit blob SHA-1一致を確認してからのみcanonical runnerを実行する**。1件でも不一致なら、その試行はcanonical local gateのPASS / FAILへ数えず、再構成失敗として破棄する。runnerが生成するresult schema v2も従来どおり`validate_result`成功後だけ保存する。
 
-actual runtimeの残工程は GitHub Issue #532 `E78.3: exact-source bindingからcanonical local gateをactual実行する` に集約する。同一ISSUE-000078の継続作業として `develop/v0.2.0` を集約先に保ち、transport/reconstructionだけを理由にtopic branchを増やさない。Issue #532は10-blob一致、runner focused tests、7-check aggregate、validated result schema v2生成だけを完了条件とし、source reconstruction mismatchはcanonical PASS / FAILへ数えない。
+actual runtimeの残工程はGitHub Issue #532 `E78.3: exact-source bindingからcanonical local gateをactual実行する` に集約する。同一ISSUE-000078の継続作業として `develop/v0.2.0` を集約先に保ち、transport/reconstructionだけを理由にtopic branchを増やさない。Issue #532は10-blob一致、runner focused tests、7-check aggregate、validated result schema v2生成だけを完了条件とし、source reconstruction mismatchはcanonical PASS / FAILへ数えない。
 
-2026-09-20、execution-input binding v1 に `execution_recipe` を追加し、repository-root要件、runner focused test command、canonical aggregate command、期待check数7、result schema v2、exclusive-create、実行後に記録すべきprovenanceを機械可読で固定した。これはrunner追加ではなく既存canonical pathの再現手順を固定するものであり、runtime PASSそのものではない。
+2026-09-20、execution-input binding v1に `execution_recipe` を追加し、repository-root要件、runner focused test command、canonical aggregate command、期待check数7、result schema v2、exclusive-create、実行後に記録すべきprovenanceを機械可読で固定した。これはrunner追加ではなく既存canonical pathの再現手順を固定するものであり、runtime PASSそのものではない。
 
 同日のtransport試行は `evaluation/personal-inquiry-decision/evidence/issue-000078/e78_summary_distortion_materialization_checkpoint_2026-09-20.json` に分離して記録した。probe setと3 source fixtureの4/10 filesはGit blob SHA-1一致を実測した一方、残る6 Python mechanicsはcurrent connector→execution-container境界でbyte-faithful materialization未達であり、CRC32 / full-file blob検査で不一致となった再構成は全て破棄した。canonical runnerはこのcheckpointでは未実行で、新しいPASS / FAILを主張しない。
 
@@ -920,7 +944,7 @@ repository-local mechanicsは、E78.2 / E78.4 / E78.5 matched review、E78.3 sum
 
 actual matched human reviewの追跡先はGitHub Issue #575へ一本化する。新しいreview template、runner、Evidence schemaは追加せず、既存の `inquiry_continuity_review_runner.py` を唯一の入口とする。
 
-現時点のChatGPT実行環境では、private repositoryのexact bound-source checkoutを直接materializeしてcanonical runnerを起動できない。この制約はexecution environmentのblockerであり、canonical runnerやreview mechanicsのfailureではない。環境制約を回避するためにsource identity checkを弱めたり、別runnerを増設したりしない。
+2026-09-22時点の該当ChatGPT実行環境では、private repositoryのexact bound-source checkoutを直接materializeしてcanonical runnerを起動できなかった。この制約はexecution environmentのblockerであり、canonical runnerやreview mechanicsのfailureではない。環境制約を回避するためにsource identity checkを弱めたり、別runnerを増設したりしない。
 
 また、このconversation participantをreviewerとして用いる場合、すでにE78設計、実行順序、Evidence boundaryへmaterialに露出しており、fixture 001もcanonical `init` 前に提示された履歴がある。そのため、そのreviewerを `none-declared` として扱わず、truthfulなprovenanceとして `known-material-exposure` を保持する。human response本文をAIが生成して `human-direct` / `human-transcribed` として記録しない。
 
@@ -951,6 +975,59 @@ human review may start
   != Product Value established
   != Stable Requirement authorization
 ```
+
+
+### Human review execution readiness update — 2026-09-23
+
+並行レーンのGitHub Issue #575で、frozen source commit `1de126f6cddea9eac4cef2c5aaeb89b044f1f89b` のcanonical human-review実行に必要な11ファイルのexact materializationを**11 / 11 Git blob SHA-1一致**として確認した。manifestと3 source fixturesのcanonical JSON SHA-256も事前oracleに**4 / 4一致**した。non-mutating canonical smokeとして`inquiry_continuity_review_runner.py --help`および`inquiry_continuity_packet.py --validate-only`がPASSした。以前のtransport blockerは、その実行contextについては解消済みである。
+
+これは別のChatGPT実行コンテナへのファイル共有や、human reviewの開始・実施を意味しない。実際のreviewerが参加する際は、exact materialization済みの実行contextで既存runnerの`init`を開始し、reviewerの事前露出を正直に記録する。現conversation参加者によるpilotなら`known-material-exposure`とし、既存CLIの`--provenance-note`へ「E78設計への事前露出、canonical init前にfixture 001 phase1を一度見たがhuman回答は未記録」を保存する。review sessionを未開始のままfixture素材を再提示したり、AIがhuman responseを代作したりしない。
+
+```text
+11/11 exact materialization + canonical non-mutating smoke PASS
+  != canonical human review init
+  != human response observed
+  != clean blinded review
+  != actual long-gap / handoff Evidence
+  != Product Value / Stable Requirement authorization
+```
+
+
+
+## Resolution Evidence dependency matrix — 2026-09-24
+
+Resolved条件へ到達するまでの未完了Evidenceを、既存trackerへ次のように集約する。同じ未観測項目のために新しいrunner / schema / fixture / topic branchを作らない。
+
+| Resolution上の問い | 現在のEvidence高さ | 次のactual Evidence | 追跡先 |
+| --- | --- | --- | --- |
+| Decision前Inquiryの比較設計をactualに実施したか | repository-local mechanicsはactual PASS | human-authored matched reviewをcomplete sessionとして固定 | #575 |
+| raw chat / chronological note等との差が実質的か | matched comparison scaffold / fixtureあり | E78.2のhuman review結果 | #575 |
+| semantic correctnessとresume speedを分けて見られるか | 評価語彙とmechanicsあり | human response + audit、またはclean resumptionのactual観測 | #575 / #590 |
+| capture / review overheadが実用上許容可能か | sidecar / review burdenの記録経路あり | actual reviewerのburden、reopen、detail descent等 | #575 / #590 |
+| AI summaryの誤りを人間が検出・修正・却下できるか | E78.3 local mechanics actual PASS | distorted summary / next-questionへのhuman correction / rejection | #575完了後に同一reviewerで実施する場合のみ開始 |
+| long-gap Inquiryを意味を壊さず再開できるか | actual case seed済み、clean resumptionは未観測 | material re-exposureのないgap後のOrientation-first resumption | #590 |
+| working memoryを共有しない別readerへ引き継げるか | handoff projection / synthetic matched mechanicsあり | 実在する別readerのhuman-authored handoff response | #592 |
+| current V1〜V8 / Decision Continuityで十分か | coverage / mechanics上の設計監査は進行済み | 上記Human Evidenceを反映した最終再監査 | 本Issue |
+| Value Axis / Stable Requirement / Universal型を追加すべきか | **未決定** | Human Evidenceを踏まえた明示的なNo Changeを含む最終判断 | 本Issue |
+| Product Value / Value Model / Product Visionを再編すべきか | **未決定** | 上記actual observationsを束ねた最終Decision record | 本Issue |
+
+E78.3については、同一reviewerを使う場合に#575のmatched responseを固定する前へdistortion刺激を持ち込まない。したがって、現時点でE78.3 human review専用の別trackerを作らないこと自体がcontamination controlである。#575完了後に必要なら、その時点のactual stateから継続する。
+
+#590のcandidate clean gap中は、parent Issueの保守作業を理由にunderlying Inquiry stateを利用者へ再提示しない。#592もactual readerが参加するまではprojection本文や想定回答をtracker上へ先回りして書かない。
+
+```text
+machine mechanics complete
+  + tracker prepared
+  != Human Evidence
+
+Human Evidence observed
+  != Product Value established
+  != Stable Requirement authorization
+
+all required observations collected
+  -> coverage / Product Value / Stable Requirement final review
+```
+
 
 ## Resolution
 

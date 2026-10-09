@@ -35,13 +35,13 @@ Capability Realization / OfferingのUniversal型要否はISSUE-000014で検討�
 
 historical planning fixtureのEvidenceをcurrentへ自動継承せず、current repositoryの実績で読み替える。
 
-- Capability Choice semantic boundary: **Satisfied — ADR-0012 / ADR-0013**
-- Provider-neutral Capability Observation Contract / Schema: **Satisfied**
-- Capability Observation F1〜F7 fixture-scoped Executable Evidence: **Satisfied**
-- synthetic cross-Provider Adapter mapping: **Satisfied within ISSUE-000036 scope**
-- Matching / Recommendation generationのExecutable Evidence: **Not Yet Verified**
-- Capability Choice DecisionのProduction Executable Evidence: **Not Yet Verified**
-- Release / Operational Evidence: **Not Yet Verified**
+- Capability Choice semantic boundary: Satisfied — ADR-0012 / ADR-0013
+- Provider-neutral Capability Observation Contract / Schema: Satisfied
+- Capability Observation F1〜F7 fixture-scoped Executable Evidence: Satisfied
+- synthetic cross-Provider Adapter mapping: Satisfied within ISSUE-000036 scope
+- Matching / Recommendation generationのExecutable Evidence: Not Yet Verified
+- Capability Choice DecisionのProduction Executable Evidence: Not Yet Verified
+- Release / Operational Evidence: Not Yet Verified
 
 current Requirementでは主にREQ-0007、REQ-0021、REQ-0022へ接続する。
 

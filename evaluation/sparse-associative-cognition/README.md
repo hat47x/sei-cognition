@@ -1,7 +1,7 @@
 # Sparse Associative Cognitive Substrate
 
 状態: **Evaluation / Experimental**  
-更新日: 2026-09-19
+更新日: 2026-10-02
 
 ## 1. 根幹の趣旨
 
@@ -131,7 +131,51 @@ Coreは`Feature{Channel, Key, Weight}`だけを受け取る。これにより、
 
 static semantic表現を採用する場合も、coreはmodelを直接知る必要がない。adapterがdense vectorから上位dimension等を`Feature`へ変換するか、独立channelとして候補統合する。
 
-### 4.1 lightweight local SLMとの組み合わせ
+### 4.1 bounded lexical candidate narrowingのadmission
+
+SACSは「軽いから」という理由だけでexact lexical retrievalを置き換えない。
+
+boundedなlexical corpusでは、まずtoken / char n-gram等のexact sparse baselineを測り、
+candidate retentionと実memory pressureを比較する。exact lexicalが要求品質を満たし、
+memory / scale上も十分小さい場合は、そのまま前段candidate narrowingとして残す。
+
+```text
+exact lexical baseline
+  + required candidate retention
+  + acceptable measured memory
+  -> keep exact lexical
+
+measured scale / memory pressure
+  or heterogeneous non-lexical feature integration
+  justifies lossy compression
+  -> evaluate SACS
+
+exact lexical miss / semantic residual remains
+  -> static semantic / heavier encoder / bounded local SLM
+```
+
+また、多様な例を一つの`Bundle`へまとめること自体をcategory prototypeの既定形にしない。
+個々のexemplarを保持できる規模では、local variationを失わないindexを先に比較する。
+
+2026-10-02のBANKING77 scratch proxyでは、10,003 train / 3,080 test / 77 intentに対し、
+individual-exemplarのexact char-trigram cosineがR@5=0.9718、R@10=0.9883だった。
+既存B6 large SACS（8192 dimensions / fanout 8 / active 128）は
+R@5=0.9396、R@10=0.9675で、oversized stress（32768 / 8 / 512）まで増やして
+R@5=0.9705、R@10=0.9886へ近づいた。
+
+これは外部labeled proxyのdiagnosticであり、SUIのhuman-adjudicated semantic benchmarkや
+production memory winnerではない。特にbare payload比較をRSSや運用costへ読み替えない。
+
+停止線:
+
+```text
+smaller sparse signature != better product value
+Bundle compression != semantic abstraction
+proxy recall != SUI semantic quality
+exact lexical win on bounded text != graph/spatial/history workload winner
+```
+
+### 4.2 lightweight local SLMとの組み合わせ
 
 local SLMをSACSの代替memoryにはしない。
 

@@ -1,7 +1,7 @@
 # SEIが目指す将来像
 
-更新日: 2026-09-18  
-状態: **将来像の設計基準。ブランド世界から得た知見を反映済み**
+更新日: 2026-10-10  
+状態: **将来像の設計基準。ブランド世界から得た知見を反映済み。§4.1と§11.1は、ADR-0035（Proposed）による再基線化の提案であり、採否（ISSUE-000085）が決まるまで現行の基準として断定しない。**
 
 ## 1. この文書の役割
 
@@ -69,6 +69,12 @@ shared cognition
 共有できることは、全員へ開くことでも、権限を共有することでもありません。一人の利用者や一つのAI sessionで得た認知成果が、そのsessionの寿命だけで消えず、許された別の人間やAIへ引き継げる。そのときもProvenance、historical context、Responsibility、Access boundaryを失わない。この状態を目指します。
 
 この意味でSEIが目指すのは、巨大な中央知識庫でも、組織全体の「中央の頭脳」でもなく、**異なる主体がそれぞれの責任を保ったまま同じ認知資産へ近づける、境界を失わない認知基盤（Cognitive Infrastructure）**です。
+
+### 4.1 社会の水準での姿（仮説・提案）
+
+AIが人の代わりに調べ、提案し、場合によっては委任された範囲で決めるようになると、社会は「誰が何を決め、何を任せ、何を分からないまま進めたのか」を後から説明できる基盤を必要とするのではないか、という仮説を置きます。行政や公共の判断、研究の再現性、危機のときの判断、熟議のなかの少数意見、特定のAI供給元への依存、世代をまたぐ長期の判断といった場面が考えられます。
+
+これは新しいValue Axisではなく、V1〜V8とCognitive Commons（個人や一つのAI sessionに閉じず、適切な境界のもとで持続的に共有される認知資産の状態。`../value/SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md` §4を参照）が、個人や組織を越えて成り立ったときの姿についての**Visionの仮説**です。Evidenceはまだありません。公共の利益という大義を理由に、Selective Disclosure、Responsibility、privacyを弱めることはしません。SEIが監視の拠点になることは、明示的な非目標です。場面の一覧と、確かめるべきEvidenceは`../value/SEI_FAMILY_APEX_VALUE_REVIEW.md` §12にあります。この仮説は、ADR-0035（Proposed）の未確認事項として扱い、採否はISSUE-000085で判断します。
 
 ## 5. AIが強くなるほど、薄くできる層と残す層を分ける
 
@@ -232,6 +238,34 @@ Observation / Evidence
 また、SUIのsensemaking object、TEIのApplication / Database / Release、EKIのWorker / scheduler等の内部構造をSEI Universal Coreへコピーしません。必要なCognitive Method、Capability、Observation、Evidence、Artifact reference、Execution receipt等を、明示的な境界から読み取ります。
 
 この分離により、認知手段や実行場所が変わってもSEIの意味を保ちながら、各Productがそれぞれの専門領域で独立に進化できます。
+
+### 11.1 家族に対する統合の頂点としての役割（提案）
+
+本提案を支える根拠はDesign Evidenceだけであり、Executable以上の段階の根拠は追加されていません（ADR-0035）。
+
+上の関係を保ったまま、SEIが家族に対して持つ役割を、隣接Productの一つとしての役割から、家族の「頂点」としての役割へ、一段はっきり書きます（ADR-0035、Proposed）。この提案の採否は、ISSUE-000085で製品の所有者が判断します。
+
+SEIを家族の「頂点」と呼ぶのは、次の三つの意味に限ります。
+
+- **抽象の頂点** — Observation、Decision、Authorityなど最も一般的な意味を持ち、各製品に固有の意味を翻訳できる。意味の正本は各製品に残る。
+- **時間の頂点** — 家族の中で最も長く生きる記録を持つ。製品、モデル、組織より長く残る。
+- **統合の頂点（任意の合流）** — 製品をまたいだ認知を、時間を通して再構成できる場所になる。製品は送ってもよいが、送らなくても成り立つ。
+
+次の三つの意味は採りません。
+
+- **指揮の頂点** — SEIから他の製品への信号は、すべて依頼です。受け取った製品が自らの権限で判断します。SEIのRecommendationが、TEIのAuthorizationになることはありません。
+- **所有の頂点** — SEIが持つのは、参照とコミットメントと対応表だけです。他の製品の意味やデータの正本は持ちません。
+- **可用性の頂点** — どの製品の局所のループも、SEIの稼働を必要としません。
+
+```text
+SEI = 抽象の頂点 + 時間の頂点 + 統合の頂点（任意の合流）
+SEI != 指揮の頂点 / 所有の頂点 / 可用性の頂点
+```
+
+SEIはcentral AI brainではなく、固定pipeline（`SUI -> SEI -> TEI -> EKI`のstack）でもなく、関連製品に特権を与えません。「神経系の頂点」という言い方は内部の設計言語に留め、ブランドの表現では巨大なAI brainやcommand centerを視覚の中心に置きません。
+
+制御の仕組み（routing、escalation、attentionの配分、cascade等）は、交換可能なRealizationまたはProfileとします。一方、制御の判断の意味（何を見て、何を意図的に見送り、どのMethodやProviderをなぜ選び、何を保留し、何を上位へ回したか）は、Coreに記録すべき意味として扱います（`../definition/SEI_PRODUCT_SHAPE.md` §8.3、ADR-0035 Decision 3）。「Coreに残す」とは、新しいUniversal型を直ちに追加することではありません。まず、既存のDecision Memory、Cognitive Method Application、Capability Choiceの組合せで表せるかを試します。とくに「何を意図的に見送ったか」という注意の範囲は、現在の契約で受け皿が明確でないため、ISSUE-000086で検証します（ADR-0035 Decision 3）。ADR-0035のConsequencesも、「新しいCore要素は追加しません。」と定めています。家族の判断の意味論の参考対応表は、提案中の参考文書として`../definition/SEI_FAMILY_SEMANTIC_MAP.md`にあります。
+
 ## 12. SEIが目指さない将来像
 
 SEIは、次の状態を長期目標にはしません。
@@ -276,12 +310,16 @@ Decision以前のInquiry Continuityについては、現時点では独立した
 - `product/value/SEI_VALUE_MODEL.md`
 - `product/value/SEI_DECISION_CONTINUITY.md`
 - `product/value/SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md`
+- `product/value/SEI_FAMILY_APEX_VALUE_REVIEW.md`（提案。ADR-0035, Proposedに伴う2026-09-27の評価記録。Design only）
+- `product/definition/SEI_FAMILY_SEMANTIC_MAP.md`（提案。ADR-0035 Decision 4に伴う参考の対応表。non-contract、各対応は候補）
 - `product/vision/SEI_BRAND_WORLD_SOURCE.md`
 - `product/principles/SEI_PRODUCT_PRINCIPLES.md`
 - `plan/issue/ISSUE-000077-integrate-brand-world-into-product-value-discovery.md`
 - `plan/adr/ADR-0001-moving-future-horizon.md`
 - `plan/adr/ADR-0014-sei-tei-product-boundary.md`
 - `plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md`
+- `plan/adr/ADR-0035-family-integration-apex-and-control-meaning-boundary.md`（提案。Proposed）
+- `plan/issue/ISSUE-000085-rebaseline-family-integration-apex.md`（採否待ち）
 
 ## 15. 自然な日本語ドラフト
 
@@ -291,4 +329,6 @@ Brand World SourceとProduct Value Discovery Reviewを通じて、ブランド�
 
 V1〜V8やDecision Continuityの意味を変えず、Inquiry Continuityについては未検証Product hypothesisのまま残しています。
 
-内容と構造を整えた後、意味、強度、留保、技術的境界を変えず、**自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済み**とします。
+2026-10-02には、ADR-0035（Proposed）に沿って、社会の水準での姿を仮説として§4.1に、家族に対する統合の頂点（三つを採り三つを採らない）を§11.1に加えました。中央の頭脳ではないこと、固定pipelineではないこと、関連製品を特権化しないことは、そのまま維持しています。どちらも提案であり、根拠はDesign Evidenceだけです。
+
+2026-10-10には、§11.1をADR-0035（Proposed）のDecision 1〜3と式、Consequencesと照合し、文言を揃えました。具体的には、式へ「（任意の合流）」を戻し、制御の判断に関する限定（新しいUniversal型を直ちに追加しないこと、新しいCore要素を追加しないこと）を加え、役割の説明から「統合の層」を外して「頂点」の語へ置き換え、§11.1の冒頭に根拠の段階（Design Evidenceのみ）を加えました。あわせて、状態行を、§4.1と§11.1が採否待ちの提案であることを明示する表現へ戻し、用語を main（7822812）の推敲語へ戻しました（検証根拠、実行権限、汎用の中核など）。Cognitive Commonsの定義元（`../value/SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md` §4）の参照、§4.1と§11.1の採否の参照先（ADR-0035、ISSUE-000085）、§14の提案文書への注記も、この版に含まれています。

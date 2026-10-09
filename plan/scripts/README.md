@@ -175,19 +175,19 @@ python3 plan/scripts/check_plan_registry.py
 python3 plan/scripts/check_document_review_registry.py
 ```
 
-Requirement / Acceptance Scenarioを変更した場合:
+Requirement / Acceptance Scenarioを変更した場合。
 
 ```bash
 python3 plan/scripts/check_requirements_registry.py
 ```
 
-repository baselineやworkflow配置に触れた場合:
+repository baselineやworkflow配置に触れた場合。
 
 ```bash
 python3 plan/scripts/check_github_actions_disabled.py
 ```
 
-TEI version-exchangeのoperator手順、CLI名、stage / result keyを変更した場合:
+TEI version-exchangeのoperator手順、CLI名、stage / result keyを変更した場合。
 
 ```bash
 python3 plan/scripts/check_sei_operator_identity.py

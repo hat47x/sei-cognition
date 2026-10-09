@@ -7,7 +7,7 @@
 
 本書は、ADR-0023でAcceptedしたcurrent Representation Profileについて、actual repository上で再現したfixture-scoped Executable Evidenceを記録します。
 
-対象:
+対象は次のとおりです。
 
 - `soza.jcs+sha256/v1alpha1`
 - `soza.raw-bytes+sha256/v1alpha1`

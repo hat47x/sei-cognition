@@ -21,7 +21,7 @@ future B5 review / product governance
 
 ## 2. このsliceが扱うdecision
 
-`decision_kind` は:
+`decision_kind` はは次のとおりです。
 
 `b5-review-disposition`
 
@@ -82,7 +82,7 @@ decided artifactでは `b5_entry_condition_assessed=true` を要求する。
 
 `b5_review_requested=true` はdispositionが `request-b5-review` の場合に限る。
 
-ただし:
+ただしは次のとおりです。
 
 ```text
 B5 review requested

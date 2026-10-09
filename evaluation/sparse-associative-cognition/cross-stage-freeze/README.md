@@ -121,7 +121,7 @@ draft templateの検証:
 python freeze_manifests.py --validate-only
 ```
 
-現在の期待結果:
+現在の期待結果は次のとおりです。
 
 ```text
 Cross-stage freeze manifests validated; current bundle remains draft/locked

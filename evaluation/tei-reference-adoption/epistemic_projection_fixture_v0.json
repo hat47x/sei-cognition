@@ -1,0 +1,276 @@
+{
+  "fixtureSchema": "sei.epistemic-routing-fixture/v0",
+  "status": "evaluation-only",
+  "issue": "660",
+  "sourceSnapshot": {
+    "repository": "hat47x/tei-platform",
+    "pullRequest": 961,
+    "head": "e8c9077a7186e7bb8e569ddd87de5b19736b3425",
+    "schema": "tei.reference.epistemic-assessment/v0",
+    "note": "Field-shape snapshot from TEI PR #961 at the recorded head. This fixture is not TEI Canonical authority.",
+    "contract": "tei.epistemic-projection/v0"
+  },
+  "projection": {
+    "schema": "tei.reference.epistemic-assessment/v0",
+    "context": {
+      "schema": "tei.reference.epistemic-context/v0",
+      "bindings": [],
+      "asOf": "2026-10-07T12:00:00Z"
+    },
+    "assessments": [
+      {
+        "assertionId": "user-current",
+        "contentOrigin": "user",
+        "ingestedBy": "user",
+        "metadataState": "complete",
+        "statementKind": "fact",
+        "confirmationState": "unreviewed",
+        "reviewBinding": "none",
+        "reviewEventCount": 0,
+        "targetBinding": "not-required",
+        "contextCompatibility": "compatible",
+        "freshness": "unknown",
+        "lifecycleState": "active",
+        "conflict": "none",
+        "useState": "premise",
+        "inferredContextUsed": false,
+        "reasons": [
+          "DIRECT_USER_WORKING_PREMISE",
+          "FRESHNESS_UNBOUNDED"
+        ],
+        "meaningFingerprint": "sha256:0101010101010101010101010101010101010101010101010101010101010101",
+        "reviewLogSequence": 0,
+        "reviewSubjectFingerprint": "sha256:1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f"
+      },
+      {
+        "assertionId": "ai-unreviewed",
+        "contentOrigin": "ai",
+        "ingestedBy": "ai",
+        "metadataState": "complete",
+        "statementKind": "fact",
+        "confirmationState": "unreviewed",
+        "reviewBinding": "none",
+        "reviewEventCount": 0,
+        "targetBinding": "not-required",
+        "contextCompatibility": "compatible",
+        "freshness": "unknown",
+        "lifecycleState": "active",
+        "conflict": "none",
+        "useState": "candidate-only",
+        "inferredContextUsed": false,
+        "reasons": [
+          "ASSERTION_UNREVIEWED",
+          "FRESHNESS_UNBOUNDED"
+        ],
+        "meaningFingerprint": "sha256:0202020202020202020202020202020202020202020202020202020202020202",
+        "reviewLogSequence": 0,
+        "reviewSubjectFingerprint": "sha256:2020202020202020202020202020202020202020202020202020202020202020"
+      },
+      {
+        "assertionId": "reanchored-requirement",
+        "contentOrigin": "user",
+        "ingestedBy": "user",
+        "metadataState": "complete",
+        "statementKind": "requirement",
+        "confirmationState": "unreviewed",
+        "reviewBinding": "none",
+        "reviewEventCount": 0,
+        "targetBinding": "reanchored",
+        "contextCompatibility": "compatible",
+        "freshness": "unknown",
+        "lifecycleState": "active",
+        "conflict": "none",
+        "useState": "premise",
+        "inferredContextUsed": false,
+        "reasons": [
+          "DIRECT_USER_WORKING_PREMISE"
+        ],
+        "meaningFingerprint": "sha256:0303030303030303030303030303030303030303030303030303030303030303",
+        "reviewLogSequence": 0,
+        "reviewSubjectFingerprint": "sha256:2121212121212121212121212121212121212121212121212121212121212121"
+      },
+      {
+        "assertionId": "conflict-a",
+        "contentOrigin": "external",
+        "ingestedBy": "import",
+        "metadataState": "complete",
+        "statementKind": "fact",
+        "confirmationState": "confirmed",
+        "reviewBinding": "current",
+        "reviewEventCount": 1,
+        "targetBinding": "not-required",
+        "contextCompatibility": "compatible",
+        "freshness": "unknown",
+        "lifecycleState": "active",
+        "conflict": "present",
+        "useState": "review-required",
+        "inferredContextUsed": false,
+        "reasons": [
+          "CONFLICT_PRESENT"
+        ],
+        "meaningFingerprint": "sha256:0404040404040404040404040404040404040404040404040404040404040404",
+        "reviewLogSequence": 1,
+        "reviewSubjectFingerprint": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      {
+        "assertionId": "rejected",
+        "contentOrigin": "ai",
+        "ingestedBy": "ai",
+        "metadataState": "complete",
+        "statementKind": "fact",
+        "confirmationState": "rejected",
+        "reviewBinding": "current",
+        "reviewEventCount": 1,
+        "targetBinding": "not-required",
+        "contextCompatibility": "compatible",
+        "freshness": "unknown",
+        "lifecycleState": "active",
+        "conflict": "none",
+        "useState": "blocked",
+        "inferredContextUsed": false,
+        "reasons": [
+          "ASSERTION_REJECTED"
+        ],
+        "meaningFingerprint": "sha256:0505050505050505050505050505050505050505050505050505050505050505",
+        "reviewLogSequence": 1,
+        "reviewSubjectFingerprint": "sha256:2323232323232323232323232323232323232323232323232323232323232323"
+      },
+      {
+        "assertionId": "human-reviewed",
+        "contentOrigin": "external",
+        "ingestedBy": "connector",
+        "metadataState": "complete",
+        "statementKind": "fact",
+        "confirmationState": "confirmed",
+        "reviewBinding": "current",
+        "reviewEventCount": 1,
+        "targetBinding": "not-required",
+        "contextCompatibility": "compatible",
+        "freshness": "unknown",
+        "lifecycleState": "active",
+        "conflict": "none",
+        "useState": "premise",
+        "inferredContextUsed": true,
+        "reasons": [
+          "FRESHNESS_UNBOUNDED",
+          "INFERRED_CONTEXT_USED"
+        ],
+        "meaningFingerprint": "sha256:0606060606060606060606060606060606060606060606060606060606060606",
+        "reviewLogSequence": 1,
+        "reviewSubjectFingerprint": "sha256:2424242424242424242424242424242424242424242424242424242424242424"
+      }
+    ],
+    "health": {
+      "level": "attention",
+      "viewMetadataState": "complete",
+      "counts": {
+        "total": 6,
+        "premise": 3,
+        "candidateOnly": 1,
+        "reviewRequired": 1,
+        "blocked": 1
+      },
+      "issues": [
+        {
+          "assertionId": "human-reviewed",
+          "consumer": "fresh-release-decision",
+          "criticality": "high",
+          "useState": "blocked",
+          "consumerFreshness": "stale",
+          "freshnessRequirementSeconds": 3600,
+          "reasons": [
+            "CONSUMER_FRESHNESS_STALE"
+          ]
+        }
+      ],
+      "coverage": {
+        "counts": {
+          "totalAreas": 2,
+          "mappedAreas": 1,
+          "gapAreas": 1
+        },
+        "areas": [
+          {
+            "areaId": "mapped-area",
+            "target": {
+              "kind": "knowledge-area",
+              "id": "mapped"
+            },
+            "criticality": "normal",
+            "state": "mapped",
+            "targetBinding": "not-required",
+            "mappedAssertionIds": [
+              "user-current"
+            ]
+          },
+          {
+            "areaId": "critical-gap",
+            "target": {
+              "kind": "knowledge-area",
+              "id": "critical-gap"
+            },
+            "criticality": "critical",
+            "state": "gap",
+            "targetBinding": "not-required",
+            "reasons": [
+              "COVERAGE_UNMAPPED"
+            ]
+          }
+        ]
+      },
+      "resolutionCoverage": {
+        "eligible": 4,
+        "resolved": 3,
+        "confirmed": 1,
+        "nativePremise": 2,
+        "rejected": 0,
+        "unresolved": 1,
+        "ratio": 0.75,
+        "minimumRatio": 0.8,
+        "minimumEligibleAssertions": 4,
+        "requiredResolutions": 1,
+        "state": "attention",
+        "reasons": [
+          "PROJECT_RESOLUTION_RATIO_BELOW_POLICY"
+        ]
+      }
+    },
+    "reviewRequests": [
+      {
+        "assertionId": "conflict-a",
+        "target": {
+          "kind": "claim",
+          "id": "conflict-a"
+        },
+        "confirmationState": "confirmed",
+        "reviewBinding": "current",
+        "targetBinding": "not-required",
+        "reasons": [
+          "CONFLICT_PRESENT"
+        ],
+        "downstreamImpact": [],
+        "reviewerCandidates": [
+          "design-owner"
+        ],
+        "authorityLimit": "reviewer-candidate-is-not-review-authority"
+      }
+    ],
+    "authorityLimits": [
+      "assessment-does-not-assert-objective-truth",
+      "assessment-does-not-grant-canonical-acceptance",
+      "assessment-does-not-grant-write-or-runtime-authority",
+      "meaning-fingerprint-is-input-not-semantic-proof",
+      "target-anchor-resolution-does-not-prove-semantic-identity",
+      "coverage-mapping-is-input-not-semantic-completeness-proof",
+      "content-fingerprint-does-not-restore-review-history",
+      "partial-transport-health-is-not-project-wide-health",
+      "reviewer-candidate-is-not-review-authority",
+      "review-history-is-bounded-by-context-as-of",
+      "review-binding-includes-context-kind-and-target-identity",
+      "review-binding-includes-validity-window",
+      "resolution-coverage-is-operational-readiness-not-truth-ratio",
+      "checked-at-is-bound-to-current-subject"
+    ],
+    "contract": "tei.epistemic-projection/v0"
+  }
+}

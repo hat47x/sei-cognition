@@ -1,0 +1,69 @@
+{
+  "schema": "sei.local-typed-comparator-runtime-wheelhouse-validation/v1",
+  "observed_at": "2026-09-27",
+  "source": {
+    "repository": "hat47x/sei-cognition",
+    "git_sha": "6b5cd70d34bf5db576124e81bf765ca8da6061fe",
+    "branch": "develop/v0.2.0"
+  },
+  "inputs": {
+    "verifier": {
+      "path": "evaluation/local-typed-comparator/verify_runtime_dependency_wheelhouse.py",
+      "git_blob": "65e895c1505f27de6fc1acba035cedc4305b937f",
+      "bytes": 13018,
+      "sha256": "56a41a568e06045a272696b86ba22ae62eec8ec8658c574a16b9e48a1a1e6689"
+    },
+    "test": {
+      "path": "evaluation/local-typed-comparator/test_verify_runtime_dependency_wheelhouse.py",
+      "git_blob": "a6f68a3d6f25898b70c09951656abb0a3510d29d",
+      "bytes": 9177,
+      "sha256": "50d1fd6dba5f473d7181b928c8ca6a36d4dbb28aedca1534c210c0501c6eb7a6"
+    }
+  },
+  "host": {
+    "python": "3.13.5",
+    "implementation": "CPython",
+    "system": "Linux",
+    "machine": "x86_64",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+    "python_executable_name": "python3"
+  },
+  "commands": [
+    "python3 -m py_compile verify_runtime_dependency_wheelhouse.py test_verify_runtime_dependency_wheelhouse.py",
+    "python3 -m unittest -v test_verify_runtime_dependency_wheelhouse.py"
+  ],
+  "results": {
+    "py_compile": "pass",
+    "unittest": "pass",
+    "tests_run": 9,
+    "tests_failed": 0,
+    "tests_errored": 0
+  },
+  "covered_boundaries": [
+    "valid synthetic wheelhouse",
+    "observed platform drift",
+    "host-assisted versus self-contained transport drift",
+    "required host dependency set drift",
+    "observed host dependency presence drift",
+    "offline validation-observation drift",
+    "observed SEI source SHA shape drift",
+    "transport scope overclaim",
+    "workflow conclusion drift",
+    "artifact expiry timestamp drift",
+    "wheel hash/version metadata drift",
+    "wheel-set missing/extra drift",
+    "source provenance shape drift"
+  ],
+  "scope": {
+    "model_free_validation_only": true,
+    "exact_merged_verifier_and_test_sources_executed": true,
+    "actual_four_wheel_artifacts_revalidated_in_this_run": false,
+    "self_contained_wheelhouse": false,
+    "product_runtime_pin": false,
+    "model_bytes_materialized": false,
+    "model_weights_loaded": false,
+    "live_inference": false,
+    "numeric_parity": false,
+    "shipping_decision": false
+  }
+}

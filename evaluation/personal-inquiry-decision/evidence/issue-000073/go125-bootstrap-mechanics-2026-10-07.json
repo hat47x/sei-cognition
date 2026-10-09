@@ -1,0 +1,51 @@
+{
+  "schema": "issue-000073-go125-bootstrap-mechanics/v1",
+  "issue": "ISSUE-000073",
+  "observed_date": "2026-10-07",
+  "scope": "Bootstrap mechanics only. This does not execute interactionprobe E1-E8 and does not establish Decision Continuity Product Value.",
+  "tested_source": {
+    "path": "tools/bootstrap_issue_000073_resume_first_evidence.sh",
+    "introduced_commit": "68f9afb75a64e4dbfe1df59608226a7c04cb752c",
+    "git_blob_sha1": "8ec0d66aca9b16657c170f784ca2642ecdb309d8",
+    "sha256": "0c3fff28c1c426f5ca2e71d380fc898ac148fe5530853b9769e69a7d70570c07"
+  },
+  "execution_environment": {
+    "os": "Linux",
+    "arch": "x86_64",
+    "bash": "GNU bash 5.2.37(1)-release",
+    "git": "2.47.3",
+    "python": "3.13.5",
+    "ambient_go": "go1.23.2 linux/amd64"
+  },
+  "checks": [
+    {
+      "id": "syntax",
+      "status": "pass",
+      "observation": "bash -n accepted the exact committed script blob."
+    },
+    {
+      "id": "preprovisioned-go-forwarding",
+      "status": "pass",
+      "observation": "In a synthetic clean Git repository, a fake pre-provisioned go1.25.14 linux/amd64 executable was selected through GO_BINARY_PATH and forwarded to the capture boundary with the independently supplied expected HEAD and capture arguments unchanged."
+    },
+    {
+      "id": "dirty-tree-guard",
+      "status": "pass",
+      "observation": "A modified tracked file caused exit code 2 before capture execution and reported the working tree as not clean."
+    },
+    {
+      "id": "explicit-go-bypass-guard",
+      "status": "pass",
+      "observation": "Supplying --go directly caused exit code 2 so the wrapper retains ownership of the Go executable passed to capture."
+    }
+  ],
+  "not_executed": [
+    "official go1.25.14 archive download",
+    "GO_TOOLCHAIN_ARCHIVE_PATH materialization",
+    "pinned archive cache reuse",
+    "actual ISSUE-000073 E1-E8 interactionprobe execution",
+    "H1 human review",
+    "H2 human review"
+  ],
+  "stop_line": "Bootstrap mechanics PASS != Go archive materialization PASS != E1-E8 actual PASS != H1/H2 human review != Decision Continuity Product Value established."
+}

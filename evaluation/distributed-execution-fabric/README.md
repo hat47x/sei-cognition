@@ -1,6 +1,6 @@
 # Distributed Execution Fabric — Shared Evaluation Boundary
 
-更新日: 2026-09-12  
+更新日: 2026-10-02  
 状態: **Evaluation-only Shared Infrastructure Boundary**  
 関連: Issue #378 / Issue #376
 
@@ -109,7 +109,7 @@ Fabricのjob successは、Product上のsemantic successを意味しない。
 
 ### A. Idle Workstation Pool
 
-特徴:
+特徴は次のとおりです。
 - availabilityが不安定
 - foreground userが最優先
 - worker churnが多い
@@ -122,7 +122,7 @@ HTCondorはidle desktop workstationsの未使用CPUを利用する用途を明�
 
 ### B. Stable AI / Application Cluster
 
-特徴:
+特徴は次のとおりです。
 - server / GPU nodeが比較的安定
 - task graph / actor / model serving
 - accelerator-aware scheduling
@@ -134,7 +134,7 @@ Rayはtask / actorとCPU / GPU / custom resource requirementを持ち、distribu
 
 ### C. General Workload Cluster
 
-特徴:
+特徴は次のとおりです。
 - batchとserviceが混在
 - container / process workload
 - GPU / device placement
@@ -192,7 +192,7 @@ Shared Execution Adapter Boundary
 
 社内遊休端末を使う目的には、HTCondorを最初に実証する価値が高い。
 
-理由:
+理由は次のとおりです。
 - idle workstation harvestingが中心ユースケースの一つ
 - resource/job matchingが柔軟
 - worker disappearanceを前提にできる
@@ -296,6 +296,19 @@ Product側が作ったexecution authorizationを、Fabricはplacement constraint
 ### Phase 4 — New shared OSS decision
 
 重複adapter codeとoperational gapを見てから決める。
+
+## 13.1 実在する後継製品 `hat47x/eki-fabric`（2026-10-02追記・提案）
+
+この評価で扱った共通のExecution Fabricは、その後、独立した製品`hat47x/eki-fabric`（益 / EKI Fabric）として具体化されています（Architecture Baseline 0.1、protocolのconformance test、M0へ移行中。成熟度の正本はEKIのリポジトリです）。EKIは、計算を安全かつ合理的に実行可能な資源へ配置し、その実行を検証可能に扱う境界を所有します。
+
+したがって、本評価の次の位置づけを改めます。
+
+- 本評価の§3の共通Job Envelopeは、**EKIへの入力としての提案**であり、EKIの契約を決めるものではありません。EKI側では、利用側の意味をresource requirement、data locality、trust / isolation requirement、deadline、preemption、result verificationなどのworkload contractへ投影して受け取ります（`hat47x/eki-fabric:product/value.md`）。SEIのCognitive Envelope（privacy、latency、energy、costの予算、データ分類）との一方向の対応は、EKI側の`hat47x/eki-fabric:research/sei-cognition-mapping.md`で、EKIの未mergeブランチ`docs/family-apex-backflow-20260927`上に提案されています。
+- **SEIはschedulingを所有しません。** どのjobが必要かという認知jobの意味を決めますが、どこで実行するかはEKIが決めます。
+- EKIの端末の局所governor（利用者の復帰、電力、熱などを中央のschedulerより優先する）は、家族の「反射弓」の手本です。SEIはこのループに入りません。
+- 7節の既存OSSの比較（HTCondor、Ray等）は、評価の記録として残します。採用の決定ではありません。
+
+SEIとEKIの関係は、必須の依存ではありません。EKIなしでもSEIは成り立ち、SEIなしでもEKIは成り立ちます。
 
 ## 14. 現時点の判断
 

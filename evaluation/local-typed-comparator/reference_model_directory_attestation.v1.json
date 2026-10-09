@@ -1,0 +1,56 @@
+{
+  "schema": "sei.local-typed-comparator-reference-model-directory-attestation/v1",
+  "observed_at": "2026-09-26",
+  "source_checkpoint": {
+    "repository": "convaiinnovations/laya-typed-decisions",
+    "revision": "f9ab0b228f0fc0f14d873dbc99038f135c2da1b2"
+  },
+  "runtime_consumed_files": {
+    "model.safetensors": {
+      "bytes": 842609220,
+      "sha256": "4fa56de72383a9d3efa9cfa78955733c81b9fc8067a587ca4beb82c78107a24e"
+    },
+    "encoder/config.json": {
+      "bytes": 2084,
+      "sha256": "5268d24ad3b77c8151de5dcb0762ba4391619aad9ab0bda33e36fb083cfeae6d"
+    },
+    "rl_agent_config.json": {
+      "bytes": 847,
+      "sha256": "ebf0cd524d92342a6be5e48e9fca3d7c2babfb5a56ccd79d2171ef5d8c7f7be8"
+    },
+    "tokenizer/tokenizer.json": {
+      "bytes": 3583228,
+      "sha256": "6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30"
+    },
+    "tokenizer/tokenizer_config.json": {
+      "bytes": 337,
+      "sha256": "08d4cf3ac4dca381759441b85b91a6d40e688471dcd33d15d6649eb0a9a854d1"
+    }
+  },
+  "independent_manifest": {
+    "repository": "mizorewww/laya-coreml",
+    "revision": "4619e0483f07adf39068532e85b42ec2347edb83",
+    "path": "benchmarks/results/validation-typed-enumerated-cpu_gpu.json",
+    "git_blob": "3c8aa8975d70fa30117b72bdab11450bb46b85b0",
+    "binds_source_revision": true,
+    "binds_source_weights_sha256": true,
+    "binds_ancillary_file_bytes_and_sha256": true
+  },
+  "laya_runtime_semantics": {
+    "repository": "NandhaKishorM/laya",
+    "revision": "23a17522aa4942da6cce53a995a275760320b691",
+    "agent_git_blob": "b0fb78a75a7dc51e971b15409840c44871455f31",
+    "common_git_blob": "6c4c426e64eb9660c97d40bc64c227e8c7e71361",
+    "tokenizer_config_expected_to_be_rewritten": false,
+    "tokenizer_class": "PreTrainedTokenizerFast",
+    "raw_choice_11_plus_temperature": 0.10058280825614929,
+    "applied_choice_11_plus_temperature": 0.5
+  },
+  "scope": {
+    "reference_model_directory_byte_contract_attested": true,
+    "endpoint_loaded_exact_directory_attested": false,
+    "endpoint_exact_runtime_wheel_attested": false,
+    "live_reference_inference": false,
+    "numeric_parity_with_papaya": false
+  }
+}

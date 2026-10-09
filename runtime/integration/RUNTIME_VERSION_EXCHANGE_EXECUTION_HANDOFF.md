@@ -52,7 +52,7 @@ runtimeBArchive
 requirePrepositionedArtifacts
 ```
 
-既存artifactをnetworkなしで再確認する場合:
+既存artifactをnetworkなしで再確認する場合。
 
 ```bash
 python3 runtime/integration/prepare_runtime_version_exchange_inputs.py \
@@ -186,7 +186,7 @@ artifact preparation PASS
 
 ## 7. repository-local orchestration test
 
-事前配置入力準備と上位runnerの接続だけをactual networkなしで検査する場合:
+事前配置入力準備と上位runnerの接続だけをactual networkなしで検査する場合。
 
 ```bash
 python3 runtime/integration/test_issue70_prepositioned_inputs.py
