@@ -336,10 +336,15 @@ def route_assessment(assessment: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _egress_reference(route: dict[str, Any]) -> dict[str, Any]:
-    """Return an access-neutral reference plan, never assertion content."""
+def _egress_reference(
+    route: dict[str, Any],
+    content_role: str,
+) -> dict[str, Any]:
+    """Return an access-neutral data reference, never prompt control."""
     return {
         "assertionId": route["assertionId"],
+        "contentRole": content_role,
+        "controlAuthority": False,
         "meaningFingerprint": route["meaningFingerprint"],
         "reviewSubjectFingerprint": route["reviewSubjectFingerprint"],
         "reviewLogSequence": route["reviewLogSequence"],
@@ -375,16 +380,17 @@ def build_context_egress_plan(
         "blockedReferences": [],
     }
     lane_by_route = {
-        "premise": "premiseReferences",
-        "candidate": "candidateReferences",
-        "review": "reviewReferences",
-        "blocked": "blockedReferences",
+        "premise": ("premiseReferences", "premise-data"),
+        "candidate": ("candidateReferences", "candidate-data"),
+        "review": ("reviewReferences", "review-data"),
+        "blocked": ("blockedReferences", "blocked-audit"),
     }
     for item in routes:
         lane = lane_by_route.get(item["route"])
         if lane is None:
             raise ValueError(f"unsupported routed lane: {item['route']!r}")
-        lanes[lane].append(_egress_reference(item))
+        lane_name, content_role = lane
+        lanes[lane_name].append(_egress_reference(item, content_role))
 
     for values in lanes.values():
         values.sort(key=lambda item: item["assertionId"])
@@ -403,6 +409,8 @@ def build_context_egress_plan(
             "candidate-reference-is-not-premise",
             "review-and-blocked-references-are-not-context-premises",
             "content-resolution-must-recheck-access-and-binding",
+            "epistemic-statement-kind-does-not-grant-prompt-control-authority",
+            "resolved-content-must-remain-delimited-data-not-control-instruction",
         ],
     }
 
