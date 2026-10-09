@@ -46,6 +46,8 @@ ALLOWED_RESOLUTION_COVERAGE_STATES = {
 }
 
 REQUIRED_DETAIL_AUTHORITY_LIMITS = {
+    "detail-access-context-is-not-part-of-semantic-query",
+    "detail-access-refs-are-opaque-input-not-authorization-authority",
     "detail-query-does-not-broaden-source-access",
     "detail-query-requires-current-binding-receipts",
     "detail-query-is-bounded-by-context-as-of",
@@ -436,12 +438,10 @@ def build_context_egress_plan(
 
 def build_epistemic_detail_query(
     reference: dict[str, Any],
-    granted_access_refs: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Build the TEI #1045 candidate query from one egress reference.
+    """Build the semantic TEI #1045 query from one egress reference.
 
-    Access references come from an external authorization boundary. SEI only
-    forwards opaque string identifiers and never infers them from content.
+    Authorization execution context is deliberately not part of this query.
     """
     reference = _require_object(reference, "egress reference")
     assertion_id = _require_string(reference.get("assertionId"), "egress reference.assertionId")
@@ -470,10 +470,6 @@ def build_epistemic_detail_query(
         ):
             raise ValueError(f"egress reference.{name} must be exact sha256")
 
-    refs = [] if granted_access_refs is None else list(granted_access_refs)
-    if not all(isinstance(item, str) and item.strip() for item in refs):
-        raise ValueError("granted access refs must contain non-empty strings")
-
     return {
         "contract": TEI_DETAIL_QUERY_CONTRACT,
         "schema": TEI_DETAIL_QUERY_SCHEMA,
@@ -482,6 +478,17 @@ def build_epistemic_detail_query(
         "expectedReviewSubjectFingerprint": subject,
         "expectedTargetBinding": target_binding,
         "expectedReviewLogSequence": sequence,
+    }
+
+
+def build_epistemic_detail_access_context(
+    granted_access_refs: list[str] | None = None,
+) -> dict[str, Any]:
+    """Build adapter-only opaque access context, separate from semantic query."""
+    refs = [] if granted_access_refs is None else list(granted_access_refs)
+    if not all(isinstance(item, str) and item.strip() for item in refs):
+        raise ValueError("granted access refs must contain non-empty strings")
+    return {
         "grantedAccessRefs": sorted(set(item.strip() for item in refs)),
     }
 
