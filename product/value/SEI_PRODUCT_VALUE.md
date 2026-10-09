@@ -1,21 +1,21 @@
-# SEI Product Value
+# SEIの製品価値
 
 更新日: 2026-09-18  
-状態: **Product Value Baseline — Decision Continuity / Brand-world discovery synthesis reflected**
+状態: **製品価値の基準版。判断の継続性とブランド世界から得た知見を反映済み**
 
 ## 1. SEIが存在する理由
 
 井（SEI）は、人間・AI・組織・プロジェクトなどの主体が、**何を観察し、何をまだ分かっていないと認め、何を問い、何を根拠として、どのように判断したか**を失わずに扱うための認知・意思決定基盤です。
 
-SEIの価値は、処理を大量に自動化すること自体にはありません。AIや実行基盤が高度化し、現在のワークフローやエージェント実装が置き換わっても残る、判断の意味・根拠・不確実性・責任・来歴を保つことにあります。
+SEIの価値は、処理を大量に自動化すること自体にはありません。AIや実行基盤が高度化し、現在の業務の流れやAIエージェントの実装が置き換わっても残る、判断の意味・根拠・不確実性・責任・来歴を保つことにあります。
 
-さらに、それらを保存するだけでなく、**時間が空き、SurfaceやAIが変わり、情報が増えた後でも、過去を捏造せず判断仕事の続きを始められる状態にすること**を、利用者へ届くProduct Valueとして重視します。本書ではこの横断的な成果をDecision Continuity（判断継続性）と呼びます。Decision Continuityは新しいValue AxisやUniversal型ではなく、V1〜V8が利用者の実際の仕事で同時に成立した結果です。
+さらに、それらを保存するだけでなく、**時間が経ち、操作画面やAIが変わり、情報が増えた後でも、過去を捏造せず判断仕事の続きを始められる状態にすること**を、利用者にとっての製品価値として重視します。本書では、この複数の価値にまたがる成果を「判断継続性（Decision Continuity）」と呼びます。判断継続性は新しい価値の評価軸や汎用型ではなく、V1〜V8が利用者の実際の仕事で同時に成立した結果です。
 
-SEIは、すでに形になったKnowledgeやDecisionだけを保管する基盤でもありません。まだ十分に言葉になっていないObservation、違和感、問い、Hypothesis候補、相反する見方のような**未確定な認知材料を、早まってTruthへ昇格させず、後から問い直せる形へ外在化できること**も重視します。ここで重要なのは曖昧さを神秘化することではなく、何が確定しておらず、どの段階の認識なのかを失わないことです。
+SEIは、すでに整理された知識（Knowledge）や判断（Decision）だけを保管する基盤でもありません。まだ十分に言葉になっていない観察（Observation）、違和感、問い、仮説（Hypothesis）の候補、相反する見方などの**未確定な認知材料を、早まって事実として確定させず、後から問い直せる形で外に取り出せること**も重視します。ここで重要なのは曖昧さを神秘化することではなく、何が確定しておらず、どの段階の認識なのかを失わないことです。
 
-また、その認知成果を一人のworking memory、一つのAI session、一つのProviderへ閉じ込めないことを目指します。ただし共有可能性は無制限公開を意味しません。Product Access、Selective Disclosure、Responsibility、Authority等の境界を保ったまま、許された主体が必要な認知状態へ戻れることを価値とします。
+また、その認知成果を一人の作業記憶、一つのAIとの対話、一つの提供元（Provider）に閉じ込めないことを目指します。ただし共有可能性は無制限公開を意味しません。製品の利用権限、情報の選択的な開示、責任、実行権限などの境界を保ったまま、許された主体が必要な認知状態へ戻れることを価値とします。
 
-この文書は「SEIがなぜ存在するか」と「何を価値として守るか」を定めます。価値同士が衝突したときの優先関係、Universal Coreへ含める基準、Product Valueを満たしたと判断するための検証観点は`SEI_VALUE_MODEL.md`で、実際にどのEvidenceをもって満たしたと判断するかは`SEI_VALUE_ACCEPTANCE.md`で具体化します。Decision Continuityの横断的な価値仮説と反証条件は`SEI_DECISION_CONTINUITY.md`で扱います。ブランド世界から得た洞察のsourceと採否判断は`../vision/SEI_BRAND_WORLD_SOURCE.md`と`SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md`に分離して記録します。
+この文書は「SEIがなぜ存在するか」と「何を価値として守るか」を定めます。価値同士が衝突した場合の優先関係、汎用の中核へ含める基準、製品価値を満たしたと判断するための検証観点は`SEI_VALUE_MODEL.md`で、どの検証根拠（Evidence）によって達成したと判断するかは`SEI_VALUE_ACCEPTANCE.md`で具体化します。判断継続性に関する複数の価値にまたがる仮説と反証条件は`SEI_DECISION_CONTINUITY.md`で扱います。ブランド世界から得た知見の出典と採否判断は`../vision/SEI_BRAND_WORLD_SOURCE.md`と`SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md`に分離して記録します。
 
 ## 2. 解こうとする問題
 
@@ -25,19 +25,19 @@ SEIは、すでに形になったKnowledgeやDecisionだけを保管する基盤
 - 何が分からないまま残っていたのか。
 - 相反する情報がどこに存在したのか。
 - 提案と最終判断を誰がどのように区別したのか。
-- どのCapabilityを、どの条件と根拠で選んだのか。
+- どの能力（Capability）を、どの条件と根拠で選んだのか。
 - 判断時点では何を知っており、その後何が変わったのか。
 - 実行結果が、判断や前提をどのように更新したのか。
 - 中断後に、利用者がどこまで進んでいたかを再構成する負担。
-- chat、prompt、UI state、Provider固有履歴を失ったときに、判断の続きを始められなくなること。
-- まだ説明しきれない違和感や弱いsignalが、構造化できないという理由だけで消えること。
-- AIや組織が流暢な一つの説明へ早く収束し、alternate interpretationや未解決点を失うこと。
-- 認知成果が特定の人・AI・Providerの私有状態に留まり、別の主体が適切な境界のもとで再利用できないこと。
-- AI suggestion、通知、詳細入力が増えすぎ、支援基盤そのものが利用者の認知帯域を奪うこと。
+- 対話、指示文、画面の状態、提供元固有の履歴を失ったときに、判断の続きを始められなくなること。
+- まだ説明しきれない違和感や弱い兆候が、構造化できないという理由だけで消えること。
+- AIや組織が一つの整った説明へ早く収束し、別の解釈や未解決点を失うこと。
+- 認知の成果が特定の人・AI・提供元だけの内部状態に残り、別の主体が適切な権限のもとで再利用できないこと。
+- AIによる提案、通知、詳しい入力項目が増えすぎて、支援基盤そのものが利用者の注意力を奪うこと。
 
-SEIは、これらを実行ランタイムの内部状態や一時的なプロンプトへ閉じ込めず、後から人間とAIの双方が読み直せる形で保持します。
+SEIは、これらを実行環境の内部状態や一時的な指示文に閉じ込めず、後から人間とAIの双方が読み直せる形で保持します。
 
-重要なのは、外部記憶を増やすこと自体ではありません。**壊れやすい一時状態へ判断文脈を預けず、canonical meaningから再構成できる外部認知基盤として保つこと**です。
+重要なのは、外部記憶を増やすこと自体ではありません。**失われやすい一時的な状態に判断の文脈を依存させず、意味の正本から再構成できる外部の認知基盤として保つこと**です。
 
 ## 3. 提供する中核価値
 
@@ -63,33 +63,33 @@ SEIは、最終結果だけでなく、**その時点で何を根拠に判断し
 
 後から前提・観察・Capability・制約が変わっても、過去の判断を書き換えて現在の知識へ合わせるのではなく、当時の判断を当時の状態として復元できることを重視します。
 
-### 3.4 CapabilityとProviderを分け、手段を交換可能にする
+### 3.4 能力と提供元を分け、手段を交換可能にする
 
 SEIは「何を可能にするか」と「誰／何がそれを実現するか」を分けます。
 
-人間、AI、SaaS、外部組織、TEI、custom codeなどを、必要に応じて異質なCapability Providerとして扱います。SEI自身と関係の深い技術であることだけを理由に、特定Providerを優遇しません。
+人間、AI、SaaS、外部組織、TEI、個別に実装したコードなどを、必要に応じて異なる能力の提供元（Capability Provider）として扱います。SEI自身と関係の深い技術であることだけを理由に、特定の提供元を優遇しません。
 
-この交換可能性は、生成AI同士の切替だけを意味しません。規則、従来型分類器、embedding、疎な連想・再帰型の認知器、ローカル軽量LLM、外部の高性能モデル、人間手順など、性質の異なる判断手段を、必要な意味境界を保ったままCognitive MethodやCapability Providerとして接続できる余地を含みます。個々の技術をUniversal Coreへ持ち込まず、どの手段を使ったか、何を観測し、どこまで確かだったかを後から読み分けられることを重視します。
+この交換可能性は、生成AI同士の切替だけを意味しません。規則、従来型の分類器、埋め込み表現（embedding）、疎な連想・再帰型の認知器、ローカルの軽量LLM、外部の高性能モデル、人間手順など、性質の異なる判断手段を、必要な意味境界を保ったままCognitive MethodやCapability Providerとして接続できる余地を含みます。個々の技術を汎用の中核へ持ち込まず、どの手段を使ったか、何を観測し、どこまで確かだったかを後から読み分けられることを重視します。
 
-これにより、利用技術が置き換わっても、Intent・Constraint・Decision・Provenance等の意味を保ちやすくします。
+これにより、利用技術が置き換わっても、意図（Intent）、制約（Constraint）、判断（Decision）、来歴（Provenance）などの意味を保ちやすくします。
 
 ### 3.5 実行基盤より上位の意味を保持する
 
-workflow、BPM、agent runtime、queue、retry、worker scheduling等は重要ですが、それらをSEIの恒久的な中心にはしません。
+業務の流れ、BPM、AIエージェントの実行環境、待ち行列、再試行、処理の配置などは重要ですが、それらをSEIの恒久的な中核にはしません。
 
 SEIは、外部の実行基盤をCapability Providerとして利用できる一方、それらが置き換わっても残る認知・判断の意味構造を所有します。
 
-EKI Fabricのような分散実行基盤と連携する場合も、SEIが所有するのは「どのCapabilityが必要か」「どの制約・根拠で選んだか」「どの実行結果をObservationとして受け取ったか」という意味です。CPU / GPU / NPUやWorkerの選択、資源配置、再実行、局所性などの実行配置は、SEIのUniversal Coreへ取り込みません。
+EKI Fabricのような分散実行基盤と連携する場合も、SEIが所有するのは「どのCapabilityが必要か」「どの制約・根拠で選んだか」「どの実行結果をObservationとして受け取ったか」という意味です。CPU・GPU・NPUや処理を実行する主体（Worker）の選択、資源配置、再実行、局所性などの実行配置は、SEIのUniversal Coreへ取り込みません。
 
 ### 3.6 人間とAIが同じ判断面を読めるようにする
 
 SEIの記録は、機械処理可能であるだけでなく、人間が意味を追える必要があります。
 
-過剰な内部推論やprivate chain-of-thoughtの保存ではなく、観察、問い、根拠、未解決点、判断理由、責任、来歴など、外在化して共有すべき情報を扱います。
+過度に詳しい内部推論や非公開の推論過程を保存するのではなく、観察、問い、根拠、未解決点、判断理由、責任、来歴など、外在化して共有すべき情報を扱います。
 
 ### 3.7 判断の継続性を外在化する
 
-SEIは、利用者自身のworking memory、chat transcript、画面状態、特定AIのcontext windowを判断仕事の唯一の継続手段にしません。
+SEIは、利用者自身の作業記憶、対話の全文、画面の状態、特定のAIが参照できる文脈だけを、判断を続けるための唯一の手段にはしません。
 
 中断後に必要なのは、履歴をすべて再読することではなく、canonical meaningから少なくとも次へ戻れることです。
 
@@ -122,11 +122,11 @@ made inspectable
 
 これは「深層」に正解があるという主張ではなく、**未確定な認知材料を未確定なまま問い直せること**へのProduct Valueです。
 
-### 3.9 認知成果をboundedに共有し、特定の主体やsessionへ閉じ込めない
+### 3.9 認知成果の共有範囲を限定し、特定の主体や対話へ閉じ込めない
 
-SEIは、認知成果を一つのchat、一人の担当者、一つのAI modelやProviderの寿命に閉じ込めないことを目指します。
+SEIは、認知の成果を一つの対話、一人の担当者、一つのAIモデルや提供元が使える期間だけに閉じ込めないことを目指します。
 
-別の主体が後から利用する場合も、Provenance、Responsibility、historical context等を保ち、何をどこまで読めるかというAccess boundaryと同時に扱います。
+別の主体が後から利用するときも、来歴、責任、過去の文脈を保ちます。同時に、何をどこまで参照できるかという利用権限の境界を守ります。
 
 ```text
 shared cognition
@@ -134,28 +134,28 @@ shared cognition
   != shared authority
 ```
 
-共有できること自体からDecision Authorityを推定しません。逆に、privacyやAccess Controlが必要だからという理由で、認知成果を各sessionへ分断することも避けます。
+共有できることだけを根拠に、判断する権限（Decision Authority）があるとは推定しません。一方、プライバシーやアクセス制御が必要だからという理由で、認知の成果を対話ごとに分断することも避けます。
 
-### 3.10 隣接Productと価値の正本を混ぜない
+### 3.10 関連製品と価値の正本を混同しない
 
-SEIはSUI Sensemaking、TEI、EKI Fabricと組み合わせて利用できますが、4つを一つの固定pipelineや単一Product Boundaryとして扱いません。
+SEIはSUI Sensemaking、TEI、EKI Fabricと組み合わせられますが、四つの製品を一つの固定された処理手順や単一の製品境界として扱いません。
 
-- **SUI Sensemaking** は、未整理な材料から関係・仮説・構造・統合を形成し、その意味形成の過程を成熟させるsensemaking lifecycleを主に扱います。
-- **SEI Cognition** は、その過程を含む認知・判断について、Observation、Question、Unknown、Evidence、Decision、Capability、Provenance等の耐久的な意味と継続性を扱います。
-- **TEI** は、業務・Application・Infrastructureの受入済みの意味をCanonicalなformal modelとして保持し、人間向けProjection、AIによる継続開発、Application実行、AI Business Actorが利用するOperational Knowledgeへ接続する境界を主に扱います。
+- **SUI Sensemaking** は、未整理な材料から関係・仮説・構造・統合を形成し、その意味が形成され、変化する過程を主に扱います。
+- **SEI Cognition** は、その過程を含む認知・判断について、Observation、Question、Unknown、Evidence、Decision、Capability、Provenance等の時間が経っても失わない意味と、その継続性を扱います。
+- **TEI** は、業務・アプリケーション・基盤について受け入れ済みの意味を、正本となる形式モデル（Canonical Model）として保持し、人間向けの表示、AIによる継続開発、アプリケーションの実行、AIによる業務操作に必要な運用知識をつなぐ境界を主に扱います。
 - **EKI Fabric** は、異質で一時的な計算資源を安全に利用し、計算をどこで実行するかという分散実行の境界を主に扱います。
 
-この整理は相互排他を意味しません。SUIの探索結果をSEIが認知材料として扱う、SEIがTEIをCapability Providerとして選ぶ、SEIの認知処理をEKI上で実行するといった接続は可能です。
+この整理は相互排他を意味しません。SUIの探索結果をSEIが認知材料として扱う、SEIがTEIを能力の提供元として選ぶ、SEIの認知処理をEKI上で実行するといった接続は可能です。
 
-AIエージェントが業務を遂行する場合も、SEIとTEIの責務は分けます。SEIは「何を観察し、何を問い、何を根拠にどう判断したか」というCognitive / Decision Semanticsを保持し、TEIは「何が業務上可能で、どのBusiness Action / Capability / Constraint / Authorization / Evidence境界を利用できるか」というOperational Semanticsを提供できます。
+AIエージェントが業務を遂行する場合も、SEIとTEIの責務は分けます。SEIは「何を観察し、何を問い、何を根拠にどう判断したか」という認知・判断の意味を保持し、TEIは「何が業務上可能で、どのBusiness Action / Capability / Constraint / Authorization / Evidence境界を利用できるか」という業務運用上の意味を提供できます。
 
-したがって、AI Agentの実行計画やDecision ContinuityをSEIが支援する場合でも、TEIのBusiness ProcedureやApplication contractをSEI Universal Coreへ複製しません。逆にTEIも、SEIのRecommendation / DecisionをBusiness truthへ暗黙昇格させません。
+したがって、AIエージェントの実行計画や判断継続性をSEIが支援する場合でも、TEIの業務手順やアプリケーションの契約を、SEIの汎用の中核へ複製しません。逆にTEIも、SEIの提案や判断を、暗黙のうちに業務上の事実として確定させません。
 
-ただし、隣接Productの内部概念を「関係が深いから」という理由でSEI Universal Coreへ複製しません。各Productの価値・権限・Evidence claimは、それぞれのリポジトリを正本とします。
+ただし、隣接Productの内部概念を「関係が深いから」という理由でSEI Universal Coreへ複製しません。各製品の価値、権限、検証根拠に関する主張は、それぞれのリポジトリを正本とします。
 
-## 4. Product Valueと下位設計の境界
+## 4. 製品価値と下位設計の境界
 
-Product Valueは、現在の実装で何が作れるかを列挙する文書ではありません。また、Product Valueの文言から個別のRequirementやUniversal型を機械的に生成しません。
+製品価値は、現在の実装で何が作れるかを列挙するための文書ではありません。また、製品価値の記述から個別の要求や汎用型を機械的に生成しません。
 
 SEIでは、価値を実際の製品へ落とすときに、次の高さを分けます。
 
@@ -169,13 +169,13 @@ Product Value
   → Architecture / Contract / Implementation
 ```
 
-まだ何を要求すべきか十分に分かっていない領域では、未定であることをそのまま認めます。チャット上の議論、資料調査、prototype、fixture、human review、provider接続試験等を通して必要性を確かめ、**独立した規範上の必要性が確認できたものだけをRequirementへ昇格**させます。
+まだ何を要求すべきか十分に分かっていない領域では、未定であることをそのまま認めます。チャット上での議論、資料の調査、試作品、試験用データ、人間による確認、外部提供元との接続試験などを通して必要性を確かめ、**独立した要求として定める必要が確認できたものだけを正式な要求へ昇格**させます。
 
 実験の結果、既存Requirementで十分だった、新しいUniversal概念は不要だった、という結論もProduct Valueに沿った正当な成果です。
 
-Decision Continuityについても同じです。resume-first UIを実装したことだけで新しいRequirementやValue Axisを増やさず、実利用比較で独立した価値差やfailureが確認された場合だけ下位規範へ戻します。
+判断継続性についても同じです。作業再開を優先する画面を実装しただけで新しい要求や価値の評価軸を増やさず、実利用比較で独立した価値差やfailureが確認された場合だけ下位規範へ戻します。
 
-ブランド世界から得たProduct discoveryについても、象徴からRequirementを導きません。`井`、水、深層、余白等は探索sourceであり、利用者benefit、failure、counterexample、既存coverageへ戻して独立必要性を確認します。
+ブランド世界から得た製品上の発見についても、象徴から直接要求を導きません。`井`、水、深層、余白などは探索の材料であり、利用者benefit、failure、counterexample、既存coverageへ戻して独立必要性を確認します。
 
 ## 5. 価値を測るときの考え方
 
@@ -195,31 +195,31 @@ SEIの価値を、単純な自動化率や実行件数だけで評価しませ�
 10. その再開・確認・訂正の負担が、raw chatやsimple note等の妥当な代替に対して実質的な価値差を生むか。
 11. まだ確定していないObservationや問いを、Truthへ過剰昇格させず後から再検討できるか。
 12. 認知成果を別の人間・AIへ引き継ぐとき、共有可能性とAccess / Responsibilityの境界を同時に保てるか。
-13. AIや通知による支援が、本来の判断仕事より大きなattention burdenになっていないか。
+13. AIや通知による支援が、本来の判断作業に比べて過大な注意の負担を生んでいないか。
 
-これらを実際の設計評価へ使うときは、`SEI_VALUE_MODEL.md`のV1〜V8へ展開します。単一の総合点へ還元せず、どの価値を満たし、どこに未充足やtrade-offが残るかを個別に確認します。今回のブランド世界探索によって新しいV軸は追加しません。
+これらを実際の設計評価へ使うときは、`SEI_VALUE_MODEL.md`のV1〜V8へ展開します。単一の総合点へ還元せず、どの価値を満たし、どこに未達の条件や両立しにくい点が残るかを個別に確認します。今回のブランド世界探索によって新しいV軸は追加しません。
 
-さらに、「満たしている」という主張の高さを正確にするため、`SEI_VALUE_ACCEPTANCE.md`ではDesign、Executable、Release、Operational、Adoption / Outcome Evidenceを分けます。設計文書が整っているだけでactual repositoryやproductionで実証済みとは扱いません。
+さらに、「満たしている」という主張の高さを正確にするため、`SEI_VALUE_ACCEPTANCE.md`ではDesign、Executable、Release、Operational、Adoption / Outcome Evidenceを分けます。設計文書が整っているだけで、現在の実装や本番環境で実証されたとは扱いません。
 
-Decision Continuityの初期Outcome評価では、time-to-orientationだけでなく、historical basisへの誤帰属、AI suggestionの誤昇格、修正負担、first useful saveまでのcapture burden等も観測します。速く再開できても意味を取り違えるならProduct Value上の成功とは扱いません。
+Decision Continuityの初期Outcome評価では、time-to-orientationだけでなく、historical basisへの誤帰属、AI suggestionの誤昇格、修正負担、first useful saveまでのcapture burden等も観測します。速く再開できても意味を取り違えるなら製品価値を実現したとは扱いません。
 
-Quiet Infrastructureやbounded sharingについても、文書へ書いたことをProduct Valueの実証とは扱いません。attention burden、missed material signal、共有後の誤読、Access boundaryとのtrade-off等をactual interactionで観測する必要があります。
+過度な通知を避ける基盤（Quiet Infrastructure）や範囲を限定した共有（bounded sharing）についても、文書に記述しただけで製品価値が実証されたとは扱いません。attention burden、missed material signal、共有後の誤読、Access boundaryとのtrade-off等をactual interactionで観測する必要があります。
 
 ## 6. SEIが価値としないもの
 
 SEIは、次をそれ自体の目的とはしません。
 
 - ワークフロー実行量の最大化
-- agent turn数や自律実行率の最大化
+- AIエージェントの処理の反復回数（turn数）や自律実行率の最大化
 - 特定AIモデルへの最適化
-- 特定Providerへの囲い込み
-- Universalな単一スコアによる判断の自動化
+- 特定の提供元への囲い込み
+- 汎用の単一評価点による判断の自動化
 - すべての仕事をSEI内部で実行すること
 - 実装量やコード量を製品価値とみなすこと
-- 未定領域を早くRequirement化した件数を進捗とみなすこと
+- 未定の領域を早く要求として確定した件数を進捗とみなすこと
 - 保存量や履歴量そのものを判断継続性とみなすこと
 - 利用者へ過剰な記録作業を課し、その負担を「監査可能性」の名で正当化すること
-- AI suggestionやnotificationの量を支援品質とみなすこと
+- AIの提案や通知の数を支援の品質とみなすこと
 - 未整理な材料を大量に保存すること自体を「深い認知」とみなすこと
 - 「共有」を理由にAccess / Responsibility境界を弱めること
 
@@ -227,13 +227,13 @@ SEIは、次をそれ自体の目的とはしません。
 
 技術が進歩するほど、現在の実装・プロンプト・オーケストレーションの一部は不要になります。
 
-SEIが守るべき中心は、それらの仕組みではなく、**認識、問い、不確実性、根拠、判断、責任、Capability、来歴を、人間とAIが後から読み直し、選び直し、続きを始められる状態に保つこと**です。
+SEIが守るべき中心は、それらの仕組みではなく、**認識、問い、不確実性、根拠、判断、責任、能力、来歴を、人間とAIが後から読み直し、選び直し、続きを始められる状態に保つこと**です。
 
 その入口は、すでに明確なDecisionがある場面だけに限定しません。まだ答えになっていない問いや弱いObservationを、必要以上に確定させず外在化し、後から別の主体が適切な境界のもとで問い直せる状態も含みます。
 
 この「続きを始められる」は、過去を最新知識で書き換えることでも、AIにすべて覚えさせることでもありません。耐久的な意味を外在化し、必要な時点で正しい文脈を再構成できることです。
 
-期限を持たないProduct Milestoneは、この中心価値が製品としてどこまで成立したかを確認するために使います。Milestone自体をProduct Valueより上位に置きません。
+期限を設けない製品マイルストーンは、この中心価値が製品としてどこまで成立したかを確かめるために使います。マイルストーンそのものを製品価値より優先しません。
 
 ## 8. 関連文書
 
