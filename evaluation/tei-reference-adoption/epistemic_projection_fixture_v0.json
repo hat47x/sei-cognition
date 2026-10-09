@@ -5,9 +5,9 @@
   "sourceSnapshot": {
     "repository": "hat47x/tei-platform",
     "pullRequest": 961,
-    "head": "5d81c9244b301bae1598ff2502e674fca7e73450",
+    "head": "e8c9077a7186e7bb8e569ddd87de5b19736b3425",
     "schema": "tei.reference.epistemic-assessment/v0",
-    "note": "Field-shape snapshot only. This fixture is not TEI Canonical authority.",
+    "note": "Field-shape snapshot from TEI PR #961 at the recorded head. This fixture is not TEI Canonical authority.",
     "contract": "tei.epistemic-projection/v0"
   },
   "projection": {
