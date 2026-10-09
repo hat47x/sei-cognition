@@ -138,6 +138,10 @@ adr:
     file: plan/adr/ADR-0034-gate-outcome-recording-boundary.md
     status: Proposed
     related_issues: [ISSUE-000084]
+  - id: ADR-0035
+    file: plan/adr/ADR-0035-family-integration-apex-and-control-meaning-boundary.md
+    status: Proposed
+    related_issues: [ISSUE-000085, ISSUE-000086, ISSUE-000087, ISSUE-000088]
 
 issue:
   - {id: ISSUE-000001, file: plan/issue/ISSUE-000001-operationalize-moving-future-horizon.md, status: Resolved, priority: 4, related_adrs: [ADR-0001]}
@@ -221,3 +225,7 @@ issue:
   - {id: ISSUE-000079, file: plan/issue/ISSUE-000079-verify-tei-first-sei-application-plane-adoption.md, status: Resolved, priority: 1, related_adrs: [ADR-0014, ADR-0021, ADR-0028]}
   - {id: ISSUE-000080, file: plan/issue/ISSUE-000080-settle-the-location-of-sei-documents-cited-by-other-products.md, status: Open, priority: 2, related_adrs: [ADR-0014]}
   - {id: ISSUE-000084, file: plan/issue/ISSUE-000084-connect-enterprise-governance-adoption-value-to-requirements.md, status: Open, priority: 1, related_adrs: [ADR-0005, ADR-0027, ADR-0028, ADR-0029, ADR-0030, ADR-0033, ADR-0034]}
+  - {id: ISSUE-000085, file: plan/issue/ISSUE-000085-rebaseline-family-integration-apex.md, status: Open, priority: 1, related_adrs: [ADR-0014, ADR-0018, ADR-0021, ADR-0035]}
+  - {id: ISSUE-000086, file: plan/issue/ISSUE-000086-test-commitment-gaps-by-composition.md, status: Open, priority: 1, related_adrs: [ADR-0003, ADR-0004, ADR-0010, ADR-0016, ADR-0035]}
+  - {id: ISSUE-000087, file: plan/issue/ISSUE-000087-derive-family-afferent-profile-from-sibling-records.md, status: Open, priority: 1, related_adrs: [ADR-0006, ADR-0014, ADR-0016, ADR-0035]}
+  - {id: ISSUE-000088, file: plan/issue/ISSUE-000088-maintain-model-progress-robustness-register.md, status: Open, priority: 2, related_adrs: [ADR-0001, ADR-0018, ADR-0021, ADR-0023, ADR-0035]}

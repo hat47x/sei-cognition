@@ -1,5 +1,5 @@
 schema: sei.document-review-registry/v1
-updated: 2026-09-18
+updated: 2026-10-02
 
 purpose: >-
   ISSUE-000015で行った既存開発文書の自然な日本語監査について、current branch上の
@@ -31,12 +31,14 @@ reviewed:
       - SEI_BRAND_WORLD_PRODUCT_VALUE_REVIEW.md
       - SEI_VALUE_ACCEPTANCE.md
       - SEI_VALUE_TRACEABILITY.md
-    note: current V1〜V8とDecision Continuityを維持しつつ、ISSUE-000077のBrand World Product Value ReviewでCognitive Commons、Surface / Depth Interface、Deliberate Non-closure、Durable Cognitive Aperture、Quiet Infrastructure、Shared but not Unboundedを既存Valueへ逆照合した。新Value Axisは追加せず、Decision成立前のInquiry Continuityだけを独立Product hypothesisとしてISSUE-000078へ切り出した。Value Traceabilityの既存Evidence高さとv0.2.0 supported scopeは変更していない。2026-09-16のdevelop / main統合では、両branchが独立に作成していた同一主旨のBrand World文書を`SEI_BRAND_WORLD_DISCOVERY_SOURCE.md`と`SEI_BRAND_WORLD_PRODUCT_VALUE_REVIEW.md`へ一本化し、develop側にしかなかった採る方向と反対側の停止線の表、および5段階Evidence状態の明示ブロックを取り込んだ。判断内容は変更していない。 2026-09-18には、異種の認知手段をCognitive Method / Capability Providerとして交換可能に扱う価値と、SUI / TEI / EKIとのProduct Boundaryを追記した。SEI Universal CoreやValue Axisは増やさず、既存のProvider Independence / Execution Independenceを具体化した。 2026-09-18にはAI Business Actor利用時のSEI/TEI境界を追記し、SEI=Cognitive / Decision Semantics、TEI=Operational Semanticsという責務差を既存Valueへ統合した。
+      - SEI_FAMILY_APEX_VALUE_REVIEW.md
+    note: 2026-10-02には、ADR-0035（提案）に沿って SEI_FAMILY_APEX_VALUE_REVIEW.md を新設し、コミットメントの台帳という言い直し、家族の統合の頂点、頑健さを、新Value AxisやV1〜V8の変更なしに提案として反映した。 current V1〜V8とDecision Continuityを維持しつつ、ISSUE-000077のBrand World Product Value ReviewでCognitive Commons、Surface / Depth Interface、Deliberate Non-closure、Durable Cognitive Aperture、Quiet Infrastructure、Shared but not Unboundedを既存Valueへ逆照合した。新Value Axisは追加せず、Decision成立前のInquiry Continuityだけを独立Product hypothesisとしてISSUE-000078へ切り出した。Value Traceabilityの既存Evidence高さとv0.2.0 supported scopeは変更していない。2026-09-16のdevelop / main統合では、両branchが独立に作成していた同一主旨のBrand World文書を`SEI_BRAND_WORLD_DISCOVERY_SOURCE.md`と`SEI_BRAND_WORLD_PRODUCT_VALUE_REVIEW.md`へ一本化し、develop側にしかなかった採る方向と反対側の停止線の表、および5段階Evidence状態の明示ブロックを取り込んだ。判断内容は変更していない。 2026-09-18には、異種の認知手段をCognitive Method / Capability Providerとして交換可能に扱う価値と、SUI / TEI / EKIとのProduct Boundaryを追記した。SEI Universal CoreやValue Axisは増やさず、既存のProvider Independence / Execution Independenceを具体化した。 2026-09-18にはAI Business Actor利用時のSEI/TEI境界を追記し、SEI=Cognitive / Decision Semantics、TEI=Operational Semanticsという責務差を既存Valueへ統合した。
   - scope: product/definition/*.md
     status: revised
     coverage:
       - SEI_PRODUCT_SHAPE.md
       - SEI_REALIZATION_PROVIDER_EXCHANGE.md
+      - SEI_FAMILY_SEMANTIC_MAP.md
     note: Product ShapeとRealization / Provider Exchangeを全文監査した。2026-09-18のProduct Shape再基線化では、異種Cognitive Methodを生成AIへ限定しない境界、resume-firstなfirst usable Product Slice、REQ-0023 / SCN-0019のCanonical commit integrity、SUI / TEI / EKIとの独立Product Boundaryをcurrent Product Valueへ同期した。rule / classifier / embedding / sparse associative cognition / local SLM / external model / human procedure等の内部機構をUniversal Coreへ持ち込まず、Cognitive Method、Capability、compute placementを別の交換境界として扱う。ISSUE-000073 / 000078のhuman Outcomeは未観測、SUI / TEI / EKIの共通protocolは未確定のまま維持している。Realization / Provider ExchangeではE2、E3a、E3b-P1、TEI executable注入境界、E3b-P2 revision A fixed-artifact、E3b-M1a、E3b-M1bを同じEvidence ladder上で分離し、ISSUE-000070 / 000072のversion交換を別軸として扱う。 2026-09-18にはISSUE-000074のactual TEI Evidence protocol sourceを反映し、direct binary digest、declared source、optional manifest match、current Capability Observationをderived Evidenceへ束ねる境界を追加した。protocol source / test sourceの存在をactual TEI Evidenceへ昇格させず、Go 1.25 testとactual reportを未検証のまま維持している。 同日のProduct Shape追加方針では、Work / Interaction、Projection / Review、Evidence / Governance等のApplication PlaneをTEI-firstとしつつ、SEI Product / Semantic authorityとTEI implementation authorityを分離した。Semantic Core、Cognitive Method、provider-specific low-level integration、headless pathはTEIへ強制せず、この方針の実証をISSUE-000079へ切り出した。
   - scope: product/vision/*.md
     status: revised
@@ -71,11 +73,11 @@ reviewed:
 
   - scope: plan/adr/ADR-*.md
     status: revised
-    coverage: ADR-0001..ADR-0031
+    coverage: ADR-0001..ADR-0031, ADR-0035
     note: current Product Value / Requirements / Architecture / Contract / Runtimeから逆向きに監査し、自然な日本語全文再ドラフトと最終意味監査を実施済み。ADR-0031はSOZAからSEI Cognitionへの改名について、portable Contract identityをversionを進めずprefixのみ改める判断、内部record schemaのemit側改名とreader側双方向受理、記録済みEvidenceを不変とする境界を分離して監査した。Statusは実装完了に伴いAcceptedである。
   - scope: plan/issue/ISSUE-*.md
     status: revised
-    coverage: ISSUE-000001..ISSUE-000080
+    coverage: ISSUE-000001..ISSUE-000080, ISSUE-000085..ISSUE-000088
     note: ISSUE-000001〜000079をcurrent履歴として監査済み。ISSUE-000069はGitHub Actions常設時に得たtrigger選択とrunner allocation Evidenceをhistoricalに保持しつつcurrent baselineからActionsを外した。ISSUE-000070は固定KJ Atlas source / Method input / model artifact / promptの下でOllama `0.32.13` / `0.32.14`をactualに交換し、same logical / different Exact Binding、historical Application保持、portable reconstruction、canonical Evidence + Provenance verificationを確認してResolvedとした。成果品質やarbitrary portabilityへは昇格させない。ISSUE-000071はexecution conformance、structural safety、human outcome review、Product Value / Adoption outcomeを分離してResolvedとしたがhuman reviewと成果品質判定は未完了。ISSUE-000072はrevision A historical Evidenceを保持し、exact revision B executable source + exact revision A fixed input、E2 / E3別toolchain、stage-aware diagnostics、Requirement / Scenario pre-auditまで整えたがrevision B actual CLI / Provider Plan / current Adapter compatibilityは未検証のためOpenを維持する。ISSUE-000073はPMS-03をresume-firstな最初の実用Product Sliceへ進めるOpen探索で、CR-73.8 / 73.9をREQ-0023 / SCN-0019へformalizeしつつ、他のCandidate Requirement、E1〜E8 actual実行、H1 / H2 human reviewを引き続き検証対象として保持している。runner / verifier / captureの受入れtoolingがあってもactual Executable EvidenceやProduct Valueへは昇格させずOpenを維持する。ISSUE-000074はactual TEI binaryのEvidence採取プロトコルを扱うOpen Issueであり、2026-09-18に`teiprobe`、`tei-e3b-probe`、fixture-scoped test source、protocol文書を実体化した。current Go 1.25 testとactual TEI reportは未取得であり、implementation sourceをExecutable Evidenceへは昇格させていない。ISSUE-000075はADR-0031に基づく改名移行をPhase 1〜4へ分け、記録済みEvidence不変性検査を他のPASSに優先させる完了条件として監査した。 2026-09-18には後続ISSUE-000072文書へ旧operator tokenが再流入したpost-resolution regressionを修復し、historical名称・legacy schema readerを保持したままcurrent SEI CLI / stage名へ同期した。checkerをproduction runtime/integration全体へ拡張し、production script 42 file + operator Markdown 13 fileの計55 fileでobsolete operational token 0件を確認した。再流入防止checkerのexact-blob self-testは7/7 PASSで、結果をmachine-readable Evidenceへ固定した。ISSUE-000076はnetwork / Provider受付 / credential / artifact取得 / identity・integrity / runtime executionのfailure stageを分離し、retry policy、secret-safe Evidence、Evidence高さを別軸として設計するOpen Issueである。ISSUE-000077はSEI Cognitionの「井」を中心とするブランド世界をProduct Value探索の非規範sourceとして保存し、価値仮説を既存V1〜V8 / Decision Continuityへ逆照合したうえで、Discovery Source、Product Value Review、Product Vision改稿へ進めた。ISSUE-000078はそのReviewで最も独立性が高く残ったDecision成立前のInquiry Continuityを、raw chat / chronological note等とのcounterfactual comparisonとhuman reviewで反証可能にするOpen Issueとして起票した。2026-09-14にfirst actual caseをseedし、2026-09-16にはmulti-day条件へ到達したが、同日の上流整理でmaterialな事前露出が生じたためclean resumptionは未観測のまま維持している。新Value AxisやUniversal entityは先取りしない。 ISSUE-000079はProduct Shapeで追加されたSEI Application PlaneのTEI-first方針をimplementation mandateへせず、read-only Resume / ReviewとEvidence / GovernanceのReference Adoptionでchange amplification、二重管理、authority driftを比較するOpen Issueとして起票した。2026-09-18にTEI Change 1 exact-blob Evidenceを取得し、Reference-local semantic compatibilityは確認したがnative SEI比のchange-amplification reductionは未観測、Stage 0 snapshot同期負担も残ると記録した。続くChange 2はGate B Not Ready / Gate C Blocked / Target-neutral Presentation未成立の状態で専用surrogateを発明しないためProduct behavior probeをdeferし、再開条件をTEI mainのmachine-readable boundaryへ固定した。新Pattern / Core gapは観測されていない。Challenge B mapping後も新Stable Requirement / Universal Contract fieldはNo Changeとし、現時点の採用姿勢をlimited / Reference-local、broader Application PlaneをGate待ちdeferredとした。ISSUE-000073のhuman Product Value、ISSUE-000072 / 000074のTEI Provider実行・Evidenceとは別laneとし、SEIをsource authorityに保つ。このStage 0判断をもってISSUE-000079はResolvedとし、Change 2はGate再開条件成立時の後続Evidenceとして扱う。 ISSUE-000080は2026-10-06に追加し、作成者が全文を自然な日本語で起こして一次資料と照合した。SEIの別担当による監査ではない。
   - scope: plan/SEI_TEI_REFERENCE_ADOPTION_DESIGN_2026-09.md
     status: revised
@@ -119,6 +121,9 @@ reviewed:
     status: revised
   - scope: contracts/CONTRACT_CATALOG.md
     status: revised
+  - scope: contracts/EXTERNAL_STANDARD_MAPPING.md
+    status: revised
+    note: W3C PROV-O、Open Memory Protocol v0.2草案、C2PAとの非規範の対応表として新設した。準拠の宣言や相互運用の実証へ昇格させない。MMIとSUIのdigest規則は確認済みの事実に合わせて記述した（ADR-0035提案）。
   - scope: contracts/CONFORMANCE_EVIDENCE_2026-08-31.md
     status: revised
   - scope: contracts/semantic-reference/SEI_SEMANTIC_REFERENCE_v1alpha1.md
@@ -310,15 +315,15 @@ reviewed:
     note: Personal Inquiry Continuity探索群とISSUE-000078 actual dogfood文書をcurrent scopeとして監査した。各文書はEvaluation-only / Not Stable Requirementの境界を維持している。2026-09-16にはfirst actual caseがmulti-day条件へ到達した一方、上流整理中にmaterialな事前露出が生じたためclean human resumptionは未観測とした。`DOGFOOD_EVALUATION_RECORDING.md`とcheckpointでは、暦上のgapと認知的gapを分け、pre-orientation exposureだけを架空のresume observationへ数えない停止線を追加した。Stable RequirementやUniversal Contractへは未先取りである。
 
   - scope: evaluation/cognitive-workspace-comparison/*.md
-    status: reviewed-no-change
+    status: revised
     coverage:
       - README.md
-    note: 2026-09-12にmainから合流したCognitive Workspace比較harness。Evaluation-only境界と反証条件を明示しており、ADR-0031の改名も正しく適用されているため現状の本文を保つ。
+    note: 2026-10-02に、ADR-0035（Proposed）に沿って §2.1 で脱皮台帳への一般化とWorkspaceの開示範囲への再正当化を提案として追記した。反証条件は維持している。2026-09-12にmainから合流したCognitive Workspace比較harness。Evaluation-only境界と反証条件を明示しており、ADR-0031の改名も正しく適用されているため現状の本文を保つ。
   - scope: evaluation/distributed-execution-fabric/*.md
-    status: reviewed-no-change
+    status: revised
     coverage:
       - README.md
-    note: 2026-09-12にmainから合流した共通Execution Fabric境界の整理。既存OSS優先の方針とProduct semanticsを持ち込まない停止線を明示しており、現状の本文を保つ。
+    note: 2026-10-02に、実在の後継製品hat47x/eki-fabricとの関係とSEIがschedulingを所有しないことを §13.1 に提案として追記した。2026-09-12にmainから合流した共通Execution Fabric境界の整理。既存OSS優先の方針とProduct semanticsを持ち込まない停止線を明示しており、現状の本文を保つ。
   - scope: evaluation/local-model-probe/*.md
     status: reviewed-no-change
     coverage:
@@ -327,12 +332,12 @@ reviewed:
       - RUN_MANIFEST.md
     note: 2026-09-12にmainから合流したlocal model actual probeのtransport / model matrix / run manifest。runtime未導入によりactual inference Evidence未取得であることを明記しており、model leaderboardではなく認知routing境界探索として位置づけている。現状の本文を保つ。
   - scope: evaluation/sei-cognition-orchestration/*.md
-    status: reviewed-no-change
+    status: revised
     coverage:
       - README.md
       - EMERGENT_COGNITIVE_ARCHITECTURE.md
       - ORGANIZATION_COGNITIVE_FABRIC.md
-    note: 2026-09-12にmainから合流した常時認知オーケストレーション構想。Evaluation-onlyであり、Stable RequirementやUniversal Contractへは未先取りである。READMEの命名移行章はADR-0031の実施結果へ同期した。他は現状の本文を保つ。
+    note: 2026-10-02に、EMERGENT_COGNITIVE_ARCHITECTURE.mdへ制御の仕組みと判断の意味の読み方、予期された不確実性と予期しない不確実性・期待の記録を比喩由来の評価仮説として追記した（ADR-0035 Proposed）。2026-09-12にmainから合流した常時認知オーケストレーション構想。Evaluation-onlyであり、Stable RequirementやUniversal Contractへは未先取りである。READMEの命名移行章はADR-0031の実施結果へ同期した。他は現状の本文を保つ。
   - scope: evaluation/sparse-associative-cognition/*.md
     status: reviewed-no-change
     coverage:

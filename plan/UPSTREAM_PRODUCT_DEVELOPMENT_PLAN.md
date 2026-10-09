@@ -1,6 +1,6 @@
 # SEI 上流プロダクト開発計画
 
-更新日: 2026-09-18  
+更新日: 2026-10-02  
 状態: **Current Upstream Planning Baseline — Brand-world Product Value discovery完了 / Inquiry Continuity actual dogfood / resume-first Product Slice / TEI version exchange + actual-binary Evidence protocolを並行優先**
 
 ## 1. この文書の役割
@@ -414,6 +414,7 @@ Product confidenceを高めるため、happy pathだけでなくpartial commit�
 | Application implementation strategy | ISSUE-000079 | Open / source freeze PASS + TEI Stage 0 Reference checker Scoped Executable Evidence available / PR #686 merged | Change 1のnative / TEI change-amplification比較、次いでExisting / extension / Native / gap再分類 |
 | TEI Provider portability | ISSUE-000072 | Open / execution blocked externally | exact-B actual E2 when execution surface is available |
 | TEI actual Evidence protocol | ISSUE-000074 | Open / teiprobe + CLI + protocol source implemented / tests + actual run Not Yet Verified | current Go環境でfixture-scoped tests、次いでactual TEI binary report |
+| Family integration apex（提案） | ADR-0035 Proposed / ISSUE-000085〜000088 Open | 提案のみ。所有者のレビュー待ち。Design Evidenceに限る | 所有者による再基線化項目のレビュー（ISSUE-000085）、次いで実在の記録からの求心プロファイル（ISSUE-000087）と4つの空白の組合せ試験（ISSUE-000086） |
 | Method outcome quality | ISSUE-000071 follow-up | evaluation boundary established | actual human outcome review |
 | Operational / Adoption | PMS-08 | Not Yet Verified | first real use after usable slice exists |
 
@@ -491,6 +492,8 @@ Reviewの結果、Cognitive Commons、Surface / Depth Interface、Deliberate Non
 first actual caseは2026-09-14にseed済みで、2026-09-16にはcase作成からの暦上のmulti-day gapへ一度到達しました。ただし同日の上流整理でmaterialな事前露出が生じたため、clean context gapはその時点から再設定し、human observationはまだ記録していません。この差を維持し、次は最後のmaterial exposureから十分なgapを置いた後にOrientationからのactual resumptionを先に観測し、その後にGeneric Summary / chronological noteおよびQuiet / Proactive条件を比較します。
 
 Provider / Method portabilityのEvidenceは引き続き重要であり、人間が「使い続けられること」のactual Evidenceを深めるISSUE-000073も並行して進めます。ISSUE-000072のTEI executable version exchangeもPriority 1のまま維持します。加えて2026-09-18のProduct ShapeでApplication PlaneをTEI-firstとする実装方針が明示されたため、これを暗黙の実装命令にはせずISSUE-000079へ切り出しました。079ではResume / ReviewとEvidence / Governanceをread-only ReferenceからPressureし、change amplification、二重管理、authority driftを比較してbroad / incremental / limited / deferredの判断へ進めます。
+
+2026-10-02には、ADR-0035（Proposed）とISSUE-000085〜000088による家族の統合の頂点の提案を、work laneの表へ一行加えました。これは所有者のレビュー待ちの提案であり、他のlaneのEvidenceを代用しません。
 
 各laneは互いのEvidenceを代用せず、上流価値、Inquiry Continuity、Decision-centered Product Interaction、Application implementation strategy、Provider portabilityという異なる未知を減らします。
 

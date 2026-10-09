@@ -1,7 +1,7 @@
 # SEI Contract Catalog
 
-更新日: 2026-09-01  
-状態: **Current Contract Catalog**
+更新日: 2026-10-02  
+状態: **Current Contract Catalog。§5.1の安定化経路は提案（ISSUE-000088 / ADR-0035）であり、Contract versionの変更ではない**
 
 ## 1. 目的
 
@@ -246,6 +246,25 @@ Representation-only changeをSemantic Contract version changeへ自動変換し�
 
 unknown future Contract versionは、current runtimeが意味を理解していない以上、opaque payloadとして保持し`not_verified`とします。
 
+### 5.1 安定化と長期互換の経路（提案 — ISSUE-000088 / ADR-0035）
+
+この節は**提案**です。Contract versionの変更ではなく、ADR-0021の手続きを置き換えるものでもありません。5つのContractはすべて`v1alpha1`のままです。
+
+家族の中で最も長く生きるべき記録を扱うContractが、最も長い互換性の約束を持っていない、という弱みへの対応として、次を提案します。
+
+1. **安定化の順序。** 判断と束縛の意味を担う`sei.semantic-reference`と`sei.decision-memory`を、他のContractより先に`v1`へ進める経路を検討する。進める条件は、独立した実装によるconformance、historical reconstructionのEvidence、人によるレビューとし、時期では決めない。`v1`へ進めることを、この提案だけで決めない。
+2. **長期の互換性の約束。** stableな`v1`以降は、意味上の後方互換性を壊す変更をmajor versionへ進める（ADR-0021）。加えて、過去のDecisionやArtifactが特定versionを根拠にしている場合、そのversionの記録を読める期間を、他のContractより長く約束することを検討する。具体的な期間は、この提案では定めない。
+3. **10年単位で読める書き出し。** JSON、JCS、人向けの投影で書き出せることを、保持すべき性質とする。Contractを知らない読み手が意味を追える投影を添える。
+4. **ハッシュProfileの更新手順。** Representation Profileに版を持たせ（`sei.jcs+sha256/v1alpha1`のように、Semantic Contractとは別のversion空間）、新しい方式のProfileを加えるときは、古い束縛を再検証した記録（いつ、どのProfileで、結果は何か）を残す。過去のPASSを現在のPASSとして扱わない（`historical PASS != current PASS`）。
+5. **外部への束縛。** 外部リポジトリなどへのExact Bindingは、commitやrevisionの識別子に加えて、内容のdigestを持つ。観測事例はISSUE-000088に記録している。
+
+```text
+stabilization proposal != Contract version change
+long-term compatibility promise（提案） != promise already made
+```
+
+提案が採用された場合も、実際の変更は個別のADRとIssueで、Contract Definition、schema、fixtureの同期監査を経て行います。
+
 ## 6. current Executable Evidence
 
 current Contract checkerは5 familyを認識し、31 fixtureを検査します。
@@ -284,4 +303,4 @@ Contract数、fixture数、CI件数をProduct ValueのKPIにはしません。Re
 
 ## 8. Natural Japanese review
 
-current Product Value、REQ / SCN、ADR-0001〜0026、Reference Architecture、5 Contract Definition、2 Representation Profile、31 fixture、Go semantic runtime、synthetic Provider Adapter、actual CIへ戻ってCatalogを再監査しました。Cognitive Methodをhistorical Contractの復元ではなくADR-0025から再設計したcurrent familyとして追加し、Pattern、Method executor、Authority Provider等の非Contract境界も整理しています。その後、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。
+current Product Value、REQ / SCN、ADR-0001〜0026、Reference Architecture、5 Contract Definition、2 Representation Profile、31 fixture、Go semantic runtime、synthetic Provider Adapter、actual CIへ戻ってCatalogを再監査しました。Cognitive Methodをhistorical Contractの復元ではなくADR-0025から再設計したcurrent familyとして追加し、Pattern、Method executor、Authority Provider等の非Contract境界も整理しています。その後、意味、規範強度、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みです。2026-10-02には、安定化と長期互換の経路、ハッシュProfileの更新手順を§5.1へ提案として追記しました。Contractの追加、version変更、既存の規範の変更はしていません。参考の対応表は`EXTERNAL_STANDARD_MAPPING.md`にあります。

@@ -1,7 +1,7 @@
 # SEI Product Principles
 
-更新日: 2026-09-14  
-状態: **Product Principles Baseline — Brand-world discovery synthesis reflected**
+更新日: 2026-10-02  
+状態: **Product Principles Baseline — Brand-world discovery synthesis reflected。§18の正当化の札は、ADR-0035（Proposed）による提案**
 
 ## 1. この文書の役割
 
@@ -168,6 +168,14 @@ M48、M49等のhistorical Milestoneは開発上の順序です。
 
 削れる実装は削り、意味契約と検証可能な境界を残します。
 
+**【提案・ADR-0035 / ISSUE-000088】正当化の札と縮小の条件。** 何を削れるかを場当たりに決めないため、各仕組みに、なぜ必要なのかを示す札を付けます。
+
+- **制度** — 権限、責任、時間、複数の主体に由来する。モデルが強くなっても残るか、強まる。
+- **容量** — モデルの弱さを補うために必要。薄くなる。
+- **経済・物理** — コスト、電力、通信、privacyに由来する。一部は残る。
+
+あわせて、何が観測されたら縮小または再設計するか（縮小の条件）を先に書きます。新しい世代の基盤モデルが出たときは再評価し、`historical PASS != current PASS`として記録します。制度に由来する仕組みを、評価の都合で削りません。台帳は`plan/issue/ISSUE-000088-maintain-model-progress-robustness-register.md`にあり、`evaluation/cognitive-workspace-comparison/README.md` §2.1が最初の一般化の例です。
+
 ## 19. human-readableを設計品質として扱う
 
 SEIの重要な文書・Artifactは、機械が処理できるだけでなく、人間が読んで意味を確認できることを重視します。
@@ -249,4 +257,6 @@ Value Model、Product Vision、Decision Continuity、ISSUE-000077のBrand World 
 
 ブランド世界から得た洞察のうち、既存V1〜V8で意味上coverageできるものは新しいValue Axisへ増やさず、下位設計で繰り返し必要となる判断姿勢だけをPrincipleとして補強した。具体的には、早すぎる収束を強制しない一方で必要なDecisionを避けないこと、attentionを有限な認知資源として扱うこと、shared cognitionとAccess boundaryを同時に設計することを追加した。
 
-これらはquiet-by-default UI、`Depth`型、共有workflow等を要求するものではない。意味、規範強度、Evidence境界を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。
+これらはquiet-by-default UI、`Depth`型、共有workflow等を要求するものではない。2026-10-02には、ADR-0035（Proposed）に沿って、§18へ正当化の札と縮小の条件を提案として加えた。既存の原則は変えていない。
+
+意味、規範強度、Evidence境界を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済みである。

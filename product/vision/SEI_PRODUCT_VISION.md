@@ -1,7 +1,7 @@
 # SEI Product Vision
 
-更新日: 2026-09-18  
-状態: **Product Vision Baseline — Brand World Discovery reflected**
+更新日: 2026-10-02  
+状態: **Product Vision Baseline — Brand World Discovery reflected。§4の社会像と§11の統合の頂点は、ADR-0035（Proposed）による再基線化の提案**
 
 ## 1. この文書の役割
 
@@ -69,6 +69,12 @@ shared cognition
 共有できることは、全員へ開くことでも、権限を共有することでもありません。一人の利用者や一つのAI sessionで得た認知成果が、そのsessionの寿命だけで消えず、許された別の人間やAIへ引き継げる。そのときもProvenance、historical context、Responsibility、Access boundaryを失わない。この状態を目指します。
 
 この意味でSEIが目指すのは、中央の巨大な知識庫でも組織の「中央の頭脳」でもなく、**異なる主体がそれぞれの責任を保ったまま同じ認知資産へ近づける、境界を失わないCognitive Infrastructure**です。
+
+### 4.1 社会の水準での姿（仮説・提案）
+
+AIが人の代わりに調べ、提案し、場合によっては委任された範囲で決めるようになると、社会は「誰が何を決め、何を任せ、何を分からないまま進めたのか」を後から説明できる基盤を必要とするのではないか、という仮説を置きます。行政や公共の判断、研究の再現性、危機のときの判断、熟議のなかの少数意見、特定のAI供給元への依存、世代をまたぐ長期の判断といった場面が考えられます。
+
+これは新しいValue Axisではなく、V1〜V8とCognitive Commonsが、個人や組織を越えて成り立ったときの姿についての**Visionの仮説**です。Evidenceはまだありません。公共の利益という大義を理由に、Selective Disclosure、Responsibility、privacyを弱めることはしません。SEIが監視の拠点になることは、明示的な非目標です。場面の一覧と、確かめるべき証拠は`../value/SEI_FAMILY_APEX_VALUE_REVIEW.md` §12にあります。
 
 ## 5. AIが強くなるほど、薄くできる層と残す層を分ける
 
@@ -232,6 +238,32 @@ Observation / Evidence
 また、SUIのsensemaking object、TEIのApplication / Database / Release、EKIのWorker / scheduler等の内部構造をSEI Universal Coreへコピーしません。必要なCognitive Method、Capability、Observation、Evidence、Artifact reference、Execution receipt等を、明示的な境界から読み取ります。
 
 この分離により、認知手段や実行場所が変わってもSEIの意味を保ちながら、各Productがそれぞれの専門領域で独立に進化できます。
+
+### 11.1 家族に対する統合の頂点としての役割（提案）
+
+上の関係を保ったまま、SEIが家族に対して持つ役割を、「連携し得る隣接Productの一つ」から「翻訳と記憶を担う統合の層」へ、一段はっきり書きます（ADR-0035、Proposed）。
+
+SEIを家族の「頂点」と呼ぶのは、次の三つの意味に限ります。
+
+- **抽象の頂点** — Observation、Decision、Authorityなど最も一般的な意味を持ち、各製品に固有の意味を翻訳できる。意味の正本は各製品に残る。
+- **時間の頂点** — 家族の中で最も長く生きる記録を持つ。
+- **統合の頂点（任意の合流）** — 製品をまたいだ認知を、時間を通して再構成できる場所になる。製品は送ってもよいが、送らなくても成り立つ。
+
+次の三つの意味は採りません。
+
+- **指揮の頂点** — SEIから他の製品への信号は、すべて依頼です。受け取った製品が自らの権限で判断します。SEIのRecommendationが、TEIのAuthorizationになることはありません。
+- **所有の頂点** — SEIが持つのは、参照とコミットメントと対応表だけです。他の製品の意味やデータの正本は持ちません。
+- **可用性の頂点** — どの製品の局所のループも、SEIの稼働を必要としません。
+
+```text
+SEI = 抽象の頂点 + 時間の頂点 + 統合の頂点
+SEI != 指揮の頂点 / 所有の頂点 / 可用性の頂点
+```
+
+SEIはcentral AI brainではなく、固定pipeline（`SUI -> SEI -> TEI -> EKI`のstack）でもなく、関連製品に特権を与えません。「神経系の頂点」という言い方は内部の設計言語に留め、ブランドの表現では巨大なAI brainやcommand centerを視覚の中心に置きません。
+
+制御の仕組み（routing、escalation、attentionの配分）は交換可能なRealizationであり、制御の判断の意味（何を見て、何を意図的に見送り、どの手段をなぜ選んだか）はCoreに残す意味として扱います（`../definition/SEI_PRODUCT_SHAPE.md` §8.3）。家族の判断の意味論の参考対応表は`../definition/SEI_FAMILY_SEMANTIC_MAP.md`にあります。
+
 ## 12. SEIが目指さない将来像
 
 SEIは、次の状態を長期目標にはしません。
@@ -276,6 +308,8 @@ Decision以前のInquiry Continuityについては、現時点では独立した
 - `product/value/SEI_VALUE_MODEL.md`
 - `product/value/SEI_DECISION_CONTINUITY.md`
 - `product/value/SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md`
+- `product/value/SEI_FAMILY_APEX_VALUE_REVIEW.md`
+- `product/definition/SEI_FAMILY_SEMANTIC_MAP.md`
 - `product/vision/SEI_BRAND_WORLD_SOURCE.md`
 - `product/principles/SEI_PRODUCT_PRINCIPLES.md`
 - `plan/issue/ISSUE-000077-integrate-brand-world-into-product-value-discovery.md`
@@ -290,5 +324,7 @@ Brand World SourceとProduct Value Discovery Reviewを通じて、ブランド�
 その結果、井戸、水、中央の空白といった象徴語そのものを本書の規範へ持ち込むのではなく、判断前のInquiryを失わないこと、個人や一AI sessionへ閉じない共有認知基盤であること、共有とSelective Disclosureを両立すること、人間・AI・Methodが利用するInfrastructureであること、過剰なattentionを要求しないことを将来像として反映しました。
 
 V1〜V8やDecision Continuityの意味を変えず、Inquiry Continuityについては未検証Product hypothesisのまま残しています。
+
+2026-10-02には、ADR-0035（Proposed）に沿って、社会の水準での姿を仮説として§4.1に、家族に対する統合の頂点（三つを採り三つを採らない）を§11.1に加えました。中央の頭脳ではないこと、固定pipelineではないこと、関連製品を特権化しないことは、そのまま維持しています。どちらも提案であり、Evidenceはありません。
 
 内容と構造を整えた後、意味、強度、留保、技術的境界を変えず、**自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済み**とします。
