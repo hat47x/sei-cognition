@@ -201,6 +201,46 @@ def test_same_output_path_is_rejected() -> None:
         assert out["status"] == "blocked", out
 
 
+def load_wrapper_module():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("capture_issue_000073_resume_first_evidence", WRAPPER)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_publish_works_across_devices() -> None:
+    # 一時ディレクトリとリポジトリが別デバイスにある環境 (WSLの/tmpと/mnt/d、
+    # Windowsの%TEMP%がC:でリポジトリがD:等) を、os.replaceのEXDEVで再現する。
+    # 最終出力と同じディレクトリを経由しないpublishは、ここで失敗する。
+    import errno
+    import os
+
+    module = load_wrapper_module()
+    real_replace = os.replace
+
+    def cross_device_replace(src, dst):
+        if Path(src).parent != Path(dst).parent:
+            raise OSError(errno.EXDEV, "Invalid cross-device link", str(src))
+        return real_replace(src, dst)
+
+    with tempfile.TemporaryDirectory() as tmp_a, tempfile.TemporaryDirectory() as tmp_b:
+        temp = Path(tmp_a) / "e1-e8.json"
+        temp.write_text("{\"status\": \"pass\"}\n", encoding="utf-8")
+        final = Path(tmp_b) / "evidence" / "e1-e8.json"
+        os.replace = cross_device_replace
+        try:
+            module.publish(temp, final)
+        finally:
+            os.replace = real_replace
+        assert final.is_file()
+        assert json.loads(final.read_text(encoding="utf-8")) == {"status": "pass"}
+        leftovers = [p.name for p in final.parent.iterdir() if p.name != "e1-e8.json"]
+        assert leftovers == [], leftovers
+
+
 def main() -> int:
     test_expected_head_mismatch_blocks_before_runner()
     test_pass_publishes_both()
@@ -211,6 +251,7 @@ def main() -> int:
     test_verifier_failure_is_not_pass()
     test_existing_outputs_require_replace()
     test_same_output_path_is_rejected()
+    test_publish_works_across_devices()
     print("PASS: ISSUE-000073 capture workflow self-tests")
     return 0
 
