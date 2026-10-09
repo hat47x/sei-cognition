@@ -149,12 +149,24 @@ def validate_projection(projection: dict[str, Any]) -> None:
             )
 
         _require_string(
+            assessment.get("contentOrigin"),
+            f"assessments[{index}].contentOrigin",
+        )
+        _require_string(
+            assessment.get("ingestedBy"),
+            f"assessments[{index}].ingestedBy",
+        )
+        _require_string(
             assessment.get("statementKind"),
             f"assessments[{index}].statementKind",
         )
         _require_string(
             assessment.get("confirmationState"),
             f"assessments[{index}].confirmationState",
+        )
+        _require_string(
+            assessment.get("reviewBinding"),
+            f"assessments[{index}].reviewBinding",
         )
         _require_string(
             assessment.get("lifecycleState"),
@@ -281,7 +293,12 @@ def route_assessment(assessment: dict[str, Any]) -> dict[str, Any]:
         route = "blocked"
         sei_reasons.append("SEI_ASSERTION_FRESHNESS_BLOCKED")
     elif assessment["metadataState"] != "complete":
-        route = "review"
+        # Missing metadata must never pass as a premise. However, a source-side
+        # candidate does not automatically become a human-review task merely
+        # because metadata is incomplete; higher-stakes dependencies can still
+        # escalate it through Health / reviewRequests.
+        if source_use_state == "premise":
+            route = "review"
         sei_reasons.append("SEI_METADATA_NOT_COMPLETE")
     elif assessment["targetBinding"] in {"ambiguous", "detached"}:
         route = "review"
@@ -300,10 +317,17 @@ def route_assessment(assessment: dict[str, Any]) -> dict[str, Any]:
         "reviewLogSequence": assessment["reviewLogSequence"],
         "route": route,
         "sourceUseState": source_use_state,
+        "contentOrigin": assessment["contentOrigin"],
+        "ingestedBy": assessment["ingestedBy"],
         "statementKind": assessment["statementKind"],
         "confirmationState": assessment["confirmationState"],
+        "reviewBinding": assessment["reviewBinding"],
         "metadataState": assessment["metadataState"],
         "targetBinding": assessment["targetBinding"],
+        "contextCompatibility": assessment["contextCompatibility"],
+        "freshness": assessment["freshness"],
+        "lifecycleState": assessment["lifecycleState"],
+        "conflict": assessment["conflict"],
         "targetReanchored": assessment["targetBinding"] == "reanchored",
         "inferredContextUsed": bool(assessment.get("inferredContextUsed", False)),
         "sourceReasons": sorted(set(reasons)),
