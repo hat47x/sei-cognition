@@ -284,6 +284,21 @@ bash tools/bootstrap_issue_000073_resume_first_evidence.sh \
 
 machine-readable recordは`evidence/issue-000073/external-execution-bundle-mechanics-2026-10-09.json`です。このPASSはhandoff mechanicsだけに限定します。このセッションではactual SEI checkoutからbundleを作成しておらず、外部nodeでreal bundleをcloneしてE1〜E8を実行してもいません。
 
+受け側は`tools/run_issue_000073_external_execution_bundle.py`へ一本化しています。runnerはbundle / manifest / SHA256SUMSを検証し、manifestのexact source HEADとbundleのadvertised HEADを照合してからcloneします。clone後にもHEAD、clean working tree、`git bundle verify`を確認し、既存bootstrap / captureを呼び出します。
+
+```text
+python3 tools/run_issue_000073_external_execution_bundle.py \
+  --bundle <bundle.gitbundle> \
+  --manifest <bundle.manifest.json> \
+  --sha256sums <bundle.SHA256SUMS> \
+  --work-dir <new-work-dir> \
+  --result-dir <outside-work-dir-result>
+```
+
+result directoryには`e1-e8.json`、`e1-e8-verification.json`、bootstrap stdout / stderr、`external-run.json`を分離して保存します。bootstrapが実行前提不足を`blocked`として返した場合、verificationを生成したことにはせず、external runも`blocked`のまま残します。
+
+preparer / receiver / self-testのexact committed blobを使ったsynthetic integrationでは、成功経路、same-size bundle改ざん拒否、manifestのexpected HEAD改変拒否、bootstrap blocked非昇格の4件をactual実行し4/4 PASSしました。Evidenceは`evidence/issue-000073/external-execution-runner-mechanics-2026-10-09.json`です。synthetic bootstrapによるmechanics testなのでactual E1〜E8へは昇格させません。
+
 既定では次へ保存します。
 
 ```text
@@ -468,6 +483,7 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 | Go 1.25.x execution path | **Repository bootstrap available as of 2026-10-07; 2026-09-18 environment blocker is retained as historical Environment Evidence; actual E1〜E8 run remains Not Yet Verified** |
 | Go 1.25 bootstrap mechanics | **PASS for exact-script syntax / pre-provisioned Go forwarding / dirty-tree guard / direct --go bypass guard; archive materialization Not Yet Verified** |
 | External exact-source handoff mechanics | **PASS — exact committed blobs, 5/5 synthetic Git bundle tests (2026-10-09); actual SEI bundle preparation / external clone / E1〜E8 run Not Yet Verified** |
+| External handoff receiver mechanics | **PASS — exact committed blobs, 4/4 synthetic integration tests (2026-10-09); actual SEI external run Not Yet Verified** |
 | REQ-0023 / SCN-0019 Executable Evidence | **Not Yet Verified** |
 | H1 actual human review | **Not Yet Observed** |
 | H2 counterfactual human review | **Not Yet Observed** |
@@ -486,7 +502,7 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 優先順位は次です。
 
 1. canonical clean checkoutから`prepare_issue_000073_external_execution_bundle.py`でexact-source handoffを作成するか、同じcheckout上で直接実行できる場合はそのまま既存captureへ進む。
-2. Go 1.25.xを利用できる実行nodeでbundleをcloneし、exact HEADを確認したうえで`bootstrap_issue_000073_resume_first_evidence.sh`または既存captureからE1〜E8をactual実行する。
+2. external handoffを使う場合は、Go 1.25.xを利用できる実行nodeで`run_issue_000073_external_execution_bundle.py`を実行し、SHA-256 / exact HEAD / clean clone / post-clone bundle verificationを通したうえで既存bootstrap / captureからE1〜E8をactual実行する。
 3. captureが保存したrunner / verification recordについて、recorded tested commit / source blobs / E1〜E8結果を確認する。
 4. actual Evidenceを保存し、REQ-0023 / SCN-0019を含むEvidence状態を再監査する。
 5. clean checkoutで`capture_issue_000073_h2_runner_selftest.py`をactual実行し、Decision H2 shared runner regressionのmachine-readable Evidenceを得る。
@@ -510,6 +526,8 @@ synthetic fixtureやAI生成回答をhuman observationとして代用しませ�
 2026-10-07には、その後repository内で固定されたGo 1.25.14 Linux / amd64 archive identityを利用し、ISSUE-000073の既存captureへ接続するbootstrap入口を追加しました。toolchain materializationはcheckout外へ置き、archive digest不一致や不完全なcacheを暗黙に上書きせず停止します。この入口の追加はenvironment blockerを回避できる実行経路を増やしただけであり、E1〜E8を実際に実行したEvidenceには昇格させていません。
 
 2026-10-09には、private GitHubへの接続可否とsource identityを分離するため、clean canonical checkoutをGit bundleとして外部nodeへ渡すhandoffを追加しました。preparer / self-testのexact committed blobで5件のmechanics testを実行し、同一HEADへのcloneと、expected HEAD不一致・dirty source・repository内output・暗黙上書きの拒否を確認しました。actual repository bundleの作成やGo 1.25.xでのE1〜E8実行は未取得であり、Evidenceの高さは引き上げていません。
+
+同じhandoffを受け取るrunnerも追加し、transport checksum、manifest上のsource identity、bundle advertised HEAD、clone後のexact HEAD / clean state / bundle verificationを通過した後だけ既存bootstrap / captureへ進むようにしました。synthetic integrationの4件はexact committed sourceで4/4 PASSしました。blocked bootstrapはblockedのまま保存し、verificationを捏造しません。この結果もactual SEI E1〜E8実行には数えていません。
 
 H1は既存dogfood stateとevaluation sidecarを利用し、real Inquiryのactual resumptionだけを観測します。H1専用のschemaやsession managerは増やしていません。H2は既存matched review基盤を利用し、073/078共通のreview runnerでstimulus提示前にreviewer provenanceを固定してからbundleを提示し、completed sessionのEvidence exportまで同じ経路を使います。2026-09-18にprovenance固定前のR1 material提示が一度発生したため、その提示を受けたreaderの後続sessionはknown exposureとして扱い、回答未固定の提示そのものはhuman Evidenceへ数えない停止線を追加しました。
 
