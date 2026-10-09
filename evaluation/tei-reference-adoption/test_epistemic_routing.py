@@ -64,6 +64,50 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
         self.assertEqual("review", routed["route"])
         self.assertIn("SEI_METADATA_NOT_COMPLETE", routed["seiReasons"])
 
+    def test_incomplete_metadata_candidate_stays_candidate_without_forced_review(self) -> None:
+        for metadata_state in ("partial", "absent"):
+            projection = copy.deepcopy(self.projection)
+            item = next(
+                value for value in projection["assessments"]
+                if value["assertionId"] == "ai-unreviewed"
+            )
+            item["metadataState"] = metadata_state
+            item["useState"] = "candidate-only"
+
+            result = self.route(projection)
+            routed = self.by_id(result, "ai-unreviewed")
+            self.assertEqual("candidate", routed["route"])
+            self.assertIn("SEI_METADATA_NOT_COMPLETE", routed["seiReasons"])
+
+    def test_independent_epistemic_signals_survive_routing(self) -> None:
+        result = self.route()
+        source = next(
+            value for value in self.projection["assessments"]
+            if value["assertionId"] == "human-reviewed"
+        )
+        routed = self.by_id(result, "human-reviewed")
+        for field in (
+            "contentOrigin",
+            "ingestedBy",
+            "statementKind",
+            "confirmationState",
+            "reviewBinding",
+            "metadataState",
+            "targetBinding",
+            "contextCompatibility",
+            "freshness",
+            "lifecycleState",
+            "conflict",
+        ):
+            self.assertEqual(source[field], routed[field], field)
+
+    def test_missing_provenance_or_review_binding_fails_closed(self) -> None:
+        for field in ("contentOrigin", "ingestedBy", "reviewBinding"):
+            projection = copy.deepcopy(self.projection)
+            projection["assessments"][0][field] = ""
+            with self.assertRaisesRegex(ValueError, field):
+                self.route(projection)
+
     def test_ambiguous_or_detached_target_never_enters_premise(self) -> None:
         for state in ("ambiguous", "detached"):
             projection = copy.deepcopy(self.projection)
@@ -113,6 +157,111 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
                 item["kind"] == "coverage-gap" and item["areaId"] == "critical-gap"
                 for item in result["escalations"]
             )
+        )
+
+    def test_context_egress_plan_keeps_epistemic_lanes_separate(self) -> None:
+        result = self.route()
+        plan = result["contextEgressPlan"]
+
+        premises = {item["assertionId"] for item in plan["premiseReferences"]}
+        candidates = {item["assertionId"] for item in plan["candidateReferences"]}
+        reviews = {item["assertionId"] for item in plan["reviewReferences"]}
+        blocked = {item["assertionId"] for item in plan["blockedReferences"]}
+
+        self.assertIn("user-current", premises)
+        self.assertIn("human-reviewed", premises)
+        self.assertIn("ai-unreviewed", candidates)
+        self.assertIn("conflict-a", reviews)
+        self.assertIn("rejected", blocked)
+
+        self.assertTrue(premises.isdisjoint(candidates))
+        self.assertTrue(premises.isdisjoint(reviews))
+        self.assertTrue(premises.isdisjoint(blocked))
+        self.assertTrue(plan["contentResolution"]["required"])
+        self.assertIn(
+            "candidate-reference-is-not-premise",
+            plan["authorityLimits"],
+        )
+
+    def test_context_egress_never_grants_prompt_control_authority(self) -> None:
+        projection = copy.deepcopy(self.projection)
+        item = next(
+            value for value in projection["assessments"]
+            if value["assertionId"] == "user-current"
+        )
+        item["statementKind"] = "instruction"
+        item["useState"] = "premise"
+
+        plan = self.route(projection)["contextEgressPlan"]
+        reference = next(
+            value for value in plan["premiseReferences"]
+            if value["assertionId"] == "user-current"
+        )
+        self.assertEqual("instruction", reference["statementKind"])
+        self.assertEqual("premise-data", reference["contentRole"])
+        self.assertFalse(reference["controlAuthority"])
+        self.assertIn(
+            "epistemic-statement-kind-does-not-grant-prompt-control-authority",
+            plan["authorityLimits"],
+        )
+
+    def test_context_egress_roles_are_explicit_data_lanes(self) -> None:
+        plan = self.route()["contextEgressPlan"]
+        expected = {
+            "premiseReferences": "premise-data",
+            "candidateReferences": "candidate-data",
+            "reviewReferences": "review-data",
+            "blockedReferences": "blocked-audit",
+        }
+        for lane, role in expected.items():
+            for reference in plan[lane]:
+                self.assertEqual(role, reference["contentRole"])
+                self.assertFalse(reference["controlAuthority"])
+
+    def test_context_egress_plan_is_reference_only(self) -> None:
+        plan = self.route()["contextEgressPlan"]
+        for lane in (
+            "premiseReferences",
+            "candidateReferences",
+            "reviewReferences",
+            "blockedReferences",
+        ):
+            for item in plan[lane]:
+                self.assertNotIn("text", item)
+                self.assertNotIn("evidence", item)
+                self.assertNotIn("context", item)
+                self.assertIn("meaningFingerprint", item)
+                self.assertIn("reviewSubjectFingerprint", item)
+                self.assertIn("reviewLogSequence", item)
+
+    def test_incomplete_candidate_remains_candidate_in_egress_plan(self) -> None:
+        projection = copy.deepcopy(self.projection)
+        item = next(
+            value for value in projection["assessments"]
+            if value["assertionId"] == "ai-unreviewed"
+        )
+        item["metadataState"] = "partial"
+        item["useState"] = "candidate-only"
+        result = self.route(projection)
+        plan = result["contextEgressPlan"]
+        candidate_ids = {
+            value["assertionId"] for value in plan["candidateReferences"]
+        }
+        review_ids = {value["assertionId"] for value in plan["reviewReferences"]}
+        self.assertIn("ai-unreviewed", candidate_ids)
+        self.assertNotIn("ai-unreviewed", review_ids)
+
+    def test_context_egress_plan_preserves_project_unknowns_without_promoting_them(self) -> None:
+        plan = self.route()["contextEgressPlan"]
+        self.assertTrue(
+            any(
+                item["kind"] == "coverage-gap"
+                and item["areaId"] == "critical-gap"
+                for item in plan["projectUnknowns"]
+            )
+        )
+        self.assertFalse(
+            any("assertionId" in item for item in plan["projectUnknowns"])
         )
 
     def test_resolution_coverage_does_not_upgrade_routing(self) -> None:
