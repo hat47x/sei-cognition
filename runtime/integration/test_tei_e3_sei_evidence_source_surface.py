@@ -13,6 +13,7 @@ EXPECTED_EXECUTION_PATHS = {
     "runtime/integration/run_tei_bundle_adapter_compatibility.py",
     "runtime/integration/prepare_tei_fixed_reference_input.py",
     "runtime/integration/runtime_path_safety.py",
+    "runtime/integration/git_object_environment.py",
     "runtime/integration/verify_tei_evidence_bundle.py",
     "runtime/integration/verify_tei_execution_source_identity.py",
 }

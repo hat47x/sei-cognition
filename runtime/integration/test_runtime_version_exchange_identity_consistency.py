@@ -165,10 +165,19 @@ class RuntimeVersionExchangeIdentityConsistencyTest(unittest.TestCase):
                 self.assertEqual(expected_url, archive["downloadUrl"])
                 self.assertEqual("ollama-linux-amd64.tar.zst", archive["assetName"])
 
+        # The harness no longer builds the download URL itself; it delegates the
+        # runtime archive acquisition to the preparation helper (6a7ac02), which
+        # validates each downloadUrl against the official release template.
+        preparer = (INTEGRATION_DIR / "prepare_runtime_version_exchange_archives.py").read_text(
+            encoding="utf-8"
+        )
         self.assertIn(
-            'https://github.com/ollama/ollama/releases/download/v${version}/ollama-linux-amd64.tar.zst',
+            'RUNTIME_ARCHIVE_PREPARER="${SEI_ROOT}/runtime/integration/prepare_runtime_version_exchange_archives.py"',
             harness,
         )
+        self.assertNotIn("releases/download/v${version}", harness)
+        self.assertIn('"https://github.com/ollama/ollama/releases/download/"', preparer)
+        self.assertIn('f"v{version}/{asset_name}"', preparer)
 
 
 if __name__ == "__main__":
