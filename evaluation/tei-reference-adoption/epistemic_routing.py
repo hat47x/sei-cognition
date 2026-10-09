@@ -502,6 +502,9 @@ def resolve_epistemic_detail_for_egress(
 ) -> dict[str, Any]:
     """Validate TEI detail and keep the original egress lane fail-closed."""
     reference = _require_object(reference, "egress reference")
+    # Reuse the query builder as the receipt-shape validator. This keeps the
+    # direct result-consumption path from accepting malformed egress receipts.
+    build_epistemic_detail_query(reference)
     detail_result = _require_object(detail_result, "epistemic detail result")
 
     if detail_result.get("contract") != TEI_DETAIL_RESULT_CONTRACT:
