@@ -66,3 +66,25 @@ CLIはraw TEI Projectionと、このevaluation fixtureのような`{"projection"
 
 Issue: #660
 Cross-repo parent: hat47x/tei-platform#958
+
+
+## Context Egress Plan
+
+routing guardの次段として、AI / external Providerへ送るcontextを組み立てる前のreference-only planを追加した。
+
+TEI Projectionはepistemic signalとassertion identityを返すが、assertion本文、完全なEvidence、元Contextを常時複製しない。このためSEIがProjectionだけから本文contextを生成すると、source reconstructionやaccess controlを推測することになる。
+
+Referenceでは次のlaneへassertion参照を分離する。
+
+- premiseReferences
+- candidateReferences
+- reviewReferences
+- blockedReferences
+
+premise以外をpremise laneへ混ぜない。candidateは候補のまま、review / blockedは通常context premiseとして扱わない。
+
+各参照はmeaningFingerprint / reviewSubjectFingerprint / reviewLogSequence等のreceiptと独立epistemic signalを保持するが、本文・Evidence・元Contextは含めない。実contentの取得は後続resolverへ委ね、そこでaccessとbindingを再確認する。
+
+coverage gapやpartial Health等はprojectUnknownsとして別に残し、retrieval missやpremiseへ変換しない。
+
+このplanはArchitecture上のContext Egress Plannerへ接続する候補であり、Durable Semantic Coreの新しいrecord typeではない。
