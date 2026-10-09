@@ -17,9 +17,9 @@ review
 blocked
 ```
 
-TEIが`premise`と返しても、consumer境界で次が見つかればfail closedします。
+TEIが`premise`と返しても、consumer境界で次が見つかればfail closedします。SEIはその際も、元Projectionが持つ独立signalをroute一つへ畳みません。content provenance、ingestion actor、confirmation、review binding、context compatibility、freshness、lifecycle、Conflict、target bindingをrouting結果へそのまま残します。
 
-- metadataがpartial / absent
+- premiseとして渡された情報のmetadataがpartial / absent
 - targetがambiguous / detached
 - contextがunknown / incompatible
 - lifecycleがactiveではない
@@ -28,6 +28,8 @@ TEIが`premise`と返しても、consumer境界で次が見つかればfail clos
 - Conflictがpresent
 
 `reanchored`はpremiseとして利用できる場合がありますが、semantic identityを証明したことにはせず、別signalとして残します。
+
+metadataがpartial / absentでも、TEIがもともと`candidate-only`として返した情報まで一律に人間reviewへ昇格させません。candidateのまま保持し、critical dependencyや明示的review requestが存在するときに別経路でescalateします。これにより、安全側の境界を保ちながら不要な人間確認を増やしません。
 
 ## Health / coverage
 
@@ -64,3 +66,43 @@ CLIはraw TEI Projectionと、このevaluation fixtureのような`{"projection"
 
 Issue: #660
 Cross-repo parent: hat47x/tei-platform#958
+
+
+## Context Egress Plan
+
+routing guardの次段として、AI / external Providerへ送るcontextを組み立てる前のreference-only planを追加した。
+
+TEI Projectionはepistemic signalとassertion identityを返すが、assertion本文、完全なEvidence、元Contextを常時複製しない。このためSEIがProjectionだけから本文contextを生成すると、source reconstructionやaccess controlを推測することになる。
+
+Referenceでは次のlaneへassertion参照を分離する。
+
+- premiseReferences
+- candidateReferences
+- reviewReferences
+- blockedReferences
+
+premise以外をpremise laneへ混ぜない。candidateは候補のまま、review / blockedは通常context premiseとして扱わない。
+
+各参照はmeaningFingerprint / reviewSubjectFingerprint / reviewLogSequence等のreceiptと独立epistemic signalを保持するが、本文・Evidence・元Contextは含めない。実contentの取得は後続resolverへ委ね、そこでaccessとbindingを再確認する。
+
+coverage gapやpartial Health等はprojectUnknownsとして別に残し、retrieval missやpremiseへ変換しない。
+
+このplanはArchitecture上のContext Egress Plannerへ接続する候補であり、Durable Semantic Coreの新しいrecord typeではない。
+
+
+## Prompt control authorityとの分離
+
+Context Egress Planへ選ばれた情報も、AIへのcontrol instructionではない。
+
+TEIのstatement kindに`instruction`が存在しても、それは情報の働きの分類であり、retrieved contentへprompt control authorityを与えない。外部文書やAI生成物に命令文が含まれても同じ。
+
+egress referenceはlaneごとに次のcontent roleを持つ。
+
+- premise-data
+- candidate-data
+- review-data
+- blocked-audit
+
+すべて`controlAuthority=false`とする。後続resolverが本文を取得するときも、contentをsystem / developer instructionへ変換せず、delimiter付きdataとして扱う必要がある。
+
+この境界はepistemic reliabilityとprompt injection耐性を混同しないためのもの。human-confirmedな文章であっても、それだけでAI control authorityは得ない。

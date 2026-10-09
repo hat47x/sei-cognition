@@ -17,6 +17,7 @@ from typing import Any
 INPUT_CONTRACT = "tei.epistemic-projection/v0"
 INPUT_SCHEMA = "tei.reference.epistemic-assessment/v0"
 OUTPUT_SCHEMA = "sei.epistemic-routing-evaluation/v0"
+EGRESS_PLAN_SCHEMA = "sei.context-egress-plan-evaluation/v0"
 
 ALLOWED_USE_STATES = {"premise", "candidate-only", "review-required", "blocked"}
 ALLOWED_METADATA_STATES = {"complete", "partial", "absent"}
@@ -149,12 +150,24 @@ def validate_projection(projection: dict[str, Any]) -> None:
             )
 
         _require_string(
+            assessment.get("contentOrigin"),
+            f"assessments[{index}].contentOrigin",
+        )
+        _require_string(
+            assessment.get("ingestedBy"),
+            f"assessments[{index}].ingestedBy",
+        )
+        _require_string(
             assessment.get("statementKind"),
             f"assessments[{index}].statementKind",
         )
         _require_string(
             assessment.get("confirmationState"),
             f"assessments[{index}].confirmationState",
+        )
+        _require_string(
+            assessment.get("reviewBinding"),
+            f"assessments[{index}].reviewBinding",
         )
         _require_string(
             assessment.get("lifecycleState"),
@@ -281,7 +294,12 @@ def route_assessment(assessment: dict[str, Any]) -> dict[str, Any]:
         route = "blocked"
         sei_reasons.append("SEI_ASSERTION_FRESHNESS_BLOCKED")
     elif assessment["metadataState"] != "complete":
-        route = "review"
+        # Missing metadata must never pass as a premise. However, a source-side
+        # candidate does not automatically become a human-review task merely
+        # because metadata is incomplete; higher-stakes dependencies can still
+        # escalate it through Health / reviewRequests.
+        if source_use_state == "premise":
+            route = "review"
         sei_reasons.append("SEI_METADATA_NOT_COMPLETE")
     elif assessment["targetBinding"] in {"ambiguous", "detached"}:
         route = "review"
@@ -300,14 +318,100 @@ def route_assessment(assessment: dict[str, Any]) -> dict[str, Any]:
         "reviewLogSequence": assessment["reviewLogSequence"],
         "route": route,
         "sourceUseState": source_use_state,
+        "contentOrigin": assessment["contentOrigin"],
+        "ingestedBy": assessment["ingestedBy"],
         "statementKind": assessment["statementKind"],
         "confirmationState": assessment["confirmationState"],
+        "reviewBinding": assessment["reviewBinding"],
         "metadataState": assessment["metadataState"],
         "targetBinding": assessment["targetBinding"],
+        "contextCompatibility": assessment["contextCompatibility"],
+        "freshness": assessment["freshness"],
+        "lifecycleState": assessment["lifecycleState"],
+        "conflict": assessment["conflict"],
         "targetReanchored": assessment["targetBinding"] == "reanchored",
         "inferredContextUsed": bool(assessment.get("inferredContextUsed", False)),
         "sourceReasons": sorted(set(reasons)),
         "seiReasons": sorted(set(sei_reasons)),
+    }
+
+
+def _egress_reference(
+    route: dict[str, Any],
+    content_role: str,
+) -> dict[str, Any]:
+    """Return an access-neutral data reference, never prompt control."""
+    return {
+        "assertionId": route["assertionId"],
+        "contentRole": content_role,
+        "controlAuthority": False,
+        "meaningFingerprint": route["meaningFingerprint"],
+        "reviewSubjectFingerprint": route["reviewSubjectFingerprint"],
+        "reviewLogSequence": route["reviewLogSequence"],
+        "contentOrigin": route["contentOrigin"],
+        "statementKind": route["statementKind"],
+        "confirmationState": route["confirmationState"],
+        "reviewBinding": route["reviewBinding"],
+        "metadataState": route["metadataState"],
+        "targetBinding": route["targetBinding"],
+        "contextCompatibility": route["contextCompatibility"],
+        "freshness": route["freshness"],
+        "lifecycleState": route["lifecycleState"],
+        "conflict": route["conflict"],
+    }
+
+
+def build_context_egress_plan(
+    routes: list[dict[str, Any]],
+    unknowns: list[dict[str, Any]],
+    escalations: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Build a reference-only context plan from already fail-closed routes.
+
+    The TEI projection does not carry assertion text, source content, or the
+    complete access-controlled Evidence surface. Therefore this function
+    selects references only. A later resolver must re-check access and the
+    binding receipts before loading content.
+    """
+    lanes: dict[str, list[dict[str, Any]]] = {
+        "premiseReferences": [],
+        "candidateReferences": [],
+        "reviewReferences": [],
+        "blockedReferences": [],
+    }
+    lane_by_route = {
+        "premise": ("premiseReferences", "premise-data"),
+        "candidate": ("candidateReferences", "candidate-data"),
+        "review": ("reviewReferences", "review-data"),
+        "blocked": ("blockedReferences", "blocked-audit"),
+    }
+    for item in routes:
+        lane = lane_by_route.get(item["route"])
+        if lane is None:
+            raise ValueError(f"unsupported routed lane: {item['route']!r}")
+        lane_name, content_role = lane
+        lanes[lane_name].append(_egress_reference(item, content_role))
+
+    for values in lanes.values():
+        values.sort(key=lambda item: item["assertionId"])
+
+    return {
+        "schema": EGRESS_PLAN_SCHEMA,
+        **lanes,
+        "projectUnknowns": [dict(item) for item in unknowns],
+        "escalations": [dict(item) for item in escalations],
+        "contentResolution": {
+            "required": True,
+            "reason": "routing projection contains references and epistemic signals, not assertion content",
+        },
+        "authorityLimits": [
+            "egress-plan-selects-references-not-content",
+            "candidate-reference-is-not-premise",
+            "review-and-blocked-references-are-not-context-premises",
+            "content-resolution-must-recheck-access-and-binding",
+            "epistemic-statement-kind-does-not-grant-prompt-control-authority",
+            "resolved-content-must-remain-delimited-data-not-control-instruction",
+        ],
     }
 
 
@@ -394,6 +498,8 @@ def route_projection(projection: dict[str, Any]) -> dict[str, Any]:
         )
     )
 
+    context_egress_plan = build_context_egress_plan(routes, unknowns, escalations)
+
     return {
         "schema": OUTPUT_SCHEMA,
         "sourceContract": projection["contract"],
@@ -407,6 +513,7 @@ def route_projection(projection: dict[str, Any]) -> dict[str, Any]:
         "routes": routes,
         "unknowns": unknowns,
         "escalations": escalations,
+        "contextEgressPlan": context_egress_plan,
         "authorityLimits": [
             "sei-routing-does-not-assert-objective-truth",
             "sei-routing-does-not-grant-decision-or-write-authority",
