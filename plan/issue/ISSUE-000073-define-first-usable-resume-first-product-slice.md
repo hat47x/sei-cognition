@@ -3,7 +3,7 @@
 Status: **Open**  
 Priority: **1**  
 Related ADRs: **ADR-0005, ADR-0010, ADR-0028, ADR-0029**  
-Updated: 2026-10-07
+Updated: 2026-10-09
 
 ## Goal
 
@@ -208,6 +208,8 @@ Question 5、6、9については、Requirement auditとREQ-0023 / SCN-0019のfo
 - `tools/capture_issue_000073_resume_first_evidence.py`: runner → verifier → Evidence保存を一命令でfail-closedに連結する標準入口あり
 - `tools/bootstrap_issue_000073_resume_first_evidence.sh`: Go 1.25.xがhostにない場合、事前配置済みGo 1.25.xまたはSHA-256固定済みGo 1.25.14 Linux / amd64 archiveからtoolchainをcheckout外へ準備し、既存captureへ渡す入口あり。**bootstrap追加はE1〜E8 PASSを意味しない**
 - bootstrap mechanics: exact committed script blobに対する`bash -n`、事前配置Go 1.25.xのcapture受け渡し、dirty-tree拒否、`--go`迂回拒否をsynthetic Git repositoryで**PASS**。Evidenceは`evaluation/personal-inquiry-decision/evidence/issue-000073/go125-bootstrap-mechanics-2026-10-07.json`。archive materializationとE1〜E8 actual実行は未検証
+- `tools/prepare_issue_000073_external_execution_bundle.py`: private GitHubへ接続できない外部実行環境へ、canonical commit identityを保ったclean sourceを渡すGit bundle handoff入口あり。clean HEAD、独立に与えるexpected HEAD、repository外outputを要求し、bundleを`git bundle verify`とSHA-256 manifestで検査する
+- external handoff mechanics: preparer / self-testの**exact committed Git blob**をmaterializeし、exact HEAD clone、expected HEAD不一致拒否、dirty source拒否、repository内output拒否、明示`--replace`制御を**5/5 PASS**。Evidenceは`evaluation/personal-inquiry-decision/evidence/issue-000073/external-execution-bundle-mechanics-2026-10-09.json`。actual SEI repository bundle作成、外部node clone、E1〜E8 actual実行は未検証
 - runner preflight self-test: **PASS on canonical-HEAD-bound current source (2026-09-18); machine-readable delta Evidence recorded**
 - verifier self-test: **PASS on canonical-HEAD-bound current source (2026-09-18); machine-readable delta Evidence recorded**
 - capture workflow: **historical full self-test PASS retained; canonical-HEAD deltaは8 case actual + same-output focused preflight actualで確認 (2026-09-18)**
@@ -234,6 +236,7 @@ evaluation/personal-inquiry-decision/evidence/issue-000073/h2-runner-capture-hea
 evaluation/personal-inquiry-decision/evidence/issue-000073/go-toolchain-acquisition-blocker-2026-09-18.json
 evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8-canonical-head-binding-selftests-2026-09-18.json
 evaluation/personal-inquiry-decision/evidence/issue-000073/go125-bootstrap-mechanics-2026-10-07.json
+evaluation/personal-inquiry-decision/evidence/issue-000073/external-execution-bundle-mechanics-2026-10-09.json
 ```
 
 これらはrunner / verifier / captureの受入れ系に限定したExecutable Evidenceであり、E1〜E8 actual Go Evidenceではない。currentの実行手順とblocker詳細は`evaluation/personal-inquiry-decision/DECISION_CONTINUITY_EXECUTION_READINESS_2026-09-16.md`をcurrent-state正本として参照する。
@@ -295,6 +298,52 @@ bootstrap path available
   != E1-E8 actual PASS
   != H1 / H2 human review
   != Decision Continuity Product Value established
+```
+
+
+### External exact-source handoff — 2026-10-09
+
+実行nodeがprivate GitHubへ接続できない場合でも、canonical commitを別のsource snapshotへ置き換えずにE1〜E8へ進めるため、Git bundleによるhandoffを追加した。
+
+```text
+tools/prepare_issue_000073_external_execution_bundle.py
+```
+
+clean checkoutで、checkout外から取得したcanonical expected HEADを指定して実行する。
+
+```bash
+python3 tools/prepare_issue_000073_external_execution_bundle.py \
+  --expected-head <canonical-commit-sha> \
+  --output-dir <outside-repository-directory>
+```
+
+preparerは、source HEADとexpected HEADの一致、clean working tree、repository外outputを確認し、次を一組として作る。
+
+```text
+*.gitbundle
+*.manifest.json
+*.SHA256SUMS
+```
+
+外部nodeでは`.gitbundle`からcloneし、HEAD一致を確認してから既存bootstrap / captureを実行する。これにより、private GitHub credentialやnetwork接続をProduct semanticsやEvidence成立条件へ持ち込まず、Git commit identityはそのまま維持できる。
+
+```text
+canonical clean checkout
+  → exact Git bundle
+  → transport
+  → external clone
+  → exact HEAD verification
+  → Go 1.25.x bootstrap / capture
+  → e1-e8.json + e1-e8-verification.json
+```
+
+2026-10-09にはpreparerとself-testのexact committed Git blobをmaterializeし、synthetic Git repositoryで5件をactual実行して5/5 PASSした。ただしactual SEI repositoryのclean checkoutからbundleを生成したわけではなく、外部nodeでreal bundleをcloneしてE1〜E8を実行したEvidenceでもない。
+
+```text
+handoff mechanics PASS
+  != actual SEI bundle prepared
+  != external clone executed
+  != E1-E8 actual PASS
 ```
 
 H2については2026-09-18に実行経路を再監査し、`inquiry_continuity_review_runner.py`を073/078共通のprovenance-first入口としてDecision Continuityにも対応させた。reviewer provenanceを固定しないsessionからreviewer bundleを開かず、condition labelをreviewerへ出さず、Decision固有response validationを通したcomplete sessionだけをEvidence exportへ進める。
@@ -495,8 +544,10 @@ Plan / document整合は、変更範囲に応じて`plan/scripts/check_plan_regi
 python3 tools/test_run_issue_000073_resume_first_evidence.py
 python3 tools/test_verify_issue_000073_resume_first_evidence.py
 python3 tools/test_capture_issue_000073_resume_first_evidence.py
+python3 tools/test_prepare_issue_000073_external_execution_bundle.py
 python3 tools/capture_issue_000073_resume_first_evidence.py --expected-head <canonical-commit-sha>
 bash tools/bootstrap_issue_000073_resume_first_evidence.sh --expected-head <canonical-commit-sha>
+python3 tools/prepare_issue_000073_external_execution_bundle.py --expected-head <canonical-commit-sha> --output-dir <outside-repository-directory>
 python3 tools/test_capture_issue_000073_h2_runner_selftest.py
 python3 tools/capture_issue_000073_h2_runner_selftest.py --expected-head <canonical-commit-sha>
 python3 evaluation/personal-inquiry-decision/test_decision_continuity_review_runner.py
@@ -514,6 +565,8 @@ python3 tools/verify_issue_000073_resume_first_evidence.py <evidence-record.json
 runner / captureはcheckout外で独立に取得したcanonical expected HEADとの完全一致、clean committed HEAD、required sourceとHEAD blobの一致、Go 1.25.xをpreconditionとする。verifierもEvidence record内の`expected_head == head`と`head_matches_expected=true`を必須にする。preconditionを満たせずblockedとなった場合はrepository test failureともPASSとも扱わない。2026-09-18の実行環境ではhost Go 1.23.2であり、Go自身のtoolchain自動取得はnetwork / DNS制限でblockedだった。2026-10-07にGo 1.25.x bootstrap入口を追加してrepository tooling上の取得経路を具体化したが、この入口によるactual E1〜E8 runはまだ記録していないため、Evidence状態はNot Yet Verifiedのまま保持する。
 
 runner preflight / verifier / capture workflowについては、current sourceに対する2026-09-18 actual self-test PASSをmachine-readable Evidenceへ固定済みである。ただしこれはEvidence受入れ経路の検証であり、Go 1.25.xで`interactionprobe`を実行したEvidenceへは昇格させない。
+
+2026-10-09のexternal handoff self-testは、preparer / test sourceのGit blob SHA-1とSHA-256をGitHub上のcurrent sourceへ照合したうえで、exact blob materialization上で5件を実行し5/5 PASSした。これはGit bundle transport / fail-closed mechanicsのExecutable Evidenceであり、actual SEI checkoutからのbundle生成やGo 1.25.x interactionprobe実行には昇格させない。
 
 H2 shared runnerのDecision経路には`test_decision_continuity_review_runner.py`があり、blinding、declared provenance、stage gate、Decision固有response validation、Evidence layer分離に加え、current repository manifest / fixtureを直接開くintegration caseも回帰test sourceとして固定している。
 
@@ -551,3 +604,5 @@ H2についても同日、073専用の別runnerを増やさず、既存Inquiry C
 SEIのsemantic integrityが高いだけではProduct Valueとせず、historical誤帰属、Recommendation / Decision混同、再構成負担を実際に減らし、その利益がcapture / review overheadを上回るかまでを見る。価値差がない結果もProduct hypothesisを修正する正当なEvidenceとして扱う。意味、要求強度、留保、Evidenceの高さを固定したうえで自然な日本語として読み直し、最終意味監査を実施した。
 
 2026-10-02には、ADR-0035（Proposed）に沿って、H2の解釈規則へ、主な指標（誤帰属、誤った昇格、プロバイダ交換後の継続）と副次の指標（再開の速さ等）の重みづけを提案として追記した。Resolution条件とEvidenceの高さは変えていない。
+
+2026-10-09には、private GitHubへの接続可否とsource identityを分離するため、Git bundleによるexternal exact-source handoffを追加した。exact committed sourceで5件のmechanics testを実行し、同一HEADへのcloneと、expected HEAD不一致・dirty source・repository内output・暗黙上書きの拒否を確認した。実行環境のtransportを改善しただけであり、E1〜E8、H1 / H2、Decision Continuity Product ValueのEvidence強度は引き上げていない。自然な日本語として読み直し、既存の停止線と規範強度が変わっていないことを確認した。
