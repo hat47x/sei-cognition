@@ -1,7 +1,7 @@
 # SEI Cognition — Emergent Cognitive Architecture
 
-更新日: 2026-09-18  
-状態: **Evaluation-only Architecture Hypothesis**  
+更新日: 2026-10-02  
+状態: **Evaluation-only Architecture Hypothesis（§7.1 / §7.2 / §16の追記は ADR-0035 Proposed による提案・比喩由来の仮説）**  
 関連: Issue #381 / #371 / #375 / #378
 
 ## 1. 根幹の趣旨
@@ -22,6 +22,8 @@ SEI Cognition
   + method / model coordination
   + outcome-informed adaptation
 ```
+
+**【読み方の注記・ADR-0035 Proposed】** ここでいうCognitive Control Planeは、attention / routing / escalationの**仕組み**の集まりとして読みます。仕組みは交換可能なRealizationまたはProfileであり、SEIのProduct文書が描く「耐久的な意味の台帳」と矛盾しません。制御の判断の意味はCoreに残す意味として扱います（§7.1）。SEIは固定pipelineでも中央の頭脳でもありません。
 
 中核価値は「賢い一回の応答」ではなく、個人・組織が日常系から例外系まで、**必要なときに必要な認知を起動し、認識状態を壊さず、行為と結果まで含めて学習可能な循環を維持すること**にある。
 
@@ -256,6 +258,25 @@ explainability
 ```
 
 最近のLLM routing研究でも、弱いmodelから始めて品質が不足した場合に強いmodelへescalateするcascadeが有効であることが示されている。SEI Cognitionではその考え方をmodelだけでなくMethod / Tool / Compute Tierまで拡張する。
+
+### 7.1 制御の仕組みと制御の判断の意味（提案 — ADR-0035）
+
+上のrouterとCognitive Control Planeは、ADR-0035（Proposed）の規則で読みます。routing、escalation、attentionの配分といった**仕組み**は、交換可能なRealizationまたはProfileです。何を見て、何を意図的に見送り、どのMethodやモデルをなぜ選び、何を保留または上位へ回したかという**判断の意味**は、Coreに残す意味として扱います。
+
+```text
+control mechanism = Realization / Profile
+meaning of a control decision = Coreに残す意味
+router choice != semantic confidence
+```
+
+### 7.2 予期された不確実性と予期しない不確実性（比喩由来の仮説）
+
+神経系の比喩から、次の問いが生じます。これは**比喩由来の仮説**（CSWの用語では`framework_generated`であり、対象で支持された`target_supported`ではない）であり、対象で確かめるまでは要件にも型にもしません。
+
+- **予期された不確実性**（既に認めているUnknown）と、**予期しない不確実性**（想定外のConflictやnovelty）を、別の注意信号として扱えるか。前者は予定された再訪へ、後者はChallenge Path（§16）へ向ける。出典の着想はYu & Dayan (2005)。
+- 判断の時点で「正しければ何が観測されるはずか」を**期待の記録**として残し、外れた観測を見直しの引き金にできるか。これは既存のreopen conditionで表せる可能性があり、ISSUE-000086で既存契約の組合せとして試す。
+
+注意信号の具体的な形や、期待の記録のschemaは、ここでは定めません。
 
 ## 8. SACSの位置づけを再確認する
 
@@ -509,6 +530,8 @@ human / stronger reasoner if needed
 これは認知の健全性を保つ仕組みになり得る。
 
 SACS noveltyはChallenge起動の一Signalになれるが、Unknownそのものではない。
+
+**【比喩由来の仮説・ADR-0035】** 葛藤の監視（Botvinick et al. 2001）の考え方に近く、Conflictやnoveltyなど「予期しない不確実性」はChallenge Pathを起動する信号に、Unknownなど「予期された不確実性」は予定された再訪の対象にする、という分け方を試せます。また、期待の記録（§7.2）が外れた観測は、Challenge Pathまたはreopen conditionの入口になり得ます。いずれも評価仮説であり、Stable Requirementや型の根拠ではありません。エピソードからパターンを取り出すときにエピソードを書き換えない、という相補的学習系（McClelland et al. 1995）の着想も、Pattern / Cognitive MethodとDecisionの区別を考える手がかりに留まります。
 
 ## 17. Cognitive Commonsとしての組織価値
 

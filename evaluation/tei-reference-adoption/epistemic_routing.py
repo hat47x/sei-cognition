@@ -30,14 +30,29 @@ ALLOWED_TARGET_BINDINGS = {
 ALLOWED_CONTEXT_COMPATIBILITY = {"compatible", "incompatible", "unknown"}
 ALLOWED_FRESHNESS = {"current", "stale", "not-yet-valid", "unknown"}
 ALLOWED_CONFLICT = {"none", "inactive", "present"}
+ALLOWED_RESOLUTION_COVERAGE_STATES = {
+    "not-configured",
+    "unknown",
+    "insufficient-sample",
+    "healthy",
+    "attention",
+}
 
 REQUIRED_AUTHORITY_LIMITS = {
     "assessment-does-not-assert-objective-truth",
     "assessment-does-not-grant-canonical-acceptance",
+    "reviewer-candidate-is-not-review-authority",
+    "content-fingerprint-does-not-restore-review-history",
+    "meaning-fingerprint-is-input-not-semantic-proof",
+    "assessment-does-not-grant-write-or-runtime-authority",
     "target-anchor-resolution-does-not-prove-semantic-identity",
     "coverage-mapping-is-input-not-semantic-completeness-proof",
+    "resolution-coverage-is-operational-readiness-not-truth-ratio",
     "partial-transport-health-is-not-project-wide-health",
     "review-history-is-bounded-by-context-as-of",
+    "review-binding-includes-context-kind-and-target-identity",
+    "review-binding-includes-validity-window",
+    "checked-at-is-bound-to-current-subject",
 }
 
 
@@ -184,6 +199,48 @@ def validate_projection(projection: dict[str, Any]) -> None:
             raise ValueError(
                 f"health.coverage.areas[{index}].state must be mapped or gap"
             )
+
+    resolution_coverage = health.get("resolutionCoverage")
+    if resolution_coverage is not None:
+        resolution_coverage = _require_object(
+            resolution_coverage, "health.resolutionCoverage"
+        )
+        for field in (
+            "eligible",
+            "resolved",
+            "confirmed",
+            "nativePremise",
+            "rejected",
+            "unresolved",
+        ):
+            value = resolution_coverage.get(field)
+            if (
+                not isinstance(value, int)
+                or isinstance(value, bool)
+                or value < 0
+            ):
+                raise ValueError(
+                    f"health.resolutionCoverage.{field} must be a non-negative integer"
+                )
+        ratio = resolution_coverage.get("ratio")
+        if (
+            not isinstance(ratio, (int, float))
+            or isinstance(ratio, bool)
+            or ratio < 0
+            or ratio > 1
+        ):
+            raise ValueError(
+                "health.resolutionCoverage.ratio must be between 0 and 1"
+            )
+        if (
+            resolution_coverage["resolved"] > resolution_coverage["eligible"]
+            or resolution_coverage["unresolved"] > resolution_coverage["eligible"]
+            or resolution_coverage["resolved"] + resolution_coverage["unresolved"]
+            != resolution_coverage["eligible"]
+        ):
+            raise ValueError("health.resolutionCoverage counts are inconsistent")
+        if resolution_coverage.get("state") not in ALLOWED_RESOLUTION_COVERAGE_STATES:
+            raise ValueError("health.resolutionCoverage.state is unsupported")
 
     issues = health.get("issues", [])
     if not isinstance(issues, list):
@@ -345,6 +402,7 @@ def route_projection(projection: dict[str, Any]) -> dict[str, Any]:
             "sourceLevel": health.get("level", "unknown"),
             "scope": project_health_scope,
             "viewMetadataState": view_state,
+            "resolutionCoverage": health.get("resolutionCoverage"),
         },
         "routes": routes,
         "unknowns": unknowns,
@@ -355,6 +413,7 @@ def route_projection(projection: dict[str, Any]) -> dict[str, Any]:
             "semantic-similarity-does-not-upgrade-confirmation",
             "reanchored-target-is-not-semantic-identity-proof",
             "partial-health-view-is-not-project-wide-health",
+            "resolution-coverage-does-not-upgrade-routing",
         ],
     }
 

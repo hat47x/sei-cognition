@@ -1,7 +1,7 @@
 # SEI Decision Continuity — Product Value Synthesis
 
-更新日: 2026-09-18  
-状態: **Cross-axis Product Value Synthesis — Design Baseline / Executable & Human Outcome Evidence Pending**
+更新日: 2026-10-02  
+状態: **Cross-axis Product Value Synthesis — Design Baseline / Executable & Human Outcome Evidence Pending。§8の指標の重みづけは、ADR-0035（Proposed）による提案**
 
 ## 1. この文書の役割
 
@@ -207,6 +207,16 @@ B: SEI canonical stateからResume Briefで再開
 
 比較で見るのはspeedだけではありません。
 
+### 指標の重みづけ（提案・ADR-0035）
+
+一人で再開する速さは、各ベンダーの記憶機能が伸びるほど代替されやすい価値です。そのため、次の三つを**主な指標**に置きます。
+
+1. historical basisへの誤帰属
+2. AI suggestionの誤った昇格（RecommendationとDecisionの取り違えを含む）
+3. プロバイダを交換した後の継続
+
+再開までの時間、操作数、mental effortは**副次の指標**です。速くても主な指標が悪ければ、Decision Continuityの改善とは扱いません。この重みづけはISSUE-000073のH1 / H2に適用します。以下の観測項目の内容は変えていません。
+
 ### Orientation
 
 - current questionを正しく言えるか。
@@ -305,4 +315,4 @@ Adoption / Outcome Evidence: Not Yet Verified
 
 その結果、resume-firstをUI機能として独立させるのではなく、「時間・Surface・AI・Provider・情報更新をまたいで、過去を捏造せず判断の続きを始められる」というDecision Continuityへ統合した。Decision ContinuityはV1〜V8の横断Outcomeであり、V9やUniversal型へは昇格させていない。
 
-また、semantic integrityが高いだけではProduct Valueとせず、raw chat / simple note等の妥当な代替と比較して再構成負担・誤帰属・AI correction・継続利用負担に実質的な差があるかをAdoption / Outcome側の停止線とした。2026-09-18時点ではREQ-0023 / SCN-0019のDesign formalizationとE1〜E8のtest / capture基盤まで進んでいるが、actual Go 1.25.x executionはNot Yet Verified、H1 / H2はNot Yet Observed、Decision Continuity Product ValueはNot Establishedである。意味、要求強度、Evidence階層を混同しないよう再監査し、自然な日本語として全文を整えた。
+また、semantic integrityが高いだけではProduct Valueとせず、raw chat / simple note等の妥当な代替と比較して再構成負担・誤帰属・AI correction・継続利用負担に実質的な差があるかをAdoption / Outcome側の停止線とした。2026-09-18時点ではREQ-0023 / SCN-0019のDesign formalizationとE1〜E8のtest / capture基盤まで進んでいるが、actual Go 1.25.x executionはNot Yet Verified、H1 / H2はNot Yet Observed、Decision Continuity Product ValueはNot Establishedである。意味、要求強度、Evidence階層を混同しないよう再監査し、自然な日本語として全文を整えた。2026-10-02には、ADR-0035（Proposed）に沿って、主な指標（誤帰属、誤った昇格、プロバイダ交換後の継続）と副次の指標（再開の速さ等）の重みづけを§8へ提案として加えた。観測項目とEvidenceの高さは変えていない。

@@ -1,0 +1,71 @@
+{
+  "schema": "issue-000073-external-execution-runner-mechanics/v1",
+  "issue": "ISSUE-000073",
+  "observed_date": "2026-10-09",
+  "scope": "External handoff receiver/execution mechanics only. This record uses synthetic Git repositories and a synthetic bootstrap implementation. It does not establish actual SEI E1-E8 execution.",
+  "source_branch": "develop/v0.2.0",
+  "source_branch_head_at_materialization": "e407a9586ce255257b4741aa2e899b6ddb52206f",
+  "tested_sources": [
+    {
+      "path": "tools/prepare_issue_000073_external_execution_bundle.py",
+      "git_blob_sha1": "0d958156019ff4d8a156b639ad5c3a7696d6ad22",
+      "sha256": "3029fd59ed9c92ef12bf1e5dcdd673f44b2a7c84d69ca66ad0f3e945e9273cc5"
+    },
+    {
+      "path": "tools/run_issue_000073_external_execution_bundle.py",
+      "git_blob_sha1": "e4e5df0a5fc01713ac90907988f8c1694c0b0644",
+      "sha256": "8e009d573bf9f47cb91420dac1a7a778a9ae5898884aea0805a6500447a62582"
+    },
+    {
+      "path": "tools/test_run_issue_000073_external_execution_bundle.py",
+      "git_blob_sha1": "9570daf698680af689c953444d818a2ce565900e",
+      "sha256": "a69051c7482349456ef6745e3508d2597a5962d2e8675b5966c1d8d2251ec190"
+    }
+  ],
+  "execution_environment": {
+    "os": "Linux",
+    "arch": "x86_64",
+    "python": "3.13.5",
+    "git": "2.47.3"
+  },
+  "execution": {
+    "kind": "exact-committed-blob materialization",
+    "precheck": "python3 -m py_compile run_issue_000073_external_execution_bundle.py test_run_issue_000073_external_execution_bundle.py",
+    "command": "python3 -m unittest -v test_run_issue_000073_external_execution_bundle.py",
+    "result": "pass",
+    "test_count": 4,
+    "passed": 4,
+    "failed": 0
+  },
+  "checks": [
+    {
+      "id": "verified-success-path",
+      "status": "pass",
+      "observation": "A synthetic exact-source handoff bundle was validated, cloned to the exact source HEAD, passed post-clone bundle verification, and a synthetic bootstrap produced evidence/verification records that were collected as a PASS run."
+    },
+    {
+      "id": "bundle-digest-tamper",
+      "status": "pass",
+      "observation": "A same-size modified bundle was rejected by SHA-256 validation before clone/execution."
+    },
+    {
+      "id": "manifest-source-identity-tamper",
+      "status": "pass",
+      "observation": "A semantically modified expected_head was rejected even after the manifest SHA-256 entry was recomputed."
+    },
+    {
+      "id": "blocked-bootstrap",
+      "status": "pass",
+      "observation": "A synthetic bootstrap that returned status=blocked and exit code 2 was retained as blocked; no verification record was invented and the runner did not promote it to PASS."
+    }
+  ],
+  "not_executed": [
+    "actual hat47x/sei-cognition bundle preparation from a native clean checkout",
+    "actual external clone of a real SEI bundle",
+    "actual Go 1.25.x bootstrap on the external execution host",
+    "actual ISSUE-000073 E1-E8 interactionprobe execution",
+    "H1 human review",
+    "H2 human review"
+  ],
+  "stop_line": "External runner mechanics PASS != actual SEI external execution != E1-E8 actual PASS != H1/H2 human review != Decision Continuity Product Value established."
+}

@@ -115,6 +115,51 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
             )
         )
 
+    def test_resolution_coverage_does_not_upgrade_routing(self) -> None:
+        baseline = self.route()
+        projection = copy.deepcopy(self.projection)
+        projection["health"]["resolutionCoverage"] = {
+            "eligible": 10,
+            "resolved": 1,
+            "confirmed": 1,
+            "nativePremise": 0,
+            "rejected": 0,
+            "unresolved": 9,
+            "ratio": 0.1,
+            "minimumRatio": 0.8,
+            "minimumEligibleAssertions": 1,
+            "requiredResolutions": 7,
+            "state": "attention",
+            "reasons": ["PROJECT_RESOLUTION_RATIO_BELOW_POLICY"],
+        }
+        projection["health"]["level"] = "attention"
+        result = self.route(projection)
+
+        self.assertEqual(baseline["routes"], result["routes"])
+        self.assertEqual(
+            projection["health"]["resolutionCoverage"],
+            result["projectHealth"]["resolutionCoverage"],
+        )
+        self.assertIn(
+            "resolution-coverage-does-not-upgrade-routing",
+            result["authorityLimits"],
+        )
+
+    def test_invalid_resolution_coverage_fails_closed(self) -> None:
+        projection = copy.deepcopy(self.projection)
+        projection["health"]["resolutionCoverage"] = {
+            "eligible": 2,
+            "resolved": 2,
+            "confirmed": 1,
+            "nativePremise": 0,
+            "rejected": 0,
+            "unresolved": 1,
+            "ratio": 1.0,
+            "state": "healthy",
+        }
+        with self.assertRaisesRegex(ValueError, "resolutionCoverage counts are inconsistent"):
+            self.route(projection)
+
     def test_consumer_freshness_escalates_without_mutating_base_route(self) -> None:
         result = self.route()
         base = self.by_id(result, "human-reviewed")

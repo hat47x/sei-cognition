@@ -29,6 +29,7 @@
 - Cognitive Method outcome-quality evaluation: `../../evaluation/method-quality/`
 - release acceptance / evidence: `../../release/v0.2.0/`
 - ADR / Issue: `../../plan/`
+- 家族の統合の頂点の評価記録（提案。追跡の対象ではなく参考）: `SEI_FAMILY_APEX_VALUE_REVIEW.md`、`../definition/SEI_FAMILY_SEMANTIC_MAP.md`
 
 追跡表が埋まっていること自体をProduct Valueの達成とはみなしません。
 

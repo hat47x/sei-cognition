@@ -1,7 +1,7 @@
 # SEI Product Value
 
-更新日: 2026-09-18  
-状態: **Product Value Baseline — Decision Continuity / Brand-world discovery synthesis reflected**
+更新日: 2026-10-02  
+状態: **Product Value Baseline — Decision Continuity / Brand-world discovery synthesis reflected。§1 / §3.10 / §7の家族の統合の頂点とコミットメントの言い直しは、ADR-0035（Proposed）による再基線化の提案**
 
 ## 1. SEIが存在する理由
 
@@ -14,6 +14,12 @@ SEIの価値は、処理を大量に自動化すること自体にはありま�
 SEIは、すでに形になったKnowledgeやDecisionだけを保管する基盤でもありません。まだ十分に言葉になっていないObservation、違和感、問い、Hypothesis候補、相反する見方のような**未確定な認知材料を、早まってTruthへ昇格させず、後から問い直せる形へ外在化できること**も重視します。ここで重要なのは曖昧さを神秘化することではなく、何が確定しておらず、どの段階の認識なのかを失わないことです。
 
 また、その認知成果を一人のworking memory、一つのAI session、一つのProviderへ閉じ込めないことを目指します。ただし共有可能性は無制限公開を意味しません。Product Access、Selective Disclosure、Responsibility、Authority等の境界を保ったまま、許された主体が必要な認知状態へ戻れることを価値とします。
+
+**【提案・ADR-0035】価値の中心を一文で言い直すと、次のようになります。**
+
+> SEIは、人とAIと組織が交わす「判断と認識のコミットメント」を、手段が入れ替わっても失われない形で記録し、そこから判断の続きを始められるようにする。
+
+コミットメントには、決定、委任、未解決の受容、根拠の束縛、期待、見直しの約束、注意の範囲が含まれます。このうち決定、未解決の受容、根拠の束縛、見直しの約束は現在の契約で扱えます。委任、期待、注意の範囲、そして消去と系譜の両立は、既存の契約の組合せで表せるかをISSUE-000086で試す段階であり、現時点では受け皿が明確ではありません。この言い直しは新しいValue AxisやUniversal型ではなく、V1〜V8の意味も変えません。評価の経緯は`SEI_FAMILY_APEX_VALUE_REVIEW.md`にあります。
 
 この文書は「SEIがなぜ存在するか」と「何を価値として守るか」を定めます。価値同士が衝突したときの優先関係、Universal Coreへ含める基準、Product Valueを満たしたと判断するための検証観点は`SEI_VALUE_MODEL.md`で、実際にどのEvidenceをもって満たしたと判断するかは`SEI_VALUE_ACCEPTANCE.md`で具体化します。Decision Continuityの横断的な価値仮説と反証条件は`SEI_DECISION_CONTINUITY.md`で扱います。ブランド世界から得た洞察のsourceと採否判断は`../vision/SEI_BRAND_WORLD_SOURCE.md`と`SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md`に分離して記録します。
 
@@ -153,6 +159,8 @@ AIエージェントが業務を遂行する場合も、SEIとTEIの責務は分
 
 ただし、隣接Productの内部概念を「関係が深いから」という理由でSEI Universal Coreへ複製しません。各Productの価値・権限・Evidence claimは、それぞれのリポジトリを正本とします。
 
+**【提案・ADR-0035】家族に対するSEIの役割。** SEIは、製品ファミリーの「統合の頂点」として、次の三つの意味に限って位置づけます。抽象の頂点（各製品に固有の判断の意味を、より一般的な語へ翻訳できる）、時間の頂点（家族の中で最も長く生きる記録を持つ）、統合の頂点（製品をまたいだ認知を時間を通して再構成できる、任意の合流先）です。指揮の頂点、所有の頂点、可用性の頂点は採りません。SEIから他の製品への信号は依頼であり、受け取った製品が自らの権限で判断します。どの製品の局所ループも、SEIの稼働を必要としません。これは「central AI brainではない」「固定pipelineではない」「関連製品を特権化しない」という上記の原則を、変えずに維持するものです。参考の対応表は`../definition/SEI_FAMILY_SEMANTIC_MAP.md`にあります。
+
 ## 4. Product Valueと下位設計の境界
 
 Product Valueは、現在の実装で何が作れるかを列挙する文書ではありません。また、Product Valueの文言から個別のRequirementやUniversal型を機械的に生成しません。
@@ -233,6 +241,8 @@ SEIが守るべき中心は、それらの仕組みではなく、**認識、問
 
 この「続きを始められる」は、過去を最新知識で書き換えることでも、AIにすべて覚えさせることでもありません。耐久的な意味を外在化し、必要な時点で正しい文脈を再構成できることです。
 
+**【提案・ADR-0035】基盤モデルが強くなるほど、この中心の価値は上がると考えます。** 権限や決定は、宣言と記録によって成り立つ制度的な事実（Searle 1995）であり、観察からは推論できません。当時の認識も、判断の後に情報が増えると読み替えられやすく（後知恵バイアス、Fischhoff 1975）、時刻の索引がない資料からは確実に切り分けられません。その時点で記録されなかったコミットメントは、未来のどんなモデルにも復元できません。一方、文脈の圧縮、要約の生成、安価な想起、節約のためのルーティングのように、モデルの弱さを補う仕組みは、進歩とともに薄くなる可能性があります。この見立ては仮説であり、人による価値評価を経ていません。
+
 期限を持たないProduct Milestoneは、この中心価値が製品としてどこまで成立したかを確認するために使います。Milestone自体をProduct Valueより上位に置きません。
 
 ## 8. 関連文書
@@ -243,6 +253,8 @@ SEIが守るべき中心は、それらの仕組みではなく、**認識、問
 - `product/value/SEI_DECISION_CONTINUITY.md` — V1〜V8を判断継続性というcross-axis Product Outcomeへ接続する価値仮説
 - `product/vision/SEI_BRAND_WORLD_SOURCE.md` — 「井」のブランド世界をProduct探索へ利用する非規範source
 - `product/value/SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md` — ブランド世界から得たProduct hypothesisの採否・配置判断
+- `product/value/SEI_FAMILY_APEX_VALUE_REVIEW.md` — 家族の統合の頂点とコミットメントの言い直しの評価記録（提案）
+- `product/definition/SEI_FAMILY_SEMANTIC_MAP.md` — 家族の判断の意味論の参考対応表
 - `product/definition/SEI_PRODUCT_SHAPE.md` — 製品としての外形
 - `product/vision/SEI_PRODUCT_VISION.md` — 長期的に目指す利用状態
 - `product/principles/SEI_PRODUCT_PRINCIPLES.md` — 下位設計で反復して適用する原則
@@ -257,5 +269,7 @@ Value Model、Value Acceptance、Value Proposition、Decision Continuity、ブ�
 従来のProduct Valueは「何を意味として失わないか」と「判断をどう継続するか」を強く定義していた。今回、そこへ「まだ形を得ていない認知材料を早まってTruthへ昇格させず扱えること」と「認知成果を一人・一AI・一Providerの一時状態へ閉じず、Access / Responsibilityを保って引き継げること」を統合した。
 
 これらを新しいValue AxisやUniversal型として追加せず、current V1〜V8が利用世界でどのように現れるかを深める表現として扱う。また、Quiet InfrastructureはProduct Valueの実証済み特性ではなく、attention burdenとproactive valueをactualに比較すべきDesign hypothesisとして留保した。
+
+2026-10-02には、ADR-0035（Proposed）に沿って、価値の中心を「判断と認識のコミットメント」の記録として言い直す提案、家族に対する統合の頂点としての役割、基盤モデルが強くなるほど価値が上がる理由の仮説を、§1、§3.10、§7へ加えた。いずれも提案であり、新しいValue Axis、Universal型、Requirementは追加せず、V1〜V8の意味も変えていない。製品の所有者のレビューを経るまで、確定した価値としては扱わない。
 
 意味、規範強度、Evidence階層を変えず、自然な日本語として全文を再監査した。
