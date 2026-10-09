@@ -12,13 +12,13 @@ import (
 )
 
 type RuntimeModelMappingEvidence struct {
-	Status        string \`json:"status"\`
-	ObservedAt    string \`json:"observed_at,omitempty"\`
-	PID           int    \`json:"pid,omitempty"\`
-	ModelFileName string \`json:"model_file_name,omitempty"\`
-	Source        string \`json:"source,omitempty"\`
-	MappingCount  int    \`json:"mapping_count,omitempty"\`
-	Error         string \`json:"error,omitempty"\`
+	Status        string `json:"status"`
+	ObservedAt    string `json:"observed_at,omitempty"`
+	PID           int    `json:"pid,omitempty"`
+	ModelFileName string `json:"model_file_name,omitempty"`
+	Source        string `json:"source,omitempty"`
+	MappingCount  int    `json:"mapping_count,omitempty"`
+	Error         string `json:"error,omitempty"`
 }
 
 func ObserveRuntimeModelMapping(pid int, modelFilePath string) RuntimeModelMappingEvidence {

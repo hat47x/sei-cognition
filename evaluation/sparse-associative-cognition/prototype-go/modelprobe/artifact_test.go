@@ -202,7 +202,7 @@ func TestBuildActualRunArtifactRejectsTelemetrySchemaDrift(t *testing.T) {
 
 
 func TestValidateActualRunArtifactRejectsLegacyV0Schema(t *testing.T) {
-	artifact := completeArtifactForTest(t, ModeRaw)
+	artifact := makeArtifact(t, ModeRaw)
 	artifact.Schema = legacyActualRunArtifactSchema
 
 	if err := validateActualRunArtifact("raw", artifact); err == nil {
