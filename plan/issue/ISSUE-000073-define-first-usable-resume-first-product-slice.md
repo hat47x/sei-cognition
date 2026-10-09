@@ -196,7 +196,7 @@ Question 5、6、9については、Requirement auditとREQ-0023 / SCN-0019のfo
 - Research EvidenceをSEI Product Evidenceへ読み替えない。
 - ISSUE-000072のTEI version-exchange Evidenceとは独立して扱う。
 
-## Current implementation / Evidence status — 2026-09-18
+## Current implementation / Evidence status — 2026-10-09
 
 現在はDesign baselineだけの段階から、E1〜E8を再現するGo interaction probeと、runner・verifier・one-command captureを持つ段階へ進んでいる。ただし、sourceや受入れtoolingの存在とactual E1〜E8実行結果は分ける。
 
@@ -533,10 +533,10 @@ SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw 
 9. Candidate Requirementをexisting REQ / SCNへ再照合し、Stable Requirement追加の要否を決定する。
 10. 実装方式固有のlocal browser / protocol / AI model等をUniversal semanticsへ持ち込んでいない。
 
-### Current resolution status — 2026-09-18
+### Current resolution status — 2026-10-09
 
 - 条件1、2、9、10: **Design / Requirement auditの範囲では成立**。
-- 条件3〜5: E1〜E8のprobe / test sourceとrunner / verifier / captureはある。runner / verifierのcanonical-HEAD-bound current source self-testはactual PASSし、captureのcanonical-HEAD deltaもsplit executionで確認済みだが、**actual Go 1.25.x E1〜E8実行結果はNot Yet Verified**。受入れtoolingのPASSやsource存在だけで条件3〜5の成立扱いにしない。
+- 条件3〜5: E1〜E8のprobe / test sourceとrunner / verifier / captureに加え、Go 1.25.x bootstrapとexternal exact-source handoffの送受信mechanicsまで実体化した。受入れ系self-testとhandoff mechanicsは限定範囲でPASSしているが、**actual Go 1.25.x E1〜E8実行結果はNot Yet Verified**。tooling / transport mechanicsのPASSやsource存在だけで条件3〜5の成立扱いにしない。
 - 条件6〜8: H1 / H2とProduct Valueのcounterfactual observationは**Not Yet Observed**であり、未成立。H2のprovenance-first共通runnerとDecision-specific validationは実装済みだが、reviewer response未取得のため条件7を満たしたとは扱わない。
 
 したがってStatusは**Open**を維持する。Design文書が完成したこと、REQ-0023 / SCN-0019をformalizeしたこと、probe sourceやEvidence受入れtoolingを実装したことだけではResolvedにしない。prototypeが技術的にPASSした場合も、それだけでDecision ContinuityのAdoption / Outcome Evidenceが成立したことにはしない。
