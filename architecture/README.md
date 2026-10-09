@@ -40,12 +40,12 @@ architecture/
 ```
 
 - `SEI_REFERENCE_ARCHITECTURE.md` — 現行のSEI全体を示す参照構成。
-- `SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md` — ISSUE-000073のresume-first Product Sliceについて、canonical / derived / transient / external state authority、working set、Resume Projection、AI suggestion、semantic commit、stale-write / partial-commit境界を定義する。
+- `SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md` — ISSUE-000073の作業再開を優先する製品機能について、意味の正本・派生情報・一時情報・外部状態の管理主体、作業集合、再開時の表示、AIの提案、意味変更の確定、古い状態からの書き込みや部分的な確定を扱う境界を定義する。
 - `SEI_DEPLOYMENT_ARCHITECTURE.md` — ADR-0029に基づくLocal Single-Node Packageの構成要素の配置、永続化、保存・再開、書き出し・取り込みの境界。
 - `SEI_PRODUCT_ACCESS_ARCHITECTURE.md` — ADR-0030に基づく認証、識別情報の対応付け、製品利用権限、保護された正本アクセス、選択的な情報開示の配置。
 - `IMPLEMENTATION_LANGUAGE_POLICY.md` — ADR-0027に基づく本番向け実行環境と研究・外部実装の言語上の境界。
-- `TRACEABILITY.md` — Product Value / REQ / ADR / architecture concern / current executable materialの追跡。
-- `history/HISTORICAL_ARCHITECTURE_MAPPING.md` — historical M48 / M49 / M50等からcurrent Architectureへの対応。
+- `TRACEABILITY.md` — 製品価値、要求、ADR、設計上の関心領域、現在の実行可能な成果物を対応付けるための索引。
+- `history/HISTORICAL_ARCHITECTURE_MAPPING.md` — 過去のM48・M49・M50などと現行の設計との対応。
 
 扱う設計上の関心が大きくなった場合は、文書を分割できます。重要な判断はADRの識別子で追跡するため、構成文書だけの連番体系は設けません。
 
@@ -53,13 +53,13 @@ architecture/
 
 SEIの全体構成は、固定された処理順序やサービスの配置図ではありません。**意味を失わないために分けた関心領域と、その境界の関係**を示します。
 
-たとえばDecision Memory、Capability、Cognitive Method、Persistence、Product Accessは重要な関心領域ですが、それぞれを独立したマイクロサービスやGoのパッケージにすることを意味しません。
+たとえば判断の記録（Decision Memory）、能力（Capability）、認知方式（Cognitive Method）、永続化（Persistence）、製品の利用権限（Product Access）は重要な関心領域ですが、それぞれを独立したマイクロサービスやGoのパッケージにすることを意味しません。
 
 同様に、図中の矢印は原則として固定された作業手順を表しません。情報が参照・派生・判断材料・実行境界として関係し得ることを示します。
 
-Local Single-Node Deploymentでは複数の論理上の構成要素を一つのGoプロセスで動かせますが、これは配布・起動を小さく始めるための配置です。一つのプロセスで動くことを理由に、Interaction、Semantic Runtime、Persistence、Provider Integration、Product Accessを一つのsemantic concernへ統合しません。
+単一端末への配備（Local Single-Node Deployment）では、複数の論理上の構成要素を一つのGoプロセスで動かせます。これは配布や起動を小さく始めるための配置です。同じプロセスで動くという理由だけで、利用者とのやり取り、意味の実行、永続化、外部提供元との連携、製品の利用権限を、一つの関心領域にまとめることはしません。
 
-ISSUE-000073では、この原則をProduct Interactionへ具体化しています。working set、Resume Brief、semantic change plan、snapshot token等は利用者体験やapplication mechanicsとして重要ですが、存在するだけでUniversal semantic entityになるわけではありません。
+ISSUE-000073では、この原則を利用者とのやり取りに適用します。作業中の情報の集合（working set）、再開時の要約（Resume Brief）、意味を変更する計画（semantic change plan）、状態を識別するトークン（snapshot token）などは、操作体験やアプリケーションの仕組みとして重要です。ただし、存在するだけで汎用の意味上の実体になるわけではありません。
 
 ## 4. 現行の構成で守る上位の境界
 
@@ -103,30 +103,30 @@ post-decision observation != historical decision basis
 
 現在のリポジトリには設計全体を実現した完成版はありませんが、次の限定された実体があります。
 
-- current Semantic Contract familyとfixture群
-- JCS+SHA-256 / raw-bytes+SHA-256 Representation Profile
-- Go semantic runtime
-- Go Provider Adapter slice
-- Go end-to-end semantic Product Journey harness
-- Go Product Interaction reference probe
-- Go Packaging / Persistence reference probe
-- Go Product Access / Collaboration reference probe
-- Local Reference Package release material
-- PythonによるV6 / V7 Projection Evaluation等の評価・開発補助
+- 現行の意味の契約（Semantic Contract）群と試験用データ（fixture）
+- JCSとSHA-256、元のバイト列とSHA-256を組み合わせる表現規則（Representation Profile）
+- Goによる意味の実行環境
+- Goによる外部提供元との接続部の一部
+- Goによる製品利用の流れを一貫して確かめる試験環境
+- Goによる利用者操作の参照検証
+- Goによる配布と永続化の参照検証
+- Goによる利用権限と共同作業の参照検証
+- ローカル参照パッケージの公開用成果物
+- PythonによるV6・V7の用途別表現の評価など、評価・開発の補助
 
-これらは設計の一部の境界を確かめた、対象を限定した実行検証根拠（Scoped Executable Evidence）です。Architecture concernをruntime componentへ一対一で固定したことも、Architecture全体を実装済みとしたことも意味しません。
+これらは設計の一部の境界を確かめた、対象を限定した実行検証根拠（Scoped Executable Evidence）です。設計上の関心領域を実行時の構成要素に一対一で対応させたことや、全体構成の実装を完了したことは意味しません。
 
-`SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md`は2026-09-11時点でDesign Evidenceです。working-set resolver、Resume Projection、Semantic Change Planner、Commit Coordinator、Context Egress Planner等のprototype Executable EvidenceはISSUE-000073で後続確認します。
+`SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md`は2026年9月11日時点では設計上の根拠（Design Evidence）です。作業集合の解決、再開時の表示、意味変更の計画、確定処理の調整、外部に渡す文脈の計画などについて、試作段階の実行検証根拠をISSUE-000073で確認します。
 
-ADR-0027により、SEI自身が所有するproduction runtimeの標準実装言語はGoとします。一方、これはSemantic Contractや外部Cognitive Method / Capability Providerの言語をGoへ固定する意味ではありません。詳細は`IMPLEMENTATION_LANGUAGE_POLICY.md`を参照します。
+ADR-0027に従い、SEI自身が管理する本番向け実行環境の標準言語はGoとします。ただし、意味の契約や、外部で動く認知方式・能力の提供元までGoに固定するものではありません。詳細は`IMPLEMENTATION_LANGUAGE_POLICY.md`を参照します。
 
-ADR-0029では、最初のPackaging / Deployment ProfileをLocal Single-Node Packageとしました。Goの単一バイナリ化とfilesystemは初期Realizationの利点として利用しますが、runtime executableやfile layoutをsemantic authorityにはしません。詳細は`SEI_DEPLOYMENT_ARCHITECTURE.md`を参照します。
+ADR-0029では、最初の配布・配備形態としてLocal Single-Node Packageを採用しました。Goの単一実行ファイルとファイルシステムは初期実装の利点として利用しますが、実行ファイルやファイル配置に意味を確定する権限は持たせません。詳細は`SEI_DEPLOYMENT_ARCHITECTURE.md`を参照します。
 
-ADR-0030では、Authentication Identity、Bounded Subject、Product Access Permission、semantic Responsibility / Authorityを分離しました。Product Access Scope、Identity Binding、Policy、Disclosure ProjectionはProduct security componentとして配置し、tenant / workspaceやpermission vocabularyをUniversal Coreへ昇格させません。詳細は`SEI_PRODUCT_ACCESS_ARCHITECTURE.md`を参照します。
+ADR-0030では、認証に用いる識別情報、権限を扱う範囲内の主体（Bounded Subject）、製品の利用許可、意味上の責任・権限を分離しました。製品の利用範囲、識別情報の対応付け、利用規則、開示する情報の表示は製品の安全管理を担う部分に配置します。テナントや作業領域、権限名の一覧を汎用の中核へ取り込むことはしません。詳細は`SEI_PRODUCT_ACCESS_ARCHITECTURE.md`を参照します。
 
 ## 6. 検証根拠の扱い
 
-Product Valueに従い、次の5段階を分けます。
+製品価値の定義に従い、検証根拠を次の5段階に分けます。
 
 ```text
 Design Evidence
@@ -136,9 +136,9 @@ Design Evidence
   != Adoption / Outcome Evidence
 ```
 
-Architecture本文とtraceabilityはDesign Evidenceです。
+構成設計の本文と対応関係の索引は、設計上の根拠（Design Evidence）です。
 
-current Contract fixture、Representation Profile verifier、semantic runtime、Provider Adapter、Product Journey harness、Interaction probe、Packaging / Persistence probe、Product Access probeには対象を限定したExecutable Evidenceがあります。
+現行の契約の試験用データ、表現規則の検証器、意味の実行環境、提供元との接続部、製品利用の試験環境、利用者操作・配布・永続化・利用権限の各参照検証には、対象範囲を限定した実行検証根拠があります。
 
 ```text
 Architecture exists
@@ -149,33 +149,33 @@ Architecture exists
   != user-value realization
 ```
 
-ISSUE-000073のresume-first Designが成立したことも、canonical-only resume、AI correction、fault injection、stale-write protection、human usabilityがactualに成立したことを意味しません。
+ISSUE-000073で作業再開を優先する設計が成立しても、正本の情報だけによる再開、AIの提案の修正、障害の注入、古い状態による書き込みの防止、実際の利用者にとっての使いやすさが検証済みになるわけではありません。
 
-Packaging probeやLocal Reference Packageが通ったことも、power loss時のdurability、production DB migration、formal support matrixを証明しません。
+配布の参照検証やローカル参照パッケージの確認が通っても、停電時の永続性、本番データベースの移行、正式な対応環境の一覧を保証するものではありません。
 
-Product Access probeが通ったことも、production OIDC / IAM、formal RBAC / ABAC、credential lifecycle、team deployment security、production Selective Disclosureを証明しません。
+製品利用権限の参照検証が通っても、本番でのOIDC・IAM連携、正式なRBAC・ABAC、認証情報の管理周期、チーム利用時の安全性、本番での選択的な情報開示までは検証できていません。
 
-Go runtimeにExecutable Evidenceがあることも、Goがあらゆる将来要件で恒久的に最適であることを意味しません。言語方針の妥当性はPackaging / Deployment / Operational Evidenceを通じて継続的に検証します。
+Goの実行環境に実行検証根拠があっても、Goがあらゆる将来要件で最適であることは意味しません。言語方針は、配布・配備・運用上の根拠を通じて継続的に確かめます。
 
 詳細は`../product/value/SEI_VALUE_ACCEPTANCE.md`と`TRACEABILITY.md`を参照します。
 
 ## 7. 過去の設計候補の扱い
 
-LibraryやhistoryにはPhase 1候補として多数のArchitecture文書が残っています。
+ライブラリや履歴には、第1段階で検討した構成設計の文書が多数残っています。
 
-current baselineでは、それらから意味境界、反例、非採用理由、Acceptance上の論点、設計系譜を再利用できます。一方、old package / field / schema shape、historical local PASS、旧Milestone identityをcurrentへ自動継承しません。
+現行の設計基準では、過去の資料から意味の境界、反例、採用しなかった理由、受け入れ判断の論点、設計の経緯を再利用できます。一方、古いパッケージ・フィールド・スキーマの形、過去のローカル試験の合格、旧マイルストーンの識別子は、現行の設計へ自動的には引き継ぎません。
 
-JCS / SHA-256 / JSON等のhistorical実装選択も、それ自体を理由にcurrent採用しません。current採用はAccepted ADRとactual Evidenceへ戻します。
+JCS・SHA-256・JSONなど、過去に選んだ実装方式も、それだけを理由に再採用しません。現行の採用判断では、採用済みADRと実際の検証根拠を確認します。
 
-同様にLocal Single-Node Package、filesystem Persistence、Product Access Scope、permission vocabulary、Interaction working set等を、current初期profileやprototypeで使うことだけからUniversal Coreへ固定しません。
+同様に、Local Single-Node Package、ファイルシステムへの永続化、製品利用の範囲、権限名の一覧、利用者の作業集合なども、初期構成や試作で使うという理由だけで汎用の中核へ固定しません。
 
 詳細は`history/HISTORICAL_ARCHITECTURE_MAPPING.md`を参照します。
 
 ## 8. 契約と表現規則との境界
 
-Architectureは意味構造と配置理由を説明します。
+全体構成の文書では、意味の構造と構成要素を配置する理由を説明します。
 
-複数implementation、Provider、Storage、version等をまたいで検証可能な合意が必要な境界は`contracts/`へContract Definitionとして分離します。bytes、canonicalization、digest等の表現規則はSemantic ContractからRepresentation Profileへ分けます。
+複数の実装・提供元・保存方式・版をまたいで検証できる取り決めが必要な場合は、`contracts/`に意味の契約として分離します。バイト列、正規化、ダイジェストなどの表現規則は、意味の契約とは別の表現規則（Representation Profile）で定めます。
 
 ```text
 Architecture explains structure and boundaries
@@ -186,15 +186,15 @@ Deployment profile defines one component placement
 Product Interaction working set defines one product-level navigation / projection concern
 ```
 
-ContractやProfileを増やすこと自体は目的ではありません。
+契約や表現規則の種類を増やすこと自体は目的ではありません。
 
-ISSUE-000073の`semantic change plan`やsnapshot tokenも、複数implementationをまたぐportable agreementが必要だとEvidenceで確認されるまでContract化しません。
+ISSUE-000073の`semantic change plan`や状態を識別するトークンについても、複数の実装間で持ち運べる取り決めが必要だと検証根拠から確認できるまでは、契約として固定しません。
 
 ## 9. 文書の品質
 
-Architecture文書は、内容と構造を作成した後、意味、規範強度、例外、未決事項を変えず、**自然な日本語となることを最重要視して全文を再ドラフト**します。
+構成設計の文書は、内容と構造を固めた後、意味、規則の強さ、例外、未決事項を変えず、**自然な日本語で全文を推敲**します。
 
-その後、文章調整によってCore / Profile / Provider / Adapter / Projection / Persistence / Product Access / Interaction working set等の境界やEvidence強度が変わっていないか最終意味監査を行います。
+その後、中核・表現規則・提供元・接続部・用途別表現・永続化・利用権限・利用者の作業集合などの境界や、検証根拠の強さが変わっていないか最終確認します。
 
 ## 10. 関連文書
 
@@ -218,7 +218,7 @@ Architecture文書は、内容と構造を作成した後、意味、規範強�
 - `../plan/adr/ADR-0029-local-single-node-packaging-profile.md`
 - `../plan/adr/ADR-0030-product-access-control-separation.md`
 
-## 11. Natural Japanese review
+## 11. 日本語の推敲記録
 
 2026-09-11時点のProduct Value、Requirements、Accepted ADR、Semantic Contract / Representation Profile、Go semantic runtime、Provider Adapter、Product Interaction probe、Packaging / Persistence、Product Access、Local Reference Package、ISSUE-000073へ戻ってArchitectureの入口を再監査した。
 
