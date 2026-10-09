@@ -277,9 +277,9 @@ def observe_progress(
     )
 
     milestones = [
-        Milestone(
+        _milestone(
             "preflight_ready",
-            preflight_ready,
+            lambda: preflight_ready,
             "保存済みpreflightがready / blockers=[]です",
             "readyな保存済みpreflightを確認できません",
         ),
@@ -341,12 +341,11 @@ def observe_progress(
             "runtime A /api/tagsで固定model digestを確認できます",
             "runtime Aの固定model digestを確認できません",
         ),
-        Milestone(
+        _milestone(
             "runtime_a_inference_observed",
-            inference_a,
-            "runtime Aのactual model EvidenceとKJ Atlas resultが成立しています"
-            if inference_a
-            else "runtime Aのactual inference成立を確認できません",
+            lambda: inference_a,
+            "runtime Aのactual model EvidenceとKJ Atlas resultが成立しています",
+            "runtime Aのactual inference成立を確認できません",
         ),
         _milestone(
             "runtime_b_version_observed",
@@ -364,19 +363,17 @@ def observe_progress(
             "runtime B /api/tagsで固定model digestを確認できます",
             "runtime Bの固定model digestを確認できません",
         ),
-        Milestone(
+        _milestone(
             "runtime_b_inference_observed",
-            inference_b,
-            "runtime Bのactual model EvidenceとKJ Atlas resultが成立しています"
-            if inference_b
-            else "runtime Bのactual inference成立を確認できません",
+            lambda: inference_b,
+            "runtime Bのactual model EvidenceとKJ Atlas resultが成立しています",
+            "runtime Bのactual inference成立を確認できません",
         ),
-        Milestone(
+        _milestone(
             "cross_runtime_prompt_identity_observed",
-            bool(inference_a and inference_b and prompt_a and prompt_a == prompt_b),
-            "A/B actual inferenceのprompt SHA-256一致を確認できます"
-            if inference_a and inference_b and prompt_a and prompt_a == prompt_b
-            else "A/B prompt identity一致を確認できません",
+            lambda: bool(inference_a and inference_b and prompt_a and prompt_a == prompt_b),
+            "A/B actual inferenceのprompt SHA-256一致を確認できます",
+            "A/B prompt identity一致を確認できません",
         ),
     ]
 
