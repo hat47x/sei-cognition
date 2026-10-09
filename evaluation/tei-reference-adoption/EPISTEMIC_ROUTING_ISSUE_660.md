@@ -88,3 +88,21 @@ premise以外をpremise laneへ混ぜない。candidateは候補のまま、revi
 coverage gapやpartial Health等はprojectUnknownsとして別に残し、retrieval missやpremiseへ変換しない。
 
 このplanはArchitecture上のContext Egress Plannerへ接続する候補であり、Durable Semantic Coreの新しいrecord typeではない。
+
+
+## Prompt control authorityとの分離
+
+Context Egress Planへ選ばれた情報も、AIへのcontrol instructionではない。
+
+TEIのstatement kindに`instruction`が存在しても、それは情報の働きの分類であり、retrieved contentへprompt control authorityを与えない。外部文書やAI生成物に命令文が含まれても同じ。
+
+egress referenceはlaneごとに次のcontent roleを持つ。
+
+- premise-data
+- candidate-data
+- review-data
+- blocked-audit
+
+すべて`controlAuthority=false`とする。後続resolverが本文を取得するときも、contentをsystem / developer instructionへ変換せず、delimiter付きdataとして扱う必要がある。
+
+この境界はepistemic reliabilityとprompt injection耐性を混同しないためのもの。human-confirmedな文章であっても、それだけでAI control authorityは得ない。
