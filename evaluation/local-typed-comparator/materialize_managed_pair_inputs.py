@@ -292,6 +292,14 @@ def prepare_workspace(
             "disk-reserve-bytes must be an integer >= 0"
         )
 
+    if (
+        materialize_runtime_environment
+        and runtime_wheelhouse_dir is None
+    ):
+        raise ManagedPairMaterializationError(
+            "runtime environment materialization requires runtime wheelhouse"
+        )
+
     output = _new_external_workspace(output_dir, sei_source_dir)
 
     source_receipt = papaya_capture.require_git_checkout(
@@ -337,14 +345,6 @@ def prepare_workspace(
         reference_entries,
         papaya_entries,
     )
-
-    if (
-        materialize_runtime_environment
-        and runtime_wheelhouse_dir is None
-    ):
-        raise ManagedPairMaterializationError(
-            "runtime environment materialization requires runtime wheelhouse"
-        )
 
     wheelhouse = {"provided": False}
     if runtime_wheelhouse_dir is not None:

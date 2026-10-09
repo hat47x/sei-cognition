@@ -388,6 +388,7 @@ class ReferenceModelTransportTest(unittest.TestCase):
                 mod.materialize_entries(
                     [entry],
                     output,
+                    transport_id="synthetic",
                     attempts=3,
                     stream_factory=stream,
                     directory_verifier=lambda _root: {"valid": True},

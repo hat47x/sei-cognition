@@ -399,7 +399,7 @@ class NumericComparatorTest(unittest.TestCase):
             if item["case_id"] == "noul-review"
         )
         response = json.loads(row["response_utf8"])
-        response["answers"]["needs_review"]["noul"] = 0.6
+        response["answers"]["needs_human_review"]["noul"] = 0.6
         raw = compact(response)
         row["response_utf8"] = raw
         row["response_sha256"] = hashlib.sha256(raw.encode()).hexdigest()
