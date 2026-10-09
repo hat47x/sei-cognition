@@ -367,6 +367,15 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "prompt control authority"):
             MODULE.resolve_epistemic_detail_for_egress(reference, detail)
 
+    def test_detail_consumer_rejects_malformed_egress_receipt(self) -> None:
+        reference = copy.deepcopy(
+            self.route()["contextEgressPlan"]["premiseReferences"][0]
+        )
+        detail = self.detail_result_for(reference)
+        reference["meaningFingerprint"] = "sha256:not-a-digest"
+        with self.assertRaisesRegex(ValueError, "must be exact sha256"):
+            MODULE.resolve_epistemic_detail_for_egress(reference, detail)
+
     def test_detail_result_must_preserve_binding_receipts(self) -> None:
         reference = self.route()["contextEgressPlan"]["premiseReferences"][0]
         detail = self.detail_result_for(reference)
