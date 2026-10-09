@@ -5,13 +5,13 @@
 
 ## 1. この文書の役割
 
-この文書は、SEIをsingle-userの利用からteam・外部協働へ広げるときに、**誰を認証し、誰に製品操作を許し、誰が意味上のResponsibility / Authorityを持つのか**を混同しないためのProduct boundaryを定めます。
+本書は、SEIを個人利用からチームや外部との協働へ広げる際に、**誰を認証するか、誰に製品操作を許すか、誰が意味上の責任と権限を持つか**を混同しないための境界を定めます。
 
-ここで定めるのは、特定のIdP、IAM製品、RBAC製品、tenant製品、暗号方式ではありません。SEIのsemantic meaningを保ったまま、実際の製品アクセス制御と協働を成立させるための責務分離を定めます。
+ここでは、特定の認証基盤（IdP）、IAM、RBAC、テナント管理製品、暗号方式は選定しません。SEIが保持する意味を変えずに、製品へのアクセス制御と共同利用を成立させるための責務を区別します。
 
 ## 2. 最上位の分離
 
-Product Identity / Accessでは、次の四つを別のものとして扱います。
+製品の識別情報とアクセス制御では、次の四つを区別します。
 
 ```text
 authentication identity
@@ -22,9 +22,9 @@ authentication identity
 
 ### authentication identity
 
-OIDC `sub`、local account ID、service account ID等、認証Providerが現在のsessionやrequest主体を識別するためのIDです。
+OIDCの`sub`、ローカルアカウントID、サービスアカウントIDなど、認証の提供元が現在のセッションや要求元を識別するためのIDです。
 
-credential、password、token、key、MFA、session lifecycleはAuthentication ProviderまたはProduct security layerの責務です。
+資格情報、パスワード、トークン、鍵、多要素認証（MFA）、セッションの管理周期は、認証の提供元または製品のセキュリティ層が扱います。
 
 ### Bounded Subject
 
@@ -36,19 +36,19 @@ BoundedSubjectRef
   subject_id
 ```
 
-外部IdPの識別子と同一視しません。IdPやlogin方式を変更しても、過去DecisionやResponsibilityが参照する主体を黙って別人へ読み替えないためのstable referenceです。
+外部の認証基盤が発行する識別子とは同一視しません。認証基盤やログイン方式を変更しても、過去の判断や責任が参照する主体を、知らないうちに別人へ置き換えないための安定した参照です。
 
 ### product access permission
 
-SEI製品のrecordやoperationに対して、現在の利用者がread、append、review、share、administer等を行ってよいかという、**製品利用上のpermission**です。
+SEIの記録や操作に対して、現在の利用者が読み取り、追加、確認、共有、管理などを行ってよいかという、**製品利用上の許可**です。
 
-このpermissionはProduct Access Policyが評価します。
+この許可は、製品アクセス規則（Product Access Policy）で評価します。
 
 ### semantic Responsibility / Authority
 
-あるDecision、Inquiry、Execution等について、誰がどのResponsibilityやAuthorityを持っていたかという意味上の記録です。
+ある判断、問い、実行について、誰がどの責任や権限を持っていたかという意味上の記録です。
 
-Product Access Permissionから自動生成せず、逆方向にも自動変換しません。
+製品アクセスの許可からこの記録を自動生成せず、その逆の変換も行いません。
 
 ```text
 product admin
@@ -60,9 +60,9 @@ recorded decision responsibility
 
 ## 3. Product Access Scope
 
-team・organization・external collaborationを扱うため、Product layerには**Product Access Scope**を置けます。
+チーム、組織、外部との協働を扱うため、製品の層には**製品アクセス範囲（Product Access Scope）**を設けられます。
 
-これは、どの利用者がどのProduct resourceへアクセスできるかを評価するための製品ローカルな境界です。
+これは、どの利用者がどの製品内の資源へアクセスできるかを評価する、製品固有の境界です。
 
 ```text
 Product Access Scope
@@ -70,13 +70,13 @@ Product Access Scope
   != Universal semantic entity
 ```
 
-実装ではtenant、workspace、project、repository等の名前を使う可能性がありますが、その名称や階層をSEI Universal Coreへ自動的に昇格させません。
+実装ではテナント、ワークスペース、プロジェクト、リポジトリなどの名称を使うことがあります。ただし、その名称や階層をSEIの汎用的な中核に自動的に組み込むことはしません。
 
 Product Access ScopeのIDをDecision、Responsibility、Logical Referenceのsemantic identityへ流用することも要求しません。
 
 ## 4. Identity Binding
 
-認証Providerが返すidentityとBounded Subjectの対応は、**Identity Binding**としてProduct security layerに置きます。
+認証の提供元が返す識別情報とBounded Subjectの対応関係は、**Identity Binding**として製品のセキュリティ層で管理します。
 
 ```text
 Authentication Provider subject
@@ -90,7 +90,7 @@ Authentication Provider subject
 
 ### 4.1 IdP交換
 
-IdP AからIdP Bへ移行した場合、新旧の認証identityを同じBounded Subjectへ対応付けられます。
+認証基盤をIdP AからIdP Bへ変更した場合でも、新旧の認証識別情報を同じBounded Subjectへ対応付けられます。
 
 ```text
 idp-a / old-sub ─┐
@@ -98,19 +98,19 @@ idp-a / old-sub ─┐
 idp-b / new-sub ─┘
 ```
 
-過去DecisionのResponsibility Refを書き換えて現在のIdP `sub`へ置換しません。
+過去の判断にある責任主体の参照を、現在の認証基盤の`sub`で上書きすることはしません。
 
 ### 4.2 credentialをsemantic historyへ埋め込まない
 
-password hash、access token、refresh token、session ID、MFA secret、private key等をBounded SubjectやDecision Memoryの耐久的意味として保持しません。
+パスワードのハッシュ、アクセストークン、更新用トークン、セッションID、MFAの秘密情報、秘密鍵などを、Bounded Subjectや判断の記録に含まれる永続的な意味として保存しません。
 
-必要なsecurity auditは別Evidenceとして参照できますが、credential自体をsemantic identityにはしません。
+必要なセキュリティ監査の記録は別の根拠として参照できますが、資格情報そのものを意味上の識別子にはしません。
 
 ## 5. Product Access Policy
 
-Product Access Policyは、現在の認証主体がProduct Access Scope内でどのoperationを行えるかを評価します。
+製品アクセス規則は、認証済みの主体が製品アクセス範囲内でどの操作を行えるかを評価します。
 
-reference probeで用いる最小operation vocabularyは次です。
+参照用の検証で使用する最小限の操作名は次のとおりです。
 
 - `read`
 - `append`
@@ -118,25 +118,25 @@ reference probeで用いる最小operation vocabularyは次です。
 - `share`
 - `administer`
 
-これは現時点のProduct policy / probe vocabularyであり、Universal semantic role hierarchyでも、将来の正式なProduct permission vocabularyでもありません。
+これらは現行の製品アクセス規則と検証で使用する操作名です。汎用的な役割の階層でも、将来の正式な製品操作権限の一覧でもありません。
 
 ### 5.1 Responsibility / Authorityからpermissionを推定しない
 
-Decision makerとして記録されている主体でも、現在のProduct Access Policyでread / appendが許可されていなければ、製品アクセスを自動許可しません。
+判断を行った主体として記録されていても、現行の製品アクセス規則で読み取りや追加が許可されていなければ、製品アクセスを自動的には許可しません。
 
 ### 5.2 Product roleからsemantic Authorityを推定しない
 
-Product administrator、workspace owner、member等のroleが存在しても、それだけでDecision AuthorityやResponsibilityを生成しません。
+製品管理者、ワークスペースの所有者、メンバーなどの役割があっても、それだけで判断権限や責任を生成しません。
 
 ### 5.3 actor kindからpermissionを推定しない
 
-human、AI、service、organizationというactor kindだけでpermissionを与えません。
+人間、AI、サービス、組織という主体の種類だけを理由に、操作を許可することはありません。
 
-AIだからread-only、人間だからDecision可能、といった固定推定をProduct boundaryに持ち込みません。
+AIだから読み取り専用、人間だから判断できる、といった一律の推定は、製品のアクセス制御に持ち込みません。
 
 ### 5.4 deniedとnot evaluatedを区別する
 
-認証identityをBounded Subjectへ解決できない、必要なPolicy contextがない等の理由で評価できなかった状態を、policyが明示的に拒否した`denied`と同じ意味に潰しません。
+認証された識別情報をBounded Subjectへ対応付けられない場合や、規則の評価に必要な情報がない場合は、評価不能の状態として扱います。規則が明示的に拒否した`denied`とは区別します。
 
 製品動作としては安全側に停止できますが、監査上は次を区別します。
 
@@ -146,9 +146,9 @@ not evaluated != denied
 
 ## 6. Selective Disclosure
 
-外部協働では、Product Access Scopeへ参加できても、canonical contextの全量を共有できるとは限りません。
+外部の利用者が製品アクセス範囲へ参加できても、正本に含まれるすべての情報を共有できるとは限りません。
 
-Selective Disclosureでは、canonical recordを削除・改変せず、共有Projection側で開示範囲を制御します。
+選択的な情報開示（Selective Disclosure）では、正本の記録を削除・変更せず、共有用の表示（Projection）で開示する範囲を制御します。
 
 ```text
 canonical source
@@ -158,7 +158,7 @@ canonical source
 
 ### 6.1 withheldとunknownを分ける
 
-情報が存在するが開示しない場合、それを`unknown`や「存在しない」へ変換しません。
+情報が存在していても開示しない場合は、それを`unknown`や「存在しない」という状態に置き換えません。
 
 ```text
 withheld
