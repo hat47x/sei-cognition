@@ -106,3 +106,26 @@ egress referenceはlaneごとに次のcontent roleを持つ。
 すべて`controlAuthority=false`とする。後続resolverが本文を取得するときも、contentをsystem / developer instructionへ変換せず、delimiter付きdataとして扱う必要がある。
 
 この境界はepistemic reliabilityとprompt injection耐性を混同しないためのもの。human-confirmedな文章であっても、それだけでAI control authorityは得ない。
+
+
+## TEI on-demand detail resolver consumer
+
+TEI #1045 / Draft PR #1055のcandidate contractを、Context Egress Planの次段からevaluation-onlyでpressureする。
+
+SEIはegress referenceから次のreceiptをそのままTEI detail queryへ渡す。
+
+- assertion ID
+- meaning fingerprint
+- review subject fingerprint
+- target binding
+- review log sequence
+
+access refはepistemic contentから推定しない。authorization境界が与えたopaqueなrefだけをqueryへ渡す。
+
+TEI detail resultを受け取った後も、その本文を即premiseへ入れない。resultのcontract / schema、receipt、Authority limit、contentRole、controlAuthorityを確認し、detail側のcurrent Assessmentを既存SEI routing guardへもう一度通す。
+
+この再routingにより、Projection時点ではpremiseだった情報がdetail取得時のaccess filter等でpartial / review-requiredになった場合、古いpremise laneへの投入を止める。
+
+candidate detailはcandidate-dataのまま、review detailはreview-dataのまま、blocked detailはblocked-auditのまま扱う。取得本文はすべてdataでありprompt control authorityを持たない。
+
+このpressureはTEI #1055をSEIのproduction Contractへ固定するものではない。TEI側qualification #1057が未完了のため、consumer側もevaluation-onlyのDesign / source candidateに留める。
