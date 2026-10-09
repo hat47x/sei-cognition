@@ -64,6 +64,50 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
         self.assertEqual("review", routed["route"])
         self.assertIn("SEI_METADATA_NOT_COMPLETE", routed["seiReasons"])
 
+    def test_incomplete_metadata_candidate_stays_candidate_without_forced_review(self) -> None:
+        for metadata_state in ("partial", "absent"):
+            projection = copy.deepcopy(self.projection)
+            item = next(
+                value for value in projection["assessments"]
+                if value["assertionId"] == "ai-unreviewed"
+            )
+            item["metadataState"] = metadata_state
+            item["useState"] = "candidate-only"
+
+            result = self.route(projection)
+            routed = self.by_id(result, "ai-unreviewed")
+            self.assertEqual("candidate", routed["route"])
+            self.assertIn("SEI_METADATA_NOT_COMPLETE", routed["seiReasons"])
+
+    def test_independent_epistemic_signals_survive_routing(self) -> None:
+        result = self.route()
+        source = next(
+            value for value in self.projection["assessments"]
+            if value["assertionId"] == "human-reviewed"
+        )
+        routed = self.by_id(result, "human-reviewed")
+        for field in (
+            "contentOrigin",
+            "ingestedBy",
+            "statementKind",
+            "confirmationState",
+            "reviewBinding",
+            "metadataState",
+            "targetBinding",
+            "contextCompatibility",
+            "freshness",
+            "lifecycleState",
+            "conflict",
+        ):
+            self.assertEqual(source[field], routed[field], field)
+
+    def test_missing_provenance_or_review_binding_fails_closed(self) -> None:
+        for field in ("contentOrigin", "ingestedBy", "reviewBinding"):
+            projection = copy.deepcopy(self.projection)
+            projection["assessments"][0][field] = ""
+            with self.assertRaisesRegex(ValueError, field):
+                self.route(projection)
+
     def test_ambiguous_or_detached_target_never_enters_premise(self) -> None:
         for state in ("ambiguous", "detached"):
             projection = copy.deepcopy(self.projection)
