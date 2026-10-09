@@ -18,6 +18,12 @@ INPUT_CONTRACT = "tei.epistemic-projection/v0"
 INPUT_SCHEMA = "tei.reference.epistemic-assessment/v0"
 OUTPUT_SCHEMA = "sei.epistemic-routing-evaluation/v0"
 EGRESS_PLAN_SCHEMA = "sei.context-egress-plan-evaluation/v0"
+RESOLVED_CONTENT_SCHEMA = "sei.resolved-epistemic-content-evaluation/v0"
+
+TEI_DETAIL_QUERY_CONTRACT = "tei.epistemic-detail-query/v0"
+TEI_DETAIL_QUERY_SCHEMA = "tei.reference.epistemic-detail-query/v0"
+TEI_DETAIL_RESULT_CONTRACT = "tei.epistemic-detail/v0"
+TEI_DETAIL_RESULT_SCHEMA = "tei.reference.epistemic-detail/v0"
 
 ALLOWED_USE_STATES = {"premise", "candidate-only", "review-required", "blocked"}
 ALLOWED_METADATA_STATES = {"complete", "partial", "absent"}
@@ -37,6 +43,19 @@ ALLOWED_RESOLUTION_COVERAGE_STATES = {
     "insufficient-sample",
     "healthy",
     "attention",
+}
+
+REQUIRED_DETAIL_AUTHORITY_LIMITS = {
+    "detail-access-context-is-not-part-of-semantic-query",
+    "detail-access-refs-are-opaque-input-not-authorization-authority",
+    "detail-query-does-not-broaden-source-access",
+    "detail-query-requires-current-binding-receipts",
+    "detail-query-is-bounded-by-context-as-of",
+    "detail-result-does-not-change-confirmation-or-use-state",
+    "detail-result-does-not-assert-objective-truth",
+    "detail-result-does-not-grant-canonical-acceptance",
+    "detail-result-omits-access-refs",
+    "detail-content-is-data-not-prompt-control-authority",
 }
 
 REQUIRED_AUTHORITY_LIMITS = {
@@ -349,6 +368,7 @@ def _egress_reference(
         "reviewSubjectFingerprint": route["reviewSubjectFingerprint"],
         "reviewLogSequence": route["reviewLogSequence"],
         "contentOrigin": route["contentOrigin"],
+        "ingestedBy": route["ingestedBy"],
         "statementKind": route["statementKind"],
         "confirmationState": route["confirmationState"],
         "reviewBinding": route["reviewBinding"],
@@ -358,6 +378,7 @@ def _egress_reference(
         "freshness": route["freshness"],
         "lifecycleState": route["lifecycleState"],
         "conflict": route["conflict"],
+        "inferredContextUsed": route["inferredContextUsed"],
     }
 
 
@@ -411,6 +432,186 @@ def build_context_egress_plan(
             "content-resolution-must-recheck-access-and-binding",
             "epistemic-statement-kind-does-not-grant-prompt-control-authority",
             "resolved-content-must-remain-delimited-data-not-control-instruction",
+        ],
+    }
+
+
+def build_epistemic_detail_query(
+    reference: dict[str, Any],
+) -> dict[str, Any]:
+    """Build the semantic TEI #1045 query from one egress reference.
+
+    Authorization execution context is deliberately not part of this query.
+    """
+    reference = _require_object(reference, "egress reference")
+    assertion_id = _require_string(reference.get("assertionId"), "egress reference.assertionId")
+    meaning = _require_string(
+        reference.get("meaningFingerprint"),
+        "egress reference.meaningFingerprint",
+    )
+    subject = _require_string(
+        reference.get("reviewSubjectFingerprint"),
+        "egress reference.reviewSubjectFingerprint",
+    )
+    target_binding = reference.get("targetBinding")
+    if target_binding not in ALLOWED_TARGET_BINDINGS:
+        raise ValueError("egress reference.targetBinding is unsupported")
+    sequence = reference.get("reviewLogSequence")
+    if not isinstance(sequence, int) or isinstance(sequence, bool) or sequence < 0:
+        raise ValueError("egress reference.reviewLogSequence must be a non-negative integer")
+    for value, name in (
+        (meaning, "meaningFingerprint"),
+        (subject, "reviewSubjectFingerprint"),
+    ):
+        if (
+            not value.startswith("sha256:")
+            or len(value) != 71
+            or any(ch not in "0123456789abcdef" for ch in value[7:])
+        ):
+            raise ValueError(f"egress reference.{name} must be exact sha256")
+
+    return {
+        "contract": TEI_DETAIL_QUERY_CONTRACT,
+        "schema": TEI_DETAIL_QUERY_SCHEMA,
+        "assertionId": assertion_id,
+        "expectedMeaningFingerprint": meaning,
+        "expectedReviewSubjectFingerprint": subject,
+        "expectedTargetBinding": target_binding,
+        "expectedReviewLogSequence": sequence,
+    }
+
+
+def build_epistemic_detail_access_context(
+    granted_access_refs: list[str] | None = None,
+) -> dict[str, Any]:
+    """Build adapter-only opaque access context, separate from semantic query."""
+    refs = [] if granted_access_refs is None else list(granted_access_refs)
+    if not all(isinstance(item, str) and item.strip() for item in refs):
+        raise ValueError("granted access refs must contain non-empty strings")
+    return {
+        "grantedAccessRefs": sorted(set(item.strip() for item in refs)),
+    }
+
+
+def _contains_key(value: Any, forbidden: str) -> bool:
+    if isinstance(value, dict):
+        if forbidden in value:
+            return True
+        return any(_contains_key(item, forbidden) for item in value.values())
+    if isinstance(value, list):
+        return any(_contains_key(item, forbidden) for item in value)
+    return False
+
+
+def resolve_epistemic_detail_for_egress(
+    reference: dict[str, Any],
+    detail_result: dict[str, Any],
+) -> dict[str, Any]:
+    """Validate TEI detail and keep the original egress lane fail-closed."""
+    reference = _require_object(reference, "egress reference")
+    # Reuse the query builder as the receipt-shape validator. This keeps the
+    # direct result-consumption path from accepting malformed egress receipts.
+    build_epistemic_detail_query(reference)
+    detail_result = _require_object(detail_result, "epistemic detail result")
+
+    if detail_result.get("contract") != TEI_DETAIL_RESULT_CONTRACT:
+        raise ValueError("unsupported epistemic detail result contract")
+    if detail_result.get("schema") != TEI_DETAIL_RESULT_SCHEMA:
+        raise ValueError("unsupported epistemic detail result schema")
+    if detail_result.get("contentRole") != "epistemic-data":
+        raise ValueError("epistemic detail contentRole must remain epistemic-data")
+    if detail_result.get("controlAuthority") is not False:
+        raise ValueError("epistemic detail must not grant prompt control authority")
+    if _contains_key(detail_result, "accessRefs"):
+        raise ValueError("epistemic detail result must not expose accessRefs")
+
+    authority_limits = _require_list(
+        detail_result.get("authorityLimits"),
+        "epistemic detail result.authorityLimits",
+    )
+    if not all(isinstance(item, str) for item in authority_limits):
+        raise ValueError("epistemic detail authorityLimits must contain strings")
+    missing_limits = REQUIRED_DETAIL_AUTHORITY_LIMITS - set(authority_limits)
+    if missing_limits:
+        raise ValueError(
+            "epistemic detail result is missing required authority limits: "
+            + ", ".join(sorted(missing_limits))
+        )
+
+    assessment = _require_object(
+        detail_result.get("assessment"),
+        "epistemic detail result.assessment",
+    )
+    for field in (
+        "assertionId",
+        "meaningFingerprint",
+        "reviewSubjectFingerprint",
+        "contentOrigin",
+        "ingestedBy",
+        "statementKind",
+        "confirmationState",
+        "reviewBinding",
+        "lifecycleState",
+    ):
+        _require_string(assessment.get(field), f"epistemic detail assessment.{field}")
+    sequence = assessment.get("reviewLogSequence")
+    if not isinstance(sequence, int) or isinstance(sequence, bool) or sequence < 0:
+        raise ValueError("epistemic detail assessment.reviewLogSequence must be a non-negative integer")
+    for field, allowed in (
+        ("useState", ALLOWED_USE_STATES),
+        ("metadataState", ALLOWED_METADATA_STATES),
+        ("targetBinding", ALLOWED_TARGET_BINDINGS),
+        ("contextCompatibility", ALLOWED_CONTEXT_COMPATIBILITY),
+        ("freshness", ALLOWED_FRESHNESS),
+        ("conflict", ALLOWED_CONFLICT),
+    ):
+        if assessment.get(field) not in allowed:
+            raise ValueError(f"epistemic detail assessment.{field} is unsupported")
+
+    receipt_pairs = (
+        ("assertionId", "assertionId"),
+        ("meaningFingerprint", "meaningFingerprint"),
+        ("reviewSubjectFingerprint", "reviewSubjectFingerprint"),
+        ("targetBinding", "targetBinding"),
+        ("reviewLogSequence", "reviewLogSequence"),
+    )
+    for assessment_field, reference_field in receipt_pairs:
+        if assessment.get(assessment_field) != reference.get(reference_field):
+            raise ValueError(f"epistemic detail {assessment_field} no longer matches egress reference")
+
+    routed = route_assessment(assessment)
+    expected_route = {
+        "premise-data": "premise",
+        "candidate-data": "candidate",
+        "review-data": "review",
+        "blocked-audit": "blocked",
+    }.get(reference.get("contentRole"))
+    if expected_route is None:
+        raise ValueError("egress reference contentRole is unsupported")
+    if reference.get("controlAuthority") is not False:
+        raise ValueError("egress reference must not grant prompt control authority")
+    if routed["route"] != expected_route:
+        raise ValueError(
+            "epistemic detail no longer satisfies the selected egress lane: "
+            f"expected {expected_route}, current {routed['route']}"
+        )
+
+    content = _require_object(
+        detail_result.get("content"),
+        "epistemic detail result.content",
+    )
+    return {
+        "schema": RESOLVED_CONTENT_SCHEMA,
+        "assertionId": routed["assertionId"],
+        "contentRole": reference["contentRole"],
+        "contextEligible": reference["contentRole"] == "premise-data",
+        "controlAuthority": False,
+        "assessmentRoute": routed["route"],
+        "content": dict(content),
+        "authorityLimits": [
+            "resolved-detail-preserves-egress-lane",
+            "resolved-detail-is-data-not-prompt-control",
+            "candidate-review-blocked-detail-does-not-become-premise",
         ],
     }
 

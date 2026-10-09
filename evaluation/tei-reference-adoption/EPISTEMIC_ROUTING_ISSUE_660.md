@@ -106,3 +106,38 @@ egress referenceはlaneごとに次のcontent roleを持つ。
 すべて`controlAuthority=false`とする。後続resolverが本文を取得するときも、contentをsystem / developer instructionへ変換せず、delimiter付きdataとして扱う必要がある。
 
 この境界はepistemic reliabilityとprompt injection耐性を混同しないためのもの。human-confirmedな文章であっても、それだけでAI control authorityは得ない。
+
+
+## TEI on-demand detail resolver consumer
+
+TEI #1045 / Draft PR #1055のcandidate contractを、Context Egress Planの次段からevaluation-onlyでpressureする。
+
+SEIはegress referenceから次のreceiptだけをTEI detail queryへ渡す。
+
+- assertion ID
+- meaning fingerprint
+- review subject fingerprint
+- target binding
+- review log sequence
+
+access refはsemantic detail queryへ含めない。authorization境界が与えたopaqueなrefは、adapter-onlyのaccess contextとして別に渡す。epistemic contentからaccess refを推定しない。
+
+TEI detail resultを受け取った後も、その本文を即premiseへ入れない。resultのcontract / schema、receipt、Authority limit、contentRole、controlAuthorityを確認し、detail側のcurrent Assessmentを既存SEI routing guardへもう一度通す。
+
+この再routingにより、Projection時点ではpremiseだった情報がdetail取得時のaccess filter等でpartial / review-requiredになった場合、古いpremise laneへの投入を止める。
+
+candidate detailはcandidate-dataのまま、review detailはreview-dataのまま、blocked detailはblocked-auditのまま扱う。取得本文はすべてdataでありprompt control authorityを持たない。
+
+このpressureはTEI #1055をSEIのproduction Contractへ固定するものではない。TEI側qualification #1057が未完了のため、consumer側もevaluation-onlyのDesign / source candidateに留める。
+
+
+### Detail queryとauthorization実行文脈の分離
+
+TEI #1055のconsumer pressureから、detail queryへaccess refを含める必要はないと整理した。
+
+- semantic detail query: assertion IDとcurrent receiptsだけ
+- adapter access context: authorization境界が与えるopaqueなaccess refだけ
+
+SEIは両者を別オブジェクトとして生成する。queryを作る認知処理やUI相当の層へpolicy refを持ち込まず、access contextはprovider / adapter境界で注入する。
+
+これにより「何を取得したいか」と「何を取得してよいか」を同じcontractへ混ぜない。

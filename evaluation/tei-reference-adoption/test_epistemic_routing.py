@@ -264,6 +264,152 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
             any("assertionId" in item for item in plan["projectUnknowns"])
         )
 
+    def detail_result_for(self, reference, use_state=None):
+        source = next(
+            value for value in self.projection["assessments"]
+            if value["assertionId"] == reference["assertionId"]
+        )
+        assessment = copy.deepcopy(source)
+        if use_state is not None:
+            assessment["useState"] = use_state
+        return {
+            "contract": MODULE.TEI_DETAIL_RESULT_CONTRACT,
+            "schema": MODULE.TEI_DETAIL_RESULT_SCHEMA,
+            "assessment": assessment,
+            "content": {
+                "text": "resolved epistemic content",
+                "target": {"kind": "claim", "id": reference["assertionId"]},
+                "context": [],
+                "evidence": [],
+            },
+            "contentRole": "epistemic-data",
+            "controlAuthority": False,
+            "authorityLimits": sorted(MODULE.REQUIRED_DETAIL_AUTHORITY_LIMITS),
+        }
+
+    def test_build_detail_query_preserves_egress_receipts(self) -> None:
+        plan = self.route()["contextEgressPlan"]
+        reference = next(
+            item for item in plan["premiseReferences"]
+            if item["assertionId"] == "user-current"
+        )
+        query = MODULE.build_epistemic_detail_query(reference)
+        self.assertEqual(MODULE.TEI_DETAIL_QUERY_CONTRACT, query["contract"])
+        self.assertEqual(reference["assertionId"], query["assertionId"])
+        self.assertEqual(
+            reference["meaningFingerprint"],
+            query["expectedMeaningFingerprint"],
+        )
+        self.assertEqual(
+            reference["reviewSubjectFingerprint"],
+            query["expectedReviewSubjectFingerprint"],
+        )
+        self.assertEqual(
+            reference["targetBinding"],
+            query["expectedTargetBinding"],
+        )
+        self.assertEqual(
+            reference["reviewLogSequence"],
+            query["expectedReviewLogSequence"],
+        )
+        self.assertNotIn("grantedAccessRefs", query)
+        self.assertNotIn("text", query)
+        self.assertNotIn("evidence", query)
+
+    def test_detail_access_context_is_separate_from_semantic_query(self) -> None:
+        reference = self.route()["contextEgressPlan"]["premiseReferences"][0]
+        query = MODULE.build_epistemic_detail_query(reference)
+        access = MODULE.build_epistemic_detail_access_context(
+            ["policy:b", " policy:a ", "policy:b"],
+        )
+        self.assertNotIn("grantedAccessRefs", query)
+        self.assertEqual(["policy:a", "policy:b"], access["grantedAccessRefs"])
+
+    def test_detail_access_context_is_not_inferred_from_epistemic_content(self) -> None:
+        reference = self.route()["contextEgressPlan"]["premiseReferences"][0]
+        query = MODULE.build_epistemic_detail_query(reference)
+        access = MODULE.build_epistemic_detail_access_context()
+        self.assertNotIn("grantedAccessRefs", query)
+        self.assertEqual([], access["grantedAccessRefs"])
+
+    def test_resolved_premise_detail_remains_context_data(self) -> None:
+        plan = self.route()["contextEgressPlan"]
+        reference = next(
+            item for item in plan["premiseReferences"]
+            if item["assertionId"] == "user-current"
+        )
+        detail = self.detail_result_for(reference)
+        resolved = MODULE.resolve_epistemic_detail_for_egress(reference, detail)
+        self.assertEqual("premise-data", resolved["contentRole"])
+        self.assertTrue(resolved["contextEligible"])
+        self.assertFalse(resolved["controlAuthority"])
+        self.assertEqual("premise", resolved["assessmentRoute"])
+
+    def test_detail_access_change_cannot_smuggle_old_premise_lane(self) -> None:
+        plan = self.route()["contextEgressPlan"]
+        reference = next(
+            item for item in plan["premiseReferences"]
+            if item["assertionId"] == "user-current"
+        )
+        detail = self.detail_result_for(reference, use_state="review-required")
+        detail["assessment"]["metadataState"] = "partial"
+        with self.assertRaisesRegex(ValueError, "no longer satisfies"):
+            MODULE.resolve_epistemic_detail_for_egress(reference, detail)
+
+    def test_candidate_detail_never_becomes_context_premise(self) -> None:
+        plan = self.route()["contextEgressPlan"]
+        reference = next(
+            item for item in plan["candidateReferences"]
+            if item["assertionId"] == "ai-unreviewed"
+        )
+        detail = self.detail_result_for(reference)
+        resolved = MODULE.resolve_epistemic_detail_for_egress(reference, detail)
+        self.assertEqual("candidate-data", resolved["contentRole"])
+        self.assertFalse(resolved["contextEligible"])
+        self.assertEqual("candidate", resolved["assessmentRoute"])
+
+    def test_detail_result_cannot_grant_prompt_control(self) -> None:
+        reference = self.route()["contextEgressPlan"]["premiseReferences"][0]
+        detail = self.detail_result_for(reference)
+        detail["controlAuthority"] = True
+        with self.assertRaisesRegex(ValueError, "prompt control authority"):
+            MODULE.resolve_epistemic_detail_for_egress(reference, detail)
+
+    def test_detail_consumer_rejects_malformed_egress_receipt(self) -> None:
+        reference = copy.deepcopy(
+            self.route()["contextEgressPlan"]["premiseReferences"][0]
+        )
+        detail = self.detail_result_for(reference)
+        reference["meaningFingerprint"] = "sha256:not-a-digest"
+        with self.assertRaisesRegex(ValueError, "must be exact sha256"):
+            MODULE.resolve_epistemic_detail_for_egress(reference, detail)
+
+    def test_detail_result_must_preserve_binding_receipts(self) -> None:
+        reference = self.route()["contextEgressPlan"]["premiseReferences"][0]
+        detail = self.detail_result_for(reference)
+        detail["assessment"]["reviewLogSequence"] += 1
+        with self.assertRaisesRegex(ValueError, "reviewLogSequence"):
+            MODULE.resolve_epistemic_detail_for_egress(reference, detail)
+
+    def test_detail_result_must_not_expose_access_refs(self) -> None:
+        reference = self.route()["contextEgressPlan"]["premiseReferences"][0]
+        detail = self.detail_result_for(reference)
+        detail["content"]["evidence"] = [
+            {"kind": "source", "ref": "repo://x", "accessRefs": ["policy:hidden"]}
+        ]
+        with self.assertRaisesRegex(ValueError, "must not expose accessRefs"):
+            MODULE.resolve_epistemic_detail_for_egress(reference, detail)
+
+    def test_detail_result_requires_authority_stop_lines(self) -> None:
+        reference = self.route()["contextEgressPlan"]["premiseReferences"][0]
+        detail = self.detail_result_for(reference)
+        detail["authorityLimits"] = [
+            item for item in detail["authorityLimits"]
+            if item != "detail-content-is-data-not-prompt-control-authority"
+        ]
+        with self.assertRaisesRegex(ValueError, "missing required authority limits"):
+            MODULE.resolve_epistemic_detail_for_egress(reference, detail)
+
     def test_resolution_coverage_does_not_upgrade_routing(self) -> None:
         baseline = self.route()
         projection = copy.deepcopy(self.projection)
