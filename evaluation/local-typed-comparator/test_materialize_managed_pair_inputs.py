@@ -26,11 +26,11 @@ REFERENCE_BYTES = 10
 PAPAYA_BYTES = 5
 
 
-def reference_receipt(output: Path):
+def reference_receipt(output: Path, *, transport_id: str):
     return {
         "schema": mod.reference_materializer.SCHEMA,
         "status": "materialized-and-verified",
-        "transport_id": mod.reference_materializer.HF_ID,
+        "transport_id": transport_id,
         "output_dir": str(output.resolve()),
         "files": [
             {
@@ -150,7 +150,7 @@ class ManagedPairInputMaterializationTest(unittest.TestCase):
             if attempts_seen is not None:
                 attempts_seen.append(("reference", attempts))
             output.mkdir()
-            return reference_receipt(output)
+            return reference_receipt(output, transport_id=_transport)
 
         def pap_materialize(_manifest, output, *, timeout, attempts):
             if events is not None:
