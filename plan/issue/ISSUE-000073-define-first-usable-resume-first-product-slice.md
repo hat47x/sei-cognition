@@ -3,7 +3,7 @@
 Status: **Open**  
 Priority: **1**  
 Related ADRs: **ADR-0005, ADR-0010, ADR-0028, ADR-0029**  
-Updated: 2026-10-07
+Updated: 2026-10-09
 
 ## Goal
 
@@ -211,8 +211,8 @@ Question 5、6、9については、Requirement auditとREQ-0023 / SCN-0019のfo
 - runner preflight self-test: **PASS on canonical-HEAD-bound current source (2026-09-18); machine-readable delta Evidence recorded**
 - verifier self-test: **PASS on canonical-HEAD-bound current source (2026-09-18); machine-readable delta Evidence recorded**
 - capture workflow: **historical full self-test PASS retained; canonical-HEAD deltaは8 case actual + same-output focused preflight actualで確認 (2026-09-18)**
-- E1〜E8 actual Go 1.25.x execution: **Not Yet Verified**
-- REQ-0023 / SCN-0019 Executable Evidence: **Not Yet Verified**
+- E1〜E8 actual Go 1.25.x execution: **PASS (2026-10-09, tested commit `694ec5805c00a8bae9034e15ee0d1589e40f6fd8`, go1.25.14 linux/amd64)**。`go test -count=1 -json ./interactionprobe`の必須18 testがすべてpass、`go test`全体も31 pass / 0 fail。verifierもfindings 0でPASS。Evidenceは`evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8.json`と`e1-e8-verification.json`。**事前配置のGo 1.25.14によるScoped Executable Evidenceであり、bootstrap wrapperのpinned archive materialization経路は実行していない**
+- REQ-0023 / SCN-0019 Executable Evidence: **E6 / E7のprobeレベルでPASS (2026-10-09)**。E6（`TestCommitCoordinator*` 3 test）とE7（`TestStaleDraftCommitRequiresFreshProposal`、`TestReclassifiedObservationKeepsOriginalSnapshotPrecondition`）がpartial commitとstale writeを黙って受理しないことを確認した。ただしこれはLocal Single-Node上のProduct-local probeに対する結果であり、他のStorage profileやProductionの永続層へは一般化しない
 - H1 resume usability review: **Not Yet Observed**
 - H2 counterfactual Decision Continuity review: **Not Yet Observed**。073/078共通runnerでreviewer provenanceをstimulus提示前に固定し、Decision固有validationとEvidence exportまで同じ経路へ統合済み。current Decision manifest / 3 fixture / R1〜R3のstatic source auditは整合し、actual repository integration test sourceも追加済み。tested commit `42872959a13746eb5fd87f1fe10233ccd55caac0` の対象12 sourceをGit blob SHA一致でmaterializeしたactual executionでは、Python focused regressionが**8 tests / 8 PASS**。ただしnative clean-HEAD captureは**Not Yet Verified**
 - `tools/capture_issue_000073_h2_runner_selftest.py`: H2 shared runner Decision regression testをclean HEAD / source binding付きでEvidence化するcapture入口あり
@@ -289,6 +289,8 @@ bash tools/bootstrap_issue_000073_resume_first_evidence.sh \
 toolchain cacheは既定でrepository外へ置く。既存の不完全なcacheやdigest不一致を暗黙に上書きせずfail-closedにする。これによりcaptureのclean-tree preconditionをtoolchain materialization自身が壊さない。
 
 この追加でrepository tooling上のGo 1.25.x取得経路は具体化したが、2026-10-07時点でこの新入口によるE1〜E8 actual executionはまだ記録していない。したがってEvidence状態は変えない。
+
+2026-10-09には、事前配置のGo 1.25.14（`GO_BINARY_PATH`）をこの入口へ渡してE1〜E8 actual executionを取得した。取得経路は`pre-provisioned-binary`であり、`GO_TOOLCHAIN_ARCHIVE_PATH`やpinned archiveのdownload / SHA-256照合 / 展開というwrapper自身のmaterialization経路は通っていない。そのためwrapperのarchive materializationは引き続き**Not Yet Verified**とする。
 
 ```text
 bootstrap path available
@@ -435,7 +437,7 @@ SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw 
 - `product/value/SEI_DECISION_CONTINUITY.md` — V1〜V8をDecision Continuityへ接続するProduct Value synthesis。**Design Evidence available**。
 - `product/interaction/SEI_FIRST_USABLE_PRODUCT_SLICE.md` — first sliceのProduct Design baseline。**Design Evidence available**。
 - `architecture/SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md` — state authority、resume Projection、semantic commit、AI境界のReference Architecture。**Design Evidence available**。
-- prototype / probe — Local Single-Node上でE1〜E8を再現する`runtime/go/interactionprobe`とrunner / verifier / captureを実体化済み。**actual E1〜E8 executionはNot Yet Verified**。
+- prototype / probe — Local Single-Node上でE1〜E8を再現する`runtime/go/interactionprobe`とrunner / verifier / captureを実体化済み。**actual E1〜E8 executionはgo1.25.14で2026-10-09にPASS（Scoped Executable Evidence）**。
 - human review record — H1のresume usability観測結果。**Not Yet Observed**。
 - comparative Product Value review — H2のbaseline比較、capture tax、誤帰属、correction負担の観測結果。**Not Yet Observed**。
 - Requirement audit — CR-73.1〜10を再照合済み。CR-73.8 / CR-73.9だけを一つのfailure boundaryとしてREQ-0023 / SCN-0019へformalizeし、それ以外はexisting REQ / Product-local設計 / human Outcome評価へ戻した。
@@ -455,13 +457,13 @@ SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw 
 9. Candidate Requirementをexisting REQ / SCNへ再照合し、Stable Requirement追加の要否を決定する。
 10. 実装方式固有のlocal browser / protocol / AI model等をUniversal semanticsへ持ち込んでいない。
 
-### Current resolution status — 2026-09-18
+### Current resolution status — 2026-10-09
 
 - 条件1、2、9、10: **Design / Requirement auditの範囲では成立**。
-- 条件3〜5: E1〜E8のprobe / test sourceとrunner / verifier / captureはある。runner / verifierのcanonical-HEAD-bound current source self-testはactual PASSし、captureのcanonical-HEAD deltaもsplit executionで確認済みだが、**actual Go 1.25.x E1〜E8実行結果はNot Yet Verified**。受入れtoolingのPASSやsource存在だけで条件3〜5の成立扱いにしない。
+- 条件3〜5: **Local Single-Node上のProduct-local probeの範囲で成立 (2026-10-09)**。go1.25.14でE1〜E8の必須18 testがすべてpassし、verifierもfindings 0でPASSした（tested commit `694ec5805c00a8bae9034e15ee0d1589e40f6fd8`、`evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8.json`）。条件3はE1〜E5、条件4はE6 / E7のpartial commit・stale writeを黙って受理しない挙動、条件5はE8のexternal AI context / provisional response境界に対応する。ただし**事前配置のGo 1.25.14によるScoped Executable Evidence**であり、bootstrap wrapperのpinned archive materialization経路、他OS / 他Storage profile、Production永続層は対象外。E1〜E8 PASSは条件6〜8のhuman observationもProduct Valueも成立させない。
 - 条件6〜8: H1 / H2とProduct Valueのcounterfactual observationは**Not Yet Observed**であり、未成立。H2のprovenance-first共通runnerとDecision-specific validationは実装済みだが、reviewer response未取得のため条件7を満たしたとは扱わない。
 
-したがってStatusは**Open**を維持する。Design文書が完成したこと、REQ-0023 / SCN-0019をformalizeしたこと、probe sourceやEvidence受入れtoolingを実装したことだけではResolvedにしない。prototypeが技術的にPASSした場合も、それだけでDecision ContinuityのAdoption / Outcome Evidenceが成立したことにはしない。
+したがってStatusは**Open**を維持する。条件3〜5がExecutable Evidenceとして成立しても、残る条件6〜8（H1 / H2 human observation、capture / review overheadの評価）が未観測である。Design文書が完成したこと、REQ-0023 / SCN-0019をformalizeしたこと、probe sourceやEvidence受入れtoolingを実装したことだけではResolvedにしない。prototypeが技術的にPASSした場合も、それだけでDecision ContinuityのAdoption / Outcome Evidenceが成立したことにはしない。
 
 ## Reopen conditions
 

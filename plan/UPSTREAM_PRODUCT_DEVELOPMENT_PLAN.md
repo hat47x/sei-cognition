@@ -1,6 +1,6 @@
 # SEI 上流プロダクト開発計画
 
-更新日: 2026-09-18  
+更新日: 2026-10-09  
 状態: **Current Upstream Planning Baseline — Brand-world Product Value discovery完了 / Inquiry Continuity actual dogfood / resume-first Product Slice / TEI version exchange + actual-binary Evidence protocolを並行優先**
 
 ## 1. この文書の役割
@@ -174,9 +174,9 @@ ISSUE-000073のCandidate Requirement監査では、CR-73.8 / CR-73.9を一つの
 - `architecture/SEI_INTERACTION_WORKING_SET_ARCHITECTURE.md`
 - `plan/issue/ISSUE-000073-define-first-usable-resume-first-product-slice.md`
 
-canonical-only resume、AI correction、AI unavailable、working-set rebuild、commit fault injection、stale draft、AI context egressについてはProduct-localなprobe / test sourceが一通り揃っています。E1〜E8 actual実行はGo 1.25.x環境待ちで**Not Yet Verified**、H1 / H2 human reviewは**Not Yet Observed**です。H2は073/078共通のprovenance-first review runnerへ統合し、known exposureをclean blinded reviewへ読み替えない境界を固定しています。
+canonical-only resume、AI correction、AI unavailable、working-set rebuild、commit fault injection、stale draft、AI context egressについてはProduct-localなprobe / test sourceが一通り揃っています。E1〜E8 actual実行は、2026-10-09に事前配置のgo1.25.14でtested commit `694ec5805c00a8bae9034e15ee0d1589e40f6fd8`に対して**PASS**しました（必須18 testがすべてpass、verifier findings 0。Local Single-Node上のProduct-local probeに限定したScoped Executable Evidence）。一方、H1 / H2 human reviewは**Not Yet Observed**です。H2は073/078共通のprovenance-first review runnerへ統合し、known exposureをclean blinded reviewへ読み替えない境界を固定しています。
 
-したがって次の高情報量Evidenceは、(1) clean Go 1.25.x環境でのE1〜E8 actual実行、(2) real InquiryでのH1 actual resume、(3) provenance条件を満たすH2 human matched reviewです。
+E1〜E8 PASSはDecision Continuityの人間にとっての価値を示しません。したがって次の高情報量Evidenceは、(1) real InquiryでのH1 actual resume、(2) provenance条件を満たすH2 human matched reviewです。加えて、bootstrap wrapperがpinned archiveからtoolchainを自力で準備する経路は未実行のため、外向き通信が可能な環境での実行確認も残ります。
 
 ### Priority B1 companion — TEI-first Application Plane Reference Adoption
 
@@ -410,7 +410,7 @@ Product confidenceを高めるため、happy pathだけでなくpartial commit�
 |---|---|---|---|
 | Product Value discovery | ISSUE-000077 | Resolved / source + review + Vision integration complete | ISSUE-000078等のactual Evidenceでreopen conditionが生じた場合のみ再監査 |
 | Inquiry Continuity validation | ISSUE-000078 | Open / actual Inquiry seeded / clean context gap reset after material exposure | last material exposureから十分なgap後のSEI Orientation actual human resumption、次いでraw chat / note counterfactual |
-| Product Interaction | ISSUE-000073 | Open / prototype + Requirement audit progressed / E1〜E8 actual・H1/H2 pending | Go 1.25 actual E1〜E8、H1 actual resume、H2 provenance-first human review |
+| Product Interaction | ISSUE-000073 | Open / prototype + Requirement audit progressed / E1〜E8 actual PASS (2026-10-09) / H1・H2 pending | H1 actual resume、H2 provenance-first human review |
 | Application implementation strategy | ISSUE-000079 | Open / source freeze PASS + TEI Stage 0 Reference checker Scoped Executable Evidence available / PR #686 merged | Change 1のnative / TEI change-amplification比較、次いでExisting / extension / Native / gap再分類 |
 | TEI Provider portability | ISSUE-000072 | Open / execution blocked externally | exact-B actual E2 when execution surface is available |
 | TEI actual Evidence protocol | ISSUE-000074 | Open / teiprobe + CLI + protocol source implemented / tests + actual run Not Yet Verified | current Go環境でfixture-scoped tests、次いでactual TEI binary report |

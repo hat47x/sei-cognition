@@ -1,0 +1,6 @@
+{
+  "schema": "issue-000073-resume-first-evidence-verification/v1",
+  "passed": true,
+  "tested_head": "694ec5805c00a8bae9034e15ee0d1589e40f6fd8",
+  "findings": []
+}
