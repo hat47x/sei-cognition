@@ -1,11 +1,11 @@
-# 井 / SEI Cognition
+# 井（SEI Cognition）
 
 更新日: 2026-09-16  
-状態: **v0.2.0 Local Reference Product Baseline released / development continues**
+状態: **v0.2.0のローカル参照製品基準版を公開済み。開発は継続中**
 
 SEI Cognitionは、人間・AI・組織・既存システム・外部サービスが入れ替わっても、**何を見て、何を問い、何を根拠とし、何を決め、何を未解決として残したか**を失わないための、可搬な認知・意思決定基盤です。
 
-中心にあるのは、workflowやAI agent runtimeを自前で囲い込むことではありません。実行手段が変わっても残るもの、すなわち意味、不確実性、判断、責任、Capability、Provenance、Semantic Lineageを扱います。
+本製品は、作業の流れやAIエージェントの実行基盤を独自の仕組みで囲い込むことを目指しません。実行手段が変わっても残すべき意味、不確実性、判断、責任に加え、能力（Capability）、来歴（Provenance）、意味の継承関係（Semantic Lineage）を扱います。
 
 名前は易経の卦「井」から採っています。井は、汲んでも尽きず、誰が汲みに来ても同じ水を返す共有の泉です。町が移っても井戸は動かせないという卦の像が、実行手段も人も組織も入れ替わるなかで何を動かさずに残すのか、という本製品の立場に重なります。
 
@@ -43,24 +43,24 @@ Observation
 - `Semantic Contract != Representation Profile` — 意味の契約と、その表現形式は別のversion空間を持ちます。
 - `Product access permission != semantic Responsibility / Authority` — 製品上の操作権限は、意味上の責任や権限ではありません。
 
-## 2. Product Valueの見方
+## 2. 製品価値の見方
 
 価値を単一のスコアへ還元しません。次の8軸で別々に確認します。
 
-- V1 — Historical Reconstruction: 当時の根拠へ戻れること
-- V2 — Semantic Separation: RecommendationとDecision等を取り違えないこと
-- V3 — Revision Integrity: 後から得た情報で過去を書き換えないこと
-- V4 — Provider Independence: 特定の提供者に意味を縛られないこと
-- V5 — Uncertainty Preservation: 未解決を未解決のまま次へ渡せること
-- V6 — Human / AI Readability: 人とAIの双方が同じ正本を読めること
-- V7 — Progressive Explicitness: 必要な分だけ明示度を上げられること
-- V8 — Execution Independence: 実行手段が変わっても意味が残ること
+- V1 — 過去の判断の再構成（Historical Reconstruction）: 当時の根拠へ戻れること
+- V2 — 意味の分離（Semantic Separation）: 推奨と決定などを取り違えないこと
+- V3 — 改訂の整合性（Revision Integrity）: 後から得た情報で過去を書き換えないこと
+- V4 — 提供元からの独立性（Provider Independence）: 特定の提供者に意味を縛られないこと
+- V5 — 不確実性の保持（Uncertainty Preservation）: 未解決を未解決のまま次へ渡せること
+- V6 — 人とAIの双方からの可読性（Human / AI Readability）: 人とAIの双方が同じ正本を読めること
+- V7 — 段階的な明示化（Progressive Explicitness）: 必要な分だけ明示度を上げられること
+- V8 — 実行手段からの独立性（Execution Independence）: 実行手段が変わっても意味が残ること
 
 受入れの境界は`product/value/SEI_VALUE_ACCEPTANCE.md`、現在の追跡状態は`product/value/SEI_VALUE_TRACEABILITY.md`を正本とします。
 
-## 3. Semantic ContractとRepresentation Profile
+## 3. 意味の契約と表現形式
 
-実装、Provider、Storage、versionをまたいで同じ意味として交換・検証する必要がある境界だけを、独立したContractとして固定しています。現在は5つです。
+実装、提供元、保存方式、版が異なっていても、同じ意味として交換・検証しなければならない境界だけを、独立した意味の契約として固定しています。現在は5つあります。
 
 - `sei.semantic-reference/v1alpha1`
 - `sei.decision-memory/v1alpha1`
@@ -68,16 +68,16 @@ Observation
 - `sei.cognitive-method/v1alpha1`
 - `sei.semantic-interchange/v1alpha1`
 
-意味をどう表現し、どう同一性を検証するかは、Contractとは別のversion空間で扱います。
+意味の表現方法と同一性の検証方法は、意味の契約とは別の版体系で扱います。
 
 - `sei.jcs+sha256/v1alpha1`
 - `sei.raw-bytes+sha256/v1alpha1`
 
-重要な概念であることが、そのままContract化の理由にはなりません。Contractを増やすこと自体は目的ではなく、実装やProviderをまたいで意味を固定する必要がある場合にだけ作ります。詳細は`contracts/CONTRACT_CATALOG.md`にあります。
+重要な概念であっても、それだけでは独立した契約にしません。契約の数を増やすことが目的ではなく、実装や提供元をまたいで意味を固定する必要がある場合に限って作ります。詳細は`contracts/CONTRACT_CATALOG.md`にあります。
 
-現在のRequirementは`REQ-0001`〜`REQ-0023`、Acceptance Scenarioは`SCN-0001`〜`SCN-0019`です。
+現在の要求は`REQ-0001`〜`REQ-0023`、受入シナリオは`SCN-0001`〜`SCN-0019`です。
 
-## 4. repositoryの構成
+## 4. リポジトリの構成
 
 ```text
 product/       なぜ存在し、何を失ってはならないのか
@@ -118,7 +118,7 @@ Release Candidate / Release Evidence
 
 下位の実装や検証手段が、上位の意味を自動的に決めることはありません。実装の都合で意味を動かしたくなったときは、上位文書へ戻って、それが何を証明したEvidenceなのかを確認します。
 
-## 5. Evidenceの読み方
+## 5. 検証根拠の読み方
 
 達成状態を、次の5段階で区別します。
 
@@ -132,16 +132,16 @@ Design Evidence
 
 設計として筋が通っていることと、実際に動いたことは別です。動いたことと、releaseできる状態であることも別です。さらに、継続的に運用できることと、利用者に価値が届いたことも、それぞれ別に確かめます。
 
-現在は、v0.2.0 Local Reference Product BaselineについてRelease Evidenceまで成立しています。運用の継続性や、実利用で価値が届いたことを示すEvidenceはまだありません。
+v0.2.0のローカル参照製品基準版については、公開時点の検証根拠（Release Evidence）まで確認できています。継続運用や、実際の利用者に価値が届いたことを示す根拠はまだありません。
 
-過去のPASSを現在のPASSとしても扱いません。
+過去の検証合格を、現在の検証合格として扱うこともありません。
 
 ```text
 historical PASS != current PASS
 not_verified != failed
 ```
 
-検証できなかった項目は`Not Yet Verified`のまま残します。GitHub Actionsは当面停止しており、必要なchecker、test、probeは変更範囲に応じてローカルで個別に実行します。実行方針は`plan/DEVELOPMENT_WORKFLOW.md`を正本とします。
+検証できなかった項目は`Not Yet Verified`のまま残します。GitHub Actionsは当面停止しているため、必要な検査、試験、試行は変更範囲に応じてローカルで個別に実行します。実行方針は`plan/DEVELOPMENT_WORKFLOW.md`を正本とします。
 
 ## 6. 現在動かせるもの
 
@@ -159,7 +159,7 @@ not_verified != failed
 
 これらはいずれも限定された範囲での実行結果です。release後に得たEvidenceを理由に、公開済みv0.2.0のsupport範囲を後から広げることはしません。v0.2.0がどこまでをsupported scopeとしたかは`release/v0.2.0/RELEASE_ACCEPTANCE.md`を正本とします。
 
-## 7. v0.2.0 release
+## 7. v0.2.0の公開
 
 v0.2.0は、開発者と評価者が現在のProduct ValueとSemantic Contractを実際に確かめられる**Local Reference Product Baseline**としてreleaseしています。
 
@@ -176,7 +176,7 @@ candidate PASS
   → scoped Release Evidence Satisfied
 ```
 
-これはproduction完成版を意味しません。
+これは本番運用に対応した完成版を意味しません。
 
 ```text
 v0.2.0 Release Evidence Satisfied
@@ -211,11 +211,3 @@ TEI           = 実行可能な業務Capabilityを実現する一つの手段
 現在進めている判断と作業は`plan/`にあります。ADRとIssueの現況は`plan/registry.yaml`、進め方は`plan/DEVELOPMENT_WORKFLOW.md`が正本です。各文書のStatusは、台帳ではなくその文書本文を正とします。
 
 開発文書は、内容と構造を整えた後に、意味・仕様・留保・Evidenceの強さを変えないまま、自然な日本語となることを最重要視して全文をドラフトし直す工程を通します。詳細は`plan/DOCUMENT_AUTHORING_STANDARD.md`にあります。
-
-## 10. Natural Japanese review
-
-入口文書として何が必要かを問い直し、構成を作り直した。製品が何であるか、何を混同しないか、何をどこまで証明できているかを先に置き、個別のIssue進捗やADR採番範囲のような進行管理情報は`plan/`の正本へ委ねて本文から外した。過去の名称に関する記述も、改名の判断を記録したADRが正本であるため入口からは外している。
-
-そのうえで、識別子を名詞として長く連結していた箇所と、milestone codeだけで内容を示していた箇所を、意味を落とさずに日本語の説明へ置き換えた。特に守る意味境界とEvidenceの5段階については、式だけに頼らず本文でも読めるようにした。
-
-再ドラフトの前後で、非同一性の主張、v0.2.0のsupported scopeを後から広げないという留保、Release Evidenceが運用や利用者価値のEvidenceを意味しないこと、未検証を`Not Yet Verified`のまま残すという方針が変わっていないことを確認した。
