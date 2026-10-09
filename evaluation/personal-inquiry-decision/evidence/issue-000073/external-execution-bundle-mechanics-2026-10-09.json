@@ -1,0 +1,71 @@
+{
+  "schema": "issue-000073-external-execution-bundle-mechanics/v1",
+  "issue": "ISSUE-000073",
+  "observed_date": "2026-10-09",
+  "scope": "Exact-source external execution handoff mechanics only. This record does not establish real-repository bundle preparation, external execution, E1-E8 PASS, H1/H2 human review, or Decision Continuity Product Value.",
+  "source_branch": "develop/v0.2.0",
+  "source_branch_head_at_materialization": "a58104601831e1cdd30bae24beafd44001396d88",
+  "tested_sources": [
+    {
+      "path": "tools/prepare_issue_000073_external_execution_bundle.py",
+      "git_blob_sha1": "0d958156019ff4d8a156b639ad5c3a7696d6ad22",
+      "sha256": "3029fd59ed9c92ef12bf1e5dcdd673f44b2a7c84d69ca66ad0f3e945e9273cc5"
+    },
+    {
+      "path": "tools/test_prepare_issue_000073_external_execution_bundle.py",
+      "git_blob_sha1": "4ba5ecfb482ef695b4d0cf3eba9a33ff41ac39f7",
+      "sha256": "c897e98bdb3a228a1f9e3a744fe6ef975dc46a34a2c15c70de6d9960a29deca5"
+    }
+  ],
+  "execution_environment": {
+    "os": "Linux",
+    "arch": "x86_64",
+    "python": "3.13.5",
+    "git": "2.47.3"
+  },
+  "execution": {
+    "kind": "exact-committed-blob materialization",
+    "command": "python3 -m unittest -v test_prepare_issue_000073_external_execution_bundle.py",
+    "result": "pass",
+    "test_count": 5,
+    "passed": 5,
+    "failed": 0
+  },
+  "checks": [
+    {
+      "id": "exact-head-clone",
+      "status": "pass",
+      "observation": "A synthetic clean Git repository was bundled, cloned from the generated .gitbundle, and the clone resolved to the exact source HEAD with a clean working tree."
+    },
+    {
+      "id": "expected-head-mismatch",
+      "status": "pass",
+      "observation": "A canonical expected HEAD mismatch was rejected with exit code 2."
+    },
+    {
+      "id": "dirty-source",
+      "status": "pass",
+      "observation": "A dirty source checkout was rejected before bundle preparation."
+    },
+    {
+      "id": "output-inside-source",
+      "status": "pass",
+      "observation": "An output directory inside the source repository was rejected."
+    },
+    {
+      "id": "replace-policy",
+      "status": "pass",
+      "observation": "Existing outputs were rejected by default and replaced only when --replace was explicitly supplied."
+    }
+  ],
+  "not_executed": [
+    "preparation of a .gitbundle from the actual hat47x/sei-cognition clean checkout",
+    "transfer of an actual repository bundle to another execution host",
+    "external clone of the actual repository bundle",
+    "Go 1.25.x or pinned Go 1.25.14 materialization on the external execution host",
+    "ISSUE-000073 E1-E8 interactionprobe execution",
+    "H1 human review",
+    "H2 human review"
+  ],
+  "stop_line": "Exact-blob handoff mechanics PASS != actual repository bundle prepared != external clone executed != E1-E8 actual PASS != H1/H2 human review != Decision Continuity Product Value established."
+}
