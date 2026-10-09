@@ -1,9 +1,9 @@
 # ISSUE-000080: 他製品が引用するSEI文書の所在を確定する
 
-Status: **Open**  
+Status: **In Progress**  
 Priority: **2**  
 Related ADRs: **ADR-0014**  
-Updated: 2026-10-06
+Updated: 2026-10-09
 
 ## Goal
 
@@ -98,7 +98,36 @@ TEI、MMI、EKIの文書は、これらを「SEIの未統合branch `docs/family-
 
 ## Resolution
 
-未着手。
+一部が成立した。受け入れ基準のうち、文書の所在に関する2つが成立し、残る3つは未決である。
+
+### 成立したこと（2026-10-09）
+
+SEIは、branch `docs/family-apex-backflow-20260927`を`develop/v0.2.0`へmergeした（`041c3fa`）。このbranchは、それまでSEIのremoteになかった。mergeの際に、衝突した番号を振り直している。
+
+| 引用されていた文書 | 現在の所在 |
+| --- | --- |
+| `product/value/SEI_FAMILY_APEX_VALUE_REVIEW.md` | 同名で`develop/v0.2.0`にある |
+| `product/definition/SEI_FAMILY_SEMANTIC_MAP.md` | 同名で`develop/v0.2.0`にある |
+| `plan/adr/ADR-0032-family-integration-apex-and-control-meaning-boundary.md` | `ADR-0035-…`として`develop/v0.2.0`にある。状態はProposed |
+| `plan/issue/ISSUE-000081-test-commitment-gaps-by-composition.md` | `ISSUE-000086-…`として`develop/v0.2.0`にある |
+| `plan/issue/ISSUE-000082-derive-family-afferent-profile-from-sibling-records.md` | `ISSUE-000087-…`として`develop/v0.2.0`にある |
+
+5件は、いずれも`main`には統合されていない。このIssueの背景に書いた「別の環境にだけ存在する可能性」は、実際にそうだった。
+
+引用側の対応状況を、同じ照合手順で2026-10-09に測り直した（git管理下のファイルだけを対象に、SEIは`develop/v0.2.0`を統合の線として扱った）。
+
+- TEIは、8か所の引用を新しい名前に直し、版（`@041c3fa`）を固定した。8か所とも取得できる。
+- MMIは、旧名`ADR-0032-…`を1か所で引用している。取得できない。
+- vs-bearは、旧名`ISSUE-000081-…`を2か所で引用している。取得できない。
+- CSWとEKIの、SEIへの引用は取得できる。
+
+### 未決のこと
+
+- 家族の境界を述べる基準の文書を一つに定め、MMI、CSW、vs-bearを対象に加えるか。`SEI_PRODUCT_SHAPE.md`§6.4は四者のままである。ADR-0035は提案中で、採否は決まっていない。
+- `evaluation/distributed-execution-fabric/README.md`と、EKIの関係を書くか。
+- `evaluation/local-typed-comparator/README.md`を`main`へ統合するか。2026-10-09時点で、`develop/v0.2.0`にだけある。
+
+引用側のMMIとvs-bearが旧名を直すのは、各製品の判断である。SEIは、上の対応表を示すにとどめる。
 
 ## Reopen conditions
 

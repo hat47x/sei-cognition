@@ -1,17 +1,17 @@
-# SEI Product Vision
+# SEIが目指す将来像
 
-更新日: 2026-10-02  
-状態: **Product Vision Baseline — Brand World Discovery reflected。§4の社会像と§11の統合の頂点は、ADR-0035（Proposed）による再基線化の提案**
+更新日: 2026-10-10  
+状態: **将来像の設計基準。ブランド世界から得た知見を反映済み。§4.1と§11.1は、ADR-0035（Proposed）による再基線化の提案であり、採否（ISSUE-000085）が決まるまで現行の基準として断定しない。**
 
 ## 1. この文書の役割
 
 この文書は、SEIが長期的にどのような利用状態を実現したいかを示します。
 
-`SEI_PRODUCT_VALUE.md`が「なぜSEIが存在するか」を、`SEI_VALUE_MODEL.md`が「何を優先して守り、どう評価するか」を定めるのに対し、Product Visionは、それらの価値が実際の利用世界でどのような姿として現れるかを記述します。
+`SEI_PRODUCT_VALUE.md`ではSEIが存在する理由を、`SEI_VALUE_MODEL.md`では守る価値の優先関係と評価方法を定めます。本書では、それらの価値が実際の利用場面でどのような状態として現れるかを説明します。
 
 特定の型、API、画面、AIモデル、実行方式を将来像として固定する文書ではありません。
 
-また、`SEI_BRAND_WORLD_SOURCE.md`で記録した「井」のブランド世界は、本書を考えるための探索源の一つですが、Product Visionのauthorityではありません。象徴から仕様を直接導くのではなく、利用者や組織にとって意味のある状態として説明できるものだけを本書へ反映します。
+また、`SEI_BRAND_WORLD_SOURCE.md`で記録した「井」のブランド世界は、本書を考えるための探索源の一つですが、将来像を定める権威にはなりません。象徴から仕様を直接導くのではなく、利用者や組織にとって意味のある状態として説明できるものだけを本書へ反映します。
 
 ## 2. 目指す状態
 
@@ -19,45 +19,45 @@ SEIが目指すのは、AIが高度化した世界で、組織や個人が「自
 
 実行技術が変わっても、意思決定の意味と来歴を持ち運べることを重視します。
 
-その結果、利用者は過去の判断を単なるログとして眺めるのではなく、当時の前提へ戻り、新しいEvidenceを加え、必要であれば別の手段や判断を選び直せます。
+その結果、利用者は過去の判断を単なるログとして眺めるのではなく、当時の前提へ戻り、新たな検証根拠を加え、必要であれば別の手段や判断を選び直せます。
 
-同時に、すべての認知活動が最初からDecisionへ到達するわけではありません。
+同時に、すべての認知活動が、最初から判断（Decision）に至るわけではありません。
 
-実務では、まだ何を問うべきか十分に定まっていない段階、確証のない違和感だけがある段階、複数のObservationが集まり始めているがRecommendationへ進むには早い段階があります。
+実務では、まだ何を問うべきか十分に定まっていない段階、確証のない違和感だけがある段階、複数の観察（Observation）が集まり始めていても、提案（Recommendation）へ進むには早い段階があります。
 
-SEIは、そのような途中状態をすぐに「答え」へ変えることを目指しません。Question、Observation、Unknown、Conflict、Hypothesis等として外在化できたものを、意味差と来歴を失わず扱い、後から別の人間やAIが問い直せる状態を目指します。
+SEIは、そのような途中状態をすぐに「答え」へ変えることを目指しません。問い（Question）、観察、未確定事項（Unknown）、対立（Conflict）、仮説（Hypothesis）などとして外に取り出せたものを、意味差と来歴を失わず扱い、後から別の人間やAIが問い直せる状態を目指します。
 
 ## 3. 判断の前から、認知の続きを失わない
 
-current Product Valueでは、Decision Continuityを、時間・Surface・AI・情報が変わっても、過去を捏造せず判断仕事の続きを始められることとして重視しています。
+現在の製品価値の定義では、判断継続性（Decision Continuity）を、時間・操作画面・AI・情報が変わっても、過去を捏造せず判断仕事の続きを始められることとして重視しています。
 
-このVisionでは、そのさらに手前も視野に入れます。
+本書では、判断が成立する前の段階も視野に入れます。
 
-まだDecisionが存在しないInquiryでも、時間が空いたり、担当者やAI sessionが変わったりすると、次のものが失われることがあります。
+まだ判断が存在しない問い（Inquiry）についても、時間が空いたり、担当者やAIとの対話が変わったりすると、次のものが失われることがあります。
 
 - そもそも何が気になっていたのか。
-- どのObservationが最初の問いにつながったのか。
+- どの観察が最初の問いにつながったのか。
 - 何がまだ分からなかったのか。
-- どのHypothesisは未検証のままだったのか。
+- どの仮説は未検証のままだったのか。
 - 何を次に確かめようとしていたのか。
 
-SEIは、あらゆる思考断片を保存することを目指しません。private chain-of-thoughtや一時的なworking memoryを正本へ変えることもしません。
+SEIは、あらゆる思考断片を保存することを目指しません。非公開の推論過程や一時的な作業記憶を正本にすることもしません。
 
 目指すのは、主体が共有・再利用する価値があると判断して外在化した認知対象について、**Decisionになる前であっても、後から文脈を失わず探索を再開できる可能性を保つこと**です。
 
-この状態を独立したProduct Valueとみなすべきか、Decision Continuityを含むより広いCognitive Continuityとして整理すべきかは、actual Scenarioとhuman reviewを通して今後検証します。本書では、長期的な利用世界としてこの方向を明示するに留めます。
+この状態を独立した製品価値とみなすべきか、Decision Continuityを含むより広い認知の継続性（Cognitive Continuity）として整理すべきかは、実際の利用場面と人間による確認を通して今後検証します。本書では、長期的な利用世界としてこの方向を明示するに留めます。
 
-## 4. 個人や一つのAI sessionへ閉じない共有認知基盤
+## 4. 個人や一つのAIとの対話に閉じない共有認知基盤
 
-SEIは、一人の利用者だけのsecond brainや、一つのAI modelのmemoryとして完結することを長期像にはしません。
+SEIは、一人の利用者だけの第二の脳や、一つのAIモデルの記憶として完結することを長期的な目標にはしません。
 
-組織の認知活動では、問い、Observation、Decision basis、Unknown、reopen condition等が、特定の担当者や一つのAI sessionに閉じると、引継ぎや再検討のたびに大きな再構成負担が生じます。
+組織の認知活動では、問い、Observation、Decision basis、Unknown、reopen condition等が、特定の担当者や一つのAIとの対話に閉じると、引継ぎや再検討のたびに大きな再構成負担が生じます。
 
-SEIは、これらを適切なboundaryのもとで、人間とAIが後から利用できる**共有認知資産**として持続させることを目指します。
+SEIは、これらを適切な境界のもとで、人間とAIが後から利用できる**共有認知資産**として持続させることを目指します。
 
 ただし、共有することと無制限に公開することは同じではありません。
 
-Selective Disclosure、Product Access、Responsibility、Authority、Provenance等を保ち、必要な主体が必要な範囲へ到達できることを重視します。
+選択的な情報開示、製品の利用権限、責任、実行権限、来歴などを保ち、必要な主体が必要な範囲へ到達できることを重視します。
 
 ```text
 shared cognition
@@ -68,19 +68,19 @@ shared cognition
 
 共有できることは、全員へ開くことでも、権限を共有することでもありません。一人の利用者や一つのAI sessionで得た認知成果が、そのsessionの寿命だけで消えず、許された別の人間やAIへ引き継げる。そのときもProvenance、historical context、Responsibility、Access boundaryを失わない。この状態を目指します。
 
-この意味でSEIが目指すのは、中央の巨大な知識庫でも組織の「中央の頭脳」でもなく、**異なる主体がそれぞれの責任を保ったまま同じ認知資産へ近づける、境界を失わないCognitive Infrastructure**です。
+この意味でSEIが目指すのは、巨大な中央知識庫でも、組織全体の「中央の頭脳」でもなく、**異なる主体がそれぞれの責任を保ったまま同じ認知資産へ近づける、境界を失わない認知基盤（Cognitive Infrastructure）**です。
 
 ### 4.1 社会の水準での姿（仮説・提案）
 
 AIが人の代わりに調べ、提案し、場合によっては委任された範囲で決めるようになると、社会は「誰が何を決め、何を任せ、何を分からないまま進めたのか」を後から説明できる基盤を必要とするのではないか、という仮説を置きます。行政や公共の判断、研究の再現性、危機のときの判断、熟議のなかの少数意見、特定のAI供給元への依存、世代をまたぐ長期の判断といった場面が考えられます。
 
-これは新しいValue Axisではなく、V1〜V8とCognitive Commonsが、個人や組織を越えて成り立ったときの姿についての**Visionの仮説**です。Evidenceはまだありません。公共の利益という大義を理由に、Selective Disclosure、Responsibility、privacyを弱めることはしません。SEIが監視の拠点になることは、明示的な非目標です。場面の一覧と、確かめるべき証拠は`../value/SEI_FAMILY_APEX_VALUE_REVIEW.md` §12にあります。
+これは新しいValue Axisではなく、V1〜V8とCognitive Commons（個人や一つのAI sessionに閉じず、適切な境界のもとで持続的に共有される認知資産の状態。`../value/SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md` §4を参照）が、個人や組織を越えて成り立ったときの姿についての**Visionの仮説**です。Evidenceはまだありません。公共の利益という大義を理由に、Selective Disclosure、Responsibility、privacyを弱めることはしません。SEIが監視の拠点になることは、明示的な非目標です。場面の一覧と、確かめるべきEvidenceは`../value/SEI_FAMILY_APEX_VALUE_REVIEW.md` §12にあります。この仮説は、ADR-0035（Proposed）の未確認事項として扱い、採否はISSUE-000085で判断します。
 
 ## 5. AIが強くなるほど、薄くできる層と残す層を分ける
 
 SEIは、現在の技術制約を恒久的な製品構造へ固定しません。
 
-評価のたびに、その時点の現実からおおむね10〜50倍程度先までを見渡し、現在のAIや実行基盤が大幅に強くなってもSEIが守る必要のある意味差かを問い直します。この距離は固定倍率のbenchmarkではなく、現在の制約への過適合を避けるための移動する思考基準です。
+評価のたびに、その時点の現実からおおむね10〜50倍程度先までを見渡し、現在のAIや実行基盤が大幅に強くなってもSEIが守る必要のある意味差かを問い直します。この距離は固定の倍率を測る評価基準ではなく、現在の制約への過適合を避けるための移動する思考基準です。
 
 ```text
 その時点の現実
@@ -98,22 +98,22 @@ Core / Profile / Provider / Realization等へ配置する
 
 将来も残すべきなのは、現在の型名そのものではありません。認識、問い、不確実性、根拠、提案、判断、責任、能力、来歴など、主体が自らの判断や探索を再構成するために必要な**意味上の区別**です。
 
-具体的な型をUniversal Coreへ置くかどうかは、Product Visionから直接決めず、Value Model、Scenario、Requirement、ADRを通じて判断します。
+具体的な型を汎用の中核へ置くかどうかは、本書から直接決めません。価値の評価模型、利用場面、要求、ADRを通して判断します。
 
 ## 6. 交換可能にしていくもの
 
-次のような仕組みは、必要であってもSEIの恒久的中心にしないことを基本とします。
+次のような仕組みは、必要であってもSEIの恒久的な中核にしないことを基本とします。
 
-- workflow DAG
-- queue
-- retry / backoff
-- worker scheduling
-- agent turn routing
-- checkpointの実装方式
-- provider SDK固有処理
-- prompt固有のrouting
+- 業務の流れを表す有向非巡回グラフ
+- 待ち行列
+- 再試行と再試行までの待機
+- 処理の実行先の割り当て
+- AIエージェントのやり取りの振り分け
+- 再開地点を保存する仕組みの実装方式
+- 外部提供元のSDK固有の処理
+- 指示文固有の処理の振り分け
 - 特定モデル固有の補助構造
-- 特定DBやevent sourcing方式
+- 特定のデータベースやイベント履歴の保存方式
 
 これらは、外部Provider、Profile、Projection、交換可能なRealizationへ置くことを優先します。
 
@@ -241,12 +241,14 @@ Observation / Evidence
 
 ### 11.1 家族に対する統合の頂点としての役割（提案）
 
-上の関係を保ったまま、SEIが家族に対して持つ役割を、「連携し得る隣接Productの一つ」から「翻訳と記憶を担う統合の層」へ、一段はっきり書きます（ADR-0035、Proposed）。
+本提案を支える根拠はDesign Evidenceだけであり、Executable以上の段階の根拠は追加されていません（ADR-0035）。
+
+上の関係を保ったまま、SEIが家族に対して持つ役割を、隣接Productの一つとしての役割から、家族の「頂点」としての役割へ、一段はっきり書きます（ADR-0035、Proposed）。この提案の採否は、ISSUE-000085で製品の所有者が判断します。
 
 SEIを家族の「頂点」と呼ぶのは、次の三つの意味に限ります。
 
 - **抽象の頂点** — Observation、Decision、Authorityなど最も一般的な意味を持ち、各製品に固有の意味を翻訳できる。意味の正本は各製品に残る。
-- **時間の頂点** — 家族の中で最も長く生きる記録を持つ。
+- **時間の頂点** — 家族の中で最も長く生きる記録を持つ。製品、モデル、組織より長く残る。
 - **統合の頂点（任意の合流）** — 製品をまたいだ認知を、時間を通して再構成できる場所になる。製品は送ってもよいが、送らなくても成り立つ。
 
 次の三つの意味は採りません。
@@ -256,13 +258,13 @@ SEIを家族の「頂点」と呼ぶのは、次の三つの意味に限りま�
 - **可用性の頂点** — どの製品の局所のループも、SEIの稼働を必要としません。
 
 ```text
-SEI = 抽象の頂点 + 時間の頂点 + 統合の頂点
+SEI = 抽象の頂点 + 時間の頂点 + 統合の頂点（任意の合流）
 SEI != 指揮の頂点 / 所有の頂点 / 可用性の頂点
 ```
 
 SEIはcentral AI brainではなく、固定pipeline（`SUI -> SEI -> TEI -> EKI`のstack）でもなく、関連製品に特権を与えません。「神経系の頂点」という言い方は内部の設計言語に留め、ブランドの表現では巨大なAI brainやcommand centerを視覚の中心に置きません。
 
-制御の仕組み（routing、escalation、attentionの配分）は交換可能なRealizationであり、制御の判断の意味（何を見て、何を意図的に見送り、どの手段をなぜ選んだか）はCoreに残す意味として扱います（`../definition/SEI_PRODUCT_SHAPE.md` §8.3）。家族の判断の意味論の参考対応表は`../definition/SEI_FAMILY_SEMANTIC_MAP.md`にあります。
+制御の仕組み（routing、escalation、attentionの配分、cascade等）は、交換可能なRealizationまたはProfileとします。一方、制御の判断の意味（何を見て、何を意図的に見送り、どのMethodやProviderをなぜ選び、何を保留し、何を上位へ回したか）は、Coreに記録すべき意味として扱います（`../definition/SEI_PRODUCT_SHAPE.md` §8.3、ADR-0035 Decision 3）。「Coreに残す」とは、新しいUniversal型を直ちに追加することではありません。まず、既存のDecision Memory、Cognitive Method Application、Capability Choiceの組合せで表せるかを試します。とくに「何を意図的に見送ったか」という注意の範囲は、現在の契約で受け皿が明確でないため、ISSUE-000086で検証します（ADR-0035 Decision 3）。ADR-0035のConsequencesも、「新しいCore要素は追加しません。」と定めています。家族の判断の意味論の参考対応表は、提案中の参考文書として`../definition/SEI_FAMILY_SEMANTIC_MAP.md`にあります。
 
 ## 12. SEIが目指さない将来像
 
@@ -308,14 +310,16 @@ Decision以前のInquiry Continuityについては、現時点では独立した
 - `product/value/SEI_VALUE_MODEL.md`
 - `product/value/SEI_DECISION_CONTINUITY.md`
 - `product/value/SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md`
-- `product/value/SEI_FAMILY_APEX_VALUE_REVIEW.md`
-- `product/definition/SEI_FAMILY_SEMANTIC_MAP.md`
+- `product/value/SEI_FAMILY_APEX_VALUE_REVIEW.md`（提案。ADR-0035, Proposedに伴う2026-09-27の評価記録。Design only）
+- `product/definition/SEI_FAMILY_SEMANTIC_MAP.md`（提案。ADR-0035 Decision 4に伴う参考の対応表。non-contract、各対応は候補）
 - `product/vision/SEI_BRAND_WORLD_SOURCE.md`
 - `product/principles/SEI_PRODUCT_PRINCIPLES.md`
 - `plan/issue/ISSUE-000077-integrate-brand-world-into-product-value-discovery.md`
 - `plan/adr/ADR-0001-moving-future-horizon.md`
 - `plan/adr/ADR-0014-sei-tei-product-boundary.md`
 - `plan/adr/ADR-0018-product-value-authority-and-evaluation-boundary.md`
+- `plan/adr/ADR-0035-family-integration-apex-and-control-meaning-boundary.md`（提案。Proposed）
+- `plan/issue/ISSUE-000085-rebaseline-family-integration-apex.md`（採否待ち）
 
 ## 15. 自然な日本語ドラフト
 
@@ -325,6 +329,6 @@ Brand World SourceとProduct Value Discovery Reviewを通じて、ブランド�
 
 V1〜V8やDecision Continuityの意味を変えず、Inquiry Continuityについては未検証Product hypothesisのまま残しています。
 
-2026-10-02には、ADR-0035（Proposed）に沿って、社会の水準での姿を仮説として§4.1に、家族に対する統合の頂点（三つを採り三つを採らない）を§11.1に加えました。中央の頭脳ではないこと、固定pipelineではないこと、関連製品を特権化しないことは、そのまま維持しています。どちらも提案であり、Evidenceはありません。
+2026-10-02には、ADR-0035（Proposed）に沿って、社会の水準での姿を仮説として§4.1に、家族に対する統合の頂点（三つを採り三つを採らない）を§11.1に加えました。中央の頭脳ではないこと、固定pipelineではないこと、関連製品を特権化しないことは、そのまま維持しています。どちらも提案であり、根拠はDesign Evidenceだけです。
 
-内容と構造を整えた後、意味、強度、留保、技術的境界を変えず、**自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済み**とします。
+2026-10-10には、§11.1をADR-0035（Proposed）のDecision 1〜3と式、Consequencesと照合し、文言を揃えました。具体的には、式へ「（任意の合流）」を戻し、制御の判断に関する限定（新しいUniversal型を直ちに追加しないこと、新しいCore要素を追加しないこと）を加え、役割の説明から「統合の層」を外して「頂点」の語へ置き換え、§11.1の冒頭に根拠の段階（Design Evidenceのみ）を加えました。あわせて、状態行を、§4.1と§11.1が採否待ちの提案であることを明示する表現へ戻し、用語を main（7822812）の推敲語へ戻しました（検証根拠、実行権限、汎用の中核など）。Cognitive Commonsの定義元（`../value/SEI_BRAND_WORLD_VALUE_DISCOVERY_REVIEW.md` §4）の参照、§4.1と§11.1の採否の参照先（ADR-0035、ISSUE-000085）、§14の提案文書への注記も、この版に含まれています。
