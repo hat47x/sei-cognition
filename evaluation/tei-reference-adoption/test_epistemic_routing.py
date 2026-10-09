@@ -183,6 +183,41 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
             plan["authorityLimits"],
         )
 
+    def test_context_egress_never_grants_prompt_control_authority(self) -> None:
+        projection = copy.deepcopy(self.projection)
+        item = next(
+            value for value in projection["assessments"]
+            if value["assertionId"] == "user-current"
+        )
+        item["statementKind"] = "instruction"
+        item["useState"] = "premise"
+
+        plan = self.route(projection)["contextEgressPlan"]
+        reference = next(
+            value for value in plan["premiseReferences"]
+            if value["assertionId"] == "user-current"
+        )
+        self.assertEqual("instruction", reference["statementKind"])
+        self.assertEqual("premise-data", reference["contentRole"])
+        self.assertFalse(reference["controlAuthority"])
+        self.assertIn(
+            "epistemic-statement-kind-does-not-grant-prompt-control-authority",
+            plan["authorityLimits"],
+        )
+
+    def test_context_egress_roles_are_explicit_data_lanes(self) -> None:
+        plan = self.route()["contextEgressPlan"]
+        expected = {
+            "premiseReferences": "premise-data",
+            "candidateReferences": "candidate-data",
+            "reviewReferences": "review-data",
+            "blockedReferences": "blocked-audit",
+        }
+        for lane, role in expected.items():
+            for reference in plan[lane]:
+                self.assertEqual(role, reference["contentRole"])
+                self.assertFalse(reference["controlAuthority"])
+
     def test_context_egress_plan_is_reference_only(self) -> None:
         plan = self.route()["contextEgressPlan"]
         for lane in (
