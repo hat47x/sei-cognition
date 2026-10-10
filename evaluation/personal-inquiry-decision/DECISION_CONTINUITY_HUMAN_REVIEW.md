@@ -1,7 +1,7 @@
 # Decision Continuity — H1 / H2 Human Review Execution
 
-更新日: 2026-09-18  
-状態: **Evaluation-only / Human Review Execution Guide / Not Product Requirement**  
+更新日: 2026-10-10  
+状態: **Evaluation-only / Human Review Ready / H1・H2 Not Yet Observed / Not Product Requirement**  
 関連: ISSUE-000073 / `DOGFOOD_SURFACE.md` / `DOGFOOD_EVALUATION_RECORDING.md` / `decision_continuity_counterfactual_matched_set_v1.json` / `inquiry_continuity_review_runner.py` / `matched_review_session.py` / `decision_continuity_review_analysis.py`
 
 ## 1. この文書の役割
@@ -26,6 +26,22 @@ H2 matched synthetic review
 H2についてはfixture、rotation、blinded packet、Decision-specific semantic preflightが既に存在する。本手順では、それらを実際のhuman reviewへ接続する際に、**後から知った情報を先に見せないこと**と、**synthetic reviewをH1やProduct Valueへ過大解釈しないこと**を固定する。
 
 H1については新しいsession managerや保存schemaを作らない。既存のPersonal Inquiry Continuity dogfood surfaceとevaluation sidecarを再利用し、actual resumptionに必要な手順だけを本書後半で固定する。
+
+### 1.1 2026-10-10の実行ゲート
+
+E1〜E8は2026-10-09にgo1.25.14でactual PASSし、2026-10-10にはtested commitからcurrent developまでの実行対象source closure 39 fileが全て同じGit blobであることを確認した。したがって、H1 / H2を始めるためのmachine prerequisiteは満たしている。
+
+```text
+E1〜E8 Scoped Executable Evidence available
+  + current source closure unchanged
+  → H1 / H2 human reviewへ進める
+
+machine prerequisite satisfied
+  != H1 / H2 observed
+  != Product Value established
+```
+
+H1 / H2を始めるためにE1〜E8を毎回再実行しない。`interactionprobe`、`semanticruntime`、Go依存定義、またはrunnerの意味が変わった場合に再実行する。H2 native clean-HEAD captureやexternal Git-bundle actual runは再現性を高める補助Evidenceであり、human review開始の前提にはしない。
 
 ## 2. H2の責務分離
 
@@ -452,6 +468,8 @@ H1 observed
 
 ISSUE-000073のResolution判断では、E1〜E8のScoped Executable Evidence、H1 actual resume usability、H2 counterfactual review、capture / review overheadを別々に確認し、そのうえでCandidate RequirementとDecision Continuity Product hypothesisを再評価する。
 
+2026-10-10時点ではE1〜E8のScoped Executable Evidenceは成立済みである。したがって未観測の中心はH1、H2、capture / review overheadである。human reviewでは、SEIに有利な結果を作ることではなく、単純baselineとの差が弱い場合やoverheadが大きい場合もそのまま記録する。
+
 ## 13. Natural Japanese review
 
 H2用に既に成立していたmatched review手順を維持しながら、073/078で同じreview runnerを共有する形へ整理した。H2ではreviewer provenanceを最初のstimulus提示前に固定し、その初期sessionをexclusive-createして同じpathへの再initを拒否する。provenance付きsessionを低レベルstage-gate CLIから直接提示・記録する迂回も拒否し、condition labelを伏せたbundle、Issue固有response validation、complete後のEvidence exportまでを同じ入口へ集約した。また、ISSUE-000073で未接続だったH1 actual resume usabilityを既存Personal Inquiry Continuity dogfood surfaceへ接続した。
@@ -463,3 +481,5 @@ H1のために新しい評価schemaやsession managerを増やさず、Inquiry s
 2026-09-18の作業過程でR1 phase1 materialがprovenance固定前に提示された事実についても、回答が固定されていないためH2 observationへは数えず、同じreaderの後続reviewではknown exposureとして扱う停止線を追加した。
 
 自然な日本語として全文を再読し、H1 / H2、canonical Inquiry state / evaluation observation、synthetic pilot / actual resumption、reviewer provenance / human authorship、Executable / Adoption・Outcome Evidenceの境界が変わっていないことを最終監査した。
+
+2026-10-10にはE1〜E8 actual PASSとcurrent source closure一致を前提状態へ反映し、H1 / H2を次の実行ゲートとして明示した。machine rerunをhuman reviewの前提にはせず、未露出readerを使うclean blinded H2と、known exposureを正直に残すpilot observationの区別は維持した。
