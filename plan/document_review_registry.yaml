@@ -1,5 +1,5 @@
 schema: sei.document-review-registry/v1
-updated: 2026-10-09
+updated: 2026-10-10
 
 purpose: >-
   ISSUE-000015で行った既存開発文書の自然な日本語監査について、current branch上の
@@ -265,6 +265,11 @@ reviewed:
       - runtime/package/reference/README.md
     note: Local Reference PackageをProduct Releaseや正式Product Interactionと混同しない評価用配布物として説明済み。
 
+  - scope: evaluation/tei-reference-adoption/*.md
+    status: revised
+    coverage:
+      - EPISTEMIC_ROUTING_ISSUE_660.md
+    note: TEIのcontext-scoped epistemic Projectionとon-demand detail candidateをSEIのevaluation-only consumerから検証する文書。2026-10-10にread detailのobserved snapshot / drift semanticsへ同期し、access redaction等によるindeterminateをsemantic changeへ昇格させないこと、routeまたはdriftが変わったdetailは閲覧用dataに留めてProjection refresh前のcontext投入へ使わないこと、write mutationのstrict concurrencyとは分けることを再監査した。TEI #1057未完了のためproduction-compatible consumer Evidenceへは昇格させていない。
   - scope: evaluation/adoption-first-contact/*.md
     status: revised
     note: ISSUE-000084のE-84.1として、SEIの開発に関わっていない人が空の端末で最初の記録、再開、第三者による検証まで進めるかを観測する手順を定めた。観測は未実施で結果はない。導入の完了、導入の容易性、価値の到達を別のものとして扱い、作者の補助付きや作者の端末での実行を観測として数えない停止線を置いた。
