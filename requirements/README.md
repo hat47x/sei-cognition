@@ -5,9 +5,9 @@
 
 ## 1. このディレクトリの役割
 
-`requirements/`は、SEIのProduct Valueを満たすために**何が必要か**を定めます。
+`requirements/`では、SEIの製品価値を満たすために**何が必要か**を定めます。
 
-Product Valueそのものや長期Visionを定義する場所ではなく、具体的なArchitectureや実装方式を先に固定する場所でもありません。
+製品価値や長期的な構想そのものは、ここでは定義しません。また、具体的な全体構成や実装方式を先に固定することもしません。
 
 概念上の関係は次のとおりです。
 
@@ -27,7 +27,7 @@ Runtime / Provider Adapter / Fixture / Test
 Evidence
 ```
 
-Requirementは主に`what / why / constraint`を扱い、設計判断はADR、構造はArchitecture、相互運用境界はContractへ委ねます。
+要求（Requirement）では主に、何が必要か、なぜ必要か、どのような制約があるかという`what / why / constraint`を扱います。設計上の判断はADR、構造は全体構成の文書、他の実装との接続条件は契約に分けて記録します。
 
 ## 2. Current canonical files
 
@@ -41,14 +41,14 @@ requirements/
     HISTORICAL_REQUIREMENT_MAPPING.md
 ```
 
-- `PRODUCT_REQUIREMENTS.md` — current Product Requirementの正本入口
-- `ACCEPTANCE_SCENARIOS.md` — current Acceptance Scenarioの正本入口
-- `PRODUCT_JOURNEY_COMPOSITION.md` — Product Shapeを既存REQ / SCNへ照合し、end-to-end Product Journeyの重複・不足を分析する補助文書
-- `history/HISTORICAL_REQUIREMENT_MAPPING.md` — historical candidateからcurrent baselineへの意味上の対応
+- `PRODUCT_REQUIREMENTS.md` — 現行の製品要求を記録する正本の入口
+- `ACCEPTANCE_SCENARIOS.md` — 現行の受入場面を記録する正本の入口
+- `PRODUCT_JOURNEY_COMPOSITION.md` — 製品の形を既存のREQ・SCNと照合し、一連の利用過程で要求の重複や不足がないか分析する補助文書
+- `history/HISTORICAL_REQUIREMENT_MAPPING.md` — 過去の要求候補と現行の設計基準との意味上の対応
 
-`PRODUCT_JOURNEY_COMPOSITION.md`は、新しいRequirementやScenarioの第二の正本ではありません。分析結果からstableな意味を採用するときは、`PRODUCT_REQUIREMENTS.md`または`ACCEPTANCE_SCENARIOS.md`へ反映します。
+`PRODUCT_JOURNEY_COMPOSITION.md`は、新しい要求や受入場面を定める第二の正本ではありません。分析で見つかった内容を安定した要求や受入場面として採用する場合は、`PRODUCT_REQUIREMENTS.md`または`ACCEPTANCE_SCENARIOS.md`へ反映します。
 
-将来、RequirementやScenarioを個別ファイルへ分割しても、stable IDは維持します。
+将来、要求や受入場面を個別のファイルに分ける場合も、確定した識別子は維持します。
 
 ## 3. Stable ID
 
@@ -64,7 +64,7 @@ Acceptance Scenario:
 SCN-0001 ... SCN-9999
 ```
 
-IDにはValue Axis、Milestone、type、status、Core / Profile等の配置を埋め込みません。
+識別子には、価値の軸、マイルストーン、種類、状態、中核かプロファイルかといった分類を埋め込みません。
 
 ## 4. Requirement、Scenario、Testを分ける
 
@@ -73,14 +73,14 @@ Requirement != Acceptance Scenario != Test Case
 ```
 
 - Requirement — 何が必要かを定める。
-- Acceptance Scenario — どのような状況で、その意味差が必要になるかを示す。
-- Test Case / Fixture — actual implementationでScenarioをどう再現・検査するかを定める。
+- Acceptance Scenario — どのような状況で、その条件に基づく意味の区別が必要になるかを示す。
+- Test Case / Fixture — 実際の実装を使い、受入場面をどのように再現して検査するかを定める。
 
-一つのScenarioが複数Requirementを同時に検証して構いません。fixtureがPASSしてもScenario全体が満たされたとは限らないため、確認した範囲を明示します。
+一つの受入場面で複数の要求を同時に検証しても構いません。試験用データによる検査が合格しても、受入場面全体が満たされたとは限りません。確認できた範囲を明示します。
 
 SCN-0018のような統合Scenarioは、既存Scenarioを置き換えるものではありません。個別の意味境界が一つのProduct Journeyでも同時に保たれることを検査します。
 
-SCN-0019のようにProduct Interactionで見つかったfailureをStable化する場合も、transaction、snapshot token、ETag等の実装方式をそのままUniversal Requirementへ昇格させません。Requirementには失ってはならない意味だけを残します。
+SCN-0019のように、利用者とのやり取りで見つかった問題を安定した要求にする場合も、トランザクション、スナップショットトークン、ETagなどの実装方式を、そのまま汎用的な要求にはしません。Requirementには失ってはならない意味だけを残します。
 
 ## 5. Product Valueとの追跡
 
@@ -95,11 +95,11 @@ current Requirementは、原則として`SEI_VALUE_MODEL.md`のV1〜V8、また�
 - V7 Progressive Explicitness
 - V8 Execution Independence
 
-8軸すべてを形式的に付けず、実際に関係する軸だけを示します。
+八つの価値軸を形式的にすべて付けるのではなく、実際に関係する軸だけを示します。
 
 上位からの横断的な索引は`product/value/SEI_VALUE_TRACEABILITY.md`を参照します。
 
-Product ShapeからRequirementへ降りるときは、製品上の操作や画面構造をそのままUniversal Requirementへ昇格させません。まず既存REQとの重複を確認し、既存の規範で表現できない独立した必要性がある場合だけ新しいREQを追加します。
+製品の形から要求を導く際も、画面構成や操作方法を、そのまま汎用的な要求にしません。まず既存REQとの重複を確認し、既存の規範で表現できない独立した必要性がある場合だけ新しいREQを追加します。
 
 ## 6. Requirement statusとEvidenceを分ける
 
@@ -135,7 +135,7 @@ Requirement Accepted
   != Adoption / Outcome Evidence Satisfied
 ```
 
-また、個別Contract / runtime / Provider AdapterがそれぞれPASSしていても、それらを足し合わせるだけでend-to-end Product Acceptanceが成立したことにはしません。
+個別の契約、実行環境、外部の提供元との接続がそれぞれ検査に合格していても、その結果を足し合わせただけで、一連の製品利用について受入条件を満たしたとは判断しません。
 
 ## 7. current actual repositoryのEvidence
 
@@ -152,13 +152,13 @@ Requirement Accepted
 - V6 / V7 Projection Evaluation
 - end-to-end Semantic Product Journey harness
 
-これらのPASSをすべてのRequirementへ一律に継承しません。Requirement / Scenarioごとに実際に触れている意味境界だけを`Partially Satisfied`等へ更新します。
+これらの検査結果を、すべての要求が満たされた証拠として一律に扱うことはしません。Requirement / Scenarioごとに実際に触れている意味境界だけを`Partially Satisfied`等へ更新します。
 
-SCN-0018のend-to-end Product Journeyにはfixture-scoped harness Evidenceがあり、Scenario全体は`Partially Satisfied`として扱います。production Product Journeyや利用者成果へは昇格させません。
+SCN-0018のend-to-end Product Journeyにはfixture-scoped harness Evidenceがあり、Scenario全体は`Partially Satisfied`として扱います。本番環境での一連の利用や、利用者にもたらした成果が検証済みになったとは扱いません。
 
 REQ-0023 / SCN-0019についてはinteraction probeとtest sourceが存在しますが、Stable化時点でcurrent Requirement / Scenarioへ結び付けたactual test runを確認していないため、Executable Evidenceは`Not Yet Verified`のままです。
 
-Release、Operational、Adoption / Outcome Evidenceは、個別にactual evidenceが確認された高さだけを主張します。
+リリース、運用、普及・成果に関する検証は、それぞれ実際の根拠が確認できた段階についてのみ成立したと主張します。
 
 ## 8. Historical candidateの扱い
 
@@ -189,7 +189,7 @@ REQ-0023 / SCN-0019はhistorical candidateの再採番ではなく、ISSUE-00007
 9. 最終意味監査を行う。
 10. Requirements Registry Conformance等、対象CIがある場合はsuccessを確認する。
 
-CI failureを検出した場合は、原因を解消してsuccessを確認するまで後続作業へ進みません。
+CIで失敗を検出した場合は、原因を解消し、合格を確認するまで後続の作業へ進みません。
 
 ## 10. 関連文書
 

@@ -45,11 +45,14 @@ ALLOWED_RESOLUTION_COVERAGE_STATES = {
     "attention",
 }
 
+ALLOWED_DETAIL_DRIFT_STATES = {"same", "changed", "indeterminate"}
+
 REQUIRED_DETAIL_AUTHORITY_LIMITS = {
     "detail-access-context-is-not-part-of-semantic-query",
     "detail-access-refs-are-opaque-input-not-authorization-authority",
     "detail-query-does-not-broaden-source-access",
-    "detail-query-requires-current-binding-receipts",
+    "detail-observed-receipts-report-drift-not-mutation-preconditions",
+    "detail-drift-indeterminate-does-not-prove-semantic-change",
     "detail-query-is-bounded-by-context-as-of",
     "detail-result-does-not-change-confirmation-or-use-state",
     "detail-result-does-not-assert-objective-truth",
@@ -441,7 +444,8 @@ def build_epistemic_detail_query(
 ) -> dict[str, Any]:
     """Build the semantic TEI #1045 query from one egress reference.
 
-    Authorization execution context is deliberately not part of this query.
+    The receipt values describe the Projection snapshot that SEI observed.
+    Authorization execution context remains a separate adapter input.
     """
     reference = _require_object(reference, "egress reference")
     assertion_id = _require_string(reference.get("assertionId"), "egress reference.assertionId")
@@ -459,6 +463,9 @@ def build_epistemic_detail_query(
     sequence = reference.get("reviewLogSequence")
     if not isinstance(sequence, int) or isinstance(sequence, bool) or sequence < 0:
         raise ValueError("egress reference.reviewLogSequence must be a non-negative integer")
+    metadata_state = reference.get("metadataState")
+    if metadata_state not in ALLOWED_METADATA_STATES:
+        raise ValueError("egress reference.metadataState is unsupported")
     for value, name in (
         (meaning, "meaningFingerprint"),
         (subject, "reviewSubjectFingerprint"),
@@ -474,10 +481,11 @@ def build_epistemic_detail_query(
         "contract": TEI_DETAIL_QUERY_CONTRACT,
         "schema": TEI_DETAIL_QUERY_SCHEMA,
         "assertionId": assertion_id,
-        "expectedMeaningFingerprint": meaning,
-        "expectedReviewSubjectFingerprint": subject,
-        "expectedTargetBinding": target_binding,
-        "expectedReviewLogSequence": sequence,
+        "observedMeaningFingerprint": meaning,
+        "observedReviewSubjectFingerprint": subject,
+        "observedTargetBinding": target_binding,
+        "observedReviewLogSequence": sequence,
+        "observedMetadataState": metadata_state,
     }
 
 
@@ -503,14 +511,56 @@ def _contains_key(value: Any, forbidden: str) -> bool:
     return False
 
 
+def _metadata_aware_detail_drift(
+    equal: bool,
+    observed_metadata_state: str,
+    current_metadata_state: str,
+) -> str:
+    if equal:
+        return "same"
+    if (
+        observed_metadata_state == "complete"
+        and current_metadata_state == "complete"
+    ):
+        return "changed"
+    return "indeterminate"
+
+
+def _expected_detail_drift(
+    reference: dict[str, Any],
+    assessment: dict[str, Any],
+) -> dict[str, str]:
+    return {
+        "meaning": (
+            "same"
+            if assessment["meaningFingerprint"] == reference["meaningFingerprint"]
+            else "changed"
+        ),
+        "subject": _metadata_aware_detail_drift(
+            assessment["reviewSubjectFingerprint"]
+            == reference["reviewSubjectFingerprint"],
+            reference["metadataState"],
+            assessment["metadataState"],
+        ),
+        "reviewHistory": _metadata_aware_detail_drift(
+            assessment["reviewLogSequence"] == reference["reviewLogSequence"],
+            reference["metadataState"],
+            assessment["metadataState"],
+        ),
+        "targetBinding": (
+            "same"
+            if assessment["targetBinding"] == reference["targetBinding"]
+            else "changed"
+        ),
+    }
+
+
 def resolve_epistemic_detail_for_egress(
     reference: dict[str, Any],
     detail_result: dict[str, Any],
 ) -> dict[str, Any]:
-    """Validate TEI detail and keep the original egress lane fail-closed."""
+    """Validate current TEI detail without treating read drift as a write conflict."""
     reference = _require_object(reference, "egress reference")
-    # Reuse the query builder as the receipt-shape validator. This keeps the
-    # direct result-consumption path from accepting malformed egress receipts.
     build_epistemic_detail_query(reference)
     detail_result = _require_object(detail_result, "epistemic detail result")
 
@@ -554,9 +604,20 @@ def resolve_epistemic_detail_for_egress(
         "lifecycleState",
     ):
         _require_string(assessment.get(field), f"epistemic detail assessment.{field}")
+    for field in ("meaningFingerprint", "reviewSubjectFingerprint"):
+        value = assessment[field]
+        if (
+            not value.startswith("sha256:")
+            or len(value) != 71
+            or any(ch not in "0123456789abcdef" for ch in value[7:])
+        ):
+            raise ValueError(f"epistemic detail assessment.{field} must be exact sha256")
+
     sequence = assessment.get("reviewLogSequence")
     if not isinstance(sequence, int) or isinstance(sequence, bool) or sequence < 0:
-        raise ValueError("epistemic detail assessment.reviewLogSequence must be a non-negative integer")
+        raise ValueError(
+            "epistemic detail assessment.reviewLogSequence must be a non-negative integer"
+        )
     for field, allowed in (
         ("useState", ALLOWED_USE_STATES),
         ("metadataState", ALLOWED_METADATA_STATES),
@@ -568,16 +629,26 @@ def resolve_epistemic_detail_for_egress(
         if assessment.get(field) not in allowed:
             raise ValueError(f"epistemic detail assessment.{field} is unsupported")
 
-    receipt_pairs = (
-        ("assertionId", "assertionId"),
-        ("meaningFingerprint", "meaningFingerprint"),
-        ("reviewSubjectFingerprint", "reviewSubjectFingerprint"),
-        ("targetBinding", "targetBinding"),
-        ("reviewLogSequence", "reviewLogSequence"),
-    )
-    for assessment_field, reference_field in receipt_pairs:
-        if assessment.get(assessment_field) != reference.get(reference_field):
-            raise ValueError(f"epistemic detail {assessment_field} no longer matches egress reference")
+    if assessment["assertionId"] != reference["assertionId"]:
+        raise ValueError("epistemic detail assertionId no longer matches egress reference")
+
+    drift = _require_object(detail_result.get("drift"), "epistemic detail result.drift")
+    for field in ("meaning", "subject", "reviewHistory", "targetBinding"):
+        value = drift.get(field)
+        if value not in ALLOWED_DETAIL_DRIFT_STATES:
+            raise ValueError(f"epistemic detail drift.{field} is unsupported")
+    if drift["meaning"] == "indeterminate":
+        raise ValueError("epistemic detail drift.meaning cannot be indeterminate")
+    if drift["targetBinding"] == "indeterminate":
+        raise ValueError("epistemic detail drift.targetBinding cannot be indeterminate")
+
+    expected_drift = _expected_detail_drift(reference, assessment)
+    for field, expected in expected_drift.items():
+        if drift[field] != expected:
+            raise ValueError(
+                f"epistemic detail drift.{field} is inconsistent: "
+                f"expected {expected}, got {drift[field]}"
+            )
 
     routed = route_assessment(assessment)
     expected_route = {
@@ -590,11 +661,10 @@ def resolve_epistemic_detail_for_egress(
         raise ValueError("egress reference contentRole is unsupported")
     if reference.get("controlAuthority") is not False:
         raise ValueError("egress reference must not grant prompt control authority")
-    if routed["route"] != expected_route:
-        raise ValueError(
-            "epistemic detail no longer satisfies the selected egress lane: "
-            f"expected {expected_route}, current {routed['route']}"
-        )
+
+    route_changed = routed["route"] != expected_route
+    drift_present = any(value != "same" for value in drift.values())
+    refresh_required = route_changed or drift_present
 
     content = _require_object(
         detail_result.get("content"),
@@ -604,13 +674,20 @@ def resolve_epistemic_detail_for_egress(
         "schema": RESOLVED_CONTENT_SCHEMA,
         "assertionId": routed["assertionId"],
         "contentRole": reference["contentRole"],
-        "contextEligible": reference["contentRole"] == "premise-data",
+        "contextEligible": (
+            reference["contentRole"] == "premise-data"
+            and routed["route"] == "premise"
+            and not refresh_required
+        ),
         "controlAuthority": False,
         "assessmentRoute": routed["route"],
+        "routeChanged": route_changed,
+        "drift": dict(drift),
+        "projectionRefreshRequired": refresh_required,
         "content": dict(content),
         "authorityLimits": [
-            "resolved-detail-preserves-egress-lane",
             "resolved-detail-is-data-not-prompt-control",
+            "detail-drift-requires-projection-refresh-before-context-use",
             "candidate-review-blocked-detail-does-not-become-premise",
         ],
     }
