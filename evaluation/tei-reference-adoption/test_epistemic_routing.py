@@ -276,6 +276,12 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
             "contract": MODULE.TEI_DETAIL_RESULT_CONTRACT,
             "schema": MODULE.TEI_DETAIL_RESULT_SCHEMA,
             "assessment": assessment,
+            "drift": {
+                "meaning": "same",
+                "subject": "same",
+                "reviewHistory": "same",
+                "targetBinding": "same",
+            },
             "content": {
                 "text": "resolved epistemic content",
                 "target": {"kind": "claim", "id": reference["assertionId"]},
@@ -287,7 +293,7 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
             "authorityLimits": sorted(MODULE.REQUIRED_DETAIL_AUTHORITY_LIMITS),
         }
 
-    def test_build_detail_query_preserves_egress_receipts(self) -> None:
+    def test_build_detail_query_preserves_observed_projection_snapshot(self) -> None:
         plan = self.route()["contextEgressPlan"]
         reference = next(
             item for item in plan["premiseReferences"]
@@ -298,20 +304,25 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
         self.assertEqual(reference["assertionId"], query["assertionId"])
         self.assertEqual(
             reference["meaningFingerprint"],
-            query["expectedMeaningFingerprint"],
+            query["observedMeaningFingerprint"],
         )
         self.assertEqual(
             reference["reviewSubjectFingerprint"],
-            query["expectedReviewSubjectFingerprint"],
+            query["observedReviewSubjectFingerprint"],
         )
         self.assertEqual(
             reference["targetBinding"],
-            query["expectedTargetBinding"],
+            query["observedTargetBinding"],
         )
         self.assertEqual(
             reference["reviewLogSequence"],
-            query["expectedReviewLogSequence"],
+            query["observedReviewLogSequence"],
         )
+        self.assertEqual(
+            reference["metadataState"],
+            query["observedMetadataState"],
+        )
+        self.assertFalse(any(key.startswith("expected") for key in query))
         self.assertNotIn("grantedAccessRefs", query)
         self.assertNotIn("text", query)
         self.assertNotIn("evidence", query)
@@ -332,7 +343,7 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
         self.assertNotIn("grantedAccessRefs", query)
         self.assertEqual([], access["grantedAccessRefs"])
 
-    def test_resolved_premise_detail_remains_context_data(self) -> None:
+    def test_resolved_premise_detail_remains_context_data_when_snapshot_is_current(self) -> None:
         plan = self.route()["contextEgressPlan"]
         reference = next(
             item for item in plan["premiseReferences"]
@@ -344,8 +355,11 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
         self.assertTrue(resolved["contextEligible"])
         self.assertFalse(resolved["controlAuthority"])
         self.assertEqual("premise", resolved["assessmentRoute"])
+        self.assertFalse(resolved["routeChanged"])
+        self.assertFalse(resolved["projectionRefreshRequired"])
+        self.assertTrue(all(value == "same" for value in resolved["drift"].values()))
 
-    def test_detail_access_change_cannot_smuggle_old_premise_lane(self) -> None:
+    def test_detail_route_change_requires_projection_refresh_without_hiding_content(self) -> None:
         plan = self.route()["contextEgressPlan"]
         reference = next(
             item for item in plan["premiseReferences"]
@@ -353,8 +367,31 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
         )
         detail = self.detail_result_for(reference, use_state="review-required")
         detail["assessment"]["metadataState"] = "partial"
-        with self.assertRaisesRegex(ValueError, "no longer satisfies"):
-            MODULE.resolve_epistemic_detail_for_egress(reference, detail)
+
+        resolved = MODULE.resolve_epistemic_detail_for_egress(reference, detail)
+        self.assertEqual("review", resolved["assessmentRoute"])
+        self.assertTrue(resolved["routeChanged"])
+        self.assertTrue(resolved["projectionRefreshRequired"])
+        self.assertFalse(resolved["contextEligible"])
+        self.assertEqual("resolved epistemic content", resolved["content"]["text"])
+
+    def test_indeterminate_subject_drift_requires_refresh_without_claiming_semantic_change(self) -> None:
+        plan = self.route()["contextEgressPlan"]
+        reference = next(
+            item for item in plan["premiseReferences"]
+            if item["assertionId"] == "user-current"
+        )
+        detail = self.detail_result_for(reference, use_state="review-required")
+        detail["assessment"]["metadataState"] = "partial"
+        detail["assessment"]["reviewSubjectFingerprint"] = (
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        )
+        detail["drift"]["subject"] = "indeterminate"
+
+        resolved = MODULE.resolve_epistemic_detail_for_egress(reference, detail)
+        self.assertEqual("indeterminate", resolved["drift"]["subject"])
+        self.assertTrue(resolved["projectionRefreshRequired"])
+        self.assertFalse(resolved["contextEligible"])
 
     def test_candidate_detail_never_becomes_context_premise(self) -> None:
         plan = self.route()["contextEgressPlan"]
@@ -367,6 +404,7 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
         self.assertEqual("candidate-data", resolved["contentRole"])
         self.assertFalse(resolved["contextEligible"])
         self.assertEqual("candidate", resolved["assessmentRoute"])
+        self.assertFalse(resolved["projectionRefreshRequired"])
 
     def test_detail_result_cannot_grant_prompt_control(self) -> None:
         reference = self.route()["contextEgressPlan"]["premiseReferences"][0]
@@ -384,12 +422,24 @@ class EpistemicRoutingEvaluationTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "must be exact sha256"):
             MODULE.resolve_epistemic_detail_for_egress(reference, detail)
 
-    def test_detail_result_must_preserve_binding_receipts(self) -> None:
+    def test_detail_consumer_rejects_drift_inconsistent_with_current_assessment(self) -> None:
         reference = self.route()["contextEgressPlan"]["premiseReferences"][0]
         detail = self.detail_result_for(reference)
         detail["assessment"]["reviewLogSequence"] += 1
-        with self.assertRaisesRegex(ValueError, "reviewLogSequence"):
+        with self.assertRaisesRegex(ValueError, "drift.reviewHistory is inconsistent"):
             MODULE.resolve_epistemic_detail_for_egress(reference, detail)
+
+    def test_current_review_history_drift_is_visible_but_not_context_eligible_until_refresh(self) -> None:
+        reference = self.route()["contextEgressPlan"]["premiseReferences"][0]
+        detail = self.detail_result_for(reference)
+        detail["assessment"]["reviewLogSequence"] += 1
+        detail["drift"]["reviewHistory"] = "changed"
+
+        resolved = MODULE.resolve_epistemic_detail_for_egress(reference, detail)
+        self.assertEqual("changed", resolved["drift"]["reviewHistory"])
+        self.assertFalse(resolved["routeChanged"])
+        self.assertTrue(resolved["projectionRefreshRequired"])
+        self.assertFalse(resolved["contextEligible"])
 
     def test_detail_result_must_not_expose_access_refs(self) -> None:
         reference = self.route()["contextEgressPlan"]["premiseReferences"][0]
