@@ -1,7 +1,7 @@
 # ISSUE-000073 — Decision Continuity 実行準備状態
 
 更新日: 2026-10-10  
-状態: **Current Execution Readiness / Executable and Human Evidence Pending**
+状態: **Current Execution Readiness / Scoped Executable Evidence Available / Human Evidence Pending**
 
 ## 1. この文書の役割
 
