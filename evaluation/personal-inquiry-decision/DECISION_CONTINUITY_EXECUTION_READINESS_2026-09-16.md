@@ -506,7 +506,7 @@ E1〜E8のScoped Executable Evidenceは成立し、current source closureも未�
 
 優先順位は次です。
 
-1. materialなpre-orientation exposureのないreal InquiryでH1 actual resumptionを実施し、Orientationだけから現在地へ戻れるかを観測する。
+1. real InquiryのOrientationを提示する前にH1 pre-stimulus provenanceを`none-declared | known-material-exposure | unknown`で固定する。`none-declared`の場合だけclean H1候補としてactual resumptionを開始し、Orientationだけから現在地へ戻れるかを観測する。
 2. H2 matched reviewをprovenance-first shared runnerからhuman readerで少なくとも一rotation実施し、completed sessionからEvidence bundleをexportする。clean blinded reviewが必要なら、割当materialへ未露出のreaderを使う。既知または不明のexposureは隠さずmetadataへ残す。
 3. H1対象Inquiryのcapture / review overheadを既存sidecarで前向きに観測し、resume benefitを相殺していないか読む。後知恵でburden値を埋めない。
 4. H1 / H2の結果をraw chat / chronological note等の単純baselineと比較し、Question 1〜4、8、10とDecision Continuity Product hypothesisを再評価する。
