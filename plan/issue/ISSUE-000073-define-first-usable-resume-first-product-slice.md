@@ -3,7 +3,7 @@
 Status: **Open**  
 Priority: **1**  
 Related ADRs: **ADR-0005, ADR-0010, ADR-0028, ADR-0029**  
-Updated: 2026-10-09
+Updated: 2026-10-10
 
 ## Goal
 
@@ -179,6 +179,12 @@ Question 5、6、9については、Requirement auditとREQ-0023 / SCN-0019のfo
 
 一方、Question 1〜4、7、8、10は、source codeやRequirement文書だけでは閉じない。E1〜E8のactual実行、H1 / H2 human review、capture / review burdenの観測を通して検証する。
 
+### 2026-10-10時点の問いの整理
+
+E1〜E8 actual PASSにより、Question 1〜4、7について「必要な意味をcanonical stateから再構成できるか」「AI unavailableやprovisional境界を技術的に保てるか」というmechanism側の反証は、Local Single-Nodeのprobe範囲で通った。tested commitからcurrent source closureも39 / 39 blob一致である。
+
+ただし、どの表示が人間の認知負荷を本当に下げるか、semantic diffが人間に誤りを見つけさせるか、first human-facing interactionが過剰な負担を生まないか、単純baselineより価値があるかはExecutable Evidenceだけでは閉じない。したがってQuestion 1〜4、8、10のhuman / Product Value側はH1 / H2へ残す。E1〜E8はsource closureが変わらない限り再実行を優先しない。
+
 ## Constraints
 
 - `Workspace` / `Case` / `Session` / `Thread`をInteraction convenienceだけでUniversal Coreへ追加しない。
@@ -196,7 +202,7 @@ Question 5、6、9については、Requirement auditとREQ-0023 / SCN-0019のfo
 - Research EvidenceをSEI Product Evidenceへ読み替えない。
 - ISSUE-000072のTEI version-exchange Evidenceとは独立して扱う。
 
-## Current implementation / Evidence status — 2026-10-09
+## Current implementation / Evidence status — 2026-10-10
 
 現在はDesign baselineだけの段階から、E1〜E8を再現するGo interaction probeと、runner・verifier・one-command captureを持つ段階へ進んでいる。ただし、sourceや受入れtoolingの存在とactual E1〜E8実行結果は分ける。
 
@@ -216,6 +222,7 @@ Question 5、6、9については、Requirement auditとREQ-0023 / SCN-0019のfo
 - verifier self-test: **PASS on canonical-HEAD-bound current source (2026-09-18); machine-readable delta Evidence recorded**
 - capture workflow: **historical full self-test PASS retained; canonical-HEAD deltaは8 case actual + same-output focused preflight actualで確認 (2026-09-18)**
 - E1〜E8 actual Go 1.25.x execution: **PASS (2026-10-09, tested commit `694ec5805c00a8bae9034e15ee0d1589e40f6fd8`, go1.25.14 linux/amd64)**。`go test -count=1 -json ./interactionprobe`の必須18 testがすべてpass、`go test`全体も31 pass / 0 fail。verifierもfindings 0でPASS。Evidenceは`evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8.json`と`e1-e8-verification.json`。**事前配置のGo 1.25.14によるScoped Executable Evidenceであり、bootstrap wrapperのpinned archive materialization経路は実行していない**
+- E1〜E8 current-source applicability: **39 / 39 source-closure blob一致 (2026-10-10)**。tested commitから`develop/v0.2.0`の観測HEAD `3ecb15848e3f07760a868f9e266183383eda0a40`まで、`runtime/go/interactionprobe` 22 file、`runtime/go/semanticruntime` 13 file、`go.mod` / `go.sum`、runner / verifierの全blobが同一だった。既存のactual PASSはこの未変更source closureへ適用可能と判断する。これは新しいtest実行ではない。Evidenceは`evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8-current-source-closure-2026-10-10.json`
 - REQ-0023 / SCN-0019 Executable Evidence: **E6 / E7のprobeレベルでPASS (2026-10-09)**。E6（`TestCommitCoordinator*` 3 test）とE7（`TestStaleDraftCommitRequiresFreshProposal`、`TestReclassifiedObservationKeepsOriginalSnapshotPrecondition`）がpartial commitとstale writeを黙って受理しないことを確認した。ただしこれはLocal Single-Node上のProduct-local probeに対する結果であり、他のStorage profileやProductionの永続層へは一般化しない
 - H1 resume usability review: **Not Yet Observed**
 - H2 counterfactual Decision Continuity review: **Not Yet Observed**。073/078共通runnerでreviewer provenanceをstimulus提示前に固定し、Decision固有validationとEvidence exportまで同じ経路へ統合済み。current Decision manifest / 3 fixture / R1〜R3のstatic source auditは整合し、actual repository integration test sourceも追加済み。tested commit `42872959a13746eb5fd87f1fe10233ccd55caac0` の対象12 sourceをGit blob SHA一致でmaterializeしたactual executionでは、Python focused regressionが**8 tests / 8 PASS**。ただしnative clean-HEAD captureは**Not Yet Verified**
@@ -240,6 +247,7 @@ evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8-canonical-head-
 evaluation/personal-inquiry-decision/evidence/issue-000073/go125-bootstrap-mechanics-2026-10-07.json
 evaluation/personal-inquiry-decision/evidence/issue-000073/external-execution-bundle-mechanics-2026-10-09.json
 evaluation/personal-inquiry-decision/evidence/issue-000073/external-execution-runner-mechanics-2026-10-09.json
+evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8-current-source-closure-2026-10-10.json
 ```
 
 これらはrunner / verifier / captureの受入れ系に限定したExecutable Evidenceであり、E1〜E8 actual Go Evidenceではない。currentの実行手順とblocker詳細は`evaluation/personal-inquiry-decision/DECISION_CONTINUITY_EXECUTION_READINESS_2026-09-16.md`をcurrent-state正本として参照する。
@@ -535,10 +543,11 @@ SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw 
 9. Candidate Requirementをexisting REQ / SCNへ再照合し、Stable Requirement追加の要否を決定する。
 10. 実装方式固有のlocal browser / protocol / AI model等をUniversal semanticsへ持ち込んでいない。
 
-### Current resolution status — 2026-10-09
+### Current resolution status — 2026-10-10
 
 - 条件1、2、9、10: **Design / Requirement auditの範囲では成立**。
-- 条件3〜5: **Local Single-Node上のProduct-local probeの範囲で成立 (2026-10-09)**。go1.25.14でE1〜E8の必須18 testがすべてpassし、verifierもfindings 0でPASSした（tested commit `694ec5805c00a8bae9034e15ee0d1589e40f6fd8`、`evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8.json`）。条件3はE1〜E5、条件4はE6 / E7のpartial commit・stale writeを黙って受理しない挙動、条件5はE8のexternal AI context / provisional response境界に対応する。ただし**事前配置のGo 1.25.14によるScoped Executable Evidence**であり、bootstrap wrapperのpinned archive materialization経路、他OS / 他Storage profile、Production永続層は対象外。E1〜E8 PASSは条件6〜8のhuman observationもProduct Valueも成立させない。
+- 条件3〜5: **Local Single-Node上のProduct-local probeの範囲で成立 (2026-10-09、current source closureは2026-10-10に39 / 39 blob一致を確認)**。go1.25.14でE1〜E8の必須18 testがすべてpassし、verifierもfindings 0でPASSした（tested commit `694ec5805c00a8bae9034e15ee0d1589e40f6fd8`、`evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8.json`）。条件3はE1〜E5、条件4はE6 / E7のpartial commit・stale writeを黙って受理しない挙動、条件5はE8のexternal AI context / provisional response境界に対応する。ただし**事前配置のGo 1.25.14によるScoped Executable Evidence**であり、bootstrap wrapperのpinned archive materialization経路、他OS / 他Storage profile、Production永続層は対象外。E1〜E8 PASSは条件6〜8のhuman observationもProduct Valueも成立させない。
+  - source closureが同一である限り、条件3〜5を維持するためだけのE1〜E8再実行は優先しない。`interactionprobe` / `semanticruntime` / Go依存定義 / runnerの意味が変わった場合に再実行する
   - 同じ2026-10-09には、別経路として**external exact-source handoff**のpreparer / 送受信mechanicsも実体化され、限定範囲でPASSしている（`external-execution-bundle-mechanics-2026-10-09.json`）。これはexact HEADのclone、expected HEAD不一致拒否、dirty source拒否等の**引き渡し経路のmechanics**であり、上記E1〜E8 actual PASSとは別のEvidenceである。handoff bundleを実際に外部nodeへ渡して実行した結果は未取得
 - 条件6〜8: H1 / H2とProduct Valueのcounterfactual observationは**Not Yet Observed**であり、未成立。H2のprovenance-first共通runnerとDecision-specific validationは実装済みだが、reviewer response未取得のため条件7を満たしたとは扱わない。
 
@@ -632,3 +641,5 @@ SEIのsemantic integrityが高いだけではProduct Valueとせず、historical
 2026-10-09には、private GitHubへの接続可否とsource identityを分離するため、Git bundleによるexternal exact-source handoffを追加した。exact committed sourceで5件のmechanics testを実行し、同一HEADへのcloneと、expected HEAD不一致・dirty source・repository内output・暗黙上書きの拒否を確認した。実行環境のtransportを改善しただけであり、E1〜E8、H1 / H2、Decision Continuity Product ValueのEvidence強度は引き上げていない。自然な日本語として読み直し、既存の停止線と規範強度が変わっていないことを確認した。
 
 同じ日に受け側runnerも追加し、handoffのSHA-256 / source identity検証、exact clone、post-clone bundle verification、既存bootstrap / capture実行、blocked非昇格までを一命令へ収束させた。exact committed sourceによる4件のmechanics testは4/4 PASSしたが、synthetic bootstrapを用いた受入れ試験であり、actual E1〜E8のEvidenceには数えていない。
+
+2026-10-10には、actual E1〜E8のtested commitとcurrent developの実行対象closureをGit blobで再照合した。`interactionprobe` 22 file、`semanticruntime` 13 file、Go依存定義2 file、runner / verifier 2 fileの計39 fileが全て同一だった。これにより既存のScoped Executable PASSをcurrent source closureへ適用できることをmachine-readable Evidenceへ固定した。これは再実行ではなく、未変更sourceへの適用性確認である。以後の高情報量作業はH1 / H2 human observationへ移す。
