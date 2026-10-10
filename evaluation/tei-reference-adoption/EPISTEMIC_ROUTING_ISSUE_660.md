@@ -112,32 +112,48 @@ egress referenceはlaneごとに次のcontent roleを持つ。
 
 TEI #1045 / Draft PR #1055のcandidate contractを、Context Egress Planの次段からevaluation-onlyでpressureする。
 
-SEIはegress referenceから次のreceiptだけをTEI detail queryへ渡す。
-
-- assertion ID
-- meaning fingerprint
-- review subject fingerprint
-- target binding
-- review log sequence
+SEIはegress referenceから、Projection表示時に観測したassertion ID、meaning fingerprint、review subject fingerprint、target binding、review log sequence、metadata stateをsemantic detail queryへ渡す。これらはwrite preconditionではなく、現在のdetailとの差を確認するためのsnapshotである。
 
 access refはsemantic detail queryへ含めない。authorization境界が与えたopaqueなrefは、adapter-onlyのaccess contextとして別に渡す。epistemic contentからaccess refを推定しない。
 
-TEI detail resultを受け取った後も、その本文を即premiseへ入れない。resultのcontract / schema、receipt、Authority limit、contentRole、controlAuthorityを確認し、detail側のcurrent Assessmentを既存SEI routing guardへもう一度通す。
+TEI detail resultを受け取った後も、その本文を即premiseへ入れない。SEIはcontract / schema、Authority limit、contentRole、controlAuthorityを確認する。さらに、resultが返すdriftをobserved egress referenceとcurrent Assessmentから再計算し、producerのdrift表現と一致することを確認する。
 
-この再routingにより、Projection時点ではpremiseだった情報がdetail取得時のaccess filter等でpartial / review-requiredになった場合、古いpremise laneへの投入を止める。
+driftはmeaning、subject、review history、target bindingを別々に扱う。meaningとtarget bindingはsame / changed、subjectとreview historyはsame / changed / indeterminateを取る。observed viewまたはcurrent viewのmetadataがpartial / absentで、実変更とredactionだけを区別できない場合はindeterminateを維持する。indeterminateをsemantic changeへ読み替えない。
 
-candidate detailはcandidate-dataのまま、review detailはreview-dataのまま、blocked detailはblocked-auditのまま扱う。取得本文はすべてdataでありprompt control authorityを持たない。
+detail側のcurrent Assessmentは既存SEI routing guardへもう一度通す。元のegress laneとcurrent routeが違う場合、またはdriftが一つでもsame以外なら、`projectionRefreshRequired=true`とする。本文は閲覧用dataとして保持できるが、old Projection由来のpremise投入や操作判断には使わない。
 
-このpressureはTEI #1055をSEIのproduction Contractへ固定するものではない。TEI側qualification #1057が未完了のため、consumer側もevaluation-onlyのDesign / source candidateに留める。
+```text
+detail is current and route unchanged
+  + all drift = same
+    -> premise-dataだけcontextEligible
 
+route changed
+  or any drift != same
+    -> current detailは閲覧可能
+    -> contextEligible=false
+    -> Projection refresh required
+```
+
+candidate detailはcandidate-data、review detailはreview-data、blocked detailはblocked-auditとして扱い、driftが無くてもpremiseにはしない。取得本文はすべてdataでありprompt control authorityを持たない。
+
+このpressureはTEI #1055をSEIのproduction Contractへ固定するものではない。TEI側qualification #1057が未完了であるため、consumer側もevaluation-onlyのDesign / source candidateに留める。
 
 ### Detail queryとauthorization実行文脈の分離
 
-TEI #1055のconsumer pressureから、detail queryへaccess refを含める必要はないと整理した。
+detail queryは「何を、どの観測snapshotから確認したいか」だけを表す。authorization実行文脈は含めない。
 
-- semantic detail query: assertion IDとcurrent receiptsだけ
-- adapter access context: authorization境界が与えるopaqueなaccess refだけ
+- semantic detail query: assertion IDとobserved snapshot
+- adapter access context: authorization境界が与えるopaqueなaccess ref
 
-SEIは両者を別オブジェクトとして生成する。queryを作る認知処理やUI相当の層へpolicy refを持ち込まず、access contextはprovider / adapter境界で注入する。
+SEIは両者を別オブジェクトとして生成する。queryを作る認知処理へpolicy refを持ち込まず、access contextはprovider / adapter境界で注入する。
 
 これにより「何を取得したいか」と「何を取得してよいか」を同じcontractへ混ぜない。
+
+### Read driftとwrite concurrencyの分離
+
+TEIのhuman review mutationはstale preconditionをhard rejectする。一方、read-only detailはassertion自体へアクセスできる限りcurrent detailを返し、観測snapshotとの差をdriftとして示す。
+
+SEIもこの差を維持する。detail inspectionのdriftを、write authorityやreview commandのprecondition緩和には利用しない。
+
+TEI #1057がPASSするまでは、detail-dependent testが通ってもproduction-compatible detail consumerのEvidenceへは昇格しない。Projection routing自体のEvidenceとは分けて扱う。
+
