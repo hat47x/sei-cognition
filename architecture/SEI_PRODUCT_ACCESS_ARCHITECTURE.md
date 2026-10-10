@@ -5,9 +5,9 @@
 
 ## 1. この文書の役割
 
-この文書は、Product Identity / Access / Collaboration baselineとADR-0030を、current SEI Architectureへ配置します。
+本書は、製品における主体の識別・アクセス制御・協働についての設計基準とADR-0030を、現行のSEI全体構成に位置付けます。
 
-ここで扱うIdentity Binding、Product Access Scope、Policy Evaluator、Disclosure ProjectionはProduct security / collaboration componentであり、Universal semantic entityではありません。
+ここで扱うIdentity Binding、Product Access Scope、Policy Evaluator、Disclosure Projectionは、製品のセキュリティや協働に関する構成要素です。汎用的な意味上の実体ではありません。
 
 ## 2. Architecture overview
 
@@ -29,7 +29,7 @@ SEI canonical     visible / withheld
 semantic source       view
 ```
 
-semantic Responsibility / Authorityはこのaccess pipelineの入力として自動利用しません。
+意味上の責任（Responsibility）や権限（Authority）を、このアクセス制御の処理への入力として自動的に使うことはしません。
 
 ```text
 semantic Responsibility / Authority
@@ -38,27 +38,27 @@ semantic Responsibility / Authority
 
 ## 3. Authentication Adapter
 
-OIDC、SAML、local authentication、service credential等から、現在のrequest主体を識別します。
+OIDC、SAML、ローカル認証、サービス用の資格情報などを通じて、現在の要求元を識別します。
 
-Authentication Adapterはcredentialやsession lifecycleを所有できますが、それらをBounded SubjectやDecision Memoryへ埋め込みません。
+認証用の接続部（Authentication Adapter）は資格情報やセッションの管理周期を扱えます。ただし、それらをBounded Subjectや判断の記録（Decision Memory）へ埋め込みません。
 
-特定IdPをReference Architectureの必須componentにはしません。
+特定の認証基盤（IdP）を参照アーキテクチャの必須構成要素にはしません。
 
 ## 4. Identity Binding / Resolver
 
 Authentication Provider固有のsubjectをADR-0004のBounded Subjectへ対応付けます。
 
-複数のexternal identityが同じBounded Subjectへbindingされることを許容します。これによりIdP交換時にもhistorical semantic referenceを保持できます。
+複数の外部識別情報を同じBounded Subjectへ対応付けられます。これにより、認証基盤を交換しても過去の意味上の参照を保持できます。
 
-Binding自体はProduct security configuration / Evidenceであり、Universal Identity ontologyではありません。
+この対応関係は、製品のセキュリティ設定や検証根拠です。汎用的な主体の定義そのものではありません。
 
 ISSUE-000056のreference probeでは、旧・新IdP相当の二つのauthentication identityを同じBounded Subjectへbindingし、どちらからreadしてもhistorical DecisionのResponsibility Refが変化しないことを確認しました。
 
 ## 5. Product Access Scope
 
-Product Access ScopeはProduct resourceをaccess-control上まとめる境界です。
+Product Access Scopeは、製品内の資源をアクセス制御上のまとまりとして扱うための境界です。
 
-実装上のtenant、workspace、project等へ対応させられますが、semantic organization / projectと同一視しません。
+実装上はテナント、ワークスペース、プロジェクトなどに対応させられますが、意味上の組織やプロジェクトとは同一視しません。
 
 ```text
 Product Access Scope ID
@@ -69,9 +69,9 @@ current probeのscope IDもProduct-localです。将来の正式tenant / workspa
 
 ## 6. Product Access Policy Evaluator
 
-Bounded Subject、Product Access Scope、operation、必要なcontextを入力として、Product permissionを評価します。
+Bounded Subject、Product Access Scope、操作、必要な文脈情報を入力として、製品の操作権限を評価します。
 
-reference probeではread / append / review / share / administerを用いています。
+参照用の検証では、読み取り、追加、確認、共有、管理に相当するread / append / review / share / administerを使います。
 
 評価結果は少なくとも次を区別します。
 
@@ -79,17 +79,17 @@ reference probeではread / append / review / share / administerを用いてい�
 - denied
 - not evaluated
 
-`not_evaluated`を`denied`と同じ監査意味へ平坦化しません。ただしenforcementでは両方をsafe failureとして拒否できます。
+`not_evaluated`と`denied`を、監査上は同じ意味として扱いません。ただし、操作を許可するかどうかの判定では、どちらも安全側に倒して拒否できます。
 
-Product role、actor kind、semantic Responsibility / Authorityからpermissionを黙って推定しません。
+製品内の役割、主体の種類、意味上の責任や権限から、操作権限を知らないうちに推定することはしません。
 
 probeでは、Responsibility Refを持つ主体でもread grantがなければ拒否され、binding済みAI主体でもappend grantがなければ拒否されることを確認しました。一方、identity binding自体がないhuman主体は`not_evaluated`となり、`denied`と区別されます。
 
 ## 7. Guarded Canonical Access
 
-Canonical Semantic Runtime / Storeへ到達する前に、Product Access Policyを評価します。
+意味の正本を扱う実行環境や保存先に到達する前に、Product Access Policyを評価します。
 
-readが許可されていない主体へcanonical recordを返さず、appendが許可されていない主体へcanonical mutation operationを渡しません。
+読み取りを許可していない主体には正本の記録を返しません。また、追加を許可していない主体には正本を変更する操作を渡しません。
 
 Product Access Policyが許可したことだけで、追加recordにsemantic Responsibility / Authorityを自動挿入しません。
 
@@ -97,18 +97,18 @@ probeでは、Product `administer` permissionを付与しても既存Decisionの
 
 ## 8. Disclosure Projection
 
-Product Access Scope自体へのreadが許可されていても、外部collaboratorへ一部recordを開示できない場合があります。
+Product Access Scopeの読み取りが許可されていても、外部の協力者には一部の記録を開示できない場合があります。
 
-Disclosure Projectionはcanonical sourceからviewを派生させ、非開示recordを`withheld`として外在化できます。
+Disclosure Projectionは正本から共有用の表示を作り、非開示の記録を`withheld`として表すことができます。
 
 ```text
 canonical digest before projection
   == canonical digest after projection
 ```
 
-Projection生成でcanonical sourceを削除・上書きしません。
+共有用の表示を作るときに、元の正本を削除したり上書きしたりすることはありません。
 
-withheld itemをUnknownのopaque semantic recordとして保存することもしません。
+開示しない項目を、内容が不明な意味上の記録（Unknown）として保存することもしません。
 
 ISSUE-000056のprobeでは、外部collaboratorへDecisionを非開示とするProjectionを生成し、Decision本文を返さず`WithheldCount`だけを外在化しました。Projection生成前後でcanonical digestが一致し、canonical Decision自体も残ることを確認しています。
 
@@ -118,7 +118,7 @@ Product Scopeのread permissionがない場合は、Selective Disclosure Project
 
 Authentication、identity resolution、Product Access Policy evaluation、Disclosure適用等をaudit eventとして記録できます。
 
-ただしcurrent baselineでは、audit log形式をUniversal Contractへ固定しません。
+ただし、現行の設計基準では、監査ログの形式を汎用的な契約として固定しません。
 
 将来、複数deployment / IdP / security Providerで共通の耐久的意味が必要だと実証された場合にContract化を検討します。
 
@@ -137,7 +137,7 @@ SEI append allowed
 
 最初のLocal Single-Node Packageでは、Authentication Adapter、Identity Binding、Product Access Policyを同一processへ配置できます。
 
-同一processであることからsemantic concernを統合しません。team / hosted deploymentへ進む場合も同じcomponent boundaryを維持できます。
+同じプロセスに配置したという理由で、意味上の責務を統合しません。チーム利用やホスト環境への配備へ進む場合も、同じ構成要素間の境界を維持できます。
 
 ## 12. Candidate Requirementとの関係
 
@@ -145,7 +145,7 @@ Product Access Controlをsemantic Responsibility / Authorityやactor kindから�
 
 ただしcurrent permission vocabulary、Product Access Scopeの粒度、Identity Binding lifecycleはreference Realizationです。
 
-そのためArchitectureからStable Requirement IDを自動生成せず、Product層のCandidate Requirementとして保持します。
+そのため、この全体構成だけを根拠に安定した要求IDを自動生成せず、製品の層で要求候補として保持します。
 
 ## 13. Evidence状態
 
