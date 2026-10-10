@@ -367,17 +367,39 @@ pre-orientation material exposure
   != H1 resumption observation
 ```
 
+### 11.1.1 H1 pre-stimulus provenance gate
+
+H1でも、Orientationを最初に提示する前にreviewer自身の直前露出を固定する。新しいmachine-readable schemaは追加せず、local-only review memoの先頭へ次のいずれかを記録する。
+
+```text
+none-declared
+  = 最後の既知のmaterial exposure以後、
+    元chat / source / Inquiry state / 評価説明を
+    current stateを思い出せる程度には見返していない
+
+known-material-exposure
+  = 上記のいずれかへmaterialに再露出した
+
+unknown
+  = 再露出の有無を確定できない
+```
+
+`none-declared`は自己申告であり、独立したblindness証明ではない。`known-material-exposure`または`unknown`でもpilotとしてOrientationを試すことはできるが、clean H1 resumptionには数えない。
+
+重要なのは、**この申告を固定する前にOrientationやInquiry内容を提示しないこと**である。operatorが刺激内容を先に説明した場合、その回はclean H1候補から外す。
+
 ### 11.2 H1実行順序
 
 H1は次の順序で実施する。
 
-1. 元chat、元source、Inquiry JSON本文を開く前に開始時刻を記録する。
-2. `dogfood_cli.py orient`だけを実行し、Orientationを読む。
-3. 上の6問へ回答し、回答を一度固定する。
-4. 「次の作業を始められる」と判断した時点とFirst Useful Actionを記録する。
-5. 必要になった場合だけdetail、元source、元chatへ降り、その回数を数える。
-6. 回答を固定した後にcanonical state / sourceへ戻り、historical misattribution、Recommendation / Decision混同、Unknown / Conflictの欠落、post-decision情報の遡及混入がなかったかをauditする。
-7. `dogfood_evaluation_cli.py resume-add`でactual observationをsidecarへ記録する。
+1. 元chat、元source、Inquiry JSON本文、Orientationを開く前に、pre-stimulus provenanceをlocal memoへ固定する。
+2. clean候補として進める場合は`none-declared`であることを確認し、開始時刻を記録する。
+3. `dogfood_cli.py orient`だけを実行し、Orientationを読む。
+4. 上の6問へ回答し、回答を一度固定する。
+5. 「次の作業を始められる」と判断した時点とFirst Useful Actionを記録する。
+6. 必要になった場合だけdetail、元source、元chatへ降り、その回数を数える。
+7. 回答を固定した後にcanonical state / sourceへ戻り、historical misattribution、Recommendation / Decision混同、Unknown / Conflictの欠落、post-decision情報の遡及混入がなかったかをauditする。
+8. clean条件を満たした場合だけ`dogfood_evaluation_cli.py resume-add`でactual observationをsidecarへ記録する。known / unknown exposureのpilotはsidecarの`resumption`へ自動昇格させない。
 
 Orientationの例:
 
@@ -386,7 +408,7 @@ cd evaluation/personal-inquiry-decision
 python dogfood_cli.py orient /path/to/inquiry.json
 ```
 
-H1回答はlocal-onlyのreview memoでよい。現時点ではmachine-readableな新schemaを設けない。最低限、6問への回答、開始時刻、first useful action到達時刻または経過、material pre-exposureの有無を残す。
+H1回答はlocal-onlyのreview memoでよい。現時点ではmachine-readableな新schemaを設けない。最低限、pre-stimulus provenance、6問への回答、開始時刻、first useful action到達時刻または経過を残す。
 
 ### 11.3 H1 observationの記録
 
