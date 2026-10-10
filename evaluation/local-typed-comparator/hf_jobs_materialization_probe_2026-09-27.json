@@ -1,0 +1,49 @@
+{
+  "schema": "sei.local-typed-comparator.hf-jobs-materialization-probe.v1",
+  "observed_at_utc": "2026-09-27T11:40:00Z",
+  "purpose": "Probe whether the connected Hugging Face Jobs transport can materialize exact managed-pair bytes when the current ChatGPT shell cannot resolve Hugging Face or GitHub hosts.",
+  "account": {
+    "name": "hat47x",
+    "authenticated": true,
+    "credential_type": "oauth",
+    "observed_scopes": [
+      "jobs",
+      "openid",
+      "profile",
+      "read-mcp",
+      "read-repos"
+    ]
+  },
+  "probe": {
+    "operation": "run",
+    "image": "python:3.12",
+    "flavor": "cpu-basic",
+    "timeout": "5m",
+    "target_repository": "convaiinnovations/laya-typed-decisions",
+    "target_revision": "f9ab0b228f0fc0f14d873dbc99038f135c2da1b2",
+    "target_path": "tokenizer/tokenizer.json",
+    "expected_bytes": 3583228,
+    "expected_sha256": "6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30"
+  },
+  "result": {
+    "job_created": false,
+    "status": "blocked-before-scheduling",
+    "http_status": 402,
+    "message": "Payment Required",
+    "target_bytes_downloaded": false,
+    "target_bytes_verified": false
+  },
+  "interpretation": {
+    "hugging_face_connector_authentication": "PASS",
+    "hugging_face_jobs_authorization_scope_present": true,
+    "hugging_face_jobs_execution": "BLOCKED_BY_BILLING",
+    "shell_dns_limitation_bypassed": false,
+    "reference_model_materialized": false,
+    "papaya_candidate_materialized": false,
+    "model_load_claimed": false,
+    "live_inference_claimed": false,
+    "numeric_parity_claimed": false,
+    "shipping_decision_claimed": false
+  },
+  "next_gate": "Use an execution host with working Hugging Face download access, or make Hugging Face Jobs billable for the authenticated account, then rerun the exact byte-identity gates before model load."
+}

@@ -1,0 +1,101 @@
+{
+  "schema": "sei.local-typed-comparator-upstream-same-checkpoint/v1",
+  "source": {
+    "repository": "m0rphtail/papaya",
+    "revision": "a76bc99bddafdac32863b2edc5319773e0cd3532",
+    "papaya_results": {
+      "path": "benchmarks/results/ours.json",
+      "git_blob": "53fe8d4c7481d09d291dfc3914e730a5c36bbab0",
+      "label": "laya-cpp"
+    },
+    "onnx_results": {
+      "path": "benchmarks/results/navopw-on-typed-decisions.json",
+      "git_blob": "ef9d27f18f2428d02e51e356cb2b4136a578deed",
+      "label": "navopw-typed"
+    },
+    "readme_git_blob": "ab6ca374dda4b61c38824c95d18d703327c64293"
+  },
+  "population": {
+    "cases": 48,
+    "questions": 240,
+    "by_type": {
+      "choice": 72,
+      "noul": 72,
+      "score": 96
+    },
+    "case_order_equal": true,
+    "input_token_count_equal": true,
+    "input_token_count_equal_cases": 48
+  },
+  "agreement": {
+    "choice_selected_label": {
+      "agree": 72,
+      "n": 72
+    },
+    "noul_boolean_at_0_5": {
+      "agree": 72,
+      "n": 72
+    },
+    "published_discrete_scope": {
+      "agree": 144,
+      "n": 144,
+      "meaning": "choice selected label plus noul thresholded at 0.5; score is excluded"
+    },
+    "score_probability_argmax": {
+      "agree": 95,
+      "n": 96,
+      "mismatches": [
+        {
+          "case_id": "security_incidents_000003",
+          "question_id": "urgency",
+          "papaya_argmax": 2,
+          "onnx_argmax": 3,
+          "papaya_score": 2.0938,
+          "onnx_score": 2.1047
+        }
+      ]
+    }
+  },
+  "numeric_deltas": {
+    "score_expected_value_abs": {
+      "n": 96,
+      "mean": 0.004383333333333347,
+      "max": 0.018899999999999917
+    },
+    "noul_probability_abs": {
+      "n": 72,
+      "mean": 0.0020541666666666625,
+      "max": 0.019700000000000023
+    },
+    "confidence_abs": {
+      "n": 168,
+      "mean": 0.0014511904761904757,
+      "max": 0.00539999999999996
+    },
+    "answer_probability_abs": {
+      "n": 708,
+      "mean": 0.0014935028248587528,
+      "max": 0.012499999999999956
+    }
+  },
+  "upstream_environment_performance": {
+    "papaya_mean_s": 11.8,
+    "onnx_mean_s": 23.34,
+    "onnx_over_papaya_mean_ratio": 1.977966101694915,
+    "papaya_total_s": 566.44,
+    "onnx_total_s": 1120.54
+  },
+  "scope": {
+    "upstream_retained_output_recalculation": true,
+    "same_checkpoint_identity_independently_attested": false,
+    "onnx_model_bytes_attested": false,
+    "onnx_runtime_bytes_attested": false,
+    "python_laya_reference_comparison": false,
+    "sei_live_capture": false,
+    "jev_provider_identity": false,
+    "task_quality_reproduction": false,
+    "shipping_performance_claim": false,
+    "numeric_acceptance_threshold": false,
+    "tolerance_context_only": true
+  }
+}

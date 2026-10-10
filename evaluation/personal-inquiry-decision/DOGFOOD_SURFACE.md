@@ -46,7 +46,7 @@ first dogfoodで直接触る境界を次に限定する。
 
 Sourceは原則として内容そのものではなく参照を保持する。
 
-例:
+例は次のとおりです。
 
 ```bash
 python dogfood_cli.py source-add inquiry.json \
@@ -244,7 +244,7 @@ focused mechanics executable
 
 次段階ではUIを増やす前に、real dogfood metadataを記録する。
 
-優先観測:
+優先観測は次のとおりです。
 
 - First Useful Action
 - Source Reopen Count

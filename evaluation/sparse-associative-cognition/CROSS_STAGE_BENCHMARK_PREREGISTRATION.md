@@ -106,7 +106,7 @@ B3は特にevaluation label leakageへ弱い。
 
 familiarity modulationはsemantic retrieval accuracyとは別の問題を扱う。
 
-評価対象:
+評価対象は次のとおりです。
 
 - duplicate escalation reduction
 - content delta recovery
@@ -298,7 +298,7 @@ b5_decision_generated
 production_default_changed
 ```
 
-したがって:
+したがっては次のとおりです。
 
 ```text
 result measurement
@@ -358,7 +358,7 @@ request-b5-review
 
 現在repoのfreeze / run / attempt / result / interpretation / decision artifactはdraft / locked stateであり、human-adjudicated benchmarkは未実行である。
 
-証明しないもの:
+証明しないもの。
 
 - 実SUI/SEI意味品質
 - production runtime適性

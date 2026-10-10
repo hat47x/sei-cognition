@@ -1,0 +1,85 @@
+{
+  "schema": "sei.local-typed-comparator-oci-reference-transport-audit/v1",
+  "status": "no-admitted-oci-reference-transport",
+  "observed_date": "2026-09-28",
+  "observed_from_sei_source_sha": "f6f0afe58b043a36a98284621091809173152a3d",
+  "exact_reference": {
+    "repository": "convaiinnovations/laya-typed-decisions",
+    "revision": "f9ab0b228f0fc0f14d873dbc99038f135c2da1b2",
+    "model_path": "model.safetensors",
+    "bytes": 842609220,
+    "sha256": "4fa56de72383a9d3efa9cfa78955733c81b9fc8067a587ca4beb82c78107a24e"
+  },
+  "candidates": [
+    {
+      "id": "beremaran-laya-docker-ghcr",
+      "repository": "beremaran/laya-docker",
+      "revision": "90535d3ef2f4a1df85e928601f18c364f737e777",
+      "dockerfile_git_blob": "8bc07a763faf61b24ddc896783be6d48461f07f4",
+      "publish_workflow_git_blob": "abb50c52c20824349d2da98b3e65ad3a5d64aa6a",
+      "published_image_reference": "ghcr.io/beremaran/laya-docker",
+      "model_acquisition": "first inference / Hugging Face cache volume",
+      "image_bakes_checkpoint": false,
+      "exact_reference_sha_bound_in_image_build": false,
+      "admitted": false,
+      "rejection": "Public GHCR image exists, but Dockerfile declares /models as a volume and intentionally downloads checkpoints on first inference; exact reference bytes are not transported by the image."
+    },
+    {
+      "id": "zulfifazhar-system-one-ghcr",
+      "repository": "ZulfiFazhar/system-one",
+      "revision": "f908c07fe9e9d53b434bf061c497e882a6c57614",
+      "dockerfile_git_blob": "26c5431701f98a53ead42ca71241305846cd8a4c",
+      "publish_workflow_git_blob": "2392638ab4c5c4dede2ebdbd33f69dcd0cfcd556",
+      "published_image_reference": "ghcr.io/zulfifazhar/system-one",
+      "model_acquisition": "runtime/initial download into externally mounted models directory",
+      "image_bakes_checkpoint": false,
+      "exact_reference_sha_bound_in_image_build": false,
+      "admitted": false,
+      "rejection": "Public GHCR image contains runtime code only; model files live in a mounted host directory and are auto-downloaded when absent. Default documented checkpoint is multilingual, not the frozen typed-decisions reference."
+    },
+    {
+      "id": "cloudn1ne-system1-ghcr",
+      "repository": "cloudn1ne/system1",
+      "revision": "7a1d89efb083d72a99e744e7760f5b282fccc5bb",
+      "dockerfile_git_blob": "574a491d4160d474e2dab5806ffcd6096d5bc780",
+      "publish_workflow_git_blob": "a67e5f5675c4767d5d2fcd2df598706e4f9d341d",
+      "published_image_reference": "ghcr.io/cloudn1ne/system1",
+      "model_acquisition": "runtime mounted checkpoint directory",
+      "image_bakes_checkpoint": false,
+      "exact_reference_sha_bound_in_image_build": false,
+      "admitted": false,
+      "rejection": "Dockerfile explicitly states checkpoint weights are never baked into the image and are mounted from the host at runtime; the image is therefore not a reference-weight transport."
+    },
+    {
+      "id": "wescodess-budds-laya-evaluator",
+      "repository": "wescodess/budds",
+      "revision": "820fef8cf45f9a9260a2ad23e09e6b6ae70b92aa",
+      "dockerfile_path": "workers/laya-evaluator/Dockerfile",
+      "dockerfile_git_blob": "adbaae91ba88cbb6e0382814afbaebd836f03f51",
+      "ci_workflow_git_blob": "15aa87fcab5aa6e28889cdd2814a77ad17b35496",
+      "model_acquisition": "build-time immutable Hugging Face snapshot",
+      "image_bakes_checkpoint": true,
+      "exact_reference_revision_bound": true,
+      "exact_reference_sha_verified_in_build": true,
+      "public_model_bearing_image_reference_observed": false,
+      "admitted": false,
+      "rejection": "Dockerfile would bake and SHA-verify the exact reference weights, but the inspected repository CI tests the evaluator without Docker/model weights and exposes no model-bearing image publish workflow or public image reference. Build recipe alone is not materialized transport."
+    }
+  ],
+  "conclusion": {
+    "exact_baked_recipe_found": true,
+    "public_exact_model_bearing_oci_artifact_found": false,
+    "current_chat_model_bytes_materialized": false,
+    "add_as_reference_transport": false
+  },
+  "scope": {
+    "audit_only": true,
+    "oci_manifest_pulled": false,
+    "oci_layer_downloaded": false,
+    "reference_model_bytes_materialized": false,
+    "model_weights_loaded": false,
+    "live_inference": false,
+    "numeric_parity": false,
+    "shipping_decision": false
+  }
+}

@@ -21,7 +21,7 @@ operator向けactual手順は次を正とする。
 
 PR #289〜#292により、E3 Go toolchainがまだ用意できない環境でも、GitHub acquisitionからrevision BのE2だけを先行回収できる入口を追加した。
 
-入口:
+入口は次のとおりです。
 
 `runtime/integration/run_tei_revision_b_e2_from_github.py`
 
@@ -44,7 +44,7 @@ PR #292以降は、exact revision A fixed inputのactual identityもrevision B s
 - historical A Evidence bundleではbundle metadataだけを信頼せず、actual reference bytesを既存fixed identityへ照合する。
 - A fixed input不整合時はE2 Go probe、B source acquisition、Evidence directory作成より前に停止する。
 
-成功時の停止線:
+成功時の停止線は次のとおりです。
 
 ```text
 result = e2_bundle_verified_e3_not_run
@@ -64,7 +64,7 @@ E2 partial report
 
 PR #301 / #302により、E2 partial成功後のacquisition-independent再検証を、revision B source commitだけでなくrevision A fixed reference inputの外部固定identityへもbindingする専用入口へ揃えた。
 
-入口:
+入口は次のとおりです。
 
 `runtime/integration/verify_tei_version_exchange_e2_bundle.py`
 
@@ -97,7 +97,7 @@ E2 partial report success
 
 PR #295により、E2 partial Evidenceを一度保存した後、revision B source acquisitionやE2 build / Provider Plan executionを再実行せず、current SEI AdapterのE3だけを後日実行してcanonical Evidenceへ戻せるようになった。
 
-入口:
+入口は次のとおりです。
 
 `runtime/integration/run_tei_version_exchange_resume_from_e2_partial.py`
 
@@ -159,7 +159,7 @@ E2 partial Evidence
 
 PR #298〜#300により、resumeでE3 actualとcanonical report publishまでは完了したものの、後続GitHub wrapper reportのpublishだけが失敗した場合に、E3を再実行せずreport pairを復旧できるようにした。
 
-入口:
+入口は次のとおりです。
 
 `runtime/integration/reconcile_tei_e2_partial_resume_reports.py`
 
@@ -190,7 +190,7 @@ report pair reconciliation
 
 既存Run `33913500170` のfailed jobだけを2026-09-06に再実行した。
 
-観測:
+観測は次のとおりです。
 
 ```text
 run attempt       = 3

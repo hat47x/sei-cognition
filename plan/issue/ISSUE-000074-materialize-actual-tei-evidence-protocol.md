@@ -78,7 +78,7 @@ credential、token、secret、repository clone URLに埋め込まれた認証情
 
 build manifestは任意入力とする。
 
-manifestを与えない場合:
+manifestを与えない場合。
 
 ```text
 source_binding = not_verified

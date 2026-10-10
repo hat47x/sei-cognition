@@ -126,7 +126,7 @@ current draft:
 python validate_interpretation.py
 ```
 
-期待値:
+期待値は次のとおりです。
 
 ```text
 Cross-stage interpretation validated; current interpretation remains draft/empty

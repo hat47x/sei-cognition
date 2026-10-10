@@ -6,7 +6,7 @@
 
 ## 1. 目的
 
-Issue #375 のfirst actual sub-1B runを、runtime/model探索からやり直さず再現できるようにする。
+Issue #375のfirst actual sub-1B runを、runtime/model探索からやり直さず再現できるようにする。
 
 これはproduction dependency lockではない。
 
@@ -114,7 +114,7 @@ QUANTIZATION=Q4_0 \
 bash evaluation/local-model-probe/run_first_actual.sh
 ```
 
-この経路では:
+この経路ではは次のとおりです。
 - runtime archiveのdownload/extractは行わない;
 - model downloadも行わない;
 - model fileのexpected SHA-256検証は**必須のまま**;
@@ -122,6 +122,25 @@ bash evaluation/local-model-probe/run_first_actual.sh
 - known runtime binary digestがある場合は `RUNTIME_BINARY_SHA256=<digest>` を与えると起動前にfail-closedできる.
 
 `RUNTIME_BINARY_SHA256` 未指定の事前配置runtimeは、binary identityを観測できても既定pinned runtime archive由来とは主張しない。
+
+GPU nodeでCUDA対応 `llama-server` を事前配置する場合は、同じ入口で明示的なlayer offloadを要求できる。
+
+```bash
+GPU_LAYERS=<non-negative-layer-count> \
+RUNTIME_BINARY_PATH=/path/to/cuda-enabled-llama-server \
+RUNTIME_VERSION=<actual-runtime-version> \
+MODEL_FILE_PATH=/path/to/Qwen3.5-0.8B-Q4_0.gguf \
+bash evaluation/local-model-probe/bootstrap_go125_first_actual.sh
+```
+
+`GPU_LAYERS` 未指定時は `--n-gpu-layers` を渡さない。指定値はstdoutとEvidence sidecarへ残すが、これはGPU利用の実測証明ではない。CUDA対応binary、server log、実行host側のGPU観測を別Evidenceとして確認する。
+
+```text
+GPU_LAYERS requested
+  != CUDA-capable runtime
+  != observed GPU offload
+  != faster inference
+```
 
 既定archive経路だけがUbuntu/Linux x86_64 assetに固定される。事前配置runtime経路ではlauncherがarchive architectureを仮定しないが、current model mapping / RSS Evidenceを最大限取得するにはLinuxを推奨する。
 
@@ -145,7 +164,7 @@ first CPU execution candidate:
 - release source:
   https://github.com/ggml-org/llama.cpp/releases/tag/b10964
 
-取得後:
+取得後は次のとおりです。
 
 ```bash
 echo "9abf88aea48a55d0f80edb1ee20220b186848cca0b4e919d71518cfd7ca67443  llama-b10964-bin-ubuntu-x64.tar.gz" | sha256sum -c -
@@ -170,7 +189,7 @@ first model artifact:
 - source:
   https://huggingface.co/ggml-org/Qwen3.5-0.8B-GGUF/blob/main/Qwen3.5-0.8B-Q4_0.gguf
 
-取得後:
+取得後は次のとおりです。
 
 ```bash
 echo "57d1997790d1744fba5b40a7317df71ea5e2acee28c47e78f0cce39c0703f8cf  Qwen3.5-0.8B-Q4_0.gguf" | sha256sum -c -
@@ -182,7 +201,7 @@ model fileのexact local sizeは `modelmatrix --model-file` が実測してmatri
 
 dedicated runtime processをrunごとに起動する。
 
-例:
+例は次のとおりです。
 
 ```bash
 LLAMA_SERVER="$(find llama-runtime -type f -name llama-server -print -quit)"
@@ -282,6 +301,50 @@ structurally valid matrix
 
 complete matrixだけがhuman adjudicationへ進める。blocked/incomplete matrixはdiagnostic Evidenceとして構造検証できるが、human task-success reviewの対象へ昇格しない。
 
+## 5.2 CPU/GPU paired verification
+
+CPU baselineとsame-model GPU runを比較するときは、両方のEvidence bundleを同じverification環境へ戻し、次を実行する。
+
+```bash
+PAIR_VERIFICATION_OUTPUT=/path/to/cpu-gpu-pair.json \
+bash evaluation/local-model-probe/verify_cpu_gpu_pair.sh \
+  /path/to/cpu/<RUN_ID_PREFIX>-evidence.sha256 \
+  /path/to/gpu/<RUN_ID_PREFIX>-evidence.sha256
+```
+
+wrapperは最初に両bundleへ `verify_first_actual.sh` を個別実行する。その後、CPU側は `gpu_layers_requested=0` またはmetadata未記録、GPU側は正の `gpu_layers_requested` を要求する。さらに、SHA-256検証済みの両 `llama-server.log` を直接読み、CPU側でpositive offloadがないこと、GPU側で `offloaded N/M layers to GPU` の `N>0` が観測されることを必須化する。条件を満たした場合だけ `sei-cognition.local-model-compute-pair-verification/v2` を生成する。
+
+- exact `source_git_sha`;
+- model identifierとobserved GGUF SHA-256 / size;
+- host OS / arch / Go version;
+- runtime name / revision;
+- quantization / context size / threads;
+- raw / workspace / stagedのfixture set.
+
+CPU/GPUでlogical CPU countやruntime binaryそのものが異なることは許容し、host/runtime Evidence側に残す。pair reportはmode別のtotal latency / first-token mean / token countとGPU-minus-CPU latency deltaを記述的に並べる。
+
+sidecar自体のout-of-band digestを保持している場合は、CPU/GPU別に指定できる。
+
+```bash
+CPU_EXPECTED_EVIDENCE_DIGESTS_SHA256=<cpu-sidecar-digest> \
+GPU_EXPECTED_EVIDENCE_DIGESTS_SHA256=<gpu-sidecar-digest> \
+bash evaluation/local-model-probe/verify_cpu_gpu_pair.sh cpu-evidence.sha256 gpu-evidence.sha256
+```
+
+pair verifierはPython標準ライブラリだけを使う。比較対象は**同じsource SHAで生成されたrun**に限定するため、CPU baselineとGPU runはpair-verification変更を含む同じmerged sourceから取り直す。
+
+```text
+positive GPU_LAYERS request
+  != observed GPU offload
+
+verified server log: offloaded N/M layers to GPU, N > 0
+  = observed layer-offload Evidence
+  != GPU utilization percentage
+  != faster inference
+
+comparable-complete-pair/v2
+  != deployment recommendation
+```
 ## 6. Evidence stop lines
 
 ```text
@@ -323,7 +386,7 @@ runtime logはmodel load診断には利用できるが、model result qualityと
 
 2026-09-23時点、このChatGPT execution environmentではshell DNSからGitHub / Hugging Faceへ直接到達できない。ただしruntimeについては、GitHub connector経由でllama.cpp公式Release workflow artifactをmaterializeできた。
 
-実測済み:
+実測済みは次のとおりです。
 
 - official Release workflow run: `34852868138`;
 - artifact: `llama-bin-ubuntu-x64.tar.gz` / ID `10354692768`;

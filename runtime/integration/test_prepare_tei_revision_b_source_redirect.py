@@ -39,7 +39,7 @@ class TEIRevisionBSourceRedirectBoundaryTest(unittest.TestCase):
 
     def test_non_fixed_repository_url_is_rejected_before_opener_creation(self):
         with mock.patch.object(subject.urllib.request, "build_opener") as build_opener:
-            with self.assertRaisesRegex(ValueError, "未承認"):
+            with self.assertRaisesRegex(ValueError, "許可されていないGitHub repository API URL"):
                 subject._github_json(
                     "https://api.github.com/repos/other/repo/git/trees/abc",
                     "secret-token",

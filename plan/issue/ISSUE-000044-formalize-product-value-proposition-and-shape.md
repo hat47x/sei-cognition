@@ -7,7 +7,7 @@ Updated: 2026-09-01
 
 ## Goal
 
-SEIのsemantic boundaryだけでなく、製品として**誰のどの問題を解き、どの一連の仕事を支え、何をSEIの外へ委ねるか**を上位Product文書で明確にする。
+SEIのsemantic boundaryだけでなく、製品として誰のどの問題を解き、どの一連の仕事を支え、何をSEIの外へ委ねるかを上位Product文書で明確にする。
 
 既存のProduct Value / V1〜V8を変更したり、新しいUniversal Core概念を増やしたりせず、現在の意味設計を利用者視点のValue PropositionとProduct Shapeへ接続する。
 
@@ -73,11 +73,11 @@ current Product Value、Vision、Requirements、Architecture、Contractは、SEI
 
 ## Evidence
 
-- Design Evidence: **Satisfied for the product-definition scope of this Issue**
-- Executable Evidence: **Not Yet Verified as an end-to-end product**
-- Release Evidence: **Not Yet Verified**
-- Operational Evidence: **Not Yet Verified**
-- Adoption / Outcome Evidence: **Not Yet Verified**
+- Design Evidence: Satisfied for the product-definition scope of this Issue
+- Executable Evidence: Not Yet Verified as an end-to-end product
+- Release Evidence: Not Yet Verified
+- Operational Evidence: Not Yet Verified
+- Adoption / Outcome Evidence: Not Yet Verified
 
 本IssueのResolvedは、Product ShapeをDesign baselineとして確立したことを意味する。Minimum Usable Product Shapeが実装・release・実利用で成立したことを意味しない。
 

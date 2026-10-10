@@ -7,7 +7,7 @@ Updated: 2026-09-01
 
 ## Goal
 
-PMS-06について、同一process内のsynthetic Adapterやtyped Contractの検査から一段進み、**SEI runtimeとは別のOS processとして動くCognitive Method RealizationとProvider state sourceを交換しても、同じcanonicalな判断記憶を保てること**をreference probeで確認する。
+PMS-06について、同一process内のsynthetic Adapterやtyped Contractの検査から一段進み、SEI runtimeとは別のOS processとして動くCognitive Method RealizationとProvider state sourceを交換しても、同じcanonicalな判断記憶を保てることをreference probeで確認する。
 
 production AI、外部SaaS、TEIをCI必須依存にはせず、まずprocess boundaryそのものを実証する。
 
@@ -69,7 +69,7 @@ process間のJSON入出力はreference probeのRealization-local protocolであ�
 
 初期実装では、Contract fixture 31件はPASSした一方、Interaction probeの既存表示用型とAPIを全文置換時に落としたcompile regressionが見つかった。これは新しいRealization exchangeの意味設計ではなく、既存Surface APIの回帰であったため、既存`surface.go`を正として復元し、`realization_ref`対応だけを最小差分として残した。
 
-修正後head `91a0ce468a1cbf30cc8ad4deab4392dc0f41250e`では、次がすべて**success**した。
+修正後head `91a0ce468a1cbf30cc8ad4deab4392dc0f41250e`では、次がすべてsuccessした。
 
 - Semantic Runtime Conformance Run `33516101445`
 - Plan integrity Run `33516101074`
@@ -77,7 +77,7 @@ process間のJSON入出力はreference probeのRealization-local protocolであ�
 
 Semantic Runtime Conformanceには、current Contract fixture 31件の再検査と`runtime/go`全体の`go test ./...`が含まれる。新しい`realizationprobe`に加え、Interaction、Access、Packaging、Provider Adapter、journey harness、semantic runtimeの回帰も同じRunで確認した。
 
-その後、ISSUE-000057を`Resolved`へ揃え、plan registryを同期したclosure準備head `b102e6193d9b04648ae0b7fb5f30a89be9d5293f`でも、次の3系統がすべて**success**した。
+その後、ISSUE-000057を`Resolved`へ揃え、plan registryを同期したclosure準備head `b102e6193d9b04648ae0b7fb5f30a89be9d5293f`でも、次の3系統がすべてsuccessした。
 
 - Plan integrity Run `33516659352`
 - Semantic Runtime Conformance Run `33516659340`
@@ -146,13 +146,13 @@ E1 Contract / in-process synthetic
 
 ## Evidence state
 
-- Design Evidence: **Satisfied**
-- E1 Contract / synthetic exchange: **Scoped Executable Evidence available**
-- E2 out-of-process reference exchange: **Scoped Executable Evidence available** — closure準備headを含むSemantic Runtime Conformance Run `33516659340`
-- E3 real external AI / SaaS / TEI: **Not Yet Verified**
-- E4 Operational portability: **Not Yet Verified**
-- Release Evidence: **Not Yet Verified**
-- Adoption / Outcome Evidence: **Not Yet Verified**
+- Design Evidence: Satisfied
+- E1 Contract / synthetic exchange: Scoped Executable Evidence available
+- E2 out-of-process reference exchange: Scoped Executable Evidence available — closure準備headを含むSemantic Runtime Conformance Run `33516659340`
+- E3 real external AI / SaaS / TEI: Not Yet Verified
+- E4 Operational portability: Not Yet Verified
+- Release Evidence: Not Yet Verified
+- Adoption / Outcome Evidence: Not Yet Verified
 
 ## Reopen / escalation条件
 

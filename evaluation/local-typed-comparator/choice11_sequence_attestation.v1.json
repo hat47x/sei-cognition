@@ -1,0 +1,104 @@
+{
+  "schema": "sei.local-typed-comparator-choice11-sequence-attestation/v1",
+  "observed_at": "2026-09-26",
+  "purpose": "Exact source-equivalent token/marker attestation for the retained 12-option choice:11+ diagnostic; no model, numeric-parity, calibration, or task-quality claim.",
+  "diagnostic_fixture": {
+    "path": "evaluation/local-typed-comparator/papaya_choice11_diagnostic.v1.json",
+    "git_blob": "f622f7144ab827600e7c7c10d8ea632582fa7ad9",
+    "schema": "sei.local-typed-comparator-fixture/v1alpha1",
+    "case_id": "choice-12-clamp-path",
+    "question_id": "choice12",
+    "request_sha256": "cbec246b276315886ebf04ba00a6498bb3e9905b4bd8d209c40b5b0abb8a2568"
+  },
+  "tokenizer": {
+    "git_blob": "2f4d8583e507b7466d2490e2d6c045647a822698",
+    "bytes": 3583228,
+    "sha256": "6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30",
+    "implementation_git_blob": "58cabadbab133e162d4e4e7e792ec63932ab86c7",
+    "fuzz_fixture_git_blob": "be6c2982f2d088c5d249cd69d65e4695dc126040",
+    "fuzz_cases": 206,
+    "fuzz_pass": 206
+  },
+  "sequence_builders": {
+    "reference": {
+      "repository": "NandhaKishorM/laya",
+      "revision": "23a17522aa4942da6cce53a995a275760320b691",
+      "common_git_blob": "6c4c426e64eb9660c97d40bc64c227e8c7e71361",
+      "max_len": 1024,
+      "head_max_len": 256
+    },
+    "papaya": {
+      "repository": "m0rphtail/papaya",
+      "revision": "a76bc99bddafdac32863b2edc5319773e0cd3532",
+      "questions_git_blob": "7b1fe73f23b225a04f4b2ac53fd0011a4fdf90bf",
+      "sequences_git_blob": "f21139970d6d288114213db8f917f0cead9c082f",
+      "max_len": 1024,
+      "head_max_len": 256
+    }
+  },
+  "replay_validation": {
+    "method": "source-equivalent deterministic ByteLevel BPE replay",
+    "frozen_four_case_sanity_cases": 4,
+    "frozen_four_case_full_input_ids_exact": 4,
+    "frozen_four_case_marker_positions_exact": 4,
+    "frozen_four_case_token_counts_exact": 4,
+    "upstream_python_executed": false,
+    "transformers_auto_tokenizer_executed": false,
+    "model_weights_loaded": false
+  },
+  "special_token_ids": {
+    "cls": 50281,
+    "sep": 50282,
+    "mask": 50284
+  },
+  "case": {
+    "case_id": "choice-12-clamp-path",
+    "question_id": "choice12",
+    "question_type": "choice",
+    "option_count": 12,
+    "temperature_bucket": "choice:11+",
+    "token_count": 155,
+    "head_token_count": 14,
+    "state_token_count": 29,
+    "marker_positions": [
+      16,
+      25,
+      34,
+      43,
+      52,
+      61,
+      70,
+      79,
+      88,
+      97,
+      106,
+      115
+    ],
+    "input_ids": [
+      50281, 22122, 1953, 27, 28890, 581, 11542, 13506, 5203, 970, 760, 253,
+      18872, 1375, 15, 50282, 50284, 4500, 64, 361, 27, 322, 23744, 50144,
+      470, 50284, 4500, 64, 520, 27, 322, 23744, 50144, 337, 50284, 4500,
+      64, 2640, 27, 322, 23744, 50144, 374, 50284, 4500, 64, 2941, 27, 322,
+      23744, 50144, 495, 50284, 4500, 64, 2125, 27, 322, 23744, 50144, 577,
+      50284, 4500, 64, 1762, 27, 322, 23744, 50144, 608, 50284, 4500, 64,
+      3071, 27, 322, 23744, 50144, 721, 50284, 4500, 64, 2922, 27, 322,
+      23744, 50144, 818, 50284, 4500, 64, 2904, 27, 322, 23744, 50144, 854,
+      50284, 4500, 64, 2693, 27, 322, 23744, 50144, 898, 50284, 4500, 64,
+      740, 27, 322, 23744, 50144, 884, 50284, 4500, 64, 883, 27, 322,
+      23744, 50144, 1903, 50282, 9819, 84, 23744, 64, 38924, 64, 32373,
+      1381, 2032, 13, 346, 32373, 64, 11807, 1381, 346, 22122, 64, 7872,
+      64, 5560, 995, 346, 7872, 64, 5560, 1381, 1249, 94, 50282
+    ],
+    "truncation_exercised": false
+  },
+  "scope": {
+    "reference_papaya_source_equivalent_sequence_parity": true,
+    "live_runtime_input_ids_observed": false,
+    "live_runtime_marker_positions_observed": false,
+    "live_inference": false,
+    "numeric_model_parity": false,
+    "calibration_validity": false,
+    "task_quality": false,
+    "reference_provider_promotion": false
+  }
+}

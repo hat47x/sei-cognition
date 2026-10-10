@@ -1,0 +1,516 @@
+#!/usr/bin/env python3
+"""Apply the preregistered Papaya numeric-parity policy to a managed report."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import math
+import sys
+from pathlib import Path
+from typing import Any
+
+POLICY_SCHEMA = "sei.local-typed-comparator-numeric-parity-policy/v1"
+REPORT_SCHEMA = "sei.local-typed-comparator-cross-provider-numeric-report/v1"
+DECISION_SCHEMA = "sei.local-typed-comparator-numeric-parity-decision/v1"
+FIXTURE_SCHEMA = "sei.local-typed-comparator-fixture/v1alpha1"
+FIXTURE_SHA256 = "cb070bfa342a2ca7329538620541fa32588130d3d1b67f21c8b3c4e3494d8ed5"
+CHOICE11_DIAGNOSTIC_SHA256 = (
+    "6c572390e91d662864d9ef2b43cd147e698773649531e798a3a55179e35a5a32"
+)
+REFERENCE_RUN_SCHEMA = "sei.local-typed-comparator-reference-managed-run/v1"
+PAPAYA_RUN_SCHEMA = "sei.local-typed-comparator-papaya-run/v1"
+CHOICE11_ATTESTATION_SCHEMA = (
+    "sei.local-typed-comparator-choice11-sequence-attestation/v1"
+)
+UPSTREAM_PACKET_BLOB = "212e429c760adccf14e3fc348b658cc83a27d5fa"
+EXPECTED_CASE_IDS = (
+    "choice-route-a",
+    "choice-route-b",
+    "score-urgency",
+    "noul-review",
+)
+CHOICE11_CASE_ID = "choice-12-clamp-path"
+EXPECTED_QUESTIONS = {
+    "choice-route-a": ("route", "choice"),
+    "choice-route-b": ("route", "choice"),
+    "score-urgency": ("urgency", "score"),
+    "noul-review": ("needs_human_review", "noul"),
+}
+EXPECTED_QUESTION_SHAPES = {
+    case_id: (question_shape,)
+    for case_id, question_shape in EXPECTED_QUESTIONS.items()
+}
+CHOICE11_QUESTION_ID = "choice12"
+
+
+class ParityDecisionError(ValueError):
+    pass
+
+
+def _object(value: Any, field: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise ParityDecisionError(f"{field} must be an object")
+    return value
+
+
+def _array(value: Any, field: str) -> list[Any]:
+    if not isinstance(value, list):
+        raise ParityDecisionError(f"{field} must be an array")
+    return value
+
+
+def _finite(value: Any, field: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ParityDecisionError(f"{field} must be numeric")
+    result = float(value)
+    if not math.isfinite(result):
+        raise ParityDecisionError(f"{field} must be finite")
+    return result
+
+
+def _nonnegative_finite(value: Any, field: str) -> float:
+    result = _finite(value, field)
+    if result < 0:
+        raise ParityDecisionError(f"{field} must be non-negative")
+    return result
+
+
+def _sha256(raw: bytes) -> str:
+    return hashlib.sha256(raw).hexdigest()
+
+
+def _full_hex(value: Any, length: int, field: str) -> str:
+    if (
+        not isinstance(value, str)
+        or len(value) != length
+        or any(ch not in "0123456789abcdef" for ch in value)
+    ):
+        raise ParityDecisionError(
+            f"{field} must be a lowercase {length}-character hexadecimal digest"
+        )
+    return value
+
+
+def _load(path: Path, label: str) -> tuple[dict[str, Any], bytes]:
+    try:
+        raw = path.read_bytes()
+        value = json.loads(raw.decode("utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ParityDecisionError(f"cannot read {label}: {path}") from exc
+    if not isinstance(value, dict):
+        raise ParityDecisionError(f"{label} root must be an object")
+    return value, raw
+
+
+def _validate_policy(policy: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+    if policy.get("schema") != POLICY_SCHEMA:
+        raise ParityDecisionError("policy schema drift")
+    if policy.get("preregistered_date") != "2026-09-26":
+        raise ParityDecisionError("policy preregistration date drift")
+    if policy.get("comparator_report_schema") != REPORT_SCHEMA:
+        raise ParityDecisionError("policy comparator schema drift")
+
+    surface = _object(policy.get("surface"), "policy.surface")
+    if tuple(surface.get("frozen_case_ids", ())) != EXPECTED_CASE_IDS:
+        raise ParityDecisionError("policy frozen-case identity/order drift")
+    if surface.get("choice11_diagnostic_case_id") != CHOICE11_CASE_ID:
+        raise ParityDecisionError("policy choice11 case drift")
+    if surface.get("managed_reference_schema") != REFERENCE_RUN_SCHEMA:
+        raise ParityDecisionError("policy managed-reference schema drift")
+    if surface.get("papaya_schema") != PAPAYA_RUN_SCHEMA:
+        raise ParityDecisionError("policy Papaya schema drift")
+    if surface.get("fixture_schema") != FIXTURE_SCHEMA:
+        raise ParityDecisionError("policy fixture schema drift")
+    if surface.get("fixture_sha256") != FIXTURE_SHA256:
+        raise ParityDecisionError("policy fixture SHA-256 drift")
+    if surface.get("choice11_diagnostic_sha256") != CHOICE11_DIAGNOSTIC_SHA256:
+        raise ParityDecisionError("policy choice11 diagnostic SHA-256 drift")
+
+    context = _object(policy.get("context_only"), "policy.context_only")
+    expected_context = {
+        "upstream_packet_path": "papaya_upstream_same_checkpoint.v1.json",
+        "upstream_packet_git_blob": UPSTREAM_PACKET_BLOB,
+        "observed_answer_probability_abs_max": 0.0125,
+        "observed_noul_probability_abs_max": 0.0197,
+        "observed_score_expected_value_abs_max": 0.0189,
+        "observed_confidence_abs_max": 0.0054,
+    }
+    for field, expected in expected_context.items():
+        if context.get(field) != expected:
+            raise ParityDecisionError(f"policy context_only.{field} drift")
+
+    thresholds = _object(policy.get("thresholds"), "policy.thresholds")
+    frozen = _object(thresholds.get("frozen_cases"), "policy.thresholds.frozen_cases")
+    diag = _object(
+        thresholds.get("choice11_diagnostic"),
+        "policy.thresholds.choice11_diagnostic",
+    )
+    expected_frozen = {
+        "probability_max_abs_delta_max": 0.025,
+        "confidence_abs_delta_max": 0.015,
+        "score_abs_delta_max": 0.04,
+        "noul_abs_delta_max": 0.025,
+        "require_choice_selected_equal": True,
+        "require_noul_threshold_0_5_equal": True,
+        "require_score_probability_argmax_equal": True,
+    }
+    expected_diag = {
+        "probability_max_abs_delta_max": 0.03,
+        "confidence_abs_delta_max": 0.02,
+        "require_choice_selected_equal": True,
+    }
+    if frozen != expected_frozen:
+        raise ParityDecisionError("frozen threshold policy drift")
+    if diag != expected_diag:
+        raise ParityDecisionError("choice11 threshold policy drift")
+
+    decision_rule = _object(policy.get("decision_rule"), "policy.decision_rule")
+    if decision_rule.get("all_observed_questions_must_pass") is not True:
+        raise ParityDecisionError("policy all-observed rule drift")
+    if decision_rule.get("no_latency_gate") is not True:
+        raise ParityDecisionError("policy latency-gate rule drift")
+
+    scope = _object(policy.get("scope"), "policy.scope")
+    if scope.get("threshold_preregistered_before_managed_live_results") is not True:
+        raise ParityDecisionError("policy preregistration scope drift")
+    for field in (
+        "task_quality",
+        "calibration_validity",
+        "cross_runtime_performance_comparison",
+        "jev_provider_identity_equivalence",
+        "reference_provider_promotion",
+        "shipping_decision",
+    ):
+        if scope.get(field) is not False:
+            raise ParityDecisionError(f"policy must keep {field}=false")
+    return frozen, diag
+
+
+def _validate_report(report: dict[str, Any]) -> None:
+    if report.get("schema") != REPORT_SCHEMA:
+        raise ParityDecisionError("numeric report schema drift")
+
+    fixture = _object(report.get("fixture"), "report.fixture")
+    if fixture.get("schema") != FIXTURE_SCHEMA:
+        raise ParityDecisionError("report fixture schema drift")
+    if tuple(fixture.get("case_ids", ())) != EXPECTED_CASE_IDS:
+        raise ParityDecisionError("report fixture case identity/order drift")
+    fixture_sha = _full_hex(fixture.get("sha256"), 64, "report.fixture.sha256")
+    if fixture_sha != FIXTURE_SHA256:
+        raise ParityDecisionError("report fixture SHA-256 drift")
+
+    inputs = _object(report.get("inputs"), "report.inputs")
+    reference = _object(inputs.get("reference"), "report.inputs.reference")
+    papaya = _object(inputs.get("papaya"), "report.inputs.papaya")
+    if reference.get("schema") != REFERENCE_RUN_SCHEMA:
+        raise ParityDecisionError("report reference input schema drift")
+    if reference.get("provider") != "laya":
+        raise ParityDecisionError("report reference provider drift")
+    if papaya.get("schema") != PAPAYA_RUN_SCHEMA:
+        raise ParityDecisionError("report Papaya input schema drift")
+    if papaya.get("provider") != "papaya":
+        raise ParityDecisionError("report Papaya provider drift")
+    _full_hex(reference.get("artifact_sha256"), 64, "report.inputs.reference.artifact_sha256")
+    _full_hex(papaya.get("artifact_sha256"), 64, "report.inputs.papaya.artifact_sha256")
+    _full_hex(inputs.get("same_sei_source_git_sha"), 40, "report.inputs.same_sei_source_git_sha")
+    if inputs.get("provider_provenance_merged") is not False:
+        raise ParityDecisionError("report provider provenance must remain separate")
+
+    precondition = _object(
+        report.get("choice11_sequence_precondition"),
+        "report.choice11_sequence_precondition",
+    )
+    expected_precondition = {
+        "schema": CHOICE11_ATTESTATION_SCHEMA,
+        "token_count": 155,
+        "source_equivalent_exact_sequence_attested": True,
+        "live_input_token_count_matched": True,
+        "live_input_ids_observed": False,
+        "live_marker_positions_observed": False,
+    }
+    for field, expected in expected_precondition.items():
+        if precondition.get(field) != expected:
+            raise ParityDecisionError(
+                f"report choice11_sequence_precondition.{field} drift"
+            )
+    diagnostic_sha = _full_hex(
+        precondition.get("diagnostic_sha256"),
+        64,
+        "report.choice11_sequence_precondition.diagnostic_sha256",
+    )
+    if diagnostic_sha != CHOICE11_DIAGNOSTIC_SHA256:
+        raise ParityDecisionError("report choice11 diagnostic SHA-256 drift")
+
+    cases = _array(report.get("cases"), "report.cases")
+    if tuple(
+        case.get("case_id") for case in cases if isinstance(case, dict)
+    ) != EXPECTED_CASE_IDS:
+        raise ParityDecisionError("report frozen-case identity/order drift")
+    for case in cases:
+        case = _object(case, "report.case")
+        cid = case["case_id"]
+        rows = _array(case.get("questions"), f"{cid}.questions")
+        observed = tuple(
+            (row.get("question_id"), row.get("type"))
+            for row in rows
+            if isinstance(row, dict)
+        )
+        if len(observed) != len(rows) or observed != EXPECTED_QUESTION_SHAPES[cid]:
+            raise ParityDecisionError(f"{cid}: question identity/type drift")
+
+    diagnostic = _object(
+        report.get("choice11_diagnostic"), "report.choice11_diagnostic"
+    )
+    if diagnostic.get("case_id") != CHOICE11_CASE_ID:
+        raise ParityDecisionError("report choice11 case drift")
+    diag_rows = _array(
+        diagnostic.get("questions"), "report.choice11_diagnostic.questions"
+    )
+    if (
+        len(diag_rows) != 1
+        or not isinstance(diag_rows[0], dict)
+        or diag_rows[0].get("question_id") != CHOICE11_QUESTION_ID
+        or diag_rows[0].get("type") != "choice"
+    ):
+        raise ParityDecisionError("report choice11 question identity/type drift")
+    if diagnostic.get("expected_answer") is not None:
+        raise ParityDecisionError("report choice11 must not have an expected answer")
+    if diagnostic.get("quality_claim") is not False:
+        raise ParityDecisionError("report choice11 must not make a quality claim")
+
+    scope = _object(report.get("scope"), "report.scope")
+    if scope.get("complete_managed_capture_inputs_required") is not True:
+        raise ParityDecisionError("report managed-capture scope drift")
+    if scope.get("numeric_parity_threshold_defined") is not False:
+        raise ParityDecisionError("raw comparator report must not contain a threshold")
+    if scope.get("numeric_parity_decision") is not False:
+        raise ParityDecisionError("raw comparator report must not contain a parity decision")
+    for field in (
+        "task_quality",
+        "calibration_validity",
+        "cross_runtime_performance_comparison",
+        "jev_provider_identity_equivalence",
+        "reference_provider_promotion",
+    ):
+        if scope.get(field) is not False:
+            raise ParityDecisionError(f"report overclaims {field}")
+
+
+def _check_question(
+    case_id: str,
+    row: dict[str, Any],
+    thresholds: dict[str, Any],
+    failures: list[dict[str, Any]],
+) -> None:
+    qid = row.get("question_id")
+    qtype = row.get("type")
+    if not isinstance(qid, str) or qtype not in ("choice", "score", "noul"):
+        raise ParityDecisionError(f"{case_id}: invalid question row")
+
+    def fail(metric: str, observed: Any, limit: Any) -> None:
+        failures.append(
+            {
+                "case_id": case_id,
+                "question_id": qid,
+                "type": qtype,
+                "metric": metric,
+                "observed": observed,
+                "limit": limit,
+            }
+        )
+
+    if qtype in ("choice", "score"):
+        probs = _object(row.get("probabilities"), f"{case_id}.{qid}.probabilities")
+        pmax = _nonnegative_finite(
+            probs.get("max_abs_delta"), f"{case_id}.{qid}.max_abs_delta"
+        )
+        limit = float(thresholds["probability_max_abs_delta_max"])
+        if pmax > limit:
+            fail("probability_max_abs_delta", pmax, limit)
+        conf = _nonnegative_finite(
+            row.get("confidence_abs_delta"),
+            f"{case_id}.{qid}.confidence_abs_delta",
+        )
+        conf_limit = float(thresholds["confidence_abs_delta_max"])
+        if conf > conf_limit:
+            fail("confidence_abs_delta", conf, conf_limit)
+
+    if qtype == "choice":
+        if thresholds.get("require_choice_selected_equal") is True and row.get(
+            "choice_selected_equal"
+        ) is not True:
+            fail("choice_selected_equal", row.get("choice_selected_equal"), True)
+    elif qtype == "score":
+        if thresholds.get("require_score_probability_argmax_equal") is True and row.get(
+            "score_probability_argmax_equal"
+        ) is not True:
+            fail(
+                "score_probability_argmax_equal",
+                row.get("score_probability_argmax_equal"),
+                True,
+            )
+        score_delta = _nonnegative_finite(
+            row.get("score_abs_delta"), f"{case_id}.{qid}.score_abs_delta"
+        )
+        score_limit = float(thresholds["score_abs_delta_max"])
+        if score_delta > score_limit:
+            fail("score_abs_delta", score_delta, score_limit)
+    else:
+        if thresholds.get("require_noul_threshold_0_5_equal") is True and row.get(
+            "noul_threshold_0_5_equal"
+        ) is not True:
+            fail(
+                "noul_threshold_0_5_equal",
+                row.get("noul_threshold_0_5_equal"),
+                True,
+            )
+        noul_delta = _nonnegative_finite(
+            row.get("noul_abs_delta"), f"{case_id}.{qid}.noul_abs_delta"
+        )
+        noul_limit = float(thresholds["noul_abs_delta_max"])
+        if noul_delta > noul_limit:
+            fail("noul_abs_delta", noul_delta, noul_limit)
+
+
+def evaluate(
+    policy: dict[str, Any],
+    report: dict[str, Any],
+    *,
+    policy_sha256: str | None = None,
+    report_sha256: str | None = None,
+) -> dict[str, Any]:
+    frozen_thresholds, diag_thresholds = _validate_policy(policy)
+    _validate_report(report)
+
+    cases = _array(report.get("cases"), "report.cases")
+    if tuple(
+        case.get("case_id") for case in cases if isinstance(case, dict)
+    ) != EXPECTED_CASE_IDS:
+        raise ParityDecisionError("report frozen-case identity/order drift")
+
+    failures: list[dict[str, Any]] = []
+    for case in cases:
+        case = _object(case, "report.case")
+        cid = case["case_id"]
+        expected_qid, expected_qtype = EXPECTED_QUESTIONS[cid]
+        rows = _array(case.get("questions"), f"{cid}.questions")
+        if len(rows) != 1:
+            raise ParityDecisionError(
+                f"{cid}: expected exactly one question row"
+            )
+        row = _object(rows[0], f"{cid}.question")
+        if (
+            row.get("question_id") != expected_qid
+            or row.get("type") != expected_qtype
+        ):
+            raise ParityDecisionError(
+                f"{cid}: question identity/type drift"
+            )
+        _check_question(
+            cid,
+            row,
+            frozen_thresholds,
+            failures,
+        )
+
+    diagnostic = _object(report.get("choice11_diagnostic"), "report.choice11_diagnostic")
+    if diagnostic.get("case_id") != CHOICE11_CASE_ID:
+        raise ParityDecisionError("report choice11 case drift")
+    diag_questions = _array(
+        diagnostic.get("questions"), "report.choice11_diagnostic.questions"
+    )
+    if len(diag_questions) != 1:
+        raise ParityDecisionError("choice11 diagnostic must contain exactly one question")
+    diag_row = _object(
+        diag_questions[0], "report.choice11_diagnostic.question"
+    )
+    if (
+        diag_row.get("question_id") != CHOICE11_QUESTION_ID
+        or diag_row.get("type") != "choice"
+    ):
+        raise ParityDecisionError("choice11 diagnostic question identity/type drift")
+    _check_question(
+        CHOICE11_CASE_ID,
+        diag_row,
+        diag_thresholds,
+        failures,
+    )
+
+    passed = not failures
+    return {
+        "schema": DECISION_SCHEMA,
+        "policy": {
+            "schema": POLICY_SCHEMA,
+            "sha256": policy_sha256,
+            "preregistered_date": policy["preregistered_date"],
+        },
+        "numeric_report": {
+            "schema": REPORT_SCHEMA,
+            "sha256": report_sha256,
+            "same_sei_source_git_sha": report["inputs"]["same_sei_source_git_sha"],
+            "reference_artifact_sha256": report["inputs"]["reference"]["artifact_sha256"],
+            "papaya_artifact_sha256": report["inputs"]["papaya"]["artifact_sha256"],
+        },
+        "decision": "pass" if passed else "fail",
+        "failures": failures,
+        "scope": {
+            "bounded_numeric_parity_on_preregistered_surface": passed,
+            "task_quality": False,
+            "calibration_validity": False,
+            "cross_runtime_performance_comparison": False,
+            "jev_provider_identity_equivalence": False,
+            "reference_provider_promotion": False,
+            "shipping_decision": False,
+        },
+    }
+
+
+def main(argv: list[str] | None = None) -> int:
+    here = Path(__file__).resolve().parent
+    parser = argparse.ArgumentParser()
+    parser.add_argument("numeric_report", type=Path)
+    parser.add_argument(
+        "--policy",
+        type=Path,
+        default=here / "papaya_numeric_parity_policy.v1.json",
+    )
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args(argv)
+
+    try:
+        if args.output.exists():
+            raise ParityDecisionError(f"output already exists: {args.output}")
+        policy, policy_raw = _load(args.policy, "policy")
+        report, report_raw = _load(args.numeric_report, "numeric report")
+        decision = evaluate(
+            policy,
+            report,
+            policy_sha256=_sha256(policy_raw),
+            report_sha256=_sha256(report_raw),
+        )
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(
+            json.dumps(decision, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+    except Exception as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+
+    print(
+        json.dumps(
+            {
+                "status": "complete",
+                "decision": decision["decision"],
+                "failure_count": len(decision["failures"]),
+                "output": str(args.output),
+            },
+            indent=2,
+        )
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

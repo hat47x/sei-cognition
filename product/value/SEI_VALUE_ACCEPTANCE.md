@@ -1,7 +1,7 @@
 # SEI Value Acceptance
 
-更新日: 2026-09-11  
-状態: **Product Value Acceptance Baseline — Decision Continuity cross-axis acceptance reflected**
+更新日: 2026-10-02  
+状態: **Product Value Acceptance Baseline — Decision Continuity cross-axis acceptance reflected。V4のプロバイダ離脱訓練は、ADR-0035（Proposed）による提案（Evidence未取得）**
 
 ## 1. この文書の役割
 
@@ -220,6 +220,17 @@ Providerを交換しても、Capability、Intent、Decision、Responsibility等�
 - Provider変更や廃止が起きても、意味資産とDecision historyを維持できる。
 - Provider中立性が、実際の選択肢、継続性、再交渉、移行可能性等に寄与する。
 - Provider交換後も、利用者が同じ判断仕事の続きを実務上再開できる。
+
+### プロバイダ離脱訓練（Operational Evidenceの候補・提案）
+
+ADR-0035（Proposed）とISSUE-000088に沿って、主なLLMや記憶の提供元を実際に切り替え、切り替えの前後で次を数える訓練を、V4のOperational Evidenceの**候補**として定義します。
+
+- 過去のDecisionの根拠を、切り替え後も読み直せたか。
+- Recommendation、Decision、Authorityの区別が保たれたか。
+- 未解決と見直しの条件が保たれたか。
+- 失われた意味の数と、その種類。
+
+repositoryのfixtureで行う訓練はExecutable Evidenceに留まります。実運用の環境で行い、結果を観測した場合に限り、Operational Evidenceの候補になります。**2026-10-02時点では、どちらも未取得（Not Yet Verified）です。** Operational Evidenceが成立したとは扱いません。
 
 ### Failure examples
 
@@ -475,4 +486,6 @@ V1〜V8の意味をValue Modelへ戻って照合し、Design / Executable / Rele
 
 今回、Decision Continuityをcross-axis Product Outcomeとして追加し、V1〜V8を別の総合scoreへ畳み込まずに利用者成果へ接続した。技術的にresumeできることと、実際に正しく・低負担で再開できることを分け、raw chat / simple note等の妥当な代替との比較までAdoption / Outcome Acceptanceへ置いた。
 
-また、current Evidence記述を特定CI基盤から分離し、resume-first Product SliceのDesign Evidenceと未検証のprototype / human reviewを明確に分けた。技術的意味、条件、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施している。
+また、current Evidence記述を特定CI基盤から分離し、resume-first Product SliceのDesign Evidenceと未検証のprototype / human reviewを明確に分けた。2026-10-02には、V4の節へプロバイダ離脱訓練をOperational Evidenceの候補として加えた。これは提案であり、V4の意味や既存のAcceptanceは変えていない。訓練の結果は未取得である。
+
+技術的意味、条件、留保、Evidence強度を変えず、自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施している。

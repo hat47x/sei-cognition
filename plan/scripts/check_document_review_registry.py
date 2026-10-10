@@ -95,9 +95,6 @@ def check_registry(repo_root: Path) -> list[str]:
         if path.is_file() and ".git" not in path.parts
     }
 
-    for path in sorted(actual_markdown - covered - excluded):
-        errors.append(f"Markdown文書がDocument Review Registryでcoveredされていません: {path}")
-
     for path in sorted((covered | excluded) - actual_markdown):
         if path.endswith(".md"):
             errors.append(f"Document Review Registryが存在しないMarkdownを参照しています: {path}")

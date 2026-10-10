@@ -2,7 +2,7 @@
 
 ## 1. この文書の位置づけ
 
-この文書は、PMS-06 / E3b-P2で行ったactual TEI integration probeについて、**実際に確認できたことと、まだ確認できていないことを分けて記録するEvidence**です。
+この文書は、PMS-06 / E3b-P2で行ったactual TEI integration probeについて、実際に確認できたことと、まだ確認できていないことを分けて記録するEvidenceです。
 
 2026-09-02時点のprobeでは、実TEI CLIのScoped Executable Evidenceはまだ成立していません。private repositoryを取得する資格情報が利用できず、actual TEI checkout以降のstepが実行されていないためです。
 
@@ -62,7 +62,7 @@ Workflow Run `33589190828`では、次がsuccessしました。
 
 ## 4. 最初のprobeで実行されなかったstep
 
-`TEI_REPOSITORY_TOKEN`が利用できなかったため、次はすべて**skipped**でした。
+`TEI_REPOSITORY_TOKEN`が利用できなかったため、次はすべてskippedでした。
 
 1. pinned TEI revisionのcheckout
 2. actual `cmd/tei` build
@@ -98,7 +98,7 @@ PR #45で専用workflowに`develop/v0.2.0`へのpush triggerを追加した。�
 3. pinned TEI Reference Workspaceの`validate`
 4. SOZA Adapterからactual `deployment-provider-plan`を起動するlive test
 
-したがって、このrunから得られた新しいEvidenceは**統合後にも専用検査経路が自動起動し、deterministic境界が壊れていないこと**です。actual TEIの取得・実行については新しいEvidenceを得ていません。
+したがって、このrunから得られた新しいEvidenceは統合後にも専用検査経路が自動起動し、deterministic境界が壊れていないことです。actual TEIの取得・実行については新しいEvidenceを得ていません。
 
 ```text
 post-merge workflow regression
@@ -110,7 +110,7 @@ actual TEI execution
 
 ## 6. 今回分かったこと
 
-2026-09-02のprobeから、少なくとも**現在のSOZA Actionsでは、別private repositoryのTEIを取得するためのrepository-scoped credentialが利用可能な状態にない**ことを、実行経路上の制約として扱う必要があります。
+2026-09-02のprobeから、少なくとも現在のSOZA Actionsでは、別private repositoryのTEIを取得するためのrepository-scoped credentialが利用可能な状態にないことを、実行経路上の制約として扱う必要があります。
 
 ただし、これはProduct RequirementやUniversal Contractの発見ではありません。
 
@@ -138,16 +138,16 @@ credentialの具体的な配布方式は、このEvidenceだけからSOZA標準�
 
 ## 8. Evidence state
 
-- Design Evidence for E3b-P2 probe path: **Satisfied for the current boundary**
-- Deterministic external-process boundary: **Scoped Executable Evidence available**
-- E3b-P2 workflow after merge to `develop/v0.2.0`: **Regression confirmed in Run 33590170686**
-- Private TEI acquisition in SOZA Actions: **Not Yet Verified / credential unavailable in observed runs**
-- Actual TEI CLI execution through SOZA Adapter: **Not Yet Verified**
-- E3b-P2: **Not Yet Verified**
-- E3b-M1b: **Not Yet Verified**
-- E4 Operational portability: **Not Yet Verified**
-- Release Evidence for this change: **Not Yet Verified**
-- Adoption / Outcome Evidence: **Not Yet Verified**
+- Design Evidence for E3b-P2 probe path: Satisfied for the current boundary
+- Deterministic external-process boundary: Scoped Executable Evidence available
+- E3b-P2 workflow after merge to `develop/v0.2.0`: Regression confirmed in Run 33590170686
+- Private TEI acquisition in SOZA Actions: Not Yet Verified / credential unavailable in observed runs
+- Actual TEI CLI execution through SOZA Adapter: Not Yet Verified
+- E3b-P2: Not Yet Verified
+- E3b-M1b: Not Yet Verified
+- E4 Operational portability: Not Yet Verified
+- Release Evidence for this change: Not Yet Verified
+- Adoption / Outcome Evidence: Not Yet Verified
 
 ## 9. Natural Japanese review
 

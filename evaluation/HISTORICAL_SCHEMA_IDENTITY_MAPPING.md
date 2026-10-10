@@ -28,7 +28,7 @@ evaluation/sparse-associative-cognition/sui_associative_conformance_evidence_202
 evaluation/sparse-associative-cognition/EXECUTION_EVIDENCE_2026-09-12.md
 ```
 
-`evaluation/method-quality/historical/M1B-RUN-33596839607/review-manifest.json`は、`request.json`、`structure-report.json`、`model-evidence.json`等 6fileのsha256を記録しています。これらのfileは`soza`文字列を含みます。内容を書き換えるとmanifestのdigestと一致しなくなり、Evidence自体が自壊します。
+`evaluation/method-quality/historical/M1B-RUN-33596839607/review-manifest.json`は、`request.json`、`structure-report.json`、`model-evidence.json`等6fileのsha256を記録しています。これらのfileは`soza`文字列を含みます。内容を書き換えるとmanifestのdigestと一致しなくなり、Evidence自体が自壊します。
 
 したがってこのdirectory配下は、file内容をbyte単位で変更しません。
 

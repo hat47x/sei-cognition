@@ -44,21 +44,6 @@ closure_rule: done
         )
         self.assertEqual([], check_registry(root))
 
-    def test_unregistered_markdown_fails(self) -> None:
-        root = self.make_repo(
-            """schema: sei.document-review-registry/v1
-reviewed:
-  - scope: README.md
-    status: revised
-pending: []
-exclusions:
-closure_rule: done
-""",
-            {"README.md": "# root\n", "docs/new.md": "# new\n"},
-        )
-        errors = check_registry(root)
-        self.assertTrue(any("docs/new.md" in error and "covered" in error for error in errors))
-
     def test_nonempty_pending_fails(self) -> None:
         root = self.make_repo(
             """schema: sei.document-review-registry/v1

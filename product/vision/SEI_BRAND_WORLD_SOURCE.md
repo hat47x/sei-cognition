@@ -1,7 +1,7 @@
 # SEI Cognition Brand World — Product Value Discovery Source
 
-更新日: 2026-09-16  
-状態: **Non-normative Product Value Discovery Source**
+更新日: 2026-10-02  
+状態: **Non-normative Product Value Discovery Source。§17の停止線への神経系の比喩の追加は、ADR-0035（Proposed）による提案**
 
 ## 1. この文書の役割
 
@@ -339,6 +339,14 @@ SEI → SUI → TEI
 - SUI / TEIとの象徴的な関係から必須依存を作らない。
 - ブランドに共感できることをProduct Value Evidenceとしない。
 
+この停止線は、**神経系の比喩にも同じように適用します**（ADR-0035、Proposed）。SEIを家族の「神経系の頂点」と見る見方は、内部の設計言語であり、これも比喩から型やfieldを作りません。
+
+- 「求心」「遠心」「反射弓」「海馬」といった対応から、Universal型やcontract fieldを直接作らない。
+- 神経系の病理（分離脳、発作等）を、観測なしに実在の失敗として扱わない。
+- 比喩から生じた問いは、CSWの帰属の規律（`framework_generated`と`target_supported`を区別する。`hat47x/cultural-substrate-weaving:AGENTS.md`）にならい、対象で確かめるまで`framework_generated`、つまり体系から生成された候補として扱う。
+- 文書が裏づける対応と比喩由来の問いを、表の中で分けて示す（`../value/SEI_FAMILY_APEX_VALUE_REVIEW.md` §7）。
+- ブランドの視覚表現では、巨大なAI brainやcommand centerを中心に置かない（§7）。
+
 代わりに、象徴が照らした問いを、利用者のbenefit、failure、counterexample、actual Scenarioへ変換します。
 
 ## 18. 対立する読みを残す
@@ -390,5 +398,7 @@ Adoption / Outcome Evidence: none added
 同時に、詩的な整合性によってProduct上の必要性を過大評価しないよう、各節でProduct Valueとの距離と停止線を明示しています。
 
 「無意識」「深層」は心理学上の断定ではなく、まだ十分に言語化・表層化されていない領域を考えるための比喩として限定しました。水も完成済みKnowledgeではなくCognitive Potentialとして扱い、SEIが汲み上げた内容をTruthへ自動昇格させるような読みを避けています。
+
+2026-10-02には、§17の停止線が神経系の比喩にも適用されることを提案として明記し、CSWの帰属の規律を参照しました。本書の非規範性は変えていません。
 
 内容と構造を整えた後、意味、留保、非規範性を変えず、**自然な日本語となることを最重要視して全文を再ドラフトし、最終意味監査を実施済み**とします。

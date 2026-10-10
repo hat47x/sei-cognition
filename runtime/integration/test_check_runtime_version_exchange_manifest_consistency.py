@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 import check_runtime_version_exchange_manifest_consistency as consistency
+import prepare_runtime_version_exchange_model_store as model_store
 
 
 class RuntimeVersionExchangeManifestConsistencyTest(unittest.TestCase):
@@ -105,11 +106,23 @@ class RuntimeVersionExchangeManifestConsistencyTest(unittest.TestCase):
         self.assertIn("release-snapshot.a.assetState", result["blockers"])
 
     def test_model_name_drift_is_blocked(self):
-        with tempfile.TemporaryDirectory() as temporary:
-            path = self.write_manifest(
-                Path(temporary),
-                lambda payload: payload["model"].__setitem__("name", "other:latest"),
+        def mutate(payload):
+            # Keep the derived acquisition locations consistent with the new name so
+            # that the acquisition boundary passes and the consumer comparison
+            # (model.name vs the preflight MODEL_NAME) is what blocks the drift.
+            name = "other:latest"
+            store_path, manifest_url, blob_base_url = (
+                model_store._expected_model_acquisition_locations(name)
             )
+            payload["model"].update(
+                name=name,
+                storeManifestPath=store_path,
+                registryManifestUrl=manifest_url,
+                registryBlobBaseUrl=blob_base_url,
+            )
+
+        with tempfile.TemporaryDirectory() as temporary:
+            path = self.write_manifest(Path(temporary), mutate)
             result = consistency.report(path)
         self.assertEqual("blocked", result["result"])
         self.assertIn("model.name", result["blockers"])

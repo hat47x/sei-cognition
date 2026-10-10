@@ -315,7 +315,7 @@ SEIはgeneric PKMへの機能拡張競争へ入らない。
 
 Orientation Projectionはsource全体の代表summaryではなく、task / inquiry resumptionのためのcue packetである。
 
-含む候補:
+含む候補は次のとおりです。
 
 - inquiry question
 - current focus
@@ -390,7 +390,7 @@ current validityを自動Truth判定しない。
 
 数日以上空け、何も検索語を入力せずInquiryを開く。
 
-測定:
+測定は次のとおりです。
 
 - current focusを復元できるか
 - first useful actionまでに何sourceを開いたか
@@ -400,7 +400,7 @@ current validityを自動Truth判定しない。
 
 Decision / hypothesis後に、それを弱める新Evidenceを追加する。
 
-測定:
+測定は次のとおりです。
 
 - past basisを汚さないか
 - new evidenceをcurrent stateとして識別できるか
@@ -410,7 +410,7 @@ Decision / hypothesis後に、それを弱める新Evidenceを追加する。
 
 答えがまだ無いInquiryを再開する。
 
-測定:
+測定は次のとおりです。
 
 - systemがfalse resolutionを生成しないか
 - Unknownをそのまま現在地として提示できるか
@@ -419,7 +419,7 @@ Decision / hypothesis後に、それを弱める新Evidenceを追加する。
 
 以前の前提を無効にする条件変更を入れる。
 
-測定:
+測定は次のとおりです。
 
 - historical Decisionを誤りとして上書きせず、前提変化を認識できるか
 
@@ -427,7 +427,7 @@ Decision / hypothesis後に、それを弱める新Evidenceを追加する。
 
 別AIへstructured Projectionを渡す。
 
-測定:
+測定は次のとおりです。
 
 - recommendation / decision / unknown / later evidenceの役割を取り違えないか
 - raw transcript全量なしに有用なcontinuationができるか
@@ -436,7 +436,7 @@ Decision / hypothesis後に、それを弱める新Evidenceを追加する。
 
 DRed等のrationale-capture研究の教訓から、記録完全性だけでなくfrictionを必須評価する。
 
-測定:
+測定は次のとおりです。
 
 - manual classification回数
 - mandatory fields数

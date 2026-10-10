@@ -236,7 +236,7 @@ fan-inでは、次を分けて保持する。
 
 遊休資源は、汎用LLMを排除するためではなく、**汎用LLMを高価値な推論へ集中させる前後処理**に使える。
 
-前処理:
+前処理は次のとおりです。
 - source pre-reading
 - related case recall
 - contradiction candidate detection
@@ -244,7 +244,7 @@ fan-inでは、次を分けて保持する。
 - hypothesis generation
 - missing evidence detection
 
-後処理:
+後処理は次のとおりです。
 - claim consistency check
 - policy check
 - independent critique
@@ -271,7 +271,7 @@ SEI Cognition固有なのは、何をCognitive Jobとして分解し、結果を
 
 社内遊休端末にはHTCondorを第一評価候補とする。
 
-理由:
+理由は次のとおりです。
 - idle workstation harvestingを明示的に扱う
 - foreground activityでmachine availabilityが変わる環境に適する
 - job matching / migration / data transferの蓄積がある
@@ -287,7 +287,7 @@ AI application fan-outやmodel worker coordinationにはRayを第一評価候補
 
 SEI Cognition側ではschedulerを作らず、Cognitive Jobの利用価値だけを見る。
 
-候補:
+候補は次のとおりです。
 
 1. 一つの問題を3〜5 independent jobsへ分解
 2. local adapterでbaseline実行

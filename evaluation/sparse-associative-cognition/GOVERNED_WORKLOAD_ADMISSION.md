@@ -19,7 +19,7 @@ candidate / expired / superseded / unreviewed / policy mismatchはfail-closedで
 
 ## 責務分離
 
-Python B6i governance contractが引き続き所有するもの:
+Python B6i governance contractが引き続き所有するもの。
 
 - review metadata completeness
 - validity / review-due / expiry ordering

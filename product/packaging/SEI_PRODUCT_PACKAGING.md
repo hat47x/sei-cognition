@@ -5,9 +5,9 @@
 
 ## 1. この文書の役割
 
-この文書は、SEIを実際に起動し、保存し、終了後に再開できる最小製品単位を、Product Valueと既存のsemantic boundaryから定めます。
+本書では、SEIを起動し、情報を保存し、終了後に再開できる最小の製品単位を、製品価値と既存の意味上の境界に基づいて定めます。
 
-ここで定めるのは、最初に成立させるdeployment profileと、将来StorageやSurfaceが変わっても失ってはならない境界です。特定cloud、Kubernetes、特定DB、Web framework等をProduct ontologyへ固定しません。
+本書で定めるのは、最初に実現する配備形態と、将来、保存方式や利用画面が変わっても守るべき境界です。特定のクラウド、Kubernetes、データベース、Web開発基盤などを、製品が扱う概念として固定しません。
 
 ```text
 Product Packaging
@@ -23,18 +23,18 @@ Product Packaging
 
 ### 2.1 実行物と耐久データを分ける
 
-SEIの実行物を削除・更新・再配布しても、判断記憶や来歴が失われない構成を基本とします。
+SEIの実行ファイルを削除・更新・再配布しても、判断の記録や来歴が失われない構成を基本とします。
 
 ```text
 runtime executable
   != canonical semantic data
 ```
 
-Goの単一バイナリ化は配布上の利点として利用できますが、バイナリ自体を意味上の正本にはしません。
+Goで単一の実行ファイルにまとめる利点は配布に活用できますが、そのファイル自体を意味上の正本にはしません。
 
 ### 2.2 deployment unitとsemantic boundaryを分ける
 
-最初は一つのprocessへ複数の論理Surfaceを同居させても構いません。
+初期段階では、一つのプロセスに複数の論理的な利用窓口をまとめても構いません。
 
 ```text
 one process
@@ -45,13 +45,13 @@ one process
     Integration Adapter
 ```
 
-一つのprocessにあることから、それらを一つのsemantic concernへ統合しません。将来service分割してもcanonical meaningを変えない構造を維持します。
+同じプロセスで動くことを理由に、それぞれが扱う意味まで一つにまとめることはしません。将来、サービスを分割しても、正本となる意味が変わらない構造を維持します。
 
 ### 2.3 Storageは交換可能なRealizationとする
 
-filesystem、RDB、object store、event store等はPersistence Realizationです。
+ファイルシステム、RDB、オブジェクトストア、イベントストアなどは、永続化を実現するための選択肢です。
 
-Logical Reference、Semantic Lineage、Exact Binding、Provenance等の意味を、file path、row ID、object key、event sequenceへ依存させません。
+論理参照（Logical Reference）、意味の変遷（Semantic Lineage）、厳密な結び付け（Exact Binding）、来歴（Provenance）などの意味を、ファイルのパス、行ID、オブジェクトのキー、イベントの連番に依存させません。
 
 ```text
 filesystem locator != Logical Reference
@@ -60,7 +60,7 @@ Storage migration != Semantic Revision
 
 ### 2.4 保存できたことと意味を理解できたことを分ける
 
-未知versionや未知Contractを含むportable dataを保持できても、その意味を検証済みとは主張しません。
+未知の版や未知の契約を含む可搬なデータを保持できても、その意味を検証済みとは主張しません。
 
 ```text
 bytes retained
@@ -70,7 +70,7 @@ bytes retained
 
 ### 2.5 artifact identityとsemantic identityを分ける
 
-配布archiveにはbuild version、source commit、target等のidentityを持たせられますが、それらはArtifactの追跡情報です。
+配布用の書庫ファイルには、ビルドの版、元のコミット、対象環境などを識別する情報を持たせられます。ただし、それらは配布物の追跡情報です。
 
 ```text
 artifact identity
@@ -78,11 +78,11 @@ artifact identity
   != Semantic Contract version
 ```
 
-archive名やbinary versionをLogical Reference、Decision identity、Semantic Contract identityへ流用しません。
+書庫のファイル名や実行ファイルの版番号を、論理参照、判断の識別子、意味の契約の識別子として流用しません。
 
 ## 3. 最初のPackaging Profile
 
-最初に成立させる最小profileを、**Local Single-Node Package**とします。
+最初に実現する最小構成は、**単一端末向けの配布形態（Local Single-Node Package）**とします。
 
 ```text
 ┌─────────────────────────────────────┐
@@ -100,13 +100,13 @@ archive名やbinary versionをLogical Reference、Decision identity、Semantic C
           portable semantic data
 ```
 
-first-party runtimeはADR-0027に従いGoを標準とします。最小profileでは、単一host・単一processで始められることを優先し、最初から複数daemon、service mesh、Kubernetes等を要求しません。
+SEIが提供する実行環境では、ADR-0027に従ってGoを標準言語とします。最小構成では、一台のホスト上の一つのプロセスで始められることを優先します。最初から複数の常駐プログラム、サービスメッシュ、Kubernetesなどは求めません。
 
-runtime外には明示的なdurable data rootを置きます。最初のfilesystem Realizationでは、portable semantic bundleを中心に保持します。必要なlocal payloadやruntime-local metadataを追加する場合も、それらがsemantic authorityかどうかを明示的に分けます。
+実行環境の外側に、永続データの保存先となるディレクトリを明示します。最初のファイルシステムによる実装では、持ち運べる意味データのまとまりを中心に保存します。端末内の付随データや実行環境固有の付帯情報を加える場合も、それらが意味の正本としての権威を持つかどうかを明確に区別します。
 
 ## 4. portable semantic data
 
-current baselineでは、新しいpackage専用Universal Contractを追加せず、`sei.semantic-interchange/v1alpha1`をportable semantic export / importの中心として再利用します。
+現行の設計基準では、配布用に新しい汎用契約を追加しません。持ち運べる意味データの書き出しと取り込みには、`sei.semantic-interchange/v1alpha1`を引き続き使用します。
 
 ```text
 Persistence internal form
@@ -114,15 +114,15 @@ Persistence internal form
   -> another Persistence Realization
 ```
 
-Persistence Provider内部のindex、transaction log、DB schema等をportable semantic formatへ漏らしません。
+永続化の提供元が内部で使う索引、取引履歴、データベースの構造などを、持ち運ぶ意味データの形式には含めません。
 
-import / exportでunknown recordを保持する場合、runtimeが理解していないrecordを黙って再構成・正規化しません。Storage migrationだけを理由にSemantic Revisionも生成しません。
+取り込み・書き出しで未知のレコードを保持する場合も、実行環境が理解していないレコードを、知らないうちに再構成・正規化することはしません。保存先の移行だけを理由に、意味の改訂（Semantic Revision）を生成することもしません。
 
-large binaryや外部Sourceをすべてinline化することは要求しません。payload locatorはPersistence / runtimeの実装詳細であり、Logical ReferenceやExact Bindingへfilesystem pathを埋め込むことも要求しません。
+大きなバイナリデータや外部の情報源を、すべてデータ本体に埋め込むことは求めません。データ本体の場所を示す情報は、永続化と実行環境の実装上の詳細です。論理参照や厳密な結び付けに、ファイルシステム上のパスを埋め込むことも求めません。
 
 ## 5. 保存と再開
 
-Local Single-Node Packageは、少なくとも次を満たす必要があります。
+単一端末向けの配布形態では、少なくとも次の条件を満たす必要があります。
 
 1. portable semantic dataをdurable data rootへ保存できる。
 2. processを終了した後、同じdata rootから別processで再読できる。
@@ -131,30 +131,30 @@ Local Single-Node Packageは、少なくとも次を満たす必要がありま�
 5. supported Contract範囲ではruntime executableを交換してもsemantic dataを引き継げる方向を保つ。
 6. Surface-local stateが失われてもcanonical semantic dataを失わない。
 
-ISSUE-000054では、同一versionのbuild済みGo executableを実際に生成し、独立したsave processを終了した後に別processを起動して、durable dataだけからbundleを再構成できることを確認しました。
+ISSUE-000054では、同じ版のGo実行ファイルを生成しました。独立した保存用プロセスを終了し、別のプロセスを起動して、永続データだけからデータのまとまりを再構成できることを確認しました。
 
 ```text
 same-version process restart: scoped Executable Evidence available
 version-upgrade resume: not yet verified
 ```
 
-process restartが成立したことを、executable version upgradeやRelease Evidenceへ広げません。
+プロセスの再起動が成立したことを、実行ファイルの版を更新した場合や製品のリリースに関する検証根拠にまで一般化しません。
 
 ## 6. filesystem Persistence
 
-最初のfilesystem Realizationでは、data root配下の`semantic.bundle.json`をcanonical bundle fileとして扱います。
+最初のファイルシステム実装では、保存先のディレクトリにある`semantic.bundle.json`を、正本となるデータファイルとして扱います。
 
-reference probeでは、complete bytesをtemporary fileへ書き、file sync、closeの後にcanonical fileへrenameします。これはfirst filesystem Realizationのmechanicsであり、Universal Persistence要件ではありません。
+参照用の検証では、すべてのバイト列を一時ファイルに書き込み、同期とクローズを終えてから正本のファイル名へ変更します。これはfirst filesystem Realizationのmechanicsであり、Universal Persistence要件ではありません。
 
-この実装から、power loss時のcrash durability、directory fsyncを含む保証、Windows / macOS等を含む全platformでの同一挙動を推定しません。
+この実装だけから、電源断時の耐久性、ディレクトリの同期を含む保証、WindowsやmacOSなどすべての環境で同じ動作が得られるとは推定しません。
 
 ## 7. backup / restore
 
-最小profileでは、backupをrunning processのheap複製とは定義しません。別processで意味を再構成するために必要なdurable dataを対象とします。
+最小構成では、バックアップを実行中のプロセスのメモリ内容の複製とは定義しません。別processで意味を再構成するために必要なdurable dataを対象とします。
 
 reference probeではcanonical semantic bundle fileを別directoryへcopyし、そのrestore先から同じportable bytesを再読できることを確認しました。
 
-これはcanonical bundle fileに限ったEvidenceです。将来追加されるexternal payload、credential、index等を含む完全なproduction backup、online backup、incremental backup、PITR等は未検証です。
+これは正本となるデータファイルに限った検証根拠です。今後追加される外部データ、資格情報、索引なども含む本番環境の完全なバックアップ、オンラインバックアップ、差分バックアップ、特定時点への復旧（PITR）などは未検証です。
 
 ## 8. Persistence交換とStorage migration
 
@@ -170,11 +170,11 @@ Persistence A
 
 reference probeではfilesystemからmemory Persistenceへoriginal Semantic Interchange bytesを移し、同じbundleを再読できることを確認しました。
 
-これはPersistence Realization交換の補助的なExecutable Evidenceです。memory Persistenceは評価用であり、SCN-0008が想定するproduction RDB / object storeへのactual Storage migrationを証明するものではありません。
+これは永続化方式を交換できることに関する補助的な実行検証根拠です。メモリを使う永続化方式は評価用です。SCN-0008が想定する本番用のRDBやオブジェクトストアへの実際のデータ移行を証明するものではありません。
 
 ## 9. Local Reference Package
 
-PMS-04の最小配布Evidenceを得るため、ISSUE-000055でLinux / amd64向けの**Local Reference Package**を実体化しました。
+PMS-04の最小限の配布に関する検証根拠を得るため、ISSUE-000055ではLinux / amd64向けの**ローカル参照パッケージ（Local Reference Package）**を実際に作成しました。
 
 current reference profileは次です。
 
@@ -184,9 +184,9 @@ current reference profileは次です。
 - executable: `sei-local-reference`
 - build metadata format: `sei.local-reference/v1`
 
-Local Package Artifact workflowでは、同一inputからbinaryを2回buildし、byte-for-byte一致を確認します。さらにbuild identityを検査し、決定的なarchiveとSHA-256 checksumを作成します。
+配布物の作成手順では、同じ入力から実行ファイルを二度ビルドし、バイト単位で一致することを確認します。さらにbuild identityを検査し、決定的なarchiveとSHA-256 checksumを作成します。
 
-生成したarchiveは別directoryへ展開し、その中のbinary自身を独立したprocessとして使って、Semantic Interchangeのsave → process終了 → reloadを検査します。
+作成した書庫ファイルを別のディレクトリへ展開します。そこに含まれる実行ファイルを独立したプロセスとして起動し、意味データの保存、プロセスの終了、再読み込みを検査します。
 
 Local Package Artifact Run `33509521544`はsuccessし、workflow artifact ID `9801021136`、workflow artifact digest `sha256:6282a2fe0b58dd023090d363e3323ce963a9f29c097f869ebab79b73aab2ba85`が記録されています。
 
@@ -197,7 +197,7 @@ Local Reference Package PASS
   != formal platform support matrix
 ```
 
-Linux / amd64、tar.gz、checksum、現在のlifecycle commandはreference distribution profileのRealizationです。Universal Product Requirementや恒久的Release formatではありません。
+Linux / amd64、tar.gz、チェックサム、現在の管理コマンドは、参照配布形態を実現するための選択です。汎用的な製品要求や、恒久的に使うリリース形式ではありません。
 
 ## 10. Product Interactionとの境界
 
@@ -208,9 +208,9 @@ package lifecycle control
   != human / AI Product Interaction
 ```
 
-`sei-local-reference`の`version` / `save` / `inspect`はPackaging acceptance用の管理操作です。Inquiry、Observation、Recommendation、Decision等を扱う正式なSEI CLIではありません。
+`sei-local-reference`の`version`・`save`・`inspect`は、配布形態を検証するための管理操作です。Inquiry、Observation、Recommendation、Decision等を扱う正式なSEI CLIではありません。
 
-正式なhuman-facing / AI-facing Surfaceは、引き続きPMS-03側のOpen Questionとして扱います。
+人間やAIが利用する正式な操作窓口は、引き続きPMS-03で検討する未決事項です。
 
 ## 11. Requirement / Acceptance監査
 
@@ -218,7 +218,7 @@ current Packaging境界とartifact実証は、主に既存のREQ-0001 / 0005 / 0
 
 literal process restartとreference distribution artifactまで実証した結果も、既存Requirementでは表現できない独立したfailureを示しませんでした。そのため、新しいstable Requirement / Scenarioは追加していません。
 
-archive形式、target、checksum、build identity、package lifecycle commandはcurrent reference profileの実現方式であり、Universal Requirementではありません。
+書庫の形式、対象環境、チェックサム、ビルド識別情報、配布物の管理コマンドは、現行の参照構成で採用する方法であり、汎用要求ではありません。
 
 ## 12. Current Evidence
 
@@ -260,7 +260,7 @@ Release / Operational / Adoption: not yet verified
 - container imageやcloud-managed deploymentを正式配布形態とするか
 - background daemonを必須にするか
 
-これらはLocal Reference PackageのPASSだけを理由にRequirementへ昇格させません。
+これらはローカル参照パッケージの検証が合格したという理由だけで、正式な要求へ昇格させません。
 
 ## 14. 関連文書
 

@@ -121,7 +121,7 @@ task interruption研究のcontext cue / goal retrievalの考え方をProduct Int
 
 「次に何へ戻るか」を短く示すcue。
 
-例:
+例は次のとおりです。
 
 - 次はAとBの費用差を確認する
 - 仕様Xが不明なためここで停止
@@ -168,7 +168,7 @@ Personal Inquiry Continuityでは、少なくとも三種類の時点を区別�
 
 Observation、外部条件、Decision等が対象世界・利用者文脈で成立した時点。
 
-例:
+例は次のとおりです。
 
 - 9月1日にサービス価格が変更された
 - 9月2日に利用者がDecisionした
@@ -177,7 +177,7 @@ Observation、外部条件、Decision等が対象世界・利用者文脈で成�
 
 その情報がSEIへ追加された時点。
 
-例:
+例は次のとおりです。
 
 - 9月1日の価格変更を9月5日に初めて記録した
 
@@ -189,7 +189,7 @@ T1とT2を混ぜると、9月2日のDecision時点ですでに価格変更を知
 
 T3は対象世界の事実ではなくProduct Interaction metadataである場合が多い。
 
-用途:
+用途は次のとおりです。
 
 - what changed since I last looked?
 - unread / unreviewed evidence
@@ -348,7 +348,7 @@ Decisionが必要な場合のみ記録し、later evidenceはpast basisへbackfi
 
 ### PIC-010 Reorientation Projection
 
-強化候補:
+強化候補は次のとおりです。
 
 > Reorientation Projectionは単なる全体要約ではなく、元sourceを大量に再読せずmental contextを再構成して次の作業へ移るためのcue setを提供する。
 

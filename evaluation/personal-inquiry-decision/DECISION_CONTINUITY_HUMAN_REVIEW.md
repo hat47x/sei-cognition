@@ -159,7 +159,7 @@ known prior material exposure
 
 判断できない観測値は推測せず`not-observed`を使う。
 
-記録例:
+記録例は次のとおりです。
 
 ```bash
 python "$RUNNER" --manifest "$MANIFEST" --repo-root . record \

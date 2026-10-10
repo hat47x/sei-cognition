@@ -23,7 +23,7 @@ soza. で始まるdistinct identifier            105
 - JSON Schemaの`$id` host 5file
 - 未知versionや未知Contractを表すためのnegative / boundary fixture identity 3件
 - 内部record schema identity 80件
-- 環境変数・CLI flag 約50種
+- 環境変数・CLI flag約50種
 - 文書filename、Go package path、Python局所変数名
 
 ADR-0021は、Contractがfilenameとは別のlogical identityとexplicit versionを持つこと、そしてpre-stable段階であっても、過去のDecisionやArtifactが特定versionをbasisとしている場合には当時のversionをhistoricalに特定できることを要求しています。本製品のContract familyは`v1alpha1`としてv0.2.0 Local Reference Product Baselineでrelease済みであり、この要求はすでに発効しています。
@@ -33,7 +33,7 @@ ADR-0021は、Contractがfilenameとは別のlogical identityとexplicit version
 - `evaluation/method-quality/historical/M1B-RUN-33596839607/` — manifestが`request.json`や`structure-report.json`のsha256を記録しており、これらのfileは`soza`文字列を含みます。内容を書き換えるとdigestが一致しなくなり、Evidence自体が自壊します。
 - `runtime/evidence/`配下の日付付きbundle 37file — 当時のrunで実際に出力されたrecordです。
 - `release/v0.2.0/` — releaseのsource commitをpinしています。
-- 日付を持つEvidence / audit / runbook / delta文書 30件 — 当時のrun ID、head SHA、対象Contract identity、実際に実行したcommandと環境変数を記述しています。
+- 日付を持つEvidence / audit / runbook / delta文書30件 — 当時のrun ID、head SHA、対象Contract identity、実際に実行したcommandと環境変数を記述しています。
 
 `architecture/history/HISTORICAL_ARCHITECTURE_MAPPING.md`は、すでに「historical文書をcurrent正本へrenameしたものではない」という原則を持っています。今回の改名も同じ原則の下に置きます。
 

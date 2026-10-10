@@ -54,7 +54,7 @@ Product Profileという正本階層自体がcurrent Requirements authorityに�
 
 Personal dogfoodingで価値仮説が一定程度支持され、current Stable REQの意味でmechanicsが表現できることが確認できた場合、まず`ACCEPTANCE_SCENARIOS.md`へ個人利用を代表するScenarioを追加する。
 
-理由:
+理由は次のとおりです。
 
 - current REQが意味上かなり十分である。
 - 不足しているのは「その意味差が個人利用でどう必要になるか」の具体化が大きい。
@@ -214,7 +214,7 @@ REQ-0001 / 0005 / 0018 / 0021
 
 ### 5.1 Candidate R-A — Decision-independent Inquiry Continuity
 
-候補文:
+候補文は次のとおりです。
 
 > SEIは、Inquiryの保存、再読、継続をDecisionの存在へ依存させてはならず、未解決のObservation、Unknown、Conflict、Hypothesis、residual等を保持したまま再開できなければならない。
 
@@ -230,7 +230,7 @@ REQ-0001 / 0002 / 0014の組合せとProduct Interaction baselineから既に導
 
 ### 5.2 Candidate R-B — Explicit Product Data Agency
 
-候補文:
+候補文は次のとおりです。
 
 > SEIは、surviving semantic recordのhistorical integrityと、権限ある利用者がProduct dataの保持・削除を明示的に制御することを区別しなければならない。
 
@@ -248,7 +248,7 @@ Product Security / Privacy設計で同じ意味境界が必要と確認される
 
 ### 5.3 Candidate R-C — Automated Semantic Candidate Non-authority
 
-候補文:
+候補文は次のとおりです。
 
 > 自動抽出・分類・要約によって生成されたsemantic candidateは、その生成だけを理由にsource statement、Observation truth、Recommendation acceptance、Decision等へ自動昇格してはならない。
 

@@ -98,7 +98,7 @@ revision A fixed inputは、checkout取得時には前節のworkspace / durable 
 
 `runtime/TEI_PROVIDER_SURFACE_STATIC_COMPATIBILITY_2026-09-05.md`では、A / BのProvider Plan出力surfaceとその前段を分けて比較しています。
 
-静的に強い連続性を確認した領域:
+静的に強い連続性を確認した領域は次のとおりです。
 
 ```text
 cmd/tei/main.go
@@ -135,13 +135,13 @@ same Provider Plan output surface
 
 `runtime/integration/run_tei_revision_b_prepositioned.py`は、GitHub Actionsを使わず、prepositionedされたexact B checkoutとexact A fixed inputからEvidence bundleを生成します。
 
-入力:
+入力は次のとおりです。
 
 - `--source-repo`: exact revision B。build sourceとしてのみ使用する。
 - `--reference-source-repo` **または** `--reference-evidence-bundle`: exact revision A fixed inputの取得元。mutually exclusiveでどちらか一方を使う。
 - `--output-archive`: 生成するEvidence bundle。revision B / SEI repository配下、およびcheckout取得時のrevision A checkout配下ではない、新しいnon-symlink pathを使う。
 
-主な処理:
+主な処理は次のとおりです。
 
 1. output archive path / ancestor symlink、入力checkoutやSEI repository配下への配置、既存archiveの暗黙上書きを副作用前に拒否する。
 2. B execution-source Git identity、exact HEAD、tracked / untracked / ignored entryの不存在を確認する。
@@ -159,7 +159,7 @@ build時は`GOWORK=off`、`GOENV=off`とし、外部`GOFLAGS` / `GOOS` / `GOARCH
 
 `runtime/integration/run_tei_bundle_adapter_compatibility.py`は、E2で得たEvidence bundleをcurrent SEI Adapterへ接続します。
 
-主な処理:
+主な処理は次のとおりです。
 
 1. Evidence bundleのB source / binary / Provider Plan identityを再検証する。
 2. archive traversal、link / device、duplicate memberを拒否する。
@@ -438,7 +438,7 @@ expanded branch unit suitesの一部はcurrent ChatGPT containerでrepository全
 
 actual Bの成功・失敗を見てからRequirementの意味を後付けしないため、`runtime/TEI_VERSION_EXCHANGE_REQUIREMENT_PREAUDIT_2026-09-05.md`で事前判定基準を固定しています。
 
-主な再照合対象:
+主な再照合対象は次のとおりです。
 
 - REQ-0001 — durable meaning continuity
 - REQ-0007 — Capability / Provider neutrality

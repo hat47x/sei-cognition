@@ -73,7 +73,7 @@ Ollama 0.32.14
 
 execution `local-20260904T193531Z-7855` のactual Evidenceを2026-09-05にcurrent developへ回収し、ISSUE-000070のResolution Criteriaへ再照合しました。
 
-確認済み:
+確認済みは次のとおりです。
 
 - fixed KJ Atlas runtime surface identity
 - Ollama `0.32.13` / `0.32.14` actual archive bytes / SHA-256
@@ -191,7 +191,7 @@ GitHub-hosted actual workflowはattempt 7まで観測されていますが、lat
 
 snapshot transport実装は成立していますが、credential-free **actual exact-B snapshot bytesはまだ取得していません**。historical `bootstrap/final-source`、`bootstrap/publish`、`bootstrap/materialize`等はfixed revision B sourceの代替にはせず、historical materialize staging commitをpatch baseにするshortcutもcanonical exact-B acquisitionを十分短縮しないため採用しません。
 
-未検証:
+未検証は次のとおりです。
 
 ```text
 actual exact-B Git Data snapshot acquisition

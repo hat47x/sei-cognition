@@ -2,11 +2,11 @@
 
 ## 位置づけ
 
-本書は `TEI_VERSION_EXCHANGE_CURRENT_DELTA_2026-09-07.md` の後に生じた snapshot transport 実装と current execution surface の変化だけを追記する delta である。
+本書は `TEI_VERSION_EXCHANGE_CURRENT_DELTA_2026-09-07.md` の後に生じたsnapshot transport実装とcurrent execution surfaceの変化だけを追記するdeltaである。
 
-Stable Requirement、Universal Contract、comparison axis、supported scope、quality judgement、ISSUE-000072 Resolution 条件は変更しない。
+Stable Requirement、Universal Contract、comparison axis、supported scope、quality judgement、ISSUE-000072 Resolution条件は変更しない。
 
-固定比較軸:
+固定比較軸は次のとおりです。
 
 ```text
 revision B executable source
@@ -18,9 +18,9 @@ revision A fixed reference input
 
 ## 1. private source transport の分類を更新する
 
-従来の current delta では、current container から private exact-B source を取得できないことを `private B source transport unavailable` と表現していた。
+従来のcurrent deltaでは、current containerからprivate exact-B sourceを取得できないことを `private B source transport unavailable` と表現していた。
 
-PR #312 / #313 取り込み後、この表現は二つの層へ分離する。
+PR #312 / #313取り込み後、この表現は二つの層へ分離する。
 
 ```text
 repository-side transport implementation
@@ -30,9 +30,9 @@ actual snapshot bytes
   = Not Yet Acquired
 ```
 
-実装済み経路:
+実装済み経路は次のとおりです。
 
-- GitHub credentialを持つonline環境で canonical Git Data acquisition を行い、消費したresponseをcredential-free snapshotへ保存する。
+- GitHub credentialを持つonline環境でcanonical Git Data acquisitionを行い、消費したresponseをcredential-free snapshotへ保存する。
 - offline環境でsnapshot schema / provenanceを固定値へ照合する。
 - snapshot内blob/tree/signed commitをGit object identityへ再計算する。
 - exact revision B checkoutをcanonical verifierへ戻す。
@@ -51,22 +51,22 @@ source transport
 
 ### PR #312
 
-snapshot producer / consumer を追加した。
+snapshot producer / consumerを追加した。
 
 - `runtime/integration/capture_tei_revision_b_git_data_snapshot.py`
 - `runtime/integration/prepare_tei_revision_b_source_from_snapshot.py`
 - associated boundary tests
 
-PR #312 は 2026-09-07 に `develop/v0.2.0` へ merge 済み。
+PR #312は2026-09-07に `develop/v0.2.0` へmerge済み。
 
 ### PR #313
 
-snapshotからexact-Bを再構成し、そのまま existing E2 partial contract へ接続する one-shot runner を追加した。
+snapshotからexact-Bを再構成し、そのままexisting E2 partial contractへ接続するone-shot runnerを追加した。
 
 - `runtime/integration/run_tei_revision_b_e2_from_snapshot.py`
 - associated boundary tests
 
-PR #313 は PR #312 merge 後に `develop/v0.2.0` へ retarget し、2026-09-07 に merge 済み。
+PR #313はPR #312 merge後に `develop/v0.2.0` へretargetし、2026-09-07にmerge済み。
 
 ### PR #323 / #324
 
@@ -118,7 +118,7 @@ machine-readable Evidence:
 
 ## 4. actual execution surface の再確認
 
-repository-side implementation merge 後も、actual snapshot を生成できる execution surface は current check で得られていない。
+repository-side implementation merge後も、actual snapshotを生成できるexecution surfaceはcurrent checkで得られていない。
 
 ### current container
 
@@ -141,11 +141,11 @@ go version
   = go1.23.2 linux/amd64
 ```
 
-したがって current container はE2 execution側としては利用可能だが、private GitHubからonline captureを行うsurfaceではない。
+したがってcurrent containerはE2 execution側としては利用可能だが、private GitHubからonline captureを行うsurfaceではない。
 
 ### GitHub-hosted Actions
 
-TEI repository の直近別workflow runも確認した。
+TEI repositoryの直近別workflow runも確認した。
 
 ```text
 run id   = 34025808221
@@ -156,9 +156,9 @@ steps    = []
 runner   = not assigned
 ```
 
-これは別workflowでも GitHub-hosted job が Product step を開始できていない観測である。
+これは別workflowでもGitHub-hosted jobがProduct stepを開始できていない観測である。
 
-既存 actual workflow Run `33913500170` の `actual-tei-cli` job は attempt 5 で次の状態だった。
+既存actual workflow Run `33913500170` の `actual-tei-cli` jobはattempt 5で次の状態だった。
 
 ```text
 run attempt       = 5
@@ -180,7 +180,7 @@ machine-readable Evidence:
 
 `runtime/evidence/tei-version-exchange-workflow-attempt5-20260907/observation.json`
 
-その後のcurrent checkでは、同じRunが attempt 6 まで進んでいることを観測した。attempt 6を本作業で開始したとは扱わず、GitHub metadataから観測した事実だけを記録する。
+その後のcurrent checkでは、同じRunがattempt 6まで進んでいることを観測した。attempt 6を本作業で開始したとは扱わず、GitHub metadataから観測した事実だけを記録する。
 
 ```text
 run attempt       = 6
@@ -198,7 +198,7 @@ steps             = 0
 artifacts         = 0
 ```
 
-attempt 6でもrunner assignment、revision B checkout、Go setup、TEI build、Provider Plan executionのstep開始を観測していない。したがってfailure分類は引き続き GitHub-hosted job-start 層に留める。
+attempt 6でもrunner assignment、revision B checkout、Go setup、TEI build、Provider Plan executionのstep開始を観測していない。したがってfailure分類は引き続きGitHub-hosted job-start層に留める。
 
 machine-readable Evidence:
 
@@ -257,11 +257,11 @@ bootstrap内容をactual-B sourceとして扱うこと、またその復元完�
 
 ## 5. operator path
 
-snapshot transport 専用のactual手順は次を正本とする。
+snapshot transport専用のactual手順は次を正本とする。
 
 `runtime/TEI_E2_SNAPSHOT_TRANSPORT_ACTUAL_RUNBOOK_2026-09-07.md`
 
-標準順序:
+標準順序は次のとおりです。
 
 ```text
 T1 online capture
@@ -303,7 +303,7 @@ ISSUE-000072 Open / resolutionCandidate=false を維持
 
 source-level compile contradictionがactual buildで再現した場合も、それをSOZA Adapter incompatibilityへ読み替えない。
 
-T1 と T2 を同一hostで行う必要はない。
+T1とT2を同一hostで行う必要はない。
 
 ## 6. Current state
 
@@ -342,16 +342,16 @@ ISSUE-000072                                      = Open
 
 ## 7. 次に行うactual作業
 
-次に GitHub private repository access を持つ online execution surface が利用可能になった時点では、追加の transport 設計やhosted retryを先行せず、次を優先する。
+次にGitHub private repository accessを持つonline execution surfaceが利用可能になった時点では、追加のtransport設計やhosted retryを先行せず、次を優先する。
 
-1. `capture_tei_revision_b_git_data_snapshot.py` で actual snapshot を生成する。
-2. capture report の snapshot SHA-256 を記録する。
-3. snapshot を Linux/amd64 E2環境へ transfer する。
-4. `run_tei_revision_b_e2_from_snapshot.py` で actual E2 partial を実行する。
+1. `capture_tei_revision_b_git_data_snapshot.py` でactual snapshotを生成する。
+2. capture reportのsnapshot SHA-256を記録する。
+3. snapshotをLinux/amd64 E2環境へtransferする。
+4. `run_tei_revision_b_e2_from_snapshot.py` でactual E2 partialを実行する。
 5. E2がbuild failureならfailure reportを保存し、専用Resolution auditへ接続してE3へ進まない。
-6. E2が成功した場合だけ `verify_tei_version_exchange_e2_bundle.py` で exact-B / exact-A strict verification を行う。
-7. actual binary SHA-256 / Provider Plan SHA-256 を観測値として固定する。
-8. current SOZA E3要件が成立する環境で later E3 resume を行う。
+6. E2が成功した場合だけ `verify_tei_version_exchange_e2_bundle.py` でexact-B / exact-A strict verificationを行う。
+7. actual binary SHA-256 / Provider Plan SHA-256を観測値として固定する。
+8. current SOZA E3要件が成立する環境でlater E3 resumeを行う。
 9. 必要時reconcileを行い、canonical reportをResolution auditへ接続する。
 
 ## 停止線

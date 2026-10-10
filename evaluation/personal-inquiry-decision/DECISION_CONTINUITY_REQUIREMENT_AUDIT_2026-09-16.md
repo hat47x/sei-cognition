@@ -151,7 +151,7 @@ working set、recent、pin、filter、form draft、chat state等はProjection / 
 
 **判定:** 独立したStable obligation候補。
 
-既存REQ-0001 / 0009 / 0018は耐久性、revision integrity、Storage independenceを要求するが、**一つの利用者操作をsuccessful commitとして公開する瞬間に、意味上半端なcanonical stateを成功として見せてはならない**ことはcurrent Requirement本文で直接禁止されていない。
+既存REQ-0001 / 0009 / 0018は耐久性、revision integrity、Storage independenceを要求するが、一つの利用者操作をsuccessful commitとして公開する瞬間に、意味上半端なcanonical stateを成功として見せてはならないことはcurrent Requirement本文で直接禁止されていない。
 
 Product SliceとInteraction ArchitectureではCommit Coordinatorの責務として明示され、`commit.go`には全変更をstagingしてから一括公開するprobe-local実装、`commit_test.go`には途中fault / 後続validation failureでcanonical digestと公開recordを変えないtest sourceが存在する。
 
@@ -167,7 +167,7 @@ REQ-0009はSemantic Revisionとstorage revisionを区別するが、古いIntera
 
 `provisional.go`はcanonical digestをProduct-local snapshot preconditionとして保持し、後続canonical change後のcommitをstaleとして拒否する。`provisional_test.go`には、文言をReviseしてもsnapshotを暗黙更新せず、fresh proposalを明示的に作り直すtest sourceがある。
 
-stale-writeはCR-73.8とは別のontologyではなく、**canonical commit integrityを壊す別failure mode**である。
+stale-writeはCR-73.8とは別のontologyではなく、canonical commit integrityを壊す別failure modeである。
 
 **Disposition:** `merge-with-CR-73.8-into-one-stable-requirement-candidate`
 
@@ -259,14 +259,14 @@ SEIでは「保存した／commitした」というProduct operationとcanonical
 | CR-73.9 Stale-write protection | 独立commit-integrity failure | CR-73.8と統合してStable化候補 |
 | CR-73.10 AI egress visibility | Selective Disclosure / Authority / Realization境界 | 新規REQなし。Policy / privacy要件は別監査 |
 
-結果として、10件のCandidate Requirementから10件のStable Requirementを作るのではなく、**1件だけが新しい規範上の義務候補として残る**。
+結果として、10件のCandidate Requirementから10件のStable Requirementを作るのではなく、1件だけが新しい規範上の義務候補として残る。
 
 ## 8. Evidence監査
 
 ### Design Evidence
 
-- CR-73.1〜10のProduct / Architecture境界: **Available**
-- CR-73.8 / 73.9を一つのcommit-integrity obligationとしてまとめる根拠: **Available**
+- CR-73.1〜10のProduct / Architecture境界: Available
+- CR-73.8 / 73.9を一つのcommit-integrity obligationとしてまとめる根拠: Available
 
 ### Executable Evidence
 
@@ -278,10 +278,10 @@ SEIでは「保存した／commitした」というProduct operationとcanonical
 
 ### Human / Product Outcome Evidence
 
-- H1 actual resume usability: **Not Yet Observed**
-- H2 counterfactual human pilot: **Not Yet Observed**
-- first useful saveまでのactual capture burden: **Not Yet Observed**
-- Decision Continuity Product Value: **Not Established**
+- H1 actual resume usability: Not Yet Observed
+- H2 counterfactual human pilot: Not Yet Observed
+- first useful saveまでのactual capture burden: Not Yet Observed
+- Decision Continuity Product Value: Not Established
 
 Stable化候補REQの採否と、Decision Continuity Product Outcomeの成立は別判断である。
 

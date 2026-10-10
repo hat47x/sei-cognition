@@ -61,8 +61,8 @@ class StrictRuntimeVersionExchangeModelPreparationTest(unittest.TestCase):
             class Completed:
                 returncode = 0
 
-            def fake_run(command, check):
-                calls.append(("run", command))
+            def fake_run(command, check, env=None):
+                calls.append(("run", command, env))
                 evidence.mkdir()
                 return Completed()
 
@@ -100,6 +100,9 @@ class StrictRuntimeVersionExchangeModelPreparationTest(unittest.TestCase):
             command = calls[-1][1]
             self.assertIn("--model-dir", command)
             self.assertEqual(str(model.resolve()), command[command.index("--model-dir") + 1])
+            child_env = calls[-1][2]
+            self.assertIsNotNone(child_env)
+            self.assertEqual("1", child_env["PYTHONNOUSERSITE"])
 
             preparation = json.loads(
                 (evidence / "runtime-exchange-model-store-preparation.json").read_text(

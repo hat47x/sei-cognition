@@ -34,7 +34,7 @@ Profileの正本は、本書とRFC 8785です。特定のGo packageやそのAPI�
 
 canonical bytesはRFC 8785 JSON Canonicalization Schemeに従って生成します。
 
-主な性質:
+主な性質は次のとおりです。
 
 - object propertyを再帰的に規定順序へ並べる。
 - array elementの順序は変えない。
@@ -85,7 +85,7 @@ text representationは次の形式です。
 sha256:<64 lowercase hexadecimal characters>
 ```
 
-例:
+例は次のとおりです。
 
 ```text
 sha256:cc31fc728ab32ccfd6543dd8cce686b9633b3c47fbec82c88a466688f3a8cb81
@@ -97,7 +97,7 @@ SHA-256をSEI Universal Coreの唯一のhash algorithmとして固定するも�
 
 ADR-0009に従い、verification outcomeをbinding本体へ可変状態として埋め込みません。
 
-代表的な分類:
+代表的な分類は次のとおりです。
 
 - canonicalizationとdigestが一致した: `verified`
 - JSON / Profile制約違反、またはdigest mismatch: `failed`
@@ -115,7 +115,7 @@ current Go probeでは`github.com/gowebpki/jcs`を使用していますが、Pro
 
 current probeはcommit SHA `1a4242a66e1a8e03d7458324d0bc95c327527cbb`へ固定しており、Go module resolver上では`v1.0.1`へ解決されます。
 
-採用条件:
+採用条件は次のとおりです。
 
 - dependency revisionを明示的に固定する。
 - RFC 8785 representative vectorをSEI側fixtureで検査する。

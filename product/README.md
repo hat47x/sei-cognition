@@ -1,7 +1,7 @@
 # SEI Product文書の読み方
 
-更新日: 2026-09-18  
-状態: **Current Product Documentation Baseline — Product Shape再基線化 / resume-first Product Slice / v0.2.0 Release Evidence / E3b-P2・M1 / historical reconstruction / runtime-version exchange / actual TEI Evidence protocol / quality-evaluation boundary reflected**
+更新日: 2026-10-02  
+状態: **Current Product Documentation Baseline（家族の統合の頂点の提案文書を索引に追加。ADR-0035 Proposed）— Product Shape再基線化 / resume-first Product Slice / v0.2.0 Release Evidence / E3b-P2・M1 / historical reconstruction / runtime-version exchange / actual TEI Evidence protocol / quality-evaluation boundary reflected**
 
 ## 1. この文書の役割
 
@@ -76,6 +76,14 @@ Product Valueからcurrent Requirements、Acceptance Scenarios、ADR、Architect
 ### `definition/SEI_PRODUCT_SHAPE.md`
 
 SEIを製品として見たときの主要な仕事、論理Surface、SEI内外の境界、Minimum Usable Product Shapeを定めます。
+
+### `definition/SEI_FAMILY_SEMANTIC_MAP.md`（参考・非Contract）
+
+hat47xの製品ファミリー各製品の判断の記録を、SEIの語でどう読めるかをまとめた参考の対応表です。SEIは翻訳し、統合しません。各製品が正本であり、各行はすべて候補です。ADR-0035（Proposed）に対応します。
+
+### `value/SEI_FAMILY_APEX_VALUE_REVIEW.md`（評価記録・提案）
+
+SEIを家族の「統合の頂点」とできるかを検討した2026-09-27の評価記録です。強みS1〜S5と弱みW1〜W8、頂点の定義（抽象・時間・統合を採り、指揮・所有・可用性を採らない）、神経系の比喩、コミットメントの台帳という言い直し、基盤モデルの進歩に対する頑健さ、境界B1〜B8、仮説ごとの採否を記録します。生成AIによる評価であり、人による価値評価はまだ行われていません。新しいValue Axisは定義しません。
 
 ### `vision/SEI_PRODUCT_VISION.md` / `principles/SEI_PRODUCT_PRINCIPLES.md`
 
@@ -292,6 +300,7 @@ Coreへ追加する前に、少なくとも次を検討します。
 12. `security/SEI_PRODUCT_IDENTITY_ACCESS_COLLABORATION.md`
 13. `definition/SEI_REALIZATION_PROVIDER_EXCHANGE.md`
 14. `value/SEI_VALUE_TRACEABILITY.md`
+    - 参考: `value/SEI_FAMILY_APEX_VALUE_REVIEW.md`、`definition/SEI_FAMILY_SEMANTIC_MAP.md`
 15. `../release/v0.2.0/RELEASE_ACCEPTANCE.md`
 16. `../release/v0.2.0/RELEASE_EVIDENCE.md`
 17. `../plan/UPSTREAM_PRODUCT_DEVELOPMENT_PLAN.md`
@@ -313,5 +322,7 @@ Capability Provider側のTEI executable version交換（ISSUE-000072）は引き
 2026-09-18には、ISSUE-000074でactual TEI Evidence採取protocolを`runtime/go/teiprobe`、`runtime/go/cmd/tei-e3b-probe`、`runtime/ACTUAL_TEI_EVIDENCE_PROTOCOL.md`として実体化しました。これはrevision A / Bのcompatibilityを新たに証明したものではなく、actual binaryが供給されたときにidentity、declared source、optional binding、Capability Observationを一つのderived Evidenceへ固定するための経路です。current Go 1.25 testとactual TEI reportは未取得のままです。
 
 historical reconstruction、actual model artifact交換、ISSUE-000071の成果品質評価境界も現在地を維持しています。human outcome reviewは未完了のままであり、version交換PASSから成果品質へ自動昇格させません。
+
+2026-10-02には、ADR-0035（Proposed）に沿って、家族の統合の頂点の評価記録と参考の対応表を索引へ加えました。どちらも提案・参考であり、Value Axis、Requirement、Contract versionは変えていません。
 
 v0.2.0のRelease EvidenceはLocal Reference Product Baselineに限定してSatisfiedとし、release後のEvidenceをsupported scopeへ遡及させません。意味、規範強度、未決事項、Evidence強度を変えず、自然な日本語として現在地をたどれることを最重要視して再監査しました。

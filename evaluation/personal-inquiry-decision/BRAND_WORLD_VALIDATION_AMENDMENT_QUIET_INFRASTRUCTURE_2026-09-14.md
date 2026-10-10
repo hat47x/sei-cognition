@@ -84,7 +84,7 @@ quiet infrastructure
 
 最初に表示するのは、existing SEI Orientationから選んだ必要最小限のcueとする。
 
-例:
+例は次のとおりです。
 
 - current inquiry / focus
 - material Unknown / Conflict
@@ -98,7 +98,7 @@ AI-generated next question / relation / recommendation候補は、利用者が�
 
 同じcanonical stateから、AIが生成した複数の候補を初期Surfaceへ追加する。
 
-例:
+例は次のとおりです。
 
 - next questions
 - related issues

@@ -7,7 +7,7 @@ Updated: 2026-09-02
 
 ## Goal
 
-PMS-06のE3「real external integration」へ進む前段として、SEI repository内で作ったreference processではなく、**別repositoryで独立にversion管理されている実Cognitive Method / Provider artifactを取得・検証し、取得元のidentityとProvenanceを失わずにcurrent SEI semanticsへ結び付けられること**を確認する。
+PMS-06のE3「real external integration」へ進む前段として、SEI repository内で作ったreference processではなく、別repositoryで独立にversion管理されている実Cognitive Method / Provider artifactを取得・検証し、取得元のidentityとProvenanceを失わずにcurrent SEI semanticsへ結び付けられることを確認する。
 
 この段階をE3aと呼ぶ。
 
@@ -112,10 +112,10 @@ TEI固有fieldはAdapter内部に閉じ、current Capability Observationへは�
 
 初期E3a head `aafbad6d5598ca883a957bc426c8edc68119cdcb`で、外部artifact取得とsemantic mappingの成立を確認した。
 
-- External Integration E3a Run `33528003902` — **success**
-- Plan integrity Run `33528003813` — **success**
-- Local Package Artifact Run `33528003781` — **success**
-- Semantic Runtime Conformance Run `33528003760` — runtime-conformance job **success**
+- External Integration E3a Run `33528003902` — success
+- Plan integrity Run `33528003813` — success
+- Local Package Artifact Run `33528003781` — success
+- Semantic Runtime Conformance Run `33528003760` — runtime-conformance job success
 
 External Integration E3a Run `33528003902`では、次の全stepがsuccessした。
 
@@ -129,10 +129,10 @@ PRの作業中に`develop/v0.2.0`へcross-contract Exact Bindingの変更が統�
 
 その後のclosure head `afdd51056635ae7b7d3d16f8c53732895fdea1d8`では、次の4系統がすべてsuccessした。
 
-- External Integration E3a Run `33529803952` — **success**
-- Semantic Runtime Conformance Run `33529803957` — **success**
-- Plan integrity Run `33529803963` — **success**
-- Local Package Artifact Run `33529804070` — **success**
+- External Integration E3a Run `33529803952` — success
+- Semantic Runtime Conformance Run `33529803957` — success
+- Plan integrity Run `33529803963` — success
+- Local Package Artifact Run `33529804070` — success
 
 Plan integrity Run `33529803963`では、ADR / Issue / registry整合、Document Review Registry coverageを含む全stepがsuccessしている。
 
@@ -203,13 +203,13 @@ E3a PASS
 
 ## Evidence state
 
-- Design Evidence: **Satisfied**
-- E2 out-of-process reference exchange: **Scoped Executable Evidence available**
-- E3a version-pinned external artifact integration: **Scoped Executable Evidence available** — closure headのExternal Integration E3a Run `33529803952`
-- E3b live external process / service integration: **Not Yet Verified**
-- E4 Operational portability: **Not Yet Verified**
-- Release Evidence: **Not Yet Verified**
-- Adoption / Outcome Evidence: **Not Yet Verified**
+- Design Evidence: Satisfied
+- E2 out-of-process reference exchange: Scoped Executable Evidence available
+- E3a version-pinned external artifact integration: Scoped Executable Evidence available — closure headのExternal Integration E3a Run `33529803952`
+- E3b live external process / service integration: Not Yet Verified
+- E4 Operational portability: Not Yet Verified
+- Release Evidence: Not Yet Verified
+- Adoption / Outcome Evidence: Not Yet Verified
 
 ## Reopen / escalation条件
 

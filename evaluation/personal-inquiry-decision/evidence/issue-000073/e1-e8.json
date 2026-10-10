@@ -1,0 +1,244 @@
+{
+  "format": "issue-000073-resume-first-execution-record/v1",
+  "issue": "ISSUE-000073",
+  "observed_at": "2026-10-09T05:47:24Z",
+  "scope": "Executable Evidence for E1-E8 only; H1/H2 and Product Outcome are out of scope.",
+  "repository": {
+    "head": "694ec5805c00a8bae9034e15ee0d1589e40f6fd8",
+    "expected_head": "694ec5805c00a8bae9034e15ee0d1589e40f6fd8",
+    "head_matches_expected": true,
+    "head_tree": "3f39909ae4050b267e97a7c580086f6c7c5bc9b6",
+    "git_checkout_detected": true,
+    "clean_required": true,
+    "dirty": false,
+    "status_porcelain": []
+  },
+  "required_toolchain": "go1.25.x",
+  "source_bindings": [
+    {
+      "path": "tools/run_issue_000073_resume_first_evidence.py",
+      "exists": true,
+      "sha256": "6f14b3551c8c5a443f6e7a2e89bce4bb3396415d8b60c87b41cdac3e74733541",
+      "working_tree_blob": "a02467cfb09b190f19c3e2df262a1bcb17dcc44e",
+      "head_blob": "a02467cfb09b190f19c3e2df262a1bcb17dcc44e",
+      "matches_head": true
+    },
+    {
+      "path": "runtime/go/go.mod",
+      "exists": true,
+      "sha256": "a7df9316ddd33f3f2af731f1b66ab4dd1c6e4ef0eb04efdac701e69e1c34ffb4",
+      "working_tree_blob": "3b36351c33bbda00e1a4c794bef2a8e4217e54ca",
+      "head_blob": "3b36351c33bbda00e1a4c794bef2a8e4217e54ca",
+      "matches_head": true
+    },
+    {
+      "path": "runtime/go/go.sum",
+      "exists": true,
+      "sha256": "e458defb9f42e41cb0f6b29452db83b9d99ff30507285ffa08cbd81b6ecfae49",
+      "working_tree_blob": "1adc6bfa7b960caa50e78e5d5ca75a7cefb81c2c",
+      "head_blob": "1adc6bfa7b960caa50e78e5d5ca75a7cefb81c2c",
+      "matches_head": true
+    },
+    {
+      "path": "runtime/go/interactionprobe/resume_test.go",
+      "exists": true,
+      "sha256": "382d870e08588429550a5a4a0a748313ea85e8a5809253bb6af8ec6743aad6ea",
+      "working_tree_blob": "58f5f7bde684fb1b4becaabaaf37a5c43546274b",
+      "head_blob": "58f5f7bde684fb1b4becaabaaf37a5c43546274b",
+      "matches_head": true
+    },
+    {
+      "path": "runtime/go/interactionprobe/review_test.go",
+      "exists": true,
+      "sha256": "233a063f1d7d82a88f5ed1716ebd6582e7a8271486607df9d68a50daf244a784",
+      "working_tree_blob": "9b5029bfbb42bf3616c9746dea907d4b33c3c04e",
+      "head_blob": "9b5029bfbb42bf3616c9746dea907d4b33c3c04e",
+      "matches_head": true
+    },
+    {
+      "path": "runtime/go/interactionprobe/provisional_test.go",
+      "exists": true,
+      "sha256": "c817513bb8600975accc77d1cd676ead8d9cdc8b5ca5b3a00e3da048bbabf25d",
+      "working_tree_blob": "43b7502d2a9d10fb1d48ca5f7733745b4b29ad85",
+      "head_blob": "43b7502d2a9d10fb1d48ca5f7733745b4b29ad85",
+      "matches_head": true
+    },
+    {
+      "path": "runtime/go/interactionprobe/provisional_observation_test.go",
+      "exists": true,
+      "sha256": "c4d4531875966c875b8cf04075a71f82ba08dba6578f86a455f51548420b77ca",
+      "working_tree_blob": "1eb4baa5679869c06bf7f9ce101b09217e7e348e",
+      "head_blob": "1eb4baa5679869c06bf7f9ce101b09217e7e348e",
+      "matches_head": true
+    },
+    {
+      "path": "runtime/go/interactionprobe/graceful_degradation_test.go",
+      "exists": true,
+      "sha256": "f38966c37a05a288e1082c9819aa34cad607cead1062ede6b0487e87a71d1830",
+      "working_tree_blob": "454b6a84e57faa290277c37ee0943e73f7cbcfd8",
+      "head_blob": "454b6a84e57faa290277c37ee0943e73f7cbcfd8",
+      "matches_head": true
+    },
+    {
+      "path": "runtime/go/interactionprobe/progressive_test.go",
+      "exists": true,
+      "sha256": "2fe5d01d9db56da120db8b0bd57760ecf5cf8af4644819b492d5a1cf443538ed",
+      "working_tree_blob": "fc166cdda9f7b85bd6ae69801db4a4a0dd5ea9a8",
+      "head_blob": "fc166cdda9f7b85bd6ae69801db4a4a0dd5ea9a8",
+      "matches_head": true
+    },
+    {
+      "path": "runtime/go/interactionprobe/working_set_test.go",
+      "exists": true,
+      "sha256": "6f7709111168e2db91b13c36ba44065f4ee39b6814558ac802c474d39655acc2",
+      "working_tree_blob": "795b19554c3a5a0077e87b6c166432f221e73d7d",
+      "head_blob": "795b19554c3a5a0077e87b6c166432f221e73d7d",
+      "matches_head": true
+    },
+    {
+      "path": "runtime/go/interactionprobe/commit_test.go",
+      "exists": true,
+      "sha256": "d86496367f35d6a3f52ca8fe5a0c5f604ec30031b5397d3eade6383ed021f62f",
+      "working_tree_blob": "7b072d57db68ad07266208c715c4884e622ed687",
+      "head_blob": "7b072d57db68ad07266208c715c4884e622ed687",
+      "matches_head": true
+    },
+    {
+      "path": "runtime/go/interactionprobe/egress_test.go",
+      "exists": true,
+      "sha256": "d87940be44d0073bb381096761510bd73dbe5098f7c897c1a3801336c73cd86d",
+      "working_tree_blob": "5850201d2ff4385167403b64bbccf2dd22aeed3c",
+      "head_blob": "5850201d2ff4385167403b64bbccf2dd22aeed3c",
+      "matches_head": true
+    }
+  ],
+  "experiments": {
+    "E1": {
+      "required_tests": [
+        "TestResumeProjectionRebuildsFromCanonicalStateAfterSurfaceLoss",
+        "TestResumeProjectionDoesNotRewriteHistoricalBasisWithLaterObservation",
+        "TestChangeReviewProjectionSeparatesHistoricalBasisFromCanonicalChanges",
+        "TestChangeReviewProjectionReconstructsFromCanonicalRecordsAfterStoreRebuild"
+      ],
+      "status": "pass",
+      "missing_tests": [],
+      "non_pass_tests": []
+    },
+    "E2": {
+      "required_tests": [
+        "TestProvisionalRecommendationDoesNotBecomeCanonicalUntilCommit",
+        "TestDismissedProvisionalRecommendationLeavesCanonicalStateUntouched",
+        "TestProvisionalRecommendationCanBeReclassifiedAsObservationBeforeCommit"
+      ],
+      "status": "pass",
+      "missing_tests": [],
+      "non_pass_tests": []
+    },
+    "E3": {
+      "required_tests": [
+        "TestAIUnavailableKeepsHumanCanonicalPathUsable"
+      ],
+      "status": "pass",
+      "missing_tests": [],
+      "non_pass_tests": []
+    },
+    "E4": {
+      "required_tests": [
+        "TestProgressiveExplicitnessPreservesInquiryIdentityAsDetailAccumulates"
+      ],
+      "status": "pass",
+      "missing_tests": [],
+      "non_pass_tests": []
+    },
+    "E5": {
+      "required_tests": [
+        "TestWorkingSetProjectionRebuildsFromCanonicalRelationsAfterLocalStateLoss"
+      ],
+      "status": "pass",
+      "missing_tests": [],
+      "non_pass_tests": []
+    },
+    "E6": {
+      "required_tests": [
+        "TestCommitCoordinatorPublishesSemanticChangesTogether",
+        "TestCommitCoordinatorDoesNotExposePartialStateOnInjectedFailure",
+        "TestCommitCoordinatorDoesNotPublishEarlierChangesWhenLaterValidationFails"
+      ],
+      "status": "pass",
+      "missing_tests": [],
+      "non_pass_tests": []
+    },
+    "E7": {
+      "required_tests": [
+        "TestStaleDraftCommitRequiresFreshProposal",
+        "TestReclassifiedObservationKeepsOriginalSnapshotPrecondition"
+      ],
+      "status": "pass",
+      "missing_tests": [],
+      "non_pass_tests": []
+    },
+    "E8": {
+      "required_tests": [
+        "TestContextEgressPlanContainsOnlySelectedCanonicalRecords",
+        "TestExternalRecommendationRemainsProvisionalUntilExplicitCommit",
+        "TestExternalRecommendationUsesEgressSnapshotForStaleProtection"
+      ],
+      "status": "pass",
+      "missing_tests": [],
+      "non_pass_tests": []
+    }
+  },
+  "stop_line": "Executable E1-E8 PASS != H1/H2 human review != Decision Continuity Product Value established.",
+  "go": {
+    "executable": "/home/hat47x/.local/toolchains/go/bin/go",
+    "version_output": "go version go1.25.14 linux/amd64"
+  },
+  "command": {
+    "cwd": "runtime/go",
+    "argv": [
+      "/home/hat47x/.local/toolchains/go/bin/go",
+      "test",
+      "-count=1",
+      "-json",
+      "./interactionprobe"
+    ],
+    "environment": {
+      "GOTOOLCHAIN": "local"
+    },
+    "exit_code": 0
+  },
+  "test_results": {
+    "TestCommitCoordinatorPublishesSemanticChangesTogether": "pass",
+    "TestCommitCoordinatorDoesNotExposePartialStateOnInjectedFailure": "pass",
+    "TestCommitCoordinatorDoesNotPublishEarlierChangesWhenLaterValidationFails": "pass",
+    "TestContextEgressPlanContainsOnlySelectedCanonicalRecords": "pass",
+    "TestExternalRecommendationRemainsProvisionalUntilExplicitCommit": "pass",
+    "TestExternalRecommendationUsesEgressSnapshotForStaleProtection": "pass",
+    "TestAIUnavailableKeepsHumanCanonicalPathUsable": "pass",
+    "TestManualObservationAppearsInLightView": "pass",
+    "TestSurfaceOnlyRecommendationAndDecisionDoNotBecomeCanonicalRecords": "pass",
+    "TestHumanAndMachineSurfacesShareCanonicalMeaning": "pass",
+    "TestProjectionAndSurfaceStateDoNotBecomeCanonicalAuthority": "pass",
+    "TestAuditViewExposesDecisionBasisAndResponsibility": "pass",
+    "TestPostDecisionObservationDoesNotRewriteHistoricalBasis": "pass",
+    "TestMachineSurfaceDoesNotInferResponsibilityOrRequirePrivateReasoning": "pass",
+    "TestRejectsRecommendationDecisionIdentityCollapse": "pass",
+    "TestOpaqueRecordCannotClaimValidatedSemantics": "pass",
+    "TestProgressiveExplicitnessPreservesInquiryIdentityAsDetailAccumulates": "pass",
+    "TestProvisionalRecommendationCanBeReclassifiedAsObservationBeforeCommit": "pass",
+    "TestReclassifiedObservationKeepsOriginalSnapshotPrecondition": "pass",
+    "TestProvisionalRecommendationDoesNotBecomeCanonicalUntilCommit": "pass",
+    "TestDismissedProvisionalRecommendationLeavesCanonicalStateUntouched": "pass",
+    "TestStaleDraftCommitRequiresFreshProposal": "pass",
+    "TestResumeProjectionRebuildsFromCanonicalStateAfterSurfaceLoss": "pass",
+    "TestResumeProjectionDoesNotRewriteHistoricalBasisWithLaterObservation": "pass",
+    "TestResumeProjectionExposesMissingCanonicalReferences": "pass",
+    "TestResumeProjectionRequiresDecisionTarget": "pass",
+    "TestChangeReviewProjectionSeparatesHistoricalBasisFromCanonicalChanges": "pass",
+    "TestChangeReviewProjectionReconstructsFromCanonicalRecordsAfterStoreRebuild": "pass",
+    "TestChangeReviewProjectionAddingOnePostDecisionObservationOnlyExtendsCanonicalChanges": "pass",
+    "TestChangeReviewProjectionFailsClosedWithoutCheckpoint": "pass",
+    "TestWorkingSetProjectionRebuildsFromCanonicalRelationsAfterLocalStateLoss": "pass"
+  },
+  "status": "pass"
+}

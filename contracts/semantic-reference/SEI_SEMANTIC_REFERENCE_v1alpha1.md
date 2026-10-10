@@ -106,7 +106,7 @@ not_verified != failed
 
 representation-only changeをsemantic revisionへ自動変換してはなりません。
 
-例:
+例は次のとおりです。
 
 - whitespace変更
 - JSON key order変更
@@ -159,7 +159,7 @@ current repositoryでは、JSON Schema、positive / negative fixture、same-logi
 
 Representation Profileについてもcurrent `v1alpha1` fixture / verifier probeのExecutable Evidenceがあります。ただし、historical M47 digest規則の特定はISSUE-000034で未完了です。
 
-未検証:
+未検証は次のとおりです。
 
 - actual Storage migrationをまたぐlogical identity / lineage保持
 - productionでの長期historical reconstruction

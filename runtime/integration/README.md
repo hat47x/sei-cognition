@@ -140,7 +140,7 @@ preflightやstrict executionが途中で失敗した場合も、作成可能な�
 
 runtime archiveはSEI repositoryの外に置きます。計画表示の段階から同じ出力先境界を適用します。
 
-取得前の計画確認:
+取得前の計画確認は次のとおりです。
 
 ```bash
 python3 runtime/integration/prepare_runtime_version_exchange_archives.py \
@@ -155,7 +155,7 @@ python3 runtime/integration/prepare_runtime_version_exchange_archives.py \
   --output-dir /path/outside/sei/runtime-archives
 ```
 
-既存fileだけをnetworkなしで再検証する場合:
+既存fileだけをnetworkなしで再検証する場合。
 
 ```bash
 python3 runtime/integration/prepare_runtime_version_exchange_archives.py \
@@ -186,7 +186,7 @@ strict Evidenceではworking treeをruntime sourceとして直接信用しませ
 - `alembic/`
 - `src/`
 
-明示的にverified bundleを作る場合:
+明示的にverified bundleを作る場合。
 
 ```bash
 python3 runtime/integration/export_kj_atlas_runtime_source.py \
@@ -250,7 +250,7 @@ python3 runtime/integration/check_runtime_version_exchange_preflight.py \
   --kj-atlas-dir /path/to/kj-atlas
 ```
 
-すべて事前配置した状態を確認する場合:
+すべて事前配置した状態を確認する場合。
 
 ```bash
 python3 runtime/integration/check_runtime_version_exchange_preflight.py \
@@ -311,7 +311,7 @@ checkout起点の一時verified source bundleも`<evidence-name>-source/backend`
 
 ## 実行と独立再検証を一続きに行う
 
-標準入口:
+標準入口は次のとおりです。
 
 ```bash
 python3 runtime/integration/run_runtime_version_exchange_with_verification.py \
@@ -366,7 +366,7 @@ complete runだけが`ready-to-review`になり得ます。blocked preflightや�
 
 `verify_runtime_version_exchange_evidence.py`はcore execution条件を検証する下位verifierです。
 
-主な対象:
+主な対象は次のとおりです。
 
 - fixed KJ Atlas runtime source identity
 - runtime A / B actual version / archive SHA-256
@@ -423,20 +423,20 @@ actual runtimeを起動せず、ISSUE-000070周辺のrepository-local regression
 python3 runtime/integration/run_runtime_version_exchange_local_checks.py
 ```
 
-最初の失敗で止める場合:
+最初の失敗で止める場合。
 
 ```bash
 python3 runtime/integration/run_runtime_version_exchange_local_checks.py \
   --stop-on-failure
 ```
 
-登録済みtestを確認する場合:
+登録済みtestを確認する場合。
 
 ```bash
 python3 runtime/integration/run_runtime_version_exchange_local_checks.py --list
 ```
 
-特定testだけを実行する場合:
+特定testだけを実行する場合。
 
 ```bash
 python3 runtime/integration/run_runtime_version_exchange_local_checks.py \
@@ -444,7 +444,7 @@ python3 runtime/integration/run_runtime_version_exchange_local_checks.py \
   --only test_runtime_version_exchange_strict_archive_boundaries.py
 ```
 
-機械可読な結果をrepository外へ保存する場合:
+機械可読な結果をrepository外へ保存する場合。
 
 ```bash
 python3 runtime/integration/run_runtime_version_exchange_local_checks.py \

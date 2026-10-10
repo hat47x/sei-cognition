@@ -62,13 +62,13 @@ AIがtemplate生成時にpass/failを先取りしない。
 
 `reviewed_at`は実際のreview時刻をRFC3339で記録する。
 
-`task_success`:
+`task_success`は次のとおりです。
 
 - `pass`
 - `fail`
 - `uncertain`
 
-`semantic_boundary`:
+`semantic_boundary`は次のとおりです。
 
 - `preserved`
 - `violated`

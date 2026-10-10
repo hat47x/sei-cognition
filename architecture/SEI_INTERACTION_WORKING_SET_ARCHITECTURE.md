@@ -68,7 +68,7 @@ Interaction実装ではstateを少なくとも次の4層として読み分けま
 
 耐久的authorityです。
 
-例:
+例は次のとおりです。
 
 - Inquiry / Intent context
 - Observation / Evidence
@@ -86,7 +86,7 @@ Interaction実装ではstateを少なくとも次の4層として読み分けま
 
 canonical stateから導出できるProduct-local stateです。
 
-例:
+例は次のとおりです。
 
 - working-set membershipの導出結果
 - Resume Brief
@@ -102,7 +102,7 @@ canonical stateから導出できるProduct-local stateです。
 
 利用中にだけ必要な一時状態です。
 
-例:
+例は次のとおりです。
 
 - form draft
 - uncommitted AI suggestion
@@ -117,7 +117,7 @@ canonical stateから導出できるProduct-local stateです。
 
 SEI外の実現状態です。
 
-例:
+例は次のとおりです。
 
 - AI provider conversation/session
 - model runtime state
@@ -198,7 +198,7 @@ Projection Builderは意味の要約・選択を行えますが、Unknownをfals
 
 human intentやAI suggestionを、canonicalへcommit可能な変更候補へ変換します。
 
-例:
+例は次のとおりです。
 
 ```text
 "調査結果ではA案がよさそう"

@@ -71,14 +71,14 @@ GitHub Actions `Contract Conformance` Run ID `33346472419`で17 fixtureの期待
 
 本Issueのclosure後にRepresentation ProfileとRuntimeが進展したため、current状態を次のように再基線化する。
 
-- Contract Design Baseline: **Satisfied**
-- Contract v1alpha1 Fixture-scoped Executable Conformance: **Satisfied**
-- current Representation Profile baseline: **Satisfied — ADR-0023 / ISSUE-000009**
-- historical M47 digest mapping: **Not Yet Verified — ISSUE-000034**
-- first semantic runtime consumption: **Satisfied within ISSUE-000033 scope**
-- synthetic Provider Adapter mapping: **Satisfied within ISSUE-000036 scope**
-- Release Evidence: **Not Yet Verified**
-- Operational Evidence: **Not Yet Verified**
+- Contract Design Baseline: Satisfied
+- Contract v1alpha1 Fixture-scoped Executable Conformance: Satisfied
+- current Representation Profile baseline: Satisfied — ADR-0023 / ISSUE-000009
+- historical M47 digest mapping: Not Yet Verified — ISSUE-000034
+- first semantic runtime consumption: Satisfied within ISSUE-000033 scope
+- synthetic Provider Adapter mapping: Satisfied within ISSUE-000036 scope
+- Release Evidence: Not Yet Verified
+- Operational Evidence: Not Yet Verified
 
 `fixture.raw-json/v0`はfixture内部のhistorical exact-reference整合検査に使ったopaque Profile identityであり、current stable Profileの代替ではない。current / future ProfileはADR-0023で別途確定している。
 

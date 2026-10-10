@@ -22,7 +22,7 @@ product interaction state
 
 しかし利用者が見る一枚の画面は、多数のdurable semantic recordとproduct-local stateを合成したProjectionでよい。
 
-概念モデル:
+概念モデルは次のとおりです。
 
 ```text
 Durable semantic records
@@ -62,7 +62,7 @@ Personal Profileで次の固定state machineを導入しない。
 NEW -> RESEARCHING -> RECOMMENDED -> DECIDED -> CLOSED
 ```
 
-理由:
+理由は次のとおりです。
 
 - Decisionへ到達しないInquiryがある。
 - Decision後もInquiryは生き続け得る。
@@ -76,7 +76,7 @@ UIが便宜上status labelを表示しても、そのlabelからDecisionやUnkno
 
 操作性のため、Surfaceがdurable dataから状態を導出することは許容する。
 
-例:
+例は次のとおりです。
 
 ### `exploring`
 
@@ -167,7 +167,7 @@ Material Intake
 
 ### 7.1 Material Intake
 
-入力例:
+入力例は次のとおりです。
 
 - 自然文メモ
 - URL
@@ -188,7 +188,7 @@ Material Intake
 
 AI / heuristic処理が候補を作る。
 
-例:
+例は次のとおりです。
 
 - Observation候補
 - Unknown候補
@@ -256,7 +256,7 @@ show O2 as later material relative to D1
 optionally evaluate whether O2 relates to reopen condition
 ```
 
-行ってはならないこと:
+行ってはならないこと。
 
 ```text
 append O2 to D1 historical basis automatically
@@ -315,7 +315,7 @@ last-viewed cursor
 
 AI Handoffはcurrent Inquiryから作るProjectionである。
 
-推奨構造:
+推奨構造は次のとおりです。
 
 ```text
 Inquiry
