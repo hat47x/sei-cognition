@@ -303,7 +303,7 @@ Product側が作ったexecution authorizationを、Fabricはplacement constraint
 
 したがって、本評価の次の位置づけを改めます。
 
-- 本評価の§3の共通Job Envelopeは、**EKIへの入力としての提案**であり、EKIの契約を決めるものではありません。EKI側では、利用側の意味をresource requirement、data locality、trust / isolation requirement、deadline、preemption、result verificationなどのworkload contractへ投影して受け取ります（`hat47x/eki-fabric:product/value.md`）。SEIのCognitive Envelope（privacy、latency、energy、costの予算、データ分類）との一方向の対応は、EKI側の`hat47x/eki-fabric:research/sei-cognition-mapping.md`で、EKIの未mergeブランチ`docs/family-apex-backflow-20260927`上に提案されています。
+- 本評価の§3の共通Job Envelopeは、**EKIへの入力としての提案**であり、EKIの契約を決めるものではありません。EKI側では、利用側の意味をresource requirement、data locality、trust / isolation requirement、deadline、preemption、result verificationなどのworkload contractへ投影して受け取ります（`hat47x/eki-fabric:product/value.md`）。SEIのCognitive Envelope（privacy、latency、energy、costの予算、データ分類）との一方向の対応は、EKI側の`hat47x/eki-fabric:research/integration/sei-cognition-mapping.md`で、EKIの未mergeブランチ`docs/family-apex-backflow-20260927`上に提案されています。
 - **SEIはschedulingを所有しません。** どのjobが必要かという認知jobの意味を決めますが、どこで実行するかはEKIが決めます。
 - EKIの端末の局所governor（利用者の復帰、電力、熱などを中央のschedulerより優先する）は、家族の「反射弓」の手本です。SEIはこのループに入りません。
 - 7節の既存OSSの比較（HTCondor、Ray等）は、評価の記録として残します。採用の決定ではありません。
