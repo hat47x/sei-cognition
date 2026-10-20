@@ -43,6 +43,19 @@ machine prerequisite satisfied
 
 H1 / H2を始めるためにE1〜E8を毎回再実行しない。`interactionprobe`、`semanticruntime`、Go依存定義、またはrunnerの意味が変わった場合に再実行する。H2 native clean-HEAD captureやexternal Git-bundle actual runは再現性を高める補助Evidenceであり、human review開始の前提にはしない。
 
+
+### 1.2 2026-10-21のH2比較素材同等性補正
+
+H2 human reviewの開始前に、matched setの3条件で判断に必要な意味情報が揃っているかをoperator側で照合した。ケース②では請求関連のlow-confidence事例が複数あった事実の明示性、ケース③ではsource external IDの今後の安定性というUnknownと、Decisionのdry-run候補抽出方法の記述に差があった。元の`scenario.phase_1`と`reference_state`は変えず、条件ごとの`surface_text`だけを補正した。
+
+- ケース①：変更なし。既存のTEI Stage 0 Reference向け固定sourceと独立に保持する。
+- ケース②：Git blob `54e1e244cba4f4859e661b3590a5d3f25adb0cb0` → `d326ef24d1a954c565c9867040990952137aaa5a`。
+- ケース③：Git blob `9d72729d8425ae0f68b7569107c281b4f3e479b8` → `1e6810b1f014dd571a1eab3250a769697b538296`。
+
+変更後のoperator-side静的照合は36項目すべて一致した。ただし、これは既存Python regressionの実行結果ではない。2026-09-18のH2 Decision review runner regression 8/8 PASSは**旧fixture blobを入力として得たhistorical Evidence**であり、新しいblobへPASSを転用しない。現在のH2 fixtureを固定したうえで既存preflight / runner回帰試験を再実行することが、次の技術的確認である。新しいGateやschemaは追加しない。
+
+この修正と静的照合は、評価者のpre-stimulus provenance、blinding、H1 actual resumption、H2 human observation、capture / review overhead、Product Valueの成立を意味しない。過去にR1相当materialへ露出したreaderも引き続き`known-material-exposure`として扱う。E1〜E8のGo実行対象source closureとは別の変更であり、E1〜E8の既存PASS自体は変更しない。
+
 ## 2. H2の責務分離
 
 H2の実行系を一つに寄せる。
