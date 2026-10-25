@@ -121,6 +121,7 @@ def test_clean_pass_records_head_and_sources() -> None:
         )
         assert "-m" in data["execution"]["command"]
         assert "test_decision_continuity_*.py" in data["execution"]["command"]
+        assert "Ran 3 tests" in data["execution"]["stderr"]
         assert all(item["matches_head"] for item in data["source_binding"])
 
 
