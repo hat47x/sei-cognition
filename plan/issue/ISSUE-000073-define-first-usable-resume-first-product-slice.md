@@ -643,3 +643,7 @@ SEIのsemantic integrityが高いだけではProduct Valueとせず、historical
 同じ日に受け側runnerも追加し、handoffのSHA-256 / source identity検証、exact clone、post-clone bundle verification、既存bootstrap / capture実行、blocked非昇格までを一命令へ収束させた。exact committed sourceによる4件のmechanics testは4/4 PASSしたが、synthetic bootstrapを用いた受入れ試験であり、actual E1〜E8のEvidenceには数えていない。
 
 2026-10-10には、actual E1〜E8のtested commitとcurrent developの実行対象closureをGit blobで再照合した。`interactionprobe` 22 file、`semanticruntime` 13 file、Go依存定義2 file、runner / verifier 2 fileの計39 fileが全て同一だった。これにより既存のScoped Executable PASSをcurrent source closureへ適用できることをmachine-readable Evidenceへ固定した。これは再実行ではなく、未変更sourceへの適用性確認である。以後の高情報量作業はH1 / H2 human observationへ移す。
+
+2026-10-25には、H2 Decision Continuityの比較素材②・③についてRaw Chat／時系列ノート／SEI Resume間の既知の表現差を補正した。原典`scenario.phase_1`、`reference_state`とケース①のTEI Reference用固定素材は変更していない。差分再発を防ぐ2テストを既存preflightに追加し、対象をpreflight 7件・shared-runner 8件・analysis 5件の計20件とした。さらに既存`tools/capture_issue_000073_h2_runner_selftest.py`を3スイートの`unittest discover`実行へ拡張し、15 source binding、独立指定expected HEAD、clean checkout、不一致時のfail-closedを維持した。対応するsynthetic capture self-testも新しい3スイート検出に合わせて更新した。
+
+本更新で確認したのはGitHub current sourceとfixture差分の静的整合である。**修正後20件のPython actual runおよびcapture self-test actual runは未取得**であり、2026-09-18の旧fixtureに対する8/8 PASSを新fixtureに転用しない。E1〜E8の既存Scoped Executable EvidenceとH1/H2 Human Evidenceは引き続き分離する。ISSUE-000073はOpenを維持し、次に必要なのはsource-bound実行結果とH1/H2の人間による観測・capture/review負荷の記録である。
