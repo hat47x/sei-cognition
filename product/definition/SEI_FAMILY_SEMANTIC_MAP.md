@@ -61,7 +61,7 @@ SEI reading != sibling authority
 
 兄弟製品の側でも、SEIとの対応を記した文書が、各リポジトリの未mergeブランチ`docs/family-apex-backflow-20260927`（CSWは`research/family-apex-backflow-20260927`）で提案されています。次の文書は、新規のものはそのブランチ上にだけ存在し、既存のものはそのブランチ上で追記されています。
 
-- EKI: `hat47x/eki-fabric:research/sei-cognition-mapping.md`（Cognitive EnvelopeからEKIのTaskRequestへの一方向の対応、署名付きAuthority DecisionをSEIの外部Authority evidenceとして読むこと）、`research/contribution-accounting.md`（ContributionとCapability Observationの対応。詳しいContributionの記録は従業員の不在を推測させ得るというprivacyの注意）、`requirements/ACCEPTANCE_SCENARIOS.md`（候補PAS-CAND-01〜06、評価待ち）、`product/value.md`（反射弓の小節）
+- EKI: `hat47x/eki-fabric:research/integration/sei-cognition-mapping.md`（Cognitive EnvelopeからEKIのTaskRequestへの一方向の対応、署名付きAuthority DecisionをSEIの外部Authority evidenceとして読むこと）、`research/topics/contribution-accounting.md`（ContributionとCapability Observationの対応。詳しいContributionの記録は従業員の不在を推測させ得るというprivacyの注意）、`requirements/ACCEPTANCE_SCENARIOS.md`（候補PAS-CAND-01〜06、評価待ち）、`product/value.md`（反射弓の小節）
 - TEI: `hat47x/tei-platform:plan/issue/000070-sei-reference-adoption-change2-resumption.md`（Change 2の再開。TEI-4の付録で`.tei/decisions/`の投影、TEI-6の付録でRQ-013）、`plan/ACTOR_CONTEXT_PROJECTIONS_2026-09.md` §11.1（委任の参照）、`product/value/TEI_PRODUCT_VALUE.md` §8
 - MMI: `hat47x/markdown-matrix-injector:02_Architecture/sei-decision-semantics-mapping.md`、`01_Plans/issues/issue-0192-sei-decision-basis-table-binding.md`、`04_Documentation/spec/mmi-notation-v1.md`の非規範の付録
 - CSW: `hat47x/cultural-substrate-weaving:docs/ja/maintainers/sibling-product-semantic-correspondence.md`、`research/skill-prototypes/REFERENCE-CLASSIFICATION.md`の付録A

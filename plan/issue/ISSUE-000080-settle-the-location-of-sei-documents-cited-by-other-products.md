@@ -55,7 +55,7 @@ TEI、MMI、EKIの文書は、これらを「SEIの未統合branch `docs/family-
 
 `evaluation/distributed-execution-fabric/README.md`は2026-09-12の文書で、状態は「Evaluation-only Shared Infrastructure Boundary」である。job配置、worker fan-out、共通Job Envelope候補、scheduler候補、安全境界を扱い、§11で共有OSSを新設する条件にも触れる。EKI Fabricのリポジトリは、同じ2026-09-12に最初のcommitを持つ。この文書にEKIへの言及はない。
 
-一方、`SEI_PRODUCT_SHAPE.md`の§6.3は、EKI Fabricを分散実行基盤として位置づけ、SEIがresource placementを正本にしないと述べている。EKI側の`research/sei-cognition-mapping.md`は、この評価文書の§3と§4を引用している。
+一方、`SEI_PRODUCT_SHAPE.md`の§6.3は、EKI Fabricを分散実行基盤として位置づけ、SEIがresource placementを正本にしないと述べている。EKI側の`research/integration/sei-cognition-mapping.md`は、この評価文書の§3と§4を引用している。
 
 ### Unknown
 

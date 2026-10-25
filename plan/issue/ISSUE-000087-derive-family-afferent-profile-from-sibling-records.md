@@ -47,7 +47,7 @@ TEI側の検討で、`.tei/decisions/`の受理記録に**timestampのfieldが�
 
 - SUI: `hat47x/sui-sensemaking:02_Architecture/sensemaking_artifact_sei_mapping_candidate.md`（ADR-0086と`sei.semantic-reference`の対応、承認の記録の書き出し）
 - TEI: `hat47x/tei-platform:plan/issue/000070-sei-reference-adoption-change2-resumption.md`（TEI-4の付録）
-- EKI: `hat47x/eki-fabric:research/sei-cognition-mapping.md`、`research/contribution-accounting.md`
+- EKI: `hat47x/eki-fabric:research/integration/sei-cognition-mapping.md`、`research/topics/contribution-accounting.md`
 - MMI: `hat47x/markdown-matrix-injector:02_Architecture/sei-decision-semantics-mapping.md`
 - CSW: `hat47x/cultural-substrate-weaving:docs/ja/maintainers/sibling-product-semantic-correspondence.md`（CSWのブランチは`research/family-apex-backflow-20260927`）
 - vs-bear: `hat47x/vs-bear-simulator:docs/M5_ADOPTION_EVIDENCE_JOIN.md`
