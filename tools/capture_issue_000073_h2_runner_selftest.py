@@ -19,9 +19,19 @@ TEST_PATH = Path(
     "evaluation/personal-inquiry-decision/"
     "test_decision_continuity_review_runner.py"
 )
+TEST_PREFLIGHT_PATH = Path(
+    "evaluation/personal-inquiry-decision/"
+    "test_decision_continuity_preflight.py"
+)
+TEST_ANALYSIS_PATH = Path(
+    "evaluation/personal-inquiry-decision/"
+    "test_decision_continuity_review_analysis.py"
+)
 SOURCE_FILES = (
     Path("tools/capture_issue_000073_h2_runner_selftest.py"),
     TEST_PATH,
+    TEST_PREFLIGHT_PATH,
+    TEST_ANALYSIS_PATH,
     Path("evaluation/personal-inquiry-decision/inquiry_continuity_review_runner.py"),
     Path("evaluation/personal-inquiry-decision/matched_review_session.py"),
     Path("evaluation/personal-inquiry-decision/decision_continuity_review_analysis.py"),
@@ -93,8 +103,8 @@ def record(
         "issue": "ISSUE-000073",
         "status": status,
         "scope": (
-            "Executable Evidence for the H2 shared-runner Decision regression "
-            "test only; not H2 human review, not H1 actual resume usability, "
+            "Executable Evidence for the three H2 Decision Continuity "
+            "regression suites; not H2 human review, not H1 actual resume usability, "
             "not Decision Continuity Product Value."
         ),
         "repository": repository,
@@ -112,7 +122,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Capture fail-closed executable evidence for the ISSUE-000073 "
-            "H2 shared-runner Decision regression test."
+            "H2 Decision preflight, shared-runner, and analysis regression tests."
         )
     )
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
@@ -231,7 +241,11 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(value, ensure_ascii=False, indent=2))
         return 2
 
-    test_cmd = [sys.executable, TEST_PATH.as_posix()]
+    test_cmd = [
+        sys.executable, "-m", "unittest", "discover",
+        "-s", "evaluation/personal-inquiry-decision",
+        "-p", "test_decision_continuity_*.py",
+    ]
     test_proc = run(test_cmd, repo)
     execution = {
         "command": test_cmd,
