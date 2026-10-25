@@ -1,6 +1,6 @@
 # Decision Continuity — H1 / H2 Human Review Execution
 
-更新日: 2026-10-10  
+更新日: 2026-10-25  
 状態: **Evaluation-only / Human Review Ready / H1・H2 Not Yet Observed / Not Product Requirement**  
 関連: ISSUE-000073 / `DOGFOOD_SURFACE.md` / `DOGFOOD_EVALUATION_RECORDING.md` / `decision_continuity_counterfactual_matched_set_v1.json` / `inquiry_continuity_review_runner.py` / `matched_review_session.py` / `decision_continuity_review_analysis.py`
 
@@ -55,6 +55,24 @@ H2 human reviewの開始前に、matched setの3条件で判断に必要な意�
 変更後のoperator-side静的照合は36項目すべて一致した。ただし、これは既存Python regressionの実行結果ではない。2026-09-18のH2 Decision review runner regression 8/8 PASSは**旧fixture blobを入力として得たhistorical Evidence**であり、新しいblobへPASSを転用しない。現在のH2 fixtureを固定したうえで既存preflight / runner回帰試験を再実行することが、次の技術的確認である。新しいGateやschemaは追加しない。
 
 この修正と静的照合は、評価者のpre-stimulus provenance、blinding、H1 actual resumption、H2 human observation、capture / review overhead、Product Valueの成立を意味しない。過去にR1相当materialへ露出したreaderも引き続き`known-material-exposure`として扱う。E1〜E8のGo実行対象source closureとは別の変更であり、E1〜E8の既存PASS自体は変更しない。
+
+
+### 1.3 2026-10-25のH2回帰試験capture拡張
+
+比較素材②・③の補正後、既存の`tools/capture_issue_000073_h2_runner_selftest.py`を拡張し、従来のshared-runner 8テストに加えてpreflight 7テストとanalysis 5テストを同じ`unittest discover`実行に含めた。source bindingにも追加のテストファイル2件を含め、合計15ファイルのHEAD一致・clean checkout・独立指定expected HEADを検査する。既存capture scriptとEvidence schemaを再利用し、新しいsession・Human Evidence schemaやGateは追加しない。
+
+実行順序は次のとおり。expected HEADは実行checkoutとは独立のGitHub等から取得したcanonical commit SHAを指定する。
+
+```bash
+python tools/test_capture_issue_000073_h2_runner_selftest.py
+python tools/capture_issue_000073_h2_runner_selftest.py \
+  --expected-head <independently-verified-commit-SHA> \
+  --output /tmp/issue-000073-h2-decision-20-regressions.json
+```
+
+2026-10-25のGitHub source監査では、対象テストが7+8+5=20件、captureのsource bindingが15ファイルであること、修正済みfixture②・③が前回の固定blobと一致することを静的に確認した。**Pythonテストのactual実行結果は未取得**のため、20/20 PASSやsynthetic capture self-test PASSとは記録しない。過去の8/8 PASSは旧fixtureに紐づいたhistorical Executable Evidenceとしてそのまま保持する。
+
+capture結果が得られても、H2 clean blinded human observation・H1 actual resumption・capture/review overhead・Product Valueは別途評価する。
 
 ## 2. H2の責務分離
 
