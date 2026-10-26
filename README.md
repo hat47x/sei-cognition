@@ -118,7 +118,7 @@ GitHub Actionsは当面停止しており、必要な検査は変更範囲に応
 
 文書の目的・要求・契約・実装・検証結果には、それぞれ異なる役割があります。下位の実装結果によって、上位の意味が自動的に決まるわけではありません。
 
-ADRとIssueの登録状況は`plan/registry.yaml`、文書ごとの状態は各文書本文を正とします。日本語文書の作成方針は[文書作成基準](plan/DOCUMENT_AUTHORING_STANDARD.md)にあります。
+ADRとIssueの登録状況は`plan/registry.yaml`、文書ごとの状態は各文書本文を正とします。日本語文書の作成方針は[文書作成基準](plan/DOCUMENT_AUTHORING_STANDARD.md)にあります。脆弱性の報告は[SECURITY.md](SECURITY.md)、変更の進め方は[CONTRIBUTING.md](CONTRIBUTING.md)を参照してください。
 
 ## ライセンス
 
