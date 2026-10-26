@@ -7,6 +7,7 @@ package seicli
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -335,13 +336,32 @@ func runAdd(ctx context.Context, args []string, stdout, stderr io.Writer) error 
 // ResumeView is what a person or an AI needs in order to continue the work.
 // It is a Projection of the store and never replaces it.
 type ResumeView struct {
-	BundleID               string           `json:"bundle_id"`
-	RecordCount            int              `json:"record_count"`
-	Decisions              []DecisionView   `json:"decisions"`
-	RecommendationsOpen    []StatementView  `json:"recommendations_not_yet_relied_on"`
-	RecommendationsRelied  []StatementView  `json:"recommendations_relied_on"`
-	Unresolved             []UnresolvedView `json:"unresolved"`
-	NotVerifiedRecordCount int              `json:"not_verified_record_count"`
+	BundleID               string                 `json:"bundle_id"`
+	SnapshotDigest         string                 `json:"snapshot_digest,omitempty"`
+	Coverage               ResumeCoverage         `json:"coverage"`
+	RecordCount            int                    `json:"record_count"`
+	Decisions              []DecisionView         `json:"decisions"`
+	RecommendationsOpen    []StatementView        `json:"recommendations_not_yet_relied_on"`
+	RecommendationsRelied  []StatementView        `json:"recommendations_relied_on"`
+	Unresolved             []UnresolvedView       `json:"unresolved"`
+	NotVerifiedRecordCount int                    `json:"not_verified_record_count"`
+	NotVerifiedRecords     []ResumeRecordLocation `json:"not_verified_records"`
+}
+
+// ResumeCoverage describes this projection, not all questions in the case.
+type ResumeCoverage struct {
+	UnresolvedSource                        string `json:"unresolved_source"`
+	UnresolvedEntryCount                    int    `json:"unresolved_entry_count"`
+	DistinctUnresolvedLogicalReferenceCount int    `json:"distinct_unresolved_logical_reference_count"`
+	CaseCompleteness                        string `json:"case_completeness"`
+}
+
+// ResumeRecordLocation is a return hint within SnapshotDigest's original JSON.
+// It neither resolves an external source nor interprets an unknown payload.
+type ResumeRecordLocation struct {
+	RecordID    string                           `json:"record_id"`
+	Contract    semanticruntime.ContractIdentity `json:"contract"`
+	JSONPointer string                           `json:"json_pointer"`
 }
 
 type StatementView struct {
@@ -361,8 +381,11 @@ type DecisionView struct {
 }
 
 type UnresolvedView struct {
-	Ref        string `json:"ref"`
-	LeftOpenBy string `json:"left_open_by_decision"`
+	Ref                 string                           `json:"ref"`
+	LeftOpenBy          string                           `json:"left_open_by_decision"`
+	Reference           semanticruntime.Reference        `json:"reference"`
+	LeftOpenByReference semanticruntime.LogicalReference `json:"left_open_by_reference"`
+	SourceRecord        ResumeRecordLocation             `json:"source_record"`
 }
 
 func refText(r semanticruntime.Reference) string {
@@ -394,11 +417,16 @@ func sourcesOf(rec semanticruntime.InterchangeRecord) []string {
 func BuildResume(bundle *semanticruntime.Bundle) ResumeView {
 	view := ResumeView{
 		BundleID:              bundle.Envelope.BundleID,
+		Coverage:              ResumeCoverage{UnresolvedSource: "recognized-decision-unresolved-refs", CaseCompleteness: "not_assessed"},
 		RecordCount:           len(bundle.Records),
 		Decisions:             []DecisionView{},
 		RecommendationsOpen:   []StatementView{},
 		RecommendationsRelied: []StatementView{},
 		Unresolved:            []UnresolvedView{},
+		NotVerifiedRecords:    []ResumeRecordLocation{},
+	}
+	if original := bundle.ExportOriginal(); len(original) > 0 {
+		view.SnapshotDigest = fmt.Sprintf("sha256:%x", sha256.Sum256(original))
 	}
 	relied := map[string]bool{}
 	for _, rec := range bundle.Records {
@@ -408,10 +436,14 @@ func BuildResume(bundle *semanticruntime.Bundle) ResumeView {
 			}
 		}
 	}
-	for _, rec := range bundle.Records {
+	distinctUnresolved := map[semanticruntime.LogicalReference]bool{}
+	for index, rec := range bundle.Records {
+		location := ResumeRecordLocation{RecordID: rec.EnvelopeRecord.RecordID,
+			Contract: rec.EnvelopeRecord.Contract, JSONPointer: fmt.Sprintf("/records/%d", index)}
 		switch {
 		case rec.Status == semanticruntime.RecordNotVerified:
 			view.NotVerifiedRecordCount++
+			view.NotVerifiedRecords = append(view.NotVerifiedRecords, location)
 		case rec.Decision != nil && rec.Decision.Decision != nil:
 			d := rec.Decision.Decision
 			view.Decisions = append(view.Decisions, DecisionView{
@@ -420,7 +452,11 @@ func BuildResume(bundle *semanticruntime.Bundle) ResumeView {
 				Responsible: refTexts(d.ResponsibilityRefs), Sources: sourcesOf(rec.EnvelopeRecord),
 			})
 			for _, u := range d.UnresolvedRefs {
-				view.Unresolved = append(view.Unresolved, UnresolvedView{Ref: refText(u), LeftOpenBy: d.Ref.ID})
+				view.Unresolved = append(view.Unresolved, UnresolvedView{Ref: refText(u), LeftOpenBy: d.Ref.ID,
+					Reference: u, LeftOpenByReference: d.Ref, SourceRecord: location})
+				if logical, ok := u.LogicalIdentity(); ok {
+					distinctUnresolved[logical] = true
+				}
 			}
 		case rec.Decision != nil && rec.Decision.Recommendation != nil:
 			r := rec.Decision.Recommendation
@@ -432,6 +468,8 @@ func BuildResume(bundle *semanticruntime.Bundle) ResumeView {
 			}
 		}
 	}
+	view.Coverage.UnresolvedEntryCount = len(view.Unresolved)
+	view.Coverage.DistinctUnresolvedLogicalReferenceCount = len(distinctUnresolved)
 	sort.SliceStable(view.Unresolved, func(i, j int) bool { return view.Unresolved[i].Ref < view.Unresolved[j].Ref })
 	return view
 }
@@ -464,6 +502,12 @@ func runResume(ctx context.Context, args []string, stdout, stderr io.Writer) err
 
 func renderResume(w io.Writer, v ResumeView) {
 	fmt.Fprintf(w, "Store %s: %d records\n", v.BundleID, v.RecordCount)
+	fmt.Fprintln(w, "Unresolved scope: recognized Decision.unresolved_refs only; not a case-wide inventory.")
+	fmt.Fprintf(w, "%d entries; %d distinct logical references. Case completeness: not assessed.\n",
+		v.Coverage.UnresolvedEntryCount, v.Coverage.DistinctUnresolvedLogicalReferenceCount)
+	if v.SnapshotDigest != "" {
+		fmt.Fprintf(w, "Snapshot SHA-256: %s\n", v.SnapshotDigest)
+	}
 	section := func(title string, n int) { fmt.Fprintf(w, "\n%s (%d)\n", title, n) }
 	section("Decisions", len(v.Decisions))
 	for _, d := range v.Decisions {
@@ -484,6 +528,10 @@ func renderResume(w io.Writer, v ResumeView) {
 	section("Unresolved", len(v.Unresolved))
 	for _, u := range v.Unresolved {
 		fmt.Fprintf(w, "  %s (left open by %s)\n", u.Ref, u.LeftOpenBy)
+		refJSON, _ := json.Marshal(u.Reference)
+		decisionJSON, _ := json.Marshal(u.LeftOpenByReference)
+		fmt.Fprintf(w, "      reference: %s; decision: %s\n", refJSON, decisionJSON)
+		fmt.Fprintf(w, "      source record %q at %s\n", u.SourceRecord.RecordID, u.SourceRecord.JSONPointer)
 	}
 	section("Recommendations not yet relied on by any decision", len(v.RecommendationsOpen))
 	for _, r := range v.RecommendationsOpen {
@@ -495,6 +543,10 @@ func renderResume(w io.Writer, v ResumeView) {
 	}
 	if v.NotVerifiedRecordCount > 0 {
 		fmt.Fprintf(w, "\n%d record(s) use a Contract this runtime does not understand. They are kept and not verified.\n", v.NotVerifiedRecordCount)
+		for _, record := range v.NotVerifiedRecords {
+			fmt.Fprintf(w, "  record %q: contract %q version %q at %s\n",
+				record.RecordID, record.Contract.ContractID, record.Contract.Version, record.JSONPointer)
+		}
 	}
 }
 

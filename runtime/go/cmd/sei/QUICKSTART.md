@@ -46,6 +46,12 @@ sei resume
 
 決定、未解決の問い、まだ誰も依拠していない推薦が分かれて表示されます。機械から読むときは`--json`を付けます。
 
+未解決の一覧は、このruntimeが理解できたDecisionの`unresolved_refs`を集計したものです。0件でも案件全体の未決がないとは判断できません。表示行数と、kind・ID・scopeで区別した論理参照の種類数も別に示します。同じ参照を複数の判断が残した場合、行をまとめません。
+
+JSONの`coverage`は集計範囲と件数を示し、`case_completeness`は`not_assessed`のままです。既存の`unresolved[].ref`と`left_open_by_decision`は表示用に残し、`reference`と`left_open_by_reference`でscopeやExact Bindingを取り戻せます。`source_record`と`not_verified_records`は、元の記録ID・Contractの版・JSON Pointerを示します。未知のpayloadの意味は推測しません。
+
+`snapshot_digest`は、読み込んだ束のバイト列のSHA-256です。原記録へ戻るときは、`sei export`等で取り出した束の指紋値が一致することを確かめてからJSON Pointerを使ってください。指紋値の一致は意味の正しさや現在の適用可能性を証明せず、JSON Pointer自体も外部原本を取得しません。再開表示は元の記録を書き換えません。
+
 ## 4. 第三者が検証する
 
 ```bash
