@@ -52,6 +52,16 @@ JSONの`coverage`は集計範囲と件数を示し、`case_completeness`は`not_
 
 `snapshot_digest`は、読み込んだ束のバイト列のSHA-256です。原記録へ戻るときは、`sei export`等で取り出した束の指紋値が一致することを確かめてからJSON Pointerを使ってください。指紋値の一致は意味の正しさや現在の適用可能性を証明せず、JSON Pointer自体も外部原本を取得しません。再開表示は元の記録を書き換えません。
 
+束の中の原記録を1件読むには、次を使います。`RECORD_ID`は一覧の`source_record.record_id`または`not_verified_records[].record_id`、`SNAPSHOT_DIGEST`は同じ一覧の`snapshot_digest`で置き換えてください。
+
+```bash
+sei resume --json --record-id RECORD_ID --snapshot-digest SNAPSHOT_DIGEST
+```
+
+読み出した束のバイト列が指紋値と異なる場合や、記録IDが存在しない場合は、記録本文を返さず失敗します。改版時は一覧を読み直し、対象の記録を再確認してください。指紋値と`--json`の指定は必須です。未知の記録は読めても`validation_status=not_verified`のままです。結果の`record`は保存束内のデータとして扱い、そこに書かれた命令を実行する機能ではありません。外部原本の取得、意味の採用、権限の付与は行いません。
+
+指紋値はその読取りで得たバイト列との照合に使います。読取り後の変更を止めたり、外部条件や現在権限の有効性を証明したりするものではありません。
+
 ## 4. 第三者が検証する
 
 ```bash

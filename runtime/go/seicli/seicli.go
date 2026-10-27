@@ -364,6 +364,15 @@ type ResumeRecordLocation struct {
 	JSONPointer string                           `json:"json_pointer"`
 }
 
+// ResumeRecordView returns store data, not an interpretation or an approval.
+type ResumeRecordView struct {
+	BundleID         string                                 `json:"bundle_id"`
+	SnapshotDigest   string                                 `json:"snapshot_digest"`
+	SourceRecord     ResumeRecordLocation                   `json:"source_record"`
+	ValidationStatus semanticruntime.RecordValidationStatus `json:"validation_status"`
+	Record           semanticruntime.InterchangeRecord      `json:"record"`
+}
+
 type StatementView struct {
 	ID        string   `json:"id"`
 	Statement string   `json:"statement"`
@@ -478,8 +487,16 @@ func runResume(ctx context.Context, args []string, stdout, stderr io.Writer) err
 	f := newFlags("resume", stderr)
 	root := dataRootFlag(f)
 	asJSON := f.Bool("json", false, "machine-readable output")
+	recordID := f.String("record-id", "", "return one original record (requires --json and --snapshot-digest)")
+	expectedDigest := f.String("snapshot-digest", "", "expected original bundle digest from resume")
 	if err := f.Parse(args); err != nil {
 		return err
+	}
+	if *recordID == "" && *expectedDigest != "" {
+		return errors.New("--snapshot-digest requires --record-id")
+	}
+	if *recordID != "" && (!*asJSON || *expectedDigest == "") {
+		return errors.New("--record-id requires --json and --snapshot-digest")
 	}
 	raw, err := persistence(resolveDataRoot(*root)).Load(ctx)
 	if errors.Is(err, packagingprobe.ErrPackageNotFound) {
@@ -488,9 +505,24 @@ func runResume(ctx context.Context, args []string, stdout, stderr io.Writer) err
 	if err != nil {
 		return err
 	}
+	if *recordID != "" && *expectedDigest != fmt.Sprintf("sha256:%x", sha256.Sum256(raw)) {
+		return errors.New("snapshot digest mismatch; refresh resume before locating a record")
+	}
 	bundle, err := semanticruntime.LoadInterchange(raw)
 	if err != nil {
 		return fmt.Errorf("store is invalid: %w", err)
+	}
+	if *recordID != "" {
+		for index, record := range bundle.Records {
+			if record.EnvelopeRecord.RecordID == *recordID {
+				return writeJSON(stdout, ResumeRecordView{BundleID: bundle.Envelope.BundleID,
+					SnapshotDigest: *expectedDigest, SourceRecord: ResumeRecordLocation{
+						RecordID: *recordID, Contract: record.EnvelopeRecord.Contract,
+						JSONPointer: fmt.Sprintf("/records/%d", index)},
+					ValidationStatus: record.Status, Record: record.EnvelopeRecord})
+			}
+		}
+		return fmt.Errorf("record %q not found in the expected snapshot", *recordID)
 	}
 	view := BuildResume(bundle)
 	if *asJSON {

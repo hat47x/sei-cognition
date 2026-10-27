@@ -140,3 +140,71 @@ func TestResumeCountsEntriesSeparatelyAndPreservesScopedExactReferences(t *testi
 		}
 	}
 }
+
+func TestResumeReturnsAnUninterpretedRecordOnlyFromTheExpectedSnapshot(t *testing.T) {
+	unknown := semanticruntime.InterchangeRecord{RecordID: "Q1", Kind: "question",
+		Contract: semanticruntime.ContractIdentity{ContractID: "example.questions", Version: "v9"},
+		Payload:  json.RawMessage(`{"state":"held","unrecognized":{"keep":[1,2,3]}}`)}
+	root, original := seedResumeBundle(t, unknown)
+	var listing ResumeView
+	if err := json.Unmarshal([]byte(mustRun(t, "resume", "--data-root", root, "--json")), &listing); err != nil {
+		t.Fatal(err)
+	}
+	var found struct {
+		SnapshotDigest   string                                 `json:"snapshot_digest"`
+		SourceRecord     ResumeRecordLocation                   `json:"source_record"`
+		ValidationStatus semanticruntime.RecordValidationStatus `json:"validation_status"`
+		Record           semanticruntime.InterchangeRecord      `json:"record"`
+	}
+	args := []string{"resume", "--data-root", root, "--json", "--record-id", listing.NotVerifiedRecords[0].RecordID,
+		"--snapshot-digest", listing.SnapshotDigest}
+	if err := json.Unmarshal([]byte(mustRun(t, args...)), &found); err != nil {
+		t.Fatal(err)
+	}
+	if found.SnapshotDigest != listing.SnapshotDigest || found.SourceRecord != listing.NotVerifiedRecords[0] || found.ValidationStatus != semanticruntime.RecordNotVerified {
+		t.Fatalf("retrieval must preserve snapshot, locator, and uninterpreted status: %+v", found)
+	}
+	if found.Record.RecordID != "Q1" || !bytes.Equal(found.Record.Payload, unknown.Payload) {
+		t.Fatal("record payload was replaced or interpreted")
+	}
+	after, err := os.ReadFile(filepath.Join(root, "semantic.bundle.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(original, after) {
+		t.Fatal("record retrieval rewrote the bundle")
+	}
+	// Same bundle ID and same record ID are insufficient after any byte change.
+	if err := os.WriteFile(filepath.Join(root, "semantic.bundle.json"), append(original, '\n'), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	out, err := run(t, args...)
+	if err == nil || !strings.Contains(err.Error(), "snapshot digest mismatch") || out != "" {
+		t.Fatalf("stale retrieval must return no record: out=%q err=%v", out, err)
+	}
+}
+
+func TestResumeRecordLookupRejectsMissingPreconditionsWithoutOutput(t *testing.T) {
+	root, original := seedResumeBundle(t, decisionWithOpenRefs(t, "D1", "team-a"))
+	digest := fmt.Sprintf("sha256:%x", sha256.Sum256(original))
+	cases := [][]string{
+		{"--json", "--record-id", "D1"},
+		{"--json", "--snapshot-digest", digest},
+		{"--record-id", "D1", "--snapshot-digest", digest},
+		{"--json", "--record-id", "missing", "--snapshot-digest", digest},
+		{"--json", "--record-id", "D1", "--snapshot-digest", "sha256:" + strings.Repeat("0", 64)},
+	}
+	for _, tail := range cases {
+		out, err := run(t, append([]string{"resume", "--data-root", root}, tail...)...)
+		if err == nil || out != "" {
+			t.Errorf("%v must fail without partial output: %q %v", tail, out, err)
+		}
+	}
+	after, err := os.ReadFile(filepath.Join(root, "semantic.bundle.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(original, after) {
+		t.Fatal("rejected lookup rewrote the bundle")
+	}
+}
