@@ -492,11 +492,14 @@ func runResume(ctx context.Context, args []string, stdout, stderr io.Writer) err
 	if err := f.Parse(args); err != nil {
 		return err
 	}
-	if *recordID == "" && *expectedDigest != "" {
-		return errors.New("--snapshot-digest requires --record-id")
-	}
-	if *recordID != "" && (!*asJSON || *expectedDigest == "") {
-		return errors.New("--record-id requires --json and --snapshot-digest")
+	lookupRequested := false
+	f.Visit(func(option *flag.Flag) {
+		if option.Name == "record-id" || option.Name == "snapshot-digest" {
+			lookupRequested = true
+		}
+	})
+	if lookupRequested && (*recordID == "" || *expectedDigest == "" || !*asJSON) {
+		return errors.New("record lookup requires --json, a nonempty --record-id and --snapshot-digest")
 	}
 	raw, err := persistence(resolveDataRoot(*root)).Load(ctx)
 	if errors.Is(err, packagingprobe.ErrPackageNotFound) {

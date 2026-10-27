@@ -188,6 +188,8 @@ func TestResumeRecordLookupRejectsMissingPreconditionsWithoutOutput(t *testing.T
 	root, original := seedResumeBundle(t, decisionWithOpenRefs(t, "D1", "team-a"))
 	digest := fmt.Sprintf("sha256:%x", sha256.Sum256(original))
 	cases := [][]string{
+		{"--json", "--record-id", ""},
+		{"--json", "--snapshot-digest", ""},
 		{"--json", "--record-id", "D1"},
 		{"--json", "--snapshot-digest", digest},
 		{"--record-id", "D1", "--snapshot-digest", digest},
