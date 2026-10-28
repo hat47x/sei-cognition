@@ -1,7 +1,7 @@
 # Decision Continuity — H1 / H2 Human Review Execution
 
-更新日: 2026-09-18  
-状態: **Evaluation-only / Human Review Execution Guide / Not Product Requirement**  
+更新日: 2026-10-25  
+状態: **Evaluation-only / Human Review Ready / H1・H2 Not Yet Observed / Not Product Requirement**  
 関連: ISSUE-000073 / `DOGFOOD_SURFACE.md` / `DOGFOOD_EVALUATION_RECORDING.md` / `decision_continuity_counterfactual_matched_set_v1.json` / `inquiry_continuity_review_runner.py` / `matched_review_session.py` / `decision_continuity_review_analysis.py`
 
 ## 1. この文書の役割
@@ -26,6 +26,53 @@ H2 matched synthetic review
 H2についてはfixture、rotation、blinded packet、Decision-specific semantic preflightが既に存在する。本手順では、それらを実際のhuman reviewへ接続する際に、**後から知った情報を先に見せないこと**と、**synthetic reviewをH1やProduct Valueへ過大解釈しないこと**を固定する。
 
 H1については新しいsession managerや保存schemaを作らない。既存のPersonal Inquiry Continuity dogfood surfaceとevaluation sidecarを再利用し、actual resumptionに必要な手順だけを本書後半で固定する。
+
+### 1.1 2026-10-10の実行ゲート
+
+E1〜E8は2026-10-09にgo1.25.14でactual PASSし、2026-10-10にはtested commitからcurrent developまでの実行対象source closure 39 fileが全て同じGit blobであることを確認した。したがって、H1 / H2を始めるためのmachine prerequisiteは満たしている。
+
+```text
+E1〜E8 Scoped Executable Evidence available
+  + current source closure unchanged
+  → H1 / H2 human reviewへ進める
+
+machine prerequisite satisfied
+  != H1 / H2 observed
+  != Product Value established
+```
+
+H1 / H2を始めるためにE1〜E8を毎回再実行しない。`interactionprobe`、`semanticruntime`、Go依存定義、またはrunnerの意味が変わった場合に再実行する。H2 native clean-HEAD captureやexternal Git-bundle actual runは再現性を高める補助Evidenceであり、human review開始の前提にはしない。
+
+
+### 1.2 2026-10-21のH2比較素材同等性補正
+
+H2 human reviewの開始前に、matched setの3条件で判断に必要な意味情報が揃っているかをoperator側で照合した。ケース②では請求関連のlow-confidence事例が複数あった事実の明示性、ケース③ではsource external IDの今後の安定性というUnknownと、Decisionのdry-run候補抽出方法の記述に差があった。元の`scenario.phase_1`と`reference_state`は変えず、条件ごとの`surface_text`だけを補正した。
+
+- ケース①：変更なし。既存のTEI Stage 0 Reference向け固定sourceと独立に保持する。
+- ケース②：Git blob `54e1e244cba4f4859e661b3590a5d3f25adb0cb0` → `d326ef24d1a954c565c9867040990952137aaa5a`。
+- ケース③：Git blob `9d72729d8425ae0f68b7569107c281b4f3e479b8` → `1e6810b1f014dd571a1eab3250a769697b538296`。
+
+変更後のoperator-side静的照合は36項目すべて一致した。ただし、これは既存Python regressionの実行結果ではない。2026-09-18のH2 Decision review runner regression 8/8 PASSは**旧fixture blobを入力として得たhistorical Evidence**であり、新しいblobへPASSを転用しない。現在のH2 fixtureを固定したうえで既存preflight / runner回帰試験を再実行することが、次の技術的確認である。新しいGateやschemaは追加しない。
+
+この修正と静的照合は、評価者のpre-stimulus provenance、blinding、H1 actual resumption、H2 human observation、capture / review overhead、Product Valueの成立を意味しない。過去にR1相当materialへ露出したreaderも引き続き`known-material-exposure`として扱う。E1〜E8のGo実行対象source closureとは別の変更であり、E1〜E8の既存PASS自体は変更しない。
+
+
+### 1.3 2026-10-25のH2回帰試験capture拡張
+
+比較素材②・③の補正後、既存の`tools/capture_issue_000073_h2_runner_selftest.py`を拡張し、従来のshared-runner 8テストに加えてpreflight 7テストとanalysis 5テストを同じ`unittest discover`実行に含めた。source bindingにも追加のテストファイル2件を含め、合計15ファイルのHEAD一致・clean checkout・独立指定expected HEADを検査する。既存capture scriptとEvidence schemaを再利用し、新しいsession・Human Evidence schemaやGateは追加しない。
+
+実行順序は次のとおり。expected HEADは実行checkoutとは独立のGitHub等から取得したcanonical commit SHAを指定する。
+
+```bash
+python tools/test_capture_issue_000073_h2_runner_selftest.py
+python tools/capture_issue_000073_h2_runner_selftest.py \
+  --expected-head <independently-verified-commit-SHA> \
+  --output /tmp/issue-000073-h2-decision-20-regressions.json
+```
+
+2026-10-25のGitHub source監査では、対象テストが7+8+5=20件、captureのsource bindingが15ファイルであること、修正済みfixture②・③が前回の固定blobと一致することを静的に確認した。**Pythonテストのactual実行結果は未取得**のため、20/20 PASSやsynthetic capture self-test PASSとは記録しない。過去の8/8 PASSは旧fixtureに紐づいたhistorical Executable Evidenceとしてそのまま保持する。
+
+capture結果が得られても、H2 clean blinded human observation・H1 actual resumption・capture/review overhead・Product Valueは別途評価する。
 
 ## 2. H2の責務分離
 
@@ -351,17 +398,39 @@ pre-orientation material exposure
   != H1 resumption observation
 ```
 
+### 11.1.1 H1 pre-stimulus provenance gate
+
+H1でも、Orientationを最初に提示する前にreviewer自身の直前露出を固定する。新しいmachine-readable schemaは追加せず、local-only review memoの先頭へ次のいずれかを記録する。
+
+```text
+none-declared
+  = 最後の既知のmaterial exposure以後、
+    元chat / source / Inquiry state / 評価説明を
+    current stateを思い出せる程度には見返していない
+
+known-material-exposure
+  = 上記のいずれかへmaterialに再露出した
+
+unknown
+  = 再露出の有無を確定できない
+```
+
+`none-declared`は自己申告であり、独立したblindness証明ではない。`known-material-exposure`または`unknown`でもpilotとしてOrientationを試すことはできるが、clean H1 resumptionには数えない。
+
+重要なのは、**この申告を固定する前にOrientationやInquiry内容を提示しないこと**である。operatorが刺激内容を先に説明した場合、その回はclean H1候補から外す。
+
 ### 11.2 H1実行順序
 
 H1は次の順序で実施する。
 
-1. 元chat、元source、Inquiry JSON本文を開く前に開始時刻を記録する。
-2. `dogfood_cli.py orient`だけを実行し、Orientationを読む。
-3. 上の6問へ回答し、回答を一度固定する。
-4. 「次の作業を始められる」と判断した時点とFirst Useful Actionを記録する。
-5. 必要になった場合だけdetail、元source、元chatへ降り、その回数を数える。
-6. 回答を固定した後にcanonical state / sourceへ戻り、historical misattribution、Recommendation / Decision混同、Unknown / Conflictの欠落、post-decision情報の遡及混入がなかったかをauditする。
-7. `dogfood_evaluation_cli.py resume-add`でactual observationをsidecarへ記録する。
+1. 元chat、元source、Inquiry JSON本文、Orientationを開く前に、pre-stimulus provenanceをlocal memoへ固定する。
+2. clean候補として進める場合は`none-declared`であることを確認し、開始時刻を記録する。
+3. `dogfood_cli.py orient`だけを実行し、Orientationを読む。
+4. 上の6問へ回答し、回答を一度固定する。
+5. 「次の作業を始められる」と判断した時点とFirst Useful Actionを記録する。
+6. 必要になった場合だけdetail、元source、元chatへ降り、その回数を数える。
+7. 回答を固定した後にcanonical state / sourceへ戻り、historical misattribution、Recommendation / Decision混同、Unknown / Conflictの欠落、post-decision情報の遡及混入がなかったかをauditする。
+8. clean条件を満たした場合だけ`dogfood_evaluation_cli.py resume-add`でactual observationをsidecarへ記録する。known / unknown exposureのpilotはsidecarの`resumption`へ自動昇格させない。
 
 Orientationの例:
 
@@ -370,7 +439,7 @@ cd evaluation/personal-inquiry-decision
 python dogfood_cli.py orient /path/to/inquiry.json
 ```
 
-H1回答はlocal-onlyのreview memoでよい。現時点ではmachine-readableな新schemaを設けない。最低限、6問への回答、開始時刻、first useful action到達時刻または経過、material pre-exposureの有無を残す。
+H1回答はlocal-onlyのreview memoでよい。現時点ではmachine-readableな新schemaを設けない。最低限、pre-stimulus provenance、6問への回答、開始時刻、first useful action到達時刻または経過を残す。
 
 ### 11.3 H1 observationの記録
 
@@ -452,6 +521,8 @@ H1 observed
 
 ISSUE-000073のResolution判断では、E1〜E8のScoped Executable Evidence、H1 actual resume usability、H2 counterfactual review、capture / review overheadを別々に確認し、そのうえでCandidate RequirementとDecision Continuity Product hypothesisを再評価する。
 
+2026-10-10時点ではE1〜E8のScoped Executable Evidenceは成立済みである。したがって未観測の中心はH1、H2、capture / review overheadである。human reviewでは、SEIに有利な結果を作ることではなく、単純baselineとの差が弱い場合やoverheadが大きい場合もそのまま記録する。
+
 ## 13. Natural Japanese review
 
 H2用に既に成立していたmatched review手順を維持しながら、073/078で同じreview runnerを共有する形へ整理した。H2ではreviewer provenanceを最初のstimulus提示前に固定し、その初期sessionをexclusive-createして同じpathへの再initを拒否する。provenance付きsessionを低レベルstage-gate CLIから直接提示・記録する迂回も拒否し、condition labelを伏せたbundle、Issue固有response validation、complete後のEvidence exportまでを同じ入口へ集約した。また、ISSUE-000073で未接続だったH1 actual resume usabilityを既存Personal Inquiry Continuity dogfood surfaceへ接続した。
@@ -463,3 +534,5 @@ H1のために新しい評価schemaやsession managerを増やさず、Inquiry s
 2026-09-18の作業過程でR1 phase1 materialがprovenance固定前に提示された事実についても、回答が固定されていないためH2 observationへは数えず、同じreaderの後続reviewではknown exposureとして扱う停止線を追加した。
 
 自然な日本語として全文を再読し、H1 / H2、canonical Inquiry state / evaluation observation、synthetic pilot / actual resumption、reviewer provenance / human authorship、Executable / Adoption・Outcome Evidenceの境界が変わっていないことを最終監査した。
+
+2026-10-10にはE1〜E8 actual PASSとcurrent source closure一致を前提状態へ反映し、H1 / H2を次の実行ゲートとして明示した。machine rerunをhuman reviewの前提にはせず、未露出readerを使うclean blinded H2と、known exposureを正直に残すpilot observationの区別は維持した。

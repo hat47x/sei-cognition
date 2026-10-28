@@ -10,7 +10,11 @@ import tempfile
 
 CAPTURE = Path(__file__).with_name("capture_issue_000073_h2_runner_selftest.py")
 CAPTURE_REL = Path("tools/capture_issue_000073_h2_runner_selftest.py")
-TEST_REL = Path("evaluation/personal-inquiry-decision/test_decision_continuity_review_runner.py")
+TEST_RELS = (
+    Path("evaluation/personal-inquiry-decision/test_decision_continuity_preflight.py"),
+    Path("evaluation/personal-inquiry-decision/test_decision_continuity_review_runner.py"),
+    Path("evaluation/personal-inquiry-decision/test_decision_continuity_review_analysis.py"),
+)
 DEPENDENCIES = (
     "inquiry_continuity_review_runner.py",
     "matched_review_session.py",
@@ -41,11 +45,17 @@ def setup_repo(root: Path, *, failing_test: bool = False) -> None:
     eval_dir.mkdir(parents=True, exist_ok=True)
     for name in DEPENDENCIES:
         (eval_dir / name).write_text("# synthetic dependency\n", encoding="utf-8")
-    test_path = root / TEST_REL
-    test_path.write_text(
-        "raise SystemExit(1)\n" if failing_test else "print('decision runner synthetic PASS')\n",
-        encoding="utf-8",
-    )
+    for test_rel in TEST_RELS:
+        test_path = root / test_rel
+        should_fail = failing_test and test_rel.name == "test_decision_continuity_review_runner.py"
+        test_path.write_text(
+            "import unittest\n"
+            "class SyntheticH2Test(unittest.TestCase):\n"
+            "    def test_capture(self):\n"
+            + ("        self.fail('synthetic regression failure')\n"
+               if should_fail else "        self.assertTrue(True)\n"),
+            encoding="utf-8",
+        )
     for name in FIXTURES:
         (eval_dir / name).write_text("{}\n", encoding="utf-8")
 
@@ -102,7 +112,16 @@ def test_clean_pass_records_head_and_sources() -> None:
         assert data["execution"]["exit_code"] == 0
         assert data["repository"]["expected_head"] == head
         assert data["repository"]["head_matches_expected"] is True
-        assert len(data["source_binding"]) == 13
+        assert len(data["source_binding"]) == 15
+        assert "test_decision_continuity_preflight.py" in " ".join(
+            item["path"] for item in data["source_binding"]
+        )
+        assert "test_decision_continuity_review_analysis.py" in " ".join(
+            item["path"] for item in data["source_binding"]
+        )
+        assert "-m" in data["execution"]["command"]
+        assert "test_decision_continuity_*.py" in data["execution"]["command"]
+        assert "Ran 3 tests" in data["execution"]["stderr"]
         assert all(item["matches_head"] for item in data["source_binding"])
 
 

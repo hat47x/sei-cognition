@@ -30,7 +30,7 @@
       "surface_text": [
         "利用者: CSV importの重複を減らしたいです。重複候補の多くはsource external IDが空です。",
         "AI: emailが同じものを自動dedupeする方法があります。",
-        "利用者: 同じemailを使っている別人物が実際にいるので、それだけでmergeするのは危険です。既存duplicate数も分かりません。",
+        "利用者: 同じemailを使っている別人物が実際にいるので、それだけでmergeするのは危険です。既存duplicate数も分かりません。source external IDが今後安定して付与されるかも不明です。",
         "AI: では候補だけ出して確認しますか。",
         "利用者: はい。自動削除やmergeはせず、row hash等でdry-run候補を出して人が確認してから反映します。"
       ]
@@ -47,7 +47,7 @@
       "surface_text": {
         "question":"CSV import時の重複をどこまで自動処理してよいか。",
         "recommendation":{"id":"rec-email-dedupe","text":"email一致を主キーに自動dedupeする。"},
-        "decision":{"id":"dec-dry-run","text":"自動削除・mergeはせずdry-run候補を人が確認してから反映する。"},
+        "decision":{"id":"dec-dry-run","text":"自動削除・自動mergeは行わず、source row hash等でdry-run候補を抽出し、人が確認してから反映する。"},
         "historical_basis":["重複候補の多くでsource external IDが空。","同一emailでも別人物である実例がある。"],
         "unresolved":["source external IDが今後安定するか。","既存の真duplicate件数。"],
         "changes_since_decision":[]

@@ -1,0 +1,86 @@
+{
+  "schema": "issue-000073-e1-e8-current-source-closure/v1",
+  "issue": "ISSUE-000073",
+  "observed_date": "2026-10-10",
+  "tested_head": "694ec5805c00a8bae9034e15ee0d1589e40f6fd8",
+  "current_branch": "develop/v0.2.0",
+  "current_head": "3ecb15848e3f07760a868f9e266183383eda0a40",
+  "relationship": {
+    "current_head_is_descendant_of_tested_head": true,
+    "ahead_by_commits": 102
+  },
+  "actual_execution_evidence": {
+    "record": "evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8.json",
+    "verification": "evaluation/personal-inquiry-decision/evidence/issue-000073/e1-e8-verification.json",
+    "status": "pass",
+    "go": "go1.25.14 linux/amd64"
+  },
+  "closure": {
+    "interactionprobe": {
+      "path": "runtime/go/interactionprobe",
+      "file_count": 22,
+      "all_blobs_match": true
+    },
+    "semanticruntime": {
+      "path": "runtime/go/semanticruntime",
+      "file_count": 13,
+      "all_blobs_match": true
+    },
+    "additional_files": {
+      "file_count": 4,
+      "all_blobs_match": true
+    },
+    "total_files": 39,
+    "matched_files": 39
+  },
+  "files": [
+    {"path":"runtime/go/interactionprobe/commit.go","blob_sha1":"7b905083bc69a2e88714c89148070a2efa7d8144"},
+    {"path":"runtime/go/interactionprobe/commit_test.go","blob_sha1":"7b072d57db68ad07266208c715c4884e622ed687"},
+    {"path":"runtime/go/interactionprobe/egress.go","blob_sha1":"5025c10265664674b7d60c051c731506f8ef08e6"},
+    {"path":"runtime/go/interactionprobe/egress_test.go","blob_sha1":"5850201d2ff4385167403b64bbccf2dd22aeed3c"},
+    {"path":"runtime/go/interactionprobe/graceful_degradation_test.go","blob_sha1":"454b6a84e57faa290277c37ee0943e73f7cbcfd8"},
+    {"path":"runtime/go/interactionprobe/manual_observation.go","blob_sha1":"9d920a60f6b077f3fb83597f20cd6a07a01b84f8"},
+    {"path":"runtime/go/interactionprobe/manual_observation_test.go","blob_sha1":"78212cf2ba7d87b4deb8128e6dcc4bcc710517ef"},
+    {"path":"runtime/go/interactionprobe/negative_test.go","blob_sha1":"818aea5f02dc336d6ccdb52333445932159604a9"},
+    {"path":"runtime/go/interactionprobe/probe_test.go","blob_sha1":"0b9564f6fddcfcd448300ca0e4e197e18008d178"},
+    {"path":"runtime/go/interactionprobe/progressive_test.go","blob_sha1":"fc166cdda9f7b85bd6ae69801db4a4a0dd5ea9a8"},
+    {"path":"runtime/go/interactionprobe/provisional.go","blob_sha1":"0a48f7f8ab4b5b7b4cd03f15e7e8107e9b82c52b"},
+    {"path":"runtime/go/interactionprobe/provisional_observation.go","blob_sha1":"99651d1354bc886179eb83330888f8c60a59851e"},
+    {"path":"runtime/go/interactionprobe/provisional_observation_test.go","blob_sha1":"1eb4baa5679869c06bf7f9ce101b09217e7e348e"},
+    {"path":"runtime/go/interactionprobe/provisional_test.go","blob_sha1":"43b7502d2a9d10fb1d48ca5f7733745b4b29ad85"},
+    {"path":"runtime/go/interactionprobe/resume.go","blob_sha1":"bc1e29097e39dab6ea6266716c35112fc8250255"},
+    {"path":"runtime/go/interactionprobe/resume_test.go","blob_sha1":"58f5f7bde684fb1b4becaabaaf37a5c43546274b"},
+    {"path":"runtime/go/interactionprobe/review.go","blob_sha1":"7da9ae682ed1fe00809576762a9923b64c18a266"},
+    {"path":"runtime/go/interactionprobe/review_test.go","blob_sha1":"9b5029bfbb42bf3616c9746dea907d4b33c3c04e"},
+    {"path":"runtime/go/interactionprobe/store.go","blob_sha1":"9bbb1641a5c12108cef7159e7e589146aee03673"},
+    {"path":"runtime/go/interactionprobe/surface.go","blob_sha1":"2f8a8b0de8fd29af178ff944b213873329516104"},
+    {"path":"runtime/go/interactionprobe/working_set.go","blob_sha1":"7a85ae8630a5262ce8e348c7e82c10634b874193"},
+    {"path":"runtime/go/interactionprobe/working_set_test.go","blob_sha1":"795b19554c3a5a0077e87b6c166432f221e73d7d"},
+    {"path":"runtime/go/semanticruntime/ci_trigger_dependency_probe_test.go","blob_sha1":"ed9ec2d81d6e58e98ce38d096bf4f7c7b784c43a"},
+    {"path":"runtime/go/semanticruntime/cognitive_method.go","blob_sha1":"a2dc63388a9e2320253b23c65aa275caf4c52b97"},
+    {"path":"runtime/go/semanticruntime/cognitive_method_test.go","blob_sha1":"45c245af75267a32d64e0d77f14835e39429d562"},
+    {"path":"runtime/go/semanticruntime/exact_references.go","blob_sha1":"35f51601b7bb285b8d9fc15ed7cbc68efe1b3333"},
+    {"path":"runtime/go/semanticruntime/exact_references_test.go","blob_sha1":"db395edff0c52d95a78231cb184ce14ebff9f479"},
+    {"path":"runtime/go/semanticruntime/loader.go","blob_sha1":"0084a8d71fad5306d516e6a24264b929ee317dee"},
+    {"path":"runtime/go/semanticruntime/loader_test.go","blob_sha1":"9b0fb73adf4b9e125940f0698e736244c9449007"},
+    {"path":"runtime/go/semanticruntime/method_realization_reconstruction_test.go","blob_sha1":"cdd9a233738d9a1cc3dbe0bbabaefc267c751e94"},
+    {"path":"runtime/go/semanticruntime/model.go","blob_sha1":"0e99f14febc4c7b650053269ccde19ae200d65c2"},
+    {"path":"runtime/go/semanticruntime/payload_source.go","blob_sha1":"a76bc9bbea8dbe022da7b4f378c80c528e718aa3"},
+    {"path":"runtime/go/semanticruntime/payload_source_test.go","blob_sha1":"f103252141cfed340dd0a72cb9e2b098bee8a888"},
+    {"path":"runtime/go/semanticruntime/verifier.go","blob_sha1":"868e4a24a69353be63ec9b192502e5042234a0b3"},
+    {"path":"runtime/go/semanticruntime/verifier_test.go","blob_sha1":"7d211d1ce6131857f66e32bf79ffdb113c847911"},
+    {"path":"runtime/go/go.mod","blob_sha1":"3b36351c33bbda00e1a4c794bef2a8e4217e54ca"},
+    {"path":"runtime/go/go.sum","blob_sha1":"1adc6bfa7b960caa50e78e5d5ca75a7cefb81c2c"},
+    {"path":"tools/run_issue_000073_resume_first_evidence.py","blob_sha1":"a02467cfb09b190f19c3e2df262a1bcb17dcc44e"},
+    {"path":"tools/verify_issue_000073_resume_first_evidence.py","blob_sha1":"2fe08f3006bee2f31c8edaff26c8c1d06889ebd1"}
+  ],
+  "interpretation": "The recorded E1-E8 actual PASS remains applicable to the current source closure because every relevant runtime, dependency-definition, runner, and verifier blob is byte-identical to the tested commit. This is continuity evidence, not a new test execution.",
+  "reexecute_when": [
+    "any file in runtime/go/interactionprobe changes",
+    "any file in runtime/go/semanticruntime changes",
+    "runtime/go/go.mod or runtime/go/go.sum changes",
+    "tools/run_issue_000073_resume_first_evidence.py changes in a way that affects execution semantics",
+    "the Product/Requirement boundary for E1-E8 changes"
+  ],
+  "stop_line": "39/39 source-closure match != new E1-E8 execution; it preserves applicability of the existing scoped actual PASS to the unchanged current source closure. It does not establish H1/H2 human review, Operational Evidence, Adoption/Outcome Evidence, or Decision Continuity Product Value."
+}

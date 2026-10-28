@@ -281,3 +281,30 @@ E78.6 local mechanics PASS
 ```
 
 branchやPRの進行そのものがhuman outcomeを成立させるわけではない。current stateへ触れた作業をmaterial exposureとして正直に記録し、未観測のHuman Evidenceを未観測のまま保持する。
+
+
+## 15. 2026-10-10 H1 pre-stimulus gate
+
+ISSUE-000073でE1〜E8のScoped Executable Evidenceが成立し、human reviewへ進めるmachine prerequisiteが整ったため、このactual InquiryをH1候補として再確認した。
+
+2026-10-10の準備作業では、repository上のInquiry JSONや過去checkpointをoperator側で監査したが、reviewerへOrientation本文、current question、Observation / Unknown / Hypothesis等の刺激内容は提示していない。したがって、この準備作業だけを新しいmaterial exposureとは扱わない。
+
+一方、reviewerが2026-09-22以後に別経路で元chat、source、Inquiry state、評価説明へ再露出したかどうかはoperatorだけでは確定できない。Orientationを提示する前にreviewer自身の申告を次の3値で固定する。
+
+```text
+none-declared
+known-material-exposure
+unknown
+```
+
+`none-declared`の場合だけclean H1候補として開始する。`known-material-exposure`または`unknown`の場合もpilotは可能だが、clean resumptionへ昇格させない。自己申告は独立したblindness証明ではない。
+
+このpre-stimulus gateのためにsidecar schemaは増やさない。申告、開始時刻、6問への回答、first useful action到達時刻または経過はlocal-only review memoへ固定し、clean条件を満たしたactual observationだけを既存sidecarの`resume_observations`へ記録する。
+
+```text
+machine prerequisite satisfied
++ stimulus not yet shown
++ reviewer exposure declaration pending
+!= H1 observed
+!= Product Value established
+```

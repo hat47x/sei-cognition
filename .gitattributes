@@ -1,3 +1,6 @@
+# 既定の改行はLF。Windowsのautocrlf設定で作業ツリーがCRLFになると、pinされたblobのsha1と一致しなくなるため、checkoutでもLFに固定する。
+* text=auto eol=lf
+
 *.sh text eol=lf
 
 # Preserve post-run Evidence bytes so recorded log digests survive checkout EOL policy.
