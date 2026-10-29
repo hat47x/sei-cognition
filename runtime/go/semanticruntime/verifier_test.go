@@ -40,8 +40,8 @@ func representationFixture(t *testing.T, name string) []byte {
 
 func testBinding(profile RepresentationProfile, digest string) ExactBinding {
 	return ExactBinding{
-		LogicalRef: LogicalReference{Kind: "fixture", ID: "representation-profile-test"},
-		ContentDigest: digest,
+		LogicalRef:            LogicalReference{Kind: "fixture", ID: "representation-profile-test"},
+		ContentDigest:         digest,
 		RepresentationProfile: profile,
 	}
 }

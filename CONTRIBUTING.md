@@ -21,7 +21,10 @@ SEI Cognitionは初期開発中です。変更は小さく、意味・来歴・�
 
 GitHub Actionsは当面停止しており、`.github/workflows`はありません。検査は変更範囲に応じてローカルで実行します。方針は[開発ワークフロー](plan/DEVELOPMENT_WORKFLOW.md)の「GitHub Actionsの当面停止方針」にあります。
 
-- Go: `runtime/go`で`go test ./... -count=1`を実行する。
+- Go: `runtime/go`で次の3つを実行する。
+  - `gofmt -l .`: 出力が空であること。整形が必要なファイル名が出たら`gofmt -w`で整えて、整形だけのコミットに分ける。
+  - `go vet ./...`: 指摘がないこと。
+  - `go test ./... -count=1`: 全パッケージがokであること。
 - Python: 変更した対象の`unittest`を実行する（例: `python -m unittest discover -s tools -p "test_*.py"`）。
 - Contract変更は、`contracts/`・`schemas/`・fixture・testを同時に更新し、次の2つの検査を実行する。
   - `python tools/check_contract_conformance.py`: Contractのschemaとfixtureの整合を検査する。`jsonschema`と`referencing`が必要で、未導入なら「jsonschema and referencing are required」と表示して終了する。仮想環境を作り、`pip install -r tools/contract-check-requirements.txt`で入れる。

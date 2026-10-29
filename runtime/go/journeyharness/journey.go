@@ -11,20 +11,20 @@ import (
 // Contracts. It is not a Universal Contract and does not become canonical
 // product state. The durable meaning remains in the referenced records.
 type Manifest struct {
-	InquiryRef                   semanticruntime.LogicalReference
-	MethodApplicationRef         semanticruntime.LogicalReference
-	RecommendationRef            semanticruntime.LogicalReference
-	DecisionRef                  semanticruntime.LogicalReference
-	DecisionAt                   string
-	ExecutionReceiptRef          *semanticruntime.LogicalReference
-	ResultObservationRef         *semanticruntime.LogicalReference
-	ReopenApplicationRef         *semanticruntime.LogicalReference
-	UnsupportedRecordRef         *semanticruntime.LogicalReference
-	ProviderBeforeObservationRef *semanticruntime.LogicalReference
-	ProviderAfterObservationRef  *semanticruntime.LogicalReference
-	AllowNoExecution             bool
-	RequireReopen                bool
-	RequireUnresolvedCarry       bool
+	InquiryRef                    semanticruntime.LogicalReference
+	MethodApplicationRef          semanticruntime.LogicalReference
+	RecommendationRef             semanticruntime.LogicalReference
+	DecisionRef                   semanticruntime.LogicalReference
+	DecisionAt                    string
+	ExecutionReceiptRef           *semanticruntime.LogicalReference
+	ResultObservationRef          *semanticruntime.LogicalReference
+	ReopenApplicationRef          *semanticruntime.LogicalReference
+	UnsupportedRecordRef          *semanticruntime.LogicalReference
+	ProviderBeforeObservationRef  *semanticruntime.LogicalReference
+	ProviderAfterObservationRef   *semanticruntime.LogicalReference
+	AllowNoExecution              bool
+	RequireReopen                 bool
+	RequireUnresolvedCarry        bool
 	RequireDistinctResponsibility bool
 }
 
