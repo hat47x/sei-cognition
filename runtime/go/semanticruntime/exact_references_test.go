@@ -133,7 +133,7 @@ func TestBundleExactConsistencyIgnoresUnknownContractPayload(t *testing.T) {
 	bundle := &Bundle{Records: []RuntimeRecord{
 		exactRecord(binding),
 		{
-			Status: RecordNotVerified,
+			Status:         RecordNotVerified,
 			EnvelopeRecord: InterchangeRecord{Payload: []byte(`{"exact_binding":{"content_digest":"sha256:not-a"}}`)},
 		},
 	}}

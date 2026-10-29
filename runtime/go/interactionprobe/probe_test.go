@@ -219,11 +219,11 @@ func TestAuditViewExposesDecisionBasisAndResponsibility(t *testing.T) {
 	capability := lr("capability", "CAP-001")
 	provider := lr("provider", "P-001")
 	if err := machine.RecordCapabilityObservation(CapabilityObservationInput{
-		Ref:           observation,
-		CapabilityRef: &capability,
-		ProviderRef:   &provider,
-		ObservedAt:    "2026-09-01T10:00:00Z",
-		Conditions:    []semanticruntime.ObservedCondition{{Key: "availability", State: "available"}},
+		Ref:            observation,
+		CapabilityRef:  &capability,
+		ProviderRef:    &provider,
+		ObservedAt:     "2026-09-01T10:00:00Z",
+		Conditions:     []semanticruntime.ObservedCondition{{Key: "availability", State: "available"}},
 		ProvenanceRefs: []semanticruntime.LogicalReference{inquiry},
 	}); err != nil {
 		t.Fatalf("RecordCapabilityObservation() error = %v", err)

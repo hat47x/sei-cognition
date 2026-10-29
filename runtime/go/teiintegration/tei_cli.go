@@ -71,7 +71,7 @@ func (w *limitedBuffer) Write(payload []byte) (int, error) {
 	return w.buffer.Write(payload)
 }
 
-func (w *limitedBuffer) Bytes() []byte { return w.buffer.Bytes() }
+func (w *limitedBuffer) Bytes() []byte  { return w.buffer.Bytes() }
 func (w *limitedBuffer) String() string { return w.buffer.String() }
 
 func (request ProviderPlanRequest) args() ([]string, error) {

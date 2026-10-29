@@ -198,10 +198,10 @@ func parseDecisionMemory(data []byte) (*DecisionMemoryDocument, error) {
 			return nil, errors.New("decision requires ref and statement")
 		}
 		for label, refs := range map[string][]Reference{
-			"context_refs": decision.ContextRefs,
-			"basis_refs": decision.BasisRefs,
+			"context_refs":        decision.ContextRefs,
+			"basis_refs":          decision.BasisRefs,
 			"recommendation_refs": decision.RecommendationRefs,
-			"unresolved_refs": decision.UnresolvedRefs,
+			"unresolved_refs":     decision.UnresolvedRefs,
 			"responsibility_refs": decision.ResponsibilityRefs,
 		} {
 			if err := validateReferenceList(label, refs); err != nil {
@@ -222,8 +222,8 @@ func parseDecisionMemory(data []byte) (*DecisionMemoryDocument, error) {
 			return nil, errors.New("recommendation requires ref and statement")
 		}
 		for label, refs := range map[string][]Reference{
-			"context_refs": recommendation.ContextRefs,
-			"basis_refs": recommendation.BasisRefs,
+			"context_refs":        recommendation.ContextRefs,
+			"basis_refs":          recommendation.BasisRefs,
 			"responsibility_refs": recommendation.ResponsibilityRefs,
 		} {
 			if err := validateReferenceList(label, refs); err != nil {

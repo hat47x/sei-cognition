@@ -22,9 +22,9 @@ const (
 	ReportSchema   = "sei.e3b-tei-probe/v1"
 	ManifestSchema = "sei.tei-binary-build-manifest/v1"
 
-	SourceBindingNotVerified    = "not_verified"
-	SourceBindingManifestMatch  = "manifest_matched"
-	BinaryDigestPrePostMatched  = "pre_post_matched"
+	SourceBindingNotVerified   = "not_verified"
+	SourceBindingManifestMatch = "manifest_matched"
+	BinaryDigestPrePostMatched = "pre_post_matched"
 )
 
 var (
@@ -46,12 +46,12 @@ type BuildManifest struct {
 // Request keeps executable acquisition and credentials outside the probe.
 // BinaryPath must point directly at the executable file that will be invoked.
 type Request struct {
-	BinaryPath          string
-	DeclaredRepository  string
-	DeclaredCommit      string
-	ManifestPath        string
-	ProviderPlan        teiintegration.ProviderPlanRequest
-	ObservationContext  provideradapter.ObservationContext
+	BinaryPath         string
+	DeclaredRepository string
+	DeclaredCommit     string
+	ManifestPath       string
+	ProviderPlan       teiintegration.ProviderPlanRequest
+	ObservationContext provideradapter.ObservationContext
 }
 
 type BinaryIdentity struct {
