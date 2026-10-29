@@ -2,6 +2,7 @@ package seicli
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -42,12 +43,32 @@ type GatePolicy struct {
 // not mean the responsible party holds Authority, and it does not start any
 // execution. Those are listed under NotVerified rather than reported as passed.
 type GateResult struct {
-	Decision    string     `json:"decision"`
-	Verdict     string     `json:"verdict"`
-	Reasons     []string   `json:"reasons,omitempty"`
-	Policy      GatePolicy `json:"policy"`
-	NotVerified []string   `json:"not_verified"`
+	Decision    string       `json:"decision"`
+	Verdict     string       `json:"verdict"`
+	Reasons     []string     `json:"reasons,omitempty"`
+	Policy      GatePolicy   `json:"policy"`
+	Binding     *GateBinding `json:"binding,omitempty"`
+	NotVerified []string     `json:"not_verified"`
 }
+
+// GateBinding names the store content a verdict was computed against.
+//
+// BundleDigest is the SHA-256 of the bundle bytes as read (the same value
+// `sei resume` reports as snapshot_digest). DecisionDigest is the
+// sei.jcs+sha256/v1alpha1 digest of the Decision record's payload. Equal
+// digests mean the same bytes were checked. They do not show that nothing
+// changed after the check, and they do not show the content is current.
+// Binding is absent when no single Decision was identified (not recorded, or
+// ambiguous).
+type GateBinding struct {
+	BundleID                      string `json:"bundle_id"`
+	BundleDigest                  string `json:"bundle_digest"`
+	DecisionRecordID              string `json:"decision_record_id"`
+	DecisionDigest                string `json:"decision_digest"`
+	DecisionRepresentationProfile string `json:"decision_representation_profile"`
+}
+
+const decisionDigestProfile = semanticruntime.ProfileIDJCSSHA256 + "/" + semanticruntime.ProfileVersionV1Alpha1
 
 // reliesOnRecorded reports whether the decision names at least one
 // recommendation that is itself recorded in the bundle. A reference to a
@@ -179,15 +200,38 @@ func CheckDecision(bundle *semanticruntime.Bundle, id string, policy GatePolicy)
 	}
 
 	var found *semanticruntime.Decision
+	var foundRecord semanticruntime.InterchangeRecord
+	matches := 0
 	for _, rec := range bundle.Records {
 		if rec.Decision != nil && rec.Decision.Decision != nil && rec.Decision.Decision.Ref.ID == id {
-			found = rec.Decision.Decision
-			break
+			if matches == 0 {
+				found = rec.Decision.Decision
+				foundRecord = rec.EnvelopeRecord
+			}
+			matches++
 		}
 	}
 	if found == nil {
 		deny("no decision with this id is recorded")
 		return result
+	}
+	if matches > 1 {
+		// Taking the first of several would let the verdict depend on record
+		// order and say nothing about which Decision was meant.
+		deny(fmt.Sprintf("%d decisions share this id, so which one is meant is ambiguous; nothing is allowed", matches))
+		return result
+	}
+	digest, err := semanticruntime.JCSSHA256Digest(foundRecord.Payload)
+	if err != nil {
+		deny(fmt.Sprintf("the decision's content digest could not be computed: %v", err))
+		return result
+	}
+	result.Binding = &GateBinding{
+		BundleID:                      bundle.Envelope.BundleID,
+		BundleDigest:                  fmt.Sprintf("sha256:%x", sha256.Sum256(bundle.ExportOriginal())),
+		DecisionRecordID:              foundRecord.RecordID,
+		DecisionDigest:                digest,
+		DecisionRepresentationProfile: decisionDigestProfile,
 	}
 	if policy.RequireResponsible && len(found.ResponsibilityRefs) == 0 {
 		deny("the decision names no responsible party")
@@ -249,21 +293,36 @@ func runGate(ctx context.Context, args []string, stdout, stderr io.Writer) error
 	if *id == "" {
 		return errors.New("gate check requires --decision")
 	}
-	raw, err := persistence(resolveDataRoot(*root)).Load(ctx)
-	if errors.Is(err, packagingprobe.ErrPackageNotFound) {
+	dataRoot := resolveDataRoot(*root)
+	if info, statErr := os.Stat(dataRoot); statErr != nil || !info.IsDir() {
+		// Do not create a directory (and a lock) for a store that does not exist.
 		return errors.New("no store found; run `sei init` first")
 	}
+	// The store lock is held from the read to the log append, so the logged
+	// binding describes the bytes that were checked and no `add` lands between.
+	// If the lock cannot be taken the check fails (exit 1), so nothing is allowed.
+	var result GateResult
+	err := withStoreLock(dataRoot, func() error {
+		raw, err := persistence(dataRoot).Load(ctx)
+		if errors.Is(err, packagingprobe.ErrPackageNotFound) {
+			return errors.New("no store found; run `sei init` first")
+		}
+		if err != nil {
+			return err
+		}
+		bundle, err := semanticruntime.LoadInterchange(raw)
+		if err != nil {
+			return fmt.Errorf("store is invalid, so nothing can be allowed: %w", err)
+		}
+		result = CheckDecision(bundle, *id, policy)
+		// If the check cannot be logged it cannot be allowed: fail closed.
+		if err := appendGateLog(dataRoot, result); err != nil {
+			return fmt.Errorf("could not log the check, so nothing is allowed: %w", err)
+		}
+		return nil
+	})
 	if err != nil {
 		return err
-	}
-	bundle, err := semanticruntime.LoadInterchange(raw)
-	if err != nil {
-		return fmt.Errorf("store is invalid, so nothing can be allowed: %w", err)
-	}
-	result := CheckDecision(bundle, *id, policy)
-	// If the check cannot be logged it cannot be allowed: fail closed.
-	if err := appendGateLog(resolveDataRoot(*root), result); err != nil {
-		return fmt.Errorf("could not log the check, so nothing is allowed: %w", err)
 	}
 	if err := writeJSON(stdout, result); err != nil {
 		return err
