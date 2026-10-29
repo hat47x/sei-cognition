@@ -17,8 +17,8 @@ import (
 	"os"
 	"sort"
 	"strings"
-	"unicode"
 	"time"
+	"unicode"
 
 	"github.com/hat47x/sei-cognition/runtime/go/packagingprobe"
 	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
