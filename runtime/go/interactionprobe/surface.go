@@ -320,13 +320,13 @@ func (s *HumanSurface) AuditView() (AuditView, error) {
 }
 
 type StructuredRecord struct {
-	Ref                semanticruntime.LogicalReference      `json:"ref"`
-	Kind               string                                `json:"kind"`
+	Ref                semanticruntime.LogicalReference       `json:"ref"`
+	Kind               string                                 `json:"kind"`
 	Status             semanticruntime.RecordValidationStatus `json:"status"`
-	Statement          string                                `json:"statement,omitempty"`
-	BasisRefs          []semanticruntime.LogicalReference    `json:"basis_refs,omitempty"`
-	UnresolvedRefs     []semanticruntime.LogicalReference    `json:"unresolved_refs,omitempty"`
-	ResponsibilityRefs []semanticruntime.LogicalReference    `json:"responsibility_refs,omitempty"`
+	Statement          string                                 `json:"statement,omitempty"`
+	BasisRefs          []semanticruntime.LogicalReference     `json:"basis_refs,omitempty"`
+	UnresolvedRefs     []semanticruntime.LogicalReference     `json:"unresolved_refs,omitempty"`
+	ResponsibilityRefs []semanticruntime.LogicalReference     `json:"responsibility_refs,omitempty"`
 }
 
 type StructuredView struct {

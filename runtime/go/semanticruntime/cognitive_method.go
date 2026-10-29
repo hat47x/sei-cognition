@@ -44,11 +44,11 @@ type MethodApplication struct {
 }
 
 type CognitiveMethodDocument struct {
-	Contract          string              `json:"contract"`
-	RecordType        string              `json:"record_type"`
-	MethodDefinition  *MethodDefinition   `json:"method_definition,omitempty"`
-	MethodRealization *MethodRealization  `json:"method_realization,omitempty"`
-	MethodApplication *MethodApplication  `json:"method_application,omitempty"`
+	Contract          string             `json:"contract"`
+	RecordType        string             `json:"record_type"`
+	MethodDefinition  *MethodDefinition  `json:"method_definition,omitempty"`
+	MethodRealization *MethodRealization `json:"method_realization,omitempty"`
+	MethodApplication *MethodApplication `json:"method_application,omitempty"`
 }
 
 func parseCognitiveMethod(data []byte) (*CognitiveMethodDocument, error) {
@@ -70,7 +70,7 @@ func parseCognitiveMethod(data []byte) (*CognitiveMethodDocument, error) {
 			return nil, errors.New("method definition requires ref, title, and purpose")
 		}
 		for label, refs := range map[string][]Reference{
-			"context_refs": definition.ContextRefs,
+			"context_refs":       definition.ContextRefs,
 			"specification_refs": definition.SpecificationRefs,
 		} {
 			if err := validateReferenceList(label, refs); err != nil {
@@ -91,7 +91,7 @@ func parseCognitiveMethod(data []byte) (*CognitiveMethodDocument, error) {
 		}
 		for label, refs := range map[string][]Reference{
 			"implementation_refs": realization.ImplementationRefs,
-			"context_refs": realization.ContextRefs,
+			"context_refs":        realization.ContextRefs,
 		} {
 			if err := validateReferenceList(label, refs); err != nil {
 				return nil, err
@@ -115,11 +115,11 @@ func parseCognitiveMethod(data []byte) (*CognitiveMethodDocument, error) {
 			}
 		}
 		for label, refs := range map[string][]Reference{
-			"context_refs": application.ContextRefs,
-			"input_refs": application.InputRefs,
-			"output_refs": application.OutputRefs,
-			"residual_refs": application.ResidualRefs,
-			"provenance_refs": application.ProvenanceRefs,
+			"context_refs":        application.ContextRefs,
+			"input_refs":          application.InputRefs,
+			"output_refs":         application.OutputRefs,
+			"residual_refs":       application.ResidualRefs,
+			"provenance_refs":     application.ProvenanceRefs,
 			"responsibility_refs": application.ResponsibilityRefs,
 		} {
 			if err := validateReferenceList(label, refs); err != nil {
