@@ -64,7 +64,7 @@ type mcpServer struct {
 
 // mcpArgKeys lists the arguments each tool accepts. Any other key is refused.
 var mcpArgKeys = map[string][]string{
-	"resume":             {},
+	"resume":             {"record_id", "snapshot_digest"},
 	"check_decision":     {"decision", "require_recommendation", "deny_unresolved"},
 	"add_recommendation": {"id", "statement", "rationale", "basis"},
 	"add_decision":       {"id", "statement", "rationale", "basis", "recommendation", "unresolved", "responsible"},
@@ -166,8 +166,12 @@ func (s *mcpServer) tools() []mcpTool {
 	tools := []mcpTool{
 		{
 			Name:        "resume",
-			Description: "Show where the work stands: recorded decisions, what was left unresolved, and recommendations nobody has relied on yet. Read this before proposing anything.",
-			InputSchema: map[string]any{"type": "object", "properties": map[string]any{}},
+			Description: "Show where the work stands. With both record_id and snapshot_digest from a prior resume, return that stored record as JSON data only. A stale binding is refused; an unknown record remains not verified. Reading does not approve content or grant authority.",
+			InputSchema: map[string]any{"type": "object", "additionalProperties": false,
+				"properties": map[string]any{
+					"record_id":       stringProp("Original record ID from resume; requires snapshot_digest"),
+					"snapshot_digest": stringProp("Original bundle SHA-256 from the same resume; requires record_id"),
+				}},
 		},
 		{
 			Name:        "add_recommendation",
@@ -329,6 +333,23 @@ func (s *mcpServer) call(ctx context.Context, name string, args map[string]any) 
 	switch name {
 	case "resume":
 		cli = []string{"resume", "--data-root=" + s.dataRoot}
+		_, hasID := args["record_id"]
+		_, hasDigest := args["snapshot_digest"]
+		if hasID || hasDigest {
+			id, err := optionalString(args, "record_id")
+			if err != nil {
+				return "", err
+			}
+			digest, err := optionalString(args, "snapshot_digest")
+			if err != nil {
+				return "", err
+			}
+			// Forward even missing/empty values so the same CLI preconditions
+			// reject the lookup rather than silently falling back to a listing.
+			cli = append(cli, "--json")
+			cli = append(cli, flagArgs("record-id", id)...)
+			cli = append(cli, flagArgs("snapshot-digest", digest)...)
+		}
 	case "check_decision":
 		id, err := requiredString(args, "decision")
 		if err != nil {

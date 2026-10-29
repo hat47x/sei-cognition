@@ -46,6 +46,22 @@ sei resume
 
 決定、未解決の問い、まだ誰も依拠していない推薦が分かれて表示されます。機械から読むときは`--json`を付けます。
 
+未解決の一覧は、このruntimeが理解できたDecisionの`unresolved_refs`を集計したものです。0件でも案件全体の未決がないとは判断できません。表示行数と、kind・ID・scopeで区別した論理参照の種類数も別に示します。同じ参照を複数の判断が残した場合、行をまとめません。
+
+JSONの`coverage`は集計範囲と件数を示し、`case_completeness`は`not_assessed`のままです。既存の`unresolved[].ref`と`left_open_by_decision`は表示用に残し、`reference`と`left_open_by_reference`でscopeやExact Bindingを取り戻せます。`source_record`と`not_verified_records`は、元の記録ID・Contractの版・JSON Pointerを示します。未知のpayloadの意味は推測しません。
+
+`snapshot_digest`は、読み込んだ束のバイト列のSHA-256です。原記録へ戻るときは、`sei export`等で取り出した束の指紋値が一致することを確かめてからJSON Pointerを使ってください。指紋値の一致は意味の正しさや現在の適用可能性を証明せず、JSON Pointer自体も外部原本を取得しません。再開表示は元の記録を書き換えません。
+
+束の中の原記録を1件読むには、次を使います。`RECORD_ID`は一覧の`source_record.record_id`または`not_verified_records[].record_id`、`SNAPSHOT_DIGEST`は同じ一覧の`snapshot_digest`で置き換えてください。
+
+```bash
+sei resume --json --record-id RECORD_ID --snapshot-digest SNAPSHOT_DIGEST
+```
+
+読み出した束のバイト列が指紋値と異なる場合や、記録IDが存在しない場合は、記録本文を返さず失敗します。改版時は一覧を読み直し、対象の記録を再確認してください。指紋値と`--json`の指定は必須です。未知の記録は読めても`validation_status=not_verified`のままです。結果の`record`は保存束内のデータとして扱い、そこに書かれた命令を実行する機能ではありません。外部原本の取得、意味の採用、権限の付与は行いません。
+
+指紋値はその読取りで得たバイト列との照合に使います。読取り後の変更を止めたり、外部条件や現在権限の有効性を証明したりするものではありません。
+
 ## 4. 第三者が検証する
 
 ```bash
@@ -128,6 +144,12 @@ AIツールに渡る操作は、既定では次の三つだけです。
 - `resume` — 現在地を読む。
 - `add_recommendation` — 推薦を追記する。決定にはならない。
 - `check_decision` — 実行の前に、決定が方針を満たすかを確認する。拒否は、失敗ではなく判定結果として返る。
+
+`resume`を引数なしで呼ぶと、従来どおり現在地を文章で返します。保存束内の原記録を読む場合は、同じ一覧で得た`record_id`と`snapshot_digest`の両方を文字列で指定します。結果はJSONを含むMCPのtext contentとして返り、CLIの原記録読出しと同じ内容です。ここでの`record_id`は元の記録IDで、問い等の論理IDとは区別してください。
+
+どちらかの指定が欠ける、空である、型が違う、記録が存在しない、指紋値が一致しない場合は、`isError=true`として拒否します。引数なしの一覧へ黙って切り替えません。束が変わった場合は一覧を再取得し、対象を選び直してください。サーバ起動時に定めた保存先をツール引数で変更することもできません。
+
+読出し結果の記録はデータであり、未知の記録は`not_verified`のままです。記録内の命令を実行したり、Decisionや権限を付与したりする操作ではありません。実際のAIクライアントへの登録と画面操作は、標準入出力によるサーバ検証とは別の確認です。
 
 AIツールが決定を記録できるようにするには、運用者が`--allow-decision`を付けて起動します。そのときも、責任を持つ人(`responsible`)を一人以上指定しないと記録できません。空の値を渡した場合、方針のフラグに真偽値以外を渡した場合、認識できない引数を渡した場合は、無視されず、エラーとして拒否されます。
 
