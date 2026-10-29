@@ -405,13 +405,63 @@ type StatementView struct {
 }
 
 type DecisionView struct {
-	ID              string   `json:"id"`
-	Statement       string   `json:"statement"`
-	Rationale       string   `json:"rationale,omitempty"`
-	Basis           []string `json:"basis,omitempty"`
-	Recommendations []string `json:"recommendations,omitempty"`
-	Responsible     []string `json:"responsible,omitempty"`
-	Sources         []string `json:"sources,omitempty"`
+	ID        string `json:"id"`
+	Statement string `json:"statement"`
+	Rationale string `json:"rationale,omitempty"`
+	// Scope is the Decision's own scope; two Decisions with the same ID in
+	// different scopes stay distinguishable.
+	Scope string `json:"scope,omitempty"`
+	// Basis keeps the legacy "kind:id" text. It cannot tell a logical reference
+	// from an exact one or show a scope; BasisReferences carries those.
+	Basis []string `json:"basis,omitempty"`
+	// BasisReferences is the same list with form, scope and, for an exact
+	// reference, content_digest and representation_profile. The digest is
+	// recorded data; resume does not compare it with any actual content.
+	BasisReferences []BasisView `json:"basis_references,omitempty"`
+	Recommendations []string    `json:"recommendations,omitempty"`
+	Responsible     []string    `json:"responsible,omitempty"`
+	Sources         []string    `json:"sources,omitempty"`
+}
+
+// BasisView is one basis reference as stored, with its form made explicit.
+type BasisView struct {
+	// Form is "exact" when the reference carries logical_ref, content_digest and
+	// representation_profile, and "logical" otherwise.
+	Form string `json:"form"`
+	semanticruntime.Reference
+}
+
+func basisViews(refs []semanticruntime.Reference) []BasisView {
+	var out []BasisView
+	for _, r := range refs {
+		form := "logical"
+		if r.IsExact() {
+			form = "exact"
+		}
+		out = append(out, BasisView{Form: form, Reference: r})
+	}
+	return out
+}
+
+// basisText is the human form of a basis reference. Unlike refText it shows the
+// scope and whether the reference is exact, so inputs that differ only in those
+// do not read the same.
+func basisText(b BasisView) string {
+	logical, ok := b.LogicalIdentity()
+	if !ok {
+		return refText(b.Reference)
+	}
+	text := logical.Kind + ":" + logical.ID
+	if logical.Scope != "" {
+		text += " @" + logical.Scope
+	}
+	if b.Form == "exact" {
+		text += fmt.Sprintf(" [exact %s, profile %s/%s]", b.ContentDigest,
+			b.RepresentationProfile.ProfileID, b.RepresentationProfile.Version)
+	} else {
+		text += " [logical]"
+	}
+	return text
 }
 
 type UnresolvedView struct {
@@ -483,8 +533,8 @@ func BuildResume(bundle *semanticruntime.Bundle) ResumeView {
 		case rec.Decision != nil && rec.Decision.Decision != nil:
 			d := rec.Decision.Decision
 			view.Decisions = append(view.Decisions, DecisionView{
-				ID: d.Ref.ID, Statement: d.Statement, Rationale: d.Rationale,
-				Basis: refTexts(d.BasisRefs), Recommendations: refTexts(d.RecommendationRefs),
+				ID: d.Ref.ID, Scope: d.Ref.Scope, Statement: d.Statement, Rationale: d.Rationale,
+				Basis: refTexts(d.BasisRefs), BasisReferences: basisViews(d.BasisRefs), Recommendations: refTexts(d.RecommendationRefs),
 				Responsible: refTexts(d.ResponsibilityRefs), Sources: sourcesOf(rec.EnvelopeRecord),
 			})
 			for _, u := range d.UnresolvedRefs {
@@ -574,10 +624,19 @@ func renderResume(w io.Writer, v ResumeView) {
 	section("Decisions", len(v.Decisions))
 	for _, d := range v.Decisions {
 		fmt.Fprintf(w, "  [%s] %s\n", d.ID, d.Statement)
+		if d.Scope != "" {
+			fmt.Fprintf(w, "      scope: %s\n", d.Scope)
+		}
 		if d.Rationale != "" {
 			fmt.Fprintf(w, "      why: %s\n", d.Rationale)
 		}
-		if len(d.Basis) > 0 {
+		if len(d.BasisReferences) > 0 {
+			texts := make([]string, 0, len(d.BasisReferences))
+			for _, b := range d.BasisReferences {
+				texts = append(texts, basisText(b))
+			}
+			fmt.Fprintf(w, "      basis: %s\n", strings.Join(texts, ", "))
+		} else if len(d.Basis) > 0 {
 			fmt.Fprintf(w, "      basis: %s\n", strings.Join(d.Basis, ", "))
 		}
 		if len(d.Recommendations) > 0 {
