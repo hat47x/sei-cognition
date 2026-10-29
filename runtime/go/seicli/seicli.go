@@ -151,15 +151,40 @@ func recommendationRefsFrom(values []string) ([]semanticruntime.Reference, error
 	return refs, nil
 }
 
-// recordedRecommendations returns the ids of recommendations recorded in bundle.
+// recommendationKey is the identity used to match a recommendation reference
+// with a recorded recommendation: Kind, ID and scope. A logical reference and
+// an exact reference (logical_ref plus content_digest) name the same
+// recommendation when their logical identities agree. content_digest is not
+// part of the key, because the store records no digest for a recommendation.
+func recommendationKey(ref semanticruntime.Reference) (string, bool) {
+	logical, ok := ref.LogicalIdentity()
+	if !ok || logical.Kind != "recommendation" {
+		return "", false
+	}
+	return logical.Kind + "\x00" + logical.ID + "\x00" + logical.Scope, true
+}
+
+// recordedRecommendations returns the keys (see recommendationKey) of the
+// recommendations recorded in bundle.
 func recordedRecommendations(bundle *semanticruntime.Bundle) map[string]bool {
-	ids := map[string]bool{}
+	keys := map[string]bool{}
 	for _, rec := range bundle.Records {
 		if rec.Decision != nil && rec.Decision.Recommendation != nil {
-			ids[rec.Decision.Recommendation.Ref.ID] = true
+			r := rec.Decision.Recommendation.Ref
+			if key, ok := recommendationKey(semanticruntime.Reference{Kind: r.Kind, ID: r.ID, Scope: r.Scope}); ok {
+				keys[key] = true
+			}
 		}
 	}
-	return ids
+	return keys
+}
+
+// recordedRecommendationRef reports whether ref names a recommendation that is
+// recorded in the set returned by recordedRecommendations. Both the gate and
+// the resume view use it so that they agree on what "relied on" means.
+func recordedRecommendationRef(recorded map[string]bool, ref semanticruntime.Reference) bool {
+	key, ok := recommendationKey(ref)
+	return ok && recorded[key]
 }
 
 func persistence(root string) packagingprobe.FilePersistence {
@@ -290,7 +315,7 @@ func runAdd(ctx context.Context, args []string, stdout, stderr io.Writer) error 
 			// Otherwise "relied on" would name something the store cannot show.
 			recorded := recordedRecommendations(bundle)
 			for _, ref := range recommendationRefs {
-				if !recorded[ref.ID] {
+				if !recordedRecommendationRef(recorded, ref) {
 					return fmt.Errorf("the decision relies on recommendation %q, which is not recorded in this store; record it first", ref.ID)
 				}
 			}
@@ -441,7 +466,9 @@ func BuildResume(bundle *semanticruntime.Bundle) ResumeView {
 	for _, rec := range bundle.Records {
 		if rec.Decision != nil && rec.Decision.Decision != nil {
 			for _, r := range rec.Decision.Decision.RecommendationRefs {
-				relied[refText(r)] = true
+				if key, ok := recommendationKey(r); ok {
+					relied[key] = true
+				}
 			}
 		}
 	}
@@ -470,7 +497,7 @@ func BuildResume(bundle *semanticruntime.Bundle) ResumeView {
 		case rec.Decision != nil && rec.Decision.Recommendation != nil:
 			r := rec.Decision.Recommendation
 			s := StatementView{ID: r.Ref.ID, Statement: r.Statement, Sources: sourcesOf(rec.EnvelopeRecord)}
-			if relied["recommendation:"+r.Ref.ID] {
+			if key, ok := recommendationKey(semanticruntime.Reference{Kind: r.Ref.Kind, ID: r.Ref.ID, Scope: r.Ref.Scope}); ok && relied[key] {
 				view.RecommendationsRelied = append(view.RecommendationsRelied, s)
 			} else {
 				view.RecommendationsOpen = append(view.RecommendationsOpen, s)

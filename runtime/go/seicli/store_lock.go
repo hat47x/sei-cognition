@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"time"
 )
@@ -37,12 +38,25 @@ func withStoreLock(dataRoot string, fn func() error) error {
 			defer func() { _ = os.Remove(path) }()
 			return fn()
 		}
-		if !errors.Is(err, fs.ErrExist) {
+		if !errors.Is(err, fs.ErrExist) && !lockMayBeBeingReleased(err) {
 			return err
 		}
 		if time.Now().After(deadline) {
+			if !errors.Is(err, fs.ErrExist) {
+				return err
+			}
 			return fmt.Errorf("the store is locked by another sei process (%s); if no sei process is running, remove that file and retry", path)
 		}
 		time.Sleep(storeLockPoll)
 	}
+}
+
+// lockMayBeBeingReleased reports whether err can be a lock that another
+// process is deleting right now. On Windows, creating a file that is
+// pending deletion fails with "Access is denied" (a permission error) instead
+// of "file exists". That is contention to wait out, not a failure. A real
+// permission problem keeps failing until the timeout and is then returned
+// unchanged.
+func lockMayBeBeingReleased(err error) bool {
+	return runtime.GOOS == "windows" && errors.Is(err, fs.ErrPermission)
 }

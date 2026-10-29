@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/hat47x/sei-cognition/runtime/go/interactionprobe"
@@ -252,6 +253,9 @@ func buildReferenceCommand(t *testing.T, packagePath string) string {
 		t.Fatalf("module root error = %v", err)
 	}
 	binary := filepath.Join(t.TempDir(), filepath.Base(packagePath))
+	if runtime.GOOS == "windows" {
+		binary += ".exe"
+	}
 	cmd := exec.Command("go", "build", "-o", binary, packagePath)
 	cmd.Dir = moduleRoot
 	if output, err := cmd.CombinedOutput(); err != nil {
