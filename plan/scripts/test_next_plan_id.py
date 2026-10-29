@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import importlib.util
 import re
+import os
 import subprocess
 import sys
 import tempfile
@@ -60,6 +61,8 @@ class NextPlanIdTest(unittest.TestCase):
             [sys.executable, str(root / "plan" / "scripts" / "next_plan_id.py"), *args],
             cwd=root,
             text=True,
+            encoding="utf-8",
+            env={**os.environ, "PYTHONUTF8": "1"},
             capture_output=True,
             check=False,
         )
