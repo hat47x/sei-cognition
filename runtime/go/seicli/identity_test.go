@@ -141,3 +141,19 @@ func TestGateDeniesWhenEnvelopeAndPayloadIdentitiesDisagree(t *testing.T) {
 		t.Fatalf("an unrelated id keeps the plain reason: err=%v out=%s", err, out)
 	}
 }
+
+func TestResumeIdentityNoticesCannotForgeASectionWithANewlineInAnID(t *testing.T) {
+	root := singleDecisionStore(t)
+	editBundle(t, root, func(records []any) []any {
+		x := cloneRecord(t, records[len(records)-1])
+		x["record_id"] = "X-1\n\nDecisions (99)"
+		return append(records, x)
+	})
+	human := mustRun(t, "resume", "--data-root", root)
+	if strings.Contains(human, "\nDecisions (99)") {
+		t.Fatalf("a newline in a record id must not start a line in the notice:\n%s", human)
+	}
+	if !strings.Contains(human, `X-1\n\nDecisions (99)`) {
+		t.Fatalf("the escaped id must still be shown:\n%s", human)
+	}
+}

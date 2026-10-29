@@ -718,7 +718,7 @@ func renderResume(w io.Writer, v ResumeView) {
 	if len(v.IdentityNotices) > 0 {
 		fmt.Fprintf(w, "\nIdentity notices (%d). The store is kept as is; none of these is resolved here.\n", len(v.IdentityNotices))
 		for _, notice := range v.IdentityNotices {
-			fmt.Fprintf(w, "  %s: %s\n", notice.Notice, notice.Message)
+			fmt.Fprintf(w, "  %s: %s\n", safeText(notice.Notice), safeText(notice.Message))
 		}
 	}
 	if v.NotVerifiedRecordCount > 0 {
