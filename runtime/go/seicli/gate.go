@@ -5,10 +5,12 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/hat47x/sei-cognition/runtime/go/packagingprobe"
@@ -43,12 +45,15 @@ type GatePolicy struct {
 // not mean the responsible party holds Authority, and it does not start any
 // execution. Those are listed under NotVerified rather than reported as passed.
 type GateResult struct {
-	Decision    string       `json:"decision"`
-	Verdict     string       `json:"verdict"`
-	Reasons     []string     `json:"reasons,omitempty"`
-	Policy      GatePolicy   `json:"policy"`
-	Binding     *GateBinding `json:"binding,omitempty"`
-	NotVerified []string     `json:"not_verified"`
+	Decision string     `json:"decision"`
+	Verdict  string     `json:"verdict"`
+	Reasons  []string   `json:"reasons,omitempty"`
+	Policy   GatePolicy `json:"policy"`
+	// RequestedScope is the scope the caller asked for. It is absent when the
+	// caller gave none, and an empty string means "the Decision with no scope".
+	RequestedScope *string      `json:"requested_scope,omitempty"`
+	Binding        *GateBinding `json:"binding,omitempty"`
+	NotVerified    []string     `json:"not_verified"`
 }
 
 // GateBinding names the store content a verdict was computed against.
@@ -61,9 +66,11 @@ type GateResult struct {
 // Binding is absent when no single Decision was identified (not recorded, or
 // ambiguous).
 type GateBinding struct {
-	BundleID                      string `json:"bundle_id"`
-	BundleDigest                  string `json:"bundle_digest"`
-	DecisionRecordID              string `json:"decision_record_id"`
+	BundleID         string `json:"bundle_id"`
+	BundleDigest     string `json:"bundle_digest"`
+	DecisionRecordID string `json:"decision_record_id"`
+	// DecisionScope is the scope of the Decision that was checked ("" = none).
+	DecisionScope                 string `json:"decision_scope"`
 	DecisionDigest                string `json:"decision_digest"`
 	DecisionRepresentationProfile string `json:"decision_representation_profile"`
 }
@@ -183,12 +190,32 @@ func basisNotes(bundle *semanticruntime.Bundle, d *semanticruntime.Decision) []s
 	return notes
 }
 
-// CheckDecision evaluates one recorded Decision against a policy.
+// CheckDecision evaluates one recorded Decision against a policy, without
+// naming a scope. It is CheckDecisionInScope with no scope given.
 func CheckDecision(bundle *semanticruntime.Bundle, id string, policy GatePolicy) GateResult {
+	return CheckDecisionInScope(bundle, id, nil, policy)
+}
+
+// scopeLabel renders a scope for a reason string; "" is shown as "(none)".
+func scopeLabel(scope string) string {
+	if scope == "" {
+		return "(none)"
+	}
+	return fmt.Sprintf("%q", scope)
+}
+
+// CheckDecisionInScope evaluates one recorded Decision against a policy.
+//
+// scope nil means the caller named no scope: the id must then match exactly one
+// Decision in the store, whatever its scope. A non-nil scope (including the
+// empty string, meaning "the Decision with no scope") restricts the match to
+// that scope. More than one match is denied and never resolved by record order.
+func CheckDecisionInScope(bundle *semanticruntime.Bundle, id string, scope *string, policy GatePolicy) GateResult {
 	result := GateResult{
-		Decision: id,
-		Verdict:  "allow",
-		Policy:   policy,
+		Decision:       id,
+		Verdict:        "allow",
+		Policy:         policy,
+		RequestedScope: scope,
 		NotVerified: []string{
 			"that the responsible party holds Authority for this action",
 			"that the action matches what the decision covers",
@@ -202,23 +229,38 @@ func CheckDecision(bundle *semanticruntime.Bundle, id string, policy GatePolicy)
 	var found *semanticruntime.Decision
 	var foundRecord semanticruntime.InterchangeRecord
 	matches := 0
+	var matchScopes []string
 	for _, rec := range bundle.Records {
-		if rec.Decision != nil && rec.Decision.Decision != nil && rec.Decision.Decision.Ref.ID == id {
-			if matches == 0 {
-				found = rec.Decision.Decision
-				foundRecord = rec.EnvelopeRecord
-			}
-			matches++
+		if rec.Decision == nil || rec.Decision.Decision == nil || rec.Decision.Decision.Ref.ID != id {
+			continue
 		}
+		if scope != nil && rec.Decision.Decision.Ref.Scope != *scope {
+			continue
+		}
+		if matches == 0 {
+			found = rec.Decision.Decision
+			foundRecord = rec.EnvelopeRecord
+		}
+		matches++
+		matchScopes = append(matchScopes, scopeLabel(rec.Decision.Decision.Ref.Scope))
 	}
 	if found == nil {
-		deny("no decision with this id is recorded")
+		if scope != nil {
+			deny(fmt.Sprintf("no decision with this id and scope %s is recorded", scopeLabel(*scope)))
+		} else {
+			deny("no decision with this id is recorded")
+		}
 		return result
 	}
 	if matches > 1 {
 		// Taking the first of several would let the verdict depend on record
 		// order and say nothing about which Decision was meant.
-		deny(fmt.Sprintf("%d decisions share this id, so which one is meant is ambiguous; nothing is allowed", matches))
+		hint := "; name one with --scope"
+		if scope != nil {
+			hint = "; the same id and scope is recorded more than once"
+		}
+		deny(fmt.Sprintf("multiple decisions match this id (%d, scopes: %s), so which one is meant is ambiguous and nothing is allowed%s",
+			matches, strings.Join(matchScopes, ", "), hint))
 		return result
 	}
 	digest, err := semanticruntime.JCSSHA256Digest(foundRecord.Payload)
@@ -230,6 +272,7 @@ func CheckDecision(bundle *semanticruntime.Bundle, id string, policy GatePolicy)
 		BundleID:                      bundle.Envelope.BundleID,
 		BundleDigest:                  fmt.Sprintf("sha256:%x", sha256.Sum256(bundle.ExportOriginal())),
 		DecisionRecordID:              foundRecord.RecordID,
+		DecisionScope:                 found.Ref.Scope,
 		DecisionDigest:                digest,
 		DecisionRepresentationProfile: decisionDigestProfile,
 	}
@@ -283,6 +326,7 @@ func runGate(ctx context.Context, args []string, stdout, stderr io.Writer) error
 	f := newFlags("gate check", stderr)
 	root := dataRootFlag(f)
 	id := f.String("decision", "", "id of the recorded decision the action relies on (required)")
+	scopeFlag := f.String("scope", "", "scope of that decision; required when the same id exists in several scopes (--scope= names the decision with no scope)")
 	policy := GatePolicy{}
 	f.BoolVar(&policy.RequireResponsible, "require-responsible", true, "deny when the decision names no responsible party")
 	f.BoolVar(&policy.RequireRecommendation, "require-recommendation", false, "deny when the decision relies on no recorded recommendation")
@@ -293,6 +337,12 @@ func runGate(ctx context.Context, args []string, stdout, stderr io.Writer) error
 	if *id == "" {
 		return errors.New("gate check requires --decision")
 	}
+	var scope *string
+	f.Visit(func(fl *flag.Flag) {
+		if fl.Name == "scope" {
+			scope = scopeFlag
+		}
+	})
 	dataRoot := resolveDataRoot(*root)
 	if info, statErr := os.Stat(dataRoot); statErr != nil || !info.IsDir() {
 		// Do not create a directory (and a lock) for a store that does not exist.
@@ -314,7 +364,7 @@ func runGate(ctx context.Context, args []string, stdout, stderr io.Writer) error
 		if err != nil {
 			return fmt.Errorf("store is invalid, so nothing can be allowed: %w", err)
 		}
-		result = CheckDecision(bundle, *id, policy)
+		result = CheckDecisionInScope(bundle, *id, scope, policy)
 		// If the check cannot be logged it cannot be allowed: fail closed.
 		if err := appendGateLog(dataRoot, result); err != nil {
 			return fmt.Errorf("could not log the check, so nothing is allowed: %w", err)
