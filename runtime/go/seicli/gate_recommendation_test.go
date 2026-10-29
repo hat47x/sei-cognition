@@ -1,6 +1,8 @@
 package seicli
 
 import (
+	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
@@ -18,9 +20,16 @@ func recommendationBundle(recs []semanticruntime.LogicalReference, decisions ...
 			},
 		})
 	}
-	for _, d := range decisions {
+	for i, d := range decisions {
+		doc := &semanticruntime.DecisionMemoryDocument{Decision: d}
+		// A loaded record always has a payload; the gate binds to its digest.
+		payload, err := json.Marshal(doc)
+		if err != nil {
+			panic(err)
+		}
 		bundle.Records = append(bundle.Records, semanticruntime.RuntimeRecord{
-			Decision: &semanticruntime.DecisionMemoryDocument{Decision: d},
+			EnvelopeRecord: semanticruntime.InterchangeRecord{RecordID: fmt.Sprintf("rec-%d", i), Payload: payload},
+			Decision:       doc,
 		})
 	}
 	return bundle
