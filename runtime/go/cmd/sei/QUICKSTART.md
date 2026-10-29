@@ -50,6 +50,8 @@ sei resume
 
 JSONの`coverage`は集計範囲と件数を示し、`case_completeness`は`not_assessed`のままです。既存の`unresolved[].ref`と`left_open_by_decision`は表示用に残し、`reference`と`left_open_by_reference`でscopeやExact Bindingを取り戻せます。`source_record`と`not_verified_records`は、元の記録ID・Contractの版・JSON Pointerを示します。未知のpayloadの意味は推測しません。
 
+`resume`のJSONの`identity_notices`（人向け表示では「Identity notices」）は、storeの記録同士で識別が食い違っている箇所を並べます。次の3種類です。`envelope_kind_mismatch`は、envelopeの`kind`とpayloadの種類（decision／recommendation）が違う場合です。`envelope_logical_ref_mismatch`は、envelopeの`logical_ref`とpayloadの`ref`が違う場合です。`duplicate_logical_ref`は、同じ種類・id・scopeの記録が別のrecord_idで複数ある場合です。Contractはこれらの一致や一意性を定めていないため、`verify`と`resume`は記録を拒否せず、どちらが正かも決めません。件数が0でも、これは上の3種類が見つからなかったことを示すだけです。`gate check`は、envelopeの`logical_ref`とpayloadの`ref`が食い違う決定を`deny`し、envelopeの`logical_ref`だけがその識別子を名乗る場合も、理由を添えて`deny`します。
+
 決定の根拠は、JSONでは従来の`basis`（`kind:id`の文字列）に加えて`basis_references`で出します。各要素は`form`（`logical`または`exact`）とscopeを持ち、exact形式では`content_digest`と`representation_profile`も持ちます。決定自身のscopeは`scope`です。人向け表示でも、scope・logical/exactの別・digestとProfileを根拠の行に出します。同じ論理IDで形式・digest・scopeだけが違う根拠は、別の出力になります。表示するdigestは保存されている値で、参照先の実物と照合した結果ではありません。
 
 人向け表示（`sei resume`と、引数なしのMCP `resume`）は、statement・rationale・ID・出所に含まれる改行と制御文字を`

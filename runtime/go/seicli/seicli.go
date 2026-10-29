@@ -392,6 +392,9 @@ type ResumeView struct {
 	Unresolved             []UnresolvedView       `json:"unresolved"`
 	NotVerifiedRecordCount int                    `json:"not_verified_record_count"`
 	NotVerifiedRecords     []ResumeRecordLocation `json:"not_verified_records"`
+	// IdentityNotices lists records whose envelope identity disagrees with the
+	// payload, and logical references recorded more than once (#724).
+	IdentityNotices []IdentityNotice `json:"identity_notices"`
 }
 
 // ResumeCoverage describes this projection, not all questions in the case.
@@ -529,6 +532,7 @@ func BuildResume(bundle *semanticruntime.Bundle) ResumeView {
 		RecommendationsRelied: []StatementView{},
 		Unresolved:            []UnresolvedView{},
 		NotVerifiedRecords:    []ResumeRecordLocation{},
+		IdentityNotices:       IdentityNotices(bundle),
 	}
 	if original := bundle.ExportOriginal(); len(original) > 0 {
 		view.SnapshotDigest = fmt.Sprintf("sha256:%x", sha256.Sum256(original))
@@ -710,6 +714,12 @@ func renderResume(w io.Writer, v ResumeView) {
 	section("Recommendations relied on by a decision", len(v.RecommendationsRelied))
 	for _, r := range v.RecommendationsRelied {
 		fmt.Fprintf(w, "  [%s] %s%s\n", safeText(r.ID), safeText(r.Statement), sourceSuffix(r.Sources))
+	}
+	if len(v.IdentityNotices) > 0 {
+		fmt.Fprintf(w, "\nIdentity notices (%d). The store is kept as is; none of these is resolved here.\n", len(v.IdentityNotices))
+		for _, notice := range v.IdentityNotices {
+			fmt.Fprintf(w, "  %s: %s\n", safeText(notice.Notice), safeText(notice.Message))
+		}
 	}
 	if v.NotVerifiedRecordCount > 0 {
 		fmt.Fprintf(w, "\n%d record(s) use a Contract this runtime does not understand. They are kept and not verified.\n", v.NotVerifiedRecordCount)
