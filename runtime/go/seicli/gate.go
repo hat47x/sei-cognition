@@ -108,6 +108,60 @@ func lineageNotes(bundle *semanticruntime.Bundle, d *semanticruntime.Decision) [
 	return notes
 }
 
+// basisNotVerified is the fixed statement that the gate does not resolve basis
+// references. It is listed whether or not the decision has a basis, so "allow"
+// is never read as "the basis exists and is unchanged".
+const basisNotVerified = "whether each basis reference exists, and for an exact reference whether its content_digest matches the real content; the gate checks neither"
+
+// recordedDecisionOrRecommendation reports whether the bundle holds a Decision
+// or Recommendation record with the logical identity (kind, id, scope) of ref.
+// Only those two record types carry content in the store. A Semantic Reference
+// record only names something, so it does not count as the thing existing.
+func recordedDecisionOrRecommendation(bundle *semanticruntime.Bundle, ref semanticruntime.Reference) bool {
+	want, ok := ref.LogicalIdentity()
+	if !ok {
+		return false
+	}
+	for _, rec := range bundle.Records {
+		if rec.Decision == nil {
+			continue
+		}
+		if d := rec.Decision.Decision; d != nil && d.Ref == want {
+			return true
+		}
+		if r := rec.Decision.Recommendation; r != nil && r.Ref == want {
+			return true
+		}
+	}
+	return false
+}
+
+// basisNotes lists, per basis reference of d, what the gate could and could not
+// tell. It reports and does not decide: a basis that is not recorded here is
+// not a reason to deny, because most basis references point outside the store
+// (observations and interpretations cannot be recorded by the CLI, #711), and
+// whether an unresolvable basis should be refused is an Owner decision (#710).
+func basisNotes(bundle *semanticruntime.Bundle, d *semanticruntime.Decision) []string {
+	var notes []string
+	for _, ref := range d.BasisRefs {
+		label := refText(ref)
+		if logical, ok := ref.LogicalIdentity(); ok && logical.Scope != "" {
+			label += " @" + logical.Scope
+		}
+		var note string
+		if recordedDecisionOrRecommendation(bundle, ref) {
+			note = fmt.Sprintf("basis %s: a Decision or Recommendation with this identity is recorded in this store; that is existence only and its content was not compared", label)
+		} else {
+			note = fmt.Sprintf("basis %s: no Decision or Recommendation with this identity is recorded in this store; whether the referenced material exists elsewhere is not confirmed, and the verdict does not depend on it", label)
+		}
+		if ref.IsExact() {
+			note += fmt.Sprintf("; content_digest %s was not compared with any content", ref.ContentDigest)
+		}
+		notes = append(notes, note)
+	}
+	return notes
+}
+
 // CheckDecision evaluates one recorded Decision against a policy.
 func CheckDecision(bundle *semanticruntime.Bundle, id string, policy GatePolicy) GateResult {
 	result := GateResult{
@@ -146,6 +200,8 @@ func CheckDecision(bundle *semanticruntime.Bundle, id string, policy GatePolicy)
 	}
 	result.NotVerified = append(result.NotVerified, lineageNotVerified)
 	result.NotVerified = append(result.NotVerified, lineageNotes(bundle, found)...)
+	result.NotVerified = append(result.NotVerified, basisNotVerified)
+	result.NotVerified = append(result.NotVerified, basisNotes(bundle, found)...)
 	return result
 }
 

@@ -180,7 +180,7 @@ AIツールが決定を記録できるようにするには、運用者が`--all
 - 決定の改訂や取り消しのコマンドはありません。変更は、新しいIDの記録として追加します。
 - 署名や時刻の証明はありません。
 - `sei add`と`sei mcp`が記録できる種別は、推薦(recommendation)と決定(decision)だけです。観測、解釈、問い(Question)を記録する経路はありません。`--basis`や`--unresolved`には`kind:id`で観測や解釈を指せますが、その参照先はstoreの外にあります。storeには参照が残るだけで、参照先の内容は残りません。
-- `--basis`と`--unresolved`が指す参照先が実在するか、exact形式の参照でdigestが一致するかは、`sei check`も`sei verify`も検査しません。`--recommendation`は記録済みの推薦に限りますが、`--basis`と`--unresolved`には同じ制限がありません。
+- `--basis`と`--unresolved`が指す参照先が実在するか、exact形式の参照でdigestが一致するかは、`sei check`も`sei verify`も検査しません。`sei check`は、検査しないことを`not_verified`に常に出し、決定の根拠ごとに「同じ識別のDecisionまたはRecommendationがstoreにあるか」と「exactのdigestを照合していない」ことを書き添えます。これは存在の有無を知らせるだけで、`allow`と`deny`の判定は変えません。storeに無い根拠を拒否するかどうかは、まだ決まっていません。`--recommendation`は記録済みの推薦に限りますが、`--basis`と`--unresolved`には同じ制限がありません。
 - 記録には、記録した時刻も、根拠となる観測を得た時刻もありません。`semantic.bundle.json`の日時はbundle全体の作成時刻だけです。記録の前後関係を配列の並びから読む場合、書き出しや並べ替えで失われるおそれがあります。
 - MCP経由の決定の出所(クライアント名)と責任者(`responsible`)は、自己申告のままです。本人確認はありません。
 - `sei add decision`をターミナルから実行した場合は、制限が働きません。`sei`のバイナリを実行できる人は、`responsible`を付けなくても決定を記録できます。既定の制限が働くのは、`sei mcp`で提供するツールだけです。
