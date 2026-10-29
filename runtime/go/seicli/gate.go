@@ -123,7 +123,7 @@ func lineageNotes(bundle *semanticruntime.Bundle, d *semanticruntime.Decision) [
 		}
 		notes = append(notes, fmt.Sprintf(
 			"Semantic Lineage %q names this decision as %s (%s -> %s); its effect on this decision was not evaluated",
-			lineage.Relation, role, refText(lineage.From), refText(lineage.To)))
+			lineage.Relation, role, safeText(refText(lineage.From)), safeText(refText(lineage.To))))
 	}
 	for _, rec := range bundle.Records {
 		if rec.Decision != nil && rec.Decision.Decision != nil {
@@ -172,9 +172,9 @@ func recordedDecisionOrRecommendation(bundle *semanticruntime.Bundle, ref semant
 func basisNotes(bundle *semanticruntime.Bundle, d *semanticruntime.Decision) []string {
 	var notes []string
 	for _, ref := range d.BasisRefs {
-		label := refText(ref)
+		label := safeText(refText(ref))
 		if logical, ok := ref.LogicalIdentity(); ok && logical.Scope != "" {
-			label += " @" + logical.Scope
+			label += " @" + safeText(logical.Scope)
 		}
 		var note string
 		if recordedDecisionOrRecommendation(bundle, ref) {

@@ -18,6 +18,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/hat47x/sei-cognition/runtime/go/packagingprobe"
 	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
@@ -632,43 +633,71 @@ func runResume(ctx context.Context, args []string, stdout, stderr io.Writer) err
 	return nil
 }
 
+// safeText makes a stored value safe to print on one line of the human view.
+// Newlines and other control characters in a statement, an ID or a source name
+// are written as visible escapes, so a value cannot start what looks like a new
+// section or entry. A backslash is left as it is; the JSON output carries the
+// exact value.
+func safeText(s string) string {
+	isOdd := func(r rune) bool { return unicode.IsControl(r) || r == ' ' || r == ' ' }
+	if !strings.ContainsFunc(s, isOdd) {
+		return s
+	}
+	var b strings.Builder
+	for _, r := range s {
+		switch {
+		case r == '\n':
+			b.WriteString(`\n`)
+		case r == '\r':
+			b.WriteString(`\r`)
+		case r == '\t':
+			b.WriteString(`\t`)
+		case isOdd(r):
+			fmt.Fprintf(&b, `\u%04x`, r)
+		default:
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
+}
+
 func renderResume(w io.Writer, v ResumeView) {
-	fmt.Fprintf(w, "Store %s: %d records\n", v.BundleID, v.RecordCount)
+	fmt.Fprintf(w, "Store %s: %d records\n", safeText(v.BundleID), v.RecordCount)
 	fmt.Fprintln(w, "Unresolved scope: recognized Decision.unresolved_refs only; not a case-wide inventory.")
 	fmt.Fprintf(w, "%d entries; %d distinct logical references. Case completeness: not assessed.\n",
 		v.Coverage.UnresolvedEntryCount, v.Coverage.DistinctUnresolvedLogicalReferenceCount)
 	if v.SnapshotDigest != "" {
-		fmt.Fprintf(w, "Snapshot SHA-256: %s\n", v.SnapshotDigest)
+		fmt.Fprintf(w, "Snapshot SHA-256: %s\n", safeText(v.SnapshotDigest))
 	}
 	section := func(title string, n int) { fmt.Fprintf(w, "\n%s (%d)\n", title, n) }
 	section("Decisions", len(v.Decisions))
 	for _, d := range v.Decisions {
-		fmt.Fprintf(w, "  [%s] %s\n", d.ID, d.Statement)
+		fmt.Fprintf(w, "  [%s] %s\n", safeText(d.ID), safeText(d.Statement))
 		if d.Scope != "" {
-			fmt.Fprintf(w, "      scope: %s\n", d.Scope)
+			fmt.Fprintf(w, "      scope: %s\n", safeText(d.Scope))
 		}
 		if d.Rationale != "" {
-			fmt.Fprintf(w, "      why: %s\n", d.Rationale)
+			fmt.Fprintf(w, "      why: %s\n", safeText(d.Rationale))
 		}
 		if len(d.BasisReferences) > 0 {
 			texts := make([]string, 0, len(d.BasisReferences))
 			for _, b := range d.BasisReferences {
 				texts = append(texts, basisText(b))
 			}
-			fmt.Fprintf(w, "      basis: %s\n", strings.Join(texts, ", "))
+			fmt.Fprintf(w, "      basis: %s\n", safeText(strings.Join(texts, ", ")))
 		} else if len(d.Basis) > 0 {
-			fmt.Fprintf(w, "      basis: %s\n", strings.Join(d.Basis, ", "))
+			fmt.Fprintf(w, "      basis: %s\n", safeText(strings.Join(d.Basis, ", ")))
 		}
 		if len(d.Recommendations) > 0 {
-			fmt.Fprintf(w, "      relied on: %s\n", strings.Join(d.Recommendations, ", "))
+			fmt.Fprintf(w, "      relied on: %s\n", safeText(strings.Join(d.Recommendations, ", ")))
 		}
 		if len(d.Responsible) > 0 {
-			fmt.Fprintf(w, "      responsible: %s\n", strings.Join(d.Responsible, ", "))
+			fmt.Fprintf(w, "      responsible: %s\n", safeText(strings.Join(d.Responsible, ", ")))
 		}
 	}
 	section("Unresolved", len(v.Unresolved))
 	for _, u := range v.Unresolved {
-		fmt.Fprintf(w, "  %s (left open by %s)\n", u.Ref, u.LeftOpenBy)
+		fmt.Fprintf(w, "  %s (left open by %s)\n", safeText(u.Ref), safeText(u.LeftOpenBy))
 		refJSON, _ := json.Marshal(u.Reference)
 		decisionJSON, _ := json.Marshal(u.LeftOpenByReference)
 		fmt.Fprintf(w, "      reference: %s; decision: %s\n", refJSON, decisionJSON)
@@ -676,17 +705,17 @@ func renderResume(w io.Writer, v ResumeView) {
 	}
 	section("Recommendations not yet relied on by any decision", len(v.RecommendationsOpen))
 	for _, r := range v.RecommendationsOpen {
-		fmt.Fprintf(w, "  [%s] %s%s\n", r.ID, r.Statement, sourceSuffix(r.Sources))
+		fmt.Fprintf(w, "  [%s] %s%s\n", safeText(r.ID), safeText(r.Statement), sourceSuffix(r.Sources))
 	}
 	section("Recommendations relied on by a decision", len(v.RecommendationsRelied))
 	for _, r := range v.RecommendationsRelied {
-		fmt.Fprintf(w, "  [%s] %s%s\n", r.ID, r.Statement, sourceSuffix(r.Sources))
+		fmt.Fprintf(w, "  [%s] %s%s\n", safeText(r.ID), safeText(r.Statement), sourceSuffix(r.Sources))
 	}
 	if v.NotVerifiedRecordCount > 0 {
 		fmt.Fprintf(w, "\n%d record(s) use a Contract this runtime does not understand. They are kept and not verified.\n", v.NotVerifiedRecordCount)
 		for _, record := range v.NotVerifiedRecords {
 			fmt.Fprintf(w, "  record %q: contract %q version %q at %s\n",
-				record.RecordID, record.Contract.ContractID, record.Contract.Version, record.JSONPointer)
+				safeText(record.RecordID), safeText(record.Contract.ContractID), safeText(record.Contract.Version), safeText(record.JSONPointer))
 		}
 	}
 }
@@ -695,7 +724,7 @@ func sourceSuffix(sources []string) string {
 	if len(sources) == 0 {
 		return ""
 	}
-	return " (from " + strings.Join(sources, ", ") + ")"
+	return " (from " + safeText(strings.Join(sources, ", ")) + ")"
 }
 
 func runVerify(args []string, stdout, stderr io.Writer) error {
