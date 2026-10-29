@@ -55,7 +55,7 @@ type GateResult struct {
 func reliesOnRecorded(bundle *semanticruntime.Bundle, d *semanticruntime.Decision) bool {
 	recorded := recordedRecommendations(bundle)
 	for _, ref := range d.RecommendationRefs {
-		if refText(ref) == "recommendation:"+ref.ID && recorded[ref.ID] {
+		if recordedRecommendationRef(recorded, ref) {
 			return true
 		}
 	}
