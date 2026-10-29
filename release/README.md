@@ -55,6 +55,8 @@ python3 tools/check_release_candidate.py \
   --config release/v0.2.0/release-candidate.json
 ```
 
+`--config`は必須です。versionごとにpolicyが異なるため既定値は置かず、検査対象のversionを明示します。v0.1.0のhistorical検査は`--config release/v0.1.0/release-candidate.json`で実行します。
+
 `release-candidate.json`の`required_gates`は検査責務を示します。GitHub Actionsのjob名やworkflowの存在を要求するものではありません。各gateに対応するローカル検査を実際に実行し、確認できた範囲だけをEvidenceとして扱います。
 
 ```text
