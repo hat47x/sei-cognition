@@ -115,6 +115,12 @@ func parseRef(text string) (semanticruntime.Reference, error) {
 	if !ok || kind == "" || id == "" {
 		return semanticruntime.Reference{}, fmt.Errorf("reference %q must be written kind:id", text)
 	}
+	if err := checkIdentifier("reference kind", kind); err != nil {
+		return semanticruntime.Reference{}, err
+	}
+	if err := checkIdentifier("reference id", id); err != nil {
+		return semanticruntime.Reference{}, err
+	}
 	return semanticruntime.Reference{Kind: kind, ID: id}, nil
 }
 
@@ -259,6 +265,20 @@ func runAdd(ctx context.Context, args []string, stdout, stderr io.Writer) error 
 	}
 	if *id == "" || *statement == "" {
 		return errors.New("add requires --id and --statement")
+	}
+	if err := checkIdentifier("--id", *id); err != nil {
+		return err
+	}
+	if err := checkStatement(*statement); err != nil {
+		return err
+	}
+	for _, list := range []struct {
+		name   string
+		values multiFlag
+	}{{"basis", basis}, {"responsible", responsible}, {"unresolved", unresolved}, {"recommendation", recommendations}} {
+		if err := rejectDuplicateRefs(list.name, list.values); err != nil {
+			return err
+		}
 	}
 
 	dir := resolveDataRoot(*root)
