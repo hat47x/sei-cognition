@@ -62,6 +62,52 @@ func reliesOnRecorded(bundle *semanticruntime.Bundle, d *semanticruntime.Decisio
 	return false
 }
 
+// lineageNotVerified is the fixed statement that the gate does not evaluate
+// Semantic Lineage. It is listed whether or not the bundle holds any lineage
+// that names the decision, so a reader never takes "allow" to mean that no
+// later revision, supersession or withdrawal exists.
+const lineageNotVerified = "whether a later Semantic Lineage (revises, supersedes, withdraws) changes how this decision stands; the gate does not evaluate Semantic Lineage"
+
+// lineageNotes lists the Semantic Lineage in the bundle that names d as its
+// from or to endpoint, one note per lineage. It reports what exists and does
+// not interpret it: what a lineage does to a decision's standing is not
+// defined yet (#687), so the verdict never depends on these notes.
+func lineageNotes(bundle *semanticruntime.Bundle, d *semanticruntime.Decision) []string {
+	names := func(ref semanticruntime.Reference) bool {
+		logical, ok := ref.LogicalIdentity()
+		return ok && logical.Kind == "decision" && logical.ID == d.Ref.ID && logical.Scope == d.Ref.Scope
+	}
+	var notes []string
+	add := func(lineage *semanticruntime.SemanticLineage) {
+		if lineage == nil {
+			return
+		}
+		role := ""
+		switch {
+		case names(lineage.From) && names(lineage.To):
+			role = "from and to"
+		case names(lineage.From):
+			role = "from"
+		case names(lineage.To):
+			role = "to"
+		default:
+			return
+		}
+		notes = append(notes, fmt.Sprintf(
+			"Semantic Lineage %q names this decision as %s (%s -> %s); its effect on this decision was not evaluated",
+			lineage.Relation, role, refText(lineage.From), refText(lineage.To)))
+	}
+	for _, rec := range bundle.Records {
+		if rec.Decision != nil && rec.Decision.Decision != nil {
+			add(rec.Decision.Decision.Lineage)
+		}
+		if rec.Reference != nil {
+			add(rec.Reference.SemanticLineage)
+		}
+	}
+	return notes
+}
+
 // CheckDecision evaluates one recorded Decision against a policy.
 func CheckDecision(bundle *semanticruntime.Bundle, id string, policy GatePolicy) GateResult {
 	result := GateResult{
@@ -98,6 +144,8 @@ func CheckDecision(bundle *semanticruntime.Bundle, id string, policy GatePolicy)
 	if policy.DenyUnresolved && len(found.UnresolvedRefs) > 0 {
 		deny(fmt.Sprintf("the decision left %d question(s) unresolved", len(found.UnresolvedRefs)))
 	}
+	result.NotVerified = append(result.NotVerified, lineageNotVerified)
+	result.NotVerified = append(result.NotVerified, lineageNotes(bundle, found)...)
 	return result
 }
 
