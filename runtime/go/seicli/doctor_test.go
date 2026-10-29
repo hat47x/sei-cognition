@@ -58,7 +58,9 @@ func TestDoctorOnAHealthyStoreReportsOKAndDescribesTheMCPServer(t *testing.T) {
 	if !strings.Contains(mcp.Detail, `"mcpServers"`) || !strings.Contains(mcp.Detail, `"--data-root"`) {
 		t.Errorf("the MCP definition must be a complete server definition: %s", mcp.Detail)
 	}
-	if !strings.Contains(mcp.Detail, filepath.ToSlash(root)) && !strings.Contains(mcp.Detail, root) {
+	// The definition is JSON, so a Windows path appears with doubled backslashes.
+	escapedRoot := strings.ReplaceAll(root, `\`, `\\`)
+	if !strings.Contains(mcp.Detail, filepath.ToSlash(root)) && !strings.Contains(mcp.Detail, root) && !strings.Contains(mcp.Detail, escapedRoot) {
 		t.Errorf("the MCP definition must carry the absolute data root, not a relative one: %s", mcp.Detail)
 	}
 	if _, err := run(t, "doctor", "--data-root", root); err != nil {
