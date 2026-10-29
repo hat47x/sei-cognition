@@ -23,7 +23,10 @@ GitHub Actionsは当面停止しており、`.github/workflows`はありませ�
 
 - Go: `runtime/go`で`go test ./... -count=1`を実行する。
 - Python: 変更した対象の`unittest`を実行する（例: `python -m unittest discover -s tools -p "test_*.py"`）。
-- Contract変更は、`contracts/`・`schemas/`・fixture・testを同時に更新する。
+- Contract変更は、`contracts/`・`schemas/`・fixture・testを同時に更新し、次の2つの検査を実行する。
+  - `python tools/check_contract_conformance.py`: Contractのschemaとfixtureの整合を検査する。`jsonschema`と`referencing`が必要で、未導入なら「jsonschema and referencing are required」と表示して終了する。仮想環境を作り、`pip install -r tools/contract-check-requirements.txt`で入れる。
+  - `python tools/check_representation_profiles.py`: Representation ProfileのDefinitionと固定fixtureを検査する。追加の依存はない。
+  - どちらも、PASSが示すのはリポジトリ内のschemaとfixtureの整合までである。出力の`claims`のとおり、`release`・`operational`・`adoption_outcome`は`false`で、実運用での意味の受理やリリース可否は示さない。
 - 文書: 変更した現行Markdownについて`plan/scripts/check_document_review_registry.py`を確認する。
 
 実行した検査、実行できなかった検査、その理由をPR本文に分けて書いてください。GitHub Actionsのstatusがないことは、PASSでもfailureでもありません。
