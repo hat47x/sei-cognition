@@ -228,6 +228,7 @@ func CheckDecisionInScope(bundle *semanticruntime.Bundle, id string, scope *stri
 
 	var found *semanticruntime.Decision
 	var foundRecord semanticruntime.InterchangeRecord
+	var foundNotices []IdentityNotice
 	matches := 0
 	var matchScopes []string
 	for _, rec := range bundle.Records {
@@ -240,11 +241,16 @@ func CheckDecisionInScope(bundle *semanticruntime.Bundle, id string, scope *stri
 		if matches == 0 {
 			found = rec.Decision.Decision
 			foundRecord = rec.EnvelopeRecord
+			foundNotices = recordIdentityNotices(rec)
 		}
 		matches++
 		matchScopes = append(matchScopes, scopeLabel(rec.Decision.Decision.Ref.Scope))
 	}
 	if found == nil {
+		if envelopeNamesID(bundle, id) {
+			deny("no decision payload has this id, but a record's envelope logical_ref names it; the envelope and payload identities disagree, so nothing is allowed")
+			return result
+		}
 		if scope != nil {
 			deny(fmt.Sprintf("no decision with this id and scope %s is recorded", scopeLabel(*scope)))
 		} else {
@@ -262,6 +268,14 @@ func CheckDecisionInScope(bundle *semanticruntime.Bundle, id string, scope *stri
 		deny(fmt.Sprintf("multiple decisions match this id (%d, scopes: %s), so which one is meant is ambiguous and nothing is allowed%s",
 			matches, strings.Join(matchScopes, ", "), hint))
 		return result
+	}
+	for _, notice := range foundNotices {
+		if notice.Notice != NoticeEnvelopeLogicalRefMismatch {
+			continue // the envelope kind is a category, not an identity; resume reports it
+		}
+		// The Contracts do not say which identity is authoritative, so the gate
+		// does not pick the payload's over the envelope's.
+		deny(fmt.Sprintf("the decision's envelope and payload identities disagree (%s), so nothing is allowed", notice.Message))
 	}
 	digest, err := semanticruntime.JCSSHA256Digest(foundRecord.Payload)
 	if err != nil {
@@ -381,4 +395,16 @@ func runGate(ctx context.Context, args []string, stdout, stderr io.Writer) error
 		return &ExitError{Code: ExitCodeDenied, Message: "denied: " + result.Reasons[0]}
 	}
 	return nil
+}
+
+// envelopeNamesID reports whether some Decision Memory record carries id in its
+// envelope logical_ref while its payload names another id.
+func envelopeNamesID(bundle *semanticruntime.Bundle, id string) bool {
+	for _, rec := range bundle.Records {
+		if _, payloadRef, ok := decisionMemoryIdentity(rec); ok &&
+			rec.EnvelopeRecord.LogicalRef != nil && rec.EnvelopeRecord.LogicalRef.ID == id && payloadRef.ID != id {
+			return true
+		}
+	}
+	return false
 }
