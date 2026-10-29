@@ -158,3 +158,92 @@ func TestMCPAnswersUnknownMethodsAndBadJSONWithErrors(t *testing.T) {
 		}
 	}
 }
+
+func errorCode(t *testing.T, resp map[string]any) float64 {
+	t.Helper()
+	e, ok := resp["error"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected an error response, got %v", resp)
+	}
+	return e["code"].(float64)
+}
+
+func TestMCPRefusesMalformedJSONRPCEnvelopes(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "store")
+	responses := session(t, []string{"--data-root", root},
+		`{"jsonrpc":"1.0","id":1,"method":"ping"}`,
+		`{"id":2,"method":"ping"}`,
+		`{"jsonrpc":"2.0","id":{"a":1},"method":"ping"}`,
+		`{"jsonrpc":"2.0","id":[1],"method":"ping"}`,
+		`{"jsonrpc":"2.0","id":true,"method":"ping"}`,
+		`{"jsonrpc":"2.0","id":"s-1","method":"ping"}`,
+		`{"jsonrpc":"2.0","id":-7,"method":"ping"}`,
+		`{"jsonrpc":"2.0","id":null,"method":"ping"}`,
+	)
+	if len(responses) != 8 {
+		t.Fatalf("got %d responses", len(responses))
+	}
+	for i := 0; i < 5; i++ {
+		if code := errorCode(t, responses[i]); code != -32600 {
+			t.Errorf("response %d code = %v, want -32600", i, code)
+		}
+		if responses[i]["id"] != nil {
+			t.Errorf("response %d id = %v, want null for an invalid request", i, responses[i]["id"])
+		}
+	}
+	for i := 5; i < 8; i++ {
+		if _, ok := responses[i]["result"]; !ok {
+			t.Errorf("response %d should succeed, got %v", i, responses[i])
+		}
+	}
+}
+
+func TestMCPRefusesToolCallsBeforeInitialize(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "store")
+	mustRun(t, "init", "--data-root", root)
+	call := `{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"add_recommendation","arguments":{"id":"R1","statement":"s"}}}`
+	responses := session(t, []string{"--data-root", root}, call, `{"jsonrpc":"2.0","id":3,"method":"ping"}`)
+	if code := errorCode(t, responses[0]); code != -32600 {
+		t.Errorf("tools/call before initialize code = %v, want -32600", code)
+	}
+	if _, ok := responses[1]["result"]; !ok {
+		t.Errorf("ping may be answered before initialize, got %v", responses[1])
+	}
+	// The refused call must not have written anything.
+	after := session(t, []string{"--data-root", root}, initialize,
+		`{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"resume","arguments":{}}}`)
+	text, isError := callText(after[1])
+	if isError || strings.Contains(text, "R1") {
+		t.Errorf("a refused tools/call must not record anything, got %q", text)
+	}
+}
+
+func TestMCPInitializeRequiresProtocolVersionAndAnswersWithItsOwn(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "store")
+	responses := session(t, []string{"--data-root", root},
+		`{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"clientInfo":{"name":"x"}}}`,
+		`{"jsonrpc":"2.0","id":2,"method":"initialize","params":{"protocolVersion":"1999-01-01","clientInfo":{"name":"x"}}}`,
+	)
+	if code := errorCode(t, responses[0]); code != -32602 {
+		t.Errorf("initialize without protocolVersion code = %v, want -32602", code)
+	}
+	got := responses[1]["result"].(map[string]any)["protocolVersion"]
+	if got != mcpProtocolVersion {
+		t.Errorf("protocolVersion = %v, want the server's own %s", got, mcpProtocolVersion)
+	}
+}
+
+func TestMCPRejectsAnOversizedLineAndKeepsServing(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "store")
+	huge := `{"jsonrpc":"2.0","id":1,"method":"ping","pad":"` + strings.Repeat("a", mcpMaxLineBytes+10) + `"}`
+	responses := session(t, []string{"--data-root", root}, huge, `{"jsonrpc":"2.0","id":2,"method":"ping"}`)
+	if len(responses) != 2 {
+		t.Fatalf("got %d responses", len(responses))
+	}
+	if code := errorCode(t, responses[0]); code != -32600 {
+		t.Errorf("oversized line code = %v, want -32600", code)
+	}
+	if _, ok := responses[1]["result"]; !ok {
+		t.Errorf("the line after an oversized one must still be served, got %v", responses[1])
+	}
+}
