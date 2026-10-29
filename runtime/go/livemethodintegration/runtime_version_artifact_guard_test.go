@@ -118,6 +118,24 @@ func verifyRuntimeExchangeKJAtlasSource() error {
 	}
 }
 
+// pythonInterpreter returns the first of python3, python and py that starts and
+// reports a Python version. Windows ships no python3, and the Microsoft Store
+// stub named python3 exits without running anything, so a bare "python3" is
+// not portable.
+func pythonInterpreter() string {
+	for _, name := range []string{"python3", "python", "py"} {
+		path, err := exec.LookPath(name)
+		if err != nil {
+			continue
+		}
+		out, err := exec.Command(path, "--version").CombinedOutput()
+		if err == nil && strings.HasPrefix(strings.TrimSpace(string(out)), "Python") {
+			return path
+		}
+	}
+	return "python3"
+}
+
 func verifyRuntimeExchangeKJAtlasBundle() error {
 	backendDir, err := runtimeExchangeRequiredPath(runtimeExchangeKJAtlasBackendDirEnv)
 	if err != nil {
@@ -128,7 +146,7 @@ func verifyRuntimeExchangeKJAtlasBundle() error {
 		return err
 	}
 
-	command := exec.Command("python3", verifier, "--backend-dir", backendDir)
+	command := exec.Command(pythonInterpreter(), verifier, "--backend-dir", backendDir)
 	output, err := command.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("KJ Atlas runtime source bundleを再検証できません: %s: %w", strings.TrimSpace(string(output)), err)
