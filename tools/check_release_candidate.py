@@ -19,7 +19,6 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_CONFIG = ROOT / "release" / "v0.1.0" / "release-candidate.json"
 EXPECTED_SCHEMA = "sei.release-candidate/v1"
 EXPECTED_REPOSITORY = "hat47x/sei-cognition"
 # ADR-0031の3および5。改名前に記録されたEvidenceは旧identityと旧repository名を
@@ -372,7 +371,13 @@ def build_report(
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
+    # 既定configは置かない。versionごとにpolicyが異なるため、検査対象を明示させる。
+    parser.add_argument(
+        "--config",
+        type=Path,
+        required=True,
+        help="検査するrelease-candidate.json（例: release/v0.2.0/release-candidate.json）",
+    )
     parser.add_argument("--report", type=Path)
     args = parser.parse_args()
 
@@ -416,7 +421,10 @@ def main() -> int:
             f"commit={report['source_commit_sha']} tree={report['source_tree_sha']} "
             f"plan_scope<={plan_issue_scope_max} deferred={deferred}"
         )
-        print("Release Evidence remains NOT VERIFIED until an actual release is created and bound.")
+        print(
+            f"This PASS covers the v{version} candidate policy only and is not Release Evidence. "
+            f"The Evidence status of v{version} is recorded in its own release documents under release/v{version}/."
+        )
         return 0
     except (ValueError, subprocess.CalledProcessError) as exc:
         print(f"FAIL: {exc}", file=sys.stderr)

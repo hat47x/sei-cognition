@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 import tempfile
@@ -60,6 +61,8 @@ class PlanRegistryCheckerTest(unittest.TestCase):
             [sys.executable, str(root / "plan" / "scripts" / "check_plan_registry.py")],
             cwd=root,
             text=True,
+            encoding="utf-8",
+            env={**os.environ, "PYTHONUTF8": "1"},
             capture_output=True,
             check=False,
         )

@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 import unittest
 from pathlib import Path
 
@@ -48,6 +50,32 @@ class ReleaseCandidateLocalExecutionTest(unittest.TestCase):
                     (ROOT / "release" / f"v{version}" / "release-candidate.json").read_text(encoding="utf-8")
                 )
                 self.assertEqual(policy.required_gates, frozenset(config["required_gates"]))
+
+
+class ReleaseCandidateCliTest(unittest.TestCase):
+    CHECKER = ROOT / "tools" / "check_release_candidate.py"
+
+    def run_checker(self, *args):
+        return subprocess.run(
+            [sys.executable, str(self.CHECKER), *args],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+
+    def test_config_is_required_so_no_stale_default_policy_passes(self):
+        result = self.run_checker()
+        self.assertEqual(2, result.returncode)
+        self.assertIn("--config", result.stderr)
+        self.assertNotIn("PASS", result.stdout)
+
+    def test_v020_config_reports_v020_and_does_not_claim_evidence_is_unverified(self):
+        result = self.run_checker("--config", "release/v0.2.0/release-candidate.json")
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn("PASS: SEI v0.2.0 release candidate policy", result.stdout)
+        self.assertNotIn("NOT VERIFIED", result.stdout)
+        self.assertIn("not Release Evidence", result.stdout)
 
 
 if __name__ == "__main__":
