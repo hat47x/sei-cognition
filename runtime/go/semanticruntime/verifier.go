@@ -131,6 +131,13 @@ func (jcsSHA256Verifier) Digest(payload []byte) (string, error) {
 	return sha256Digest(canonical), nil
 }
 
+// JCSSHA256Digest returns the sei.jcs+sha256/v1alpha1 digest of a JSON payload
+// in the "sha256:<hex>" form. It is the same computation the verifier uses for
+// an exact reference, exposed so that callers can bind to stored content.
+func JCSSHA256Digest(payload []byte) (string, error) {
+	return jcsSHA256Verifier{}.Digest(payload)
+}
+
 type rawBytesSHA256Verifier struct{}
 
 func (rawBytesSHA256Verifier) Profile() RepresentationProfile {

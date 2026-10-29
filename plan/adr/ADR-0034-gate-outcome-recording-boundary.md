@@ -31,6 +31,8 @@ ADR-0033は、Decision Gatewayが実行意図の発行前に、参照するDecis
 
 確認のたびに、時刻、決定ID、結果、理由、方針、確認していない事項を、`gate-checks.jsonl`へ追記します。このログは、判断の記録とは別の、運用のための記録です。
 
+2026-10-29(#699): 同じ運用ログに、判定時点のbundle識別(`bundle_id`、bundle全体のdigest)と対象Decisionの内容digest(`sei.jcs+sha256/v1alpha1`)を加えました。これは、どの状態のstoreに対する結果かを後から照合するための運用上の項目です。gate結果を正規記録にするかという本ADRの判断は変えず、digestもSemantic Contractの項目にはしません。
+
 ```text
 gate-checks.jsonl(運用ログ)
   != Semantic Contractの記録

@@ -95,6 +95,10 @@ sei gate check --decision D-vendor
 
 確認のたびに、時刻、結果、方針が`gate-checks.jsonl`に追記されます。このログは運用のための記録で、`sei export`の書き出しには含まれません。ログに書けない場合は、許可を出さずに終了コード1で失敗します。
 
+出力の`binding`と、ログの同じ項目は、判定した時点のstoreの内容を指します。`bundle_id`、`bundle_digest`(読んだ`semantic.bundle.json`全体のSHA-256。`sei resume`の`snapshot_digest`と同じ値)、`decision_record_id`、`decision_digest`(その決定の記録のpayloadを`sei.jcs+sha256/v1alpha1`で正規化したdigest)です。後から`add`で記録が増えると`bundle_digest`が変わるため、古い`allow`と今のstoreの`allow`を区別できます。digestが一致しても、確認の後にstoreが変わっていないことや、その決定が今も有効であることは示しません。同じIDの決定が複数ある場合は、どれを指すか決められないため`deny`にし、`binding`は出しません。
+
+`sei gate check`は、storeを読んでからログへ追記するまでの間、`store.lock`を持ちます。この間に`sei add`が書き込むことはなく、ログのdigestは確認した内容と一致します。ロックを取れない場合は、確認できなかったものとして終了コード1で失敗します。
+
 ## 6. AIツールから使う
 
 MCP(Model Context Protocol)に対応するAIツールには、次のコマンドをMCP serverとして登録します。通信は標準入出力です。
