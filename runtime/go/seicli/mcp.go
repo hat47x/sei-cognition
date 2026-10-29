@@ -28,6 +28,10 @@ import (
 
 const mcpProtocolVersion = "2025-06-18"
 
+// mcpMaxLineBytes bounds one JSON-RPC message. A longer line is answered with
+// an error and discarded without being parsed.
+const mcpMaxLineBytes = 1 << 20
+
 // defaultProvenance is used when the client did not send a name at initialize.
 const defaultProvenance = "mcp-client"
 
@@ -60,6 +64,7 @@ type mcpServer struct {
 	dataRoot      string
 	allowDecision bool
 	clientName    string
+	initialized   bool
 }
 
 // mcpArgKeys lists the arguments each tool accepts. Any other key is refused.
@@ -86,12 +91,17 @@ func (s *mcpServer) serve(ctx context.Context, stdin io.Reader, stdout io.Writer
 	enc := json.NewEncoder(stdout)
 	enc.SetEscapeHTML(false)
 	for {
-		line, err := reader.ReadBytes('\n')
-		if len(bytes.TrimSpace(line)) > 0 {
-			if resp := s.handle(ctx, line); resp != nil {
-				if encErr := enc.Encode(resp); encErr != nil {
-					return encErr
-				}
+		line, tooLong, err := readBoundedLine(reader, mcpMaxLineBytes)
+		var resp *rpcResponse
+		switch {
+		case tooLong:
+			resp = &rpcResponse{JSONRPC: "2.0", ID: json.RawMessage("null"), Error: &rpcError{Code: -32600, Message: fmt.Sprintf("request line exceeds %d bytes", mcpMaxLineBytes)}}
+		case len(bytes.TrimSpace(line)) > 0:
+			resp = s.handle(ctx, line)
+		}
+		if resp != nil {
+			if encErr := enc.Encode(resp); encErr != nil {
+				return encErr
 			}
 		}
 		if errors.Is(err, io.EOF) {
@@ -103,14 +113,57 @@ func (s *mcpServer) serve(ctx context.Context, stdin io.Reader, stdout io.Writer
 	}
 }
 
+// readBoundedLine reads up to the next newline. When the line is longer than
+// max, the rest of it is read and dropped and tooLong is true, so memory stays
+// bounded however long the input line is.
+func readBoundedLine(r *bufio.Reader, max int) (line []byte, tooLong bool, err error) {
+	for {
+		chunk, readErr := r.ReadSlice('\n')
+		if !tooLong {
+			if len(line)+len(chunk) > max {
+				tooLong = true
+				line = nil
+			} else {
+				line = append(line, chunk...)
+			}
+		}
+		if errors.Is(readErr, bufio.ErrBufferFull) {
+			continue
+		}
+		return line, tooLong, readErr
+	}
+}
+
+// validRPCID reports whether raw is a JSON-RPC 2.0 id: a string, a number, or null.
+func validRPCID(raw json.RawMessage) bool {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return false
+	}
+	switch trimmed[0] {
+	case '"', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+		return true
+	}
+	return string(trimmed) == "null"
+}
+
 // handle returns nil for notifications, which take no response.
 func (s *mcpServer) handle(ctx context.Context, line []byte) *rpcResponse {
 	var req rpcRequest
 	if err := json.Unmarshal(line, &req); err != nil {
 		return &rpcResponse{JSONRPC: "2.0", ID: json.RawMessage("null"), Error: &rpcError{Code: -32700, Message: "parse error"}}
 	}
+	invalid := func(msg string) *rpcResponse {
+		return &rpcResponse{JSONRPC: "2.0", ID: json.RawMessage("null"), Error: &rpcError{Code: -32600, Message: msg}}
+	}
+	if req.JSONRPC != "2.0" {
+		return invalid(`invalid request: jsonrpc must be "2.0"`)
+	}
 	if len(req.ID) == 0 {
 		return nil
+	}
+	if !validRPCID(req.ID) {
+		return invalid("invalid request: id must be a string, a number or null")
 	}
 	reply := func(result any) *rpcResponse { return &rpcResponse{JSONRPC: "2.0", ID: req.ID, Result: result} }
 	fail := func(code int, msg string) *rpcResponse {
@@ -120,12 +173,18 @@ func (s *mcpServer) handle(ctx context.Context, line []byte) *rpcResponse {
 	switch req.Method {
 	case "initialize":
 		var p struct {
-			ClientInfo struct {
+			ProtocolVersion string `json:"protocolVersion"`
+			ClientInfo      struct {
 				Name string `json:"name"`
 			} `json:"clientInfo"`
 		}
-		_ = json.Unmarshal(req.Params, &p)
+		if err := json.Unmarshal(req.Params, &p); err != nil || p.ProtocolVersion == "" {
+			return fail(-32602, "invalid params: protocolVersion is required")
+		}
 		s.clientName = p.ClientInfo.Name
+		s.initialized = true
+		// The server answers with the one version it implements, whatever the
+		// client asked for; a client that cannot use it disconnects (MCP lifecycle).
 		return reply(map[string]any{
 			"protocolVersion": mcpProtocolVersion,
 			"capabilities":    map[string]any{"tools": map[string]any{}},
@@ -136,6 +195,9 @@ func (s *mcpServer) handle(ctx context.Context, line []byte) *rpcResponse {
 	case "tools/list":
 		return reply(map[string]any{"tools": s.tools()})
 	case "tools/call":
+		if !s.initialized {
+			return fail(-32600, "invalid request: initialize must complete before tools/call")
+		}
 		var p struct {
 			Name      string         `json:"name"`
 			Arguments map[string]any `json:"arguments"`
