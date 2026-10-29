@@ -11,10 +11,10 @@ import (
 )
 
 type processInspectResult struct {
-	BundleID          string `json:"bundle_id"`
-	RecordCount       int    `json:"record_count"`
-	ValidatedCount    int    `json:"validated_count"`
-	NotVerifiedCount  int    `json:"not_verified_count"`
+	BundleID         string `json:"bundle_id"`
+	RecordCount      int    `json:"record_count"`
+	ValidatedCount   int    `json:"validated_count"`
+	NotVerifiedCount int    `json:"not_verified_count"`
 }
 
 func TestBuiltProbeExecutableReloadsFromNewProcess(t *testing.T) {

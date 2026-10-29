@@ -38,8 +38,8 @@ type RepresentationProfile struct {
 }
 
 type ExactBinding struct {
-	LogicalRef            LogicalReference       `json:"logical_ref"`
-	ContentDigest         string                 `json:"content_digest"`
+	LogicalRef            LogicalReference      `json:"logical_ref"`
+	ContentDigest         string                `json:"content_digest"`
 	RepresentationProfile RepresentationProfile `json:"representation_profile"`
 }
 
@@ -155,14 +155,14 @@ type MappingProvenance struct {
 }
 
 type CapabilityObservation struct {
-	Ref               LogicalReference   `json:"ref"`
-	Target            CapabilityTarget   `json:"target"`
-	ObservedAt        string             `json:"observed_at"`
-	ValidUntil        string             `json:"valid_until,omitempty"`
+	Ref               LogicalReference    `json:"ref"`
+	Target            CapabilityTarget    `json:"target"`
+	ObservedAt        string              `json:"observed_at"`
+	ValidUntil        string              `json:"valid_until,omitempty"`
 	Conditions        []ObservedCondition `json:"conditions"`
-	ProvenanceRefs    []Reference        `json:"provenance_refs,omitempty"`
-	MappingProvenance *MappingProvenance `json:"mapping_provenance,omitempty"`
-	Extensions        map[string]any     `json:"extensions,omitempty"`
+	ProvenanceRefs    []Reference         `json:"provenance_refs,omitempty"`
+	MappingProvenance *MappingProvenance  `json:"mapping_provenance,omitempty"`
+	Extensions        map[string]any      `json:"extensions,omitempty"`
 }
 
 type CapabilityObservationDocument struct {

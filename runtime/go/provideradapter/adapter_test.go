@@ -32,9 +32,9 @@ func readProviderFixture(t *testing.T, name string) []byte {
 
 func testContext(id, source string) ObservationContext {
 	return ObservationContext{
-		ObservationID: id,
-		CapabilityRef: semanticruntime.LogicalReference{Kind: "capability", ID: "document-summarization"},
-		ObservedAt: "2026-08-31T02:10:00Z",
+		ObservationID:  id,
+		CapabilityRef:  semanticruntime.LogicalReference{Kind: "capability", ID: "document-summarization"},
+		ObservedAt:     "2026-08-31T02:10:00Z",
 		SourceStateRef: source,
 	}
 }
