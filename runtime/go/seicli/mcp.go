@@ -65,7 +65,7 @@ type mcpServer struct {
 // mcpArgKeys lists the arguments each tool accepts. Any other key is refused.
 var mcpArgKeys = map[string][]string{
 	"resume":             {"record_id", "snapshot_digest"},
-	"check_decision":     {"decision", "require_recommendation", "deny_unresolved"},
+	"check_decision":     {"decision", "scope", "require_recommendation", "deny_unresolved"},
 	"add_recommendation": {"id", "statement", "rationale", "basis"},
 	"add_decision":       {"id", "statement", "rationale", "basis", "recommendation", "unresolved", "responsible"},
 }
@@ -196,6 +196,7 @@ func (s *mcpServer) tools() []mcpTool {
 			"required": []string{"decision"},
 			"properties": map[string]any{
 				"decision":               stringProp("Id of the recorded decision the action relies on"),
+				"scope":                  stringProp("Scope of that decision. Required when the same id exists in more than one scope; an empty string names the decision with no scope. Without it, an id that matches several decisions is denied as ambiguous"),
 				"require_recommendation": map[string]any{"type": "boolean", "description": "Deny when no recorded recommendation is relied on by the decision"},
 				"deny_unresolved":        map[string]any{"type": "boolean", "description": "Deny when the decision left questions unresolved"},
 			},
@@ -356,6 +357,13 @@ func (s *mcpServer) call(ctx context.Context, name string, args map[string]any) 
 			return "", err
 		}
 		cli = []string{"gate", "check", "--data-root=" + s.dataRoot, "--decision=" + id}
+		if _, ok := args["scope"]; ok {
+			scope, err := optionalString(args, "scope")
+			if err != nil {
+				return "", err
+			}
+			cli = append(cli, "--scope="+scope)
+		}
 		for _, key := range []string{"require_recommendation", "deny_unresolved"} {
 			on, err := boolArg(args, key)
 			if err != nil {
