@@ -172,8 +172,8 @@ AIツールが決定を記録できるようにするには、運用者が`--all
 
 - 成立すること: 決定の記録には、責任者(`responsible`)が必ず付きます。出所には、クライアントが名乗った名前が残ります。名前が空なら`mcp-client`が入ります。
 - 成立しないこと: クライアント名は自己申告で、認証されていません。クライアントは任意の名前を名乗れるため、記録の出所から人とAIとツールを区別することはできません。出所の種別(`kind`)は常に`source`で、`resume`が出すのはIDだけです。
-- 成立しないこと: `responsible`は任意の`kind:id`で、そのIDが実在の人や役割を指すこと、その人が内容を確認したことは検査されません。`sei check`は、責任者がAuthorityを持つことを未確認として出します。
-- 合成クライアントによる確認(`seicli/mcp_provenance_test.go`): `clientInfo.name`に`person:lead`と名乗らせると、出所にそのまま`person:lead`が入ります。名前が空の場合とclientInfoがない場合は`mcp-client`が入ります。出所の種別はどの場合も`source`です。`responsible`に誰を指定しても、そのまま保存され、`sei check`はAuthorityを未確認として出します。実際のAIクライアントからの接続では確かめていません。
+- 成立しないこと: `responsible`は任意の`kind:id`で、そのIDが実在の人や役割を指すこと、その人が内容を確認したことは検査されません。`sei gate check`は、責任者がAuthorityを持つことを未確認として出します。
+- 合成クライアントによる確認(`seicli/mcp_provenance_test.go`): `clientInfo.name`に`person:lead`と名乗らせると、出所にそのまま`person:lead`が入ります。名前が空の場合とclientInfoがない場合は`mcp-client`が入ります。出所の種別はどの場合も`source`です。`responsible`に誰を指定しても、そのまま保存され、`sei gate check`はAuthorityを未確認として出します。実際のAIクライアントからの接続では確かめていません。
 - 以上から、MCP経由で記録された決定は、人が決めたという根拠になりません。人が確認したことを示すには、運用者が別の手段で確かめてください。本人確認、署名、確認手順はSEIの契約にまだなく、設ける場合は別途の設計判断になります。
 
 ## 7. 守られていること
@@ -197,7 +197,7 @@ AIツールが決定を記録できるようにするには、運用者が`--all
 - 決定の改訂や取り消しのコマンドはありません。変更は、新しいIDの記録として追加します。
 - 署名や時刻の証明はありません。
 - `sei add`と`sei mcp`が記録できる種別は、推薦(recommendation)と決定(decision)だけです。観測、解釈、問い(Question)を記録する経路はありません。`--basis`や`--unresolved`には`kind:id`で観測や解釈を指せますが、その参照先はstoreの外にあります。storeには参照が残るだけで、参照先の内容は残りません。
-- `--basis`と`--unresolved`が指す参照先が実在するか、exact形式の参照でdigestが一致するかは、`sei check`も`sei verify`も検査しません。`sei check`は、検査しないことを`not_verified`に常に出し、決定の根拠ごとに「同じ識別のDecisionまたはRecommendationがstoreにあるか」と「exactのdigestを照合していない」ことを書き添えます。これは存在の有無を知らせるだけで、`allow`と`deny`の判定は変えません。storeに無い根拠を拒否するかどうかは、まだ決まっていません。`--recommendation`は記録済みの推薦に限りますが、`--basis`と`--unresolved`には同じ制限がありません。
+- `--basis`と`--unresolved`が指す参照先が実在するか、exact形式の参照でdigestが一致するかは、`sei gate check`も`sei verify`も検査しません。`sei gate check`は、検査しないことを`not_verified`に常に出し、決定の根拠ごとに「同じ識別のDecisionまたはRecommendationがstoreにあるか」と「exactのdigestを照合していない」ことを書き添えます。これは存在の有無を知らせるだけで、`allow`と`deny`の判定は変えません。storeに無い根拠を拒否するかどうかは、まだ決まっていません。`--recommendation`は記録済みの推薦に限りますが、`--basis`と`--unresolved`には同じ制限がありません。
 - 記録には、記録した時刻も、根拠となる観測を得た時刻もありません。`semantic.bundle.json`の日時はbundle全体の作成時刻だけです。記録の前後関係を配列の並びから読む場合、書き出しや並べ替えで失われるおそれがあります。
 - MCP経由の決定の出所(クライアント名)と責任者(`responsible`)は、自己申告のままです。本人確認はありません。
 - `sei add decision`をターミナルから実行した場合は、制限が働きません。`sei`のバイナリを実行できる人は、`responsible`を付けなくても決定を記録できます。既定の制限が働くのは、`sei mcp`で提供するツールだけです。
