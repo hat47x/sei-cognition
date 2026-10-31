@@ -379,7 +379,10 @@ func flagArgs(name string, values ...string) []string {
 // provenance is the client name given at initialize. It is not taken from the
 // tool arguments, so a caller cannot attribute its record to another tool.
 func (s *mcpServer) provenance() string {
-	if s.clientName != "" {
+	// A client name that sei add would refuse as a source (blank, padded or with a
+	// control character) is replaced, so a hostile name is never stored and the
+	// connection still works (#757).
+	if s.clientName != "" && checkIdentifier("clientInfo.name", s.clientName) == nil {
 		return s.clientName
 	}
 	return defaultProvenance
