@@ -99,6 +99,8 @@ Observation（観測）
 
 **このRelease Evidenceは本番運用や実際の利用者による受入を示しません。** 以後のcommitにも、過去の検証結果を自動的に適用しません。検証していないことは`Not Yet Verified`として残します。
 
+現在のmainにある`sei` CLI(`gate`・`mcp`を含む。使い方は[QUICKSTART](runtime/go/cmd/sei/QUICKSTART.md))は、v0.2.0のRelease Evidenceの対象外です。v0.2.0のtagには`runtime/go/seicli`と`runtime/go/cmd/sei`が含まれません。現在のmainの`sei`を版固定で入手する経路と、次のreleaseとして扱うかは未決です(Issue #688)。
+
 GitHub Actionsは当面停止しており、必要な検査は変更範囲に応じてローカルで実行する方針です。手順は[開発ワークフロー](plan/DEVELOPMENT_WORKFLOW.md)にあります。
 
 ## TEIとの関係
@@ -116,6 +118,7 @@ GitHub Actionsは当面停止しており、必要な検査は変更範囲に応
 | 構成と責務 | [architecture/README.md](architecture/README.md) |
 | Semantic Contractと表現形式 | [contracts/README.md](contracts/README.md) |
 | 評価と探索 | [evaluation/](evaluation/) |
+| `sei` CLIを使う(記録・再開・gate・MCP) | [runtime/go/cmd/sei/QUICKSTART.md](runtime/go/cmd/sei/QUICKSTART.md) |
 | Go実装と検証 | [runtime/](runtime/)・[tools/](tools/) |
 | Releaseの証拠 | [release/README.md](release/README.md) |
 | 現在の計画・ADR | [plan/](plan/) |
