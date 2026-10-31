@@ -278,6 +278,16 @@ func runAdd(ctx context.Context, args []string, stdout, stderr io.Writer) error 
 	if err := checkStatement(*statement); err != nil {
 		return err
 	}
+	if *source != "" {
+		if err := checkIdentifier("--source", *source); err != nil {
+			return err
+		}
+	}
+	if *rationale != "" {
+		if err := checkRationale(*rationale); err != nil {
+			return err
+		}
+	}
 	for _, list := range []struct {
 		name   string
 		values multiFlag

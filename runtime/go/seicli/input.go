@@ -41,6 +41,16 @@ func checkStatement(value string) error {
 	return nil
 }
 
+// checkRationale rejects a rationale that is only whitespace. An omitted
+// rationale is allowed, and a rationale may span lines, so only a value that
+// says nothing is refused (#757).
+func checkRationale(value string) error {
+	if strings.TrimSpace(value) == "" {
+		return fmt.Errorf("--rationale must not be only whitespace; omit it when there is no rationale")
+	}
+	return nil
+}
+
 // rejectDuplicateRefs refuses a list that names the same reference twice, so
 // the record does not claim two items where there is one.
 func rejectDuplicateRefs(flagName string, values []string) error {
