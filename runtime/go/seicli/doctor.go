@@ -176,7 +176,7 @@ func mcpServerDefinition(exe, dataRoot string) string {
 func runDoctor(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	f := newFlags("doctor", stderr)
 	root := dataRootFlag(f)
-	if err := f.Parse(args); err != nil {
+	if done, err := parseFlags(f, args, stdout, stderr); done || err != nil {
 		return err
 	}
 	checks := doctorChecks(ctx, resolveDataRoot(*root))
