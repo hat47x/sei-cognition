@@ -79,7 +79,7 @@ func runMCP(ctx context.Context, args []string, stdin io.Reader, stdout, stderr 
 	f := newFlags("mcp", stderr)
 	root := dataRootFlag(f)
 	allow := f.Bool("allow-decision", false, "also offer add_decision to the connected tool (requires a named responsible party)")
-	if err := f.Parse(args); err != nil {
+	if done, err := parseFlags(f, args, stdout, stderr); done || err != nil {
 		return err
 	}
 	server := &mcpServer{dataRoot: resolveDataRoot(*root), allowDecision: *allow}

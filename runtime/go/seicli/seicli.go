@@ -6,6 +6,7 @@
 package seicli
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/json"
@@ -67,7 +68,7 @@ func Run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	case "verify":
 		return runVerify(args[1:], stdout, stderr)
 	case "export":
-		return runExport(ctx, args[1:], stderr)
+		return runExport(ctx, args[1:], stdout, stderr)
 	case "doctor":
 		return runDoctor(ctx, args[1:], stdout, stderr)
 	case "gate":
@@ -202,7 +203,7 @@ func runInit(ctx context.Context, args []string, stdout, stderr io.Writer) error
 	f := newFlags("init", stderr)
 	root := dataRootFlag(f)
 	bundleID := f.String("bundle-id", "", "identifier of the store (default: sei-store-<UTC date>)")
-	if err := f.Parse(args); err != nil {
+	if done, err := parseFlags(f, args, stdout, stderr); done || err != nil {
 		return err
 	}
 	dir := resolveDataRoot(*root)
@@ -244,6 +245,10 @@ func marshalEnvelope(envelope semanticruntime.SemanticInterchange) ([]byte, erro
 }
 
 func runAdd(ctx context.Context, args []string, stdout, stderr io.Writer) error {
+	if len(args) > 0 && isHelpArg(args[0]) {
+		fmt.Fprintln(stdout, "usage: sei add <recommendation|decision> [flags]\n\nrun \"sei add recommendation --help\" or \"sei add decision --help\" for the flags")
+		return nil
+	}
 	if len(args) == 0 || (args[0] != "recommendation" && args[0] != "decision") {
 		return errors.New("add requires a record type: recommendation or decision")
 	}
@@ -261,7 +266,7 @@ func runAdd(ctx context.Context, args []string, stdout, stderr io.Writer) error 
 		f.Var(&unresolved, "unresolved", "unresolved reference kind:id left open by this decision (repeatable)")
 		f.Var(&recommendations, "recommendation", "recommendation this decision relies on, a recorded recommendation id (repeatable)")
 	}
-	if err := f.Parse(args[1:]); err != nil {
+	if done, err := parseFlags(f, args[1:], stdout, stderr); done || err != nil {
 		return err
 	}
 	if *id == "" || *statement == "" {
@@ -591,7 +596,7 @@ func runResume(ctx context.Context, args []string, stdout, stderr io.Writer) err
 	asJSON := f.Bool("json", false, "machine-readable output")
 	recordID := f.String("record-id", "", "return one original record (requires --json and --snapshot-digest)")
 	expectedDigest := f.String("snapshot-digest", "", "expected original bundle digest from resume")
-	if err := f.Parse(args); err != nil {
+	if done, err := parseFlags(f, args, stdout, stderr); done || err != nil {
 		return err
 	}
 	lookupRequested := false
@@ -740,7 +745,7 @@ func sourceSuffix(sources []string) string {
 func runVerify(args []string, stdout, stderr io.Writer) error {
 	f := newFlags("verify", stderr)
 	input := f.String("input", "", "portable bundle file (required)")
-	if err := f.Parse(args); err != nil {
+	if done, err := parseFlags(f, args, stdout, stderr); done || err != nil {
 		return err
 	}
 	if *input == "" {
@@ -770,11 +775,11 @@ func runVerify(args []string, stdout, stderr io.Writer) error {
 	return writeJSON(stdout, result)
 }
 
-func runExport(ctx context.Context, args []string, stderr io.Writer) error {
+func runExport(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	f := newFlags("export", stderr)
 	root := dataRootFlag(f)
 	output := f.String("output", "", "file to create (required; an existing file is never overwritten)")
-	if err := f.Parse(args); err != nil {
+	if done, err := parseFlags(f, args, stdout, stderr); done || err != nil {
 		return err
 	}
 	if *output == "" {
@@ -807,4 +812,26 @@ func writeJSON(w io.Writer, v any) error {
 	enc := json.NewEncoder(w)
 	enc.SetEscapeHTML(false)
 	return enc.Encode(v)
+}
+
+// parseFlags parses a subcommand's flags. A help request (-h, -help, --help)
+// is a normal question, so its usage goes to stdout and the command ends
+// without error (done is true). Any other parse error keeps its message on
+// stderr and is returned as an error.
+func parseFlags(f *flag.FlagSet, args []string, stdout, stderr io.Writer) (done bool, err error) {
+	var buf bytes.Buffer
+	f.SetOutput(&buf)
+	err = f.Parse(args)
+	f.SetOutput(stderr)
+	if errors.Is(err, flag.ErrHelp) {
+		_, _ = stdout.Write(buf.Bytes())
+		return true, nil
+	}
+	_, _ = stderr.Write(buf.Bytes())
+	return false, err
+}
+
+// isHelpArg reports whether a single argument asks for help.
+func isHelpArg(a string) bool {
+	return a == "-h" || a == "-help" || a == "--help"
 }

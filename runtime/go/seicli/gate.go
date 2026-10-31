@@ -334,6 +334,10 @@ func appendGateLog(dataRoot string, result GateResult) error {
 }
 
 func runGate(ctx context.Context, args []string, stdout, stderr io.Writer) error {
+	if len(args) > 0 && isHelpArg(args[0]) {
+		fmt.Fprintln(stdout, "usage: sei gate check [flags]\n\nrun \"sei gate check --help\" for the flags")
+		return nil
+	}
 	if len(args) == 0 || args[0] != "check" {
 		return errors.New("gate requires a subcommand: check")
 	}
@@ -345,7 +349,7 @@ func runGate(ctx context.Context, args []string, stdout, stderr io.Writer) error
 	f.BoolVar(&policy.RequireResponsible, "require-responsible", true, "deny when the decision names no responsible party")
 	f.BoolVar(&policy.RequireRecommendation, "require-recommendation", false, "deny when the decision relies on no recorded recommendation")
 	f.BoolVar(&policy.DenyUnresolved, "deny-unresolved", false, "deny when the decision left questions unresolved")
-	if err := f.Parse(args[1:]); err != nil {
+	if done, err := parseFlags(f, args[1:], stdout, stderr); done || err != nil {
 		return err
 	}
 	if *id == "" {
