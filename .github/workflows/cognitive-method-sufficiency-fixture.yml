@@ -1,0 +1,31 @@
+name: SEI Cognitive Method public fixture
+
+on:
+  pull_request:
+    paths:
+      - "evaluation/cognitive-method-sufficiency/**"
+      - ".github/workflows/cognitive-method-sufficiency-fixture.yml"
+  push:
+    paths:
+      - "evaluation/cognitive-method-sufficiency/**"
+      - ".github/workflows/cognitive-method-sufficiency-fixture.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  finite-worlds:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Python version
+        run: python3 --version
+      - name: Run all four public synthetic test modules
+        working-directory: evaluation/cognitive-method-sufficiency
+        run: |
+          python3 -m unittest -v \
+            probe_partition_reference \
+            test_probe_claim_qualifiers \
+            test_probe_planning_visibility \
+            test_negative_evidence_closure
