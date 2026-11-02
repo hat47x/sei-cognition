@@ -551,6 +551,28 @@ ISSUE-000073のResolution判断では、E1〜E8のScoped Executable Evidence、H
 
 **研究・実装の追跡先。** Source/ExactBinding投影はSEI #697、資料の解決は#710、Lineageは#687、現在文脈は#660、組織的再開は#677、Cognitive Methodの外延・意味残差・開示・現在性と次の証拠選択は#767が所有する。本書はH1/H2の人間評価を担当し、それらのAPI・意味規則を重複実装する計画ではない。
 
+
+### 12.2 後続研究への接続：問いを見失わず、次の証拠を選べるか
+
+**追加operator票／2026-11-02（H1/H2の固定stimulus・本体session・採否条件は変更しない）。** SEI #767のP5/P6およびDraft PR #770の公開合成Referenceから、既存のH1「何を見直すべきか」という設問の理解を深める。**既存のH1回答が固定されるまで、本節にある正解候補や識別的Probeをreaderへ提示しない。** H2の3ケース×3条件を新しい研究Corpusへ混ぜず、事前露出による比較汚染を避ける。
+
+**既存回答固定後にoperatorが記録する六つの確認欄。**
+
+| 欄 | operatorが観測・照合すること |
+| --- | --- |
+| 問いQ | 利用者が答えようとしたClaimは「当時の判断」「現在の適合」「区間中の変更なし」「全件成立」「Action完了」などのどれか。対象・時点・範囲・用途を残す |
+| 観測Oと被覆 | 回収したSource・snapshot・scope・資料の位置・取得範囲・観測不能。局所検査成功を対象Lの全件検査と解釈したか |
+| 残る仮説 | 観測は同じだがQが異なる公開合成二世界を示せるか。過去のQに答えられても現在のQに不足があるか |
+| 識別的な次の確認 | 何を追加で見ると仮説が分かれる可能性があるか。独立Source、区間履歴、実Source入力、Owner専門確認などの候補と理由 |
+| 実施可能性／開示 | 提案・実Tool・現在許可・実行・取得結果・開示可能性を別にし、内部の秘匿差の存在自体も外部へ漏らさない |
+| 認知的負担と成果 | 次の有用な確認に到達できたか、再閲覧回数、実際の修正負担、不要な質問、追加時間。Product利用前の作業を事後推定で埋めない |
+
+**判別的な二問の例（operator/別合成ケース用）。** `現在、対象集合は同じか`はt2のSnapshotで答えられる場合がある。一方、`前回レビュー後に対象集合が一度も変わらなかったか`はt1で加入・離脱した履歴の有無に左右され、同じt2 Snapshotからは判別できない。W1〜W4でQを区別できたProbeも公開追加世界W5では十分でない（SEI #770の**合成6/6 PASS**）。この差は新しいH1/H2の合格実測ではなく、追加確認を選ぶための研究入力である。
+
+**将来の外部Harness比較の扱い。** `yi-sei-inquiry`はSEI #769のProposed Skill。Skill説明・Tool呼出し・Message受信・Agent多数決を、実Source独立性、正しいClaim、公開資格、人の意味受理と区別する。既存Method v1alpha1のDefinition/Realization/Applicationとinput/output/residual参照を利用した引継ぎ可能性を評価し、新しいRunner・Truth Storeを前提としない。Skillあり／なしの比較は既存のH1/H2で値を作らず別評価票に残す。
+
+**比較の停止線。** 同一の可視情報から異なるQが成立する場合、外部Consumerがその差を識別できたと推測しない。適切な次の根拠を提案できたかと、許可のあるProductが実際に取得・検証できたかは別。H1/H2のHuman Product Value、実Provider・権限・実操作は依然として未観測。
+
 ## 13. Natural Japanese review
 
 H2用に既に成立していたmatched review手順を維持しながら、073/078で同じreview runnerを共有する形へ整理した。H2ではreviewer provenanceを最初のstimulus提示前に固定し、その初期sessionをexclusive-createして同じpathへの再initを拒否する。provenance付きsessionを低レベルstage-gate CLIから直接提示・記録する迂回も拒否し、condition labelを伏せたbundle、Issue固有response validation、complete後のEvidence exportまでを同じ入口へ集約した。また、ISSUE-000073で未接続だったH1 actual resume usabilityを既存Personal Inquiry Continuity dogfood surfaceへ接続した。
