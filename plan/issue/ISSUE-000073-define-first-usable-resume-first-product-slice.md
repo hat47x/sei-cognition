@@ -659,6 +659,40 @@ SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw 
 
 **Evidence更新（2026-11-02）。** [SEI Draft #770](https://github.com/hat47x/sei-cognition/pull/770)は公開合成の先行13件にPlanner-visible leakの新規7件を追加し、新規7/7 PASSを報告した。ただし**追加後の3 Module全20件一括回帰は未実行**で、実OS/Tool/Skillの機密非干渉を実証したものではない。別途、H2 captureの修正候補を[Draft #771](https://github.com/hat47x/sei-cognition/pull/771)として2ファイルに記録し、期待ID完全性・skip・同数別ID・`--replace`失敗時の旧Evidence保全を実装案と合成セルフテストに落とした。**#771のPython actual self-testと現行H2 actual 20件実行は未取得**。Draft PRの作成や静的照合をEvidence PASSへ昇格させない。
 
+
+### 2026-11-02 依存に応じた再資格化と、証拠の受渡し・重複実装の整理
+
+**成熟した横断設計／製品受入候補（現状はDraft・NOT RUN）。** [TAI #271](https://github.com/hat47x/tai-pleroma/issues/271)・[TAI Draft #270](https://github.com/hat47x/tai-pleroma/pull/270)、[TEI #2516](https://github.com/hat47x/tei-platform/issues/2516)・[Draft #2626](https://github.com/hat47x/tei-platform/pull/2626)、SEI #767を照合すると、Decision Continuityの再開時に「すべてを再検証」か「過去の成功をそのまま使う」かの二択を要求する必要はない。**現在の問いQに依存するSource／Rule／Scope／時点／現行Authority／出力世代を明らかにし、変化に関係する部分から再確認する**ことを独立した候補とする。
+
+**再利用の判断単位。** 一つのActivity/Decisionを、少なくとも以下の観測列で比較する。これはH1/横断評価用の**operator票**であり、第二のCanonical Dependency Graph、SEI Runtime Schema、横断Hostの導入計画ではない。
+
+| 観測対象 | 固定・再確認する内容 | 残余の扱い |
+| --- | --- | --- |
+| 過去の事実 | Decision／Method Application／原Sourceの当時のExact Bindingと採取版、当時の受理記録 | 後日の変化で歴史的存在自体を消さない |
+| 今回の問いQ | Historical / Current / Interval / Joint Claim / Action Outcome、必要なScope・Grain・Rule・期間 | 問いが変われば必要依存を再選択する |
+| 必要な根拠 | Qを支持するSource・Rule・関係・Oracle・Review／受理・依存Edge、対象全件性 | 不明なEdgeを「無関係・変更なし」とみなさない |
+| 実取得・共同整合 | 実Toolの版／args／Workspace、実Read／epoch／必要な同版保証または有効なbridge | 単品PASSから共同Claimを成立させない |
+| 開示と現在資格 | 実Reader・現在Grant/Trust・公開可能な根拠、Tool候補や診断の公開範囲 | 履歴時点の許可・Skill loadから現在の許可を推定しない |
+| 再開による効果 | 独立した次の確認、実Source再読取、実Artifact取得／Body受領、利用者の理解と負担 | Claim ACK／Tool成功／実物の到着／最終成果を段階別に記録する |
+
+**選択的な再資格化の三方式。** 同じ固定入力と独立した期待値で、(R0)必要そうなSourceとConsumerを毎回全面再検証、(R1)実証された依存・版・用途を使って関連箇所だけ再確認、(R2)過去の成功を再確認せず採用、を比較する。R1では旧Evidenceを履歴として保持し、*現在のClaim*に適用できる部分と、取得・比較・開示・権限が未確認な部分を分離する。依存・現行時点の証拠が不足する場合は限定的なread-only調査を継続できても、未確認のAction/Business完了を成立させない。**false reuse（誤再利用）**と**unnecessary invalidation（不要な失効）**の双方を検出し、Source再読取数、Tool呼出し、時間、Token、人的修正・Review負担を分けて測る。TAI #271のActivity全体継続と、SEI #767のQ相対の根拠十分性は独立Ownerのままとする。
+
+**横断的な受渡しの証拠を細分化する。** [EKI #465](https://github.com/hat47x/eki-fabric/issues/465) の同一AttemptのClaim ACKは、Output Bodyが届いたことを証明しない。[SHO #7](https://github.com/hat47x/sho-composer/issues/7)／[#10](https://github.com/hat47x/sho-composer/issues/10) の文書にSourceへのリンクがあることも、原文の読出し・Source occurrence再解決・保存・納品の完了を証明しない。TEI #2516の実Consumerでも、単品digestや実CLIのread-only成功から別成果物世代の共同Claimを認めない。Decision再開では`何を思い出したか`、`何を受け取ったか`、`何を実際に確認し次へ進めたか`を個別に残す。Operator/Harnessの表示にある`complete`を、実Artifact到達／業務の効果へ読み替えない。
+
+**追加の独立受入（既存H1/H2の素材・Blinding・Resolution条件はそのまま）。**
+
+| Case | 合成入力・変化 | 判定すべきことと既存Owner |
+| --- | --- | --- |
+| **RC-10 選択的な再資格化** | 旧D1の根拠E0と固定した履歴のまま、無関係な文書タイトルだけを変更、次に依存Ruleと外部Provider版を変更 | R1が無関係変更を過大失効させず、Rule/Provider変更と不明Edgeを再確認へ返せるか。R0/R2とfalse reuse・再確認負担を比較（SEI #767／TAI #271／TEI #2516） |
+| **RC-11 異なる受渡し段階** | 同一AttemptのClaim ACK、未取得Body、後着したBody、SHO文書へのSourceリンク、旧版と新版の公開Artifactが混在 | 各取得・照合・保存・実読取の段階を独立に記録し、最終`completed`を誤申告しない。実Delivery/OwnerはEKI #465／SHO #7/#10／TEI #2604 |
+| **RC-12 現行ToolとHarness可搬性** | 固定したread-only TEI CLI結果をHarness AからBへ受け渡し、Skill版、CLI/checkout、Grant、Source・epochのいずれかを変更 | Tool discovery、実Call、CLI実行物・Source、現在Trust・開示範囲を再照合。履歴に残った受信・表示の成功を実行や採用の資格へ昇格させない（TAI #271／SEI #769／TEI #2605/#2626） |
+
+**確認済みの限定Evidence。** TEI [Draft #2626](https://github.com/hat47x/tei-platform/pull/2626) は現候補HEAD `2e7aef560e35b79d658bb9c41c1575129f6a62a6`への [Focused CI #41445984686](https://github.com/hat47x/tei-platform/actions/runs/41445984686) において、合成15ケースと実`tei` read-only CLIの別ジョブが成功したと記録する。実CLIの9回呼出し、72 catalog entries、2 trace rows、3 validation diagnostics、版／fingerprint照合、古い継続token拒否を確認したという**当該TEI Draftの限定実行**であり、SEIのResumeやMethod、TAIの実Harness間引継ぎを実証していない。TAI #271の公開SK-CはV8限定で15/15整合と4/4 mutation検出を報告するが、Node/実Productの実行・独立holdoutではない。
+
+**P0 H2 capture実装の並行Draftを調停する。** 2026-11-02には、[Draft PR #771](https://github.com/hat47x/sei-cognition/pull/771)と[Draft PR #772](https://github.com/hat47x/sei-cognition/pull/772)が同じ2ファイルを基準main `234c3f91ce86b59b0f202295f454bad74dc6758c`から変更して存在する。両方とも20個の期待テストID、欠落・別ID・skip負例、前提失敗時の旧Evidence保全を扱うが、記録フィールドが`execution.test_coverage`と`execution.test_audit`で異なる。**二PRを独立に採用して二重の正本を作らない。** 両実装のfail-closed挙動・ログ取得可能性・既存JSON利用側との互換・旧Evidenceのbyte保持・OS/Python出力差の扱いを同一試験表で比較し、Ownerの統合判断で一つの採用枝へ収束する。他方の実装は履歴・比較Evidenceとして残す。現時点では両Draftとも未統合で、変更後self-test／現行fixture 20/20 native captureは**NOT RUN**。Doc PR #768は実装を取り込まず、採用版と実行結果が確定してからP0の完了表示を更新する。
+
+**優先順位と停止線。** P0は#771/#772の一枝へ統合するための検証・Evidence保全、P1はH1/H2の独立Human Observationとcapture/review tax、P2はRC-10/11のread-only Source/Bodyの限定実確認、P3はRC-12の実Harness A/Bと実権限・公開の検証。#767/#769/#770の認知Method探索は並列継続可能とし、CSWの生成中Gateや新Common Host/Truth Store/Trust Storeを要件化しない。以上は**受入候補**であり、ISSUE-000073 Resolution 6〜8の観測実績を更新しない。
+
 ## Deliverables
 
 - `product/value/SEI_DECISION_CONTINUITY.md` — V1〜V8をDecision Continuityへ接続するProduct Value synthesis。**Design Evidence available**。
