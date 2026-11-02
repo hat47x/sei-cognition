@@ -595,6 +595,21 @@ ISSUE-000073のResolution判断では、E1〜E8のScoped Executable Evidence、H
 
 **Evidenceの停止線。** ここで用いる説明ラベルと対照例はoperator側の研究資料であり、現在のSEI Productが同名API・判定型を提供することを意味しない。H2のA/B/Cの公平な情報比較やblinding、H1の最初の6問の回答固定を変更しない。実Provider/Tool、公開資格、Owner業務意味、Human Product Valueの成立は別途検証する。
 
+
+### 12.4 外部へ提示する調査計画の開示監査（H1回答固定後のみ）
+
+**既存Protocolを維持する追加operator票。** H1の初回6問とH2の3条件×3ケースを変更せず、回答固定後の横断分析でだけ、SEI #767／Draft #770の調査候補自体の漏洩反例を利用する。最終回答を秘匿しても外部へ出たTool候補・Probe名・Args・呼出し順・Error/Status/Traceが秘密Actionの存在で異なり得る。**内部Productの意味判断・外部公開の可否・外部へ提示したPlanning Projectionを別に観測**する。
+
+| 観測欄（operator-only） | 確認する範囲と停止線 |
+| --- | --- |
+| 必要な依存 | 問いQに本当に必要なSource/Rule/Field/Scope/時点。非表示Rule依存の有無と、必要集合が未確定な範囲 |
+| 実際の取得 | 宣言されたMappingと実Provider/Toolが読んだデータの別。実Witnessが無い場合は`physical-read-unverified` |
+| 公開された計画 | 実際に外部へ可視化されたProbe候補、Tool/Action名・件数、順序・Args・Error/Status・診断。最終回答だけで済ませない |
+| 同一公開条件の二世界 | 公開View・公開Tool一覧・目的・許可が同じで秘密Actionのみ異なるとき、公開Plan/Tool診断に秘密依存の差がないか。正当に公開許可された差は除外 |
+| 実効と認知負担 | 提案が実Toolとして存在したか、権限・実行・結果を確認できたか。余分な質問/再取得、隠れた漏洩、未解決の継続を別指標で記録 |
+
+**Evidence資格。** Draft #770は最初の2 Moduleで13/13 PASS、その後の第三Moduleは**単独7/7 PASS**、3 Module一括は未実施。いずれも公開合成テストであり、実Provider／OS／Network／Tool List／Timing／反復照会／秘密情報の開示保証やH1/H2 human observationとは別。実行・開示ポリシーはTEI #2507/#2515、TAI #232が所有し、SEIは利用者にとって必要な次のInquiryと、その開示可能な説明を検討する。
+
 ## 13. Natural Japanese review
 
 H2用に既に成立していたmatched review手順を維持しながら、073/078で同じreview runnerを共有する形へ整理した。H2ではreviewer provenanceを最初のstimulus提示前に固定し、その初期sessionをexclusive-createして同じpathへの再initを拒否する。provenance付きsessionを低レベルstage-gate CLIから直接提示・記録する迂回も拒否し、condition labelを伏せたbundle、Issue固有response validation、complete後のEvidence exportまでを同じ入口へ集約した。また、ISSUE-000073で未接続だったH1 actual resume usabilityを既存Personal Inquiry Continuity dogfood surfaceへ接続した。
