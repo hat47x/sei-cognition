@@ -552,6 +552,33 @@ SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw 
 
 **進め方。** 最初にRC-06のcapture再現・修正を実施し、H1の実再開と既存H2 pilotは可能な範囲で並行して観測する。続いてRC-01/02のread-only再開票、RC-03/04の現在利用・開示・実行境界を既存ConsumerのEvidenceで補強する。証拠は`source-static / synthetic executable / source-bound executable / actual human / actual provider`を分け、設計追加だけでISSUE-000073のResolution条件6〜8を成立させない。
 
+
+### 2026-11-02 後続追補：問い相対の十分性と、再開後に意味のある観測を選ぶ方法
+
+**成熟した設計上の区別（検証計画の追加）。** [SEI #767 P5/P6](https://github.com/hat47x/sei-cognition/issues/767)と[Draft PR #770](https://github.com/hat47x/sei-cognition/pull/770)は、証拠の十分性を「資料が何件見つかったか」から、**現在の問いQを、その観測Oで判定できるか**へ具体化した。これはISSUE-000073の認識の継続性へ接続できる。ただし、既存H1/H2の設計・Human Evidenceと、#767/#770の純粋合成Method研究を分離する。
+
+**問いの種類ごとに、再開の成功条件を変える。** 例えば、`Q1=過去のD1で何を判断したか`は当時の固定Decisionと根拠で答えられる場合がある。`Q2=現在もD1の前提が成立するか`は現在のSource・Rule・用途・権限の追加照合を要する場合がある。`Q3=前回確認後に関連変更が一度もなかったか`は最終Snapshotが同じでも、区間中の追加・離脱・遅着訂正を覆う履歴を要する。Q1の復元成功をQ2/Q3への回答済みと扱わない。
+
+**合成世界での識別性と十分性。** 固定した世界集合Wと問いQ、観測関数Oについて、すべてのA,B∈Wで`O(A)=O(B) ⇒ Q(A)=Q(B)`なら、**そのW内では**OはQを識別するのに十分な情報を持つ。一組の世界を区別するProbeの存在はW全体の十分性を示さない。また、Wへの新世界追加、実Providerの対象集合・Revision・アクセス範囲変更後の適用も別検証である。#770のW1〜W4では`count+has_C+has_E`がQを区別できるが、公開追加世界W5でW3/W5の観測が一致しQが異なり、固定Corpusでの成立が崩れる。#770の**局所合成6/6 PASSはこの反例に限定**し、実SEI Productや現実の全世界の十分性を証明しない。
+
+**有用な次の確認を選ぶ。** H1で再開に迷ったとき、認知Methodの候補は(1)現在の問いと必要な範囲を定める、(2)観測が同じなのに答えの異なる仮説を明示する、(3)区別し得る追加Source/履歴/独立Oracleを探す、(4)実際に利用できるToolと開示許可を確認する、(5)実行された確認と結果を観測し、残るQuestionへ戻す、の順で検討する。これは説明用の分析手順でありSEIの新しい公式状態機械ではない。明示された`Method Definition / Realization / Application`とApplicationの`input/output/residual/provenance`参照を再利用し、Method候補→実Tool発見→許可→実行→観測→用途適合の各段階を別Evidenceとする。
+
+**認知の独立性。** 同じBrief/Oracle/Promptを複数AIに配信して得た一致は、元の独立根拠が増えたことを意味しない。モデルの人数ではなくSourceの系譜と実際に利用したOracleを確認する。外部へ開示したVが二つの内部世界で同じで、Qだけが異なる場合、外部Harnessは識別を完了できない。その際は内部の権限あるProductへ限定確認を委ね、秘密の要素・個数・存在を低権限側へ説明しない。提案の生成自体を禁止するのではなく、当該Claimの成立範囲と公開可能な説明を調整する。
+
+**異なるConsumerと世代を揃える。** TEI [#2516](https://github.com/hat47x/tei-platform/issues/2516)の用途相対Projectionでは、二つのConsumerが同じ数値を示してもScope/Grain/Rule/Join・有効時点の違いを検査してから比較する。また、一つの作業で複数Sourceを読む場合、個別digestの一致と**共同で同じClaimを支持する版の組合せ**は別である。SHOの資料位置・Occurrence/Revision、MMIのSource identity、TEIのSource/Correspondence/Meaning/Generation/Publicationの区別を利用して、H1の次の調査候補へ接続する。外部HarnessのSkill候補`yi-sei-inquiry`は[SEI #769](https://github.com/hat47x/sei-cognition/issues/769)が所有し、Tool discoveryやSkill文書の存在を実行可能なProduct能力へ昇格させない。
+
+**既存受入票への追加（RC-01〜06と独立の後続ケース）。**
+
+| ケース | 公開合成入力と対照 | 証明する範囲と観測 |
+| --- | --- | --- |
+| **RC-07 問い相対のProbe** | Q=全対象が正値か。W1〜W4で一致したProbeを、同じ観測でQが異なるW5へ適用 | 二世界の識別、固定Corpus全体のQ十分性、未知世界を含む実Product資格を三段階で説明する。次の識別的なSource取得候補と未確認を示す（#767/#770の合成証拠を参照し、ここでの実行・H1成果は未成立） |
+| **RC-08 同じ現在値・異なる履歴** | t0/t2のDecision対象・集計が同じで、別世界だけt1にRelation加入→離脱。さらにSource/Rule改版または遅着訂正を投入 | `いま同じ`と`前回から変更なし`のClaimを分け、後者に必要な区間履歴の取得範囲と不足を明示。H1の現在利用／再確認へ接続（TEI #1125/#2505/#2516） |
+| **RC-09 Tool/Skill・情報開示** | 同一の開示Projection、異なる非開示原本、ToolありSkillなし／Skillありの二条件、同Source由来の複数Agent同意 | Skill候補・実Tool/版・許可・実観測・公開可能な結果を別証拠とし、独立根拠の誤加算・秘密の存在推知・不要な追加質問を別々に記録（SEI #769/#767、TAI Draft #270） |
+
+**順序とProduct Value。** RC-07は#770の既存合成Referenceを再利用して別の実装を起こさず、RC-08はread-onlyのSource/履歴照合案から始める。RC-09は権限付き実接続のOwner・提供Toolが確定してから実施する。H1本番観測の最初の6問とH2の3 fixture×3 conditionをそのまま保持し、追加研究は回答固定後のoperator評価、または独立した合成横断票で扱う。成功条件は「答えを速く言えたか」だけではなく「問うているClaimに十分な根拠があるか、まだ何を調べる必要があるかを利用者が正しく理解したか」とし、余分な確認・取得費用・capture/review負担をともに測定する。
+
+**実施資格。** #770の6/6 PASSはPython 3.13.5による公開合成Referenceの局所実行であり、別GitHub Draft PRの限定Evidenceである。SEI #769のSkill、本PRのRC-07〜09、現行SEI CLI/Goの認知Method実行、実Source Provider、H1/H2人間評価は**NOT RUN**。Product Value・Owner意味受理・現在の業務実行資格のEvidenceは変更しない。
+
 ## Deliverables
 
 - `product/value/SEI_DECISION_CONTINUITY.md` — V1〜V8をDecision Continuityへ接続するProduct Value synthesis。**Design Evidence available**。
