@@ -3,7 +3,9 @@ package seicli
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -154,5 +156,62 @@ func TestVerifyRejectsAnInvalidBundle(t *testing.T) {
 	}
 	if _, err := run(t, "verify", "--input", bad); err == nil {
 		t.Error("an invalid bundle must not verify")
+	}
+}
+
+// export・verifyは同じバイト列を同じ指紋値で指し、未検証recordが残っても終了コードは0のまま
+// not_verified_countに出る(0=形式が読めた、であって全件検証済みではない)。
+func TestExportAndVerifyReportTheSameSnapshotDigest(t *testing.T) {
+	fixClock(t)
+	root := filepath.Join(t.TempDir(), "store")
+	mustRun(t, "init", "--data-root", root)
+	mustRun(t, "add", "recommendation", "--data-root", root, "--id", "R1", "--statement", "s")
+	out := filepath.Join(t.TempDir(), "out.json")
+	exported := mustRun(t, "export", "--data-root", root, "--output", out)
+	var ex struct {
+		BundleID       string `json:"bundle_id"`
+		SnapshotDigest string `json:"snapshot_digest"`
+		Output         string `json:"output"`
+	}
+	if err := json.Unmarshal([]byte(exported), &ex); err != nil {
+		t.Fatalf("export must print JSON: %v\n%s", err, exported)
+	}
+	raw, err := os.ReadFile(out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := fmt.Sprintf("sha256:%x", sha256.Sum256(raw))
+	if ex.SnapshotDigest != want || ex.Output != out || ex.BundleID == "" {
+		t.Errorf("export output = %+v, want digest %s output %s", ex, want, out)
+	}
+	var vr struct {
+		SnapshotDigest   string `json:"snapshot_digest"`
+		NotVerifiedCount int    `json:"not_verified_count"`
+	}
+	if err := json.Unmarshal([]byte(mustRun(t, "verify", "--input", out)), &vr); err != nil {
+		t.Fatal(err)
+	}
+	if vr.SnapshotDigest != want || vr.NotVerifiedCount != 0 {
+		t.Errorf("verify = %+v, want digest %s and no not-verified records", vr, want)
+	}
+	var view ResumeView
+	if err := json.Unmarshal([]byte(mustRun(t, "resume", "--data-root", root, "--json")), &view); err != nil {
+		t.Fatal(err)
+	}
+	if view.SnapshotDigest != want {
+		t.Errorf("resume snapshot_digest = %s, want %s", view.SnapshotDigest, want)
+	}
+
+	// 未知Contractを含む束: 終了コード0のまま、not_verified_countに出る。
+	seed := `{"contract":"sei.semantic-interchange/v1alpha1","bundle_id":"imported","records":[{"record_id":"foreign","contract":{"contract_id":"example.future","version":"v9"},"kind":"x","payload":{"opaque":[1]}}]}`
+	foreign := filepath.Join(t.TempDir(), "foreign.json")
+	if err := os.WriteFile(foreign, []byte(seed), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal([]byte(mustRun(t, "verify", "--input", foreign)), &vr); err != nil {
+		t.Fatal(err)
+	}
+	if vr.NotVerifiedCount != 1 || vr.SnapshotDigest != fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(seed))) {
+		t.Errorf("verify of a bundle with an unknown Contract = %+v", vr)
 	}
 }

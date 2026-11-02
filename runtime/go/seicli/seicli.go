@@ -771,10 +771,11 @@ func runVerify(args []string, stdout, stderr io.Writer) error {
 	}
 	result := struct {
 		BundleID         string `json:"bundle_id"`
+		SnapshotDigest   string `json:"snapshot_digest"`
 		RecordCount      int    `json:"record_count"`
 		ValidatedCount   int    `json:"validated_count"`
 		NotVerifiedCount int    `json:"not_verified_count"`
-	}{BundleID: bundle.Envelope.BundleID, RecordCount: len(bundle.Records)}
+	}{BundleID: bundle.Envelope.BundleID, SnapshotDigest: fmt.Sprintf("sha256:%x", sha256.Sum256(data)), RecordCount: len(bundle.Records)}
 	for _, r := range bundle.Records {
 		if r.Status == semanticruntime.RecordValidated {
 			result.ValidatedCount++
@@ -815,7 +816,20 @@ func runExport(ctx context.Context, args []string, stdout, stderr io.Writer) err
 		_ = out.Close()
 		return err
 	}
-	return out.Close()
+	if err := out.Close(); err != nil {
+		return err
+	}
+	// 書き出したバイト列の指紋値。`sei verify`・`sei resume`の snapshot_digest、
+	// `sei gate check`の bundle_digest と同じ形式で、受け取った側が照合できる。
+	result := struct {
+		BundleID       string `json:"bundle_id,omitempty"`
+		SnapshotDigest string `json:"snapshot_digest"`
+		Output         string `json:"output"`
+	}{SnapshotDigest: fmt.Sprintf("sha256:%x", sha256.Sum256(data)), Output: *output}
+	if bundle, err := semanticruntime.LoadInterchange(data); err == nil {
+		result.BundleID = bundle.Envelope.BundleID
+	}
+	return writeJSON(stdout, result)
 }
 
 func writeJSON(w io.Writer, v any) error {
