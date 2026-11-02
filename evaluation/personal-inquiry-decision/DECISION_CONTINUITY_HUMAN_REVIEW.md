@@ -596,39 +596,23 @@ ISSUE-000073のResolution判断では、E1〜E8のScoped Executable Evidence、H
 **Evidenceの停止線。** ここで用いる説明ラベルと対照例はoperator側の研究資料であり、現在のSEI Productが同名API・判定型を提供することを意味しない。H2のA/B/Cの公平な情報比較やblinding、H1の最初の6問の回答固定を変更しない。実Provider/Tool、公開資格、Owner業務意味、Human Product Valueの成立は別途検証する。
 
 
-### 12.4 外部へ提示する調査計画の開示監査（H1回答固定後のみ）
+### 12.4 調査計画・Tool候補まで含めた開示監査（H1回答固定後のみ）
 
-**既存Protocolを維持する追加operator票。** H1の初回6問とH2の3条件×3ケースを変更せず、回答固定後の横断分析でだけ、SEI #767／Draft #770の調査候補自体の漏洩反例を利用する。最終回答を秘匿しても外部へ出たTool候補・Probe名・Args・呼出し順・Error/Status/Traceが秘密Actionの存在で異なり得る。**内部Productの意味判断・外部公開の可否・外部へ提示したPlanning Projectionを別に観測**する。
+**既存Protocolと盲検を維持するoperator専用票。** SEI #767／[Draft #770](https://github.com/hat47x/sei-cognition/pull/770)のPlanner-visible leakageとTEI #2516 J-08〜11を、H1回答固定後または独立公開合成ケースでのみ検討する。利用者へ最初から正しいProbe・秘密Action・独立Expectedを提示しない。最終回答を秘匿していても、質問候補・Toolの名前／件数・引数・順序・診断・Traceによって内部の存在情報を推知され得る。
 
-| 観測欄（operator-only） | 確認する範囲と停止線 |
+| operator観測欄 | 比較・記録すること |
 | --- | --- |
-| 必要な依存 | 問いQに本当に必要なSource/Rule/Field/Scope/時点。非表示Rule依存の有無と、必要集合が未確定な範囲 |
-| 実際の取得 | 宣言されたMappingと実Provider/Toolが読んだデータの別。実Witnessが無い場合は`physical-read-unverified` |
-| 公開された計画 | 実際に外部へ可視化されたProbe候補、Tool/Action名・件数、順序・Args・Error/Status・診断。最終回答だけで済ませない |
-| 同一公開条件の二世界 | 公開View・公開Tool一覧・目的・許可が同じで秘密Actionのみ異なるとき、公開Plan/Tool診断に秘密依存の差がないか。正当に公開許可された差は除外 |
-| 実効と認知負担 | 提案が実Toolとして存在したか、権限・実行・結果を確認できたか。余分な質問/再取得、隠れた漏洩、未解決の継続を別指標で記録 |
+| Claimに必要な根拠 | Source/Rule/Field/Scope/時点と、画面に出ないRule依存。必要集合が未確定な範囲を残す |
+| 実際の取得 | 宣言Mapping、実Query/Provider Read/Cache・Source版・Overfetchを区別。物理Readの独立Witnessがなければ`physical-read-unverified` |
+| 外部へ示した計画 | 回答本文に加え、提案したProbe、質問、Tool/Action名・件数、Args、順序、Status/Error、diagnostics、Trace |
+| 公開資格と同一公開条件の二世界 | 可視View/許可Tool/目的が同じで非公開Actionの有無だけが異なるとき、外部Plan/Tool候補に不要な差がないか。正当に許可された差は漏出扱いしない |
+| 再開への効用と費用 | 正しい次の調査を選べたか、実Toolの存在／権限／実結果、不要な質問・再取得・修正負担を独立に評価 |
 
-**Evidence資格。** Draft #770は最初の2 Moduleで13/13 PASS、その後の第三Moduleは**単独7/7 PASS**、3 Module一括は未実施。いずれも公開合成テストであり、実Provider／OS／Network／Tool List／Timing／反復照会／秘密情報の開示保証やH1/H2 human observationとは別。実行・開示ポリシーはTEI #2507/#2515、TAI #232が所有し、SEIは利用者にとって必要な次のInquiryと、その開示可能な説明を検討する。
+**公開合成負例。** 二世界S1/S2で外部回答はともに`not-confirmable`だが、秘密ActionがあるS1だけTool候補が増えるなら、回答本文が同じでも外部Plannerから存在を推測できる。内部Productの判断、許可済み外部Projection、実際の送出を別にする。
 
+**証拠の範囲。** 別Draft #770の合成13/13 PASSとPlanner試験の単独7/7 PASSは、それぞれの局所実行証拠であり、3 Module合計20件の同一run PASSではない。実Policy、OS/Network、Timing/反復照会、外部Harnessへの非干渉と人間評価はNOT RUN。実Policy/開示はTEI #2507/#2515・TAI #232、認知上の質問選択はSEI #767がOwnerとなる。
 
-### 12.5 調査計画・Tool候補を含むConsumer開示の追加評価
-
-**2026-11-02／operator側・H1/H2の回答固定後または独立合成票に限定。** SEI #767 P6とDraft #770のPlanner-visible leakage、TEI #2516 J-08〜11の必要根拠／実Read／公開観測を既存H1の「次の確認」へ接続する。盲検readerに内部Tool一覧・秘密のAction・対照世界の存在を先に示さない。実資料の秘密は試験用fixtureへ転記しない。
-
-| 観測欄 | 質問・記録内容 |
-| --- | --- |
-| 必要根拠 | 今の問いQが要求するSource・Rule・対象のScope／時点と、未列挙の依存があるか。表示済み値だけから必要入力を閉じたか |
-| 実際の取得 | 候補Tool説明や宣言Queryと、実ProviderのRead/Cache/Source版/取得範囲を区別。実取得の独立証拠がなければ未確認 |
-| 表示された計画 | Consumerが観測した候補Question、Tool/Action名、候補数、実行順、理由、Error、Trace。公開回答本文が同一でもここに差があるか |
-| 公開資格 | 公開してよい結果に加え、Probeの存在・件数・失敗理由を含む計画を開示できるか。判定条件は権限あるProductに委譲 |
-| 再開時の負担 | 部分的に前進できた作業、追加調査、Tool/Source再取得、修正作業、漏出や過大な断定の有無を別々に測定 |
-
-**合成二世界の負例（operatorのみ）**：外部可視Vと許可Tool集合が同じで、内部世界S1にだけ非公開Actionが存在する。最終返答が双方`not-confirmable`であっても、外部に出すTool候補がS1だけ多ければ存在を推測できる。この対照では最終返答と公開候補の両方を比べる。真のOS/Tool/Timing/反復照会・Networkにおける非干渉試験はTAI #232/TEI #2515の責務であり、現在の合成試験から成立と主張しない。
-
-**証拠と継続条件**：別Draft #770は追加Planner合成7/7 PASS、既存13/13 PASSをそれぞれ報告。追加後の全20件を同一runでPASSしたという証拠ではない。本書のH1/H2実人間観測は未成立。H2のEvidence取得修正候補は[Draft #771](https://github.com/hat47x/sei-cognition/pull/771)へ分離し、Python actual executionが確認できるまでは完全PASSと扱わない。
-
-
-### 12.6 依存に応じた再資格化と横断受渡しのoperator比較票
+### 12.5 依存に応じた再資格化と横断受渡しのoperator比較票
 
 **2026-11-02／追加のread-only評価候補。** [TAI #271](https://github.com/hat47x/tai-pleroma/issues/271)の選択的再資格化と[TEI Draft #2626](https://github.com/hat47x/tei-platform/pull/2626)の実CLI read-only証拠を、H1回答固定後の追加operator分析に接続する。既存H1の初回6問、H2の3×3固定Surface・session・盲検、既存評価の成立条件は変えない。外部Harnessの実テストや新しい人間試験を実施したと扱わない。
 
