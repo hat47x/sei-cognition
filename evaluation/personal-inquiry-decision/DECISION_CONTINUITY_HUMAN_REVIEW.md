@@ -611,7 +611,7 @@ ISSUE-000073のResolution判断では、E1〜E8のScoped Executable Evidence、H
 **Evidence資格。** Draft #770は最初の2 Moduleで13/13 PASS、その後の第三Moduleは**単独7/7 PASS**、3 Module一括は未実施。いずれも公開合成テストであり、実Provider／OS／Network／Tool List／Timing／反復照会／秘密情報の開示保証やH1/H2 human observationとは別。実行・開示ポリシーはTEI #2507/#2515、TAI #232が所有し、SEIは利用者にとって必要な次のInquiryと、その開示可能な説明を検討する。
 
 
-### 12.4 調査計画・Tool候補を含むConsumer開示の追加評価
+### 12.5 調査計画・Tool候補を含むConsumer開示の追加評価
 
 **2026-11-02／operator側・H1/H2の回答固定後または独立合成票に限定。** SEI #767 P6とDraft #770のPlanner-visible leakage、TEI #2516 J-08〜11の必要根拠／実Read／公開観測を既存H1の「次の確認」へ接続する。盲検readerに内部Tool一覧・秘密のAction・対照世界の存在を先に示さない。実資料の秘密は試験用fixtureへ転記しない。
 
@@ -626,6 +626,26 @@ ISSUE-000073のResolution判断では、E1〜E8のScoped Executable Evidence、H
 **合成二世界の負例（operatorのみ）**：外部可視Vと許可Tool集合が同じで、内部世界S1にだけ非公開Actionが存在する。最終返答が双方`not-confirmable`であっても、外部に出すTool候補がS1だけ多ければ存在を推測できる。この対照では最終返答と公開候補の両方を比べる。真のOS/Tool/Timing/反復照会・Networkにおける非干渉試験はTAI #232/TEI #2515の責務であり、現在の合成試験から成立と主張しない。
 
 **証拠と継続条件**：別Draft #770は追加Planner合成7/7 PASS、既存13/13 PASSをそれぞれ報告。追加後の全20件を同一runでPASSしたという証拠ではない。本書のH1/H2実人間観測は未成立。H2のEvidence取得修正候補は[Draft #771](https://github.com/hat47x/sei-cognition/pull/771)へ分離し、Python actual executionが確認できるまでは完全PASSと扱わない。
+
+
+### 12.6 依存に応じた再資格化と横断受渡しのoperator比較票
+
+**2026-11-02／追加のread-only評価候補。** [TAI #271](https://github.com/hat47x/tai-pleroma/issues/271)の選択的再資格化と[TEI Draft #2626](https://github.com/hat47x/tei-platform/pull/2626)の実CLI read-only証拠を、H1回答固定後の追加operator分析に接続する。既存H1の初回6問、H2の3×3固定Surface・session・盲検、既存評価の成立条件は変えない。外部Harnessの実テストや新しい人間試験を実施したと扱わない。
+
+**同一Decision／同一Qについて比較する三方式：** R0=必要そうな対象を全件再読取、R1=既知の依存と実版に基づく選択的再確認、R2=旧成功を確認せず再利用。R0を常に最善と仮定せず、R1で再確認漏れ・未判明依存が生じれば局所的に保留し、独立した調査の継続余地を示す。R2の旧成功が現在のClaim、現行Grant、開示資格を勝手に保証していないかを記録する。
+
+| operator観測欄 | 固定する観測と評価 |
+| --- | --- |
+| Qと必要な依存 | 当時のDecision復元、現在適合、区間の変更有無、共同Claim、Artifact受領、Business完了のどれを問うか。必要なSource/Rule/Scope/時点・意味Roleと不明Edgeを列挙 |
+| 変更の到達範囲 | 無関係な表題変更、依拠Rule更新、Provider版切替、現在Grant失効、文書公開世代変更を別々に投入し、R0/R1/R2の再確認対象を記録 |
+| 取得と共同成立 | 宣言した依存／実Provider Read／Tool・CLI版とGit HEAD／同時点Snapshotまたは有効bridge／Consumer実受信を個別に固定。単品Read成功とJoint Claimの成立を分ける |
+| 受渡しの確定点 | EKI Attempt/Claim ACK、同一Attempt Output Bodyの実受領・digest、SHO文書のSource occurrence再解決、実保存・Deliveryを独立に記録。未到着を受領済みとしない |
+| 現在Trust・開示 | 過去の確認済みSkill・Grantと現在のAuthority/公開可能なTool候補・診断を分ける。Secretと取扱い主体は実データを使わず公開合成で観測 |
+| 誤再利用と負担 | false reuse、不要な全件再検証／過剰失効、Tool/Source読取回数、時間・Token、human correction・review taxを別指標で記録 |
+
+**既存証拠から許される説明。** TEI #2626のFocused CIは合成15ケースと実`tei` read-only CLIの9呼出し等の**TEI候補HEAD限定PASS**であり、SEI自身の実製品Resume、Method評価、外部Harness A/B間移送、現行権限・Providerの保証ではない。TAI #271の合成15/15と4 mutation検出も**公開Fixtureの限定自己整合**であり、実Product間の再資格化ではない。Skill説明→実Tool存在→実行物・args→実Read→現行Grant/開示→人の意味採用を別に評価し、すべてを単一の「完了」へ集約しない。
+
+**H2 captureの実装枝の調停。** [Draft #771](https://github.com/hat47x/sei-cognition/pull/771)と[Draft #772](https://github.com/hat47x/sei-cognition/pull/772)は、期待20 IDと旧Evidence保護を同じ2ファイルで実装した競合候補である。片方は`execution.test_coverage`、他方は`execution.test_audit`として内部監査情報を返す。既存のH2 source-bound captureと自己試験（欠落、同数別ID、skip、HEAD/Source不一致、`--replace`失敗時bytes保持）を同じ受入票で比較して、採用版を一つに確定する。**どちらの改修後Python actual runも未取得**であり、実装候補の存在を現行製品のPASSへ昇格させない。
 
 ## 13. Natural Japanese review
 
