@@ -78,6 +78,10 @@ sei verify --input decisions.json
 
 `verify`は、`.sei/`も`sei`の記録も持たない環境で動きます。ファイルだけで、形式の検証ができます。
 
+`export`は、書き出した束の`bundle_id`、`snapshot_digest`、`output`(出力先)をJSONで標準出力へ返します。`verify`の出力は、`bundle_id`、`snapshot_digest`、`record_count`、`validated_count`、`not_verified_count`です。`snapshot_digest`は読んだ(書いた)ファイルのバイト列のSHA-256(`sha256:...`)で、`sei resume`の`snapshot_digest`、`sei gate check`の`bundle_digest`と同じ形式です。受け取ったファイルと渡した側の`export`出力の値が一致すれば、同じバイト列です。値が一致しても、内容の意味の正しさや現在の適用可能性は示しません。
+
+`verify`の終了コードが0なのは、束が形式として読めたことを意味します。全件が検証済みであることは意味しません。このruntimeが理解しない版のContractのrecordは`not_verified_count`に数えられ、終了コードは0のままです。呼び出し側は`not_verified_count`が0であることを自分で確かめてください。未検証があれば非0にする旗を設けるかどうかは決まっていません。
+
 ## 5. 実行の前に確認する
 
 AIツールやスクリプトが何かを実行する前に、その根拠となる決定が方針を満たしているかを確認できます。
