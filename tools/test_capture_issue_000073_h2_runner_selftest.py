@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import runpy
 import shutil
 import subprocess
 import sys
@@ -10,6 +11,8 @@ import tempfile
 
 CAPTURE = Path(__file__).with_name("capture_issue_000073_h2_runner_selftest.py")
 CAPTURE_REL = Path("tools/capture_issue_000073_h2_runner_selftest.py")
+EXPECTED_TEST_IDS = frozenset(runpy.run_path(str(CAPTURE))["EXPECTED_TEST_IDS"])
+assert len(EXPECTED_TEST_IDS) == 20
 TEST_RELS = (
     Path("evaluation/personal-inquiry-decision/test_decision_continuity_preflight.py"),
     Path("evaluation/personal-inquiry-decision/test_decision_continuity_review_runner.py"),
@@ -36,7 +39,10 @@ def run(cmd: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, cwd=cwd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
-def setup_repo(root: Path, *, failing_test: bool = False) -> None:
+def setup_repo(
+    root: Path, *, failing_test: bool = False, missing_test: bool = False,
+    renamed_test: bool = False, skipped_test: bool = False,
+) -> None:
     capture = root / CAPTURE_REL
     capture.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(CAPTURE, capture)
@@ -47,15 +53,29 @@ def setup_repo(root: Path, *, failing_test: bool = False) -> None:
         (eval_dir / name).write_text("# synthetic dependency\n", encoding="utf-8")
     for test_rel in TEST_RELS:
         test_path = root / test_rel
-        should_fail = failing_test and test_rel.name == "test_decision_continuity_review_runner.py"
-        test_path.write_text(
-            "import unittest\n"
-            "class SyntheticH2Test(unittest.TestCase):\n"
-            "    def test_capture(self):\n"
-            + ("        self.fail('synthetic regression failure')\n"
-               if should_fail else "        self.assertTrue(True)\n"),
-            encoding="utf-8",
+        module = test_rel.stem
+        identities = sorted(
+            identifier for identifier in EXPECTED_TEST_IDS
+            if identifier.startswith(module + ".")
         )
+        assert len(identities) in (7, 8, 5), (module, identities)
+        class_name = identities[0].split(".")[1]
+        methods = [identifier.rsplit(".", 1)[1] for identifier in identities]
+        lines = ["import unittest", f"class {class_name}(unittest.TestCase):"]
+        for index, method in enumerate(methods):
+            designated = test_rel == TEST_RELS[0] and index == 0
+            if designated and missing_test:
+                continue
+            if designated and renamed_test:
+                method = "test_unexpected_replacement"
+            lines.append(f"    def {method}(self):")
+            if designated and skipped_test:
+                lines.append("        self.skipTest('synthetic skip')")
+            elif failing_test and test_rel == TEST_RELS[1] and index == 0:
+                lines.append("        self.fail('synthetic regression failure')")
+            else:
+                lines.append("        self.assertTrue(True)")
+        test_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     for name in FIXTURES:
         (eval_dir / name).write_text("{}\n", encoding="utf-8")
 
@@ -121,7 +141,9 @@ def test_clean_pass_records_head_and_sources() -> None:
         )
         assert "-m" in data["execution"]["command"]
         assert "test_decision_continuity_*.py" in data["execution"]["command"]
-        assert "Ran 3 tests" in data["execution"]["stderr"]
+        assert "Ran 20 tests" in data["execution"]["stderr"]
+        assert data["execution"]["test_audit"]["complete"] is True
+        assert len(data["execution"]["test_audit"]["observed_test_ids"]) == 20
         assert all(item["matches_head"] for item in data["source_binding"])
 
 
@@ -188,6 +210,77 @@ def test_test_failure_is_recorded_as_fail() -> None:
         assert data["execution"]["exit_code"] == 1
 
 
+def test_missing_test_is_not_false_pass_when_unittest_exits_zero() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        setup_repo(root, missing_test=True)
+        code, out = invoke(root)
+        assert code == 1, out
+        data = json.loads(evidence_path(root).read_text(encoding="utf-8"))
+        assert data["status"] == "fail"
+        assert data["execution"]["exit_code"] == 0
+        assert len(data["execution"]["test_audit"]["missing_test_ids"]) == 1
+        assert data["execution"]["test_audit"]["reported_test_count"] == 19
+
+
+def test_same_count_with_wrong_test_id_is_not_pass() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        setup_repo(root, renamed_test=True)
+        code, out = invoke(root)
+        assert code == 1, out
+        audit = json.loads(evidence_path(root).read_text(encoding="utf-8"))["execution"]["test_audit"]
+        assert audit["reported_test_count"] == 20
+        assert len(audit["missing_test_ids"]) == 1
+        assert len(audit["unexpected_test_ids"]) == 1
+        assert audit["complete"] is False
+
+
+def test_skip_is_not_pass_when_unittest_exits_zero() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        setup_repo(root, skipped_test=True)
+        code, out = invoke(root)
+        assert code == 1, out
+        data = json.loads(evidence_path(root).read_text(encoding="utf-8"))
+        assert data["execution"]["exit_code"] == 0
+        assert len(data["execution"]["test_audit"]["non_pass_tests"]) == 1
+
+
+def test_replace_blocked_by_head_mismatch_preserves_prior_evidence() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        setup_repo(root)
+        output = evidence_path(root)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        original = b"prior-reviewed-evidence"
+        output.write_bytes(original)
+        run(["git", "add", "."], root)
+        run(["git", "commit", "-qm", "prior evidence"], root)
+        code, out = invoke(root, "--replace", expected_head="0" * 40)
+        assert code == 2, out
+        assert out["status"] == "blocked"
+        assert output.read_bytes() == original
+
+
+def test_replace_failed_rerun_preserves_prior_evidence() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        setup_repo(root, failing_test=True)
+        output = evidence_path(root)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        original = b"prior-reviewed-evidence"
+        output.write_bytes(original)
+        run(["git", "add", "."], root)
+        run(["git", "commit", "-qm", "prior evidence"], root)
+        code, out = invoke(root, "--replace")
+        assert code == 1, out
+        assert out["status"] == "fail"
+        assert out["existing_output_preserved"] is True
+        assert out["failed_attempt"]["execution"]["exit_code"] == 1
+        assert output.read_bytes() == original
+
+
 def test_existing_output_requires_replace() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
@@ -213,6 +306,11 @@ def main() -> int:
     test_missing_required_source_blocks()
     test_missing_fixture_blocks()
     test_test_failure_is_recorded_as_fail()
+    test_missing_test_is_not_false_pass_when_unittest_exits_zero()
+    test_same_count_with_wrong_test_id_is_not_pass()
+    test_skip_is_not_pass_when_unittest_exits_zero()
+    test_replace_blocked_by_head_mismatch_preserves_prior_evidence()
+    test_replace_failed_rerun_preserves_prior_evidence()
     test_existing_output_requires_replace()
     print("PASS: ISSUE-000073 H2 runner self-test capture workflow")
     return 0
