@@ -1,6 +1,7 @@
 package teiprojection
 
 import (
+	"os"
 	"strings"
 	"testing"
 )
@@ -33,5 +34,23 @@ func TestParseRejectsMissingStatement(t *testing.T) {
 	broken := strings.Replace(valid, `"statement": "Adopt option A"`, `"statement": ""`, 1)
 	if _, err := Parse([]byte(broken)); err == nil {
 		t.Fatal("expected an error")
+	}
+}
+
+func TestParseRealArtifactWhenProvided(t *testing.T) {
+	path := os.Getenv("TEI_PROJECTION_ARTIFACT")
+	if path == "" {
+		t.Skip("TEI_PROJECTION_ARTIFACT is not set")
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read artifact: %v", err)
+	}
+	artifact, err := Parse(data)
+	if err != nil {
+		t.Fatalf("parse artifact: %v", err)
+	}
+	if artifact.Decision.RefID == "" {
+		t.Fatal("decision refId is empty")
 	}
 }
