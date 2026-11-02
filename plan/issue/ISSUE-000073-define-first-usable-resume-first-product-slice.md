@@ -608,6 +608,30 @@ SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw 
 
 **依存と状態。** 局所認知方法と次Probeの選択は#767、Question/Observation保存契約は#711、Method有効性の学習と独立holdoutは#450、外部Skillは#769／TAI Draft #270、Consumerの共同ReadはTEI #2516のまま。新しいContract enum、第二のClaim Store／Universal State Machine／Host、別の中央承認Gateを導入しない。**本PRは上記の計画・評価文書を更新するもので、RC-07a〜c/RC-08a〜cの実SEI・実Human検証はNOT RUN**。
 
+
+### 2026-11-02 追補：調査計画自体の開示境界と、必要根拠・実取得・公開結果の分離
+
+**成熟した横断反例。** SEI [#767 P6](https://github.com/hat47x/sei-cognition/issues/767)と[Draft #770](https://github.com/hat47x/sei-cognition/pull/770)は、最終回答が両世界で同じ`not-confirmable-from-released-information`でも、**非公開Actionの存在に応じて外部に提示するProbe候補名、Tool一覧、呼出し順、診断、件数が変化すると、その違い自体が秘密になる**ことを公開合成例として示した。TEI [#2516 W10 J-08〜11](https://github.com/hat47x/tei-platform/issues/2516)は、Claimの必要根拠、実Providerが取得した範囲、Consumer/Agentへ見せた範囲をそれぞれ別の観測対象とした。SEIのDecision Continuityでも、過去の判断や現在の次の一手を外部Harnessへ送る際に同じ区別が必要である。
+
+**三つのFootprintを混ぜない。**
+1. **Proof Dependency**：ある問いQを判断するために必要な対象、Source/Role、Rule・Relation/Field、Scope/対象全件性、時点、独立Oracle。画面に表示されないValidation Ruleなどが必要な場合もあり、未列挙依存は「不要」ではなく未確認。
+2. **Actual Acquisition**：Product/Providerが実際に読んだRelation/Field、Snapshot・Source版、Cache/Overfetch、実Readの観測可能な証拠。宣言Mappingの狭さや返却JSONの狭さだけでは、実際のDBアクセスが最小だったとは言えない。
+3. **Consumer-visible / Planner-visible**：外部に公開した回答・Source・Tool JSONだけでなく、提案する次の問い、Tool候補数・名称・Args、Error、Trace、Status、実呼出し順等の外部観測可能な事実。認知結果を秘匿してもPlanが秘密を漏らし得る。
+
+**公開上の観測同値条件（合成研究上の不変条件候補）。** 同じ公開View、公開済みTool/Capability一覧、同じ用途Q、同じ公開許可条件を持つ二つの内部世界S0/S1で、秘密のActionだけが異なる場合、外部に許可された可視Planと公開診断が秘密の有無だけで変化しないことを比較する。公開が正式に許可された差は、何も違ってはならないという扱いにしない。これは情報流を評価するための**合成基準**であり、実OS/Network、Timing、Log、反復照会、Product内部の非干渉保証ではない。未知Toolは`unsupported`、未観測結果は`unknown`として扱い、Tool Discoveryの表示を実Tool/権限の実在とみなさない。
+
+**RC-09への具体的追補（重複ケースを新設しない）。**
+
+| ケース | 一致する公開入力と異なる内部条件 | 期待する証拠 |
+| --- | --- | --- |
+| **RC-09a Plan候補の漏出** | 同じ公開View・同じ公開Tool一覧。片方だけに秘密Actionがある | 最終回答だけでなく公開Probe候補と説明・件数・呼出し計画の差を確認。非公開依存で分岐する悪いPlannerを識別 |
+| **RC-09b 必要根拠と実取得の差** | 表示Resultは同じ。片方のProviderは公開必要Fieldのみ、もう片方は秘匿列までOverfetch | 表示が同じことを実Read最小性の証拠にしない。実Providerの取得Witness未観測なら`physical-read-unverified` |
+| **RC-09c 表示値と暗黙Rule依存** | 公開画面値は同じ。内部のRule必須入力が異なり、評価結果が変わる | 表示FieldだけでProof Dependencyを閉じない。Rule実評価と外部結果開示を別に記録 |
+
+**人間の再開とMethodの価値。** 既存H1/H2の回答・盲検条件を維持し、H1回答固定後のoperator票では、(a)利用者が追加調査先を選べたか、(b)実際に使えるToolか、(c)必要根拠と取得情報が対応したか、(d)公開された計画や診断が過剰な情報を漏らしていないか、(e)余分なSource再取得・修正負担を分ける。安全な限定Planが問いを解けなかった場合も、機密性PASSだけをProduct Valueの達成へ昇格させない。
+
+**別研究の証拠資格。** Draft #770の先行2 Moduleは**13/13 PASS**、追加の`test_probe_planning_visibility.py`は**単独7/7 PASS**が報告された。追加後の3 Module一括回帰、実Tool/OS/Provider/Network/Timing、SEI本体、H1/H2人間試験は**NOT RUN**。合計20件を一括PASSと記録しない。実Disclosure/Tool ActionはTEI #2507/#2515/#2516、TAI #232、実ReadはTEI #2628等の既存Ownerが担当する。SEIはInquiry/Methodにおける公開可能な次の問い・Probe提案の認知的妥当性を評価する。
+
 ## Deliverables
 
 - `product/value/SEI_DECISION_CONTINUITY.md` — V1〜V8をDecision Continuityへ接続するProduct Value synthesis。**Design Evidence available**。
