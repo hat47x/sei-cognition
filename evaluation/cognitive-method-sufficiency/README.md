@@ -91,3 +91,29 @@ python -m unittest -v probe_partition_reference test_probe_claim_qualifiers
 ```
 
 **2026-11-02：上記二Moduleで13/13 PASS（元6、新7）**。ローカルで実行した二つのPythonファイルが、Draft PR branch上のGit blob SHA `7cfc1892362b48f03cd7a29f93bfdf524584debc`／`851c3e228895c28c6af68608be6ca92bb38892d7`と一致することを確認しました。これは公開合成Fixtureの評価であり、GitHub CI・SEI製品本体・TEI Tool実Read/DB・複数Harness・OS隔離・Owner受理の検証ではありません。公開例を未使用の独立holdoutとして扱わず、候補Methodの有効性は[SEI #450](https://github.com/hat47x/sei-cognition/issues/450)の別評価で比較します。
+
+<!-- planning-visibility-20261102 -->
+## 追加研究：外部へ返す答えだけでなく、調査の選び方も観測され得る
+
+[SEI #767](https://github.com/hat47x/sei-cognition/issues/767) P6の「次のProbeを選ぶ」工程と、[TAI #232](https://github.com/hat47x/tai-pleroma/issues/232)のConsumer別機密境界、[TEI #2507のSA-21/22](https://github.com/hat47x/tei-platform/issues/2507)（Action名自体が非公開となる例）、[TAI Draft #270のSK-01 §M](https://github.com/hat47x/tai-pleroma/pull/270)を接続する。
+
+**新しい反例**：内部世界S0とS1では非公開Actionの有無が異なるが、外部に許可されたViewと返答は同じとする。最終回答を共に`not-confirmable-from-released-information`へ揃えても、Plannerが内部のAction有無に応じて`private.reconcile`を候補一覧に追加すれば、**Tool候補名・実Call選択・ログなどの観測可能な経路から存在情報が漏れる**。これはTEI #2507の公開Action Candidate評価と相互補完の**認知MethodのProbe選択側**の反例であり、TEIに代わる開示エンジンをSEIに作るものではない。
+
+`test_probe_planning_visibility.py`は、公開可能なPurpose/公開View/公開Tool一覧だけで次の公開Probe候補を決める単純な合成Plannerと、秘密状態を参照してしまう反例Plannerを比較する。内部Productは必要に応じて内部のQを検査できるが、**結果を外部へ公開する資格は独立の信頼済み入力**として与えられるという試験上の仮定を明示する。
+
+試験の着目点：
+- 非公開Actionの有無だけが違う二世界でも、結果開示が禁止なら**公開計画・公開応答の合成タプル**は同じになる。
+- 最終文章が同じでも、危険なAction Discovery経路だけが世界差を表す負例を検出できる。
+- 公開許可が**明示的にある**場合は、内部Qの異なる結果を区別した公開返答が成立し得る。これは機密保持違反の判定ではない。
+- 対応する公開Toolが無い場合は`unsupported`とし、非公開Actionを暗黙の代替Toolへ昇格しない。
+- 公開された**別の質問**なら、公開Probeを別に選んでもよい。同一View・同一Question・同一開示条件の比較と混同しない。
+- 公開可視の`tools/list`、Tool名・順序、引数、回数、エラー、Trace、Network/Log/Timingなどの**実送出面**はProduct/Host/TAIが別に調べる。テストはPython内の小さい`tuple`しか比較していない。
+
+```bash
+cd evaluation/cognitive-method-sufficiency
+python -m unittest -v test_probe_planning_visibility
+```
+
+**局所実測（2026-11-02）**：Python 3.13.5で**7/7 PASS**。GitHub上の`test_probe_planning_visibility.py`のGit blob SHA `19d231ed35ed83ef1b8ac566905483e450e225a8`と、ローカル実行したファイルのGit blobが一致。元2 Moduleの**13/13 PASSは前段の独立した実行結果**であり、新ファイルを含む3 Module一括のCI/実実行はこの追補時点で**NOT RUN**。公開合成例が増えてもsealed holdoutや実OS/Policyの非干渉証明とは扱わない。
+
+**工程上の意味**：Cognitive Methodは、識別力の高い質問を生成するだけでなく、*その質問を外部Consumerへ提示してよいか／公開されたToolで実行できるか／実際にProduct内の検査へ委譲する必要があるか*を区別する。実ProductのAction適用性はTEI #2507、開示資格・実行強制はTAI #232/TEI #1178/#2515、外部Skillの導入・実使用はTAI Draft #270、Method EvaluationはSEI #767に維持する。通常の組織Dataへ一律の秘密分離要件を新設しない。
