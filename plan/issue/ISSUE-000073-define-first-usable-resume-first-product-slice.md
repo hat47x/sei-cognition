@@ -537,6 +537,8 @@ SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw 
 
 **証拠取得のP0修正候補（未実装・NOT RUN）。** H2はpreflight 7／shared-runner 8／analysis 5、合計20 testを期待する。現行`capture_issue_000073_h2_runner_selftest.py`は`unittest discover`の終了コードだけでPASSとし、一部未発見でも誤PASSになり得る。完全PASSには期待したtest ID集合の実行、skip／error／failureなし、expected HEAD・required sourceの照合を要求する。3件だけのsynthetic self-test fixtureも7/8/5へ合わせる。さらに`--replace`付きのHEAD／source preflight失敗で既存Evidenceを削除し得るため、preflight失敗時は旧byteを保持し、新Evidenceを正常に確定できた場合にだけ原子的に置換する。合成負例を先に作り、修正前の挙動と修正後の結果を分けて保存する。**20/20 actual runと修正後capture self-testは未取得**。
 
+**RC-06の実装候補を別Draft PRへ切り出した（2026-11-02）。** [PR #772](https://github.com/hat47x/sei-cognition/pull/772)はH2の実テスト20件の完全ID照合・skip拒否・旧Evidence保全を`tools/capture_issue_000073_h2_runner_selftest.py`および合成自己試験に実装する。GitHub上のソースID一致・変更範囲は静的確認済みだが、**対象Python self-test、現行fixtureの20件actual run、capture actual runは未実行**。#772はDraftのまま資格確認を行い、main実装済み・合格済みとは扱わない。#768の文書計画は実装・humanの証拠と独立に維持する。
+
 **次の受入シナリオ（既存H1/H2と [#677](https://github.com/hat47x/sei-cognition/issues/677) のCT-01〜06への追補、実行未了）。**
 
 | ケース | 入力・変化 | 観測すること | 主な追跡先 |
