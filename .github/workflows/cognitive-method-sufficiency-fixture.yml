@@ -21,11 +21,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Python version
         run: python3 --version
-      - name: Run all four public synthetic test modules
+      - name: Run all five public synthetic test modules
         working-directory: evaluation/cognitive-method-sufficiency
         run: |
           python3 -m unittest -v \
             probe_partition_reference \
             test_probe_claim_qualifiers \
             test_probe_planning_visibility \
-            test_negative_evidence_closure
+            test_negative_evidence_closure \
+            test_inquiry_discovery_boundaries
