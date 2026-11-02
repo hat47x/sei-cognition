@@ -144,15 +144,15 @@ def record(
 def unittest_coverage(stderr: str) -> dict[str, Any]:
     """Accept only the pinned 20 named tests, with no skips or missing discovery."""
     lines = re.findall(
-        r"(?m)^([A-Za-z_][\\w]*) \\(([\\w.]+)\\) \\.\\.\\. "
-        r"(ok|FAIL|ERROR|skipped[^\\n]*)$",
+        r"(?m)^([A-Za-z_][\w]*) \(([\w.]+)\) \.\.\. "
+        r"(ok|FAIL|ERROR|skipped[^\n]*)$",
         stderr,
     )
     ids = [full for short, full, _result in lines
            if short == full.rsplit(".", 1)[-1]]
     passed_ids = {full for short, full, result in lines
                   if short == full.rsplit(".", 1)[-1] and result == "ok"}
-    summaries = re.findall(r"(?m)^Ran (\\d+) tests? in ", stderr)
+    summaries = re.findall(r"(?m)^Ran (\d+) tests? in ", stderr)
     count = int(summaries[0]) if len(summaries) == 1 else None
     missing = sorted(EXPECTED_TEST_IDS - set(ids))
     unexpected = sorted(set(ids) - EXPECTED_TEST_IDS)
@@ -173,7 +173,6 @@ def unittest_coverage(stderr: str) -> dict[str, Any]:
         "unexpected_test_ids": unexpected,
         "nonpassing_test_ids": sorted(set(ids) - passed_ids),
     }
-
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
