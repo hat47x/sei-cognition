@@ -632,6 +632,31 @@ SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw 
 
 **別研究の証拠資格。** Draft #770の先行2 Moduleは**13/13 PASS**、追加の`test_probe_planning_visibility.py`は**単独7/7 PASS**が報告された。追加後の3 Module一括回帰、実Tool/OS/Provider/Network/Timing、SEI本体、H1/H2人間試験は**NOT RUN**。合計20件を一括PASSと記録しない。実Disclosure/Tool ActionはTEI #2507/#2515/#2516、TAI #232、実ReadはTEI #2628等の既存Ownerが担当する。SEIはInquiry/Methodにおける公開可能な次の問い・Probe提案の認知的妥当性を評価する。
 
+
+### 2026-11-02 追加統合：調査計画の開示、必要根拠と実取得、Evidence取得修正の分離
+
+**新たな失敗形：回答本文が同一でも調査計画が秘密を露出する。** [SEI #767](https://github.com/hat47x/sei-cognition/issues/767)のP6、[Draft #770](https://github.com/hat47x/sei-cognition/pull/770)、[TEI #2516 J-08〜11](https://github.com/hat47x/tei-platform/issues/2516)、[TAI Draft #270](https://github.com/hat47x/tai-pleroma/pull/270)を照合した。外部Consumerから見えるView・許可されたTool集合が同一の二つの内部世界S0/S1で、非公開Actionの有無だけが異なるとする。最終回答を双方同じ`not-confirmable`へ揃えても、候補Probe、Tool名、順序、エラー、詳細理由、件数が秘密に応じ変化すれば、**調査計画そのものが存在情報を伝える**。認知Methodの「どの調査が有益か」と、Consumerへ「どの調査候補を見せてよいか」を別条件とする。ツールの許可・実開示・Network/OS強制は既存Product/TAI/TEIの責務であり、SEIに第二Policy Engineを作らない。
+
+**認知的な必要情報と実Readを同一視しない。** [TEI #2516 W10](https://github.com/hat47x/tei-platform/issues/2516)の三つの観測範囲を既存のMethod Applicationのinput/output/residualと受入票に対応させる。
+
+| 対象 | 問いと証拠 | SEI側の扱い |
+| --- | --- | --- |
+| Claim Proof Dependency | Qを答えるために必要なSource/Role/Rule/Relation/Scope/Time/Oracle。画面に出ないRule入力も必要な場合がある | 取得未列挙を「不要」とせず、根拠上の残余を保持 |
+| Actual Acquisition Footprint | 実際のQuery/Provider/Cache/Toolが読んだ対象と版・scope・完全性。返却JSONが狭くても秘密列をOverfetchした可能性 | 実Readが確認できなければ`physical-read-unverified`、宣言だけで取得最小性や全件性を保証しない |
+| Consumer/Planner-visible Footprint | 画面・SHO・外部AI・Tool JSON/Traceへ実際に露出した本文、候補Action、Probe名、引数、診断、順序 | 開示許可に沿って説明を限定し、実OS／Networkや反復照会での非干渉は別受入 |
+
+**既存RC-09の追加反例（新しい製品Schemaは要求しない）。**
+
+| Case | 固定公開合成対照 | 期待する判別と追跡先 |
+| --- | --- | --- |
+| **RC-09a Planner-visible leakage** | 外部可視V・許可Tool集合・最終回答は同じ。内部に秘密Actionがある世界だけ提案候補が増える | 公開候補／説明・Tool discovery・Traceを比較し、秘密の存在を示す計画が露出しないかを問う。SEI #767/#770は候補の評価、TAI #232/TEI #2515/#2507は実機密・Action適合を担当 |
+| **RC-09b Declared/actual gap** | 同じ表示入力と返却JSONだが、別世界では非表示Rule依存やProviderの秘密列Overfetchがある | 依存集合・実物理Read・開示の差を示し、確認できない項目はUnknownへ。実Provider取得はTEI #2628、Rule依存はTEI #2624/#1129 |
+| **RC-09c Consistent joint evidence** | 各Sourceは個別にdigest/取得成功でも、Manifest/Source改版やRead epochが混在 | Qに必要なSourceが**共同で**一つのClaimを支持する証拠を確認。全部の再取得を必須とせず、局所依存だけの再確認と正式bridgeをTEI #2516/#2604で評価 |
+
+**検証・費用の分離。** 方法候補やToolの発見、実Call、実取得・実開示、外部AIの応答、Ownerの受理は異なる観測である。誤保証、不要なSource再取得、確認時間/Token、秘密漏洩、許された部分作業を別の評価欄で比較し、単一スコアへ合算しない。H1の初回6問とH2の固定比較素材・盲検手順は維持し、新反例は回答固定後のoperator票または別合成研究へ収容する。CSWの自由な探索自体へ外部承認Gateを挿入しない。
+
+**Evidence更新（2026-11-02）。** [SEI Draft #770](https://github.com/hat47x/sei-cognition/pull/770)は公開合成の先行13件にPlanner-visible leakの新規7件を追加し、新規7/7 PASSを報告した。ただし**追加後の3 Module全20件一括回帰は未実行**で、実OS/Tool/Skillの機密非干渉を実証したものではない。別途、H2 captureの修正候補を[Draft #771](https://github.com/hat47x/sei-cognition/pull/771)として2ファイルに記録し、期待ID完全性・skip・同数別ID・`--replace`失敗時の旧Evidence保全を実装案と合成セルフテストに落とした。**#771のPython actual self-testと現行H2 actual 20件実行は未取得**。Draft PRの作成や静的照合をEvidence PASSへ昇格させない。
+
 ## Deliverables
 
 - `product/value/SEI_DECISION_CONTINUITY.md` — V1〜V8をDecision Continuityへ接続するProduct Value synthesis。**Design Evidence available**。
