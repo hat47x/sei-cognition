@@ -62,3 +62,32 @@ python -m unittest -v probe_partition_reference.py
 - Harness向け手順は[TAI Draft #270](https://github.com/hat47x/tai-pleroma/pull/270)で候補となっている`yi-sei-inquiry`の領域です。Skillロード成功・Agent完了はMethodの実資格ではありません。
 
 **Scope**：実装は純粋なテスト関数のみ。新しいRuntime、Product CLI、Tool、Conformance Gate、Owner Meaning Contract、Agent Hostは追加しません。
+
+<!-- local-cell-fractured-read-20261102 -->
+## 追加評価：Corpus全体の十分性と「一つの観測への限定結論」を分離する
+
+公開合成Referenceに`test_probe_claim_qualifiers.py`を追加しました。既存の`corpus_sufficient(W, probes)`は**Corpusにある全ての観測同値類についてQが一意か**を問います。一方、`fixture_cell_verdict(W, probes, observed)`は**一つの観測と整合するW内の世界だけ**を調べます。
+
+- `count+has_C`はW1〜W4全体については不十分ですが、観測W1に対応する同値類では`true-in-fixture`、W2では`false-in-fixture`、W3/W4では`unknown-in-fixture`です。**全体の評価が不十分でも、個々のObservationに限定すれば成立する結論があり得る**という可能性を示します。
+- W1〜W4において`count+has_C+has_E`でW3が`true-in-fixture`だったとしても、公開追加反例W5が入れば同じObservationが`unknown-in-fixture`になります。**Fixture内の局所判定は実世界の業務結論ではありません**。
+- Corpusに適合する世界が0件の未観測Observationを、`false`や`not exists`へ変換せず`unmodeled-observation`とします。
+- 別のSourceから得た一件の反例は、業務集合への対象帰属・時点が証明されて初めて元の全称Claimへの反証になります。別Claim間の一方向の証人/上下界・開示は[TEI #2516 W9](https://github.com/hat47x/tei-platform/issues/2516)、数学的なOracleは[TEI #2514](https://github.com/hat47x/tei-platform/issues/2514)がOwnerです。本テストは汎用含意Engineを実装しません。
+
+## 追加評価：複数Readが「一つの世界」を指しているか
+
+**反例**：時刻t0にA=1,B=0、t1にA=0,B=1とします。どちらの実Snapshotでも`∀(A,B)>0`はfalseです。しかしA@t0とB@t1を合わせれば両方1となり、誤ったtrueを作れます。
+
+合成`Read(field,value,epoch,source_revision)`の`joint_read_candidate`は、既知の対象フィールド／重複／epoch／Source revisionラベルを単純照合し、**明らかな混合ならUnknownへ戻す**ための事前チェックです。`same-labels-in-fixture`は実Source/Scope一致、Grant、Snapshot真正性、Provider完全性の証明ではありません。異時点でも成立する**証明済みの橋渡し**があれば各Product Ownerが判断し、本合成Referenceがすべて拒否する正式ルールにはしません。
+
+この検証は[TEI #2516 W10](https://github.com/hat47x/tei-platform/issues/2516)の異なるReadの共同資格、および[TEI #2605](https://github.com/hat47x/tei-platform/issues/2605)の実CLI/Skill read-bindingに接続します。「Skill説明が静的に一致」「実CLIを呼んだ」「同じClaimを支持する整合した実Readの組」「現在も結果を公開してよい」を別のEvidenceとして扱います。
+
+`disclosure_limited_summary`は**信頼済みの結果開示可否を引数として与えるだけ**の無害なフィクスチャです。Policy/RLS/OS強制、非公開Action名/Probe名、Timing/Trace、反復クエリ、実Harnessの外部送信を安全にした実装・実験ではありません。判定そのものが秘密となる場合のProduct別開示は[TAI #232](https://github.com/hat47x/tai-pleroma/issues/232)とTEI #1178/#2515のOwnerに戻します。
+
+### 同じ版に対する局所コマンド
+
+```bash
+cd evaluation/cognitive-method-sufficiency
+python -m unittest -v probe_partition_reference test_probe_claim_qualifiers
+```
+
+**2026-11-02：上記二Moduleで13/13 PASS（元6、新7）**。ローカルで実行した二つのPythonファイルが、Draft PR branch上のGit blob SHA `7cfc1892362b48f03cd7a29f93bfdf524584debc`／`851c3e228895c28c6af68608be6ca92bb38892d7`と一致することを確認しました。これは公開合成Fixtureの評価であり、GitHub CI・SEI製品本体・TEI Tool実Read/DB・複数Harness・OS隔離・Owner受理の検証ではありません。公開例を未使用の独立holdoutとして扱わず、候補Methodの有効性は[SEI #450](https://github.com/hat47x/sei-cognition/issues/450)の別評価で比較します。
