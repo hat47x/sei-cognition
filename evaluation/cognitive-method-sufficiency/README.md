@@ -129,7 +129,7 @@ python -m unittest -v test_probe_planning_visibility
 - **NE-02／非出力述語と関係依存**：返却行が変わらなくても`query-predicate p1→p2`、`relation-occurrences r1→r2`で否定Claimは再確認が必要。非出力PredicateがIRに保持されても、実SQLGlot Worker/実Queryの全依存被覆が保証されたわけではない（[TEI #2634](https://github.com/hat47x/tei-platform/issues/2634)）。
 - **NE-03／依存の追加と未知Edge**：新規`hidden-rule`がRequiredに追加されたら、旧Resultは同じでも`unknown`。Required Dependency setの正しさ自体はこのテスト外の独立Product Evidenceが必要。原因そのものが非公開なら外部へ詳細を出さない。
 - **NE-04／取得経路と現在性**：Provider route・cohort・epochの変更、実Read未観測、Source対象未束縛で`unknown`。同じDigestや過去の`full`表記を現在の資格に昇格しない（[TAI #271](https://github.com/hat47x/tai-pleroma/issues/271)）。
-- **NE-05／片側Witness**：部分取得でも、対象所属と実Readの確認された１件のWitnessがあれば`NOT EXISTS`の反証にはなり得る。ただしWitnessが実対象へ属する証拠を欠くなら`unknown`。数学的なQuery/Scope/OracleはTEI #2586/#2514のOwner。
+- **NE-05／片側Witness**：部分取得でも、対象所属と実Readの確認された１件のWitnessがあれば`NOT EXISTS`の反証にはなり得る。ただしWitnessが実対象へ属する証拠を欠くなら`unknown`。旧Predicate/Relation版のWitnessを現在の不存在反証として流用しない条件も合成テストで固定した。数学的なQuery/Scope/OracleはTEI #2586/#2514のOwner。
 - **NE-06／同名Tool・申告値の限界**：`actual_read`、`complete`、Dependency revisionsは試験用の**信頼済み仮定入力**であり、実Toolのread/Provider snapshotを見て導出したものではない。`conditionally-absent-in-fixture`は業務不存在・外部開示の認可・Host/OS保証ではない。
 
 ```bash
@@ -139,6 +139,6 @@ python -m unittest -v test_negative_evidence_closure
 python -m unittest -v probe_partition_reference test_probe_claim_qualifiers test_probe_planning_visibility test_negative_evidence_closure
 ```
 
-**実行証拠**：新テストはローカルPythonで**9/9 PASS**し、実行ファイルのGit blob `89af7413d723ab43df753fe929e631cfaa7650b3`とGitHub保存版が一致。前3 Moduleの6＋7＋7件は各々別の実行記録があり、**全4 Module 29/29の一括実行はこの追補時点ではNOT RUN**。Focused GitHub Actions workflowは候補ブランチへ追加したが、実CI結果は別途確認し、緑にならないうちにPASSと書かない。
+**実行証拠**：新テストはローカルPythonで**10/10 PASS**し、実行ファイルのGit blob `50e19dcd1b6b66c9c7338668865a7cc93ea0b4f4`とGitHub保存版が一致。前3 Moduleの6＋7＋7件は各々別の実行記録があり、**全4 Module 30/30の一括実行はこの追補時点ではNOT RUN**。Focused GitHub Actions workflowは候補ブランチへ追加したが、実CI結果は別途確認し、緑にならないうちにPASSと書かない。
 
 **次の実連結（Owner維持）**：SEIはProbe質問の選択と`Q/観測/不足依存/残余`の説明を行う。TEI #2586/#2387/#2634/#2637は実Query・Provider/Grantの必要依存と実時点を検証し、TAI #271が現在のActivity利用・引継ぎ資格を選択的に再確認する。SHO/外部Harnessへ渡すのはProductが許可した目的相対のProjectionに限る。空の結果を一律FAILへ倒すのではなく、**適用対象内の肯定・否定・限定的不明を区別**し、説明のために新Universal Proof Engine、共通Claim Store、Host、CSW探索中のGateを追加しない。
