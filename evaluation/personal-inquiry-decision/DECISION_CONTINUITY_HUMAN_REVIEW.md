@@ -610,6 +610,23 @@ ISSUE-000073のResolution判断では、E1〜E8のScoped Executable Evidence、H
 
 **Evidence資格。** Draft #770は最初の2 Moduleで13/13 PASS、その後の第三Moduleは**単独7/7 PASS**、3 Module一括は未実施。いずれも公開合成テストであり、実Provider／OS／Network／Tool List／Timing／反復照会／秘密情報の開示保証やH1/H2 human observationとは別。実行・開示ポリシーはTEI #2507/#2515、TAI #232が所有し、SEIは利用者にとって必要な次のInquiryと、その開示可能な説明を検討する。
 
+
+### 12.4 調査計画・Tool候補を含むConsumer開示の追加評価
+
+**2026-11-02／operator側・H1/H2の回答固定後または独立合成票に限定。** SEI #767 P6とDraft #770のPlanner-visible leakage、TEI #2516 J-08〜11の必要根拠／実Read／公開観測を既存H1の「次の確認」へ接続する。盲検readerに内部Tool一覧・秘密のAction・対照世界の存在を先に示さない。実資料の秘密は試験用fixtureへ転記しない。
+
+| 観測欄 | 質問・記録内容 |
+| --- | --- |
+| 必要根拠 | 今の問いQが要求するSource・Rule・対象のScope／時点と、未列挙の依存があるか。表示済み値だけから必要入力を閉じたか |
+| 実際の取得 | 候補Tool説明や宣言Queryと、実ProviderのRead/Cache/Source版/取得範囲を区別。実取得の独立証拠がなければ未確認 |
+| 表示された計画 | Consumerが観測した候補Question、Tool/Action名、候補数、実行順、理由、Error、Trace。公開回答本文が同一でもここに差があるか |
+| 公開資格 | 公開してよい結果に加え、Probeの存在・件数・失敗理由を含む計画を開示できるか。判定条件は権限あるProductに委譲 |
+| 再開時の負担 | 部分的に前進できた作業、追加調査、Tool/Source再取得、修正作業、漏出や過大な断定の有無を別々に測定 |
+
+**合成二世界の負例（operatorのみ）**：外部可視Vと許可Tool集合が同じで、内部世界S1にだけ非公開Actionが存在する。最終返答が双方`not-confirmable`であっても、外部に出すTool候補がS1だけ多ければ存在を推測できる。この対照では最終返答と公開候補の両方を比べる。真のOS/Tool/Timing/反復照会・Networkにおける非干渉試験はTAI #232/TEI #2515の責務であり、現在の合成試験から成立と主張しない。
+
+**証拠と継続条件**：別Draft #770は追加Planner合成7/7 PASS、既存13/13 PASSをそれぞれ報告。追加後の全20件を同一runでPASSしたという証拠ではない。本書のH1/H2実人間観測は未成立。H2のEvidence取得修正候補は[Draft #771](https://github.com/hat47x/sei-cognition/pull/771)へ分離し、Python actual executionが確認できるまでは完全PASSと扱わない。
+
 ## 13. Natural Japanese review
 
 H2用に既に成立していたmatched review手順を維持しながら、073/078で同じreview runnerを共有する形へ整理した。H2ではreviewer provenanceを最初のstimulus提示前に固定し、その初期sessionをexclusive-createして同じpathへの再initを拒否する。provenance付きsessionを低レベルstage-gate CLIから直接提示・記録する迂回も拒否し、condition labelを伏せたbundle、Issue固有response validation、complete後のEvidence exportまでを同じ入口へ集約した。また、ISSUE-000073で未接続だったH1 actual resume usabilityを既存Personal Inquiry Continuity dogfood surfaceへ接続した。
