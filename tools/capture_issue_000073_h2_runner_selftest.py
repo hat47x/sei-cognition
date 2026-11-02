@@ -71,7 +71,7 @@ EXPECTED_TEST_IDS = frozenset((
     "test_decision_continuity_review_analysis.DecisionContinuityReviewAnalysisTest.test_single_rotation_remains_partial_counterbalance"
 ))
 TEST_RESULT_LINE = re.compile(
-    r"^(test_\\w+) \\(([^)]+)\\) \\.\\.\\. (ok|FAIL|ERROR|skipped(?: .*)?)$"
+    r"^(test_\w+) \(([^)]+)\) \.\.\. (ok|FAIL|ERROR|skipped(?: .*)?)$"
 )
 
 
@@ -87,7 +87,7 @@ def audit_unittest(stderr: str) -> dict[str, Any]:
         observed.append(identifier)
         if not identifier.endswith("." + method) or outcome != "ok":
             non_pass.append(f"{identifier}: {outcome}")
-    count_match = re.search(r"(?m)^Ran (\\d+) tests? in ", stderr)
+    count_match = re.search(r"(?m)^Ran (\d+) tests? in ", stderr)
     reported = int(count_match.group(1)) if count_match else None
     seen = set(observed)
     audit: dict[str, Any] = {
