@@ -117,3 +117,28 @@ python -m unittest -v test_probe_planning_visibility
 **局所実測（2026-11-02）**：Python 3.13.5で**7/7 PASS**。GitHub上の`test_probe_planning_visibility.py`のGit blob SHA `19d231ed35ed83ef1b8ac566905483e450e225a8`と、ローカル実行したファイルのGit blobが一致。元2 Moduleの**13/13 PASSは前段の独立した実行結果**であり、新ファイルを含む3 Module一括のCI/実実行はこの追補時点で**NOT RUN**。公開合成例が増えてもsealed holdoutや実OS/Policyの非干渉証明とは扱わない。
 
 **工程上の意味**：Cognitive Methodは、識別力の高い質問を生成するだけでなく、*その質問を外部Consumerへ提示してよいか／公開されたToolで実行できるか／実際にProduct内の検査へ委譲する必要があるか*を区別する。実ProductのAction適用性はTEI #2507、開示資格・実行強制はTAI #232/TEI #1178/#2515、外部Skillの導入・実使用はTAI Draft #270、Method EvaluationはSEI #767に維持する。通常の組織Dataへ一律の秘密分離要件を新設しない。
+
+<!-- negative-evidence-dynamic-dependency-20261103 -->
+## P6拡張：空の結果から「存在しない」を導かないための動的依存条件
+
+2026-11-03時点、TEI側の[Construction Context #2516](https://github.com/hat47x/tei-platform/issues/2516) W0c・[統合済みPR #2626](https://github.com/hat47x/tei-platform/pull/2626)では、**公開Referenceを使った実Go CLI read-only観測**と、**合成の選択的再資格化**を別々に実証した。PR #2626は特定HEADのFocused CIで合成55件PASS、read-only実Go CLI観測成功を記録している。一方、実Provider SQL/閉じた対象母集団/動的依存の網羅/Host Grant/SHO文書・外部Agent/Owner意味受理には到達していない。SEI側の「空の応答をどう認知上評価するか」は、この成果を過大に利用せず次の実証課題として扱う。
+
+公開合成`test_negative_evidence_closure.py`を追加した。`NOT EXISTS`など**否定的なClaim**は、単に`observed_ids=[]`だっただけでは成立しない。必要なのは、**問いQに対する対象集合・取得完了・現行述語・関係出現・Provider route・Snapshot epoch・Source/Read束縛が確認できているか**という用途相対の依存です。
+
+- **NE-01／空応答と対象全件性**：同じ`[]`でも、部分Rで未取得の該当行を含む世界と完全な世界は区別できない。合成fixtureの`complete=False`なら`unknown-incomplete-scan`。
+- **NE-02／非出力述語と関係依存**：返却行が変わらなくても`query-predicate p1→p2`、`relation-occurrences r1→r2`で否定Claimは再確認が必要。非出力PredicateがIRに保持されても、実SQLGlot Worker/実Queryの全依存被覆が保証されたわけではない（[TEI #2634](https://github.com/hat47x/tei-platform/issues/2634)）。
+- **NE-03／依存の追加と未知Edge**：新規`hidden-rule`がRequiredに追加されたら、旧Resultは同じでも`unknown`。Required Dependency setの正しさ自体はこのテスト外の独立Product Evidenceが必要。原因そのものが非公開なら外部へ詳細を出さない。
+- **NE-04／取得経路と現在性**：Provider route・cohort・epochの変更、実Read未観測、Source対象未束縛で`unknown`。同じDigestや過去の`full`表記を現在の資格に昇格しない（[TAI #271](https://github.com/hat47x/tai-pleroma/issues/271)）。
+- **NE-05／片側Witness**：部分取得でも、対象所属と実Readの確認された１件のWitnessがあれば`NOT EXISTS`の反証にはなり得る。ただしWitnessが実対象へ属する証拠を欠くなら`unknown`。数学的なQuery/Scope/OracleはTEI #2586/#2514のOwner。
+- **NE-06／同名Tool・申告値の限界**：`actual_read`、`complete`、Dependency revisionsは試験用の**信頼済み仮定入力**であり、実Toolのread/Provider snapshotを見て導出したものではない。`conditionally-absent-in-fixture`は業務不存在・外部開示の認可・Host/OS保証ではない。
+
+```bash
+cd evaluation/cognitive-method-sufficiency
+python -m unittest -v test_negative_evidence_closure
+# 全4moduleのFocused CI（.github/workflows/cognitive-method-sufficiency-fixture.yml）
+python -m unittest -v probe_partition_reference test_probe_claim_qualifiers test_probe_planning_visibility test_negative_evidence_closure
+```
+
+**実行証拠**：新テストはローカルPythonで**9/9 PASS**し、実行ファイルのGit blob `89af7413d723ab43df753fe929e631cfaa7650b3`とGitHub保存版が一致。前3 Moduleの6＋7＋7件は各々別の実行記録があり、**全4 Module 29/29の一括実行はこの追補時点ではNOT RUN**。Focused GitHub Actions workflowは候補ブランチへ追加したが、実CI結果は別途確認し、緑にならないうちにPASSと書かない。
+
+**次の実連結（Owner維持）**：SEIはProbe質問の選択と`Q/観測/不足依存/残余`の説明を行う。TEI #2586/#2387/#2634/#2637は実Query・Provider/Grantの必要依存と実時点を検証し、TAI #271が現在のActivity利用・引継ぎ資格を選択的に再確認する。SHO/外部Harnessへ渡すのはProductが許可した目的相対のProjectionに限る。空の結果を一律FAILへ倒すのではなく、**適用対象内の肯定・否定・限定的不明を区別**し、説明のために新Universal Proof Engine、共通Claim Store、Host、CSW探索中のGateを追加しない。
