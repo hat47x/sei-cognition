@@ -838,6 +838,11 @@ func parseFlags(f *flag.FlagSet, args []string, stdout, stderr io.Writer) (done 
 		return true, nil
 	}
 	_, _ = stderr.Write(buf.Bytes())
+	if err == nil && f.NArg() > 0 {
+		// どのsubcommandも位置引数を取らない。黙って捨てると、指定したつもりの
+		// 方針(例: "--" 以降の --require-recommendation)が落ちて緩い結果になる。
+		return false, fmt.Errorf("%s: unexpected arguments %q (flags must come before any \"--\"; this command takes no positional arguments)", f.Name(), f.Args())
+	}
 	return false, err
 }
 
