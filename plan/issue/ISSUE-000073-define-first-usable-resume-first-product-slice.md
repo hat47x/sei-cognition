@@ -559,7 +559,7 @@ SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw 
 
 **問いの種類ごとに、再開の成功条件を変える。** 例えば、`Q1=過去のD1で何を判断したか`は当時の固定Decisionと根拠で答えられる場合がある。`Q2=現在もD1の前提が成立するか`は現在のSource・Rule・用途・権限の追加照合を要する場合がある。`Q3=前回確認後に関連変更が一度もなかったか`は最終Snapshotが同じでも、区間中の追加・離脱・遅着訂正を覆う履歴を要する。Q1の復元成功をQ2/Q3への回答済みと扱わない。
 
-**合成世界での識別性と十分性。** 固定した世界集合Wと問いQ、観測関数Oについて、すべてのA,B∈Wで`O(A)=O(B) ⇒ Q(A)=Q(B)`なら、**そのW内では**OはQを識別するのに十分な情報を持つ。一組の世界を区別するProbeの存在はW全体の十分性を示さない。また、Wへの新世界追加、実Providerの対象集合・Revision・アクセス範囲変更後の適用も別検証である。#770のW1〜W4では`count+has_C+has_E`がQを区別できるが、公開追加世界W5でW3/W5の観測が一致しQが異なり、固定Corpusでの成立が崩れる。#770の**局所合成6/6 PASSはこの反例に限定**し、実SEI Productや現実の全世界の十分性を証明しない。
+**合成世界での識別性と十分性。** 固定した世界集合Wと問いQ、観測関数Oについて、すべてのA,B∈Wで`O(A)=O(B) ⇒ Q(A)=Q(B)`なら、**そのW内では**OはQを識別するのに十分な情報を持つ。一組の世界を区別するProbeの存在はW全体の十分性を示さない。また、Wへの新世界追加、実Providerの対象集合・Revision・アクセス範囲変更後の適用も別検証である。#770のW1〜W4では`count+has_C+has_E`がQを区別できるが、公開追加世界W5でW3/W5の観測が一致しQが異なり、固定Corpusでの成立が崩れる。#770の**最初の6/6 PASS（その後、追加7件を含め13/13 PASSと報告）は公開合成反例に限定**し、実SEI Productや現実の全世界の十分性を証明しない。
 
 **有用な次の確認を選ぶ。** H1で再開に迷ったとき、認知Methodの候補は(1)現在の問いと必要な範囲を定める、(2)観測が同じなのに答えの異なる仮説を明示する、(3)区別し得る追加Source/履歴/独立Oracleを探す、(4)実際に利用できるToolと開示許可を確認する、(5)実行された確認と結果を観測し、残るQuestionへ戻す、の順で検討する。これは説明用の分析手順でありSEIの新しい公式状態機械ではない。明示された`Method Definition / Realization / Application`とApplicationの`input/output/residual/provenance`参照を再利用し、Method候補→実Tool発見→許可→実行→観測→用途適合の各段階を別Evidenceとする。
 
@@ -577,7 +577,36 @@ SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw 
 
 **順序とProduct Value。** RC-07は#770の既存合成Referenceを再利用して別の実装を起こさず、RC-08はread-onlyのSource/履歴照合案から始める。RC-09は権限付き実接続のOwner・提供Toolが確定してから実施する。H1本番観測の最初の6問とH2の3 fixture×3 conditionをそのまま保持し、追加研究は回答固定後のoperator評価、または独立した合成横断票で扱う。成功条件は「答えを速く言えたか」だけではなく「問うているClaimに十分な根拠があるか、まだ何を調べる必要があるかを利用者が正しく理解したか」とし、余分な確認・取得費用・capture/review負担をともに測定する。
 
-**実施資格。** #770の6/6 PASSはPython 3.13.5による公開合成Referenceの局所実行であり、別GitHub Draft PRの限定Evidenceである。SEI #769のSkill、本PRのRC-07〜09、現行SEI CLI/Goの認知Method実行、実Source Provider、H1/H2人間評価は**NOT RUN**。Product Value・Owner意味受理・現在の業務実行資格のEvidenceは変更しない。
+**実施資格。** #770の最初の6/6 PASSと、追加7件を含めた13/13 PASSはPython 3.13.5による公開合成Referenceの局所実行であり、別GitHub Draft PRの限定Evidenceである。SEI #769のSkill、本PRのRC-07〜09、現行SEI CLI/Goの認知Method実行、実Source Provider、H1/H2人間評価は**NOT RUN**。Product Value・Owner意味受理・現在の業務実行資格のEvidenceは変更しない。
+
+
+### 2026-11-02 追補：観測同値類・複数Readの共同資格・限定継続
+
+**設計上の成熟点。** [SEI #767 P6追補](https://github.com/hat47x/sei-cognition/issues/767)と[Draft #770](https://github.com/hat47x/sei-cognition/pull/770)では、従来の「固定Corpus W全体で問いQを識別できるか」に加え、**現在得た一つの観測oと整合する世界だけならQを限定的に判断できるか**を検討した。2026-11-02時点で既存6件＋追加7件の**公開合成Python 13/13 PASSが別Draft PRで報告**され、両ファイルのGit blobも記録されている。これは#770の局所合成試験のEvidenceであり、本IssueのH1/H2、実Provider、現行CLIの実行証拠へ加算しない。
+
+**判断の単位を問いと観測の組に保つ。** 説明用の固定世界集合Wにおいて`C_W(o)={w∈W | O(w)=o}`とすると、`C_W(o)`が非空かつQが全要素で同じ場合に限り、その観測セルではQを限定的に説明できる。Wの全セルが同じ性質を持つ場合はW全体で十分性が成立する。セルが空なら`unmodeled-observation`、同じセルにQが異なる世界があれば`unknown-in-fixture`とし、否定結果を捏造しない。値が一致するセルも`true-in-fixture`／`false-in-fixture`の**合成範囲付き結果**に留める。
+
+| RC-07の追加判別 | 合成入力 | 必要な観測と反証 |
+| --- | --- | --- |
+| **RC-07a 局所的な利用可能性** | W1〜W4、Probe=`count+has_C` | Corpus全体は不十分だがW1の観測セルはtrue、W2はfalse、W3/W4はunknown。**局所で答えられる問いを全件未回答へ一律縮退しない** |
+| **RC-07b 追加世界での訂正** | W1〜W4では`count+has_C+has_E`でW3セルがtrue、新たにW5（D=0）を追加 | 同じ観測でQが異なるため`unknown-in-fixture`へ更新。旧Application・当時のWと判断理由を歴史として保存し、現在の適用だけ再評価 |
+| **RC-07c 想定外観測** | 既存Wに対応しない新しいobserved signature | `unmodeled-observation`を`false`や対象不存在へ昇格させず、対象モデル・Sourceへ戻る次のInquiryを示す |
+
+**追加取得と観測モデル拡張の関係。** 固定Wについて識別的なProbeを追加すれば観測セルは細分化され、旧unknownを限定的に解消できる場合がある。一方、同じProbeでもWに新たな可能性が加われば、旧限定結論がunknownへ戻り得る。これはApplicationの履歴が失われることではなく、**現在の問いに対する知識範囲が更新されたこと**である。実対象がWで覆われること、Source/Ruleの正本、各Observationの真正性はProduct/Ownerが別に確認する。
+
+**複数Readを一つのClaimへ結合する資格。** 各Readの`result=pass`、単体digest、正しいTool応答だけでは、複数Readが**同じ対象世界・同じ問いに共同で適用できる**と証明したことにはならない。最小反例は`t0:A=1,B=0`、`t1:A=0,B=1`で、A@t0=1とB@t1=1を結合すると、どちらの実Snapshotでも偽の`A,Bとも正値`を作る。現行の公開合成Referenceの`joint_read_candidate`は必要フィールド、重複、epochとSource revisionのラベル混合を検出する**事前検査**であり、ラベル一致は実ReadのSource/Scope/Provider正当性を証明しない。異版でも有効な橋渡し（bridge）や用途限定の局所Claimが成立するかはTEI [#2516 W9/W10](https://github.com/hat47x/tei-platform/issues/2516)、#2605等のOwnerへ戻す。
+
+| RC-08の追加判別 | 合成入力 | 期待する判断 |
+| --- | --- | --- |
+| **RC-08a 混合epoch** | A@t0 と B@t1、どちらも単独では正しく観測 | 合成の`mixed-epoch-unknown`へ戻す。実際の共同Snapshotや有効なbridgeがあれば既存ProductのEvidenceで別途確認 |
+| **RC-08b 同epoch・異版** | epochは同じ、Source revisionだけ異なる | 合成の`mixed-source-unknown`。同じ文字列epochだけを共同資格とみなさない |
+| **RC-08c 部分Claim** | D1側Sourceは必要集合が完全、D2は取得途中。問うClaimがD1単独／D1×D2 JOINの2種類 | D1単独に必要な情報が成立する場合はその問いを先に進め、JOINのClaimは必要依存の不足とともに保留する |
+
+**開示の資格は結果の後にも必要。** 同じ外部可視Projection Vを与える二つの内部世界でQが異なる場合、外部Consumerの観測だけではそのQを判断できない。内部ProductにQの限定結論が得られても、結果やProbe名・失敗理由・隠れた対象の件数の公開は別の資格を要する。Draft #770は`result_release_authorized`を**信頼済み引数として与えた合成試験**に過ぎず、Tool名、Timing、Trace、反復照会、実OS／Networkの情報流出を防いだ実証ではない。実開示のOwnerはTEI #2515・TAI #232等に保持し、SEIの再開票では開示可能な説明にとどめる。
+
+**Product Valueへの転換。** 再開後の認知支援は、「すべてを取得してから進む／不足があれば全部停止する」という二択を解消し、**根拠の足りている限定Claimについて調査や判断を前進させ、足りないClaimだけ必要な追加観測を提案する**ことを価値候補とする。H1では元の回答を固定した後、(1)限定結論の範囲、(2)保留の理由、(3)実際に取った次の一手、(4)誤った混合Read・誤保証の有無、(5)不要な再取得・人の確認負担をoperator側で観測する。H2の固定素材・盲検割当・評価指標は変更せず、合成研究の結果をHuman Evidenceへ転用しない。
+
+**依存と状態。** 局所認知方法と次Probeの選択は#767、Question/Observation保存契約は#711、Method有効性の学習と独立holdoutは#450、外部Skillは#769／TAI Draft #270、Consumerの共同ReadはTEI #2516のまま。新しいContract enum、第二のClaim Store／Universal State Machine／Host、別の中央承認Gateを導入しない。**本PRは上記の計画・評価文書を更新するもので、RC-07a〜c/RC-08a〜cの実SEI・実Human検証はNOT RUN**。
 
 ## Deliverables
 
