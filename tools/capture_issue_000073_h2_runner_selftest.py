@@ -5,6 +5,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -44,6 +45,28 @@ SOURCE_FILES = (
     Path("evaluation/personal-inquiry-decision/decision_continuity_counterfactual_002.json"),
     Path("evaluation/personal-inquiry-decision/decision_continuity_counterfactual_003.json"),
 )
+EXPECTED_TEST_IDS = frozenset({
+    "test_decision_continuity_preflight.DecisionContinuityPreflightTest.test_real_matched_set_passes_decision_semantic_preflight",
+    "test_decision_continuity_preflight.DecisionContinuityPreflightTest.test_post_decision_fact_cannot_become_historical_basis",
+    "test_decision_continuity_preflight.DecisionContinuityPreflightTest.test_recommendation_ref_must_point_to_recommendation",
+    "test_decision_continuity_preflight.DecisionContinuityPreflightTest.test_unresolved_ref_must_exist_at_decision_time",
+    "test_decision_continuity_preflight.DecisionContinuityPreflightTest.test_phase1_must_have_exactly_one_decision",
+    "test_decision_continuity_preflight.DecisionContinuityPreflightTest.test_ticket_routing_plural_low_confidence_basis_in_each_surface",
+    "test_decision_continuity_preflight.DecisionContinuityPreflightTest.test_import_dedupe_future_unknown_and_dry_run_in_each_surface",
+    "test_decision_continuity_review_runner.DecisionContinuityReviewRunnerTest.test_current_repository_decision_set_opens_through_shared_runner",
+    "test_decision_continuity_review_runner.DecisionContinuityReviewRunnerTest.test_phase1_bundle_hides_condition_and_later_material",
+    "test_decision_continuity_review_runner.DecisionContinuityReviewRunnerTest.test_known_exposure_is_not_clean_blinded",
+    "test_decision_continuity_review_runner.DecisionContinuityReviewRunnerTest.test_review_start_session_cannot_be_reinitialized_in_place",
+    "test_decision_continuity_review_runner.DecisionContinuityReviewRunnerTest.test_missing_provenance_cannot_open_bundle",
+    "test_decision_continuity_review_runner.DecisionContinuityReviewRunnerTest.test_decision_validation_and_stage_gate",
+    "test_decision_continuity_review_runner.DecisionContinuityReviewRunnerTest.test_invalid_decision_response_is_wrapped_by_shared_runner",
+    "test_decision_continuity_review_runner.DecisionContinuityReviewRunnerTest.test_complete_decision_review_exports_separate_evidence_layers",
+    "test_decision_continuity_review_analysis.DecisionContinuityReviewAnalysisTest.test_generic_stage_gate_accepts_actual_decision_set",
+    "test_decision_continuity_review_analysis.DecisionContinuityReviewAnalysisTest.test_phase1_answer_count_must_match_fixture_questions",
+    "test_decision_continuity_review_analysis.DecisionContinuityReviewAnalysisTest.test_audit_requires_post_decision_temporal_integrity_finding",
+    "test_decision_continuity_review_analysis.DecisionContinuityReviewAnalysisTest.test_full_rotation_projection_is_non_scored_and_counterbalanced",
+    "test_decision_continuity_review_analysis.DecisionContinuityReviewAnalysisTest.test_single_rotation_remains_partial_counterbalance",
+})
 SCHEMA = "issue-000073-h2-shared-runner-selftest-evidence/v1"
 STOP_LINE = (
     "H2 shared-runner regression PASS != H2 human review != H1 actual resume "
@@ -118,6 +141,40 @@ def record(
     return value
 
 
+def unittest_coverage(stderr: str) -> dict[str, Any]:
+    """Accept only the pinned 20 named tests, with no skips or missing discovery."""
+    lines = re.findall(
+        r"(?m)^([A-Za-z_][\\w]*) \\(([\\w.]+)\\) \\.\\.\\. "
+        r"(ok|FAIL|ERROR|skipped[^\\n]*)$",
+        stderr,
+    )
+    ids = [full for short, full, _result in lines
+           if short == full.rsplit(".", 1)[-1]]
+    passed_ids = {full for short, full, result in lines
+                  if short == full.rsplit(".", 1)[-1] and result == "ok"}
+    summaries = re.findall(r"(?m)^Ran (\\d+) tests? in ", stderr)
+    count = int(summaries[0]) if len(summaries) == 1 else None
+    missing = sorted(EXPECTED_TEST_IDS - set(ids))
+    unexpected = sorted(set(ids) - EXPECTED_TEST_IDS)
+    complete = (
+        count == len(EXPECTED_TEST_IDS)
+        and len(ids) == len(EXPECTED_TEST_IDS)
+        and len(set(ids)) == len(ids)
+        and not missing
+        and not unexpected
+        and passed_ids == EXPECTED_TEST_IDS
+    )
+    return {
+        "complete": complete,
+        "expected_test_count": len(EXPECTED_TEST_IDS),
+        "observed_test_count": count,
+        "observed_test_ids": sorted(set(ids)),
+        "missing_test_ids": missing,
+        "unexpected_test_ids": unexpected,
+        "nonpassing_test_ids": sorted(set(ids) - passed_ids),
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description=(
@@ -164,8 +221,6 @@ def main(argv: list[str] | None = None) -> int:
         head_tree = git_text(repo, "rev-parse", "HEAD^{tree}")
         dirty = git_text(repo, "status", "--porcelain=v1")
     except RuntimeError as exc:
-        if args.replace:
-            output.unlink(missing_ok=True)
         value = record(
             status="blocked",
             repository=None,
@@ -185,8 +240,6 @@ def main(argv: list[str] | None = None) -> int:
         "clean": dirty == "",
     }
     if head != args.expected_head:
-        if args.replace:
-            output.unlink(missing_ok=True)
         value = record(
             status="blocked",
             repository=repository,
@@ -202,8 +255,6 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     if dirty:
-        if args.replace:
-            output.unlink(missing_ok=True)
         value = record(
             status="blocked",
             repository=repository,
@@ -228,8 +279,6 @@ def main(argv: list[str] | None = None) -> int:
                 )
             sources.append(bound)
     except RuntimeError as exc:
-        if args.replace:
-            output.unlink(missing_ok=True)
         value = record(
             status="blocked",
             repository=repository,
@@ -244,18 +293,20 @@ def main(argv: list[str] | None = None) -> int:
     test_cmd = [
         sys.executable, "-m", "unittest", "discover",
         "-s", "evaluation/personal-inquiry-decision",
-        "-p", "test_decision_continuity_*.py",
+        "-p", "test_decision_continuity_*.py", "-v",
     ]
     test_proc = run(test_cmd, repo)
+    coverage = unittest_coverage(test_proc.stderr)
+    status = "pass" if test_proc.returncode == 0 and coverage["complete"] else "fail"
     execution = {
         "command": test_cmd,
         "cwd": str(repo),
         "exit_code": test_proc.returncode,
         "stdout": test_proc.stdout,
         "stderr": test_proc.stderr,
-        "status": "pass" if test_proc.returncode == 0 else "fail",
+        "test_coverage": coverage,
+        "status": status,
     }
-    status = "pass" if test_proc.returncode == 0 else "fail"
     value = record(
         status=status,
         repository=repository,
@@ -263,6 +314,20 @@ def main(argv: list[str] | None = None) -> int:
         sources=sources,
         execution=execution,
     )
+
+    # A failed replacement must leave an earlier Evidence record byte-identical.
+    # The failed attempt remains available in this process's diagnostic JSON.
+    if status != "pass" and output.exists():
+        print(json.dumps({
+            "schema": SCHEMA,
+            "status": "fail",
+            "output": str(output),
+            "recorded": False,
+            "previous_evidence_preserved": True,
+            "execution": execution,
+            "stop_line": STOP_LINE,
+        }, ensure_ascii=False, indent=2))
+        return 1
 
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile(
