@@ -1,6 +1,6 @@
 # Decision Continuity — H1 / H2 Human Review Execution
 
-更新日: 2026-10-25  
+更新日: 2026-11-02  
 状態: **Evaluation-only / Human Review Ready / H1・H2 Not Yet Observed / Not Product Requirement**  
 関連: ISSUE-000073 / `DOGFOOD_SURFACE.md` / `DOGFOOD_EVALUATION_RECORDING.md` / `decision_continuity_counterfactual_matched_set_v1.json` / `inquiry_continuity_review_runner.py` / `matched_review_session.py` / `decision_continuity_review_analysis.py`
 
@@ -522,6 +522,34 @@ H1 observed
 ISSUE-000073のResolution判断では、E1〜E8のScoped Executable Evidence、H1 actual resume usability、H2 counterfactual review、capture / review overheadを別々に確認し、そのうえでCandidate RequirementとDecision Continuity Product hypothesisを再評価する。
 
 2026-10-10時点ではE1〜E8のScoped Executable Evidenceは成立済みである。したがって未観測の中心はH1、H2、capture / review overheadである。human reviewでは、SEIに有利な結果を作ることではなく、単純baselineとの差が弱い場合やoverheadが大きい場合もそのまま記録する。
+
+
+### 12.1 2026-11-02追補：H2素材比較と現行製品の価値実証を分ける
+
+**評価手順の追加注意（Evaluation-only／新schemaなし／human review NOT YET OBSERVED）。** 本節はISSUE-000073のRC-01〜06と、SEI #677/#660/#767の用途相対の確認をH1/H2へ接続するoperator用手順であり、未露出readerへ見せるstimulusや既存matched fixtureを変更しない。
+
+**H2 operatorの事前監査（盲検readerへの提示前）。**
+
+1. 3ケースごとにA raw chat・B chronological note・C SEI Resumeを並べ、Recommendation、Decision、historical basis、unresolved、post-decision evidence、確定度、数量、対象、時点の意味対応を記録する。既知の②/③の補正・36項目静的照合を保持し、その結果を新しい全面的意味保証へ広げない。
+2. Cの`surface_text`は**人手で準備した比較用Surface**であり、現行`BuildResume()`／CLI／MCPの実出力ではない。実製品から参照・意味説明へ到達できるか、必要な原record再読取り回数・手作業の補足量を**operatorだけの別票**へ記載する。`C fixture`の認知的効果と`actual SEI product`の効果を分ける。
+3. 既存R1/R2/R3、pre-stimulus provenance、全caseのphase1→post→audit固定順序を維持する。比較に先立ち未割当Surface、reference state、製品出力差のoperator分析をreaderへ見せない。既知の素材露出を新しいclean blinded observationへ塗り替えない。
+4. `comparison_projection`の9/9 coverageは組合せ網羅であって、人間作成・回答の正しさ・評価者独立性を保証しない。responseの文字列形式と`findings=pass`の入力だけで正答とせず、operatorが独立参照資料との照合実施有無、評価者ID重複、事前露出、合成responseの有無を記録する。参照元は固定したsource snapshotと必要な原位置で示す。
+5. 試験実行記録は`7/8/5`のスイートごとの発見・skip・結果と期待テストIDを分ける。終了コード0や合計20件だけで「全件成功」を主張しない。現在のcaptureは件数・IDを検証せず、前提失敗時の`--replace`で旧Evidence喪失の可能性もあるため、技術修正の完了前に新しいPASSを記載しない。これは**H2の人間評価を始める新しい前提条件ではない**。
+
+**H1の直前露出ゲートと回答固定を優先する。** H1の既存6問への回答が固定されるまでは、Operatorが原資料変更・ExactBinding・Gate・現在権限の違いを教えて正答を誘導しない。回答確定後、必要がある場合にだけ次の追補をread-onlyで観測する。過去のDecisionは歴史的記録として保持し、現時点で利用できるか／誰が実行できるかを別に評価する。
+
+| 観測欄（local-only memo） | 問い・記録方法 |
+| --- | --- |
+| Historical accuracy | 当時のDecision、Recommendation、根拠、未決、後から到着した情報を取り違えなかったか。誤認は具体例とともに記録 |
+| Source/meaning applicability | 現在のSource、scope、Rule、外部条件と何が変化したか。確認範囲と、意味対応が未確認の候補を区別 |
+| Coverage and disclosure | 回収できた原記録の範囲、本文中の候補、開示不能・未確認を区別。機密ID・件数・非開示原文を外部Harnessの評価票へ転記しない |
+| Action boundary | 旧Decision／Gate allowが現時点のAuthority・Commit成功・Business Outcomeを意味すると誤認しなかったか。実操作を実行したという記録は作らない |
+| Next useful action | 利用者が何を次に確認／比較／調査するか。最初の有用な一手への時間とsource reopen、修正負担を観測 |
+| Capture/review tax | 実際に記録した準備・補正・確認の負担のみ数える。再開後の想像で過去の作業負担を補完しない |
+
+**解釈停止線。** H2素材での正確な回答、9/9の組合せ、現行実装の原record読出し成功、Tool/Teamの実行成功、複数AIの同意、早いorientationは、それぞれ実製品での省力化・根拠の独立性・Owner受理・実権限・Product Valueを証明しない。判断を再開して新しい資料を読むことはできても、現在の業務操作に進めるかは対象OwnerとHost／Providerの検証が必要。単純ノートに価値差がない場合、その結果をそのまま記録する。
+
+**研究・実装の追跡先。** Source/ExactBinding投影はSEI #697、資料の解決は#710、Lineageは#687、現在文脈は#660、組織的再開は#677、Cognitive Methodの外延・意味残差・開示・現在性と次の証拠選択は#767が所有する。本書はH1/H2の人間評価を担当し、それらのAPI・意味規則を重複実装する計画ではない。
 
 ## 13. Natural Japanese review
 
