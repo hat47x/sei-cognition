@@ -151,3 +151,49 @@ func TestHelpIsZeroOnStdoutAndErrorsGoToStderr(t *testing.T) {
 		t.Errorf("unknown subcommand: code=%d stdout=%q stderr=%q", code, stdout, stderr)
 	}
 }
+
+// 位置引数と "--" 以降は黙って捨てず、何も実行せず1で拒否する。
+// 捨てると、指定したつもりの方針が落ちて、意図より緩いallowを返してしまう。
+func TestExitCodeRejectsPositionalArguments(t *testing.T) {
+	root := newStore(t)
+	cases := []struct {
+		name string
+		args []string
+	}{
+		{"gate check after --", []string{"gate", "check", "--data-root", root, "--decision", "D-ok", "--", "--require-recommendation"}},
+		{"gate check positional", []string{"gate", "check", "--data-root", root, "--decision", "D-ok", "require-recommendation"}},
+		{"resume positional", []string{"resume", "--data-root", root, "extra"}},
+		{"export positional", []string{"export", "--data-root", root, "--output", filepath.Join(t.TempDir(), "x.json"), "extra"}},
+		{"verify positional", []string{"verify", "--input", filepath.Join(t.TempDir(), "none.json"), "extra"}},
+		{"init positional", []string{"init", "--data-root", filepath.Join(t.TempDir(), "s2"), "extra"}},
+		{"doctor positional", []string{"doctor", "--data-root", root, "extra"}},
+		{"add positional", []string{"add", "decision", "--data-root", root, "--id", "D-x", "--statement", "s", "--responsible", "person:lead", "extra"}},
+	}
+	for _, c := range cases {
+		stdout, stderr, code := invoke(t, c.args...)
+		if code != 1 {
+			t.Errorf("%s: exit code = %d, want 1 (stdout %q, stderr %q)", c.name, code, stdout, stderr)
+		}
+		if strings.Contains(stdout, `"verdict":"allow"`) {
+			t.Errorf("%s: must never print allow: %s", c.name, stdout)
+		}
+		if !strings.Contains(stderr, "unexpected arguments") || !strings.Contains(stderr, "extra") && !strings.Contains(stderr, "require-recommendation") {
+			t.Errorf("%s: stderr must name the leftover arguments: %q", c.name, stderr)
+		}
+	}
+	// 拒否したaddは何も記録しない。
+	if out, _, code := invoke(t, "gate", "check", "--data-root", root, "--decision", "D-x"); code != 3 || !strings.Contains(out, `"deny"`) {
+		t.Errorf("rejected add must not record D-x: exit %d, %s", code, out)
+	}
+}
+
+// 正しい呼び出し(--scope= の空指定を含む)は変わらない。
+func TestExitCodeValidFlagsStillWork(t *testing.T) {
+	root := newStore(t)
+	if _, stderr, code := invoke(t, "gate", "check", "--data-root", root, "--decision", "D-ok", "--scope="); code != 0 {
+		t.Errorf("--scope= : exit %d, want 0 (%s)", code, stderr)
+	}
+	if _, stderr, code := invoke(t, "gate", "check", "--data-root", root, "--decision=D-ok", "--require-recommendation=false"); code != 0 {
+		t.Errorf("--flag=value: exit %d, want 0 (%s)", code, stderr)
+	}
+}
