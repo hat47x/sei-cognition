@@ -22,15 +22,9 @@ def qualify_not_exists(scan: Scan, required: dict[str, str]) -> str:
     """Return a limited fixture verdict, never a production NOT EXISTS proof."""
     if not scan.actual_read or not scan.source_bound:
         return "unknown-unobserved-read"
-    if scan.observed_ids and scan.membership_bound:
-        # A verified target member is a counterexample to 'there are none'.
-        return "exists-witness-in-fixture"
-    if scan.observed_ids:
+    # A positive witness is only for the same scoped Question and revision.
+    if scan.observed_ids and not scan.membership_bound:
         return "unknown-unbound-member"
-    if not scan.membership_bound:
-        return "unknown-unbound-population"
-    if not scan.complete:
-        return "unknown-incomplete-scan"
     if not required:
         return "unknown-dependency-closure"
     supplied = dict(scan.witnessed_dependencies)
@@ -38,6 +32,13 @@ def qualify_not_exists(scan: Scan, required: dict[str, str]) -> str:
         return "unknown-ambiguous-dependency"
     if any(supplied.get(name) != revision for name, revision in required.items()):
         return "unknown-stale-or-missing-dependency"
+    if scan.observed_ids:
+        # Completeness is not required for a bound, current existential witness.
+        return "exists-witness-in-fixture"
+    if not scan.membership_bound:
+        return "unknown-unbound-population"
+    if not scan.complete:
+        return "unknown-incomplete-scan"
     return "conditionally-absent-in-fixture"
 
 
@@ -83,6 +84,15 @@ class TestNegativeEvidenceClosure(unittest.TestCase):
         self.assertEqual(qualify_not_exists(scan, REQUIRED), "exists-witness-in-fixture")
         self.assertEqual(qualify_not_exists(replace(scan, membership_bound=False), REQUIRED),
                          "unknown-unbound-member")
+
+    def test_old_positive_witness_is_not_current_without_dependency_binding(self):
+        scan = replace(VALID, observed_ids=("synthetic-C",), complete=False)
+        self.assertEqual(
+            qualify_not_exists(scan, {**REQUIRED, "query-predicate": "p2"}),
+            "unknown-stale-or-missing-dependency")
+        self.assertEqual(
+            qualify_not_exists(scan, {**REQUIRED, "relation-occurrences": "r2"}),
+            "unknown-stale-or-missing-dependency")
 
     def test_empty_but_population_not_bound(self):
         self.assertEqual(qualify_not_exists(replace(VALID, membership_bound=False), REQUIRED),
