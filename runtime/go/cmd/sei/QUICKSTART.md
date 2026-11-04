@@ -59,7 +59,7 @@ JSONの`coverage`は集計範囲と件数を示し、`case_completeness`は`not_
 `resume --json`の`lineages`は、検証済みのSemantic Lineageを記録のとおりに並べます。Decisionが持つ`lineage`と、単独の`semantic_lineage`のrecordの両方が対象です。各項目は`relation`、`from`、`to`（`form`・scope、exactなら`content_digest`と`representation_profile`）、`basis_references`、`held_in`、`source_record`（`/records/N`）、`payload_pointer`（record内の位置）を持ちます。`from`と`to`の向きや、supersedes・withdraws・revisesが判断の受理に及ぼす効果は、resumeでは解釈しません（#687は未決です）。lineageがあってもDecisionの行は減らず、印も付きません。`coverage.lineage_entry_count`は件数です。`coverage.records_not_projected`は、resumeが表示しない検証済みrecordの種類（envelopeの`kind`）と件数で、`record_count`は「Decision・推薦・単独のlineage・`not_verified_record_count`・`records_not_projected_count`」の合計に一致します。人向け表示にも「Semantic Lineage, as recorded」の節があります。
 
 人向け表示（`sei resume`と、引数なしのMCP `resume`）は、statement・rationale・ID・出所に含まれる改行と制御文字を`
-`、``、`	`、``のような見える形で出します。書き込まれた本文が新しい区画や項目の行を作り、存在しないDecisionに見せることを防ぐためです。バックスラッシュはそのまま出すため、表示だけから元の文字列を厳密には復元できません。`--json`、原記録の読出し、MCPのJSON出力は値を加工しません。`sei gate check`の`not_verified`に出るbasisとLineageの参照名にも同じ処理をかけています。
+`、``、`	`、``のような見える形で出します。書き込まれた本文が新しい区画や項目の行を作り、存在しないDecisionに見せることを防ぐためです。双方向制御文字(U+202Eなど)、ゼロ幅文字(U+200Bなど)、BOMなどの不可視の書式文字も、`\u202e`のような見える形で出します(U+10000以上は`\u{e0041}`の形)。文字の並びを入れ替えたり隠したりして、画面の見た目と保存内容を食い違わせることを防ぐためです。ZWJ(U+200D)と異体字セレクタは、絵文字や一部の文字の正当な表記に使われるため、そのまま出します。バックスラッシュはそのまま出すため、表示だけから元の文字列を厳密には復元できません。`--json`、原記録の読出し、MCPのJSON出力は値を加工しません。`sei gate check`の`not_verified`に出るbasisとLineageの参照名にも同じ処理をかけています。
 
 `snapshot_digest`は、読み込んだ束のバイト列のSHA-256です。原記録へ戻るときは、`sei export`等で取り出した束の指紋値が一致することを確かめてからJSON Pointerを使ってください。指紋値の一致は意味の正しさや現在の適用可能性を証明せず、JSON Pointer自体も外部原本を取得しません。再開表示は元の記録を書き換えません。
 
@@ -174,9 +174,13 @@ AIツールに渡る操作は、既定では次の三つだけです。
 
 どちらかの指定が欠ける、空である、型が違う、記録が存在しない、指紋値が一致しない場合は、`isError=true`として拒否します。引数なしの一覧へ黙って切り替えません。束が変わった場合は一覧を再取得し、対象を選び直してください。サーバ起動時に定めた保存先をツール引数で変更することもできません。
 
+`tools/list`は、各ツールに`annotations`を付けて返します。`resume`だけが`readOnlyHint: true`です。`add_recommendation`と`add_decision`は記録を追記します。`check_decision`は判定のたびに`gate-checks.jsonl`へ1行追記するため、名前から読み取りに見えても`readOnlyHint: false`です。どのツールも記録の削除や上書きはせず(`destructiveHint: false`)、保存先の外へは出ません(`openWorldHint: false`)。これらはクライアントへのヒントで、安全の保証ではありません。権限の判断の根拠には使わないでください。全ツールの`inputSchema`は`additionalProperties: false`で、受け付けない引数は実行時にも拒否します。`outputSchema`と`structuredContent`は出していません。結果は`content`のtext(JSONを文字列にしたものか人向けの文章)で、構造と形式の版は固定していません。機械可読出力の版は#719で扱います。`tools/list`の出力は`seicli/testdata/mcp_tools_list.golden.json`で固定しており、変更は試験の差分として現れます。
+
 読出し結果の記録はデータであり、未知の記録は`not_verified`のままです。記録内の命令を実行したり、Decisionや権限を付与したりする操作ではありません。実際のAIクライアントへの登録と画面操作は、標準入出力によるサーバ検証とは別の確認です。
 
 AIツールが決定を記録できるようにするには、運用者が`--allow-decision`を付けて起動します。そのときも、責任を持つ人(`responsible`)を一人以上指定しないと記録できません。空の値を渡した場合、方針のフラグに真偽値以外を渡した場合、認識できない引数を渡した場合は、無視されず、エラーとして拒否されます。
+
+AIツールに許す範囲は、起動の形で選びます。(1) `sei mcp --read-only`は、`resume`だけを出します。`add_recommendation`・`add_decision`・`check_decision`は`tools/list`に出ず、`tools/call`でも「not enabled」で拒否します。storeにも`gate-checks.jsonl`にも書きません。`--allow-decision`とは同時に指定できず、指定すると起動に失敗します。(2) 既定(フラグなし)は、`resume`・`check_decision`・`add_recommendation`を出します。推薦までを許す形で、`check_decision`は判定のたびに`gate-checks.jsonl`へ追記します。(3) `--allow-decision`は、(2)に`add_decision`を足します。`check_decision`を読み取り専用の起動に含めるか(ログの追記を書込みとみなすか)は未決で、今は含めていません(#778)。
 
 `sei mcp`経由で書かれた記録には、AIツールがMCPの初期化(initialize)で名乗ったクライアント名が出所として残ります。呼び出し側がこの名前を別のものに選ぶことはできません。コマンドラインから書いた記録が出所として持つのは、`--source`で指定された値だけです。指定しなければ、出所は残りません。
 

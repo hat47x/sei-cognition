@@ -733,13 +733,17 @@ func runResume(ctx context.Context, args []string, stdout, stderr io.Writer) err
 }
 
 // safeText makes a stored value safe to print on one line of the human view.
-// Newlines and other control characters in a statement, an ID or a source name
-// are written as visible escapes, so a value cannot start what looks like a new
-// section or entry. A backslash is left as it is; the JSON output carries the
-// exact value.
+// Newlines, other control characters and invisible format characters in a
+// statement, an ID or a source name are written as visible escapes, so a value
+// cannot start what looks like a new section or entry, and cannot reorder or
+// hide the text a person reads (bidirectional controls such as U+202E, zero
+// width characters such as U+200B). A backslash is left as it is; the JSON
+// output carries the exact value.
+//
+// U+200D (zero width joiner) and the variation selectors are kept: emoji
+// sequences and some scripts use them for legitimate text.
 func safeText(s string) string {
-	isOdd := func(r rune) bool { return unicode.IsControl(r) || r == ' ' || r == ' ' }
-	if !strings.ContainsFunc(s, isOdd) {
+	if !strings.ContainsFunc(s, isUnsafeDisplayRune) {
 		return s
 	}
 	var b strings.Builder
@@ -751,8 +755,12 @@ func safeText(s string) string {
 			b.WriteString(`\r`)
 		case r == '\t':
 			b.WriteString(`\t`)
-		case isOdd(r):
-			fmt.Fprintf(&b, `\u%04x`, r)
+		case isUnsafeDisplayRune(r):
+			if r > 0xFFFF {
+				fmt.Fprintf(&b, `\u{%x}`, r)
+			} else {
+				fmt.Fprintf(&b, `\u%04x`, r)
+			}
 		default:
 			b.WriteRune(r)
 		}
@@ -778,6 +786,20 @@ func refListText(views []BasisView, legacy []string) string {
 		texts = append(texts, refViewText(v))
 	}
 	return strings.Join(texts, ", ")
+}
+
+// isUnsafeDisplayRune reports whether r must be shown as an escape in the human
+// view: control characters, line and paragraph separators, format characters
+// (Unicode category Cf), Bidi_Control and the remaining default-ignorable code
+// points, except the zero width joiner and variation selectors.
+func isUnsafeDisplayRune(r rune) bool {
+	if r == '\u200d' || unicode.Is(unicode.Variation_Selector, r) {
+		return false
+	}
+	return unicode.IsControl(r) || r == '\u2028' || r == '\u2029' ||
+		unicode.Is(unicode.Cf, r) ||
+		unicode.Is(unicode.Bidi_Control, r) ||
+		unicode.Is(unicode.Other_Default_Ignorable_Code_Point, r)
 }
 
 func renderResume(w io.Writer, v ResumeView) {
