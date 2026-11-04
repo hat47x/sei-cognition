@@ -57,7 +57,7 @@ JSONの`coverage`は集計範囲と件数を示し、`case_completeness`は`not_
 決定が依拠する推薦と責任者は、従来の`recommendations`・`responsible`（`kind:id`の文字列）に加えて、`recommendation_references`・`responsibility_references`で出します。要素の形は`basis_references`と同じで、scopeと`form`を持ちます。`unresolved[]`には`reference_form`を足しました。`recommendations_relied_on`と`recommendations_not_yet_relied_on`の各項目は、推薦自身のscopeを`scope`で持ちます。人向け表示では、scopeを`@scope`で示します。scopeだけが違う同IDの推薦や責任者は、別の出力になります。「依拠済み」の判定はkind・id・scopeで行い、content_digestは使いません（storeは推薦のdigestを持たないためです）。MCPの`resume`（引数なし）は同じ人向け表示を返すため、同じ変更が入ります。
 
 人向け表示（`sei resume`と、引数なしのMCP `resume`）は、statement・rationale・ID・出所に含まれる改行と制御文字を`
-`、``、`	`、``のような見える形で出します。書き込まれた本文が新しい区画や項目の行を作り、存在しないDecisionに見せることを防ぐためです。バックスラッシュはそのまま出すため、表示だけから元の文字列を厳密には復元できません。`--json`、原記録の読出し、MCPのJSON出力は値を加工しません。`sei gate check`の`not_verified`に出るbasisとLineageの参照名にも同じ処理をかけています。
+`、``、`	`、``のような見える形で出します。書き込まれた本文が新しい区画や項目の行を作り、存在しないDecisionに見せることを防ぐためです。双方向制御文字(U+202Eなど)、ゼロ幅文字(U+200Bなど)、BOMなどの不可視の書式文字も、`\u202e`のような見える形で出します(U+10000以上は`\u{e0041}`の形)。文字の並びを入れ替えたり隠したりして、画面の見た目と保存内容を食い違わせることを防ぐためです。ZWJ(U+200D)と異体字セレクタは、絵文字や一部の文字の正当な表記に使われるため、そのまま出します。バックスラッシュはそのまま出すため、表示だけから元の文字列を厳密には復元できません。`--json`、原記録の読出し、MCPのJSON出力は値を加工しません。`sei gate check`の`not_verified`に出るbasisとLineageの参照名にも同じ処理をかけています。
 
 `snapshot_digest`は、読み込んだ束のバイト列のSHA-256です。原記録へ戻るときは、`sei export`等で取り出した束の指紋値が一致することを確かめてからJSON Pointerを使ってください。指紋値の一致は意味の正しさや現在の適用可能性を証明せず、JSON Pointer自体も外部原本を取得しません。再開表示は元の記録を書き換えません。
 
