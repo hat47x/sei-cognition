@@ -110,6 +110,8 @@ sei gate check --decision D-vendor
 
 出力とログの各行には、判定した`sei`の版を示す`cli`(`version`・`commit`・`target`)も付きます。判定の規則は版ごとに変わるため、同じ`bundle_digest`と`decision_digest`でも、版が違えば結果が違うことがあります。`tools/build_sei.sh`を通さず単に`go build`した実行ファイルは、VCSの情報があれば`commit`にその版(未コミットの変更があれば末尾に`+dirty`)を入れ、無ければ`unknown`と出します。`unknown`のときは`sei doctor`が警告します。`cli`は実行ファイルが自分について申告する値で、署名ではなく、どのソースからビルドされたかの証明にはなりません。
 
+storeにこのruntimeが理解できないContractの記録(`sei resume`が「use a Contract this runtime does not understand」と出すもの)があるときは、出力とログの`not_verified_record_count`に件数、`not_verified_records`に各記録の`record_id`・`contract`・`json_pointer`を出し、`not_verified`にも「判定に反映していない」旨を固定の文で書きます。0件のときも「none was left out」の旨を書きます。既定では、未解釈の記録があっても`allow`・`deny`は変わりません。未対応の版の記録が、決定の取り下げや置換を表している可能性があるため、`allow`を「他に未解釈の記録は無い」と読まないでください。未解釈の記録があるときに`deny`へ倒す(fail closed)選択肢は、Ownerの判断待ちで、まだ実装していません(#745)。
+
 同じIDの決定がscopeを変えて複数ある場合、`--scope`(MCPでは`scope`引数)で対象を指定します。指定しないと、一致した件数と各scope(scopeなしは`(none)`)を理由に添えて`deny`します。`--scope=`のように空で指定すると「scopeを持たない決定」を指します。同じIDとscopeが2件ある場合も`deny`です。記録の並び順で判定が変わることはありません。出力の`requested_scope`は指定したscope(未指定なら出力なし)、`binding.decision_scope`は判定した決定のscopeで、どちらもログに残ります。CLIの`sei add`はscopeを記録できないため、scope付きの決定は外から取り込んだbundleにだけ現れます。
 
 `sei gate check`は、storeを読んでからログへ追記するまでの間、`store.lock`を持ちます。この間に`sei add`が書き込むことはなく、ログのdigestは確認した内容と一致します。ロックを取れない場合は、確認できなかったものとして終了コード1で失敗します。
