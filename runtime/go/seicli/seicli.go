@@ -398,14 +398,18 @@ func runAdd(ctx context.Context, args []string, stdout, stderr io.Writer) error 
 // ResumeView is what a person or an AI needs in order to continue the work.
 // It is a Projection of the store and never replaces it.
 type ResumeView struct {
-	BundleID               string                 `json:"bundle_id"`
-	SnapshotDigest         string                 `json:"snapshot_digest,omitempty"`
-	Coverage               ResumeCoverage         `json:"coverage"`
-	RecordCount            int                    `json:"record_count"`
-	Decisions              []DecisionView         `json:"decisions"`
-	RecommendationsOpen    []StatementView        `json:"recommendations_not_yet_relied_on"`
-	RecommendationsRelied  []StatementView        `json:"recommendations_relied_on"`
-	Unresolved             []UnresolvedView       `json:"unresolved"`
+	BundleID              string           `json:"bundle_id"`
+	SnapshotDigest        string           `json:"snapshot_digest,omitempty"`
+	Coverage              ResumeCoverage   `json:"coverage"`
+	RecordCount           int              `json:"record_count"`
+	Decisions             []DecisionView   `json:"decisions"`
+	RecommendationsOpen   []StatementView  `json:"recommendations_not_yet_relied_on"`
+	RecommendationsRelied []StatementView  `json:"recommendations_relied_on"`
+	Unresolved            []UnresolvedView `json:"unresolved"`
+	// Lineages lists the verified Semantic Lineage as recorded (#734): the ones
+	// held by a Decision (decision.lineage) and the single semantic_lineage
+	// records. Direction and effect are not interpreted here.
+	Lineages               []LineageView          `json:"lineages"`
 	NotVerifiedRecordCount int                    `json:"not_verified_record_count"`
 	NotVerifiedRecords     []ResumeRecordLocation `json:"not_verified_records"`
 	// IdentityNotices lists records whose envelope identity disagrees with the
@@ -419,6 +423,45 @@ type ResumeCoverage struct {
 	UnresolvedEntryCount                    int    `json:"unresolved_entry_count"`
 	DistinctUnresolvedLogicalReferenceCount int    `json:"distinct_unresolved_logical_reference_count"`
 	CaseCompleteness                        string `json:"case_completeness"`
+	// LineageEntryCount is len(lineages).
+	LineageEntryCount int `json:"lineage_entry_count"`
+	// RecordsNotProjected counts verified records this view does not show, by
+	// envelope kind. record_count equals decisions + recommendations (both lists)
+	// + single semantic_lineage records + not_verified_record_count +
+	// records_not_projected_count.
+	RecordsNotProjectedCount int                    `json:"records_not_projected_count"`
+	RecordsNotProjected      []NotProjectedKindView `json:"records_not_projected"`
+}
+
+// NotProjectedKindView is one envelope kind of verified record that resume does
+// not show.
+type NotProjectedKindView struct {
+	Kind  string `json:"kind"`
+	Count int    `json:"count"`
+}
+
+// LineageView is one Semantic Lineage as stored. From and To keep the form,
+// scope and, for an exact reference, content_digest and profile.
+type LineageView struct {
+	Relation        string      `json:"relation"`
+	From            BasisView   `json:"from"`
+	To              BasisView   `json:"to"`
+	BasisReferences []BasisView `json:"basis_references,omitempty"`
+	// HeldIn is "decision.lineage" when a Decision record holds it and
+	// "semantic_lineage" when a semantic_lineage record is the lineage itself.
+	HeldIn string `json:"held_in"`
+	// SourceRecord locates the record in SnapshotDigest's original JSON;
+	// PayloadPointer locates the lineage inside that record's payload.
+	SourceRecord   ResumeRecordLocation `json:"source_record"`
+	PayloadPointer string               `json:"payload_pointer"`
+}
+
+func lineageView(l *semanticruntime.SemanticLineage, heldIn, pointer string, location ResumeRecordLocation) LineageView {
+	return LineageView{
+		Relation: l.Relation, From: basisViews([]semanticruntime.Reference{l.From})[0],
+		To: basisViews([]semanticruntime.Reference{l.To})[0], BasisReferences: basisViews(l.BasisRefs),
+		HeldIn: heldIn, SourceRecord: location, PayloadPointer: pointer,
+	}
 }
 
 // ResumeRecordLocation is a return hint within SnapshotDigest's original JSON.
@@ -559,12 +602,13 @@ func sourcesOf(rec semanticruntime.InterchangeRecord) []string {
 func BuildResume(bundle *semanticruntime.Bundle) ResumeView {
 	view := ResumeView{
 		BundleID:              bundle.Envelope.BundleID,
-		Coverage:              ResumeCoverage{UnresolvedSource: "recognized-decision-unresolved-refs", CaseCompleteness: "not_assessed"},
+		Coverage:              ResumeCoverage{UnresolvedSource: "recognized-decision-unresolved-refs", CaseCompleteness: "not_assessed", RecordsNotProjected: []NotProjectedKindView{}},
 		RecordCount:           len(bundle.Records),
 		Decisions:             []DecisionView{},
 		RecommendationsOpen:   []StatementView{},
 		RecommendationsRelied: []StatementView{},
 		Unresolved:            []UnresolvedView{},
+		Lineages:              []LineageView{},
 		NotVerifiedRecords:    []ResumeRecordLocation{},
 		IdentityNotices:       IdentityNotices(bundle),
 	}
@@ -582,6 +626,7 @@ func BuildResume(bundle *semanticruntime.Bundle) ResumeView {
 		}
 	}
 	distinctUnresolved := map[semanticruntime.LogicalReference]bool{}
+	notProjected := map[string]int{}
 	for index, rec := range bundle.Records {
 		location := ResumeRecordLocation{RecordID: rec.EnvelopeRecord.RecordID,
 			Contract: rec.EnvelopeRecord.Contract, JSONPointer: fmt.Sprintf("/records/%d", index)}
@@ -597,6 +642,9 @@ func BuildResume(bundle *semanticruntime.Bundle) ResumeView {
 				RecommendationReferences: basisViews(d.RecommendationRefs),
 				Responsible:              refTexts(d.ResponsibilityRefs), ResponsibilityReferences: basisViews(d.ResponsibilityRefs), Sources: sourcesOf(rec.EnvelopeRecord),
 			})
+			if d.Lineage != nil {
+				view.Lineages = append(view.Lineages, lineageView(d.Lineage, "decision.lineage", "/decision/lineage", location))
+			}
 			for _, u := range d.UnresolvedRefs {
 				view.Unresolved = append(view.Unresolved, UnresolvedView{Ref: refText(u), ReferenceForm: basisViews([]semanticruntime.Reference{u})[0].Form, LeftOpenBy: d.Ref.ID,
 					Reference: u, LeftOpenByReference: d.Ref, SourceRecord: location})
@@ -612,9 +660,21 @@ func BuildResume(bundle *semanticruntime.Bundle) ResumeView {
 			} else {
 				view.RecommendationsOpen = append(view.RecommendationsOpen, s)
 			}
+		case rec.Reference != nil && rec.Reference.SemanticLineage != nil:
+			view.Lineages = append(view.Lineages, lineageView(rec.Reference.SemanticLineage, "semantic_lineage", "/semantic_lineage", location))
+		default:
+			notProjected[rec.EnvelopeRecord.Kind]++
+			view.Coverage.RecordsNotProjectedCount++
 		}
 	}
 	view.Coverage.UnresolvedEntryCount = len(view.Unresolved)
+	view.Coverage.LineageEntryCount = len(view.Lineages)
+	for kind, count := range notProjected {
+		view.Coverage.RecordsNotProjected = append(view.Coverage.RecordsNotProjected, NotProjectedKindView{Kind: kind, Count: count})
+	}
+	sort.Slice(view.Coverage.RecordsNotProjected, func(i, j int) bool {
+		return view.Coverage.RecordsNotProjected[i].Kind < view.Coverage.RecordsNotProjected[j].Kind
+	})
 	view.Coverage.DistinctUnresolvedLogicalReferenceCount = len(distinctUnresolved)
 	sort.SliceStable(view.Unresolved, func(i, j int) bool { return view.Unresolved[i].Ref < view.Unresolved[j].Ref })
 	return view
@@ -795,6 +855,28 @@ func renderResume(w io.Writer, v ResumeView) {
 	section("Recommendations relied on by a decision", len(v.RecommendationsRelied))
 	for _, r := range v.RecommendationsRelied {
 		fmt.Fprintf(w, "  [%s%s] %s%s\n", safeText(r.ID), safeText(scopeSuffix(r.Scope)), safeText(r.Statement), sourceSuffix(r.Sources))
+	}
+	section("Semantic Lineage, as recorded", len(v.Lineages))
+	if len(v.Lineages) > 0 {
+		fmt.Fprintln(w, "  Direction and effect are not interpreted; each line is the record's from -> to.")
+	}
+	for _, l := range v.Lineages {
+		fmt.Fprintf(w, "  %s -> %s (%s)\n", safeText(basisText(l.From)), safeText(basisText(l.To)), safeText(l.Relation))
+		fmt.Fprintf(w, "      held in %s of record %q at %s%s\n", l.HeldIn, l.SourceRecord.RecordID, l.SourceRecord.JSONPointer, l.PayloadPointer)
+		if len(l.BasisReferences) > 0 {
+			texts := make([]string, 0, len(l.BasisReferences))
+			for _, b := range l.BasisReferences {
+				texts = append(texts, basisText(b))
+			}
+			fmt.Fprintf(w, "      basis: %s\n", safeText(strings.Join(texts, ", ")))
+		}
+	}
+	if v.Coverage.RecordsNotProjectedCount > 0 {
+		kinds := make([]string, 0, len(v.Coverage.RecordsNotProjected))
+		for _, k := range v.Coverage.RecordsNotProjected {
+			kinds = append(kinds, fmt.Sprintf("%s x%d", safeText(k.Kind), k.Count))
+		}
+		fmt.Fprintf(w, "\n%d verified record(s) are not shown by resume: %s\n", v.Coverage.RecordsNotProjectedCount, strings.Join(kinds, ", "))
 	}
 	if len(v.IdentityNotices) > 0 {
 		fmt.Fprintf(w, "\nIdentity notices (%d). The store is kept as is; none of these is resolved here.\n", len(v.IdentityNotices))
