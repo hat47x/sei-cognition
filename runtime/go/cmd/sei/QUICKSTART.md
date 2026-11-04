@@ -106,6 +106,8 @@ sei gate check --decision D-vendor
 
 出力の`binding`と、ログの同じ項目は、判定した時点のstoreの内容を指します。`bundle_id`、`bundle_digest`(読んだ`semantic.bundle.json`全体のSHA-256。`sei resume`の`snapshot_digest`と同じ値)、`decision_record_id`、`decision_digest`(その決定の記録のpayloadを`sei.jcs+sha256/v1alpha1`で正規化したdigest)です。後から`add`で記録が増えると`bundle_digest`が変わるため、古い`allow`と今のstoreの`allow`を区別できます。digestが一致しても、確認の後にstoreが変わっていないことや、その決定が今も有効であることは示しません。同じIDの決定が複数ある場合は、どれを指すか決められないため`deny`にし、`binding`は出しません。
 
+storeにこのruntimeが理解できないContractの記録(`sei resume`が「use a Contract this runtime does not understand」と出すもの)があるときは、出力とログの`not_verified_record_count`に件数、`not_verified_records`に各記録の`record_id`・`contract`・`json_pointer`を出し、`not_verified`にも「判定に反映していない」旨を固定の文で書きます。0件のときも「none was left out」の旨を書きます。既定では、未解釈の記録があっても`allow`・`deny`は変わりません。未対応の版の記録が、決定の取り下げや置換を表している可能性があるため、`allow`を「他に未解釈の記録は無い」と読まないでください。未解釈の記録があるときに`deny`へ倒す(fail closed)選択肢は、Ownerの判断待ちで、まだ実装していません(#745)。
+
 同じIDの決定がscopeを変えて複数ある場合、`--scope`(MCPでは`scope`引数)で対象を指定します。指定しないと、一致した件数と各scope(scopeなしは`(none)`)を理由に添えて`deny`します。`--scope=`のように空で指定すると「scopeを持たない決定」を指します。同じIDとscopeが2件ある場合も`deny`です。記録の並び順で判定が変わることはありません。出力の`requested_scope`は指定したscope(未指定なら出力なし)、`binding.decision_scope`は判定した決定のscopeで、どちらもログに残ります。CLIの`sei add`はscopeを記録できないため、scope付きの決定は外から取り込んだbundleにだけ現れます。
 
 `sei gate check`は、storeを読んでからログへ追記するまでの間、`store.lock`を持ちます。この間に`sei add`が書き込むことはなく、ログのdigestは確認した内容と一致します。ロックを取れない場合は、確認できなかったものとして終了コード1で失敗します。
