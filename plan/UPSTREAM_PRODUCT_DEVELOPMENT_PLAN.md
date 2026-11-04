@@ -426,7 +426,7 @@ Product confidenceを高めるため、happy pathだけでなくpartial commit�
 | Product Value discovery | ISSUE-000077 | Resolved / source + review + Vision integration complete | ISSUE-000078等のactual Evidenceでreopen conditionが生じた場合のみ再監査 |
 | Inquiry Continuity validation | ISSUE-000078 | Open / actual Inquiry seeded / clean context gap reset after material exposure | last material exposureから十分なgap後のSEI Orientation actual human resumption、次いでraw chat / note counterfactual |
 | Product Interaction | ISSUE-000073 | Open / prototype + Requirement audit progressed / E1〜E8 actual PASS (2026-10-09) / H1・H2 pending | H1 actual resume、H2 provenance-first human review |
-| Application implementation strategy | ISSUE-000079 | Open / source freeze PASS + TEI Stage 0 Reference checker Scoped Executable Evidence available / PR #686 merged | Change 1のnative / TEI change-amplification比較、次いでExisting / extension / Native / gap再分類 |
+| Application implementation strategy | ISSUE-000079 | Open / source freeze PASS + TEI Stage 0 Reference checker Scoped Executable Evidence available / TEI PR #686 merged | Change 1のnative / TEI change-amplification比較、次いでExisting / extension / Native / gap再分類 |
 | TEI Provider portability | ISSUE-000072 | Open / execution blocked externally | exact-B actual E2 when execution surface is available |
 | TEI actual Evidence protocol | ISSUE-000074 | Open / teiprobe + CLI + protocol source implemented / tests + actual run Not Yet Verified | current Go環境でfixture-scoped tests、次いでactual TEI binary report |
 | Family integration apex（提案） | ADR-0035 Proposed / ISSUE-000085〜000088 Open | 提案のみ。所有者のレビュー待ち。Design Evidenceに限る | 所有者による再基線化項目のレビュー（ISSUE-000085）、次いで実在の記録からの求心プロファイル（ISSUE-000087）と4つの空白の組合せ試験（ISSUE-000086） |
