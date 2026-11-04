@@ -438,7 +438,10 @@ type ResumeRecordView struct {
 }
 
 type StatementView struct {
-	ID        string   `json:"id"`
+	ID string `json:"id"`
+	// Scope is the Recommendation's own scope; same-ID Recommendations in
+	// different scopes stay distinguishable (#725).
+	Scope     string   `json:"scope,omitempty"`
 	Statement string   `json:"statement"`
 	Sources   []string `json:"sources,omitempty"`
 }
@@ -458,8 +461,13 @@ type DecisionView struct {
 	// recorded data; resume does not compare it with any actual content.
 	BasisReferences []BasisView `json:"basis_references,omitempty"`
 	Recommendations []string    `json:"recommendations,omitempty"`
-	Responsible     []string    `json:"responsible,omitempty"`
-	Sources         []string    `json:"sources,omitempty"`
+	// RecommendationReferences and ResponsibilityReferences are the same lists as
+	// Recommendations and Responsible with form and scope (#725). The text fields
+	// above keep their old "kind:id" form.
+	RecommendationReferences []BasisView `json:"recommendation_references,omitempty"`
+	Responsible              []string    `json:"responsible,omitempty"`
+	ResponsibilityReferences []BasisView `json:"responsibility_references,omitempty"`
+	Sources                  []string    `json:"sources,omitempty"`
 }
 
 // BasisView is one basis reference as stored, with its form made explicit.
@@ -485,7 +493,14 @@ func basisViews(refs []semanticruntime.Reference) []BasisView {
 // basisText is the human form of a basis reference. Unlike refText it shows the
 // scope and whether the reference is exact, so inputs that differ only in those
 // do not read the same.
-func basisText(b BasisView) string {
+func basisText(b BasisView) string { return viewText(b, true) }
+
+// refViewText is basisText without the "[logical]" mark, for the lists where the
+// legacy text carried no mark (relied on, responsible, unresolved). Scope and an
+// exact reference's digest are still shown.
+func refViewText(b BasisView) string { return viewText(b, false) }
+
+func viewText(b BasisView, markLogical bool) string {
 	logical, ok := b.LogicalIdentity()
 	if !ok {
 		return refText(b.Reference)
@@ -497,14 +512,17 @@ func basisText(b BasisView) string {
 	if b.Form == "exact" {
 		text += fmt.Sprintf(" [exact %s, profile %s/%s]", b.ContentDigest,
 			b.RepresentationProfile.ProfileID, b.RepresentationProfile.Version)
-	} else {
+	} else if markLogical {
 		text += " [logical]"
 	}
 	return text
 }
 
 type UnresolvedView struct {
-	Ref                 string                           `json:"ref"`
+	Ref string `json:"ref"`
+	// ReferenceForm is "exact" or "logical" (#725); Reference keeps the scope and
+	// any content_digest as stored.
+	ReferenceForm       string                           `json:"reference_form"`
 	LeftOpenBy          string                           `json:"left_open_by_decision"`
 	Reference           semanticruntime.Reference        `json:"reference"`
 	LeftOpenByReference semanticruntime.LogicalReference `json:"left_open_by_reference"`
@@ -575,10 +593,11 @@ func BuildResume(bundle *semanticruntime.Bundle) ResumeView {
 			view.Decisions = append(view.Decisions, DecisionView{
 				ID: d.Ref.ID, Scope: d.Ref.Scope, Statement: d.Statement, Rationale: d.Rationale,
 				Basis: refTexts(d.BasisRefs), BasisReferences: basisViews(d.BasisRefs), Recommendations: refTexts(d.RecommendationRefs),
-				Responsible: refTexts(d.ResponsibilityRefs), Sources: sourcesOf(rec.EnvelopeRecord),
+				RecommendationReferences: basisViews(d.RecommendationRefs),
+				Responsible:              refTexts(d.ResponsibilityRefs), ResponsibilityReferences: basisViews(d.ResponsibilityRefs), Sources: sourcesOf(rec.EnvelopeRecord),
 			})
 			for _, u := range d.UnresolvedRefs {
-				view.Unresolved = append(view.Unresolved, UnresolvedView{Ref: refText(u), LeftOpenBy: d.Ref.ID,
+				view.Unresolved = append(view.Unresolved, UnresolvedView{Ref: refText(u), ReferenceForm: basisViews([]semanticruntime.Reference{u})[0].Form, LeftOpenBy: d.Ref.ID,
 					Reference: u, LeftOpenByReference: d.Ref, SourceRecord: location})
 				if logical, ok := u.LogicalIdentity(); ok {
 					distinctUnresolved[logical] = true
@@ -586,7 +605,7 @@ func BuildResume(bundle *semanticruntime.Bundle) ResumeView {
 			}
 		case rec.Decision != nil && rec.Decision.Recommendation != nil:
 			r := rec.Decision.Recommendation
-			s := StatementView{ID: r.Ref.ID, Statement: r.Statement, Sources: sourcesOf(rec.EnvelopeRecord)}
+			s := StatementView{ID: r.Ref.ID, Scope: r.Ref.Scope, Statement: r.Statement, Sources: sourcesOf(rec.EnvelopeRecord)}
 			if key, ok := recommendationKey(semanticruntime.Reference{Kind: r.Ref.Kind, ID: r.Ref.ID, Scope: r.Ref.Scope}); ok && relied[key] {
 				view.RecommendationsRelied = append(view.RecommendationsRelied, s)
 			} else {
@@ -680,6 +699,26 @@ func safeText(s string) string {
 	return b.String()
 }
 
+func scopeSuffix(scope string) string {
+	if scope == "" {
+		return ""
+	}
+	return " @" + scope
+}
+
+// refListText joins a reference list for the human view. It uses the form- and
+// scope-aware text when views exist and falls back to the legacy texts.
+func refListText(views []BasisView, legacy []string) string {
+	if len(views) == 0 {
+		return strings.Join(legacy, ", ")
+	}
+	texts := make([]string, 0, len(views))
+	for _, v := range views {
+		texts = append(texts, refViewText(v))
+	}
+	return strings.Join(texts, ", ")
+}
+
 func renderResume(w io.Writer, v ResumeView) {
 	fmt.Fprintf(w, "Store %s: %d records\n", safeText(v.BundleID), v.RecordCount)
 	fmt.Fprintln(w, "Unresolved scope: recognized Decision.unresolved_refs only; not a case-wide inventory.")
@@ -707,16 +746,20 @@ func renderResume(w io.Writer, v ResumeView) {
 		} else if len(d.Basis) > 0 {
 			fmt.Fprintf(w, "      basis: %s\n", safeText(strings.Join(d.Basis, ", ")))
 		}
-		if len(d.Recommendations) > 0 {
-			fmt.Fprintf(w, "      relied on: %s\n", safeText(strings.Join(d.Recommendations, ", ")))
+		if text := refListText(d.RecommendationReferences, d.Recommendations); text != "" {
+			fmt.Fprintf(w, "      relied on: %s\n", safeText(text))
 		}
-		if len(d.Responsible) > 0 {
-			fmt.Fprintf(w, "      responsible: %s\n", safeText(strings.Join(d.Responsible, ", ")))
+		if text := refListText(d.ResponsibilityReferences, d.Responsible); text != "" {
+			fmt.Fprintf(w, "      responsible: %s\n", safeText(text))
 		}
 	}
 	section("Unresolved", len(v.Unresolved))
 	for _, u := range v.Unresolved {
-		fmt.Fprintf(w, "  %s (left open by %s)\n", safeText(u.Ref), safeText(u.LeftOpenBy))
+		unresolvedText := u.Ref
+		if u.ReferenceForm != "" {
+			unresolvedText = refViewText(BasisView{Form: u.ReferenceForm, Reference: u.Reference})
+		}
+		fmt.Fprintf(w, "  %s (left open by %s)\n", safeText(unresolvedText), safeText(u.LeftOpenBy))
 		refJSON, _ := json.Marshal(u.Reference)
 		decisionJSON, _ := json.Marshal(u.LeftOpenByReference)
 		fmt.Fprintf(w, "      reference: %s; decision: %s\n", refJSON, decisionJSON)
@@ -724,11 +767,11 @@ func renderResume(w io.Writer, v ResumeView) {
 	}
 	section("Recommendations not yet relied on by any decision", len(v.RecommendationsOpen))
 	for _, r := range v.RecommendationsOpen {
-		fmt.Fprintf(w, "  [%s] %s%s\n", safeText(r.ID), safeText(r.Statement), sourceSuffix(r.Sources))
+		fmt.Fprintf(w, "  [%s%s] %s%s\n", safeText(r.ID), safeText(scopeSuffix(r.Scope)), safeText(r.Statement), sourceSuffix(r.Sources))
 	}
 	section("Recommendations relied on by a decision", len(v.RecommendationsRelied))
 	for _, r := range v.RecommendationsRelied {
-		fmt.Fprintf(w, "  [%s] %s%s\n", safeText(r.ID), safeText(r.Statement), sourceSuffix(r.Sources))
+		fmt.Fprintf(w, "  [%s%s] %s%s\n", safeText(r.ID), safeText(scopeSuffix(r.Scope)), safeText(r.Statement), sourceSuffix(r.Sources))
 	}
 	if len(v.IdentityNotices) > 0 {
 		fmt.Fprintf(w, "\nIdentity notices (%d). The store is kept as is; none of these is resolved here.\n", len(v.IdentityNotices))
