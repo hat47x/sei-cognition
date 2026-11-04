@@ -63,6 +63,7 @@ type mcpTool struct {
 type mcpServer struct {
 	dataRoot      string
 	allowDecision bool
+	readOnly      bool
 	clientName    string
 	initialized   bool
 }
@@ -79,10 +80,14 @@ func runMCP(ctx context.Context, args []string, stdin io.Reader, stdout, stderr 
 	f := newFlags("mcp", stderr)
 	root := dataRootFlag(f)
 	allow := f.Bool("allow-decision", false, "also offer add_decision to the connected tool (requires a named responsible party)")
+	readOnly := f.Bool("read-only", false, "offer only resume: no tool that writes to the store or to gate-checks.jsonl (check_decision, add_recommendation and add_decision are not offered)")
 	if done, err := parseFlags(f, args, stdout, stderr); done || err != nil {
 		return err
 	}
-	server := &mcpServer{dataRoot: resolveDataRoot(*root), allowDecision: *allow}
+	if *readOnly && *allow {
+		return errors.New("--read-only and --allow-decision contradict each other; choose one")
+	}
+	server := &mcpServer{dataRoot: resolveDataRoot(*root), allowDecision: *allow, readOnly: *readOnly}
 	return server.serve(ctx, stdin, stdout)
 }
 
@@ -224,7 +229,26 @@ func listProp(desc string) map[string]any {
 	return map[string]any{"type": "array", "items": map[string]any{"type": "string"}, "description": desc}
 }
 
+// readOnlyTools are the only tools a --read-only server offers. check_decision
+// is left out because every check appends to gate-checks.jsonl; whether a
+// read-only connection may keep that log is an Owner decision (#778).
+var readOnlyTools = map[string]bool{"resume": true}
+
 func (s *mcpServer) tools() []mcpTool {
+	all := s.allTools()
+	if !s.readOnly {
+		return all
+	}
+	var kept []mcpTool
+	for _, tool := range all {
+		if readOnlyTools[tool.Name] {
+			kept = append(kept, tool)
+		}
+	}
+	return kept
+}
+
+func (s *mcpServer) allTools() []mcpTool {
 	tools := []mcpTool{
 		{
 			Name:        "resume",
@@ -391,6 +415,9 @@ func (s *mcpServer) provenance() string {
 func (s *mcpServer) call(ctx context.Context, name string, args map[string]any) (string, error) {
 	if _, ok := mcpArgKeys[name]; !ok {
 		return "", fmt.Errorf("unknown tool %q", name)
+	}
+	if s.readOnly && !readOnlyTools[name] {
+		return "", fmt.Errorf("%s is not enabled on this server (started with --read-only)", name)
 	}
 	if err := checkKeys(name, args); err != nil {
 		return "", err

@@ -172,6 +172,8 @@ AIツールに渡る操作は、既定では次の三つだけです。
 
 AIツールが決定を記録できるようにするには、運用者が`--allow-decision`を付けて起動します。そのときも、責任を持つ人(`responsible`)を一人以上指定しないと記録できません。空の値を渡した場合、方針のフラグに真偽値以外を渡した場合、認識できない引数を渡した場合は、無視されず、エラーとして拒否されます。
 
+AIツールに許す範囲は、起動の形で選びます。(1) `sei mcp --read-only`は、`resume`だけを出します。`add_recommendation`・`add_decision`・`check_decision`は`tools/list`に出ず、`tools/call`でも「not enabled」で拒否します。storeにも`gate-checks.jsonl`にも書きません。`--allow-decision`とは同時に指定できず、指定すると起動に失敗します。(2) 既定(フラグなし)は、`resume`・`check_decision`・`add_recommendation`を出します。推薦までを許す形で、`check_decision`は判定のたびに`gate-checks.jsonl`へ追記します。(3) `--allow-decision`は、(2)に`add_decision`を足します。`check_decision`を読み取り専用の起動に含めるか(ログの追記を書込みとみなすか)は未決で、今は含めていません(#778)。
+
 `sei mcp`経由で書かれた記録には、AIツールがMCPの初期化(initialize)で名乗ったクライアント名が出所として残ります。呼び出し側がこの名前を別のものに選ぶことはできません。コマンドラインから書いた記録が出所として持つのは、`--source`で指定された値だけです。指定しなければ、出所は残りません。
 
 `--allow-decision`を付けた運用で成立することと、成立しないことは次のとおりです。
