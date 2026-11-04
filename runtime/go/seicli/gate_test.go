@@ -136,6 +136,43 @@ func TestGateFailsClosedWhenTheCheckCannotBeLogged(t *testing.T) {
 	}
 }
 
+func withBuild(t *testing.T, version, commit, target string) {
+	t.Helper()
+	v, c, g := BuildVersion, BuildCommit, BuildTarget
+	BuildVersion, BuildCommit, BuildTarget = version, commit, target
+	t.Cleanup(func() { BuildVersion, BuildCommit, BuildTarget = v, c, g })
+}
+
+func TestGateResultAndLogNameTheCLIBuildThatDecided(t *testing.T) {
+	withBuild(t, "v9.9.9", "abc1234", "linux/amd64")
+	root := gateStore(t)
+	want := `"cli":{"version":"v9.9.9","commit":"abc1234","target":"linux/amd64"}`
+	for _, id := range []string{"D-full", "D-orphan", "no-such-decision"} {
+		out, _ := run(t, "gate", "check", "--data-root", root, "--decision", id)
+		if !strings.Contains(out, want) {
+			t.Errorf("result for %s lacks the CLI build: %s", id, out)
+		}
+	}
+	log, err := os.ReadFile(filepath.Join(root, GateLogFile))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i, line := range strings.Split(strings.TrimSpace(string(log)), "\n") {
+		if !strings.Contains(line, want) {
+			t.Errorf("gate log line %d lacks the CLI build: %s", i, line)
+		}
+	}
+}
+
+func TestGateResultStatesUnknownRatherThanOmittingTheBuild(t *testing.T) {
+	withBuild(t, "dev", "unknown", "unknown")
+	root := gateStore(t)
+	out, _ := run(t, "gate", "check", "--data-root", root, "--decision", "D-full")
+	if !strings.Contains(out, `"cli":{"version":"dev","commit":`) || !strings.Contains(out, `"target":"unknown"`) {
+		t.Errorf("the cli field must be present even for an untagged build: %s", out)
+	}
+}
+
 // addForeignRecord puts a record with a Contract this runtime does not know
 // into the store by editing the bundle, as an externally produced bundle would.
 func addForeignRecord(t *testing.T, root string) {
