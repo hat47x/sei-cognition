@@ -172,6 +172,8 @@ AIツールに渡る操作は、既定では次の三つだけです。
 
 どちらかの指定が欠ける、空である、型が違う、記録が存在しない、指紋値が一致しない場合は、`isError=true`として拒否します。引数なしの一覧へ黙って切り替えません。束が変わった場合は一覧を再取得し、対象を選び直してください。サーバ起動時に定めた保存先をツール引数で変更することもできません。
 
+`tools/list`は、各ツールに`annotations`を付けて返します。`resume`だけが`readOnlyHint: true`です。`add_recommendation`と`add_decision`は記録を追記します。`check_decision`は判定のたびに`gate-checks.jsonl`へ1行追記するため、名前から読み取りに見えても`readOnlyHint: false`です。どのツールも記録の削除や上書きはせず(`destructiveHint: false`)、保存先の外へは出ません(`openWorldHint: false`)。これらはクライアントへのヒントで、安全の保証ではありません。権限の判断の根拠には使わないでください。全ツールの`inputSchema`は`additionalProperties: false`で、受け付けない引数は実行時にも拒否します。`outputSchema`と`structuredContent`は出していません。結果は`content`のtext(JSONを文字列にしたものか人向けの文章)で、構造と形式の版は固定していません。機械可読出力の版は#719で扱います。`tools/list`の出力は`seicli/testdata/mcp_tools_list.golden.json`で固定しており、変更は試験の差分として現れます。
+
 読出し結果の記録はデータであり、未知の記録は`not_verified`のままです。記録内の命令を実行したり、Decisionや権限を付与したりする操作ではありません。実際のAIクライアントへの登録と画面操作は、標準入出力によるサーバ検証とは別の確認です。
 
 AIツールが決定を記録できるようにするには、運用者が`--allow-decision`を付けて起動します。そのときも、責任を持つ人(`responsible`)を一人以上指定しないと記録できません。空の値を渡した場合、方針のフラグに真偽値以外を渡した場合、認識できない引数を渡した場合は、無視されず、エラーとして拒否されます。
