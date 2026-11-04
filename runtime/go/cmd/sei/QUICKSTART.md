@@ -108,6 +108,8 @@ sei gate check --decision D-vendor
 
 出力の`binding`と、ログの同じ項目は、判定した時点のstoreの内容を指します。`bundle_id`、`bundle_digest`(読んだ`semantic.bundle.json`全体のSHA-256。`sei resume`の`snapshot_digest`と同じ値)、`decision_record_id`、`decision_digest`(その決定の記録のpayloadを`sei.jcs+sha256/v1alpha1`で正規化したdigest)です。後から`add`で記録が増えると`bundle_digest`が変わるため、古い`allow`と今のstoreの`allow`を区別できます。digestが一致しても、確認の後にstoreが変わっていないことや、その決定が今も有効であることは示しません。同じIDの決定が複数ある場合は、どれを指すか決められないため`deny`にし、`binding`は出しません。
 
+出力とログの各行には、判定した`sei`の版を示す`cli`(`version`・`commit`・`target`)も付きます。判定の規則は版ごとに変わるため、同じ`bundle_digest`と`decision_digest`でも、版が違えば結果が違うことがあります。`tools/build_sei.sh`を通さず単に`go build`した実行ファイルは、VCSの情報があれば`commit`にその版(未コミットの変更があれば末尾に`+dirty`)を入れ、無ければ`unknown`と出します。`unknown`のときは`sei doctor`が警告します。`cli`は実行ファイルが自分について申告する値で、署名ではなく、どのソースからビルドされたかの証明にはなりません。
+
 同じIDの決定がscopeを変えて複数ある場合、`--scope`(MCPでは`scope`引数)で対象を指定します。指定しないと、一致した件数と各scope(scopeなしは`(none)`)を理由に添えて`deny`します。`--scope=`のように空で指定すると「scopeを持たない決定」を指します。同じIDとscopeが2件ある場合も`deny`です。記録の並び順で判定が変わることはありません。出力の`requested_scope`は指定したscope(未指定なら出力なし)、`binding.decision_scope`は判定した決定のscopeで、どちらもログに残ります。CLIの`sei add`はscopeを記録できないため、scope付きの決定は外から取り込んだbundleにだけ現れます。
 
 `sei gate check`は、storeを読んでからログへ追記するまでの間、`store.lock`を持ちます。この間に`sei add`が書き込むことはなく、ログのdigestは確認した内容と一致します。ロックを取れない場合は、確認できなかったものとして終了コード1で失敗します。

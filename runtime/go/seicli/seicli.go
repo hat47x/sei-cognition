@@ -76,7 +76,8 @@ func Run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	case "mcp":
 		return runMCP(ctx, args[1:], Stdin, stdout, stderr)
 	case "version":
-		return writeJSON(stdout, map[string]string{"version": BuildVersion, "commit": BuildCommit, "target": BuildTarget})
+		cli := currentCLI()
+		return writeJSON(stdout, map[string]string{"version": cli.Version, "commit": cli.Commit, "target": cli.Target})
 	case "help", "-h", "--help":
 		fmt.Fprintln(stdout, usage)
 		return nil
