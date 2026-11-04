@@ -420,14 +420,14 @@ func LoadInterchange(data []byte) (*Bundle, error) {
 
 	bundle := &Bundle{Envelope: envelope, raw: append([]byte(nil), data...)}
 	seenRecordIDs := map[string]struct{}{}
-	for _, record := range envelope.Records {
+	for index, record := range envelope.Records {
 		if _, exists := seenRecordIDs[record.RecordID]; exists {
 			return nil, fmt.Errorf("duplicate interchange record_id %q", record.RecordID)
 		}
 		seenRecordIDs[record.RecordID] = struct{}{}
 		runtimeRecord, err := parseInterchangeRecord(record)
 		if err != nil {
-			return nil, fmt.Errorf("record %q: %w", record.RecordID, err)
+			return nil, fmt.Errorf("record %q at /records/%d: %w", record.RecordID, index, err)
 		}
 		bundle.Records = append(bundle.Records, runtimeRecord)
 	}
