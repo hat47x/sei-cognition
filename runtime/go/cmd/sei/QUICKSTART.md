@@ -231,6 +231,14 @@ sei doctor --data-root /absolute/path/to/.sei
 
 `sei doctor`は、バイナリの版とハッシュ、データ置き場への書き込み、記録の検証、残っているロック、ゲートログの書き込みを確かめます。読み取り専用で、記録もロックも変更しません。`fail`が一つでもあれば終了コードは1になります。`warn`は、そのままでも動く状態を表します。出力には、AIツールに登録するための絶対パスのMCP設定も含まれます。
 
+### storeに読めない記録が1件あるとき
+
+このruntimeが知っているContract・版の記録が、Contractの定めと合わない形(たとえば未定義の項目を持つ)になっていると、その1件のためにstore全体が使えなくなります。このとき、`resume`・`add`・`gate check`・`verify`・`doctor`は終了コード1で失敗し、正常な記録も表示されません。`gate check`は何も許可せず、ゲートログにも書きません。エラーには`record "<record_id>" at /records/<番号>: ...`の形で、記録のIDとJSON Pointerと理由が出ます。
+
+知らないContractや版の記録は、これとは別に扱われ、削除されず`not_verified`として残り、`resume`で読めます。既知のContract・版で形が合わない記録だけが、storeを止めます。
+
+この状態で動くのは`export`だけです。`export`は記録の中身を解釈せず、保存されているバイト列をそのまま書き出すため、止まった記録を外で調べられます。storeを直す・不正な記録を隔離するコマンドはありません。`semantic.bundle.json`を手で直してよいかも、決めていません。追記専用の原則があるため、直す前に`export`で控えを取ってください。回復の方針(既知のContractの未知の項目を拒否のままにするか、その記録だけ`not_verified`に落とすか)は、Ownerの判断待ちです(#760)。
+
 それでも詰まった箇所は、作者に聞く前に、そのまま記録してください。導入の観測(`evaluation/adoption-first-contact/E84_1_OBSERVATION_PROTOCOL.md`)の材料になります。
 
 ### 終了コードの一覧
