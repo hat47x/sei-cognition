@@ -54,6 +54,8 @@ JSONの`coverage`は集計範囲と件数を示し、`case_completeness`は`not_
 
 決定の根拠は、JSONでは従来の`basis`（`kind:id`の文字列）に加えて`basis_references`で出します。各要素は`form`（`logical`または`exact`）とscopeを持ち、exact形式では`content_digest`と`representation_profile`も持ちます。決定自身のscopeは`scope`です。人向け表示でも、scope・logical/exactの別・digestとProfileを根拠の行に出します。同じ論理IDで形式・digest・scopeだけが違う根拠は、別の出力になります。表示するdigestは保存されている値で、参照先の実物と照合した結果ではありません。
 
+決定が依拠する推薦と責任者は、従来の`recommendations`・`responsible`（`kind:id`の文字列）に加えて、`recommendation_references`・`responsibility_references`で出します。要素の形は`basis_references`と同じで、scopeと`form`を持ちます。`unresolved[]`には`reference_form`を足しました。`recommendations_relied_on`と`recommendations_not_yet_relied_on`の各項目は、推薦自身のscopeを`scope`で持ちます。人向け表示では、scopeを`@scope`で示します。scopeだけが違う同IDの推薦や責任者は、別の出力になります。「依拠済み」の判定はkind・id・scopeで行い、content_digestは使いません（storeは推薦のdigestを持たないためです）。MCPの`resume`（引数なし）は同じ人向け表示を返すため、同じ変更が入ります。
+
 人向け表示（`sei resume`と、引数なしのMCP `resume`）は、statement・rationale・ID・出所に含まれる改行と制御文字を`
 `、``、`	`、``のような見える形で出します。書き込まれた本文が新しい区画や項目の行を作り、存在しないDecisionに見せることを防ぐためです。バックスラッシュはそのまま出すため、表示だけから元の文字列を厳密には復元できません。`--json`、原記録の読出し、MCPのJSON出力は値を加工しません。`sei gate check`の`not_verified`に出るbasisとLineageの参照名にも同じ処理をかけています。
 
