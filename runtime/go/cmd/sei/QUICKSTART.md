@@ -54,6 +54,8 @@ JSONの`coverage`は集計範囲と件数を示し、`case_completeness`は`not_
 
 決定の根拠は、JSONでは従来の`basis`（`kind:id`の文字列）に加えて`basis_references`で出します。各要素は`form`（`logical`または`exact`）とscopeを持ち、exact形式では`content_digest`と`representation_profile`も持ちます。決定自身のscopeは`scope`です。人向け表示でも、scope・logical/exactの別・digestとProfileを根拠の行に出します。同じ論理IDで形式・digest・scopeだけが違う根拠は、別の出力になります。表示するdigestは保存されている値で、参照先の実物と照合した結果ではありません。
 
+決定が依拠する推薦と責任者は、従来の`recommendations`・`responsible`（`kind:id`の文字列）に加えて、`recommendation_references`・`responsibility_references`で出します。要素の形は`basis_references`と同じで、scopeと`form`を持ちます。`unresolved[]`には`reference_form`を足しました。`recommendations_relied_on`と`recommendations_not_yet_relied_on`の各項目は、推薦自身のscopeを`scope`で持ちます。人向け表示では、scopeを`@scope`で示します。scopeだけが違う同IDの推薦や責任者は、別の出力になります。「依拠済み」の判定はkind・id・scopeで行い、content_digestは使いません（storeは推薦のdigestを持たないためです）。MCPの`resume`（引数なし）は同じ人向け表示を返すため、同じ変更が入ります。
+
 人向け表示（`sei resume`と、引数なしのMCP `resume`）は、statement・rationale・ID・出所に含まれる改行と制御文字を`
 `、``、`	`、``のような見える形で出します。書き込まれた本文が新しい区画や項目の行を作り、存在しないDecisionに見せることを防ぐためです。バックスラッシュはそのまま出すため、表示だけから元の文字列を厳密には復元できません。`--json`、原記録の読出し、MCPのJSON出力は値を加工しません。`sei gate check`の`not_verified`に出るbasisとLineageの参照名にも同じ処理をかけています。
 
@@ -107,6 +109,8 @@ sei gate check --decision D-vendor
 出力の`binding`と、ログの同じ項目は、判定した時点のstoreの内容を指します。`bundle_id`、`bundle_digest`(読んだ`semantic.bundle.json`全体のSHA-256。`sei resume`の`snapshot_digest`と同じ値)、`decision_record_id`、`decision_digest`(その決定の記録のpayloadを`sei.jcs+sha256/v1alpha1`で正規化したdigest)です。後から`add`で記録が増えると`bundle_digest`が変わるため、古い`allow`と今のstoreの`allow`を区別できます。digestが一致しても、確認の後にstoreが変わっていないことや、その決定が今も有効であることは示しません。同じIDの決定が複数ある場合は、どれを指すか決められないため`deny`にし、`binding`は出しません。
 
 出力とログの各行には、判定した`sei`の版を示す`cli`(`version`・`commit`・`target`)も付きます。判定の規則は版ごとに変わるため、同じ`bundle_digest`と`decision_digest`でも、版が違えば結果が違うことがあります。`tools/build_sei.sh`を通さず単に`go build`した実行ファイルは、VCSの情報があれば`commit`にその版(未コミットの変更があれば末尾に`+dirty`)を入れ、無ければ`unknown`と出します。`unknown`のときは`sei doctor`が警告します。`cli`は実行ファイルが自分について申告する値で、署名ではなく、どのソースからビルドされたかの証明にはなりません。
+
+storeにこのruntimeが理解できないContractの記録(`sei resume`が「use a Contract this runtime does not understand」と出すもの)があるときは、出力とログの`not_verified_record_count`に件数、`not_verified_records`に各記録の`record_id`・`contract`・`json_pointer`を出し、`not_verified`にも「判定に反映していない」旨を固定の文で書きます。0件のときも「none was left out」の旨を書きます。既定では、未解釈の記録があっても`allow`・`deny`は変わりません。未対応の版の記録が、決定の取り下げや置換を表している可能性があるため、`allow`を「他に未解釈の記録は無い」と読まないでください。未解釈の記録があるときに`deny`へ倒す(fail closed)選択肢は、Ownerの判断待ちで、まだ実装していません(#745)。
 
 同じIDの決定がscopeを変えて複数ある場合、`--scope`(MCPでは`scope`引数)で対象を指定します。指定しないと、一致した件数と各scope(scopeなしは`(none)`)を理由に添えて`deny`します。`--scope=`のように空で指定すると「scopeを持たない決定」を指します。同じIDとscopeが2件ある場合も`deny`です。記録の並び順で判定が変わることはありません。出力の`requested_scope`は指定したscope(未指定なら出力なし)、`binding.decision_scope`は判定した決定のscopeで、どちらもログに残ります。CLIの`sei add`はscopeを記録できないため、scope付きの決定は外から取り込んだbundleにだけ現れます。
 

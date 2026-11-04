@@ -59,6 +59,12 @@ type GateResult struct {
 	// between versions, so the same binding can give a different verdict under
 	// another build. It is always present; an unknown value is "unknown".
 	CLI GateCLI `json:"cli"`
+	// NotVerifiedRecordCount and NotVerifiedRecords list the store records that
+	// use a Contract this runtime does not understand (same shape as `sei
+	// resume`). They are kept in the store and were not read for this verdict.
+	// Both are always present: 0 and [] mean none exist.
+	NotVerifiedRecordCount int                    `json:"not_verified_record_count"`
+	NotVerifiedRecords     []ResumeRecordLocation `json:"not_verified_records"`
 }
 
 // GateCLI is the identity of the sei build that evaluated a check. Version is
@@ -181,6 +187,16 @@ func lineageNotes(bundle *semanticruntime.Bundle, d *semanticruntime.Decision) [
 	return notes
 }
 
+// uninterpretedRecordsNotVerified is listed when the store holds records whose
+// Contract this runtime does not understand. They may bear on the decision (a
+// withdrawal, a replacement); the gate does not read them, and by default does
+// not deny because of them (whether it should is an Owner decision, #745).
+const uninterpretedRecordsNotVerified = "the store holds record(s) that use a Contract this runtime does not understand; they were not interpreted and are not reflected in this verdict (see not_verified_records)"
+
+// noUninterpretedRecords is listed when there are none, so the absence is
+// stated and not left for the reader to infer from a missing line.
+const noUninterpretedRecords = "no record in this store uses a Contract this runtime does not understand, so none was left out of this verdict"
+
 // basisNotVerified is the fixed statement that the gate does not resolve basis
 // references. It is listed whether or not the decision has a basis, so "allow"
 // is never read as "the basis exists and is unchanged".
@@ -266,6 +282,20 @@ func CheckDecisionInScope(bundle *semanticruntime.Bundle, id string, scope *stri
 			"that the responsible party holds Authority for this action",
 			"that the action matches what the decision covers",
 		},
+	}
+	result.NotVerifiedRecords = []ResumeRecordLocation{}
+	for index, rec := range bundle.Records {
+		if rec.Status == semanticruntime.RecordNotVerified {
+			result.NotVerifiedRecords = append(result.NotVerifiedRecords, ResumeRecordLocation{
+				RecordID: rec.EnvelopeRecord.RecordID, Contract: rec.EnvelopeRecord.Contract,
+				JSONPointer: fmt.Sprintf("/records/%d", index)})
+		}
+	}
+	result.NotVerifiedRecordCount = len(result.NotVerifiedRecords)
+	if result.NotVerifiedRecordCount > 0 {
+		result.NotVerified = append(result.NotVerified, uninterpretedRecordsNotVerified)
+	} else {
+		result.NotVerified = append(result.NotVerified, noUninterpretedRecords)
 	}
 	deny := func(reason string) {
 		result.Verdict = "deny"

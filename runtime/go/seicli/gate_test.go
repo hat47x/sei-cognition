@@ -2,6 +2,7 @@ package seicli
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -169,5 +170,91 @@ func TestGateResultStatesUnknownRatherThanOmittingTheBuild(t *testing.T) {
 	out, _ := run(t, "gate", "check", "--data-root", root, "--decision", "D-full")
 	if !strings.Contains(out, `"cli":{"version":"dev","commit":`) || !strings.Contains(out, `"target":"unknown"`) {
 		t.Errorf("the cli field must be present even for an untagged build: %s", out)
+	}
+}
+
+// addForeignRecord puts a record with a Contract this runtime does not know
+// into the store by editing the bundle, as an externally produced bundle would.
+func addForeignRecord(t *testing.T, root string) {
+	t.Helper()
+	path := filepath.Join(root, "semantic.bundle.json")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var bundle map[string]any
+	if err := json.Unmarshal(data, &bundle); err != nil {
+		t.Fatal(err)
+	}
+	records := bundle["records"].([]any)
+	bundle["records"] = append(records, map[string]any{
+		"record_id": "future-1",
+		"contract":  map[string]any{"contract_id": "sei.decision-memory", "version": "v2"},
+		"kind":      "decision",
+		"payload":   map[string]any{"opaque": []any{1, 2, 3}},
+	})
+	out, err := json.MarshalIndent(bundle, "", "  ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, out, 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestGateReportsUninterpretedRecordsOnAllowAndDenyAndInTheLog(t *testing.T) {
+	root := gateStore(t)
+	addForeignRecord(t, root)
+	wantPointer := `"json_pointer":"/records/4"`
+
+	out, err := run(t, "gate", "check", "--data-root", root, "--decision", "D-full")
+	if err != nil {
+		t.Fatalf("an unreadable record is reported, not denied by default: %v", err)
+	}
+	for _, want := range []string{`"verdict":"allow"`, `"not_verified_record_count":1`, `"record_id":"future-1"`, wantPointer,
+		"does not understand; they were not interpreted"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("allow result missing %q: %s", want, out)
+		}
+	}
+
+	out, err = run(t, "gate", "check", "--data-root", root, "--decision", "D-orphan")
+	if exitCode(err) != ExitCodeDenied {
+		t.Fatalf("expected deny, got %v", err)
+	}
+	for _, want := range []string{`"verdict":"deny"`, `"not_verified_record_count":1`, wantPointer} {
+		if !strings.Contains(out, want) {
+			t.Errorf("deny result missing %q: %s", want, out)
+		}
+	}
+
+	// A decision that exists only as an unreadable record is denied, and the
+	// result still says an unreadable record exists.
+	out, err = run(t, "gate", "check", "--data-root", root, "--decision", "future-decision")
+	if exitCode(err) != ExitCodeDenied || !strings.Contains(out, `"not_verified_record_count":1`) {
+		t.Errorf("a missing decision must be denied with the unreadable record listed: %v %s", err, out)
+	}
+
+	log, err := os.ReadFile(filepath.Join(root, GateLogFile))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i, line := range strings.Split(strings.TrimSpace(string(log)), "\n") {
+		if !strings.Contains(line, `"not_verified_record_count":1`) || !strings.Contains(line, wantPointer) {
+			t.Errorf("gate log line %d lacks the unreadable record: %s", i, line)
+		}
+	}
+}
+
+func TestGateStatesThatNoRecordWasLeftOutWhenThereAreNone(t *testing.T) {
+	root := gateStore(t)
+	out, err := run(t, "gate", "check", "--data-root", root, "--decision", "D-full")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{`"not_verified_record_count":0`, `"not_verified_records":[]`, "so none was left out of this verdict"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("result missing %q: %s", want, out)
+		}
 	}
 }
