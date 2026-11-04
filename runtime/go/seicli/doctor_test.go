@@ -128,3 +128,20 @@ func TestDoctorFailsWhenTheGateLogCannotBeAppended(t *testing.T) {
 		t.Errorf("a gate log that cannot be appended must fail, because gate checks would then be refused: %+v", c)
 	}
 }
+
+func TestDoctorWarnsWhenTheBinaryCarriesNoCommit(t *testing.T) {
+	fixClock(t)
+	root := filepath.Join(t.TempDir(), "store")
+	mustRun(t, "init", "--data-root", root)
+	withBuild(t, "dev", "unknown", "unknown")
+	// A test binary carries no VCS revision, so the commit stays unknown.
+	if c := findCheck(t, doctorChecks(context.Background(), root), "binary-identity"); c.Status != "warn" {
+		t.Errorf("an untraceable binary must be warned about: %+v", c)
+	}
+	withBuild(t, "v1", "abc1234", "linux/amd64")
+	for _, c := range doctorChecks(context.Background(), root) {
+		if c.Name == "binary-identity" {
+			t.Errorf("a binary with a commit must not be warned about: %+v", c)
+		}
+	}
+}
