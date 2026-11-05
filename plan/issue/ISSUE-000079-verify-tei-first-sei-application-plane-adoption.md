@@ -300,7 +300,7 @@ TEI側では、`research/sei-reference-adoption`の一つのworkstream branchで
 - TEI Design: `plan/design/SEI_REFERENCE_ADOPTION_STAGE0_DESIGN.md`
 - frozen Reference snapshot: `reference/sei-adoption/decision-continuity-counterfactual-001.json`
 - checker: `tools/sei-resume-reference`
-- PR: #686
+- PR: [TEI PR #686](https://github.com/hat47x/tei-platform/pull/686)
 - merged TEI commit: `0d1c068d6fc9e9faf444c1a47eaa071eee61b272`
 
 Go 1.23.2でtargetedに、
