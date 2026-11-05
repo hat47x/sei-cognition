@@ -131,3 +131,15 @@ Design Evidence
 - Adoption / Outcome Evidence: なし。
 
 このADRがAcceptedになる条件は、最小のバイナリ実装とE-84.1の結果を踏まえて、プロダクト責任者が確認することです。
+
+## Notes
+
+### 実装との差(2026-11-05照合)
+
+照合した版は`origin/main` `1fa8a319718242e0a23ff8c575c8065c4e2a4a65`です。照合はソースを読んだだけで、testは実行していません。照合表は[#792](https://github.com/hat47x/sei-cognition/issues/792)のS12コメントにあります。状態はProposedのまま変えていません。採否はプロダクト責任者が決めます。
+
+- 提出の受付: `sei add`と`sei mcp`が記録できるのはRecommendationとDecisionだけです。ObservationとAction Intentを記録する経路はありません(部分一致)。
+- Action Intentの確認: `sei gate check`は記録済みのDecisionを方針と照らします。Action Intentの型は無く、Authority basisは`not_verified`に出すだけです(部分一致)。
+- fail-closedとfail-openの選択: gateは常にfail-closedで、確認の失敗時の方針を選ぶ引数も、選択を記録する項目もありません。止めるかどうかは呼び出し側が終了コードで決め、その選択は記録されません(不一致)。
+- 食い違いの保持: CLIとsemantic runtimeに、提案の食い違いをConflictとして保つ処理はありません(実装なし)。
+- 導入容易性: E-84.1の観測は未実施です(実装なし)。Accepted条件のE-84.1の結果もまだありません。

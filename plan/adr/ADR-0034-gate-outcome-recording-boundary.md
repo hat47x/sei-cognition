@@ -108,3 +108,9 @@ Design Evidence
 - Adoption / Outcome Evidence: なし。
 
 このADRをAcceptedにする条件は、E-84.2とE-84.3の結果を踏まえて、プロダクト責任者が確認することです。
+
+## Notes
+
+### 実装との照合(2026-11-05)
+
+照合した版は`origin/main` `1fa8a319718242e0a23ff8c575c8065c4e2a4a65`です。照合はソースを読んだだけで、testは実行していません。照合表は[#792](https://github.com/hat47x/sei-cognition/issues/792)のS12コメントにあります。第一段階の決定事項(ログの項目、#699のbinding、bundleと`export`への非混入、追記のみとfail-closed、ログを根拠として参照しないこと)は実装と一致しました。第二段階のうち「Contract化の検討時にAction Intentと確認結果を分けて扱えるか確かめる」は将来の手順で、実装からは判定できません。Accepted条件のE-84.2とE-84.3の結果はまだありません。状態はProposedのまま変えていません。採否はプロダクト責任者が決めます。
