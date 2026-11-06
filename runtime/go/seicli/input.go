@@ -1,9 +1,11 @@
 package seicli
 
 import (
+	"crypto/rand"
 	"fmt"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 )
 
 // Input checks for values that `sei add` and the MCP add tools write into the
@@ -62,4 +64,34 @@ func rejectDuplicateRefs(flagName string, values []string) error {
 		seen[v] = true
 	}
 	return nil
+}
+
+// maxBundleIDRunes bounds the bundle id `sei init` records. The id appears in
+// the resume heading, the verify and gate output and the gate log, so an
+// unbounded value would reach every one of them (#776).
+const maxBundleIDRunes = 200
+
+// checkBundleID applies the id check to a --bundle-id value and bounds its
+// length. It runs at init only; an existing store keeps whatever id it has.
+func checkBundleID(value string) error {
+	if err := checkIdentifier("--bundle-id", value); err != nil {
+		return err
+	}
+	if n := utf8.RuneCountInString(value); n > maxBundleIDRunes {
+		return fmt.Errorf("--bundle-id is %d characters; the limit is %d", n, maxBundleIDRunes)
+	}
+	return nil
+}
+
+// defaultBundleID returns the id used when --bundle-id is omitted: the UTC date
+// plus 8 random hex digits, so two stores made on the same day get different
+// ids. The id stays a name a person can read; it does not prove that two
+// stores are the same or different, and bundle_digest remains the check for
+// content.
+func defaultBundleID(date string) string {
+	var b [4]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		return "sei-store-" + date
+	}
+	return fmt.Sprintf("sei-store-%s-%x", date, b)
 }
