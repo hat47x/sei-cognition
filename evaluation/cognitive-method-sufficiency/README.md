@@ -135,10 +135,12 @@ python -m unittest -v test_probe_planning_visibility
 ```bash
 cd evaluation/cognitive-method-sufficiency
 python -m unittest -v test_negative_evidence_closure
-# 全4moduleのFocused CI（.github/workflows/cognitive-method-sufficiency-fixture.yml）
-python -m unittest -v probe_partition_reference test_probe_claim_qualifiers test_probe_planning_visibility test_negative_evidence_closure
+# 全5moduleをローカルで一括実行する（GitHub Actionsは当面停止中のため、workflowは置かない）
+python -m unittest discover -s . -p "*.py" -v
 ```
 
-**実行証拠**：新テストはローカルPythonで**10/10 PASS**し、実行ファイルのGit blob `50e19dcd1b6b66c9c7338668865a7cc93ea0b4f4`とGitHub保存版が一致。前3 Moduleの6＋7＋7件は各々別の実行記録があり、**全4 Module 30/30の一括実行はこの追補時点ではNOT RUN**。Focused GitHub Actions workflowは候補ブランチへ追加したが、実CI結果は別途確認し、緑にならないうちにPASSと書かない。
+**実行証拠**：新テストはローカルPythonで**10/10 PASS**し、実行ファイルのGit blob `50e19dcd1b6b66c9c7338668865a7cc93ea0b4f4`とGitHub保存版が一致。前3 Moduleの6＋7＋7件は各々別の実行記録があり、**全4 Module 30/30の一括実行はこの追補時点ではNOT RUN**。
+
+**一括実行（2026-11-06、統合前のローカル検証）**：origin/main（9e74fdf）を取り込んだ状態で、Python 3.12.10の`python -m unittest discover -s . -p "*.py" -v`が、discovery境界を含む全5 Moduleで**34件PASS**した。このリポジトリはGitHub Actionsを当面停止しているため（[開発ワークフロー](../../plan/DEVELOPMENT_WORKFLOW.md)の§8）、当初候補ブランチにあったFocused CI workflowは統合対象から外した。これも純粋合成Fixtureのローカル観測であり、実CI・SEI製品本体・TEI実Provider・Harness・Owner受理の検証ではない。
 
 **次の実連結（Owner維持）**：SEIはProbe質問の選択と`Q/観測/不足依存/残余`の説明を行う。TEI #2586/#2387/#2634/#2637は実Query・Provider/Grantの必要依存と実時点を検証し、TAI #271が現在のActivity利用・引継ぎ資格を選択的に再確認する。SHO/外部Harnessへ渡すのはProductが許可した目的相対のProjectionに限る。空の結果を一律FAILへ倒すのではなく、**適用対象内の肯定・否定・限定的不明を区別**し、説明のために新Universal Proof Engine、共通Claim Store、Host、CSW探索中のGateを追加しない。
