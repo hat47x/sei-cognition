@@ -1,0 +1,1023 @@
+{
+  "description": "JSON Schemaが拒否する入力と、Go loaderの現在の挙動(#744)。loader_acceptsがtrueの行は、loaderがschemaより緩い現状の差。bases_valid_forの文書は双方で有効。",
+  "bases": {
+    "dec": {
+      "schema": "decision-memory",
+      "document": {
+        "contract": "sei.decision-memory/v1alpha1",
+        "record_type": "decision",
+        "decision": {
+          "ref": {
+            "kind": "decision",
+            "id": "D1"
+          },
+          "statement": "s",
+          "rationale": "r",
+          "basis_refs": [
+            {
+              "kind": "observation",
+              "id": "o1"
+            }
+          ],
+          "recommendation_refs": [
+            {
+              "kind": "recommendation",
+              "id": "R1"
+            }
+          ],
+          "context_refs": [
+            {
+              "kind": "c",
+              "id": "c1"
+            }
+          ],
+          "unresolved_refs": [
+            {
+              "kind": "u",
+              "id": "u1"
+            }
+          ],
+          "responsibility_refs": [
+            {
+              "kind": "p",
+              "id": "p1"
+            }
+          ]
+        }
+      }
+    },
+    "rec": {
+      "schema": "decision-memory",
+      "document": {
+        "contract": "sei.decision-memory/v1alpha1",
+        "record_type": "recommendation",
+        "recommendation": {
+          "ref": {
+            "kind": "recommendation",
+            "id": "R1"
+          },
+          "statement": "s",
+          "rationale": "r",
+          "basis_refs": [
+            {
+              "kind": "observation",
+              "id": "o1"
+            }
+          ]
+        }
+      }
+    },
+    "cap": {
+      "schema": "capability-observation",
+      "document": {
+        "contract": "sei.capability-observation/v1alpha1",
+        "observation": {
+          "ref": {
+            "kind": "capability-observation",
+            "id": "c1"
+          },
+          "target": {
+            "capability_ref": {
+              "kind": "capability",
+              "id": "cap"
+            },
+            "provider_ref": {
+              "kind": "provider",
+              "id": "pv"
+            },
+            "provider_target_ref": "x://t"
+          },
+          "observed_at": "2026-08-31T00:00:00Z",
+          "valid_until": "2026-09-30T00:00:00Z",
+          "conditions": [
+            {
+              "key": "k",
+              "state": "observed",
+              "value": true,
+              "unit": "u",
+              "note": "n"
+            }
+          ],
+          "provenance_refs": [
+            {
+              "kind": "p",
+              "id": "p1"
+            }
+          ]
+        }
+      }
+    },
+    "mdef": {
+      "schema": "cognitive-method",
+      "document": {
+        "contract": "sei.cognitive-method/v1alpha1",
+        "record_type": "method_definition",
+        "method_definition": {
+          "ref": {
+            "kind": "cognitive_method",
+            "id": "m1"
+          },
+          "title": "t",
+          "purpose": "p"
+        }
+      }
+    },
+    "mapp": {
+      "schema": "cognitive-method",
+      "document": {
+        "contract": "sei.cognitive-method/v1alpha1",
+        "record_type": "method_application",
+        "method_application": {
+          "ref": {
+            "kind": "method_application",
+            "id": "a1"
+          },
+          "method_ref": {
+            "kind": "cognitive_method",
+            "id": "m1"
+          },
+          "applied_at": "2026-09-01T03:30:00Z",
+          "summary": "s"
+        }
+      }
+    },
+    "ix": {
+      "schema": "semantic-interchange",
+      "document": {
+        "contract": "sei.semantic-interchange/v1alpha1",
+        "bundle_id": "b1",
+        "created_at": "2026-08-31T00:45:00Z",
+        "records": [
+          {
+            "record_id": "r1",
+            "contract": {
+              "contract_id": "example.other",
+              "version": "v1"
+            },
+            "kind": "k",
+            "payload": {
+              "x": 1
+            },
+            "provenance_refs": [
+              {
+                "kind": "p",
+                "id": "p1"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "cases": [
+    {
+      "name": "decision: empty statement",
+      "base": "dec",
+      "schema": "decision-memory",
+      "document": {
+        "contract": "sei.decision-memory/v1alpha1",
+        "record_type": "decision",
+        "decision": {
+          "ref": {
+            "kind": "decision",
+            "id": "D1"
+          },
+          "statement": "",
+          "rationale": "r",
+          "basis_refs": [
+            {
+              "kind": "observation",
+              "id": "o1"
+            }
+          ],
+          "recommendation_refs": [
+            {
+              "kind": "recommendation",
+              "id": "R1"
+            }
+          ],
+          "context_refs": [
+            {
+              "kind": "c",
+              "id": "c1"
+            }
+          ],
+          "unresolved_refs": [
+            {
+              "kind": "u",
+              "id": "u1"
+            }
+          ],
+          "responsibility_refs": [
+            {
+              "kind": "p",
+              "id": "p1"
+            }
+          ]
+        }
+      },
+      "loader_accepts": false
+    },
+    {
+      "name": "decision: empty rationale",
+      "base": "dec",
+      "schema": "decision-memory",
+      "document": {
+        "contract": "sei.decision-memory/v1alpha1",
+        "record_type": "decision",
+        "decision": {
+          "ref": {
+            "kind": "decision",
+            "id": "D1"
+          },
+          "statement": "s",
+          "rationale": "",
+          "basis_refs": [
+            {
+              "kind": "observation",
+              "id": "o1"
+            }
+          ],
+          "recommendation_refs": [
+            {
+              "kind": "recommendation",
+              "id": "R1"
+            }
+          ],
+          "context_refs": [
+            {
+              "kind": "c",
+              "id": "c1"
+            }
+          ],
+          "unresolved_refs": [
+            {
+              "kind": "u",
+              "id": "u1"
+            }
+          ],
+          "responsibility_refs": [
+            {
+              "kind": "p",
+              "id": "p1"
+            }
+          ]
+        }
+      },
+      "loader_accepts": true
+    },
+    {
+      "name": "recommendation: empty rationale",
+      "base": "rec",
+      "schema": "decision-memory",
+      "document": {
+        "contract": "sei.decision-memory/v1alpha1",
+        "record_type": "recommendation",
+        "recommendation": {
+          "ref": {
+            "kind": "recommendation",
+            "id": "R1"
+          },
+          "statement": "s",
+          "rationale": "",
+          "basis_refs": [
+            {
+              "kind": "observation",
+              "id": "o1"
+            }
+          ]
+        }
+      },
+      "loader_accepts": true
+    },
+    {
+      "name": "decision: duplicate basis_refs",
+      "base": "dec",
+      "schema": "decision-memory",
+      "document": {
+        "contract": "sei.decision-memory/v1alpha1",
+        "record_type": "decision",
+        "decision": {
+          "ref": {
+            "kind": "decision",
+            "id": "D1"
+          },
+          "statement": "s",
+          "rationale": "r",
+          "basis_refs": [
+            {
+              "kind": "observation",
+              "id": "o1"
+            },
+            {
+              "kind": "observation",
+              "id": "o1"
+            }
+          ],
+          "recommendation_refs": [
+            {
+              "kind": "recommendation",
+              "id": "R1"
+            }
+          ],
+          "context_refs": [
+            {
+              "kind": "c",
+              "id": "c1"
+            }
+          ],
+          "unresolved_refs": [
+            {
+              "kind": "u",
+              "id": "u1"
+            }
+          ],
+          "responsibility_refs": [
+            {
+              "kind": "p",
+              "id": "p1"
+            }
+          ]
+        }
+      },
+      "loader_accepts": true
+    },
+    {
+      "name": "decision: duplicate recommendation_refs",
+      "base": "dec",
+      "schema": "decision-memory",
+      "document": {
+        "contract": "sei.decision-memory/v1alpha1",
+        "record_type": "decision",
+        "decision": {
+          "ref": {
+            "kind": "decision",
+            "id": "D1"
+          },
+          "statement": "s",
+          "rationale": "r",
+          "basis_refs": [
+            {
+              "kind": "observation",
+              "id": "o1"
+            }
+          ],
+          "recommendation_refs": [
+            {
+              "kind": "recommendation",
+              "id": "R1"
+            },
+            {
+              "kind": "recommendation",
+              "id": "R1"
+            }
+          ],
+          "context_refs": [
+            {
+              "kind": "c",
+              "id": "c1"
+            }
+          ],
+          "unresolved_refs": [
+            {
+              "kind": "u",
+              "id": "u1"
+            }
+          ],
+          "responsibility_refs": [
+            {
+              "kind": "p",
+              "id": "p1"
+            }
+          ]
+        }
+      },
+      "loader_accepts": true
+    },
+    {
+      "name": "decision: duplicate unresolved_refs",
+      "base": "dec",
+      "schema": "decision-memory",
+      "document": {
+        "contract": "sei.decision-memory/v1alpha1",
+        "record_type": "decision",
+        "decision": {
+          "ref": {
+            "kind": "decision",
+            "id": "D1"
+          },
+          "statement": "s",
+          "rationale": "r",
+          "basis_refs": [
+            {
+              "kind": "observation",
+              "id": "o1"
+            }
+          ],
+          "recommendation_refs": [
+            {
+              "kind": "recommendation",
+              "id": "R1"
+            }
+          ],
+          "context_refs": [
+            {
+              "kind": "c",
+              "id": "c1"
+            }
+          ],
+          "unresolved_refs": [
+            {
+              "kind": "u",
+              "id": "u1"
+            },
+            {
+              "kind": "u",
+              "id": "u1"
+            }
+          ],
+          "responsibility_refs": [
+            {
+              "kind": "p",
+              "id": "p1"
+            }
+          ]
+        }
+      },
+      "loader_accepts": true
+    },
+    {
+      "name": "interchange: empty bundle_id",
+      "base": "ix",
+      "schema": "semantic-interchange",
+      "document": {
+        "contract": "sei.semantic-interchange/v1alpha1",
+        "bundle_id": "",
+        "created_at": "2026-08-31T00:45:00Z",
+        "records": [
+          {
+            "record_id": "r1",
+            "contract": {
+              "contract_id": "example.other",
+              "version": "v1"
+            },
+            "kind": "k",
+            "payload": {
+              "x": 1
+            },
+            "provenance_refs": [
+              {
+                "kind": "p",
+                "id": "p1"
+              }
+            ]
+          }
+        ]
+      },
+      "loader_accepts": false
+    },
+    {
+      "name": "interchange: empty record_id",
+      "base": "ix",
+      "schema": "semantic-interchange",
+      "document": {
+        "contract": "sei.semantic-interchange/v1alpha1",
+        "bundle_id": "b1",
+        "created_at": "2026-08-31T00:45:00Z",
+        "records": [
+          {
+            "record_id": "",
+            "contract": {
+              "contract_id": "example.other",
+              "version": "v1"
+            },
+            "kind": "k",
+            "payload": {
+              "x": 1
+            },
+            "provenance_refs": [
+              {
+                "kind": "p",
+                "id": "p1"
+              }
+            ]
+          }
+        ]
+      },
+      "loader_accepts": false
+    },
+    {
+      "name": "interchange: empty record kind",
+      "base": "ix",
+      "schema": "semantic-interchange",
+      "document": {
+        "contract": "sei.semantic-interchange/v1alpha1",
+        "bundle_id": "b1",
+        "created_at": "2026-08-31T00:45:00Z",
+        "records": [
+          {
+            "record_id": "r1",
+            "contract": {
+              "contract_id": "example.other",
+              "version": "v1"
+            },
+            "kind": "",
+            "payload": {
+              "x": 1
+            },
+            "provenance_refs": [
+              {
+                "kind": "p",
+                "id": "p1"
+              }
+            ]
+          }
+        ]
+      },
+      "loader_accepts": false
+    },
+    {
+      "name": "interchange: created_at not date-time",
+      "base": "ix",
+      "schema": "semantic-interchange",
+      "document": {
+        "contract": "sei.semantic-interchange/v1alpha1",
+        "bundle_id": "b1",
+        "created_at": "yesterday",
+        "records": [
+          {
+            "record_id": "r1",
+            "contract": {
+              "contract_id": "example.other",
+              "version": "v1"
+            },
+            "kind": "k",
+            "payload": {
+              "x": 1
+            },
+            "provenance_refs": [
+              {
+                "kind": "p",
+                "id": "p1"
+              }
+            ]
+          }
+        ]
+      },
+      "loader_accepts": true
+    },
+    {
+      "name": "interchange: duplicate provenance_refs",
+      "base": "ix",
+      "schema": "semantic-interchange",
+      "document": {
+        "contract": "sei.semantic-interchange/v1alpha1",
+        "bundle_id": "b1",
+        "created_at": "2026-08-31T00:45:00Z",
+        "records": [
+          {
+            "record_id": "r1",
+            "contract": {
+              "contract_id": "example.other",
+              "version": "v1"
+            },
+            "kind": "k",
+            "payload": {
+              "x": 1
+            },
+            "provenance_refs": [
+              {
+                "kind": "p",
+                "id": "p1"
+              },
+              {
+                "kind": "p",
+                "id": "p1"
+              }
+            ]
+          }
+        ]
+      },
+      "loader_accepts": true
+    },
+    {
+      "name": "capability: observed_at not date-time",
+      "base": "cap",
+      "schema": "capability-observation",
+      "document": {
+        "contract": "sei.capability-observation/v1alpha1",
+        "observation": {
+          "ref": {
+            "kind": "capability-observation",
+            "id": "c1"
+          },
+          "target": {
+            "capability_ref": {
+              "kind": "capability",
+              "id": "cap"
+            },
+            "provider_ref": {
+              "kind": "provider",
+              "id": "pv"
+            },
+            "provider_target_ref": "x://t"
+          },
+          "observed_at": "yesterday",
+          "valid_until": "2026-09-30T00:00:00Z",
+          "conditions": [
+            {
+              "key": "k",
+              "state": "observed",
+              "value": true,
+              "unit": "u",
+              "note": "n"
+            }
+          ],
+          "provenance_refs": [
+            {
+              "kind": "p",
+              "id": "p1"
+            }
+          ]
+        }
+      },
+      "loader_accepts": true
+    },
+    {
+      "name": "capability: valid_until not date-time",
+      "base": "cap",
+      "schema": "capability-observation",
+      "document": {
+        "contract": "sei.capability-observation/v1alpha1",
+        "observation": {
+          "ref": {
+            "kind": "capability-observation",
+            "id": "c1"
+          },
+          "target": {
+            "capability_ref": {
+              "kind": "capability",
+              "id": "cap"
+            },
+            "provider_ref": {
+              "kind": "provider",
+              "id": "pv"
+            },
+            "provider_target_ref": "x://t"
+          },
+          "observed_at": "2026-08-31T00:00:00Z",
+          "valid_until": "tomorrow",
+          "conditions": [
+            {
+              "key": "k",
+              "state": "observed",
+              "value": true,
+              "unit": "u",
+              "note": "n"
+            }
+          ],
+          "provenance_refs": [
+            {
+              "kind": "p",
+              "id": "p1"
+            }
+          ]
+        }
+      },
+      "loader_accepts": true
+    },
+    {
+      "name": "capability: empty conditions",
+      "base": "cap",
+      "schema": "capability-observation",
+      "document": {
+        "contract": "sei.capability-observation/v1alpha1",
+        "observation": {
+          "ref": {
+            "kind": "capability-observation",
+            "id": "c1"
+          },
+          "target": {
+            "capability_ref": {
+              "kind": "capability",
+              "id": "cap"
+            },
+            "provider_ref": {
+              "kind": "provider",
+              "id": "pv"
+            },
+            "provider_target_ref": "x://t"
+          },
+          "observed_at": "2026-08-31T00:00:00Z",
+          "valid_until": "2026-09-30T00:00:00Z",
+          "conditions": [],
+          "provenance_refs": [
+            {
+              "kind": "p",
+              "id": "p1"
+            }
+          ]
+        }
+      },
+      "loader_accepts": true
+    },
+    {
+      "name": "capability: unknown condition state",
+      "base": "cap",
+      "schema": "capability-observation",
+      "document": {
+        "contract": "sei.capability-observation/v1alpha1",
+        "observation": {
+          "ref": {
+            "kind": "capability-observation",
+            "id": "c1"
+          },
+          "target": {
+            "capability_ref": {
+              "kind": "capability",
+              "id": "cap"
+            },
+            "provider_ref": {
+              "kind": "provider",
+              "id": "pv"
+            },
+            "provider_target_ref": "x://t"
+          },
+          "observed_at": "2026-08-31T00:00:00Z",
+          "valid_until": "2026-09-30T00:00:00Z",
+          "conditions": [
+            {
+              "key": "k",
+              "state": "bogus",
+              "value": true,
+              "unit": "u",
+              "note": "n"
+            }
+          ],
+          "provenance_refs": [
+            {
+              "kind": "p",
+              "id": "p1"
+            }
+          ]
+        }
+      },
+      "loader_accepts": true
+    },
+    {
+      "name": "capability: observed state without value",
+      "base": "cap",
+      "schema": "capability-observation",
+      "document": {
+        "contract": "sei.capability-observation/v1alpha1",
+        "observation": {
+          "ref": {
+            "kind": "capability-observation",
+            "id": "c1"
+          },
+          "target": {
+            "capability_ref": {
+              "kind": "capability",
+              "id": "cap"
+            },
+            "provider_ref": {
+              "kind": "provider",
+              "id": "pv"
+            },
+            "provider_target_ref": "x://t"
+          },
+          "observed_at": "2026-08-31T00:00:00Z",
+          "valid_until": "2026-09-30T00:00:00Z",
+          "conditions": [
+            {
+              "key": "k",
+              "state": "observed",
+              "unit": "u",
+              "note": "n"
+            }
+          ],
+          "provenance_refs": [
+            {
+              "kind": "p",
+              "id": "p1"
+            }
+          ]
+        }
+      },
+      "loader_accepts": true
+    },
+    {
+      "name": "capability: empty condition key",
+      "base": "cap",
+      "schema": "capability-observation",
+      "document": {
+        "contract": "sei.capability-observation/v1alpha1",
+        "observation": {
+          "ref": {
+            "kind": "capability-observation",
+            "id": "c1"
+          },
+          "target": {
+            "capability_ref": {
+              "kind": "capability",
+              "id": "cap"
+            },
+            "provider_ref": {
+              "kind": "provider",
+              "id": "pv"
+            },
+            "provider_target_ref": "x://t"
+          },
+          "observed_at": "2026-08-31T00:00:00Z",
+          "valid_until": "2026-09-30T00:00:00Z",
+          "conditions": [
+            {
+              "key": "",
+              "state": "observed",
+              "value": true,
+              "unit": "u",
+              "note": "n"
+            }
+          ],
+          "provenance_refs": [
+            {
+              "kind": "p",
+              "id": "p1"
+            }
+          ]
+        }
+      },
+      "loader_accepts": false
+    },
+    {
+      "name": "capability: empty provider_target_ref",
+      "base": "cap",
+      "schema": "capability-observation",
+      "document": {
+        "contract": "sei.capability-observation/v1alpha1",
+        "observation": {
+          "ref": {
+            "kind": "capability-observation",
+            "id": "c1"
+          },
+          "target": {
+            "capability_ref": {
+              "kind": "capability",
+              "id": "cap"
+            },
+            "provider_ref": {
+              "kind": "provider",
+              "id": "pv"
+            },
+            "provider_target_ref": ""
+          },
+          "observed_at": "2026-08-31T00:00:00Z",
+          "valid_until": "2026-09-30T00:00:00Z",
+          "conditions": [
+            {
+              "key": "k",
+              "state": "observed",
+              "value": true,
+              "unit": "u",
+              "note": "n"
+            }
+          ],
+          "provenance_refs": [
+            {
+              "kind": "p",
+              "id": "p1"
+            }
+          ]
+        }
+      },
+      "loader_accepts": true
+    },
+    {
+      "name": "capability: duplicate provenance_refs",
+      "base": "cap",
+      "schema": "capability-observation",
+      "document": {
+        "contract": "sei.capability-observation/v1alpha1",
+        "observation": {
+          "ref": {
+            "kind": "capability-observation",
+            "id": "c1"
+          },
+          "target": {
+            "capability_ref": {
+              "kind": "capability",
+              "id": "cap"
+            },
+            "provider_ref": {
+              "kind": "provider",
+              "id": "pv"
+            },
+            "provider_target_ref": "x://t"
+          },
+          "observed_at": "2026-08-31T00:00:00Z",
+          "valid_until": "2026-09-30T00:00:00Z",
+          "conditions": [
+            {
+              "key": "k",
+              "state": "observed",
+              "value": true,
+              "unit": "u",
+              "note": "n"
+            }
+          ],
+          "provenance_refs": [
+            {
+              "kind": "p",
+              "id": "p1"
+            },
+            {
+              "kind": "p",
+              "id": "p1"
+            }
+          ]
+        }
+      },
+      "loader_accepts": true
+    },
+    {
+      "name": "method: empty definition title",
+      "base": "mdef",
+      "schema": "cognitive-method",
+      "document": {
+        "contract": "sei.cognitive-method/v1alpha1",
+        "record_type": "method_definition",
+        "method_definition": {
+          "ref": {
+            "kind": "cognitive_method",
+            "id": "m1"
+          },
+          "title": "",
+          "purpose": "p"
+        }
+      },
+      "loader_accepts": false
+    },
+    {
+      "name": "method: empty definition purpose",
+      "base": "mdef",
+      "schema": "cognitive-method",
+      "document": {
+        "contract": "sei.cognitive-method/v1alpha1",
+        "record_type": "method_definition",
+        "method_definition": {
+          "ref": {
+            "kind": "cognitive_method",
+            "id": "m1"
+          },
+          "title": "t",
+          "purpose": ""
+        }
+      },
+      "loader_accepts": false
+    },
+    {
+      "name": "method: applied_at not date-time",
+      "base": "mapp",
+      "schema": "cognitive-method",
+      "document": {
+        "contract": "sei.cognitive-method/v1alpha1",
+        "record_type": "method_application",
+        "method_application": {
+          "ref": {
+            "kind": "method_application",
+            "id": "a1"
+          },
+          "method_ref": {
+            "kind": "cognitive_method",
+            "id": "m1"
+          },
+          "applied_at": "yesterday",
+          "summary": "s"
+        }
+      },
+      "loader_accepts": true
+    },
+    {
+      "name": "method: empty application summary",
+      "base": "mapp",
+      "schema": "cognitive-method",
+      "document": {
+        "contract": "sei.cognitive-method/v1alpha1",
+        "record_type": "method_application",
+        "method_application": {
+          "ref": {
+            "kind": "method_application",
+            "id": "a1"
+          },
+          "method_ref": {
+            "kind": "cognitive_method",
+            "id": "m1"
+          },
+          "applied_at": "2026-09-01T03:30:00Z",
+          "summary": ""
+        }
+      },
+      "loader_accepts": true
+    }
+  ]
+}
