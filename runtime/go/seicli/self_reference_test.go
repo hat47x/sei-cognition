@@ -29,7 +29,7 @@ func TestAddRejectsARecordThatNamesItselfAsBasisOrUnresolved(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			_, err := run(t, append([]string{"add", "--data-root", root}, c.args...)...)
+			_, err := run(t, append([]string{"add", c.args[0], "--data-root", root}, c.args[1:]...)...)
 			if err == nil || !strings.Contains(err.Error(), c.want) {
 				t.Fatalf("want error containing %q, got %v", c.want, err)
 			}
@@ -52,8 +52,8 @@ func TestAddStillAcceptsReferencesThatOnlyShareTheIdOrTheKind(t *testing.T) {
 	mustRun(t, "add", "recommendation", "--data-root", root, "--id", "X", "--statement", "s")
 	mustRun(t, "add", "decision", "--data-root", root, "--id", "X2", "--statement", "d", "--responsible", "person:a",
 		"--basis", "recommendation:X", "--basis", "decision:other", "--unresolved", "question:X2")
-	mustRun(t, "add", "decision", "--data-root", root, "--id", "X", "--statement", "d", "--responsible", "person:a",
-		"--basis", "recommendation:X")
+	mustRun(t, "add", "decision", "--data-root", root, "--id", "X3", "--statement", "d", "--responsible", "person:a",
+		"--basis", "decision:X2")
 }
 
 func TestGateDoesNotReportASelfReferenceAsARecordedBasis(t *testing.T) {
