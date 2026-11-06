@@ -1,5 +1,5 @@
 {
-  "description": "JSON Schema‚ª‹‘”Û‚·‚é“ü—Í‚ÆAGo loader‚ÌŒ»İ‚Ì‹““®(#744)Bloader_accepts‚ªtrue‚Ìs‚ÍAloader‚ªschema‚æ‚èŠÉ‚¢Œ»ó‚Ì·Bbases_valid_for‚Ì•¶‘‚Í‘o•û‚Å—LŒøB",
+  "description": "JSON SchemaãŒæ‹’å¦ã™ã‚‹å…¥åŠ›ã¨ã€Go loaderã®ç¾åœ¨ã®æŒ™å‹•(#744)ã€‚loader_acceptsãŒtrueã®è¡Œã¯ã€loaderãŒschemaã‚ˆã‚Šç·©ã„ç¾çŠ¶ã®å·®ã€‚bases_valid_forã®æ–‡æ›¸ã¯åŒæ–¹ã§æœ‰åŠ¹ã€‚",
   "bases": {
     "dec": {
       "schema": "decision-memory",
