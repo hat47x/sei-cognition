@@ -210,7 +210,7 @@ func (s *mcpServer) handle(ctx context.Context, line []byte) *rpcResponse {
 		return reply(map[string]any{
 			"protocolVersion": mcpProtocolVersion,
 			"capabilities":    map[string]any{"tools": map[string]any{}},
-			"serverInfo":      map[string]string{"name": "sei", "version": BuildVersion},
+			"serverInfo":      map[string]string{"name": "sei", "version": currentCLI().Version},
 		})
 	case "ping":
 		return reply(map[string]any{})

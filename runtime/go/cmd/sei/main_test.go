@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -195,5 +196,35 @@ func TestExitCodeValidFlagsStillWork(t *testing.T) {
 	}
 	if _, stderr, code := invoke(t, "gate", "check", "--data-root", root, "--decision=D-ok", "--require-recommendation=false"); code != 0 {
 		t.Errorf("--flag=value: exit %d, want 0 (%s)", code, stderr)
+	}
+}
+
+// version は、ldflagsなしのビルドでも、扱うContractの識別子と版の一覧を出す。
+func TestVersionListsContractsTheRuntimeValidates(t *testing.T) {
+	out, errOut, code := invoke(t, "version")
+	if code != 0 {
+		t.Fatalf("version: exit %d: %s", code, errOut)
+	}
+	var got struct {
+		Version   string   `json:"version"`
+		Commit    string   `json:"commit"`
+		Target    string   `json:"target"`
+		Contracts []string `json:"contracts"`
+	}
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("version output is not JSON: %v\n%s", err, out)
+	}
+	want := []string{
+		"sei.semantic-interchange/v1alpha1",
+		"sei.semantic-reference/v1alpha1",
+		"sei.decision-memory/v1alpha1",
+		"sei.capability-observation/v1alpha1",
+		"sei.cognitive-method/v1alpha1",
+	}
+	if strings.Join(got.Contracts, ",") != strings.Join(want, ",") {
+		t.Errorf("contracts = %v, want %v", got.Contracts, want)
+	}
+	if got.Version == "" || got.Commit == "" || got.Target == "" {
+		t.Errorf("version, commit and target must be present: %s", out)
 	}
 }

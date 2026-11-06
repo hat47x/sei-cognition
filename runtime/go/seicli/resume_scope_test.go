@@ -210,3 +210,43 @@ func TestResumeRecordLookupRejectsMissingPreconditionsWithoutOutput(t *testing.T
 		t.Fatal("rejected lookup rewrote the bundle")
 	}
 }
+
+func TestResumeStatesWhatItDoesNotVerify(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "s")
+	mustRun(t, "init", "--data-root", root)
+	mustRun(t, "add", "decision", "--data-root", root, "--id", "D2", "--statement", "x", "--responsible", "person:a", "--source", "tool")
+
+	human := mustRun(t, "resume", "--data-root", root)
+	for _, want := range []string{"Not verified by this view", "Authority", "human confirmation", "synthetic fixture"} {
+		if !strings.Contains(human, want) {
+			t.Errorf("human view lacks %q:\n%s", want, human)
+		}
+	}
+
+	var view struct {
+		Coverage struct {
+			NotVerified []string `json:"not_verified"`
+		} `json:"coverage"`
+	}
+	if err := json.Unmarshal([]byte(mustRun(t, "resume", "--data-root", root, "--json")), &view); err != nil {
+		t.Fatal(err)
+	}
+	want := []string{NotVerifiedAuthority, NotVerifiedConfirmation, NotVerifiedOrigin}
+	if strings.Join(view.Coverage.NotVerified, ",") != strings.Join(want, ",") {
+		t.Errorf("coverage.not_verified = %v, want %v", view.Coverage.NotVerified, want)
+	}
+}
+
+func TestMCPResumeCarriesTheNotVerifiedLine(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "s")
+	mustRun(t, "init", "--data-root", root)
+	mustRun(t, "add", "decision", "--data-root", root, "--id", "D2", "--statement", "x", "--responsible", "person:a", "--source", "tool")
+	responses := session(t, []string{"--data-root", root}, initialize, `{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"resume","arguments":{}}}`)
+	text, failed := callText(responses[1])
+	if failed {
+		t.Fatalf("resume failed: %s", text)
+	}
+	if !strings.Contains(text, "Not verified by this view") {
+		t.Errorf("MCP resume must carry the not-verified line:\n%s", text)
+	}
+}
