@@ -48,7 +48,7 @@ sei resume
 
 未解決の一覧は、このruntimeが理解できたDecisionの`unresolved_refs`を集計したものです。0件でも案件全体の未決がないとは判断できません。表示行数と、kind・ID・scopeで区別した論理参照の種類数も別に示します。同じ参照を複数の判断が残した場合、行をまとめません。
 
-JSONの`coverage`は集計範囲と件数を示し、`case_completeness`は`not_assessed`のままです。既存の`unresolved[].ref`と`left_open_by_decision`は表示用に残し、`reference`と`left_open_by_reference`でscopeやExact Bindingを取り戻せます。`source_record`と`not_verified_records`は、元の記録ID・Contractの版・JSON Pointerを示します。未知のpayloadの意味は推測しません。
+JSONの`coverage`は集計範囲と件数を示し、`case_completeness`は`not_assessed`のままです。`coverage.not_verified`は、この表示が確かめていない事項を固定の一覧で示します(`responsible_party_authority`、`human_confirmation`、`record_origin_real_or_synthetic`)。人向け表示とMCPの`resume`にも同じ内容の「Not verified by this view」の行があります。`responsible`は記録された自己申告のままで、Authorityの有無は示しません。記録が実在の対象に由来するか合成かを区別する欄はstoreにないため、出力からは判別できません。この一覧は記録の検査結果ではなく、表示の限界の宣言です。既存の`unresolved[].ref`と`left_open_by_decision`は表示用に残し、`reference`と`left_open_by_reference`でscopeやExact Bindingを取り戻せます。`source_record`と`not_verified_records`は、元の記録ID・Contractの版・JSON Pointerを示します。未知のpayloadの意味は推測しません。
 
 `resume`のJSONの`identity_notices`（人向け表示では「Identity notices」）は、storeの記録同士で識別が食い違っている箇所を並べます。次の3種類です。`envelope_kind_mismatch`は、envelopeの`kind`とpayloadの種類（decision／recommendation）が違う場合です。`envelope_logical_ref_mismatch`は、envelopeの`logical_ref`とpayloadの`ref`が違う場合です。`duplicate_logical_ref`は、同じ種類・id・scopeの記録が別のrecord_idで複数ある場合です。Contractはこれらの一致や一意性を定めていないため、`verify`と`resume`は記録を拒否せず、どちらが正かも決めません。件数が0でも、これは上の3種類が見つからなかったことを示すだけです。`gate check`は、envelopeの`logical_ref`とpayloadの`ref`が食い違う決定を`deny`し、envelopeの`logical_ref`だけがその識別子を名乗る場合も、理由を添えて`deny`します。
 

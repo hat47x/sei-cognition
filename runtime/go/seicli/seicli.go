@@ -428,6 +428,9 @@ type ResumeCoverage struct {
 	UnresolvedEntryCount                    int    `json:"unresolved_entry_count"`
 	DistinctUnresolvedLogicalReferenceCount int    `json:"distinct_unresolved_logical_reference_count"`
 	CaseCompleteness                        string `json:"case_completeness"`
+	// NotVerified names what this view does not establish (#801). The list is
+	// fixed: it states the limit of the view, not a finding about the records.
+	NotVerified []string `json:"not_verified"`
 	// LineageEntryCount is len(lineages).
 	LineageEntryCount int `json:"lineage_entry_count"`
 	// RecordsNotProjected counts verified records this view does not show, by
@@ -601,13 +604,24 @@ func sourcesOf(rec semanticruntime.InterchangeRecord) []string {
 	return out
 }
 
+// Values of ResumeCoverage.NotVerified.
+const (
+	NotVerifiedAuthority    = "responsible_party_authority"
+	NotVerifiedConfirmation = "human_confirmation"
+	NotVerifiedOrigin       = "record_origin_real_or_synthetic"
+)
+
+func resumeNotVerified() []string {
+	return []string{NotVerifiedAuthority, NotVerifiedConfirmation, NotVerifiedOrigin}
+}
+
 // BuildResume projects a bundle. A recommendation is "relied on" only when a
 // Decision names it; a recommendation alone is never reported as decided.
 // Unresolved items are reported as open and never as answered.
 func BuildResume(bundle *semanticruntime.Bundle) ResumeView {
 	view := ResumeView{
 		BundleID:              bundle.Envelope.BundleID,
-		Coverage:              ResumeCoverage{UnresolvedSource: "recognized-decision-unresolved-refs", CaseCompleteness: "not_assessed", RecordsNotProjected: []NotProjectedKindView{}},
+		Coverage:              ResumeCoverage{UnresolvedSource: "recognized-decision-unresolved-refs", CaseCompleteness: "not_assessed", NotVerified: resumeNotVerified(), RecordsNotProjected: []NotProjectedKindView{}},
 		RecordCount:           len(bundle.Records),
 		Decisions:             []DecisionView{},
 		RecommendationsOpen:   []StatementView{},
@@ -812,6 +826,7 @@ func renderResume(w io.Writer, v ResumeView) {
 	fmt.Fprintln(w, "Unresolved scope: recognized Decision.unresolved_refs only; not a case-wide inventory.")
 	fmt.Fprintf(w, "%d entries; %d distinct logical references. Case completeness: not assessed.\n",
 		v.Coverage.UnresolvedEntryCount, v.Coverage.DistinctUnresolvedLogicalReferenceCount)
+	fmt.Fprintln(w, "Not verified by this view: the responsible party's Authority; human confirmation; whether a record comes from a real object or a synthetic fixture. A responsible party is shown as recorded.")
 	if v.SnapshotDigest != "" {
 		fmt.Fprintf(w, "Snapshot SHA-256: %s\n", safeText(v.SnapshotDigest))
 	}
