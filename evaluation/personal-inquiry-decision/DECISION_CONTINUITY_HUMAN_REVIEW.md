@@ -1,6 +1,6 @@
 # Decision Continuity — H1 / H2 Human Review Execution
 
-更新日: 2026-10-25  
+更新日: 2026-11-02  
 状態: **Evaluation-only / Human Review Ready / H1・H2 Not Yet Observed / Not Product Requirement**  
 関連: ISSUE-000073 / `DOGFOOD_SURFACE.md` / `DOGFOOD_EVALUATION_RECORDING.md` / `decision_continuity_counterfactual_matched_set_v1.json` / `inquiry_continuity_review_runner.py` / `matched_review_session.py` / `decision_continuity_review_analysis.py`
 
@@ -522,6 +522,114 @@ H1 observed
 ISSUE-000073のResolution判断では、E1〜E8のScoped Executable Evidence、H1 actual resume usability、H2 counterfactual review、capture / review overheadを別々に確認し、そのうえでCandidate RequirementとDecision Continuity Product hypothesisを再評価する。
 
 2026-10-10時点ではE1〜E8のScoped Executable Evidenceは成立済みである。したがって未観測の中心はH1、H2、capture / review overheadである。human reviewでは、SEIに有利な結果を作ることではなく、単純baselineとの差が弱い場合やoverheadが大きい場合もそのまま記録する。
+
+
+### 12.1 2026-11-02追補：H2素材比較と現行製品の価値実証を分ける
+
+**評価手順の追加注意（Evaluation-only／新schemaなし／human review NOT YET OBSERVED）。** 本節はISSUE-000073のRC-01〜06と、SEI #677/#660/#767の用途相対の確認をH1/H2へ接続するoperator用手順であり、未露出readerへ見せるstimulusや既存matched fixtureを変更しない。
+
+**H2 operatorの事前監査（盲検readerへの提示前）。**
+
+1. 3ケースごとにA raw chat・B chronological note・C SEI Resumeを並べ、Recommendation、Decision、historical basis、unresolved、post-decision evidence、確定度、数量、対象、時点の意味対応を記録する。既知の②/③の補正・36項目静的照合を保持し、その結果を新しい全面的意味保証へ広げない。
+2. Cの`surface_text`は**人手で準備した比較用Surface**であり、現行`BuildResume()`／CLI／MCPの実出力ではない。実製品から参照・意味説明へ到達できるか、必要な原record再読取り回数・手作業の補足量を**operatorだけの別票**へ記載する。`C fixture`の認知的効果と`actual SEI product`の効果を分ける。
+3. 既存R1/R2/R3、pre-stimulus provenance、全caseのphase1→post→audit固定順序を維持する。比較に先立ち未割当Surface、reference state、製品出力差のoperator分析をreaderへ見せない。既知の素材露出を新しいclean blinded observationへ塗り替えない。
+4. `comparison_projection`の9/9 coverageは組合せ網羅であって、人間作成・回答の正しさ・評価者独立性を保証しない。responseの文字列形式と`findings=pass`の入力だけで正答とせず、operatorが独立参照資料との照合実施有無、評価者ID重複、事前露出、合成responseの有無を記録する。参照元は固定したsource snapshotと必要な原位置で示す。
+5. 試験実行記録は`7/8/5`のスイートごとの発見・skip・結果と期待テストIDを分ける。終了コード0や合計20件だけで「全件成功」を主張しない。現在のcaptureは件数・IDを検証せず、前提失敗時の`--replace`で旧Evidence喪失の可能性もあるため、技術修正の完了前に新しいPASSを記載しない。これは**H2の人間評価を始める新しい前提条件ではない**。
+
+**H1の直前露出ゲートと回答固定を優先する。** H1の既存6問への回答が固定されるまでは、Operatorが原資料変更・ExactBinding・Gate・現在権限の違いを教えて正答を誘導しない。回答確定後、必要がある場合にだけ次の追補をread-onlyで観測する。過去のDecisionは歴史的記録として保持し、現時点で利用できるか／誰が実行できるかを別に評価する。
+
+| 観測欄（local-only memo） | 問い・記録方法 |
+| --- | --- |
+| Historical accuracy | 当時のDecision、Recommendation、根拠、未決、後から到着した情報を取り違えなかったか。誤認は具体例とともに記録 |
+| Source/meaning applicability | 現在のSource、scope、Rule、外部条件と何が変化したか。確認範囲と、意味対応が未確認の候補を区別 |
+| Coverage and disclosure | 回収できた原記録の範囲、本文中の候補、開示不能・未確認を区別。機密ID・件数・非開示原文を外部Harnessの評価票へ転記しない |
+| Action boundary | 旧Decision／Gate allowが現時点のAuthority・Commit成功・Business Outcomeを意味すると誤認しなかったか。実操作を実行したという記録は作らない |
+| Next useful action | 利用者が何を次に確認／比較／調査するか。最初の有用な一手への時間とsource reopen、修正負担を観測 |
+| Capture/review tax | 実際に記録した準備・補正・確認の負担のみ数える。再開後の想像で過去の作業負担を補完しない |
+
+**解釈停止線。** H2素材での正確な回答、9/9の組合せ、現行実装の原record読出し成功、Tool/Teamの実行成功、複数AIの同意、早いorientationは、それぞれ実製品での省力化・根拠の独立性・Owner受理・実権限・Product Valueを証明しない。判断を再開して新しい資料を読むことはできても、現在の業務操作に進めるかは対象OwnerとHost／Providerの検証が必要。単純ノートに価値差がない場合、その結果をそのまま記録する。
+
+**研究・実装の追跡先。** Source/ExactBinding投影はSEI #697、資料の解決は#710、Lineageは#687、現在文脈は#660、組織的再開は#677、Cognitive Methodの外延・意味残差・開示・現在性と次の証拠選択は#767が所有する。本書はH1/H2の人間評価を担当し、それらのAPI・意味規則を重複実装する計画ではない。
+
+
+### 12.2 後続研究への接続：問いを見失わず、次の証拠を選べるか
+
+**追加operator票／2026-11-02（H1/H2の固定stimulus・本体session・採否条件は変更しない）。** SEI #767のP5/P6およびDraft PR #770の公開合成Referenceから、既存のH1「何を見直すべきか」という設問の理解を深める。**既存のH1回答が固定されるまで、本節にある正解候補や識別的Probeをreaderへ提示しない。** H2の3ケース×3条件を新しい研究Corpusへ混ぜず、事前露出による比較汚染を避ける。
+
+**既存回答固定後にoperatorが記録する六つの確認欄。**
+
+| 欄 | operatorが観測・照合すること |
+| --- | --- |
+| 問いQ | 利用者が答えようとしたClaimは「当時の判断」「現在の適合」「区間中の変更なし」「全件成立」「Action完了」などのどれか。対象・時点・範囲・用途を残す |
+| 観測Oと被覆 | 回収したSource・snapshot・scope・資料の位置・取得範囲・観測不能。局所検査成功を対象Lの全件検査と解釈したか |
+| 残る仮説 | 観測は同じだがQが異なる公開合成二世界を示せるか。過去のQに答えられても現在のQに不足があるか |
+| 識別的な次の確認 | 何を追加で見ると仮説が分かれる可能性があるか。独立Source、区間履歴、実Source入力、Owner専門確認などの候補と理由 |
+| 実施可能性／開示 | 提案・実Tool・現在許可・実行・取得結果・開示可能性を別にし、内部の秘匿差の存在自体も外部へ漏らさない |
+| 認知的負担と成果 | 次の有用な確認に到達できたか、再閲覧回数、実際の修正負担、不要な質問、追加時間。Product利用前の作業を事後推定で埋めない |
+
+**判別的な二問の例（operator/別合成ケース用）。** `現在、対象集合は同じか`はt2のSnapshotで答えられる場合がある。一方、`前回レビュー後に対象集合が一度も変わらなかったか`はt1で加入・離脱した履歴の有無に左右され、同じt2 Snapshotからは判別できない。W1〜W4でQを区別できたProbeも公開追加世界W5では十分でない（SEI #770の**最初の合成6件に追加7件を加えた13/13 PASS（別Draft）**）。この差は新しいH1/H2の合格実測ではなく、追加確認を選ぶための研究入力である。
+
+**将来の外部Harness比較の扱い。** `yi-sei-inquiry`はSEI #769のProposed Skill。Skill説明・Tool呼出し・Message受信・Agent多数決を、実Source独立性、正しいClaim、公開資格、人の意味受理と区別する。既存Method v1alpha1のDefinition/Realization/Applicationとinput/output/residual参照を利用した引継ぎ可能性を評価し、新しいRunner・Truth Storeを前提としない。Skillあり／なしの比較は既存のH1/H2で値を作らず別評価票に残す。
+
+**比較の停止線。** 同一の可視情報から異なるQが成立する場合、外部Consumerがその差を識別できたと推測しない。適切な次の根拠を提案できたかと、許可のあるProductが実際に取得・検証できたかは別。H1/H2のHuman Product Value、実Provider・権限・実操作は依然として未観測。
+
+
+### 12.3 追加operator票：限定的な回答の有用性と、混合した根拠の危険を区別する
+
+**2026-11-02／H1/H2の開始条件・stimulus・評価schemaは変更しない。** [SEI #767](https://github.com/hat47x/sei-cognition/issues/767)と[Draft PR #770](https://github.com/hat47x/sei-cognition/pull/770)に追加された「一つの観測セルでの限定判断」と「異なるRead世代を組み合わせた誤保証」を、H1回答固定後のoperator分析または独立した公開合成研究へ接続する。**#770の13/13 PASSは別Draftの純粋合成結果であり、H1/H2の実証件数ではない。**
+
+**優先する問いは、完了した調査の数ではなく、利用者が何について判断できる状態になったかである。** 調査の対象・範囲・時点・用いたSourceを特定した上で、次の判定を区別する。
+
+| 結果の例（研究上のラベル） | 利用者の継続に関するoperator確認 |
+| --- | --- |
+| `true-in-fixture` / `false-in-fixture` | 固定された合成世界内の**特定観測セル**に対する限定判断。実データと現行の用途へ一般化していないか |
+| `unknown-in-fixture` | 同じ観測で結論が違う世界が残る。どの追加の証拠・Sourceへ進むと区別し得るか |
+| `unmodeled-observation` | 固定した世界集合に当てはまらない。不存在・否定と扱わず、対象仮説の見直しへ進めるか |
+| **単独Claimのみ成立** | 取得済みで必要依存を満たす範囲の調査を継続し、別Sourceが必要な結合Claimだけを保留できるか |
+| **混合epoch／Source revision** | 個々のRead成功を全体のClaimへ誤結合していないか。共通版／有効なbridgeと実ConsumedBytesを確認したか |
+| **内部では判断可能、外部開示は不可** | Claimの内部判定、外部への結果開示、説明の詳細度を独立に扱い、秘密の有無・件数・Probe名・理由を漏らさないか |
+
+**読取りの合成反例（回答固定後または別合成ケースに限定）。** `t0:A=1,B=0`、`t1:A=0,B=1`なら、どちらの時点でも「AとBがともに正値」は偽である。A@t0とB@t1を混ぜると両方1に見える。Operatorは「Source AとBを正しく読めたか」と「共同で一つのClaimを支持するように読めたか」を別々に記録する。**同じepochラベルでも実Sourceの整合は未証明**であり、正当な世代間bridgeを持つ場合はTEI #2516等の責務で確認する。
+
+**定量評価は分ける。** 正答／根拠の適用範囲、部分的に先へ進めた作業、誤った断定・参照混合、独立Source再取得、人への確認回数、最初の有用な次の行動までの時間を別項目で保持する。限定判断を適切に利用できたことと、後で新しい世界・変更履歴が出た際に旧判断を訂正できたことも別に観測する。取得不能や非開示を理由に、許されたread-only調査まで一律停止したかも記録する。
+
+**Evidenceの停止線。** ここで用いる説明ラベルと対照例はoperator側の研究資料であり、現在のSEI Productが同名API・判定型を提供することを意味しない。H2のA/B/Cの公平な情報比較やblinding、H1の最初の6問の回答固定を変更しない。実Provider/Tool、公開資格、Owner業務意味、Human Product Valueの成立は別途検証する。
+
+
+### 12.4 調査計画・Tool候補まで含めた開示監査（H1回答固定後のみ）
+
+**既存Protocolと盲検を維持するoperator専用票。** SEI #767／[Draft #770](https://github.com/hat47x/sei-cognition/pull/770)のPlanner-visible leakageとTEI #2516 J-08〜11を、H1回答固定後または独立公開合成ケースでのみ検討する。利用者へ最初から正しいProbe・秘密Action・独立Expectedを提示しない。最終回答を秘匿していても、質問候補・Toolの名前／件数・引数・順序・診断・Traceによって内部の存在情報を推知され得る。
+
+| operator観測欄 | 比較・記録すること |
+| --- | --- |
+| Claimに必要な根拠 | Source/Rule/Field/Scope/時点と、画面に出ないRule依存。必要集合が未確定な範囲を残す |
+| 実際の取得 | 宣言Mapping、実Query/Provider Read/Cache・Source版・Overfetchを区別。物理Readの独立Witnessがなければ`physical-read-unverified` |
+| 外部へ示した計画 | 回答本文に加え、提案したProbe、質問、Tool/Action名・件数、Args、順序、Status/Error、diagnostics、Trace |
+| 公開資格と同一公開条件の二世界 | 可視View/許可Tool/目的が同じで非公開Actionの有無だけが異なるとき、外部Plan/Tool候補に不要な差がないか。正当に許可された差は漏出扱いしない |
+| 再開への効用と費用 | 正しい次の調査を選べたか、実Toolの存在／権限／実結果、不要な質問・再取得・修正負担を独立に評価 |
+
+**公開合成負例。** 二世界S1/S2で外部回答はともに`not-confirmable`だが、秘密ActionがあるS1だけTool候補が増えるなら、回答本文が同じでも外部Plannerから存在を推測できる。内部Productの判断、許可済み外部Projection、実際の送出を別にする。
+
+**証拠の範囲。** 別Draft #770の合成13/13 PASSとPlanner試験の単独7/7 PASSは、それぞれの局所実行証拠であり、3 Module合計20件の同一run PASSではない。実Policy、OS/Network、Timing/反復照会、外部Harnessへの非干渉と人間評価はNOT RUN。実Policy/開示はTEI #2507/#2515・TAI #232、認知上の質問選択はSEI #767がOwnerとなる。
+
+### 12.5 依存に応じた再資格化と横断受渡しのoperator比較票
+
+**2026-11-02／追加のread-only評価候補。** [TAI #271](https://github.com/hat47x/tai-pleroma/issues/271)の選択的再資格化と[TEI Draft #2626](https://github.com/hat47x/tei-platform/pull/2626)の実CLI read-only証拠を、H1回答固定後の追加operator分析に接続する。既存H1の初回6問、H2の3×3固定Surface・session・盲検、既存評価の成立条件は変えない。外部Harnessの実テストや新しい人間試験を実施したと扱わない。
+
+**同一Decision／同一Qについて比較する三方式：** R0=必要そうな対象を全件再読取、R1=既知の依存と実版に基づく選択的再確認、R2=旧成功を確認せず再利用。R0を常に最善と仮定せず、R1で再確認漏れ・未判明依存が生じれば局所的に保留し、独立した調査の継続余地を示す。R2の旧成功が現在のClaim、現行Grant、開示資格を勝手に保証していないかを記録する。
+
+| operator観測欄 | 固定する観測と評価 |
+| --- | --- |
+| Qと必要な依存 | 当時のDecision復元、現在適合、区間の変更有無、共同Claim、Artifact受領、Business完了のどれを問うか。必要なSource/Rule/Scope/時点・意味Roleと不明Edgeを列挙 |
+| 変更の到達範囲 | 無関係な表題変更、依拠Rule更新、Provider版切替、現在Grant失効、文書公開世代変更を別々に投入し、R0/R1/R2の再確認対象を記録 |
+| 取得と共同成立 | 宣言した依存／実Provider Read／Tool・CLI版とGit HEAD／同時点Snapshotまたは有効bridge／Consumer実受信を個別に固定。単品Read成功とJoint Claimの成立を分ける |
+| 受渡しの確定点 | EKI Attempt/Claim ACK、同一Attempt Output Bodyの実受領・digest、SHO文書のSource occurrence再解決、実保存・Deliveryを独立に記録。未到着を受領済みとしない |
+| 現在Trust・開示 | 過去の確認済みSkill・Grantと現在のAuthority/公開可能なTool候補・診断を分ける。Secretと取扱い主体は実データを使わず公開合成で観測 |
+| 誤再利用と負担 | false reuse、不要な全件再検証／過剰失効、Tool/Source読取回数、時間・Token、human correction・review taxを別指標で記録 |
+
+**既存証拠から許される説明。** TEI #2626のFocused CIは合成15ケースと実`tei` read-only CLIの9呼出し等の**TEI候補HEAD限定PASS**であり、SEI自身の実製品Resume、Method評価、外部Harness A/B間移送、現行権限・Providerの保証ではない。TAI #271の合成15/15と4 mutation検出も**公開Fixtureの限定自己整合**であり、実Product間の再資格化ではない。Skill説明→実Tool存在→実行物・args→実Read→現行Grant/開示→人の意味採用を別に評価し、すべてを単一の「完了」へ集約しない。
+
+**H2 captureの実装枝の調停。** [Draft #771](https://github.com/hat47x/sei-cognition/pull/771)と[Draft #772](https://github.com/hat47x/sei-cognition/pull/772)は、期待20 IDと旧Evidence保護を同じ2ファイルで実装した競合候補である。片方は`execution.test_coverage`、他方は`execution.test_audit`として内部監査情報を返す。既存のH2 source-bound captureと自己試験（欠落、同数別ID、skip、HEAD/Source不一致、`--replace`失敗時bytes保持）を同じ受入票で比較して、採用版を一つに確定する。**どちらの改修後Python actual runも未取得**であり、実装候補の存在を現行製品のPASSへ昇格させない。
 
 ## 13. Natural Japanese review
 
