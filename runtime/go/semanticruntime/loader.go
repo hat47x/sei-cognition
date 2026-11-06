@@ -19,6 +19,19 @@ const (
 	ContractVersionV1Alpha1         = "v1alpha1"
 )
 
+// KnownContracts lists the Contract identities ("<id>/<version>") whose
+// records this runtime validates. A record of any other Contract or version is
+// kept and counted as not_verified.
+func KnownContracts() []string {
+	return []string{
+		ContractSemanticInterchange,
+		ContractSemanticReference,
+		ContractDecisionMemory,
+		ContractCapabilityObservation,
+		ContractCognitiveMethod,
+	}
+}
+
 func decodeStrict(data []byte, target any) error {
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()

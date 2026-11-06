@@ -11,6 +11,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/hat47x/sei-cognition/runtime/go/packagingprobe"
 	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
@@ -35,6 +36,7 @@ func doctorChecks(ctx context.Context, dataRoot string) []doctorCheck {
 
 	cli := currentCLI()
 	add("binary", "ok", fmt.Sprintf("sei %s, commit %s, target %s", cli.Version, cli.Commit, cli.Target))
+	add("contracts", "info", strings.Join(semanticruntime.KnownContracts(), ", "))
 	if cli.Commit == "unknown" {
 		add("binary-identity", "warn", "this binary carries no commit, so gate results and gate-checks.jsonl record commit \"unknown\" and cannot be traced to a rule version; build with tools/build_sei.sh")
 	}
