@@ -298,7 +298,8 @@ storage revision、representation change、content digest changeを、それだ�
 **Type:** Non-functional / Constraint  
 **Value:** V6, V7  
 **Related Scenarios:** SCN-0004, SCN-0013  
-**Related ADRs:** ADR-0005
+**Related ADRs:** ADR-0005  
+**Related Issues:** [#660](https://github.com/hat47x/sei-cognition/issues/660)、[#767](https://github.com/hat47x/sei-cognition/issues/767)（関連するOpen Issue。参照のみで、本要件の範囲は変えない）
 
 ### Requirement
 
@@ -352,7 +353,8 @@ UIや可視化方式は技術進歩や利用目的によって大きく変わる
 **Type:** Interoperability / Constraint  
 **Value:** V4, V5, V8  
 **Related Scenarios:** SCN-0007, SCN-0012  
-**Related ADRs:** ADR-0006, ADR-0019
+**Related ADRs:** ADR-0006, ADR-0019  
+**Related Issues:** [#660](https://github.com/hat47x/sei-cognition/issues/660)、[#767](https://github.com/hat47x/sei-cognition/issues/767)（関連するOpen Issue。参照のみで、本要件の範囲は変えない）
 
 ### Requirement
 
@@ -404,7 +406,8 @@ UIや可視化方式は技術進歩や利用目的によって大きく変わる
 **Type:** Semantic  
 **Value:** V1, V3, V5  
 **Related Scenarios:** SCN-0001, SCN-0003, SCN-0016, SCN-0018  
-**Related ADRs:** ADR-0010
+**Related ADRs:** ADR-0010  
+**Related Issues:** [#660](https://github.com/hat47x/sei-cognition/issues/660)、[#767](https://github.com/hat47x/sei-cognition/issues/767)（関連するOpen Issue。参照のみで、本要件の範囲は変えない）
 
 ### Requirement
 

@@ -54,8 +54,12 @@ JSONの`coverage`は集計範囲と件数を示し、`case_completeness`は`not_
 
 決定の根拠は、JSONでは従来の`basis`（`kind:id`の文字列）に加えて`basis_references`で出します。各要素は`form`（`logical`または`exact`）とscopeを持ち、exact形式では`content_digest`と`representation_profile`も持ちます。決定自身のscopeは`scope`です。人向け表示でも、scope・logical/exactの別・digestとProfileを根拠の行に出します。同じ論理IDで形式・digest・scopeだけが違う根拠は、別の出力になります。表示するdigestは保存されている値で、参照先の実物と照合した結果ではありません。
 
+決定が依拠する推薦と責任者は、従来の`recommendations`・`responsible`（`kind:id`の文字列）に加えて、`recommendation_references`・`responsibility_references`で出します。要素の形は`basis_references`と同じで、scopeと`form`を持ちます。`unresolved[]`には`reference_form`を足しました。`recommendations_relied_on`と`recommendations_not_yet_relied_on`の各項目は、推薦自身のscopeを`scope`で持ちます。人向け表示では、scopeを`@scope`で示します。scopeだけが違う同IDの推薦や責任者は、別の出力になります。「依拠済み」の判定はkind・id・scopeで行い、content_digestは使いません（storeは推薦のdigestを持たないためです）。MCPの`resume`（引数なし）は同じ人向け表示を返すため、同じ変更が入ります。
+
+`resume --json`の`lineages`は、検証済みのSemantic Lineageを記録のとおりに並べます。Decisionが持つ`lineage`と、単独の`semantic_lineage`のrecordの両方が対象です。各項目は`relation`、`from`、`to`（`form`・scope、exactなら`content_digest`と`representation_profile`）、`basis_references`、`held_in`、`source_record`（`/records/N`）、`payload_pointer`（record内の位置）を持ちます。`from`と`to`の向きや、supersedes・withdraws・revisesが判断の受理に及ぼす効果は、resumeでは解釈しません（#687は未決です）。lineageがあってもDecisionの行は減らず、印も付きません。`coverage.lineage_entry_count`は件数です。`coverage.records_not_projected`は、resumeが表示しない検証済みrecordの種類（envelopeの`kind`）と件数で、`record_count`は「Decision・推薦・単独のlineage・`not_verified_record_count`・`records_not_projected_count`」の合計に一致します。人向け表示にも「Semantic Lineage, as recorded」の節があります。
+
 人向け表示（`sei resume`と、引数なしのMCP `resume`）は、statement・rationale・ID・出所に含まれる改行と制御文字を`
-`、``、`	`、``のような見える形で出します。書き込まれた本文が新しい区画や項目の行を作り、存在しないDecisionに見せることを防ぐためです。バックスラッシュはそのまま出すため、表示だけから元の文字列を厳密には復元できません。`--json`、原記録の読出し、MCPのJSON出力は値を加工しません。`sei gate check`の`not_verified`に出るbasisとLineageの参照名にも同じ処理をかけています。
+`、``、`	`、``のような見える形で出します。書き込まれた本文が新しい区画や項目の行を作り、存在しないDecisionに見せることを防ぐためです。双方向制御文字(U+202Eなど)、ゼロ幅文字(U+200Bなど)、BOMなどの不可視の書式文字も、`\u202e`のような見える形で出します(U+10000以上は`\u{e0041}`の形)。文字の並びを入れ替えたり隠したりして、画面の見た目と保存内容を食い違わせることを防ぐためです。ZWJ(U+200D)と異体字セレクタは、絵文字や一部の文字の正当な表記に使われるため、そのまま出します。バックスラッシュはそのまま出すため、表示だけから元の文字列を厳密には復元できません。`--json`、原記録の読出し、MCPのJSON出力は値を加工しません。`sei gate check`の`not_verified`に出るbasisとLineageの参照名にも同じ処理をかけています。
 
 `snapshot_digest`は、読み込んだ束のバイト列のSHA-256です。原記録へ戻るときは、`sei export`等で取り出した束の指紋値が一致することを確かめてからJSON Pointerを使ってください。指紋値の一致は意味の正しさや現在の適用可能性を証明せず、JSON Pointer自体も外部原本を取得しません。再開表示は元の記録を書き換えません。
 
@@ -78,6 +82,10 @@ sei verify --input decisions.json
 
 `verify`は、`.sei/`も`sei`の記録も持たない環境で動きます。ファイルだけで、形式の検証ができます。
 
+`export`は、書き出した束の`bundle_id`、`snapshot_digest`、`output`(出力先)をJSONで標準出力へ返します。`verify`の出力は、`bundle_id`、`snapshot_digest`、`record_count`、`validated_count`、`not_verified_count`です。`snapshot_digest`は読んだ(書いた)ファイルのバイト列のSHA-256(`sha256:...`)で、`sei resume`の`snapshot_digest`、`sei gate check`の`bundle_digest`と同じ形式です。受け取ったファイルと渡した側の`export`出力の値が一致すれば、同じバイト列です。値が一致しても、内容の意味の正しさや現在の適用可能性は示しません。
+
+`verify`の終了コードが0なのは、束が形式として読めたことを意味します。全件が検証済みであることは意味しません。このruntimeが理解しない版のContractのrecordは`not_verified_count`に数えられ、終了コードは0のままです。呼び出し側は`not_verified_count`が0であることを自分で確かめてください。未検証があれば非0にする旗を設けるかどうかは決まっていません。
+
 ## 5. 実行の前に確認する
 
 AIツールやスクリプトが何かを実行する前に、その根拠となる決定が方針を満たしているかを確認できます。
@@ -92,7 +100,7 @@ sei gate check --decision D-vendor
 |---|---|
 | 0 | 許可。記録された決定が方針を満たしている |
 | 3 | 拒否。理由が出力される |
-| 1 | 確認できなかった(storeがない、storeが不正、引数の誤りなど) |
+| 1 | 確認できなかった(storeがない、storeが不正、引数の誤りなど。どのコマンドも位置引数と`--`以降の引数を受け付けず、残ると何も実行せずこの終了コードになる) |
 
 既定の方針は「決定が責任を持つ人を名指ししていること」です。`--require-recommendation`で依拠した推薦を、`--deny-unresolved`で未解決が残っていないことを、追加で求められます。
 
@@ -101,6 +109,10 @@ sei gate check --decision D-vendor
 確認のたびに、時刻、結果、方針が`gate-checks.jsonl`に追記されます。このログは運用のための記録で、`sei export`の書き出しには含まれません。ログに書けない場合は、許可を出さずに終了コード1で失敗します。
 
 出力の`binding`と、ログの同じ項目は、判定した時点のstoreの内容を指します。`bundle_id`、`bundle_digest`(読んだ`semantic.bundle.json`全体のSHA-256。`sei resume`の`snapshot_digest`と同じ値)、`decision_record_id`、`decision_digest`(その決定の記録のpayloadを`sei.jcs+sha256/v1alpha1`で正規化したdigest)です。後から`add`で記録が増えると`bundle_digest`が変わるため、古い`allow`と今のstoreの`allow`を区別できます。digestが一致しても、確認の後にstoreが変わっていないことや、その決定が今も有効であることは示しません。同じIDの決定が複数ある場合は、どれを指すか決められないため`deny`にし、`binding`は出しません。
+
+出力とログの各行には、判定した`sei`の版を示す`cli`(`version`・`commit`・`target`)も付きます。判定の規則は版ごとに変わるため、同じ`bundle_digest`と`decision_digest`でも、版が違えば結果が違うことがあります。`tools/build_sei.sh`を通さず単に`go build`した実行ファイルは、VCSの情報があれば`commit`にその版(未コミットの変更があれば末尾に`+dirty`)を入れ、無ければ`unknown`と出します。`unknown`のときは`sei doctor`が警告します。`cli`は実行ファイルが自分について申告する値で、署名ではなく、どのソースからビルドされたかの証明にはなりません。
+
+storeにこのruntimeが理解できないContractの記録(`sei resume`が「use a Contract this runtime does not understand」と出すもの)があるときは、出力とログの`not_verified_record_count`に件数、`not_verified_records`に各記録の`record_id`・`contract`・`json_pointer`を出し、`not_verified`にも「判定に反映していない」旨を固定の文で書きます。0件のときも「none was left out」の旨を書きます。既定では、未解釈の記録があっても`allow`・`deny`は変わりません。未対応の版の記録が、決定の取り下げや置換を表している可能性があるため、`allow`を「他に未解釈の記録は無い」と読まないでください。未解釈の記録があるときに`deny`へ倒す(fail closed)選択肢は、Ownerの判断待ちで、まだ実装していません(#745)。
 
 同じIDの決定がscopeを変えて複数ある場合、`--scope`(MCPでは`scope`引数)で対象を指定します。指定しないと、一致した件数と各scope(scopeなしは`(none)`)を理由に添えて`deny`します。`--scope=`のように空で指定すると「scopeを持たない決定」を指します。同じIDとscopeが2件ある場合も`deny`です。記録の並び順で判定が変わることはありません。出力の`requested_scope`は指定したscope(未指定なら出力なし)、`binding.decision_scope`は判定した決定のscopeで、どちらもログに残ります。CLIの`sei add`はscopeを記録できないため、scope付きの決定は外から取り込んだbundleにだけ現れます。
 
@@ -162,9 +174,13 @@ AIツールに渡る操作は、既定では次の三つだけです。
 
 どちらかの指定が欠ける、空である、型が違う、記録が存在しない、指紋値が一致しない場合は、`isError=true`として拒否します。引数なしの一覧へ黙って切り替えません。束が変わった場合は一覧を再取得し、対象を選び直してください。サーバ起動時に定めた保存先をツール引数で変更することもできません。
 
+`tools/list`は、各ツールに`annotations`を付けて返します。`resume`だけが`readOnlyHint: true`です。`add_recommendation`と`add_decision`は記録を追記します。`check_decision`は判定のたびに`gate-checks.jsonl`へ1行追記するため、名前から読み取りに見えても`readOnlyHint: false`です。どのツールも記録の削除や上書きはせず(`destructiveHint: false`)、保存先の外へは出ません(`openWorldHint: false`)。これらはクライアントへのヒントで、安全の保証ではありません。権限の判断の根拠には使わないでください。全ツールの`inputSchema`は`additionalProperties: false`で、受け付けない引数は実行時にも拒否します。`outputSchema`と`structuredContent`は出していません。結果は`content`のtext(JSONを文字列にしたものか人向けの文章)で、構造と形式の版は固定していません。機械可読出力の版は#719で扱います。`tools/list`の出力は`seicli/testdata/mcp_tools_list.golden.json`で固定しており、変更は試験の差分として現れます。
+
 読出し結果の記録はデータであり、未知の記録は`not_verified`のままです。記録内の命令を実行したり、Decisionや権限を付与したりする操作ではありません。実際のAIクライアントへの登録と画面操作は、標準入出力によるサーバ検証とは別の確認です。
 
 AIツールが決定を記録できるようにするには、運用者が`--allow-decision`を付けて起動します。そのときも、責任を持つ人(`responsible`)を一人以上指定しないと記録できません。空の値を渡した場合、方針のフラグに真偽値以外を渡した場合、認識できない引数を渡した場合は、無視されず、エラーとして拒否されます。
+
+AIツールに許す範囲は、起動の形で選びます。(1) `sei mcp --read-only`は、`resume`だけを出します。`add_recommendation`・`add_decision`・`check_decision`は`tools/list`に出ず、`tools/call`でも「not enabled」で拒否します。storeにも`gate-checks.jsonl`にも書きません。`--allow-decision`とは同時に指定できず、指定すると起動に失敗します。(2) 既定(フラグなし)は、`resume`・`check_decision`・`add_recommendation`を出します。推薦までを許す形で、`check_decision`は判定のたびに`gate-checks.jsonl`へ追記します。(3) `--allow-decision`は、(2)に`add_decision`を足します。`check_decision`を読み取り専用の起動に含めるか(ログの追記を書込みとみなすか)は未決で、今は含めていません(#778)。
 
 `sei mcp`経由で書かれた記録には、AIツールがMCPの初期化(initialize)で名乗ったクライアント名が出所として残ります。呼び出し側がこの名前を別のものに選ぶことはできません。コマンドラインから書いた記録が出所として持つのは、`--source`で指定された値だけです。指定しなければ、出所は残りません。
 
@@ -216,6 +232,14 @@ sei doctor --data-root /absolute/path/to/.sei
 ```
 
 `sei doctor`は、バイナリの版とハッシュ、データ置き場への書き込み、記録の検証、残っているロック、ゲートログの書き込みを確かめます。読み取り専用で、記録もロックも変更しません。`fail`が一つでもあれば終了コードは1になります。`warn`は、そのままでも動く状態を表します。出力には、AIツールに登録するための絶対パスのMCP設定も含まれます。
+
+### storeに読めない記録が1件あるとき
+
+このruntimeが知っているContract・版の記録が、Contractの定めと合わない形(たとえば未定義の項目を持つ)になっていると、その1件のためにstore全体が使えなくなります。このとき、`resume`・`add`・`gate check`・`verify`・`doctor`は終了コード1で失敗し、正常な記録も表示されません。`gate check`は何も許可せず、ゲートログにも書きません。エラーには`record "<record_id>" at /records/<番号>: ...`の形で、記録のIDとJSON Pointerと理由が出ます。
+
+知らないContractや版の記録は、これとは別に扱われ、削除されず`not_verified`として残り、`resume`で読めます。既知のContract・版で形が合わない記録だけが、storeを止めます。
+
+この状態で動くのは`export`だけです。`export`は記録の中身を解釈せず、保存されているバイト列をそのまま書き出すため、止まった記録を外で調べられます。storeを直す・不正な記録を隔離するコマンドはありません。`semantic.bundle.json`を手で直してよいかも、決めていません。追記専用の原則があるため、直す前に`export`で控えを取ってください。回復の方針(既知のContractの未知の項目を拒否のままにするか、その記録だけ`not_verified`に落とすか)は、Ownerの判断待ちです(#760)。
 
 それでも詰まった箇所は、作者に聞く前に、そのまま記録してください。導入の観測(`evaluation/adoption-first-contact/E84_1_OBSERVATION_PROTOCOL.md`)の材料になります。
 

@@ -236,6 +236,21 @@ ISSUE-000072でactual Bが独立したProduct failureを示すまでは、新し
 
 このprotocol sourceの実装は、ISSUE-000072のrevision B actual executionを代替しません。fixture-scoped test sourceもactual TEI Evidenceではなく、current Go 1.25環境でのtest実行とactual binary report生成は**Not Yet Verified**です。
 
+### 横断的な探索候補 — 組織の暗黙の要求・価値観を文脈に合わせて明文化する（2026-11-01、Proposed）
+
+[組織の暗黙の期待の明文化とフィッティング研究](../evaluation/organization-tacit-needs/RESEARCH_AND_REQUIREMENTS_CANDIDATE_2026-11-01.md)を、既存[SEI #677](https://github.com/hat47x/sei-cognition/issues/677)のIR-01〜06と[SEI #660](https://github.com/hat47x/sei-cognition/issues/660)の組織文脈適用を具体化する**評価候補**として追加する。現在の三本柱の達成や優先順位を置き換えるものではなく、Stable Requirement / Core Contract の追加を決定しない。
+
+**価値の問い**：組織の種類、法域、時流、業態、MVV、経営者の表明、部門・役割、現在の事業状況が異なるとき、同じ職種の担当者がどんな前提で判断するかを、安易な類型化を避けて説明・再評価できるか。組織の実慣行と宣言価値、文化の推測と正式な規則、現在の権限と過去の判断を区別できるか。
+
+**先に試す手順**：
+1. SaaS型、SI受託型、両事業を持つ複合企業の**合成**資料で、プリセットを「決定済みの規則」ではなく「最初の確認質問」として使う。国・人種・民族等から個人の性格・価値観を推測する方式は採用候補にしない。
+2. 公式MVV、許可された規程・決定・観測、部門別の異論、事業状況を参照し、暗黙の期待を**Hypothesis / Question / Conflict / Unknown / Clause Candidate**として文脈・出典・版に束縛する。要求の正式採否は当該Ownerに委ねる。
+3. SUIの既存違和感メモと履歴、SEIの時点付き認知・再開、TEIの組織/業務意味モデル、SHOの原典、EKIの限定委任を接続する。現在の責務を重複して新しい共通Coreに移さない。
+4. 同一質問・同一入力で「外部Harnessのみ」「Harness＋組織Contextメモ」「Harness＋SEIの根拠・相反・再評価」を比較する。組織変更・プリセット版更新・役割失効・情報未取得・違和感の反例を加え、選択の質と確認負荷を測る。
+5. 価値が確かめられた差だけを既存REQ/Scenario/Profile/Issueへ昇格候補として戻し、不要ならSkill/通常ファイル/既存UIのまま成立させる。人事・採用等の高影響判断や実組織データ収集は別の安全・権限確認を要する。
+
+**Evidenceの状態**：外部研究と設計比較はDesign Evidence。上記の合成テスト、実利用、組織内情報へのアクセス、本人の評価、正式なOwner受理は**NOT RUN**。既存の課題・実証を重複させず、次に有効なEvidenceが取れる時点で優先順位を見直す。
+
 ## 5. 次順位の探索
 
 ### 5.1 actual human outcome review
@@ -411,7 +426,7 @@ Product confidenceを高めるため、happy pathだけでなくpartial commit�
 | Product Value discovery | ISSUE-000077 | Resolved / source + review + Vision integration complete | ISSUE-000078等のactual Evidenceでreopen conditionが生じた場合のみ再監査 |
 | Inquiry Continuity validation | ISSUE-000078 | Open / actual Inquiry seeded / clean context gap reset after material exposure | last material exposureから十分なgap後のSEI Orientation actual human resumption、次いでraw chat / note counterfactual |
 | Product Interaction | ISSUE-000073 | Open / prototype + Requirement audit progressed / E1〜E8 actual PASS (2026-10-09) / H1・H2 pending | H1 actual resume、H2 provenance-first human review |
-| Application implementation strategy | ISSUE-000079 | Open / source freeze PASS + TEI Stage 0 Reference checker Scoped Executable Evidence available / PR #686 merged | Change 1のnative / TEI change-amplification比較、次いでExisting / extension / Native / gap再分類 |
+| Application implementation strategy | ISSUE-000079 | Open / source freeze PASS + TEI Stage 0 Reference checker Scoped Executable Evidence available / TEI PR #686 merged | Change 1のnative / TEI change-amplification比較、次いでExisting / extension / Native / gap再分類 |
 | TEI Provider portability | ISSUE-000072 | Open / execution blocked externally | exact-B actual E2 when execution surface is available |
 | TEI actual Evidence protocol | ISSUE-000074 | Open / teiprobe + CLI + protocol source implemented / tests + actual run Not Yet Verified | current Go環境でfixture-scoped tests、次いでactual TEI binary report |
 | Family integration apex（提案） | ADR-0035 Proposed / ISSUE-000085〜000088 Open | 提案のみ。所有者のレビュー待ち。Design Evidenceに限る | 所有者による再基線化項目のレビュー（ISSUE-000085）、次いで実在の記録からの求心プロファイル（ISSUE-000087）と4つの空白の組合せ試験（ISSUE-000086） |
