@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 )
 
 const (
@@ -67,7 +68,37 @@ func validateExact(binding ExactBinding) error {
 	if binding.ContentDigest == "" {
 		return errors.New("exact binding requires content_digest")
 	}
-	return validateProfile(binding.RepresentationProfile)
+	if err := validateProfile(binding.RepresentationProfile); err != nil {
+		return err
+	}
+	return validateRegisteredDigestForm(binding)
+}
+
+// validateRegisteredDigestForm checks content_digest only for the Profiles
+// this runtime registers. Both define the digest as "sha256:" followed by 64
+// lowercase hexadecimal characters. A Profile this runtime does not register
+// is not inspected, because the meaning of its digest is not defined here.
+func validateRegisteredDigestForm(binding ExactBinding) error {
+	profile := binding.RepresentationProfile
+	if profile.Version != ProfileVersionV1Alpha1 {
+		return nil
+	}
+	if profile.ProfileID != ProfileIDJCSSHA256 && profile.ProfileID != ProfileIDRawBytesSHA256 {
+		return nil
+	}
+	const prefix = "sha256:"
+	digest := binding.ContentDigest
+	hexPart, ok := strings.CutPrefix(digest, prefix)
+	if !ok || len(hexPart) != 64 {
+		return fmt.Errorf("content_digest %q does not match %s<64 lowercase hex> required by %s/%s", digest, prefix, profile.ProfileID, profile.Version)
+	}
+	for i := 0; i < len(hexPart); i++ {
+		c := hexPart[i]
+		if !(c >= '0' && c <= '9') && !(c >= 'a' && c <= 'f') {
+			return fmt.Errorf("content_digest %q does not match %s<64 lowercase hex> required by %s/%s", digest, prefix, profile.ProfileID, profile.Version)
+		}
+	}
+	return nil
 }
 
 func validateReference(ref Reference) error {
