@@ -31,6 +31,12 @@ GitHub Actionsは当面停止しており、`.github/workflows`はありませ�
   - `python tools/check_representation_profiles.py`: Representation ProfileのDefinitionと固定fixtureを検査する。追加の依存はない。
   - どちらも、PASSが示すのはリポジトリ内のschemaとfixtureの整合までである。出力の`claims`のとおり、`release`・`operational`・`adoption_outcome`は`false`で、実運用での意味の受理やリリース可否は示さない。
 - 文書: 変更した現行Markdownについて`plan/scripts/check_document_review_registry.py`を確認する。
+- `plan/`・`requirements/`・`docs/`を変更するときは、リポジトリのルートで次の4つの登録簿検査を実行する。各検査の対象と自己検査は[plan/scripts/README.md](plan/scripts/README.md)にある。
+  - `python3 plan/scripts/check_plan_registry.py`: ADR・Issue登録簿と、`plan/adr`・`plan/issue`の実ファイル、ID、Statusの整合を検査する。
+  - `python3 plan/scripts/check_requirements_registry.py`: Requirement・Acceptance Scenarioの登録簿とIDの参照関係を検査する。
+  - `python3 plan/scripts/check_document_review_registry.py`: 実在するMarkdownが文書レビュー台帳から漏れていないことを検査する。
+  - `python3 plan/scripts/check_github_actions_disabled.py`: `.github/workflows`にtracked fileが無いこと(Actions停止の基線)を検査する。
+  - いずれも追加の依存はなく、PASSが示すのは機械的な整合までである。Requirementの意味上の妥当性、文書内容の正しさ、GitHub Issueの全件が`plan/issue`に載っていることは示さない。PR本文には、実行したコマンドと結果を書く。
 
 実行した検査、実行できなかった検査、その理由をPR本文に分けて書いてください。GitHub Actionsのstatusがないことは、PASSでもfailureでもありません。
 
