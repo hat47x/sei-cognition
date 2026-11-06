@@ -1,0 +1,25 @@
+{
+  "schema": "tai.reference.tei-sei-decision-projection/v0",
+  "contract": {
+    "id": "sei.decision.projection",
+    "version": "1"
+  },
+  "source": {
+    "teiCommit": "2e16b2af9531225b73430a32a6dbb2031e07f4c1",
+    "contract": {
+      "contractId": "sei.decision.record",
+      "contractVersion": "1",
+      "contractDigest": "sha256:f8b499187dac7f68ec7fe897858e6b7321e5437a42bf8ab04b16492384239901",
+      "sourceDigest": "sha256:bf4cd884a57a56e8878569a5ff17e302d6963621eaa0614bba90caeb094ef253",
+      "cases": 4
+    }
+  },
+  "decision": {
+    "contract": "sei.decision-memory/v1alpha1",
+    "rationale": "Lower cost",
+    "recordType": "decision",
+    "refId": "decision-1",
+    "refKind": "decision",
+    "statement": "Adopt option A"
+  }
+}
