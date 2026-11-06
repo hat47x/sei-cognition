@@ -203,7 +203,7 @@ func persistence(root string) packagingprobe.FilePersistence {
 func runInit(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	f := newFlags("init", stderr)
 	root := dataRootFlag(f)
-	bundleID := f.String("bundle-id", "", "identifier of the store (default: sei-store-<UTC date>)")
+	bundleID := f.String("bundle-id", "", "identifier of the store (default: sei-store-<UTC date>-<8 hex digits>)")
 	if done, err := parseFlags(f, args, stdout, stderr); done || err != nil {
 		return err
 	}
@@ -211,7 +211,9 @@ func runInit(ctx context.Context, args []string, stdout, stderr io.Writer) error
 	p := persistence(dir)
 	id := *bundleID
 	if id == "" {
-		id = "sei-store-" + Now().Format("2006-01-02")
+		id = defaultBundleID(Now().Format("2006-01-02"))
+	} else if err := checkBundleID(id); err != nil {
+		return err
 	}
 	err := withStoreLock(dir, func() error {
 		if _, err := p.Load(ctx); err == nil {

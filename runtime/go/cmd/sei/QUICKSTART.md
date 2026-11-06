@@ -31,6 +31,8 @@ sei add decision --id D-vendor --statement "ベンダーAを1年間採用する"
   --responsible person:team-lead
 ```
 
+`sei init`が記録する`bundle_id`は、人が付ける名前です。`--bundle-id`を省くと、日付と8桁の乱数から`sei-store-2026-11-06-1a2b3c4d`のような名前を付けます。空白だけ、前後の空白、改行などの制御文字、200文字を超える値は、storeを作らずに拒否します。`bundle_id`は、別のstoreと同じ名前を付けられる表示用の値であり、storeの同一性を保証しません。内容の一致は`bundle_digest`(`snapshot_digest`)で確認します。
+
 ここで記録した内容は、次の意味に分かれています。
 
 - 推薦(recommendation)は、提案です。決定ではありません。
