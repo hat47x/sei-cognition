@@ -56,6 +56,8 @@ JSONの`coverage`は集計範囲と件数を示し、`case_completeness`は`not_
 
 決定が依拠する推薦と責任者は、従来の`recommendations`・`responsible`（`kind:id`の文字列）に加えて、`recommendation_references`・`responsibility_references`で出します。要素の形は`basis_references`と同じで、scopeと`form`を持ちます。`unresolved[]`には`reference_form`を足しました。`recommendations_relied_on`と`recommendations_not_yet_relied_on`の各項目は、推薦自身のscopeを`scope`で持ちます。人向け表示では、scopeを`@scope`で示します。scopeだけが違う同IDの推薦や責任者は、別の出力になります。「依拠済み」の判定はkind・id・scopeで行い、content_digestは使いません（storeは推薦のdigestを持たないためです）。MCPの`resume`（引数なし）は同じ人向け表示を返すため、同じ変更が入ります。
 
+推薦(recommendation)自身の根拠・理由・責任者も出します。`recommendations_relied_on`と`recommendations_not_yet_relied_on`の各項目は、記録がある場合に限り、`basis_references`・`responsibility_references`(要素の形は決定の同名の項目と同じ)と`rationale`を持ちます。記録が無い推薦の項目は従来と同じ形です。人向け表示は、推薦の下に`basis:`と`responsible:`の行を足します。`rationale`は長くなり得るため、JSONにだけ出します。basisの実在や、exact形式のdigestの一致は、resumeは検査しません。
+
 `resume --json`の`lineages`は、検証済みのSemantic Lineageを記録のとおりに並べます。Decisionが持つ`lineage`と、単独の`semantic_lineage`のrecordの両方が対象です。各項目は`relation`、`from`、`to`（`form`・scope、exactなら`content_digest`と`representation_profile`）、`basis_references`、`held_in`、`source_record`（`/records/N`）、`payload_pointer`（record内の位置）を持ちます。`from`と`to`の向きや、supersedes・withdraws・revisesが判断の受理に及ぼす効果は、resumeでは解釈しません（#687は未決です）。lineageがあってもDecisionの行は減らず、印も付きません。`coverage.lineage_entry_count`は件数です。`coverage.records_not_projected`は、resumeが表示しない検証済みrecordの種類（envelopeの`kind`）と件数で、`record_count`は「Decision・推薦・単独のlineage・`not_verified_record_count`・`records_not_projected_count`」の合計に一致します。人向け表示にも「Semantic Lineage, as recorded」の節があります。
 
 人向け表示（`sei resume`と、引数なしのMCP `resume`）は、statement・rationale・ID・出所に含まれる改行と制御文字を`

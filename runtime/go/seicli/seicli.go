@@ -493,6 +493,14 @@ type StatementView struct {
 	Scope     string   `json:"scope,omitempty"`
 	Statement string   `json:"statement"`
 	Sources   []string `json:"sources,omitempty"`
+	// Rationale, BasisReferences and ResponsibilityReferences are the
+	// Recommendation's own recorded values, in the same form as on a Decision.
+	// They are omitted when the recommendation has none, so an existing consumer
+	// sees no change for those (#752). resume does not check that a basis exists
+	// or that an exact reference's content_digest matches.
+	Rationale                string      `json:"rationale,omitempty"`
+	BasisReferences          []BasisView `json:"basis_references,omitempty"`
+	ResponsibilityReferences []BasisView `json:"responsibility_references,omitempty"`
 }
 
 type DecisionView struct {
@@ -659,7 +667,8 @@ func BuildResume(bundle *semanticruntime.Bundle) ResumeView {
 			}
 		case rec.Decision != nil && rec.Decision.Recommendation != nil:
 			r := rec.Decision.Recommendation
-			s := StatementView{ID: r.Ref.ID, Scope: r.Ref.Scope, Statement: r.Statement, Sources: sourcesOf(rec.EnvelopeRecord)}
+			s := StatementView{ID: r.Ref.ID, Scope: r.Ref.Scope, Statement: r.Statement, Sources: sourcesOf(rec.EnvelopeRecord),
+				Rationale: r.Rationale, BasisReferences: basisViews(r.BasisRefs), ResponsibilityReferences: basisViews(r.ResponsibilityRefs)}
 			if key, ok := recommendationKey(semanticruntime.Reference{Kind: r.Ref.Kind, ID: r.Ref.ID, Scope: r.Ref.Scope}); ok && relied[key] {
 				view.RecommendationsRelied = append(view.RecommendationsRelied, s)
 			} else {
@@ -782,6 +791,23 @@ func scopeSuffix(scope string) string {
 
 // refListText joins a reference list for the human view. It uses the form- and
 // scope-aware text when views exist and falls back to the legacy texts.
+// printRecommendation writes one recommendation line, then its basis and
+// responsible references when it has any. The rationale is in the JSON view only,
+// so a long rationale does not crowd the human view.
+func printRecommendation(w io.Writer, r StatementView) {
+	fmt.Fprintf(w, "  [%s%s] %s%s\n", safeText(r.ID), safeText(scopeSuffix(r.Scope)), safeText(r.Statement), sourceSuffix(r.Sources))
+	if len(r.BasisReferences) > 0 {
+		texts := make([]string, 0, len(r.BasisReferences))
+		for _, b := range r.BasisReferences {
+			texts = append(texts, basisText(b))
+		}
+		fmt.Fprintf(w, "      basis: %s\n", safeText(strings.Join(texts, ", ")))
+	}
+	if text := refListText(r.ResponsibilityReferences, nil); text != "" {
+		fmt.Fprintf(w, "      responsible: %s\n", safeText(text))
+	}
+}
+
 func refListText(views []BasisView, legacy []string) string {
 	if len(views) == 0 {
 		return strings.Join(legacy, ", ")
@@ -855,11 +881,11 @@ func renderResume(w io.Writer, v ResumeView) {
 	}
 	section("Recommendations not yet relied on by any decision", len(v.RecommendationsOpen))
 	for _, r := range v.RecommendationsOpen {
-		fmt.Fprintf(w, "  [%s%s] %s%s\n", safeText(r.ID), safeText(scopeSuffix(r.Scope)), safeText(r.Statement), sourceSuffix(r.Sources))
+		printRecommendation(w, r)
 	}
 	section("Recommendations relied on by a decision", len(v.RecommendationsRelied))
 	for _, r := range v.RecommendationsRelied {
-		fmt.Fprintf(w, "  [%s%s] %s%s\n", safeText(r.ID), safeText(scopeSuffix(r.Scope)), safeText(r.Statement), sourceSuffix(r.Sources))
+		printRecommendation(w, r)
 	}
 	section("Semantic Lineage, as recorded", len(v.Lineages))
 	if len(v.Lineages) > 0 {
