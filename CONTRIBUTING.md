@@ -25,6 +25,8 @@ GitHub Actionsは当面停止しており、`.github/workflows`はありませ�
   - `gofmt -l .`: 出力が空であること。整形が必要なファイル名が出たら`gofmt -w`で整えて、整形だけのコミットに分ける。
   - `go vet ./...`: 指摘がないこと。
   - `go test ./... -count=1`: 全パッケージがokであること。
+  - `go mod tidy -diff`: 出力が空であること。差分が出たら`go mod tidy`の結果を、他の変更と分けたコミットにする。`go.mod`・`go.sum`のキャッシュが無い環境では、依存の取得に通信が要る。
+  - `go mod verify`: `all modules verified`と表示されること。
 - Python: 変更した対象の`unittest`を実行する（例: `python -m unittest discover -s tools -p "test_*.py"`）。
 - Contract変更は、`contracts/`・`schemas/`・fixture・testを同時に更新し、次の2つの検査を実行する。
   - `python tools/check_contract_conformance.py`: Contractのschemaとfixtureの整合を検査する。`jsonschema`と`referencing`が必要で、未導入なら「jsonschema and referencing are required」と表示して終了する。仮想環境を作り、`pip install -r tools/contract-check-requirements.txt`で入れる。
