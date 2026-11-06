@@ -304,6 +304,11 @@ func runAdd(ctx context.Context, args []string, stdout, stderr io.Writer) error 
 	}
 
 	dir := resolveDataRoot(*root)
+	if info, statErr := os.Stat(dir); statErr != nil || !info.IsDir() {
+		// Do not create a directory (and a lock) for a store that does not exist.
+		// Only `sei init` creates the data root.
+		return errors.New("no store found; run `sei init` first")
+	}
 	p := persistence(dir)
 	err := withStoreLock(dir, func() error {
 		raw, err := p.Load(ctx)
