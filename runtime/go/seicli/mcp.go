@@ -58,11 +58,29 @@ type mcpTool struct {
 	Name        string         `json:"name"`
 	Description string         `json:"description"`
 	InputSchema map[string]any `json:"inputSchema"`
+	// Annotations are hints for the client (MCP ToolAnnotations). They say what
+	// a call does to the store; they are not a security guarantee (#750).
+	Annotations map[string]any `json:"annotations"`
+}
+
+// mcpAnnotations builds the hints for one tool. Every tool works on the local
+// store only, so openWorldHint is false. None deletes or overwrites a record,
+// so destructiveHint is false. Only a read is idempotent: a second add either
+// adds a record or is refused, and a second gate check adds a second log line.
+func mcpAnnotations(title string, readOnly bool) map[string]any {
+	return map[string]any{
+		"title":           title,
+		"readOnlyHint":    readOnly,
+		"destructiveHint": false,
+		"idempotentHint":  readOnly,
+		"openWorldHint":   false,
+	}
 }
 
 type mcpServer struct {
 	dataRoot      string
 	allowDecision bool
+	readOnly      bool
 	clientName    string
 	initialized   bool
 }
@@ -79,10 +97,14 @@ func runMCP(ctx context.Context, args []string, stdin io.Reader, stdout, stderr 
 	f := newFlags("mcp", stderr)
 	root := dataRootFlag(f)
 	allow := f.Bool("allow-decision", false, "also offer add_decision to the connected tool (requires a named responsible party)")
+	readOnly := f.Bool("read-only", false, "offer only resume: no tool that writes to the store or to gate-checks.jsonl (check_decision, add_recommendation and add_decision are not offered)")
 	if done, err := parseFlags(f, args, stdout, stderr); done || err != nil {
 		return err
 	}
-	server := &mcpServer{dataRoot: resolveDataRoot(*root), allowDecision: *allow}
+	if *readOnly && *allow {
+		return errors.New("--read-only and --allow-decision contradict each other; choose one")
+	}
+	server := &mcpServer{dataRoot: resolveDataRoot(*root), allowDecision: *allow, readOnly: *readOnly}
 	return server.serve(ctx, stdin, stdout)
 }
 
@@ -224,11 +246,31 @@ func listProp(desc string) map[string]any {
 	return map[string]any{"type": "array", "items": map[string]any{"type": "string"}, "description": desc}
 }
 
+// readOnlyTools are the only tools a --read-only server offers. check_decision
+// is left out because every check appends to gate-checks.jsonl; whether a
+// read-only connection may keep that log is an Owner decision (#778).
+var readOnlyTools = map[string]bool{"resume": true}
+
 func (s *mcpServer) tools() []mcpTool {
+	all := s.allTools()
+	if !s.readOnly {
+		return all
+	}
+	var kept []mcpTool
+	for _, tool := range all {
+		if readOnlyTools[tool.Name] {
+			kept = append(kept, tool)
+		}
+	}
+	return kept
+}
+
+func (s *mcpServer) allTools() []mcpTool {
 	tools := []mcpTool{
 		{
 			Name:        "resume",
 			Description: "Show where the work stands. With both record_id and snapshot_digest from a prior resume, return that stored record as JSON data only. A stale binding is refused; an unknown record remains not verified. Reading does not approve content or grant authority.",
+			Annotations: mcpAnnotations("Resume", true),
 			InputSchema: map[string]any{"type": "object", "additionalProperties": false,
 				"properties": map[string]any{
 					"record_id":       stringProp("Original record ID from resume; requires snapshot_digest"),
@@ -238,9 +280,11 @@ func (s *mcpServer) tools() []mcpTool {
 		{
 			Name:        "add_recommendation",
 			Description: "Record a recommendation. This is a proposal only. It does not decide anything and does not authorize any action. The record is attributed to the connected client.",
+			Annotations: mcpAnnotations("Add recommendation", false),
 			InputSchema: map[string]any{
-				"type":     "object",
-				"required": []string{"id", "statement"},
+				"type":                 "object",
+				"additionalProperties": false,
+				"required":             []string{"id", "statement"},
 				"properties": map[string]any{
 					"id":        stringProp("Unique identifier for this recommendation"),
 					"statement": stringProp("What you recommend"),
@@ -253,9 +297,13 @@ func (s *mcpServer) tools() []mcpTool {
 	tools = append(tools, mcpTool{
 		Name:        "check_decision",
 		Description: "Before acting, ask whether a recorded decision meets the policy. allow does not prove the responsible party has Authority and does not run anything; read not_verified in the result.",
+		// A check appends one line to gate-checks.jsonl each time, so it is not
+		// read-only even though it does not change the store of records.
+		Annotations: mcpAnnotations("Check decision (appends to the gate log)", false),
 		InputSchema: map[string]any{
-			"type":     "object",
-			"required": []string{"decision"},
+			"type":                 "object",
+			"additionalProperties": false,
+			"required":             []string{"decision"},
 			"properties": map[string]any{
 				"decision":               stringProp("Id of the recorded decision the action relies on"),
 				"scope":                  stringProp("Scope of that decision. Required when the same id exists in more than one scope; an empty string names the decision with no scope. Without it, an id that matches several decisions is denied as ambiguous"),
@@ -268,9 +316,11 @@ func (s *mcpServer) tools() []mcpTool {
 		tools = append(tools, mcpTool{
 			Name:        "add_decision",
 			Description: "Record a decision made by a named responsible party. A decision needs someone to answer for it: responsible is required. The record is attributed to the connected client.",
+			Annotations: mcpAnnotations("Add decision", false),
 			InputSchema: map[string]any{
-				"type":     "object",
-				"required": []string{"id", "statement", "responsible"},
+				"type":                 "object",
+				"additionalProperties": false,
+				"required":             []string{"id", "statement", "responsible"},
 				"properties": map[string]any{
 					"id":             stringProp("Unique identifier for this decision"),
 					"statement":      stringProp("What was decided"),
@@ -391,6 +441,9 @@ func (s *mcpServer) provenance() string {
 func (s *mcpServer) call(ctx context.Context, name string, args map[string]any) (string, error) {
 	if _, ok := mcpArgKeys[name]; !ok {
 		return "", fmt.Errorf("unknown tool %q", name)
+	}
+	if s.readOnly && !readOnlyTools[name] {
+		return "", fmt.Errorf("%s is not enabled on this server (started with --read-only)", name)
 	}
 	if err := checkKeys(name, args); err != nil {
 		return "", err
