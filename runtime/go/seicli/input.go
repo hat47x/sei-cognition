@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
+
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 // Input checks for values that `sei add` and the MCP add tools write into the
@@ -60,6 +62,22 @@ func rejectDuplicateRefs(flagName string, values []string) error {
 			return fmt.Errorf("--%s names %q more than once", flagName, v)
 		}
 		seen[v] = true
+	}
+	return nil
+}
+
+// rejectSelfReference refuses a --basis or --unresolved value that names the
+// record being written. A record is not a basis for itself, and an open question
+// cannot be the decision that leaves it open. Such a reference would later show
+// as a recorded basis although nothing outside the record supports it (#794).
+// Only what is about to be recorded is checked; a store that already holds one
+// is still read as before. The CLI writes references without a scope, so the
+// comparison is on kind and id.
+func rejectSelfReference(flagName, kind, id string, refs []semanticruntime.Reference) error {
+	for _, ref := range refs {
+		if ref.Kind == kind && ref.ID == id {
+			return fmt.Errorf("--%s %s:%s names the %s being recorded; a record cannot be its own %s, so name something outside it", flagName, kind, id, kind, flagName)
+		}
 	}
 	return nil
 }
