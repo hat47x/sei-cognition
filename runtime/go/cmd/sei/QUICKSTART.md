@@ -239,6 +239,8 @@ sei doctor --data-root /absolute/path/to/.sei
 
 このruntimeが知っているContract・版の記録が、Contractの定めと合わない形(たとえば未定義の項目を持つ)になっていると、その1件のためにstore全体が使えなくなります。このとき、`resume`・`add`・`gate check`・`verify`・`doctor`は終了コード1で失敗し、正常な記録も表示されません。`gate check`は何も許可せず、ゲートログにも書きません。エラーには`record "<record_id>" at /records/<番号>: ...`の形で、記録のIDとJSON Pointerと理由が出ます。
 
+Exact Bindingの`content_digest`は、このruntimeが登録している`sei.jcs+sha256/v1alpha1`と`sei.raw-bytes+sha256/v1alpha1`を指す場合に限り、`sha256:`と小文字16進64桁の形式を検査します。違反する値を持つ記録が1件でもあると、上と同じく読込が失敗します。未登録のProfile・版を指すExact Bindingのdigestは、意味をSEIが決められないため検査せず、そのまま受け付けます。この検査は形式だけを見ており、digestが実物と一致するかは照合しません(#710)。
+
 知らないContractや版の記録は、これとは別に扱われ、削除されず`not_verified`として残り、`resume`で読めます。既知のContract・版で形が合わない記録だけが、storeを止めます。
 
 この状態で動くのは`export`だけです。`export`は記録の中身を解釈せず、保存されているバイト列をそのまま書き出すため、止まった記録を外で調べられます。storeを直す・不正な記録を隔離するコマンドはありません。`semantic.bundle.json`を手で直してよいかも、決めていません。追記専用の原則があるため、直す前に`export`で控えを取ってください。回復の方針(既知のContractの未知の項目を拒否のままにするか、その記録だけ`not_verified`に落とすか)は、Ownerの判断待ちです(#760)。
