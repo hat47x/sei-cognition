@@ -58,6 +58,8 @@ JSONの`coverage`は集計範囲と件数を示し、`case_completeness`は`not_
 
 決定が依拠する推薦と責任者は、従来の`recommendations`・`responsible`（`kind:id`の文字列）に加えて、`recommendation_references`・`responsibility_references`で出します。要素の形は`basis_references`と同じで、scopeと`form`を持ちます。`unresolved[]`には`reference_form`を足しました。`recommendations_relied_on`と`recommendations_not_yet_relied_on`の各項目は、推薦自身のscopeを`scope`で持ちます。人向け表示では、scopeを`@scope`で示します。scopeだけが違う同IDの推薦や責任者は、別の出力になります。「依拠済み」の判定はkind・id・scopeで行い、content_digestは使いません（storeは推薦のdigestを持たないためです）。MCPの`resume`（引数なし）は同じ人向け表示を返すため、同じ変更が入ります。
 
+推薦(recommendation)自身の根拠・理由・責任者も出します。`recommendations_relied_on`と`recommendations_not_yet_relied_on`の各項目は、記録がある場合に限り、`basis_references`・`responsibility_references`(要素の形は決定の同名の項目と同じ)と`rationale`を持ちます。記録が無い推薦の項目は従来と同じ形です。人向け表示は、推薦の下に`basis:`と`responsible:`の行を足します。`rationale`は長くなり得るため、JSONにだけ出します。basisの実在や、exact形式のdigestの一致は、resumeは検査しません。
+
 `resume --json`の`lineages`は、検証済みのSemantic Lineageを記録のとおりに並べます。Decisionが持つ`lineage`と、単独の`semantic_lineage`のrecordの両方が対象です。各項目は`relation`、`from`、`to`（`form`・scope、exactなら`content_digest`と`representation_profile`）、`basis_references`、`held_in`、`source_record`（`/records/N`）、`payload_pointer`（record内の位置）を持ちます。`from`と`to`の向きや、supersedes・withdraws・revisesが判断の受理に及ぼす効果は、resumeでは解釈しません（#687は未決です）。lineageがあってもDecisionの行は減らず、印も付きません。`coverage.lineage_entry_count`は件数です。`coverage.records_not_projected`は、resumeが表示しない検証済みrecordの種類（envelopeの`kind`）と件数で、`record_count`は「Decision・推薦・単独のlineage・`not_verified_record_count`・`records_not_projected_count`」の合計に一致します。人向け表示にも「Semantic Lineage, as recorded」の節があります。
 
 人向け表示（`sei resume`と、引数なしのMCP `resume`）は、statement・rationale・ID・出所に含まれる改行と制御文字を`
@@ -208,6 +210,7 @@ AIツールに許す範囲は、起動の形で選びます。(1) `sei mcp --rea
   - `--rationale`: 空白だけを拒否します。根拠が無いときは指定しないでください。複数行は拒否しません。
   - MCPのクライアント名(`clientInfo.name`)が`--source`の規則に合わないときは、接続を拒否せず、出所を`mcp-client`に置き換えて記録します。不正な名前は記録しません。
   - `--basis`、`--responsible`、`--unresolved`、`--recommendation`: `kind:id`のkindとidに、idと同じ規則を当てます。同じ値を同じ旗で2回指定した場合も拒否します(まとめて1件にはしません)。
+  - `--basis`と`--unresolved`が、記録しようとしている記録自身(同じkindと同じid)を指す場合も拒否します。決定や推薦は、自分自身の根拠にも、自分が残した未解決にもなれないためです。この検査より前に記録された自己参照は、`verify`・`resume`が従来どおり読みます。`gate check`は、自己参照の根拠を「storeに記録済み」とは報告せず、決定自身を指していると明記します。
   - 拒否するかトリムするかは、記録を書き換えない原則から拒否を選びました。idに許す文字集合の確定と、契約側で空白だけの値を拒否するかは、Ownerの判断待ちです。
 - `export`は、既に存在するファイルを上書きしません。
 
@@ -238,6 +241,8 @@ sei doctor --data-root /absolute/path/to/.sei
 ### storeに読めない記録が1件あるとき
 
 このruntimeが知っているContract・版の記録が、Contractの定めと合わない形(たとえば未定義の項目を持つ)になっていると、その1件のためにstore全体が使えなくなります。このとき、`resume`・`add`・`gate check`・`verify`・`doctor`は終了コード1で失敗し、正常な記録も表示されません。`gate check`は何も許可せず、ゲートログにも書きません。エラーには`record "<record_id>" at /records/<番号>: ...`の形で、記録のIDとJSON Pointerと理由が出ます。
+
+Exact Bindingの`content_digest`は、このruntimeが登録している`sei.jcs+sha256/v1alpha1`と`sei.raw-bytes+sha256/v1alpha1`を指す場合に限り、`sha256:`と小文字16進64桁の形式を検査します。違反する値を持つ記録が1件でもあると、上と同じく読込が失敗します。未登録のProfile・版を指すExact Bindingのdigestは、意味をSEIが決められないため検査せず、そのまま受け付けます。この検査は形式だけを見ており、digestが実物と一致するかは照合しません(#710)。
 
 知らないContractや版の記録は、これとは別に扱われ、削除されず`not_verified`として残り、`resume`で読めます。既知のContract・版で形が合わない記録だけが、storeを止めます。
 
