@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -149,5 +150,81 @@ func TestHelpIsZeroOnStdoutAndErrorsGoToStderr(t *testing.T) {
 	stdout, stderr, code := invoke(t, "frobnicate")
 	if code == 0 || stdout != "" || !strings.Contains(stderr, "frobnicate") {
 		t.Errorf("unknown subcommand: code=%d stdout=%q stderr=%q", code, stdout, stderr)
+	}
+}
+
+// 位置引数と "--" 以降は黙って捨てず、何も実行せず1で拒否する。
+// 捨てると、指定したつもりの方針が落ちて、意図より緩いallowを返してしまう。
+func TestExitCodeRejectsPositionalArguments(t *testing.T) {
+	root := newStore(t)
+	cases := []struct {
+		name string
+		args []string
+	}{
+		{"gate check after --", []string{"gate", "check", "--data-root", root, "--decision", "D-ok", "--", "--require-recommendation"}},
+		{"gate check positional", []string{"gate", "check", "--data-root", root, "--decision", "D-ok", "require-recommendation"}},
+		{"resume positional", []string{"resume", "--data-root", root, "extra"}},
+		{"export positional", []string{"export", "--data-root", root, "--output", filepath.Join(t.TempDir(), "x.json"), "extra"}},
+		{"verify positional", []string{"verify", "--input", filepath.Join(t.TempDir(), "none.json"), "extra"}},
+		{"init positional", []string{"init", "--data-root", filepath.Join(t.TempDir(), "s2"), "extra"}},
+		{"doctor positional", []string{"doctor", "--data-root", root, "extra"}},
+		{"add positional", []string{"add", "decision", "--data-root", root, "--id", "D-x", "--statement", "s", "--responsible", "person:lead", "extra"}},
+	}
+	for _, c := range cases {
+		stdout, stderr, code := invoke(t, c.args...)
+		if code != 1 {
+			t.Errorf("%s: exit code = %d, want 1 (stdout %q, stderr %q)", c.name, code, stdout, stderr)
+		}
+		if strings.Contains(stdout, `"verdict":"allow"`) {
+			t.Errorf("%s: must never print allow: %s", c.name, stdout)
+		}
+		if !strings.Contains(stderr, "unexpected arguments") || !strings.Contains(stderr, "extra") && !strings.Contains(stderr, "require-recommendation") {
+			t.Errorf("%s: stderr must name the leftover arguments: %q", c.name, stderr)
+		}
+	}
+	// 拒否したaddは何も記録しない。
+	if out, _, code := invoke(t, "gate", "check", "--data-root", root, "--decision", "D-x"); code != 3 || !strings.Contains(out, `"deny"`) {
+		t.Errorf("rejected add must not record D-x: exit %d, %s", code, out)
+	}
+}
+
+// 正しい呼び出し(--scope= の空指定を含む)は変わらない。
+func TestExitCodeValidFlagsStillWork(t *testing.T) {
+	root := newStore(t)
+	if _, stderr, code := invoke(t, "gate", "check", "--data-root", root, "--decision", "D-ok", "--scope="); code != 0 {
+		t.Errorf("--scope= : exit %d, want 0 (%s)", code, stderr)
+	}
+	if _, stderr, code := invoke(t, "gate", "check", "--data-root", root, "--decision=D-ok", "--require-recommendation=false"); code != 0 {
+		t.Errorf("--flag=value: exit %d, want 0 (%s)", code, stderr)
+	}
+}
+
+// version は、ldflagsなしのビルドでも、扱うContractの識別子と版の一覧を出す。
+func TestVersionListsContractsTheRuntimeValidates(t *testing.T) {
+	out, errOut, code := invoke(t, "version")
+	if code != 0 {
+		t.Fatalf("version: exit %d: %s", code, errOut)
+	}
+	var got struct {
+		Version   string   `json:"version"`
+		Commit    string   `json:"commit"`
+		Target    string   `json:"target"`
+		Contracts []string `json:"contracts"`
+	}
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("version output is not JSON: %v\n%s", err, out)
+	}
+	want := []string{
+		"sei.semantic-interchange/v1alpha1",
+		"sei.semantic-reference/v1alpha1",
+		"sei.decision-memory/v1alpha1",
+		"sei.capability-observation/v1alpha1",
+		"sei.cognitive-method/v1alpha1",
+	}
+	if strings.Join(got.Contracts, ",") != strings.Join(want, ",") {
+		t.Errorf("contracts = %v, want %v", got.Contracts, want)
+	}
+	if got.Version == "" || got.Commit == "" || got.Target == "" {
+		t.Errorf("version, commit and target must be present: %s", out)
 	}
 }

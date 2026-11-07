@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 func findCheck(t *testing.T, checks []doctorCheck, name string) doctorCheck {
@@ -126,5 +128,48 @@ func TestDoctorFailsWhenTheGateLogCannotBeAppended(t *testing.T) {
 	checks := doctorChecks(context.Background(), root)
 	if c := findCheck(t, checks, "gate-log"); c.Status != "fail" {
 		t.Errorf("a gate log that cannot be appended must fail, because gate checks would then be refused: %+v", c)
+	}
+}
+
+func TestDoctorWarnsWhenTheBinaryCarriesNoCommit(t *testing.T) {
+	fixClock(t)
+	root := filepath.Join(t.TempDir(), "store")
+	mustRun(t, "init", "--data-root", root)
+	withBuild(t, "dev", "unknown", "unknown")
+	// A test binary carries no VCS revision, so the commit stays unknown.
+	if c := findCheck(t, doctorChecks(context.Background(), root), "binary-identity"); c.Status != "warn" {
+		t.Errorf("an untraceable binary must be warned about: %+v", c)
+	}
+	withBuild(t, "v1", "abc1234", "linux/amd64")
+	for _, c := range doctorChecks(context.Background(), root) {
+		if c.Name == "binary-identity" {
+			t.Errorf("a binary with a commit must not be warned about: %+v", c)
+		}
+	}
+}
+
+func TestDoctorNamesTheContractsTheRuntimeValidates(t *testing.T) {
+	checks := doctorChecks(context.Background(), filepath.Join(t.TempDir(), "not-yet"))
+	c := findCheck(t, checks, "contracts")
+	if c.Status != "info" {
+		t.Fatalf("contracts check must be informational: %+v", c)
+	}
+	for _, id := range semanticruntime.KnownContracts() {
+		if !strings.Contains(c.Detail, id) {
+			t.Errorf("doctor does not list %s: %s", id, c.Detail)
+		}
+	}
+}
+
+func TestVersionCommandListsContracts(t *testing.T) {
+	withBuild(t, "v9.9.9", "abc1234", "linux/amd64")
+	out, err := run(t, "version")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{`"version":"v9.9.9"`, `"commit":"abc1234"`, `"contracts":[`, `"sei.decision-memory/v1alpha1"`} {
+		if !strings.Contains(out, want) {
+			t.Errorf("version output lacks %s: %s", want, out)
+		}
 	}
 }

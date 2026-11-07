@@ -3,7 +3,7 @@
 Status: **Open**  
 Priority: **1**  
 Related ADRs: **ADR-0005, ADR-0010, ADR-0028, ADR-0029**  
-Updated: 2026-10-10
+Updated: 2026-11-02
 
 ## Goal
 
@@ -517,6 +517,181 @@ time-to-orientation（再開までの時間）、操作数、mental effortは**�
 この変更はResolution条件を強めたり弱めたりしません。H2の観測項目のうち「post-decision情報をhistorical basisへ誤帰属しないか」は主な指標1に、「current DecisionをRecommendationと混同しないか」は主な指標2の前半に、「AI suggestionの修正・却下負担」は主な指標2の後半の観測に対応します。プロバイダ交換後の継続（主な指標3）は、E1〜E8とH1 / H2の観測項目には明示されていないため、観測項目へ加えるかどうかは別途判断します。ここでは観測の重みづけを明示するだけです。プロバイダ交換後の継続は、`SEI_VALUE_ACCEPTANCE.md`のV4のプロバイダ離脱訓練（ISSUE-000088）とも対応します。
 
 SEI側で明確な価値差が観測されなくてもFAILを隠さない。raw chat / simple noteで十分である、またはcapture overheadが利益を上回る場合は、Decision Continuity Product hypothesisを弱める・scopeを狭めるEvidenceとして記録する。
+
+
+### 2026-11-02 横断受入追補：履歴の再現、現在の利用、行為の資格
+
+**位置付け：既存H1/H2とCR-73.1〜10の評価を精緻化する計画追補。新たなStable Requirement、共通Runtime／Host、Owner受理の追加ではない。** 2026-11-02照合基準はSEI `main` `234c3f91ce86b59b0f202295f454bad74dc6758c`。以下のIssue番号はGitHub Issueを指し、本ファイルの`ISSUE-000073`や過去のGitHub #73とは別の識別子である。
+
+**三つの継続性を別々に説明する。** (A) *Historical reconstruction*：当時のDecision／Recommendation／basis／Unknown／判断後に生じた情報の区別。(B) *Current applicability*：現在のSource・Rule・用途・外部条件と過去の判断の適合。確認できない箇所は、用途に応じた再確認先を持つ未判定として保持する。(C) *Action eligibility/effect*：現在の主体・対象・権限・Commit／Receipt／Business Outcome。Cは既存Host・Capability・Provider等の責務とし、SEIの`resume`や`check_decision`の成功を実行許可・業務完了へ昇格させない。
+
+**判断の根拠の解像度と取得範囲を保存する。** 論理IDと同一内容digestだけで参照対象を同一視せず、scope・Exact Binding・Representation Profile・資料の版／位置を必要な用途で辿れるようにする。独立recordが見つからなくても文書本文に候補が残る場合、`record未発見`と`内容不存在`を区別する。検索結果0件／未決一覧0件／Impact候補が正数であることだけで、対象全件性や業務上の無影響を断定しない。TEIの評価Ruleが変われば元Graph／Source byteが同じでも評価結果は変わり得る。SEI [#767](https://github.com/hat47x/sei-cognition/issues/767)が扱う外延の網羅、問いに必要な意味区別、開示可能な範囲、現在の適用可能性の4軸を、H1・横断受入での解釈票に利用する。新しい共通Claim型やTruth Storeへは移さない。
+
+**機密と外部Harnessの境界。** 内部Productが知るSourceと、外部AI／Harnessへ開示できるProjectionは一致しない場合がある。開示Projectionが同じ二入力でも内部の正解が異なり得るため、外部AIによる「不存在」「全件確認済み」の断定を許さない。必要な確認は権限を持つProductへ委ね、外部へ返す理由・件数も開示許可に従って選択する。本文や外部ツール結果はdataとして扱い、そこに記された命令を操作権限に変換しない（SEI #660/#767、TAI #232、TEI #2515/#2516の責務を参照）。
+
+**既存実装との一致と残余。** [PR #679](https://github.com/hat47x/sei-cognition/pull/679) は2026-10-29に統合済みで、集計範囲と照合付き原record読出しを追加した（外部原資料の真正性や人間の理解は別）。GitHub [#699](https://github.com/hat47x/sei-cognition/issues/699) はClosedであり、Gate結果の版束縛を未着手とする古い記述を現状へ持ち込まない。残る課題は、Exact basis表示 [#697](https://github.com/hat47x/sei-cognition/issues/697)、記録側のExact Binding [#686](https://github.com/hat47x/sei-cognition/issues/686)、根拠解決と未検証範囲 [#710](https://github.com/hat47x/sei-cognition/issues/710)、同一論理参照の曖昧さ [#724](https://github.com/hat47x/sei-cognition/issues/724)、後続Lineageの意味 [#687](https://github.com/hat47x/sei-cognition/issues/687)、現在文脈の経路 [#660](https://github.com/hat47x/sei-cognition/issues/660) 等の既存Issueで追う。`allow`／`verify`の終了コードや、記録されたDecisionの存在だけを強い意味受理へ変換しない。
+
+**H2の二重の妥当性。** (1) *Semantic parity*：A raw chat／B chronological note／C SEI Resumeの全条件で、Decision、Recommendation、歴史的basis、Unknown、後発情報を同じ意味で伝える。(2) *Product fidelity*：Cの固定`surface_text`は人が整理した評価素材であり、現行`BuildResume()`を直接取得した製品出力ではない。既存fixtureと未露出条件を維持してpilotを行い、別のoperator-side照合票でC素材と現行CLI/MCP出力の取得可能範囲・原recordへの操作・補足編集量を比較する。H2のC優位をそのまま現行製品の優位へ昇格させない。
+
+**Human Evidenceの適格性。** 3 fixture×3 condition=9組のcounterbalance coverageは構造上の網羅であり、異なるreader、事前素材への非露出、human authorship、独立した正誤監査を証明しない。既存`review_provenance`・session snapshot・stage gateを再利用し、評価者の重複／事前露出／合成回答／回答監査の根拠をoperator票で分ける。回答本文の文字列型・質問数・`findings=pass`だけで正解を主張しない。暦上のgapと認知的gapを分けたH1を、H2の技術的capture修正と並行して実施できる。新しいhuman session schemaは設けない。
+
+**証拠取得のP0修正候補（未実装・NOT RUN）。** H2はpreflight 7／shared-runner 8／analysis 5、合計20 testを期待する。現行`capture_issue_000073_h2_runner_selftest.py`は`unittest discover`の終了コードだけでPASSとし、一部未発見でも誤PASSになり得る。完全PASSには期待したtest ID集合の実行、skip／error／failureなし、expected HEAD・required sourceの照合を要求する。3件だけのsynthetic self-test fixtureも7/8/5へ合わせる。さらに`--replace`付きのHEAD／source preflight失敗で既存Evidenceを削除し得るため、preflight失敗時は旧byteを保持し、新Evidenceを正常に確定できた場合にだけ原子的に置換する。合成負例を先に作り、修正前の挙動と修正後の結果を分けて保存する。**20/20 actual runと修正後capture self-testは未取得**。
+
+**RC-06の実装候補を別Draft PRへ切り出した（2026-11-02）。** [PR #772](https://github.com/hat47x/sei-cognition/pull/772)はH2の実テスト20件の完全ID照合・skip拒否・旧Evidence保全を`tools/capture_issue_000073_h2_runner_selftest.py`および合成自己試験に実装する。GitHub上のソースID一致・変更範囲は静的確認済みだが、**対象Python self-test、現行fixtureの20件actual run、capture actual runは未実行**。#772はDraftのまま資格確認を行い、main実装済み・合格済みとは扱わない。#768の文書計画は実装・humanの証拠と独立に維持する。
+
+**次の受入シナリオ（既存H1/H2と [#677](https://github.com/hat47x/sei-cognition/issues/677) のCT-01〜06への追補、実行未了）。**
+
+| ケース | 入力・変化 | 観測すること | 主な追跡先 |
+| --- | --- | --- | --- |
+| RC-01 歴史と現在 | D1のbasis E0→E1、同一論理ID・異なるscope／digest、後続D2のLineage | D1の過去を保持し、今の用途への適合と未確認条件を区別 | #697/#687/#660 |
+| RC-02 取得・解釈の欠落 | record 2件だけ直接解決、別の5文脈はPolicy本文内の対応候補、Unknown Q1は残存 | record未発見を内容不存在へ変換せず、候補位置と意味未確認を保つ | #677/#660/#767 |
+| RC-03 比較と開示 | 同じ可視Projectionで非開示原本だけ異なる／Rule基準だけ変更 | 全件保証・秘密の推知・旧Ruleでの現在性保証を避け、適切な追加確認先を示す | #767／TEI #2516 |
+| RC-04 Gateと行為 | 過去のallowを持つD1、Store／Authority変更、外部操作は未実行 | 当時の検査と現在のAction資格、Receipt・Effect・Outcomeを区別 | #691/#710、TEI #1174 |
+| RC-05 Product Value | H1のreal Inquiry、H2の固定3条件、actual C製品出力の別票 | 正確性・first useful action・原record再閲覧・correction・capture/review taxを分離。単純baselineへの優位が無い結果も残す | ISSUE-000073 |
+| RC-06 Evidence保全 | H2のテスト欠落・skip・同数別ID・`--replace`前提失敗 | 偽PASSを拒否、失敗診断を残し、既存Evidenceを保護 | ISSUE-000073 |
+
+**責任と判断待ち。** SEIは問いと根拠・認識上の残余、H1/H2の判断再開を扱う。Cross-Consumerの比較可能性はTEI #2516、どの追加証拠・専門性が必要かを選ぶ認知MethodはSEI #767、記録・解釈をどの製品が保有するかはSEI #711、組織固有の意志や引継ぎはSEI #677が扱う。Lineageの向き・撤回端点と受理への効果、basisが参考資料か成立必須根拠か、実行・公開の資格は各Ownerの判断に残す。外部Harness・複数AIの同意を独立した根拠や人間の承認として加算しない。
+
+**進め方。** 最初にRC-06のcapture再現・修正を実施し、H1の実再開と既存H2 pilotは可能な範囲で並行して観測する。続いてRC-01/02のread-only再開票、RC-03/04の現在利用・開示・実行境界を既存ConsumerのEvidenceで補強する。証拠は`source-static / synthetic executable / source-bound executable / actual human / actual provider`を分け、設計追加だけでISSUE-000073のResolution条件6〜8を成立させない。
+
+
+### 2026-11-02 後続追補：問い相対の十分性と、再開後に意味のある観測を選ぶ方法
+
+**成熟した設計上の区別（検証計画の追加）。** [SEI #767 P5/P6](https://github.com/hat47x/sei-cognition/issues/767)と[Draft PR #770](https://github.com/hat47x/sei-cognition/pull/770)は、証拠の十分性を「資料が何件見つかったか」から、**現在の問いQを、その観測Oで判定できるか**へ具体化した。これはISSUE-000073の認識の継続性へ接続できる。ただし、既存H1/H2の設計・Human Evidenceと、#767/#770の純粋合成Method研究を分離する。
+
+**問いの種類ごとに、再開の成功条件を変える。** 例えば、`Q1=過去のD1で何を判断したか`は当時の固定Decisionと根拠で答えられる場合がある。`Q2=現在もD1の前提が成立するか`は現在のSource・Rule・用途・権限の追加照合を要する場合がある。`Q3=前回確認後に関連変更が一度もなかったか`は最終Snapshotが同じでも、区間中の追加・離脱・遅着訂正を覆う履歴を要する。Q1の復元成功をQ2/Q3への回答済みと扱わない。
+
+**合成世界での識別性と十分性。** 固定した世界集合Wと問いQ、観測関数Oについて、すべてのA,B∈Wで`O(A)=O(B) ⇒ Q(A)=Q(B)`なら、**そのW内では**OはQを識別するのに十分な情報を持つ。一組の世界を区別するProbeの存在はW全体の十分性を示さない。また、Wへの新世界追加、実Providerの対象集合・Revision・アクセス範囲変更後の適用も別検証である。#770のW1〜W4では`count+has_C+has_E`がQを区別できるが、公開追加世界W5でW3/W5の観測が一致しQが異なり、固定Corpusでの成立が崩れる。#770の**最初の6/6 PASS（その後、追加7件を含め13/13 PASSと報告）は公開合成反例に限定**し、実SEI Productや現実の全世界の十分性を証明しない。
+
+**有用な次の確認を選ぶ。** H1で再開に迷ったとき、認知Methodの候補は(1)現在の問いと必要な範囲を定める、(2)観測が同じなのに答えの異なる仮説を明示する、(3)区別し得る追加Source/履歴/独立Oracleを探す、(4)実際に利用できるToolと開示許可を確認する、(5)実行された確認と結果を観測し、残るQuestionへ戻す、の順で検討する。これは説明用の分析手順でありSEIの新しい公式状態機械ではない。明示された`Method Definition / Realization / Application`とApplicationの`input/output/residual/provenance`参照を再利用し、Method候補→実Tool発見→許可→実行→観測→用途適合の各段階を別Evidenceとする。
+
+**認知の独立性。** 同じBrief/Oracle/Promptを複数AIに配信して得た一致は、元の独立根拠が増えたことを意味しない。モデルの人数ではなくSourceの系譜と実際に利用したOracleを確認する。外部へ開示したVが二つの内部世界で同じで、Qだけが異なる場合、外部Harnessは識別を完了できない。その際は内部の権限あるProductへ限定確認を委ね、秘密の要素・個数・存在を低権限側へ説明しない。提案の生成自体を禁止するのではなく、当該Claimの成立範囲と公開可能な説明を調整する。
+
+**異なるConsumerと世代を揃える。** TEI [#2516](https://github.com/hat47x/tei-platform/issues/2516)の用途相対Projectionでは、二つのConsumerが同じ数値を示してもScope/Grain/Rule/Join・有効時点の違いを検査してから比較する。また、一つの作業で複数Sourceを読む場合、個別digestの一致と**共同で同じClaimを支持する版の組合せ**は別である。SHOの資料位置・Occurrence/Revision、MMIのSource identity、TEIのSource/Correspondence/Meaning/Generation/Publicationの区別を利用して、H1の次の調査候補へ接続する。外部HarnessのSkill候補`yi-sei-inquiry`は[SEI #769](https://github.com/hat47x/sei-cognition/issues/769)が所有し、Tool discoveryやSkill文書の存在を実行可能なProduct能力へ昇格させない。
+
+**既存受入票への追加（RC-01〜06と独立の後続ケース）。**
+
+| ケース | 公開合成入力と対照 | 証明する範囲と観測 |
+| --- | --- | --- |
+| **RC-07 問い相対のProbe** | Q=全対象が正値か。W1〜W4で一致したProbeを、同じ観測でQが異なるW5へ適用 | 二世界の識別、固定Corpus全体のQ十分性、未知世界を含む実Product資格を三段階で説明する。次の識別的なSource取得候補と未確認を示す（#767/#770の合成証拠を参照し、ここでの実行・H1成果は未成立） |
+| **RC-08 同じ現在値・異なる履歴** | t0/t2のDecision対象・集計が同じで、別世界だけt1にRelation加入→離脱。さらにSource/Rule改版または遅着訂正を投入 | `いま同じ`と`前回から変更なし`のClaimを分け、後者に必要な区間履歴の取得範囲と不足を明示。H1の現在利用／再確認へ接続（TEI #1125/#2505/#2516） |
+| **RC-09 Tool/Skill・情報開示** | 同一の開示Projection、異なる非開示原本、ToolありSkillなし／Skillありの二条件、同Source由来の複数Agent同意 | Skill候補・実Tool/版・許可・実観測・公開可能な結果を別証拠とし、独立根拠の誤加算・秘密の存在推知・不要な追加質問を別々に記録（SEI #769/#767、TAI Draft #270） |
+
+**順序とProduct Value。** RC-07は#770の既存合成Referenceを再利用して別の実装を起こさず、RC-08はread-onlyのSource/履歴照合案から始める。RC-09は権限付き実接続のOwner・提供Toolが確定してから実施する。H1本番観測の最初の6問とH2の3 fixture×3 conditionをそのまま保持し、追加研究は回答固定後のoperator評価、または独立した合成横断票で扱う。成功条件は「答えを速く言えたか」だけではなく「問うているClaimに十分な根拠があるか、まだ何を調べる必要があるかを利用者が正しく理解したか」とし、余分な確認・取得費用・capture/review負担をともに測定する。
+
+**実施資格。** #770の最初の6/6 PASSと、追加7件を含めた13/13 PASSはPython 3.13.5による公開合成Referenceの局所実行であり、別GitHub Draft PRの限定Evidenceである。SEI #769のSkill、本PRのRC-07〜09、現行SEI CLI/Goの認知Method実行、実Source Provider、H1/H2人間評価は**NOT RUN**。Product Value・Owner意味受理・現在の業務実行資格のEvidenceは変更しない。
+
+
+### 2026-11-02 追補：観測同値類・複数Readの共同資格・限定継続
+
+**設計上の成熟点。** [SEI #767 P6追補](https://github.com/hat47x/sei-cognition/issues/767)と[Draft #770](https://github.com/hat47x/sei-cognition/pull/770)では、従来の「固定Corpus W全体で問いQを識別できるか」に加え、**現在得た一つの観測oと整合する世界だけならQを限定的に判断できるか**を検討した。2026-11-02時点で既存6件＋追加7件の**公開合成Python 13/13 PASSが別Draft PRで報告**され、両ファイルのGit blobも記録されている。これは#770の局所合成試験のEvidenceであり、本IssueのH1/H2、実Provider、現行CLIの実行証拠へ加算しない。
+
+**判断の単位を問いと観測の組に保つ。** 説明用の固定世界集合Wにおいて`C_W(o)={w∈W | O(w)=o}`とすると、`C_W(o)`が非空かつQが全要素で同じ場合に限り、その観測セルではQを限定的に説明できる。Wの全セルが同じ性質を持つ場合はW全体で十分性が成立する。セルが空なら`unmodeled-observation`、同じセルにQが異なる世界があれば`unknown-in-fixture`とし、否定結果を捏造しない。値が一致するセルも`true-in-fixture`／`false-in-fixture`の**合成範囲付き結果**に留める。
+
+| RC-07の追加判別 | 合成入力 | 必要な観測と反証 |
+| --- | --- | --- |
+| **RC-07a 局所的な利用可能性** | W1〜W4、Probe=`count+has_C` | Corpus全体は不十分だがW1の観測セルはtrue、W2はfalse、W3/W4はunknown。**局所で答えられる問いを全件未回答へ一律縮退しない** |
+| **RC-07b 追加世界での訂正** | W1〜W4では`count+has_C+has_E`でW3セルがtrue、新たにW5（D=0）を追加 | 同じ観測でQが異なるため`unknown-in-fixture`へ更新。旧Application・当時のWと判断理由を歴史として保存し、現在の適用だけ再評価 |
+| **RC-07c 想定外観測** | 既存Wに対応しない新しいobserved signature | `unmodeled-observation`を`false`や対象不存在へ昇格させず、対象モデル・Sourceへ戻る次のInquiryを示す |
+
+**追加取得と観測モデル拡張の関係。** 固定Wについて識別的なProbeを追加すれば観測セルは細分化され、旧unknownを限定的に解消できる場合がある。一方、同じProbeでもWに新たな可能性が加われば、旧限定結論がunknownへ戻り得る。これはApplicationの履歴が失われることではなく、**現在の問いに対する知識範囲が更新されたこと**である。実対象がWで覆われること、Source/Ruleの正本、各Observationの真正性はProduct/Ownerが別に確認する。
+
+**複数Readを一つのClaimへ結合する資格。** 各Readの`result=pass`、単体digest、正しいTool応答だけでは、複数Readが**同じ対象世界・同じ問いに共同で適用できる**と証明したことにはならない。最小反例は`t0:A=1,B=0`、`t1:A=0,B=1`で、A@t0=1とB@t1=1を結合すると、どちらの実Snapshotでも偽の`A,Bとも正値`を作る。現行の公開合成Referenceの`joint_read_candidate`は必要フィールド、重複、epochとSource revisionのラベル混合を検出する**事前検査**であり、ラベル一致は実ReadのSource/Scope/Provider正当性を証明しない。異版でも有効な橋渡し（bridge）や用途限定の局所Claimが成立するかはTEI [#2516 W9/W10](https://github.com/hat47x/tei-platform/issues/2516)、#2605等のOwnerへ戻す。
+
+| RC-08の追加判別 | 合成入力 | 期待する判断 |
+| --- | --- | --- |
+| **RC-08a 混合epoch** | A@t0 と B@t1、どちらも単独では正しく観測 | 合成の`mixed-epoch-unknown`へ戻す。実際の共同Snapshotや有効なbridgeがあれば既存ProductのEvidenceで別途確認 |
+| **RC-08b 同epoch・異版** | epochは同じ、Source revisionだけ異なる | 合成の`mixed-source-unknown`。同じ文字列epochだけを共同資格とみなさない |
+| **RC-08c 部分Claim** | D1側Sourceは必要集合が完全、D2は取得途中。問うClaimがD1単独／D1×D2 JOINの2種類 | D1単独に必要な情報が成立する場合はその問いを先に進め、JOINのClaimは必要依存の不足とともに保留する |
+
+**開示の資格は結果の後にも必要。** 同じ外部可視Projection Vを与える二つの内部世界でQが異なる場合、外部Consumerの観測だけではそのQを判断できない。内部ProductにQの限定結論が得られても、結果やProbe名・失敗理由・隠れた対象の件数の公開は別の資格を要する。Draft #770は`result_release_authorized`を**信頼済み引数として与えた合成試験**に過ぎず、Tool名、Timing、Trace、反復照会、実OS／Networkの情報流出を防いだ実証ではない。実開示のOwnerはTEI #2515・TAI #232等に保持し、SEIの再開票では開示可能な説明にとどめる。
+
+**Product Valueへの転換。** 再開後の認知支援は、「すべてを取得してから進む／不足があれば全部停止する」という二択を解消し、**根拠の足りている限定Claimについて調査や判断を前進させ、足りないClaimだけ必要な追加観測を提案する**ことを価値候補とする。H1では元の回答を固定した後、(1)限定結論の範囲、(2)保留の理由、(3)実際に取った次の一手、(4)誤った混合Read・誤保証の有無、(5)不要な再取得・人の確認負担をoperator側で観測する。H2の固定素材・盲検割当・評価指標は変更せず、合成研究の結果をHuman Evidenceへ転用しない。
+
+**依存と状態。** 局所認知方法と次Probeの選択は#767、Question/Observation保存契約は#711、Method有効性の学習と独立holdoutは#450、外部Skillは#769／TAI Draft #270、Consumerの共同ReadはTEI #2516のまま。新しいContract enum、第二のClaim Store／Universal State Machine／Host、別の中央承認Gateを導入しない。**本PRは上記の計画・評価文書を更新するもので、RC-07a〜c/RC-08a〜cの実SEI・実Human検証はNOT RUN**。
+
+
+### 2026-11-02 追補：調査計画自体の開示境界と、必要根拠・実取得・公開結果の分離
+
+**成熟した横断反例。** SEI [#767 P6](https://github.com/hat47x/sei-cognition/issues/767)と[Draft #770](https://github.com/hat47x/sei-cognition/pull/770)は、最終回答が両世界で同じ`not-confirmable-from-released-information`でも、**非公開Actionの存在に応じて外部に提示するProbe候補名、Tool一覧、呼出し順、診断、件数が変化すると、その違い自体が秘密になる**ことを公開合成例として示した。TEI [#2516 W10 J-08〜11](https://github.com/hat47x/tei-platform/issues/2516)は、Claimの必要根拠、実Providerが取得した範囲、Consumer/Agentへ見せた範囲をそれぞれ別の観測対象とした。SEIのDecision Continuityでも、過去の判断や現在の次の一手を外部Harnessへ送る際に同じ区別が必要である。
+
+**三つのFootprintを混ぜない。**
+1. **Proof Dependency**：ある問いQを判断するために必要な対象、Source/Role、Rule・Relation/Field、Scope/対象全件性、時点、独立Oracle。画面に表示されないValidation Ruleなどが必要な場合もあり、未列挙依存は「不要」ではなく未確認。
+2. **Actual Acquisition**：Product/Providerが実際に読んだRelation/Field、Snapshot・Source版、Cache/Overfetch、実Readの観測可能な証拠。宣言Mappingの狭さや返却JSONの狭さだけでは、実際のDBアクセスが最小だったとは言えない。
+3. **Consumer-visible / Planner-visible**：外部に公開した回答・Source・Tool JSONだけでなく、提案する次の問い、Tool候補数・名称・Args、Error、Trace、Status、実呼出し順等の外部観測可能な事実。認知結果を秘匿してもPlanが秘密を漏らし得る。
+
+**公開上の観測同値条件（合成研究上の不変条件候補）。** 同じ公開View、公開済みTool/Capability一覧、同じ用途Q、同じ公開許可条件を持つ二つの内部世界S0/S1で、秘密のActionだけが異なる場合、外部に許可された可視Planと公開診断が秘密の有無だけで変化しないことを比較する。公開が正式に許可された差は、何も違ってはならないという扱いにしない。これは情報流を評価するための**合成基準**であり、実OS/Network、Timing、Log、反復照会、Product内部の非干渉保証ではない。未知Toolは`unsupported`、未観測結果は`unknown`として扱い、Tool Discoveryの表示を実Tool/権限の実在とみなさない。
+
+**RC-09への具体的追補（重複ケースを新設しない）。**
+
+| ケース | 一致する公開入力と異なる内部条件 | 期待する証拠 |
+| --- | --- | --- |
+| **RC-09a Plan候補の漏出** | 同じ公開View・同じ公開Tool一覧。片方だけに秘密Actionがある | 最終回答だけでなく公開Probe候補と説明・件数・呼出し計画の差を確認。非公開依存で分岐する悪いPlannerを識別 |
+| **RC-09b 必要根拠と実取得の差** | 表示Resultは同じ。片方のProviderは公開必要Fieldのみ、もう片方は秘匿列までOverfetch | 表示が同じことを実Read最小性の証拠にしない。実Providerの取得Witness未観測なら`physical-read-unverified` |
+| **RC-09c 表示値と暗黙Rule依存** | 公開画面値は同じ。内部のRule必須入力が異なり、評価結果が変わる | 表示FieldだけでProof Dependencyを閉じない。Rule実評価と外部結果開示を別に記録 |
+
+**人間の再開とMethodの価値。** 既存H1/H2の回答・盲検条件を維持し、H1回答固定後のoperator票では、(a)利用者が追加調査先を選べたか、(b)実際に使えるToolか、(c)必要根拠と取得情報が対応したか、(d)公開された計画や診断が過剰な情報を漏らしていないか、(e)余分なSource再取得・修正負担を分ける。安全な限定Planが問いを解けなかった場合も、機密性PASSだけをProduct Valueの達成へ昇格させない。
+
+**別研究の証拠資格。** Draft #770の先行2 Moduleは**13/13 PASS**、追加の`test_probe_planning_visibility.py`は**単独7/7 PASS**が報告された。追加後の3 Module一括回帰、実Tool/OS/Provider/Network/Timing、SEI本体、H1/H2人間試験は**NOT RUN**。合計20件を一括PASSと記録しない。実Disclosure/Tool ActionはTEI #2507/#2515/#2516、TAI #232、実ReadはTEI #2628等の既存Ownerが担当する。SEIはInquiry/Methodにおける公開可能な次の問い・Probe提案の認知的妥当性を評価する。
+
+
+### 2026-11-02 追加統合：調査計画の開示、必要根拠と実取得、Evidence取得修正の分離
+
+**新たな失敗形：回答本文が同一でも調査計画が秘密を露出する。** [SEI #767](https://github.com/hat47x/sei-cognition/issues/767)のP6、[Draft #770](https://github.com/hat47x/sei-cognition/pull/770)、[TEI #2516 J-08〜11](https://github.com/hat47x/tei-platform/issues/2516)、[TAI Draft #270](https://github.com/hat47x/tai-pleroma/pull/270)を照合した。外部Consumerから見えるView・許可されたTool集合が同一の二つの内部世界S0/S1で、非公開Actionの有無だけが異なるとする。最終回答を双方同じ`not-confirmable`へ揃えても、候補Probe、Tool名、順序、エラー、詳細理由、件数が秘密に応じ変化すれば、**調査計画そのものが存在情報を伝える**。認知Methodの「どの調査が有益か」と、Consumerへ「どの調査候補を見せてよいか」を別条件とする。ツールの許可・実開示・Network/OS強制は既存Product/TAI/TEIの責務であり、SEIに第二Policy Engineを作らない。
+
+**認知的な必要情報と実Readを同一視しない。** [TEI #2516 W10](https://github.com/hat47x/tei-platform/issues/2516)の三つの観測範囲を既存のMethod Applicationのinput/output/residualと受入票に対応させる。
+
+| 対象 | 問いと証拠 | SEI側の扱い |
+| --- | --- | --- |
+| Claim Proof Dependency | Qを答えるために必要なSource/Role/Rule/Relation/Scope/Time/Oracle。画面に出ないRule入力も必要な場合がある | 取得未列挙を「不要」とせず、根拠上の残余を保持 |
+| Actual Acquisition Footprint | 実際のQuery/Provider/Cache/Toolが読んだ対象と版・scope・完全性。返却JSONが狭くても秘密列をOverfetchした可能性 | 実Readが確認できなければ`physical-read-unverified`、宣言だけで取得最小性や全件性を保証しない |
+| Consumer/Planner-visible Footprint | 画面・SHO・外部AI・Tool JSON/Traceへ実際に露出した本文、候補Action、Probe名、引数、診断、順序 | 開示許可に沿って説明を限定し、実OS／Networkや反復照会での非干渉は別受入 |
+
+**既存RC-09の追加反例（新しい製品Schemaは要求しない）。**
+
+| Case | 固定公開合成対照 | 期待する判別と追跡先 |
+| --- | --- | --- |
+| **RC-09a Planner-visible leakage** | 外部可視V・許可Tool集合・最終回答は同じ。内部に秘密Actionがある世界だけ提案候補が増える | 公開候補／説明・Tool discovery・Traceを比較し、秘密の存在を示す計画が露出しないかを問う。SEI #767/#770は候補の評価、TAI #232/TEI #2515/#2507は実機密・Action適合を担当 |
+| **RC-09b Declared/actual gap** | 同じ表示入力と返却JSONだが、別世界では非表示Rule依存やProviderの秘密列Overfetchがある | 依存集合・実物理Read・開示の差を示し、確認できない項目はUnknownへ。実Provider取得はTEI #2628、Rule依存はTEI #2624/#1129 |
+| **RC-09c Consistent joint evidence** | 各Sourceは個別にdigest/取得成功でも、Manifest/Source改版やRead epochが混在 | Qに必要なSourceが**共同で**一つのClaimを支持する証拠を確認。全部の再取得を必須とせず、局所依存だけの再確認と正式bridgeをTEI #2516/#2604で評価 |
+
+**検証・費用の分離。** 方法候補やToolの発見、実Call、実取得・実開示、外部AIの応答、Ownerの受理は異なる観測である。誤保証、不要なSource再取得、確認時間/Token、秘密漏洩、許された部分作業を別の評価欄で比較し、単一スコアへ合算しない。H1の初回6問とH2の固定比較素材・盲検手順は維持し、新反例は回答固定後のoperator票または別合成研究へ収容する。CSWの自由な探索自体へ外部承認Gateを挿入しない。
+
+**Evidence更新（2026-11-02）。** [SEI Draft #770](https://github.com/hat47x/sei-cognition/pull/770)は公開合成の先行13件にPlanner-visible leakの新規7件を追加し、新規7/7 PASSを報告した。ただし**追加後の3 Module全20件一括回帰は未実行**で、実OS/Tool/Skillの機密非干渉を実証したものではない。別途、H2 captureの修正候補を[Draft #771](https://github.com/hat47x/sei-cognition/pull/771)として2ファイルに記録し、期待ID完全性・skip・同数別ID・`--replace`失敗時の旧Evidence保全を実装案と合成セルフテストに落とした。**#771のPython actual self-testと現行H2 actual 20件実行は未取得**。Draft PRの作成や静的照合をEvidence PASSへ昇格させない。
+
+
+### 2026-11-02 依存に応じた再資格化と、証拠の受渡し・重複実装の整理
+
+**成熟した横断設計／製品受入候補（現状はDraft・NOT RUN）。** [TAI #271](https://github.com/hat47x/tai-pleroma/issues/271)・[TAI Draft #270](https://github.com/hat47x/tai-pleroma/pull/270)、[TEI #2516](https://github.com/hat47x/tei-platform/issues/2516)・[Draft #2626](https://github.com/hat47x/tei-platform/pull/2626)、SEI #767を照合すると、Decision Continuityの再開時に「すべてを再検証」か「過去の成功をそのまま使う」かの二択を要求する必要はない。**現在の問いQに依存するSource／Rule／Scope／時点／現行Authority／出力世代を明らかにし、変化に関係する部分から再確認する**ことを独立した候補とする。
+
+**再利用の判断単位。** 一つのActivity/Decisionを、少なくとも以下の観測列で比較する。これはH1/横断評価用の**operator票**であり、第二のCanonical Dependency Graph、SEI Runtime Schema、横断Hostの導入計画ではない。
+
+| 観測対象 | 固定・再確認する内容 | 残余の扱い |
+| --- | --- | --- |
+| 過去の事実 | Decision／Method Application／原Sourceの当時のExact Bindingと採取版、当時の受理記録 | 後日の変化で歴史的存在自体を消さない |
+| 今回の問いQ | Historical / Current / Interval / Joint Claim / Action Outcome、必要なScope・Grain・Rule・期間 | 問いが変われば必要依存を再選択する |
+| 必要な根拠 | Qを支持するSource・Rule・関係・Oracle・Review／受理・依存Edge、対象全件性 | 不明なEdgeを「無関係・変更なし」とみなさない |
+| 実取得・共同整合 | 実Toolの版／args／Workspace、実Read／epoch／必要な同版保証または有効なbridge | 単品PASSから共同Claimを成立させない |
+| 開示と現在資格 | 実Reader・現在Grant/Trust・公開可能な根拠、Tool候補や診断の公開範囲 | 履歴時点の許可・Skill loadから現在の許可を推定しない |
+| 再開による効果 | 独立した次の確認、実Source再読取、実Artifact取得／Body受領、利用者の理解と負担 | Claim ACK／Tool成功／実物の到着／最終成果を段階別に記録する |
+
+**選択的な再資格化の三方式。** 同じ固定入力と独立した期待値で、(R0)必要そうなSourceとConsumerを毎回全面再検証、(R1)実証された依存・版・用途を使って関連箇所だけ再確認、(R2)過去の成功を再確認せず採用、を比較する。R1では旧Evidenceを履歴として保持し、*現在のClaim*に適用できる部分と、取得・比較・開示・権限が未確認な部分を分離する。依存・現行時点の証拠が不足する場合は限定的なread-only調査を継続できても、未確認のAction/Business完了を成立させない。**false reuse（誤再利用）**と**unnecessary invalidation（不要な失効）**の双方を検出し、Source再読取数、Tool呼出し、時間、Token、人的修正・Review負担を分けて測る。TAI #271のActivity全体継続と、SEI #767のQ相対の根拠十分性は独立Ownerのままとする。
+
+**横断的な受渡しの証拠を細分化する。** [EKI #465](https://github.com/hat47x/eki-fabric/issues/465) の同一AttemptのClaim ACKは、Output Bodyが届いたことを証明しない。[SHO #7](https://github.com/hat47x/sho-composer/issues/7)／[#10](https://github.com/hat47x/sho-composer/issues/10) の文書にSourceへのリンクがあることも、原文の読出し・Source occurrence再解決・保存・納品の完了を証明しない。TEI #2516の実Consumerでも、単品digestや実CLIのread-only成功から別成果物世代の共同Claimを認めない。Decision再開では`何を思い出したか`、`何を受け取ったか`、`何を実際に確認し次へ進めたか`を個別に残す。Operator/Harnessの表示にある`complete`を、実Artifact到達／業務の効果へ読み替えない。
+
+**追加の独立受入（既存H1/H2の素材・Blinding・Resolution条件はそのまま）。**
+
+| Case | 合成入力・変化 | 判定すべきことと既存Owner |
+| --- | --- | --- |
+| **RC-10 選択的な再資格化** | 旧D1の根拠E0と固定した履歴のまま、無関係な文書タイトルだけを変更、次に依存Ruleと外部Provider版を変更 | R1が無関係変更を過大失効させず、Rule/Provider変更と不明Edgeを再確認へ返せるか。R0/R2とfalse reuse・再確認負担を比較（SEI #767／TAI #271／TEI #2516） |
+| **RC-11 異なる受渡し段階** | 同一AttemptのClaim ACK、未取得Body、後着したBody、SHO文書へのSourceリンク、旧版と新版の公開Artifactが混在 | 各取得・照合・保存・実読取の段階を独立に記録し、最終`completed`を誤申告しない。実Delivery/OwnerはEKI #465／SHO #7/#10／TEI #2604 |
+| **RC-12 現行ToolとHarness可搬性** | 固定したread-only TEI CLI結果をHarness AからBへ受け渡し、Skill版、CLI/checkout、Grant、Source・epochのいずれかを変更 | Tool discovery、実Call、CLI実行物・Source、現在Trust・開示範囲を再照合。履歴に残った受信・表示の成功を実行や採用の資格へ昇格させない（TAI #271／SEI #769／TEI #2605/#2626） |
+
+**確認済みの限定Evidence。** TEI [Draft #2626](https://github.com/hat47x/tei-platform/pull/2626) は現候補HEAD `2e7aef560e35b79d658bb9c41c1575129f6a62a6`への [Focused CI #41445984686](https://github.com/hat47x/tei-platform/actions/runs/41445984686) において、合成15ケースと実`tei` read-only CLIの別ジョブが成功したと記録する。実CLIの9回呼出し、72 catalog entries、2 trace rows、3 validation diagnostics、版／fingerprint照合、古い継続token拒否を確認したという**当該TEI Draftの限定実行**であり、SEIのResumeやMethod、TAIの実Harness間引継ぎを実証していない。TAI #271の公開SK-CはV8限定で15/15整合と4/4 mutation検出を報告するが、Node/実Productの実行・独立holdoutではない。
+
+**P0 H2 capture実装の並行Draftを調停する。** 2026-11-02には、[Draft PR #771](https://github.com/hat47x/sei-cognition/pull/771)と[Draft PR #772](https://github.com/hat47x/sei-cognition/pull/772)が同じ2ファイルを基準main `234c3f91ce86b59b0f202295f454bad74dc6758c`から変更して存在する。両方とも20個の期待テストID、欠落・別ID・skip負例、前提失敗時の旧Evidence保全を扱うが、記録フィールドが`execution.test_coverage`と`execution.test_audit`で異なる。**二PRを独立に採用して二重の正本を作らない。** 両実装のfail-closed挙動・ログ取得可能性・既存JSON利用側との互換・旧Evidenceのbyte保持・OS/Python出力差の扱いを同一試験表で比較し、Ownerの統合判断で一つの採用枝へ収束する。他方の実装は履歴・比較Evidenceとして残す。現時点では両Draftとも未統合で、変更後self-test／現行fixture 20/20 native captureは**NOT RUN**。Doc PR #768は実装を取り込まず、採用版と実行結果が確定してからP0の完了表示を更新する。
+
+**優先順位と停止線。** P0は#771/#772の一枝へ統合するための検証・Evidence保全、P1はH1/H2の独立Human Observationとcapture/review tax、P2はRC-10/11のread-only Source/Bodyの限定実確認、P3はRC-12の実Harness A/Bと実権限・公開の検証。#767/#769/#770の認知Method探索は並列継続可能とし、CSWの生成中Gateや新Common Host/Truth Store/Trust Storeを要件化しない。以上は**受入候補**であり、ISSUE-000073 Resolution 6〜8の観測実績を更新しない。
 
 ## Deliverables
 

@@ -5,10 +5,15 @@ SEI Cognitionは初期開発中です。変更は小さく、意味・来歴・�
 ## 進め方
 
 1. 既存のIssue、Contract、Architecture、Decision Memoryを確認する。
-2. 変更の目的、境界、未検証事項をIssueまたはPR本文へ書く。
-3. 最新の`main`から短命ブランチを作る。
+2. 変更の目的、境界、未検証事項をIssueまたはPR本文へ書く。書けない場合は、PRの作成後に埋める。
+3. 最新の`main`から短命ブランチを作る。既存の作業ブランチがある作業では、それを再利用する。
 4. 変更に対応するtestを追加・更新する。
-5. 変更範囲に応じた検査をローカルで実行し、結果をPR本文へ書いてから統合する。
+5. 変更範囲に応じた検査をローカルで実行し、結果をPR本文へ書いてから統合する。実行できなかった検査は、その理由と残る危険性を記録する。実行していない検査を合格と記録しない。
+6. Draft PRは作業中の表示であり、内容が揃ったら解除して統合する。統合後はブランチを削除する。並行作業と衝突した場合は、その変更だけを保留し、他の作業を続ける。
+
+## 人が確認する範囲
+
+既定は自律とする。人が確認するのは、リポジトリの外へ取り消せない効果を出す場合だけです。具体的には、秘密情報・個人情報・非公開の判断記録の外部送信、本番環境への配備、外部システムの削除や破壊的移行、第三者ライセンスの法的判断、対外公開です。これらに当たらない契約・実装・文書の変更は、案を実装して検証し、版と採否の記録を残して進めます。
 
 ## 禁止事項
 
@@ -25,12 +30,20 @@ GitHub Actionsは当面停止しており、`.github/workflows`はありませ�
   - `gofmt -l .`: 出力が空であること。整形が必要なファイル名が出たら`gofmt -w`で整えて、整形だけのコミットに分ける。
   - `go vet ./...`: 指摘がないこと。
   - `go test ./... -count=1`: 全パッケージがokであること。
+  - `go mod tidy -diff`: 出力が空であること。差分が出たら`go mod tidy`の結果を、他の変更と分けたコミットにする。`go.mod`・`go.sum`のキャッシュが無い環境では、依存の取得に通信が要る。
+  - `go mod verify`: `all modules verified`と表示されること。
 - Python: 変更した対象の`unittest`を実行する（例: `python -m unittest discover -s tools -p "test_*.py"`）。
 - Contract変更は、`contracts/`・`schemas/`・fixture・testを同時に更新し、次の2つの検査を実行する。
   - `python tools/check_contract_conformance.py`: Contractのschemaとfixtureの整合を検査する。`jsonschema`と`referencing`が必要で、未導入なら「jsonschema and referencing are required」と表示して終了する。仮想環境を作り、`pip install -r tools/contract-check-requirements.txt`で入れる。
   - `python tools/check_representation_profiles.py`: Representation ProfileのDefinitionと固定fixtureを検査する。追加の依存はない。
   - どちらも、PASSが示すのはリポジトリ内のschemaとfixtureの整合までである。出力の`claims`のとおり、`release`・`operational`・`adoption_outcome`は`false`で、実運用での意味の受理やリリース可否は示さない。
 - 文書: 変更した現行Markdownについて`plan/scripts/check_document_review_registry.py`を確認する。
+- `plan/`・`requirements/`・`docs/`を変更するときは、リポジトリのルートで次の4つの登録簿検査を実行する。各検査の対象と自己検査は[plan/scripts/README.md](plan/scripts/README.md)にある。
+  - `python3 plan/scripts/check_plan_registry.py`: ADR・Issue登録簿と、`plan/adr`・`plan/issue`の実ファイル、ID、Statusの整合を検査する。
+  - `python3 plan/scripts/check_requirements_registry.py`: Requirement・Acceptance Scenarioの登録簿とIDの参照関係を検査する。
+  - `python3 plan/scripts/check_document_review_registry.py`: 実在するMarkdownが文書レビュー台帳から漏れていないことを検査する。
+  - `python3 plan/scripts/check_github_actions_disabled.py`: `.github/workflows`にtracked fileが無いこと(Actions停止の基線)を検査する。
+  - いずれも追加の依存はなく、PASSが示すのは機械的な整合までである。Requirementの意味上の妥当性、文書内容の正しさ、GitHub Issueの全件が`plan/issue`に載っていることは示さない。PR本文には、実行したコマンドと結果を書く。
 
 実行した検査、実行できなかった検査、その理由をPR本文に分けて書いてください。GitHub Actionsのstatusがないことは、PASSでもfailureでもありません。
 

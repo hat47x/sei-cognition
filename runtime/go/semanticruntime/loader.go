@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 )
 
 const (
@@ -18,6 +19,19 @@ const (
 	ContractIDCapabilityObservation = "sei.capability-observation"
 	ContractVersionV1Alpha1         = "v1alpha1"
 )
+
+// KnownContracts lists the Contract identities ("<id>/<version>") whose
+// records this runtime validates. A record of any other Contract or version is
+// kept and counted as not_verified.
+func KnownContracts() []string {
+	return []string{
+		ContractSemanticInterchange,
+		ContractSemanticReference,
+		ContractDecisionMemory,
+		ContractCapabilityObservation,
+		ContractCognitiveMethod,
+	}
+}
 
 func decodeStrict(data []byte, target any) error {
 	decoder := json.NewDecoder(bytes.NewReader(data))
@@ -67,7 +81,37 @@ func validateExact(binding ExactBinding) error {
 	if binding.ContentDigest == "" {
 		return errors.New("exact binding requires content_digest")
 	}
-	return validateProfile(binding.RepresentationProfile)
+	if err := validateProfile(binding.RepresentationProfile); err != nil {
+		return err
+	}
+	return validateRegisteredDigestForm(binding)
+}
+
+// validateRegisteredDigestForm checks content_digest only for the Profiles
+// this runtime registers. Both define the digest as "sha256:" followed by 64
+// lowercase hexadecimal characters. A Profile this runtime does not register
+// is not inspected, because the meaning of its digest is not defined here.
+func validateRegisteredDigestForm(binding ExactBinding) error {
+	profile := binding.RepresentationProfile
+	if profile.Version != ProfileVersionV1Alpha1 {
+		return nil
+	}
+	if profile.ProfileID != ProfileIDJCSSHA256 && profile.ProfileID != ProfileIDRawBytesSHA256 {
+		return nil
+	}
+	const prefix = "sha256:"
+	digest := binding.ContentDigest
+	hexPart, ok := strings.CutPrefix(digest, prefix)
+	if !ok || len(hexPart) != 64 {
+		return fmt.Errorf("content_digest %q does not match %s<64 lowercase hex> required by %s/%s", digest, prefix, profile.ProfileID, profile.Version)
+	}
+	for i := 0; i < len(hexPart); i++ {
+		c := hexPart[i]
+		if !(c >= '0' && c <= '9') && !(c >= 'a' && c <= 'f') {
+			return fmt.Errorf("content_digest %q does not match %s<64 lowercase hex> required by %s/%s", digest, prefix, profile.ProfileID, profile.Version)
+		}
+	}
+	return nil
 }
 
 func validateReference(ref Reference) error {
@@ -420,14 +464,14 @@ func LoadInterchange(data []byte) (*Bundle, error) {
 
 	bundle := &Bundle{Envelope: envelope, raw: append([]byte(nil), data...)}
 	seenRecordIDs := map[string]struct{}{}
-	for _, record := range envelope.Records {
+	for index, record := range envelope.Records {
 		if _, exists := seenRecordIDs[record.RecordID]; exists {
 			return nil, fmt.Errorf("duplicate interchange record_id %q", record.RecordID)
 		}
 		seenRecordIDs[record.RecordID] = struct{}{}
 		runtimeRecord, err := parseInterchangeRecord(record)
 		if err != nil {
-			return nil, fmt.Errorf("record %q: %w", record.RecordID, err)
+			return nil, fmt.Errorf("record %q at /records/%d: %w", record.RecordID, index, err)
 		}
 		bundle.Records = append(bundle.Records, runtimeRecord)
 	}
