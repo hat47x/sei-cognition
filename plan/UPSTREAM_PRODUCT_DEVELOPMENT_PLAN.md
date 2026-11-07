@@ -1,6 +1,6 @@
 # SEI 上流プロダクト開発計画
 
-更新日: 2026-10-09  
+更新日: 2026-11-08（§9.1追補。旧Laneの個別状態は作成時点の履歴を含む）  
 状態: **Current Upstream Planning Baseline — Brand-world Product Value discovery完了 / Inquiry Continuity actual dogfood / resume-first Product Slice / TEI version exchange + actual-binary Evidence protocolを並行優先**
 
 ## 1. この文書の役割
