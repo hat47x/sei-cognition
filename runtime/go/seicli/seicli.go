@@ -338,6 +338,9 @@ func runAdd(ctx context.Context, args []string, stdout, stderr io.Writer) error 
 		if err != nil {
 			return err
 		}
+		if err := rejectSelfReference("basis", recordType, *id, basisRefs); err != nil {
+			return err
+		}
 
 		logical := semanticruntime.LogicalReference{Kind: recordType, ID: *id}
 		var payload any
@@ -354,6 +357,9 @@ func runAdd(ctx context.Context, args []string, stdout, stderr io.Writer) error 
 		case "decision":
 			unresolvedRefs, err := parseRefs(unresolved)
 			if err != nil {
+				return err
+			}
+			if err := rejectSelfReference("unresolved", recordType, *id, unresolvedRefs); err != nil {
 				return err
 			}
 			recommendationRefs, err := recommendationRefsFrom(recommendations)

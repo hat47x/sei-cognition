@@ -238,7 +238,9 @@ func basisNotes(bundle *semanticruntime.Bundle, d *semanticruntime.Decision) []s
 			label += " @" + safeText(logical.Scope)
 		}
 		var note string
-		if recordedDecisionOrRecommendation(bundle, ref) {
+		if logical, ok := ref.LogicalIdentity(); ok && logical == d.Ref {
+			note = fmt.Sprintf("basis %s: this reference names the decision itself; a decision is not evidence for itself, so it is not reported as a recorded basis (#794)", label)
+		} else if recordedDecisionOrRecommendation(bundle, ref) {
 			note = fmt.Sprintf("basis %s: a Decision or Recommendation with this identity is recorded in this store; that is existence only and its content was not compared", label)
 		} else {
 			note = fmt.Sprintf("basis %s: no Decision or Recommendation with this identity is recorded in this store; whether the referenced material exists elsewhere is not confirmed, and the verdict does not depend on it", label)
