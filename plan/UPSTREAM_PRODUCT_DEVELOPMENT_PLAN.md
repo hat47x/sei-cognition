@@ -431,6 +431,7 @@ Product confidenceを高めるため、happy pathだけでなくpartial commit�
 | TEI actual Evidence protocol | ISSUE-000074 | Open / teiprobe + CLI + protocol source implemented / tests + actual run Not Yet Verified | current Go環境でfixture-scoped tests、次いでactual TEI binary report |
 | Family integration apex（提案） | ADR-0035 Proposed / ISSUE-000085〜000088 Open | 提案のみ。所有者のレビュー待ち。Design Evidenceに限る | 所有者による再基線化項目のレビュー（ISSUE-000085）、次いで実在の記録からの求心プロファイル（ISSUE-000087）と4つの空白の組合せ試験（ISSUE-000086） |
 | Method outcome quality | ISSUE-000071 follow-up | evaluation boundary established | actual human outcome review |
+| Cognitive Methodの問い相対的十分性（TEI連携） | SEI #767 / #769、#820（関連） | 公開合成の反証・TEI実CLIの限定観測まで。実SEI Method接続と独立比較は未実施 | 同一Q・同一Source/Grant/予算でD0/D1/M1の限定実Read比較 |
 | Operational / Adoption | PMS-08 | Not Yet Verified | first real use after usable slice exists |
 
 lane間でEvidenceを流用しません。
@@ -451,6 +452,32 @@ TEI compatibility PASS
 human usability review
   != Adoption / Outcome Satisfied
 ```
+
+### 9.1 TEIハーネス#3：問い相対の根拠十分性を実Productへ接続する（2026-11-08・計画）
+
+**位置づけ**：SEI [#767](https://github.com/hat47x/sei-cognition/issues/767) のMethod Inquiry・Residual・次Probe選択を、TEI [#3262](https://github.com/hat47x/tei-platform/issues/3262) の実CLI Readと独立Required、[TEI #2516](https://github.com/hat47x/tei-platform/issues/2516) のConstruction Context、[TAI #168](https://github.com/hat47x/tai-pleroma/issues/168) の実Harness受渡しへつなぐ。SEIはQuery/Parser/Index・Oracle・実Provider・Host認可の第二実装を持たず、意味受理はTEI/業務Ownerへ残す。Method/Skillの追加は効果が確認された場合に限り必須条件を検討する。
+
+**確認済みの出発点（資格を限定）**：TEI [merged #3354](https://github.com/hat47x/tei-platform/pull/3354) のexact-head専用CIでは、固定公開Workspaceの実CLI **11 Reply**、独立Required Rule **3件**、合成Consumer負例 **32件**、6 pinned Step＋既知RuleのT1-A **1件**が限定PASS。これはFunction/Business/Ruleの全閉包や外部Tool Replyの完全配送、AIによる未知Obligation発見、Owner意味受理を証明しない。TEI [Draft #3176](https://github.com/hat47x/tei-platform/pull/3176) CC-12〜18のGo Profile/Read cohort/Path Open/Test Event/隠れたDependencyも狭い反例であり、実SEI Methodの能力ではない。外部DSH→TEI実Tool起動とH3のSkill本文Readには観測があるが、OS隔離・Tool Result欠落・独立Expected採点の問題が残り、**TAIのH2/H3比較資格は0/4**。これらを同じ「PASS」として合算しない。
+
+**限定実証 M1R（計画・NOT RUN）**：問いを二つに固定する。 `Q_rule`＝「指定Functionの必要Rule/RelationとSourceが現在読めているか」、`Q_test`＝「依存Source変更後も指定TestのPASSを現在の根拠として使えるか」。Required Source/Rule/Relation/非出力Predicateと独立Expectedは、Method候補を出す側とは別に事前固定する。Product実Readのbyte・mode・scope・revision・観測時点・Resultの欠落と、Consumerが受領したbyte/part/endを区別する（連続するCLI応答の同一Fingerprintだけでは同一Snapshotの証明にならない）。
+
+| 対照 | 認知作業 | 比較の受入 |
+|---|---|---|
+| D0 | 現在の実観測と独立Requiredを決定的に照合し、不足を明示。追加Readなし | 不足・wrong-mode・unsupported・unknownの適切な区別 |
+| D1 | D0に事前固定した一回の追加read-only Probeを加える | 必要根拠への到達、余分なRead、誤った不存在判断 |
+| M1 | 同じ初期観測・許可Tool/Mode・開示・Read予算1/2からSEI Methodが次Probeを選ぶ | D1比での必要根拠到達、残余保持、誤断定・漏洩・費用。D1と同じProbeを提案しただけなら固有の改善と数えない |
+
+**次の受入を順序付きで実行する**（既存のTool、独立Oracle、Harness Runbookを再利用）。
+
+1. **M1R-0 Product前提**：現mainのTEI CLIで実SubjectとRequired Ruleをread-only再取得し、11 Replyの各status/Source Indexのsubject・index mode、Loader Read/Source role、未読込と真正不存在を区別する。正常JSONでの欠落・正常な空集合・誤modeを「存在しない」「全部読んだ」へ短絡させない。#3354の結果は歴史的baselineであり、現在の実同版観測を代用しない。
+2. **M1R-1 SEI実連結**：SEI既存Method Definition/Realization/Applicationの実在経路を確認し、`Q_rule`または`Q_test`の一件に対し、TEIの**実際に受領した**Replyと適用前提を渡す。問い・BasisのExact Binding・Method版・未取得/不可視・旧Resultと現在の残余を別記する。架空のSEI CLI/MCP、独自Method正本、新Claim Storeは作らない。
+3. **M1R-2 盲検比較**：D0/D1/M1を同じSource/Toolchain/Tool allowlist/Grant/開示・初期観測・予算で行い、独立ExpectedをMethodへ漏らさず、`required reached`、実Reply完全受領、false absence、誤った旧PASS再利用、余分Read、確認負担とコストを別軸で採点する。未受理の業務意味・非開示情報に由来する結論は`unknown`を維持する。
+4. **M1R-3 外部利用・再開**：上のProduct-only結果を、TAI [#168の既存Runbook](https://github.com/hat47x/tai-pleroma/issues/168) の隔離・Task固定・H2/H3実提供と独立採点が成立した後に、SEI [#769](https://github.com/hat47x/sei-cognition/issues/769) のProduct Skill候補へ薄く渡す。Tool発見/実Call/実Reply/Skill実Load/Consumer受領/現Grantは別資格。H2/H3の失敗Trialを後付けで選別せず、方法の有益性を断定しない。
+5. **M1R-4 再資格化**：Rule/Relation/非出力Predicate、Go Profile/依存Source、Source occurrence、Provider/Policy/現Grant、Consumer投影のうち一軸を変え、歴史的Observationは保持しつつ必要なQだけを再Probe。個別SHA一致やA→B→A、旧PASS、OKFの`verified`/`stable`、SHO/SUIの表示・コピーを現在の意味/公開適格・独立根拠へ昇格させない。OKF適合/知識交換は[SEI #820](https://github.com/hat47x/sei-cognition/issues/820)が担当。
+
+**停止線と引渡し**：独立Requiredがない、実Readのmode/Scope/cohortが不明、Tool結果が途中切断、Consumerの許可投影から主張を識別不能なら、強い不存在・全件性・現在の実行資格のClaimを出さない。ただし許された限定read-only探索まで一律に止めない。ProductのQuery/Source/Plugin/Trait/BOM/Targetの実資格はTEI、独立ExpectedとT1-B未知ObligationはTEI #2514/#3262、外部Harness/OS・送出はTAI #168/#232、Methodの問い・残余・Probe選択はSEI #767、Skillの入口は#769へそれぞれ返す。探索完了／設計受理／Plugin Binding／実Target起動／Effect Receipt／Owner Acceptanceは別段階であり、この計画追加によって自動昇格しない。
+
+**反証可能な成果指標**：同じ前提でD0/D1からM1への改善が無い、誤断定や情報露出が増える、追加確認負担が増える場合はSEI Methodの必須化を見送る。改善が確認できたScopeだけを採用候補にし、一般的な「AIで完全保証」へ拡張しない。本節は実証計画への取り込みであり、M1R-0〜4の新規実行、SEI実Tool接続、Ownerレビューは**NOT RUN**。
 
 ## 10. 作業の停止線
 
