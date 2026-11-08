@@ -537,7 +537,7 @@ M1R-2で最初に扱うのは **H3-X02（Rule/Source Index mode）** の一件�
 
 **したがってM1Rは次の二つを別資格で進める。**
 
-- **M1R-A：今ある製品を使う限定Read/Resume試験**。TEI [#3354](https://github.com/hat47x/tei-platform/pull/3354) で使われた既存CLI（`tei source-index -workspace reference/workspace -subject-kind semantic-data -subject-id sales.order` と、`tei source-index -workspace reference/workspace`）による**subject/index両mode**の実Replyを、Source/CLI Revision・raw byte・mode・Independent Requiredとともに取得。既存TEI Context Gateの確認済みResultを参照し、新たなParser/Index Readerは作らない。SEIの実`sei add recommendation`を利用するとしても、それは**Methodの調査提案を表すRecommendation**に限る。原TEI Replyのbytesと固定の根拠比較票はSourceを保持する側に残し、SEIの`sei resume --json`で推薦/未決の表示範囲と原記録への戻り先を検証する。RecommendationをObservation・正式Decision・Method Applicationに読み替えない。
+- **M1R-A：今ある製品を使う限定Read/Resume試験**。TEI [#3354](https://github.com/hat47x/tei-platform/pull/3354) で使われた既存CLI（`tei source-index -workspace reference/workspace -subject-kind semantic-data -subject-id sales.order` と、`tei source-index -workspace reference/workspace`）による**subject/index両mode**の実Replyを、Source/CLI Revision・raw byte・mode・Independent Requiredとともに取得。既存TEI Context Gateの確認済みResultを参照し、新たなParser/Index Readerは作らない。SEIの実`sei add recommendation`を利用するとしても、それは**Methodの調査提案を表すRecommendation**に限る。原TEI Replyのbytesと固定の根拠比較票はSourceを保持する側に残し、SEIの`sei resume --json`では**提案が読めることと、未決がネイティブ記録として残ることを別試験**にする。現行Recommendationには`--unresolved`がなく、未決を表示するために架空のDecisionを作らない。Observation・正式Decision・Method Applicationにも読み替えない。
 - **M1R-B：認知Methodの追加価値試験**。[SEI #767](https://github.com/hat47x/sei-cognition/issues/767) の既存研究Referenceを、最初はProduct外の**候補選択/残余説明**として利用し、D0（決定論的不足表示）／D1（あらかじめ決めた追加Read）／M1（Methodが選ぶ追加Read）で比較する。M1R-Aのactual Raw Replyを同じ初期観測とし、Tool allowlist・同一Scope/版/権限/調査予算・独立Expectedを固定する。Methodが提案しただけのProbeと、現に実行したTool・結果をConsumerが受領した事実を分ける。**ProductへのネイティブMethod接続は、実在するContract/CLIを確認するまで達成と呼ばない**。
 
 **H3-X02の評価上の位置づけを修正する**：既存index modeへの切替でRequired Ruleが確認できる合成/公開ケースは、決定論的D1が解ける**陰性対照（Method不要が妥当な例）**とする。M1が同じProbeを提案しても独自価値を加点しない。H3-X06のような非表示依存や、曖昧なProvider/Source選択の実観測へ進むには、TEI [#2586](https://github.com/hat47x/tei-platform/issues/2586) の`Function→Query→DB Binding→実Provider Read`が実接続した証拠が必要であり、未接続の間は仮説として保持する。失敗例を増やすこと自体をKPIにしない。
@@ -606,6 +606,55 @@ M1R-2で最初に扱うのは **H3-X02（Rule/Source Index mode）** の一件�
 **優先順位とOwner引渡し**：まずA-02〜04の**実SEIバイナリ・一時Store**で保存・Resume表示を独立Expectedに対して確認し、次にA-01の実TEI Sourceへ結び、A-05〜07へ進む。TEIのSource/必要Rule/意味と実バイナリはTEI #3262/#2516、SEIの記録種別・参照の意味はSEI #711/#678、Method選択の効果はSEI #767/#450、外部Toolと送出はTAI #168/#232がOwner。A-02で未決の意味保存が不成立なら、**適格なRecommendation保存までを肯定し、Inquiry持続性・Method ApplicationのProduct実結合は未成立として止める**。失敗を隠すために偽のDecisionを新設したり、既存Decisionの`unresolved`を書き換えたりしない。
 
 **未実施**：A-01〜07の新規Trial・GitHub Actionsによるexact-head CI・独立SEIビルドとTEI同一Attempt二製品受領・外部OS/Network隔離・Method Application正式保存・人のOwner受理は**NOT RUN**。本節は現行の実コードの監査結果と反証可能な受入計画に限る。第二Store/Parser/Index/Hostを追加しない（隔離したSEI試験用Storeは既存Product機能として用いる）。
+
+### 9.4 「提案を再開できる」と「未解決の問いを再開できる」の非対称性（2026-11-08）
+
+**現行コードの具体的な確認**：[SEI mainの`runtime/go/seicli/seicli.go`](https://github.com/hat47x/sei-cognition/blob/main/runtime/go/seicli/seicli.go) において、`runAdd`は`recommendation`／`decision`を受け付けるが、`--unresolved`フラグは**decisionの場合だけ**登録する。また、`recommendation`のpayloadには`Statement`、`Rationale`、`BasisRefs`、`ResponsibilityRefs`を保存するものの、`UnresolvedRefs`はない。 `ResumeView.Unresolved`は認識されたDecisionの未決参照を表示する。従って**Recommendation保存成功はInquiry Continuity（未決保持）の成功ではない**。これは単なる仮説ではなく、Source上の受入境界である。ただし本追補で新しいバイナリのE2Eを実行してはいない。
+
+**この差から導くM1R-Aの一回目の目的**：既存TEI CLIを実行し、H3-X02に関する「次に確認すべきこと」をSEIのRecommendationとして記録・再開する。その際、**TEIの実Source/Raw Replyと、SEIの記録を一致した事実として装わない**。利用者が`--basis source:h3-index-evidence`などの論理参照を与えても、それは外部証拠に届くVerified Linkを作ったことにはならず、`--source tei-cli`もTool実Callを証明しない。固定Source/版/Raw SHAはテスト実行者の独立Evidenceで確認する。
+
+次は**手順案（NOT RUN）**。既存CLI以外の新CommandやRunnerは用いず、TEIとSEIのバイナリを検査した後、許可済みの公開Referenceに対して手作業または既存Harnessの一Trialとして実行する。SEIはテスト専用の空の作業ディレクトリで起動し、本番Storeを変更しない。
+
+```sh
+# Product/Source版・実バイナリ・許可Rootは独立の試験票に固定する。
+tei source-index -workspace reference/workspace \
+  -subject-kind semantic-data -subject-id sales.order
+tei source-index -workspace reference/workspace
+
+# 以下は独立した一時ディレクトリ内でのみ実行する。
+sei init
+sei add recommendation \
+  --id R-h3-index-mode \
+  --statement "必要なRuleの確認には、Source Indexのindexモードを再取得することを提案する" \
+  --source tei-cli \
+  --basis source:h3-index-evidence \
+  --rationale "現在のsubjectモードの投影だけでは独立Required全件の不存在を導けない"
+sei resume --json
+```
+
+**出力の独立Expectedを先に固定**：
+
+| 観測項目 | 期待する局所結果 | 主張してはいけないこと |
+|---|---|---|
+| TEI `source-index` subject/index | モード別の実Reply・exit・Raw digestを保存し、独立Requiredと比較できる | Readerが全Business/Function/Rule・物理Providerを読み切った |
+| SEI `add recommendation` | 未採用の調査提案が一件保存され、実`resume --json`の`recommendations_not_yet_relied_on`に現れる | Method Applicationの正規記録・Tool呼出しの真偽・現在のSource資格 |
+| 同じStoreの`unresolved` | **Recommendationのみなら未決は記録されない**。 `coverage.unresolved_source`と`case_completeness`の範囲説明を併読する | `unresolved=[]`・`unresolved_entry_count=0`は対象案件の未決0件である |
+| Recommendationに`--unresolved question:... `を付ける負例 | 現行フラグでは不受理。失敗後、元Storeの推薦・指紋・件数を勝手に変更しない | 未決を表示するために内容の無いDecisionを自動作成する |
+| SEI `basis_references`・`snapshot_digest` | 入力した論理根拠と保存束のbyte同一性・原記録への戻り先を示せる範囲を照合 | 外部TEI原典の実所在/版/開示、対象Ruleの意味、現在のHost Grantを検証した |
+
+**境界上の採否**：M1R-Aは「提案が正確に記録され、再開画面で見えること」の狭いProduct trialにはできるが、未決の問いを継続保存するという本来の価値仮説の合格には使えない。未決を正式に保存する責務は[SEI #711](https://github.com/hat47x/sei-cognition/issues/711)のOwner判断に返す。その間、独立の実験評価票で未決を保持しても、それを**SEI Storeで再開可能なProduct機能**とは表示しない。TEI側のH3-X02事前登録は[Draft #3176 §25](https://github.com/hat47x/tei-platform/pull/3176)を再利用し、同じOracle/Fixture/Source解析器をSEI側で複製しない。
+
+**この確証に基づく評価順序**：
+
+1. **H3-A0**：実SEI推薦書込み・`resume`の局所成功／未決は表示しない負例を一Attemptで計測。Recommendationを追加する前後の独立Source・Raw入出力・snapshot digestを記録し、合成Method結果に読み替えない。
+2. **H3-A1**：既存D0/D1/SEI研究Methodの同条件比較。ただしH3-X02はD1が充分な陰性対照とし、SEIへの推薦書込みでAIの調査能力が改善したとは扱わない。新Sourceがないまま同じ文字列を引用しただけの回答も不合格とする。
+3. **H3-A2**：認知の価値仮説として、「判断前のQuestion・Unknown・ConflictをDecisionを捏造せず持ち越せること」を別途検証する。現行CLIでは**unsupported**、Productの永続化責務/Contractを受理した場合だけ[SEI #711](https://github.com/hat47x/sei-cognition/issues/711)で次の実装を検討する。[SEI #678](https://github.com/hat47x/sei-cognition/issues/678)のResume集計範囲、[#660](https://github.com/hat47x/sei-cognition/issues/660)の用途相対鮮度、[#767](https://github.com/hat47x/sei-cognition/issues/767)のMethod残余へ結果を返す。
+
+**他チャットの反例を小さく接続**：[TEI Draft #3176](https://github.com/hat47x/tei-platform/pull/3176) CC-19〜29に含まれるSUIの未カード化Raw Item・多Canvas occurrence・非単射Projection/Hash、SHOの実Working Copy/SUI→SHO一File受渡しは、`sourceが本当に存在するか`と`公開投影に現れるか`、`同一Rawを再読したか`と`独立Sourceか`を分離する**後続のQ相対Probe候補**に限る。SUIにCardが0件でもRaw Itemが0件とは推定せず、同一Itemが複数Canvasに現れても独立根拠2件へ加算しない。原Source/OccurrenceとConsumerの実受領を各Ownerが証明するまではSEIの現在性・完全性・意味受理には使わない。TEI/SHOの既存受入票を本PRへコピーして二重管理しない。
+
+**現main側の差分**：TEI [#3370](https://github.com/hat47x/tei-platform/pull/3370)の`requirements.resultShape=array`、[#3366](https://github.com/hat47x/tei-platform/pull/3366)のView `worldFingerprint/sourceIndexFingerprint`は、[TEI Draft #3176 §25](https://github.com/hat47x/tei-platform/pull/3176)で現mainの観測として扱われている。過去の設計にある`#3370はDraft`の記載は**歴史的な状態**。現在の実Call/実Result型やFPの観測は用途別に再資格化する。SEI側の新Parser/CLI Result正規化器は作らない。
+
+**完了資格**：本節で実行したのはSEI/TEIの現Sourceの調査と計画修正まで。H3-A0〜2の新しい実Product Trial、SEI Method Product統合、外部Harness実Tool再実測/OS隔離、Owner受理は**NOT RUN**。既存のTEI/SHO限定CI成功をSEI側の試験PASSとして数えない。
 
 ## 10. 作業の停止線
 
