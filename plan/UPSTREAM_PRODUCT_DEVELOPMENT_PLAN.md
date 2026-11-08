@@ -508,6 +508,11 @@ sei resume --json
 3. `basis_references`／`snapshot_digest`が保存束内の帰属を表しても、外部TEI Sourceの存在・適用版や現在のHost Grantは自動確認されない。保存束の再開と元の実観測の再取得資格は別票にする。
 4. A0の「提案再開」だけがPASSでも、**Inquiry Continuity・Method Application保存のProduct価値は未達**。次の正式記録契約の必要性はSEI #711、Resume未決集計は[#678](https://github.com/hat47x/sei-cognition/issues/678)のOwnerへ返す。
 
+
+**H3-A0実二製品CLI結果（2026-11-08、限定PASS）**：TEI [Draft #3176の試験](https://github.com/hat47x/tei-platform/blob/26b79a68473e073d0e77719a25c9d6723161d94d/tools/reference-developer-context/h3a0_tei_sei_actual_record_test.go)と[exact-headのpush Actions #42474971439](https://github.com/hat47x/tei-platform/actions/runs/42474971439)で、TEI commit 26b79a68473e073d0e77719a25c9d6723161d94d／SEI pin 6d98ddf2d1080a1c3a308294fb342c231a08294dの**二つの実Go CLI**をビルドして検証した。固定公開reference/workspaceのsource-index **index/semantic-validation subject両Mode**を別プロセスで読み、事前独立Required Validation 3件をindex内で照合した後、評価者が事前固定した「必要なRuleをindex-modeで確認する」というRecommendationを、新しい一時SEI Storeへ実保存した。別々のresume --json／snapshot digestを指定したrecord-id原記録の再読取で同一内容を確認。Recommendationに未対応の--unresolvedは失敗し、失敗後のStore digest/記録数は不変だった。専用GitHub Actionsの実Goテストは**PASS**。実TEI index Raw digestは sha256:e6f9d38477dda0e9b538ba43b551498f682d4177a72168747022ae3ad79a6700、subject Raw digestは sha256:ce7552eb6ab8ad4a63d5225feb55da8a8b31e418b3d66dc4d4ab6df49f56d056。SEI Store digestは別物であり、TEI Sourceの現在版の保証ではない。
+
+**認定の上限**：これは二製品の**公開固定Source→評価者のRecommendation→SEI実Store→別CLI再開**という狭い記録往復の成立である。SEI MethodがProbeを生成・選択したこと、TEI生Raw SourceがSEI Methodへ配送されたこと、外部H2/H3 Consumerの完全受領、Source共同Snapshot、Grant/Authority、未解決QuestionのNative継続、業務意味のOwner受理を証明しない。また、評価者が書いた固定文面であり、自律的Cognitive Methodの出力ではない。次に検証するのは**A1のD0/D1/M1同条件比較**である。A2は#711/#678のOwner判断が必要で、A0成功から自動昇格しない。
+
 **H3-A1：D0/D1/M1の追加価値を同条件で比較する**。H3-X02はD1（決定的なindex-mode一追加Read）で解ける可能性があるため、**Method不要の陰性対照**とする。D0＝追加Readなし、D1＝固定の一Read、M1＝SEI #767の研究Methodが選ぶ一Read。三者で同一Q・Source/版・初期Tool Reply・Tool allowlist・Grant/Disclosure・Budget=1・独立Blind Expectedを事前固定する。MethodによるProbe提案と実Tool Call/Reply完全受領を分離し、正しいRequired到達・誤不存在・余分Read・Token/時間・人の確認負担・公開Tool/Traceの非干渉を別評価。**M1がD1と同じProbeを提案しただけではMethod固有改善を認めない**。本段階はResearch Methodの比較であり、SEI Productの正式Method Application接続ではない。
 
 **H3-A2：判断前の未決を継続できるかのProduct検証**。RecommendationだけでInquiryのQuestion/Unknown/Conflictを保持・再開できないなら、外部の独立評価票で`unresolved`を保持しても**SEIの機能が成立したとは表示しない**。SEI #711によるNative Recordか外部参照かのOwner判断後に、実Write/Read/Resumeを検証する。必要なContractが確認されない限り`unsupported`として保留。新CLI・新Method Store・一律CSW Gate・仮のMethod Decisionは追加しない。
@@ -525,7 +530,7 @@ sei resume --json
 | Tool実Call≠外部Consumerの完全受領 | TAI #168、TEI #2509 |
 | SUIのRaw Item/多Canvas・SHO/OKFへの二次投影≠独立原典 | TEI Draft #3176 CC-19〜29、SEI #820、SUI #3396、SHO #21/#25 |
 
-**長期構想と停止線**：[TEI #3475](https://github.com/hat47x/tei-platform/issues/3475) Ontology/Decision Twin、REAの正式移行、KON Dataspaceの導入、SUI→SHOの実H1を、A0/A1の先行条件にしない。Source Observation→Structural Candidate→Accepted Meaning→Decision→Host Grant→Effect→Outcomeは自動昇格しない。TEI全体セルフビルド/SUI基礎の前提を満たさずDigital Twin/Simulationを開始しない。A0/A1/A2と実外部H2/H3の比較資格は別。**今回実行したのはSource確認と計画の修正であり、A0/A1/A2の実CLI試行、正式Method Product接続・実H2/H3・Owner受理はNOT RUN**。
+**長期構想と停止線**：[TEI #3475](https://github.com/hat47x/tei-platform/issues/3475) Ontology/Decision Twin、REAの正式移行、KON Dataspaceの導入、SUI→SHOの実H1を、A0/A1の先行条件にしない。Source Observation→Structural Candidate→Accepted Meaning→Decision→Host Grant→Effect→Outcomeは自動昇格しない。TEI全体セルフビルド/SUI基礎の前提を満たさずDigital Twin/Simulationを開始しない。A0/A1/A2と実外部H2/H3の比較資格は別。**現在の実証状態**：A0は上記の二製品・固定公開Workspaceの限定ローカルCLI試行がPASS。A1/A2の実Method比較／Inquiry永続化、正式Method Product接続、実H2/H3・Host Grant・Owner受理はNOT RUN。今回のSEI計画更新自体は文書変更であり、新SEI Product RunnerやStoreを作らない。
 
 ## 10. 作業の停止線
 
