@@ -40,6 +40,9 @@ func doctorChecks(ctx context.Context, dataRoot string) []doctorCheck {
 	if cli.Commit == "unknown" {
 		add("binary-identity", "warn", "this binary carries no commit, so gate results and gate-checks.jsonl record commit \"unknown\" and cannot be traced to a rule version; build with tools/build_sei.sh")
 	}
+	if strings.HasSuffix(cli.Commit, "+dirty") {
+		add("binary-dirty", "warn", "this binary was built from a working tree with uncommitted changes, so commit \""+cli.Commit+"\" does not identify the source it was built from; gate results recorded by it cannot be traced to that commit alone")
+	}
 	exe, exeErr := os.Executable()
 	if exeErr != nil {
 		add("binary-path", "warn", "could not locate the running executable: "+exeErr.Error())
