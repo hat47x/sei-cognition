@@ -479,6 +479,58 @@ human usability review
 
 **反証可能な成果指標**：同じ前提でD0/D1からM1への改善が無い、誤断定や情報露出が増える、追加確認負担が増える場合はSEI Methodの必須化を見送る。改善が確認できたScopeだけを採用候補にし、一般的な「AIで完全保証」へ拡張しない。本節は実証計画への取り込みであり、M1R-0〜4の新規実行、SEI実Tool接続、Ownerレビューは**NOT RUN**。
 
+### 9.2 横断実証の対象を「正常だが不足」まで広げる（2026-11-08・既存M1Rへ追加）
+
+**今回確定できる設計差分**：単なる失敗・エラーだけでなく、**正常に返ったが問いQに必要な情報を含まない応答**を、SEIが「真正不存在」「未取得」「別のScope」「別の型」「未検証」「非開示」に分けて説明できる必要がある。SEIは個別CLIのReaderやSchemaを複製しない。各Productの実Consumerが確認済みのResponseとその条件を受け、問い相対の不足・次のProbe候補を選ぶ。M1R-0〜4の順序と責務分担を維持し、横断事例を新しい共通Gateにはしない。
+
+#### 9.2.1 同じ「成功」を五つの資格に分解する
+
+| 資格 | 必要な独立観測 | SEIがしてはいけない昇格 |
+|---|---|---|
+| **S：Source / Design取得** | 必要なID・Role・Rule・Relation・Source occurrence、実Loader/Parser Read、Scope・Revision・mode、Requiredとの比較 | 出力に見えない項目や未探索領域を「不存在」とする |
+| **B：Binding / Capability** | Plugin能力の宣言、環境への選択、実Provider identity、Build/Load、実Invocationを個別に照合 | Capabilityがselectedなら当該Providerが実際に使用されたと推測する |
+| **T：Transport / Consumer受領** | Tool Request/Responseの対応、raw byte/分割順序/終端、stdout/stderr/exit、Consumerによる実Read | Product側でJSONが成立しただけで外部Harnessへの完全受領とする |
+| **G：Generation / Evaluation** | 独立Required・Expected、実実行Step Receipt、判別したMutant・未知Obligation、局所Coverageと全体Coverageの別分母 | 既知のStepがPASSしただけで未知Ruleも検証済みとする |
+| **A：Authority / Effect** | Ownerの意味受理、現時点のHost/Provider Grant、Effect Receipt、Consumerへの許可投影、必要に応じたOutcome | Method候補・旧Decision・OKF/SHO文書・生成Artifactを実行資格へ昇格する |
+
+この五分解は**試験票の見方**であり、新しいProduct共通Schemaや正本ではない。SEIのInquiryは用途に必要な欄だけを要求し、観測不能な欄はunknownとして残す。さらに「個別Sourceが同じSHA」「各ReplyのFingerprintが一致」「Readerが成功」は、複数Readの共同成立や現在のGrantを自動保証しない。
+
+#### 9.2.2 既存実装から導く最小の判別事例
+
+| ケース | 公開の根拠／担当Owner | 次Probeでの正しい区別・停止線 |
+|---|---|---|
+| **H3-X01 正常Arrayと応答欠落** | TEI [#3347](https://github.com/hat47x/tei-platform/issues/3347)・[#3370](https://github.com/hat47x/tei-platform/pull/3370)。`requirements.result`は配列、未宣言の他Command shapeはunknown | `result:[]`を正常な空配列として受けることと「Requiredに当たるものが存在しない」は別。実版と`resultShape`の実宣言を照合し、全Commandをobjectへ統一しない |
+| **H3-X02 Source Indexの取得mode** | TEI [merged #3354](https://github.com/hat47x/tei-platform/pull/3354)、[#3262](https://github.com/hat47x/tei-platform/issues/3262)。subject/indexは異なる取得範囲 | subject-modeで見えないRuleを「削除された」と断定しない。必要Rule3件など独立Requiredに対し実index-mode/Loader/Definition/Canonicalを照合する |
+| **H3-X03 表示とLoaderによる実意味読取** | TEI [#3356](https://github.com/hat47x/tei-platform/pull/3356)。`view.semanticFingerprint`の範囲と管理Markdownの`readByLoader:false` | Viewの局所指紋をWorld全体の指紋に転用せず、管理文書が存在することをParser/Meaning消費と扱わない。必要なら実Loaderへ戻る |
+| **H3-X04 局所PASSと全体未観測** | TEI [Draft #3365](https://github.com/hat47x/tei-platform/pull/3365) のTT-105/106（限定exact-head CIの履歴） | 受信済みStepの局所正証人を保持し、途中欠落・部分目録から別Stepの`untested`を確定しない。全Product Coverageはunknownのまま。T1-Aと盲検T1-Bを別採点 |
+| **H3-X05 Plugin選択と実呼出し** | TEI [#3363](https://github.com/hat47x/tei-platform/pull/3363) 参照Workspaceの24 Binding＝22 selected、2 missing／[Draft #3371](https://github.com/hat47x/tei-platform/pull/3371) | `missing`2件は検証器の検査範囲外を含み、直ちに欠陥ではない。selected≠Provider実装≠Build/Load≠実Invocation。CLIとStudioで選択Provider B・実呼出Aの食い違いをTEI Ownerが実試験する |
+| **H3-X06 Queryの非表示依存** | TEI [#2586](https://github.com/hat47x/tei-platform/issues/2586)／[#2634](https://github.com/hat47x/tei-platform/issues/2634) | `Function→Query→選択SQL/Bind→Provider実Read→Rowset→Context→Claim`のうち未観測Edgeを列挙。空Result/表示列一致を`NOT EXISTS`、全母集団、同一Read cohortへ昇格しない |
+| **H3-X07 Harness実受領の欠落** | TAI [#168](https://github.com/hat47x/tai-pleroma/issues/168)／TEI [#2509](https://github.com/hat47x/tei-platform/issues/2509)。実Tool起動とH3 Skill本文Readerの観測はあるが、比較資格は0/4 | Request対Reply欠落、8,192-byte切断、Skill未露出・実Loader Read、隔離と独立Expectedを別評価。正常終了や最終回答をDelivery完備としない |
+| **H3-X08 二次表現と独立根拠** | SEI [#820](https://github.com/hat47x/sei-cognition/issues/820)／SUI [#3397](https://github.com/hat47x/sui-sensemaking/pull/3397)／SHO [#21](https://github.com/hat47x/sho-composer/pull/21) | コピーMarkdown354 byte、Parser成功、link数0、OKF `verified/stable`を原典独立数・Meaning完全性・Owner受理に変換しない。同一一次Sourceの派生を独立投票へ加算せず、原資料の到達条件を残す |
+
+各ケースは既存Productが所有する**限定Evidenceまたは提案済み負例**をM1Rの判別材料として参照するものであり、表の全件がSEI Methodで実行済みという意味ではない。対象Productの版・実Response・実受領条件を再取得したうえで、必要な一件のみをまず実連結する。
+
+#### 9.2.3 最小比較の観測票と非対称な停止
+
+M1R-2で最初に扱うのは **H3-X02（Rule/Source Index mode）** の一件とし、独立Requiredを変更しない。D0・D1・M1が同じ初期Tool Replyと同一の許可されたTool一覧・Read予算を受け取り、D1が事前固定の追加Read、M1がMethod選択の追加Readを提案する。各Trialは**同じ条件で実際に呼び出されたToolの結果**を収集し、次を別々に評価する。
+
+1. 正しい`mode`へ達したか、Required Rule/Sourceを実際に確認できたか、取得できない場合に`wrong-mode / not-loaded / unknown / unsupported / withheld`を取り違えなかったか。
+2. Tool呼出し・実Response・Consumer完全受領の三段階が揃ったか。独立Expectedに対して局所結論が正しいか。未観測を虚偽の不存在や未テスト確定へ変換しなかったか。
+3. 機密なSource path・件数・隠れたAction名・内部Probe選択理由を、許可された外部Viewへ漏らさなかったか。二つの内部世界が同じ公開Viewなら、許可されない差分が外部の質問候補・Tool Traceへ現れないか。
+4. 余分なRead、実際に受領したtoken/byte、時間、人の確認負担を別計測する。M1がD1と同じProbeを提案し性能差を示さなければ、追加のMethod必須化を正当化しない。
+
+**局所的な正の証人は保持し、強い否定/完了の主張だけを止める。** たとえば既知Ruleを実Readした事実は維持し、残るFunction全件・未探索のRule・別Consumerへの公開資格はunknownとする。Probe候補を提案できることは、実Tool利用・Productの現在Grant・最終Decision採用とは違う。
+
+#### 9.2.4 Ontology／SUI／REA／KONへの拡張は現在のBlocking条件にしない
+
+[TEI #3475](https://github.com/hat47x/tei-platform/issues/3475) のOntology DSL／型付きSDK／Decision Twin／SEIへの判断移譲は**長期構想**として参照する。現段階の設計上の境界として、SUIは観測・素材・探索候補、TEIは意味構造/型/Rule/Provider契約、SEIは問い・根拠照合・判断候補/保留、SHOは文書・説明、Host/Provider/EKIは現実の権限・Effect/配送（各製品の責務内）を分離する。
+
+将来のInquiryであっても `Observation→Structural Candidate→Accepted Meaning→Decision→Grant→Effect→Outcome` を黙って昇格させない。REAからの逆解析やSUI探索の情報は、TEIの正式意味を直接確定しない。OntologyにおけるEntity/Relation/Stateの`same ID`・`same Projection`・`same revision`から、実世界の同一対象/意味同一性を推定しない。KON Dataspaceは任意の将来データ交換候補であり、SEI Method・TEI CLI・現在のread-only試験の必須依存にしない。OKFは知識交換契約であって第二のDecision Storeや実行資格ではない。
+
+**優先順位**：今実行可能なのは既存Data/Role/Sourceのread-only Fit/GapとH3-X02最小実連結まで。TEIの全体セルフビルドとSUI基本機能完成前にDigital Twin/Simulationの実装・外部DecisionメッセージングをM1RのBlocking Exitへ追加しない。対象の新しいDSL構文・共通Host/Registry・SEIが自動承認するAuthorityをここで採用しない。外部計算・予測・神経応答的な局所即応は、将来各Productの独立適格性とOwner判断を要する別段階とする。
+
+**今回の変更範囲**：`§9.1`にある実Read→Method→D0/D1/M1→Harness・再資格化の順序は維持。上記は既存Evidenceの比較受入と長期構想との境界を追加した計画のみ。H3-X01〜08のSEI本体での新試験、M1R-0〜4、実Plugin Invoke/物理DB、実H2/H3完全受領、正式Ontology SDK/Decision Handoff、人間の判断評価・Owner受理は**NOT RUN**。
+
 ## 10. 作業の停止線
 
 次の場合は実装へ急がず上流へ戻ります。
