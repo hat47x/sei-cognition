@@ -470,7 +470,7 @@ human usability review
 **次の受入を順序付きで実行する**（既存のTool、独立Oracle、Harness Runbookを再利用）。
 
 1. **M1R-0 Product前提**：現mainのTEI CLIで実SubjectとRequired Ruleをread-only再取得し、11 Replyの各status/Source Indexのsubject・index mode、Loader Read/Source role、未読込と真正不存在を区別する。正常JSONでの欠落・正常な空集合・誤modeを「存在しない」「全部読んだ」へ短絡させない。#3354の結果は歴史的baselineであり、現在の実同版観測を代用しない。
-2. **M1R-1 SEI実連結**：SEI既存Method Definition/Realization/Applicationの実在経路を確認し、`Q_rule`または`Q_test`の一件に対し、TEIの**実際に受領した**Replyと適用前提を渡す。問い・BasisのExact Binding・Method版・未取得/不可視・旧Resultと現在の残余を別記する。架空のSEI CLI/MCP、独自Method正本、新Claim Storeは作らない。
+2. **M1R-1 SEIとの接合資格**：まず実在するSEI CLIのRecommendation/Decision/ResumeとCognitive Methodの研究用Referenceを**別々に棚卸し**する。現在のCLIにObservation/Question/Method Applicationの正式なwrite APIが存在すると仮定しない。`Q_rule`または`Q_test`の実受領ReplyとMethod候補・不足根拠を、最初は独立評価票へ保持し、既存Recommendationへ記録する場合も出典と「Method未受理」を明示する。ネイティブMethod Application保存・再開は実契約が確認された後の別Exitとする。架空のCLI/MCP、独自Method正本、新Claim Storeは作らない。
 3. **M1R-2 盲検比較**：D0/D1/M1を同じSource/Toolchain/Tool allowlist/Grant/開示・初期観測・予算で行い、独立ExpectedをMethodへ漏らさず、`required reached`、実Reply完全受領、false absence、誤った旧PASS再利用、余分Read、確認負担とコストを別軸で採点する。未受理の業務意味・非開示情報に由来する結論は`unknown`を維持する。
 4. **M1R-3 外部利用・再開**：上のProduct-only結果を、TAI [#168の既存Runbook](https://github.com/hat47x/tai-pleroma/issues/168) の隔離・Task固定・H2/H3実提供と独立採点が成立した後に、SEI [#769](https://github.com/hat47x/sei-cognition/issues/769) のProduct Skill候補へ薄く渡す。Tool発見/実Call/実Reply/Skill実Load/Consumer受領/現Grantは別資格。H2/H3の失敗Trialを後付けで選別せず、方法の有益性を断定しない。
 5. **M1R-4 再資格化**：Rule/Relation/非出力Predicate、Go Profile/依存Source、Source occurrence、Provider/Policy/現Grant、Consumer投影のうち一軸を変え、歴史的Observationは保持しつつ必要なQだけを再Probe。個別SHA一致やA→B→A、旧PASS、OKFの`verified`/`stable`、SHO/SUIの表示・コピーを現在の意味/公開適格・独立根拠へ昇格させない。OKF適合/知識交換は[SEI #820](https://github.com/hat47x/sei-cognition/issues/820)が担当。
@@ -530,6 +530,28 @@ M1R-2で最初に扱うのは **H3-X02（Rule/Source Index mode）** の一件�
 **優先順位**：今実行可能なのは既存Data/Role/Sourceのread-only Fit/GapとH3-X02最小実連結まで。TEIの全体セルフビルドとSUI基本機能完成前にDigital Twin/Simulationの実装・外部DecisionメッセージングをM1RのBlocking Exitへ追加しない。対象の新しいDSL構文・共通Host/Registry・SEIが自動承認するAuthorityをここで採用しない。外部計算・予測・神経応答的な局所即応は、将来各Productの独立適格性とOwner判断を要する別段階とする。
 
 **今回の変更範囲**：`§9.1`にある実Read→Method→D0/D1/M1→Harness・再資格化の順序は維持。上記は既存Evidenceの比較受入と長期構想との境界を追加した計画のみ。H3-X01〜08のSEI本体での新試験、M1R-0〜4、実Plugin Invoke/物理DB、実H2/H3完全受領、正式Ontology SDK/Decision Handoff、人間の判断評価・Owner受理は**NOT RUN**。
+
+### 9.3 実在するSEI CLIを起点にした最小の接合と、認知Methodの対照試験（2026-11-08・計画の収束）
+
+**実装可能性についての訂正**：[SEI #711](https://github.com/hat47x/sei-cognition/issues/711)と現mainの[`sei` Quickstart](https://github.com/hat47x/sei-cognition/blob/main/runtime/go/cmd/sei/QUICKSTART.md)を照合すると、現在の`sei add`/MCPが正式に書けるのは**RecommendationとDecision**である。Observation / Interpretation / Questionをネイティブ記録として書く経路はなく、Method Applicationを正式に保存・再開するCLIの実在証拠もない。 `sei resume --json`の`basis_references`や`snapshot_digest`は**保存束内の参照表現・読取り指紋**であり、TEIのSourceの現在性・実物到達や業務Meaningを確認したことにはならない。SEI #711で当該記録責務はOwner未決であり、製品側に架空のMethod Storeを作ってはならない。
+
+**したがってM1Rは次の二つを別資格で進める。**
+
+- **M1R-A：今ある製品を使う限定Read/Resume試験**。TEI [#3354](https://github.com/hat47x/tei-platform/pull/3354) で使われた既存CLI（`tei source-index -workspace reference/workspace -subject-kind semantic-data -subject-id sales.order` と、`tei source-index -workspace reference/workspace`）による**subject/index両mode**の実Replyを、Source/CLI Revision・raw byte・mode・Independent Requiredとともに取得。既存TEI Context Gateの確認済みResultを参照し、新たなParser/Index Readerは作らない。SEIの実`sei add recommendation`を利用するとしても、それは**Methodの調査提案を表すRecommendation**に限る。原TEI Replyのbytesと固定の根拠比較票はSourceを保持する側に残し、SEIの`sei resume --json`で推薦/未決の表示範囲と原記録への戻り先を検証する。RecommendationをObservation・正式Decision・Method Applicationに読み替えない。
+- **M1R-B：認知Methodの追加価値試験**。[SEI #767](https://github.com/hat47x/sei-cognition/issues/767) の既存研究Referenceを、最初はProduct外の**候補選択/残余説明**として利用し、D0（決定論的不足表示）／D1（あらかじめ決めた追加Read）／M1（Methodが選ぶ追加Read）で比較する。M1R-Aのactual Raw Replyを同じ初期観測とし、Tool allowlist・同一Scope/版/権限/調査予算・独立Expectedを固定する。Methodが提案しただけのProbeと、現に実行したTool・結果をConsumerが受領した事実を分ける。**ProductへのネイティブMethod接続は、実在するContract/CLIを確認するまで達成と呼ばない**。
+
+**H3-X02の評価上の位置づけを修正する**：既存index modeへの切替でRequired Ruleが確認できる合成/公開ケースは、決定論的D1が解ける**陰性対照（Method不要が妥当な例）**とする。M1が同じProbeを提案しても独自価値を加点しない。H3-X06のような非表示依存や、曖昧なProvider/Source選択の実観測へ進むには、TEI [#2586](https://github.com/hat47x/tei-platform/issues/2586) の`Function→Query→DB Binding→実Provider Read`が実接続した証拠が必要であり、未接続の間は仮説として保持する。失敗例を増やすこと自体をKPIにしない。
+
+**最初の一件の受入票（同一Attemptで記録、件数ではなく到達を検収）**：
+
+| 欄 | 必要な観測 | 未確認なら |
+|---|---|---|
+| TEI実物 | pinned Source/CLI版・実Workspace Root、subject-modeとindex-modeの実stdout原byte/SHA、exit、schema、mode、Source Index/Loader Scope | `source-bound=unknown`。旧CIを今のRunへ転用しない |
+| 対象の必要性 | 独立Required Rule/Relation/Sourceと実取得した定義・Source occurrenceを区別 | 不足原因を`wrong-mode / not-loaded / unobserved`へ分け、`not exists`を主張しない |
+| SEI入口 | 実`sei`版、使った`add recommendation`・`resume --json`のraw Reply、元Storeのsnapshot digest、対象の論理/Exact basis | `recommendation-only`または`not-run`。保存束内の参照はTEI原証拠の実到達を保証しない |
+| Method追加価値 | D0/D1/M1の割付、同一Input/Toolと必要Probe、実Read・Reply受領・Independent Expected、余分なRead/コスト | Method固有改善は`not-established`。false absence/開示リスクを別判定 |
+
+**開始順序と停止線**：まず一件のM1R-Aを実行し、`SEIの実Recommendation/Resumeで「実TEI観測から生じた未決」をどこまで失わず説明できるか`を限定検証する。そこでSEI CLIの記録種別やbasis解決に不足があれば、既存#711/#678へ事実を返し、仮のObservation/Question保存APIを新設しない。そのうえで同じ実TEI根拠をM1R-Bへ再利用する。外部H2/H3・SUI→SHO実受渡し・正式Decision handoff・Plugin実Provider/Host・Ontology SDKは、ここでの最初のBlocking条件に加えない。**この§9.3は要件・実行順序の精密化であり、新しいCLI/SEI Product Method/二製品E2E/Owner受理の実証ではない。**
 
 ## 10. 作業の停止線
 
