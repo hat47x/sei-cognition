@@ -148,6 +148,28 @@ func TestDoctorWarnsWhenTheBinaryCarriesNoCommit(t *testing.T) {
 	}
 }
 
+func TestDoctorWarnsWhenTheBinaryWasBuiltFromADirtyTree(t *testing.T) {
+	fixClock(t)
+	root := filepath.Join(t.TempDir(), "store")
+	mustRun(t, "init", "--data-root", root)
+	withBuild(t, "dev", "e8d13e09d475ff62c770dd539bb51cde9e6da3a8+dirty", "linux/amd64")
+	checks := doctorChecks(context.Background(), root)
+	if c := findCheck(t, checks, "binary-dirty"); c.Status != "warn" {
+		t.Errorf("a dirty build must be warned about: %+v", c)
+	}
+	for _, c := range checks {
+		if c.Name == "binary-identity" {
+			t.Errorf("a dirty build still carries a commit, so it is not the unknown case: %+v", c)
+		}
+	}
+	withBuild(t, "dev", "e8d13e09d475ff62c770dd539bb51cde9e6da3a8", "linux/amd64")
+	for _, c := range doctorChecks(context.Background(), root) {
+		if c.Name == "binary-dirty" {
+			t.Errorf("a clean build must not be warned about: %+v", c)
+		}
+	}
+}
+
 func TestDoctorNamesTheContractsTheRuntimeValidates(t *testing.T) {
 	checks := doctorChecks(context.Background(), filepath.Join(t.TempDir(), "not-yet"))
 	c := findCheck(t, checks, "contracts")

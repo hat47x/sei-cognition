@@ -24,7 +24,12 @@ fi
 root=$(cd "$(dirname "$0")/.." && pwd)
 mkdir -p "$out"
 version=${SEI_VERSION:-dev}
-commit=$(git -C "$root" rev-parse --short HEAD 2>/dev/null || echo unknown)
+# Full-length revision, with "+dirty" when the tree has uncommitted changes
+# (including untracked files), the same form `go build` records from VCS info.
+commit=$(sh "$root/tools/sei_build_commit.sh" "$root")
+case "$commit" in
+*+dirty) echo "warning: working tree has uncommitted changes; commit is $commit and the artifacts in $out are not reproducible from that commit" >&2 ;;
+esac
 pkg=github.com/hat47x/sei-cognition/runtime/go/seicli
 
 for target in "$@"; do
