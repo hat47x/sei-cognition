@@ -14,7 +14,7 @@ SEI Cognitionは初期開発中です。本番利用向けのサポート済み�
 
 ## 対象
 
-- `runtime/`のGo実装、`contracts/`のSemantic Contract、`schemas/`の表現形式。
+- `runtime/`のGo実装、`contracts/`のSemantic Contract、`contracts/schemas/`の表現形式。
 - Decision Memory、Provenance、Semantic Lineage、Capability Observationの境界。
 - `evaluation/`の検証コードとfixture。
 
