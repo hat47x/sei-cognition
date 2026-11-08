@@ -1,6 +1,6 @@
 # SEI 上流プロダクト開発計画
 
-更新日: 2026-10-09  
+更新日: 2026-11-08（§9.1追補。旧Laneの個別状態は作成時点の履歴を含む）  
 状態: **Current Upstream Planning Baseline — Brand-world Product Value discovery完了 / Inquiry Continuity actual dogfood / resume-first Product Slice / TEI version exchange + actual-binary Evidence protocolを並行優先**
 
 ## 1. この文書の役割
@@ -431,6 +431,7 @@ Product confidenceを高めるため、happy pathだけでなくpartial commit�
 | TEI actual Evidence protocol | ISSUE-000074 | Open / teiprobe + CLI + protocol source implemented / tests + actual run Not Yet Verified | current Go環境でfixture-scoped tests、次いでactual TEI binary report |
 | Family integration apex（提案） | ADR-0035 Proposed / ISSUE-000085〜000088 Open | 提案のみ。所有者のレビュー待ち。Design Evidenceに限る | 所有者による再基線化項目のレビュー（ISSUE-000085）、次いで実在の記録からの求心プロファイル（ISSUE-000087）と4つの空白の組合せ試験（ISSUE-000086） |
 | Method outcome quality | ISSUE-000071 follow-up | evaluation boundary established | actual human outcome review |
+| Cognitive Methodの問い相対的十分性（TEI連携） | SEI #767 / #769、#820（関連） | 公開合成の反証・TEI実CLIの限定観測まで。実SEI Method接続と独立比較は未実施 | 同一Q・同一Source/Grant/予算でD0/D1/M1の限定実Read比較 |
 | Operational / Adoption | PMS-08 | Not Yet Verified | first real use after usable slice exists |
 
 lane間でEvidenceを流用しません。
@@ -451,6 +452,105 @@ TEI compatibility PASS
 human usability review
   != Adoption / Outcome Satisfied
 ```
+
+### 9.1 TEIハーネス#3：現在の採用判断と実装能力（2026-11-08）
+
+本レーンの価値仮説は、**生成AIが答えを増やすことではなく、特定の問いQに必要な証拠の不足を見分け、最小の追加調査を選び、根拠と未決を失わず次の作業へ渡せること**である。根拠を完全に読み切ったという主張より、利用者に誤った確実性を与えないことを先に評価する。
+
+**責務**：TEIがSource/Role/Rule/Query/Providerの意味・実Readと独立Expectedを所有し、SEI [#767](https://github.com/hat47x/sei-cognition/issues/767)はQ相対の不足説明・次Probe候補、[SEI #711](https://github.com/hat47x/sei-cognition/issues/711)は未決記録の正本責務を検討する。TAI [#168](https://github.com/hat47x/tai-pleroma/issues/168)は外部Harnessの実Tool/Skill Load・隔離・比較、SHO/SUIは出典を保った投影を担う。Host Grant・Owner Meaning Acceptance・EffectはMethodの自己判定から作らない。第二のSource Parser、Claim Store、Oracle、Agent Host、Registry、共通Policy Engineは導入しない。
+
+**現実のBaseline**：
+- TEI [merged #3354](https://github.com/hat47x/tei-platform/pull/3354) の初期段階は実CLI **11 Reply／32合成Consumer判別**。その後 [merged #3482](https://github.com/hat47x/tei-platform/pull/3482) のmain push [#42462861657](https://github.com/hat47x/tei-platform/actions/runs/42462861657) で、sales.order.submitの独立RequiredをCapability/Application/Sourceへ結び、**13実CLI Reply／42 test-only Consumer controls／独立Required Validation Rule 3件／既存6 pinned Step＋既知T1-A**が限定PASS。後者が更新後の実証基線であり、11/32と13/42を合算しない。Source→実Function/Query→Provider Invocation、全Function/Businessの閉包、T1-B、外部H3完全配送、Owner受理は別資格。
+- [TEI Draft #3176](https://github.com/hat47x/tei-platform/pull/3176) のCC-12〜29はGo Test Profile/共同Read/隠れた依存・SUI/SHO投影など、現象ごとの限定Evidence・後続計画。**H3-X02の同一入力/Blind Expected比較は同PR §25で既に事前登録済み**であり、SEIでは再度Fixture/Runnerを作らない。[TEI #3370](https://github.com/hat47x/tei-platform/pull/3370)の`requirements.resultShape=array`、[#3366](https://github.com/hat47x/tei-platform/pull/3366)の`view.worldFingerprint/sourceIndexFingerprint`はmainの変更として照合し、以前の「Draft」表記は履歴とする。
+- 現行SEI [`runAdd`](https://github.com/hat47x/sei-cognition/blob/main/runtime/go/seicli/seicli.go)が正式に書込むのは**RecommendationとDecision**。RecommendationにはStatement/Rationale/BasisRefs/ResponsibilityRefsがあるが、**`--unresolved`はDecisionにしか存在しない**。Method Application/Observation/Questionの正式Write/Resume経路は未実証。 `sei resume --json`の`unresolved=[]`・`unresolved_entry_count=0`は案件の未決がゼロという証拠ではない。RecommendationをDecisionに化けさせない。
+- 外部DSH→実TEI CLIの呼出しとH3 Skill本文Readは限定観測済み。ただしRead隔離・Tool Reply欠落・独立Expected採点の問題から、[TAI #168](https://github.com/hat47x/tai-pleroma/issues/168) H2/H3の**比較適格は0/4**。外部Toolの実Call、実受領、解答正しさは別資格。
+
+**証拠の五つの観点**（既存のProduct Evidenceに対する評価列であり、新しい共通Schemaではない）：
+
+| 観点 | 質問 |
+|---|---|
+| S — Source | Requiredと実ReadのSource/Scope/mode/epoch/Parser/Relationは合致したか |
+| B — Binding | PluginやProviderは宣言・選択だけでなく、当該版の実Load/Invocationへ到達したか |
+| T — Transport | Request/Reply/Raw byte/part/endをConsumerが同一Attemptで完全受領したか |
+| G — Generation | 実行済Step・局所Coverage・独立Expected/未知Obligationを区別したか |
+| A — Authority | 現在のDisclosure/Owner Meaning/Host Grant/Effect Receiptを別に確認したか |
+
+問いQが要求しない資格をむやみに全てBlockingにせず、当該結論が依存する未観測の欄は`unknown`に残す。**局所的な肯定Witnessは保持できる一方、閉じた不存在・全件性・未テスト確定には独立RequiredとRead/Deliveryの閉包が必要**。単一Digest/同一表示/保存束指紋/OKFの`verified`は業務意味や現在利用資格の受理ではない。
+
+### 9.2 最小の実証出口：A0 → A1 → A2
+
+**H3-A0：今存在するCLIで「提案だけ」の保存・再開を確認する（最初の一件）**。対象はTEI [#3262](https://github.com/hat47x/tei-platform/issues/3262) の公開Reference `sales.order` と独立Required 3 Rule。TEIの既存`source-index` subject-modeとindex-modeを同じ固定版・許可Rootで実Readし、各stdout原byte/SHA、exit、schema、mode、Source/Loader Scopeを別記する。使うCLI例（実行した結果ではない）：
+
+```sh
+tei source-index -workspace reference/workspace \
+  -subject-kind semantic-data -subject-id sales.order
+tei source-index -workspace reference/workspace
+```
+
+その観測を評価する**試験実行者が**提案を作ったことを正確に示すため、独立した一時作業ディレクトリでのみ次を行う（`tei-cli`を推薦者と偽称しない）。
+
+```sh
+sei init
+sei add recommendation \
+  --id R-h3-index-mode \
+  --statement "必要なRuleの確認には、Source Indexをindexモードで追加取得する" \
+  --source harness3-evaluator \
+  --basis source:h3-index-evidence \
+  --rationale "subjectモードの投影だけで必要Ruleの不存在を推論できない"
+sei resume --json
+```
+
+`--source`は**推薦の記録上の出所**、`--basis source:h3-index-evidence`は**未解決の外部論理参照**であり、TEI実Read・実Result/原典Digest一致を証明しない。独立評価票ではTEI Source Revision/CLI Binary/Actual Reply、SEI Binary/Store/Raw Resumeを別にPinする。実際のReplyへの到達/公開はProduct/Owner側の確認事項である。
+
+**独立Expected（初回の合否を分解）**：
+1. `add recommendation`実成功なら、その提案は`resume --json.recommendations_not_yet_relied_on`に現れる（狭いProvisional Persistence）。実Tool使用、Methodの採用、SEI判断成立とはしない。
+2. Recommendationだけを書いたStoreの`resume.unresolved`は、未決Questionを保管した証拠にならない。`--unresolved question:...`をRecommendationへ渡す負例は不受理となることを確認し、**未決を表示するための架空のDecisionを作らない**。拒否後のStore/指紋が変わらないかは別に確認する。
+3. `basis_references`／`snapshot_digest`が保存束内の帰属を表しても、外部TEI Sourceの存在・適用版や現在のHost Grantは自動確認されない。保存束の再開と元の実観測の再取得資格は別票にする。
+4. A0の「提案再開」だけがPASSでも、**Inquiry Continuity・Method Application保存のProduct価値は未達**。次の正式記録契約の必要性はSEI #711、Resume未決集計は[#678](https://github.com/hat47x/sei-cognition/issues/678)のOwnerへ返す。
+
+
+**H3-A0実二製品CLI結果（2026-11-08、限定PASS）**：TEI [Draft #3176の試験](https://github.com/hat47x/tei-platform/blob/26b79a68473e073d0e77719a25c9d6723161d94d/tools/reference-developer-context/h3a0_tei_sei_actual_record_test.go)と[exact-headのpush Actions #42474971439](https://github.com/hat47x/tei-platform/actions/runs/42474971439)で、TEI commit 26b79a68473e073d0e77719a25c9d6723161d94d／SEI pin 6d98ddf2d1080a1c3a308294fb342c231a08294dの**二つの実Go CLI**をビルドして検証した。固定公開reference/workspaceのsource-index **index/semantic-validation subject両Mode**を別プロセスで読み、事前独立Required Validation 3件をindex内で照合した後、評価者が事前固定した「必要なRuleをindex-modeで確認する」というRecommendationを、新しい一時SEI Storeへ実保存した。別々のresume --json／snapshot digestを指定したrecord-id原記録の再読取で同一内容を確認。Recommendationに未対応の--unresolvedは失敗し、失敗後のStore digest/記録数は不変だった。専用GitHub Actionsの実Goテストは**PASS**。実TEI index Raw digestは sha256:e6f9d38477dda0e9b538ba43b551498f682d4177a72168747022ae3ad79a6700、subject Raw digestは sha256:ce7552eb6ab8ad4a63d5225feb55da8a8b31e418b3d66dc4d4ab6df49f56d056。SEI Store digestは別物であり、TEI Sourceの現在版の保証ではない。
+
+**認定の上限**：これは二製品の**公開固定Source→評価者のRecommendation→SEI実Store→別CLI再開**という狭い記録往復の成立である。SEI MethodがProbeを生成・選択したこと、TEI生Raw SourceがSEI Methodへ配送されたこと、外部H2/H3 Consumerの完全受領、Source共同Snapshot、Grant/Authority、未解決QuestionのNative継続、業務意味のOwner受理を証明しない。また、評価者が書いた固定文面であり、自律的Cognitive Methodの出力ではない。次に検証するのは**A1のD0/D1/M1同条件比較**である。A2は#711/#678のOwner判断が必要で、A0成功から自動昇格しない。
+
+**H3-A1：D0/D1/M1の追加価値を同条件で比較する**。A0の二製品実Read→Recommendation→Resumeは、評価者が書いた文面の保存往復であり、自律的なProbe選択ではない。H3-X02はD1で解ける可能性があるMethod不要の**陰性対照**として保持する。D0＝追加Readなしの必要根拠照合、D1＝不足の種類・mode・Source依存に応じて許可済みCLIを選ぶ**妥当な決定論的方針**、M1＝[SEI #767](https://github.com/hat47x/sei-cognition/issues/767) の研究Methodによる候補選択。D1をわざと誤った固定ProbeにしてM1の価値を作らない。全群で同じ問いQ・初期実Read・Tool allowlist/Scope/Grant/Disclosure・Read予算・独立Expectedを事前固定し、各ResultのRaw byte・実版・mode・受領とMethod提案を別に採点する。**M1がD1を改善しない、誤不存在や情報露出を増やすならMethod必須化を見送る**。研究用Python Referenceの合成PASSはProduct Method/Tool起動PASSではない。
+
+**H3-A2：判断前の未決を継続できるかのProduct検証**。RecommendationだけでInquiryのQuestion/Unknown/Conflictを保持・再開できないなら、外部の独立評価票で`unresolved`を保持しても**SEIの機能が成立したとは表示しない**。SEI #711によるNative Recordか外部参照かのOwner判断後に、実Write/Read/Resumeを検証する。必要なContractが確認されない限り`unsupported`として保留。新CLI・新Method Store・一律CSW Gate・仮のMethod Decisionは追加しない。
+
+**今後の用途別負例の参照先**（実験のFixture/Runnerを移植しない）：
+
+| 問いの種類 | 既存Owner/負例 |
+|---|---|
+| 正常空配列・結果型と「未取得」 | TEI #3347/#3370、`requirements.resultShape=array` |
+| Source Indexのmode／必要Rule/Source | TEI #3262/#3354、#3176 §25（最初のH3-X02） |
+| 表示FPと実Loader・Source版 | TEI #3356/#3366、#2516 |
+| 局所Step PASSと全体Coverage unknown | TEI Draft #3365（TT-105/106） |
+| Plugin selectedと実Provider Invoke | TEI #3363/#3371、#2586 |
+| Queryの非表示依存・空結果≠不存在 | TEI #2634/#2586 |
+| Tool実Call≠外部Consumerの完全受領 | TAI #168、TEI #2509 |
+| SUIのRaw Item/多Canvas・SHO/OKFへの二次投影≠独立原典 | TEI Draft #3176 CC-19〜29、SEI #820、SUI #3396、SHO #21/#25 |
+
+### 9.3 A0限定PASSを踏まえたA1の事前登録と受入資格（2026-11-08）
+
+**現在の判断**：[TEI固定HEAD／SEI固定HEADの実Go二製品CLI試験](https://github.com/hat47x/tei-platform/actions/runs/42474971439) でA0は限定PASS。固定Rawのindex/subject取得、独立Required Rule3件、評価者によるRecommendationの一時Store保存、別Resumeと原記録再取得、拒否後のStore不変が確認されている。一方、**SEI Methodは推薦内容を生成しておらず、実TEI CLIを呼んだ主体でもない**。A0の資格をMethod選択・Inquiry Native継続・現在Grant・外部Harnessへ昇格しない。
+
+**A1を公正にするための事前登録**：
+
+| Trial | 比較対象と必要な独立Expected | 合格の上限・評価条件 |
+|---|---|---|
+| **A1-N：陰性対照** | 公開sales.order、独立Required Validation Rule3件、source-indexのsubject/index mode、追加Read予算1。必要RuleのIDは問いとして両方に見せ、期待する実証の状態と実応答はReviewerが保持 | D1が正しくindex-modeを選べるならM1の同一Probeは同点。局所の正証人を保持し、未観測Ruleの不存在は推論しない |
+| **A1-D：依存と鮮度** | TEI [#3477](https://github.com/hat47x/tei-platform/pull/3477)のSource-only変更、[#3479](https://github.com/hat47x/tei-platform/pull/3479)のImport raw/Manifest変更を、別々のQに対する試験入力として検討 | World/Modelが不変でも引用Sourceの再確認を要する反例を保持。独立した実Provider/Readerと許可が未観測ならunknown。Goの局所PASSをMethodの実成功へ換算しない |
+| **A1-U：未知依存（後続）** | 既存CLIで実取得可能なSource/Ruleだけから開始。隠れたQuery PredicateやProvider routeは、実Read契約が成立した後に別のQとして追加 | [TEI #2514](https://github.com/hat47x/tei-platform/issues/2514)の独立Oracleと[#3262](https://github.com/hat47x/tei-platform/issues/3262)の限定Design Contextで判別。未知ObligationのAI発見を既知T1-Aへ加算しない |
+
+**一Trialの固定列**：問いQ、Requiredの公開範囲、ReviewerのみのExpected、実Source/CLI/Methodの版、初期Reply raw byteとscope、許可Tool一覧とConsumer現在Grant、D0/D1/M1の選択理由、実Tool Request・Reply・完全受領、supported/partial/unknown/unsupported/withheld、誤肯定・誤否定、追加Read数・時間・token/byte・人の修正、公開Tool名やTraceの非干渉性。MethodによるTool提案と実Tool呼出しは別欄。独立ExpectedをMethodの入力や推薦根拠に混ぜない。D1は不足の種類ごとに合理的に分岐できる比較相手とする。
+
+**横断アーキテクチャの反映**：TEI [ADR-0048](https://github.com/hat47x/tei-platform/pull/3439) はCLI/MCP/Web/Desktopが共通Application APIから別Transportへ出る方針を採用。[#3458](https://github.com/hat47x/tei-platform/pull/3458)のvalidate CLI/MCP限定同値は成立した範囲だけ使い、MCP全操作の外部配送合格とはしない。初回A1を新MCP Serverの実装待ちにしない。[#3520](https://github.com/hat47x/tei-platform/pull/3520)の設計・統計合成19試験は性能比較項目への参照に限定し、実Provider Call・実Telemetry・速度改善としない。Pluginのselected→loaded→invoked→receivedは独立実Receiptがなければ不明。Synthetic Packet内の自己申告で実呼出し資格は得られない。
+
+**別の出口**：[TAI #168](https://github.com/hat47x/tai-pleroma/issues/168)のDSH外部H2/H3は、OS隔離とReply完全性等が未成立で比較資格0/4。A1のローカル試験をそのために止めず、A1の成功を外部Harnessの資格にも転用しない。既存Harness＋Skillで足りるなら独自YI Agent Loopを作らない。SEIのNative Question/Unknown/Conflict保存は[#711](https://github.com/hat47x/sei-cognition/issues/711)のOwner判断を待ち、A0の推薦保存成功をA2へ転用しない。KON/CSW/OntologyはA1の先行条件ではない。
+
+**進行順**：A1-Nで妥当なD1に対する非優位を確認する → A1-Dで必要なSourceだけを選択的に再資格化する可能性を評価する → Provider/隠れたDependencyの実資格が確認できた範囲でA1-Uへ進む。M1の正式実装入口がない段階はMethod proposed / Product not invokedと表示する。今回新たに実施したのは既存Sourceと限定CIの確認・計画変更のみで、**A1-N/D/Uの実比較・SEI正式Method連携・外部H2/H3適格Trial・Owner受理はNOT RUN**。
+
+**長期構想と停止線**：[TEI #3475](https://github.com/hat47x/tei-platform/issues/3475) Ontology/Decision Twin、REAの正式移行、KON Dataspaceの導入、SUI→SHOの実H1を、A0/A1の先行条件にしない。Source Observation→Structural Candidate→Accepted Meaning→Decision→Host Grant→Effect→Outcomeは自動昇格しない。TEI全体セルフビルド/SUI基礎の前提を満たさずDigital Twin/Simulationを開始しない。A0/A1/A2と実外部H2/H3の比較資格は別。**現在の実証状態**：A0は上記の二製品・固定公開Workspaceの限定ローカルCLI試行がPASS。A1/A2の実Method比較／Inquiry永続化、正式Method Product接続、実H2/H3・Host Grant・Owner受理はNOT RUN。今回のSEI計画更新自体は文書変更であり、新SEI Product RunnerやStoreを作らない。
 
 ## 10. 作業の停止線
 
