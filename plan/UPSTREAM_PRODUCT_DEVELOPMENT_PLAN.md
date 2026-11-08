@@ -460,7 +460,7 @@ human usability review
 **責務**：TEIがSource/Role/Rule/Query/Providerの意味・実Readと独立Expectedを所有し、SEI [#767](https://github.com/hat47x/sei-cognition/issues/767)はQ相対の不足説明・次Probe候補、[SEI #711](https://github.com/hat47x/sei-cognition/issues/711)は未決記録の正本責務を検討する。TAI [#168](https://github.com/hat47x/tai-pleroma/issues/168)は外部Harnessの実Tool/Skill Load・隔離・比較、SHO/SUIは出典を保った投影を担う。Host Grant・Owner Meaning Acceptance・EffectはMethodの自己判定から作らない。第二のSource Parser、Claim Store、Oracle、Agent Host、Registry、共通Policy Engineは導入しない。
 
 **現実のBaseline**：
-- TEI [merged #3354](https://github.com/hat47x/tei-platform/pull/3354) の指定HEADで、実CLI read-only **11 Reply**／独立Required Validation Rule **3件**／合成Consumer判別 **32件**／既知T1-Aが限定PASS。現在のFunction/Business全閉包、独立未知Rule発見T1-B、外部H3完全配送、正式Owner受理ではない。
+- TEI [merged #3354](https://github.com/hat47x/tei-platform/pull/3354) の初期段階は実CLI **11 Reply／32合成Consumer判別**。その後 [merged #3482](https://github.com/hat47x/tei-platform/pull/3482) のmain push [#42462861657](https://github.com/hat47x/tei-platform/actions/runs/42462861657) で、sales.order.submitの独立RequiredをCapability/Application/Sourceへ結び、**13実CLI Reply／42 test-only Consumer controls／独立Required Validation Rule 3件／既存6 pinned Step＋既知T1-A**が限定PASS。後者が更新後の実証基線であり、11/32と13/42を合算しない。Source→実Function/Query→Provider Invocation、全Function/Businessの閉包、T1-B、外部H3完全配送、Owner受理は別資格。
 - [TEI Draft #3176](https://github.com/hat47x/tei-platform/pull/3176) のCC-12〜29はGo Test Profile/共同Read/隠れた依存・SUI/SHO投影など、現象ごとの限定Evidence・後続計画。**H3-X02の同一入力/Blind Expected比較は同PR §25で既に事前登録済み**であり、SEIでは再度Fixture/Runnerを作らない。[TEI #3370](https://github.com/hat47x/tei-platform/pull/3370)の`requirements.resultShape=array`、[#3366](https://github.com/hat47x/tei-platform/pull/3366)の`view.worldFingerprint/sourceIndexFingerprint`はmainの変更として照合し、以前の「Draft」表記は履歴とする。
 - 現行SEI [`runAdd`](https://github.com/hat47x/sei-cognition/blob/main/runtime/go/seicli/seicli.go)が正式に書込むのは**RecommendationとDecision**。RecommendationにはStatement/Rationale/BasisRefs/ResponsibilityRefsがあるが、**`--unresolved`はDecisionにしか存在しない**。Method Application/Observation/Questionの正式Write/Resume経路は未実証。 `sei resume --json`の`unresolved=[]`・`unresolved_entry_count=0`は案件の未決がゼロという証拠ではない。RecommendationをDecisionに化けさせない。
 - 外部DSH→実TEI CLIの呼出しとH3 Skill本文Readは限定観測済み。ただしRead隔離・Tool Reply欠落・独立Expected採点の問題から、[TAI #168](https://github.com/hat47x/tai-pleroma/issues/168) H2/H3の**比較適格は0/4**。外部Toolの実Call、実受領、解答正しさは別資格。
@@ -513,7 +513,7 @@ sei resume --json
 
 **認定の上限**：これは二製品の**公開固定Source→評価者のRecommendation→SEI実Store→別CLI再開**という狭い記録往復の成立である。SEI MethodがProbeを生成・選択したこと、TEI生Raw SourceがSEI Methodへ配送されたこと、外部H2/H3 Consumerの完全受領、Source共同Snapshot、Grant/Authority、未解決QuestionのNative継続、業務意味のOwner受理を証明しない。また、評価者が書いた固定文面であり、自律的Cognitive Methodの出力ではない。次に検証するのは**A1のD0/D1/M1同条件比較**である。A2は#711/#678のOwner判断が必要で、A0成功から自動昇格しない。
 
-**H3-A1：D0/D1/M1の追加価値を同条件で比較する**。H3-X02はD1（決定的なindex-mode一追加Read）で解ける可能性があるため、**Method不要の陰性対照**とする。D0＝追加Readなし、D1＝固定の一Read、M1＝SEI #767の研究Methodが選ぶ一Read。三者で同一Q・Source/版・初期Tool Reply・Tool allowlist・Grant/Disclosure・Budget=1・独立Blind Expectedを事前固定する。MethodによるProbe提案と実Tool Call/Reply完全受領を分離し、正しいRequired到達・誤不存在・余分Read・Token/時間・人の確認負担・公開Tool/Traceの非干渉を別評価。**M1がD1と同じProbeを提案しただけではMethod固有改善を認めない**。本段階はResearch Methodの比較であり、SEI Productの正式Method Application接続ではない。
+**H3-A1：D0/D1/M1の追加価値を同条件で比較する**。A0の二製品実Read→Recommendation→Resumeは、評価者が書いた文面の保存往復であり、自律的なProbe選択ではない。H3-X02はD1で解ける可能性があるMethod不要の**陰性対照**として保持する。D0＝追加Readなしの必要根拠照合、D1＝不足の種類・mode・Source依存に応じて許可済みCLIを選ぶ**妥当な決定論的方針**、M1＝[SEI #767](https://github.com/hat47x/sei-cognition/issues/767) の研究Methodによる候補選択。D1をわざと誤った固定ProbeにしてM1の価値を作らない。全群で同じ問いQ・初期実Read・Tool allowlist/Scope/Grant/Disclosure・Read予算・独立Expectedを事前固定し、各ResultのRaw byte・実版・mode・受領とMethod提案を別に採点する。**M1がD1を改善しない、誤不存在や情報露出を増やすならMethod必須化を見送る**。研究用Python Referenceの合成PASSはProduct Method/Tool起動PASSではない。
 
 **H3-A2：判断前の未決を継続できるかのProduct検証**。RecommendationだけでInquiryのQuestion/Unknown/Conflictを保持・再開できないなら、外部の独立評価票で`unresolved`を保持しても**SEIの機能が成立したとは表示しない**。SEI #711によるNative Recordか外部参照かのOwner判断後に、実Write/Read/Resumeを検証する。必要なContractが確認されない限り`unsupported`として保留。新CLI・新Method Store・一律CSW Gate・仮のMethod Decisionは追加しない。
 
@@ -529,6 +529,26 @@ sei resume --json
 | Queryの非表示依存・空結果≠不存在 | TEI #2634/#2586 |
 | Tool実Call≠外部Consumerの完全受領 | TAI #168、TEI #2509 |
 | SUIのRaw Item/多Canvas・SHO/OKFへの二次投影≠独立原典 | TEI Draft #3176 CC-19〜29、SEI #820、SUI #3396、SHO #21/#25 |
+
+### 9.3 A0限定PASSを踏まえたA1の事前登録と受入資格（2026-11-08）
+
+**現在の判断**：[TEI固定HEAD／SEI固定HEADの実Go二製品CLI試験](https://github.com/hat47x/tei-platform/actions/runs/42474971439) でA0は限定PASS。固定Rawのindex/subject取得、独立Required Rule3件、評価者によるRecommendationの一時Store保存、別Resumeと原記録再取得、拒否後のStore不変が確認されている。一方、**SEI Methodは推薦内容を生成しておらず、実TEI CLIを呼んだ主体でもない**。A0の資格をMethod選択・Inquiry Native継続・現在Grant・外部Harnessへ昇格しない。
+
+**A1を公正にするための事前登録**：
+
+| Trial | 比較対象と必要な独立Expected | 合格の上限・評価条件 |
+|---|---|---|
+| **A1-N：陰性対照** | 公開sales.order、独立Required Validation Rule3件、source-indexのsubject/index mode、追加Read予算1。必要RuleのIDは問いとして両方に見せ、期待する実証の状態と実応答はReviewerが保持 | D1が正しくindex-modeを選べるならM1の同一Probeは同点。局所の正証人を保持し、未観測Ruleの不存在は推論しない |
+| **A1-D：依存と鮮度** | TEI [#3477](https://github.com/hat47x/tei-platform/pull/3477)のSource-only変更、[#3479](https://github.com/hat47x/tei-platform/pull/3479)のImport raw/Manifest変更を、別々のQに対する試験入力として検討 | World/Modelが不変でも引用Sourceの再確認を要する反例を保持。独立した実Provider/Readerと許可が未観測ならunknown。Goの局所PASSをMethodの実成功へ換算しない |
+| **A1-U：未知依存（後続）** | 既存CLIで実取得可能なSource/Ruleだけから開始。隠れたQuery PredicateやProvider routeは、実Read契約が成立した後に別のQとして追加 | [TEI #2514](https://github.com/hat47x/tei-platform/issues/2514)の独立Oracleと[#3262](https://github.com/hat47x/tei-platform/issues/3262)の限定Design Contextで判別。未知ObligationのAI発見を既知T1-Aへ加算しない |
+
+**一Trialの固定列**：問いQ、Requiredの公開範囲、ReviewerのみのExpected、実Source/CLI/Methodの版、初期Reply raw byteとscope、許可Tool一覧とConsumer現在Grant、D0/D1/M1の選択理由、実Tool Request・Reply・完全受領、supported/partial/unknown/unsupported/withheld、誤肯定・誤否定、追加Read数・時間・token/byte・人の修正、公開Tool名やTraceの非干渉性。MethodによるTool提案と実Tool呼出しは別欄。独立ExpectedをMethodの入力や推薦根拠に混ぜない。D1は不足の種類ごとに合理的に分岐できる比較相手とする。
+
+**横断アーキテクチャの反映**：TEI [ADR-0048](https://github.com/hat47x/tei-platform/pull/3439) はCLI/MCP/Web/Desktopが共通Application APIから別Transportへ出る方針を採用。[#3458](https://github.com/hat47x/tei-platform/pull/3458)のvalidate CLI/MCP限定同値は成立した範囲だけ使い、MCP全操作の外部配送合格とはしない。初回A1を新MCP Serverの実装待ちにしない。[#3520](https://github.com/hat47x/tei-platform/pull/3520)の設計・統計合成19試験は性能比較項目への参照に限定し、実Provider Call・実Telemetry・速度改善としない。Pluginのselected→loaded→invoked→receivedは独立実Receiptがなければ不明。Synthetic Packet内の自己申告で実呼出し資格は得られない。
+
+**別の出口**：[TAI #168](https://github.com/hat47x/tai-pleroma/issues/168)のDSH外部H2/H3は、OS隔離とReply完全性等が未成立で比較資格0/4。A1のローカル試験をそのために止めず、A1の成功を外部Harnessの資格にも転用しない。既存Harness＋Skillで足りるなら独自YI Agent Loopを作らない。SEIのNative Question/Unknown/Conflict保存は[#711](https://github.com/hat47x/sei-cognition/issues/711)のOwner判断を待ち、A0の推薦保存成功をA2へ転用しない。KON/CSW/OntologyはA1の先行条件ではない。
+
+**進行順**：A1-Nで妥当なD1に対する非優位を確認する → A1-Dで必要なSourceだけを選択的に再資格化する可能性を評価する → Provider/隠れたDependencyの実資格が確認できた範囲でA1-Uへ進む。M1の正式実装入口がない段階はMethod proposed / Product not invokedと表示する。今回新たに実施したのは既存Sourceと限定CIの確認・計画変更のみで、**A1-N/D/Uの実比較・SEI正式Method連携・外部H2/H3適格Trial・Owner受理はNOT RUN**。
 
 **長期構想と停止線**：[TEI #3475](https://github.com/hat47x/tei-platform/issues/3475) Ontology/Decision Twin、REAの正式移行、KON Dataspaceの導入、SUI→SHOの実H1を、A0/A1の先行条件にしない。Source Observation→Structural Candidate→Accepted Meaning→Decision→Host Grant→Effect→Outcomeは自動昇格しない。TEI全体セルフビルド/SUI基礎の前提を満たさずDigital Twin/Simulationを開始しない。A0/A1/A2と実外部H2/H3の比較資格は別。**現在の実証状態**：A0は上記の二製品・固定公開Workspaceの限定ローカルCLI試行がPASS。A1/A2の実Method比較／Inquiry永続化、正式Method Product接続、実H2/H3・Host Grant・Owner受理はNOT RUN。今回のSEI計画更新自体は文書変更であり、新SEI Product RunnerやStoreを作らない。
 
