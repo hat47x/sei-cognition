@@ -551,7 +551,61 @@ M1R-2で最初に扱うのは **H3-X02（Rule/Source Index mode）** の一件�
 | SEI入口 | 実`sei`版、使った`add recommendation`・`resume --json`のraw Reply、元Storeのsnapshot digest、対象の論理/Exact basis | `recommendation-only`または`not-run`。保存束内の参照はTEI原証拠の実到達を保証しない |
 | Method追加価値 | D0/D1/M1の割付、同一Input/Toolと必要Probe、実Read・Reply受領・Independent Expected、余分なRead/コスト | Method固有改善は`not-established`。false absence/開示リスクを別判定 |
 
-**開始順序と停止線**：まず一件のM1R-Aを実行し、`SEIの実Recommendation/Resumeで「実TEI観測から生じた未決」をどこまで失わず説明できるか`を限定検証する。そこでSEI CLIの記録種別やbasis解決に不足があれば、既存#711/#678へ事実を返し、仮のObservation/Question保存APIを新設しない。そのうえで同じ実TEI根拠をM1R-Bへ再利用する。外部H2/H3・SUI→SHO実受渡し・正式Decision handoff・Plugin実Provider/Host・Ontology SDKは、ここでの最初のBlocking条件に加えない。**この§9.3は要件・実行順序の精密化であり、新しいCLI/SEI Product Method/二製品E2E/Owner受理の実証ではない。**
+**開始順序と停止線**：まず一件のM1R-Aを実行し、`SEIの実Recommendation/Resumeで「実TEI観測から提案を保存・再開できる範囲」と「Question／未決として正式には保存されない範囲」をどこまで正確に区別できるか`を限定検証する。そこでSEI CLIの記録種別やbasis解決に不足があれば、既存#711/#678へ事実を返し、仮のObservation/Question保存APIを新設しない。そのうえで同じ実TEI根拠をM1R-Bへ再利用する。外部H2/H3・SUI→SHO実受渡し・正式Decision handoff・Plugin実Provider/Host・Ontology SDKは、ここでの最初のBlocking条件に加えない。**この§9.3は要件・実行順序の精密化であり、新しいCLI/SEI Product Method/二製品E2E/Owner受理の実証ではない。**
+
+### 9.4 M1R-Aの実装監査：Recommendation保存はInquiry/Unknownの永続化ではない（2026-11-08）
+
+§9.3の「既存CLIで提案・未決を保存する」は、現行コードに対して**提案の保存と未決の保存を分けて読む必要がある**。以下は現在の[`runtime/go/seicli/seicli.go`](https://github.com/hat47x/sei-cognition/blob/main/runtime/go/seicli/seicli.go) の`runAdd`／`BuildResume`／`runResume`と[`runtime/go/cmd/sei/QUICKSTART.md`](https://github.com/hat47x/sei-cognition/blob/main/runtime/go/cmd/sei/QUICKSTART.md)から直接確かめた実装境界であり、**新しい実バイナリ実験のPASSではない**。
+
+**コード監査による具体的な境界**
+
+1. `sei add recommendation`の現行フラグは`--id`/`--statement`/`--rationale`/`--source`/`--basis`/`--responsible`。**`--unresolved`はDecisionでのみ定義**され、Recommendationには存在しない。観測結果が曖昧なことをRecommendationの`rationale`へ記述できても、型付きQuestion/Unknownを保存したとは言えない。
+2. `BuildResume`の`Unresolved`は認識済み**Decision**の`UnresolvedRefs`だけから構成される。`recommendations_not_yet_relied_on`（出力名は既存JSONの実版に従う）は**未採用の推薦**であって、**未解決の質問一覧ではない**。RecommendationだけのStoreで`unresolved`が0でも対象案件に未決が無いとは言えない。`coverage.case_completeness=not_assessed`の停止線を維持する（[#678](https://github.com/hat47x/sei-cognition/issues/678)）。
+3. CLIの`--basis`は`kind:id`の参照を受け取るが、実TEI Sourceのbyteや現行Meaning/Scope/Providerを自動取得・検証しない。`--source`はCLI呼出者が指定した**出所ラベル**であり、署名済みの実Tool ReceiptやOwnerの身元保証ではない。`basis_references`の保存・表示を元資料の独立根拠として計数しない（[#710](https://github.com/hat47x/sei-cognition/issues/710)、[#711](https://github.com/hat47x/sei-cognition/issues/711)、[#820](https://github.com/hat47x/sei-cognition/issues/820)）。
+4. `sei resume --json`の`snapshot_digest`はSEI **Store bundleの実Read bytes**の指紋であり、TEI Workspace/CLI binary/Read-setのDigestとは別。原記録へ戻る`sei resume --json --record-id <ID> --snapshot-digest <DIGEST>`は同じ保存束なら原記録を取得するが、外部TEI Sourceの再取得やGrantの確認はしない。Store変更後の古いDigestは読み直しが必要。人間表示ではRecommendationの`rationale`は原則省略され、JSON側に残る。
+5. `sei mcp --read-only`が公開するのは`resume`だけであり、`add_recommendation`は使えない。通常MCP起動はRecommendation追加に加えて`check_decision`を公開し、後者は監査ログを書き込むためread-onlyとは言えない。**TEIのread-only Probeと、隔離されたSEI Storeへの記録Write、AIへ公開するTool集合を分離**する。外部H2/H3では既存TAI #168/#232の実物理隔離・送出計測を先に満たす。
+
+**M1R-Aの実行可能な最小手順候補（コマンドの存在をコードで確認、Trial自体はNOT RUN）**
+
+```text
+1. TEI実CLIの同一Pinned workspace/root/subject/revisionで
+   source-index subject-mode と index-mode を取得する。
+   実argv、stdout raw bytes、exit、Tool結果・SourceのDigestを製品側で保持。
+
+2. 実行対象と切り離した一時Working Directoryで sei init。
+   sei add recommendation --id R-h3-index-mode
+     --statement "<許可された事実と次の確認提案>"
+     --rationale "<観測された根拠不足と確認条件>"
+     --basis semantic-data:sales.order --source tei-cli
+   ※basis/sourceは未検証の文字列参照。実TEIのRead証拠と突合したとは扱わない。
+
+3. sei resume --json の実Responseを保存・再読取。
+   推薦のstatement/rationale/basis/record出所が保持された範囲を確認。
+   未解決一覧が空でもInquiryの完了とは判定しない。
+
+4. snapshot_digestを固定して同じrecord_idの原記録を取得。
+   別Revision/Store更新後は旧digestの失効を確認。
+   SEIのStore bundle DigestとTEIのSource/Binary Digestsを混同しない。
+
+5. External Harnessへ引き渡す場合は、Toolの実ロード/許可/実Reply
+   完全受領、実隔離、公開可能な説明を別に検収する。
+```
+
+**有限の受入対照（独立Expectedは実Runtimeの`resume`から生成しない）**
+
+| ID | 入力／操作 | 独立Expectedと止めるClaim |
+|---|---|---|
+| A-01 | TEI subject-modeには必要Ruleが不足、index-modeには独立Requiredがある | 正しい取得modeを診断。欠落≠Rule不存在。既存TEI #3354のReadと比較する |
+| A-02 | Recommendationのみを保存して`resume --json` | 推薦の存在は肯定できるが、型付きQuestion/Unresolved保存とは判定しない。未決0件≠未決なし |
+| A-03 | `--rationale`に不足根拠、`--basis semantic-data:sales.order`を記録 | JSONには説明と参照ラベルが残り得るが、TEI Sourceの実Read/SHA/現在資格は未検証。人向け表示のrationale欠落を別評価 |
+| A-04 | `--source tei-cli`と異なる自己申告Sourceラベルを比較 | 出所名は識別子の記録であって実Tool/人の身元認証ではない |
+| A-05 | Storeへ追加記録した後、旧`snapshot_digest`による原記録読出し | 旧Digestの適用を拒否し、履歴指紋一致≠Source/Grant現在有効とする |
+| A-06 | `sei mcp --read-only`と標準起動のTool exposureを比較 | read-onlyでは`add_recommendation`を実行不可。通常起動の`check_decision`効果も独立評価。外部情報送出と実OS隔離は別試験 |
+| A-07 | Methodが同じindex-mode Probeを提案、D1も同じProbeを固定選択 | D1/M1の同じ結果にMethod固有改善を加点しない。追加価値が無いならMethod必須化を見送る |
+
+**優先順位とOwner引渡し**：まずA-02〜04の**実SEIバイナリ・一時Store**で保存・Resume表示を独立Expectedに対して確認し、次にA-01の実TEI Sourceへ結び、A-05〜07へ進む。TEIのSource/必要Rule/意味と実バイナリはTEI #3262/#2516、SEIの記録種別・参照の意味はSEI #711/#678、Method選択の効果はSEI #767/#450、外部Toolと送出はTAI #168/#232がOwner。A-02で未決の意味保存が不成立なら、**適格なRecommendation保存までを肯定し、Inquiry持続性・Method ApplicationのProduct実結合は未成立として止める**。失敗を隠すために偽のDecisionを新設したり、既存Decisionの`unresolved`を書き換えたりしない。
+
+**未実施**：A-01〜07の新規Trial・GitHub Actionsによるexact-head CI・独立SEIビルドとTEI同一Attempt二製品受領・外部OS/Network隔離・Method Application正式保存・人のOwner受理は**NOT RUN**。本節は現行の実コードの監査結果と反証可能な受入計画に限る。第二Store/Parser/Index/Hostを追加しない（隔離したSEI試験用Storeは既存Product機能として用いる）。
 
 ## 10. 作業の停止線
 
