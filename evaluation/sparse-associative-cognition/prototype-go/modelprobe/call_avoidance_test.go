@@ -49,9 +49,9 @@ func TestSummarizeReferenceFixtureCallAvoidance(t *testing.T) {
 	counts := routeCountMap(summary)
 	expected := map[string]RouteCallCount{
 		"abstain-or-expand-evidence": {Route: "abstain-or-expand-evidence", FixtureCount: 1, SkippedInvocations: 1},
-		"external-evidence-required":  {Route: "external-evidence-required", FixtureCount: 1, SkippedInvocations: 1},
-		"local-slm":                   {Route: "local-slm", FixtureCount: 4, ModelInvocations: 4},
-		"symbolic":                    {Route: "symbolic", FixtureCount: 1, SkippedInvocations: 1},
+		"external-evidence-required": {Route: "external-evidence-required", FixtureCount: 1, SkippedInvocations: 1},
+		"local-slm":                  {Route: "local-slm", FixtureCount: 4, ModelInvocations: 4},
+		"symbolic":                   {Route: "symbolic", FixtureCount: 1, SkippedInvocations: 1},
 	}
 	if len(counts) != len(expected) {
 		t.Fatalf("route count size=%d want=%d: %+v", len(counts), len(expected), counts)

@@ -89,7 +89,6 @@ func withWorkingDirectory(t *testing.T, dir string) {
 	})
 }
 
-
 func TestResolveSourceGitSHARejectsDirtyTrackedFile(t *testing.T) {
 	repo, head := createTempGitRepo(t)
 	withWorkingDirectory(t, repo)

@@ -9,8 +9,8 @@ import (
 func testDefinitions() []ProblemPolicy {
 	return []ProblemPolicy{
 		{
-			ProblemClass:            "routine-summary",
-			StaticRoute:             "general-llm",
+			ProblemClass: "routine-summary",
+			StaticRoute:  "general-llm",
 			AllowedRoutes: []RouteOption{
 				{ID: "local-slm", EscalationLevel: 1},
 				{ID: "general-llm", EscalationLevel: 2},
@@ -19,8 +19,8 @@ func testDefinitions() []ProblemPolicy {
 			MinAssessedObservations: 5,
 		},
 		{
-			ProblemClass:            "novel-analysis",
-			StaticRoute:             "general-llm",
+			ProblemClass: "novel-analysis",
+			StaticRoute:  "general-llm",
 			AllowedRoutes: []RouteOption{
 				{ID: "local-slm", EscalationLevel: 1},
 				{ID: "general-llm", EscalationLevel: 2},
@@ -38,7 +38,7 @@ func outcomes(problemClass, route string, sufficient, insufficient, notAssessed,
 			ProblemClass: problemClass, Route: route,
 			CognitiveOutcome: CognitiveSufficient,
 			ExecutionOutcome: ExecutionCompleted,
-			ProvenanceRef: "fixture:assessed", ObservedPolicyVersion: BaselineVersion,
+			ProvenanceRef:    "fixture:assessed", ObservedPolicyVersion: BaselineVersion,
 		})
 	}
 	for i := 0; i < insufficient; i++ {
@@ -46,7 +46,7 @@ func outcomes(problemClass, route string, sufficient, insufficient, notAssessed,
 			ProblemClass: problemClass, Route: route,
 			CognitiveOutcome: CognitiveInsufficient,
 			ExecutionOutcome: ExecutionCompleted,
-			ProvenanceRef: "fixture:assessed", ObservedPolicyVersion: BaselineVersion,
+			ProvenanceRef:    "fixture:assessed", ObservedPolicyVersion: BaselineVersion,
 		})
 	}
 	for i := 0; i < notAssessed; i++ {
@@ -58,7 +58,7 @@ func outcomes(problemClass, route string, sufficient, insufficient, notAssessed,
 			ProblemClass: problemClass, Route: route,
 			CognitiveOutcome: CognitiveNotAssessed,
 			ExecutionOutcome: execution,
-			ProvenanceRef: "fixture:not-assessed", ObservedPolicyVersion: BaselineVersion,
+			ProvenanceRef:    "fixture:not-assessed", ObservedPolicyVersion: BaselineVersion,
 		})
 	}
 	return out
@@ -304,7 +304,7 @@ func TestExplicitActivationAndRollbackReproduceRoutes(t *testing.T) {
 func TestDeterministicTieBreak(t *testing.T) {
 	definitions := []ProblemPolicy{{
 		ProblemClass: "tie",
-		StaticRoute: "route-z",
+		StaticRoute:  "route-z",
 		AllowedRoutes: []RouteOption{
 			{ID: "route-b", EscalationLevel: 1},
 			{ID: "route-a", EscalationLevel: 1},

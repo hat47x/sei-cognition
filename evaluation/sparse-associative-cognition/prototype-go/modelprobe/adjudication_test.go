@@ -184,7 +184,6 @@ func TestValidateHumanAdjudicationRejectsModelArtifactMismatch(t *testing.T) {
 	}
 }
 
-
 func TestValidateHumanAdjudicationRejectsLegacyV0Schema(t *testing.T) {
 	matrix := completeMatrixForAdjudication(t)
 	adjudication, err := BuildHumanAdjudicationTemplate(matrix, "reviewer-1")

@@ -96,7 +96,7 @@ func RouteReasoning(ctx RoutingContext) RoutingDecision {
 }
 
 type SemanticBoundary struct {
-	OutputIsProposalOnly                        bool `json:"output_is_proposal_only"`
+	OutputIsProposalOnly                       bool `json:"output_is_proposal_only"`
 	MayNotRewriteHistoricalBasis               bool `json:"may_not_rewrite_historical_basis"`
 	RecommendationIsNotDecision                bool `json:"recommendation_is_not_decision"`
 	MustPreserveUnknownAndConflict             bool `json:"must_preserve_unknown_and_conflict"`
@@ -169,19 +169,19 @@ func BuildWorkingSet(inquiry, task string, candidates []Candidate, unresolved []
 		Schema: "sei.local-reasoning-working-set/v0", Status: "evaluation-only",
 		Task: task, Inquiry: clipString(inquiry, maxTextChars),
 		SemanticBoundary: SemanticBoundary{
-			OutputIsProposalOnly: true,
-			MayNotRewriteHistoricalBasis: true,
-			RecommendationIsNotDecision: true,
-			MustPreserveUnknownAndConflict: true,
-			MustCiteCandidateRefsForMaterialClaims: true,
+			OutputIsProposalOnly:                       true,
+			MayNotRewriteHistoricalBasis:               true,
+			RecommendationIsNotDecision:                true,
+			MustPreserveUnknownAndConflict:             true,
+			MustCiteCandidateRefsForMaterialClaims:     true,
 			CanonicalWriteRequiresValidationOrHumanAct: true,
 		},
 		Candidates: bounded, Unresolved: boundedUnresolved, Constraints: boundedConstraints,
 		RequestedOutput: RequestedOutput{
-			Proposal: "reasoned candidate answer, comparison, hypothesis, or plan",
+			Proposal:                "reasoned candidate answer, comparison, hypothesis, or plan",
 			SupportingCandidateRefs: "candidate_ref values actually used",
-			Unresolved: "remaining uncertainty or conflict",
-			NeedMoreEvidence: "true when the bounded working set is insufficient",
+			Unresolved:              "remaining uncertainty or conflict",
+			NeedMoreEvidence:        "true when the bounded working set is insufficient",
 		},
 	}
 }

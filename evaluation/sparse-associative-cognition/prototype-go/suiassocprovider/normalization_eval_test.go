@@ -131,7 +131,7 @@ func TestExactChannelCanOverweightSplitStructuralFamily(t *testing.T) {
 func TestPreparedFeaturesModesKeepBaselineOptIn(t *testing.T) {
 	item := baseRequest().Items[0]
 	baseCfg := Config{
-		Sparse: sparseassoc.Config{Dimensions: 4096, Fanout: 8, Active: 64, Seed: 47},
+		Sparse:                sparseassoc.Config{Dimensions: 4096, Fanout: 8, Active: 64, Seed: 47},
 		MinInternalSimilarity: 0.1,
 		ProviderID:            "sei-sacs-go-eval",
 		ImplementationVersion: "normalization-eval",
@@ -213,7 +213,6 @@ func familyTotals(features []sparseassoc.Feature) map[string]float32 {
 	}
 	return totals
 }
-
 
 func TestNormalizationModesOnTextCardinalityFixture(t *testing.T) {
 	anchor := Item{

@@ -89,7 +89,6 @@ func TestRuntimeMetricsEvidenceUnavailableDoesNotInventZeros(t *testing.T) {
 	}
 }
 
-
 func TestParseRuntimePrometheusMetricsRejectsNonFinite(t *testing.T) {
 	for _, value := range []string{"NaN", "+Inf", "-Inf"} {
 		_, err := parseRuntimePrometheusMetrics(strings.NewReader("llamacpp:kv_cache_usage_ratio " + value + "\n"))

@@ -83,7 +83,6 @@ func TestObserveRuntimeModelMappingNotObserved(t *testing.T) {
 	}
 }
 
-
 func TestObserveRuntimeModelMappingUnavailablePID(t *testing.T) {
 	if runtime.GOOS != "linux" {
 		t.Skip("Linux /proc test")

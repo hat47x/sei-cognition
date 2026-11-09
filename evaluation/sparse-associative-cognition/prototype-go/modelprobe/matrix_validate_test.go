@@ -19,7 +19,7 @@ func readyValidationPreflight(matrix ActualMatrixArtifact, mode Mode) RunManifes
 		Status:       "evaluation-only",
 		RunID:        matrix.RunIDPrefix + "-" + string(mode),
 		SourceGitSHA: matrix.SourceGitSHA,
-		Host:          matrix.Host,
+		Host:         matrix.Host,
 		Endpoint: EndpointInfo{
 			Reachable:  true,
 			HTTPStatus: 200,
@@ -88,7 +88,7 @@ func TestValidateActualMatrixArtifactBlockedPreflight(t *testing.T) {
 				Status:       "evaluation-only",
 				RunID:        base.RunIDPrefix + "-" + string(ModeRaw),
 				SourceGitSHA: base.SourceGitSHA,
-				Host:          base.Host,
+				Host:         base.Host,
 				Endpoint: EndpointInfo{
 					Reachable:  true,
 					HTTPStatus: 503,
@@ -163,7 +163,6 @@ func TestValidateActualMatrixArtifactRejectsBlockedIdentityWithoutMismatch(t *te
 	}
 }
 
-
 func TestValidateActualMatrixArtifactRejectsHostMismatch(t *testing.T) {
 	matrix := completeMatrixForValidation(t)
 	matrix.Preflights[1].Host.GoVersion = "go1.25.13"
@@ -181,7 +180,6 @@ func TestValidateActualMatrixArtifactRejectsMissingMatrixHost(t *testing.T) {
 		t.Fatal("expected missing matrix host rejection")
 	}
 }
-
 
 func TestValidateActualMatrixArtifactRejectsLegacyV0Schema(t *testing.T) {
 	matrix := completeMatrixForValidation(t)

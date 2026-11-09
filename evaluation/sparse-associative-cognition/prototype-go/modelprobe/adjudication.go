@@ -22,41 +22,41 @@ type HumanAdjudicationEntry struct {
 }
 
 type HumanAdjudication struct {
-	Schema       string                   `json:"schema"`
-	Status       string                   `json:"status"`
-	SourceGitSHA string                   `json:"source_git_sha"`
-	Model        string                   `json:"model"`
+	Schema        string                   `json:"schema"`
+	Status        string                   `json:"status"`
+	SourceGitSHA  string                   `json:"source_git_sha"`
+	Model         string                   `json:"model"`
 	ModelArtifact ModelArtifactIdentity    `json:"model_artifact"`
-	ReviewerLabel string                  `json:"reviewer_label"`
-	ReviewedAt   string                   `json:"reviewed_at"`
-	Entries      []HumanAdjudicationEntry `json:"entries"`
-	Notes        []string                 `json:"notes,omitempty"`
+	ReviewerLabel string                   `json:"reviewer_label"`
+	ReviewedAt    string                   `json:"reviewed_at"`
+	Entries       []HumanAdjudicationEntry `json:"entries"`
+	Notes         []string                 `json:"notes,omitempty"`
 }
 
 type HumanAdjudicationModeSummary struct {
-	Mode                       Mode `json:"mode"`
-	AssessedCount              int  `json:"assessed_count"`
-	TaskPassCount              int  `json:"task_pass_count"`
-	TaskFailCount              int  `json:"task_fail_count"`
-	TaskUncertainCount         int  `json:"task_uncertain_count"`
-	BoundaryPreservedCount     int  `json:"boundary_preserved_count"`
-	BoundaryViolatedCount      int  `json:"boundary_violated_count"`
-	BoundaryUncertainCount     int  `json:"boundary_uncertain_count"`
+	Mode                   Mode `json:"mode"`
+	AssessedCount          int  `json:"assessed_count"`
+	TaskPassCount          int  `json:"task_pass_count"`
+	TaskFailCount          int  `json:"task_fail_count"`
+	TaskUncertainCount     int  `json:"task_uncertain_count"`
+	BoundaryPreservedCount int  `json:"boundary_preserved_count"`
+	BoundaryViolatedCount  int  `json:"boundary_violated_count"`
+	BoundaryUncertainCount int  `json:"boundary_uncertain_count"`
 }
 
 type HumanAdjudicationReport struct {
-	Schema       string                         `json:"schema"`
-	Status       string                         `json:"status"`
-	SourceGitSHA string                         `json:"source_git_sha"`
-	Model        string                         `json:"model"`
-	ModelArtifact ModelArtifactIdentity          `json:"model_artifact"`
-	ReviewerLabel string                        `json:"reviewer_label"`
-	ReviewedAt   string                         `json:"reviewed_at"`
-	Raw          HumanAdjudicationModeSummary   `json:"raw"`
-	Workspace    HumanAdjudicationModeSummary   `json:"workspace"`
-	Staged       HumanAdjudicationModeSummary   `json:"staged"`
-	Entries      []HumanAdjudicationEntry       `json:"entries"`
-	Notes        []string                       `json:"notes"`
+	Schema        string                       `json:"schema"`
+	Status        string                       `json:"status"`
+	SourceGitSHA  string                       `json:"source_git_sha"`
+	Model         string                       `json:"model"`
+	ModelArtifact ModelArtifactIdentity        `json:"model_artifact"`
+	ReviewerLabel string                       `json:"reviewer_label"`
+	ReviewedAt    string                       `json:"reviewed_at"`
+	Raw           HumanAdjudicationModeSummary `json:"raw"`
+	Workspace     HumanAdjudicationModeSummary `json:"workspace"`
+	Staged        HumanAdjudicationModeSummary `json:"staged"`
+	Entries       []HumanAdjudicationEntry     `json:"entries"`
+	Notes         []string                     `json:"notes"`
 }
 
 func BuildHumanAdjudicationTemplate(

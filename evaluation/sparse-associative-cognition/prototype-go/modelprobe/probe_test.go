@@ -135,9 +135,9 @@ func TestRunCallsOpenAICompatibleEndpointAndEvaluates(t *testing.T) {
 	defer server.Close()
 
 	result, err := Run(context.Background(), Config{
-		Endpoint: server.URL,
-		Model: "tiny-local",
-		MaxTokens: 512,
+		Endpoint:   server.URL,
+		Model:      "tiny-local",
+		MaxTokens:  512,
 		HTTPClient: server.Client(),
 	}, f, ModeWorkspace)
 	if err != nil {
@@ -175,8 +175,8 @@ func TestRunRawTranslatesOpaqueAliasesBeforeEvaluation(t *testing.T) {
 	defer server.Close()
 
 	result, err := Run(context.Background(), Config{
-		Endpoint: server.URL,
-		Model: "tiny-local",
+		Endpoint:   server.URL,
+		Model:      "tiny-local",
 		HTTPClient: server.Client(),
 	}, f, ModeRaw)
 	if err != nil {
@@ -206,7 +206,6 @@ func TestRunStagedCanSkipWithoutEndpoint(t *testing.T) {
 		t.Fatalf("route=%s", result.Route)
 	}
 }
-
 
 func TestRunStreamingMeasuresFirstContentDeltaAndTotalLatency(t *testing.T) {
 	f := fixtureByID(t, "recommendation-not-decision")

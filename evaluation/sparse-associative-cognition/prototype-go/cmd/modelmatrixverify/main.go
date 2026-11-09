@@ -15,14 +15,14 @@ import (
 const verificationSchema = "sei-cognition.local-model-matrix-verification/v1"
 
 type verificationReport struct {
-	Schema        string                          `json:"schema"`
-	Status        string                          `json:"status"`
-	MatrixStatus  string                          `json:"matrix_status"`
-	SourceGitSHA  string                          `json:"source_git_sha"`
-	Model         string                          `json:"model"`
+	Schema        string                           `json:"schema"`
+	Status        string                           `json:"status"`
+	MatrixStatus  string                           `json:"matrix_status"`
+	SourceGitSHA  string                           `json:"source_git_sha"`
+	Model         string                           `json:"model"`
 	ModelArtifact modelprobe.ModelArtifactIdentity `json:"model_artifact"`
-	Host          modelprobe.HostInfo               `json:"host"`
-	Notes         []string                        `json:"notes"`
+	Host          modelprobe.HostInfo              `json:"host"`
+	Notes         []string                         `json:"notes"`
 }
 
 func main() {

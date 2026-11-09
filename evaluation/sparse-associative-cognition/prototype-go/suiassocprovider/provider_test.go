@@ -110,8 +110,8 @@ func TestHandleReturnsContractResponseWithoutInternalSimilarity(t *testing.T) {
 func TestResponseCandidateOrderIsStableRefNotSimilarityOrder(t *testing.T) {
 	req := baseRequest()
 	req.Items = append(req.Items, Item{
-		Ref:  "c10",
-		Kind: "card",
+		Ref:      "c10",
+		Kind:     "card",
 		Channels: Channels{Text: "確認作業が増えたという現場記録"},
 	})
 	req.Policy.CandidateLimit = 3
