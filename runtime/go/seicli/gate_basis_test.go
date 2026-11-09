@@ -105,3 +105,51 @@ func TestGateDoesNotCountASemanticReferenceRecordAsTheBasisExisting(t *testing.T
 		t.Errorf("a reference record only names the artifact: %v", notes)
 	}
 }
+
+func groundsNotesOf(r GateResult) (basis, rationale bool) {
+	for _, n := range r.NotVerified {
+		basis = basis || strings.Contains(n, "records no basis reference")
+		rationale = rationale || strings.Contains(n, "records no rationale")
+	}
+	return
+}
+
+// basisもrationaleも無い決定でも既定ではallowのままだが、無いことをnot_verifiedに出す。
+// --require-basis・--require-rationaleで初めてdenyになる。
+func TestGateNamesMissingBasisAndRationaleAndCanRequireThem(t *testing.T) {
+	withBasis := semanticruntime.Reference{Kind: "artifact", ID: "A"}
+	cases := []struct {
+		name          string
+		basis         []semanticruntime.Reference
+		rationale     string
+		wantNoBasis   bool
+		wantNoReason  bool
+		policy        GatePolicy
+		wantVerdict   string
+		wantReasonSub string
+	}{
+		{"neither, default policy", nil, "", true, true, GatePolicy{RequireResponsible: true}, "allow", ""},
+		{"no basis only", nil, "because", true, false, GatePolicy{RequireResponsible: true}, "allow", ""},
+		{"no rationale only", []semanticruntime.Reference{withBasis}, "  ", false, true, GatePolicy{RequireResponsible: true}, "allow", ""},
+		{"both present", []semanticruntime.Reference{withBasis}, "because", false, false, GatePolicy{RequireResponsible: true, RequireBasis: true, RequireRationale: true}, "allow", ""},
+		{"require basis, none", nil, "because", true, false, GatePolicy{RequireResponsible: true, RequireBasis: true}, "deny", "no basis reference"},
+		{"require rationale, none", []semanticruntime.Reference{withBasis}, "", false, true, GatePolicy{RequireResponsible: true, RequireRationale: true}, "deny", "no rationale"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			d := decisionWithBasis("D1", tc.basis...)
+			d.Rationale = tc.rationale
+			got := CheckDecision(recommendationBundle(nil, d), "D1", tc.policy)
+			if got.Verdict != tc.wantVerdict {
+				t.Fatalf("verdict = %s, want %s: %+v", got.Verdict, tc.wantVerdict, got)
+			}
+			if tc.wantReasonSub != "" && !strings.Contains(strings.Join(got.Reasons, "|"), tc.wantReasonSub) {
+				t.Errorf("reasons %v lack %q", got.Reasons, tc.wantReasonSub)
+			}
+			b, r := groundsNotesOf(got)
+			if b != tc.wantNoBasis || r != tc.wantNoReason {
+				t.Errorf("not_verified missing-basis=%v missing-rationale=%v, want %v %v: %v", b, r, tc.wantNoBasis, tc.wantNoReason, got.NotVerified)
+			}
+		})
+	}
+}
