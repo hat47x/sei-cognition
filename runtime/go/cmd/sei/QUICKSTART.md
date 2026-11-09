@@ -131,7 +131,7 @@ MCP(Model Context Protocol)に対応するAIツールには、次のコマンド
 sei mcp --data-root /path/to/.sei
 ```
 
-AIツールが自分の作業ディレクトリで`sei`を起動する想定です。この環境では確認していません。そのため、`sei`のパスも`--data-root`も、相対パスではなく絶対パスで指定してください。
+AIツールが自分の作業ディレクトリで`sei`を起動する想定です。この環境では確認していません。そのため、`sei`のパスも`--data-root`も、相対パスではなく絶対パスで指定してください。`--data-root`も`SEI_DATA_ROOT`も無いときの既定は、起動時のカレントディレクトリ相対の`.sei`です。起動場所が変わると別のstoreを読み、`resume`・`gate check`の出力にはstoreの場所が出ません(`bundle_id`と件数のみ。`sei doctor`の`data-root`行だけが絶対パスを示します)。`sei doctor`が出すMCP設定例は、`--data-root`を絶対パスで付けています。出力へ場所を含めるかは、環境情報の扱いと合わせてOwnerの判断待ちで、未実装です(#835)。
 
 ### Claude Codeへの登録
 
