@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/hat47x/sei-cognition/runtime/go/semanticruntime"
 )
 
 // This file is an Integration Surface Profile, not a Semantic Contract and not
@@ -210,7 +212,12 @@ func (s *mcpServer) handle(ctx context.Context, line []byte) *rpcResponse {
 		return reply(map[string]any{
 			"protocolVersion": mcpProtocolVersion,
 			"capabilities":    map[string]any{"tools": map[string]any{}},
-			"serverInfo":      map[string]string{"name": "sei", "version": currentCLI().Version},
+			"serverInfo": map[string]any{
+				"name":      "sei",
+				"version":   currentCLI().Version,
+				"commit":    currentCLI().Commit,
+				"contracts": semanticruntime.KnownContracts(),
+			},
 		})
 	case "ping":
 		return reply(map[string]any{})
