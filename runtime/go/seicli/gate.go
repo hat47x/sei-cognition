@@ -38,6 +38,8 @@ type GatePolicy struct {
 	RequireResponsible    bool `json:"require_responsible"`
 	RequireRecommendation bool `json:"require_recommendation"`
 	DenyUnresolved        bool `json:"deny_unresolved"`
+	RequireBasis          bool `json:"require_basis"`
+	RequireRationale      bool `json:"require_rationale"`
 }
 
 // GateResult reports whether a recorded Decision meets a policy.
@@ -253,6 +255,21 @@ func basisNotes(bundle *semanticruntime.Bundle, d *semanticruntime.Decision) []s
 	return notes
 }
 
+// groundsNotes states when a decision records no basis reference or no
+// rationale. An allow says the decision meets the stated policy, not that
+// grounds were recorded, so their absence is named and the verdict is not
+// changed by it unless the operator asks with RequireBasis or RequireRationale.
+func groundsNotes(d *semanticruntime.Decision) []string {
+	var notes []string
+	if len(d.BasisRefs) == 0 {
+		notes = append(notes, "this decision records no basis reference; allow does not mean any ground was recorded (--require-basis denies it)")
+	}
+	if strings.TrimSpace(d.Rationale) == "" {
+		notes = append(notes, "this decision records no rationale; allow does not mean any reason was recorded (--require-rationale denies it)")
+	}
+	return notes
+}
+
 // CheckDecision evaluates one recorded Decision against a policy, without
 // naming a scope. It is CheckDecisionInScope with no scope given.
 func CheckDecision(bundle *semanticruntime.Bundle, id string, policy GatePolicy) GateResult {
@@ -374,6 +391,12 @@ func CheckDecisionInScope(bundle *semanticruntime.Bundle, id string, scope *stri
 	if policy.RequireRecommendation && !reliesOnRecorded(bundle, found) {
 		deny("the decision relies on no recorded recommendation")
 	}
+	if policy.RequireBasis && len(found.BasisRefs) == 0 {
+		deny("the decision records no basis reference")
+	}
+	if policy.RequireRationale && strings.TrimSpace(found.Rationale) == "" {
+		deny("the decision records no rationale")
+	}
 	if policy.DenyUnresolved && len(found.UnresolvedRefs) > 0 {
 		deny(fmt.Sprintf("the decision left %d question(s) unresolved", len(found.UnresolvedRefs)))
 	}
@@ -381,6 +404,7 @@ func CheckDecisionInScope(bundle *semanticruntime.Bundle, id string, scope *stri
 	result.NotVerified = append(result.NotVerified, lineageNotes(bundle, found)...)
 	result.NotVerified = append(result.NotVerified, basisNotVerified)
 	result.NotVerified = append(result.NotVerified, basisNotes(bundle, found)...)
+	result.NotVerified = append(result.NotVerified, groundsNotes(found)...)
 	return result
 }
 
@@ -427,6 +451,8 @@ func runGate(ctx context.Context, args []string, stdout, stderr io.Writer) error
 	f.BoolVar(&policy.RequireResponsible, "require-responsible", true, "deny when the decision names no responsible party")
 	f.BoolVar(&policy.RequireRecommendation, "require-recommendation", false, "deny when the decision relies on no recorded recommendation")
 	f.BoolVar(&policy.DenyUnresolved, "deny-unresolved", false, "deny when the decision left questions unresolved")
+	f.BoolVar(&policy.RequireBasis, "require-basis", false, "deny when the decision records no basis reference")
+	f.BoolVar(&policy.RequireRationale, "require-rationale", false, "deny when the decision records no rationale")
 	if done, err := parseFlags(f, args[1:], stdout, stderr); done || err != nil {
 		return err
 	}
