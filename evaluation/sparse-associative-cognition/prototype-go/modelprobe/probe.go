@@ -56,25 +56,25 @@ type TokenUsage struct {
 }
 
 type Result struct {
-	FixtureID      string                         `json:"fixture_id"`
-	Mode           Mode                           `json:"mode"`
-	Model          string                         `json:"model"`
-	Endpoint       string                         `json:"endpoint"`
-	Skipped        bool                           `json:"skipped"`
-	SkipReason     string                         `json:"skip_reason,omitempty"`
-	Route          string                         `json:"route"`
-	RequestChars   int                            `json:"request_chars"`
-	ModelInvocationAttempted bool                  `json:"model_invocation_attempted"`
-	ResponseChars  int                            `json:"response_chars,omitempty"`
-	ResponseHeaderLatencyMS int64                  `json:"response_header_latency_ms,omitempty"`
-	FirstTokenObserved bool                        `json:"first_token_observed"`
-	FirstTokenLatencyMS int64                      `json:"first_token_latency_ms,omitempty"`
-	TotalLatencyMS int64                           `json:"total_latency_ms,omitempty"`
-	HTTPStatus     int                            `json:"http_status,omitempty"`
-	Usage          TokenUsage                     `json:"usage,omitempty"`
-	Output         *cognitiveeval.ModelOutput      `json:"output,omitempty"`
-	Evaluation     *cognitiveeval.EvaluationReport `json:"evaluation,omitempty"`
-	RawContent     string                         `json:"raw_content,omitempty"`
+	FixtureID                string                          `json:"fixture_id"`
+	Mode                     Mode                            `json:"mode"`
+	Model                    string                          `json:"model"`
+	Endpoint                 string                          `json:"endpoint"`
+	Skipped                  bool                            `json:"skipped"`
+	SkipReason               string                          `json:"skip_reason,omitempty"`
+	Route                    string                          `json:"route"`
+	RequestChars             int                             `json:"request_chars"`
+	ModelInvocationAttempted bool                            `json:"model_invocation_attempted"`
+	ResponseChars            int                             `json:"response_chars,omitempty"`
+	ResponseHeaderLatencyMS  int64                           `json:"response_header_latency_ms,omitempty"`
+	FirstTokenObserved       bool                            `json:"first_token_observed"`
+	FirstTokenLatencyMS      int64                           `json:"first_token_latency_ms,omitempty"`
+	TotalLatencyMS           int64                           `json:"total_latency_ms,omitempty"`
+	HTTPStatus               int                             `json:"http_status,omitempty"`
+	Usage                    TokenUsage                      `json:"usage,omitempty"`
+	Output                   *cognitiveeval.ModelOutput      `json:"output,omitempty"`
+	Evaluation               *cognitiveeval.EvaluationReport `json:"evaluation,omitempty"`
+	RawContent               string                          `json:"raw_content,omitempty"`
 }
 
 const systemPrompt = `You are an evaluation-only bounded reasoner.

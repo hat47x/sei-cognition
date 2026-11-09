@@ -111,11 +111,11 @@ func TestDeterministicCaseAvoidsGenerativeRoute(t *testing.T) {
 func TestRecommendationDecisionSeparationCanBeEvaluated(t *testing.T) {
 	f := fixtureByID(t, "recommendation-not-decision")
 	out := ModelOutput{
-		Proposal: "Latency favors B, but the recorded user Decision remains A.",
-		SupportingRefs: []string{"obs-3", "rec-3", "dec-3"},
+		Proposal:          "Latency favors B, but the recorded user Decision remains A.",
+		SupportingRefs:    []string{"obs-3", "rec-3", "dec-3"},
 		DecisionBasisRefs: []string{"obs-3"},
 		RecommendationRef: "rec-3",
-		DecisionRef: "dec-3",
+		DecisionRef:       "dec-3",
 		Claims: []Claim{
 			{Text: "Option B had lower measured latency.", SupportingRefs: []string{"obs-3"}},
 		},
@@ -138,10 +138,10 @@ func TestRecommendationDecisionSeparationCanBeEvaluated(t *testing.T) {
 func TestLateArrivingEvidenceCannotBecomeHistoricalBasis(t *testing.T) {
 	f := fixtureByID(t, "late-arriving-evidence")
 	out := ModelOutput{
-		Proposal: "The later price evidence changes current understanding.",
-		SupportingRefs: []string{"obs-4a", "obs-4b"},
+		Proposal:          "The later price evidence changes current understanding.",
+		SupportingRefs:    []string{"obs-4a", "obs-4b"},
 		DecisionBasisRefs: []string{"obs-4a", "obs-4b"},
-		DecisionRef: "dec-4",
+		DecisionRef:       "dec-4",
 		Claims: []Claim{
 			{Text: "A price increase was discovered later.", SupportingRefs: []string{"obs-4b"}},
 		},
@@ -161,7 +161,7 @@ func TestLateArrivingEvidenceCannotBecomeHistoricalBasis(t *testing.T) {
 func TestUnknownConflictAndEvidenceDiscipline(t *testing.T) {
 	f := fixtureByID(t, "high-novelty")
 	bad := ModelOutput{
-		Proposal: "The incident is definitely caused by X.",
+		Proposal:         "The incident is definitely caused by X.",
 		NeedMoreEvidence: false,
 		Claims: []Claim{
 			{Text: "X is the cause."},
@@ -191,23 +191,23 @@ func TestUnknownConflictAndEvidenceDiscipline(t *testing.T) {
 
 func TestPreservationRateIsIndependentPerBoundary(t *testing.T) {
 	f := Fixture{
-		ID: "mixed-unresolved",
-		Objective: "Preserve independent uncertainty boundaries.",
-		Task: "compare",
+		ID:         "mixed-unresolved",
+		Objective:  "Preserve independent uncertainty boundaries.",
+		Task:       "compare",
 		RawContext: []string{"Two unknowns and one conflict remain."},
 		Records: []Record{
 			{Ref: "u1", Kind: "unknown", Summary: "u1"},
 			{Ref: "u2", Kind: "unknown", Summary: "u2"},
 			{Ref: "c1", Kind: "conflict", Summary: "c1"},
 		},
-		SelectedRefs: []string{"u1", "u2", "c1"},
-		UnknownRefs: []string{"u1", "u2"},
-		ConflictRefs: []string{"c1"},
-		RouteContext: hybridreasoning.RoutingContext{NoveltySignal: 0.2},
+		SelectedRefs:  []string{"u1", "u2", "c1"},
+		UnknownRefs:   []string{"u1", "u2"},
+		ConflictRefs:  []string{"c1"},
+		RouteContext:  hybridreasoning.RoutingContext{NoveltySignal: 0.2},
 		ExpectedRoute: hybridreasoning.RouteLocalSLM,
 	}
 	report, err := EvaluateOutput(f, ModelOutput{
-		PreservedUnknownRefs: []string{"u1"},
+		PreservedUnknownRefs:  []string{"u1"},
 		PreservedConflictRefs: []string{"c1"},
 	})
 	if err != nil {

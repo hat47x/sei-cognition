@@ -94,11 +94,11 @@ func TestObserveActualRunRecordsAttemptedFailure(t *testing.T) {
 		t.Fatal(err)
 	}
 	result := Result{
-		FixtureID:                  fixture.ID,
-		Mode:                       ModeStaged,
-		Route:                      plan.Route,
-		ModelInvocationAttempted:   true,
-		TotalLatencyMS:             17,
+		FixtureID:                fixture.ID,
+		Mode:                     ModeStaged,
+		Route:                    plan.Route,
+		ModelInvocationAttempted: true,
+		TotalLatencyMS:           17,
 	}
 	observation := ObserveActualRun(plan, result, errors.New("endpoint unavailable"))
 	if !observation.PlannedModelInvocation ||
@@ -193,7 +193,6 @@ func TestSummarizeActualTelemetryDetectsPlanExecutionMismatch(t *testing.T) {
 		t.Fatalf("mismatch must fail completeness: %+v", summary)
 	}
 }
-
 
 func TestSummarizeActualTelemetryRejectsPlannedCallAsSkip(t *testing.T) {
 	fixtures := cognitiveeval.ReferenceFixtures()

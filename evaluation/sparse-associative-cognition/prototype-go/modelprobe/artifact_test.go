@@ -168,7 +168,6 @@ func TestCompareActualRunsRejectsDifferentSourceRevision(t *testing.T) {
 	}
 }
 
-
 func TestCompareActualRunsRejectsOuterTelemetryIdentityMismatch(t *testing.T) {
 	raw := makeArtifact(t, ModeRaw)
 	workspace := makeArtifact(t, ModeWorkspace)
@@ -199,7 +198,6 @@ func TestBuildActualRunArtifactRejectsTelemetrySchemaDrift(t *testing.T) {
 		t.Fatal("expected telemetry schema mismatch rejection")
 	}
 }
-
 
 func TestValidateActualRunArtifactRejectsLegacyV0Schema(t *testing.T) {
 	artifact := makeArtifact(t, ModeRaw)

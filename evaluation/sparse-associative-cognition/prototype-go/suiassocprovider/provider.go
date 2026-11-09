@@ -44,13 +44,13 @@ var allowedIntents = map[string]struct{}{
 }
 
 type Request struct {
-	Schema     string `json:"schema"`
-	RequestID  string `json:"requestId"`
-	NetworkID  string `json:"networkId"`
-	Intent     string `json:"intent"`
+	Schema     string   `json:"schema"`
+	RequestID  string   `json:"requestId"`
+	NetworkID  string   `json:"networkId"`
+	Intent     string   `json:"intent"`
 	AnchorRefs []string `json:"anchorRefs"`
-	Items      []Item `json:"items"`
-	Policy     Policy `json:"policy"`
+	Items      []Item   `json:"items"`
+	Policy     Policy   `json:"policy"`
 }
 
 type Policy struct {

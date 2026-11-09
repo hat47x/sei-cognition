@@ -53,23 +53,23 @@ type RawRequest struct {
 }
 
 type StagedRequest struct {
-	Schema                       string                              `json:"schema"`
-	Status                       string                              `json:"status"`
-	Routing                      hybridreasoning.RoutingDecision     `json:"routing"`
-	Workspace                    hybridreasoning.WorkingSet          `json:"workspace"`
-	GeneralModelEscalationHint   bool                                `json:"general_model_escalation_hint"`
-	HeavyCognitionOrEvidenceNeed bool                                `json:"heavy_cognition_or_evidence_need"`
+	Schema                       string                          `json:"schema"`
+	Status                       string                          `json:"status"`
+	Routing                      hybridreasoning.RoutingDecision `json:"routing"`
+	Workspace                    hybridreasoning.WorkingSet      `json:"workspace"`
+	GeneralModelEscalationHint   bool                            `json:"general_model_escalation_hint"`
+	HeavyCognitionOrEvidenceNeed bool                            `json:"heavy_cognition_or_evidence_need"`
 }
 
 type BundleStats struct {
-	RawContextChars       int     `json:"raw_context_chars"`
-	WorkspaceJSONChars    int     `json:"workspace_json_chars"`
-	TotalRecordCount      int     `json:"total_record_count"`
-	SelectedRecordCount   int     `json:"selected_record_count"`
-	SelectedRecordRatio   float64 `json:"selected_record_ratio"`
-	ExpectedRouteMatched  bool    `json:"expected_route_matched"`
-	LocalModelAllowed     bool    `json:"local_model_allowed"`
-	GeneralModelHint      bool    `json:"general_model_escalation_hint"`
+	RawContextChars      int     `json:"raw_context_chars"`
+	WorkspaceJSONChars   int     `json:"workspace_json_chars"`
+	TotalRecordCount     int     `json:"total_record_count"`
+	SelectedRecordCount  int     `json:"selected_record_count"`
+	SelectedRecordRatio  float64 `json:"selected_record_ratio"`
+	ExpectedRouteMatched bool    `json:"expected_route_matched"`
+	LocalModelAllowed    bool    `json:"local_model_allowed"`
+	GeneralModelHint     bool    `json:"general_model_escalation_hint"`
 }
 
 type ComparisonBundle struct {
@@ -184,10 +184,10 @@ func BuildComparisonBundle(f Fixture) (ComparisonBundle, error) {
 		routing.Route == hybridreasoning.RouteHumanOrStrongerReview
 
 	raw := RawRequest{
-		Schema: "sei-cognition.raw-context-baseline/v0",
-		Status: "evaluation-only",
+		Schema:    "sei-cognition.raw-context-baseline/v0",
+		Status:    "evaluation-only",
 		Objective: f.Objective,
-		Context: strings.Join(f.RawContext, "\n"),
+		Context:   strings.Join(f.RawContext, "\n"),
 	}
 	workspaceBytes, err := json.Marshal(workspace)
 	if err != nil {
@@ -199,28 +199,28 @@ func BuildComparisonBundle(f Fixture) (ComparisonBundle, error) {
 	}
 
 	return ComparisonBundle{
-		Schema: "sei-cognition.cognitive-workspace-comparison/v0",
-		Status: "evaluation-only",
+		Schema:    "sei-cognition.cognitive-workspace-comparison/v0",
+		Status:    "evaluation-only",
 		FixtureID: f.ID,
-		Raw: raw,
+		Raw:       raw,
 		Workspace: workspace,
 		Staged: StagedRequest{
-			Schema: "sei-cognition.staged-cognition-request/v0",
-			Status: "evaluation-only",
-			Routing: routing,
-			Workspace: workspace,
-			GeneralModelEscalationHint: generalHint,
+			Schema:                       "sei-cognition.staged-cognition-request/v0",
+			Status:                       "evaluation-only",
+			Routing:                      routing,
+			Workspace:                    workspace,
+			GeneralModelEscalationHint:   generalHint,
 			HeavyCognitionOrEvidenceNeed: heavyNeed,
 		},
 		Stats: BundleStats{
-			RawContextChars: len([]rune(raw.Context)),
-			WorkspaceJSONChars: len([]rune(string(workspaceBytes))),
-			TotalRecordCount: len(f.Records),
-			SelectedRecordCount: len(f.SelectedRefs),
-			SelectedRecordRatio: selectedRatio,
+			RawContextChars:      len([]rune(raw.Context)),
+			WorkspaceJSONChars:   len([]rune(string(workspaceBytes))),
+			TotalRecordCount:     len(f.Records),
+			SelectedRecordCount:  len(f.SelectedRefs),
+			SelectedRecordRatio:  selectedRatio,
 			ExpectedRouteMatched: routing.Route == f.ExpectedRoute,
-			LocalModelAllowed: routing.LocalModelAllowed,
-			GeneralModelHint: generalHint,
+			LocalModelAllowed:    routing.LocalModelAllowed,
+			GeneralModelHint:     generalHint,
 		},
 	}, nil
 }
@@ -249,9 +249,9 @@ func ValidateFixture(f Fixture) error {
 		byRef[record.Ref] = record
 	}
 	for name, refs := range map[string][]string{
-		"selected": f.SelectedRefs,
-		"unknown": f.UnknownRefs,
-		"conflict": f.ConflictRefs,
+		"selected":       f.SelectedRefs,
+		"unknown":        f.UnknownRefs,
+		"conflict":       f.ConflictRefs,
 		"decision basis": f.DecisionBasisRefs,
 	} {
 		for _, ref := range refs {
@@ -262,7 +262,7 @@ func ValidateFixture(f Fixture) error {
 	}
 	for name, ref := range map[string]string{
 		"recommendation": f.RecommendationRef,
-		"decision": f.DecisionRef,
+		"decision":       f.DecisionRef,
 	} {
 		if ref != "" {
 			if _, ok := byRef[ref]; !ok {
@@ -365,18 +365,18 @@ func EvaluateOutput(f Fixture, out ModelOutput) (EvaluationReport, error) {
 	}
 
 	return EvaluationReport{
-		FixtureID: f.ID,
-		UnknownPreservationRate: unknownRate,
-		ConflictPreservationRate: conflictRate,
-		RecommendationDecisionSeparated: separated,
-		HistoricalBasisViolationCount: historicalViolations,
-		UnsupportedClaimCount: unsupported,
-		InvalidReferenceCount: invalidRefs,
-		SupportedMaterialClaimCount: supportedClaims,
-		NeedMoreEvidenceAppropriate: needMoreAppropriate,
-		AllExpectedUnknownsPreserved: unknownRate == 1.0,
-		AllExpectedConflictsPreserved: conflictRate == 1.0,
-		NoHistoricalBasisViolation: historicalViolations == 0,
+		FixtureID:                         f.ID,
+		UnknownPreservationRate:           unknownRate,
+		ConflictPreservationRate:          conflictRate,
+		RecommendationDecisionSeparated:   separated,
+		HistoricalBasisViolationCount:     historicalViolations,
+		UnsupportedClaimCount:             unsupported,
+		InvalidReferenceCount:             invalidRefs,
+		SupportedMaterialClaimCount:       supportedClaims,
+		NeedMoreEvidenceAppropriate:       needMoreAppropriate,
+		AllExpectedUnknownsPreserved:      unknownRate == 1.0,
+		AllExpectedConflictsPreserved:     conflictRate == 1.0,
+		NoHistoricalBasisViolation:        historicalViolations == 0,
 		AllMaterialClaimsHaveValidSupport: unsupported == 0 && invalidRefs == 0,
 	}, nil
 }
@@ -432,9 +432,9 @@ func uniqueStrings(values []string) []string {
 func ReferenceFixtures() []Fixture {
 	return []Fixture{
 		{
-			ID: "decisionless-inquiry",
+			ID:        "decisionless-inquiry",
 			Objective: "Choose whether to continue evaluating a local-first note workflow.",
-			Task: "compare",
+			Task:      "compare",
 			RawContext: []string{
 				"The workflow can export plain files and works offline.",
 				"The user has not yet measured reopen effort after a week.",
@@ -444,16 +444,16 @@ func ReferenceFixtures() []Fixture {
 				{Ref: "obs-1", Kind: "observation", Summary: "Plain-file export and offline read are available."},
 				{Ref: "unk-1", Kind: "unknown", Summary: "Seven-day reopen effort has not been measured."},
 			},
-			SelectedRefs: []string{"obs-1", "unk-1"},
-			UnknownRefs: []string{"unk-1"},
-			Constraints: []string{"Do not invent a Decision."},
-			RouteContext: hybridreasoning.RoutingContext{NoveltySignal: 0.25},
+			SelectedRefs:  []string{"obs-1", "unk-1"},
+			UnknownRefs:   []string{"unk-1"},
+			Constraints:   []string{"Do not invent a Decision."},
+			RouteContext:  hybridreasoning.RoutingContext{NoveltySignal: 0.25},
 			ExpectedRoute: hybridreasoning.RouteLocalSLM,
 		},
 		{
-			ID: "decision-with-unknown",
+			ID:        "decision-with-unknown",
 			Objective: "Reassess an existing local deployment choice without erasing unresolved risk.",
-			Task: "synthesize",
+			Task:      "synthesize",
 			RawContext: []string{
 				"A local deployment was chosen because it remains readable offline.",
 				"Long-term migration cost remains unknown.",
@@ -464,18 +464,18 @@ func ReferenceFixtures() []Fixture {
 				{Ref: "unk-2", Kind: "unknown", Summary: "Long-term migration cost is unknown.", CapturedAt: "2026-08-31T10:00:00Z"},
 				{Ref: "dec-2", Kind: "decision", Summary: "Use the local deployment for the evaluation period.", CapturedAt: "2026-09-01T09:00:00Z"},
 			},
-			SelectedRefs: []string{"obs-2", "unk-2", "dec-2"},
-			UnknownRefs: []string{"unk-2"},
-			DecisionRef: "dec-2",
+			SelectedRefs:      []string{"obs-2", "unk-2", "dec-2"},
+			UnknownRefs:       []string{"unk-2"},
+			DecisionRef:       "dec-2",
 			DecisionBasisRefs: []string{"obs-2", "unk-2"},
-			DecidedAt: "2026-09-01T09:00:00Z",
-			RouteContext: hybridreasoning.RoutingContext{NoveltySignal: 0.20},
-			ExpectedRoute: hybridreasoning.RouteLocalSLM,
+			DecidedAt:         "2026-09-01T09:00:00Z",
+			RouteContext:      hybridreasoning.RoutingContext{NoveltySignal: 0.20},
+			ExpectedRoute:     hybridreasoning.RouteLocalSLM,
 		},
 		{
-			ID: "recommendation-not-decision",
+			ID:        "recommendation-not-decision",
 			Objective: "Compare the current recommendation with the user's recorded decision.",
-			Task: "compare",
+			Task:      "compare",
 			RawContext: []string{
 				"The system recommended option B after a latency test.",
 				"The user chose option A because portability was more important.",
@@ -485,18 +485,18 @@ func ReferenceFixtures() []Fixture {
 				{Ref: "rec-3", Kind: "recommendation", Summary: "Prefer option B for latency."},
 				{Ref: "dec-3", Kind: "decision", Summary: "Use option A because portability dominates latency."},
 			},
-			SelectedRefs: []string{"obs-3", "rec-3", "dec-3"},
+			SelectedRefs:      []string{"obs-3", "rec-3", "dec-3"},
 			RecommendationRef: "rec-3",
-			DecisionRef: "dec-3",
+			DecisionRef:       "dec-3",
 			DecisionBasisRefs: []string{"obs-3"},
-			DecidedAt: "2026-09-02T09:00:00Z",
-			RouteContext: hybridreasoning.RoutingContext{NoveltySignal: 0.15},
-			ExpectedRoute: hybridreasoning.RouteLocalSLM,
+			DecidedAt:         "2026-09-02T09:00:00Z",
+			RouteContext:      hybridreasoning.RoutingContext{NoveltySignal: 0.15},
+			ExpectedRoute:     hybridreasoning.RouteLocalSLM,
 		},
 		{
-			ID: "late-arriving-evidence",
+			ID:        "late-arriving-evidence",
 			Objective: "Explain what changed after a historical Decision without rewriting its basis.",
-			Task: "explain",
+			Task:      "explain",
 			RawContext: []string{
 				"On September 2 the user decided using evidence then available.",
 				"A price change had actually taken effect on September 1 but was only discovered on September 5.",
@@ -506,18 +506,18 @@ func ReferenceFixtures() []Fixture {
 				{Ref: "dec-4", Kind: "decision", Summary: "Proceed under the known cost assumption.", CapturedAt: "2026-09-02T09:00:00Z"},
 				{Ref: "obs-4b", Kind: "observation", Summary: "A price increase had become valid earlier but was discovered later.", CapturedAt: "2026-09-05T10:00:00Z", SubjectAt: "2026-09-01T00:00:00Z"},
 			},
-			SelectedRefs: []string{"obs-4a", "dec-4", "obs-4b"},
-			DecisionRef: "dec-4",
+			SelectedRefs:      []string{"obs-4a", "dec-4", "obs-4b"},
+			DecisionRef:       "dec-4",
 			DecisionBasisRefs: []string{"obs-4a"},
-			DecidedAt: "2026-09-02T09:00:00Z",
-			Constraints: []string{"Later-captured evidence must not be added retroactively to the historical Decision basis."},
-			RouteContext: hybridreasoning.RoutingContext{NoveltySignal: 0.25},
-			ExpectedRoute: hybridreasoning.RouteLocalSLM,
+			DecidedAt:         "2026-09-02T09:00:00Z",
+			Constraints:       []string{"Later-captured evidence must not be added retroactively to the historical Decision basis."},
+			RouteContext:      hybridreasoning.RoutingContext{NoveltySignal: 0.25},
+			ExpectedRoute:     hybridreasoning.RouteLocalSLM,
 		},
 		{
-			ID: "current-external-fact",
+			ID:        "current-external-fact",
 			Objective: "Determine the current status of an external service before making a recommendation.",
-			Task: "synthesize",
+			Task:      "synthesize",
 			RawContext: []string{
 				"The last saved status is one week old.",
 				"A current external fact is required before answering.",
@@ -526,15 +526,15 @@ func ReferenceFixtures() []Fixture {
 				{Ref: "obs-5", Kind: "observation", Summary: "Saved service status is one week old."},
 				{Ref: "unk-5", Kind: "unknown", Summary: "Current service status is unknown."},
 			},
-			SelectedRefs: []string{"obs-5", "unk-5"},
-			UnknownRefs: []string{"unk-5"},
-			RouteContext: hybridreasoning.RoutingContext{RequiresCurrentExternalFact: true, NoveltySignal: 0.30},
+			SelectedRefs:  []string{"obs-5", "unk-5"},
+			UnknownRefs:   []string{"unk-5"},
+			RouteContext:  hybridreasoning.RoutingContext{RequiresCurrentExternalFact: true, NoveltySignal: 0.30},
 			ExpectedRoute: hybridreasoning.RouteExternalEvidence,
 		},
 		{
-			ID: "high-novelty",
+			ID:        "high-novelty",
 			Objective: "Assess an unfamiliar incident pattern without filling missing evidence by model guess.",
-			Task: "hypothesize",
+			Task:      "hypothesize",
 			RawContext: []string{
 				"The incident pattern has no close prior case.",
 				"The available evidence is sparse and contradictory.",
@@ -543,23 +543,23 @@ func ReferenceFixtures() []Fixture {
 				{Ref: "obs-6", Kind: "observation", Summary: "Observed signals do not match known incident patterns."},
 				{Ref: "conf-6", Kind: "conflict", Summary: "Two available logs disagree about the event order."},
 			},
-			SelectedRefs: []string{"obs-6", "conf-6"},
-			ConflictRefs: []string{"conf-6"},
-			RouteContext: hybridreasoning.RoutingContext{NoveltySignal: 0.92},
+			SelectedRefs:  []string{"obs-6", "conf-6"},
+			ConflictRefs:  []string{"conf-6"},
+			RouteContext:  hybridreasoning.RoutingContext{NoveltySignal: 0.92},
 			ExpectedRoute: hybridreasoning.RouteExpandEvidence,
 		},
 		{
-			ID: "deterministic",
+			ID:        "deterministic",
 			Objective: "Validate whether a Decision basis contains a post-decision observation.",
-			Task: "historical-basis-check",
+			Task:      "historical-basis-check",
 			RawContext: []string{
 				"The rule is deterministic: evidence captured after the Decision cannot be historical basis.",
 			},
 			Records: []Record{
 				{Ref: "rule-7", Kind: "constraint", Summary: "Post-decision captured evidence cannot be historical basis."},
 			},
-			SelectedRefs: []string{"rule-7"},
-			RouteContext: hybridreasoning.RoutingContext{DeterministicAnswerAvailable: true},
+			SelectedRefs:  []string{"rule-7"},
+			RouteContext:  hybridreasoning.RoutingContext{DeterministicAnswerAvailable: true},
 			ExpectedRoute: hybridreasoning.RouteSymbolic,
 		},
 	}

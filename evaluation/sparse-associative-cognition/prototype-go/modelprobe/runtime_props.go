@@ -66,9 +66,9 @@ func ObserveRuntimeProps(
 	}
 
 	var payload struct {
-		Role       string `json:"role"`
-		ModelPath  string `json:"model_path"`
-		ModelAlias string `json:"model_alias"`
+		Role                      string `json:"role"`
+		ModelPath                 string `json:"model_path"`
+		ModelAlias                string `json:"model_alias"`
 		DefaultGenerationSettings struct {
 			ContextSize int `json:"n_ctx"`
 		} `json:"default_generation_settings"`

@@ -67,7 +67,6 @@ func TestReadStrictJSONAcceptsSingleValue(t *testing.T) {
 	}
 }
 
-
 func TestValidateExpectedHost(t *testing.T) {
 	host := modelprobe.HostInfo{
 		OS:         "linux",
@@ -102,7 +101,6 @@ func TestValidateExpectedHostRejectsMismatch(t *testing.T) {
 		})
 	}
 }
-
 
 func TestVerificationSchemaVersion(t *testing.T) {
 	if verificationSchema != "sei-cognition.local-model-matrix-verification/v1" {

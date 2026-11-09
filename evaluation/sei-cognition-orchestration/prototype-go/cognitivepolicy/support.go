@@ -15,15 +15,15 @@ type RouteObservationSupport struct {
 // are represented in OutcomeRecord observations. Full route coverage does not
 // imply that route assignment was unbiased or randomized.
 type ObservationalSupport struct {
-	ProblemClass              string
-	Routes                    map[string]RouteObservationSupport
-	TotalAssessed             int
-	TotalNotAssessed          int
-	RoutesWithAssessed        []string
-	RoutesWithoutAssessed     []string
-	ObservedPolicyVersions    []string
-	AllAllowedRoutesAssessed  bool
-	SelectionBiasCorrected    bool
+	ProblemClass             string
+	Routes                   map[string]RouteObservationSupport
+	TotalAssessed            int
+	TotalNotAssessed         int
+	RoutesWithAssessed       []string
+	RoutesWithoutAssessed    []string
+	ObservedPolicyVersions   []string
+	AllAllowedRoutesAssessed bool
+	SelectionBiasCorrected   bool
 }
 
 // DiagnoseObservationalSupport reuses OutcomeRecord validation and aggregation

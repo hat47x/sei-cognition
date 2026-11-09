@@ -31,12 +31,12 @@ type Policy struct {
 }
 
 type Observation struct {
-	Key                    string
-	Fingerprint            string
-	Tick                   uint64
-	HabituationEligible    bool
-	HighStakes             bool
-	StakesProvenanceRef    string
+	Key                 string
+	Fingerprint         string
+	Tick                uint64
+	HabituationEligible bool
+	HighStakes          bool
+	StakesProvenanceRef string
 }
 
 type Result struct {

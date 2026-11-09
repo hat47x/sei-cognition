@@ -18,9 +18,9 @@ const BaselineVersion = "v0"
 type CognitiveOutcome string
 
 const (
-	CognitiveSufficient  CognitiveOutcome = "sufficient"
+	CognitiveSufficient   CognitiveOutcome = "sufficient"
 	CognitiveInsufficient CognitiveOutcome = "insufficient"
-	CognitiveNotAssessed CognitiveOutcome = "not-assessed"
+	CognitiveNotAssessed  CognitiveOutcome = "not-assessed"
 )
 
 type ExecutionOutcome string

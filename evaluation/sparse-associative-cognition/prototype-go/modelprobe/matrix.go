@@ -16,21 +16,21 @@ const (
 )
 
 type MatrixConfig struct {
-	RunIDPrefix    string
-	SourceGitSHA   string
-	HealthEndpoint string
-	RuntimeName    string
-	RuntimeVersion string
-	RuntimePID     int
+	RunIDPrefix            string
+	SourceGitSHA           string
+	HealthEndpoint         string
+	RuntimeName            string
+	RuntimeVersion         string
+	RuntimePID             int
 	RuntimeMetricsEndpoint string
-	RuntimePropsEndpoint string
-	ModelFilePath string
-	ModelArtifact  ModelArtifactIdentity
-	Quantization   string
-	ContextSize    int
-	Threads        int
-	Timeout        time.Duration
-	Probe          Config
+	RuntimePropsEndpoint   string
+	ModelFilePath          string
+	ModelArtifact          ModelArtifactIdentity
+	Quantization           string
+	ContextSize            int
+	Threads                int
+	Timeout                time.Duration
+	Probe                  Config
 }
 
 type MatrixFailure struct {
@@ -41,25 +41,25 @@ type MatrixFailure struct {
 }
 
 type ActualMatrixArtifact struct {
-	Schema       string               `json:"schema"`
-	Status       string               `json:"status"`
-	RunIDPrefix  string               `json:"run_id_prefix"`
-	SourceGitSHA string               `json:"source_git_sha"`
-	Model        string               `json:"model"`
-	ModelArtifact ModelArtifactIdentity `json:"model_artifact"`
-	Host         HostInfo             `json:"host"`
-	Preflights   []RunManifest        `json:"preflights"`
-	Raw          *ActualRunArtifact   `json:"raw,omitempty"`
-	Workspace    *ActualRunArtifact   `json:"workspace,omitempty"`
-	Staged       *ActualRunArtifact   `json:"staged,omitempty"`
-	Comparison   *ActualRunComparison `json:"comparison,omitempty"`
-	RuntimeProcess RuntimeProcessIdentity `json:"runtime_process"`
-	RuntimeMemory RuntimeMemoryEvidence `json:"runtime_memory"`
-	RuntimeMetrics RuntimeMetricsEvidence `json:"runtime_metrics"`
-	RuntimeProps RuntimePropsEvidence `json:"runtime_props"`
+	Schema              string                      `json:"schema"`
+	Status              string                      `json:"status"`
+	RunIDPrefix         string                      `json:"run_id_prefix"`
+	SourceGitSHA        string                      `json:"source_git_sha"`
+	Model               string                      `json:"model"`
+	ModelArtifact       ModelArtifactIdentity       `json:"model_artifact"`
+	Host                HostInfo                    `json:"host"`
+	Preflights          []RunManifest               `json:"preflights"`
+	Raw                 *ActualRunArtifact          `json:"raw,omitempty"`
+	Workspace           *ActualRunArtifact          `json:"workspace,omitempty"`
+	Staged              *ActualRunArtifact          `json:"staged,omitempty"`
+	Comparison          *ActualRunComparison        `json:"comparison,omitempty"`
+	RuntimeProcess      RuntimeProcessIdentity      `json:"runtime_process"`
+	RuntimeMemory       RuntimeMemoryEvidence       `json:"runtime_memory"`
+	RuntimeMetrics      RuntimeMetricsEvidence      `json:"runtime_metrics"`
+	RuntimeProps        RuntimePropsEvidence        `json:"runtime_props"`
 	RuntimeModelMapping RuntimeModelMappingEvidence `json:"runtime_model_mapping"`
-	Failures     []MatrixFailure      `json:"failures,omitempty"`
-	Notes        []string             `json:"notes"`
+	Failures            []MatrixFailure             `json:"failures,omitempty"`
+	Notes               []string                    `json:"notes"`
 }
 
 func RunActualMatrix(
@@ -94,10 +94,10 @@ func RunActualMatrix(
 	}
 
 	matrix := ActualMatrixArtifact{
-		Schema:       actualMatrixArtifactSchema,
-		Status:       "evaluation-only",
-		RunIDPrefix:  cfg.RunIDPrefix,
-		SourceGitSHA: cfg.SourceGitSHA,
+		Schema:        actualMatrixArtifactSchema,
+		Status:        "evaluation-only",
+		RunIDPrefix:   cfg.RunIDPrefix,
+		SourceGitSHA:  cfg.SourceGitSHA,
 		Model:         cfg.Probe.Model,
 		ModelArtifact: cfg.ModelArtifact,
 		Host: HostInfo{
@@ -106,10 +106,10 @@ func RunActualMatrix(
 			LogicalCPU: runtime.NumCPU(),
 			GoVersion:  runtime.Version(),
 		},
-		RuntimeProcess: ObserveRuntimeProcessIdentity(cfg.RuntimePID),
-		RuntimeMemory: newRuntimeMemoryEvidence(cfg.RuntimePID),
-		RuntimeMetrics: newRuntimeMetricsEvidence(cfg.RuntimeMetricsEndpoint),
-		RuntimeProps: RuntimePropsEvidence{Status: "not-requested"},
+		RuntimeProcess:      ObserveRuntimeProcessIdentity(cfg.RuntimePID),
+		RuntimeMemory:       newRuntimeMemoryEvidence(cfg.RuntimePID),
+		RuntimeMetrics:      newRuntimeMetricsEvidence(cfg.RuntimeMetricsEndpoint),
+		RuntimeProps:        RuntimePropsEvidence{Status: "not-requested"},
 		RuntimeModelMapping: RuntimeModelMappingEvidence{Status: "not-requested"},
 		Notes: []string{
 			"complete means the three probe modes executed without invocation errors and produced a descriptive comparison",

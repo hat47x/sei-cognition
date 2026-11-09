@@ -6,7 +6,7 @@ func testCandidate(ref string, activation float32) Candidate {
 	return Candidate{
 		Ref: ref, Activation: activation,
 		Meaning: map[string]any{
-			"type": "Inquiry",
+			"type":     "Inquiry",
 			"question": "ローカルMarkdownを主にするか",
 			"unknowns": []map[string]any{{"summary": "外出先編集頻度は未確認"}},
 		},

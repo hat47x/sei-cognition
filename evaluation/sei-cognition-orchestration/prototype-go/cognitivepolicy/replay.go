@@ -11,15 +11,15 @@ type ReplayCase struct {
 }
 
 type ReplayMetrics struct {
-	TotalCases                  int
-	PolicySuccesses             int
-	StaticSuccesses             int
-	UnnecessaryEscalations      int
-	RegretAgainstStatic         int
-	PolicySuccessRate           float64
-	StaticSuccessRate           float64
-	UnnecessaryEscalationRate   float64
-	RegretAgainstStaticRate     float64
+	TotalCases                int
+	PolicySuccesses           int
+	StaticSuccesses           int
+	UnnecessaryEscalations    int
+	RegretAgainstStatic       int
+	PolicySuccessRate         float64
+	StaticSuccessRate         float64
+	UnnecessaryEscalationRate float64
+	RegretAgainstStaticRate   float64
 }
 
 // Replay evaluates a fixed immutable policy snapshot against synthetic or

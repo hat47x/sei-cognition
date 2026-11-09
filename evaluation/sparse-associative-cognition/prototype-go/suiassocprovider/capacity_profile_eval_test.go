@@ -90,7 +90,7 @@ func structureHeavyCapacityEvalItems() (Item, Item, Item) {
 			},
 			Provenance: &ProvenanceChannel{
 				SourceRefs: values("s", 8),
-				ActorRefs: values("a", 8),
+				ActorRefs:  values("a", 8),
 			},
 			Grouping: &GroupingChannel{IslandRef: "is-struct", HoldState: "hold"},
 		},
@@ -108,7 +108,7 @@ func structureHeavyCapacityEvalItems() (Item, Item, Item) {
 			},
 			Provenance: &ProvenanceChannel{
 				SourceRefs: []string{"sx"},
-				ActorRefs: []string{"ax"},
+				ActorRefs:  []string{"ax"},
 			},
 			Grouping: &GroupingChannel{IslandRef: "is-other", HoldState: "none"},
 		},
@@ -127,7 +127,7 @@ func textHeavyCapacityEvalItems() (Item, Item, Item) {
 			},
 			Provenance: &ProvenanceChannel{
 				SourceRefs: []string{"s1", "s2"},
-				ActorRefs: []string{"human:a", "ai:b"},
+				ActorRefs:  []string{"human:a", "ai:b"},
 			},
 			Grouping: &GroupingChannel{IslandRef: "it", HoldState: "hold"},
 		},
@@ -142,7 +142,7 @@ func textHeavyCapacityEvalItems() (Item, Item, Item) {
 			},
 			Provenance: &ProvenanceChannel{
 				SourceRefs: []string{"s1", "s2"},
-				ActorRefs: []string{"human:a", "ai:b"},
+				ActorRefs:  []string{"human:a", "ai:b"},
 			},
 			Grouping: &GroupingChannel{IslandRef: "it", HoldState: "hold"},
 		},
@@ -157,7 +157,7 @@ func textHeavyCapacityEvalItems() (Item, Item, Item) {
 			},
 			Provenance: &ProvenanceChannel{
 				SourceRefs: []string{"s9"},
-				ActorRefs: []string{"human:z"},
+				ActorRefs:  []string{"human:z"},
 			},
 			Grouping: &GroupingChannel{IslandRef: "ix", HoldState: "none"},
 		},

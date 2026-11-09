@@ -229,7 +229,6 @@ func TestRunActualMatrixRejectsInvalidIdentity(t *testing.T) {
 	}
 }
 
-
 func TestRunActualMatrixRecordsRuntimeMemoryWhenRequested(t *testing.T) {
 	if runtime.GOOS != "linux" {
 		t.Skip("Linux /proc test")
@@ -366,7 +365,6 @@ func TestRunActualMatrixRejectsMalformedModelArtifact(t *testing.T) {
 	}
 }
 
-
 func TestRunActualMatrixRecordsRuntimeMetricsWhenRequested(t *testing.T) {
 	var chatCalls int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -407,11 +405,11 @@ func TestRunActualMatrixRecordsRuntimeMetricsWhenRequested(t *testing.T) {
 	matrix, err := RunActualMatrix(
 		context.Background(),
 		MatrixConfig{
-			RunIDPrefix:           "matrix-runtime-metrics",
-			SourceGitSHA:          artifactTestGitSHA,
-			HealthEndpoint:        server.URL + "/health",
+			RunIDPrefix:            "matrix-runtime-metrics",
+			SourceGitSHA:           artifactTestGitSHA,
+			HealthEndpoint:         server.URL + "/health",
 			RuntimeMetricsEndpoint: server.URL + "/metrics",
-			Timeout:               2 * time.Second,
+			Timeout:                2 * time.Second,
 			Probe: Config{
 				Endpoint:   server.URL + "/v1/chat/completions",
 				Model:      "fake-model",
@@ -442,7 +440,6 @@ func TestRunActualMatrixRecordsRuntimeMetricsWhenRequested(t *testing.T) {
 		}
 	}
 }
-
 
 func TestRunActualMatrixRecordsRuntimeModelMappingWhenRequested(t *testing.T) {
 	if runtime.GOOS != "linux" {
@@ -530,7 +527,6 @@ func TestRunActualMatrixRecordsRuntimeModelMappingWhenRequested(t *testing.T) {
 	}
 }
 
-
 func TestRunActualMatrixRecordsRuntimePropsWhenRequested(t *testing.T) {
 	modelPath := filepath.Join(t.TempDir(), "candidate.gguf")
 	if err := os.WriteFile(modelPath, []byte("candidate"), 0o600); err != nil {
@@ -577,13 +573,13 @@ func TestRunActualMatrixRecordsRuntimePropsWhenRequested(t *testing.T) {
 	matrix, err := RunActualMatrix(
 		context.Background(),
 		MatrixConfig{
-			RunIDPrefix:         "matrix-runtime-props",
-			SourceGitSHA:        artifactTestGitSHA,
-			HealthEndpoint:      server.URL + "/health",
+			RunIDPrefix:          "matrix-runtime-props",
+			SourceGitSHA:         artifactTestGitSHA,
+			HealthEndpoint:       server.URL + "/health",
 			RuntimePropsEndpoint: server.URL + "/props",
-			ModelFilePath:       modelPath,
-			ModelArtifact:       identity,
-			Timeout:             2 * time.Second,
+			ModelFilePath:        modelPath,
+			ModelArtifact:        identity,
+			Timeout:              2 * time.Second,
 			Probe: Config{
 				Endpoint:   server.URL + "/v1/chat/completions",
 				Model:      "fake-model",
@@ -608,7 +604,6 @@ func TestRunActualMatrixRecordsRuntimePropsWhenRequested(t *testing.T) {
 		t.Fatalf("same-file runtime props correlation missing: %+v", matrix.RuntimeProps)
 	}
 }
-
 
 func TestRunActualMatrixBlocksExplicitRuntimeModelIdentityMismatch(t *testing.T) {
 	dir := t.TempDir()

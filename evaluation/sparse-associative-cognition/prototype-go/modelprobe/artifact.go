@@ -23,41 +23,41 @@ type ActualRunArtifact struct {
 }
 
 type EvaluationAggregate struct {
-	Mode                                     Mode    `json:"mode"`
-	ResultCount                              int     `json:"result_count"`
-	EvaluatedFixtureCount                    int     `json:"evaluated_fixture_count"`
-	SkippedFixtureCount                      int     `json:"skipped_fixture_count"`
-	UnknownPreservationRateMean              float64 `json:"unknown_preservation_rate_mean"`
-	ConflictPreservationRateMean             float64 `json:"conflict_preservation_rate_mean"`
-	RecommendationDecisionSeparatedCount     int     `json:"recommendation_decision_separated_count"`
-	HistoricalBasisViolationCount            int     `json:"historical_basis_violation_count"`
-	UnsupportedClaimCount                    int     `json:"unsupported_claim_count"`
-	InvalidReferenceCount                    int     `json:"invalid_reference_count"`
-	NeedMoreEvidenceAppropriateCount         int     `json:"need_more_evidence_appropriate_count"`
-	AllMaterialClaimsHaveValidSupportCount   int     `json:"all_material_claims_have_valid_support_count"`
-	ResponseHeaderLatencyMSTotal             int64   `json:"response_header_latency_ms_total"`
-	FirstTokenObservedCount                  int     `json:"first_token_observed_count"`
-	FirstTokenLatencyMSMean                  float64 `json:"first_token_latency_ms_mean"`
-	TotalLatencyMS                           int64   `json:"total_latency_ms"`
-	TotalPromptTokens                        int     `json:"total_prompt_tokens"`
-	TotalCompletionTokens                    int     `json:"total_completion_tokens"`
-	TotalTokens                              int     `json:"total_tokens"`
+	Mode                                   Mode    `json:"mode"`
+	ResultCount                            int     `json:"result_count"`
+	EvaluatedFixtureCount                  int     `json:"evaluated_fixture_count"`
+	SkippedFixtureCount                    int     `json:"skipped_fixture_count"`
+	UnknownPreservationRateMean            float64 `json:"unknown_preservation_rate_mean"`
+	ConflictPreservationRateMean           float64 `json:"conflict_preservation_rate_mean"`
+	RecommendationDecisionSeparatedCount   int     `json:"recommendation_decision_separated_count"`
+	HistoricalBasisViolationCount          int     `json:"historical_basis_violation_count"`
+	UnsupportedClaimCount                  int     `json:"unsupported_claim_count"`
+	InvalidReferenceCount                  int     `json:"invalid_reference_count"`
+	NeedMoreEvidenceAppropriateCount       int     `json:"need_more_evidence_appropriate_count"`
+	AllMaterialClaimsHaveValidSupportCount int     `json:"all_material_claims_have_valid_support_count"`
+	ResponseHeaderLatencyMSTotal           int64   `json:"response_header_latency_ms_total"`
+	FirstTokenObservedCount                int     `json:"first_token_observed_count"`
+	FirstTokenLatencyMSMean                float64 `json:"first_token_latency_ms_mean"`
+	TotalLatencyMS                         int64   `json:"total_latency_ms"`
+	TotalPromptTokens                      int     `json:"total_prompt_tokens"`
+	TotalCompletionTokens                  int     `json:"total_completion_tokens"`
+	TotalTokens                            int     `json:"total_tokens"`
 }
 
 type PairwiseEvaluationDelta struct {
-	SharedEvaluatedFixtureCount                         int     `json:"shared_evaluated_fixture_count"`
-	WorkspaceMinusRawUnknownPreservationRateMean       float64 `json:"workspace_minus_raw_unknown_preservation_rate_mean"`
-	WorkspaceMinusRawConflictPreservationRateMean      float64 `json:"workspace_minus_raw_conflict_preservation_rate_mean"`
-	WorkspaceMinusRawRecommendationDecisionSeparated  int     `json:"workspace_minus_raw_recommendation_decision_separated"`
-	WorkspaceMinusRawHistoricalBasisViolations         int     `json:"workspace_minus_raw_historical_basis_violations"`
-	WorkspaceMinusRawUnsupportedClaims                 int     `json:"workspace_minus_raw_unsupported_claims"`
-	WorkspaceMinusRawInvalidReferences                 int     `json:"workspace_minus_raw_invalid_references"`
-	WorkspaceMinusRawNeedMoreEvidenceAppropriate       int     `json:"workspace_minus_raw_need_more_evidence_appropriate"`
-	WorkspaceMinusRawValidMaterialSupport              int     `json:"workspace_minus_raw_valid_material_support"`
-	SharedFirstTokenFixtureCount                       int     `json:"shared_first_token_fixture_count"`
-	WorkspaceMinusRawFirstTokenLatencyMSMean           float64 `json:"workspace_minus_raw_first_token_latency_ms_mean"`
-	WorkspaceMinusRawLatencyMS                         int64   `json:"workspace_minus_raw_latency_ms"`
-	WorkspaceMinusRawTotalTokens                       int     `json:"workspace_minus_raw_total_tokens"`
+	SharedEvaluatedFixtureCount                      int     `json:"shared_evaluated_fixture_count"`
+	WorkspaceMinusRawUnknownPreservationRateMean     float64 `json:"workspace_minus_raw_unknown_preservation_rate_mean"`
+	WorkspaceMinusRawConflictPreservationRateMean    float64 `json:"workspace_minus_raw_conflict_preservation_rate_mean"`
+	WorkspaceMinusRawRecommendationDecisionSeparated int     `json:"workspace_minus_raw_recommendation_decision_separated"`
+	WorkspaceMinusRawHistoricalBasisViolations       int     `json:"workspace_minus_raw_historical_basis_violations"`
+	WorkspaceMinusRawUnsupportedClaims               int     `json:"workspace_minus_raw_unsupported_claims"`
+	WorkspaceMinusRawInvalidReferences               int     `json:"workspace_minus_raw_invalid_references"`
+	WorkspaceMinusRawNeedMoreEvidenceAppropriate     int     `json:"workspace_minus_raw_need_more_evidence_appropriate"`
+	WorkspaceMinusRawValidMaterialSupport            int     `json:"workspace_minus_raw_valid_material_support"`
+	SharedFirstTokenFixtureCount                     int     `json:"shared_first_token_fixture_count"`
+	WorkspaceMinusRawFirstTokenLatencyMSMean         float64 `json:"workspace_minus_raw_first_token_latency_ms_mean"`
+	WorkspaceMinusRawLatencyMS                       int64   `json:"workspace_minus_raw_latency_ms"`
+	WorkspaceMinusRawTotalTokens                     int     `json:"workspace_minus_raw_total_tokens"`
 }
 
 type InvocationComparison struct {
