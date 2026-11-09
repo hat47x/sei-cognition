@@ -89,10 +89,17 @@ func TestOneInvalidKnownContractRecordStopsTheWholeStore(t *testing.T) {
 		t.Errorf("doctor must fail and name the record: %v\n%s", err, buf.String())
 	}
 
-	// export does not interpret records, so it still writes the raw bundle. It
-	// is the one way out of the store that works while it is invalid.
+	// export validates by default, so it refuses an invalid store. --unchecked
+	// does not interpret records and writes the raw bundle: the one way out of
+	// the store that works while it is invalid.
 	exported := filepath.Join(t.TempDir(), "out.json")
-	mustRun(t, "export", "--data-root", root, "--output", exported)
+	if _, err := run(t, "export", "--data-root", root, "--output", exported); err == nil {
+		t.Error("export without --unchecked must refuse an invalid store")
+	}
+	if _, err := os.Stat(exported); err == nil {
+		t.Error("a refused export must not leave a file")
+	}
+	mustRun(t, "export", "--data-root", root, "--output", exported, "--unchecked")
 	got, _ := os.ReadFile(exported)
 	if !bytes.Equal(got, before) {
 		t.Error("export must write the stored bytes unchanged")

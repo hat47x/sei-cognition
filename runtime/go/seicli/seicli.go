@@ -997,6 +997,7 @@ func runExport(ctx context.Context, args []string, stdout, stderr io.Writer) err
 	f := newFlags("export", stderr)
 	root := dataRootFlag(f)
 	output := f.String("output", "", "file to create (required; an existing file is never overwritten)")
+	unchecked := f.Bool("unchecked", false, "write the stored bytes without validating them, for inspecting a store that no longer verifies (no snapshot_digest is printed)")
 	if done, err := parseFlags(f, args, stdout, stderr); done || err != nil {
 		return err
 	}
@@ -1009,6 +1010,17 @@ func runExport(ctx context.Context, args []string, stdout, stderr io.Writer) err
 	}
 	if err != nil {
 		return err
+	}
+	// 書き出す前に、読み取り側(verify・resume・gate・doctor)と同じ検証を通す。
+	// 通らない束にsnapshot_digestを付けて終了コード0で渡すと、受け取った側が
+	// 壊れた束を「そのstoreの束」として照合できてしまう。未知Contractのrecord
+	// (not_verified)は、verifyと同じく受理する。
+	var bundle *semanticruntime.Bundle
+	if !*unchecked {
+		bundle, err = semanticruntime.LoadInterchange(data)
+		if err != nil {
+			return fmt.Errorf("store is invalid, so nothing was exported (use --unchecked to take the stored bytes out for inspection): %w", err)
+		}
 	}
 	// O_EXCL makes the check and the create one step, so an existing file,
 	// including another store's bundle or the gate log, is never replaced.
@@ -1028,14 +1040,19 @@ func runExport(ctx context.Context, args []string, stdout, stderr io.Writer) err
 	}
 	// 書き出したバイト列の指紋値。`sei verify`・`sei resume`の snapshot_digest、
 	// `sei gate check`の bundle_digest と同じ形式で、受け取った側が照合できる。
+	if *unchecked {
+		// 検証していない束に指紋値を付けると、壊れた束を「そのstoreの束」として
+		// 照合できてしまう。調査用の取り出しだと分かる印だけを返す。
+		return writeJSON(stdout, struct {
+			Unchecked bool   `json:"unchecked"`
+			Output    string `json:"output"`
+		}{Unchecked: true, Output: *output})
+	}
 	result := struct {
 		BundleID       string `json:"bundle_id,omitempty"`
 		SnapshotDigest string `json:"snapshot_digest"`
 		Output         string `json:"output"`
-	}{SnapshotDigest: fmt.Sprintf("sha256:%x", sha256.Sum256(data)), Output: *output}
-	if bundle, err := semanticruntime.LoadInterchange(data); err == nil {
-		result.BundleID = bundle.Envelope.BundleID
-	}
+	}{BundleID: bundle.Envelope.BundleID, SnapshotDigest: fmt.Sprintf("sha256:%x", sha256.Sum256(data)), Output: *output}
 	return writeJSON(stdout, result)
 }
 
