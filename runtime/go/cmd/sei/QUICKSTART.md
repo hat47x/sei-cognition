@@ -87,7 +87,7 @@ sei verify --input decisions.json
 
 `verify`は、`.sei/`も`sei`の記録も持たない環境で動きます。ファイルだけで、形式の検証ができます。
 
-`export`は、書き出した束の`bundle_id`、`snapshot_digest`、`output`(出力先)をJSONで標準出力へ返します。`verify`の出力は、`bundle_id`、`snapshot_digest`、`record_count`、`validated_count`、`not_verified_count`です。`snapshot_digest`は読んだ(書いた)ファイルのバイト列のSHA-256(`sha256:...`)で、`sei resume`の`snapshot_digest`、`sei gate check`の`bundle_digest`と同じ形式です。受け取ったファイルと渡した側の`export`出力の値が一致すれば、同じバイト列です。値が一致しても、内容の意味の正しさや現在の適用可能性は示しません。
+`export`は、書き出した束の`bundle_id`、`snapshot_digest`、`output`(出力先)をJSONで標準出力へ返します。`export`は書き出す前にstoreを`verify`と同じ検証にかけ、通らなければファイルを作らず終了コード1で終わります。つまり、`export`が成功した束は`verify`も受理します。未知のContractの記録(`not_verified`)を含む束は、`verify`と同じく書き出せます。`verify`の出力は、`bundle_id`、`snapshot_digest`、`record_count`、`validated_count`、`not_verified_count`です。`snapshot_digest`は読んだ(書いた)ファイルのバイト列のSHA-256(`sha256:...`)で、`sei resume`の`snapshot_digest`、`sei gate check`の`bundle_digest`と同じ形式です。受け取ったファイルと渡した側の`export`出力の値が一致すれば、同じバイト列です。値が一致しても、内容の意味の正しさや現在の適用可能性は示しません。
 
 `verify`の終了コードが0なのは、束が形式として読めたことを意味します。全件が検証済みであることは意味しません。このruntimeが理解しない版のContractのrecordは`not_verified_count`に数えられ、終了コードは0のままです。呼び出し側は`not_verified_count`が0であることを自分で確かめてください。未検証があれば非0にする旗を設けるかどうかは決まっていません。
 
@@ -247,7 +247,7 @@ Exact Bindingの`content_digest`は、このruntimeが登録している`sei.jcs
 
 知らないContractや版の記録は、これとは別に扱われ、削除されず`not_verified`として残り、`resume`で読めます。既知のContract・版で形が合わない記録だけが、storeを止めます。
 
-この状態で動くのは`export`だけです。`export`は記録の中身を解釈せず、保存されているバイト列をそのまま書き出すため、止まった記録を外で調べられます。storeを直す・不正な記録を隔離するコマンドはありません。`semantic.bundle.json`を手で直してよいかも、決めていません。追記専用の原則があるため、直す前に`export`で控えを取ってください。回復の方針(既知のContractの未知の項目を拒否のままにするか、その記録だけ`not_verified`に落とすか)は、Ownerの判断待ちです(#760)。
+この状態で`export`を使うには`--unchecked`が要ります。`sei export --unchecked --output <file>`は記録の中身を解釈せず、保存されているバイト列をそのまま書き出すため、止まった記録を外で調べられます。検証していない束なので、`snapshot_digest`は出さず、`"unchecked":true`だけを返します。storeを直す・不正な記録を隔離するコマンドはありません。`semantic.bundle.json`を手で直してよいかも、決めていません。追記専用の原則があるため、直す前に`export`で控えを取ってください。回復の方針(既知のContractの未知の項目を拒否のままにするか、その記録だけ`not_verified`に落とすか)は、Ownerの判断待ちです(#760)。
 
 それでも詰まった箇所は、作者に聞く前に、そのまま記録してください。導入の観測(`evaluation/adoption-first-contact/E84_1_OBSERVATION_PROTOCOL.md`)の材料になります。
 

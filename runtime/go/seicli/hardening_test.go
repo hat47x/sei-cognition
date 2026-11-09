@@ -217,3 +217,64 @@ func TestMCPProvenanceIsTheConnectedClientName(t *testing.T) {
 		t.Errorf("provenance must be the client name from initialize:\n%s", text)
 	}
 }
+
+// exportは検証に通らないstoreを書き出さない。ファイルも作らず、非0で終わる。
+// 未知Contractのrecordを含む束(not_verified)は、verifyと同じく書き出せる。
+func TestExportRefusesStoresThatDoNotVerify(t *testing.T) {
+	fixClock(t)
+	bundleOf := func(root string) string { return filepath.Join(root, "semantic.bundle.json") }
+
+	// 不正なJSON。
+	root := filepath.Join(t.TempDir(), "store")
+	mustRun(t, "init", "--data-root", root)
+	if err := os.WriteFile(bundleOf(root), []byte("garbage{"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	out := filepath.Join(t.TempDir(), "g.json")
+	if _, err := run(t, "export", "--data-root", root, "--output", out); err == nil {
+		t.Fatal("export of an unparsable store must fail")
+	}
+	if _, err := os.Stat(out); err == nil {
+		t.Error("a failed export must not leave a file")
+	}
+	// --uncheckedは調査用に生のバイト列を取り出し、指紋値は出さない。
+	raw := filepath.Join(t.TempDir(), "raw.json")
+	got := mustRun(t, "export", "--data-root", root, "--output", raw, "--unchecked")
+	if strings.Contains(got, "snapshot_digest") || !strings.Contains(got, `"unchecked":true`) {
+		t.Errorf("--unchecked output must flag itself and carry no digest: %s", got)
+	}
+	if b, _ := os.ReadFile(raw); string(b) != "garbage{" {
+		t.Errorf("--unchecked must write the stored bytes as they are: %q", b)
+	}
+
+	// 重複record_id。
+	root2 := filepath.Join(t.TempDir(), "store")
+	mustRun(t, "init", "--data-root", root2)
+	dup := `{"contract":"sei.semantic-interchange/v1alpha1","bundle_id":"d","records":[` +
+		`{"record_id":"D-1","contract":{"contract_id":"example.future","version":"v9"},"kind":"x","payload":{}},` +
+		`{"record_id":"D-1","contract":{"contract_id":"example.future","version":"v9"},"kind":"x","payload":{}}]}`
+	if err := os.WriteFile(bundleOf(root2), []byte(dup), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	out2 := filepath.Join(t.TempDir(), "d.json")
+	if _, err := run(t, "export", "--data-root", root2, "--output", out2); err == nil {
+		t.Fatal("export of a store with duplicate record_id must fail")
+	}
+	if _, err := os.Stat(out2); err == nil {
+		t.Error("a failed export must not leave a file")
+	}
+	if _, err := run(t, "verify", "--input", bundleOf(root2)); err == nil {
+		t.Error("verify must also reject the duplicate record_id store")
+	}
+
+	// 未知Contractのrecord1件: exportできて、verifyも受理する。
+	root3 := filepath.Join(t.TempDir(), "store")
+	mustRun(t, "init", "--data-root", root3)
+	seed := `{"contract":"sei.semantic-interchange/v1alpha1","bundle_id":"imported","records":[{"record_id":"foreign","contract":{"contract_id":"example.future","version":"v9"},"kind":"x","payload":{"opaque":[1]}}]}`
+	if err := os.WriteFile(bundleOf(root3), []byte(seed), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	out3 := filepath.Join(t.TempDir(), "f.json")
+	mustRun(t, "export", "--data-root", root3, "--output", out3)
+	mustRun(t, "verify", "--input", out3)
+}
