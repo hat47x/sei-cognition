@@ -44,7 +44,7 @@ commands:
   add      append a recommendation or a decision (append-only)
   resume   show where the work stands, from the store alone
   verify   validate a portable bundle without a store
-  export   write the store as a portable bundle (never overwrites a file)
+  export   write the validated store as a portable bundle (never overwrites a file)
   doctor   check the binary, the store and the data root, without changing them
   gate     check that a recorded decision meets a policy before an action
   mcp      serve resume / add over the Model Context Protocol (stdio) for AI tools
